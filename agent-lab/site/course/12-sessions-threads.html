@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session、Thread 与恢复 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="12-sessions-threads">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage" open><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a class="current" aria-current="page" href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:40%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第三阶段 · 上下文与长期任务</span><span>第 12 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三个层级</a></li>
+<li><a href="#2-resume-fork">2. Resume 与 Fork</a></li>
+<li><a href="#3-interrupt-steer">3. Interrupt 与 Steer</a></li>
+<li><a href="#4">4. 持久化什么</a></li>
+<li><a href="#5-event-stream">5. Event Stream 驱动界面</a></li>
+<li><a href="#6">6. 回滚的真实含义</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="12-sessionthread">第 12 章 · Session、Thread 与恢复<a class="headerlink" href="#12-sessionthread" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：理解一次聊天、一次模型调用和一个长期任务不是同一对象，并学会设计恢复、分叉、打断与事件流。</p>
+</blockquote>
+<h2 id="1">1. 三个层级<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>可以把运行状态分成 Thread、Turn 和 Item：</p>
+<ul>
+<li>Thread 是一个可持续任务，保存上下文、配置和历史；</li>
+<li>Turn 是用户输入后到 Agent 停止之间的一次工作；</li>
+<li>Item 是 Turn 中的文本、工具调用、工具结果、审批或 diff 事件。</li>
+</ul>
+<p>这种层级让界面可以流式展示，也让存储系统准确恢复。只保存最终文本，会丢失工具结果和审批；只保存原始 SDK 对象，又会与 Provider 强耦合。</p>
+<h2 id="2-resume-fork">2. Resume 与 Fork<a class="headerlink" href="#2-resume-fork" title="Permanent link"></a></h2>
+<p>Resume 在同一 Thread 上继续，新的 Turn 继承原历史和任务身份。Fork 复制某个历史点创建新 Thread，适合比较两个方案或保留原路线。</p>
+<p>它们的区别类似 Git：继续在当前分支提交，与从某个提交创建新分支。Fork 后两个任务必须拥有独立状态、预算和后台进程引用，不能共享可变 history。</p>
+<h2 id="3-interrupt-steer">3. Interrupt 与 Steer<a class="headerlink" href="#3-interrupt-steer" title="Permanent link"></a></h2>
+<p>Interrupt 请求停止当前生成或工具。它不等于删除历史：已经发生的文件写入和外部动作必须保留记录。安全中断需要取消模型流、阻止新工具、终止或托管后台进程，最后写入 interrupted 状态。</p>
+<p>Steer 则在任务运行中追加人类输入，例如“不要改数据库，先只写测试”。Runtime 要把它作为高优先级用户事件加入活动 Turn，让模型尽快调整。若当前工具不可取消，界面应明确说明输入将在工具结束后生效。</p>
+<h2 id="4">4. 持久化什么<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>可恢复 Thread 至少需要：</p>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>thread_id / turn_id</td>
+<td>定位任务和事件</td>
+</tr>
+<tr>
+<td>标准化消息与工具事件</td>
+<td>重建模型上下文</td>
+</tr>
+<tr>
+<td>cwd、模型、权限配置</td>
+<td>恢复运行环境</td>
+</tr>
+<tr>
+<td>当前计划与完成状态</td>
+<td>避免从头探索</td>
+</tr>
+<tr>
+<td>变更文件和 Git 信息</td>
+<td>理解工作树</td>
+</tr>
+<tr>
+<td>后台进程引用</td>
+<td>决定重连还是清理</td>
+</tr>
+</tbody>
+</table>
+<p>API key 不应写进 transcript。恢复时重新从安全凭据源注入。</p>
+<h2 id="5-event-stream">5. Event Stream 驱动界面<a class="headerlink" href="#5-event-stream" title="Permanent link"></a></h2>
+<p>模型文本、命令输出、审批请求和状态变化不会同时完成。Runtime 可以发出 thread.started、turn.started、item.delta、tool.started、tool.completed、turn.completed 等事件。CLI、IDE 和桌面 App 只是这些事件的不同呈现方式。</p>
+<p>事件需要顺序号和可重放性。客户端断线重连后，可以从最后序号继续，否则会漏掉一次工具完成或重复显示输出。</p>
+<h2 id="6">6. 回滚的真实含义<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>回滚对话历史不自动回滚文件和外部世界。删除最近两个 Turn，只改变模型将看到的历史；已经发送的消息、创建的 PR 或写入的数据仍存在。产品界面必须区分“上下文回退”和“副作用撤销”。</p>
+<div class="admonition warning">
+<p class="admonition-title">失败案例</p>
+<p>两个终端同时 resume 同一 Thread 并继续写 history，如果没有并发控制，事件顺序和工具结果会互相穿插。恢复能力必须同时设计独占、分叉或版本检查。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="12-sessions-threads"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="11-compaction.html"><span>上一页</span><strong>11 · 压缩、摘要与上下文腐化</strong></a><a class="pager-slot next" href="13-memory-rules.html"><span>下一页</span><strong>13 · 记忆、规则与学习</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

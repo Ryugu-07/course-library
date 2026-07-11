@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>上下文预算模拟器 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="lab-04-context">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage" open><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a class="current" aria-current="page" href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:50%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>互动实验室</span><span>实验 4 / 8</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 实验问题</a></li>
+<li><a href="#2">2. 调整预算</a></li>
+<li><a href="#3">3. 比较策略</a></li>
+<li><a href="#4">4. 设计一份保留清单</a></li>
+<li><a href="#5">5. 代码挑战</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="04">实验 04 · 上下文预算模拟器<a class="headerlink" href="#04" title="Permanent link"></a></h1>
+<blockquote>
+<p>对应第 10–11 章。本实验把规则、历史、文件和日志画成有限预算，比较删除旧输出、摘要和子 Agent 隔离。</p>
+</blockquote>
+<h2 id="1">1. 实验问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>上下文窗口不是硬盘。内容接近上限前，模型就可能因为重复、冲突和无关材料降低可靠性。不同治理策略释放的不是同一种信息：丢日志保留决定，摘要牺牲细节，子 Agent 把中间过程搬到独立窗口。</p>
+<p>先把历史、文件和日志都调高，让总占用超过 100%。观察系统并不会自动知道该丢哪一部分。</p>
+<h2 id="2">2. 调整预算<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<div class="lab-shell" data-lab="context"></div>
+
+<p>窗口从 8k 换到 128k 只改变绝对 Token 容量，比例和相关性问题仍然存在。大窗口能容纳更多材料，却不保证模型更容易找到真正重要的信息。</p>
+<h2 id="3">3. 比较策略<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>“丢弃旧工具输出”最确定，但可能失去诊断细节；“摘要压缩”保留决定和状态，但属于有损改写；“子 Agent”让主线程只接收总结，却产生委派成本和信息遗漏风险。</p>
+<p>实际系统通常组合：大日志落盘并截断，旧历史摘要，工具定义延迟加载，探索任务交给子 Agent，目标与验收标准永久保留。</p>
+<h2 id="4">4. 设计一份保留清单<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>压缩前写下不可丢失项：</p>
+<ol>
+<li>用户当前目标和最新纠正；</li>
+<li>权限与不可触碰边界；</li>
+<li>已确认架构决定；</li>
+<li>当前工作树和已修改文件；</li>
+<li>已运行检查与结果；</li>
+<li>未解决风险和下一步。</li>
+</ol>
+<p>再写可丢弃项：重复日志、已被新版本取代的旧文件内容、撤销方案的细节和无关工具 schema。</p>
+<h2 id="5">5. 代码挑战<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>给 run_shell 结果增加 truncated 和 log_path，只把关键头尾回填 history。实现 compact_history 时先删除旧工具大输出，再生成结构化摘要。用恢复测试验证：只给摘要和当前文件，新的 Agent 能否准确继续验证步骤。</p>
+<p>实验结束后，你应能解释“上下文够不够”为什么至少包含容量、相关性、来源、版本和恢复性五个问题。</p>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="lab-04-context"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="lab-03-retry.html"><span>上一页</span><strong>实验 03 · 重试与停止状态机</strong></a><a class="pager-slot next" href="lab-05-permission.html"><span>下一页</span><strong>实验 05 · 权限与沙箱判定台</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

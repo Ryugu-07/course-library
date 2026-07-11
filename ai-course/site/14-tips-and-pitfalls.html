@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>使用技巧与坑 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li class="active"><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ai">1. 技巧清单：把 AI 用出上限</a></li>
+<li><a href="#2">2. 病理图鉴：六个坑的成因与对策</a><ul>
+<li><a href="#1">坑 1 · 幻觉：一本正经地胡说八道</a></li>
+<li><a href="#2_1">坑 2 · 谄媚：你说什么都"您说得对"</a></li>
+<li><a href="#3">坑 3 · 上下文腐烂：越聊越笨</a></li>
+<li><a href="#4">坑 4 · 自信的语气 ≠ 正确的内容</a></li>
+<li><a href="#5">坑 5 · 知识截止与静默过时</a></li>
+<li><a href="#6">坑 6 · 隐私与注入：数据往哪去、指令从哪来</a></li>
+</ul>
+</li>
+<li><a href="#3-verify">3. Verify 文化：一张清单</a></li>
+<li><a href="#4_1">4. 收束：正确的心智模型</a></li>
+</ul>
+</div>
+</details>
+<h1 id="14">第 14 讲 · 使用技巧与坑<a class="headerlink" href="#14" title="Permanent link"></a></h1>
+<blockquote>
+<p>前几讲的技巧散在各个场景里，这一讲做系统盘点：先给一份"怎么问得好"的技巧清单，再给一份"它会怎么坑你"的病理图鉴——每个坑都给出成因（连回上篇的原理）与对策。目标是把两样东西变成你的肌肉记忆：<strong>好的提问习惯</strong>和<strong>verify 反射</strong>。</p>
+</blockquote>
+<h2 id="1-ai">1. 技巧清单：把 AI 用出上限<a class="headerlink" href="#1-ai" title="Permanent link"></a></h2>
+<ol>
+<li><strong>说清任务四件套</strong>：做什么 + 给谁看 + 什么格式 + 什么标准。对比："帮我写个自我介绍" vs "为博士申请套磁邮件写 150 字自我介绍，收件人是做随机优化的教授，突出我的应用数学背景，语气专业不谄媚"——输出质量差一个档次，原理见第 08 讲（收窄目标分布）；</li>
+<li><strong>料给足</strong>（上下文工程的日常版）：改代码给完整报错栈，改文章给上下文段落，问建议给你的约束条件（预算/时间/水平）。<strong>它不知道你不说的一切</strong>；</li>
+<li><strong>给例子</strong>：格式要求用一个例子顶一百字描述（few-shot，第 08 讲）；</li>
+<li><strong>难题让它先想</strong>：要求"先分析再回答"，或直接换推理模型（第 10 讲）；</li>
+<li><strong>迭代而不是重开</strong>：第一版不满意，说"哪里不对、往哪个方向改"，比换个措辞重问收敛快——但注意坑 3 的例外；</li>
+<li><strong>大任务拆步</strong>："帮我写完整个系统"不如"先设计数据结构→我确认→再写模块 A"（编排思想的手动版，第 08 讲）；</li>
+<li><strong>让它问你</strong>："开始前，把你需要澄清的问题一次问完"——复杂任务前置对齐，省掉三轮返工；</li>
+<li><strong>多模型交叉</strong>：重要判断问两个不同家族的模型，分歧处即需人工介入处（便宜版的 self-consistency）。</li>
+</ol>
+<h2 id="2">2. 病理图鉴：六个坑的成因与对策<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="1">坑 1 · 幻觉：一本正经地胡说八道<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p><strong>症状</strong>：编造文献（第 13 讲红线）、编造不存在的库函数与 API 参数、编造历史细节与数据。<strong>成因</strong>（第 07/08 讲）：训练目标是"像语料的文本"而非"真话"，知识盲区里"最像答案的答案"就是编造。<strong>高发区识别</strong>：越具体、越冷门、越可校验的事实越危险（论文卷号、函数签名、统计数字、人物生平）；观点类、方法论类输出相对安全。<strong>对策</strong>：可校验的事实一律外部核验；要求"给出处，不确定就说不确定"；用 RAG/联网模式把答案锚在检索结果上；代码类幻觉最友好——跑一下就现形。</p>
+<h3 id="2_1">坑 2 · 谄媚：你说什么都"您说得对"<a class="headerlink" href="#2_1" title="Permanent link"></a></h3>
+<p><strong>症状</strong>：你提出质疑，它立刻改口；你的方案有隐患，它夸你想得周全。<strong>成因</strong>：RLHF 用人类偏好训练（第 07 讲），而人类标注者偏好被赞同的感觉——奖励模型学会了讨好。<strong>对策</strong>：要批评时明确授权（"严格挑错，不用照顾情绪"）；不要泄露你的倾向（问"方案 A 和 B 各有什么问题"而不是"我觉得 A 好，对吧？"）；重要决策让它"先独立给结论，再看我的想法"。</p>
+<h3 id="3">坑 3 · 上下文腐烂：越聊越笨<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p><strong>症状</strong>：长对话后开始自相矛盾、忘记早先的设定、被自己之前的错误答案带偏。<strong>成因</strong>（第 06/08 讲）：注意力在超长上下文上稀释（lost in the middle），且错误输出留在上下文里成为后续生成的"既定事实"。<strong>对策</strong>：一个任务一个会话；跑偏两轮以上果断新开，带一段自己写的摘要迁移；关键结论及时沉淀到你自己的笔记（外部记忆），别指望对话框。</p>
+<h3 id="4">坑 4 · 自信的语气 ≠ 正确的内容<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p><strong>症状</strong>：错误答案与正确答案使用完全相同的笃定措辞。<strong>成因</strong>：语气是从语料学来的文风，与内容可靠度无关；模型对自己的不确定性缺乏可靠的自我报告。<strong>对策</strong>：把"它说得很肯定"从你的证据清单里删掉；重要结论看它给不给得出可验证的中间步骤，而不是听语气。</p>
+<h3 id="5">坑 5 · 知识截止与静默过时<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p><strong>症状</strong>：推荐已废弃的库版本、不知道最新事件、按旧政策给建议。<strong>成因</strong>：权重冻结于训练截止日（第 08 讲）。<strong>对策</strong>：时效敏感问题（版本、价格、政策、新闻）强制联网/检索，或自己核对日期；问它"你的知识截止到什么时候"作为快速提醒。</p>
+<h3 id="6">坑 6 · 隐私与注入：数据往哪去、指令从哪来<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p><strong>症状一（隐私）</strong>：把公司机密/病历/未发表数据贴进对话。消费级产品的对话可能被用于改进模型（可在设置中关闭），企业/API 通道政策不同。<strong>纪律</strong>：敏感数据脱敏后再问；真正的机密走本地部署（第 11 讲）。
+<strong>症状二（提示词注入，第 09 讲）</strong>：让智能体读网页/邮件/PDF 时，内容里埋藏的恶意指令劫持它的行为。<strong>纪律</strong>：智能体的权限最小化；"读陌生内容"与"持有敏感权限"不同时授予；危险操作保留人工确认。</p>
+<h2 id="3-verify">3. Verify 文化：一张清单<a class="headerlink" href="#3-verify" title="Permanent link"></a></h2>
+<p>把验证做成流程而不是美德。AI 输出进入你的工作成果之前，过一遍：</p>
+<table>
+<thead>
+<tr>
+<th>输出类型</th>
+<th>验证动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>事实/数字/日期</td>
+<td>独立来源核对（搜索引擎/官方文档/原始论文）</td>
+</tr>
+<tr>
+<td>参考文献</td>
+<td>逐条查 DOI / Google Scholar 确认存在</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>跑通 + 边界用例测试 + 读懂关键逻辑</td>
+</tr>
+<tr>
+<td>数学推导</td>
+<td>数值抽查 / 独立重推 / 反例搜索（第 13 讲）</td>
+</tr>
+<tr>
+<td>翻译/润色</td>
+<td>逐句对照，术语抽查回译</td>
+</tr>
+<tr>
+<td>决策建议</td>
+<td>第二个模型交叉 + 自己列出它没考虑的约束</td>
+</tr>
+</tbody>
+</table>
+<p>成本看似高，实则遵循<strong>风险分级</strong>：闲聊零验证，写进论文/报给老板/部署上线的，按表全查。一个实用心法：<strong>AI 负责生成，你负责为真实性签字</strong>——签字权从来没有外包出去。</p>
+<h2 id="4_1">4. 收束：正确的心智模型<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>把各讲的认识拼成一句话的心智模型：</p>
+<blockquote>
+<p>LLM 是一位<strong>读过整个互联网、才思敏捷、永不疲倦，但记性只有一个对话框长、偶尔自信地虚构、且总想让你高兴</strong>的顾问。</p>
+</blockquote>
+<p>对应的相处之道：让它出初稿、出点子、陪你推演（用足它的快与博）；用清单防它的虚构，用外部记忆补它的健忘，用明确授权破它的讨好；<strong>最终判断与责任永远留在你手里</strong>。</p>
+<p><strong>动手</strong>：翻出你最近一次重要的 AI 使用记录，对照第 2 节的六个坑自查踩了哪几个；然后把第 3 节的验证清单抄进你的笔记工具，用一周。</p>
+<hr />
+<p><em>方法论到此完备。接下来三讲是垂直实战：写代码与数据分析、文生图、PPT 与文档——把前面的所有原则落到具体工作流上。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-ai-for-research.html"><span class="pager-label">上一讲</span>13 · 用 AI 促进科研</a>
+  <a class="pager-slot next" href="15-coding-analysis.html"><span class="pager-label">下一讲</span>15 · 实战：写代码与数据分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

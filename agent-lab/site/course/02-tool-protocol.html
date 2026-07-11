@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>消息与工具调用协议 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="02-tool-protocol">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage" open><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a class="current" aria-current="page" href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:7%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第一阶段 · 最小 Agent 透明内核</span><span>第 2 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-agent">1. 消息是 Agent 的总线</a></li>
+<li><a href="#2-json-schema">2. 工具定义为什么需要 JSON Schema</a></li>
+<li><a href="#3">3. 一次完整握手</a></li>
+<li><a href="#4-provider">4. Provider 边界怎样设计</a></li>
+<li><a href="#5">5. 最常见的协议故障</a></li>
+<li><a href="#6">6. 本章检查</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="02">第 02 章 · 消息与工具调用协议<a class="headerlink" href="#02" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：理解模型与程序之间交换的不是“感觉”，而是一组有类型、有顺序要求的数据包。Provider 可以不同，Agent 的逻辑契约必须稳定。</p>
+</blockquote>
+<h2 id="1-agent">1. 消息是 Agent 的总线<a class="headerlink" href="#1-agent" title="Permanent link"></a></h2>
+<p>一次 Agent 请求通常包含系统规则、历史消息和工具定义。响应可能是自然语言，也可能是结构化工具调用。宿主执行工具后，还必须用调用编号把结果准确接回原来的请求。这个编号相当于快递单号：同一轮并行调用多个工具时，没有 call id 就无法知道哪份结果属于哪个动作。</p>
+<p>常见消息角色有 user、assistant 和 tool，但不同 API 的外壳不同。OpenAI Responses 使用 function_call 与 function_call_output；DeepSeek 的兼容接口使用 assistant.tool_calls 和 role=tool；Anthropic Messages 使用 tool_use 与 tool_result 内容块。不要把这些字段名误认为三种不同 Agent，它们只是三种协议方言。</p>
+<h2 id="2-json-schema">2. 工具定义为什么需要 JSON Schema<a class="headerlink" href="#2-json-schema" title="Permanent link"></a></h2>
+<p>工具不是只有名称。模型需要知道用途、参数类型、必填项和限制。例如 read_file 的 path 必须是字符串；search_text 的 query 必填，max_results 应有上限。Schema 同时服务三个对象：</p>
+<ol>
+<li>模型据此选择并填写参数；</li>
+<li>Runtime 据此验证模型输出；</li>
+<li>人类据此审查工具暴露了什么能力。</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;search_text&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Search text inside the workspace&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;parameters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;max_results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>工具说明写得含糊，模型就会误用；参数无限制，Executor 就可能收到巨大或危险请求；返回值没有稳定格式，下一轮模型会浪费上下文解析噪声。</p>
+<h2 id="3">3. 一次完整握手<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>工具调用不是“一发一收”，而是至少四步：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>谁发送</th>
+<th>数据含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Runtime → 模型</td>
+<td>用户目标、历史、工具目录</td>
+</tr>
+<tr>
+<td>2</td>
+<td>模型 → Runtime</td>
+<td>工具名、参数、call id</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Runtime → Executor</td>
+<td>通过校验的真实动作</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Runtime → 模型</td>
+<td>与 call id 配对的结果或错误</td>
+</tr>
+</tbody>
+</table>
+<p>模型收到工具结果后可能继续调用另一个工具，也可能生成最终回答。因此 parser 的任务不只是“解析 JSON”，还要区分文本、单个调用、并行调用、拒绝和不完整响应。</p>
+<h2 id="4-provider">4. Provider 边界怎样设计<a class="headerlink" href="#4-provider" title="Permanent link"></a></h2>
+<p>Agent 内核最好只认识统一对象：</p>
+<div class="highlight"><pre><span></span><code><span class="n">ToolCall</span><span class="p">(</span>
+    <span class="n">call_id</span><span class="o">=</span><span class="s2">&quot;call_01&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;read_file&quot;</span><span class="p">,</span>
+    <span class="n">arguments</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;README.md&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Provider adapter 负责把各家响应转换成 ToolCall，也负责把统一 history 转回各家请求格式。这样更换模型时，不需要改 Executor、权限、重试和验证。真正稳定的是内部协议，不是某个供应商当前的字段名。</p>
+<p>适配层还要处理流式事件、参数 JSON 解析失败、模型没有返回 call id、并行调用顺序以及 API 重试。不要把 Provider SDK 对象直接散布到整个代码库，否则所有模块都会与一家 API 耦合。</p>
+<h2 id="5">5. 最常见的协议故障<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<div class="failure-case"><strong>孤儿工具结果：</strong>Runtime 回填了 tool_result，却没有对应 tool_use。API 会拒绝，或者模型无法理解结果来源。</div>
+
+<p>其他常见故障包括：arguments 是 JSON 字符串却被当作字典；模型同时返回文本和工具调用但 parser 只保留一边；重试 API 时重复执行了已经成功的真实工具；工具异常被吞掉，只回填空字符串。</p>
+<p>解决思路是把每个模型响应保存成可检查事件，并为协议转换写小型离线测试。你不需要真的调用 API，也能用固定样本验证 extract_tool_calls 和 append_tool_result。</p>
+<h2 id="6">6. 本章检查<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>看到任何 Provider 示例时，先寻找三样东西：工具目录怎样声明、调用意图怎样表达、执行结果怎样与原调用配对。字段名可以忘，三段逻辑不能忘。</p>
+<div class="admonition note">
+<p class="admonition-title">对应实验</p>
+<p>实验 02 会让你切换 OpenAI、DeepSeek 与 Anthropic 数据包。注意每次切换时，哪部分只是包装变化，哪部分是 Agent 不可缺少的逻辑。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="02-tool-protocol"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="01-mental-model.html"><span>上一页</span><strong>01 · Agent 到底是什么</strong></a><a class="pager-slot next" href="03-loop-state.html"><span>下一页</span><strong>03 · 主循环、状态与停止条件</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

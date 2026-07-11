@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlexNet 与深度学习热潮 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li class="active"><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 为什么全连接网络搞不定图像</a></li>
+<li><a href="#2">2. 卷积层的数学</a><ul>
+<li><a href="#21">2.1 定义</a></li>
+<li><a href="#22">2.2 参数量：三个数量级的压缩</a></li>
+<li><a href="#23">2.3 平移等变性（证明）</a></li>
+<li><a href="#24">2.4 池化与感受野</a></li>
+</ul>
+</li>
+<li><a href="#3-2012">3. 2012：三样燃料同时到位</a></li>
+<li><a href="#4-resnet20122015">4. 军备竞赛与 ResNet（2012–2015）</a></li>
+<li><a href="#5-cnn-20122017">5. CNN 大放异彩（2012–2017）</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="05-alexnet">第 05 讲 · AlexNet 与深度学习热潮<a class="headerlink" href="#05-alexnet" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>诞生场景</strong>：2012 年之前，计算机视觉的标准流程是：博士们手工设计特征（SIFT、HOG……一个好特征够发一篇顶会），再喂给 SVM。ImageNet 挑战赛（120 万张图、1000 类）上，这套流程的错误率卡在 26% 附近逐年只降零点几。2012 年 9 月 30 日，Hinton 的两个学生 Krizhevsky 和 Sutskever 用一个 8 层卷积神经网络（AlexNet）拿到 <strong>15.3%</strong>，领先第二名 10.9 个百分点——竞赛史上从未有过的断层。整个领域一夜转向，深度学习热潮就此点燃。本讲讲清楚：CNN 是什么、为什么它天生适合图像、以及 2012 年到底是哪几件事凑齐了。</p>
+</blockquote>
+<h2 id="1">1. 为什么全连接网络搞不定图像<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把一张 <span class="arithmatex">\(224 \times 224 \times 3\)</span> 的彩色图直接拉平成向量，维数 <span class="arithmatex">\(d = 150{,}528\)</span>。接一个区区 1000 个神经元的全连接隐藏层，参数量：</p>
+<div class="arithmatex">\[
+150{,}528 \times 1000 \approx 1.5 \times 10^8
+\]</div>
+<p>一层就 1.5 亿参数——过拟合（第 01 讲：复杂度远超数据量）、算不动，而且<strong>浪费</strong>：它为"左上角的猫"和"右下角的猫"分别学一套完全独立的权重，尽管两者是同一个模式。全连接层对输入维度的排列是无差别的——把所有像素固定打乱，它学得一样好——这说明它<strong>完全没有利用图像的结构</strong>。</p>
+<p>图像有什么结构？三条先验：</p>
+<ol>
+<li><strong>局部性</strong>：识别边缘、角点，只需看一小片邻域；</li>
+<li><strong>平移共性</strong>：探测"竖直边缘"的方法在图像任何位置都一样；</li>
+<li><strong>层级性</strong>：边缘 → 纹理 → 部件（眼睛、轮子）→ 物体（脸、车）。</li>
+</ol>
+<p>CNN 就是把这三条先验硬编码进网络结构的产物——第 01 讲 NFL 定理说"学习必须押注世界的结构"，CNN 是教科书级的押注。</p>
+<h2 id="2">2. 卷积层的数学<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="21">2.1 定义<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>二维离散<strong>卷积</strong>（数学定义）：<span class="arithmatex">\((I * K)(i,j) = \sum_m \sum_n I(i-m,\, j-n)\, K(m,n)\)</span>。深度学习框架实际实现的是不翻转核的<strong>互相关</strong>：</p>
+<div class="arithmatex">\[
+(I \star K)(i,j) = \sum_{m}\sum_{n} I(i+m,\, j+n)\, K(m,n)
+\]</div>
+<p>（核是学出来的，翻不翻转只是参数的重排，无实质差别，故行业统一叫"卷积"。）<span class="arithmatex">\(K\)</span> 是一个小窗口（如 <span class="arithmatex">\(3\times3\)</span>），称为<strong>卷积核 / 滤波器</strong>：它在图像上滑动，每个位置输出"该处邻域与模板的匹配程度"，得到一张<strong>特征图</strong>。经典手工核可以帮助建立直觉——比如 <span class="arithmatex">\(K = \begin{pmatrix} -1 &amp; 0 &amp; 1 \\ -2 &amp; 0 &amp; 2 \\ -1 &amp; 0 &amp; 1 \end{pmatrix}\)</span>（Sobel）输出竖直边缘图。CNN 与手工特征时代的分野在于：<strong>核里的数字不再由人设计，而是当成参数由反向传播学出来</strong>。</p>
+<p>一个卷积层含多个核（比如 64 个），每个核产出一张特征图；对多通道输入，核的形状是 <span class="arithmatex">\(k \times k \times C_{\text{in}}\)</span>，跨通道求和。输出尺寸（输入宽 <span class="arithmatex">\(W\)</span>、核宽 <span class="arithmatex">\(k\)</span>、边缘补零 <span class="arithmatex">\(p\)</span>、步幅 <span class="arithmatex">\(s\)</span>）：</p>
+<div class="arithmatex">\[
+W_{\text{out}} = \left\lfloor \frac{W + 2p - k}{s} \right\rfloor + 1
+\]</div>
+<h3 id="22">2.2 参数量：三个数量级的压缩<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>第一层用 64 个 <span class="arithmatex">\(11 \times 11 \times 3\)</span> 的核（AlexNet 的真实配置量级）：</p>
+<div class="arithmatex">\[
+64 \times (11 \times 11 \times 3 + 1) \approx 2.3 \times 10^4
+\]</div>
+<p>对比全连接的 <span class="arithmatex">\(1.5 \times 10^8\)</span>：<strong>少了四个数量级</strong>。压缩来自两条：<strong>局部连接</strong>（每个输出只看 <span class="arithmatex">\(11\times11\)</span> 邻域，不看全图）与<strong>参数共享</strong>（同一个核用于所有位置——"竖直边缘探测器"只学一份）。用第 01 讲的语言：假设空间被先验大幅裁剪，同样数据下泛化界大幅收紧。</p>
+<h3 id="23">2.3 平移等变性（证明）<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>记平移算子 <span class="arithmatex">\((T_\Delta I)(i,j) = I(i - \Delta_1, j - \Delta_2)\)</span>。则</p>
+<div class="arithmatex">\[
+\big((T_\Delta I) \star K\big)(i,j) = \sum_{m,n} I(i - \Delta_1 + m,\, j - \Delta_2 + n) K(m,n) = (I \star K)(i - \Delta_1,\, j - \Delta_2) = \big(T_\Delta (I \star K)\big)(i,j)
+\]</div>
+<p>即 <span class="arithmatex">\(T_\Delta I \star K = T_\Delta(I \star K)\)</span>：<strong>先平移再卷积 = 先卷积再平移</strong>。猫往右挪 10 像素，特征图上的"猫响应"也恰好右挪 10 像素、值不变——模式识别与位置解耦。这叫<strong>等变（equivariance）</strong>；配合后面的池化与最终的全局汇聚，逐渐升级为<strong>不变（invariance）</strong>：无论猫在哪，"有猫"的判断不变。</p>
+<h3 id="24">2.4 池化与感受野<a class="headerlink" href="#24" title="Permanent link"></a></h3>
+<p><strong>池化（pooling）</strong>：把特征图每个 <span class="arithmatex">\(2\times2\)</span> 小块换成其最大值（max pooling），尺寸减半。作用：缩小计算量、扩大后续层视野、并提供局部平移不变性（模式挪动 1 像素，最大值多半不变）。</p>
+<p><strong>感受野</strong>：输出图上一个像素"看得见"的输入区域。逐层递推（第 <span class="arithmatex">\(l\)</span> 层核宽 <span class="arithmatex">\(k_l\)</span>、步幅 <span class="arithmatex">\(s_l\)</span>）：</p>
+<div class="arithmatex">\[
+r_l = r_{l-1} + (k_l - 1) \prod_{i=1}^{l-1} s_i, \qquad r_0 = 1
+\]</div>
+<p>层数越深、中间步幅越多，感受野越大——<strong>底层看边缘，高层看物体</strong>，层级先验由此实现。训练后的可视化（Zeiler &amp; Fergus 2013）证实了这一点：第 1 层学出 Gabor 状边缘核，中层响应纹理与部件，高层响应完整物体——<strong>网络自己学出了过去要靠博士手工设计的整套特征体系</strong>，而且是为任务量身定做的。这就是"表示学习"，深度学习的真正卖点。</p>
+<p>1998 年 LeCun 的 <strong>LeNet-5</strong>（卷积-池化-卷积-池化-全连接）已经集齐了全部要素，在手写数字上商用（美国的支票读取机）。但在更大的图上它火不起来——差的不是想法，是燃料。</p>
+<h2 id="3-2012">3. 2012：三样燃料同时到位<a class="headerlink" href="#3-2012" title="Permanent link"></a></h2>
+<p><strong>① 大数据——ImageNet。</strong>李飞飞团队 2009 年发布：1400 万张标注图像、2 万类；竞赛用其中 120 万张、1000 类。此前的数据集（几万张量级）喂不饱深度网络（第 01 讲：大假设空间需要大 <span class="arithmatex">\(n\)</span>），ImageNet 第一次够了。</p>
+<p><strong>② 大算力——GPU。</strong>为游戏而生的显卡恰好擅长卷积所需的大规模并行乘加。AlexNet 用 2 块 GTX 580（各 3GB 显存，模型被迫劈成两半分放）训练约一周；同样的活 CPU 要以月计。深度学习从此与 GPU 绑定，这条线一路延伸到今天的万卡集群与英伟达的市值神话。</p>
+<p><strong>③ 训练技巧——把第 04 讲的死穴逐个拆掉：</strong></p>
+<ul>
+<li><strong>ReLU</strong>：<span class="arithmatex">\(\mathrm{ReLU}(z) = \max(0, z)\)</span>。正区导数恒为 <strong>1</strong>——第 04 讲梯度消失的元凶（sigmoid 导数 <span class="arithmatex">\(\leq 1/4\)</span> 的连乘收缩）直接消失，深层网络的底层重新收到梯度。AlexNet 论文实测：达到同样训练误差比 sigmoid/tanh 快 6 倍。代价是"死神经元"（落入负区梯度为 0），后有 LeakyReLU/GELU 等修补，但"用分段线性替代饱和函数"这一步是决定性的。</li>
+<li><strong>Dropout</strong>：训练时每个神经元以概率 <span class="arithmatex">\(p\)</span> 被随机置零。两种解读：(a) <strong>隐式集成</strong>——每个 mini-batch 训练的是一个随机子网络，<span class="arithmatex">\(n\)</span> 个神经元对应 <span class="arithmatex">\(2^n\)</span> 个子网共享参数，测试时近似对指数多个子网做平均（bagging 的极限版，第 03 讲的降方差逻辑）；(b) <strong>反共适应</strong>——神经元不能依赖特定同伴存在，被迫各自学出独立有用的特征。测试时不丢弃，但激活期望变了：训练时 <span class="arithmatex">\(\mathbb{E}[\tilde a] = (1-p)\,a\)</span>，故测试时须把权重乘 <span class="arithmatex">\((1-p)\)</span> 校正（现代实现用 inverted dropout：训练时就除以 <span class="arithmatex">\(1-p\)</span>，测试时什么都不做）。</li>
+<li><strong>数据增强</strong>：随机裁剪、翻转、色彩扰动——把先验"这些变换不改变类别"变成免费的新样本，又一次是归纳偏置的注入。</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">配方的完整性</p>
+<p>回看第 04 讲第二次寒冬的三条死因：梯度消失（ReLU 解决）、数据少（ImageNet 解决）、算力弱（GPU 解决）。<strong>没有新理论，没有新范式，是工程要素的凑齐</strong>——这个"理论滞后于实践"的格局从 2012 年延续至今（第 07 讲的 Scaling Laws 依然是经验规律）。</p>
+</div>
+<h2 id="4-resnet20122015">4. 军备竞赛与 ResNet（2012–2015）<a class="headerlink" href="#4-resnet20122015" title="Permanent link"></a></h2>
+<p>AlexNet 之后，ImageNet 错误率成为整个领域的记分牌：</p>
+<ul>
+<li><strong>VGG（2014，19 层）</strong>：只用 <span class="arithmatex">\(3\times3\)</span> 小核往深堆。两层 <span class="arithmatex">\(3\times3\)</span> 的感受野等于一层 <span class="arithmatex">\(5\times5\)</span>（用 2.4 节公式验证：<span class="arithmatex">\(r = 1 + 2 + 2 = 5\)</span>），但参数更少（<span class="arithmatex">\(2 \times 9C^2 = 18C^2 &lt; 25C^2\)</span>）且多一次非线性——<strong>"小核 + 深度"胜过"大核 + 浅度"</strong>成为定式；</li>
+<li><strong>GoogLeNet（2014，22 层）</strong>：多尺度并行的 Inception 模块 + 用 <span class="arithmatex">\(1\times1\)</span> 卷积压通道省算力；</li>
+<li>然后撞墙了：把网络堆到 30、50 层，<strong>训练误差不降反升</strong>。注意这不是过拟合（过拟合是训练好测试差），而是<strong>退化（degradation）</strong>：更深的模型明明包含浅模型（多出来的层学恒等映射即可），优化器却找不到这个解——非凸优化的困境赤裸裸地摆在台面上。</li>
+</ul>
+<p><strong>ResNet（He et al. 2015，152 层）</strong>的解法是一行改动。让模块不再直接学目标映射 <span class="arithmatex">\(H(x)\)</span>，而是学<strong>残差</strong> <span class="arithmatex">\(F(x) = H(x) - x\)</span>：</p>
+<div class="arithmatex">\[
+y = x + F(x)
+\]</div>
+<p>输入 <span class="arithmatex">\(x\)</span> 通过一条<strong>捷径（skip connection）</strong>直接加到输出上。两个立竿见影的效果：</p>
+<p><em>学恒等变容易了</em>：只需把 <span class="arithmatex">\(F\)</span> 压到 0（权重归零即可），退化问题的病根被拔掉。</p>
+<p><em>梯度有了高速公路</em>：反向传播过这个模块，</p>
+<div class="arithmatex">\[
+\frac{\partial \ell}{\partial x} = \frac{\partial \ell}{\partial y}\left(I + \frac{\partial F}{\partial x}\right) = \frac{\partial \ell}{\partial y} + \frac{\partial \ell}{\partial y}\frac{\partial F}{\partial x}
+\]</div>
+<p>第一项<strong>原封不动</strong>地穿透模块——无论 <span class="arithmatex">\(F\)</span> 的梯度多小，深层的梯度都能沿捷径无衰减直达浅层。第 04 讲的连乘衰减 <span class="arithmatex">\(\prod(\cdot)\)</span> 结构，被加法结构 <span class="arithmatex">\(I + (\cdot)\)</span> 替换了。配合 <strong>BatchNorm</strong>（Ioffe &amp; Szegedy 2015：对每个 mini-batch 把各通道激活标准化 <span class="arithmatex">\(\hat z = \frac{z - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}\)</span> 再学个缩放平移 <span class="arithmatex">\(\gamma\hat z + \beta\)</span>，让每层输入分布稳定、可用大学习率），百层千层网络从此可训。</p>
+<p>ResNet 在 ImageNet 上错误率 3.57%，首次超过人类水平（约 5%）。<strong>残差连接从此成为一切深度架构的标配——包括下一讲的 Transformer（每个子层都是 <span class="arithmatex">\(x + \text{Sublayer}(x)\)</span>）和今天所有 LLM。</strong>这一小节的公式是你与现代所有大模型架构之间的直接桥梁。</p>
+<h2 id="5-cnn-20122017">5. CNN 大放异彩（2012–2017）<a class="headerlink" href="#5-cnn-20122017" title="Permanent link"></a></h2>
+<p>热潮迅速溢出分类任务：目标检测（R-CNN 系列、YOLO：图里有什么、在哪）、语义分割（逐像素分类，医学影像）、人脸识别（刷脸支付背后是 CNN 特征 + 度量学习）、风格迁移、AlphaGo（2016：棋盘当 19×19 的"图像"，CNN 评估局面 + 蒙特卡洛树搜索——第一次让"深度学习"成为全球新闻头条）。</p>
+<p>工程范式也随之定型——<strong>迁移学习</strong>：在 ImageNet 上预训练的 CNN，其底层特征（边缘、纹理）是通用的；新任务只需换掉最后几层、用小数据微调。"<strong>预训练 + 微调</strong>"这个今天 LLM 世界的核心工作流，是 CNN 时代发明并验证的。</p>
+<p>同时,一个旧行当悄然消亡：手工特征工程。SIFT、HOG 的作者们转了方向，"端到端学习"（像素进、答案出，中间一切表示自动学习）成为默认信条。<strong>人类的角色从"设计特征"上移到了"设计结构先验（架构）"</strong>——而下一讲将看到，连结构先验都被进一步简化的架构，如何吞掉整个 NLP，再回头吞掉视觉本身。</p>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全连接之败</td>
+<td><span class="arithmatex">\(10^8\)</span> 参数 + 无视图像结构 + 位置间重复学习</td>
+</tr>
+<tr>
+<td>卷积</td>
+<td>滑动窗口模板匹配；核由反向传播学出</td>
+</tr>
+<tr>
+<td>参数共享</td>
+<td>一个模式探测器全图共用，参数量降四个数量级</td>
+</tr>
+<tr>
+<td>平移等变</td>
+<td><span class="arithmatex">\(T_\Delta I \star K = T_\Delta(I \star K)\)</span>，逐行可证</td>
+</tr>
+<tr>
+<td>感受野</td>
+<td><span class="arithmatex">\(r_l = r_{l-1} + (k_l - 1)\prod s_i\)</span>；深度造就层级特征</td>
+</tr>
+<tr>
+<td>AlexNet 配方</td>
+<td>ImageNet + GPU + ReLU + dropout + 数据增强</td>
+</tr>
+<tr>
+<td>ReLU</td>
+<td>正区导数恒 1，拆掉梯度消失的连乘收缩</td>
+</tr>
+<tr>
+<td>ResNet</td>
+<td><span class="arithmatex">\(y = x + F(x)\)</span>；梯度走加法高速路，百层可训</td>
+</tr>
+<tr>
+<td>范式转移</td>
+<td>特征工程 → 表示学习；预训练 + 微调诞生</td>
+</tr>
+</tbody>
+</table>
+<p><strong>动手</strong>：跑 <code>labs/lab05_cnn_mnist.py</code>——在你的 M4（MPS 加速）上训一个小 CNN 识别手写数字，对比全连接基线的参数量与准确率，并可视化第一层学出的卷积核。</p>
+<p><strong>延伸阅读</strong>：Krizhevsky et al. "ImageNet Classification with Deep CNNs" (2012)——深度学习时代的开山论文，意外地好读；He et al. "Deep Residual Learning" (2015)。</p>
+<hr />
+<p><em>下一讲离开图像，进入语言。图像是固定尺寸的网格，而句子是变长的序列，"猫追狗"和"狗追猫"用词相同意义相反——顺序就是一切。RNN 为此而生又困于此，直到 2017 年一篇标题狂妄的论文出现：《Attention Is All You Need》。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-neural-networks.html"><span class="pager-label">上一讲</span>04 · 神经网络的兴衰与反向传播</a>
+  <a class="pager-slot next" href="06-transformer.html"><span class="pager-label">下一讲</span>06 · 从序列建模到 Transformer</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

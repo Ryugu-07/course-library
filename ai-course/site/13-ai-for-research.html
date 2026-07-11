@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 AI 促进科研 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li class="active"><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 文献：最大的提速点，最密的幻觉区</a><ul>
+<li><a href="#11">1.1 检索与发现</a></li>
+<li><a href="#12">1.2 精读</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 数学推导：它会顺着你的错误走</a></li>
+<li><a href="#3">3. 实验与代码复现</a></li>
+<li><a href="#4">4. 写作：润色与代写的边界</a></li>
+<li><a href="#5-ai">5. 把 AI 嵌进科研日常的三个习惯</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="13-ai">第 13 讲 · 用 AI 促进科研<a class="headerlink" href="#13-ai" title="Permanent link"></a></h1>
+<blockquote>
+<p>科研工作流的每个环节——选题、文献、推导、实验、写作——AI 都能显著提速，但每个环节的<strong>失败模式</strong>各不相同：文献环节它会编造引用，推导环节它会顺着你的错误走，写作环节它会把你带进学术不端的灰区。本讲按科研流程逐环节给出"怎么用 + 红线在哪"。</p>
+</blockquote>
+<h2 id="1">1. 文献：最大的提速点，最密的幻觉区<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="11">1.1 检索与发现<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<ul>
+<li><strong>语义检索</strong>：传统关键词搜不到"换了说法的相关工作"，把你的研究问题<strong>用大白话</strong>描述给 AI，让它给出这个方向的术语体系、经典工作和检索词——先建地图再搜索。专门工具（Semantic Scholar、Elicit、各家 deep research 功能）能自动完成"检索→筛选→汇总"的初轮；</li>
+<li><strong>顺藤摸瓜</strong>：拿到一篇核心论文，让 AI 总结其引用结构："这篇论文站在哪些工作的肩膀上？后续被哪些方向跟进？"</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">红线一：引用必须逐条验证</p>
+<p><strong>LLM 会编造以假乱真的参考文献</strong>——真实存在的作者 + 合理的标题 + 像模像样的期刊卷号，拼成一篇不存在的论文。这是幻觉最高发、后果最严重的场景（已有律师因引用 AI 编造的判例被制裁，学术圈同类事故层出不穷）。纪律：<strong>AI 给出的每一条文献，进 Google Scholar / DOI 核实存在性之后才允许进入你的笔记</strong>。让它"给出 DOI 链接"能过滤一部分，但不能替代核验。</p>
+</div>
+<h3 id="12">1.2 精读<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>把 PDF 交给长上下文模型，但别只说"总结一下"（得到的是万金油摘要）。用<strong>结构化精读提示词</strong>：</p>
+<div class="highlight"><pre><span></span><code>逐节陪我读这篇论文。对每一节：
+1. 用两句话说清这一节做了什么、在整体论证中的作用；
+2. 指出关键假设（明说的和暗含的）；
+3. 数学部分：把跳步补全，标注哪一步最脆弱；
+4. 我对照原文后会追问。
+最后回答：这篇论文的核心贡献能否用一句话+一个公式概括？
+它最可能被攻击的弱点是什么？如果让你设计后续工作，做什么？
+</code></pre></div>
+<p>原则：<strong>AI 的输出是你阅读的脚手架，不是阅读的替代</strong>——关键论文仍要亲读，AI 负责补背景、解跳步、陪讨论。</p>
+<h2 id="2">2. 数学推导：它会顺着你的错误走<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>LLM 做推导的特性必须先认清：它是<strong>似然机器</strong>（第 07 讲）——你递给它一个含错误的推导让它"继续"，它大概率<strong>顺着错误往下走</strong>，因为"顺着走"在训练分布里最常见（谄媚 + 惯性双重作用）。正确用法全部围绕<strong>对抗性</strong>设计：</p>
+<ul>
+<li><strong>独立验算</strong>：不给它看你的过程，只给命题："请独立证明/证伪以下命题"。两边路径一致，信心大增；路径不同，都检查；</li>
+<li><strong>专职找茬</strong>："以下推导<strong>已知有错</strong>（不管实际有没有），找出所有可疑步骤并说明理由。"——预设立场能有效抵消谄媚；</li>
+<li><strong>反例搜索</strong>："构造一个反例推翻这个命题，构造不出来则说明卡在哪个条件上"——数学工作者的经典自检，AI 做这个又快又欢；</li>
+<li><strong>数值验证</strong>：凡是能算的都让代码算——让它写个脚本对命题做随机数值检验（第 04 讲用数值梯度检查解析推导，就是这个思想）。数值不匹配 = 推导必有错，这是不会谄媚的裁判；</li>
+<li><strong>形式化验证</strong>（进阶）：Lean 4 等证明助手是幻觉的终极闸门——编译器不接受"看起来对"的证明。AI 辅助写形式化证明正在成为可用的工作流，数学背景的读者值得关注这个方向。</li>
+</ul>
+<p>推理模型（第 10 讲）在此场景显著强于即答模型，难推导务必用推理档并给足思考时间。</p>
+<h2 id="3">3. 实验与代码复现<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>复现论文</strong>：把论文的方法节 + 官方仓库（如有）给编程智能体，让它搭骨架、对齐超参数；跑不通的报错直接贴回去循环（第 15 讲的工作流）；</li>
+<li><strong>数据分析</strong>：描述数据结构与假设，让它写分析脚本并<strong>解释每个统计选择</strong>（"为什么用这个检验？前提假设是什么？"）——防止黑箱统计；</li>
+<li><strong>红线二：科研代码必须理解后使用</strong>。AI 写的数据处理若有静默 bug（错误的对齐、悄悄丢弃的 NaN），产出的是<strong>看起来正常的错误结论</strong>，比崩溃可怕得多。关键数据管线要逐行读懂 + 用小样本手工核对中间结果。</li>
+</ul>
+<h2 id="4">4. 写作：润色与代写的边界<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>能做（主流期刊普遍接受，个别期刊有申报要求）：</p>
+<ul>
+<li><strong>语言润色</strong>：非母语者的最大痛点。"改成规范学术英语，保留所有术语和原意，输出逐句修改对照表 + 每处修改理由"——对照表让你保持控制权，顺便学写作；</li>
+<li><strong>结构诊断</strong>："这一节的论证顺序是否清晰？读者会在哪里迷路？"（只诊断，重写由你决定）；</li>
+<li><strong>投稿杂务</strong>：cover letter 草稿、摘要压缩到 250 词、审稿意见的逐条回复骨架。</li>
+</ul>
+<p>不能做（红线三）：</p>
+<ul>
+<li><strong>代写核心内容</strong>：贡献声明、结论的学术判断必须出自你——署名意味着你为每个字负责，而 AI 不能承担责任（这也是各期刊政策的共同底线：<strong>AI 不能作为作者</strong>）;</li>
+<li><strong>虚构与选择性呈现</strong>：让 AI"把结果写得更显著"是学术不端，与工具无关；</li>
+<li><strong>违规用于评审</strong>：把别人的投稿喂给 AI 评审，多数会议/基金明令禁止（保密违规）。</li>
+</ul>
+<p>各期刊/会议的 AI 使用政策差异大且变动快，投稿前查最新版并按要求申报——<strong>申报使用 AI 润色如今是常规操作，无需羞于声明</strong>。</p>
+<h2 id="5-ai">5. 把 AI 嵌进科研日常的三个习惯<a class="headerlink" href="#5-ai" title="Permanent link"></a></h2>
+<ol>
+<li><strong>研究日志喂给它</strong>：每周把进展/卡点日志发给 AI 做"每周复盘对话"——它记得你上周说过什么（只要在同一上下文/让它读日志），当你的"第二个自己"；</li>
+<li><strong>审稿人模拟</strong>：投稿前"扮演最严苛的 Reviewer 2，写一份拒稿意见"——提前暴露弱点的成本远低于真拒稿；</li>
+<li><strong>跨领域翻译</strong>：读隔壁领域论文时让它当"双语导游"（"用统计学的语言解释这个物理概念"）——交叉研究的加速器。</li>
+</ol>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>用法</th>
+<th>红线</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文献</td>
+<td>语义检索建地图、结构化精读</td>
+<td>每条引用逐一核实存在性</td>
+</tr>
+<tr>
+<td>推导</td>
+<td>独立验算、专职找茬、反例、数值检验</td>
+<td>别给它你的答案再问"对不对"</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>智能体复现、统计选择要说理</td>
+<td>数据管线逐行理解 + 小样本核对</td>
+</tr>
+<tr>
+<td>写作</td>
+<td>润色对照表、结构诊断、审稿模拟</td>
+<td>核心贡献必须出自你；按政策申报</td>
+</tr>
+</tbody>
+</table>
+<p><strong>动手</strong>：挑一篇你正在读（或早想读）的论文，完整走一遍 1.2 的结构化精读流程；再从中挑一个数学命题，用第 2 节的"独立验算 + 数值验证"双保险验一次。</p>
+<hr />
+<p><em>下一讲把散落各处的技巧与坑系统盘点一遍——幻觉、谄媚、上下文腐烂、提示词注入，以及把"verify"变成肌肉记忆的清单。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-ai-for-learning.html"><span class="pager-label">上一讲</span>12 · 用 AI 促进学习</a>
+  <a class="pager-slot next" href="14-tips-and-pitfalls.html"><span class="pager-label">下一讲</span>14 · 使用技巧与坑</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IP-Adapter 与角色一致性 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li class="active"><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 接线与首跑</a></li>
+<li><a href="#2">2. 三件套的分工再确认</a></li>
+<li><a href="#3">3. 角色一致性：策略阶梯</a></li>
+<li><a href="#4">4. 排查树</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="13-ip-adapter">第 13 讲 · IP-Adapter 与角色一致性<a class="headerlink" href="#13-ip-adapter" title="Permanent link"></a></h1>
+<blockquote>
+<p>原理在第 05 讲（解耦 cross-attention：参考图经 CLIP 图像塔变成一路并联的 K/V）。本讲两个层次：先把 IP-Adapter 用起来，再把"角色一致性"这个综合问题的完整策略摆开——它是动漫创作者的圣杯问题，没有单发银弹，但有成熟的组合拳。</p>
+</blockquote>
+<h2 id="1">1. 接线与首跑<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>需要第 10 讲清单的 #5（ipadapter 权重）+ #6（clip_vision 编码器）。社区标准做法是装 <strong>ComfyUI_IPAdapter_plus</strong> 扩展节点包（第 15 讲的安装方法），它的 "IPAdapter Unified Loader" 会自动配对两个权重文件，省去手动匹配的坑。接线逻辑（对照 <code>wf07_sdxl_ipadapter.json</code>）：</p>
+<div class="highlight"><pre><span></span><code>Load Checkpoint ─MODEL─▶ IPAdapter Apply ─MODEL─▶ KSampler
+Load Image(参考图) ────▶ ↑
+</code></pre></div>
+<p><strong>注意它动的是紫线（MODEL）</strong>——因为它改装的是 U-Net 内部的 attention（并联新 K/V），而不是往条件向量里加东西。三个参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>起手</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weight</code></td>
+<td>参考图话语权 <span class="arithmatex">\(\lambda\)</span>（第 05 讲）</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td><code>start_at / end_at</code></td>
+<td>生效的去噪区间</td>
+<td>0.0 / 0.9</td>
+</tr>
+<tr>
+<td>weight_type</td>
+<td>权重随层/步的分布策略</td>
+<td>默认；<code>style transfer</code> 只取风格</td>
+</tr>
+</tbody>
+</table>
+<p>手感：weight 0.4–0.6 = "借点气质"；0.7–0.9 = "明显像参考图"；1.0+ = 开始复制粘贴（连构图都被带走，且提示词失效）。<strong>weight 与提示词是零和的</strong>——参考图话语权越高，文字越说不上话，这是并联注意力相加的直接推论。</p>
+<h2 id="2">2. 三件套的分工再确认<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>到这里三种控制手段集齐，用一个 VRChat 场景串起来——"我的角色，摆这个姿势，穿新衣服，画成水彩风"：</p>
+<table>
+<thead>
+<tr>
+<th>需求分量</th>
+<th>工具</th>
+<th>为什么是它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"我的角色"（长相）</td>
+<td>IP-Adapter（参考图）或角色 LoRA</td>
+<td>语义级外观信息</td>
+</tr>
+<tr>
+<td>"这个姿势"</td>
+<td>ControlNet openpose</td>
+<td>空间结构信息</td>
+</tr>
+<tr>
+<td>"新衣服"</td>
+<td>提示词（danbooru 标签）</td>
+<td>语义指令</td>
+</tr>
+<tr>
+<td>"水彩风"</td>
+<td>画风 LoRA 或提示词</td>
+<td>全局风格偏移</td>
+</tr>
+</tbody>
+</table>
+<p>四路信号<strong>互不冲突地并行注入</strong>（各走各的通道：attention 并联 / 条件注入 / 文本编码 / 权重增量）——第 05 讲那张"部件动了哪里"的总表，在这里变成可以自由组合的调色盘。这就是 ComfyUI 节点化的真正回报：<strong>每种控制是一个独立插槽，随插随拔</strong>。</p>
+<h2 id="3">3. 角色一致性：策略阶梯<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>"让同一角色稳定出现在几十张图里"没有单发银弹，按投入产出排一个阶梯，从上到下逐级加码：</p>
+<p><strong>L1 · 提示词锚定（零成本）</strong>：给角色写一段<strong>固定不变的特征描述</strong>（danbooru 标签：发色/发型/瞳色/服装细节/配饰，越具体越好），存成文本反复使用；配合固定的底模+LoRA 组合。对"路人级一致"够用，眼熟但经不起对比。</p>
+<p><strong>L2 · IP-Adapter 参考图（本讲）</strong>：L1 基础上挂 1–3 张角色参考图（IPAdapter plus 支持多图取平均，姿态各异的参考图效果更稳）。五官气质显著收敛，约七八成一致。<strong>你的现成优势：VRChat 角色可以随便截高质量多角度参考图</strong>——别人求之不得的素材条件。</p>
+<p><strong>L3 · 专属角色 LoRA（一次投入，长期复用）</strong>：用 20–50 张角色图（VRChat 多角度多表情截图，天然合适）炼一个角色 LoRA。一致性九成以上，且与 L2 叠用更稳。这是同人创作圈的标准答案；训练实操是独立主题（第 11 讲第 6 节的预告），等你到这一步我们再展开。</p>
+<p><strong>L4 · 局部精修兜底</strong>：任凭上面几层，脸部小崩仍是常态——最后一道工序永远是第 09 讲的 inpaint（或第 14 讲的自动修脸），把每张成品的脸单独重绘到位。</p>
+<p>实用心法：<strong>一致性是"堆叠出来的概率"，不是某个开关</strong>。L1+L2 起步，产量需求上来了再投 L3，L4 永远垫底。</p>
+<h2 id="4">4. 排查树<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code>一点都不像参考图?
+├─ clip_vision 编码器没装对/没配对 → 用 Unified Loader 自动配
+├─ weight 太低 → 0.8 试
+└─ ipadapter 权重与底模不配(SDXL 版配 SD1.5 底模) → 查文件名
+
+太像了, 提示词失灵/构图被绑架?
+├─ weight 降到 0.5-0.6
+├─ end_at 降到 0.7(后段放权给文字)
+└─ 参考图太&quot;强势&quot;(构图特征过重) → 换纯角色立绘当参考
+
+风格被参考图带偏(想要它的人不要它的画风)?
+└─ weight_type 换 style transfer 的反向操作/composition 类选项,
+   或参考图先转成中性光照的素材图
+</code></pre></div>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>截 3 张你的 VRChat 角色参考图（正脸/侧脸/全身，光照均匀），跑通 <code>wf07</code>：weight 扫 0.4 / 0.7 / 1.0，建立"话语权"手感；</li>
+<li>三件套合体：IP-Adapter（角色）+ openpose（姿势，第 12 讲的骨架）+ 提示词换装，产出你的第一张"完全受控"的图——这张图值得存档，它标志着你从"抽卡玩家"变成了"导演"；</li>
+<li>用 L1 的方法给你的角色写一段固定特征描述存档，与 L2 叠用对比一致性提升。</li>
+</ol>
+<hr />
+<p><em>控制问题全部解决，最后补产品质量的最后一公里：1024 的图怎么变成 4K 壁纸、糊脸怎么自动修——放大与精修流水线。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-controlnet-practice.html"><span class="pager-label">上一讲</span>12 · ControlNet 实战</a>
+  <a class="pager-slot next" href="14-upscale-detail.html"><span class="pager-label">下一讲</span>14 · 放大与精修流水线</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

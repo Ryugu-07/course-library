@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导览：你的机器现状与路线图 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li class="active"><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#2026-07-10">你的机器现状（2026-07-10 实机核查）</a></li>
+<li><a href="#_2">课程地图</a></li>
+<li><a href="#_3">怎么学</a></li>
+<li><a href="#_4">与《从找函数到智能体》的衔接</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">导览：你的机器现状与路线图<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>这是《从找函数到智能体》的姊妹课程，讲<strong>生图</strong>：上篇把扩散模型的原理推透（为什么是加噪去噪、采样器下拉框里那些名字是什么数学、LoRA/ControlNet 为什么长那样），下篇在你 Win 机器的 <strong>E:\AI 真实安装</strong>上把 ComfyUI 用顺。目标只有一个：<strong>画布上每个节点、每个参数，你都知道它对应哪个数学对象、为什么非它不可</strong>——到那时 ComfyUI 就不再是"看着别人抄工作流"，而是你自己的乐高。</p>
+</blockquote>
+<h2 id="2026-07-10">你的机器现状（2026-07-10 实机核查）<a class="headerlink" href="#2026-07-10" title="Permanent link"></a></h2>
+<p>以下清单是我通过 tailscale 连上你的 Win 机器逐项核实的，不是猜的：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>现状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>硬件</td>
+<td>RTX 4060 Ti <strong>16GB 显存</strong> + 32GB 内存（够跑 SDXL 全家桶 + FLUX fp8）</td>
+</tr>
+<tr>
+<td>安装</td>
+<td><code>E:\AI\ComfyUI_windows_portable</code>，portable 版 ComfyUI <strong>0.22.0</strong>，内嵌 Python 3.13 + PyTorch 2.11/cu130</td>
+</tr>
+<tr>
+<td>运行方式</td>
+<td>桌面快捷方式 / <code>E:\AI\Start_ComfyUI.bat</code>，服务在 <code>http://127.0.0.1:8188</code>，带 Manager</td>
+</tr>
+<tr>
+<td>目录组织</td>
+<td>模型/输入/输出/缓存/用户数据全部外置在 <code>E:\AI</code> 下，结构干净（第 06 讲逐目录讲）</td>
+</tr>
+<tr>
+<td>已有模型</td>
+<td>仅 3 个底模：SD1.5、SDXL base 1.0、SD2.0-inpainting</td>
+</tr>
+<tr>
+<td><strong>缺口</strong></td>
+<td>LoRA / ControlNet / VAE / IP-Adapter / 放大模型 <strong>全空</strong>；自定义节点 <strong>零</strong></td>
+</tr>
+<tr>
+<td>已有工作流</td>
+<td>只有一个 Codex 桥接用的 API 工作流（第 15 讲解释它是什么）</td>
+</tr>
+</tbody>
+</table>
+<p>诊断一句话：<strong>你的"操作系统"装好了，但"软件生态"还没装，而教程里看到的效果大多依赖生态</strong>——这是学得吃力的客观原因之一，不全是你的问题。第 10 讲有为这台机器和动漫素材场景定制的第一批下载清单。</p>
+<h2 id="_2">课程地图<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>上篇 · 原理 5 讲</strong>（全量推导，发挥你的数学背景）</p>
+<table>
+<thead>
+<tr>
+<th>讲次</th>
+<th>主题</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td>生成模型：学分布与采样</td>
+<td>生图和 LLM 是什么关系？四条技术路线为何扩散胜出？</td>
+</tr>
+<tr>
+<td>02</td>
+<td>DDPM 全推导</td>
+<td>为什么"学去噪"就能生成？ELBO 怎么落到一个平方损失？</td>
+</tr>
+<tr>
+<td>03</td>
+<td>采样器与 CFG</td>
+<td><code>euler</code>/<code>dpmpp_2m</code>/<code>karras</code> 这些下拉框选项是什么数学？CFG 为什么默认 5–8？</td>
+</tr>
+<tr>
+<td>04</td>
+<td>潜空间与整机架构</td>
+<td>VAE/CLIP/U-Net 各干什么？SD1.5/SDXL/FLUX 差在哪？checkpoint 和分体模型是什么关系？</td>
+</tr>
+<tr>
+<td>05</td>
+<td>控制与定制的数学</td>
+<td>LoRA 为什么只有几十 MB？ControlNet 怎么"看着骨架画"？</td>
+</tr>
+</tbody>
+</table>
+<p><strong>下篇 · 实战 10 讲</strong>（每讲都在你的 E:\AI 上操作）</p>
+<p>06 你的机器与安装 → 07 逐节点拆解第一个工作流 → 08 参数手册 → 09 图生图与重绘 → 10 模型生态与下载清单 → 11 LoRA → 12 ControlNet（衔接你 Mac 上已有的 controlnet_aux 工具链和 VRChat 素材）→ 13 IP-Adapter 与角色一致性 → 14 放大与精修 → 15 工程化与排障。</p>
+<p><strong>拓展篇 · AIGC 全景 6 讲</strong>（16–21）</p>
+<p>图像之外的整个 AIGC 版图：16 全景地图（"四步框架"一次看穿所有模态）→ 17/18 视频生成（原理 + 你的 16GB 实机跑 Wan/LTX/HunyuanVideo，含把 VRChat 角色图变动画）→ 19 语音（TTS 三代范式、声音克隆、GPT-SoVITS/F5-TTS 本地部署）→ 20 音乐与音效（ACE-Step 在 ComfyUI 里直接出带人声的歌）→ 21 3D 与数字人，最终串成一条"角色图 → 动画 → 配音 → 口型 → 配乐"的<strong>全本地短片流水线</strong>。你的 ComfyUI 0.22 对视频/音乐/3D 的原生节点支持我已逐一核实——拓展篇实战零自定义节点即可起步。</p>
+<p><strong>工作流实验室</strong>：<code>workflows/</code> 里是我写好的分级工作流 JSON——wf01–wf04 用你<strong>现有的 3 个模型就能跑</strong>，wf05–wf07 等第 10 讲补完模型后跑。每个都在你的机器上实测过。加载方式见工作流页。</p>
+<h2 id="_3">怎么学<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ol>
+<li><strong>原理和实操交替</strong>：推荐顺序 01→07（先懂骨架再上手）→02→03→08→09（原理支撑参数）→10 以后按需。赶时间可以先走实操线 06→07→08→09→10，回头补原理；</li>
+<li><strong>每讲的操作跟着做</strong>：下篇每讲结尾有"上机任务"，在你的 ComfyUI 里完成再进下一讲；</li>
+<li><strong>固定种子做实验</strong>：全课程反复用一个方法——固定 seed、每次只改一个参数、对比出图。这是把"玄学"变"科学"的唯一路径。</li>
+</ol>
+<blockquote>
+<p>之前 GPT 给你写的《ComfyUI 入门指南》（在 <code>E:\AI\ComfyUI_操作指南.md</code>）是份合格的速查手册，本课程完全覆盖并深化了它的内容：它告诉你"按哪里"，本课程告诉你"为什么按这里、按下去发生了什么"。速查时翻它，学习时读这里。</p>
+</blockquote>
+<h2 id="_4">与《从找函数到智能体》的衔接<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>如果你已读过姊妹课程：第 01 讲的生成式建模、第 06 讲的 attention、第 08 讲的 CFG 一句话版都会在这里展开成完整推导；没读过也不影响——本课程自成一体，需要的前置会现场补。</p>
+<hr />
+<p><em>第一讲从一个反差开始：LLM 逐词写句子，生图模型却是"从一团雪花噪声里显影出图像"——为什么图像选择了完全不同的生成方式？</em></p>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <a class="pager-slot next" href="01-generative-models.html"><span class="pager-label">下一讲</span>01 · 生成模型：学分布与采样</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

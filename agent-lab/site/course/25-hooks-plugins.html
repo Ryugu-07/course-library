@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hooks、Plugins 与生命周期 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="25-hooks-plugins">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage" open><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a class="current" aria-current="page" href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:83%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第六阶段 · 可扩展 Agent 平台</span><span>第 25 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-hook">1. Hook 是确定性插入点</a></li>
+<li><a href="#2-hook">2. Hook 输入与决定</a></li>
+<li><a href="#3-hook">3. Hook 也需要信任</a></li>
+<li><a href="#4-plugin">4. Plugin 是分发单元</a></li>
+<li><a href="#5">5. 机制选择</a></li>
+<li><a href="#6">6. 本章实验</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="25-hooksplugins">第 25 章 · Hooks、Plugins 与生命周期<a class="headerlink" href="#25-hooksplugins" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：区分“让模型记住一条规则”和“无论模型怎么想都必须执行一个检查”，并理解插件如何把能力分发。</p>
+</blockquote>
+<h2 id="1-hook">1. Hook 是确定性插入点<a class="headerlink" href="#1-hook" title="Permanent link"></a></h2>
+<p>Hook 在 SessionStart、UserPromptSubmit、PreToolUse、PostToolUse、PreCompact、Stop 等事件上运行程序。它不依赖模型主动想起，因此适合秘密扫描、命令校验、修改后 lint、结束前验证和审计上报。</p>
+<p>例如系统 prompt 可以要求“不要提交 API key”，PreToolUse Hook 则可以在写文件前扫描内容并真正阻止。前者指导行为，后者机械执行。</p>
+<h2 id="2-hook">2. Hook 输入与决定<a class="headerlink" href="#2-hook" title="Permanent link"></a></h2>
+<p>Hook 通常从 stdin 接收结构化事件，输出 allow、ask、deny、附加上下文或状态消息。它需要超时和错误策略：安全 Hook 超时应默认拒绝，纯分析 Hook 失败可以降级。</p>
+<p>多个 Hook 可能同时匹配。并发运行能降低延迟，但一个 Hook 不能假设自己先执行。冲突决定需要明确优先级，通常 deny 胜过 allow。</p>
+<h2 id="3-hook">3. Hook 也需要信任<a class="headerlink" href="#3-hook" title="Permanent link"></a></h2>
+<p>仓库里的 Hook 是可执行代码。克隆陌生项目后不能自动运行，应展示来源和哈希，让用户批准。Hook 更新后重新审查，企业管理 Hook 则由管理员策略签发。</p>
+<p>不要让模型通过修改 Hook 文件后立即获得更高权限。配置目录和安全脚本应受到额外保护。</p>
+<h2 id="4-plugin">4. Plugin 是分发单元<a class="headerlink" href="#4-plugin" title="Permanent link"></a></h2>
+<p>一个 Plugin 可以打包 Skills、Hooks、MCP 配置、子 Agent、命令和资源。Skill 是作者编写工作流的格式，Plugin 是安装、版本和团队分发的容器。</p>
+<p>插件清单需要名称、版本、入口和依赖。安装过程应显示将获得哪些工具、脚本和网络连接。升级要处理兼容性与回滚。</p>
+<h2 id="5">5. 机制选择<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>首选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每次遵守仓库约定</td>
+<td>指令文件</td>
+</tr>
+<tr>
+<td>按需执行复杂流程</td>
+<td>Skill</td>
+</tr>
+<tr>
+<td>连接外部能力</td>
+<td>MCP</td>
+</tr>
+<tr>
+<td>工具前后强制检查</td>
+<td>Hook</td>
+</tr>
+<tr>
+<td>团队安装整套能力</td>
+<td>Plugin</td>
+</tr>
+<tr>
+<td>定时触发任务</td>
+<td>Automation</td>
+</tr>
+<tr>
+<td>隔离专业任务</td>
+<td>Subagent</td>
+</tr>
+</tbody>
+</table>
+<p>一个功能可以组合多个机制。发布插件可能包含发布 Skill、制品库 MCP 和 Stop Hook。</p>
+<h2 id="6">6. 本章实验<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>实验 07 会根据需求、作用域和副作用给各机制评分。它不是绝对答案，而是训练你先识别“这是知识、动作、强制规则、分发还是调度问题”。</p>
+<div class="admonition warning">
+<p class="admonition-title">不要用 Hook 写第二个 Agent</p>
+<p>Hook 适合短小、确定、可预测的程序。如果它内部再次启动复杂自主循环，生命周期、权限和失败处理会变得难以理解。复杂判断交给 Agent，机械约束留给 Hook。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="25-hooks-plugins"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="24-mcp-tools.html"><span>上一页</span><strong>24 · MCP 与外部系统</strong></a><a class="pager-slot next" href="26-product-surfaces.html"><span>下一页</span><strong>26 · CLI、IDE、App、Cloud 与 SDK</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>误差与数值稳定性 · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li class="active"><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 误差的来源与度量</a></li>
+<li><a href="#2">2. 浮点数系统</a></li>
+<li><a href="#3">3. 灾难性相消（头号杀手）</a></li>
+<li><a href="#4-vs">4. 条件数与稳定性：问题的错 vs 算法的错</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">数值 I · 误差与数值稳定性<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>数值分析回答一个被纯数学掩盖的问题：<strong>公式在纸上对，在机器上算出来对吗？</strong>计算机用有限位数表示实数，每一步都在舍入——本页建立"误差从哪来、怎么放大、如何驯服"的基本语言。这一页的思维（条件数、灾难性相消、稳定改写）在深度学习的 fp16/fp8 时代重新成为一线技能。</p>
+</blockquote>
+<h2 id="1">1. 误差的来源与度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>四个来源</strong>：模型误差（数学模型 ≠ 现实）、观测误差（数据本身带噪）、<strong>截断误差</strong>（无穷过程砍成有限：Taylor 截断、迭代提前停）、<strong>舍入误差</strong>（有限位表示）。数值分析主管后两个。</p>
+<p><strong>度量</strong>：绝对误差 <span class="arithmatex">\(e = |\hat x - x|\)</span>；<strong>相对误差</strong> <span class="arithmatex">\(e_r = \frac{|\hat x - x|}{|x|}\)</span>（跨量级比较用它）；有效数字 <span class="arithmatex">\(n\)</span> 位 <span class="arithmatex">\(\approx\)</span> 相对误差 <span class="arithmatex">\(\leq \frac12 \times 10^{1-n}\)</span>。</p>
+<h2 id="2">2. 浮点数系统<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>IEEE 754 双精度：<span class="arithmatex">\(x = \pm 1.f \times 2^e\)</span>，53 位尾数——<strong>机器精度</strong> <span class="arithmatex">\(\varepsilon_{\text{mach}} = 2^{-52} \approx 2.2 \times 10^{-16}\)</span>（相邻浮点数的相对间距；双精度约 16 位有效十进制数字）。每次四则运算结果被舍入：<span class="arithmatex">\(fl(a \circ b) = (a \circ b)(1 + \delta),\ |\delta| \leq \varepsilon_{\text{mach}}\)</span>。</p>
+<p>三条立刻反直觉的推论：浮点加法<strong>不满足结合律</strong>（求和顺序影响结果——大数吃小数：<span class="arithmatex">\(10^{16} + 1 - 10^{16} = 0\)</span>）；比较浮点数不能用 <code>==</code>（用容差）；长求和应从小到大加或用 Kahan 补偿求和。</p>
+<p>🔗 深度学习语境：fp32/fp16/bf16/fp8 就是不同档位的 <span class="arithmatex">\(\varepsilon_{\text{mach}}\)</span>（fp16 只有 <span class="arithmatex">\(\sim 10^{-3}\)</span> 的相对精度、动态范围窄——混合精度训练里 loss scaling 防下溢、bf16 牺牲精度换范围，全是本节逻辑；comfy 课 04 讲的量化是更极端的同类交易）。</p>
+<h2 id="3">3. 灾难性相消（头号杀手）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>两个相近的数相减，有效数字批量阵亡</strong>：<span class="arithmatex">\(x = 0.12345678\)</span>，<span class="arithmatex">\(y = 0.12345612\)</span>，各 8 位有效，差 <span class="arithmatex">\(6.6\times10^{-7}\)</span> 只剩 2 位——<strong>前导位相同的部分在相减中携带的信息归零，相对误差放大约 <span class="arithmatex">\(\frac{|x|}{|x-y|}\)</span> 倍</strong>。</p>
+<p>对策是<strong>代数改写，绕开相减</strong>（必会三例）：</p>
+<table>
+<thead>
+<tr>
+<th>危险表达式</th>
+<th>场景</th>
+<th>稳定改写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\sqrt{x + 1} - \sqrt{x}\)</span>（<span class="arithmatex">\(x\)</span> 大）</td>
+<td>—</td>
+<td><span class="arithmatex">\(\dfrac{1}{\sqrt{x+1} + \sqrt{x}}\)</span>（有理化）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\dfrac{-b + \sqrt{b^2 - 4ac}}{2a}\)</span>（<span class="arithmatex">\(b &gt; 0\)</span> 且 <span class="arithmatex">\(b^2 \gg 4ac\)</span>）</td>
+<td>求根公式小根</td>
+<td>先算大根 <span class="arithmatex">\(x_1 = \frac{-b - \sqrt{\cdot}}{2a}\)</span>，小根用<strong>韦达</strong> <span class="arithmatex">\(x_2 = \frac{c}{a x_1}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(1 - \cos x\)</span>（<span class="arithmatex">\(x\)</span> 小）</td>
+<td>—</td>
+<td><span class="arithmatex">\(2\sin^2\frac{x}{2}\)</span>（恒等式）</td>
+</tr>
+</tbody>
+</table>
+<p>（🔗 机器学习标准库里的 <code>log1p</code>、<code>expm1</code>、log-sum-exp 减最大值技巧（lab06 的 softmax 实现！）、交叉熵与 softmax 融合成一个算子——全是工业化的"稳定改写"。）</p>
+<h2 id="4-vs">4. 条件数与稳定性：问题的错 vs 算法的错<a class="headerlink" href="#4-vs" title="Permanent link"></a></h2>
+<p>两个必须分开的概念：</p>
+<p><strong>条件数（问题固有的敏感度）</strong>：输入扰动 <span class="arithmatex">\(1\%\)</span>，输出扰动多少？可微函数 <span class="arithmatex">\(f\)</span> 的相对条件数</p>
+<div class="arithmatex">\[
+\kappa = \Big|\frac{x f'(x)}{f(x)}\Big|
+\]</div>
+<p>（例：<span class="arithmatex">\(f = \sqrt x\)</span> 的 <span class="arithmatex">\(\kappa = \frac12\)</span> 良态；两相近数之差的 <span class="arithmatex">\(\kappa = \frac{|x|}{|x - y|}\)</span> 巨大——第 3 节的灾难就是"病态问题"；矩阵版 <span class="arithmatex">\(\kappa(A) = \|A\|\|A^{-1}\|\)</span> 下一页主演。）<strong>病态问题换任何算法都救不了</strong>——只能换问题的提法。</p>
+<p><strong>数值稳定性（算法的品行）</strong>：算法引入的误差是否被不必要地放大。同一问题不同算法品行可以天差地别（求根公式两种写法即例）。<strong>后向稳定</strong>的现代表述：算出的解是"某个邻近问题的精确解"——好算法把锅完全甩给输入扰动。</p>
+<p><strong>总账</strong>：最终误差 <span class="arithmatex">\(\lesssim\)</span> 条件数 × (输入误差 + 算法等效扰动)。诊断次序：结果不对，先问问题病不病（条件数），再查算法稳不稳。</p>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（相消实测）</strong> 用求根公式解 <span class="arithmatex">\(x^2 - 10^8 x + 1 = 0\)</span>：直接公式给小根 <span class="arithmatex">\(\approx 0\)</span>（相消致全损）；韦达改写给 <span class="arithmatex">\(x_2 = 1/10^8 = 10^{-8}\)</span>（精确到机器精度）。<strong>一行改写挽回 16 位有效数字。</strong></p>
+<p><strong>例 2（条件数计算）</strong> <span class="arithmatex">\(f(x) = \ln x\)</span> 在 <span class="arithmatex">\(x \approx 1\)</span> 处：<span class="arithmatex">\(\kappa = \big|\frac{x \cdot 1/x}{\ln x}\big| = \frac{1}{|\ln x|} \to \infty\)</span>——<span class="arithmatex">\(x\)</span> 靠近 1 时对数是病态的（<code>log1p(x-1)</code> 存在的理由）。</p>
+<p><strong>例 3（求和顺序）</strong> 单精度下从大到小累加 <span class="arithmatex">\(\sum_{n=1}^{10^7} \frac1n\)</span> 与从小到大加，结果差在第 4 位有效数字——小项先聚成气候再遇大项，信息不被吞。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：线性方程组 <span class="arithmatex">\(Ax = b\)</span> 的数值解——LU 分解、选主元的必要性、病态矩阵与迭代法。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="stoch-04-brownian.html"><span class="pager-label">上一页</span>随机过程 IV · 布朗运动与鞅</a>
+  <a class="pager-slot next" href="num-02-linear-systems.html"><span class="pager-label">下一页</span>数值 II · 线性方程组</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

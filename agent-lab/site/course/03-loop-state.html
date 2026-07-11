@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>主循环、状态与停止条件 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="03-loop-state">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage" open><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a class="current" aria-current="page" href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:10%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第一阶段 · 最小 Agent 透明内核</span><span>第 3 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-agent">1. 循环为什么是 Agent 的心跳</a></li>
+<li><a href="#2">2. 用状态机而不是用“感觉”停止</a></li>
+<li><a href="#3">3. 观察怎样改变下一轮</a></li>
+<li><a href="#4">4. 防止循环原地打转</a></li>
+<li><a href="#5">5. 人类怎样进入循环</a></li>
+<li><a href="#6">6. 代码落点与检查</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="03">第 03 章 · 主循环、状态与停止条件<a class="headerlink" href="#03" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：把 while 循环理解为一个状态机。它不只是“重复调用模型”，而是在每轮之后更新事实、预算和终止理由。</p>
+</blockquote>
+<h2 id="1-agent">1. 循环为什么是 Agent 的心跳<a class="headerlink" href="#1-agent" title="Permanent link"></a></h2>
+<p>聊天模型一次只能根据当前输入给出一次输出。编码任务的路径通常无法提前知道：要先跑测试，看到错误后再决定读哪个文件，修改后还要重新验证。循环把“未知的下一步”交给模型，同时让真实观察逐轮进入上下文。</p>
+<p>最小循环看起来很短：</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_turns</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">call_model</span><span class="p">(</span><span class="n">build_request</span><span class="p">(</span><span class="n">history</span><span class="p">))</span>
+    <span class="n">calls</span> <span class="o">=</span> <span class="n">extract_tool_calls</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">calls</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">final_text</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">call</span> <span class="ow">in</span> <span class="n">calls</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="n">call</span><span class="p">)</span>
+        <span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div>
+<p>短代码隐藏了大量产品决定：一轮包含多少个工具调用；并行调用怎样排序；工具失败是否继续；用户中途打断时保存什么；模型返回空文本怎样处理；达到上限后是失败还是部分完成。</p>
+<h2 id="2">2. 用状态机而不是用“感觉”停止<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>一个成熟循环至少维护：</p>
+<ul>
+<li>当前 turn 编号与最大轮数；</li>
+<li>任务状态：running、waiting_approval、completed、failed、interrupted；</li>
+<li>已执行工具及参数摘要；</li>
+<li>时间、Token、费用和错误预算；</li>
+<li>完成证据与尚未解决的问题。</li>
+</ul>
+<p>停止理由应当成为结构化数据。completed 表示验收条件已经满足；max_turns 表示预算用完但目标未必完成；blocked 表示缺少权限或用户信息；interrupted 表示人类主动停止。它们不能都被界面显示成“Agent 已完成”。</p>
+<h2 id="3">3. 观察怎样改变下一轮<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>工具结果不是附录，而是下一轮决策的事实来源。好的 observation 会保留退出码、关键错误、受影响路径和是否截断；坏的 observation 可能包含十万行日志，或者只写“失败”而没有原因。</p>
+<p>以修复测试为例：</p>
+<ol>
+<li>第一轮模型请求 run_shell；</li>
+<li>Executor 返回 exit_code=1 和断言位置；</li>
+<li>Runtime 把失败结果加入 history；</li>
+<li>第二轮模型读取相关函数；</li>
+<li>修改后再次运行测试；</li>
+<li>exit_code=0 成为完成证据。</li>
+</ol>
+<p>这里不存在固定的“第二步一定读 app.py”。真正固定的是每轮都必须把新事实带回状态机。</p>
+<h2 id="4">4. 防止循环原地打转<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>最大轮数只是最后保险。更早的检测包括：</p>
+<ul>
+<li>相同工具和相同参数连续调用；</li>
+<li>错误信息没有变化；</li>
+<li>上下文每轮增长但没有新增证据；</li>
+<li>模型反复修改和撤销同一位置；</li>
+<li>工具一直返回权限拒绝。</li>
+</ul>
+<p>可以为最近调用计算指纹。如果同一指纹连续出现两到三次，Runtime 注入一条观察：“你正在重复相同行为，请重新检查假设”，或者直接进入 blocked。关键不是惩罚模型，而是把“没有取得信息增益”变成系统能识别的状态。</p>
+<h2 id="5">5. 人类怎样进入循环<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>人类不是只在开始和结束出现。审批会让状态变成 waiting_approval；补充需求会形成 steer 事件；中断会取消正在运行的模型或工具；恢复会从持久化状态继续。Runtime 必须区分“用户的新要求”和“工具返回的数据”，否则模型可能把控制命令当成普通文本。</p>
+<p>安全的中断通常分两层：先请求任务停止，不再启动新工具；再终止仍在运行的子进程。恢复时要说明哪些动作已经完成，避免再次执行有副作用的调用。</p>
+<h2 id="6">6. 代码落点与检查<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>在当前实现中，run_agent 承担循环，history 承担短期状态，max_turns 是最基础的预算。下一步扩展时，不要把所有字段塞成零散局部变量，可以引入 AgentState 数据类，让每次状态变化都能记录。</p>
+<div class="admonition warning">
+<p class="admonition-title">失败案例</p>
+<p>API 请求超时后直接重试并不总是安全。模型请求可能已经成功返回工具调用，只是客户端没有收到；如果工具具有付款、发送或删除副作用，盲目重放会产生双重执行。</p>
+</div>
+<p>完成本章后，打开实验 01，逐步观察 user、assistant 和 tool 消息怎样增长。再切换“修复测试”场景，找出失败从终点变成下一轮输入的那一步。</p>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="03-loop-state"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="02-tool-protocol.html"><span>上一页</span><strong>02 · 消息与工具调用协议</strong></a><a class="pager-slot next" href="04-executor-boundary.html"><span>下一页</span><strong>04 · Executor 与工作区边界</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

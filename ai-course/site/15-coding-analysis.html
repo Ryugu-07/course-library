@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实战：写代码与数据分析 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li class="active"><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三个层次，三种用法</a></li>
+<li><a href="#2-l1">2. L1 日常辅助：问得好，答得准</a></li>
+<li><a href="#3-l2l3-vibe-coding">3. L2/L3 智能体开发：vibe coding 的正确姿势</a></li>
+<li><a href="#4-csv">4. 自动数据分析：从 CSV 到报告</a></li>
+<li><a href="#5">5. 常见问题速答</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="15">第 15 讲 · 实战：写代码与数据分析<a class="headerlink" href="#15" title="Permanent link"></a></h1>
+<blockquote>
+<p>写代码是 LLM 目前最强、验证最闭环的应用场景（第 09 讲：测试提供客观信号）。本讲给出三个层次的工作流——日常辅助、整项目开发、自动数据分析——以及"代码经验少"的使用者最该守住的一条底线：<strong>理解权不外包</strong>。</p>
+</blockquote>
+<h2 id="1">1. 三个层次，三种用法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>工具形态</th>
+<th>你的角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1 片段级</td>
+<td>聊天框 / IDE 补全</td>
+<td>写代码的人，AI 递工具</td>
+</tr>
+<tr>
+<td>L2 任务级</td>
+<td>编程智能体（Claude Code 等）</td>
+<td>提需求、做验收的人</td>
+</tr>
+<tr>
+<td>L3 项目级</td>
+<td>智能体 + 规划 + 迭代</td>
+<td>产品经理 + 架构评审</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-l1">2. L1 日常辅助：问得好，答得准<a class="headerlink" href="#2-l1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>写小函数</strong>：给足输入输出契约——"写一个 Python 函数：输入 DataFrame 和列名，返回该列的异常值行（IQR 法），保留原索引，处理空列的边界情况，附 3 个测试用例"。契约越完整，返工越少（第 14 讲技巧 1 的代码版）；</li>
+<li><strong>看不懂的代码</strong>："逐块解释这段代码，重点说明[正则/这个 groupby 链]在做什么，然后指出可能的坑"；</li>
+<li><strong>报错求医</strong>：贴<strong>完整的报错栈</strong> + 相关代码 + "我已经试过 X"。只贴最后一行错误信息等于让医生隔着门诊病；</li>
+<li><strong>翻译</strong>：跨语言迁移（"把这段 MATLAB 改写成 numpy，保持数值行为一致"）是它的舒适区。</li>
+</ul>
+<h2 id="3-l2l3-vibe-coding">3. L2/L3 智能体开发：vibe coding 的正确姿势<a class="headerlink" href="#3-l2l3-vibe-coding" title="Permanent link"></a></h2>
+<p>用编程智能体（第 11 讲已装好）从零做一个工具的标准循环：</p>
+<p><strong>① 先谈需求再动工</strong>。第一条消息别说"帮我写个记账程序"，说：</p>
+<div class="highlight"><pre><span></span><code>我想做一个命令行记账工具，Python。需求：
+- 记一笔：金额、分类、备注、日期（默认今天），存本地 CSV
+- 查询：按月汇总、按分类汇总
+- 我是初学者，代码请保持简单直白，不要过度设计
+先给我：文件结构 + 数据格式 + 你打算怎么拆步骤。我确认后再写代码。
+</code></pre></div>
+<p>"先方案后代码"这一步能拦下 80% 的方向性返工（第 14 讲技巧 6、7 的合体）。</p>
+<p><strong>② 小步走，步步验</strong>。让它一次实现一个功能，你跑一下、看一眼再继续。智能体一口气改十个文件的模式，出错时你将无从审起。</p>
+<p><strong>③ 报错直接回喂</strong>。跑出错就把报错原样贴回去——"看报错→改→再跑"这个循环它自己能转（第 08 讲循环工程），你只需在方向跑偏时踩刹车。</p>
+<p><strong>④ 验收要动真格</strong>。它说"完成了"不算完成（第 08 讲：不让模型自己宣布成功）：亲手跑主流程、试边界输入（空文件、负数、中文路径）、让它"写一组测试并跑给我看"。</p>
+<p><strong>⑤ 收尾三连</strong>：让它写 README（怎么运行）、把过程中的设计决定记进注释、生成 <code>requirements.txt</code>。三个月后的你会感谢这一步。</p>
+<div class="admonition tip">
+<p class="admonition-title">给代码经验少的学习者</p>
+<p>vibe coding 的甜蜜陷阱：项目跑起来了，你却讲不出它为什么能跑。两条自救纪律：<strong>每个模块让 AI 逐块讲解，直到你能复述"这块为什么这么设计"</strong>；以及定期做"无 AI 挑战"——小改动自己动手写，写不动就说明理解已经悬空（第 12 讲依赖性自检的代码版）。你的目标是"借 AI 写出超出自己水平的代码，同时把自己的水平拉上去"，前半句人人会，后半句才是本课程的要求。</p>
+</div>
+<h2 id="4-csv">4. 自动数据分析：从 CSV 到报告<a class="headerlink" href="#4-csv" title="Permanent link"></a></h2>
+<p>数据分析是"智能体 + 代码执行"的天然场景，流程已经高度成熟：</p>
+<p><strong>标准工作流</strong>（聊天产品的代码解释器 / 编程智能体皆可）：</p>
+<ol>
+<li><strong>给数据 + 给背景</strong>：上传 CSV，说清每列含义、数据怎么来的、你关心什么问题——列名叫 <code>var3</code> 而你不解释，分析必然肤浅；</li>
+<li><strong>先探索后假设</strong>："先做探索性分析：形状、缺失、分布、异常值，输出你观察到的 5 个最值得追问的现象"——让它当侦探，别一上来就要结论；</li>
+<li><strong>追问与钻取</strong>：对有意思的现象连环追问（"按地区拆开看""控制价格后还成立吗"）；</li>
+<li><strong>产出</strong>：让它输出图 + 完整可复跑的脚本——<strong>脚本是交付物的一部分</strong>，保证分析可复现（科研场景这是硬要求）。</li>
+</ol>
+<p><strong>三条红线</strong>（第 13 讲红线三的展开）：</p>
+<ul>
+<li>统计方法要说理："为什么选这个检验？前提假设满足吗？"——不接受黑箱 p 值；</li>
+<li>关键数字抽查：随机挑两个汇总数字，用 Excel/手工透视核对——静默的数据对齐错误比崩溃可怕；</li>
+<li>相关不是因果：让它明确区分"数据显示相关"与"可以下因果结论"，并列出混杂因素。</li>
+</ul>
+<p><strong>动手</strong>：跑 <code>labs/lab10_auto_analysis.py</code>——一个微型"分析智能体"：你给它一个 CSV，它（通过 DeepSeek API）自主决定写什么分析代码、执行、解读结果再决定下一步。这是第 08/09 讲循环工程 + 本讲工作流的合体演示，也是课程实验的收官之作。</p>
+<h2 id="5">5. 常见问题速答<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>它写的代码风格老旧/用了废弃 API？</strong>——知识截止（第 14 讲坑 5）。给它贴最新文档片段，或明确指定版本："用 pandas 2.x 的写法"；</li>
+<li><strong>改 A 坏了 B？</strong>——上下文里没有 B 的信息。用智能体（它能读全项目）而非聊天框贴片段；重要项目上 git，每步可回滚（智能体时代 git 从"团队协作工具"变成了"个人后悔药"，务必用上）；</li>
+<li><strong>生成的代码越改越乱？</strong>——上下文腐烂（第 14 讲坑 3）。新开会话，只带上"当前代码 + 我要什么"重新开始；</li>
+<li><strong>什么时候不该用 AI 写？</strong>——安全敏感（鉴权、支付）、性能关键路径、你完全无法验证正确性的领域。这些地方要么自己写，要么找人审。</li>
+</ul>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>三层用法各就各位：片段问聊天框，任务交智能体，项目当产品经理；</li>
+<li>智能体开发五步：先方案→小步走→回喂报错→动真格验收→收尾三连；</li>
+<li>数据分析四步：给背景→先探索→再钻取→交脚本；三条红线防静默错误；</li>
+<li>底线：理解权不外包——能复述设计原因，才算你的代码。</li>
+</ul>
+<hr />
+<p><em>下一讲从代码切到图像：文生图的原理（扩散模型，给你的数学背景加一点推导彩蛋）与实操（提示词结构、工具选择、版权边界）。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-tips-and-pitfalls.html"><span class="pager-label">上一讲</span>14 · 使用技巧与坑</a>
+  <a class="pager-slot next" href="16-text-to-image.html"><span class="pager-label">下一讲</span>16 · 实战：文生图</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

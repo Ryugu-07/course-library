@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>软件与环境安装 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li class="active"><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 六层工具链总览</a></li>
+<li><a href="#2-python">2. 基础设施：包管理器与 Python 环境</a></li>
+<li><a href="#3-api">3. API：跑通第一个调用</a><ul>
+<li><a href="#31-key">3.1 拿 key 与管钱</a></li>
+<li><a href="#32">3.2 第一个调用</a></li>
+</ul>
+</li>
+<li><a href="#4-cli-agent">4. 编程智能体（CLI Agent）</a></li>
+<li><a href="#5-ide">5. IDE 集成</a></li>
+<li><a href="#6-mac">6. 本地部署：你的 Mac 能跑大模型</a></li>
+<li><a href="#7">7. 网络与账号的现实</a></li>
+<li><a href="#_1">本讲小结与安装清单</a></li>
+</ul>
+</div>
+</details>
+<h1 id="11">第 11 讲 · 软件与环境安装<a class="headerlink" href="#11" title="Permanent link"></a></h1>
+<blockquote>
+<p>这一讲是纯工具课：把使用 AI 的整条工具链——从网页聊天到 API 到编程智能体到本地部署——装起来、跑通。按"投入从低到高"分六层，各层独立，用到哪层装哪层。示例以 macOS 为主（Windows 差异会标注）。</p>
+</blockquote>
+<h2 id="1">1. 六层工具链总览<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>形态</th>
+<th>安装成本</th>
+<th>适合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1 网页聊天</td>
+<td>chat 网页/App</td>
+<td>零</td>
+<td>所有人的起点</td>
+</tr>
+<tr>
+<td>L2 桌面客户端</td>
+<td>官方桌面 App</td>
+<td>一次下载</td>
+<td>高频使用者（快捷键、截图、文件拖拽）</td>
+</tr>
+<tr>
+<td>L3 API 调用</td>
+<td>写代码调模型</td>
+<td>需编程基础</td>
+<td>批处理、自动化、做应用</td>
+</tr>
+<tr>
+<td>L4 编程智能体</td>
+<td>终端里的 agent</td>
+<td>一条命令</td>
+<td>写代码、改项目、数据分析</td>
+</tr>
+<tr>
+<td>L5 IDE 集成</td>
+<td>编辑器插件</td>
+<td>一次配置</td>
+<td>日常编码的补全与重构</td>
+</tr>
+<tr>
+<td>L6 本地部署</td>
+<td>本机跑开源模型</td>
+<td>中等</td>
+<td>隐私数据、离线、折腾爱好者</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-python">2. 基础设施：包管理器与 Python 环境<a class="headerlink" href="#2-python" title="Permanent link"></a></h2>
+<p>macOS 先装 Homebrew（包管理器，此后一切软件一条命令）：</p>
+<div class="highlight"><pre><span></span><code>/bin/bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="k">)</span><span class="s2">&quot;</span>
+brew<span class="w"> </span>install<span class="w"> </span>python@3.12<span class="w"> </span>node<span class="w"> </span>git
+</code></pre></div>
+<p>Python 铁律：<strong>永远在虚拟环境里装包</strong>，不污染系统：</p>
+<div class="highlight"><pre><span></span><code>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv<span class="w">          </span><span class="c1"># 在项目目录建环境</span>
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">         </span><span class="c1"># 激活（Windows: .venv\Scripts\activate）</span>
+pip<span class="w"> </span>install<span class="w"> </span>openai<span class="w"> </span>python-dotenv<span class="w">  </span><span class="c1"># 装到这个环境里</span>
+</code></pre></div>
+<p>（进阶可用 <code>uv</code>——Rust 写的极速替代品，<code>brew install uv</code> 后 <code>uv venv</code> / <code>uv pip install</code>，习惯后回不去。）</p>
+<h2 id="3-api">3. API：跑通第一个调用<a class="headerlink" href="#3-api" title="Permanent link"></a></h2>
+<h3 id="31-key">3.1 拿 key 与管钱<a class="headerlink" href="#31-key" title="Permanent link"></a></h3>
+<p>到模型厂商的<strong>开放平台</strong>（注意和聊天产品是两个入口）注册、充值、创建 API key。三条纪律从第一天养成：</p>
+<ol>
+<li><strong>key 即密码</strong>：泄漏者可用你的额度。存在 <code>.env</code> 文件里，<strong>绝不写进代码、绝不提交 git</strong>（<code>.gitignore</code> 加上 <code>.env</code>；一旦泄露立即到平台吊销重发）；</li>
+<li><strong>设置用量上限</strong>：平台后台设每月预算警报，避免代码写错循环刷爆账单；</li>
+<li><strong>从小额开始</strong>：充最低额度先玩，个人学习用量通常每月几块到几十块人民币（DeepSeek 档的价格）。</li>
+</ol>
+<h3 id="32">3.2 第一个调用<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>行业事实标准是 OpenAI 兼容接口——大多数厂商（包括 DeepSeek）都兼容，换模型只需改 <code>base_url</code> 和模型名：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">openai</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>  <span class="c1"># 从 .env 读取密钥</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">OpenAI</span><span class="p">(</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DEEPSEEK_API_KEY&quot;</span><span class="p">],</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api.deepseek.com&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">chat</span><span class="o">.</span><span class="n">completions</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;deepseek-chat&quot;</span><span class="p">,</span>
+    <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;你是一个严谨的数学助教。&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;用一句话解释什么是特征值。&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+<p><code>.env</code> 文件内容就一行：<code>DEEPSEEK_API_KEY=sk-xxxxxx</code>。跑通这十几行，你就拥有了批量处理、自动化、接入自己程序的全部入口——本课程 lab08–lab10 都基于它。</p>
+<p>理解计费：按 token 双向计费（输入 + 输出），中文 1 token ≈ 0.6–0.7 个汉字。<strong>上下文每轮都要重发</strong>——对话越长每轮越贵，这是第 08 讲上下文经济学的账单形态。</p>
+<h2 id="4-cli-agent">4. 编程智能体（CLI Agent）<a class="headerlink" href="#4-cli-agent" title="Permanent link"></a></h2>
+<p>第 09 讲的智能体落到日常，就是终端里的编程 agent。以 Claude Code 为例：</p>
+<div class="highlight"><pre><span></span><code>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>@anthropic-ai/claude-code
+<span class="nb">cd</span><span class="w"> </span>你的项目目录
+claude<span class="w">          </span><span class="c1"># 启动后用自然语言指挥它读代码、改文件、跑命令</span>
+</code></pre></div>
+<p>（OpenAI 的 Codex CLI、开源的多种 agent 同理，装其一即可。）它与 L1 聊天框的本质区别：<strong>它能直接操作你的文件系统和终端</strong>——读整个项目、改多个文件、跑测试、看报错自己修。第 15 讲专讲怎么用好它。安全提醒一次到位：它每次执行命令会请求确认，<strong>别嫌烦就全开自动</strong>，尤其涉及删除、网络、安装的命令（第 09 讲提示词注入的现实防线就在这些确认框上）。</p>
+<h2 id="5-ide">5. IDE 集成<a class="headerlink" href="#5-ide" title="Permanent link"></a></h2>
+<ul>
+<li><strong>VS Code + Copilot</strong> 或各家插件：行内补全 + 侧边对话，写代码时的"顺手"层；</li>
+<li><strong>Cursor</strong>：以 AI 为中心重做的 VS Code 分支，多文件编辑体验好；</li>
+<li>与 L4 的分工：IDE 插件适合"我在写、它辅助"；CLI agent 适合"它在干、我在审"。</li>
+</ul>
+<h2 id="6-mac">6. 本地部署：你的 Mac 能跑大模型<a class="headerlink" href="#6-mac" title="Permanent link"></a></h2>
+<p>开源权重 + 消费级硬件已经能跑相当不错的模型。意义：<strong>数据完全不出机器</strong>（隐私）、离线可用、零边际成本、以及——亲手感受模型的"重量"。</p>
+<p>最简单的入口是 <strong>Ollama</strong>：</p>
+<div class="highlight"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>ollama
+ollama<span class="w"> </span>serve<span class="w"> </span><span class="p">&amp;</span><span class="w">                 </span><span class="c1"># 启动服务</span>
+ollama<span class="w"> </span>run<span class="w"> </span>qwen3:8b<span class="w">            </span><span class="c1"># 首次自动下载（约 5GB），然后直接对话</span>
+</code></pre></div>
+<p>你的 M4 / 24GB 统一内存能跑什么（经验法则：<strong>模型占用 ≈ 参数量 × 每参数字节数</strong>；4-bit 量化约 0.5 字节/参数，再留出系统与上下文的内存）：</p>
+<table>
+<thead>
+<tr>
+<th>规模</th>
+<th>4-bit 量化后占用</th>
+<th>24GB Mac 体验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7–9B</td>
+<td>~5GB</td>
+<td>流畅，日常问答够用</td>
+</tr>
+<tr>
+<td>14B</td>
+<td>~9GB</td>
+<td>流畅，质量明显上台阶</td>
+</tr>
+<tr>
+<td>30B 级（含 MoE）</td>
+<td>~18GB</td>
+<td>能跑，接近机器上限，关掉大程序再跑</td>
+</tr>
+<tr>
+<td>70B+</td>
+<td>40GB+</td>
+<td>跑不动，需要更大内存或多卡</td>
+</tr>
+</tbody>
+</table>
+<p><strong>量化</strong>是本地部署的核心技巧：把权重从 16 位浮点压到 4 位整数，内存降 4 倍，质量损失通常可接受——又是一个工程折中。本地模型的 API 也兼容 OpenAI 格式（<code>base_url="http://localhost:11434/v1"</code>），第 3.2 节的代码改两行就能指向本机——<strong>同一套代码，云端本地随意切换</strong>。</p>
+<p>清醒的预期管理：本地 8B 模型的能力大约相当于两三年前的云端主力，写作和知识面明显弱于云端旗舰。它的定位是隐私场景、批量轻任务、学习实验，不是旗舰替代品。（Mac 生态另有 MLX 框架——Apple 官方的张量库，跑量化模型效率更高，折腾爱好者可探索 <code>mlx-lm</code>。）</p>
+<h2 id="7">7. 网络与账号的现实<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>国际厂商的服务在国内网络环境下不可直连，这是绕不开的现实约束。合规的路径包括：用国内模型（第 10 讲，能力已在同一梯队）、用有国内合规代理的企业服务、或在有合法国际网络的环境（如学校科研网络出口、海外访学）使用。请遵守所在网络的使用规定。好消息是：<strong>本课程的全部实验都可用国内直连的 DeepSeek 完成</strong>，工具链方法论与模型无关，换模型只是改一行 <code>base_url</code>。</p>
+<h2 id="_1">本讲小结与安装清单<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>按需勾选（全装也就半小时）：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 基础</span>
+brew<span class="w"> </span>install<span class="w"> </span>python@3.12<span class="w"> </span>node<span class="w"> </span>git<span class="w"> </span>uv
+<span class="c1"># API 之路</span>
+mkdir<span class="w"> </span>myai<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>myai<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>openai<span class="w"> </span>python-dotenv
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;DEEPSEEK_API_KEY=你的key&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>.env<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.env&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+<span class="c1"># 编程智能体</span>
+npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>@anthropic-ai/claude-code
+<span class="c1"># 本地部署</span>
+brew<span class="w"> </span>install<span class="w"> </span>ollama<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ollama<span class="w"> </span>run<span class="w"> </span>qwen3:8b
+</code></pre></div>
+<p><strong>动手</strong>：跑通 3.2 的第一个 API 调用；如果对本地部署好奇，装 Ollama 跑一个 8B 模型，问它同一个问题，对比云端旗舰的差距——这个体感对第 10 讲的选型判断很有价值。</p>
+<hr />
+<p><em>下一讲开始进入"用 AI 干活"的方法论：先讲怎么用它学习——关键是让它当苏格拉底，而不是当答案贩子。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-model-landscape.html"><span class="pager-label">上一讲</span>10 · 模型地图与选型</a>
+  <a class="pager-slot next" href="12-ai-for-learning.html"><span class="pager-label">下一讲</span>12 · 用 AI 促进学习</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

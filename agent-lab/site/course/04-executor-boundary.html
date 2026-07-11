@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Executor 与工作区边界 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="04-executor-boundary">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage" open><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a class="current" aria-current="page" href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:13%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第一阶段 · 最小 Agent 透明内核</span><span>第 4 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-executor">1. Executor 是信任边界</a></li>
+<li><a href="#2">2. 路径为什么必须先解析再比较</a></li>
+<li><a href="#3">3. 工具应该小而清楚</a></li>
+<li><a href="#4">4. 结果也需要边界</a></li>
+<li><a href="#5">5. 副作用和可撤销性</a></li>
+<li><a href="#6">6. 对照当前项目</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="04-executor">第 04 章 · Executor 与工作区边界<a class="headerlink" href="#04-executor" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：理解 Agent 中最值得谨慎设计的不是 prompt，而是“模型意图如何变成真实副作用”的边界。</p>
+</blockquote>
+<h2 id="1-executor">1. Executor 是信任边界<a class="headerlink" href="#1-executor" title="Permanent link"></a></h2>
+<p>模型输出来自概率系统，也可能被仓库文件、网页或错误日志里的恶意文本影响。Executor 不能因为参数是合法 JSON 就认为动作安全。它必须重新验证工具名、参数类型、路径、命令、超时、输出大小和权限。</p>
+<p>可以把一次执行拆成六步：解析参数、规范化路径、权限判定、实际执行、结果归一化、记录审计。任何一步失败都应返回结构化错误给模型，而不是让整个 Python 进程崩溃。</p>
+<h2 id="2">2. 路径为什么必须先解析再比较<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>只判断字符串是否以 workspace 开头是不安全的。路径可能包含 ..、符号链接或大小写差异。正确做法是把 workspace 和目标都解析成绝对规范路径，再判断目标是否位于允许根目录之下。</p>
+<div class="highlight"><pre><span></span><code><span class="n">root</span> <span class="o">=</span> <span class="n">WORKSPACE</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">user_path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">target</span> <span class="o">!=</span> <span class="n">root</span> <span class="ow">and</span> <span class="n">root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">target</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">&quot;path escapes workspace&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>还要考虑符号链接在检查后被替换的竞态、特殊设备文件、巨大文件和二进制内容。教学版可以先守住目录穿越，生产版需要更强的操作系统沙箱。</p>
+<h2 id="3">3. 工具应该小而清楚<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>read_file、write_file 和 run_shell 足以理解核心，但生产 Agent 通常拆得更细：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>目的</th>
+<th>为什么不都交给 shell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>list_files</td>
+<td>有界地查看目录结构</td>
+<td>返回可控、易压缩</td>
+</tr>
+<tr>
+<td>search_text</td>
+<td>搜索符号和文本</td>
+<td>可以限制数量并忽略大目录</td>
+</tr>
+<tr>
+<td>read_file</td>
+<td>读取指定范围</td>
+<td>避免一次塞入整个大文件</td>
+</tr>
+<tr>
+<td>apply_patch</td>
+<td>精确修改</td>
+<td>能审查 diff，减少覆盖用户改动</td>
+</tr>
+<tr>
+<td>run_shell</td>
+<td>构建、测试、Git</td>
+<td>只处理确实需要进程的动作</td>
+</tr>
+</tbody>
+</table>
+<p>工具越宽泛，模型越难正确选择，权限也越难精细控制。一个“execute_any_python”工具很灵活，但几乎等于把整台电脑交出去。</p>
+<h2 id="4">4. 结果也需要边界<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>命令输出可能有几百 MB。Runtime 应限制字节数、保留头尾、标注截断，并保存完整日志到文件供按需读取。返回值最好包含：</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;ok&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;exit_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;stdout&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;stderr&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AssertionError at tests/test_api.py:42&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;truncated&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">831</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>这样模型能区分“工具函数异常”“命令正常运行但测试失败”“进程超时”和“输出被截断”。如果所有错误都变成字符串 ERROR，后续策略会非常粗糙。</p>
+<h2 id="5">5. 副作用和可撤销性<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>读取、写入、网络请求、删除和外部发送的风险不同。Executor 应给工具标记副作用级别。写文件前可以记录旧内容或依赖 Git diff；删除应优先移动到临时区；外部发送必须在动作发生前审批，而不是发送后通知。</p>
+<p>对于有副作用的工具，还需要幂等键或事务思维。创建 PR、支付、发邮件、写数据库不能因为 API 重试而执行两次。Agent 框架必须知道“模型调用重试”和“真实动作重放”不是一回事。</p>
+<h2 id="6">6. 对照当前项目<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>当前 minimal_swe_agent.py 把文件操作限制在 agent-lab/workspace，并让 run_shell 默认询问 y/n。这是两个不同机制：路径检查限制技术范围，询问机制让人决定一次动作。后面的安全阶段会把它们扩展成沙箱和审批策略。</p>
+<div class="admonition danger">
+<p class="admonition-title">红线</p>
+<p>API key 不属于模型上下文，也不应出现在工具输出、命令历史和教学截图里。Executor 需要把秘密当作独立的运行时输入，并在日志层脱敏。</p>
+</div>
+<p>本章验收不是记住路径代码，而是能解释：为什么模型提出动作之后，仍必须经过独立的参数校验、权限判定和结果归一化。</p>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="04-executor-boundary"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="03-loop-state.html"><span>上一页</span><strong>03 · 主循环、状态与停止条件</strong></a><a class="pager-slot next" href="05-repo-discovery.html"><span>下一页</span><strong>05 · 仓库发现与代码搜索</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

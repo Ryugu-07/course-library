@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生成模型：学分布与采样 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li class="active"><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 生成 = 学分布 + 会采样</a></li>
+<li><a href="#2">2. 四条路线的权衡</a><ul>
+<li><a href="#21-gan">2.1 GAN：学一个"一步到位"的变换</a></li>
+<li><a href="#22-vae-">2.2 VAE：学一个带概率的压缩-解压</a></li>
+<li><a href="#23">2.3 自回归：把图像当句子逐"词"生成</a></li>
+<li><a href="#24">2.4 扩散：把"一步到位"拆成一千小步</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 一个物理直觉：墨水扩散的倒放</a></li>
+<li><a href="#4">4. 文生图 = 条件生成</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="01">第 01 讲 · 生成模型：学分布与采样<a class="headerlink" href="#01" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题设定</strong>：训练集是一堆图像。我们想要一个模型，能产出"看起来也属于这堆图像的世界"的<strong>新</strong>图像。用概率语言说：图像是高维空间里的点（一张 512×512 彩图是 <span class="arithmatex">\(x \in \mathbb{R}^{786432}\)</span>），真实图像在这个空间里服从某个未知分布 <span class="arithmatex">\(p_{\text{data}}(x)\)</span>——<strong>生成模型的任务就是学会从这个分布采样</strong>。本讲建立这个总框架，比较四条技术路线，并回答：为什么图像生成最终由扩散模型胜出。</p>
+</blockquote>
+<h2 id="1">1. 生成 = 学分布 + 会采样<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>判别式模型（分类器）学的是 <span class="arithmatex">\(p(y \mid x)\)</span>：给图，判猫狗。生成式模型学的是 <span class="arithmatex">\(p(x)\)</span> 本身——难度完全不是一个量级：判别只需在两类之间画一条边界，生成需要刻画"所有合理图像"在 78 万维空间中的分布形状。</p>
+<p>两个立刻能感受到的困难：</p>
+<p><strong>① 维数灾难下的"针尖流形"。</strong>随机撒一个 78 万维的点，得到的是电视雪花——合理图像在这个空间里占的体积测度趋近于零。它们聚在一个低维流形附近（改变光照、视角、表情是在流形上滑动，随机扰动像素则立刻掉下流形）。学分布 = 找到这个流形并把概率质量铺上去。</p>
+<p><strong>② 会算概率 ≠ 会采样。</strong>就算给你一个能对任意 <span class="arithmatex">\(x\)</span> 报出 <span class="arithmatex">\(p(x)\)</span> 数值的黑盒，从中采样仍然是难题（高维空间里既不能网格枚举也不能拒绝采样）。所以每条生成路线的核心设计，都是<strong>给采样修一条可行的路</strong>：普遍套路是"从一个容易采样的分布（高斯噪声 <span class="arithmatex">\(z\)</span>）出发，学一个变换把它运到数据分布上"。</p>
+<div class="arithmatex">\[
+z \sim \mathcal{N}(0, I) \;\xrightarrow{\;\text{学到的变换}\;}\; x \sim p_{\text{data}}
+\]</div>
+<p>各路线的差异，就在这个变换怎么参数化、怎么训练。</p>
+<h2 id="2">2. 四条路线的权衡<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="21-gan">2.1 GAN：学一个"一步到位"的变换<a class="headerlink" href="#21-gan" title="Permanent link"></a></h3>
+<p>生成器 <span class="arithmatex">\(G: z \mapsto x\)</span> 一步把噪声变图；判别器 <span class="arithmatex">\(D\)</span> 负责鉴别真伪，两者对抗训练（<span class="arithmatex">\(G\)</span> 骗 <span class="arithmatex">\(D\)</span>，<span class="arithmatex">\(D\)</span> 抓 <span class="arithmatex">\(G\)</span>）：</p>
+<div class="arithmatex">\[
+\min_G \max_D \; \mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)] + \mathbb{E}_{z}[\log(1 - D(G(z)))]
+\]</div>
+<p>2014–2020 年图像生成的王者（StyleGAN 的人脸以假乱真）。优点：采样一步、极快。致命伤：<strong>训练不稳</strong>（min-max 博弈没有收敛保证，调参如走钢丝）与<strong>模式坍缩</strong>（<span class="arithmatex">\(G\)</span> 发现几个能骗过 <span class="arithmatex">\(D\)</span> 的样本就反复输出，放弃分布的多样性）。</p>
+<h3 id="22-vae-">2.2 VAE：学一个带概率的压缩-解压<a class="headerlink" href="#22-vae-" title="Permanent link"></a></h3>
+<p>编码器把 <span class="arithmatex">\(x\)</span> 压成低维隐变量 <span class="arithmatex">\(z\)</span> 的分布，解码器从 <span class="arithmatex">\(z\)</span> 重建 <span class="arithmatex">\(x\)</span>，优化证据下界（ELBO——第 02 讲会完整推导它，这里先见个面）：</p>
+<div class="arithmatex">\[
+\log p_\theta(x) \;\geq\; \mathbb{E}_{q_\phi(z \mid x)}\big[\log p_\theta(x \mid z)\big] - D_{\mathrm{KL}}\big(q_\phi(z \mid x)\,\|\,p(z)\big)
+\]</div>
+<p>训练稳定、理论优雅，但单用 VAE 生成的图<strong>偏糊</strong>（重建损失对"平均化"的偏好）。<strong>记住 VAE——它没有赢得生成主战场，却以另一个身份成为扩散模型的关键配角</strong>（第 04 讲：Stable Diffusion 的"潜空间"正是一个 VAE 的内部）。</p>
+<h3 id="23">2.3 自回归：把图像当句子逐"词"生成<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>把像素/图块排成序列，逐个预测下一个（GPT 的图像版；姊妹课程第 07 讲的思想直接搬过来）。似然可以精确计算、训练稳定，图文理解天然强（和语言共用一套框架，GPT 系内置生图走的就是这条融合路线）。缺点：高分辨率图有几万个 token，逐个生成慢；且"光栅顺序"对图像是别扭的（图像没有天然的从左到右）。</p>
+<h3 id="24">2.4 扩散：把"一步到位"拆成一千小步<a class="headerlink" href="#24" title="Permanent link"></a></h3>
+<p>扩散模型的洞察：<strong>直接学 <span class="arithmatex">\(z \to x\)</span> 的巨变换太难，但学"把图像变得稍微干净一点"这个小变换很容易</strong>。于是：前向过程逐步给图像加噪直到变成纯高斯（这一半不用学，是固定的数学）；模型只学反向的每一小步去噪；生成时从纯噪声出发迭代去噪，图像逐渐"显影"。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>GAN</th>
+<th>VAE</th>
+<th>自回归</th>
+<th>扩散</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练稳定性</td>
+<td>✗ 对抗博弈</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓ <strong>单一回归损失</strong></td>
+</tr>
+<tr>
+<td>样本质量</td>
+<td>✓ 锐利</td>
+<td>偏糊</td>
+<td>✓</td>
+<td>✓ 锐利</td>
+</tr>
+<tr>
+<td>多样性/覆盖</td>
+<td>✗ 模式坍缩</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>采样速度</td>
+<td>✓ 1 步</td>
+<td>✓ 1 步</td>
+<td>✗ 数万步</td>
+<td>✗ 数十步（可优化，第 03 讲）</td>
+</tr>
+<tr>
+<td>似然可算</td>
+<td>✗</td>
+<td>下界</td>
+<td>✓ 精确</td>
+<td>下界</td>
+</tr>
+</tbody>
+</table>
+<p>扩散几乎集齐了所有"✓"，唯一的代价是采样要几十步——而这恰好是工程可以攻坚的短板（第 03 讲的全部内容）。2020 年 DDPM 论文证明扩散能与 GAN 打平，2021 年《Diffusion Models Beat GANs》宣告易主，2022 年 Stable Diffusion 开源引爆全民生图。你 ComfyUI 里跑的一切——SD1.5、SDXL、FLUX——都是扩散家族（FLUX 用的流匹配是它的近亲推广，第 04 讲讲）。</p>
+<h2 id="3">3. 一个物理直觉：墨水扩散的倒放<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>扩散模型的名字来自非平衡热力学。一滴墨水滴进清水：分子热运动让墨水逐渐散开，最终均匀分布——这是<strong>熵增的、自发的、容易描述的</strong>过程（前向加噪的物理原型）。倒放这段录像——均匀的墨水自发聚回一滴——热力学上几乎不可能自发发生，但<strong>如果你知道每个时刻每个分子该往哪挪一小步，就能人工执行这个倒放</strong>。</p>
+<p>扩散模型学的就是这个"往哪挪"：数学上叫<strong>分数（score）</strong>，即对数概率密度的梯度 <span class="arithmatex">\(\nabla_x \log p(x)\)</span>——它在每一点指向"概率密度升高最快的方向"，也就是"往数据流形上走"的方向。加噪的正过程把数据抹平成高斯；学到每个噪声水平下的 score，就能把高斯一步步"梳"回数据分布。第 02 讲将证明：<strong>训练网络预测噪声，恰好等价于学习 score</strong>——这就是"猜噪声"这个朴素目标背后的深层含义。</p>
+<h2 id="4">4. 文生图 = 条件生成<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>以上讲的都是无条件生成（随机出一张"合理的图"）。实用的文生图是<strong>条件生成</strong>：学 <span class="arithmatex">\(p(x \mid c)\)</span>，<span class="arithmatex">\(c\)</span> 是文字描述。框架不变，只是学到的变换多吃一个输入——去噪的每一小步都"看着文字描述去噪"（具体怎么"看"，是第 04 讲 cross-attention 的内容；怎么"看得更用力"，是第 03 讲 CFG 的内容）。</p>
+<p>你在 ComfyUI 里的操作已经能对号入座了：</p>
+<table>
+<thead>
+<tr>
+<th>ComfyUI 里的东西</th>
+<th>本讲的数学对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empty Latent Image（一张随机噪声）</td>
+<td><span class="arithmatex">\(z \sim \mathcal{N}(0, I)\)</span>，采样的起点</td>
+</tr>
+<tr>
+<td>KSampler 跑的几十步</td>
+<td>迭代去噪 = 学到的变换分步执行</td>
+</tr>
+<tr>
+<td>正/负提示词</td>
+<td>条件 <span class="arithmatex">\(c\)</span>（负面提示的机制第 03 讲揭晓）</td>
+</tr>
+<tr>
+<td>checkpoint 模型文件</td>
+<td>参数化"往哪挪一小步"的神经网络（+配套件）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成模型</td>
+<td>学 <span class="arithmatex">\(p_{\text{data}}\)</span> 并能从中采样；本质是学"噪声→数据"的变换</td>
+</tr>
+<tr>
+<td>图像流形</td>
+<td>合理图像是高维空间中的低维针尖，生成 = 找到流形</td>
+</tr>
+<tr>
+<td>四路线</td>
+<td>GAN 快但不稳、VAE 稳但糊、自回归准但慢、扩散全能但多步</td>
+</tr>
+<tr>
+<td>扩散直觉</td>
+<td>墨水扩散的倒放；学的是 score = 指向数据流形的方向场</td>
+</tr>
+<tr>
+<td>文生图</td>
+<td>条件生成 <span class="arithmatex">\(p(x \mid c)\)</span>：每一步去噪都看着文字</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>下一讲进入本课程数学的心脏：把"加噪-去噪"写成严格的概率模型，从极大似然出发，一路推导到那个惊人简洁的训练目标——<span class="arithmatex">\(\|\epsilon - \epsilon_\theta(x_t, t)\|^2\)</span>，猜噪声。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一讲</span>00 · 导览：你的机器现状与路线图</a>
+  <a class="pager-slot next" href="02-ddpm.html"><span class="pager-label">下一讲</span>02 · 扩散模型 I：DDPM 全推导</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

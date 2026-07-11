@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>视频生成 I：原理 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li class="active"><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先算账：为什么视频难</a></li>
+<li><a href="#2">2. 四步框架逐步过</a><ul>
+<li><a href="#21-3d-vae">2.1 表示：3D 因果 VAE（时空一起压）</a></li>
+<li><a href="#22-dit">2.2 范式：扩散 DiT，全时空注意力</a></li>
+<li><a href="#23">2.3 条件：文/图/音/结构四路</a></li>
+<li><a href="#24">2.4 解码与后处理</a></li>
+</ul>
+</li>
+<li><a href="#3-2026">3. 模型系谱（2026 初快照）</a></li>
+<li><a href="#4">4. 与图像知识的对照总表</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="17-i">第 17 讲 · 视频生成 I：原理<a class="headerlink" href="#17-i" title="Permanent link"></a></h1>
+<blockquote>
+<p>视频 = 图像 + 时间维。听起来只是加一维，但这一维引爆了三个新问题：<strong>数据量立方级膨胀、帧间必须连贯、物理要说得通</strong>。本讲按第 16 讲的四步框架把视频生成拆开——你会发现 80% 的零件在前 15 讲都见过，真正的新东西集中在"时间"上。</p>
+</blockquote>
+<h2 id="1">1. 先算账：为什么视频难<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一段 5 秒、24fps、720p 的视频 = 120 帧 × 1280×720×3 ≈ <strong>3.3 亿个数</strong>——是一张 1024 图的百倍。直接在上面跑扩散，显存和算力都是灾难。更要命的是<strong>一致性</strong>：逐帧独立生成的图各自都好看，连起来就是闪烁的幻灯片——角色换脸、物体瞬移。视频生成的全部架构设计，都在回答"怎么让一百多帧共享同一个世界"。</p>
+<h2 id="2">2. 四步框架逐步过<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="21-3d-vae">2.1 表示：3D 因果 VAE（时空一起压）<a class="headerlink" href="#21-3d-vae" title="Permanent link"></a></h3>
+<p>图像 VAE 只压空间（8×8），视频 VAE 在时间轴上也压。主流配置（Wan/HunyuanVideo 一族）：</p>
+<div class="arithmatex">\[
+T \times H \times W \times 3 \;\xrightarrow{\;\text{3D VAE}\;}\; \frac{T}{4} \times \frac{H}{8} \times \frac{W}{8} \times C
+\]</div>
+<p>时间 4×、空间 8×8，总压缩率 <strong>256 倍</strong>（对比图像的 48×）——120 帧的 720p 进潜空间后只剩约 31 帧的 90×160 小方块。两个设计细节值得知道：</p>
+<ul>
+<li><strong>因果（causal）卷积</strong>：时间方向只看过去不看未来——好处是首帧可以独立编码，<strong>图生视频（I2V）时参考图无损进潜空间</strong>，且理论上支持流式；</li>
+<li>压缩掉的时间信息 = 运动的高频细节，所以视频 VAE 的重建质量（快速运动是否糊）同样是各家的隐形战场（第 16 讲的规律重现）。</li>
+</ul>
+<h3 id="22-dit">2.2 范式：扩散 DiT，全时空注意力<a class="headerlink" href="#22-dit" title="Permanent link"></a></h3>
+<p>在这个 3D 潜空间上跑扩散/流匹配（第 02–03 讲的数学<strong>原封不动</strong>——加噪、去噪、CFG、采样器全部照旧，只是张量多了个时间维）。去噪网络是 DiT（第 04 讲）：把 <span class="arithmatex">\(\frac{T}{4}\times\frac{H}{8}\times\frac{W}{8}\)</span> 的潜空间切成<strong>时空 patch</strong> 拉平成序列，上 Transformer。</p>
+<p>关键演化在注意力的范围：</p>
+<ul>
+<li><strong>早期（分解式）</strong>：空间注意力（帧内互看）+ 时间注意力（同位置跨帧互看）交替——省算力（两个小注意力代替一个大的），但"斜向"的信息流通不畅，长距离运动容易断；给图像模型加时间层改装成视频模型（AnimateDiff 路线）就是这一代；</li>
+<li><strong>现代（全 3D 注意力）</strong>：所有时空 patch 两两互看，序列长度 = <span class="arithmatex">\(\frac{T}{4}\cdot\frac{H}{8p}\cdot\frac{W}{8p}\)</span>（数千到数万），<span class="arithmatex">\(O(n^2)\)</span> 硬算——<strong>一致性由架构保证</strong>（任何一帧的任何位置都能直接"看到"其它所有帧），代价是算力按帧数平方增长。Sora 证明了这条暴力路线配合大数据能涌现出惊人的物理合理性，此后 Wan/HunyuanVideo/LTX 全部跟进。</li>
+</ul>
+<p><strong>由此立刻推出实操规律</strong>（第 18 讲反复用）：视频生成的成本对"时长 × 分辨率"极其敏感——<strong>帧数翻倍 ≈ 计算量四倍</strong>。先短后长、先小后大不是建议，是数学。</p>
+<h3 id="23">2.3 条件：文/图/音/结构四路<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<ul>
+<li><strong>文生视频（T2V）</strong>：文本经编码器（视频模型普遍用大语言模型级编码器，如 umT5）注入——机制同第 04 讲；</li>
+<li><strong>图生视频（I2V，实用价值最高）</strong>：参考图经 VAE 编码后<strong>钉在潜空间第一帧的位置</strong>，扩散只负责"把后面的帧长出来"。首尾帧模式（Wan 的 FirstLastFrame）同理钉两头，中间插值生成——你画布上见过的 <code>WanImageToVideo</code> / <code>WanFirstLastFrameToVideo</code> 节点就是在做这个"钉帧"操作；</li>
+<li><strong>结构控制</strong>：ControlNet 思想的视频版（Wan 的 Fun-Control / VACE）：骨架序列、深度序列、参考视频的运动轨迹——第 05/12 讲的知识直接平移；</li>
+<li><strong>音频驱动</strong>：给一段语音让人像开口说话（Wan 的 SoundImageToVideo 一族），数字人的核心部件（第 21 讲）。</li>
+</ul>
+<h3 id="24">2.4 解码与后处理<a class="headerlink" href="#24" title="Permanent link"></a></h3>
+<p>3D VAE 解码回像素（显存峰值大户——第 18 讲的 tiled 解码就是为它准备的），再接后处理链：<strong>帧插值</strong>（RIFE 类光流网络，24fps 补到 48/60fps，比多生成帧便宜得多）和<strong>视频超分</strong>（第 14 讲思想的时序版）。</p>
+<h2 id="3-2026">3. 模型系谱（2026 初快照）<a class="headerlink" href="#3-2026" title="Permanent link"></a></h2>
+<p><strong>闭源标杆</strong>：Sora 2（OpenAI，音视频联合生成）、Veo 3（Google，原生带音轨）、可灵/海螺/即梦（国内三强，商用成熟）。共同点：分钟级时长、原生音频、物理一致性显著领先——但只能网页/API 用，不可控不可组合。</p>
+<p><strong>开源三家（都已原生进驻你的 ComfyUI 0.22，节点表核实过）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>系列</th>
+<th>出品</th>
+<th>规格</th>
+<th>特点与定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Wan 2.x</strong></td>
+<td>阿里</td>
+<td>1.3B / 5B / 14B</td>
+<td>生态最全：T2V/I2V/首尾帧/VACE 控制/音驱动全套；5B（TI2V）是 16GB 卡的甜点；中文提示词友好</td>
+</tr>
+<tr>
+<td><strong>HunyuanVideo 1.5</strong></td>
+<td>腾讯</td>
+<td>8B 级</td>
+<td>画质口碑好，1.5 版大幅减负；配套超分节点</td>
+</tr>
+<tr>
+<td><strong>LTX-Video / LTXV</strong></td>
+<td>Lightricks</td>
+<td>2B 级起</td>
+<td><strong>快</strong>字当头（实时级），新版支持音视频联合；质量换速度的极致</td>
+</tr>
+</tbody>
+</table>
+<p>选型直觉（第 18 讲展开）：<strong>要快速迭代练手 → LTX；要质量与全功能 → Wan；要画质天花板 → HunyuanVideo 1.5</strong>。</p>
+<h2 id="4">4. 与图像知识的对照总表<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>图像版（前 15 讲）</th>
+<th>视频版（本讲）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>压缩表示</td>
+<td>2D VAE，8×8</td>
+<td>3D 因果 VAE，4×8×8</td>
+</tr>
+<tr>
+<td>去噪网络</td>
+<td>U-Net / DiT</td>
+<td>时空 DiT（全 3D 注意力）</td>
+</tr>
+<tr>
+<td>数学内核</td>
+<td>DDPM/流匹配 + CFG + 采样器</td>
+<td><strong>完全相同</strong></td>
+</tr>
+<tr>
+<td>图生 X</td>
+<td>img2img（denoise 控制保留度）</td>
+<td>I2V（首帧钉死，全程生成）</td>
+</tr>
+<tr>
+<td>结构控制</td>
+<td>ControlNet</td>
+<td>Fun-Control / VACE</td>
+</tr>
+<tr>
+<td>后处理</td>
+<td>放大 + 修脸</td>
+<td>插帧 + 视频超分</td>
+</tr>
+<tr>
+<td>成本敏感度</td>
+<td>分辨率平方</td>
+<td><strong>帧数×分辨率 平方</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>视频 = 3D 潜空间上的扩散：VAE 多压一个时间维（256×），DiT 的注意力扩到全时空；</li>
+<li>一致性靠"所有帧互相看见"的全 3D 注意力保证，代价是成本按帧数平方涨；</li>
+<li>I2V = 把参考图钉在第一帧；控制与后处理是图像知识的时序平移；</li>
+<li>开源三家 Wan/HunyuanVideo/LTX 已原生进驻你的 ComfyUI。</li>
+</ul>
+<hr />
+<p><em>原理清楚了，下一讲开机实战：在 16GB 显存里跑通文生视频和图生视频——量化怎么选、显存怎么省、多久能出一条、以及把你的 VRChat 角色图变成动画。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-aigc-map.html"><span class="pager-label">上一讲</span>16 · AIGC 全景地图与四步框架</a>
+  <a class="pager-slot next" href="18-video-practice.html"><span class="pager-label">下一讲</span>18 · 视频生成 II：16GB 实机实战</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

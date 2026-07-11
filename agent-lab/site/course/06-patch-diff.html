@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>精确补丁与 Diff · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="06-patch-diff">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage" open><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a class="current" aria-current="page" href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:20%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第二阶段 · 可靠的本地编码 Agent</span><span>第 6 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 为什么整文件重写很危险</a></li>
+<li><a href="#2-patch">2. Patch 的运行时契约</a></li>
+<li><a href="#3-diff-agent">3. Diff 是 Agent 与人类的共同语言</a></li>
+<li><a href="#4">4. 冲突为什么是有价值的失败</a></li>
+<li><a href="#5">5. 回滚与分组</a></li>
+<li><a href="#6">6. 代码落点</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="06-diff">第 06 章 · 精确补丁与 Diff<a class="headerlink" href="#06-diff" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：理解“模型会写代码”和“Agent 能安全修改现有代码”之间，隔着定位、冲突检查、差异审查和回滚四层工程。</p>
+</blockquote>
+<h2 id="1">1. 为什么整文件重写很危险<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>write_file 很适合创建新文件，却不适合频繁修改已有文件。模型可能只关注目标函数，却在重写时改变换行、格式、注释和用户未提交的修改。文件越大，重复传输越浪费上下文，也越容易出现截断。</p>
+<p>精确补丁表达的是“在已知旧内容的前提下，把这一小块替换成新内容”。它天然带有乐观并发检查：如果旧内容已经不匹配，补丁应失败并要求重新读取，而不是强行覆盖。</p>
+<h2 id="2-patch">2. Patch 的运行时契约<a class="headerlink" href="#2-patch" title="Permanent link"></a></h2>
+<p>一个补丁工具通常需要目标文件、上下文行和新增删除块。Executor 执行前检查路径和当前内容，执行后返回哪些 hunk 成功、文件是否变化以及简短 diff。模型下一轮看到的是结构化结果，不必猜测写入是否生效。</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span>def total(items):
+<span class="gd">-    return sum(item.price for item in items)</span>
+<span class="gi">+    return sum(item.price * item.quantity for item in items)</span>
+</code></pre></div>
+<p>这段差异比重发整个文件更容易让人类审查，也容易让 Reviewer 聚焦行为变化。</p>
+<h2 id="3-diff-agent">3. Diff 是 Agent 与人类的共同语言<a class="headerlink" href="#3-diff-agent" title="Permanent link"></a></h2>
+<p>模型内部可能有很长推理，但最终最可靠的审查对象是 diff：哪些文件变了、每一行怎样变、是否出现意外文件。Runtime 可以在每次写入后更新 working diff，在结束前强制模型重新阅读最终 diff。</p>
+<p>审查 diff 时至少检查：</p>
+<ul>
+<li>修改是否落在任务范围；</li>
+<li>是否覆盖用户原有变化；</li>
+<li>是否夹带格式化或生成文件噪声；</li>
+<li>实现和测试是否同步；</li>
+<li>是否出现秘密、调试输出或临时代码；</li>
+<li>删除量是否异常。</li>
+</ul>
+<p>Git diff 只展示文本变化，不证明行为正确，所以它属于验证闭环的一环，而不是最终证据。</p>
+<h2 id="4">4. 冲突为什么是有价值的失败<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>补丁上下文不匹配时，最安全的结果是失败。它说明模型依据的文件版本已经过期，可能是用户或另一个 Agent 修改了同一位置。Runtime 应返回当前位置附近内容，让模型重新规划。</p>
+<p>不要在补丁失败后自动退化为整文件覆盖。这会把并发冲突隐藏成“成功”。生产系统可以用文件版本、哈希或 mtime 辅助判断，从而明确告诉模型：“读取后的文件已经变化。”</p>
+<h2 id="5">5. 回滚与分组<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>窄任务可以依靠 Git 恢复，但 Agent 不应随意回滚整个工作树。更好的方式是记录本轮触及的文件和 hunk，仅撤销自己产生的变化。对于大任务，可以按语义分组：实现、测试、文档分别形成清晰提交或变更集。</p>
+<p>回滚不是失败的羞耻按钮，而是探索式修改的正常工具。模型可以尝试一个方案，验证失败后撤销自己的补丁，再尝试另一条路线。前提是系统能区分“自己的变化”和“用户已有变化”。</p>
+<h2 id="6">6. 代码落点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>在最小 Agent 中新增 apply_patch 后，TOOLS 定义描述参数；Executor 实现匹配和写入；history 记录补丁摘要；验证器读取最终 diff。四处都要改，说明工具不是一个孤立函数，而是一条端到端协议。</p>
+<div class="admonition warning">
+<p class="admonition-title">失败案例</p>
+<p>Agent 修改成功后运行了格式化器，格式化器改动了整个仓库。虽然测试通过，最终 diff 却远超任务范围。没有结束前 diff 审查，系统会把噪声当成成果交付。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="06-patch-diff"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="05-repo-discovery.html"><span>上一页</span><strong>05 · 仓库发现与代码搜索</strong></a><a class="pager-slot next" href="07-shell-runtime.html"><span>下一页</span><strong>07 · Shell、PTY 与后台进程</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机器学习就是找函数 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li class="active"><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 从一个分类问题说起</a><ul>
+<li><a href="#_1">为什么不直接写规则？</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 找函数的三要素</a></li>
+<li><a href="#3">3. 概率视角：我们真正想要什么</a><ul>
+<li><a href="#31">3.1 理论上限：贝叶斯最优分类器</a></li>
+<li><a href="#32">3.2 偏差–方差分解</a></li>
+<li><a href="#33">3.3 正则化：给复杂度上缰绳</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 泛化为什么是可能的</a><ul>
+<li><a href="#41-hoeffding">4.1 有限假设空间：Hoeffding + 联合界</a></li>
+<li><a href="#42-vc">4.2 无限假设空间：VC 维</a></li>
+<li><a href="#43">4.3 没有免费的午餐</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 工程收尾：数据怎么用</a></li>
+<li><a href="#_2">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="01">第 01 讲 · 机器学习就是找函数<a class="headerlink" href="#01" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>诞生场景</strong>：20 世纪 50 年代，人们想让计算机识别手写邮政编码、判断细胞是否癌变、区分雷达信号里的飞机与飞鸟。这类任务的共同点是：<strong>人类自己说不清判断规则，却能轻松做出判断</strong>。既然写不出规则，能不能让机器从例子里自己"学"出规则？这就是<strong>模式识别（pattern recognition）</strong>——机器学习的起点。</p>
+</blockquote>
+<h2 id="1">1. 从一个分类问题说起<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>1936 年，统计学家 Fisher 发表了鸢尾花数据集：150 朵花，每朵测了 4 个数值（花萼长宽、花瓣长宽），分属 3 个品种。问题：<strong>给一朵新花的 4 个测量值，判断它是哪个品种。</strong></p>
+<p>用数学语言描述：</p>
+<ul>
+<li>输入 <span class="arithmatex">\(x \in \mathbb{R}^4\)</span>（4 个测量值组成的向量，称为<strong>特征</strong>）；</li>
+<li>输出 <span class="arithmatex">\(y \in \{1, 2, 3\}\)</span>（品种标签）；</li>
+<li>我们手里有 150 个<strong>样本</strong> <span class="arithmatex">\((x_1, y_1), \dots, (x_{150}, y_{150})\)</span>，称为<strong>训练集</strong>。</li>
+</ul>
+<p>我们想要的东西，本质上是一个函数：</p>
+<div class="arithmatex">\[
+f: \mathbb{R}^4 \to \{1,2,3\}
+\]</div>
+<p>输入测量值，输出品种。<strong>机器学习的全部内容，就是从数据里把这个 <span class="arithmatex">\(f\)</span> 找出来。</strong> 分类是找输出离散的函数；回归（预测房价、温度）是找输出连续的函数；后面你会看到，图像识别是找 <span class="arithmatex">\(\mathbb{R}^{224\times224\times3} \to \{1,\dots,1000\}\)</span> 的函数，ChatGPT 是找"给定前文，输出下一个词的概率分布"的函数。任务在变，"找函数"这个骨架从未变过。</p>
+<h3 id="_1">为什么不直接写规则？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>你可能会想：直接写 <code>if 花瓣长 &lt; 2.5: 品种1</code> 不就行了？对鸢尾花或许可以。但对"识别照片里的猫"呢？没有人能写出"猫"的像素级规则——耳朵可能被遮住，姿态千变万化，光照各不相同。20 世纪 70–80 年代的<strong>专家系统</strong>走的就是人工写规则的路线，最终淹死在规则的组合爆炸和例外的海洋里。机器学习的核心转变是：</p>
+<blockquote>
+<p><strong>人不再提供规则，只提供例子；规则（函数）由算法从例子中归纳出来。</strong></p>
+</blockquote>
+<h2 id="2">2. 找函数的三要素<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>"从数据找函数"要回答三个问题，任何机器学习方法——从最简单的线性回归到 GPT——都由这三个组件构成：</p>
+<p><strong>① 在哪找？——假设空间 <span class="arithmatex">\(\mathcal{H}\)</span></strong></p>
+<p>所有函数的集合太大了，必须先限定一个候选范围。比如"所有线性函数" <span class="arithmatex">\(\mathcal{H} = \{f(x) = w^\top x + b \mid w \in \mathbb{R}^d, b \in \mathbb{R}\}\)</span>，或"所有深度为 5 的决策树"，或"某个固定架构、参数任取的神经网络"。选定 <span class="arithmatex">\(\mathcal{H}\)</span> 就是选定<strong>模型</strong>；<span class="arithmatex">\(\mathcal{H}\)</span> 里每个具体函数由一组<strong>参数</strong>（如 <span class="arithmatex">\(w, b\)</span>）确定，找函数 = 找参数。</p>
+<p><strong>② 什么叫"找得好"？——损失函数</strong></p>
+<p>需要一个可计算的标准来度量"函数 <span class="arithmatex">\(f\)</span> 在样本 <span class="arithmatex">\((x,y)\)</span> 上错得多厉害"，记为 <span class="arithmatex">\(\ell(f(x), y)\)</span>。常用的：</p>
+<ul>
+<li>0-1 损失（分类）：<span class="arithmatex">\(\ell(\hat y, y) = \mathbb{1}[\hat y \neq y]\)</span>，错了记 1 分，对了记 0 分；</li>
+<li>平方损失（回归）：<span class="arithmatex">\(\ell(\hat y, y) = (\hat y - y)^2\)</span>；</li>
+<li>交叉熵损失（概率输出的分类，第 07 讲的主角）：<span class="arithmatex">\(\ell(\hat p, y) = -\log \hat p_y\)</span>。</li>
+</ul>
+<p>在整个训练集上的平均损失称为<strong>经验风险（empirical risk）</strong>：</p>
+<div class="arithmatex">\[
+\hat R(f) = \frac{1}{n} \sum_{i=1}^{n} \ell(f(x_i), y_i)
+\]</div>
+<p><strong>③ 怎么找？——优化算法</strong></p>
+<p>在 <span class="arithmatex">\(\mathcal{H}\)</span> 中寻找让 <span class="arithmatex">\(\hat R(f)\)</span> 最小的函数：</p>
+<div class="arithmatex">\[
+\hat f = \arg\min_{f \in \mathcal{H}} \hat R(f)
+\]</div>
+<p>这个策略叫<strong>经验风险最小化（ERM）</strong>。具体怎么求这个 <span class="arithmatex">\(\arg\min\)</span>，不同模型不同：线性回归有解析解，SVM 解凸二次规划（第 02 讲），神经网络用梯度下降（第 04 讲）。</p>
+<div class="admonition note">
+<p class="admonition-title">一句话版本</p>
+<p>机器学习 = 假设空间（在哪找）+ 损失函数（什么算好）+ 优化算法（怎么找）。以后每学一个新模型，先问这三个问题，它就"透明"了。</p>
+</div>
+<h2 id="3">3. 概率视角：我们真正想要什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>上面有个隐患：我们最小化的是<strong>训练集上</strong>的损失，但我们真正关心的是<strong>新样本</strong>上的表现——没人在乎模型能否背出训练集，医生要的是对<strong>下一个</strong>病人诊断正确。</p>
+<p>把这件事说严格：假设所有样本（训练的、未来的）都独立地采自同一个未知分布 <span class="arithmatex">\(\mathcal{D}\)</span>（即 i.i.d. 假设，<span class="arithmatex">\((x, y) \sim \mathcal{D}\)</span>）。我们真正想最小化的是<strong>期望风险（真实风险）</strong>：</p>
+<div class="arithmatex">\[
+R(f) = \mathbb{E}_{(x,y)\sim\mathcal{D}}\big[\ell(f(x), y)\big]
+\]</div>
+<p>而 <span class="arithmatex">\(\hat R(f)\)</span> 只是 <span class="arithmatex">\(R(f)\)</span> 用 <span class="arithmatex">\(n\)</span> 个样本做的蒙特卡洛估计。于是整个领域的中心问题浮出水面：</p>
+<blockquote>
+<p><strong>最小化 <span class="arithmatex">\(\hat R\)</span>（能算）得到的 <span class="arithmatex">\(\hat f\)</span>，它的 <span class="arithmatex">\(R\)</span>（不能算）也小吗？</strong> 这就是<strong>泛化（generalization）</strong>问题。第 5 节将证明：在适当条件下，答案是肯定的——这是机器学习作为一门学科能够成立的数学根基。</p>
+</blockquote>
+<h3 id="31">3.1 理论上限：贝叶斯最优分类器<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>先问一个更基本的问题：如果我们<strong>完全知道</strong> <span class="arithmatex">\(\mathcal{D}\)</span>，最好能做到什么程度？</p>
+<p><strong>命题（贝叶斯最优分类器）</strong>：0-1 损失下，期望风险最小的分类器是</p>
+<div class="arithmatex">\[
+f^*(x) = \arg\max_{k} \; \mathbb{P}(Y = k \mid X = x)
+\]</div>
+<p>即"报出后验概率最大的类别"。</p>
+<p><strong>证明</strong>：对任意分类器 <span class="arithmatex">\(f\)</span>，条件在 <span class="arithmatex">\(X = x\)</span> 上的期望损失为</p>
+<div class="arithmatex">\[
+\mathbb{E}\big[\mathbb{1}[f(x) \neq Y] \mid X = x\big] = \sum_k \mathbb{1}[f(x) \neq k]\,\mathbb{P}(Y=k \mid X=x) = 1 - \mathbb{P}\big(Y = f(x) \mid X = x\big).
+\]</div>
+<p>要让它最小，只需让被减去的 <span class="arithmatex">\(\mathbb{P}(Y = f(x) \mid X=x)\)</span> 最大，即取后验最大的类。逐点最优，对 <span class="arithmatex">\(x\)</span> 取期望后整体也最优。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>它的风险 <span class="arithmatex">\(R(f^*) = \mathbb{E}_x\big[1 - \max_k \mathbb{P}(Y=k\mid X=x)\big]\)</span> 称为<strong>贝叶斯误差</strong>——问题本身的不可约难度（同样的症状可能对应不同疾病，误差不可能为 0）。任何模型都不可能好过它；机器学习是在<strong>不知道</strong> <span class="arithmatex">\(\mathcal{D}\)</span> 的情况下逼近它。第 03 讲的朴素贝叶斯就是对这个公式的直接建模。</p>
+<p>回归版本同理可证：平方损失下最优预测是条件期望 <span class="arithmatex">\(f^*(x) = \mathbb{E}[Y \mid X = x]\)</span>。（提示：对任意 <span class="arithmatex">\(f\)</span>，把 <span class="arithmatex">\(\mathbb{E}[(Y - f(x))^2 \mid X=x]\)</span> 按 <span class="arithmatex">\(Y - f^* + f^* - f\)</span> 展开，交叉项为零。动笔验证一下。）</p>
+<h3 id="32">3.2 偏差–方差分解<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>模型的误差从哪来？对回归问题有一个漂亮的精确分解。设真实关系为 <span class="arithmatex">\(y = g(x) + \varepsilon\)</span>，噪声 <span class="arithmatex">\(\varepsilon\)</span> 均值 0、方差 <span class="arithmatex">\(\sigma^2\)</span>。训练集 <span class="arithmatex">\(S\)</span> 是随机的，训练出的模型 <span class="arithmatex">\(\hat f_S\)</span> 因而也是随机的。固定一个测试点 <span class="arithmatex">\(x\)</span>，考察平均表现（对 <span class="arithmatex">\(S\)</span> 和 <span class="arithmatex">\(\varepsilon\)</span> 取期望）：</p>
+<div class="arithmatex">\[
+\mathbb{E}_{S,\varepsilon}\big[(y - \hat f_S(x))^2\big]
+\]</div>
+<p>记 <span class="arithmatex">\(\bar f(x) = \mathbb{E}_S[\hat f_S(x)]\)</span>（"平均模型"的预测）。推导：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\mathbb{E}\big[(y - \hat f_S)^2\big]
+&amp;= \mathbb{E}\big[(g + \varepsilon - \hat f_S)^2\big] \\
+&amp;= \mathbb{E}[\varepsilon^2] + \mathbb{E}\big[(g - \hat f_S)^2\big] + 2\,\underbrace{\mathbb{E}[\varepsilon]}_{=0}\,\mathbb{E}[g - \hat f_S] \\
+&amp;= \sigma^2 + \mathbb{E}\big[(g - \bar f + \bar f - \hat f_S)^2\big] \\
+&amp;= \sigma^2 + (g - \bar f)^2 + \mathbb{E}\big[(\bar f - \hat f_S)^2\big] + 2(g - \bar f)\,\underbrace{\mathbb{E}[\bar f - \hat f_S]}_{=0} \\
+&amp;= \underbrace{\sigma^2}_{\text{噪声}} + \underbrace{\big(g(x) - \bar f(x)\big)^2}_{\text{偏差}^2} + \underbrace{\mathrm{Var}_S\big(\hat f_S(x)\big)}_{\text{方差}}
+\end{aligned}
+\]</div>
+<p>三项各有含义：</p>
+<ul>
+<li><strong>噪声</strong> <span class="arithmatex">\(\sigma^2\)</span>：问题固有的不可约误差（回归版的贝叶斯误差）；</li>
+<li><strong>偏差（bias）</strong>：平均而言模型系统性地偏离真相多少——模型太简单、表达力不够时偏差大（<strong>欠拟合</strong>）；</li>
+<li><strong>方差（variance）</strong>：换一批训练数据，模型预测抖动多大——模型太复杂、对训练集的偶然细节过度敏感时方差大（<strong>过拟合</strong>）。</li>
+</ul>
+<p>经典图像：随模型复杂度上升，偏差单调下降、方差单调上升，测试误差呈 U 形——存在一个"刚刚好"的复杂度。<strong>lab01 会让你亲手画出这条 U 形曲线</strong>（用多项式次数当复杂度旋钮）。</p>
+<div class="admonition warning">
+<p class="admonition-title">现代注脚：双下降</p>
+<p>深度学习时代发现，把模型复杂度推到"参数量远超样本数"的区域后，测试误差可能<strong>再次下降</strong>（double descent，Belkin et al. 2019）。经典 U 形没有错，但它只描述了图像的左半段。这提示经典理论对超大模型的解释力有限——第 07 讲的 Scaling Laws 会再次撞见这个主题。</p>
+</div>
+<h3 id="33">3.3 正则化：给复杂度上缰绳<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>控制过拟合的通用手段是在目标里加惩罚项，压制参数的"放飞程度"。以线性回归为例，<strong>岭回归（ridge regression）</strong>求解</p>
+<div class="arithmatex">\[
+\hat w = \arg\min_w \; \frac{1}{n}\|Xw - y\|^2 + \lambda \|w\|^2
+\]</div>
+<p>它有解析解。对目标求梯度并置零：<span class="arithmatex">\(\frac{2}{n}X^\top(Xw - y) + 2\lambda w = 0\)</span>，得</p>
+<div class="arithmatex">\[
+\hat w = (X^\top X + n\lambda I)^{-1} X^\top y
+\]</div>
+<p>注意 <span class="arithmatex">\(\lambda &gt; 0\)</span> 时 <span class="arithmatex">\(X^\top X + n\lambda I\)</span> 恒可逆（对称半正定矩阵加正对角，最小特征值 <span class="arithmatex">\(\geq n\lambda &gt; 0\)</span>）——正则化同时解决了统计问题（过拟合）和数值问题（共线性导致的不可逆）。<span class="arithmatex">\(\lambda\)</span> 越大，模型越"保守"：偏差增大、方差减小。<strong>正则化就是在偏差–方差之间手动移动滑块。</strong> 这个思想贯穿全课程：SVM 的软间隔参数 <span class="arithmatex">\(C\)</span>（第 02 讲）、决策树剪枝（第 03 讲）、神经网络的 dropout 与权重衰减（第 05 讲），全是它的变体。</p>
+<h2 id="4">4. 泛化为什么是可能的<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>现在兑现第 3 节的承诺：证明"训练集上表现好 ⇒ 新数据上大概率也好"。这一节是全课程数学上最扎实的部分之一，值得动笔跟一遍。</p>
+<h3 id="41-hoeffding">4.1 有限假设空间：Hoeffding + 联合界<a class="headerlink" href="#41-hoeffding" title="Permanent link"></a></h3>
+<p><strong>工具（Hoeffding 不等式）</strong>：<span class="arithmatex">\(Z_1, \dots, Z_n\)</span> 独立、取值于 <span class="arithmatex">\([0,1]\)</span>、均值 <span class="arithmatex">\(\mu\)</span>，则</p>
+<div class="arithmatex">\[
+\mathbb{P}\left(\left|\frac{1}{n}\sum_i Z_i - \mu\right| &gt; \epsilon\right) \leq 2e^{-2n\epsilon^2}
+\]</div>
+<p>对<strong>固定的</strong>一个函数 <span class="arithmatex">\(f\)</span>，取 <span class="arithmatex">\(Z_i = \ell(f(x_i), y_i) \in [0,1]\)</span>（0-1 损失），则 <span class="arithmatex">\(\hat R(f)\)</span> 是均值为 <span class="arithmatex">\(R(f)\)</span> 的样本平均，Hoeffding 给出 <span class="arithmatex">\(\hat R(f)\)</span> 偏离 <span class="arithmatex">\(R(f)\)</span> 超过 <span class="arithmatex">\(\epsilon\)</span> 的概率指数小。</p>
+<p>但这还不够！<strong>陷阱在于</strong>：<span class="arithmatex">\(\hat f\)</span> 是挑出来的——我们在 <span class="arithmatex">\(\mathcal{H}\)</span> 里专挑训练误差最小的那个，"挑选"本身会制造偏差（就像 1000 个人抛 10 次硬币，专挑正面最多的那位，他的战绩不能代表硬币）。解法是<strong>联合界（union bound）</strong>：要求<strong>所有</strong> <span class="arithmatex">\(f \in \mathcal{H}\)</span> <strong>同时</strong>不偏离：</p>
+<div class="arithmatex">\[
+\mathbb{P}\left(\exists f \in \mathcal{H}: |\hat R(f) - R(f)| &gt; \epsilon\right) \;\leq\; \sum_{f \in \mathcal{H}} \mathbb{P}\big(|\hat R(f) - R(f)| &gt; \epsilon\big) \;\leq\; 2|\mathcal{H}|\,e^{-2n\epsilon^2}
+\]</div>
+<p>令右边等于 <span class="arithmatex">\(\delta\)</span>，反解 <span class="arithmatex">\(\epsilon\)</span>，得到：<strong>以概率至少 <span class="arithmatex">\(1 - \delta\)</span>，对所有 <span class="arithmatex">\(f \in \mathcal{H}\)</span> 同时成立</strong></p>
+<div class="arithmatex">\[
+R(f) \;\leq\; \hat R(f) + \sqrt{\frac{\ln|\mathcal{H}| + \ln(2/\delta)}{2n}}
+\]</div>
+<p>读出三条信息：</p>
+<ol>
+<li><strong>样本越多越可靠</strong>：误差界按 <span class="arithmatex">\(1/\sqrt{n}\)</span> 收缩；</li>
+<li><strong>假设空间越大，需要的数据越多</strong>：代价是 <span class="arithmatex">\(\ln|\mathcal{H}|\)</span>——模型复杂度的第一个严格定义；</li>
+<li>ERM 是有道理的：既然所有 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(\hat R\)</span> 都接近 <span class="arithmatex">\(R\)</span>，挑 <span class="arithmatex">\(\hat R\)</span> 最小的 <span class="arithmatex">\(\hat f\)</span>，其 <span class="arithmatex">\(R\)</span> 也接近 <span class="arithmatex">\(\mathcal{H}\)</span> 内的最优。</li>
+</ol>
+<h3 id="42-vc">4.2 无限假设空间：VC 维<a class="headerlink" href="#42-vc" title="Permanent link"></a></h3>
+<p>线性分类器有无穷多个，<span class="arithmatex">\(|\mathcal{H}| = \infty\)</span>，上面的界失效。突破口是一个观察：<strong>无穷多个函数，在 <span class="arithmatex">\(n\)</span> 个固定样本点上能表现出的"行为"却是有限的</strong>——每个 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(n\)</span> 个点上产生一个 <span class="arithmatex">\(\pm 1\)</span> 标签串，至多 <span class="arithmatex">\(2^n\)</span> 种。真正该数的不是函数个数，而是<strong>行为个数</strong>。</p>
+<p><strong>定义（增长函数与打散）</strong>：<span class="arithmatex">\(\mathcal{H}\)</span> 在 <span class="arithmatex">\(n\)</span> 个点上的增长函数</p>
+<div class="arithmatex">\[
+\Pi_{\mathcal{H}}(n) = \max_{x_1,\dots,x_n} \left|\{(f(x_1), \dots, f(x_n)) : f \in \mathcal{H}\}\right|
+\]</div>
+<p>即 <span class="arithmatex">\(n\)</span> 个点上能实现的标签组合的最大数目。若某组 <span class="arithmatex">\(n\)</span> 个点上 <span class="arithmatex">\(2^n\)</span> 种标签全能实现，称这组点被 <span class="arithmatex">\(\mathcal{H}\)</span> <strong>打散（shatter）</strong>。</p>
+<p><strong>定义（VC 维）</strong>：$\mathrm{VC}(\mathcal{H}) = $ 能被打散的点集的最大规模。</p>
+<p>例子（值得自己验证）：</p>
+<ul>
+<li><span class="arithmatex">\(\mathbb{R}\)</span> 上的阈值函数 <span class="arithmatex">\(f(x) = \mathrm{sign}(x - t)\)</span>：能打散 1 个点，打不散 2 个（无法实现"左正右负"），VC 维 <span class="arithmatex">\(= 1\)</span>；</li>
+<li><span class="arithmatex">\(\mathbb{R}^2\)</span> 上的线性分类器：能打散 3 个不共线的点，打不散任何 4 个点（XOR 型标签无法线性分开——记住这个例子，第 04 讲它将扮演"杀死感知机"的角色），VC 维 <span class="arithmatex">\(= 3\)</span>；</li>
+<li>一般地，<span class="arithmatex">\(\mathbb{R}^d\)</span> 上线性分类器的 VC 维 <span class="arithmatex">\(= d + 1\)</span>。</li>
+</ul>
+<p><strong>引理（Sauer–Shelah）</strong>：若 <span class="arithmatex">\(\mathrm{VC}(\mathcal{H}) = d\)</span>，则</p>
+<div class="arithmatex">\[
+\Pi_{\mathcal{H}}(n) \leq \sum_{i=0}^{d} \binom{n}{i}
+\]</div>
+<p><strong>证明</strong>（对 <span class="arithmatex">\(n + d\)</span> 归纳）：记 <span class="arithmatex">\(\Phi_d(n) = \sum_{i=0}^d \binom{n}{i}\)</span>。基例：<span class="arithmatex">\(d = 0\)</span> 时打散不了任何单点，所有函数在任意点集上行为唯一，<span class="arithmatex">\(\Pi = 1 = \Phi_0(n)\)</span>；<span class="arithmatex">\(n = 0\)</span> 时 <span class="arithmatex">\(\Pi = 1 = \Phi_d(0)\)</span>。归纳步：取实现最大行为数的点集 <span class="arithmatex">\(\{x_1, \dots, x_n\}\)</span>，记 <span class="arithmatex">\(\mathcal{H}\)</span> 在其上的行为集合为 <span class="arithmatex">\(A\)</span>。把 <span class="arithmatex">\(A\)</span> 按前 <span class="arithmatex">\(n-1\)</span> 个坐标分组：
+记 <span class="arithmatex">\(A'\)</span> = 行为在前 <span class="arithmatex">\(n-1\)</span> 个点上的投影集合，<span class="arithmatex">\(A''\)</span> = 那些"前 <span class="arithmatex">\(n-1\)</span> 个坐标相同、第 <span class="arithmatex">\(n\)</span> 个坐标 0/1 都出现"的投影（即成对出现的行为）。则 <span class="arithmatex">\(|A| = |A'| + |A''|\)</span>（每个投影至多贡献 2 个行为，成对的多贡献 1 个）。</p>
+<ul>
+<li><span class="arithmatex">\(A'\)</span> 是 <span class="arithmatex">\(\mathcal{H}\)</span> 限制在 <span class="arithmatex">\(n - 1\)</span> 个点上的行为集，其对应假设类 VC 维 <span class="arithmatex">\(\leq d\)</span>，归纳得 <span class="arithmatex">\(|A'| \leq \Phi_d(n-1)\)</span>；</li>
+<li><span class="arithmatex">\(A''\)</span> 对应的函数族在前 <span class="arithmatex">\(n-1\)</span> 个点上如果打散某 <span class="arithmatex">\(S\)</span> 集，则加上 <span class="arithmatex">\(x_n\)</span> 后 <span class="arithmatex">\(S \cup \{x_n\}\)</span> 被原族打散（因为第 <span class="arithmatex">\(n\)</span> 坐标两种取值都有），故其 VC 维 <span class="arithmatex">\(\leq d - 1\)</span>，归纳得 <span class="arithmatex">\(|A''| \leq \Phi_{d-1}(n-1)\)</span>。</li>
+</ul>
+<p>由帕斯卡恒等式 <span class="arithmatex">\(\Phi_d(n-1) + \Phi_{d-1}(n-1) = \Phi_d(n)\)</span>，证毕。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>关键推论：当 <span class="arithmatex">\(n \geq d\)</span> 时 <span class="arithmatex">\(\Phi_d(n) \leq \left(\frac{en}{d}\right)^d\)</span>——增长函数是<strong>多项式</strong> <span class="arithmatex">\(O(n^d)\)</span>，而非指数 <span class="arithmatex">\(2^n\)</span>。行为数被 VC 维死死压住。</p>
+<p><strong>定理（VC 泛化界，Vapnik–Chervonenkis 1971）</strong>：以概率至少 <span class="arithmatex">\(1 - \delta\)</span>，对所有 <span class="arithmatex">\(f \in \mathcal{H}\)</span> 同时成立</p>
+<div class="arithmatex">\[
+R(f) \;\leq\; \hat R(f) + O\!\left(\sqrt{\frac{d \ln(n/d) + \ln(1/\delta)}{n}}\right), \quad d = \mathrm{VC}(\mathcal{H})
+\]</div>
+<p>（完整证明用"对称化"技巧把无限类问题转到两组样本上的有限行为比较，再套 Sauer 引理与 Hoeffding，结构与 4.1 完全同型，长约两页——感兴趣可读 Understanding Machine Learning (Shalev-Shwartz &amp; Ben-David) 第 6 章。）</p>
+<p><strong>这条界回答了本讲的中心问题</strong>：只要模型的 VC 维 <span class="arithmatex">\(d\)</span> 相对样本量 <span class="arithmatex">\(n\)</span> 不太大，训练误差就是真实误差的可靠代理，从数据中学习就是数学上正当的行为。同时它也预告了一个反常：一个大型神经网络的 VC 维大到使这条界完全空洞（界值 <span class="arithmatex">\(\gg 1\)</span>），可它们明明泛化得很好——<strong>经典理论解释不了深度学习为什么 work</strong>，这是当代理论研究的头号未解之谜之一（第 07 讲再会）。</p>
+<h3 id="43">4.3 没有免费的午餐<a class="headerlink" href="#43" title="Permanent link"></a></h3>
+<p>最后一块拼图。<strong>NFL 定理（Wolpert 1996，非正式陈述）</strong>：对"所有可能的目标函数"平均而言，任何两个学习算法的期望表现完全相同——包括随机瞎猜。</p>
+<p>这听上去虚无，实则深刻：<strong>不对世界做任何假设，就不可能学习。</strong> 学习之所以在现实中有效，是因为现实世界的函数不是均匀分布的——它们平滑、有结构、有规律，而我们选择的假设空间（<strong>归纳偏置，inductive bias</strong>）恰好偏向这类函数。"选模型"本质上是"押注世界长什么样"：线性模型押注线性关系，决策树押注按特征分段，CNN 押注平移不变性（第 05 讲），Transformer 押注"上下文中的相关性"（第 06 讲）。<strong>没有中立的算法，只有合适与不合适的偏置。</strong></p>
+<h2 id="5">5. 工程收尾：数据怎么用<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>理论讲完，一条实践铁律：<strong>评估必须用没参与过任何决策的数据。</strong></p>
+<ul>
+<li><strong>训练集</strong>：喂给优化算法找参数；</li>
+<li><strong>验证集</strong>：选超参数（多项式次数、<span class="arithmatex">\(\lambda\)</span>、网络层数……）——注意超参数的选择也是一种"学习"，也会过拟合验证集；</li>
+<li><strong>测试集</strong>：只在最终评估时用<strong>一次</strong>。反复看测试集再调模型，等于把测试集变成了验证集，报出来的数字就是自欺。</li>
+</ul>
+<p>数据少时用 <strong>k 折交叉验证</strong>：分 k 份，轮流留一份验证、其余训练，平均 k 次结果——以 k 倍计算换取对全部数据的利用。</p>
+<h2 id="_2">本讲小结<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>机器学习</td>
+<td>从例子中找函数：假设空间 + 损失 + 优化</td>
+</tr>
+<tr>
+<td>ERM</td>
+<td>最小化训练集平均损失</td>
+</tr>
+<tr>
+<td>泛化</td>
+<td>训练表现 ⇒ 新数据表现；机器学习的中心问题</td>
+</tr>
+<tr>
+<td>贝叶斯最优</td>
+<td>已知分布时的理论上限，<span class="arithmatex">\(\arg\max_k \mathbb{P}(Y{=}k\mid x)\)</span></td>
+</tr>
+<tr>
+<td>偏差–方差</td>
+<td>误差 = 噪声 + 偏差² + 方差；复杂度是滑块</td>
+</tr>
+<tr>
+<td>VC 维</td>
+<td>无限假设类的复杂度度量 = 最大可打散点数</td>
+</tr>
+<tr>
+<td>NFL</td>
+<td>没有万能算法；一切学习都依赖归纳偏置</td>
+</tr>
+</tbody>
+</table>
+<p><strong>动手</strong>：跑 <code>labs/lab01_find_function.py</code>——用多项式拟合亲手制造欠拟合与过拟合，画出训练/测试误差的 U 形曲线，观察正则化如何救场。</p>
+<p><strong>延伸阅读</strong>：Shalev-Shwartz &amp; Ben-David《Understanding Machine Learning》第 2–6 章（本讲理论的完整版）；李航《统计学习方法》第 1 章。</p>
+<hr />
+<p><em>下一讲：既然线性分类器是最简单的假设空间，那"找一条分界线"具体怎么找？1957 年的感知机给出第一个答案，而 1990 年代的 SVM 给出了那个时代最优雅的答案——顺便发明了机器学习史上最重要的技巧之一：核方法。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一讲</span>00 · 课程导览与环境准备</a>
+  <a class="pager-slot next" href="02-perceptron-svm.html"><span class="pager-label">下一讲</span>02 · 感知机与支持向量机</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

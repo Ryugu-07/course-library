@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shell、PTY 与后台进程 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="07-shell-runtime">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage" open><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a class="current" aria-current="page" href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:23%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第二阶段 · 可靠的本地编码 Agent</span><span>第 7 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-shell">1. Shell 工具为什么强大也危险</a></li>
+<li><a href="#2">2. 一次性进程的完整结果</a></li>
+<li><a href="#3-pty">3. PTY 解决什么问题</a></li>
+<li><a href="#4">4. 后台进程需要生命周期</a></li>
+<li><a href="#5">5. 输出治理</a></li>
+<li><a href="#6">6. 安全与代码落点</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="07-shellpty">第 07 章 · Shell、PTY 与后台进程<a class="headerlink" href="#07-shellpty" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：看懂“运行一条命令”背后的进程模型。测试命令、交互式 CLI 和持续运行的开发服务器，需要不同的执行与停止机制。</p>
+</blockquote>
+<h2 id="1-shell">1. Shell 工具为什么强大也危险<a class="headerlink" href="#1-shell" title="Permanent link"></a></h2>
+<p>Shell 能调用几乎所有本地能力：测试、Git、构建、包管理、网络和系统命令。给 Agent 一个 run_shell，等于给它一把通用工具，同时扩大了命令注入、路径越界、秘密泄漏和长时间占用资源的风险。</p>
+<p>Executor 至少要固定工作目录、显式管理环境变量、设置超时、捕获 stdout 与 stderr、保留退出码，并根据权限策略决定是否询问。</p>
+<h2 id="2">2. 一次性进程的完整结果<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对于 pytest、git diff 或编译命令，可以等待进程退出，再返回：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>command</td>
+<td>审计实际运行了什么</td>
+</tr>
+<tr>
+<td>cwd</td>
+<td>防止模型误判工作目录</td>
+</tr>
+<tr>
+<td>exit_code</td>
+<td>区分成功、业务失败与信号终止</td>
+</tr>
+<tr>
+<td>stdout / stderr</td>
+<td>提供下一轮观察</td>
+</tr>
+<tr>
+<td>duration</td>
+<td>发现异常缓慢</td>
+</tr>
+<tr>
+<td>timed_out</td>
+<td>区分失败和被框架停止</td>
+</tr>
+</tbody>
+</table>
+<p>不要只看 stderr 是否为空。很多测试框架把正常信息写入 stderr，也有程序失败时只写 stdout。退出码是第一信号，文本是诊断材料。</p>
+<h2 id="3-pty">3. PTY 解决什么问题<a class="headerlink" href="#3-pty" title="Permanent link"></a></h2>
+<p>有些程序检测自己是否连接终端，并使用颜色、进度条、密码提示或交互菜单。普通管道与真实终端行为不同。PTY，也就是伪终端，让宿主程序可以像人类终端一样与进程双向通信。</p>
+<p>Agent 需要 PTY 的典型场景包括交互式调试器、需要确认的安装器、长时间开发服务器和 REPL。此时工具调用不应等到进程结束才返回，而是创建 session_id，后续通过 write_stdin 和 poll 继续交互。</p>
+<h2 id="4">4. 后台进程需要生命周期<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>启动开发服务器后，run_shell 不能永远阻塞。Runtime 应保存进程 id、启动命令、端口、最近输出和状态。任务结束、中断或切换工作区时，要决定保留还是终止。</p>
+<p>典型接口是：</p>
+<div class="highlight"><pre><span></span><code>start_process(command) → process_id
+poll_process(process_id) → new_output + status
+write_stdin(process_id, text)
+terminate_process(process_id)
+</code></pre></div>
+<p>这与模型调用循环是两个不同循环：Agent turn 在推进任务，后台进程在操作系统中持续运行。混在一起会造成终端残留和无法结束的任务。</p>
+<h2 id="5">5. 输出治理<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>持续日志会迅速塞满上下文。Executor 应只返回“自上次 poll 以来的新输出”，并限制字节数。完整日志存磁盘，模型需要时按范围读取。对 ANSI 控制码、动态进度条和重复行进行清理，也能显著减少噪声。</p>
+<p>错误摘要不能完全取代原始证据。可以同时返回 summary 和 log_path：模型先读摘要，诊断不足时再读取原始片段。这就是渐进式上下文加载在进程工具中的应用。</p>
+<h2 id="6">6. 安全与代码落点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>Shell 命令最好以参数数组执行，避免不必要的 shell 字符串解释；确实需要管道和重定向时，要提升风险等级。环境变量应使用允许列表，避免把所有宿主秘密传给子进程。</p>
+<div class="admonition danger">
+<p class="admonition-title">典型事故</p>
+<p>Agent 启动服务器后又启动第二个实例，因为它没有记录第一个进程仍在运行。端口冲突只是轻微后果；更糟的是重复启动迁移、队列消费者或外部同步任务。</p>
+</div>
+<p>把 run_shell 扩展成可管理进程时，新增的不是一个参数，而是进程注册表、增量输出、终止策略和会话恢复规则。</p>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="07-shell-runtime"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="06-patch-diff.html"><span>上一页</span><strong>06 · 精确补丁与 Diff</strong></a><a class="pager-slot next" href="08-errors-retries.html"><span>下一页</span><strong>08 · 错误、重试与幂等</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

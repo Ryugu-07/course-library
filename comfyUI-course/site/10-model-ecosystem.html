@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模型生态：选型与下载清单 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li class="active"><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 两大货源 + 国内通道</a></li>
+<li><a href="#2-civitai">2. 怎么读一个 Civitai 模型页（防坑清单）</a></li>
+<li><a href="#3">3. 动漫模型系谱：你的场景该用什么</a></li>
+<li><a href="#4-1822gb">4. 第一批下载清单（约 18–22GB 磁盘）</a></li>
+<li><a href="#5">5. 换了模型之后：参数要跟着换</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="10">第 10 讲 · 模型生态：选型与下载清单<a class="headerlink" href="#10" title="Permanent link"></a></h1>
+<blockquote>
+<p>你的安装缺的不是能力是弹药（第 00 讲的诊断）。本讲三件事：<strong>去哪下、怎么挑、下什么</strong>——最后一节是为"16GB 显卡 + VRChat 动漫素材"定制的第一批清单，照单抓药后，第 11–14 讲全部玩法解锁。</p>
+</blockquote>
+<div class="admonition warning">
+<p class="admonition-title">时效声明</p>
+<p>模型圈以周为单位迭代，本讲的<strong>具体模型名</strong>是 2026 年初的快照，<strong>挑选方法</strong>长期有效。下载前在社区（civitai 排行榜）花五分钟确认有没有更新的主流选择。</p>
+</div>
+<h2 id="1">1. 两大货源 + 国内通道<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Civitai</strong>（civitai.com）：社区微调模型与 LoRA 的绝对主阵地，按底模筛选、带示例图和参数、有排行榜。生图圈的"应用商店"；</li>
+<li><strong>Hugging Face</strong>：官方权重（SDXL base、ControlNet、IP-Adapter 等一手发布）；</li>
+<li><strong>国内通道</strong>：HF 有镜像 <code>hf-mirror.com</code>（把链接里的 huggingface.co 换成它即可）；civitai 访问不稳时可用 liblib 等国内站找同款热门模型。你 <code>E:\AI\Tools</code> 里的 <strong>aria2</strong> 是多线程下载器，大文件比浏览器稳得多：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">E</span><span class="p">:\</span><span class="n">AI</span><span class="p">\</span><span class="n">Tools</span><span class="p">\</span><span class="n">aria2</span><span class="p">\</span><span class="n">aria2c</span><span class="p">.</span><span class="n">exe</span> <span class="n">-x</span> <span class="n">8</span> <span class="n">-s</span> <span class="n">8</span> <span class="n">-d</span> <span class="n">E</span><span class="p">:\</span><span class="n">AI</span><span class="p">\</span><span class="n">Models</span><span class="p">\</span><span class="n">checkpoints</span> <span class="s2">&quot;下载直链&quot;</span>
+</code></pre></div>
+<h2 id="2-civitai">2. 怎么读一个 Civitai 模型页（防坑清单）<a class="headerlink" href="#2-civitai" title="Permanent link"></a></h2>
+<p>按重要性排序，五个必看栏目：</p>
+<ol>
+<li><strong>Base Model</strong>：写着 SDXL 1.0 / Illustrious / Pony / SD1.5 / FLUX——<strong>第一过滤条件</strong>。LoRA 必须配对应底模（第 05 讲：<span class="arithmatex">\(\Delta W\)</span> 依附于 <span class="arithmatex">\(W\)</span>）；</li>
+<li><strong>示例图的参数</strong>：点开示例图能看到完整生成参数（提示词/采样器/cfg/steps）——<strong>这是官方配方，第一张图照抄它</strong>，跑通了再改；</li>
+<li><strong>版本与文件</strong>：选 <code>.safetensors</code>（第 04 讲的安全铁律）；同版本多个文件时，<code>pruned/fp16</code> 足够推理用（更小）；</li>
+<li><strong>触发词（Trigger Words）</strong>：LoRA 常需要特定词激活（第 11 讲展开），页面上明确标注；</li>
+<li><strong>License/权限</strong>：个人玩基本无碍；若图片要商用，看清该模型的许可条款（各家差异大）。</li>
+</ol>
+<h2 id="3">3. 动漫模型系谱：你的场景该用什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>动漫方向的微调模型有清晰的世代更替（都基于 SDXL 架构，但<strong>互相不完全兼容 LoRA</strong>，选定一系再下配件）：</p>
+<table>
+<thead>
+<tr>
+<th>世代</th>
+<th>代表</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SD1.5 动漫时代</td>
+<td>Anything、Counterfeit</td>
+<td>2023 年的经典，512 分辨率，已过时</td>
+</tr>
+<tr>
+<td>Pony 系</td>
+<td>Pony Diffusion V6 XL</td>
+<td>首个 danbooru 标签深度训练的 SDXL；需要 <code>score_9, score_8_up...</code> 一串专属质量咒语</td>
+</tr>
+<tr>
+<td><strong>Illustrious 系</strong></td>
+<td>Illustrious-XL 及其微调（WAI、NoobAI 同源系）</td>
+<td><strong>2025–26 动漫主流</strong>：danbooru 标签理解极佳、角色词库全、构图质量高</td>
+</tr>
+</tbody>
+</table>
+<p><strong>给你的建议：直接入 Illustrious 系</strong>（跳过历史包袱），理由：VRChat 动漫角色风格匹配度最高、当前 LoRA 生态最活跃、对 danbooru 标签的理解意味着提示词有一套<strong>确定性的词表</strong>可查——这对数学背景的你是好消息：</p>
+<div class="highlight"><pre><span></span><code>Illustrious 系提示词范式(danbooru 标签, 逗号分隔):
+1girl, silver hair, long hair, red eyes, school uniform,
+standing, classroom, window light,
+masterpiece, best quality, highly detailed
+负面: worst quality, low quality, bad anatomy, bad hands,
+      extra digits, watermark, signature
+</code></pre></div>
+<p>标签不是自由发挥，是查表——danbooru 的标签维基就是词典；这套词表也正是第 12 讲 ControlNet + 你的 VRChat 截图工作流的提示词基础。</p>
+<h2 id="4-1822gb">4. 第一批下载清单（约 18–22GB 磁盘）<a class="headerlink" href="#4-1822gb" title="Permanent link"></a></h2>
+<p>按第 05 讲总表的"部件"组织，放进对应的 <code>E:\AI\Models</code> 子目录：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>部件</th>
+<th>推荐（2026 初快照）</th>
+<th>去处</th>
+<th>大小</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>动漫主力 checkpoint</td>
+<td>Illustrious-XL 系热门微调（civitai 按 Illustrious 筛，排行榜前列挑口味）</td>
+<td><code>checkpoints/</code></td>
+<td>~6.6GB</td>
+<td>第 11–13 讲主力</td>
+</tr>
+<tr>
+<td>2</td>
+<td>通用写实 checkpoint</td>
+<td>Juggernaut XL 或 RealVisXL（任一）</td>
+<td><code>checkpoints/</code></td>
+<td>~6.6GB</td>
+<td>写实/材质/场景</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SDXL 修复版 VAE</td>
+<td><code>sdxl_vae.safetensors</code>（fp16-fix 版）</td>
+<td><code>vae/</code></td>
+<td>~330MB</td>
+<td>个别微调模型发灰时外挂</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ControlNet 万能包</td>
+<td><strong>Xinsir controlnet-union-sdxl (promax)</strong> —— 一个文件同时支持 openpose/canny/depth/lineart 等</td>
+<td><code>controlnet/</code></td>
+<td>~2.5GB</td>
+<td>第 12 讲全部实验</td>
+</tr>
+<tr>
+<td>5</td>
+<td>IP-Adapter 主体</td>
+<td><code>ip-adapter_sdxl_vit-h.safetensors</code></td>
+<td><code>ipadapter/</code></td>
+<td>~700MB</td>
+<td>第 13 讲</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CLIP 图像塔</td>
+<td>CLIP-ViT-H-14 图像编码器（IP-Adapter 官方仓库配套）</td>
+<td><code>clip_vision/</code></td>
+<td>~2.5GB</td>
+<td>IP-Adapter 的眼睛</td>
+</tr>
+<tr>
+<td>7</td>
+<td>放大模型</td>
+<td><code>4x-UltraSharp</code> + <code>RealESRGAN_x4plus_anime_6B</code>（动漫专用）</td>
+<td><code>upscale_models/</code></td>
+<td>各 ~65MB</td>
+<td>第 14 讲</td>
+</tr>
+<tr>
+<td>8</td>
+<td>2–3 个 LoRA</td>
+<td>在 civitai 按"你的 #1 底模"筛选，挑画风/角色各一</td>
+<td><code>loras/</code></td>
+<td>各 ~50–200MB</td>
+<td>第 11 讲练手</td>
+</tr>
+</tbody>
+</table>
+<p>清单刻意<strong>不含</strong> FLUX/Qwen（第二阶段，等 SDXL 生态玩顺再上，那时 16GB 下的 fp8 选型另议）和 SDXL-inpaint 专用模型（第 09 讲路线 A 暂够用；将来需要大面积重绘时再补）。</p>
+<p><strong>管理纪律（从第一个文件开始养成）</strong>：</p>
+<ol>
+<li>文件名保留版本号（<code>illustriousXL_v20.safetensors</code> 别改成 <code>anime.safetensors</code>——三个月后你分不清）；</li>
+<li><code>loras/</code> 下按 <code>style/</code>、<code>char/</code> 建子目录（第 06 讲：下拉框支持相对路径）；</li>
+<li>在 <code>E:\AI\Models\models.md</code> 里一行一条记录：<code>文件名 | 来源链接 | 底模 | 触发词</code>——这是你的弹药库台账，也是唯一需要"备份"的模型信息（第 06 讲）。</li>
+</ol>
+<h2 id="5">5. 换了模型之后：参数要跟着换<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>新 checkpoint 到手的标准动作（每次都做，形成流程）：</p>
+<ol>
+<li>模型页示例图的参数<strong>原样跑一张</strong>（提示词、采样器、cfg、steps 全抄）——先确认"药是好药"；</li>
+<li>换成你的提示词，参数不动，再跑——确认"药对你的症"；</li>
+<li>之后才开始按第 08 讲的方法调参。动漫系模型常见差异：cfg 甜区偏低（4–7）、质量词/负面词有各自约定（模型页会写）、<code>euler_ancestral</code> 或 <code>dpmpp_2s_ancestral</code> 是社区惯用搭配。</li>
+</ol>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>按清单下载 #1（动漫主力）+ #4（ControlNet union）+ #7（两个放大器）——这是后面三讲的最小弹药；其余可边学边补；</li>
+<li>建好 <code>models.md</code> 台账，把已有的 3 个底模也补记进去；</li>
+<li>用新动漫 checkpoint 照模型页配方出第一张图，然后用第 3 节的 danbooru 范式描述一个你的 VRChat 角色，看它能还原几成。</li>
+</ol>
+<hr />
+<p><em>弹药到位。下一讲把 LoRA 挂上工作流——几十 MB 改画风的低秩数学（第 05 讲），落到画布上只是一个节点加两个滑块，但滑多少、叠几个、为什么失效，全有讲究。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-img2img-inpaint.html"><span class="pager-label">上一讲</span>09 · 图生图与局部重绘</a>
+  <a class="pager-slot next" href="11-lora-practice.html"><span class="pager-label">下一讲</span>11 · LoRA 实战</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

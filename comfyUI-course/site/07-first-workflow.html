@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>节点=原理的落地：逐节点拆解 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li class="active"><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先读懂"线"：类型即颜色</a></li>
+<li><a href="#2">2. 默认文生图工作流：七个节点逐个对号</a><ul>
+<li><a href="#1-load-checkpoint">① Load Checkpoint —— 拆包三大件</a></li>
+<li><a href="#23-clip-text-encode-2">②③ CLIP Text Encode ×2 —— 把文字变向量</a></li>
+<li><a href="#4-empty-latent-image-z_t">④ Empty Latent Image —— 采样起点 \(z_T\)</a></li>
+<li><a href="#5-ksampler">⑤ KSampler —— 整个上篇的数学浓缩在这一个节点</a></li>
+<li><a href="#6-vae-decode">⑥ VAE Decode —— 显影</a></li>
+<li><a href="#7-save-image">⑦ Save Image —— 落盘</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 画布操作最小集</a></li>
+<li><a href="#4">4. 两个立刻能做的实验（比读十遍都有用）</a></li>
+<li><a href="#5">5. 看懂复杂工作流的通用算法</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="07">第 07 讲 · 节点 = 原理的落地：逐节点拆解第一个工作流<a class="headerlink" href="#07" title="Permanent link"></a></h1>
+<blockquote>
+<p>本课程的点睛之讲。ComfyUI 与其他生图界面的根本区别：<strong>它把第 04 讲那张流水线图原封不动画在屏幕上让你摆弄</strong>——别的工具把管线藏进"生成"按钮，ComfyUI 把管线本身交给你。所以学 ComfyUI 的正确姿势不是背操作，而是<strong>把每个节点映射回它的数学身份</strong>。本讲用默认文生图工作流完成这个映射，从此你看任何复杂工作流都是"找骨架 + 认外挂"。</p>
+</blockquote>
+<h2 id="1">1. 先读懂"线"：类型即颜色<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>节点间的连线是<strong>有类型的</strong>（颜色区分），类型不匹配就接不上——这是 ComfyUI 帮你守住的第一道正确性防线。六种主力线型先认脸：</p>
+<table>
+<thead>
+<tr>
+<th>颜色</th>
+<th>类型</th>
+<th>是什么（原理身份）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>紫</td>
+<td>MODEL</td>
+<td>去噪网络 <span class="arithmatex">\(\epsilon_\theta\)</span>（第 04 讲的 U-Net/DiT）</td>
+</tr>
+<tr>
+<td>黄</td>
+<td>CLIP</td>
+<td>文本编码器（还没吃提示词的"编码机器"本身）</td>
+</tr>
+<tr>
+<td>橙</td>
+<td>CONDITIONING</td>
+<td>编码后的条件向量组 <span class="arithmatex">\(c\)</span>（提示词已变成向量）</td>
+</tr>
+<tr>
+<td>红</td>
+<td>VAE</td>
+<td>VAE 编解码器本体</td>
+</tr>
+<tr>
+<td>粉</td>
+<td>LATENT</td>
+<td>潜空间张量 <span class="arithmatex">\(z\)</span>（第 04 讲的 64×64×4 战场）</td>
+</tr>
+<tr>
+<td>蓝</td>
+<td>IMAGE</td>
+<td>像素图像（人眼能看的最终形态）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读工作流的诀窍由此而来：顺着粉线走。</strong>LATENT 从哪出生（Empty Latent / VAE Encode）、被谁加工（KSampler）、在哪显影（VAE Decode）——这条主动脉就是骨架，其余全是给它供料的支线。</p>
+<h2 id="2">2. 默认文生图工作流：七个节点逐个对号<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在 ComfyUI 里点 菜单 → Workflow → Browse Templates → <strong>Text to Image</strong>（或加载课程工作流包的 <code>wf02_sdxl_txt2img.json</code>），画布上是这七个节点：</p>
+<h3 id="1-load-checkpoint">① Load Checkpoint —— 拆包三大件<a class="headerlink" href="#1-load-checkpoint" title="Permanent link"></a></h3>
+<p>选 <code>sd_xl_base_1.0.safetensors</code>。它吐出三条线：MODEL（紫）+ CLIP（黄）+ VAE（红）——<strong>正是第 04 讲"checkpoint = 三大件打包"的画布证明</strong>。一个节点，整机零件全取出。</p>
+<h3 id="23-clip-text-encode-2">②③ CLIP Text Encode ×2 —— 把文字变向量<a class="headerlink" href="#23-clip-text-encode-2" title="Permanent link"></a></h3>
+<p>两个一模一样的节点，黄线进橙线出：<span class="arithmatex">\(\text{提示词} \xrightarrow{\text{CLIP}} c\)</span>。上面那个接 KSampler 的 <code>positive</code> 口，下面接 <code>negative</code> 口——回忆第 03 讲 CFG 的公式：<strong>这两条橙线就是 <span class="arithmatex">\(\epsilon_\theta(c_+)\)</span> 与 <span class="arithmatex">\(\epsilon_\theta(c_-)\)</span> 的两个条件</strong>，负面提示是"被推离的参照物"，不是过滤器。</p>
+<p>先写个经典组合试跑：</p>
+<div class="highlight"><pre><span></span><code>正面: a cat astronaut floating inside a space station,
+      detailed illustration, soft lighting, high quality
+负面: low quality, blurry, watermark, text, extra limbs
+</code></pre></div>
+<h3 id="4-empty-latent-image-z_t">④ Empty Latent Image —— 采样起点 <span class="arithmatex">\(z_T\)</span><a class="headerlink" href="#4-empty-latent-image-z_t" title="Permanent link"></a></h3>
+<p>生成一张指定尺寸的<strong>潜空间噪声</strong>（粉线出）。填 1024×1024（SDXL 的原生分辨率，第 04 讲）；<code>batch_size=1</code>。第 01 讲的 <span class="arithmatex">\(z \sim \mathcal{N}(0, I)\)</span> 就是它——严格说它产出全零张量、噪声由 KSampler 按种子注入，但数学身份不变：一切从高斯开始。</p>
+<h3 id="5-ksampler">⑤ KSampler —— 整个上篇的数学浓缩在这一个节点<a class="headerlink" href="#5-ksampler" title="Permanent link"></a></h3>
+<p>四条输入线全部各就各位：MODEL（<span class="arithmatex">\(\epsilon_\theta\)</span>）、positive/negative（CFG 的两个条件）、latent_image（起点 <span class="arithmatex">\(z_T\)</span>）。它执行的就是第 02–03 讲的循环：<strong>按 scheduler 排好噪声刻度 → 每步双跑模型做 CFG → 用 sampler 的积分格式走一步 → 循环 steps 次</strong>。参数用第 03 讲的甜区：</p>
+<div class="highlight"><pre><span></span><code>steps=25, cfg=6.0, sampler=dpmpp_2m, scheduler=karras,
+seed=任意, denoise=1.0   (文生图=全程去噪, 第02讲)
+</code></pre></div>
+<h3 id="6-vae-decode">⑥ VAE Decode —— 显影<a class="headerlink" href="#6-vae-decode" title="Permanent link"></a></h3>
+<p>粉线（去噪完成的 <span class="arithmatex">\(z_0\)</span>）+ 红线（VAE）→ 蓝线（像素图）。潜空间到人眼世界的最后一跳（第 04 讲）。</p>
+<h3 id="7-save-image">⑦ Save Image —— 落盘<a class="headerlink" href="#7-save-image" title="Permanent link"></a></h3>
+<p>写入 <code>E:\AI\Outputs</code>（第 06 讲的启动参数指定的）。<strong>顺带把整个工作流 JSON 嵌进 PNG 元数据</strong>——所以任何 ComfyUI 生成的 PNG 拖回画布都能还原完整工作流（复现自己旧图、学别人图的头号途径；也提醒你：<strong>发图给别人 = 连提示词带参数一起发了</strong>，介意就先洗掉元数据）。</p>
+<p>对照表收束（贴在心里）：</p>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>数学身份</th>
+<th>出处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Load Checkpoint</td>
+<td>拆包 <span class="arithmatex">\(\epsilon_\theta\)</span> + CLIP + VAE</td>
+<td>第 04 讲</td>
+</tr>
+<tr>
+<td>CLIP Text Encode</td>
+<td><span class="arithmatex">\(c = \text{CLIP}(\text{prompt})\)</span></td>
+<td>第 04 讲</td>
+</tr>
+<tr>
+<td>Empty Latent</td>
+<td><span class="arithmatex">\(z_T \sim \mathcal{N}(0,I)\)</span></td>
+<td>第 01/02 讲</td>
+</tr>
+<tr>
+<td>KSampler</td>
+<td>迭代去噪 + CFG + 数值积分</td>
+<td>第 02/03 讲</td>
+</tr>
+<tr>
+<td>VAE Decode</td>
+<td><span class="arithmatex">\(z_0 \to x\)</span> 显影</td>
+<td>第 04 讲</td>
+</tr>
+<tr>
+<td>Save Image</td>
+<td>落盘 + 工作流入 PNG</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3">3. 画布操作最小集<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>学操作只需要这一小撮（其余用到再查）：</p>
+<ul>
+<li><strong>加节点</strong>：画布空白处双击搜索名字；或从某个输出口<strong>拖线到空白处松手</strong>——会弹出"能接这条线的节点"列表（比双击搜索好用得多，推荐养成）；</li>
+<li><strong>连线</strong>：输出圆点拖到输入圆点；同类型才能接；</li>
+<li><strong>改参数</strong>：点住数字左右拖 = 粗调，双击 = 键盘输入；</li>
+<li><strong>跑</strong>：底部 Queue（或 Ctrl+Enter）；节点边框会依次高亮显示执行进度——<strong>顺序就是数据流顺序</strong>，看几次你对管线的理解就长在直觉里了；</li>
+<li><strong>画布</strong>：滚轮缩放、空格/中键拖动、框选多节点一起挪；</li>
+<li><strong>禁用某节点</strong>：选中按 Ctrl+M（mute）——调试工作流的常用开关；</li>
+<li><strong>保存</strong>：菜单 → Workflow → Save As，存到 <code>E:\AI\Workflows</code>（第 06 讲的约定）。</li>
+</ul>
+<h2 id="4">4. 两个立刻能做的实验（比读十遍都有用）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>实验 A · 种子的意义</strong>：跑一张图后，把 KSampler 的 <code>control_after_generate</code> 设为 <code>fixed</code>，连跑三次——三张<strong>完全相同</strong>（确定性采样器 + 固定种子 = 完全可复现，第 03 讲）。再改成 <code>randomize</code> 跑三次，构图各不相同。<strong>从此记住：分享参数不带种子 = 没分享；调参不固定种子 = 无效对比。</strong></p>
+<p><strong>实验 B · CFG 的体感</strong>：固定种子，cfg 分别取 1 / 6 / 15 跑三张。cfg=1 散漫跑题（引导没开），6 正常，15 过饱和颜色发焦（score 外推过头）——第 03 讲 5.2 节的三段论亲眼看一遍。</p>
+<h2 id="5">5. 看懂复杂工作流的通用算法<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>以后在网上看到几十个节点的大工作流（比如你朋友那张），按这个算法拆，没有例外：</p>
+<ol>
+<li><strong>找粉线主动脉</strong>：LATENT 从哪出生、经过几个 KSampler、在哪显影——骨架即得；</li>
+<li><strong>认外挂</strong>：LoRA Loader 串在紫线上（改 <span class="arithmatex">\(\epsilon_\theta\)</span> 权重，第 05 讲）、ControlNet 串在橙线上（往条件里塞结构，第 05 讲）、IPAdapter 挂在紫线上（并联图像注意力）——每个外挂都在第 05 讲的总表里；</li>
+<li><strong>其余是便利设施</strong>：预览、对比、文件名管理、批量开关——不影响数学，最后再看。</li>
+</ol>
+<p>第 09/11/12/13 讲会逐类展开"外挂"，到时回头看复杂工作流就是透明的。</p>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>加载 <code>wf02_sdxl_txt2img.json</code>（或从模板搭），跑出你的第一张 1024 SDXL 图；</li>
+<li>完成实验 A 和 B，把"固定种子单变量调参"变成肌肉记忆；</li>
+<li>从 <code>E:\AI\Outputs</code> 把成图拖回画布，确认工作流被还原；</li>
+<li>把提示词换成你真正想画的东西，跑 10 张，挑出最好的一张记下它的完整参数——你的第一份"配方"。</li>
+</ol>
+<hr />
+<p><em>骨架通了。下一讲把 KSampler 剩余参数（steps/denoise/分辨率/batch）的全部细节钉死，并给出一套系统性的调参方法——从此告别"随便改改看运气"。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-your-machine.html"><span class="pager-label">上一讲</span>06 · 你的这台机器与这套安装</a>
+  <a class="pager-slot next" href="08-parameters.html"><span class="pager-label">下一讲</span>08 · 参数手册：钉死变量再调参</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

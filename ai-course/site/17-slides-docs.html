@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实战：PPT 与文档 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li class="active"><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ppt">1. 先想清楚：PPT 的内容是"论证"，不是"文本"</a></li>
+<li><a href="#2">2. 四条成稿路径</a></li>
+<li><a href="#3">3. 图的正确来源</a></li>
+<li><a href="#4">4. 长文档：报告、申请书、手册</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="17-ppt">第 17 讲 · 实战：PPT 与文档<a class="headerlink" href="#17-ppt" title="Permanent link"></a></h1>
+<blockquote>
+<p>"帮我做个 PPT"大概是被辜负最多的期待——直接这么要，得到的多半是废话大纲配丑模板。原因很简单：一份好 PPT = <strong>内容逻辑</strong> + <strong>视觉呈现</strong>两件事，LLM 精于前者、拙于后者。本讲的策略就一句话：<strong>让 AI 干透内容的活，用工具和模板锁死视觉的活</strong>，并给出四条从省事到精致的路径。</p>
+</blockquote>
+<h2 id="1-ppt">1. 先想清楚：PPT 的内容是"论证"，不是"文本"<a class="headerlink" href="#1-ppt" title="Permanent link"></a></h2>
+<p>无论走哪条路径，第一步都是让 AI 帮你把<strong>论证结构</strong>立起来，而不是直接产页面：</p>
+<div class="highlight"><pre><span></span><code>我要做一个 [15] 分钟的报告，听众是[非本方向的研究生]，
+目标是让他们[理解 X 方法为什么优于传统做法]。
+我的材料：[粘贴论文摘要/项目总结/要点清单]
+请先给我：金字塔结构的大纲——一句话核心主张 → 3 个支撑论点 →
+每个论点下 2-3 页的页标题（每页标题必须是一个完整的判断句，
+如&quot;检索质量决定生成上限&quot;，而不是&quot;背景介绍&quot;这种空标签）。
+</code></pre></div>
+<p>"页标题 = 判断句"是麦肯锡式演示的核心纪律，AI 执行得极好——只要你要求了。大纲确认后，再让它逐页展开：每页 3–5 个要点短语（<strong>不是段落</strong>——满屏文字的 PPT 根源就是把讲稿贴上了页面）+ 一句"这页配什么图"的建议 + 讲者备注（你要说的话放备注，不放页面）。</p>
+<h2 id="2">2. 四条成稿路径<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>工具</th>
+<th>特点</th>
+<th>适合</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. 大纲协作 + 手工排版</td>
+<td>聊天框 + PowerPoint/Keynote</td>
+<td>内容 AI、排版全手工，质量上限最高</td>
+<td>重要报告、答辩</td>
+</tr>
+<tr>
+<td>B. Markdown 转 slides</td>
+<td>Marp / reveal.js / Slidev</td>
+<td>全程写文本，版式由主题包管，程序员友好</td>
+<td>技术分享、课程</td>
+</tr>
+<tr>
+<td>C. 智能体直产 pptx</td>
+<td>Claude 等（文档技能）</td>
+<td>一句话到 .pptx 文件，可继续对话修改</td>
+<td>快速初稿、内部汇报</td>
+</tr>
+<tr>
+<td>D. 产品化工具</td>
+<td>Gamma、AiPPT、Kimi PPT 等</td>
+<td>网页端一条龙，模板漂亮，可控性一般</td>
+<td>时间紧、要求不刁</td>
+</tr>
+</tbody>
+</table>
+<p>路径 B 值得数理背景的你多看一眼——PPT 从此变成可版本管理的纯文本：</p>
+<div class="highlight"><pre><span></span><code>---
+marp: true
+<span class="gu">theme: default</span>
+<span class="gu">---</span>
+<span class="gh"># 检索质量决定生成上限</span>
+<span class="k">-</span><span class="w"> </span>三个证据：召回率 vs 最终准确率的相关性 …
+<span class="k">-</span><span class="w"> </span>![<span class="nt">w:500</span>](<span class="na">fig/recall_curve.png</span>)
+</code></pre></div>
+<p>让 AI 直接生成整份 Marp markdown，一条命令渲染成 PDF/PPTX；改内容 = 改文本，AI 改起来也最顺手（它的母语就是 markdown）。</p>
+<p><strong>通用纪律（四条路径皆适用）</strong>：视觉一致性交给<strong>模板/主题</strong>（字体、配色、版式一次定死），别让 AI 逐页自由发挥；AI 生成的默认排版只当初稿，重要场合必须人工过一遍视觉。</p>
+<h2 id="3">3. 图的正确来源<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>页面上的图分三类，来源各不同（错配是学术翻车高发区，呼应第 16 讲）：</p>
+<ul>
+<li><strong>数据图表</strong>：必须由代码从真实数据生成——让 AI 写 matplotlib/plotly 脚本（顺便要求"标注坐标轴、放大字号到演示可读"）；</li>
+<li><strong>逻辑示意图</strong>（流程、架构、关系）：让 AI 写 <strong>Mermaid</strong>（文本描述的图表语言，<code>graph LR; A--&gt;B</code> 这种），在线渲染后截图，改图 = 改文本；</li>
+<li><strong>氛围插图</strong>：文生图（第 16 讲）。</li>
+</ul>
+<h2 id="4">4. 长文档：报告、申请书、手册<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>长文档的失败模式与 PPT 同源——一口气让 AI 写一万字，会得到结构涣散、前后重复的"注水文"。解法也是同一味药：<strong>编排</strong>（第 08 讲思想的文书版）：</p>
+<ol>
+<li><strong>骨架先行</strong>：先让它出"章节树 + 每节一句话主旨 + 各节之间的依赖关系"，你来批改这棵树——<strong>改结构比改文字便宜一百倍</strong>；</li>
+<li><strong>逐节生成</strong>：一次写一节，每次把"全文骨架 + 已写各节的摘要"喂回去（对抗上下文限制，保持全局一致）；</li>
+<li><strong>一致性收尾</strong>：全文完成后，专门跑一遍"审校 pass"——"检查术语是否全文统一、数据引用是否前后一致、各节是否有重复论述、语气是否一致"，这类全局巡检恰是 AI 的强项；</li>
+<li><strong>格式落地</strong>：交给智能体的文档技能直接产出 .docx（含目录、页眉、样式），或输出 markdown 后用 pandoc 转换。</li>
+</ol>
+<p>模板化文书（会议纪要、周报、申请信）则更简单：给它一份你满意的旧例 + 本次的新信息，"照此风格与结构生成"——few-shot 的日常应用（第 08 讲）。</p>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>分工铁律：AI 管内容逻辑，模板管视觉呈现；</li>
+<li>先立论证再产页面：金字塔大纲 + 判断句页标题 + 要点不成段；</li>
+<li>四条路径按场合选：重要的走 A/B，快糙的走 C/D；</li>
+<li>图有三个来源：数据图用代码、示意图用 Mermaid、插图用生图；</li>
+<li>长文档 = 骨架 → 逐节 → 一致性 pass → 格式落地。</li>
+</ul>
+<p><strong>动手</strong>：把你最近一次（或下一次）要做的报告，用第 1 节的提示词生成金字塔大纲，再选路径 B 或 C 产出初稿。对比你以往"直接开 PPT 软件从第一页做起"的流程，感受先后差异。</p>
+<hr />
+<p><em>最后一讲：把全课程的方法收束到最重的写作场景——论文与长文。哪些环节 AI 能提速十倍，哪些环节一个字都不能让它替你写。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-text-to-image.html"><span class="pager-label">上一讲</span>16 · 实战：文生图</a>
+  <a class="pager-slot next" href="18-paper-writing.html"><span class="pager-label">下一讲</span>18 · 实战：论文与长文写作</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

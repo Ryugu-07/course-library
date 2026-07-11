@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>语音生成：TTS 与声音克隆 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li class="active"><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-token">1. 表示：从波形到"音频的 token"</a></li>
+<li><a href="#2-tts">2. 三代范式：TTS 的技术史一页速览</a></li>
+<li><a href="#3-2026-win">3. 工具选型（2026 初快照，都能在你的 Win 上本地跑）</a></li>
+<li><a href="#4-comfyui">4. 本地部署：独立服务，不走 ComfyUI</a></li>
+<li><a href="#5">5. 声音克隆实操要领</a></li>
+<li><a href="#6-rvc">6. 变声（RVC 一族）：换音色不换内容</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="19-tts">第 19 讲 · 语音生成：TTS 与声音克隆<a class="headerlink" href="#19-tts" title="Permanent link"></a></h1>
+<blockquote>
+<p>语音是本地 AIGC 性价比最高的领域：<strong>开源方案已逼近商业水准，显存需求却只有 2–6GB</strong>——你的卡跑起来绰绰有余。本讲按四步框架过一遍语音的表示与三代范式（数学上有个漂亮的新零件：RVQ），然后是工具选型、本地部署和声音克隆实操。</p>
+</blockquote>
+<h2 id="1-token">1. 表示：从波形到"音频的 token"<a class="headerlink" href="#1-token" title="Permanent link"></a></h2>
+<p>原始音频是每秒 22050–48000 个采样点的波形——直接建模太长。两级抽象：</p>
+<p><strong>梅尔频谱（mel-spectrogram）</strong>：短时傅里叶变换把波形切成帧（~12ms 一帧）取频谱，再按人耳感知（对低频更敏感）做梅尔刻度压缩——得到一张"时间 × 频率"的二维图。<strong>语音在这个表示下就是一张图像</strong>，所以图像系的全部方法（卷积、扩散）都能直接上。</p>
+<p><strong>神经编解码器（neural codec）与 RVQ</strong>：把音频压成<strong>离散 token</strong>，语音得以进入语言模型的世界。核心数学是<strong>残差向量量化（RVQ）</strong>：</p>
+<p>单级向量量化把每帧特征 <span class="arithmatex">\(z\)</span> 用码本 <span class="arithmatex">\(\mathcal{C} = \{e_1,\dots,e_K\}\)</span> 里最近的码字近似：<span class="arithmatex">\(\hat z = e_{k^*},\ k^* = \arg\min_k \|z - e_k\|\)</span>。一个码本精度不够，RVQ 的做法是<strong>逐级量化残差</strong>：</p>
+<div class="arithmatex">\[
+r_0 = z; \qquad k_i = \arg\min_k \|r_{i-1} - e_k^{(i)}\|, \quad r_i = r_{i-1} - e_{k_i}^{(i)}, \quad i = 1,\dots,N
+\]</div>
+<p><span class="arithmatex">\(N\)</span> 级码本（各 1024 个码字）把每帧编成 <span class="arithmatex">\(N\)</span> 个整数，重建 <span class="arithmatex">\(\hat z = \sum_i e_{k_i}^{(i)}\)</span>——<strong>误差逐级递减，比特预算逐级换精度</strong>（结构上像泰勒展开：第一级抓主体，后级修细节）。EnCodec/DAC 这类编解码器用它把 24kHz 音频压到每秒几百个 token，重建几乎无损。第 04 讲"表示的质量决定上限"的又一例证。</p>
+<h2 id="2-tts">2. 三代范式：TTS 的技术史一页速览<a class="headerlink" href="#2-tts" title="Permanent link"></a></h2>
+<p><strong>第一代 · 级联式</strong>（2017–2022，Tacotron/FastSpeech 时代）：文本 → 音素 → 声学模型出梅尔谱 → <strong>声码器（vocoder，如 HiFi-GAN）</strong>还原波形。流水线成熟稳定，但音色固定——想换声音就要重训，"克隆"无从谈起。声码器这个部件至今仍在各方案里服役。</p>
+<p><strong>第二代 · Codec 语言模型</strong>（2023 起，VALL-E 开创）：既然音频已是离散 token（RVQ），<strong>TTS 就变成了语言建模</strong>——把"文本 token + 3 秒参考音频的 codec token"当前缀，自回归地续写后面的音频 token（姊妹课程第 07 讲的下一词预测，逐字不改地适用）。革命性副产品：<strong>零样本声音克隆</strong>——参考音频就是提示词，换声音 = 换前缀，无需任何训练。代价是 AR 的老毛病：慢（逐 token）、偶发复读/漏字（采样的随机性，姊妹课程第 08 讲）。</p>
+<p><strong>第三代 · 非自回归流匹配</strong>（2024 起，F5-TTS 代表）：用第 03 讲的<strong>流匹配</strong>直接从噪声生成整段梅尔谱（文本与参考音频作为条件填充进去），再过声码器。并行生成快一个量级、不复读，克隆同样零样本。<strong>本课程扩散/流匹配的数学第三次跨模态复用</strong>（图像→视频→语音）。</p>
+<p>当前格局：二三代并立，工程实现常常杂交（AR 出语义 token + 流匹配补声学细节，CosyVoice 即此构型）。</p>
+<h2 id="3-2026-win">3. 工具选型（2026 初快照，都能在你的 Win 上本地跑）<a class="headerlink" href="#3-2026-win" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>范式</th>
+<th>克隆方式</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GPT-SoVITS</strong></td>
+<td>AR + SoVITS</td>
+<td>零样本 / <strong>1 分钟素材微调</strong></td>
+<td>中文社区之王：整合包开箱即用、微调后中文自然度顶级、教程海量</td>
+</tr>
+<tr>
+<td><strong>CosyVoice 2</strong></td>
+<td>AR+流匹配杂交</td>
+<td>零样本</td>
+<td>阿里出品，流式低延迟，中英混说稳</td>
+</tr>
+<tr>
+<td><strong>F5-TTS</strong></td>
+<td>流匹配</td>
+<td>零样本</td>
+<td>轻、快、MIT 协议，代码干净适合学习</td>
+</tr>
+<tr>
+<td>Fish-Speech / OpenAudio</td>
+<td>AR 系</td>
+<td>零样本</td>
+<td>多语种均衡</td>
+</tr>
+<tr>
+<td>IndexTTS</td>
+<td>AR 系</td>
+<td>零样本</td>
+<td>B 站出品，工业级中文，字级发音可控</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议</strong>：起步装 <strong>GPT-SoVITS</strong>（中文效果与资料生态最好，"整合包"解压即用符合你机器的 portable 传统）；想要最简依赖或读代码学原理选 <strong>F5-TTS</strong>。显存都在 4–6GB 级——甚至可以和 ComfyUI 生图同时跑。</p>
+<h2 id="4-comfyui">4. 本地部署：独立服务，不走 ComfyUI<a class="headerlink" href="#4-comfyui" title="Permanent link"></a></h2>
+<p>语音工具链自成生态（各带 WebUI/API），标准做法是<strong>每个工具独立环境</strong>，与 ComfyUI 井水不犯河水：</p>
+<div class="highlight"><pre><span></span><code>E:\AI\Audio\                    ← 建议新建, 与 ComfyUI 平级
+├─ GPT-SoVITS\                  ← 官方 Windows 整合包解压即用(自带 python)
+└─ F5-TTS\                      ← git clone + 独立 venv, pip install
+</code></pre></div>
+<p>部署要点：整合包文化在中文语音圈非常成熟（GPT-SoVITS 官方就发 Windows 一键包，自带环境，双击 bat 启动 WebUI）——<strong>优先找官方整合包，其次才手动装环境</strong>；手动装的用独立 venv（第 06 讲 portable 哲学的延续：环境隔离，删目录即卸载）。这些服务同样是"本地 HTTP 服务 + WebUI"的形态（如 :9880），与 ComfyUI 的 :8188 各占一端口，将来都能被第 15 讲的 API 编排统一指挥。</p>
+<h2 id="5">5. 声音克隆实操要领<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ol>
+<li><strong>素材质量 &gt; 素材数量</strong>：零样本给 5–10 秒<strong>干净</strong>的参考音频（无背景音乐、无混响、情绪平稳）；GPT-SoVITS 微调路线备 1–3 分钟切好的干声，效果再上一档；</li>
+<li><strong>参考音频的情绪会被继承</strong>——想要什么语气，就给什么语气的参考（这本质是 in-context learning，姊妹课程第 07 讲）；</li>
+<li>长文本<strong>分句合成再拼接</strong>（一次塞一整段容易尾部漂移——AR 系的上下文腐烂，语音版）；</li>
+<li>中英混读、数字、多音字是重灾区，善用工具的拼音/音素标注功能强制发音。</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">伦理与法律红线</p>
+<p>只克隆<strong>自己的声音</strong>或取得明确授权的声音。克隆他人声音用于伪造，在多数司法辖区已涉嫌违法（人格权/诈骗工具），也是本课程所有技术中滥用后果最直接的一个。你的正当用例很清楚：给自己的角色配音、给自己的视频旁白——守住这条线。</p>
+</div>
+<h2 id="6-rvc">6. 变声（RVC 一族）：换音色不换内容<a class="headerlink" href="#6-rvc" title="Permanent link"></a></h2>
+<p>TTS 是"文字→语音"，<strong>变声（voice conversion）</strong>是"语音→语音"：保留说话内容与韵律，只换音色。原理一句话：用自监督模型（HuBERT 类）从源音频提取<strong>与音色无关的内容特征</strong>，再用目标音色的解码器重新合成——内容与音色在表示层被解耦（和第 05 讲 IP-Adapter"解耦注入"是同一种思想气质）。RVC 是这个领域的 GPT-SoVITS 级存在（整合包、可实时、直播可用）。角色扮演场景下它与 TTS 互补：<strong>TTS 配台词，RVC 变直播</strong>。</p>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>装 GPT-SoVITS 整合包（或 F5-TTS），用官方示例声线合成一段中文台词，跑通全流程；</li>
+<li>录 10 秒自己的干声做零样本克隆，念一段你 Medusa 日报的开头——听听"AI 你"的效果；</li>
+<li>给你的 VRChat 角色选一条声线（自录变调 / 授权素材），合成三句不同情绪的台词存好——第 21 讲的数字人流水线要用它。</li>
+</ol>
+<hr />
+<p><em>会说话了，下一讲让它会唱歌：音乐生成——从 Suno 背后的原理到在你的 ComfyUI 里直接出一首带中文人声的完整歌曲。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-video-practice.html"><span class="pager-label">上一讲</span>18 · 视频生成 II：16GB 实机实战</a>
+  <a class="pager-slot next" href="20-music-audio.html"><span class="pager-label">下一讲</span>20 · 音乐与音效生成</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

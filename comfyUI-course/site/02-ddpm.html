@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扩散模型 I：DDPM 全推导 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li class="active"><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#0">0. 记号约定</a></li>
+<li><a href="#1">1. 前向过程：固定的、不用学的一半</a></li>
+<li><a href="#2">2. 反向过程：要学的一半</a></li>
+<li><a href="#3-elbo">3. 训练目标：ELBO 完整推导</a><ul>
+<li><a href="#31">3.1 变分下界</a></li>
+<li><a href="#32-kl">3.2 拆成逐步的 KL</a></li>
+<li><a href="#33">3.3 闭式后验：知道谜底时该怎么去噪</a></li>
+<li><a href="#34">3.4 化简为"猜噪声"</a></li>
+<li><a href="#35-01-score">3.5 兑现第 01 讲的承诺：猜噪声 = 学 score</a></li>
+</ul>
+</li>
+<li><a href="#4-ddpm">4. 采样：DDPM 原版算法</a></li>
+<li><a href="#5-comfyui">5. 对上你的 ComfyUI</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02-iddpm">第 02 讲 · 扩散模型 I：DDPM 全推导<a class="headerlink" href="#02-iddpm" title="Permanent link"></a></h1>
+<blockquote>
+<p>本讲是全课程数学的心脏，值得铺开纸笔完整跟一遍。我们把"加噪-去噪"写成严格的概率模型（DDPM，Ho et al. 2020），从极大似然出发推导出训练目标，最后你会看到一条壮观的化简链：<strong>变分下界 → 一串 KL 散度 → 高斯均值匹配 → 一个平方损失："猜噪声"</strong>。读完这讲，KSampler 每一步在算什么，对你不再有任何神秘感。</p>
+</blockquote>
+<h2 id="0">0. 记号约定<a class="headerlink" href="#0" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(x_0\)</span>：真实图像（先不管潜空间，第 04 讲再引入）；<span class="arithmatex">\(x_1, \dots, x_T\)</span>：逐步加噪的中间态（<span class="arithmatex">\(T\)</span> 通常取 1000）；<span class="arithmatex">\(\beta_t \in (0,1)\)</span>：第 <span class="arithmatex">\(t\)</span> 步的加噪强度（<strong>噪声日程表</strong>，预先固定的小数，从 <span class="arithmatex">\(10^{-4}\)</span> 缓增到 <span class="arithmatex">\(0.02\)</span>）。记：</p>
+<div class="arithmatex">\[
+\alpha_t = 1 - \beta_t, \qquad \bar\alpha_t = \prod_{s=1}^{t} \alpha_s
+\]</div>
+<p><span class="arithmatex">\(\bar\alpha_t\)</span> 单调递减：<span class="arithmatex">\(\bar\alpha_0 = 1\)</span>（纯净），<span class="arithmatex">\(\bar\alpha_T \approx 0\)</span>（纯噪声）。它是"信号残存比例"的刻度尺。</p>
+<h2 id="1">1. 前向过程：固定的、不用学的一半<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>每一步在缩小信号的同时注入高斯噪声：</p>
+<div class="arithmatex">\[
+q(x_t \mid x_{t-1}) = \mathcal{N}\big(x_t;\; \sqrt{\alpha_t}\, x_{t-1},\; \beta_t I\big)
+\quad\Longleftrightarrow\quad
+x_t = \sqrt{\alpha_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon_t,\;\; \epsilon_t \sim \mathcal{N}(0, I)
+\]</div>
+<p>系数为什么是 <span class="arithmatex">\(\sqrt{\alpha_t}\)</span> 和 <span class="arithmatex">\(\sqrt{\beta_t}\)</span>？这是<strong>方差守恒</strong>设计：若 <span class="arithmatex">\(\mathrm{Var}(x_{t-1}) = I\)</span>，则 <span class="arithmatex">\(\mathrm{Var}(x_t) = \alpha_t I + \beta_t I = I\)</span>——信号与噪声的总能量恒为 1，不会爆炸也不会消失，只是配比逐步从"全信号"滑向"全噪声"。</p>
+<p><strong>闭式跳跃（关键性质）</strong>：反复代入一次就能从 <span class="arithmatex">\(x_0\)</span> 直达任意 <span class="arithmatex">\(x_t\)</span>。做两步看清结构：</p>
+<div class="arithmatex">\[
+x_t = \sqrt{\alpha_t}\big(\sqrt{\alpha_{t-1}}\, x_{t-2} + \sqrt{\beta_{t-1}}\,\epsilon_{t-1}\big) + \sqrt{\beta_t}\,\epsilon_t
+= \sqrt{\alpha_t \alpha_{t-1}}\, x_{t-2} + \underbrace{\sqrt{\alpha_t \beta_{t-1}}\,\epsilon_{t-1} + \sqrt{\beta_t}\,\epsilon_t}_{\text{两个独立高斯之和}}
+\]</div>
+<p>独立高斯之和仍是高斯、方差相加：<span class="arithmatex">\(\alpha_t\beta_{t-1} + \beta_t = \alpha_t(1 - \alpha_{t-1}) + 1 - \alpha_t = 1 - \alpha_t\alpha_{t-1}\)</span>。归纳到底：</p>
+<div class="arithmatex">\[
+\boxed{\; q(x_t \mid x_0) = \mathcal{N}\big(\sqrt{\bar\alpha_t}\, x_0,\; (1 - \bar\alpha_t) I\big)
+\;\Longleftrightarrow\;
+x_t = \sqrt{\bar\alpha_t}\, x_0 + \sqrt{1 - \bar\alpha_t}\; \epsilon,\;\; \epsilon \sim \mathcal{N}(0, I) \;}
+\]</div>
+<p>训练时不用逐步模拟加噪——任取一个 <span class="arithmatex">\(t\)</span>，一步就能造出训练样本 <span class="arithmatex">\(x_t\)</span>。这个小公式是整个训练效率的基石，也请记住它的两个系数，后面反复出现。</p>
+<h2 id="2">2. 反向过程：要学的一半<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>生成 = 从 <span class="arithmatex">\(x_T \sim \mathcal{N}(0, I)\)</span> 出发，逐步执行 <span class="arithmatex">\(q(x_{t-1} \mid x_t)\)</span>——但这个"真实的反向核"依赖整个数据分布，我们不知道。用神经网络近似它：</p>
+<div class="arithmatex">\[
+p_\theta(x_{t-1} \mid x_t) = \mathcal{N}\big(x_{t-1};\; \mu_\theta(x_t, t),\; \sigma_t^2 I\big)
+\]</div>
+<p><strong>为什么敢用高斯参数化？</strong>这一步藏着扩散模型"把大问题拆成小问题"的全部智慧：当步长 <span class="arithmatex">\(\beta_t\)</span> 足够小时，可以证明真实反向核趋近高斯（连续时间极限下是严格结论）。一步跨越"噪声→图像"的分布无比复杂，但<strong>一小步去噪的分布近似高斯</strong>——难度被 <span class="arithmatex">\(T\)</span> 步摊薄了。方差 <span class="arithmatex">\(\sigma_t^2\)</span> 通常取定值（<span class="arithmatex">\(\beta_t\)</span> 或下文的 <span class="arithmatex">\(\tilde\beta_t\)</span>），网络只需学均值 <span class="arithmatex">\(\mu_\theta\)</span>。</p>
+<h2 id="3-elbo">3. 训练目标：ELBO 完整推导<a class="headerlink" href="#3-elbo" title="Permanent link"></a></h2>
+<h3 id="31">3.1 变分下界<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>想最大化 <span class="arithmatex">\(\log p_\theta(x_0)\)</span>，但它要对所有加噪路径积分，算不了。标准武器是变分下界（与 VAE 同源；用 Jensen 不等式一行得到）：</p>
+<div class="arithmatex">\[
+\log p_\theta(x_0) = \log \int p_\theta(x_{0:T})\, dx_{1:T}
+= \log \mathbb{E}_{q(x_{1:T} \mid x_0)}\!\left[\frac{p_\theta(x_{0:T})}{q(x_{1:T} \mid x_0)}\right]
+\;\geq\; \mathbb{E}_q\!\left[\log \frac{p_\theta(x_{0:T})}{q(x_{1:T} \mid x_0)}\right] \equiv -L
+\]</div>
+<p>其中 <span class="arithmatex">\(p_\theta(x_{0:T}) = p(x_T)\prod_{t=1}^T p_\theta(x_{t-1} \mid x_t)\)</span>，<span class="arithmatex">\(q(x_{1:T} \mid x_0) = \prod_{t=1}^T q(x_t \mid x_{t-1})\)</span>。</p>
+<h3 id="32-kl">3.2 拆成逐步的 KL<a class="headerlink" href="#32-kl" title="Permanent link"></a></h3>
+<p>把连乘展开、配对整理（中间用一次贝叶斯改写 <span class="arithmatex">\(q(x_t \mid x_{t-1}) = \frac{q(x_{t-1} \mid x_t, x_0)\, q(x_t \mid x_0)}{q(x_{t-1} \mid x_0)}\)</span>，望远镜求和消掉一串项——这步代数建议亲手做一遍，五行搞定），得到标准分解：</p>
+<div class="arithmatex">\[
+L = \underbrace{D_{\mathrm{KL}}\big(q(x_T \mid x_0)\,\|\,p(x_T)\big)}_{L_T:\ \text{无参数, 近似 0}}
++ \sum_{t=2}^{T} \underbrace{\mathbb{E}_q\, D_{\mathrm{KL}}\big(q(x_{t-1} \mid x_t, x_0)\,\|\,p_\theta(x_{t-1} \mid x_t)\big)}_{L_{t-1}:\ \text{主体}}
+- \underbrace{\mathbb{E}_q \log p_\theta(x_0 \mid x_1)}_{L_0:\ \text{最后一步重建}}
+\]</div>
+<p><span class="arithmatex">\(L_T\)</span> 与 <span class="arithmatex">\(\theta\)</span> 无关（<span class="arithmatex">\(\bar\alpha_T \approx 0\)</span> 使 <span class="arithmatex">\(q(x_T \mid x_0) \approx \mathcal{N}(0,I) = p(x_T)\)</span>）。主体是中间那串 KL：<strong>让网络的每一步去噪 <span class="arithmatex">\(p_\theta(x_{t-1} \mid x_t)\)</span>，对齐"知道谜底 <span class="arithmatex">\(x_0\)</span> 时的理想去噪" <span class="arithmatex">\(q(x_{t-1} \mid x_t, x_0)\)</span>。</strong>关键在于后者有闭式解。</p>
+<h3 id="33">3.3 闭式后验：知道谜底时该怎么去噪<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>用贝叶斯公式（三个因子都是已知高斯）：</p>
+<div class="arithmatex">\[
+q(x_{t-1} \mid x_t, x_0) = \frac{q(x_t \mid x_{t-1})\, q(x_{t-1} \mid x_0)}{q(x_t \mid x_0)}
+\]</div>
+<p>对 <span class="arithmatex">\(x_{t-1}\)</span> 把指数里的二次型配方（高斯×高斯必得高斯；耐心展开一次，约五行），得：</p>
+<div class="arithmatex">\[
+q(x_{t-1} \mid x_t, x_0) = \mathcal{N}\big(\tilde\mu_t(x_t, x_0),\; \tilde\beta_t I\big), \qquad
+\tilde\beta_t = \frac{1 - \bar\alpha_{t-1}}{1 - \bar\alpha_t}\,\beta_t
+\]</div>
+<div class="arithmatex">\[
+\tilde\mu_t = \frac{\sqrt{\bar\alpha_{t-1}}\,\beta_t}{1 - \bar\alpha_t}\, x_0 + \frac{\sqrt{\alpha_t}\,(1 - \bar\alpha_{t-1})}{1 - \bar\alpha_t}\, x_t
+\]</div>
+<p>读它：理想的去噪均值是 <strong><span class="arithmatex">\(x_0\)</span> 与 <span class="arithmatex">\(x_t\)</span> 的凸组合</strong>——往"谜底"方向拉一点，拉多少由噪声日程决定。</p>
+<h3 id="34">3.4 化简为"猜噪声"<a class="headerlink" href="#34" title="Permanent link"></a></h3>
+<p>两个同方差高斯的 KL 只剩均值差：<span class="arithmatex">\(D_{\mathrm{KL}} = \frac{1}{2\sigma_t^2}\|\tilde\mu_t - \mu_\theta\|^2\)</span>。于是训练就是<strong>均值回归</strong>。现在做那步著名的换元：由闭式跳跃公式反解 <span class="arithmatex">\(x_0 = \frac{1}{\sqrt{\bar\alpha_t}}\big(x_t - \sqrt{1-\bar\alpha_t}\,\epsilon\big)\)</span>，代入 <span class="arithmatex">\(\tilde\mu_t\)</span> 并整理（代数三行，用 <span class="arithmatex">\(\bar\alpha_t = \alpha_t \bar\alpha_{t-1}\)</span> 通分）：</p>
+<div class="arithmatex">\[
+\tilde\mu_t = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{\beta_t}{\sqrt{1 - \bar\alpha_t}}\,\epsilon\right)
+\]</div>
+<p><strong>理想均值 = 当前噪图的确定性变换，唯一未知量是"当初加进去的那份噪声 <span class="arithmatex">\(\epsilon\)</span>"。</strong>那就让网络照同样的公式办，只是把 <span class="arithmatex">\(\epsilon\)</span> 换成网络的猜测 <span class="arithmatex">\(\epsilon_\theta(x_t, t)\)</span>：</p>
+<div class="arithmatex">\[
+\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{\beta_t}{\sqrt{1 - \bar\alpha_t}}\,\epsilon_\theta(x_t, t)\right)
+\]</div>
+<p>代回 KL，公共项全部相消：</p>
+<div class="arithmatex">\[
+L_{t-1} = \mathbb{E}\left[\frac{\beta_t^2}{2\sigma_t^2\,\alpha_t (1 - \bar\alpha_t)}\,\big\|\epsilon - \epsilon_\theta(x_t, t)\big\|^2\right]
+\]</div>
+<p>Ho et al. 发现把前面那坨权重<strong>直接扔掉</strong>（各 <span class="arithmatex">\(t\)</span> 一视同仁）训练反而更好，得到最终的简化目标：</p>
+<div class="arithmatex">\[
+\boxed{\; L_{\text{simple}} = \mathbb{E}_{x_0,\, t,\, \epsilon}\Big[\big\|\epsilon - \epsilon_\theta\big(\underbrace{\sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\,\epsilon}_{x_t},\; t\big)\big\|^2\Big] \;}
+\]</div>
+<p>化简链走完：<strong>极大似然 → ELBO → 逐步 KL → 高斯均值匹配 → 猜噪声的平方损失。</strong>训练循环朴素得不像话：抽一张图、抽一个 <span class="arithmatex">\(t\)</span>、抽一份噪声、一步造出 <span class="arithmatex">\(x_t\)</span>、让网络猜噪声、回传梯度。没有对抗、没有博弈，就是回归——这就是第 01 讲表格里"训练稳定 ✓"的来源。</p>
+<h3 id="35-01-score">3.5 兑现第 01 讲的承诺：猜噪声 = 学 score<a class="headerlink" href="#35-01-score" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(q(x_t \mid x_0) = \mathcal{N}(\sqrt{\bar\alpha_t} x_0, (1-\bar\alpha_t)I)\)</span> 直接求对数梯度：</p>
+<div class="arithmatex">\[
+\nabla_{x_t} \log q(x_t \mid x_0) = -\frac{x_t - \sqrt{\bar\alpha_t}\,x_0}{1 - \bar\alpha_t} = -\frac{\epsilon}{\sqrt{1 - \bar\alpha_t}}
+\]</div>
+<p>（第二个等号代入了 <span class="arithmatex">\(x_t\)</span> 的闭式。）对 <span class="arithmatex">\(x_0\)</span> 取期望后同样的关系连接着边际分布的 score（Tweedie 公式），于是：</p>
+<div class="arithmatex">\[
+\epsilon_\theta(x_t, t) \approx -\sqrt{1 - \bar\alpha_t}\;\nabla_{x_t} \log p(x_t)
+\]</div>
+<p><strong>噪声预测器就是（缩放了的）score 场</strong>——第 01 讲"墨水倒放需要知道每个分子往哪挪"的那个方向场，网络已经在训练中学到了。同一个模型，两种等价视角（DDPM 与 score-based SDE 在 2021 年被证明统一），第 03 讲的采样器理论就建立在这个统一上。</p>
+<h2 id="4-ddpm">4. 采样：DDPM 原版算法<a class="headerlink" href="#4-ddpm" title="Permanent link"></a></h2>
+<p>训练好 <span class="arithmatex">\(\epsilon_\theta\)</span> 后，从 <span class="arithmatex">\(x_T \sim \mathcal{N}(0,I)\)</span> 出发迭代：</p>
+<div class="arithmatex">\[
+x_{t-1} = \underbrace{\frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\,\epsilon_\theta(x_t, t)\right)}_{\text{均值: 朝去噪方向走一步}} + \underbrace{\sigma_t\, z, \quad z \sim \mathcal{N}(0,I)}_{\text{再注入一点新噪声}}
+\]</div>
+<p>注意每步<strong>还要加回一点随机噪声</strong>（除了最后一步）——这是从分布 <span class="arithmatex">\(p_\theta(x_{t-1}\mid x_t)\)</span> 采样而非只取均值；一路只取均值会跌出分布、图变糊。这类"带随机注入"的采样正是 ComfyUI 里 <strong>ancestral 采样器</strong>（<code>euler_ancestral</code> 等带 <code>a</code> 后缀的）的血统来源，第 03 讲展开。</p>
+<p>原版的问题也一目了然：<span class="arithmatex">\(T = 1000\)</span> 步，每步过一次大网络——生成一张图要一千次前向。第 03 讲的全部使命就是把 1000 步压到 20 步。</p>
+<h2 id="5-comfyui">5. 对上你的 ComfyUI<a class="headerlink" href="#5-comfyui" title="Permanent link"></a></h2>
+<p>本讲的数学已经能解释画布上的好几样东西：</p>
+<table>
+<thead>
+<tr>
+<th>ComfyUI</th>
+<th>本讲对应</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KSampler 的 <code>steps</code></td>
+<td>反向迭代次数（不是 1000，因为用了第 03 讲的加速采样器）</td>
+</tr>
+<tr>
+<td>KSampler 的 <code>denoise=1.0</code></td>
+<td>从 <span class="arithmatex">\(t = T\)</span>（纯噪声）走完全程 = 文生图</td>
+</tr>
+<tr>
+<td><code>denoise=0.3</code>（图生图）</td>
+<td><strong>对输入图执行闭式跳跃加噪到 <span class="arithmatex">\(t \approx 0.3T\)</span>，再从那里往回去噪</strong>——原图结构保留多少，取决于你把它推回噪声多深。这就是 denoise 参数的全部秘密</td>
+</tr>
+<tr>
+<td><code>add_noise</code> / 种子</td>
+<td><span class="arithmatex">\(x_T\)</span> 和每步 <span class="arithmatex">\(z\)</span> 的随机源；种子固定则全程可复现</td>
+</tr>
+<tr>
+<td>模型文件里最大的那块</td>
+<td><span class="arithmatex">\(\epsilon_\theta\)</span> 的权重（U-Net 或 DiT，第 04 讲拆开看）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前向过程</td>
+<td><span class="arithmatex">\(x_t = \sqrt{\bar\alpha_t}x_0 + \sqrt{1-\bar\alpha_t}\epsilon\)</span>：一步可达、方差守恒</td>
+</tr>
+<tr>
+<td>反向参数化</td>
+<td>小步长下反向核近似高斯，只学均值</td>
+</tr>
+<tr>
+<td>ELBO 分解</td>
+<td>逐步 KL：网络去噪对齐"知道谜底的理想去噪"</td>
+</tr>
+<tr>
+<td>闭式后验</td>
+<td><span class="arithmatex">\(\tilde\mu_t\)</span> 是 <span class="arithmatex">\(x_0\)</span> 与 <span class="arithmatex">\(x_t\)</span> 的凸组合</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(L_{\text{simple}}\)</span></td>
+<td>换元后一切化简为 <span class="arithmatex">\(\|\epsilon - \epsilon_\theta\|^2\)</span>：猜噪声</td>
+</tr>
+<tr>
+<td>score 等价</td>
+<td><span class="arithmatex">\(\epsilon_\theta \propto -\nabla\log p\)</span>：学到的是指向流形的方向场</td>
+</tr>
+<tr>
+<td>denoise 参数</td>
+<td>图生图 = 加噪到中途再折返</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>下一讲解决扩散模型唯一的短板：慢。DDIM 如何证明"同一个训练目标支持跳步采样"、微分方程视角如何把采样变成数值积分问题——然后 ComfyUI 采样器下拉框里那二十几个名字，会在十分钟内全部各就各位。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-generative-models.html"><span class="pager-label">上一讲</span>01 · 生成模型：学分布与采样</a>
+  <a class="pager-slot next" href="03-samplers-cfg.html"><span class="pager-label">下一讲</span>03 · 扩散模型 II：采样器与 CFG</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

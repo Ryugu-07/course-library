@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black–Scholes · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li class="active"><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 舞台设定</a></li>
+<li><a href="#2-delta-bs">2. Delta 对冲推出 B–S 方程（本页核心推导）</a></li>
+<li><a href="#3-bs">3. B–S 公式与风险中性定价</a></li>
+<li><a href="#4">4. 希腊字母与隐含波动率（实务接口）</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-blackscholes">随机微积分 III · Black–Scholes 与期权定价<a class="headerlink" href="#iii-blackscholes" title="Permanent link"></a></h1>
+<blockquote>
+<p>金融数学的皇冠：给"未来的权利"定价。本页从无套利原理出发，用 Itô 引理与 Delta 对冲推出 Black–Scholes 方程，解出期权定价公式，并讲清那个最反直觉的结论——<strong>股票的预期收益率不进公式</strong>。最后落到实务语言：希腊字母与隐含波动率（你 IBKR 期权页上的每个数字）。</p>
+</blockquote>
+<h2 id="1">1. 舞台设定<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>市场模型</strong>：股价走几何布朗运动 <span class="arithmatex">\(dS = \mu S\,dt + \sigma S\,dB\)</span>（上上页已解出）；无风险利率 <span class="arithmatex">\(r\)</span>（银行账户 <span class="arithmatex">\(dM = rM\,dt\)</span>）；无摩擦、可做空、连续交易。</p>
+<p><strong>欧式看涨期权（call）</strong>：到期日 <span class="arithmatex">\(T\)</span> 以行权价 <span class="arithmatex">\(K\)</span> 买入股票的权利，到期收益 <span class="arithmatex">\(\max(S_T - K, 0)\)</span>。问题：<strong>今天该值多少钱 <span class="arithmatex">\(V(S, t)\)</span>？</strong></p>
+<p><strong>定价原理（无套利）</strong>：若两个组合未来现金流必然相同，今天必须同价——否则买低卖高白吃午餐（市场会立刻吃掉它）。整门金融数学建立在这一条公理上（对比物理的能量守恒）。</p>
+<h2 id="2-delta-bs">2. Delta 对冲推出 B–S 方程（本页核心推导）<a class="headerlink" href="#2-delta-bs" title="Permanent link"></a></h2>
+<p>构造组合：<strong>持有一份期权，做空 <span class="arithmatex">\(\Delta\)</span> 股股票</strong>，<span class="arithmatex">\(\Pi = V - \Delta S\)</span>。由 Itô 引理（<span class="arithmatex">\(V\)</span> 是 <span class="arithmatex">\((S, t)\)</span> 的函数）：</p>
+<div class="arithmatex">\[
+d\Pi = dV - \Delta\,dS = \Big(V_t + \mu S V_S + \frac12\sigma^2 S^2 V_{SS} - \Delta\mu S\Big)dt + \big(V_S - \Delta\big)\sigma S\,dB
+\]</div>
+<p><strong>取 <span class="arithmatex">\(\Delta = V_S\)</span></strong>：随机项<strong>完全消失</strong>——组合瞬时无风险！无套利 ⇒ 它只能赚无风险利率 <span class="arithmatex">\(d\Pi = r\Pi\,dt\)</span>。代入整理：</p>
+<div class="arithmatex">\[
+\boxed{\;V_t + \frac{1}{2}\sigma^2 S^2 V_{SS} + rSV_S - rV = 0\;}
+\]</div>
+<p><strong>Black–Scholes 方程</strong>（1973；Merton 同年补全，1997 诺奖）。两个立即的观察：</p>
+<ul>
+<li><strong><span class="arithmatex">\(\mu\)</span> 不见了</strong>——推导中被对冲项精确抵消。<strong>股票涨跌的预期不影响期权价格</strong>：因为你随时可以用股票本身对冲掉方向风险，剩下需要定价的只有"弯曲程度"（<span class="arithmatex">\(V_{SS}\)</span> 项）对波动的暴露。这是金融数学最深的一课：<strong>能对冲的风险不值钱，定价的是对冲不掉的部分</strong>；</li>
+<li>变量代换后它就是<strong>热方程</strong>（倒着走：从到期收益向今天扩散）——pde-02 的全部理论直接接管（解的存在唯一、光滑化：不管到期收益多尖，今天的价格曲线是光滑的）。</li>
+</ul>
+<h2 id="3-bs">3. B–S 公式与风险中性定价<a class="headerlink" href="#3-bs" title="Permanent link"></a></h2>
+<p>解方程（或用下述概率法）得欧式 call 公式：</p>
+<div class="arithmatex">\[
+C = S_0\,\Phi(d_1) - K e^{-rT}\,\Phi(d_2), \qquad
+d_{1,2} = \frac{\ln(S_0/K) + (r \pm \frac{\sigma^2}{2})T}{\sigma\sqrt{T}}
+\]</div>
+<p>（<span class="arithmatex">\(\Phi\)</span> = 标准正态分布函数——概率 II 的老朋友坐镇华尔街。）<strong>读法</strong>：第一项 = 到期拿到股票的"期望现值"，第二项 = 付出行权价的期望现值；<span class="arithmatex">\(\Phi(d_2)\)</span> 恰是（风险中性世界里）行权的概率。</p>
+<p><strong>风险中性定价（第二条推导路，更深的视角）</strong>：存在一个"风险中性测度" <span class="arithmatex">\(Q\)</span>（把 GBM 的漂移 <span class="arithmatex">\(\mu\)</span> 换成 <span class="arithmatex">\(r\)</span>），使得</p>
+<div class="arithmatex">\[
+V = e^{-rT}\, E^{Q}\big[\text{payoff}\big]
+\]</div>
+<p>——<strong>定价 = 在假想世界里算期望再贴现</strong>：那个世界里所有资产都只赚 <span class="arithmatex">\(r\)</span>（投资者不要求风险补偿）。<span class="arithmatex">\(\mu\)</span> 消失的第二种解释：换测度换掉了它（Girsanov 定理的入门陈述，知其名）。工程意义巨大：<strong>任何复杂衍生品都可以"在 <span class="arithmatex">\(Q\)</span> 下 Monte Carlo 模拟 payoff 取平均"定价</strong>（数值线 + 概率 V 的方法直接变成生产工具）。<strong>Put–call 平价</strong>：<span class="arithmatex">\(C - P = S_0 - Ke^{-rT}\)</span>（无套利一行论证：两边到期payoff 恒等——不依赖任何模型，比 B–S 更硬）。</p>
+<h2 id="4">4. 希腊字母与隐含波动率（实务接口）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>希腊</th>
+<th>定义</th>
+<th>语义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Delta <span class="arithmatex">\(\Delta = V_S\)</span></td>
+<td>对股价敏感度</td>
+<td>对冲比率（§2 的主角）</td>
+<td>call 的 <span class="arithmatex">\(\Delta = \Phi(d_1) \in (0,1)\)</span></td>
+</tr>
+<tr>
+<td>Gamma <span class="arithmatex">\(\Gamma = V_{SS}\)</span></td>
+<td>Delta 的变化率</td>
+<td>对冲需要再平衡的频率</td>
+<td>平值临近到期最大</td>
+</tr>
+<tr>
+<td>Vega <span class="arithmatex">\(= V_\sigma\)</span></td>
+<td>对波动率敏感</td>
+<td>"买期权 = 买波动"</td>
+<td>B–S 里唯一不可观测参数的敏感度</td>
+</tr>
+<tr>
+<td>Theta <span class="arithmatex">\(= V_t\)</span></td>
+<td>时间衰减</td>
+<td>持有期权每天的"房租"</td>
+<td>通常为负</td>
+</tr>
+</tbody>
+</table>
+<p><strong>隐含波动率（IV）</strong>：市场价反解 <span class="arithmatex">\(\sigma\)</span>——<strong>期权市场其实在交易波动率</strong>。若 B–S 完全正确，各行权价的 IV 应是同一常数；实际画出来是<strong>微笑/偏斜曲线</strong>——市场在给模型没有的东西定价（肥尾、跳跃、崩盘恐惧——时间序列页 GARCH 的厚尾在此以价格形式显形）。<strong>IV 曲面是"模型失效的地图"，也是市场情绪的温度计</strong>（VIX 指数即 S&amp;P 期权 IV 的加权——"恐慌指数"的数学身份）。</p>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（B–S 计算）</strong> <span class="arithmatex">\(S_0 = 100, K = 100, r = 5\%, \sigma = 20\%, T = 1\)</span>：<span class="arithmatex">\(d_1 = \frac{0.05 + 0.02}{0.2} = 0.35\)</span>，<span class="arithmatex">\(d_2 = 0.15\)</span>；<span class="arithmatex">\(C = 100\Phi(0.35) - 95.12\,\Phi(0.15) \approx 100(0.637) - 95.12(0.560) \approx 10.4\)</span>——平值一年期期权约值股价的 10%（这个量级值得记住：<span class="arithmatex">\(C \approx 0.4\,\sigma\sqrt{T}\,S\)</span> 的速算式）。</p>
+<p><strong>例 2（平价套利）</strong> 市场上 <span class="arithmatex">\(C = 12, P = 5, S_0 = 100, Ke^{-rT} = 95\)</span>：<span class="arithmatex">\(C - P = 7 \neq 100 - 95 = 5\)</span>——违反平价 2 元：卖 call 买 put 买股票借钱，锁定无风险 2 元。<strong>无套利不是假设是警察</strong>。</p>
+<p><strong>例 3（Delta 对冲演练）</strong> 持有 100 份 <span class="arithmatex">\(\Delta = 0.6\)</span> 的 call，对冲需做空 60 股；股价涨后 <span class="arithmatex">\(\Delta \to 0.7\)</span>，需再空 10 股——<strong>Gamma 决定了你追着市场调仓的忙碌程度</strong>（对冲是动态过程,不是一锤子买卖——§2 推导里"连续交易"假设的实务代价）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>随机微积分三页完工：Itô 演算 → SDE 与分布演化 → 无套利定价。扩散模型与期权定价共享同一套数学的事实，是"抽象的回报"最好的当代例证。下一门：时间序列分析。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="sde-02-sde-diffusion.html"><span class="pager-label">上一页</span>随机微积分 II · SDE 与扩散模型</a>
+  <a class="pager-slot next" href="ts-01-stationary-arma.html"><span class="pager-label">下一页</span>时间序列 I · 平稳性与 ARMA</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

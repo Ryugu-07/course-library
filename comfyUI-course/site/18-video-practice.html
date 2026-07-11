@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>视频生成 II：16GB 实机实战 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li class="active"><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-16gb">1. 选型：16GB 的三条路线</a></li>
+<li><a href="#2-06-04">2. 下载与就位（对照第 06 讲目录 + 第 04 讲散件知识）</a></li>
+<li><a href="#3">3. 第一条视频：从内置模板出发</a></li>
+<li><a href="#4-i2v-vrchat">4. I2V：让你的 VRChat 角色动起来（本讲靶心）</a></li>
+<li><a href="#5">5. 显存与速度的工具箱</a></li>
+<li><a href="#6">6. 后处理两件套</a></li>
+<li><a href="#7-15">7. 排障速查（视频特有部分，通用部分回第 15 讲）</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="18-ii16gb">第 18 讲 · 视频生成 II：16GB 实机实战<a class="headerlink" href="#18-ii16gb" title="Permanent link"></a></h1>
+<blockquote>
+<p>原理归位，开机干活。本讲全部围绕你的 4060 Ti 16GB 展开：装什么模型、用哪个内置模板、参数怎么起步、显存怎么省、一条视频要等多久——以及把 VRChat 角色图变成动画的完整路径。你的 ComfyUI 0.22 已原生支持本讲全部节点（核实过），<strong>不需要装任何自定义节点就能出第一条视频</strong>。</p>
+</blockquote>
+<h2 id="1-16gb">1. 选型：16GB 的三条路线<a class="headerlink" href="#1-16gb" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>模型</th>
+<th>显存策略</th>
+<th>定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>练手首选</strong></td>
+<td>LTX-Video 2B</td>
+<td>直接跑</td>
+<td>分钟级甚至秒级出片，迭代飞快，质量"够看"</td>
+</tr>
+<tr>
+<td><strong>主力推荐</strong></td>
+<td>Wan 2.2 TI2V-5B（fp8）</td>
+<td>fp8 + 省显存技巧</td>
+<td>质量/功能/速度的平衡点，T2V 和 I2V 一个模型全包</td>
+</tr>
+<tr>
+<td>画质上限</td>
+<td>HunyuanVideo 1.5（fp8/量化）</td>
+<td>量化 + 耐心</td>
+<td>单条精品，慢</td>
+</tr>
+</tbody>
+</table>
+<p>建议顺序：<strong>先 LTX 跑通全流程建立手感（当天见效），再上 Wan 5B 当主力</strong>。14B 级模型（Wan 14B 全量）超出 16GB 舒适区，等你需要时用 GGUF 量化版再战。</p>
+<h2 id="2-06-04">2. 下载与就位（对照第 06 讲目录 + 第 04 讲散件知识）<a class="headerlink" href="#2-06-04" title="Permanent link"></a></h2>
+<p>视频模型全部走<strong>散件分发</strong>（第 04 讲 4.2 节的知识在此上岗）。以 Wan 2.2 5B 为例，三件套：</p>
+<div class="highlight"><pre><span></span><code>E:\AI\Models\diffusion_models\  ← wan2.2_ti2v_5B_fp8_*.safetensors   (去噪 DiT, ~6GB)
+E:\AI\Models\text_encoders\     ← umt5_xxl_fp8_*.safetensors          (文本编码器, ~6GB)
+E:\AI\Models\vae\               ← wan2.2_vae.safetensors              (3D VAE, ~1.4GB)
+</code></pre></div>
+<p>LTX 则常见单文件 checkpoint（放 <code>checkpoints\</code>）+ 文本编码器。<strong>精确文件名和链接以 ComfyUI 官方文档（docs.comfy.org 的 video tutorials 页）为准</strong>——模板与模型是配套发布的，从模板页下载最不容易错版本。下载用 <code>E:\AI\Tools</code> 的 aria2（第 10 讲）。</p>
+<h2 id="3">3. 第一条视频：从内置模板出发<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>菜单 → Workflow → <strong>Browse Templates → Video 分区</strong>——Wan 2.2 T2V/I2V、LTX 的官方模板都在（你的 templates 包 0.9.79 已含）。模板加载后是熟悉的骨架（第 07 讲的读法完全适用）：</p>
+<div class="highlight"><pre><span></span><code>UNETLoader(fp8) ┐
+CLIPLoader      ├─▶ [文本编码 → WanImageToVideo/EmptyLatentVideo → KSampler → VAEDecode] ─▶ SaveVideo
+VAELoader       ┘        (橙线/粉线的语义与图像完全一致, 只是张量多了时间维)
+</code></pre></div>
+<p><strong>首跑参数纪律（重要，直接决定体验）</strong>：</p>
+<ol>
+<li><strong>从小从短开始</strong>：480p 级分辨率 + 2–3 秒（约 49 帧@24fps）——第 17 讲的平方律意味着 720p×5s 的成本是它的近十倍。先小样验证提示词与运动，满意再放大重跑；</li>
+<li>steps 20–30、CFG 按模板默认（Wan 常用 5 左右）；采样器按模板给的来（视频模型对采样器/日程的搭配比图像敏感，别急着自由发挥）；</li>
+<li><strong>时间预期</strong>（4060 Ti 实测量级）：LTX 短片分钟内；Wan 5B fp8 的 480p×3s 约几分钟，720p×5s 上到十几分钟——排队生成时避开 Medusa 的 07:30–09:00 窗口（第 06 讲）；</li>
+<li>首次运行会长时间"卡"在加载（十几 GB 权重进显存/内存），看日志别慌（第 15 讲）。</li>
+</ol>
+<h2 id="4-i2v-vrchat">4. I2V：让你的 VRChat 角色动起来（本讲靶心）<a class="headerlink" href="#4-i2v-vrchat" title="Permanent link"></a></h2>
+<p>图生视频是你素材库的最大增值项。用 Wan 2.2 的 I2V 模板（核心节点 <code>WanImageToVideo</code>——第 17 讲讲过的"钉首帧"）：</p>
+<ol>
+<li><strong>参考图</strong>：第 12/13 讲产出的角色图（或直接 VRChat 截图），分辨率贴近目标输出，放 <code>E:\AI\Inputs</code>；</li>
+<li><strong>提示词写"运动"而不是"画面"</strong>——画面已经被首帧钉死了，文字的职责是描述接下来发生什么：</li>
+</ol>
+<div class="highlight"><pre><span></span><code>镜头缓缓推近，女孩转头看向镜头微笑，长发随风轻轻飘动，樱花花瓣飘落
+(镜头语言 + 主体动作 + 环境动态, 三件套)
+</code></pre></div>
+<ol>
+<li>运动幅度失控的两个方向：<strong>画面几乎不动</strong> → 提示词加更明确的动作动词、检查模板里的运动强度参数；<strong>动得撕裂变形</strong> → 降低运动描述的激烈程度、缩短时长；</li>
+<li>角色一致性问题在视频里被时间维放大（长视频后段容易"换人"）——<strong>3–5 秒内是开源模型的舒适区</strong>，更长的叙事用"多段生成 + 首尾帧衔接"（<code>WanFirstLastFrameToVideo</code>：上一段的尾帧当下一段的首帧）。</li>
+</ol>
+<h2 id="5">5. 显存与速度的工具箱<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>按无痛程度排序，OOM 或太慢时逐级启用：</p>
+<ol>
+<li><strong>降帧数</strong>（第一杠杆，平方律，49 帧不行降 33）→ 降分辨率（第二杠杆）；</li>
+<li><strong>fp8 权重</strong>：UNETLoader 的 <code>weight_dtype</code> 选 fp8 系（省一半显存，质量微损）；</li>
+<li><strong>Tiled VAE 解码</strong>：VAE Decode 换 <code>VAEDecodeTiled</code>——3D VAE 解码是显存峰值大户（第 17 讲），分块解码专治"生成完了、解码时 OOM"；</li>
+<li><strong>自动卸载</strong>：ComfyUI 检测到显存不足会自动把文本编码器等挪去内存（你 32GB 内存是后备队，第 06 讲）——表现为变慢而不是崩溃，属正常；</li>
+<li><strong>GGUF 量化</strong>（进阶）：装 <code>ComfyUI-GGUF</code> 扩展后可加载 Q4/Q5 量化版大模型——14B 级模型进 16GB 的唯一通道，质量损失换规模；</li>
+<li>生成期间别开浏览器看 4K 视频（真实建议——显卡是共享的）。</li>
+</ol>
+<h2 id="6">6. 后处理两件套<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>帧插值</strong>：装 <code>ComfyUI-Frame-Interpolation</code>（RIFE，第 15 讲的安装流程），24fps 一键补 48/60fps，丝滑度立涨且几乎零成本——<strong>永远比多生成帧便宜</strong>（第 17 讲的账）；</li>
+<li><strong>视频放大</strong>：HunyuanVideo 1.5 有配套超分节点（<code>HunyuanVideo15SuperResolution</code>）；通用路线是逐帧过第 14 讲的放大管线再合成（Ultimate 系扩展有视频版）。顺序：<strong>先插帧后放大</strong>（插帧在小分辨率上算，省）。</li>
+</ul>
+<h2 id="7-15">7. 排障速查（视频特有部分，通用部分回第 15 讲）<a class="headerlink" href="#7-15" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>原因 → 解法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成完成、解码时 OOM</td>
+<td>3D VAE 峰值 → VAEDecodeTiled</td>
+</tr>
+<tr>
+<td>画面闪烁/糊成一团</td>
+<td>模型三件套版本不配（VAE 尤其）→ 按官方模板页重新核对文件</td>
+</tr>
+<tr>
+<td>几乎静止</td>
+<td>运动描述太弱 / I2V 参考图与提示词矛盾</td>
+</tr>
+<tr>
+<td>后段崩坏变形</td>
+<td>时长超出舒适区 → 缩短或分段衔接</td>
+</tr>
+<tr>
+<td>首帧和参考图不一致</td>
+<td>参考图分辨率/比例与输出不符 → 先裁到目标比例</td>
+</tr>
+<tr>
+<td>极慢且显存未满</td>
+<td>权重被卸载到内存在爬行 → 降配置让它整体进显存</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>装 LTX（或 Wan 5B 三件套），从内置模板跑通第一条 T2V：480p、3 秒、模板默认参数——今天就要看到自己的第一条视频；</li>
+<li>用你最满意的一张 VRChat 角色图跑 I2V，按第 4 节写三种不同的运动提示词，各出一条对比；</li>
+<li>固定一切，只把帧数从 49 改到 97，记录生成时间——亲手验证平方律；</li>
+<li>（装好插帧扩展后）给最好的一条补到 48fps，前后对比。</li>
+</ol>
+<hr />
+<p><em>画面会动了，下一步给它声音。语音生成是 AIGC 里"本地开源最接近商业水准"的领域——你的声音克隆、角色配音，一张 16GB 卡绰绰有余。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-video-principles.html"><span class="pager-label">上一讲</span>17 · 视频生成 I：原理</a>
+  <a class="pager-slot next" href="19-speech-generation.html"><span class="pager-label">下一讲</span>19 · 语音生成：TTS 与声音克隆</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

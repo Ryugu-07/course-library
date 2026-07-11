@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoRA 实战 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li class="active"><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-lora">1. 接线：LoRA 串在"模型的水管"上</a></li>
+<li><a href="#2-lora">2. 触发词：LoRA 的"开关咒"</a></li>
+<li><a href="#3-lora">3. 叠加纪律：LoRA 不是越多越好</a></li>
+<li><a href="#4-strength">4. strength 的手感刻度</a></li>
+<li><a href="#5-lora">5. 排查树：LoRA 不对劲时</a></li>
+<li><a href="#6">6. 进阶一嘴（知道存在即可）</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="11-lora">第 11 讲 · LoRA 实战<a class="headerlink" href="#11-lora" title="Permanent link"></a></h1>
+<blockquote>
+<p>第 05 讲推导过它的数学（<span class="arithmatex">\(W' = W + s\cdot\frac{\alpha}{r}BA\)</span>，冻结主体+低秩旁路），本讲全是落地：怎么接线、strength 怎么定、触发词是什么、叠加的纪律、以及失效时的排查树。工作流对照 <code>wf05_sdxl_lora.json</code>。</p>
+</blockquote>
+<h2 id="1-lora">1. 接线：LoRA 串在"模型的水管"上<a class="headerlink" href="#1-lora" title="Permanent link"></a></h2>
+<p><strong>Load LoRA</strong> 节点有两进两出：MODEL 和 CLIP 各进各出。把它<strong>串</strong>在 Checkpoint Loader 与后续节点之间：</p>
+<div class="highlight"><pre><span></span><code>Load Checkpoint ─MODEL─▶ Load LoRA ─MODEL─▶ KSampler
+              └─CLIP──▶          └─CLIP──▶ CLIP Text Encode ×2
+</code></pre></div>
+<p>为什么 CLIP 也要过一遍？很多 LoRA 同时微调了文本编码器（让它认识新概念词），只接 MODEL 会丢一半效果。<strong>两条都串</strong>是默认正确做法。</p>
+<p>两个 strength 滑块的含义（第 05 讲的 <span class="arithmatex">\(s\)</span>）：</p>
+<ul>
+<li><code>strength_model</code>：对去噪网络的 <span class="arithmatex">\(\Delta W\)</span> 缩放——<strong>画风/形象的力度</strong>；</li>
+<li><code>strength_clip</code>：对文本编码器的 <span class="arithmatex">\(\Delta W\)</span> 缩放——<strong>概念词的理解力度</strong>；</li>
+<li>起手都设 <strong>1.0</strong>（或模型页推荐值），效果过冲再降。日常可以只记一个数：两者同调。</li>
+</ul>
+<h2 id="2-lora">2. 触发词：LoRA 的"开关咒"<a class="headerlink" href="#2-lora" title="Permanent link"></a></h2>
+<p>训练 LoRA 时，作者通常用一个特定词标注全部训练图（如 <code>myCharacterName</code> 或某个风格代号）。这个词的作用机制：LoRA 微调后的 CLIP 把它编码成"指向新概念的向量"，<strong>提示词里不写它，cross-attention 里就没有激活新概念的信号</strong>——LoRA 挂了等于白挂（最常见的"LoRA 没效果"原因）。</p>
+<p>规则：<strong>模型页写了触发词就抄进提示词</strong>（通常放最前面）；写"无需触发词"的（全局画风类）才可省。</p>
+<h2 id="3-lora">3. 叠加纪律：LoRA 不是越多越好<a class="headerlink" href="#3-lora" title="Permanent link"></a></h2>
+<p>多个 LoRA = 多个 <span class="arithmatex">\(\Delta W\)</span> 直接相加（第 05 讲），互相之间<strong>没有任何协调机制</strong>——都在改同一批 attention 权重，冲突是常态而非例外。实践纪律：</p>
+<ol>
+<li><strong>同时 ≤ 2–3 个</strong>，且角色 LoRA 最多 1 个（两个角色 LoRA 相加 = 五官融合事故）；</li>
+<li><strong>总强度控制</strong>：叠加时各自降到 0.6–0.8，粗略让"总和别太超过 1.2–1.5"（经验值，不是定理——本质是限制 <span class="arithmatex">\(\sum \Delta W\)</span> 的总扰动幅度）；</li>
+<li><strong>逐个引入</strong>：先把单个 LoRA 调到满意，固定种子，再加第二个观察冲突——第 08 讲"一次只动一个变量"的 LoRA 版；</li>
+<li>串接方式就是 Load LoRA 节点首尾相连（A 的输出进 B 的输入），顺序理论上无关（加法交换），实际影响极小可忽略。</li>
+</ol>
+<h2 id="4-strength">4. strength 的手感刻度<a class="headerlink" href="#4-strength" title="Permanent link"></a></h2>
+<p>固定种子扫一遍 strength 是认识一个新 LoRA 的最快方式（0 / 0.4 / 0.7 / 1.0 / 1.3 五档）：</p>
+<table>
+<thead>
+<tr>
+<th>strength</th>
+<th>现象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.3–0.5</td>
+<td>若有若无的"调味"——适合给写实图加一点点风格倾向</td>
+</tr>
+<tr>
+<td>0.7–1.0</td>
+<td>设计意图的完整呈现——多数 LoRA 的目标区间</td>
+</tr>
+<tr>
+<td>&gt;1.2</td>
+<td>过冲：画面脏、对比度怪、解剖崩——<span class="arithmatex">\(\Delta W\)</span> 外推出训练范围</td>
+</tr>
+<tr>
+<td>负值</td>
+<td>反向应用：从画面里"减去"这种风格（偶尔有奇效的玩具）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-lora">5. 排查树：LoRA 不对劲时<a class="headerlink" href="#5-lora" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code>完全没效果?
+├─ 触发词写了吗? (第 2 节)
+├─ 底模配对吗? (Illustrious LoRA × 你的 checkpoint 是同系吗? 第 05/10 讲)
+├─ CLIP 线也串过 LoRA 节点了吗? (第 1 节)
+└─ strength 是不是被设成 0?
+
+有效果但很丑?
+├─ strength 过高 → 降到 0.7 试
+├─ 和另一个 LoRA 打架 → 单挂验证, 逐个排除
+├─ 底模&quot;同架构不同味&quot; → 效果漂移(能跑但不对), 换回它训练用的底模系
+└─ cfg 过高放大了扰动 → cfg 降 1-2
+</code></pre></div>
+<h2 id="6">6. 进阶一嘴（知道存在即可）<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>LoRA 变体</strong>（LyCORIS/LoHa/DoRA…）：分解方式不同的低秩近亲，ComfyUI 的 Load LoRA 基本都认，使用无差别；</li>
+<li><strong>分层权重</strong>（LoRA Block Weight，需装扩展节点）：对 U-Net 不同深度的层用不同 strength——"只要它的构图不要它的画风"这类外科手术，等你有明确需求再学；</li>
+<li><strong>自己炼 LoRA</strong>：你这张 16GB 卡完全够格（SDXL LoRA 训练约 10–14GB 显存）。等使用侧熟练后，"用自己的 VRChat 角色截图炼一个角色 LoRA"是水到渠成的下一步——那是另一门课的主题，先把用法练透。</li>
+</ul>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>挂上第 10 讲下载的画风 LoRA，跑通 <code>wf05</code>：固定种子做第 4 节的五档 strength 扫描，存下对比图；</li>
+<li>挂角色 LoRA（带触发词的），先<strong>故意不写触发词</strong>跑一张、再写上跑一张——把"开关咒"的机制亲眼确认；</li>
+<li>两个 LoRA 同挂，各 1.0 强度出一张（大概率打架），再按第 3 节纪律降到 0.7/0.6 出一张，对比。</li>
+</ol>
+<hr />
+<p><em>画风与角色解决了，下一讲解决"姿势与构图"：把你 Mac 上 controlnet_aux 抽好的骨架图喂进 ControlNet——VRChat 素材工作流的关键一环就位。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-model-ecosystem.html"><span class="pager-label">上一讲</span>10 · 模型生态：选型与下载清单</a>
+  <a class="pager-slot next" href="12-controlnet-practice.html"><span class="pager-label">下一讲</span>12 · ControlNet 实战</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

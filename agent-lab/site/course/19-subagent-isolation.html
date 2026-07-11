@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>子 Agent 与上下文隔离 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="19-subagent-isolation">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage" open><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a class="current" aria-current="page" href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:63%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第五阶段 · 多 Agent 与并行</span><span>第 19 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1-agent">1. 为什么需要子 Agent</a></li>
+<li><a href="#2">2. 一份好的委派消息</a></li>
+<li><a href="#3">3. 独立上下文意味着什么</a></li>
+<li><a href="#4">4. 角色不是目的</a></li>
+<li><a href="#5-agent">5. 子 Agent 不能无限递归</a></li>
+<li><a href="#6">6. 返回结果怎样验收</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="19-agent">第 19 章 · 子 Agent 与上下文隔离<a class="headerlink" href="#19-agent" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：把子 Agent 理解为独立上下文、工具与预算的工作单元，而不是简单复制一个“人格”。</p>
+</blockquote>
+<h2 id="1-agent">1. 为什么需要子 Agent<a class="headerlink" href="#1-agent" title="Permanent link"></a></h2>
+<p>主线程保存用户需求、关键约束和架构决定。如果大量搜索结果、测试日志和候选问题都进入主上下文，长期任务会越来越混乱。子 Agent 可以在新窗口完成有边界工作，只把摘要和证据交回主线程。</p>
+<p>因此第一价值是<strong>隔离噪声</strong>，第二价值才是并行加速。</p>
+<h2 id="2">2. 一份好的委派消息<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>子 Agent 不自动知道主对话全部历史。主 Agent 要提供：</p>
+<ul>
+<li>明确目标和输出格式；</li>
+<li>相关文件或入口；</li>
+<li>不可违反的边界；</li>
+<li>允许工具与权限；</li>
+<li>完成条件和预算；</li>
+<li>哪些决定必须返回主线程。</li>
+</ul>
+<p>“帮我看看代码”太宽；“只读检查 auth 模块中过期 token 路径，返回入口、相关测试和三个最可能根因，不修改文件”才是可执行委派。</p>
+<h2 id="3">3. 独立上下文意味着什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>子 Agent 不应看到无关用户隐私和所有主线程工具。它可以使用不同模型、不同 system prompt、只读权限和独立 MCP 服务器。完成后返回结构化摘要，原始日志留在子线程。</p>
+<p>这种隔离也有成本：主 Agent 的委派摘要可能遗漏关键细节，子 Agent 也可能重新读取已经读过的文件。是否值得取决于任务噪声和独立性。</p>
+<h2 id="4">4. 角色不是目的<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Explorer、Implementer、Tester 和 Reviewer 是常见角色，但角色名本身不会提高质量。真正影响行为的是目标、上下文、工具、权限和验收标准。一个名叫“安全专家”的 Agent 如果拥有全写权限且没有安全规则，并不会自动安全。</p>
+<p>可以把角色配置视为预设的系统参数，而不是虚构团队成员。</p>
+<h2 id="5-agent">5. 子 Agent 不能无限递归<a class="headerlink" href="#5-agent" title="Permanent link"></a></h2>
+<p>允许子 Agent 再生成子 Agent 会迅速失去预算和责任边界。多数系统限制嵌套层级，由主 Agent 统一调度。需要多阶段工作时，子 Agent 返回结果，主 Agent 再决定下一委派。</p>
+<p>后台子 Agent 无法实时询问用户时，应自动拒绝需要新审批的工具。否则任务会悄悄等待，主线程却不知道阻塞原因。</p>
+<h2 id="6">6. 返回结果怎样验收<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>主 Agent 不应直接相信“检查完成”。返回应包含结论、证据位置、执行过的检查、未知项和置信度。写入型子 Agent 还要提供独立 diff 和测试结果。</p>
+<div class="admonition warning">
+<p class="admonition-title">上下文隔离不是事实隔离</p>
+<p>子 Agent 返回的摘要仍可能错误。隔离解决噪声和权限范围，不替代验证。关键发现必须能追溯到文件、命令或外部来源。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="19-subagent-isolation"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="18-human-interface.html"><span>上一页</span><strong>18 · Diff、打断、转向与审计</strong></a><a class="pager-slot next" href="20-parallel-orchestration.html"><span>下一页</span><strong>20 · 并行调度与结果汇总</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

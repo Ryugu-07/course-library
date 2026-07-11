@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minimal SWE Agent 教学站</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2352745d'/%3E%3Cpath d='M18 20h28v6H18zm0 12h28v6H18zm0 12h18v6H18z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/style.css">
+  <script>
+    (function () {
+      var theme = localStorage.getItem("agentCourseTheme");
+      if (!theme) theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body id="top">
+  <button id="sidebar-toggle" aria-label="打开目录">☰</button>
+  <nav id="sidebar" aria-label="课程目录">
+    <div class="site-head">
+      <a class="site-title" href="#top">Agent Learning Lab</a>
+      <div class="site-subtitle">从最小循环到自己的 Agent</div>
+    </div>
+
+    <div class="nav-part course-switcher">
+      <div class="nav-part-title">课程</div>
+      <a href="course/index.html">完整课程 · 30 章 / 8 实验</a>
+      <a class="current-page" href="#top" aria-current="page">01 · 最小 SWE Agent</a>
+      <a href="extensions.html#top">02 · 扩展地图与实验室</a>
+    </div>
+    <div class="nav-part">
+      <div class="nav-part-title">读法</div>
+      <a href="#top">00 · 先看总图</a>
+      <a href="#mental-model">01 · 心智模型</a>
+      <a href="#turn">02 · 一轮怎么跑</a>
+    </div>
+    <div class="nav-part">
+      <div class="nav-part-title">五件套</div>
+      <a href="#loop">03 · 主循环 loop</a>
+      <a href="#context">04 · 上下文 context</a>
+      <a href="#prompt">05 · prompt 拼接</a>
+      <a href="#parser">06 · output parser</a>
+      <a href="#executor">07 · executor</a>
+    </div>
+    <div class="nav-part">
+      <div class="nav-part-title">后端对照</div>
+      <a href="#providers">08 · OpenAI / DeepSeek</a>
+      <a href="#run">09 · 本地运行</a>
+      <a href="#read-code">10 · 读代码路线</a>
+    </div>
+
+    <div class="sidebar-foot">
+      <button id="theme-toggle" aria-label="切换主题">☀ / ☾</button>
+      <div class="build-time">本地静态站 · 2026-07-10</div>
+    </div>
+  </nav>
+
+  <main id="content">
+    <article>
+      <header class="lesson-head">
+        <p class="eyebrow">教学目标</p>
+        <h1>看懂一个最小 SWE Agent 是怎么跑起来的</h1>
+        <p class="lead">
+          这不是生产级框架，而是一台透明的教学机器。你要掌握的是逻辑：
+          模型负责判断下一步，程序负责执行动作，history 负责把结果带回下一轮。
+        </p>
+      </header>
+
+      <aside class="course-upgrade">
+        <strong>完整学习博客已经上线</strong>
+        <span>7 个阶段、30 章、8 个互动实验和 2 个可运行项目。</span>
+        <a href="course/index.html">进入全量课程</a>
+      </aside>
+
+      <section class="flow-board" aria-label="agent 数据流总览">
+        <div class="flow-node human">
+          <span class="node-kicker">Human</span>
+          <strong>提出任务</strong>
+          <p>“列出目录并总结”</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node prompt">
+          <span class="node-kicker">Prompt</span>
+          <strong>拼请求</strong>
+          <p>规则 + 历史 + 工具</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node model">
+          <span class="node-kicker">LLM</span>
+          <strong>决定动作</strong>
+          <p>要不要调用工具</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node tool">
+          <span class="node-kicker">Tool</span>
+          <strong>本地执行</strong>
+          <p>读文件 / 写文件 / 跑命令</p>
+        </div>
+        <div class="flow-arrow return">↺</div>
+        <div class="flow-node history">
+          <span class="node-kicker">History</span>
+          <strong>结果回填</strong>
+          <p>让模型看到真实结果</p>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="课程速览">
+        <div class="info-panel">
+          <h2>一句话</h2>
+          <p>Agent 就是一个循环：模型给计划，程序执行，结果回填，模型再计划。</p>
+        </div>
+        <div class="info-panel">
+          <h2>当前代码</h2>
+          <p>
+            主文件是 <a href="../minimal_swe_agent.py">minimal_swe_agent.py</a>，
+            另有英文和中文 Markdown 讲义作为源材料。
+          </p>
+        </div>
+        <div class="info-panel">
+          <h2>安全边界</h2>
+          <p>所有文件操作锁在 <code>~/agent-lab/workspace/</code>；shell 默认需要 y/n 确认。</p>
+        </div>
+      </section>
+
+      <section id="mental-model">
+        <p class="section-label">01</p>
+        <h2>先建立心智模型</h2>
+        <p>
+          你可以把这个系统想成“小项目经理 + 执行员”。模型像项目经理，读任务、判断下一步、
+          提出动作；Python 程序像执行员，检查动作是否合法，然后真的去读文件、写文件、跑命令。
+        </p>
+        <div class="split">
+          <div class="role-card model-card">
+            <h3>模型负责决策</h3>
+            <ul>
+              <li>理解用户目标</li>
+              <li>判断是否需要工具</li>
+              <li>填出工具名和参数</li>
+              <li>根据结果继续规划</li>
+            </ul>
+          </div>
+          <div class="role-card runtime-card">
+            <h3>程序负责执行</h3>
+            <ul>
+              <li>解析结构化工具调用</li>
+              <li>检查 workspace 边界</li>
+              <li>运行本地函数</li>
+              <li>把结果写回 history</li>
+            </ul>
+          </div>
+        </div>
+        <aside class="note">
+          <strong>关键直觉：</strong>模型没有真正的手。它只是说“我要调用 run_shell，参数是 ls”。
+          真正执行 <code>ls</code> 的是 Python 的 executor。
+        </aside>
+      </section>
+
+      <section id="turn">
+        <p class="section-label">02</p>
+        <h2>一轮完整运行</h2>
+        <ol class="timeline">
+          <li><span>用户输入任务</span><p><code>run_agent()</code> 把任务放进 history。</p></li>
+          <li><span>拼 prompt</span><p><code>build_prompt()</code> 合并 system prompt、history、tools。</p></li>
+          <li><span>调用模型</span><p><code>call_llm()</code> 根据 provider 发给 OpenAI 或 DeepSeek。</p></li>
+          <li><span>解析工具调用</span><p>parser 把模型输出变成 <code>ToolCall(name, arguments, call_id)</code>。</p></li>
+          <li><span>执行工具</span><p><code>execute_tool()</code> 调度 <code>read_file</code> / <code>write_file</code> / <code>run_shell</code>。</p></li>
+          <li><span>结果回填</span><p>工具输出追加到 history，下一轮模型就能看到真实世界反馈。</p></li>
+          <li><span>判断停止</span><p>如果模型不再调用工具，就打印最终回答并结束。</p></li>
+        </ol>
+      </section>
+
+      <section class="five-pieces">
+        <p class="section-label">核心</p>
+        <h2>五件套地图</h2>
+        <div class="piece-grid">
+          <a class="piece" href="#loop"><span>1</span><strong>Loop</strong><em>让 agent 能反复行动</em></a>
+          <a class="piece" href="#context"><span>2</span><strong>Context</strong><em>让模型看到前因后果</em></a>
+          <a class="piece" href="#prompt"><span>3</span><strong>Prompt</strong><em>把规则、历史、工具合成请求</em></a>
+          <a class="piece" href="#parser"><span>4</span><strong>Parser</strong><em>把模型输出变成动作工单</em></a>
+          <a class="piece" href="#executor"><span>5</span><strong>Executor</strong><em>真正读写文件和跑命令</em></a>
+        </div>
+      </section>
+
+      <section id="loop">
+        <p class="section-label">03</p>
+        <h2>主循环 loop：agent 的心跳</h2>
+        <p>
+          普通聊天是“问一次、答一次”。Agent 是“问模型、执行工具、把结果给模型、再问模型”。
+          没有 loop，模型最多只能提出动作，没法看到动作结果，也没法修正下一步。
+        </p>
+        <div class="code-ref">
+          <div>
+            <strong>代码位置</strong>
+            <a href="../minimal_swe_agent.py">minimal_swe_agent.py · run_agent()</a>
+          </div>
+          <div>
+            <strong>停止条件</strong>
+            <span>没有工具调用 / 达到 max_turns / 用户拒绝 shell 后模型决定停止</span>
+          </div>
+        </div>
+        <div class="highlight"><pre><code>for turn in range(1, args.max_turns + 1):
+    request = build_prompt(...)
+    response = call_llm(...)
+    calls = extract_function_calls(response)
+
+    if not calls:
+        print(final_answer)
+        return
+
+    for call in calls:
+        output = execute_tool(call)
+        history.append(tool_result)</code></pre></div>
+      </section>
+
+      <section id="context">
+        <p class="section-label">04</p>
+        <h2>上下文 context：给失忆模型带工作日志</h2>
+        <p>
+          每次 API 调用，模型本质上只看到你这次传过去的内容。history 就是我们替它维护的工作日志：
+          用户任务、模型消息、工具调用、工具结果都放进去。上下文太长时，程序优先丢旧工具结果。
+        </p>
+        <table>
+          <thead><tr><th>history 里有什么</th><th>为什么需要</th></tr></thead>
+          <tbody>
+            <tr><td>用户任务</td><td>让模型记住目标是什么。</td></tr>
+            <tr><td>模型输出</td><td>让下一轮知道自己刚才提出过什么。</td></tr>
+            <tr><td>工具结果</td><td>让模型基于真实结果继续判断。</td></tr>
+            <tr><td>压缩策略</td><td>防止请求无限变长，保留最近且重要的信息。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="prompt">
+        <p class="section-label">05</p>
+        <h2>prompt 拼接：把“任务现场”打包给模型</h2>
+        <p>
+          <code>build_prompt()</code> 是最值得反复看的函数。它说明 agent 没有玄学：
+          一次模型请求就是 system prompt、history、tools 三块材料的组合。
+        </p>
+        <div class="prompt-stack">
+          <div><strong>SYSTEM_PROMPT</strong><span>身份、规则、工具使用纪律</span></div>
+          <div><strong>history</strong><span>到目前为止发生的一切</span></div>
+          <div><strong>TOOLS</strong><span>工具名、说明、参数 JSON Schema</span></div>
+        </div>
+        <div class="highlight"><pre><code>python3 minimal_swe_agent.py \
+  --provider deepseek \
+  --dump-prompt \
+  --dry-run \
+  "List files and summarize."</code></pre></div>
+      </section>
+
+      <section id="parser">
+        <p class="section-label">06</p>
+        <h2>output parser：把“我想做”变成结构化工单</h2>
+        <p>
+          模型如果只输出“我想运行 ls”，程序很难可靠执行。Function calling 的价值是让模型输出结构化数据：
+          工具名是什么，参数是什么，call_id 是什么。
+        </p>
+        <div class="compare">
+          <div>
+            <h3>脆弱文本</h3>
+            <div class="highlight"><pre><code>好的，我来运行 ls 看一下目录。</code></pre></div>
+          </div>
+          <div>
+            <h3>结构化调用</h3>
+            <div class="highlight"><pre><code>{
+  "name": "run_shell",
+  "arguments": {"command": "ls"}
+}</code></pre></div>
+          </div>
+        </div>
+        <aside class="note">
+          项目里保留了一个 XML 文本协议 parser，专门用来对照理解：
+          function calling 本质上是把 parser 的一大部分工作交给 API 标准化了。
+        </aside>
+      </section>
+
+      <section id="executor">
+        <p class="section-label">07</p>
+        <h2>executor：真正碰电脑的地方</h2>
+        <p>
+          executor 是信任边界。模型提出动作，executor 决定是否执行、怎么执行、执行范围在哪里。
+          这个项目故意只给三个工具，够理解核心，不被工程复杂度淹没。
+        </p>
+        <div class="tool-list">
+          <div><strong>read_file</strong><span>读 workspace 内的 UTF-8 文本文件</span></div>
+          <div><strong>write_file</strong><span>写 workspace 内的 UTF-8 文本文件</span></div>
+          <div><strong>run_shell</strong><span>在 workspace 内运行命令，默认先问 y/n</span></div>
+        </div>
+        <div class="guardrail">
+          <strong>硬边界：</strong>
+          <code>/Users/karasuakamatsu/agent-lab/workspace</code>
+          <span>路径解析后必须还在这个目录里，否则拒绝。</span>
+        </div>
+      </section>
+
+      <section id="providers">
+        <p class="section-label">08</p>
+        <h2>OpenAI / DeepSeek：同一内核，两种 API 方言</h2>
+        <p>
+          DeepSeek 可以做这个教学实验。它和 OpenAI 的差别不在 agent 思想，而在请求/响应格式。
+          代码用 provider boundary 把差异隔离起来。
+        </p>
+        <div class="provider-tabs" role="tablist" aria-label="provider tabs">
+          <button class="tab active" data-tab="openai">OpenAI Responses</button>
+          <button class="tab" data-tab="deepseek">DeepSeek Chat Completions</button>
+        </div>
+        <div class="tab-panel active" id="tab-openai">
+          <div class="highlight"><pre><code>client.responses.create(
+    model="gpt-5.4",
+    instructions=SYSTEM_PROMPT,
+    input=history,
+    tools=TOOLS
+)</code></pre></div>
+          <p>工具结果回填形态：<code>{"type": "function_call_output", "call_id": "...", "output": "..."}</code></p>
+        </div>
+        <div class="tab-panel" id="tab-deepseek">
+          <div class="highlight"><pre><code>client.chat.completions.create(
+    model="deepseek-v4-flash",
+    messages=[system_message] + history,
+    tools=chat_tools(),
+    tool_choice="auto"
+)</code></pre></div>
+          <p>工具结果回填形态：<code>{"role": "tool", "tool_call_id": "...", "content": "..."}</code></p>
+        </div>
+      </section>
+
+      <section id="run">
+        <p class="section-label">09</p>
+        <h2>本地运行方式</h2>
+        <p>先安装依赖，再选择 provider。不要把 API key 写进文件；用环境变量。</p>
+        <div class="command-grid">
+          <div>
+            <h3>只看 prompt，不调用模型</h3>
+            <div class="highlight"><pre><code>cd /Users/karasuakamatsu/agent-lab
+python3 minimal_swe_agent.py \
+  --provider deepseek \
+  --dump-prompt \
+  --dry-run \
+  "List files."</code></pre></div>
+          </div>
+          <div>
+            <h3>真实调用 DeepSeek</h3>
+            <div class="highlight"><pre><code>python3 -m pip install --upgrade -r requirements.txt
+read -s DEEPSEEK_API_KEY
+export DEEPSEEK_API_KEY
+python3 minimal_swe_agent.py \
+  --provider deepseek \
+  "List the current directory files and summarize them."</code></pre></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="read-code">
+        <p class="section-label">10</p>
+        <h2>推荐读代码路线</h2>
+        <p>不要从第一行硬啃。按下面顺序读，脑子里会先有地图，再看局部细节。</p>
+        <ol class="read-list">
+          <li><strong>SYSTEM_PROMPT</strong><span>先看模型被要求遵守什么规则。</span></li>
+          <li><strong>TOOLS</strong><span>再看模型可以调用哪些动作。</span></li>
+          <li><strong>run_agent()</strong><span>看主循环如何把模型和工具串起来。</span></li>
+          <li><strong>build_prompt()</strong><span>看一次请求如何被组装出来。</span></li>
+          <li><strong>call_llm()</strong><span>看 OpenAI / DeepSeek 差异被隔离在哪里。</span></li>
+          <li><strong>parser</strong><span>看模型输出如何变成工具调用。</span></li>
+          <li><strong>executor</strong><span>看真实动作和安全边界在哪里。</span></li>
+        </ol>
+      </section>
+
+      <footer class="lesson-end">
+        <h2>最后的抓手</h2>
+        <p>
+          你未来主要负责人类逻辑，代码可以交给 AI 写；但你需要能判断系统结构是否合理。
+          对 agent 来说，真正要看懂的是：任务如何变成下一步动作，动作如何被工具执行，
+          结果如何改变下一步判断，以及哪些边界必须由程序硬保护。
+        </p>
+        <a class="lesson-link" href="extensions.html#top">进入第二章 · Agent 扩展地图与功能设计实验室</a>
+      </footer>
+    </article>
+  </main>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

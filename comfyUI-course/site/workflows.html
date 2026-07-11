@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作流包使用说明（wf01–wf07） · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li class="active"><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">加载方式</a></li>
+<li><a href="#_2">清单与练习</a></li>
+<li><a href="#_3">建议玩法</a></li>
+<li><a href="#3d-wf">拓展篇（视频/音乐/3D）为什么没有 wf 文件</a></li>
+<li><a href="#_4">排障速记</a></li>
+</ul>
+</div>
+</details>
+<h1 id="wf01wf07">工作流包使用说明（wf01–wf07）<a class="headerlink" href="#wf01wf07" title="Permanent link"></a></h1>
+<blockquote>
+<p>课程配套的 7 个分级工作流，已放到你 Win 机器的 <code>E:\AI\Workflows\course\</code>（源文件在 Mac <code>~/comfy-course/workflows/</code>）。<strong>wf01–wf04 用你现有的 3 个底模即可运行</strong>；wf05–wf07 需要先按第 10 讲清单补对应模型。wf01 和 wf02 已在你的机器上实测出图（结果在 <code>E:\AI\Outputs\course\</code>）。</p>
+</blockquote>
+<h2 id="_1">加载方式<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>ComfyUI 界面 → 菜单 Workflow → Open（或直接把 <code>.json</code> 文件<strong>拖进画布</strong>）→ 选 <code>E:\AI\Workflows\course\</code> 下的文件。</p>
+<p>每个文件里的模型名对应你机器的实际文件；带"换成你的…"字样的下拉框（wf05 的 LoRA、wf06 的骨架图）加载后点开下拉框选成你的实际文件即可。</p>
+<h2 id="_2">清单与练习<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>配套讲次</th>
+<th>内容</th>
+<th>前置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wf01_sd15_txt2img</code></td>
+<td>07</td>
+<td>SD1.5 文生图 512——最快的练手配置，秒级出图</td>
+<td>无 ✅</td>
+</tr>
+<tr>
+<td><code>wf02_sdxl_txt2img</code></td>
+<td>07/08</td>
+<td>SDXL 文生图 1024——主力骨架，第 07 讲逐节点拆的就是它</td>
+<td>无 ✅</td>
+</tr>
+<tr>
+<td><code>wf03_sdxl_img2img</code></td>
+<td>09</td>
+<td>图生图（denoise=0.45 起手）——图片放 <code>E:\AI\Inputs</code> 后在 LoadImage 里选</td>
+<td>无 ✅</td>
+</tr>
+<tr>
+<td><code>wf04_sdxl_inpaint</code></td>
+<td>09</td>
+<td>局部重绘路线 A——LoadImage 上右键 Open in MaskEditor 画遮罩</td>
+<td>无 ✅</td>
+</tr>
+<tr>
+<td><code>wf05_sdxl_lora</code></td>
+<td>11</td>
+<td>LoRA 挂载（MODEL+CLIP 双线全串）——换成你的 LoRA + 触发词</td>
+<td>第 10 讲 #8</td>
+</tr>
+<tr>
+<td><code>wf06_sdxl_controlnet</code></td>
+<td>12</td>
+<td>ControlNet 姿势控制——骨架图放 Inputs，union 模型自动适配</td>
+<td>第 10 讲 #4</td>
+</tr>
+<tr>
+<td><code>wf07_sdxl_ipadapter</code></td>
+<td>13</td>
+<td>IP-Adapter 参考图——<strong>需先装 IPAdapter_plus 扩展</strong>（第 15 讲），未装时节点显示红色</td>
+<td>第 10 讲 #5#6 + 扩展</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">建议玩法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ol>
+<li><strong>按讲次顺序解锁</strong>：每讲的"上机任务"指定了用哪个 wf、做什么实验——工作流是教具，任务才是练习；</li>
+<li><strong>改完另存</strong>：调出自己满意的版本后 Save As 存到 <code>E:\AI\Workflows</code> 你自己的目录（别覆盖 course/ 原件，它们是"已知能跑"的基准，排障时要回来对照）；</li>
+<li><strong>组合进阶</strong>：学完 11–13 讲后，把 wf05 的 LoRA 段、wf06 的 ControlNet 段、wf07 的 IPAdapter 段<strong>拼进同一个工作流</strong>——三个外挂各走各的通道（第 05/13 讲），拼装本身就是最好的复习；</li>
+<li><strong>对照 API 版</strong>：<code>workflows/api/</code> 下是每个工作流的 API 格式（第 15 讲第 3 节）——将来写自动化脚本时直接用它们当模板。</li>
+</ol>
+<h2 id="3d-wf">拓展篇（视频/音乐/3D）为什么没有 wf 文件<a class="headerlink" href="#3d-wf" title="Permanent link"></a></h2>
+<p>拓展篇实战（第 18/20/21 讲）<strong>直接使用 ComfyUI 内置模板</strong>（菜单 → Workflow → Browse Templates 的 Video / Audio / 3D 分区）：这些模板与模型版本配套发布、随 ComfyUI 更新自动跟新，比课程自带静态 JSON 更不易过期。各讲内有对应的模板名与参数指引。</p>
+<h2 id="_4">排障速记<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li>节点红色 → 缺扩展（Manager → Install Missing，第 15 讲）；</li>
+<li>下拉框值是红字/找不到 → 该模型文件不在对应目录（第 06 讲第 4 节）；</li>
+<li>跑完没图 → 看 KSampler 是否报错（悬停红色边框）、<code>E:\AI\Logs</code> 最新日志；</li>
+<li>其余按第 15 讲排障总表。</li>
+</ul>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="21-3d-avatar-pipeline.html"><span class="pager-label">上一讲</span>21 · 3D、数字人与全本地流水线</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

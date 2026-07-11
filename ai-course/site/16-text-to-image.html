@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实战：文生图 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li class="active"><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 原理：扩散模型十分钟版</a></li>
+<li><a href="#2-2026-10">2. 工具地图（2026 年初快照，时效同第 10 讲声明）</a></li>
+<li><a href="#3">3. 提示词：结构化描述一张画</a></li>
+<li><a href="#4">4. 学术与工作中的正确用法</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="16">第 16 讲 · 实战：文生图<a class="headerlink" href="#16" title="Permanent link"></a></h1>
+<blockquote>
+<p>文生图（text-to-image）是生成式 AI 的另一条主线：2022 年（与 ChatGPT 同年）Stable Diffusion 开源与 Midjourney 走红，让"打字出图"飞入寻常百姓家。本讲一半讲原理——扩散模型的思想值得你的数学背景咀嚼——一半讲实操：提示词怎么写、工具怎么选、边界在哪。</p>
+</blockquote>
+<h2 id="1">1. 原理：扩散模型十分钟版<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>LLM 逐 token 生成文本，图像这边的主流是完全不同的思路——<strong>扩散模型（diffusion model）</strong>：先学会"毁掉"图像，再学会逆转毁灭。</p>
+<p><strong>前向过程（固定的、不用学）</strong>：给真实图像 <span class="arithmatex">\(x_0\)</span> 逐步加高斯噪声，<span class="arithmatex">\(T\)</span> 步后变成纯噪声。每步</p>
+<div class="arithmatex">\[
+x_t = \sqrt{1 - \beta_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon_t, \qquad \epsilon_t \sim \mathcal{N}(0, I)
+\]</div>
+<p>反复代入可得任意步的闭式（记 <span class="arithmatex">\(\alpha_t = 1 - \beta_t\)</span>，<span class="arithmatex">\(\bar\alpha_t = \prod_{s \leq t}\alpha_s\)</span>；两个独立高斯之和仍是高斯，方差相加——动笔合并一次就能验证）：</p>
+<div class="arithmatex">\[
+x_t = \sqrt{\bar\alpha_t}\, x_0 + \sqrt{1 - \bar\alpha_t}\, \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)
+\]</div>
+<p><strong>反向过程（学习目标）</strong>：训练一个神经网络 <span class="arithmatex">\(\epsilon_\theta(x_t, t)\)</span>，看着加噪图 <span class="arithmatex">\(x_t\)</span> 猜出"刚才加进去的噪声是什么"。损失朴素得出奇：</p>
+<div class="arithmatex">\[
+L = \mathbb{E}_{x_0, t, \epsilon}\Big[\big\|\epsilon - \epsilon_\theta(x_t, t)\big\|^2\Big]
+\]</div>
+<p>（这个平方损失可以从变分下界 ELBO 严格推出——DDPM 论文（Ho et al. 2020）的核心推导，对学过随机过程的读者是一次愉快的阅读，此处按下。）<strong>生成</strong> = 从纯噪声出发，用训练好的网络一步步去噪，噪声中"显影"出一张新图。直觉：模型学到的是"自然图像分布的梯度场"（score），去噪即沿着梯度把随机点推回数据流形上——第 01 讲"生成式建模 = 学分布"在图像上的实现。</p>
+<p><strong>文字怎么控制图</strong>：文本经编码器变成向量（第 06 讲的 Transformer），通过交叉注意力注入每一步去噪——"每一步都往符合描述的方向掰"。掰的力度由 <strong>guidance scale（CFG）</strong>控制：同时算"有条件"与"无条件"两次预测，按 <span class="arithmatex">\(\epsilon_{\text{uncond}} + w(\epsilon_{\text{cond}} - \epsilon_{\text{uncond}})\)</span> 外推。<span class="arithmatex">\(w\)</span> 大 = 贴文字但呆板，<span class="arithmatex">\(w\)</span> 小 = 自由但跑题——你在工具里调的那个"提示词强度"就是它。</p>
+<p>（补充一嘴生态现状：扩散并非唯一路线——自回归式生图（GPT 系的图像能力）把图像当 token 序列生成，语义理解与图文一致性常更强；扩散系在质感与生态工具链上占优。两条路线正在融合。）</p>
+<h2 id="2-2026-10">2. 工具地图（2026 年初快照，时效同第 10 讲声明）<a class="headerlink" href="#2-2026-10" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>形态</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Midjourney</td>
+<td>订阅制网页/Discord</td>
+<td>艺术感与美学上限的代名词，控制精度一般</td>
+</tr>
+<tr>
+<td>GPT/Gemini 内置生图</td>
+<td>聊天产品内置</td>
+<td>胜在"听得懂人话"：对话式迭代改图、图文混排、文字渲染准</td>
+</tr>
+<tr>
+<td>Stable Diffusion / Flux 系</td>
+<td><strong>开源</strong>，本地或云</td>
+<td>控制力天花板（LoRA 微调、ControlNet），有折腾成本</td>
+</tr>
+<tr>
+<td>即梦、可图、通义万相等</td>
+<td>国内产品</td>
+<td>直连可用、中文理解好、价格友好</td>
+</tr>
+</tbody>
+</table>
+<p>选择逻辑：追求美学 → Midjourney 系；要"改图听指挥"与图文结合 → 聊天产品内置；要精确控制/批量/隐私 → 本地开源（你的 M4 24GB 跑 SDXL 级模型无压力，入口是 ComfyUI 或 DrawThings.app）；日常轻量 → 国内产品。</p>
+<h2 id="3">3. 提示词：结构化描述一张画<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>文生图提示词的通用骨架（越靠前权重越高）：</p>
+<div class="highlight"><pre><span></span><code>[主体]（谁/什么，外观细节） + [动作/情境] + [环境背景] +
+[构图视角]（特写/全景/俯视） + [光线]（黄昏逆光/柔光棚拍） +
+[风格媒介]（水彩/胶片摄影/等距插画/像素风） + [质量词]（细节丰富…）
+</code></pre></div>
+<p>例："一只戴圆框眼镜的橘猫，趴在堆满数学书的木桌上打盹，午后阳光从左侧窗户斜射进来，浅景深特写，暖色胶片质感，插画风格"。要点：</p>
+<ul>
+<li><strong>写画面，不写抽象</strong>："孤独感"不如"空旷车站的长椅上一个小小的背影"；模型看得见名词和形容词，看不见你的心情；</li>
+<li><strong>负面提示</strong>（支持的工具）：把不想要的列出来（多余的手指、水印、文字）；</li>
+<li><strong>迭代是常态</strong>：一次出图只是抽签，正确姿势是固定种子（seed）后微调措辞、或用"图生图/局部重绘"在满意的构图上继续雕；对话式产品直接说"保持整体不变，把背景换成雨夜"；</li>
+<li><strong>精确控制</strong>（进阶，开源系）：ControlNet 用骨架图/深度图/线稿锁定姿势与构图，字面意义的"按图施工"——需要精确复现特定姿态时的唯一解。</li>
+</ul>
+<h2 id="4">4. 学术与工作中的正确用法<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>能用</strong>：PPT 封面与氛围插图、公众号配图、活动海报底图、论文的<strong>概念示意</strong>草稿（最终版建议矢量工具重绘）；</li>
+<li><strong>慎用/别用</strong>：<strong>论文的数据图表</strong>——图表必须由代码从数据生成（matplotlib 等，第 15 讲），生图模型画的坐标轴是"长得像图表的画"，学术场合使用属于造假；涉及真实人物的图像（肖像权 + 深度伪造红线）；期刊明令禁止的 AI 生成插图（投稿前查政策，同第 13 讲）。</li>
+</ul>
+<p><strong>版权现状一句话</strong>（截至 2026 年初，变动中）：多数司法辖区认为<strong>纯 AI 生成、无实质人类创作参与的图像不受版权保护</strong>；训练数据的版权诉讼仍在进行。商用前查目标平台与所在地的最新规则，重要商业项目让 AI 出概念稿、人类完成终稿是稳妥路径。</p>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>扩散模型：学"猜噪声"，生成 = 从纯噪声逐步显影；文本经交叉注意力控制方向，CFG 调力度；</li>
+<li>工具四象限：美学（MJ）/ 听话（聊天内置）/ 控制（开源本地）/ 直连（国内）；</li>
+<li>提示词 = 主体 + 情境 + 构图 + 光线 + 风格；写画面不写抽象；迭代靠 seed 与局部重绘；</li>
+<li>学术红线：数据图表必须代码画；人物图像与期刊政策先查后用。</li>
+</ul>
+<p><strong>动手</strong>：任选一个可用的生图工具，用第 3 节的骨架为你手头的某个 PPT 生成一张封面图；然后把同一个提示词删掉构图和光线部分再生成一次，对比差距——你会立刻理解结构化提示词的价值。</p>
+<hr />
+<p><em>下一讲：把 AI 用在幻灯片和文档上——从"给我做个 PPT"的失望，到"大纲—逐页—成稿"的正确工作流。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="15-coding-analysis.html"><span class="pager-label">上一讲</span>15 · 实战：写代码与数据分析</a>
+  <a class="pager-slot next" href="17-slides-docs.html"><span class="pager-label">下一讲</span>17 · 实战：PPT 与文档</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

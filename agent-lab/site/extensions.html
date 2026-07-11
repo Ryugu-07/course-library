@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent 扩展地图与功能设计实验室</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2352745d'/%3E%3Cpath d='M18 20h28v6H18zm0 12h28v6H18zm0 12h18v6H18z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/style.css">
+  <script>
+    (function () {
+      var theme = localStorage.getItem("agentCourseTheme");
+      if (!theme) theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body id="top">
+  <button id="sidebar-toggle" aria-label="打开目录">☰</button>
+  <nav id="sidebar" aria-label="课程目录">
+    <div class="site-head">
+      <a class="site-title" href="#top">Agent Learning Lab</a>
+      <div class="site-subtitle">从最小循环到自己的 Agent</div>
+    </div>
+
+    <div class="nav-part course-switcher">
+      <div class="nav-part-title">课程</div>
+      <a href="course/index.html">完整课程 · 30 章 / 8 实验</a>
+      <a href="index.html#top">01 · 最小 SWE Agent</a>
+      <a class="current-page" href="#top" aria-current="page">02 · 扩展地图与实验室</a>
+    </div>
+    <div class="nav-part">
+      <div class="nav-part-title">功能设计</div>
+      <a href="#top">00 · 从内核向外生长</a>
+      <a href="#anatomy">01 · 功能的九个部件</a>
+      <a href="#insertion">02 · 六个插入位置</a>
+      <a href="#directions">03 · 十个扩展方向</a>
+      <a href="#feature-lab">04 · 功能设计实验室</a>
+    </div>
+    <div class="nav-part">
+      <div class="nav-part-title">工业级能力</div>
+      <a href="#verification">05 · 验证闭环</a>
+      <a href="#memory">06 · 记忆系统</a>
+      <a href="#security">07 · 权限与安全</a>
+      <a href="#multi-agent">08 · 多 Agent 协作</a>
+      <a href="#extensions">09 · 扩展系统</a>
+      <a href="#roadmap">10 · 升级路线</a>
+    </div>
+
+    <div class="sidebar-foot">
+      <button id="theme-toggle" aria-label="切换主题">☀ / ☾</button>
+      <div class="build-time">本地静态站 · 2026-07-10</div>
+    </div>
+  </nav>
+
+  <main id="content">
+    <article>
+      <header class="lesson-head">
+        <p class="eyebrow">第二章 · 设计自己的 Agent</p>
+        <h1>Agent 可以怎样继续生长</h1>
+        <p class="lead">
+          这一章不要求你立刻写代码。目标是让任何功能设想都能被拆成一张工程图：
+          它何时触发、需要知道什么、能做什么、怎样证明成功，以及什么事情绝不能越界。
+        </p>
+      </header>
+
+      <aside class="course-upgrade">
+        <strong>这里是早期扩展地图</strong>
+        <span>系统化正文、八个实验和两个完整项目已经迁入多页面课程。</span>
+        <a href="course/index.html">进入全量课程</a>
+      </aside>
+
+      <section class="evolution-board" aria-label="Agent 能力演化路线">
+        <div class="evolution-stage active">
+          <span>01</span>
+          <strong>最小内核</strong>
+          <p>loop + context + tools</p>
+        </div>
+        <div class="evolution-connector"></div>
+        <div class="evolution-stage">
+          <span>02</span>
+          <strong>可靠执行</strong>
+          <p>补丁、测试、重试、日志</p>
+        </div>
+        <div class="evolution-connector"></div>
+        <div class="evolution-stage">
+          <span>03</span>
+          <strong>长期任务</strong>
+          <p>恢复、压缩、记忆、预算</p>
+        </div>
+        <div class="evolution-connector"></div>
+        <div class="evolution-stage">
+          <span>04</span>
+          <strong>协作系统</strong>
+          <p>子 Agent、并行、worktree</p>
+        </div>
+        <div class="evolution-connector"></div>
+        <div class="evolution-stage">
+          <span>05</span>
+          <strong>Agent 平台</strong>
+          <p>Skills、MCP、Hooks、自动化</p>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="本章抓手">
+        <div class="info-panel">
+          <h2>核心判断</h2>
+          <p>大多数新功能改的是 Agent 框架，不是模型本身。</p>
+        </div>
+        <div class="info-panel">
+          <h2>设计方法</h2>
+          <p>先确定信息、动作、验证和边界，再让 AI 编写实现。</p>
+        </div>
+        <div class="info-panel">
+          <h2>本章实验</h2>
+          <p>把自己的想法填进功能设计卡，并保存为下一次讨论的输入。</p>
+        </div>
+      </section>
+
+      <section id="anatomy">
+        <p class="section-label">01</p>
+        <h2>一个功能不是按钮，而是九个部件</h2>
+        <p>
+          “让 Agent 自动修复测试”听起来是一项功能，但还不能直接实现。只有把它拆成下面九块，
+          才能判断需要改主循环、增加工具，还是补充状态与安全策略。
+        </p>
+        <div class="formula-strip" aria-label="Agent 功能设计公式">
+          <span>触发</span><b>+</b><span>上下文</span><b>+</b><span>决策</span><b>+</b><span>工具</span><b>+</b><span>状态</span><b>+</b><span>验证</span><b>+</b><span>权限</span><b>+</b><span>失败</span><b>+</b><span>输出</span>
+        </div>
+        <div class="anatomy-list">
+          <div><strong>触发条件</strong><span>什么时候开始，是用户命令、测试失败、定时器，还是外部事件？</span></div>
+          <div><strong>所需上下文</strong><span>模型做决定前必须看到哪些文件、日志、规则和历史？</span></div>
+          <div><strong>决策规则</strong><span>模型要在什么候选动作之间选择，何时应该询问人类？</span></div>
+          <div><strong>可调用工具</strong><span>框架需要提供哪些真实动作，参数和返回值是什么？</span></div>
+          <div><strong>中间状态</strong><span>尝试次数、当前假设、任务进度和后台进程保存在哪里？</span></div>
+          <div><strong>成功验证</strong><span>什么外部证据能证明结果正确，而不是模型自己觉得正确？</span></div>
+          <div><strong>权限边界</strong><span>哪些目录、命令、网络地址和外部操作可以访问？</span></div>
+          <div><strong>失败处理</strong><span>超时、重复、工具报错和无解时怎样退出或恢复？</span></div>
+          <div><strong>用户输出</strong><span>最终展示结论、diff、证据、风险，还是等待审批的动作？</span></div>
+        </div>
+        <aside class="note">
+          <strong>判断是否已经设计清楚：</strong>
+          如果还说不清“它看见什么、做什么、如何验证、失败怎么办”，它仍然只是愿望。
+        </aside>
+      </section>
+
+      <section id="insertion">
+        <p class="section-label">02</p>
+        <h2>新功能可以插在循环的六个位置</h2>
+        <p>
+          不必一想到新功能就重写整个 Agent。先点击下面的位置，观察它分别会改变哪段数据流。
+        </p>
+        <div class="insertion-lab">
+          <div class="insertion-flow" role="group" aria-label="选择功能插入位置">
+            <button class="insertion-node active" type="button" data-insertion="before-model" aria-pressed="true">
+              <span>1</span><strong>模型调用前</strong><small>准备上下文</small>
+            </button>
+            <span class="insertion-arrow" aria-hidden="true">→</span>
+            <button class="insertion-node" type="button" data-insertion="decision" aria-pressed="false">
+              <span>2</span><strong>模型决策时</strong><small>约束选择</small>
+            </button>
+            <span class="insertion-arrow" aria-hidden="true">→</span>
+            <button class="insertion-node" type="button" data-insertion="before-tool" aria-pressed="false">
+              <span>3</span><strong>工具执行前</strong><small>审批与检查</small>
+            </button>
+            <span class="insertion-arrow" aria-hidden="true">→</span>
+            <button class="insertion-node" type="button" data-insertion="after-tool" aria-pressed="false">
+              <span>4</span><strong>工具执行后</strong><small>整理结果</small>
+            </button>
+            <span class="insertion-arrow" aria-hidden="true">→</span>
+            <button class="insertion-node" type="button" data-insertion="between-turns" aria-pressed="false">
+              <span>5</span><strong>两轮之间</strong><small>状态与验证</small>
+            </button>
+            <span class="insertion-arrow" aria-hidden="true">→</span>
+            <button class="insertion-node" type="button" data-insertion="outside-loop" aria-pressed="false">
+              <span>6</span><strong>循环之外</strong><small>调度与界面</small>
+            </button>
+          </div>
+          <div id="insertion-detail" class="insertion-detail" aria-live="polite">
+            <strong>模型调用前：准备它这一轮能看到的世界</strong>
+            <p>适合加入仓库搜索、记忆检索、规则加载、上下文压缩和敏感信息过滤。</p>
+            <span>先问：这项功能需要给模型补充什么信息？</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="directions">
+        <p class="section-label">03</p>
+        <h2>十个扩展方向</h2>
+        <p>这些方向并不互斥。一个真实功能通常会同时跨过两到四层。</p>
+        <div class="direction-matrix">
+          <div class="direction-row"><span class="direction-index">01</span><strong>感知与上下文</strong><p>代码搜索、仓库地图、网页、图片、数据库、IDE 诊断。</p><em>Agent 能看见什么？</em></div>
+          <div class="direction-row"><span class="direction-index">02</span><strong>工具与行动</strong><p>补丁、Git、浏览器、部署、外部 API、后台进程。</p><em>Agent 能真正做什么？</em></div>
+          <div class="direction-row"><span class="direction-index">03</span><strong>规划与决策</strong><p>Plan 模式、任务拆解、优先级、模型路由、重复检测。</p><em>Agent 怎样选择下一步？</em></div>
+          <div class="direction-row"><span class="direction-index">04</span><strong>记忆与学习</strong><p>会话摘要、项目知识、用户偏好、经验修正与遗忘。</p><em>什么应该跨轮次保留？</em></div>
+          <div class="direction-row"><span class="direction-index">05</span><strong>验证与反思</strong><p>测试、lint、类型检查、截图、第二意见和验收标准。</p><em>怎样用证据证明成功？</em></div>
+          <div class="direction-row"><span class="direction-index">06</span><strong>权限与安全</strong><p>审批、沙箱、网络策略、密钥保护、审计与撤销。</p><em>哪些动作绝不能只靠模型自觉？</em></div>
+          <div class="direction-row"><span class="direction-index">07</span><strong>多 Agent 协作</strong><p>专业角色、隔离上下文、并行探索、worktree 和汇总。</p><em>任务怎样拆，结果怎样合？</em></div>
+          <div class="direction-row"><span class="direction-index">08</span><strong>交互与界面</strong><p>流式进度、审批、diff、时间线、打断、转向和恢复。</p><em>人类怎样理解并控制过程？</em></div>
+          <div class="direction-row"><span class="direction-index">09</span><strong>自动化运行</strong><p>定时器、文件监听、Webhook、队列、后台任务和通知。</p><em>没有人盯着时如何可靠工作？</em></div>
+          <div class="direction-row"><span class="direction-index">10</span><strong>观测与优化</strong><p>轨迹、Token、费用、延迟、缓存、评测和失败回放。</p><em>怎样知道系统正在变好？</em></div>
+        </div>
+      </section>
+
+      <section id="feature-lab">
+        <p class="section-label">04 · 互动实验</p>
+        <h2>把自己的想法变成功能设计卡</h2>
+        <p>
+          选择一个示例观察九个部件怎样配合，也可以直接改成自己的设想。
+          内容只保存在当前浏览器的本地存储中。
+        </p>
+        <div class="feature-lab" data-feature-lab>
+          <div class="lab-toolbar">
+            <label for="feature-template">示例模板</label>
+            <select id="feature-template">
+              <option value="test-repair">自动修复测试失败</option>
+              <option value="project-memory">项目记忆</option>
+              <option value="review-agent">子 Agent 代码审查</option>
+              <option value="visual-check">网页视觉验收</option>
+              <option value="blank">空白设计卡</option>
+            </select>
+            <button id="feature-save" type="button">保存草稿</button>
+            <button id="feature-copy" type="button">复制设计卡</button>
+            <button id="feature-reset" type="button">清空</button>
+          </div>
+
+          <label class="lab-name" for="feature-name">
+            <span>功能名称</span>
+            <input id="feature-name" type="text" autocomplete="off">
+          </label>
+
+          <div class="lab-field-grid">
+            <label for="feature-trigger"><span>1 · 触发条件</span><textarea id="feature-trigger" rows="3"></textarea></label>
+            <label for="feature-context"><span>2 · 所需上下文</span><textarea id="feature-context" rows="3"></textarea></label>
+            <label for="feature-decision"><span>3 · 决策规则</span><textarea id="feature-decision" rows="3"></textarea></label>
+            <label for="feature-tools"><span>4 · 可调用工具</span><textarea id="feature-tools" rows="3"></textarea></label>
+            <label for="feature-state"><span>5 · 中间状态</span><textarea id="feature-state" rows="3"></textarea></label>
+            <label for="feature-verification"><span>6 · 成功验证</span><textarea id="feature-verification" rows="3"></textarea></label>
+            <label for="feature-permission"><span>7 · 权限边界</span><textarea id="feature-permission" rows="3"></textarea></label>
+            <label for="feature-failure"><span>8 · 失败处理</span><textarea id="feature-failure" rows="3"></textarea></label>
+            <label for="feature-output"><span>9 · 用户输出</span><textarea id="feature-output" rows="3"></textarea></label>
+          </div>
+
+          <div class="lab-preview" aria-live="polite">
+            <div class="lab-preview-head">
+              <span>设计卡预览</span>
+              <strong id="feature-preview-name">自动修复测试失败</strong>
+            </div>
+            <dl id="feature-preview"></dl>
+          </div>
+          <p id="feature-status" class="lab-status" role="status"></p>
+        </div>
+      </section>
+
+      <section id="verification">
+        <p class="section-label">05</p>
+        <h2>验证闭环：不要让模型给自己判满分</h2>
+        <p>
+          模型说“完成了”只是一个文本判断。可靠 Agent 会寻找外部证据，并把失败结果带回下一轮。
+        </p>
+        <div class="verification-loop" aria-label="验证闭环">
+          <div><span>观察</span><p>测试失败、用户目标、当前 diff</p></div>
+          <b>→</b>
+          <div><span>假设</span><p>判断根因和最小修改</p></div>
+          <b>→</b>
+          <div><span>行动</span><p>修改代码或配置</p></div>
+          <b>→</b>
+          <div><span>证据</span><p>测试、构建、截图、审查</p></div>
+          <b class="loop-back">↺ 失败就继续</b>
+        </div>
+        <table>
+          <thead><tr><th>证据层级</th><th>例子</th><th>特点</th></tr></thead>
+          <tbody>
+            <tr><td>确定性检查</td><td>语法、lint、类型检查、测试退出码</td><td>成本低，适合每次修改后运行。</td></tr>
+            <tr><td>行为检查</td><td>集成测试、浏览器交互、接口响应</td><td>更接近真实使用，但准备成本更高。</td></tr>
+            <tr><td>独立审查</td><td>只读审查 Agent、规则扫描、安全检查</td><td>补充难以写成断言的问题。</td></tr>
+            <tr><td>人类验收</td><td>产品判断、风险接受、主观质量</td><td>留给真正需要价值判断的部分。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="memory">
+        <p class="section-label">06</p>
+        <h2>记忆系统：难点不是存，而是取舍</h2>
+        <p>把所有历史永久塞进 prompt 不是记忆系统，只会让上下文越来越混乱。</p>
+        <div class="memory-pipeline" aria-label="记忆生命周期">
+          <div><strong>提取</strong><span>哪些内容值得记</span></div>
+          <i>→</i>
+          <div><strong>存储</strong><span>放在哪种记忆里</span></div>
+          <i>→</i>
+          <div><strong>检索</strong><span>何时重新取出</span></div>
+          <i>→</i>
+          <div><strong>校验</strong><span>是否仍然正确</span></div>
+          <i>→</i>
+          <div><strong>遗忘</strong><span>过期时删除或降权</span></div>
+        </div>
+        <div class="memory-types">
+          <div><strong>当前任务状态</strong><p>正在做什么、已经完成什么、下一步是什么。</p></div>
+          <div><strong>会话摘要</strong><p>压缩早期过程，保留目标、决定和关键证据。</p></div>
+          <div><strong>项目知识</strong><p>构建命令、目录职责、约定和常见故障。</p></div>
+          <div><strong>用户偏好</strong><p>讲解深度、审批习惯、输出形式和长期目标。</p></div>
+        </div>
+      </section>
+
+      <section id="security">
+        <p class="section-label">07</p>
+        <h2>权限与安全：判断层和物理边界要分开</h2>
+        <p>审批是在问“这次应该允许吗”，沙箱是在保证“即使判断错了也越不过边界”。</p>
+        <div class="security-layers">
+          <div class="security-layer policy-layer">
+            <span>判断层</span>
+            <strong>权限策略与审批</strong>
+            <p>允许、询问、拒绝；根据工具、命令、路径和副作用决定。</p>
+          </div>
+          <div class="security-layer sandbox-layer">
+            <span>执行层</span>
+            <strong>操作系统沙箱</strong>
+            <p>限制可写目录、网络、进程和系统资源，模型无法自行绕开。</p>
+          </div>
+          <div class="security-layer audit-layer">
+            <span>追溯层</span>
+            <strong>日志、diff 与撤销</strong>
+            <p>记录发生了什么，让人类可以检查、恢复并改进规则。</p>
+          </div>
+        </div>
+        <aside class="note">
+          增加工具时先做一次最坏情况推演：参数被模型填错、网页提示词注入、密钥出现在日志、
+          命令运行超时、用户中途改变目标。安全能力就是为这些情况准备的程序性答案。
+        </aside>
+      </section>
+
+      <section id="multi-agent">
+        <p class="section-label">08</p>
+        <h2>多 Agent：先隔离噪声，再追求并行</h2>
+        <p>
+          子 Agent 的第一价值不是“人多力量大”，而是让主线程保留需求和关键决策，
+          把搜索日志、测试输出和大范围探索放进独立上下文。
+        </p>
+        <div class="agent-team" aria-label="多 Agent 协作结构">
+          <div class="lead-agent">
+            <span>主 Agent</span>
+            <strong>目标、边界、决策、汇总</strong>
+          </div>
+          <div class="team-branches">
+            <div><span>探索 Agent</span><p>只读搜索相关代码，返回地图和证据。</p></div>
+            <div><span>实现 Agent</span><p>在独立 worktree 中完成有边界的修改。</p></div>
+            <div><span>测试 Agent</span><p>运行验证，压缩日志并归纳失败原因。</p></div>
+            <div><span>审查 Agent</span><p>只看需求和 diff，寻找回归与缺失测试。</p></div>
+          </div>
+        </div>
+        <div class="decision-pair">
+          <div><strong>适合并行</strong><p>代码探索、资料查找、测试、日志分析、独立审查。</p></div>
+          <div><strong>谨慎并行</strong><p>同时修改相同文件、共享数据库迁移、需要连续产品决策的工作。</p></div>
+        </div>
+      </section>
+
+      <section id="extensions">
+        <p class="section-label">09</p>
+        <h2>扩展系统：每一种机制负责不同问题</h2>
+        <table class="extension-table">
+          <thead><tr><th>机制</th><th>它负责什么</th><th>适合的例子</th></tr></thead>
+          <tbody>
+            <tr><td>指令文件</td><td>长期告诉 Agent 应该怎样工作。</td><td>构建命令、代码规范、审查要求。</td></tr>
+            <tr><td>Skills</td><td>封装可复用的工作方法和参考材料。</td><td>发布流程、故障排查、文档生成。</td></tr>
+            <tr><td>MCP</td><td>连接 Agent 之外的数据和真实动作。</td><td>GitHub、设计稿、数据库、内部系统。</td></tr>
+            <tr><td>Hooks</td><td>在生命周期节点运行确定性程序。</td><td>拦截密钥、修改后 lint、结束前验证。</td></tr>
+            <tr><td>Plugins</td><td>打包并分发技能、工具、Hooks 和配置。</td><td>团队统一安装一套工程工作流。</td></tr>
+            <tr><td>SDK / Server</td><td>把 Agent 循环嵌入自己的产品。</td><td>IDE、网页控制台、CI 和内部平台。</td></tr>
+          </tbody>
+        </table>
+        <div class="mechanism-chain" aria-label="扩展机制关系">
+          <div><strong>模型</strong><span>决定下一步</span></div><b>+</b>
+          <div><strong>Skill</strong><span>告诉它怎么做</span></div><b>+</b>
+          <div><strong>MCP</strong><span>给它外部手脚</span></div><b>+</b>
+          <div><strong>Hook</strong><span>强制固定规则</span></div><b>+</b>
+          <div><strong>Plugin</strong><span>安装与分发</span></div>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <p class="section-label">10</p>
+        <h2>从当前代码出发的升级路线</h2>
+        <p>顺序的原则是先让单 Agent 可靠，再增加记忆和协作。勾选状态会保存在当前浏览器。</p>
+        <ol class="roadmap-list">
+          <li>
+            <label><input type="checkbox" data-roadmap="tools"><span><strong>阶段 1 · 工具基础</strong>增加 <code>list_files</code>、<code>search_text</code>、<code>apply_patch</code>。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="reliability"><span><strong>阶段 2 · 可靠运行</strong>增加超时、重试、重复调用检测、运行记录和后台进程管理。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="verification"><span><strong>阶段 3 · 验证闭环</strong>自动检查 diff，运行相关测试、lint 和类型检查。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="sessions"><span><strong>阶段 4 · 长期任务</strong>保存与恢复会话，压缩上下文，管理任务状态和预算。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="memory"><span><strong>阶段 5 · 规则与记忆</strong>项目规则、会话摘要、可校正的项目知识。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="security"><span><strong>阶段 6 · 权限体系</strong>工具策略、路径与网络限制、密钥保护、审计和撤销。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="extensions"><span><strong>阶段 7 · 可扩展性</strong>Skills、Hooks、MCP 和插件化工具发现。</span></label>
+          </li>
+          <li>
+            <label><input type="checkbox" data-roadmap="agents"><span><strong>阶段 8 · 多 Agent</strong>先做只读审查子 Agent，再做并行与 worktree 隔离。</span></label>
+          </li>
+        </ol>
+      </section>
+
+      <footer class="lesson-end">
+        <h2>带着问题继续学</h2>
+        <p>
+          以后遇到一个新功能，不必先问“代码怎么写”，先问它属于哪种能力、插在循环哪里、
+          需要什么证据和边界。把想法填进本页设计卡，我们就能沿着同一张工程地图继续讨论和实现。
+        </p>
+        <a class="lesson-link" href="index.html#top">返回第一章 · 最小 SWE Agent 内核</a>
+      </footer>
+    </article>
+  </main>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

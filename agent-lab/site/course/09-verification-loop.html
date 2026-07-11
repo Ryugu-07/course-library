@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>验证闭环 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="09-verification-loop">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage" open><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a class="current" aria-current="page" href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:30%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第二阶段 · 可靠的本地编码 Agent</span><span>第 9 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 生成和验证是不同工作</a></li>
+<li><a href="#2">2. 验证信号的层级</a></li>
+<li><a href="#3">3. 如何选择相关测试</a></li>
+<li><a href="#4">4. 防止“测试迎合实现”</a></li>
+<li><a href="#5">5. 非代码结果怎样验证</a></li>
+<li><a href="#6">6. 完成协议</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="09">第 09 章 · 验证闭环<a class="headerlink" href="#09" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：让 Agent 的“完成”由外部证据驱动，而不是由模型语言风格或自信程度驱动。</p>
+</blockquote>
+<h2 id="1">1. 生成和验证是不同工作<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>模型擅长提出修改，但同一个上下文里的模型也容易合理化自己的方案。它可能看到代码看起来正确，就说“问题已修复”，却没有运行测试。Agent 框架应把完成条件变成显式步骤：检查 diff、运行相关测试、运行静态检查，并把结果重新送给模型。</p>
+<p>验证闭环是：</p>
+<p><strong>目标 → 修改 → 外部检查 → 观察结果 → 修正或完成。</strong></p>
+<p>这与主循环重合，但强调最后一跳必须有证据。没有证据，只能叫“提出了一个候选答案”。</p>
+<h2 id="2">2. 验证信号的层级<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>例子</th>
+<th>能证明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语法与格式</td>
+<td>py_compile、formatter check</td>
+<td>文件可解析、格式满足规则</td>
+</tr>
+<tr>
+<td>静态分析</td>
+<td>类型检查、lint、安全扫描</td>
+<td>一部分结构错误与规则违规</td>
+</tr>
+<tr>
+<td>单元测试</td>
+<td>相关函数测试</td>
+<td>局部行为符合断言</td>
+</tr>
+<tr>
+<td>集成与端到端</td>
+<td>API、浏览器、数据库流程</td>
+<td>多模块真实协作</td>
+</tr>
+<tr>
+<td>人类验收</td>
+<td>产品判断、视觉质量、风险接受</td>
+<td>无法完全形式化的价值</td>
+</tr>
+</tbody>
+</table>
+<p>检查越靠下，通常越接近用户行为，也越慢、越脆弱。Agent 应先运行便宜且相关的检查，再根据风险扩大范围。</p>
+<h2 id="3">3. 如何选择相关测试<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>最简单的方法是使用项目规则提供的标准命令。更精细的系统根据修改文件、依赖图和历史覆盖关系选择测试。无论如何，模型必须说明为什么这些检查足够。</p>
+<p>只运行原来失败的测试可能造成回归；每次运行完整测试又可能成本过高。可以先跑失败测试与邻近单元测试，成功后再运行模块级或全量检查。验证计划本身也是一个需要预算的决策。</p>
+<h2 id="4">4. 防止“测试迎合实现”<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Agent 可能通过修改测试让错误消失。测试当然也可能有问题，但删除断言、降低阈值或跳过测试应视为高风险行为，需要额外说明和审查。Runtime 可以检测测试文件变化，并触发 Reviewer。</p>
+<p>另一个风险是只看退出码，不看测试数量。命令因为路径错误没有收集到测试，却返回可疑结果。验证器应记录 collected、passed、failed、skipped 等摘要。</p>
+<h2 id="5">5. 非代码结果怎样验证<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>网页需要真实打开、点击和截图，不能只检查 HTML 字符串；文档需要渲染后检查分页；数据任务需要行数、约束和样本核对；外部操作需要读取目标系统确认状态。原则不变：找到一个独立于生成文本的观察通道。</p>
+<p>对于主观质量，可以让独立 Reviewer 根据明确 rubric 评审，但这仍不等于事实验证。最好把可机械检查的部分先机械化，把人类留给真正需要判断的部分。</p>
+<h2 id="6">6. 完成协议<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>最终回答应包含修改摘要、验证命令与结果、未运行的检查和剩余风险。Runtime 还可以要求 final response 满足结构化 schema，避免模型漏报失败。</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;completed&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;changes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Fix quantity calculation&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;checks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pytest -q&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;12 passed&quot;</span><span class="p">}],</span>
+<span class="w">  </span><span class="nt">&quot;residual_risks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">核心判断</p>
+<p>“我检查过代码”是过程描述；“pytest 收集 12 项并全部通过”是证据。设计 Agent 时，持续把前一种表述改造成后一种数据。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="09-verification-loop"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="08-errors-retries.html"><span>上一页</span><strong>08 · 错误、重试与幂等</strong></a><a class="pager-slot next" href="10-context-anatomy.html"><span>下一页</span><strong>10 · 上下文窗口解剖</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

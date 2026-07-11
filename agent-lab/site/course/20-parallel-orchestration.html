@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>并行调度与结果汇总 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="20-parallel-orchestration">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage" open><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a class="current" aria-current="page" href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:67%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第五阶段 · 多 Agent 与并行</span><span>第 20 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 并行不是默认更快</a></li>
+<li><a href="#2">2. 读任务与写任务的差别</a></li>
+<li><a href="#3">3. 并发预算</a></li>
+<li><a href="#4">4. 汇总不是拼接</a></li>
+<li><a href="#5">5. 失败传播</a></li>
+<li><a href="#6">6. 本章实验</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="20">第 20 章 · 并行调度与结果汇总<a class="headerlink" href="#20" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：判断哪些任务真正独立，如何控制并发，以及多个子 Agent 的结果怎样汇成一个一致决定。</p>
+</blockquote>
+<h2 id="1">1. 并行不是默认更快<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>并行适合互不依赖的搜索、测试、资料查找和独立审查。如果任务 B 需要任务 A 的接口决定，提前并行只会产生返工。并行还会增加模型调用、重复读取和结果合并成本。</p>
+<p>调度前先画依赖图。没有入边的任务可以同时启动；依赖满足后再启动下一层。这与普通构建系统和项目管理没有本质区别。</p>
+<h2 id="2">2. 读任务与写任务的差别<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>多个 Agent 同时只读通常风险较低。写任务需要考虑文件、数据库和外部对象冲突。即使两个 Agent 修改不同文件，它们也可能做出不兼容接口决定。</p>
+<p>可以为任务声明 write_set 和 decision_set。write_set 重叠意味着文件冲突，decision_set 重叠意味着语义冲突，都需要串行或提前协调。</p>
+<h2 id="3">3. 并发预算<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>无限生成 Agent 会消耗 Token、CPU、API 限额和人类注意力。调度器应限制最大并发、每个子任务最大轮数和总费用。任务优先级可以依据关键路径、风险和信息价值。</p>
+<p>当一个子 Agent 早早证明总体方案不可行，调度器应取消仍在做无用工作的子任务。这要求任务支持中断和清理。</p>
+<h2 id="4">4. 汇总不是拼接<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>四个 Agent 各写一段报告，不等于获得一个决策。主 Agent需要去重、解决矛盾、核验证据，并把结果映射回原目标。可以要求统一输出 schema：</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;finding&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Expired token path lacks time check&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;evidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;src/auth.py:42&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;tests/test_auth.py:18&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;confidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.91</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;blocked_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>结构化结果便于比较，但 confidence 只是模型自评，仍要看证据。</p>
+<h2 id="5">5. 失败传播<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>子 Agent 失败不一定让整个任务失败。非关键资料搜索可以降级，关键接口设计失败则阻塞所有依赖任务。调度图应标记 required 和 optional。</p>
+<p>后台任务需要把权限拒绝、预算耗尽和逻辑无解分开。主 Agent 可以重新委派、更换模型、请求人类或停止，而不是把所有失败都重试。</p>
+<h2 id="6">6. 本章实验<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>实验 06 提供六项读写任务。切换单 Agent、普通子 Agent 和 worktree 模式，观察主上下文噪声、文件冲突和合并成本如何变化。特别选择两个都修改 server/auth.py 的任务，看看隔离为什么不能消除语义冲突。</p>
+<div class="admonition note">
+<p class="admonition-title">并行准则</p>
+<p>先并行那些“结果可以独立验证、失败不会破坏其他任务”的工作。写入与共享决策越多，协调成本越可能超过加速收益。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="20-parallel-orchestration"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="19-subagent-isolation.html"><span>上一页</span><strong>19 · 子 Agent 与上下文隔离</strong></a><a class="pager-slot next" href="21-worktrees-conflicts.html"><span>下一页</span><strong>21 · Worktree 与写入冲突</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GARCH 与预测纪律 · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li class="active"><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-arima">1. 单位根与 ARIMA</a></li>
+<li><a href="#2">2. 伪回归：时序统计的头号陷阱</a></li>
+<li><a href="#3-garch">3. GARCH：给波动率建模</a></li>
+<li><a href="#4">4. 预测纪律（本页的实务收束）</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-garch">时间序列 II · 非平稳、GARCH 与预测纪律<a class="headerlink" href="#ii-garch" title="Permanent link"></a></h1>
+<blockquote>
+<p>真实数据的三大额外挑战：<strong>趋势</strong>（非平稳——先处理再建模，否则伪回归吃人）、<strong>波动聚集</strong>（金融数据的方差本身在动——GARCH 的地盘）、<strong>评估</strong>（时序预测的验证纪律与截面数据完全不同）。本页每一节都直接对着金融数据与你的预测层。</p>
+</blockquote>
+<h2 id="1-arima">1. 单位根与 ARIMA<a class="headerlink" href="#1-arima" title="Permanent link"></a></h2>
+<p><strong>随机游走</strong> <span class="arithmatex">\(X_t = X_{t-1} + \varepsilon_t\)</span>（AR(1) 的 <span class="arithmatex">\(\phi = 1\)</span>，"单位根"）：方差 <span class="arithmatex">\(= t\sigma^2\)</span> 线性发散、冲击<strong>永不消退</strong>（对比平稳 AR 的指数遗忘）——布朗运动的离散版（sde 线对账）。股价的对数近似随机游走（有效市场的弱式表述）；<strong>预测 <span class="arithmatex">\(\hat X_{t+h} = X_t\)</span></strong>：随机游走的最优预测就是"今天的值"——<strong>任何跑不赢这个 naive 基线的花哨模型都是负资产</strong>（预测实务第一军规）。</p>
+<p><strong>处理：差分</strong>。<span class="arithmatex">\(d\)</span> 次差分后平稳则称 <span class="arithmatex">\(I(d)\)</span>；对差分序列建 ARMA = <strong>ARIMA(p, d, q)</strong>（金融标配：对数价格 <span class="arithmatex">\(I(1)\)</span> ⇒ 收益率 <span class="arithmatex">\(\Delta\ln P\)</span> 平稳，一切建模在收益率上进行）。<strong>判别：ADF 单位根检验</strong>（<span class="arithmatex">\(H_0\)</span>: 有单位根/非平稳——注意方向：不拒绝 ≠ 证明非平稳，统计 IV 的老规矩）。趋势平稳（确定性趋势+平稳扰动，去趋势即可）与差分平稳（随机趋势，必须差分）是两种病要对症——误诊会造出人工相关。</p>
+<h2 id="2">2. 伪回归：时序统计的头号陷阱<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>现象（Granger–Newbold 实验）</strong>：两个<strong>独立</strong>的随机游走互相回归，约 75% 的概率得到"显著"系数、<span class="arithmatex">\(R^2\)</span> 常高达 0.2+——<strong>全是幻觉</strong>：非平稳序列各自漫游产生的巧合趋势被回归当成了关系。</p>
+<p><strong>病理</strong>：统计 V 回归的 t 检验假设残差平稳，单位根序列违反前提——p 值失效（统计 IV"检验的前提"一课的惨案现场）。<strong>防身三则</strong>：回归前先验平稳性（ADF）；非平稳序列用差分/收益率回归；若确要在水平值上谈长期关系，走<strong>协整</strong>（两个 <span class="arithmatex">\(I(1)\)</span> 序列的某线性组合平稳——"醉汉与狗"：各自漫游但不走散；配对交易的统计学基础，知其名与含义）。</p>
+<p>🔗 <strong>研报防身术</strong>：宏观变量对资产价格的"显著相关"大多是水平值伪回归 + 多重检验（统计 IV）的合成品——看到回测/相关性结论先问三件事：平稳吗？几个假设检验里挑出来的？出样本验证了吗？</p>
+<h2 id="3-garch">3. GARCH：给波动率建模<a class="headerlink" href="#3-garch" title="Permanent link"></a></h2>
+<p><strong>金融收益率的三大典型事实</strong>：收益本身近似不可预测（ACF≈0）；<strong>收益的平方显著自相关</strong>——波动聚集（大波动扎堆出现）；分布尖峰厚尾（正态低估极端风险——B–S 页 IV 微笑的统计学根源）。</p>
+<p><strong>ARCH 的洞察（Engle，诺奖）</strong>：建模<strong>条件方差</strong>。GARCH(1,1)（实务九成场合够用）：</p>
+<div class="arithmatex">\[
+r_t = \sigma_t \varepsilon_t, \qquad \sigma_t^2 = \omega + \alpha\, r_{t-1}^2 + \beta\, \sigma_{t-1}^2
+\]</div>
+<p>——今天的方差 = 底噪 + 昨天冲击的平方 + 昨天的方差（<strong>方差的 ARMA</strong>）。<span class="arithmatex">\(\alpha + \beta &lt; 1\)</span> 保平稳，长期方差 <span class="arithmatex">\(= \frac{\omega}{1 - \alpha - \beta}\)</span>；<span class="arithmatex">\(\alpha + \beta\)</span> 常估到 0.95+——<strong>波动的记忆很长</strong>（冲击半衰期数周）。副产品：即使 <span class="arithmatex">\(\varepsilon_t\)</span> 正态，<span class="arithmatex">\(r_t\)</span> 的无条件分布自动厚尾（方差混合——概率 III 的连续混合分布机制）✓ 典型事实全命中。</p>
+<p><strong>用途</strong>：波动率预测（风险管理 VaR、期权定价的 <span class="arithmatex">\(\sigma\)</span> 输入——sde-03 对账：GARCH 预测的波动与期权 IV 的比较本身就是交易信号）；<strong>"收益不可测、风险可测"</strong>——时序分析在金融最诚实的结论。</p>
+<h2 id="4">4. 预测纪律（本页的实务收束）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ol>
+<li><strong>切分必须按时间</strong>：训练在前、测试在后——随机切分让模型偷看未来（数据泄漏），回测虚高（<strong>forward-only 不是偏好是数学要求</strong>——你预测层的铁律在此是教科书条目）；</li>
+<li><strong>滚动评估</strong>：walk-forward（逐步扩窗/滑窗重估再预测下一步）模拟真实使用；</li>
+<li><strong>基线必须在场</strong>：naive（昨天值）、历史均值、季节 naive——跑不赢基线的模型没有存在权（§1 军规）；</li>
+<li><strong>区间随视野膨胀</strong>：报告点预测必配区间；长视野预测收敛到无条件分布（ts-01）——"模型的信息半衰期"要如实交代；</li>
+<li><strong>制度变化（regime change）</strong>：平稳性是局部假设——结构断点（政策、危机）之后旧参数作废；滚动窗口与"模型也会过期"的自觉是最后的防线。</li>
+</ol>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（差分定 d）</strong> 序列 ACF 衰减极慢近似线性 ⇒ 单位根嫌疑；一阶差分后 ACF 一步截尾 ⇒ ARIMA(0,1,1) 候选（= 简单指数平滑的统计身份，顺带认亲）。</p>
+<p><strong>例 2（GARCH 更新手算）</strong> <span class="arithmatex">\(\omega = 0.00001, \alpha = 0.08, \beta = 0.9\)</span>，昨日 <span class="arithmatex">\(\sigma_{t-1} = 1\%\)</span>、收益 <span class="arithmatex">\(r_{t-1} = -3\%\)</span>（大跌）：<span class="arithmatex">\(\sigma_t^2 = 0.00001 + 0.08(0.0009) + 0.9(0.0001) = 0.000172\)</span> ⇒ <span class="arithmatex">\(\sigma_t \approx 1.31\%\)</span>——一次冲击把日波动率从 1% 抬到 1.31%，并将按 <span class="arithmatex">\(\alpha+\beta = 0.98\)</span> 的速率缓慢消退。</p>
+<p><strong>例 3（伪回归自检设计）</strong> 用代码各生成两条独立随机游走各 200 点，回归看 t 值——重复 100 次统计"显著"比例（预期 ~3/4）；再对差分序列重跑（显著比例回落到 ~5% = 名义水平）。<strong>十行代码看清一个百年陷阱</strong>，值得真跑一次。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>时间序列两页完工。最后一门：图论与组合——离散世界的计数与结构。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ts-01-stationary-arma.html"><span class="pager-label">上一页</span>时间序列 I · 平稳性与 ARMA</a>
+  <a class="pager-slot next" href="graph-01-counting.html"><span class="pager-label">下一页</span>图论组合 I · 计数与生成函数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

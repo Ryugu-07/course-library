@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>放大与精修流水线 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li class="active"><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三条放大管线（按质量与成本递增）</a><ul>
+<li><a href="#a">管线 A · 纯前馈超分（秒级，零显存压力）</a></li>
+<li><a href="#b-hires">管线 B · 两段式 hires（质量主力，标准答案）</a></li>
+<li><a href="#c-4k">管线 C · 分块放大（4K+ 的终点站）</a></li>
+</ul>
+</li>
+<li><a href="#2-detailer">2. 自动修脸修手：Detailer</a></li>
+<li><a href="#3">3. 完整出货管线（本课程实战部分的合订本）</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="14">第 14 讲 · 放大与精修流水线<a class="headerlink" href="#14" title="Permanent link"></a></h1>
+<blockquote>
+<p>直出分辨率被训练桶锁死在 1024 左右（第 08 讲），潜空间还吞掉了小脸和细纹理（第 04 讲）。把"能看"变"能用"（壁纸、印刷、头像特写）靠的是后处理流水线：<strong>放大</strong> + <strong>补细节</strong> + <strong>修脸手</strong>。原理都在第 05 讲第 4 节，本讲拼装成三条实用管线。</p>
+</blockquote>
+<h2 id="1">1. 三条放大管线（按质量与成本递增）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="a">管线 A · 纯前馈超分（秒级，零显存压力）<a class="headerlink" href="#a" title="Permanent link"></a></h3>
+<div class="highlight"><pre><span></span><code>成图 ─▶ Load Upscale Model(4x-UltraSharp / RealESRGAN_anime) ─▶ Upscale Image (using Model) ─▶ Save
+</code></pre></div>
+<p>一个专训的小卷积网络直接 4×（第 05 讲：前馈路线）。快、绝对忠实原图、不会画错任何东西——但也<strong>不添任何新细节</strong>，放大到 4K 后细看是"干净的糊"。用途：批量出货、社交媒体尺寸、给管线 B 打底。动漫图记得用 anime 专版（<code>RealESRGAN_x4plus_anime_6B</code>），通用版会把线条磨肉。</p>
+<h3 id="b-hires">管线 B · 两段式 hires（质量主力，标准答案）<a class="headerlink" href="#b-hires" title="Permanent link"></a></h3>
+<p>原理：<strong>先放大再用低 denoise 图生图"把细节画出来"</strong>——放大后的每个区域重新过一遍扩散，模型在更大画布上真正生成新细节（第 09 讲 denoise 机制的直接应用）：</p>
+<div class="highlight"><pre><span></span><code>KSampler(1024 直出) ─▶ VAE Decode ─▶ 管线A 放大 2× ─▶ VAE Encode
+   ─▶ KSampler #2 (denoise 0.3-0.45, 同提示词同底模) ─▶ VAE Decode ─▶ Save
+</code></pre></div>
+<p>关键参数就一个：<strong>第二段的 denoise</strong>。0.3 = 忠实补细节；0.45 = 细节更丰富但开始有自由发挥；0.55+ = 大图上按第 08 讲的"复影"规律开始长出多余结构。第二段 steps 给 15–20 就够（低 denoise 只走尾段日程，第 09 讲）。这条管线就是 WebUI 里 "Hires fix" 的节点化真身——在 ComfyUI 里它不是一个开关，而是你亲手搭的五个节点，<strong>每个环节都可插拔</strong>（比如第二段换个更擅长细节的 checkpoint——完全合法的玩法）。</p>
+<h3 id="c-4k">管线 C · 分块放大（4K+ 的终点站）<a class="headerlink" href="#c-4k" title="Permanent link"></a></h3>
+<p>目标 4K 时第二段 KSampler 的潜空间太大，16GB 显存吃紧且大画布易结构漂移。方案：<strong>切块分治</strong>——把图切成带重叠的瓦片，逐块低 denoise 重绘再缝合（Tiled Diffusion / Ultimate SD Upscale 类扩展节点，第 15 讲装）。displaystyle 显存只承担单块成本，任意目标分辨率。注意：分块时每块看不见全图，denoise 必须更低（≤0.35）且提示词只留质量词，否则每块各画各的。</p>
+<h2 id="2-detailer">2. 自动修脸修手：Detailer<a class="headerlink" href="#2-detailer" title="Permanent link"></a></h2>
+<p>远景人物的脸在 1024 直出里只占几十像素——潜空间 8× 压缩下必然崩（第 04 讲的账）。手工流程是第 09 讲的"圈脸 inpaint"，而 <strong>Impact Pack</strong> 扩展的 FaceDetailer 节点把它自动化：</p>
+<div class="highlight"><pre><span></span><code>成图 ─▶ 检测器(自动找脸/手, YOLO 系小模型) ─▶ 对每处: 裁出 ─ 放大 ─
+     低 denoise 重绘(0.4 左右) ─ 缩回贴合 ─▶ 输出
+</code></pre></div>
+<p>本质是"批量自动化的局部 hires"——检测、裁块、重绘、回贴，全是你已学过的部件。动漫脸要在检测器里选 anime 专版模型。装好后它通常是<strong>每条出图管线的最后一站</strong>。</p>
+<h2 id="3">3. 完整出货管线（本课程实战部分的合订本）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>把 07–14 讲串成一条"从想法到 4K 成品"的完整流水线——也是你朋友那类复杂工作流的全部骨架：</p>
+<div class="highlight"><pre><span></span><code>[生成] Illustrious 底模 + LoRA(11) + openpose ControlNet(12) + IP-Adapter(13)
+        └ 1024 直出, 固定种子扫参数(08) → 选中意的一张
+[修补] inpaint 精修穿帮处(09) → FaceDetailer 自动修脸(14)
+[放大] hires 两段式 2×(14-B) → 需要 4K 再上分块(14-C)
+[出货] Save Image → E:\AI\Outputs
+</code></pre></div>
+<p>按第 07 讲的骨架读法自查一遍：粉线主动脉几进几出、每个外挂挂在哪条线上——能在脑中画出这张图，本课程的实战目标就达成了。</p>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>拿第 13 讲那张"完全受控"的图，分别过管线 A 和管线 B（denoise=0.35），放大到 200% 屏幕对比细节差异——一次看懂"锐利的糊"与"真细节"；</li>
+<li>管线 B 第二段 denoise 扫 0.3 / 0.45 / 0.6，找到你的审美甜点，并亲眼确认 0.6 时的结构漂移；</li>
+<li>（装好 Impact Pack 后）给一张多人远景图跑 FaceDetailer，前后对比每张脸。</li>
+</ol>
+<hr />
+<p><em>所有生产环节到位。最后一讲收官：自定义节点怎么装怎么管、工作流怎么工程化管理、API 怎么把 ComfyUI 变成可编排的服务（顺便解开 Codex_Bridge 之谜）、以及一张 OOM 排障总表。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-ipadapter-consistency.html"><span class="pager-label">上一讲</span>13 · IP-Adapter 与角色一致性</a>
+  <a class="pager-slot next" href="15-engineering.html"><span class="pager-label">下一讲</span>15 · 工程化与排障</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

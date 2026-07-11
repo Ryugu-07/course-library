@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数值积分与 ODE · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li class="active"><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 数值积分（求积公式）</a></li>
+<li><a href="#2-ode-y-ft-y-yt_0-y_0">2. ODE 数值解：初值问题 \(y' = f(t, y),\ y(t_0) = y_0\)</a></li>
+<li><a href="#3">3. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv-ode">数值 IV · 数值积分与 ODE 数值解<a class="headerlink" href="#iv-ode" title="Permanent link"></a></h1>
+<blockquote>
+<p>收官页处理两个"解析解常常不存在"的战场：定积分（原函数写不出是常态——数分 III 的坦白）与常微分方程（能解析解的是博物馆展品——ODE 页的坦白）。ODE 数值解一节有一条你已经走过的暗线：<strong>扩散模型的采样器下拉框（euler/heun/……）就是本节的方法名录</strong>。</p>
+</blockquote>
+<h2 id="1">1. 数值积分（求积公式）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>思想</strong>：<span class="arithmatex">\(\int_a^b f \approx \sum w_i f(x_i)\)</span>——插值型求积 = 对被积函数插值再精确积分（上一页的直接应用）。<strong>代数精度</strong> = 能精确积分的多项式最高次数（衡量公式好坏的标尺）。</p>
+<p><strong>两个基本公式与复合版</strong>（<span class="arithmatex">\(h\)</span> = 小区间宽）：</p>
+<table>
+<thead>
+<tr>
+<th>公式</th>
+<th>形式</th>
+<th>代数精度</th>
+<th>复合误差阶</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>梯形</td>
+<td><span class="arithmatex">\(\frac{h}{2}(f_0 + f_1)\)</span></td>
+<td>1</td>
+<td><span class="arithmatex">\(O(h^2)\)</span></td>
+</tr>
+<tr>
+<td><strong>Simpson</strong></td>
+<td><span class="arithmatex">\(\frac{h}{6}(f_0 + 4f_{1/2} + f_1)\)</span></td>
+<td><strong>3</strong>（白赚一阶：对称抵消）</td>
+<td><span class="arithmatex">\(O(h^4)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>复合 Simpson 是手算与轻量代码的性价比之王（步长减半误差除 16）。</p>
+<p><strong>Romberg 加速（Richardson 外推）</strong>：已知梯形误差 <span class="arithmatex">\(\approx c h^2 + O(h^4)\)</span>，用两个步长的结果<strong>解出并消去</strong> <span class="arithmatex">\(c h^2\)</span> 项：<span class="arithmatex">\(T^* = \frac{4T(h/2) - T(h)}{3}\)</span>（恰得 Simpson！）——递推下去逐阶消误差。"知道误差的形状，就能把它外推掉"——这个思想通用（数值微分、ODE 步长控制同款）。</p>
+<p><strong>Gauss 求积</strong>：节点也拿来优化——<span class="arithmatex">\(n\)</span> 个节点达到 <span class="arithmatex">\(2n-1\)</span> 次代数精度（理论最优），节点 = Legendre 正交多项式的零点。高精度少节点的场合（谱方法、物理仿真）的标配；知其结构即可。</p>
+<p><strong>高维的诅咒与出路</strong>：网格法代价 <span class="arithmatex">\(O(N^d)\)</span> 随维数指数爆炸 ⇒ 高维积分交给 <strong>Monte Carlo</strong>（误差 <span class="arithmatex">\(O(1/\sqrt n)\)</span> <strong>与维数无关</strong>——概率 V 的 CLT 误差条在此成为唯一可行方案；贝叶斯计算、金融定价、图形渲染全靠它）。</p>
+<h2 id="2-ode-y-ft-y-yt_0-y_0">2. ODE 数值解：初值问题 <span class="arithmatex">\(y' = f(t, y),\ y(t_0) = y_0\)</span><a class="headerlink" href="#2-ode-y-ft-y-yt_0-y_0" title="Permanent link"></a></h2>
+<p><strong>Euler 法</strong>（切线小步走，数分 II 线性化第三次上岗）：</p>
+<div class="arithmatex">\[
+y_{n+1} = y_n + h\, f(t_n, y_n)
+\]</div>
+<p>局部截断误差 <span class="arithmatex">\(O(h^2)\)</span>、<strong>整体误差 <span class="arithmatex">\(O(h)\)</span></strong>（一阶）——粗但结构是一切方法的母体。</p>
+<p><strong>改进思路：在一步内多测几次斜率再加权</strong>——Runge–Kutta 家族：</p>
+<ul>
+<li><strong>改进 Euler / Heun（二阶）</strong>：先 Euler 预测终点，再用两端斜率平均校正——<span class="arithmatex">\(O(h^2)\)</span>，每步 2 次 <span class="arithmatex">\(f\)</span> 求值；</li>
+<li><strong>经典 RK4（四阶）</strong>：四次斜率采样 <span class="arithmatex">\(k_1..k_4\)</span> 加权 <span class="arithmatex">\(\frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)\)</span>——<span class="arithmatex">\(O(h^4)\)</span>，"精度性价比"的历史标杆，手算/教学/中等精度实务的默认选择；</li>
+<li>自适应步长（RK45 等）：两个阶数的差估计误差，动态调 <span class="arithmatex">\(h\)</span>——<code>scipy.solve_ivp</code> 的默认内核。</li>
+</ul>
+<p><strong>稳定性与刚性（本节最重要的观念）</strong>：对试验方程 <span class="arithmatex">\(y' = \lambda y\ (\lambda &lt; 0\)</span>，真解衰减)，显式 Euler 要求 <span class="arithmatex">\(|1 + h\lambda| &lt; 1\)</span> 即 <span class="arithmatex">\(h &lt; \frac{2}{|\lambda|}\)</span>——<strong>步长有硬上限，超了数值解爆炸</strong>（优化 II 学习率上限 <span class="arithmatex">\(2/L\)</span> 是同一个不等式！）。系统里快慢时间尺度并存（<strong>刚性方程</strong>）时，快模态的步长限制拖死整个计算 ⇒ 换<strong>隐式方法</strong>：隐式 Euler <span class="arithmatex">\(y_{n+1} = y_n + h f(t_{n+1}, y_{n+1})\)</span>（每步解方程——上两页的求根/线性方程组在此当零件），<strong>无条件稳定（A-稳定）</strong>，步长只受精度不受稳定性限制。<strong>显式便宜怕刚性，隐式贵但吃刚性</strong>——选型的全部纲领。</p>
+<p>🔗 <strong>AI 衔接（收网）</strong>：comfy 课 03 讲说"采样器 = 概率流 ODE 的数值积分器"——现在你有了全部零件：<code>euler</code> 就是本节 Euler 法、<code>heun</code> 就是改进 Euler、<code>dpm++</code> 是利用方程半线性结构的定制积分器、"20–30 步够用"是高阶方法误差阶的直接推论、karras 日程是自适应步长思想的离线版。<strong>Neural ODE</strong> 则反过来把 RK 求解器当网络层反传。数学的复利在此结算。</p>
+<h2 id="3">3. 典型例题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>例 1（Simpson 手算）</strong> <span class="arithmatex">\(\int_0^1 e^{-x^2}dx\)</span>（无初等原函数——数分 III 的名例）：<span class="arithmatex">\(h = 0.5\)</span> 复合 Simpson：<span class="arithmatex">\(\frac{0.25}{3}[f(0) + 4f(0.25) + 2f(0.5) + 4f(0.75) + f(1)] \approx 0.74683\)</span>（真值 0.746824——五个点四位准，<span class="arithmatex">\(O(h^4)\)</span> 的威力）。</p>
+<p><strong>例 2（Euler vs RK4）</strong> <span class="arithmatex">\(y' = y,\ y(0) = 1\)</span>，求 <span class="arithmatex">\(y(1) = e\)</span>，<span class="arithmatex">\(h = 0.25\)</span>：Euler 给 <span class="arithmatex">\((1.25)^4 = 2.441\)</span>（差 10%）；RK4 给 <span class="arithmatex">\(2.7183\)</span>（差 <span class="arithmatex">\(&lt;10^{-4}\)</span>）。同样 4 步，四个数量级的差距——<strong>阶数就是生产力</strong>。</p>
+<p><strong>例 3（稳定性红线）</strong> <span class="arithmatex">\(y' = -100y,\ y(0)=1\)</span>：显式 Euler 要求 <span class="arithmatex">\(h &lt; 0.02\)</span>，取 <span class="arithmatex">\(h = 0.03\)</span> 则 <span class="arithmatex">\(y_n = (-2)^n\)</span> 震荡爆炸（真解 <span class="arithmatex">\(e^{-100t}\)</span> 温顺趋零）；隐式 Euler <span class="arithmatex">\(y_{n+1} = \frac{y_n}{1 + 100h}\)</span> 任意步长单调衰减 ✓。<strong>数值爆炸 ≠ 方程有问题，先查步长与稳定域。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>数值分析四页完工——误差、方程组、逼近、积分与 ODE，"让数学在机器上落地"的四大件齐了。应用计算线只剩数学建模一门占位。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="num-03-roots-interp.html"><span class="pager-label">上一页</span>数值 III · 求根、插值与逼近</a>
+  <a class="pager-slot next" href="opt-01-convex.html"><span class="pager-label">下一页</span>优化 I · 凸分析基础</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

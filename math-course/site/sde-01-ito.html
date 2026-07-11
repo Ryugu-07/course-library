@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>二次变差与 Itô 引理 · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li class="active"><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 为什么需要新微积分：二次变差</a></li>
+<li><a href="#2-ito">2. Itô 积分</a></li>
+<li><a href="#3-ito">3. Itô 引理（随机世界的链式法则）</a></li>
+<li><a href="#4">4. 两个必会计算</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-ito">随机微积分 I · 二次变差与 Itô 引理<a class="headerlink" href="#i-ito" title="Permanent link"></a></h1>
+<blockquote>
+<p>布朗运动处处不可微（随机过程页的结论）——经典微积分对它全面失效。随机微积分重建一套能对布朗运动积分求导的演算，核心只有一条新公理：<strong><span class="arithmatex">\((dB)^2 = dt\)</span></strong>。由它长出 Itô 引理——本课程往后每一页（SDE、Black–Scholes、扩散模型）的发动机。</p>
+</blockquote>
+<h2 id="1">1. 为什么需要新微积分：二次变差<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>回顾</strong>：布朗运动 <span class="arithmatex">\(B_t\)</span>：独立增量、<span class="arithmatex">\(B_t - B_s \sim N(0, t-s)\)</span>、路径连续但<strong>处处不可微</strong>（增量 <span class="arithmatex">\(\sim\sqrt{\Delta t}\)</span>，差商 <span class="arithmatex">\(\sim 1/\sqrt{\Delta t}\)</span> 爆炸）。</p>
+<p><strong>二次变差（新公理的出处）</strong>：把 <span class="arithmatex">\([0, t]\)</span> 分成 <span class="arithmatex">\(n\)</span> 段，考察增量平方和：</p>
+<div class="arithmatex">\[
+\sum_{i}\big(B_{t_{i+1}} - B_{t_i}\big)^2 \;\xrightarrow[n\to\infty]{L^2}\; t
+\]</div>
+<p><em>证明思路（两行）</em>：每项期望 <span class="arithmatex">\(= \Delta t_i\)</span>，和的期望 <span class="arithmatex">\(= t\)</span>；方差 <span class="arithmatex">\(= \sum 2\Delta t_i^2 \to 0\)</span>（正态四阶矩）——和收敛到常数 <span class="arithmatex">\(t\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>对比</strong>：光滑函数的二次变差为零（<span class="arithmatex">\(\sum(\Delta f)^2 \sim \sum (\Delta t)^2 \to 0\)</span>）。布朗运动的平方增量<strong>不可忽略且是确定的</strong>——微分记号</p>
+<div class="arithmatex">\[
+\boxed{(dB)^2 = dt, \qquad dB\,dt = 0, \qquad (dt)^2 = 0}
+\]</div>
+<p>这三行乘法表是整门课的新增内容，其余全是老微积分带着它重跑一遍。</p>
+<h2 id="2-ito">2. Itô 积分<a class="headerlink" href="#2-ito" title="Permanent link"></a></h2>
+<p><strong>定义思想</strong>：<span class="arithmatex">\(\int_0^t f(s)\,dB_s = \lim \sum f(t_i)\big(B_{t_{i+1}} - B_{t_i}\big)\)</span>——被积函数在<strong>左端点</strong>取值。这不是品味是原则：<span class="arithmatex">\(f(t_i)\)</span> 只能用到 <span class="arithmatex">\(t_i\)</span> 之前的信息（<strong>适应性/不可预见性</strong>——赌注必须在开牌前下好；金融语义：交易策略不能偷看未来价格。你预测层的 forward-only 铁律，在此是定义的一部分而非附加纪律）。</p>
+<p><strong>两条基本性质</strong>：</p>
+<ul>
+<li><strong>鞅性</strong>：<span class="arithmatex">\(E\big[\int_0^t f\,dB\big] = 0\)</span>（左端点取值 × 零均值增量——"公平赌博的累积盈亏期望为零"）；</li>
+<li><strong>Itô 等距</strong>：<span class="arithmatex">\(E\Big[\big(\int_0^t f\,dB\big)^2\Big] = E\Big[\int_0^t f^2\,ds\Big]\)</span>——随机积分的"勾股定理"（<span class="arithmatex">\(L^2\)</span> 理论的地基，方差可算）。</li>
+</ul>
+<p>（<strong>Stratonovich 积分</strong>一嘴：取中点的另一种定义，保持经典链式法则但失去鞅性——物理惯用；金融与概率统一用 Itô，两者可互换转换。）</p>
+<h2 id="3-ito">3. Itô 引理（随机世界的链式法则）<a class="headerlink" href="#3-ito" title="Permanent link"></a></h2>
+<p><strong>定理</strong> <span class="arithmatex">\(X_t\)</span> 满足 <span class="arithmatex">\(dX = \mu\,dt + \sigma\,dB\)</span>，<span class="arithmatex">\(f(t, x)\)</span> 二阶光滑，则</p>
+<div class="arithmatex">\[
+df(t, X_t) = \Big(f_t + \mu f_x + \frac{1}{2}\sigma^2 f_{xx}\Big)dt + \sigma f_x\,dB
+\]</div>
+<p><em>推导（就是带新乘法表的 Taylor 展开）</em>：</p>
+<div class="arithmatex">\[
+df = f_t\,dt + f_x\,dX + \frac12 f_{xx}(dX)^2 + \cdots
+\]</div>
+<p>经典微积分里 <span class="arithmatex">\((dX)^2\)</span> 是高阶小量直接扔；现在 <span class="arithmatex">\((dX)^2 = \sigma^2(dB)^2 + \cdots = \sigma^2\,dt\)</span> <strong>是一阶量必须保留</strong>——多出来的 <span class="arithmatex">\(\frac12\sigma^2 f_{xx}\,dt\)</span> 就是<strong>Itô 修正项</strong>，随机微积分与经典微积分的全部差异浓缩于此。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>修正项的直觉</strong>：<span class="arithmatex">\(f\)</span> 凸时（<span class="arithmatex">\(f_{xx} &gt; 0\)</span>），噪声的上下抖动经过凸函数后<strong>平均向上</strong>（Jensen 不等式的瞬时版）——漂移凭空多出一块。</p>
+<h2 id="4">4. 两个必会计算<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 A（<span class="arithmatex">\(B^2\)</span> 的反常）</strong>：<span class="arithmatex">\(f = x^2\)</span>，<span class="arithmatex">\(\mu = 0, \sigma = 1\)</span>：</p>
+<div class="arithmatex">\[
+d(B_t^2) = 2B_t\,dB_t + dt \quad\Longleftrightarrow\quad \int_0^t B\,dB = \frac{B_t^2 - t}{2}
+\]</div>
+<p>经典答案 <span class="arithmatex">\(\frac{B^2}{2}\)</span> 被修正了 <span class="arithmatex">\(-\frac t2\)</span>——鞅性验证：右边期望恰为 0 ✓（经典答案期望 <span class="arithmatex">\(\frac t2 \neq 0\)</span>，暴露它不是 Itô 积分）。</p>
+<p><strong>例 B（几何布朗运动，金融页的主角提前登场）</strong>：解 <span class="arithmatex">\(dS = \mu S\,dt + \sigma S\,dB\)</span>。对 <span class="arithmatex">\(f = \ln S\)</span> 用 Itô（<span class="arithmatex">\(f_x = \frac1S, f_{xx} = -\frac{1}{S^2}\)</span>）：</p>
+<div class="arithmatex">\[
+d\ln S = \Big(\mu - \frac{\sigma^2}{2}\Big)dt + \sigma\,dB
+\;\Rightarrow\;
+S_t = S_0\exp\Big[\Big(\mu - \frac{\sigma^2}{2}\Big)t + \sigma B_t\Big]
+\]</div>
+<p><strong>那个 <span class="arithmatex">\(-\frac{\sigma^2}{2}\)</span></strong>：波动率对复利增长的隐形税（Itô 修正项的镜像——<span class="arithmatex">\(\ln\)</span> 凹，抖动平均向下）。实感：年化收益 ±20% 交替的资产，算术平均 0%，实际年化 <span class="arithmatex">\(\approx -2\%\)</span>——<strong>波动本身吞噬复利</strong>，"波动率拖累"是每个投资者该会算的第一笔随机微积分账。</p>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Itô 引理练手）</strong> 求 <span class="arithmatex">\(d(e^{B_t})\)</span>：<span class="arithmatex">\(f = e^x\)</span>，<span class="arithmatex">\(= e^{B}\big(\frac12 dt + dB\big)\)</span>——期望以 <span class="arithmatex">\(e^{t/2}\)</span> 增长（对数正态均值 <span class="arithmatex">\(e^{t/2}\)</span> 的微分版，概率 II 呼应）。</p>
+<p><strong>例 2（构造鞅）</strong> 证 <span class="arithmatex">\(M_t = B_t^3 - 3tB_t\)</span> 是鞅：Itô 给 <span class="arithmatex">\(dM = 3B^2 dB + 3B\,dt - 3B\,dt - 3t\,dB = (3B^2 - 3t)\,dB\)</span>——纯 <span class="arithmatex">\(dB\)</span> 项、无漂移 ⇒ 鞅 ✓。<strong>"用 Itô 消漂移"是构造鞅的标准手法</strong>（下一页风险中性定价的技术核心）。</p>
+<p><strong>例 3（验证乘法表）</strong> <span class="arithmatex">\(d(tB_t) = B\,dt + t\,dB + \underbrace{dt\,dB}_{=0}\)</span>——交叉项按乘法表归零，分部积分公式 <span class="arithmatex">\(\int_0^t s\,dB_s = tB_t - \int_0^t B\,ds\)</span> 成立（此例无修正项：<span class="arithmatex">\(f = tx\)</span> 对 <span class="arithmatex">\(x\)</span> 线性，<span class="arithmatex">\(f_{xx} = 0\)</span>——<strong>修正项只找弯曲的函数</strong>）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：让方程整个随机化——SDE、OU 过程与 Fokker–Planck 方程，并与扩散模型正式对账。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="info-03-maxent-channel.html"><span class="pager-label">上一页</span>信息论 III · 最大熵与信道容量</a>
+  <a class="pager-slot next" href="sde-02-sde-diffusion.html"><span class="pager-label">下一页</span>随机微积分 II · SDE 与扩散模型</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markov 链（一） · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li class="active"><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-markov">1. Markov 性与转移矩阵</a></li>
+<li><a href="#2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov</a></li>
+<li><a href="#3">3. 状态分类：链的解剖学</a></li>
+<li><a href="#4">4. 首达概率与吸收问题</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-markov">随机过程 II · Markov 链（一）：转移与状态分类<a class="headerlink" href="#ii-markov" title="Permanent link"></a></h1>
+<blockquote>
+<p>Markov 链是"只看现在、不问过去"的随机演化——这个看似粗暴的假设换来了完整的矩阵化理论：演化 = 矩阵幂。本页管"怎么转移、状态什么性格"，下一页管"转移到最后去哪"。高等代数的矩阵工具在此整装上岗。</p>
+</blockquote>
+<h2 id="1-markov">1. Markov 性与转移矩阵<a class="headerlink" href="#1-markov" title="Permanent link"></a></h2>
+<p><strong>定义（Markov 性）</strong> 离散时间、可数状态的过程 <span class="arithmatex">\(\{X_n\}\)</span> 满足</p>
+<div class="arithmatex">\[
+P(X_{n+1} = j \mid X_n = i,\ X_{n-1}, \dots, X_0) = P(X_{n+1} = j \mid X_n = i) \equiv p_{ij}
+\]</div>
+<p>——<strong>给定现在，未来与过去条件独立</strong>（"无记忆"不是没有历史，而是历史的全部影响已浓缩在当前状态里——状态设计得够丰富，任何过程都能 Markov 化，这是建模的自由度所在）。本页限时齐链（<span class="arithmatex">\(p_{ij}\)</span> 不随 <span class="arithmatex">\(n\)</span> 变）。</p>
+<p><strong>转移矩阵</strong> <span class="arithmatex">\(P = [p_{ij}]\)</span>：<strong>行随机</strong>（每行非负、行和为 1）。链的全部动力学 = 初始分布 <span class="arithmatex">\(\pi^{(0)}\)</span>（行向量）+ <span class="arithmatex">\(P\)</span>。</p>
+<p><strong>三个标准例子</strong>：天气链（晴/雨两状态 <span class="arithmatex">\(2\times2\)</span>）；<strong>随机游走</strong>（整数格点 <span class="arithmatex">\(\pm 1\)</span>，概率 <span class="arithmatex">\(p/q\)</span>）；<strong>赌徒破产链</strong>（随机游走 + 吸收壁 <span class="arithmatex">\(0\)</span> 与 <span class="arithmatex">\(N\)</span>）。</p>
+<h2 id="2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov<a class="headerlink" href="#2-n-chapmankolmogorov" title="Permanent link"></a></h2>
+<p><strong>定理（C–K 方程）</strong> <span class="arithmatex">\(n\)</span> 步转移概率 <span class="arithmatex">\(p_{ij}^{(n)} = P(X_{m+n} = j \mid X_m = i)\)</span> 满足</p>
+<div class="arithmatex">\[
+p_{ij}^{(m+n)} = \sum_k p_{ik}^{(m)}\, p_{kj}^{(n)} \qquad \Longleftrightarrow \qquad P^{(m+n)} = P^{(m)} P^{(n)} \;\Rightarrow\; P^{(n)} = P^n
+\]</div>
+<p>（<em>证明一行</em>：对中间时刻的状态 <span class="arithmatex">\(k\)</span> 用全概率公式 + Markov 性。）<strong>演化 = 矩阵幂</strong>——分布的传播是 <span class="arithmatex">\(\pi^{(n)} = \pi^{(0)} P^n\)</span>。计算 <span class="arithmatex">\(P^n\)</span> 的正规武器正是高代 V 的对角化：<span class="arithmatex">\(P = Q\Lambda Q^{-1} \Rightarrow P^n = Q\Lambda^n Q^{-1}\)</span>，特征值的幂决定一切长期行为（<span class="arithmatex">\(|\lambda| &lt; 1\)</span> 的成分衰减、<span class="arithmatex">\(\lambda = 1\)</span> 的成分存活——下一页平稳分布的伏笔）。</p>
+<h2 id="3">3. 状态分类：链的解剖学<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>可达与互通</strong>：<span class="arithmatex">\(i \to j\)</span>（某 <span class="arithmatex">\(n\)</span> 使 <span class="arithmatex">\(p_{ij}^{(n)} &gt; 0\)</span>）；互通 <span class="arithmatex">\(i \leftrightarrow j\)</span> 是等价关系 ⇒ 状态空间分解为若干<strong>互通类</strong>。<strong>不可约链</strong>：全空间一个类（哪都去得了）。</p>
+<p><strong>常返与瞬过</strong>：从 <span class="arithmatex">\(i\)</span> 出发<strong>必定</strong>（概率 1）返回 <span class="arithmatex">\(i\)</span> 则称<strong>常返</strong>，否则<strong>瞬过</strong>（有正概率一去不返）。判据：<span class="arithmatex">\(i\)</span> 常返 <span class="arithmatex">\(\iff \sum_n p_{ii}^{(n)} = \infty\)</span>（期望返回次数无穷）。常返再分：<strong>正常返</strong>（平均返回时间 <span class="arithmatex">\(\mu_i &lt; \infty\)</span>）与零常返（回得来但平均要等无穷久——无限状态空间才会出现）。</p>
+<p><strong>周期</strong>：<span class="arithmatex">\(d(i) = \gcd\{n: p_{ii}^{(n)} &gt; 0\}\)</span>；<span class="arithmatex">\(d = 1\)</span> 称非周期。（棋盘式来回跳的链 <span class="arithmatex">\(d = 2\)</span>——分布永远震荡不收敛，这是下一页收敛定理要排除周期的原因。）</p>
+<p><strong>类性质</strong>：互通的状态同常返/瞬过、同周期——"性格是整个互通类的"，验一个代表即可。</p>
+<p><strong>名例（一维随机游走的相变）</strong>：对称（<span class="arithmatex">\(p = \frac12\)</span>）时常返（回得了家），不对称时瞬过（漂走）。（Pólya 定理进阶版：简单随机游走在 <span class="arithmatex">\(\mathbb{Z}^1, \mathbb{Z}^2\)</span> 常返、<span class="arithmatex">\(\mathbb{Z}^3\)</span> 起瞬过——"喝醉的人总能回家，喝醉的鸟可能回不了巢"。）</p>
+<h2 id="4">4. 首达概率与吸收问题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>首达概率</strong> <span class="arithmatex">\(f_{ij}\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发迟早到达 <span class="arithmatex">\(j\)</span> 的概率。求法（<strong>一步分析法</strong>，本页的万能钥匙）：对第一步的去向做全概率分解，得线性方程组。</p>
+<p><strong>赌徒破产问题（必会全解）</strong> 本金 <span class="arithmatex">\(i\)</span>，每局 <span class="arithmatex">\(\pm 1\)</span>（概率 <span class="arithmatex">\(p/q\)</span>），到 <span class="arithmatex">\(N\)</span> 收手、到 <span class="arithmatex">\(0\)</span> 破产。记 <span class="arithmatex">\(h_i\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发最终到 <span class="arithmatex">\(N\)</span> 的概率。一步分析：</p>
+<div class="arithmatex">\[
+h_i = p\, h_{i+1} + q\, h_{i-1}, \qquad h_0 = 0,\ h_N = 1
+\]</div>
+<p>这是常系数线性差分方程（特征方程 <span class="arithmatex">\(p x^2 - x + q = 0\)</span>，根 <span class="arithmatex">\(1, q/p\)</span>——ODE 页特征根法的离散版）：</p>
+<div class="arithmatex">\[
+h_i = \begin{cases} \dfrac{i}{N} &amp; p = q = \tfrac12 \\[2mm] \dfrac{1 - (q/p)^i}{1 - (q/p)^N} &amp; p \neq q \end{cases}
+\]</div>
+<p><strong>读结论</strong>：公平赌局中"翻倍离场"的成功率 = <span class="arithmatex">\(i/N\)</span>（看似公平）；但只要 <span class="arithmatex">\(p &lt; q\)</span>（赌场必然如此），<span class="arithmatex">\(N\)</span> 稍大成功率就指数式趋零——<strong>久赌必输是定理不是劝诫</strong>。期望游戏时长同法可解（一步分析 + 非齐次差分方程）。</p>
+<p>🔗 <strong>衔接</strong>：一步分析法 = 优化 IV Bellman 方程的概率版（"第一步 + 之后的最优/期望"）——强化学习价值迭代的原型；吸收概率的计算与 PageRank/随机游走类算法同源（下一页）。</p>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（C–K 实算）</strong> 天气链 <span class="arithmatex">\(P = \begin{pmatrix} 0.8 &amp; 0.2 \\ 0.4 &amp; 0.6 \end{pmatrix}\)</span>（晴/雨），今天晴，后天晴的概率？
+<em>解</em>：<span class="arithmatex">\(P^2\)</span> 的 <span class="arithmatex">\((1,1)\)</span> 元 <span class="arithmatex">\(= 0.8^2 + 0.2 \times 0.4 = 0.72\)</span>。（两条路径：晴晴晴 + 晴雨晴——C–K 就是"枚举中转站"。）</p>
+<p><strong>例 2（状态分类）</strong> <span class="arithmatex">\(P = \begin{pmatrix} \frac12 &amp; \frac12 &amp; 0 \\ \frac12 &amp; \frac12 &amp; 0 \\ \frac13 &amp; \frac13 &amp; \frac13 \end{pmatrix}\)</span>：状态 3 可达 {1,2} 但回不来——瞬过；{1, 2} 互通闭类、常返、非周期。链可约。</p>
+<p><strong>例 3（一步分析）</strong> 抛公平硬币，求"连续两次正面"首次出现的期望次数。
+<em>解</em>：设状态（无进展 / 已有一个正 / 完成），<span class="arithmatex">\(m_0 = 1 + \frac12 m_1 + \frac12 m_0\)</span>，<span class="arithmatex">\(m_1 = 1 + \frac12 \cdot 0 + \frac12 m_0\)</span> ⇒ <span class="arithmatex">\(m_0 = 6\)</span>。（把"模式等待"翻译成 Markov 链——状态设计的艺术。）<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：链跑了很久之后停在哪——平稳分布、收敛定理与 MCMC/PageRank。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="stoch-01-poisson.html"><span class="pager-label">上一页</span>随机过程 I · Poisson 过程</a>
+  <a class="pager-slot next" href="stoch-03-markov-2.html"><span class="pager-label">下一页</span>随机过程 III · Markov 链（二）</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

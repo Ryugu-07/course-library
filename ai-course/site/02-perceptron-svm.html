@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>感知机与支持向量机 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li class="active"><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 线性分类器：最简单的假设空间</a></li>
+<li><a href="#2">2. 感知机：第一个学习算法</a><ul>
+<li><a href="#21-novikoff">2.1 Novikoff 收敛定理（完整证明）</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 支持向量机：哪条分界线最好？</a><ul>
+<li><a href="#31">3.1 从几何间隔到原问题</a></li>
+<li><a href="#32">3.2 拉格朗日对偶（完整推导）</a></li>
+<li><a href="#33-kkt">3.3 KKT 条件与支持向量</a></li>
+<li><a href="#34">3.4 软间隔：现实数据不可分</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 核技巧：升维打击</a><ul>
+<li><a href="#41">4.1 动机：线性分不开怎么办</a></li>
+<li><a href="#42">4.2 核技巧本体</a></li>
+<li><a href="#43-mercer">4.3 什么样的函数能当核？Mercer 定理</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 多分类怎么办</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02">第 02 讲 · 感知机与支持向量机<a class="headerlink" href="#02" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>诞生场景</strong>：1957 年，心理学家 Rosenblatt 造出感知机（Perceptron），号称能"学习识别"——《纽约时报》当年的报道说它将来能走路、说话、有意识。这是第一个真正意义上"从数据学出分类器"的算法。而 40 年后，SVM 用严格的数学回答了感知机悬而未决的问题："这么多条能分开数据的线，哪条<strong>最好</strong>？"——并顺手发明了核方法，成为 1995–2010 年间机器学习的绝对王者，把神经网络压制了整整十五年（第 04 讲讲这段恩怨）。</p>
+</blockquote>
+<h2 id="1">1. 线性分类器：最简单的假设空间<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设定：二分类，<span class="arithmatex">\(x \in \mathbb{R}^d\)</span>，<span class="arithmatex">\(y \in \{+1, -1\}\)</span>。假设空间取线性函数：</p>
+<div class="arithmatex">\[
+f(x) = \mathrm{sign}(w^\top x + b)
+\]</div>
+<p>几何图像：<span class="arithmatex">\(w^\top x + b = 0\)</span> 是一张超平面，<span class="arithmatex">\(w\)</span> 是它的法向量，<span class="arithmatex">\(b\)</span> 控制平移；超平面把空间切成两半，一半判正一半判负。找函数 = 找 <span class="arithmatex">\((w, b)\)</span>。</p>
+<h2 id="2">2. 感知机：第一个学习算法<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>感知机的策略朴素到令人感动——<strong>犯错就修正</strong>：</p>
+<ol>
+<li>初始化 <span class="arithmatex">\(w = 0,\ b = 0\)</span>；</li>
+<li>逐个看样本，若 <span class="arithmatex">\((x_i, y_i)\)</span> 被分错（即 <span class="arithmatex">\(y_i(w^\top x_i + b) \leq 0\)</span>），更新：</li>
+</ol>
+<div class="arithmatex">\[
+w \leftarrow w + y_i x_i, \qquad b \leftarrow b + y_i
+\]</div>
+<ol>
+<li>重复扫数据，直到没有错分点。</li>
+</ol>
+<p>更新的几何直觉：分错说明 <span class="arithmatex">\(w\)</span> 与"正确方向"夹角太大，往 <span class="arithmatex">\(y_i x_i\)</span> 方向掰一把，掰完之后该点的函数值 <span class="arithmatex">\(y_i(w^\top x_i + b)\)</span> 增加了 <span class="arithmatex">\(y_i^2(x_i^\top x_i + 1) = \|x_i\|^2 + 1 &gt; 0\)</span>，即朝正确方向前进了一步。</p>
+<h3 id="21-novikoff">2.1 Novikoff 收敛定理（完整证明）<a class="headerlink" href="#21-novikoff" title="Permanent link"></a></h3>
+<p>这个看似随意的算法有个漂亮的保证。</p>
+<p><strong>定理（Novikoff 1962）</strong>：设数据线性可分，即存在单位向量 <span class="arithmatex">\(w^*\)</span>（<span class="arithmatex">\(\|w^*\| = 1\)</span>）和间隔 <span class="arithmatex">\(\gamma &gt; 0\)</span> 使得所有样本满足 <span class="arithmatex">\(y_i (w^{*\top} x_i) \geq \gamma\)</span>；又设 <span class="arithmatex">\(\|x_i\| \leq R\)</span>。则感知机的总更新次数至多为</p>
+<div class="arithmatex">\[
+k \leq \frac{R^2}{\gamma^2}
+\]</div>
+<p>（为简洁把 <span class="arithmatex">\(b\)</span> 吸收进 <span class="arithmatex">\(w\)</span>：给每个 <span class="arithmatex">\(x\)</span> 补一维常数 1，下同。）</p>
+<p><strong>证明</strong>：设第 <span class="arithmatex">\(k\)</span> 次更新用了样本 <span class="arithmatex">\((x, y)\)</span>，更新前的权重为 <span class="arithmatex">\(w_k\)</span>，则 <span class="arithmatex">\(w_{k+1} = w_k + y x\)</span>。我们从两个方向夹逼 <span class="arithmatex">\(\|w_{k+1}\|\)</span>。</p>
+<p><em>下界（每次更新都在正确方向上累积）</em>：</p>
+<div class="arithmatex">\[
+w_{k+1}^\top w^* = w_k^\top w^* + y\, x^\top w^* \geq w_k^\top w^* + \gamma
+\]</div>
+<p>从 <span class="arithmatex">\(w_0 = 0\)</span> 累加：<span class="arithmatex">\(w_{k+1}^\top w^* \geq (k+1)\gamma\)</span>。由 Cauchy–Schwarz，<span class="arithmatex">\(\|w_{k+1}\| \geq w_{k+1}^\top w^* \geq (k+1)\gamma\)</span>。</p>
+<p><em>上界（每次更新长度增长有限）</em>：</p>
+<div class="arithmatex">\[
+\|w_{k+1}\|^2 = \|w_k\|^2 + 2y\, w_k^\top x + \|x\|^2 \leq \|w_k\|^2 + R^2
+\]</div>
+<p>其中中间项 <span class="arithmatex">\(2y\,w_k^\top x \leq 0\)</span>，因为<strong>这个点当时被分错了</strong>。累加得 <span class="arithmatex">\(\|w_{k+1}\|^2 \leq (k+1)R^2\)</span>。</p>
+<p>两边夹：<span class="arithmatex">\((k+1)^2\gamma^2 \leq \|w_{k+1}\|^2 \leq (k+1)R^2\)</span>，故 <span class="arithmatex">\(k + 1 \leq R^2/\gamma^2\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>三点回味：</p>
+<ul>
+<li><strong>收敛次数与维数 <span class="arithmatex">\(d\)</span> 无关</strong>，只依赖几何量 <span class="arithmatex">\(R/\gamma\)</span>——"间隔"这个量首次登场，它将是 SVM 的灵魂；</li>
+<li>数据<strong>不可分</strong>时，感知机永不停机、来回震荡——这是它的死穴之一；</li>
+<li>可分时解有<strong>无穷多个</strong>，感知机停在哪条线取决于样本顺序，纯属偶然——这是死穴之二，也是 SVM 的出发点。</li>
+</ul>
+<h2 id="3">3. 支持向量机：哪条分界线最好？<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>同样一份可分数据，能画无数条分界线：有的贴着正类样本，有的贴着负类。直觉上，<strong>离两边都尽量远的那条</strong>最稳妥——新样本有噪声扰动时，离边界远意味着不容易被扰过界。第 01 讲的泛化理论支持这个直觉：间隔越大的分类器，"有效复杂度"越低（间隔 <span class="arithmatex">\(\gamma\)</span> 的线性分类器在半径 <span class="arithmatex">\(R\)</span> 的球内 VC 维不超过 <span class="arithmatex">\(R^2/\gamma^2\)</span> 量级，与维数无关）。</p>
+<h3 id="31">3.1 从几何间隔到原问题<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>点 <span class="arithmatex">\(x_i\)</span> 到超平面 <span class="arithmatex">\(w^\top x + b = 0\)</span> 的距离是 <span class="arithmatex">\(\dfrac{|w^\top x_i + b|}{\|w\|}\)</span>。对正确分类的点，<span class="arithmatex">\(|w^\top x_i + b| = y_i(w^\top x_i + b)\)</span>。定义整个数据集的<strong>几何间隔</strong>为最近点的距离：</p>
+<div class="arithmatex">\[
+\gamma = \min_i \frac{y_i(w^\top x_i + b)}{\|w\|}
+\]</div>
+<p>SVM 的目标：<strong>最大化 <span class="arithmatex">\(\gamma\)</span></strong>。注意 <span class="arithmatex">\((w, b)\)</span> 同乘常数 <span class="arithmatex">\(c&gt;0\)</span> 不改变超平面也不改变 <span class="arithmatex">\(\gamma\)</span>——存在一个冗余自由度。利用它做规范化：令最近点满足 <span class="arithmatex">\(y_i(w^\top x_i + b) = 1\)</span>（即约束右端定标为 1），则 <span class="arithmatex">\(\gamma = 1/\|w\|\)</span>，最大化间隔等价于：</p>
+<div class="arithmatex">\[
+\min_{w, b} \; \frac{1}{2}\|w\|^2 \quad \text{s.t.} \quad y_i(w^\top x_i + b) \geq 1, \; i = 1, \dots, n
+\]</div>
+<p>（取 <span class="arithmatex">\(\frac12\|w\|^2\)</span> 而非 <span class="arithmatex">\(\|w\|\)</span> 是为了求导好看。）这是一个<strong>凸二次规划</strong>：目标凸、约束线性——凸优化意味着局部最优即全局最优，没有神经网络那种"卡在坏解"的麻烦。这是 SVM 在 90 年代大受欢迎的原因之一：<strong>它是能被彻底理解的</strong>。</p>
+<h3 id="32">3.2 拉格朗日对偶（完整推导）<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>直接解原问题可以，但对偶形式会揭示两件深刻的事：解只依赖少数"支持向量"；以及数据只以内积形式出现——后者是核方法的入口。</p>
+<p>引入乘子 <span class="arithmatex">\(\alpha_i \geq 0\)</span>，拉格朗日函数：</p>
+<div class="arithmatex">\[
+L(w, b, \alpha) = \frac{1}{2}\|w\|^2 - \sum_{i=1}^n \alpha_i \big[y_i(w^\top x_i + b) - 1\big]
+\]</div>
+<p>原问题等价于 <span class="arithmatex">\(\min_{w,b} \max_{\alpha \geq 0} L\)</span>（若某约束被违反，内层 max 可把 <span class="arithmatex">\(L\)</span> 推到 <span class="arithmatex">\(+\infty\)</span>，故外层 min 必须满足全部约束）。对偶问题是交换 min 与 max：<span class="arithmatex">\(\max_{\alpha \geq 0} \min_{w,b} L\)</span>。由于原问题是凸且严格可行（Slater 条件），<strong>强对偶成立</strong>，两者最优值相等。</p>
+<p>内层对 <span class="arithmatex">\(w, b\)</span> 求最小：置偏导为零，</p>
+<div class="arithmatex">\[
+\frac{\partial L}{\partial w} = w - \sum_i \alpha_i y_i x_i = 0 \;\Rightarrow\; w = \sum_i \alpha_i y_i x_i
+\]</div>
+<div class="arithmatex">\[
+\frac{\partial L}{\partial b} = -\sum_i \alpha_i y_i = 0 \;\Rightarrow\; \sum_i \alpha_i y_i = 0
+\]</div>
+<p>第一式已经很有信息量：<strong>最优的 <span class="arithmatex">\(w\)</span> 是样本的线性组合</strong>，系数是 <span class="arithmatex">\(\alpha_i y_i\)</span>。把两式代回 <span class="arithmatex">\(L\)</span>：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+L &amp;= \frac{1}{2}\Big\|\sum_i \alpha_i y_i x_i\Big\|^2 - \sum_i \alpha_i y_i \Big(\sum_j \alpha_j y_j x_j\Big)^{\!\top} x_i - b\underbrace{\sum_i \alpha_i y_i}_{=0} + \sum_i \alpha_i \\
+&amp;= \frac{1}{2}\sum_{i,j} \alpha_i \alpha_j y_i y_j x_i^\top x_j - \sum_{i,j} \alpha_i \alpha_j y_i y_j x_i^\top x_j + \sum_i \alpha_i \\
+&amp;= \sum_i \alpha_i - \frac{1}{2}\sum_{i,j} \alpha_i \alpha_j y_i y_j \, x_i^\top x_j
+\end{aligned}
+\]</div>
+<p>得到<strong>对偶问题</strong>：</p>
+<div class="arithmatex">\[
+\max_{\alpha} \; \sum_{i} \alpha_i - \frac{1}{2}\sum_{i,j} \alpha_i \alpha_j y_i y_j \langle x_i, x_j\rangle
+\quad \text{s.t.} \quad \alpha_i \geq 0, \;\; \sum_i \alpha_i y_i = 0
+\]</div>
+<p><strong>盯住一个事实：数据 <span class="arithmatex">\(x\)</span> 只以内积 <span class="arithmatex">\(\langle x_i, x_j \rangle\)</span> 的形式出现。</strong> 先记下，第 4 节引爆它。</p>
+<h3 id="33-kkt">3.3 KKT 条件与支持向量<a class="headerlink" href="#33-kkt" title="Permanent link"></a></h3>
+<p>强对偶成立时，最优解满足 KKT 条件，其中<strong>互补松弛</strong>条件是：</p>
+<div class="arithmatex">\[
+\alpha_i \big[y_i(w^\top x_i + b) - 1\big] = 0, \quad \forall i
+\]</div>
+<p>即对每个样本，<span class="arithmatex">\(\alpha_i\)</span> 和"约束的松弛量"至少有一个为零。分两类：</p>
+<ul>
+<li><span class="arithmatex">\(y_i(w^\top x_i + b) &gt; 1\)</span>（严格在间隔外侧的点）<span class="arithmatex">\(\Rightarrow \alpha_i = 0\)</span>：<strong>对 <span class="arithmatex">\(w\)</span> 毫无贡献</strong>；</li>
+<li><span class="arithmatex">\(\alpha_i &gt; 0 \Rightarrow y_i(w^\top x_i + b) = 1\)</span>：这个点恰好压在间隔边界上，称为<strong>支持向量（support vector）</strong>。</li>
+</ul>
+<p>于是 <span class="arithmatex">\(w = \sum_{i \in SV} \alpha_i y_i x_i\)</span>——<strong>整个模型只由贴着边界的少数样本决定</strong>，删掉其余样本解不变。这在几何上极其直观（决定马路宽度的只有路边的房子），在计算上意味着预测只需对支持向量求内积，在统计上呼应"解的稀疏性 = 低复杂度"。<span class="arithmatex">\(b\)</span> 可由任意支持向量解出：<span class="arithmatex">\(b = y_k - w^\top x_k\)</span>。</p>
+<h3 id="34">3.4 软间隔：现实数据不可分<a class="headerlink" href="#34" title="Permanent link"></a></h3>
+<p>真实数据有噪声、有离群点，硬性要求全部分对既不可能也不明智（一个标错的点就能毁掉整个间隔）。引入松弛变量 <span class="arithmatex">\(\xi_i \geq 0\)</span> 允许违规，但违规要付钱：</p>
+<div class="arithmatex">\[
+\min_{w, b, \xi} \; \frac{1}{2}\|w\|^2 + C\sum_{i=1}^n \xi_i
+\quad \text{s.t.} \quad y_i(w^\top x_i + b) \geq 1 - \xi_i, \;\; \xi_i \geq 0
+\]</div>
+<p><span class="arithmatex">\(C &gt; 0\)</span> 是"违规罚款单价"：<span class="arithmatex">\(C \to \infty\)</span> 退回硬间隔（零容忍，容易过拟合噪声）；<span class="arithmatex">\(C\)</span> 小则宽容（间隔宽、偏差大、方差小）。<strong>这正是第 01 讲正则化滑块的 SVM 版本。</strong> 对偶推导流程完全一样（自己推一遍，好练习），结果只差一处：约束从 <span class="arithmatex">\(\alpha_i \geq 0\)</span> 变成</p>
+<div class="arithmatex">\[
+0 \leq \alpha_i \leq C
+\]</div>
+<p>另一个等价视角：消去 <span class="arithmatex">\(\xi_i\)</span>（最优时 <span class="arithmatex">\(\xi_i = \max(0,\, 1 - y_i(w^\top x_i + b))\)</span>），原问题变成无约束形式</p>
+<div class="arithmatex">\[
+\min_{w,b} \; \frac{1}{n}\sum_i \underbrace{\max\big(0,\, 1 - y_i(w^\top x_i + b)\big)}_{\text{hinge 损失}} + \lambda \|w\|^2
+\]</div>
+<p>——<strong>SVM = hinge 损失 + L2 正则的 ERM</strong>，完美嵌回第 01 讲的"损失 + 正则"框架。hinge 损失是 0-1 损失的凸上界：0-1 损失没法优化（梯度处处为 0），hinge 是它"可优化的替身"。用凸的替代损失逼近 0-1 损失，这个思想同样支撑着逻辑回归（用交叉熵）和神经网络。</p>
+<h2 id="4">4. 核技巧：升维打击<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h3 id="41">4.1 动机：线性分不开怎么办<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>XOR 型数据（第 01 讲末尾的预告）：正类在 <span class="arithmatex">\((0,0), (1,1)\)</span>，负类在 <span class="arithmatex">\((0,1), (1,0)\)</span>——任何直线都无法分开。但做一个特征映射 <span class="arithmatex">\(\phi(x) = (x_1, x_2, x_1 x_2)\)</span> 升到三维，超平面 <span class="arithmatex">\(x_1 x_2 = \text{常数}\)</span> 类的分界就轻松解决。一般规律：<strong>低维线性不可分的数据，映到足够高维后往往线性可分</strong>（Cover 定理：<span class="arithmatex">\(N\)</span> 个点在 <span class="arithmatex">\(d\)</span> 维随机标注，<span class="arithmatex">\(d\)</span> 越大线性可分概率越高）。</p>
+<p>问题是代价。想在 <span class="arithmatex">\(\mathbb{R}^{100}\)</span> 上用全部三阶多项式特征，<span class="arithmatex">\(\phi(x)\)</span> 的维数是 <span class="arithmatex">\(\binom{103}{3} \approx 1.8 \times 10^5\)</span>；阶数再高直接爆炸，更别说无穷维。</p>
+<h3 id="42">4.2 核技巧本体<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>回到 3.2 节记下的事实：对偶问题和预测函数里，数据<strong>只以内积形式出现</strong>：</p>
+<div class="arithmatex">\[
+f(x) = \mathrm{sign}\Big(\sum_{i \in SV} \alpha_i y_i \langle \phi(x_i), \phi(x)\rangle + b\Big)
+\]</div>
+<p>所以根本不需要算出 <span class="arithmatex">\(\phi(x)\)</span> 本身，只需要能算<strong>映射后的内积</strong>：</p>
+<div class="arithmatex">\[
+K(x, z) = \langle \phi(x), \phi(z) \rangle
+\]</div>
+<p>如果有一个函数 <span class="arithmatex">\(K\)</span> 能直接给出这个值，<span class="arithmatex">\(\phi\)</span> 是几维、甚至是不是无穷维，都无所谓。例：取 <span class="arithmatex">\(K(x,z) = (x^\top z)^2\)</span>，<span class="arithmatex">\(x, z \in \mathbb{R}^2\)</span>，展开验证：</p>
+<div class="arithmatex">\[
+(x^\top z)^2 = (x_1 z_1 + x_2 z_2)^2 = x_1^2 z_1^2 + 2 x_1 x_2 z_1 z_2 + x_2^2 z_2^2 = \langle \phi(x), \phi(z)\rangle
+\]</div>
+<p>其中 <span class="arithmatex">\(\phi(x) = (x_1^2, \sqrt{2}\,x_1 x_2, x_2^2)\)</span>。算 <span class="arithmatex">\(K\)</span> 只要一次内积加一次平方（<span class="arithmatex">\(O(d)\)</span>），算 <span class="arithmatex">\(\phi\)</span> 再内积是 <span class="arithmatex">\(O(d^2)\)</span>；多项式核 <span class="arithmatex">\(K(x,z) = (x^\top z + c)^p\)</span> 对应的 <span class="arithmatex">\(\phi\)</span> 有 <span class="arithmatex">\(\binom{d+p}{p}\)</span> 维，而算 <span class="arithmatex">\(K\)</span> 永远是 <span class="arithmatex">\(O(d)\)</span>。<strong>用低维的计算量，买到高维的表达力</strong>——这就是核技巧（kernel trick）。</p>
+<p>最著名的是<strong>高斯核（RBF 核）</strong>：</p>
+<div class="arithmatex">\[
+K(x, z) = \exp\left(-\frac{\|x - z\|^2}{2\sigma^2}\right)
+\]</div>
+<p>它对应的 <span class="arithmatex">\(\phi\)</span> 是<strong>无穷维</strong>的（把指数泰勒展开，<span class="arithmatex">\(e^{x^\top z/\sigma^2} = \sum_{k=0}^\infty \frac{(x^\top z)^k}{\sigma^{2k} k!}\)</span>，每一项是 <span class="arithmatex">\(k\)</span> 阶多项式特征的内积，无穷级数拼出无穷维特征）。一台 90 年代的电脑，就这样在无穷维空间里训练线性分类器。</p>
+<h3 id="43-mercer">4.3 什么样的函数能当核？Mercer 定理<a class="headerlink" href="#43-mercer" title="Permanent link"></a></h3>
+<p>不是随便一个二元函数都是某个 <span class="arithmatex">\(\phi\)</span> 的内积。<strong>Mercer 定理（有限点集版）</strong>：<span class="arithmatex">\(K\)</span> 是合法核 <span class="arithmatex">\(\iff\)</span> 对任意有限点集 <span class="arithmatex">\(\{x_1, \dots, x_n\}\)</span>，<strong>Gram 矩阵</strong> <span class="arithmatex">\(G_{ij} = K(x_i, x_j)\)</span> 对称半正定。</p>
+<p><em>必要性</em>：若 <span class="arithmatex">\(K(x,z) = \langle\phi(x), \phi(z)\rangle\)</span>，则对任意 <span class="arithmatex">\(c \in \mathbb{R}^n\)</span>，</p>
+<div class="arithmatex">\[
+c^\top G c = \sum_{i,j} c_i c_j \langle \phi(x_i), \phi(x_j)\rangle = \Big\|\sum_i c_i \phi(x_i)\Big\|^2 \geq 0. 
+\]</div>
+<p><em>充分性（有限维情形）</em>：<span class="arithmatex">\(G\)</span> 对称半正定则可谱分解 <span class="arithmatex">\(G = U \Lambda U^\top\)</span>（<span class="arithmatex">\(\Lambda \geq 0\)</span>），取 <span class="arithmatex">\(\phi(x_i) = \Lambda^{1/2} U^\top e_i\)</span> 即得 <span class="arithmatex">\(\langle\phi(x_i), \phi(x_j)\rangle = G_{ij}\)</span>。一般情形把求和换成积分算子的谱分解（Mercer 1909），构造出的特征空间称为<strong>再生核希尔伯特空间（RKHS）</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>半正定性也保证了对偶问题仍是凸的（目标中的二次型 <span class="arithmatex">\(-\frac12 \alpha^\top (\text{diag}(y)\, G\, \text{diag}(y))\, \alpha\)</span> 凹），凸性的免费午餐得以保留。</p>
+<div class="admonition note">
+<p class="admonition-title">核方法的历史地位</p>
+<p>1995 年软间隔 SVM（Cortes &amp; Vapnik）+ 核技巧 + 严格的统计学习理论（VC 理论正是 Vapnik 的作品）三位一体，让 SVM 成为 1995–2010 年的主流方法：手写数字、文本分类、生物信息，处处是它。同一时期神经网络理论上说不清、调参靠玄学，在学术界几乎被扫进故纸堆——只有少数人还在坚持（第 04 讲）。而核方法的局限也埋在它的优雅里：核矩阵 <span class="arithmatex">\(n \times n\)</span>，样本到百万级就存不下算不动；特征仍然是"人选核函数"而非"从数据学出来"。这两条短板，正是深度学习后来翻盘的地方。</p>
+</div>
+<h2 id="5">5. 多分类怎么办<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>SVM 天生二分类。多分类的标准做法：<strong>一对其余（One-vs-Rest）</strong>训练 <span class="arithmatex">\(K\)</span> 个二分类器取分数最高者，或<strong>一对一（One-vs-One）</strong>训练 <span class="arithmatex">\(\binom{K}{2}\)</span> 个投票。（对比之下，第 03 讲的决策树和贝叶斯天生多分类，第 04 讲的神经网络用 softmax 天生多分类——这是 SVM 的一个小别扭。）</p>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>感知机</td>
+<td>犯错就修正；可分时 <span class="arithmatex">\(R^2/\gamma^2\)</span> 步收敛（Novikoff）</td>
+</tr>
+<tr>
+<td>最大间隔</td>
+<td>在所有可分超平面里选离两类都最远的——泛化更稳</td>
+</tr>
+<tr>
+<td>对偶</td>
+<td><span class="arithmatex">\(w = \sum \alpha_i y_i x_i\)</span>；数据只以内积出现</td>
+</tr>
+<tr>
+<td>支持向量</td>
+<td><span class="arithmatex">\(\alpha_i &gt; 0\)</span> 的边界点；模型只由它们决定</td>
+</tr>
+<tr>
+<td>软间隔</td>
+<td>hinge 损失 + L2 正则；<span class="arithmatex">\(C\)</span> 是过拟合滑块</td>
+</tr>
+<tr>
+<td>核技巧</td>
+<td>只算 <span class="arithmatex">\(K(x,z)\)</span> 不算 <span class="arithmatex">\(\phi\)</span>；低维计算量买无穷维表达力</td>
+</tr>
+<tr>
+<td>Mercer</td>
+<td>合法核 <span class="arithmatex">\(\iff\)</span> Gram 矩阵半正定</td>
+</tr>
+</tbody>
+</table>
+<p><strong>动手</strong>：跑 <code>labs/lab02_perceptron_svm.py</code>——从零实现感知机看它收敛，再用 sklearn 的 SVM 对比线性核与 RBF 核的决策边界，把支持向量圈出来，最后调 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(\sigma\)</span> 观察过拟合。</p>
+<p><strong>延伸阅读</strong>：李航《统计学习方法》第 2、7 章（中文里最清楚的 SVM 推导）；Burges "A Tutorial on Support Vector Machines" (1998)。</p>
+<hr />
+<p><em>下一讲换一条思路：不画分界线了。用"一连串 if-else 问题"分类（决策树），或者干脆直接对第 01 讲的贝叶斯最优分类器建模（朴素贝叶斯）。顺便回答一个深刻的小问题：为什么信息要用 <span class="arithmatex">\(-\sum p \log p\)</span> 度量？</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-find-function.html"><span class="pager-label">上一讲</span>01 · 机器学习就是找函数</a>
+  <a class="pager-slot next" href="03-tree-bayes.html"><span class="pager-label">下一讲</span>03 · 决策树与贝叶斯方法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

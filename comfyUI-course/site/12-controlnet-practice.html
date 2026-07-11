@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ControlNet 实战 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li class="active"><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 全链路：条件图从哪来，到哪去</a></li>
+<li><a href="#2-controlnet">2. 接线：ControlNet 串在"条件的水管"上</a></li>
+<li><a href="#3">3. 四种条件图怎么选（你的工具链全覆盖）</a></li>
+<li><a href="#4-vrchat">4. VRChat 素材的标准工作流（本讲的靶心）</a></li>
+<li><a href="#5">5. 排查树</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="12-controlnet">第 12 讲 · ControlNet 实战<a class="headerlink" href="#12-controlnet" title="Permanent link"></a></h1>
+<blockquote>
+<p>原理在第 05 讲（冻结底模 + 可训练副本 + 零卷积），本讲接线开跑。你手里有一副好牌：<strong>Mac 上的 controlnet_aux 工具链已经能产 openpose/canny/depth/lineart_anime 四种条件图</strong>（之前 AIGC 工作流项目装好的），Win 这边只需把它们喂给第 10 讲下载的 union 模型。工作流对照 <code>wf06_sdxl_controlnet.json</code>。</p>
+</blockquote>
+<h2 id="1">1. 全链路：条件图从哪来，到哪去<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>ControlNet 的使用永远分两段：</p>
+<div class="highlight"><pre><span></span><code>【预处理段】参考图 ──(预处理器)──▶ 条件图(骨架/线稿/深度…)
+【生成段】  条件图 + 提示词 ──(ControlNet + 底模)──▶ 成图
+</code></pre></div>
+<p>预处理有两个地方可做，你两者都有：</p>
+<ul>
+<li><strong>Mac 侧（你现成的）</strong>：controlnet_aux 脚本批量出条件图 → 传到 Win 的 <code>E:\AI\Inputs</code>（scp/LocalSend 都行）。适合批量、适合你已调好的 MediaPipe 低阈值参数；</li>
+<li><strong>Win 侧（装节点后）</strong>：ComfyUI 里装 <code>comfyui_controlnet_aux</code> 扩展节点包（第 15 讲讲怎么装），画布内直接 Load Image → 预处理器节点 → 条件图。适合单张即调即用。</li>
+</ul>
+<p>起步阶段建议先走 Mac 侧——<strong>零新依赖就能开跑</strong>，也顺便验证两机传图通道。</p>
+<h2 id="2-controlnet">2. 接线：ControlNet 串在"条件的水管"上<a class="headerlink" href="#2-controlnet" title="Permanent link"></a></h2>
+<p>对照第 07 讲的骨架：LoRA 串在紫线（MODEL）上，ControlNet 串在<strong>橙线（CONDITIONING）</strong>上：</p>
+<div class="highlight"><pre><span></span><code>Load ControlNet Model (选 union promax)
+            │
+CLIP Text Encode(正) ─▶ Apply ControlNet ─▶ KSampler positive
+CLIP Text Encode(负) ─▶      (同一节点)  ─▶ KSampler negative
+Load Image(条件图) ──▶ ↑
+</code></pre></div>
+<p>用 <strong>Apply ControlNet</strong>（同时吃正负条件的版本），三个关键参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>起手值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>strength</code></td>
+<td>结构注入力度（第 05 讲副本输出的缩放）</td>
+<td>0.8</td>
+</tr>
+<tr>
+<td><code>start_percent</code></td>
+<td>从第几成的去噪进度开始生效</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td><code>end_percent</code></td>
+<td>到第几成停止生效</td>
+<td><strong>0.8</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>end_percent=0.8</code> 的道理是第 03 讲的直接应用：<strong>构图在高噪声段定型，细节在低噪声段成形</strong>——让 ControlNet 管前 80% 步（锁住姿势构图），最后 20% 步撒手让模型自由发挥细节，图更自然。姿势总跑偏就升到 1.0，画面发僵就降 strength 或 end_percent。</p>
+<p>union 模型是"多合一"：它按输入条件图的类型自动适配（部分版本配套 SetUnionControlNetType 节点手动指定 openpose/canny/depth——装好后看节点搜索里有没有，有就显式指定更稳）。</p>
+<h2 id="3">3. 四种条件图怎么选（你的工具链全覆盖）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>条件类型</th>
+<th>锁住什么</th>
+<th>自由度</th>
+<th>典型场景（VRChat 素材）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>openpose</strong></td>
+<td>只锁骨架关节</td>
+<td>最高</td>
+<td><strong>主力</strong>：角色摆同款姿势换画风/换服装/换场景</td>
+</tr>
+<tr>
+<td>depth</td>
+<td>锁空间前后关系</td>
+<td>中</td>
+<td>保留场景层次重绘；人物体积感</td>
+</tr>
+<tr>
+<td>canny</td>
+<td>锁所有硬边缘</td>
+<td>低</td>
+<td>严格保形重绘（建筑、机械、logo）</td>
+</tr>
+<tr>
+<td>lineart_anime</td>
+<td>锁动漫线稿</td>
+<td>低-中</td>
+<td>线稿上色、草图成图</td>
+</tr>
+</tbody>
+</table>
+<p><strong>自由度与控制力成反比</strong>——想让模型发挥就选 openpose，想严格照抄就选 canny。这也决定 strength 的手感：openpose 可以放心 0.9–1.0（只约束了骨架），canny 建议 0.5–0.8（满强度容易把参考图的一切细节都焊死）。</p>
+<h2 id="4-vrchat">4. VRChat 素材的标准工作流（本讲的靶心）<a class="headerlink" href="#4-vrchat" title="Permanent link"></a></h2>
+<p>把三讲的武器合成你的实际管线：</p>
+<div class="highlight"><pre><span></span><code>Mac: VRChat 截图 ──controlnet_aux──▶ openpose 骨架图 ──传──▶ E:\AI\Inputs
+Win: wf06 = Illustrious 底模 + 角色/画风 LoRA(第11讲) + openpose ControlNet
+     提示词 = danbooru 标签描述角色外观(第10讲) + 触发词
+     → 同一姿势 × 任意画风/服装/场景 的成图
+</code></pre></div>
+<p>要点两条：<strong>提示词仍要完整描述角色</strong>（骨架图里没有外观信息，长相靠提示词+LoRA 支撑）；批量生产时固定骨架图和种子、只扫提示词变体——你的"角色姿势库"从此可复用。</p>
+<h2 id="5">5. 排查树<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code>完全不受条件图控制?
+├─ strength 太低 / end_percent 太小
+├─ union 模型没识别对类型 → 显式指定类型节点
+└─ 条件图本身质量差 → 打开看一眼: 骨架断肢? 线稿全黑?
+   (Mac 侧 MediaPipe 对动漫脸的坑你已经踩过——低阈值)
+
+控制过死、画面僵硬?
+├─ strength 降到 0.6-0.8
+├─ end_percent 降到 0.6-0.7
+└─ canny 这类高约束条件 → 换 openpose/depth
+
+姿势对了但人体比例怪?
+└─ 骨架图与目标分辨率长宽比不一致 → 条件图先裁/缩到与 Empty Latent 同比例
+</code></pre></div>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>在 Mac 上给一张 VRChat 截图抽 openpose 骨架，传到 <code>E:\AI\Inputs</code>（顺便验证传图通道）；</li>
+<li>跑通 <code>wf06</code>：同一骨架 + 固定种子，换三套提示词（校服/盔甲/和服），确认"姿势锁定、内容自由"；</li>
+<li>固定一切，扫 <code>end_percent</code> = 0.5 / 0.8 / 1.0，体会"构图期 vs 细节期"的分界——这是第 03 讲噪声日程最直观的一次显形；</li>
+<li>同一张截图再抽 canny 跑一遍，与 openpose 版对比自由度差异。</li>
+</ol>
+<hr />
+<p><em>姿势可控了，还差最后一块拼图：让"同一个角色"在不同图里长着同一张脸——下一讲 IP-Adapter 与角色一致性策略。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-lora-practice.html"><span class="pager-label">上一讲</span>11 · LoRA 实战</a>
+  <a class="pager-slot next" href="13-ipadapter-consistency.html"><span class="pager-label">下一讲</span>13 · IP-Adapter 与角色一致性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

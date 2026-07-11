@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diff、打断、转向与审计 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="18-human-interface">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage" open><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a class="current" aria-current="page" href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:60%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第四阶段 · 安全与人类控制</span><span>第 18 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 人类需要看到什么</a></li>
+<li><a href="#2-diff">2. Diff 审查界面</a></li>
+<li><a href="#3-interrupt-steer">3. Interrupt 与 Steer 的体验</a></li>
+<li><a href="#4">4. 审批请求的时机</a></li>
+<li><a href="#5">5. 审计日志</a></li>
+<li><a href="#6-cli-app">6. 从 CLI 到桌面 App</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="18-diff">第 18 章 · Diff、打断、转向与审计<a class="headerlink" href="#18-diff" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：理解 Agent UI 不只是把模型文字打印出来，而是让人类看见状态、证据、风险并在正确时机介入。</p>
+</blockquote>
+<h2 id="1">1. 人类需要看到什么<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>长任务中只显示“思考中”会让人无法判断是否跑偏。界面至少应展示当前目标、正在执行的动作、权限请求、计划进度、修改 diff、验证结果和停止原因。展示不等于暴露模型私有推理，而是呈现可审计事件。</p>
+<p>好的进度更新说明“正在读取认证入口以定位失败测试”，而不是每秒输出无意义心跳。信息量应与决策价值匹配。</p>
+<h2 id="2-diff">2. Diff 审查界面<a class="headerlink" href="#2-diff" title="Permanent link"></a></h2>
+<p>文件修改需要按文件和 hunk 展示，支持行级评论、接受、撤销和暂存。用户应能区分本轮 Agent 变化与任务开始前已有变化。删除大量内容、改动测试和修改敏感配置应有明显提示。</p>
+<p>审查不是结束后才发生。对于迁移和高风险文件，可以在关键步骤暂停，让人类批准设计或中间 diff。</p>
+<h2 id="3-interrupt-steer">3. Interrupt 与 Steer 的体验<a class="headerlink" href="#3-interrupt-steer" title="Permanent link"></a></h2>
+<p>打断按钮要说明会停止什么：模型生成、当前命令还是整个任务。对可安全终止的命令发送信号，对数据库迁移等操作不能假装瞬间撤销。界面在中断后应汇报已发生的副作用。</p>
+<p>转向输入允许用户补充：“只修后端，不改前端。”Runtime 把它注入活动 Turn，并更新计划。新要求与旧要求冲突时，应明确以最新要求为准，同时保留决策记录。</p>
+<h2 id="4">4. 审批请求的时机<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>请求必须发生在副作用之前。界面展示规范化动作、目标、理由和边界。把十个低风险读取逐个弹窗会制造疲劳；把“安装依赖、执行脚本、上传结果”打成一个模糊总批准又过宽。</p>
+<p>可以允许窄范围持久规则，例如本任务内允许运行 pytest，但不自动允许所有 shell 命令。用户可以随时查看和撤销当前授权。</p>
+<h2 id="5">5. 审计日志<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>审计事件应包含时间、Thread、Turn、工具、参数摘要、权限决定、结果状态和文件变更。敏感值脱敏，但保留足够信息复盘。日志服务于故障诊断、安全调查和评测，不只是合规存档。</p>
+<p>事件最好采用追加写，避免模型或普通工具修改过去记录。外部操作还应保存目标系统返回的对象 id，便于核对和撤销。</p>
+<h2 id="6-cli-app">6. 从 CLI 到桌面 App<a class="headerlink" href="#6-cli-app" title="Permanent link"></a></h2>
+<p>CLI 适合快速本地操作，IDE 适合结合当前文件和诊断，桌面 App 适合任务管理、diff 审查、多任务和浏览器，云端适合离线并行。它们共享 Agent 内核与事件协议，但人类控制面不同。</p>
+<div class="admonition note">
+<p class="admonition-title">产品判断</p>
+<p>界面最重要的不是动画，而是让用户在三秒内回答：Agent 正在做什么、为什么做、已经改变了什么、我现在能否安全打断。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="18-human-interface"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="17-injection-secrets.html"><span>上一页</span><strong>17 · 提示词注入与秘密保护</strong></a><a class="pager-slot next" href="19-subagent-isolation.html"><span>下一页</span><strong>19 · 子 Agent 与上下文隔离</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

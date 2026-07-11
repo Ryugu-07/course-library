@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KL 散度与互信息 · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li class="active"><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-11 07:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-kl">1. KL 散度</a></li>
+<li><a href="#2-mle">2. 交叉熵与 MLE 的信息论真身</a></li>
+<li><a href="#3">3. 互信息</a></li>
+<li><a href="#4-ml">4. 🔗 全站与 ML 对账</a></li>
+<li><a href="#5">5. 典型例题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-kl">信息论 II · KL 散度与互信息<a class="headerlink" href="#ii-kl" title="Permanent link"></a></h1>
+<blockquote>
+<p>熵度量一个分布的不确定性，本页度量<strong>两个分布的差异</strong>（KL 散度）与<strong>两个变量的依赖</strong>（互信息）。这一页是现代机器学习的信息论心脏：MLE、交叉熵损失、RLHF 的 KL 正则、变分推断——全是本页两个概念的化身。</p>
+</blockquote>
+<h2 id="1-kl">1. KL 散度<a class="headerlink" href="#1-kl" title="Permanent link"></a></h2>
+<p><strong>定义</strong>（相对熵）：</p>
+<div class="arithmatex">\[
+D_{\mathrm{KL}}(p \,\|\, q) = \sum_x p(x)\log\frac{p(x)}{q(x)} = E_{p}\Big[\log\frac{p(X)}{q(X)}\Big]
+\]</div>
+<p><strong>读法</strong>：真相是 <span class="arithmatex">\(p\)</span>、你却按 <span class="arithmatex">\(q\)</span> 编码/建模时，平均<strong>多付</strong>的比特数（下节精确化）。</p>
+<p><strong>定理（Gibbs 不等式）</strong> <span class="arithmatex">\(D_{\mathrm{KL}}(p\|q) \geq 0\)</span>，取等当且仅当 <span class="arithmatex">\(p = q\)</span>。
+<em>证明（两行）</em>：<span class="arithmatex">\(-D = E_p\log\frac{q}{p} \leq \log E_p\frac{q}{p} = \log\sum q = 0\)</span>（Jensen，<span class="arithmatex">\(\log\)</span> 凹；取等需 <span class="arithmatex">\(\frac qp\)</span> 恒定）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>——全站已三次使用它（ELBO、DPO、最大熵），证明原来只有两行。</p>
+<p><strong>两条脾气</strong>（用错会翻车）：<strong>不对称</strong> <span class="arithmatex">\(D(p\|q) \neq D(q\|p)\)</span>——前向 KL（<span class="arithmatex">\(p\)</span> 真相在前）罚"真相有而模型无"（mode-covering，模型摊大饼）、反向 KL 罚"模型有而真相无"（mode-seeking，模型抱一个峰——变分推断偏窄、RLHF 保守性的来源）；<strong>不是距离</strong>（无三角不等式）——叫"散度"是有意的。</p>
+<h2 id="2-mle">2. 交叉熵与 MLE 的信息论真身<a class="headerlink" href="#2-mle" title="Permanent link"></a></h2>
+<p><strong>交叉熵</strong> <span class="arithmatex">\(H(p, q) = -E_p[\log q(X)] = H(p) + D_{\mathrm{KL}}(p \,\|\, q)\)</span>。</p>
+<p><strong>分解读法</strong>：用模型 <span class="arithmatex">\(q\)</span> 编码真相 <span class="arithmatex">\(p\)</span> 的平均码长 = 不可约的熵 + 模型误差的 KL——<strong>最小化交叉熵 ⟺ 最小化 KL</strong>（<span class="arithmatex">\(H(p)\)</span> 与模型无关）。</p>
+<p><strong>定理（MLE = 最小化 KL）</strong> 设经验分布 <span class="arithmatex">\(\hat p\)</span>（数据的直方图），则</p>
+<div class="arithmatex">\[
+\arg\max_\theta \frac1n\sum_i \log q_\theta(x_i) = \arg\min_\theta H(\hat p, q_\theta) = \arg\min_\theta D_{\mathrm{KL}}(\hat p \,\|\, q_\theta)
+\]</div>
+<p>（第一个等号只是改写：对数似然的平均恰是 <span class="arithmatex">\(-H(\hat p, q_\theta)\)</span>。）<strong>统计 II 的 MLE、ai 课 07 的 LLM 训练目标、信息论的最优编码，是同一件事的三种口音</strong>——本站最重要的三线合流之一。</p>
+<h2 id="3">3. 互信息<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>定义</strong>：</p>
+<div class="arithmatex">\[
+I(X; Y) = D_{\mathrm{KL}}\big(p(x,y)\,\|\,p(x)p(y)\big) = H(X) - H(X \mid Y) = H(X) + H(Y) - H(X,Y)
+\]</div>
+<p><strong>三种读法</strong>：联合分布偏离"假装独立"的程度；知道 <span class="arithmatex">\(Y\)</span> 后 <span class="arithmatex">\(X\)</span> 不确定性的削减量（上一页"信息不增"的差值）；两圆 Venn 图的交叠。性质：对称、非负（Gibbs 直接给）、<span class="arithmatex">\(I = 0 \iff\)</span> 独立。</p>
+<p><strong>与相关系数的分工</strong>（概率 IV 的痛点补完）：<span class="arithmatex">\(\rho\)</span> 只测线性（<span class="arithmatex">\(Y = X^2\)</span> 时 <span class="arithmatex">\(\rho = 0\)</span>），<strong>互信息捕捉一切依赖</strong>（<span class="arithmatex">\(Y = X^2\)</span> 时 <span class="arithmatex">\(I &gt; 0\)</span>——<span class="arithmatex">\(Y\)</span> 完全由 <span class="arithmatex">\(X\)</span> 决定，<span class="arithmatex">\(I = H(Y)\)</span> 拉满）。代价：<span class="arithmatex">\(I\)</span> 需要估计整个联合分布，样本效率差——两者是"精度 vs 广度"的取舍。</p>
+<p><strong>数据处理不等式（DPI）</strong>：Markov 链 <span class="arithmatex">\(X \to Y \to Z\)</span>（<span class="arithmatex">\(Z\)</span> 只通过 <span class="arithmatex">\(Y\)</span> 依赖 <span class="arithmatex">\(X\)</span>）⇒</p>
+<div class="arithmatex">\[
+I(X; Z) \leq I(X; Y)
+\]</div>
+<p>——<strong>加工不增信息</strong>：对数据做任何确定/随机的后处理，都不可能"榨出"比原数据更多的关于源头的信息（特征工程只能丢弃或保留，不能创造；估计量是数据的函数，故其对参数的信息不超过样本——统计 II Fisher 信息与充分统计量的信息论近亲）。<strong>Fano 不等式</strong>一嘴：由 <span class="arithmatex">\(H(X\mid Y)\)</span> 给出"从 <span class="arithmatex">\(Y\)</span> 猜 <span class="arithmatex">\(X\)</span>"错误率的下界——"不可能定理"的通用武器。</p>
+<h2 id="4-ml">4. 🔗 全站与 ML 对账<a class="headerlink" href="#4-ml" title="Permanent link"></a></h2>
+<ul>
+<li><strong>RLHF/DPO 的 KL 缰绳</strong>（ai 课 07）：<span class="arithmatex">\(\max E[r] - \beta D_{\mathrm{KL}}(\pi\|\pi_{\mathrm{ref}})\)</span>——反向 KL 的 mode-seeking 保守性正是"不许跑离参考策略太远"的实现；DPO 推导第一步的闭式解全靠 Gibbs 不等式；</li>
+<li><strong>变分推断/ELBO</strong>（comfy 课 02）：<span class="arithmatex">\(\log p(x) = \mathrm{ELBO} + D_{\mathrm{KL}}(q\|p_{\text{后验}})\)</span>——证据下界的"下界"二字就是 Gibbs；</li>
+<li><strong>对比学习一嘴</strong>：InfoNCE 损失是互信息的下界估计——"表示学习 = 最大化表示与数据的互信息"是一整个流派的纲领。</li>
+</ul>
+<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（两个高斯的 KL）</strong> <span class="arithmatex">\(D_{\mathrm{KL}}\big(N(\mu_1,\sigma^2)\,\|\,N(\mu_2,\sigma^2)\big) = \frac{(\mu_1 - \mu_2)^2}{2\sigma^2}\)</span>（直接积分，交叉项对消）——高斯世界里 KL 退化为标准化欧氏距离的一半：均方损失的信息论出身。</p>
+<p><strong>例 2（不对称的体感）</strong> <span class="arithmatex">\(p = (\frac12, \frac12)\)</span>，<span class="arithmatex">\(q = (0.99, 0.01)\)</span>：<span class="arithmatex">\(D(p\|q) \approx 2.32\)</span> 比特，<span class="arithmatex">\(D(q\|p) \approx 0.92\)</span> 比特——"用偏见编码公平硬币"比反过来代价大得多（<span class="arithmatex">\(p\)</span> 常踩中 <span class="arithmatex">\(q\)</span> 认为几乎不可能的事件，<span class="arithmatex">\(\log\frac{0.5}{0.01}\)</span> 巨大）。</p>
+<p><strong>例 3（互信息计算）</strong> 二元对称信道：<span class="arithmatex">\(X \sim B(1, \frac12)\)</span>，<span class="arithmatex">\(Y\)</span> 以 0.9 概率复制 <span class="arithmatex">\(X\)</span>：<span class="arithmatex">\(I(X;Y) = H(Y) - H(Y\mid X) = 1 - h(0.1) \approx 0.531\)</span> 比特——噪声吃掉了近一半信息；这个量正是下一页信道容量的原型。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：信息论的两大顶点应用——最大熵原理（高斯分布的第三种出身）与信道编码，最后落到"压缩即智能"的现代命题。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="info-01-entropy.html"><span class="pager-label">上一页</span>信息论 I · 熵与信源编码</a>
+  <a class="pager-slot next" href="info-03-maxent-channel.html"><span class="pager-label">下一页</span>信息论 III · 最大熵与信道容量</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>权限与沙箱判定台 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="lab-05-permission">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage"><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage" open><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a class="current" aria-current="page" href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:62%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>互动实验室</span><span>实验 5 / 8</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 实验问题</a></li>
+<li><a href="#2">2. 组合判定</a></li>
+<li><a href="#3">3. 典型组合</a></li>
+<li><a href="#4">4. 最小权限设计</a></li>
+<li><a href="#5">5. 威胁推演</a></li>
+<li><a href="#6">6. 代码挑战</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="05">实验 05 · 权限与沙箱判定台<a class="headerlink" href="#05" title="Permanent link"></a></h1>
+<blockquote>
+<p>对应第 15–17 章。本实验把工具规则、审批策略和操作系统沙箱分成三层，观察同一动作为什么可能自动允许、请求批准或直接拒绝。</p>
+</blockquote>
+<h2 id="1">1. 实验问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>审批回答“人类是否同意扩大权限”，沙箱回答“进程技术上能触达什么”。两者经常被混为一个开关。请选择“修改文件、workspace 外部、never、workspace-write”，先预测结果。</p>
+<p>never 不是自动允许，而是 Agent 不能通过弹窗获得新权限；超出当前边界的动作应直接拒绝或寻找替代方案。</p>
+<h2 id="2">2. 组合判定<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<div class="lab-shell" data-lab="permission"></div>
+
+<p>实验是简化策略模拟，不代表具体产品的全部规则。它展示的核心顺序是：识别动作风险，应用审批策略，再检查实际执行边界。真实系统还会合并项目规则、企业配置、网络域名和工具副作用标注。</p>
+<h2 id="3">3. 典型组合<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>尝试以下组合：</p>
+<ol>
+<li>workspace 内读取 + read-only：应允许；</li>
+<li>workspace 内修改 + read-only：需要扩大或拒绝；</li>
+<li>修改 .git：即使 workspace 可写也应特殊保护；</li>
+<li>删除主目录 + never：应拒绝；</li>
+<li>普通命令 + always：技术上可执行，但策略要求询问。</li>
+</ol>
+<p>注意 ASK 不等于动作已经发生。Runtime 必须暂停 Turn，获得具体批准，再重新进行执行检查。</p>
+<h2 id="4">4. 最小权限设计<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>当动作被拒绝时，列出更窄替代方案：把目标文件复制到 workspace；只允许一个域名；让可信 setup 安装依赖；使用只读 API；请求一次特定命令而不是 full access。</p>
+<p>权限升级应与任务需要绑定并可撤销。调试失败不构成永久扩大权限的理由。</p>
+<h2 id="5">5. 威胁推演<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>假设 Agent 读取网页，网页包含恶意指令要求上传 ~/.ssh。即使模型误信，工具规则应识别主目录，审批层应显示外发目标，沙箱应阻止读取或联网。纵深防御意味着不依赖任意单层绝对正确。</p>
+<h2 id="6">6. 代码挑战<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>为每个 ToolSpec 增加 side_effect、allowed_roots 和 network 属性。policy.check 返回 allow、ask、deny 与 reason。写离线测试覆盖路径穿越、.git、主目录、网络和危险命令。测试应验证理由，而不只验证布尔值。</p>
+<p>完成实验的标准是能说清：谁提出动作，谁分类风险，谁批准，谁在操作系统层真正限制。</p>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="lab-05-permission"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="lab-04-context.html"><span>上一页</span><strong>实验 04 · 上下文预算模拟器</strong></a><a class="pager-slot next" href="lab-06-subagents.html"><span>下一页</span><strong>实验 06 · 子 Agent 任务拆分器</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

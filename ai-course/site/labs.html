@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实验总览（lab01–lab10） · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li class="active"><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">运行方式</a></li>
+<li><a href="#_2">实验清单</a></li>
+<li><a href="#_3">建议玩法</a></li>
+<li><a href="#_4">环境备忘</a></li>
+</ul>
+</div>
+</details>
+<h1 id="lab01lab10">实验总览（lab01–lab10）<a class="headerlink" href="#lab01lab10" title="Permanent link"></a></h1>
+<blockquote>
+<p>讲义负责"懂"，实验负责"会"。十个实验按课程顺序排列：lab01–07 纯本地运行（无需联网、无需 API key），lab08–10 需要 DeepSeek API key（总花费不到一元）。所有实验源代码都有密集的教学注释——<strong>代码本身就是讲义的一部分</strong>，建议逐块读懂再改参数玩。</p>
+</blockquote>
+<h2 id="_1">运行方式<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/ai-course
+.venv/bin/python<span class="w"> </span>labs/lab01_find_function.py<span class="w">     </span><span class="c1"># 以 lab01 为例</span>
+</code></pre></div>
+<p>图表会弹窗显示，同时自动保存到 <code>labs/output/</code>。lab08–10 首次运行前：</p>
+<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>labs/.env.example<span class="w"> </span>labs/.env
+<span class="c1"># 编辑 labs/.env，填入 platform.deepseek.com 创建的 API key</span>
+</code></pre></div>
+<h2 id="_2">实验清单<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>配套讲次</th>
+<th>内容</th>
+<th>依赖</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lab01 拟合与过拟合</td>
+<td>01</td>
+<td>多项式拟合亲手制造欠/过拟合，画出 U 形曲线，岭正则救场</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab02 感知机与 SVM</td>
+<td>02</td>
+<td>从零实现感知机看收敛；SVM 线性/RBF 核对比、圈支持向量、调 C</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab03 决策树与贝叶斯</td>
+<td>03</td>
+<td>手算信息增益；树深过拟合可视化；从零写垃圾短信分类器（平滑对照）</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab04 反向传播 ★</td>
+<td>04</td>
+<td>纯 numpy 实现四个方程解 XOR + 数值梯度检查（全课程最值得手写）</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab05 CNN 识数字</td>
+<td>05</td>
+<td>M4/MPS 上训小 CNN，对比全连接的参数量与准确率，可视化卷积核</td>
+<td>本地*</td>
+</tr>
+<tr>
+<td>lab06 注意力与 miniGPT</td>
+<td>06</td>
+<td>numpy 注意力矩阵可视化；用本课讲义当语料训一个 char-GPT</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab07 Scaling Law</td>
+<td>07</td>
+<td>训一族不同宽度的 miniGPT，log-log 拟合出你自己的幂律指数</td>
+<td>本地</td>
+</tr>
+<tr>
+<td>lab08 提示词实验</td>
+<td>08</td>
+<td>直答 vs 思维链准确率、温度稳定性、自洽性投票，三组对照实验</td>
+<td>API</td>
+</tr>
+<tr>
+<td>lab09 手搓智能体 ★</td>
+<td>09</td>
+<td>不用框架实现完整 agent loop：工具注册→模型决策→执行→回填</td>
+<td>API</td>
+</tr>
+<tr>
+<td>lab10 分析智能体</td>
+<td>15</td>
+<td>给模型一个 CSV 和 run_python 工具，看它自主探索出数据里埋的规律</td>
+<td>API</td>
+</tr>
+</tbody>
+</table>
+<p>*lab05 优先下载 MNIST（约 12MB），网络不通自动退回离线的 sklearn digits 数据集。</p>
+<h2 id="_3">建议玩法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ol>
+<li><strong>先跑通，再读码，再改坏</strong>：每个实验末尾都有"动手改改"清单——把参数改到极端、观察怎么坏，比看十遍正确结果学得多；</li>
+<li><strong>对照讲义公式读代码</strong>：lab04 的四个方程、lab06 的注意力实现，都是讲义公式的逐行直译，代码里标了对应小节；</li>
+<li><strong>★ 两个必做</strong>：lab04（反向传播 + 梯度检查）与 lab09（手搓 agent loop）——前者是理解深度学习的地基，后者是祛魅"智能体"的最短路径。</li>
+</ol>
+<h2 id="_4">环境备忘<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li>虚拟环境在 <code>~/ai-course/.venv</code>（Python 3.12），依赖清单见 <code>labs/requirements.txt</code>；</li>
+<li>出现 <code>ModuleNotFoundError</code> 说明用了系统 Python，务必用 <code>.venv/bin/python</code> 运行；</li>
+<li>lab06/07 用 MPS（Apple GPU）加速，单个实验 2–10 分钟；嫌慢可减小 <code>steps</code>。</li>
+</ul>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-paper-writing.html"><span class="pager-label">上一讲</span>18 · 实战：论文与长文写作</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

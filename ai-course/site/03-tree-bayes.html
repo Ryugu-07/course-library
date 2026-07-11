@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>决策树与贝叶斯方法 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li class="active"><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 决策树：用问题划分世界</a><ul>
+<li><a href="#11">1.1 为什么用熵度量混乱：香农的公理化</a></li>
+<li><a href="#12">1.2 信息增益与三大算法</a></li>
+<li><a href="#13">1.3 剪枝：树的正则化</a></li>
+<li><a href="#14">1.4 从一棵树到一片森林</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 贝叶斯方法：直接对概率建模</a><ul>
+<li><a href="#21-vs">2.1 生成式 vs 判别式</a></li>
+<li><a href="#22">2.2 朴素贝叶斯：一个大胆的假设</a></li>
+<li><a href="#23-mle">2.3 参数怎么估：MLE 的完整推导</a></li>
+<li><a href="#24-dirichlet-map">2.4 零频率灾难与拉普拉斯平滑（Dirichlet 先验的 MAP 推导）</a></li>
+<li><a href="#25-naive">2.5 实践细节与"为什么这么 naive 还这么准"</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 三种归纳偏置的对照</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="03">第 03 讲 · 决策树与贝叶斯方法<a class="headerlink" href="#03" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>诞生场景</strong>：SVM 的分界线在高维空间里，医生没法用它向病人解释"为什么判断你有风险"。而医生自己的思维方式是一连串问题：年龄超过 50 吗？血压高吗？有家族史吗？——<strong>决策树</strong>就是把这种"提问式分类"自动学出来，它是最像人类决策过程、可解释性最强的模型。另一条思路更直接：第 01 讲证明了理论最优解是 <span class="arithmatex">\(\arg\max_k \mathbb{P}(Y=k \mid x)\)</span>，那<strong>干脆直接估计这个概率</strong>——这就是贝叶斯方法。两者代表了与"画分界线"完全不同的两种归纳偏置。</p>
+</blockquote>
+<h2 id="1">1. 决策树：用问题划分世界<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一棵决策树是一个流程图：内部节点是关于某个特征的问题（"花瓣长 &lt; 2.45 cm？"），分支是答案，叶节点是分类结论。预测 = 从根走到叶。它的假设空间是<strong>对特征空间的轴平行矩形划分</strong>：每片叶子对应一个超矩形区域，区域内输出同一类。</p>
+<p>学习问题：给定训练集，怎么长出一棵"好"树？穷举所有树是 NP 难的，实用算法一律采用<strong>贪心递归</strong>：</p>
+<ol>
+<li>在当前节点，遍历所有特征、所有切分点，选"分得最好"的那个问题；</li>
+<li>按答案把数据分成子集，对每个子集递归；</li>
+<li>满足停止条件（节点纯了 / 样本太少 / 达到深度上限）就变成叶子，输出多数类。</li>
+</ol>
+<p>一切的关键在于：<strong>"分得好"怎么量化？</strong></p>
+<h3 id="11">1.1 为什么用熵度量混乱：香农的公理化<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>直觉：一个节点里全是同一类（"纯"），就不用再问了；一半一半（"乱"），最需要问。需要一个"混乱度"函数 <span class="arithmatex">\(H(p_1, \dots, p_K)\)</span>（<span class="arithmatex">\(p_k\)</span> 是节点内第 <span class="arithmatex">\(k\)</span> 类的比例）。1948 年香农证明：只要你接受三条公理，这个函数<strong>唯一</strong>：</p>
+<ol>
+<li><strong>连续性</strong>：<span class="arithmatex">\(H\)</span> 对 <span class="arithmatex">\(p\)</span> 连续；</li>
+<li><strong>单调性</strong>：均匀分布时，类别越多越乱，即 <span class="arithmatex">\(H(\frac1K, \dots, \frac1K)\)</span> 随 <span class="arithmatex">\(K\)</span> 递增；</li>
+<li><strong>可分解性</strong>：分两步观察的混乱度可加。形式化：<span class="arithmatex">\(H(p_1, \dots, p_K)\)</span> 满足把类别分组后，总熵 = 组间熵 + 各组的组内熵按组概率加权。例如 <span class="arithmatex">\(H(\tfrac12, \tfrac13, \tfrac16) = H(\tfrac12, \tfrac12) + \tfrac12 H(\tfrac23, \tfrac13)\)</span>。</li>
+</ol>
+<p><strong>定理（Shannon 1948）</strong>：满足三条公理的函数必为</p>
+<div class="arithmatex">\[
+H(p_1, \dots, p_K) = -c \sum_{k=1}^{K} p_k \log p_k, \quad c &gt; 0
+\]</div>
+<p><em>证明骨架</em>：记 <span class="arithmatex">\(A(K) = H(\frac1K,\dots,\frac1K)\)</span>。由可分解性，均匀分布上 <span class="arithmatex">\(A(K^m) = m\,A(K)\)</span>（把 <span class="arithmatex">\(K^m\)</span> 个等可能结果看成 <span class="arithmatex">\(m\)</span> 步、每步 <span class="arithmatex">\(K\)</span> 选一）；结合单调性可证 <span class="arithmatex">\(A(K) = c\log K\)</span>（这是柯西函数方程的经典套路：对任意 <span class="arithmatex">\(K, L\)</span> 与大 <span class="arithmatex">\(m\)</span>，用 <span class="arithmatex">\(K^m\)</span> 夹在 <span class="arithmatex">\(L\)</span> 的幂之间，得 <span class="arithmatex">\(A(K)/A(L) = \log K / \log L\)</span>）。再对有理概率 <span class="arithmatex">\(p_k = n_k / n\)</span> 用可分解性：把 <span class="arithmatex">\(n\)</span> 个等可能结果分成大小为 <span class="arithmatex">\(n_k\)</span> 的组，<span class="arithmatex">\(c\log n = H(p_1,\dots,p_K) + \sum_k p_k\, c\log n_k\)</span>，整理即得 <span class="arithmatex">\(H = -c\sum p_k \log p_k\)</span>；无理概率由连续性补全。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>取 <span class="arithmatex">\(c = 1\)</span>、对数以 2 为底，单位是比特。二分类时 <span class="arithmatex">\(H(p) = -p\log_2 p - (1-p)\log_2(1-p)\)</span>：纯节点 <span class="arithmatex">\(H = 0\)</span>，对半开 <span class="arithmatex">\(H = 1\)</span> 比特——正是"还需要问多少问题"的期望值。<strong>熵不是拍脑袋选的，是公理逼出来的。</strong> 交叉熵（第 07 讲 LLM 的损失函数）建立在同一套信息论地基上，这里埋下伏笔。</p>
+<h3 id="12">1.2 信息增益与三大算法<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>一个问题的价值 = 问之前的混乱度 − 问之后的期望混乱度。设按特征 <span class="arithmatex">\(A\)</span> 把节点 <span class="arithmatex">\(S\)</span> 分成 <span class="arithmatex">\(\{S_v\}\)</span>：</p>
+<div class="arithmatex">\[
+\mathrm{Gain}(S, A) = H(S) - \sum_v \frac{|S_v|}{|S|} H(S_v)
+\]</div>
+<p>后一项是<strong>条件熵</strong> <span class="arithmatex">\(H(S \mid A)\)</span>，信息增益就是<strong>互信息</strong>。贪心选增益最大的特征切分——这是 <strong>ID3</strong>（Quinlan 1986）。</p>
+<p>信息增益有个偏病：偏爱取值多的特征（极端例子：按"身份证号"切分，每个子节点纯得发亮，增益最大，但毫无泛化价值——这是过拟合的漫画版）。<strong>C4.5</strong> 用增益率修正：<span class="arithmatex">\(\mathrm{GainRatio} = \mathrm{Gain}(S,A) / H_A(S)\)</span>，其中 <span class="arithmatex">\(H_A(S) = -\sum_v \frac{|S_v|}{|S|}\log\frac{|S_v|}{|S|}\)</span> 是切分本身的熵，取值越碎惩罚越大。</p>
+<p><strong>CART</strong>（Breiman 1984，sklearn 的默认实现）用<strong>基尼指数</strong>代替熵：</p>
+<div class="arithmatex">\[
+\mathrm{Gini}(S) = 1 - \sum_k p_k^2 = \sum_k p_k(1 - p_k)
+\]</div>
+<p>含义：从节点里随机抽两个样本，类别不同的概率。它和熵的关系：把 <span class="arithmatex">\(-\ln p_k\)</span> 在 <span class="arithmatex">\(p_k = 1\)</span> 处一阶泰勒展开，<span class="arithmatex">\(-\ln p_k \approx 1 - p_k\)</span>，代入熵得 <span class="arithmatex">\(H \approx \sum_k p_k(1-p_k) = \mathrm{Gini}\)</span>——<strong>基尼就是熵的一阶近似</strong>，省去对数计算，实践中两者选出的树几乎相同。CART 只做二叉切分，且支持回归（叶子输出均值、准则换成方差减少量）。</p>
+<h3 id="13">1.3 剪枝：树的正则化<a class="headerlink" href="#13" title="Permanent link"></a></h3>
+<p>不加限制的树会一直长到每片叶子纯净为止——完美背下训练集，测试时崩盘（第 01 讲：低偏差高方差的极端）。两类对策：</p>
+<ul>
+<li><strong>预剪枝</strong>：设最大深度、叶子最少样本数、增益阈值，长到就停。简单常用，但短视（当前增益小的切分下面可能藏着好切分）；</li>
+<li><strong>后剪枝（代价复杂度剪枝）</strong>：先长满，再最小化 <span class="arithmatex">\(\;C_\alpha(T) = \sum_{\text{叶}} n_t H(t) + \alpha|T|\;\)</span>（训练误差 + <span class="arithmatex">\(\alpha\)</span> × 叶子数），从下往上把"性价比低"的子树折叠成叶。<span class="arithmatex">\(\alpha\)</span> 用验证集/交叉验证选。</li>
+</ul>
+<p>一眼认出：这就是第 01 讲的"损失 + 正则"，<span class="arithmatex">\(|T|\)</span> 是复杂度惩罚，<span class="arithmatex">\(\alpha\)</span> 是滑块。</p>
+<h3 id="14">1.4 从一棵树到一片森林<a class="headerlink" href="#14" title="Permanent link"></a></h3>
+<p>单棵树的天性是<strong>高方差</strong>：数据换一点点，第一刀切在别处，整棵树面目全非。既然方差大，就用平均消方差——<strong>Bagging</strong>（Bootstrap Aggregating）：自助采样出 <span class="arithmatex">\(B\)</span> 份训练集，各训一棵树，预测取投票/平均。</p>
+<p>方差降多少？设各树预测的方差为 <span class="arithmatex">\(\sigma^2\)</span>、两两相关系数为 <span class="arithmatex">\(\rho\)</span>，则平均后</p>
+<div class="arithmatex">\[
+\mathrm{Var}\Big(\frac{1}{B}\sum_b \hat f_b\Big) = \frac{1}{B^2}\Big[\sum_b \mathrm{Var}(\hat f_b) + \sum_{b \neq b'} \mathrm{Cov}(\hat f_b, \hat f_{b'})\Big] = \frac{\sigma^2}{B} + \frac{B-1}{B}\rho\sigma^2 \;\xrightarrow{B\to\infty}\; \rho\sigma^2
+\]</div>
+<p>第一项可以靠加树消掉，<strong>剩下的地板由树之间的相关性 <span class="arithmatex">\(\rho\)</span> 决定</strong>。<strong>随机森林</strong>（Breiman 2001）的点睛之笔正是压 <span class="arithmatex">\(\rho\)</span>：每个节点只允许在随机抽的 <span class="arithmatex">\(m \approx \sqrt{d}\)</span> 个特征里选切分，强迫每棵树"看世界的角度不同"。另一条路线是 <strong>Boosting</strong>（AdaBoost / GBDT / XGBoost）：不并行平均，而是串行地让每棵新树拟合前面所有树的残差——降的是偏差。梯度提升树至今仍是<strong>表格数据上的最强模型家族</strong>（Kaggle 表格赛的常胜将军），深度学习在这个领域并没有取代它。</p>
+<h2 id="2">2. 贝叶斯方法：直接对概率建模<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="21-vs">2.1 生成式 vs 判别式<a class="headerlink" href="#21-vs" title="Permanent link"></a></h3>
+<p>第 01 讲的最优解 <span class="arithmatex">\(f^*(x) = \arg\max_k \mathbb{P}(Y = k \mid x)\)</span>。两条路线逼近它：</p>
+<ul>
+<li><strong>判别式（discriminative）</strong>：直接建模 <span class="arithmatex">\(\mathbb{P}(Y \mid X)\)</span> 或直接学分界面——逻辑回归、SVM、神经网络；</li>
+<li><strong>生成式（generative）</strong>：建模联合分布，即类先验 <span class="arithmatex">\(\mathbb{P}(Y)\)</span> 和类条件分布 <span class="arithmatex">\(\mathbb{P}(X \mid Y)\)</span>（"每一类的数据长什么样"），再用贝叶斯公式反推：</li>
+</ul>
+<div class="arithmatex">\[
+\mathbb{P}(Y = k \mid x) = \frac{\mathbb{P}(x \mid Y = k)\,\mathbb{P}(Y = k)}{\sum_{k'} \mathbb{P}(x \mid Y = k')\,\mathbb{P}(Y = k')}
+\]</div>
+<p>分母与 <span class="arithmatex">\(k\)</span> 无关，判类时只需比较分子：<span class="arithmatex">\(\hat y = \arg\max_k \mathbb{P}(x \mid Y=k)\,\mathbb{P}(Y=k)\)</span>。</p>
+<p>（"生成式"这名字你不陌生——生成式 AI 正是这个词。学到了 <span class="arithmatex">\(\mathbb{P}(X \mid Y)\)</span> 就能<strong>采样造出新数据</strong>：给定类别"猫"生成猫图，给定前文生成下一个词。第 07 讲的 LLM 和第 16 讲的扩散模型都是生成式建模的后代。）</p>
+<h3 id="22">2.2 朴素贝叶斯：一个大胆的假设<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>难点：<span class="arithmatex">\(x\)</span> 是 <span class="arithmatex">\(d\)</span> 维的，<span class="arithmatex">\(\mathbb{P}(x \mid Y=k)\)</span> 是 <span class="arithmatex">\(d\)</span> 维联合分布——若每维取 <span class="arithmatex">\(V\)</span> 个值，要估 <span class="arithmatex">\(V^d\)</span> 个参数，数据根本不够（维数灾难）。<strong>朴素（naive）假设</strong>：给定类别，各特征条件独立：</p>
+<div class="arithmatex">\[
+\mathbb{P}(x \mid Y = k) = \prod_{j=1}^{d} \mathbb{P}(x_j \mid Y = k)
+\]</div>
+<p>参数量从 <span class="arithmatex">\(O(V^d)\)</span> 暴跌到 <span class="arithmatex">\(O(dV)\)</span>。假设显然是错的（"免费"和"中奖"在垃圾邮件里明明强相关），但先看它能走多远。</p>
+<h3 id="23-mle">2.3 参数怎么估：MLE 的完整推导<a class="headerlink" href="#23-mle" title="Permanent link"></a></h3>
+<p>以文本分类为例（垃圾邮件识别，朴素贝叶斯的成名战）：词表大小 <span class="arithmatex">\(V\)</span>，文档表示为词的序列，类别 <span class="arithmatex">\(k\)</span> 的参数是词分布 <span class="arithmatex">\(\theta_{kw} = \mathbb{P}(\text{词} = w \mid Y = k)\)</span>。设类别 <span class="arithmatex">\(k\)</span> 的训练文档里词 <span class="arithmatex">\(w\)</span> 共出现 <span class="arithmatex">\(n_{kw}\)</span> 次，总词数 <span class="arithmatex">\(n_k = \sum_w n_{kw}\)</span>。对数似然：</p>
+<div class="arithmatex">\[
+\ell(\theta_k) = \sum_{w} n_{kw} \log \theta_{kw}, \qquad \text{s.t.} \; \sum_w \theta_{kw} = 1
+\]</div>
+<p>拉格朗日函数 <span class="arithmatex">\(L = \sum_w n_{kw}\log\theta_{kw} + \lambda(1 - \sum_w \theta_{kw})\)</span>，求偏导置零：</p>
+<div class="arithmatex">\[
+\frac{\partial L}{\partial \theta_{kw}} = \frac{n_{kw}}{\theta_{kw}} - \lambda = 0 \;\Rightarrow\; \theta_{kw} = \frac{n_{kw}}{\lambda}
+\]</div>
+<p>代入约束 <span class="arithmatex">\(\sum_w \theta_{kw} = 1\)</span> 得 <span class="arithmatex">\(\lambda = n_k\)</span>，故</p>
+<div class="arithmatex">\[
+\hat\theta_{kw}^{\mathrm{MLE}} = \frac{n_{kw}}{n_k}
+\]</div>
+<p>——最大似然估计就是词频。类先验同理：$\hat{\mathbb{P}}(Y=k) = $ 类别 <span class="arithmatex">\(k\)</span> 的文档占比。</p>
+<h3 id="24-dirichlet-map">2.4 零频率灾难与拉普拉斯平滑（Dirichlet 先验的 MAP 推导）<a class="headerlink" href="#24-dirichlet-map" title="Permanent link"></a></h3>
+<p>词频估计有个致命 bug：训练集中垃圾邮件从没出现过"教授"这个词 <span class="arithmatex">\(\Rightarrow \hat\theta_{\text{spam},教授} = 0\)</span> <span class="arithmatex">\(\Rightarrow\)</span> 任何含"教授"的邮件，垃圾类概率<strong>恰好为零</strong>——一个连乘里的一个零否决一切，无论其余 999 个词多么可疑。没见过 ≠ 不可能，MLE 对未见事件过度自信。</p>
+<p>修法：<strong>拉普拉斯平滑</strong>，给每个词的计数加 <span class="arithmatex">\(\alpha\)</span>（通常取 1）：</p>
+<div class="arithmatex">\[
+\hat\theta_{kw} = \frac{n_{kw} + \alpha}{n_k + \alpha V}
+\]</div>
+<p>这不是拍脑袋，而是贝叶斯推断的严格结论。给 <span class="arithmatex">\(\theta_k\)</span> 加 Dirichlet 先验 <span class="arithmatex">\(p(\theta_k) \propto \prod_w \theta_{kw}^{\alpha - 1}\)</span>（多项分布的共轭先验），求<strong>最大后验（MAP）</strong>：</p>
+<div class="arithmatex">\[
+\hat\theta_k^{\mathrm{MAP}} = \arg\max_{\theta_k} \Big[\log p(\text{数据} \mid \theta_k) + \log p(\theta_k)\Big] = \arg\max_{\theta_k} \sum_w (n_{kw} + \alpha - 1) \log\theta_{kw}
+\]</div>
+<p>与 2.3 节完全同型的拉格朗日计算（把 <span class="arithmatex">\(n_{kw}\)</span> 换成 <span class="arithmatex">\(n_{kw} + \alpha - 1\)</span>）给出</p>
+<div class="arithmatex">\[
+\hat\theta_{kw}^{\mathrm{MAP}} = \frac{n_{kw} + \alpha - 1}{n_k + (\alpha - 1)V}
+\]</div>
+<p>取 Dirichlet 参数为 <span class="arithmatex">\(\alpha + 1\)</span> 即得加 <span class="arithmatex">\(\alpha\)</span> 平滑。解读：<strong>先验 = 假想每个词都预先出现过 <span class="arithmatex">\(\alpha\)</span> 次</strong>（伪计数）。数据少时先验主导（保守、不敢说 0），数据多时词频主导（先验被淹没）——又是偏差–方差滑块，只是这次的正则化以"先验信念"的面目出现。这是你在本课程中第一次见到"正则化 = 先验"的对应，它是普适的（岭回归 = 高斯先验下的 MAP，自己可以推一下）。</p>
+<h3 id="25-naive">2.5 实践细节与"为什么这么 naive 还这么准"<a class="headerlink" href="#25-naive" title="Permanent link"></a></h3>
+<ul>
+<li><strong>对数域计算</strong>：几百个 <span class="arithmatex">\(10^{-3}\)</span> 量级的概率连乘必然下溢，实际统一算 <span class="arithmatex">\(\log\)</span> 和：<span class="arithmatex">\(\arg\max_k \big[\log\mathbb{P}(Y{=}k) + \sum_j \log\mathbb{P}(x_j \mid Y{=}k)\big]\)</span>；</li>
+<li><strong>连续特征</strong>：假设 <span class="arithmatex">\(\mathbb{P}(x_j \mid Y=k) = \mathcal{N}(\mu_{jk}, \sigma_{jk}^2)\)</span>，估均值方差即可（高斯朴素贝叶斯）；</li>
+<li><strong>为什么错误的独立假设不碍事</strong>：分类只需要 <span class="arithmatex">\(\arg\max\)</span> 排序正确，不需要概率值本身准确。独立假设通常把概率推向极端（过度自信），但往往推错方向的程度在各类间相似，排序保持不变。代价是它输出的"概率"不可当真——需要校准才能用作置信度。</li>
+</ul>
+<p>朴素贝叶斯至今仍是文本分类的强基线：训练 = 数数，一次遍历完成；在线更新天然支持；小数据下常常胜过复杂模型（低方差补偿了高偏差——第 01 讲的框架又一次解释了一切）。</p>
+<h2 id="3">3. 三种归纳偏置的对照<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>到此我们集齐了传统机器学习的三大门派，值得并排看一眼它们各自"押注世界长什么样"（第 01 讲 NFL 定理：没有中立算法）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>SVM（几何）</th>
+<th>决策树（逻辑）</th>
+<th>朴素贝叶斯（概率）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>假设空间</td>
+<td>（核映射后的）超平面</td>
+<td>轴平行矩形划分</td>
+<td>条件独立的因子化分布</td>
+</tr>
+<tr>
+<td>归纳偏置</td>
+<td>大间隔 = 好</td>
+<td>少问题问出答案 = 好</td>
+<td>特征给定类别后独立</td>
+</tr>
+<tr>
+<td>可解释性</td>
+<td>弱</td>
+<td><strong>强</strong>（能画成流程图）</td>
+<td>中（能看每个词的贡献）</td>
+</tr>
+<tr>
+<td>数据量需求</td>
+<td>中</td>
+<td>中（单树易过拟合）</td>
+<td><strong>小</strong>（参数极少）</td>
+</tr>
+<tr>
+<td>特征工程</td>
+<td>核的选择</td>
+<td>几乎免疫单调变换</td>
+<td>需要合理的分布假设</td>
+</tr>
+</tbody>
+</table>
+<p>它们共同的天花板：<strong>特征本身仍由人提供</strong>。花瓣长度、词频——这些"表示"是人设计的，模型只是在人给的表示上找函数。若任务的合适表示人类自己都说不出（比如"猫的视觉特征"），三大门派一起熄火。<strong>让机器自己学表示</strong>，就是下一讲神经网络的野心，也是"深度学习"中"深度"二字的真正含义。</p>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>决策树</td>
+<td>贪心递归地选"信息增益最大"的问题划分数据</td>
+</tr>
+<tr>
+<td>熵</td>
+<td>公理唯一确定的混乱度 <span class="arithmatex">\(-\sum p\log p\)</span></td>
+</tr>
+<tr>
+<td>基尼指数</td>
+<td>熵的一阶泰勒近似，CART 的准则</td>
+</tr>
+<tr>
+<td>剪枝</td>
+<td>树的正则化：误差 + <span class="arithmatex">\(\alpha\)</span>·叶子数</td>
+</tr>
+<tr>
+<td>随机森林</td>
+<td>bagging 降方差，随机特征压相关性地板 <span class="arithmatex">\(\rho\sigma^2\)</span></td>
+</tr>
+<tr>
+<td>生成式模型</td>
+<td>建模 <span class="arithmatex">\(\mathbb{P}(X\mid Y)\mathbb{P}(Y)\)</span>，贝叶斯公式反推后验</td>
+</tr>
+<tr>
+<td>朴素假设</td>
+<td>条件独立，参数 <span class="arithmatex">\(O(V^d) \to O(dV)\)</span></td>
+</tr>
+<tr>
+<td>拉普拉斯平滑</td>
+<td>Dirichlet 先验的 MAP；正则化 = 先验</td>
+</tr>
+</tbody>
+</table>
+<p><strong>动手</strong>：跑 <code>labs/lab03_tree_bayes.py</code>——手算一次信息增益并与代码对照，可视化决策树的决策边界随深度变化（看它过拟合），再用朴素贝叶斯从零实现一个小型垃圾短信分类器（含平滑对比实验）。</p>
+<p><strong>延伸阅读</strong>：李航《统计学习方法》第 4、5 章；周志华《机器学习》第 4、7、8 章（集成学习部分尤佳）。</p>
+<hr />
+<p><em>下一讲进入本课程最戏剧性的一段历史：神经网络两次被判死刑、两次翻案的六十年。我们将完整推导那个改变一切的算法——反向传播，并看看 Hinton 在无人问津的年代里坚守的到底是什么。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-perceptron-svm.html"><span class="pager-label">上一讲</span>02 · 感知机与支持向量机</a>
+  <a class="pager-slot next" href="04-neural-networks.html"><span class="pager-label">下一讲</span>04 · 神经网络的兴衰与反向传播</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

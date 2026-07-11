@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扩散模型 II：采样器与 CFG · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li class="active"><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ddim">1. DDIM：同一个模型，允许跳步</a></li>
+<li><a href="#2">2. 微分方程视角：采样 = 数值积分</a></li>
+<li><a href="#3-sampler">3. 解码下拉框：sampler</a></li>
+<li><a href="#4-scheduler-steps">4. 解码下拉框：scheduler 与 steps</a></li>
+<li><a href="#5-cfg">5. CFG：让模型"更听话"的数学</a><ul>
+<li><a href="#51">5.1 推导</a></li>
+<li><a href="#52">5.2 三个立刻打通的实操事实</a></li>
+</ul>
+</li>
+<li><a href="#6-cfg-1">6. 蒸馏一族：为什么有的模型 cfg 要设 1</a></li>
+<li><a href="#7">7. 速查：这台机器上的推荐组合</a></li>
+<li><a href="#_1">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="03-ii-cfg">第 03 讲 · 扩散模型 II：采样器与 CFG<a class="headerlink" href="#03-ii-cfg" title="Permanent link"></a></h1>
+<blockquote>
+<p>上一讲结尾留了两个工程问题：<strong>1000 步太慢</strong>、<strong>文字条件怎么加强</strong>。它们的解法分别对应 KSampler 里两组你天天面对的参数：<code>sampler/scheduler/steps</code> 与 <code>cfg</code>/负面提示词。本讲把这两块的数学讲透——读完之后，采样器下拉框里那二十几个名字对你就是一张明码标价的菜单，而不是玄学抽签。</p>
+</blockquote>
+<h2 id="1-ddim">1. DDIM：同一个模型，允许跳步<a class="headerlink" href="#1-ddim" title="Permanent link"></a></h2>
+<p>第一个突破（Song et al. 2020）：DDPM 的训练目标只用到了边际分布 <span class="arithmatex">\(q(x_t \mid x_0)\)</span>（闭式跳跃公式），<strong>根本没用到路径必须一步步走的马尔可夫性</strong>。于是可以构造一族新的反向过程——保持每步边际不变，但允许任意步幅。DDIM 的更新式（推导思路：把"预测的谜底"和"指向 <span class="arithmatex">\(x_{t'}\)</span> 的噪声方向"重新拼装）：</p>
+<p><strong>第一步，先用当前噪声预测反解谜底</strong>（第 02 讲闭式跳跃的逆用）：</p>
+<div class="arithmatex">\[
+\hat x_0 = \frac{x_t - \sqrt{1 - \bar\alpha_t}\;\epsilon_\theta(x_t, t)}{\sqrt{\bar\alpha_t}}
+\]</div>
+<p><strong>第二步，用 <span class="arithmatex">\(\hat x_0\)</span> 直接"重新加噪"到任意更低的噪声水平 <span class="arithmatex">\(t' &lt; t\)</span></strong>：</p>
+<div class="arithmatex">\[
+x_{t'} = \sqrt{\bar\alpha_{t'}}\; \hat x_0 + \sqrt{1 - \bar\alpha_{t'} - \sigma^2}\;\epsilon_\theta(x_t, t) + \sigma\, z
+\]</div>
+<p><span class="arithmatex">\(\sigma = 0\)</span> 时整个过程<strong>完全确定</strong>（同一种子同一张图，无路径噪声）；<span class="arithmatex">\(\sigma\)</span> 取 DDPM 的值就退回原版。更重要的是 <span class="arithmatex">\(t \to t'\)</span> 可以跨大步：<strong>从 1000 步的日程表里抽 20–50 个点走完全程</strong>，质量损失很小。"训练一次，采样方式随便换"——这个解耦是后面一切采样器创新的地基。</p>
+<h2 id="2">2. 微分方程视角：采样 = 数值积分<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>把步长推向无穷小，加噪过程成为一个随机微分方程（SDE）；Song et al. (2021) 证明存在一个<strong>概率流 ODE</strong>，与它共享每个时刻的边际分布：</p>
+<div class="arithmatex">\[
+\frac{dx}{dt} = f(t)\,x - \frac{1}{2}g(t)^2\, \underbrace{\nabla_x \log p_t(x)}_{\text{= score, 即 } \epsilon_\theta \text{ 换装}}
+\]</div>
+<p>这一步转换的含义怎么强调都不过分：<strong>生成一张图 = 求解一个常微分方程的初值问题</strong>（初值 = 高斯噪声，终点 = 图像）。而数值求解 ODE 是一门发展了一个世纪的成熟学科——欧拉法、Heun 法、多步法、自适应步长……全部武器库瞬间可用。"采样器"的准确定义由此揭晓：</p>
+<blockquote>
+<p><strong>采样器 = 求解这个 ODE/SDE 所用的数值积分格式。</strong></p>
+</blockquote>
+<p>数值分析的常识立刻兑换成生图经验：</p>
+<ul>
+<li><strong>一阶方法（欧拉）</strong>每步误差 <span class="arithmatex">\(O(h^2)\)</span>，需要较多步；<strong>二阶方法（Heun、DPM++ 2M）</strong>每步误差 <span class="arithmatex">\(O(h^3)\)</span>，同等质量步数减半——这就是"为什么现代采样器 20–30 步就够，而 DDPM 要上千步"的数学答案；</li>
+<li><strong>DPM-Solver 系</strong>（Lu et al. 2022）进一步利用了这个 ODE 的<strong>半线性结构</strong>（线性部分 <span class="arithmatex">\(f(t)x\)</span> 有解析解，只对非线性部分做数值近似），专为扩散定制，效率再上台阶——这就是下拉框里 <code>dpmpp</code> 家族霸榜的原因；</li>
+<li><strong>ODE vs SDE</strong>：确定性求解（ODE 系）收敛快、可复现；随机求解（SDE/ancestral 系）每步重注噪声，误差不累积但<strong>永不收敛</strong>——步数增加时图会持续变化而非趋于定形。两者不是优劣，是性格。</li>
+</ul>
+<h2 id="3-sampler">3. 解码下拉框：sampler<a class="headerlink" href="#3-sampler" title="Permanent link"></a></h2>
+<p>把 ComfyUI <code>sampler_name</code> 下拉框按血统归类（这张表值得放在手边）：</p>
+<table>
+<thead>
+<tr>
+<th>下拉框名字</th>
+<th>数学身份</th>
+<th>性格与用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>euler</code></td>
+<td>概率流 ODE 的欧拉法</td>
+<td>最朴素可靠的基线，快、稳、可复现</td>
+</tr>
+<tr>
+<td><code>euler_ancestral</code></td>
+<td>欧拉 + 每步重注噪声（祖先采样）</td>
+<td>多样性好、细节"活"，但不收敛、步数敏感</td>
+</tr>
+<tr>
+<td><code>heun</code></td>
+<td>二阶 Heun（每步两次模型调用）</td>
+<td>质量高但每步双倍耗时</td>
+</tr>
+<tr>
+<td><code>ddim</code></td>
+<td>第 1 节的 DDIM</td>
+<td>历史经典，现已被 dpmpp 系实用取代</td>
+</tr>
+<tr>
+<td><code>dpmpp_2m</code></td>
+<td>DPM-Solver++ 二阶<strong>多步</strong>法</td>
+<td><strong>通用默认之王</strong>：二阶精度却每步只调用一次模型（复用上一步结果）</td>
+</tr>
+<tr>
+<td><code>dpmpp_2m_sde</code></td>
+<td>同上的 SDE 版</td>
+<td>质感更"生动"，不收敛</td>
+</tr>
+<tr>
+<td><code>dpmpp_3m_sde</code></td>
+<td>三阶多步 SDE</td>
+<td>步数多时（30+）质感佳</td>
+</tr>
+<tr>
+<td><code>dpmpp_2s_ancestral</code></td>
+<td>二阶单步 + 祖先噪声</td>
+<td>动漫社区常见偏好</td>
+</tr>
+<tr>
+<td><code>uni_pc</code></td>
+<td>预测-校正框架</td>
+<td>极低步数（10 步内）表现好</td>
+</tr>
+<tr>
+<td><code>lcm</code></td>
+<td>蒸馏模型专用（见第 5 节）</td>
+<td>只配 LCM/Turbo 类模型用</td>
+</tr>
+</tbody>
+</table>
+<p>经验法则一句话：<strong>不知道选什么就 <code>dpmpp_2m</code>；想要更"活"的质感换 <code>dpmpp_2m_sde</code> 或 ancestral 系；跑对比实验/要复现则用确定性系（euler/dpmpp_2m）。</strong></p>
+<h2 id="4-scheduler-steps">4. 解码下拉框：scheduler 与 steps<a class="headerlink" href="#4-scheduler-steps" title="Permanent link"></a></h2>
+<p><code>scheduler</code> 决定的是<strong>这几十步在噪声刻度上怎么分布</strong>（步子在哪里迈大、哪里迈小）。设噪声水平 <span class="arithmatex">\(\sigma\)</span> 从高到低取 <span class="arithmatex">\(N\)</span> 个点：</p>
+<ul>
+<li><code>normal</code>：按原训练日程均匀抽点；</li>
+<li><code>karras</code>：Karras et al. (2022) 的重分布——用变换 <span class="arithmatex">\(\sigma_i = \big(\sigma_{\max}^{1/\rho} + \frac{i}{N-1}(\sigma_{\min}^{1/\rho} - \sigma_{\max}^{1/\rho})\big)^{\rho}\)</span>（<span class="arithmatex">\(\rho = 7\)</span>），<strong>把步密度向低噪声端倾斜</strong>。直觉：高噪声阶段定的是大构图，粗放些无妨；低噪声阶段是细节成形期，误差直接留在成图上，值得多花步数。实测普遍优于均匀，故 <code>karras</code> 是最常见搭配；</li>
+<li><code>exponential</code> / <code>sgm_uniform</code> / <code>beta</code> / <code>simple</code>：其它分布策略，各有适配的模型家族（如 FLUX 常配 <code>simple</code>/<code>beta</code>）。</li>
+</ul>
+<p><code>steps</code> 的规律：二阶采样器下 <strong>20–30 步是质价比甜点</strong>；30 步以上进入收益递减区（确定性采样器的图基本定形，多跑纯属烧电）；10 步以下构图开始崩。配合第 08 讲"固定种子扫参数"你会亲眼看到这三段。</p>
+<h2 id="5-cfg">5. CFG：让模型"更听话"的数学<a class="headerlink" href="#5-cfg" title="Permanent link"></a></h2>
+<h3 id="51">5.1 推导<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>第 02 讲学的是无条件 score。文生图需要条件版 <span class="arithmatex">\(\nabla \log p(x_t \mid c)\)</span>。用贝叶斯公式：</p>
+<div class="arithmatex">\[
+\log p(x_t \mid c) = \log p(c \mid x_t) + \log p(x_t) - \log p(c)
+\;\Rightarrow\;
+\nabla_{x_t} \log p(c \mid x_t) = \nabla \log p(x_t \mid c) - \nabla \log p(x_t)
+\]</div>
+<p>左边那项是"往更符合文字描述的方向"的梯度。<strong>Classifier-Free Guidance</strong>（Ho &amp; Salimans 2021）的做法：训练时随机丢弃条件（10% 概率把提示词置空），让<strong>同一个网络</strong>既会条件预测也会无条件预测；采样时把"符合描述的方向"人为放大 <span class="arithmatex">\(w\)</span> 倍：</p>
+<div class="arithmatex">\[
+\tilde\nabla = \nabla \log p(x_t) + w\big[\nabla \log p(x_t \mid c) - \nabla \log p(x_t)\big]
+\]</div>
+<p>换回噪声预测的语言（KSampler 每步实际执行的公式）：</p>
+<div class="arithmatex">\[
+\boxed{\;\tilde\epsilon = \epsilon_\theta(x_t, \varnothing) + w\big[\epsilon_\theta(x_t, c) - \epsilon_\theta(x_t, \varnothing)\big]\;}
+\]</div>
+<p>等价于在采样一个锐化过的分布 <span class="arithmatex">\(p_w(x \mid c) \propto p(x)\, p(c \mid x)^w\)</span>——<strong>把"像描述"的可能性抬高到 <span class="arithmatex">\(w\)</span> 次方</strong>。这就是 <code>cfg</code> 参数的全部数学。</p>
+<h3 id="52">5.2 三个立刻打通的实操事实<a class="headerlink" href="#52" title="Permanent link"></a></h3>
+<ul>
+<li><strong>每步跑两次模型</strong>：条件一次、无条件一次——CFG 让每步计算翻倍（这是 <code>cfg</code> 不为 1 时生成变慢的原因）；</li>
+<li><strong>负面提示词的真身</strong>：ComfyUI 把无条件那一路的空提示换成你的负面提示 <span class="arithmatex">\(c_-\)</span>，即 <span class="arithmatex">\(\tilde\epsilon = \epsilon_\theta(c_-) + w[\epsilon_\theta(c_+) - \epsilon_\theta(c_-)]\)</span>——<strong>引导方向变成"从负面拽向正面"</strong>。负面提示不是过滤器，是被推离的参照物。这解释了为什么负面词也要认真写；</li>
+<li><strong><span class="arithmatex">\(w\)</span> 的两难</strong>：太低（&lt;3）图散漫不贴题；太高（&gt;10）过饱和、对比度爆炸、肢体扭曲——因为 score 被外推出了模型见过的区域。SDXL 甜区 <strong>5–7</strong>，SD1.5 约 <strong>7–9</strong>。这不是口诀，是"外推程度"的直接体现。</li>
+</ul>
+<h2 id="6-cfg-1">6. 蒸馏一族：为什么有的模型 cfg 要设 1<a class="headerlink" href="#6-cfg-1" title="Permanent link"></a></h2>
+<p>LCM、SDXL-Turbo、Lightning、FLUX schnell……这类"4–8 步出图"的模型是<strong>蒸馏</strong>产物：让学生网络一步学会老师网络多步的输出（一致性模型/对抗蒸馏等路线）。两条使用铁律由此而来：<strong>步数按它说的来</strong>（蒸馏时钉死的，多跑反而坏）；<strong>cfg 设 1 附近</strong>（引导已在蒸馏时"烘焙"进权重，再叠 CFG 等于双重放大，直接过曝）。遇到"步数极少的模型"先查它的推荐参数，不适用本讲的通用甜区。</p>
+<h2 id="7">7. 速查：这台机器上的推荐组合<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>场景（你的模型）</th>
+<th>sampler</th>
+<th>scheduler</th>
+<th>steps</th>
+<th>cfg</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SDXL base 文生图</td>
+<td><code>dpmpp_2m</code></td>
+<td><code>karras</code></td>
+<td>25–30</td>
+<td>5–7</td>
+</tr>
+<tr>
+<td>SDXL 探索多样性</td>
+<td><code>dpmpp_2m_sde</code> / <code>euler_ancestral</code></td>
+<td><code>karras</code></td>
+<td>28–35</td>
+<td>5–7</td>
+</tr>
+<tr>
+<td>SD1.5 文生图</td>
+<td><code>dpmpp_2m</code></td>
+<td><code>karras</code></td>
+<td>25</td>
+<td>7–8</td>
+</tr>
+<tr>
+<td>参数对比实验</td>
+<td><code>euler</code> 或 <code>dpmpp_2m</code>（确定性）</td>
+<td><code>karras</code></td>
+<td>25</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>将来装蒸馏模型</td>
+<td>按模型页说明</td>
+<td>按说明</td>
+<td>4–8</td>
+<td>~1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DDIM</td>
+<td>训练只约束边际 ⇒ 采样可跳步、可确定化</td>
+</tr>
+<tr>
+<td>概率流 ODE</td>
+<td>生成 = 解 ODE 初值问题；采样器 = 数值积分格式</td>
+</tr>
+<tr>
+<td>二阶方法</td>
+<td>每步误差 <span class="arithmatex">\(O(h^3)\)</span>，20–30 步顶 DDPM 千步</td>
+</tr>
+<tr>
+<td>ancestral/SDE</td>
+<td>每步重注噪声：多样但不收敛</td>
+</tr>
+<tr>
+<td>karras 日程</td>
+<td>步密度向低噪声端倾斜：细节期多花步数</td>
+</tr>
+<tr>
+<td>CFG</td>
+<td><span class="arithmatex">\(\epsilon_{\varnothing} + w(\epsilon_c - \epsilon_{\varnothing})\)</span>：锐化 <span class="arithmatex">\(p(c\mid x)^w\)</span>，每步双倍计算</td>
+</tr>
+<tr>
+<td>负面提示</td>
+<td>替换无条件参照：从 <span class="arithmatex">\(c_-\)</span> 拽向 <span class="arithmatex">\(c_+\)</span></td>
+</tr>
+<tr>
+<td>蒸馏模型</td>
+<td>步数与引导已烘焙：低步数 + cfg≈1</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>原理篇还剩一块拼图：这个"猜噪声的网络"到底长什么样？为什么 SD 在"潜空间"而不是像素上扩散？checkpoint 文件里除了 U-Net 还打包了什么？下一讲拆开整机看零件——这也是看懂 ComfyUI 模型加载节点的直接前置。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-ddpm.html"><span class="pager-label">上一讲</span>02 · 扩散模型 I：DDPM 全推导</a>
+  <a class="pager-slot next" href="04-architecture.html"><span class="pager-label">下一讲</span>04 · 潜空间与整机架构</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>你的这台机器与这套安装 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li class="active"><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-portable">1. 大局：portable 版意味着什么</a></li>
+<li><a href="#2-eai">2. E:\AI 目录地图（实机核实版）</a></li>
+<li><a href="#3">3. 启动参数逐个读（你的实际配置）</a></li>
+<li><a href="#4-extra_model_pathsyaml">4. extra_model_paths.yaml：模型都去哪找</a></li>
+<li><a href="#5-16gb">5. 16GB 显存的账本</a></li>
+<li><a href="#6">6. 更新与备份</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="06">第 06 讲 · 你的这台机器与这套安装<a class="headerlink" href="#06" title="Permanent link"></a></h1>
+<blockquote>
+<p>实战篇从"盘家底"开始。这一讲把 <code>E:\AI</code> 下的每个目录、每个脚本、每个配置文件过一遍——全部内容都对照你机器的实际状态核实过。知道每样东西在哪、归谁管，是后面一切操作和排障的地基。</p>
+</blockquote>
+<h2 id="1-portable">1. 大局：portable 版意味着什么<a class="headerlink" href="#1-portable" title="Permanent link"></a></h2>
+<p>你装的是 <strong>ComfyUI Windows Portable</strong>（当前 0.22.0）：整个程序 + 一个<strong>专属的内嵌 Python</strong>（3.13 + PyTorch 2.11/cu130）都在 <code>E:\AI\ComfyUI_windows_portable</code> 里，与系统 Python、与 Medusa 的环境<strong>完全隔离</strong>——互不打扰，删目录即卸载。这是最省心的安装形态。你的启动命令还带了一整套定制参数（下面逐个讲），把所有"会长大的东西"都挪出了程序目录——这套组织相当干净，值得保持。</p>
+<h2 id="2-eai">2. E:\AI 目录地图（实机核实版）<a class="headerlink" href="#2-eai" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code>E:\AI
+├─ ComfyUI_windows_portable   程序本体+内嵌Python —— 别动里面的东西
+├─ Models                     ★ 所有模型: checkpoints/loras/vae/controlnet/...
+├─ Inputs                     图生图的输入图放这里(Load Image 节点读这里)
+├─ Outputs                    ★ 生成结果落盘处(Save Image 节点写这里)
+├─ Workflows                  你自己保存的工作流 .json(本课程的 course/ 包也放这)
+├─ User                       设置、数据库(comfyui.db)、Manager 配置 —— 备份重点
+├─ Cache                      临时文件(可随时清空换空间)
+├─ Logs                       启动与运行日志 —— 排障第一现场
+├─ Tools                      aria2、7-Zip 等下载解压工具
+├─ Start/Stop/Open_ComfyUI.*  启停脚本(桌面快捷方式指向它们)
+├─ extra_model_paths.yaml     ★ 模型路径配置(见第 4 节)
+└─ ComfyUI_操作指南.md         GPT 写的速查手册(本课程的前身)
+</code></pre></div>
+<p>日常三个动作：<strong>启动</strong>双击桌面 <code>ComfyUI.lnk</code>（或 <code>Start_ComfyUI.bat</code>），首次要等十几秒；<strong>访问</strong> <code>http://127.0.0.1:8188</code>；<strong>停止</strong> <code>ComfyUI Stop.lnk</code>（释放约几 GB 显存——不用时记得停，Medusa 还在这台机器上干活）。</p>
+<h2 id="3">3. 启动参数逐个读（你的实际配置）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>你的 ComfyUI 是带这些参数启动的（我从运行中的进程上读下来的），每个都值得知道：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--enable-manager</code></td>
+<td>启用内置 Manager（装节点/装模型的应用商店，第 15 讲主角）</td>
+</tr>
+<tr>
+<td><code>--extra-model-paths-config E:\AI\extra_model_paths.yaml</code></td>
+<td>模型路径外置（第 4 节）</td>
+</tr>
+<tr>
+<td><code>--input/--output/--temp/--user-directory ...</code></td>
+<td>输入/输出/缓存/用户数据全部指到 E:\AI 下各目录</td>
+</tr>
+<tr>
+<td><code>--database-url sqlite:///E:/AI/User/comfyui.db</code></td>
+<td>元数据库也外置</td>
+</tr>
+<tr>
+<td><code>--port 8188 --disable-auto-launch</code></td>
+<td>端口与"启动不自动开浏览器"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>含义</strong>：程序目录是"无状态"的——你的一切资产（模型、成图、工作流、设置）都在外面。将来升级/重装 ComfyUI 本体，资产原地不动。</p>
+<h2 id="4-extra_model_pathsyaml">4. extra_model_paths.yaml：模型都去哪找<a class="headerlink" href="#4-extra_model_pathsyaml" title="Permanent link"></a></h2>
+<p>这个文件告诉 ComfyUI："除了程序自带的 models 目录，还去 <code>E:/AI/Models</code> 找"（你的配置里它是 <code>is_default: true</code>，即<strong>主模型库</strong>）。里面每一行 <code>loras: loras</code> 就是"LoRA 类型 → E:/AI/Models/loras 子目录"的映射。三条实用规则：</p>
+<ol>
+<li><strong>下载的模型放对子目录</strong>才会被对应节点看见（checkpoint 放 <code>checkpoints</code>、LoRA 放 <code>loras</code>……对不上号 = 下拉框里找不到，第 5 大常见"故障"其实是放错目录）；</li>
+<li>放入新文件后<strong>不用重启</strong>：在加载节点的下拉框上点刷新（或 Ctrl+R 刷新页面）即可；</li>
+<li>子目录里<strong>可以再建文件夹分类</strong>（如 <code>loras/anime/</code>、<code>loras/style/</code>），下拉框会显示相对路径——模型多了以后的救命习惯。</li>
+</ol>
+<h2 id="5-16gb">5. 16GB 显存的账本<a class="headerlink" href="#5-16gb" title="Permanent link"></a></h2>
+<p>第 04 讲讲过精度与大小，这里落到你这张卡的实际预算（推理时显存 ≈ 模型权重 + 激活值 + VAE 解码峰值）：</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>显存占用（约）</th>
+<th>你的 16GB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SD1.5 @512</td>
+<td>3–4GB</td>
+<td>随便跑，秒级出图</td>
+</tr>
+<tr>
+<td>SDXL @1024</td>
+<td>7–9GB</td>
+<td><strong>舒适主力区</strong></td>
+</tr>
+<tr>
+<td>SDXL + LoRA×2 + ControlNet</td>
+<td>10–12GB</td>
+<td>可以，别再叠了</td>
+</tr>
+<tr>
+<td>FLUX.1 fp8 @1024</td>
+<td>12–15GB</td>
+<td>能跑，慢（分体加载，T5 会吃内存）</td>
+</tr>
+<tr>
+<td>FLUX fp16 / 视频模型</td>
+<td>20GB+</td>
+<td>超预算，需量化版或放弃</td>
+</tr>
+</tbody>
+</table>
+<p>两个缓冲知识：ComfyUI 显存不够时会自动把部分权重挪到内存（变慢但不崩，你 32GB 内存是后备队）；真 OOM 了的排查顺序在第 15 讲。<strong>经验红线：常驻别超 13GB</strong>，给 VAE 解码峰值和系统留余量。</p>
+<p>另外记住这台机器的特殊性：它同时是 Medusa 的生产机（常驻 python 进程 + Postgres + 每 4h 的抓取任务）。生图是重 GPU 轻 CPU 的活、Medusa 反之，二者基本兼容，但<strong>大批量生图请避开 07:30–09:00 的分析窗口</strong>——那是它一天中最忙的时候。</p>
+<h2 id="6">6. 更新与备份<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>更新 ComfyUI</strong>：portable 包内有 <code>update</code> 目录（<code>update_comfyui.bat</code>），或用 Manager 的 Update 按钮。<strong>别追最新</strong>：生图生态的节点/模型兼容性以"能跑"为大，稳定运行的版本没事别升，升级前看一眼社区有没有炸锅；</li>
+<li><strong>备份什么</strong>：<code>E:\AI\User</code>（设置+数据库）、<code>E:\AI\Workflows</code>（你的劳动成果）、<code>extra_model_paths.yaml</code>。<strong>Models 不用备份</strong>（都能重新下载，太大），记录一份"我装了哪些模型"的清单即可（第 10 讲给你清单模板）；</li>
+<li><strong>安全提醒</strong>（呼应第 04 讲）：只下 <code>.safetensors</code>；自定义节点是<strong>任意代码</strong>，装之前看一眼 GitHub 星数和最近更新（第 15 讲展开）。</li>
+</ul>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>打开 <code>E:\AI</code>，把第 2 节的目录地图逐个点开对一遍——特别是 <code>Models</code> 下的空文件夹们，默念每个将来放什么（对不上的回第 05 讲总表）；</li>
+<li>启动 ComfyUI，打开 <code>http://127.0.0.1:8188</code>，在设置里把界面语言切成中文（如果还没有）；</li>
+<li>打开 <code>E:\AI\Logs</code> 里最新的日志文件，找到启动时打印的 <code>Total VRAM</code> 和加载的路径配置行——排障时你会回到这里；</li>
+<li>用完记得点 Stop，任务管理器里确认显存已释放。</li>
+</ol>
+<hr />
+<p><em>家底盘清了。下一讲把默认文生图工作流拖上画布，逐个节点对号入座——上篇五讲的每个数学对象，都会在画布上找到自己的位置。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-control-math.html"><span class="pager-label">上一讲</span>05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a>
+  <a class="pager-slot next" href="07-first-workflow.html"><span class="pager-label">下一讲</span>07 · 节点=原理的落地：逐节点拆解</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

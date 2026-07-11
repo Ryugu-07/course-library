@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>图生图与局部重绘 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li class="active"><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-10 09:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-denoise">1. 图生图：denoise 是唯一的新东西</a><ul>
+<li><a href="#11-wf03_sdxl_img2imgjson">1.1 工作流改动（对照 wf03_sdxl_img2img.json）</a></li>
+<li><a href="#12-denoise-02">1.2 denoise 的准确含义（第 02 讲兑现）</a></li>
+<li><a href="#13">1.3 输入图的预处理</a></li>
+</ul>
+</li>
+<li><a href="#2-inpaint">2. 局部重绘（Inpaint）：只动该动的地方</a><ul>
+<li><a href="#21">2.1 画遮罩</a></li>
+<li><a href="#22">2.2 两条路线（你的模型各对应一条）</a></li>
+<li><a href="#23">2.3 实操要领</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 组合拳：先全局后局部</a></li>
+<li><a href="#_1">上机任务</a></li>
+</ul>
+</div>
+</details>
+<h1 id="09">第 09 讲 · 图生图与局部重绘<a class="headerlink" href="#09" title="Permanent link"></a></h1>
+<blockquote>
+<p>文生图从纯噪声出发；但更多的日常任务是"<strong>在这张图的基础上……</strong>"——换风格、改质感、只修这一块。本讲两个主题共用同一条原理线（第 02 讲的闭式跳跃 + 第 05 讲的掩码缝合），也共用你已有的模型（SDXL base + SD2-inpainting 就能全部跑通）。</p>
+</blockquote>
+<h2 id="1-denoise">1. 图生图：denoise 是唯一的新东西<a class="headerlink" href="#1-denoise" title="Permanent link"></a></h2>
+<h3 id="11-wf03_sdxl_img2imgjson">1.1 工作流改动（对照 <code>wf03_sdxl_img2img.json</code>）<a class="headerlink" href="#11-wf03_sdxl_img2imgjson" title="Permanent link"></a></h3>
+<p>相对文生图只换一个源头：<strong>Empty Latent Image 换成 Load Image → VAE Encode</strong>——你的图片被压进潜空间（第 04 讲），成为 KSampler 的起点。其余节点原封不动。</p>
+<h3 id="12-denoise-02">1.2 denoise 的准确含义（第 02 讲兑现）<a class="headerlink" href="#12-denoise-02" title="Permanent link"></a></h3>
+<p><code>denoise = d</code> 的机制：<strong>用闭式跳跃把你的图加噪到全程的 <span class="arithmatex">\(d\)</span> 处，再从那里往回去噪</strong>。<span class="arithmatex">\(d\)</span> 越大，推得越深、原图结构冲刷得越多：</p>
+<table>
+<thead>
+<tr>
+<th>denoise</th>
+<th>保留什么</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.15–0.30</td>
+<td>构图+主体+大部分细节</td>
+<td>增质感、轻微风格化、放大后补细节（第 14 讲）</td>
+</tr>
+<tr>
+<td>0.35–0.55</td>
+<td>构图+主体轮廓</td>
+<td>换画风、材质重绘（<strong>从 0.45 起手最稳</strong>）</td>
+</tr>
+<tr>
+<td>0.60–0.75</td>
+<td>只剩大构图</td>
+<td>大改，"参考着画"</td>
+</tr>
+<tr>
+<td>0.85–1.00</td>
+<td>几乎无</td>
+<td>约等于文生图，原图只剩气息</td>
+</tr>
+</tbody>
+</table>
+<p>两个配套认知：</p>
+<ul>
+<li><strong>实际执行步数 ≈ steps × denoise</strong>（只走后段日程）。denoise=0.3、steps=25 时真正只跑 ~8 步，快得很——所以低 denoise 迭代成本极低，可以放心多试；</li>
+<li><strong>提示词仍然重要</strong>：它描述的是"去噪的目的地"。图生图换风格时，提示词写<strong>目标风格 + 画面内容</strong>（内容也要写，否则模型对"这是什么"的理解只能靠残存噪声猜）。</li>
+</ul>
+<h3 id="13">1.3 输入图的预处理<a class="headerlink" href="#13" title="Permanent link"></a></h3>
+<p>进 VAE Encode 前把尺寸问题解决掉：分辨率调到模型的舒适桶（第 08 讲；ComfyUI 有 Image Scale 节点，长边 1024 左右），过大的图先缩——直接塞 4K 图进去既慢又容易出结构问题。输入图放 <code>E:\AI\Inputs</code>（第 06 讲的约定目录，Load Image 默认读这里）。</p>
+<h2 id="2-inpaint">2. 局部重绘（Inpaint）：只动该动的地方<a class="headerlink" href="#2-inpaint" title="Permanent link"></a></h2>
+<h3 id="21">2.1 画遮罩<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>Load Image 节点上<strong>右键 → Open in MaskEditor</strong>：涂抹要重绘的区域（白=重绘，黑=保留），保存后该节点的 MASK 输出口就带上了遮罩。</p>
+<h3 id="22">2.2 两条路线（你的模型各对应一条）<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p><strong>路线 A · 通用模型 + 掩码缝合</strong>（<code>wf04</code> 的 A 版）：<code>Load Image → VAE Encode (for Inpainting)</code> 节点（吃 IMAGE + MASK），后接普通 KSampler。原理即第 05 讲的逐步缝合公式——保留区每步用原图真值覆盖。用 SDXL base 就能跑；<code>grow_mask_by</code> 参数把遮罩边缘外扩几像素（默认 6），给缝合留融合带，<strong>边缘生硬时第一个调它</strong>。</p>
+<p><strong>路线 B · 专用 inpaint 模型</strong>（<code>wf04</code> 的 B 版）：checkpoint 换成你已有的 <code>512-inpainting-ema</code>（SD2 系，512 分辨率），它的 U-Net 原生多吃"遮罩+挖空图"两个输入（第 05 讲），边界融合是训练出来的，大面积重绘更自然。代价：底模是老 SD2，画质上限不如 SDXL——<strong>小修用 A（质量好），大改用 B（融合稳）</strong>，将来第 10 讲补一个 SDXL 系 inpaint 方案后 B 路线整体升级。</p>
+<h3 id="23">2.3 实操要领<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<ol>
+<li><strong>提示词只描述遮罩区</strong>要出现的东西（"a red scarf"），不要描述全图——条件作用的主战场就是重绘区；</li>
+<li><strong>denoise 在 inpaint 里同样生效</strong>：修瑕疵 0.4–0.6；换物体 0.8–1.0（要把旧内容完全冲掉）；</li>
+<li><strong>遮罩比目标大一圈</strong>：给模型融合的余地，贴边太紧必生硬；</li>
+<li>修完一处再修下一处，<strong>多轮小改优于一轮大改</strong>（每轮都从上一轮的成品出发——这本身就是一条"人肉编排管线"）。</li>
+</ol>
+<h2 id="3">3. 组合拳：先全局后局部<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>真实工作里两者串用是常态，标准两段流：</p>
+<div class="highlight"><pre><span></span><code>图生图(denoise 0.45, 换风格) → 成品有小瑕疵(手/眼睛/背景穿帮)
+  → inpaint 逐处精修(denoise 0.5, 遮罩只圈瑕疵) → 完稿
+</code></pre></div>
+<p>这正是第 07 讲"看懂复杂工作流"的骨架思维：网上那些大型"精修工作流"，粉线主动脉就是这两段，其余是自动化它的辅助节点（自动检测手/脸出遮罩之类，第 14 讲见 Impact Pack）。</p>
+<h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ol>
+<li>拿一张你的 VRChat 截图（放进 <code>E:\AI\Inputs</code>），跑 <code>wf03</code>：固定种子，denoise 取 0.25 / 0.45 / 0.7 各一张，把"三档保留度"的体感建立起来；</li>
+<li>用 MaskEditor 圈出其中一张的背景，路线 A 换个背景（提示词只写新背景）；</li>
+<li>同一个遮罩任务用路线 B 再跑一遍，对比边缘融合与画质差异，验证"小修 A 大改 B"。</li>
+</ol>
+<hr />
+<p><em>到这里，"一张图的完整生命周期"（生成→变体→精修）你已经全部掌握，用的还只是机器上原有的三个模型。下一讲开仓补货：为你的显卡和动漫场景定制的第一批模型下载清单——生态补齐后，后面四讲的高级玩法才有子弹。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-parameters.html"><span class="pager-label">上一讲</span>08 · 参数手册：钉死变量再调参</a>
+  <a class="pager-slot next" href="10-model-ecosystem.html"><span class="pager-label">下一讲</span>10 · 模型生态：选型与下载清单</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

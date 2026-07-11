@@ -1,0 +1,126 @@
+{
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": "sd_xl_base_1.0.safetensors"
+  },
+  "_meta": {
+   "title": "CheckpointLoaderSimple"
+  }
+ },
+ "2": {
+  "class_type": "LoraLoader",
+  "inputs": {
+   "lora_name": "换成你下载的LoRA.safetensors",
+   "strength_model": 1.0,
+   "strength_clip": 1.0,
+   "model": [
+    "1",
+    0
+   ],
+   "clip": [
+    "1",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "LoraLoader"
+  }
+ },
+ "3": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "触发词写这里, 1girl, silver hair, masterpiece, best quality",
+   "clip": [
+    "2",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "CLIPTextEncode"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "worst quality, low quality, bad anatomy, bad hands, watermark",
+   "clip": [
+    "2",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "CLIPTextEncode"
+  }
+ },
+ "5": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 832,
+   "height": 1216,
+   "batch_size": 1
+  },
+  "_meta": {
+   "title": "EmptyLatentImage"
+  }
+ },
+ "6": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 42,
+   "steps": 28,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras",
+   "denoise": 1.0,
+   "model": [
+    "2",
+    0
+   ],
+   "positive": [
+    "3",
+    0
+   ],
+   "negative": [
+    "4",
+    0
+   ],
+   "latent_image": [
+    "5",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "KSampler"
+  }
+ },
+ "7": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "6",
+    0
+   ],
+   "vae": [
+    "1",
+    2
+   ]
+  },
+  "_meta": {
+   "title": "VAEDecode"
+  }
+ },
+ "8": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "course/wf05",
+   "images": [
+    "7",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "SaveImage"
+  }
+ }
+}

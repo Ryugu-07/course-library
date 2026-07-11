@@ -1,0 +1,153 @@
+{
+ "1": {
+  "class_type": "CheckpointLoaderSimple",
+  "inputs": {
+   "ckpt_name": "sd_xl_base_1.0.safetensors"
+  },
+  "_meta": {
+   "title": "CheckpointLoaderSimple"
+  }
+ },
+ "2": {
+  "class_type": "IPAdapterUnifiedLoader",
+  "inputs": {
+   "preset": "STANDARD (medium strength)",
+   "model": [
+    "1",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "IPAdapterUnifiedLoader"
+  }
+ },
+ "3": {
+  "class_type": "LoadImage",
+  "inputs": {
+   "image": "reference.png"
+  },
+  "_meta": {
+   "title": "LoadImage"
+  }
+ },
+ "4": {
+  "class_type": "IPAdapter",
+  "inputs": {
+   "weight": 0.7,
+   "weight_type": "standard",
+   "start_at": 0.0,
+   "end_at": 0.9,
+   "model": [
+    "2",
+    0
+   ],
+   "ipadapter": [
+    "2",
+    1
+   ],
+   "image": [
+    "3",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "IPAdapter"
+  }
+ },
+ "5": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "1girl, beach, sunset, masterpiece, best quality",
+   "clip": [
+    "1",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "CLIPTextEncode"
+  }
+ },
+ "6": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "text": "worst quality, low quality, bad anatomy, watermark",
+   "clip": [
+    "1",
+    1
+   ]
+  },
+  "_meta": {
+   "title": "CLIPTextEncode"
+  }
+ },
+ "7": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 832,
+   "height": 1216,
+   "batch_size": 1
+  },
+  "_meta": {
+   "title": "EmptyLatentImage"
+  }
+ },
+ "8": {
+  "class_type": "KSampler",
+  "inputs": {
+   "seed": 42,
+   "steps": 28,
+   "cfg": 6.0,
+   "sampler_name": "dpmpp_2m",
+   "scheduler": "karras",
+   "denoise": 1.0,
+   "model": [
+    "4",
+    0
+   ],
+   "positive": [
+    "5",
+    0
+   ],
+   "negative": [
+    "6",
+    0
+   ],
+   "latent_image": [
+    "7",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "KSampler"
+  }
+ },
+ "9": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "8",
+    0
+   ],
+   "vae": [
+    "1",
+    2
+   ]
+  },
+  "_meta": {
+   "title": "VAEDecode"
+  }
+ },
+ "10": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "filename_prefix": "course/wf07",
+   "images": [
+    "9",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "SaveImage"
+  }
+ }
+}

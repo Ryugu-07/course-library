@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>错误、重试与幂等 · 从 SWE Agent 到 Codex</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2352745d'/%3E%3Cpath d='M15 18h34v7H15zm0 12h24v7H15zm0 12h34v7H15z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/course.css?v=20260710-full">
+  <script>(function(){var t=localStorage.getItem('agentCourseTheme');if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body id="top" data-page-key="08-errors-retries">
+  <button id="sidebar-toggle" aria-label="打开课程目录">☰</button>
+  <nav id="sidebar" aria-label="完整课程目录">
+    <div class="site-head">
+      <a class="site-title" href="index.html">从 SWE Agent 到 Codex</a>
+      <div class="site-subtitle">编码智能体完整架构课</div>
+    </div>
+    <div class="nav-home"><a href="index.html">课程总览</a><a href="labs.html">8 个互动实验</a></div>
+<details class="nav-stage"><summary>第一阶段 · 最小 Agent 透明内核</summary><ul><li><a href="01-mental-model.html">01 · Agent 到底是什么</a></li><li><a href="02-tool-protocol.html">02 · 消息与工具调用协议</a></li><li><a href="03-loop-state.html">03 · 主循环、状态与停止条件</a></li><li><a href="04-executor-boundary.html">04 · Executor 与工作区边界</a></li></ul></details>
+<details class="nav-stage" open><summary>第二阶段 · 可靠的本地编码 Agent</summary><ul><li><a href="05-repo-discovery.html">05 · 仓库发现与代码搜索</a></li><li><a href="06-patch-diff.html">06 · 精确补丁与 Diff</a></li><li><a href="07-shell-runtime.html">07 · Shell、PTY 与后台进程</a></li><li><a class="current" aria-current="page" href="08-errors-retries.html">08 · 错误、重试与幂等</a></li><li><a href="09-verification-loop.html">09 · 验证闭环</a></li></ul></details>
+<details class="nav-stage"><summary>第三阶段 · 上下文与长期任务</summary><ul><li><a href="10-context-anatomy.html">10 · 上下文窗口解剖</a></li><li><a href="11-compaction.html">11 · 压缩、摘要与上下文腐化</a></li><li><a href="12-sessions-threads.html">12 · Session、Thread 与恢复</a></li><li><a href="13-memory-rules.html">13 · 记忆、规则与学习</a></li><li><a href="14-planning-budget.html">14 · 计划、任务状态与预算</a></li></ul></details>
+<details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
+<details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
+<details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
+    <div class="sidebar-foot">
+      <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
+      <a href="../index.html">返回最小 Agent 原始讲解</a>
+    </div>
+  </nav>
+  <main id="content">
+    <div class="reading-progress"><span style="width:27%"></span></div>
+    <article>
+      <div class="chapter-meta"><span>第二阶段 · 可靠的本地编码 Agent</span><span>第 8 / 30 章</span></div>
+      <details class="page-toc"><summary>本章目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 错误不是一个类别</a></li>
+<li><a href="#2">2. 指数退避解决什么</a></li>
+<li><a href="#3">3. 幂等是副作用工具的生命线</a></li>
+<li><a href="#4">4. 重复行为检测</a></li>
+<li><a href="#5">5. 错误预算与用户体验</a></li>
+<li><a href="#6">6. 本章实验</a></li>
+</ul>
+</div>
+</details>
+      <h1 id="08">第 08 章 · 错误、重试与幂等<a class="headerlink" href="#08" title="Permanent link"></a></h1>
+<blockquote>
+<p>本章目标：区分“再试一次可能恢复”的故障与“再试只会重复伤害”的故障，并把重试写成有预算、有证据的状态机。</p>
+</blockquote>
+<h2 id="1">1. 错误不是一个类别<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>Agent 会遇到模型 API 限流、网络超时、参数校验失败、文件不存在、测试失败、权限拒绝和逻辑无解。把它们全部 catch 后重试，会让系统变慢、变贵，甚至重复副作用。</p>
+<p>可以先分成四类：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>例子</th>
+<th>默认策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>瞬时故障</td>
+<td>429、连接重置、服务暂时不可用</td>
+<td>有上限地退避重试</td>
+</tr>
+<tr>
+<td>输入错误</td>
+<td>参数缺失、路径非法</td>
+<td>返回模型修正参数</td>
+</tr>
+<tr>
+<td>任务证据</td>
+<td>测试失败、编译错误</td>
+<td>作为 observation 继续推理</td>
+</tr>
+<tr>
+<td>权限与安全</td>
+<td>沙箱拒绝、用户拒绝</td>
+<td>停止或请求明确授权</td>
+</tr>
+</tbody>
+</table>
+<p>“测试失败”不是工具异常。pytest 正常运行并以退出码 1 告诉你行为不满足断言，这恰恰是有价值的观察。</p>
+<h2 id="2">2. 指数退避解决什么<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>瞬时故障若立即高频重试，会加重服务压力。指数退避让等待时间逐步增长，并加入随机抖动避免大量客户端同时重试。重试仍需最大次数和总时间预算。</p>
+<div class="highlight"><pre><span></span><code><span class="n">delay</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_delay</span><span class="p">,</span> <span class="n">base_delay</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">attempt</span><span class="p">)</span>
+<span class="n">delay</span> <span class="o">+=</span> <span class="n">random_jitter</span><span class="p">()</span>
+</code></pre></div>
+<p>但退避不应包住整个 Agent turn。模型 API 请求失败可以重发；真实工具是否能重放，需要单独判断。</p>
+<h2 id="3">3. 幂等是副作用工具的生命线<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>读取文件天然近似幂等，重复读取只浪费资源。创建 issue、发送消息、扣款和数据库写入不是。Runtime 在执行前生成 operation_id，外部系统使用它识别重复请求；或者先查询结果是否已经存在。</p>
+<p>如果客户端在发送后超时，你不知道服务端是否执行成功。这叫不确定提交。正确策略是用幂等键查询，而不是再次创建。Agent 框架要记录“调用已发出但结果未知”，不能简单回到未执行状态。</p>
+<h2 id="4">4. 重复行为检测<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>即使每次工具都正常返回，模型也可能不断做同一件事。为工具名和规范化参数生成指纹，记录最近 N 次调用。当相同指纹与相同结果反复出现，就说明没有信息增益。</p>
+<p>框架可以采取三级动作：</p>
+<ol>
+<li>第一次重复：提醒模型说明新理由；</li>
+<li>第二次重复：要求改变假设或工具；</li>
+<li>第三次重复：停止并报告 blocked。</li>
+</ol>
+<p>对于读取工具，偶尔重复是合理的，因为文件可能变化；因此指纹还应考虑文件版本或结果哈希。</p>
+<h2 id="5">5. 错误预算与用户体验<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>重试次数、最大 turn、总时间和费用是不同预算。一次复杂任务可以允许多轮逻辑修复，却不应无限等待同一个网络请求。界面要显示正在重试什么、已经等待多久，以及用户打断后会保留哪些状态。</p>
+<p>最终报告应区分：任务目标失败、工具暂时不可用、权限不足、预算耗尽。只有第一种可能说明方案不正确，其他是运行环境结论。</p>
+<h2 id="6">6. 本章实验<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>实验 03 允许调整最大轮数、故障模式和退避策略。先选择“重复同一错误”，观察为什么重复检测比 max_turns 更早停止；再选择“持续失败”，理解预算耗尽与任务完成是两个不同终态。</p>
+<div class="admonition warning">
+<p class="admonition-title">设计检查</p>
+<p>在给任何工具增加自动重试前，写下：这个动作重复执行是否安全？第一次执行结果未知时怎样查询？谁提供幂等键？回答不了，就不应自动重放。</p>
+</div>
+      <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="08-errors-retries"><span>我已经能复述本章的核心逻辑</span></label></div>
+    </article>
+    <footer class="pager"><a class="pager-slot prev" href="07-shell-runtime.html"><span>上一页</span><strong>07 · Shell、PTY 与后台进程</strong></a><a class="pager-slot next" href="09-verification-loop.html"><span>下一页</span><strong>09 · 验证闭环</strong></a></footer>
+  </main>
+  <script src="assets/course.js?v=20260710-full"></script>
+</body>
+</html>

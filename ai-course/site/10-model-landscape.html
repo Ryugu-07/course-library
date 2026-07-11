@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模型地图与选型 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li class="active"><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-09 21:08</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 地图：三大国际家族 + 中国梯队</a><ul>
+<li><a href="#_1">国际三巨头</a></li>
+<li><a href="#_2">中国梯队</a></li>
+<li><a href="#vs">推理模型 vs 普通模型：先分清这个</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 选型的六个维度</a></li>
+<li><a href="#3">3. 怎么判断"哪个更强"：基准的坑</a></li>
+<li><a href="#4-2026">4. 按场景的推荐配置（2026 年初快照）</a></li>
+<li><a href="#_3">本讲小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="10">第 10 讲 · 模型地图与选型<a class="headerlink" href="#10" title="Permanent link"></a></h1>
+<blockquote>
+<p>下篇开篇先解决最高频的问题：<strong>这么多模型，干某件活到底该用哪个？</strong>本讲给你一张地图和一套选型方法。地图（具体产品名、排位）时效性强，以 2026 年初为快照，会过期；<strong>选型方法（维度、试用套路、避坑原则）长期有效</strong>——重点吸收后者。</p>
+</blockquote>
+<div class="admonition warning">
+<p class="admonition-title">时效声明</p>
+<p>模型版本以月为单位更新，本讲提到的具体型号可能已有新版。用前花两分钟核对官网；但"家族气质"（各家的强项传统）变化很慢，地图的骨架可以放心用。</p>
+</div>
+<h2 id="1">1. 地图：三大国际家族 + 中国梯队<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="_1">国际三巨头<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>家族</th>
+<th>厂商</th>
+<th>家族气质与传统强项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPT / o 系列</td>
+<td>OpenAI</td>
+<td>综合能力均衡的六边形战士；推理系列（o 系）开创测试时计算范式；生态最大、教程最多</td>
+</tr>
+<tr>
+<td>Claude 系列</td>
+<td>Anthropic</td>
+<td>写代码与智能体任务的口碑之王（Claude Code）；长文写作自然、"人味"足；对齐细腻、拒答边界稳</td>
+</tr>
+<tr>
+<td>Gemini 系列</td>
+<td>Google</td>
+<td>原生多模态（图/音/视频）最强；超长上下文（百万级 token）先行者；与 Google 全家桶打通</td>
+</tr>
+</tbody>
+</table>
+<p>各家产品线通常分三档：<strong>旗舰</strong>（最强最贵）、<strong>主力</strong>（性价比平衡，日常默认）、<strong>轻量</strong>（快而便宜，跑量任务）。同代模型内"贵 ≈ 强"大体成立，但<strong>跨用途不成立</strong>——写诗不需要旗舰推理模型，那是浪费钱还更慢。</p>
+<h3 id="_2">中国梯队<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>家族</th>
+<th>厂商</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DeepSeek</td>
+<td>深度求索</td>
+<td>开源旗舰；V 系通用、R 系推理；API 价格极低，性价比标杆；R1 以低成本复现推理能力震动业界</td>
+</tr>
+<tr>
+<td>Qwen（通义千问）</td>
+<td>阿里</td>
+<td>开源谱系最全（0.5B 到百 B 级都有），本地部署首选之一；多模态齐全</td>
+</tr>
+<tr>
+<td>Kimi</td>
+<td>月之暗面</td>
+<td>长文本起家，K 系推理模型开源</td>
+</tr>
+<tr>
+<td>GLM</td>
+<td>智谱</td>
+<td>学术界出身，国内 To B 生态深</td>
+</tr>
+<tr>
+<td>豆包</td>
+<td>字节</td>
+<td>C 端产品化最强，日活最大</td>
+</tr>
+</tbody>
+</table>
+<p>中国模型的两个实用意义：<strong>便宜</strong>（同能力档 API 价格常低一个数量级）与<strong>可及</strong>（国内网络直连、支付方便；国际模型的官方服务在国内访问受限）。开源权重（DeepSeek/Qwen 等）还意味着可以本地部署——数据不出门（第 11 讲实操）。</p>
+<h3 id="vs">推理模型 vs 普通模型：先分清这个<a class="headerlink" href="#vs" title="Permanent link"></a></h3>
+<p>第 07 讲讲过原理（RL 训练的长思维链），选型时这是第一个岔路口：</p>
+<ul>
+<li><strong>普通（即答）模型</strong>：写作、翻译、摘要、聊天、格式转换——响应快、便宜；</li>
+<li><strong>推理模型</strong>：数学、复杂代码调试、多步逻辑、规划——先"思考"几秒到几分钟再回答，贵且慢，但难题正确率高一截。</li>
+</ul>
+<p>常见浪费：用推理模型干翻译（慢且无增益）；常见翻车：用即答模型做多步数学（第 08 讲：单 token 计算量固定，一步算不完多步题）。<strong>难题给推理模型，快活给即答模型</strong>，一句话记住。</p>
+<h2 id="2">2. 选型的六个维度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<ol>
+<li><strong>能力匹配</strong>：任务的瓶颈能力是什么？代码 → 看编程基准与口碑；数学 → 推理系；创作 → 文风口味（主观，必须亲测）；</li>
+<li><strong>上下文长度</strong>：要一次读几百页文档？确认窗口够，并记住第 08 讲的警告——标称一百万不等于中间部分真被读进去了（lost in the middle）；</li>
+<li><strong>多模态</strong>：要读图、读 PDF 扫描件、听音频吗？</li>
+<li><strong>价格</strong>：API 按 token 计费，输入/输出分开算，推理模型的"思考 token"也收费。跑量任务（批处理十万条数据）价格差一个数量级就是十倍账单；</li>
+<li><strong>速度</strong>：交互场景在乎首 token 延迟，批处理在乎吞吐；</li>
+<li><strong>部署约束</strong>：数据能不能出内网/出境？不能 → 开源模型本地部署或国内合规云。科研数据、商业机密先想这条。</li>
+</ol>
+<h2 id="3">3. 怎么判断"哪个更强"：基准的坑<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>公开基准（MMLU、数学竞赛、SWE-bench 等）可参考，但三个坑要知道：</p>
+<ul>
+<li><strong>刷榜与污染</strong>：基准题目可能混进训练数据（第 01 讲用语：测试集泄漏进训练集），分数系统性虚高；</li>
+<li><strong>基准 ≠ 你的任务</strong>：数学竞赛分数高，不代表给你改中文论文改得好；</li>
+<li><strong>饱和</strong>：老基准大家都 90+ 分，失去区分度。</li>
+</ul>
+<p>更可靠的两个信号：<strong>竞技场式盲评</strong>（如 LMArena：真人盲测两个匿名回答投票，难刷）与<strong>你自己的 10 道题</strong>——把你真实工作中的典型任务存成一套私人测试题，新模型出来就跑一遍。半小时的亲测胜过读十篇评测文章，这是本讲最值得执行的一条建议。</p>
+<h2 id="4-2026">4. 按场景的推荐配置（2026 年初快照）<a class="headerlink" href="#4-2026" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐思路</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日常问答/学习</td>
+<td>任一家主力档即可，重要的是用熟一个、了解它的脾气</td>
+</tr>
+<tr>
+<td>写代码</td>
+<td>Claude 系或 GPT 主力档 + 编程智能体（第 11、15 讲）；预算紧用 DeepSeek</td>
+</tr>
+<tr>
+<td>数学推导/难题</td>
+<td>推理模型（o 系 / R 系 / Gemini 思考档），开思维链慢慢算</td>
+</tr>
+<tr>
+<td>论文精读/长文档</td>
+<td>长上下文强的（Gemini/Kimi/Claude），配合第 13 讲的方法</td>
+</tr>
+<tr>
+<td>批量数据处理</td>
+<td>轻量档或 DeepSeek——先小样本验证质量，再上量</td>
+</tr>
+<tr>
+<td>敏感数据</td>
+<td>本地部署开源模型（Qwen/DeepSeek 蒸馏版，第 11 讲实操）</td>
+</tr>
+<tr>
+<td>文生图/多模态创作</td>
+<td>专门模型，见第 16 讲</td>
+</tr>
+</tbody>
+</table>
+<p>一个被反复验证的使用哲学：<strong>主力模型用深，比广撒网强。</strong>每个模型有自己的脾气（对指令格式的偏好、拒答的边界、幻觉的高发区），摸熟一个的收益大于浅尝十个。选一个主力 + 一个推理备胎 + 一个便宜跑量的，三件套足够覆盖 95% 的需求。</p>
+<h2 id="_3">本讲小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li>地图会过期，方法不会：能力/上下文/多模态/价格/速度/部署六维度过一遍；</li>
+<li>推理模型 vs 即答模型是第一岔路：难题上推理，快活上即答；</li>
+<li>不迷信基准：建一套自己的 10 道测试题，新模型出来跑一遍；</li>
+<li>三件套配置：主力用深 + 推理备胎 + 便宜跑量。</li>
+</ul>
+<p><strong>动手</strong>：现在就建你的私人测试题集——从你最近的真实工作里挑 10 个任务（一段要润色的论文、一个要调试的 bug、一道专业题……），存进一个文档。这是你此后每次选型的量尺。</p>
+<hr />
+<p><em>下一讲：选好了模型，怎么把工具链装起来——从零安装到跑通第一个 API 调用和第一个本地模型。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-tools-agents-mcp.html"><span class="pager-label">上一讲</span>09 · 工具调用、智能体、MCP 与 Skills</a>
+  <a class="pager-slot next" href="11-setup-tools.html"><span class="pager-label">下一讲</span>11 · 软件与环境安装</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>
