@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maxwell 方程与电磁波 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li class="active"><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-faraday">1. Faraday 感应与位移电流</a></li>
+<li><a href="#2">2. 光的诞生（教科书物理最高光的两行）</a></li>
+<li><a href="#3">3. 势的语言与规范（承前启后）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-maxwell">电磁 II · Maxwell 方程与电磁波<a class="headerlink" href="#ii-maxwell" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Griffiths §7、§9 ｜ <strong>前置</strong>：em-01、pde-02（波动方程）
+物理学史上最著名的"补丁"：Maxwell 给 Ampère 定律加了一项位移电流，方程组闭合的瞬间——<strong>光从方程里跑了出来</strong>。本页推导这一切，并把电磁波的性质（横波、偏振、能流）配齐。</p>
+</blockquote>
+<h2 id="1-faraday">1. Faraday 感应与位移电流<a class="headerlink" href="#1-faraday" title="Permanent link"></a></h2>
+<p><strong>Faraday 定律</strong>：变化的磁通感生电场——<span class="arithmatex">\(\oint\mathbf E\cdot d\boldsymbol\ell = -\frac{d\Phi_B}{dt}\)</span> ⟺</p>
+<div class="arithmatex">\[
+\nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t}
+\]</div>
+<p>（负号 = Lenz 定律：感应总在抵抗变化——能量守恒的守门员；发电机、变压器的全部原理。）</p>
+<p><strong>Maxwell 的补丁【推导】</strong>：静磁的 <span class="arithmatex">\(\nabla\times\mathbf B = \mu_0\mathbf J\)</span> 与电荷守恒 <span class="arithmatex">\(\nabla\cdot\mathbf J = -\frac{\partial\rho}{\partial t}\)</span> 冲突（对前者取散度：左边恒零、右边非零——数分 V 的 <span class="arithmatex">\(\nabla\cdot(\nabla\times) = 0\)</span> 当检察官）。修复：补上<strong>位移电流</strong> <span class="arithmatex">\(\varepsilon_0\frac{\partial\mathbf E}{\partial t}\)</span>，散度检验恰好通过（用 Gauss 定律）。<span class="arithmatex">\(\blacksquare\)</span>——<strong>由数学自洽性倒逼出的新物理</strong>：理论物理方法论的第一次完整示范。</p>
+<p><strong>Maxwell 方程组（真空）</strong>：</p>
+<div class="arithmatex">\[
+\nabla\cdot\mathbf E = \frac{\rho}{\varepsilon_0}, \quad \nabla\cdot\mathbf B = 0, \quad \nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t}, \quad \nabla\times\mathbf B = \mu_0\mathbf J + \mu_0\varepsilon_0\frac{\partial\mathbf E}{\partial t}
+\]</div>
+<h2 id="2">2. 光的诞生（教科书物理最高光的两行）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>真空无源区（<span class="arithmatex">\(\rho = 0, \mathbf J = 0\)</span>）：对 Faraday 取旋度、代入 Ampère–Maxwell，用 <span class="arithmatex">\(\nabla\times(\nabla\times\mathbf E) = \nabla(\nabla\cdot\mathbf E) - \nabla^2\mathbf E\)</span>（解几/数分恒等式）与 <span class="arithmatex">\(\nabla\cdot\mathbf E = 0\)</span>：</p>
+<div class="arithmatex">\[
+\nabla^2\mathbf E = \mu_0\varepsilon_0\,\frac{\partial^2\mathbf E}{\partial t^2}
+\]</div>
+<p>——<strong>波动方程</strong>（pde-02 的双曲型主角），波速</p>
+<div class="arithmatex">\[
+c = \frac{1}{\sqrt{\mu_0\varepsilon_0}} \approx 3\times10^8\ \mathrm{m/s}
+\]</div>
+<p><strong>两个静态常数（电的 <span class="arithmatex">\(\varepsilon_0\)</span>、磁的 <span class="arithmatex">\(\mu_0\)</span>）拼出光速</strong>——Maxwell 由此判定"光是电磁波"：理论统一的黄金标准案例（电、磁、光学三门学科在两行推导里合并）。</p>
+<p><strong>平面波解的性质【推导】</strong>：<span class="arithmatex">\(\mathbf E = \mathbf E_0 e^{i(\mathbf k\cdot\mathbf r - \omega t)}\)</span> 代回方程组——<span class="arithmatex">\(\nabla\cdot\mathbf E = 0 \Rightarrow \mathbf k\perp\mathbf E\)</span>（<strong>横波</strong>）；Faraday 给 <span class="arithmatex">\(\mathbf B = \frac{\mathbf k\times\mathbf E}{\omega}\)</span>（<span class="arithmatex">\(\mathbf E \perp \mathbf B \perp \mathbf k\)</span> 右手系、<span class="arithmatex">\(|E| = c|B|\)</span>）。<strong>偏振</strong> = <span class="arithmatex">\(\mathbf E\)</span> 在横平面内的取向自由度（线偏/圆偏——两个独立分量的相位关系；偏振片、3D 眼镜、量子光学 qubit（qi-01）的物理载体）。</p>
+<h2 id="3">3. 势的语言与规范（承前启后）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathbf B = \nabla\times\mathbf A\)</span>、<span class="arithmatex">\(\mathbf E = -\nabla V - \frac{\partial\mathbf A}{\partial t}\)</span>：自动满足两条无源方程；剩下两条在 <strong>Lorenz 规范</strong>（<span class="arithmatex">\(\nabla\cdot\mathbf A + \frac{1}{c^2}\frac{\partial V}{\partial t} = 0\)</span>）下解耦成对称的波动方程</p>
+<div class="arithmatex">\[
+\Box V = -\frac{\rho}{\varepsilon_0}, \qquad \Box\mathbf A = -\mu_0\mathbf J \qquad \Big(\Box = \nabla^2 - \frac{1}{c^2}\frac{\partial^2}{\partial t^2}\Big)
+\]</div>
+<p>——带源波动方程：解即推迟势（ced-02 的主角）。<strong>规范自由</strong>（<span class="arithmatex">\(\mathbf A \to \mathbf A + \nabla\chi\)</span>，<span class="arithmatex">\(V \to V - \frac{\partial\chi}{\partial t}\)</span> 不改场）此处是计算便利，到 pp-01 将升格为"决定相互作用形式的第一原理"。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（数量级体感）</strong> 阳光强度 <span class="arithmatex">\(\sim 1.4\ \mathrm{kW/m^2}\)</span>：由 <span class="arithmatex">\(I = \frac{c\varepsilon_0E_0^2}{2}\)</span> 反解 <span class="arithmatex">\(E_0 \approx 1\ \mathrm{kV/m}\)</span>、<span class="arithmatex">\(B_0 \approx 3\ \mu\mathrm T\)</span>——阳光的电场千伏每米级、磁场却比地磁还弱：<span class="arithmatex">\(|E| = c|B|\)</span> 的日常读数。</p>
+<p><strong>例 2（波段一览）</strong> 同一方程组、不同 <span class="arithmatex">\(\omega\)</span>：无线电—微波—红外—可见（400–700 nm）—紫外—X—γ——<strong>"光谱只是频率轴上的地名"</strong>；波长与结构尺度匹配决定应用（天线 ~ 波长、显微极限 ~ 波长——opt-01 衍射极限伏笔）。</p>
+<p><strong>例 3（Lenz 判向练习）</strong> 磁铁 N 极插向线圈：磁通增 ⇒ 感应电流产生反向磁场（面对磁铁一侧成 N 极）排斥之——"感应永远唱反调"；涡流刹车、无线充电的方向判断同法。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：场的力学身份——能量（Poynting）、动量（辐射压）与辐射入门：加速电荷为何发光。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="em-01-electrostatics.html"><span class="pager-label">上一页</span>电磁 I · 静电与静磁</a>
+  <a class="pager-slot next" href="em-03-energy-radiation.html"><span class="pager-label">下一页</span>电磁 III · 能量、动量与辐射入门</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

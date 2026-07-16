@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>随机向量与降维 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li class="active"><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 高维随机向量的语言</a></li>
+<li><a href="#2">2. 协方差估计：问题与框架</a></li>
+<li><a href="#3-johnsonlindenstrauss">3. Johnson–Lindenstrauss 引理（本页主菜，全证）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-johnsonlindenstrauss">高维概率 II · 随机向量与 Johnson–Lindenstrauss 降维<a class="headerlink" href="#ii-johnsonlindenstrauss" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Vershynin <em>HDP</em> §3.1–3.4、§5.3 ｜ <strong>前置</strong>：hdp-01、本科高代 VI/统计 V
+本页把集中不等式对准两个统计与 ML 的核心问题：<strong>协方差矩阵要多少样本才估得准</strong>（答案：维数的常数倍——但要到下一页随机矩阵工具才证完，本页立框架）与<strong>降维能压到多低而不毁几何</strong>（Johnson–Lindenstrauss：<span class="arithmatex">\(O(\ln N)\)</span> 维，与原维数无关——全证）。</p>
+</blockquote>
+<h2 id="1">1. 高维随机向量的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>各向同性：<span class="arithmatex">\(E X = 0,\ E XX^\top = I_n\)</span>（"单位方差的高维版"；一般分布白化 <span class="arithmatex">\(\Sigma^{-1/2}(X-\mu)\)</span> 得到）。两个基本几何事实（hdp-01 §3 的推论，复述备用）：各向同性亚高斯向量满足 <span class="arithmatex">\(\|X\|_2 \approx \sqrt n\)</span>；独立两个近正交。<strong>投影的一维刻画</strong>：<span class="arithmatex">\(X\)</span> 亚高斯向量 ⟺ 一切单位方向的投影 <span class="arithmatex">\(\langle X, u\rangle\)</span> 是一致亚高斯的标量（定义级；把高维问题切成方向族的一维问题——本页与下一页的通用刀法）。</p>
+<h2 id="2">2. 协方差估计：问题与框架<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>样本协方差 <span class="arithmatex">\(\hat\Sigma = \frac1m\sum_{i=1}^m X_iX_i^\top\)</span>。想要的结论是<strong>谱范数</strong>误差界 <span class="arithmatex">\(\|\hat\Sigma - \Sigma\|_{\mathrm{op}} \leq \varepsilon\)</span>（谱范数误差 ⇒ 所有方向的方差估计一致准 ⇒ PCA 主轴稳定——统计 V/高代 VI 的实战关切）。</p>
+<p><strong>定理（亚高斯协方差估计）【引用，证明在 hdp-03】</strong> 亚高斯各向同性分布：<span class="arithmatex">\(m \gtrsim \varepsilon^{-2}(n + \ln\frac1\delta)\)</span> 个样本即保证 <span class="arithmatex">\(\|\hat\Sigma - I\|_{\mathrm{op}} \leq \varepsilon\)</span>（概率 <span class="arithmatex">\(1-\delta\)</span>）。</p>
+<p><strong>读法</strong>：<strong>样本数 ≍ 维数</strong>（线性、无对数惩罚）是亚高斯世界的甜价；每个矩阵元素估准只需 <span class="arithmatex">\(O(\ln n)\)</span> 样本，但 <span class="arithmatex">\(n^2\)</span> 个元素"同时准到谱范数级"需要 <span class="arithmatex">\(n\)</span> 级——"逐元素准"与"作为算子准"的差距正是下一页 ε-网技术要跨的沟。重尾分布则要付对数或截断的代价（Vershynin §5.6【引用】）。</p>
+<h2 id="3-johnsonlindenstrauss">3. Johnson–Lindenstrauss 引理（本页主菜，全证）<a class="headerlink" href="#3-johnsonlindenstrauss" title="Permanent link"></a></h2>
+<p><strong>定理（JL）</strong> 任给 <span class="arithmatex">\(\mathbb{R}^d\)</span> 中 <span class="arithmatex">\(N\)</span> 个点与 <span class="arithmatex">\(\varepsilon \in (0,1)\)</span>，取</p>
+<div class="arithmatex">\[
+k \geq \frac{C\ln N}{\varepsilon^2}
+\]</div>
+<p>维的随机投影 <span class="arithmatex">\(A \in \mathbb{R}^{k\times d}\)</span>（元素 i.i.d. <span class="arithmatex">\(N(0, 1/k)\)</span>），则以高概率对<strong>所有</strong>点对同时成立：</p>
+<div class="arithmatex">\[
+(1-\varepsilon)\|x_i - x_j\|_2^2 \;\leq\; \|Ax_i - Ax_j\|_2^2 \;\leq\; (1+\varepsilon)\|x_i - x_j\|_2^2
+\]</div>
+<p><strong>【证明】</strong> 三步。
+<strong>① 单向量分析</strong>：固定单位向量 <span class="arithmatex">\(u\)</span>，<span class="arithmatex">\(\|Au\|_2^2 = \sum_{l=1}^k \langle A_l, u\rangle^2\)</span>，其中 <span class="arithmatex">\(\langle A_l, u\rangle \sim N(0, 1/k)\)</span> 独立（高斯的旋转不变性——高代 VI 正交变换保持高斯白噪声）。故 <span class="arithmatex">\(k\|Au\|_2^2 \sim \chi^2(k)\)</span>，<span class="arithmatex">\(E\|Au\|_2^2 = 1\)</span>。
+<strong>② 集中</strong>：<span class="arithmatex">\(\chi^2(k)/k\)</span> 是 <span class="arithmatex">\(k\)</span> 个独立亚指数量（<span class="arithmatex">\(Z_l^2\)</span>，hdp-01 §2"亚高斯的平方"）的均值，Bernstein 给</p>
+<div class="arithmatex">\[
+P\big(\big|\|Au\|_2^2 - 1\big| &gt; \varepsilon\big) \leq 2e^{-c k\varepsilon^2}
+\]</div>
+<p><strong>③ 联合界</strong>：把 <span class="arithmatex">\(u\)</span> 取为全部 <span class="arithmatex">\(\binom N2 &lt; N^2\)</span> 个归一化差向量，union bound：失败概率 <span class="arithmatex">\(\leq 2N^2 e^{-ck\varepsilon^2}\)</span>；取 <span class="arithmatex">\(k = \frac{3}{c}\varepsilon^{-2}\ln N\)</span> 使其 <span class="arithmatex">\(&lt; N^{-1}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>三点回味</strong>：</p>
+<ul>
+<li><strong>目标维数与原维数 <span class="arithmatex">\(d\)</span> 无关</strong>——一百万维压到 <span class="arithmatex">\(O(\ln N/\varepsilon^2)\)</span> 维，几何近似保真：高维空间"看起来大、其实按对数计价"；</li>
+<li>证明的三步（单点分析 → 集中 → 联合界）<strong>就是 ai 课 01 讲泛化界的骨架</strong>——同一套逻辑，一次保真几何、一次保真学习：高维概率是两者的公因式；</li>
+<li>投影矩阵<strong>与数据无关</strong>（不看数据先抽好）——对比 PCA（数据自适应、拿最优方向但要算特征分解）：JL 是"廉价通用保险"，PCA 是"定制西装"。工程直系后代：局部敏感哈希、随机特征、压缩感知（RIP 条件即 JL 的稀疏向量版【引用】）、embedding 检索的降维预处理。</li>
+</ul>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（JL 的数字体感）</strong> <span class="arithmatex">\(N = 10^6\)</span> 个点、<span class="arithmatex">\(\varepsilon = 0.1\)</span>：<span class="arithmatex">\(k \approx C \cdot \frac{13.8}{0.01} \approx\)</span> 数千维——<strong>与原始维数是一百万还是一百亿无关</strong>。向量数据库把 embedding 从 4096 压到 512 维而检索几乎无损，执照就是本页。</p>
+<p><strong>例 2（③ 步的必要性体感）</strong> 单点成功率 <span class="arithmatex">\(1 - 2e^{-ck\varepsilon^2}\)</span> 很高，但 <span class="arithmatex">\(N^2\)</span> 对距离要<strong>同时</strong>成立——不打 union bound 就宣称"随机投影保距"是初学者第一坑（"逐点对 ≠ 一致对"，与 §2 协方差的教训同构；一致性的代价恰好是那个 <span class="arithmatex">\(\ln N\)</span>）。</p>
+<p><strong>例 3（反向问题）</strong> JL 能把维数压到 <span class="arithmatex">\(o(\ln N/\varepsilon^2)\)</span> 吗？不能——下界定理（Larsen–Nelson 2017【引用】）：JL 的维数在最坏情形是最优的。"对数维数"不是技术妥协，是信息论型的墙。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：把集中从"向量"推到"矩阵"——ε-网技术、随机矩阵的谱范数界，并兑现 §2 欠下的协方差估计定理。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="hdp-01-subgaussian.html"><span class="pager-label">上一页</span>高维概率 I · 亚高斯与集中不等式</a>
+  <a class="pager-slot next" href="hdp-03-random-matrices.html"><span class="pager-label">下一页</span>高维概率 III · 随机矩阵与谱界</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

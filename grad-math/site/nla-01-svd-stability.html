@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SVD、QR 与后向稳定性 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li class="active"><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-svd">1. SVD：数值世界的中心分解</a></li>
+<li><a href="#2">2. 后向稳定性：误差分析的正确提问</a></li>
+<li><a href="#3-householder-qr">3. Householder QR：稳定算法的典范</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-svdqr">数值线代 I · SVD、QR 与后向稳定性<a class="headerlink" href="#i-svdqr" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Trefethen &amp; Bau <em>NLA</em> Lectures 1–19 ｜ <strong>前置</strong>：本科高代 V–VI、数值 I–II
+研究生数值线代的纲领（Trefethen 的开篇宣言）：<strong>一切算法围绕矩阵分解组织，一切误差分析围绕"后向稳定 + 条件数"组织</strong>。本页立起这两根柱子：SVD 作为"最诚实的分解"、Householder QR 作为稳定算法的典范、以及后向误差分析的正式语言。</p>
+</blockquote>
+<h2 id="1-svd">1. SVD：数值世界的中心分解<a class="headerlink" href="#1-svd" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(A = U\Sigma V^\top\)</span>（本科高代 VI 已证存在）。数值视角下它的三重身份：</p>
+<ul>
+<li><strong>几何真相</strong>：任何矩阵 = 旋转 × 拉伸 × 旋转——条件数 <span class="arithmatex">\(\kappa_2 = \sigma_1/\sigma_n\)</span>（数值 I 的定义在此显出几何脸：最大与最小拉伸比）；</li>
+<li><strong>最佳低秩逼近（Eckart–Young）【证明】</strong>：<span class="arithmatex">\(\min_{\mathrm{rank}(B)\leq k}\|A - B\|_2 = \sigma_{k+1}\)</span>，达于截断 SVD <span class="arithmatex">\(A_k\)</span>。<em>证</em>：上界显然（<span class="arithmatex">\(\|A - A_k\| = \sigma_{k+1}\)</span>）；下界——任取秩 <span class="arithmatex">\(\leq k\)</span> 的 <span class="arithmatex">\(B\)</span>，<span class="arithmatex">\(\ker B\)</span> 维数 <span class="arithmatex">\(\geq n - k\)</span>，与 <span class="arithmatex">\(V\)</span> 的前 <span class="arithmatex">\(k+1\)</span> 列张成空间必相交于非零 <span class="arithmatex">\(w\)</span>：<span class="arithmatex">\(\|(A - B)w\| = \|Aw\| \geq \sigma_{k+1}\|w\|\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（PCA/压缩/推荐系统低秩近似的最优性执照——高代 VI 预告的兑付。）</li>
+<li><strong>数值秩</strong>：浮点世界没有"恰好为零"的奇异值——秩的实用定义是 <span class="arithmatex">\(\#\{\sigma_i &gt; \mathrm{tol}\}\)</span>：<strong>秩是个带公差的工程量</strong>（数值 I 哲学的深化）。</li>
+</ul>
+<h2 id="2">2. 后向稳定性：误差分析的正确提问<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>定义</strong> 算法 <span class="arithmatex">\(\tilde f\)</span> 计算 <span class="arithmatex">\(f\)</span> 是<strong>后向稳定</strong>：对每个输入 <span class="arithmatex">\(x\)</span>，存在小扰动 <span class="arithmatex">\(\|\Delta x\| = O(\varepsilon_{\text{mach}})\|x\|\)</span> 使</p>
+<div class="arithmatex">\[
+\tilde f(x) = f(x + \Delta x)
+\]</div>
+<p>——"<strong>给出的是附近某个问题的精确答案</strong>"。前向误差由此分解（数值 I 的公式获得正式地位）：</p>
+<div class="arithmatex">\[
+\text{前向误差} \;\lesssim\; \kappa(x)\cdot\text{后向误差}
+\]</div>
+<p><strong>读法（分工宣言）</strong>：算法只对后向误差负责（把它压到机器精度），条件数是问题自带的病情——<strong>"稳定的算法 + 病态的问题 = 精确解错题"是无法避免的宿命，但责任在问题不在算法</strong>。此语言下的判决先例：内积、Householder QR、回代求解三角系统皆后向稳定【引用 Higham】；<strong>经典 Gram–Schmidt 不稳定</strong>（正交性损失 <span class="arithmatex">\(\sim\kappa^2\varepsilon\)</span>；改良版 MGS 半救、Householder 全救——见下）；正规方程法 <span class="arithmatex">\(A^\top Ax = A^\top b\)</span> 把条件数<strong>平方</strong>（<span class="arithmatex">\(\kappa(A^\top A) = \kappa(A)^2\)</span>）——最小二乘的第一戒律。</p>
+<h2 id="3-householder-qr">3. Householder QR：稳定算法的典范<a class="headerlink" href="#3-householder-qr" title="Permanent link"></a></h2>
+<p><strong>Householder 反射</strong>：<span class="arithmatex">\(H = I - 2vv^\top/(v^\top v)\)</span>——关于超平面的镜像（正交对称阵）。选 <span class="arithmatex">\(v = x \pm \|x\|e_1\)</span> 使 <span class="arithmatex">\(Hx = \mp\|x\|e_1\)</span>：<strong>一次反射清零一整列的下方</strong>（符号取与 <span class="arithmatex">\(x_1\)</span> 同号者避免相消——数值 I 的病例在细节处站岗）。逐列反射 <span class="arithmatex">\(H_{n-1}\cdots H_1 A = R\)</span> ⇒ <span class="arithmatex">\(A = QR\)</span>。</p>
+<p><strong>为什么稳定【机理级】</strong>：全程只乘<strong>正交矩阵</strong>——正交变换保 2-范数（<span class="arithmatex">\(\kappa_2(Q) = 1\)</span>），<strong>误差被搬运而不被放大</strong>；对比消元法靠选主元"祈祷"增长因子不爆。"能用正交变换就用正交变换"是数值线代的第一美德（Givens 旋转是稀疏场景的替补【引用】）。</p>
+<p><strong>最小二乘的标准作业</strong>：<span class="arithmatex">\(\min\|Ax - b\|_2\)</span> ⇒ QR 后解 <span class="arithmatex">\(Rx = Q^\top b\)</span>——后向稳定且条件数不平方；病态到 <span class="arithmatex">\(\kappa\)</span> 巨大时上 SVD（截断小奇异值 = 正则化：与岭回归殊途同归【引用】，统计 V/优化线的老朋友以数值身份三会）。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（Eckart–Young 实感）</strong> 秩 50 的 <span class="arithmatex">\(1000\times1000\)</span> 图像矩阵：存 SVD 前 50 项 = 原存储的 10%，误差 <span class="arithmatex">\(\sigma_{51}\)</span>——"图像压缩几行代码"背后的最优性定理；同时是"embedding 矩阵低秩近似"的定价公式。</p>
+<p><strong>例 2（正规方程 vs QR 数值实验设计）</strong> 取 <span class="arithmatex">\(\kappa(A) = 10^6\)</span> 的病态最小二乘：正规方程有效精度 <span class="arithmatex">\(\sim 10^{-16}\times10^{12} = 10^{-4}\)</span>，QR <span class="arithmatex">\(\sim 10^{-10}\)</span>——<strong>六位数字的差距</strong>来自"条件数是否被平方"一个决定。sklearn 的 <code>lstsq</code> 走 SVD/QR 而非正规方程，原因在此。</p>
+<p><strong>例 3（后向语言的翻译练习）</strong> "解 <span class="arithmatex">\(Ax = b\)</span> 得到的 <span class="arithmatex">\(\tilde x\)</span> 残差 <span class="arithmatex">\(\|A\tilde x - b\|\)</span> 很小"——这是前向还是后向陈述？<em>答</em>：后向（<span class="arithmatex">\(\tilde x\)</span> 精确解了 <span class="arithmatex">\(b + r\)</span> 的问题）；残差小 ≠ 误差小（差 <span class="arithmatex">\(\kappa\)</span> 倍）——<strong>"看残差判断解好坏"只在良态问题上合法</strong>：把这句话讲清楚，本页的语言就掌握了。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：特征值怎么算——幂法的理论、QR 迭代的机理与收敛，以及"为什么特征值必须迭代"。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cvx-04-interior-point.html"><span class="pager-label">上一页</span>凸优化 IV · 内点法与 SDP</a>
+  <a class="pager-slot next" href="nla-02-eigen.html"><span class="pager-label">下一页</span>数值线代 II · 特征值算法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

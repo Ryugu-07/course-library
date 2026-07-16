@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Girsanov 与 Feynman–Kac · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li class="active"><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-girsanov">1. Girsanov 定理：换测度 = 换漂移</a></li>
+<li><a href="#2">2. 鞅表示定理：对冲的存在性执照</a></li>
+<li><a href="#3-feynmankacsde-pde">3. Feynman–Kac：SDE ⇄ PDE 词典</a></li>
+<li><a href="#4">4. 随机分析四页资产盘点</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv-girsanov-feynmankac">随机分析 IV · Girsanov、鞅表示与 Feynman–Kac<a class="headerlink" href="#iv-girsanov-feynmankac" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Øksendal §8 / Shreve <em>SCF-II</em> §5 ｜ <strong>前置</strong>：sc-01–03、mt-03/04、pde2 线（Feynman–Kac 一节）
+随机分析收官：三大定理各管金融数学的一根支柱——<strong>Girsanov</strong>（风险中性测度为何存在）、<strong>鞅表示</strong>（为何一切期权都能对冲）、<strong>Feynman–Kac</strong>（SDE 与 PDE 的官方词典）。本科 sde-03 的"风险中性定价"从操作口诀升格为定理体系。</p>
+</blockquote>
+<h2 id="1-girsanov">1. Girsanov 定理：换测度 = 换漂移<a class="headerlink" href="#1-girsanov" title="Permanent link"></a></h2>
+<p><strong>动机</strong>：本科 sde-03 里"把 <span class="arithmatex">\(\mu\)</span> 换成 <span class="arithmatex">\(r\)</span>"是黑箱操作。真相：<strong>换一个概率测度，布朗运动的漂移就变了</strong>。</p>
+<p><strong>定理（Girsanov）</strong> <span class="arithmatex">\(\theta_t\)</span> 适应且满足 Novikov 条件 <span class="arithmatex">\(E\exp\big(\frac12\int_0^T\theta^2dt\big) &lt; \infty\)</span>。定义</p>
+<div class="arithmatex">\[
+Z_T = \exp\Big(-\int_0^T\theta_s\,dB_s - \frac12\int_0^T\theta_s^2\,ds\Big), \qquad \frac{dQ}{dP} = Z_T
+\]</div>
+<p>则在新测度 <span class="arithmatex">\(Q\)</span> 下，<span class="arithmatex">\(\tilde B_t = B_t + \int_0^t\theta_s ds\)</span> 是标准布朗运动。</p>
+<p><strong>【骨架】</strong> 三步：① <span class="arithmatex">\(Z_t\)</span> 是指数鞅（Itô 公式验证 <span class="arithmatex">\(dZ = -\theta Z\,dB\)</span>，无漂移项——sc-01 §3 鞅③的推广；Novikov 保证真鞅而非仅局部鞅，<span class="arithmatex">\(EZ_T = 1\)</span> 使 <span class="arithmatex">\(Q\)</span> 是概率测度）；② 计算 <span class="arithmatex">\(\tilde B\)</span> 在 <span class="arithmatex">\(Q\)</span> 下的矩母函数：<span class="arithmatex">\(E^Q[e^{\lambda\tilde B_t}] = E^P[Z_t e^{\lambda\tilde B_t}]\)</span>——两个指数合并配方（高斯配方术），得 <span class="arithmatex">\(e^{\lambda^2t/2}\)</span>；③ 独立增量同法逐段验证，Lévy 刻画（sc-01 §3）收尾。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：<strong>测度变换是"漂移的橡皮擦"</strong>——<span class="arithmatex">\(P\)</span> 下的 <span class="arithmatex">\(dX = \mu dt + \sigma dB\)</span> 在 <span class="arithmatex">\(Q\)</span> 下可改写为 <span class="arithmatex">\(dX = r\,dt + \sigma d\tilde B\)</span>（取 <span class="arithmatex">\(\theta = \frac{\mu - r}{\sigma}\)</span>，<strong>市场风险价格</strong>）。波动率 <span class="arithmatex">\(\sigma\)</span> 换不掉（二次变差是路径性质，测度等价变换动不了它——sc-01 §2 的定理在此显出深意：<strong>你能改变对世界的概率评估，改不了路径的粗糙度</strong>）。<span class="arithmatex">\(Z\)</span> 的形态即统计学的似然比——Girsanov 是连续时间的似然比变换（与渐近统计线的 LAN 理论遥相呼应）。</p>
+<h2 id="2">2. 鞅表示定理：对冲的存在性执照<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>定理</strong> 布朗过滤下的任何平方可积鞅 <span class="arithmatex">\(M_t\)</span> 必可表示为</p>
+<div class="arithmatex">\[
+M_t = M_0 + \int_0^t h_s\,dB_s \qquad (h \text{ 适应、唯一})
+\]</div>
+<p><strong>【引用】</strong>（证明经由"指数鞅的线性组合在 <span class="arithmatex">\(L^2\)</span> 中稠密"，Øksendal §4.3。）</p>
+<p><strong>金融读法（完备性）</strong>：期权到期收益的条件期望过程 <span class="arithmatex">\(V_t = E^Q[e^{-r(T-t)}\Phi(S_T)\mid\mathcal{F}_t]\)</span> 是 <span class="arithmatex">\(Q\)</span>-鞅 ⇒ 必可写成对 <span class="arithmatex">\(d\tilde B\)</span>（即对可交易资产 <span class="arithmatex">\(dS\)</span>）的积分——<strong>积分核 <span class="arithmatex">\(h\)</span> 就是对冲头寸</strong>（Delta）。"任何期权都能动态复制"不是市场经验，是布朗过滤的数学性质；若价格由多源噪声驱动而可交易资产不足（不完备市场），表示定理失效、完美对冲不存在——<strong>模型的完备性 = 噪声源与资产数的匹配</strong>，一句话看穿一大类金融模型的分野。</p>
+<p><strong>定价三段论（本科 sde-03 的完整资格链）</strong>：Girsanov 造 <span class="arithmatex">\(Q\)</span>（漂移全成 <span class="arithmatex">\(r\)</span>）→ 鞅表示保证可对冲 → 无套利定价 <span class="arithmatex">\(V_0 = E^Q[e^{-rT}\Phi(S_T)]\)</span>。Black–Scholes 公式 = 该期望对对数正态的显式积分。</p>
+<h2 id="3-feynmankacsde-pde">3. Feynman–Kac：SDE ⇄ PDE 词典<a class="headerlink" href="#3-feynmankacsde-pde" title="Permanent link"></a></h2>
+<p><strong>定理（Feynman–Kac）</strong> 设 <span class="arithmatex">\(u(t,x)\)</span> 解终值问题</p>
+<div class="arithmatex">\[
+u_t + \mu(x)u_x + \frac12\sigma^2(x)u_{xx} - r\,u = 0, \qquad u(T, x) = \Phi(x)
+\]</div>
+<p>（系数良好、<span class="arithmatex">\(u\)</span> 足够光滑），则</p>
+<div class="arithmatex">\[
+u(t, x) = E\Big[e^{-r(T-t)}\,\Phi(X_T)\;\Big|\;X_t = x\Big], \qquad dX = \mu\,dt + \sigma\,dB
+\]</div>
+<p><strong>【证明】</strong> 对 <span class="arithmatex">\(Y_s = e^{-r(s-t)}u(s, X_s)\)</span> 用 Itô 公式：</p>
+<div class="arithmatex">\[
+dY = e^{-r(s-t)}\Big[\underbrace{u_t + \mu u_x + \tfrac12\sigma^2u_{xx} - ru}_{=\,0\ (\text{PDE})}\Big]ds + e^{-r(s-t)}\sigma u_x\,dB
+\]</div>
+<p>漂移被 PDE 精确消灭 ⇒ <span class="arithmatex">\(Y\)</span> 是（局部）鞅；取期望（有界性/局部化论证后）：<span class="arithmatex">\(u(t,x) = EY_t = EY_T = E[e^{-r(T-t)}\Phi(X_T)]\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：<strong>PDE 的解 = 沿扩散路径的期望</strong>——两个世界的官方翻译器：Black–Scholes 方程 ⇄ 风险中性期望（sde-03 两条定价路线原是一条）；热方程 ⇄ 布朗运动期望（pde2 线/本科 pde-02 的"热核=转移密度"的定理版）；数值上开出两条路——解 PDE（网格法）或模拟 SDE（Monte Carlo），<strong>维数低走 PDE、维数高走 MC</strong> 的行业分工由此定型。反向词典（生成元、Kolmogorov 前后向方程）与位势项推广同框【引用】。</p>
+<h2 id="4">4. 随机分析四页资产盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>定理</th>
+<th>一句话</th>
+<th>金融支柱</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>二次变差（sc-01）</td>
+<td>路径粗糙度 = <span class="arithmatex">\(t\)</span>，不可磨灭</td>
+<td>已实现波动率</td>
+</tr>
+<tr>
+<td>Itô 等距/积分（sc-02）</td>
+<td><span class="arithmatex">\(L^2\)</span> 等距延拓</td>
+<td>对冲误差核算</td>
+</tr>
+<tr>
+<td>Itô 公式/存在唯一（sc-03）</td>
+<td>新链式法则 + Picard</td>
+<td>模型的合法性</td>
+</tr>
+<tr>
+<td>Girsanov / 鞅表示 / F–K（本页）</td>
+<td>换漂移 / 可对冲 / SDE⇄PDE</td>
+<td>定价三段论</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Girsanov 亲手换）</strong> GBM 在 <span class="arithmatex">\(P\)</span> 下 <span class="arithmatex">\(\mu = 0.1, r = 0.03, \sigma = 0.2\)</span>：<span class="arithmatex">\(\theta = 0.35\)</span>，<span class="arithmatex">\(Q\)</span> 下 <span class="arithmatex">\(dS = 0.03\,S\,dt + 0.2\,S\,d\tilde B\)</span>——写出 <span class="arithmatex">\(Z_T\)</span> 并验证 <span class="arithmatex">\(E^Q[S_T] = S_0e^{rT}\)</span>（风险中性世界一切资产按 <span class="arithmatex">\(r\)</span> 增值）。</p>
+<p><strong>例 2（F–K 反向使用）</strong> 用 F–K 表示解热方程 <span class="arithmatex">\(u_t = \frac12 u_{xx}\)</span>（终值改初值、时间反向）：<span class="arithmatex">\(u(t,x) = E[\varphi(x + B_t)]\)</span> = 高斯卷积——热核公式（本科 pde-02）的三行概率证明。</p>
+<p><strong>例 3（完备性思辨）</strong> 加入随机波动率 <span class="arithmatex">\(d\sigma = \alpha\,dt + \beta\,dW\)</span>（第二个布朗源）：只交易股票与债券时鞅表示对二维过滤失效 ⇒ 波动率风险不可对冲 ⇒ 期权价格不唯一（区间定价）——<strong>Heston 模型要引入"波动率风险价格"参数的数学原因</strong>，也是 IV 曲面（本科 sde-03 §4）存在自由度的深层出处。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>随机分析完卷。概率与分析线还剩现代 PDE 三页；统计与学习线（渐近统计、SLT、MDP）在侧栏等待。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="sc-03-ito-formula-sde.html"><span class="pager-label">上一页</span>随机分析 III · Itô 公式与 SDE 理论</a>
+  <a class="pager-slot next" href="pde2-01-distributions.html"><span class="pager-label">下一页</span>现代 PDE I · 分布与弱导数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>张量网络与变分方法 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li class="active"><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 指数墙与纠缠的地图</a></li>
+<li><a href="#2-mpssvd">2. 矩阵乘积态（MPS）：SVD 的物理加冕</a></li>
+<li><a href="#3">3. 变分蒙卡与神经网络波函数</a></li>
+<li><a href="#4">4. 全站收束</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#_2">物理讲义库落成</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">量子多体 · 张量网络与变分方法<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Schollwöck（DMRG 综述）/ Orús（TN 入门）｜ <strong>前置</strong>：cm-01、qi-01（纠缠熵）、数学站 nla（SVD——本页的发动机）
+量子多体的根本困境：<span class="arithmatex">\(N\)</span> 个自旋的 Hilbert 空间维数 <span class="arithmatex">\(2^N\)</span>——50 个自旋就存不下。现代解法的洞察：<strong>物理态只住在这个空间的极小角落</strong>（低纠缠态），张量网络就是这个角落的坐标系。本页立起 MPS/DMRG 的思想（SVD 的物理加冕）与变分蒙卡，收尾连到神经网络波函数与量子模拟——全站最后一页，恰好停在"物理 × 计算 × ML"三线交汇的前沿入口。</p>
+</blockquote>
+<h2 id="1">1. 指数墙与纠缠的地图<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一般态 <span class="arithmatex">\(|\psi\rangle = \sum c_{s_1\cdots s_N}|s_1\cdots s_N\rangle\)</span>——<span class="arithmatex">\(2^N\)</span> 个系数。<strong>但物理基态特殊</strong>：局域哈密顿量的基态满足<strong>面积律</strong>【引用】——子区域纠缠熵 ∝ 边界面积而非体积（一维 = 常数！对比随机态的体积律）：<strong>自然界的基态是低纠缠的</strong>——指数空间里的可压缩角落（🔗 与"自然图像住在低维流形"（ai 课/mfld-01 例 3）完全同构：<strong>物理与 ML 面对同一种"名义维数巨大、实际结构低维"的幸运</strong>）。</p>
+<h2 id="2-mpssvd">2. 矩阵乘积态（MPS）：SVD 的物理加冕<a class="headerlink" href="#2-mpssvd" title="Permanent link"></a></h2>
+<p><strong>构造【推导级】</strong>：对系数张量沿链逐点做 SVD（数学站 nla-01 的 Eckart–Young 连环使用），每步只保留前 <span class="arithmatex">\(\chi\)</span> 个奇异值：</p>
+<div class="arithmatex">\[
+c_{s_1s_2\cdots s_N} \approx \sum_{\{a\}} A^{s_1}_{a_1}A^{s_2}_{a_1a_2}\cdots A^{s_N}_{a_{N-1}}
+\]</div>
+<p>——<strong>态 = 一串小矩阵的乘积</strong>；参数从 <span class="arithmatex">\(2^N\)</span> 压到 <span class="arithmatex">\(O(N\chi^2)\)</span>。<strong>键维 <span class="arithmatex">\(\chi\)</span> 的含义</strong>：截断处的奇异值谱 = 纠缠谱——<span class="arithmatex">\(\chi\)</span> 直接封顶纠缠熵 <span class="arithmatex">\(S \leq \ln\chi\)</span>：<strong>面积律态（一维）恰好被小 <span class="arithmatex">\(\chi\)</span> 的 MPS 精确覆盖</strong>——压缩格式与物理规律严丝合缝（低秩近似的最优性（Eckart–Young）+ 面积律 = DMRG 成功的完整解释）。</p>
+<p><strong>DMRG【机理级】</strong>：在 MPS 族内变分极小化 <span class="arithmatex">\(\langle\psi|H|\psi\rangle\)</span>（qm-04 变分法的多体版）——逐点扫描优化局部张量（交替最小二乘的气质，数学站优化线）。<strong>战绩</strong>：一维量子系统的基态能量算到机器精度级——凝聚态数值的金标准（White 1992【引用】）；二维用 PEPS 推广（收缩变难【引用】）、临界系统用 MERA（尺度分层——<strong>RG 思想（asm-03）内建进网络结构</strong>：张量网络是"RG 的数据结构化"）。</p>
+<h2 id="3">3. 变分蒙卡与神经网络波函数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>VMC 框架</strong>：参数化试探态 <span class="arithmatex">\(|\psi_\theta\rangle\)</span>，蒙卡采样（comp-01 Metropolis 按 <span class="arithmatex">\(|\psi|^2\)</span>）估计能量与梯度、随机梯度下降——<strong>"猜家族 + 采样 + 优化"</strong>：物理版的机器学习训练循环（逐项对应：模型/损失/SGD）。</p>
+<p><strong>神经网络波函数（2017–）【引用 Carleo–Troyer】</strong>：试探态取 RBM/深网——<strong>用 ML 的表达力换更大的纠缠覆盖</strong>（超越 MPS 的面积律限制）；自旋系统与量子化学（FermiNet 类）上已具竞争力——<strong>Hubbard/高温超导（cm 线的未解）是它与 DMRG、量子计算机（qi-03 量子模拟）三方赛跑的共同靶场</strong>：本站三大板块（物理/数值/ML）在此汇成同一条前沿。</p>
+<p><strong>符号问题一嘴</strong>（comp-01 的欠条）：费米子行列式的负权重使 QMC 指数变慢——正是这堵墙让"量子模拟量子"（费曼初心）与神经网络方法有了不可替代的席位。</p>
+<h2 id="4">4. 全站收束<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>物理讲义库的最后一页停在这里是有意的：<strong>多体物理的前沿方法 = 线性代数（SVD）+ 统计（蒙卡）+ 优化（变分）+ 信息（纠缠熵）+ ML（神经拟设）</strong>——你的五个站点在一个活的研究领域里全部上岗。往前每一步（更好的拟设、更聪明的采样、量子硬件）都在本站的知识地图上有坐标。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（MPS 手算最小例）</strong> 四自旋 GHZ 态 <span class="arithmatex">\(\frac{|0000\rangle + |1111\rangle}{\sqrt2}\)</span>：<span class="arithmatex">\(\chi = 2\)</span> 的 MPS 显式写出（每个矩阵 <span class="arithmatex">\(2\times2\)</span> 对角）——"宏观叠加纠缠熵却只有 <span class="arithmatex">\(\ln2\)</span>"：低纠缠 ≠ 平庸的样本。</p>
+<p><strong>例 2（面积律的反差数感）</strong> 随机态的半链纠缠熵 <span class="arithmatex">\(\sim \frac N2\ln2\)</span>（体积律）需要 <span class="arithmatex">\(\chi \sim 2^{N/2}\)</span>；基态 <span class="arithmatex">\(S \sim O(1)\)</span> 只需 <span class="arithmatex">\(\chi \sim\)</span> 几十——<strong>同一空间里"天堂角落"与"荒野"的压缩比差指数</strong>：DMRG 为什么专治基态、难治高激发/长时间演化（纠缠随时间线性增长【引用】）的一句话答案。</p>
+<p><strong>例 3（VMC 玩具全流程）</strong> 一维横场 Ising（<span class="arithmatex">\(N = 10\)</span>）：RBM 拟设 + Metropolis + SGD 找基态、对照精确对角化——百行代码在你的 4060 Ti 上十分钟收敛：<strong>全站最后一个上机作业，物理 × ML 的毕业设计</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h2 id="_2">物理讲义库落成<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>四十七页走完：牛顿的苹果 → 场与波 → 熵与量子 → 时空曲率 → 规范对称 → 多体涌现。回望全程，三条母题反复出现：<strong>变分原理</strong>（力学-量子-场论-ML 的通用语法）、<strong>对称性</strong>（Noether-规范-破缺——守恒与相互作用与质量的总出处）、<strong>统计涌现</strong>（配分函数-相变-RG——多者异也）。它们与数学站的地基、AI 站的应用连成一张网——<strong>物理是这张网的中枢</strong>：往下是数学的严格，往上是计算与智能的工程。祝复习顺利、常回来查表。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="neq-01-fluctuation.html"><span class="pager-label">上一页</span>非平衡 · Langevin、线性响应与涨落定理</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

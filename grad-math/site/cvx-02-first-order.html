@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一阶方法收敛性证明 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li class="active"><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 梯度下降：两条速率的完整证明</a></li>
+<li><a href="#2-nesterov-1k2">2. Nesterov 加速：\(1/k^2\) 与下界</a></li>
+<li><a href="#3">3. 近端梯度：收编不可微项</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">凸优化 II · 一阶方法的收敛性证明<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Nesterov <em>Lectures</em> §2 / Bubeck <em>Convex Optimization</em> §3 ｜ <strong>前置</strong>：本科优化 II、cvx-01
+本科优化 II 给了收敛速率表；本页逐行兑付证明，并补上两块新版图：<strong>Nesterov 加速</strong>（<span class="arithmatex">\(1/k^2\)</span>——一阶方法的速度极限）与<strong>近端梯度</strong>（把 L1 等不可微正则项收编进梯度法）。证明模板只有一个：<strong>找对势函数</strong>。</p>
+</blockquote>
+<h2 id="1">1. 梯度下降：两条速率的完整证明<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>引理（下降引理）【证明】</strong> <span class="arithmatex">\(L\)</span>-光滑（<span class="arithmatex">\(\nabla f\)</span> Lipschitz）⇒ <span class="arithmatex">\(f(y) \leq f(x) + \langle\nabla f(x), y - x\rangle + \frac L2\|y - x\|^2\)</span>（对 <span class="arithmatex">\(g(t) = f(x + t(y-x))\)</span> 微积分基本定理 + Lipschitz 估计积分）。取 <span class="arithmatex">\(y = x - \frac1L\nabla f\)</span>：<strong>每步至少降 <span class="arithmatex">\(\frac{1}{2L}\|\nabla f\|^2\)</span></strong>。</p>
+<p><strong>定理（凸 + <span class="arithmatex">\(L\)</span>-光滑，<span class="arithmatex">\(\alpha = 1/L\)</span>）</strong> <span class="arithmatex">\(f(x_k) - f^* \leq \dfrac{L\|x_0 - x^*\|^2}{2k}\)</span>。
+<strong>【证明】</strong> 势函数 <span class="arithmatex">\(\Phi_k = \|x_k - x^*\|^2\)</span>：</p>
+<div class="arithmatex">\[
+\Phi_{k+1} = \Phi_k - \frac2L\langle\nabla f_k, x_k - x^*\rangle + \frac{1}{L^2}\|\nabla f_k\|^2 \leq \Phi_k - \frac2L\big(f_k - f^*\big) + \frac{2}{L^2}\cdot\frac{L}{2}\cdot\frac{2(f_k - f^*)}{2}
+\]</div>
+<p>整理（凸性一阶条件 <span class="arithmatex">\(\langle\nabla f_k, x_k - x^*\rangle \geq f_k - f^*\)</span> + 下降引理）得 <span class="arithmatex">\(\frac2L(f_k - f^*) \leq \Phi_k - \Phi_{k+1}\)</span>；望远镜求和 + <span class="arithmatex">\(f_k\)</span> 单调降：<span class="arithmatex">\(k\)</span> 步后 <span class="arithmatex">\(f_k - f^* \leq \frac{L\Phi_0}{2k}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>定理（+<span class="arithmatex">\(\mu\)</span>-强凸）</strong> <span class="arithmatex">\(\Phi_{k+1} \leq \big(1 - \frac\mu L\big)\Phi_k\)</span>——线性收敛。
+<strong>【证明】</strong> 同一展开，凸性条件换强凸版 <span class="arithmatex">\(\langle\nabla f_k, x_k - x^*\rangle \geq f_k - f^* + \frac\mu2\Phi_k\)</span>，配合下降引理消去函数值项。<span class="arithmatex">\(\blacksquare\)</span>（本科优化 II 那张表的两行至此有据可查；condition number <span class="arithmatex">\(\kappa = L/\mu\)</span> 的统治力在证明里显形。）</p>
+<h2 id="2-nesterov-1k2">2. Nesterov 加速：<span class="arithmatex">\(1/k^2\)</span> 与下界<a class="headerlink" href="#2-nesterov-1k2" title="Permanent link"></a></h2>
+<p><strong>算法（加速梯度，动量形式）</strong>：</p>
+<div class="arithmatex">\[
+y_k = x_k + \frac{k-1}{k+2}\,(x_k - x_{k-1}), \qquad x_{k+1} = y_k - \frac1L\nabla f(y_k)
+\]</div>
+<p><strong>定理（Nesterov 1983）</strong> 凸 + <span class="arithmatex">\(L\)</span>-光滑：<span class="arithmatex">\(f(x_k) - f^* \leq \dfrac{2L\|x_0 - x^*\|^2}{(k+1)^2}\)</span>。
+<strong>【骨架】</strong> 估计序列/双势函数法：构造 <span class="arithmatex">\(\Phi_k = A_k(f(x_k) - f^*) + \frac L2\|z_k - x^*\|^2\)</span>（<span class="arithmatex">\(z_k\)</span> 为辅助点、<span class="arithmatex">\(A_k \sim k^2\)</span>），逐步验证 <span class="arithmatex">\(\Phi_{k+1} \leq \Phi_k\)</span>——动量系数 <span class="arithmatex">\(\frac{k-1}{k+2}\)</span> 恰好是让两项交换律成立的唯一选择（"魔法系数"是代数配平的产物，非玄学）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>定理（一阶方法下界，Nesterov）【骨架】</strong> 存在 <span class="arithmatex">\(L\)</span>-光滑凸函数（"最坏的链条函数"：<span class="arithmatex">\(f = \frac L4\big[\frac12 x_1^2 + \frac12\sum(x_{i+1} - x_i)^2 - x_1\big]\)</span> 型），使<strong>任何</strong>只用梯度信息的方法 <span class="arithmatex">\(k\)</span> 步后 <span class="arithmatex">\(f - f^* \geq \frac{cL\|x_0 - x^*\|^2}{(k+1)^2}\)</span>。
+<em>机理</em>：该函数的梯度每步只能"点亮"一个新坐标——信息以每步一维的速度传播，<span class="arithmatex">\(k\)</span> 步只能触及前 <span class="arithmatex">\(k\)</span> 维，尾巴的能量给出下界。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>合读</strong>：加速法达到下界——<strong><span class="arithmatex">\(1/k^2\)</span> 是一阶世界的光速</strong>；"动量"不是工程 trick 而是最优性的实现（强凸版加速 <span class="arithmatex">\(\big(1 - \sqrt{\mu/L}\big)^k\)</span> 同理达界：<span class="arithmatex">\(\kappa\)</span> 改进为 <span class="arithmatex">\(\sqrt\kappa\)</span>——本科优化 II 预告的兑现）。</p>
+<h2 id="3">3. 近端梯度：收编不可微项<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>问题形态</strong>：<span class="arithmatex">\(\min f(x) + h(x)\)</span>——光滑损失 + 不可微但"简单"的正则项（L1、示性函数、核范数）。</p>
+<p><strong>近端算子</strong>（cvx-01 语言的运算化）：</p>
+<div class="arithmatex">\[
+\mathrm{prox}_{\lambda h}(v) = \arg\min_x\ \Big[h(x) + \frac{1}{2\lambda}\|x - v\|^2\Big]
+\]</div>
+<p>（对 <span class="arithmatex">\(h = \iota_C\)</span> 即投影——投影是 prox 的特例；对 <span class="arithmatex">\(h = \lambda\|\cdot\|_1\)</span> 有闭式<strong>软阈值</strong> <span class="arithmatex">\(\mathrm{sign}(v)\max(|v| - \lambda, 0)\)</span>【一行推导：逐坐标一维问题分段求导】。）</p>
+<p><strong>算法（ISTA / 近端梯度）</strong>：<span class="arithmatex">\(x_{k+1} = \mathrm{prox}_{h/L}\big(x_k - \frac1L\nabla f(x_k)\big)\)</span>——"光滑部分走梯度、简单部分交 prox"。
+<strong>定理【引用（证明与 §1 平行）】</strong> 速率与纯梯度法同：凸 <span class="arithmatex">\(1/k\)</span>、强凸线性、可加速为 FISTA 的 <span class="arithmatex">\(1/k^2\)</span>【引用 Beck–Teboulle】。</p>
+<p><strong>读法</strong>：<strong>Lasso、稀疏字典、低秩补全的求解器骨架就是这一行迭代</strong>；软阈值算子解释了 L1 的稀疏机理（小于阈值的分量被精确置零——本科优化 I 次微分含区间的算法化身）。prox 演算与共轭的关系：Moreau 分解 <span class="arithmatex">\(v = \mathrm{prox}_h(v) + \mathrm{prox}_{h^*}(v)\)</span>——cvx-01 的变换表直接变成算子库【引用】。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（证明的迁移测试）</strong> 把 §1 凸情形证明改写为投影梯度法版本（约束凸集 <span class="arithmatex">\(C\)</span>）：唯一改动 = 投影非扩张性 <span class="arithmatex">\(\|\Pi_C(x) - x^*\| \leq \|x - x^*\|\)</span>（泛函 II）插入势函数链——能独立完成此改写，势函数法即入手。</p>
+<p><strong>例 2（软阈值亲算）</strong> <span class="arithmatex">\(\min \frac12(x - 3)^2 + |x|\)</span>：prox 一步 <span class="arithmatex">\(x^* = \mathrm{sign}(3)\max(3 - 1, 0) = 2\)</span>；改 <span class="arithmatex">\(|x|\)</span> 系数为 4：<span class="arithmatex">\(x^* = 0\)</span>——<strong>正则强到一定程度解精确归零</strong>，稀疏性的最小实例。</p>
+<p><strong>例 3（加速的震荡副作用）</strong> 加速法的 <span class="arithmatex">\(f(x_k)\)</span> <strong>非单调</strong>（动量冲过头再拉回——阻尼振荡，ode-02 欠阻尼的既视感；严格对应：加速法的连续极限是二阶 ODE <span class="arithmatex">\(\ddot x + \frac3t\dot x + \nabla f = 0\)</span>【引用 Su–Boyd–Candès】）——训练曲线"加速方法有波纹"不是 bug 而是速度的代价。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：把"拆分"做成方法论——增广拉格朗日与 ADMM：大规模与分布式优化的主力发动机。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cvx-01-conjugate.html"><span class="pager-label">上一页</span>凸优化 I · 共轭函数与 Fenchel 对偶</a>
+  <a class="pager-slot next" href="cvx-03-splitting.html"><span class="pager-label">下一页</span>凸优化 III · 增广拉格朗日与 ADMM</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

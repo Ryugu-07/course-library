@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krylov 子空间方法 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li class="active"><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-krylov">1. Krylov 子空间</a></li>
+<li><a href="#2-cg">2. CG 的收敛性（主菜，证明结构完整）</a></li>
+<li><a href="#3">3. 预条件：实战的灵魂</a></li>
+<li><a href="#4">4. 随机化数值线代一瞥（现代附录）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-krylov">数值线代 III · Krylov 子空间方法<a class="headerlink" href="#iii-krylov" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Trefethen &amp; Bau Lectures 32–40 ｜ <strong>前置</strong>：nla-01/02、本科数值 II、优化 II（CG 预告）
+当 <span class="arithmatex">\(n\)</span> 到百万级、矩阵稀疏（只有 <span class="arithmatex">\(O(n)\)</span> 个非零），分解法（<span class="arithmatex">\(O(n^3)\)</span>）出局——唯一买得起的操作是<strong>矩阵乘向量</strong>。Krylov 方法的纲领：只用乘向量，在"乘出来的子空间"里找最优解。CG 的收敛性证明是本页主菜，预条件是本页的实战灵魂。</p>
+</blockquote>
+<h2 id="1-krylov">1. Krylov 子空间<a class="headerlink" href="#1-krylov" title="Permanent link"></a></h2>
+<div class="arithmatex">\[
+\mathcal{K}_k(A, b) = \mathrm{span}\{b,\ Ab,\ A^2b,\ \dots,\ A^{k-1}b\}
+\]</div>
+<p>——<span class="arithmatex">\(k\)</span> 次乘向量能触及的全部信息（信息论式的下界视角：任何"只乘向量"的方法第 <span class="arithmatex">\(k\)</span> 步的解必在其中 + 平移）。Krylov 方法 = 在 <span class="arithmatex">\(\mathcal{K}_k\)</span> 中按某种最优性选解：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>适用</th>
+<th>最优性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CG</strong></td>
+<td>对称正定</td>
+<td><span class="arithmatex">\(A\)</span>-范数误差最小</td>
+</tr>
+<tr>
+<td>MINRES</td>
+<td>对称不定</td>
+<td>残差最小</td>
+</tr>
+<tr>
+<td><strong>GMRES</strong></td>
+<td>一般</td>
+<td>残差最小（需存全基 → 重启版实用）</td>
+</tr>
+<tr>
+<td>Lanczos/Arnoldi</td>
+<td>特征值</td>
+<td>Krylov 基上的投影谱（Ritz 值）</td>
+</tr>
+</tbody>
+</table>
+<p>（Arnoldi = 对 Krylov 基做 Gram–Schmidt 得 Hessenberg 小矩阵；对称时退化为三项递推 Lanczos——<strong>短递推是对称世界的厚礼</strong>：不用存全基，CG 因此每步 <span class="arithmatex">\(O(n)\)</span> 内存。）</p>
+<h2 id="2-cg">2. CG 的收敛性（主菜，证明结构完整）<a class="headerlink" href="#2-cg" title="Permanent link"></a></h2>
+<p><strong>观察</strong>：<span class="arithmatex">\(\mathcal{K}_k\)</span> 中的任何向量 = <span class="arithmatex">\(p(A)b\)</span>（<span class="arithmatex">\(p\)</span> 为次数 <span class="arithmatex">\(&lt; k\)</span> 的多项式）⇒ CG 的误差</p>
+<div class="arithmatex">\[
+\|e_k\|_A = \min_{\deg p \leq k,\ p(0)=1}\ \|p(A)\,e_0\|_A \leq \min_p\ \max_{\lambda\in\mathrm{spec}(A)}|p(\lambda)|\cdot\|e_0\|_A
+\]</div>
+<p>（谱分解把矩阵多项式化成"多项式在特征值上的最大值"——高代 V 干活。）<strong>求解器问题变成了逼近论问题</strong>：找 <span class="arithmatex">\([\lambda_{\min}, \lambda_{\max}]\)</span> 上小、且 <span class="arithmatex">\(p(0) = 1\)</span> 的多项式——答案正是<strong>Chebyshev 多项式</strong>（本科数值 III"最优逼近 = Chebyshev"的承诺在此兑付）：</p>
+<p><strong>定理（CG 收敛率）</strong></p>
+<div class="arithmatex">\[
+\|e_k\|_A \;\leq\; 2\left(\frac{\sqrt\kappa - 1}{\sqrt\kappa + 1}\right)^k \|e_0\|_A
+\]</div>
+<p><strong>【证明骨架】</strong> 取平移缩放的 Chebyshev <span class="arithmatex">\(p = T_k\big(\frac{2\lambda - \lambda_{\max} - \lambda_{\min}}{\lambda_{\max} - \lambda_{\min}}\big)/T_k(\cdot)\)</span>，区间上 <span class="arithmatex">\(|T_k| \leq 1\)</span>、<span class="arithmatex">\(T_k\)</span> 在区间外的增长给出分母 <span class="arithmatex">\(T_k\big(\frac{\kappa+1}{\kappa-1}\big) \geq \frac12\big(\frac{\sqrt\kappa+1}{\sqrt\kappa-1}\big)^k\)</span>（Chebyshev 的双曲余弦表示一行）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>三个读出</strong>：<strong><span class="arithmatex">\(\sqrt\kappa\)</span></strong>——比梯度下降的 <span class="arithmatex">\(\kappa\)</span>（优化 II）好一个开方（CG 是"加速的"一阶法：与 Nesterov 的 <span class="arithmatex">\(\sqrt\kappa\)</span> 同阶非巧合——二次情形两者同源【引用】）；<strong>谱聚集比条件数更真</strong>：特征值聚成几簇时，<span class="arithmatex">\(p\)</span> 只需在簇上取零——<strong>几步即收敛</strong>（谱尾部孤立大特征值先被"消灭"）；<strong>有限步精确</strong>（<span class="arithmatex">\(n\)</span> 步理论收敛——但浮点世界这条不作数，CG 实为迭代法，Lanczos 正交性损失【引用】）。</p>
+<h2 id="3">3. 预条件：实战的灵魂<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>思想：解 <span class="arithmatex">\(M^{-1}Ax = M^{-1}b\)</span>——<strong>选 <span class="arithmatex">\(M \approx A\)</span> 且 <span class="arithmatex">\(M\)</span> 易解</strong>，让有效谱聚集。</p>
+<table>
+<thead>
+<tr>
+<th>预条件器</th>
+<th>思路</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jacobi（对角）</td>
+<td><span class="arithmatex">\(M = \mathrm{diag}(A)\)</span></td>
+<td>便宜的保底</td>
+</tr>
+<tr>
+<td>不完全分解 IC/ILU</td>
+<td>按稀疏模式截断的 Cholesky/LU</td>
+<td>通用主力</td>
+</tr>
+<tr>
+<td>多重网格 AMG</td>
+<td>分层消除各频率误差</td>
+<td>椭圆 PDE 之王（pde2 线的 FEM 系统）</td>
+</tr>
+<tr>
+<td>问题特制</td>
+<td>用物理/结构近似算子</td>
+<td>上限最高</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读法</strong>：<strong>"好的预条件器 = 对问题结构的洞察"</strong>——Krylov 框架是通用引擎，预条件是领域知识的接口；工业界解大问题的时间九成花在这里。（🔗 优化 II 的"Adam ≈ 对角预条件"、BatchNorm 改善条件数——同一思想在深度学习的方言。）</p>
+<h2 id="4">4. 随机化数值线代一瞥（现代附录）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>随机 SVD</strong>【骨架】：<span class="arithmatex">\(Y = A\Omega\)</span>（<span class="arithmatex">\(\Omega\)</span> 为 <span class="arithmatex">\(n\times(k{+}p)\)</span> 高斯随机阵）→ QR 得 <span class="arithmatex">\(Q\)</span> → 对小矩阵 <span class="arithmatex">\(Q^\top A\)</span> 做精确 SVD——<strong>用随机投影抓列空间</strong>（hdp-02 JL 引理的直系应用），误差以高概率 <span class="arithmatex">\(\lesssim \sigma_{k+1}\)</span>【引用 Halko–Martinsson–Tropp】。大数据低秩近似的默认起手式（sklearn <code>randomized_svd</code> 即它）——<strong>hdp 线与 nla 线在此正式握手</strong>。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（谱聚集实验设计）</strong> 两个 <span class="arithmatex">\(\kappa = 10^4\)</span> 的 SPD 矩阵：谱均匀分布 vs 聚成 3 簇——CG 迭代数前者 ~数百、后者 ~10（各簇一根多项式零点）；<strong>报告 CG 性能时"谱形状"比"条件数"信息量大</strong>。</p>
+<p><strong>例 2（Chebyshev 界亲算）</strong> <span class="arithmatex">\(\kappa = 100\)</span>：收缩因子 <span class="arithmatex">\(\frac{9}{11} \approx 0.818\)</span>，要降 <span class="arithmatex">\(10^6\)</span> 倍需 <span class="arithmatex">\(k \approx \frac{\ln 10^6}{\ln(11/9)} \approx 69\)</span> 步——对照梯度下降同题 <span class="arithmatex">\(\approx 3500\)</span> 步（<span class="arithmatex">\(\big(\frac{99}{101}\big)^k\)</span>）：<span class="arithmatex">\(\sqrt\kappa\)</span> 的现金价值。</p>
+<p><strong>例 3（何时不用 Krylov）</strong> <span class="arithmatex">\(n = 500\)</span> 稠密良态系统：直接 Cholesky（<span class="arithmatex">\(O(n^3)\)</span> 但常数小、稳定、可复用分解）完胜迭代——<strong>"大稀疏用 Krylov、小稠密用分解"</strong>：方法选型的第一分岔（数值 II 的表在研究生版续订）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一门：矩阵分析——把"矩阵的分析学"补全：范数与谱半径的精确关系、扰动定理、非负矩阵的 Perron–Frobenius。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="nla-02-eigen.html"><span class="pager-label">上一页</span>数值线代 II · 特征值算法</a>
+  <a class="pager-slot next" href="ma-01-norms-perturbation.html"><span class="pager-label">下一页</span>矩阵分析 I · 范数、谱半径与扰动</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

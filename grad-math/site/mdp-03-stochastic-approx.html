@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>随机逼近与 Q 学习 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li class="active"><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-robbinsmonro">1. Robbins–Monro：带噪解方程</a></li>
+<li><a href="#2-td">2. TD 学习：采样版策略评估</a></li>
+<li><a href="#3-q-learning">3. Q-learning：采样版价值迭代</a></li>
+<li><a href="#4">4. 统计与学习线收官盘点</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="mdp-iii-q-learning">MDP III · 随机逼近与 Q-learning<a class="headerlink" href="#mdp-iii-q-learning" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Szepesvári §3 / Borkar（随机逼近）｜ <strong>前置</strong>：mdp-01/02、mt-03/04（鞅）、优化 II
+模型未知时，Bellman 迭代的期望算不了——只能用<strong>采样代替期望</strong>。这正是 <strong>Robbins–Monro 随机逼近</strong>（1951）的问题形态：用带噪观测解方程。本页给随机逼近的框架与鞅证明思路，然后把 TD 与 Q-learning 安放进去——"RL 算法为何收敛"的正式答案，统计与学习线收官。</p>
+</blockquote>
+<h2 id="1-robbinsmonro">1. Robbins–Monro：带噪解方程<a class="headerlink" href="#1-robbinsmonro" title="Permanent link"></a></h2>
+<p><strong>问题</strong>：解 <span class="arithmatex">\(h(\theta) = 0\)</span>，但只能观测 <span class="arithmatex">\(h(\theta_t) + \xi_t\)</span>（噪声）。<strong>RM 迭代</strong>：</p>
+<div class="arithmatex">\[
+\theta_{t+1} = \theta_t + \alpha_t\big[h(\theta_t) + \xi_t\big]
+\]</div>
+<p><strong>定理（RM 收敛）</strong> 若 ① 步长满足</p>
+<div class="arithmatex">\[
+\sum_t \alpha_t = \infty, \qquad \sum_t \alpha_t^2 &lt; \infty
+\]</div>
+<p>② 噪声是鞅差（<span class="arithmatex">\(E[\xi_t\mid\mathcal{F}_t] = 0\)</span>、二阶矩有界）；③ <span class="arithmatex">\(h\)</span> 有全局渐近稳定平衡点 <span class="arithmatex">\(\theta^*\)</span>（如 <span class="arithmatex">\(h = -\nabla f\)</span>，<span class="arithmatex">\(f\)</span> 强凸），则 <span class="arithmatex">\(\theta_t \to \theta^*\)</span> a.s.</p>
+<p><strong>【骨架（鞅方法的结构）】</strong> 分解更新 = 确定性漂移 + 鞅增量：累积噪声 <span class="arithmatex">\(M_T = \sum\alpha_t\xi_t\)</span> 是鞅且 <span class="arithmatex">\(\sum E[(\alpha_t\xi_t)^2] \leq C\sum\alpha_t^2 &lt; \infty\)</span> ⇒ <strong>鞅收敛定理</strong>（mt-04：<span class="arithmatex">\(L^2\)</span> 有界鞅 a.s. 收敛）说噪声的累积效应有限；剩余的确定性部分靠 <span class="arithmatex">\(\sum\alpha_t = \infty\)</span> 走完到 <span class="arithmatex">\(\theta^*\)</span> 的路程（Lyapunov 函数 <span class="arithmatex">\(\|\theta_t - \theta^*\|^2\)</span> 的超鞅论证：Robbins–Siegmund 引理【引用】收尾）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>步长条件的读法（RL 每个从业者该会背的一对级数）</strong>：<span class="arithmatex">\(\sum\alpha = \infty\)</span>——"总步长要够走到任何地方"（走得完）；<span class="arithmatex">\(\sum\alpha^2 &lt; \infty\)</span>——"噪声的累积方差有限"（噪声被平均掉）。<span class="arithmatex">\(\alpha_t = 1/t\)</span> 恰好双满足；常数步长则收敛到 <span class="arithmatex">\(\theta^*\)</span> 的邻域内震荡（工程常态：换稳态精度买适应性）。<strong>SGD 正是 <span class="arithmatex">\(h = -\nabla f\)</span> 的 RM</strong>——优化 II 的收敛速率表与本页 a.s. 收敛是同一算法的两面（速率 vs 必达）。（ODE 方法一嘴【引用 Borkar】：<span class="arithmatex">\(\theta_t\)</span> 的插值轨迹逼近 ODE <span class="arithmatex">\(\dot\theta = h(\theta)\)</span>——"随机算法的极限行为 = 常微分方程"，本科 ode-03 的相图分析由此接管 RL 算法的定性分析。）</p>
+<h2 id="2-td">2. TD 学习：采样版策略评估<a class="headerlink" href="#2-td" title="Permanent link"></a></h2>
+<p>评估 <span class="arithmatex">\(V^\pi\)</span> 的 Bellman 方程 <span class="arithmatex">\(V = T^\pi V\)</span>，模型未知时用转移采样 <span class="arithmatex">\((s_t, r_t, s_{t+1})\)</span>：</p>
+<div class="arithmatex">\[
+V(s_t) \leftarrow V(s_t) + \alpha_t\big[\underbrace{r_t + \gamma V(s_{t+1}) - V(s_t)}_{\text{TD 误差 } \delta_t}\big]
+\]</div>
+<p><strong>框架安放</strong>：这是 RM，其中 <span class="arithmatex">\(h(V) = T^\pi V - V\)</span>（期望更新方向 = Bellman 残差——采样的 <span class="arithmatex">\(r + \gamma V(s')\)</span> 是 <span class="arithmatex">\((T^\pi V)(s)\)</span> 的无偏估计），噪声 = 采样偏差（鞅差 ✓）。表格情形按 RM + 压缩性收敛【引用 Tsitsiklis–Van Roy】；<strong>线性函数逼近</strong>下收敛到投影不动点 <span class="arithmatex">\(\Pi T^\pi\)</span> 的解（on-policy 采样时 <span class="arithmatex">\(\Pi T^\pi\)</span> 在 <span class="arithmatex">\(\mu\)</span>-加权范数下仍压缩——mdp-02 §4 预警的正面结果），off-policy 时可发散（致命三合一）。</p>
+<h2 id="3-q-learning">3. Q-learning：采样版价值迭代<a class="headerlink" href="#3-q-learning" title="Permanent link"></a></h2>
+<div class="arithmatex">\[
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha_t\big[r_t + \gamma\max_{a'}Q(s_{t+1}, a') - Q(s_t, a_t)\big]
+\]</div>
+<p><strong>定理（Watkins–Dayan）</strong> 表格情形，若每个 <span class="arithmatex">\((s,a)\)</span> 被访问无穷次且步长满足 RM 条件（逐状态动作），则 <span class="arithmatex">\(Q_t \to Q^*\)</span> a.s.
+<strong>【骨架】</strong> <span class="arithmatex">\(h(Q) = TQ - Q\)</span>（<span class="arithmatex">\(T\)</span> = 最优性算子）：期望方向正确（<span class="arithmatex">\(\max\)</span> 的采样版无偏于……注意 <span class="arithmatex">\(\max\)</span> 在<strong>下一状态</strong>的 <span class="arithmatex">\(Q\)</span> 上、采样在转移上——仍无偏）；<span class="arithmatex">\(T\)</span> 的 <span class="arithmatex">\(\gamma\)</span>-压缩性（mdp-01）+ RM 框架的异步版本（各分量以不同频率更新——"异步随机逼近"【引用 Tsitsiklis】）收口。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>三个实践对应</strong>：<strong>探索条件</strong>（"每个 (s,a) 无穷次"）= ε-greedy 存在的数学理由——不探索则收敛定理前提破产；<strong>off-policy 合法性</strong>：<span class="arithmatex">\(Q\)</span>-learning 的目标算子不依赖行为策略（max 内生）——可以边看别人的数据边学最优，但也正因此与函数逼近相性差（三合一的成员）；<strong>maximization bias</strong>：<span class="arithmatex">\(E\max \geq \max E\)</span>（Jensen）使 <span class="arithmatex">\(\max_{a'}Q\)</span> 系统性高估——Double Q-learning 的动机（把"选择"与"评估"分开解耦偏差【引用】）。</p>
+<h2 id="4">4. 统计与学习线收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>课程</th>
+<th>中心问题</th>
+<th>发动机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>渐近统计</td>
+<td>估计与检验的极限行为</td>
+<td>CLT + Delta + Taylor</td>
+</tr>
+<tr>
+<td>统计学习理论</td>
+<td>有限样本下为何能泛化</td>
+<td>集中 + 复杂度（VC/Rad）+ 稳定性</td>
+</tr>
+<tr>
+<td>MDP 与 RL</td>
+<td>决策的最优性与算法收敛</td>
+<td>压缩不动点 + 单调性 + 鞅/RM</td>
+</tr>
+</tbody>
+</table>
+<p>三门课共用的底座正是概率与分析线（CLT/鞅/压缩映像/集中不等式）——研究生数学"先立地基再盖楼"的结构在此完整呈现。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（步长实验设计）</strong> 表格 Q-learning 跑 GridWorld：对比 <span class="arithmatex">\(\alpha_t = 1/t\)</span>（满足 RM，慢但必达）、<span class="arithmatex">\(\alpha = 0.1\)</span> 常数（快但震荡）、<span class="arithmatex">\(\alpha_t = 1/\sqrt t\)</span>（违反 <span class="arithmatex">\(\sum\alpha^2 &lt; \infty\)</span>？——不违反：<span class="arithmatex">\(\sum 1/t\)</span> 发散但 <span class="arithmatex">\(\sum 1/t^{}\)</span>…注意 <span class="arithmatex">\(\sum t^{-1}\)</span> 发散、<span class="arithmatex">\(\sum t^{-1/2\cdot2} = \sum t^{-1}\)</span> 发散——<strong><span class="arithmatex">\(1/\sqrt t\)</span> 不满足平方可和</strong>，理论上噪声不灭：实验观察其残余震荡）——把一对级数条件变成三条学习曲线。</p>
+<p><strong>例 2（maximization bias 亲手造）</strong> 两动作、真值全零、奖励噪声 <span class="arithmatex">\(N(0,1)\)</span>：<span class="arithmatex">\(E[\max_a \hat Q] \approx 0.56\)</span>（两个标准正态的最大值期望 <span class="arithmatex">\(= 1/\sqrt\pi\)</span>）——偏差凭空出现；Double 版消偏验证。</p>
+<p><strong>例 3（无穷访问的反例）</strong> 纯贪心（无探索）Q-learning：构造两臂问题使其以正概率永远锁死劣臂——收敛定理"每个 (s,a) 无穷次"条件的验尸；探索不是工程装饰而是定理前提。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>统计与学习线十页完卷。剩余：优化与计算线（凸优化/数值线代/矩阵分析）、信息与传输线（信息论进阶/最优传输）、几何与代数线（流形/代数拓扑/代数进阶）。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mdp-02-iteration.html"><span class="pager-label">上一页</span>MDP II · 价值迭代与策略迭代</a>
+  <a class="pager-slot next" href="cvx-01-conjugate.html"><span class="pager-label">下一页</span>凸优化 I · 共轭函数与 Fenchel 对偶</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

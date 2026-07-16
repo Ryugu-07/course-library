@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>共轭函数与 Fenchel 对偶 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li class="active"><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 共轭函数</a></li>
+<li><a href="#2-fenchel">2. Fenchel 对偶</a></li>
+<li><a href="#3">3. 次梯度演算（研究生版补全）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-fenchel">凸优化 I · 共轭函数与 Fenchel 对偶<a class="headerlink" href="#i-fenchel" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Boyd &amp; Vandenberghe §3.3、§5 / Rockafellar 入门 ｜ <strong>前置</strong>：本科优化 I–III、泛函 II
+研究生凸优化的第一件新武器是<strong>共轭函数</strong>（Legendre–Fenchel 变换）：它把"函数"编码成"支撑超平面族"，是对偶理论的原子操作——本科的 Lagrange 对偶、后两页的近端算法与 ADMM，全部由它统一生成。</p>
+</blockquote>
+<h2 id="1">1. 共轭函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>定义</strong> <span class="arithmatex">\(f: \mathbb{R}^n \to (-\infty, +\infty]\)</span>（允许 <span class="arithmatex">\(+\infty\)</span>——约束以"示性函数"进目标的现代记法）：</p>
+<div class="arithmatex">\[
+f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
+\]</div>
+<p><strong>几何读法</strong>：<span class="arithmatex">\(f^*(y)\)</span> = 斜率为 <span class="arithmatex">\(y\)</span> 的直线族里"恰好托住 <span class="arithmatex">\(f\)</span> 图像"所需的截距修正——<strong><span class="arithmatex">\(f^*\)</span> 记录了 <span class="arithmatex">\(f\)</span> 的全部支撑超平面</strong>（本科优化 I 支撑超平面定理的函数化）。<span class="arithmatex">\(f^*\)</span> 恒凸（逐点 sup 保凸——即使 <span class="arithmatex">\(f\)</span> 不凸）。</p>
+<p><strong>必会共轭对照表</strong>（各一两行推导，动笔过一遍）：</p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(f(x)\)</span></th>
+<th><span class="arithmatex">\(f^*(y)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\frac12\|x\|_2^2\)</span></td>
+<td><span class="arithmatex">\(\frac12\|y\|_2^2\)</span>（自共轭，唯一）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\frac1p\lvert x\rvert^p\)</span></td>
+<td><span class="arithmatex">\(\frac1q\lvert y\rvert^q\)</span>（<span class="arithmatex">\(\frac1p + \frac1q = 1\)</span>——Hölder 共轭指数的出处！）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(e^x\)</span></td>
+<td><span class="arithmatex">\(y\ln y - y\)</span>（负熵）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sum x_i\ln x_i\)</span>（熵）</td>
+<td><span class="arithmatex">\(\ln\sum e^{y_i}\)</span>（log-sum-exp——<strong>熵与 softmax 互为共轭</strong>）</td>
+</tr>
+<tr>
+<td>示性函数 <span class="arithmatex">\(\iota_C\)</span></td>
+<td>支撑函数 <span class="arithmatex">\(\sigma_C(y) = \sup_{x\in C}\langle y,x\rangle\)</span></td>
+</tr>
+<tr>
+<td>范数 <span class="arithmatex">\(\lVert x\rVert\)</span></td>
+<td>对偶范数单位球的示性函数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Fenchel–Young 不等式</strong>（定义的直接重排）：<span class="arithmatex">\(f(x) + f^*(y) \geq \langle x, y\rangle\)</span>，取等 <span class="arithmatex">\(\iff y \in \partial f(x)\)</span>——<strong>"共轭对 = 次梯度关系"</strong>：<span class="arithmatex">\((x, y)\)</span> 配对当且仅当 <span class="arithmatex">\(y\)</span> 是 <span class="arithmatex">\(x\)</span> 处的支撑斜率。</p>
+<p><strong>定理（双共轭）</strong> <span class="arithmatex">\(f\)</span> 闭凸（下半连续 + 凸）<span class="arithmatex">\(\Rightarrow f^{**} = f\)</span>。
+<strong>【骨架】</strong> <span class="arithmatex">\(f^{**} \leq f\)</span> 由定义两次展开；反向：闭凸函数是其全部支撑超平面的上确界（分离超平面定理应用于上镜图 epigraph——凸分析的中心构造），而 <span class="arithmatex">\(f^{**}\)</span> 恰好就是这个上确界。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>读法</strong>：<strong>闭凸函数与其支撑面族信息等价</strong>——"点描述"与"斜率描述"可以无损互换（一般 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(f^{**}\)</span> = 凸包络：非凸问题的"凸松弛"由此定义）。</p>
+<h2 id="2-fenchel">2. Fenchel 对偶<a class="headerlink" href="#2-fenchel" title="Permanent link"></a></h2>
+<p><strong>定理（Fenchel–Rockafellar）</strong> 原问题 <span class="arithmatex">\(\min_x f(x) + g(Ax)\)</span> 的对偶为</p>
+<div class="arithmatex">\[
+\max_y\ -f^*(A^\top y) - g^*(-y)
+\]</div>
+<p>弱对偶恒成立；<span class="arithmatex">\(f, g\)</span> 闭凸 + 约束品性（如 <span class="arithmatex">\(A\,\mathrm{dom}f\)</span> 与 <span class="arithmatex">\(\mathrm{dom}g\)</span> 相对内部相交——Slater 的共轭版）下强对偶。
+<strong>【骨架】</strong> 引入拆分变量 <span class="arithmatex">\(z = Ax\)</span> 与拉格朗日乘子 <span class="arithmatex">\(y\)</span>，对 <span class="arithmatex">\(x, z\)</span> 分别取 inf——两个 inf 各自产出一个共轭函数（<span class="arithmatex">\(\inf_x [f(x) - \langle A^\top y, x\rangle] = -f^*(A^\top y)\)</span> 正是定义）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>统一性检阅</strong>：LP 对偶（<span class="arithmatex">\(f, g\)</span> 取线性 + 示性）、Lagrange 对偶（一般约束的示性化）、SVM 对偶（hinge 与范数各自共轭——本科 ai 课 02 的推导本质是查上面那张表）、<strong>熵与 log-sum-exp 的对偶 = 最大熵与指数族的对偶</strong>（信息论 III 的拉格朗日推导的抽象真身）——<strong>一张变换表统一四门课的对偶</strong>，这就是共轭语言的购买力。</p>
+<h2 id="3">3. 次梯度演算（研究生版补全）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>本科优化 I 定义了次梯度；共轭语言配齐运算律：<span class="arithmatex">\(\partial(f + g) = \partial f + \partial g\)</span>（Moreau–Rockafellar，需约束品性【引用】）；<span class="arithmatex">\(\partial(g\circ A) = A^\top\partial g(Ax)\)</span>；<strong>最优性条件的对偶形式</strong>：<span class="arithmatex">\(0 \in \partial f(x^*) \iff x^* \in \partial f^*(0)\)</span>——原始解与对偶解通过次微分互为反函数（Fenchel–Young 取等的两读）。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（共轭亲算）</strong> 推 <span class="arithmatex">\(f = \max(0, 1-x)\)</span>（hinge）：分段讨论 sup 得 <span class="arithmatex">\(f^*(y) = y\)</span> 于 <span class="arithmatex">\(y \in [-1, 0]\)</span>、否则 <span class="arithmatex">\(+\infty\)</span>——SVM 对偶变量的盒约束 <span class="arithmatex">\(0 \leq \alpha \leq C\)</span> 的出处（对照本科 ai 课 02 的结果——那里的"神奇盒约束"原来是 hinge 的共轭定义域）。</p>
+<p><strong>例 2（不等式一行造）</strong> Fenchel–Young 用于 <span class="arithmatex">\(\frac1p|x|^p\)</span> 对：得 Young 不等式 <span class="arithmatex">\(xy \leq \frac{x^p}{p} + \frac{y^q}{q}\)</span>——实变 III Hölder 证明的那块砖，出厂车间在此。</p>
+<p><strong>例 3（松弛的语义）</strong> <span class="arithmatex">\(f\)</span> = 0-1 损失（非凸）：<span class="arithmatex">\(f^{**}\)</span> = 其凸包络 = 线性下界段——"用 hinge 替代 0-1"（本科 ai 02）在共轭语言里是"取双共轭的可行近似"：<strong>凸松弛不是权宜是原理</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：一阶方法的收敛性证明——梯度下降、Nesterov 加速与近端梯度：本科"收敛速率表"逐行兑付。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mdp-03-stochastic-approx.html"><span class="pager-label">上一页</span>MDP III · 随机逼近与 Q 学习</a>
+  <a class="pager-slot next" href="cvx-02-first-order.html"><span class="pager-label">下一页</span>凸优化 II · 一阶方法收敛性证明</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

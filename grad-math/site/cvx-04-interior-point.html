@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内点法与 SDP · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li class="active"><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 障碍法：把约束烧进目标</a></li>
+<li><a href="#2">2. 自和谐：复杂度理论的钥匙</a></li>
+<li><a href="#3-sdp">3. 半定规划（SDP）</a></li>
+<li><a href="#4">4. 凸优化四页收官盘点</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">凸优化 IV · 内点法与半定规划<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Boyd &amp; Vandenberghe §11 / Nesterov–Nemirovski（理论源头）｜ <strong>前置</strong>：cvx-01–03、本科优化 IV、数值 II
+凸优化收官：<strong>内点法</strong>——让"多项式时间解凸问题"成为定理的算法（本科优化 IV 提过名字，本页给机理与复杂度），及其最重要的应用疆域 <strong>SDP</strong>（半定规划：变量是矩阵的 LP，组合优化与控制论的瑞士军刀）。</p>
+</blockquote>
+<h2 id="1">1. 障碍法：把约束烧进目标<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>约束问题 <span class="arithmatex">\(\min f_0(x)\ \text{s.t.}\ f_i(x) \leq 0\)</span>。<strong>对数障碍</strong>：</p>
+<div class="arithmatex">\[
+\phi(x) = -\sum_i \ln(-f_i(x)), \qquad x^*(t) = \arg\min\ \big[t f_0(x) + \phi(x)\big]
+\]</div>
+<p><span class="arithmatex">\(\phi\)</span> 在边界处爆炸——<strong>迭代点被"电网"关在严格内部</strong>（名字的来历）。<span class="arithmatex">\(\{x^*(t): t &gt; 0\}\)</span> 称<strong>中心路径</strong>。</p>
+<p><strong>定理（中心路径的次优性）【证明】</strong> <span class="arithmatex">\(f_0(x^*(t)) - p^* \leq \dfrac{m}{t}\)</span>（<span class="arithmatex">\(m\)</span> = 约束数）。
+<em>证</em>：<span class="arithmatex">\(x^*(t)\)</span> 的驻点条件 <span class="arithmatex">\(t\nabla f_0 + \sum\frac{-\nabla f_i}{-f_i} = 0\)</span> 表明 <span class="arithmatex">\(\lambda_i(t) = \frac{1}{-t f_i(x^*(t))}\)</span> 是对偶可行点，其对偶间隙 <span class="arithmatex">\(\sum\lambda_i(-f_i) = \frac mt\)</span>——弱对偶收尾。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>读法</strong>：中心路径是"带精度表的高速公路"——走到 <span class="arithmatex">\(t = m/\varepsilon\)</span> 即达 <span class="arithmatex">\(\varepsilon\)</span>-最优；障碍法 = 沿路开车（对递增的 <span class="arithmatex">\(t\)</span> 序列各做几步 Newton——本科优化 II 的 Newton 法在此就业：障碍问题光滑无约束，正是它的主场）。</p>
+<h2 id="2">2. 自和谐：复杂度理论的钥匙<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>为什么 Newton 步数可以<strong>不依赖条件数</strong>地被控制？Nesterov–Nemirovski 的答案：</p>
+<p><strong>定义（自和谐函数）</strong> <span class="arithmatex">\(|f'''(x)| \leq 2f''(x)^{3/2}\)</span>（多维沿每条直线）——"三阶导被二阶导自己控制"：Hessian 变化的速度以 Hessian 自身为尺度（<strong>仿射不变</strong>的光滑性——比 Lipschitz 梯度更适配 Newton 的几何）。<span class="arithmatex">\(-\ln\)</span> 及对数障碍全家自和谐【验证一行：<span class="arithmatex">\((-\ln)''' = -2x^{-3}, (-\ln)'' = x^{-2}\)</span>，恰取等】。</p>
+<p><strong>定理（路径跟踪复杂度）【引用】</strong> 自和谐障碍（参数 <span class="arithmatex">\(\nu\)</span>；线性/二次约束的 <span class="arithmatex">\(\nu = m\)</span>）的路径跟踪法达 <span class="arithmatex">\(\varepsilon\)</span>-最优需</p>
+<div class="arithmatex">\[
+O\big(\sqrt{\nu}\,\ln\tfrac{\nu}{\varepsilon}\big)\ \text{次 Newton 迭代}
+\]</div>
+<p>——<strong>多项式时间凸优化的正式定理</strong>（每次 Newton = 解一个线性系统，数值 II/III 的全部技术在内层服役）。工程事实：实践中几十次迭代解百万变量 LP/SOCP——"内点法迭代数几乎不随规模涨"的口碑之源；与单纯形法（顶点行走、最坏指数、实践极快）形成算法双雄（本科优化 IV 的预告闭环）。</p>
+<h2 id="3-sdp">3. 半定规划（SDP）<a class="headerlink" href="#3-sdp" title="Permanent link"></a></h2>
+<p><strong>定义</strong>：变量为对称矩阵，约束"半正定"：</p>
+<div class="arithmatex">\[
+\min\ \langle C, X\rangle \quad \text{s.t.}\quad \langle A_i, X\rangle = b_i,\quad X \succeq 0
+\]</div>
+<p>（<span class="arithmatex">\(\langle A, B\rangle = \mathrm{tr}(A^\top B)\)</span>；半正定锥是凸锥——高代 VI 的判据划出的集合成为可行域。）LP 是对角矩阵特例；对数障碍 <span class="arithmatex">\(-\ln\det X\)</span> 自和谐（<span class="arithmatex">\(\nu = n\)</span>）⇒ 内点法通吃。<strong>对偶</strong>与 LP 平行（锥对偶：半正定锥自对偶【引用】）。</p>
+<p><strong>三大名应用（每个都值得知道机理）</strong>：</p>
+<ul>
+<li><strong>Goemans–Williamson MaxCut</strong>【骨架】：把 <span class="arithmatex">\(x_i \in \{\pm1\}\)</span> 松弛为单位向量（$X = $ Gram 矩阵 <span class="arithmatex">\(\succeq 0\)</span>）解 SDP，随机超平面取整——<strong>期望 0.878 倍最优</strong>（比值 = <span class="arithmatex">\(\min\frac{\theta/\pi}{(1-\cos\theta)/2}\)</span> 的一页微积分）：组合优化近似算法的巅峰之作，"松弛-取整"范式的旗舰；</li>
+<li><strong>控制论的 LMI</strong>：Lyapunov 不等式 <span class="arithmatex">\(A^\top P + PA \prec 0\)</span>（ode-03 稳定性的矩阵版）是 SDP 可行性问题——"找 Lyapunov 函数"从艺术变成求解器调用；</li>
+<li><strong>多项式优化 / SOS</strong>：<span class="arithmatex">\(p(x) \geq 0\)</span> 的"平方和证书"是 SDP——非凸多项式问题的凸层级逼近（Lasserre 层级【引用】）。</li>
+</ul>
+<h2 id="4">4. 凸优化四页收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>页</th>
+<th>资产</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>共轭 <span class="arithmatex">\(f^*\)</span>、Fenchel 对偶</td>
+<td>对偶的原子操作；四门课对偶的统一语法</td>
+</tr>
+<tr>
+<td>II</td>
+<td>势函数法、加速下界、prox</td>
+<td><span class="arithmatex">\(1/k^2\)</span> 是一阶光速；不可微项交 prox</td>
+</tr>
+<tr>
+<td>III</td>
+<td>增广拉格朗日、ADMM</td>
+<td>拆分 + 协调 = 大规模与分布式</td>
+</tr>
+<tr>
+<td>IV</td>
+<td>自和谐、内点法、SDP</td>
+<td>多项式时间的定理；矩阵变量的疆域</td>
+</tr>
+</tbody>
+</table>
+<p>方法选型的现代地图：超大规模/低精度 → 一阶（II/III）；中规模/高精度/结构约束 → 内点（IV）；两界之间 → 混合（一阶热身 + 二阶精修）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（中心路径亲算）</strong> <span class="arithmatex">\(\min x\ \text{s.t.}\ x \geq 0\)</span>（一维 LP）：<span class="arithmatex">\(x^*(t) = \arg\min[tx - \ln x] = \frac1t\)</span>——路径从内部滑向最优点 <span class="arithmatex">\(0\)</span>，间隙恰 <span class="arithmatex">\(\frac1t = \frac mt\)</span> ✓（定理在最小例子上的显影）。</p>
+<p><strong>例 2（LMI 上手）</strong> 判定 <span class="arithmatex">\(\dot x = Ax\)</span>，<span class="arithmatex">\(A = \begin{pmatrix}-1 &amp; 2\\ 0 &amp; -3\end{pmatrix}\)</span> 的稳定性：解 <span class="arithmatex">\(A^\top P + PA = -I\)</span>（Lyapunov 方程，线性！）得 <span class="arithmatex">\(P \succ 0\)</span> ⇒ 稳定——ode-03 的特征值判据与 SDP 路线双验证。</p>
+<p><strong>例 3（松弛-取整的体感）</strong> 三角形图 MaxCut：SDP 最优 = 2.25（向量排成 120°），随机超平面期望切 <span class="arithmatex">\(= 3\times\frac{120°}{180°}\cdot\frac{?}{}\)</span>……亲手算这个三顶点例子（答案 2，比值 <span class="arithmatex">\(\frac{2}{2.25} \approx 0.889 &gt; 0.878\)</span> ✓）——GW 算法在最小非平凡图上走一遍。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一门：数值线性代数——同样的矩阵问题，问"在浮点与有限步的现实里怎么算得又快又稳"。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cvx-03-splitting.html"><span class="pager-label">上一页</span>凸优化 III · 增广拉格朗日与 ADMM</a>
+  <a class="pager-slot next" href="nla-01-svd-stability.html"><span class="pager-label">下一页</span>数值线代 I · SVD、QR 与后向稳定性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

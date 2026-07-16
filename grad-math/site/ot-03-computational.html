@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinkhorn 与生成模型 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li class="active"><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 熵正则化</a></li>
+<li><a href="#2-sinkhorn">2. Sinkhorn 算法及其收敛</a></li>
+<li><a href="#3">3. 生成模型对账（两大主角）</a></li>
+<li><a href="#4">4. 最优传输三页收官</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-sinkhorn">最优传输 III · Sinkhorn 与生成模型<a class="headerlink" href="#iii-sinkhorn" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Peyré &amp; Cuturi <em>COT</em> §4、§9 ｜ <strong>前置</strong>：ot-01/02、信息论（KL）、cvx-01
+OT 的计算革命：精确 LP 求解 <span class="arithmatex">\(O(n^3\log n)\)</span> 太贵，<strong>熵正则化</strong>把问题变成"矩阵缩放"——<strong>Sinkhorn 算法</strong>每步只做矩阵-向量乘，GPU 友好，把 OT 从理论请进了机器学习的日常。收官对账两大生成模型（WGAN、流匹配）。</p>
+</blockquote>
+<h2 id="1">1. 熵正则化<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>离散 OT（成本阵 <span class="arithmatex">\(C\)</span>、边缘 <span class="arithmatex">\(a, b\)</span>）加熵罚：</p>
+<div class="arithmatex">\[
+W_\varepsilon = \min_{\pi\in\Pi(a,b)}\ \langle C, \pi\rangle + \varepsilon\sum_{ij}\pi_{ij}(\ln\pi_{ij} - 1)
+\]</div>
+<p><strong>三重效果</strong>：目标严格凸（解唯一）；解的结构变为</p>
+<div class="arithmatex">\[
+\pi^* = \mathrm{diag}(u)\,K\,\mathrm{diag}(v), \qquad K_{ij} = e^{-C_{ij}/\varepsilon}
+\]</div>
+<p><strong>【证明】</strong> 拉格朗日对边缘约束求驻点：<span class="arithmatex">\(\ln\pi_{ij} = \frac{-C_{ij} + \alpha_i + \beta_j}{\varepsilon}\)</span>——指数化即得（<strong>最大熵/指数族的结构再现</strong>：信息论 III 的拉格朗日推导逐字重演——熵正则把 OT 拉进了指数族的世界）。<span class="arithmatex">\(\blacksquare\)</span>
+第三重：<span class="arithmatex">\(\varepsilon \to 0\)</span> 收敛到精确 OT、<span class="arithmatex">\(\varepsilon\to\infty\)</span> 趋独立耦合——<span class="arithmatex">\(\varepsilon\)</span> 是"几何 vs 模糊"的旋钮。</p>
+<h2 id="2-sinkhorn">2. Sinkhorn 算法及其收敛<a class="headerlink" href="#2-sinkhorn" title="Permanent link"></a></h2>
+<p>结构 <span class="arithmatex">\(\pi = \mathrm{diag}(u)K\mathrm{diag}(v)\)</span> 下边缘约束变成交替可解：</p>
+<div class="arithmatex">\[
+u \leftarrow \frac{a}{Kv}, \qquad v \leftarrow \frac{b}{K^\top u} \qquad (\text{逐元素除法})
+\]</div>
+<p>——<strong>交替满足两个边缘</strong>（Gauss–Seidel 气质，cvx-03 的轮流坐庄第三次出现）。每步两次矩阵-向量乘：<span class="arithmatex">\(O(n^2)\)</span>、可批量、GPU 天堂。</p>
+<p><strong>定理（线性收敛）【骨架】</strong> Sinkhorn 迭代在 <strong>Hilbert 投影度量</strong>（正锥上的射影距离 <span class="arithmatex">\(d_H(x,y) = \ln\max_{i,j}\frac{x_iy_j}{x_jy_i}\)</span>）下是压缩映射：正矩阵 <span class="arithmatex">\(K\)</span> 的作用压缩系数 <span class="arithmatex">\(\lambda(K) = \frac{\sqrt{\eta}-1}{\sqrt\eta+1} &lt; 1\)</span>（<span class="arithmatex">\(\eta\)</span> 与 <span class="arithmatex">\(K\)</span> 的元素比有关）⇒ 几何收敛。<span class="arithmatex">\(\blacksquare\)</span>
+（<strong>又是压缩映像</strong>——泛函 I 的定理第六次收租；且此证明与 Perron–Frobenius 的 Birkhoff 证法同源【引用】：正性 + 射影度量——ma-03 的正矩阵理论与 Sinkhorn 是一家人。<span class="arithmatex">\(\varepsilon\)</span> 小时 <span class="arithmatex">\(K\)</span> 元素比爆炸、收敛变慢 + 数值下溢——log 域实现（log-sum-exp，数值 I 的技巧）是工程标配。）</p>
+<p><strong>统计红利【引用】</strong>：熵正则化的样本复杂度从 <span class="arithmatex">\(n^{-1/d}\)</span>（ot-02 的维数灾难）改善到 <span class="arithmatex">\(n^{-1/2}\)</span> 级（依赖 <span class="arithmatex">\(\varepsilon\)</span>）——<strong>正则化同时买计算与统计</strong>（这个双赢在 ML 里似曾相识：岭回归/早停——正则化哲学的又一票）。Sinkhorn 散度（去偏版）修正熵正则的偏移【引用】。</p>
+<h2 id="3">3. 生成模型对账（两大主角）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>WGAN</strong>：训练生成器最小化 <span class="arithmatex">\(W_1(\mu_{\text{data}}, \mu_G)\)</span>，判别器实现 K–R 对偶（ot-01）的 Lipschitz 检验函数 <span class="arithmatex">\(\sup_{\mathrm{Lip}\leq1} E_{\text{data}}f - E_Gf\)</span>——权重裁剪/梯度惩罚 = Lipschitz 约束的工程实现。<strong>为什么救了 GAN</strong>：JS/KL 在支撑不交时梯度归零（ot-01 例 3），<span class="arithmatex">\(W_1\)</span> 处处给出有意义的"距离方向"——<strong>度量的选择就是梯度的存亡</strong>。</p>
+<p><strong>流匹配 / 扩散的 OT 视角</strong>（comfy 课 02/03 与 sde-02 的第三次对账）：概率流 ODE 沿途的分布路径可与 McCann 插值（ot-02）对齐——<strong>Rectified Flow 的"直线路径"恰是"逐点直线搬运"的 OT 理想</strong>（训练时用独立耦合、reflow 迭代逼近最优耦合【引用 Liu et al.】）；Schrödinger 桥 = 熵正则 OT 的动态版（Sinkhorn 的连续时间亲戚【引用】）——扩散模型家族与 OT 的血缘正在成为生成模型理论的主干道。</p>
+<p><strong>其余落地速览</strong>：领域自适应（对齐源/目标特征分布）、词嵌入对齐（跨语言词典归纳）、单细胞轨迹（细胞分布随时间的 OT 插值）、分布鲁棒优化（Wasserstein 球内最坏情形——优化线的现代分支）。</p>
+<h2 id="4">4. 最优传输三页收官<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>页</th>
+<th>资产</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I</td>
+<td>Kantorovich 松弛 + 对偶</td>
+<td>耦合替映射；<span class="arithmatex">\(W_1\)</span> = Lipschitz 检验</td>
+</tr>
+<tr>
+<td>II</td>
+<td>Brenier + 测地线/重心</td>
+<td>最优映射 = 凸梯度；分布空间成几何</td>
+</tr>
+<tr>
+<td>III</td>
+<td>熵正则 + Sinkhorn</td>
+<td>矩阵缩放 + 压缩映像；GPU 上的 OT</td>
+</tr>
+</tbody>
+</table>
+<p>KL（信息论线）与 <span class="arithmatex">\(W\)</span>（本线）两把"分布尺子"的分工至此清楚：<strong>KL 论"信息"、W 论"几何"</strong>——检验用 KL 家族（Stein/Sanov 计价），生成与插值用 W 家族（梯度存活、形状语义）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Sinkhorn 手转三轮）</strong> <span class="arithmatex">\(3\times3\)</span> 小例（自设 <span class="arithmatex">\(C\)</span>、均匀边缘、<span class="arithmatex">\(\varepsilon = 1\)</span>）：手算 <span class="arithmatex">\(u, v\)</span> 交替三轮，看行列和逼近目标边缘——矩阵缩放的体感；再把 <span class="arithmatex">\(\varepsilon\)</span> 减小十倍观察收敛变慢（压缩系数恶化的实证）。</p>
+<p><strong>例 2（对偶检验函数的形状）</strong> 一维 <span class="arithmatex">\(\mu = \delta_{-1}, \nu = \delta_1\)</span>：最优 Lipschitz 函数 <span class="arithmatex">\(f(x) = x\)</span>（斜率打满）——WGAN 判别器"在两分布间拉出最陡坡"的最小画像；支撑重叠处坡度自动放缓——梯度信息的温和性可视化。</p>
+<p><strong>例 3（选尺子练习）</strong> 三个任务选 KL 还是 W：(a) 检验模型输出分布是否漂移（KL/Stein——要灵敏度与检验理论）；(b) 把画风 A 渐变到画风 B（W——要测地线语义）；(c) 比较两个 LLM 的 next-token 分布（KL——同支撑、信息语义）。<strong>"什么问题用什么几何"是本课程最后的判断力。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>信息与传输线六页完卷。收官冲刺：几何与代数线——流形几何（4）、代数拓扑（3）、代数进阶（3）。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ot-02-wasserstein.html"><span class="pager-label">上一页</span>最优传输 II · Wasserstein 几何与 Brenier</a>
+  <a class="pager-slot next" href="mfld-01-manifolds.html"><span class="pager-label">下一页</span>流形几何 I · 光滑流形与切空间</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

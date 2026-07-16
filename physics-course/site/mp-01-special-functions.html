@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>特殊函数与 Green 函数 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li class="active"><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 特殊函数：一个来源，一张表</a></li>
+<li><a href="#2-green">2. Green 函数：物理人的逆算子</a></li>
+<li><a href="#3">3. 渐近与量纲（物理人的两件防身器）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="green">数理方法 · 特殊函数与 Green 函数<a class="headerlink" href="#green" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Arfken 主干 / 梁昆淼下册 ｜ <strong>前置</strong>：数学站 pde/复变/泛函线（大部头已在彼处）
+数学物理方法的主体（复变、PDE、变分）你的数学站已建成——本页只补物理特有的两块：<strong>特殊函数全家福</strong>（它们不是杂技，全是"对称坐标系分离变量的必然产物"）与 <strong>Green 函数方法</strong>（物理人的"逆算子"语言）。定位：速查 + 认亲。</p>
+</blockquote>
+<h2 id="1">1. 特殊函数：一个来源，一张表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>统一出身</strong>：在对称坐标系里分离 Helmholtz/Laplace 方程（pde-01 的流程），径向/角向方程的解<strong>必然</strong>是它们——不是发明，是分离变量的副产物：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>出生地</th>
+<th>物理岗位</th>
+<th>关键性质</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Legendre <span class="arithmatex">\(P_\ell(x)\)</span></strong></td>
+<td>球坐标角向（轴对称）</td>
+<td>多极展开（em-01/ced-01）</td>
+<td>正交完备于 <span class="arithmatex">\([-1,1]\)</span>；Rodrigues 公式</td>
+</tr>
+<tr>
+<td><strong>球谐 <span class="arithmatex">\(Y_\ell^m\)</span></strong></td>
+<td>球坐标角向（一般）</td>
+<td>角动量本征函数（qm-03）、CMB 分解（cosmo-02）</td>
+<td><span class="arithmatex">\(L^2\)</span> 球面的正交基（泛函 II）</td>
+</tr>
+<tr>
+<td><strong>Bessel <span class="arithmatex">\(J_n\)</span></strong></td>
+<td>柱坐标径向</td>
+<td>圆膜振动、光纤模式、圆孔衍射（opt-01 Airy）</td>
+<td>无穷多零点 → 径向量子化</td>
+</tr>
+<tr>
+<td><strong>球 Bessel <span class="arithmatex">\(j_\ell\)</span></strong></td>
+<td>球坐标径向（自由粒子）</td>
+<td>散射分波（aqm-02）</td>
+<td><span class="arithmatex">\(j_0 = \frac{\sin x}{x}\)</span></td>
+</tr>
+<tr>
+<td><strong>Hermite <span class="arithmatex">\(H_n\)</span></strong></td>
+<td>直角坐标 + 二次势</td>
+<td>谐振子（qm-02）、高斯光束模式</td>
+<td>升降算符的产物</td>
+</tr>
+<tr>
+<td><strong>Laguerre <span class="arithmatex">\(L_n^k\)</span></strong></td>
+<td>球坐标 + <span class="arithmatex">\(\frac1r\)</span> 势</td>
+<td>氢原子径向（qm-03）</td>
+<td>级数截断 → 主量子数</td>
+</tr>
+</tbody>
+</table>
+<p><strong>方法论读法</strong>：全家都是某个 <strong>Sturm–Liouville 问题</strong>的本征函数（pde-01 §2 / 泛函 III 紧自伴谱定理的实例）——因此自动继承三件套：<strong>实谱、正交性、完备展开</strong>。"用什么函数展开"从此不用记：<strong>看坐标系与势的形状</strong>，S–L 理论保证展开合法。物理人的实用三招：递推关系（升降指标）、母函数（一式生全家——概率 IV 母函数同名同宗）、渐近形式（大宗量 <span class="arithmatex">\(J_n \sim \sqrt{\frac{2}{\pi x}}\cos(\cdots)\)</span>——远场必成球面/柱面波的数学）。</p>
+<h2 id="2-green">2. Green 函数：物理人的逆算子<a class="headerlink" href="#2-green" title="Permanent link"></a></h2>
+<p><strong>定义</strong>：线性算子 <span class="arithmatex">\(\hat L\)</span> 的点源响应</p>
+<div class="arithmatex">\[
+\hat L\,G(\mathbf r, \mathbf r') = \delta(\mathbf r - \mathbf r') \quad\Longrightarrow\quad u(\mathbf r) = \int G(\mathbf r, \mathbf r')\,f(\mathbf r')\,d\mathbf r'
+\]</div>
+<p>——<strong>"任意源 = 点源的叠加，解 = 点源响应的叠加"</strong>（线性性的全部利用；pde2-01 基本解的物理名字）。<span class="arithmatex">\(G = \hat L^{-1}\)</span> 的积分核——"逆算子"的具象。</p>
+<p><strong>三大常客【推导/引用】</strong>：</p>
+<ul>
+<li><strong>静电</strong>：<span class="arithmatex">\(\hat L = -\nabla^2\)</span>，<span class="arithmatex">\(G = \frac{1}{4\pi|\mathbf r - \mathbf r'|}\)</span>——<strong>Coulomb 势本人</strong>（em-01 的叠加积分原来就是 Green 函数方法）；带边界的 <span class="arithmatex">\(G\)</span> = 镜像法的正式身份（镜像电荷 = 构造满足边界条件的 Green 函数）；</li>
+<li><strong>波动（推迟 Green 函数）</strong>：<span class="arithmatex">\(G_{\text{ret}} \propto \frac{\delta(t - t' - |\mathbf r - \mathbf r'|/c)}{|\mathbf r - \mathbf r'|}\)</span>——"影响以光速迟到"（ced-02 推迟势的内核，因果律的数学化身）；</li>
+<li><strong>热传导</strong>：<span class="arithmatex">\(G\)</span> = 热核（pde-02/数学站 sde 线——高斯的第 N 次出场）。</li>
+</ul>
+<p><strong>本征函数展开【推导】</strong>：<span class="arithmatex">\(G = \sum_n\frac{\varphi_n(\mathbf r)\varphi_n^*(\mathbf r')}{\lambda_n}\)</span>（把 <span class="arithmatex">\(\delta\)</span> 按完备基展开、逐项除本征值——"逆算子 = 谱的倒数"：泛函 III 谱定理的直接应用）。<strong>量子力学的传播子</strong>、场论的 Feynman 传播子（qft-02 的中心对象）都是这个结构——<strong>Green 函数是贯穿本站研究生板块的第一记号</strong>。</p>
+<p>🔗 对账：ML 里核回归的 kernel、GP 的协方差核在数学上同宗（正定核 = 某算子的 Green 函数/谱展开——Mercer 定理，数学站 ai 线）；"卷积响应"的世界观（信号系统/扩散模型的去噪核）同源。</p>
+<h2 id="3">3. 渐近与量纲（物理人的两件防身器）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>量纲分析</strong>：数学站建模页已立（Buckingham π）；物理补一句——<strong>自然单位制</strong>（<span class="arithmatex">\(\hbar = c = 1\)</span>：长度=时间=1/能量）是研究生板块的默认货币（qft/pp 线），换算锚点：<span class="arithmatex">\(\hbar c \approx 197\)</span> MeV·fm。</p>
+<p><strong>渐近展开一嘴</strong>：驻相法/最速下降（复变 III 围道思想的延伸【引用】）——大参数积分的物理直觉来源（短波极限 = 几何光学、经典极限 <span class="arithmatex">\(\hbar \to 0\)</span> = 驻相在经典路径——aqm-03 路径积分的预告）。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（多极展开亲算）</strong> <span class="arithmatex">\(\frac{1}{|\mathbf r - \mathbf r'|} = \sum_\ell \frac{r'^\ell}{r^{\ell+1}}P_\ell(\cos\theta)\)</span>（母函数定义本身）——远场电势 = 单极 + 偶极 + 四极…（ced-01 的主粮）；"远看任何电荷分布都像点电荷 + 修正"的数学。</p>
+<p><strong>例 2（Green 函数用法演示）</strong> 一维弦 <span class="arithmatex">\(-u'' = f\)</span>、两端固定：<span class="arithmatex">\(G(x, x') = \frac{x_&lt;(L - x_&gt;)}{L}\)</span>（分段线性、在 <span class="arithmatex">\(x'\)</span> 处导数跳 1——验证两条件即得）；任意载荷的挠度一个积分完事——工程与物理共用的"影响函数"。</p>
+<p><strong>例 3（自然单位换算）</strong> 质子质量 938 MeV ⇒ 康普顿波长 <span class="arithmatex">\(\frac{\hbar c}{mc^2} = \frac{197}{938} \approx 0.21\)</span> fm——核物理尺度一秒读出：自然单位制的日常红利。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>本科板块 20 页全部完卷。研究生板块开幕：高等量子力学——对称性接管量子理论。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="solid-02-bands.html"><span class="pager-label">上一页</span>固体 II · 能带与半导体</a>
+  <a class="pager-slot next" href="aqm-01-symmetry.html"><span class="pager-label">下一页</span>高量 I · 对称性与角动量理论</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

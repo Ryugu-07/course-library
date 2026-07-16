@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itô 公式与 SDE 理论 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li class="active"><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ito-ito">1. Itô 过程与 Itô 公式</a></li>
+<li><a href="#2-sde">2. SDE：强解的存在唯一性</a></li>
+<li><a href="#3">3. 两个立即收割</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-ito-sde">随机分析 III · Itô 公式与 SDE 理论<a class="headerlink" href="#iii-ito-sde" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Øksendal §4–5 ｜ <strong>前置</strong>：sc-01/02、ode-01（本科）、泛函 I
+两张本科欠条在本页兑付：<strong>Itô 公式的证明</strong>（"带 <span class="arithmatex">\((dB)^2 = dt\)</span> 的 Taylor 展开"如何变成定理）与 <strong>SDE 解的存在唯一性</strong>（Picard 迭代在 <span class="arithmatex">\(L^2\)</span> 路径空间的重演）。</p>
+</blockquote>
+<h2 id="1-ito-ito">1. Itô 过程与 Itô 公式<a class="headerlink" href="#1-ito-ito" title="Permanent link"></a></h2>
+<p><strong>Itô 过程</strong>：<span class="arithmatex">\(X_t = X_0 + \int_0^t \mu_s\,ds + \int_0^t \sigma_s\,dB_s\)</span>（漂移 + Itô 积分；微分记号 <span class="arithmatex">\(dX = \mu\,dt + \sigma\,dB\)</span> 只是它的速记）。</p>
+<p><strong>定理（Itô 公式）</strong> <span class="arithmatex">\(f \in C^{1,2}\)</span>（时间一阶、空间二阶连续可微）：</p>
+<div class="arithmatex">\[
+df(t, X_t) = \Big(f_t + \mu f_x + \frac{1}{2}\sigma^2 f_{xx}\Big)dt + \sigma f_x\,dB_t
+\]</div>
+<p><strong>【证明骨架（结构完整，簿记略）】</strong> 四步：
+① <strong>局部化</strong>：停时截断使 <span class="arithmatex">\(X, \mu, \sigma\)</span> 有界（结论对停止过程证完后放开——研究生概率的标准开场白）；
+② <strong>Taylor 展开</strong>：对分割 <span class="arithmatex">\(\{t_j\}\)</span>，</p>
+<div class="arithmatex">\[
+f(X_{t_{j+1}}) - f(X_{t_j}) = f_x\,\Delta X_j + \frac12 f_{xx}\,(\Delta X_j)^2 + R_j
+\]</div>
+<p>③ <strong>逐项归位</strong>：<span class="arithmatex">\(\sum f_x\Delta X_j \to \int f_x\,dX\)</span>（Riemann 和收敛到 Itô 积分——sc-02 的构造在左端点采样，正好对上）；<span class="arithmatex">\((\Delta X_j)^2 = \sigma^2(\Delta B_j)^2 + \text{交叉与 } dt^2 \text{ 项}\)</span>，其中 <span class="arithmatex">\(\sum\sigma^2(\Delta B_j)^2 \to \int\sigma^2\,dt\)</span>（<strong>二次变差定理的加权版</strong>——sc-01 §2 的 <span class="arithmatex">\(L^2\)</span> 论证带权重重跑），其余项按 <span class="arithmatex">\(|\Delta B||\Delta t| \sim \Delta t^{3/2}\)</span> 归零；
+④ <strong>余项控制</strong>：<span class="arithmatex">\(R_j = o((\Delta X_j)^2)\)</span>，由 <span class="arithmatex">\(f_{xx}\)</span> 的一致连续（紧区间）+ ③ 的二次变差有限压死。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：证明只做了一件事——<strong>把"<span class="arithmatex">\((dB)^2 = dt\)</span>、其余高阶归零"的口诀逐项落实为极限定理</strong>；二阶项存活的机理正是二次变差非零。多维版（<span class="arithmatex">\(f(t, X^1,\dots,X^d)\)</span>，含协变差 <span class="arithmatex">\(d\langle X^i, X^j\rangle\)</span>）同构【引用】。</p>
+<h2 id="2-sde">2. SDE：强解的存在唯一性<a class="headerlink" href="#2-sde" title="Permanent link"></a></h2>
+<p><strong>定理（Itô 存在唯一性）</strong> SDE <span class="arithmatex">\(\ dX = \mu(t, X)dt + \sigma(t, X)dB,\ X_0 = x_0\)</span>，若系数满足
+（i）<strong>Lipschitz</strong>：<span class="arithmatex">\(|\mu(t,x)-\mu(t,y)| + |\sigma(t,x)-\sigma(t,y)| \leq L|x-y|\)</span>；
+（ii）线性增长：<span class="arithmatex">\(|\mu| + |\sigma| \leq C(1 + |x|)\)</span>，
+则存在唯一（不可区分意义）连续适应强解，且 <span class="arithmatex">\(E\sup_{t\leq T}X_t^2 &lt; \infty\)</span>。</p>
+<p><strong>【证明骨架（Picard 在 <span class="arithmatex">\(L^2\)</span> 路径空间）】</strong> 定义映射</p>
+<div class="arithmatex">\[
+(\Phi X)_t = x_0 + \int_0^t\mu(s, X_s)ds + \int_0^t\sigma(s, X_s)dB_s
+\]</div>
+<p>在范数 <span class="arithmatex">\(\|X\|^2 = E\sup_{t\leq T}|X_t|^2\)</span> 的空间上：
+① <span class="arithmatex">\(\Phi\)</span> 良定（线性增长 + 等距给平方可积）；
+② <strong>压缩估计</strong>：<span class="arithmatex">\(E\sup_{t\leq T}|(\Phi X - \Phi Y)_t|^2 \leq C_T\int_0^T E|X_s - Y_s|^2 ds\)</span>——漂移项用 Cauchy–Schwarz、扩散项用 <strong>Doob <span class="arithmatex">\(L^2\)</span> 极大不等式 + Itô 等距</strong>（mt-04 与 sc-02 各出一件兵器），Lipschitz 收口；
+③ 迭代 <span class="arithmatex">\(X^{(n+1)} = \Phi X^{(n)}\)</span>：②的积分形式给 <span class="arithmatex">\(\|X^{(n+1)} - X^{(n)}\|^2 \leq \frac{(C_T T)^n}{n!}\|X^{(1)} - X^{(0)}\|^2\)</span>——<strong>阶乘衰减</strong>（比几何压缩更强），级数可和 ⇒ Cauchy 列，完备性给极限；BC-I（mt-01）升级为 a.s. 一致收敛；
+④ 唯一性：两解之差代入②，<strong>Grönwall 不等式</strong>（<span class="arithmatex">\(u(t) \leq C\int_0^t u\,ds \Rightarrow u \equiv 0\)</span>——ODE 理论的老朋友）判零。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：与 ode-01 Picard 定理<strong>逐步对应</strong>（映射—压缩—迭代—Grönwall），只是每步多穿一件概率装备（等距、Doob、BC）——"随机分析 = 经典分析 + 鞅论装备包"的全课程缩影。Lipschitz 失守的后果也同构：<span class="arithmatex">\(\sigma(x) = |x|^\alpha,\ \alpha &lt; \frac12\)</span> 时唯一性可失（对照 ode-01 的 <span class="arithmatex">\(\sqrt{|y|}\)</span>）；金融的 CIR 过程恰在临界 <span class="arithmatex">\(\alpha = \frac12\)</span> 上，另有专门论证（Yamada–Watanabe【引用】——强弱解与路径唯一性的一般理论同此引用）。</p>
+<h2 id="3">3. 两个立即收割<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>几何布朗运动</strong>（严格版）：<span class="arithmatex">\(dS = \mu S dt + \sigma S dB\)</span> 系数 Lipschitz ⇒ 唯一强解；对 <span class="arithmatex">\(\ln S\)</span> 用 Itô 公式（现在是定理了）得显式解 <span class="arithmatex">\(S_t = S_0 e^{(\mu - \sigma^2/2)t + \sigma B_t}\)</span>——本科 sde-01 的计算获得完整资格链。</p>
+<p><strong>OU 过程</strong>：<span class="arithmatex">\(dX = -\theta X dt + \sigma dB\)</span> ⇒ 唯一强解 = <span class="arithmatex">\(e^{-\theta t}x_0 + \sigma\int_0^t e^{-\theta(t-s)}dB_s\)</span>（对 <span class="arithmatex">\(e^{\theta t}X_t\)</span> 用 Itô 验证）；其为高斯过程、方差 <span class="arithmatex">\(\frac{\sigma^2}{2\theta}(1 - e^{-2\theta t})\)</span> 由<strong>等距</strong>一行算出——本科 sde-02 的公式全部落地。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（Itô 公式即计算器）</strong> 求 <span class="arithmatex">\(E[B_t^4]\)</span>：对 <span class="arithmatex">\(f = x^4\)</span> 用 Itô，<span class="arithmatex">\(dB_t^4 = 4B^3dB + 6B^2dt\)</span>，取期望（鞅项归零）得 <span class="arithmatex">\(\frac{d}{dt}EB_t^4 = 6EB_t^2 = 6t\)</span> ⇒ <span class="arithmatex">\(EB_t^4 = 3t^2\)</span>——高斯四阶矩不查表自产（此法可递推全部偶数矩）。</p>
+<p><strong>例 2（Grönwall 亲手用）</strong> 由 §2 ②推矩估计 <span class="arithmatex">\(E|X_t|^2 \leq C(1 + |x_0|^2)e^{Ct}\)</span>：线性增长代入、Grönwall 收口——解的矩不会爆破（有限时间内），数值格式（Euler–Maruyama）收敛性分析的前置件。</p>
+<p><strong>例 3（验证型练习）</strong> 证明 <span class="arithmatex">\(X_t = \frac{B_t}{1+t}\)</span> 满足 SDE <span class="arithmatex">\(dX = -\frac{X}{1+t}dt + \frac{1}{1+t}dB\)</span>：对 <span class="arithmatex">\(f(t,x) = \frac{x}{1+t}\)</span> 用 Itô 公式（注意 <span class="arithmatex">\(f_{xx} = 0\)</span>，修正项消失——线性函数不吃 Itô 税）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：换测度的魔法——Girsanov 定理、鞅表示定理与 Feynman–Kac：金融数学三大支柱的严格版，随机分析收官。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="sc-02-ito-integral.html"><span class="pager-label">上一页</span>随机分析 II · Itô 积分的构造</a>
+  <a class="pager-slot next" href="sc-04-girsanov.html"><span class="pager-label">下一页</span>随机分析 IV · Girsanov 与 Feynman–Kac</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

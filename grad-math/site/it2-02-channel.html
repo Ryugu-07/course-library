@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信道编码定理 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li class="active"><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 设置与联合典型性</a></li>
+<li><a href="#2">2. 可达性（正向定理）的证明</a></li>
+<li><a href="#3-r-c">3. 逆定理（\(R &gt; C\) 不可能）</a></li>
+<li><a href="#4">4. 微分熵与高斯信道（连续世界一页速通）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">信息论进阶 II · 信道编码定理的证明<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Cover &amp; Thomas §7 ｜ <strong>前置</strong>：it2-01、本科信息论 II–III
+本科信息论 III 只陈述了信道编码定理；本页给出 Shannon 的证明——<strong>随机编码 + 联合典型译码</strong>：不构造任何具体的码，而是证明"随机抓一把码字平均而言就能工作"。这是概率方法（图论组合线见过）最辉煌的一次出手，也是"存在性证明改变工业"的孤例级案例。</p>
+</blockquote>
+<h2 id="1">1. 设置与联合典型性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>离散无记忆信道 <span class="arithmatex">\(p(y\mid x)\)</span>；码率 <span class="arithmatex">\(R\)</span>：用 <span class="arithmatex">\(n\)</span> 次信道传 <span class="arithmatex">\(nR\)</span> 比特（<span class="arithmatex">\(2^{nR}\)</span> 个消息）。目标：证明 <span class="arithmatex">\(R &lt; C = \max_{p(x)}I(X;Y)\)</span> 时错误率可任意小。</p>
+<p><strong>联合典型集</strong> <span class="arithmatex">\(A_\varepsilon^{(n)}\)</span>：序列对 <span class="arithmatex">\((x^n, y^n)\)</span> 的经验熵三项（<span class="arithmatex">\(x\)</span> 的、<span class="arithmatex">\(y\)</span> 的、联合的）都 <span class="arithmatex">\(\varepsilon\)</span>-贴近真熵。三条性质【骨架，均为 it2-01 性质的二维版】：
+① 真实配对 <span class="arithmatex">\((X^n, Y^n) \sim \prod p(x,y)\)</span> 落入 <span class="arithmatex">\(A_\varepsilon^{(n)}\)</span> 的概率 <span class="arithmatex">\(\to 1\)</span>（AEP 三次）；
+② <span class="arithmatex">\(|A_\varepsilon^{(n)}| \leq 2^{n(H(X,Y)+\varepsilon)}\)</span>；
+③ <strong>独立配对</strong>（<span class="arithmatex">\(\tilde X^n \perp Y^n\)</span>，各自边缘正确）误落联合典型的概率</p>
+<div class="arithmatex">\[
+P\big((\tilde X^n, Y^n) \in A_\varepsilon^{(n)}\big) \leq 2^{-n(I(X;Y) - 3\varepsilon)}
+\]</div>
+<p>（<em>证</em>：逐点 <span class="arithmatex">\(p(x^n)p(y^n) \approx 2^{-n(H(X)+H(Y))}\)</span>，集合大小 ≈ <span class="arithmatex">\(2^{nH(X,Y)}\)</span>，相乘得 <span class="arithmatex">\(2^{-nI}\)</span>——<strong>互信息 = "假配对装真"的指数难度</strong>：这一行是整个定理的灵魂。）</p>
+<h2 id="2">2. 可达性（正向定理）的证明<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>【证明骨架（四步，结构完整）】</strong>
+<strong>① 随机造码</strong>：按最优输入分布 <span class="arithmatex">\(p^*(x)\)</span> 独立随机生成 <span class="arithmatex">\(2^{nR}\)</span> 个码字——<strong>码本是抽签抽出来的</strong>；
+<strong>② 译码规则</strong>：收到 <span class="arithmatex">\(y^n\)</span>，找<strong>唯一</strong>与之联合典型的码字；无或不唯一则报错；
+<strong>③ 错误分析（对随机码本取平均）</strong>：发送消息 1——
+- 错误 A：真配对不典型，概率 <span class="arithmatex">\(\to 0\)</span>（性质①）；
+- 错误 B：某个假码字 <span class="arithmatex">\(\tilde X^n(j)\)</span>（<span class="arithmatex">\(j \neq 1\)</span>，与 <span class="arithmatex">\(Y^n\)</span> 独立！）碰巧联合典型——union bound 于 <span class="arithmatex">\(2^{nR}\)</span> 个假码字：</p>
+<div class="arithmatex">\[
+P(\text{B}) \leq 2^{nR}\cdot 2^{-n(I - 3\varepsilon)} \to 0 \quad \text{当 } R &lt; I(X;Y) - 3\varepsilon
+\]</div>
+<p><strong>④ 去随机化</strong>：平均错误率 <span class="arithmatex">\(\to 0\)</span> ⇒ <strong>存在</strong>一个码本达到平均错误率；再删掉最差一半码字，把"平均错误小"升级为"最大错误小"（牺牲的码率 <span class="arithmatex">\(\frac1n \to 0\)</span>）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：③ 是"两个指数赛跑"——假码字的数量 <span class="arithmatex">\(2^{nR}\)</span> 对撞装真难度 <span class="arithmatex">\(2^{-nI}\)</span>，<span class="arithmatex">\(R &lt; I\)</span> 则真相赢；取 <span class="arithmatex">\(p^* = \arg\max I\)</span> 即达容量。<strong>随机码字在高维中彼此"远离"</strong>（hdp 的近正交现象在编码空间的重演）——好码不难存在、难在可实现译码：从 1948 到 Turbo/LDPC/Polar 的七十年正是在补"多项式时间译码"这个洞（Polar 码是首个可证达容量 + 高效译码的构造【引用 Arıkan】）。</p>
+<h2 id="3-r-c">3. 逆定理（<span class="arithmatex">\(R &gt; C\)</span> 不可能）<a class="headerlink" href="#3-r-c" title="Permanent link"></a></h2>
+<p><strong>【骨架】</strong> Fano 不等式（本科信息论 II 提名的那位）把错误率与条件熵挂钩：<span class="arithmatex">\(P_e \geq \frac{H(W\mid\hat W) - 1}{nR}\)</span>；数据处理不等式链 <span class="arithmatex">\(W \to X^n \to Y^n \to \hat W\)</span> 给 <span class="arithmatex">\(I(W;\hat W) \leq I(X^n;Y^n) \leq nC\)</span>（无记忆信道逐次使用的互信息可加性【一行】）；两者合并：<span class="arithmatex">\(R &gt; C\)</span> ⇒ <span class="arithmatex">\(P_e\)</span> 有正下界，不随 <span class="arithmatex">\(n\)</span> 消失。<span class="arithmatex">\(\blacksquare\)</span>
+——容量之上不是"难"，是<strong>不可能</strong>（信息论的"物理定律"品格；与 slt 线 NFL、JL 下界同属"不可能定理"家族——DPI 是三者共同的引擎之一）。</p>
+<h2 id="4">4. 微分熵与高斯信道（连续世界一页速通）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>微分熵 <span class="arithmatex">\(h(X) = -\int f\ln f\)</span>（本科信息论 III 已警告可负）；高斯信道 <span class="arithmatex">\(Y = X + Z\)</span>，<span class="arithmatex">\(Z \sim N(0, N)\)</span>、功率约束 <span class="arithmatex">\(EX^2 \leq P\)</span>：</p>
+<div class="arithmatex">\[
+C = \frac12\log\Big(1 + \frac PN\Big)
+\]</div>
+<p><strong>【骨架】</strong> <span class="arithmatex">\(I = h(Y) - h(Z)\)</span>；给定方差高斯最大化 <span class="arithmatex">\(h(Y)\)</span>（最大熵，本科信息论 III）⇒ 输入取高斯达界。<span class="arithmatex">\(\blacksquare\)</span>——<strong>香农极限公式</strong>：通信工程的北极星（5G 的编码即在逼近它）；带宽版 <span class="arithmatex">\(C = W\log(1 + \mathrm{SNR})\)</span> 是无线容量规划的日用公式。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（赛跑的数感）</strong> BSC(<span class="arithmatex">\(\varepsilon = 0.1\)</span>)：<span class="arithmatex">\(C \approx 0.531\)</span>。取 <span class="arithmatex">\(R = 0.4\)</span>：假码字 <span class="arithmatex">\(2^{0.4n}\)</span> 个、单个装真概率 <span class="arithmatex">\(2^{-0.531n}\)</span> ⇒ 错误 <span class="arithmatex">\(\lesssim 2^{-0.131n}\)</span>——<span class="arithmatex">\(n = 500\)</span> 时 <span class="arithmatex">\(\sim 10^{-20}\)</span>：<strong>块长是可靠性的燃料</strong>（实际 LDPC 码块长数千的原因）。</p>
+<p><strong>例 2（Fano 的独立价值）</strong> 用 Fano 证明：二元均匀消息、任何基于 <span class="arithmatex">\(Y\)</span> 的猜测，<span class="arithmatex">\(P_e \geq \frac{H(X\mid Y) - 1}{\log|\mathcal{X}|}\)</span> 型下界——统计学习的下界证明（slt-02 的 NFL 精细版）与多臂老虎机遗憾下界都用这套"Fano 方法"【引用】：一个不等式跨三个学科。</p>
+<p><strong>例 3（容量公式的边际直觉）</strong> 功率翻倍：<span class="arithmatex">\(C\)</span> 只增 <span class="arithmatex">\(\frac12\log 2 \approx 0.35\)</span> 比特——<strong>对数收益递减</strong>：通信系统"加功率不如加带宽/天线"的经济学，一阶导数就是答案。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：信息论进阶收官——率失真理论（有损压缩的极限）与大偏差（Sanov 定理）：熵在"压缩"与"稀有事件"两个方向的完全体。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="it2-01-aep.html"><span class="pager-label">上一页</span>信息论进阶 I · AEP 与典型集</a>
+  <a class="pager-slot next" href="it2-03-rate-distortion.html"><span class="pager-label">下一页</span>信息论进阶 III · 率失真与大偏差</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

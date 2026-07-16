@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Langevin、线性响应与涨落定理 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li class="active"><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-langevin-fdt">1. Langevin 与涨落-耗散（FDT 第一课）</a></li>
+<li><a href="#2-kubo">2. 线性响应与 Kubo 公式</a></li>
+<li><a href="#3-jarzynski">3. 涨落定理与 Jarzynski 等式（现代突破）</a></li>
+<li><a href="#4">4. 收官对账：扩散模型（本站的隐藏主线闭环）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="langevin">非平衡统计物理 · Langevin、线性响应与涨落定理<a class="headerlink" href="#langevin" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Kubo 线性响应 / Sekimoto–Seifert 随机热力学入门 ｜ <strong>前置</strong>：sm-02、数学站 sde 线（Langevin/FP 已建）、信息论线
+平衡统计力学管"静态"；真实世界在流动、耗散、驱动。本页三级台阶：<strong>涨落-耗散定理</strong>（涨落与摩擦同源）、<strong>线性响应（Kubo）</strong>（响应 = 平衡涨落的回声）、<strong>涨落定理与 Jarzynski</strong>（把热力学第二定律升级为等式的现代突破）——终点连回扩散模型与信息热力学。</p>
+</blockquote>
+<h2 id="1-langevin-fdt">1. Langevin 与涨落-耗散（FDT 第一课）<a class="headerlink" href="#1-langevin-fdt" title="Permanent link"></a></h2>
+<p>布朗粒子（数学站 sde 线的方程，物理装填）：<span class="arithmatex">\(m\dot v = -\gamma v + \xi(t)\)</span>，<span class="arithmatex">\(\langle\xi(t)\xi(t')\rangle = 2D\delta(t - t')\)</span>。</p>
+<p><strong>定理（Einstein 关系）【推导】</strong> 长时间平衡要求 <span class="arithmatex">\(\langle\frac12mv^2\rangle = \frac12k_BT\)</span>（均分，sm-02）：解 OU 过程的稳态方差 <span class="arithmatex">\(= \frac{D}{2\gamma m}\cdot m^2\cdots\)</span> 整理得</p>
+<div class="arithmatex">\[
+D = 2\gamma k_BT \quad\Longleftrightarrow\quad D_{\text{扩散}} = \frac{k_BT}{\gamma}\ (\text{位置扩散系数})
+\]</div>
+<p><span class="arithmatex">\(\blacksquare\)</span> <strong>读法</strong>：<strong>噪声强度与摩擦系数被温度锁死</strong>——它们是同一微观碰撞的两面（撞你的分子既推你乱走又拖你减速）；1905 年 Einstein 由此从布朗运动称出 <span class="arithmatex">\(k_B\)</span>（原子实在性的判决实验——Perrin 诺奖）。<strong>这是"涨落-耗散"主题的第一乐章</strong>。</p>
+<h2 id="2-kubo">2. 线性响应与 Kubo 公式<a class="headerlink" href="#2-kubo" title="Permanent link"></a></h2>
+<p><strong>问题</strong>：弱外场 <span class="arithmatex">\(F\)</span> 下系统的响应（电导、磁化率、粘度……）。</p>
+<p><strong>定理（Kubo 公式）【骨架】</strong> 响应系数 = <strong>平衡态涨落的时间关联</strong>：</p>
+<div class="arithmatex">\[
+\chi \;\propto\; \int_0^\infty\langle A(t)\,B(0)\rangle_{\text{eq}}\,dt
+\]</div>
+<p>（微扰论对密度矩阵一阶展开——qm-04 含时微扰的统计版。）样板：电导率 = 电流自关联积分（Green–Kubo——comp-01 MD 测输运的公式出处）；<strong>FDT 一般形</strong>：响应函数的虚部 ∝ 涨落谱（<span class="arithmatex">\(\coth\frac{\hbar\omega}{2k_BT}\)</span> 因子连接量子与经典【引用】）。</p>
+<p><strong>读法（方法论级）</strong>：<strong>"想知道系统怎么回应踢一脚，看它平衡时怎么自己晃"</strong>——不做非平衡实验就能算输运；Johnson 噪声测温、光谱线形反演动力学、金融里"波动率预测响应"的直觉同源（🔗 时序线 GARCH 的哲学近亲）。</p>
+<h2 id="3-jarzynski">3. 涨落定理与 Jarzynski 等式（现代突破）<a class="headerlink" href="#3-jarzynski" title="Permanent link"></a></h2>
+<p><strong>问题升级</strong>：远离平衡（快速拉伸分子、微观马达）——线性响应失效，第二定律只给不等式 <span class="arithmatex">\(\langle W\rangle \geq \Delta F\)</span>。</p>
+<p><strong>定理（Jarzynski 1997）【陈述 + 骨架】</strong></p>
+<div class="arithmatex">\[
+\big\langle e^{-W/k_BT}\big\rangle = e^{-\Delta F/k_BT}
+\]</div>
+<p>——<strong>任意远离平衡的过程，功的指数平均精确等于自由能差</strong>（等式！）。Jensen 不等式一行退回第二定律（<span class="arithmatex">\(\langle W\rangle \geq \Delta F\)</span>——信息论线的 Jensen 又一次执法）；骨架：沿轨迹的路径积分 + 时间反演对称（Crooks 定理 <span class="arithmatex">\(\frac{P_F(W)}{P_R(-W)} = e^{(W - \Delta F)/k_BT}\)</span> 是母定理【引用】）。<strong>实验落地</strong>：光镊拉 RNA 发卡（em-03 辐射压的仪器）——从不可逆拉伸数据提取平衡 <span class="arithmatex">\(\Delta F\)</span> ✓【引用】：<strong>"用暴力实验测平衡量"的魔法</strong>；违反第二定律的轨迹存在但按 <span class="arithmatex">\(e^{-\Delta S/k_B}\)</span> 指数稀有（涨落定理的定量版——sm-01 例 2 的"天文小概率"获得精确公式）。</p>
+<p><strong>信息热力学一嘴</strong>：Landauer 原理——擦除 1 bit 至少耗散 <span class="arithmatex">\(k_BT\ln2\)</span>（信息是物理的：信息论线与热力学的最终焊点；Maxwell 妖被"妖的记忆要擦除"收编【引用实验验证】）。</p>
+<h2 id="4">4. 收官对账：扩散模型（本站的隐藏主线闭环）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>comfy 课 02/数学站 sde 线的扩散模型在本页语言里：<strong>前向加噪 = 把数据分布耗散到平衡（高斯）</strong>；<strong>反向生成 = 受控的非平衡过程</strong>（score 场扮演"驱动力"逆着熵流搬运概率）——训练目标与非平衡自由能/得分匹配的联系是活跃研究线【引用 Sohl-Dickstein 起源论文的标题即"非平衡热力学"】。<strong>"生成模型是台非平衡热机"</strong>——你的两条学习主线（ML 与物理）在本站最后一页数学上正式合流。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Einstein 关系测 <span class="arithmatex">\(k_B\)</span>）</strong> 1 μm 胶体球、水中 <span class="arithmatex">\(\gamma = 6\pi\eta a\)</span>（Stokes）：<span class="arithmatex">\(D = \frac{k_BT}{6\pi\eta a} \approx 0.4\ \mu\mathrm{m}^2/\mathrm{s}\)</span>——显微镜下方均位移 vs 时间的斜率：Perrin 实验的桌面复刻（本科实验室可做的诺奖）。</p>
+<p><strong>例 2（Jarzynski 玩具验证）</strong> 过阻尼粒子 + 匀速拖动的谐势阱（可解模型）：<span class="arithmatex">\(W\)</span> 呈高斯分布、验证 <span class="arithmatex">\(\langle e^{-\beta W}\rangle = e^{-\beta\Delta F}\)</span>（高斯的 MGF 一行——概率线）——等式在最小模型上亲手成立。</p>
+<p><strong>例 3（Landauer 数量级）</strong> 室温擦 1 bit：<span class="arithmatex">\(k_BT\ln2 \approx 3\times10^{-21}\)</span> J；现代 CPU 每次逻辑翻转耗散 ~<span class="arithmatex">\(10^{-15}\)</span> J——距物理极限还有六个量级：<strong>可逆计算/低功耗的理论天花板</strong>在哪，一道乘法题。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>最后一页：量子多体的现代方法——张量网络与变分蒙卡：把"指数大的希尔伯特空间"压进可计算的角落。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="pp-02-electroweak.html"><span class="pager-label">上一页</span>粒子 II · 电弱统一与 Higgs【骨架】</a>
+  <a class="pager-slot next" href="mb-01-tensor-networks.html"><span class="pager-label">下一页</span>量子多体 · 张量网络与变分方法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

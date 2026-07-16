@@ -40,5 +40,7 @@ sync_course "$SOURCE_HOME/agent-lab" "$ROOT/agent-lab"
 sync_course "$SOURCE_HOME/ai-course" "$ROOT/ai-course"
 sync_course "$SOURCE_HOME/comfy-course" "$ROOT/comfyUI-course"
 sync_course "$SOURCE_HOME/math-course" "$ROOT/math-course"
+sync_course "$SOURCE_HOME/grad-math" "$ROOT/grad-math"
+sync_course "$SOURCE_HOME/physics-course" "$ROOT/physics-course"
 
 echo "Course files synchronized into $ROOT"

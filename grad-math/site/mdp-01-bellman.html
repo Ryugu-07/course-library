@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bellman 算子与压缩 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li class="active"><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-mdp">1. MDP 与目标</a></li>
+<li><a href="#2-bellman">2. Bellman 算子</a></li>
+<li><a href="#3">3. 最优策略的存在与贪心原理</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="mdp-i-bellman">MDP I · Bellman 算子与压缩<a class="headerlink" href="#mdp-i-bellman" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Puterman <em>MDP</em> §6.1–6.2 / Szepesvári §1–2 ｜ <strong>前置</strong>：泛函 I（压缩映像）、本科优化 IV（DP）、随机过程 II–III
+强化学习的数学地基是马尔可夫决策过程。本页把本科的 Bellman 方程（优化 IV 一行递推）升级为<strong>算子理论</strong>：价值函数生活在 Banach 空间里，Bellman 算子是压缩映射——存在唯一性、算法收敛性全部由泛函 I 的一个定理包办。</p>
+</blockquote>
+<h2 id="1-mdp">1. MDP 与目标<a class="headerlink" href="#1-mdp" title="Permanent link"></a></h2>
+<p><strong>五元组</strong> <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, P, r, \gamma)\)</span>：状态、动作、转移核 <span class="arithmatex">\(P(s'\mid s,a)\)</span>、奖励 <span class="arithmatex">\(r(s,a)\)</span>（有界 <span class="arithmatex">\(|r| \leq R_{\max}\)</span>）、折现因子 <span class="arithmatex">\(\gamma \in [0,1)\)</span>。<strong>策略</strong> <span class="arithmatex">\(\pi(a\mid s)\)</span>；价值函数</p>
+<div class="arithmatex">\[
+V^\pi(s) = E^\pi\Big[\sum_{t=0}^{\infty}\gamma^t\,r(s_t, a_t)\;\Big|\;s_0 = s\Big]
+\]</div>
+<p>（级数被 <span class="arithmatex">\(\frac{R_{\max}}{1-\gamma}\)</span> 绝对控制——<span class="arithmatex">\(\gamma &lt; 1\)</span> 是一切良定性的来源；博弈论 II 重复博弈的折现、金融的贴现在此同款。）目标：<span class="arithmatex">\(V^*(s) = \sup_\pi V^\pi(s)\)</span> 与达到它的策略。</p>
+<h2 id="2-bellman">2. Bellman 算子<a class="headerlink" href="#2-bellman" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(B(\mathcal{S})\)</span>（有界函数空间，sup 范数——泛函 I 的 Banach 空间）上定义两个算子：</p>
+<div class="arithmatex">\[
+(T^\pi V)(s) = E_{a\sim\pi}\Big[r(s,a) + \gamma\,E_{s'}V(s')\Big], \qquad
+(TV)(s) = \max_a\Big[r(s,a) + \gamma\,E_{s'\mid s,a}V(s')\Big]
+\]</div>
+<p>（<span class="arithmatex">\(T^\pi\)</span> = 策略评估算子；<span class="arithmatex">\(T\)</span> = 最优性算子——本科优化 IV 的 Bellman 递推正是"<span class="arithmatex">\(V = TV\)</span>"。）</p>
+<p><strong>定理（压缩性）</strong> <span class="arithmatex">\(T\)</span> 与 <span class="arithmatex">\(T^\pi\)</span> 都是 <span class="arithmatex">\((B(\mathcal{S}), \|\cdot\|_\infty)\)</span> 上的 <span class="arithmatex">\(\gamma\)</span>-压缩：</p>
+<div class="arithmatex">\[
+\|TU - TV\|_\infty \leq \gamma\,\|U - V\|_\infty
+\]</div>
+<p><strong>【证明】</strong> 对每个 <span class="arithmatex">\(s\)</span>：<span class="arithmatex">\(|(TU)(s) - (TV)(s)| \leq \max_a\big|\gamma E_{s'}[U(s') - V(s')]\big| \leq \gamma\|U - V\|_\infty\)</span>——第一步用 <span class="arithmatex">\(|\max_a f(a) - \max_a g(a)| \leq \max_a|f - g|\)</span>（max 的非扩张性，一行验证），第二步期望是平均、不放大 sup。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>定理（Bellman 方程的存在唯一）</strong> <span class="arithmatex">\(V^*\)</span> 是 <span class="arithmatex">\(T\)</span> 的唯一不动点，<span class="arithmatex">\(V^\pi\)</span> 是 <span class="arithmatex">\(T^\pi\)</span> 的唯一不动点；从任意 <span class="arithmatex">\(V_0\)</span> 迭代 <span class="arithmatex">\(T^nV_0 \to V^*\)</span>，误差按 <span class="arithmatex">\(\gamma^n\)</span> 几何衰减。
+<strong>【证明】</strong> 压缩映像原理（泛函 I，全站被引第五次——这次是它最著名的工程应用）给唯一不动点与收敛速率；"不动点 = <span class="arithmatex">\(V^*\)</span>"需验证 <span class="arithmatex">\(T\)</span> 的不动点满足最优性【骨架】：由 <span class="arithmatex">\(V = TV\)</span> 展开 <span class="arithmatex">\(n\)</span> 步得 <span class="arithmatex">\(V = \max\)</span> 序列的 <span class="arithmatex">\(n\)</span> 步收益 + <span class="arithmatex">\(\gamma^n\)</span> 尾项，取极限证 <span class="arithmatex">\(V \geq V^\pi\ \forall\pi\)</span> 且贪心策略达到它（见 §3）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="3">3. 最优策略的存在与贪心原理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>定理（贪心策略最优）</strong> 取 <span class="arithmatex">\(\pi^*(s) \in \arg\max_a[r + \gamma E V^*]\)</span>（对 <span class="arithmatex">\(V^*\)</span> 贪心），则 <span class="arithmatex">\(V^{\pi^*} = V^*\)</span>——<strong>存在确定性平稳最优策略</strong>。
+<strong>【证明】</strong> 贪心使 <span class="arithmatex">\(T^{\pi^*}V^* = TV^* = V^*\)</span> ⇒ <span class="arithmatex">\(V^*\)</span> 是 <span class="arithmatex">\(T^{\pi^*}\)</span> 的不动点 ⇒ 由 <span class="arithmatex">\(T^{\pi^*}\)</span> 不动点唯一，<span class="arithmatex">\(V^{\pi^*} = V^*\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法（三连击的结构）</strong>：压缩给存在唯一、迭代给算法、贪心给策略——<strong>"解 MDP"在数学上是一个不动点问题</strong>，其全部良好性质由 <span class="arithmatex">\(\gamma &lt; 1\)</span> 一个假设购买。<span class="arithmatex">\(\gamma \to 1\)</span> 时压缩失效（平均奖励准则需另起炉灶【引用 Puterman §8】）；<span class="arithmatex">\(\gamma\)</span> 的双重身份：经济学的时间偏好 + 数学的收敛保险。</p>
+<p><strong>Q 函数版</strong>（RL 实用形态）：<span class="arithmatex">\(Q^*(s,a) = r + \gamma E\max_{a'}Q^*(s',a')\)</span>——同构理论（算子在 <span class="arithmatex">\(B(\mathcal{S}\times\mathcal{A})\)</span> 上压缩）；<strong>知道 <span class="arithmatex">\(Q^*\)</span> 不需要模型就能行动</strong>（<span class="arithmatex">\(\arg\max_a Q^*\)</span>），这是 mdp-03 无模型学习的伏笔。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（误差的几何衰减手感）</strong> <span class="arithmatex">\(\gamma = 0.99\)</span>，要 <span class="arithmatex">\(\|V_n - V^*\| \leq 10^{-3}\cdot\frac{R_{\max}}{1-\gamma}\)</span>：<span class="arithmatex">\(n \geq \frac{\ln 10^3}{\ln(1/0.99)} \approx 690\)</span> 次迭代——<strong>有效视界 <span class="arithmatex">\(\frac{1}{1-\gamma} = 100\)</span> 决定一切成本</strong>：<span class="arithmatex">\(\gamma\)</span> 越接近 1（越远视）问题越"深"。RL 调 <span class="arithmatex">\(\gamma\)</span> 的第一原理。</p>
+<p><strong>例 2（两行解一个 MDP）</strong> 两状态机器维护问题（好/坏，修或不修）：写出 <span class="arithmatex">\(T\)</span>、猜不动点形式、验证——比本科 DP 的表格更快（小 MDP 的解析解练习，把算子语言过一遍手）。</p>
+<p><strong>例 3（非扩张性的边界）</strong> 若奖励无界或 <span class="arithmatex">\(\gamma = 1\)</span>：给出 <span class="arithmatex">\(V\)</span> 不存在/不唯一的例子（如无折现的循环收益）——每个假设各挡一个反例（Evans 页的"验尸报告"法在 MDP 重演）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：把不动点定理变成两大算法——价值迭代与策略迭代的收敛性证明，以及它们与线性规划的第三条等价路线。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="slt-04-stability-online.html"><span class="pager-label">上一页</span>统计学习 IV · 稳定性与在线学习</a>
+  <a class="pager-slot next" href="mdp-02-iteration.html"><span class="pager-label">下一页</span>MDP II · 价值迭代与策略迭代</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

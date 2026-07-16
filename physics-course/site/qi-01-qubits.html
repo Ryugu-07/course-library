@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qubit、纠缠与 Bell 不等式 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li class="active"><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-qubit">1. Qubit 与量子门</a></li>
+<li><a href="#2">2. 纠缠：非经典关联</a></li>
+<li><a href="#3-bell">3. Bell 不等式（本页顶点：哲学问题的实验判决）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-qubit-bell">量子信息 I · Qubit、纠缠与 Bell 不等式<a class="headerlink" href="#i-qubit-bell" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Nielsen &amp; Chuang §1–2 ｜ <strong>前置</strong>：qm-01/03、aqm-03（密度矩阵）、高代/信息论线
+量子信息把量子力学从"描述自然"翻转为"利用自然"：叠加与纠缠是<strong>资源</strong>。本页立好 qubit 语言、纠缠的度量、以及物理学最深刻的实验判决——<strong>Bell 不等式</strong>：定域实在论被自然本身否决（诺奖 2022）。数学门槛只有线性代数——你的最顺赛道。</p>
+</blockquote>
+<h2 id="1-qubit">1. Qubit 与量子门<a class="headerlink" href="#1-qubit" title="Permanent link"></a></h2>
+<p><strong>Qubit</strong>：二维 Hilbert 空间 <span class="arithmatex">\(|\psi\rangle = \alpha|0\rangle + \beta|1\rangle\)</span>（qm-03 自旋 ½ 的抽象化——物理载体随意：自旋/偏振/超导电路）。<strong>Bloch 球</strong>：纯态 ⟺ 球面点（<span class="arithmatex">\(\theta, \phi\)</span> 两实参——归一化+全局相位吃掉两个自由度）；混合态住球内（aqm-03 密度矩阵，球心 = 最大混合）。</p>
+<p><strong>量子门 = 酉矩阵</strong>（qm-01 演化公理的电路化）：单比特 Pauli <span class="arithmatex">\(X, Y, Z\)</span>、<strong>Hadamard</strong> <span class="arithmatex">\(H = \frac{1}{\sqrt2}\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\)</span>（造叠加的主力）、相位门；双比特 <strong>CNOT</strong>（控制翻转——造纠缠的主力）。通用性【引用】：{单比特门 + CNOT} 可逼近任意酉——量子计算的"与或非"。</p>
+<p><strong>两条基本定律（经典直觉的葬礼）</strong>：</p>
+<ul>
+<li><strong>不可克隆定理【推导】</strong>：不存在酉 <span class="arithmatex">\(U\)</span> 使 <span class="arithmatex">\(U|\psi\rangle|0\rangle = |\psi\rangle|\psi\rangle\)</span> 对一切 <span class="arithmatex">\(|\psi\rangle\)</span>。<em>证</em>：对两态克隆取内积——<span class="arithmatex">\(\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2\)</span> ⇒ 内积只能 0 或 1：非正交态不可克隆。<span class="arithmatex">\(\blacksquare\)</span>（量子密码的守护神、纠错必须绕开的墙——qi-03）；</li>
+<li><strong>测量不可逆</strong>：读取即扰动（qm-01 塌缩）——信息增益与扰动的权衡是定理级的【引用】。</li>
+</ul>
+<h2 id="2">2. 纠缠：非经典关联<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>Bell 态</strong>：<span class="arithmatex">\(|\Phi^\pm\rangle = \frac{|00\rangle \pm |11\rangle}{\sqrt2},\ |\Psi^\pm\rangle = \frac{|01\rangle \pm |10\rangle}{\sqrt2}\)</span>——双比特最大纠缠基（aqm-03 例 2：约化到单边 = 最大混合——<strong>整体纯而局部乱</strong>：信息全在关联里）。判据：纯态纠缠 ⟺ 不可写成直积 ⟺ 约化熵 <span class="arithmatex">\(&gt; 0\)</span>（纠缠熵 = 度量，信息论线 von Neumann 熵的岗位）。</p>
+<p><strong>两个"不能"划清边界</strong>：纠缠<strong>不能超光速通信</strong>（单边测量的边缘分布不变——no-signaling【一行：约化密度矩阵与对方操作无关】）；<strong>不能替代信道</strong>——但配合经典信道可做经典做不到的事：<strong>量子隐形传态</strong>【骨架】（Bell 测量 + 2 经典比特 + 单边修正 = 转移未知态——态被转移原件必毁：不可克隆的自洽）、超密编码（1 qubit 载 2 bit）。</p>
+<h2 id="3-bell">3. Bell 不等式（本页顶点：哲学问题的实验判决）<a class="headerlink" href="#3-bell" title="Permanent link"></a></h2>
+<p><strong>EPR 的赌注</strong>：量子关联或许来自"隐藏变量"（粒子出发前已带好答案——定域实在论）。<strong>Bell（1964）</strong>：这类理论的关联有<strong>可检验的上限</strong>。</p>
+<p><strong>定理（CHSH 不等式）【推导】</strong> 定域隐变量：测量结果 <span class="arithmatex">\(A(a, \lambda), B(b, \lambda) \in \{\pm1\}\)</span> 由共享变量 <span class="arithmatex">\(\lambda\)</span> 预定。对任意 <span class="arithmatex">\(\lambda\)</span>：</p>
+<div class="arithmatex">\[
+A(a)[B(b) + B(b')] + A(a')[B(b) - B(b')] = \pm2
+\]</div>
+<p>（两括号必一个为 <span class="arithmatex">\(\pm2\)</span> 一个为 0。）对 <span class="arithmatex">\(\lambda\)</span> 平均：</p>
+<div class="arithmatex">\[
+S = |E(a,b) + E(a,b') + E(a',b) - E(a',b')| \leq 2
+\]</div>
+<p><strong>量子力学的违反【推导】</strong>：单态 <span class="arithmatex">\(|\Psi^-\rangle\)</span> 的关联 <span class="arithmatex">\(E(\mathbf a, \mathbf b) = -\mathbf a\cdot\mathbf b\)</span>（Pauli 代数两行）；取夹角 45° 阶梯的四个方向：</p>
+<div class="arithmatex">\[
+S_{QM} = 2\sqrt2 \approx 2.83 &gt; 2
+\]</div>
+<p><span class="arithmatex">\(\blacksquare\)</span>（Tsirelson 界：<span class="arithmatex">\(2\sqrt2\)</span> 是量子上限【引用】。）</p>
+<p><strong>实验判决</strong>：Aspect（1982）→ 无漏洞实验（2015）→ 诺奖 2022——<strong>自然违反 Bell 不等式</strong>：定域实在论出局。读法要精确：被排除的是"定域 + 预定值"的合取；量子力学保住 no-signaling（不违因果）但放弃"测量前值已存在"。<strong>纠缠是被实验认证的非经典资源</strong>——量子计算优势的哲学地基；设备无关密码学（靠违反 Bell 本身认证安全）是它的工程变现【引用】。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（Bloch 球体操）</strong> <span class="arithmatex">\(H|0\rangle = \frac{|0\rangle + |1\rangle}{\sqrt2}\)</span>：北极转到赤道（<span class="arithmatex">\(X\)</span> 轴）；再测 <span class="arithmatex">\(Z\)</span>——各半概率（qm-03 Stern–Gerlach 串联的电路版）。<span class="arithmatex">\(HZH = X\)</span>（矩阵一行）——"H 把 Z 基旋成 X 基"：电路恒等式的读法入门。</p>
+<p><strong>例 2（隐形传态走一遍）</strong> 按协议写全四种 Bell 测量结果对应的修正门（<span class="arithmatex">\(I, X, Z, XZ\)</span>）——五分钟把"科幻词"变成三行线性代数；注意原 qubit 测后即毁 + 需 2 经典比特（不超光速的显式体现）。</p>
+<p><strong>例 3（CHSH 数值验证）</strong> 用 <span class="arithmatex">\(E = -\cos\theta\)</span> 直接代四个角度算 <span class="arithmatex">\(S = 2\sqrt2\)</span>；再试任意角度组合确认 <span class="arithmatex">\(\leq 2\sqrt2\)</span>——Tsirelson 界的数值体感。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：把资源变算力——Deutsch、Grover 与 Shor：量子算法为什么快、快在哪、以及不快在哪。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="gr-03-blackholes-waves.html"><span class="pager-label">上一页</span>广相 III · 黑洞、引力波与宇宙学度规</a>
+  <a class="pager-slot next" href="qi-02-algorithms.html"><span class="pager-label">下一页</span>量子信息 II · 量子算法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

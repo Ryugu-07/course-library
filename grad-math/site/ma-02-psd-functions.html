@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>半正定、Schur 补与矩阵函数 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li class="active"><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-lowner">1. Löwner 偏序</a></li>
+<li><a href="#2-schur">2. Schur 补（分块世界的主定理）</a></li>
+<li><a href="#3">3. 矩阵函数</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-lowner-schur">矩阵分析 II · Löwner 序、Schur 补与矩阵函数<a class="headerlink" href="#ii-lowner-schur" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Horn &amp; Johnson §7.1–7.7、Zhang <em>Schur Complement</em> ｜ <strong>前置</strong>：本科高代 VI、ma-01
+本页回答"矩阵能不能当数用"：<strong>Löwner 偏序</strong>（<span class="arithmatex">\(A \succeq B\)</span> 的运算法则与陷阱）、<strong>Schur 补</strong>（分块矩阵的正定判据——统计与优化的瑞士军刀）、<strong>矩阵函数</strong>（<span class="arithmatex">\(e^A, A^{1/2}, \ln A\)</span> 的正确定义与单调性的惊人失效）。</p>
+</blockquote>
+<h2 id="1-lowner">1. Löwner 偏序<a class="headerlink" href="#1-lowner" title="Permanent link"></a></h2>
+<p><strong>定义</strong> <span class="arithmatex">\(A \succeq B \iff A - B\)</span> 半正定（对称阵上的偏序——不是全序：<span class="arithmatex">\(\mathrm{diag}(2,0)\)</span> 与 <span class="arithmatex">\(\mathrm{diag}(0,2)\)</span> 不可比）。</p>
+<p><strong>安全运算</strong>：加法保序；共轭保序（<span class="arithmatex">\(A \succeq B \Rightarrow X^\top AX \succeq X^\top BX\)</span>——定义一行）；<strong>求逆反序</strong>（<span class="arithmatex">\(A \succeq B \succ 0 \Rightarrow B^{-1} \succeq A^{-1}\)</span>【骨架：先证 <span class="arithmatex">\(A \succeq I \Rightarrow I \succeq A^{-1}\)</span>（谱分解逐特征值），一般情形用 <span class="arithmatex">\(B^{-1/2}\)</span> 共轭归约】）；特征值逐个保序（Weyl 的推论，ma-01）。</p>
+<p><strong>⚠️ 危险运算（数的直觉失效区）</strong>：<strong>乘法不保序</strong>（<span class="arithmatex">\(AB\)</span> 甚至未必对称）；<strong>平方不保序</strong>：<span class="arithmatex">\(A \succeq B \not\Rightarrow A^2 \succeq B^2\)</span>（反例存在于 <span class="arithmatex">\(2\times2\)</span>——见例 1）。哪些函数保序？——这是 §3 Löwner 定理的问题。</p>
+<h2 id="2-schur">2. Schur 补（分块世界的主定理）<a class="headerlink" href="#2-schur" title="Permanent link"></a></h2>
+<p>分块对称阵 <span class="arithmatex">\(M = \begin{pmatrix} A &amp; B \\ B^\top &amp; C\end{pmatrix}\)</span>（<span class="arithmatex">\(A \succ 0\)</span>），<strong>Schur 补</strong> <span class="arithmatex">\(S = C - B^\top A^{-1}B\)</span>。</p>
+<p><strong>定理（正定判据）</strong> <span class="arithmatex">\(M \succ 0 \iff A \succ 0\)</span> 且 <span class="arithmatex">\(S \succ 0\)</span>。
+<strong>【证明】</strong> 分块消元的合同变换：<span class="arithmatex">\(\begin{pmatrix}I &amp; 0\\ -B^\top A^{-1} &amp; I\end{pmatrix}M\begin{pmatrix}I &amp; -A^{-1}B\\ 0 &amp; I\end{pmatrix} = \begin{pmatrix}A &amp; 0\\ 0 &amp; S\end{pmatrix}\)</span>——合同不变惯性（高代 VI Sylvester 惯性定律上岗），块对角的正定性逐块看。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>三重身份（每个都在别处执勤）</strong>：</p>
+<ul>
+<li><strong>统计</strong>：多维正态的<strong>条件协方差</strong> <span class="arithmatex">\(\mathrm{Cov}(X_2\mid X_1) = \Sigma_{22} - \Sigma_{21}\Sigma_{11}^{-1}\Sigma_{12}\)</span> <strong>恰是 Schur 补</strong>——条件化 = 分块消元（本科概率 III 二维正态条件分布公式的矩阵真身；Gauss 过程回归的预测方差同式）；</li>
+<li><strong>优化</strong>：二次型部分最小化 <span class="arithmatex">\(\min_{x_1} \binom{x_1}{x_2}^\top M\binom{x_1}{x_2} = x_2^\top S\, x_2\)</span>——"消掉一块变量剩 Schur 补"；LMI 技巧：非线性约束 <span class="arithmatex">\(C \succeq B^\top A^{-1}B\)</span> ⟺ 线性矩阵不等式 <span class="arithmatex">\(M \succeq 0\)</span>（cvx-04 SDP 建模的第一技法）；</li>
+<li><strong>数值</strong>：分块消元的枢轴（区域分解法的接口算子【引用】）。</li>
+</ul>
+<h2 id="3">3. 矩阵函数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>定义（谱演算）</strong> 对称 <span class="arithmatex">\(A = Q\Lambda Q^\top\)</span>：<span class="arithmatex">\(f(A) = Q\,f(\Lambda)\,Q^\top\)</span>（对角逐元素作用）——与幂级数定义（收敛域内）一致【引用】；非对称走 Jordan/围道积分定义（复变 II 的 Cauchy 公式变身 <span class="arithmatex">\(f(A) = \frac{1}{2\pi i}\oint f(z)(zI - A)^{-1}dz\)</span>——解析函数论在矩阵上复活）。</p>
+<p><strong>三大常客</strong>：<span class="arithmatex">\(e^{A}\)</span>（ode-03 的矩阵指数：<span class="arithmatex">\(e^{A+B} = e^Ae^B\)</span> <strong>仅当交换</strong>——Lie 理论的门缝）；<span class="arithmatex">\(A^{1/2}\)</span>（PSD 唯一平方根——白化、协方差的"标准差"）；<span class="arithmatex">\(\ln A\)</span>（信息几何与矩阵优化的坐标）。</p>
+<p><strong>定理（Löwner 单调性，陈述 + 名单）</strong> <span class="arithmatex">\(f\)</span> 称算子单调若 <span class="arithmatex">\(A \succeq B \Rightarrow f(A) \succeq f(B)\)</span>。<strong>名单</strong>：<span class="arithmatex">\(t^{1/2}, \ln t, -1/t\)</span> 算子单调；<strong><span class="arithmatex">\(t^2, e^t\)</span> 不是</strong>（例 1）。完整刻画（Löwner 定理：算子单调 ⟺ 可解析延拓到上半平面且保上半平面）【引用】。
+<strong>实用读法</strong>：<strong>开方与取对数可以放心比大小，平方与指数不行</strong>——矩阵不等式推导的红绿灯（量子信息与信息几何里这张名单是日用品）。</p>
+<p><strong>迹不等式一嘴</strong>：von Neumann 迹不等式 <span class="arithmatex">\(\mathrm{tr}(AB) \leq \sum\sigma_i(A)\sigma_i(B)\)</span>、<span class="arithmatex">\(\mathrm{tr}\)</span> 与凸性（<span class="arithmatex">\(A \mapsto \mathrm{tr}f(A)\)</span> 对凸 <span class="arithmatex">\(f\)</span> 凸【引用】）——SDP 目标函数合法性的背书。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（平方不保序的反例）</strong> <span class="arithmatex">\(A = \begin{pmatrix}2 &amp; 1\\ 1&amp; 1\end{pmatrix},\ B = \begin{pmatrix}1 &amp; 0\\ 0 &amp; 0\end{pmatrix}\)</span>：<span class="arithmatex">\(A - B = \begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix} \succeq 0\)</span> ✓；但 <span class="arithmatex">\(A^2 - B^2 = \begin{pmatrix}4 &amp; 3\\ 3 &amp; 2\end{pmatrix}\)</span> 行列式 <span class="arithmatex">\(= -1 &lt; 0\)</span> ✗——两分钟亲手验证，"矩阵不是大号的数"从口号变体感。</p>
+<p><strong>例 2（Schur 补三用合一）</strong> <span class="arithmatex">\(\Sigma = \begin{pmatrix}4 &amp; 2\\ 2 &amp; 3\end{pmatrix}\)</span>：条件方差 <span class="arithmatex">\(3 - \frac{4}{4}\cdot 1 \cdot\cdots = 3 - 1 = 2\)</span>（回归掉 <span class="arithmatex">\(X_1\)</span> 后 <span class="arithmatex">\(X_2\)</span> 剩的方差）；同数字即"消 <span class="arithmatex">\(x_1\)</span> 后的二次型"与"<span class="arithmatex">\(M \succ 0\)</span> 判据的第二块"——一个数三张面孔。</p>
+<p><strong>例 3（矩阵函数计算）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}\)</span>：谱 <span class="arithmatex">\(\pm1\)</span>、<span class="arithmatex">\(e^A = \cosh(1)I + \sinh(1)A\)</span>（谱演算两行）——"矩阵函数 = 特征值上的标量函数 + 特征向量搬运"的最小演示。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：非负矩阵的世界——Perron–Frobenius 定理：正矩阵必有正主特征对，Markov 链、PageRank、人口模型的总后台，矩阵分析收官。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ma-01-norms-perturbation.html"><span class="pager-label">上一页</span>矩阵分析 I · 范数、谱半径与扰动</a>
+  <a class="pager-slot next" href="ma-03-perron.html"><span class="pager-label">下一页</span>矩阵分析 III · Perron–Frobenius</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

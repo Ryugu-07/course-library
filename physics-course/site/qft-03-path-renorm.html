@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>路径积分与重整化【骨架】 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li class="active"><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 场的路径积分</a></li>
+<li><a href="#2">2. 发散的病理与正规化</a></li>
+<li><a href="#3">3. 重整化【骨架级完整】</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">场论 III · 路径积分与重整化【骨架】<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Peskin &amp; Schroeder §9–12 ｜ <strong>前置</strong>：qft-01/02、aqm-03（路径积分）、asm-03（RG——本页是它的动量空间孪生）
+场论收官，第二档标注最密的一页：<strong>路径积分表述</strong>（现代场论的官方语言）与<strong>重整化</strong>（圈图发散的系统驯服）。核心思想一句话——<strong>发散不是理论的病，是"假装理论适用到无穷高能"的病</strong>：重整化 = 承认自己是有效理论。</p>
+</blockquote>
+<h2 id="1">1. 场的路径积分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>aqm-03 的公式升维（对场的一切历史求和）：</p>
+<div class="arithmatex">\[
+\langle\Omega|T\phi(x_1)\cdots\phi(x_n)|\Omega\rangle = \frac{\int\mathcal D\phi\ \phi(x_1)\cdots\phi(x_n)\,e^{iS[\phi]}}{\int\mathcal D\phi\ e^{iS[\phi]}}
+\]</div>
+<p><strong>生成泛函</strong> <span class="arithmatex">\(Z[J] = \int\mathcal D\phi\,e^{iS + i\int J\phi}\)</span>——对源 <span class="arithmatex">\(J\)</span> 求泛函导数产出一切关联函数（<strong>与概率矩母函数逐字同构</strong>：<span class="arithmatex">\(Z[J]\)</span> = 场论的 MGF、<span class="arithmatex">\(\ln Z\)</span> 生成连通图 = 累积量——概率 IV/sm-02 的结构第三次上岗）。自由场 = 高斯积分（无限维配方）⇒ Wick 定理一行再证【骨架】。<strong>Wick 转动</strong>后 <span class="arithmatex">\(e^{-S_E}\)</span> = <strong>统计场论</strong>（asm-01 Ginzburg–Landau 的 <span class="arithmatex">\(F[m]\)</span> 就是欧几里得作用量——<strong>qft 与临界现象是同一数学</strong>：本页与 asm-03 互为镜像的根源；格点 QCD = 这条积分的蒙卡实现，comp-01）。规范场量子化的礼节（Faddeev–Popov 鬼场）【引用】。</p>
+<h2 id="2">2. 发散的病理与正规化<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>单圈样板（<span class="arithmatex">\(\phi^4\)</span> 的"蝌蚪"与"鱼"图）：<span class="arithmatex">\(\int\frac{d^4\ell}{(2\pi)^4}\frac{1}{(\ell^2 - m^2)^2} \sim \int\frac{d\ell}{\ell}\)</span>——<strong>对数紫外发散</strong>（大 <span class="arithmatex">\(\ell\)</span> = 短距离：病灶在"任意短距离仍信本理论"）。<strong>正规化</strong> = 先给积分立规矩（截断 <span class="arithmatex">\(\Lambda\)</span> / 维数正规化 <span class="arithmatex">\(d = 4 - \epsilon\)</span>【引用】）——发散被参数化而非消失。</p>
+<h2 id="3">3. 重整化【骨架级完整】<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>操作三步</strong>：① 承认拉氏量里的 <span class="arithmatex">\(m_0, \lambda_0\)</span>（裸参数）<strong>不可观测</strong>；② 用实验定义物理参数（如某能标下的实测耦合）；③ 把发散<strong>吸收</strong>进裸参数与物理参数的关系里——<strong>用物理量表达物理量后，发散逐阶相消</strong>。可重整性判据：耦合量纲 <span class="arithmatex">\(\geq 0\)</span>（qft-01 例 1 的量纲体操 ⇒ <span class="arithmatex">\(\phi^4\)</span>、QED、标准模型全体可重整——只需有限个参数吸收全部无穷）。</p>
+<p><strong>跑动耦合（重整化群方程）</strong>：物理耦合依赖定义能标 <span class="arithmatex">\(\mu\)</span>：</p>
+<div class="arithmatex">\[
+\mu\frac{d\lambda}{d\mu} = \beta(\lambda)
+\]</div>
+<p>——<strong>asm-03 的 RG 流在动量空间的孪生</strong>（粗粒化 ⟺ 降能标；不动点、相关/无关方向逐字对应）。两大剧本：<strong>QED</strong>：<span class="arithmatex">\(\beta &gt; 0\)</span>——耦合随能标升高变强（真空极化屏蔽：远看电荷变小——<span class="arithmatex">\(\alpha\)</span> 在 <span class="arithmatex">\(M_Z\)</span> 处实测 <span class="arithmatex">\(\approx\frac{1}{128}\)</span> ✓【引用】）；<strong>QCD</strong>：<span class="arithmatex">\(\beta &lt; 0\)</span>——<strong>渐近自由</strong>（诺奖 2004）：高能夸克近自由（深度非弹 ✓）、低能耦合爆炸 ⇒ 夸克禁闭（微扰失效区——格点接管，qft-02 §4 的边界）。</p>
+<p><strong>现代读法（Wilson 的和解）</strong>：一切场论都是<strong>有效理论</strong>——高能细节被积掉、以跑动参数与无关算符的痕迹留存（asm-03"低能不必知道高能"的场论版）；"不可重整"不再是死刑而是"有效范围有限"的标签（引力的不可重整 ⇒ 量子引力需新框架——第三档了望塔的边界，如实标注）。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（量纲判可重整）</strong> 四维：<span class="arithmatex">\(\phi^4\)</span>（<span class="arithmatex">\([\lambda] = 0\)</span> ✓ 可重整）、<span class="arithmatex">\(\phi^6\)</span>（<span class="arithmatex">\([\lambda] = -2\)</span> ✗ 不可重整——但作为有效理论的无关算符合法：低能被压低 <span class="arithmatex">\((E/\Lambda)^2\)</span>）；引力 <span class="arithmatex">\([G] = -2\)</span>——同判 ✗：一分钟量纲体操给出二十世纪两大结论的入口。</p>
+<p><strong>例 2（跑动的数值体感）</strong> <span class="arithmatex">\(\alpha(m_e) = \frac{1}{137} \to \alpha(M_Z) = \frac{1}{128}\)</span>：单圈公式 <span class="arithmatex">\(\alpha(\mu) = \frac{\alpha_0}{1 - \frac{2\alpha_0}{3\pi}\ln\frac{\mu}{m_e}}\)</span> 代入验证量级——"常数不常"的亲手确认；同式 <span class="arithmatex">\(\beta\)</span> 变号即 QCD 的渐近自由曲线。</p>
+<p><strong>例 3（Landau 极点思辨）</strong> 上式分母归零处 <span class="arithmatex">\(\alpha \to \infty\)</span>（QED 的 Landau 极点 <span class="arithmatex">\(\sim 10^{286}\)</span> eV）：远超一切物理能标——QED 作为有效理论在其适用域内无恙：<strong>"理论自带失效路标"是重整化群给的体检报告</strong>，不是缺陷是诚实。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一门：凝聚态理论两页——二次量子化把"多电子"变成"场"，BCS 让电子结对超导：qft 的语法在固体里的第二人生。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="qft-02-feynman.html"><span class="pager-label">上一页</span>场论 II · 相互作用与 Feynman 图</a>
+  <a class="pager-slot next" href="cm-01-second-quant.html"><span class="pager-label">下一页</span>凝聚态 I · 二次量子化与电子气</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

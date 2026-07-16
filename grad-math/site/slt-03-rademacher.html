@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rademacher 复杂度 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li class="active"><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 定义与直觉</a></li>
+<li><a href="#2">2. 主定理（全证）</a></li>
+<li><a href="#3">3. 计算工具箱</a></li>
+<li><a href="#4-margin-svm-boosting">4. Margin 界：解释 SVM 与 boosting</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-rademacher-margin">统计学习 III · Rademacher 复杂度与 margin 理论<a class="headerlink" href="#iii-rademacher-margin" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Mohri <em>FML</em> §3.1–3.3、§5.4 ｜ <strong>前置</strong>：slt-01/02、hdp-01、mt-04（McDiarmid）
+VC 维是"最坏情形"的组合量；<strong>Rademacher 复杂度</strong>让数据自己报复杂度——更紧、适用任意实值损失、且对核方法与神经网络可直接计算。本页给主定理全证，并走到解释 SVM/boosting 泛化的 <strong>margin 界</strong>。</p>
+</blockquote>
+<h2 id="1">1. 定义与直觉<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>定义（经验 Rademacher 复杂度）</strong> <span class="arithmatex">\(\sigma_i\)</span> i.i.d. 均匀 <span class="arithmatex">\(\pm1\)</span>（Rademacher 变量——slt-02 对称化第三步的主角转正）：</p>
+<div class="arithmatex">\[
+\hat{\mathfrak{R}}_S(\mathcal{F}) = E_\sigma\Big[\sup_{f\in\mathcal{F}}\frac1m\sum_{i=1}^m \sigma_i f(z_i)\Big], \qquad \mathfrak{R}_m(\mathcal{F}) = E_S\,\hat{\mathfrak{R}}_S(\mathcal{F})
+\]</div>
+<p><strong>直觉</strong>：<span class="arithmatex">\(\sigma\)</span> 是纯噪声标签——<span class="arithmatex">\(\hat{\mathfrak{R}}\)</span> 度量<strong>函数类拟合随机噪声的能力</strong>。能把噪声都拟合好的类必然过拟合；"复杂度 = 对噪声的亲和力"是比"打散点数"更贴近机器学习实感的定义（ai 课"把标签打乱看网络还能不能记住"的著名实验，测的就是它）。</p>
+<h2 id="2">2. 主定理（全证）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>定理（Rademacher 泛化界）</strong> <span class="arithmatex">\(\mathcal{F}\)</span> 取值 <span class="arithmatex">\([0,1]\)</span>，以概率 <span class="arithmatex">\(\geq 1-\delta\)</span>，对一切 <span class="arithmatex">\(f \in \mathcal{F}\)</span>：</p>
+<div class="arithmatex">\[
+E f \;\leq\; \frac1m\sum_i f(z_i) + 2\,\mathfrak{R}_m(\mathcal{F}) + \sqrt{\frac{\ln(1/\delta)}{2m}}
+\]</div>
+<p><strong>【证明】</strong> 两步。
+<strong>① 集中</strong>：<span class="arithmatex">\(\Phi(S) = \sup_{\mathcal{F}}(Ef - \frac1m\sum f(z_i))\)</span> 换一个样本至多变 <span class="arithmatex">\(\frac1m\)</span> ⇒ <strong>McDiarmid</strong>（mt-04 §3）：<span class="arithmatex">\(\Phi(S) \leq E\Phi + \sqrt{\ln(1/\delta)/2m}\)</span> w.p. <span class="arithmatex">\(1-\delta\)</span>。
+<strong>② 对称化到 Rademacher</strong>：</p>
+<div class="arithmatex">\[
+E_S\Phi = E_S\sup_{\mathcal{F}} E_{S'}\Big[\tfrac1m\sum(f(z_i') - f(z_i))\Big]
+\leq E_{S,S'}\sup_{\mathcal{F}}\tfrac1m\sum(f(z_i') - f(z_i))
+\]</div>
+<p>（Jensen：sup 的期望 ≥ 期望的 sup 反向使用——把 <span class="arithmatex">\(E_{S'}\)</span> 拉出。）交换任一对 <span class="arithmatex">\((z_i, z_i')\)</span> 不改变 <span class="arithmatex">\(E_{S,S'}\)</span> 的分布 ⇒ 可以插入随机符号 <span class="arithmatex">\(\sigma_i\)</span>：</p>
+<div class="arithmatex">\[
+= E_{\sigma,S,S'}\sup_{\mathcal{F}}\tfrac1m\sum\sigma_i(f(z_i') - f(z_i)) \leq 2\,E_{S}E_\sigma\sup_{\mathcal{F}}\tfrac1m\sum\sigma_i f(z_i) = 2\mathfrak{R}_m
+\]</div>
+<p>（拆成两个 sup，各是一份 Rademacher 复杂度。）<span class="arithmatex">\(\blacksquare\)</span>
+（对比 slt-02：同一套幽灵样本 + 符号技巧，但<strong>不经过增长函数</strong>——因此不限 0-1 损失、不需要组合结构；VC 界成为特例：Massart 引理【引用】<span class="arithmatex">\(\hat{\mathfrak{R}} \leq \sqrt{2\ln\Pi(m)}/\sqrt m\)</span> + Sauer 即回收 slt-02。）</p>
+<h2 id="3">3. 计算工具箱<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Talagrand 收缩引理【引用】</strong>：<span class="arithmatex">\(\varphi\)</span> 为 <span class="arithmatex">\(L\)</span>-Lipschitz ⇒ <span class="arithmatex">\(\mathfrak{R}(\varphi\circ\mathcal{F}) \leq L\,\mathfrak{R}(\mathcal{F})\)</span>——<strong>损失函数一层"白过"</strong>（hinge/logistic 都是 1-Lipschitz），只需算假设类本身；</li>
+<li><strong>线性类【证明】</strong>：<span class="arithmatex">\(\mathcal{F} = \{x \mapsto \langle w, x\rangle: \|w\| \leq B\}\)</span>，<span class="arithmatex">\(\|x_i\| \leq R\)</span>：</li>
+</ul>
+<div class="arithmatex">\[
+\hat{\mathfrak{R}}_S = \frac{B}{m}\,E_\sigma\Big\|\sum\sigma_i x_i\Big\| \leq \frac{B}{m}\sqrt{E\big\|\sum\sigma_ix_i\big\|^2} = \frac{B}{m}\sqrt{\sum\|x_i\|^2} \leq \frac{BR}{\sqrt m}
+\]</div>
+<p>（Cauchy–Schwarz 提出 <span class="arithmatex">\(w\)</span>、Jensen 进根号、交叉项因 <span class="arithmatex">\(E\sigma_i\sigma_j = 0\)</span> 消灭——三行结束。）<strong>维数不出现</strong>：范数约束替维数付账——SVM/核方法在无穷维工作的理论执照（RKHS 中同式，<span class="arithmatex">\(R\)</span> = 核对角线界）；
+- 组合规则：凸包不增、加法可加、常数平移不变——神经网络的逐层递归界（每层 Lipschitz × 权重范数连乘【引用】）由此搭起。</p>
+<h2 id="4-margin-svm-boosting">4. Margin 界：解释 SVM 与 boosting<a class="headerlink" href="#4-margin-svm-boosting" title="Permanent link"></a></h2>
+<p>0-1 损失的界受制于分类边界的脆弱；<strong>margin 损失</strong>（以间隔 <span class="arithmatex">\(\rho\)</span> 计分：<span class="arithmatex">\(\gamma\)</span>-margin 内算错）搭配收缩引理给出：</p>
+<p><strong>定理（margin 界，骨架级陈述）</strong> 以概率 <span class="arithmatex">\(1-\delta\)</span>，对一切 <span class="arithmatex">\(\|w\| \leq B\)</span>：</p>
+<div class="arithmatex">\[
+L_{\mathcal{D}}^{0\text{-}1}(w) \;\leq\; \hat L_S^{\rho}(w) + \frac{2BR/\rho}{\sqrt m} + \sqrt{\frac{\ln(1/\delta)}{2m}}
+\]</div>
+<p><strong>读法</strong>：<strong>泛化由 <span class="arithmatex">\(\frac{BR}{\rho\sqrt m}\)</span> 控制——与维数无关，与"间隔相对尺度"有关</strong>。SVM 最大化 <span class="arithmatex">\(\rho\)</span> 正是在直接优化这个界（ai 课 02"大间隔 ⇒ 泛化"的定理版）；boosting 的"训练误差为零后继续训练还能降测试误差"之谜同解——它在继续扩大 margin【引用 Schapire et al.】；深度学习的 margin/范数分析是该纲领的现代延长线（部分成功、整体仍开放——诚实边界）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（有限类回收）</strong> <span class="arithmatex">\(|\mathcal{F}| = N\)</span>：Massart 给 <span class="arithmatex">\(\hat{\mathfrak{R}} \leq \sqrt{2\ln N}/\sqrt m\)</span> ⇒ 主定理回收 slt-01 定理 B（常数略异）——三条路线（union bound / VC / Rademacher）在有限类上会师，互为校验。</p>
+<p><strong>例 2（噪声拟合实验的理论读法）</strong> 把 CIFAR 标签全打乱，大网络训练误差仍归零 ⇒ 其 <span class="arithmatex">\(\hat{\mathfrak{R}} \approx\)</span> 上限 ⇒ <strong>一致收敛路线给不出非平凡界</strong>（Zhang et al. 实验的正式含义）——不是"理论死了"，是"必须走数据/算法相关路线"（margin、稳定性 slt-04、隐式偏置）：把著名实验翻译成理论语言是本页的验收题。</p>
+<p><strong>例 3（线性界的量纲自检）</strong> <span class="arithmatex">\(\frac{BR}{\sqrt m}\)</span>：<span class="arithmatex">\(B\)</span> 与 <span class="arithmatex">\(R\)</span> 各自缩放会被 <span class="arithmatex">\(w^\top x\)</span> 的不变性抵消——界只依赖无量纲组合 <span class="arithmatex">\(BR/\rho\)</span>（margin 版）：量纲分析（本科建模页）在学习论里同样是防错器。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：一致收敛之外的第二条泛化路线——算法稳定性与正则化，以及在线学习（感知机、OGD 与 regret），统计学习四页收官。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="slt-02-vc.html"><span class="pager-label">上一页</span>统计学习 II · VC 理论</a>
+  <a class="pager-slot next" href="slt-04-stability-online.html"><span class="pager-label">下一页</span>统计学习 IV · 稳定性与在线学习</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

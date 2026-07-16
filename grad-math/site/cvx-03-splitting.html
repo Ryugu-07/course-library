@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>增广拉格朗日与 ADMM · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li class="active"><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 09:45</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 对偶上升法及其脆弱</a></li>
+<li><a href="#2-method-of-multipliers">2. 增广拉格朗日（Method of Multipliers）</a></li>
+<li><a href="#3-admm">3. ADMM：既要稳健又要可拆</a></li>
+<li><a href="#4">4. 应用形态学（一个模板生成一族求解器）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-admm">凸优化 III · 增广拉格朗日与 ADMM<a class="headerlink" href="#iii-admm" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Boyd et al. <em>Distributed Optimization via ADMM</em>（专著级综述）｜ <strong>前置</strong>：cvx-01/02、本科优化 III
+大规模问题的解法哲学：<strong>拆</strong>——把纠缠的目标拆成各自好解的块，用对偶变量协调。本页从对偶上升法的缺陷出发，经增广拉格朗日的修复，抵达 <strong>ADMM</strong>：统计学习与分布式计算的主力求解器。</p>
+</blockquote>
+<h2 id="1">1. 对偶上升法及其脆弱<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>约束问题 <span class="arithmatex">\(\min f(x)\ \text{s.t.}\ Ax = b\)</span>，对偶函数 <span class="arithmatex">\(q(y) = \min_x L(x, y)\)</span>。<strong>对偶上升</strong>：交替"给定 <span class="arithmatex">\(y\)</span> 解 <span class="arithmatex">\(x\)</span>""对 <span class="arithmatex">\(y\)</span> 做梯度上升"（<span class="arithmatex">\(\nabla q(y) = Ax^* - b\)</span>——对偶梯度恰是约束残差【一行：Danskin 定理/包络定理】）：</p>
+<div class="arithmatex">\[
+x_{k+1} = \arg\min_x L(x, y_k), \qquad y_{k+1} = y_k + \alpha_k(Ax_{k+1} - b)
+\]</div>
+<p><strong>脆弱点</strong>：内层 <span class="arithmatex">\(\arg\min\)</span> 要求 <span class="arithmatex">\(f\)</span> 严格凸且良态——<span class="arithmatex">\(f\)</span> 仿射方向平坦时 <span class="arithmatex">\(x\)</span>-步无界（LP 就崩）；收敛还挑步长。<strong>但它有一个宝贵基因</strong>：<span class="arithmatex">\(f\)</span> 可分时 <span class="arithmatex">\(x\)</span>-步逐块并行（<strong>分布式的种子</strong>）。</p>
+<h2 id="2-method-of-multipliers">2. 增广拉格朗日（Method of Multipliers）<a class="headerlink" href="#2-method-of-multipliers" title="Permanent link"></a></h2>
+<p><strong>修复</strong>：给拉格朗日加二次罚项——</p>
+<div class="arithmatex">\[
+L_\rho(x, y) = f(x) + y^\top(Ax - b) + \frac{\rho}{2}\|Ax - b\|^2
+\]</div>
+<p><span class="arithmatex">\(x\)</span>-步对 <span class="arithmatex">\(L_\rho\)</span> 求解（罚项补足强凸性——<strong>平坦方向被 <span class="arithmatex">\(\rho\)</span> 项撑起</strong>），<span class="arithmatex">\(y\)</span>-步固定步长 <span class="arithmatex">\(\rho\)</span>：</p>
+<div class="arithmatex">\[
+y_{k+1} = y_k + \rho\,(Ax_{k+1} - b)
+\]</div>
+<p><strong>为什么步长恰取 <span class="arithmatex">\(\rho\)</span>【证明】</strong>：<span class="arithmatex">\(x_{k+1}\)</span> 满足 <span class="arithmatex">\(0 = \nabla f + A^\top y_k + \rho A^\top(Ax_{k+1} - b) = \nabla f + A^\top y_{k+1}\)</span>——<strong>每步迭代后原始最优性条件自动精确成立</strong>，只欠约束可行性；算法 = "保持对偶可行、逐步逼近原始可行"。<span class="arithmatex">\(\blacksquare\)</span>
+代价：罚项 <span class="arithmatex">\(\|Ax - b\|^2\)</span> 把各块 <span class="arithmatex">\(x\)</span> <strong>耦合</strong>了——可分性（对偶上升的宝贵基因）被杀死。鱼与熊掌，于是——</p>
+<h2 id="3-admm">3. ADMM：既要稳健又要可拆<a class="headerlink" href="#3-admm" title="Permanent link"></a></h2>
+<p><strong>问题形态</strong>（与 cvx-01 Fenchel 同型）：<span class="arithmatex">\(\min f(x) + g(z)\ \text{s.t.}\ Ax + Bz = c\)</span>。</p>
+<p><strong>ADMM</strong>（交替方向乘子法）：对增广拉格朗日<strong>不联合求解而交替</strong>：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+x_{k+1} &amp;= \arg\min_x L_\rho(x, z_k, y_k) \\
+z_{k+1} &amp;= \arg\min_z L_\rho(x_{k+1}, z, y_k) \\
+y_{k+1} &amp;= y_k + \rho(Ax_{k+1} + Bz_{k+1} - c)
+\end{aligned}
+\]</div>
+<p>——<strong>Gauss–Seidel 式的"轮流坐庄"</strong>（数值 II 迭代法的既视感）：每块面对的都是"自己 + 二次项"的好问题（常有闭式：prox！cvx-02 的算子库整个接入——<span class="arithmatex">\(g\)</span> 是 L1 时 <span class="arithmatex">\(z\)</span>-步 = 软阈值）。</p>
+<p><strong>定理（收敛性）【骨架】</strong> <span class="arithmatex">\(f, g\)</span> 闭凸、强对偶成立，则 ADMM 满足：残差 <span class="arithmatex">\(Ax_k + Bz_k - c \to 0\)</span>、目标值 → 最优、<span class="arithmatex">\(y_k \to\)</span> 对偶最优。
+<em>思路</em>：Lyapunov 函数 <span class="arithmatex">\(V_k = \frac1\rho\|y_k - y^*\|^2 + \rho\|B(z_k - z^*)\|^2\)</span> 单调不增且每步下降量控制残差（三条最优性不等式相加配平——Boyd 附录的六页代数，结构清晰簿记较重，骨架级掌握恰当）。<span class="arithmatex">\(\blacksquare\)</span>
+（速率：一般凸 <span class="arithmatex">\(O(1/k)\)</span>（遍历意义）【引用】；不保证快，胜在<strong>稳（几乎不挑参数）+ 拆（步步可分布式）</strong>。）</p>
+<p><strong>读法</strong>：ADMM = 增广拉格朗日的稳健 + 对偶上升的可拆——两代方法的合题。<span class="arithmatex">\(\rho\)</span> 的角色：大 <span class="arithmatex">\(\rho\)</span> 压约束残差快、小 <span class="arithmatex">\(\rho\)</span> 压目标快（自适应 <span class="arithmatex">\(\rho\)</span> 的工程惯例【引用】）。</p>
+<h2 id="4">4. 应用形态学（一个模板生成一族求解器）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>拆法 <span class="arithmatex">\(f + g\)</span></th>
+<th><span class="arithmatex">\(z\)</span>-步的 prox</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lasso</td>
+<td>最小二乘 + <span class="arithmatex">\(\lambda\lVert z\rVert_1\)</span>（<span class="arithmatex">\(x = z\)</span>）</td>
+<td>软阈值</td>
+</tr>
+<tr>
+<td>鲁棒 PCA</td>
+<td>核范数 + L1（<span class="arithmatex">\(L + S = M\)</span>）</td>
+<td>奇异值软阈值 + 软阈值</td>
+</tr>
+<tr>
+<td>一致性优化（分布式）</td>
+<td><span class="arithmatex">\(\sum_i f_i(x_i)\)</span> + 一致约束 <span class="arithmatex">\(x_i = z\)</span></td>
+<td>均值（<span class="arithmatex">\(z\)</span>-步 = 各节点平均）</td>
+</tr>
+<tr>
+<td>图像去噪 TV</td>
+<td>保真项 + 全变差</td>
+<td>逐边收缩</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一致性形态是分布式机器学习的原型</strong>：各节点本地解自己的 <span class="arithmatex">\(f_i\)</span>（数据不出门），只交换 <span class="arithmatex">\(x_i\)</span> 与乘子——联邦学习的优化骨架；🔗 你的 Medusa 若做多机 A/B 参数聚合，这就是教科书方案。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（ADMM 手推 Lasso）</strong> 写出三步的显式公式：<span class="arithmatex">\(x\)</span>-步 = 解 <span class="arithmatex">\((A^\top A + \rho I)x = A^\top b + \rho(z - u)\)</span>（岭回归型——正则化的另一次上岗）、<span class="arithmatex">\(z\)</span>-步 = 软阈值、<span class="arithmatex">\(u\)</span>-步 = 残差累加（scaled form）。三行即一个可实现的 Lasso 求解器——亲手写进 30 行 numpy 是本页的最佳作业。</p>
+<p><strong>例 2（为什么不三块交替）</strong> 三块及以上的朴素 ADMM <strong>可以发散</strong>（Chen–He–Ye–Yuan 反例【引用】）——"两块的和谐不自动推广"：把问题重组成两块（变量堆叠）是标准规避法。定理边界即工程红线。</p>
+<p><strong>例 3（对偶上升崩溃的实感）</strong> <span class="arithmatex">\(f(x) = c^\top x\)</span>（线性）+ 等式约束：<span class="arithmatex">\(x\)</span>-步 <span class="arithmatex">\(\arg\min\)</span> 无界 ⇒ 对偶上升死；同题加 <span class="arithmatex">\(\frac\rho2\|Ax-b\|^2\)</span> 立刻良定——增广项"扶起平坦方向"的最小演示。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：二阶世界的高峰——内点法与半定规划：多项式时间凸优化的理论与 SDP 的应用版图，凸优化四页收官。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cvx-02-first-order.html"><span class="pager-label">上一页</span>凸优化 II · 一阶方法收敛性证明</a>
+  <a class="pager-slot next" href="cvx-04-interior-point.html"><span class="pager-label">下一页</span>凸优化 IV · 内点法与 SDP</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

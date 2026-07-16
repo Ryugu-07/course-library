@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>路径积分与密度矩阵 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li class="active"><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 路径积分：对一切历史求和</a></li>
+<li><a href="#2">2. 密度矩阵：混合态的语言</a></li>
+<li><a href="#3">3. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">高量 III · 路径积分与密度矩阵<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Sakurai §2.6 / Feynman–Hibbs ｜ <strong>前置</strong>：mech-02（作用量）、qm-01、sc 线（数学站）
+高量收官的两件现代武器：<strong>路径积分</strong>——量子力学的第三种表述（对一切历史求和），场论与统计物理的通用语言；<strong>密度矩阵</strong>——混合态与开放系统的语言，量子信息（qi 线）的记号地基，顺手回答"经典世界从哪来"（退相干）。</p>
+</blockquote>
+<h2 id="1">1. 路径积分：对一切历史求和<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>命题（Feynman）</strong> 传播子（<span class="arithmatex">\(t_a \to t_b\)</span> 的跃迁幅）：</p>
+<div class="arithmatex">\[
+K(b, a) = \int\mathcal{D}[x(t)]\;e^{iS[x]/\hbar}
+\]</div>
+<p>——<strong>对连接两端的一切路径求和，每条路径贡献相位 <span class="arithmatex">\(e^{iS/\hbar}\)</span></strong>（<span class="arithmatex">\(S\)</span> = 经典作用量，mech-02 的主角）。</p>
+<p><strong>【推导骨架（时间切片）】</strong> 把 <span class="arithmatex">\(e^{-i\hat Ht/\hbar}\)</span> 切成 <span class="arithmatex">\(N\)</span> 段、每段插入位置完备基 <span class="arithmatex">\(\int|x\rangle\langle x|dx\)</span>；单段幅用 <span class="arithmatex">\(\langle x'|e^{-i(\hat p^2/2m + V)\epsilon/\hbar}|x\rangle\)</span>（Trotter 分解 + 动量高斯积分）= <span class="arithmatex">\(e^{\frac{i\epsilon}{\hbar}[\frac{m}{2}(\frac{x'-x}{\epsilon})^2 - V]}\)</span>——指数上恰是 <span class="arithmatex">\(L\,\epsilon\)</span>；连乘取极限即 <span class="arithmatex">\(e^{iS/\hbar}\)</span> 的路径积分。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>经典极限的一行解释</strong>：<span class="arithmatex">\(\hbar \to 0\)</span> 时相位剧烈振荡、路径互相抵消，<strong>唯有 <span class="arithmatex">\(\delta S = 0\)</span> 的驻相路径幸存</strong>（mp-01 驻相法）——<strong>最小作用量原理（mech-02）是量子干涉的宏观残影</strong>：为什么自然界"走极值路径"的两百年之谜在此闭合。双缝干涉 = 两条路径的最小求和；AB 效应【引用】：矢势通过相位 <span class="arithmatex">\(\frac{q}{\hbar}\oint\mathbf A\cdot d\boldsymbol\ell\)</span> 影响干涉——规范势的物理实在性（pp-01 伏笔）。</p>
+<p><strong>Wick 转动（跨界之桥）</strong>：<span class="arithmatex">\(t \to -i\tau\)</span> 后 <span class="arithmatex">\(e^{iS/\hbar} \to e^{-S_E/\hbar}\)</span>——<strong>量子力学变成统计力学</strong>（虚时传播子 = 配分函数：<span class="arithmatex">\(Z = \mathrm{Tr}\,e^{-\beta\hat H}\)</span> 是周期虚时的路径积分,温度 = 虚时周期的倒数）。这座桥的交通流量：量子蒙卡（comp-01）、场论的欧几里得方法（qft-03）、以及数学站 sc 线的 Feynman–Kac（同一公式的概率语言——三个学科在此共用一条隧道）。</p>
+<h2 id="2">2. 密度矩阵：混合态的语言<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>纯态不够用的两个场景：系综的统计混合（以概率 <span class="arithmatex">\(p_i\)</span> 制备 <span class="arithmatex">\(|\psi_i\rangle\)</span>）、<strong>纠缠系统的子系统</strong>。</p>
+<p><strong>定义</strong>：<span class="arithmatex">\(\hat\rho = \sum_i p_i|\psi_i\rangle\langle\psi_i|\)</span>；期望 <span class="arithmatex">\(\langle A\rangle = \mathrm{Tr}(\hat\rho\hat A)\)</span>；性质：自伴、<span class="arithmatex">\(\mathrm{Tr}\rho = 1\)</span>、半正定（矩阵分析 II 的 PSD 语言）。<strong>纯度判据</strong>：<span class="arithmatex">\(\mathrm{Tr}\rho^2 = 1 \iff\)</span> 纯态（<span class="arithmatex">\(\rho^2 = \rho\)</span> 即秩一投影）。演化：von Neumann 方程 <span class="arithmatex">\(i\hbar\dot\rho = [\hat H, \rho]\)</span>（经典 Liouville 的量子版——mech-03 再对账）。热平衡态：<span class="arithmatex">\(\rho = \frac{e^{-\beta\hat H}}{Z}\)</span>（sm-02 Boltzmann 的算符形态）。</p>
+<p><strong>约化密度矩阵（纠缠的接口）</strong>：复合系统 <span class="arithmatex">\(|\Psi\rangle_{AB}\)</span> 只看 A：<span class="arithmatex">\(\rho_A = \mathrm{Tr}_B|\Psi\rangle\langle\Psi|\)</span>——<strong>纠缠纯态的子系统是混合态</strong>（信息在关联里而不在局部——qi-01 的中心事实）；纠缠熵 <span class="arithmatex">\(S = -\mathrm{Tr}\rho_A\ln\rho_A\)</span>（von Neumann 熵——Shannon 熵（信息论线）的量子版：三条熵线在此三会）。</p>
+<p><strong>退相干（"经典世界从哪来"的半个答案）【机制级】</strong>：系统与环境纠缠 → 对环境取迹 → <span class="arithmatex">\(\rho_A\)</span> 的<strong>非对角元（相干项）指数衰减</strong>（环境"记录"了哪条路径 = 相位信息泄漏）；口袋里的猫态在 <span class="arithmatex">\(\sim10^{-23}\)</span> s 内退净【引用量级】——宏观叠加不是被禁止而是被<strong>极速泄密</strong>。测量问题的现代表述由此改写（残余的"选择基"问题仍开放——诚实边界）；量子计算的头号敌人（qi-03 纠错的对手）在此定性。</p>
+<h2 id="3">3. 练习与要点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>例 1（自由粒子传播子亲算）</strong> 切片高斯积分逐层合成：<span class="arithmatex">\(K \propto e^{\frac{im(x_b - x_a)^2}{2\hbar t}}\)</span>——指数恰是自由粒子经典作用量 <span class="arithmatex">\(\frac{iS_{cl}}{\hbar}\)</span>（二次型拉氏量的普遍事实：路径积分 = 经典项 × 涨落行列式【引用】）。</p>
+<p><strong>例 2（Bell 态的约化）</strong> <span class="arithmatex">\(|\Psi\rangle = \frac{1}{\sqrt2}(|\!\uparrow\downarrow\rangle - |\!\downarrow\uparrow\rangle)\)</span>：<span class="arithmatex">\(\rho_A = \frac12 I\)</span>——<strong>最大混合</strong>（单看一边毫无信息）而全局是纯态：纠缠熵 <span class="arithmatex">\(\ln 2\)</span>（一个 ebit）——qi-01 的第一笔账在此预付。</p>
+<p><strong>例 3（Wick 桥体感）</strong> 谐振子配分函数：虚时路径积分 = 周期边界的高斯积分 ⇒ <span class="arithmatex">\(Z = \frac{1}{2\sinh(\beta\hbar\omega/2)}\)</span>——展开即 <span class="arithmatex">\(\sum e^{-\beta\hbar\omega(n+1/2)}\)</span> ✓（sm-02 的求和被一条积分再生产：桥是通车的）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一门：经典电动力学（Jackson 主干）——把 em 三页升到研究生规格：边值问题的兵器谱与辐射的完整理论。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="aqm-02-scattering.html"><span class="pager-label">上一页</span>高量 II · 散射理论</a>
+  <a class="pager-slot next" href="ced-01-boundary.html"><span class="pager-label">下一页</span>电动力学 I · 边值问题与多极展开</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

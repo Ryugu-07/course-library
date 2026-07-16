@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FRW 与 Friedmann 方程 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li class="active"><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-friedmann">1. Friedmann 方程</a></li>
+<li><a href="#2">2. 宇宙的会计制度：组分与稀释律</a></li>
+<li><a href="#3-cdm">3. ΛCDM 账本（观测宇宙学的现状）</a></li>
+<li><a href="#4">4. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-frw-friedmann">宇宙学 I · FRW 与 Friedmann 方程<a class="headerlink" href="#i-frw-friedmann" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Ryden §4–6 ｜ <strong>前置</strong>：gr-03（FRW 度规）、sm 线
+把整个宇宙当一个物理系统：均匀各向同性 + Einstein 方程 = <strong>一个标度因子 <span class="arithmatex">\(a(t)\)</span> 的 ODE</strong>。本页推 Friedmann 方程、建"宇宙学的会计制度"（各组分如何稀释）、给出 ΛCDM 的账本——宇宙 95% 由未知项构成的现代处境。</p>
+</blockquote>
+<h2 id="1-friedmann">1. Friedmann 方程<a class="headerlink" href="#1-friedmann" title="Permanent link"></a></h2>
+<p>FRW 度规（gr-03）+ 理想流体 <span class="arithmatex">\(T_{\mu\nu}\)</span> 代入场方程<strong>【骨架，一个牛顿式替代推导给直觉】</strong>：</p>
+<div class="arithmatex">\[
+\Big(\frac{\dot a}{a}\Big)^2 = \frac{8\pi G}{3}\rho - \frac{kc^2}{a^2}, \qquad
+\frac{\ddot a}{a} = -\frac{4\pi G}{3}\Big(\rho + \frac{3p}{c^2}\Big)
+\]</div>
+<p><em>牛顿直觉版</em>：均匀球中取试验壳，能量守恒 <span class="arithmatex">\(\frac12\dot r^2 - \frac{GM(r)}{r} = E\)</span> 除以 <span class="arithmatex">\(r^2\)</span> 即第一式（<span class="arithmatex">\(k \propto -E\)</span>：空间曲率 = 总能量符号——束缚/临界/逃逸的宇宙版）。<span class="arithmatex">\(\blacksquare\)</span> <strong>加速方程的读法</strong>：<span class="arithmatex">\(\rho + \frac{3p}{c^2}\)</span> 是引力的真实源——<strong>压强也产生引力</strong>（广相特色）；负压足够（<span class="arithmatex">\(p &lt; -\frac{\rho c^2}{3}\)</span>）则 <span class="arithmatex">\(\ddot a &gt; 0\)</span>——加速膨胀的许可条款（§3 暗能量的席位）。</p>
+<p><strong>Hubble 定律</strong>：<span class="arithmatex">\(v = H_0d\)</span>（<span class="arithmatex">\(H \equiv \frac{\dot a}{a}\)</span>）——不是天体在飞而是<strong>空间在长</strong>（gr-03 红移的本地化表述）；<span class="arithmatex">\(H_0 \approx 70\)</span> km/s/Mpc ⇒ Hubble 时间 <span class="arithmatex">\(\frac{1}{H_0} \approx 14\)</span> Gyr（年龄的量级锚）。</p>
+<h2 id="2">2. 宇宙的会计制度：组分与稀释律<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>连续性方程（<span class="arithmatex">\(T\)</span> 守恒）：<span class="arithmatex">\(\dot\rho = -3H(\rho + \frac{p}{c^2})\)</span>——配状态方程 <span class="arithmatex">\(p = w\rho c^2\)</span> 积分<strong>【推导一行】</strong>：<span class="arithmatex">\(\rho \propto a^{-3(1+w)}\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>组分</th>
+<th><span class="arithmatex">\(w\)</span></th>
+<th>稀释律</th>
+<th>主导期的 <span class="arithmatex">\(a(t)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>物质（尘埃）</td>
+<td>0</td>
+<td><span class="arithmatex">\(a^{-3}\)</span>（数密度稀释）</td>
+<td><span class="arithmatex">\(a \propto t^{2/3}\)</span></td>
+</tr>
+<tr>
+<td>辐射</td>
+<td>1/3</td>
+<td><span class="arithmatex">\(a^{-4}\)</span>（多一份红移）</td>
+<td><span class="arithmatex">\(a \propto t^{1/2}\)</span></td>
+</tr>
+<tr>
+<td><strong>宇宙学常数 Λ</strong></td>
+<td><span class="arithmatex">\(-1\)</span></td>
+<td><strong>常数</strong>（空间自带）</td>
+<td><span class="arithmatex">\(a \propto e^{Ht}\)</span>（de Sitter）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>【推导】</strong> <span class="arithmatex">\(a(t)\)</span> 幂律：单组分 Friedmann <span class="arithmatex">\(\dot a \propto a^{-\frac{1+3w}{2}}\)</span> 分离变量。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>接力剧本</strong>：辐射主导（早期，<span class="arithmatex">\(a^{-4}\)</span> 衰减最快）→ 物质主导（结构形成期）→ Λ 主导（近 50 亿年——当下）：<strong>宇宙史 = 三种稀释律的接力赛</strong>，每次交接改变 <span class="arithmatex">\(a(t)\)</span> 的形状。</p>
+<h2 id="3-cdm">3. ΛCDM 账本（观测宇宙学的现状）<a class="headerlink" href="#3-cdm" title="Permanent link"></a></h2>
+<p>密度参数 <span class="arithmatex">\(\Omega_i = \frac{\rho_i}{\rho_c}\)</span>（<span class="arithmatex">\(\rho_c = \frac{3H_0^2}{8\pi G} \approx\)</span> 每立方米 6 个氢原子——宇宙平坦的临界密度）。<strong>现代账本</strong>（Planck 卫星级【引用】）：</p>
+<div class="arithmatex">\[
+\Omega_\Lambda \approx 0.69, \quad \Omega_{\text{暗物质}} \approx 0.26, \quad \Omega_{\text{普通物质}} \approx 0.05, \quad \Omega_k \approx 0
+\]</div>
+<p><strong>三行注脚</strong>：<strong>暗物质</strong>——星系旋转曲线平坦、引力透镜（gr-02）、CMB 声学峰三路证据合指"有引力不发光的组分"（粒子身份未知——pp 线的头号悬案之一）；<strong>暗能量</strong>——1998 超新星测距发现加速膨胀（诺奖 2011），与 Λ（<span class="arithmatex">\(w = -1\)</span>）一致（"是否恰为常数"是当前观测焦点【引用 DESI 类】）；<strong>平坦性</strong> <span class="arithmatex">\(\Omega_k \approx 0\)</span>——CMB 声学标尺量出的空间几何（cosmo-02）。<strong>"95% 未知"不是失败而是坐标</strong>：定量宇宙学把无知精确到了小数点。</p>
+<p><strong>年龄积分</strong>：<span class="arithmatex">\(t_0 = \int_0^1\frac{da}{aH(a)} \approx 13.8\)</span> Gyr（ΛCDM 参数代入数值积分——与最老球状星团自洽 ✓：曾经的"年龄危机"被 Λ 化解【引用】）。</p>
+<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>例 1（稀释律推导练手）</strong> 辐射为何 <span class="arithmatex">\(a^{-4}\)</span>：数密度 <span class="arithmatex">\(a^{-3}\)</span> × 每光子能量红移 <span class="arithmatex">\(a^{-1}\)</span>——两行；由此定"物质-辐射平权"时刻 <span class="arithmatex">\(1 + z_{eq} = \frac{\Omega_m}{\Omega_r} \approx 3400\)</span>（cosmo-02 热历史的第一块路标）。</p>
+<p><strong>例 2（de Sitter 未来）</strong> Λ 主导后 <span class="arithmatex">\(a \propto e^{Ht}\)</span>：星系将逐个越出视界——<strong>远期宇宙学家将看到空荡的天</strong>（"观测窗口在关闭"的物理实感）；反推：我们恰在"账本还可读"的时代做宇宙学。</p>
+<p><strong>例 3（Friedmann 量纲核算）</strong> 用 <span class="arithmatex">\(H_0 = 70\)</span> km/s/Mpc 算 <span class="arithmatex">\(\rho_c\)</span>：<span class="arithmatex">\(\approx 9\times10^{-27}\ \mathrm{kg/m^3}\)</span>——银河系内密度高它百万倍：<strong>"宇宙平均"与"我们附近"差得远</strong>，均匀性只在 &gt;100 Mpc 尺度成立（宇宙学原理的适用边界）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：倒带回热汤——大爆炸热历史：核合成、复合与 CMB——一张 2.725 K 的完美黑体照片如何成为宇宙学的罗塞塔石碑。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="qi-03-error-correction.html"><span class="pager-label">上一页</span>量子信息 III · 量子纠错与 NISQ</a>
+  <a class="pager-slot next" href="cosmo-02-thermal.html"><span class="pager-label">下一页</span>宇宙学 II · 热历史与 CMB</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

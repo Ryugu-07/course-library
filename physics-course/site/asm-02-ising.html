@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ising 模型 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li class="active"><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化【骨架】</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS【骨架】</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs【骨架】</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-12 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 一维精确解：转移矩阵法</a></li>
+<li><a href="#2-weiss">2. 平均场解（Weiss 自洽场）</a></li>
+<li><a href="#3-onsager">3. 二维 Onsager（对照表级掌握）</a></li>
+<li><a href="#4-ising">4. Ising 的第二人生：机器学习</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-ising">统计进阶 II · Ising 模型<a class="headerlink" href="#ii-ising" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Goldenfeld §3 / Baxter 入门 ｜ <strong>前置</strong>：asm-01、sm-02、ma-03（转移矩阵 = Perron 的舞台）
+统计物理的果蝇：<span class="arithmatex">\(H = -J\sum_{\langle ij\rangle}s_is_j - h\sum s_i\)</span>（<span class="arithmatex">\(s = \pm1\)</span>）。本页三场战役：<strong>一维精确解</strong>（转移矩阵法——无相变的证明）、<strong>平均场解</strong>（自洽方程）、<strong>二维 Onsager 结果</strong>（精确解与平均场的对照表）。Ising 同时是 ML 的老朋友——Hopfield 网络与玻尔兹曼机就是它。</p>
+</blockquote>
+<h2 id="1">1. 一维精确解：转移矩阵法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>【推导（完整）】</strong> 周期链的配分函数按键分解：</p>
+<div class="arithmatex">\[
+Z = \sum_{\{s\}}\prod_{i}e^{\beta Js_is_{i+1} + \frac{\beta h}{2}(s_i + s_{i+1})} = \mathrm{Tr}\,T^N
+\]</div>
+<p>其中 <span class="arithmatex">\(2\times2\)</span> <strong>转移矩阵</strong> <span class="arithmatex">\(T_{ss'} = e^{\beta Jss' + \frac{\beta h}{2}(s + s')}\)</span>。求迹 = 特征值之和：<span class="arithmatex">\(Z = \lambda_+^N + \lambda_-^N \approx \lambda_+^N\)</span>（热力学极限由<strong>最大特征值统治</strong>——ma-03 Perron–Frobenius 的物理正身：<span class="arithmatex">\(T\)</span> 元素恒正 ⇒ <span class="arithmatex">\(\lambda_+\)</span> 非简并）。<span class="arithmatex">\(h = 0\)</span> 时 <span class="arithmatex">\(\lambda_\pm = 2\cosh\beta J,\ 2\sinh\beta J\)</span>：</p>
+<div class="arithmatex">\[
+f = -k_BT\ln(2\cosh\beta J)
+\]</div>
+<p>——<strong>处处解析 ⇒ 一维 Ising 无相变</strong>（有限温度磁化恒零）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>为什么一维不了（Peierls 论证）【推导直觉】</strong>：翻转一段畴的能量代价 <span class="arithmatex">\(= 2J\)</span>（两个畴壁）<strong>与段长无关</strong>，而位置熵 <span class="arithmatex">\(\sim k_B\ln N\)</span> 随尺寸增长——<span class="arithmatex">\(T &gt; 0\)</span> 时熵必胜、序必碎；二维畴壁代价 <span class="arithmatex">\(\propto\)</span> 周长，能量能与熵抗衡 ⇒ 有相变（Peierls 由此严格证明二维有序【引用】）——<strong>"能量-熵竞争 + 维数"三句话讲清相变存在性</strong>（sm-01 <span class="arithmatex">\(F = U - TS\)</span> 博弈的最锋利应用）。</p>
+<h2 id="2-weiss">2. 平均场解（Weiss 自洽场）<a class="headerlink" href="#2-weiss" title="Permanent link"></a></h2>
+<p>每个自旋感受邻居的平均场 <span class="arithmatex">\(h_{\text{eff}} = Jzm\)</span>（<span class="arithmatex">\(z\)</span> = 配位数）——单自旋在有效场中的磁化自洽：</p>
+<div class="arithmatex">\[
+m = \tanh\big(\beta Jzm + \beta h\big)
+\]</div>
+<p><strong>【推导 + 图解】</strong> <span class="arithmatex">\(h = 0\)</span>：直线 <span class="arithmatex">\(m\)</span> 与曲线 <span class="arithmatex">\(\tanh(\beta Jzm)\)</span> 的交点——斜率判据给 <span class="arithmatex">\(T_c = \frac{Jz}{k_B}\)</span>；<span class="arithmatex">\(T &lt; T_c\)</span> 出现非零解对（对称破缺的图解版）；<span class="arithmatex">\(T_c\)</span> 附近展开 <span class="arithmatex">\(\tanh\)</span> 回收 Landau 理论（<span class="arithmatex">\(\beta = \frac12\)</span> 全套——<strong>Landau 是一切平均场的包络</strong>，asm-01 的公式获得微观出身）。<strong>失误清单</strong>：一维预言 <span class="arithmatex">\(T_c = \frac{2J}{k_B} &gt; 0\)</span>（错——精确解说无相变）；二维预言 <span class="arithmatex">\(T_c = 4J/k_B\)</span> vs 精确 <span class="arithmatex">\(2.269J/k_B\)</span>——<strong>维数越低错得越狠</strong>（涨落被忽略的代价，Ginzburg 判据的实例）。</p>
+<h2 id="3-onsager">3. 二维 Onsager（对照表级掌握）<a class="headerlink" href="#3-onsager" title="Permanent link"></a></h2>
+<p><strong>定理（Onsager 1944）【引用】</strong> 二维方格 <span class="arithmatex">\(h = 0\)</span> 精确可解：<span class="arithmatex">\(k_BT_c = \frac{2J}{\ln(1 + \sqrt2)} \approx 2.269J\)</span>；比热对数发散（<span class="arithmatex">\(\alpha = 0_{\log}\)</span>）；<span class="arithmatex">\(\beta = \frac18\)</span>（Yang 1952）。</p>
+<table>
+<thead>
+<tr>
+<th>指数</th>
+<th>平均场</th>
+<th>二维精确</th>
+<th>三维（数值/共形自举【引用】）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\beta\)</span></td>
+<td>1/2</td>
+<td><strong>1/8</strong></td>
+<td>0.326</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\gamma\)</span></td>
+<td>1</td>
+<td>7/4</td>
+<td>1.237</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha\)</span></td>
+<td>0（跳变）</td>
+<td>0（对数）</td>
+<td>0.110</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读法</strong>：指数只依赖<strong>维数与对称性</strong>（普适性——液气临界点与三维 Ising 同指数：实验证实的惊人事实），不依赖格子细节/相互作用强度——"为什么"是 asm-03 重整化群的中心问题。Onsager 解的技术（转移矩阵的无穷维对角化/费米子化【引用】）属专门课，结果与含义是常识级必备。</p>
+<h2 id="4-ising">4. Ising 的第二人生：机器学习<a class="headerlink" href="#4-ising" title="Permanent link"></a></h2>
+<p><strong>同一个能量函数的四张面孔</strong>：Hopfield 联想记忆（<span class="arithmatex">\(J_{ij}\)</span> 存模式、动力学下坡到记忆——能量景观语言）；<strong>玻尔兹曼机</strong>（Ising 的学习版：调 <span class="arithmatex">\(J_{ij}\)</span> 使 Boltzmann 分布拟合数据——受限版 RBM 是深度学习史前史的主角）；MCMC 采样的试验场（Metropolis 算法的原生舞台——comp-01 主角）；自旋玻璃（随机 <span class="arithmatex">\(J_{ij}\)</span>）→ 神经网络损失面的统计物理【引用 Parisi 线】。<strong>"能量模型"这个 ML 词汇的能量，就是本页的 <span class="arithmatex">\(H\)</span></strong>——两个学科在同一公式上各自发展了五十年。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（转移矩阵练手）</strong> 加场 <span class="arithmatex">\(h\)</span> 的一维链：写出 <span class="arithmatex">\(T\)</span>、算 <span class="arithmatex">\(\lambda_+\)</span>、磁化 <span class="arithmatex">\(m = \frac{\partial\ln\lambda_+}{\partial(\beta h)} = \frac{\sinh\beta h}{\sqrt{\sinh^2\beta h + e^{-4\beta J}}}\)</span>——<span class="arithmatex">\(T \to 0\)</span> 阶跃、<span class="arithmatex">\(T &gt; 0\)</span> 光滑（无相变的显式面目）；顺手对账 ma-03："最大特征值的一切"。</p>
+<p><strong>例 2（Peierls 估算二维 <span class="arithmatex">\(T_c\)</span>）</strong> 长 <span class="arithmatex">\(L\)</span> 畴壁：能量 <span class="arithmatex">\(2JL\)</span>、构型熵 <span class="arithmatex">\(\sim k_BL\ln3\)</span>（自回避行走的粗算）⇒ 畴壁自由能变号于 <span class="arithmatex">\(k_BT \sim \frac{2J}{\ln 3} \approx 1.8J\)</span>——与 Onsager 2.269 同量级：三行估算摸到精确解的门口。</p>
+<p><strong>例 3（RBM 对账）</strong> 写出 RBM 能量 <span class="arithmatex">\(E = -\sum a_iv_i - \sum b_jh_j - \sum v_iW_{ij}h_j\)</span>：可见-隐藏二部 Ising + 局域场——对比学习规则 = 用数据均值与模型均值之差调 <span class="arithmatex">\(J\)</span>（最大似然的梯度，信息论线 MLE=KL 的又一实例）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：普适性之谜的解答——重整化群：把"粗粒化"变成动力系统，临界指数 = 不动点的特征值。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="asm-01-phase-transitions.html"><span class="pager-label">上一页</span>统计进阶 I · 相变与 Landau 理论</a>
+  <a class="pager-slot next" href="asm-03-rg.html"><span class="pager-label">下一页</span>统计进阶 III · 重整化群入门</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

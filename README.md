@@ -1,6 +1,6 @@
 # 本地课程资料库
 
-这个私有仓库汇总四套本地课程，方便在 macOS 更新后推送到 GitHub，再在 Windows 的 `E:` 盘拉取和浏览。
+这个私有仓库汇总六套本地课程，方便在 macOS 更新后推送到 GitHub，再在 Windows 的 `E:` 盘拉取和浏览。
 
 ## Windows 首次使用
 
@@ -28,18 +28,20 @@ git pull
 start-courses.bat
 ```
 
-## 四套课程
+## 六套课程
 
 - `agent-lab`：从最小 SWE Agent 到现代编程智能体
 - `ai-course`：AI 原理、工程、研究与实验课程
 - `comfyUI-course`：ComfyUI、扩散模型与 AIGC 工作流课程
-- `math-course`：数学课程资料库
+- `math-course`：本科数学课程资料库
+- `grad-math`：研究生数学与资格考试课程资料库
+- `physics-course`：本科、研究生理论物理与前沿基础课程
 
 课程入口是仓库根目录的 `index.html`。
 
 ## Mac 端更新仓库
 
-四套原始课程仍保存在各自原目录。运行下面的脚本会把最新内容同步进本仓库，同时排除虚拟环境、模型、数据缓存、输出目录、真实 `.env` 和系统文件：
+六套原始课程仍保存在各自原目录。运行下面的脚本会把最新内容同步进本仓库，同时排除虚拟环境、模型、数据缓存、输出目录、真实 `.env` 和系统文件：
 
 ```bash
 cd ~/course-library
