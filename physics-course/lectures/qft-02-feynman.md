@@ -3,6 +3,12 @@
 > **对标**：Peskin & Schroeder §4 ｜ **前置**：qft-01、qm-04（微扰论）、aqm-02（散射语言）
 > 自由场只会独奏；加上相互作用项，场论开始"算物理"。本页把微扰展开机械化为 **Feynman 图**：内线 = 传播子、顶点 = 耦合、对一切图求和——二十世纪物理最成功的计算技术，QED 由此算到小数点后十位。
 
+
+<figure class="diagram" markdown="1">
+![Feynman 图：顶点 + 内外线（如 e⁻e⁺→μ⁻μ⁺），本站最标志性的图。](assets/img/qft-02-feynman.svg)
+<figcaption><span class="fig-id">图 qft-02.1</span>Feynman 图：顶点 + 内外线（如 e⁻e⁺→μ⁻μ⁺），本站最标志性的图。</figcaption>
+</figure>
+
 ## 1. 相互作用绘景与 Dyson 展开
 
 加相互作用 $\mathcal L_{int}$（样板：$-\frac{\lambda}{4!}\phi^4$；QED：$-e\bar\psi\gamma^\mu\psi A_\mu$）。散射矩阵：

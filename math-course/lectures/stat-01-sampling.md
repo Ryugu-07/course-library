@@ -18,6 +18,11 @@ $$
 
 ## 2. 三大抽样分布
 
+<figure class="plot" markdown="1">
+![卡方分布与 t 分布](assets/img/stat-01-sampling-dists.svg)
+<figcaption><span class="fig-id">图 1.1</span>三大抽样分布：卡方（正态平方和）、\(t\)（重尾，自由度增大趋正态）——正态总体推断的工具箱。</figcaption>
+</figure>
+
 **χ² 分布** $\chi^2(n) = \sum_{i=1}^n Z_i^2$（$Z_i$ i.i.d. $N(0,1)$）。$E = n,\ D = 2n$；**可加性** $\chi^2(m) + \chi^2(n) = \chi^2(m+n)$（独立时；概率 III 可加族的成员）；$n$ 大时近似正态。——"平方误差的分布"。
 
 **t 分布** $t(n) = \dfrac{Z}{\sqrt{\chi^2(n)/n}}$（分子分母独立）。对称钟形、**比正态厚尾**（小样本的不确定性体现在尾巴上）；$n \to \infty$ 时 $\to N(0,1)$（$n \geq 45$ 左右可用正态近似）。——"用估计的 σ 替换真 σ 之后，正态变成的样子"。

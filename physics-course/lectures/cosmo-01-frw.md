@@ -18,6 +18,11 @@ $$
 
 ## 2. 宇宙的会计制度：组分与稀释律
 
+<figure class="plot" markdown="1">
+![宇宙标度因子演化](assets/img/cosmo-01-scale-factor.svg)
+<figcaption><span class="fig-id">图 1.1</span>宇宙标度因子 \(a(t)\) 的演化取决于主导组分：辐射 \(\propto t^{1/2}\)、物质 \(\propto t^{2/3}\)、暗能量指数暴涨。</figcaption>
+</figure>
+
 连续性方程（$T$ 守恒）：$\dot\rho = -3H(\rho + \frac{p}{c^2})$——配状态方程 $p = w\rho c^2$ 积分**【推导一行】**：$\rho \propto a^{-3(1+w)}$：
 
 | 组分 | $w$ | 稀释律 | 主导期的 $a(t)$ |

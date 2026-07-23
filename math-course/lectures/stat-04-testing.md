@@ -4,6 +4,11 @@
 
 ## 1. 基本框架：统计反证法
 
+<figure class="plot" markdown="1">
+![两类错误 alpha 与 beta](assets/img/stat-04-hypothesis.svg)
+<figcaption><span class="fig-id">图 4.1</span>两类错误：拒真（第一类 \(\alpha\)，\(H_0\) 的右尾）与取伪（第二类 \(\beta\)，\(H_1\) 的左尾），临界值一挪二者此消彼长。</figcaption>
+</figure>
+
 **要素**：原假设 $H_0$（默认立场，"无差异/无效应"）vs 备择假设 $H_1$；**检验统计量**（在 $H_0$ 下分布已知——又是统计 I 的仓库）；**拒绝域**（统计量落入则拒绝 $H_0$）。
 
 **两类错误**：

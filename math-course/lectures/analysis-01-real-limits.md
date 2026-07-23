@@ -23,6 +23,11 @@
 
 ## 2. 数列极限
 
+<figure class="plot" markdown="1">
+![epsilon-N 极限定义的几何](assets/img/analysis-01-epsilon-limit.svg)
+<figcaption><span class="fig-id">图 1.1</span>\(\epsilon\)-\(N\) 定义的几何：无论把误差带 \(L\pm\epsilon\) 收得多窄，总能找到门槛 \(N\)，其后所有项都落进带内。</figcaption>
+</figure>
+
 **定义（$\varepsilon$-$N$）** $\lim_{n\to\infty} a_n = A \iff \forall \varepsilon > 0,\ \exists N,\ \forall n > N:\ |a_n - A| < \varepsilon$。
 
 **基本性质**：极限唯一；收敛必有界；**保号性**（$A > 0$ 则从某项起 $a_n > \frac{A}{2} > 0$）；保不等式；**夹逼定理**（$a_n \leq c_n \leq b_n$ 且两端同趋 $A$ ⇒ $c_n \to A$）；四则运算（分母极限非零）。

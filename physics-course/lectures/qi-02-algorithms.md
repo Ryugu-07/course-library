@@ -3,6 +3,12 @@
 > **对标**：Nielsen & Chuang §4–6 ｜ **前置**：qi-01、数论一嘴（Shor 的归约）、信息论线
 > 量子计算的加速从哪来？**不是"并行试所有答案"**（读出只得一个随机分支）——而是**干涉**：编排相位让错误答案相消、正确答案相长。本页沿三级台阶爬完这个思想：Deutsch–Jozsa（概念验证）→ Grover（平方加速，通用但温和）→ Shor（指数加速，专用但致命）。
 
+
+<figure class="diagram" markdown="1">
+![Deutsch / Grover / Shor 的量子线路图（Hadamard、Oracle、测量的门序列）。](assets/img/qi-02-quantum-circuits.svg)
+<figcaption><span class="fig-id">图 qi-02.1</span>Deutsch / Grover / Shor 的量子线路图（Hadamard、Oracle、测量的门序列）。</figcaption>
+</figure>
+
 ## 1. 干涉计算的最小样本：Deutsch–Jozsa
 
 **问题**：黑盒 $f: \{0,1\}^n \to \{0,1\}$ 保证"恒常或平衡"，判定是哪种。经典最坏 $2^{n-1} + 1$ 次查询；量子 **1 次**。

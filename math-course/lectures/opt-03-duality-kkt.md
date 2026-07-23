@@ -2,6 +2,12 @@
 
 > 约束优化的两大支柱：**Lagrange 对偶**（把任何难题映成一个凹的伴生问题，给出下界与影子价格）与 **KKT 条件**（约束问题的"导数为零"）。数分 V 的 Lagrange 乘数法在这里补全不等式约束的另一半；ai 课 02 讲 SVM 对偶推导的每一步在此都有出处。
 
+
+<figure class="diagram" markdown="1">
+![KKT/对偶几何：约束梯度与目标梯度共线（\nabla f=\sum\lambda_i\nabla g_i）+ 互补松弛示意。](assets/img/opt-03-kkt.svg)
+<figcaption><span class="fig-id">图 opt-03.1</span>KKT/对偶几何：约束梯度与目标梯度共线（\(\nabla f=\sum\lambda_i\nabla g_i\)）+ 互补松弛示意。</figcaption>
+</figure>
+
 ## 1. 问题形式与 Lagrange 函数
 
 **标准形**：

@@ -5,6 +5,11 @@
 
 ## 1. Perron 定理（正矩阵情形）
 
+<figure class="plot" markdown="1">
+![幂迭代收敛到主特征向量](assets/img/ma-03-perron.svg)
+<figcaption><span class="fig-id">图 3.1</span>Perron–Frobenius：正矩阵的幂迭代收敛到唯一的正主特征向量——PageRank、马尔可夫平稳分布的共同底座。</figcaption>
+</figure>
+
 **定理（Perron 1907）** $A > 0$（逐元素严格正），则：
 ① $\rho(A)$ 本身是特征值（**正实数**）；② 对应特征向量可取**逐元素严格正**（Perron 向量）；③ $\rho(A)$ 是**单**根，且是唯一模最大的特征值（其余严格小）；④ 幂法必收敛：$\frac{A^k x}{\|A^kx\|} \to$ Perron 向量（任意 $x > 0$ 起步）。
 

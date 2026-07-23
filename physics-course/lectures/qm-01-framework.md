@@ -3,6 +3,12 @@
 > **对标**：Griffiths *QM* §1–3 ｜ **前置**：泛函 II（Hilbert 空间——量子力学的数学就是它）、em-03（经典原子之死）、概率线
 > 量子力学的公理体系一页立齐：态 = Hilbert 空间矢量、观测量 = 自伴算符、测量 = 谱投影 + Born 概率、演化 = Schrödinger 方程。你的泛函分析在此整体变现——**量子力学是 Hilbert 空间理论的物理实例化**。
 
+
+<figure class="diagram" markdown="1">
+![Stern–Gerlach：非均匀磁场把银原子束分成上下两束：自旋量子化 + 测量塌缩的实验图。](assets/img/qm-01-stern-gerlach.svg)
+<figcaption><span class="fig-id">图 qm-01.1</span>Stern–Gerlach：非均匀磁场把银原子束分成上下两束：自旋量子化 + 测量塌缩的实验图。</figcaption>
+</figure>
+
 ## 1. 为什么必须量子（三条实验判决）
 
 黑体辐射（sm-03：能量量子 $\hbar\omega$）；光电效应（光子 $E = \hbar\omega$——光的粒子性）；电子双缝干涉（**单个电子**逐个发射仍积累出干涉条纹——物质的波动性，de Broglie $p = \hbar k$）。合并：**微观对象既非经典粒子也非经典波**——需要新框架。

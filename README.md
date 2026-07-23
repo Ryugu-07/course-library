@@ -1,6 +1,6 @@
 # 本地课程资料库
 
-这个私有仓库汇总六套本地课程，方便在 macOS 更新后推送到 GitHub，再在 Windows 的 `E:` 盘拉取和浏览。
+这个私有仓库汇总本地课程，方便在 macOS 更新后推送到 GitHub，再在 Windows 的 `E:` 盘拉取和浏览。
 
 ## Windows 首次使用
 
@@ -28,7 +28,7 @@ git pull
 start-courses.bat
 ```
 
-## 六套课程
+## 课程列表
 
 - `agent-lab`：从最小 SWE Agent 到现代编程智能体
 - `ai-course`：AI 原理、工程、研究与实验课程
@@ -36,6 +36,7 @@ start-courses.bat
 - `math-course`：本科数学课程资料库
 - `grad-math`：研究生数学与资格考试课程资料库
 - `physics-course`：本科、研究生理论物理与前沿基础课程
+- `cs-course`：计算机科学全栈核心课程资料库
 
 课程入口是仓库根目录的 `index.html`。
 

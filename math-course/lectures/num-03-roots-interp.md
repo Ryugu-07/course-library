@@ -4,6 +4,11 @@
 
 ## 1. 非线性方程求根 $f(x) = 0$
 
+<figure class="plot" markdown="1">
+![Newton 法切线求根](assets/img/num-03-newton.svg)
+<figcaption><span class="fig-id">图 3.1</span>Newton 法：在当前点作切线，切线与横轴的交点是下一个猜测——二阶收敛，求根的主力。</figcaption>
+</figure>
+
 **二分法**：连续函数变号区间反复对半（零点定理，数分 I 的算法化）。每步区间减半——**线性收敛**、绝对稳健、要 $k$ 位精度约 $\log_2\frac{b-a}{\varepsilon}$ 步。**打底用**。
 
 **不动点迭代**（统一视角）：改写 $f(x) = 0 \iff x = g(x)$，迭代 $x_{k+1} = g(x_k)$。
@@ -34,6 +39,11 @@ f(x) - P_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)
 $$
 
 ## 3. Runge 现象与两条出路
+
+<figure class="plot" markdown="1">
+![Runge 现象高次插值边缘振荡](assets/img/num-03-runge.svg)
+<figcaption><span class="fig-id">图 3.2</span>Runge 现象：等距节点上用高次多项式插值，边缘剧烈振荡——次数越高越糟，警示"高次插值 ≠ 更准"。</figcaption>
+</figure>
 
 **反例（Runge, 1901）**：$f(x) = \frac{1}{1 + 25x^2}$ 在 $[-1,1]$ 等距节点插值——次数越高，**区间端部震荡越猛**，$n \to \infty$ 不收敛反爆炸。根源：余项中 $\prod(x - x_i)$ 在等距节点下端部巨大 + 高阶导数增长。**"多项式次数"是又一个过拟合旋钮**——这正是 ai 课 01 讲（lab01 亲手做过的）过拟合实验的数值分析出处；插值（穿过每个点）对带噪数据必然过拟合。
 

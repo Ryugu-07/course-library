@@ -4,6 +4,11 @@
 
 ## 1. 数项级数
 
+<figure class="plot" markdown="1">
+![部分和数列收敛到级数和](assets/img/analysis-04-series-partial.svg)
+<figcaption><span class="fig-id">图 4.1</span>级数收敛 = 部分和数列 \(S_N\) 收敛：几何级数与交错调和级数分别趋于 \(1\) 与 \(\ln 2\)。</figcaption>
+</figure>
+
 **定义** $\sum a_n$ 收敛指部分和 $S_n = \sum_{k=1}^n a_k$ 收敛。**必要条件**：$a_n \to 0$（**不充分**！调和级数 $\sum\frac1n$ 发散——用 $S_{2n} - S_n > \frac12$ 或积分判别看穿）。Cauchy 准则：$\forall\varepsilon\,\exists N:\ \left|\sum_{k=n+1}^{m} a_k\right| < \varepsilon$。
 
 ### 1.1 正项级数（部分和单调，收敛 $\iff$ 有界）

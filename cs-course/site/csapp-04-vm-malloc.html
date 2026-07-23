@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>虚拟内存与动态内存 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li class="active"><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 虚拟内存：地址的一层间接</a></li>
+<li><a href="#2">2. 分页与页表：翻译怎么做</a></li>
+<li><a href="#3-malloc">3. 动态内存：malloc 底下是什么</a></li>
+<li><a href="#4">4. 内存的两大灾难与工具</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="csapp-iv">CSAPP IV · 虚拟内存与动态内存<a class="headerlink" href="#csapp-iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS:APP 第 9 章 ｜ <strong>前置</strong>：csapp-02（缓存）、csapp-03（缺页故障）
+系统里最精巧的幻觉：<strong>每个进程都以为自己独占一整块从 0 开始的连续内存</strong>——而物理内存只有几十 GB 且被所有进程瓜分。这个幻觉叫<strong>虚拟内存</strong>，它同时解决了隔离、共享、超额分配三件事，是现代操作系统的支柱。下半页讲 <code>malloc</code> 底下的真相——堆是怎么管理的，为什么会内存碎片和泄漏。</p>
+</blockquote>
+<h2 id="1">1. 虚拟内存：地址的一层间接<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="虚拟地址空间→页表→物理内存映射，两进程同虚拟地址映到不同物理页（隔离）。" src="assets/img/csapp-04-vm-mapping.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-04.4</span>虚拟地址空间→页表→物理内存映射，两进程同虚拟地址映到不同物理页（隔离）。</figcaption>
+</figure>
+<p>核心思想是计算机科学的万能咒语——<strong>加一层间接</strong>。程序用<strong>虚拟地址</strong>，硬件（MMU）+ 操作系统把它翻译成<strong>物理地址</strong>。这层翻译一举给了三样东西：</p>
+<ul>
+<li><strong>隔离</strong>：进程 A 的虚拟地址 0x1000 和进程 B 的 0x1000 映射到<strong>不同物理页</strong>——一个进程崩溃/越界碰不到另一个（安全与稳定的地基）。</li>
+<li><strong>超额分配</strong>：虚拟地址空间可以远大于物理内存——用不到的页不占物理内存，需要时才调入（<strong>按需分页</strong>）；物理内存不够时把冷页换到磁盘（<strong>交换 swap</strong>）。</li>
+<li><strong>共享</strong>：多个进程可映射同一物理页（共享库、<code>fork</code> 后的写时复制），省内存。</li>
+</ul>
+<h2 id="2">2. 分页与页表：翻译怎么做<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="多级页表翻译：虚拟地址[页号|偏移]→查表→物理页帧，配 TLB 缓存。" src="assets/img/csapp-04-page-table.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-04.2</span>多级页表翻译：虚拟地址[页号|偏移]→查表→物理页帧，配 TLB 缓存。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="写时复制：fork 后父子共享只读页，写时才复制。" src="assets/img/csapp-04-cow.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-04.3</span>写时复制：fork 后父子共享只读页，写时才复制。</figcaption>
+</figure>
+<p>内存按<strong>页（通常 4 KB）</strong>为单位管理。<strong>页表</strong>是"虚拟页号 → 物理页帧号"的映射表，每进程一份。虚拟地址 = [虚拟页号 | 页内偏移]，翻译时查页表得物理页帧，拼上偏移。</p>
+<p><strong>两个工程要点</strong>：
+- <strong>多级页表</strong>：单层页表太大（64 位地址空间），故用多级（4 级）树形页表——<strong>只为用到的地址分配页表项</strong>，稀疏空间不浪费。
+- <strong>TLB（翻译后备缓冲）</strong>：页表在内存里，每次访存都查页表等于访存翻倍——于是用 TLB 缓存最近的翻译（🔗 csapp-02 缓存思想的再一次应用）。<strong>TLB miss 是真实的性能因素</strong>，大页（huge page）就是为减少 TLB 压力。</p>
+<p><strong>按需分页的机制</strong>（🔗 csapp-03 缺页故障）：访问一个未在物理内存的页 → 触发<strong>缺页故障</strong> → 内核找空闲页帧、从磁盘调入、更新页表、重试指令——<strong>程序全程无感</strong>。物理内存满时，用页面置换算法（LRU 近似，🔗 adv-02 在线算法的竞争分析正是分析它）挑一页换出。</p>
+<p><strong>写时复制（COW）</strong>：<code>fork()</code> 不真复制内存，父子<strong>共享</strong>所有页并标记只读；任一方写时才触发故障、复制那一页。<strong>"fork 很快"的秘密就在 COW</strong>——这也是为什么 Redis 存快照、Python multiprocessing 能高效 fork。</p>
+<h2 id="3-malloc">3. 动态内存：malloc 底下是什么<a class="headerlink" href="#3-malloc" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="显式空闲链表 + 边界标记 + 合并。" src="assets/img/csapp-04-malloc-freelist.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-04.1</span>显式空闲链表 + 边界标记 + 合并。</figcaption>
+</figure>
+<p>栈上的局部变量随函数进退自动管理；<strong>堆</strong>上的内存要显式 <code>malloc</code>/<code>free</code>——分配器要在一块大内存里，响应任意大小的请求、回收后重用。<strong>它是一个精巧的数据结构问题</strong>：</p>
+<ul>
+<li><strong>空闲块管理</strong>：把空闲内存组织成链表（<strong>显式空闲链表</strong>）或按大小分类（<strong>分离适配 segregated fit</strong>，glibc 的做法）。分配时找一个够大的块（首次适配 / 最佳适配），切一块给用户、余下留空闲。</li>
+<li><strong>回收与合并</strong>：<code>free</code> 后要把相邻空闲块<strong>合并（coalesce）</strong>成大块，否则碎片化。用<strong>边界标记（boundary tag）</strong>在块前后存大小，实现 O(1) 前后合并。</li>
+<li><strong>元数据</strong>：每块要记大小、是否空闲——所以 <code>malloc(16)</code> 实际占用更多（头部 + 对齐）。</li>
+</ul>
+<p><strong>这就是 [实验 L03]</strong>：亲手写一个带首次适配 + 合并 + 边界标记的 <code>malloc</code>——<strong>写完你就再也不会把堆当黑盒</strong>。</p>
+<h2 id="4">4. 内存的两大灾难与工具<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>内存泄漏</strong>：<code>malloc</code> 了不 <code>free</code>，长期运行进程内存持续涨（Medusa 这类 24/7 服务最怕）。</li>
+<li><strong>悬垂指针 / use-after-free / 二次释放 / 越界写</strong>：访问已释放或越界的内存——<strong>未定义行为</strong>，可能静默出错，也可能被攻击者利用（堆溢出，🔗 sec-01）。C/C++ 的内存 bug 是<strong>业界安全漏洞的最大单一来源</strong>（约 70%）。</li>
+</ul>
+<p><strong>这正是两条现代出路的动机</strong>：① 工具——<code>valgrind</code>/AddressSanitizer 运行时抓越界与泄漏（必学）；② 语言——<strong>Rust 用所有权在编译期消灭这类 bug</strong>（🔗 rust-01，你会看到本页所有灾难如何被类型系统提前拦下）。<strong>理解 C 的内存之痛，才能真正体会 Rust 所有权的价值</strong>——这是本站两条线的一个刻意呼应。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（虚拟地址翻译手算）</strong> 页大小 4 KB、虚拟地址 <code>0x1234</code>：页内偏移 <code>0x234</code>、虚拟页号 <code>0x1</code>——查页表得物理页帧再拼偏移。<strong>手翻一次地址，"分页"从名词变动词</strong>。</p>
+<p><strong>例 2（碎片的产生）</strong> 交替 malloc/free 不同大小的块，画出堆的空洞——理解<strong>外部碎片</strong>（空闲总量够但不连续）为什么让"内存还有很多却分配失败"。这是 [L03] 要对抗的敌人。</p>
+<p><strong>例 3（COW 验证）</strong> <code>fork</code> 一个占大内存的进程，观察系统内存不翻倍（<code>top</code> 看 RSS）——直到子进程写内存才涨。<strong>"fork 便宜"的机制亲眼可见</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L03（显式空闲链表 malloc）</strong>：<code>labs/L03-malloc/</code> —— 首次适配 + 边界标记合并 + 对齐，跑分配器压力测试测碎片率与吞吐。对标 CS:APP malloc lab。</p>
+</blockquote>
+<hr />
+<p><em>CSAPP 四页到此完成——你已经把一行 C 从字节、缓存、链接、进程到虚拟内存看穿了。下一页进入操作系统 I：进程、线程与调度的原理层。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="csapp-03-linking-ecf.html"><span class="pager-label">上一页</span>CSAPP III · 链接与异常控制流</a>
+  <a class="pager-slot next" href="os-01-process-sched.html"><span class="pager-label">下一页</span>操作系统 I · 进程、线程与调度</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

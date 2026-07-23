@@ -3,6 +3,12 @@
 > **对标**：Sakurai §2.6 / Feynman–Hibbs ｜ **前置**：mech-02（作用量）、qm-01、sc 线（数学站）
 > 高量收官的两件现代武器：**路径积分**——量子力学的第三种表述（对一切历史求和），场论与统计物理的通用语言；**密度矩阵**——混合态与开放系统的语言，量子信息（qi 线）的记号地基，顺手回答"经典世界从哪来"（退相干）。
 
+
+<figure class="diagram" markdown="1">
+![路径积分：粒子的所有路径叠加，经典路径附近相位相长。](assets/img/aqm-03-path-integral.svg)
+<figcaption><span class="fig-id">图 aqm-03.1</span>路径积分：粒子的所有路径叠加，经典路径附近相位相长。</figcaption>
+</figure>
+
 ## 1. 路径积分：对一切历史求和
 
 **命题（Feynman）** 传播子（$t_a \to t_b$ 的跃迁幅）：

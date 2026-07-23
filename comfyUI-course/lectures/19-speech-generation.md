@@ -2,6 +2,12 @@
 
 > 语音是本地 AIGC 性价比最高的领域：**开源方案已逼近商业水准，显存需求却只有 2–6GB**——你的卡跑起来绰绰有余。本讲按四步框架过一遍语音的表示与三代范式（数学上有个漂亮的新零件：RVQ），然后是工具选型、本地部署和声音克隆实操。
 
+
+<figure class="diagram" markdown="1">
+![TTS 管线：文本→声学模型→声码器→波形（RVQ/token 路线）。](assets/img/19-tts-pipeline.svg)
+<figcaption><span class="fig-id">图 19.1</span>TTS 管线：文本→声学模型→声码器→波形（RVQ/token 路线）。</figcaption>
+</figure>
+
 ## 1. 表示：从波形到"音频的 token"
 
 原始音频是每秒 22050–48000 个采样点的波形——直接建模太长。两级抽象：

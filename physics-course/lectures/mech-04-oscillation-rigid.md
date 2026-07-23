@@ -5,6 +5,11 @@
 
 ## 1. 小振动与简正模（普遍理论）
 
+<figure class="plot" markdown="1">
+![受迫振子的共振曲线](assets/img/mech-04-resonance.svg)
+<figcaption><span class="fig-id">图 4.1</span>受迫振子的共振：驱动频率接近固有频率 \(\omega_0\) 时振幅急剧放大，阻尼比 \(\zeta\) 越小峰越尖锐。</figcaption>
+</figure>
+
 **设定**：体系在稳定平衡点 $q^0$ 附近，展开拉氏量到二阶：
 
 $$

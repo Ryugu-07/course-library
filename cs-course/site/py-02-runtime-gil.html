@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>运行时、GIL 与性能生态 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li class="active"><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-cpython">1. CPython 怎么跑你的代码</a></li>
+<li><a href="#2-gil">2. GIL：多线程并行的墙</a></li>
+<li><a href="#3-gil">3. 三条绕开 GIL / 提速的路</a></li>
+<li><a href="#4-python-c">4. 生态：Python 慢，但它的 C 底座不慢</a></li>
+<li><a href="#5-python">5. 打包与依赖：Python 的另一个痛点</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="python-ii-gil">Python II · 运行时、GIL 与性能生态<a class="headerlink" href="#python-ii-gil" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CPython 内部 / <em>Fluent Python</em> 并发章 / High Performance Python ｜ <strong>前置</strong>：py-01、comp-02（字节码/解释器）、par 线（并发）、mlsys 线
+py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>：CPython 怎么执行你的代码、为什么 Python"慢"、<strong>GIL 如何限制多线程并行</strong>（每个 Python 程序员迟早撞上的墙）、以及生态怎么补救（numpy 把热点降到 C、async 处理 I/O 并发、多进程绕开 GIL）。这决定了你在 Medusa 里该怎么选并发模型、什么时候 Python 够用、什么时候要下沉到 C/换语言。</p>
+</blockquote>
+<h2 id="1-cpython">1. CPython 怎么跑你的代码<a class="headerlink" href="#1-cpython" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。" src="assets/img/py-02-cpython.svg" /></p>
+<figcaption><span class="fig-id">图 py-02.3</span>CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。</figcaption>
+</figure>
+<p>你写的 <code>.py</code> 不是直接执行的。CPython（最主流的实现）分两步（🔗 comp-02 的"字节码 + 虚拟机"）：
+1. <strong>编译成字节码</strong>：<code>.py</code> → 一串字节码指令（<code>.pyc</code> 缓存）——这是编译，不是机器码。
+2. <strong>字节码解释器执行</strong>：一个大循环逐条取字节码、执行——<strong>这就是 Python"慢"的根源</strong>：每条操作都要经过解释器的分发、每个对象都是堆上的装箱对象（<code>int</code> 也是对象，带引用计数 + 类型信息）、动态类型意味着每次操作都要运行时查类型。</p>
+<p><strong>"慢"的量级</strong>：纯 Python 数值循环比 C 慢约 <strong>50–100 倍</strong>——因为 C 直接在寄存器上算，Python 每步都在解释 + 装箱。<strong>但这不是 Python 的失败</strong>——它用运行速度换开发速度和灵活性，且热点可以下沉（第 4 节）。<strong>理解"Python 慢在解释 + 装箱 + 动态"，你就知道该在哪优化</strong>（把热循环交给 numpy/C，而非用纯 Python 硬扛）。</p>
+<p><strong>内存管理</strong>：CPython 用<strong>引用计数为主 + 分代 GC 补充</strong>（🔗 pl-02）——对象引用归零立即回收（及时、可预测），循环引用靠周期性 GC 清。所以 Python 里"什么时候释放内存"比追踪式 GC 更可预测，但引用计数的更新有开销、且是 GIL 的一个原因。</p>
+<h2 id="2-gil">2. GIL：多线程并行的墙<a class="headerlink" href="#2-gil" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="GIL：多线程轮流拿锁，CPU 密集只用一核（多进程才并行 / I/O 等待时释放 GIL）。" src="assets/img/py-02-gil.svg" /></p>
+<figcaption><span class="fig-id">图 py-02.2</span>GIL：多线程轮流拿锁，CPU 密集只用一核（多进程才并行 / I/O 等待时释放 GIL）。</figcaption>
+</figure>
+<p><strong>全局解释器锁（GIL）</strong>是每个 Python 程序员的必修痛点——<strong>CPython 同一时刻只允许一个线程执行 Python 字节码</strong>。即使你开 8 个线程、机器有 8 核，<strong>CPU 密集的 Python 多线程也只用得上一个核</strong>（线程们轮流拿 GIL）。</p>
+<ul>
+<li><strong>为什么有 GIL</strong>：简化 CPython 实现 + 保护引用计数不被并发破坏（否则每个对象都要加锁，更慢）。它是历史 + 实现权衡的产物。</li>
+<li><strong>后果</strong>：</li>
+<li><strong>CPU 密集任务</strong>（纯 Python 计算）：多线程<strong>无并行加速</strong>，甚至因锁竞争更慢（🔗 par-01 Amdahl 的极端——串行部分是整个解释器）。</li>
+<li><strong>I/O 密集任务</strong>：多线程<strong>有效</strong>——因为线程等 I/O 时<strong>释放 GIL</strong>，别的线程能跑。所以"多线程做并发下载/请求"在 Python 里是可行的。</li>
+</ul>
+<p><strong>这直接决定 Medusa 的并发选择</strong>：
+- 等数据库、等 DeepSeek API = <strong>I/O 密集</strong> → <strong>async 或多线程都行</strong>（GIL 不碍事，等待时释放）。
+- 本地跑 embedding、大量数值计算 = <strong>CPU 密集</strong> → 多线程没用，要<strong>多进程</strong>或<strong>下沉到 C/numpy</strong>（下节）。</p>
+<h2 id="3-gil">3. 三条绕开 GIL / 提速的路<a class="headerlink" href="#3-gil" title="Permanent link"></a></h2>
+<ul>
+<li><strong>多进程（multiprocessing）</strong>：每个进程有自己的解释器 + GIL——<strong>真正并行用满多核</strong>，代价是进程间通信要序列化（pickle）+ 内存不共享（🔗 os-01 进程 vs 线程、par-01 消息传递）。CPU 密集的 Python 并行正道。</li>
+<li><strong>异步（asyncio）</strong>：单线程事件循环处理海量 I/O 并发（🔗 web-02 的 async 深入）——<code>async def</code> / <code>await</code>，遇 I/O 挂起去干别的。<strong>高并发 I/O 的首选</strong>，比多线程更省资源。FastAPI（Medusa 后端）就是它。</li>
+<li><strong>下沉到 C（最重要）</strong>：把热点交给 C 扩展——<strong>这些库在 C 层释放 GIL、直接操作连续内存</strong>：numpy（向量化数值）、pandas、以及你的 pipeline 里的 sentence-transformers/torch。<strong>"用 Python 写胶水、用 C 库做重活"是 Python 高性能的标准姿势</strong>（下节展开）。</li>
+</ul>
+<p><strong>近况一提</strong>：Python 3.13 开始有<strong>实验性无 GIL 构建（free-threading）</strong>——长期可能移除 GIL 限制，但生态适配需时间。了解趋势即可，当下仍按上述三路走。</p>
+<h2 id="4-python-c">4. 生态：Python 慢，但它的 C 底座不慢<a class="headerlink" href="#4-python-c" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="下沉热点：Python 胶水层 + numpy/C/CUDA 底座。" src="assets/img/py-02-numpy-sink.svg" /></p>
+<figcaption><span class="fig-id">图 py-02.1</span>下沉热点：Python 胶水层 + numpy/C/CUDA 底座。</figcaption>
+</figure>
+<p>Python 之所以统治数据科学/AI，不是因为快，而是因为<strong>它是一层友好的胶水，底下挂着高度优化的 C/Fortran/CUDA 库</strong>：
+- <strong>numpy</strong>：向量化数组运算——一个 <code>a * b</code>（数组）在 C 层用连续内存 + SIMD（🔗 perf-01）算完，<strong>比 Python 循环快几十上百倍</strong>。诀窍是<strong>别写 Python 循环，写数组操作</strong>（把循环下沉到 C）。
+- <strong>pandas / polars</strong>：数据框，列式 + 向量化（🔗 db-02 列存、perf-02）。
+- <strong>PyTorch / JAX</strong>：张量运算 + autodiff，底下是 CUDA（🔗 gpu 线、mlsys 线）——你的 embedding 生成、模型推理全靠它们把重活丢给 GPU。
+- <strong>Cython / C 扩展 / ctypes / PyO3(Rust)</strong>：把你自己的热点函数写成编译语言。</p>
+<p><strong>方法论</strong>：<strong>Python 性能优化的第一原则是"下沉热点"</strong>——用 profiler（<code>cProfile</code>）找瓶颈，把热循环改成 numpy 向量化操作或 C 扩展，让 Python 只当调度层。<strong>对 Medusa</strong>：数据处理用 pandas/numpy 向量化而非 Python 循环；真要极致性能的小热点，可考虑 Rust 写扩展（🔗 rust 线，PyO3 让 Rust 无缝当 Python 库）。</p>
+<h2 id="5-python">5. 打包与依赖：Python 的另一个痛点<a class="headerlink" href="#5-python" title="Permanent link"></a></h2>
+<p>Python 的依赖管理是出了名的乱（🔗 csapp-03 动态链接、cloud-01 容器的动机之一就是治它）：
+- <strong>虚拟环境</strong>：<code>venv</code>/<code>conda</code> 隔离每个项目的依赖——<strong>别往全局装</strong>（你的课程站都用独立 venv，正确）。
+- <strong>依赖锁定</strong>：<code>requirements.txt</code>/<code>pyproject.toml</code> + lockfile 固定版本——保证可复现（🔗 se-02、sec-02 供应链）。
+- <strong>现代工具</strong>：<code>uv</code>/<code>poetry</code>/<code>pip-tools</code> 让依赖管理更可靠。
+- <strong>容器化终极方案</strong>：把 Python + 依赖打进 Docker（🔗 cloud-01）——彻底消除"环境不一致"，Medusa 的 Postgres 已容器化，应用层同理可控。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（GIL 实证）</strong> 写一个 CPU 密集函数（如大量纯 Python 求和），分别用单线程、多线程（4 线程）、多进程（4 进程）跑，测时间——<strong>多线程不加速甚至更慢、多进程才快</strong>，GIL 的墙亲眼可见。再换成 I/O 密集（sleep 模拟），多线程就有效了。</p>
+<p><strong>例 2（numpy 下沉）</strong> 同一个数组运算用 Python 循环 vs numpy 向量化，测加速比（几十倍起）——<strong>理解"把循环下沉到 C"为什么是 Python 性能的正道</strong>。Medusa 数据处理直接可用。</p>
+<p><strong>例 3（选并发模型）</strong> 给 Medusa 三个任务（并发调 100 个 DeepSeek API、本地算 1 万条 embedding、并发查数据库）各选 async / 多进程 / 多线程——<strong>把"I/O 密集用 async、CPU 密集用多进程"的判断用到真实系统</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：C++ I——抽象、RAII 与值/移动语义：一门"零成本抽象"的系统语言，如何在贴近硬件的同时提供高级抽象。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="py-01-data-model.html"><span class="pager-label">上一页</span>Python I · 数据模型与惯用法</a>
+  <a class="pager-slot next" href="cpp-01-abstraction-raii.html"><span class="pager-label">下一页</span>C++ I · 抽象、RAII 与值/移动语义</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

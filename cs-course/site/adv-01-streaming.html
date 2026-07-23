@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>流算法与草图 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li class="active"><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 模型与不可能性</a></li>
+<li><a href="#2">2. 三个基石草图</a></li>
+<li><a href="#3">3. 统一视角：草图 = 线性投影 + 集中</a></li>
+<li><a href="#4">4. 采样与滑动窗口</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">高级算法 I · 流算法与草图<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.854 / CMU 15-859 / Amazon–Cormode 综述 ｜ <strong>前置</strong>：algo-03（随机化）、数学站概率线（矩、集中）、信息论线
+现代数据的现实：<strong>数据流过一次就没了，且大到存不下</strong>（网络包、日志、点击流）。流算法的约束是苛刻的——<strong>一遍扫描、亚线性空间（远小于 <span class="arithmatex">\(n\)</span>）</strong>——却仍能给出可证明精度的近似。这条线是"用随机性和信息论换空间"的极致，也是 Medusa 这类持续摄入数据系统的底层直觉。</p>
+</blockquote>
+<h2 id="1">1. 模型与不可能性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>数据流模型</strong>：元素 <span class="arithmatex">\(a_1,a_2,\dots,a_m\)</span> 依次到达（可能是 <span class="arithmatex">\([n]\)</span> 上的更新），算法只有 <span class="arithmatex">\(O(\text{polylog})\)</span> 空间、每元素 <span class="arithmatex">\(O(1)\)</span>~<span class="arithmatex">\(O(\text{polylog})\)</span> 处理时间，<strong>不能回看</strong>。目标：估计流的某个统计量。</p>
+<p><strong>先立不可能性</strong>（信息论下界，🔗 信息论线）：精确求"出现次数最多的元素"（众数）在一遍 + 亚线性空间下<strong>不可能</strong>——用通信复杂度归约（Index 问题）可证。<strong>所以流算法的一切成就都是"近似 + 高概率"</strong>，这不是偷懒，是被信息论逼出来的最优。</p>
+<h2 id="2">2. 三个基石草图<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>① 计数不同元素（<span class="arithmatex">\(F_0\)</span>，distinct count）——HyperLogLog</strong>
+问题：流里有多少个不同值？精确要 <span class="arithmatex">\(O(n)\)</span> 空间。<strong>思想</strong>：随机哈希每个元素到 <span class="arithmatex">\([0,1]\)</span>，<strong>最小值的期望 <span class="arithmatex">\(\approx 1/(d+1)\)</span></strong>（<span class="arithmatex">\(d\)</span> = 不同元素数）——由最小哈希值反推 <span class="arithmatex">\(d\)</span>。方差大 ⇒ 用多个哈希 / 分桶取调和平均（HyperLogLog 的精髓）：<strong>用 1.5 KB 估计上亿基数、误差约 2%</strong>。Redis 的 <code>PFCOUNT</code>、数据库的 <code>APPROX_COUNT_DISTINCT</code> 都是它。</p>
+<figure class="plot">
+<p><img alt="HyperLogLog 最小哈希值估计基数直觉" src="assets/img/adv-01-hll-minhash.svg" /></p>
+<figcaption><span class="fig-id">图 adv-01.1</span>MinHash / HLL 直觉——不同元素越多，最小哈希值越容易靠近 0，可反推基数规模。</figcaption>
+</figure>
+<p><strong>② 频率估计（重击手）——Count-Min Sketch【推导级】</strong>
+问题：估计任意元素的出现频率 <span class="arithmatex">\(f_x\)</span>。<strong>结构</strong>：<span class="arithmatex">\(d\)</span> 个哈希函数 × <span class="arithmatex">\(w\)</span> 列的计数矩阵。更新 <span class="arithmatex">\(x\)</span>：每行 <span class="arithmatex">\(h_i(x)\)</span> 处 +1。查询：取 <span class="arithmatex">\(d\)</span> 行对应计数的<strong>最小值</strong> <span class="arithmatex">\(\hat f_x = \min_i C[i, h_i(x)]\)</span>。
+<strong>分析</strong>：<span class="arithmatex">\(\hat f_x \ge f_x\)</span>（只会因碰撞高估）。单行期望超出 <span class="arithmatex">\(E[\hat f_x - f_x]\le m/w\)</span>（其他元素均匀撒进 <span class="arithmatex">\(w\)</span> 列）；由 Markov，单行超出 <span class="arithmatex">\(\epsilon m\)</span> 的概率 <span class="arithmatex">\(\le 1/(\epsilon w)\)</span>；<span class="arithmatex">\(d\)</span> 行取最小 ⇒ 全超出的概率 <span class="arithmatex">\(\le (1/(\epsilon w))^d\)</span>。取 <span class="arithmatex">\(w=e/\epsilon, d=\ln(1/\delta)\)</span>：<strong>以 <span class="arithmatex">\(1-\delta\)</span> 概率误差 <span class="arithmatex">\(\le\epsilon m\)</span>，空间 <span class="arithmatex">\(O(\frac1\epsilon\log\frac1\delta)\)</span></strong>。<span class="arithmatex">\(\blacksquare\)</span> 这就是"用固定小表估计海量键频率"的工业标准（Medusa 若要在线统计实体热度而不建全表，正是它）。</p>
+<figure class="diagram">
+<p><img alt="Count-Min Sketch 多行哈希计数矩阵" src="assets/img/adv-01-count-min.svg" /></p>
+<figcaption><span class="fig-id">图 adv-01.2</span>Count-Min Sketch——元素经多行哈希更新计数，查询时取多行最小值以压低碰撞噪声。</figcaption>
+</figure>
+<p><strong>③ 频率矩（<span class="arithmatex">\(F_2\)</span>）——AMS 草图</strong>
+<span class="arithmatex">\(F_2 = \sum_x f_x^2\)</span>（衡量分布集中度、与 self-join 大小、方差相关）。<strong>思想</strong>：给每个元素随机 <span class="arithmatex">\(\pm1\)</span> 符号 <span class="arithmatex">\(s(x)\)</span>，维护 <span class="arithmatex">\(Z=\sum_i s(a_i)\)</span>。则 <span class="arithmatex">\(E[Z^2] = F_2\)</span>（交叉项因符号独立期望为零）——<strong>一个随机投影就无偏估计了平方和</strong>。多份取平均降方差。这是 <strong>Johnson–Lindenstrauss</strong> 降维在流上的化身：随机投影保持 <span class="arithmatex">\(\ell_2\)</span> 范数。</p>
+<h2 id="3">3. 统一视角：草图 = 线性投影 + 集中<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>三个草图的共同骨架：<strong>把高维频率向量 <span class="arithmatex">\(f\in\mathbb R^n\)</span> 用一个随机线性映射 <span class="arithmatex">\(\Pi\)</span> 压成低维 <span class="arithmatex">\(\Pi f\)</span>，在低维回答关于 <span class="arithmatex">\(f\)</span> 的问题</strong>。线性带来一个珍贵性质——<strong>可合并（mergeable）</strong>：两个流的草图直接相加就是合并流的草图。这使草图天然适配分布式：各机器各自 sketch、汇总时相加（🔗 dist 线的聚合、MapReduce 的 combiner）。</p>
+<p><strong>读法</strong>：流算法 = 随机投影（线代）+ 集中不等式（概率）+ 通信下界（信息论）三门数学的合流。你三门都有，这条线读起来会很顺。</p>
+<h2 id="4">4. 采样与滑动窗口<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>蓄水池采样（reservoir）</strong>：从未知长度的流里等概率抽 <span class="arithmatex">\(k\)</span> 个样本——第 <span class="arithmatex">\(i\)</span> 个元素以 <span class="arithmatex">\(k/i\)</span> 概率替换已选。<strong>一行归纳证明每个元素最终留存概率 <span class="arithmatex">\(=k/m\)</span></strong>，经典漂亮。</li>
+<li><strong>滑动窗口</strong>：只统计最近 <span class="arithmatex">\(W\)</span> 个元素（旧的要过期）——指数直方图（Datar–Gionis–Indyk）在 <span class="arithmatex">\(O(\frac1\epsilon\log^2 W)\)</span> 空间内近似窗口内计数。实时监控、限流器的理论底座。</li>
+</ul>
+<figure class="diagram">
+<p><img alt="蓄水池采样以 k/i 概率替换样本" src="assets/img/adv-01-reservoir.svg" /></p>
+<figcaption><span class="fig-id">图 adv-01.3</span>蓄水池采样——未知长度数据流中，第 i 个元素以 k/i 概率进入样本池并随机替换。</figcaption>
+</figure>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（HLL 直觉）</strong> 若你哈希 <span class="arithmatex">\(d\)</span> 个不同元素到 <span class="arithmatex">\([0,1]\)</span>，最小值期望 <span class="arithmatex">\(\frac{1}{d+1}\)</span>——反过来观测到最小值 <span class="arithmatex">\(0.001\)</span> 时估计 <span class="arithmatex">\(d\approx 1000\)</span>。手算这个反推，再想"为什么要分桶取调和平均"（答：单个最小值方差极大，等价于只用一个样本估计指数分布的率）。</p>
+<p><strong>例 2（Count-Min 只高估）</strong> 证明 Count-Min 永不低估：每次碰撞只增不减，取最小是为了"选碰撞最少的那行"——<strong>误差单边性让它特别适合"找重击手"（只怕漏不怕多算）</strong>。</p>
+<p><strong>例 3（可合并性）</strong> 两台 Win/Mac 各处理一半日志、各建 Count-Min，主机把两个矩阵<strong>逐格相加</strong>得到全局草图——验证这等于在合并流上直接建的草图。<strong>这就是分布式聚合为什么偏爱线性草图</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：高级算法 II——谱图论（把图交给特征值）与在线算法（不知未来如何决策）。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="algo-03-random-approx.html"><span class="pager-label">上一页</span>算法 III · 随机化、近似与 NP 归约</a>
+  <a class="pager-slot next" href="adv-02-spectral-online.html"><span class="pager-label">下一页</span>高级算法 II · 谱图论与在线算法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

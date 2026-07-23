@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>语义、类型检查与解释器 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li class="active"><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 语义分析：名字与作用域</a></li>
+<li><a href="#2">2. 类型检查：在运行前抓错</a></li>
+<li><a href="#3">3. 树遍历解释器：让语言活起来</a></li>
+<li><a href="#4">4. 从树遍历到字节码（性能进阶）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">编译 II · 语义、类型检查与解释器<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Stanford CS143 中段 / <em>Crafting Interpreters</em> / TAPL（类型）｜ <strong>前置</strong>：comp-01（AST）、pl 线（类型系统正式版在 pl-01）
+有了 AST（comp-01），编译器要开始<strong>理解程序的意义</strong>：名字指向什么（作用域）、类型对不对（类型检查）、然后要么直接执行（解释器）、要么继续编译（comp-03）。这一页讲语义分析与类型检查，并把 [实验 L04] 的解释器完整跑起来——<strong>你将拥有一门自己实现的、能跑的小语言</strong>。</p>
+</blockquote>
+<h2 id="1">1. 语义分析：名字与作用域<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="词法作用域栈：进块压入、离块弹出、内层查不到往外找。" src="assets/img/comp-02-scope-stack.svg" /></p>
+<figcaption><span class="fig-id">图 comp-02.3</span>词法作用域栈：进块压入、离块弹出、内层查不到往外找。</figcaption>
+</figure>
+<p>语法对了不代表有意义——<code>x + 1</code> 里 <code>x</code> 是谁？<strong>语义分析</strong>在 AST 上回答这类问题：</p>
+<ul>
+<li><strong>符号表与作用域</strong>：维护"名字 → 声明"的映射，进入 <code>{}</code> 块 / 函数时压入新作用域、离开时弹出——<strong>作用域是一个栈</strong>（🔗 与 csapp-03 调用栈、os 的栈同构）。<strong>词法作用域（lexical scope）</strong>：一个名字指向它<strong>在源码文本中所处位置</strong>能看到的最近声明——这是几乎所有现代语言的规则，也让"看代码就能确定 x 是谁"成为可能。</li>
+<li><strong>名字解析</strong>：把每个变量引用<strong>绑定</strong>到它的声明。未声明就用 = 错误、重复声明 = 错误——这一步抓出一大类程序错误。</li>
+<li><strong>闭包的关键</strong>：函数能"记住"它定义时所在的作用域（捕获外层变量）——这是 [L04] 要实现的、也是函数式编程（pl-02）的核心。<strong>闭包 = 函数 + 它捕获的环境</strong>。</li>
+</ul>
+<h2 id="2">2. 类型检查：在运行前抓错<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>类型系统</strong>给每个表达式一个类型，检查操作是否合法（<code>"abc" + 3</code> 该不该报错？）——<strong>在程序运行前排除一整类错误</strong>。这是"用编译期的严格换运行期的安全"，静态类型语言（Rust/Java/TS）的核心价值。</p>
+<p><strong>类型检查怎么做【机理】</strong>：在 AST 上自底向上推导——字面量有已知类型，<code>e1 + e2</code> 要求两子式类型相容并给出结果类型，<code>if</code> 要求条件是布尔、两分支类型一致，函数调用检查实参与形参类型匹配。<strong>本质是一组"类型推导规则"在语法树上的递归应用</strong>（pl-01 会把它形式化成推理规则 <span class="arithmatex">\(\frac{\text{前提}}{\text{结论}}\)</span>——你会看到它和逻辑证明系统同构，Curry–Howard 的伏笔）。</p>
+<p><strong>静态 vs 动态类型的权衡</strong>：
+- <strong>静态</strong>（编译期检查）：早抓错、性能好（编译器知道类型可优化）、IDE 补全强——代价是要写类型、有时啰嗦。
+- <strong>动态</strong>（运行期检查，Python/JS）：灵活、写得快——代价是类型错误要跑到那行才暴露（Medusa 的 Python 就是动态类型，所以你靠测试和运行时防错）。
+- <strong>类型推断</strong>（Hindley–Milner，pl-01 细讲）：既静态安全又不用手写类型（编译器自动推），鱼与熊掌兼得——ML/Haskell/Rust 的局部类型推断都源于此。</p>
+<p><strong>[L04] 的选择</strong>：小语言可以先做<strong>动态类型</strong>（求值时检查）跑通，理解了再考虑加静态检查——<strong>分步走，先让语言能跑，再让它更安全</strong>。</p>
+<h2 id="3">3. 树遍历解释器：让语言活起来<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="解释器 eval(AST, env)：环境链式作用域 + 闭包捕获环境。" src="assets/img/comp-02-eval-env.svg" /></p>
+<figcaption><span class="fig-id">图 comp-02.2</span>解释器 eval(AST, env)：环境链式作用域 + 闭包捕获环境。</figcaption>
+</figure>
+<p>最直接的执行方式——<strong>遍历 AST，边走边算（tree-walking interpreter）</strong>：</p>
+<ul>
+<li><strong>求值 <code>eval(node, env)</code></strong>：递归下降 AST——字面量返回其值、变量查环境 <code>env</code>、<code>e1 + e2</code> 先 <code>eval</code> 两子式再相加、<code>if</code> 求值条件再选分支、函数调用创建新环境绑定参数再 <code>eval</code> 函数体。<strong><code>eval</code> 就是把 comp-01 画的那棵树"走一遍并计算"</strong>——干净得像数学归纳。</li>
+<li><strong>环境（environment）</strong>：名字 → 值的映射，链式结构表达嵌套作用域（查不到就往外层找）。闭包捕获的就是这个环境的引用。</li>
+<li><strong>控制流</strong>：<code>while</code>/<code>if</code> 靠 <code>eval</code> 的递归 + 循环实现；函数返回用异常或特殊返回值传递。</li>
+</ul>
+<p><strong>这就是 [L04] 的收官</strong>：词法（comp-01）→ 解析（comp-01）→ <strong>求值（本页）</strong>，你得到一个<strong>完整的、能跑的解释器</strong>——能定义变量、函数、闭包、递归、做算术和分支。<strong>亲手写完一门语言的解释器，是"编程语言不再神秘"的成人礼</strong>。《Crafting Interpreters》就是带你走这一遍。</p>
+<h2 id="4">4. 从树遍历到字节码（性能进阶）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="树遍历→字节码→VM→JIT 的性能阶梯。" src="assets/img/comp-02-bytecode-vm.svg" /></p>
+<figcaption><span class="fig-id">图 comp-02.1</span>树遍历→字节码→VM→JIT 的性能阶梯。</figcaption>
+</figure>
+<p>树遍历解释器简单但<strong>慢</strong>（每次执行都遍历树、大量指针跳转、对缓存不友好）。生产级解释器（CPython、JVM、V8）多走<strong>字节码</strong>路线：
+- <strong>编译成字节码</strong>：把 AST 一次性翻译成紧凑的<strong>字节码指令</strong>（一个线性的、类似汇编的中间表示）。
+- <strong>虚拟机（VM）执行字节码</strong>：一个循环取指令、执行——<strong>指令线性存放、对缓存友好、无重复遍历</strong>，快得多。
+- <strong>再进一步 JIT</strong>：运行时把热点字节码<strong>编译成真实机器码</strong>（V8、JVM 的 HotSpot）——解释的灵活 + 编译的速度。</p>
+<p><strong>这条"树 → 字节码 → JIT"的进阶路线，是性能与复杂度的阶梯</strong>——[L04] 停在树遍历（教学清晰），想深挖就往字节码走（《Crafting Interpreters》下半部正是做这个）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（作用域推演）</strong> 写一段带嵌套函数和同名变量的代码，手推每个变量引用绑定到哪个声明（词法作用域）——<strong>理解"闭包捕获的是定义处的环境"</strong>，这是 L04 最易错的点。</p>
+<p><strong>例 2（类型检查手动跑）</strong> 给 <code>if (x &gt; 0) then 1 else "no"</code>，按类型规则检查——两分支类型不一致（int vs string）应报错。<strong>体会"类型检查在运行前抓错"的价值</strong>。</p>
+<p><strong>例 3（把 L04 跑起来）</strong> 在你的解释器里定义一个递归的阶乘函数并调用——<strong>当 <code>factorial(5)</code> 打印出 120，你就真正拥有了一门自己造的语言</strong>。这是全站最有成就感的实验之一。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L04 完成</strong>：<code>labs/L04-interpreter/</code> 全流程跑通——变量、函数、闭包、递归、算术、分支。对标《Crafting Interpreters》的 jlox。</p>
+</blockquote>
+<hr />
+<p><em>下一页：编译 III——IR、优化与代码生成：编译器后端如何把程序变快、变成真实机器码。这也是 LLVM 的世界。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-01-parsing.html"><span class="pager-label">上一页</span>编译 I · 词法与语法分析</a>
+  <a class="pager-slot next" href="comp-03-codegen.html"><span class="pager-label">下一页</span>编译 III · IR、优化与代码生成</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

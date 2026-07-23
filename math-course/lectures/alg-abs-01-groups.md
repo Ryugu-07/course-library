@@ -4,6 +4,12 @@
 
 ## 1. 群：定义与例子库
 
+
+<figure class="diagram" markdown="1">
+![循环群 \mathbb{Z}_n 画成时钟/正 n 边形旋转 + 一张 Cayley 表。](assets/img/alg-abs-01-cyclic-group.svg)
+<figcaption><span class="fig-id">图 alg-abs.1</span>循环群 \(\mathbb{Z}_n\) 画成时钟/正 n 边形旋转 + 一张 Cayley 表。</figcaption>
+</figure>
+
 **定义** $(G, \cdot)$：封闭、结合律、单位元 $e$、每元有逆。交换者称 **Abel 群**。阶 $|G|$ = 元素个数。
 
 **例子库（比定义重要）**：$(\mathbb{Z}, +)$；$(\mathbb{Z}_n, +)$ 模 $n$ 加法；$(\mathbb{Z}_p^*, \times)$（$p$ 素）；**对称群 $S_n$**（$n$ 元全体置换，$|S_n| = n!$，$n \geq 3$ 非交换——置换是群论的"原型物种"：Cayley 定理说任何群都同构于某置换群的子群）；二面体群 $D_n$（正 $n$ 边形的旋转+翻折，$2n$ 个对称）；$GL_n(\mathbb{R})$（可逆矩阵，高代的老朋友以群身份再就业）。

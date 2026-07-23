@@ -4,6 +4,11 @@
 
 ## 0. 记号约定
 
+<figure class="plot" markdown="1">
+![噪声表](assets/img/02-noise-schedule.svg)
+<figcaption><span class="fig-id">图 2.0</span>噪声表决定信号消退的快慢：\(\beta_t\) 是每步加多少噪、\(\bar\alpha_t\) 是累计保留多少信号——线性 vs 余弦是两种常见选择。</figcaption>
+</figure>
+
 $x_0$：真实图像（先不管潜空间，第 04 讲再引入）；$x_1, \dots, x_T$：逐步加噪的中间态（$T$ 通常取 1000）；$\beta_t \in (0,1)$：第 $t$ 步的加噪强度（**噪声日程表**，预先固定的小数，从 $10^{-4}$ 缓增到 $0.02$）。记：
 
 $$
@@ -13,6 +18,11 @@ $$
 $\bar\alpha_t$ 单调递减：$\bar\alpha_0 = 1$（纯净），$\bar\alpha_T \approx 0$（纯噪声）。它是"信号残存比例"的刻度尺。
 
 ## 1. 前向过程：固定的、不用学的一半
+
+<figure class="plot" markdown="1">
+![前向扩散加噪](assets/img/02-forward-diffusion.svg)
+<figcaption><span class="fig-id">图 2.1</span>前向扩散：按噪声表逐步加高斯噪声，把数据分布抹成纯高斯——这一半固定、不用学，是 DDPM 的"退化"方向。</figcaption>
+</figure>
 
 每一步在缩小信号的同时注入高斯噪声：
 

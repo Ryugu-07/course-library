@@ -12,6 +12,11 @@
 
 ## 2. AR / MA / ARMA 三件套
 
+<figure class="plot" markdown="1">
+![AR(1) 记忆由 phi 控制](assets/img/ts-01-ar-process.svg)
+<figcaption><span class="fig-id">图 1.1</span>AR(1) 的记忆由 \(\phi\) 控制：\(\phi\) 小快速均值回复、\(\phi\) 接近 1 高度持续、\(\phi=1\) 退化为随机游走（非平稳）。</figcaption>
+</figure>
+
 （记 $B$ 为滞后算子 $BX_t = X_{t-1}$，$\varepsilon_t$ 为白噪声。）
 
 **AR(p) 自回归**：$X_t = \phi_1 X_{t-1} + \cdots + \phi_p X_{t-p} + \varepsilon_t$——"今天 = 昨天们的加权 + 新息"。

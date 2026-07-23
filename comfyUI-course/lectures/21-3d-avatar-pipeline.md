@@ -2,6 +2,12 @@
 
 > 最后一讲三件事：把 3D 生成和数字人这两块拼图补上（都与你的 VRChat 背景直接相关），然后把拓展篇全部模态**串成一条从角色图到成品短片的全本地流水线**，最后收束整个课程的认知框架。
 
+
+<figure class="diagram" markdown="1">
+![3D/数字人全本地流水线：图→3D→绑定→驱动。](assets/img/21-3d-pipeline.svg)
+<figcaption><span class="fig-id">图 21.1</span>3D/数字人全本地流水线：图→3D→绑定→驱动。</figcaption>
+</figure>
+
 ## 1. 3D 生成
 
 ### 1.1 表示：三种"存 3D 的方式"

@@ -12,6 +12,11 @@
 
 ## 2. 投影定理（Hilbert 几何的顶梁柱）
 
+<figure class="plot" markdown="1">
+![正交投影是最佳逼近](assets/img/func-02-orthogonal-projection.svg)
+<figcaption><span class="fig-id">图 2.1</span>最佳逼近定理：子空间 \(M\) 上离 \(x\) 最近的点是正交投影 \(\hat x\)，误差 \(x-\hat x\perp M\)——最小二乘的几何本质。</figcaption>
+</figure>
+
 **定理（最佳逼近 + 正交分解）** $M$ 是 Hilbert 空间 $H$ 的闭子空间，则任意 $x \in H$ 存在**唯一**分解
 
 $$

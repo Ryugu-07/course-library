@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP、TLS 与现代网络 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li class="active"><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-http">1. HTTP：一个不断打补丁的协议</a></li>
+<li><a href="#2-dns">2. DNS：互联网的电话簿</a></li>
+<li><a href="#3-tls-crypto-02">3. TLS：锁图标背后（复习 crypto-02，网络视角）</a></li>
+<li><a href="#4">4. 现代网络：为什么全球网页能秒开</a></li>
+<li><a href="#5-websocket">5. WebSocket 与实时通信</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-httptls">网络 II · HTTP、TLS 与现代网络<a class="headerlink" href="#ii-httptls" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Stanford CS144 应用层 / High Performance Browser Networking（Grigorik）｜ <strong>前置</strong>：net-01、crypto-02（TLS）
+从传输层往上，到你每天打交道的应用层。这一页讲 <strong>HTTP 的演进</strong>（0.9 到 HTTP/3 每一代解决的具体瓶颈）、<strong>DNS</strong>（域名怎么变成 IP）、<strong>TLS 握手</strong>（浏览器的锁图标背后），以及让全球网页秒开的<strong>现代网络基础设施</strong>（CDN、缓存、QUIC）。这也是 web 全栈线（web-01/02/03）的网络地基——Medusa 经 cloudflared 暴露到公网，走的正是这一整套。</p>
+</blockquote>
+<h2 id="1-http">1. HTTP：一个不断打补丁的协议<a class="headerlink" href="#1-http" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="HTTP 0.9→1.1→2→3 演进，每代解决的队头阻塞瓶颈。" src="assets/img/net-02-http-evolution.svg" /></p>
+<figcaption><span class="fig-id">图 net-02.3</span>HTTP 0.9→1.1→2→3 演进，每代解决的队头阻塞瓶颈。</figcaption>
+</figure>
+<p>HTTP 是<strong>请求—响应</strong>的文本协议：客户端发 <code>GET /path</code>（方法 + 路径 + 头部），服务器回状态码（200/404/500）+ 头部 + 正文。<strong>无状态</strong>（每个请求独立，状态靠 Cookie/Token 在应用层维护——web-02 细说）。它的演进史就是一部<strong>对抗延迟</strong>的历史：</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>关键改进</th>
+<th>解决的瓶颈</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP/1.0</td>
+<td>一请求一连接</td>
+<td>—（每次都 TCP 握手，慢）</td>
+</tr>
+<tr>
+<td><strong>HTTP/1.1</strong></td>
+<td>keep-alive 连接复用、管线化、分块传输</td>
+<td>省握手，但<strong>队头阻塞</strong>（一个慢响应堵住后面）</td>
+</tr>
+<tr>
+<td><strong>HTTP/2</strong></td>
+<td>多路复用（一连接多流并发）、头部压缩、服务器推送</td>
+<td>应用层队头阻塞解决，但<strong>TCP 层队头阻塞仍在</strong>（丢一个包全部流卡住）</td>
+</tr>
+<tr>
+<td><strong>HTTP/3</strong></td>
+<td>跑在 <strong>QUIC（UDP）</strong> 上</td>
+<td>彻底消灭队头阻塞、0-RTT 握手</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读法</strong>：每一代都在解决上一代<strong>暴露出的新瓶颈</strong>——这是理解一切技术演进的范式（"解决方案创造新问题"）。HTTP/2 的多路复用解决了 1.1 的应用层队头阻塞，却因为<strong>底下还是 TCP</strong>（丢包重传阻塞整条连接）而不彻底，直到 HTTP/3 把可靠性搬到 UDP 上的 QUIC 才根治——<strong>net-01 埋的"QUIC 避开 TCP 队头阻塞"伏笔在此收线</strong>。</p>
+<h2 id="2-dns">2. DNS：互联网的电话簿<a class="headerlink" href="#2-dns" title="Permanent link"></a></h2>
+<p>你输入 <code>medusa.hhzi.eu.cc</code>，机器需要 IP 才能连。<strong>DNS</strong> 是把域名翻译成 IP 的<strong>分布式分层数据库</strong>：
+- <strong>层级</strong>：根服务器 → 顶级域（<code>.cc</code>）→ 权威服务器，逐级查询。
+- <strong>缓存</strong>：各级大量缓存（你的系统、路由器、ISP），否则根服务器会被打爆——<strong>DNS 是"分层 + 缓存"扩展性设计的教科书</strong>。
+- <strong>它也是性能因素</strong>：首次访问一个域名要 DNS 查询（几十 ms），故有 DNS 预解析、长 TTL 缓存。</p>
+<p><strong>安全一提</strong>：传统 DNS 明文、可被劫持/投毒 → DNSSEC（签名）、DoH/DoT（加密 DNS）。<strong>"域名解析"这一步也是攻击面</strong>（🔗 sec 线）。</p>
+<h2 id="3-tls-crypto-02">3. TLS：锁图标背后（复习 crypto-02，网络视角）<a class="headerlink" href="#3-tls-crypto-02" title="Permanent link"></a></h2>
+<p><code>https</code> = HTTP over TLS。从网络分层看，TLS 夹在传输层（TCP）和应用层（HTTP）之间。<strong>握手做三件事</strong>（🔗 crypto-02 详证）：① 用非对称密码<strong>交换出对称会话密钥</strong>（前向保密）；② 服务器用<strong>证书</strong>证明身份（PKI 信任链）；③ 之后用对称密钥（AES-GCM）加密所有 HTTP 数据。</p>
+<p><strong>性能代价与优化</strong>：TLS 握手要额外往返（RTT），故有<strong>会话恢复</strong>（复用之前的密钥省握手）、<strong>TLS 1.3</strong>（握手从 2-RTT 降到 1-RTT，甚至 0-RTT）。<strong>HTTP/3 的 QUIC 把 TLS 1.3 直接集成进传输握手，连接建立几乎零延迟</strong>——安全与性能在此合流。<strong>Medusa 的 cloudflared 隧道</strong>就是把本地 :8000 通过 Cloudflare 的边缘（自动 TLS + CDN）暴露到公网，你免了自己配证书。</p>
+<h2 id="4">4. 现代网络：为什么全球网页能秒开<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="DNS→TCP→TLS→HTTP→CDN→响应→渲染 全链路（与 web-01 呼应，可共用）。" src="assets/img/net-02-request-life.svg" /></p>
+<figcaption><span class="fig-id">图 net-02.1</span>DNS→TCP→TLS→HTTP→CDN→响应→渲染 全链路（与 web-01 呼应，可共用）。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="CDN 边缘缓存：用户就近取，不回源。" src="assets/img/net-02-cdn.svg" /></p>
+<figcaption><span class="fig-id">图 net-02.2</span>CDN 边缘缓存：用户就近取，不回源。</figcaption>
+</figure>
+<p>真实的 Web 性能靠一整套基础设施：</p>
+<ul>
+<li><strong>CDN（内容分发网络）</strong>：把静态资源缓存到<strong>离用户最近的边缘节点</strong>——纽约用户从纽约取，不必回源到你的 Win 机。<strong>"把内容搬到用户身边"是对抗光速（跨洋 RTT ~150ms）的根本手段</strong>。</li>
+<li><strong>HTTP 缓存</strong>：<code>Cache-Control</code>/<code>ETag</code> 头部让浏览器和 CDN 缓存响应——<strong>最快的请求是不发生的请求</strong>。理解缓存头是前端性能（web-03）的必修。</li>
+<li><strong>压缩</strong>：gzip/brotli 压文本、图片用现代格式——省带宽即省时间。</li>
+<li><strong>连接层优化</strong>：keep-alive、HTTP/2 多路复用、QUIC 0-RTT——都是省往返。</li>
+</ul>
+<p><strong>方法论</strong>：<strong>Web 性能优化 = 减少往返次数 × 缩短每次往返距离 × 减少传输字节</strong>。这三个杠杆覆盖了几乎所有前端性能手段，是一张能装很多知识的心智地图。</p>
+<h2 id="5-websocket">5. WebSocket 与实时通信<a class="headerlink" href="#5-websocket" title="Permanent link"></a></h2>
+<p>HTTP 是客户端发起的请求—响应，<strong>服务器无法主动推送</strong>。要实时（聊天、行情、Medusa 若做实时推送）需要：
+- <strong>WebSocket</strong>：在 HTTP 握手后<strong>升级</strong>成全双工长连接，双向随时发消息。
+- <strong>SSE（Server-Sent Events）</strong>：服务器单向推流，更简单。
+- <strong>轮询/长轮询</strong>：退化方案，客户端反复问。</p>
+<p><strong>选择取决于方向与频率</strong>——这是 web-02 后端设计实时功能时的决策点。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（一次网页加载的全链路）</strong> 从在浏览器敲 <code>https://medusa.hhzi.eu.cc</code> 到页面显示，列出所有网络步骤：DNS 解析 → TCP 握手 → TLS 握手 → HTTP 请求 → (CDN 命中?) → 响应 → 渲染。<strong>这是最经典的系统面试题"输入 URL 后发生了什么"，也是本站网络线的集大成</strong>——你应该能一口气讲完。</p>
+<p><strong>例 2（HTTP/2 为什么不够）</strong> 解释"HTTP/2 解决了应用层队头阻塞，却没解决传输层队头阻塞"——画出丢一个包时 HTTP/2 over TCP vs HTTP/3 over QUIC 的区别。<strong>理解一个优化的边界在哪，比知道它存在更深</strong>。</p>
+<p><strong>例 3（缓存头设计）</strong> 给 Medusa 前端的 JS bundle、API 响应、用户头像分别设计 <code>Cache-Control</code> 策略（长缓存 + 文件名哈希 / 不缓存 / 短缓存）——<strong>把缓存理论用到你自己的系统</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 关联实验 L12（极简 HTTP 服务器）</strong>：<code>labs/L12-http-server/</code> —— 从 socket 开始实现 HTTP/1.1（keep-alive + 分块 + 静态文件），是 web-02 后端的下一层。跑在 Mac 上。</p>
+</blockquote>
+<hr />
+<p><em>网络两页完成。下一页进入数据库 I——存储与索引：数据怎么在磁盘上高效组织，B+ 树为什么统治了数据库索引。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="net-01-tcpip.html"><span class="pager-label">上一页</span>网络 I · 分层、TCP/IP 与拥塞控制</a>
+  <a class="pager-slot next" href="db-01-storage-index.html"><span class="pager-label">下一页</span>数据库 I · 存储与索引</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

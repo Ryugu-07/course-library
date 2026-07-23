@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分布式事务与大系统案例 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li class="active"><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 分布式事务：跨机器的原子性</a></li>
+<li><a href="#2">2. 复制的三种拓扑</a></li>
+<li><a href="#3">3. 分片与一致性哈希：数据怎么摊开</a></li>
+<li><a href="#4-mapreduce">4. MapReduce：把并行的复杂性藏起来</a></li>
+<li><a href="#5">5. 系统设计的思维框架（面试 + 实战）</a></li>
+<li><a href="#6">6. 练习与要点</a><ul>
+<li><a href="#project-p03-kv">📋 大 Project P03（第二阶段·收官）· 分片分布式 KV</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="iii">分布式 III · 分布式事务与大系统案例<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.824 / DDIA 第 7、9、10 章 ｜ <strong>前置</strong>：dist-01/02、db-03（单机事务）
+分布式的收官页，两部分：<strong>分布式事务</strong>（跨多台机器的操作怎么保持原子——比单机事务难得多）与<strong>大系统模式集</strong>（MapReduce、一致性哈希、分片、复制的经典设计，把前两页的原理拼成真实的大规模系统）。读完这条线，你就有了看懂任何"大厂系统设计"的骨架。</p>
+</blockquote>
+<h2 id="1">1. 分布式事务：跨机器的原子性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="两阶段提交时序 + 协调者崩溃导致的阻塞。" src="assets/img/dist-03-2pc.svg" /></p>
+<figcaption><span class="fig-id">图 dist-03.3</span>两阶段提交时序 + 协调者崩溃导致的阻塞。</figcaption>
+</figure>
+<p>db-03 的事务在一台机器上。但如果一个操作要<strong>同时改多台机器</strong>（转账的两个账户在不同库、下单要扣库存+建订单在不同服务）——怎么保证"要么全成功要么全失败"？</p>
+<p><strong>两阶段提交（2PC）【机理级】</strong>：一个协调者 + 多个参与者。
+1. <strong>准备阶段</strong>：协调者问所有参与者"能提交吗？"，参与者各自做好准备（写好但不提交）、回复 yes/no。
+2. <strong>提交阶段</strong>：若<strong>全部</strong> yes，协调者广播"提交"，各参与者提交；只要有一个 no，广播"回滚"。</p>
+<p><strong>2PC 的致命弱点——阻塞</strong>：如果协调者在阶段 2 之间<strong>崩溃</strong>，参与者们已经 say yes、锁着资源、<strong>却不知道该提交还是回滚</strong>，只能干等协调者恢复（<strong>阻塞</strong>）。这就是 2PC 被诟病的原因：<strong>协调者是单点、故障时参与者集体卡死</strong>。3PC 试图缓解但更复杂且假设更强，实践少用。<strong>根本出路是把协调者本身做成 Raft 组</strong>（dist-02）——用共识消灭单点，现代分布式数据库（Spanner、TiDB）正是"2PC 跨分片 + 每分片 Raft 复制"的组合。</p>
+<p><strong>替代范式——Saga</strong>：长事务拆成一串本地事务 + 对应的<strong>补偿操作</strong>（撤销）。不追求 ACID，而是"出错就补偿回滚"——<strong>用最终一致 + 业务补偿换掉分布式锁的阻塞</strong>，微服务架构的常用模式。<strong>"强一致的 2PC vs 最终一致的 Saga"又是一个 CAP 光谱上的工程选择</strong>。</p>
+<h2 id="2">2. 复制的三种拓扑<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>数据复制到多副本，谁能写、怎么同步——三种经典模式：
+- <strong>单主（主从）</strong>：一个主副本接受写、同步给从副本；读可以分摊到从。<strong>简单、无写冲突</strong>，但主是瓶颈和单点（故障要选主——又是共识）。Postgres 流复制、Medusa 若做读写分离就是这个。
+- <strong>多主</strong>：多个副本都能写——写吞吐高、多地就近，但<strong>写冲突要解决</strong>（后写胜/向量时钟/CRDT）。
+- <strong>无主（Dynamo 风格）</strong>：客户端写多个副本、读多个副本，用 <strong>quorum</strong>（<span class="arithmatex">\(W + R &gt; N\)</span> 保证读到最新）+ 冲突解决。高可用（AP），Cassandra/DynamoDB 的路子。</p>
+<p><strong>读法</strong>：<strong>复制拓扑的选择 = "写在哪、冲突怎么办"的答案</strong>，直接由 CAP 取向决定。</p>
+<h2 id="3">3. 分片与一致性哈希：数据怎么摊开<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="一致性哈希环：机器/key 上环，加节点只影响相邻段。" src="assets/img/dist-03-consistent-hash.svg" /></p>
+<figcaption><span class="fig-id">图 dist-03.2</span>一致性哈希环：机器/key 上环，加节点只影响相邻段。</figcaption>
+</figure>
+<p>数据大到一台存不下 → <strong>分片（sharding/partition）</strong>：按某个 key 把数据分到多台。关键问题：<strong>怎么分，才能在增删机器时少搬数据？</strong>
+- <strong>朴素哈希 <code>hash(key) % N</code></strong>：N 一变（加/减机器），<strong>几乎所有 key 都要重新映射</strong>——灾难。
+- <strong>一致性哈希</strong>：把哈希空间做成一个<strong>环</strong>，机器和 key 都映射到环上，key 归属顺时针最近的机器。<strong>加一台机器只影响它相邻的一段 key</strong>，其余不动——<strong>"增删节点只搬 <span class="arithmatex">\(O(1/N)\)</span> 的数据"</strong>。配虚拟节点平衡负载。这是 Dynamo、Cassandra、CDN、分布式缓存的分片基石，一个优雅的小发明解决大问题。</p>
+<h2 id="4-mapreduce">4. MapReduce：把并行的复杂性藏起来<a class="headerlink" href="#4-mapreduce" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="MapReduce 数据流：Map→shuffle→Reduce（词频例）。" src="assets/img/dist-03-mapreduce.svg" /></p>
+<figcaption><span class="fig-id">图 dist-03.1</span>MapReduce 数据流：Map→shuffle→Reduce（词频例）。</figcaption>
+</figure>
+<p>Google 的 MapReduce 是大数据处理的范式奠基：程序员只写两个纯函数——<strong>Map</strong>（每条记录 → 若干中间键值对）和 <strong>Reduce</strong>（把同键的值聚合）——<strong>框架自动处理并行、分发、容错、数据搬运</strong>。</p>
+<ul>
+<li><strong>例</strong>：词频统计——Map 把每个词映射成 <code>(词, 1)</code>，Reduce 把同词的 1 求和。</li>
+<li><strong>威力</strong>：程序员完全不碰"哪台机器、怎么容错、如何 shuffle"——<strong>框架把分布式的地狱难度隐藏在两个函数背后</strong>。节点崩溃？框架重跑那个任务（要求 Map/Reduce 是<strong>幂等/无副作用</strong>的，🔗 函数式思想 pl-02）。</li>
+<li><strong>后继</strong>：Spark（内存化、DAG 执行更快）、Flink（流处理）继承了"声明计算、框架管分布式"的思想。<strong>这是"用受限的编程模型换自动的分布式"的最成功案例</strong>。</li>
+</ul>
+<h2 id="5">5. 系统设计的思维框架（面试 + 实战）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>把整条线收成一张可复用的地图——设计任何大系统时问这几层：
+1. <strong>需求与规模</strong>：读写比例、数据量、一致性要求、延迟目标（先量化，别空谈）。
+2. <strong>数据分片</strong>：按什么 key 分、用一致性哈希？
+3. <strong>复制与一致性</strong>：几副本、单主还是无主、CP 还是 AP？
+4. <strong>缓存</strong>：哪层加缓存（CDN/应用/数据库，🔗 csapp-02 缓存思想的系统级放大）、怎么失效。
+5. <strong>容错</strong>：哪些是单点、怎么故障转移、共识用在哪。
+6. <strong>瓶颈与演进</strong>：先找瓶颈（通常是数据库），再针对性扩展。</p>
+<p><strong>"缓存、分片、复制、共识"这四件套，能拼出你见过的几乎所有大系统</strong>——从这个框架看 Medusa，它现在是"单机 Postgres + 单体后端"，未来要扩展时，就是往这四件套上加东西。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（2PC 阻塞推演）</strong> 协调者在"收齐 yes 后、发提交前"崩溃——参与者处于什么状态、为什么不能自己决定、恢复后怎么办？<strong>理解"为什么 2PC 要把协调者做成高可用"</strong>。</p>
+<p><strong>例 2（一致性哈希搬数据量）</strong> 环上 4 台机器加到 5 台，估算需要迁移的 key 比例（约 <span class="arithmatex">\(1/5\)</span>）对比朴素取模（约全部）——<strong>一个小发明省了多少搬运，数字说话</strong>。</p>
+<p><strong>例 3（给 Medusa 设计扩展）</strong> 假设 Medusa 的文章量涨到 10 亿，用第 5 节框架设计：怎么分片（按时间？按 topic？）、分析查询怎么不被拖垮（读副本？列存？）——<strong>把系统设计框架用到你自己的系统未来</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p03-kv">📋 大 Project P03（第二阶段·收官）· 分片分布式 KV<a class="headerlink" href="#project-p03-kv" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>P03-B · 线性一致 KV 与分片迁移</strong>（承接 P03-A Raft）：
+- <strong>学习目标</strong>：理解“共识库只是复制日志，真正的系统还要处理客户端去重、配置变更、分片迁移与线性一致读”。
+- <strong>教师提供</strong>：KV 客户端、分片控制器接口、配置变更脚本、迁移期间的故障注入测试、线性一致性 checker。
+- <strong>学生任务</strong>：① 单 Raft 组 KV：<code>Get/Put/Append</code>、客户端请求去重、leader 变更重试；② shard controller：<code>Join/Leave/Move/Query</code>，生成分片到组的配置；③ sharded KV：按配置服务分片，配置变更时拉取/交接分片数据，迁移中不丢不重。
+- <strong>一致性约束</strong>：所有写必须进入对应 Raft 组日志；重复请求必须幂等；配置变更本身也要走 Raft；迁移期间旧组和新组不能同时接受同一分片写入。
+- <strong>验收测试</strong>：并发客户端下线性一致；leader 崩溃、网络分区、配置频繁变更时无丢写；迁移期间读写可继续或按清晰错误重试；隐藏测试会检查重复 RPC 与旧 leader 响应。
+- <strong>评分重点</strong>：单组 KV 25%，配置控制器 20%，迁移协议 30%，线性一致与故障测试 25%。
+- <strong>P03 总结报告</strong>：要求学生画出一次 <code>Put(k,v)</code> 在客户端、分片路由、Raft 日志、状态机应用、分片迁移中的生命周期。</p>
+</blockquote>
+<hr />
+<p><em>系统线到此全部完成（18 页）——CSAPP、OS、网络、数据库、分布式、还差编译。下一页进入编译 I：源代码怎么变成能运行的东西。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="dist-02-consensus.html"><span class="pager-label">上一页</span>分布式 II · 共识与 Raft</a>
+  <a class="pager-slot next" href="comp-01-parsing.html"><span class="pager-label">下一页</span>编译 I · 词法与语法分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

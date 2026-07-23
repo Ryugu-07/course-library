@@ -3,6 +3,12 @@
 > **对标**：Griffiths §6–7、§9 ｜ **前置**：qm-01–03、高代 V（简并 = 特征值问题）
 > 精确可解的量子系统一只手数得过来——真实物理靠近似。本页配齐三板斧：**定态微扰**（能级修正的万能公式）、**变分法**（基态的上界机器）、**含时微扰**（跃迁与黄金规则）。氢原子的精细结构作为完整战役示范。
 
+
+<figure class="diagram" markdown="1">
+![微扰使简并能级劈裂（Zeeman/Stark）：一条能级在微扰下分成几条的能级图。](assets/img/qm-04-level-splitting.svg)
+<figcaption><span class="fig-id">图 qm-04.1</span>微扰使简并能级劈裂（Zeeman/Stark）：一条能级在微扰下分成几条的能级图。</figcaption>
+</figure>
+
 ## 1. 非简并定态微扰
 
 $\hat H = \hat H_0 + \lambda\hat V$（$\hat H_0$ 可解）。按 $\lambda$ 展开能级与态**【推导】**（代入本征方程逐阶比对，一阶方程与 $\langle\psi_n^{(0)}|$ 内积）：

@@ -3,6 +3,12 @@
 > **对标**：Cover & Thomas §7 ｜ **前置**：it2-01、本科信息论 II–III
 > 本科信息论 III 只陈述了信道编码定理；本页给出 Shannon 的证明——**随机编码 + 联合典型译码**：不构造任何具体的码，而是证明"随机抓一把码字平均而言就能工作"。这是概率方法（图论组合线见过）最辉煌的一次出手，也是"存在性证明改变工业"的孤例级案例。
 
+
+<figure class="diagram" markdown="1">
+![有噪信道：输入→转移矩阵→输出，容量 C=\max I(X;Y)。](assets/img/it2-02-channel.svg)
+<figcaption><span class="fig-id">图 it2-02.1</span>有噪信道：输入→转移矩阵→输出，容量 \(C=\max I(X;Y)\)。</figcaption>
+</figure>
+
 ## 1. 设置与联合典型性
 
 离散无记忆信道 $p(y\mid x)$；码率 $R$：用 $n$ 次信道传 $nR$ 比特（$2^{nR}$ 个消息）。目标：证明 $R < C = \max_{p(x)}I(X;Y)$ 时错误率可任意小。

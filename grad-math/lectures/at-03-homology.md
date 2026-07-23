@@ -3,6 +3,12 @@
 > **对标**：Hatcher §2.1–2.2 ｜ **前置**：at-01/02、高代 IV（商空间）、mfld-02（de Rham 预告）
 > 基本群只测一维洞且可非交换难算；**同调**用交换群把"所有维度的洞"一次测完，且**可机械计算**（线性代数！）。本页从单纯同调的手算入门，到公理化的红利（Brouwer 高维版、Euler 示性数的统一），代数拓扑三页收官。
 
+
+<figure class="diagram" markdown="1">
+![单纯复形 + 边界算子 \partial，同调群数&quot;洞&quot;。](assets/img/at-03-homology.svg)
+<figcaption><span class="fig-id">图 at-03.1</span>单纯复形 + 边界算子 \(\partial\)，同调群数"洞"。</figcaption>
+</figure>
+
 ## 1. 单纯同调：数洞的线性代数
 
 **装置**：空间三角剖分成单纯形（点/边/三角/四面体…）；**链群** $C_k$ = $k$-单纯形的形式整系数组合（自由交换群——高代 IV 的直和）；**边界算子** $\partial_k: C_k \to C_{k-1}$：

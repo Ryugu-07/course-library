@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>随机化、近似与 NP 归约 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li class="active"><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 随机化：用掷硬币换简洁与速度</a></li>
+<li><a href="#2">2. 集中不等式：随机算法为什么"几乎总对"</a></li>
+<li><a href="#3-np">3. NP 与归约：把"我不会"变成"没人会"</a></li>
+<li><a href="#4-np">4. 近似算法：NP 难之后怎么办</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-np">算法 III · 随机化、近似与 NP 归约<a class="headerlink" href="#iii-np" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS170 / CLRS 第 34–35 章 / Motwani–Raghavan <em>Randomized Algorithms</em> ｜ <strong>前置</strong>：algo-01/02、数学站概率线（期望、集中不等式）
+算法理论的成年礼：<strong>承认有些问题（很可能）没有高效精确解，然后优雅地退让</strong>——用随机换简单、用近似换可行、用归约把"我不会"精确地转化为"没人会"。这一页对你概率底子的调用最直接：随机算法的分析就是期望与集中不等式的应用题。</p>
+</blockquote>
+<h2 id="1">1. 随机化：用掷硬币换简洁与速度<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>两类随机算法：<strong>Las Vegas</strong>（结果永远对，时间是随机变量——如随机快排）；<strong>Monte Carlo</strong>（时间固定，结果以概率对——如素性测试）。</p>
+<p><strong>样板一：随机快排</strong> 随机选 pivot，期望比较次数 <span class="arithmatex">\(O(n\log n)\)</span>。<strong>分析【推导】</strong>：设 <span class="arithmatex">\(X_{ij}\)</span> = 元素 <span class="arithmatex">\(i,j\)</span> 是否被比较（0/1）。它们被比较当且仅当在 <span class="arithmatex">\(\{i,\dots,j\}\)</span> 中 <span class="arithmatex">\(i\)</span> 或 <span class="arithmatex">\(j\)</span> 最先被选为 pivot，概率 <span class="arithmatex">\(\frac{2}{j-i+1}\)</span>。期望总比较数</p>
+<div class="arithmatex">\[
+E[X] = \sum_{i&lt;j}\frac{2}{j-i+1} = \sum_i O(\log n) = O(n\log n).
+\]</div>
+<p><strong>没有"最坏输入"</strong>——因为随机性在算法内部，对手无法构造坏例。这是随机化最迷人的用途：<strong>把最坏情况的脆弱换成期望的稳健</strong>。</p>
+<p><strong>样板二：Karger 随机最小割</strong> 反复随机收缩边，最后剩两个点即一个割。单次成功概率 <span class="arithmatex">\(\ge \frac{2}{n(n-1)}\)</span>，重复 <span class="arithmatex">\(O(n^2\log n)\)</span> 次以高概率找到全局最小割——<strong>一个不用最大流的最小割算法，纯靠运气 + 重复</strong>。分析核心是"最小割的边少 ⇒ 随机收缩不太可能毁掉它"。</p>
+<p><strong>样板三：指纹与哈希</strong> 判两个大对象是否相等，随机取一个哈希/多项式求值点比较——出错概率可压到任意小（Rabin–Karp 字符串匹配、Freivalds 验证矩阵乘 <span class="arithmatex">\(O(n^2)\)</span> 而非重算 <span class="arithmatex">\(O(n^3)\)</span>）。</p>
+<h2 id="2">2. 集中不等式：随机算法为什么"几乎总对"<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>随机分析的三级武器（🔗 数学站概率/高维概率线）：</p>
+<ul>
+<li><strong>Markov</strong>：<span class="arithmatex">\(P(X\ge a)\le E[X]/a\)</span>——最弱，只需非负。</li>
+<li><strong>Chebyshev</strong>：<span class="arithmatex">\(P(|X-\mu|\ge k\sigma)\le 1/k^2\)</span>——用上方差。</li>
+<li><strong>Chernoff–Hoeffding</strong>：独立有界变量之和<strong>指数集中</strong> <span class="arithmatex">\(P(|X-\mu|\ge t)\le 2e^{-2t^2/n}\)</span>——随机算法的主力，"重复 <span class="arithmatex">\(O(\log(1/\delta))\)</span> 次取多数即把错误率压到 <span class="arithmatex">\(\delta\)</span>"的定量依据。</li>
+</ul>
+<p><figure class="plot" markdown="1">
+<img alt="Markov Chebyshev Chernoff 尾概率界对比" src="assets/img/algo-03-concentration.svg" /></p>
+<figcaption><span class="fig-id">图 algo-03.1</span>尾概率界对比——Markov 只用期望，Chebyshev 用方差，Chernoff 借独立性给出指数级收紧。</figcaption>
+</figure>
+<p><strong>读法</strong>：Chernoff 是"大数定律的定量版"。它把"重复几次投票就可靠"从直觉变成公式——这正是把 Monte Carlo 算法的错误率工程化的工具。</p>
+<h2 id="3-np">3. NP 与归约：把"我不会"变成"没人会"<a class="headerlink" href="#3-np" title="Permanent link"></a></h2>
+<p><strong>P</strong> = 多项式时间可解；<strong>NP</strong> = 多项式时间可<strong>验证</strong>（给一个证书能快速检验）。<strong>P vs NP</strong>（<span class="arithmatex">\(P\overset?=NP\)</span>）是计算机科学的中心悬案：<strong>验证容易是否意味着求解容易？</strong></p>
+<p><strong>归约</strong>是这一切的语法：<span class="arithmatex">\(A \le_p B\)</span> 意为"<span class="arithmatex">\(A\)</span> 能在多项式时间内转化为 <span class="arithmatex">\(B\)</span>"——若 <span class="arithmatex">\(B\)</span> 易则 <span class="arithmatex">\(A\)</span> 易，反之若 <span class="arithmatex">\(A\)</span> 难则 <span class="arithmatex">\(B\)</span> 难。<strong>NP 完全（NPC）</strong> = NP 中最难的一类：所有 NP 问题都归约到它。<strong>Cook–Levin 定理</strong>：SAT 是 NPC（第一块基石——把"多项式时间验证器的运行"编码成布尔公式）。此后靠归约链传播：SAT → 3SAT → 团/独立集/顶点覆盖 → 哈密顿回路 → TSP → 子集和 → 图着色……<strong>证一个新问题 NP 难，就是从已知 NPC 问题归约过来</strong>。</p>
+<figure class="diagram">
+<p><img alt="NP 完全问题归约链" src="assets/img/algo-03-np-reduction-tree.svg" /></p>
+<figcaption><span class="fig-id">图 algo-03.2</span>NP 归约链——SAT 的 NP 完全性经多项式归约传播到图论、路径、TSP、子集和与图着色。</figcaption>
+</figure>
+<p><strong>方法论（工作技能）</strong>：遇到一个新问题卡住时，先问"它像哪个 NPC 问题？"能归约过来就别再找多项式算法了——<strong>归约是"知道何时该放弃精确解"的专业判断力</strong>，比会证更值钱。</p>
+<h2 id="4-np">4. 近似算法：NP 难之后怎么办<a class="headerlink" href="#4-np" title="Permanent link"></a></h2>
+<p>放弃"精确"换"可证明的接近"。<strong>近似比 <span class="arithmatex">\(\rho\)</span></strong>：解 <span class="arithmatex">\(\le \rho\cdot\)</span> 最优（最小化问题）。三种典型手法：</p>
+<ul>
+<li><strong>贪心 + 组合论证</strong>：顶点覆盖——反复取一条未覆盖边的<strong>两个端点</strong>，得 2-近似（这条边至少要覆盖一个端点，我们多拿一个，故 <span class="arithmatex">\(\le 2\times\)</span> 最优）。集合覆盖贪心给 <span class="arithmatex">\(\ln n\)</span>-近似（且这是最优可能，除非 P=NP）。</li>
+<li><strong>LP 松弛 + 舍入</strong>（🔗 algo-02 的对偶）：把整数规划松弛成 LP、解出分数解、再<strong>舍入</strong>成整数解，用 LP 最优当下界证近似比。原始–对偶方法是其系统化。</li>
+<li><strong>随机舍入</strong>：MAX-CUT 随机分组给 0.5-近似；用半定规划（SDP）松弛 + 随机超平面舍入（Goemans–Williamson）给 <strong>0.878-近似</strong>——凸优化进入近似算法的高光时刻。</li>
+</ul>
+<figure class="diagram">
+<p><img alt="顶点覆盖二近似算法与匹配下界" src="assets/img/algo-03-vertex-cover-2approx.svg" /></p>
+<figcaption><span class="fig-id">图 algo-03.3</span>顶点覆盖 2-近似——每次取未覆盖边两端，用匹配大小作为最优解下界夹住近似比。</figcaption>
+</figure>
+<p><strong>不可近似性</strong>：PCP 定理 ⇒ 某些问题连近似都 NP 难（如一般 TSP 无常数近似、MAX-3SAT 超过 7/8 就难）。<strong>"能近似到多好"本身是一门精确的理论</strong>。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（随机分析手推）</strong> 抛 <span class="arithmatex">\(n\)</span> 个球进 <span class="arithmatex">\(n\)</span> 个桶，最大桶的期望负载？答：<span class="arithmatex">\(\Theta(\log n/\log\log n)\)</span>——<strong>"两个哈希取较空者"（power of two choices）把它降到 <span class="arithmatex">\(\Theta(\log\log n)\)</span></strong>，负载均衡与哈希表设计的理论核心，一道漂亮的概率题。</p>
+<p><strong>例 2（归约练手）</strong> 证明"独立集"NP 难：从"团"归约——独立集在补图上就是团，多项式变换 ✓。<strong>归约常常只是换个视角看同一张图</strong>。</p>
+<p><strong>例 3（近似比证明）</strong> 顶点覆盖的 2-近似里，我们取的边构成一个匹配 <span class="arithmatex">\(M\)</span>；任何覆盖必须覆盖 <span class="arithmatex">\(M\)</span> 的每条边、故 <span class="arithmatex">\(\ge|M|\)</span>，而我们的解 <span class="arithmatex">\(=2|M|\le 2\cdot\)</span>OPT ✓——<strong>"用一个下界结构（这里是匹配）夹住最优"是所有近似证明的骨架</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：高级算法 I——当数据大到存不下，流算法用一遍扫描 + 亚线性空间给出近似答案。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="algo-02-flow-lp.html"><span class="pager-label">上一页</span>算法 II · 网络流与线性规划</a>
+  <a class="pager-slot next" href="adv-01-streaming.html"><span class="pager-label">下一页</span>高级算法 I · 流算法与草图</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

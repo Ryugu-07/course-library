@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>查询执行与优化 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li class="active"><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 声明式的威力与代价</a></li>
+<li><a href="#2">2. 物理算子：意图怎么落地</a></li>
+<li><a href="#3">3. 执行模型：数据怎么在算子间流动</a></li>
+<li><a href="#4">4. 查询优化器：选出快的那条路</a></li>
+<li><a href="#5-sql-medusa">5. 写快 SQL 的原则（Medusa 可用）</a></li>
+<li><a href="#6">6. 练习与要点</a><ul>
+<li><a href="#project-p02">📋 大 Project P02（第二阶段）· 查询执行</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="ii">数据库 II · 查询执行与优化<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CMU 15-445 中段 / <em>Database Internals</em> ｜ <strong>前置</strong>：db-01、algo 线（连接算法就是排序/哈希）
+你写一句 <code>SELECT ... JOIN ... WHERE ... ORDER BY</code>，数据库怎么把这段<strong>声明式</strong>的意图（说"要什么"而非"怎么做"）变成一个高效的<strong>执行计划</strong>？这一页揭开这层魔法：SQL → 关系代数 → 物理算子 → 优化器选路。理解它，你就能读懂 <code>EXPLAIN</code>、写出快 SQL，也就懂了为什么同样结果的两句 SQL 能差几百倍。</p>
+</blockquote>
+<h2 id="1">1. 声明式的威力与代价<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="一条 SQL → 关系代数 → 算子树（Scan/Filter/Join/Sort）执行计划。" src="assets/img/db-02-plan-tree.svg" /></p>
+<figcaption><span class="fig-id">图 db-02.3</span>一条 SQL → 关系代数 → 算子树（Scan/Filter/Join/Sort）执行计划。</figcaption>
+</figure>
+<p>SQL 是<strong>声明式</strong>的——你说"我要 30 岁以上用户按注册时间排序"，不说"先扫哪张表、用哪个索引、怎么排序"。<strong>好处</strong>：你不用管执行细节，数据库自动优化；<strong>代价</strong>：你也<strong>控制不了</strong>执行细节，得信任（并学会引导）优化器。<strong>这层"意图与实现分离"正是关系数据库统治半世纪的原因</strong>——底层存储引擎升级、加了新索引，你的 SQL 不用改。</p>
+<p><strong>关系代数</strong>是 SQL 的数学骨架：选择 σ（WHERE）、投影 π（SELECT 列）、连接 ⋈（JOIN）、并/交/差、分组聚合。<strong>SQL 先被翻译成一棵关系代数表达式树</strong>，优化和执行都在这棵树上进行。</p>
+<h2 id="2">2. 物理算子：意图怎么落地<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="三种 JOIN（嵌套循环/排序归并/哈希）机制与适用对比。" src="assets/img/db-02-join-algos.svg" /></p>
+<figcaption><span class="fig-id">图 db-02.2</span>三种 JOIN（嵌套循环/排序归并/哈希）机制与适用对比。</figcaption>
+</figure>
+<p>每个关系代数操作有多种<strong>物理实现</strong>，选哪个是性能关键。最重要的是 <strong>JOIN 的三种算法</strong>（🔗 直接是 algo 线的排序/哈希在数据库里的化身）：</p>
+<table>
+<thead>
+<tr>
+<th>JOIN 算法</th>
+<th>做法</th>
+<th>何时最优</th>
+<th>复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>嵌套循环</strong></td>
+<td>对左表每行扫右表</td>
+<td>小表 或 内表有索引（index nested loop）</td>
+<td><span class="arithmatex">\(O(M\times N)\)</span> / 有索引则 <span class="arithmatex">\(O(M\log N)\)</span></td>
+</tr>
+<tr>
+<td><strong>排序归并</strong></td>
+<td>两表各排序后并行扫</td>
+<td>输入已排序 或 需要有序输出</td>
+<td><span class="arithmatex">\(O(M\log M + N\log N)\)</span></td>
+</tr>
+<tr>
+<td><strong>哈希连接</strong></td>
+<td>小表建哈希表、大表探测</td>
+<td>大表等值连接、无序</td>
+<td><span class="arithmatex">\(O(M+N)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>理解这张表，你就能预测优化器的选择</strong>：等值连接大表用哈希、连接列有索引用索引嵌套循环、要排序输出顺便用归并。<strong>"同一个 JOIN 有三种实现、代价差数量级"是 SQL 性能的核心认知</strong>。</p>
+<p>其它算子：<strong>排序</strong>（外部归并排序——数据比内存大时的经典算法，🔗 数据太大用磁盘的分治）、<strong>聚合</strong>（哈希聚合 / 排序聚合）、<strong>扫描</strong>（全表扫 vs 索引扫）。</p>
+<h2 id="3">3. 执行模型：数据怎么在算子间流动<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="火山模型(逐行) vs 向量化(逐批) 执行。" src="assets/img/db-02-volcano-vec.svg" /></p>
+<figcaption><span class="fig-id">图 db-02.1</span>火山模型(逐行) vs 向量化(逐批) 执行。</figcaption>
+</figure>
+<p>执行计划是一棵<strong>算子树</strong>，数据自底向上流。两种执行模型：
+- <strong>火山模型（Volcano / 迭代器）</strong>：每个算子实现 <code>next()</code>，上层反复调下层拉一行——简单、经典，但<strong>每行一次虚函数调用</strong>开销大。
+- <strong>向量化执行</strong>：一次处理<strong>一批</strong>行（一列的一个 chunk）——<strong>摊薄函数调用、对缓存和 SIMD 友好</strong>（🔗 csapp-02、perf 线），现代分析型数据库（DuckDB、ClickHouse）的核心加速。<strong>这是"批处理摊薄开销"思想在数据库的体现</strong>，和 GPU 批处理、深度学习 batch 同源。</p>
+<h2 id="4">4. 查询优化器：选出快的那条路<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>同一个查询有指数多种执行计划（JOIN 顺序、算法、索引选择的组合）。<strong>优化器要在其中选最便宜的</strong>——这是数据库最精巧的部分：</p>
+<ul>
+<li><strong>基于规则</strong>：套用启发式（尽早做选择/投影缩小数据、下推谓词——<strong>"能少搬数据就少搬"</strong>）。</li>
+<li><strong>基于代价（CBO）</strong>：给每个候选计划<strong>估算代价</strong>（要读多少页、多少 CPU），选最小的。代价估算靠<strong>统计信息</strong>（表有多少行、列值分布直方图）。<strong>JOIN 顺序的选择用动态规划</strong>（System R 的经典算法，🔗 你在算法线见过的 DP）在指数空间里找近优解。</li>
+<li><strong>优化器的阿喀琉斯之踵——基数估计</strong>：它靠统计信息<strong>猜</strong>每一步的中间结果有多少行，<strong>猜错就选错计划</strong>。这是真实世界慢查询的头号原因："优化器以为只有 100 行、实际 100 万行，选了嵌套循环，灾难"。<strong>解法</strong>：<code>ANALYZE</code> 更新统计、必要时用 hint 或改写 SQL 引导。</li>
+</ul>
+<p><strong>这就是为什么要读 <code>EXPLAIN ANALYZE</code></strong>：它显示优化器<strong>估计的</strong>行数 vs <strong>实际的</strong>行数——<strong>两者差很大的地方，就是优化器猜错、性能出问题的地方</strong>。这是数据库调优最高频的实战技能。</p>
+<h2 id="5-sql-medusa">5. 写快 SQL 的原则（Medusa 可用）<a class="headerlink" href="#5-sql-medusa" title="Permanent link"></a></h2>
+<ul>
+<li><strong>只取需要的</strong>：<code>SELECT 具体列</code> 而非 <code>SELECT *</code>（少搬数据、可能走覆盖索引）；用 <code>LIMIT</code>。</li>
+<li><strong>让 WHERE 能用索引</strong>：别在索引列上套函数（<code>WHERE date(ts)=...</code> 使索引失效，改成范围 <code>WHERE ts &gt;= ... AND ts &lt; ...</code>）——<strong>这个坑 Medusa 的时间查询要特别注意</strong>。</li>
+<li><strong>JOIN 的连接列建索引</strong>（外键索引）。</li>
+<li><strong>警惕 N+1</strong>：循环里发 N 条查询，改成一条 JOIN 或 <code>IN</code>（🔗 web-02 ORM 的经典陷阱）。</li>
+<li><strong>分页用 keyset 而非大 OFFSET</strong>：<code>OFFSET 100000</code> 要扫弃前十万行，改用 <code>WHERE id &gt; last_id</code>。</li>
+</ul>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（JOIN 算法选择）</strong> 给"大表 A ⋈ 小表 B（等值、B 无序）"和"两个已排序大表连接"，各选最优 JOIN 算法并说理由——<strong>把第 2 节的表用到具体场景</strong>。</p>
+<p><strong>例 2（读估计误差）</strong> 找一个 Medusa 慢查询的 <code>EXPLAIN ANALYZE</code>，对比某个 JOIN/扫描节点的 <code>rows</code> 估计值与 <code>actual rows</code>——<strong>差一个数量级的地方就是病灶</strong>。这是本页最实用的一招。</p>
+<p><strong>例 3（改写救索引）</strong> 把 <code>WHERE EXTRACT(year FROM published_at) = 2026</code> 改写成 <code>WHERE published_at &gt;= '2026-01-01' AND published_at &lt; '2027-01-01'</code>——<strong>前者索引失效全表扫、后者走索引</strong>，亲手验证加速。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p02">📋 大 Project P02（第二阶段）· 查询执行<a class="headerlink" href="#project-p02" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>P02-B · SQL 子集与执行计划</strong>（承接 P02-A）：
+- <strong>学习目标</strong>：理解 SQL 如何变成关系代数、物理算子树与可执行迭代器；学习用测试定义 SQL 语义。
+- <strong>教师提供</strong>：SQL 子集语法、AST 类型、TPC-H 风格小数据集、golden result 文件、<code>EXPLAIN</code> 输出格式样例。
+- <strong>学生任务</strong>：① 解析 <code>SELECT ... FROM ... WHERE ... JOIN ... GROUP BY ... ORDER BY ... LIMIT</code> 的核心子集；② 实现 Volcano 算子：SeqScan / IndexScan / Filter / Project / Sort / NestedLoopJoin / HashJoin / Aggregate；③ 实现规则优化器：谓词下推、投影裁剪、索引选择、简单 join 顺序启发式。
+- <strong>语义约束</strong>：NULL 可先不做，但必须在 README 说明；聚合至少支持 <code>COUNT/SUM/MIN/MAX</code>；所有算子要能流式 <code>next()</code>，不得把任意大表无脑读进内存。
+- <strong>验收测试</strong>：20 条公开 SQL + 20 条隐藏 SQL 结果一致；<code>EXPLAIN</code> 能打印逻辑计划和物理计划；索引选择查询相对 SeqScan 有可测加速；HashJoin 在大表等值连接上快于嵌套循环。
+- <strong>评分重点</strong>：解析与语义 25%，算子正确性 40%，优化器 20%，<code>EXPLAIN</code>/调试体验 15%。
+- <strong>延伸挑战</strong>：加入统计信息和一个小型 CBO，用估计行数选择 join 顺序。</p>
+</blockquote>
+<hr />
+<p><em>下一页：数据库 III——事务、MVCC 与恢复：ACID 怎么实现，多个事务并发怎么不互相污染，崩溃了怎么恢复。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="db-01-storage-index.html"><span class="pager-label">上一页</span>数据库 I · 存储与索引</a>
+  <a class="pager-slot next" href="db-03-transactions.html"><span class="pager-label">下一页</span>数据库 III · 事务、MVCC 与恢复</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

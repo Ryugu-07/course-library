@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机器级表示 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li class="active"><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 信息即比特：数的表示与它的陷阱</a></li>
+<li><a href="#2-c">2. C 与内存：指针、数组、结构体的真相</a></li>
+<li><a href="#3">3. 汇编：控制流与函数调用的机器实现</a></li>
+<li><a href="#4-c">4. 从 C 到可执行：编译四步概览</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="csapp-i">CSAPP I · 机器级表示<a class="headerlink" href="#csapp-i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS:APP 第 2–3 章（CMU 15-213）/ 《深入理解计算机系统》 ｜ <strong>前置</strong>：408 组成原理的概念框架
+系统线的第一课，也是 408「组成原理」的真身。408 让你<strong>背</strong> CPU 有哪些部件，CSAPP 让你<strong>看见</strong>一行 C 代码变成机器眼里的什么。核心心法一句话：<strong>程序员的抽象（变量、类型、函数）在机器层全是字节与地址</strong>——理解这层"翻译"，段错误、溢出、性能诡异全部不再神秘。</p>
+</blockquote>
+<h2 id="1">1. 信息即比特：数的表示与它的陷阱<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="补码数轴/圆环：位模式↔有符号值映射，突出 -128 无相反数、溢出回绕。" src="assets/img/csapp-01-twos-complement.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-01.3</span>补码数轴/圆环：位模式↔有符号值映射，突出 -128 无相反数、溢出回绕。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="IEEE754 位布局（符号|阶码|尾数）+ 浮点是对数刻度网格。" src="assets/img/csapp-01-ieee754.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-01.4</span>IEEE754 位布局（符号|阶码|尾数）+ 浮点是对数刻度网格。</figcaption>
+</figure>
+<p>机器只有 0/1，一切类型都是<strong>对字节的解释约定</strong>。</p>
+<p><strong>整数</strong>：无符号是直接二进制；有符号用<strong>补码（two's complement）</strong>——最高位权重取负 <span class="arithmatex">\(-2^{w-1}\)</span>。补码的好处是<strong>加法器不用区分正负</strong>（<span class="arithmatex">\(a-b = a + (\sim b + 1)\)</span>），硬件极简。<strong>陷阱</strong>：
+- <strong>溢出回绕</strong>：<code>int</code> 加法溢出是<strong>未定义行为</strong>（C 里），无符号则模 <span class="arithmatex">\(2^w\)</span> 回绕。经典 bug：<code>for (unsigned i = n; i &gt;= 0; i--)</code> 永不终止（无符号永 <span class="arithmatex">\(\ge 0\)</span>）。
+- <strong>有符号/无符号混用</strong>：<code>sizeof</code> 返回无符号，<code>if (a - b &lt; 0)</code> 当 <code>a,b</code> 无符号时永假——<strong>大量安全漏洞源于此</strong>（长度检查被绕过，🔗 sec-01）。</p>
+<p><strong>浮点（IEEE 754）</strong>：<span class="arithmatex">\((-1)^s\times 1.M\times 2^{E-\text{bias}}\)</span>——符号 + 尾数 + 阶码。必须建立的直觉：<strong>浮点是对数刻度</strong>（大数间隙大），故 <code>0.1 + 0.2 != 0.3</code>、大数加小数会<strong>吞掉</strong>小数、比较浮点要用容差。特殊值 <code>NaN/Inf</code> 传播。<strong>"浮点不是实数、是实数的有损网格"</strong>——数值计算（🔗 数学站 num 线）的一切误差从这里生根。</p>
+<h2 id="2-c">2. C 与内存：指针、数组、结构体的真相<a class="headerlink" href="#2-c" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="结构体内存布局 + 对齐填充：{char;int;char} 12 字节 vs 重排 8 字节。" src="assets/img/csapp-01-struct-layout.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-01.2</span>结构体内存布局 + 对齐填充：{char;int;char} 12 字节 vs 重排 8 字节。</figcaption>
+</figure>
+<p>C 是"带类型的汇编"——它的每个抽象都能翻译成地址算术：
+- <strong>指针 = 地址 + 类型</strong>（类型决定 <code>p+1</code> 走多少字节、解引用读几字节）。
+- <strong>数组 = 连续内存 + 无边界检查</strong>：<code>a[i]</code> 就是 <code>*(a+i)</code>——<strong>越界不报错，直接读写邻居</strong>，缓冲区溢出（sec-01）的物理根源。
+- <strong>结构体 = 带对齐的字节块</strong>：成员按<strong>对齐规则</strong>排布（<code>int</code> 落在 4 的倍数地址），故结构体有<strong>填充空洞</strong>；调整成员顺序能省内存（把大类型放前面）。<code>union</code> 则是同一块字节的多种解释。</p>
+<p><strong>读法</strong>：<strong>C 里没有魔法，只有"这块字节怎么解释、走多远"</strong>。段错误 = 解引用了不该碰的地址；诡异数据 = 类型解释错了字节。学会用 <code>gdb</code> 看内存 + <code>sizeof/offsetof</code> 算布局，C 就透明了。</p>
+<h2 id="3">3. 汇编：控制流与函数调用的机器实现<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="函数调用栈帧：返回地址、保存寄存器、局部变量。" src="assets/img/csapp-01-stack-frame.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-01.1</span>函数调用栈帧：返回地址、保存寄存器、局部变量。</figcaption>
+</figure>
+<p>高级语言的 <code>if/for/函数</code> 在机器层只有<strong>跳转</strong>和<strong>约定</strong>。看 x86-64（AT&amp;T 语法）关键映射：
+- <strong>条件/循环</strong> → 比较设置<strong>条件码</strong>（ZF/SF/OF/CF）+ 条件跳转 <code>je/jl/jg</code>。<code>for</code> 循环 = 初始化 + 条件跳转回边。
+- <strong>函数调用</strong> → <code>call</code> 压返回地址 + 跳转；<strong>调用约定</strong>规定参数走哪些寄存器（<code>rdi,rsi,rdx,...</code>）、返回值在 <code>rax</code>、哪些寄存器调用者/被调用者保存。
+- <strong>栈帧</strong> → 每次调用在栈上分配局部变量 + 保存现场；<code>rsp</code>/<code>rbp</code> 管理。<strong>递归就是栈帧的叠放</strong>，栈溢出 = 递归太深帧堆爆。</p>
+<p><strong>为什么要看汇编</strong>：① 理解<strong>性能</strong>（编译器做了什么优化、有没有向量化，🔗 perf 线）；② 理解<strong>安全</strong>（返回地址在栈上 ⇒ 溢出能劫持控制流，栈溢出攻击 sec-01）；③ 调试优化过的代码。<strong>你不用会写汇编，但要会读——它是"代码真正在做什么"的最终答案</strong>。</p>
+<h2 id="4-c">4. 从 C 到可执行：编译四步概览<a class="headerlink" href="#4-c" title="Permanent link"></a></h2>
+<p><code>gcc hello.c</code> 背后：<strong>预处理</strong>（展开宏/头文件）→ <strong>编译</strong>（C → 汇编）→ <strong>汇编</strong>（汇编 → 机器码目标文件 <code>.o</code>）→ <strong>链接</strong>（多个 <code>.o</code> + 库 → 可执行）。本页管前三步的"表示"，链接是 csapp-03 的主题。<strong>理解这条流水线，你才知道"undefined reference"（链接期）和"segfault"（运行期）是完全不同阶段的错误</strong>——报错定位能力就来自看清这条链。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（补码手算陷阱）</strong> 8 位补码：<code>-128</code> 的相反数是多少？答：还是 <code>-128</code>（<span class="arithmatex">\(+128\)</span> 溢出）——<code>abs(INT_MIN)</code> 是真实存在的 UB 坑。<strong>一道题记住"补码不对称"</strong>。</p>
+<p><strong>例 2（结构体瘦身）</strong> <code>struct {char a; int b; char c;}</code> 在 4 字节对齐下占 12 字节（填充）；重排成 <code>{int b; char a; char c;}</code> 占 8 字节。<strong>手算两种布局的 <code>sizeof</code></strong>，理解"字段顺序影响内存"这个真实的性能/内存优化点。</p>
+<p><strong>例 3（读一段汇编）</strong> 把一个带 <code>if</code> 的三行 C 函数 <code>gcc -S -O0</code> 出汇编，对照条件码与跳转——<strong>"高级控制流 = 比较 + 跳转"亲眼看一次</strong>。这是 [实验 L01 缓存实验] 之前最好的热身。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 关联实验</strong>：本页无独立 lab，但它是 [L01 缓存分块]、[L03 malloc]、[L02 shell] 三个 C 实验的地基——先把"C 即字节"这层吃透，那三个实验才不会卡在指针上。</p>
+</blockquote>
+<hr />
+<p><em>下一页：CSAPP II——存储层级与缓存：为什么同一个算法，换个循环顺序快 10 倍。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="crypto-02-protocols.html"><span class="pager-label">上一页</span>密码学 II · 协议、零知识与后量子</a>
+  <a class="pager-slot next" href="csapp-02-memory.html"><span class="pager-label">下一页</span>CSAPP II · 存储层级与缓存</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

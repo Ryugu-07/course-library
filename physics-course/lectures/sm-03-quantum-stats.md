@@ -5,6 +5,11 @@
 
 ## 1. 全同性与两种统计
 
+<figure class="plot" markdown="1">
+![三种统计的占据数](assets/img/sm-03-quantum-stats.svg)
+<figcaption><span class="fig-id">图 3.1</span>三种统计的占据数：费米-狄拉克（\(\le 1\)，泡利不相容）、玻色-爱因斯坦（低能可聚集）、经典极限下都趋于玻尔兹曼。</figcaption>
+</figure>
+
 全同粒子交换不产生新态——多粒子波函数只许两种对称性（qm-03 详证，此处引用）：**玻色子**（整数自旋，波函数对称，可同态堆叠）与**费米子**（半整数自旋，反对称，**Pauli 不相容**——一态一粒）。
 
 **两大分布【推导】**（巨正则系综下对单模求和，sm-02 §3）：单粒子态 $\varepsilon$ 的平均占据数——玻色：$\Xi = \sum_{n=0}^\infty e^{-n(\varepsilon-\mu)\beta}$ 几何级数；费米：$n \in \{0, 1\}$ 两项：

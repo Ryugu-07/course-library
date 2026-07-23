@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>复杂度理论 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li class="active"><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-p-vs-np">1. 时间复杂度类与 P vs NP 的结构</a></li>
+<li><a href="#2">2. 空间复杂度：另一根资源轴</a></li>
+<li><a href="#3">3. 随机与交互：更宽的世界</a></li>
+<li><a href="#4-p">4. 细粒度复杂度：P 内部的战争</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">计算理论 II · 复杂度理论<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Sipser 第 7–10 章 / Arora–Barak <em>Computational Complexity</em> ｜ <strong>前置</strong>：toc-01、algo-03（NP 归约）
+可计算性问"能不能算"，复杂度理论问"要多少资源"。这一页把 P、NP 放进更大的<strong>复杂度类地图</strong>里，讲清它们的结构关系，并触及现代复杂度的深水区（随机、空间、交互、PCP）。这是一门"用资源丈量难度"的几何学。</p>
+</blockquote>
+<h2 id="1-p-vs-np">1. 时间复杂度类与 P vs NP 的结构<a class="headerlink" href="#1-p-vs-np" title="Permanent link"></a></h2>
+<ul>
+<li><strong>P</strong>：多项式时间可判定——"高效可解"的数学定义。</li>
+<li><strong>NP</strong>：多项式时间可<strong>验证</strong>（存在多项式长证书，验证器多项式时间接受）。等价定义：非确定图灵机多项式时间。</li>
+<li><strong>NP 完全</strong>：NP 中最难者（algo-03 已建），SAT 是第一个（Cook–Levin）。</li>
+<li><strong>coNP</strong>：补问题在 NP（"否"有短证书）。</li>
+</ul>
+<p><strong>P vs NP</strong>：验证容易 <span class="arithmatex">\(\Rightarrow\)</span> 求解容易？普遍相信 <span class="arithmatex">\(P\ne NP\)</span>，但<strong>没有证明</strong>——这是克雷千禧难题，也是整个算法领域"何时该放弃找多项式算法"的信仰基础。<strong>若 <span class="arithmatex">\(P=NP\)</span></strong>：密码学崩塌、优化/AI/数学证明搜索全部平凡化——所以它不只是学术问题。</p>
+<p><strong>关键结构事实</strong>：
+- 若某个 NPC 问题 ∈ P，则 P=NP（NPC 是"多米诺骨牌的第一张"）。
+- <strong>NP-中间</strong>：若 <span class="arithmatex">\(P\ne NP\)</span>，存在既非 P 也非 NPC 的问题（Ladner 定理）——图同构、整数分解是疑似居民（分解的疑难正是 RSA 的安身之所，🔗 crypto-01）。
+- <strong>NP <span class="arithmatex">\(\ne\)</span> coNP 疑似成立</strong>：找不到 UNSAT 的短证书，这是"证明一个公式无解为什么难"的复杂度表述。</p>
+<h2 id="2">2. 空间复杂度：另一根资源轴<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<ul>
+<li><strong>L（对数空间）</strong>：<span class="arithmatex">\(O(\log n)\)</span> 工作空间——只够存几个指针。图连通性 ∈ L（Reingold 定理，惊人结果）。</li>
+<li><strong>PSPACE</strong>：多项式空间。<strong>关键</strong>：<span class="arithmatex">\(P\subseteq NP\subseteq PSPACE\)</span>。PSPACE 完全问题的代表是<strong>量化布尔公式 QBF</strong>（<span class="arithmatex">\(\exists x\forall y\dots\)</span>）与<strong>双人博弈</strong>（🔗 博弈论）——"你有必胜策略吗"通常 PSPACE 完全，比 NP 更难。</li>
+<li><strong>Savitch 定理</strong>：<span class="arithmatex">\(NPSPACE = PSPACE\)</span>（<span class="arithmatex">\(O(\log^2)\)</span> 空间模拟非确定性）——<strong>空间上不确定性几乎免费</strong>，与时间上（P vs NP）形成戏剧性对比。</li>
+</ul>
+<p><strong>时间–空间的层级总览</strong>：</p>
+<div class="arithmatex">\[
+L\subseteq NL\subseteq P\subseteq NP\subseteq PSPACE\subseteq EXP
+\]</div>
+<p>其中已知 <span class="arithmatex">\(P\subsetneq EXP\)</span>（时间层级定理——<strong>更多时间严格能做更多事</strong>，用对角线证），所以这条链里<strong>至少有一处严格</strong>，但我们不知道是哪处——<strong>"链上每个 <span class="arithmatex">\(\subseteq\)</span> 是否 <span class="arithmatex">\(\subsetneq\)</span>"几乎全是未解之谜</strong>，复杂度理论的谦卑就在这里。</p>
+<figure class="diagram">
+<p><img alt="复杂度类包含关系地图" src="assets/img/toc-02-complexity-map.svg" /></p>
+<figcaption><span class="fig-id">图 toc-02.1</span>复杂度类地图——L、NL、P、NP、PSPACE、EXP 的已知包含，以及 NPC、coNP、BPP、IP 的位置。</figcaption>
+</figure>
+<h2 id="3">3. 随机与交互：更宽的世界<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>BPP</strong>（有界错误多项式随机时间）：随机算法能高效解的类。<strong>普遍相信 <span class="arithmatex">\(P = BPP\)</span></strong>（去随机化猜想，靠伪随机生成器）——<strong>"随机性可能不增加多项式算力"</strong>，与 algo-03 里随机化的实用威力形成微妙张力：随机让算法更简单更快，但也许不改变"可解边界"。</li>
+<li><strong>IP（交互证明）</strong>：验证者与全能但不可信的证明者对话。<strong>震撼定理 <span class="arithmatex">\(IP = PSPACE\)</span></strong>：通过交互 + 随机，验证者能被说服相信 PSPACE 难的事实，尽管自己算不出。</li>
+<li><strong>零知识证明</strong>（🔗 crypto-02）：证明者让验证者相信"我知道秘密"却不泄露秘密——现代密码学与区块链的引擎，根在交互证明。</li>
+</ul>
+<p><strong>PCP 定理</strong>（复杂度的珠峰）：每个 NP 证明都能改写成一种格式，<strong>验证者只随机读常数个比特就能以高概率判对错</strong>。推论：<strong>许多问题连近似都 NP 难</strong>（algo-03 的不可近似性下界全部来自这里）。这是"验证的局部性"的深刻定理。</p>
+<h2 id="4-p">4. 细粒度复杂度：P 内部的战争<a class="headerlink" href="#4-p" title="Permanent link"></a></h2>
+<p>现代算法研究的新前线：<strong>已经是多项式的问题，指数还能不能再降？</strong> 例：编辑距离经典 <span class="arithmatex">\(O(n^2)\)</span>，能否 <span class="arithmatex">\(O(n^{1.9})\)</span>？<strong>细粒度归约</strong>表明——若能，则 SAT 有 <span class="arithmatex">\(2^{0.99n}\)</span> 算法（违反强指数时间假设 SETH）。<strong>于是 <span class="arithmatex">\(O(n^2)\)</span> 很可能是编辑距离的天花板，理由是一个关于 SAT 的猜想</strong>。这门学问给"为什么这个多项式算法快不起来"提供了 NP 理论那样的硬下界语言，是当前算法理论最活跃的方向之一。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（验证 vs 求解的直觉）</strong> 数独：填好的盘验证只需 <span class="arithmatex">\(O(n^2)\)</span>，但求解一般盘是 NPC——<strong>"改卷比考试容易"就是 <span class="arithmatex">\(P\overset?=NP\)</span> 的日常版</strong>。把这个直觉刻进去，很多问题的难度你能秒判。</p>
+<figure class="diagram">
+<p><img alt="数独验证容易求解困难的 P vs NP 直觉" src="assets/img/toc-02-verify-vs-solve.svg" /></p>
+<figcaption><span class="fig-id">图 toc-02.2</span>验证 vs 求解——填好数独后检查很快，但从空盘搜索解一般要面对组合爆炸。</figcaption>
+</figure>
+<p><strong>例 2（博弈更难）</strong> 单人谜题（数独、扫雷判定）多在 NP；双人博弈（广义国际象棋、围棋的判定版）常 PSPACE 完全或更高——<strong>"对手会最优应对"这一层量词 <span class="arithmatex">\(\forall\)</span> 让问题跳档</strong>。这解释了为什么博弈 AI 比谜题求解器难得多。</p>
+<p><strong>例 3（去随机化的赌注）</strong> 若你相信 <span class="arithmatex">\(P=BPP\)</span>，那么 algo-03 里所有随机算法原则上都有等效的确定性版本——只是我们还不会写。<strong>"随机性是本质的还是仅仅方便的"至今悬而未决</strong>，这是理论与实践张力的一个漂亮缩影。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：密码学 I——把 P vs NP 的"难"变成"安全"：对称加密、公钥与数论基础。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="toc-01-computability.html"><span class="pager-label">上一页</span>计算理论 I · 自动机与可计算性</a>
+  <a class="pager-slot next" href="crypto-01-foundations.html"><span class="pager-label">下一页</span>密码学 I · 对称、公钥与数论基础</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

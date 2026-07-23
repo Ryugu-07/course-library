@@ -4,6 +4,11 @@
 
 ## 1. 舞台设定
 
+<figure class="plot" markdown="1">
+![GBM 价格路径与看涨期权收益](assets/img/sde-03-gbm-payoff.svg)
+<figcaption><span class="fig-id">图 3.1</span>金融的两块地基：几何布朗运动的价格路径（左）与欧式看涨期权到期的"曲棍球杆"收益 \(\max(S_T-K,0)\)（右）。</figcaption>
+</figure>
+
 **市场模型**：股价走几何布朗运动 $dS = \mu S\,dt + \sigma S\,dB$（上上页已解出）；无风险利率 $r$（银行账户 $dM = rM\,dt$）；无摩擦、可做空、连续交易。
 
 **欧式看涨期权（call）**：到期日 $T$ 以行权价 $K$ 买入股票的权利，到期收益 $\max(S_T - K, 0)$。问题：**今天该值多少钱 $V(S, t)$？**

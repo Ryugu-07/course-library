@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>进程、线程与调度 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li class="active"><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 进程抽象与状态机</a></li>
+<li><a href="#2">2. 上下文切换：幻觉的引擎</a></li>
+<li><a href="#3-cpu">3. 调度：CPU 时间怎么分</a></li>
+<li><a href="#4">4. 用户态 / 内核态与系统调用（复习 + 深化）</a></li>
+<li><a href="#5">5. 练习与要点</a><ul>
+<li><a href="#project-p01-xv6">📋 大 Project P01（第一阶段）· xv6 系统调用与进程</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="i">操作系统 I · 进程、线程与调度<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.S081 / OSTEP（<em>Operating Systems: Three Easy Pieces</em>）虚拟化篇 ｜ <strong>前置</strong>：csapp-03/04（ECF、虚拟内存）
+操作系统是"管理硬件、给程序造幻觉"的软件。OSTEP 把 OS 的全部内容归纳成三个主题——<strong>虚拟化、并发、持久化</strong>。本页开虚拟化中的 CPU 虚拟化：<strong>一个（或几个）CPU 怎么让几百个进程都以为自己在独占运行</strong>。这是调度、上下文切换、以及"你的电脑同时开一堆程序不卡死"的原理。</p>
+</blockquote>
+<h2 id="1">1. 进程抽象与状态机<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="进程三态机：运行↔就绪↔阻塞 的转换 + 触发事件。" src="assets/img/os-01-process-states.svg" /></p>
+<figcaption><span class="fig-id">图 os-01.3</span>进程三态机：运行↔就绪↔阻塞 的转换 + 触发事件。</figcaption>
+</figure>
+<p><strong>进程 = 一个运行中的程序的完整上下文</strong>：地址空间（csapp-04）+ 寄存器 + 打开的文件 + 内核记账信息（PCB，进程控制块）。操作系统用<strong>进程状态机</strong>管理每个进程：</p>
+<p><strong>运行（running）→ 就绪（ready）→ 阻塞（blocked）</strong> 三态循环——正在用 CPU / 等着用 CPU / 等 I/O（读磁盘、等网络）。<strong>调度器</strong>的工作就是在时钟中断时，从就绪队列挑一个进程换上 CPU（🔗 csapp-03 上下文切换）。</p>
+<p><strong>进程 vs 线程</strong>：进程之间地址空间隔离（安全但通信贵）；<strong>线程</strong>是同一进程内的多个执行流，<strong>共享地址空间</strong>（通信是直接读写共享内存，快，但——正因为共享——引出 os-02 的全部并发噩梦）。<strong>"进程是资源容器、线程是调度单位"</strong>，一句话记住分工。</p>
+<h2 id="2">2. 上下文切换：幻觉的引擎<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="上下文切换：时钟中断→存 A 寄存器→载 B→换页表。" src="assets/img/os-01-context-switch.svg" /></p>
+<figcaption><span class="fig-id">图 os-01.2</span>上下文切换：时钟中断→存 A 寄存器→载 B→换页表。</figcaption>
+</figure>
+<p><strong>机制</strong>：时钟中断周期性触发（如每 10 ms）→ 陷入内核 → 内核保存当前进程的寄存器到它的 PCB → 载入下一个进程的寄存器 → 返回用户态。<strong>切换的是寄存器和页表基址</strong>——CPU 从此"变成"另一个进程。切得足够快（毫秒级），用户就感觉所有程序在同时跑，这就是<strong>时分复用</strong>造出的并发幻觉。</p>
+<p><strong>成本</strong>：切换本身要花时间（保存/恢复状态），更隐蔽的是<strong>缓存和 TLB 被污染</strong>（新进程的数据把旧进程的挤出缓存，🔗 csapp-02）——所以切换太频繁反而慢。<strong>这是"进程隔离"的代价，也是为什么高性能服务偏爱少量线程 + 异步（web-02 会讲事件循环）</strong>。</p>
+<h2 id="3-cpu">3. 调度：CPU 时间怎么分<a class="headerlink" href="#3-cpu" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="调度算法对比（FIFO 护航效应 / SJF / RR 时间片 / MLFQ 多级）甘特图。" src="assets/img/os-01-schedulers.svg" /></p>
+<figcaption><span class="fig-id">图 os-01.1</span>调度算法对比（FIFO 护航效应 / SJF / RR 时间片 / MLFQ 多级）甘特图。</figcaption>
+</figure>
+<p>就绪队列里多个进程，先跑谁、跑多久？<strong>调度目标常常互相冲突</strong>：吞吐量 vs 响应时间 vs 公平 vs 无饥饿。经典算法拾级而上：</p>
+<ul>
+<li><strong>FIFO</strong>：先来先服务——简单，但一个长任务堵住所有短任务（<strong>护航效应</strong>）。</li>
+<li><strong>SJF / STCF（最短作业优先）</strong>：优化平均周转时间——但要预知运行时间、且长任务饿死。</li>
+<li><strong>轮转（Round Robin）</strong>：每进程给一个时间片轮流跑——优化响应时间，公平，但纯 RR 对 I/O 密集型不友好。</li>
+<li><strong>多级反馈队列（MLFQ）</strong>：<strong>不需预知运行时间就近似 SJF</strong>——新任务进高优先级队列，用完时间片就降级。<strong>于是交互型（频繁让出 CPU 等输入）留在高优先级、CPU 密集型沉底</strong>——自动区分两类任务。这是真实 OS（早期 Unix、Windows）调度器的核心思想。</li>
+<li><strong>CFS（完全公平调度，Linux 现役）</strong>：用<strong>虚拟运行时间</strong>记每个进程已用的 CPU，总是调度虚拟时间最少的——用红黑树维护，<span class="arithmatex">\(O(\log n)\)</span>。<strong>"公平"被形式化成'让每个进程的已用时间尽量相等'</strong>。</li>
+</ul>
+<p><strong>读法</strong>：<strong>调度是一个没有完美解的多目标权衡</strong>——这也是为什么至今还在演进（近年的 EEVDF 取代 CFS）。理解 MLFQ 的"用行为推断类型"思想，比记住任何单一算法都有用。</p>
+<h2 id="4">4. 用户态 / 内核态与系统调用（复习 + 深化）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>进程无权直接碰硬件——CPU 有<strong>特权级</strong>（用户态 / 内核态）。想读文件、开进程、分配内存，必须通过<strong>系统调用</strong>（csapp-03 的陷阱）陷入内核。<strong>这个边界是操作系统所有保护的根</strong>：坏程序最多搞坏自己，碰不到内核和别的进程。<strong>"受限直接执行（limited direct execution）"</strong>是 OS 的中心设计——让进程直接在硬件上跑（快），但在关键处（系统调用、时钟中断）夺回控制（安全）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（调度手算）</strong> 三个任务到达时间与长度给定，分别用 FIFO / SJF / RR 算平均周转与响应时间——<strong>亲手看到"没有一个算法在所有指标上最优"</strong>，理解权衡的不可避免。</p>
+<p><strong>例 2（护航效应）</strong> 一个 100ms 的 CPU 任务前面排着，后面 3 个 1ms 的交互任务在 FIFO 下要等多久？换 RR 呢？<strong>这解释了"为什么一个卡住的程序会让整个系统发顿"以及时间片的意义</strong>。</p>
+<p><strong>例 3（进程还是线程）</strong> 设计一个网页服务器：每请求开进程还是开线程？权衡隔离（进程强）vs 开销与通信（线程省）——<strong>这正是 web-02 服务器架构的第一个设计决策</strong>，先在这里想清楚 trade-off。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p01-xv6">📋 大 Project P01（第一阶段）· xv6 系统调用与进程<a class="headerlink" href="#project-p01-xv6" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>教师版作业说明书，不提供完整解。</strong> xv6 是 MIT 6.S081 用的教学版 Unix，麻雀虽小五脏俱全。P01 分三阶段随 os-01/02/03 展开，目标是让学生亲手改过系统调用、调度、锁、文件系统与虚拟内存。</p>
+<p><strong>P01-A · 系统调用与进程</strong>
+- <strong>学习目标</strong>：理解一次系统调用从用户态 wrapper 到 trap、<code>syscall()</code> 分发、内核实现、返回用户态的全链路；理解进程表、调度器与时间片。
+- <strong>教师提供</strong>：xv6-riscv 基线、<code>make grade</code> 公共测试、<code>user/trace.c</code> 与 <code>user/sysinfotest.c</code> 的测试骨架、一个可重复的 CPU-bound / I/O-bound 调度 benchmark。
+- <strong>学生任务</strong>：① 实现 <code>trace(mask)</code>，按 bitmask 打印指定系统调用轨迹；② 实现 <code>sysinfo</code>，报告空闲内存与进程数；③ 增加 <code>setpriority(pid, prio)</code> 并把默认 RR 扩展成简单优先级调度，要求保留无饥饿策略（如 aging）。
+- <strong>接口约束</strong>：不得改变已有用户程序 ABI；新增系统调用必须补齐 <code>user/user.h</code>、<code>user/usys.pl</code>、<code>kernel/syscall.h</code>；调度修改不得破坏 <code>sleep</code>/<code>wakeup</code> 语义。
+- <strong>验收测试</strong>：<code>usertests</code> 全过；trace 输出顺序和 syscall 名称正确；<code>sysinfo</code> 在 fork/exit 前后计数变化正确；benchmark 中高优先级任务获得更低响应时间，低优先级任务最终仍能运行。
+- <strong>评分重点</strong>：系统调用链路 35%，进程/调度正确性 35%，自写测试 15%，代码解释与设计报告 15%。
+- <strong>延伸挑战</strong>：实现 MLFQ，记录每个进程的虚拟运行时间，并比较 RR / priority / MLFQ 的响应时间与公平性。</p>
+</blockquote>
+<hr />
+<p><em>下一页：操作系统 II——并发与同步：共享内存的多个线程如何不打架，锁、条件变量、死锁与它们的理论。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="csapp-04-vm-malloc.html"><span class="pager-label">上一页</span>CSAPP IV · 虚拟内存与动态内存</a>
+  <a class="pager-slot next" href="os-02-concurrency.html"><span class="pager-label">下一页</span>操作系统 II · 并发与同步</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

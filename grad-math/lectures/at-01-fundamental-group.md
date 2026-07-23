@@ -3,6 +3,12 @@
 > **对标**：Hatcher *AT* §1.1–1.2 ｜ **前置**：本科拓扑 I–II、抽代 I
 > 代数拓扑的纲领：**给空间配代数不变量，用代数的可计算性判空间的不同**（拓扑 II 结尾的预告正式开演）。第一个不变量是**基本群**——"绕洞方式"的群；本页的技术高峰是 $\pi_1(S^1) \cong \mathbb{Z}$：整个学科的第一块非平凡砖。
 
+
+<figure class="diagram" markdown="1">
+![基本群：环路在空间里能否收缩（圆环 vs 圆盘），\pi_1 记录&quot;洞&quot;。](assets/img/at-01-fundamental-group.svg)
+<figcaption><span class="fig-id">图 at-01.1</span>基本群：环路在空间里能否收缩（圆环 vs 圆盘），\(\pi_1\) 记录"洞"。</figcaption>
+</figure>
+
 ## 1. 同伦：连续变形的等价
 
 **定义** 映射同伦 $f \simeq g$：存在连续 $H: X\times[0,1] \to Y$，$H_0 = f, H_1 = g$（"电影"连接两映射）。道路同伦：端点固定的同伦。**同伦等价**的空间（$fg \simeq \mathrm{id}$，$gf \simeq \mathrm{id}$）：比同胚更粗的"相同"——圆环带 $\simeq$ 圆（压扁）、$\mathbb{R}^n \simeq$ 点（缩回）——**代数拓扑的不变量都是同伦不变量**：看"形变骨架"不看"皮肉尺寸"。

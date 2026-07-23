@@ -5,6 +5,11 @@
 
 ## 1. SVD：数值世界的中心分解
 
+<figure class="plot" markdown="1">
+![SVD 低秩逼近误差随秩衰减](assets/img/nla-01-svd-lowrank.svg)
+<figcaption><span class="fig-id">图 1.1</span>SVD 低秩逼近误差 \(\sqrt{\sum_{i>k}\sigma_i^2}\)（Eckart–Young）：奇异值衰减越快，低秩压缩越准。</figcaption>
+</figure>
+
 $A = U\Sigma V^\top$（本科高代 VI 已证存在）。数值视角下它的三重身份：
 
 - **几何真相**：任何矩阵 = 旋转 × 拉伸 × 旋转——条件数 $\kappa_2 = \sigma_1/\sigma_n$（数值 I 的定义在此显出几何脸：最大与最小拉伸比）；

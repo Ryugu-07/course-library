@@ -16,6 +16,11 @@ $$
 
 ## 2. 平面相图：特征值决定几何
 
+<figure class="plot" markdown="1">
+![四类相图鞍点焦点结点中心](assets/img/ode-03-phase-portrait.svg)
+<figcaption><span class="fig-id">图 3.1</span>线性系统 \(\dot{\mathbf x}=A\mathbf x\) 的相图由 \(A\) 的特征值决定：实异号→鞍点、复根→焦点/中心、实同号→结点。</figcaption>
+</figure>
+
 二维系统 $\mathbf{x}' = A\mathbf{x}$ 的轨线全景由 $A$ 的特征值 $\lambda_{1,2}$ 分类（**这张表值得画在纸上记**）：
 
 | 特征值 | 平衡点类型 | 图像 |

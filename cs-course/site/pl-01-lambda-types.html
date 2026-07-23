@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>λ 演算与类型系统 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li class="active"><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. λ 演算：最小的计算模型</a></li>
+<li><a href="#2">2. 类型系统：给程序上保险</a></li>
+<li><a href="#3">3. 多态与类型推断：既安全又不啰嗦</a></li>
+<li><a href="#4-curryhoward-lean4">4. Curry–Howard 同构：程序即证明（Lean4 的心脏）</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">语言 I · λ 演算与类型系统<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：<em>Types and Programming Languages</em>（TAPL, Pierce）/ Stanford CS242 ｜ <strong>前置</strong>：toc-01（可计算性）、comp-02（类型检查初步）、数学站逻辑
+编程语言不只是语法糖——它有一个数学内核。这一页讲两样地基：<strong>λ 演算</strong>（与图灵机等价的计算模型、函数式编程的根、"计算即代换"）和<strong>类型系统</strong>（把"程序不会出某类错"变成可证明的定理）。终点是 <strong>Curry–Howard 同构</strong>——"程序即证明、类型即命题"，这正是你 Lean4 计划（🔗 grad-math 后续）的理论心脏。对数学出身的你，这一页是"编程语言原来是一门逻辑学"。</p>
+</blockquote>
+<h2 id="1">1. λ 演算：最小的计算模型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="β 归约代换步骤：(λx.λy.x) a b → a。" src="assets/img/pl-01-beta-reduction.svg" /></p>
+<figcaption><span class="fig-id">图 pl-01.3</span>β 归约代换步骤：(λx.λy.x) a b → a。</figcaption>
+</figure>
+<p>图灵机（toc-01）是"命令式"的计算模型（改纸带状态）；<strong>λ 演算</strong>是"函数式"的——<strong>一切都是函数</strong>。语法极简，只有三样：</p>
+<div class="arithmatex">\[
+e ::= x \mid \lambda x.e \mid e_1\,e_2
+\]</div>
+<p>变量、<strong>抽象</strong>（<span class="arithmatex">\(\lambda x.e\)</span> 定义一个"输入 x 返回 e"的函数）、<strong>应用</strong>（<span class="arithmatex">\(e_1\)</span> 作用于 <span class="arithmatex">\(e_2\)</span>）。<strong>计算只有一条规则——β 归约（代换）</strong>：</p>
+<div class="arithmatex">\[
+(\lambda x.e)\,v \;\to\; e[x := v]
+\]</div>
+<p>把函数体里的 <span class="arithmatex">\(x\)</span> 换成实参 <span class="arithmatex">\(v\)</span>。<strong>"计算 = 反复代换直到不能再化简"</strong>——就这么简单，却与图灵机等价（Church–Turing，toc-01）：能表达自然数（Church 数）、布尔、递归（Y 组合子）、一切可计算函数。</p>
+<p><strong>深刻之处</strong>：λ 演算证明<strong>"函数"足以作为计算的全部基础</strong>——不需要状态、赋值、循环。这是函数式编程（Lisp/Haskell/ML，🔗 pl-02）的哲学源头，也是"无副作用、引用透明"这些概念的根。你在 CS61A 见过的高阶函数、闭包，本质都是 λ 演算的直接后裔。</p>
+<h2 id="2">2. 类型系统：给程序上保险<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="类型推导树（分数线规则堆叠成树）。" src="assets/img/pl-01-type-derivation.svg" /></p>
+<figcaption><span class="fig-id">图 pl-01.2</span>类型推导树（分数线规则堆叠成树）。</figcaption>
+</figure>
+<p>无类型 λ 演算太自由——能写出无意义的项（把数字当函数调用）。<strong>类型</strong>给每个项一个类型、规定合法组合，<strong>在运行前排除一类错误</strong>（comp-02 的类型检查的理论版）。</p>
+<p><strong>简单类型 λ 演算（STLC）</strong>：类型 <span class="arithmatex">\(\tau ::= \text{基类型} \mid \tau_1 \to \tau_2\)</span>（函数类型）。<strong>类型规则</strong>写成推理规则（分数线上是前提、下是结论）：</p>
+<div class="arithmatex">\[
+\frac{\Gamma \vdash e_1 : \tau_1 \to \tau_2 \quad \Gamma \vdash e_2 : \tau_1}{\Gamma \vdash e_1\,e_2 : \tau_2}
+\]</div>
+<p>读作："在上下文 <span class="arithmatex">\(\Gamma\)</span> 下，若 <span class="arithmatex">\(e_1\)</span> 是 <span class="arithmatex">\(\tau_1\to\tau_2\)</span> 的函数、<span class="arithmatex">\(e_2\)</span> 是 <span class="arithmatex">\(\tau_1\)</span>，则应用结果是 <span class="arithmatex">\(\tau_2\)</span>"。<strong>类型检查就是构造这样一棵推导树</strong>（🔗 与数学证明同构，下一节揭晓）。</p>
+<p><strong>类型安全的核心定理【机理】</strong>：<strong>Progress（进展）+ Preservation（保持）= Soundness（可靠性）</strong>：
+- <strong>Preservation</strong>：若 <span class="arithmatex">\(e:\tau\)</span> 且 <span class="arithmatex">\(e\to e'\)</span>，则 <span class="arithmatex">\(e':\tau\)</span>（求值不改变类型）。
+- <strong>Progress</strong>：良类型的项要么是值、要么能继续求值（不会卡在无意义的中间态）。
+- 两者合起来："<strong>良类型的程序不会出错（well-typed programs don't go wrong）</strong>"——Milner 的名言。<strong>这是类型系统价值的精确数学表述</strong>：类型检查通过 = 证明了程序不会有某类运行时错误。</p>
+<h2 id="3">3. 多态与类型推断：既安全又不啰嗦<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>STLC 要处处写类型，且 <code>identity</code> 函数要为每个类型写一遍。<strong>参数多态（泛型）</strong>解决之：<span class="arithmatex">\(\forall \alpha.\ \alpha\to\alpha\)</span> 一个 <code>id</code> 适用所有类型（System F 的核心）。</p>
+<p><strong>Hindley–Milner 类型推断（ML/Haskell/Rust 局部推断的根）</strong>：<strong>编译器自动推出类型，不用你写</strong>——通过<strong>合一（unification）</strong>：把类型当带未知数的方程、求解约束（<code>id 3</code> ⇒ <code>α = int</code>）。<strong>HM 让你既享受静态类型的安全、又几乎不用写类型标注</strong>——鱼与熊掌兼得（comp-02 埋的伏笔在此揭晓）。这是编程语言理论最实用的成果之一，你写 Rust 的 <code>let x = ...</code> 不用标类型，背后就是它。</p>
+<h2 id="4-curryhoward-lean4">4. Curry–Howard 同构：程序即证明（Lean4 的心脏）<a class="headerlink" href="#4-curryhoward-lean4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="Curry-Howard 对照桥：命题↔类型、证明↔程序、蕴含↔函数、∧↔积、∨↔和。" src="assets/img/pl-01-curry-howard.svg" /></p>
+<figcaption><span class="fig-id">图 pl-01.1</span>Curry-Howard 对照桥：命题↔类型、证明↔程序、蕴含↔函数、∧↔积、∨↔和。</figcaption>
+</figure>
+<p>本页的高潮，也是二十世纪逻辑与计算最深刻的发现之一——<strong>类型系统和逻辑证明系统是同一个东西</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>逻辑</th>
+<th>类型/程序</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>命题 <span class="arithmatex">\(A\)</span></td>
+<td>类型 <span class="arithmatex">\(A\)</span></td>
+</tr>
+<tr>
+<td>证明 <span class="arithmatex">\(A\)</span></td>
+<td>类型为 <span class="arithmatex">\(A\)</span> 的程序（项）</td>
+</tr>
+<tr>
+<td>蕴含 <span class="arithmatex">\(A\to B\)</span></td>
+<td>函数类型 <span class="arithmatex">\(A\to B\)</span></td>
+</tr>
+<tr>
+<td>合取 <span class="arithmatex">\(A\wedge B\)</span></td>
+<td>积类型（元组）<span class="arithmatex">\(A\times B\)</span></td>
+</tr>
+<tr>
+<td>析取 <span class="arithmatex">\(A\vee B\)</span></td>
+<td>和类型 <span class="arithmatex">\(A + B\)</span></td>
+</tr>
+<tr>
+<td>全称 <span class="arithmatex">\(\forall\)</span></td>
+<td>依赖类型 <span class="arithmatex">\(\Pi\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>"证明一个命题" = "构造一个该类型的程序"，"类型检查" = "验证证明正确"</strong>。函数 <span class="arithmatex">\(A\to B\)</span> 就是"从 A 的证明造出 B 的证明"的过程——modus ponens 就是函数应用！</p>
+<p><strong>这正是 Lean4 / Coq 这类证明助手的原理</strong>（🔗 你的 grad-math/lean-lab 计划的理论根基）：你在 Lean 里"写证明"其实是"写一个类型正确的程序"，Lean 的类型检查器（基于<strong>依赖类型</strong>——类型可以依赖值，表达 <span class="arithmatex">\(\forall/\exists\)</span>）验证它——<strong>编译通过 = 定理得证</strong>。这就是为什么 Lean 能当"幻觉闸门"：类型检查器不接受错误证明，就像它不接受类型错误的程序。<strong>你学 Lean4 时，本页是它的地基——形式化证明不是玄学，是 Curry–Howard 的直接工程化</strong>。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（β 归约手算）</strong> 化简 <span class="arithmatex">\((\lambda x.\lambda y.x)\,a\,b\)</span>（Church 的 <code>true</code>/取第一个）→ <span class="arithmatex">\(a\)</span>——<strong>亲手做几步代换，理解"计算即代换"</strong>，λ 演算就不神秘了。</p>
+<p><strong>例 2（类型推导树）</strong> 为 <span class="arithmatex">\(\lambda f.\lambda x.f\,(f\,x)\)</span>（应用两次）构造类型推导，推出它是 <span class="arithmatex">\((\alpha\to\alpha)\to\alpha\to\alpha\)</span>（正是 Church 数 2！）——<strong>体会类型如何编码结构</strong>。</p>
+<p><strong>例 3（Curry–Howard 具体化）</strong> 函数 <code>fst : A × B → A</code> 对应哪个逻辑定理？（<span class="arithmatex">\(A\wedge B \Rightarrow A\)</span>，合取消去）——<strong>"这个函数就是这条定理的证明"亲眼看一次</strong>，为 Lean4 铺路。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：语言 II——语义、函数式与垃圾回收：程序"意义"的严格定义、函数式范式的威力、以及内存自动管理的机制。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mlsys-02-inference.html"><span class="pager-label">上一页</span>MLSys II · 推理系统与算子优化</a>
+  <a class="pager-slot next" href="pl-02-semantics-gc.html"><span class="pager-label">下一页</span>语言 II · 语义、函数式与垃圾回收</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

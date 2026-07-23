@@ -14,6 +14,11 @@
 
 ## 2. 凸函数
 
+<figure class="plot" markdown="1">
+![凸函数在弦下方切线上方](assets/img/opt-01-convex.svg)
+<figcaption><span class="fig-id">图 1.1</span>凸函数的两条等价刻画：图像在任意弦下方、在任意切线上方——凸优化"局部最优即全局最优"的根。</figcaption>
+</figure>
+
 **定义** $f$ 凸 $\iff$ 定义域凸且 $f(\lambda x + (1-\lambda)y) \leq \lambda f(x) + (1-\lambda)f(y)$（弦在图像上方）。**严格凸**：不等号严格；**$\mu$-强凸**：$f - \frac{\mu}{2}\|x\|^2$ 仍凸（碗至少弯到二次程度——收敛速率的关键参数，优化 II）。
 
 **三级判据**（可微性逐级增强）：

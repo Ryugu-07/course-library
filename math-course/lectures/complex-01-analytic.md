@@ -2,6 +2,12 @@
 
 > 复变函数论只研究一类函数——**解析函数**（复可导），但这一个条件的后果好得不像话：可导一次就无穷可导、局部就是幂级数、由边界值定内部值……本页先讲清"复可导为什么这么强"：答案藏在 Cauchy–Riemann 方程里。
 
+
+<figure class="plot" markdown="1">
+![共形映射：z\mapsto z^2 或 e^z 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。](assets/img/complex-01-conformal.svg)
+<figcaption><span class="fig-id">图 complex-01.1</span>共形映射：\(z\mapsto z^2\) 或 \(e^z\) 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。</figcaption>
+</figure>
+
 ## 1. 复可导：一个苛刻得多的条件
 
 **定义** $f: \mathbb{C} \to \mathbb{C}$ 在 $z_0$ 可导：$f'(z_0) = \lim_{\Delta z \to 0}\frac{f(z_0 + \Delta z) - f(z_0)}{\Delta z}$。形式与实函数一样，**杀伤力在极限过程**：$\Delta z$ 可以沿复平面**任何方向**趋零，所有方向必须给出同一个极限——二维的自由度全被锁死（对比数分 V：多元实函数各偏导存在远不足以可微；复可导比"可微"还强得多）。在区域内处处可导称**解析（全纯）**。

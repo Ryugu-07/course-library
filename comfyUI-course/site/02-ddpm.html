@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-10 09:47</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -58,12 +58,20 @@
 <p>本讲是全课程数学的心脏，值得铺开纸笔完整跟一遍。我们把"加噪-去噪"写成严格的概率模型（DDPM，Ho et al. 2020），从极大似然出发推导出训练目标，最后你会看到一条壮观的化简链：<strong>变分下界 → 一串 KL 散度 → 高斯均值匹配 → 一个平方损失："猜噪声"</strong>。读完这讲，KSampler 每一步在算什么，对你不再有任何神秘感。</p>
 </blockquote>
 <h2 id="0">0. 记号约定<a class="headerlink" href="#0" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="噪声表" src="assets/img/02-noise-schedule.svg" /></p>
+<figcaption><span class="fig-id">图 2.0</span>噪声表决定信号消退的快慢：\(\beta_t\) 是每步加多少噪、\(\bar\alpha_t\) 是累计保留多少信号——线性 vs 余弦是两种常见选择。</figcaption>
+</figure>
 <p><span class="arithmatex">\(x_0\)</span>：真实图像（先不管潜空间，第 04 讲再引入）；<span class="arithmatex">\(x_1, \dots, x_T\)</span>：逐步加噪的中间态（<span class="arithmatex">\(T\)</span> 通常取 1000）；<span class="arithmatex">\(\beta_t \in (0,1)\)</span>：第 <span class="arithmatex">\(t\)</span> 步的加噪强度（<strong>噪声日程表</strong>，预先固定的小数，从 <span class="arithmatex">\(10^{-4}\)</span> 缓增到 <span class="arithmatex">\(0.02\)</span>）。记：</p>
 <div class="arithmatex">\[
 \alpha_t = 1 - \beta_t, \qquad \bar\alpha_t = \prod_{s=1}^{t} \alpha_s
 \]</div>
 <p><span class="arithmatex">\(\bar\alpha_t\)</span> 单调递减：<span class="arithmatex">\(\bar\alpha_0 = 1\)</span>（纯净），<span class="arithmatex">\(\bar\alpha_T \approx 0\)</span>（纯噪声）。它是"信号残存比例"的刻度尺。</p>
 <h2 id="1">1. 前向过程：固定的、不用学的一半<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="前向扩散加噪" src="assets/img/02-forward-diffusion.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>前向扩散：按噪声表逐步加高斯噪声，把数据分布抹成纯高斯——这一半固定、不用学，是 DDPM 的"退化"方向。</figcaption>
+</figure>
 <p>每一步在缩小信号的同时注入高斯噪声：</p>
 <div class="arithmatex">\[
 q(x_t \mid x_{t-1}) = \mathcal{N}\big(x_t;\; \sqrt{\alpha_t}\, x_{t-1},\; \beta_t I\big)

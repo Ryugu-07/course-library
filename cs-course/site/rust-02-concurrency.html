@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>并发、trait 与 unsafe 边界 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li class="active"><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 无畏并发：数据竞争的编译期终结</a></li>
+<li><a href="#2-traitrust">2. Trait：Rust 的抽象引擎</a></li>
+<li><a href="#3-unsafe">3. unsafe：安全网的边界</a></li>
+<li><a href="#4-rust">4. Rust 的定位:什么时候用它</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="rust-ii-trait-unsafe">Rust II · 并发、trait 与 unsafe 边界<a class="headerlink" href="#rust-ii-trait-unsafe" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：<em>The Rust Programming Language</em> / <em>Rust for Rustaceans</em>（Gjengset）｜ <strong>前置</strong>：rust-01（所有权）、par-02（无锁、数据竞争）、os-02（并发）
+这一页把 Rust 的三块高级能力讲透：<strong>无畏并发</strong>（所有权如何在编译期消灭数据竞争——par 线所有噩梦的解药）、<strong>trait</strong>（Rust 的抽象与多态机制，接口 + 泛型的统一）、以及 <strong>unsafe</strong>（什么时候必须跳出安全网、以及安全抽象的边界哲学）。读完，你会明白 Rust 为什么能同时用于操作系统内核和 Web 后端。</p>
+</blockquote>
+<h2 id="1">1. 无畏并发：数据竞争的编译期终结<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>par-02/os-02 里，数据竞争是最难调的 bug（间歇性、不可复现）。<strong>Rust 的洞见</strong>：数据竞争的定义是"≥2 线程访问同一数据、≥1 个写、无同步"——而 rust-01 的<strong>借用铁律（共享不可变 XOR 可变不共享）恰好禁止了"可变 + 共享"</strong>。把它扩展到线程间，数据竞争就在编译期不可能。靠两个 trait：</p>
+<ul>
+<li><strong><code>Send</code></strong>：类型的所有权可以安全<strong>转移</strong>到另一线程。</li>
+<li><strong><code>Sync</code></strong>：类型可以安全地被多线程<strong>共享引用</strong>（<code>&amp;T</code> 能跨线程）。</li>
+</ul>
+<p>编译器自动为大多数类型推导这两个标记，并<strong>强制</strong>：想跨线程共享可变数据，必须用<strong>同步类型</strong>——<code>Mutex&lt;T&gt;</code>（互斥锁，os-02）、<code>Arc&lt;T&gt;</code>（原子引用计数，多线程共享所有权）、<code>atomic</code>（无锁原语，par-02）。<strong>忘了加锁？编译不过</strong>——borrow checker 拦下。<strong>"数据竞争在 Rust 里是编译错误而非运行时灾难"</strong>，这就是"无畏并发"的字面兑现——你可以大胆写多线程，编译过了就没有数据竞争（死锁仍可能，那是逻辑问题 os-02，但数据竞争没了）。</p>
+<p><strong>典型模式</strong>：
+- 共享只读数据：<code>Arc&lt;T&gt;</code>（多线程共享所有权、不可变）。
+- 共享可变数据：<code>Arc&lt;Mutex&lt;T&gt;&gt;</code>（引用计数 + 锁）——编译器强制你先拿锁才能改。
+- 消息传递：<code>channel</code>（🔗 pl-02 函数式 + par-01 消息传递哲学）——"不要通过共享内存通信，要通过通信共享内存"（Go 的哲学 Rust 也支持）。</p>
+<p><strong>这缝合了本站三条线</strong>：os-02 的锁/竞态 + par-02 的原子/内存序 + rust-01 的所有权 = <strong>Rust 把并发的正确性从"程序员自律"变成"编译器强制"</strong>。你读到这里回看 par-02 那些 ABA、内存序噩梦，会明白 Rust 消灭的正是它们。</p>
+<h2 id="2-traitrust">2. Trait：Rust 的抽象引擎<a class="headerlink" href="#2-traitrust" title="Permanent link"></a></h2>
+<p><strong>trait</strong> 是 Rust 的接口/多态机制——定义"一个类型能做什么"，是泛型和抽象的核心（类似 Java interface + Haskell typeclass，🔗 pl 线的类型类）：</p>
+<ul>
+<li><strong>定义共享行为</strong>：<code>trait Draw { fn draw(&amp;self); }</code>，任何类型 <code>impl Draw</code> 就能被当 <code>Draw</code> 用。</li>
+<li><strong>泛型约束（trait bound）</strong>：<code>fn print_all&lt;T: Display&gt;(items: &amp;[T])</code>——"T 必须能显示"，编译器检查。<strong>这是 HM 类型推断（pl-01）+ 约束的实用形态</strong>。</li>
+<li><strong>两种多态</strong>：</li>
+<li><strong>静态分发（泛型，单态化）</strong>：编译期为每个具体类型生成专门代码——<strong>零成本抽象</strong>（rust-01），和手写一样快，但代码膨胀。</li>
+<li><strong>动态分发（trait object <code>dyn Trait</code>）</strong>：运行时虚表查找——灵活（异构集合）、有小开销。<strong>"编译期特化 vs 运行时多态"的选择</strong>，对应 comp 线的单态化 vs 虚函数。</li>
+<li><strong>标准 trait 组成生态</strong>：<code>Iterator</code>（惰性迭代器，函数式 pl-02，零成本）、<code>Clone</code>/<code>Copy</code>（复制语义）、<code>Drop</code>（析构，所有权释放钩子）、<code>From</code>/<code>Into</code>（转换）——<strong>trait 是 Rust 表达力和一致性的来源</strong>。</li>
+</ul>
+<p><strong>读法</strong>：<strong>trait 让 Rust 既有 C 的性能又有高级语言的抽象</strong>——泛型 + trait bound 在编译期解决，运行时零负担。你写 <code>.iter().map().filter().collect()</code> 这样的函数式链，编译后和手写循环一样快。</p>
+<h2 id="3-unsafe">3. unsafe：安全网的边界<a class="headerlink" href="#3-unsafe" title="Permanent link"></a></h2>
+<p>Rust 的安全保证靠借用检查器，但有些事它<strong>证明不了安全</strong>（却确实安全）——底层内存操作、调用 C、实现无锁结构（par-02）、硬件寄存器访问。这时用 <strong><code>unsafe</code></strong> 块，解锁五种超能力（如解引用裸指针、调用 unsafe 函数）。</p>
+<p><strong>关键哲学——安全抽象封装 unsafe</strong>：
+- <code>unsafe</code> <strong>不是"关闭所有检查"</strong>——它只解锁那五种操作，借用检查在 unsafe 块内照常工作。
+- <strong>正确用法</strong>：用少量 <code>unsafe</code> 实现底层机制，然后<strong>用安全接口封装它</strong>、并<strong>由人来证明这个 unsafe 块满足安全不变量</strong>。标准库的 <code>Vec</code>、<code>Mutex</code> 内部都有 unsafe，但对外暴露完全安全的 API——<strong>"把不安全关进一个被审查过的小盒子、外面全是安全的"</strong>。
+- <strong>责任转移</strong>：安全代码里的 bug 编译器帮你挡；<code>unsafe</code> 里的 bug <strong>是你（人）在承诺"我证明过这里安全"</strong>。所以 unsafe 要少、要集中、要审查、要注释清楚安全论证。</p>
+<p><strong>这是 Rust 工程哲学的精髓</strong>：不是"永远安全"（那做不了系统编程），而是<strong>"默认安全 + 显式标记的不安全边界 + 人对边界负责"</strong>——大部分代码享受编译器保护，极少数底层代码明确标出、集中审查。<strong>这个"把危险局部化并显式化"的思想，本身就是一种优秀的工程纪律</strong>（🔗 与 sec 线"缩小攻击面"、系统线"隔离"同构）。</p>
+<h2 id="4-rust">4. Rust 的定位:什么时候用它<a class="headerlink" href="#4-rust" title="Permanent link"></a></h2>
+<ul>
+<li><strong>系统编程</strong>：OS 内核（Linux 已接纳 Rust）、嵌入式、浏览器引擎、数据库——要 C 的性能又要安全。</li>
+<li><strong>高性能后端 / 基础设施</strong>：Web 服务（actix/axum）、网络代理、CLI 工具、WASM——你的 Medusa 若某个热点组件要极致性能 + 可靠，Rust 是候选。</li>
+<li><strong>不太适合</strong>：快速原型/脚本（Python 更快出活）、GC 停顿无所谓且开发速度优先的场景。</li>
+<li><strong>学习价值（对你）</strong>：<strong>即使不用 Rust 写生产，学它也让你彻底想清 C 的内存和并发规则</strong>——它是最好的"系统思维教练"，把你在 csapp/os/par 线学的隐性规则显式化。</li>
+</ul>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（无畏并发实操）</strong> 用 <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> 让多个线程安全地共享递增一个计数器——对比 os-02 里 C 版的数据竞争（那里要小心加锁、错了静默出错），Rust 里忘加锁直接编译不过。<strong>"编译器逼你正确"亲手体验</strong>。</p>
+<p><strong>例 2（trait 双分发）</strong> 同一个 <code>Draw</code> trait，用泛型（静态分发）和 <code>Vec&lt;Box&lt;dyn Draw&gt;&gt;</code>（动态分发）各写一次——理解"编译期特化 vs 运行时虚表"的取舍。</p>
+<p><strong>例 3（unsafe 边界）</strong> 读标准库 <code>Vec::push</code> 的实现（内部有 unsafe 处理未初始化内存），理解"unsafe 实现 + 安全接口"的封装模式——<strong>理解 Rust 不是没有 unsafe，而是把它关进审查过的盒子</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>语言线完成（4 页）。下一页进入工程与全栈线——以你正在运营的 Medusa 为解剖标本，看一个请求从浏览器到数据库的完整旅程。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="rust-01-ownership.html"><span class="pager-label">上一页</span>Rust I · 所有权与借用检查</a>
+  <a class="pager-slot next" href="web-01-anatomy.html"><span class="pager-label">下一页</span>全栈 I · 请求的一生（Medusa 解剖）</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

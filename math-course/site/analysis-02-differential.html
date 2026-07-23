@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-11 07:57</div>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
   </div>
 </nav>
 <main id="content">
@@ -51,6 +51,10 @@
 </blockquote>
 <h2 id="1">1. 导数与微分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(f'(x_0) = \lim\limits_{\Delta x \to 0} \dfrac{f(x_0 + \Delta x) - f(x_0)}{\Delta x}\)</span>。等价说法（微分）：<span class="arithmatex">\(f(x_0 + \Delta x) = f(x_0) + A\,\Delta x + o(\Delta x)\)</span>，<span class="arithmatex">\(A = f'(x_0)\)</span>——<strong>可微 = 可用线性函数局部逼近</strong>，这个视角推广到多元时才是本体（数分 V）。</p>
+<figure class="plot">
+<p><img alt="割线随 h 趋于 0 转成切线" src="assets/img/analysis-02-derivative-tangent.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>割线随 \(h\to 0\) 转成切线，斜率从差商 \(\frac{f(a+h)-f(a)}{h}\) 趋于导数 \(f'(a)\)——"可微 = 局部线性逼近"的几何本相。</figcaption>
+</figure>
 <ul>
 <li>可导 ⇒ 连续；反之不然（<span class="arithmatex">\(|x|\)</span>）；存在处处连续处处不可导的函数（Weierstrass 函数，反直觉警钟）；</li>
 <li>单侧导数；可导 <span class="arithmatex">\(\iff\)</span> 左右导数存在且相等。</li>
@@ -59,6 +63,10 @@
 <p><strong>基本导数表</strong>（默写级）：<span class="arithmatex">\((x^\alpha)' = \alpha x^{\alpha-1}\)</span>，<span class="arithmatex">\((e^x)' = e^x\)</span>，<span class="arithmatex">\((\ln x)' = \frac1x\)</span>，<span class="arithmatex">\((\sin x)' = \cos x\)</span>，<span class="arithmatex">\((\cos x)' = -\sin x\)</span>，<span class="arithmatex">\((\tan x)' = \sec^2 x\)</span>，<span class="arithmatex">\((\arcsin x)' = \frac{1}{\sqrt{1-x^2}}\)</span>，<span class="arithmatex">\((\arctan x)' = \frac{1}{1+x^2}\)</span>。</p>
 <p><strong>高阶导数</strong>：Leibniz 公式 <span class="arithmatex">\((uv)^{(n)} = \sum_{k=0}^n \binom{n}{k} u^{(k)} v^{(n-k)}\)</span>（形如二项式）。</p>
 <h2 id="2">2. 中值定理链（本页主梁）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="中值定理：存在 c 使切线平行于割线" src="assets/img/analysis-02-mvt.svg" /></p>
+<figcaption><span class="fig-id">图 2.2</span>Lagrange 中值定理：割线 \(a\to b\) 的斜率，必在某个内点 \(c\) 处被切线复现——\(f'(c)=\frac{f(b)-f(a)}{b-a}\)。</figcaption>
+</figure>
 <p><strong>定理（Fermat 引理）</strong> <span class="arithmatex">\(x_0\)</span> 是极值点且 <span class="arithmatex">\(f'(x_0)\)</span> 存在 <span class="arithmatex">\(\Rightarrow f'(x_0) = 0\)</span>。<em>思路</em>：极大值处左差商 <span class="arithmatex">\(\geq 0\)</span>、右差商 <span class="arithmatex">\(\leq 0\)</span>，夹出 <span class="arithmatex">\(0\)</span>。——"内部极值点导数为零"，一切优化的第一性原理。</p>
 <p><strong>定理（Rolle）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，在 <span class="arithmatex">\((a,b)\)</span> 可导，<span class="arithmatex">\(f(a) = f(b)\)</span> <span class="arithmatex">\(\Rightarrow \exists \xi \in (a,b),\ f'(\xi) = 0\)</span>。<em>思路</em>：最值定理取到最值；若最值都在端点则 <span class="arithmatex">\(f\)</span> 恒常；否则内部极值点用 Fermat。</p>
 <p><strong>定理（Lagrange 中值）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，<span class="arithmatex">\((a,b)\)</span> 内可导 <span class="arithmatex">\(\Rightarrow \exists \xi \in (a,b)\)</span>：</p>

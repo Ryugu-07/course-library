@@ -5,6 +5,11 @@
 
 ## 1. 干涉：相位差记账
 
+<figure class="plot" markdown="1">
+![双缝干涉与衍射包络](assets/img/opt-01-double-slit.svg)
+<figcaption><span class="fig-id">图 1.1</span>双缝：快速的干涉条纹被缓变的单缝衍射包络调制——干涉定条纹间距、衍射定整体强度分布。</figcaption>
+</figure>
+
 两束同频波叠加：$I = I_1 + I_2 + 2\sqrt{I_1I_2}\cos\delta$（**【推导】**复振幅相加取模方——交叉项即干涉项；$\delta$ = 相位差 = $\frac{2\pi}{\lambda}\times$光程差）。
 
 **杨氏双缝**：光程差 $d\sin\theta$ ⇒ 亮纹 $d\sin\theta = m\lambda$——条纹间距 $\Delta y = \frac{\lambda L}{d}$：**用尺子量出光的波长**（1801 年波动说的定音锤；qm-01 将让电子重演此实验——那是量子力学的开幕式）。

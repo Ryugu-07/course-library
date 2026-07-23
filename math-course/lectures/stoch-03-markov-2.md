@@ -2,6 +2,12 @@
 
 > 上一页问"怎么走"，本页问"走到最后停在哪"。答案是一个分布而非一个点：**平稳分布**——链的长期时间份额。这一页也是本站含金量最高的应用出口之一：Google 的 PageRank 和统计计算的 MCMC，都是"造一条链、取它的平稳分布"。
 
+
+<figure class="diagram" markdown="1">
+![Markov 链状态分类：常返/暂态/吸收态的状态转移图（点 + 带权箭头）。](assets/img/stoch-03-state-classes.svg)
+<figcaption><span class="fig-id">图 stoch-03.1</span>Markov 链状态分类：常返/暂态/吸收态的状态转移图（点 + 带权箭头）。</figcaption>
+</figure>
+
 ## 1. 平稳分布
 
 **定义** 行向量 $\pi$（$\pi_i \geq 0, \sum\pi_i = 1$）满足

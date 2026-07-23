@@ -13,6 +13,11 @@
 
 ## 2. 晶格振动：从弹簧链到色散关系
 
+<figure class="plot" markdown="1">
+![双原子链声子色散](assets/img/solid-01-phonon.svg)
+<figcaption><span class="fig-id">图 1.1</span>双原子链的声子色散：低频声学支（原子同相）与高频光学支（反相），中间是禁带。</figcaption>
+</figure>
+
 **一维单原子链【推导】**：近邻弹簧模型 $m\ddot u_n = C(u_{n+1} + u_{n-1} - 2u_n)$，试解 $u_n = e^{i(kna - \omega t)}$（周期结构的 Bloch 式猜解——solid-02 的预演）：
 
 $$

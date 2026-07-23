@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>测量、Roofline 与向量化 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li class="active"><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 性能工程的第一铁律：测量，不要猜</a></li>
+<li><a href="#2-roofline">2. Roofline 模型：该优化什么</a></li>
+<li><a href="#3-cpu">3. 现代 CPU 的两大加速武器</a></li>
+<li><a href="#4-dod">4. 数据导向设计（DOD）：布局即性能</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-roofline">性能 I · 测量、Roofline 与向量化<a class="headerlink" href="#i-roofline" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.172（性能工程）/ Agner Fog 优化手册 ｜ <strong>前置</strong>：csapp-01/02（机器表示、缓存）
+性能工程是把"能跑"变成"跑得快"的学问，也是你（数学 + 系统底子）最能出成果的方向之一。它的第一原则反直觉却至关重要：<strong>先测量，别猜</strong>。这一页建立性能的科学方法——怎么找瓶颈、Roofline 模型怎么告诉你"该优化什么"、以及现代 CPU 的两大加速武器（流水线与 SIMD 向量化）怎么用。</p>
+</blockquote>
+<h2 id="1">1. 性能工程的第一铁律：测量，不要猜<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Amdahl 定律曲线：不同串行占比下加速比随核数饱和。" src="assets/img/perf-01-amdahl.svg" /></p>
+<figcaption><span class="fig-id">图 perf-01.3</span>Amdahl 定律曲线：不同串行占比下加速比随核数饱和。</figcaption>
+</figure>
+<p>程序员对"哪里慢"的直觉<strong>几乎总是错的</strong>——瓶颈常在意想不到的地方（一个没注意的 O(n²)、一次意外的磁盘 I/O、缓存不命中）。所以铁律是：</p>
+<blockquote>
+<p><strong>先剖析（profile）定位真正的热点，只优化那 5% 真正耗时的代码。</strong></p>
+</blockquote>
+<ul>
+<li><strong>Amdahl 定律</strong>：优化占比 <span class="arithmatex">\(p\)</span> 的部分、加速 <span class="arithmatex">\(s\)</span> 倍，总加速 <span class="arithmatex">\(=\frac{1}{(1-p)+p/s}\)</span>。<strong>推论</strong>：只占 5% 的代码就算优化到无穷快，总共也只快 5%——<strong>优化非瓶颈是白费力气</strong>。这条定律是"先测量"的数学依据，也是并行加速的上限（par-01 再用）。</li>
+<li><strong>工具</strong>：<code>perf</code>（Linux）、Instruments（Mac）、火焰图（flamegraph）——<strong>看哪个函数占了最多时间、缓存命中率、分支预测失败率</strong>。学会读火焰图是性能工程的入场券。</li>
+</ul>
+<p><strong>方法论</strong>：<strong>建立"测量 → 找瓶颈 → 优化 → 再测量验证"的闭环</strong>，永远用数据说话。每次优化都要有 before/after 的数字，否则你不知道是真快了还是心理作用（甚至变慢了）。</p>
+<h2 id="2-roofline">2. Roofline 模型：该优化什么<a class="headerlink" href="#2-roofline" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Roofline 模型：横轴算术强度、纵轴性能，带宽斜顶 + 算力平顶，标内存受限/算力受限区。" src="assets/img/perf-01-roofline.svg" /></p>
+<figcaption><span class="fig-id">图 perf-01.2</span>Roofline 模型：横轴算术强度、纵轴性能，带宽斜顶 + 算力平顶，标内存受限/算力受限区。</figcaption>
+</figure>
+<p>优化前要判断：程序是<strong>算力受限（compute-bound）</strong>还是<strong>内存受限（memory-bound）</strong>？——这决定优化方向。<strong>Roofline 模型</strong>用一张图回答：</p>
+<ul>
+<li><strong>横轴</strong>：算术强度（arithmetic intensity）= 每字节内存访问做多少次浮点运算（FLOP/Byte）。</li>
+<li><strong>纵轴</strong>：可达性能（FLOP/s）。</li>
+<li><strong>屋顶</strong>由两条线构成：斜线 = <strong>内存带宽</strong>限制（低算术强度时，性能被搬数据的速度卡住）、平线 = <strong>峰值算力</strong>限制（高算术强度时，被 CPU 算力卡住）。</li>
+</ul>
+<p><strong>你的程序落在哪决定策略</strong>：
+- <strong>内存受限</strong>（在斜线下，多数朴素程序）→ 优化<strong>数据访问</strong>：改善局部性、分块、减少访存（🔗 csapp-02、perf-02）。加更多计算单元没用，得喂饱它们。
+- <strong>算力受限</strong>（在平线下）→ 优化<strong>计算</strong>：向量化、用更少指令、更好算法。</p>
+<p><strong>这就是为什么矩阵乘法要分块</strong>（csapp-02 的 L01）：朴素版内存受限（算术强度低），分块提高数据复用 = 提高算术强度 = 把程序从内存屋顶推向算力屋顶。<strong>Roofline 是"先诊断再开药"的性能地图</strong>——HPC 工程师的第一张图。</p>
+<h2 id="3-cpu">3. 现代 CPU 的两大加速武器<a class="headerlink" href="#3-cpu" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="SIMD：一条指令同时算 8 个 float（标量 vs 向量）。" src="assets/img/perf-01-simd.svg" /></p>
+<figcaption><span class="fig-id">图 perf-01.1</span>SIMD：一条指令同时算 8 个 float（标量 vs 向量）。</figcaption>
+</figure>
+<p>朴素的"一条指令一条指令顺序执行"远没榨干现代 CPU。两个必须理解的机制：</p>
+<p><strong>① 流水线与乱序执行</strong>：CPU 把每条指令拆成多个阶段（取指/译码/执行/写回）<strong>流水线并行</strong>，还会<strong>乱序执行</strong>（后面无依赖的指令先跑）、<strong>推测执行</strong>（猜分支方向提前跑）。
+- <strong>杀手——分支预测失败</strong>：<code>if</code> 猜错要清空流水线（十几个周期），<strong>难预测的分支（数据无规律）极伤性能</strong>。著名案例："<strong>排序后的数组遍历比未排序快数倍</strong>"——因为排序让分支变得可预测。优化手段：用<strong>无分支代码</strong>（条件移动、位运算）替代难预测分支。
+- <strong>数据依赖</strong>：一条指令等另一条的结果就没法并行——<strong>打破依赖链</strong>（如多个累加器并行求和）能显著提速。</p>
+<p><strong>② SIMD 向量化</strong>：一条指令同时对多个数据做同样运算（Single Instruction Multiple Data）——AVX 一次算 8 个 float、512 位一次 16 个。<strong>理论上直接 8~16× 加速</strong>。三种用法：
+- <strong>靠编译器自动向量化</strong>（<code>-O3</code>，最省事但脆弱——循环有依赖/别名/复杂控制流就失败）。
+- <strong>编译器提示</strong>（<code>#pragma</code>、<code>restrict</code> 消除别名疑虑让编译器敢向量化）。
+- <strong>手写 intrinsics</strong>（<code>_mm256_add_ps</code>，最可控但费力）。</p>
+<p><strong>这就是 [实验 L07]</strong>：点积的标量版 / 编译器自动向量化版 / 手写 SIMD 版三者对比，实测加速比——<strong>亲手看到"一条指令算 8 个数"的威力，也看到编译器什么时候会/不会帮你向量化</strong>。</p>
+<h2 id="4-dod">4. 数据导向设计（DOD）：布局即性能<a class="headerlink" href="#4-dod" title="Permanent link"></a></h2>
+<p>现代性能优化的一大范式转变——<strong>从"面向对象"到"面向数据"</strong>：
+- <strong>AoS（结构体数组）</strong> <code>struct{x,y,z} points[N]</code> vs <strong>SoA（数组的结构体）</strong> <code>struct{x[N],y[N],z[N]}</code>：若只处理 <code>x</code>，SoA 让 <code>x</code> 连续 → 缓存友好 + 可向量化（🔗 csapp-02、db-01 列存同理）。
+- <strong>"设计数据布局以匹配访问模式和硬件"</strong>——游戏引擎、数据库、ML 框架的共同心法。<strong>性能常常不在算法在布局</strong>。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Amdahl 算账）</strong> 一个程序 60% 时间在函数 A、40% 在 B。把 A 加速 5×，总加速多少？（<span class="arithmatex">\(\frac{1}{0.4+0.6/5}\approx 1.9×\)</span>）——<strong>理解"为什么优化前必须先知道占比"</strong>。</p>
+<p><strong>例 2（分支预测实验）</strong> 遍历数组累加"大于阈值"的元素，对比数组排序前后的耗时——<strong>排序后快数倍，亲眼见分支预测的代价</strong>。这是最震撼的性能 demo 之一。</p>
+<p><strong>例 3（Roofline 定位）</strong> 判断"向量点积"和"N 体引力模拟"各是内存受限还是算力受限（点积算术强度低=内存受限、N 体每对都算=算力受限）——<strong>据此决定优化方向</strong>，Roofline 思维上手。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L07（SIMD 与向量化）</strong>：<code>labs/L07-simd/</code> —— 点积三版本（标量/自动向量化/intrinsics）+ 分支预测 demo。跑在 Mac（C）。</p>
+</blockquote>
+<hr />
+<p><em>下一页：性能 II——缓存优化实战：把 csapp-02 的缓存理论变成具体的优化手法和一个"优化 100×"的大挑战。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-03-codegen.html"><span class="pager-label">上一页</span>编译 III · IR、优化与代码生成</a>
+  <a class="pager-slot next" href="perf-02-cache-practice.html"><span class="pager-label">下一页</span>性能 II · 缓存优化实战</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

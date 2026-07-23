@@ -4,6 +4,11 @@
 
 ## 1. 前置：词怎么变成向量
 
+<figure class="plot" markdown="1">
+![正弦位置编码](assets/img/06-positional-encoding.svg)
+<figcaption><span class="fig-id">图 6.1</span>正弦位置编码：用不同频率的 sin/cos 给每个位置一个独特向量，让无序的注意力知道"谁在前谁在后"。</figcaption>
+</figure>
+
 神经网络吃的是向量，第一步是把词变成向量。独热编码（每个词一个坐标轴）维数爆炸且任意两词正交——"猫"和"狗"的相似性无处安放。解法是**词嵌入（word embedding）**：给每个词学一个稠密向量（如 300 维），让语义相近的词向量相近。word2vec（2013）的训练思想极简：**用一个词预测它的上下文**（"分布假设"：意思相近的词出现在相似的语境里）。副产品惊艳了所有人：向量空间里 $\vec{v}_{\text{king}} - \vec{v}_{\text{man}} + \vec{v}_{\text{woman}} \approx \vec{v}_{\text{queen}}$——语义关系变成了线性代数。记住这个思想：**"预测上下文"这个朴素目标能逼出语义表示**——把它推到极限就是第 07 讲的 GPT。
 
 ## 2. RNN：给网络装上记忆
@@ -66,6 +71,17 @@ $$
 RNN 还有个与生俱来的工程死穴：$h_t$ 依赖 $h_{t-1}$，**必须逐词串行计算**。GPU 是并行机器（第 05 讲的燃料），却只能干等序列一格格走完；训练长文档慢到无法忍受，模型规模因此上不去。总结 RNN 的两宗罪：**远距离信号衰减（学不好）+ 串行（练不快）**。Transformer 对症下的药是同一味。
 
 ## 3. Transformer：注意力就是全部
+
+
+<figure class="diagram" markdown="1">
+![Transformer 整块：多头注意力 + FFN + 残差 + LayerNorm 的结构。](assets/img/06-transformer-block.svg)
+<figcaption><span class="fig-id">图 6.3</span>Transformer 整块：多头注意力 + FFN + 残差 + LayerNorm 的结构。</figcaption>
+</figure>
+
+<figure class="plot" markdown="1">
+![注意力权重矩阵](assets/img/06-attention-weights.svg)
+<figcaption><span class="fig-id">图 6.2</span>注意力权重矩阵：每个 query 对所有 key 做 softmax，得到一行权重——决定"看哪些词"，Transformer 的核心运算。</figcaption>
+</figure>
 
 2017 年的暴论：**把循环整个扔掉**。让序列里每个词直接与所有词（包括自己）两两交互——**自注意力（self-attention）**。任意两词之间的路径长度从 RNN 的 $O(n)$ 降到 $O(1)$（信号不衰减），且所有位置的计算完全独立（GPU 满载并行）。两宗罪一次清账。代价后面说。
 

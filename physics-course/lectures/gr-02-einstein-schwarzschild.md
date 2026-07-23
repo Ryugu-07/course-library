@@ -17,6 +17,11 @@ $$
 
 ## 2. Schwarzschild 解
 
+<figure class="plot" markdown="1">
+![Schwarzschild 有效势](assets/img/gr-02-effective-potential.svg)
+<figcaption><span class="fig-id">图 2.1</span>Schwarzschild 有效势比牛顿多一项 \(-L^2/r^3\)：近距离势垒被压低，允许粒子"坠入"——近日点进动与黑洞吸积的根。</figcaption>
+</figure>
+
 **定理（Schwarzschild 1916 / Birkhoff）** 球对称真空解唯一且静态：
 
 $$

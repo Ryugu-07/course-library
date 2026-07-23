@@ -5,6 +5,11 @@
 
 ## 1. 特殊函数：一个来源，一张表
 
+<figure class="plot" markdown="1">
+![Bessel 与 Legendre 函数](assets/img/mp-01-special-functions.svg)
+<figcaption><span class="fig-id">图 1.1</span>两族最常见的特殊函数：Bessel \(J_n\)（柱对称问题）与 Legendre \(P_n\)（球对称问题）——都是分离变量后的本征函数。</figcaption>
+</figure>
+
 **统一出身**：在对称坐标系里分离 Helmholtz/Laplace 方程（pde-01 的流程），径向/角向方程的解**必然**是它们——不是发明，是分离变量的副产物：
 
 | 函数 | 出生地 | 物理岗位 | 关键性质 |

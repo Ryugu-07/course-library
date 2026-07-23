@@ -4,6 +4,11 @@
 
 ## 1. 重积分
 
+<figure class="plot" markdown="1">
+![二重积分是曲面下的体积](assets/img/analysis-06-double-integral.svg)
+<figcaption><span class="fig-id">图 6.1</span>二重积分 \(\iint_D f\,dA\) 是曲面下方、区域 \(D\) 上方的体积——一元"曲线下面积"升维成"曲面下体积"。</figcaption>
+</figure>
+
 **定义**：与一元同构（分割 → 乘测度 → 求和 → 取极限）。有界闭区域上连续函数可积。
 
 **计算三板斧**：

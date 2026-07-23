@@ -4,6 +4,11 @@
 
 ## 1. 布朗运动：随机游走的极限
 
+<figure class="plot" markdown="1">
+![布朗运动样本轨道](assets/img/stoch-04-brownian.svg)
+<figcaption><span class="fig-id">图 4.1</span>布朗运动的样本轨道：处处连续却处处不可导，是随机游走的连续极限、随机微积分的主角。</figcaption>
+</figure>
+
 **从随机游走出发**：对称随机游走步长 $\Delta x$、步频 $\Delta t$，令 $\Delta x = \sqrt{\Delta t} \to 0$（**这个缩放是唯一能得到非平凡极限的**——方差 $\frac{t}{\Delta t}(\Delta x)^2 = t$ 恰好有限），由 CLT（概率 V）各时刻趋于正态——极限过程即布朗运动。
 
 **定义** $\{B(t), t \geq 0\}$ 为标准布朗运动（Wiener 过程），若：① $B(0) = 0$；② 独立增量；③ $B(t) - B(s) \sim N(0,\ t - s)$；④ 轨道连续。

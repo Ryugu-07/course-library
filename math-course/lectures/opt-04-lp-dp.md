@@ -4,6 +4,11 @@
 
 ## 1. 线性规划：问题与几何
 
+<figure class="plot" markdown="1">
+![线性规划最优在可行域顶点](assets/img/opt-04-lp.svg)
+<figcaption><span class="fig-id">图 4.1</span>线性规划的最优解必在可行多边形的顶点上——单纯形法沿棱在顶点间移动的几何依据。</figcaption>
+</figure>
+
 **标准形**：
 
 $$

@@ -16,6 +16,11 @@
 
 ## 2. 分离变量法（完整流程，一遍走通）
 
+<figure class="plot" markdown="1">
+![热方程解的高频模式先衰减](assets/img/pde-01-heat-decay.svg)
+<figcaption><span class="fig-id">图 1.1</span>分离变量把解写成本征模式叠加，第 \(n\) 个模式按 \(e^{-n^2 t}\) 衰减——高频先被抹平，热方程天然"磨光"。</figcaption>
+</figure>
+
 **样板问题**：两端固定的弦上热传导
 
 $$

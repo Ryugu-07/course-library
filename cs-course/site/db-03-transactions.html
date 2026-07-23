@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>事务、MVCC 与恢复 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li class="active"><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-acid">1. ACID 与并发的威胁</a></li>
+<li><a href="#2">2. 可串行化：正确性的黄金标准</a></li>
+<li><a href="#3">3. 两条并发控制路线</a></li>
+<li><a href="#4-walos-03">4. 崩溃恢复：WAL（os-03 日志的直系后代）</a></li>
+<li><a href="#5">5. 练习与要点</a><ul>
+<li><a href="#project-p02">📋 大 Project P02（第三阶段·收官）· 事务与恢复</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="iii-mvcc">数据库 III · 事务、MVCC 与恢复<a class="headerlink" href="#iii-mvcc" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CMU 15-445 后半 / <em>Database Internals</em> 事务篇 ｜ <strong>前置</strong>：db-01/02、os-02（并发）、os-03（崩溃一致性/日志）
+数据库最深刻的部分——<strong>事务</strong>。它给你一个惊人的承诺：<strong>一组操作要么全成功要么全不发生（原子），并发执行像串行一样正确（隔离），一旦提交断电也不丢（持久）</strong>。这一页讲清 ACID 怎么实现：并发控制（锁 vs MVCC，Postgres 用的后者）与崩溃恢复（WAL——你会看到它就是 os-03 文件系统日志的直系后代）。</p>
+</blockquote>
+<h2 id="1-acid">1. ACID 与并发的威胁<a class="headerlink" href="#1-acid" title="Permanent link"></a></h2>
+<p><strong>ACID</strong>：<strong>原子性</strong>（Atomicity，全做或全不做）、<strong>一致性</strong>（Consistency，不破坏约束）、<strong>隔离性</strong>（Isolation，并发如串行）、<strong>持久性</strong>（Durability，提交不丢）。前三个防并发与故障，最后一个防断电。</p>
+<p><strong>并发事务不控制会怎样</strong>（隔离性要消灭的异常）：
+- <strong>脏读</strong>：读到别的事务还没提交的数据（它可能回滚）。
+- <strong>不可重复读</strong>：同一事务内两次读同一行结果不同（别人中途改了并提交）。
+- <strong>幻读</strong>：两次范围查询行数不同（别人插了新行）。
+- <strong>丢失更新</strong>：os-02 的竞态在数据库版（两个事务读同一值各自加、后写覆盖前写）。</p>
+<p><strong>隔离级别</strong>是"允许哪些异常换多少并发"的旋钮：读未提交 &lt; 读已提交 &lt; 可重复读 &lt; <strong>可串行化</strong>（最严，完全等价某个串行顺序，无任何异常）。<strong>级别越高越安全越慢</strong>——又一个 CS 里无处不在的权衡。Postgres 默认"读已提交"，Medusa 若有并发写要想清楚够不够。</p>
+<h2 id="2">2. 可串行化：正确性的黄金标准<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="冲突图无环⟺可串行化（拓扑排序）。" src="assets/img/db-03-conflict-graph.svg" /></p>
+<figcaption><span class="fig-id">图 db-03.3</span>冲突图无环⟺可串行化（拓扑排序）。</figcaption>
+</figure>
+<p>并发调度<strong>正确</strong>的定义：<strong>可串行化</strong>——并发执行的结果等价于<strong>某个</strong>串行执行顺序。怎么判一个调度是否可串行化？<strong>冲突图（优先图）</strong>：事务为点，冲突操作（对同一数据的读写/写写）定向连边，<strong>图无环 ⟺ 可串行化</strong>（🔗 algo-01 的拓扑排序——无环才有合法串行顺序）。这把"并发正确性"化成一个优雅的图论判定。</p>
+<h2 id="3">3. 两条并发控制路线<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="MVCC 多版本：更新造新版本、读读快照、旧版本待 VACUUM 回收。" src="assets/img/db-03-mvcc.svg" /></p>
+<figcaption><span class="fig-id">图 db-03.2</span>MVCC 多版本：更新造新版本、读读快照、旧版本待 VACUUM 回收。</figcaption>
+</figure>
+<p><strong>① 两阶段锁（2PL，悲观）</strong>：读加共享锁、写加排他锁；<strong>所有加锁在放锁之前完成</strong>（增长阶段 → 收缩阶段）——可证明产生可串行化调度。<strong>代价</strong>：锁争用、<strong>死锁</strong>（os-02 的四条件在此，数据库用等待图检测死锁并回滚一个事务打破环）。</p>
+<p><strong>② 多版本并发控制（MVCC，乐观读，Postgres/你在用的）【机理级】</strong>：<strong>每次更新不覆盖旧值，而是造一个新版本</strong>，每个版本带事务时间戳。<strong>读操作读"对我可见的那个版本"——读永不阻塞写、写永不阻塞读</strong>。这是 MVCC 的杀手锏：分析型长查询和写入可以并行不打架（对 Medusa 这种"一边写入一边读取分析"的负载极友好）。</p>
+<ul>
+<li><strong>快照隔离</strong>：每个事务看到一个一致的数据快照（事务开始那刻的世界）。</li>
+<li><strong>代价</strong>：旧版本堆积要<strong>垃圾回收</strong>——这就是 Postgres 的 <strong>VACUUM</strong>！<strong>"为什么 Postgres 要定期 VACUUM"的答案就在 MVCC</strong>：删除/更新的旧行版本（dead tuples）不会立即消失，要 VACUUM 回收，否则表膨胀（🔗 你的 Medusa 运维里 VACUUM 的意义在此彻底讲清）。</li>
+<li>快照隔离仍有一个微妙异常（写偏斜），真正的可串行化需 SSI（可串行化快照隔离，Postgres 的 <code>SERIALIZABLE</code>）。</li>
+</ul>
+<h2 id="4-walos-03">4. 崩溃恢复：WAL（os-03 日志的直系后代）<a class="headerlink" href="#4-walos-03" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="WAL：先写日志→提交→崩溃后 redo 已提交/undo 未提交。" src="assets/img/db-03-wal-recovery.svg" /></p>
+<figcaption><span class="fig-id">图 db-03.1</span>WAL：先写日志→提交→崩溃后 redo 已提交/undo 未提交。</figcaption>
+</figure>
+<p><strong>问题</strong>：事务提交了但脏页还在缓冲池没落盘，此刻断电——怎么保证已提交的不丢（D）、未提交的不残留（A）？<strong>答案是预写日志 WAL（Write-Ahead Logging）</strong>，和 os-03 文件系统日志是<strong>同一思想</strong>：</p>
+<p><strong>WAL 铁律</strong>：<strong>任何数据页写回磁盘之前，描述这次修改的日志必须先落盘</strong>（write-ahead）。日志是<strong>顺序追加</strong>的（快），记录每次修改的 redo（如何重做）和 undo（如何撤销）信息。</p>
+<p><strong>ARIES 恢复三阶段【骨架】</strong>：崩溃重启后——
+1. <strong>分析</strong>：扫日志，确定崩溃时哪些事务未完成、哪些脏页。
+2. <strong>Redo（重做）</strong>：从日志重放所有修改（包括未提交的），把数据库恢复到崩溃<strong>那一刻</strong>的精确状态。
+3. <strong>Undo（撤销）</strong>：回滚所有未提交事务的修改（用 undo 信息）。</p>
+<p><strong>结果</strong>：已提交的事务其修改一定在（D，靠 redo）、未提交的一定没有（A，靠 undo）。<strong>"先写日志、崩溃后重放 redo 撤销 undo"——这套机制让数据库能在任意时刻断电而不损坏</strong>。提交的定义就是"<strong>commit 日志记录落盘</strong>"那一刻（所以提交要 <code>fsync</code>，慢但可靠，🔗 os-03 "写入 ≠ 持久化")。</p>
+<p><strong>这条主线的完整闭环</strong>：os-03 文件系统日志 → 本页数据库 WAL → dist-02 分布式的复制日志（Raft log）——<strong>"把状态变更写成一条不可变的顺序日志"是可靠系统的元思想</strong>，本站三处呼应，你会在 dist 线看到它第三次登场。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（判可串行化）</strong> 给两个交错事务的操作序列，画冲突图判有无环——<strong>"并发对不对"用拓扑排序回答</strong>，把 algo 线的图论用到事务。</p>
+<p><strong>例 2（MVCC 为什么要 VACUUM）</strong> 描述一次 <code>UPDATE</code> 在 MVCC 下产生了什么（旧版本 + 新版本），解释不 VACUUM 会怎样（表膨胀、查询变慢）——<strong>把你 Medusa 运维里的 VACUUM 从"照做的命令"变成"懂原理的操作"</strong>。</p>
+<p><strong>例 3（WAL 恢复推演）</strong> 事务 T1 已提交、T2 未提交时断电，脏页均未落盘——推演 redo/undo 各恢复了什么，验证 A 和 D 都满足。<strong>手推一遍，"数据库为什么断电不坏"就刻进去了</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p02">📋 大 Project P02（第三阶段·收官）· 事务与恢复<a class="headerlink" href="#project-p02" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>P02-C · ACID、MVCC 与 WAL</strong>（承接 P02-A/B）：
+- <strong>学习目标</strong>：让学生体验“正确的数据库不是能查数据，而是在并发和崩溃下仍然不撒谎”。
+- <strong>教师提供</strong>：事务 API 骨架、并发事务调度器、崩溃注入 harness（在指定日志序号后 kill 进程）、隔离异常测试样例。
+- <strong>学生任务</strong>：① 选择 MVCC 快照隔离或 2PL 可串行化路线，并在报告中说明取舍；② 实现事务开始/提交/回滚、版本可见性或锁管理、死锁检测/写冲突处理；③ 实现 WAL，保证 commit record 落盘后 redo/undo 恢复正确。
+- <strong>正确性约束</strong>：提交点必须有明确定义；任何数据页刷盘前对应日志必须已刷；并发读写不得出现脏读、丢失更新；回滚必须清理索引与数据版本的一致性。
+- <strong>验收测试</strong>：隔离级别测试通过；崩溃发生在“写日志前/写日志后/提交后/脏页刷盘后”的多种时刻，重启后已提交在、未提交无；长事务读快照期间并发写不破坏可见性。
+- <strong>评分重点</strong>：事务语义 25%，并发控制 30%，WAL 恢复 30%，故障注入报告 15%。
+- <strong>P02 总结报告</strong>：要求学生用一条 SQL 从解析、计划、索引访问、事务提交、WAL 落盘到崩溃恢复画出端到端路径。</p>
+</blockquote>
+<hr />
+<p><em>数据库三页完成。下一页进入分布式 I——多台机器协作的世界：时钟、一致性模型，以及 CAP 定理为什么让你必须取舍。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="db-02-query.html"><span class="pager-label">上一页</span>数据库 II · 查询执行与优化</a>
+  <a class="pager-slot next" href="dist-01-time-consistency.html"><span class="pager-label">下一页</span>分布式 I · 时钟与一致性模型</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

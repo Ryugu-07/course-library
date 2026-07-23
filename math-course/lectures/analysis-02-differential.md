@@ -6,6 +6,11 @@
 
 **定义** $f'(x_0) = \lim\limits_{\Delta x \to 0} \dfrac{f(x_0 + \Delta x) - f(x_0)}{\Delta x}$。等价说法（微分）：$f(x_0 + \Delta x) = f(x_0) + A\,\Delta x + o(\Delta x)$，$A = f'(x_0)$——**可微 = 可用线性函数局部逼近**，这个视角推广到多元时才是本体（数分 V）。
 
+<figure class="plot" markdown="1">
+![割线随 h 趋于 0 转成切线](assets/img/analysis-02-derivative-tangent.svg)
+<figcaption><span class="fig-id">图 2.1</span>割线随 \(h\to 0\) 转成切线，斜率从差商 \(\frac{f(a+h)-f(a)}{h}\) 趋于导数 \(f'(a)\)——"可微 = 局部线性逼近"的几何本相。</figcaption>
+</figure>
+
 - 可导 ⇒ 连续；反之不然（$|x|$）；存在处处连续处处不可导的函数（Weierstrass 函数，反直觉警钟）；
 - 单侧导数；可导 $\iff$ 左右导数存在且相等。
 
@@ -16,6 +21,11 @@
 **高阶导数**：Leibniz 公式 $(uv)^{(n)} = \sum_{k=0}^n \binom{n}{k} u^{(k)} v^{(n-k)}$（形如二项式）。
 
 ## 2. 中值定理链（本页主梁）
+
+<figure class="plot" markdown="1">
+![中值定理：存在 c 使切线平行于割线](assets/img/analysis-02-mvt.svg)
+<figcaption><span class="fig-id">图 2.2</span>Lagrange 中值定理：割线 \(a\to b\) 的斜率，必在某个内点 \(c\) 处被切线复现——\(f'(c)=\frac{f(b)-f(a)}{b-a}\)。</figcaption>
+</figure>
 
 **定理（Fermat 引理）** $x_0$ 是极值点且 $f'(x_0)$ 存在 $\Rightarrow f'(x_0) = 0$。*思路*：极大值处左差商 $\geq 0$、右差商 $\leq 0$，夹出 $0$。——"内部极值点导数为零"，一切优化的第一性原理。
 

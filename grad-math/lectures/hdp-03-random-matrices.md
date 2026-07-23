@@ -22,6 +22,11 @@ $$
 
 ## 2. 随机矩阵的谱范数
 
+<figure class="plot" markdown="1">
+![Wigner 半圆律](assets/img/hdp-03-semicircle.svg)
+<figcaption><span class="fig-id">图 3.1</span>Wigner 半圆律：大随机对称矩阵的特征值分布收敛到半圆——随机矩阵谱的普适规律。</figcaption>
+</figure>
+
 **定理（亚高斯矩阵的算子范数）** $A \in \mathbb{R}^{m\times n}$ 元素独立、零均值、亚高斯范数 $\leq K$：以概率 $1 - 2e^{-t^2}$，
 
 $$

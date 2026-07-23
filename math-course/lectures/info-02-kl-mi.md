@@ -4,6 +4,11 @@
 
 ## 1. KL 散度
 
+<figure class="plot" markdown="1">
+![KL 散度衡量两分布差距](assets/img/info-02-kl.svg)
+<figcaption><span class="fig-id">图 2.1</span>KL 散度 \(D(p\Vert q)=\int p\log\frac{p}{q}\) 衡量用模型 \(q\) 描述真实 \(p\) 的额外代价：非负、且不对称（\(D(p\Vert q)\neq D(q\Vert p)\)）。</figcaption>
+</figure>
+
 **定义**（相对熵）：
 
 $$

@@ -3,6 +3,12 @@
 > **对标**：Altland & Simons §6 / Tinkham ｜ **前置**：cm-01、sm-03、asm-01（对称破缺/GL）
 > 凝聚态最辉煌的定理级故事：**电子居然结对**（声子做媒的弱吸引 + Fermi 海的托底 = 任意弱吸引都不稳定）→ **配对凝聚开能隙** → 零电阻与 Meissner 效应。BCS（1957）是"涌现"的旗舰案例，也是规范对称破缺（pp-02 Higgs）思想的凝聚态原产地。
 
+
+<figure class="plot" markdown="1">
+![BCS 能隙 \Delta(T) 随温度、及 Cooper 对态密度。](assets/img/cm-02-bcs-gap.svg)
+<figcaption><span class="fig-id">图 cm-02.1</span>BCS 能隙 \(\Delta(T)\) 随温度、及 Cooper 对态密度。</figcaption>
+</figure>
+
 ## 1. 现象清单（理论要交的作业）
 
 零电阻（$T < T_c$，电流环持流年计无衰减）；**Meissner 效应**（完全抗磁——磁通被逐出：不是"理想导体"的推论而是独立现象，超导 = 新热力学相的判据）；比热在 $T_c$ 跳变 + 低温指数行为 $e^{-\Delta/k_BT}$（**能隙存在的指纹**——sm 线 Boltzmann 因子读谱法）；同位素效应 $T_c \propto M^{-1/2}$（**媒人是晶格**——声子的质量指纹：机制的破案线索）。

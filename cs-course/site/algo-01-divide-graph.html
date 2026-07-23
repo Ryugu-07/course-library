@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分治与图算法 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li class="active"><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 分治与主定理：把递归读成求和</a></li>
+<li><a href="#2-dfsbfs">2. 图的两种遍历：DFS/BFS 是同一算法的两种队列</a></li>
+<li><a href="#3">3. 最短路：一切都是"松弛"</a></li>
+<li><a href="#4">4. 最小生成树：两个贪心，一个拟阵</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">算法 I · 分治与图算法<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS170（UC Berkeley）/ CLRS 第 2–4、22–24 章 ｜ <strong>前置</strong>：数学站离散/图论线、概率线（期望分析）
+算法课的第一课不是"背模板"，是<strong>把问题结构翻译成复杂度</strong>。对你——应用数学出身——这条线更像换记号复习：递归树是求和、分治是主定理、图算法是线性代数与序理论的离散化。本页立三样地基：分治的复杂度会计（主定理）、图的两种遍历骨架（DFS/BFS 及其代数结构）、最短路的松弛统一视角。</p>
+</blockquote>
+<h2 id="1">1. 分治与主定理：把递归读成求和<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>分治三步：<strong>分</strong>（子问题）、<strong>治</strong>（递归）、<strong>合</strong>（合并）。代价满足递归式</p>
+<div class="arithmatex">\[
+T(n) = a\,T(n/b) + f(n)
+\]</div>
+<p><span class="arithmatex">\(a\)</span> = 子问题数、<span class="arithmatex">\(b\)</span> = 规模缩减因子、<span class="arithmatex">\(f(n)\)</span> = 分与合的代价。<strong>主定理【推导思路】</strong>：把递归树画出来——第 <span class="arithmatex">\(k\)</span> 层有 <span class="arithmatex">\(a^k\)</span> 个节点、每个规模 <span class="arithmatex">\(n/b^k\)</span>、单层合并代价 <span class="arithmatex">\(a^k f(n/b^k)\)</span>，共 <span class="arithmatex">\(\log_b n\)</span> 层。总代价是这个几何级数的和，三种情形取决于"叶子总量 <span class="arithmatex">\(n^{\log_b a}\)</span>"与"<span class="arithmatex">\(f(n)\)</span>"谁主导：</p>
+<div class="arithmatex">\[
+T(n) = \begin{cases}
+\Theta(n^{\log_b a}) &amp; f(n) = O(n^{\log_b a - \epsilon}) \quad(\text{叶子重}) \\
+\Theta(n^{\log_b a}\log n) &amp; f(n) = \Theta(n^{\log_b a}) \quad(\text{每层等重}) \\
+\Theta(f(n)) &amp; f(n) = \Omega(n^{\log_b a + \epsilon})\ (\text{且正则}) \quad(\text{根重})
+\end{cases}
+\]</div>
+<p><strong>三个样板</strong>：归并排序 <span class="arithmatex">\(2T(n/2)+O(n) \Rightarrow \Theta(n\log n)\)</span>（中间情形）；二分搜索 <span class="arithmatex">\(T(n/2)+O(1)\Rightarrow\Theta(\log n)\)</span>；Karatsuba 大整数乘 <span class="arithmatex">\(3T(n/2)+O(n)\Rightarrow \Theta(n^{\log_2 3})\approx n^{1.585}\)</span>——<strong>"三次乘法代替四次"把乘法从 <span class="arithmatex">\(n^2\)</span> 拉下来</strong>，是分治省一次子问题的经典胜利（Strassen 矩阵乘同理：<span class="arithmatex">\(7\)</span> 而非 <span class="arithmatex">\(8\)</span> 次子乘 <span class="arithmatex">\(\Rightarrow n^{\log_2 7}\)</span>）。</p>
+<figure class="diagram">
+<p><img alt="主定理递归树三种成本主导形状" src="assets/img/algo-01-recursion-tree.svg" /></p>
+<figcaption><span class="fig-id">图 algo-01.1</span>主定理递归树——叶子重、每层等重、根重三种情形，本质是几何级数由哪一层主导。</figcaption>
+</figure>
+<p><strong>读法</strong>：主定理就是"几何级数被首项还是末项主导"的判别式。你在数学分析里做过无数次，这里只是把 <span class="arithmatex">\(n\)</span> 换成问题规模。</p>
+<h2 id="2-dfsbfs">2. 图的两种遍历：DFS/BFS 是同一算法的两种队列<a class="headerlink" href="#2-dfsbfs" title="Permanent link"></a></h2>
+<p>图 <span class="arithmatex">\(G=(V,E)\)</span>，<span class="arithmatex">\(n=|V|\)</span>、<span class="arithmatex">\(m=|E|\)</span>。遍历骨架只有一个：<strong>维护一个待访问集合，每次取一个点、松开它的邻居</strong>。取的方式决定一切——<strong>栈 = DFS，队列 = BFS</strong>。二者都 <span class="arithmatex">\(O(n+m)\)</span>（每点每边各处理常数次）。</p>
+<ul>
+<li><strong>BFS</strong>：按层扩展 ⇒ <strong>无权图最短路</strong>（第一次到达即最短，因为层数单调）。</li>
+<li><strong>DFS</strong>：深入到底再回溯 ⇒ 产生<strong>时间戳</strong>（进入/离开），由此得到边的分类（树边/前向/后向/横叉）。<strong>后向边的存在 ⟺ 有环</strong>（DAG 判定）；离开时间的逆序 = <strong>拓扑排序</strong>；DFS 森林 + 时间戳给出<strong>强连通分量</strong>（Tarjan/Kosaraju，<span class="arithmatex">\(O(n+m)\)</span>）。</li>
+</ul>
+<p><strong>代数视角</strong>（🔗 数学站线代/图论）：BFS 层 = 邻接矩阵幂 <span class="arithmatex">\(A^k\)</span> 首次非零的位置；连通性 = <span class="arithmatex">\((I+A)^{n-1}\)</span> 的非零模式。图算法是布尔半环上的线性代数。</p>
+<figure class="diagram">
+<p><img alt="DFS 与 BFS 的访问顺序对比" src="assets/img/algo-01-dfs-bfs.svg" /></p>
+<figcaption><span class="fig-id">图 algo-01.2</span>DFS 与 BFS——同一遍历骨架因 frontier 数据结构不同，分别表现为深入回溯与按层扩展。</figcaption>
+</figure>
+<h2 id="3">3. 最短路：一切都是"松弛"<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>带权图求 <span class="arithmatex">\(s\)</span> 到各点最短距离 <span class="arithmatex">\(d[v]\)</span>。核心操作只有一个——<strong>松弛（relax）</strong>：若 <span class="arithmatex">\(d[u]+w(u,v) &lt; d[v]\)</span> 则更新 <span class="arithmatex">\(d[v]\)</span>。不同算法只是<strong>松弛的调度顺序</strong>不同：</p>
+<table>
+<thead>
+<tr>
+<th>算法</th>
+<th>前提</th>
+<th>调度</th>
+<th>复杂度</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BFS</td>
+<td>无权</td>
+<td>队列（按层）</td>
+<td><span class="arithmatex">\(O(n+m)\)</span></td>
+<td>层数即距离</td>
+</tr>
+<tr>
+<td>Dijkstra</td>
+<td>非负权</td>
+<td>优先队列（每次取当前最近的定稿）</td>
+<td><span class="arithmatex">\(O(m\log n)\)</span></td>
+<td>贪心：最近点的距离不会再变</td>
+</tr>
+<tr>
+<td>Bellman–Ford</td>
+<td>允许负权</td>
+<td>全边松弛 <span class="arithmatex">\(n-1\)</span> 轮</td>
+<td><span class="arithmatex">\(O(nm)\)</span></td>
+<td>第 <span class="arithmatex">\(n\)</span> 轮还能松弛 ⟺ 有负环</td>
+</tr>
+<tr>
+<td>Floyd–Warshall</td>
+<td>全源</td>
+<td>DP：中转点 <span class="arithmatex">\(k\)</span> 逐个放开</td>
+<td><span class="arithmatex">\(O(n^3)\)</span></td>
+<td><span class="arithmatex">\(d^{(k)}_{ij}=\min(d^{(k-1)}_{ij}, d^{(k-1)}_{ik}+d^{(k-1)}_{kj})\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Dijkstra 的正确性【骨架】</strong>：用归纳——每次从优先队列取出的点 <span class="arithmatex">\(u\)</span>，其 <span class="arithmatex">\(d[u]\)</span> 此刻已是最终值。反证：若存在更短路径，该路径上第一个"未定稿"点的距离 <span class="arithmatex">\(\le d[u]\)</span>，与 <span class="arithmatex">\(u\)</span> 是队列最小矛盾（<strong>依赖非负权</strong>：负权会让"绕远反而更短"，贪心失效，此时退回 Bellman–Ford）。</p>
+<p><strong>读法</strong>：<strong>图论的问题往往归结为"给一个偏序/度量，怎样高效传播它"</strong>。最短路是度量的传播，拓扑排序是偏序的线性化，MST（下段）是另一种贪心传播。</p>
+<h2 id="4">4. 最小生成树：两个贪心，一个拟阵<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>MST：选 <span class="arithmatex">\(n-1\)</span> 条边连通所有点、总权最小。两个经典贪心都对：</p>
+<ul>
+<li><strong>Kruskal</strong>：按权升序加边，不成环就要——用<strong>并查集</strong>判环（近乎 <span class="arithmatex">\(O(m\alpha(n))\)</span>，<span class="arithmatex">\(\alpha\)</span> 是反 Ackermann，实际 <span class="arithmatex">\(\le 4\)</span>）。</li>
+<li><strong>Prim</strong>：从一点长树、每次加最短的"跨界边"（优先队列，<span class="arithmatex">\(O(m\log n)\)</span>）。</li>
+</ul>
+<p>两者都对的深层原因：<strong>MST 是拟阵（matroid）上的贪心最优</strong>——图的"无环边集"构成拟阵的独立集，而<strong>贪心在拟阵上恒最优</strong>（这是贪心算法可靠性的完整理论边界：不是拟阵结构的问题，贪心就可能错）。🔗 这和数学站的组合优化/LP 对偶接得上：MST 也是一个整数规划，其 LP 松弛恰好整数最优。</p>
+<p><strong>切割引理（正确性核心）【推导】</strong>：对任意把 <span class="arithmatex">\(V\)</span> 分成两部分的切割，<strong>跨切割的最小权边一定在某棵 MST 中</strong>。证明用交换论证：若某 MST 不含这条最小跨边 <span class="arithmatex">\(e\)</span>，把 <span class="arithmatex">\(e\)</span> 加进去成环，环上必有另一条跨边 <span class="arithmatex">\(e'\)</span>，<span class="arithmatex">\(w(e')\ge w(e)\)</span>，换掉 <span class="arithmatex">\(e'\)</span> 得到不更差的生成树。<span class="arithmatex">\(\blacksquare\)</span></p>
+<figure class="diagram">
+<p><img alt="最小生成树切割引理示意" src="assets/img/algo-01-mst-cut.svg" /></p>
+<figcaption><span class="fig-id">图 algo-01.3</span>MST 切割引理——跨任意切割的最小权边是安全边，交换论证保证不增权。</figcaption>
+</figure>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（主定理反用）</strong> 你想设计一个 <span class="arithmatex">\(\Theta(n\log n)\)</span> 的分治算法，合并代价 <span class="arithmatex">\(O(n)\)</span>，问子问题该怎么分？答：<span class="arithmatex">\(a=b\)</span>（如 <span class="arithmatex">\(2T(n/2)\)</span>），落在中间情形——这是"为什么分治排序都是二路/多路平衡"的复杂度理由。</p>
+<p><strong>例 2（DFS 抓环）</strong> 给一个课程依赖图判能否修完（LeetCode "课程表"）：DFS 找后向边 / BFS 拓扑排序删入度为 0 的点——两种写法对应本页两个遍历骨架，都是 <span class="arithmatex">\(O(n+m)\)</span>。</p>
+<p><strong>例 3（松弛的统一）</strong> 手推：把 Dijkstra 的优先队列换成普通队列、且允许一个点多次入队，得到什么？答：SPFA（队列版 Bellman–Ford）——<strong>说明这几个算法真的是同一个松弛框架下换调度</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L 系列预告</strong>：本线的动手在后面几页的具体数据结构（B+ 树、Raft）里。这一页的算法请直接在 LeetCode 上按"分治 / 图 / 最短路"三个标签各刷 5 题——你的数学直觉会让这批题非常快。</p>
+</blockquote>
+<hr />
+<p><em>下一页：网络流与线性规划——最大流最小割定理，以及它为什么就是 LP 对偶在图上的化身。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="labs.html"><span class="pager-label">上一页</span>实验总表 · 上机地图</a>
+  <a class="pager-slot next" href="algo-02-flow-lp.html"><span class="pager-label">下一页</span>算法 II · 网络流与线性规划</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

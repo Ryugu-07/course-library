@@ -3,6 +3,12 @@
 > **对标**：Dummit & Foote §13–14 / Artin §16 ｜ **前置**：本科抽代 II（域扩张、极小多项式）、alg2-01
 > Galois 理论的主定理：**域扩张的中间域 ⟷ Galois 群的子群，一一反序对应**——"解方程的可能性"被翻译成"群的结构"（at-02 覆盖空间对应的代数原型）。本页把对应立起来并配齐工作例；不可解性的引爆留给收官页。
 
+
+<figure class="diagram" markdown="1">
+![Galois 对应：域扩张塔 ↔ 子群格 的倒挂对应。](assets/img/alg2-02-galois.svg)
+<figcaption><span class="fig-id">图 alg2-02.1</span>Galois 对应：域扩张塔 ↔ 子群格 的倒挂对应。</figcaption>
+</figure>
+
 ## 1. 三个前置概念（各一段）
 
 **分裂域**：$f$ 的全部根恰好都在、且由根生成的扩张 $K/F$（存在唯一至同构【骨架：逐根添加 + 同构延拓引理】）。

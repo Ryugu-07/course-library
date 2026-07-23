@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-11 07:57</div>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
   </div>
 </nav>
 <main id="content">
@@ -49,6 +49,10 @@
 <blockquote>
 <p>数值分析回答一个被纯数学掩盖的问题：<strong>公式在纸上对，在机器上算出来对吗？</strong>计算机用有限位数表示实数，每一步都在舍入——本页建立"误差从哪来、怎么放大、如何驯服"的基本语言。这一页的思维（条件数、灾难性相消、稳定改写）在深度学习的 fp16/fp8 时代重新成为一线技能。</p>
 </blockquote>
+<figure class="diagram">
+<p><img alt="浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。" src="assets/img/num-01-float-line.svg" /></p>
+<figcaption><span class="fig-id">图 num-01.1</span>浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。</figcaption>
+</figure>
 <h2 id="1">1. 误差的来源与度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>四个来源</strong>：模型误差（数学模型 ≠ 现实）、观测误差（数据本身带噪）、<strong>截断误差</strong>（无穷过程砍成有限：Taylor 截断、迭代提前停）、<strong>舍入误差</strong>（有限位表示）。数值分析主管后两个。</p>
 <p><strong>度量</strong>：绝对误差 <span class="arithmatex">\(e = |\hat x - x|\)</span>；<strong>相对误差</strong> <span class="arithmatex">\(e_r = \frac{|\hat x - x|}{|x|}\)</span>（跨量级比较用它）；有效数字 <span class="arithmatex">\(n\)</span> 位 <span class="arithmatex">\(\approx\)</span> 相对误差 <span class="arithmatex">\(\leq \frac12 \times 10^{1-n}\)</span>。</p>

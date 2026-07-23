@@ -13,6 +13,11 @@
 
 ## 2. 第二定律与熵（本页心脏）
 
+<figure class="plot" markdown="1">
+![Carnot 循环 PV 图](assets/img/sm-01-carnot.svg)
+<figcaption><span class="fig-id">图 1.1</span>Carnot 循环：两条等温线 + 两条绝热线围成的可逆循环，是效率上限 \(1-T_c/T_h\) 的理想热机。</figcaption>
+</figure>
+
 **两种表述**（Clausius：热不自发从冷到热；Kelvin：无法从单一热源取热全变功）——等价性【骨架：假设违反其一可构造违反另一的复合机】。
 
 **Carnot 定理【推导】**：可逆机效率最高且只依赖两热源温度（反证：更高效机 + 逆行可逆机复合 = 违反 Clausius）；由此定义热力学温标，可逆机 $\frac{Q_1}{T_1} + \frac{Q_2}{T_2} = 0$（放热取负）。

@@ -17,6 +17,11 @@ $$
 
 ## 2. Wasserstein 空间的几何
 
+<figure class="plot" markdown="1">
+![Wasserstein 位移插值](assets/img/ot-02-wasserstein-interp.svg)
+<figcaption><span class="fig-id">图 2.1</span>Wasserstein 测地线：两个分布间的"位移插值"——质量沿最优传输路径平滑搬运，是生成模型插值的几何。</figcaption>
+</figure>
+
 $W_2$ 是（二阶矩有限的）概率分布空间上的**度量**（三角不等式经"粘合引理"耦合拼接【骨架】）；且**度量化弱收敛**：$W_2(\mu_n, \mu) \to 0 \iff \mu_n \xrightarrow{d} \mu$ + 二阶矩收敛【引用】——比 KL 温柔得多的拓扑（as-01 依分布收敛的度量化——统计与 OT 的接口）。
 
 **测地线（McCann 插值）**：两分布间的"最短路径"

@@ -5,6 +5,11 @@
 
 ## 1. Qubit 与量子门
 
+<figure class="plot" markdown="1">
+![Bloch 球上的量子比特](assets/img/qi-01-bloch.svg)
+<figcaption><span class="fig-id">图 1.1</span>Bloch 球：一个量子比特的纯态是球面上一点，\(|0\rangle\)/\(|1\rangle\) 在两极，量子门是球面上的旋转。</figcaption>
+</figure>
+
 **Qubit**：二维 Hilbert 空间 $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$（qm-03 自旋 ½ 的抽象化——物理载体随意：自旋/偏振/超导电路）。**Bloch 球**：纯态 ⟺ 球面点（$\theta, \phi$ 两实参——归一化+全局相位吃掉两个自由度）；混合态住球内（aqm-03 密度矩阵，球心 = 最大混合）。
 
 **量子门 = 酉矩阵**（qm-01 演化公理的电路化）：单比特 Pauli $X, Y, Z$、**Hadamard** $H = \frac{1}{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$（造叠加的主力）、相位门；双比特 **CNOT**（控制翻转——造纠缠的主力）。通用性【引用】：{单比特门 + CNOT} 可逼近任意酉——量子计算的"与或非"。

@@ -2,6 +2,12 @@
 
 > 群管一个运算，**环**管两个（加与乘）、**域**是能除的环。本页把这两层结构立起来，让高代 I 的多项式与"数域"认祖归宗，用有限域接通密码学，最后登顶眺望 Galois 理论——高代 I 那句"五次方程无求根公式"的证明蓝图。
 
+
+<figure class="diagram" markdown="1">
+![域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。](assets/img/alg-abs-02-galois-lattice.svg)
+<figcaption><span class="fig-id">图 alg-abs.1</span>域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。</figcaption>
+</figure>
+
 ## 1. 环与理想
 
 **定义** 环 $(R, +, \times)$：加法成 Abel 群、乘法结合、分配律（本页默认含幺）。例子库：$\mathbb{Z}$、$\mathbb{Z}_n$、多项式环 $F[x]$（高代 I 的主角正式入籍）、矩阵环 $M_n(\mathbb{R})$（非交换）。

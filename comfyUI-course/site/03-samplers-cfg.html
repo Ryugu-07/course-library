@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-10 09:47</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -67,6 +67,10 @@ x_{t'} = \sqrt{\bar\alpha_{t'}}\; \hat x_0 + \sqrt{1 - \bar\alpha_{t'} - \sigma^
 \]</div>
 <p><span class="arithmatex">\(\sigma = 0\)</span> 时整个过程<strong>完全确定</strong>（同一种子同一张图，无路径噪声）；<span class="arithmatex">\(\sigma\)</span> 取 DDPM 的值就退回原版。更重要的是 <span class="arithmatex">\(t \to t'\)</span> 可以跨大步：<strong>从 1000 步的日程表里抽 20–50 个点走完全程</strong>，质量损失很小。"训练一次，采样方式随便换"——这个解耦是后面一切采样器创新的地基。</p>
 <h2 id="2">2. 微分方程视角：采样 = 数值积分<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="反向采样去噪" src="assets/img/03-reverse-sampling.svg" /></p>
+<figcaption><span class="fig-id">图 3.1</span>反向采样：从纯高斯噪声出发，逐步去噪还原出结构化的数据——生成就是学会走这条逆流。</figcaption>
+</figure>
 <p>把步长推向无穷小，加噪过程成为一个随机微分方程（SDE）；Song et al. (2021) 证明存在一个<strong>概率流 ODE</strong>，与它共享每个时刻的边际分布：</p>
 <div class="arithmatex">\[
 \frac{dx}{dt} = f(t)\,x - \frac{1}{2}g(t)^2\, \underbrace{\nabla_x \log p_t(x)}_{\text{= score, 即 } \epsilon_\theta \text{ 换装}}
@@ -154,6 +158,10 @@ x_{t'} = \sqrt{\bar\alpha_{t'}}\; \hat x_0 + \sqrt{1 - \bar\alpha_{t'} - \sigma^
 </ul>
 <p><code>steps</code> 的规律：二阶采样器下 <strong>20–30 步是质价比甜点</strong>；30 步以上进入收益递减区（确定性采样器的图基本定形，多跑纯属烧电）；10 步以下构图开始崩。配合第 08 讲"固定种子扫参数"你会亲眼看到这三段。</p>
 <h2 id="5-cfg">5. CFG：让模型"更听话"的数学<a class="headerlink" href="#5-cfg" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="无分类器引导" src="assets/img/03-cfg.svg" /></p>
+<figcaption><span class="fig-id">图 3.2</span>无分类器引导（CFG）：引导系数 \(w\) 越大，采样越向提示词的条件分布收拢——听话但过大易失真。</figcaption>
+</figure>
 <h3 id="51">5.1 推导<a class="headerlink" href="#51" title="Permanent link"></a></h3>
 <p>第 02 讲学的是无条件 score。文生图需要条件版 <span class="arithmatex">\(\nabla \log p(x_t \mid c)\)</span>。用贝叶斯公式：</p>
 <div class="arithmatex">\[

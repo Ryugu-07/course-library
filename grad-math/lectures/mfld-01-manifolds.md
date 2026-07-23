@@ -3,6 +3,12 @@
 > **对标**：Lee *Smooth Manifolds* §1–3 ｜ **前置**：本科拓扑 I–II、数分 V、微分几何 I–II
 > 流形 = "局部像 $\mathbb{R}^n$、整体可以弯曲缠绕"的空间——把微积分从欧氏空间解放到一般弯曲对象上的语言工程。本页立好三块基石：**流形的定义**（图册）、**光滑映射**（借坐标定义、验证与坐标无关）、**切空间**（没有外部空间时"切向量"是什么——本课程第一个真正的抽象飞跃）。
 
+
+<figure class="diagram" markdown="1">
+![流形的图册：局部坐标卡 + 转移映射把弯曲空间&quot;拼&quot;起来。](assets/img/mfld-01-chart.svg)
+<figcaption><span class="fig-id">图 mfld-01.1</span>流形的图册：局部坐标卡 + 转移映射把弯曲空间"拼"起来。</figcaption>
+</figure>
+
 ## 1. 光滑流形：图册的语言
 
 **定义** $n$ 维**拓扑流形** $M$：Hausdorff、第二可数（拓扑 II 的分离性与可数性在此当门卫——排除病态例）、且每点有邻域同胚于 $\mathbb{R}^n$ 的开集。同胚 $\varphi_\alpha: U_\alpha \to \mathbb{R}^n$ 称**坐标卡**；一族覆盖全 $M$ 的卡即**图册**。

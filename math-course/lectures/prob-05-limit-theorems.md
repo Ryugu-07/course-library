@@ -48,6 +48,11 @@ $$
 
 ## 4. 中心极限定理（CLT，概率论皇冠）
 
+<figure class="plot" markdown="1">
+![中心极限定理均值趋于正态](assets/img/prob-05-clt.svg)
+<figcaption><span class="fig-id">图 5.1</span>无论原分布多不像正态，\(n\) 个独立样本的标准化均值都收敛到标准正态——概率论的皇冠。</figcaption>
+</figure>
+
 **定理（Lindeberg–Lévy）** $X_1, X_2, \dots$ i.i.d.，$EX_1 = \mu,\ DX_1 = \sigma^2 < \infty$，则
 
 $$

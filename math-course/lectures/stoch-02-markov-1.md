@@ -18,6 +18,11 @@ $$
 
 ## 2. n 步转移：Chapman–Kolmogorov
 
+<figure class="plot" markdown="1">
+![Markov 链收敛到平稳分布](assets/img/stoch-02-markov-converge.svg)
+<figcaption><span class="fig-id">图 2.1</span>\(n\) 步转移让分布 \(P(X_n{=}\cdot)\) 随 \(n\) 收敛到平稳分布 \(\pi\)（虚线）——初始状态被遗忘，链的长期归宿由 \(\pi\) 决定。</figcaption>
+</figure>
+
 **定理（C–K 方程）** $n$ 步转移概率 $p_{ij}^{(n)} = P(X_{m+n} = j \mid X_m = i)$ 满足
 
 $$

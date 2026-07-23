@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-11 07:57</div>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
   </div>
 </nav>
 <main id="content">
@@ -50,6 +50,10 @@
 <p>两个古老而常用的主题。求根是"迭代思想"的教学样板（二分的稳、Newton 的快、不动点的统一视角）；插值与逼近回答"怎么用简单函数替身复杂函数"——以及那个著名的反例：<strong>点取得越多越糟</strong>的 Runge 现象。</p>
 </blockquote>
 <h2 id="1-fx-0">1. 非线性方程求根 <span class="arithmatex">\(f(x) = 0\)</span><a class="headerlink" href="#1-fx-0" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Newton 法切线求根" src="assets/img/num-03-newton.svg" /></p>
+<figcaption><span class="fig-id">图 3.1</span>Newton 法：在当前点作切线，切线与横轴的交点是下一个猜测——二阶收敛，求根的主力。</figcaption>
+</figure>
 <p><strong>二分法</strong>：连续函数变号区间反复对半（零点定理，数分 I 的算法化）。每步区间减半——<strong>线性收敛</strong>、绝对稳健、要 <span class="arithmatex">\(k\)</span> 位精度约 <span class="arithmatex">\(\log_2\frac{b-a}{\varepsilon}\)</span> 步。<strong>打底用</strong>。</p>
 <p><strong>不动点迭代</strong>（统一视角）：改写 <span class="arithmatex">\(f(x) = 0 \iff x = g(x)\)</span>，迭代 <span class="arithmatex">\(x_{k+1} = g(x_k)\)</span>。</p>
 <p><strong>定理（局部收敛）</strong> <span class="arithmatex">\(g\)</span> 连续可微，<span class="arithmatex">\(|g'(x^*)| &lt; 1\)</span> ⇒ 附近迭代收敛（误差 <span class="arithmatex">\(e_{k+1} \approx g'(x^*)e_k\)</span>，线性收敛率 <span class="arithmatex">\(|g'|\)</span>）；<span class="arithmatex">\(|g'(x^*)| &gt; 1\)</span> 则推开。
@@ -68,6 +72,10 @@ x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}
 f(x) - P_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)
 \]</div>
 <h2 id="3-runge">3. Runge 现象与两条出路<a class="headerlink" href="#3-runge" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Runge 现象高次插值边缘振荡" src="assets/img/num-03-runge.svg" /></p>
+<figcaption><span class="fig-id">图 3.2</span>Runge 现象：等距节点上用高次多项式插值，边缘剧烈振荡——次数越高越糟，警示"高次插值 ≠ 更准"。</figcaption>
+</figure>
 <p><strong>反例（Runge, 1901）</strong>：<span class="arithmatex">\(f(x) = \frac{1}{1 + 25x^2}\)</span> 在 <span class="arithmatex">\([-1,1]\)</span> 等距节点插值——次数越高，<strong>区间端部震荡越猛</strong>，<span class="arithmatex">\(n \to \infty\)</span> 不收敛反爆炸。根源：余项中 <span class="arithmatex">\(\prod(x - x_i)\)</span> 在等距节点下端部巨大 + 高阶导数增长。<strong>"多项式次数"是又一个过拟合旋钮</strong>——这正是 ai 课 01 讲（lab01 亲手做过的）过拟合实验的数值分析出处；插值（穿过每个点）对带噪数据必然过拟合。</p>
 <p><strong>出路一（换节点）</strong>：<strong>Chebyshev 节点</strong> <span class="arithmatex">\(x_i = \cos\frac{(2i+1)\pi}{2n+2}\)</span>（端部加密），使 <span class="arithmatex">\(\max|\prod(x - x_i)|\)</span> 最小——高次插值起死回生（谱方法的地基，知其所以然即可）。</p>
 <p><strong>出路二（降次分段）——三次样条</strong>：每段三次多项式，节点处 <span class="arithmatex">\(C^2\)</span> 拼接（函数、一二阶导全连续）+ 两个边界条件 ⇒ 系数由三对角方程组唯一定（追赶法 <span class="arithmatex">\(O(n)\)</span> 解，上一页的特例）。样条以"分段低次"换取无震荡 + 极好的光滑视觉——CAD、字体、动画曲线的工业标准。<strong>心法：宁可分段低次，不要全局高次。</strong></p>

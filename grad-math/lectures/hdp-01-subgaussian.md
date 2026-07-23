@@ -31,6 +31,11 @@ $$
 
 ## 2. 亚高斯分布：组织语言
 
+<figure class="plot" markdown="1">
+![尾概率三档衰减](assets/img/hdp-01-subgaussian-tail.svg)
+<figcaption><span class="fig-id">图 1.1</span>尾概率衰减的三档：亚高斯 \(2e^{-t^2/2}\)（最快）、亚指数、重尾——集中不等式的整个理论就是给随机量归这三类。</figcaption>
+</figure>
+
 **定义** $X$ **亚高斯**：尾部 $P(|X| \geq t) \leq 2e^{-t^2/K^2}$。等价刻画（互推常数因子级等价,【骨架】——矩与尾部的 Fubini 换算 + Stirling）：矩增长 $\|X\|_{L^p} \leq CK\sqrt{p}$；矩母函数 $Ee^{X^2/K'^2} \leq 2$。由最后者定义**亚高斯范数** $\|X\|_{\psi_2}$（Orlicz 范数，是真范数）。
 
 成员：有界（Hoeffding 引理）、高斯、Rademacher。**性质**：独立和 $\|\sum X_i\|_{\psi_2}^2 \leq C\sum\|X_i\|_{\psi_2}^2$（"方差式相加"——独立亚高斯的和仍亚高斯，Hoeffding 型不等式的抽象重述）。

@@ -5,6 +5,11 @@
 
 ## 1. 共轭函数
 
+<figure class="plot" markdown="1">
+![Fenchel 共轭的支撑线几何](assets/img/cvx-01-conjugate.svg)
+<figcaption><span class="fig-id">图 1.1</span>Fenchel 共轭 \(f^*(s)=\sup_x(sx-f(x))\)：斜率 \(s\) 处最"贴"的支撑线的负截距——对偶的几何本相。</figcaption>
+</figure>
+
 **定义** $f: \mathbb{R}^n \to (-\infty, +\infty]$（允许 $+\infty$——约束以"示性函数"进目标的现代记法）：
 
 $$

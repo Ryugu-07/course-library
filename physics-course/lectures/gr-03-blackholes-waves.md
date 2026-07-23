@@ -3,6 +3,12 @@
 > **对标**：Carroll §5–8 精选 ｜ **前置**：gr-01/02
 > 广相收官三连：**黑洞**（视界不是墙是单行道）、**引力波**（度规的涟漪——线性化方程的辐射解，LIGO 的物理）、**宇宙学度规**（FRW——把整个宇宙当一个解，交棒 cosmo 线）。
 
+
+<figure class="diagram" markdown="1">
+![黑洞时空 + 双星并合引力波波形（波形可 [plot]）。](assets/img/gr-03-gw-blackhole.svg)
+<figcaption><span class="fig-id">图 gr-03.1</span>黑洞时空 + 双星并合引力波波形（波形可 [plot]）。</figcaption>
+</figure>
+
 ## 1. 黑洞：视界的正确理解
 
 Schwarzschild 坐标在 $r = r_s$ 处"发散"是**坐标病**（换 Eddington–Finkelstein/Kruskal 坐标即光滑【引用】——曲率不变量 $R_{\mu\nu\rho\sigma}R^{\mu\nu\rho\sigma} \propto r^{-6}$ 在视界处有限、只在 $r = 0$ 真发散：**奇点在中心，不在视界**）。

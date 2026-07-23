@@ -12,6 +12,11 @@
 
 ## 2. 偏导数、全微分与可微性
 
+<figure class="plot" markdown="1">
+![曲面在一点的切平面](assets/img/analysis-05-surface-tangent.svg)
+<figcaption><span class="fig-id">图 5.1</span>全微分的几何：可微曲面在一点附近被切平面 \(z=f(a,b)+f_x(x-a)+f_y(y-b)\) 一阶逼近。</figcaption>
+</figure>
+
 **偏导数** $f_x(x_0,y_0) = \lim\limits_{h\to0}\frac{f(x_0+h, y_0) - f(x_0,y_0)}{h}$：固定其余变量的一元导数。
 
 **定义（可微）** $\Delta f = A\Delta x + B\Delta y + o(\rho)$，$\rho = \sqrt{\Delta x^2 + \Delta y^2}$——**能被线性函数逼近**才叫可微（数分 II 的视角在此成为本体），此时全微分 $df = f_x dx + f_y dy$。
@@ -37,6 +42,11 @@ $$
 ——"沿每条依赖路径求导再相加"。🔗 这正是反向传播的数学本体（ai 课 04 讲的四个方程就是它的矩阵化组织）。
 
 ## 3. 梯度与方向导数
+
+<figure class="plot" markdown="1">
+![梯度垂直于等高线](assets/img/analysis-05-gradient-field.svg)
+<figcaption><span class="fig-id">图 5.2</span>梯度 \(\nabla f\) 处处垂直于等高线、指向函数上升最陡的方向，模长是最大变化率。</figcaption>
+</figure>
 
 **方向导数**（单位向量 $\ell$ 方向的变化率）：$f$ 可微时 $\dfrac{\partial f}{\partial \ell} = \nabla f \cdot \ell$，其中**梯度**
 

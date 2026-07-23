@@ -3,6 +3,12 @@
 > **对标**：Lee *Smooth Manifolds* §14–16 ｜ **前置**：mfld-01、数分 VI、高代 VI（多重线性）
 > 在弯曲空间上积分的正确对象不是函数而是**微分形式**——自带"定向的体积元"的多重线性对象。本页搭起外代数 → 外微分 → 积分的三级机器，顶点是**广义 Stokes 定理**：数分 VI 三大公式（Green/Gauss/Stokes）原来是同一行字的三个方言。
 
+
+<figure class="diagram" markdown="1">
+![广义 Stokes \int_M d\omega=\int_{\partial M}\omega：边界与微分的对偶。](assets/img/mfld-02-stokes.svg)
+<figcaption><span class="fig-id">图 mfld-02.1</span>广义 Stokes \(\int_M d\omega=\int_{\partial M}\omega\)：边界与微分的对偶。</figcaption>
+</figure>
+
 ## 1. 外代数：反对称的多重线性
 
 **$k$-形式**（一点处）：$T_pM$ 上的反对称 $k$-重线性函数；全体记 $\Lambda^k(T_p^*M)$。**楔积** $\wedge$：反对称化的张量积，$\alpha\wedge\beta = (-1)^{kl}\beta\wedge\alpha$（超交换——$dx\wedge dy = -dy\wedge dx$，$dx\wedge dx = 0$）。

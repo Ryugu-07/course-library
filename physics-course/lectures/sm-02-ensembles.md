@@ -3,6 +3,12 @@
 > **对标**：Schroeder §6 / Pathria 入门章 ｜ **前置**：sm-01、概率线、mech-03（Liouville）、信息论 III（最大熵）
 > 统计力学的纲领：**宏观热力学 = 微观力学 + 概率论**。本页立起三大系综，核心资产是**配分函数 $Z$**——一个求和打包全部热力学；并兑现两张跨站欠条：$S = k\ln\Omega$（熵的微观身份）与"Boltzmann 分布 = 最大熵分布"（信息论线的会师）。
 
+
+<figure class="plot" markdown="1">
+![玻尔兹曼因子按能级填充 + 配分函数含义。](assets/img/sm-02-partition.svg)
+<figcaption><span class="fig-id">图 sm-02.1</span>玻尔兹曼因子按能级填充 + 配分函数含义。</figcaption>
+</figure>
+
 ## 1. 微正则系综与熵的定义
 
 **基本假设（等概率原理）**：孤立系统（能量 $E$ 固定）在其 $\Omega(E)$ 个微观态上等概率——合法性由 Liouville 定理背书（相空间体积演化不变，mech-03——不存在"偏爱某区域"的动力学理由）。

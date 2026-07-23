@@ -4,6 +4,11 @@
 
 ## 1. 潜空间：SD 的立身之本
 
+<figure class="plot" markdown="1">
+![潜空间降维](assets/img/04-latent.svg)
+<figcaption><span class="fig-id">图 4.1</span>潜扩散：不在像素上、而在压缩后的潜空间跑扩散——维数大降、算得起，Stable Diffusion 的立身之本。</figcaption>
+</figure>
+
 ### 1.1 像素扩散太贵
 
 在 $512 \times 512 \times 3 \approx 7.9 \times 10^5$ 维的像素空间跑扩散，每步去噪都要网络处理全分辨率图像，训练和采样都极其昂贵（早期像素扩散模型只有大厂玩得起）。
@@ -39,6 +44,12 @@ $$
 **对应 ComfyUI**：CLIP Text Encode 节点做的就是这一步（黄色 CLIP 线进，橙色 CONDITIONING 线出）；`Models/text_encoders`（或 `clip`）文件夹放的就是这些编码器的权重——SD1.5/SDXL 的 checkpoint 里已打包，FLUX 一族则常拆开单独下载。
 
 ## 3. 去噪网络本体：U-Net → DiT
+
+
+<figure class="diagram" markdown="1">
+![去噪网络结构：U-Net（下采样-瓶颈-上采样 + skip）→ DiT，标出时间步/条件注入点。](assets/img/04-unet-dit.svg)
+<figcaption><span class="fig-id">图 4.2</span>去噪网络结构：U-Net（下采样-瓶颈-上采样 + skip）→ DiT，标出时间步/条件注入点。</figcaption>
+</figure>
 
 ### 3.1 U-Net：卷积时代的答案
 

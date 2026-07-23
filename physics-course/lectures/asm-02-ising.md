@@ -23,6 +23,11 @@ $$
 
 ## 2. 平均场解（Weiss 自洽场）
 
+<figure class="plot" markdown="1">
+![自发磁化随温度消失](assets/img/asm-02-ising-mag.svg)
+<figcaption><span class="fig-id">图 2.1</span>自发磁化随温度：低于临界温度 \(T_c\) 出现非零磁化（\(\pm\) 两支），在 \(T_c\) 连续消失——二级相变的标志。</figcaption>
+</figure>
+
 每个自旋感受邻居的平均场 $h_{\text{eff}} = Jzm$（$z$ = 配位数）——单自旋在有效场中的磁化自洽：
 
 $$

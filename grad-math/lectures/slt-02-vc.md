@@ -3,6 +3,12 @@
 > **对标**：SSBD *UML* §6、Mohri §3 ｜ **前置**：slt-01、本科 ai 课 01 讲（VC 维与 Sauer 已证）
 > 无限假设类的 union bound 失效——出路是"数行为不数函数"（VC 维）。本科 ai 课已给 Sauer 引理全证；本页补齐真正的硬核：**双样本对称化技巧**（无限类一致收敛的证明引擎）与**学习论基本定理**（VC 有限 ⟺ 可学——充要！），并给下界的对偶面。
 
+
+<figure class="diagram" markdown="1">
+![VC 维：一族分类器能&quot;打散&quot;多少点（如直线打散 3 点、打不散 4 点的 XOR）。](assets/img/slt-02-vc-shatter.svg)
+<figcaption><span class="fig-id">图 slt-02.1</span>VC 维：一族分类器能"打散"多少点（如直线打散 3 点、打不散 4 点的 XOR）。</figcaption>
+</figure>
+
 ## 1. 快速复置（ai 课 01 已证部分）
 
 增长函数 $\Pi_{\mathcal{H}}(m)$ = $m$ 个点上可实现的标签模式数；VC 维 $d$ = 最大可打散规模；**Sauer 引理**：$\Pi_{\mathcal{H}}(m) \leq \sum_{i\leq d}\binom mi \leq \big(\frac{em}{d}\big)^d$——多项式增长（证明见 ai 课 01 讲，本站不重复）。范例：半空间 $d = n+1$；区间并、多项式阈值各有公式；**凸多边形类 $d = \infty$**（圆上点集可任意打散——"看起来简单的类可以无限复杂"的警世例）。

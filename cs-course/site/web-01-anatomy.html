@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>请求的一生（Medusa 解剖） · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li class="active"><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-medusa">1. 全栈的分层地图（Medusa 实体对照）</a></li>
+<li><a href="#2">2. 请求的一生：一步步追踪</a></li>
+<li><a href="#3-api">3. 前后端的契约：API</a></li>
+<li><a href="#4">4. 无状态与状态放哪</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-medusa">全栈 I · 请求的一生（Medusa 解剖）<a class="headerlink" href="#i-medusa" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Berkeley CS169 / MDN Web 全景 / 你自己的 Medusa 系统 ｜ <strong>前置</strong>：net 线（HTTP/TLS/DNS）、db 线、os 线
+全栈线不从玩具讲起——<strong>你已经在运营一个真实全栈系统</strong>（Medusa：FastAPI + React SPA + Postgres + Docker + cloudflared + schtasks）。所以这条线拿它当解剖标本，每讲一层就回看你系统里对应那块。这一页是全景总纲：<strong>追踪一个请求从你敲下 medusa.hhzi.eu.cc 到页面显示的完整旅程</strong>，把 net/db/os 学的东西串成一条你每天都在跑的链路。</p>
+</blockquote>
+<h2 id="1-medusa">1. 全栈的分层地图（Medusa 实体对照）<a class="headerlink" href="#1-medusa" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="在线(用户读)vs离线(schtasks 抓取→聚类→分析→写库) 双路径，读写分离。" src="assets/img/web-01-online-offline.svg" /></p>
+<figcaption><span class="fig-id">图 web-01.2</span>在线(用户读)vs离线(schtasks 抓取→聚类→分析→写库) 双路径，读写分离。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="全栈分层 + Medusa 实体对照（React/Cloudflare/FastAPI/Postgres）。" src="assets/img/web-01-layers.svg" /></p>
+<figcaption><span class="fig-id">图 web-01.3</span>全栈分层 + Medusa 实体对照（React/Cloudflare/FastAPI/Postgres）。</figcaption>
+</figure>
+<p>一个现代 Web 系统的分层，和你的 Medusa 一一对应：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>通用职责</th>
+<th>Medusa 里是谁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>客户端</strong></td>
+<td>浏览器渲染 UI、发请求</td>
+<td>React 18.3.1 SPA（Vite 构建）</td>
+</tr>
+<tr>
+<td><strong>边缘/网络</strong></td>
+<td>DNS、CDN、TLS 终止、隧道</td>
+<td>Cloudflare + cloudflared 隧道</td>
+</tr>
+<tr>
+<td><strong>应用服务器</strong></td>
+<td>处理 HTTP、业务逻辑</td>
+<td>FastAPI（uvicorn :8000）</td>
+</tr>
+<tr>
+<td><strong>数据层</strong></td>
+<td>存取数据</td>
+<td>Postgres（<code>medusa-postgres</code>, pgvector, Docker）</td>
+</tr>
+<tr>
+<td><strong>离线管线</strong></td>
+<td>定时批处理</td>
+<td>schtasks 定时的 fetch/分析/预测脚本</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键区分——在线 vs 离线</strong>：Medusa 有两条路径。<strong>在线</strong>（用户访问）：浏览器 → FastAPI → 查 Postgres → 返回。<strong>离线</strong>（数据生产）：schtasks 定时跑 RSS 抓取 → 聚类 → 分析 → 写 Postgres。<strong>用户请求只读那些离线预算好的结果</strong>——这是"<strong>读写分离、把重活挪到离线</strong>"的经典架构（🔗 与 dist-03 系统设计、MLSys 训练/推理分离同构）。理解这个分工，Medusa 的整体设计就清晰了。</p>
+<h2 id="2">2. 请求的一生：一步步追踪<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="重点图。Medusa 请求全链路：浏览器→DNS→Cloudflare 边缘→cloudflared 隧道→FastAPI→Postgres→响应→React 渲染，8 步标注。" src="assets/img/web-01-request-life.svg" /></p>
+<figcaption><span class="fig-id">图 web-01.1</span>重点图。Medusa 请求全链路：浏览器→DNS→Cloudflare 边缘→cloudflared 隧道→FastAPI→Postgres→响应→React 渲染，8 步标注。</figcaption>
+</figure>
+<p>你在浏览器整 <code>https://medusa.hhzi.eu.cc</code> 回车，发生了什么（把 net 线的知识走一遍实景）：</p>
+<ol>
+<li><strong>DNS 解析</strong>（net-02）：域名 → Cloudflare 边缘 IP。</li>
+<li><strong>TCP + TLS 握手</strong>（net-01/crypto-02）：与 Cloudflare 边缘建立加密连接。</li>
+<li><strong>CDN / 边缘</strong>：静态资源（JS/CSS bundle）可能直接由 Cloudflare 缓存返回（net-02），不回源。</li>
+<li><strong>隧道回源</strong>：动态请求经 cloudflared 隧道穿透到你 Win 机的 FastAPI :8000（<strong>隧道让内网服务免公网 IP、免自己配证书</strong>）。</li>
+<li><strong>应用服务器</strong>（web-02）：FastAPI 路由匹配 → 执行处理函数 → 可能查数据库。</li>
+<li><strong>数据库查询</strong>（db 线）：Postgres 执行 SQL（用上索引否？EXPLAIN！db-02）、返回结果。</li>
+<li><strong>响应组装</strong>：FastAPI 序列化成 JSON、加响应头、经隧道 → CDN → 浏览器。</li>
+<li><strong>前端渲染</strong>（web-03）：React 拿到数据、更新虚拟 DOM、浏览器绘制。</li>
+</ol>
+<p><strong>"输入 URL 后发生了什么"是最经典的系统面试题</strong>——现在你能拿自己的系统一口气讲完，每一步都摸得着。<strong>这条链就是全栈的骨架，后面三页（web-02/03、se、cloud）分别深入其中的层。</strong></p>
+<h2 id="3-api">3. 前后端的契约：API<a class="headerlink" href="#3-api" title="Permanent link"></a></h2>
+<p>前端和后端通过 <strong>API</strong> 通信——最常见 <strong>REST</strong>（资源 + HTTP 方法：<code>GET /articles</code> 取列表、<code>GET /articles/42</code> 取一个、<code>POST</code> 建、<code>PUT/PATCH</code> 改、<code>DELETE</code> 删）。约定：
+- <strong>HTTP 方法语义</strong>：GET 只读幂等（可缓存）、POST 有副作用（🔗 net-02 缓存、sec 线 CSRF 与方法安全性相关）。
+- <strong>状态码</strong>：2xx 成功、4xx 客户端错（400 参数错、401 未认证、403 无权、404 没有）、5xx 服务端错——<strong>正确用状态码是 API 设计的基本功</strong>。
+- <strong>JSON 数据格式</strong> + 版本化（<code>/api/v1/</code>）+ 分页（大列表别一次全返，🔗 db-02 keyset 分页）。</p>
+<p><strong>替代方案</strong>：<strong>GraphQL</strong>（客户端声明要哪些字段，避免 over/under-fetching）、<strong>gRPC</strong>（二进制、高性能、微服务间）、<strong>WebSocket/SSE</strong>（实时推送，net-02）。<strong>REST 是默认，其余按需</strong>——Medusa 这种读多写少的分析展示，REST 足够。</p>
+<h2 id="4">4. 无状态与状态放哪<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>HTTP 无状态（net-02），但应用需要状态（谁登录了、购物车）——<strong>状态放哪是架构核心决策</strong>：
+- <strong>会话状态</strong>：认证信息放哪？服务端 session（存 Redis/DB）vs 客户端 token（JWT，自包含）——各有取舍（🔗 sec-02 会讲认证安全）。
+- <strong>应用服务器应尽量无状态</strong>：这样能<strong>水平扩展</strong>（多个实例，请求分给任一个都行，🔗 dist 线）——状态外置到数据库/缓存。Medusa 现在是单实例，但"无状态应用 + 有状态数据层"是它未来扩展的正道。
+- <strong>缓存层</strong>：热数据放 Redis/内存，减数据库压力（🔗 csapp-02 缓存思想的系统级放大，贯穿全栈）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（画你自己的请求链）</strong> 把第 2 节的 8 步画成时序图，标出每步大概耗时（DNS ~20ms、TLS ~50ms、DB 查询 ~?ms）——<strong>找出 Medusa 请求的瓶颈在哪层</strong>，这是性能优化的起点。</p>
+<p><strong>例 2（设计一个 API）</strong> 为 Medusa 的"按 topic 取分析卡片"设计 REST 端点（路径、方法、参数、分页、状态码）——<strong>把 API 设计原则用到你自己的系统</strong>。</p>
+<p><strong>例 3（状态该放哪）</strong> 若 Medusa 要加用户登录，会话状态放服务端 session 还是 JWT？考虑单实例现状 vs 未来多实例——<strong>理解"无状态应用易扩展"的权衡</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：全栈 II——后端工程：FastAPI 那层深入，路由、ORM、异步、认证、错误处理，以及后端的常见陷阱。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="rust-02-concurrency.html"><span class="pager-label">上一页</span>Rust II · 并发、trait 与 unsafe 边界</a>
+  <a class="pager-slot next" href="web-02-backend.html"><span class="pager-label">下一页</span>全栈 II · 后端工程</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

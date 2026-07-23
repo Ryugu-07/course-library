@@ -17,6 +17,11 @@ $2n$ 条一阶方程替代 $n$ 条二阶——相空间 $(q, p)$ 中的一阶流
 
 ## 2. 相空间的几何：Liouville 定理
 
+<figure class="plot" markdown="1">
+![单摆相空间](assets/img/mech-03-pendulum-phase.svg)
+<figcaption><span class="fig-id">图 3.1</span>单摆相空间：小能量在不动点附近往复（闭轨），大能量越过顶点持续转动，二者被红色分界线（separatrix）隔开。</figcaption>
+</figure>
+
 **定理（Liouville）** 哈密顿流保持相空间体积。
 **【推导】** 相流的"速度场" $v = \big(\frac{\partial H}{\partial p}, -\frac{\partial H}{\partial q}\big)$ 的散度：
 

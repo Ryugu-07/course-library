@@ -34,6 +34,11 @@ $n$ 阶线性方程 $y^{(n)} + a_1(x)y^{(n-1)} + \cdots + a_n(x)y = f(x)$。
 
 ## 4. 振动：本章的物理灵魂
 
+<figure class="plot" markdown="1">
+![欠阻尼临界阻尼过阻尼三态](assets/img/ode-02-damping.svg)
+<figcaption><span class="fig-id">图 2.1</span>二阶线性阻尼系统按阻尼比 \(\zeta\) 分三态：欠阻尼振荡衰减、临界阻尼最快无振荡回零、过阻尼缓慢回归。</figcaption>
+</figure>
+
 弹簧-质量-阻尼系统 $my'' + cy' + ky = F(t)$（RLC 电路同型——同一方程统治力学与电学）。
 
 **自由振动（$F = 0$）三态**（特征根判别式定性）：

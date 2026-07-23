@@ -2,6 +2,12 @@
 
 > 组合数学回答"有多少种"。本页是计数的兵器谱，按火力递增排列：基本原理 → 容斥 → 递推 → **生成函数**（把计数问题变成幂级数代数——组合与分析的握手，数分 IV 的幂级数在此再就业）。
 
+
+<figure class="plot" markdown="1">
+![Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。](assets/img/graph-01-pascal.svg)
+<figcaption><span class="fig-id">图 graph-01.1</span>Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。</figcaption>
+</figure>
+
 ## 1. 基本武器
 
 **加法/乘法原理**（分类相加、分步相乘）；**排列** $A_n^k = \frac{n!}{(n-k)!}$、**组合** $\binom{n}{k}$；可重复组合（隔板法）$\binom{n+k-1}{k}$——"$k$ 个球放 $n$ 个盒"四种变体（球盒是否可辨）是一切初等计数题的分类框架。

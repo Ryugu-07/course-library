@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>语义、函数式与垃圾回收 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li class="active"><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 形式语义：程序"意义"的严格定义</a></li>
+<li><a href="#2">2. 函数式编程：不可变的威力</a></li>
+<li><a href="#3">3. 代数数据类型与模式匹配</a></li>
+<li><a href="#4">4. 垃圾回收：内存自动管理</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">语言 II · 语义、函数式与垃圾回收<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：TAPL / Harper <em>PFPL</em> / GC 手册（Jones）｜ <strong>前置</strong>：pl-01（λ 演算、类型）、comp-02（解释器）
+pl-01 讲了语言的类型骨架，这一页补三块：<strong>形式语义</strong>（怎么严格定义"程序是什么意思"，而非靠直觉）、<strong>函数式编程范式</strong>（不可变、纯函数、高阶抽象的威力，以及它为什么在并发和 ML 时代复兴）、<strong>垃圾回收</strong>（内存自动管理的机制——你写 Python/JS 不用 free，底下发生了什么）。</p>
+</blockquote>
+<h2 id="1">1. 形式语义：程序"意义"的严格定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>编译器/解释器要正确，先得说清"程序该做什么"——这就是<strong>语义</strong>。三种风格：
+- <strong>操作语义（operational）</strong>：用<strong>归约规则</strong>定义"程序一步步怎么执行"（pl-01 的 β 归约、comp-02 的 <code>eval</code> 就是操作语义）。最直观、最常用于实现和证明。分小步（single-step，看每一步）和大步（big-step，直接给最终结果）。
+- <strong>指称语义（denotational）</strong>：把程序<strong>映射到数学对象</strong>（函数、集合）——"这个程序 = 这个数学函数"。抽象、优雅，用于推理程序等价。
+- <strong>公理语义（axiomatic）</strong>：用<strong>逻辑断言</strong>描述——<strong>Hoare 逻辑</strong> <span class="arithmatex">\(\{P\}\,C\,\{Q\}\)</span>："若执行前 <span class="arithmatex">\(P\)</span> 成立，执行 <span class="arithmatex">\(C\)</span> 后 <span class="arithmatex">\(Q\)</span> 成立"。这是<strong>程序验证</strong>的基础（🔗 与形式化方法、Lean 证明程序正确性相通）——循环不变量、前置/后置条件都从这来。</p>
+<p><strong>为什么要形式语义</strong>：① 语言设计无歧义（规范书里的语义定义让不同实现行为一致）；② <strong>证明编译器/优化正确</strong>（comp-03 的优化不改变语义——"不改变语义"要先有语义的严格定义）；③ 程序验证（证明这段代码满足规约）。<strong>"意义的数学化"是 PL 从手艺变成科学的关键</strong>。</p>
+<h2 id="2">2. 函数式编程：不可变的威力<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>pl-01 的 λ 演算是函数式的根。函数式范式的核心信条：
+- <strong>纯函数</strong>：输出只依赖输入、无副作用（不改全局、不做 I/O）——<strong>引用透明</strong>（同输入必同输出，可安全替换、缓存、并行）。
+- <strong>不可变数据</strong>：不修改、只创建新版本——<strong>消灭了一大类 bug 的根源</strong>（别名导致的意外修改、并发的数据竞争 os-02）。
+- <strong>高阶函数</strong>：函数当参数/返回值——<code>map</code>/<code>filter</code>/<code>reduce</code>（🔗 dist-03 MapReduce 直接借名！）、组合子、柯里化。</p>
+<p><strong>为什么函数式在今天复兴</strong>：
+- <strong>并发友好</strong>：不可变 + 无共享状态 = <strong>天然无数据竞争</strong>（par 线/os-02 的噩梦大半消失）——Erlang/Elixir 靠这个做高并发、Rust 借鉴不可变默认。
+- <strong>ML/数据流友好</strong>：纯函数 + 不可变正是 JAX/函数式 autodiff（mlsys-01）的基础——计算图是纯函数组合、可微、可并行、可优化。
+- <strong>易推理</strong>：无副作用的代码好测试、好验证（Hoare 逻辑更简单）。</p>
+<p><strong>实践中的融合</strong>：现代主流语言都吸收了函数式特性——Python 的 <code>map</code>/lambda/列表推导、JS 的高阶函数、Rust 的迭代器 + <code>Option</code>/<code>Result</code>（避免 null，🔗 rust-01）。<strong>你不必写纯函数式语言，但"优先不可变、优先纯函数"是能立刻用上的工程纪律</strong>（写 Medusa 的数据处理时，纯函数管线比一堆可变状态好调试得多）。</p>
+<h2 id="3">3. 代数数据类型与模式匹配<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>函数式语言的一个杀手级特性，正在被所有现代语言抄——<strong>代数数据类型（ADT）+ 模式匹配</strong>：
+- <strong>和类型（sum type）</strong> <code>type Shape = Circle(r) | Rect(w,h)</code>——"要么是这个要么是那个"，编译器<strong>强制你处理所有情况</strong>（🔗 pl-01 的和类型 <span class="arithmatex">\(A+B\)</span>）。
+- <strong>模式匹配</strong> <code>match shape { Circle(r) =&gt; ..., Rect(w,h) =&gt; ... }</code>——按形状解构 + 分发，<strong>穷尽性检查</strong>保证不漏 case。
+- <strong><code>Option</code>/<code>Result</code> 消灭 null</strong>：把"可能没有值""可能出错"编码进类型（<code>Option&lt;T&gt;</code> = 有 T 或没有），<strong>强制处理"空"的情况</strong>——Tony Hoare 称 null 是他的"十亿美元错误"，ADT 是解药（rust-01 会看到 Rust 靠它根除空指针）。</p>
+<p><strong>这是本站反复出现的主题的又一例</strong>：<strong>把"容易忘的运行时情况"编码进类型、让编译器强制处理</strong>——类型系统当纪律执行者（pl-01 的 soundness、rust 的所有权同一哲学）。</p>
+<h2 id="4">4. 垃圾回收：内存自动管理<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="GC 三法：标记-清除 / 复制式 / 分代（新生代频繁回收）+ 可达性根。" src="assets/img/pl-02-gc.svg" /></p>
+<figcaption><span class="fig-id">图 pl-02.1</span>GC 三法：标记-清除 / 复制式 / 分代（新生代频繁回收）+ 可达性根。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="三条内存路线：手动(C) / GC(Java/Python) / 所有权(Rust) 对比（贯穿语言线）。" src="assets/img/pl-02-memory-routes.svg" /></p>
+<figcaption><span class="fig-id">图 pl-02.2</span>三条内存路线：手动(C) / GC(Java/Python) / 所有权(Rust) 对比（贯穿语言线）。</figcaption>
+</figure>
+<p>C 要手动 <code>malloc</code>/<code>free</code>（csapp-04 的痛），容易泄漏/悬垂。<strong>垃圾回收（GC）</strong>自动回收"不再可达"的内存——你写 Python/Java/JS/Go 不用管 free，靠的是它。核心机制：</p>
+<ul>
+<li><strong>可达性</strong>：从根（栈、全局变量）出发能到达的对象是"活的"，到不了的是垃圾。</li>
+<li><strong>追踪式 GC</strong>：</li>
+<li><strong>标记-清除（mark-sweep）</strong>：标记所有可达对象、清除其余。会产生碎片。</li>
+<li><strong>复制式（copying）</strong>：把活对象复制到新空间、整个旧空间回收——无碎片但用双倍空间。</li>
+<li><strong>分代 GC（generational）</strong>：<strong>"大多数对象很快就死"（弱分代假说）</strong>——把新对象放"年轻代"频繁快速回收、老对象放"老年代"少回收。<strong>这是现代 GC（JVM、V8、Go）的主力</strong>，抓住了对象生命周期的统计规律。</li>
+<li><strong>引用计数</strong>：每对象记被引用次数、归零即回收（Python 的主力 + 循环检测）——<strong>及时、平滑，但处理不了循环引用</strong>（要辅助手段）、且计数更新有开销。</li>
+</ul>
+<p><strong>GC 的权衡</strong>：省心、消灭内存 bug——代价是<strong>运行时开销 + 停顿（GC pause）</strong>（回收时可能暂停程序，实时系统的敌人）。<strong>这正是 Rust 的立场（rust-01）</strong>：<strong>不用 GC、也不手动 free，而是用所有权在编译期确定何时释放</strong>——既无 GC 停顿又无内存 bug。<strong>"手动管理（C）vs GC（Java/Python）vs 所有权（Rust）"是内存管理的三条路线</strong>，各有取舍，本站语言线把三者讲全。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Hoare 逻辑手推）</strong> 给一段"交换两变量"的代码，用 <span class="arithmatex">\(\{P\}C\{Q\}\)</span> 证明它确实交换了——<strong>体会"用逻辑断言证明程序正确"</strong>，程序验证的最小例子。</p>
+<p><strong>例 2（纯函数改写）</strong> 把一段用可变全局状态累加的代码改写成纯函数 + <code>reduce</code>——<strong>体会引用透明如何让代码可测、可并行</strong>。Medusa 数据处理可用。</p>
+<p><strong>例 3（GC 判活）</strong> 画一个有循环引用但从根不可达的对象图，判断追踪式 GC（能回收）vs 引用计数（漏掉）的区别——<strong>理解"为什么 Python 除了引用计数还需要循环检测器"</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：Python I——数据模型与惯用法：你天天用的 Python，它一切皆对象的世界观、dunder 协议与 Pythonic 惯用法。（语言线接下来走三门主力语言：Python 的高层生产力 → C++ 的系统级掌控 → Rust 的安全综合。）</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="pl-01-lambda-types.html"><span class="pager-label">上一页</span>语言 I · λ 演算与类型系统</a>
+  <a class="pager-slot next" href="py-01-data-model.html"><span class="pager-label">下一页</span>Python I · 数据模型与惯用法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

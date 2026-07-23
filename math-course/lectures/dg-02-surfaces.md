@@ -16,6 +16,11 @@ $$
 
 ## 2. 第二基本形式与曲率家族
 
+<figure class="plot" markdown="1">
+![球面正曲率鞍面负曲率](assets/img/dg-02-gaussian-curvature.svg)
+<figcaption><span class="fig-id">图 2.1</span>高斯曲率的符号：球面处处 \(K>0\)（各方向同向弯）、鞍面 \(K<0\)（两方向反向弯）——绝妙定理说 \(K\) 只由内蕴度量决定。</figcaption>
+</figure>
+
 **第二基本形式**（曲面偏离切平面的二阶量）：
 
 $$

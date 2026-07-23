@@ -3,6 +3,12 @@
 > **对标**：Sakurai §6 / Griffiths §11 ｜ **前置**：qm-04（黄金规则）、mp-01（球 Bessel/Green 函数）
 > 微观物理的几乎全部实验知识来自散射（Rutherford 发现核、深度非弹发现夸克、LHC 的一切）。本页立起散射的语言（截面与散射振幅），配齐两大计算引擎：**分波法**（低能，少数相移说尽一切）与 **Born 近似**（弱势，散射振幅 = 势的 Fourier 变换）。
 
+
+<figure class="diagram" markdown="1">
+![散射几何：入射平面波 + 散射球面波 + 散射截面/分波。](assets/img/aqm-02-scattering.svg)
+<figcaption><span class="fig-id">图 aqm-02.1</span>散射几何：入射平面波 + 散射球面波 + 散射截面/分波。</figcaption>
+</figure>
+
 ## 1. 语言：截面与散射振幅
 
 远场边界条件（定态散射波函数）：

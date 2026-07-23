@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>上机地图 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li class="active"><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">分工与运行约定</a></li>
+<li><a href="#project">大 Project 教学约定</a></li>
+<li><a href="#_3">★ 本站已写的可运行实验</a></li>
+<li><a href="#project_1">📋 大 project 课程作业（教师版说明书）</a></li>
+<li><a href="#_4">读法建议</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">实验总表 · 上机地图<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>计算机的知识一半在键盘上。本表是全站动手清单。两类：<strong>★ 本站已写</strong>（<code>labs/</code> 下可直接跑的小实验）与 <strong>📋 大 project</strong>（第二档课程作业）。大 project 的目标不是把答案交给学生，而是给出教师版说明书：目标、阶段、接口、测试、评分与可选挑战；实现留给学习者分阶段完成。</p>
+</blockquote>
+<h2 id="_2">分工与运行约定<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Mac（主力）</strong>：C/Python/Rust 的 shell、malloc、缓存分块、解释器、B+ 树、Raft 选主、SIMD 等——<code>labs/</code> 下每个子目录一个 <code>README</code> + 源码 + <code>make run</code> 或运行命令。</li>
+<li><strong>Win 4060 Ti（CUDA/大 project）</strong>：<code>gpu-*</code> 的核函数系列、需要 GPU 或长时间跑的实验。课程侧提供脚手架、运行命令与验收脚本；学生按阶段在目标机器上实现和测试。</li>
+<li><strong>凡标 📋 的</strong>：对应讲义页末尾给出 <strong>课程作业说明书</strong>（学习目标 / 阶段拆解 / 给定接口 / 学生任务边界 / 验收测试 / 评分 Rubric / 对标原课作业）。这些是教师视角的项目设计，不是替学生完成实现。</li>
+</ul>
+<h2 id="project">大 Project 教学约定<a class="headerlink" href="#project" title="Permanent link"></a></h2>
+<p>每个大 project 都按同一套课程作业格式组织：</p>
+<ul>
+<li><strong>教师提供</strong>：问题背景、推荐脚手架目录、公开测试、故障注入或 benchmark harness、阅读提示、常见坑提示。</li>
+<li><strong>学生实现</strong>：核心算法与系统逻辑、必要的数据结构、测试补充、实验报告；不得直接照搬生产系统源码或完整参考解。</li>
+<li><strong>验收分层</strong>：功能正确性 40%，边界/故障测试 25%，性能或资源指标 15%，代码结构与文档 10%，实验报告与设计反思 10%。</li>
+<li><strong>交付物</strong>：源码、<code>README</code>、测试日志、设计报告（2-6 页，说明取舍、失败案例、性能数字）。</li>
+</ul>
+<h2 id="_3">★ 本站已写的可运行实验<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>实验</th>
+<th>语言/机器</th>
+<th>对应讲义</th>
+<th>教学点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L01</td>
+<td>缓存分块矩阵乘法（naive vs blocked vs 转置）实测加速比</td>
+<td>C / Mac</td>
+<td>csapp-02、perf-02</td>
+<td>存储层级不是抽象——同一算法差 10×</td>
+</tr>
+<tr>
+<td>L02</td>
+<td>手写 shell（fork/exec/pipe/重定向/后台作业）</td>
+<td>C / Mac</td>
+<td>os-01</td>
+<td>进程控制系统调用的肌肉记忆</td>
+</tr>
+<tr>
+<td>L03</td>
+<td>显式空闲链表 malloc（首次适配 + 合并 + 边界标记）</td>
+<td>C / Mac</td>
+<td>csapp-04</td>
+<td>堆的真实模样</td>
+</tr>
+<tr>
+<td>L04</td>
+<td>Tree-walk 解释器（一门小语言：词法→Pratt 解析→求值→闭包）</td>
+<td>Python / Mac</td>
+<td>comp-01/02</td>
+<td>编译前端全流程最小可运行</td>
+</tr>
+<tr>
+<td>L05</td>
+<td>B+ 树（插入/分裂/范围扫描）</td>
+<td>Python / Mac</td>
+<td>db-01</td>
+<td>数据库索引的心脏</td>
+</tr>
+<tr>
+<td>L06</td>
+<td>Raft 选主 + 日志复制（单机多协程模拟网络）</td>
+<td>Python / Mac</td>
+<td>dist-02</td>
+<td>共识不再是黑盒</td>
+</tr>
+<tr>
+<td>L07</td>
+<td>SIMD 与自动向量化对照（点积：标量 / 编译器向量化 / 手写 intrinsics）</td>
+<td>C / Mac</td>
+<td>perf-01、par-01</td>
+<td>Roofline 的实感</td>
+</tr>
+<tr>
+<td>L08</td>
+<td>CUDA reduction + scan 优化阶梯（naive→shared→warp shuffle）</td>
+<td>CUDA / Win</td>
+<td>gpu-01/02</td>
+<td>GPU 内存层级与并行原语</td>
+</tr>
+<tr>
+<td>L09</td>
+<td>玩具 attention kernel（tiling + softmax 数值稳定）</td>
+<td>CUDA / Win</td>
+<td>gpu-02、mlsys-02</td>
+<td>FlashAttention 的最小内核直觉</td>
+</tr>
+<tr>
+<td>L10</td>
+<td>无锁栈/队列（CAS + ABA 演示 + 内存序）</td>
+<td>C++/Rust / Mac</td>
+<td>par-02</td>
+<td>并发的深水区</td>
+</tr>
+<tr>
+<td>L11</td>
+<td>Rust 所有权谜题集（借用检查器为什么拒绝 + 如何改）</td>
+<td>Rust / Mac</td>
+<td>rust-01</td>
+<td>把编译错误读成设计信号</td>
+</tr>
+<tr>
+<td>L12</td>
+<td>从 socket 到 HTTP：极简 HTTP/1.1 服务器（keep-alive + 分块）</td>
+<td>Python / Mac</td>
+<td>net-02、web-02</td>
+<td>Medusa 后端下面那层</td>
+</tr>
+</tbody>
+</table>
+<h2 id="project_1">📋 大 project 课程作业（教师版说明书）<a class="headerlink" href="#project_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>Project</th>
+<th>对标原课</th>
+<th>讲义页给出的说明书</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P01</td>
+<td>xv6 内核实验全套（页表 / 系统调用 / 锁 / 文件系统 / mmap）</td>
+<td>MIT 6.S081</td>
+<td>os-01/02/03 页末分阶段作业说明书</td>
+</tr>
+<tr>
+<td>P02</td>
+<td>从零关系型数据库（存储引擎 + SQL 子集 + MVCC + WAL 恢复）</td>
+<td>CMU 15-445</td>
+<td>db-01/02/03 三页累进作业说明书</td>
+</tr>
+<tr>
+<td>P03</td>
+<td>分布式 KV 存储（Raft + 分片 + 线性一致读）</td>
+<td>MIT 6.824</td>
+<td>dist-02/03 页末作业说明书</td>
+</tr>
+<tr>
+<td>P04</td>
+<td>编译器后端（IR + SSA + 寄存器分配 + 窥孔优化）</td>
+<td>Stanford CS143 后半</td>
+<td>comp-03 页末作业说明书</td>
+</tr>
+<tr>
+<td>P05</td>
+<td>迷你 TCP（用户态可靠传输：滑动窗口 + 重传 + 拥塞）</td>
+<td>Stanford CS144</td>
+<td>net-01 页末作业说明书</td>
+</tr>
+<tr>
+<td>P06</td>
+<td>性能工程终极题（把一个基线程序优化 100×）</td>
+<td>MIT 6.172</td>
+<td>perf-02 页末作业说明书</td>
+</tr>
+<tr>
+<td>P07</td>
+<td>迷你推理引擎（KV cache + 连续批处理 + 量化）</td>
+<td>MLSys 课群</td>
+<td>mlsys-02 页末作业说明书</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">读法建议<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>讲义先行、实验随后。每读完一条线的核心页，去跑对应的 ★ 实验，原理会从"看过"变成"做过"。📋 大 project 作为长周期课程作业使用：先读说明书和评分标准，再按阶段做设计、实现、测试和报告。</p>
+<hr />
+<p><em>返回 <a href="index.html">课程地图</a>，或从理论线第一页开始。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一页</span>00 · 使用指南与课程地图</a>
+  <a class="pager-slot next" href="algo-01-divide-graph.html"><span class="pager-label">下一页</span>算法 I · 分治与图算法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

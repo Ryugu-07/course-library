@@ -2,6 +2,12 @@
 
 > 收官页三大块：**匹配**（Hall 婚配定理——"什么时候人人有对象"）、**网络流**（最大流最小割——LP 对偶在离散世界的加冕礼，优化 IV 的欠条在此清偿）、以及**图上的算法与随机游走**（PageRank 与 Markov 链的会师）。图论在此从"结构的描述"升级为"资源的调度"。
 
+
+<figure class="diagram" markdown="1">
+![二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。](assets/img/graph-03-bipartite-matching.svg)
+<figcaption><span class="fig-id">图 graph-03.1</span>二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。</figcaption>
+</figure>
+
 ## 1. 二部图匹配与 Hall 定理
 
 **匹配**：两两不共顶点的边集；**完美匹配**：盖住一侧全部顶点。场景原型：人-岗位、课程-教室、器官捐献配对。

@@ -5,6 +5,11 @@
 
 ## 1. 一维方法论与三个标准问题
 
+<figure class="plot" markdown="1">
+![无限深方势阱能级与波函数](assets/img/qm-02-square-well.svg)
+<figcaption><span class="fig-id">图 2.1</span>无限深方势阱：边界把波函数量子化成驻波，能级 \(E_n\propto n^2\)——最简单的"束缚即离散"。</figcaption>
+</figure>
+
 定态方程 $-\frac{\hbar^2}{2m}\psi'' + V\psi = E\psi$。**通用直觉**：$E > V$ 区振荡、$E < V$ 区指数（经典禁区衰减尾）；束缚态要求归一化 ⇒ **边界条件挑出离散谱**（pde-01"边界量子化频率"的量子重演）；一维束缚态无简并、基态无节点、第 $n$ 态 $n$ 个节点【引用】。
 
 **无限深方阱**：$\psi_n = \sqrt{\frac2L}\sin\frac{n\pi x}{L}$，$E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}$——"驻波量子化"最裸露的样本；$E_1 > 0$：**零点能**（不确定性原理不许静止，qm-01 例 2 同源）。
@@ -20,6 +25,11 @@ $$
 ——**对势垒宽度与高度指数敏感**。收租清单：α 衰变（Gamow：寿命跨 20 个数量级由指数解释）、扫描隧道显微镜（STM：距离变 1 Å 电流变一个量级——原子成像的灵敏度来源）、闪存写入、太阳核聚变（质子靠隧穿越过库仑壁——**太阳发光靠量子隧穿**）。
 
 ## 2. 谐振子：升降算符（本页主菜）
+
+<figure class="plot" markdown="1">
+![量子谐振子等间距能级](assets/img/qm-02-harmonic.svg)
+<figcaption><span class="fig-id">图 2.2</span>量子谐振子：抛物势里能级等间距 \(E_n=\hbar\omega(n+\tfrac12)\)，波函数是 Hermite 多项式 × 高斯。</figcaption>
+</figure>
 
 $\hat H = \frac{\hat p^2}{2m} + \frac12m\omega^2\hat x^2$。**定义**：
 

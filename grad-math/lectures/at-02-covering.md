@@ -3,6 +3,12 @@
 > **对标**：Hatcher §1.3、§1.2 ｜ **前置**：at-01、抽代 I–II
 > 两台发动机：**覆盖空间理论**——"空间的多层版本"与基本群的子群一一对应（结构与抽代 II 的 Galois 对应惊人平行——不是修辞，是范畴级的同型）；**van Kampen 定理**——把空间拆块算 $\pi_1$ 的分治引擎。
 
+
+<figure class="diagram" markdown="1">
+![覆盖空间：螺旋线覆盖圆（\mathbb{R}\to S^1），提升唯一性。](assets/img/at-02-covering.svg)
+<figcaption><span class="fig-id">图 at-02.1</span>覆盖空间：螺旋线覆盖圆（\(\mathbb{R}\to S^1\)），提升唯一性。</figcaption>
+</figure>
+
 ## 1. 覆盖空间
 
 **定义** $p: \tilde X \to X$ 是覆盖：每点有"均匀覆盖"邻域 $U$（$p^{-1}(U)$ = 若干不相交开片、各自同胚映到 $U$——"层层叠叠的煎饼"）。原型：$\mathbb{R} \to S^1$（无穷层螺旋，at-01）、$S^1 \xrightarrow{z^n} S^1$（$n$ 层）、$S^n \to \mathbb{RP}^n$（双层——射影空间的标准双覆盖）。

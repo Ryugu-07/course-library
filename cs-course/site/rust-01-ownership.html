@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>所有权与借用检查 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li class="active"><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 问题回顾：内存管理的三难</a></li>
+<li><a href="#2">2. 所有权三定律</a></li>
+<li><a href="#3">3. 借用与借用检查器：核心魔法</a></li>
+<li><a href="#4">4. 生命周期：引用有效性的显式化</a></li>
+<li><a href="#5">5. 所有权带来的其他好处</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="rust-i">Rust I · 所有权与借用检查<a class="headerlink" href="#rust-i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：<em>The Rust Programming Language</em>（官方书）/ Stanford CS110L ｜ <strong>前置</strong>：csapp-04（内存之痛）、pl-02（三条内存管理路线）
+Rust 是过去十年最重要的系统语言创新——它做到了看似矛盾的事：<strong>没有垃圾回收、也不手动管理内存，却在编译期消灭了内存 bug 和数据竞争</strong>。秘密是<strong>所有权（ownership）</strong>——把"谁拥有内存、何时释放"编码进类型系统。这一页把 csapp-04 的所有内存灾难和 pl 线的类型纪律汇到一起：你会看到 C 的痛如何被编译器一条条提前拦下。本站系统线与语言线在此交汇。</p>
+</blockquote>
+<h2 id="1">1. 问题回顾：内存管理的三难<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>pl-02 讲过三条路线，各有硬伤：
+- <strong>手动（C）</strong>：快、可控，但泄漏 / 悬垂指针 / use-after-free / 二次释放 / 数据竞争——<strong>业界 ~70% 安全漏洞的来源</strong>（csapp-04）。
+- <strong>GC（Java/Python）</strong>：安全省心，但运行时开销 + 停顿——不适合系统级/实时。
+- <strong>Rust 的第三条路——所有权</strong>：<strong>编译期</strong>确定每块内存何时释放，<strong>既无 GC 开销、又无内存 bug</strong>。代价是要接受借用检查器的"管教"（学习曲线）。</p>
+<p><strong>Rust 的赌注</strong>：把内存安全从"运行时检查/程序员自律"提前到"<strong>编译期类型检查</strong>"——编译通过就保证无这类 bug。<strong>这是 pl 线"把运行时错误编码进类型"哲学的巅峰应用</strong>。</p>
+<h2 id="2">2. 所有权三定律<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>Rust 的核心，就三条规则：
+1. <strong>每个值有唯一的所有者（owner）</strong>（一个变量）。
+2. <strong>同一时刻只有一个所有者</strong>。
+3. <strong>所有者离开作用域时，值被自动释放（drop）</strong>。</p>
+<p><strong>规则 3 = 自动的、确定性的内存释放</strong>——不用手动 <code>free</code>（无泄漏），也不用 GC（无停顿、无不确定回收时机）。<strong>"作用域结束即释放"是 C++ 的 RAII 思想被 Rust 变成语言强制规则</strong>（🔗 与 pl-02 GC 对比：GC 是运行时追踪可达性，所有权是编译期跟踪作用域）。</p>
+<p><strong>移动语义（move）</strong>：<code>let b = a;</code> 若 <code>a</code> 是拥有堆内存的类型（如 <code>String</code>），<strong>所有权从 a 移动到 b，a 之后不可用</strong>（编译器拒绝再用 a）。<strong>这防止了"两个变量都以为自己拥有、各自释放 → 二次释放"</strong>（csapp-04 的灾难之一）——编译期就杜绝。要真复制用 <code>.clone()</code>（显式、你知道有成本）。</p>
+<h2 id="3">3. 借用与借用检查器：核心魔法<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>老是移动所有权太麻烦（传给函数就不能再用了）。<strong>借用（borrow）</strong>——临时引用而不夺走所有权，分两种，规则是 Rust 的灵魂：</p>
+<blockquote>
+<p><strong>借用铁律</strong>：任一时刻，要么<strong>多个不可变借用（<code>&amp;T</code>，只读）</strong>，要么<strong>恰好一个可变借用（<code>&amp;mut T</code>，可写）</strong>——<strong>二者不可同时</strong>。</p>
+</blockquote>
+<p>这条"<strong>共享不可变、可变不共享（shared XOR mutable）</strong>"的规则，一举消灭多类 bug：
+- <strong>数据竞争</strong>（os-02/par 线的噩梦）：数据竞争 = 两个线程同时访问、至少一个写、无同步。借用铁律<strong>在编译期就禁止"可变 + 共享"同时存在</strong> → <strong>数据竞争在编译期不可能</strong>（rust-02 展开）。<strong>"无畏并发"的字面兑现</strong>。
+- <strong>迭代器失效</strong>：遍历一个集合时改它（<code>&amp;</code> 借用存在时不能 <code>&amp;mut</code>）——C++/Java 的运行时崩溃/异常，Rust 编译期拒绝。
+- <strong>悬垂引用</strong>：借用不能比被借用的数据活得久——<strong>生命周期（lifetime）</strong>检查保证"引用永远指向有效数据"，use-after-free 编译期消灭。</p>
+<p><strong>借用检查器（borrow checker）</strong>就是执行这些规则的编译器组件。<strong>它拒绝你的代码时，几乎总是它对</strong>——它发现了一个你没注意的别名/生命周期问题。<strong>学 Rust 的过程就是学会"把借用检查器的拒绝读成设计信号"</strong>（[实验 L11] 就是练这个）。</p>
+<h2 id="4">4. 生命周期：引用有效性的显式化<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>生命周期</strong>标注（<code>'a</code>）告诉编译器"这些引用要活多久、谁不能比谁先死"。多数情况编译器自动推断（生命周期省略），复杂时要手写 <code>fn longest&lt;'a&gt;(x: &amp;'a str, y: &amp;'a str) -&gt; &amp;'a str</code>——"返回的引用活得和输入一样久"。<strong>生命周期不是运行时的东西，是编译期的"引用有效性证明"</strong>（🔗 pl-01 类型即证明：生命周期是"这个引用不会悬垂"的证明）。初学最烧脑，但理解后你会发现它只是把"这块内存什么时候还有效"这个 C 程序员一直在脑子里心算的东西，<strong>变成编译器帮你验证</strong>。</p>
+<h2 id="5">5. 所有权带来的其他好处<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li><strong><code>Option&lt;T&gt;</code> / <code>Result&lt;T,E&gt;</code></strong>（pl-02 的 ADT）：Rust 没有 null——"可能没值"用 <code>Option</code>、"可能出错"用 <code>Result</code>，<strong>编译器强制处理</strong>（<code>match</code> 或 <code>?</code>）。<strong>空指针解引用在 Rust 里不存在</strong>。</li>
+<li><strong>无异常、错误即值</strong>：<code>Result</code> 让错误处理显式、可组合（<code>?</code> 运算符优雅传播）——你总能看到一个函数会不会失败。</li>
+<li><strong>零成本抽象</strong>：迭代器、泛型、trait 等高层抽象<strong>编译后和手写底层代码一样快</strong>（pl 线的抽象 + 系统线的性能兼得）——这是 Rust 相比 C++ 的设计承诺。</li>
+</ul>
+<p><strong>读法</strong>：<strong>Rust 的学习曲线陡，是因为它把"内存和并发的正确性"这个 C 程序员用多年经验和纪律维持的东西，前置成了必须一开始就交代清楚的编译期契约</strong>。痛在前面、收益在后面（编译过了就很少运行时内存/并发 bug）。对你这个"想补系统肌肉记忆"的人，<strong>Rust 是最好的老师——它逼你把 csapp-04 那些隐性的内存规则显式想清楚</strong>。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（移动 vs 借用）</strong> 写一个函数接收 <code>String</code>——用 <code>String</code>（移动，之后原变量不可用）vs <code>&amp;String</code>（借用，之后还能用），体会所有权转移。<strong>理解"传值即交出所有权"</strong>。</p>
+<p><strong>例 2（借用检查器拒绝你）</strong> 故意写"持有不可变借用时又要可变借用"的代码，读编译器错误、理解它拦下了什么潜在 bug——<strong>[L11] 的核心练习：把拒绝读成保护</strong>。</p>
+<p><strong>例 3（生命周期必要性）</strong> 写一个返回两个字符串引用中较长者的函数，看编译器要求生命周期标注——理解"编译器需要知道返回的引用来自哪个输入、能活多久"。<strong>生命周期从抽象变具体</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L11（Rust 所有权谜题集）</strong>：<code>labs/L11-rust-ownership/</code> —— 一组"借用检查器拒绝"的代码，逐个理解为什么被拒 + 如何修。跑在 Mac（Rust）。<strong>目标：把编译错误读成设计信号，而非障碍。</strong></p>
+</blockquote>
+<hr />
+<p><em>下一页：Rust II——并发、trait 与 unsafe 边界：所有权如何兑现"无畏并发"，trait 的抽象能力，以及什么时候必须跳出安全网。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cpp-02-modern-stl.html"><span class="pager-label">上一页</span>C++ II · 现代 C++、STL、模板与并发</a>
+  <a class="pager-slot next" href="rust-02-concurrency.html"><span class="pager-label">下一页</span>Rust II · 并发、trait 与 unsafe 边界</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -28,6 +28,11 @@ $$
 
 ## 3. 测地线
 
+<figure class="plot" markdown="1">
+![球面测地线是大圆弧](assets/img/mfld-03-geodesic.svg)
+<figcaption><span class="fig-id">图 3.1</span>球面上的测地线是大圆弧（红）——局部最短、"直"的推广；虚线的非测地线连接更长。</figcaption>
+</figure>
+
 **定义** $\nabla_{\dot\gamma}\dot\gamma = 0$——"速度向量沿自身平行移动"：不转弯的曲线。坐标方程：
 
 $$

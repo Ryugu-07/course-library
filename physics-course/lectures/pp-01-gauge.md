@@ -3,6 +3,12 @@
 > **对标**：Halzen & Martin / Griffiths *Elementary Particles* ｜ **前置**：qft-01/02、aqm-01（对称性）、抽代（群）
 > 二十世纪物理的最终章法：**相互作用不是拼凑的，是对称性逼出来的**。本页立起规范原理（局域对称 ⇒ 必须存在规范场），然后按 $SU(3)\times SU(2)\times U(1)$ 盘点标准模型的全部家当——一张粒子谱表 + 三种力的来历。
 
+
+<figure class="diagram" markdown="1">
+![标准模型粒子表（夸克/轻子三代 + 规范玻色子 + Higgs）。](assets/img/pp-01-standard-model.svg)
+<figcaption><span class="fig-id">图 pp-01.1</span>标准模型粒子表（夸克/轻子三代 + 规范玻色子 + Higgs）。</figcaption>
+</figure>
+
 ## 1. 规范原理：对称性生成相互作用
 
 **逻辑链【推导级】**：自由 Dirac 场的 $\mathcal L$ 在**全局**相位变换 $\psi \to e^{i\alpha}\psi$ 下不变（Noether ⇒ 电荷守恒，qft-01）。**升级要求**：$\alpha \to \alpha(x)$（**局域**——各处独立选相位）——$\partial_\mu\psi$ 破坏不变性；**修复的唯一办法**：引入补偿场 $A_\mu$、换协变导数

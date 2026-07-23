@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-09 21:08</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -62,6 +62,10 @@
 <p><strong>诞生场景</strong>：20 世纪 50 年代，人们想让计算机识别手写邮政编码、判断细胞是否癌变、区分雷达信号里的飞机与飞鸟。这类任务的共同点是：<strong>人类自己说不清判断规则，却能轻松做出判断</strong>。既然写不出规则，能不能让机器从例子里自己"学"出规则？这就是<strong>模式识别（pattern recognition）</strong>——机器学习的起点。</p>
 </blockquote>
 <h2 id="1">1. 从一个分类问题说起<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="机器学习就是找函数" src="assets/img/01-find-function.svg" /></p>
+<figcaption><span class="fig-id">图 1.1</span>机器学习的本质：从数据里找一个函数 \(f_\theta\)，让它对新输入也给出对的输出——分类、回归、生成都是这件事。</figcaption>
+</figure>
 <p>1936 年，统计学家 Fisher 发表了鸢尾花数据集：150 朵花，每朵测了 4 个数值（花萼长宽、花瓣长宽），分属 3 个品种。问题：<strong>给一朵新花的 4 个测量值，判断它是哪个品种。</strong></p>
 <p>用数学语言描述：</p>
 <ul>
@@ -166,6 +170,10 @@ f^*(x) = \arg\max_{k} \; \mathbb{P}(Y = k \mid X = x)
 \]</div>
 <p>注意 <span class="arithmatex">\(\lambda &gt; 0\)</span> 时 <span class="arithmatex">\(X^\top X + n\lambda I\)</span> 恒可逆（对称半正定矩阵加正对角，最小特征值 <span class="arithmatex">\(\geq n\lambda &gt; 0\)</span>）——正则化同时解决了统计问题（过拟合）和数值问题（共线性导致的不可逆）。<span class="arithmatex">\(\lambda\)</span> 越大，模型越"保守"：偏差增大、方差减小。<strong>正则化就是在偏差–方差之间手动移动滑块。</strong> 这个思想贯穿全课程：SVM 的软间隔参数 <span class="arithmatex">\(C\)</span>（第 02 讲）、决策树剪枝（第 03 讲）、神经网络的 dropout 与权重衰减（第 05 讲），全是它的变体。</p>
 <h2 id="4">4. 泛化为什么是可能的<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="过拟合与早停" src="assets/img/04-overfitting.svg" /></p>
+<figcaption><span class="fig-id">图 1.2</span>泛化的核心张力：训练损失一路降，验证损失却在某点回升——模型开始死记训练集（过拟合），"早停"选在拐点。</figcaption>
+</figure>
 <p>现在兑现第 3 节的承诺：证明"训练集上表现好 ⇒ 新数据上大概率也好"。这一节是全课程数学上最扎实的部分之一，值得动笔跟一遍。</p>
 <h3 id="41-hoeffding">4.1 有限假设空间：Hoeffding + 联合界<a class="headerlink" href="#41-hoeffding" title="Permanent link"></a></h3>
 <p><strong>工具（Hoeffding 不等式）</strong>：<span class="arithmatex">\(Z_1, \dots, Z_n\)</span> 独立、取值于 <span class="arithmatex">\([0,1]\)</span>、均值 <span class="arithmatex">\(\mu\)</span>，则</p>

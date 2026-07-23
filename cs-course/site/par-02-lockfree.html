@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同步原语与无锁结构 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li class="active"><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 原子操作：无锁的基石</a></li>
+<li><a href="#2-aba">2. 无锁栈与 ABA 问题</a></li>
+<li><a href="#3">3. 内存序：最深的坑</a></li>
+<li><a href="#4">4. 高层并发结构:别自己造轮子</a></li>
+<li><a href="#5-rust-bug">5. 通往 Rust:类型系统消灭并发 bug</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">并行 II · 同步原语与无锁结构<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CMU 15-418 / <em>The Art of Multiprocessor Programming</em>（Herlihy–Shavit）｜ <strong>前置</strong>：par-01（缓存一致性、内存序）、os-02（锁）
+并发的深水区。os-02 用锁保证正确，但锁有代价（争用、阻塞、死锁）。这一页讲<strong>无锁（lock-free）编程</strong>——用原子操作直接在共享数据上正确协作、不加锁。它是高性能并发（数据库、操作系统内核、并发容器）的核心，也是最容易写错的地方。理解它，你会真正明白 Rust（rust-02）"无畏并发"消灭的到底是什么。这对应 [实验 L10]。</p>
+</blockquote>
+<h2 id="1">1. 原子操作：无锁的基石<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="CAS loop：读旧值→算新值→CAS 尝试→失败重试 的乐观并发环。" src="assets/img/par-02-cas-loop.svg" /></p>
+<figcaption><span class="fig-id">图 par-02.3</span>CAS loop：读旧值→算新值→CAS 尝试→失败重试 的乐观并发环。</figcaption>
+</figure>
+<p><strong>原子操作</strong>：不可被打断的读-改-写，硬件保证（par-01 的缓存一致性 + 总线锁定实现）。核心是 <strong>CAS（Compare-And-Swap）</strong>：
+<div class="highlight"><pre><span></span><code>CAS(地址, 期望值, 新值):
+  原子地 { 若 *地址 == 期望值 则 *地址 = 新值, 返回成功; 否则返回失败 }
+</code></pre></div>
+<strong>CAS 是无锁编程的万能原语</strong>——"读当前值、算新值、CAS 尝试写入、失败就重试"这个循环（<strong>CAS loop</strong>）能实现几乎所有无锁结构。原子递增、无锁栈的 push、引用计数（Rust 的 <code>Arc</code>）全靠它。</p>
+<p><strong>无锁 vs 阻塞的哲学差异</strong>：锁是"我进临界区、你等着"；无锁是"大家都往前冲、冲突了就重试"——<strong>乐观并发</strong>。好处：<strong>没有线程能阻塞其他线程</strong>（一个线程崩在临界区不会卡死全体，锁做不到）、无死锁。代价：重试可能浪费、且<strong>极难写对</strong>。</p>
+<h2 id="2-aba">2. 无锁栈与 ABA 问题<a class="headerlink" href="#2-aba" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="ABA 问题：A→B→A 骗过 CAS 的时序 + 版本号修复。" src="assets/img/par-02-aba.svg" /></p>
+<figcaption><span class="fig-id">图 par-02.2</span>ABA 问题：A→B→A 骗过 CAS 的时序 + 版本号修复。</figcaption>
+</figure>
+<p><strong>无锁栈的 push</strong>（CAS loop 范例）：
+<div class="highlight"><pre><span></span><code>do {
+  old_top = top;         // 读栈顶
+  new_node-&gt;next = old_top;
+} while (!CAS(&amp;top, old_top, new_node));  // 尝试把 top 换成新节点，失败重试
+</code></pre></div>
+<strong>看起来完美，但有个经典陷阱——ABA 问题</strong>：线程读到 <code>top = A</code>，被挂起；期间别的线程把 A 弹出、又压入（<code>top</code> 变 B 又变回 A，但 A 可能已被释放或语义已变）；原线程醒来 CAS 发现 <code>top</code> 还是 A、<strong>误以为没变</strong>、成功写入——<strong>但世界已经不同了</strong>（A 指向的 <code>next</code> 可能已失效）。</p>
+<p><strong>ABA 的解法</strong>：① <strong>带版本号的指针</strong>（每次改动版本 +1，CAS 连版本一起比——A 回来了但版本变了，CAS 失败）；② <strong>危险指针 / epoch-based reclamation</strong>（安全的内存回收，确保没人还在用才释放）。<strong>ABA 是无锁编程最著名的坑，它教你："值相等不代表状态没变"</strong>——这个教训在分布式（dist-01 的时钟）里也有回声。</p>
+<h2 id="3">3. 内存序：最深的坑<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="acquire/release 配对建立 happens-before 可见性。" src="assets/img/par-02-memory-order.svg" /></p>
+<figcaption><span class="fig-id">图 par-02.1</span>acquire/release 配对建立 happens-before 可见性。</figcaption>
+</figure>
+<p>par-01 说过 CPU 会重排内存操作。无锁代码里，<strong>一个线程写数据 + 写标志位，另一个线程读标志位 + 读数据——如果 CPU 重排了写的顺序，读线程可能看到"标志已置位但数据还没写好"</strong>。所以原子操作要带<strong>内存序（memory ordering）</strong>语义：
+- <strong>relaxed</strong>：只保证原子性，不约束顺序——最快，仅用于计数器等无同步需求。
+- <strong>acquire/release</strong>：<strong>release 写</strong>之前的所有写，对 <strong>acquire 读</strong>之后可见——<strong>这对配对建立"happens-before"，是无锁同步的主力</strong>（发布-订阅数据的正确姿势）。
+- <strong>seq_cst（顺序一致）</strong>：全局单一顺序，最强最慢，最易推理——<strong>不确定时用它</strong>。</p>
+<p><strong>读法</strong>：<strong>内存序是"编译器和 CPU 允许怎么重排你的内存操作"的契约</strong>。这是并发最反直觉的部分——代码顺序 ≠ 执行顺序 ≠ 别的核看到的顺序。<strong>99% 的场景应该用锁或高层并发结构避开它；只有性能极致要求 + 你完全理解 acquire/release 时才手写无锁</strong>。</p>
+<h2 id="4">4. 高层并发结构:别自己造轮子<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>无锁难写对，所以实践中<strong>用久经考验的并发库</strong>：
+- <strong>并发容器</strong>：无锁队列（MPSC/MPMC）、并发哈希表（分段锁或无锁）、无锁环形缓冲区（生产者-消费者的高性能实现）。
+- <strong>读写锁 / RCU</strong>：读多写少时，RCU（Read-Copy-Update，Linux 内核大量使用）让<strong>读完全无锁无等待</strong>、写时复制新版本——极致读性能。
+- <strong>无等待（wait-free）</strong> 比无锁更强：保证每个操作有限步完成（无锁只保证系统整体前进、单个线程可能饿）——理论优雅但实现更难，少用。</p>
+<p><strong>方法论</strong>：<strong>并发编程的成熟度体现在"知道何时用锁、何时用无锁库、几乎永不手写无锁算法"</strong>。手写无锁是专家在特定热点才做的事，且必须配大量测试 + 形式化验证（这类 bug 靠测试极难复现，🔗 os-02 的间歇性）。</p>
+<h2 id="5-rust-bug">5. 通往 Rust:类型系统消灭并发 bug<a class="headerlink" href="#5-rust-bug" title="Permanent link"></a></h2>
+<p>回顾这两页的所有噩梦——数据竞争、ABA、内存序错误——它们的共同点是：<strong>编译器不知道哪些数据被哪些线程共享、以什么方式同步</strong>，全靠程序员小心。<strong>Rust 的洞见（rust-02 详讲）</strong>：把这些信息编码进类型系统——<code>Send</code>/<code>Sync</code> trait 标记"能否跨线程"、借用检查器保证"要么多个只读、要么一个可写"，于是<strong>数据竞争在编译期被拒绝</strong>。<strong>"无畏并发"不是魔法，是把本页的纪律变成编译器强制的规则</strong>——这是本站并行线与语言线的关键呼应，读完 rust-02 你会回看这两页豁然开朗。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（CAS loop 手写）</strong> 用 CAS 实现原子的"取最大值"（<code>atomic_max</code>）——读旧值、若新值更大则 CAS 写入、失败重试。<strong>CAS loop 的范式一次写会</strong>。</p>
+<p><strong>例 2（构造 ABA）</strong> 画出无锁栈在什么线程交错下触发 ABA——理解"A→B→A 骗过 CAS"，再想版本号如何修复。<strong>并发最经典的坑亲手推一遍</strong>。</p>
+<p><strong>例 3（内存序判断）</strong> 生产者写数据 + release 标志、消费者 acquire 标志 + 读数据——论证为什么这对 acquire/release 保证消费者看到完整数据，换成 relaxed 为什么可能出错。<strong>理解"配对的内存序建立可见性"</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L10（无锁栈/队列）</strong>：<code>labs/L10-lockfree/</code> —— CAS 实现无锁栈 + ABA 演示 + 内存序对比。跑在 Mac（C++/Rust）。<strong>这是并发深水区的动手练习，务必配 ThreadSanitizer 跑。</strong></p>
+</blockquote>
+<hr />
+<p><em>下一页：GPU I——CUDA 编程模型：从 CPU 的少数强核到 GPU 的数千弱核，大规模数据并行的硬件与思维。（本页起 CUDA 实验在你的 Win 4060 Ti 上跑。）</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="par-01-models.html"><span class="pager-label">上一页</span>并行 I · 并行模型与缓存一致性</a>
+  <a class="pager-slot next" href="gpu-01-cuda-model.html"><span class="pager-label">下一页</span>GPU I · CUDA 编程模型</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

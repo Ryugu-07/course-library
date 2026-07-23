@@ -5,6 +5,11 @@
 
 ## 1. 梯度下降：两条速率的完整证明
 
+<figure class="plot" markdown="1">
+![一阶方法收敛速率对比](assets/img/cvx-02-rates.svg)
+<figcaption><span class="fig-id">图 2.1</span>一阶方法收敛速率：凸 \(O(1/k)\)、Nesterov 加速 \(O(1/k^2)\)、强凸线性——加速把速率提了一个数量级。</figcaption>
+</figure>
+
 **引理（下降引理）【证明】** $L$-光滑（$\nabla f$ Lipschitz）⇒ $f(y) \leq f(x) + \langle\nabla f(x), y - x\rangle + \frac L2\|y - x\|^2$（对 $g(t) = f(x + t(y-x))$ 微积分基本定理 + Lipschitz 估计积分）。取 $y = x - \frac1L\nabla f$：**每步至少降 $\frac{1}{2L}\|\nabla f\|^2$**。
 
 **定理（凸 + $L$-光滑，$\alpha = 1/L$）** $f(x_k) - f^* \leq \dfrac{L\|x_0 - x^*\|^2}{2k}$。

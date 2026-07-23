@@ -21,6 +21,11 @@ $$
 
 ## 3. 临界指数 = 不动点的线性化
 
+<figure class="plot" markdown="1">
+![RG 流与不动点](assets/img/asm-03-rg-flow.svg)
+<figcaption><span class="fig-id">图 3.1</span>RG 流：耦合在 \(\beta(g)=0\) 的不动点处停驻，稳定/不稳定不动点决定相与临界行为，临界指数由不动点线性化给出。</figcaption>
+</figure>
+
 临界不动点 $K^*$ 附近线性化（ode-03 的 Jacobi 流程）：$\delta K' = \Lambda\,\delta K$，特征值写成 $\Lambda_i = b^{y_i}$：
 
 - $y_i > 0$：**相关方向**（偏离被放大——温度、外场：必须调准才能到临界点，实验上"临界点难伺候"的原因）；

@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-09 21:08</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -62,6 +62,10 @@
 <p><strong>诞生场景</strong>：CNN 吃定了图像，但语言是另一种生物：句子变长、顺序敏感（"猫追狗"≠"狗追猫"）、依赖可以横跨很远（"那只我上周在邻居家院子里见过的<strong>猫</strong>……<strong>它</strong>"）。为序列而生的 RNN 统治了 NLP 十年，却始终被两个毛病纠缠：记不住远处、算得太慢。2017 年，Google 的八人小组扔出一篇标题狂妄的论文——《Attention Is All You Need》：把循环彻底扔掉，只留注意力。这个叫 <strong>Transformer</strong> 的架构不仅吞掉了 NLP，后来还回头吞掉了视觉，成为今天一切大模型的骨架。本讲从 RNN 的困境出发，一步步推到 Transformer 的每个部件——<strong>知其然，更知其为什么非这么设计不可</strong>。</p>
 </blockquote>
 <h2 id="1">1. 前置：词怎么变成向量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="正弦位置编码" src="assets/img/06-positional-encoding.svg" /></p>
+<figcaption><span class="fig-id">图 6.1</span>正弦位置编码：用不同频率的 sin/cos 给每个位置一个独特向量，让无序的注意力知道"谁在前谁在后"。</figcaption>
+</figure>
 <p>神经网络吃的是向量，第一步是把词变成向量。独热编码（每个词一个坐标轴）维数爆炸且任意两词正交——"猫"和"狗"的相似性无处安放。解法是<strong>词嵌入（word embedding）</strong>：给每个词学一个稠密向量（如 300 维），让语义相近的词向量相近。word2vec（2013）的训练思想极简：<strong>用一个词预测它的上下文</strong>（"分布假设"：意思相近的词出现在相似的语境里）。副产品惊艳了所有人：向量空间里 <span class="arithmatex">\(\vec{v}_{\text{king}} - \vec{v}_{\text{man}} + \vec{v}_{\text{woman}} \approx \vec{v}_{\text{queen}}\)</span>——语义关系变成了线性代数。记住这个思想：<strong>"预测上下文"这个朴素目标能逼出语义表示</strong>——把它推到极限就是第 07 讲的 GPT。</p>
 <h2 id="2-rnn">2. RNN：给网络装上记忆<a class="headerlink" href="#2-rnn" title="Permanent link"></a></h2>
 <h3 id="21">2.1 结构<a class="headerlink" href="#21" title="Permanent link"></a></h3>
@@ -103,6 +107,14 @@ o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &a
 <h3 id="25">2.5 死穴二：串行<a class="headerlink" href="#25" title="Permanent link"></a></h3>
 <p>RNN 还有个与生俱来的工程死穴：<span class="arithmatex">\(h_t\)</span> 依赖 <span class="arithmatex">\(h_{t-1}\)</span>，<strong>必须逐词串行计算</strong>。GPU 是并行机器（第 05 讲的燃料），却只能干等序列一格格走完；训练长文档慢到无法忍受，模型规模因此上不去。总结 RNN 的两宗罪：<strong>远距离信号衰减（学不好）+ 串行（练不快）</strong>。Transformer 对症下的药是同一味。</p>
 <h2 id="3-transformer">3. Transformer：注意力就是全部<a class="headerlink" href="#3-transformer" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="Transformer 整块：多头注意力 + FFN + 残差 + LayerNorm 的结构。" src="assets/img/06-transformer-block.svg" /></p>
+<figcaption><span class="fig-id">图 6.3</span>Transformer 整块：多头注意力 + FFN + 残差 + LayerNorm 的结构。</figcaption>
+</figure>
+<figure class="plot">
+<p><img alt="注意力权重矩阵" src="assets/img/06-attention-weights.svg" /></p>
+<figcaption><span class="fig-id">图 6.2</span>注意力权重矩阵：每个 query 对所有 key 做 softmax，得到一行权重——决定"看哪些词"，Transformer 的核心运算。</figcaption>
+</figure>
 <p>2017 年的暴论：<strong>把循环整个扔掉</strong>。让序列里每个词直接与所有词（包括自己）两两交互——<strong>自注意力（self-attention）</strong>。任意两词之间的路径长度从 RNN 的 <span class="arithmatex">\(O(n)\)</span> 降到 <span class="arithmatex">\(O(1)\)</span>（信号不衰减），且所有位置的计算完全独立（GPU 满载并行）。两宗罪一次清账。代价后面说。</p>
 <h3 id="31-query-key-value">3.1 Query / Key / Value<a class="headerlink" href="#31-query-key-value" title="Permanent link"></a></h3>
 <p>自注意力的运作可以类比一次数据库检索。每个词的嵌入向量 <span class="arithmatex">\(x_i \in \mathbb{R}^{d_{\text{model}}}\)</span> 经三个<strong>学习到的</strong>线性投影，生成三种角色：</p>

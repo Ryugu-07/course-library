@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>协议、零知识与后量子 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li class="active"><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-pki">1. 数字签名与 PKI：信任怎么落地</a></li>
+<li><a href="#2">2. 零知识证明：证明"我知道"而不说出来</a></li>
+<li><a href="#3">3. 安全多方计算与同态加密（一瞥）</a></li>
+<li><a href="#4-shor">4. 后量子密码：Shor 来敲门</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">密码学 II · 协议、零知识与后量子<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Boneh–Shoup 后半 / Katz–Lindell 协议章 / NIST PQC ｜ <strong>前置</strong>：crypto-01、toc-02（IP=PSPACE）、physics 站 qi 线（Shor）
+单次加密只是起点。真实世界要的是<strong>协议</strong>——互不信任的多方在敌意网络上达成可信结果。这一页走三段：日常协议（TLS/签名/证书如何拼出你浏览器的锁图标）、零知识证明（证明"我知道"却不泄露）、后量子密码（Shor 算法把 RSA/ECC 判了死缓，怎么办）。</p>
+</blockquote>
+<h2 id="1-pki">1. 数字签名与 PKI：信任怎么落地<a class="headerlink" href="#1-pki" title="Permanent link"></a></h2>
+<p><strong>数字签名</strong>：私钥签、公钥验——<strong>只有私钥持有者能产生、任何人能验证</strong>（与加密的公私钥用法相反）。RSA 签名 = 对消息哈希做私钥运算；ECDSA/EdDSA 是椭圆曲线版。签名给出<strong>认证 + 不可否认性</strong>。</p>
+<p><strong>但公钥怎么信？</strong> ——<strong>公钥基础设施 PKI</strong>：<strong>证书</strong>是"CA（证书颁发机构）用自己私钥签名的'这个公钥属于 example.com'的声明"。你的浏览器内置一批根 CA 公钥，靠<strong>信任链</strong>（根 CA 签中间 CA 签网站）验证。<strong>这是"信任的委托"：你不认识网站，但你信 CA，CA 担保网站</strong>。Web 信任的软肋也在此——任一 CA 被攻破就能伪造证书（故有 Certificate Transparency 公开日志监督）。</p>
+<figure class="diagram">
+<p><img alt="PKI 根 CA 中间 CA 网站证书信任链" src="assets/img/crypto-02-pki-chain.svg" /></p>
+<figcaption><span class="fig-id">图 crypto-02.1</span>PKI 信任链——浏览器从网站证书一路验证签名，直到连回内置的可信根 CA。</figcaption>
+</figure>
+<p><strong>TLS 握手（你每次 https 都在跑）【骨架】</strong>：① 协商套件；② 用 DH/ECDH 交换出会话密钥（crypto-01）——<strong>前向保密</strong>（每次会话新密钥，私钥日后泄露也不能解旧流量）；③ 服务器用证书 + 签名证明身份；④ 之后用对称密钥（AES-GCM）加密数据。<strong>公钥密码建立信任 + 交换密钥，对称密码扛数据吞吐——一次握手把两代密码学的长处拼在一起</strong>（🔗 net-02 会从网络分层角度再看一遍 TLS）。</p>
+<figure class="diagram">
+<p><img alt="TLS 握手协商证书认证和对称密钥" src="assets/img/crypto-02-tls-handshake.svg" /></p>
+<figcaption><span class="fig-id">图 crypto-02.2</span>TLS 握手——证书认证身份，ECDHE 协商会话密钥，随后用对称加密承载数据。</figcaption>
+</figure>
+<h2 id="2">2. 零知识证明：证明"我知道"而不说出来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>目标</strong>：证明者让验证者相信一个命题为真，<strong>除"真"之外不泄露任何信息</strong>。三性质：完备（真命题能证）、可靠（假命题证不了，soundness）、<strong>零知识</strong>（验证者学不到额外信息——形式化为"验证者能自己模拟出整个对话")。</p>
+<p><strong>直觉例子（阿里巴巴洞穴）</strong>：环形洞穴分左右两条路、中间一道密码门。证明者进洞，验证者在洞口喊"从左边出来"或"从右边出来"。若证明者真知道密码，每次都能按要求出来；若不知道，只有 50% 蒙对——重复 <span class="arithmatex">\(n\)</span> 次，蒙混概率 <span class="arithmatex">\(2^{-n}\)</span>。<strong>验证者确信"他知道密码"，却始终不知道密码是什么</strong>。这就是交互式零知识（🔗 toc-02 的 IP=PSPACE 是它的理论母体）。</p>
+<figure class="diagram">
+<p><img alt="零知识阿里巴巴洞穴交互直觉" src="assets/img/crypto-02-zk-cave.svg" /></p>
+<figcaption><span class="fig-id">图 crypto-02.3</span>零知识洞穴——验证者只看到证明者能按随机要求出来，却学不到秘密门的密码。</figcaption>
+</figure>
+<p><strong>现代形态 zk-SNARK / zk-STARK</strong>：<strong>非交互、简洁</strong>（证明短、验证快）的零知识——证明"我正确执行了某段计算"而不暴露输入。应用爆发：<strong>隐私区块链</strong>（证明交易合法不暴露金额）、<strong>Layer-2 rollup</strong>（把上万笔交易压成一个简短证明，扩容以太坊）、<strong>可验证计算</strong>（把计算外包给不可信服务器、拿回一个能验的证明）。这是密码学当下最热的工程前沿之一。</p>
+<h2 id="3">3. 安全多方计算与同态加密（一瞥）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>安全多方计算 MPC</strong>：多方各持私密输入，<strong>共同算出函数值而不泄露各自输入</strong>（姚氏百万富翁问题：两人比谁富而不说出身家）。用混淆电路 / 秘密分享实现。用于隐私保护的联合数据分析。</li>
+<li><strong>同态加密 FHE</strong>：<strong>在密文上直接计算</strong>，解密后等于对明文计算的结果——"把加密数据交给云、云算完还给你、云全程看不到明文"。Gentry 2009 首个方案，至今在为效率苦战，但已在隐私 ML 推理等场景落地。<strong>"数据可用不可见"是这两项技术的共同愿景</strong>。</li>
+</ul>
+<h2 id="4-shor">4. 后量子密码：Shor 来敲门<a class="headerlink" href="#4-shor" title="Permanent link"></a></h2>
+<p><strong>危机</strong>：Shor 量子算法（🔗 physics 站 qi-02）能在多项式时间内<strong>分解大整数、求离散对数</strong>——<strong>RSA、DH、ECC 全部被量子计算机秒破</strong>。虽然大规模容错量子计算机尚未造出，但<strong>"现在窃取密文、将来量子解密"（harvest-now-decrypt-later）的威胁已经现实</strong>，敏感数据需提前迁移。</p>
+<p><strong>出路——后量子密码（PQC）</strong>：换到量子也难的数学问题上：
+- <strong>格密码（lattice）</strong>：最短向量问题（SVP）——量子也没有已知高效解。NIST 2024 标准化的 <strong>ML-KEM（Kyber）密钥封装、ML-DSA（Dilithium）签名</strong>都是格基。
+- 另有基于哈希的签名（SPHINCS+，抗量子且假设最少）、编码密码等。</p>
+<p><strong>读法</strong>：<strong>密码学的安全永远是"相对于当前已知算法与硬件"的动态契约</strong>——量子计算逼着整个 PKI 换地基，这是正在发生的十年级迁移。Shor 之所以能破，正因为分解/离散对数是 NP-中间而非 NP 完全（toc-02）——<strong>格问题被押注为下一个安身之所</strong>。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（签名 vs 加密别搞反）</strong> 想让"只有我能发、人人能验"用签名（私钥签）；想让"人人能发给我、只有我能读"用加密（公钥加密）。<strong>公私钥的两种对称用法，一张图记死</strong>，是密码学入门最常见的混淆点。</p>
+<p><strong>例 2（零知识的可靠性数感）</strong> 洞穴协议重复 20 次，冒充者蒙混概率 <span class="arithmatex">\(2^{-20}\approx 10^{-6}\)</span>——<strong>"重复交互把作弊概率指数压小"和 algo-03 的 Chernoff、adv-01 的草图放大是同一种概率放大术</strong>。</p>
+<p><strong>例 3（迁移的现实判断）</strong> 你的 Medusa 若长期存加密敏感数据，该关心 PQC 吗？答：取决于数据的"保密寿命"——若十年后泄露也无所谓则不急，若涉长期隐私则应关注 TLS 库的 PQC 支持（现代 OpenSSL/浏览器已在部署混合密钥交换）。<strong>安全决策是"威胁 × 时间窗 × 成本"的工程权衡，不是非黑即白</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>理论线到此为止。下一页进入系统线主体——CSAPP I：程序在机器眼里到底长什么样。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="crypto-01-foundations.html"><span class="pager-label">上一页</span>密码学 I · 对称、公钥与数论基础</a>
+  <a class="pager-slot next" href="csapp-01-representation.html"><span class="pager-label">下一页</span>CSAPP I · 机器级表示</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -12,6 +12,11 @@
 
 ## 2. Poisson 过程：完全随机的事件流
 
+<figure class="plot" markdown="1">
+![Poisson 过程计数路径](assets/img/stoch-01-poisson-process.svg)
+<figcaption><span class="fig-id">图 1.1</span>Poisson 过程：事件在时间轴上完全随机到达，计数 \(N(t)\) 是逐级跳 1 的阶梯，间隔服从指数分布。</figcaption>
+</figure>
+
 **定义（计数过程版）** $N(t)$ = $[0, t]$ 内事件发生数。称 $\{N(t)\}$ 为强度 $\lambda$ 的 Poisson 过程，若：① $N(0) = 0$；② 独立增量；③ $N(t+s) - N(s) \sim P(\lambda t)$（平稳增量且服从泊松分布）。
 
 （更本源的公理化：小区间内发生一次的概率 $\approx \lambda h$、两次以上 $o(h)$、独立增量——由此可**推出**泊松分布，微分方程法；概率 II"稀有事件"直觉的严格化。）

@@ -4,6 +4,11 @@
 
 ## 1. 特征值与特征向量
 
+<figure class="plot" markdown="1">
+![特征向量是只缩放不旋转的方向](assets/img/algebra-05-eigenvectors.svg)
+<figcaption><span class="fig-id">图 5.1</span>特征向量是矩阵 \(A\) 只缩放、不旋转的特殊方向；单位圆经 \(A\) 映射成椭圆，主轴正是特征向量、伸缩比是特征值。</figcaption>
+</figure>
+
 **定义** $A\xi = \lambda\xi\ (\xi \neq 0)$：$\xi$ 是只被**伸缩不被转向**的方向，$\lambda$ 是伸缩率。
 
 **求法**：$(\lambda I - A)\xi = 0$ 有非零解 $\iff$ **特征多项式** $f(\lambda) = \det(\lambda I - A) = 0$。$n$ 阶方阵在 $\mathbb{C}$ 上恰有 $n$ 个特征值（计重数）。

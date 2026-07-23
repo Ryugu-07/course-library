@@ -2,6 +2,12 @@
 
 > 概率论的第一页解决"概率是什么"：Kolmogorov 公理把它定义为满足三条规则的集合函数——从此概率论成为严格数学，其余一切（条件概率、独立性、Bayes）都是公理的推论。本页也是全站与 AI 课程交汇最密的一页：贝叶斯公式是机器学习半壁江山的地基。
 
+
+<figure class="diagram" markdown="1">
+![贝叶斯：先验→似然→后验的概率树 / 混淆矩阵式方块图（如疾病检测假阳性）。](assets/img/prob-01-bayes-tree.svg)
+<figcaption><span class="fig-id">图 prob-01.1</span>贝叶斯：先验→似然→后验的概率树 / 混淆矩阵式方块图（如疾病检测假阳性）。</figcaption>
+</figure>
+
 ## 1. 概率空间
 
 **三元组 $(\Omega, \mathcal{F}, P)$**：样本空间 $\Omega$（一切可能结果）、事件域 $\mathcal{F}$（$\Omega$ 的一族子集，对补与可列并封闭——σ-代数）、概率测度 $P$。

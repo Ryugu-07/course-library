@@ -14,6 +14,11 @@ $$
 
 ## 2. Frenet 标架：曲线的随身坐标系
 
+<figure class="plot" markdown="1">
+![密切圆半径等于曲率倒数](assets/img/dg-01-curvature.svg)
+<figcaption><span class="fig-id">图 1.1</span>曲率 \(\kappa\) 的几何：密切圆是与曲线二阶相切的圆，半径 \(R=1/\kappa\)——曲线拐得越急、密切圆越小。</figcaption>
+</figure>
+
 弧长参数下（记 $' = \frac{d}{ds}$）：
 
 - **单位切向量** $\mathbf{T} = \mathbf{r}'$；

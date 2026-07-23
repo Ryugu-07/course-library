@@ -16,6 +16,11 @@ $\sigma$ 是**激活函数**——最初是阶跃函数，后来换成光滑版�
 
 ## 2. 多层网络的表达力：万能逼近
 
+<figure class="plot" markdown="1">
+![激活函数](assets/img/04-activations.svg)
+<figcaption><span class="fig-id">图 4.1</span>激活函数给网络注入非线性：没有它，多层网络会塌回一个线性映射——sigmoid/tanh/ReLU/GELU 是最常见的几种。</figcaption>
+</figure>
+
 把神经元层层堆叠：第 $l$ 层把上一层输出 $a^{(l-1)}$ 变换为
 
 $$
@@ -34,6 +39,17 @@ $$
 - **深度的价值它没有回答**。后来的深度分离定理（如 Telgarsky 2016）表明：某些函数用深网络表示只需多项式规模，用浅网络则需指数规模。直觉：深度提供**复合**，$f(g(h(x)))$ 式的层级结构用"层级的机器"表示才高效——而真实世界（图像 = 边→纹理→部件→物体）恰恰是层级的。这是"深度"学习的第一性原理。
 
 ## 3. 训练：梯度下降与反向传播
+
+
+<figure class="diagram" markdown="1">
+![反向传播：前向计算图 + 反向梯度沿链式法则回流。](assets/img/04-computational-graph.svg)
+<figcaption><span class="fig-id">图 4.3</span>反向传播：前向计算图 + 反向梯度沿链式法则回流。</figcaption>
+</figure>
+
+<figure class="plot" markdown="1">
+![梯度下降与学习率](assets/img/04-gradient-descent.svg)
+<figcaption><span class="fig-id">图 4.2</span>梯度下降沿负梯度更新参数：学习率太大则来回震荡甚至发散、太小则慢——调好它是训练的第一件事。</figcaption>
+</figure>
 
 表达力有了，Minsky 的第二个问题还在：**怎么训练？**参数 $\theta = \{W^{(l)}, b^{(l)}\}$ 几千上万个，损失 $L(\theta)$ 非凸（不像 SVM），解析解无望。答案是最朴素的迭代：**往下坡走**。
 

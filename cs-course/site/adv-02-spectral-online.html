@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>谱图论与在线算法 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li class="active"><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 图拉普拉斯：图的线性代数化身</a></li>
+<li><a href="#2">2. 随机游走与混合时间</a></li>
+<li><a href="#3">3. 在线算法：不知未来如何决策</a></li>
+<li><a href="#4">4. 势函数法：在线与摊还分析的统一工具</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">高级算法 II · 谱图论与在线算法<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.854 / Spielman <em>Spectral Graph Theory</em> / 竞争分析经典 ｜ <strong>前置</strong>：adv-01、数学站线代（特征值、Rayleigh 商）、概率线
+两个高级主题，各自展示一种"数学直接变算法"的美：<strong>谱图论</strong>把图的组合性质编码进拉普拉斯矩阵的特征值（你在线代里学的 Rayleigh 商直接上岗）；<strong>在线算法</strong>处理"必须在看到未来前决策"的问题，用竞争比量化"不知未来的代价"。</p>
+</blockquote>
+<h2 id="1">1. 图拉普拉斯：图的线性代数化身<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>图 <span class="arithmatex">\(G\)</span> 的<strong>拉普拉斯矩阵</strong> <span class="arithmatex">\(L = D - A\)</span>（<span class="arithmatex">\(D\)</span> 度对角阵、<span class="arithmatex">\(A\)</span> 邻接阵）。它是本段主角，性质全从二次型来：</p>
+<div class="arithmatex">\[
+x^T L x = \sum_{(u,v)\in E}(x_u - x_v)^2 \ge 0
+\]</div>
+<p>——<strong>半正定</strong>，且这个式子把"相邻点取值差"求和：<span class="arithmatex">\(L\)</span> 度量一个点标注函数在图上的"不光滑度"。</p>
+<p><strong>特征值 <span class="arithmatex">\(0=\lambda_1\le\lambda_2\le\cdots\le\lambda_n\)</span> 的意义</strong>：
+- <span class="arithmatex">\(\lambda_1=0\)</span>，重数 = <strong>连通分量数</strong>（每个分量的示性向量是零特征向量）。
+- <span class="arithmatex">\(\lambda_2\)</span>（<strong>代数连通度 / Fiedler 值</strong>）&gt; 0 ⟺ 图连通；它越大图越"难切开"。对应特征向量（Fiedler 向量）的正负号给出一个好的<strong>图二分</strong>——<strong>谱聚类</strong>的原理。</p>
+<figure class="plot">
+<p><img alt="Fiedler 向量按正负号切分路径图" src="assets/img/adv-02-fiedler.svg" /></p>
+<figcaption><span class="fig-id">图 adv-02.1</span>Fiedler 向量——拉普拉斯第二小特征向量沿图平滑变化，零点附近给出自然二分。</figcaption>
+</figure>
+<p><strong>Cheeger 不等式【骨架 + 直觉】</strong>：定义电导（conductance）<span class="arithmatex">\(\phi\)</span> = "最省的稀疏割"，则</p>
+<div class="arithmatex">\[
+\frac{\lambda_2}{2} \le \phi \le \sqrt{2\lambda_2}.
+\]</div>
+<p><strong>特征值夹住了组合的割</strong>——线代量 <span class="arithmatex">\(\lambda_2\)</span> 与组合量 <span class="arithmatex">\(\phi\)</span> 互相控制。这是"用特征向量做聚类/分割"可靠的理论依据（🔗 数学站线代的 Rayleigh 商 <span class="arithmatex">\(\lambda_2 = \min_{x\perp\mathbf 1}\frac{x^TLx}{x^Tx}\)</span> 在这里直接就是"最光滑的非平凡标注"）。</p>
+<figure class="diagram">
+<p><img alt="Cheeger 不等式连接谱间隙和稀疏割" src="assets/img/adv-02-cheeger.svg" /></p>
+<figcaption><span class="fig-id">图 adv-02.2</span>Cheeger 不等式——谱量 λ₂ 与组合瓶颈 φ 互相控制，解释谱切割为何可靠。</figcaption>
+</figure>
+<p><strong>应用全景</strong>：谱聚类（ML）、PageRank（随机游走的稳态 = 特定矩阵主特征向量，🔗 math 站 model 线与 grad-math 马尔可夫）、图画法、Laplacian 求解器（Spielman–Teng 近线性时间解 <span class="arithmatex">\(Lx=b\)</span>，现代算法高峰）、expander 图（<span class="arithmatex">\(\lambda_2\)</span> 大 = 稀疏但强连通，伪随机与纠错码的基石）。</p>
+<h2 id="2">2. 随机游走与混合时间<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>图上随机游走的转移矩阵 <span class="arithmatex">\(P = D^{-1}A\)</span>，稳态分布 <span class="arithmatex">\(\pi_v\propto\deg(v)\)</span>。<strong>混合时间</strong>（走多久才接近稳态）由<strong>谱隙</strong> <span class="arithmatex">\(1-\lambda_2(P)\)</span> 控制：隙大则混合快。这把"游走多快遍历图"翻译成特征值问题。<strong>expander = 谱隙大 = 快速混合</strong>——MCMC 采样（🔗 physics 站 comp-01 Metropolis、grad-math 马尔可夫）收敛快慢的完整解释就在这里。</p>
+<p><strong>读法</strong>：<strong>"图的动力学（游走）与图的几何（割）都被同一组特征值决定"</strong>——谱图论的中心思想，一句话记住。</p>
+<h2 id="3">3. 在线算法：不知未来如何决策<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>在线问题</strong>：输入逐个到达，每步必须<strong>不可撤销地</strong>决策，看不到后续。用<strong>竞争比</strong>衡量：</p>
+<div class="arithmatex">\[
+\text{竞争比} = \max_{\text{输入}}\frac{\text{在线算法代价}}{\text{离线最优代价（事后诸葛）}}
+\]</div>
+<p>——"不知未来"的代价的最坏定量。</p>
+<p><strong>样板一：缓存/分页置换</strong> 内存装 <span class="arithmatex">\(k\)</span> 页，缺页要换出一页——换哪个？LRU / FIFO 都是 <strong><span class="arithmatex">\(k\)</span>-竞争</strong>（最坏是最优的 <span class="arithmatex">\(k\)</span> 倍），且这是确定性算法的下界。<strong>随机化 marking 算法把竞争比降到 <span class="arithmatex">\(O(\log k)\)</span></strong>——又一次随机性打败最坏情况（呼应 algo-03）。这直接是 csapp-02 缓存、os-03 页面置换的理论天花板。</p>
+<p><strong>样板二：租还是买（ski rental）</strong> 滑雪租 $1/天、买 $B，不知还要滑几天——<strong>"先租到累计花费 = <span class="arithmatex">\(B\)</span> 时再买"是 2-竞争</strong>，且随机化能到 <span class="arithmatex">\(\frac{e}{e-1}\approx1.58\)</span>。这个玩具模型是<strong>一切"何时从租用切换到自建"决策的原型</strong>（云上按量付费 vs 包年、连接池、缓存预热……）。</p>
+<figure class="plot">
+<p><img alt="滑雪租赁问题租到阈值再买的竞争比" src="assets/img/adv-02-ski-rental.svg" /></p>
+<figcaption><span class="fig-id">图 adv-02.3</span>Ski rental——先租到累计成本 B 再买，最坏总成本不超过离线最优的 2 倍。</figcaption>
+</figure>
+<p><strong>样板三：在线学习 / 专家问题</strong> <span class="arithmatex">\(n\)</span> 个专家每天给建议，你要跟着谁？<strong>加权多数 / Multiplicative Weights</strong>：按历史表现给专家指数加权，跟随加权投票——<strong>遗憾（regret）<span class="arithmatex">\(O(\sqrt{T\log n})\)</span></strong>，趋于最优专家。这个 MW 框架惊人地通用：它统一了 boosting（ML）、求解零和博弈（🔗 math 站博弈论）、近似 LP、甚至 AdaBoost——<strong>"指数加权 + 在线更新"是一把万能钥匙</strong>。</p>
+<h2 id="4">4. 势函数法：在线与摊还分析的统一工具<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>怎么证竞争比 / 摊还复杂度？<strong>势函数 <span class="arithmatex">\(\Phi\)</span></strong>：定义一个刻画"当前状态好坏"的量，证明"每步真实代价 + 势变化 <span class="arithmatex">\(\le \rho\times\)</span> 最优代价"，累加即得竞争比。<strong>摊还分析</strong>（动态数组倍增、并查集、伸展树）用同一招：单次操作可能贵，但势的涨落把成本摊平。<strong>势函数是"局部不等式累加成全局界"的通用范式</strong>（🔗 与物理站的李雅普诺夫函数、能量法同构——你在物理站见过这个思想）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（Fiedler 手算）</strong> 一条 4 点路径图，写出 <span class="arithmatex">\(L\)</span>，求 <span class="arithmatex">\(\lambda_2\)</span> 与 Fiedler 向量——你会看到向量沿路径单调（正负各半），据此切成两段正是最自然的二分。<strong>谱聚类在最小例子上现形</strong>。</p>
+<p><strong>例 2（ski rental 最优性）</strong> 证明任何确定性"租到第 <span class="arithmatex">\(d\)</span> 天买"策略的竞争比 <span class="arithmatex">\(\ge 2-\frac1B\)</span>：对手让你刚买完就不滑了。<strong>竞争分析的对手视角</strong>——最坏情况是被精心构造的。</p>
+<p><strong>例 3（MW 一题多解）</strong> 用 Multiplicative Weights 求解一个 2×2 零和博弈的近似均衡：把行策略当"专家"、列的最优反应当"损失"，迭代加权收敛到 minimax 值（🔗 博弈论线）——<strong>同一个算法，昨天做专家预测，今天求纳什均衡</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：计算理论 I——自动机的层级与可计算性的边界，停机问题为什么无解。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="adv-01-streaming.html"><span class="pager-label">上一页</span>高级算法 I · 流算法与草图</a>
+  <a class="pager-slot next" href="toc-01-computability.html"><span class="pager-label">下一页</span>计算理论 I · 自动机与可计算性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

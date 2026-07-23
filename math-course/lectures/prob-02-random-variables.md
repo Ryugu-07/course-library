@@ -10,6 +10,11 @@
 
 ## 2. 离散型：分布列与四大分布
 
+<figure class="plot" markdown="1">
+![连续与离散四大分布](assets/img/prob-02-distributions.svg)
+<figcaption><span class="fig-id">图 2.1</span>四大分布一览：连续型（正态钟形、指数）与离散型（二项、Poisson）——概率论的"常用词汇表"。</figcaption>
+</figure>
+
 $P(X = x_k) = p_k$，$\sum p_k = 1$。
 
 | 分布 | 分布列 | 场景 | $E$ | $D$ |

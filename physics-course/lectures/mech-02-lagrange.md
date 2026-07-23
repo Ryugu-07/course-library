@@ -9,6 +9,11 @@
 
 ## 2. 最小作用量原理与 Euler–Lagrange 方程
 
+<figure class="plot" markdown="1">
+![最小作用量原理](assets/img/mech-02-least-action.svg)
+<figcaption><span class="fig-id">图 2.1</span>最小作用量原理：真实路径让作用量 \(S=\int L\,dt\) 取极值——邻近试探路径的 \(S\) 都更大，Euler–Lagrange 方程正是 \(\delta S=0\)。</figcaption>
+</figure>
+
 **原理（Hamilton）**：真实路径使作用量
 
 $$

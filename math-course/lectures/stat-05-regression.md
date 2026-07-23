@@ -4,6 +4,11 @@
 
 ## 1. 一元线性回归
 
+<figure class="plot" markdown="1">
+![最小二乘拟合与残差](assets/img/stat-05-regression.svg)
+<figcaption><span class="fig-id">图 5.1</span>最小二乘：选直线使各点到直线的竖直残差（红）平方和最小——回归的几何本质。</figcaption>
+</figure>
+
 **模型** $Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i$，$\varepsilon_i$ i.i.d. $N(0, \sigma^2)$。（理论出身：二维正态的条件期望是线性的——概率 III 性质 2；一般总体则视为对 $E[Y\mid x]$ 的线性逼近——概率 IV"最佳预测"的可实现版。）
 
 **最小二乘估计（OLS）**：$\min_{\beta_0,\beta_1}\sum(y_i - \beta_0 - \beta_1 x_i)^2$，求偏导置零（正规方程）解得

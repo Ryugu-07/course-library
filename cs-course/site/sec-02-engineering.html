@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>密钥、供应链与安全工程 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li class="active"><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 密钥与秘密管理：最常见的低级灾难</a></li>
+<li><a href="#2">2. 软件供应链安全:你依赖的一切都是攻击面</a></li>
+<li><a href="#3">3. 威胁建模:在设计时想清楚攻击面</a></li>
+<li><a href="#4">4. 安全工程文化:让安全可持续</a></li>
+<li><a href="#5">5. 全站收束:安全是所有层的横切关注</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">安全 II · 密钥、供应链与安全工程<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Stanford CS155 / OWASP / <em>Building Secure and Reliable Systems</em>（Google）｜ <strong>前置</strong>：sec-01、crypto 线、cloud 线、se 线
+sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的工程实践</strong>——不是"事后修漏洞"，而是"从设计和流程上让系统更难被攻破"。三块：<strong>密钥与秘密管理</strong>（你 memory 里"明文密钥"的教训直接相关）、<strong>软件供应链安全</strong>（依赖是最大攻击面之一）、<strong>安全工程文化</strong>（威胁建模、安全左移、纵深防御）。核心是把安全从个人英雄主义变成可持续的工程纪律。</p>
+</blockquote>
+<h2 id="1">1. 密钥与秘密管理：最常见的低级灾难<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="密钥管理：硬编码进 git（永久泄露）vs .env+gitignore+密钥管理器+轮换。" src="assets/img/sec-02-secrets.svg" /></p>
+<figcaption><span class="fig-id">图 sec-02.3</span>密钥管理：硬编码进 git（永久泄露）vs .env+gitignore+密钥管理器+轮换。</figcaption>
+</figure>
+<p>API key、数据库密码、加密密钥、token——这些<strong>秘密（secrets）</strong>一旦泄露，前面所有防御白搭。而泄露往往因为最低级的错误：</p>
+<ul>
+<li><strong>绝不硬编码密钥进代码</strong>：写死在源码里 → 进了 git 历史 → <strong>永久泄露</strong>（git 不删历史 se-01，改了密码旧的还在历史里）。<strong>你的 CLAUDE.md 明令"旧 run_rss.bat 含明文密钥勿启用"、memory 里"key 未泄露"的反复确认——正是这条铁律的实践</strong>。</li>
+<li><strong>绝不打进 Docker 镜像</strong>（cloud-01）或提交进版本库。</li>
+<li><strong>正确做法</strong>：</li>
+<li><strong>环境变量 / <code>.env</code> 文件 + <code>.gitignore</code></strong>（你的做法：DeepSeek key 走 <code>labs/.env</code>、<code>.env</code> 在 <code>.gitignore</code>——<strong>这是对的</strong>）。</li>
+<li><strong>专用密钥管理</strong>：Vault、云的 Secret Manager、K8s Secret（cloud-02）——集中管理、加密存储、审计访问、可轮换。</li>
+<li><strong>密钥轮换</strong>：定期更换、泄露立即撤换（你 memory 里"临时 key 已销毁"就是轮换意识）。</li>
+<li><strong>最小权限的密钥</strong>：只读的用只读 key（你的 tailscale <code>codex_readonly</code> 只读直连——<strong>教科书级的最小权限实践</strong>）。</li>
+</ul>
+<p><strong>扫描防线</strong>：用 <strong>gitleaks / git-secrets</strong>（你 memory 的开源计划里正提到"gitleaks 全史扫"）在提交前/CI（se-02）扫描，防止密钥意外进库。<strong>"提交前自动扫密钥"应该是每个项目的默认关卡</strong>。</p>
+<h2 id="2">2. 软件供应链安全:你依赖的一切都是攻击面<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>现代软件是<strong>站在依赖的肩膀上</strong>——一个项目可能间接依赖上千个第三方包（npm/pip）。<strong>每个依赖都是信任 + 攻击面</strong>：
+- <strong>依赖漏洞</strong>：你的代码没 bug，但用的库有已知漏洞（如著名的 Log4Shell）→ 你也受影响。
+- <strong>恶意包 / 投毒</strong>：攻击者发布恶意包（仿冒名、或劫持已有包）→ 你装了就中招。<strong>typosquatting</strong>（仿冒流行包名字）、依赖混淆是真实攻击。
+- <strong>构建链攻击</strong>：攻击者攻破 CI/构建工具（se-02）→ 在你不知情下往产物里插后门（SolarWinds 事件）。</p>
+<p><strong>防御（供应链卫生）</strong>：
+- <strong>依赖扫描</strong>：<code>npm audit</code>、Dependabot、Snyk——自动发现依赖里的已知漏洞并提示升级（集成进 CI，se-02）。
+- <strong>锁定版本 + 校验</strong>：lockfile 锁死确切版本 + 哈希（防"同名不同物"，🔗 se-01 内容寻址思想）。
+- <strong>最小依赖</strong>：<strong>别为一个小功能引入一个大依赖</strong>——依赖越少攻击面越小（也呼应 se-02 别过度工程、你 IBKR 工具"纯逻辑核心零依赖"的判断）。
+- <strong>SBOM（软件物料清单）</strong>：记录你用了什么依赖——出漏洞时能快速排查"我受影响吗"。</p>
+<p><strong>对你的开源计划</strong>（memory）：把 Medusa 开源时，"gitleaks 全史扫 + 剥离数据 + 依赖审查"正是供应链 + 密钥卫生的实践——<strong>开源前的安全清理，本页给了完整清单</strong>。</p>
+<h2 id="3">3. 威胁建模:在设计时想清楚攻击面<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="STRIDE 威胁建模 + 数据流信任边界。" src="assets/img/sec-02-stride.svg" /></p>
+<figcaption><span class="fig-id">图 sec-02.2</span>STRIDE 威胁建模 + 数据流信任边界。</figcaption>
+</figure>
+<p>安全最有效的时机是<strong>设计阶段</strong>（越早越便宜——上线后修漏洞成本高百倍）。<strong>威胁建模</strong>：系统性地问"谁会攻击、攻击什么、怎么防"：
+- <strong>画数据流 + 信任边界</strong>：数据从哪来、经过哪些组件、哪里是"不可信 → 可信"的跨越（那里必须校验，🔗 web-02 边界校验、sec-01 不信任输入）。
+- <strong>STRIDE 框架</strong>：逐类想威胁——<strong>S</strong>poofing（伪造身份）、<strong>T</strong>ampering（篡改）、<strong>R</strong>epudiation（抵赖）、<strong>I</strong>nformation disclosure（信息泄露）、<strong>D</strong>enial of service（拒绝服务）、<strong>E</strong>levation of privilege（提权）。
+- <strong>对每个威胁定对策</strong>：认证防伪造、完整性校验防篡改、日志防抵赖、加密防泄露……</p>
+<p><strong>方法论</strong>：<strong>威胁建模不用很正式——哪怕设计时花十分钟问"这里的输入可信吗？这个密钥怎么保护？出错会泄露什么？"就能挡下大量问题</strong>。</p>
+<h2 id="4">4. 安全工程文化:让安全可持续<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>安全不是一个人的英雄主义或一次性审计，是<strong>融入流程的持续实践</strong>：</p>
+<ul>
+<li><strong>安全左移（shift left）</strong>：把安全检查提前到开发早期——IDE 里的安全 lint、CI 里的密钥扫描 + 依赖扫描 + SAST（静态应用安全测试，🔗 se-02、toc-01 Rice 定理的保守近似）。<strong>越早发现越便宜</strong>。</li>
+<li><strong>纵深防御</strong>：不指望单点——输入校验 + 参数化查询 + 最小权限 + 网络隔离 + 监控告警层层叠加，一层破了还有下一层。</li>
+<li><strong>最小权限，处处适用</strong>：数据库账号只给需要的权限（你的只读账号）、服务只开必要端口、容器 non-root（cloud-01）。</li>
+<li><strong>假设会被攻破 + 可观测</strong>：不假设"绝对安全"，而是<strong>能快速发现和响应</strong>（🔗 cloud-02 可观测性、监控异常访问）——检测到入侵比假装不会被入侵更现实。</li>
+<li><strong>安全与可用性平衡</strong>：过度安全（处处摩擦）会让人绕过它——<strong>好的安全是让"安全的做法"成为"最容易的做法"</strong>（如密钥管理工具比手动传密钥还方便）。</li>
+</ul>
+<p><strong>读法</strong>：<strong>成熟的安全工程 = 把 sec 线的所有知识变成默认的、自动的、低摩擦的流程</strong>——密钥自动扫描、依赖自动审计、输入默认校验、权限默认最小、异常默认告警。<strong>安全不是产品发布前的一道关，是贯穿设计-开发-部署-运维的一条线</strong>。</p>
+<h2 id="5">5. 全站收束:安全是所有层的横切关注<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="安全是横切每一层（系统/网络/数据/应用/流程）的属性，六板块会师。" src="assets/img/sec-02-security-crosscut.svg" /></p>
+<figcaption><span class="fig-id">图 sec-02.1</span>安全是横切每一层（系统/网络/数据/应用/流程）的属性，六板块会师。</figcaption>
+</figure>
+<p>安全线不是孤立的——它<strong>横切本站每一层</strong>，把整个课程串起来：
+- <strong>系统层</strong>：内存安全（csapp/rust）、进程隔离（os）、容器隔离（cloud）。
+- <strong>网络层</strong>：TLS 加密（net/crypto）、认证。
+- <strong>数据层</strong>：SQL 注入防御（db）、加密存储、最小权限账号。
+- <strong>应用层</strong>：输入校验（web-02）、XSS/CSRF 防御（web-03）、授权检查。
+- <strong>流程层</strong>：密钥管理、供应链、CI 安全扫描（se）、威胁建模。</p>
+<p><strong>"安全是每一层都要考虑的横切属性，不是某一层的功能"</strong>——这是安全工程最重要的心智模型，也是本站六大板块在安全这一页的会师。<strong>对你的 Medusa 和开源计划</strong>：从只读账号、<code>.env</code> + gitleaks、到未来的依赖扫描和健康告警，你其实已经在实践本页的很多原则——<strong>本站帮你把这些零散的好习惯，连成一个系统性的安全工程框架</strong>。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（密钥审计）</strong> 检查 Medusa 的密钥都存哪（<code>.env</code>?、有没有历史泄露、只读账号权限对不对），对照本页清单做一次密钥卫生自查——<strong>把"明文密钥"的历史教训变成主动防御</strong>。</p>
+<p><strong>例 2（供应链自查）</strong> 对一个项目跑 <code>npm audit</code> / <code>pip-audit</code>，看有几个已知漏洞依赖——<strong>理解"你依赖的一切都是攻击面"</strong>，为开源计划的依赖审查热身。</p>
+<p><strong>例 3（威胁建模练手）</strong> 给 Medusa 的公网入口（cloudflared → FastAPI）做一次迷你 STRIDE：谁能攻击、攻击什么、现有防御够吗——<strong>把威胁建模用到自己系统的真实攻击面</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>计算机讲义库到此全部完成——六大板块、二十门课、五十页，从算法理论到全栈工程再到安全，计算机科学的主干你都走了一遍。祝学习顺利，常回来查表。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="sec-01-attacks.html"><span class="pager-label">上一页</span>安全 I · 系统与 Web 攻防</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

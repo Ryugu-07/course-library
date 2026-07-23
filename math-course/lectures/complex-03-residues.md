@@ -30,6 +30,11 @@ $$
 
 ## 3. 留数定理（本课程的收官大定理）
 
+<figure class="plot" markdown="1">
+![围道积分等于内部留数和](assets/img/complex-03-contour-residue.svg)
+<figcaption><span class="fig-id">图 3.1</span>留数定理：闭围道上的积分 \(\oint f\,dz=2\pi i\) 乘以围道内部所有极点留数之和——围道外的奇点毫不相干。</figcaption>
+</figure>
+
 **定义** 留数 $\mathrm{Res}(f, z_0) = c_{-1}$（Laurent 展开中 $\frac{1}{z - z_0}$ 的系数——复变 II 基础例说过：只有这一项在围道积分中幸存）。
 
 **定理（留数定理）** $f$ 在闭曲线 $C$ 内除有限个孤立奇点外解析：

@@ -221,6 +221,13 @@ def main():
         src = ROOT / "tools" / asset
         if src.exists():
             shutil.copy(src, SITE / "assets" / asset)
+    # 图片：把 images/ 源目录整体拷进 site/assets/img/（GPT/matplotlib 生成的插图放这里）
+    img_src = ROOT / "images"
+    if img_src.exists():
+        img_dst = SITE / "assets" / "img"
+        if img_dst.exists():
+            shutil.rmtree(img_dst)
+        shutil.copytree(img_src, img_dst)
     write_pygments_css()
 
     build_time = time.strftime("%Y-%m-%d %H:%M")

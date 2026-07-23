@@ -58,6 +58,11 @@ $$
 
 ## 4. 二维正态（多维正态的门面）
 
+<figure class="plot" markdown="1">
+![二维正态等密度椭圆](assets/img/prob-03-bivariate-normal.svg)
+<figcaption><span class="fig-id">图 3.1</span>二维正态的等密度线是椭圆，相关系数 \(\rho\) 让椭圆倾斜——协方差矩阵的几何显形。</figcaption>
+</figure>
+
 密度由五参数 $(\mu_1, \mu_2, \sigma_1^2, \sigma_2^2, \rho)$ 决定（指数上是二次型——高代 VI 正定矩阵在此现身：一般 $n$ 维正态 $N(\boldsymbol\mu, \Sigma)$ 的密度 $\propto \exp\big({-\frac12}(x-\boldsymbol\mu)^\top\Sigma^{-1}(x-\boldsymbol\mu)\big)$，$\Sigma$ 为协方差矩阵）。
 
 **四条性质（重要级别拉满）**：

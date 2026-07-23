@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-11 07:57</div>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
   </div>
 </nav>
 <main id="content">
@@ -57,6 +57,10 @@ A = LU \quad (L \text{ 单位下三角}, U \text{ 上三角})
 <p><strong>选主元为什么不可省</strong>：主元过小时消元乘数巨大，舍入误差被放大（数值 I 的相消灾难在矩阵里的形态）。<strong>列主元</strong>（每列选绝对值最大者换到主元位）以 <span class="arithmatex">\(O(n^2)\)</span> 的比较代价换回稳定性——工业标准配置（LAPACK 的 <code>getrf</code>）。</p>
 <p><strong>对称正定的特权（Cholesky）</strong>：<span class="arithmatex">\(A = LL^\top\)</span>——计算量减半（<span class="arithmatex">\(\frac{n^3}{6}\)</span>）、<strong>无需选主元也稳定</strong>、分解成功本身就是正定性的数值判据（高代 VI 判据的算法化）。协方差矩阵、正规方程、二次型优化里到处是它。</p>
 <h2 id="2">2. 病态方程组：条件数的主战场<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="良态与病态方程组的几何" src="assets/img/num-02-condition.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>条件数的几何：良态方程组两直线近乎垂直、交点清晰；病态方程组两直线近乎平行，输入微扰导致解剧烈漂移。</figcaption>
+</figure>
 <p><strong>矩阵条件数</strong> <span class="arithmatex">\(\kappa(A) = \|A\|\,\|A^{-1}\|\)</span>（谱范数下 <span class="arithmatex">\(= \sigma_{\max}/\sigma_{\min}\)</span>，奇异值之比）。<strong>误差放大定理</strong>：</p>
 <div class="arithmatex">\[
 \frac{\|\delta x\|}{\|x\|} \;\lesssim\; \kappa(A)\,\Big(\frac{\|\delta A\|}{\|A\|} + \frac{\|\delta b\|}{\|b\|}\Big)

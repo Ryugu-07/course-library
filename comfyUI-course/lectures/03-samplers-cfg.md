@@ -22,6 +22,11 @@ $\sigma = 0$ 时整个过程**完全确定**（同一种子同一张图，无路
 
 ## 2. 微分方程视角：采样 = 数值积分
 
+<figure class="plot" markdown="1">
+![反向采样去噪](assets/img/03-reverse-sampling.svg)
+<figcaption><span class="fig-id">图 3.1</span>反向采样：从纯高斯噪声出发，逐步去噪还原出结构化的数据——生成就是学会走这条逆流。</figcaption>
+</figure>
+
 把步长推向无穷小，加噪过程成为一个随机微分方程（SDE）；Song et al. (2021) 证明存在一个**概率流 ODE**，与它共享每个时刻的边际分布：
 
 $$
@@ -68,6 +73,11 @@ $$
 `steps` 的规律：二阶采样器下 **20–30 步是质价比甜点**；30 步以上进入收益递减区（确定性采样器的图基本定形，多跑纯属烧电）；10 步以下构图开始崩。配合第 08 讲"固定种子扫参数"你会亲眼看到这三段。
 
 ## 5. CFG：让模型"更听话"的数学
+
+<figure class="plot" markdown="1">
+![无分类器引导](assets/img/03-cfg.svg)
+<figcaption><span class="fig-id">图 3.2</span>无分类器引导（CFG）：引导系数 \(w\) 越大，采样越向提示词的条件分布收拢——听话但过大易失真。</figcaption>
+</figure>
 
 ### 5.1 推导
 

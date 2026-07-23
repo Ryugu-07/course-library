@@ -22,6 +22,11 @@ $$
 
 ## 2. Sinkhorn 算法及其收敛
 
+<figure class="plot" markdown="1">
+![Sinkhorn 熵正则化耦合矩阵](assets/img/ot-03-sinkhorn.svg)
+<figcaption><span class="fig-id">图 3.1</span>熵正则化最优传输（Sinkhorn）：源与目标分布之间的耦合矩阵 \(\pi\)——可微、可 GPU，扩散/生成模型的常用工具。</figcaption>
+</figure>
+
 结构 $\pi = \mathrm{diag}(u)K\mathrm{diag}(v)$ 下边缘约束变成交替可解：
 
 $$

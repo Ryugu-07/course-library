@@ -13,6 +13,11 @@
 
 ## 2. Landau 理论（对称性 + 解析性的最小模型）
 
+<figure class="plot" markdown="1">
+![Landau 自由能双井](assets/img/asm-01-landau.svg)
+<figcaption><span class="fig-id">图 1.1</span>Landau 自由能：\(T>T_c\) 单谷（对称相），\(T<T_c\) 变双谷（自发对称破缺），序参量从零连续长出。</figcaption>
+</figure>
+
 **纲领**：临界点附近 $m$ 小——自由能按 $m$ 展开，**只保留对称性允许的项**（Ising 对称 $m \to -m$ 排除奇次项）：
 
 $$

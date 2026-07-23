@@ -2,6 +2,12 @@
 
 > 原理在第 05 讲（冻结底模 + 可训练副本 + 零卷积），本讲接线开跑。你手里有一副好牌：**Mac 上的 controlnet_aux 工具链已经能产 openpose/canny/depth/lineart_anime 四种条件图**（之前 AIGC 工作流项目装好的），Win 这边只需把它们喂给第 10 讲下载的 union 模型。工作流对照 `wf06_sdxl_controlnet.json`。
 
+
+<figure class="diagram" markdown="1">
+![ControlNet 工作流节点截图 + 条件图（canny/depth）。](assets/img/12-controlnet-nodes.png)
+<figcaption><span class="fig-id">图 12.1</span>ControlNet 工作流节点截图 + 条件图（canny/depth）。</figcaption>
+</figure>
+
 ## 1. 全链路：条件图从哪来，到哪去
 
 ControlNet 的使用永远分两段：

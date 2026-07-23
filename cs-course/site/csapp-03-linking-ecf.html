@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>链接与异常控制流 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li class="active"><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 链接：符号的解析与重定位</a></li>
+<li><a href="#2-vs">2. 静态库 vs 动态库：链接的时机</a></li>
+<li><a href="#3">3. 异常控制流：程序执行被打断的四种方式</a></li>
+<li><a href="#4-ecf">4. 进程与信号：ECF 在用户层的两个抽象</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="csapp-iii">CSAPP III · 链接与异常控制流<a class="headerlink" href="#csapp-iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS:APP 第 7–8 章 ｜ <strong>前置</strong>：csapp-01/02
+两个常被跳过、却是"程序如何真正运行起来"的关键机制：<strong>链接</strong>（多个源文件、库怎么拼成一个可执行文件，为什么会有那些诡异的 "undefined reference" 和 "multiple definition"）与<strong>异常控制流</strong>（程序的执行怎么被硬件中断、系统调用、信号打断和切换——一切并发与操作系统的物理起点）。</p>
+</blockquote>
+<h2 id="1">1. 链接：符号的解析与重定位<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="多个 .o → 符号解析 + 重定位 → 可执行文件的拼装。" src="assets/img/csapp-03-linking.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-03.3</span>多个 .o → 符号解析 + 重定位 → 可执行文件的拼装。</figcaption>
+</figure>
+<p>你的程序由多个 <code>.c</code> 编译成多个 <code>.o</code>，还要连上 libc——<strong>链接器</strong>负责把它们拼成一个可执行文件，干两件事：</p>
+<ul>
+<li><strong>符号解析</strong>：每个 <code>.o</code> 有一张符号表（定义了哪些函数/全局变量、引用了哪些外部符号）。链接器把每个引用<strong>绑定到唯一的定义</strong>。找不到定义 → <code>undefined reference</code>（漏了库或拼错名）；找到多个 → <code>multiple definition</code>（头文件里定义了变量而非声明）。<strong>这两个最常见的链接错误，根源都在符号解析这一步</strong>。</li>
+<li><strong>重定位</strong>：各 <code>.o</code> 都以为自己从地址 0 开始；链接器把它们排进统一地址空间、<strong>修正所有地址引用</strong>。</li>
+</ul>
+<p><strong>强弱符号规则</strong>（C 的隐藏坑）：函数和已初始化全局变量是<strong>强符号</strong>，未初始化全局变量是<strong>弱符号</strong>；同名强弱并存时选强的、多个弱的任选一个——<strong>这条规则会让"两个文件各有一个同名全局变量"静默共享同一块内存，酿成极难查的 bug</strong>。理解它你才敢用 <code>static</code> 把符号限制在文件内（内部链接）。</p>
+<h2 id="2-vs">2. 静态库 vs 动态库：链接的时机<a class="headerlink" href="#2-vs" title="Permanent link"></a></h2>
+<ul>
+<li><strong>静态库（<code>.a</code>）</strong>：链接期把用到的目标文件<strong>拷进</strong>可执行文件——独立、但每个程序各存一份、库更新要重新链接。</li>
+<li><strong>动态库（<code>.so</code> / <code>.dll</code> / <code>.dylib</code>）</strong>：运行期才加载、多进程<strong>共享同一份内存映像</strong>——省空间、库可独立升级（打安全补丁不用重编所有程序），但引入"<strong>DLL 地狱</strong>"（版本不匹配）与启动期符号解析开销。</li>
+<li><strong>位置无关代码（PIC）+ 延迟绑定（PLT/GOT）</strong>：动态库要能加载到任意地址，靠 PIC + 一张全局偏移表；函数首次调用时才解析真实地址（延迟绑定）。</li>
+</ul>
+<p><strong>为什么你要懂</strong>：<code>LD_LIBRARY_PATH</code> 找不到 <code>.so</code>、容器里缺库、Python 的 C 扩展 ABI 不兼容——<strong>这些日常报错全是动态链接机制的表象</strong>（🔗 cloud-01 容器为什么要打包依赖、web 线的部署问题都源于此）。</p>
+<h2 id="3">3. 异常控制流：程序执行被打断的四种方式<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="异常控制流四类（中断/陷阱/故障/终止）：触发者、同异步、是否返回。" src="assets/img/csapp-03-ecf-four.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-03.2</span>异常控制流四类（中断/陷阱/故障/终止）：触发者、同异步、是否返回。</figcaption>
+</figure>
+<p>到目前为止程序是"一条指令接一条"的顺流。但真实系统里，执行随时被打断——这叫<strong>异常控制流（ECF）</strong>，是并发与操作系统的物理基础。四类（按谁触发、是否返回）：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>触发者</th>
+<th>例子</th>
+<th>返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>中断 interrupt</strong></td>
+<td>外部硬件（异步）</td>
+<td>网卡收包、时钟滴答</td>
+<td>返回下一条</td>
+</tr>
+<tr>
+<td><strong>陷阱 trap</strong></td>
+<td>程序主动（同步）</td>
+<td><strong>系统调用</strong> <code>syscall</code></td>
+<td>返回下一条</td>
+</tr>
+<tr>
+<td><strong>故障 fault</strong></td>
+<td>错误（可能可恢复）</td>
+<td><strong>缺页</strong>、除零</td>
+<td>重试或终止</td>
+</tr>
+<tr>
+<td><strong>终止 abort</strong></td>
+<td>不可恢复</td>
+<td>硬件校验错</td>
+<td>不返回</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键洞察</strong>：<strong>"系统调用"就是一次受控的陷阱</strong>——用户程序想读文件/开进程，无权直接碰硬件，于是执行 <code>syscall</code> 主动陷入内核（切到特权态），内核代劳后返回。<strong>用户态/内核态的边界、以及跨越它的唯一合法通道（系统调用），是操作系统安全模型的地基</strong>（🔗 os-01）。<strong>缺页故障</strong>则是虚拟内存（csapp-04）的引擎——访问未映射页触发 fault，内核悄悄把页调进来再重试，程序毫无察觉。</p>
+<h2 id="4-ecf">4. 进程与信号：ECF 在用户层的两个抽象<a class="headerlink" href="#4-ecf" title="Permanent link"></a></h2>
+<p>操作系统把 ECF 包装成两个程序员能用的抽象：</p>
+<ul>
+<li><strong>进程</strong>：每个程序以为自己独占 CPU 和内存——这个"独占"的幻觉靠<strong>上下文切换</strong>（时钟中断触发内核保存现场、换另一进程）+ <strong>虚拟内存</strong>（各进程独立地址空间）实现。<strong>进程 = 一个"逻辑控制流 + 私有地址空间"的幻觉</strong>。</li>
+<li><strong>信号</strong>：内核给进程发的"软件中断"——<code>Ctrl-C</code> 是 <code>SIGINT</code>、段错误是 <code>SIGSEGV</code>、子进程结束是 <code>SIGCHLD</code>。信号处理函数是异步打断的，<strong>写信号处理器要极其小心</strong>（只能调用异步信号安全的函数、要处理重入）——这是并发 bug 的一个经典来源。</li>
+</ul>
+<p><code>fork()</code>（复制出子进程）、<code>exec()</code>（换上新程序）、<code>wait()</code>（回收子进程）——<strong>这三个系统调用是 Unix 进程模型的全部核心</strong>，也是 [实验 L02 手写 shell] 的主角：shell 就是一个 <code>fork + exec + wait</code> 的循环。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="fork();fork(); 产生 4 进程的进程树。" src="assets/img/csapp-03-fork-tree.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-03.1</span>fork();fork(); 产生 4 进程的进程树。</figcaption>
+</figure>
+<p><strong>例 1（读懂链接错误）</strong> 给定 "undefined reference to <code>foo</code>"，列出三种可能原因（没链接含 <code>foo</code> 的库 / 声明了没定义 / C++ 名字修饰不匹配）。<strong>把报错映射到符号解析的哪一步失败——这是真实调试力</strong>。</p>
+<p><strong>例 2（fork 的数感）</strong> <code>fork()</code> 后父子进程都从 <code>fork</code> 返回处继续，父得子 PID、子得 0——写四行代码预测 <code>fork(); fork();</code> 产生几个进程（答：4）。<strong>理解"复制整个执行状态"这个 Unix 精髓</strong>，是 L02 的入场券。</p>
+<p><strong>例 3（系统调用可见）</strong> 用 <code>strace ls</code>（Linux）/ <code>dtruss</code>（Mac）看 <code>ls</code> 到底发了哪些系统调用——<code>openat/read/write/close</code>。<strong>"程序与内核的所有对话都在这张系统调用清单里"亲眼看一次</strong>，操作系统就不再抽象。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L02（手写 shell）</strong>：<code>labs/L02-shell/</code> —— 实现 <code>fork/exec/pipe/重定向/后台作业</code>，把本页的进程控制系统调用全部用一遍。对标 CS:APP shell lab。</p>
+</blockquote>
+<hr />
+<p><em>下一页：CSAPP IV——虚拟内存与动态内存：每个进程独占内存的幻觉如何造出来，malloc 底下是什么。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="csapp-02-memory.html"><span class="pager-label">上一页</span>CSAPP II · 存储层级与缓存</a>
+  <a class="pager-slot next" href="csapp-04-vm-malloc.html"><span class="pager-label">下一页</span>CSAPP IV · 虚拟内存与动态内存</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

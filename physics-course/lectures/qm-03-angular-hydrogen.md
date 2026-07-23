@@ -21,6 +21,11 @@ $\blacksquare$ **代数允许半整数**（！）——轨道角动量因波函�
 
 ## 2. 氢原子（教科书物理的珠穆朗玛）
 
+<figure class="plot" markdown="1">
+![氢原子径向概率分布](assets/img/qm-03-hydrogen-radial.svg)
+<figcaption><span class="fig-id">图 3.1</span>氢原子径向概率 \(r^2|R|^2\)：1s 最靠核、2s 有节点、2p 无节点——电子云的径向分布。</figcaption>
+</figure>
+
 中心势分离变量（球坐标）：角向 = 球谐函数（§1 的谱）；径向方程带有效势 $\frac{\hbar^2\ell(\ell+1)}{2mr^2} - \frac{e^2}{4\pi\varepsilon_0 r}$（mech-01 有效势的量子版）。
 
 **【推导骨架】** 无量纲化 → 渐近剥离（$r\to\infty$ 指数衰减、$r\to0$ 幂次）→ 中段级数解 → **级数必须截断**（否则破坏归一化——量子化再次由边界条件执行）⇒

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>存储层级与缓存 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li class="active"><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-100">1. 存储金字塔：为什么快慢差 100 倍</a></li>
+<li><a href="#2">2. 局部性：缓存赖以生效的假设</a></li>
+<li><a href="#3-miss">3. 缓存的组织与三种 miss</a></li>
+<li><a href="#4">4. 变现：矩阵乘法的循环顺序</a></li>
+<li><a href="#5">5. 更深的两个坑：伪共享与预取</a></li>
+<li><a href="#5_1">5'. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="csapp-ii">CSAPP II · 存储层级与缓存<a class="headerlink" href="#csapp-ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS:APP 第 6 章 ｜ <strong>前置</strong>：csapp-01、perf 线（本页是性能工程的物理基础）
+这一页解释计算机系统里最反直觉、又最能立刻变现的事实：<strong>内存不是一块均匀的平地，是一座速度差 100 倍的金字塔</strong>。同一个算法，只因访问内存的顺序不同，就能快 10 倍——不是玄学，是缓存。理解存储层级，是你从"代码能跑"到"代码跑得快"的第一道门。</p>
+</blockquote>
+<h2 id="1-100">1. 存储金字塔：为什么快慢差 100 倍<a class="headerlink" href="#1-100" title="Permanent link"></a></h2>
+<p>存储器有一个残酷的物理三难：<strong>快、大、便宜只能取其二</strong>。于是系统把它们<strong>堆成层级</strong>，每层给下层当缓存：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>典型延迟</th>
+<th>容量</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>寄存器</td>
+<td>&lt; 1 ns</td>
+<td>几十个</td>
+<td>CPU 手里</td>
+</tr>
+<tr>
+<td>L1 缓存</td>
+<td>~1 ns</td>
+<td>32 KB</td>
+<td>最近最常用</td>
+</tr>
+<tr>
+<td>L2 / L3 缓存</td>
+<td>~4 / ~15 ns</td>
+<td>256KB / 数十 MB</td>
+<td>芯片上</td>
+</tr>
+<tr>
+<td>主存 DRAM</td>
+<td>~100 ns</td>
+<td>数十 GB</td>
+<td>慢 CPU 100 倍</td>
+</tr>
+<tr>
+<td>SSD / 磁盘</td>
+<td>~10 µs / ~10 ms</td>
+<td>TB</td>
+<td>慢百万~千万倍</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram">
+<p><img alt="存储金字塔：从寄存器到磁盘的速度—容量—成本权衡" src="assets/img/csapp-02-memory-pyramid.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-02.1</span>存储金字塔——越往上越快越贵越小，每层给下层当缓存；标注各层延迟（对数刻度），突出"主存比 L1 慢约 100 倍"这道断崖。</figcaption>
+</figure>
+<p><strong>关键数感</strong>：<strong>访问主存比 L1 慢约 100 倍，比一次 CPU 运算慢约 200 倍</strong>。所以现代程序的瓶颈<strong>常常不是"算得慢"而是"等内存"</strong>——CPU 大量时间在 stall（干等数据）。这颠覆了"数操作数"的朴素性能观：<strong>内存访问模式才是主角</strong>。</p>
+<h2 id="2">2. 局部性：缓存赖以生效的假设<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>缓存能加速，全靠程序有<strong>局部性</strong>：
+- <strong>时间局部性</strong>：刚访问的数据很快会再访问（循环变量、热点函数）。
+- <strong>空间局部性</strong>：访问了一个地址，附近地址很快也会访问（数组顺序遍历）。</p>
+<p>缓存据此工作：以<strong>缓存行（cache line，通常 64 字节）</strong>为单位搬运——你读一个 <code>int</code>，它顺手把邻近 64 字节都拉进缓存。<strong>于是"顺序访问"几乎免费（一次搬运喂 16 个 int），"随机跳跃"每次都 miss</strong>。这条 64 字节的规律解释了本页所有性能现象。</p>
+<figure class="diagram">
+<p><img alt="缓存行读取相邻 64 字节的局部性效果" src="assets/img/csapp-02-cache-line.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-02.2</span>缓存行——一次 miss 拉入相邻 64 字节，顺序访问很快，随机跳跃频繁 miss。</figcaption>
+</figure>
+<h2 id="3-miss">3. 缓存的组织与三种 miss<a class="headerlink" href="#3-miss" title="Permanent link"></a></h2>
+<p>缓存是硬件哈希表：地址被切成 <strong>[标记 tag | 组索引 set | 块内偏移]</strong>，按组索引找槽、比标记命中。组相联度（每组几路）平衡冲突与成本。<strong>三种 miss（3C 模型）</strong>：
+- <strong>强制 miss（cold）</strong>：第一次访问，躲不掉。
+- <strong>容量 miss</strong>：工作集比缓存大，装不下。
+- <strong>冲突 miss</strong>：不同地址映射到同一组互相踢出——<strong>"跨步恰好等于缓存大小的倍数"时灾难性</strong>（如遍历大矩阵的列，步长 = 行长）。</p>
+<p><strong>这直接推出优化手段</strong>：让工作集塞进缓存（<strong>分块 tiling</strong>）、让访问连续（<strong>改循环顺序、改数据布局 SoA vs AoS</strong>）。</p>
+<h2 id="4">4. 变现：矩阵乘法的循环顺序<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>最经典的实证——朴素矩阵乘 <span class="arithmatex">\(C=AB\)</span> 有 6 种循环嵌套顺序，<strong>数学完全等价，速度差数倍</strong>：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// ijk 顺序：内层对 B 按列访问（跨步 n，空间局部性差）→ 慢</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="o">:</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">j</span><span class="o">:</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="o">:</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+
+<span class="c1">// ikj 顺序：内层 j 对 B、C 都按行访问（连续）→ 快数倍</span>
+<span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="o">:</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">k</span><span class="o">:</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">j</span><span class="o">:</span><span class="w"> </span><span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">B</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">];</span>
+</code></pre></div>
+<p>再进一步——<strong>分块（blocking / tiling）</strong>：把大矩阵切成能塞进 L1 的小块 <span class="arithmatex">\(b\times b\)</span>，块内充分复用后再换块。<strong>复用率从 <span class="arithmatex">\(O(1)\)</span> 提到 <span class="arithmatex">\(O(b)\)</span></strong>，大矩阵可再快数倍。这不是编译器能自动做全的——<strong>"为缓存重写循环"是 HPC 的核心手艺</strong>（🔗 perf-02 深入、gpu 线是它在 GPU 上的放大版）。</p>
+<p><strong>这就是 [实验 L01]</strong>：naive / 转置 / 分块三版矩阵乘，在你 Mac 上实测加速比——<strong>亲手看到"存储层级"这四个字值多少倍</strong>。</p>
+<figure class="diagram">
+<p><img alt="矩阵乘循环顺序和分块对缓存访问的影响" src="assets/img/csapp-02-matmul-order.svg" /></p>
+<figcaption><span class="fig-id">图 csapp-02.3</span>矩阵乘访问顺序——ijk 对 B 跨步访问较慢，ikj 与 tiling 通过连续访问和块复用提高命中率。</figcaption>
+</figure>
+<h2 id="5">5. 更深的两个坑：伪共享与预取<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>伪共享（false sharing）</strong>：多线程各改各的变量，但它们<strong>落在同一缓存行</strong>——每次写都让对方缓存失效，性能暴跌（🔗 par 线）。解法：把线程私有数据<strong>填充</strong>到不同缓存行。</li>
+<li><strong>硬件预取</strong>：CPU 会<strong>预测</strong>顺序访问、提前拉数据——所以顺序遍历比缓存命中率算出来的还快；随机访问则享受不到。<strong>"对硬件预取友好"又是偏爱顺序访问的一个理由</strong>。</li>
+</ul>
+<h2 id="5_1">5'. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1（算一次 miss 的代价）</strong> 矩阵 <span class="arithmatex">\(1024\times1024\)</span> 的 <code>double</code>（8 字节）：一行 8 KB，L1 只 32 KB——按列遍历几乎每次 miss。估算 ijk vs ikj 的 miss 次数比，预测加速比，再用 [L01] 实测对照。<strong>从模型到实测闭环。</strong></p>
+<p><strong>例 2（缓存行数感）</strong> 为什么把 <code>struct</code> 里最常一起访问的字段放相邻位置能提速？答：它们更可能同处一个缓存行，一次搬运全到。<strong>数据布局 = 隐形的性能杠杆</strong>。</p>
+<p><strong>例 3（伪共享复现）</strong> 两个线程分别累加数组相邻两元素 vs 相隔 64 字节的两元素——后者快数倍。<strong>这是 [L07/L10] 并行实验里会撞见的真实陷阱</strong>，先在脑子里预演一遍。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L01（缓存分块矩阵乘法）</strong>：<code>labs/L01-cache-blocking/</code> —— naive vs 循环重排 vs 分块，实测加速比，画 miss 曲线。这是全站第一个"看见存储层级"的实验。</p>
+</blockquote>
+<hr />
+<p><em>下一页：CSAPP III——链接与异常控制流：多个 <code>.o</code> 怎么拼成一个程序，信号与进程切换背后发生了什么。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="csapp-01-representation.html"><span class="pager-label">上一页</span>CSAPP I · 机器级表示</a>
+  <a class="pager-slot next" href="csapp-03-linking-ecf.html"><span class="pager-label">下一页</span>CSAPP III · 链接与异常控制流</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

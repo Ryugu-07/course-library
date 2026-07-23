@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>网络流与线性规划 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li class="active"><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 网络流：定义与最大流最小割</a></li>
+<li><a href="#2-lp">2. 它就是 LP 对偶（🔗 优化线的图上变现）</a></li>
+<li><a href="#3">3. 归约的威力：一切都是流</a></li>
+<li><a href="#4">4. 线性规划：算法与对偶的两张脸</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">算法 II · 网络流与线性规划<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CS170 / CLRS 第 24–26 章 / Vazirani <em>Approximation Algorithms</em> ｜ <strong>前置</strong>：algo-01、数学站优化线（LP 对偶你已证过）
+这一页对你是全站互链最密的一处：<strong>最大流–最小割定理就是 LP 强对偶在图上的具体化身</strong>。你在优化课上证过 <span class="arithmatex">\(\max c^Tx = \min b^Ty\)</span>，这里我们看它如何变成"水管网络里能流多少水 = 切断网络的最便宜方式"，再看图论一大批问题（匹配、覆盖、调度）如何全归约到流。</p>
+</blockquote>
+<h2 id="1">1. 网络流：定义与最大流最小割<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>流网络：有向图 + 源 <span class="arithmatex">\(s\)</span>、汇 <span class="arithmatex">\(t\)</span>、每边容量 <span class="arithmatex">\(c(u,v)\ge 0\)</span>。<strong>流</strong> <span class="arithmatex">\(f\)</span> 满足容量约束 <span class="arithmatex">\(0\le f\le c\)</span> 与守恒（除 <span class="arithmatex">\(s,t\)</span> 外流入=流出）。流值 <span class="arithmatex">\(|f|\)</span> = 净流出 <span class="arithmatex">\(s\)</span> 的量。<strong>割</strong> <span class="arithmatex">\((S,T)\)</span>：把点分成含 <span class="arithmatex">\(s\)</span> 的 <span class="arithmatex">\(S\)</span> 与含 <span class="arithmatex">\(t\)</span> 的 <span class="arithmatex">\(T\)</span>，割容量 = 从 <span class="arithmatex">\(S\)</span> 到 <span class="arithmatex">\(T\)</span> 的边容量之和。</p>
+<figure class="diagram">
+<p><img alt="流网络中的 s-t 割与割容量" src="assets/img/algo-02-flow-cut.svg" /></p>
+<figcaption><span class="fig-id">图 algo-02.1</span>流网络与 s-t 割——割容量是从 S 侧跨到 T 侧的边容量之和。</figcaption>
+</figure>
+<p><strong>最大流最小割定理【推导级】</strong>：</p>
+<div class="arithmatex">\[
+\max_f |f| = \min_{(S,T)} \text{cap}(S,T)
+\]</div>
+<p><strong>弱对偶方向</strong>（任意流 <span class="arithmatex">\(\le\)</span> 任意割）显然：流从 <span class="arithmatex">\(s\)</span> 到 <span class="arithmatex">\(t\)</span> 必须穿过割，穿过量 <span class="arithmatex">\(\le\)</span> 割容量。<strong>强对偶方向</strong>（取等可达）用增广路证明：给定一个流，构造<strong>残量网络</strong>（每边剩余容量 <span class="arithmatex">\(c-f\)</span>，反向边容量 <span class="arithmatex">\(f\)</span>）。若残量网络里还有 <span class="arithmatex">\(s\to t\)</span> 路径（增广路），就能推更多流；<strong>若没有</strong>，令 <span class="arithmatex">\(S\)</span> = 残量网络里 <span class="arithmatex">\(s\)</span> 可达的点集——则 <span class="arithmatex">\(S\to T\)</span> 的所有原边已饱和（否则残量可达）、<span class="arithmatex">\(T\to S\)</span> 的边流量为 0，于是 <span class="arithmatex">\(|f| = \text{cap}(S,T)\)</span>，两边相等 ⇒ 都是最优。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>这就是 <strong>Ford–Fulkerson</strong>：反复找增广路推流直到没有。用 BFS 找最短增广路 = <strong>Edmonds–Karp</strong>，<span class="arithmatex">\(O(nm^2)\)</span>；更快的有 Dinic <span class="arithmatex">\(O(n^2m)\)</span>、以及现代的 push-relabel。</p>
+<figure class="diagram">
+<p><img alt="残量网络与增广路推流" src="assets/img/algo-02-residual-augment.svg" /></p>
+<figcaption><span class="fig-id">图 algo-02.2</span>残量网络与增广路——正向剩余容量允许继续推流，反向边允许撤销旧选择。</figcaption>
+</figure>
+<h2 id="2-lp">2. 它就是 LP 对偶（🔗 优化线的图上变现）<a class="headerlink" href="#2-lp" title="Permanent link"></a></h2>
+<p>最大流是一个线性规划：变量是每边流量、目标 <span class="arithmatex">\(\max|f|\)</span>、约束是容量 + 守恒（都线性）。写出它的<strong>对偶</strong>，你会发现对偶变量恰好是"点的势"，对偶最优的 0/1 解就是<strong>最小割</strong>——<strong>最大流最小割 = LP 强对偶的一个整数化特例</strong>。</p>
+<p>为什么这里 LP 的最优解自动是整数（0/1 割、整数流）？因为流网络的约束矩阵是<strong>全幺模（totally unimodular）</strong>的——每个子方阵行列式 ∈ {−1,0,1}。全幺模保证：整数右端 ⇒ LP 顶点全整数 ⇒ 松弛与整数规划最优值相等。<strong>这是"图论问题能高效精确解"的深层结构原因</strong>：一旦问题的 LP 是全幺模的，就没有整数规划的 NP 之痛。匹配、指派、流都在这个幸运家族里。</p>
+<h2 id="3">3. 归约的威力：一切都是流<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>网络流的真正价值是<strong>当归约目标</strong>——大量看似无关的问题包装成流就解了：</p>
+<ul>
+<li><strong>二分图最大匹配</strong>：加源汇、每条匹配边容量 1 ⇒ 最大流 = 最大匹配（König 定理"最大匹配 = 最小点覆盖"正是这里的最小割）。</li>
+<li><strong>二分图最小点覆盖 / 最大独立集</strong>：由匹配经 König 定理得到。</li>
+<li><strong>项目选择 / 最大权闭合子图</strong>：正收益点连源、负成本点连汇、依赖连 ∞ ⇒ 最小割选出最优子集（Medusa 若做"选哪些新闻源使覆盖最大成本最小"就是这个模型）。</li>
+<li><strong>调度、图像分割（min-cut/max-flow 在 CV 里做前景分割）、棒球淘汰判定</strong>……</li>
+</ul>
+<figure class="diagram">
+<p><img alt="二分图匹配归约到最大流" src="assets/img/algo-02-matching-reduction.svg" /></p>
+<figcaption><span class="fig-id">图 algo-02.3</span>二分图匹配到最大流——加源汇和单位容量后，每条 s-t 单位流对应一条匹配边。</figcaption>
+</figure>
+<p><strong>方法论</strong>：<strong>学最大流最重要的不是算法本身，是"识别一个问题能否包装成流"的眼力</strong>。判据：有没有"守恒 + 容量瓶颈"的结构？有就试流。</p>
+<h2 id="4">4. 线性规划：算法与对偶的两张脸<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>LP：<span class="arithmatex">\(\max c^Tx\)</span> s.t. <span class="arithmatex">\(Ax\le b, x\ge 0\)</span>。</p>
+<p><strong>解法【骨架】</strong>：
+- <strong>单纯形法</strong>：在可行多面体的顶点间沿边走向更优——实践极快，但最坏指数（Klee–Minty 立方体）。几何直觉你已有：最优必在顶点（凸函数在凸多面体上）。
+- <strong>内点法</strong>：走多面体内部的中心路径趋近最优——<strong>多项式时间</strong>（Karmarkar），大规模求解器的主力。
+- <strong>椭球法</strong>：理论上首个多项式算法（Khachiyan），实践慢，但威力在于<strong>只要有分离预言机就能优化</strong>——组合优化里许多多项式结果靠它。</p>
+<p><strong>对偶与互补松弛</strong>（🔗 优化线原文）：强对偶 <span class="arithmatex">\(\max c^Tx=\min b^Ty\)</span>；<strong>互补松弛</strong>——最优处，"松弛的约束对应为零的对偶变量"。它在算法设计里是<strong>原始–对偶方法</strong>的引擎：许多近似算法（下页）就是"同时构造原始解与对偶证书、用对偶下界证明近似比"。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（匹配即流手算）</strong> 3×3 二分图画出来，加源汇建流网络，跑一遍增广路，验证最大流 = 最大匹配数、且最小割对应最小点覆盖——<strong>König 定理在你笔下从最大流掉出来</strong>。</p>
+<p><strong>例 2（全幺模的边界）</strong> 二分图匹配 LP 整数最优（全幺模），但一般图匹配的自然 LP 不是整数的（奇环破坏全幺模，需要 Edmonds 的奇集不等式）——<strong>"为什么二分图匹配比一般图匹配简单"有了精确的代数答案</strong>。</p>
+<p><strong>例 3（对偶当下界）</strong> 你要证明某个最小割 <span class="arithmatex">\(\ge 17\)</span>，怎么不枚举所有割？答：构造一个流值为 17 的流——弱对偶立刻给出下界。<strong>"构造对偶可行解来证明界"是本页最可迁移的一招</strong>（贯穿近似算法、竞赛、研究）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：随机化、近似与 NP 归约——当问题 NP 难时，随机与近似如何把"无望"变成"可用"。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="algo-01-divide-graph.html"><span class="pager-label">上一页</span>算法 I · 分治与图算法</a>
+  <a class="pager-slot next" href="algo-03-random-approx.html"><span class="pager-label">下一页</span>算法 III · 随机化、近似与 NP 归约</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

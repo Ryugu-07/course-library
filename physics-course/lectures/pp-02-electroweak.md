@@ -3,6 +3,12 @@
 > **对标**：Halzen & Martin §13–15 / Peskin §20 ｜ **前置**：pp-01、asm-01（对称破缺）、cm-02（Anderson–Higgs 原型）
 > 标准模型的收官难题：规范原理要求规范玻色子**无质量**（质量项破坏规范不变），而弱力的 $W/Z$ 重达 80–90 GeV。答案是二十世纪物理的压轴戏法——**对称性自发破缺 + 规范场"吃"Goldstone 模**：Higgs 机制。凝聚态（cm-02 Meissner）先排练、粒子物理正式公演、2012 年 LHC 交付实验句号。
 
+
+<figure class="plot" markdown="1">
+![Higgs &quot;墨西哥帽&quot;势 V=-\mu^2|\phi|^2+\lambda|\phi|^4（可 matplotlib 出 3D）。](assets/img/pp-02-higgs-potential.svg)
+<figcaption><span class="fig-id">图 pp-02.1</span>Higgs "墨西哥帽"势 \(V=-\mu^2|\phi|^2+\lambda|\phi|^4\)（可 matplotlib 出 3D）。</figcaption>
+</figure>
+
 ## 1. 病灶：质量与规范的冲突
 
 $\frac12 m^2A_\mu A^\mu$ 在 $A_\mu \to A_\mu - \partial_\mu\alpha/e$ 下不不变——**手写质量 = 谋杀规范对称**（进而毁掉可重整性【引用】）；费米子的 Dirac 质量项 $m\bar\psi_L\psi_R$ 同样非法（$SU(2)_L$ 只变换左手——pp-01 的宇称破坏结构使左右手份属不同表示）。**标准模型里"质量"整体违宪——需要一个合法的质量来源。**

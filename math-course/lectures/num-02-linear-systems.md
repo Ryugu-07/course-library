@@ -18,6 +18,11 @@ $$
 
 ## 2. 病态方程组：条件数的主战场
 
+<figure class="plot" markdown="1">
+![良态与病态方程组的几何](assets/img/num-02-condition.svg)
+<figcaption><span class="fig-id">图 2.1</span>条件数的几何：良态方程组两直线近乎垂直、交点清晰；病态方程组两直线近乎平行，输入微扰导致解剧烈漂移。</figcaption>
+</figure>
+
 **矩阵条件数** $\kappa(A) = \|A\|\,\|A^{-1}\|$（谱范数下 $= \sigma_{\max}/\sigma_{\min}$，奇异值之比）。**误差放大定理**：
 
 $$

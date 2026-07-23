@@ -10,6 +10,11 @@
 
 ## 2. 六大标准二次曲面（认脸表）
 
+<figure class="plot" markdown="1">
+![三种代表二次曲面](assets/img/geo-02-quadrics.svg)
+<figcaption><span class="fig-id">图 2.1</span>二次曲面代表：椭球、单叶双曲面、双曲抛物面（鞍）——都是二次型分类在三维的显形。</figcaption>
+</figure>
+
 | 曲面 | 标准方程 | 截痕特征 | 记忆锚点 |
 |---|---|---|---|
 | 椭球面 | $\frac{x^2}{a^2} + \frac{y^2}{b^2} + \frac{z^2}{c^2} = 1$ | 三向截口全椭圆 | 压扁的球 |

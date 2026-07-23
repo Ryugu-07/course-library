@@ -28,6 +28,11 @@ $$
 
 ## 3. 热方程：热核与高斯的 PDE 身份
 
+<figure class="plot" markdown="1">
+![热核随时间铺开的高斯](assets/img/pde-02-heat-kernel.svg)
+<figcaption><span class="fig-id">图 2.1</span>热核是随时间铺开的高斯：总面积守恒、越来越矮胖，把点热源扩散开——这也是扩散模型加噪的连续极限。</figcaption>
+</figure>
+
 全直线上 $u_t = a^2 u_{xx}$，$u(x, 0) = \varphi$。**基本解（热核）**——初值为点源 $\delta(x)$ 的解：
 
 $$

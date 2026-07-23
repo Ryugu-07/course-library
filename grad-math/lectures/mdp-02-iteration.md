@@ -5,6 +5,11 @@
 
 ## 1. 价值迭代（VI）
 
+<figure class="plot" markdown="1">
+![价值迭代几何收敛](assets/img/mdp-02-value-iteration.svg)
+<figcaption><span class="fig-id">图 2.1</span>价值迭代收敛：Bellman 算子是 \(\gamma\)-压缩，误差按 \(\gamma^k\) 几何衰减——不动点定理的算法变现。</figcaption>
+</figure>
+
 $$
 V_{k+1} = T V_k
 $$

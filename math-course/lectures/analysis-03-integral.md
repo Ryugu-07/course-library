@@ -18,6 +18,11 @@
 
 ## 2. 定积分：理论
 
+<figure class="plot" markdown="1">
+![黎曼和逼近曲线下面积](assets/img/analysis-03-riemann-sum.svg)
+<figcaption><span class="fig-id">图 3.1</span>定积分是黎曼和的极限：矩形越细，其面积和越逼近曲线下的真实面积 \(\int_a^b f\,dx\)。</figcaption>
+</figure>
+
 **定义（Riemann 积分）** 分割 $a = x_0 < \cdots < x_n = b$，任取 $\xi_i \in [x_{i-1}, x_i]$，若 Riemann 和 $\sum f(\xi_i)\Delta x_i$ 在 $\|\Delta\| = \max \Delta x_i \to 0$ 时极限存在且与分割、取点无关，记为 $\int_a^b f\,dx$。
 
 **可积性理论（Darboux 刻画）**：上和 $S = \sum M_i \Delta x_i$、下和 $s = \sum m_i \Delta x_i$。

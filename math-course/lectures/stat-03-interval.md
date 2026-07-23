@@ -4,6 +4,11 @@
 
 ## 1. 置信区间：定义与正确解读
 
+<figure class="plot" markdown="1">
+![95% 置信区间的覆盖率](assets/img/stat-03-confidence.svg)
+<figcaption><span class="fig-id">图 3.1</span>95% 置信区间的正确读法：重复抽样，约 20 次里有 1 次的区间盖不住真值 \(\mu\)（红）——"95%"说的是方法的长期覆盖率。</figcaption>
+</figure>
+
 **定义** 置信水平 $1 - \alpha$ 的置信区间 $[\hat\theta_L, \hat\theta_U]$（端点是统计量）满足
 
 $$

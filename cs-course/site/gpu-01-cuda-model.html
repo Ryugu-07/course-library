@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CUDA 编程模型 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li class="active"><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-gpu-vs">1. 为什么 GPU 长这样：吞吐 vs 延迟</a></li>
+<li><a href="#2-simt">2. SIMT 与线程层级</a></li>
+<li><a href="#3-gpu">3. 内存层级：GPU 性能的生死线</a></li>
+<li><a href="#4-kernel">4. 一个 kernel 的样子：向量加法</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="gpu-i-cuda">GPU I · CUDA 编程模型<a class="headerlink" href="#gpu-i-cuda" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：CMU 15-418 GPU 篇 / <em>Programming Massively Parallel Processors</em>（PMPP, Hwu–Kirk）/ NVIDIA CUDA C++ 指南 ｜ <strong>前置</strong>：par-01（数据并行）、csapp-02（存储层级）
+CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"数千弱核"（成千上万个简单核心）。这个架构差异逼出一种全新的编程思维——<strong>大规模数据并行（SIMT）</strong>。这一页讲清 GPU 的硬件模型、CUDA 的线程层级、以及那条决定 GPU 性能生死的内存层级。你天天用的扩散模型（comfy 课）、大模型推理（mlsys 线）全跑在这套模型上。<strong>本页起 CUDA 实验在你的 Win 4060 Ti 上跑。</strong></p>
+</blockquote>
+<h2 id="1-gpu-vs">1. 为什么 GPU 长这样：吞吐 vs 延迟<a class="headerlink" href="#1-gpu-vs" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="CPU(少数强核,大控制/缓存) vs GPU(数千弱核,几乎全是算术单元) 芯片示意。" src="assets/img/gpu-01-cpu-vs-gpu.svg" /></p>
+<figcaption><span class="fig-id">图 gpu-01.3</span>CPU(少数强核,大控制/缓存) vs GPU(数千弱核,几乎全是算术单元) 芯片示意。</figcaption>
+</figure>
+<p>CPU 和 GPU 优化的是<strong>两个不同目标</strong>：
+- <strong>CPU 优化延迟</strong>：让<strong>单个</strong>任务尽快完成——大缓存、乱序执行、分支预测、深流水线（perf-01），把硅片大量用在"让一条指令流跑得快"的控制逻辑上。
+- <strong>GPU 优化吞吐</strong>：让<strong>海量</strong>任务的总完成量最大——把硅片几乎全用在<strong>算术单元</strong>上，控制逻辑极简。单个任务不快，但<strong>同时跑几万个</strong>，总吞吐碾压。</p>
+<p><strong>代价</strong>：GPU 靠"线程多到能掩盖延迟"工作——一个线程等内存时，硬件<strong>瞬间切换</strong>到别的就绪线程（零开销切换，因为寄存器都在片上），于是内存延迟被<strong>大量并发线程掩盖</strong>掉。<strong>"用并发掩盖延迟"是 GPU 的核心生存策略</strong>，与 CPU"用缓存降低延迟"是两条路。<strong>推论：GPU 上线程不够多 = 延迟藏不住 = 性能差</strong>。</p>
+<h2 id="2-simt">2. SIMT 与线程层级<a class="headerlink" href="#2-simt" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="Grid→Block→Warp(32线程锁步)→Thread 层级 + warp 发散。" src="assets/img/gpu-01-thread-hierarchy.svg" /></p>
+<figcaption><span class="fig-id">图 gpu-01.2</span>Grid→Block→Warp(32线程锁步)→Thread 层级 + warp 发散。</figcaption>
+</figure>
+<p>CUDA 的执行模型叫 <strong>SIMT（单指令多线程）</strong>——你写一个<strong>核函数（kernel）</strong>描述"一个线程做什么"，然后启动<strong>成千上万个线程</strong>同时执行它，每个线程用自己的<strong>线程 ID</strong> 处理不同数据（数据并行 par-01 的极致）。线程按三级组织：</p>
+<div class="highlight"><pre><span></span><code>Grid（整个 kernel 启动）
+ └── Block（线程块，可协作，共享 shared memory）
+      └── Thread（单个线程，有唯一 ID）
+      └── Warp（32 线程一组，硬件调度的最小单位）
+</code></pre></div>
+<ul>
+<li><strong>Block</strong>：一批线程，<strong>能通过共享内存协作 + 同步（<code>__syncthreads()</code>）</strong>。一个 block 调度到一个 SM（流多处理器）上执行。</li>
+<li><strong>Warp（32 线程）</strong>：<strong>硬件真正的调度单位</strong>——一个 warp 的 32 个线程<strong>锁步执行同一条指令</strong>（SIMT）。这引出 GPU 最重要的性能陷阱——</li>
+</ul>
+<p><strong>分支发散（warp divergence）</strong>：如果一个 warp 里的线程走了不同的 <code>if</code> 分支，硬件只能<strong>串行执行每个分支</strong>（先跑 if 的线程、再跑 else 的，互相等待）——<strong>32 线程的并行度塌缩</strong>。所以 <strong>GPU 代码要尽量让同一 warp 的线程走相同路径</strong>（🔗 与 perf-01 的分支预测是不同机制但同一教训：控制流的规整性决定性能）。</p>
+<h2 id="3-gpu">3. 内存层级：GPU 性能的生死线<a class="headerlink" href="#3-gpu" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="GPU 内存层级(寄存器/共享/全局) + 合并访问(相邻线程读相邻地址)。" src="assets/img/gpu-01-gpu-memory.svg" /></p>
+<figcaption><span class="fig-id">图 gpu-01.1</span>GPU 内存层级(寄存器/共享/全局) + 合并访问(相邻线程读相邻地址)。</figcaption>
+</figure>
+<p>GPU 有自己的存储金字塔（csapp-02 的 GPU 版），<strong>用错内存层级是 GPU 代码慢的头号原因</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>速度</th>
+<th>作用域</th>
+<th>关键用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>寄存器</td>
+<td>最快</td>
+<td>每线程</td>
+<td>线程私有变量</td>
+</tr>
+<tr>
+<td><strong>共享内存（shared）</strong></td>
+<td>极快（片上）</td>
+<td>每 block</td>
+<td><strong>手动管理的缓存</strong>，block 内线程协作复用数据</td>
+</tr>
+<tr>
+<td>L1/L2 缓存</td>
+<td>快</td>
+<td>—</td>
+<td>硬件自动</td>
+</tr>
+<tr>
+<td><strong>全局内存（global/HBM）</strong></td>
+<td>慢（相对）</td>
+<td>全部线程</td>
+<td>大数据主场，但访问要"合并"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>两个决定性能的铁律</strong>：
+- <strong>合并访问（coalescing）</strong>：一个 warp 的 32 线程若访问<strong>连续</strong>的全局内存地址，硬件把它们<strong>合并成一次内存事务</strong>——高效；若访问分散（跨步大），退化成 32 次事务——慢 32 倍。<strong>"让相邻线程访问相邻地址"是 GPU 内存优化的第一条</strong>（🔗 csapp-02 缓存行、perf-02 SoA 布局在 GPU 上放大成生死问题）。
+- <strong>善用共享内存（tiling）</strong>：全局内存慢，故把数据<strong>分块搬进共享内存</strong>、block 内线程反复复用、算完再换块——这正是 csapp-02/perf-02 的分块思想在 GPU 上的核心应用。矩阵乘、卷积、attention 全靠它。</p>
+<h2 id="4-kernel">4. 一个 kernel 的样子：向量加法<a class="headerlink" href="#4-kernel" title="Permanent link"></a></h2>
+<p>最小完整例子，理解 CUDA 的骨架：
+<div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">vec_add</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">blockDim</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span><span class="w">  </span><span class="c1">// 我是第几个线程 → 处理哪个元素</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w">                  </span><span class="c1">// 边界检查（线程数常多于数据）</span>
+<span class="p">}</span>
+<span class="c1">// 启动：vec_add&lt;&lt;&lt;num_blocks, threads_per_block&gt;&gt;&gt;(a, b, c, n);</span>
+</code></pre></div>
+<strong>核心心智</strong>：你不写循环——你写"<strong>一个</strong>线程处理<strong>一个</strong>元素"，然后启动 n 个线程，循环被<strong>空间并行</strong>取代。<code>blockIdx * blockDim + threadIdx</code> 是每个线程算出"我负责哪个数据"的通用公式，务必刻进肌肉。</p>
+<p><strong>数据搬运</strong>：CPU（host）和 GPU（device）内存分离——要 <code>cudaMemcpy</code> 把数据搬上 GPU、算完搬回。<strong>这个 PCIe 传输常是瓶颈</strong>——所以要么减少搬运、要么让计算量大到摊薄传输（Roofline 思维 perf-01：传输当"内存访问"、kernel 当"计算"）。统一内存（unified memory）简化编程但不改变物理成本。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（线程 ID 映射）</strong> 启动 <code>&lt;&lt;&lt;4, 256&gt;&gt;&gt;</code>（4 块 × 256 线程 = 1024 线程），第 3 块第 10 个线程处理哪个元素？（<code>2*256+9 = 521</code>）——<strong>把全局索引公式算熟</strong>，这是所有 kernel 的起点。</p>
+<p><strong>例 2（合并 vs 分散）</strong> 对比"相邻线程读相邻元素"和"相邻线程读跨步 32 的元素"的带宽——后者慢一个数量级。<strong>GPU 内存合并的威力亲手测</strong>（[L08] 的一部分）。</p>
+<p><strong>例 3（发散代价）</strong> 写一个 kernel，warp 内一半线程走 if 一半走 else，对比无发散版本——<strong>理解"SIMT 锁步"下分支发散如何腰斩并行度</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<blockquote>
+<p><strong>▶ 实验 L08（CUDA reduction + scan）</strong>：<code>labs/L08-cuda-reduce/</code> —— 归约（求和）从 naive → shared memory → warp shuffle 三级优化，前缀和（scan）。<strong>跑在 Win 4060 Ti</strong>（CUDA toolkit）。这是 GPU 并行原语的必修，也是 gpu-02 优化的热身。</p>
+</blockquote>
+<hr />
+<p><em>下一页：GPU II——核函数优化阶梯：从能跑到跑满带宽/算力，以及一个玩具 attention kernel（FlashAttention 的最小直觉）。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="par-02-lockfree.html"><span class="pager-label">上一页</span>并行 II · 同步原语与无锁结构</a>
+  <a class="pager-slot next" href="gpu-02-optimization.html"><span class="pager-label">下一页</span>GPU II · 核函数优化阶梯</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

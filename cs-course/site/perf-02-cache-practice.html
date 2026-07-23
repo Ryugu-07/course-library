@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>缓存优化实战 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li class="active"><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 缓存优化的四把手术刀</a></li>
+<li><a href="#2">2. 数据结构的缓存代价：一个反直觉的真相</a></li>
+<li><a href="#3">3. 编译器、内存与你的分工</a></li>
+<li><a href="#4">4. 超越单机：性能优化的完整层级</a></li>
+<li><a href="#5">5. 练习与要点</a><ul>
+<li><a href="#project-p06-100">📋 大 Project P06 · 性能工程终极题（优化 100×）</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="ii">性能 II · 缓存优化实战<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：MIT 6.172 / What Every Programmer Should Know About Memory（Drepper）｜ <strong>前置</strong>：csapp-02（缓存原理）、perf-01（测量、Roofline）
+perf-01 建立了性能的科学方法，这一页把最大的性能杠杆——<strong>缓存</strong>——从理论（csapp-02）变成一套可操作的优化手法，并收束到 [大 Project P06] "把一个基线程序优化 100×"的终极挑战。核心信念不变：<strong>现代程序的性能主要由内存访问模式决定</strong>，谁能把数据喂进缓存，谁就赢。</p>
+</blockquote>
+<h2 id="1">1. 缓存优化的四把手术刀<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把 csapp-02 的原理落成四类可执行的手法：</p>
+<p><strong>① 改善空间局部性——让访问连续</strong>
+- 顺序遍历而非跳跃；行优先遍历行存数组（不是列优先）。
+- <strong>AoS → SoA</strong>（perf-01）：只用某几个字段时，把它们连续存。
+- <strong>打包数据</strong>：去掉不必要的填充、用更小的类型——<strong>塞进更少缓存行 = 更少 miss</strong>。</p>
+<p><strong>② 改善时间局部性——趁热复用</strong>
+- <strong>循环融合</strong>：两个都遍历同一数组的循环合并成一个——数据只加载一次、趁在缓存里做完所有事。
+- <strong>分块（tiling/blocking）</strong>：把大数据切成能装进缓存的块、块内充分复用再换块——<strong>矩阵乘、卷积、转置的核心手法</strong>（L01 已实测）。</p>
+<p><strong>③ 减少缓存未命中的总量</strong>
+- 更紧凑的数据结构（数组 &gt; 链表——链表每个节点一次 miss、指针跳来跳去缓存杀手）。
+- <strong>热/冷数据分离</strong>：常访问的字段和罕用的字段分开存，别让冷数据挤占缓存行。</p>
+<p><strong>④ 避免多线程的缓存灾难</strong>
+- <strong>伪共享</strong>（csapp-02）：不同线程写同一缓存行 → 缓存行乒乓。用填充/对齐让线程私有数据独占缓存行（🔗 par 线)。</p>
+<p><strong>读法</strong>：<strong>这四把刀覆盖了 90% 的实用缓存优化</strong>。遇到性能问题先问："数据访问连续吗？复用充分吗？结构紧凑吗？线程在抢缓存行吗？"</p>
+<h2 id="2">2. 数据结构的缓存代价：一个反直觉的真相<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="数组(连续,预取,少 miss) vs 链表(散落,每节点 miss) 的缓存行为。" src="assets/img/perf-02-array-vs-list.svg" /></p>
+<figcaption><span class="fig-id">图 perf-02.2</span>数组(连续,预取,少 miss) vs 链表(散落,每节点 miss) 的缓存行为。</figcaption>
+</figure>
+<p>算法课教你链表插入 O(1)、数组插入 O(n)——但在真实硬件上，<strong>遍历一个数组常常比遍历等长链表快一个数量级</strong>，因为：
+- 数组连续 → 硬件预取 + 每次 miss 拉一整行（16 个元素）→ 几乎无 miss。
+- 链表节点散落 → 每个节点一次 cache miss + 无法预取（不知道下个节点地址）。</p>
+<p><strong>推论</strong>：<strong>"渐进复杂度相同（甚至更差）的数据结构，因为缓存行为可能快很多"</strong>——<code>std::vector</code> 常胜 <code>std::list</code>、扁平数组常胜指针树。现代高性能数据结构（B+ 树的高扇出 db-01、列存 db-02、ECS 游戏架构）本质都是<strong>为缓存重新设计的数据结构</strong>。<strong>这是算法理论与硬件现实的一个重要缝隙，性能工程师必须跨过它</strong>。</p>
+<h2 id="3">3. 编译器、内存与你的分工<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>优化里要清楚"谁该做什么"：
+- <strong>编译器擅长</strong>：局部优化、自动向量化（perf-01）、内联、寄存器分配（comp-03）——<strong>别手动做这些</strong>，反而妨碍它。
+- <strong>编译器不擅长</strong>：跨越大范围的数据布局重构、算法替换、分块——<strong>这些是你的活</strong>，因为它们需要理解程序的语义和访问模式，编译器看不到全局。
+- <strong>帮编译器</strong>：用 <code>restrict</code>/避免别名让它敢优化、写简单的循环让它能向量化、<code>-O2/-O3</code> 别忘开。</p>
+<p><strong>方法论闭环</strong>（perf-01 的科学方法在此实操）：<code>perf</code> 找热点 → 看是否 cache miss 高（<code>perf stat</code> 的 cache-misses）→ 判断内存还是算力受限（Roofline）→ 应用对应手术刀 → 再测量确认。<strong>每一步都有数字，不靠感觉</strong>。</p>
+<h2 id="4">4. 超越单机：性能优化的完整层级<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="优化层级金字塔：算法→数据布局→向量化→多核→GPU→分布式（收益递减、代价递增）。" src="assets/img/perf-02-optim-ladder.svg" /></p>
+<figcaption><span class="fig-id">图 perf-02.1</span>优化层级金字塔：算法→数据布局→向量化→多核→GPU→分布式（收益递减、代价递增）。</figcaption>
+</figure>
+<p>优化是有层级的，<strong>从高到低收益递减、代价递增</strong>——按顺序来：
+1. <strong>算法/数据结构</strong>（O(n²)→O(n log n)，收益最大，先做）。
+2. <strong>数据布局与缓存</strong>（本页，常见 2~10×）。
+3. <strong>向量化与指令级并行</strong>（perf-01，2~16×）。
+4. <strong>多核并行</strong>（par 线，~核数倍）。
+5. <strong>GPU/加速器</strong>（gpu 线，特定负载 10~100×）。
+6. <strong>分布式</strong>（跨机器，dist 线，用于超大规模）。</p>
+<p><strong>先爬对楼层</strong>：一个 O(n²) 算法再怎么向量化也输给 O(n log n)——<strong>Amdahl 和这个层级表一起，构成"该优化什么、按什么顺序"的完整决策框架</strong>。这是把全站性能相关知识（算法/缓存/SIMD/并行/GPU/分布式）串成一条优化路线的总纲。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（数组 vs 链表实测）</strong> 遍历求和一个 1000 万元素的数组 vs 等长链表——<strong>数组快近十倍</strong>，用 <code>perf stat</code> 看 cache-misses 差异。<strong>"渐进复杂度不是全部"一次刻进去</strong>。</p>
+<p><strong>例 2（循环融合）</strong> 两个分别对数组做 <code>scale</code> 和 <code>shift</code> 的循环，融合成一个——测量加速（数据只过一遍缓存）。<strong>小重构、真收益</strong>。</p>
+<p><strong>例 3（爬对楼层）</strong> 给一个"用 O(n²) 算法 + 未向量化"的慢程序，判断先做什么（换算法，别急着向量化 O(n²)）——<strong>练"优化顺序"的判断力</strong>，这比任何单一技巧都值钱。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p06-100">📋 大 Project P06 · 性能工程终极题（优化 100×）<a class="headerlink" href="#project-p06-100" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>教师版作业说明书，不提供完整解。</strong> P06 的重点不是炫技，而是训练“测量 → 假设 → 修改 → 复测”的工程循环。</p>
+<ul>
+<li><strong>学习目标</strong>：把算法复杂度、缓存局部性、SIMD、多线程、Roofline 分析串成一个完整优化案例。</li>
+<li><strong>教师提供</strong>：三选一基线程序（N 体模拟 / 图像卷积 / 稀疏矩阵运算）、固定输入集、正确性校验器、benchmark harness、计时脚本、报告模板。</li>
+<li><strong>学生任务</strong>：① 建立 baseline，记录 wall time、cache miss、IPC、Roofline 位置；② 算法或数据结构替换；③ 数据布局与缓存优化；④ SIMD 或自动向量化辅助；⑤ 多线程并行；⑥ 可选 GPU/Metal/CUDA 版本。</li>
+<li><strong>约束</strong>：每次提交只能包含一个主要优化点；不得牺牲数值正确性；所有 benchmark 要固定机器、编译器、输入规模并重复取中位数；报告必须保留失败尝试。</li>
+<li><strong>验收测试</strong>：输出误差在给定阈值内；相对 baseline 达到分档加速（及格 20×，良好 50×，优秀 100×）；每一步都有 before/after 数字和解释；隐藏输入上没有退化。</li>
+<li><strong>评分重点</strong>：测量纪律 25%，优化有效性 35%，正确性与泛化 20%，报告质量 20%。</li>
+<li><strong>延伸挑战</strong>：用同一 workload 画出单线程优化、多线程优化和 GPU 优化的 Roofline 迁移图，解释瓶颈如何变化。</li>
+</ul>
+</blockquote>
+<hr />
+<p><em>下一页：并行 I——并行模型与缓存一致性：从单核榨性能到用多核，共享内存并行的原理与陷阱。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="perf-01-engineering.html"><span class="pager-label">上一页</span>性能 I · 测量、Roofline 与向量化</a>
+  <a class="pager-slot next" href="par-01-models.html"><span class="pager-label">下一页</span>并行 I · 并行模型与缓存一致性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

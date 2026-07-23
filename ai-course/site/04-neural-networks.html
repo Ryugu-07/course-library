@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-09 21:08</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -60,6 +60,10 @@ a = \sigma\Big(\sum_j w_j x_j + b\Big)
 <p><span class="arithmatex">\(\sigma\)</span> 是<strong>激活函数</strong>——最初是阶跃函数，后来换成光滑版本，如 sigmoid <span class="arithmatex">\(\sigma(z) = \frac{1}{1 + e^{-z}}\)</span>。单个神经元就是第 02 讲的线性分类器套一个非线性外壳；Rosenblatt 1958 年的感知机给它配上了学习算法（第 02 讲已证其收敛性），媒体狂热了十年。</p>
 <p>1969 年，Minsky 和 Papert 的著作《Perceptrons》给出了那个著名的判决：<strong>单层感知机连 XOR 都表示不了</strong>（第 01 讲已证：<span class="arithmatex">\(\mathbb{R}^2\)</span> 线性分类器 VC 维为 3，打散不了 XOR 那 4 个点；一行代数也能证：若 <span class="arithmatex">\(f(0,0)&lt;0, f(1,1)&lt;0, f(0,1)&gt;0, f(1,0)&gt;0\)</span>，四式相加得 <span class="arithmatex">\(0 &lt; 0\)</span>，矛盾）。书里同时指出多层网络<strong>或许</strong>能行，但"没有有效的训练算法"。经费应声枯竭，<strong>第一次 AI 寒冬</strong>降临，神经网络研究冻结了近十五年。</p>
 <h2 id="2">2. 多层网络的表达力：万能逼近<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="激活函数" src="assets/img/04-activations.svg" /></p>
+<figcaption><span class="fig-id">图 4.1</span>激活函数给网络注入非线性：没有它，多层网络会塌回一个线性映射——sigmoid/tanh/ReLU/GELU 是最常见的几种。</figcaption>
+</figure>
 <p>把神经元层层堆叠：第 <span class="arithmatex">\(l\)</span> 层把上一层输出 <span class="arithmatex">\(a^{(l-1)}\)</span> 变换为</p>
 <div class="arithmatex">\[
 z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
@@ -73,6 +77,14 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 <li><strong>深度的价值它没有回答</strong>。后来的深度分离定理（如 Telgarsky 2016）表明：某些函数用深网络表示只需多项式规模，用浅网络则需指数规模。直觉：深度提供<strong>复合</strong>，<span class="arithmatex">\(f(g(h(x)))\)</span> 式的层级结构用"层级的机器"表示才高效——而真实世界（图像 = 边→纹理→部件→物体）恰恰是层级的。这是"深度"学习的第一性原理。</li>
 </ul>
 <h2 id="3">3. 训练：梯度下降与反向传播<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="反向传播：前向计算图 + 反向梯度沿链式法则回流。" src="assets/img/04-computational-graph.svg" /></p>
+<figcaption><span class="fig-id">图 4.3</span>反向传播：前向计算图 + 反向梯度沿链式法则回流。</figcaption>
+</figure>
+<figure class="plot">
+<p><img alt="梯度下降与学习率" src="assets/img/04-gradient-descent.svg" /></p>
+<figcaption><span class="fig-id">图 4.2</span>梯度下降沿负梯度更新参数：学习率太大则来回震荡甚至发散、太小则慢——调好它是训练的第一件事。</figcaption>
+</figure>
 <p>表达力有了，Minsky 的第二个问题还在：<strong>怎么训练？</strong>参数 <span class="arithmatex">\(\theta = \{W^{(l)}, b^{(l)}\}\)</span> 几千上万个，损失 <span class="arithmatex">\(L(\theta)\)</span> 非凸（不像 SVM），解析解无望。答案是最朴素的迭代：<strong>往下坡走</strong>。</p>
 <h3 id="31-sgd">3.1 梯度下降与 SGD<a class="headerlink" href="#31-sgd" title="Permanent link"></a></h3>
 <div class="arithmatex">\[

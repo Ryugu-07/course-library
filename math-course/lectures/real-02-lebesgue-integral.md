@@ -4,6 +4,11 @@
 
 ## 1. 积分的三级定义
 
+<figure class="plot" markdown="1">
+![Riemann 竖切与 Lebesgue 横切](assets/img/real-02-riemann-vs-lebesgue.svg)
+<figcaption><span class="fig-id">图 2.1</span>Riemann 竖切定义域、Lebesgue 横切值域——后者度量每个"水平层"的宽度，故能积分更病态的函数。</figcaption>
+</figure>
+
 沿实变 I 的阶梯拾级而上：
 
 1. **简单函数** $\varphi = \sum a_i \mathbb{1}_{E_i}$：$\int \varphi = \sum a_i\, m(E_i)$（面额 × 张数）；

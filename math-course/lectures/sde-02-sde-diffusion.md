@@ -40,6 +40,11 @@ $$
 
 ## 4. 扩散模型：本页数学的旗舰应用（comfy 课正式对账）
 
+<figure class="plot" markdown="1">
+![扩散前向过程把数据加噪成高斯](assets/img/sde-02-diffusion.svg)
+<figcaption><span class="fig-id">图 2.1</span>扩散前向过程把数据分布逐步加噪成高斯——双峰数据被抹平成钟形，正是 comfy 课扩散模型加噪的连续极限。</figcaption>
+</figure>
+
 **前向加噪 SDE**（VP-SDE，comfy 课 02 的离散加噪的连续极限）：
 
 $$

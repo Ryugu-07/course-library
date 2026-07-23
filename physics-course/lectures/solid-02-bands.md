@@ -5,6 +5,11 @@
 
 ## 1. Bloch 定理与能带的起源
 
+<figure class="plot" markdown="1">
+![电子能带与禁带](assets/img/solid-02-bands.svg)
+<figcaption><span class="fig-id">图 2.1</span>电子能带：周期势把能量劈成允许带与禁带（band gap）——导体/绝缘体/半导体之分的根。</figcaption>
+</figure>
+
 **定理（Bloch）** 周期势 $V(\mathbf r + \mathbf R) = V(\mathbf r)$ 中的定态波函数必为
 
 $$

@@ -2,6 +2,12 @@
 
 > 本课程的点睛之讲。ComfyUI 与其他生图界面的根本区别：**它把第 04 讲那张流水线图原封不动画在屏幕上让你摆弄**——别的工具把管线藏进"生成"按钮，ComfyUI 把管线本身交给你。所以学 ComfyUI 的正确姿势不是背操作，而是**把每个节点映射回它的数学身份**。本讲用默认文生图工作流完成这个映射，从此你看任何复杂工作流都是"找骨架 + 认外挂"。
 
+
+<figure class="diagram" markdown="1">
+![ComfyUI 首个文生图工作流的真实节点图（Load→CLIP→KSampler→VAE Decode→Save）。用户可在 E:\AI ComfyUI 里截图。](assets/img/07-first-workflow.png)
+<figcaption><span class="fig-id">图 7.1</span>ComfyUI 首个文生图工作流的真实节点图（Load→CLIP→KSampler→VAE Decode→Save）。用户可在 E:\AI ComfyUI 里截图。</figcaption>
+</figure>
+
 ## 1. 先读懂"线"：类型即颜色
 
 节点间的连线是**有类型的**（颜色区分），类型不匹配就接不上——这是 ComfyUI 帮你守住的第一道正确性防线。六种主力线型先认脸：

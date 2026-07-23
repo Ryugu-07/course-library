@@ -16,6 +16,11 @@ $$
 
 ## 3. 梯度下降及其收敛速率（本页核心）
 
+<figure class="plot" markdown="1">
+![梯度下降在等高线上走向极小](assets/img/opt-02-gradient-descent.svg)
+<figcaption><span class="fig-id">图 2.1</span>梯度下降沿负梯度逐步走向极小；病态（等高线拉长）时来回震荡——收敛速率由条件数决定。</figcaption>
+</figure>
+
 $d_k = -\nabla f(x_k)$（数分 V：最速下降方向）。收敛速率取决于函数的"弯曲程度"假设：
 
 **假设语言**：$L$-光滑（梯度 Lipschitz：$\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|$，曲率上界）；$\mu$-强凸（曲率下界，优化 I）。**条件数** $\kappa = L/\mu$。

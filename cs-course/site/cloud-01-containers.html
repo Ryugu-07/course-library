@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>容器与 Docker 原理 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li class="active"><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 容器解决的问题:"在我机器上是好的"</a></li>
+<li><a href="#2">2. 容器不是虚拟机:两种隔离的本质区别</a></li>
+<li><a href="#3-namespace-cgroup">3. 容器的三块积木:namespace + cgroup + 分层镜像</a></li>
+<li><a href="#4-medusa">4. 容器化的实践与你的 Medusa</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-docker">云 I · 容器与 Docker 原理<a class="headerlink" href="#i-docker" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Docker 文档 / <em>Container Security</em>（Rice）/ 云原生课程 ｜ <strong>前置</strong>：os 线（进程、虚拟内存、文件系统）、csapp-03（动态链接）
+你的 <code>medusa-postgres</code> 跑在 Docker 里，但<strong>容器底下到底是什么</strong>？它不是虚拟机，却能隔离；不装完整操作系统，却能跑起来。这一页拆穿容器的魔法——它其实是 <strong>Linux 内核的几个隔离原语（namespace + cgroup）+ 分层文件系统</strong>拼出来的"轻量隔离进程"。理解它，你就懂了为什么容器又轻又快、以及它和虚拟机的本质区别。</p>
+</blockquote>
+<h2 id="1">1. 容器解决的问题:"在我机器上是好的"<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>软件部署的经典噩梦：开发环境能跑、生产环境挂——因为依赖版本、系统库、配置不同（🔗 csapp-03 动态链接的 <code>.so</code> 找不到、Python 环境地狱）。<strong>容器把"应用 + 它的所有依赖 + 运行环境"打包成一个可移植的单元</strong>——一次构建、到处一样地跑。<strong>"消除环境差异"是容器的核心价值</strong>，也是 se-02 CD"可复现部署"的基石。</p>
+<h2 id="2">2. 容器不是虚拟机:两种隔离的本质区别<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="容器(共享内核,轻) vs 虚拟机(各带内核,重) 分层对比。" src="assets/img/cloud-01-container-vs-vm.svg" /></p>
+<figcaption><span class="fig-id">图 cloud-01.3</span>容器(共享内核,轻) vs 虚拟机(各带内核,重) 分层对比。</figcaption>
+</figure>
+<p>关键澄清——<strong>容器和虚拟机是两种不同的隔离</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>虚拟机</th>
+<th>容器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>隔离层</td>
+<td>硬件级（Hypervisor 虚拟出整台机器）</td>
+<td>操作系统级（共享宿主内核）</td>
+</tr>
+<tr>
+<td>含什么</td>
+<td>完整客户操作系统（自己的内核）</td>
+<td>只有应用 + 依赖，<strong>共享宿主内核</strong></td>
+</tr>
+<tr>
+<td>开销</td>
+<td>重（GB 级、启动几十秒）</td>
+<td>轻（MB 级、启动毫秒）</td>
+</tr>
+<tr>
+<td>隔离强度</td>
+<td>强（各有内核）</td>
+<td>较弱（共享内核，🔗 sec 线容器逃逸风险）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心洞察</strong>：<strong>容器不虚拟硬件、不带自己的内核——它就是宿主上的一个普通进程，只是被内核的隔离原语"关"进了一个看起来独立的环境</strong>。所以它轻（没有客户操作系统的重量）、快（就是启动个进程）。<strong>"容器 = 被隔离的进程，不是小虚拟机"</strong>——这是理解容器的第一步。</p>
+<h2 id="3-namespace-cgroup">3. 容器的三块积木:namespace + cgroup + 分层镜像<a class="headerlink" href="#3-namespace-cgroup" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="容器 = namespace(隔离可见性) + cgroup(限制配额) + 分层镜像(COW)。" src="assets/img/cloud-01-namespace-cgroup.svg" /></p>
+<figcaption><span class="fig-id">图 cloud-01.1</span>容器 = namespace(隔离可见性) + cgroup(限制配额) + 分层镜像(COW)。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="分层镜像 + 联合文件系统 + 写时复制层。" src="assets/img/cloud-01-image-layers.svg" /></p>
+<figcaption><span class="fig-id">图 cloud-01.2</span>分层镜像 + 联合文件系统 + 写时复制层。</figcaption>
+</figure>
+<p>容器的隔离幻觉由 Linux 内核三个机制拼成：</p>
+<p><strong>① Namespace（命名空间）——隔离"看得见什么"</strong>
+让进程以为自己独占系统。几种 namespace 各隔离一样东西：
+- <strong>PID namespace</strong>：容器内进程以为自己是 PID 1、看不到宿主其他进程（🔗 os-01 进程）。
+- <strong>Mount namespace</strong>：独立的文件系统视图（🔗 os-03，容器有自己的"根"）。
+- <strong>Network namespace</strong>：独立的网络栈（自己的 IP、端口，🔗 net 线）。
+- <strong>UTS/IPC/User namespace</strong>：主机名、进程间通信、用户 ID 的隔离。</p>
+<p><strong>"每个 namespace 隔离一种资源的可见性"</strong>——组合起来，容器内进程看到的是一个"只有自己"的干净系统，其实和宿主共享一个内核。</p>
+<p><strong>② Cgroup（控制组）——限制"能用多少"</strong>
+namespace 管"看得见什么"，cgroup 管"能用多少"——<strong>限制一个容器的 CPU、内存、I/O 配额</strong>（🔗 os-01 调度、csapp-04 内存）。这样一个容器失控不会吃垮整机。<code>docker run -m 512m</code> 就是设 cgroup 内存限制。</p>
+<p><strong>③ 分层镜像（Union FS）——高效打包</strong>
+容器<strong>镜像</strong>是分层的（每个 Dockerfile 指令一层），用联合文件系统叠起来：
+- <strong>层可共享</strong>：多个镜像基于同一个 <code>ubuntu</code> 层，只存一份（🔗 csapp-03 动态库共享、git 内容寻址 se-01 同思想——去重）。
+- <strong>写时复制</strong>：容器运行时的改动写到最上面的可写层，底层镜像只读不变（🔗 csapp-04 COW！同一个思想）。
+- <strong>可复现 + 高效分发</strong>：镜像有内容哈希、可推到仓库、拉取只下缺的层。</p>
+<p><strong>Dockerfile</strong> 就是"如何构建这个镜像"的声明式脚本——<code>FROM 基础镜像</code> → <code>COPY 代码</code> → <code>RUN 装依赖</code> → <code>CMD 启动命令</code>，每行一层。</p>
+<h2 id="4-medusa">4. 容器化的实践与你的 Medusa<a class="headerlink" href="#4-medusa" title="Permanent link"></a></h2>
+<ul>
+<li><strong>一个容器一个职责</strong>：<code>medusa-postgres</code> 一个容器跑数据库、应用一个容器——<strong>解耦、可独立扩展/重启</strong>（🔗 微服务思想）。</li>
+<li><strong>数据持久化</strong>：容器是"短暂的"（删了重建），但数据要留——用 <strong>volume</strong>（挂载宿主目录/持久卷）把数据存在容器外（你的 Postgres 数据在 <code>D:\medusa-db</code>，正是这个道理——<strong>容器可重建，数据在 volume 里不丢</strong>）。</li>
+<li><strong>容器编排的前奏</strong>：单机几个容器用 <code>docker-compose</code>（一个 YAML 描述多容器 + 网络 + volume）——Medusa 的 DB compose 就是它。多机、要自愈/扩缩容就上 K8s（cloud-02）。</li>
+<li><strong>镜像最佳实践</strong>：小基础镜像（alpine/distroless，🔗 sec 线减攻击面）、多阶段构建（构建环境和运行环境分离，产物更小）、别把密钥打进镜像（sec-02）。</li>
+</ul>
+<p><strong>读法</strong>：<strong>Docker 不是新技术的堆砌，是把 Linux 早就有的隔离原语（namespace/cgroup）+ 分层文件系统包装成好用的工具</strong>。你 memory 里"docker medusa-postgres（pgvector/pg17）在 Win""DB compose@D:\medusa-db""OPS 操作前备份"——这些运维操作背后的原理，本页全部讲清了。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（看容器就是进程）</strong> 在宿主上 <code>ps</code> 找到容器里进程的真实 PID——<strong>亲眼确认"容器内的 PID 1 在宿主上只是个普通进程"</strong>，容器不是虚拟机一次看穿。</p>
+<p><strong>例 2（分层与缓存）</strong> 写一个 Dockerfile，把"装依赖"放在"拷贝代码"之前——理解为什么这样能利用层缓存（代码变了不用重装依赖）。<strong>分层镜像的实用优化</strong>。</p>
+<p><strong>例 3（volume 保命）</strong> 演示删除并重建一个数据库容器，数据因为在 volume 里而不丢——<strong>理解"容器无状态、数据在 volume"</strong>，对照 Medusa 的 <code>D:\medusa-db</code>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：云 II——编排、K8s 与可观测性：从几个容器到成百上千个容器的自动化管理，以及怎么看见一个庞大系统的健康。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="se-02-cicd-quality.html"><span class="pager-label">上一页</span>软工 II · CI/CD 与代码质量</a>
+  <a class="pager-slot next" href="cloud-02-orchestration.html"><span class="pager-label">下一页</span>云 II · 编排、K8s 与可观测性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -21,6 +21,11 @@ $$
 
 ## 3. 辐射：加速电荷发光
 
+<figure class="plot" markdown="1">
+![偶极辐射角分布](assets/img/em-03-dipole-radiation.svg)
+<figcaption><span class="fig-id">图 3.1</span>偶极辐射的角分布 \(\propto\sin^2\theta\)：沿振荡轴方向不辐射、垂直方向最强——天线方向图的物理原型。</figcaption>
+</figure>
+
 **物理图像**：匀速电荷的场"跟着走"（无辐射——洛伦兹变换到静止系即静电场，sr-01 呼应）；**加速**时场线来不及调整，"扭结"以光速向外传播——这圈扭结就是辐射（Thomson 的图像论证：扭结区场的横向分量 $\propto \frac{1}{r}$ 而非静电的 $\frac{1}{r^2}$——只有 $\frac1r$ 场能把能量带到无穷远：$S \propto E^2 \propto \frac{1}{r^2}$ 乘以球面 $r^2$ 不衰减）。
 
 **Larmor 公式【骨架】**（非相对论）：

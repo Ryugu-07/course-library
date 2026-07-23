@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推理系统与算子优化 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li class="active"><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-llm">1. LLM 推理为什么特殊：自回归与两个阶段</a></li>
+<li><a href="#2-kv-cache">2. KV Cache：推理的核心数据结构</a></li>
+<li><a href="#3">3. 算子优化：把计算榨干</a></li>
+<li><a href="#4">4. 模型压缩:量化、蒸馏、剪枝</a></li>
+<li><a href="#5-medusa">5. 端到端：一次推理请求的旅程（Medusa 视角）</a></li>
+<li><a href="#6">6. 练习与要点</a><ul>
+<li><a href="#project-p07">📋 大 Project P07 · 迷你推理引擎</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="mlsys-ii">MLSys II · 推理系统与算子优化<a class="headerlink" href="#mlsys-ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：vLLM / TensorRT-LLM 文档 / MLSys 推理论文 ｜ <strong>前置</strong>：mlsys-01、gpu-02（attention kernel）、comfy-course（你用的生成栈）
+模型训好只是一半——<strong>推理系统</strong>负责让它高效服务：低延迟、高吞吐、省显存、稳定。这是你每天用 Claude/DeepSeek/本地 ComfyUI 时背后运转的引擎（Medusa 的 DeepSeek 调用、comfy 课的扩散推理都在此）。这一页讲 LLM 推理的独特挑战（自回归 + KV cache）、让它快起来的系统技术（连续批处理、PagedAttention）、以及压缩模型的量化与蒸馏。</p>
+</blockquote>
+<h2 id="1-llm">1. LLM 推理为什么特殊：自回归与两个阶段<a class="headerlink" href="#1-llm" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。" src="assets/img/mlsys-02-prefill-decode.svg" /></p>
+<figcaption><span class="fig-id">图 mlsys-02.3</span>Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。</figcaption>
+</figure>
+<p>LLM 生成是<strong>自回归</strong>的——一个 token 一个 token 地出，每个新 token 依赖前面所有 token。这带来独特的两阶段结构：
+- <strong>Prefill（预填充）</strong>：处理输入 prompt，一次并行算完所有输入 token——<strong>算力受限</strong>（大矩阵乘，GPU 吃饱）。
+- <strong>Decode（解码）</strong>：逐个生成输出 token，每步只算一个——<strong>内存受限</strong>（每步要读整个模型权重却只算一个 token，算术强度极低，Roofline 落在带宽屋顶，perf-01）。</p>
+<p><strong>关键洞察</strong>：<strong>decode 阶段 GPU 算力大量闲置</strong>（在等着把权重从显存搬进来），这决定了推理优化的方向——<strong>要么提高每次搬权重服务的请求数（批处理），要么减少要搬的数据（量化）</strong>。</p>
+<h2 id="2-kv-cache">2. KV Cache：推理的核心数据结构<a class="headerlink" href="#2-kv-cache" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="KV Cache：缓存历史 K/V，新 token 只算自己，attention O(N²)→O(N)。" src="assets/img/mlsys-02-kv-cache.svg" /></p>
+<figcaption><span class="fig-id">图 mlsys-02.1</span>KV Cache：缓存历史 K/V，新 token 只算自己，attention O(N²)→O(N)。</figcaption>
+</figure>
+<figure class="diagram">
+<p><img alt="PagedAttention 借 OS 分页管理 KV Cache（呼应 csapp-04）+ 连续批处理。" src="assets/img/mlsys-02-paged-attention.svg" /></p>
+<figcaption><span class="fig-id">图 mlsys-02.2</span>PagedAttention 借 OS 分页管理 KV Cache（呼应 csapp-04）+ 连续批处理。</figcaption>
+</figure>
+<p>自回归每生成一个 token 都要对前面所有 token 做 attention（gpu-02）。若每步重算所有历史 token 的 Key/Value，是巨大浪费。<strong>KV Cache</strong>：把已算过的 token 的 K、V <strong>缓存下来</strong>，新 token 只算自己的 + 复用缓存——<strong>把每步的 attention 从 <span class="arithmatex">\(O(N^2)\)</span> 降到 <span class="arithmatex">\(O(N)\)</span></strong>。</p>
+<p><strong>代价——KV Cache 吃显存且随序列增长</strong>：长上下文时 KV Cache 能比模型本身还大，成为<strong>显存瓶颈和吞吐瓶颈</strong>。这引出推理系统最重要的两个创新：</p>
+<ul>
+<li><strong>PagedAttention（vLLM 的核心）</strong>：传统 KV Cache 要连续显存、按最大长度预分配 → 大量浪费（碎片 + 预留）。PagedAttention <strong>借鉴操作系统的虚拟内存分页</strong>（🔗 csapp-04！）——把 KV Cache 切成<strong>页</strong>、按需分配、用页表映射。<strong>显存碎片几乎消失、利用率大增 → 能同时服务多得多的请求</strong>。这是"OS 的分页思想搬到 GPU 显存管理"的漂亮跨界，本站 csapp-04 与本页在此呼应。</li>
+<li><strong>连续批处理（continuous batching）</strong>：传统静态批处理要等一批请求全部生成完才换下一批（快的请求被慢的拖住，GPU 空转）。连续批处理<strong>在 token 级别动态换入换出请求</strong>——一个请求生成完立刻让新请求补位，<strong>GPU 始终吃饱</strong>。吞吐提升数倍，是现代 LLM 服务的标配。</li>
+</ul>
+<h2 id="3">3. 算子优化：把计算榨干<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>算子融合（kernel fusion）</strong>：把多个小算子（如 LayerNorm 的一串逐元素操作）<strong>融合成一个 kernel</strong>——减少 GPU kernel 启动开销 + 减少中间结果的显存往返（🔗 gpu-02、perf 的减少内存访问）。</li>
+<li><strong>FlashAttention</strong>（gpu-02 [L09] 的生产版）：不落 <span class="arithmatex">\(N\times N\)</span> 中间矩阵的 attention——推理和训练都用，长上下文的关键。</li>
+<li><strong>投机解码（speculative decoding）</strong>：用一个小的"草稿模型"快速生成几个候选 token，大模型<strong>一次并行验证</strong>——把内存受限的 decode 变得更"算力密集"、加速生成而不改变输出分布。<strong>一个用小模型加速大模型的巧妙系统技巧</strong>。</li>
+</ul>
+<h2 id="4">4. 模型压缩:量化、蒸馏、剪枝<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>让模型更小更快（尤其本地部署，你的 4060 Ti / comfy 课直接相关）：
+- <strong>量化（quantization）</strong>：把权重从 fp16 降到 int8/int4——<strong>显存减半再减半、decode 阶段搬权重更快</strong>（decode 是内存受限，量化直接加速）。关键是<strong>保持精度</strong>（GPTQ/AWQ 等在量化时补偿误差）。<strong>"4-bit 量化让 70B 模型跑进消费级显卡"就是量化的胜利</strong>——你在本地跑量化模型（GGUF/AWQ）时用的正是它。
+- <strong>蒸馏（distillation）</strong>：用大模型（teacher）的输出训练小模型（student）——<strong>小模型学到大模型的行为，体积小几倍</strong>。DeepSeek/Qwen 的小模型多经蒸馏。
+- <strong>剪枝（pruning）</strong>：删掉不重要的权重/结构——理论优雅但硬件加速不易（非结构化稀疏 GPU 不友好）。</p>
+<p><strong>方法论</strong>：<strong>推理优化 = 减少要搬的数据（量化/压缩）× 提高硬件利用率（批处理/融合）× 减少冗余计算（KV cache/投机）</strong>——这三个杠杆覆盖了几乎所有 LLM 推理加速手段，是一张能装下 vLLM/TensorRT-LLM 全部技巧的地图。</p>
+<h2 id="5-medusa">5. 端到端：一次推理请求的旅程（Medusa 视角）<a class="headerlink" href="#5-medusa" title="Permanent link"></a></h2>
+<p>把全页串起来——你的 Medusa 发一个 DeepSeek 请求，服务端发生什么：
+1. 请求进入调度器，<strong>连续批处理</strong>把它拼进当前 batch。
+2. <strong>Prefill</strong> 阶段并行处理你的 prompt，建立 <strong>KV Cache</strong>（PagedAttention 分页管理）。
+3. <strong>Decode</strong> 阶段逐 token 生成，每步复用 KV Cache、可能用<strong>投机解码</strong>加速。
+4. 模型可能是<strong>量化</strong>版以省显存提吞吐。
+5. 流式返回 token（🔗 net-02 的 SSE/流式）。</p>
+<p><strong>理解这条链，你就懂了"为什么长 prompt 首 token 慢（prefill）、生成速度稳定（decode 内存受限）、并发高时仍不卡（连续批处理）"</strong>——从此 LLM API 的性能表现对你不再是黑盒。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（KV Cache 算账）</strong> 一个模型 32 层、隐藏维 4096、fp16，估算 2048 token 上下文的 KV Cache 显存（约 2 × 32 × 4096 × 2048 × 2 字节 ≈ 1 GB/请求）——<strong>理解"为什么长上下文 + 高并发那么吃显存"</strong>，PagedAttention 为什么重要。</p>
+<p><strong>例 2（prefill vs decode）</strong> 解释"为什么 API 的首 token 延迟（TTFT）和后续每 token 延迟（TPOT）是两个不同指标、优化手段不同"——<strong>把两阶段结构用到真实性能理解</strong>。</p>
+<p><strong>例 3（该量化吗）</strong> 你要在 4060 Ti 16GB 上跑一个 14B 模型——fp16 装不下（28GB），int4 量化后约 7GB 可跑。判断量化的收益与精度代价。<strong>把压缩技术用到你自己的本地部署决策</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p07">📋 大 Project P07 · 迷你推理引擎<a class="headerlink" href="#project-p07" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>教师版作业说明书，不提供完整解。</strong> P07 是 MLSys 收官项目：不要求训练大模型，而是实现一个小而完整的自回归推理服务，理解 vLLM/TensorRT-LLM 这类系统的核心取舍。</p>
+<ul>
+<li><strong>学习目标</strong>：把 prefill/decode、KV Cache、连续批处理、PagedAttention、量化这些概念落到一个可测系统里。</li>
+<li><strong>教师提供</strong>：Tiny Transformer 权重或随机可复现模型、Tokenizer 简化版、单请求参考推理、请求流生成器、TTFT/TPOT/throughput benchmark、显存/内存统计脚本。</li>
+<li><strong>学生任务</strong>：① 实现单请求 greedy decode，输出与参考实现一致；② 加 KV Cache，避免重复计算历史 K/V；③ 实现连续批处理调度器，在 token 级别接入/移除请求；④ 实现分页 KV Cache 管理，支持变长上下文和回收；⑤ 实现 int8 或 int4 权重量化路径，并报告精度/速度/内存取舍。</li>
+<li><strong>接口约束</strong>：服务接口至少支持 <code>submit(prompt, max_tokens)</code>、流式 token 回调、取消请求；调度器不得让短请求长期饿死；Paged KV 的页分配、引用和释放必须可观测。</li>
+<li><strong>验收测试</strong>：单请求输出与参考一致；开启 KV Cache 后 decode 计算量明显下降；并发请求下吞吐提升且 TTFT/TPOT 有记录；长短混合请求无泄漏、无串 token；量化后内存下降并给出误差指标。</li>
+<li><strong>评分重点</strong>：单请求正确性 20%，KV Cache 20%，连续批处理 25%，Paged KV 20%，量化与系统报告 15%。</li>
+<li><strong>延伸挑战</strong>：加入 speculative decoding 或 prefix cache，并用请求级时间线说明它在哪些负载上有收益。</li>
+</ul>
+</blockquote>
+<hr />
+<p><em>并行与性能线彻底完成。下一页进入语言线——PL I：λ 演算与类型系统，程序语言的数学根，也是你未来 Lean4 计划的地基。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mlsys-01-training.html"><span class="pager-label">上一页</span>MLSys I · 训练系统与并行策略</a>
+  <a class="pager-slot next" href="pl-01-lambda-types.html"><span class="pager-label">下一页</span>语言 I · λ 演算与类型系统</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

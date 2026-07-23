@@ -23,6 +23,11 @@ $$
 
 ## 2. 光的诞生（教科书物理最高光的两行）
 
+<figure class="plot" markdown="1">
+![电磁波 E 与 B 垂直传播](assets/img/em-02-em-wave.svg)
+<figcaption><span class="fig-id">图 2.1</span>电磁波：\(\mathbf E\) 与 \(\mathbf B\) 相互垂直、又都垂直于传播方向，同相振荡以光速前进——Maxwell 方程的直接产物。</figcaption>
+</figure>
+
 真空无源区（$\rho = 0, \mathbf J = 0$）：对 Faraday 取旋度、代入 Ampère–Maxwell，用 $\nabla\times(\nabla\times\mathbf E) = \nabla(\nabla\cdot\mathbf E) - \nabla^2\mathbf E$（解几/数分恒等式）与 $\nabla\cdot\mathbf E = 0$：
 
 $$

@@ -2,6 +2,16 @@
 
 > **诞生场景**：2012 年之前，计算机视觉的标准流程是：博士们手工设计特征（SIFT、HOG……一个好特征够发一篇顶会），再喂给 SVM。ImageNet 挑战赛（120 万张图、1000 类）上，这套流程的错误率卡在 26% 附近逐年只降零点几。2012 年 9 月 30 日，Hinton 的两个学生 Krizhevsky 和 Sutskever 用一个 8 层卷积神经网络（AlexNet）拿到 **15.3%**，领先第二名 10.9 个百分点——竞赛史上从未有过的断层。整个领域一夜转向，深度学习热潮就此点燃。本讲讲清楚：CNN 是什么、为什么它天生适合图像、以及 2012 年到底是哪几件事凑齐了。
 
+
+<figure class="diagram" markdown="1">
+![卷积操作：卷积核在特征图上滑动 + 特征层级（边→纹理→物体）。](assets/img/05-cnn-conv.svg)
+<figcaption><span class="fig-id">图 5.1</span>卷积操作：卷积核在特征图上滑动 + 特征层级（边→纹理→物体）。</figcaption>
+</figure>
+<figure class="plot" markdown="1">
+![ImageNet 错误率逐年下降 + AlexNet 拐点：可 [plot]。](assets/img/05-imagenet-progress.svg)
+<figcaption><span class="fig-id">图 5.2</span>ImageNet 错误率逐年下降 + AlexNet 拐点：可 [plot]。</figcaption>
+</figure>
+
 ## 1. 为什么全连接网络搞不定图像
 
 把一张 $224 \times 224 \times 3$ 的彩色图直接拉平成向量，维数 $d = 150{,}528$。接一个区区 1000 个神经元的全连接隐藏层，参数量：

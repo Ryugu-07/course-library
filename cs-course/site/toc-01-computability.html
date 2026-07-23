@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自动机与可计算性 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li class="active"><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 自动机层级：机器的算力阶梯</a></li>
+<li><a href="#2">2. 图灵机：计算的终极定义</a></li>
+<li><a href="#3">3. 不可判定性：造不出的答案</a></li>
+<li><a href="#4-vs">4. 可判定 vs 可枚举</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">计算理论 I · 自动机与可计算性<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Sipser <em>Introduction to the Theory of Computation</em> 第 1–5 章 ｜ <strong>前置</strong>：数学站集合论/离散、逻辑
+计算理论问的是最根本的问题：<strong>什么是"计算"？有没有机器造不出的答案？</strong> 这一页从最弱的机器（有限自动机）拾级而上到图灵机，最后证明<strong>有些问题任何计算机都解不了</strong>（停机问题）——不是"现在解不了"，是逻辑上不可能。对数学出身的你，这一页是"可计算性 = 一种新的对角线论证"。</p>
+</blockquote>
+<h2 id="1">1. 自动机层级：机器的算力阶梯<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>计算模型按"记忆能力"分层，每层对应一类语言（Chomsky 层级）：</p>
+<table>
+<thead>
+<tr>
+<th>机器</th>
+<th>记忆</th>
+<th>识别的语言</th>
+<th>典型例子</th>
+<th>局限（泵引理证不能）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>有限自动机 DFA/NFA</strong></td>
+<td>有限状态</td>
+<td>正则语言</td>
+<td><code>a*b*</code>、能被 3 整除的二进制数</td>
+<td>数不了：<span class="arithmatex">\(a^nb^n\)</span> 不可识别</td>
+</tr>
+<tr>
+<td><strong>下推自动机 PDA</strong></td>
+<td>状态 + 一个栈</td>
+<td>上下文无关（CFL）</td>
+<td>括号匹配、<span class="arithmatex">\(a^nb^n\)</span></td>
+<td>数不了两样：<span class="arithmatex">\(a^nb^nc^n\)</span> 不可</td>
+</tr>
+<tr>
+<td><strong>图灵机 TM</strong></td>
+<td>无限纸带</td>
+<td>递归可枚举</td>
+<td>任何算法</td>
+<td>停机问题不可判定</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram">
+<p><img alt="Chomsky 层级与 DFA PDA TM 模型" src="assets/img/toc-01-automata-hierarchy.svg" /></p>
+<figcaption><span class="fig-id">图 toc-01.1</span>Chomsky 层级——正则语言、上下文无关语言与递归可枚举语言对应不同机器模型。</figcaption>
+</figure>
+<p><strong>DFA = NFA</strong>（子集构造：NFA 的状态集合当 DFA 的状态，可能指数膨胀但等价）——<strong>"不确定性在有限自动机层不增加算力"</strong>，一个漂亮的等价定理。正则语言还等价于正则表达式（Kleene 定理）——<strong>你每天用的 grep/正则就是在跑一个 DFA</strong>（编译前端 comp-01 的词法分析器正是把正则转成 DFA）。</p>
+<figure class="diagram">
+<p><img alt="识别二进制数能否被三整除的 DFA" src="assets/img/toc-01-dfa-example.svg" /></p>
+<figcaption><span class="fig-id">图 toc-01.2</span>DFA 示例——状态记录当前二进制前缀模 3 的余数，余数 0 为接受态。</figcaption>
+</figure>
+<p><strong>泵引理（证明"不可识别"的工具）【推导思路】</strong>：若语言正则，则足够长的串 <span class="arithmatex">\(w\)</span> 必可写成 <span class="arithmatex">\(xyz\)</span>，其中 <span class="arithmatex">\(y\)</span> 非空且 <span class="arithmatex">\(xy^iz\)</span> 全在语言里（因为长串必让 DFA 状态重复、形成可重复的环）。反证 <span class="arithmatex">\(a^nb^n\)</span> 非正则：泵 <span class="arithmatex">\(y\)</span>（落在 <span class="arithmatex">\(a\)</span> 段）会破坏 <span class="arithmatex">\(a,b\)</span> 数目相等 ⇒ 矛盾。<strong>"状态有限 ⇒ 长串必重复状态 ⇒ 可泵"是鸽笼原理的算力版</strong>。</p>
+<h2 id="2">2. 图灵机：计算的终极定义<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>图灵机</strong>：有限状态控制 + 无限纸带 + 读写头。极简，却是<strong>计算的完整定义</strong>。</p>
+<p><strong>Church–Turing 论题</strong>：一切"可有效计算"的函数都是图灵可计算的。这不是定理（"可有效计算"是直觉概念），而是<strong>被大量证据支持的信念</strong>——λ 演算（🔗 pl-01）、递归函数、寄存器机、你的笔记本电脑，算力全都<strong>恰好等于</strong>图灵机。<strong>"所有合理的计算模型等价"是计算机科学的哥白尼原理</strong>：算力有一个绝对上限，与实现无关。</p>
+<p><strong>通用图灵机（UTM）</strong>：存在一台 TM 能模拟任何 TM（输入 = 被模拟机的编码 + 其输入）。<strong>这就是"存储程序计算机"的理论蓝图</strong>——程序即数据、一台机器跑任意程序。冯·诺依曼架构（csapp 线）是它的物理实现。</p>
+<h2 id="3">3. 不可判定性：造不出的答案<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>判定问题</strong>：答案是/否的问题。<strong>可判定</strong> = 有 TM 对所有输入都停机并给出正确答案。<strong>核心震撼结果</strong>：</p>
+<p><strong>停机问题不可判定【完整对角线证明】</strong>：问"给定程序 <span class="arithmatex">\(P\)</span> 和输入 <span class="arithmatex">\(x\)</span>，<span class="arithmatex">\(P(x)\)</span> 会停机吗？"假设有判定器 <span class="arithmatex">\(H(P,x)\)</span> 恒能答。构造捣蛋鬼</p>
+<div class="arithmatex">\[
+D(P):\quad \text{若 } H(P,P)=\text{“停机”则死循环，否则停机}.
+\]</div>
+<p>问 <span class="arithmatex">\(D(D)\)</span>：若 <span class="arithmatex">\(D(D)\)</span> 停机，则 <span class="arithmatex">\(H(D,D)\)</span>="停机"，按定义 <span class="arithmatex">\(D(D)\)</span> 死循环——矛盾；若 <span class="arithmatex">\(D(D)\)</span> 死循环，则 <span class="arithmatex">\(H(D,D)\)</span>="不停"，按定义 <span class="arithmatex">\(D(D)\)</span> 停机——矛盾。<strong>故 <span class="arithmatex">\(H\)</span> 不存在</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<figure class="diagram">
+<p><img alt="停机问题对角线自指取反证明" src="assets/img/toc-01-halting-diagonal.svg" /></p>
+<figcaption><span class="fig-id">图 toc-01.3</span>停机问题对角线——若判定器 H 存在，构造 D(D) 自指取反会同时要求停机与不停机。</figcaption>
+</figure>
+<p>这是<strong>康托尔对角线论证的计算版</strong>（🔗 你在数学分析/集合论见过它证实数不可数）：自指 + 取反制造矛盾。停机问题不可解不是工程限制，是<strong>逻辑铁律</strong>。</p>
+<p><strong>Rice 定理（把不可判定推广开）</strong>：程序的<strong>任何非平凡语义性质</strong>都不可判定——"这程序会不会输出 42""两程序是否等价""这段代码有没有 bug（某类）"统统不可判定。<strong>这是为什么完美的静态分析器 / 杀毒软件 / 编译器优化器不存在</strong>：不是没人聪明到写出来，是数学禁止。工程上只能做"保守近似"（宁可误报，见 sec-01 的静态分析、comp 线的类型检查）。</p>
+<h2 id="4-vs">4. 可判定 vs 可枚举<a class="headerlink" href="#4-vs" title="Permanent link"></a></h2>
+<ul>
+<li><strong>可判定（递归）</strong>：能停机答是/否。</li>
+<li><strong>可枚举（递归可枚举 RE）</strong>：能枚举出所有"是"的实例，但"否"可能永不停机（如停机问题本身是 RE 但非可判定——你能确认停机，无法确认不停）。</li>
+<li><strong><span class="arithmatex">\(L\)</span> 与 <span class="arithmatex">\(\bar L\)</span> 都 RE ⟺ <span class="arithmatex">\(L\)</span> 可判定</strong>——这个对称性是很多归约证明的支点。</li>
+</ul>
+<p><strong>归约（不可判定性的传播）</strong>：把停机问题归约到新问题 <span class="arithmatex">\(B\)</span>——若 <span class="arithmatex">\(B\)</span> 可判定则停机可判定，矛盾 ⇒ <span class="arithmatex">\(B\)</span> 不可判定。<strong>和 NP 归约同一手法，只是这里传播的是"不可判定"而非"难"</strong>（toc-02 讲"难"）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（泵引理练手）</strong> 证 <span class="arithmatex">\(\{a^p : p\text{ 素数}\}\)</span> 非正则：泵出的串长度成等差数列，必含合数——<strong>素数的稀疏性击穿有限状态</strong>。</p>
+<p><strong>例 2（Rice 的日常影子）</strong> "编译器能否判断我的循环一定会终止？"——不能（停机的特例）。所以 Rust/类型系统只能证<strong>某些</strong>终止（结构递归），通用终止性检查不存在。<strong>理解这一点你就不会再期待"完美的 linter"</strong>。</p>
+<p><strong>例 3（自指的威力）</strong> quine（打印自身源码的程序）存在——由递归定理保证。它和停机证明里的 <span class="arithmatex">\(D(D)\)</span>、哥德尔不完备的自指是同一个数学现象的三个面孔。<strong>自指是计算理论的暗线主角</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：计算理论 II——从"能不能算"到"要算多久"：复杂度类、P vs NP 的结构，与空间/随机/交互的层级。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="adv-02-spectral-online.html"><span class="pager-label">上一页</span>高级算法 II · 谱图论与在线算法</a>
+  <a class="pager-slot next" href="toc-02-complexity.html"><span class="pager-label">下一页</span>计算理论 II · 复杂度理论</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

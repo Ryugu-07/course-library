@@ -4,6 +4,11 @@
 
 ## 1. 生成 = 学分布 + 会采样
 
+<figure class="plot" markdown="1">
+![学分布再采样](assets/img/01-distribution-sampling.svg)
+<figcaption><span class="fig-id">图 1.1</span>生成模型的两件事：学到数据的分布 \(p_{\rm data}\)，再从中采出新样本——生成的图既像真实数据、又不是训练集的拷贝。</figcaption>
+</figure>
+
 判别式模型（分类器）学的是 $p(y \mid x)$：给图，判猫狗。生成式模型学的是 $p(x)$ 本身——难度完全不是一个量级：判别只需在两类之间画一条边界，生成需要刻画"所有合理图像"在 78 万维空间中的分布形状。
 
 两个立刻能感受到的困难：
@@ -19,6 +24,12 @@ $$
 各路线的差异，就在这个变换怎么参数化、怎么训练。
 
 ## 2. 四条路线的权衡
+
+
+<figure class="diagram" markdown="1">
+![生成模型四路线（VAE/GAN/流/扩散）在&quot;质量-多样性-速度&quot;上的权衡雷达。](assets/img/01-four-routes.svg)
+<figcaption><span class="fig-id">图 1.2</span>生成模型四路线（VAE/GAN/流/扩散）在"质量-多样性-速度"上的权衡雷达。</figcaption>
+</figure>
 
 ### 2.1 GAN：学一个"一步到位"的变换
 

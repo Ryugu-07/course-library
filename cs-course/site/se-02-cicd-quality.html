@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD 与代码质量 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li class="active"><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ci">1. CI:持续集成——让"合并"不再可怕</a></li>
+<li><a href="#2-cd">2. CD:持续交付/部署——让"上线"变常规</a></li>
+<li><a href="#3">3. 代码质量:让代码能被人（和未来的你）读懂</a></li>
+<li><a href="#4">4. 技术债:工程的核心权衡</a></li>
+<li><a href="#5">5. 把全线串起来：一个改动的完整旅程</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-cicd">软工 II · CI/CD 与代码质量<a class="headerlink" href="#ii-cicd" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：<em>Continuous Delivery</em>（Humble–Farley）/ Google <em>SWE at Google</em> ｜ <strong>前置</strong>：se-01（Git、测试）、cloud 线（部署目标）
+从"写好代码"到"可靠地、反复地交付代码"。这一页讲 <strong>CI/CD</strong>（持续集成/持续交付——把构建、测试、部署自动化成流水线，现代软件交付的标配）和<strong>代码质量的工程实践</strong>（审查、静态分析、技术债管理）。这些是让软件项目<strong>可持续</strong>的纪律——尤其对你的 Medusa 这种要长期演进 + 多方（你/GPT/OPS）协作的系统。</p>
+</blockquote>
+<h2 id="1-ci">1. CI:持续集成——让"合并"不再可怕<a class="headerlink" href="#1-ci" title="Permanent link"></a></h2>
+<p><strong>问题</strong>：多人（或你 + GPT）各自改代码，攒很久才合并 → 冲突地狱 + "在我机器上是好的"。<strong>持续集成（CI）</strong>：<strong>频繁地把改动合并到主干，每次合并自动运行构建 + 测试</strong>——尽早发现集成问题。</p>
+<p><strong>CI 流水线</strong>（每次 push / PR 触发，GitHub Actions 等跑）：
+1. <strong>拉代码 → 构建</strong>（编译/打包，能构建吗？）。
+2. <strong>跑测试</strong>（se-01 的单元 + 集成，全过吗？）。
+3. <strong>静态检查</strong>（lint、类型检查、格式）。
+4. <strong>失败就挡住合并</strong>——红了不许并进主干。</p>
+<p><strong>核心价值</strong>：<strong>主干始终处于"可构建、测试通过"的健康状态</strong>——任何人任何时候拉主干都能跑。<strong>"每次改动都自动验证"把'集成'从偶尔的大灾难变成持续的小事</strong>（🔗 memory 里"dev 声明完成后 arch 必 git verify"——CI 就是把这个 verify 自动化）。对你和 GPT 协作：<strong>CI 是自动的验收关卡</strong>，GPT 提交的代码先过 CI 再说。</p>
+<h2 id="2-cd">2. CD:持续交付/部署——让"上线"变常规<a class="headerlink" href="#2-cd" title="Permanent link"></a></h2>
+<p><strong>持续交付（Continuous Delivery）</strong>：CI 通过后，自动把产物准备到"随时可一键部署"的状态。<strong>持续部署（Continuous Deployment）</strong>：更进一步，通过所有检查就<strong>自动上生产</strong>。</p>
+<p><strong>为什么要自动化部署</strong>：手动部署（memory 里 Medusa 的手动 schtasks、手动点开 webapp）容易出错、不可复现、依赖某个人。自动化部署：
+- <strong>可复现</strong>：每次同样的步骤（🔗 cloud-01 容器保证环境一致）。
+- <strong>快速回滚</strong>：出问题一键回上一版本——<strong>"能快速回滚"比"永不出错"更现实、更重要</strong>。
+- <strong>降低发布风险的策略</strong>：蓝绿部署（新旧两套切换）、金丝雀发布（先给 5% 流量试水，没问题再全量）、特性开关（代码上线但功能可开关控制）。</p>
+<p><strong>对 Medusa 的现实</strong>：它现在是手动运维（memory：webapp 挂了手动拉起、无主动告警）。<strong>本页不是要你立刻上 K8s——而是让你知道"手动运维的痛（静默失败、不可复现、依赖人）正是 CI/CD 要解决的"</strong>。哪怕先做一个"push 到某分支就自动跑测试 + 部署到 Win"的最小流水线，就消除了大量手动出错空间。</p>
+<h2 id="3">3. 代码质量:让代码能被人（和未来的你）读懂<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>代码写一次、读多次——<strong>可读性 &gt; 小聪明</strong>。工程实践：</p>
+<ul>
+<li><strong>代码审查（Code Review）</strong>：合并前让人（或 AI，🔗 你用的 /code-review）看一遍——抓 bug、传播知识、保持一致性。<strong>审查的价值一半在质量、一半在"没有一段代码只有一个人懂"</strong>。好的审查看逻辑正确性、边界、可读性，不纠结风格（那交给自动格式化）。</li>
+<li><strong>静态分析 / Linter</strong>：不运行代码就找问题——未用变量、可能的空指针、类型错误、代码异味。<strong>这是 toc-01 Rice 定理的实用面</strong>：完美的 bug 检测不可能（不可判定），但<strong>保守的近似</strong>（宁可误报）能抓很多真问题。类型检查（pl 线）是最有价值的静态分析。</li>
+<li><strong>格式化自动化</strong>：用工具（black/prettier/rustfmt）统一格式——<strong>别在 PR 里争缩进</strong>，机器搞定。</li>
+<li><strong>代码异味与重构</strong>：重复代码、超长函数、过深嵌套、命名糟糕——是"技术债"的信号。<strong>重构（在测试保护下改善结构而不改行为，se-01）是持续偿还技术债</strong>。</li>
+</ul>
+<h2 id="4">4. 技术债:工程的核心权衡<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="技术债：短期加速借款、长期付利息的曲线/隐喻。" src="assets/img/se-02-tech-debt.svg" /></p>
+<figcaption><span class="fig-id">图 se-02.2</span>技术债：短期加速借款、长期付利息的曲线/隐喻。</figcaption>
+</figure>
+<p><strong>技术债</strong>：为了快速交付而做的"次优但能用"的选择——像借钱，短期加速、长期付利息（越来越难改）。<strong>关键不是"消灭技术债"（不可能也不必要），而是有意识地管理它</strong>：
+- <strong>有意的债 vs 无意的债</strong>：为赶 deadline 明知故犯地走捷径（有意，记下来待还）vs 因为不懂而写的烂代码（无意，最危险）。
+- <strong>什么时候还</strong>：债拖慢了新功能开发时就该重构了——<strong>"改这块总是很痛"是该还债的信号</strong>。
+- <strong>别过度工程</strong>：为想象中的未来需求过度设计（YAGNI, You Aren't Gonna Need It）也是一种债——<strong>当下够用 + 留好扩展点</strong>的平衡（🔗 你 IBKR 工具"纯逻辑核心 + 延迟导入"、Medusa"先单机后分布式"都是这个判断）。</p>
+<p><strong>方法论</strong>：<strong>软件工程的成熟度，很大程度是"管理不完美"的能力</strong>——完美的代码、零债、100% 测试都不现实。<strong>知道在哪投入质量、在哪接受够用、何时还债——这种工程判断力比任何单一技术都值钱</strong>（呼应 perf 的"优化该优化的"、系统设计的"够用即可"）。</p>
+<h2 id="5">5. 把全线串起来：一个改动的完整旅程<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="CI/CD 流水线：push→构建→测试→静态检查→审查→部署(金丝雀→全量)→监控→回滚。" src="assets/img/se-02-cicd-pipeline.svg" /></p>
+<figcaption><span class="fig-id">图 se-02.1</span>CI/CD 流水线：push→构建→测试→静态检查→审查→部署(金丝雀→全量)→监控→回滚。</figcaption>
+</figure>
+<p>综合 se-01/02，一个功能改动的现代工程旅程：
+1. 从主干拉 feature 分支（se-01 git）。
+2. 写代码 + 写测试（TDD/测试金字塔 se-01）。
+3. 本地跑测试 + lint 通过。
+4. push → 开 PR → <strong>CI 自动构建 + 测试 + 静态检查</strong>（本页）。
+5. <strong>代码审查</strong>（人/AI）→ 修改 → 批准。
+6. 合并主干 → <strong>CD 自动部署</strong>（金丝雀 → 全量）。
+7. <strong>监控</strong>（cloud-02 可观测性）→ 有问题快速回滚。</p>
+<p><strong>这条流水线就是现代软件团队的"生产线"</strong>——它让"频繁、可靠、低风险地交付"成为可能。你的 Medusa 越往这条线靠，运维就越省心、越不依赖"某个人记得怎么操作"。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（设计最小 CI）</strong> 为 Medusa 的某个组件（如 predict.py）写一个 GitHub Actions：push 时装依赖 + 跑 pytest——<strong>把"手动 verify"自动化成关卡</strong>。</p>
+<p><strong>例 2（识别技术债）</strong> 在 Medusa 里找一处"能用但每次改都痛"的地方，判断是有意债还是无意债、该不该现在还——<strong>练技术债的管理判断</strong>。</p>
+<p><strong>例 3（回滚 vs 修复）</strong> 生产出了 bug，是"赶紧回滚上一版"还是"热修复"？——权衡影响面、修复信心、回滚成本。<strong>理解"快速回滚能力"为什么是部署的核心指标</strong>（memory 里"OPS 操作前习惯性备份"正是回滚思想）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：云 I——容器与 Docker 原理：你的 medusa-postgres 跑在 Docker 里，但容器底下是什么？Linux 内核的隔离原语如何造出"轻量虚拟机"的幻觉。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="se-01-git-testing.html"><span class="pager-label">上一页</span>软工 I · Git 内部原理与测试</a>
+  <a class="pager-slot next" href="cloud-01-containers.html"><span class="pager-label">下一页</span>云 I · 容器与 Docker 原理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

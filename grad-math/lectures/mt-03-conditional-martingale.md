@@ -3,6 +3,12 @@
 > **对标**：Durrett *PTE* §4.1–4.4 ｜ **前置**：mt-01、本科概率 IV、泛函 II（投影）
 > 本科的 $E[Y\mid X=x]$ 依赖密度存在；测度论定义一举摆脱这个限制，并把"最佳预测 = 投影"变成定义级事实。随后进入现代概率的中心角色——**鞅**：公平赌博的数学、几乎一切随机结构的通用坐标系。
 
+
+<figure class="plot" markdown="1">
+![鞅样本轨道（公平赌博，条件期望不变）：可 [plot]。](assets/img/mt-03-martingale.svg)
+<figcaption><span class="fig-id">图 mt-03.1</span>鞅样本轨道（公平赌博，条件期望不变）：可 [plot]。</figcaption>
+</figure>
+
 ## 1. 条件期望的测度论定义
 
 **定义（Kolmogorov）** $X \in L^1$，子 σ-代数 $\mathcal{G} \subseteq \mathcal{F}$。$E[X \mid \mathcal{G}]$ 是满足以下两条的随机变量 $Z$：

@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-10 09:47</div>
+    <div class="build-time">构建于 2026-07-23 15:45</div>
   </div>
 </nav>
 <main id="content">
@@ -63,6 +63,10 @@
 <p>前两讲把"扩散"的数学讲完了，但一直假装网络 <span class="arithmatex">\(\epsilon_\theta\)</span> 是个黑盒、图像直接在像素上加噪。本讲拆开整机：<strong>Stable Diffusion = VAE（压缩）+ 文本编码器（读题）+ 去噪网络（干活）</strong> 三大件。看懂这三大件，你就看懂了 ComfyUI 里所有模型加载节点、<code>E:\AI\Models</code> 下那十几个文件夹、以及 SD1.5/SDXL/FLUX 之间到底差在哪。</p>
 </blockquote>
 <h2 id="1-sd">1. 潜空间：SD 的立身之本<a class="headerlink" href="#1-sd" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="潜空间降维" src="assets/img/04-latent.svg" /></p>
+<figcaption><span class="fig-id">图 4.1</span>潜扩散：不在像素上、而在压缩后的潜空间跑扩散——维数大降、算得起，Stable Diffusion 的立身之本。</figcaption>
+</figure>
 <h3 id="11">1.1 像素扩散太贵<a class="headerlink" href="#11" title="Permanent link"></a></h3>
 <p>在 <span class="arithmatex">\(512 \times 512 \times 3 \approx 7.9 \times 10^5\)</span> 维的像素空间跑扩散，每步去噪都要网络处理全分辨率图像，训练和采样都极其昂贵（早期像素扩散模型只有大厂玩得起）。</p>
 <p><strong>Latent Diffusion（Rombach et al. 2022，即 SD 的论文）的洞察</strong>：图像的像素里绝大部分是"感知冗余"——邻近像素高度相关，人眼对高频细节的精确值不敏感。那就<strong>先用一个 VAE 把图像压进一个小得多的潜空间，在潜空间里跑扩散，最后再解压回像素</strong>：</p>
@@ -91,6 +95,10 @@ z' \;\xrightarrow{\;\text{VAE Decoder}\;}\; x'
 </ul>
 <p><strong>对应 ComfyUI</strong>：CLIP Text Encode 节点做的就是这一步（黄色 CLIP 线进，橙色 CONDITIONING 线出）；<code>Models/text_encoders</code>（或 <code>clip</code>）文件夹放的就是这些编码器的权重——SD1.5/SDXL 的 checkpoint 里已打包，FLUX 一族则常拆开单独下载。</p>
 <h2 id="3-u-net-dit">3. 去噪网络本体：U-Net → DiT<a class="headerlink" href="#3-u-net-dit" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="去噪网络结构：U-Net（下采样-瓶颈-上采样 + skip）→ DiT，标出时间步/条件注入点。" src="assets/img/04-unet-dit.svg" /></p>
+<figcaption><span class="fig-id">图 4.2</span>去噪网络结构：U-Net（下采样-瓶颈-上采样 + skip）→ DiT，标出时间步/条件注入点。</figcaption>
+</figure>
 <h3 id="31-u-net">3.1 U-Net：卷积时代的答案<a class="headerlink" href="#31-u-net" title="Permanent link"></a></h3>
 <p>SD1.5/SDXL 的 <span class="arithmatex">\(\epsilon_\theta\)</span> 是 <strong>U-Net</strong>：编码路径逐级下采样（64→32→16→8）抓全局结构，解码路径逐级上采样恢复分辨率，<strong>同分辨率层之间有跳跃连接</strong>直通细节（输入输出同形状的任务的经典架构——去噪正是）。两个关键改装：</p>
 <ul>

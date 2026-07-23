@@ -5,6 +5,11 @@
 
 ## 1. 高维随机向量的语言
 
+<figure class="plot" markdown="1">
+![高维质量集中在赤道](assets/img/hdp-02-concentration.svg)
+<figcaption><span class="fig-id">图 2.1</span>高维幸运/诅咒：单位球面上均匀分布的一个坐标，随维数升高越来越集中在 0 附近——"质量都在赤道"。</figcaption>
+</figure>
+
 各向同性：$E X = 0,\ E XX^\top = I_n$（"单位方差的高维版"；一般分布白化 $\Sigma^{-1/2}(X-\mu)$ 得到）。两个基本几何事实（hdp-01 §3 的推论，复述备用）：各向同性亚高斯向量满足 $\|X\|_2 \approx \sqrt n$；独立两个近正交。**投影的一维刻画**：$X$ 亚高斯向量 ⟺ 一切单位方向的投影 $\langle X, u\rangle$ 是一致亚高斯的标量（定义级；把高维问题切成方向族的一维问题——本页与下一页的通用刀法）。
 
 ## 2. 协方差估计：问题与框架

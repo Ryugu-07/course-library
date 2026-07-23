@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IR、优化与代码生成 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li class="active"><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-ir">1. 中间表示（IR）：优化的舞台</a></li>
+<li><a href="#2-o2">2. 经典优化：-O2 在做什么</a></li>
+<li><a href="#3">3. 寄存器分配：图着色的漂亮应用</a></li>
+<li><a href="#4">4. 代码生成与现代编译器架构</a></li>
+<li><a href="#5">5. 练习与要点</a><ul>
+<li><a href="#project-p04">📋 大 Project P04 · 编译器后端</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="iii-ir">编译 III · IR、优化与代码生成<a class="headerlink" href="#iii-ir" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Stanford CS143 后半 / 龙书优化篇 / LLVM 文档 ｜ <strong>前置</strong>：comp-01/02、csapp-01（汇编）、perf 线
+编译器后端——把与源语言无关的中间表示（IR）变成<strong>又快又正确</strong>的机器码。这是编译器"施展魔法"的地方：你写的朴素代码为什么能被 <code>-O2</code> 变快好几倍。这一页讲 IR 的设计（SSA 为什么优雅）、经典优化、寄存器分配（图着色的漂亮应用），落到 [大 Project P04 编译器后端]。理解这些，你会写出对编译器友好的代码，也会懂 <code>-O2</code> 到底做了什么。</p>
+</blockquote>
+<h2 id="1-ir">1. 中间表示（IR）：优化的舞台<a class="headerlink" href="#1-ir" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="CFG 基本块 + SSA（变量单赋值、汇合处 φ 函数）。" src="assets/img/comp-03-ssa-cfg.svg" /></p>
+<figcaption><span class="fig-id">图 comp-03.3</span>CFG 基本块 + SSA（变量单赋值、汇合处 φ 函数）。</figcaption>
+</figure>
+<p>前端产出 AST，但 AST 不适合优化（树形、贴近源语言）。后端先降级到<strong>中间表示 IR</strong>——一种"抽象汇编"：线性的三地址码（<code>t1 = a + b</code>）、无限虚拟寄存器、控制流用跳转。<strong>IR 是优化的通用语言</strong>，也是 comp-01 说的"<span class="arithmatex">\(m+n\)</span> 解耦"的枢纽。</p>
+<p><strong>控制流图（CFG）</strong>：把 IR 按<strong>基本块</strong>（一段无跳转的顺序指令）切分、块间用边表示跳转——程序变成一张图。<strong>几乎所有优化和分析都在 CFG 上做</strong>（🔗 与 algo 线图算法、adv-02 的数据流同构）。</p>
+<p><strong>SSA（静态单赋值）形式【关键设计】</strong>：IR 的现代标配——<strong>每个变量只被赋值一次</strong>（重复赋值就改名 <code>x1, x2, x3</code>）。控制流汇合处用 <strong>φ 函数</strong>选择来自哪条路径的值。<strong>为什么 SSA 这么重要</strong>：它让"每个变量的定义唯一"，于是"这个值从哪来"一目了然——<strong>数据流分析、常量传播、死代码消除全都变简单</strong>。LLVM IR、现代 JIT 全用 SSA。<strong>"给每个赋值一个唯一名字"这个小约束，让整个优化管线清爽起来</strong>——是编译器设计的一个高杠杆点子。</p>
+<h2 id="2-o2">2. 经典优化：<code>-O2</code> 在做什么<a class="headerlink" href="#2-o2" title="Permanent link"></a></h2>
+<p>优化 = 在<strong>不改变程序语义</strong>的前提下让它更快/更小。经典变换（多数在 SSA 上）：</p>
+<ul>
+<li><strong>常量折叠 / 传播</strong>：<code>x = 3 * 4</code> 编译期算成 <code>x = 12</code>；已知常量的变量替换进使用处。</li>
+<li><strong>死代码消除</strong>：算了不用的、永不执行的分支——删。</li>
+<li><strong>公共子表达式消除</strong>：<code>a*b</code> 算过就复用，不重算。</li>
+<li><strong>循环优化</strong>（收益最大，因为循环占运行时间）：<strong>循环不变量外提</strong>（循环里不变的计算移到循环外）、<strong>强度削弱</strong>（<code>i*8</code> 换成加法）、<strong>循环展开</strong>（减少分支开销、利于流水线和向量化，🔗 perf-01）。</li>
+<li><strong>内联</strong>：把小函数体直接展开到调用处——<strong>消除调用开销 + 暴露更多跨函数优化机会</strong>（内联是"优化的使能器"，展开后其他优化才能施展）。</li>
+</ul>
+<p><strong>数据流分析是优化的引擎</strong>（🔗 与 adv-02 谱/不动点、数学站不动点迭代同构）：像"活跃变量分析""到达定值"这类分析，都是在 CFG 上<strong>迭代求不动点</strong>——把优化所需的信息（哪些变量还会用、这个值可能是什么）算出来。<strong>编译器优化的理论底座是格论 + 不动点，你的数学背景在这里又能用上</strong>。</p>
+<h2 id="3">3. 寄存器分配：图着色的漂亮应用<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="寄存器分配 = 冲突图 k 着色，装不下则 spill。" src="assets/img/comp-03-reg-alloc.svg" /></p>
+<figcaption><span class="fig-id">图 comp-03.2</span>寄存器分配 = 冲突图 k 着色，装不下则 spill。</figcaption>
+</figure>
+<p>IR 用无限虚拟寄存器，但真实 CPU 只有十几个物理寄存器（csapp-01）。<strong>寄存器分配</strong>：把无限虚拟寄存器映射到有限物理寄存器，装不下的<strong>溢出（spill）到内存</strong>（慢）。<strong>这是编译器对性能影响最大的后端步骤之一</strong>。</p>
+<p><strong>图着色建模【机理】</strong>：建<strong>冲突图</strong>——变量为点，两变量若"同时活跃"（生命期重叠、不能共用一个寄存器）就连边。<strong>用 <span class="arithmatex">\(k\)</span> 个物理寄存器分配 = 给这张图做 <span class="arithmatex">\(k\)</span> 着色</strong>（相邻点不同色）。<strong>图着色是 NP 难（🔗 algo-03、toc-02），所以编译器用启发式</strong>（Chaitin 的"移除低度点"贪心）：度 &lt; k 的点一定能着色，反复移除、栈式回填，无法着色的就 spill。<strong>"寄存器分配 = 图着色"是理论优雅落地工程的经典范例</strong>——你在算法课学的图着色，在这里是每次编译都在跑的核心。</p>
+<h2 id="4">4. 代码生成与现代编译器架构<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="LLVM 架构：多前端→LLVM IR→多后端 的 m+n 解耦。" src="assets/img/comp-03-llvm.svg" /></p>
+<figcaption><span class="fig-id">图 comp-03.1</span>LLVM 架构：多前端→LLVM IR→多后端 的 m+n 解耦。</figcaption>
+</figure>
+<p>最后一步把优化后的 IR 翻成<strong>目标机器码</strong>——指令选择（IR 操作 → 机器指令，可能一对多）、指令调度（重排以利流水线、隐藏延迟）、生成最终二进制。</p>
+<p><strong>LLVM 的现代架构</strong>（把全站编译知识收成一张图）：
+<div class="highlight"><pre><span></span><code>Clang/Rust/Swift 前端 → LLVM IR（SSA）→ 一堆优化 pass → 各架构后端（x86/ARM/RISC-V/... 甚至 GPU）
+</code></pre></div>
+- <strong>前后端彻底解耦</strong>：新语言只写前端（生成 LLVM IR）就免费获得所有优化 + 所有目标平台；新芯片只写后端。<strong>Rust、Swift、Julia 能快速拥有工业级性能，全靠站在 LLVM 肩上</strong>。
+- <strong>这正是 comp-01 "IR 解耦 <span class="arithmatex">\(m+n\)</span>" 的终极实现</strong>——一个共享 IR + 可插拔的优化 pass + 多后端，是过去二十年编译器工程最成功的架构。</p>
+<p><strong>为什么你要懂后端</strong>：① 写<strong>对优化友好</strong>的代码（别手动做编译器能做的、但要帮编译器看清意图——如避免指针别名让它敢优化）；② 读懂 <code>-O2 -S</code> 的汇编做性能分析（perf 线）；③ 理解"为什么 debug 版慢、release 版快"。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（转 SSA）</strong> 把一段有重复赋值和一个 if 汇合的代码转成 SSA（重命名 + 在汇合处放 φ）——<strong>理解 φ 函数"按来路选值"的作用</strong>，SSA 的核心一次看懂。</p>
+<p><strong>例 2（看 -O2 的威力）</strong> 写一个含循环不变量 + 死代码 + 常量表达式的 C 函数，对比 <code>-O0</code> 和 <code>-O2</code> 的汇编（<code>gcc -S</code>）——<strong>亲眼看编译器删了什么、外提了什么</strong>，<code>-O2</code> 不再是黑魔法。</p>
+<p><strong>例 3（寄存器分配着色）</strong> 给 4 个变量的生命期区间画冲突图，用 3 个寄存器做图着色，找出必须 spill 的变量——<strong>把 algo 线的图着色用到真实编译器决策</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<h3 id="project-p04">📋 大 Project P04 · 编译器后端<a class="headerlink" href="#project-p04" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>教师版作业说明书，不提供完整解。</strong> 承接 L04 的小语言前端，课程目标是让学生把“解释执行”推进到“可优化、可生成目标代码”。</p>
+<ul>
+<li><strong>学习目标</strong>：理解 IR、CFG、SSA、优化 pass、寄存器分配和代码生成之间的分工；学会用解释器作为编译器正确性的 oracle。</li>
+<li><strong>教师提供</strong>：L04 语言前端、解释器、AST 测试集、IR 文本格式、golden output、若干 benchmark 程序（递归、循环、数组、函数调用）。</li>
+<li><strong>学生任务</strong>：① AST → 三地址码 IR + CFG；② 转 SSA，插入 φ 并完成变量重命名；③ 优化 pass：常量折叠、拷贝传播、死代码消除、循环不变量外提；④ 寄存器分配：活跃变量分析 + 冲突图着色 + spill；⑤ 目标：LLVM IR、字节码 VM、或 RISC-V 子集汇编三选一。</li>
+<li><strong>正确性约束</strong>：每个优化 pass 必须保持解释器结果一致；SSA 必须能 round-trip 回非 SSA；寄存器分配不能改变调用约定；递归和局部变量作用域必须正确。</li>
+<li><strong>验收测试</strong>：公开/隐藏程序结果与解释器一致；<code>--dump-ir</code>、<code>--dump-ssa</code>、<code>--dump-regalloc</code> 可读；优化后 benchmark 至少有 2 个出现可测加速；错误程序给出定位明确的诊断。</li>
+<li><strong>评分重点</strong>：IR/CFG 25%，SSA 与优化 30%，寄存器分配/代码生成 30%，调试输出与报告 15%。</li>
+<li><strong>延伸挑战</strong>：加入窥孔优化或尾递归优化，并用汇编差异解释优化为何有效。</li>
+</ul>
+</blockquote>
+<hr />
+<p><em>系统线全部完成（18 页）！CSAPP → OS → 网络 → 数据库 → 分布式 → 编译，计算机系统的六大支柱你都走了一遍。下一页转入并行与性能线：怎么让程序真正快起来。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-02-interpreter.html"><span class="pager-label">上一页</span>编译 II · 语义、类型检查与解释器</a>
+  <a class="pager-slot next" href="perf-01-engineering.html"><span class="pager-label">下一页</span>性能 I · 测量、Roofline 与向量化</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

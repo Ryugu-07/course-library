@@ -43,6 +43,11 @@ $$
 
 ## 3. Scaling Laws：大力出奇迹的数学
 
+<figure class="plot" markdown="1">
+![Scaling Laws 幂律](assets/img/07-scaling-laws.svg)
+<figcaption><span class="fig-id">图 7.1</span>Scaling Laws：模型损失随算力/参数/数据按幂律下降（log-log 上是直线）——"大力出奇迹"的定量依据。</figcaption>
+</figure>
+
 ### 3.1 Kaplan 定律（2020）
 
 系统实验发现：测试损失 $L$ 与三个规模量——参数量 $N$、数据量 $D$（token 数）、计算量 $C$（FLOPs）——各自满足**幂律**（其余两者不受限时）：

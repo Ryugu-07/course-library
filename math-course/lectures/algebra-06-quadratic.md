@@ -18,6 +18,11 @@ $$
 
 ## 2. 正定性
 
+<figure class="plot" markdown="1">
+![二次型等值线由定性决定](assets/img/algebra-06-quadratic-forms.svg)
+<figcaption><span class="fig-id">图 6.1</span>二次型 \(\mathbf{x}^\top A\mathbf{x}\) 的等值线由 \(A\) 的定性决定：正定→椭圆（碗）、不定→双曲（鞍）、半定→退化。</figcaption>
+</figure>
+
 **定义** $f$ 正定 $\iff x \neq 0 \Rightarrow x^\top A x > 0$。（半正定：$\geq 0$。）
 
 **定理（正定判据大集合）** 实对称 $A$ 正定 $\iff$ 正惯性指数 $= n$ $\iff$ 一切特征值 $> 0$ $\iff$ **顺序主子式全 $> 0$**（Sylvester 准则）$\iff \exists$ 可逆 $C:\ A = C^\top C$（"正定 = 某个满秩矩阵的 Gram 矩阵"）。

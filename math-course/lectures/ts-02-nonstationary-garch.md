@@ -18,6 +18,11 @@
 
 ## 3. GARCH：给波动率建模
 
+<figure class="plot" markdown="1">
+![GARCH 波动聚集](assets/img/ts-02-garch.svg)
+<figcaption><span class="fig-id">图 2.1</span>GARCH 捕捉"波动聚集"：大波动扎堆、平静期也扎堆——收益率序列（上）的波动 \(\sigma_t\)（下）自身有惯性。</figcaption>
+</figure>
+
 **金融收益率的三大典型事实**：收益本身近似不可预测（ACF≈0）；**收益的平方显著自相关**——波动聚集（大波动扎堆出现）；分布尖峰厚尾（正态低估极端风险——B–S 页 IV 微笑的统计学根源）。
 
 **ARCH 的洞察（Engle，诺奖）**：建模**条件方差**。GARCH(1,1)（实务九成场合够用）：

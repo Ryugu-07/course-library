@@ -2,6 +2,12 @@
 
 > 文生图从纯噪声出发；但更多的日常任务是"**在这张图的基础上……**"——换风格、改质感、只修这一块。本讲两个主题共用同一条原理线（第 02 讲的闭式跳跃 + 第 05 讲的掩码缝合），也共用你已有的模型（SDXL base + SD2-inpainting 就能全部跑通）。
 
+
+<figure class="diagram" markdown="1">
+![图生图/局部重绘的节点连线截图。](assets/img/09-inpaint-nodes.png)
+<figcaption><span class="fig-id">图 9.1</span>图生图/局部重绘的节点连线截图。</figcaption>
+</figure>
+
 ## 1. 图生图：denoise 是唯一的新东西
 
 ### 1.1 工作流改动（对照 `wf03_sdxl_img2img.json`）

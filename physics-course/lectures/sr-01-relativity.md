@@ -5,6 +5,11 @@
 
 ## 1. 两条公理与洛伦兹变换
 
+<figure class="plot" markdown="1">
+![Minkowski 时空图与光锥](assets/img/sr-01-spacetime.svg)
+<figcaption><span class="fig-id">图 1.1</span>Minkowski 时空图：光锥（红）划分因果，运动参考系的 \(x'\)、\(ct'\) 轴向光锥对称地倾斜——同时性因此相对。</figcaption>
+</figure>
+
 **公理**：① 物理定律在一切惯性系相同（相对性原理——伽利略的旧原理保留）；② 真空光速 $c$ 对一切惯性系相同（Maxwell 方程的直接暗示：em-02 的 $c = 1/\sqrt{\mu_0\varepsilon_0}$ 没给参考系留位置——**相对论是电磁学的自洽性要求**）。
 
 **洛伦兹变换【推导骨架】**：线性性（惯性系间匀速直线互译）+ 光锥不变（$x = ct \Rightarrow x' = ct'$）+ 逆变换对称性，三条件唯一定出（沿 $x$ 方向、$\beta = v/c,\ \gamma = 1/\sqrt{1-\beta^2}$）：

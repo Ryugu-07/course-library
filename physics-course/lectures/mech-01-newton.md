@@ -3,6 +3,12 @@
 > **对标**：任何理论力学教材开篇 / Kleppner–Kolenkow ｜ **前置**：数分 II/V、ode 线
 > 牛顿力学是全部物理的原型：**给定力，运动由二阶 ODE 决定**。本页把框架立严（三定律的真实逻辑地位）、把三大守恒律从方程中推出来，并给出"守恒律 = 求解捷径"的方法论——它是下一页变分力学的铺垫，也是 Noether 定理的直觉预演。
 
+
+<figure class="diagram" markdown="1">
+![三大守恒（能量/动量/角动量）与对称性（时间/空间平移/转动）的 Noether 对应表。](assets/img/mech-01-conservation.svg)
+<figcaption><span class="fig-id">图 mech-01.1</span>三大守恒（能量/动量/角动量）与对称性（时间/空间平移/转动）的 Noether 对应表。</figcaption>
+</figure>
+
 ## 1. 三定律的逻辑结构
 
 **第二定律** $\mathbf F = m\ddot{\mathbf r}$ 是核心：给定力场，轨迹是二阶 ODE 的解——初位置 + 初速度定全程（ode-01 存在唯一性定理的物理化身：**经典力学的决定论就是 Picard 定理**）。第一定律定义惯性系（第二定律成立的参考系——不是第二定律的特例而是它的适用声明）；第三定律 $\mathbf F_{12} = -\mathbf F_{21}$ 是守恒律的来源（见 §2）。

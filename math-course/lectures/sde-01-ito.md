@@ -4,6 +4,11 @@
 
 ## 1. 为什么需要新微积分：二次变差
 
+<figure class="plot" markdown="1">
+![布朗运动的二次变差趋于 t](assets/img/sde-01-quadratic-variation.svg)
+<figcaption><span class="fig-id">图 1.1</span>布朗运动的二次变差 \(\sum(\Delta W)^2\) 收敛到确定的 \(t\)（不像光滑函数趋于零）——正是这条使 Itô 引理多出 \(\frac12 f'' dt\) 一项。</figcaption>
+</figure>
+
 **回顾**：布朗运动 $B_t$：独立增量、$B_t - B_s \sim N(0, t-s)$、路径连续但**处处不可微**（增量 $\sim\sqrt{\Delta t}$，差商 $\sim 1/\sqrt{\Delta t}$ 爆炸）。
 
 **二次变差（新公理的出处）**：把 $[0, t]$ 分成 $n$ 段，考察增量平方和：

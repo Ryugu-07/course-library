@@ -2,6 +2,12 @@
 
 > 三个专题收官：**零和博弈**（对抗的极致——minimax 定理原来就是 LP 强对偶）、**动态与重复博弈**（时间如何改变博弈——合作在重复中成为可能）、**拍卖与机制设计**（反向博弈论：设计规则让自利产生善果）。每个专题都有一条通往你世界的线：GAN、策略回测、广告拍卖。
 
+
+<figure class="diagram" markdown="1">
+![零和博弈的 minimax 博弈树 / 鞍点示意。](assets/img/game-02-minimax-tree.svg)
+<figcaption><span class="fig-id">图 game-02.1</span>零和博弈的 minimax 博弈树 / 鞍点示意。</figcaption>
+</figure>
+
 ## 1. 零和博弈与极小极大定理
 
 二人零和：你得即我失，$u_2 = -u_1$，一张矩阵 $A$ 说尽（行玩家收益）。**安全策略思维**：行玩家保底 $\max_x \min_y$，列玩家压顶 $\min_y \max_x$；一般 $\max\min \leq \min\max$（先亮牌吃亏）。

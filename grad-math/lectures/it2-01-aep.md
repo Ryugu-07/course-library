@@ -5,6 +5,11 @@
 
 ## 1. AEP：大数定律的信息论化身
 
+<figure class="plot" markdown="1">
+![典型集大小 2^nH](assets/img/it2-01-aep.svg)
+<figcaption><span class="fig-id">图 1.1</span>渐近均分性（AEP）：长序列的概率几乎全压在 \(2^{nH}\) 个"典型序列"上（远少于全部 \(2^n\) 个）——信源编码的根。</figcaption>
+</figure>
+
 **定理（AEP）** $X_1, \dots, X_n$ i.i.d. $\sim p$：
 
 $$

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数据模型与惯用法 · 计算机讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">计算机讲义库</a>
+    <div class="site-subtitle">原理 · 亲手实现 · 对标课程</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li><li><a href="labs.html">实验总表 · 上机地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">理论线</div><ul><li><a href="algo-01-divide-graph.html">算法 I · 分治与图算法</a></li><li><a href="algo-02-flow-lp.html">算法 II · 网络流与线性规划</a></li><li><a href="algo-03-random-approx.html">算法 III · 随机化、近似与 NP 归约</a></li><li><a href="adv-01-streaming.html">高级算法 I · 流算法与草图</a></li><li><a href="adv-02-spectral-online.html">高级算法 II · 谱图论与在线算法</a></li><li><a href="toc-01-computability.html">计算理论 I · 自动机与可计算性</a></li><li><a href="toc-02-complexity.html">计算理论 II · 复杂度理论</a></li><li><a href="crypto-01-foundations.html">密码学 I · 对称、公钥与数论基础</a></li><li><a href="crypto-02-protocols.html">密码学 II · 协议、零知识与后量子</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">系统线</div><ul><li><a href="csapp-01-representation.html">CSAPP I · 机器级表示</a></li><li><a href="csapp-02-memory.html">CSAPP II · 存储层级与缓存</a></li><li><a href="csapp-03-linking-ecf.html">CSAPP III · 链接与异常控制流</a></li><li><a href="csapp-04-vm-malloc.html">CSAPP IV · 虚拟内存与动态内存</a></li><li><a href="os-01-process-sched.html">操作系统 I · 进程、线程与调度</a></li><li><a href="os-02-concurrency.html">操作系统 II · 并发与同步</a></li><li><a href="os-03-filesystem.html">操作系统 III · 文件系统与崩溃一致性</a></li><li><a href="net-01-tcpip.html">网络 I · 分层、TCP/IP 与拥塞控制</a></li><li><a href="net-02-application.html">网络 II · HTTP、TLS 与现代网络</a></li><li><a href="db-01-storage-index.html">数据库 I · 存储与索引</a></li><li><a href="db-02-query.html">数据库 II · 查询执行与优化</a></li><li><a href="db-03-transactions.html">数据库 III · 事务、MVCC 与恢复</a></li><li><a href="dist-01-time-consistency.html">分布式 I · 时钟与一致性模型</a></li><li><a href="dist-02-consensus.html">分布式 II · 共识与 Raft</a></li><li><a href="dist-03-transactions-cases.html">分布式 III · 分布式事务与大系统案例</a></li><li><a href="comp-01-parsing.html">编译 I · 词法与语法分析</a></li><li><a href="comp-02-interpreter.html">编译 II · 语义、类型检查与解释器</a></li><li><a href="comp-03-codegen.html">编译 III · IR、优化与代码生成</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">并行与性能线</div><ul><li><a href="perf-01-engineering.html">性能 I · 测量、Roofline 与向量化</a></li><li><a href="perf-02-cache-practice.html">性能 II · 缓存优化实战</a></li><li><a href="par-01-models.html">并行 I · 并行模型与缓存一致性</a></li><li><a href="par-02-lockfree.html">并行 II · 同步原语与无锁结构</a></li><li><a href="gpu-01-cuda-model.html">GPU I · CUDA 编程模型</a></li><li><a href="gpu-02-optimization.html">GPU II · 核函数优化阶梯</a></li><li><a href="mlsys-01-training.html">MLSys I · 训练系统与并行策略</a></li><li><a href="mlsys-02-inference.html">MLSys II · 推理系统与算子优化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">语言线</div><ul><li><a href="pl-01-lambda-types.html">语言 I · λ 演算与类型系统</a></li><li><a href="pl-02-semantics-gc.html">语言 II · 语义、函数式与垃圾回收</a></li><li class="active"><a href="py-01-data-model.html">Python I · 数据模型与惯用法</a></li><li><a href="py-02-runtime-gil.html">Python II · 运行时、GIL 与性能生态</a></li><li><a href="cpp-01-abstraction-raii.html">C++ I · 抽象、RAII 与值/移动语义</a></li><li><a href="cpp-02-modern-stl.html">C++ II · 现代 C++、STL、模板与并发</a></li><li><a href="rust-01-ownership.html">Rust I · 所有权与借用检查</a></li><li><a href="rust-02-concurrency.html">Rust II · 并发、trait 与 unsafe 边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-23 15:46</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-python">1. 一切皆对象：Python 的世界观</a></li>
+<li><a href="#2-dunder">2. 数据模型与 dunder：接入语言的钩子</a></li>
+<li><a href="#3">3. 鸭子类型：像鸭子叫就是鸭子</a></li>
+<li><a href="#4">4. 迭代器与生成器：惰性的威力</a></li>
+<li><a href="#5-pythonic">5. Pythonic 惯用法速览</a></li>
+<li><a href="#6">6. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="python-i">Python I · 数据模型与惯用法<a class="headerlink" href="#python-i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：<em>Fluent Python</em>（Ramalho）/ CPython 官方数据模型 ｜ <strong>前置</strong>：CS61A（抽象、高阶函数）、pl-02（动态类型、鸭子类型的理论）
+你天天用 Python 写 Medusa——但"会用"和"懂它的设计"是两回事。这一页讲 Python 之所以是 Python 的那套核心机制：<strong>一切皆对象的数据模型</strong>、<strong>特殊方法（dunder）如何让你的类无缝接入语言</strong>、<strong>鸭子类型的哲学</strong>、以及迭代器/生成器这套让 Python 代码"Pythonic"的惯用法。理解它，你会从"照着写"升级到"按语言的意图写"，Medusa 的数据处理代码会更干净。</p>
+</blockquote>
+<h2 id="1-python">1. 一切皆对象：Python 的世界观<a class="headerlink" href="#1-python" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="名字绑定对象：a=[1,2]; b=a 两名字指同一对象（对比 C 的值盒子）。" src="assets/img/py-01-name-binding.svg" /></p>
+<figcaption><span class="fig-id">图 py-01.3</span>名字绑定对象：a=[1,2]; b=a 两名字指同一对象（对比 C 的值盒子）。</figcaption>
+</figure>
+<p>Python 里<strong>一切都是对象</strong>——数字、字符串、函数、类、模块，全是对象，都有身份（<code>id</code>）、类型（<code>type</code>）、值。这不是口号，有实际后果：
+- <strong>变量是名字，不是盒子</strong>：<code>a = [1,2]; b = a</code> 让 <code>a</code>、<code>b</code> <strong>指向同一个对象</strong>（不是拷贝）——改 <code>b</code> 也改 <code>a</code>。理解"名字绑定到对象"而非"变量装值"，是避免 Python 别名 bug 的关键（🔗 与 csapp-01 "C 变量是字节盒子"形成鲜明对比——Python 变量是引用）。
+- <strong>可变 vs 不可变</strong>：<code>int/str/tuple</code> 不可变、<code>list/dict/set</code> 可变——<strong>默认参数用可变对象是经典坑</strong>（<code>def f(x, acc=[])</code> 的 <code>acc</code> 在多次调用间共享！）。
+- <strong>函数是一等对象</strong>：能赋值、传参、返回、存进容器（🔗 CS61A、pl-01 λ 演算的直接后裔）——装饰器、回调、策略模式全建立在此。</p>
+<h2 id="2-dunder">2. 数据模型与 dunder：接入语言的钩子<a class="headerlink" href="#2-dunder" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="dunder 协议：语法 len(x)/x[k]/for ↔ __len__/__getitem__/__iter__ 的钩子映射。" src="assets/img/py-01-dunder.svg" /></p>
+<figcaption><span class="fig-id">图 py-01.2</span>dunder 协议：语法 len(x)/x[k]/for ↔ __len__/__getitem__/__iter__ 的钩子映射。</figcaption>
+</figure>
+<p>Python 最优雅的设计——<strong>特殊方法（dunder methods，<code>__xxx__</code>）让你的自定义类无缝接入语言的语法和内置函数</strong>。你不是"调用方法"，而是"实现协议"，然后语言的语法自动为你工作：</p>
+<table>
+<thead>
+<tr>
+<th>你写</th>
+<th>Python 调用</th>
+<th>你实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>len(x)</code></td>
+<td><code>x.__len__()</code></td>
+<td>长度协议</td>
+</tr>
+<tr>
+<td><code>x[k]</code></td>
+<td><code>x.__getitem__(k)</code></td>
+<td>下标/切片</td>
+</tr>
+<tr>
+<td><code>x + y</code></td>
+<td><code>x.__add__(y)</code></td>
+<td>运算符重载</td>
+</tr>
+<tr>
+<td><code>for i in x</code></td>
+<td><code>x.__iter__()</code></td>
+<td>迭代协议</td>
+</tr>
+<tr>
+<td><code>if x:</code></td>
+<td><code>x.__bool__()</code></td>
+<td>真值测试</td>
+</tr>
+<tr>
+<td><code>with x:</code></td>
+<td><code>x.__enter__/__exit__</code></td>
+<td>上下文管理</td>
+</tr>
+<tr>
+<td><code>print(x)</code></td>
+<td><code>x.__repr__/__str__</code></td>
+<td>显示</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心洞察</strong>：<strong>Python 的语法是一层协议，dunder 是协议的实现点</strong>。实现了 <code>__len__</code> 和 <code>__getitem__</code>，你的类就"是"一个序列——<code>len()</code>、下标、切片、迭代、<code>in</code> 全部自动可用。<strong>"实现协议而非继承基类"就是鸭子类型</strong>（下节）。这让 Python 的抽象极其灵活：写一个行为像列表的类，不需要继承 list，只要实现对的 dunder。</p>
+<h2 id="3">3. 鸭子类型：像鸭子叫就是鸭子<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>鸭子类型</strong>："如果它走起来像鸭子、叫起来像鸭子，那它就是鸭子"——<strong>Python 不检查对象的类型，只检查它有没有需要的方法/属性</strong>（🔗 pl-02 动态类型的实用哲学）。你要一个"能迭代的东西"，任何实现了 <code>__iter__</code> 的对象都行，不管它是不是某个基类的子类。</p>
+<ul>
+<li><strong>好处</strong>：极度灵活、松耦合——函数接受"任何行为对得上的对象"，易测试（传个 mock 就行）、易扩展。</li>
+<li><strong>代价</strong>：类型错误要<strong>运行时</strong>才暴露（跑到那行才知道对象没有那个方法）——所以 Python 靠测试（🔗 se-01）和<strong>类型注解</strong>（下节）补安全。</li>
+<li><strong>协议 &gt; 继承</strong>：Python 偏爱"你能做什么"（协议）胜过"你是什么"（继承）——<code>typing.Protocol</code> 把这个哲学显式化（结构化子类型，🔗 pl-01 类型系统）。</li>
+</ul>
+<h2 id="4">4. 迭代器与生成器：惰性的威力<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="diagram">
+<p><img alt="生成器惰性：yield 逐条产出，内存恒定 vs list 全载。" src="assets/img/py-01-generator.svg" /></p>
+<figcaption><span class="fig-id">图 py-01.1</span>生成器惰性：yield 逐条产出，内存恒定 vs list 全载。</figcaption>
+</figure>
+<p>Python 惯用法的核心——<strong>迭代器协议 + 生成器</strong>：
+- <strong>迭代器</strong>：实现 <code>__next__</code> 的对象，逐个产出值、耗尽即止。<code>for</code> 循环、<code>in</code>、解包全走它。
+- <strong>生成器（<code>yield</code>）</strong>：写一个带 <code>yield</code> 的函数，它<strong>暂停/恢复</strong>、<strong>惰性</strong>产出值——不是一次性算出整个列表，而是<strong>要一个算一个</strong>。这是处理大数据/流的关键（🔗 adv-01 流算法、web-02 流式响应的语言级支持）。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">read_articles</span><span class="p">(</span><span class="n">cursor</span><span class="p">):</span>          <span class="c1"># 生成器：不把全部文章load进内存</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">row</span> <span class="o">:=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()):</span>
+        <span class="k">yield</span> <span class="n">process</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>          <span class="c1"># 逐条产出，内存恒定</span>
+</code></pre></div>
+<p><strong>对 Medusa 直接有用</strong>：处理上万篇文章时，<strong>用生成器逐条流式处理而非 <code>list(所有文章)</code></strong>——内存从"全部数据"降到"一条"。生成器表达式 <code>(f(x) for x in big)</code>、<code>itertools</code>（惰性组合子）是 Python 处理大数据的正道。<strong>"能惰性就别急切"是 Pythonic 的重要一条</strong>。</p>
+<h2 id="5-pythonic">5. Pythonic 惯用法速览<a class="headerlink" href="#5-pythonic" title="Permanent link"></a></h2>
+<p>让代码"像 Python 而非翻译过来的 Java/C"：
+- <strong>推导式</strong>：<code>[f(x) for x in xs if pred(x)]</code> 胜过手写循环 append——更快更清晰（🔗 pl-02 函数式的 map/filter）。
+- <strong>解包与多返回</strong>：<code>a, b = b, a</code>（交换）、<code>first, *rest = seq</code>、函数返回元组。
+- <strong><code>enumerate</code>/<code>zip</code></strong>：别用 <code>range(len(x))</code> 手动索引——<code>for i, v in enumerate(xs)</code>、<code>for a, b in zip(xs, ys)</code>。
+- <strong><code>with</code> 上下文管理</strong>：文件、锁、数据库连接用 <code>with</code>——<strong>保证资源释放</strong>（🔗 与 RAII cpp-01、Rust drop 同思想：作用域即生命周期）。
+- <strong>EAFP 而非 LBYL</strong>："请求原谅比请求许可容易"——用 <code>try/except</code> 而非一堆前置检查（符合动态语言的气质）。
+- <strong>f-string</strong>：<code>f"{name}: {value:.2f}"</code> 格式化。</p>
+<p><strong>方法论</strong>：<strong>Pythonic 不是炫技，是"顺着语言的设计写"</strong>——推导式、生成器、上下文管理、鸭子类型都让代码更短、更清晰、更少 bug。写 Medusa 时多问一句"这段有没有更 Pythonic 的写法"，代码质量会稳步提升。</p>
+<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（可变默认参数坑）</strong> 写 <code>def append_to(x, lst=[])</code> 连续调两次，观察第二次 <code>lst</code> 里有上次的残留——<strong>理解"默认参数在定义时求值一次、可变对象被共享"</strong>，Python 最著名的坑之一，Medusa 里要警惕。</p>
+<p><strong>例 2（实现一个序列）</strong> 写一个类只实现 <code>__len__</code> 和 <code>__getitem__</code>，验证它自动支持 <code>len()</code>、下标、切片、<code>for</code> 迭代、<code>in</code>——<strong>亲手体会"实现协议就接入语言"</strong>，dunder 的威力一次看懂。</p>
+<p><strong>例 3（生成器省内存）</strong> 把一个"读全部文章进 list 再处理"的函数改成生成器逐条 <code>yield</code>——用 <code>sys.getsizeof</code> 或内存监控对比。<strong>把"惰性流式"用到 Medusa 的真实数据处理</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：Python II——运行时、GIL 与性能生态：CPython 底下是什么、为什么 Python"慢"、GIL 如何限制并发、以及 numpy/异步/打包这套生态怎么补救。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="pl-02-semantics-gc.html"><span class="pager-label">上一页</span>语言 II · 语义、函数式与垃圾回收</a>
+  <a class="pager-slot next" href="py-02-runtime-gil.html"><span class="pager-label">下一页</span>Python II · 运行时、GIL 与性能生态</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

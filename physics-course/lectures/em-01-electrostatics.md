@@ -5,6 +5,17 @@
 
 ## 1. 静电：从 Coulomb 到 Gauss
 
+
+<figure class="diagram" markdown="1">
+![高斯面/安培环路：用一个对称面/环把 Gauss、Ampère 定律的&quot;通量=电荷、环量=电流&quot;画清。](assets/img/em-01-gauss-ampere.svg)
+<figcaption><span class="fig-id">图 em-01.2</span>高斯面/安培环路：用一个对称面/环把 Gauss、Ampère 定律的"通量=电荷、环量=电流"画清。</figcaption>
+</figure>
+
+<figure class="plot" markdown="1">
+![电偶极子场线](assets/img/em-01-field-lines.svg)
+<figcaption><span class="fig-id">图 1.1</span>电偶极子的电场线：从正电荷发出、终于负电荷，处处切于电场方向、密度表征场强。</figcaption>
+</figure>
+
 点电荷场 $\mathbf E = \frac{1}{4\pi\varepsilon_0}\frac{q}{r^2}\hat{\mathbf r}$ 叠加成一般场。两条等价定律**【推导】**：
 
 **Gauss 定律**：$\oint\mathbf E\cdot d\mathbf A = \frac{Q_{\text{enc}}}{\varepsilon_0}$ ⟺ $\nabla\cdot\mathbf E = \frac{\rho}{\varepsilon_0}$（点电荷通量 = $\frac{q}{\varepsilon_0}$ 与半径无关——$\frac{1}{r^2}$ 与球面积 $r^2$ 恰好相消，**平方反比律的几何本质**；散度定理（数分 VI）升级为微分形式；$\nabla\cdot\frac{\hat{\mathbf r}}{r^2} = 4\pi\delta^3(\mathbf r)$——pde2-01 的 δ 在物理的原产地）。
