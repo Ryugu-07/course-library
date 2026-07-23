@@ -16,6 +16,7 @@ from pygments.formatters import HtmlFormatter
 
 ROOT = Path(__file__).parent
 LECTURES = ROOT / "lectures"
+LABS = ROOT / "labs"
 SITE = ROOT / "site"
 
 SITE_TITLE = "计算机讲义库"
@@ -230,6 +231,18 @@ def main():
         if img_dst.exists():
             shutil.rmtree(img_dst)
         shutil.copytree(img_src, img_dst)
+    # 实验源码同时发布到站点，保证从 labs.html 可直接打开 README 与实现。
+    if LABS.exists():
+        labs_dst = SITE / "labs"
+        if labs_dst.exists():
+            shutil.rmtree(labs_dst)
+        shutil.copytree(
+            LABS,
+            labs_dst,
+            ignore=shutil.ignore_patterns(
+                "build", "target", "__pycache__", "*.pyc", "*.out", "*.exe",
+            ),
+        )
     write_pygments_css()
 
     build_time = time.strftime("%Y-%m-%d %H:%M")

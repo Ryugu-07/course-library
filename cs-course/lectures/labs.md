@@ -21,18 +21,18 @@
 
 | 编号 | 实验 | 语言/机器 | 对应讲义 | 教学点 |
 |---|---|---|---|---|
-| L01 | 缓存分块矩阵乘法（naive vs blocked vs 转置）实测加速比 | C / Mac | csapp-02、perf-02 | 存储层级不是抽象——同一算法差 10× |
-| L02 | 手写 shell（fork/exec/pipe/重定向/后台作业） | C / Mac | os-01 | 进程控制系统调用的肌肉记忆 |
-| L03 | 显式空闲链表 malloc（首次适配 + 合并 + 边界标记） | C / Mac | csapp-04 | 堆的真实模样 |
-| L04 | Tree-walk 解释器（一门小语言：词法→Pratt 解析→求值→闭包） | Python / Mac | comp-01/02 | 编译前端全流程最小可运行 |
-| L05 | B+ 树（插入/分裂/范围扫描） | Python / Mac | db-01 | 数据库索引的心脏 |
-| L06 | Raft 选主 + 日志复制（单机多协程模拟网络） | Python / Mac | dist-02 | 共识不再是黑盒 |
-| L07 | SIMD 与自动向量化对照（点积：标量 / 编译器向量化 / 手写 intrinsics） | C / Mac | perf-01、par-01 | Roofline 的实感 |
-| L08 | CUDA reduction + scan 优化阶梯（naive→shared→warp shuffle） | CUDA / Win | gpu-01/02 | GPU 内存层级与并行原语 |
-| L09 | 玩具 attention kernel（tiling + softmax 数值稳定） | CUDA / Win | gpu-02、mlsys-02 | FlashAttention 的最小内核直觉 |
-| L10 | 无锁栈/队列（CAS + ABA 演示 + 内存序） | C++/Rust / Mac | par-02 | 并发的深水区 |
-| L11 | Rust 所有权谜题集（借用检查器为什么拒绝 + 如何改） | Rust / Mac | rust-01 | 把编译错误读成设计信号 |
-| L12 | 从 socket 到 HTTP：极简 HTTP/1.1 服务器（keep-alive + 分块） | Python / Mac | net-02、web-02 | Medusa 后端下面那层 |
+| L01 | [缓存分块矩阵乘法（naive vs blocked vs 转置）实测加速比](labs/L01-cache-blocking/README.md) | C / Mac | csapp-02、perf-02 | 存储层级不是抽象——同一算法差 10× |
+| L02 | [手写 shell（fork/exec/pipe/重定向/后台作业）](labs/L02-shell/README.md) | C / Mac | os-01 | 进程控制系统调用的肌肉记忆 |
+| L03 | [显式空闲链表 malloc（首次适配 + 合并 + 边界标记）](labs/L03-malloc/README.md) | C / Mac | csapp-04 | 堆的真实模样 |
+| L04 | [Tree-walk 解释器（一门小语言：词法→Pratt 解析→求值→闭包）](labs/L04-interpreter/README.md) | Python / Mac | comp-01/02 | 编译前端全流程最小可运行 |
+| L05 | [B+ 树（插入/分裂/范围扫描）](labs/L05-bplustree/README.md) | Python / Mac | db-01 | 数据库索引的心脏 |
+| L06 | [Raft 选主 + 日志复制（单机离散时钟模拟网络）](labs/L06-raft/README.md) | Python / Mac | dist-02 | 共识不再是黑盒 |
+| L07 | [SIMD 与自动向量化对照（点积：标量 / 编译器向量化 / 手写 intrinsics）](labs/L07-simd/README.md) | C / Mac | perf-01、par-01 | Roofline 的实感 |
+| L08 | [CUDA reduction + scan 优化阶梯（naive→shared→warp shuffle）](labs/L08-cuda-reduce/README.md) | CUDA / Win | gpu-01/02 | GPU 内存层级与并行原语 |
+| L09 | [玩具 attention kernel（tiling + softmax 数值稳定）](labs/L09-attention/README.md) | CUDA / Win | gpu-02、mlsys-02 | FlashAttention 的最小内核直觉 |
+| L10 | [无锁栈（CAS + ABA 演示 + 内存序）](labs/L10-lockfree/README.md) | C++ / Mac | par-02 | 并发的深水区 |
+| L11 | [Rust 所有权谜题集（借用检查器为什么拒绝 + 如何改）](labs/L11-rust-ownership/README.md) | Rust / Mac | rust-01 | 把编译错误读成设计信号 |
+| L12 | [从 socket 到 HTTP：极简 HTTP/1.1 服务器（keep-alive + 分块）](labs/L12-http-server/README.md) | Python / Mac | net-02、web-02 | Medusa 后端下面那层 |
 
 ## 📋 大 project 课程作业（教师版说明书）
 
