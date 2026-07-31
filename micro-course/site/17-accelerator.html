@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>专用加速器 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li class="active"><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、通用处理器的开销在哪</a></li>
+<li><a href="#_2">二、专用化的收益来源</a></li>
+<li><a href="#_3">三、谱系：从通用到专用</a></li>
+<li><a href="#_4">四、设计的中心问题：数据流</a></li>
+<li><a href="#_5">五、超越数字：几条更激进的路线【前沿/未定】</a></li>
+<li><a href="#_6">六、系统视角：加速器不是孤岛</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">前沿 III · 专用加速器<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：硕博 + 业界主战场 ｜ 🔗 与 cs 站 GPU/MLSys 线、AI 站直接对接。
+第四页给出了因果链：功耗墙 → 暗硅 → 专用化。本页把"专用化"这件事拆开算：<strong>一个专用电路凭什么比通用处理器快一到两个数量级？收益具体来自哪里？以及它的代价是什么？</strong></p>
+</blockquote>
+<h2 id="_1">一、通用处理器的开销在哪<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>执行一条加法指令，CPU 实际做了多少事？</p>
+<p>取指、译码、寄存器重命名、乱序调度、分支预测、访存地址计算、缓存查找、写回、提交……<strong>真正的加法只占其中很小一部分能量</strong>。研究普遍表明，<strong>通用处理器执行一次运算的能量中，绝大部分花在"指令的管理"而非"数据的计算"上</strong>。</p>
+<p><strong>这些开销是通用性的代价</strong>：CPU 不知道下一条指令是什么，必须准备好应对任何情况。<strong>专用加速器知道自己要算什么，于是可以把这些开销几乎全部省掉。</strong></p>
+<h2 id="_2">二、专用化的收益来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>拆成四项，每一项都可以独立评估：</p>
+<p><strong>① 消除指令开销。</strong> 固定功能单元不需要取指译码，控制逻辑是硬连线的。</p>
+<p><strong>② 定制数据通路与并行度。</strong> 直接摆放大量乘加单元，按算法的数据流连接。<strong>脉动阵列（systolic array）</strong>是经典结构：数据像脉搏一样在阵列中流动，<strong>每个数据被取出一次后在阵列内被复用多次</strong>——这直接攻击了第十页的核心问题（搬运比计算贵）。</p>
+<p><strong>③ 定制数制。</strong> 通用处理器要支持 FP64/FP32；而神经网络推理在 INT8、FP8 甚至更低精度下往往够用。<strong>能量大致随位宽的平方级下降</strong>（乘法器面积与能耗），<strong>这是深度学习加速器最大的单项收益</strong>。训练则需要更宽的动态范围，于是有 BF16、FP8 等格式的设计权衡（🔗 AI 站）。</p>
+<p><strong>④ 定制存储层次。</strong> 用软件可控的便签存储器（scratchpad）替代硬件管理的缓存，<strong>数据搬运在编译期就被规划好</strong>，避免了缓存的猜测与冲突开销。</p>
+<p><strong>综合起来</strong>，同一算法在专用电路上的能效可比通用 CPU 高一到两个数量级——<strong>这些收益是可以逐项估算的，不是玄学</strong>。</p>
+<h2 id="_3">三、谱系：从通用到专用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>灵活性</th>
+<th>能效</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CPU</strong></td>
+<td>最高</td>
+<td>最低</td>
+<td>控制流复杂的通用任务</td>
+</tr>
+<tr>
+<td><strong>GPU</strong></td>
+<td>高（可编程 SIMT）</td>
+<td>中</td>
+<td>数据并行、训练</td>
+</tr>
+<tr>
+<td><strong>FPGA</strong></td>
+<td>中（可重构）</td>
+<td>中高</td>
+<td>小批量、需要快速迭代、原型</td>
+</tr>
+<tr>
+<td><strong>DSA/ASIC</strong></td>
+<td>低（固定功能）</td>
+<td><strong>最高</strong></td>
+<td>大规模部署的稳定负载</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这是一条清晰的权衡曲线：灵活性与能效互为代价。</strong></p>
+<p><strong>选择的经济学</strong>：ASIC 的 NRE（一次性工程费用）在先进节点极高（设计 + 掩模，第十一页）。<strong>只有出货量足够大、且算法足够稳定时才划算</strong>。这解释了几个产业现象：
+- <strong>算法变动快的领域用 GPU/FPGA</strong>；
+- <strong>超大规模数据中心自研 ASIC 划算</strong>（量足够大）；
+- <strong>FPGA 的位置</strong>：介于两者之间，适合中等批量与需要现场更新的场合。</p>
+<p><strong>一个关键风险</strong>：<strong>算法演进可能让 ASIC 变废铁</strong>。为特定网络结构做的极致优化，可能因模型架构变化而失效——<strong>所以现代 AI 加速器的设计要在"专用"与"留有余地"之间取平衡</strong>，通常保留可编程的向量单元来处理未预见的算子。</p>
+<h2 id="_4">四、设计的中心问题：数据流<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>加速器设计的核心不是"堆多少个乘法器"，而是<strong>如何组织数据移动</strong>（承第十页）。</p>
+<p>对一个卷积或矩阵乘，同一个数据可以在不同层级被复用。按"什么保持不动"分类：</p>
+<ul>
+<li><strong>权重驻留（weight stationary）</strong>：权重固定在计算单元中，输入流过——适合权重复用率高的场景；</li>
+<li><strong>输出驻留（output stationary）</strong>：部分和固定，输入与权重流过——减少部分和的读写；</li>
+<li><strong>行驻留（row stationary）</strong>等混合策略。</li>
+</ul>
+<p><strong>没有普适最优</strong>——最优数据流取决于层的形状（批大小、通道数、卷积核大小）与存储层次结构。<strong>所以加速器设计与编译器/映射器必须协同设计</strong>，这也是 MLSys 这个领域存在的原因（🔗 cs 站 mlsys 线）。</p>
+<p><strong>Roofline 模型</strong>是分析工具：把性能上限画成计算强度（每字节数据完成多少次运算）的函数——<strong>低计算强度的算子受带宽限制，高计算强度的受算力限制</strong>。<strong>优化的第一步永远是判断自己在屋顶线的哪一侧</strong>（🔗 cs 站 perf 线有完整推导）。</p>
+<h2 id="_5">五、超越数字：几条更激进的路线【前沿/未定】<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>模拟计算与存内计算</strong>（第十六页）：能效潜力大，精度与外围开销是障碍；</li>
+<li><strong>光计算</strong>：用光学元件做矩阵乘（干涉、衍射）。<strong>光的传播本身不耗能</strong>，但电光/光电转换、以及权重可编程性是瓶颈（第十八页）；</li>
+<li><strong>神经形态计算</strong>：脉冲神经网络 + 事件驱动。<strong>在稀疏、事件式传感场景（如动态视觉传感器）有真实优势</strong>，但通用任务上的精度与工具链仍是短板【争】；</li>
+<li><strong>随机/近似计算</strong>：以精度换能效，用于容错应用。</li>
+</ul>
+<p><strong>共同的模式（值得记住）</strong>：这些路线在<strong>特定窄场景</strong>中确有优势，但要取代主流数字加速器，必须同时打败它的<strong>能效、精度、工具链生态与制造成熟度</strong>——<strong>最后一项往往才是致命的</strong>。这与第五页新器件、第十六页存内计算的处境完全一致。</p>
+<h2 id="_6">六、系统视角：加速器不是孤岛<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>一个常被忽略的现实：<strong>加速器的实际收益往往被系统因素吃掉</strong>。</p>
+<ul>
+<li><strong>Amdahl 定律</strong>：加速了 90% 的工作量，整体加速比也不会超过 10 倍——<strong>未被加速的部分成为新瓶颈</strong>；</li>
+<li><strong>数据搬运与主机通信</strong>：从主机内存到加速器的传输可能主导端到端时间；</li>
+<li><strong>软件栈</strong>：编译器、算子库、框架支持。<strong>"性能达标但没人会用"是加速器项目最常见的死法</strong>——生态往往比硅片本身更难建立；</li>
+<li><strong>利用率</strong>：峰值算力（TOPS）与实际达成的算力常有巨大差距。<strong>"TOPS 数字"与第九页的"标称位数"、第四页的"节点名称"是同一类营销指标</strong>，看到就要追问实际利用率。</li>
+</ul>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>专用化的收益可以逐项拆解</strong>：省指令开销、定制数据通路、降低数制位宽、定制存储层次；</li>
+<li><strong>灵活性与能效是一条权衡曲线</strong>，选择位置由出货量与算法稳定性决定；</li>
+<li><strong>设计的核心是数据流而非算力堆叠</strong>，Roofline 是判断瓶颈的第一工具；</li>
+<li><strong>激进路线（光、模拟、神经形态）常在窄场景有效，难在生态与制造成熟度</strong>；</li>
+<li><strong>端到端收益受 Amdahl、数据搬运与软件栈约束</strong>——峰值指标要打折看。</li>
+</ul>
+<hr />
+<p><em>下一页：既然电互连的功耗越来越难以承受，能不能用光来传数据？硅光与射频——把光子和电磁波带进芯片。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-memory-frontier.html"><span class="pager-label">上一页</span>前沿 II · 新型存储与存内计算</a>
+  <a class="pager-slot next" href="18-photonics-rf.html"><span class="pager-label">下一页</span>前沿 IV · 硅光与射频</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

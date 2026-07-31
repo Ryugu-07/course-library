@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>腐蚀与防护 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li class="active"><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 电化学机理：腐蚀是个电池</a></li>
+<li><a href="#2">2. 八种形态（按危险性递增排列，认形态就能倒推原因）</a></li>
+<li><a href="#3">3. 四类防护（对应四要素）</a></li>
+<li><a href="#4">4. 高温氧化（干腐蚀，一段）</a></li>
+<li><a href="#5">5. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">工艺 IV · 腐蚀与防护<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>腐蚀每年造成的损失约占全球 GDP 的 <strong>3–4%</strong>（NACE/IMPACT 研究的量级），其中相当一部分可通过既有知识避免。腐蚀是<strong>材料回归热力学基态的过程</strong>——冶金把矿石还原成金属是逆天而行，腐蚀只是自然在讨债。本页讲清机理、八种形态、以及四类防护手段。</p>
+</blockquote>
+<h2 id="1">1. 电化学机理：腐蚀是个电池<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>湿腐蚀 = 阳极溶解 + 阴极还原，两者电子守恒：</p>
+<div class="arithmatex">\[
+\text{阳极}: \mathrm{Fe} \to \mathrm{Fe^{2+}} + 2e^-, \qquad
+\text{阴极}: \mathrm{O_2} + 2\mathrm{H_2O} + 4e^- \to 4\mathrm{OH^-}
+\]</div>
+<p><strong>四要素缺一不可</strong>：阳极、阴极、电解质、电子通路——<strong>断掉任意一个就能防腐</strong>（这是全部防护技术的总纲）。</p>
+<p><strong>电位序与钝化</strong>：金属活泼性由电极电位排序（Mg &lt; Al &lt; Zn &lt; Fe &lt; Sn &lt; Cu &lt; Ag &lt; Au）——但<strong>实际耐蚀性看钝化膜而非电位</strong>：铝比铁活泼得多，却因为致密的 Al₂O₃ 钝化膜而耐候；不锈钢靠 <strong>Cr ≥ 12%</strong> 形成 Cr₂O₃ 钝化膜——<strong>"不锈"是一层几纳米的氧化物在守卫，破了要能自愈</strong>（🔗 Pourbaix 图给出"电位-pH"平面上的免蚀/钝化/腐蚀三区，是腐蚀工程师的相图）。</p>
+<h2 id="2">2. 八种形态（按危险性递增排列，认形态就能倒推原因）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>形态</th>
+<th>机理</th>
+<th>典型现场</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>均匀腐蚀</td>
+<td>全表面均匀减薄</td>
+<td>碳钢大气锈蚀——<strong>最不危险</strong>（可预测、可加腐蚀裕量）</td>
+</tr>
+<tr>
+<td>电偶腐蚀</td>
+<td>异种金属接触 + 电解质</td>
+<td>铝件用不锈钢螺栓（铝被牺牲）——<strong>小阳极/大阴极最凶险</strong></td>
+</tr>
+<tr>
+<td>点蚀</td>
+<td>钝化膜局部击穿（Cl⁻ 是元凶）</td>
+<td>不锈钢在海水/含氯环境——深度快、检测难</td>
+</tr>
+<tr>
+<td>缝隙腐蚀</td>
+<td>缝内贫氧 + 酸化自催化</td>
+<td>法兰、垫片、螺纹下</td>
+</tr>
+<tr>
+<td><strong>晶间腐蚀</strong></td>
+<td>敏化：晶界析出 Cr₂₃C₆ 使贫铬</td>
+<td>焊接不锈钢 HAZ（工艺 I 的欠账）——对策：304L/316L 或 321/347 稳定化</td>
+</tr>
+<tr>
+<td>选择性腐蚀</td>
+<td>合金中某组元优先溶出</td>
+<td>黄铜脱锌、铸铁石墨化</td>
+</tr>
+<tr>
+<td>磨蚀/空蚀</td>
+<td>流体冲刷破坏钝化膜</td>
+<td>弯头、泵叶轮、螺旋桨</td>
+</tr>
+<tr>
+<td><strong>应力腐蚀开裂 SCC</strong></td>
+<td>拉应力 + 特定介质 + 敏感材料</td>
+<td>奥氏体不锈钢 + 氯离子 + 60 °C 以上；黄铜 + 氨——<strong>几乎无预兆的脆性断裂，最危险</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>加上两种"环境助攻"</strong>：<strong>氢脆</strong>（高强钢最敏感：电镀、酸洗、阴极保护过度都会引入氢——<strong>强度越高越怕氢</strong>，这是高强螺栓延迟断裂的元凶）、<strong>腐蚀疲劳</strong>（性能 II：腐蚀环境下疲劳极限消失）。</p>
+<p><strong>记忆钥匙</strong>：<strong>局部腐蚀比均匀腐蚀危险得多</strong>——因为面积小、速率高、难检测，而且工程师容易被"总失重很小"骗过。</p>
+<h2 id="3">3. 四类防护（对应四要素）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ol>
+<li><strong>材料选择/改性</strong>：耐蚀合金（不锈钢牌号按 PREN = Cr + 3.3Mo + 16N 排耐点蚀能力——<strong>一个可算的选材公式</strong>）、双相钢、钛（海水之王）、耐候钢（形成致密锈层）；</li>
+<li><strong>涂层与表面</strong>：有机涂层（油漆——最大量的防腐方式）、金属镀层（<strong>镀锌是牺牲阳极型：破损处仍受保护</strong>；镀锡是阻挡型，破损后反而加速铁腐蚀——两种镀层哲学的对比是本节最值得记的一课）、阳极氧化、渗铝/搪瓷；</li>
+<li><strong>电化学保护</strong>：<strong>牺牲阳极</strong>（船体挂锌/铝块、埋地管道）与<strong>外加电流阴极保护</strong>（大型储罐、管网）——把被保护件强制变成阴极；</li>
+<li><strong>环境与设计控制</strong>：除氧、缓蚀剂、降湿；<strong>设计防腐</strong>（避免异种金属直接接触、避免积液死角与缝隙、圆滑过渡、留排水口、留检修通道）——<strong>最便宜的防腐发生在图纸阶段</strong>。</li>
+</ol>
+<h2 id="4">4. 高温氧化（干腐蚀，一段）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>高温下靠氧化膜保护：<strong>Pilling–Bedworth 比</strong> <span class="arithmatex">\(PBR = V_{\text{氧化物}}/V_{\text{金属}}\)</span>——<span class="arithmatex">\(PBR &lt; 1\)</span> 膜太薄开裂（Mg），<span class="arithmatex">\(1 &lt; PBR &lt; 2\)</span> 致密保护（Al、Cr、Si——<strong>高温合金必加 Al/Cr 形成保护膜</strong>），<span class="arithmatex">\(PBR \gg 2\)</span> 膜受压剥落（W、Mo，故难熔金属高温反而不耐氧化，需涂层）。膜增厚遵循抛物线规律 <span class="arithmatex">\(x^2 = kt\)</span>（扩散控制——热力 II 的 <span class="arithmatex">\(\sqrt{t}\)</span> 第三次登场）。</p>
+<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>碳钢大气腐蚀速率 ~0.02–0.2 mm/年（工业/海洋环境上限）——设计寿命 30 年就要留 3–6 mm 腐蚀裕量；</li>
+<li>不锈钢耐点蚀：304（PREN <sub>18）不适合海水，316（</sub>24）好些，双相 2205（~35）与超级奥氏体（&gt;40）才是海洋级；</li>
+<li><strong>反直觉四连</strong>：不锈钢会生锈（钝化膜被氯离子击穿或缺氧时）；<strong>铝比铁活泼但更耐蚀</strong>（膜的胜利）；<strong>用不锈钢螺栓固定铝件是常见的电偶腐蚀事故</strong>（面积比放大了破坏）；高强钢在防腐镀层工序中被氢脆断裂——<strong>防腐动作本身成为失效原因</strong>。</li>
+</ul>
+<p>【研】对标 Jones《Principles and Prevention of Corrosion》、Fontana；混合电位理论、Tafel 极化曲线与电化学阻抗谱 EIS、SCC 机理（阳极溶解 vs 氢致）是研究生纵深。</p>
+<hr />
+<p><em>线五收官。最后三页进入前沿了望（核对于 2026-07，保质期 1–2 年）：先进结构材料、能源材料，以及正在改变这门学科方法论的计算与 AI。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-characterization.html"><span class="pager-label">上一页</span>工艺 III · 表征：材料科学家的眼睛</a>
+  <a class="pager-slot next" href="19-advanced-structural.html"><span class="pager-label">下一页</span>前沿 I · 先进结构材料</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

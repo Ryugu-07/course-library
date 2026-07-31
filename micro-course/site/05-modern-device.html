@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从短沟道效应到 GAA · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li class="active"><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、短沟道效应：栅极失去控制</a></li>
+<li><a href="#_2">二、第一条路：更薄的栅介质与高 κ 金属栅</a></li>
+<li><a href="#_3">三、第二条路与第三条路：把栅极包起来</a></li>
+<li><a href="#_4">四、还有别的旋钮：应变与工艺协同</a></li>
+<li><a href="#_5">五、短沟道下的电流：告别平方律</a></li>
+<li><a href="#60-mvdec">六、下一步：超越 60 mV/dec？</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v-gaa">器件 V · 从短沟道效应到 GAA<a class="headerlink" href="#v-gaa" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生器件方向入口 ｜ <strong>核对于 2026-07</strong>（GAA 量产状态部分属前沿）。
+上一页说缩放遇到了功耗墙。本页讲另一半困难：<strong>把沟道做短本身就会让晶体管失控</strong>。整条器件演进史——平面 → FinFET → 环栅纳米片——可以用<strong>一个概念</strong>串起来：<strong>栅控能力</strong>，即栅极对沟道势垒的控制力，相对于漏极对它的干扰。</p>
+</blockquote>
+<h2 id="_1">一、短沟道效应：栅极失去控制<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>长沟道模型假设沟道势垒<strong>只由栅极控制</strong>。沟道变短后，<strong>漏极的电场开始侵入沟道</strong>（回忆第二页：反偏 pn 结的耗尽区会扩张），于是出现一系列失效：</p>
+<p><strong>① DIBL（漏致势垒降低）</strong>：漏电压帮着栅极把势垒拉低 → <strong><span class="arithmatex">\(V_{th}\)</span> 随 <span class="arithmatex">\(V_{DS}\)</span> 下降</strong>。后果是关不断、输出电导变差（模拟增益下降）。</p>
+<p><strong>② 亚阈值摆幅退化</strong>：<span class="arithmatex">\(SS\)</span> 从理想的 60 mV/dec 恶化到 80–100 mV/dec 以上 → <strong>关态漏电急剧上升</strong>（承第四页的功耗链条）。</p>
+<p><strong>③ 阈值电压滚降</strong>：<span class="arithmatex">\(L\)</span> 越短，<span class="arithmatex">\(V_{th}\)</span> 越低，且对工艺变异极度敏感。</p>
+<p><strong>④ 穿通</strong>：源漏耗尽区连通，栅极彻底失控。</p>
+<p><strong>⑤ 热载流子效应</strong>：高电场加速的载流子撞入栅氧，造成长期退化（可靠性问题，第十四页）。</p>
+<p><strong>统一的判据</strong>：定义<strong>特征长度</strong> <span class="arithmatex">\(\lambda \sim \sqrt{\varepsilon_s t_{ox} t_{dep}/\varepsilon_{ox}}\)</span>，只要沟道长度 <span class="arithmatex">\(L\)</span> 不能远大于 <span class="arithmatex">\(\lambda\)</span>，短沟道效应就会显现。<strong>要继续缩短 <span class="arithmatex">\(L\)</span>，就必须缩小 <span class="arithmatex">\(\lambda\)</span></strong>——办法只有三条：更薄的氧化层、更薄的沟道体、或者<strong>更多面的栅极包裹</strong>。<strong>这三条路，就是接下来三十年的器件演进史。</strong></p>
+<h2 id="_2">二、第一条路：更薄的栅介质与高 κ 金属栅<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>减薄 SiO₂ 提高 <span class="arithmatex">\(C_{ox}\)</span>、增强栅控——但薄到约 1–1.2 nm（几个原子层）时，<strong>栅隧穿漏电</strong>呈指数上升，功耗无法接受。</p>
+<p><strong>解法（约 45 nm 节点引入）</strong>：改用<strong>高介电常数（high-κ）材料</strong>（如铪基氧化物）。因为</p>
+<div class="arithmatex">\[C_{ox} = \frac{\varepsilon_{ox}}{t_{ox}}\]</div>
+<p>用高 <span class="arithmatex">\(\varepsilon\)</span> 材料，可以在<strong>物理厚度更厚</strong>（抑制隧穿）的同时获得<strong>等效更薄</strong>的电学厚度（EOT）。<strong>这是一个漂亮的"用材料换几何"的工程胜利。</strong></p>
+<p><strong>配套问题</strong>：高 κ 材料与多晶硅栅不兼容（费米钉扎、声子散射降低迁移率），于是必须同时改用<strong>金属栅</strong>——并且 NMOS/PMOS 需要<strong>不同功函数的金属</strong>来分别设定阈值电压（回忆第三页 <span class="arithmatex">\(V_{th}\)</span> 公式里的 <span class="arithmatex">\(V_{FB}\)</span>）。<strong>"高κ/金属栅（HKMG)"作为一个整体方案被引入，是材料、器件、工艺协同的典型案例。</strong></p>
+<h2 id="_3">三、第二条路与第三条路：把栅极包起来<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>既然要减小 <span class="arithmatex">\(\lambda\)</span>，最有效的办法是<strong>让栅极从多个方向控制沟道</strong>，同时把沟道做薄，使漏极电场无处可侵。</p>
+<p><strong>FinFET（约 22 nm 起量产）</strong>：把沟道立起来做成"鳍"，栅极从<strong>三面</strong>包裹。</p>
+<ul>
+<li>栅控能力大幅提升，<span class="arithmatex">\(SS\)</span> 回到接近 65–70 mV/dec，DIBL 显著改善；</li>
+<li><strong>宽度量子化</strong>：有效沟道宽度 <span class="arithmatex">\(\approx\)</span> 鳍高的两倍加鳍宽，且只能整数个鳍——<strong>设计者不再能连续调节 <span class="arithmatex">\(W\)</span></strong>，这对模拟设计是个真实的困扰（第八页）；</li>
+<li>三维结构带来工艺复杂度（鳍的刻蚀均匀性、应力工程）。</li>
+</ul>
+<p><strong>GAA 环栅纳米片（约 3nm/2nm 世代引入）</strong>：栅极<strong>完全包裹</strong>沟道（四面），沟道做成水平堆叠的薄片。</p>
+<ul>
+<li>栅控能力进一步提升，可继续缩短 <span class="arithmatex">\(L\)</span>；</li>
+<li><strong>恢复了宽度可调</strong>：纳米片宽度可以连续设计，缓解了 FinFET 的量子化问题——<strong>这对模拟和 SRAM 都是好消息</strong>；</li>
+<li>代价：工艺极复杂（内侧墙、沟道释放刻蚀、堆叠均匀性）。</li>
+</ul>
+<figure>
+<p><img alt="器件结构演进与栅控能力" class="fig-img" src="assets/img/mic_device_evolution.svg" /></p>
+<figcaption><span class="fig-id">图 5-1</span> 器件结构演进（示意剖面）与栅控效果。<strong>平面器件</strong>栅极只从一面控制，漏极电场易侵入；<strong>FinFET</strong> 三面包裹；<strong>GAA 纳米片</strong>四面全包。右侧曲线为对应的转移特性：栅控越强，<strong>亚阈值摆幅越陡（越接近 60 mV/dec 极限）、关态漏电越低</strong>——这正是每一代结构革新所买到的东西。</figcaption>
+</figure>
+<h2 id="_4">四、还有别的旋钮：应变与工艺协同<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>除了结构，工程师还有一批"物理"手段：</p>
+<ul>
+<li><strong>应变硅</strong>：在沟道中引入应变（PMOS 用 SiGe 源漏施加压应变，NMOS 用张应变），<strong>改变能带结构、提高迁移率</strong>。这在 90 nm 前后成为标准手段，是"用力学改善电学"的例子；</li>
+<li><strong>源漏工程</strong>：轻掺杂漏（LDD）降低峰值电场、抑制热载流子；</li>
+<li><strong>阱工程</strong>：Halo/Pocket 注入抑制穿通；</li>
+<li><strong>设计–工艺协同优化（DTCO）</strong>：<strong>这是现代节点的关键做法</strong>——不再是"工艺做好后交给设计"，而是让标准单元结构、金属层布局、器件参数<strong>共同</strong>优化。近年的"缩放"很大一部分来自 DTCO 而非纯粹的尺寸缩小（例如单元高度从多轨降到更少的金属轨）。</li>
+</ul>
+<h2 id="_5">五、短沟道下的电流：告别平方律<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>第三页的平方律来自长沟道假设。短沟道器件中载流子普遍处于<strong>速度饱和</strong>（第一页），电流近似为：</p>
+<div class="arithmatex">\[I_{D,\text{sat}} \approx W\, C_{ox}\, v_{sat}\,(V_{GS}-V_{th})\]</div>
+<p><strong>关键差别</strong>：
+- 对过驱动电压是<strong>线性</strong>而非平方；
+- <strong>与沟道长度 <span class="arithmatex">\(L\)</span> 几乎无关</strong>——继续缩短 <span class="arithmatex">\(L\)</span> 不再直接增加驱动电流；
+- <span class="arithmatex">\(g_m \approx W C_{ox} v_{sat}\)</span> 趋于饱和。</p>
+<p><strong>这解释了一个反直觉的事实</strong>：先进节点带来的主要是<strong>密度</strong>与<strong>单位电容的降低</strong>，而非单管驱动能力的线性提升。<strong>"更小 = 更快"这个朴素等式，在速度饱和面前已经不成立了。</strong></p>
+<h2 id="60-mvdec">六、下一步：超越 60 mV/dec？<a class="headerlink" href="#60-mvdec" title="Permanent link"></a></h2>
+<p>既然玻尔兹曼极限是万恶之源，能否绕过它？这是<strong>研究生与前沿方向</strong>【前沿/未定】：</p>
+<ul>
+<li><strong>隧穿场效应管（TFET）</strong>：用带带隧穿代替热发射，原理上可低于 60 mV/dec。<strong>问题是导通电流太低</strong>，至今未能实用；</li>
+<li><strong>负电容 FET（NC-FET）</strong>：利用铁电材料的负电容效应放大栅压。<strong>理论有争议，稳定性与可重复性存疑</strong>【争】；</li>
+<li><strong>新沟道材料</strong>：Ge、III-V（高迁移率）、以及<strong>二维材料</strong>（MoS₂ 等，原子级薄，天然抑制短沟道效应）——距离量产尚远；</li>
+<li><strong>CFET（互补 FET）</strong>：把 NMOS 与 PMOS <strong>垂直堆叠</strong>，直接砍掉单元面积。被视为 GAA 之后的主要候选（第十九页）。</li>
+</ul>
+<p><strong>诚实的判断</strong>：<strong>这些方案没有一个已经确定接班</strong>。行业目前的实际路径更偏向"结构堆叠（CFET、3D）+ 封装集成（Chiplet）+ 专用化"，而非寻找新的开关物理。</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li>一条主线：<strong>栅控能力 vs 漏极干扰</strong>。平面 → FinFET → GAA 就是不断增强前者；</li>
+<li><strong>高κ/金属栅</strong>是"用材料换几何"，<strong>FinFET/GAA</strong> 是"用维度换控制"；</li>
+<li>短沟道下电流公式变为<strong>线性、与 <span class="arithmatex">\(L\)</span> 弱相关</strong>——教科书平方律只是直觉工具；</li>
+<li><strong>60 mV/dec 尚未被任何量产技术突破</strong>，它仍是悬在整个行业头上的约束。</li>
+</ul>
+<hr />
+<p><em>线一结束：从半导体物理走到了现代器件。下一线转向电路——把晶体管组装成逻辑门与放大器，并看看器件层面的那些限制如何一路向上传导。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-scaling.html"><span class="pager-label">上一页</span>器件 IV · 缩放定律与功耗墙</a>
+  <a class="pager-slot next" href="06-cmos-digital.html"><span class="pager-label">下一页</span>电路 I · CMOS 反相器与数字基元</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

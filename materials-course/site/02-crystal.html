@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>晶体学：秩序的几何 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li class="active"><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 晶格语言三件套</a></li>
+<li><a href="#2-miller">2. 晶向与晶面：Miller 指数</a></li>
+<li><a href="#3">3. 密排面与滑移系（几何 → 力学的第一座桥）</a></li>
+<li><a href="#4">4. 单晶、多晶与织构</a></li>
+<li><a href="#5">5. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">结构 II · 晶体学：秩序的几何<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>固体里的原子绝大多数不是乱堆的——<strong>周期性排列（晶体）是能量最低的常态</strong>。晶体学是描述这种秩序的几何语言：晶格、晶胞、晶面指数。它不是死记硬背的分类学：<strong>滑移为什么挑密排面、衍射为什么能测结构、各向异性从哪来</strong>，全部答案藏在这套几何里。</p>
+</blockquote>
+<h2 id="1">1. 晶格语言三件套<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>晶格 = 点阵 + 基元</strong>：点阵是纯数学的周期骨架（14 种 Bravais 点阵、7 大晶系——枚举结果记结论即可），基元是每个格点上挂的原子组合。<strong>晶胞</strong>：能平移铺满全空间的最小重复单元；晶格常数 <span class="arithmatex">\(a, b, c\)</span> 与夹角描述它。</p>
+<p><strong>三大金属结构（本科主战场，各记三个数）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>结构</th>
+<th>配位数</th>
+<th>致密度</th>
+<th>每胞原子数</th>
+<th>代表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>面心立方 FCC</td>
+<td>12</td>
+<td>0.74</td>
+<td>4</td>
+<td>Al、Cu、Ni、γ-Fe、Au</td>
+</tr>
+<tr>
+<td>体心立方 BCC</td>
+<td>8</td>
+<td>0.68</td>
+<td>2</td>
+<td>α-Fe、W、Cr、Mo</td>
+</tr>
+<tr>
+<td>密排六方 HCP</td>
+<td>12</td>
+<td>0.74</td>
+<td>6</td>
+<td>Mg、Ti、Zn</td>
+</tr>
+</tbody>
+</table>
+<p>FCC 与 HCP 同为最密堆积（0.74 是球堆积的数学极限——Kepler 猜想，1998 年才证毕），差别只在堆垛顺序 ABCABC vs ABAB——<strong>一层之差，性格迥异</strong>（FCC 滑移系多而延展、HCP 滑移系少而挑剔，见 §3）。</p>
+<p><strong>间隙位置</strong>：密堆的缝隙（四面体/八面体间隙）是小原子的公寓——碳溶进铁的间隙是整个钢铁冶金的起点（FCC γ-Fe 的八面体间隙比 BCC 的大，所以奥氏体能溶更多碳——相图页那条 2.14% vs 0.02% 溶解度悬殊的几何原因，先按下）。</p>
+<h2 id="2-miller">2. 晶向与晶面：Miller 指数<a class="headerlink" href="#2-miller" title="Permanent link"></a></h2>
+<p>方向 <span class="arithmatex">\([uvw]\)</span>、晶面 <span class="arithmatex">\((hkl)\)</span>（截距取倒数化整——"倒数"的深意在倒易点阵，【研】衍射理论的原生语言）；族记号 <span class="arithmatex">\(\langle uvw\rangle, \{hkl\}\)</span>。立方晶系两条速算：<span class="arithmatex">\([hkl] \perp (hkl)\)</span>；面间距</p>
+<div class="arithmatex">\[
+d_{hkl} = \frac{a}{\sqrt{h^2 + k^2 + l^2}}
+\]</div>
+<p>——指数越高面间距越小、面上原子越稀。<strong>为什么要这套记号</strong>：材料的各向异性按晶向说话（硅片沿 <span class="arithmatex">\(\{111\}\)</span> 解理、变压器硅钢要 <span class="arithmatex">\(\langle 001\rangle\)</span> 织构、单晶叶片沿 <span class="arithmatex">\([001]\)</span> 生长），没有指数语言这些话说不出口。</p>
+<h2 id="3">3. 密排面与滑移系（几何 → 力学的第一座桥）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>塑性变形 = 原子层间滑动，而滑动永远挑<strong>最密排的面、最密排的方向</strong>（密排面间距最大 ⇒ 层间"咬合"最浅 ⇒ 剪切阻力最小）。<strong>滑移系 = 密排面 × 密排方向</strong>：</p>
+<ul>
+<li>FCC：<span class="arithmatex">\(\{111\}\times\langle110\rangle\)</span> = <strong>12 个滑移系</strong>——四通八达，故 Al/Cu 冷加工随便揉；</li>
+<li>BCC：密排方向 <span class="arithmatex">\(\langle111\rangle\)</span> 明确、最密面不唯一，滑移可用系多但需更高应力且<strong>强烈温度敏感</strong>——低温下 BCC 金属变脆（韧脆转变——泰坦尼克号船板的教训，性能 II 主讲）；</li>
+<li>HCP：室温常只有基面 3 个独立滑移系——<strong>不够变形用</strong>（一般塑性需 5 个独立系，von Mises 判据【研】）⇒ Mg 难冷成形、Ti 加工讲究方向。</li>
+</ul>
+<p><strong>一张表看懂三类金属的加工性格</strong>——这就是晶体学的现金价值：结构（本页几何）→ 性能（加工性）的第一条完整逻辑链，四面体主线的首次全程贯通。</p>
+<h2 id="4">4. 单晶、多晶与织构<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>工程材料绝大多数是<strong>多晶</strong>：无数取向各异的小晶粒拼成，宏观性能 = 各向异性的取向平均（<strong>伪各向同性</strong>）。三个例外造就三类产品：<strong>单晶</strong>（涡轮叶片消灭晶界抗蠕变、硅锭给芯片完美衬底）；<strong>织构</strong>（轧制使晶粒取向趋同——各向异性回归：易拉罐深冲的制耳、硅钢的磁性方向）；<strong>纳米晶</strong>（晶界多到成为主角——结构 III 与性能 I 的剧情）。</p>
+<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>晶格常数 ~0.3–0.6 nm；晶粒尺寸：铸态 ~mm、正常加工 10–100 μm、纳米晶 &lt;100 nm——<strong>跨六个数量级的"秩序的秩序"</strong>；</li>
+<li>致密度极限 0.74：再密就得改变几何（这就是为什么高压下才有更密的相变）；</li>
+<li><strong>反直觉</strong>：金属"软"恰因晶体太规整（滑移有路可走）；玻璃更"硬脆"恰因无路可滑（结构 IV）——<strong>秩序给了变形以通道</strong>。</li>
+</ul>
+<p>【研】对标 Cullity《X 射线衍射》前三章与 Kelly &amp; Knowles《Crystallography》；倒易点阵、点群/空间群（230 种）与结构因子是研究生晶体学的三大件，本站在工艺 III（衍射）给最小工作集。</p>
+<hr />
+<p><em>完美的晶格讲完了——但完美的晶格既不能加工也不能导电调控。下一页进入本课的灵魂：缺陷，不完美的统治。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-bonding.html"><span class="pager-label">上一页</span>结构 I · 键合与材料四大家族</a>
+  <a class="pager-slot next" href="03-defects.html"><span class="pager-label">下一页</span>结构 III · 缺陷：不完美的统治</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

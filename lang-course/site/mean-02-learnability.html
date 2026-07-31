@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>可学习性之争 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li class="active"><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 把问题问准：什么叫"可学习"</a></li>
+<li><a href="#2-gold">2. 悲观定理：Gold 的"极限中辨识"</a></li>
+<li><a href="#3-pac">3. 乐观框架：PAC 与"近似地、大概率地对"</a></li>
+<li><a href="#4">4. 归纳偏置：争论的真正焦点</a></li>
+<li><a href="#5-llm">5. LLM 把这场争论逼到墙角（但没终结）</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">意义 II · 可学习性之争<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Gold 1967、Valiant 1984 (PAC)、Chomsky 刺激贫乏、Clark &amp; Lappin《Linguistic Nativism and the Poverty of the Stimulus》、🔗 grad-math slt 线 ｜ <strong>前置</strong>：ling-02、mean-01 ｜ <strong>证据地位</strong>：<strong>定理【实】，其对语言习得的适用性【争】</strong>——这是轴 I 从口水仗升级为数学问题的地方。
+这一页把"语言能不能从数据学到"从立场之争，变成<strong>可证明、可实验的问题</strong>。三样工具：Gold 的悲观定理、PAC 的乐观框架、以及连接两者的核心概念——<strong>归纳偏置</strong>。学完你会明白：刺激贫乏论证<strong>在形式上成立</strong>，但它证明的东西<strong>比 Chomsky 需要的弱</strong>。</p>
+</blockquote>
+<h2 id="1">1. 把问题问准：什么叫"可学习"<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>"儿童能学会语言"要变成数学命题，先定清楚：<strong>学习者</strong>（一个把数据映射到假设的算法）、<strong>数据</strong>（看到什么：只有正例？有无负例？有无分布？）、<strong>目标</strong>（学到什么算成功：完全一致？近似？）、<strong>资源</strong>（多少样本、多少算力）。</p>
+<p><strong>关键洞察（贯穿本页）</strong>：可学习性<strong>不是</strong>语言的内在属性，而是<strong>〈假设空间 + 数据类型 + 成功判据〉三者的联合属性</strong>。换掉任何一个，结论就翻盘。<strong>"语言学不学得会"这个问题本身是病态的——必须补全这三项才有答案。</strong> 强先天论与涌现论的很多争执，其实是在<strong>偷偷用不同的三元组</strong>。</p>
+<h2 id="2-gold">2. 悲观定理：Gold 的"极限中辨识"<a class="headerlink" href="#2-gold" title="Permanent link"></a></h2>
+<p><strong>Gold 1967</strong>：学习者逐个看正例，每步猜一个语法，若某步后永不改猜且猜对，即"极限中学会"。结论令人沮丧——</p>
+<blockquote>
+<p><strong>任何包含所有有限语言 + 至少一个无限语言的类（"超有限"类），都无法仅从正例在极限中学会。</strong></p>
+</blockquote>
+<p>正则语言、上下文无关语言……全都<strong>不可仅凭正例学会</strong>。因为：看到有限个句子，你永远无法排除"语言恰好只有这些句子"的过度拟合假设，<strong>没有负例来纠正过度泛化</strong>。</p>
+<p><strong>先天论者的读法</strong>：儿童几乎只接触正例（没人系统给负例），却学会了——所以<strong>成功必然依赖强先天约束</strong>（把假设空间预先砍到很小）。这就是刺激贫乏的<strong>形式版</strong>，而且<strong>在 Gold 的框架里，它是对的</strong>。</p>
+<p><strong>但是（本页第一个转折）</strong>：Gold 的框架<strong>极端严苛且不现实</strong>——
+- 它要求<strong>最坏情况、完全一致</strong>（一个句子都不能错），而人只需<strong>近似</strong>；
+- 它<strong>无视概率</strong>：真实数据不是敌手挑的最坏序列，而是从某个分布<strong>采样</strong>的；
+- 它<strong>不许出错概率</strong>。<strong>放宽任何一条，悲观结论就松动</strong>——这把我们推向 PAC。</p>
+<h2 id="3-pac">3. 乐观框架：PAC 与"近似地、大概率地对"<a class="headerlink" href="#3-pac" title="Permanent link"></a></h2>
+<p><strong>Valiant 的 PAC（Probably Approximately Correct）</strong>换了成功判据（🔗 grad-math slt 讲透）：不要求完全一致，只要<strong>大概率（<span class="arithmatex">\(1-\delta\)</span>）学到近似正确（误差 <span class="arithmatex">\(&lt;\epsilon\)</span>）</strong>的假设，且样本量多项式可控。核心定理把可学习性<strong>量化</strong>成一个数——假设空间的<strong>复杂度（VC 维 <span class="arithmatex">\(d\)</span>）</strong>：</p>
+<div class="arithmatex">\[m \ \ge\ \frac{1}{\epsilon}\Big(d\,\ln\frac{1}{\epsilon} + \ln\frac{1}{\delta}\Big)\]</div>
+<figure>
+<p><img alt="样本复杂度与归纳偏置" class="fig-img" src="assets/img/mean_learnability.svg" /></p>
+<figcaption><span class="fig-id">图 mean-2</span> 泛化误差随样本量下降；假设空间越大（VC 维越高、偏置越弱），达到同样误差需要越多数据（曲线右移）。"刺激贫乏"= 数据量卡在竖线处：强偏置的学习者（低 VC）已收敛，弱偏置的还没。**争点不是"要不要偏置"，而是"偏置强到什么程度、是否语言专用"**——图中三条曲线之别。</figcaption>
+</figure>
+<p><strong>读法（本页核心）</strong>：学得会 = <strong>样本量 <span class="arithmatex">\(m\)</span> 够覆盖假设空间的复杂度 <span class="arithmatex">\(d\)</span></strong>。于是"刺激贫乏"被翻译成一个<strong>定量</strong>问题：<strong>给定儿童实际接触的数据量 <span class="arithmatex">\(m\)</span>，要学会语言，假设空间的复杂度 <span class="arithmatex">\(d\)</span>（即先天偏置的强度）必须小到多少？</strong> 争论从"有没有先天"变成"<strong>先天偏置要多强</strong>"——一个能估、能测的数，不再是立场表态。</p>
+<h2 id="4">4. 归纳偏置：争论的真正焦点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>没有免费的午餐</strong>：不带任何偏置的学习者无法泛化（任何与数据一致的假设都同样可选）。<strong>所以"要有归纳偏置"双方都同意</strong>——真正的分歧只剩两点：</p>
+<ol>
+<li><strong>偏置有多强</strong>（假设空间砍到多小）？</li>
+<li><strong>偏置是不是语言专用</strong>（一套 UG 蓝图），还是<strong>通用</strong>的（序列学习、递归、简洁性偏好、社会认知）？</li>
+</ol>
+<p><strong>这才是轴 I 的精确焦点</strong>（承 ling-02 思考 3、ling-03 思考 1）。可能的立场谱：</p>
+<table>
+<thead>
+<tr>
+<th>立场</th>
+<th>偏置强度</th>
+<th>语言专用？</th>
+<th>代表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>强先天论</td>
+<td>强（UG 参数）</td>
+<td>是</td>
+<td>Chomsky</td>
+</tr>
+<tr>
+<td>温和先天论</td>
+<td>中</td>
+<td>部分</td>
+<td>多数当代习得研究</td>
+</tr>
+<tr>
+<td>涌现/连接主义</td>
+<td>弱–中（通用架构偏置）</td>
+<td>否</td>
+<td>Elman、Christiansen</td>
+</tr>
+<tr>
+<td>纯经验论</td>
+<td>极弱</td>
+<td>否</td>
+<td>（少有人持极端版）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意</strong>：神经网络<strong>不是</strong>"无偏置白板"——其架构（卷积的局部性、Transformer 的注意力、循环的时序）<strong>本身就是强归纳偏置</strong>。所以"神经网络能学会语言"<strong>不</strong>证明"无偏置可学"，只证明"<strong>这种</strong>（通用、非语言专用的）偏置够用"。<strong>这个区分极其重要，是理解 LLM 对先天论意味着什么的关键，别搞错。</strong></p>
+<h2 id="5-llm">5. LLM 把这场争论逼到墙角（但没终结）<a class="headerlink" href="#5-llm" title="Permanent link"></a></h2>
+<p><strong>涌现派的新弹药</strong>：LLM 从纯语料（正例为主）学到了极复杂的语法，无内建 UG——<strong>这似乎是"刺激贫乏被高估"的存在性证明</strong>：足够数据 + 通用偏置，确实能长出语法。Gold 的悲观在<strong>概率 + 分布 + 近似</strong>的现实设定下，被 PAC 式的成功绕过了。</p>
+<p><strong>先天派的三条反击（都成立，都还没被驳倒）</strong>：
+1. <strong>数据效率鸿沟</strong>：LLM 需要 <span class="arithmatex">\(10^{12}\)</span> 级 token，儿童只需 <span class="arithmatex">\(10^{7\text–8}\)</span>——差 4~5 个数量级。<strong>"能从数据学"不等于"能从儿童那么少的数据学"</strong>（承 ling-03 思考 3）。这道鸿沟是先天派现在最硬的阵地。
+2. <strong>架构偏置不透明</strong>：Transformer 学会语法，也许正因它的注意力偏置<strong>恰好</strong>匹配语言结构——这不反而支持"需要合适的（也许某种意义上'先天'的）偏置"吗？
+3. <strong>学习目标不同</strong>：儿童在<strong>多模态、交互、社会</strong>中学（线四），LLM 只在文本里学——两者不可直接对比。</p>
+<p><strong>所以诚实的结论</strong>：LLM <strong>削弱</strong>了"结构完全不可从数据学"的强主张（【实】层面松动了 Gold 式悲观），但<strong>没有解决</strong>"人类<strong>如何</strong>用那么少的数据学会"——这道<strong>数据效率之缝</strong>，正是你研究里一个具体、可攻的问题。</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（把口水仗变成数字）</strong> 本页最该带走的方法：遇到"X 能不能从数据学"，别答是/否，先补全〈假设空间、数据类型、成功判据、样本量〉，再问"要学会，偏置需多强"。<strong>这套把定性争论化成可估参数的动作，本身就是研究能力</strong>——它也正是你在 Medusa 里把"能不能预测"变成"forward-only 可结算命题"的同一种纪律。</p>
+<p><strong>思考 2（数据效率是你的题）</strong> 儿童 vs LLM 的 4~5 个数量级效率差，是当前最有价值的开放问题之一。可能的解释：更强/更对的归纳偏置、多模态接地（线三 mean-03）、主动交互采样、课程式学习……<strong>每一个都是可做的子课题</strong>，而且直接落在你"语言如何促成人类智能"的靶心上。</p>
+<p><strong>思考 3（可学习 ≠ 已学会那样）</strong> 就算证明"语法在原则上可从数据学"（可学习性），也<strong>不等于</strong>"人脑就是这么学的"（机制）。可学习性是<strong>必要性</strong>层面的清障，机制是另一层（线五神经证据）。<strong>别把'能学'滑成'人这么学的'</strong>——这是本领域最常见的越界，也是你审别人论文时最该警惕的一跳。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：意义 III——符号接地问题。分布能学到结构（mean-01），也许在原则上可学（mean-02）——但学到的符号<strong>关于</strong>世界吗？还是一个自我指涉的封闭网络？章鱼、中文房间、以及"意义需要身体吗"，在这里正面登场。这是甲问与乙/丙问的分界石。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mean-01-distributional.html"><span class="pager-label">上一页</span>意义 I · 分布假说与向量语义</a>
+  <a class="pager-slot next" href="mean-03-grounding.html"><span class="pager-label">下一页</span>意义 III · 符号接地问题</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>缩放定律与功耗墙 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li class="active"><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、摩尔定律说的是什么</a></li>
+<li><a href="#dennard">二、Dennard 缩放：真正的引擎</a></li>
+<li><a href="#60-mvdecade">三、为什么它死了：60 mV/decade</a></li>
+<li><a href="#_2">四、功耗墙与它的直接后果</a></li>
+<li><a href="#_3">五、功耗的三个来源</a></li>
+<li><a href="#_4">六、缩放今天的处境</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">器件 IV · 缩放定律与功耗墙<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>这是全课的枢纽页</strong>，也是与 🔗 cs 站严丝合缝对接的地方。
+摩尔定律常被当作一句预言口号。它其实是一套<strong>具体的物理与经济逻辑</strong>：为什么把晶体管做小会同时变快、变省电、变便宜；以及为什么这套逻辑在 2005 年前后<strong>部分失效</strong>了——而那次失效，直接造成了你在 cs 站学到的一切（多核、加速器、异构计算）。</p>
+</blockquote>
+<h2 id="_1">一、摩尔定律说的是什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>摩尔定律</strong>（1965，1975 修订）：<strong>集成电路上的晶体管数量约每两年翻一番</strong>。</p>
+<p>必须澄清三点：</p>
+<ol>
+<li>它<strong>不是物理定律</strong>，而是一个<strong>经济与工程的经验观察</strong>，甚至是一个自我实现的行业路线图（大家都按这个节奏投资研发）；</li>
+<li>它说的是<strong>晶体管数量</strong>，不是速度、不是性能；</li>
+<li><strong>它至今仍在缓慢延续</strong>（靠 3D 结构、封装堆叠），但<strong>成本效益已大幅恶化</strong>——每个晶体管的成本不再随节点稳定下降，这是当前最实质的变化。</li>
+</ol>
+<h2 id="dennard">二、Dennard 缩放：真正的引擎<a class="headerlink" href="#dennard" title="Permanent link"></a></h2>
+<p>让摩尔定律转化为"更快更省电"的，是 <strong>Dennard 缩放</strong>（1974）。规则是：把所有尺寸与电压<strong>同时</strong>按因子 <span class="arithmatex">\(\kappa\)</span>（约 0.7）缩小。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>缩放</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>尺寸 <span class="arithmatex">\(L, W, t_{ox}\)</span></td>
+<td><span class="arithmatex">\(\times\kappa\)</span></td>
+<td>面积 <span class="arithmatex">\(\times\kappa^2\)</span> → <strong>密度翻倍</strong></td>
+</tr>
+<tr>
+<td>电压 <span class="arithmatex">\(V_{DD}\)</span></td>
+<td><span class="arithmatex">\(\times\kappa\)</span></td>
+<td>—</td>
+</tr>
+<tr>
+<td>掺杂</td>
+<td><span class="arithmatex">\(\times 1/\kappa\)</span></td>
+<td>维持电场不变</td>
+</tr>
+<tr>
+<td><strong>电场</strong></td>
+<td><strong>不变</strong></td>
+<td>可靠性维持</td>
+</tr>
+<tr>
+<td>电流</td>
+<td><span class="arithmatex">\(\times\kappa\)</span></td>
+<td>—</td>
+</tr>
+<tr>
+<td>延迟 <span class="arithmatex">\(\sim CV/I\)</span></td>
+<td><span class="arithmatex">\(\times\kappa\)</span></td>
+<td><strong>速度提升 ~1.4 倍</strong></td>
+</tr>
+<tr>
+<td>单管功耗 <span class="arithmatex">\(\sim CV^2f\)</span></td>
+<td><span class="arithmatex">\(\times\kappa^2\)</span></td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>功率密度</strong></td>
+<td><strong>不变</strong></td>
+<td><strong>免费的午餐</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>这就是那三十年奇迹的全部秘密</strong>：晶体管数量翻倍、频率提升、而<strong>每平方毫米的功耗保持不变</strong>。芯片可以越做越复杂、越跑越快，散热却不恶化。</p>
+<p><strong>关键在"电场不变"</strong>：电压和尺寸同比缩小，内部电场维持恒定，器件物理与可靠性都保持相似。<strong>一切依赖于电压能跟着一起降。</strong></p>
+<h2 id="60-mvdecade">三、为什么它死了：60 mV/decade<a class="headerlink" href="#60-mvdecade" title="Permanent link"></a></h2>
+<p>Dennard 缩放的崩塌，根源在上一页那个数字。</p>
+<p><strong>电压不能继续降的原因链</strong>：</p>
+<ol>
+<li>要维持性能，需要足够的过驱动 <span class="arithmatex">\(V_{DD} - V_{th}\)</span> → 想降 <span class="arithmatex">\(V_{DD}\)</span> 就得降 <span class="arithmatex">\(V_{th}\)</span>；</li>
+<li>但亚阈值摆幅 <span class="arithmatex">\(SS \ge 60\)</span> mV/dec 是<strong>玻尔兹曼极限</strong>，所以 <span class="arithmatex">\(V_{th}\)</span> 每降 60 mV，<strong>关态漏电就上升十倍</strong>；</li>
+<li>于是<strong>静态功耗（漏电）</strong>爆炸性增长，抵消甚至超过动态功耗的节省；</li>
+<li>结果：<strong><span class="arithmatex">\(V_{DD}\)</span> 在约 1 V 附近停滞</strong>（从 5 V 一路降到约 1 V 后基本卡住）。</li>
+</ol>
+<p><span class="arithmatex">\(V_{DD}\)</span> 不再下降，而密度继续翻倍，于是：</p>
+<div class="arithmatex">\[P_{\text{dynamic}} = \alpha C V_{DD}^2 f\]</div>
+<p>中的 <span class="arithmatex">\(V_{DD}^2\)</span> 不再帮忙 → <strong>功率密度开始飙升</strong>。</p>
+<figure>
+<p><img alt="缩放趋势与 Dennard 缩放的终结" class="fig-img" src="assets/img/mic_scaling.svg" /></p>
+<figcaption><span class="fig-id">图 4-1</span> 微处理器四十年趋势（示意，纵轴对数）。<strong>晶体管数量</strong>持续指数增长（摩尔定律延续）；但<strong>时钟频率</strong>与<strong>单线程性能</strong>在 2005 年前后<strong>同时拐平</strong>，<strong>供电电压</strong>也停在约 1 V。行业的应对是<strong>核心数</strong>从此开始增长——这就是多核时代的起点。<strong>频率的停滞不是工艺做不到，而是功率密度不允许。</strong></figcaption>
+</figure>
+<h2 id="_2">四、功耗墙与它的直接后果<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>功率墙（power wall）</strong>：芯片能耗散的热量有上限（约 100 W/cm² 量级，受封装与散热限制）。一旦触顶，就不能再靠提频率换性能。</p>
+<p><strong>行业的三个应对，全部写在 cs 站的课程表里</strong>：</p>
+<p><strong>① 多核</strong>：既然单核不能更快，就并行。<strong>"免费午餐结束了"</strong>——软件必须显式并行化才能享受新硬件（🔗 cs 站并行线、<code>par-01</code>）。<strong>这是一次由器件物理引发的软件范式转变。</strong></p>
+<p><strong>② 暗硅（dark silicon）</strong>：晶体管还在变多，但<strong>不能同时全部点亮</strong>——否则超出功率预算。于是芯片上总有一部分处于关闭状态。<strong>这直接催生了专用加速器</strong>：既然不能全开，不如放置多种专用单元，按需点亮最合适的那个（第十七页）。</p>
+<p><strong>③ 专用化与异构</strong>：GPU、NPU、各类固定功能单元。<strong>通用性换能效比</strong>——同样的运算，专用电路的能效可比通用 CPU 高一到两个数量级（🔗 cs 站 GPU/MLSys 线）。</p>
+<p><strong>这一条因果链值得完整记住</strong>：</p>
+<div class="arithmatex">\[\text{60 mV/dec 玻尔兹曼极限} \Rightarrow V_{DD}\ \text{停滞} \Rightarrow \text{功率密度上升} \Rightarrow \text{频率封顶} \Rightarrow \text{多核 + 专用化}\]</div>
+<p><strong>热力学的一个常数，重塑了整个计算机产业。</strong></p>
+<h2 id="_3">五、功耗的三个来源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>设计者面对的功耗预算由三部分组成：</p>
+<div class="arithmatex">\[P = \underbrace{\alpha C V_{DD}^2 f}_{\text{动态（开关）}} + \underbrace{I_{SC}V_{DD}}_{\text{短路}} + \underbrace{I_{leak}V_{DD}}_{\text{静态（漏电）}}\]</div>
+<ul>
+<li><strong>动态功耗</strong>：电容充放电。<strong><span class="arithmatex">\(V_{DD}^2\)</span> 是最有力的旋钮</strong>——这就是为什么低功耗设计首选降压（DVFS：动态电压频率调节）；</li>
+<li><strong>短路功耗</strong>：翻转瞬间 NMOS/PMOS 同时导通，一般占比较小（通过控制信号转换斜率来抑制）；</li>
+<li><strong>静态漏电</strong>：亚阈值漏电 + <strong>栅隧穿漏电</strong> + 结漏电。<strong>在先进节点，漏电可占总功耗的相当大比例</strong>，且随温度指数上升——形成"越热越漏、越漏越热"的正反馈（热失控风险）。</li>
+</ul>
+<p><strong>对抗手段</strong>（都是权衡）：多阈值电压器件（关键路径用低 <span class="arithmatex">\(V_{th}\)</span> 快管、非关键路径用高 <span class="arithmatex">\(V_{th}\)</span> 省电管）、电源门控（power gating，整块关断）、时钟门控、DVFS、以及第五页的器件结构革新。</p>
+<h2 id="_4">六、缩放今天的处境<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>仍在进行的</strong>：晶体管密度依然提升（靠 FinFET → GAA、以及设计–工艺协同优化）。</p>
+<p><strong>已经停止的</strong>：
+- <strong>Dennard 缩放</strong>（2005 年前后）——电压不再跟着降；
+- <strong>成本缩放</strong>——每晶体管成本在先进节点趋平甚至上升。EUV 设备、掩模、设计费用（先进节点一次流片的设计成本可达数亿美元量级）都在暴涨；
+- <strong>SRAM 面积缩放</strong>明显放缓——这对缓存密集的处理器影响很大（第十页）。</p>
+<p><strong>"节点名称"的真相</strong>：现在的"3nm""2nm"<strong>不对应任何物理尺寸</strong>——它们是市场命名，不同厂商之间也不可直接比较。真正有意义的指标是<strong>接触栅间距（CPP）、金属间距（MMP）、以及每平方毫米晶体管数</strong>。<strong>看到节点数字，先问它指的是什么。</strong></p>
+<p><strong>行业的新方向</strong>（后面各页展开）：
+- 器件结构：FinFET → GAA → CFET（第五、十九页）；
+- <strong>不再只靠"做小"，而是"堆叠与拼装"</strong>：3D 集成、Chiplet（第十五页）；
+- 专用化与近存计算（第十六、十七页）。</p>
+<hr />
+<p><em>下一页：既然继续缩小会遭遇短沟道效应，器件工程师是怎么应对的？从体硅 MOSFET 到 FinFET 再到环栅纳米片——一条被"栅控能力"这一个概念串起来的演进史。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-mosfet.html"><span class="pager-label">上一页</span>器件 III · MOSFET 的工作原理</a>
+  <a class="pager-slot next" href="05-modern-device.html"><span class="pager-label">下一页</span>器件 V · 从短沟道效应到 GAA</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

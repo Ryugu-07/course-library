@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>检验特性：敏感度、ROC 与截断值 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li class="active"><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-22">1. 2×2 表与四个比率</a></li>
+<li><a href="#2">2. 截断值：一个不可回避的权衡</a></li>
+<li><a href="#3-auc">3. AUC 的意义与它的陷阱</a></li>
+<li><a href="#4-ppv">4. 患病率如何摧毁 PPV</a></li>
+<li><a href="#5">5. 金标准问题：所有这些数字是怎么得出来的</a></li>
+<li><a href="#6">6. 常被误读的检验：三个例子</a></li>
+<li><a href="#7">7. 连续变量被二分的代价</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-roc">诊断 II · 检验特性：敏感度、ROC 与截断值<a class="headerlink" href="#ii-roc" title="Permanent link"></a></h1>
+<blockquote>
+<p>上一页把诊断写成概率更新。这一页处理更新所用的那个乘数<strong>从哪里来、可不可信、能不能调</strong>。核心信息只有一条：<strong>敏感度与特异度不是"检验的固有精度"，而是"检验 + 截断值 + 人群"三者共同决定的</strong>。</p>
+</blockquote>
+<h2 id="1-22">1. 2×2 表与四个比率<a class="headerlink" href="#1-22" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>病 +</th>
+<th>病 −</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>检验 +</strong></td>
+<td>TP</td>
+<td>FP</td>
+</tr>
+<tr>
+<td><strong>检验 −</strong></td>
+<td>FN</td>
+<td>TN</td>
+</tr>
+</tbody>
+</table>
+<div class="arithmatex">\[Sn = \frac{TP}{TP+FN}\quad Sp = \frac{TN}{TN+FP}\quad PPV = \frac{TP}{TP+FP}\quad NPV = \frac{TN}{TN+FN}\]</div>
+<p><strong>必须分清的一件事</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(Sn\)</span>、<span class="arithmatex">\(Sp\)</span> 沿"列"计算</strong>——<strong>给定疾病状态</strong>问检验怎么表现。它们<strong>相对独立于患病率</strong>；</li>
+<li><strong><span class="arithmatex">\(PPV\)</span>、<span class="arithmatex">\(NPV\)</span> 沿"行"计算</strong>——<strong>给定检验结果</strong>问疾病概率。<strong>它们强烈依赖患病率</strong>。</li>
+</ul>
+<p><strong>记忆法（老口诀，但确实有用）</strong>：
+<strong>SnNout</strong>——<strong>Sn</strong> 高的检验，结果 <strong>N</strong>egative 时可 rule <strong>out</strong>；
+<strong>SpPin</strong>——<strong>Sp</strong> 高的检验，结果 <strong>P</strong>ositive 时可 rule <strong>in</strong>。</p>
+<p><strong>理由一行就能看出</strong>：<span class="arithmatex">\(Sn \to 1 \Rightarrow LR^- = (1-Sn)/Sp \to 0\)</span>（强力排除）；<span class="arithmatex">\(Sp \to 1 \Rightarrow LR^+ = Sn/(1-Sp) \to \infty\)</span>（强力确立）。</p>
+<h2 id="2">2. 截断值：一个不可回避的权衡<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Overlapping distributions, cutoff, and the resulting ROC curve" src="assets/img/cli-02-roc.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>左：患病与未患病两个分布在检验值上**重叠**——**只要重叠存在，就不可能同时消灭假阳性与假阴性**。移动截断值只是在两类错误之间搬运。右：由所有可能截断值扫出的 **ROC 曲线**；曲线下面积 AUC 表示"随机取一个病人与一个非病人，病人检验值更高的概率"。三条曲线对应不同程度的分布分离。</figcaption>
+</figure>
+<p><strong>这张图是本页的全部</strong>：两个分布重叠的程度决定了检验的判别能力（AUC），而<strong>截断值只决定你在这条曲线上站在哪一点</strong>。</p>
+<p><strong>降低截断值</strong> → <span class="arithmatex">\(Sn\)</span> ↑、<span class="arithmatex">\(Sp\)</span> ↓（宁可错抓）；<strong>提高截断值</strong> → <span class="arithmatex">\(Sp\)</span> ↑、<span class="arithmatex">\(Sn\)</span> ↓（宁可放过）。</p>
+<p><strong>该站在哪一点，由代价决定，不由统计决定</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>取向</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>漏诊代价 ≫ 误诊代价</td>
+<td><strong>高 Sn（低截断）</strong></td>
+<td>急诊排除主动脉夹层、脑膜炎；献血筛查</td>
+</tr>
+<tr>
+<td>误诊代价 ≫ 漏诊代价</td>
+<td><strong>高 Sp（高截断）</strong></td>
+<td>确诊性检查、启动毒性治疗前</td>
+</tr>
+<tr>
+<td><strong>两步策略</strong></td>
+<td><strong>先高 Sn 筛、再高 Sp 确认</strong></td>
+<td>HIV（初筛 → 确证）、多数癌症筛查</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"两步策略"是现实中最常用的解法</strong>，且它正确地承认了：<strong>没有单个检验能同时做好两件事。</strong></p>
+<h2 id="3-auc">3. AUC 的意义与它的陷阱<a class="headerlink" href="#3-auc" title="Permanent link"></a></h2>
+<div class="arithmatex">\[AUC = P(X_{\text{病}} &gt; X_{\text{非病}})\]</div>
+<p>（等价于 Mann–Whitney U 统计量的标准化形式，🔗 数学站数理统计线。）</p>
+<p><strong>AUC 的三个常见误用</strong>：</p>
+<ol>
+<li><strong>AUC 高不等于临床有用</strong>。AUC 0.85 的模型在低患病率人群中 PPV 仍可能很低；<strong>且 AUC 完全不含代价信息</strong>——它对两类错误一视同仁，而临床上从不如此；</li>
+<li><strong>比较 AUC 的增量常常被夸大</strong>。加一个新标志物使 AUC 从 0.80 升到 0.82，<strong>在重分类指标（NRI、决策曲线分析）上往往几乎没有价值</strong>；</li>
+<li><strong>AUC 依赖研究人群的疾病谱</strong>。在"重症患者 vs 健康志愿者"上评估会给出漂亮的 AUC，<strong>在真实的鉴别诊断人群中大幅下降</strong>（<strong>谱偏倚</strong>，第 07 页）。</li>
+</ol>
+<p><strong>更贴近决策的替代</strong>：<strong>决策曲线分析（decision curve analysis）</strong>——直接问"在各种阈值偏好下，用这个模型比'全治'或'全不治'净获益多少"。<strong>它把代价显式地放进评价</strong>，是近十五年诊断研究方法学的重要改进。</p>
+<h2 id="4-ppv">4. 患病率如何摧毁 PPV<a class="headerlink" href="#4-ppv" title="Permanent link"></a></h2>
+<p>这是本站最重要的定量事实之一。设 <span class="arithmatex">\(Sn = 0.99\)</span>、<span class="arithmatex">\(Sp = 0.99\)</span>（<strong>已是极优秀的检验</strong>）：</p>
+<table>
+<thead>
+<tr>
+<th>患病率</th>
+<th>PPV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>50%</td>
+<td><strong>99%</strong></td>
+</tr>
+<tr>
+<td>5%</td>
+<td><strong>84%</strong></td>
+</tr>
+<tr>
+<td>1%</td>
+<td><strong>50%</strong></td>
+</tr>
+<tr>
+<td><strong>0.1%</strong></td>
+<td><strong>9%</strong></td>
+</tr>
+<tr>
+<td>0.01%</td>
+<td><strong>1%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>在患病率 0.1% 的人群中，一个 99%/99% 的检验阳性时，仍有 91% 的概率是假阳性。</strong></p>
+<div class="arithmatex">\[PPV = \frac{Sn \cdot p}{Sn \cdot p + (1-Sp)(1-p)}\]</div>
+<p><strong>这不是检验不好，而是算术。</strong> 分母中的假阳性项 <span class="arithmatex">\((1-Sp)(1-p)\)</span> 在 <span class="arithmatex">\(p\)</span> 很小时占据主导——<strong>罕见事件的筛查天然被假阳性淹没</strong>。第 03 页把这条展开成完整的筛查论证。</p>
+<p>🔗 <strong>这与你在预测层遇到的问题完全同构</strong>：在一个基础发生率很低的事件上，即使模型"准确率很高"，被标记为"将发生"的那些命题里绝大多数仍会落空。<strong>医学把这条教训写进了指南体系，值得直接借用。</strong></p>
+<h2 id="5">5. 金标准问题：所有这些数字是怎么得出来的<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>要算 Sn 与 Sp，必须先知道谁真的有病</strong>——这需要一个<strong>参考标准</strong>。<strong>现实中的参考标准往往不完美</strong>，由此产生一组系统性偏倚：</p>
+<table>
+<thead>
+<tr>
+<th>偏倚</th>
+<th>机制</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>验证偏倚</strong>（work-up bias）</td>
+<td><strong>只有检验阳性者才去做金标准确认</strong></td>
+<td><strong>高估 Sn、低估 Sp</strong></td>
+</tr>
+<tr>
+<td><strong>不完美金标准偏倚</strong></td>
+<td>参考标准本身有错</td>
+<td>若两者错误相关，<strong>高估</strong>一致性</td>
+</tr>
+<tr>
+<td><strong>谱偏倚</strong></td>
+<td>研究人群病情比实际使用人群更重/更轻</td>
+<td>高估判别能力</td>
+</tr>
+<tr>
+<td><strong>纳入偏倚</strong></td>
+<td>被评价的检验本身参与了金标准的定义</td>
+<td><strong>循环论证，严重高估</strong></td>
+</tr>
+<tr>
+<td><strong>观察者偏倚</strong></td>
+<td>判读者知道其他信息</td>
+<td><strong>需盲法判读</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>读一篇诊断准确性研究时，先找 STARD 报告清单里的这几项</strong>：是否连续纳入、是否所有人都做了金标准、判读是否盲法、纳入人群是否与你的患者相似。<strong>这份检查清单是本页最实用的产物。</strong></p>
+<h2 id="6">6. 常被误读的检验：三个例子<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>① D-二聚体</strong>：<span class="arithmatex">\(Sn\)</span> 极高（<span class="arithmatex">\(LR^- \approx 0.05\)</span>–0.1）、<span class="arithmatex">\(Sp\)</span> 低。<strong>正确用法是在低-中验前概率患者中"排除"肺栓塞/深静脉血栓</strong>；<strong>在高验前概率患者中做它是错的</strong>——阴性也不能排除（后验仍高于治疗阈值），而阳性什么也没告诉你。<strong>这是"检验的用途由验前概率决定"的最干净的例子。</strong></p>
+<p><strong>② ANA（抗核抗体）</strong>：在健康人群中<strong>低滴度阳性相当常见</strong>。<strong>在没有临床怀疑的情况下查 ANA，几乎注定产生假阳性 → 转诊、复查、焦虑</strong>。🔗 姊妹站第 10 页讲其免疫学机制。</p>
+<p><strong>③ 高敏肌钙蛋白</strong>：敏感度提高后，<strong>"阳性"的含义变了</strong>——它现在检出许多非心梗的心肌损伤（心衰、肾病、脓毒症、剧烈运动）。<strong>所以现代路径用"变化值（delta）"而非单次绝对值</strong>，并结合临床（第 10 页）。<strong>这是"检验变好反而使解读变难"的典型</strong>：更高的敏感度必然带来更低的特异度，除非同时改变判读框架。</p>
+<h2 id="7">7. 连续变量被二分的代价<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>临床检验常把连续值切成"正常/异常"。<strong>这一步丢掉信息</strong>：TSH 4.6 与 TSH 25 都是"高"，含义天差地别。</p>
+<p><strong>两条改进</strong>：<strong>报告并使用似然比分层</strong>（不同数值区间给不同 <span class="arithmatex">\(LR\)</span>，而非只有阳/阴两档）；<strong>在决策模型中直接用连续值</strong>。</p>
+<p><strong>"参考范围"本身的定义也值得知道</strong>：通常取健康人群的<strong>中间 95%</strong>——<strong>这意味着按定义就有 5% 的健康人"异常"</strong>。<strong>做 20 项检查，平均会有 1 项落在参考范围外</strong>（假设独立）。<strong>这是"全套体检"产生大量无意义异常的算术原因</strong>，第 03 页继续。</p>
+<hr />
+<p><em>下一页：把以上结论用到筛查上——为什么"早发现早治疗"这句正确的直觉，在数据上经常不成立。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-bayes.html"><span class="pager-label">上一页</span>诊断 I · 诊断即推断：先验、似然比、后验</a>
+  <a class="pager-slot next" href="03-screening.html"><span class="pager-label">下一页</span>诊断 III · 筛查悖论与过度诊断</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>非晶与玻璃 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li class="active"><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 玻璃的身份：来不及结晶的液体</a></li>
+<li><a href="#2">2. 谁容易成玻璃：动力学竞赛</a></li>
+<li><a href="#3">3. 无序的独门性能（乱得其所）</a></li>
+<li><a href="#4">4. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">结构 IV · 非晶与玻璃：无序的秩序<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>如果冷却快到原子来不及排队，液体的乱序就被"冻结"成固体——<strong>非晶态（玻璃态）</strong>。窗玻璃、大部分塑料、光纤、手机屏的玻璃盖板、变压器的非晶合金带材都住在这里。本页回答三问：玻璃是什么（一个动力学身份而非热力学相）、玻璃转变发生了什么、无序换来了哪些独门性能。</p>
+</blockquote>
+<h2 id="1">1. 玻璃的身份：来不及结晶的液体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>冷却熔体的两条命运（看比容-温度图）：慢冷 ⇒ 在熔点 <span class="arithmatex">\(T_m\)</span> 结晶、体积突降（一级相变）；<strong>快冷 ⇒ 越过 <span class="arithmatex">\(T_m\)</span> 不结晶（过冷液体），黏度指数飙升，到玻璃转变温度 <span class="arithmatex">\(T_g\)</span> 附近原子运动"冻住"</strong>——曲线只是改变斜率、无突变。</p>
+<figure class="plot">
+<p><img alt="Specific volume vs temperature: crystal vs glass path" src="assets/img/mat-04-glasstransition.svg" /></p>
+<figcaption><span class="fig-id">图 4.1</span>比容-温度图的两条路：结晶路径在 \(T_m\) 突降（一级相变），玻璃路径连续滑过、在 \(T_g\) 改变斜率——且冷却越快 \(T_g\) 越高（虚线）：玻璃转变是动力学事件，不是热力学相变。</figcaption>
+</figure>
+<p><strong>三个身份判定</strong>：<span class="arithmatex">\(T_g\)</span> <strong>依赖冷却速率</strong>（快冷的玻璃"冻"得早、<span class="arithmatex">\(T_g\)</span> 偏高）——真正的相变温度不会看你冷多快；玻璃在 <span class="arithmatex">\(T_g\)</span> 下仍是<strong>热力学亚稳态</strong>（自由能高于晶体，只是动不了——放几百年的玻璃教堂窗并没有"流下来"，常温黏度对应的流动时标远超宇宙年龄，那个都市传说是假的）；结构上无长程序、<strong>有短程序</strong>（近邻配位仍讲究——径向分布函数只剩前几个峰，工艺 III 的衍射看得见：非晶衍射是弥散晕不是锐峰）。</p>
+<h2 id="2">2. 谁容易成玻璃：动力学竞赛<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>结晶要形核 + 长大（热力 III 的机器），都需要时间——<strong>玻璃形成能力 = 结晶动力学有多慢 vs 你能冷多快</strong>：</p>
+<ul>
+<li><strong>氧化物玻璃</strong>（SiO₂ 系）：网络状共价骨架黏度天然巨大，慢冷也成玻璃（窗玻璃 ~K/min 级即可）；网络改性剂（Na₂O 断网）降黏度降 <span class="arithmatex">\(T_g\)</span>——钠钙玻璃便宜好熔的化学原因；</li>
+<li><strong>高分子</strong>：长链解缠排队极慢，多数聚合物天然半晶或全非晶（性能 III 详述结晶度光谱）；</li>
+<li><strong>金属</strong>：原子是圆球、排队飞快——纯金属需 ~<span class="arithmatex">\(10^{10}\)</span> K/s（几乎不可能）；<strong>金属玻璃</strong>靠多组元大原子尺寸差"把队伍搅乱"（混乱原则），块体非晶合金临界冷速已降到 K/s 级【研：Inoue 三原则、Zr/Pd 基体系】。</li>
+</ul>
+<h2 id="3">3. 无序的独门性能（乱得其所）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>性能</th>
+<th>机理</th>
+<th>应用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>各向同性 + 无晶界</strong></td>
+<td>没有取向、没有界面</td>
+<td>光学均匀（镜头、光纤——光纤损耗低至 ~0.2 dB/km 靠的是非晶均匀性 + 高纯）</td>
+</tr>
+<tr>
+<td><strong>超高弹性极限</strong>（金属玻璃 ~2%，晶态金属 ~0.2%）</td>
+<td><strong>没有位错可动</strong>——结构 III 的逻辑反用：无滑移通道 ⇒ 弹性段一路到底</td>
+<td>高尔夫球杆面、精密弹簧、齿轮微件</td>
+</tr>
+<tr>
+<td>软磁优异（非晶/纳米晶合金带材）</td>
+<td>无晶界钉扎磁畴 + 无磁晶各向异性</td>
+<td>变压器铁损降 60–70%（功能 II 再会）</td>
+</tr>
+<tr>
+<td>透明（氧化物玻璃）</td>
+<td>无晶界散射 + 带隙大于可见光子</td>
+<td>功能 III 讲"透明的条件"</td>
+</tr>
+<tr>
+<td>脆性（金属玻璃的阿喀琉斯之踵）</td>
+<td>变形集中在剪切带、无加工硬化</td>
+<td>块体应用受限的主因【研：剪切带力学】</td>
+</tr>
+</tbody>
+</table>
+<p><strong>主线回响</strong>："缺陷决定命运"在此有一个镜像版本——<strong>金属玻璃强，是因为它连位错这种缺陷都没有</strong>；但也因此没有塑性缓冲。有序与无序各有其性能包，工程是在两者间选择与混合（部分结晶的微晶玻璃、非晶基复合材料——取两头）。</p>
+<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>黏度刻度：熔融金属 ~<span class="arithmatex">\(10^{-3}\)</span>、<span class="arithmatex">\(T_g\)</span> 定义点 ~<span class="arithmatex">\(10^{12}\)</span> Pa·s——十五个数量级的连续攀爬；</li>
+<li>冷速谱：窗玻璃 K/min → 甩带法金属玻璃 <span class="arithmatex">\(10^6\)</span> K/s → 纯金属所需 <span class="arithmatex">\(10^{10}\)</span> K/s；</li>
+<li><strong>反直觉</strong>：玻璃不是慢冷的产物而是<strong>快冷</strong>的产物；"玻璃是液体"只在"结构像冻结的液体"意义上对、在"会流动"意义上错；金属玻璃比晶态同门<strong>强数倍</strong>——"完美无缺陷"的另一条实现路径不是完美晶体，而是彻底放弃晶体。</li>
+</ul>
+<p>【研】对标 Varshneya《Fundamentals of Inorganic Glasses》；自由体积理论、脆性/强液体分类（Angell 图）、结构弛豫与老化是研究生玻璃物理的主干。</p>
+<hr />
+<p><em>线一收官：晶体的秩序、缺陷的统治、无序的另类出路——材料"长什么样"讲完了。线二回答"为什么长成这样、能变成什么样"：热力学给方向，动力学给速度，第一站是材料人的地图——相图。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-defects.html"><span class="pager-label">上一页</span>结构 III · 缺陷：不完美的统治</a>
+  <a class="pager-slot next" href="05-thermo-phase.html"><span class="pager-label">下一页</span>热力 I · 相图：材料的地图</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

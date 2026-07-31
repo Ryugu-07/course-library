@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>计算材料学与 AI · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li class="active"><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 多尺度计算谱系（选工具的地图）</a></li>
+<li><a href="#2-ai">2. AI 的三种用法（按成熟度排序）</a></li>
+<li><a href="#3">3. 一次值得记住的教训（本页最重要的一段）</a></li>
+<li><a href="#4">4. 数据基础设施（低调但决定上限）</a></li>
+<li><a href="#5-ai-for-materials">5. 判断框架（读 AI-for-materials 新闻的五问）</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-ai">前沿 III · 计算材料学与 AI<a class="headerlink" href="#iii-ai" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>⚠️ 保质期声明</strong>：核对于 <strong>2026-07</strong>，本页是全站更新最快的一页（AI 方向以季度计）。判断框架长期有效。</p>
+<p>材料研发的传统节奏是"试错 + 经验 + 运气"，一代材料从发现到应用十到二十年。计算与 AI 正在改写这个节奏——但<strong>改写到什么程度，是当前学界与产业界最值得较真的问题</strong>。本页给方法谱系、真实进展、以及一次值得记住的教训。</p>
+</blockquote>
+<h2 id="1">1. 多尺度计算谱系（选工具的地图）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>尺度</th>
+<th>方法</th>
+<th>能算什么</th>
+<th>代价/局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>电子（Å, fs）</td>
+<td><strong>DFT</strong> 第一性原理</td>
+<td>能带、形成能、弹性常数、缺陷能、反应路径</td>
+<td>数百原子上限；带隙系统性低估；泛函依赖</td>
+</tr>
+<tr>
+<td>原子（nm, ns）</td>
+<td>分子动力学 MD</td>
+<td>扩散、界面、力学变形、非晶结构</td>
+<td>依赖势函数（<strong>机器学习势</strong>正在改变这一点）</td>
+</tr>
+<tr>
+<td>介观（μm, s）</td>
+<td>相场、动力学蒙特卡洛、位错动力学</td>
+<td>组织演化、枝晶、相变、位错集体行为</td>
+<td>参数需上层输入</td>
+</tr>
+<tr>
+<td>宏观</td>
+<td><strong>CALPHAD</strong>、有限元、ICME</td>
+<td>相图外推、工艺-组织-性能贯通</td>
+<td>依赖数据库质量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ICME（集成计算材料工程）</strong>：把各尺度串成"成分-工艺-组织-性能-服役"的链条——这是计算材料学的工业形态，也是航空与汽车企业真正落地的部分（合金设计、工艺窗口、寿命预测）。</p>
+<p><strong>机器学习势（MLIP）</strong>：用 DFT 数据训练势函数，做到"DFT 的精度、MD 的速度"——<strong>这是近年最扎实的进展之一</strong>，把可模拟的时空尺度提升数个数量级；通用原子间势（如 M3GNet/MACE/GNoME 衍生模型一类）已能覆盖大部分元素组合，成为高通量筛选与 MD 的新基础设施。</p>
+<h2 id="2-ai">2. AI 的三种用法（按成熟度排序）<a class="headerlink" href="#2-ai" title="Permanent link"></a></h2>
+<ol>
+<li><strong>代理模型/性能预测</strong>（最成熟）：用已有数据训练"成分工艺 → 性能"的回归器，替代昂贵计算或实验；关键不在模型复杂度而在<strong>数据质量与外推边界</strong>（🔗 数学站统计 V 的"外推危险"、SLT 线的泛化理论——<strong>材料数据集小、偏、缺负样本</strong>，这是本领域 ML 的根本约束）；</li>
+<li><strong>高通量筛选</strong>：DFT + ML 在百万级候选中筛出稳定相——<strong>DeepMind 的 GNoME 预测了约 220 万个晶体、其中约 38 万被判定为潜在稳定</strong>，是这条路线迄今规模最大的一次演示；</li>
+<li><strong>生成式/逆向设计</strong>（最新）：给定目标性能直接生成候选结构——<strong>微软 MatterGen</strong> 用扩散模型做晶体结构生成（🔗 你的 comfy 站第 02 讲的扩散数学，在材料空间的同构应用：从噪声去噪出一个晶体，而不是一张图）。</li>
+</ol>
+<p><strong>自主实验室（self-driving lab）</strong>：把"生成假设 → 合成 → 表征 → 更新模型"闭环自动化（伯克利、NC State、MIT 及多家中国机构均在运行），产出速率从"每年几个"提到"每周几十个候选"。</p>
+<h2 id="3">3. 一次值得记住的教训（本页最重要的一段）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>2023 年伯克利 <strong>A-Lab</strong> 宣称 17 天自主合成 41 种新无机化合物，是"AI + 自动化改变材料发现"最广为引用的证据之一。随后有同行批评指出其中多数产物<strong>实为已知化合物或表征归属存在问题</strong>；<strong>2026 年 1 月，《自然》对该论文发布了更正</strong>。</p>
+<p><strong>这件事的三条启示</strong>（不是要否定方向，而是校准判断）：</p>
+<ul>
+<li><strong>"新材料"的判定标准很硬</strong>：结构解析、相纯度、可重复合成——<strong>自动化容易放大表征环节的薄弱</strong>；</li>
+<li><strong>合成鸿沟（synthesis gap）是当前真正的瓶颈</strong>：计算能给"热力学上可能稳定"，但<strong>能不能做出来、以什么路径做出来、做出来是否具备预测性能</strong>是另一个量级的问题——截至 2026 年初，<strong>尚无一种由 AI 首次发现的材料进入商业化生产</strong>；</li>
+<li>学科的自我纠错机制（复现、批评、更正）<strong>照常运转</strong>——这本身是好消息，也是读任何 AI-for-Science 报道时该有的默认姿态（🔗 与你 AI 站第 14 讲的 verify 文化、数学站统计 IV 的多重检验/可复现性危机是同一堂课）。</li>
+</ul>
+<h2 id="4">4. 数据基础设施（低调但决定上限）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Materials Project、AFLOW、OQMD、NOMAD 等开放数据库是这一切的地基；<strong>FAIR 数据原则</strong>与统一的元数据标准正在成为共识。真正的稀缺资源不是算力也不是模型，而是：<strong>高质量的实验数据（尤其是失败与负结果）、标准化的工艺记录、以及表征原始数据的可获取性</strong>。谁把这三样做扎实，谁的 AI 才有真东西可学——<strong>这是给任何想入行者的最实用建议</strong>。</p>
+<h2 id="5-ai-for-materials">5. 判断框架（读 AI-for-materials 新闻的五问）<a class="headerlink" href="#5-ai-for-materials" title="Permanent link"></a></h2>
+<p>① 是<strong>预测</strong>还是<strong>合成验证</strong>？（差一个数量级的可信度）② 数据从哪来、覆盖什么成分空间、<strong>外推还是内插</strong>？③ 有无<strong>独立复现</strong>？④ 性能是<strong>计算值</strong>还是<strong>实测值</strong>、测的是什么尺寸的样品？⑤ 距离可制造有多远（克级？公斤级？工艺窗口有多宽）？</p>
+<p><strong>总纲</strong>：AI 正在把材料科学的<strong>筛选</strong>环节加速一个数量级，但<strong>合成、表征、放大、认证</strong>这四关仍是人类与设备的战场——<strong>加速的是漏斗的上半段，不是全程</strong>。这是 2026 年这个时点上最诚实的表述。</p>
+<hr />
+<p><em>前沿了望结束。最后一页收官：把全站的知识收成一件可用的工具——材料选择的方法论。</em></p>
+<p><strong>Sources</strong>：<a href="https://deepmind.google/blog/millions-of-new-materials-discovered-with-deep-learning/">DeepMind GNoME</a> · <a href="https://nextwavesinsight.com/ai-materials-discovery-gnome-mattergen-2026/">AI materials discovery 2026 综述</a> · <a href="https://www.cypris.ai/insights/ai-accelerated-materials-discovery-in-2025-how-generative-models-graph-neural-networks-and-autonomous-labs-are-transforming-r-d">AI-accelerated discovery 现状</a></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-energy-materials.html"><span class="pager-label">上一页</span>前沿 II · 能源材料</a>
+  <a class="pager-slot next" href="22-selection-closing.html"><span class="pager-label">下一页</span>收官 · 材料选择与设计</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

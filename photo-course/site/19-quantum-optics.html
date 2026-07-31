@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光计算与量子光学 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li class="active"><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、光计算：诱惑与障碍</a></li>
+<li><a href="#_2">二、量子光学的基本资源</a></li>
+<li><a href="#_3">三、量子通信</a></li>
+<li><a href="#_4">四、光量子计算</a></li>
+<li><a href="#_5">五、一个贯穿的判读模式</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">前沿 II · 光计算与量子光学<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：物理原理【实】；<strong>光计算的实用前景【争】</strong>；<strong>量子优势的解释【争】</strong>。🔗 与物理站量子信息线、cs 站、AI 站互链。
+两个极具诱惑的方向。第四页说过"一枚透镜以光速零功耗完成傅里叶变换"——那么为什么不用光来计算？而量子光学则把光的量子性质变成资源。本页讲清它们的原理、真实进展，以及为什么它们至今没有取代电子计算。</p>
+</blockquote>
+<h2 id="_1">一、光计算：诱惑与障碍<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>诱惑非常真实</strong>（承第四页）：
+- <strong>并行性</strong>：整个二维波前同时传播；
+- <strong>速度</strong>：光速传播，无 RC 延迟（🔗 微电子站第六页：互连延迟是电子学的瓶颈）；
+- <strong>无源运算的低功耗</strong>：透镜做傅里叶变换本身不耗能；
+- <strong>矩阵乘法天然</strong>：MZI 网格可实现任意幺正变换，光通过即完成矩阵-向量乘。</p>
+<p><strong>这对以矩阵乘法为主的神经网络推理极具吸引力</strong>（🔗 AI 站、微电子站第十六页的存内计算是同一动机）。</p>
+<p><strong>但障碍同样真实</strong>——<strong>它们与微电子站第十六页讨论存内计算时的障碍高度相似</strong>：</p>
+<p><strong>① 电光/光电转换的开销。</strong> 数据要变成光、算完要变回电。<strong>转换的功耗与延迟常常吃掉光学部分节省的一切</strong>——<strong>这是所有光计算方案的第一道坎</strong>。</p>
+<p><strong>② 精度有限。</strong> 模拟光学计算受噪声、串扰、器件误差限制，<strong>有效精度通常只有 4–8 位</strong>。而神经网络训练需要更高精度（推理可低精度，这是唯一的机会窗口）。</p>
+<p><strong>③ 非线性极难。</strong> 神经网络需要非线性激活函数，<strong>而光学非线性弱且需要高功率</strong>（第十四页）。<strong>现有方案多数在电域做非线性</strong> → 又回到转换开销。</p>
+<p><strong>④ 存储与可编程性。</strong> 光没有天然的存储；权重更新（尤其训练）代价高。</p>
+<p><strong>⑤ 与移动的靶子竞争。</strong> 数字加速器（🔗 微电子站第十七页）在持续进步，<strong>光计算必须打败的是一个每年都在变强的对手</strong>。</p>
+<p><strong>当前较可信的定位</strong>：
+- <strong>光互连（而非光计算）是真正落地的部分</strong>——CPO、光学 I/O（第十三、十五页）；
+- <strong>特定窄场景的光学加速</strong>（如固定权重的卷积、光学预处理）；
+- <strong>光学储备池计算、伊辛机</strong>（组合优化）有专门场景；
+- <strong>通用光学 AI 加速器仍处早期</strong>【争】。</p>
+<p><strong>判读此类工作的问题</strong>：<strong>算不算电光转换的能耗？是端到端还是仅光学部分？精度损失多少？与同期数字加速器的公平对比如何？</strong> ——<strong>与微电子站第十六页那份清单完全一致。</strong></p>
+<h2 id="_2">二、量子光学的基本资源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>光的量子性质提供了经典物理没有的资源：</p>
+<p><strong>① 单光子与光子统计</strong>：
+- <strong>相干态（激光）</strong>：光子数服从泊松分布 → <strong>这正是散粒噪声的来源</strong>（第九页）；
+- <strong>压缩态</strong>：把噪声从一个正交分量"挤"到另一个 → <strong>可在某个量度上突破散粒噪声极限</strong>。
+  <strong>这已经在引力波探测器中实用化</strong>——注入压缩光提高了探测灵敏度。<strong>这是量子光学最扎实的工程应用之一</strong>；
+- <strong>单光子源</strong>：量子点、色心、参量下转换。</p>
+<p><strong>② 纠缠</strong>：参量下转换产生的纠缠光子对，是量子通信与计算的基础资源。</p>
+<p><strong>③ 量子测量的极限</strong>：
+- <strong>标准量子极限（SQL）</strong>：<span class="arithmatex">\(\Delta\phi \sim 1/\sqrt{N}\)</span>（经典）；
+- <strong>海森堡极限</strong>：<span class="arithmatex">\(\Delta\phi\sim 1/N\)</span>（利用纠缠）。<strong>理论上可显著提升精密测量灵敏度</strong>，但对损耗极其敏感——<strong>这是量子计量的核心困难</strong>。</p>
+<h2 id="_3">三、量子通信<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>量子密钥分发（QKD）</strong>：利用量子态不可克隆，<strong>窃听必然引入可检测的扰动</strong>。</p>
+<ul>
+<li><strong>BB84 等协议已有商用系统与城域网、卫星实验</strong>；</li>
+<li><strong>优势</strong>：安全性基于物理定律而非计算复杂度；</li>
+<li><strong>必须诚实指出的限制</strong>：</li>
+<li><strong>QKD 只分发密钥</strong>，实际通信仍用对称加密；</li>
+<li><strong>速率随距离指数下降</strong>（光子损耗），<strong>且无法用经典中继放大</strong>（不可克隆）；</li>
+<li><strong>量子中继与量子存储尚不成熟</strong>，这是长距 QKD 的根本瓶颈；</li>
+<li><strong>实际系统的安全性取决于器件的实现</strong>——已有多起针对探测器等侧信道的攻击演示。<strong>"理论上无条件安全"不等于"实际系统安全"</strong>；</li>
+<li><strong>与后量子密码（PQC）的竞争</strong>：PQC 是纯软件方案、可直接部署、成本低。<strong>多数密码学界人士认为 PQC 是应对量子威胁的主要路径</strong>，QKD 适用于特定高价值场景【争】。</li>
+</ul>
+<h2 id="_4">四、光量子计算<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>优势</strong>：光子退相干弱、可室温工作、可用成熟光子集成工艺（第十五页）。</p>
+<p><strong>困难</strong>：光子之间<strong>几乎不相互作用</strong> → 难以实现两比特门。</p>
+<p><strong>主要路线</strong>：
+- <strong>线性光学量子计算（KLM）</strong>：用测量诱导非线性，<strong>但需要大量辅助光子与极高效率的单光子源和探测器</strong>；
+- <strong>测量式/簇态量子计算</strong>：先制备大规模纠缠态再逐个测量；
+- <strong>连续变量（压缩态）</strong>：可确定性产生大规模纠缠，但需要压缩度足够高；
+- <strong>玻色采样</strong>：<strong>不是通用计算</strong>，而是一个特定的采样问题。</p>
+<p><strong>关于"量子优势"实验的诚实说明</strong>：多个团队报告了光量子采样实验声称超越经典模拟能力。<strong>这些是重要的实验成就</strong>，但需要注意：
+- <strong>经典模拟算法在随后被不断改进</strong>，若干原先的优势主张被削弱或推翻——<strong>这是一个持续的攻防过程</strong>；
+- <strong>玻色采样本身没有已知的实用价值</strong>；
+- <strong>距离容错的通用量子计算仍很遥远</strong>（需要纠错，而光子的纠错开销巨大）。</p>
+<p><strong>本课立场</strong>：<strong>物理与工程成就是真实的；"量子计算即将改变一切"的叙事则远超证据。</strong> 标【争】。</p>
+<h2 id="_5">五、一个贯穿的判读模式<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>本页两个主题与本讲义库其他站的前沿页共享同一个模式：</p>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>原理成立？</th>
+<th>卡在哪里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>光计算</td>
+<td>是</td>
+<td>转换开销、精度、非线性、对手在进步</td>
+</tr>
+<tr>
+<td>超表面替代透镜（第十八页）</td>
+<td>是</td>
+<td>效率、带宽、与廉价非球面竞争</td>
+</tr>
+<tr>
+<td>存内计算（🔗 微电子）</td>
+<td>是</td>
+<td>ADC 开销、精度、端到端收益</td>
+</tr>
+<tr>
+<td>TFET/NC-FET（🔗 微电子）</td>
+<td>部分</td>
+<td>电流不足、稳定性</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(H_\infty\)</span> 控制（🔗 自动化）</td>
+<td>是</td>
+<td>阶数高、难维护、保守</td>
+</tr>
+<tr>
+<td>QKD</td>
+<td>是</td>
+<td>速率、距离、侧信道、PQC 竞争</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共同教训</strong>：<strong>一项新技术要取代成熟方案，必须同时打败它的性能、成本、生态与可制造性——而最后两项通常才是决定性的。</strong> 这是本讲义库工科各站反复出现、也最值得带走的判断框架。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>光计算的诱惑真实（并行、光速、无源矩阵乘），但转换开销、精度、非线性是硬障碍</strong>；<strong>光互连才是已落地的部分</strong>；</li>
+<li><strong>压缩态已在引力波探测中实用化</strong>，是量子光学最扎实的工程应用；</li>
+<li><strong>QKD 的限制</strong>：只分密钥、速率随距离指数下降、无法经典中继、侧信道攻击、与 PQC 竞争；</li>
+<li><strong>光子几乎不相互作用</strong>是光量子计算最大的困难；</li>
+<li><strong>量子优势实验是真实成就，但经典模拟在持续追赶，且距实用容错计算仍远</strong>；</li>
+<li><strong>"原理成立但打不过成熟对手"是所有前沿技术的共同考验</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：本线最后一站——这个行业的产业形态与本硕博的实际去向。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-metasurface.html"><span class="pager-label">上一页</span>前沿 I · 超表面与超构光学</a>
+  <a class="pager-slot next" href="20-industry.html"><span class="pager-label">下一页</span>前沿 III · 产业与职业路径</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

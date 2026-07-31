@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>符号接地问题 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li class="active"><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 问题：符号如何获得意义</a></li>
+<li><a href="#2">2. 两个思想实验：把裂缝撑开</a></li>
+<li><a href="#3">3. 接地的候选来源</a></li>
+<li><a href="#4">4. 反方：也许分布已经悄悄接地了</a></li>
+<li><a href="#5">5. 三层"接地"，别再混用</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">意义 III · 符号接地问题<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Harnad 1990（symbol grounding）、Searle 1980（中文房间）、Bender &amp; Koller 2020（章鱼 / form vs meaning）、Barsalou（具身语义）、Bisk 等《Experience Grounds Language》｜ <strong>前置</strong>：mean-01、info-04 §4 ｜ <strong>证据地位</strong>：<strong>问题本身【实】</strong>（它是真问题，不是伪问题），<strong>"分布够不够接地"【争】</strong>，<strong>"接地需不需要身体/意识"【思】</strong>。
+这是全课的<strong>分界石</strong>。前面证明了分布能学到意义的<strong>结构</strong>（骨架）；这一页问：<strong>这套结构关于世界吗，还是一个悬空的、自我指涉的符号网？</strong> 甲问（机器为何行）与乙/丙问（是否真懂）的裂缝，就在这里裂开。</p>
+</blockquote>
+<h2 id="1">1. 问题：符号如何获得意义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>符号接地问题（Harnad）</strong>：一套符号系统里，符号的意义<strong>若只由其他符号定义</strong>，就像一本<strong>全用中文解释中文的词典</strong>——你可以无限查下去，却永远碰不到词典之外的世界。<strong>意义从哪里"接地"到非符号的东西（感知、行动、世界状态）？</strong></p>
+<p>形式地说：分布语义（mean-01）给出的是<strong>符号↔符号</strong>的关系（词与词共现）。但"意义"通常还要求<strong>符号↔世界</strong>的关系（"水"这个符号<strong>指涉</strong>真实的水）。<strong>接地 = 在符号网络与世界之间架桥。</strong> 问题是：这座桥，纯靠语料内部的符号统计，能不能自己长出来？</p>
+<h2 id="2">2. 两个思想实验：把裂缝撑开<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>Searle 的中文房间（1980）</strong>：一个不懂中文的人关在房里，靠一本规则手册，把递进来的中文符号串按规则映射成中文符号串递出去——<strong>行为上</strong>通过图灵测试（外面看像懂中文），但屋里的人<strong>不懂</strong>任何中文。Searle 的结论：<strong>句法（符号操作）不足以产生语义（理解）。</strong> 光会按规则动符号，不等于懂。</p>
+<p><strong>Bender &amp; Koller 的章鱼（2020，本页主菜）</strong>：设想一只超级章鱼窃听海底电缆里两个人的对话，只见<strong>文本符号</strong>、从不接触任何指涉物。它能学到符号的分布规律，模仿对话——但当一方说"我被熊追，快教我用手边的树枝做武器"时，章鱼<strong>给不出有用的、关于真实物理世界的回答</strong>，因为它从没把"树枝""熊"接到任何经验上。论证：<strong>只学形式（form），学不到意义（meaning）——因为意义需要与交流意图和世界的联系。</strong></p>
+<p><strong>这两个实验是轴 III（预测=理解？）的否定端</strong>（线六 ai-02 会摆正方）。它们<strong>不</strong>证明机器永远不能懂——它们证明的是：<strong>纯符号形式统计，本身不保证接地。</strong> 接地要么另有来源，要么需论证它能从形式中反解出来。</p>
+<h2 id="3">3. 接地的候选来源<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>如果分布/形式不自动接地，意义从哪接？主要几条路（各有证据、各有争议）：</p>
+<ul>
+<li><strong>感知接地</strong>：符号连到感官表征——"红"接到视网膜的红。<strong>多模态模型</strong>（图文、视觉-语言）是工程上的尝试：让"猫"这个词的向量与猫的图像表征对齐。<strong>这是当下最活跃、最可做的方向。</strong></li>
+<li><strong>身体/行动接地（具身认知）</strong>：意义源于身体与世界的<strong>交互</strong>——"抓"的意义部分在于你能抓（Barsalou 的感觉运动模拟；承 ling-04 隐喻的具身根）。</li>
+<li><strong>社会/意图接地</strong>：意义源于<strong>共享意图</strong>与交流目的（Tomasello，线四 civ-01）——"意义"是说话人想让你<strong>做/信</strong>什么，不只是指涉物。</li>
+<li><strong>因果/交互接地</strong>：通过<strong>干预世界看后果</strong>获得意义（强化学习式），比被动观察更强。</li>
+</ul>
+<p><strong>注意分档</strong>：多模态、交互接地是<strong>可工程、可测</strong>的【实/前沿】；"接地是否<strong>必须</strong>有身体，乃至意识"则滑向【思】——别把工程上的接地（对齐感知表征）和哲学上的接地（真正'关于'世界、有主观所指）混为一谈。<strong>这两个'接地'常被同一个词偷换，是本页最大的思维陷阱。</strong></p>
+<h2 id="4">4. 反方：也许分布已经悄悄接地了<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>接地问题不是一边倒。<strong>世界模型派</strong>（线六 ai-01 详讲）的反击很有力：</p>
+<ul>
+<li><strong>语料本身携带世界的投影</strong>：人写的文本是人<strong>关于世界</strong>的报告，世界的因果/空间/物理结构<strong>间接编码</strong>在文本统计里。足够强的预测器，为了压缩文本（info-04），会被迫<strong>反解出这些结构</strong>——于是"符号↔符号"的统计里<strong>偷渡</strong>了"符号↔世界"的影子。</li>
+<li><strong>实证</strong>：Othello-GPT（只喂棋谱字符串，模型内部却涌现出可探测的棋盘状态表征）、地图/空间探针、颜色词向量与真实色彩空间的对应——都提示<strong>部分接地能从纯形式涌现</strong>。</li>
+<li><strong>多模态更直接</strong>：一旦加入图像/动作，接地不再是哲学难题而是对齐工程。</li>
+</ul>
+<p><strong>所以裂缝的现状</strong>："纯文本 → 完全接地"是【争】（章鱼派 vs 世界模型派各有弹药）；"多模态/交互 → 相当程度接地"是【实/前沿】（在做，且有进展）；"接地是否需要意识/主观体验才算<strong>真</strong>懂" 是【思】（无裁判，见线五 mind-03）。</p>
+<h2 id="5">5. 三层"接地"，别再混用<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>本页最实用的产出——把一个含混的词切成三层，以后看任何"AI 懂不懂"的争论，先定位在哪一层：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>主张"接地" =</th>
+<th>裁判</th>
+<th>分档</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>功能接地</strong></td>
+<td>符号能可靠支持对世界的<strong>预测与行动</strong></td>
+<td>行为/任务表现</td>
+<td>【实】——可测，LLM+多模态在爬</td>
+</tr>
+<tr>
+<td><strong>指涉接地</strong></td>
+<td>符号内部表征<strong>对应</strong>真实世界状态</td>
+<td>probing、干预实验</td>
+<td>【实/前沿】——Othello-GPT 类正在验</td>
+</tr>
+<tr>
+<td><strong>现象接地</strong></td>
+<td>符号对系统而言有<strong>主观意义</strong>（"感觉像懂"）</td>
+<td>无客观判据</td>
+<td>【思】——线五意识线</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键结论</strong>：很多"AI 到底懂不懂"的争吵，是因为吵架双方站在<strong>不同层</strong>却用同一个"懂"字。<strong>Searle/章鱼攻的主要是现象接地与强指涉接地；LLM 的成功主要在功能接地。</strong> 把层分开，一半的口水仗自动消解——这本身就是研究该有的清晰。</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（这页给甲乙划界）</strong> 甲问（机器为何行）<strong>大部分只需功能接地</strong>——能预测、能干活就够，不必回答"真懂吗"。乙/丙问（人的理解、意识）纠缠指涉/现象接地。<strong>你的研究若聚焦甲，可以合法地把现象接地悬置</strong>（标【思】搁一边），专注功能/指涉接地这两层可做的。<strong>知道自己该在哪一层用力，比什么都重要。</strong></p>
+<p><strong>思考 2（章鱼论证的软肋）</strong> 章鱼论证假设"文本里没有世界"。但人写的文本<strong>是</strong>关于世界的——世界的结构泄漏在统计里（§4）。所以更准的问法不是"形式能否接地"，而是"<strong>文本统计里泄漏了多少世界结构，够支撑哪些任务</strong>"——一个可测的量，不是一个是非题。<strong>把哲学难题改写成可测量，是你从这页该偷走的招式。</strong></p>
+<p><strong>思考 3（做得动的）</strong> 训一个只见符号的小模型在一个<strong>你定义的玩具世界</strong>（网格、棋盘）上做序列预测，然后用探针查它内部有没有编码世界状态（labs L5）——<strong>你就把接地问题从哲学搬进了实验室</strong>，亲手测"纯预测能反解出多少世界"。这直接是线六甲问前沿的缩小版。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：意义 IV——三条正交争议轴。线一到线三积累的所有对峙，在这里被整理成三条<strong>互相独立</strong>的坐标轴。这是全课的"罗盘"：任何一篇论文、任何一个立场，都能被定位到这三轴的一个点上。掌握它，你就有了不被口水淹没的导航。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mean-02-learnability.html"><span class="pager-label">上一页</span>意义 II · 可学习性之争</a>
+  <a class="pager-slot next" href="mean-04-debates.html"><span class="pager-label">下一页</span>意义 IV · 三条正交争议轴</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

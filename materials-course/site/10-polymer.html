@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高分子：链的物理 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li class="active"><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 链的语言</a></li>
+<li><a href="#2">2. 玻璃化转变：高分子的中心温度</a></li>
+<li><a href="#3">3. 黏弹性：时间与温度可以互换</a></li>
+<li><a href="#4">4. 增韧、共混与复合</a></li>
+<li><a href="#5">5. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">性能 III · 高分子：链的物理<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>塑料、橡胶、纤维、涂料、生物组织——高分子占人类使用材料体积的一半以上，却遵守一套与金属陶瓷完全不同的规则：<strong>性能由"链"的构象、缠结与运动决定</strong>，且<strong>时间与温度可以互换</strong>。本页给这套规则的最小完整版。</p>
+</blockquote>
+<h2 id="1">1. 链的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>结构层级</strong>：单体 → 链（分子量 <span class="arithmatex">\(M\)</span>，注意是<strong>分布</strong>不是单值：<span class="arithmatex">\(M_n\)</span> 数均、<span class="arithmatex">\(M_w\)</span> 重均、<span class="arithmatex">\(M_w/M_n\)</span> 多分散度）→ 链的构象（无规线团，均方末端距 <span class="arithmatex">\(\langle R^2\rangle \propto N\)</span>——🔗 随机游走！数学站的布朗运动就是高分子链的构象统计）→ 凝聚态（非晶/半结晶/交联网络）。</p>
+<p><strong>三分类（决定加工方式的第一问）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>结构</th>
+<th>加热行为</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>热塑性</td>
+<td>线型/支化，链间弱键</td>
+<td>可反复熔融成形（可回收）</td>
+<td>PE、PP、PET、PC、尼龙</td>
+</tr>
+<tr>
+<td>热固性</td>
+<td>三维交联网络</td>
+<td>不熔（分解）</td>
+<td>环氧、酚醛、不饱和聚酯</td>
+</tr>
+<tr>
+<td>弹性体</td>
+<td>轻度交联 + <span class="arithmatex">\(T_g\)</span> 低于室温</td>
+<td>高弹形变</td>
+<td>天然橡胶、硅橡胶</td>
+</tr>
+</tbody>
+</table>
+<p><strong>支化与立构规整性</strong>：HDPE（线型、高结晶、硬）vs LDPE（支化、低结晶、软）——<strong>同一个单体，因链的拓扑差出两种商品</strong>；等规聚丙烯能结晶（Ziegler–Natta 催化剂的诺奖工作），无规聚丙烯是黏胶。</p>
+<h2 id="2">2. 玻璃化转变：高分子的中心温度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Modulus vs temperature for polymers" src="assets/img/mat-10-modulusT.svg" /></p>
+<figcaption><span class="fig-id">图 10.1</span>模量-温度曲线：玻璃态（GPa）→ \(T_g\) 附近骤降三个数量级 → 橡胶平台（MPa，交联度决定其高度）→ 线型聚合物继续流动、交联者保持平台直到分解。一条曲线读完高分子的全部工程状态。</figcaption>
+</figure>
+<p><strong><span class="arithmatex">\(T_g\)</span> 决定用途</strong>：室温在 <span class="arithmatex">\(T_g\)</span> 之下 = 硬塑料（PS、PMMA、PC）；之上 = 橡胶（天然橡胶 <span class="arithmatex">\(T_g \approx -70\)</span> °C）。<strong>PVC 加增塑剂把 <span class="arithmatex">\(T_g\)</span> 从 +80 拉到 -40 °C</strong>——同一种聚合物做出下水管与雨衣，配方工程的教科书案例。</p>
+<p><strong>半结晶聚合物有两个温度</strong>：<span class="arithmatex">\(T_g\)</span>（非晶区解冻）与 <span class="arithmatex">\(T_m\)</span>（晶区熔化）——PET 瓶身在两者之间被吹塑取向；结晶度决定透明度（球晶散射光 ⇒ 结晶 PE 乳白、非晶 PS 透明）与强度。</p>
+<h2 id="3">3. 黏弹性：时间与温度可以互换<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>高分子既非纯弹性也非纯黏性——<strong>应力响应依赖时间尺度</strong>：蠕变（恒应力下持续变形——塑料椅子坐久了塌）、应力松弛（恒应变下应力衰减——密封圈失效）、滞后（循环加载生热——轮胎滚动阻力）。</p>
+<p><strong>时温等效原理（WLF）</strong>：<strong>升高温度 ≡ 延长观察时间</strong>。<span class="arithmatex">\(10^{-3}\)</span> s 的冲击下橡胶像玻璃（所以低温橡胶密封在快速加载下脆断——挑战者号 O 形圈事故的核心机理：低温使 <span class="arithmatex">\(T_g\)</span> 相对上移 + 快速加载，材料从橡胶态跌进玻璃态）；反之慢加载下塑料像流体。<strong>主曲线法</strong>：短时高温实验外推长时室温寿命——高分子寿命预测的标准工具，也是本页最有工程价值的一招。</p>
+<p><strong>橡胶弹性的熵起源</strong>（反直觉之最）：拉伸橡胶时链从无规线团被拉直 ⇒ <strong>构象熵下降</strong>，回复力来自熵而非键的伸长：</p>
+<div class="arithmatex">\[
+f \approx \frac{3k_BT}{Nb^2}\,R
+\]</div>
+<p>——<strong>弹性模量正比于温度</strong>：加热橡胶带它会<strong>收缩</strong>（金属受热膨胀，橡胶受热"变强"）；快速拉伸橡皮筋贴嘴唇会觉得热（熵减放热）。这是热力学第二定律在你手里的实物演示。</p>
+<h2 id="4">4. 增韧、共混与复合<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>增韧机制</strong>：橡胶粒子增韧（HIPS、ABS——粒子引发大量银纹/剪切带耗能）；纤维增强（玻纤/碳纤 + 环氧 = 结构复合材料，🔗 机器的力学站材料页）；共混与相容剂（多数聚合物互不相容——界面工程是配方核心）。</p>
+<p><strong>降解与老化</strong>：紫外（光氧化，加炭黑/受阻胺）、热氧、水解（PET、尼龙）、应力开裂（ESC——洗涤剂 + 应力使 PE 开裂）。<strong>塑料没有"疲劳极限"意义上的永久安全区，寿命是配方 + 环境的函数</strong>。</p>
+<p><strong>可持续性一瞥</strong>：机械回收（分选与降级）、化学回收（解聚回单体，PET 与聚酯路线最成熟）、生物基/可降解（PLA、PHA——注意"可降解"通常需工业堆肥条件，非自然环境速降）。这条线的技术与政策变动快，前沿页保持更新。</p>
+<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li><span class="arithmatex">\(T_g\)</span>（°C）：硅橡胶 -125 ｜ 天然橡胶 -70 ｜ PE -110（但 <span class="arithmatex">\(T_m\)</span> 130）｜ PP -10 ｜ PET 75 ｜ PC 150 ｜ PS 100；</li>
+<li>模量跨度：橡胶 ~1 MPa → 玻璃态塑料 ~3 GPa → 碳纤维 ~230 GPa（<strong>同为"有机材料"，四个数量级</strong>）；</li>
+<li><strong>反直觉</strong>：橡胶加热收缩、拉伸放热（熵弹性）；高分子的强度随分子量增加而增（需超过缠结分子量才有力学意义）；"塑料疲劳"往往是热失效——滞后生热导致局部软化，与金属疲劳机理完全不同。</li>
+</ul>
+<p>【研】对标 Rubinstein &amp; Colby《Polymer Physics》、Ward《Mechanical Properties of Solid Polymers》；标度理论、Rouse/蛇行模型（reptation，de Gennes 诺奖）、WLF 方程推导是研究生主干。</p>
+<hr />
+<p><em>下一页回到无机世界最古老也最前沿的家族——陶瓷与玻璃：为什么它们强而脆，工程上如何与这种脆性共处。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-fracture.html"><span class="pager-label">上一页</span>性能 II · 断裂、韧性与疲劳</a>
+  <a class="pager-slot next" href="11-ceramics.html"><span class="pager-label">下一页</span>性能 IV · 陶瓷与玻璃工程</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

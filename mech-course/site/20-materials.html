@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>材料选择与热处理 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li class="active"><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、选材的系统方法</a></li>
+<li><a href="#_2">二、主要材料家族的定位</a></li>
+<li><a href="#_3">三、钢的热处理：机械工程师的核心工具</a></li>
+<li><a href="#_4">四、表面强化：兼得硬与韧</a></li>
+<li><a href="#_5">五、腐蚀与环境</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">制造 IV · 材料选择与热处理<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>具体牌号的许用值必须查现行标准与供应商数据</strong>，本页只给方法与量级。
+同一个形状，用什么材料、做什么处理，性能可以相差数倍。<strong>材料选择是机械设计中影响最大、却常常被草率对待的决策之一</strong>。本页给出选材的系统方法，以及钢铁热处理的核心逻辑——因为它是机械工程师最常打交道的强化手段。</p>
+</blockquote>
+<h2 id="_1">一、选材的系统方法<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>核心思想（Ashby 方法）</strong>：把设计要求翻译成一个<strong>材料指数</strong>，然后在材料属性图上找最优。</p>
+<p><strong>推导示例——轻质刚性梁</strong>：要求刚度 <span class="arithmatex">\(S\)</span> 给定，最小化质量 <span class="arithmatex">\(m\)</span>。</p>
+<p>对矩形截面梁，<span class="arithmatex">\(S \propto EI/L^3 \propto Eb h^3/L^3\)</span>，而 <span class="arithmatex">\(m = \rho b h L\)</span>。消去自由变量 <span class="arithmatex">\(h\)</span>，得</p>
+<div class="arithmatex">\[m \propto \frac{\rho}{E^{1/3}}\]</div>
+<p><strong>所以应最大化的材料指数是 <span class="arithmatex">\(M = E^{1/3}/\rho\)</span>。</strong></p>
+<p><strong>这个结果很有启发</strong>：
+- 若约束是<strong>拉压刚度</strong>，指数是 <span class="arithmatex">\(E/\rho\)</span>（钢与铝几乎相同，承第二页）；
+- 若约束是<strong>弯曲刚度</strong>，指数是 <span class="arithmatex">\(E^{1/3}/\rho\)</span>——<strong>此时铝、镁、复合材料明显优于钢</strong>！</p>
+<p><strong>为什么会反转</strong>：因为轻材料可以做得<strong>更厚</strong>，而弯曲刚度对厚度是三次方关系（承第三页 <span class="arithmatex">\(I\propto h^3\)</span>）。<strong>这解释了为什么自行车车架、飞机结构用铝而不是钢</strong>——它们受弯曲刚度控制，不是受拉压控制。</p>
+<p><strong>这是本页最重要的方法论</strong>：<strong>"哪种材料更好"这个问题没有答案，除非先说清约束是什么、要最小化什么。</strong></p>
+<p><strong>常用材料指数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>约束</th>
+<th>指数（最大化）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>轻质拉杆</td>
+<td>强度</td>
+<td><span class="arithmatex">\(\sigma_f/\rho\)</span></td>
+</tr>
+<tr>
+<td>轻质梁</td>
+<td>弯曲刚度</td>
+<td><span class="arithmatex">\(E^{1/3}/\rho\)</span></td>
+</tr>
+<tr>
+<td>轻质梁</td>
+<td>弯曲强度</td>
+<td><span class="arithmatex">\(\sigma_f^{2/3}/\rho\)</span></td>
+</tr>
+<tr>
+<td>弹簧</td>
+<td>储能</td>
+<td><span class="arithmatex">\(\sigma_f^2/E\)</span></td>
+</tr>
+<tr>
+<td>抗热冲击</td>
+<td>—</td>
+<td><span class="arithmatex">\(\sigma_f/(E\alpha)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意"弹簧储能 <span class="arithmatex">\(\sigma_f^2/E\)</span>"</strong>：<strong>弹簧需要的是高强度 + 低模量</strong>——这就是为什么弹簧钢要淬火高强度、而钛合金与复合材料做弹簧特别优秀（模量低）。</p>
+<h2 id="_2">二、主要材料家族的定位<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>家族</th>
+<th>优势</th>
+<th>短板</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>碳钢/合金钢</strong></td>
+<td>强度高、便宜、可热处理、工艺成熟</td>
+<td>密度大、易锈</td>
+</tr>
+<tr>
+<td><strong>不锈钢</strong></td>
+<td>耐蚀</td>
+<td>导热差、加工硬化严重（难切削）、贵</td>
+</tr>
+<tr>
+<td><strong>铸铁</strong></td>
+<td>便宜、易铸、<strong>减振好</strong>、耐磨</td>
+<td>脆（灰铸铁）</td>
+</tr>
+<tr>
+<td><strong>铝合金</strong></td>
+<td>轻、导热好、易加工</td>
+<td><strong>无疲劳极限</strong>（第十四页）、模量低、不耐高温</td>
+</tr>
+<tr>
+<td><strong>钛合金</strong></td>
+<td>比强度极高、耐蚀、耐温</td>
+<td><strong>昂贵、难加工</strong>、易与刀具亲和</td>
+</tr>
+<tr>
+<td><strong>铜合金</strong></td>
+<td>导电导热、减摩</td>
+<td>重、软、贵</td>
+</tr>
+<tr>
+<td><strong>工程塑料</strong></td>
+<td>轻、便宜、自润滑、绝缘</td>
+<td>强度低、<strong>蠕变显著</strong>、温度敏感</td>
+</tr>
+<tr>
+<td><strong>复合材料</strong></td>
+<td>比强度/比刚度最高、<strong>可设计各向异性</strong></td>
+<td>贵、<strong>层间强度低</strong>、连接难、损伤检测难</td>
+</tr>
+<tr>
+<td><strong>陶瓷</strong></td>
+<td>高硬、耐温、耐磨</td>
+<td><strong>脆</strong>、对缺陷极敏感、难加工</td>
+</tr>
+</tbody>
+</table>
+<p><strong>复合材料的关键认知</strong>：它的优势不只是轻，而是<strong>可以按受力方向铺设纤维</strong>——<strong>把材料的各向异性变成设计变量</strong>。代价是设计与制造复杂度大幅上升，且<strong>连接部位</strong>（螺栓孔处纤维被切断）往往成为薄弱环节。</p>
+<h2 id="_3">三、钢的热处理：机械工程师的核心工具<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>同一块钢，热处理不同，强度可以相差数倍。</strong></p>
+<p><strong>基础是铁碳相图与冷却速度</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>处理</th>
+<th>工艺</th>
+<th>结果组织</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>退火</strong></td>
+<td>加热后缓冷</td>
+<td>珠光体（软）</td>
+<td>消除应力、改善切削性</td>
+</tr>
+<tr>
+<td><strong>正火</strong></td>
+<td>空冷</td>
+<td>细珠光体</td>
+<td>细化晶粒、力学性能中等</td>
+</tr>
+<tr>
+<td><strong>淬火</strong></td>
+<td>快冷（水/油）</td>
+<td><strong>马氏体（硬而脆）</strong></td>
+<td>获得高硬度</td>
+</tr>
+<tr>
+<td><strong>回火</strong></td>
+<td>淬火后再加热</td>
+<td>回火马氏体/索氏体</td>
+<td><strong>消除脆性、调节强韧配合</strong></td>
+</tr>
+<tr>
+<td><strong>调质</strong></td>
+<td>淬火 + <strong>高温回火</strong></td>
+<td>索氏体</td>
+<td><strong>综合力学性能最佳</strong>——轴类零件的标准处理</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心逻辑</strong>：<strong>淬火得到硬度，回火换回韧性</strong>。<strong>淬火后不回火的零件几乎必然开裂</strong>——马氏体又硬又脆且含有巨大内应力。</p>
+<p><strong>"调质"是机械设计中最常见的技术要求</strong>：调质后的钢兼具较高强度与良好韧性，适合承受交变载荷的轴、连杆、螺栓。</p>
+<p><strong>淬透性</strong>是选材的关键概念：不是"能淬多硬"，而是<strong>"能淬透多深"</strong>。
+- <strong>碳钢淬透性差</strong>——大截面零件表面硬、心部仍软；
+- <strong>合金元素（Cr、Mn、Ni、Mo）主要作用就是提高淬透性</strong>；
+- <strong>所以大截面零件必须用合金钢</strong>，不是因为它本身更强，而是因为它能被淬透。<strong>这是初学者常见的误解。</strong></p>
+<h2 id="_4">四、表面强化：兼得硬与韧<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>许多零件需要<strong>表面硬（耐磨、抗接触疲劳）+ 心部韧（抗冲击）</strong>——这是一个矛盾要求。<strong>表面处理是解法</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>原理</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>表面淬火</strong>（感应、火焰）</td>
+<td>只加热表层再快冷</td>
+<td>快速、经济；用于齿轮、轴颈</td>
+</tr>
+<tr>
+<td><strong>渗碳淬火</strong></td>
+<td>表层增碳后淬火</td>
+<td>硬度高、层深大（0.5–2 mm）；<strong>齿轮的主流工艺</strong></td>
+</tr>
+<tr>
+<td><strong>氮化</strong></td>
+<td>低温渗氮</td>
+<td><strong>变形极小</strong>、耐磨耐蚀；层薄；用于精密件</td>
+</tr>
+<tr>
+<td><strong>喷丸/滚压</strong></td>
+<td>引入<strong>残余压应力</strong></td>
+<td><strong>显著提高疲劳寿命</strong>（承第十四页）；便宜有效</td>
+</tr>
+<tr>
+<td><strong>镀层/涂层</strong>（PVD、CVD、DLC）</td>
+<td>硬质薄膜</td>
+<td>刀具与耐磨件</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共同逻辑</strong>（承第十二页）：<strong>表面决定摩擦、磨损与疲劳，芯部决定强度与韧性</strong>——<strong>用不同的处理分别优化两者</strong>。</p>
+<p><strong>注意变形问题</strong>：淬火与渗碳会引起变形，<strong>精密件通常在热处理后还要磨削</strong>。氮化变形小，所以精密件常选它。<strong>热处理与加工顺序的安排是工艺设计的重要内容。</strong></p>
+<h2 id="_5">五、腐蚀与环境<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>常被设计忽略、却在现场高频出现：</p>
+<ul>
+<li><strong>电偶腐蚀</strong>：不同金属接触 + 电解质 → 活泼金属加速腐蚀。<strong>铝件与不锈钢螺栓直接接触是经典错误</strong>——需绝缘垫或选相容材料；</li>
+<li><strong>缝隙腐蚀与点蚀</strong>：不锈钢在含氯环境（海水、除冰盐）中尤其敏感；</li>
+<li><strong>应力腐蚀开裂（SCC）</strong>：拉应力 + 特定介质 → <strong>在远低于强度的应力下开裂</strong>。<strong>黄铜遇氨、不锈钢遇氯化物</strong>是典型组合，事故后果严重；</li>
+<li><strong>氢脆</strong>：高强度钢（尤其电镀过程中渗氢）在拉应力下延迟断裂。<strong>高强螺栓电镀后必须及时去氢处理</strong>——这是一条有血的教训支撑的工艺规定。</li>
+</ul>
+<p><strong>设计对策</strong>：材料相容性、涂层、阴极保护、避免积液的结构（排水孔）、控制残余拉应力。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>材料指数把"选材"变成可计算的优化</strong>；<strong>约束不同则最优材料不同</strong>（拉压 <span class="arithmatex">\(E/\rho\)</span> vs 弯曲 <span class="arithmatex">\(E^{1/3}/\rho\)</span>）；</li>
+<li><strong>弹簧要的是 <span class="arithmatex">\(\sigma_f^2/E\)</span></strong>——高强度低模量；</li>
+<li><strong>淬火得硬度、回火换韧性</strong>；<strong>调质是轴类零件的标准处理</strong>；</li>
+<li><strong>合金元素的主要作用是提高淬透性</strong>，所以大截面必须用合金钢；</li>
+<li><strong>表面处理让"表硬心韧"成为可能</strong>；喷丸是最经济的疲劳强化手段；</li>
+<li><strong>电偶腐蚀、应力腐蚀、氢脆</strong>是设计中最易被忽略的失效模式。</li>
+</ul>
+<hr />
+<p><em>线五结束。下一线转向计算与前沿：有限元如何把前面所有的力学变成可计算的问题，拓扑优化如何自动生成结构，以及这个行业正在往哪里走。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="19-additive.html"><span class="pager-label">上一页</span>制造 III · 增材制造</a>
+  <a class="pager-slot next" href="21-fem.html"><span class="pager-label">下一页</span>前沿 I · 有限元与结构优化</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

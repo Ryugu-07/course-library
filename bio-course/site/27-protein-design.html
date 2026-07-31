@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>结构预测与蛋白设计 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li class="active"><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#alphafold">一、预测：AlphaFold 做到了什么</a></li>
+<li><a href="#_1">二、设计：从预测到创造</a></li>
+<li><a href="#_2">三、这为什么是范式转变</a></li>
+<li><a href="#_3">四、局限与现实检验</a></li>
+<li><a href="#_4">五、生物安全：必须正视的一面</a></li>
+<li><a href="#_5">六、判读这一领域的提示</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">前沿 I · 结构预测与蛋白设计<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07。本线全程标注核对时间——它一定会过期。</strong>
+<strong>证据地位</strong>：<strong>结构预测与设计成果【实】</strong>；<strong>"折叠问题已解决"【争】</strong>（承线一第三页）；<strong>临床转化【未定】</strong>。
+线六开始。第一站是过去五年生物学最耀眼的进展：AI 不仅学会了<strong>预测</strong>蛋白结构，还学会了<strong>设计</strong>自然界不存在的蛋白。2024 年诺贝尔化学奖同时授予结构预测与蛋白设计——<strong>Demis Hassabis 与 John Jumper</strong>（AlphaFold）、以及 <strong>David Baker</strong>（计算蛋白设计），标志着这个领域的成熟。</p>
+</blockquote>
+<h2 id="alphafold">一、预测：AlphaFold 做到了什么<a class="headerlink" href="#alphafold" title="Permanent link"></a></h2>
+<p>线一第三页讲过折叠问题的难度（Levinthal 悖论、能量漏斗）。半个世纪里，测定结构靠 X 射线晶体学、核磁、冷冻电镜——每个结构耗时数月到数年。</p>
+<p><strong>AlphaFold2（2020）</strong>在 CASP 竞赛中对大量单体蛋白达到接近实验精度的预测。随后发布的预测数据库覆盖了 2 亿以上的蛋白序列，<strong>把"查结构"变成了日常操作</strong>。<strong>AlphaFold3</strong> 进一步扩展到蛋白–配体、蛋白–核酸等复合物的建模。</p>
+<p><strong>为什么它有效</strong>（简化的直觉）：
+- <strong>共演化信号</strong>：若两个残基在三维空间接触，它们的突变往往相关（一方变了，另一方需补偿性变化才能维持结构）。<strong>多序列比对（MSA）中的相关模式，编码了空间接触信息</strong>——这是深度学习之前就已知的思想，AlphaFold 把它用到了极致；
+- <strong>端到端几何建模</strong>：直接输出三维坐标，而非先预测接触图再重建；
+- <strong>注意力机制</strong>在残基对之间传递信息，隐式地做了类似三角不等式的几何一致性推理。</p>
+<p><strong>必须保留的限定</strong>（承线一第三页，仍然适用）：
+- <strong>预测终态 ≠ 理解折叠动力学</strong>；
+- <strong>静态结构 ≠ 功能</strong>：许多蛋白依赖构象变化、柔性区、多态平衡；
+- <strong>内在无序蛋白</strong>本就没有固定结构，而它们在信号传导与相分离中极重要；
+- <strong>点突变的精细效应</strong>预测仍不可靠——这直接限制了它在解读遗传变异（线三第三页）中的用途；
+- <strong>置信度不均</strong>：必须看 pLDDT/PAE 等指标，不能一概信任。</p>
+<h2 id="_1">二、设计：从预测到创造<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>比预测更激进的一步是<strong>从头设计（de novo design）</strong>——<strong>造一个自然界从未演化出的蛋白</strong>。</p>
+<p>线一第三页给了它的理论空间：<span class="arithmatex">\(20^{100}\)</span> 的序列空间中，演化只探索了极小一角，<strong>大量物理上可行且有用的蛋白从未被尝试</strong>。</p>
+<p><strong>方法的演进</strong>：
+- <strong>早期（Rosetta，基于物理能量函数）</strong>：设计理想化的折叠（如 Top7，2003 年首个成功的全新折叠），费力且成功率低；
+- <strong>深度学习时代</strong>：<strong>RFdiffusion</strong> 用扩散模型——与图像生成同源的思想——<strong>从噪声中逐步"去噪"出合理的蛋白骨架</strong>，再用序列设计网络（如 ProteinMPNN）填上氨基酸序列。成功率与可及的复杂度大幅提升；
+- <strong>当前</strong>：Baker 实验室已发布后续版本（RFdiffusion2/3），其中酶设计的性能被报告为接近天然酶水平，通用性进一步提高。<strong>此处属快速变动区，具体版本与性能请查最新文献。</strong></p>
+<p><strong>已实现的设计目标</strong>：
+- <strong>结合蛋白</strong>：针对指定靶点设计高亲和力结合剂（潜在用于药物、诊断、中和病毒）；
+- <strong>酶</strong>：设计催化特定反应的活性位点（历史上最难的目标之一，近年有实质进展）；
+- <strong>自组装纳米结构</strong>：设计蛋白笼、纤维、二十面体壳——可用作疫苗支架（多价展示抗原可增强免疫应答，承线二第四页）；
+- <strong>传感器与开关</strong>：构象随配体切换的蛋白。</p>
+<h2 id="_2">三、这为什么是范式转变<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>传统路径</strong>：在自然界寻找一个大致合适的蛋白 → 定向进化改造它。<strong>受限于起点</strong>。</p>
+<p><strong>新路径</strong>：<strong>指定功能需求 → 直接设计满足需求的分子</strong>。这把蛋白工程从"筛选与改良"转向"按需制造"，与化学合成的历史地位类似——<strong>从采集天然产物，转向合成任意分子</strong>。</p>
+<p><strong>与本课其他部分的连接</strong>：
+- 🔗 线一第三页：设计的可行性建立在"序列决定结构"与"能量漏斗"之上；
+- 🔗 线四：定向进化本身是<strong>人工加速的自然选择</strong>（变异+选择+扩增），而从头设计<strong>绕过了演化</strong>——这是两种截然不同的搜索策略。演化受历史约束（线四第一页），设计不受，这正是它能探索演化未及之处的原因。</p>
+<h2 id="_3">四、局限与现实检验<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>必须泼的冷水</strong>：</p>
+<ul>
+<li><strong>成功率仍是问题</strong>：设计需要湿实验验证，多数候选失败；报道通常突出成功案例；</li>
+<li><strong>"设计出来"≠"能用"</strong>：一个在试管中折叠正确、结合紧密的分子，距离药物还有免疫原性、稳定性、递送、毒性、药代动力学等一长串关卡——<strong>绝大多数在此止步</strong>；</li>
+<li><strong>动态与复杂功能仍难</strong>：设计静态结合容易，设计需要精确构象循环的分子机器（如线一第三页的马达）仍很困难；</li>
+<li><strong>临床验证尚早</strong>：已有设计蛋白进入临床研究阶段，但<strong>成熟的获批产品仍有限</strong>，此处标【未定】。</li>
+</ul>
+<h2 id="_4">五、生物安全：必须正视的一面<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>能设计蛋白，原则上也能设计有害的蛋白。领域内已有实质性的应对讨论与实践：</p>
+<ul>
+<li><strong>核酸合成筛查</strong>：商业 DNA 合成公司筛查订单，识别与已知危险序列的相似性；</li>
+<li><strong>模型层面的防护</strong>：对结构预测/设计模型的开放程度进行分级，部分能力受限发布；</li>
+<li><strong>国际规范与自律</strong>：研究者社群就"哪些设计目标不应追求"发布过共同声明。</li>
+</ul>
+<p><strong>教学立场</strong>：本课讨论这些<strong>机制与治理框架</strong>，因为理解它们是负责任地从事生命科学的一部分；本课不提供任何可用于制造危害的具体操作信息。<strong>这条边界是明确且不可协商的。</strong></p>
+<h2 id="_5">六、判读这一领域的提示<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>读到"AI 设计出某某蛋白"的报道时：</p>
+<ol>
+<li><strong>是计算结果还是湿实验验证过</strong>？</li>
+<li><strong>验证到哪一层</strong>——折叠正确？结合有效？在细胞中有功能？在动物中有效？</li>
+<li><strong>成功率是多少</strong>——设计了多少个、成功几个？</li>
+<li><strong>与现有方法比</strong>，优势是速度、性能还是可及性？</li>
+</ol>
+<p><strong>这套问题同样适用于本线其余各页。</strong></p>
+<hr />
+<p><em>下一页：前沿 II——基因编辑。从 CRISPR 的机制，到已获批的疗法，再到 2025 年那个为单个婴儿定制的编辑治疗——以及生殖系编辑的红线。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="26-consciousness.html"><span class="pager-label">上一页</span>脑 VI · 意识研究的现状【争】</a>
+  <a class="pager-slot next" href="28-editing.html"><span class="pager-label">下一页</span>前沿 II · 基因编辑与基因治疗</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

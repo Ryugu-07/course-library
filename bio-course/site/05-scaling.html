@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>代谢、能量与标度律 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li class="active"><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、人体的能量账</a></li>
+<li><a href="#kleiber-34">二、Kleiber 定律：3/4 次幂</a></li>
+<li><a href="#34">三、为什么是 3/4：三种解释【争】</a></li>
+<li><a href="#_2">四、其他标度关系</a></li>
+<li><a href="#_3">五、人类的能量策略</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">人体 II · 代谢、能量与标度律<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：<strong>标度关系本身【实】</strong>（数据跨二十个数量级）；<strong>其理论解释【争】</strong>（3/4 指数的由来至今未有公认定论）。
+本页是全课定量的第一个高峰，也是生物学少有的、能跨越二十个数量级仍成立的经验律。它回答一串看似无关的问题：为什么大象心跳慢？为什么小动物必须不停进食？为什么没有老鼠大小的恒温动物能在极地生存？——答案都在同一条幂律里。</p>
+</blockquote>
+<h2 id="_1">一、人体的能量账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>先把尺度感建立起来。一个成年人的<strong>基础代谢率（BMR）</strong>约 <strong>70–80 W</strong>——相当于一只白炽灯泡。日常总能耗约 2000–2500 kcal/天（约 100 W 平均功率）。这些能量的去向大致是：</p>
+<table>
+<thead>
+<tr>
+<th>器官</th>
+<th>占体重</th>
+<th>占静息代谢</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>脑</td>
+<td>~2%</td>
+<td><strong>~20%</strong></td>
+</tr>
+<tr>
+<td>肝</td>
+<td>~2.5%</td>
+<td>~20%</td>
+</tr>
+<tr>
+<td>心</td>
+<td>~0.5%</td>
+<td>~9%</td>
+</tr>
+<tr>
+<td>肾</td>
+<td>~0.4%</td>
+<td>~8%</td>
+</tr>
+<tr>
+<td>骨骼肌（静息）</td>
+<td>~40%</td>
+<td>~20%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>脑以 2% 的体重消耗 20% 的能量</strong>——这是人类演化中一笔昂贵的投资，也是线四讨论人类演化时的关键约束：要供养这么贵的器官，必须有高质量食物（熟食、肉类）与相应的社会结构。</p>
+<h2 id="kleiber-34">二、Kleiber 定律：3/4 次幂<a class="headerlink" href="#kleiber-34" title="Permanent link"></a></h2>
+<p>若把代谢率 <span class="arithmatex">\(B\)</span> 对体重 <span class="arithmatex">\(M\)</span> 作图，跨越从细菌到蓝鲸的二十多个数量级，数据落在一条直线上（双对数坐标）：</p>
+<div class="arithmatex">\[B \propto M^{3/4}\]</div>
+<figure>
+<p><img alt="Kleiber 代谢标度律" class="fig-img" src="assets/img/bio_kleiber.svg" /></p>
+<figcaption><span class="fig-id">图 5-1</span> Kleiber 定律：基础代谢率 \(B\) 与体重 \(M\) 在双对数坐标下呈直线，斜率约 \(3/4\)。作为对照，若代谢率正比于体积（\(M^{1}\)，灰虚线）或正比于表面积（\(M^{2/3}\)，蓝虚线），斜率都不符。\(3/4\) 这个"非平凡"指数跨越二十个数量级成立，是生物学最著名的经验律之一；但它的理论来源至今仍有争议。</figcaption>
+</figure>
+<p>这个指数是<strong>反直觉</strong>的。两个朴素预期都不对：</p>
+<ul>
+<li>若代谢正比于细胞数（即体积、质量），指数应为 <strong>1</strong>；</li>
+<li>若受散热限制（散热正比于表面积，而表面积 <span class="arithmatex">\(\propto M^{2/3}\)</span>），指数应为 <strong>2/3</strong>。</li>
+</ul>
+<p>实测却稳定在 <strong>0.75 附近</strong>（不同数据集在 0.66–0.80 间有争论，但 3/4 是最广为引用的中心值）。</p>
+<p><strong>推论一：单位质量代谢率随体型下降。</strong> <span class="arithmatex">\(B/M \propto M^{-1/4}\)</span>。所以小鼠每克组织的耗能远高于大象，必须持续进食；而大型动物可以耐饥数周。这也解释了体型的下限——<strong>恒温小动物的单位耗能高到难以维持</strong>（鼩鼱、蜂鸟活在这个边缘上，必须近乎不停地吃）。</p>
+<p><strong>推论二：生理时间也标度。</strong> 心率 <span class="arithmatex">\(\propto M^{-1/4}\)</span>，寿命 <span class="arithmatex">\(\propto M^{1/4}\)</span>。两者相乘——<strong>一生的总心跳数大致是个常数</strong>（哺乳动物约 10⁹ 量级）。老鼠心跳 600/分、活 2 年；大象 30/分、活 60 年。<strong>大动物不是活得更久，是活得更慢</strong>。（人类是显著的例外，寿命远长于体型预测值——线四会讨论。）</p>
+<h2 id="34">三、为什么是 3/4：三种解释【争】<a class="headerlink" href="#34" title="Permanent link"></a></h2>
+<p>这是本页需要诚实标注的地方：<strong>3/4 的成因至今没有公认答案</strong>。主要候选：</p>
+<p><strong>① 分形输运网络（West–Brown–Enquist，WBE 模型）</strong>：假设生物体靠分级分支的输运网络（血管、气管、木质部）供应营养，网络要满足空间填充、末端单元（毛细血管）尺寸不随体型变化、且能耗最小化。由这些假设可导出 3/4。这是最有影响的理论，但受到相当多批评——假设的普适性、数学推导的严格性、以及对实测数据的拟合都被质疑过。</p>
+<p><strong>② 表面积–体积的修正</strong>：认为真实指数介于 2/3 与 1 之间，3/4 只是一个混合效应，并非基本常数。持此论者强调不同类群的指数确实不同（鸟类、哺乳类、变温动物各异）。</p>
+<p><strong>③ 多重约束的统计结果</strong>：代谢受多因素共同限制（散热、供氧、细胞代谢能力、活动方式），3/4 是这些约束叠加的经验平均，不必有单一优雅来源。</p>
+<p><strong>恰当的态度</strong>：<strong>规律是真的，解释是开放的。</strong> 这是一个很好的科学案例——一条稳固的经验律可以在理论未定的情况下长期被使用，而争论本身推动了定量生物学的发展。</p>
+<h2 id="_2">四、其他标度关系<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>标度思想不止于代谢：</p>
+<ul>
+<li><strong>骨骼</strong>：支撑力正比于骨横截面积（<span class="arithmatex">\(\propto L^2\)</span>），而体重正比于体积（<span class="arithmatex">\(\propto L^3\)</span>）。所以体型越大，骨骼必须<strong>不成比例地粗</strong>（异速生长）。这给陆生动物的体型设定了上限——这也是为什么大型恐龙与鲸的体型策略（陆地 vs 水中浮力支撑）差别巨大。</li>
+<li><strong>扩散的极限</strong>：扩散时间 <span class="arithmatex">\(t \sim L^2/D\)</span>。氧靠扩散只能有效供应约 1 mm 的距离，超过就必须有<strong>循环系统</strong>。<strong>这条物理约束直接决定了多细胞生物必须演化出输运系统</strong>（下一页的主题）。</li>
+<li><strong>Berg–Purcell 极限</strong>：细胞感知外界浓度的精度受限于分子随机到达受体的涨落，给出信号检测的物理下限——细菌趋化的性能已接近这个极限，是生物物理最漂亮的结果之一。</li>
+</ul>
+<h2 id="_3">五、人类的能量策略<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>把上面的框架用回人类：</p>
+<ul>
+<li><strong>相对代谢率</strong>：人的 BMR 大致落在哺乳动物预测线上，但<strong>能量分配特殊</strong>——脑占比极高，肌肉相对较弱。我们把能量投给了神经系统。</li>
+<li><strong>熟食假说（Wrangham）</strong>【争】：烹饪提高食物的能量可得率与消化效率，可能使供养大脑成为可能。证据包括熟食的消化能耗更低、人类消化道相对缩短；但关键的用火年代证据仍有争议。</li>
+<li><strong>耐力奔跑假说</strong>【争】：人类的出汗散热（而非喘息）、跟腱、臀大肌等特征，可能是长距离追猎的适应。这解释了为什么人在长距离上能跑赢多数哺乳动物，尽管短跑很慢。</li>
+</ul>
+<p>这两个假说都标【争】——它们合理、有证据，但都属于<strong>演化叙事</strong>，难以严格检验（线四第五页会正面讨论"适应性故事"的方法论风险）。</p>
+<hr />
+<p><em>下一页：人体 III——循环与呼吸。既然扩散只能管 1 毫米，身体如何把氧气送到几十万亿个细胞？这是一个输运工程问题，可以用物理算清楚。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-homeostasis.html"><span class="pager-label">上一页</span>人体 I · 稳态作为控制系统</a>
+  <a class="pager-slot next" href="06-transport.html"><span class="pager-label">下一页</span>人体 III · 循环与呼吸的物理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

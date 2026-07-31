@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>研究设计阶梯与因果推断 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li class="active"><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 反事实框架</a></li>
+<li><a href="#2">2. 设计阶梯</a></li>
+<li><a href="#3-rct">3. 什么时候不需要 RCT</a></li>
+<li><a href="#4-rct">4. RCT 的解剖：哪些细节决定可信度</a></li>
+<li><a href="#5">5. 对照组的选择：一个被严重低估的问题</a></li>
+<li><a href="#6">6. 观察性研究的因果工具</a></li>
+<li><a href="#7-rct">7. 一个被反复验证的教训：观察性研究与 RCT 的系统性分歧</a></li>
+<li><a href="#8">8. 外推性：内部有效 ≠ 对你的患者有效</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">循证 I · 研究设计阶梯与因果推断<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>医学要回答的核心因果问题只有一个形式：<strong>如果给这个人这个治疗，与不给相比，会怎样？</strong>——而这两件事<strong>永远无法同时观察</strong>。整个临床研究方法学就是围绕这个"反事实缺失"建立的补偿机制。🔗 研究生数学站统计学习线与数学站数理统计线是本页的形式化母体。</p>
+</blockquote>
+<h2 id="1">1. 反事实框架<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>对个体 <span class="arithmatex">\(i\)</span>，定义潜在结局 <span class="arithmatex">\(Y_i(1)\)</span>（接受治疗）与 <span class="arithmatex">\(Y_i(0)\)</span>（未接受）。<strong>个体因果效应</strong> <span class="arithmatex">\(\tau_i = Y_i(1) - Y_i(0)\)</span> <strong>不可观测</strong>（只能看到其中一个）。</p>
+<p>可估计的是<strong>平均因果效应</strong>：</p>
+<div class="arithmatex">\[ATE = E[Y(1) - Y(0)]\]</div>
+<p><strong>朴素的组间比较给出的是</strong>：</p>
+<div class="arithmatex">\[E[Y \mid A=1] - E[Y \mid A=0]\]</div>
+<p><strong>两者相等当且仅当</strong>：<strong>可交换性</strong>（<span class="arithmatex">\(Y(1),Y(0) \perp A\)</span>，即处理分配与潜在结局独立）、<strong>正性</strong>（每个人都有非零概率接受两种处理）、<strong>一致性</strong>（干预定义明确）。</p>
+<p><strong>随机化的全部意义在于它以设计强制满足可交换性</strong>——<strong>包括对我们没测量、甚至没想到的混杂因素</strong>。这是随机化不可替代的原因：任何统计调整只能处理<strong>已测量</strong>的混杂。</p>
+<h2 id="2">2. 设计阶梯<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>设计</th>
+<th>结构</th>
+<th>主要威胁</th>
+<th>适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>病例报告/系列</td>
+<td>无对照</td>
+<td>一切</td>
+<td>生成假设、罕见事件</td>
+</tr>
+<tr>
+<td><strong>横断面</strong></td>
+<td>同时测暴露与结局</td>
+<td><strong>无法定时序</strong></td>
+<td>患病率、诊断准确性</td>
+</tr>
+<tr>
+<td><strong>病例对照</strong></td>
+<td>由结局回溯暴露</td>
+<td><strong>选择与回忆偏倚</strong></td>
+<td><strong>罕见病、长潜伏期</strong>（效率高）</td>
+</tr>
+<tr>
+<td><strong>队列</strong></td>
+<td>由暴露前瞻至结局</td>
+<td><strong>混杂</strong>、失访</td>
+<td>罕见暴露、多结局、可算发病率</td>
+</tr>
+<tr>
+<td><strong>随机对照试验 RCT</strong></td>
+<td>随机分配</td>
+<td>外推性、依从、成本、伦理</td>
+<td><strong>因果推断的标准</strong></td>
+</tr>
+<tr>
+<td><strong>系统综述/meta</strong></td>
+<td>综合</td>
+<td>受纳入研究质量限制</td>
+<td>第 08 页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"阶梯"这个比喻要小心</strong>：<strong>它不是说 RCT 永远更好</strong>。对罕见结局、长期危害、真实世界依从性，<strong>大型队列常是唯一可行的证据来源</strong>；而<strong>对已明确的巨大效应，RCT 既不必要也不道德</strong>（下节）。</p>
+<h2 id="3-rct">3. 什么时候不需要 RCT<a class="headerlink" href="#3-rct" title="Permanent link"></a></h2>
+<p><strong>降落伞论证</strong>：2003 年一篇著名的讽刺论文指出，没有 RCT 证明降落伞能防止跳伞死亡。<strong>它的正确教训不是"RCT 不重要"，而是"当效应量极大、结局明确、无合理替代解释时，观察性证据已经足够"。</strong></p>
+<p><strong>判据（Bradford Hill 视角的现代版）</strong>：<strong>效应量巨大</strong>（如青霉素对细菌性心内膜炎、胰岛素对 1 型糖尿病酮症酸中毒、除颤对室颤）、<strong>结局在无干预时几乎必然发生</strong>、<strong>时间关系紧密</strong>、<strong>有可信机制</strong>。</p>
+<p><strong>但请注意这个论证被滥用的频率极高</strong>——<strong>几乎所有被后来 RCT 推翻的疗法，当初都被支持者形容为"显然有效，做试验不道德"</strong>。第 19、20 页给出一串这样的例子。<strong>"降落伞"的门槛应该是效应量至少一个数量级，而不是"我们都觉得它有用"。</strong></p>
+<h2 id="4-rct">4. RCT 的解剖：哪些细节决定可信度<a class="headerlink" href="#4-rct" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>要素</th>
+<th>作用</th>
+<th>失败形态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>随机序列生成</strong></td>
+<td>可交换性</td>
+<td>交替分配、按生日——<strong>可预测即失效</strong></td>
+</tr>
+<tr>
+<td><strong>分配隐藏</strong>（allocation concealment）</td>
+<td><strong>防止招募者操纵入组</strong></td>
+<td><strong>比盲法更关键，且更常被忽略</strong></td>
+</tr>
+<tr>
+<td><strong>盲法</strong>（患者/执行者/评估者）</td>
+<td>防止实施与测量偏倚</td>
+<td>主观终点未盲 → 效应被夸大</td>
+</tr>
+<tr>
+<td><strong>意向性治疗分析 ITT</strong></td>
+<td><strong>保持随机化的可比性</strong></td>
+<td>只分析"完成者"（per-protocol）→ <strong>重新引入混杂</strong></td>
+</tr>
+<tr>
+<td><strong>失访</strong></td>
+<td>破坏随机化</td>
+<td>&gt; 20% 失访通常严重威胁效度</td>
+</tr>
+<tr>
+<td><strong>预注册与统计分析计划</strong></td>
+<td>防止结果依赖的选择</td>
+<td><strong>换主要终点是最常见的问题</strong></td>
+</tr>
+<tr>
+<td><strong>样本量与功效</strong></td>
+<td>避免假阴性</td>
+<td>小样本"阴性"常被误读为"无效"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ITT 值得多说一句</strong>：<strong>ITT 回答"提供这个治疗策略的效果"（政策相关），per-protocol 回答"实际服用的效果"（生物学相关）</strong>。<strong>两者都有意义，但只有 ITT 保持随机化</strong>。当依从性差异很大时，两者可能给出截然不同的结论，<strong>报告二者并解释差异是良好实践</strong>。</p>
+<h2 id="5">5. 对照组的选择：一个被严重低估的问题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>"与什么比"往往决定了结论</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>对照</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>安慰剂</strong></td>
+<td>回答"有没有超过安慰剂效应"；<strong>但当已有有效治疗时不使用它可能不道德</strong></td>
+</tr>
+<tr>
+<td><strong>等待名单</strong></td>
+<td><strong>系统性高估效应</strong>——它不控制关注、期望与自然史（🔗 心智与证据站第 17、20 页反复标注这一点）</td>
+</tr>
+<tr>
+<td><strong>常规护理</strong></td>
+<td>定义模糊，<strong>跨研究不可比</strong></td>
+</tr>
+<tr>
+<td><strong>活性对照（非劣效）</strong></td>
+<td>需预设非劣效界值；<strong>界值定得宽 = 结论廉价</strong></td>
+</tr>
+<tr>
+<td><strong>剂量不足的活性对照</strong></td>
+<td><strong>一种隐蔽的操纵</strong>：用不足剂量的比较药</td>
+</tr>
+<tr>
+<td><strong>有生物活性的"安慰剂"</strong></td>
+<td>如某降甘油三酯试验用矿物油作安慰剂，<strong>若其本身升高炎症标志物，则夸大了治疗组的相对获益</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>"读一篇 RCT 先看对照组"</strong>是本页最实用的一条操作规则。</p>
+<h2 id="6">6. 观察性研究的因果工具<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>当 RCT 不可行时，有一组方法可以逼近因果，<strong>但每一种都有其识别假设</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>核心思想</th>
+<th>关键假设</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>多变量回归/分层</strong></td>
+<td>调整已测混杂</td>
+<td><strong>无未测混杂</strong>（无法检验）</td>
+</tr>
+<tr>
+<td><strong>倾向评分</strong>（匹配/加权）</td>
+<td>平衡协变量分布</td>
+<td>同上；<strong>只平衡已测变量</strong></td>
+</tr>
+<tr>
+<td><strong>工具变量</strong></td>
+<td>找一个只通过暴露影响结局的变量</td>
+<td>排他性限制（难验证）</td>
+</tr>
+<tr>
+<td><strong>孟德尔随机化</strong></td>
+<td><strong>用基因型作工具变量</strong>（随机分配于受孕时）</td>
+<td>多效性、连锁</td>
+</tr>
+<tr>
+<td><strong>断点回归</strong></td>
+<td>利用阈值附近的准随机分配</td>
+<td>阈值附近可比</td>
+</tr>
+<tr>
+<td><strong>双重差分</strong></td>
+<td>政策变化前后 × 处理/对照</td>
+<td>平行趋势</td>
+</tr>
+<tr>
+<td><strong>靶试验模拟</strong>（target trial emulation）</td>
+<td><strong>把观察性分析明确对照到一个假想 RCT 的方案</strong></td>
+<td>使隐含假设显式化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>靶试验框架是过去十年最重要的方法论进步</strong>：它强制研究者写清楚"时间零点、纳入标准、处理策略、随访、分析"，<strong>从而暴露了观察性研究中最隐蔽的一类错误——不朽时间偏倚</strong>（第 07 页）。</p>
+<p><strong>孟德尔随机化的实际战果值得一提</strong>：它支持了 <strong>LDL 因果性</strong>（LDL 相关变异与心血管风险剂量相关，与他汀试验一致），<strong>也预示了某些疗法的失败</strong>（如 HDL 相关变异与心血管风险无因果关联，与后来 CETP 抑制剂试验的失败吻合）。<strong>这是观察性方法成功做出前瞻性预测的少数干净案例。</strong></p>
+<h2 id="7-rct">7. 一个被反复验证的教训：观察性研究与 RCT 的系统性分歧<a class="headerlink" href="#7-rct" title="Permanent link"></a></h2>
+<p><strong>最著名的案例是绝经激素治疗</strong>：大型观察性研究一致显示它降低冠心病风险约 40–50%；<strong>随后的随机试验（WHI 等）显示并无心血管保护</strong>，且在特定人群与时机下有害。<strong>主要解释是健康使用者偏倚</strong>（使用激素的女性系统性更健康、更富裕、更依从）。</p>
+<p><strong>另一批例子</strong>：β-胡萝卜素与维生素 E（观察性关联好，试验中无效甚至有害）、抗氧化剂、绝大多数膳食补充剂。</p>
+<p><strong>共同结构</strong>：<strong>"做某件被认为健康的事"这个行为本身与大量未测量的健康优势相关</strong>。<strong>统计调整无法消除它，因为它作用于未测量维度。</strong></p>
+<p>🔗 <strong>这条教训对你的研报工作直接相关</strong>：<strong>"采用某策略的机构表现更好"与"该策略有效"之间，隔着完全相同的健康使用者偏倚结构。</strong></p>
+<h2 id="8">8. 外推性：内部有效 ≠ 对你的患者有效<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>一项 RCT 内部效度完美，仍需问：</p>
+<ol>
+<li><strong>纳入了谁？</strong> 试验人群常比真实患者<strong>更年轻、合并症更少、依从性更好</strong>（<strong>老年、肾功能不全、多病共存者被系统性排除</strong>）；</li>
+<li><strong>干预在你的环境可复制吗？</strong>（术者经验、设备、随访强度）；</li>
+<li><strong>对照组代表你的常规做法吗？</strong></li>
+<li><strong>效应在亚组中是否可能不同？</strong>（第 07 页：亚组分析的陷阱）</li>
+<li><strong>随访够长吗？</strong> 尤其对预防性长期用药。</li>
+</ol>
+<p><strong>一条实用启发</strong>：<strong>相对效应（RR）在人群间通常比较稳定，而绝对效应（ARR）随基线风险大幅变化</strong>——<strong>所以外推时用相对效应 × 你的患者的基线风险，得到属于他的绝对获益</strong>。这正是下一页的主题。</p>
+<hr />
+<p><em>下一页：效应量——把"有效"翻译成"多有效"，本站核心装置 NNT 的定义与用法。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-reasoning-errors.html"><span class="pager-label">上一页</span>诊断 IV · 临床推理的心理学与误诊</a>
+  <a class="pager-slot next" href="06-effect-size.html"><span class="pager-label">下一页</span>循证 II · 效应量：RR、ARR、NNT 与 NNH</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

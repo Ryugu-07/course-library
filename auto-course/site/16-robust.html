@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鲁棒控制与不确定性 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li class="active"><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、把不确定性形式化</a></li>
+<li><a href="#_2">二、鲁棒稳定性条件</a></li>
+<li><a href="#_3">三、混合灵敏度设计</a></li>
+<li><a href="#_4">四、结构奇异值与 μ 综合</a></li>
+<li><a href="#_5">五、鲁棒控制的实际处境（诚实评估）</a></li>
+<li><a href="#_6">六、与其他方法的关系</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">进阶 II · 鲁棒控制与不确定性<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：研究生核心 ｜ 承第八页的 Doyle 反例。
+第二页说"模型永远是错的"，第八页展示了"最优控制可能完全没有鲁棒裕度"。<strong>鲁棒控制</strong>的回答是：<strong>既然模型有误差，就把误差本身写进设计问题</strong>——不再为一个标称模型优化，而是为<strong>一族模型</strong>保证性能。本页讲这套理论的思想、工具与它在工业中的真实位置。</p>
+</blockquote>
+<h2 id="_1">一、把不确定性形式化<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>第一步是把"模型不准"写成数学。两类描述：</p>
+<p><strong>① 参数不确定性</strong>：参数在已知区间内变化（质量 <span class="arithmatex">\(m \in [0.9, 1.1]m_0\)</span>）。<strong>物理意义清楚，但分析可能保守或困难。</strong></p>
+<p><strong>② 未建模动态</strong>：用<strong>范数有界的扰动</strong>描述。最常用的是乘性不确定性：</p>
+<div class="arithmatex">\[P(s) = P_0(s)\left(1 + \Delta(s)W(s)\right), \qquad \|\Delta\|_\infty \le 1\]</div>
+<p><span class="arithmatex">\(P_0\)</span> 是标称模型，<span class="arithmatex">\(W(s)\)</span> 是<strong>权重函数</strong>——它描述"在哪个频段、模型有多不准"。</p>
+<p><strong><span class="arithmatex">\(W\)</span> 的形状极有工程意义</strong>（这是本页最实用的洞察）：
+- <strong>低频 <span class="arithmatex">\(|W|\)</span> 小</strong>：低频行为建模较准（稳态增益容易测准）；
+- <strong>高频 <span class="arithmatex">\(|W|\)</span> 大且趋于 1 甚至更大</strong>：<strong>高频完全不可信</strong>（未建模的共振、执行器动态、时滞的高频行为）。</p>
+<p><strong>这正式化了第二页与第五页反复出现的直觉</strong>——为什么不能无限提高带宽：<strong>因为高频处模型不可信，而反馈会把模型误差变成不稳定。</strong></p>
+<h2 id="_2">二、鲁棒稳定性条件<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>对乘性不确定性，闭环对所有 <span class="arithmatex">\(\|\Delta\|_\infty\le1\)</span> 都稳定的充要条件是：</p>
+<div class="arithmatex">\[\|W T\|_\infty &lt; 1 \qquad\Longleftrightarrow\qquad |T(j\omega)| &lt; \frac{1}{|W(j\omega)|}\ \ \forall\omega\]</div>
+<p><span class="arithmatex">\(T\)</span> 是补灵敏度函数（第一页：<span class="arithmatex">\(S+T=1\)</span>）。</p>
+<p><strong>读法极其直观</strong>：<strong>模型越不准的频段（<span class="arithmatex">\(|W|\)</span> 大），闭环增益 <span class="arithmatex">\(|T|\)</span> 就必须越小。</strong> 也就是——<strong>在你不了解系统的地方，不要用力推。</strong> 这句话是全部鲁棒控制的直觉核心，也是一条很好的工程箴言。</p>
+<p><strong>与经典裕度的关系</strong>：向量裕度（第五页提到的、到 <span class="arithmatex">\(-1\)</span> 点的最短距离）就等于 <span class="arithmatex">\(1/\|S\|_\infty\)</span>。<strong>所以 <span class="arithmatex">\(H_\infty\)</span> 理论是经典稳定裕度的严格推广</strong>——它把"离危险有多远"从看一个点变成看整条曲线。</p>
+<h2 id="_3">三、混合灵敏度设计<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>实际设计要同时管性能与鲁棒性，标准做法是<strong>混合灵敏度</strong>：</p>
+<div class="arithmatex">\[\left\|\begin{matrix} W_1 S \\ W_2 KS \\ W_3 T\end{matrix}\right\|_\infty &lt; 1\]</div>
+<p>三项各有明确含义：</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>管什么</th>
+<th>权重形状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(W_1 S\)</span></td>
+<td><strong>性能</strong>：跟踪精度、抗扰</td>
+<td><span class="arithmatex">\(W_1\)</span> 低频大（要求低频 $</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(W_2 KS\)</span></td>
+<td><strong>控制量</strong>：不超执行器能力</td>
+<td>限制控制信号</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(W_3 T\)</span></td>
+<td><strong>鲁棒性</strong>：抗未建模动态</td>
+<td><span class="arithmatex">\(W_3\)</span> 高频大（要求高频 $</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意 <span class="arithmatex">\(S+T=1\)</span> 的约束在此发挥作用</strong>：<span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(T\)</span> 不能同时小。<strong>这就是水床效应（第五页）在设计问题中的直接体现</strong>——权重函数的选择实际上是在<strong>分配频段</strong>：低频归性能、高频归鲁棒性、穿越区做过渡。</p>
+<p><strong>求解</strong>：通过 Riccati 方程或<strong>线性矩阵不等式（LMI）</strong>求解，有成熟的数值工具。<strong>设计的艺术不在求解，而在选权重函数</strong>——这一步依然需要工程经验与迭代。</p>
+<h2 id="_4">四、结构奇异值与 μ 综合<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(H_\infty\)</span> 把所有不确定性当作一个"满块"<span class="arithmatex">\(\Delta\)</span> 处理，这对<strong>多个独立的不确定源</strong>（如三个参数各自变化）是<strong>保守的</strong>——它把物理上不可能同时发生的最坏组合也算了进去。</p>
+<p><strong>结构奇异值 <span class="arithmatex">\(\mu\)</span></strong> 考虑 <span class="arithmatex">\(\Delta\)</span> 的<strong>块对角结构</strong>，给出更精确（更不保守）的判据：</p>
+<div class="arithmatex">\[\text{鲁棒稳定} \iff \sup_\omega \mu_\Delta\big(M(j\omega)\big) &lt; 1\]</div>
+<p><strong>代价</strong>：<span class="arithmatex">\(\mu\)</span> 的精确计算是 NP 难的，实际用上下界近似；<strong>μ 综合</strong>（D-K 迭代）不保证收敛到全局最优，且得到的控制器阶数很高。</p>
+<h2 id="_5">五、鲁棒控制的实际处境（诚实评估）<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>理论上的成就毋庸置疑</strong>：<span class="arithmatex">\(H_\infty\)</span> 与 μ 理论是控制学科在 1980–90 年代的重大成果，把"鲁棒性"从经验概念变成了可计算、可保证的设计目标。</p>
+<p><strong>但工业部署远少于论文数量</strong>，原因具体而现实：</p>
+<ol>
+<li><strong>控制器阶数高</strong>：<span class="arithmatex">\(H_\infty\)</span> 控制器的阶数至少等于广义对象的阶数（含权重函数），常达十几到几十阶。<strong>需要降阶（平衡截断，第七页），而降阶又可能破坏保证</strong>；</li>
+<li><strong>权重函数难选</strong>：设计质量高度依赖权重的选择，这需要经验，且不像 PID 那样可以现场手调；</li>
+<li><strong>保守性</strong>：为最坏情况设计，正常工况下性能可能明显低于针对标称模型的设计。<strong>"最坏情况保证"的代价是"典型情况平庸"</strong>；</li>
+<li><strong>可解释性差</strong>：现场人员难以理解与维护一个二十阶的状态空间控制器（对比第十三页梯形图的可读性优势）；</li>
+<li><strong>多数工业对象不需要</strong>：PID + 裕度已经够用。</li>
+</ol>
+<p><strong>它真正被使用的场合</strong>：航空航天（飞控、柔性结构）、高端伺服与精密运动（光刻机工件台等）、硬盘磁头、汽车某些底盘控制——<strong>共同特征是：性能要求逼近极限、模型不确定性显著、且值得投入建模与设计成本。</strong></p>
+<p><strong>一个更常见的实用折中</strong>：用 <span class="arithmatex">\(H_\infty\)</span> 的<strong>思想</strong>（频段分配、权重塑形）指导经典设计，而不必真的求解 <span class="arithmatex">\(H_\infty\)</span> 问题。<strong>很多资深工程师是这样用这套理论的</strong>——把它当作思维框架而非计算工具。</p>
+<h2 id="_6">六、与其他方法的关系<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>与 LQG</strong>：LQG 是 <span class="arithmatex">\(H_2\)</span> 最优（最小化随机扰动下的均方响应），<span class="arithmatex">\(H_\infty\)</span> 最小化最坏情况增益。<strong><span class="arithmatex">\(H_2\)</span> 关心"平均表现"，<span class="arithmatex">\(H_\infty\)</span> 关心"最坏表现"</strong>——这个区分在统计学、优化、机器学习中同样存在（期望风险 vs 最坏情况风险）；</li>
+<li><strong>与 MPC</strong>（下一页）：MPC 处理<strong>约束</strong>极强但标称鲁棒性需额外保证；有<strong>鲁棒 MPC / 管道 MPC（tube MPC）</strong>把二者结合；</li>
+<li><strong>与自适应控制</strong>（第十八页）：鲁棒控制<strong>假定不确定性有界且固定</strong>地设计一个控制器；自适应控制则<strong>在线估计并调整</strong>。二者哲学不同：<strong>一个"以不变应万变"，一个"随机应变"</strong>，也各有失效模式。</li>
+</ul>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>鲁棒控制把模型误差写进设计问题</strong>，用权重函数 <span class="arithmatex">\(W(j\omega)\)</span> 描述"哪个频段有多不准"；</li>
+<li><strong>核心条件 <span class="arithmatex">\(\|WT\|_\infty&lt;1\)</span> 的直觉</strong>：<strong>在你不了解系统的地方，不要用力推</strong>；</li>
+<li><strong>混合灵敏度 = 用权重给频段分工</strong>，受 <span class="arithmatex">\(S+T=1\)</span>（水床效应）约束；</li>
+<li><strong><span class="arithmatex">\(\mu\)</span> 综合减少保守性，代价是计算与阶数</strong>；</li>
+<li><strong>工业部署有限</strong>，原因是阶数高、权重难选、保守、难维护；</li>
+<li><strong>把它当思维框架用，比当计算工具用更普遍</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：MPC——唯一大规模工业落地的"高级"控制方法。它的成功秘诀只有一个：能显式处理约束。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="15-nonlinear.html"><span class="pager-label">上一页</span>进阶 I · 非线性控制</a>
+  <a class="pager-slot next" href="17-mpc.html"><span class="pager-label">下一页</span>进阶 III · 最优控制与 MPC</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

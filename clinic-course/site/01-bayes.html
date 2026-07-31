@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>诊断即推断：先验、似然比、后验 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li class="active"><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 从贝叶斯定理到诊断</a></li>
+<li><a href="#2">2. 似然比的量级感</a></li>
+<li><a href="#3">3. 一个完整的算例</a></li>
+<li><a href="#4">4. 多条证据的串联</a></li>
+<li><a href="#5">5. 检验阈值与治疗阈值</a></li>
+<li><a href="#6">6. 验前概率从哪里来</a></li>
+<li><a href="#7">7. 本页的四条收获</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">诊断 I · 诊断即推断：先验、似然比、后验<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>临床诊断在形式上就是<strong>贝叶斯更新</strong>：从一个先验概率出发，每一条信息（症状、体征、检验、影像）把它乘以一个似然比，得到后验。<strong>这一页把这件事完整推导出来，并说明为什么"检验结果阳性"远不等于"有病"。</strong></p>
+</blockquote>
+<h2 id="1">1. 从贝叶斯定理到诊断<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(D\)</span> 为患病、<span class="arithmatex">\(T^+\)</span> 为检验阳性：</p>
+<div class="arithmatex">\[P(D \mid T^+) = \frac{P(T^+ \mid D)\,P(D)}{P(T^+ \mid D)P(D) + P(T^+ \mid \bar D)P(\bar D)}\]</div>
+<p>翻译成临床术语：<strong><span class="arithmatex">\(P(D)\)</span> 是验前概率（患病率或临床印象）</strong>，<span class="arithmatex">\(P(T^+\mid D)\)</span> 是<strong>敏感度 Sn</strong>，<span class="arithmatex">\(P(T^+\mid \bar D)\)</span> 是 <strong>1 − 特异度 Sp</strong>。</p>
+<p><strong>这个式子的形式不方便床边用</strong>。改写成<strong>几率（odds）形式</strong>后它变得极其好用：</p>
+<div class="arithmatex">\[\underbrace{\frac{P(D\mid T^+)}{P(\bar D\mid T^+)}}_{\text{验后几率}} = \underbrace{\frac{P(D)}{P(\bar D)}}_{\text{验前几率}} \times \underbrace{\frac{P(T^+\mid D)}{P(T^+\mid \bar D)}}_{\textbf{似然比 LR}^+}\]</div>
+<p><strong>验后几率 = 验前几率 × 似然比。</strong> 一句话，一次乘法。</p>
+<div class="arithmatex">\[LR^+ = \frac{Sn}{1-Sp},\qquad LR^- = \frac{1-Sn}{Sp}\]</div>
+<p><strong>几率与概率互换</strong>：<span class="arithmatex">\(\text{odds} = \dfrac{p}{1-p}\)</span>，<span class="arithmatex">\(p = \dfrac{\text{odds}}{1+\text{odds}}\)</span>。</p>
+<h2 id="2">2. 似然比的量级感<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>这张表值得记住</strong>，因为它把"这个检查有多大用"变成一个可比较的数：</p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(LR^+\)</span></th>
+<th>对后验的影响</th>
+<th><span class="arithmatex">\(LR^-\)</span></th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&gt; 10</strong></td>
+<td><strong>大幅提高</strong>（约 +45 个百分点）</td>
+<td><strong>&lt; 0.1</strong></td>
+<td><strong>大幅降低</strong></td>
+</tr>
+<tr>
+<td>5–10</td>
+<td>中等提高（+30）</td>
+<td>0.1–0.2</td>
+<td>中等降低</td>
+</tr>
+<tr>
+<td>2–5</td>
+<td>小幅提高（+15）</td>
+<td>0.2–0.5</td>
+<td>小幅降低</td>
+</tr>
+<tr>
+<td><strong>1–2</strong></td>
+<td><strong>几乎无用</strong></td>
+<td>0.5–1</td>
+<td>几乎无用</td>
+</tr>
+<tr>
+<td><strong>= 1</strong></td>
+<td><strong>完全无信息</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>"LR = 1 的检查等于没做"</strong>——但它仍然收费、仍然有假阳性带来的后续检查与焦虑。<strong>这是本站反复出现的一条：无信息的检查不是中性的，它是有害的</strong>（第 03 页）。</p>
+<p><strong>几个真实的例子（数量级示意）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>发现</th>
+<th>目标疾病</th>
+<th><span class="arithmatex">\(LR^+\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>第三心音奔马律</strong></td>
+<td>左心室功能不全</td>
+<td>~11</td>
+</tr>
+<tr>
+<td>颈静脉怒张</td>
+<td>心衰</td>
+<td>~5</td>
+</tr>
+<tr>
+<td><strong>D-二聚体阴性</strong>（高敏法）</td>
+<td>肺栓塞</td>
+<td><span class="arithmatex">\(LR^- \approx\)</span> 0.05–0.1</td>
+</tr>
+<tr>
+<td>胸痛"向双臂放射"</td>
+<td>急性心梗</td>
+<td>~2.6</td>
+</tr>
+<tr>
+<td><strong>胸痛"位置可用一指点出"</strong></td>
+<td>急性心梗</td>
+<td>~0.3</td>
+</tr>
+<tr>
+<td><strong>无外周水肿</strong></td>
+<td>心衰</td>
+<td>~0.6（<strong>弱，不能排除</strong>）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意最后一条的用法</strong>：许多"经典体征"的 <span class="arithmatex">\(LR\)</span> 接近 1，<strong>其缺失几乎不能排除疾病</strong>。<strong>这就是"体征阴性 ≠ 没病"的定量版本。</strong></p>
+<h2 id="3">3. 一个完整的算例<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Posterior vs prior probability for different likelihood ratios" src="assets/img/cli-01-bayes.svg" /></p>
+<figcaption><span class="fig-id">图 1.1</span>验后概率随验前概率的变化，每条曲线对应一个似然比。**关键观察**：同一个检验结果，在低验前概率下几乎不能确立诊断（\(LR^+=10\) 时，1% 的验前只升到 9%），而在中等验前概率下影响巨大。**这就是为什么"同一个检查在筛查场景与在有症状患者中，含义完全不同"**——这条是全站被引用最多的一张图。</figcaption>
+</figure>
+<p><strong>例题</strong>：一位 55 岁男性因典型劳力性胸痛就诊。基于年龄、性别与症状特征，冠心病的<strong>验前概率约 60%</strong>。运动负荷心电图阳性（<span class="arithmatex">\(Sn \approx 0.68\)</span>，<span class="arithmatex">\(Sp \approx 0.77\)</span>，故 <span class="arithmatex">\(LR^+ = 0.68/0.23 \approx 3.0\)</span>）。</p>
+<ul>
+<li>验前几率 <span class="arithmatex">\(= 0.6/0.4 = 1.5\)</span></li>
+<li>验后几率 <span class="arithmatex">\(= 1.5 \times 3.0 = 4.5\)</span></li>
+<li>验后概率 <span class="arithmatex">\(= 4.5/5.5 \approx \mathbf{82\%}\)</span></li>
+</ul>
+<p><strong>换一个人</strong>：一位 35 岁女性，非典型胸痛，<strong>验前概率约 5%</strong>。同样阳性结果：</p>
+<ul>
+<li>验前几率 <span class="arithmatex">\(= 0.05/0.95 = 0.053\)</span></li>
+<li>验后几率 <span class="arithmatex">\(= 0.158\)</span>，<strong>验后概率 ≈ 14%</strong></li>
+</ul>
+<p><strong>同一份阳性报告，一个人 82%、另一个人 14%。</strong> 检验没有变，<strong>变的是验前概率</strong>。</p>
+<p><strong>这个例子的实践含义极重要</strong>：<strong>在低验前概率人群中做检查，阳性结果多半是假阳性</strong>——<strong>这是"没事查一查"造成伤害的数学原因</strong>，第 03 页会把它展开成筛查悖论。</p>
+<h2 id="4">4. 多条证据的串联<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>若各条证据在给定疾病状态下<strong>条件独立</strong>，似然比可以连乘：</p>
+<div class="arithmatex">\[\text{验后几率} = \text{验前几率} \times LR_1 \times LR_2 \times \cdots\]</div>
+<p><strong>但"条件独立"这个前提在临床上经常不成立</strong>——发热与白细胞升高、呼吸困难与低氧、D-二聚体与临床评分之间都相关。<strong>连乘会高估证据强度</strong>。</p>
+<p><strong>这就是临床决策规则（clinical decision rules）存在的理由</strong>：Wells 评分、PERC、HEART、CURB-65 等<strong>是在真实数据上拟合出来的多变量模型</strong>，已经吸收了变量间的相关结构，<strong>因此它们优于把单个 LR 硬乘</strong>。🔗 数学站的逻辑回归与研究生数学站的统计学习线是它们的引擎室。</p>
+<h2 id="5">5. 检验阈值与治疗阈值<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>这是把概率变成行动的一步，也是本页最实用的框架</strong>（Pauker &amp; Kassirer）。</p>
+<p>设两个阈值：<strong>检验阈值 <span class="arithmatex">\(P_t\)</span></strong>（低于它则不查、不治）与<strong>治疗阈值 <span class="arithmatex">\(P_{rx}\)</span></strong>（高于它则直接治、不必再查）。</p>
+<div class="arithmatex">\[P_{rx} = \frac{1}{1 + \dfrac{\text{治疗获益}}{\text{治疗危害}}}\]</div>
+<p><strong>直觉</strong>：<strong>治疗越安全有效、漏诊后果越严重，治疗阈值越低。</strong></p>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>治疗阈值</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>疑似细菌性脑膜炎</strong></td>
+<td><strong>极低（几个百分点即用药）</strong></td>
+<td>漏诊致命、抗生素相对安全</td>
+</tr>
+<tr>
+<td>疑似肺栓塞</td>
+<td>低</td>
+<td>漏诊致命；但抗凝有出血风险</td>
+</tr>
+<tr>
+<td>长期他汀预防</td>
+<td><strong>较高</strong></td>
+<td>获益小而缓慢、需终身服药</td>
+</tr>
+<tr>
+<td>化疗</td>
+<td><strong>高</strong></td>
+<td>危害巨大</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"三区间"决策</strong>：<span class="arithmatex">\(P &lt; P_t\)</span> → <strong>不查不治</strong>；<span class="arithmatex">\(P_t &lt; P &lt; P_{rx}\)</span> → <strong>查</strong>（只有此时检查才可能改变行动）；<span class="arithmatex">\(P &gt; P_{rx}\)</span> → <strong>直接治</strong>。</p>
+<p><strong>由此得到本站最实用的一条规则</strong>：</p>
+<blockquote>
+<p><strong>在做任何检查之前，先问：无论结果是阳性还是阴性，我下一步的行动会不同吗？</strong>
+<strong>若不会，这个检查就不该做。</strong></p>
+</blockquote>
+<p>🔗 这与你预测层"三道闸门"里"剔除已发生/不可证伪命题"的思路完全同构：<strong>不改变行动的信息不值得采集</strong>。</p>
+<h2 id="6">6. 验前概率从哪里来<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>这是初学者最常卡住的地方。<strong>四个来源，按可靠性排序</strong>：</p>
+<ol>
+<li><strong>流行病学数据</strong>（该年龄性别人群的患病率）——最客观，但<strong>未考虑就诊这一事实本身携带的信息</strong>；</li>
+<li><strong>就诊场景的患病率</strong>（同样是胸痛，在社区诊所与在急诊室的冠心病概率相差数倍）——<strong>"场景即先验"是临床最重要的一条经验</strong>；</li>
+<li><strong>已验证的预测模型</strong>（Diamond–Forrester 及其修订、Wells、Centor）；</li>
+<li><strong>临床印象</strong>——有价值但<strong>系统性偏高</strong>（第 04 页：可得性启发式）。</li>
+</ol>
+<p><strong>一个常被忽略的偏倚</strong>：<strong>教科书上的"典型表现"来自住院或转诊患者，在初级医疗中疾病谱完全不同</strong>（<strong>谱偏倚 spectrum bias</strong>，第 07 页）。<strong>在门诊用三甲医院的先验，是过度检查的一个结构性来源。</strong></p>
+<h2 id="7">7. 本页的四条收获<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ol>
+<li><strong>验后 = 验前 × 似然比</strong>。任何关于"这个检查准不准"的讨论，如果不谈验前概率，就是不完整的；</li>
+<li><strong>敏感度与特异度是检验的属性，预测值是情境的属性</strong>（第 02 页展开）；</li>
+<li><strong>LR 在 0.5–2 之间的检查几乎没有信息量</strong>，但仍有成本与危害；</li>
+<li><strong>只在"检查结果会改变行动"的概率区间里做检查。</strong></li>
+</ol>
+<hr />
+<p><em>下一页：把敏感度、特异度、ROC 曲线与截断值的选择讲透——为什么"提高准确率"不是一个良定义的目标。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一页</span>00 · 怎么读这门课（附免责声明）</a>
+  <a class="pager-slot next" href="02-test-characteristics.html"><span class="pager-label">下一页</span>诊断 II · 检验特性：敏感度、ROC 与截断值</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光谱传感与 LiDAR · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li class="active"><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、光谱：用颜色识别物质</a></li>
+<li><a href="#_2">二、光纤传感</a></li>
+<li><a href="#_3">三、三维形貌测量</a></li>
+<li><a href="#lidar">四、LiDAR：测距与测速</a></li>
+<li><a href="#_4">五、其他重要传感</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-lidar">应用 III · 光谱传感与 LiDAR<a class="headerlink" href="#iii-lidar" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科接触 + 业界快速增长 ｜ <strong>核对于 2026-07</strong> ｜ 🔗 与自动化站（机器人感知）、生物站（医学成像）互链。
+光是最通用的<strong>非接触测量工具</strong>：不碰到样品就能知道它的成分、形状、距离、速度、温度。本页讲三类主要用途——<strong>光谱（测成分）、干涉与结构光（测形状）、LiDAR（测距离与速度）</strong>。</p>
+</blockquote>
+<h2 id="_1">一、光谱：用颜色识别物质<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>原理</strong>：每种物质有特征的吸收/发射/散射谱——<strong>光谱是分子的指纹</strong>。</p>
+<p><strong>主要技术</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>原理</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>吸收光谱</strong></td>
+<td>特定波长被吸收（Beer–Lambert 定律）</td>
+<td>气体检测、浓度测量</td>
+</tr>
+<tr>
+<td><strong>荧光</strong></td>
+<td>吸收后发射更长波长</td>
+<td>生物标记、显微（🔗 生物站）</td>
+</tr>
+<tr>
+<td><strong>拉曼</strong></td>
+<td>非弹性散射，能量差对应分子振动</td>
+<td><strong>分子指纹、无需标记</strong>；信号极弱</td>
+</tr>
+<tr>
+<td><strong>红外（FTIR）</strong></td>
+<td>分子振动的直接吸收</td>
+<td>化学分析标准手段</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分光的两条路线</strong>：
+- <strong>色散型</strong>：光栅（第四页 <span class="arithmatex">\(d\sin\theta=m\lambda\)</span>）把不同波长散开到探测器阵列上。<strong>简单直观</strong>；
+- <strong>傅里叶变换型（FTIR）</strong>：用迈克尔逊干涉仪扫描光程差，测得干涉图后<strong>做傅里叶变换得到光谱</strong>（第三、四页）。
+  <strong>优势</strong>：<strong>所有波长同时测量（多路复用/Fellgett 优势）+ 通光量大（Jacquinot 优势）</strong> → <strong>信噪比显著高于色散型</strong>，这是中红外光谱仪普遍采用它的原因。</p>
+<p><strong>拉曼的困境与对策</strong>：拉曼散射截面极小（约 <span class="arithmatex">\(10^{-30}\)</span> cm²，比荧光弱几个数量级）。
+- <strong>表面增强拉曼（SERS）</strong>：金属纳米结构的局域场增强可达数个数量级，甚至实现单分子检测；
+- 需要<strong>陷波滤波器</strong>滤除极强的瑞利散射（第三页薄膜）。</p>
+<h2 id="_2">二、光纤传感<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>光纤本身就是传感器</strong>——这是它常被忽略的一面：</p>
+<ul>
+<li><strong>FBG（光纤布拉格光栅）</strong>：应变与温度改变光栅周期 → <strong>反射波长漂移</strong>。</li>
+<li><strong>优势</strong>：<strong>波长编码</strong>（不受光强波动影响）、可<strong>在一根光纤上串联数十个不同波长的光栅</strong>实现准分布式测量、抗电磁干扰、可用于易燃易爆环境；</li>
+<li>用于桥梁、大坝、飞机结构、油井的健康监测（🔗 机械站：结构健康监测）；</li>
+<li><strong>分布式传感（DTS/DAS）</strong>：利用光纤中的<strong>拉曼/布里渊/瑞利后向散射</strong>，把<strong>整根光纤变成连续的传感器</strong>。</li>
+<li><strong>DAS（分布式声波传感）</strong>近年发展迅速：可沿数十公里光纤测量振动 → 用于管道泄漏与入侵监测、地震监测、<strong>甚至用既有电信光缆监测交通与地震</strong>；</li>
+<li><strong>光纤陀螺（FOG）</strong>：萨格纳克效应（第三页），无运动部件、可靠性高（🔗 自动化站惯性导航）。</li>
+</ul>
+<h2 id="_3">三、三维形貌测量<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>原理</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>激光三角测量</strong></td>
+<td>投射光点/线，从另一角度观察位移</td>
+<td>简单、快、近距高精度</td>
+</tr>
+<tr>
+<td><strong>结构光</strong></td>
+<td>投射已知图案，由变形反演深度</td>
+<td><strong>手机人脸识别</strong>、工业检测；受环境光影响</td>
+</tr>
+<tr>
+<td><strong>立体视觉</strong></td>
+<td>双目视差</td>
+<td>被动、便宜；依赖纹理</td>
+</tr>
+<tr>
+<td><strong>干涉/白光干涉</strong></td>
+<td>第三页</td>
+<td><strong>纳米级精度</strong>，用于表面形貌与光学检测</td>
+</tr>
+<tr>
+<td><strong>共聚焦</strong></td>
+<td>只有焦面的光通过针孔</td>
+<td>层析能力，用于显微与表面测量</td>
+</tr>
+<tr>
+<td><strong>OCT</strong></td>
+<td><strong>低相干干涉</strong>（第三页）</td>
+<td><strong>深度分辨的断层成像</strong>，眼科标准工具（🔗 生物站）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>OCT 值得强调</strong>：它是"低相干是资源"这一思想最成功的商业化——<strong>只有当参考臂与样品某深度的光程严格匹配时才产生干涉</strong>，从而实现微米级深度分辨。<strong>已成为眼科检查的标准设备</strong>，并扩展到心血管内窥与皮肤科。</p>
+<h2 id="lidar">四、LiDAR：测距与测速<a class="headerlink" href="#lidar" title="Permanent link"></a></h2>
+<p><strong>两条技术路线，物理与性能完全不同</strong>：</p>
+<p><strong>① dToF（直接飞行时间）</strong>：发射短脉冲，测回波时间。</p>
+<div class="arithmatex">\[d = \frac{c\,t}{2}\]</div>
+<ul>
+<li><strong>1 cm 精度需要约 67 ps 的时间分辨</strong> → 需要 <strong>SPAD + 时间数字转换器（TDC）</strong>（第九页）；</li>
+<li><strong>优点</strong>：远距离（数百米）、原理简单、抗环境光（可用时间门控）；</li>
+<li><strong>挑战</strong>：太阳背景光、多目标干扰、与其他 LiDAR 的互干扰。</li>
+</ul>
+<p><strong>② FMCW（调频连续波）</strong>：发射线性调频的连续光，与回波做<strong>相干拍频</strong>（第九页）。</p>
+<ul>
+<li><strong>拍频同时给出距离与速度</strong>（多普勒）——<strong>一次测量得到四维信息（x,y,z,v）</strong>；</li>
+<li><strong>相干探测天然抑制环境光与他车干扰</strong>（只有与本振相干的光才产生拍频）——<strong>这是它最大的优势</strong>；</li>
+<li><strong>可用低峰值功率</strong>（连续波），眼安全性好；</li>
+<li><strong>挑战</strong>：需要<strong>高相干、可快速线性调频的激光源</strong>（技术门槛高），信号处理复杂。</li>
+</ul>
+<p><strong>扫描方式</strong>：
+- <strong>机械旋转</strong>：视场大、成熟，但体积与可靠性受限；
+- <strong>MEMS 微镜</strong>：小型化，扫描角度受限；
+- <strong>光学相控阵（OPA）</strong>：<strong>完全固态、无运动部件</strong>，用集成光子学实现（第十五页）。<strong>这是最理想的方案，但目前受限于阵列规模、旁瓣与效率</strong>【前沿】；
+- <strong>Flash</strong>：一次照亮整个视场，用面阵探测。简单但作用距离受限（能量分散）。</p>
+<p><strong>产业判断</strong>【核对于 2026-07】：<strong>dToF 已大规模量产</strong>（车载与手机）；<strong>FMCW 与固态 OPA 被视为下一代方向</strong>，但成本与成熟度仍是障碍。<strong>这是一个技术路线尚未收敛的领域。</strong></p>
+<h2 id="_4">五、其他重要传感<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>热成像</strong>：非制冷微测辐射热计已普及（第九页）；用于安防、工业巡检、汽车夜视；</li>
+<li><strong>气体检测</strong>：TDLAS（可调谐激光吸收光谱）——<strong>利用激光扫过气体的特征吸收线</strong>，灵敏度极高，用于甲烷泄漏监测；</li>
+<li><strong>生物传感</strong>：表面等离子体共振（SPR）、硅光微环传感器（<strong>结合物后谐振波长漂移</strong>，第十五页）；</li>
+<li><strong>光声成像</strong>：光激发产生超声 → <strong>兼具光学的对比度与超声的穿透深度</strong>，是很有前景的医学成像方向（🔗 生物站）。</li>
+</ul>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>光谱是分子指纹</strong>；<strong>FTIR 因多路复用与通光量优势而在中红外占主导</strong>；拉曼极弱但可用 SERS 增强；</li>
+<li><strong>FBG 的波长编码不受光强波动影响</strong>，可串联组网；<strong>DAS 把整根光纤变成传感器</strong>；</li>
+<li><strong>OCT 是"低相干作为资源"最成功的商业化</strong>；</li>
+<li><strong>dToF 靠时间分辨、FMCW 靠相干拍频</strong>——后者同时给出速度且天然抗干扰；</li>
+<li><strong>光学相控阵是理想的固态扫描方案</strong>，但仍受阵列规模与效率限制；</li>
+<li>LiDAR 的<strong>技术路线尚未收敛</strong>。</li>
+</ul>
+<hr />
+<p><em>线五结束。下一线转向前沿：用亚波长结构重新定义光学元件、用光做计算、以及量子光学正在打开的新可能。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-display.html"><span class="pager-label">上一页</span>应用 II · 显示技术</a>
+  <a class="pager-slot next" href="18-metasurface.html"><span class="pager-label">下一页</span>前沿 I · 超表面与超构光学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

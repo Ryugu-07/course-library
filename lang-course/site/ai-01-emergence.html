@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>涌现、Scaling 与世界模型 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li class="active"><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-scaling">1. Scaling 律：可预测的变强</a></li>
+<li><a href="#2">2. 涌现：真相变，还是度量假象？</a></li>
+<li><a href="#3-othello-gpt">3. 从预测到世界模型：Othello-GPT</a></li>
+<li><a href="#4-in-context-learning">4. In-context learning：又一个未解的涌现</a></li>
+<li><a href="#5-anthropic">5. 机制可解释性：打开黑箱（Anthropic 路线）</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-scaling">机器 I · 涌现、Scaling 与世界模型<a class="headerlink" href="#i-scaling" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Kaplan 2020 / Hoffmann 2022（scaling laws）、Wei 2022（emergent abilities）、Schaeffer 2023（mirage 反驳）、Li 2023（Othello-GPT）、Anthropic 机制可解释性 ｜ <strong>前置</strong>：info-04（压缩=预测）、🔗 ai-06/07（Transformer、scaling）、mean-03（接地）｜ <strong>证据地位</strong>：<strong>scaling 律【实】</strong>；<strong>"涌现"是否真实【争】</strong>；<strong>世界模型【实/前沿】</strong>。
+线六回到机器——甲问（预测→能力）的最前沿。三个问题：为什么"堆规模"能持续变强（scaling）？"涌现"是真质变还是度量假象（Schaeffer 之争）？纯预测出来的到底是世界模型还是幻觉（Othello-GPT）？这一线也是把前五线的争论<strong>交还给可实验机器</strong>的地方。</p>
+</blockquote>
+<h2 id="1-scaling">1. Scaling 律：可预测的变强<a class="headerlink" href="#1-scaling" title="Permanent link"></a></h2>
+<p>现代 LLM 最坚实的经验事实（【实】）：<strong>测试损失随规模按幂律下降</strong>。在模型参数 <span class="arithmatex">\(N\)</span>、数据 <span class="arithmatex">\(D\)</span>、算力 <span class="arithmatex">\(C\)</span> 足够且平衡时，交叉熵损失 <span class="arithmatex">\(L\)</span>（回忆 info-01：损失就是每 token 的 bits）满足</p>
+<div class="arithmatex">\[L(C) \approx L_\infty + \left(\frac{C_0}{C}\right)^{\alpha}, \qquad \alpha \sim 0.05\text{--}0.1\]</div>
+<figure>
+<p><img alt="Scaling 律与涌现的度量假象" class="fig-img" src="assets/img/ai_scaling.svg" /></p>
+<figcaption><span class="fig-id">图 ai-1</span> 左：测试损失随算力按幂律平滑下降（双对数近直线），是 LLM 最稳的经验律。右：**同一个**能力，用"精确匹配准确率"这类阈值化、非线性指标看是**突现的陡跳**（红），用"每-token 对数似然"这类平滑指标看则是**连续改进**（蓝）——Schaeffer 的核心论点：许多"涌现"可能是**度量选择的假象**，而非底层能力的相变。</figcaption>
+</figure>
+<p><strong>深意（接 info-04）</strong>：损失就是压缩残差。scaling 律说的是——<strong>投入越多算力，模型把语言压得越好</strong>，且好的程度<strong>可预测</strong>。这把"预测下一符号 → 能力"从奇迹变成工程曲线。但它也留下悬念：损失平滑下降，为什么某些<strong>能力</strong>看起来是突然出现的？</p>
+<h2 id="2">2. 涌现：真相变，还是度量假象？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>Wei 2022</strong> 报告了<strong>涌现能力（emergent abilities）</strong>：某些任务（多步算术、特定推理）在小模型上准确率约等于零，过了某个规模<strong>突然</strong>跃升——看似质变、相变、"智能的门槛"。这个叙事极有冲击力，也极易被神秘化。</p>
+<p><strong>Schaeffer 2023 的冷水（本页关键【争】）</strong>：这些"突现"很多是<strong>度量假象（mirage）</strong>。用<strong>精确匹配准确率</strong>（要求多步全对，非线性、阈值化）去看，能力自然显得"要么全错要么突然全对"；换成<strong>平滑指标</strong>（每-token 对数似然、部分credit），同一能力其实是<strong>连续、渐进</strong>改进的（图 ai-1 右）。<strong>"涌现"可能主要在度量里，不在模型里。</strong></p>
+<p><strong>怎么判？</strong> 这是一次绝好的方法论训练：
+- <strong>突现是关于什么的陈述</strong>？——模型内部能力，还是我们测量它的方式？两者要分开。
+- <strong>换度量会不会让台阶消失</strong>？会 → 假象成分大；不会（真有不连续的内部机制）→ 才是真涌现。
+- <strong>少数能力</strong>（如某些依赖离散组合的）可能是真的相变，多数不是——<strong>别一概而论，也别一概祛魅</strong>。</p>
+<p><strong>分档</strong>：scaling 律【实】；"存在戏剧性涌现质变" = 【争】，多数经不起换度量；"某些能力有真实的、机制上的不连续" = 开放【前沿】。</p>
+<h2 id="3-othello-gpt">3. 从预测到世界模型：Othello-GPT<a class="headerlink" href="#3-othello-gpt" title="Permanent link"></a></h2>
+<p>甲问最深的一问：预测下一符号，模型内部到底建了什么？<strong>只是表层统计（随机鹦鹉），还是关于世界的结构（世界模型）？</strong> 这不再是哲学空谈——有了<strong>可做的实验</strong>（承 mean-03 §4 的反方弹药）：</p>
+<p><strong>Othello-GPT（Li 2023，本页的实证心脏）</strong>：只用<strong>黑白棋的走子序列</strong>（纯字符，从不告诉模型"这是棋盘"）训练一个 GPT 预测下一步。然后用<strong>探针（probe）</strong>查它的内部激活——</p>
+<ul>
+<li>发现模型内部<strong>涌现出一个可解码的棋盘状态表征</strong>（每格是黑/白/空），尽管训练目标只是预测下一个字符；</li>
+<li>更强的证据：<strong>干预</strong>这个内部表征（人为翻转某格），模型的后续预测<strong>随之改变</strong>——说明这个世界模型是<strong>因果起作用</strong>的，不是附带的相关物。</li>
+</ul>
+<p><strong>意义（撬动轴 III）</strong>：这是"<strong>纯序列预测能反解出世界结构</strong>"的干净证据。它不证明 LLM 理解一切，但证明"预测 → 世界模型"这一步<strong>在原则上、在受控世界里确实发生</strong>。mean-03 的接地裂缝，被这类实验填上了一块——至少在<strong>指涉接地</strong>层（世界状态被内部表征对应）。</p>
+<h2 id="4-in-context-learning">4. In-context learning：又一个未解的涌现<a class="headerlink" href="#4-in-context-learning" title="Permanent link"></a></h2>
+<p>另一个真实且深刻的现象：<strong>上下文学习（in-context learning, ICL）</strong>——不更新任何权重，仅凭 prompt 里的几个示例，模型就能学会新任务。这像是模型在<strong>推理时</strong>做了某种"学习"。</p>
+<ul>
+<li>一种解释：Transformer 在前向传播里<strong>隐式实现了某种优化/回归</strong>（有理论工作显示注意力可模拟梯度下降的一步）。</li>
+<li>它把"学习"从训练时<strong>渗透</strong>到了推理时——<strong>预测机制里藏着元学习</strong>。</li>
+<li>为什么纯预测训练会<strong>顺带</strong>长出 ICL，仍是开放问题，也是"预测→能力"最迷人的一环。</li>
+</ul>
+<p><strong>这对你研究的价值</strong>：ICL 是"能力从预测涌现"的一个<strong>可控、可探测</strong>的样本。它比"通用智能涌现"这种大词具体得多——你能设计任务、量化 few-shot 曲线、探内部机制，把甲问做成实验。</p>
+<h2 id="5-anthropic">5. 机制可解释性：打开黑箱（Anthropic 路线）<a class="headerlink" href="#5-anthropic" title="Permanent link"></a></h2>
+<p>要真回答"模型里装了什么"，得<strong>打开它</strong>。<strong>机制可解释性（mechanistic interpretability）</strong>试图把网络逆向工程成人类可懂的<strong>电路（circuits）</strong>与<strong>特征（features）</strong>：</p>
+<ul>
+<li><strong>叠加（superposition）</strong>：模型在维度不够时，把多个特征<strong>叠</strong>在同一批神经元里——这是"神经元不可解释"的一大原因。</li>
+<li><strong>稀疏字典学习 / SAE</strong>：把叠加的激活<strong>拆解</strong>回单义的可解释特征（"金门大桥特征""语法主谓一致特征"），是近年的主要突破方向。</li>
+<li><strong>归纳头（induction heads）</strong>：被发现是 ICL 的一个机制基础——一个可定位的电路，负责"看到 AB…A 就预测 B"。</li>
+</ul>
+<p><strong>为什么这是甲问的终局工具</strong>：前面所有"它是否有世界模型/是否理解"的争论，最终要靠<strong>读出内部机制</strong>来裁决，而不是靠行为测试（行为可被表层统计骗过，中文房间的教训，mean-03）。<strong>可解释性把'预测→理解'从哲学辩论，变成了可测量的神经科学</strong>（对硅基网络的神经科学）。这正是线六 ai-03 要展开的"LLM 作为语言理论实验室"。</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（对涌现保持清醒）</strong> "涌现"是本领域最被滥用的词。带走 Schaeffer 的纪律：<strong>遇到"涌现"，先问是模型的还是度量的、换度量会不会消失。</strong> 真涌现（机制不连续）存在但稀少；多数戏剧性台阶是阈值指标的产物。<strong>这一条能让你在满是"AI 突然觉醒"的噪声里保持判断。</strong></p>
+<p><strong>思考 2（世界模型是甲的关键证据）</strong> Othello-GPT 类实验是你手里最实的牌：它把"预测是否产生理解"从口水仗（章鱼 vs 乐观）变成<strong>可控实验</strong>（在玩具世界里探/干预内部表征）。<strong>你完全够得着做它的缩小版</strong>（labs L5）——这是全课"把大问题磨成可做实验"最好的落地。</p>
+<p><strong>思考 3（缝在哪里）</strong> 把线五 mind-02 的核心张力接上：机器在<strong>一个</strong>网络里"预测语言"就长出（某种）世界模型与推理；人脑却<strong>分离</strong>语言与推理网络。Othello-GPT 说机器确实有内部世界模型——<strong>那机器的"推理"和人脑那种语言无关的推理，是不是两种东西？</strong>（ai-02 正面处理。）<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：机器 II——预测等于理解吗。轴 III 的正面决战。有了 scaling、世界模型、可解释性这些实证，我们重审中文房间与章鱼：LLM 的"理解"是真的、是影子、还是一个需要分层才能回答的问题？</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mind-03-consciousness.html"><span class="pager-label">上一页</span>心智 III · 自由能与意识【争·思】</a>
+  <a class="pager-slot next" href="ai-02-understanding.html"><span class="pager-label">下一页</span>机器 II · 预测等于理解吗</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

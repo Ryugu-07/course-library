@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>在不确定性下行动 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 全课收成七条</a></li>
+<li><a href="#2">2. 一张随身清单</a></li>
+<li><a href="#3">3. 迁移：这门课在医学之外的位置</a></li>
+<li><a href="#4">4. 这门课不能给你的</a></li>
+<li><a href="#5">5. 继续走的方向</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">收官 · 在不确定性下行动<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>这门课的最终产物不是一套医学知识，而是<strong>一套在信息不全、代价不对称、且不能不做决定的情况下的行动规则</strong>。它在医学中被磨了两百年，因为这里的错误以人命计价。<strong>它可以整个搬走。</strong></p>
+</blockquote>
+<h2 id="1">1. 全课收成七条<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>① 没有基线的数字不携带信息。</strong>
+"降低 30%" 要问基线风险；"准确率 90%" 要问患病率与随机基线；"生存期延长" 要问是不是领先时间。<strong>每一次看到一个比例，先找它的分母与对照。</strong></p>
+<p><strong>② 检验只有在会改变行动时才值得做。</strong>
+第 01 页的阈值理论。<strong>这条同时否定了"查全一点更保险"和"多采集一个指标总没坏处"</strong>——<strong>无信息的检查不是中性的，它有假阳性、有成本、有级联。</strong></p>
+<p><strong>③ 效应量在绝对尺度上讲，且必须与危害并列。</strong>
+NNT 与 NNH 放在一起，<strong>"值不值得"才成为可讨论的问题</strong>。<strong>只讲收益的呈现方式，不论出自谁，都是不完整的。</strong></p>
+<p><strong>④ 替代终点会骗你。</strong>
+CAST 的室性早搏、ACCORD 的糖化血红蛋白、氟化物的骨密度、贝伐珠单抗的无进展生存——<strong>机制讲得通 + 中间指标改善 + 强烈直觉，仍然可能有害。</strong> <strong>回测收益、命中率、点击率同理。</strong></p>
+<p><strong>⑤ 自然史、均值回归与安慰剂会把功劳给任何在低谷时启动的干预。</strong>
+<strong>这就是"我试过，有用"几乎不构成证据的原因</strong>，也是<strong>没有对照组的经验必然误导</strong>的原因——<strong>放血疗法有两千年的成功案例。</strong></p>
+<p><strong>⑥ 偏倚不会因样本量变大而消失。</strong>
+健康使用者、不朽时间、验证偏倚、发表偏倚。<strong>大数据放大精度，不修正系统误差</strong>——<strong>它只会让错误的估计有更窄的置信区间。</strong></p>
+<p><strong>⑦ 最后一步是把数字交回给要承担后果的人。</strong>
+自然频率、图标阵列、收益与危害并列、<strong>以及承认大多数人不论怎么选结果都一样</strong>。<strong>"什么都不做"永远是一个选项。</strong></p>
+<h2 id="2">2. 一张随身清单<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>面对任何一条医学主张（新闻、指南、推销、或你自己的判断）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>相对还是绝对？基线风险多少？<strong>NNT / NNH？</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>硬终点还是替代终点？</td>
+</tr>
+<tr>
+<td>3</td>
+<td>对照组是什么？（安慰剂 / 等待名单 / 常规 / 无）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>随机化了吗？盲法覆盖谁？ITT 吗？</td>
+</tr>
+<tr>
+<td>5</td>
+<td>主要终点是预注册的那个吗？</td>
+</tr>
+<tr>
+<td>6</td>
+<td>我属于被纳入的那个人群吗？</td>
+</tr>
+<tr>
+<td>7</td>
+<td>随访多久？收益需要多久才出现？</td>
+</tr>
+<tr>
+<td>8</td>
+<td>危害的完整清单是什么？</td>
+</tr>
+<tr>
+<td>9</td>
+<td>阴性结果：是"证明无效"还是"没能证明有效"？（看区间）</td>
+</tr>
+<tr>
+<td>10</td>
+<td>谁出的钱？谁受益？</td>
+</tr>
+</tbody>
+</table>
+<p><strong>面对一个诊断（自己的或别人的）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>验前概率从哪来？是这个场景的还是教科书的？</td>
+</tr>
+<tr>
+<td>2</td>
+<td>这条证据的似然比是多少？够不够跨过阈值？</td>
+</tr>
+<tr>
+<td>3</td>
+<td>最坏的可能是什么？我凭什么排除了它？</td>
+</tr>
+<tr>
+<td>4</td>
+<td>有哪个发现是我的诊断解释不了的？</td>
+</tr>
+<tr>
+<td>5</td>
+<td>如果没按预期好转，我的下一步是什么？</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3">3. 迁移：这门课在医学之外的位置<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>本站每一线都有一个非医学的同构</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>本站</th>
+<th>同构</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>验前概率 × 似然比</td>
+<td>任何证据更新；<strong>"场景即先验"</strong></td>
+</tr>
+<tr>
+<td>检验阈值 / 治疗阈值</td>
+<td><strong>不改变行动的信息不值得采集</strong></td>
+</tr>
+<tr>
+<td>筛查悖论、过度诊断</td>
+<td><strong>低基础率下的早期预警系统</strong>；命中率的虚假繁荣</td>
+</tr>
+<tr>
+<td>领先时间偏倚</td>
+<td><strong>用"提前多久预警"当绩效指标</strong></td>
+</tr>
+<tr>
+<td>替代终点</td>
+<td><strong>回测表现、中间指标、代理变量</strong></td>
+</tr>
+<tr>
+<td>不朽时间偏倚</td>
+<td><strong>幸存者/时间窗错配造成的虚假优势</strong></td>
+</tr>
+<tr>
+<td>健康使用者偏倚</td>
+<td><strong>"采用某策略的机构表现更好"</strong></td>
+</tr>
+<tr>
+<td>均值回归</td>
+<td><strong>在极端值处启动的任何干预</strong></td>
+</tr>
+<tr>
+<td>ARR = 基线 × RRR</td>
+<td><strong>边际收益取决于基数</strong></td>
+</tr>
+<tr>
+<td>阿司匹林反转</td>
+<td><strong>背景改变使旧结论失效（regime shift）</strong></td>
+</tr>
+<tr>
+<td>ICER 与概率敏感性分析</td>
+<td><strong>边际分析 + 参数不确定下的稳健性</strong></td>
+</tr>
+<tr>
+<td>自然频率沟通</td>
+<td><strong>向别人解释你的系统时的默认表达</strong></td>
+</tr>
+</tbody>
+</table>
+<p>🔗 <strong>你已经在预测层里独立发明了其中几条</strong>（forward-only 硬约束 = 预注册；三道闸门 = 结构化清单；命中逻辑池 = 完整分母与结局反馈；2026-07 收网校验对照随机与平凡基线 = 第 06 页的核心动作）。<strong>这门课能给的，主要是那些你还没踩到的坑的名字——而"知道坑的名字"本身就是节省时间的方式。</strong></p>
+<h2 id="4">4. 这门课不能给你的<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ol>
+<li><strong>它不能让你看病。</strong> 反复说第三次，因为这是最重要的边界。临床能力来自在监督下诊治大量真实患者；<strong>本站给的是判断证据的框架，不是行医的能力</strong>；</li>
+<li><strong>它会过期。</strong> 线六标了"核对于 2026-07"；线四的阈值与目标值会随指南更新；<strong>线一线二最稳定，线六保质期最短</strong>；</li>
+<li><strong>它不能替你做价值判断。</strong> NNT = 50 值不值得，<strong>没有客观答案</strong>——这门课的作用是让这个问题被清晰地提出来；</li>
+<li><strong>它会让你更难被说服，包括被正确的说法说服。</strong> 这是真实的代价：<strong>严格的标准会同时挡住噪音和一些真信号</strong>。<strong>处理办法不是放松标准，而是明确区分"证据不足"与"证据表明无效"</strong>——<strong>这两者的差别，是本站教给你的最精细的一条。</strong></li>
+</ol>
+<h2 id="5">5. 继续走的方向<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>方法论深度</strong>：Guyatt《循证医学使用者指南》（本站线二的完整版）；Straus《循证医学》；Sackett 的经典论文；<strong>Gigerenzer 关于风险沟通的工作</strong>（第 24 页的来源）。</p>
+<p><strong>统计学基础</strong>：🔗 数学站数理统计线（:8082）与研究生数学站统计学习线（:8083）——<strong>本站的引擎室</strong>。</p>
+<p><strong>机制侧</strong>：🔗 <strong>《疾病的机制》（:8095）</strong>——<strong>如果你只读了这一站，你会拥有很好的怀疑能力和很差的解释能力。两站是一对。</strong></p>
+<p><strong>相邻站</strong>：🔗 心智与证据（:8094）的复现危机与判断心理学；生命的逻辑（:8088）的分子与演化基础；反馈的艺术（:8090）的控制论语言。</p>
+<hr />
+<p><strong>最后一句</strong>：医学最有价值的一课，不是它知道多少，而是<strong>它系统地、公开地、反复地记录自己错在哪里</strong>——CAST、ACCORD、WHI、万络、放血疗法、以及那份还在增长的去实施清单。<strong>一个能列出自己错误清单的领域，比一个只列成就的领域可信得多。</strong></p>
+<p><strong>这句话是可以直接搬走的。</strong></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="24-communication.html"><span class="pager-label">上一页</span>系统 II · 风险沟通与共同决策</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

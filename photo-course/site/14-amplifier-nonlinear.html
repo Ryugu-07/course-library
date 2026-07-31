@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光放大与非线性 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li class="active"><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#edfa">一、EDFA：一项改变行业的发明</a></li>
+<li><a href="#_1">二、光纤中的非线性</a></li>
+<li><a href="#_2">三、非线性作为工具</a></li>
+<li><a href="#_3">四、光信号处理的其他器件</a></li>
+<li><a href="#_4">五、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">光纤 III · 光放大与非线性<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生方向。
+两项物理支撑着现代光通信：<strong>光放大</strong>让信号能传数千公里而无需光电转换；<strong>非线性效应</strong>既是容量的限制（第十三页的非线性香农极限），也是一批重要器件的工作原理。本页把这两件事讲清楚。</p>
+</blockquote>
+<h2 id="edfa">一、EDFA：一项改变行业的发明<a class="headerlink" href="#edfa" title="Permanent link"></a></h2>
+<p><strong>掺铒光纤放大器（EDFA）</strong>：在光纤中掺入铒离子，用 980 nm 或 1480 nm 泵浦形成粒子数反转（第六页），信号光经过时被<strong>受激辐射放大</strong>。</p>
+<p><strong>它的三个决定性优点</strong>：</p>
+<p><strong>① 直接放大光信号，无需光电光转换。</strong> 此前的中继器必须把光转成电、再生、再转回光——<strong>每个波长都要一套</strong>，且速率一旦升级就要全部更换。</p>
+<p><strong>② 增益带宽覆盖整个 C 带（约 1530–1565 nm）</strong> → <strong>可同时放大所有 WDM 通道</strong>。</p>
+<p><strong>这一条是 WDM 得以规模化的关键</strong>（第十三页）：一台 EDFA 顶替了几十套电中继。<strong>这也是为什么 C 带成为长途干线的主战场</strong>——不是因为损耗最低（虽然确实最低），而是因为<strong>这里有放大器</strong>。</p>
+<p><strong>③ 对调制格式与速率透明</strong>——升级速率不必更换放大器。</p>
+<p><strong>代价：ASE 噪声</strong>。自发辐射被放大后成为背景噪声，用<strong>噪声指数（NF）</strong>衡量，理论下限约 3 dB（量子极限）。</p>
+<p><strong>链路的噪声累积</strong>：多级放大后 OSNR 逐级下降</p>
+<div class="arithmatex">\[\mathrm{OSNR} \approx P_{\text{in}} - \mathrm{NF} - 10\log_{10}N - 10\log_{10}(h\nu\Delta\nu)\]</div>
+<p><strong><span class="arithmatex">\(N\)</span> 级放大使 OSNR 下降 <span class="arithmatex">\(10\log N\)</span></strong> → <strong>这是长距系统的根本约束之一</strong>，也是第十三页"提高功率"的动机——但功率又受非线性限制。<strong>两条约束夹出了最优工作点。</strong></p>
+<p><strong>其他放大器</strong>：
+- <strong>拉曼放大</strong>：利用受激拉曼散射，<strong>增益波长由泵浦波长决定</strong>（可覆盖任意波段）、且可做<strong>分布式放大</strong>（在传输光纤中就放大，等效噪声更低）。常与 EDFA 混合使用；
+- <strong>半导体光放大器（SOA）</strong>：体积小、可集成，<strong>但噪声高、有图案效应</strong>；主要用于集成光路而非长途干线；
+- <strong>掺铥光纤放大器</strong>：用于拓展到 S 带。</p>
+<h2 id="_1">二、光纤中的非线性<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>光纤纤芯极细（有效面积约 80 μm²），功率密度很高，<strong>即使石英本身非线性系数很小，长距离积累也变得显著</strong>。</p>
+<p><strong>根源是克尔效应</strong>：折射率随光强变化</p>
+<div class="arithmatex">\[n = n_0 + n_2 I\]</div>
+<p><strong>由此产生三种效应</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>效应</th>
+<th>机理</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>自相位调制（SPM）</strong></td>
+<td>自身强度调制自身相位</td>
+<td>频谱展宽；与色散相互作用</td>
+</tr>
+<tr>
+<td><strong>交叉相位调制（XPM）</strong></td>
+<td>一个通道调制另一通道的相位</td>
+<td><strong>WDM 通道间串扰</strong></td>
+</tr>
+<tr>
+<td><strong>四波混频（FWM）</strong></td>
+<td>三个频率产生第四个</td>
+<td><strong>在零色散附近极强</strong> → 产生串扰</td>
+</tr>
+</tbody>
+</table>
+<p><strong>FWM 的相位匹配条件解释了第十二页的历史教训</strong>：零色散光纤（DSF）中，各通道相速度相近 → <strong>FWM 高效率地积累</strong> → 串扰严重。<strong>这就是为什么 NZ-DSF 要"故意保留一点色散"</strong>——色散破坏相位匹配，抑制 FWM。<strong>一个恰当的"缺陷"，解决了一个更严重的问题。</strong></p>
+<p><strong>其他非线性</strong>：
+- <strong>受激拉曼散射（SRS）</strong>：能量从短波长通道转移到长波长通道 → WDM 中的功率倾斜；
+- <strong>受激布里渊散射（SBS）</strong>：与声波耦合，<strong>阈值很低</strong>，产生强烈的后向散射 → <strong>限制窄线宽光源的入纤功率</strong>。对策是给光源做轻微的相位抖动展宽线宽。</p>
+<h2 id="_2">三、非线性作为工具<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>同样的效应，换个场合就是有用的器件：</p>
+<ul>
+<li><strong>超连续谱产生</strong>：在光子晶体光纤中用超短脉冲激发，产生覆盖八度以上的宽谱光。<strong>这是光频梳与 OCT 光源的关键技术</strong>；</li>
+<li><strong>孤子（soliton）</strong>：<strong>SPM 引起的啁啾恰好抵消反常色散引起的展宽</strong> → 脉冲形状在传播中保持不变。<strong>这是非线性与色散精确平衡的漂亮结果</strong>，曾被寄望于长距通信（现代系统改用相干 + DSP，但孤子概念在锁模激光器中仍然核心）；</li>
+<li><strong>参量放大与波长转换</strong>：基于 FWM；</li>
+<li><strong>二阶非线性（需无中心对称晶体）</strong>：</li>
+<li><strong>倍频（SHG）</strong>：1064 nm → 532 nm 绿光激光笔；</li>
+<li><strong>和频/差频、光参量振荡（OPO）</strong>：产生难以直接获得的波长；</li>
+<li><strong>电光效应（Pockels）</strong>：<strong>这是铌酸锂调制器的原理</strong>——用电场改变折射率，从而调制光的相位/强度（第十三、十五页）。</li>
+</ul>
+<p><strong>注意二阶与三阶的区别</strong>：<strong>二阶非线性只存在于无中心对称的晶体中</strong>（如铌酸锂、KTP）；<strong>硅与石英是中心对称的，没有二阶非线性</strong> → <strong>这就是硅光调制器必须用载流子色散效应（而非电光效应）的原因</strong>（第十五页）。<strong>又一次，材料的对称性决定了器件的技术路线。</strong></p>
+<h2 id="_3">四、光信号处理的其他器件<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>光纤布拉格光栅（FBG）</strong>：在纤芯写入周期性折射率调制 → <strong>反射特定波长</strong>。用于滤波、色散补偿、以及<strong>传感</strong>（应变与温度改变光栅周期 → 波长漂移，第十七页）；</li>
+<li><strong>阵列波导光栅（AWG）</strong>：集成的波长复用/解复用器，是 WDM 系统的核心无源器件；</li>
+<li><strong>可调滤波器与 ROADM</strong>：网络中动态上下路波长；</li>
+<li><strong>光开关</strong>：MEMS、热光、电光。</li>
+</ul>
+<h2 id="_4">五、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>EDFA 的三个优点</strong>（无需光电转换、覆盖整个 C 带、对格式透明）<strong>使 WDM 规模化成为可能</strong>；</li>
+<li><strong>ASE 噪声使 OSNR 随放大级数下降 <span class="arithmatex">\(10\log N\)</span></strong>——与非线性上限共同夹出最优功率；</li>
+<li><strong>克尔效应产生 SPM/XPM/FWM</strong>；<strong>零色散处 FWM 最强</strong>，故 NZ-DSF 故意保留色散；</li>
+<li><strong>SBS 阈值低，限制窄线宽光源的入纤功率</strong>；</li>
+<li><strong>非线性也是工具</strong>：超连续谱、孤子、参量转换、电光调制；</li>
+<li><strong>硅无二阶非线性（中心对称）</strong>，这决定了硅光调制器的技术路线。</li>
+</ul>
+<hr />
+<p><em>线四结束。下一线转向集成：把光路做到芯片上，以及光电技术在显示与传感中的大规模应用。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-optical-comm.html"><span class="pager-label">上一页</span>光纤 II · 光通信系统</a>
+  <a class="pager-slot next" href="15-silicon-photonics.html"><span class="pager-label">下一页</span>应用 I · 集成光子与硅光</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

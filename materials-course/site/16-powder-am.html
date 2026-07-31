@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粉末、烧结与增材制造 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li class="active"><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 烧结：用扩散把粉变成体</a></li>
+<li><a href="#2">2. 增材制造：逐层堆积的材料学</a></li>
+<li><a href="#3">3. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">工艺 II · 粉末、烧结与增材制造<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>有一整类材料无法靠"熔化-浇铸"制造：陶瓷熔点太高、硬质合金必须保持硬相不熔、难熔金属加工困难——它们走<strong>粉末路线</strong>：把粉压成形，再靠<strong>扩散</strong>把颗粒长在一起（烧结）。增材制造（3D 打印）是这条路线在当代的爆发。</p>
+</blockquote>
+<h2 id="1">1. 烧结：用扩散把粉变成体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>驱动力</strong>：颗粒表面积巨大 ⇒ 表面能是可观的能量储备，系统靠减少表面积降能——<strong>烧结是"表面能驱动的扩散过程"</strong>（热力 II 的扩散在此当主角）。</p>
+<p><strong>三阶段</strong>：颈部形成（颗粒接触点长出连接颈）→ 致密化（孔隙连通网络收缩，收缩率 10–20%）→ 孔隙孤立球化与晶粒长大（<strong>收益递减区</strong>：继续烧只长晶粒不再致密——性能 I 的 Hall–Petch 提醒我们晶粒长大是坏事）。</p>
+<p><strong>关键控制量</strong>：温度（<span class="arithmatex">\(0.7\)</span>–<span class="arithmatex">\(0.9\,T_m\)</span>）、粉末粒度（越细比表面积越大、驱动力越强、温度可越低——纳米粉可显著降低烧结温度）、压力（<strong>热压/热等静压 HIP</strong> 直接把孔压掉，用于高可靠性件与增材件后处理）、添加剂（<strong>液相烧结</strong>：少量低熔点相润湿颗粒、毛细力拉紧——硬质合金 WC–Co 与多数工业陶瓷的方案）。</p>
+<p><strong>工业主力</strong>：硬质合金刀具（WC 硬相 + Co 韧相——<strong>硬与韧的机械混合</strong>，"复合"思想的经典）、陶瓷件、粉末冶金齿轮/轴承（净成形省加工）、氧化物弥散强化合金 ODS（弥散相太稳定无法靠析出获得，只能粉末混入——性能 I 的第四种强化在此才有制造途径）。</p>
+<h2 id="2">2. 增材制造：逐层堆积的材料学<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>主流工艺谱</strong>（按能量与原料分）：</p>
+<table>
+<thead>
+<tr>
+<th>工艺</th>
+<th>原理</th>
+<th>材料</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L-PBF</strong>（激光粉末床熔融，即 SLM）</td>
+<td>铺粉 + 激光逐点熔化</td>
+<td>钛、镍基、铝、不锈钢</td>
+<td>精度高、最主流的金属 AM</td>
+</tr>
+<tr>
+<td>EBM（电子束粉末床）</td>
+<td>真空 + 电子束</td>
+<td>Ti-6Al-4V 等</td>
+<td>高温床、残余应力低、粗糙度高</td>
+</tr>
+<tr>
+<td>DED（定向能量沉积）</td>
+<td>送粉/送丝 + 激光电弧</td>
+<td>金属</td>
+<td>大件、修复、梯度材料</td>
+</tr>
+<tr>
+<td>粘结剂喷射</td>
+<td>喷胶成形 + 后烧结</td>
+<td>金属/陶瓷</td>
+<td>快、无热应力、需烧结致密化</td>
+</tr>
+<tr>
+<td>FDM / SLA</td>
+<td>熔丝堆积 / 光固化</td>
+<td>高分子</td>
+<td>桌面级主力</td>
+</tr>
+</tbody>
+</table>
+<p><strong>AM 特有的材料学问题（这是本页最值钱的一段）</strong>：</p>
+<ol>
+<li><strong>极端热历史</strong>：熔池冷速 <span class="arithmatex">\(10^5\)</span>–<span class="arithmatex">\(10^7\)</span> K/s ⇒ 极细组织、非平衡相、<strong>外延生长的柱状晶 + 沿建造方向的强织构</strong> ⇒ <strong>各向异性</strong>（Z 向性能常低 10–20%）；</li>
+<li><strong>残余应力</strong>：逐层急冷急热 ⇒ 高残余拉应力，薄壁翘曲、开裂 ⇒ 基板预热、扫描策略（岛状/旋转）、去应力退火；</li>
+<li><strong>缺陷</strong>：未熔合（能量不足）、<strong>匙孔孔隙</strong>（能量过高蒸发反冲）、球化——工艺窗口在"能量密度"图上是一块<strong>有限区域</strong>，两侧都是缺陷（这是 AM 参数优化的中心图，也是机器学习最早落地的材料工艺问题之一，前沿 III 呼应）；</li>
+<li><strong>后处理几乎必需</strong>：HIP 消孔隙、热处理调组织、表面加工——<strong>"打印完就能用"在承力件上基本不成立</strong>；</li>
+<li><strong>可打印材料的筛选</strong>：AlSi10Mg 好打（近共晶、流动性好）、7075 高强铝难打（凝固裂纹倾向大——需加成核剂改性）——<strong>"为增材设计的合金"是当前活跃研究方向</strong>。</li>
+</ol>
+<p><strong>AM 真正的价值主张</strong>（不是"什么都能打"）：拓扑优化的复杂几何（🔗 机器的力学站结构优化）、随形冷却流道（模具寿命与周期显著改善）、零件整合（几十个零件合成一个、消除连接与泄漏点）、小批量与备件、梯度/多材料。<strong>判据</strong>：单件价值高、几何复杂、批量小——三条同时满足才是 AM 的甜区。</p>
+<h2 id="3">3. 数字感与反直觉<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li>烧结收缩 10–20%（模具设计必须预留——尺寸精度的第一难点）；</li>
+<li>L-PBF 层厚 20–60 μm、光斑 ~80 μm、构建速率约 5–40 cm³/h（<strong>产能是 AM 的主要瓶颈</strong>，多激光机型是产业化方向）；</li>
+<li>硬质合金：WC 硬度 ~2000 HV，加 6–12% Co 后韧性大增而硬度仍 ~1500 HV——<strong>十分之一的软相买来数倍韧性</strong>；</li>
+<li><strong>反直觉</strong>：烧结不需要熔化（低于熔点靠扩散）；AM 的"设计自由"其实受工艺约束严格（悬垂角、支撑、粉末排出孔——<strong>面向增材的设计 DfAM 是一门独立手艺</strong>）；打印金属件的疲劳性能常由<strong>表面粗糙度与内部孔隙</strong>主导，而非基体强度（性能 II 的裂纹逻辑）。</li>
+</ul>
+<p>【研】对标 German《Sintering》、DebRoy et al. 的 AM 综述（<em>Prog. Mater. Sci.</em> 2018）；烧结动力学模型、熔池多物理场模拟、AM 组织-性能定量关系是研究生与产业界共同的前沿。</p>
+<hr />
+<p><em>做出来之后，怎么知道里面长什么样？下一页：表征——材料科学家的眼睛。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="15-solidification.html"><span class="pager-label">上一页</span>工艺 I · 凝固、铸造与成形</a>
+  <a class="pager-slot next" href="17-characterization.html"><span class="pager-label">下一页</span>工艺 III · 表征：材料科学家的眼睛</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

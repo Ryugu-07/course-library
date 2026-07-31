@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>切削与精密加工 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li class="active"><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、切削的物理</a></li>
+<li><a href="#_2">二、精度从哪来</a></li>
+<li><a href="#_3">三、颤振：机床工程的经典难题</a></li>
+<li><a href="#_4">四、精密与超精密加工</a></li>
+<li><a href="#_5">五、数控与工艺系统</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">制造 II · 切削与精密加工<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界主力 ｜ <strong>本页讲原理与限制，不给具体切削参数</strong>（须查刀具厂商推荐值与现场试切）。
+切削是机械制造的主力工艺：<strong>它决定了零件精度的上限</strong>。本页讲切削的物理、机床精度的来源，以及机床工程中最经典的稳定性问题——<strong>颤振</strong>。</p>
+</blockquote>
+<h2 id="_1">一、切削的物理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>切屑形成</strong>：刀具挤压工件材料，使其在<strong>剪切面</strong>上发生剧烈塑性剪切而分离。</p>
+<p><strong>三个关键认识</strong>：</p>
+<p><strong>① 切削本质上是"受控的剪切破坏"</strong>，不是"切开"。剪切区的应变率极高（可达 <span class="arithmatex">\(10^3\)</span>–<span class="arithmatex">\(10^5\)</span> s⁻¹），应变极大。</p>
+<p><strong>② 能量几乎全部变成热。</strong> 三个热源：剪切区（主要）、刀-屑摩擦、刀-工件摩擦。<strong>大部分热被切屑带走</strong>（这是好事），但传入刀具的部分决定刀具寿命，传入工件的部分造成<strong>热变形与尺寸误差</strong>。</p>
+<p><strong>③ 切削力的三个分量</strong>：主切削力（决定功率）、进给力、背向力（<strong>决定工件与刀具的弹性变形，从而影响精度</strong>）。</p>
+<p><strong>刀具寿命——Taylor 公式</strong>：</p>
+<div class="arithmatex">\[v T^n = C\]</div>
+<p><strong><span class="arithmatex">\(n\)</span> 通常在 0.1–0.3 之间</strong>，意味着<strong>切削速度对刀具寿命的影响极其敏感</strong>：速度提高 20%，寿命可能降低一半以上。<strong>这就是切削参数优化的核心矛盾——效率与刀具成本的权衡。</strong></p>
+<p><strong>刀具磨损形式</strong>：后刀面磨损（正常，用 VB 值判定寿命）、月牙洼磨损（高温扩散）、崩刃、积屑瘤（中低速时的粘着，<strong>影响表面质量</strong>）。</p>
+<h2 id="_2">二、精度从哪来<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>机床的精度直接决定零件的精度</strong>。误差来源：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>说明</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>几何误差</strong></td>
+<td>导轨直线度、主轴回转误差、垂直度</td>
+<td>精密制造、刮研、误差补偿</td>
+</tr>
+<tr>
+<td><strong>热变形</strong></td>
+<td><strong>常是精密加工的首要误差源</strong></td>
+<td>恒温、热对称设计、冷却、热补偿</td>
+</tr>
+<tr>
+<td><strong>受力变形</strong></td>
+<td>切削力使刀具/工件弹性变形</td>
+<td>提高刚度、减小切深、多次走刀</td>
+</tr>
+<tr>
+<td><strong>振动</strong></td>
+<td>强迫振动与颤振</td>
+<td>见下节</td>
+</tr>
+<tr>
+<td><strong>刀具磨损</strong></td>
+<td>尺寸漂移</td>
+<td>在线补偿、定期换刀</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"热变形常是首要误差源"</strong> 值得强调：一台精密机床开机后需要<strong>预热数小时</strong>才能稳定；车间温度波动 1 °C 就可能让米级尺寸变化十几微米（承第十五页）。<strong>这就是精密加工必须在恒温车间进行的原因。</strong></p>
+<p><strong>误差复映</strong>：工艺系统刚度有限时，毛坯的误差会<strong>部分复制</strong>到成品上（毛坯凸起处切削力大、让刀多、留下凸起）。<strong>多次走刀能逐步减小误差</strong>——这就是"粗加工—半精加工—精加工"分阶段的力学理由，而不只是习惯。</p>
+<h2 id="_3">三、颤振：机床工程的经典难题<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>颤振是限制材料去除率的首要因素</strong>，也是第七页"自激振动"最重要的工程实例。</p>
+<p><strong>再生颤振的机理</strong>（这是一个漂亮的反馈失稳）：</p>
+<ol>
+<li>刀具振动在工件表面留下<strong>波纹</strong>；</li>
+<li>下一转（或下一齿）切削时，<strong>切削厚度随这个波纹变化</strong>；</li>
+<li>切削厚度变化 → <strong>切削力变化</strong> → 激励刀具进一步振动；</li>
+<li>若前后两转的波纹<strong>相位关系不利</strong>，能量持续注入 → <strong>振动发散</strong>。</li>
+</ol>
+<p><strong>关键在"再生"二字</strong>：<strong>激励来自上一转留下的表面</strong>——这是一个<strong>带时滞的反馈回路</strong>（时滞 = 一转的时间）。🔗 自动化站第一、二页说过：<strong>时滞是反馈失稳的头号原因</strong>。<strong>颤振正是机械领域最典型的时滞失稳。</strong></p>
+<figure>
+<p><img alt="切削稳定性叶瓣图" class="fig-img" src="assets/img/mec_chatter.svg" /></p>
+<figcaption><span class="fig-id">图 18-1</span> 切削稳定性叶瓣图（stability lobe diagram）：横轴主轴转速、纵轴极限切深。曲线以下为稳定切削，以上发生颤振。<strong>注意曲线呈"叶瓣"状而非单调</strong>——在特定的转速"口袋"处，极限切深可比最保守值高出数倍。<strong>这意味着提高转速有时反而能加大切深</strong>，是高速加工提高效率的理论依据。叶瓣位置由系统的固有频率与切削时滞的相位关系决定。</figcaption>
+</figure>
+<p><strong>工程对策</strong>：
+- <strong>选择稳定叶瓣内的转速</strong>（需知道系统的模态参数——用第八页的实验模态分析测出来）；
+- <strong>提高系统刚度与阻尼</strong>（短而粗的刀具、减小悬伸、阻尼刀杆）；
+- <strong>变螺旋角/不等齿距刀具</strong>：打乱再生效应的相位关系；
+- <strong>主轴转速调制</strong>：连续微调转速，破坏相干性。</p>
+<p><strong>"叶瓣图"是机械与控制的交汇点</strong>——它本质上是一张<strong>稳定性边界图</strong>，与自动化站的稳定裕度是同一类东西。</p>
+<h2 id="_4">四、精密与超精密加工<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>精度的量级阶梯</strong>（要有数量级感）：
+- <strong>普通加工</strong>：IT7–IT9，<span class="arithmatex">\(Ra\)</span> 1.6–6.3 μm；
+- <strong>精密加工</strong>：IT5–IT6，<span class="arithmatex">\(Ra\)</span> 0.2–0.8 μm（磨削、精镗）；
+- <strong>超精密加工</strong>：亚微米到纳米级，<span class="arithmatex">\(Ra\)</span> &lt; 0.01 μm。</p>
+<p><strong>超精密加工的关键技术</strong>：
+- <strong>单点金刚石车削（SPDT）</strong>：可直接车出光学级表面，<strong>用于红外光学、非球面透镜</strong>（🔗 光电站的光学元件制造）。但<strong>金刚石与铁族元素有化学亲和性</strong>，故不能直接车钢；
+- <strong>精密磨削与研磨抛光</strong>：适用于硬脆材料；
+- <strong>静压导轨与静压主轴</strong>（承第十二页）、<strong>空气轴承</strong>：无摩擦、无爬行、极高的运动精度；
+- <strong>环境控制</strong>：恒温、隔振（承第七页：低频隔振极难）、洁净。</p>
+<p><strong>特种加工</strong>（切削无能为力时）：
+- <strong>电火花（EDM）</strong>：靠放电蚀除，<strong>与材料硬度无关</strong>——可加工淬火钢、硬质合金；线切割可切复杂轮廓；
+- <strong>激光加工</strong>：非接触、热影响区小（🔗 光电站）；
+- <strong>电解、超声、水射流加工</strong>。</p>
+<p><strong>这些工艺的共同价值</strong>：<strong>突破了"刀具必须比工件硬"这一根本限制</strong>。</p>
+<h2 id="_5">五、数控与工艺系统<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>数控（CNC）</strong>把运动轨迹变成程序：
+- <strong>CAM 生成刀路 → 后处理 → G 代码 → 机床执行</strong>；
+- <strong>多轴联动</strong>（5 轴）可加工复杂曲面、减少装夹次数（<strong>承第十五页：减少装夹 = 减少误差累积</strong>）；
+- <strong>伺服系统的性能直接决定轮廓精度</strong>——🔗 自动化站第十二页：跟随误差、多轴同步、加加速度限制都在此体现。</p>
+<p><strong>"机床是一台被控机械"</strong>——它把本课的力学（刚度、振动、热变形）与自动化站的控制（伺服、插补、前馈）合在一起。<strong>这是两站最直接的交汇点。</strong></p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>切削是受控的剪切破坏</strong>，能量几乎全变热；<strong>Taylor 公式中 <span class="arithmatex">\(n\)</span> 很小 → 速度对刀具寿命极敏感</strong>；</li>
+<li><strong>热变形常是精密加工的首要误差源</strong>；误差复映解释了分阶段加工的必要性；</li>
+<li><strong>再生颤振是带时滞的反馈失稳</strong>——与控制理论同源；<strong>叶瓣图说明提高转速有时反而能加大切深</strong>；</li>
+<li><strong>超精密加工靠静压/空气轴承 + 环境控制</strong>；金刚石车削不能直接加工钢；</li>
+<li><strong>特种加工突破了"刀具须比工件硬"的限制</strong>；</li>
+<li><strong>机床是力学与控制的交汇点</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：增材制造——它颠覆了"什么形状可行"这条约束，也带来了全新的设计自由与全新的问题。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-forming.html"><span class="pager-label">上一页</span>制造 I · 铸、锻、焊</a>
+  <a class="pager-slot next" href="19-additive.html"><span class="pager-label">下一页</span>制造 III · 增材制造</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

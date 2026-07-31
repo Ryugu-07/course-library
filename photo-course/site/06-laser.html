@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>激光原理 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li class="active"><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、三个过程与粒子数反转</a></li>
+<li><a href="#_2">二、谐振腔与阈值</a></li>
+<li><a href="#_3">三、纵模与横模</a></li>
+<li><a href="#_4">四、脉冲技术</a></li>
+<li><a href="#_5">五、主要激光器类型</a></li>
+<li><a href="#_6">六、激光的四个特性与它们的用途</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">光源 I · 激光原理<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>安全提醒</strong>：本页只讲原理。真实激光器可造成永久性眼损伤与灼伤，<strong>必须依据现行安全标准、经培训、佩戴对应波段防护镜后在合规环境中使用</strong>。本课不提供任何操作规程。
+激光与普通光源的差别不是"更亮"，而是<strong>性质上的不同</strong>：极高的相干性、方向性与光谱纯度。本页讲清这些性质从哪来，以及它们各自被用在什么地方。</p>
+</blockquote>
+<h2 id="_1">一、三个过程与粒子数反转<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>爱因斯坦给出光与物质相互作用的三个过程：</p>
+<table>
+<thead>
+<tr>
+<th>过程</th>
+<th>描述</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>受激吸收</strong></td>
+<td>光子被吸收，粒子跃迁到高能级</td>
+<td>与光强成正比</td>
+</tr>
+<tr>
+<td><strong>自发辐射</strong></td>
+<td>高能级粒子随机发光</td>
+<td><strong>相位、方向、偏振随机</strong> → 非相干</td>
+</tr>
+<tr>
+<td><strong>受激辐射</strong></td>
+<td>入射光子诱发跃迁，产生<strong>同相位、同方向、同偏振、同频率</strong>的光子</td>
+<td><strong>相干放大的根源</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>受激辐射是激光的核心</strong>：它产生的光子是入射光子的<strong>精确复制</strong>。</p>
+<p><strong>但热平衡下低能级粒子远多于高能级</strong>（玻尔兹曼分布）→ <strong>吸收总是压过受激辐射</strong>。要放大，必须实现<strong>粒子数反转</strong>：</p>
+<div class="arithmatex">\[N_2 &gt; N_1\]</div>
+<p><strong>这是一个非平衡态</strong>，必须靠外界<strong>泵浦</strong>（光泵、电泵、化学、放电）维持。</p>
+<p><strong>二能级系统无法实现反转</strong>（受激吸收与受激辐射系数相同，最好只能做到相等）→ <strong>必须用三能级或四能级系统</strong>。</p>
+<p><strong>四能级系统优于三能级</strong>：其下能级在热平衡下几乎是空的 → <strong>所需泵浦阈值低得多</strong>。Nd:YAG 是典型四能级系统，红宝石是三能级（故需要极强泵浦）——<strong>这解释了为什么红宝石激光器只能脉冲运转，而 Nd:YAG 可以连续输出</strong>。</p>
+<h2 id="_2">二、谐振腔与阈值<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>增益介质 + 反馈</strong>（两面反射镜）= 激光器。光在腔内往返，每次经过增益介质被放大。</p>
+<p><strong>阈值条件</strong>：单次往返的增益 = 损耗</p>
+<div class="arithmatex">\[R_1R_2\,e^{2(g-\alpha)L} = 1\]</div>
+<p><strong>低于阈值只有自发辐射（像一盏暗灯），越过阈值输出功率陡增且线宽急剧变窄</strong>——<strong>这是一个典型的阈值现象</strong>，输入输出曲线上有明显拐点。</p>
+<p><strong>腔的稳定性条件</strong>（用 <span class="arithmatex">\(g_i = 1 - L/R_i\)</span>）：</p>
+<div class="arithmatex">\[0 \le g_1g_2 \le 1\]</div>
+<p>不满足则光束逐次往返后逸出腔外。<strong>平凹腔、共焦腔是常用的稳定结构</strong>。</p>
+<h2 id="_3">三、纵模与横模<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>纵模</strong>：腔长决定的驻波条件</p>
+<div class="arithmatex">\[\nu_q = q\frac{c}{2nL} \quad\Longrightarrow\quad \Delta\nu = \frac{c}{2nL}\ (\text{纵模间隔})\]</div>
+<p><strong>增益带宽内可能容纳许多纵模</strong> → 多纵模输出，相干长度短。
+- <strong>单纵模</strong>（用标准具、短腔、DFB 光栅）→ <strong>相干长度极长</strong>，用于干涉测量、相干通信、光谱；
+- <strong>多纵模锁相</strong> → <strong>锁模</strong>（见下）。</p>
+<p><strong>横模</strong>：光束的横向分布。<strong>TEM₀₀（基模）是高斯光束</strong>（第七页），<strong>光束质量最好、可聚焦到最小</strong>。高阶模有节线、发散角大。</p>
+<p><strong>光束质量因子 <span class="arithmatex">\(M^2\)</span></strong>：实际光束发散与理想高斯的比值，<span class="arithmatex">\(M^2=1\)</span> 为理想。<strong>这是激光器最重要的性能指标之一</strong>——加工用激光的可聚焦功率密度直接由它决定。</p>
+<h2 id="_4">四、脉冲技术<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>调 Q（Q-switching）</strong>：先阻断腔内反馈、让粒子数反转积累到很高，再突然恢复 → <strong>能量在极短时间内释放</strong>。
+- 脉宽：纳秒量级；峰值功率：兆瓦级；
+- <strong>应用</strong>：打标、测距、LiDAR（第十七页）、医疗。</p>
+<p><strong>锁模（mode locking）</strong>：强制多个纵模保持固定相位关系 → 在时域上叠加成<strong>极短脉冲</strong>。</p>
+<div class="arithmatex">\[\tau_{\text{脉宽}} \approx \frac{1}{\Delta\nu_{\text{增益带宽}}}\]</div>
+<p><strong>关键结论：增益带宽越宽，可获得的脉冲越短</strong>（傅里叶变换限制）。<strong>这就是钛宝石（增益带宽极宽）能产生飞秒脉冲的原因。</strong></p>
+<ul>
+<li>脉宽：皮秒到飞秒；峰值功率极高；</li>
+<li><strong>应用</strong>：超快光谱、双光子显微、精密加工（<strong>"冷加工"——脉冲短到热量来不及扩散</strong>）、<strong>光频梳</strong>（诺奖工作，用于光钟与精密光谱）。</li>
+</ul>
+<p><strong>啁啾脉冲放大（CPA，诺奖）</strong>：把超短脉冲先展宽 → 放大 → 再压缩。<strong>避免了放大过程中的峰值功率损坏光学元件</strong>——<strong>这是超强激光得以实现的关键技术</strong>，也是一个漂亮的"绕开限制"的工程思路。</p>
+<h2 id="_5">五、主要激光器类型<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>波长</th>
+<th>特点与用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>半导体激光（LD）</strong></td>
+<td>0.4–2 μm</td>
+<td><strong>最重要</strong>：小、高效、可直接调制。通信、存储、泵浦、LiDAR（第八页）</td>
+</tr>
+<tr>
+<td><strong>光纤激光</strong></td>
+<td>1–2 μm</td>
+<td>高功率、光束质量好、散热好、<strong>工业加工主力</strong></td>
+</tr>
+<tr>
+<td><strong>固体（Nd:YAG、Ti:S）</strong></td>
+<td>1064 nm 等</td>
+<td>高峰值功率、超快</td>
+</tr>
+<tr>
+<td><strong>气体（He-Ne、CO₂、准分子）</strong></td>
+<td>632.8 nm / 10.6 μm / UV</td>
+<td>CO₂ 用于切割；<strong>准分子（193 nm）用于光刻</strong>（🔗 微电子站）</td>
+</tr>
+<tr>
+<td><strong>量子级联（QCL）</strong></td>
+<td>中远红外</td>
+<td>气体传感、光谱</td>
+</tr>
+</tbody>
+</table>
+<p><strong>产业格局的一个判断</strong>：<strong>光纤激光凭借效率、可靠性与成本，已在工业加工领域大量取代传统气体与固体激光器</strong>；而<strong>半导体激光在数量上占绝对主导</strong>（每部手机、每个数据中心、每台激光打印机里都有）。</p>
+<h2 id="_6">六、激光的四个特性与它们的用途<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>来源</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>方向性</strong></td>
+<td>谐振腔的模式选择</td>
+<td>测距、准直、LiDAR、光通信</td>
+</tr>
+<tr>
+<td><strong>单色性/相干性</strong></td>
+<td>受激辐射 + 模式选择</td>
+<td>干涉测量、全息、相干通信、光谱</td>
+</tr>
+<tr>
+<td><strong>高亮度（辐射度）</strong></td>
+<td>能量集中在极小的角度与面积</td>
+<td><strong>加工、手术、聚变研究</strong></td>
+</tr>
+<tr>
+<td><strong>短脉冲</strong></td>
+<td>锁模/调 Q</td>
+<td>超快过程、冷加工、光频梳</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"高亮度"值得澄清</strong>：激光的总功率可能不大（一支激光笔仅几毫瓦），但<strong>因为方向性极好、可聚焦到接近波长的尺度</strong>，其<strong>功率密度</strong>可以极高。<strong>这正是它危险的原因</strong>——毫瓦级的可见光激光进入眼睛后被晶状体聚焦到视网膜上，功率密度足以造成永久损伤。</p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>受激辐射产生"精确复制"的光子</strong>，是相干放大的根源；</li>
+<li><strong>必须粒子数反转（非平衡态）</strong>；二能级不行，<strong>四能级阈值远低于三能级</strong>；</li>
+<li><strong>阈值现象明显</strong>：越过阈值后功率陡增、线宽骤窄；</li>
+<li><strong>纵模决定相干长度，横模决定光束质量（<span class="arithmatex">\(M^2\)</span>）</strong>；</li>
+<li><strong>锁模脉宽受增益带宽限制</strong>；<strong>CPA 通过展宽-放大-压缩绕开损伤阈值</strong>；</li>
+<li><strong>激光的"亮度"在于功率密度而非总功率</strong>——这也是它的危险所在。</li>
+</ul>
+<hr />
+<p><em>下一页：激光束不是几何光线，也不是平面波。高斯光束理论给出它的正确描述，以及一个重要的权衡：束腰越小，发散越快。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-polarization.html"><span class="pager-label">上一页</span>光学 V · 偏振与晶体光学</a>
+  <a class="pager-slot next" href="07-gaussian-beam.html"><span class="pager-label">下一页</span>光源 II · 高斯光束与谐振腔</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

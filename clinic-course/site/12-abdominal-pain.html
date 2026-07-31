@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>腹痛 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li class="active"><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 不能漏诊的</a></li>
+<li><a href="#2">2. 用解剖学定位</a></li>
+<li><a href="#3">3. 按疼痛性质分流</a></li>
+<li><a href="#4">4. 检查的选择</a></li>
+<li><a href="#5">5. 特殊人群：先验完全不同</a></li>
+<li><a href="#6">6. 推理陷阱</a></li>
+<li><a href="#7">7. 不确定时的正确做法：结构化的观察</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">路径 III · 腹痛<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>腹痛是最依赖<strong>解剖学</strong>的一类症状——<strong>痛在哪里、痛的性质、有没有转移，直接对应胚胎发育与神经支配</strong>（🔗 姊妹站第 01、22 页）。同时它也是误诊率较高的主诉之一，尤其在老年人与女性中。</p>
+</blockquote>
+<h2 id="1">1. 不能漏诊的<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>诊断</th>
+<th>关键线索</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>腹主动脉瘤破裂</strong></td>
+<td><strong>&gt; 60 岁、突发腹/背痛、低血压、搏动性包块</strong>（<strong>常被误诊为肾绞痛</strong>）</td>
+</tr>
+<tr>
+<td><strong>肠系膜缺血</strong></td>
+<td><strong>疼痛与体征严重不成比例</strong>、房颤或血管病史、乳酸升高（<strong>晚期才升</strong>）</td>
+</tr>
+<tr>
+<td><strong>消化道穿孔</strong></td>
+<td>突发剧痛、板状腹、膈下游离气体</td>
+</tr>
+<tr>
+<td><strong>异位妊娠破裂</strong></td>
+<td><strong>育龄女性 + 腹痛 = 先查妊娠试验</strong>，无例外</td>
+</tr>
+<tr>
+<td><strong>绞窄性肠梗阻</strong></td>
+<td>持续痛取代绞痛、发热、白细胞升高、酸中毒</td>
+</tr>
+<tr>
+<td><strong>急性胰腺炎（重症）</strong></td>
+<td>上腹痛向背部放射、脂肪酶升高</td>
+</tr>
+<tr>
+<td><strong>心肌梗死（下壁）</strong></td>
+<td><strong>上腹痛 + 恶心</strong>，尤其糖尿病与老年</td>
+</tr>
+<tr>
+<td><strong>糖尿病酮症酸中毒</strong></td>
+<td>腹痛可为首发表现</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最后两条是本页最重要的提醒</strong>：<strong>腹痛不一定来自腹部</strong>。<strong>下壁心梗、DKA、肺炎（下叶）、带状疱疹、肾上腺危象、铅中毒</strong>都能表现为腹痛。</p>
+<h2 id="2">2. 用解剖学定位<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>内脏痛（早期）</strong>：由胚胎肠管来源决定，<strong>定位模糊、位于中线</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>器官</th>
+<th>疼痛位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>前肠</strong></td>
+<td>胃、十二指肠、肝胆、胰</td>
+<td><strong>上腹</strong></td>
+</tr>
+<tr>
+<td><strong>中肠</strong></td>
+<td>小肠、阑尾、升结肠、近端横结肠</td>
+<td><strong>脐周</strong></td>
+</tr>
+<tr>
+<td><strong>后肠</strong></td>
+<td>远端横结肠、降结肠、乙状结肠、直肠</td>
+<td><strong>下腹</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>躯体痛（后期）</strong>：炎症侵及<strong>壁腹膜</strong>（脊神经支配）→ <strong>定位精确、随移动加重、有反跳痛与肌卫</strong>。</p>
+<p><strong>"阑尾炎的疼痛从脐周转移到右下腹"就是内脏痛转为躯体痛的过程</strong>——<strong>这个转移比疼痛的绝对位置更有诊断价值</strong>（<span class="arithmatex">\(LR^+\)</span> 约 3）。</p>
+<p><strong>牵涉痛</strong>：<strong>膈肌受刺激 → 肩部痛</strong>（C3–5，如脾破裂的 Kehr 征、膈下脓肿）；<strong>输尿管结石 → 腰部向腹股沟与睾丸/阴唇放射</strong>（T10–L1）。</p>
+<h2 id="3">3. 按疼痛性质分流<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>性质</th>
+<th>提示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>绞痛（阵发、间歇）</strong></td>
+<td><strong>管腔梗阻</strong>：肠梗阻、胆绞痛、肾绞痛</td>
+</tr>
+<tr>
+<td><strong>持续、进行性加重</strong></td>
+<td><strong>炎症</strong>：阑尾炎、胆囊炎、憩室炎</td>
+</tr>
+<tr>
+<td><strong>突发、瞬间达峰</strong></td>
+<td><strong>破裂/穿孔/扭转/栓塞</strong>——<strong>"什么时候开始的？"要问到分钟</strong></td>
+</tr>
+<tr>
+<td><strong>烧灼、与进食相关</strong></td>
+<td>消化性溃疡、反流</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"起病速度"是腹痛问诊中信息量最大的单一问题</strong>：<strong>瞬间达到最痛 → 想血管性/穿孔/扭转</strong>；数小时渐进 → 想炎症；数天到数周 → 想肿瘤、慢性炎症。</p>
+<h2 id="4">4. 检查的选择<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>必做的两项低成本高价值检查</strong>：<strong>育龄女性的妊娠试验</strong>（改变整个鉴别树）与<strong>血气/乳酸</strong>（在怀疑缺血或休克时）。</p>
+<p><strong>影像的选择</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>怀疑</th>
+<th>首选</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>胆道</td>
+<td><strong>超声</strong></td>
+<td>对结石敏感、无辐射、床旁可做</td>
+</tr>
+<tr>
+<td>阑尾炎（成人）</td>
+<td>CT</td>
+<td>敏感特异均高</td>
+</tr>
+<tr>
+<td><strong>阑尾炎（儿童、孕妇）</strong></td>
+<td><strong>超声 / MRI</strong></td>
+<td><strong>避免辐射</strong></td>
+</tr>
+<tr>
+<td>肾结石</td>
+<td><strong>低剂量 CT</strong> 或超声</td>
+<td>超声在年轻患者中作为首选可减少辐射</td>
+</tr>
+<tr>
+<td>肠梗阻/穿孔/缺血</td>
+<td><strong>CT（增强）</strong></td>
+<td>一次覆盖多种可能</td>
+</tr>
+<tr>
+<td>妇科</td>
+<td>经阴道超声</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关于阑尾炎的一条现代更新</strong>：<strong>多项 RCT（如 CODA）显示，对无粪石的非复杂性阑尾炎，抗生素治疗在多数患者中是手术的合理替代</strong>，<strong>但约三成在一年内仍需手术</strong>。<strong>这是一个典型的"两种方案各有代价、应当共同决策"的问题</strong>（第 24 页），也是"手术的必然性"被证据修正的例子。</p>
+<p><strong>关于止痛的一条早已解决但仍在流传的误区</strong>：<strong>"腹痛未确诊前不能用止痛药，以免掩盖体征"已被多项 RCT 推翻</strong>——<strong>阿片类镇痛不增加误诊或延误手术</strong>。<strong>这条旧教条至今仍在部分地方实践中存在，是"去实施困难"（第 09 页）的一个小例子。</strong></p>
+<h2 id="5">5. 特殊人群：先验完全不同<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>老年人</strong>：<strong>表现迟钝</strong>（发热、白细胞、腹膜刺激征都可缺如）、<strong>基线并存病多</strong>、<strong>血管性病因比例显著升高</strong>（缺血、AAA）、<strong>死亡率高得多</strong>。<strong>"老年人的腹痛应默认为严重直到证明不是"是一条有依据的临床姿态。</strong></p>
+<p><strong>育龄女性</strong>：<strong>妊娠试验优先</strong>；异位妊娠、卵巢扭转、盆腔炎、卵巢囊肿破裂进入鉴别。</p>
+<p><strong>免疫抑制者</strong>：<strong>炎症反应被抑制 → 体征轻而病变重</strong>；中性粒细胞减少性小肠结肠炎。</p>
+<p><strong>孕妇</strong>：<strong>阑尾位置随孕周上移</strong>、生理性白细胞升高、<strong>影像需避辐射</strong>——<strong>阑尾炎在孕妇中被延误的比例较高，而穿孔显著增加胎儿风险。</strong></p>
+<h2 id="6">6. 推理陷阱<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>① "肾绞痛"结案而漏掉 AAA</strong>。<strong>&gt; 60 岁首次"肾绞痛"发作应主动排除腹主动脉瘤</strong>——这是本页最重要的单条提醒。</p>
+<p><strong>② 白细胞正常 = 没有炎症</strong>。<strong>白细胞对阑尾炎的 <span class="arithmatex">\(LR\)</span> 不足以排除</strong>；老年与免疫抑制者更不可靠。</p>
+<p><strong>③ CT 阴性 = 没病</strong>。早期阑尾炎、早期缺血、功能性梗阻都可能 CT 阴性。<strong>影像阴性而临床高度怀疑时，正确做法是复查与观察，而不是结案。</strong></p>
+<p><strong>④ 已知慢性病的归因偏差</strong>。<strong>炎症性肠病患者的腹痛可能是穿孔或中毒性巨结肠；肝硬化患者可能是自发性细菌性腹膜炎；有慢性胰腺炎史者可能是别的。</strong></p>
+<p><strong>⑤ 用"胃肠炎"结案</strong>。<strong>"腹痛 + 呕吐但无腹泻" 通常不是胃肠炎</strong>——<strong>这是阑尾炎与肠梗阻被误诊为胃肠炎的典型入口</strong>。</p>
+<h2 id="7">7. 不确定时的正确做法：结构化的观察<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>急性腹痛中相当大一部分在初诊时无法确诊</strong>（"非特异性腹痛"）。<strong>这不是失败，只要做对三件事</strong>：</p>
+<ol>
+<li><strong>排除了"不能漏诊"清单上的项目，并写下依据</strong>；</li>
+<li><strong>安排复查</strong>（数小时后再次查体常常是最有价值的"检查"——<strong>演进本身携带信息</strong>）；</li>
+<li><strong>明确的安全网</strong>：疼痛加重、发热、呕吐不止、便血、无法进食 → 立即返回。</li>
+</ol>
+<p><strong>"时间是一种诊断工具"</strong>——这句话在腹痛中比在任何其他症状中都更成立。</p>
+<hr />
+<p><em>下一页：发热——感染与非感染的分流，以及抗生素决策的证据。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-dyspnea.html"><span class="pager-label">上一页</span>路径 II · 呼吸困难</a>
+  <a class="pager-slot next" href="13-fever.html"><span class="pager-label">下一页</span>路径 IV · 发热</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>观测器与卡尔曼滤波 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li class="active"><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、观测器：用模型 + 输出反馈估计状态</a></li>
+<li><a href="#_2">二、卡尔曼滤波：把噪声统计考虑进来</a></li>
+<li><a href="#_3">三、几个重要性质</a></li>
+<li><a href="#_4">四、非线性扩展</a></li>
+<li><a href="#_5">五、实际工程中的关键问题</a></li>
+<li><a href="#_6">六、为什么这一页很重要</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">现代 III · 观测器与卡尔曼滤波<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 硕博与业界高频使用 ｜ 🔗 前置：概率、高斯分布、条件期望（数学站 / grad-math）。
+上一页的 LQR 需要全部状态，实际却只能测到一部分，而且<strong>测量还有噪声</strong>。本页讲如何从不完整、含噪的观测中<strong>重建内部状态</strong>——这是控制工程与信号处理的交汇点，也是从阿波罗导航到今天每一部手机的姿态估计都在用的技术。</p>
+</blockquote>
+<h2 id="_1">一、观测器：用模型 + 输出反馈估计状态<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>Luenberger 观测器</strong>的思想极简洁：<strong>在计算机里跑一个系统的副本，并用实际输出与预测输出的差来修正它</strong>：</p>
+<div class="arithmatex">\[\dot{\hat{x}} = A\hat{x} + Bu + L\underbrace{(y - C\hat{x})}_{\text{输出误差}}\]</div>
+<p>估计误差 <span class="arithmatex">\(e = x - \hat{x}\)</span> 满足</p>
+<div class="arithmatex">\[\dot{e} = (A - LC)e\]</div>
+<p><strong>只要 <span class="arithmatex">\((A,C)\)</span> 能观</strong>（第七页），就可以选 <span class="arithmatex">\(L\)</span> 使 <span class="arithmatex">\(A-LC\)</span> 的特征值任意配置 → <strong>估计误差按期望速度收敛到零</strong>。</p>
+<p><strong>注意这与状态反馈的对偶</strong>：配置 <span class="arithmatex">\(A-BK\)</span> 用 <span class="arithmatex">\(K\)</span>，配置 <span class="arithmatex">\(A-LC\)</span> 用 <span class="arithmatex">\(L\)</span>；能控对能观。<strong>这就是第七页说的对偶性的具体兑现。</strong></p>
+<p><strong>分离原理</strong>：状态反馈 + 观测器组合时，闭环极点恰好是"控制器极点"与"观测器极点"的并集——<strong>可以分别设计</strong>。这是一个很方便的结论，<strong>但要记住上一页的警告：分别最优不等于组合鲁棒</strong>（Doyle 反例）。</p>
+<p><strong>工程经验</strong>：观测器极点通常设计得比控制器极点<strong>快 2–5 倍</strong>（估计要跟得上控制），但<strong>不能太快</strong>——否则会放大测量噪声。<strong>这个取舍正是卡尔曼滤波要系统化解决的问题。</strong></p>
+<h2 id="_2">二、卡尔曼滤波：把噪声统计考虑进来<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>Luenberger 观测器凭直觉选 <span class="arithmatex">\(L\)</span>。<strong>卡尔曼滤波器在噪声统计已知时给出最优的 <span class="arithmatex">\(L\)</span></strong>。</p>
+<p>系统模型加入噪声：</p>
+<div class="arithmatex">\[x_{k+1} = Ax_k + Bu_k + w_k, \qquad y_k = Cx_k + v_k\]</div>
+<p><span class="arithmatex">\(w \sim \mathcal{N}(0,Q)\)</span> 是<strong>过程噪声</strong>（模型不准、未知扰动），<span class="arithmatex">\(v \sim \mathcal{N}(0,R)\)</span> 是<strong>测量噪声</strong>。</p>
+<p><strong>算法是两步循环</strong>，结构极其清晰：</p>
+<p><strong>预测（时间更新）</strong>——用模型往前推：</p>
+<div class="arithmatex">\[\hat{x}_{k|k-1} = A\hat{x}_{k-1} + Bu_{k-1}, \qquad P_{k|k-1} = AP_{k-1}A^T + Q\]</div>
+<p><strong>更新（测量更新）</strong>——用新观测修正：</p>
+<div class="arithmatex">\[K_k = P_{k|k-1}C^T\left(CP_{k|k-1}C^T + R\right)^{-1}$$
+$$\hat{x}_k = \hat{x}_{k|k-1} + K_k\left(y_k - C\hat{x}_{k|k-1}\right), \qquad P_k = (I-K_kC)P_{k|k-1}\]</div>
+<figure>
+<p><img alt="卡尔曼滤波跟踪效果" class="fig-img" src="assets/img/aut_kalman.svg" /></p>
+<figcaption><span class="fig-id">图 9-1</span> 卡尔曼滤波跟踪一个带噪声的运动目标。灰点为<strong>含噪测量</strong>，虚线为<strong>真实状态</strong>，品红线为<strong>滤波估计</strong>，阴影为 \(\pm2\sigma\) <strong>不确定度带</strong>。滤波器融合了"模型预测"与"实际测量"：初期不确定度大、快速收敛，随后稳定跟踪。<strong>注意它同时输出估计值与对该估计的置信度</strong>——这是卡尔曼滤波区别于普通滤波器的关键。</figcaption>
+</figure>
+<p><strong>卡尔曼增益 <span class="arithmatex">\(K\)</span> 的直觉</strong>（本页最该记住的）：它是<strong>"信任模型"与"信任测量"之间的权衡</strong>——</p>
+<ul>
+<li><strong>测量噪声 <span class="arithmatex">\(R\)</span> 大</strong> → <span class="arithmatex">\(K\)</span> 小 → <strong>更信任模型预测</strong>，对测量反应迟钝；</li>
+<li><strong>过程噪声 <span class="arithmatex">\(Q\)</span> 大</strong> → <span class="arithmatex">\(P\)</span> 增长快 → <span class="arithmatex">\(K\)</span> 大 → <strong>更信任测量</strong>，对模型不确定；</li>
+<li><span class="arithmatex">\(P\)</span> 是<strong>估计误差协方差</strong>——滤波器不仅给出估计，还给出<strong>它对自己有多确定</strong>。</li>
+</ul>
+<p><strong><span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span> 的选择是实际调参的核心</strong>：<span class="arithmatex">\(R\)</span> 通常可由传感器规格或静态实验测得；<strong><span class="arithmatex">\(Q\)</span> 则往往是"调"出来的</strong>，它实际上代表"我对模型的不信任程度"。<strong>工程上把 <span class="arithmatex">\(Q\)</span> 当作调节旋钮，是完全正当的做法。</strong></p>
+<h2 id="_3">三、几个重要性质<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>递推</strong>：只需上一步的估计与协方差，<strong>不必存储历史数据</strong>——这是它能在 1960 年代嵌入阿波罗导航计算机的原因；</li>
+<li><strong>最优性</strong>：在线性高斯假设下，卡尔曼滤波是<strong>最小均方误差估计</strong>，也是贝叶斯后验均值。<strong>注意条件</strong>：线性 + 高斯 + 噪声统计已知。三个条件在实际中都常被违反；</li>
+<li><strong>与 LQR 对偶</strong>：卡尔曼的 Riccati 方程与 LQR 的形式对偶。<strong>控制与估计是同一个数学的两面</strong>；</li>
+<li><strong>稳态形式</strong>：若系统时不变，<span class="arithmatex">\(P\)</span> 收敛到稳态，<span class="arithmatex">\(K\)</span> 变成常数——可离线算好，<strong>在线只需矩阵乘法</strong>，计算极省。嵌入式系统常用这个形式。</li>
+</ul>
+<h2 id="_4">四、非线性扩展<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>现实中系统常是非线性的（导航、机器人姿态、SLAM）。三条路线：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>思想</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>EKF（扩展卡尔曼）</strong></td>
+<td>在当前估计处<strong>线性化</strong></td>
+<td>最常用；<strong>强非线性或初值差时会发散</strong>，需要雅可比矩阵</td>
+</tr>
+<tr>
+<td><strong>UKF（无迹卡尔曼）</strong></td>
+<td>传播一组精心选择的 <strong>sigma 点</strong></td>
+<td>无需雅可比，对强非线性更好，计算略贵</td>
+</tr>
+<tr>
+<td><strong>粒子滤波</strong></td>
+<td>用大量样本近似任意分布</td>
+<td>可处理<strong>多峰、非高斯</strong>；高维时粒子数爆炸</td>
+</tr>
+</tbody>
+</table>
+<p><strong>实践判断</strong>：EKF 因简单高效而占据绝大多数嵌入式应用（无人机姿态、组合导航）；<strong>UKF 在中等非线性下是低成本的改进</strong>；粒子滤波用于机器人定位等分布可能多峰的场合（第十九页）。</p>
+<p><strong>EKF 发散是实践中最常见的问题</strong>，原因通常是：初始协方差设得太小（滤波器过度自信）、<span class="arithmatex">\(Q\)</span> 太小（不允许模型出错）、或线性化点偏离太远。<strong>"滤波器太自信"是新手最常犯的错误</strong>——它会拒绝接受与预测不符的测量，然后越错越远。</p>
+<h2 id="_5">五、实际工程中的关键问题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>传感器融合</strong>：卡尔曼滤波天然支持多传感器（每个传感器一次测量更新即可）。<strong>惯性导航（高频但漂移）+ GNSS（低频但无漂移）</strong>的融合是教科书级应用——<strong>互补的误差特性正是融合的价值所在</strong>；</li>
+<li><strong>异常值与故障</strong>：单个野值可能严重污染估计。实践中需要<strong>新息检验</strong>（马氏距离门限）拒绝异常测量——<strong>这是工业级实现的必备部分，教科书通常不讲</strong>；</li>
+<li><strong>可观性退化</strong>：某些运动状态下系统会<strong>暂时不可观</strong>（如匀速直线运动时，某些偏差无法辨识）。<strong>此时协方差会沿某方向增长，滤波器必须能正确表达这种"我不知道"</strong>；</li>
+<li><strong>数值稳定性</strong>：协方差矩阵必须保持对称正定，长时间运行可能因数值误差失效。<strong>平方根滤波（如 UD 分解）</strong>是工业标准做法。</li>
+</ul>
+<h2 id="_6">六、为什么这一页很重要<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>卡尔曼滤波是<strong>控制、信号处理、机器人、导航共享的核心工具</strong>，也是"用模型 + 数据做最优推断"这一思想的最清晰范例：</p>
+<ul>
+<li>🔗 <strong>微电子站</strong>：芯片内的自适应调压需要估计实际工作状态；</li>
+<li>🔗 <strong>生物站</strong>：预测脑假说主张大脑在做类似的预测-修正循环（贝叶斯大脑），与卡尔曼结构高度类似；</li>
+<li>🔗 <strong>AI 站</strong>：状态空间模型、序列滤波与现代序列建模的关系。</li>
+</ul>
+<p><strong>"预测—比较—修正"这个循环，在这门课里出现了三次</strong>：反馈控制（第一页）、观测器（本页）、以及后面的 MPC（第十七页）。<strong>它可能是工程中最普适的结构。</strong></p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>观测器 = 在计算机里跑系统副本 + 用输出误差修正</strong>；能观则误差可任意快收敛；</li>
+<li><strong>卡尔曼增益是"信任模型 vs 信任测量"的权衡</strong>，由 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 决定；</li>
+<li><strong>它同时输出估计与不确定度</strong>，这是其区别于普通滤波器的关键；</li>
+<li><strong>递推形式使其可在极有限的算力上运行</strong>；</li>
+<li><strong>EKF 最常用但会发散</strong>，根因多为"滤波器过度自信"；</li>
+<li><strong>野值剔除、可观性退化、数值稳定</strong>是工业实现的必备考量。</li>
+</ul>
+<hr />
+<p><em>下一页：以上全部是连续时间理论，而真实控制器跑在计算机上——采样、量化、延迟。数字实现会带来一批新问题，其中有些相当反直觉。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-lqr.html"><span class="pager-label">上一页</span>现代 II · 极点配置与 LQR</a>
+  <a class="pager-slot next" href="10-digital.html"><span class="pager-label">下一页</span>现代 IV · 数字控制与采样</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>安慰剂、自然史与均值回归 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li class="active"><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三股与治疗无关的改善力量</a></li>
+<li><a href="#2">2. 安慰剂效应：真实但被夸大</a></li>
+<li><a href="#3">3. 假手术对照：一个残酷但必要的设计</a></li>
+<li><a href="#4">4. 为什么临床经验会系统性误导</a></li>
+<li><a href="#5">5. 如何在有安慰剂效应的世界里做决定</a></li>
+<li><a href="#6">6. 一个必须说清的伦理点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">边界 I · 安慰剂、自然史与均值回归<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>这一页回答一个基础问题：<strong>为什么"我用了它，我好了"几乎不能作为有效性的证据？</strong> 答案是有三股力量在同时把结果推向"好转"，<strong>它们与治疗本身完全无关</strong>——理解这三股力量，是理解为什么需要对照组的全部理由。</p>
+</blockquote>
+<h2 id="1">1. 三股与治疗无关的改善力量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Regression to the mean: extreme values improve on their own" src="assets/img/cli-19-regression.svg" /></p>
+<figcaption><span class="fig-id">图 19.1</span>**均值回归**。左：一群人两次测量的散点，两次测量相关但不完全相关。**若按第一次测量挑出最极端的那一批（阴影区），他们第二次测量的平均值必然向总体均值移动**——**不需要任何干预**。右：该子集两次测量的均值对比，"改善"幅度可观。**任何在症状最重时开始的治疗，都会自动获得这份虚假的功劳。**</figcaption>
+</figure>
+<p><strong>① 自然史（natural history）</strong>：<strong>大多数急性病会自愈</strong>（上呼吸道感染、多数腰痛、多数急性腹泻），<strong>大多数慢性病会波动</strong>。<strong>人们在症状最重时寻求治疗</strong> → <strong>接下来好转的概率天然很高。</strong></p>
+<p><strong>② 均值回归（regression to the mean）</strong>：上图。<strong>这是一个纯统计现象</strong>：只要两次测量不完全相关，<strong>按极端值选出的子集在复测时必然向均值移动</strong>。<strong>血压、疼痛评分、血糖、抑郁量表——所有波动的指标都受此影响。</strong></p>
+<div class="arithmatex">\[E[X_2 \mid X_1 = x] = \mu + \rho\,(x - \mu),\qquad |\rho| &lt; 1\]</div>
+<p><strong><span class="arithmatex">\(\rho\)</span> 越小、<span class="arithmatex">\(x\)</span> 越极端，回归越强。</strong></p>
+<p><strong>③ 安慰剂反应与报告偏差</strong>：期望、条件反射、关注本身、<strong>以及"想让医生高兴"的报告倾向</strong>。</p>
+<p><strong>三者叠加的后果</strong>：<strong>任何在症状高峰启动的干预，都会看起来有效。</strong> 这就是"我试过，有用"这类证据的结构性缺陷。</p>
+<h2 id="2">2. 安慰剂效应：真实但被夸大<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>需要仔细区分三件事</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>安慰剂组的改善</strong></td>
+<td>= 自然史 + 均值回归 + 安慰剂效应 + 报告偏差</td>
+</tr>
+<tr>
+<td><strong>真正的安慰剂效应</strong></td>
+<td>需要与"不治疗组"比较才能分离</td>
+</tr>
+<tr>
+<td><strong>常见的夸大</strong></td>
+<td>把整个"安慰剂组改善"都算作安慰剂效应</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一项被广泛引用的系统综述</strong>（比较安慰剂组与无治疗组）得出的结论是：<strong>安慰剂对客观、二分类结局的效果很小或没有；对主观、连续型结局（尤其疼痛）有可测但不大的效果。</strong></p>
+<p><strong>换句话说</strong>：<strong>安慰剂能改变"感觉如何"，但很难改变"发生了什么"</strong>——<strong>它不缩小肿瘤、不降低血压到有临床意义的程度、不治疗感染。</strong></p>
+<p><strong>有真实机制的部分</strong>：疼痛的安慰剂镇痛可被纳洛酮部分逆转（<strong>内源性阿片参与</strong>）；帕金森病的安慰剂反应伴随纹状体多巴胺释放。<strong>这些是真实的生理现象，但效应量有限且集中在特定领域。</strong></p>
+<p><strong>反安慰剂（nocebo）同样真实</strong>：<strong>预期副作用会产生副作用</strong>。<strong>他汀肌肉症状</strong>是最好的例子（第 15 页）：<strong>n-of-1 随机试验显示大部分症状在服用安慰剂时同样出现</strong>——<strong>这意味着"停药后症状消失"也不能证明是药物所致。</strong></p>
+<p><strong>开放标签安慰剂</strong>（明确告知是安慰剂）的研究显示仍有一定效果，<strong>但试验多为小样本、无法盲法、且以主观结局为主</strong>，<strong>结论应谨慎</strong>。</p>
+<h2 id="3">3. 假手术对照：一个残酷但必要的设计<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>手术领域长期缺乏对照试验</strong>，理由是伦理与可行性。<strong>但当假手术（sham surgery）试验真的被做出来时，结果一再令人不安</strong>：</p>
+<ul>
+<li><strong>膝关节镜清理术治疗骨关节炎</strong>：与假手术无差别；</li>
+<li><strong>退行性半月板撕裂的关节镜部分切除</strong>：与假手术或运动疗法无差别；</li>
+<li><strong>椎体成形术</strong>：早期与假手术对照的试验未显示优势（后续证据仍有争议）；</li>
+<li><strong>某些冠脉支架用于稳定型心绞痛的症状改善</strong>（ORBITA 试验）：与假操作相比，运动耐量的改善差异远小于预期。</li>
+</ul>
+<p><strong>这些结果的共同含义</strong>：<strong>手术的安慰剂成分远大于普遍认知</strong>——<strong>创伤性越大、仪式感越强的干预，安慰剂效应越强</strong>（这本身是被实验证实的规律）。</p>
+<h2 id="4">4. 为什么临床经验会系统性误导<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>这是本页最重要的一节，也是"经验丰富的医生也需要循证医学"的理由。</strong></p>
+<p><strong>六个机制</strong>：</p>
+<ol>
+<li><strong>三股力量</strong>（上文）把功劳给了治疗；</li>
+<li><strong>反馈缺失</strong>：好转的人不回来复诊（被算作成功），恶化的人去了别处（不进入你的经验样本）——<strong>分母不可见</strong>；</li>
+<li><strong>确认偏差</strong>：成功的案例被记住并讲述，失败的被归因于"病情复杂"；</li>
+<li><strong>无对照</strong>：<strong>你永远看不到同一个病人不治疗会怎样</strong>；</li>
+<li><strong>样本量</strong>：一位医生一生见到的某病病例数，远小于检出中等效应所需的样本；</li>
+<li><strong>可得性偏差</strong>：印象深刻的成功案例主导判断（第 04 页）。</li>
+</ol>
+<p><strong>历史证明</strong>：放血疗法在西方医学中持续了两千年，<strong>每一代医生都"见过它有用"</strong>。</p>
+<p><strong>正确的态度不是抛弃临床经验</strong>——<strong>经验在模式识别、判断严重程度、操作技能、与患者沟通上不可替代</strong>；<strong>而是承认它在"这个治疗有没有效"这个特定问题上不可靠。</strong></p>
+<p>🔗 <strong>这与你在预测层的判断同构</strong>：<strong>个别命中的记忆无法支持"有预测力"的结论</strong>，必须有预先锁定的判据、完整的分母、以及对照基线。<strong>你 2026-07 那次校验之所以有价值，正是因为它提供了临床经验提供不了的东西——完整分母 + 明确基线。</strong></p>
+<h2 id="5">5. 如何在有安慰剂效应的世界里做决定<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>四条实用原则</strong>：</p>
+<ol>
+<li><strong>对客观结局（死亡、骨折、住院、检验值），安慰剂效应很小 → 对照组的改善主要来自自然史与均值回归</strong>；</li>
+<li><strong>对主观结局（疼痛、疲劳、情绪），必须有安慰剂对照</strong>，否则数据无法解释；</li>
+<li><strong>"停药后复发"不是有效性证据</strong>（反安慰剂 + 期望）；<strong>"n-of-1 交叉试验"才是</strong>——<strong>对慢性稳定的症状，这是个体层面唯一可靠的方法</strong>；</li>
+<li><strong>利用而不欺骗</strong>：<strong>关注、解释、共情、合理的期望管理本身就有效</strong>——<strong>这些可以在诚实的前提下提供</strong>，不需要开无效的药。</li>
+</ol>
+<h2 id="6">6. 一个必须说清的伦理点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>"既然安慰剂有效，那给患者开点无害的安慰剂有什么问题？"</strong></p>
+<p><strong>三个问题</strong>：① <strong>欺骗损害信任</strong>，一旦被发现代价极大；② <strong>它的效果主要在主观症状上，可能延误真正的诊断与治疗</strong>；③ <strong>"无害"的安慰剂常常不是无害的</strong>——抗生素、注射、补充剂都有风险与成本，<strong>且强化了"每次不适都需要吃点什么"的就医模式</strong>。</p>
+<p><strong>更好的替代</strong>：<strong>明确的解释 + 自然病程的说明 + 症状管理 + 安全网</strong>。<strong>"这是病毒感染，大约一周会好，期间可以这样缓解症状；如果出现 X 请回来"——这段话本身就是治疗。</strong></p>
+<hr />
+<p><em>下一页：药物审批与撤市——制度层面如何试图解决本页提出的问题，以及它在哪里失败。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-vaccines-prophylaxis.html"><span class="pager-label">上一页</span>预防 IV · 疫苗与预防性用药</a>
+  <a class="pager-slot next" href="20-drug-approval.html"><span class="pager-label">下一页</span>边界 II · 药物审批、加速批准与撤市</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

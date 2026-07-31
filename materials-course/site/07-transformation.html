@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>相变与热处理 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li class="active"><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 形核：新相的出生门槛</a></li>
+<li><a href="#2-ttt">2. TTT 图：动力学的时刻表</a></li>
+<li><a href="#3">3. 马氏体：不扩散的政变</a></li>
+<li><a href="#4">4. 相变工具箱的通用性</a></li>
+<li><a href="#5">5. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">热力 III · 相变与热处理：组织的操纵术<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>同一根共析钢，慢冷是软的珠光体、快冷是硬三倍的马氏体——<strong>成分没变一个原子，性能天差地别</strong>：这就是"工艺→结构→性能"主线最戏剧化的舞台。本页装配两台机器（形核-长大、TTT 图），然后走完钢铁热处理的标准剧目：退火、淬火、回火。</p>
+</blockquote>
+<h2 id="1">1. 形核：新相的出生门槛<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>新相核心：体积上赚自由能（<span class="arithmatex">\(\Delta G_v &lt; 0\)</span>）、界面上赔（<span class="arithmatex">\(\gamma\)</span>）——半径 <span class="arithmatex">\(r\)</span> 的核账本 <span class="arithmatex">\(\Delta G = \frac43\pi r^3\Delta G_v + 4\pi r^2\gamma\)</span> 先升后降，<strong>临界半径</strong> <span class="arithmatex">\(r^* = -2\gamma/\Delta G_v\)</span>：小于它的胚胎会解散、翻过山头才能长大（【推】<span class="arithmatex">\(d\Delta G/dr = 0\)</span> 一步）。</p>
+<p><strong>两条推论定全局</strong>：① 过冷度 <span class="arithmatex">\(\Delta T\)</span> 越大 ⇒ <span class="arithmatex">\(|\Delta G_v| \propto \Delta T\)</span> 越大 ⇒ 门槛越低、形核越快——<strong>过冷是形核的燃料</strong>；② <strong>非均匀形核</strong>几乎总是主角：在容器壁/夹杂/晶界上借现成界面，门槛打折——纯净过冷水能到 -40 °C 不结冰、云要靠凝结核、铸造要加孕育剂细化晶粒，一条原理三个现场。</p>
+<h2 id="2-ttt">2. TTT 图：动力学的时刻表<a class="headerlink" href="#2-ttt" title="Permanent link"></a></h2>
+<p>形核率（要过冷）× 长大率（要扩散、要温度）两个相反的温度依赖相乘 ⇒ 转变速率在中间温度最快——<strong>C 曲线</strong>：</p>
+<figure class="plot">
+<p><img alt="TTT diagram with cooling paths" src="assets/img/mat-07-ttt.svg" /></p>
+<figcaption><span class="fig-id">图 7.1</span>共析钢 TTT 图（示意）：C 曲线鼻尖处转变最快（高温缺过冷、低温缺扩散）；绿色慢冷路径穿过 C 曲线得珠光体，红色淬火路径抢在鼻尖前冲到 \(M_s\) 线以下得马氏体——热处理就是在这张时刻表上"抢时间"。</figcaption>
+</figure>
+<p><strong>读法</strong>：热处理设计 = 在这张图上画冷却曲线。避开鼻尖需要的冷速叫<strong>临界冷速</strong>；合金元素（Cr、Mo、Ni…）把 C 曲线右推 ⇒ 临界冷速下降 ⇒ <strong>淬透性</strong>提高——合金钢"好淬"的全部秘密（大件心部冷不快，淬透性决定能淬多厚）。【研：实际生产用连续冷却的 CCT 图，形状同源右移。】</p>
+<h2 id="3">3. 马氏体：不扩散的政变<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>冷速快到原子来不及扩散重排时，FCC 奥氏体以<strong>切变</strong>方式瞬间集体倾倒成过饱和体心正方（BCT）结构——<strong>马氏体转变</strong>：无扩散（成分原封）、声速级、只看温度不看时间（<span class="arithmatex">\(M_s\)</span> 线是水平的）。过饱和碳把晶格撑歪 + 相变自带高密度位错/孪晶 ⇒ <strong>极硬极脆</strong>（结构 III"障碍物"的极端堆料）。</p>
+<p><strong>回火（与马氏体成对使用）</strong>：淬火后中温回炉，让碳部分析出成细碳化物——牺牲一点硬度换回韧性。<strong>淬火 + 回火 = 钢铁工业的标准组合拳</strong>："先把强化元素锁进晶格、再控制释放"——一句话讲完刀具、轴承、弹簧、齿轮的热处理哲学。</p>
+<p><strong>热处理剧目表</strong>（同一根钢的四种命运）：</p>
+<table>
+<thead>
+<tr>
+<th>工艺</th>
+<th>路径</th>
+<th>组织</th>
+<th>性格</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完全退火</td>
+<td>炉冷（慢）</td>
+<td>粗珠光体</td>
+<td>最软，好加工</td>
+</tr>
+<tr>
+<td>正火</td>
+<td>空冷</td>
+<td>细珠光体</td>
+<td>略强，组织均匀</td>
+</tr>
+<tr>
+<td>淬火</td>
+<td>水/油急冷</td>
+<td>马氏体</td>
+<td>最硬最脆</td>
+</tr>
+<tr>
+<td>淬火+回火</td>
+<td>急冷+中温保温</td>
+<td>回火马氏体（细碳化物）</td>
+<td><strong>强韧兼得</strong>——工程主力</td>
+</tr>
+</tbody>
+</table>
+<p>（等温剧目：奥氏体等温淬火得贝氏体——强韧介于两者之间【研：贝氏体机理至今仍有学术争论——扩散派 vs 切变派，一个本科页承载不下的百年公案，立牌】。）</p>
+<h2 id="4">4. 相变工具箱的通用性<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>这台"形核-长大 + 过冷驱动 + 扩散限速"的机器远不止炼钢：铝合金<strong>时效析出</strong>（下一站性能 I 的析出强化——汽车铝板与航空 7075 的强化引擎）、玻璃陶瓷的受控晶化（结构 IV 的微晶玻璃）、聚合物结晶（性能 III）、云滴与冰雹（大气物理）、<strong>蛋白质结晶与病理性聚集</strong>——一套语言通吃。JMAK 方程 <span class="arithmatex">\(f = 1 - \exp(-kt^n)\)</span> 描述转变分数的 S 曲线【研：Avrami 指数读机制】——又一条 S 形曲线（🔗 数学站建模页 Logistic 家族的远亲）。</p>
+<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>共析钢临界冷速 ~10²–10³ °C/s（水淬边缘可达）；高合金工具钢可低至 &lt;1 °C/s（空冷即淬——"风硬钢"）；</li>
+<li>硬度谱：退火珠光体 ~180 HV → 淬火马氏体 ~800 HV——<strong>同成分、四倍多硬度</strong>；</li>
+<li><strong>反直觉</strong>：淬火的目的不是"冷"而是<strong>不让原子动</strong>（负目标：阻止扩散）；马氏体硬不是因为"冷得硬"而是碳被囚禁 + 缺陷爆棚；<strong>回火是主动变软</strong>——工程上"最优"几乎从不在性能单项的极值点（主线"权衡"的又一现身）。</li>
+</ul>
+<p>【研】对标 Porter &amp; Easterling 全书与 Bhadeshia《Steels》；界面控制 vs 扩散控制长大、马氏体晶体学（K–S 关系）、位移型相变的朗道语言（🔗 物理站相变章）是研究生纵深。</p>
+<hr />
+<p><em>线二收官：地图（相图）、时钟（扩散）、操纵术（相变）——"为什么与多快"齐了。线三开始收获：这些组织到底换来了什么力学性能——强度的微观起源与强化四法。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-diffusion.html"><span class="pager-label">上一页</span>热力 II · 扩散</a>
+  <a class="pager-slot next" href="08-strength.html"><span class="pager-label">下一页</span>性能 I · 强度的微观起源与强化四法</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

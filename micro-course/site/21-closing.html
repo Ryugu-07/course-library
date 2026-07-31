@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>约束下的设计 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">一、一条主线：缩放及其后果</a></li>
+<li><a href="#_3">二、这门学科教的思维方式</a></li>
+<li><a href="#_4">三、几个反复出现的判断模式</a></li>
+<li><a href="#_5">四、保质期</a></li>
+<li><a href="#_6">五、若要继续</a></li>
+<li><a href="#_7">六、最后</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">收官 · 约束下的设计<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>二十页走完。这一页把它们收拢：这门学科真正教会人什么，以及哪些内容会过期、哪些不会。</p>
+</blockquote>
+<h2 id="_2">一、一条主线：缩放及其后果<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>回看全课，几乎所有内容都挂在同一条链条上：</p>
+<div class="arithmatex">\[\text{把晶体管做小} \to \text{密度、速度、成本同时改善} \to \text{遇到物理极限} \to \text{改用别的办法}\]</div>
+<p>具体展开就是这门课的骨架：</p>
+<ul>
+<li><strong>Dennard 缩放</strong>给了行业三十年的免费午餐（第四页）；</li>
+<li><strong>60 mV/decade 的玻尔兹曼极限</strong>终结了它——电压降不下去，功率密度失控（第三、四页）；</li>
+<li>于是有了<strong>多核与专用化</strong>（第四、十七页），这重塑了整个软件行业；</li>
+<li>器件端用<strong>结构革新</strong>继续（FinFET → GAA → CFET，第五、十九页）；</li>
+<li>光刻端用<strong>浸没、多重图形化、EUV</strong> 硬撑（第十二页）；</li>
+<li>当单片缩放变贵，转向<strong>拆分与堆叠</strong>（Chiplet、3D、HBM，第十五页）；</li>
+<li>而<strong>存储墙</strong>（第十页）与<strong>热</strong>（第十五页）成为新的第一约束。</li>
+</ul>
+<p><strong>一个热力学常数，一路决定了从晶体管到数据中心的形态。</strong> 这是本课最想让人记住的因果链。</p>
+<h2 id="_3">二、这门学科教的思维方式<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>比具体知识更耐久的，是三种思考方式（导论提出，全课兑现）：</p>
+<p><strong>① 权衡先于最优。</strong> 本课几乎每一页都在指出一对相互冲突的量：功耗与速度、精度与面积（Pelgrom）、分辨率与焦深（瑞利）、密度与可靠性（QLC）、灵活性与能效（加速器）、线性度与效率（PA）。<strong>成熟的工程判断不是"哪个更好"，而是"在当前约束下该站在权衡曲线的哪一点"。</strong></p>
+<p><strong>② 抽象是被构造的，并且会漏。</strong> 从量子力学到应用程序有十几层抽象，每层都让上一层的人不必懂下一层。但漏电、噪声、变异、老化、寄生器件都会穿透模型打上来（第二页闩锁、第十四页变异）。<strong>知道抽象在哪里漏，是这个领域的高级技能。</strong></p>
+<p><strong>③ 可制造性先于优雅。</strong> 设计规则本质上是把制造能力翻译成几何约束（第十四页）。<strong>一个物理上正确、却造不出来或良率太低的设计，等于不存在。</strong> 这是工科与理科最根本的分野。</p>
+<h2 id="_4">三、几个反复出现的判断模式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>这些模式在课内多次出现，也适用于课外：</p>
+<ul>
+<li><strong>"新技术必须打败一个成熟对手"</strong>：TFET/NC-FET（第五页）、新型存储（第十六页）、存内计算（第十六页）、光/神经形态计算（第十七页）——<strong>它们失败或延迟的原因通常不是原理不成立，而是要同时打赢性能、成本、良率、生态与制造成熟度</strong>，而最后几项才是杀手；</li>
+<li><strong>"选择较易解决的困难"</strong>：浸没式光刻绕开 157 nm 材料难题（第十二页）、CPO 绕开硅激光器（第十八页）——<strong>优秀的工程判断常在于换一条阻力更小的路，而非硬攻最难的点</strong>；</li>
+<li><strong>"把模拟难题转成数字问题"</strong>：Sigma-Delta、数字 PLL、数字预失真（第九、十八页）——因为数字享受缩放红利而模拟不享受（第八页）；</li>
+<li><strong>"命名与真相的差距"</strong>：节点数字（第四页）、ADC 标称位数（第九页）、加速器 TOPS（第十七页）——<strong>看到指标先问它实际度量的是什么。</strong></li>
+</ul>
+<h2 id="_5">四、保质期<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>保质期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>半导体物理、pn 结、MOSFET 原理、CMOS 基础（第一至三、六页）</td>
+<td><strong>数十年</strong>，几乎不会变</td>
+</tr>
+<tr>
+<td>缩放的逻辑、功耗构成、时序原理、模拟核心公式（第四、七、八、九页）</td>
+<td><strong>很稳定</strong></td>
+</tr>
+<tr>
+<td>制造工序与光刻物理（第十一、十二页）</td>
+<td>原理稳定，<strong>具体世代会推进</strong></td>
+</tr>
+<tr>
+<td>EDA 流程与算法（第十三页）</td>
+<td>框架稳定，<strong>工具与 ML 应用变化快</strong></td>
+</tr>
+<tr>
+<td><strong>前沿各页（第十五至二十页）</strong></td>
+<td><strong>一到两年</strong>——已标注核对于 2026-07</td>
+</tr>
+</tbody>
+</table>
+<p><strong>尤其提醒</strong>：具体节点名称、良率数字、产品时间表、以及各厂商的相对位置，<strong>变化极快且常有营销成分</strong>。一年后重读，请把那几页当作"截至 2026 年中的状态"，并自行核对。</p>
+<h2 id="_6">五、若要继续<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>深入教材</strong>：Sze《Physics of Semiconductor Devices》（器件）、Razavi《Design of Analog CMOS ICs》（模拟，公认的入门经典）、Weste &amp; Harris《CMOS VLSI Design》（数字）、Rabaey《Digital Integrated Circuits》；</li>
+<li><strong>动手</strong>：SPICE 仿真（开源可用 ngspice）、Verilog + 开源综合工具链（Yosys、OpenROAD、OpenLane），配合开放 PDK 可以走通成熟节点的完整数字流程——<strong>这是唯一不花大钱就能体验完整 RTL-to-GDS 流程的途径</strong>；</li>
+<li><strong>跟踪前沿</strong>：ISSCC（电路）、IEDM（器件）、VLSI Symposium、DAC/ICCAD（EDA）、ECTC（封装）。<strong>这几个会议的论文集是判断行业真实进度的最好来源</strong>，比新闻稿可靠得多；</li>
+<li><strong>跨站互链</strong>：🔗 物理站（固体物理、电磁）、cs 站（体系结构、算法、编译）、数学站（概率与优化）、AI 站（加速器负载）、以及即将建成的<strong>自动化站</strong>（反馈、稳定性、控制回路——本课中 PLL、Sigma-Delta、片上自适应调压都是控制系统）。</li>
+</ul>
+<h2 id="_7">六、最后<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>微电子是一门奇特的学科：它的对象小到需要用量子力学描述，规模大到需要用统计学管理，流程复杂到需要一整个全球产业链协作，而它的产物——芯片——已经成为现代文明几乎所有其他技术的基础。</p>
+<p><strong>它也是"约束"这件事最好的教科书</strong>。物理定律、制造能力、成本、良率、时间、热——每一项都在收紧可能性空间，而工程师的工作就是在这个不断收窄的空间里，找到一个<strong>足够好且能造出来</strong>的解。</p>
+<p><strong>这与理科的美感不同，但同样深刻</strong>：不是"发现世界是什么样"，而是"在世界允许的范围内，把想要的东西做出来"。</p>
+<hr />
+<p><em>全课结束。下一站是自动化——如果说微电子研究"如何造出精确的东西"，自动化研究"如何让不精确的东西按预期运行"。两者互为镜像，且在芯片内部的每一个控制回路里相遇。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-industry.html"><span class="pager-label">上一页</span>前沿 VI · 产业结构与职业路径</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

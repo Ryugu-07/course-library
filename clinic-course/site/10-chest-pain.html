@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>胸痛 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li class="active"><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 不能漏诊的六个</a></li>
+<li><a href="#2">2. 验前概率</a></li>
+<li><a href="#3">3. 检查：先做什么、为什么</a></li>
+<li><a href="#4">4. 五个推理陷阱</a></li>
+<li><a href="#5">5. 常见但不致命的原因（占门诊多数）</a></li>
+<li><a href="#6">6. 这一页的通用结构（其余四页同样适用）</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">路径 I · 胸痛<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>线三的五页体例相同：<strong>① 不能漏诊的诊断（先列）→ ② 验前概率从哪来 → ③ 用哪个检查、为什么 → ④ 推理陷阱</strong>。这是急诊与内科真正的思考顺序——<strong>先排除会杀人的，再找最可能的</strong>。</p>
+<p><strong>再次提醒</strong>：本页是推理训练，<strong>不是自我处理流程</strong>。急性胸痛请直接就医。</p>
+</blockquote>
+<h2 id="1">1. 不能漏诊的六个<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>诊断</th>
+<th>漏诊后果</th>
+<th>最有价值的线索</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>急性冠脉综合征</strong></td>
+<td>死亡、心衰</td>
+<td>劳力相关、放射至双臂/下颌、出汗、既往冠心病</td>
+</tr>
+<tr>
+<td><strong>主动脉夹层</strong></td>
+<td>死亡率按小时累积</td>
+<td><strong>突发撕裂样、放射至背部、双上肢血压差、脉搏不对称、纵隔增宽</strong></td>
+</tr>
+<tr>
+<td><strong>肺栓塞</strong></td>
+<td>猝死</td>
+<td>呼吸困难、心动过速、单侧下肢肿、制动或恶性肿瘤史</td>
+</tr>
+<tr>
+<td><strong>张力性气胸</strong></td>
+<td>梗阻性休克</td>
+<td>单侧呼吸音消失、气管移位、低血压</td>
+</tr>
+<tr>
+<td><strong>食管破裂</strong>（Boerhaave）</td>
+<td>纵隔炎</td>
+<td><strong>剧烈呕吐后剧痛</strong>、皮下气肿</td>
+</tr>
+<tr>
+<td><strong>心脏压塞</strong></td>
+<td>梗阻性休克</td>
+<td>颈静脉怒张 + 低血压 + 心音遥远、奇脉</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"先列杀手"这个体例本身就是对过早闭合的结构性对抗</strong>（第 04 页）——<strong>在得到任何一个满意解释之前，先把这六个过一遍。</strong></p>
+<h2 id="2">2. 验前概率<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>场景决定先验</strong>（第 01 页）：同样的"胸痛"，在社区诊所急性冠脉综合征的比例远低于急诊胸痛中心。<strong>在门诊，肌肉骨骼痛、胃食管反流、焦虑占多数；在急诊，ACS 的比例上升一个数量级。</strong></p>
+<p><strong>病史的似然比（数量级示意）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特征</th>
+<th><span class="arithmatex">\(LR^+\)</span>（对 ACS）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>放射至<strong>双臂</strong></td>
+<td>~2.6</td>
+</tr>
+<tr>
+<td>类似既往心绞痛</td>
+<td>~2.2</td>
+</tr>
+<tr>
+<td>与劳力相关</td>
+<td>~2.4</td>
+</tr>
+<tr>
+<td>伴出汗</td>
+<td>~2.0</td>
+</tr>
+<tr>
+<td><strong>可用一指点出位置</strong></td>
+<td><strong>~0.3</strong></td>
+</tr>
+<tr>
+<td><strong>按压可复现</strong></td>
+<td><strong>~0.3</strong></td>
+</tr>
+<tr>
+<td>刺痛/锐痛</td>
+<td>~0.3</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键观察</strong>：<strong>没有任何单一病史特征的 <span class="arithmatex">\(LR\)</span> 足以确立或排除 ACS</strong>。最强的正向线索也只有 2–3，最强的负向线索约 0.3。<strong>这就是为什么胸痛必须靠结构化评分 + 心电图 + 肌钙蛋白，而不能靠"听起来像不像"。</strong></p>
+<p><strong>一个必须知道的流行病学事实</strong>：<strong>女性、糖尿病患者与老年人的心梗更常表现为非典型症状</strong>（呼吸困难、乏力、上腹不适、恶心），<strong>且他们被延误诊断的比例更高</strong>——这是归因偏差与"典型表现"教学共同造成的系统性问题（第 04 页）。</p>
+<h2 id="3">3. 检查：先做什么、为什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>① 心电图（10 分钟内）</strong>：<strong>目的不是诊断胸痛，而是识别 STEMI</strong>——<strong>因为它直接触发时间敏感的再灌注治疗</strong>。<span class="arithmatex">\(Sn\)</span> 对 ACS 整体不高（<strong>单份正常心电图不能排除</strong>），但对 STEMI 的操作意义极大。<strong>动态复查（15–30 分钟）比单次更有价值。</strong></p>
+<p><strong>② 高敏肌钙蛋白</strong>：<strong>现代路径的核心</strong>。要点：</p>
+<ul>
+<li><strong>单次阴性不足以排除，除非距症状发作足够久且使用了验证过的极低阈值方案</strong>；</li>
+<li><strong>"0/1 小时"或"0/2 小时"快速排除方案</strong>已在多项队列中验证，通过<strong>基线值 + delta 值</strong>把患者分入"排除 / 观察 / 纳入"三区；</li>
+<li><strong>升高 ≠ 心梗</strong>（🔗 姊妹站第 17 页列了非 ACS 的升高原因）：<strong>必须有缺血证据 + 动态变化</strong>；</li>
+<li><strong>这是第 02 页"检验变好使解读变难"的实例</strong>：敏感度提升必然带来特异度下降。</li>
+</ul>
+<p><strong>③ 结构化评分（HEART 等）</strong>：整合病史、心电图、年龄、危险因素、肌钙蛋白。<strong>低分组的 30 天主要心血管事件率在多项验证队列中很低</strong>，可安全早期出院。<strong>注意第 01 页的告诫：评分优于把单个 LR 硬乘，因为它吸收了变量间的相关性。</strong></p>
+<p><strong>④ 主动脉夹层的判断</strong>：<strong>D-二聚体在这里的用法与肺栓塞不同且争议更大</strong>；<strong>CT 血管成像是确诊手段</strong>。<strong>关键是先想到它</strong>——<strong>主动脉夹层最常见的错误是被当作 ACS 而给了抗凝/抗血小板，后果严重。</strong></p>
+<p><strong>⑤ 肺栓塞路径见下一页</strong>（呼吸困难）。</p>
+<h2 id="4">4. 五个推理陷阱<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>① "疼痛缓解了 = 不是心梗"</strong>。<strong>含服硝酸甘油后疼痛缓解对 ACS 的诊断价值很低</strong>——食管痉挛也会缓解。<strong>用治疗反应做诊断是一种常见且危险的推理捷径</strong>（第 19 页会讲为什么"治好了所以诊断对"整体上是弱证据）。</p>
+<p><strong>② "年轻所以不可能"</strong>。年龄降低先验，但<strong>不为零</strong>：可卡因相关、自发冠脉夹层（<strong>多见于年轻女性、围产期</strong>）、家族性高胆固醇血症、川崎病后遗症。</p>
+<p><strong>③ 胸壁压痛的过度解读</strong>。<strong>它确实降低 ACS 概率（<span class="arithmatex">\(LR \approx 0.3\)</span>），但在高验前概率下不足以排除</strong>——这是第 01 页"低 LR 不能压倒高先验"的直接应用。</p>
+<p><strong>④ 只找到一个诊断就停止</strong>。患者可以同时有反流性食管炎和冠心病。<strong>搜索满足</strong>（第 04 页）。</p>
+<p><strong>⑤ 把焦虑当作诊断</strong>。<strong>焦虑是排除性诊断，而且惊恐发作与 ACS 可以共存</strong>。<strong>尤其当患者有精神病史时，躯体疾病被延误的证据是明确的。</strong></p>
+<h2 id="5">5. 常见但不致命的原因（占门诊多数）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>肌肉骨骼</strong>（肋软骨炎、胸壁扭伤——<strong>按压可复现</strong>）、<strong>胃食管反流与食管痉挛</strong>、<strong>焦虑/惊恐</strong>、<strong>带状疱疹</strong>（<strong>皮疹出现前数天即可有剧痛，按皮节分布</strong>——第 01 页说的解剖学线索）、<strong>心包炎</strong>（<strong>坐位前倾缓解、平卧加重、心包摩擦音、心电图弥漫 ST 抬高伴 PR 压低</strong>）。</p>
+<h2 id="6">6. 这一页的通用结构（其余四页同样适用）<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<blockquote>
+<p><strong>先问"最坏是什么"，再问"最可能是什么"。</strong>
+<strong>检查的目的是跨越治疗阈值，不是"求个安心"</strong>（第 01 页第 5 节）。
+<strong>对每个被排除的杀手，写下你依据什么排除的</strong>——这一步能挡住大部分过早闭合。
+<strong>给出明确的安全网</strong>：什么情况必须立刻回来。</p>
+</blockquote>
+<hr />
+<p><em>下一页：呼吸困难——与胸痛高度重叠，但鉴别树完全不同。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-guidelines.html"><span class="pager-label">上一页</span>循证 V · 替代终点与指南是怎么做出来的</a>
+  <a class="pager-slot next" href="11-dyspnea.html"><span class="pager-label">下一页</span>路径 II · 呼吸困难</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

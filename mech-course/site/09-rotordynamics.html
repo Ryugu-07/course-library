@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>转子动力学与工程振动 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li class="active"><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#jeffcott">一、临界转速与 Jeffcott 转子</a></li>
+<li><a href="#_1">二、自动对中：为什么高速反而更平稳</a></li>
+<li><a href="#_2">三、陀螺效应</a></li>
+<li><a href="#_3">四、失稳：比共振更危险</a></li>
+<li><a href="#_4">五、旋转机械的实用判据</a></li>
+<li><a href="#_5">六、几类工程振动问题</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">动力 IV · 转子动力学与工程振动<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科接触 + 研究生/业界专门方向。
+旋转机械（电机、汽轮机、压缩机、泵、主轴、涡轮增压器）是工业设备的主体。它们的振动有一些<strong>反直觉的性质</strong>——最著名的一条是：<strong>转速越过临界转速后，转子反而会自动趋于对中</strong>。本页讲清这些现象，并给出旋转机械设计的基本判据。</p>
+</blockquote>
+<h2 id="jeffcott">一、临界转速与 Jeffcott 转子<a class="headerlink" href="#jeffcott" title="Permanent link"></a></h2>
+<p>最简模型：一根无质量弹性轴中间带一个偏心圆盘（偏心距 <span class="arithmatex">\(e\)</span>）。设轴的横向刚度 <span class="arithmatex">\(k\)</span>、圆盘质量 <span class="arithmatex">\(m\)</span>，则</p>
+<div class="arithmatex">\[\omega_n = \sqrt{\frac{k}{m}}\]</div>
+<p><strong>当转速 <span class="arithmatex">\(\omega\)</span> 接近 <span class="arithmatex">\(\omega_n\)</span> 时发生共振</strong>——这个转速称为<strong>临界转速</strong>。</p>
+<p><strong>注意一个概念区分</strong>（常被混淆）：<strong>临界转速在数值上等于横向固有频率</strong>，但物理上是<strong>旋转不平衡这个特定激励</strong>与之共振。所以：<strong>转速 = 激励频率</strong>，这是旋转机械的特点——<strong>激励频率随工况连续变化</strong>，因而必然要扫过临界转速。</p>
+<p><strong>稳态振幅</strong>：</p>
+<div class="arithmatex">\[\frac{A}{e} = \frac{r^2}{\sqrt{(1-r^2)^2+(2\zeta r)^2}}, \qquad r=\frac{\omega}{\omega_n}\]</div>
+<figure>
+<p><img alt="转子响应与自动对中" class="fig-img" src="assets/img/mec_rotor.svg" /></p>
+<figcaption><span class="fig-id">图 9-1</span> Jeffcott 转子的无量纲振幅 \(A/e\) 随转速比变化。低速时 \(A\to0\)（转子绕几何中心转）；<strong>临界转速处共振</strong>，振幅由阻尼限制；<strong>而当 \(r\gg1\) 时 \(A/e\to1\) 且相位反转 180°——转子绕其质心旋转，几何中心反而趋于稳定</strong>，这就是"自动对中"。因此许多高速机械被设计成<strong>超临界运行</strong>：快速穿过临界转速，稳定工作在其之上。</figcaption>
+</figure>
+<h2 id="_1">二、自动对中：为什么高速反而更平稳<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong><span class="arithmatex">\(r\gg1\)</span> 时 <span class="arithmatex">\(A/e \to 1\)</span>，且响应与激励反相 180°。</strong></p>
+<p><strong>物理含义</strong>：转子不再绕<strong>轴承连线</strong>旋转，而是绕<strong>自身质心</strong>旋转——偏心被"自动"补偿掉了，<strong>轴承受到的动载荷反而下降</strong>。</p>
+<p><strong>工程后果极其重要</strong>：
+- 许多高速机械（汽轮机、离心压缩机、高速主轴）<strong>刻意设计成超临界运行</strong>；
+- <strong>启停过程必须快速穿过临界转速</strong>，不能在附近停留；
+- 需要足够阻尼把过临界时的峰值压住（挤压油膜阻尼器就是为此设计的）。</p>
+<p><strong>"更快反而更稳"是转子动力学最反直觉、也最有用的结论。</strong></p>
+<h2 id="_2">三、陀螺效应<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>盘状转子高速旋转时，其角动量使它抵抗轴线倾斜——<strong>陀螺力矩</strong>（承第六页欧拉方程的耦合项）。</p>
+<p><strong>后果</strong>：<strong>转子的固有频率随转速变化</strong>。
+- <strong>正进动</strong>（涡动方向与自转同向）：陀螺效应<strong>提高</strong>固有频率；
+- <strong>反进动</strong>：<strong>降低</strong>固有频率。</p>
+<p><strong>所以旋转机械的"固有频率"不是一个数，而是转速的函数</strong>——这正是坎贝尔图（第八页）在旋转机械中必不可少的原因：图上的固有频率线是<strong>随转速倾斜的曲线</strong>，与激励线（<span class="arithmatex">\(1\times\)</span>、<span class="arithmatex">\(2\times\)</span> 等斜线）的交点才是真正的临界转速。</p>
+<h2 id="_3">四、失稳：比共振更危险<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>共振振幅由阻尼限制、且只在特定转速发生。<strong>转子失稳则是自激振动</strong>（承第七页），<strong>一旦越过阈值转速就持续存在且可能发散</strong>。</p>
+<p>主要机制：</p>
+<p><strong>① 油膜涡动 / 油膜振荡</strong>：滑动轴承中的油膜可能诱发<strong>约半频（<span class="arithmatex">\(\approx0.42\)</span>–<span class="arithmatex">\(0.48\times\)</span> 转速）</strong>的涡动。当转速升至临界转速的两倍以上时，半频涡动频率恰好接近固有频率，<strong>锁定并剧烈发展</strong>——称为油膜振荡，可迅速破坏机器。
+<strong>对策</strong>：可倾瓦轴承（几乎消除交叉刚度）、改变轴承间隙与供油。</p>
+<p><strong>② 内摩擦失稳</strong>：转子内部（如过盈配合面、叠片）的摩擦在超临界时引入<strong>切向失稳力</strong>。</p>
+<p><strong>③ 密封与气流激振</strong>（Alford 力）：叶顶间隙不均引起的切向力，在高压压缩机中是重要失稳源。</p>
+<p><strong>识别特征</strong>：<strong>失稳的频率接近固有频率而非转速的整数倍</strong>——这是频谱诊断中区分"共振/不平衡"与"失稳"的关键。<strong>看到明显的非同步（尤其接近半频）分量，就要警惕失稳。</strong></p>
+<h2 id="_4">五、旋转机械的实用判据<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>振动烈度标准</strong>：工业上按机器类型与安装方式规定振动速度有效值（mm/s RMS）的评价区间（相关国际标准给出 A/B/C/D 区）。<strong>用速度而非位移，是因为速度的有效值在较宽频段上与疲劳损伤相关性更好。</strong></p>
+<p><strong>平衡精度</strong>（承第六页）：按"许用偏心 × 转速"分级，高速转子要求极严。</p>
+<p><strong>诊断的频谱特征表</strong>（现场最实用的一张表）：</p>
+<table>
+<thead>
+<tr>
+<th>频率成分</th>
+<th>典型故障</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="arithmatex">\(1\times\)</span> 突出</strong></td>
+<td><strong>不平衡</strong></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(2\times\)</span> 突出、轴向大</td>
+<td>不对中</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(0.42\)</span>–<span class="arithmatex">\(0.48\times\)</span></td>
+<td><strong>油膜涡动/振荡（失稳）</strong></td>
+</tr>
+<tr>
+<td>多倍频 + 底噪抬升</td>
+<td>松动、摩擦</td>
+</tr>
+<tr>
+<td>齿数 × 转速及边带</td>
+<td>齿轮故障（第十一页）</td>
+</tr>
+<tr>
+<td>轴承特征频率</td>
+<td>滚动轴承损伤（第十二页）</td>
+</tr>
+<tr>
+<td>接近固有频率的非同步</td>
+<td><strong>失稳或共振</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">六、几类工程振动问题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>扭转振动</strong>：轴系的扭转模态。<strong>它在横向振动传感器上往往测不到</strong>（需专门测量），却能造成断轴与齿轮打齿。柴油机轴系、长传动链必须做扭振计算，常配扭振减振器；</li>
+<li><strong>叶片振动</strong>：叶片自身的模态与叶片通过频率、尾流激励耦合。<strong>高周疲劳是叶片失效的主因</strong>（第十四页）；</li>
+<li><strong>管道振动</strong>：泵/压缩机的脉动激励与管系声学模态耦合，是石化装置的常见问题；</li>
+<li><strong>机床颤振</strong>：切削过程的自激振动（第十八页）。</li>
+</ul>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>临界转速处共振，超临界则自动对中</strong>——高速反而更平稳，这是转子动力学最反直觉的结论；</li>
+<li><strong>启停必须快速穿越临界转速</strong>，并需足够阻尼；</li>
+<li><strong>陀螺效应使固有频率随转速变化</strong>，故必须用坎贝尔图判定临界转速；</li>
+<li><strong>失稳（油膜涡动等）比共振危险</strong>：持续、可能发散，特征是<strong>非同步、约半频</strong>；</li>
+<li><strong>频谱特征表</strong>是现场诊断的核心工具；</li>
+<li><strong>扭转振动往往测不到却能断轴</strong>——需专门关注。</li>
+</ul>
+<hr />
+<p><em>线二结束。下一线转向机器的"骨骼与关节"：机构如何把运动变成想要的形式，齿轮如何传递动力，轴承如何承载并减少摩擦。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-vibration-mdof.html"><span class="pager-label">上一页</span>动力 III · 多自由度与模态分析</a>
+  <a class="pager-slot next" href="10-mechanisms.html"><span class="pager-label">下一页</span>传动 I · 机构运动学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

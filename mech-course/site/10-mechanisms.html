@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机构运动学 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li class="active"><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、自由度：机构能不能动</a></li>
+<li><a href="#_2">二、四杆机构：机构学的原子</a></li>
+<li><a href="#_3">三、三个关键的工程概念</a></li>
+<li><a href="#_4">四、凸轮机构</a></li>
+<li><a href="#_5">五、其他常用机构</a></li>
+<li><a href="#_6">六、从机构到机器人：一个历史转折</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">传动 I · 机构运动学<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+机构学研究<strong>如何用刚性构件的连接产生想要的运动</strong>：把旋转变成往复、把连续变成间歇、让一点沿指定轨迹移动。它是机械工程最古老的分支之一，也是<strong>机器人学的直接前身</strong>（🔗 自动化站第十九页的运动学与本页是同一套数学，只是自由度更多）。</p>
+</blockquote>
+<h2 id="_1">一、自由度：机构能不能动<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>Grübler–Kutzbach 公式</strong>（平面机构）：</p>
+<div class="arithmatex">\[F = 3(n-1) - 2p_L - p_H\]</div>
+<p><span class="arithmatex">\(n\)</span> 为构件数（含机架），<span class="arithmatex">\(p_L\)</span> 为低副（转动副、移动副，各约束 2 个自由度），<span class="arithmatex">\(p_H\)</span> 为高副（凸轮、齿轮接触，约束 1 个）。</p>
+<p><strong>判读</strong>：
+- <span class="arithmatex">\(F=1\)</span>：<strong>单自由度机构</strong>——一个输入决定全部运动。<strong>绝大多数机器都是这样</strong>（一个电机驱动整台机器）；
+- <span class="arithmatex">\(F=0\)</span>：静定桁架，不能动；
+- <span class="arithmatex">\(F&lt;0\)</span>：超静定（过约束）结构；
+- <span class="arithmatex">\(F&gt;1\)</span>：需要多个驱动（机器人、并联机构）。</p>
+<p><strong>一个重要的工程细节：公式会"算错"某些机构。</strong> 存在<strong>虚约束</strong>（重复的、不减少自由度的约束）与<strong>局部自由度</strong>（如滚子绕自身轴的转动）。典型例子是平行四边形机构加一根平行的辅助杆——公式算出 <span class="arithmatex">\(F=0\)</span>，实际仍能动。</p>
+<p><strong>这不是公式的缺陷，而是提醒</strong>：<strong>虚约束在实际中要求极高的制造精度</strong>（几根平行杆必须严格等长），否则会卡死或产生巨大内力。<strong>设计中要么保证精度，要么消除虚约束</strong>（如把一端改为球铰）。</p>
+<h2 id="_2">二、四杆机构：机构学的原子<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>平面四杆机构</strong>是最基本也最重要的机构。按各杆长度关系，可实现不同运动。</p>
+<p><strong>Grashof 准则</strong>：设最短杆 <span class="arithmatex">\(s\)</span>、最长杆 <span class="arithmatex">\(l\)</span>、其余两杆 <span class="arithmatex">\(p,q\)</span>。若</p>
+<div class="arithmatex">\[s + l \le p + q\]</div>
+<p>则<strong>最短杆能整周回转</strong>（Grashof 机构）。进一步按哪根杆作机架，得到：
+- <strong>曲柄摇杆机构</strong>（最短杆的邻杆为机架）：连续旋转 → 往复摆动；
+- <strong>双曲柄机构</strong>（最短杆为机架）；
+- <strong>双摇杆机构</strong>（最短杆的对杆为机架）。</p>
+<p><strong>若 <span class="arithmatex">\(s+l &gt; p+q\)</span></strong>，则任何杆都不能整周回转——只能得到双摇杆。</p>
+<p><strong>这个简单的不等式决定了机构的全部运动类型</strong>，是机构设计的第一判据。</p>
+<h2 id="_3">三、三个关键的工程概念<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>① 死点（死位）</strong>：从动件的传力方向与其运动方向垂直时，<strong>无论多大的驱动力都无法推动</strong>。</p>
+<p><strong>两面性</strong>（这是机构学最有趣的一点）：
+- <strong>有害</strong>：内燃机活塞在上下止点处、缝纫机在某位置可能卡住 → <strong>靠飞轮的惯性冲过去</strong>（第六页），或用多缸错开相位；
+- <strong>有用</strong>：<strong>夹具、快速夹钳、飞机起落架锁定</strong>故意工作在死点附近——<strong>外载荷再大也推不回来，实现自锁</strong>。</p>
+<p><strong>"同一个物理现象，视用途而定是缺陷还是特性"</strong>——这在工程中极常见。</p>
+<p><strong>② 传动角 <span class="arithmatex">\(\gamma\)</span></strong>：连杆与从动件之间的夹角。<span class="arithmatex">\(\gamma\)</span> 越接近 90°，传力越有效；<span class="arithmatex">\(\gamma\to0\)</span> 即接近死点。<strong>设计规范通常要求最小传动角 <span class="arithmatex">\(\gamma_{\min} \ge 40°\)</span></strong>——这是四杆机构尺寸设计的主要约束。</p>
+<p><strong>③ 急回特性</strong>：曲柄等速旋转时，摇杆往复行程的时间不等。用<strong>行程速比系数 <span class="arithmatex">\(K\)</span></strong> 度量。</p>
+<p><strong>这个特性被主动利用</strong>：牛头刨床、往复输送机构让<strong>工作行程慢（切削）、空回行程快（省时间）</strong>——<strong>用机构本身实现了"变速"，无需额外控制</strong>。这是纯机械时代的智慧，至今在高速自动机械中仍有价值（比伺服控制更可靠、更快、成本更低）。</p>
+<h2 id="_4">四、凸轮机构<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>凸轮能实现<strong>任意指定的从动件运动规律</strong>——这是它相对连杆的最大优势。</p>
+<p><strong>设计的核心是选择运动规律</strong>，判据不是位移曲线，而是它的导数：</p>
+<table>
+<thead>
+<tr>
+<th>运动规律</th>
+<th>加速度特性</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>等速</td>
+<td>首末<strong>无穷大加速度</strong></td>
+<td><strong>刚性冲击</strong>，不可用于高速</td>
+</tr>
+<tr>
+<td>等加速等减速</td>
+<td>加速度<strong>有限但突变</strong></td>
+<td><strong>柔性冲击</strong></td>
+</tr>
+<tr>
+<td>简谐（余弦）</td>
+<td>加速度连续，但首末段有突变（若与停歇段相接）</td>
+<td>中速可用</td>
+</tr>
+<tr>
+<td><strong>摆线（正弦加速度）</strong></td>
+<td><strong>加速度连续、且首末为零</strong></td>
+<td><strong>高速首选</strong></td>
+</tr>
+<tr>
+<td>多项式（如 3-4-5 次）</td>
+<td>可指定更高阶导数连续</td>
+<td>高速精密</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心原则</strong>：<strong>加速度不连续 → 冲击力不连续 → 振动与噪声</strong>。更严格的高速设计还要求<strong>跃度（jerk，加速度的导数）连续</strong>——<strong>这与机器人轨迹规划的要求完全一致</strong>（🔗 自动化站第十九页：限制 jerk 以减少振动）。<strong>机械凸轮设计与现代运动控制，遵循同一条原理。</strong></p>
+<p><strong>压力角</strong>是凸轮的另一关键约束：过大会导致侧向力过大、从动件卡死，通常限制在 30° 以内（移动从动件）。</p>
+<h2 id="_5">五、其他常用机构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>间歇机构</strong>：槽轮（马耳他十字）、棘轮、不完全齿轮——把连续转动变成间歇转动（自动机械的分度）；</li>
+<li><strong>螺旋机构</strong>：旋转 → 直线，且<strong>可自锁</strong>（承第一页）。丝杠是精密进给的主力；</li>
+<li><strong>行星轮系</strong>：紧凑、大速比、可实现差速与功率分流（第十一页）；</li>
+<li><strong>并联机构</strong>：Stewart 平台、Delta 机器人。<strong>刚度高、惯量小、精度好，但工作空间小、正运动学难解</strong>（与串联机器人正好相反——🔗 自动化站第十九页）。</li>
+</ul>
+<h2 id="_6">六、从机构到机器人：一个历史转折<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>传统机构用<strong>纯机械的方式</strong>"编码"运动规律：凸轮的轮廓、连杆的长度、齿轮的齿数<strong>一旦制造出来就固定了</strong>。</p>
+<p><strong>优点</strong>：极其可靠、速度极快、成本低、无需控制系统。<strong>至今在高速自动包装、印刷、纺织机械中大量使用</strong>——每分钟上千次动作，伺服系统难以企及。</p>
+<p><strong>缺点</strong>：<strong>不可编程</strong>。换一个产品规格就要换凸轮、改连杆。</p>
+<p><strong>现代趋势是"机械凸轮 → 电子凸轮"</strong>：用伺服电机 + 控制器实现同样的运动规律，<strong>运动曲线变成软件里的一张表</strong>。柔性大幅提升，代价是成本、复杂度与可靠性。</p>
+<p><strong>这是一次典型的"用可编程性换取硬件简洁"的转移</strong>——与 🔗 微电子站"专用电路 vs 通用处理器"、自动化站"机械凸轮 vs 运动控制"是同一种权衡。<strong>而选择的依据同样是：产量与柔性需求。</strong></p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>自由度公式判断机构能否运动</strong>；虚约束要求高精度，需谨慎；</li>
+<li><strong>Grashof 准则</strong>（<span class="arithmatex">\(s+l\le p+q\)</span>）决定四杆机构的运动类型；</li>
+<li><strong>死点既是缺陷也是特性</strong>（自锁夹具）；<strong>传动角 <span class="arithmatex">\(\ge40°\)</span></strong> 是设计约束；</li>
+<li><strong>凸轮设计的核心是加速度连续性</strong>，高速用摆线或多项式规律——<strong>与机器人轨迹规划同理</strong>；</li>
+<li><strong>机械凸轮 → 电子凸轮</strong>是"用可编程性换硬件简洁"的典型转移。</li>
+</ul>
+<hr />
+<p><em>下一页：齿轮——机械传动的核心。它看似只是"带齿的轮子"，实际上其齿廓形状由一个严格的运动学要求决定。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-rotordynamics.html"><span class="pager-label">上一页</span>动力 IV · 转子动力学与工程振动</a>
+  <a class="pager-slot next" href="11-gears.html"><span class="pager-label">下一页</span>传动 II · 齿轮与传动系统</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

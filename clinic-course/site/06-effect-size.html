@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>效应量：RR、ARR、NNT 与 NNH · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li class="active"><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 四个数字，一张表</a></li>
+<li><a href="#2">2. 一个完整算例</a></li>
+<li><a href="#3">3. 为什么相对风险如此有诱惑力</a></li>
+<li><a href="#4">4. 其他效应量与它们的换算</a></li>
+<li><a href="#5">5. 显著性与效应量：五个必须分清的概念</a></li>
+<li><a href="#6">6. 复合终点：一个高频陷阱</a></li>
+<li><a href="#7">7. 读一条医学新闻的六个问题</a></li>
+<li><a href="#8">8. 迁移：效应量思维在你其他工作中的位置</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-rrarrnnt-nnh">循证 II · 效应量：RR、ARR、NNT 与 NNH<a class="headerlink" href="#ii-rrarrnnt-nnh" title="Permanent link"></a></h1>
+<blockquote>
+<p>这是全站的<strong>核心装置页</strong>。掌握了这一页，你就能把任何"某疗法降低风险 X%"的说法翻译成"对像我这样的人意味着什么"——<strong>而这个翻译过程本身，就是医学新闻与真实临床决策之间的主要落差。</strong></p>
+</blockquote>
+<h2 id="1">1. 四个数字，一张表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设对照组事件率 <span class="arithmatex">\(CER\)</span>、治疗组事件率 <span class="arithmatex">\(EER\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>定义</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>相对危险度 RR</strong></td>
+<td><span class="arithmatex">\(EER / CER\)</span></td>
+<td>风险变成原来的几倍</td>
+</tr>
+<tr>
+<td><strong>相对危险度降低 RRR</strong></td>
+<td><span class="arithmatex">\(1 - RR = (CER-EER)/CER\)</span></td>
+<td><strong>"降低 30%" 通常指这个</strong></td>
+</tr>
+<tr>
+<td><strong>绝对危险度降低 ARR</strong></td>
+<td><span class="arithmatex">\(CER - EER\)</span></td>
+<td><strong>真正的获益幅度</strong></td>
+</tr>
+<tr>
+<td><strong>需治疗人数 NNT</strong></td>
+<td><span class="arithmatex">\(1 / ARR\)</span></td>
+<td><strong>治多少人避免 1 例事件</strong></td>
+</tr>
+<tr>
+<td><strong>需伤害人数 NNH</strong></td>
+<td><span class="arithmatex">\(1 / ARI\)</span></td>
+<td>治多少人造成 1 例危害</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心事实</strong>：<strong>RRR 在不同基线风险下大致稳定，而 ARR 与 NNT 随基线风险剧烈变化。</strong></p>
+<figure class="plot">
+<p><img alt="Same RRR, very different ARR and NNT across baseline risks" src="assets/img/cli-06-nnt.svg" /></p>
+<figcaption><span class="fig-id">图 6.1</span>同一个治疗（相对风险降低 25% 固定不变），在不同基线风险下的绝对获益。左轴柱状为 **ARR**，右轴曲线为 **NNT**。基线风险 20% 时 NNT = 20；基线 1% 时 NNT = 400。**"降低 25%" 这句话本身没有携带任何关于是否值得治疗的信息**——必须乘上这个人的基线风险。</figcaption>
+</figure>
+<h2 id="2">2. 一个完整算例<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>他汀用于一级预防</strong>（数量级示意）：10 年心血管事件风险 10% 的人群，他汀使相对风险降低约 25%。</p>
+<ul>
+<li><span class="arithmatex">\(CER = 10\%\)</span>，<span class="arithmatex">\(EER = 7.5\%\)</span></li>
+<li><span class="arithmatex">\(ARR = 2.5\%\)</span> → <strong>NNT = 40</strong>（10 年内治疗 40 人，避免 1 例事件）</li>
+</ul>
+<p><strong>同样的药用在 10 年风险 30% 的人身上</strong>：<span class="arithmatex">\(ARR = 7.5\%\)</span> → <strong>NNT = 13</strong>。
+<strong>用在 10 年风险 2.5% 的人身上</strong>：<span class="arithmatex">\(ARR = 0.625\%\)</span> → <strong>NNT = 160</strong>。</p>
+<p><strong>同一种药、同一个 RRR，NNT 从 13 到 160。</strong> 这就是为什么现代指南按<strong>总体风险</strong>而不是按单个指标（如"胆固醇是否超标"）决定是否用药——第 15 页展开。</p>
+<p><strong>再加上 NNH</strong>：假设他汀引起肌肉症状的绝对增加约 1%（视人群与定义差异很大），则 <strong>NNH ≈ 100</strong>。<strong>把 NNT 与 NNH 放在一起，"值不值得"才成为一个可讨论的问题</strong>，且答案会因人而异——<strong>这正是共同决策的技术基础</strong>（第 24 页）。</p>
+<h2 id="3">3. 为什么相对风险如此有诱惑力<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>三方都有动机使用相对指标</strong>：药厂（数字更大）、研究者（更容易显著）、媒体（更有冲击力）。<strong>实证研究反复显示：同一结果用相对指标呈现时，医生与患者都更倾向于接受该治疗。</strong></p>
+<p><strong>一个必须警惕的组合</strong>：<strong>收益用相对指标、危害用绝对指标</strong>。"降低 50% 的卒中风险，严重出血仅增加 0.5%"——<strong>这两个数字不可比</strong>，必须换算到同一尺度。</p>
+<p><strong>本站的规矩</strong>：<strong>看到相对数字，立刻问"基线是多少"。</strong> 拿不到基线风险的报道，信息是不完整的。</p>
+<h2 id="4">4. 其他效应量与它们的换算<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>比值比 OR</strong>：<span class="arithmatex">\(\dfrac{\text{odds}_{治}}{\text{odds}_{对照}}\)</span>。<strong>病例对照研究只能算 OR</strong>；<strong>当结局罕见（&lt; 10%）时 <span class="arithmatex">\(OR \approx RR\)</span>，结局常见时 OR 会夸大效应</strong>——<strong>这是解读 logistic 回归结果最常见的错误</strong>。</p>
+<p><strong>风险比 HR</strong>（生存分析）：<strong>瞬时风险之比</strong>。要点：① <strong>HR 假设比例风险</strong>（若曲线交叉则 HR 无意义）；② <strong>HR = 0.7 不等于"寿命延长 30%"</strong>；③ <strong>对免疫治疗这类"长尾"生存曲线，HR 与中位生存期都会误导</strong>——🔗 姊妹站第 23 页提到同一问题。<strong>替代指标</strong>：<strong>限制平均生存时间（RMST）</strong>，可直接解读为"在 5 年内平均多活了几个月"。</p>
+<p><strong>连续结局的标准化效应量 <span class="arithmatex">\(d\)</span></strong>：<span class="arithmatex">\((\bar x_1 - \bar x_2)/SD\)</span>。<strong>换算感</strong>：<span class="arithmatex">\(d = 0.2\)</span> 小、0.5 中、0.8 大——<strong>但这套阈值是约定而非自然定律</strong>。<strong>更好的做法是问"最小临床重要差异（MCID）"</strong>：这个量表上变化多少，患者能感觉到？<strong>统计显著但小于 MCID 的结果，临床上不重要</strong>（🔗 姊妹站第 16、21 页的抗淀粉样药物争议正在此）。</p>
+<h2 id="5">5. 显著性与效应量：五个必须分清的概念<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>含义</th>
+<th>常见误读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>p 值</strong></td>
+<td>若原假设为真，观察到至少这么极端数据的概率</td>
+<td><strong>不是"假设为真的概率"</strong>，也不是效应大小</td>
+</tr>
+<tr>
+<td><strong>置信区间</strong></td>
+<td>与数据相容的效应范围</td>
+<td><strong>比 p 值信息量大得多，应优先看</strong></td>
+</tr>
+<tr>
+<td><strong>统计显著</strong></td>
+<td><span class="arithmatex">\(p &lt; \alpha\)</span></td>
+<td><strong>不等于临床重要</strong></td>
+</tr>
+<tr>
+<td><strong>无显著差异</strong></td>
+<td>未能拒绝原假设</td>
+<td><strong>不等于"证明无效"</strong>——看 CI 是否排除了重要效应</td>
+</tr>
+<tr>
+<td><strong>非劣效</strong></td>
+<td>差异不超过预设界值</td>
+<td><strong>界值宽则结论廉价</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>"阴性试验"的正确读法</strong>：看<strong>置信区间的上限</strong>。若 RR 的 95% CI 是 [0.85, 1.15]，那么<strong>既没证明有效，也没排除 15% 的获益</strong>；若是 [0.97, 1.03]，则可以相当自信地说效应很小。<strong>这两种"阴性"完全不同，却常被同等对待。</strong></p>
+<p><strong>多重比较</strong>：一项试验测 20 个终点，<strong>平均有 1 个会在 <span class="arithmatex">\(\alpha = 0.05\)</span> 下"显著"</strong>。<strong>所以必须区分预注册的主要终点与探索性次要终点</strong>（第 07、09 页）。</p>
+<h2 id="6">6. 复合终点：一个高频陷阱<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>复合终点</strong>（如"主要不良心血管事件 MACE = 心血管死亡 + 心梗 + 卒中 + 血运重建"）用于提高事件数、缩短试验。<strong>问题有三</strong>：</p>
+<ol>
+<li><strong>各成分的重要性差异巨大</strong>（死亡 vs 再次住院）；</li>
+<li><strong>效应常由最不重要、最主观的成分驱动</strong>——"血运重建"这类由医生决定的终点尤其容易受未盲影响；</li>
+<li><strong>报道时只说"复合终点降低 20%"，掩盖了死亡率毫无变化。</strong></li>
+</ol>
+<p><strong>读法</strong>：<strong>永远要求看各成分的分解结果</strong>。如果获益全部来自"住院"而硬终点纹丝不动，结论就要打折。</p>
+<h2 id="7">7. 读一条医学新闻的六个问题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>把本页收成一件可以立刻用的工具</strong>：</p>
+<ol>
+<li><strong>这是相对还是绝对效应？基线风险多少？</strong></li>
+<li><strong>NNT 是多少？NNH 是多少？</strong></li>
+<li><strong>终点是硬终点还是替代终点？</strong>（第 09 页）</li>
+<li><strong>对照组是什么？</strong>（第 05 页）</li>
+<li><strong>随访多久？</strong>（预防性用药的获益需要时间累积）</li>
+<li><strong>样本量与置信区间？</strong>（是"证明无效"还是"没能证明有效"？）</li>
+</ol>
+<p><strong>如果一条报道无法回答其中三条以上，它就不足以支持你改变任何行为。</strong></p>
+<h2 id="8">8. 迁移：效应量思维在你其他工作中的位置<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>🔗 <strong>这一页与你 2026-07 那次预测收网校验是同一套逻辑</strong>：当时的关键判断不是"命中率 32.3%"这个数字本身，而是<strong>把它对照到随机基线（33.3%）与平凡基线（65.3%）</strong>——<strong>没有基线的准确率不携带信息，正如没有基线风险的 RRR 不携带信息</strong>。</p>
+<p><strong>同构还在继续</strong>：</p>
+<ul>
+<li><strong>复合终点的陷阱</strong> = 把多个粒度的命题混在一起统计总命中率，<strong>结果被最容易的那类主导</strong>；</li>
+<li><strong>"阴性但区间很宽"</strong> = 样本不足时的"无预测力"结论要谨慎，<strong>要看置信区间而不是点估计</strong>（你当时对无重叠子集 27.6%、CI [14.7, 45.7] 的自我纠正正是这个动作）；</li>
+<li><strong>MCID 的类比</strong> = 即使某个信号统计上真实，<strong>它是否大到足以改变仓位或决策</strong>？</li>
+</ul>
+<hr />
+<p><em>下一页：偏倚目录——效应量算得再准，如果研究本身有系统性误差，一切都白搭。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-study-design.html"><span class="pager-label">上一页</span>循证 I · 研究设计阶梯与因果推断</a>
+  <a class="pager-slot next" href="07-bias.html"><span class="pager-label">下一页</span>循证 III · 偏倚目录</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

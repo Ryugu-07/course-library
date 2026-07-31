@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>热与光 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li class="active"><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 导热：两种载体</a></li>
+<li><a href="#2">2. 热膨胀与失配（工程事故的常客）</a></li>
+<li><a href="#3">3. 热电：温差发电与固态制冷</a></li>
+<li><a href="#4">4. 光学：透明的条件与发光</a></li>
+<li><a href="#5">5. 反直觉清单</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">功能 III · 热与光<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>功能线收官页，两个"看不见的性能"：<strong>热</strong>（导热、膨胀、隔热、热电）与<strong>光</strong>（透明、折射、发光、激光）。它们的共同点是——<strong>性能几乎完全由微观载体的散射决定</strong>：声子被什么挡住，光子被什么散射，答案就是材料的热学与光学性格。</p>
+</blockquote>
+<h2 id="1">1. 导热：两种载体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[
+k = k_{\text{电子}} + k_{\text{声子}}
+\]</div>
+<p><strong>金属靠电子</strong>（故导电好者导热必好——<strong>Wiedemann–Franz 定律</strong>：<span class="arithmatex">\(k/\sigma T\)</span> 近似常数；反过来，一块材料"摸着凉"通常意味着它导电）；<strong>陶瓷与聚合物靠声子</strong>（晶格振动波包）：声子被缺陷、晶界、非简谐散射 ⇒ <strong>越无序越隔热</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>材料</th>
+<th><span class="arithmatex">\(k\)</span> (W/m·K)</th>
+<th>机理注解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>金刚石</td>
+<td>~2000</td>
+<td>声子导热之王：轻原子、强键、完美晶格</td>
+</tr>
+<tr>
+<td>Cu / Al</td>
+<td>400 / 237</td>
+<td>电子主导</td>
+</tr>
+<tr>
+<td>AlN</td>
+<td>~180</td>
+<td>绝缘却高导热——功率器件基板的宠儿（🔗 芯片站封装）</td>
+</tr>
+<tr>
+<td>不锈钢</td>
+<td>~15</td>
+<td>合金元素散射电子（<strong>固溶强化的代价在此显形</strong>）</td>
+</tr>
+<tr>
+<td>Al₂O₃</td>
+<td>~30</td>
+<td>声子，晶界散射</td>
+</tr>
+<tr>
+<td>YSZ（热障涂层）</td>
+<td>~2</td>
+<td><strong>故意制造缺陷</strong>散射声子</td>
+</tr>
+<tr>
+<td>聚合物 / 空气</td>
+<td>0.2 / 0.026</td>
+<td>无序 / 无介质</td>
+</tr>
+<tr>
+<td>气凝胶</td>
+<td>~0.015</td>
+<td>纳米孔限制空气分子平均自由程——<strong>比静止空气还隔热</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>热障涂层（TBC）</strong>：涡轮叶片表面喷 ~200 μm 的 YSZ + 内部气膜冷却，可让金属基体在<strong>高于合金熔点的燃气温度</strong>下工作——现代航空发动机推重比的关键材料技术（前沿 I 再会）。<strong>其失效模式是热膨胀失配导致的剥落</strong>——引出下一节。</p>
+<h2 id="2">2. 热膨胀与失配（工程事故的常客）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\alpha\)</span> 的微观根源是势阱不对称（结构 I 图 1.1）：<strong>键强 ⇒ 深而对称的阱 ⇒ 小 <span class="arithmatex">\(\alpha\)</span></strong>。数字感（<span class="arithmatex">\(10^{-6}\)</span>/K）：聚合物 50–200 ｜ Al 23 ｜ 钢 12 ｜ 硅 2.6 ｜ 石英玻璃 0.5 ｜ 殷钢（Invar）<strong>~1</strong>（磁致伸缩恰好抵消热膨胀的巧合，量具与精密仪器的救星）。</p>
+<p><strong>失配是设计的第一雷区</strong>：芯片（Si, 2.6）焊到基板（有机 ~17）上，温度循环下焊点疲劳——封装可靠性的核心问题；牙齿补料、玻璃-金属封接、TBC 剥落、双金属片（<strong>主动利用</strong>失配做温控开关）——同一物理量，一半是敌一半是友。</p>
+<h2 id="3">3. 热电：温差发电与固态制冷<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>Seebeck 效应（温差 ⇒ 电压）与 Peltier（电流 ⇒ 温差）。性能由无量纲优值决定：</p>
+<div class="arithmatex">\[
+ZT = \frac{S^2\sigma T}{k}
+\]</div>
+<p><strong>设计的死结</strong>：要高 <span class="arithmatex">\(S\)</span>（半导体）、高 <span class="arithmatex">\(\sigma\)</span>（金属）、低 <span class="arithmatex">\(k\)</span>（绝缘体）——<strong>三个要求指向三种不同的材料</strong>。破局思路是"电子晶体、声子玻璃"：保持电子通道畅通，同时用纳米结构/重原子/复杂晶胞散射声子。商用 Bi₂Te₃ 的 <span class="arithmatex">\(ZT \approx 1\)</span>（车载冰箱、CPU 小型制冷、芯片控温），实验室体系可到 2 以上但难以规模化。<strong>热电是"性能权衡"最赤裸的教学案例</strong>——三个目标互相打架，进展只能靠解耦机制。</p>
+<h2 id="4">4. 光学：透明的条件与发光<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>透明需要同时满足三条</strong>：① 带隙 &gt; 可见光子能量（1.8–3.1 eV）——否则电子吸收（这就是半导体不透明、绝缘体常透明的原因）；② <strong>无散射源</strong>：晶界、气孔、第二相都散射光（所以多晶陶瓷常不透明，但<strong>消除气孔 + 纳米晶或立方结构</strong>可做出透明陶瓷——透明氧化铝灯管、蓝宝石窗、透明装甲）；③ 无杂质吸收（光纤要求 ppb 级铁含量——工艺 III 的提纯极致）。</p>
+<p><strong>光纤的 0.2 dB/km</strong>：本征散射（瑞利，<span class="arithmatex">\(\propto\lambda^{-4}\)</span>）与红外吸收在 1.55 μm 处形成最低窗口——<strong>通信波长不是选出来的，是材料的物理性质定出来的</strong>（🔗 光电站光纤页给完整推导）。</p>
+<p><strong>发光机制谱</strong>：光致（荧光粉：蓝光 LED + YAG:Ce 黄粉 = 白光——照明革命的材料方案）、电致（LED/OLED）、阴极射线（老 CRT）、激光（受激辐射 + 谐振腔；Nd:YAG、光纤激光、半导体激光）。<strong>量子点</strong>：尺寸决定发光波长（量子限域——同一化学成分，改直径就改颜色），已在显示（QLED 背光/自发光）大规模商用，2023 年诺贝尔化学奖授予量子点的发现与合成。</p>
+<h2 id="5">5. 反直觉清单<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>金刚石导热是铜的 5 倍却绝缘——<strong>"导热靠电子"只是金属的故事</strong>；</li>
+<li>气凝胶比空气更隔热（纳米孔抑制气体分子对流与平均自由程）；</li>
+<li>玻璃透明、砂子不透明——<strong>同种成分，散射界面的有无决定一切</strong>；透明陶瓷的全部工艺就是把气孔干掉；</li>
+<li>白光 LED 里没有白光源——是蓝光 + 荧光粉的合成（也是显色指数与色温工程的由来）。</li>
+</ul>
+<p>【研】对标 Fox《Optical Properties of Solids》、Tritt《Thermoelectrics》；声子输运（Callaway 模型）、Kramers–Kronig 关系、能带工程与量子限域是研究生纵深。🔗 光电站（:8092）讲器件与系统，本页讲材料机理。</p>
+<hr />
+<p><em>线四收官：电、磁、介电、热、光——材料的"功能天赋"讲完。线五回到车间：这些材料是怎么被做出来、看见、守住的——凝固、烧结、表征与腐蚀。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-magnetic-dielectric.html"><span class="pager-label">上一页</span>功能 II · 磁性与介电</a>
+  <a class="pager-slot next" href="15-solidification.html"><span class="pager-label">下一页</span>工艺 I · 凝固、铸造与成形</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

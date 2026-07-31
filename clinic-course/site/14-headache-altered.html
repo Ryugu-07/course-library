@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>头痛与意识改变 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li class="active"><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 头痛：不能漏诊的</a></li>
+<li><a href="#2">2. 红旗系统与它的局限</a></li>
+<li><a href="#3">3. 原发性头痛的鉴别（占绝大多数）</a></li>
+<li><a href="#4">4. 意识改变：并行处理而非串行</a></li>
+<li><a href="#5">5. 谵妄：最常见、最常被漏诊的一种</a></li>
+<li><a href="#6">6. 推理陷阱</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">路径 V · 头痛与意识改变<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p>头痛绝大多数是良性的原发性头痛，<strong>但少数是灾难</strong>——这种"高基数、低比例、高后果"的结构，正是第 01 页阈值理论最需要的场景。意识改变则相反：<strong>几乎总是提示严重问题</strong>，且需要一套并行而非串行的处理。</p>
+</blockquote>
+<h2 id="1">1. 头痛：不能漏诊的<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>诊断</th>
+<th>关键线索</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>蛛网膜下腔出血</strong></td>
+<td><strong>雷击样（瞬间达峰）</strong>、"一生中最剧烈"、颈强直、意识短暂丧失</td>
+</tr>
+<tr>
+<td><strong>细菌性脑膜炎/脑炎</strong></td>
+<td>发热 + 颈强直 + 意识改变；免疫抑制</td>
+</tr>
+<tr>
+<td><strong>颅内占位/水肿</strong></td>
+<td><strong>晨起加重、平卧加重、咳嗽用力加重</strong>、进行性、视乳头水肿</td>
+</tr>
+<tr>
+<td><strong>巨细胞动脉炎</strong></td>
+<td><strong>&gt; 50 岁、颞部压痛、咀嚼跛行、视力改变、血沉/CRP 高</strong> → <strong>延误可致不可逆失明</strong></td>
+</tr>
+<tr>
+<td><strong>静脉窦血栓</strong></td>
+<td>高凝状态、妊娠/产褥、口服避孕药、进行性头痛</td>
+</tr>
+<tr>
+<td><strong>急性闭角型青光眼</strong></td>
+<td>眼痛、视物模糊、虹视、瞳孔中等散大固定</td>
+</tr>
+<tr>
+<td><strong>动脉夹层（颈/椎）</strong></td>
+<td><strong>颈痛 + Horner 征 + 年轻卒中</strong></td>
+</tr>
+<tr>
+<td><strong>一氧化碳中毒</strong></td>
+<td><strong>同住者同时头痛</strong>、冬季、燃气</td>
+</tr>
+<tr>
+<td><strong>可逆性脑血管收缩综合征 / 高血压脑病</strong></td>
+<td>反复雷击样头痛；极高血压 + 神经症状</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"雷击样头痛"是最重要的单一红旗</strong>：<strong>瞬间（数秒内）达到最痛</strong>。<strong>注意：疼痛程度本身的诊断价值不如"达峰速度"</strong> ——这与腹痛那一页的原则相同。</p>
+<h2 id="2">2. 红旗系统与它的局限<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>常用助记 <strong>SNOOP</strong>：<strong>S</strong>ystemic（发热、癌症、免疫抑制、妊娠）、<strong>N</strong>eurologic（局灶体征、意识改变、癫痫）、<strong>O</strong>nset（<strong>突发</strong>）、<strong>O</strong>lder（<strong>新发头痛 &gt; 50 岁</strong>）、<strong>P</strong>attern change（模式改变、进行性、体位相关、用力诱发）。</p>
+<p><strong>局限必须讲清</strong>：<strong>红旗规则的敏感度高但特异度低</strong> → <strong>用它筛查会带来大量影像检查与偶发瘤</strong>（第 03 页）。<strong>没有一条规则能把风险降到零</strong>——<strong>这正是第 01 页"检验阈值"的意义：我们接受一个非零的漏诊率，因为把它降到零的代价（辐射、假阳性、成本）更大</strong>。<strong>这个取舍应当被明确说出来，而不是假装不存在。</strong></p>
+<p><strong>关于蛛网膜下腔出血的具体路径</strong>：<strong>发病 6 小时内的头颅 CT（新一代设备、有经验判读）敏感度很高</strong>，此后迅速下降；<strong>超过时间窗则需要腰穿（看黄变）或 CT 血管成像</strong>。<strong>渥太华 SAH 规则</strong>用于筛选需进一步检查者——<strong>它的设计目标是极高敏感度，因此阳性率高、特异度低</strong>，是"高 Sn 规则用于排除"的标准形态（第 02 页）。</p>
+<h2 id="3">3. 原发性头痛的鉴别（占绝大多数）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>偏头痛</th>
+<th>紧张型</th>
+<th>丛集性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>部位</td>
+<td>常单侧</td>
+<td><strong>双侧</strong></td>
+<td><strong>严格单侧、眶周</strong></td>
+</tr>
+<tr>
+<td>性质</td>
+<td><strong>搏动性</strong></td>
+<td>压迫、束带感</td>
+<td>极剧烈、钻痛</td>
+</tr>
+<tr>
+<td>时长</td>
+<td>4–72 h</td>
+<td>30 min–7 d</td>
+<td><strong>15–180 min</strong></td>
+</tr>
+<tr>
+<td>伴随</td>
+<td><strong>恶心、畏光、畏声</strong>；可有先兆</td>
+<td>少</td>
+<td><strong>同侧流泪、鼻塞、Horner、躁动</strong></td>
+</tr>
+<tr>
+<td>活动</td>
+<td><strong>加重</strong></td>
+<td>不加重</td>
+<td><strong>患者坐立不安</strong>（与偏头痛喜静相反）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>偏头痛的机制现代观点</strong>：不是单纯血管性，而是<strong>三叉神经血管系统激活 + 皮层扩布性抑制（先兆的基础）+ CGRP 释放</strong>。<strong>这条机制直接产生了新药类别</strong>：<strong>CGRP 单抗与"gepant"类小分子</strong>用于预防与急性治疗——<strong>是近十年头痛治疗最大的进展</strong>，也是"机制驱动的药物开发成功"的一个正面例子（对照姊妹站第 23 页的失败清单）。</p>
+<p><strong>必须讲的一个陷阱：药物过度使用性头痛</strong>。<strong>急性止痛药（尤其含咖啡因复方、曲坦类、阿片）每月使用超过一定天数会导致头痛慢性化</strong>——<strong>"治头痛的药导致头痛"</strong>。<strong>处理是停药（会先加重），而不是加药。这是临床上极常见却常被漏掉的诊断。</strong></p>
+<h2 id="4">4. 意识改变：并行处理而非串行<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>意识改变的处理与其他症状不同：稳定与诊断必须同时进行。</strong></p>
+<p><strong>立刻可逆的原因优先排除（床边即可）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>原因</th>
+<th>检查</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>低血糖</strong></td>
+<td><strong>指尖血糖</strong></td>
+<td>葡萄糖</td>
+</tr>
+<tr>
+<td>低氧</td>
+<td><span class="arithmatex">\(SpO_2\)</span></td>
+<td>氧</td>
+</tr>
+<tr>
+<td>高碳酸</td>
+<td>血气</td>
+<td>通气</td>
+</tr>
+<tr>
+<td><strong>阿片过量</strong></td>
+<td>瞳孔针尖、呼吸慢</td>
+<td>纳洛酮</td>
+</tr>
+<tr>
+<td>低血压/休克</td>
+<td>生命体征</td>
+<td>复苏</td>
+</tr>
+<tr>
+<td><strong>Wernicke 脑病</strong></td>
+<td>眼肌麻痹 + 共济失调 + 意识改变；营养不良/酗酒</td>
+<td><strong>硫胺素</strong>（<strong>且应在葡萄糖之前或同时给</strong>）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"指尖血糖是意识改变的第一项检查"</strong>——它便宜、瞬时、且漏掉它的后果是不可逆脑损伤。</p>
+<p><strong>其后的框架</strong>：<strong>结构性</strong>（卒中、出血、占位、外伤、脑疝）vs <strong>弥漫性/代谢性</strong>（感染、电解质、肝肾衰竭、内分泌、药物、癫痫后状态、<strong>非惊厥性癫痫持续状态</strong>）。</p>
+<p><strong>定位线索</strong>：<strong>瞳孔与脑干反射保留而意识丧失 → 倾向代谢性</strong>；<strong>局灶体征或瞳孔不等大 → 倾向结构性</strong>。<strong>非惊厥性癫痫持续状态是最容易被漏掉的一个</strong>，因为它没有抽搐——<strong>不明原因的持续意识改变应考虑脑电图</strong>。</p>
+<h2 id="5">5. 谵妄：最常见、最常被漏诊的一种<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>谵妄的三特征</strong>：<strong>急性起病 + 波动 + 注意力障碍</strong>（伴意识水平或认知改变）。</p>
+<p><strong>为什么重要</strong>：<strong>它是急性器质性疾病的表现</strong>，与住院死亡率、住院时长与长期认知下降相关。<strong>在老年人中，谵妄常常是感染、心梗、尿潴留、药物或电解质紊乱的唯一表现</strong>（🔗 第 13 页：老年人可以不发热）。</p>
+<p><strong>为什么被漏诊</strong>：<strong>低活动型谵妄（安静、嗜睡）比躁动型更常见，也更容易被当成"老人家累了"或"抑郁"</strong>——<strong>且预后更差</strong>。<strong>筛查工具（如 4AT、CAM）能显著提高识别率。</strong></p>
+<p><strong>处理的核心是找原因 + 非药物措施</strong>（定向、睡眠、早期活动、感觉辅具、减少束缚与导管、<strong>审查用药</strong>）。<strong>抗精神病药的证据不支持常规使用</strong>——<strong>多项试验未显示改善结局，且有不良反应</strong>。<strong>这是"做点什么的冲动"应当被证据抑制的一个例子。</strong></p>
+<p><strong>谵妄 vs 痴呆 vs 抑郁</strong>：起病（急/慢/亚急）、病程（波动/进行性/持续）、注意力（<strong>受损/相对保留/可有</strong>）、意识水平（<strong>改变/正常/正常</strong>）。<strong>三者可以共存，且痴呆是谵妄最强的危险因素。</strong></p>
+<h2 id="6">6. 推理陷阱<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>① "以前也这样"</strong>。<strong>慢性头痛患者也会得蛛网膜下腔出血</strong>。<strong>模式改变本身就是红旗。</strong></p>
+<p><strong>② 归因于精神疾病或酒精</strong>。<strong>"喝醉了"是排除性诊断</strong>——<strong>低血糖、硬膜下血肿、Wernicke、感染在这个人群中的发生率更高，而被延误的比例也更高</strong>（第 04 页归因偏差）。</p>
+<p><strong>③ CT 正常 = 没事</strong>。<strong>CT 对早期缺血性卒中、脑炎、静脉窦血栓、6 小时后的 SAH 敏感度都有限。</strong></p>
+<p><strong>④ 老年人意识改变归给"年纪大了"</strong>。<strong>谵妄从来不是正常老化。</strong></p>
+<p><strong>⑤ 用镇静药处理躁动而不找原因</strong>。<strong>这会掩盖病情演变并增加并发症。</strong></p>
+<hr />
+<p><em>线三完。下一线转向慢病与预防——这里 NNT 装置用得最密，也是"数字如何改变决定"最直观的地方。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-fever.html"><span class="pager-label">上一页</span>路径 IV · 发热</a>
+  <a class="pager-slot next" href="15-cv-risk.html"><span class="pager-label">下一页</span>预防 I · 心血管风险与他汀/降压的决策分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

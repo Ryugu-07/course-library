@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>陶瓷与玻璃工程 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li class="active"><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 脆性的根源与统计后果</a></li>
+<li><a href="#2">2. 增韧四法（与脆性共处的技术）</a></li>
+<li><a href="#3">3. 热冲击：陶瓷的第二杀手</a></li>
+<li><a href="#4">4. 传统与先进陶瓷的分工</a></li>
+<li><a href="#5">5. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">性能 IV · 陶瓷与玻璃工程<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>陶瓷抗压强度可达钢的数倍、硬度与耐温冠绝群雄，却因为<strong>脆</strong>而长期只能做碗和砖。现代陶瓷工程的全部智慧就是回答一个问题：<strong>如何与脆性共处</strong>——统计设计（Weibull）、增韧机制、以及"扬长避短"的应用哲学。</p>
+</blockquote>
+<h2 id="1">1. 脆性的根源与统计后果<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>根源</strong>（结构 I 的账）：离子/共价键的方向性与静电约束 ⇒ 位错难动 ⇒ 裂尖无塑性区 ⇒ <span class="arithmatex">\(K_{IC}\)</span> 只有金属的几十分之一（性能 II）。<strong>后果</strong>：强度由<strong>最大缺陷</strong>决定，而缺陷是随机分布的 ⇒ <strong>强度本身是随机变量</strong>。</p>
+<figure class="plot">
+<p><img alt="Weibull failure probability curves" src="assets/img/mat-11-weibull.svg" /></p>
+<figcaption><span class="fig-id">图 11.1</span>Weibull 分布：模数 \(m\) 越大强度越集中（工艺越稳定）。陶瓷典型 \(m = 5\text{–}20\)，金属可达 50+——设计陶瓷件时给出的不是"强度"而是"在某失效概率下的许用应力"。</figcaption>
+</figure>
+<div class="arithmatex">\[
+P_f = 1 - \exp\Big[-V\Big(\frac{\sigma}{\sigma_0}\Big)^m\Big]
+\]</div>
+<p><strong>两个工程推论</strong>：① <strong>尺寸效应</strong>——体积越大越弱（大件包含大缺陷的概率高，<span class="arithmatex">\(V\)</span> 在指数里）：小试样测的强度不能直接用于大件；② 设计输入是"<span class="arithmatex">\(10^{-6}\)</span> 失效概率下的应力"而非平均强度——<strong>陶瓷设计天然是概率设计</strong>（🔗 数学站统计 III/Weibull，随机过程的极值思想）。<strong>证明试验（proof test）</strong>：预先加载到设定应力，淘汰含大缺陷者——用破坏一部分换取剩余件的可靠性保证。</p>
+<h2 id="2">2. 增韧四法（与脆性共处的技术）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>原理</th>
+<th>代表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>相变增韧</strong></td>
+<td>裂尖应力诱发 ZrO₂ 四方→单斜相变、体积膨胀 3–5% 压住裂纹</td>
+<td>Y-TZP 氧化锆（<span class="arithmatex">\(K_{IC}\)</span> 可达 ~10）——牙科冠、刀具</td>
+</tr>
+<tr>
+<td>微裂纹/桥接</td>
+<td>晶粒拔出、纤维桥接消耗能量</td>
+<td>晶须/纤维增强陶瓷、SiC/SiC</td>
+</tr>
+<tr>
+<td>残余压应力</td>
+<td>表面受压需先抵消才能张开裂纹</td>
+<td><strong>钢化玻璃</strong>（急冷）、化学强化（离子交换：手机盖板玻璃）</td>
+</tr>
+<tr>
+<td>复合/层状</td>
+<td>界面偏转裂纹路径（仿贝壳珍珠层）</td>
+<td>CMC 涡轮部件、层状陶瓷</td>
+</tr>
+</tbody>
+</table>
+<p><strong>钢化玻璃的两个性格</strong>：强度提升数倍，但一旦破坏（裂纹穿透压应力层）<strong>整片爆成小颗粒</strong>——安全玻璃的"安全"指碎片不锋利，不是不碎。<strong>陶瓷基复合材料（CMC）</strong>是航空发动机热端的当代主角：密度只有镍基高温合金的三分之一、耐温高 150–200 °C，代价是制造成本与环境障涂层配套（前沿 I 展开）。</p>
+<h2 id="3">3. 热冲击：陶瓷的第二杀手<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>温差 ⇒ 热应变受约束 ⇒ 应力 <span class="arithmatex">\(\sigma \approx \dfrac{E\alpha\Delta T}{1-\nu}\)</span>。抗热冲击参数：</p>
+<div class="arithmatex">\[
+R = \frac{\sigma_f(1-\nu)}{E\alpha}
+\]</div>
+<p><strong>读法</strong>：要抗热冲击就要<strong>低膨胀 + 低模量 + 高强度</strong>。石英玻璃（<span class="arithmatex">\(\alpha \approx 0.5\times10^{-6}\)</span>/K）可以烧红后扔进冷水而不裂；普通钠钙玻璃（<span class="arithmatex">\(\alpha \approx 9\times10^{-6}\)</span>）几十度温差就炸。Pyrex/硼硅玻璃（<span class="arithmatex">\(\alpha \approx 3.3\)</span>）做实验器皿正是这条公式的产品；堇青石（近零膨胀）做汽车尾气催化载体同理。<strong>这是"性能靠成分设计"最干净的一个案例</strong>。</p>
+<h2 id="4">4. 传统与先进陶瓷的分工<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>传统</strong>（黏土基：砖、瓷、水泥）：便宜、量大、抗压——水泥是人类用量最大的人造材料（也是 ~7–8% 的全球 CO₂ 排放源，低碳水泥是前沿 II 的议题）。</p>
+<p><strong>先进/工程陶瓷</strong>：Al₂O₃（绝缘、耐磨、生物相容）、ZrO₂（增韧之王）、SiC/Si₃N₄（高温结构、轴承球）、AlN（高导热绝缘基板——🔗 芯片站封装页）、BN、碳化硼（装甲）。<strong>选材逻辑</strong>：<strong>扬长（硬度、耐温、耐蚀、绝缘、低密度）避短（禁止拉伸受力、禁止缺口、禁止热冲击）</strong>——把陶瓷放在压缩与摩擦的岗位上，是工程师最基本的自觉。</p>
+<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>抗压/抗拉比：金属 ~1，陶瓷可达 <strong>10:1 以上</strong>（氧化铝抗压 ~3000 MPa、抗弯 ~350）——<strong>陶瓷不弱，只是不能拉</strong>；</li>
+<li>硬度（HV）：淬火钢 ~800 ｜ Al₂O₃ ~1800 ｜ SiC ~2500 ｜ B₄C ~3000 ｜ 金刚石 ~10000；</li>
+<li><strong>反直觉</strong>：玻璃纤维比块体玻璃强百倍（表面缺陷少、尺寸效应有利）——"同一种材料，形态决定强度"；氧化锆刀不易钝但会崩（韧性换硬度的日常演示）；陶瓷最常见的失效原因不是超载，是<strong>热冲击与安装应力</strong>。</li>
+</ul>
+<p>【研】对标 Kingery《Introduction to Ceramics》、Barsoum《Fundamentals of Ceramics》；R 曲线行为、慢速裂纹扩展（应力腐蚀）、Weibull 参数估计与尺寸缩放是研究生功课。</p>
+<hr />
+<p><em>线三收官：强度、断裂、高分子、陶瓷——力学性能的四张脸讲完。线四换一个维度：材料除了扛力，还能导电、储磁、发光、隔热——功能材料的世界。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-polymer.html"><span class="pager-label">上一页</span>性能 III · 高分子：链的物理</a>
+  <a class="pager-slot next" href="12-electronic.html"><span class="pager-label">下一页</span>功能 I · 电子材料</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

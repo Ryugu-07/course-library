@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>极点配置与 LQR · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li class="active"><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、状态反馈与极点配置</a></li>
+<li><a href="#lqr">二、LQR：把设计变成优化</a></li>
+<li><a href="#lqr_1">三、LQR 的保证与它的破灭</a></li>
+<li><a href="#_2">四、跟踪与积分作用</a></li>
+<li><a href="#lqr_2">五、LQR 与经典方法的关系</a></li>
+<li><a href="#lqr_3">六、LQR 的局限</a></li>
+<li><a href="#_3">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-lqr">现代 II · 极点配置与 LQR<a class="headerlink" href="#ii-lqr" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ 🔗 前置：线性代数、二次型（数学站）。
+上一页说"能控就能任意配置极点"。但<strong>该把极点放在哪里？</strong> 任意配置给了自由，却没给判据——放得太左响应快但控制量巨大、易饱和。<strong>LQR（线性二次型调节器）</strong>用一个优化问题回答了这个问题，并附赠一个漂亮的鲁棒性保证。</p>
+</blockquote>
+<h2 id="_1">一、状态反馈与极点配置<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>状态反馈</strong>：<span class="arithmatex">\(u = -Kx\)</span>，闭环变为</p>
+<div class="arithmatex">\[\dot{x} = (A - BK)x\]</div>
+<p><strong>定理</strong>：若 <span class="arithmatex">\((A,B)\)</span> 能控，则通过选择 <span class="arithmatex">\(K\)</span> 可以把 <span class="arithmatex">\(A-BK\)</span> 的特征值配置到<strong>任意期望位置</strong>（复数需共轭成对）。</p>
+<p><strong>这是一个很强的结论</strong>——它说明能控性一旦满足，动态特性完全可以重塑。单输入情形可用 Ackermann 公式直接算出 <span class="arithmatex">\(K\)</span>。</p>
+<p><strong>但问题随之而来</strong>：期望极点该选在哪？
+- 放得太靠左 → 响应快，但<strong>所需控制量巨大</strong>（第三页：执行器会饱和），且<strong>高带宽会激发未建模的高频动态</strong>（第二页）；
+- 放得太靠右 → 慢；
+- 多输入系统的 <span class="arithmatex">\(K\)</span> <strong>不唯一</strong>，还有额外自由度不知如何使用。</p>
+<p><strong>极点配置给了工具，没给判据。这正是 LQR 要解决的。</strong></p>
+<h2 id="lqr">二、LQR：把设计变成优化<a class="headerlink" href="#lqr" title="Permanent link"></a></h2>
+<p>不再直接指定极点，而是<strong>指定我们在意什么</strong>，让数学去找极点。定义二次型代价：</p>
+<div class="arithmatex">\[J = \int_0^\infty \left( x^T Q x + u^T R u \right) dt\]</div>
+<ul>
+<li><span class="arithmatex">\(Q \succeq 0\)</span>：<strong>惩罚状态偏离</strong>（性能）；</li>
+<li><span class="arithmatex">\(R \succ 0\)</span>：<strong>惩罚控制量</strong>（能耗、执行器负担）。</li>
+</ul>
+<p><strong>最优解</strong>：<span class="arithmatex">\(u = -Kx\)</span>，其中</p>
+<div class="arithmatex">\[K = R^{-1}B^T P\]</div>
+<p><span class="arithmatex">\(P\)</span> 是<strong>代数 Riccati 方程</strong>的正定解：</p>
+<div class="arithmatex">\[A^TP + PA - PBR^{-1}B^TP + Q = 0\]</div>
+<p><strong>这个结果的意义</strong>：设计者不再直接猜极点，而是<strong>回答一个更有物理意义的问题——"我更在乎状态偏差还是控制代价？"</strong> 权衡通过 <span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span> 的相对大小表达。</p>
+<p><strong>实用的整定直觉</strong>：
+- <strong><span class="arithmatex">\(Q\)</span> 变大 / <span class="arithmatex">\(R\)</span> 变小</strong> → 更激进，极点更靠左，控制量更大；
+- <strong><span class="arithmatex">\(R\)</span> 变大</strong> → 更保守、更省力；
+- <strong>Bryson 准则</strong>（好用的起点）：把 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 的对角元取为各变量最大可接受值平方的倒数——<strong>这使不同物理量纲的状态被公平地归一化</strong>，是实践中最常用的初始选择。</p>
+<figure>
+<p><img alt="LQR 权重权衡" class="fig-img" src="assets/img/aut_lqr.svg" /></p>
+<figcaption><span class="fig-id">图 8-1</span> 双积分器（质量块位置控制）在不同 \(R\)（控制惩罚）下的 LQR 响应。\(R\) 小（蓝）时控制器激进：状态快速收敛，但<strong>控制量峰值大</strong>（右图），实际中可能超出执行器能力；\(R\) 大（绿）时控制平缓省力，但收敛明显变慢。此例中 \(R\) 从 0.05 增到 20，反馈增益由 \(K\approx[4.5,\,5.4]\) 降到 \([0.16,\,0.37]\)。<strong>LQR 的本质，是让设计者在这条性能—能耗权衡曲线上选点，而非盲目猜极点位置。</strong></figcaption>
+</figure>
+<h2 id="lqr_1">三、LQR 的保证与它的破灭<a class="headerlink" href="#lqr_1" title="Permanent link"></a></h2>
+<p><strong>好消息</strong>：LQR 闭环有极好的鲁棒性质（单输入情形）——<strong>增益裕度为 <span class="arithmatex">\([1/2, \infty)\)</span>，相位裕度至少 60°</strong>。<strong>无论怎么选 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span>，这些裕度都成立。</strong> 这是一个了不起的保证：优化设计自动带来了良好的稳定裕度。</p>
+<p><strong>坏消息，也是控制史上重要的一课</strong>：LQR 需要<strong>全部状态可测</strong>。实际中状态往往测不全，于是用观测器/卡尔曼滤波器估计（下一页），组合成 <strong>LQG（线性二次高斯）</strong>控制器。</p>
+<p><strong>Doyle 在 1978 年给出了一个著名的反例</strong>：<strong>LQG 的鲁棒裕度可以任意小</strong>——即使 LQR 部分与卡尔曼部分各自都很鲁棒，<strong>组合起来可以完全没有保证</strong>。</p>
+<p><strong>这个结果的冲击力</strong>：它说明"分别设计最优的部分，组合起来未必好"，直接动摇了当时对现代控制的乐观预期，并<strong>直接催生了 <span class="arithmatex">\(H_\infty\)</span> 与鲁棒控制理论</strong>（第十六页）。</p>
+<p><strong>教训（超出控制学科的普适性）</strong>：<strong>最优性不蕴含鲁棒性。</strong> 一个针对标称模型优化到极致的设计，可能对模型误差异常脆弱——因为优化会把所有余量榨干。<strong>这与机器学习中"过拟合"的直觉是同构的。</strong></p>
+<h2 id="_2">四、跟踪与积分作用<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>LQR 是<strong>调节器</strong>（把状态推向零）。要<strong>跟踪</strong>非零设定值，需要扩展：</p>
+<ul>
+<li><strong>前馈 + 状态反馈</strong>：<span class="arithmatex">\(u = -Kx + K_r r\)</span>，计算稳态所需的前馈量。<strong>依赖模型精度</strong>，有静差；</li>
+<li><strong>积分增广</strong>：把积分状态 <span class="arithmatex">\(x_i = \int (r-y)dt\)</span> 加入状态向量，对增广系统做 LQR。<strong>这样得到的控制器天然包含积分作用，可消除静差</strong>——即所谓 LQI。<strong>这是工程上的标准做法</strong>，也再次印证第一页的内模原理。</li>
+</ul>
+<h2 id="lqr_2">五、LQR 与经典方法的关系<a class="headerlink" href="#lqr_2" title="Permanent link"></a></h2>
+<p><strong>它们不是对立的</strong>：
+- LQR 的闭环极点位置可以画出来，与根轨迹的直觉一致；
+- LQR 的回路传递函数满足<strong>Kalman 等式</strong>，由此可导出上面的裕度保证——<strong>这是频域与最优控制的接口</strong>；
+- 对单输入单输出系统，<strong>精心整定的 PID 与 LQR 的性能往往相差不大</strong>——LQR 的优势主要在 <strong>MIMO</strong> 与<strong>系统化的权衡表达</strong>。</p>
+<p><strong>工业现实</strong>：LQR 在航空航天、机器人、精密运动控制中确有应用（这些领域有好模型、多变量、且值得投入建模成本）。<strong>但在过程工业，PID 仍占主导，高级方法的位置主要由 MPC 占据</strong>（第十七页）——因为 MPC 能处理<strong>约束</strong>，而 LQR 不能。</p>
+<h2 id="lqr_3">六、LQR 的局限<a class="headerlink" href="#lqr_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>局限</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>无法处理约束</strong></td>
+<td>执行器饱和、状态限制无法显式表达。<strong>这是它输给 MPC 的关键</strong>（第十七页）</td>
+</tr>
+<tr>
+<td><strong>需要全状态</strong></td>
+<td>实际需配观测器，进而可能失去鲁棒保证（§3）</td>
+</tr>
+<tr>
+<td><strong>需要模型</strong></td>
+<td>模型误差直接影响性能</td>
+</tr>
+<tr>
+<td><strong>二次型代价未必贴合真实目标</strong></td>
+<td>真实目标可能是"不超过某个温度"而非"平方误差最小"</td>
+</tr>
+<tr>
+<td><strong>只对线性系统严格</strong></td>
+<td>非线性需线性化或用 iLQR/DDP 等扩展</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">七、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>能控 ⟹ 极点可任意配置</strong>，但"放哪里"需要判据；</li>
+<li><strong>LQR 把设计转化为权衡的表达</strong>（<span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span>），由 Riccati 方程给出最优增益；</li>
+<li><strong>LQR 有优良的裕度保证，但 LQG 可能完全没有</strong>（Doyle 反例）——<strong>最优性不蕴含鲁棒性</strong>；</li>
+<li><strong>积分增广（LQI）</strong>是消除静差的标准做法；</li>
+<li><strong>LQR 的致命短板是不能处理约束</strong>——这一条把我们推向 MPC。</li>
+</ul>
+<hr />
+<p><em>下一页：LQR 需要全部状态，而实际只能测到一部分。观测器与卡尔曼滤波——如何从含噪的、不完整的测量中重建系统的内部状态。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="07-statespace.html"><span class="pager-label">上一页</span>现代 I · 状态空间与能控能观</a>
+  <a class="pager-slot next" href="09-kalman.html"><span class="pager-label">下一页</span>现代 III · 观测器与卡尔曼滤波</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

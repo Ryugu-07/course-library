@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>干涉与相干性 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li class="active"><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、干涉的条件</a></li>
+<li><a href="#_2">二、相干性：一个工程量</a></li>
+<li><a href="#_3">三、干涉仪：光学计量的核心</a></li>
+<li><a href="#_4">四、薄膜光学：无处不在的干涉</a></li>
+<li><a href="#_5">五、全息与干涉的信息记录</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">光学 III · 干涉与相干性<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>与物理站的分工</strong>：🔗 物理站 <code>opt-01</code> 给出干涉衍射的<strong>物理推导</strong>；本页讲<strong>工程用途</strong>——干涉如何成为最精密的测量手段，以及"相干性"这个常被一笔带过、却处处决定设计的概念。
+把光当作波，立刻得到几何光学永远给不出的东西：<strong>用光的波长作尺子</strong>。</p>
+</blockquote>
+<h2 id="_1">一、干涉的条件<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>两束光叠加：</p>
+<div class="arithmatex">\[I = I_1 + I_2 + 2\sqrt{I_1I_2}\,|\gamma|\cos\Delta\varphi\]</div>
+<p><strong>关键在第三项</strong>——它携带相位信息，也决定条纹的可见度：</p>
+<div class="arithmatex">\[V = \frac{I_{\max}-I_{\min}}{I_{\max}+I_{\min}}\]</div>
+<p><strong>产生稳定干涉需要</strong>：频率相同、<strong>相位差稳定</strong>、偏振不正交、<strong>光程差在相干长度内</strong>。</p>
+<p><strong>注意"相位差稳定"</strong>：两个独立的激光器难以稳定干涉，因为它们的相位各自随机漂移。<strong>所以干涉仪几乎总是把一束光分成两束</strong>——这样相位噪声共模抵消。</p>
+<h2 id="_2">二、相干性：一个工程量<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>这是本页最重要的概念。</strong> 相干性不是"有或没有"，而是一个<strong>可以量化、可以设计</strong>的量。</p>
+<p><strong>时间相干性</strong>（决定能承受多大光程差）：</p>
+<div class="arithmatex">\[L_c = \frac{c}{\Delta\nu} \approx \frac{\lambda^2}{\Delta\lambda}\]</div>
+<table>
+<thead>
+<tr>
+<th>光源</th>
+<th>相干长度</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>白光（LED）</td>
+<td>几 μm</td>
+<td><strong>白光干涉</strong>：绝对定位、表面形貌</td>
+</tr>
+<tr>
+<td>低相干 SLD</td>
+<td>几十 μm</td>
+<td><strong>OCT 断层成像</strong>（第十七页）</td>
+</tr>
+<tr>
+<td>多模激光二极管</td>
+<td>毫米–厘米</td>
+<td>一般测量</td>
+</tr>
+<tr>
+<td>单频激光（稳频）</td>
+<td>米–千米以上</td>
+<td><strong>长程干涉测量、引力波探测</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>空间相干性</strong>（决定光源可以多大）：由光源尺寸与距离决定，用 van Cittert–Zernike 定理描述。<strong>这直接关系到能否做出清晰的干涉条纹与衍射图样。</strong></p>
+<p><strong>一个反直觉但极重要的工程事实</strong>：<strong>低相干不是缺点，而是一种资源。</strong>
+- <strong>白光干涉</strong>：只有在光程严格相等时才有条纹 → <strong>提供绝对零点</strong>，可测量绝对距离与台阶高度（激光干涉只能测相对变化）；
+- <strong>OCT</strong>：低相干使得只有特定深度的反射回波才能干涉 → <strong>实现深度分辨</strong>，这就是眼科断层扫描的原理。</p>
+<p><strong>"选择合适的相干长度"是光学系统设计的一项主动决策</strong>，而非被动接受。</p>
+<h2 id="_3">三、干涉仪：光学计量的核心<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>迈克尔逊/泰曼-格林</strong>：分束、两臂、合束。移动一臂，每移动 <span class="arithmatex">\(\lambda/2\)</span> 产生一个条纹周期。</p>
+<p><strong>这就是"用波长做尺子"</strong>：可见光 <span class="arithmatex">\(\lambda\approx0.5\)</span> μm → <strong>条纹计数的分辨率就是亚微米，配合细分可达纳米级</strong>。</p>
+<p><strong>主要应用</strong>：
+- <strong>位移与长度计量</strong>：激光干涉仪是精密机床、光刻机工件台的位置基准（🔗 微电子站、机械站超精密加工）；
+- <strong>面形检测</strong>：斐索干涉仪测量透镜与反射镜的面形误差，<strong>精度到 <span class="arithmatex">\(\lambda/20\)</span> 甚至更好</strong>——<strong>这是光学制造的验收手段，没有它就没有高端光学</strong>；
+- <strong>折射率与厚度测量</strong>；
+- <strong>引力波探测</strong>：干涉臂长变化的探测灵敏度达到极小的量级，<strong>是人类构建过的最灵敏的测量装置之一</strong>。</p>
+<p><strong>其他重要形式</strong>：
+- <strong>马赫-曾德尔</strong>：两路分离，便于在一臂插入样品 → <strong>光调制器的标准结构</strong>（第八、十五页）；
+- <strong>法布里-珀罗（F-P）</strong>：多光束干涉，<strong>精细度 <span class="arithmatex">\(\mathcal{F}\)</span> 越高，透射峰越窄</strong> → <strong>激光谐振腔、光谱分析仪、窄带滤波片</strong>（第七页）；
+- <strong>萨格纳克</strong>：环路，对旋转敏感 → <strong>光纤陀螺仪</strong>（惯性导航，🔗 自动化站）。</p>
+<h2 id="_4">四、薄膜光学：无处不在的干涉<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>多层介质膜</strong>利用干涉控制反射与透射，是现代光学的隐形基础设施：</p>
+<ul>
+<li><strong>增透膜（AR）</strong>：单层膜条件——<span class="arithmatex">\(n_{\text{膜}}=\sqrt{n_0 n_s}\)</span>、厚度 <span class="arithmatex">\(\lambda/4\)</span>。<strong>多层宽带增透可把反射率从 4% 降到 0.1% 以下</strong>；
+  <strong>为什么重要</strong>：一个 10 片透镜的镜头有 20 个界面，<strong>每面 4% 反射意味着只有 <span class="arithmatex">\(0.96^{20}\approx44\%\)</span> 的光能通过</strong>，且杂散光造成严重眩光。<strong>镀膜技术的出现，是复杂镜头得以实用的前提</strong>——这是一条被低估的技术史线索；</li>
+<li><strong>高反膜（HR）</strong>：多层 <span class="arithmatex">\(\lambda/4\)</span> 堆叠，反射率可达 99.99% 以上 → 激光腔镜；</li>
+<li><strong>分色镜/滤光片</strong>：荧光显微、投影、相机的分色棱镜；</li>
+<li><strong>陷波与带通滤波</strong>：拉曼光谱必需。</li>
+</ul>
+<p><strong>设计方法</strong>：特征矩阵法（每层一个 <span class="arithmatex">\(2\times2\)</span> 矩阵连乘——<strong>与第一页的光线矩阵、机械站的传递矩阵是同一种数学结构</strong>），再用优化算法确定各层厚度。</p>
+<h2 id="_5">五、全息与干涉的信息记录<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>全息术</strong>（Gabor，诺奖）：用参考光与物光干涉，<strong>把相位信息编码为强度条纹</strong>记录下来；再照明时衍射重建波前。</p>
+<p><strong>核心思想极其重要</strong>：<strong>探测器只能测强度，不能测相位</strong>（第九页会再强调）。<strong>干涉是把相位"翻译"成强度的通用手段</strong>——<strong>全息、干涉测量、相位恢复、光学相干层析、相干光通信（第十三页），全都建立在这一个思想上。</strong></p>
+<p><strong>现代形式</strong>：
+- <strong>数字全息</strong>：用图像传感器记录、计算机重建；
+- <strong>计算全息（CGH）</strong>：计算出所需干涉图并制成器件，用于<strong>非球面检测</strong>（给出任意参考波前）与全息显示。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>相干性是可量化、可设计的工程量</strong>；<strong>低相干不是缺点而是资源</strong>（白光干涉的绝对零点、OCT 的深度分辨）；</li>
+<li><strong>干涉仪用波长做尺子</strong>，是精密计量与光学面形检测的基础；</li>
+<li><strong>F-P 的高精细度给出窄透射峰</strong>（谐振腔、滤波）；<strong>萨格纳克用于光纤陀螺</strong>；</li>
+<li><strong>薄膜干涉是现代光学的隐形基础设施</strong>——没有增透膜就没有复杂镜头；</li>
+<li><strong>干涉的普遍意义是"把相位翻译成强度"</strong>——全息、相位测量、相干通信共享这一思想。</li>
+</ul>
+<hr />
+<p><em>下一页：衍射。它给出几何光学永远给不出的东西——分辨率的物理极限；而傅里叶光学则揭示了一个惊人的事实：一枚透镜在做傅里叶变换。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-aberration.html"><span class="pager-label">上一页</span>光学 II · 像差与光学系统设计</a>
+  <a class="pager-slot next" href="04-fourier-optics.html"><span class="pager-label">下一页</span>光学 IV · 衍射与傅里叶光学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

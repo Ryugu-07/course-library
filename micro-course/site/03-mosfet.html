@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOSFET 的工作原理 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li class="active"><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#mos">一、MOS 电容：三种状态</a></li>
+<li><a href="#_1">二、电流公式：长沟道模型</a></li>
+<li><a href="#_2">三、亚阈值区：被低估的关键</a></li>
+<li><a href="#_3">四、体效应与四端器件</a></li>
+<li><a href="#_4">五、小信号模型：通往模拟电路</a></li>
+<li><a href="#nmos-pmos">六、NMOS 与 PMOS</a></li>
+<li><a href="#_5">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-mosfet">器件 III · MOSFET 的工作原理<a class="headerlink" href="#iii-mosfet" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心——这是整个微电子最重要的一页。
+MOSFET 的思想极简洁：<strong>隔着一层绝缘体，用栅电压在半导体表面感应出一条可控的导电沟道</strong>。栅极不导通电流（被氧化层隔断），只提供电场——因此控制几乎不耗静态功率。<strong>这一点正是 CMOS 能做到极低静态功耗、进而统治数字世界的根本原因。</strong></p>
+</blockquote>
+<h2 id="mos">一、MOS 电容：三种状态<a class="headerlink" href="#mos" title="Permanent link"></a></h2>
+<p>先看没有源漏的 MOS 结构（金属–氧化物–p 型半导体）。加不同栅压 <span class="arithmatex">\(V_G\)</span>，半导体表面出现三种状态：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>条件</th>
+<th>表面情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>积累</strong></td>
+<td><span class="arithmatex">\(V_G &lt; 0\)</span></td>
+<td>空穴（多子）被吸到表面</td>
+</tr>
+<tr>
+<td><strong>耗尽</strong></td>
+<td><span class="arithmatex">\(V_G\)</span> 略正</td>
+<td>空穴被推开，留下负电的受主离子</td>
+</tr>
+<tr>
+<td><strong>反型</strong></td>
+<td><span class="arithmatex">\(V_G\)</span> 足够正</td>
+<td>表面电子浓度超过空穴 → <strong>形成 n 型沟道</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>阈值电压 <span class="arithmatex">\(V_{th}\)</span></strong> 定义为表面达到<strong>强反型</strong>（表面电子浓度等于体内空穴浓度）所需的栅压：</p>
+<div class="arithmatex">\[V_{th} = V_{FB} + 2\phi_F + \frac{\sqrt{2q\varepsilon_s N_A(2\phi_F)}}{C_{ox}}, \qquad C_{ox} = \frac{\varepsilon_{ox}}{t_{ox}}\]</div>
+<p>不必背这个式子，但要读出其中的<strong>设计旋钮</strong>：</p>
+<ul>
+<li><strong>氧化层厚度 <span class="arithmatex">\(t_{ox}\)</span></strong>：越薄 → <span class="arithmatex">\(C_{ox}\)</span> 越大 → 栅控能力越强、<span class="arithmatex">\(V_{th}\)</span> 越低。<strong>"栅控能力"是理解全部器件演进的核心概念</strong>；</li>
+<li><strong>衬底掺杂 <span class="arithmatex">\(N_A\)</span></strong>：越高 → <span class="arithmatex">\(V_{th}\)</span> 越高；</li>
+<li><strong>功函数差 <span class="arithmatex">\(V_{FB}\)</span></strong>：由栅材料决定——<strong>这就是为什么先进工艺要换金属栅</strong>（第五页）。</li>
+</ul>
+<h2 id="_1">二、电流公式：长沟道模型<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>加上源与漏，在沟道两端建立电压 <span class="arithmatex">\(V_{DS}\)</span>，电子从源流向漏。经典的<strong>渐变沟道近似</strong>给出两个区域：</p>
+<p><strong>线性区</strong>（<span class="arithmatex">\(V_{DS} &lt; V_{GS}-V_{th}\)</span>，沟道完整）：</p>
+<div class="arithmatex">\[I_D = \mu_n C_{ox}\frac{W}{L}\left[(V_{GS}-V_{th})V_{DS} - \frac{V_{DS}^2}{2}\right]\]</div>
+<p><strong>饱和区</strong>（<span class="arithmatex">\(V_{DS} \ge V_{GS}-V_{th}\)</span>，漏端沟道<strong>夹断</strong>）：</p>
+<div class="arithmatex">\[I_D = \frac{1}{2}\mu_n C_{ox}\frac{W}{L}(V_{GS}-V_{th})^2\]</div>
+<figure>
+<p><img alt="MOSFET 输出特性与转移特性" class="fig-img" src="assets/img/mic_mosfet_iv.svg" /></p>
+<figcaption><span class="fig-id">图 3-1</span> 左：<strong>输出特性</strong> \(I_D\!-\!V_{DS}\)，每条曲线对应一个 \(V_{GS}\)。低 \(V_{DS}\) 时呈电阻性（线性区），越过夹断点后进入饱和区、电流基本不随 \(V_{DS}\) 变化——<strong>饱和区的"恒流"特性正是模拟放大的基础</strong>。右：<strong>转移特性</strong> \(I_D\!-\!V_{GS}\)，线性坐标下呈平方律（长沟道）。虚线为沟道长度调制引起的输出电导，它决定了模拟电路能获得的本征增益。</figcaption>
+</figure>
+<p><strong>几个必须读懂的含义</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(W/L\)</span> 是设计者最直接的旋钮</strong>。电路设计的很大一部分工作，就是给每个晶体管选 <span class="arithmatex">\(W/L\)</span>；</li>
+<li><strong>饱和区电流与 <span class="arithmatex">\(V_{DS}\)</span> 几乎无关</strong> → 近似恒流源 → 这是放大器与电流镜的基础（第八页）；</li>
+<li><strong>平方律是长沟道的结果</strong>。短沟道器件因速度饱和，<span class="arithmatex">\(I_D\)</span> 更接近<strong>线性</strong>于过驱动电压（第五页）——<strong>现代器件早已偏离教科书的平方律</strong>，但平方律仍是建立直觉的必经之路。</li>
+</ul>
+<p><strong>沟道长度调制</strong>：饱和区实际略有斜率，<span class="arithmatex">\(I_D \propto (1+\lambda V_{DS})\)</span>。这个小效应对数字电路无关紧要，<strong>对模拟电路却生死攸关</strong>——它决定了本征增益 <span class="arithmatex">\(g_m r_o\)</span> 的上限（第八页）。</p>
+<h2 id="_2">三、亚阈值区：被低估的关键<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(V_{GS} &lt; V_{th}\)</span> 时电流并非为零，而是<strong>指数地</strong>小：</p>
+<div class="arithmatex">\[I_D \propto \exp\!\left(\frac{V_{GS}}{n V_T}\right)\]</div>
+<p>因为此时沟道由<strong>扩散</strong>主导（承第一页：不同工作区由不同机制主导）。定义<strong>亚阈值摆幅</strong>：栅压降低多少能使电流下降十倍——</p>
+<div class="arithmatex">\[SS = \frac{dV_{GS}}{d(\log_{10} I_D)} = n \times 60\ \mathrm{mV/decade}\quad (n \ge 1)\]</div>
+<p><strong>这就是第二页那个 60 mV/dec 极限的再次登场</strong>，且这次它决定了整个行业的命运：</p>
+<ul>
+<li>要让晶体管"关断"（漏电足够小），<span class="arithmatex">\(V_{th}\)</span> 必须足够高；</li>
+<li>要让晶体管"导通"够快，<span class="arithmatex">\(V_{DD} - V_{th}\)</span> 必须足够大；</li>
+<li><strong>于是 <span class="arithmatex">\(V_{DD}\)</span> 无法随尺寸一起降低</strong>——因为 <span class="arithmatex">\(SS\)</span> 卡在 60 mV/dec，降低 <span class="arithmatex">\(V_{th}\)</span> 会让漏电指数上升。</li>
+</ul>
+<p><strong>这是 Dennard 缩放终结、功耗墙出现的物理根源</strong>（下一页正题）。<strong>所以"亚阈值"绝不是一个边角知识点，它是理解现代芯片一切困境的钥匙。</strong></p>
+<h2 id="_3">四、体效应与四端器件<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>MOSFET 实际上是<strong>四端</strong>器件：栅、源、漏、<strong>体（衬底）</strong>。源体之间加反偏电压 <span class="arithmatex">\(V_{SB}\)</span> 会<strong>提高</strong>阈值电压：</p>
+<div class="arithmatex">\[V_{th} = V_{th0} + \gamma\left(\sqrt{2\phi_F + V_{SB}} - \sqrt{2\phi_F}\right)\]</div>
+<p><strong>体效应的工程后果</strong>：串联堆叠的晶体管（如 NAND 门中的下管、传输门）源极电位被抬高，<span class="arithmatex">\(V_{th}\)</span> 随之上升、驱动能力下降。<strong>这是数字电路里"堆叠越深越慢"的原因之一</strong>，也是模拟设计中必须小心的干扰源。</p>
+<h2 id="_4">五、小信号模型：通往模拟电路<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>模拟设计里，我们关心工作点附近的<strong>小信号</strong>行为。核心参数<strong>跨导</strong>：</p>
+<div class="arithmatex">\[g_m = \frac{\partial I_D}{\partial V_{GS}} = \mu_n C_{ox}\frac{W}{L}(V_{GS}-V_{th}) = \frac{2I_D}{V_{ov}}\]</div>
+<p>其中 <span class="arithmatex">\(V_{ov} = V_{GS}-V_{th}\)</span> 是过驱动电压。<strong>这个式子是模拟设计的中心</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(g_m \propto \sqrt{I_D}\)</span>（长沟道）</strong>：想要增益就得烧电流，<strong>且回报是平方根的——这是模拟电路"贵"的根本原因</strong>；</li>
+<li><strong><span class="arithmatex">\(g_m/I_D\)</span> 是效率指标</strong>：<span class="arithmatex">\(V_{ov}\)</span> 越小，单位电流换来的跨导越大，但速度变慢、失配变差。<strong>"<span class="arithmatex">\(g_m/I_D\)</span> 方法论"是现代模拟设计的标准工作流</strong>；</li>
+<li>本征增益 <span class="arithmatex">\(A_v = g_m r_o\)</span> 是单管能提供的最大电压增益——<strong>它随工艺缩放而下降</strong>，这正是模拟电路难以受益于先进节点的原因之一（第八页详谈）。</li>
+</ul>
+<h2 id="nmos-pmos">六、NMOS 与 PMOS<a class="headerlink" href="#nmos-pmos" title="Permanent link"></a></h2>
+<p>PMOS 是对偶结构（n 型衬底、p⁺ 源漏、负栅压开启，空穴导电）。关键差异来自第一页：<strong>空穴迁移率约为电子的 1/3</strong>。</p>
+<p><strong>后果</strong>：要获得相同驱动能力，<strong>PMOS 宽度需为 NMOS 的约 2–3 倍</strong>。这直接决定了 CMOS 标准单元的版图比例（下一页），也影响了逻辑门的设计选择（为什么 NAND 比 NOR 更受青睐）。</p>
+<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>栅极隔着绝缘层控制沟道</td>
+<td>静态不耗电 → CMOS 低功耗的根本</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(V_{th}\)</span>、<span class="arithmatex">\(C_{ox}\)</span>、<span class="arithmatex">\(W/L\)</span></td>
+<td>器件工程与电路设计的主要旋钮</td>
+</tr>
+<tr>
+<td>饱和区近似恒流</td>
+<td>模拟放大的基础</td>
+</tr>
+<tr>
+<td><strong>亚阈值摆幅 ≥ 60 mV/dec</strong></td>
+<td><strong>供电电压无法继续下降 → 功耗墙</strong></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(g_m = 2I_D/V_{ov}\)</span></td>
+<td>模拟设计的中心公式</td>
+</tr>
+<tr>
+<td>平方律只对长沟道成立</td>
+<td>现代器件需要新模型（第五页）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>下一页：缩放定律。把晶体管做小，会发生什么？Dennard 给出了一套漂亮的缩放规则，让行业狂奔了三十年；然后它在 2005 年前后失效了——原因就是本页的 60 mV/decade。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-junction.html"><span class="pager-label">上一页</span>器件 II · pn 结与二极管</a>
+  <a class="pager-slot next" href="04-scaling.html"><span class="pager-label">下一页</span>器件 IV · 缩放定律与功耗墙</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

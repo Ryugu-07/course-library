@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>系统综述、meta 分析与 GRADE · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li class="active"><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-vs">1. 系统综述 vs 叙述性综述</a></li>
+<li><a href="#2">2. 森林图：怎么读</a></li>
+<li><a href="#3">3. 异质性：合并之前必须问的问题</a></li>
+<li><a href="#4">4. 发表偏倚的检测</a></li>
+<li><a href="#5-meta">5. meta 分析出错的著名案例</a></li>
+<li><a href="#6-grade">6. GRADE：从证据到推荐</a></li>
+<li><a href="#7">7. 伞式综述与证据地图</a></li>
+<li><a href="#8-meta">8. 活体综述与网状 meta</a></li>
+<li><a href="#9">9. 本页收成三条</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv-meta-grade">循证 IV · 系统综述、meta 分析与 GRADE<a class="headerlink" href="#iv-meta-grade" title="Permanent link"></a></h1>
+<blockquote>
+<p>单项试验很少是最终答案。<strong>系统综述</strong>是把某个问题上的全部证据按预设规则收集、评价、综合的过程；<strong>meta 分析</strong>是其中的定量合并步骤。<strong>但"meta 分析"这个标签本身不保证质量</strong>——垃圾进、垃圾出，而且合并会让垃圾看起来更精确。</p>
+</blockquote>
+<h2 id="1-vs">1. 系统综述 vs 叙述性综述<a class="headerlink" href="#1-vs" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>系统综述</th>
+<th>叙述性综述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>问题</td>
+<td><strong>预先定义（PICO）</strong></td>
+<td>宽泛</td>
+</tr>
+<tr>
+<td>检索</td>
+<td><strong>预设策略、多库、可复现</strong></td>
+<td>作者挑选</td>
+</tr>
+<tr>
+<td>纳入</td>
+<td><strong>预设标准、双人筛选</strong></td>
+<td>主观</td>
+</tr>
+<tr>
+<td>质量评价</td>
+<td><strong>系统工具（RoB 2、ROBINS-I）</strong></td>
+<td>常无</td>
+</tr>
+<tr>
+<td>综合</td>
+<td>定量或定性、按规则</td>
+<td>叙述</td>
+</tr>
+<tr>
+<td>主要偏倚</td>
+<td>受纳入研究限制</td>
+<td><strong>作者的既有立场</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>PICO</strong>：Population、Intervention、Comparison、Outcome。<strong>先写清 PICO 再检索</strong>，是系统综述与"找证据支持我的观点"的分水岭。</p>
+<h2 id="2">2. 森林图：怎么读<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Forest plot with heterogeneity" src="assets/img/cli-08-forest.svg" /></p>
+<figcaption><span class="fig-id">图 8.1</span>森林图示意。每一行是一项研究：**方块为效应点估计（面积正比于权重，即样本量与精度）**，横线为 95% 置信区间。**菱形为合并效应**，其宽度即合并的置信区间。竖直虚线为无效应线（RR = 1）。图中第 3、5 项研究的区间与其他明显不重叠，提示**异质性**——此时直接读菱形是危险的，应先解释为什么这些研究不一致。</figcaption>
+</figure>
+<p><strong>读森林图的顺序</strong>：① 先看<strong>各研究的区间是否大体重叠</strong>（异质性）；② 再看<strong>菱形是否跨过无效线</strong>；③ 看<strong>菱形的宽度</strong>（精度）；④ 看<strong>权重分布</strong>（是否被一两项大研究主导）；⑤ 回头看<strong>这些研究是否真的在回答同一个问题</strong>。</p>
+<h2 id="3">3. 异质性：合并之前必须问的问题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>三种异质性</strong>：<strong>临床</strong>（人群、干预、结局定义不同）、<strong>方法学</strong>（设计与偏倚风险不同）、<strong>统计学</strong>（效应估计的差异超过随机误差）。</p>
+<p><strong>度量</strong>：</p>
+<div class="arithmatex">\[Q = \sum w_i (\hat\theta_i - \hat\theta)^2 ,\qquad I^2 = \max\left(0,\ \frac{Q - (k-1)}{Q}\right)\times 100\%\]</div>
+<p><span class="arithmatex">\(I^2\)</span> 解释为"效应变异中由真实差异而非抽样误差造成的比例"。<strong>粗略档位</strong>：&lt; 40% 可能不重要；30–60% 中等；50–90% 显著；<strong>&gt; 75% 相当大</strong>。</p>
+<p><strong>两条常见误用</strong>：① <strong><span class="arithmatex">\(I^2\)</span> 不是绝对量</strong>——它依赖研究内精度，<strong>大样本研究多时 <span class="arithmatex">\(I^2\)</span> 会偏高</strong>；② <strong><span class="arithmatex">\(I^2\)</span> 低不等于可以合并</strong>——临床异质性（合并了完全不同的人群）是 <span class="arithmatex">\(I^2\)</span> 看不到的。</p>
+<p><strong>固定效应 vs 随机效应模型</strong>：</p>
+<ul>
+<li><strong>固定效应</strong>假设所有研究估计同一个真值，差异全来自抽样误差；</li>
+<li><strong>随机效应</strong>假设各研究的真值本身来自一个分布，<strong>合并的是这个分布的均值</strong>；给小研究更多相对权重，<strong>置信区间更宽</strong>。</li>
+</ul>
+<p><strong>实践建议</strong>：<strong>异质性明显时用随机效应，并同时报告预测区间</strong>（预测区间回答"下一项类似研究可能落在哪里"，<strong>通常比置信区间宽得多，也更诚实</strong>）。<strong>若异质性大到无法解释，正确的做法可能是不合并，而只做定性综合。</strong></p>
+<p><strong>亚组与 meta 回归</strong>用于<strong>解释</strong>异质性，但<strong>它们是观察性的</strong>（研究层面的比较），<strong>受生态学谬误影响</strong>——<strong>研究层面的关联不能直接推到个体层面</strong>。</p>
+<h2 id="4">4. 发表偏倚的检测<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Funnel plots: symmetric vs asymmetric" src="assets/img/cli-08-funnel.svg" /></p>
+<figcaption><span class="fig-id">图 8.2</span>漏斗图。横轴为效应量，纵轴为精度（大研究在上）。**左：对称漏斗**——小研究在真值两侧均匀散布，符合仅有抽样误差的预期。**右：不对称**——左下角缺了一块，即"小型且结果不利"的研究缺失，**提示发表偏倚**（也可能是小研究质量较差或真实的异质性）。</figcaption>
+</figure>
+<p><strong>统计检验</strong>：Egger 检验、Begg 检验。<strong>局限</strong>：<strong>研究数少于约 10 项时功效极低</strong>；不对称有多种解释（发表偏倚、小研究效应、异质性、机遇）。</p>
+<p><strong>"剪补法（trim-and-fill）"</strong> 可给出校正后估计，但<strong>它是一种敏感性分析而非真相</strong>。</p>
+<p><strong>根本对策仍是注册制度与结果强制上报</strong>（第 07 页）。</p>
+<h2 id="5-meta">5. meta 分析出错的著名案例<a class="headerlink" href="#5-meta" title="Permanent link"></a></h2>
+<p><strong>这些案例是"meta 分析不等于真相"的最有力论据</strong>：</p>
+<ul>
+<li><strong>静脉镁剂治疗急性心梗</strong>：多项小型试验的 meta 分析显示显著降低死亡率；<strong>随后的大型试验（ISIS-4）显示无效</strong>。事后归因于小研究的发表偏倚与质量问题；</li>
+<li><strong>多种膳食补充剂</strong>：观察性 meta 与随机试验持续背离（第 05 页）；</li>
+<li><strong>同一问题上不同 meta 分析给出相反结论</strong>：常源于纳入标准、结局定义与模型选择的差异——<strong>这本身说明系统综述也有研究者自由度</strong>。</li>
+</ul>
+<p><strong>教训</strong>：<strong>大型、高质量、单项 RCT 的证据，常优于一堆小型低质量试验的 meta 分析。</strong> 证据金字塔顶端不是"meta 分析"，而是"<strong>高质量证据</strong>"。</p>
+<h2 id="6-grade">6. GRADE：从证据到推荐<a class="headerlink" href="#6-grade" title="Permanent link"></a></h2>
+<p><strong>GRADE 把两件事分开</strong>——<strong>证据确定性</strong>与<strong>推荐强度</strong>。这个分离是它最大的贡献。</p>
+<p><strong>证据确定性四档</strong>：<strong>高 / 中 / 低 / 极低</strong>。</p>
+<ul>
+<li><strong>起点</strong>：RCT 起于"高"，观察性研究起于"低"；</li>
+<li><strong>降级五因素</strong>：<strong>偏倚风险</strong>、<strong>不一致性</strong>（异质性）、<strong>间接性</strong>（人群/干预/结局与问题不匹配，含替代终点）、<strong>不精确</strong>（CI 宽、事件少）、<strong>发表偏倚</strong>；</li>
+<li><strong>升级三因素</strong>（仅用于观察性研究）：<strong>效应量很大</strong>、<strong>存在剂量-反应关系</strong>、<strong>所有可能的混杂都会削弱观察到的效应</strong>。</li>
+</ul>
+<p><strong>推荐强度两档</strong>：<strong>强推荐</strong>（"我们推荐"——<strong>几乎所有充分知情的患者都会选择它</strong>）与<strong>弱/有条件推荐</strong>（"我们建议"——<strong>不同患者会做不同选择，应共同决策</strong>）。</p>
+<p><strong>推荐强度取决于四件事</strong>：证据确定性、<strong>收益与危害的平衡</strong>、<strong>患者价值观与偏好的变异</strong>、资源使用。</p>
+<p><strong>关键推论（常被忽略）</strong>：<strong>证据可以是高确定性的，而推荐仍然是弱的</strong>——当收益与危害接近、或患者偏好差异大时。<strong>反之，低确定性证据也可能对应强推荐</strong>（如危及生命而无替代方案时）。<strong>"强推荐"不等于"证据强"。</strong></p>
+<h2 id="7">7. 伞式综述与证据地图<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>当同一主题已有多项 meta 分析时，用<strong>伞式综述（umbrella review）</strong>汇总。<strong>它们最有价值的产出往往是负面的</strong>：反复揭示某个领域的证据整体上是低质量、高异质、且受发表偏倚影响的。</p>
+<p><strong>近年一个有影响的例子</strong>是关于"血清素与抑郁"的伞式综述（🔗 姊妹站第 16 页与心智与证据站第 17 页均提及）——<strong>它引发的讨论本身也说明伞式综述的局限：汇总一批异质证据得出"无一致证据"的结论，需要小心区分"证据不足"与"证据表明无效"</strong>。</p>
+<h2 id="8-meta">8. 活体综述与网状 meta<a class="headerlink" href="#8-meta" title="Permanent link"></a></h2>
+<p><strong>活体系统综述（living systematic review）</strong>：持续更新，适合快速演进的领域（COVID-19 期间大规模使用）。</p>
+<p><strong>网状 meta 分析（network meta-analysis）</strong>：当多种治疗互相之间缺少直接比较时，<strong>通过共同对照做间接比较并排序</strong>。<strong>关键假设是"传递性"</strong>（各比较所在的试验人群可比）。<strong>输出的"排名概率"极易被误读</strong>——<strong>排第一不代表显著优于第二，且排名对纳入研究非常敏感</strong>。</p>
+<h2 id="9">9. 本页收成三条<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<ol>
+<li><strong>合并之前先问"这些研究在回答同一个问题吗"</strong>；</li>
+<li><strong>森林图先看异质性，再看菱形</strong>；</li>
+<li><strong>区分"证据确定性"与"推荐强度"</strong>——下一页会看到指南制定者如何（以及有时如何未能）做到这一点。</li>
+</ol>
+<hr />
+<p><em>下一页：替代终点与指南的生产过程——证据是怎么变成"应该怎么做"的，以及这个转化在哪里出错。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="07-bias.html"><span class="pager-label">上一页</span>循证 III · 偏倚目录</a>
+  <a class="pager-slot next" href="09-guidelines.html"><span class="pager-label">下一页</span>循证 V · 替代终点与指南是怎么做出来的</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

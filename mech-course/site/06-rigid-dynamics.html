@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>刚体动力学与转动惯量 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li class="active"><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、转动惯量：机械动力学的中心量</a></li>
+<li><a href="#_2">二、刚体动力学方程</a></li>
+<li><a href="#_3">三、平衡：不平衡的代价</a></li>
+<li><a href="#_4">四、功率、扭矩与转速</a></li>
+<li><a href="#_5">五、转动的能量与冲击</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">动力 I · 刚体动力学与转动惯量<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>与物理站的分工</strong>：🔗 物理站从<strong>拉格朗日/哈密顿</strong>的角度讲力学（变分原理、相空间、守恒律）；本课讲<strong>工程动力学</strong>——机器的惯量分配、平衡、动反力，以及它们如何决定机器能转多快。
+物理关心"运动的规律"，机械关心"这台机器转起来会不会抖、轴承受多大力、要多大电机"。</p>
+</blockquote>
+<h2 id="_1">一、转动惯量：机械动力学的中心量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[I = \int r^2\,dm\]</div>
+<p><strong>平行轴定理</strong>：<span class="arithmatex">\(I = I_c + md^2\)</span>（<span class="arithmatex">\(d\)</span> 是到质心轴的距离）。</p>
+<p><strong>常用值</strong>（要有直觉）：</p>
+<table>
+<thead>
+<tr>
+<th>形状</th>
+<th>绕质心轴</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>细杆（绕中点，长 <span class="arithmatex">\(L\)</span>）</td>
+<td><span class="arithmatex">\(mL^2/12\)</span></td>
+</tr>
+<tr>
+<td>实心圆盘/圆柱</td>
+<td><span class="arithmatex">\(mR^2/2\)</span></td>
+</tr>
+<tr>
+<td><strong>薄壁圆环/圆筒</strong></td>
+<td><span class="arithmatex">\(mR^2\)</span></td>
+</tr>
+<tr>
+<td>实心球</td>
+<td><span class="arithmatex">\(2mR^2/5\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意圆环与实心盘差一倍</strong>：同样质量下，<strong>质量分布在外缘的转动惯量最大</strong>。</p>
+<p><strong>这个事实的两面性</strong>（机械设计中反复出现的权衡）：
+- <strong>想要储能与平稳</strong>（飞轮、发动机曲轴飞轮、储能飞轮）→ <strong>把质量放外缘</strong>，最大化 <span class="arithmatex">\(I\)</span>；
+- <strong>想要快速响应</strong>（伺服电机转子、机器人关节、机床主轴）→ <strong>把质量集中在中心</strong>，最小化 <span class="arithmatex">\(I\)</span>。</p>
+<p><strong>伺服系统的关键指标是惯量比</strong>（负载惯量 / 电机惯量）。<strong>惯量比过大，系统响应迟钝、易振荡、难以整定</strong>——🔗 这直接连到自动化站第十二页的伺服调试。<strong>一个机械设计的选择（把质量放哪里），会变成控制工程师的噩梦或福音。</strong></p>
+<h2 id="_2">二、刚体动力学方程<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>平面运动</strong>：</p>
+<div class="arithmatex">\[\sum \vec{F} = m\vec{a}_c, \qquad \sum M_c = I_c \alpha\]</div>
+<p><strong>三维一般运动</strong>（欧拉方程，绕主轴）：</p>
+<div class="arithmatex">\[M_1 = I_1\dot\omega_1 + (I_3-I_2)\omega_2\omega_3, \quad \text{（及其轮换）}\]</div>
+<p><strong>耦合项 <span class="arithmatex">\((I_3-I_2)\omega_2\omega_3\)</span> 是三维转动一切怪异现象的来源</strong>：陀螺进动、网球拍定理（绕中间主轴旋转不稳定）、以及高速转子的陀螺效应（第九页会用到）。</p>
+<p><strong>达朗贝尔原理</strong>（工程上极实用）：引入惯性力 <span class="arithmatex">\(-m\vec a\)</span> 后，动力学问题变成<strong>形式上的静力学问题</strong>——可以直接画受力图、写平衡方程。<strong>这是分析加速运动构件（连杆、活塞、离心机）时的标准手法。</strong></p>
+<h2 id="_3">三、平衡：不平衡的代价<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>旋转机械的不平衡是最常见的振动源。</strong> 一个偏心质量 <span class="arithmatex">\(m\)</span> 在半径 <span class="arithmatex">\(e\)</span> 处以 <span class="arithmatex">\(\omega\)</span> 旋转，产生离心力：</p>
+<div class="arithmatex">\[F = m e \omega^2\]</div>
+<p><strong>关键在 <span class="arithmatex">\(\omega^2\)</span></strong>：<strong>转速加倍，不平衡力增大四倍</strong>。这就是为什么低速时毫无问题的转子，升速后会剧烈振动——<strong>高速旋转机械对平衡的要求呈平方级严苛化</strong>。</p>
+<p><strong>两类平衡</strong>：
+- <strong>静平衡</strong>：质心在旋转轴上（消除合力）。<strong>对薄盘状零件（砂轮、风扇、皮带轮）足够</strong>；
+- <strong>动平衡</strong>：还要消除<strong>惯性力偶</strong>（消除合力矩）。<strong>对长转子（曲轴、电机转子、涡轮轴）必须做</strong>——因为两个大小相等方向相反、但不在同一平面的偏心，静态下能平衡，转动时却形成摇摆力偶。</p>
+<p><strong>工程实践</strong>：动平衡在<strong>两个校正平面</strong>上加/减配重完成，用动平衡机测量。<strong>平衡等级（如 ISO 的 G 级）按"许用偏心 × 转速"分级</strong>——转速越高，允许的残余不平衡越小。</p>
+<p><strong>往复机械的平衡更难</strong>：活塞的往复惯性力含<strong>一阶（<span class="arithmatex">\(\omega\)</span>）与二阶（<span class="arithmatex">\(2\omega\)</span>）</strong>分量。二阶力无法用简单配重完全平衡，需要<strong>平衡轴</strong>（以 <span class="arithmatex">\(2\omega\)</span> 反向旋转）。<strong>这就是四缸发动机常配平衡轴、而直列六缸天生平衡性好的原因</strong>——后者的一、二阶惯性力与力偶因气缸排列而自然抵消。<strong>发动机的"平顺性"很大程度上是刚体动力学的直接结果。</strong></p>
+<h2 id="_4">四、功率、扭矩与转速<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<div class="arithmatex">\[P = T\omega\]</div>
+<p><strong>这个简单公式支配了整个传动系统的设计逻辑</strong>：
+- 同样的功率，<strong>转速越低，扭矩越大</strong>；
+- <strong>扭矩决定尺寸</strong>（轴径、齿轮模数、键的尺寸都由扭矩定），<strong>功率不直接决定尺寸</strong>；
+- <strong>所以减速器的输出级总是最大最重的</strong>——它承受最大扭矩。</p>
+<p><strong>推论</strong>：<strong>电机应尽量高速小扭矩，再用减速器换取扭矩</strong>。这样电机可以做得小而轻。<strong>这正是机器人关节、电动车驱动系统普遍采用高速电机 + 减速器的原因</strong>（直驱方案需要巨大的电机）。</p>
+<p><strong>代价</strong>：减速器带来<strong>回差（间隙）、摩擦、效率损失、以及额外的惯量与柔性</strong>——🔗 又一次成为自动化站的控制难题（第十九页的机器人关节柔性）。</p>
+<h2 id="_5">五、转动的能量与冲击<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>动能</strong>：<span class="arithmatex">\(T = \frac{1}{2}mv_c^2 + \frac{1}{2}I_c\omega^2\)</span>（平动 + 转动）。</p>
+<p><strong>飞轮储能</strong>：<span class="arithmatex">\(E = \frac{1}{2}I\omega^2\)</span>。<strong>注意 <span class="arithmatex">\(\omega^2\)</span></strong>——<strong>提高转速比增加惯量有效得多</strong>。现代储能飞轮因此采用高强度复合材料转子在真空中高速旋转，其极限由<strong>材料的比强度（<span class="arithmatex">\(\sigma/\rho\)</span>）</strong>决定，而非尺寸。</p>
+<p><strong>转动惯量对冲击的影响</strong>：大惯量意味着<strong>转速变化慢</strong>——发动机飞轮正是靠这个把断续的做功冲程"抹平"成近似连续的输出。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>转动惯量的分布决定机器性格</strong>：外缘质量利于储能与平稳，中心质量利于快速响应；<strong>惯量比直接决定伺服系统好不好调</strong>；</li>
+<li><strong>不平衡力 <span class="arithmatex">\(\propto \omega^2\)</span></strong>，高速机械对平衡的要求呈平方级严苛；<strong>长转子必须做动平衡</strong>；</li>
+<li><strong>往复机械的二阶惯性力需要平衡轴</strong>——发动机平顺性是刚体动力学的直接结果；</li>
+<li><strong>扭矩决定尺寸</strong>，所以"高速电机 + 减速器"是主流方案，代价是回差与柔性；</li>
+<li><strong>飞轮储能 <span class="arithmatex">\(\propto \omega^2\)</span></strong>，极限由材料比强度决定。</li>
+</ul>
+<hr />
+<p><em>下一页：让结构振起来。单自由度振动虽然简单，却包含了共振、阻尼、隔振的全部核心思想——而它们是机械现场问题的主要来源。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-energy-elasticity.html"><span class="pager-label">上一页</span>力学 V · 能量法与弹性力学入门</a>
+  <a class="pager-slot next" href="07-vibration-sdof.html"><span class="pager-label">下一页</span>动力 II · 单自由度振动</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

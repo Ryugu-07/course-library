@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>预测等于理解吗 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li class="active"><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 为什么"懂不懂"是个坏问题</a></li>
+<li><a href="#2-mean-03-5">2. 用三层接地拆"理解"（承 mean-03 §5）</a></li>
+<li><a href="#3">3. 章鱼与中文房间，重审</a></li>
+<li><a href="#4-vs">4. 真问题：形式能力 vs 功能能力的分裂</a></li>
+<li><a href="#5">5. 泛化：理解的试金石</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">机器 II · 预测等于理解吗<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Searle 1980、Bender &amp; Koller 2020、Mitchell &amp; Krakauer 2023《The debate over understanding》、Mahowald 等 2024（形式 vs 功能语言能力）、McCoy 等（分布外泛化）｜ <strong>前置</strong>：mean-03（接地三层）、ai-01（世界模型）｜ <strong>证据地位</strong>：<strong>分层后可判【实/前沿】</strong>；<strong>笼统的"懂不懂"【争/思】</strong>——本页教你为什么这个问题必须先拆再答。
+轴 III 的正面决战。"LLM 懂不懂？"是过去几年吵得最凶、也最混乱的问题。本页的立场很明确：<strong>笼统地问"懂不懂"注定无解，因为吵架双方用着不同的"懂"。</strong> 用 mean-03 的三层接地把"理解"切开，一半的争论当场蒸发，剩下的一半才是真问题。</p>
+</blockquote>
+<h2 id="1">1. 为什么"懂不懂"是个坏问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>正方举证：LLM 能翻译、能解题、能通过专业考试、内部有世界模型（Othello-GPT，ai-01）——<strong>这不叫懂叫什么？</strong> 反方举证：它会一本正经胡说（幻觉）、在分布外脆断、被无关扰动骗、没有身体没有指涉——<strong>这明明是高级鹦鹉。</strong> </p>
+<p><strong>两边都有真证据，却吵不出结果</strong>——这是"问题问错了"的典型信号。根源：<strong>"理解"是个未拆解的合成词</strong>，双方各抓住它的一层，用同一个字互相否定。<strong>解法不是选边，是拆词。</strong></p>
+<h2 id="2-mean-03-5">2. 用三层接地拆"理解"（承 mean-03 §5）<a class="headerlink" href="#2-mean-03-5" title="Permanent link"></a></h2>
+<p>把"LLM 理解 X"翻译成三个<strong>分别可判</strong>的命题：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>"理解" =</th>
+<th>LLM 现状</th>
+<th>裁判</th>
+<th>分档</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>功能理解</strong></td>
+<td>能可靠地用 X 完成预测与任务</td>
+<td><strong>相当强</strong>（且随 scaling 升）</td>
+<td>行为/基准</td>
+<td>【实】</td>
+</tr>
+<tr>
+<td><strong>指涉理解</strong></td>
+<td>内部表征对应真实世界状态/结构</td>
+<td><strong>部分有</strong>（Othello-GPT、探针、机制可解释）</td>
+<td>probing / 干预</td>
+<td>【实/前沿】</td>
+</tr>
+<tr>
+<td><strong>现象理解</strong></td>
+<td>对模型而言"有意义"、有体验</td>
+<td><strong>无判据</strong></td>
+<td>——</td>
+<td>【思】</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一拆就清楚了</strong>：
+- 正方的证据主要落在<strong>功能层</strong>（会用、会做）——这里 LLM 确实"懂"，【实】，无需争。
+- 反方的攻击主要瞄准<strong>现象层与强指涉层</strong>（没身体、没体验、不真正"关于"世界）——现象层【思】无裁判，强指涉层是【前沿】正在验。
+- <strong>双方其实没在同一层交锋</strong>。承认这一点，"世纪之争"的一大半是术语误会。</p>
+<h2 id="3">3. 章鱼与中文房间，重审<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>有了实证，回看 mean-03 的两个思想实验，它们<strong>依然有力，但边界更清楚了</strong>：</p>
+<ul>
+<li><strong>章鱼/Bender–Koller（form ≠ meaning）</strong>：正确地指出<strong>纯文本训练不保证指涉接地</strong>。但 ai-01 的世界模型证据表明：文本统计里<strong>泄漏的世界结构，比章鱼论证假设的多</strong>——模型能反解出部分指涉（棋盘、空间、颜色）。<strong>所以章鱼论证的正确版本是量的</strong>："文本泄漏了多少世界结构、够支撑哪些任务"，不是"零"。</li>
+<li><strong>中文房间/Searle（句法 ≠ 语义）</strong>：正确地指出<strong>行为通过测试 ≠ 现象理解</strong>。但它对<strong>功能</strong>和<strong>指涉</strong>理解无杀伤力——一个系统完全可以既是"按规则动符号"，又<strong>恰恰因此</strong>在内部建起了因果有效的世界模型。<strong>Searle 攻的是现象层，赢的也只在现象层。</strong></li>
+</ul>
+<p><strong>净结论</strong>：两个经典论证<strong>没有过时</strong>，但它们证明的是"<strong>现象/强指涉理解不能从纯形式白拿</strong>"，<strong>不是</strong>"LLM 什么都不懂"。把它们的射程精确划定，是本页的一大产出。</p>
+<h2 id="4-vs">4. 真问题：形式能力 vs 功能能力的分裂<a class="headerlink" href="#4-vs" title="Permanent link"></a></h2>
+<p>拆掉伪问题后，浮现出一个<strong>真</strong>问题（Mahowald &amp; Fedorenko 2024，接回 mind-02）：LLM 展示了强大的<strong>形式语言能力</strong>（合语法、流畅、通语用），但其<strong>功能语言能力</strong>（用语言去可靠推理、规划、维持世界一致性）<strong>参差不齐</strong>——</p>
+<ul>
+<li>会写完美的证明格式，却在中间步骤算错；</li>
+<li>语法完美，却在需要稳健世界模型处产生幻觉；</li>
+<li><strong>形式（form）已近乎解决，功能（function）远未</strong>。</li>
+</ul>
+<p><strong>这惊人地呼应人脑（mind-02）</strong>：Fedorenko 的语言网络管<strong>形式</strong>，多需求网络管<strong>功能推理</strong>，两者分离。<strong>LLM 把两者塞进一个网络，于是形式能力先饱和、功能能力拖后腿</strong>——这也许正是"一个网络硬扛两种能力"的代价。<strong>核心张力在这里得到一个可检验的新形态</strong>：能否在 LLM 内部<strong>分离出</strong>"形式子回路"与"功能子回路"？若能，人机就在更深的层次上对应了（ai-03、机制可解释性）。</p>
+<h2 id="5">5. 泛化：理解的试金石<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>区分"懂"与"记/拟合"的最实用判据是<strong>分布外泛化（OOD generalization）</strong>：</p>
+<ul>
+<li>真理解应支持<strong>系统性组合</strong>（承 ling-02）：懂了"A 及物化"和"B 名词"，就该懂新组合。</li>
+<li>LLM 在<strong>分布内</strong>近乎完美，<strong>分布外</strong>则时好时坏——有真组合泛化的迹象，也有"表面启发式"（McCoy：模型常学到 shortcut 而非规则）的暴露。</li>
+<li><strong>这把"理解"变成可测曲线</strong>：不是是非题，而是"在多远的分布外、多大的组合空间上还稳"。</li>
+</ul>
+<p><strong>对你研究的价值</strong>：OOD 泛化是"预测=理解"最可操作的裁判。设计一个组合结构可控的任务，测模型外推到未见组合的能力——<strong>你就把轴 III 的哲学问题，做成了一条泛化曲线</strong>（labs L5 可扩展）。</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（本页最该带走的）</strong> "AI 懂不懂"——<strong>永远先反问"你说哪一层的懂"</strong>。功能层：懂（【实】）。指涉层：部分懂，正在验（【前沿】）。现象层：无法判定（【思】）。<strong>掌握这三层，你就免疫于这个领域一半的口水仗</strong>，也能一眼看出哪些"惊人论断"是层次混淆的产物。</p>
+<p><strong>思考 2（形式/功能分裂是金矿）</strong> LLM"形式强、功能弱"与人脑"语言网络 ⊥ 推理网络"的呼应，是全课最值得深挖的一条线。它把玄乎的"理解"落成一个<strong>可探测的架构问题</strong>：两种能力能否在机器内部分离？分离边界像不像人脑？——这是你够得着、又直击核心的研究方向。</p>
+<p><strong>思考 3（别双向神化）</strong> 两个陷阱等距：把 LLM 神化为"已经理解"（无视现象层无裁判、功能层的脆断），或贬低为"只是鹦鹉"（无视世界模型、指涉接地的实证）。<strong>清醒的位置在中间且分层</strong>：功能上强、指涉上部分、现象上未知。守住这个位置，你就既不被炒作裹挟，也不被犬儒蒙蔽。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：机器 III——LLM 作为语言理论的实验室。线六收官，也是全课的会师：把前五线的每一个争论（先天/涌现、接地、语言/思维、理解）都当成一个<strong>可在 LLM 上做的实验</strong>。LLM 不只是研究对象，它是检验语言理论的模式生物。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ai-01-emergence.html"><span class="pager-label">上一页</span>机器 I · 涌现、Scaling 与世界模型</a>
+  <a class="pager-slot next" href="ai-03-language-lab.html"><span class="pager-label">下一页</span>机器 III · LLM 作为语言理论实验室</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LED 与半导体激光 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li class="active"><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、直接带隙与间接带隙：一条决定性的分界</a></li>
+<li><a href="#led">二、LED：效率的层层折扣</a></li>
+<li><a href="#_2">三、激光二极管</a></li>
+<li><a href="#_3">四、其他半导体光源</a></li>
+<li><a href="#_4">五、与微电子站的接续</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-led">光源 III · LED 与半导体激光<a class="headerlink" href="#iii-led" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ 🔗 直接接续微电子站第一、二页（能带、pn 结）。
+从数量上说，<strong>半导体光源是最重要的光源</strong>——每部手机、每个数据中心、每盏现代灯具里都有。本页讲清它们的原理、效率来自哪里、以及为什么硅不能发光（这条限制塑造了整个硅光产业的技术路线）。</p>
+</blockquote>
+<h2 id="_1">一、直接带隙与间接带隙：一条决定性的分界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>电子从导带跃迁回价带时释放能量。<strong>能量以什么形式释放，取决于能带结构</strong>：</p>
+<ul>
+<li><strong>直接带隙</strong>（GaAs、InP、GaN）：导带最低点与价带最高点<strong>在 k 空间同一位置</strong> → 跃迁<strong>只需释放光子</strong>（动量自动守恒）→ <strong>辐射复合效率高，可以发光</strong>；</li>
+<li><strong>间接带隙</strong>（<strong>Si</strong>、Ge）：两者<strong>不在同一位置</strong> → 跃迁必须<strong>同时涉及一个声子</strong>来守恒动量 → 三体过程概率极低 → <strong>辐射复合效率极低，几乎不发光</strong>。</li>
+</ul>
+<p><strong>这就是"硅不发光"的根本原因</strong>（🔗 微电子站第十八页说过它是硅光最大的结构性障碍）。<strong>它不是工艺问题，是硅的能带结构决定的物理事实</strong>——因此硅光子学至今必须外接 III-V 激光器或做异质集成。</p>
+<p><strong>发光波长由带隙决定</strong>：</p>
+<div class="arithmatex">\[\lambda\ [\mu\mathrm{m}] \approx \frac{1.24}{E_g\ [\mathrm{eV}]}\]</div>
+<p><strong>这是本页最实用的换算</strong>：要发 1550 nm（光通信窗口），需 <span class="arithmatex">\(E_g\approx0.8\)</span> eV（InGaAsP）；要发蓝光 450 nm，需 <span class="arithmatex">\(E_g\approx2.75\)</span> eV（InGaN）。</p>
+<h2 id="led">二、LED：效率的层层折扣<a class="headerlink" href="#led" title="Permanent link"></a></h2>
+<p><strong>结构</strong>：正偏 pn 结（通常是双异质结），电子空穴在有源区复合发光。</p>
+<p><strong>外量子效率的分解</strong>（这个分解方式很有工程价值）：</p>
+<div class="arithmatex">\[\eta_{EQE} = \underbrace{\eta_{\text{inj}}}_{\text{注入}} \times \underbrace{\eta_{IQE}}_{\text{内量子}} \times \underbrace{\eta_{\text{ext}}}_{\text{取出}}\]</div>
+<p><strong>取出效率是历史上的主要瓶颈</strong>：半导体折射率高（GaN 约 2.4），由全内反射（第一页）</p>
+<div class="arithmatex">\[\theta_c = \arcsin(1/n) \approx 24°\]</div>
+<p><strong>只有很小的立体角内的光能逃出</strong> → 大量光在芯片内被反复吸收。</p>
+<p><strong>对策</strong>（都是几何/结构手段）：表面粗化、图形化衬底（PSS）、倒装结构、封装用高折射率硅胶、光子晶体。</p>
+<p><strong>效率下降（efficiency droop）</strong>：InGaN LED 在大电流下 IQE 反而下降，机理（俄歇复合、载流子泄漏、极化场）<strong>至今仍有争论</strong>【争】。<strong>这限制了单颗 LED 的功率密度</strong>，是照明与 microLED 的实际约束。</p>
+<p><strong>白光的两条路线</strong>：
+- <strong>蓝光 LED + 黄色荧光粉</strong>（主流）：简单便宜，但<strong>显色指数受限</strong>（缺红光），且荧光粉转换有斯托克斯损失；
+- <strong>RGB 三色混合</strong>：显色好、可调色，但成本高、需各色一致性控制。</p>
+<p><strong>蓝光 LED 的意义</strong>（诺奖工作）：<strong>没有高效蓝光就没有白光 LED</strong>——因为荧光粉需要蓝光激发。<strong>这是一个单点技术突破改变整个行业的典型案例</strong>，照明能耗因此大幅下降。</p>
+<h2 id="_2">三、激光二极管<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>LED → LD 需要两样东西</strong>：粒子数反转 + 光学反馈（第六页）。</p>
+<p><strong>结构演进（每一步都是为了降低阈值电流）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>结构</th>
+<th>关键改进</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同质结</td>
+<td>阈值极高，只能低温脉冲</td>
+</tr>
+<tr>
+<td><strong>双异质结</strong>（诺奖工作）</td>
+<td><strong>同时限制载流子与光场</strong> → 室温连续工作成为可能</td>
+</tr>
+<tr>
+<td><strong>量子阱（QW）</strong></td>
+<td>态密度改变 → <strong>阈值更低、温度特性更好</strong></td>
+</tr>
+<tr>
+<td>应变量子阱</td>
+<td>改变价带结构，进一步降低阈值</td>
+</tr>
+<tr>
+<td><strong>量子点</strong></td>
+<td>理论上温度稳定性最佳</td>
+</tr>
+</tbody>
+</table>
+<p><strong>双异质结的巧妙之处</strong>：宽带隙包层<strong>同时</strong>做两件事——势垒限制载流子、低折射率形成波导限制光场。<strong>一个结构解决两个问题</strong>，这是半导体激光得以实用化的关键。</p>
+<p><strong>主要类型</strong>：
+- <strong>FP（法布里-珀罗）</strong>：解理面做反射镜，简单便宜，<strong>多纵模</strong>；
+- <strong>DFB（分布反馈）</strong>：腔内做布拉格光栅 → <strong>单纵模、窄线宽</strong>，<strong>光通信发射端的标准器件</strong>（第十三页）；
+- <strong>VCSEL（垂直腔面发射）</strong>：垂直出光。<strong>圆形光束、可晶圆级测试、易做阵列、阈值低、可高速调制</strong>——<strong>数据中心短距光互连与手机 3D 感测（点阵投射）的主力</strong>；
+- <strong>外腔与可调谐激光</strong>：窄线宽、宽调谐，用于相干通信与传感。</p>
+<p><strong>关键特性</strong>：
+- <strong>阈值电流 <span class="arithmatex">\(I_{th}\)</span></strong>：越低越好，直接决定功耗；
+- <strong>斜率效率</strong>：<span class="arithmatex">\(P\)</span> 对 <span class="arithmatex">\(I\)</span> 的斜率；
+- <strong>温度敏感性</strong>：<span class="arithmatex">\(I_{th}\)</span> 随温度指数上升（特征温度 <span class="arithmatex">\(T_0\)</span>）→ <strong>多数系统需要 TEC 控温或温度补偿</strong>，这是光模块中一项实实在在的功耗与成本；
+- <strong>可直接调制</strong>：调制电流即调制光强（几十 GHz 级）。<strong>但直接调制会引起波长抖动（啁啾）</strong> → 长距高速系统改用<strong>外调制器</strong>（第十三、十五页）。</p>
+<h2 id="_3">四、其他半导体光源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>SLD（超辐射二极管）</strong>：介于 LED 与 LD 之间，<strong>高亮度 + 低相干</strong> → <strong>正是 OCT 所需</strong>（第三页：低相干是资源）；</li>
+<li><strong>量子级联激光（QCL）</strong>：靠子带间跃迁而非带间跃迁，<strong>波长由量子阱厚度设计而非材料带隙决定</strong> → 覆盖中远红外，用于气体检测；</li>
+<li><strong>microLED</strong>：微米级 LED 阵列，自发光显示（第十六页）。<strong>巨量转移是其产业化的核心难题</strong>。</li>
+</ul>
+<h2 id="_4">五、与微电子站的接续<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>这一页是两站咬合最紧的地方：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>微电子站</th>
+<th>本站</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>能带与带隙</td>
+<td>决定 MOSFET 的阈值与漏电</td>
+<td><strong>决定能否发光、发什么颜色</strong></td>
+</tr>
+<tr>
+<td>pn 结</td>
+<td>隔离与寄生</td>
+<td><strong>发光与探测的核心结构</strong></td>
+</tr>
+<tr>
+<td>直接/间接带隙</td>
+<td>提到"硅不发光"</td>
+<td><strong>展开其能带原因与后果</strong></td>
+</tr>
+<tr>
+<td>异质结与外延</td>
+<td>应变硅、SiGe</td>
+<td><strong>双异质结、量子阱是激光的基础</strong></td>
+</tr>
+<tr>
+<td>集成</td>
+<td>Chiplet、封装</td>
+<td><strong>III-V 与硅的异质集成</strong>（第十五页）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话</strong>：<strong>微电子用半导体控制电子，光电用半导体在电子与光子之间转换。</strong> 两者共享材料与工艺基础，目标不同。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>直接带隙才能高效发光</strong>；<strong>硅是间接带隙，这是硅光最根本的结构性障碍</strong>；</li>
+<li><strong><span class="arithmatex">\(\lambda \approx 1.24/E_g\)</span></strong> 是必备换算；</li>
+<li><strong>LED 的取出效率受全内反射限制</strong>（临界角仅约 24°），靠结构手段改善；效率下降机理仍有争议；</li>
+<li><strong>蓝光 LED 是白光照明的使能技术</strong>——单点突破改变整个行业；</li>
+<li><strong>双异质结同时限制载流子与光场</strong>，是半导体激光实用化的关键；</li>
+<li><strong>DFB 用于长距通信、VCSEL 用于短距与 3D 感测</strong>；</li>
+<li><strong>阈值电流随温度指数上升</strong>，控温是光模块的实际成本。</li>
+</ul>
+<hr />
+<p><em>线二结束。下一线转向另一端：光如何被探测。这里会遇到本课最根本的物理极限——光子的散粒噪声。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="07-gaussian-beam.html"><span class="pager-label">上一页</span>光源 II · 高斯光束与谐振腔</a>
+  <a class="pager-slot next" href="09-detector.html"><span class="pager-label">下一页</span>探测 I · 光电探测器与噪声</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

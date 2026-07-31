@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时域响应与性能指标 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li class="active"><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、一阶系统：只有一个时间常数</a></li>
+<li><a href="#_2">二、二阶系统：阻尼比决定一切</a></li>
+<li><a href="#_3">三、主导极点近似</a></li>
+<li><a href="#_4">四、稳态误差与系统型别</a></li>
+<li><a href="#_5">五、指标之间的冲突</a></li>
+<li><a href="#_6">六、执行器的现实约束</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">经典 III · 时域响应与性能指标<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+客户不会说"我要相位裕度 60 度"，他们会说"<strong>要快、别超调、别抖</strong>"。时域指标是控制性能最直观的语言，也是与非专业人士沟通的接口。本页讲清阶跃响应的形状如何由极点决定，以及那些指标之间的<strong>相互冲突</strong>。</p>
+</blockquote>
+<h2 id="_1">一、一阶系统：只有一个时间常数<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[G(s) = \frac{K}{\tau s + 1} \quad\Longrightarrow\quad y(t) = K\left(1 - e^{-t/\tau}\right)\]</div>
+<ul>
+<li><span class="arithmatex">\(\tau\)</span> 后达到 63%，<span class="arithmatex">\(3\tau\)</span> 达 95%，<span class="arithmatex">\(4\tau\)</span> 达 98%；</li>
+<li><strong>无超调、无振荡</strong>——一阶系统永远不会过冲；</li>
+<li>极点在 <span class="arithmatex">\(s = -1/\tau\)</span>：<strong>极点越靠左（负得越多），响应越快</strong>。</li>
+</ul>
+<p><strong>"极点位置 = 响应速度"这个对应，是经典控制全部直觉的基础。</strong></p>
+<h2 id="_2">二、二阶系统：阻尼比决定一切<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<div class="arithmatex">\[G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2}\]</div>
+<p>极点为 <span class="arithmatex">\(s = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}\)</span>。行为完全由 <span class="arithmatex">\(\zeta\)</span> 分类：</p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(\zeta\)</span></th>
+<th>极点</th>
+<th>响应</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\zeta = 0\)</span></td>
+<td>纯虚轴</td>
+<td>等幅振荡（临界，不可接受）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(0&lt;\zeta&lt;1\)</span></td>
+<td>共轭复数</td>
+<td><strong>欠阻尼</strong>：振荡衰减、有超调</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\zeta = 1\)</span></td>
+<td>二重实根</td>
+<td><strong>临界阻尼</strong>：无超调下最快</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\zeta &gt; 1\)</span></td>
+<td>两个实根</td>
+<td><strong>过阻尼</strong>：慢而无超调</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<p><img alt="二阶系统阶跃响应随阻尼比变化" class="fig-img" src="assets/img/aut_step_damping.svg" /></p>
+<figcaption><span class="fig-id">图 3-1</span> 二阶系统阶跃响应。阻尼比 \(\zeta\) 越小，响应越快但<strong>超调越大、振荡越久</strong>；\(\zeta\) 越大越平稳但越慢。工程上常取 <strong>\(\zeta\approx0.6\text{–}0.8\)</strong> 作为折中（约 2–10% 超调），对应相位裕度约 60°。<strong>"快"与"稳"在同一张图上直接冲突</strong>——这是本课全部权衡的时域表现。</figcaption>
+</figure>
+<p><strong>关键公式</strong>（工程上极常用）：</p>
+<div class="arithmatex">\[M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}} \quad(\text{最大超调}), \qquad t_s \approx \frac{4}{\zeta\omega_n} \quad(2\%\ \text{调节时间})\]</div>
+<p><strong>两个可直接使用的经验值</strong>：<span class="arithmatex">\(\zeta = 0.707\)</span> → 超调约 4.3%；<span class="arithmatex">\(\zeta = 0.5\)</span> → 超调约 16%。</p>
+<p><strong>读法</strong>：
+- <strong><span class="arithmatex">\(\zeta\)</span> 控制超调</strong>（形状），<strong><span class="arithmatex">\(\omega_n\)</span> 控制速度</strong>（时间尺度）；
+- 极点的<strong>实部</strong>决定衰减速度，<strong>虚部</strong>决定振荡频率；
+- <strong>想更快就把极点往左推，想更稳就让它们更靠近实轴。</strong> 第四页的根轨迹就是在做这件事。</p>
+<h2 id="_3">三、主导极点近似<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>高阶系统看似复杂，但<strong>离虚轴最近的那对极点主导响应</strong>（其余极点衰减快得多）。</p>
+<p><strong>工程做法</strong>：若某对极点比其余极点靠右 5 倍以上距离，就可以用它们做<strong>二阶近似</strong>，直接套用上面的公式。<strong>这使得二阶系统的直觉可以覆盖大部分实际系统</strong>——这是经典控制得以实用的关键简化。</p>
+<p><strong>注意零点的干扰</strong>：靠近主导极点的零点会显著改变超调（右半平面零点还会造成反向初始响应，第二页）。<strong>主导极点近似在有零点时要小心使用。</strong></p>
+<h2 id="_4">四、稳态误差与系统型别<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>用终值定理算稳态误差。定义<strong>系统型别</strong>为开环传递函数在原点的极点数（即积分器个数）：</p>
+<div class="arithmatex">\[L(s) = \frac{K\prod(s+z_i)}{s^N\prod(s+p_j)}\]</div>
+<table>
+<thead>
+<tr>
+<th>型别 <span class="arithmatex">\(N\)</span></th>
+<th>阶跃输入</th>
+<th>斜坡输入</th>
+<th>加速度输入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><span class="arithmatex">\(\dfrac{1}{1+K_p}\)</span></td>
+<td>∞</td>
+<td>∞</td>
+</tr>
+<tr>
+<td>1</td>
+<td><strong>0</strong></td>
+<td><span class="arithmatex">\(\dfrac{1}{K_v}\)</span></td>
+<td>∞</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>0</strong></td>
+<td><strong>0</strong></td>
+<td><span class="arithmatex">\(\dfrac{1}{K_a}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>规律清晰</strong>：<strong>每增加一个积分器，就能无静差地跟踪高一阶的输入</strong>。这正是第一页内模原理的具体表现。</p>
+<p><strong>工程含义</strong>：
+- 定位系统要无静差跟踪阶跃 → 至少 1 型（<strong>这就是位置环里必须有积分的原因</strong>）；
+- 要无静差跟踪匀速运动（如跟踪转台、数控进给）→ 需要 2 型，或用<strong>前馈</strong>补偿（第一页：前馈不引入稳定性问题，工程上常优先选它）。</p>
+<h2 id="_5">五、指标之间的冲突<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>这是本页最该带走的东西。常用指标：</p>
+<ul>
+<li><strong>上升时间 <span class="arithmatex">\(t_r\)</span></strong>、<strong>峰值时间 <span class="arithmatex">\(t_p\)</span></strong>、<strong>超调 <span class="arithmatex">\(M_p\)</span></strong>、<strong>调节时间 <span class="arithmatex">\(t_s\)</span></strong>、<strong>稳态误差 <span class="arithmatex">\(e_{ss}\)</span></strong>。</li>
+</ul>
+<p><strong>它们不能同时最优</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>想要</th>
+<th>做法</th>
+<th>副作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>更快（<span class="arithmatex">\(t_r\downarrow\)</span>）</td>
+<td>提高增益 / <span class="arithmatex">\(\omega_n\)</span></td>
+<td><strong>超调增大、裕度下降、放大噪声</strong></td>
+</tr>
+<tr>
+<td>更小超调</td>
+<td>增大 <span class="arithmatex">\(\zeta\)</span></td>
+<td><strong>变慢</strong></td>
+</tr>
+<tr>
+<td>零静差</td>
+<td>加积分</td>
+<td><strong>相位滞后、可能饱和振荡</strong></td>
+</tr>
+<tr>
+<td>抗噪声</td>
+<td>加滤波</td>
+<td><strong>相位滞后、变慢</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意最后两行</strong>：几乎所有"改善某项"的手段都会<strong>引入相位滞后</strong>，而相位滞后正是不稳定的根源（第一页）。<strong>这就是控制设计的中心难题</strong>——第五页的频域方法之所以强大，正因为它把这些冲突统一到了同一张图上。</p>
+<h2 id="_6">六、执行器的现实约束<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>教科书公式假设执行器能输出任意大的控制量。<strong>现实中不能</strong>：</p>
+<ul>
+<li><strong>饱和</strong>：电机有最大电流/电压，阀门开度在 0–100% 之间；</li>
+<li><strong>速率限制</strong>：阀门开合需要时间，电机加速度有限；</li>
+<li><strong>分辨率</strong>：数字执行器有量化台阶。</li>
+</ul>
+<p><strong>后果</strong>：
+- 设计上的"快"可能因饱和而无法实现——<strong>实际响应由执行器能力而非控制律决定</strong>；
+- 饱和期间反馈回路<strong>实际上断开</strong>了（输出不再随误差变化），若此时积分器继续累加 → <strong>积分饱和（windup）</strong>，导致巨大超调（第六页给解法）；
+- <strong>执行器能力应当是设计的起点而非事后检查</strong>：先算清楚"要达到这个响应速度，需要多大的力/电流/流量"，再看设备是否提供得起。<strong>这是学校常忽略、工程上极重要的一步。</strong></p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>极点位置 ↔ 时域响应</strong>：实部定衰减、虚部定振荡，<span class="arithmatex">\(\zeta\)</span> 定超调、<span class="arithmatex">\(\omega_n\)</span> 定速度；</li>
+<li><strong>主导极点近似</strong>让二阶直觉覆盖大多数系统；</li>
+<li><strong>系统型别决定稳态误差</strong>，每个积分器提升一阶跟踪能力；</li>
+<li><strong>所有时域指标互相冲突</strong>，且多数改善手段都以相位滞后为代价；</li>
+<li><strong>执行器饱和是真实边界</strong>，必须在设计之初考虑。</li>
+</ul>
+<hr />
+<p><em>下一页：稳定性。如何在不解方程的情况下判断闭环是否稳定，以及根轨迹——一个能直观看到"增益如何搬动极点"的经典工具。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-modeling.html"><span class="pager-label">上一页</span>经典 II · 建模与传递函数</a>
+  <a class="pager-slot next" href="04-stability.html"><span class="pager-label">下一页</span>经典 IV · 稳定性与根轨迹</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

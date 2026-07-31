@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>器件与工艺的下一步 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li class="active"><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#gaa">一、已经发生：GAA 世代</a></li>
+<li><a href="#_1">二、确定的下一步：背面供电</a></li>
+<li><a href="#cfet">三、路线图上的下一站：CFET</a></li>
+<li><a href="#_2">四、更远的候选：谨慎标注</a></li>
+<li><a href="#high-na-euv">五、High-NA EUV 与光刻的下一步</a></li>
+<li><a href="#_3">六、"摩尔定律"的当前形态</a></li>
+<li><a href="#_4">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">前沿 V · 器件与工艺的下一步<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07。本页是全课过期最快的一页</strong>——具体节点、时间表与良率数字请以最新公开信息为准，且注意<strong>厂商宣布 ≠ 大规模量产</strong>。
+<strong>证据地位</strong>：已量产技术【实】；路线图上的下一步【前沿，多数已有明确工程路径】；更远的候选【未定/争】。
+第五页把器件演进讲到 GAA。本页问：<strong>之后呢？</strong> 并诚实区分"已经在做的"、"确定要做的"、与"仅仅是希望的"。</p>
+</blockquote>
+<h2 id="gaa">一、已经发生：GAA 世代<a class="headerlink" href="#gaa" title="Permanent link"></a></h2>
+<p><strong>环栅纳米片（GAA）已成为 2nm 级世代的主流结构</strong>，主要厂商（台积电、三星、英特尔）均已转向或正在转向该架构。它带来的是第五页说过的东西：更强的栅控、更陡的亚阈值摆幅、以及<strong>恢复的宽度可调性</strong>。</p>
+<p><strong>目前公开信息显示</strong>：台积电 N2 采用水平纳米片；三星以 MBCFET 命名其方案；英特尔在其相应世代同时引入了纳米片与背面供电。<strong>各家的节点命名不可直接比较</strong>（承第四页），要看具体的间距与器件参数。</p>
+<p><strong>良率是关键但不透明的变量</strong>：业界报道的先进节点早期良率常在中等水平，且随时间爬坡。<strong>这类数字多来自第三方分析而非厂商披露，应视为估计。</strong></p>
+<h2 id="_1">二、确定的下一步：背面供电<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>这是当前最确定、收益最直接的一项改进。</strong></p>
+<p><strong>问题</strong>：传统芯片的供电与信号共用正面的十几层金属。<strong>电源网络占用了大量布线资源</strong>，且从顶层金属一路向下到晶体管的路径上产生显著的 <strong>IR 压降</strong>（电阻性电压降），限制了性能。</p>
+<p><strong>方案</strong>：把<strong>供电网络移到晶圆背面</strong>（backside power delivery / power via）——晶圆减薄后从背面制作供电网络，通过纳米级硅通孔直达器件。</p>
+<p><strong>收益</strong>：
+- <strong>正面布线资源被释放</strong>给信号，布线拥塞缓解，可提升密度；
+- <strong>IR 压降显著降低</strong>（供电路径更短更粗），可提升频率或降低电压；
+- 减少电源与信号之间的串扰。</p>
+<p><strong>代价</strong>：晶圆需极限减薄并做双面加工，工艺复杂度与热管理难度都上升。</p>
+<p><strong>产业状态</strong>【核对于 2026-07】：英特尔在其 18A 世代已引入背面供电；台积电公开的路线把背面供电（其称 Super Power Rail）安排在 A16 世代，预期 2026 年后段；三星亦规划在其后续节点结合 MBCFET 与背面供电。<strong>方向没有争议，时间表各家不同。</strong></p>
+<h2 id="cfet">三、路线图上的下一站：CFET<a class="headerlink" href="#cfet" title="Permanent link"></a></h2>
+<p><strong>CFET（互补场效应管）</strong>：把 NMOS 与 PMOS <strong>垂直堆叠</strong>在一起，而非并排放置。</p>
+<p><strong>收益</strong>：标准单元的面积可近乎减半——<strong>这是在不缩小任何单个器件的前提下获得密度提升</strong>，因而被视为 GAA 之后延续缩放的主要候选。</p>
+<p><strong>困难</strong>：
+- 上下两个器件的<strong>工艺集成</strong>极其复杂（如何在下层器件已完成的情况下制造上层，同时不破坏它——<strong>热预算约束</strong>，承第十一页）；
+- 上下器件的接触与布线；
+- 热耗散（堆叠使热更难导出）。</p>
+<p><strong>中间步骤</strong>：<strong>Forksheet（叉片）</strong>结构在纳米片之间引入介质墙，使 n/p 器件可以放得更近——被研究机构（如 imec）视为<strong>从纳米片通向 CFET 的桥梁</strong>。</p>
+<p><strong>状态</strong>：<strong>CFET 目前处于研发与早期演示阶段</strong>，各家路线图把它放在 GAA 之后的世代。<strong>这是"确定要做但尚未量产"的典型。</strong></p>
+<h2 id="_2">四、更远的候选：谨慎标注<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>方向</th>
+<th>潜力</th>
+<th>现实评估</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>二维材料沟道</strong>（MoS₂ 等）</td>
+<td>原子级薄，天然抑制短沟道效应</td>
+<td>【未定】大面积高质量生长、接触电阻、与 CMOS 集成均未解决</td>
+</tr>
+<tr>
+<td><strong>III-V / Ge 沟道</strong></td>
+<td>高迁移率</td>
+<td>【争】研究数十年，与硅集成的成本效益始终不划算</td>
+</tr>
+<tr>
+<td><strong>TFET / NC-FET</strong></td>
+<td>有望突破 60 mV/dec</td>
+<td>【争/未定】TFET 导通电流不足；NC-FET 的机制与稳定性仍有争议（承第五页）</td>
+</tr>
+<tr>
+<td><strong>单片 3D 集成</strong></td>
+<td>在同一晶圆上垂直堆多层器件</td>
+<td>【前沿】受<strong>热预算</strong>限制（上层工艺不能破坏下层），需低温器件工艺</td>
+</tr>
+<tr>
+<td><strong>超导/量子器件</strong></td>
+<td>特定任务的巨大优势</td>
+<td>【未定】与 CMOS 缩放不是同一赛道，不构成替代</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一个贯穿全课的判断模式</strong>（第五、十六、十七页反复出现）：<strong>新技术要取代主流，必须同时打败它的性能、成本、良率、生态与制造成熟度</strong>——<strong>最后几项通常才是杀手</strong>。硅 CMOS 已被优化了半个世纪，其成本曲线极难挑战。</p>
+<h2 id="high-na-euv">五、High-NA EUV 与光刻的下一步<a class="headerlink" href="#high-na-euv" title="Permanent link"></a></h2>
+<p>承第十二页。<strong>High-NA EUV（NA 0.55）</strong>是延续图形化能力的关键设备，已开始向头部厂商交付并用于研发。</p>
+<p><strong>现实的权衡</strong>：
+- 分辨率提升，可减少多重图形化的次数（省工序、省成本）；
+- 但<strong>设备极其昂贵</strong>、<strong>成像场尺寸减半</strong>（大芯片需拼接曝光）、<strong>焦深更浅</strong>；
+- <strong>能耗巨大</strong>——单台设备的电力消耗已成为晶圆厂能源规划中的显著项。</p>
+<p><strong>因此并非所有层都会用 High-NA</strong>：厂商会做经济性权衡，只在最关键的层使用。<strong>"用不用某项技术"始终是成本-收益计算，而非技术先进性竞赛</strong>——这是本课反复强调的工程思维。</p>
+<h2 id="_3">六、"摩尔定律"的当前形态<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>把全课的线索收拢，可以给出一个较完整的判断：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>晶体管密度</strong></td>
+<td>仍在提升，但速度放缓，且越来越依赖 DTCO 与结构创新（GAA→CFET）</td>
+</tr>
+<tr>
+<td><strong>Dennard 缩放</strong></td>
+<td><strong>已终结</strong>（2005 年前后），电压不再跟随下降</td>
+</tr>
+<tr>
+<td><strong>每晶体管成本</strong></td>
+<td><strong>不再稳定下降</strong>，先进节点甚至上升</td>
+</tr>
+<tr>
+<td><strong>性能提升来源</strong></td>
+<td>从"器件变快"转向<strong>架构 + 专用化 + 封装 + 软件协同</strong></td>
+</tr>
+<tr>
+<td><strong>新的第一约束</strong></td>
+<td><strong>功耗与散热</strong>，其次是数据搬运与成本</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一句话</strong>：<strong>"缩放"没有死，但它的含义变了</strong>——从"把晶体管做小"变成"<strong>用一切手段提高单位功耗、单位成本下的系统能力</strong>"。器件、电路、封装、架构、软件必须协同，任何单一层面的进步都不再足够。</p>
+<h2 id="_4">七、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>背面供电是最确定的下一步</strong>，收益直接（布线资源 + IR 压降）；</li>
+<li><strong>CFET 是密度的下一站</strong>，Forksheet 是过渡，均未量产；</li>
+<li><strong>更远的候选都受"必须打败成熟的硅 CMOS"这一现实制约</strong>；</li>
+<li><strong>High-NA EUV 是能力也是成本</strong>，会被选择性使用；</li>
+<li><strong>摩尔定律转型为系统级缩放</strong>——这是理解整个行业当前动向的总纲。</li>
+</ul>
+<hr />
+<p><em>下一页：本线的最后一站，也是最贴近你最初问题的一页——这个产业是怎么组织的？本硕博的路径通向哪些岗位？以及为什么这个行业的结构如此特殊。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-photonics-rf.html"><span class="pager-label">上一页</span>前沿 IV · 硅光与射频</a>
+  <a class="pager-slot next" href="20-industry.html"><span class="pager-label">下一页</span>前沿 VI · 产业结构与职业路径</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

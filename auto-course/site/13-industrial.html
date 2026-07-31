@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLC、总线与工业系统 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li class="active"><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、工业控制系统的层级</a></li>
+<li><a href="#plc">二、PLC 为什么长这样</a></li>
+<li><a href="#_2">三、现场总线与工业以太网</a></li>
+<li><a href="#_3">四、可靠性与工程实践</a></li>
+<li><a href="#ot">五、工业信息安全（OT 安全）</a></li>
+<li><a href="#_4">六、这一页与理论的关系</a></li>
+<li><a href="#_5">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-plc">实务 III · PLC、总线与工业系统<a class="headerlink" href="#iii-plc" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科接触 + <strong>业界日常</strong> ｜ 这是自动化毕业生最可能真正从事的工作。
+前面十二页讲的是"控制回路"。但一座工厂有<strong>成千上万个回路</strong>，还有联锁、报警、操作界面、数据记录、批次管理。本页讲工业自动化的<strong>实际形态</strong>——它与实验室里的传递函数相距甚远，却是这个专业最大的就业出口。</p>
+</blockquote>
+<h2 id="_1">一、工业控制系统的层级<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>经典的自动化金字塔（今天正在被扁平化，但仍是有用的框架）：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>内容</th>
+<th>时间尺度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>现场层</strong></td>
+<td>传感器、执行器、变频器</td>
+<td>毫秒</td>
+</tr>
+<tr>
+<td><strong>控制层</strong></td>
+<td><strong>PLC / DCS</strong>，执行逻辑与回路控制</td>
+<td>毫秒–秒</td>
+</tr>
+<tr>
+<td><strong>监控层</strong></td>
+<td><strong>SCADA/HMI</strong>，操作画面、报警、趋势</td>
+<td>秒</td>
+</tr>
+<tr>
+<td><strong>制造执行层</strong></td>
+<td>MES：排产、追溯、质量</td>
+<td>分钟–小时</td>
+</tr>
+<tr>
+<td><strong>企业层</strong></td>
+<td>ERP：订单、库存、财务</td>
+<td>天</td>
+</tr>
+</tbody>
+</table>
+<p><strong>PLC（可编程逻辑控制器）</strong>与 <strong>DCS（分散控制系统）</strong>的传统分工：
+- <strong>PLC</strong>：源于离散制造（装配线、机床），擅长<strong>快速逻辑与顺序控制</strong>；
+- <strong>DCS</strong>：源于流程工业（化工、电力），擅长<strong>大量模拟回路的稳定运行与整体组态</strong>；
+- <strong>两者的界限今天已相当模糊</strong>。</p>
+<h2 id="plc">二、PLC 为什么长这样<a class="headerlink" href="#plc" title="Permanent link"></a></h2>
+<p>PLC 的设计哲学与通用计算机完全不同，理解这一点很重要：</p>
+<p><strong>扫描循环（scan cycle）</strong>——PLC 的核心执行模型：</p>
+<div class="arithmatex">\[\text{读输入映像} \to \text{执行全部程序} \to \text{写输出映像} \to \text{通信与自检} \to \text{循环}\]</div>
+<p><strong>关键特性</strong>：
+- <strong>输入在扫描开始时一次性冻结</strong>，程序全程使用这份快照；<strong>输出在扫描结束时一次性刷新</strong>。<strong>这消除了程序执行过程中输入变化带来的竞态</strong>——是一个用"批量同步"换取确定性的经典设计；
+- <strong>扫描周期恒定且有上限保证</strong>（典型 1–50 ms），<strong>这就是实时性</strong>；
+- 看门狗监控超时，程序结构上禁止不确定的长循环。</p>
+<p><strong>为什么不用普通电脑跑控制</strong>：通用操作系统的调度不保证最坏情况延迟，一次垃圾回收或页面换出就可能造成几十毫秒的抖动——<strong>而第十页说过，抖动直接吃掉稳定裕度</strong>。工业环境还要求抗电磁干扰、宽温、免维护运行数年。</p>
+<p><strong>编程语言（IEC 61131-3 标准五种）</strong>：
+- <strong>梯形图（LD）</strong>：模仿继电器电路，<strong>电气工程师最熟悉</strong>，至今是最普及的语言；
+- <strong>功能块图（FBD）</strong>：适合表达信号流与 PID 等模块；
+- <strong>结构化文本（ST）</strong>：类 Pascal，适合复杂算法；
+- <strong>顺序功能图（SFC）</strong>：状态机，适合批次与流程步骤；
+- <strong>指令表（IL）</strong>：已逐步淘汰。</p>
+<p><strong>一个文化观察</strong>：梯形图在计算机专业者看来相当"落后"，但它让<strong>熟悉继电器逻辑的电气技术人员能够直接读懂与维护</strong>——<strong>在一个必须由现场人员长期维护的系统里，这个可读性优先于表达能力</strong>。这与第六页 PID 的胜出逻辑同源：<strong>生态与人的因素，常比技术先进性更决定成败。</strong></p>
+<h2 id="_2">三、现场总线与工业以太网<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>现场设备与控制器之间的通信，要求与办公网络完全不同：<strong>确定性</strong>（延迟有上界）优先于<strong>吞吐量</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>代际</th>
+<th>代表</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模拟</td>
+<td><strong>4–20 mA</strong></td>
+<td>一线一信号；<strong>抗干扰、断线可检测</strong>（0 mA ≠ 0 值）；至今大量使用</td>
+</tr>
+<tr>
+<td>现场总线</td>
+<td>PROFIBUS、Modbus、CAN</td>
+<td>数字、多设备共线</td>
+</tr>
+<tr>
+<td>工业以太网</td>
+<td>PROFINET、EtherCAT、EtherNet/IP</td>
+<td>高速、与 IT 网络融合</td>
+</tr>
+<tr>
+<td>时间敏感网络</td>
+<td><strong>TSN</strong></td>
+<td>在标准以太网上提供确定性</td>
+</tr>
+</tbody>
+</table>
+<p><strong>4–20 mA 为什么能活这么久</strong>：电流环在长距离上不受线阻影响、抗电磁干扰强，且<strong>"活零点"设计使断线（0 mA）可与真实的零值（4 mA）区分</strong>——<strong>这是一个把故障检测内建进信号编码的漂亮设计</strong>，安全性上至今难以替代。</p>
+<p><strong>EtherCAT 等运动控制总线</strong>能做到微秒级同步与百微秒级的循环周期，<strong>使多轴协同（数控机床、机器人）成为可能</strong>——这直接支撑了第十九页的机器人应用。</p>
+<h2 id="_3">四、可靠性与工程实践<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>工业系统的评价标准与实验室不同——<strong>正确性与可用性远高于性能</strong>：</p>
+<ul>
+<li><strong>冗余</strong>：双 CPU、冗余电源、冗余网络、热备份切换；</li>
+<li><strong>无扰维护</strong>：在线修改程序、热插拔 I/O（生产线不能停）；</li>
+<li><strong>诊断</strong>：设备自诊断、通道级故障定位——<strong>维修时间比故障率更影响可用性</strong>；</li>
+<li><strong>报警管理</strong>：报警泛滥（alarm flood）是真实事故原因之一——异常时数百条报警同时涌出，操作员无法判断根因。<strong>报警的设计与分级本身是一门工程学科</strong>（有专门标准）；</li>
+<li><strong>变更管理</strong>：任何修改需记录、审核、可回滚。</li>
+</ul>
+<p><strong>HMI/SCADA 的设计原则</strong>近年有显著变化：从"逼真的彩色仿真画面"转向<strong>高性能人机界面</strong>——<strong>灰底、低饱和度、只用颜色表示异常</strong>，使操作员能一眼看出偏离。<strong>这是人因工程对自动化的重要贡献</strong>：过度装饰的画面反而掩盖了异常信号。</p>
+<h2 id="ot">五、工业信息安全（OT 安全）<a class="headerlink" href="#ot" title="Permanent link"></a></h2>
+<p>工业控制系统曾长期依赖"物理隔离"，随着 IT/OT 融合，这个假设已不成立。</p>
+<p><strong>OT 安全与 IT 安全的优先级不同</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IT</th>
+<th>OT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>首要目标</td>
+<td>机密性</td>
+<td><strong>可用性与安全（safety）</strong></td>
+</tr>
+<tr>
+<td>打补丁</td>
+<td>尽快</td>
+<td><strong>需停机窗口，常延后数年</strong></td>
+</tr>
+<tr>
+<td>设备寿命</td>
+<td>3–5 年</td>
+<td><strong>15–30 年</strong></td>
+</tr>
+<tr>
+<td>后果</td>
+<td>数据泄露</td>
+<td><strong>物理伤害、环境事故</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>结构性困难</strong>：大量在役设备的协议<strong>设计之初没有认证与加密</strong>（那个年代假定网络是可信的），且<strong>不能随意升级</strong>——停机代价极高，且改动需重新验证安全功能。</p>
+<p><strong>主流防护思路</strong>是<strong>纵深防御与分区隔离</strong>（如按 IEC 62443 的区域与管道模型划分安全区），配合单向网关、白名单、异常流量监测。<strong>本课只讲防护架构的思路，不涉及任何攻击技术细节。</strong></p>
+<p><strong>这是自动化行业近年增长最快的方向之一</strong>，也是一个真实的社会责任问题——<strong>工业控制系统的失效后果是物理的</strong>。</p>
+<h2 id="_4">六、这一页与理论的关系<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>一个诚实的观察：<strong>很多工业自动化岗位的日常工作，与前面十二页的理论关系不大</strong>——更多是逻辑编程、设备选型、接线调试、故障排查、系统集成。</p>
+<p><strong>但理论并非无用，而是分布不均</strong>：
+- <strong>回路整定、抑制振荡、处理时滞</strong>——需要第五、六页；
+- <strong>伺服调试、消除机械谐振</strong>——需要第五、十二页；
+- <strong>先进过程控制（APC）岗位</strong>——直接使用 MPC（第十七页）；
+- <strong>出了问题时</strong>，懂理论的人能定位根因，而只会试参数的人只能碰运气。</p>
+<p><strong>一个务实的判断</strong>：<strong>理论的价值在困难场合才显现，而困难场合虽少，却决定了工程师的层次。</strong></p>
+<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>扫描循环 + 确定性</strong>是 PLC 的设计核心，实时性优先于算力；</li>
+<li><strong>梯形图的胜出源于可维护性</strong>——生态与人的因素常胜过技术先进性；</li>
+<li><strong>4–20 mA 的活零点</strong>是把故障检测内建进信号的经典设计；</li>
+<li><strong>工业系统以可用性与安全为第一指标</strong>，冗余、诊断、报警管理、变更管理是日常；</li>
+<li><strong>OT 安全的优先级与 IT 相反</strong>，且受制于长寿命设备与停机代价；</li>
+<li><strong>理论在困难场合才显价值</strong>，但那正是区分工程师水平的地方。</li>
+</ul>
+<hr />
+<p><em>下一页：当控制系统的失效会伤人时——功能安全。这是工业自动化中最严肃、也最有方法论价值的一部分。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-motor.html"><span class="pager-label">上一页</span>实务 II · 电机与矢量控制</a>
+  <a class="pager-slot next" href="14-safety.html"><span class="pager-label">下一页</span>实务 IV · 功能安全与可靠性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

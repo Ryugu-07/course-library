@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光电探测器与噪声 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li class="active"><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、探测的基本机制</a></li>
+<li><a href="#_2">二、噪声：本页的核心</a></li>
+<li><a href="#_3">三、性能指标</a></li>
+<li><a href="#apd">四、APD 与增益的代价</a></li>
+<li><a href="#_4">五、弱光探测的策略</a></li>
+<li><a href="#_5">六、相干探测</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">探测 I · 光电探测器与噪声<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界关键 ｜ <strong>这一页给出本课最根本的物理极限</strong>。
+探测的极限不是"电路做得不够好"，而是<strong>光子到达本身的随机性</strong>。理解这一点，才能判断一个光学系统"还有多少提升空间"——<strong>这是光电工程师最重要的判断力之一</strong>。</p>
+</blockquote>
+<h2 id="_1">一、探测的基本机制<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>光子 → 电子</strong>。主要器件：</p>
+<table>
+<thead>
+<tr>
+<th>器件</th>
+<th>机制</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>光电二极管（PD/PIN）</strong></td>
+<td>pn 结中光生载流子被内建电场分离</td>
+<td>线性好、快、便宜；<strong>无增益</strong></td>
+</tr>
+<tr>
+<td><strong>雪崩光电二极管（APD）</strong></td>
+<td>高反偏下碰撞电离倍增</td>
+<td><strong>有增益（10–100×）</strong>，但引入过剩噪声</td>
+</tr>
+<tr>
+<td><strong>光电倍增管（PMT）</strong></td>
+<td>外光电效应 + 打拿极倍增</td>
+<td>增益极高（<span class="arithmatex">\(10^6\)</span>），适合极弱光</td>
+</tr>
+<tr>
+<td><strong>单光子雪崩二极管（SPAD）</strong></td>
+<td>盖革模式，单光子触发雪崩</td>
+<td><strong>数字化输出</strong>，用于计数、LiDAR、量子光学</td>
+</tr>
+<tr>
+<td><strong>热探测器</strong>（热电堆、微测辐射热计）</td>
+<td>吸收 → 温升</td>
+<td>宽谱、无需制冷；<strong>慢</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>响应度</strong>：</p>
+<div class="arithmatex">\[R = \frac{I_{ph}}{P_{opt}} = \frac{\eta q}{h\nu} = \frac{\eta\lambda\ [\mu\mathrm{m}]}{1.24}\ \ [\mathrm{A/W}]\]</div>
+<p><span class="arithmatex">\(\eta\)</span> 是量子效率。<strong>注意 <span class="arithmatex">\(R\)</span> 随波长线性增长</strong>——因为同样功率下，长波长意味着更多光子。</p>
+<p><strong>截止波长</strong>：光子能量必须大于带隙，<span class="arithmatex">\(\lambda_c = 1.24/E_g\)</span>（与第八页发光是同一公式的反用）。</p>
+<p><strong>材料选择因此被波长决定</strong>：
+- <strong>Si</strong>：0.4–1.1 μm（可见与近红外，最便宜成熟）；
+- <strong>Ge / InGaAs</strong>：1.0–1.7 μm（<strong>光通信波段必须用它们，因为硅在 1550 nm 透明</strong>——🔗 微电子站第十八页说过这是硅光必须集成锗的原因）；
+- <strong>InSb / HgCdTe / 微测辐射热计</strong>：中远红外（热成像）。</p>
+<h2 id="_2">二、噪声：本页的核心<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>四种主要噪声源</strong>：</p>
+<p><strong>① 散粒噪声（shot noise）</strong>——<strong>最根本的一种</strong>：</p>
+<div class="arithmatex">\[i_{shot}^2 = 2q I \Delta f\]</div>
+<p><strong>它来自光子到达与载流子产生的离散随机性</strong>（泊松过程），<strong>无法通过改进电路消除</strong>。</p>
+<p><strong>泊松统计的关键性质</strong>：探测 <span class="arithmatex">\(N\)</span> 个光子，涨落为 <span class="arithmatex">\(\sqrt{N}\)</span>，故</p>
+<div class="arithmatex">\[\mathrm{SNR}_{\max} = \frac{N}{\sqrt{N}} = \sqrt{N}\]</div>
+<p><strong>这就是散粒噪声极限</strong>。<strong>要把信噪比提高 10 倍，必须收集 100 倍的光子。</strong></p>
+<p><strong>这条定律统治了整个成像与光通信领域</strong>：
+- 相机在暗光下噪点多，<strong>不是传感器不好，而是光子太少</strong>；
+- 天文观测要长时间曝光；
+- 提高 SNR 的根本手段只有三个：<strong>更多光（更大孔径、更长曝光）、更高量子效率、更低其他噪声</strong>。</p>
+<p><strong>② 热噪声（Johnson）</strong>：<span class="arithmatex">\(i^2 = 4kT\Delta f/R\)</span>，来自负载电阻。<strong>制冷与提高负载电阻可降低</strong>。</p>
+<p><strong>③ 暗电流</strong>：无光时的电流，随温度指数上升（约每升高 6–8 °C 翻倍）。<strong>这就是科学相机与红外探测器必须制冷的原因</strong>。</p>
+<p><strong>④ 读出噪声</strong>：放大与量化引入。</p>
+<p><strong>总噪声</strong>：各项方差相加。<strong>设计的目标是让散粒噪声占主导（"散粒噪声受限"）——因为那意味着已经逼近物理极限，其他工程噪声都已被压下去了。</strong></p>
+<h2 id="_3">三、性能指标<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>NEP（噪声等效功率）</strong>：SNR=1 所需的输入光功率，单位 W/√Hz。<strong>越小越灵敏</strong>；</li>
+<li><strong>探测率 <span class="arithmatex">\(D^* = \sqrt{A\Delta f}/\mathrm{NEP}\)</span></strong>：归一化后可跨器件比较（红外探测器的标准指标）；</li>
+<li><strong>响应速度</strong>：由载流子渡越时间与 RC 时间常数决定。<strong>PIN 的 i 层厚度是一个典型权衡——厚则量子效率高（吸收充分）但渡越时间长（慢）</strong>；</li>
+<li><strong>动态范围</strong>：最大不饱和信号与噪声底之比。</li>
+</ul>
+<h2 id="apd">四、APD 与增益的代价<a class="headerlink" href="#apd" title="Permanent link"></a></h2>
+<p>APD 的雪崩倍增提供增益 <span class="arithmatex">\(M\)</span>，<strong>但倍增过程本身是随机的</strong> → 引入<strong>过剩噪声因子 <span class="arithmatex">\(F(M)\)</span></strong>：</p>
+<div class="arithmatex">\[i_{shot}^2 = 2qI M^2 F(M)\Delta f\]</div>
+<p><strong>所以存在一个最优增益</strong>：
+- 增益太小 → 热噪声主导；
+- 增益太大 → 过剩噪声主导。
+<strong>中间某处 SNR 最高。</strong></p>
+<p><strong>这是一个典型的"放大不是免费的"案例</strong>——与 🔗 微电子站第九页 ADC 的架构权衡、自动化站的增益权衡同构：<strong>任何放大都会同时放大噪声，关键在于放大发生在噪声注入之前还是之后。</strong></p>
+<h2 id="_4">五、弱光探测的策略<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>当光子极少时（天文、荧光、量子光学、LiDAR 远距回波）：</p>
+<ul>
+<li><strong>光子计数</strong>：用 SPAD 或 PMT 直接数光子。<strong>此时"噪声"变成计数统计问题</strong>；</li>
+<li><strong>锁相放大 / 斩波</strong>：把信号调制到高频，避开 1/f 噪声（🔗 微电子站第八页：同一手段）；</li>
+<li><strong>时间相关单光子计数（TCSPC）</strong>：用于荧光寿命、LiDAR 测距；</li>
+<li><strong>制冷</strong>：压低暗电流；</li>
+<li><strong>门控</strong>：只在信号到达的时间窗内开启探测器。</li>
+</ul>
+<p><strong>一个重要的判断</strong>：<strong>当系统已经"散粒噪声受限"时，再改进电子学是徒劳的</strong>——<strong>只能增加光子数或提高量子效率</strong>。<strong>能识别系统处在哪个噪声区，是判断"还值不值得优化"的关键。</strong></p>
+<h2 id="_5">六、相干探测<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>直接探测</strong>只测强度，<strong>丢失相位</strong>（承第三页：探测器只能测强度）。</p>
+<p><strong>相干探测</strong>：把信号光与<strong>本振光</strong>混频后探测，输出中含有 <span class="arithmatex">\(\sqrt{P_s P_{LO}}\cos(\Delta\varphi)\)</span> 项。</p>
+<p><strong>三个巨大优势</strong>：
+- <strong>恢复相位与频率信息</strong> → 可用复杂调制格式（QAM），大幅提升频谱效率（第十三页）；
+- <strong>本振放大</strong>：<span class="arithmatex">\(P_{LO}\)</span> 很大 → 信号被放大到远超热噪声 → <strong>可实现散粒噪声受限探测</strong>；
+- <strong>本振充当窄带滤波器</strong>：只有与本振匹配的频率与偏振才产生拍频 → 天然抑制背景光。</p>
+<p><strong>代价</strong>：需要频率与偏振匹配、需要稳定的本振、复杂度大幅上升。</p>
+<p><strong>这正是现代长距光通信的标准方案</strong>（第十三页），也是激光雷达中 FMCW 方案的基础（第十七页）——<strong>它同时给出距离与速度，且抗环境光干扰</strong>。</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>散粒噪声是根本极限</strong>：<span class="arithmatex">\(\mathrm{SNR}\le\sqrt{N}\)</span>，<strong>提高 10 倍信噪比需要 100 倍光子</strong>；</li>
+<li><strong>响应度 <span class="arithmatex">\(R=\eta\lambda/1.24\)</span></strong>；截止波长由带隙决定，<strong>1550 nm 必须用 InGaAs/Ge</strong>；</li>
+<li><strong>暗电流随温度指数上升</strong> → 制冷；</li>
+<li><strong>APD 的增益带来过剩噪声，存在最优增益</strong>；</li>
+<li><strong>判断系统处于哪种噪声受限，决定优化方向</strong>——散粒噪声受限时改电路无用；</li>
+<li><strong>相干探测恢复相位、本振放大、天然滤波</strong>，是长距通信与 FMCW 雷达的基础。</li>
+</ul>
+<hr />
+<p><em>下一页：把探测器排成阵列，就是图像传感器。它是当今产量最大的光电器件，其设计充满了在噪声、速度、面积、成本之间的权衡。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-semiconductor-light.html"><span class="pager-label">上一页</span>光源 III · LED 与半导体激光</a>
+  <a class="pager-slot next" href="10-image-sensor.html"><span class="pager-label">下一页</span>探测 II · 图像传感器</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

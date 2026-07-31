@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>熵、信道与 Zipf 律 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li class="active"><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 熵：不确定性的唯一合理度量</a></li>
+<li><a href="#2">2. 语言的熵率：一个字母携带多少信息</a></li>
+<li><a href="#3">3. 交叉熵与困惑度：模型好坏的尺子</a></li>
+<li><a href="#4-zipf">4. Zipf 律：语言最稳的经验规律</a></li>
+<li><a href="#5-heaps">5. 长尾的代价：稀疏与 Heaps 律</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-zipf">信息 I · 熵、信道与 Zipf 律<a class="headerlink" href="#i-zipf" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Cover &amp; Thomas《Elements of Information Theory》ch.2、Shannon 1948、Jurafsky &amp; Martin ch.3 ｜ <strong>前置</strong>：🔗 数学站信息论线 / grad-math it2 ｜ <strong>证据地位</strong>：【实】——这一整条线有裁判：熵可算、Zipf 可测、surprisal 可实验。<strong>这是全课最扎实的地基，也是你最强的直觉所在。</strong>
+线二的立场：<strong>把语言当信道，用数字量它。</strong> 前面四页给了透镜，从这页起给透镜装上数学——熵、互信息、冗余、Zipf。凡本线所讲，都能在一段真实语料上亲手验证（见 labs L1）。</p>
+</blockquote>
+<h2 id="1">1. 熵：不确定性的唯一合理度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一个离散随机变量 <span class="arithmatex">\(X\)</span>（比如"下一个词"），取值概率 <span class="arithmatex">\(p(x)\)</span>，其<strong>香农熵</strong>：</p>
+<div class="arithmatex">\[H(X) = -\sum_{x} p(x)\,\log_2 p(x) \quad\text{(bits)}\]</div>
+<p>直觉：<span class="arithmatex">\(H\)</span> 是<strong>平均每个符号携带的信息量</strong>，也是"平均要问多少个是非题才能定位 <span class="arithmatex">\(X\)</span>"。均匀分布熵最大（最不可预测），确定性分布熵为 0。Shannon 证明：满足几条自然公理（连续、单调、可分解）的不确定性度量<strong>唯一</strong>就是这个式子——所以熵不是众多选择之一，是<strong>被逼出来的</strong>。</p>
+<p><strong>条件熵</strong>度量"已知上下文后还剩多少不确定"：
+$<span class="arithmatex">\(H(X\mid Y) = -\sum_{x,y} p(x,y)\log_2 p(x\mid y)\)</span>$
+<strong>互信息</strong> <span class="arithmatex">\(I(X;Y)=H(X)-H(X\mid Y)\)</span> = "<span class="arithmatex">\(Y\)</span> 告诉了我们多少关于 <span class="arithmatex">\(X\)</span>"——线三分布语义、线二 surprisal 都用它。</p>
+<h2 id="2">2. 语言的熵率：一个字母携带多少信息<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>语言是符号<strong>序列</strong>，要的是<strong>熵率（entropy rate）</strong>——长序列下每符号的平均熵：</p>
+<div class="arithmatex">\[h = \lim_{n\to\infty} \frac{1}{n} H(X_1, X_2, \dots, X_n)\]</div>
+<p><strong>Shannon 1951 的经典实验</strong>：让人猜英文下一个字母，从猜测统计反推，得英文熵率约 <strong>1.0–1.3 bits/字母</strong>——而 26 字母 + 空格若均匀是 <span class="arithmatex">\(\log_2 27 \approx 4.75\)</span> bits。<strong>差出的 3 bits 多就是冗余（redundancy）。</strong> 英语约 <strong>75% 冗余</strong>：删掉一大半字母你仍能读（"th_s s_nt_nce"）。</p>
+<p><strong>冗余不是浪费，是抗噪</strong>（接 info-03）：信道有噪声（口音、笔误、走神），冗余让信息在丢失部分符号后仍可恢复。<strong>自然语言把"效率"和"鲁棒"折中在一个特定点上</strong>——这个点在哪、为什么，就是可研究的量。</p>
+<h2 id="3">3. 交叉熵与困惑度：模型好坏的尺子<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>我们不知道语言的真实分布 <span class="arithmatex">\(p\)</span>，只有模型 <span class="arithmatex">\(q\)</span>。<strong>交叉熵</strong>衡量"用 <span class="arithmatex">\(q\)</span> 编码真实 <span class="arithmatex">\(p\)</span> 要花多少 bits"：</p>
+<div class="arithmatex">\[H(p, q) = -\sum_x p(x)\log_2 q(x) = H(p) + D_{\mathrm{KL}}(p\,\Vert\,q)\]</div>
+<p><span class="arithmatex">\(D_{\mathrm{KL}}\ge 0\)</span>（相对熵，🔗 grad-math），当且仅当 <span class="arithmatex">\(q=p\)</span> 取 0。<strong>所以最小化交叉熵 = 让模型逼近真实语言分布</strong>——这正是每个语言模型（含 LLM）的训练目标（🔗 ai-06）。</p>
+<p>语言学/NLP 常用<strong>困惑度（perplexity）</strong> <span class="arithmatex">\(= 2^{H(p,q)}\)</span>：模型在每一步"平均在多少个词里犹豫"。困惑度从 GPT 之前的几百降到今天的个位数——<strong>这条曲线就是"预测能力"的量化史</strong>（线六 scaling 会接）。<strong>记住这个等式：训练大模型，数学上就是在把交叉熵往语言的真实熵率压。</strong></p>
+<h2 id="4-zipf">4. Zipf 律：语言最稳的经验规律<a class="headerlink" href="#4-zipf" title="Permanent link"></a></h2>
+<p>数任何语料的词频，按频次排名 <span class="arithmatex">\(r\)</span>，画频次 <span class="arithmatex">\(f\)</span> 对 <span class="arithmatex">\(r\)</span> 的双对数图——<strong>近似一条直线</strong>：</p>
+<div class="arithmatex">\[f(r) \propto \frac{1}{r^{\alpha}}, \qquad \alpha \approx 1\]</div>
+<p>第 1 名词（the）频次约是第 2 名（of）的 2 倍、第 100 名的 100 倍。这就是 <strong>Zipf 律</strong>，跨语言、跨时代、甚至跨到 DNA、城市人口、收入分布都成立。</p>
+<figure>
+<p><img alt="Zipf 律双对数图" class="fig-img" src="assets/img/info_zipf.svg" /></p>
+<figcaption><span class="fig-id">图 info-1</span> 一段真实英文语料的词频-排名双对数图。频次 \(f\) 对排名 \(r\) 近似落在斜率 \(\approx -1\) 的直线上（\(f\propto r^{-1}\)），高频端（功能词）与低频长尾（hapax，只出现一次的词）都贴合。这是语言最稳健的经验规律。</figcaption>
+</figure>
+<p><strong>信息论解释（为什么会这样）</strong>——有几套，都指向"优化"：</p>
+<ul>
+<li><strong>最省力原则（Zipf 本人）</strong>：说话人想省力（少数高频词反复用），听话人想省力（词越多越好消歧）。两方拉锯的<strong>帕累托折中</strong>恰好产生 <span class="arithmatex">\(1/r\)</span> 分布。</li>
+<li><strong>Mandelbrot</strong>：把词看成用字母编码的信源，在"平均码长最小"约束下优化，导出 Zipf-Mandelbrot 分布 <span class="arithmatex">\(f\propto (r+\beta)^{-\alpha}\)</span>。<strong>Zipf 是熵优化的解</strong>。</li>
+<li><strong>警惕</strong>：随机打字（"猴子打字机"）也能产出近似 Zipf（Miller）——<strong>所以 Zipf 本身不证明语言有深层设计</strong>，它是"离散符号 + 长尾"的通用统计后果。<strong>这是本页最重要的一条批判性提醒：一个漂亮的幂律不等于一个深刻的语言学结论。</strong></li>
+</ul>
+<h2 id="5-heaps">5. 长尾的代价：稀疏与 Heaps 律<a class="headerlink" href="#5-heaps" title="Permanent link"></a></h2>
+<p>Zipf 的直接后果是<strong>长尾</strong>：大部分词类型（types）极罕见，语料里约一半词只出现一次（<strong>hapax legomena</strong>）。相关的 <strong>Heaps 律</strong>：词汇量 <span class="arithmatex">\(V\)</span> 随语料长度 <span class="arithmatex">\(N\)</span> 亚线性增长，<span class="arithmatex">\(V \propto N^{\beta},\ \beta&lt;1\)</span>——<strong>你永远在见新词</strong>。</p>
+<p><strong>这对建模是硬约束</strong>：
+- 罕见词的概率无法从频率可靠估计 → 需要<strong>平滑（smoothing）</strong>、子词切分（BPE，🔗 ai-06）、或向量泛化（线三）。
+- 它也是"为什么要分布式表示"的信息论理由：把词嵌进连续空间，才能对没见够的词借用邻居的统计强度。<strong>Zipf 长尾，是词向量存在的必要性证明。</strong></p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（熵率是理论天花板）</strong> 语言的熵率 <span class="arithmatex">\(h\)</span> 给出<strong>任何模型困惑度的下界</strong>——没有模型能把英文压到低于其真实熵率（除非它作弊利用了熵率定义之外的语境）。当代 LLM 的每字节 bits 已逼近人类估计的语言熵率，意味着"纯预测下一符号"这条路的<strong>信息论空间快见底</strong>——剩下的增益从哪来？（线六 ai-01 的关键疑问。）</p>
+<p><strong>思考 2（互信息与"意义"）</strong> 两个词的互信息 <span class="arithmatex">\(I(w_1;w_2)\)</span> 高，说明它们共现远超随机（collocation，如 "strong–tea"）。<strong>分布语义（线三）本质就是在挖词与上下文的互信息结构。</strong> 试想：一个词的"意义"能否<strong>定义</strong>为它与整个语境的互信息模式？这是把 ling-01"意义即关系"彻底信息论化的尝试。</p>
+<p><strong>思考 3（Zipf 的诱惑与陷阱）</strong> 幂律太漂亮，容易过度诠释。做研究时的纪律：<strong>看到幂律，先问"最简单的无意义机制能不能也产生它"</strong>（如随机分割、优先连接）。区分"语言特有的优化"与"离散长尾的通用统计"，是你从"发现规律"走向"发现机制"的分水岭。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：信息 II——surprisal。把"可预测性"从语料层面下沉到<strong>逐词</strong>层面，并接上一个惊人的实证：人读一个词的时间，几乎线性正比于它的 surprisal。这是信息论对人脑的第一条定律。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ling-04-cognitive.html"><span class="pager-label">上一页</span>语言 IV · 认知语言学：隐喻与构式</a>
+  <a class="pager-slot next" href="info-02-surprisal.html"><span class="pager-label">下一页</span>信息 II · 可预测性与加工难度</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

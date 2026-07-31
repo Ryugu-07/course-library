@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>癌症筛查逐癌种证据对照 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li class="active"><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 总览表</a></li>
+<li><a href="#2">2. 三个值得深入的案例</a><ul>
+<li><a href="#_1">乳腺癌钼靶：一场持续三十年的争论</a></li>
+<li><a href="#psa">PSA：本站最重要的反例</a></li>
+<li><a href="#ct">肺癌低剂量 CT：证据较强但门槛严格</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 危害的量化：一张常被省略的账</a></li>
+<li><a href="#4">4. 停止筛查的时机（最少被讨论的一环）</a></li>
+<li><a href="#5">5. 遗传高风险人群：完全不同的账</a></li>
+<li><a href="#6">6. 面对筛查推销时的四个问题</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">预防 III · 癌症筛查逐癌种证据对照<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>第 03 页给了工具，这一页给账本。<strong>每一项筛查都同时列出收益（NNS）与危害（假阳性、过度诊断）</strong>——这是本站唯一一页把所有数字放在一张表里的地方。<strong>所有数值为典型量级示意，随人群、年龄段、筛查间隔与地区差异很大，不可直接套用。</strong></p>
+</blockquote>
+<h2 id="1">1. 总览表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>筛查</th>
+<th>死亡率 RCT 证据</th>
+<th>相对死亡率下降</th>
+<th><strong>NNS（量级）</strong></th>
+<th>主要危害</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>结直肠癌</strong>（便隐血/FIT、结肠镜）</td>
+<td><strong>强</strong></td>
+<td>该病死亡率下降明确</td>
+<td><strong>数百人</strong></td>
+<td>结肠镜穿孔（罕见）、假阳性</td>
+</tr>
+<tr>
+<td><strong>乳腺癌</strong>（钼靶）</td>
+<td><strong>有，但幅度有争议</strong></td>
+<td>约 20% 量级</td>
+<td><strong>数百至千余人</strong></td>
+<td><strong>过度诊断（估计范围很宽）</strong>、假阳性召回、活检</td>
+</tr>
+<tr>
+<td><strong>宫颈癌</strong>（细胞学/HPV）</td>
+<td><strong>强</strong>（观察性 + 机制 + HPV RCT）</td>
+<td>大幅下降</td>
+<td>数百人</td>
+<td>过度治疗致早产风险（锥切）</td>
+</tr>
+<tr>
+<td><strong>肺癌</strong>（低剂量 CT，重度吸烟者）</td>
+<td><strong>强</strong>（NLST、NELSON）</td>
+<td>约 20–25%</td>
+<td><strong>约 300 人量级</strong></td>
+<td><strong>假阳性率高</strong>、偶发瘤、辐射、有创检查并发症</td>
+</tr>
+<tr>
+<td><strong>前列腺癌</strong>（PSA）</td>
+<td><strong>不一致</strong>（ERSPC 阳性、PLCO 阴性/污染严重）</td>
+<td>小</td>
+<td>大</td>
+<td><strong>过度诊断严重</strong>、活检并发症、治疗致失禁与性功能障碍</td>
+</tr>
+<tr>
+<td><strong>甲状腺癌</strong>（超声）</td>
+<td><strong>无</strong></td>
+<td><strong>无</strong></td>
+<td>—</td>
+<td><strong>过度诊断的典型案例</strong>（第 03 页）——<strong>不推荐</strong></td>
+</tr>
+<tr>
+<td><strong>卵巢癌</strong>（CA-125 + 超声）</td>
+<td><strong>有 RCT，未显示死亡率获益</strong></td>
+<td>—</td>
+<td>—</td>
+<td>手术并发症——<strong>不推荐用于一般人群</strong></td>
+</tr>
+<tr>
+<td><strong>全身 CT/MRI"体检套餐"</strong></td>
+<td><strong>无 RCT 支持</strong></td>
+<td>—</td>
+<td>—</td>
+<td><strong>偶发瘤瀑布、辐射、成本</strong>——<strong>不推荐</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>读这张表的正确方式</strong>：<strong>上面几行是"证据支持、收益大于危害"，下面几行是"证据不支持或危害占优"</strong>。<strong>它们都被商业机构以同样的语言推销</strong>——<strong>"早发现"这句话不区分它们。</strong></p>
+<h2 id="2">2. 三个值得深入的案例<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h3 id="_1">乳腺癌钼靶：一场持续三十年的争论<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p><strong>争论的实质不是"有没有效"，而是"收益与危害的比例是多少"</strong>。不同权威机构对同一批 RCT 数据给出了不同的过度诊断估计（从很低到相当高），<strong>主要分歧在于统计方法与随访长度</strong>。</p>
+<p><strong>得到共识的部分</strong>：<strong>效应随年龄增长</strong>（50 岁以上收益更明确）；<strong>40–49 岁的绝对收益较小而假阳性率较高</strong>；<strong>长期累积假阳性率相当高</strong>（多轮筛查后，相当比例的女性会经历至少一次召回）。</p>
+<p><strong>这解释了为什么各国指南在起始年龄（40 vs 45 vs 50）与间隔（1 vs 2 年）上不一致</strong>——<strong>这是第 09 页说的"分歧本身就是信息"：它标记出一个需要共同决策的区域。</strong></p>
+<h3 id="psa">PSA：本站最重要的反例<a class="headerlink" href="#psa" title="Permanent link"></a></h3>
+<p><strong>ERSPC（欧洲）显示筛查降低前列腺癌死亡率；PLCO（美国）未显示</strong>——<strong>但 PLCO 的对照组有大量污染（对照组也在做 PSA），削弱了其阴性结论</strong>。</p>
+<p><strong>关键在危害侧</strong>：前列腺癌的<strong>过度诊断比例很高</strong>（大量惰性癌），<strong>而过去这些人普遍接受了根治性治疗，导致尿失禁与勃起功能障碍。</strong></p>
+<p><strong>因此现代路径的改进不是"停止筛查"，而是拆开"诊断"与"治疗"</strong>：</p>
+<ol>
+<li><strong>共同决策后再决定是否查 PSA</strong>；</li>
+<li><strong>阳性后先做 MRI 再决定是否活检</strong>（减少不必要活检）；</li>
+<li><strong>低危癌用主动监测而非立即根治</strong>——<strong>这一步是过度诊断危害的主要解药</strong>。</li>
+</ol>
+<p><strong>这是一个方法论上极重要的示范</strong>：<strong>当过度诊断不可避免时，减少"过度治疗"是另一条出路。</strong></p>
+<h3 id="ct">肺癌低剂量 CT：证据较强但门槛严格<a class="headerlink" href="#ct" title="Permanent link"></a></h3>
+<p><strong>NLST 与 NELSON 均显示重度吸烟者中肺癌死亡率下降</strong>。<strong>但要注意资格标准很严</strong>（年龄区间 + 吸烟包年数 + 戒烟年限）——<strong>在低风险人群中做同样的检查，收益消失而危害不变</strong>（第 02 页 PPV 算术）。</p>
+<p><strong>且必须配套</strong>：结节管理规范（Lung-RADS）、有经验的多学科团队、<strong>以及戒烟支持</strong>——<strong>戒烟的效应量远大于筛查本身</strong>（第 15 页）。</p>
+<h2 id="3">3. 危害的量化：一张常被省略的账<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Benefits and harms per 1000 people screened" src="assets/img/cli-17-screening.svg" /></p>
+<figcaption><span class="fig-id">图 17.1</span>每 1000 名接受筛查者的结局构成（示意量级，非特定癌种的精确数据）。**避免死亡的人数在图中是最小的一格**，而**假阳性与后续检查**构成最大的一格，**过度诊断**是中间那格。这张图不是反对筛查——**结直肠癌与宫颈癌筛查的收益格在同样的画法下明显更大**——而是说明：**任何筛查决策都必须同时看这三格，只看第一格就是被误导。**</figcaption>
+</figure>
+<p><strong>一个应当被更广泛使用的沟通工具</strong>：<strong>"每 1000 人筛查 10 年"的图示</strong>——同时显示 ① 避免的癌症死亡数；② 仍会死于该癌的人数；③ 假阳性数；④ 过度诊断数。<strong>多项研究显示，这种呈现方式使人们的选择更符合自己的价值观</strong>（第 24 页）。</p>
+<h2 id="4">4. 停止筛查的时机（最少被讨论的一环）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>筛查的收益有滞后期</strong>（通常需要多年才体现在死亡率上），<strong>而危害是立即的</strong>。</p>
+<p><strong>推论</strong>：<strong>当预期寿命短于收益滞后期时，筛查只剩危害。</strong> 这适用于高龄与严重合并症患者。</p>
+<p><strong>但"停止筛查"的沟通极其困难</strong>——它容易被理解为"放弃我了"。<strong>正确的表述是把时间尺度讲清楚：这项检查要在十年后才可能帮到您，而它的麻烦是现在就有的。</strong></p>
+<p><strong>这是医学中"去实施"（第 09 页）最难的一类。</strong></p>
+<h2 id="5">5. 遗传高风险人群：完全不同的账<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>BRCA1/2 携带者、Lynch 综合征、家族性腺瘤性息肉病</strong>等人群的<strong>基线风险高一个数量级</strong> → <strong>同样的筛查，NNS 小得多，收益远大于危害</strong>，因此推荐更早、更频繁的筛查甚至预防性手术。</p>
+<p><strong>这再次演示第 06 页的核心公式</strong>：<strong>ARR = 基线风险 × RRR</strong>。<strong>同一项措施在不同基线风险人群中是完全不同的两件事。</strong></p>
+<h2 id="6">6. 面对筛查推销时的四个问题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ol>
+<li><strong>有没有以该病死亡率为终点的 RCT？</strong></li>
+<li><strong>我属于试验纳入的那个风险人群吗？</strong></li>
+<li><strong>每 1000 人筛查，避免几例死亡、产生几例假阳性与过度诊断？</strong></li>
+<li><strong>如果结果阳性，下一步是什么？我愿意接受那一步吗？</strong></li>
+</ol>
+<p><strong>第四个问题最容易被跳过，却最重要</strong>——<strong>如果你不打算接受阳性后的处理，那就不该做这个检查</strong>（第 01 页"检查要能改变行动"）。</p>
+<hr />
+<p><em>下一页：疫苗与预防性用药——预防线的最后一页，也是绝对风险沟通最需要的一页。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-diabetes.html"><span class="pager-label">上一页</span>预防 II · 糖尿病：目标值之争</a>
+  <a class="pager-slot next" href="18-vaccines-prophylaxis.html"><span class="pager-label">下一页</span>预防 IV · 疫苗与预防性用药</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>凝固、铸造与成形 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li class="active"><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 凝固组织的形成</a></li>
+<li><a href="#2">2. 塑性成形：用变形改造组织</a></li>
+<li><a href="#3">3. 焊接：局部熔化与它的代价</a></li>
+<li><a href="#4">4. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">工艺 I · 凝固、铸造与成形<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>几乎所有金属制品的第一步都是从液体开始——<strong>凝固决定了原始组织，而原始组织是后续一切工艺的起点</strong>（"铸造缺陷带进服役"是行业常识）。本页把凝固组织的三大控制点（形核、枝晶、偏析）讲清楚，然后接上塑性成形（轧锻挤拉）与焊接的材料学。</p>
+</blockquote>
+<h2 id="1">1. 凝固组织的形成<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>三步</strong>：形核（热力 III 的机器：过冷 + 非均匀形核为主）→ 长大（枝晶——因为界面前沿的成分过冷使凸起加速，形成树枝状；这是<strong>界面不稳定性</strong>的经典案例）→ 相互碰撞形成晶粒。</p>
+<p><strong>铸锭三区</strong>：模壁激冷区（细等轴晶）→ 柱状晶区（沿热流方向长）→ 中心等轴晶区。<strong>控制手段</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>目标</th>
+<th>手段</th>
+<th>机理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>细化晶粒</td>
+<td><strong>孕育/变质处理</strong>（加形核剂如 Al–Ti–B）、增大冷速、搅拌</td>
+<td>增加形核点（Hall–Petch 强化 + 减少偏析，性能 I）</td>
+</tr>
+<tr>
+<td>消除气孔</td>
+<td>除气、真空熔炼、加压凝固</td>
+<td>氢在液态铝中的溶解度是固态的 20 倍——凝固时析出成孔</td>
+</tr>
+<tr>
+<td>定向组织</td>
+<td><strong>定向凝固/单晶生长</strong>（Bridgman）</td>
+<td>消灭横向晶界（涡轮叶片：单晶抗蠕变，性能 I 的伏笔在此实现）</td>
+</tr>
+<tr>
+<td>减少缩孔</td>
+<td>冒口、顺序凝固设计</td>
+<td>液态到固态体积收缩 3–7% 必须补缩</td>
+</tr>
+</tbody>
+</table>
+<p><strong>偏析</strong>：宏观偏析（大尺度成分不均，铸锭中心/顶部）与<strong>枝晶偏析</strong>（微观，热力 I 的欠账）——后者靠均匀化退火抹平（热力 II 的 <span class="arithmatex">\(t \sim L^2/D\)</span> 计时）。</p>
+<p><strong>快速凝固</strong>：冷速 <span class="arithmatex">\(10^4\)</span>–<span class="arithmatex">\(10^7\)</span> K/s ⇒ 极细组织、扩展固溶度、甚至非晶（结构 IV）——甩带、雾化制粉（下一页增材制造的原料就来自这里）。</p>
+<h2 id="2">2. 塑性成形：用变形改造组织<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>热加工 vs 冷加工的分界不是温度数字，是再结晶温度</strong>（约 <span class="arithmatex">\(0.4T_m\)</span>）：</p>
+<ul>
+<li><strong>热加工</strong>（&gt;再结晶温度）：变形与再结晶同时发生 ⇒ 组织细化、消除铸造缺陷、变形抗力小、不加工硬化——但表面氧化、精度差；</li>
+<li><strong>冷加工</strong>（&lt;）：加工硬化（性能 I）、精度与表面质量好、可提高强度——但需中间退火恢复塑性。</li>
+</ul>
+<p><strong>退火三阶段</strong>（冷变形后加热）：<strong>回复</strong>（位错重排、内应力降，性能变化小）→ <strong>再结晶</strong>（无畸变新晶粒形核长大，强度骤降、塑性回升——这是软化的主事件）→ <strong>晶粒长大</strong>（过火：晶粒粗化、性能下降）。<strong>工业上"控制轧制 + 控制冷却"就是在这条曲线上精确停车</strong>（现代高强钢板的核心工艺）。</p>
+<p><strong>成形工艺谱</strong>：轧制（板带，产量之王）、锻造（承力件，纤维流线沿受力方向 = 天然增强）、挤压（型材）、拉拔（丝材）、冲压（板成形——回弹与成形极限图 FLD 是难点）、深冲（各向异性/织构影响制耳，结构 II）。</p>
+<h2 id="3">3. 焊接：局部熔化与它的代价<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>焊缝 = 一次微型铸造 + 母材的热影响区（<strong>HAZ</strong>）。<strong>HAZ 才是焊接的真正难题</strong>：经历不同峰值温度 ⇒ 组织各异（粗晶区脆化、回火软化带），常是失效起点。</p>
+<p><strong>四大焊接病与对策</strong>：热裂（凝固末期液膜 + 拉应力 ⇒ 控成分、降杂质 S/P）、冷裂（氢 + 马氏体 + 拘束应力 ⇒ 预热、低氢焊材、后热）、残余应力与变形（⇒ 焊后热处理 PWHT、顺序设计）、不锈钢<strong>敏化</strong>（450–850 °C 析出 Cr₂₃C₆ 使晶界贫铬 ⇒ 晶间腐蚀；对策：低碳级 304L/316L 或稳定化 321/347——🔗 工艺 IV 详述）。</p>
+<p><strong>碳当量 CE</strong>：<span class="arithmatex">\(\mathrm{CE} = C + \frac{Mn}{6} + \frac{Cr+Mo+V}{5} + \frac{Ni+Cu}{15}\)</span> ——&gt;0.45 需预热：<strong>一条把成分翻译成工艺规程的经验公式</strong>，现场最常用的材料学计算。</p>
+<p><strong>固相连接</strong>：摩擦焊、<strong>搅拌摩擦焊 FSW</strong>（不熔化 ⇒ 无凝固缺陷，铝合金船舶/航天贮箱/电动车电池托盘的主力）、扩散焊、钎焊——异种材料连接的答案通常在这里（前沿 I 的多材料结构）。</p>
+<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>凝固收缩：铝 6.5%、铸铁近零（石墨析出膨胀抵消——铸铁"好铸"的物理原因）；</li>
+<li>再结晶温度 ≈ <span class="arithmatex">\(0.4T_m\)</span>（K）：铅、锡的再结晶温度低于室温 ⇒ <strong>它们在室温下"热加工"，永远不会加工硬化</strong>；</li>
+<li><strong>反直觉</strong>：焊接最弱处常不是焊缝而是 HAZ；铸铁比钢好铸不是因为熔点低（相近），而是<strong>共晶成分流动性好 + 凝固收缩小</strong>（热力 I 的共晶价值）；快速凝固能把固溶度扩展到相图之外——<strong>相图是平衡的地图，工艺可以短暂违章</strong>。</li>
+</ul>
+<p>【研】对标 Kurz &amp; Fisher《Fundamentals of Solidification》、Kou《Welding Metallurgy》；成分过冷判据、枝晶间距标度律（<span class="arithmatex">\(\lambda \propto \dot T^{-n}\)</span>）、凝固数值模拟是研究生主干。🔗 机器的力学站制造线讲设备与工艺参数，本页讲材料学后果。</p>
+<hr />
+<p><em>下一页：不经过液态的另一条路线——粉末冶金与增材制造，当代最活跃的成形技术分支。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-thermal-optical.html"><span class="pager-label">上一页</span>功能 III · 热与光</a>
+  <a class="pager-slot next" href="16-powder-am.html"><span class="pager-label">下一页</span>工艺 II · 粉末、烧结与增材制造</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

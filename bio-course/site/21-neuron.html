@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经元的定量物理 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li class="active"><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、静息电位：从浓度梯度到电压</a></li>
+<li><a href="#hodgkinhuxley">二、Hodgkin–Huxley：把神经元写成方程</a></li>
+<li><a href="#_2">三、动作电位：一次正反馈的爆发与刹车</a></li>
+<li><a href="#_3">四、传导：电缆理论</a></li>
+<li><a href="#_4">五、树突：不只是被动的天线</a></li>
+<li><a href="#_5">六、离子通道的多样性</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">脑 I · 神经元的定量物理<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：【实】——Hodgkin–Huxley 模型是生物学中最成功的定量理论之一（1963 年诺奖），其预测精度可与物理学模型相比。
+神经科学的地基是一个可以完全写下来、并数值求解的电学系统。本页从膜电位建起，到动作电位的完整方程。<strong>这是全课定量的第二个高峰</strong>——如果你熟悉微分方程与电路，会发现神经元本质上是一个带非线性电导的 RC 电路（🔗 物理站电磁学、数学站 ODE）。</p>
+</blockquote>
+<h2 id="_1">一、静息电位：从浓度梯度到电压<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>线一说过，细胞维持跨膜离子梯度（Na⁺/K⁺ 泵每消耗一个 ATP，泵出 3 个 Na⁺、泵入 2 个 K⁺）。典型哺乳动物神经元：</p>
+<table>
+<thead>
+<tr>
+<th>离子</th>
+<th>胞内 (mM)</th>
+<th>胞外 (mM)</th>
+<th>平衡电位 <span class="arithmatex">\(E\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K⁺</td>
+<td>~140</td>
+<td>~5</td>
+<td>−90 mV</td>
+</tr>
+<tr>
+<td>Na⁺</td>
+<td>~15</td>
+<td>~145</td>
+<td>+60 mV</td>
+</tr>
+<tr>
+<td>Cl⁻</td>
+<td>~10</td>
+<td>~110</td>
+<td>−65 mV</td>
+</tr>
+</tbody>
+</table>
+<p><strong>平衡电位</strong>由 <strong>Nernst 方程</strong>给出——它是浓度梯度与电场达到平衡时的电压：</p>
+<div class="arithmatex">\[E_{\text{ion}} = \frac{RT}{zF}\ln\frac{[\text{ion}]_{\text{out}}}{[\text{ion}]_{\text{in}}} \approx \frac{61\ \mathrm{mV}}{z}\log_{10}\frac{[\text{out}]}{[\text{in}]}\quad(37°C)\]</div>
+<p>真实静息电位（约 <strong>−70 mV</strong>）由多种离子按各自电导加权决定（<strong>Goldman 方程</strong>）。静息时膜对 K⁺ 通透性最高，故静息电位接近 <span class="arithmatex">\(E_K\)</span> 但未达到——<strong>这个"接近但不等于"的偏差，正是 Na⁺ 泄漏电流造成的</strong>。</p>
+<p><strong>能量代价</strong>：维持这些梯度消耗大量 ATP——脑约占静息代谢的 20%（线二第二页），其中<strong>大部分用于离子泵</strong>。<strong>思考在字面意义上是昂贵的。</strong></p>
+<h2 id="hodgkinhuxley">二、Hodgkin–Huxley：把神经元写成方程<a class="headerlink" href="#hodgkinhuxley" title="Permanent link"></a></h2>
+<p>Hodgkin 与 Huxley 用枪乌贼巨轴突（直径达 1 mm，可插入电极）做电压钳实验，测出电导随电压和时间的变化，并写出方程组。</p>
+<p><strong>基本电路方程</strong>（膜是电容，通道是可变电导）：</p>
+<div class="arithmatex">\[C_m \frac{dV}{dt} = -\underbrace{\bar{g}_{Na} m^3 h (V - E_{Na})}_{\text{钠电流}} - \underbrace{\bar{g}_K n^4 (V - E_K)}_{\text{钾电流}} - \underbrace{g_L(V-E_L)}_{\text{漏电流}} + I_{\text{ext}}\]</div>
+<p>其中 <span class="arithmatex">\(m, h, n\)</span> 是<strong>门控变量</strong>（取值 0–1），各自服从一阶动力学：</p>
+<div class="arithmatex">\[\frac{dx}{dt} = \alpha_x(V)(1-x) - \beta_x(V)x, \qquad x \in \{m, h, n\}\]</div>
+<p><strong>三个门控变量的分工</strong>（理解动作电位的钥匙）：
+- <span class="arithmatex">\(m\)</span>：Na⁺ <strong>激活</strong>门，随去极化<strong>快速打开</strong>；
+- <span class="arithmatex">\(h\)</span>：Na⁺ <strong>失活</strong>门，随去极化<strong>缓慢关闭</strong>；
+- <span class="arithmatex">\(n\)</span>：K⁺ <strong>激活</strong>门，随去极化<strong>缓慢打开</strong>。</p>
+<h2 id="_2">三、动作电位：一次正反馈的爆发与刹车<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<figure>
+<p><img alt="Hodgkin-Huxley 动作电位与门控变量" class="fig-img" src="assets/img/bio_action_potential.svg" /></p>
+<figcaption><span class="fig-id">图 21-1</span> 数值求解 Hodgkin–Huxley 方程得到的动作电位（上）与门控变量（下）。去极化使 \(m\) 快速上升 → Na⁺ 内流 → 进一步去极化，形成**正反馈**导致电压陡升；随后 \(h\) 关闭（Na⁺ 失活）、\(n\) 打开（K⁺ 外流）共同**复极化**，并造成后超极化与不应期。三个变量的**时间尺度差异**（\(m\) 快，\(h\)、\(n\) 慢）是整个波形的成因——这是一个典型的快慢变量系统。</figcaption>
+</figure>
+<p>过程分解：</p>
+<ol>
+<li><strong>阈下</strong>：小的去极化被漏电流拉回，无事发生；</li>
+<li><strong>阈值</strong>（约 −55 mV）：<span class="arithmatex">\(m\)</span> 门打开足够多，Na⁺ 内流引起的去极化超过 K⁺ 外流的抑制——<strong>正反馈启动</strong>；</li>
+<li><strong>上升相</strong>：Na⁺ 大量内流，电压冲向 <span class="arithmatex">\(E_{Na}\)</span>；</li>
+<li><strong>下降相</strong>：<span class="arithmatex">\(h\)</span> 关闭（Na⁺ 通道失活）+ <span class="arithmatex">\(n\)</span> 打开（K⁺ 外流）→ 复极化；</li>
+<li><strong>后超极化</strong>：K⁺ 通道尚未关闭，电压短暂低于静息；</li>
+<li><strong>不应期</strong>：<span class="arithmatex">\(h\)</span> 需要时间恢复——<strong>绝对不应期</strong>期间无法再激发。</li>
+</ol>
+<p><strong>三个重要后果</strong>：
+- <strong>全或无</strong>：一旦过阈，波形基本固定——<strong>信息编码在发放的时间与频率里，不在幅度里</strong>；
+- <strong>单向传播</strong>：不应期使动作电位不能倒退；
+- <strong>频率上限</strong>：不应期决定了最高发放率（约几百 Hz）。</p>
+<p><strong>数学视角</strong>：HH 是一个四维非线性动力系统。<strong>阈值现象对应相空间中的分离线，重复发放对应极限环，阈值附近的行为可用分岔理论分析</strong>——降维后的 FitzHugh–Nagumo 模型（二维）保留了主要定性行为，是研究可激发系统的经典范例（🔗 数学站动力系统）。</p>
+<h2 id="_3">四、传导：电缆理论<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>动作电位如何沿轴突传播？把轴突看成一根<strong>有漏电的电缆</strong>：</p>
+<div class="arithmatex">\[\lambda = \sqrt{\frac{r_m}{r_i}} \quad (\text{长度常数}), \qquad \tau_m = R_m C_m \quad (\text{时间常数})\]</div>
+<p><span class="arithmatex">\(\lambda\)</span> 是电压衰减到 <span class="arithmatex">\(1/e\)</span> 的距离。要传得远，需<strong>膜电阻 <span class="arithmatex">\(r_m\)</span> 大</strong>（少漏电）、<strong>轴向电阻 <span class="arithmatex">\(r_i\)</span> 小</strong>（粗轴突）。</p>
+<p><strong>两种提速策略</strong>：
+- <strong>加粗轴突</strong>：<span class="arithmatex">\(r_i \propto 1/d^2\)</span>，故传导速度 <span class="arithmatex">\(\propto \sqrt{d}\)</span>。枪乌贼的巨轴突走这条路——<strong>代价是体积昂贵</strong>，无法大规模使用。
+- <strong>髓鞘化（脊椎动物的方案）</strong>：胶质细胞（少突胶质细胞/施万细胞）包裹轴突，大幅提高 <span class="arithmatex">\(r_m\)</span>、降低膜电容；动作电位只在<strong>朗飞结</strong>处再生，形成<strong>跳跃式传导</strong>。速度 <span class="arithmatex">\(\propto d\)</span>（线性而非平方根），可达 <strong>120 m/s</strong>，且<strong>又快又省空间省能量</strong>。</p>
+<p><strong>多发性硬化</strong>正是髓鞘被免疫系统破坏（自身免疫，线二第四页），导致传导减慢或阻滞——<strong>结构与功能的对应在此非常直接</strong>。</p>
+<h2 id="_4">五、树突：不只是被动的天线<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>经典图景把树突当被动电缆，把计算交给胞体。<strong>这个图景已被修正</strong>：树突含有电压门控通道，能产生<strong>局部树突尖峰</strong>；不同树突分支可作为<strong>半独立的计算单元</strong>，实现非线性整合（如同时到达同一分支的输入产生超线性响应）。</p>
+<p><strong>含义</strong>：<strong>单个神经元的计算能力远超"加权求和 + 阈值"的感知机模型</strong>。有研究用多层人工网络来拟合单个皮层锥体神经元的输入输出关系，需要相当深度才能拟合好——这提示生物神经元本身近似一个小型网络。<strong>这是神经科学与人工神经网络对话中的一个重要修正</strong>（🔗 AI 站）。</p>
+<h2 id="_5">六、离子通道的多样性<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>人类基因组编码数百种离子通道，构成神经元多样性的基础：电压门控（Na⁺、K⁺、Ca²⁺ 各有多种亚型）、配体门控（下页突触受体）、漏通道与泵。</p>
+<p><strong>Ca²⁺ 通道</strong>特别重要，因为 Ca²⁺ 不只带电荷，还是<strong>第二信使</strong>——它触发突触囊泡释放（下页）、激活激酶、调节基因表达。<strong>电信号通过 Ca²⁺ 转成化学信号，这是神经元把"活动"转成"改变"（可塑性）的关键接口。</strong></p>
+<p><strong>通道病（channelopathy）</strong>：通道基因突变导致癫痫、周期性瘫痪、长 QT 综合征、某些疼痛综合征（SCN9A 功能缺失导致先天性无痛症）——<strong>这些疾病提供了通道功能的"自然实验"</strong>。</p>
+<hr />
+<p><em>下一页：脑 II——突触。神经元之间如何通信，以及连接强度如何被经验改变。这是学习与记忆的分子基础。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-evolutionary-medicine.html"><span class="pager-label">上一页</span>演化 VI · 演化医学</a>
+  <a class="pager-slot next" href="22-synapse.html"><span class="pager-label">下一页</span>脑 II · 突触传递与可塑性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

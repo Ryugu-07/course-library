@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电力电子与变换器 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li class="active"><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、核心思想：为什么必须用开关</a></li>
+<li><a href="#_2">二、三种基本拓扑</a></li>
+<li><a href="#_3">三、中心权衡：开关频率</a></li>
+<li><a href="#_4">四、变换器的控制</a></li>
+<li><a href="#_5">五、应用版图</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">实务 I · 电力电子与变换器<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心（自动化/电气必修）+ 业界主要就业方向 ｜ 🔗 与微电子站功率器件、生物站能量代谢遥相呼应。
+控制器算出的"控制量"最终必须变成真实的电流与电压。<strong>电力电子</strong>就是这个转换环节：它以极高的效率<strong>调节电能的形态</strong>。本页讲清它的核心思想——<strong>用开关而非线性调节</strong>——以及由此带来的一切优点与麻烦。</p>
+</blockquote>
+<h2 id="_1">一、核心思想：为什么必须用开关<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>要把 12 V 降到 5 V，最简单的办法是串一个电阻分压（<strong>线性调节</strong>）。问题在于效率：</p>
+<div class="arithmatex">\[\eta = \frac{V_{out}}{V_{in}} = \frac{5}{12} \approx 42\%\]</div>
+<p><strong>多余的能量全部变成热</strong>。要输出 10 A，就要烧掉 70 W——不可接受。</p>
+<p><strong>开关调节的思想</strong>：用一个<strong>理想开关</strong>以高频通断，再用<strong>电感电容滤波</strong>得到平均值。</p>
+<p><strong>关键在于：理想开关不耗散功率</strong>——导通时电压为零、断开时电流为零，<strong>两种状态下 <span class="arithmatex">\(P = VI = 0\)</span></strong>。<strong>因此开关变换器的效率原理上可达 100%</strong>，实际可达 90–98%。</p>
+<p><strong>这是电力电子的全部出发点</strong>：<strong>用"通断的占空比"替代"连续的阻值"来调节能量</strong>——<strong>用时间换效率</strong>。</p>
+<h2 id="_2">二、三种基本拓扑<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>Buck（降压）</strong>：</p>
+<div class="arithmatex">\[V_{out} = D \cdot V_{in}, \qquad D = \text{占空比} \in [0,1]\]</div>
+<p>开关导通时电感储能并向负载供电，关断时电感通过续流二极管释放能量。<strong>输出恒低于输入。</strong></p>
+<p><strong>Boost（升压）</strong>：</p>
+<div class="arithmatex">\[V_{out} = \frac{V_{in}}{1-D}\]</div>
+<p>利用电感"电流不能突变"的性质：开关导通时给电感充能，关断瞬间电感两端产生高压叠加到输入上。<strong>输出恒高于输入。</strong></p>
+<p><strong>Buck-Boost</strong>：可升可降（输出极性反转）。</p>
+<p><strong>其他重要拓扑</strong>：反激（Flyback，隔离、小功率）、正激、半桥/全桥（大功率、隔离）、LLC 谐振（软开关、高效率）。</p>
+<figure>
+<p><img alt="Buck 变换器的 PWM 与电感电流" class="fig-img" src="assets/img/aut_buck.svg" /></p>
+<figcaption><span class="fig-id">图 11-1</span> Buck 变换器波形。上：<strong>PWM 开关信号</strong>，占空比 \(D\) 决定输出电压 \(V_{out}=DV_{in}\)。中：<strong>电感电流</strong>呈三角波纹，围绕平均负载电流上下摆动，纹波幅度由电感值与开关频率决定。下：<strong>输出电压</strong>被电容滤波后接近直流，残余纹波即为控制精度的底噪。<strong>提高开关频率可减小纹波与体积，但增加开关损耗</strong>——这是电力电子的中心权衡。</figcaption>
+</figure>
+<h2 id="_3">三、中心权衡：开关频率<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>提高开关频率的好处</strong>：电感电容体积变小（磁性元件与电容的储能需求 <span class="arithmatex">\(\propto 1/f_{sw}\)</span>）、动态响应更快、纹波更小。</p>
+<p><strong>代价</strong>：
+- <strong>开关损耗</strong> <span class="arithmatex">\(\propto f_{sw}\)</span>：每次通断的过渡过程中电压电流同时非零，产生损耗；
+- <strong>驱动损耗</strong>、<strong>磁芯损耗</strong>上升；
+- <strong>EMI（电磁干扰）</strong>加剧。</p>
+<p><strong>这个权衡塑造了整个行业的技术路线</strong>：
+- <strong>软开关技术</strong>（ZVS/ZCS、谐振变换器）：让开关动作发生在电压或电流为零的时刻，<strong>大幅降低开关损耗</strong>，从而允许更高频率；
+- <strong>宽禁带半导体（SiC、GaN）</strong>：🔗 微电子站第一页提到它们的大带隙。<strong>更高的击穿场强 → 器件更薄、导通电阻更低；更快的开关速度 → 开关损耗更小</strong>。它们使高频高效变换成为可能，正在电动汽车、光伏、数据中心电源中快速普及。</p>
+<p><strong>这是微电子与自动化的直接交汇点</strong>：器件物理的进步，直接打开了系统层面的设计空间。</p>
+<h2 id="_4">四、变换器的控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>变换器本身就是一个<strong>被控对象</strong>，且是本课理论的绝佳应用：</p>
+<p><strong>两个环路（级联结构）</strong>：
+- <strong>内环电流环</strong>：快速，限制电感电流（保护器件），改善动态；
+- <strong>外环电压环</strong>：慢速，调节输出电压。
+- <strong>内环带宽通常是外环的 5–10 倍</strong>——<strong>级联控制的通用原则：内环必须比外环快得多，否则两环会相互干扰</strong>（这个原则在电机、机器人、过程控制中同样适用）。</p>
+<p><strong>建模的特殊性</strong>：变换器是<strong>开关（非线性、时变）系统</strong>，不能直接用线性理论。标准做法是<strong>状态空间平均法</strong>：在一个开关周期内对状态方程取平均，得到连续的等效模型，再线性化。</p>
+<p><strong>一个著名的坑</strong>：<strong>Boost 与 Buck-Boost 变换器在连续导通模式下，其控制到输出的传递函数含右半平面零点</strong>（第二页！）。</p>
+<p><strong>物理直觉</strong>：要提高输出电压，需要增大占空比；但增大占空比意味着<strong>更长时间把电感与负载断开</strong>，于是<strong>输出电压瞬间先下降</strong>，之后电感储能增加才使输出升高。<strong>这就是非最小相位的物理来源。</strong></p>
+<p><strong>后果</strong>：Boost 电压环的带宽<strong>被硬性限制</strong>（第五页：右半平面零点是性能天花板，不是设计水平问题）。<strong>这解释了为什么升压电路的动态响应普遍慢于降压电路</strong>——这是一个可以从物理直觉、传递函数、频域限制三个角度互相印证的漂亮例子。</p>
+<h2 id="_5">五、应用版图<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>电力电子的应用范围极广，也是自动化专业的主要就业方向之一：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th>典型形态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>电源</strong></td>
+<td>手机充电器、服务器电源、LED 驱动</td>
+</tr>
+<tr>
+<td><strong>电动汽车</strong></td>
+<td>车载充电机、DC-DC、<strong>电机逆变器</strong>（第十二页）</td>
+</tr>
+<tr>
+<td><strong>可再生能源</strong></td>
+<td>光伏 MPPT 逆变器、风电变流器</td>
+</tr>
+<tr>
+<td><strong>储能</strong></td>
+<td>电池管理与双向变换</td>
+</tr>
+<tr>
+<td><strong>工业传动</strong></td>
+<td>变频器（VFD）</td>
+</tr>
+<tr>
+<td><strong>电网</strong></td>
+<td>柔性输电（FACTS）、高压直流（HVDC）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MPPT（最大功率点跟踪）</strong>值得一提：光伏板的输出功率随工作点变化有单峰特性，需<strong>实时搜索最大功率点</strong>。常用扰动观察法（P&amp;O）——<strong>这是一个纯粹的在线优化问题</strong>，也是控制与优化在能源领域最普及的应用之一。</p>
+<p><strong>一个宏观判断</strong>：随着电气化与可再生能源推进，<strong>电网中经由电力电子变换的能量比例正在快速上升</strong>。这带来新的系统级问题——传统电网靠同步发电机的<strong>转动惯量</strong>维持频率稳定，而电力电子接口没有惯量。<strong>"低惯量电网"的稳定控制是当前电力系统的重大课题</strong>（第二十二页会再提）。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>开关而非线性调节</strong>：理想开关不耗散功率，这是全部效率的来源；</li>
+<li><strong>Buck <span class="arithmatex">\(D\)</span>、Boost <span class="arithmatex">\(1/(1-D)\)</span></strong> 是两个必须记住的关系；</li>
+<li><strong>开关频率是中心权衡</strong>：体积/响应 vs 损耗/EMI；软开关与 SiC/GaN 是突破口；</li>
+<li><strong>级联控制中内环须远快于外环</strong>——普适原则；</li>
+<li><strong>Boost 的右半平面零点</strong>给出了本课理论在硬件中最漂亮的一次印证；</li>
+<li><strong>低惯量电网</strong>是电力电子普及带来的系统级新问题。</li>
+</ul>
+<hr />
+<p><em>下一页：电机——把电能变成运动。从直流电机的简单模型，到永磁同步电机的矢量控制，后者是现代运动控制的基石。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-digital.html"><span class="pager-label">上一页</span>现代 IV · 数字控制与采样</a>
+  <a class="pager-slot next" href="12-motor.html"><span class="pager-label">下一页</span>实务 II · 电机与矢量控制</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

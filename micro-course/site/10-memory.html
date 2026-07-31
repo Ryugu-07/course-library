@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>存储器与存储墙 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li class="active"><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、存储层次：一个被物理逼出来的结构</a></li>
+<li><a href="#sram">二、SRAM：快，但不再变小</a></li>
+<li><a href="#dram">三、DRAM：一个电容和它的漏电</a></li>
+<li><a href="#nand">四、NAND 闪存：用可靠性换密度</a></li>
+<li><a href="#_2">五、存储墙</a></li>
+<li><a href="#_3">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">电路 V · 存储器与存储墙<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界核心产业 ｜ 部分内容【前沿，核对于 2026-07】。
+逻辑再快，取不到数据也没用。存储器占据现代芯片的大部分面积（处理器中缓存常占一半以上），也是半导体产业规模最大的单一品类之一。本页讲三种主流存储的原理与各自的缩放困境，最后讲那堵越来越高的墙：<strong>存储墙</strong>。</p>
+</blockquote>
+<h2 id="_1">一、存储层次：一个被物理逼出来的结构<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>没有一种存储能同时做到快、大、便宜、非易失，所以只能分层：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>典型容量</th>
+<th>访问延迟</th>
+<th>每比特成本</th>
+<th>易失性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>寄存器</td>
+<td>数百 B</td>
+<td>&lt; 1 周期</td>
+<td>极高</td>
+<td>易失</td>
+</tr>
+<tr>
+<td><strong>SRAM</strong>（缓存）</td>
+<td>KB–数十 MB</td>
+<td>1–40 周期</td>
+<td>高</td>
+<td>易失</td>
+</tr>
+<tr>
+<td><strong>DRAM</strong>（主存）</td>
+<td>GB</td>
+<td>~200–400 周期</td>
+<td>中</td>
+<td>易失（需刷新）</td>
+</tr>
+<tr>
+<td><strong>NAND 闪存</strong>（SSD）</td>
+<td>TB</td>
+<td>~10⁴–10⁵ 周期</td>
+<td>低</td>
+<td><strong>非易失</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>每下一层，容量涨约三个数量级、延迟涨约两个数量级</strong>。整个计算机体系结构（缓存、预取、虚拟内存）都是为了<strong>掩盖这个层次差异</strong>而设计的（🔗 cs 站 CSAPP 存储层级、<code>csapp-02</code>）。<strong>本页提供那一层抽象之下的物理原因。</strong></p>
+<h2 id="sram">二、SRAM：快，但不再变小<a class="headerlink" href="#sram" title="Permanent link"></a></h2>
+<p><strong>6T 单元</strong>：两个交叉耦合的反相器构成双稳态锁存 + 两个访问管。</p>
+<ul>
+<li><strong>静态保持</strong>，只要供电就不丢数据，无需刷新；</li>
+<li>读写快，与逻辑工艺完全兼容 → 用作片上缓存；</li>
+<li><strong>代价是面积大</strong>（6 个晶体管/比特）。</li>
+</ul>
+<p><strong>三个设计张力</strong>（全部围绕同一个矛盾）：
+- <strong>读稳定性</strong>：读操作会扰动存储节点，可能翻转数据（读扰动）；
+- <strong>写能力</strong>：必须能强行翻转锁存；
+- <strong>保持裕度</strong>：低压下双稳态可能失稳。</p>
+<p>用<strong>静态噪声容限（SNM）</strong>衡量。<strong>问题在于：提高写能力要求访问管强，而提高读稳定性要求访问管弱</strong>——两者直接冲突，且<strong>在低压与大变异下同时恶化</strong>。这就是为什么 SRAM 往往是<strong>决定芯片最低工作电压（<span class="arithmatex">\(V_{min}\)</span>）</strong>的模块，也催生了 8T 等读写分离单元（用面积换稳定性）。</p>
+<p><strong>关键的产业事实：SRAM 面积缩放已显著放缓。</strong> 逻辑还在缩，SRAM 却几乎停滞——因为它对变异极其敏感（承第八页 Pelgrom：<strong>精度用面积买</strong>）。<strong>后果是缓存在芯片面积中占比越来越高，且成为先进节点成本上升的主要推手之一</strong>，这也强化了把缓存分离到单独裸片、用 3D 堆叠连接的动机（第十五页）。</p>
+<h2 id="dram">三、DRAM：一个电容和它的漏电<a class="headerlink" href="#dram" title="Permanent link"></a></h2>
+<p><strong>1T1C 单元</strong>：一个晶体管 + 一个电容，用电容上有无电荷表示 1/0。</p>
+<ul>
+<li><strong>密度极高</strong>（1 个晶体管/比特），故做主存；</li>
+<li><strong>电容会漏电</strong> → 必须周期性<strong>刷新</strong>（典型 64 ms 内全部刷新一遍）→ 刷新功耗，且刷新期间不能访问；</li>
+<li><strong>读取是破坏性的</strong>（电荷被读出即消耗），必须<strong>读后回写</strong>；</li>
+<li>读出信号极微弱（电容仅约 10 fF 量级），依赖<strong>灵敏放大器</strong>做差分放大——<strong>这是模拟电路在存储芯片里的核心应用</strong>。</li>
+</ul>
+<p><strong>缩放困境</strong>：电容值不能随意减小（否则信号淹没在噪声里），于是电容被做成<strong>深槽或高柱</strong>的三维结构，<strong>深宽比极高</strong>（几十比一），制造难度巨大。<strong>DRAM 的缩放主要靠工艺极限突破，而非结构创新</strong>——这与逻辑器件的路径不同。</p>
+<p><strong>DRAM 工艺与逻辑工艺不兼容</strong>（需要特殊的电容与低漏电晶体管），所以<strong>DRAM 通常是独立芯片</strong>。这正是"存储墙"的物理起点：数据必须跨越封装、走上电路板才能到达处理器。</p>
+<h2 id="nand">四、NAND 闪存：用可靠性换密度<a class="headerlink" href="#nand" title="Permanent link"></a></h2>
+<p><strong>浮栅/电荷俘获</strong>：在栅极中嵌入一个绝缘包围的电荷存储层，注入电荷改变 <span class="arithmatex">\(V_{th}\)</span>，从而记录信息。断电电荷仍在 → <strong>非易失</strong>。</p>
+<p><strong>三个关键性质</strong>：
+- <strong>块擦除</strong>：只能按大块擦除（数百 KB–MB），不能按字节改写 → 需要 <strong>FTL（闪存转换层）</strong>做地址映射与垃圾回收（🔗 cs 站文件系统与存储）；
+- <strong>有限寿命</strong>：每次擦写都损伤隧穿氧化层，<strong>P/E 循环次数有限</strong>（SLC 数万次，QLC 仅数百到数千次）→ 需要<strong>磨损均衡</strong>；
+- <strong>多比特存储</strong>：SLC/MLC/TLC/QLC，一个单元存 1/2/3/4 位。<strong>每增加一位，需要区分的电平数翻倍，裕度指数下降</strong> → 速度、寿命、可靠性同步恶化。<strong>这是纯粹的"密度换可靠性"权衡</strong>，也是消费级 SSD 越来越便宜、但耐久度越来越低的原因。</p>
+<p><strong>3D NAND 是一次范式转移</strong>：平面缩放走到尽头后，改为<strong>垂直堆叠</strong>（现已达数百层），用一次刻蚀打通所有层。<strong>"不再缩小，而是堆高"——这个思路后来蔓延到了整个行业</strong>（3D 集成、Chiplet，第十五页）。<strong>NAND 是第一个成功转向三维的大宗半导体产品</strong>，具有示范意义。</p>
+<p><strong>纠错是必需品而非可选项</strong>：现代 NAND 的原始误码率高到无法直接使用，必须依赖强大的 ECC（LDPC 等）。<strong>存储系统的可靠性是"用编码换来的"</strong>（🔗 cs 站/数学站信息论）。</p>
+<h2 id="_2">五、存储墙<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>处理器性能的增长长期快于存储带宽与延迟的改善</strong>，两者差距持续扩大——这就是<strong>存储墙（memory wall）</strong>。</p>
+<p><strong>今天的具体表现</strong>：
+- 大量 AI 与数据密集型负载<strong>受限于内存带宽而非算力</strong>——加速器的计算单元大部分时间在等数据；
+- <strong>数据搬运的能耗远超计算本身</strong>。从片外 DRAM 读取一个数所消耗的能量，可比一次浮点运算高<strong>两个数量级以上</strong>。<strong>"计算是免费的，搬运是昂贵的"</strong> 是现代芯片设计的核心信条之一；
+- 于是架构设计的重心从"提高算力"转向"<strong>减少数据移动</strong>"。</p>
+<p><strong>应对手段</strong>（后面各页展开）：
+- <strong>更近</strong>：大容量片上缓存、3D 堆叠缓存；
+- <strong>更宽</strong>：<strong>HBM</strong>——把 DRAM 裸片堆叠并通过硅中介层以极宽总线连接（第十五页）。这是当前 AI 加速器的标准配置，也是先进封装最大的商业驱动力；
+- <strong>更聪明</strong>：数据流架构、算子融合、近存计算；
+- <strong>更激进</strong>：<strong>存内计算</strong>——直接在存储阵列里做运算，彻底避免搬运（第十六页）。</p>
+<h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>存储层次是被物理逼出来的</strong>，不是设计偏好；</li>
+<li><strong>SRAM 面积缩放放缓</strong>，成为先进节点成本与 <span class="arithmatex">\(V_{min}\)</span> 的关键制约；</li>
+<li><strong>DRAM 靠三维电容与刷新维持</strong>，且工艺与逻辑不兼容，这是存储墙的物理起点；</li>
+<li><strong>NAND 用可靠性换密度</strong>（QLC）并率先转向 <strong>3D 堆叠</strong>，为全行业提供了范式；</li>
+<li><strong>存储墙的本质是"搬运比计算贵"</strong>——现代架构的主要矛盾。</li>
+</ul>
+<hr />
+<p><em>线二结束。下一线转向制造：这些电路究竟是怎么被造出来的？从一块硅晶圆到几百亿个晶体管，中间是人类工业史上最精密的流程。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-mixed-signal.html"><span class="pager-label">上一页</span>电路 IV · 数据转换器与锁相环</a>
+  <a class="pager-slot next" href="11-fabrication.html"><span class="pager-label">下一页</span>制造 I · 从沙子到晶圆</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

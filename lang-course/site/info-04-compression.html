@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三种压缩与它的边界 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li class="active"><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 预测就是压缩（这不是比喻）</a></li>
+<li><a href="#2">2. 三种压缩（把"压缩"分层）</a></li>
+<li><a href="#3-kolmogorov">3. 极限：Kolmogorov 复杂度与不可计算</a></li>
+<li><a href="#4">4. 边界：压缩不等于意义（分水岭）</a></li>
+<li><a href="#5">5. 预测信息：不是压缩多少，而是压缩里有多少"关于未来"</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">信息 IV · 三种压缩与它的边界<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Solomonoff 归纳、Rissanen MDL、Li &amp; Vitányi《Kolmogorov Complexity》、Hutter《Universal AI》、Bialek 预测信息 ｜ <strong>前置</strong>：info-01~03 ｜ <strong>证据地位</strong>：<strong>压缩=预测【实】</strong>（数学等价），<strong>压缩=意义【思/争】</strong>（本页要划的分水岭）。
+这是线二的收官，也是全课的一个<strong>枢纽</strong>。它把"预测下一符号""从数据学习""理解意义"三件事放到一个词底下审问——<strong>压缩</strong>——然后指出：前两者与压缩几乎是<strong>同一件事</strong>，但第三者不是。<strong>认清哪里等价、哪里断裂，是分开甲问与乙/丙问的关键一刀。</strong></p>
+</blockquote>
+<h2 id="1">1. 预测就是压缩（这不是比喻）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>核心等价</strong>：一个好的预测器 = 一个好的压缩器。原因是<strong>算术编码</strong>：若你有下一符号的概率分布 <span class="arithmatex">\(P(w_i\mid w_{&lt;i})\)</span>，就能把该符号编码成约 <span class="arithmatex">\(-\log_2 P(w_i\mid w_{&lt;i})\)</span> bits（info-02 的 surprisal 又出现了）。整段文本的编码长度：</p>
+<div class="arithmatex">\[L = \sum_i -\log_2 P(w_i \mid w_{&lt;i}) = \text{总交叉熵}\]</div>
+<p><strong>所以：预测得越准（概率给得越对）→ 编码越短 → 压缩率越高。</strong> 训练语言模型最小化交叉熵（info-01 §3），<strong>逐字节等价于</strong>训练一个最优文本压缩器。这不是类比——顶尖文本压缩榜（如 Hutter Prize、enwik9）的冠军就是语言模型。<strong>"预测下一个词"和"压缩维基百科"是同一个优化问题的两种说法。</strong></p>
+<p><strong>这是甲问的数学核心</strong>：为什么"预测下一符号"能长出能力？因为<strong>要把海量文本压到极致，你被迫在模型里建起产生这些文本的规律</strong>——语法、事实、推理链、世界的结构。压缩是逼迫理解的杠杆（这是<strong>假说的乐观版</strong>，§5 会给它划边界）。</p>
+<h2 id="2">2. 三种压缩（把"压缩"分层）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>"压缩"在本课有三个层次，混淆它们会出大乱子：</p>
+<p><strong>压缩一 · 编码压缩（coding）</strong>——给定分布，用最少 bits 表示符号。裁判：香农熵（info-01）。<strong>这是纯【实】</strong>，Shannon 已封顶。</p>
+<p><strong>压缩二 · 模型压缩 / 学习即压缩（MDL）</strong>——不只压数据，还要<strong>把生成数据的规律本身压短</strong>。Rissanen 的<strong>最小描述长度（MDL）</strong>原则：</p>
+<div class="arithmatex">\[\min_{M}\ \big[\ \underbrace{L(M)}_{\text{模型的描述长度}} + \underbrace{L(D\mid M)}_{\text{用模型编码数据}}\ \big]\]</div>
+<p><figure markdown="1">
+<img alt="MDL 的两项权衡" class="fig-img" src="assets/img/info_mdl.svg" /></p>
+<figcaption><span class="fig-id">图 info-4</span> MDL 双项权衡：模型越复杂，描述模型本身的代价 \(L(M)\) 上升，但用它编码数据的残差 \(L(D\mid M)\) 下降；总长 \(L(M)+L(D\mid M)\) 有唯一极小。这把"学习"变成"压缩"：最好的模型 = 让"规律 + 例外"总描述最短的那个——奥卡姆剃刀的信息论形式。</figcaption>
+</figure>
+<p><strong>MDL = 奥卡姆剃刀的数学化</strong>：最好的理论是"规律 + 残差"总编码最短的那个。<strong>学习一门语言的语法，就是找到能把语料压得最短的规则集</strong>——这直接对接可学习性之争（线三 mean-02）：先天偏置 = 更短的 <span class="arithmatex">\(L(M)\)</span> 先验。<strong>压缩二是本课"学习"的统一语言。</strong></p>
+<p><strong>压缩三 · 语义压缩（semantic / grounded）</strong>——把符号压到<strong>关于世界的模型</strong>，使符号能指涉、能支持推断与行动。<strong>这一层没有干净的裁判</strong>——它需要"意义""指涉""世界"，而这些还没有被形式化。§4 是它撞墙的地方。</p>
+<h2 id="3-kolmogorov">3. 极限：Kolmogorov 复杂度与不可计算<a class="headerlink" href="#3-kolmogorov" title="Permanent link"></a></h2>
+<p>把"压缩到极致"推到理论尽头，就是 <strong>Kolmogorov 复杂度</strong> <span class="arithmatex">\(K(x)\)</span>：生成字符串 <span class="arithmatex">\(x\)</span> 的<strong>最短程序</strong>的长度。它是"<span class="arithmatex">\(x\)</span> 的绝对信息量 / 内在规律性"的终极度量——一个字符串越规律，<span class="arithmatex">\(K\)</span> 越小；纯随机串 <span class="arithmatex">\(K\approx |x|\)</span>。</p>
+<p><strong>Solomonoff 归纳</strong>把它变成"完美预测器"：对所有可能程序按 <span class="arithmatex">\(2^{-\text{长度}}\)</span> 加权预测下一符号——<strong>理论上最优的通用归纳</strong>（Hutter 的 AIXI 以此为核心）。这给了"预测=压缩=智能"一个<strong>理论顶点</strong>：最聪明的预测器就是最强的压缩器。</p>
+<p><strong>但有一堵墙</strong>：<span class="arithmatex">\(K(x)\)</span> <strong>不可计算</strong>（不可判定，源自停机问题，🔗 cs toc-01）。没有算法能对任意 <span class="arithmatex">\(x\)</span> 求出其最短程序。<strong>后果</strong>：
+- 完美压缩/完美归纳是<strong>理论理想，实际不可达</strong>；一切真实系统（人、LLM）都在用<strong>受限、次优</strong>的近似（特定架构 = 特定的可表达程序类 + 可行搜索）。
+- <strong>"智能=压缩"因此不是一个可直接执行的配方</strong>，而是一个方向。真正的问题从"能不能完美压缩"变成"<strong>在算力与架构约束下，哪种归纳偏置压得更好</strong>"——这才是 scaling、架构设计、乃至人脑演化的战场（线六）。</p>
+<h2 id="4">4. 边界：压缩不等于意义（分水岭）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>现在划全课最重要的一条线。前面说"压缩逼迫理解"——<strong>在什么意义上成立，在什么意义上不成立？</strong></p>
+<p><strong>成立的部分（甲）</strong>：要压缩文本，必须建模文本内部的<strong>统计与结构规律</strong>——语法、搭配、常识关联、推理模式。这些是<strong>真实的、可提取的</strong>（线六 probing、Othello-GPT 证明模型里确有结构化表征）。所以"压缩 → 结构/能力"这一步，有实证支撑。</p>
+<p><strong>断裂的部分（乙/丙）</strong>：压缩的目标是<strong>重建符号序列</strong>，不是<strong>关于世界为真</strong>。一个系统可以完美预测"糖是甜的"这串符号的分布，而从未尝过甜、其内部符号也不真正<strong>指涉</strong>外部的糖。</p>
+<ul>
+<li><strong>Bender &amp; Koller 的"章鱼"论证</strong>（线三 mean-03 详讲）：只见符号形式、从不接触指涉物的学习者，学到的是<strong>形式的分布</strong>，不是<strong>意义（form ≠ meaning）</strong>。</li>
+<li><strong>压缩的度量里没有"世界"</strong>：交叉熵只惩罚"符号预测错"，不惩罚"关于世界错"。若语料本身错了，完美压缩器会<strong>忠实地压缩错误</strong>。</li>
+<li><strong>这正是压缩一/二 与 压缩三 的裂缝</strong>：一、二有裁判（bits），三没有（需要"指涉正确"这个信息论管不着的判据）。</li>
+</ul>
+<p><strong>所以本课的分档</strong>：
+- "预测/学习 = 压缩" —— 【实】，甲问的引擎。
+- "压缩 → 一定程度的结构与能力" —— 【实】，有实证。
+- "压缩 = 理解 / 意义 / 关于世界为真" —— 【争/思】，这一步需要<strong>接地</strong>（线三 mean-03）与<strong>世界模型</strong>的实证（线六 ai-01/02），不能靠信息论白拿。</p>
+<h2 id="5">5. 预测信息：不是压缩多少，而是压缩里有多少"关于未来"<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>最后一个前沿工具（Bialek–Tishby–Crutchfield 的<strong>预测信息 / predictive information</strong>）：序列中，<strong>过去</strong>保存了多少关于<strong>未来</strong>的信息——</p>
+<div class="arithmatex">\[I_{\text{pred}}(T) = I\big(\text{过去};\ \text{未来长度 } T\big)\]</div>
+<p>它区分了两种"信息"：<strong>能预测未来的结构</strong> vs <strong>一次性的噪声细节</strong>。一个系统的智能程度，也许不在于它存了多少 bits，而在于它存的是<strong>可预测未来</strong>的那部分 bits（把 §1 的压缩细化为"只压该压的"）。</p>
+<p><strong>对你研究的直接价值</strong>：这正是 Medusa 预测层想要的量——一个事件/叙事对未来的<strong>预测信息含量</strong>。信息瓶颈（Information Bottleneck）把它做成可优化目标：<strong>在压缩过去的同时最大化对未来的预测</strong>——"压缩换预测"的权衡曲线（labs L4）。这是把你的"三道闸门"直觉学术化的信息论母体。（🔗 你的预测森林 / 因果网。）</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（线二给了你什么）</strong> 一条从熵到 Kolmogorov 的链：熵（平均难度）→ surprisal（逐词难度、人脑定律）→ 效率律（语言被信道雕刻）→ 压缩=预测（甲的引擎）→ 不可计算（理想的边界）→ 预测信息（该压什么）。<strong>这整条链都是【实】或有裁判的——它是你研究里"能站稳脚"的地面。</strong> 越过这条线（进入意义、意识），就要换上【争/思】的谨慎。</p>
+<p><strong>思考 2（甲与乙/丙的分界就在这页）</strong> 甲问（机器为什么行）几乎完全落在压缩一/二的【实】区；乙/丙问（人的智能、意识）要跨过 §4 的裂缝，进入压缩三的未定区。<strong>把这条裂缝记牢</strong>——全课后半（线三接地、线五心智、线六理解）都是在反复试探这条裂缝能不能被填上，以及用什么填。</p>
+<p><strong>思考 3（做得动的）</strong> 拿 gzip 和一个小 LM 分别压同一段语料，比较压缩率——你会亲眼看到"更好的语言模型 = 更好的压缩器"（§1）。再故意打乱语料词序，看压缩率如何崩塌——你就测到了"语言的规律性"有多少 bits（labs L4 扩展）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>线二完，你已握有全课最硬的数学地面。下一线（从语料到意义）走进【争】区：分布假说能把"意义"走到多远？刺激贫乏与统计学习谁赢？符号如何接地？——线一的四传统与线二的信息论，将在这里正面交锋。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="info-03-efficiency.html"><span class="pager-label">上一页</span>信息 III · 通信效率塑造语言</a>
+  <a class="pager-slot next" href="mean-01-distributional.html"><span class="pager-label">下一页</span>意义 I · 分布假说与向量语义</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

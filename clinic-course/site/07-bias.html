@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>偏倚目录 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li class="active"><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三大类</a></li>
+<li><a href="#2">2. 选择偏倚</a></li>
+<li><a href="#3">3. 信息偏倚</a></li>
+<li><a href="#4">4. 混杂</a></li>
+<li><a href="#5">5. 与时间有关的偏倚（近年最常被发现的一类）</a></li>
+<li><a href="#6">6. 发表与报告层面的偏倚</a></li>
+<li><a href="#7">7. 数据分析阶段的自由度</a></li>
+<li><a href="#8">8. 亚组分析：为什么它几乎总是错的</a></li>
+<li><a href="#9">9. 一张读文献的检查表</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">循证 III · 偏倚目录<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>偏倚是系统性误差，不会因样本量增大而消失</strong>——这是它与随机误差的根本区别，也是"大数据不能解决因果问题"的一句话总结。本页把临床研究中反复出现的偏倚整理成可检索的目录，并对每一条给出<strong>识别信号</strong>。</p>
+</blockquote>
+<h2 id="1">1. 三大类<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>选择偏倚</strong>（谁进入了研究/谁被比较）、<strong>信息偏倚</strong>（怎么测量的）、<strong>混杂</strong>（第三因素同时影响暴露与结局）。<strong>外加一类近年才被系统化的：与时间处理有关的偏倚。</strong></p>
+<h2 id="2">2. 选择偏倚<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>机制</th>
+<th>识别信号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>健康使用者偏倚</strong></td>
+<td>采用预防措施者本身更健康</td>
+<td><strong>观察性研究中"任何预防行为都有效"</strong></td>
+</tr>
+<tr>
+<td><strong>健康工人效应</strong></td>
+<td>在职人群比一般人群健康</td>
+<td>职业暴露研究低估危害</td>
+</tr>
+<tr>
+<td><strong>Berkson 悖论</strong></td>
+<td><strong>住院人群中两种病看似负相关</strong>（因为各自都增加住院概率）</td>
+<td>单中心住院样本</td>
+</tr>
+<tr>
+<td><strong>易感者耗竭</strong>（depletion of susceptibles）</td>
+<td>长期用药者是已耐受者</td>
+<td><strong>流行用药的"长期安全"假象</strong></td>
+</tr>
+<tr>
+<td><strong>失访偏倚</strong></td>
+<td>失访与结局相关</td>
+<td>失访率高且组间不均</td>
+</tr>
+<tr>
+<td><strong>志愿者偏倚</strong></td>
+<td>自愿参加者不同于总体</td>
+<td>筛查项目的参与者</td>
+</tr>
+<tr>
+<td><strong>谱偏倚</strong></td>
+<td>研究人群病情谱与应用人群不同</td>
+<td>诊断准确性研究（第 02 页）</td>
+</tr>
+<tr>
+<td><strong>验证偏倚</strong></td>
+<td>只有阳性者做金标准</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Berkson 悖论值得展开一句</strong>，因为它极隐蔽：假设疾病 A 与疾病 B 各自独立地增加住院概率。<strong>在住院患者中，患 A 会"预测"不患 B</strong>（因为已有 A 就足以解释住院）。<strong>结果：单纯基于住院样本得出的关联可能完全是假的，甚至方向相反。</strong>🔗 这与选择性样本上的相关性估计问题同构（数学站统计线的碰撞变量 collider）。</p>
+<h2 id="3">3. 信息偏倚<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>机制</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>回忆偏倚</strong></td>
+<td><strong>患病者更努力回忆暴露</strong>（病例对照的核心弱点）</td>
+<td>用客观记录（处方数据库）</td>
+</tr>
+<tr>
+<td><strong>观察者/确认偏倚</strong></td>
+<td>判读者知道分组</td>
+<td><strong>盲法判读</strong></td>
+</tr>
+<tr>
+<td><strong>诊断怀疑偏倚</strong></td>
+<td>已知暴露者被查得更仔细</td>
+<td>标准化随访</td>
+</tr>
+<tr>
+<td><strong>错分（misclassification）</strong></td>
+<td>测量不准</td>
+<td><strong>非差异性错分 → 效应向零偏（保守）</strong>；<strong>差异性错分 → 方向不可预测（危险）</strong></td>
+</tr>
+<tr>
+<td><strong>Hawthorne 效应</strong></td>
+<td>被观察改变行为</td>
+<td>对照组同等关注</td>
+</tr>
+<tr>
+<td><strong>社会期许偏倚</strong></td>
+<td>自报行为（吸烟、饮酒、依从）系统性美化</td>
+<td>客观指标</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"非差异性错分使效应向零偏"是一条有用的定理</strong>：<strong>如果一项研究测量粗糙但仍发现了效应，真实效应通常更大</strong>；<strong>反之，一项粗糙研究的"阴性"结果说服力很弱</strong>。</p>
+<h2 id="4">4. 混杂<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>定义</strong>：<span class="arithmatex">\(C\)</span> 同时影响暴露 <span class="arithmatex">\(A\)</span> 与结局 <span class="arithmatex">\(Y\)</span>，且<strong>不在 <span class="arithmatex">\(A \to Y\)</span> 的因果路径上</strong>（若在路径上，它是<strong>中介</strong>，调整它会遮蔽真实效应）。</p>
+<p><strong>经典例子</strong>：咖啡与肺癌的关联由<strong>吸烟</strong>混杂。</p>
+<p><strong>处理方法</strong>：<strong>设计阶段</strong>——随机化（最彻底）、限制、匹配；<strong>分析阶段</strong>——分层、多变量回归、倾向评分、工具变量（第 05 页）。</p>
+<p><strong>两条常被违反的规则</strong>：</p>
+<ol>
+<li><strong>不要调整中介变量</strong>（如研究肥胖对心血管的影响时调整血压——血压是机制的一部分，调整它会低估肥胖的总效应）；</li>
+<li><strong>不要调整碰撞变量</strong>（collider：被暴露与结局共同影响的变量）——<strong>调整它会凭空制造关联</strong>。这是"多放几个协变量总没坏处"这一直觉的致命反例。</li>
+</ol>
+<p><strong>残余混杂</strong>永远存在：测量误差、未测量因素、分类过粗。<strong>这就是为什么观察性研究的中等效应（RR 1.2–1.5）通常不足以支持因果结论</strong>，而 RR &gt; 3 的稳健关联更难被残余混杂完全解释。</p>
+<h2 id="5">5. 与时间有关的偏倚（近年最常被发现的一类）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>① 不朽时间偏倚（immortal time bias）</strong>——<strong>最重要的一个</strong>。</p>
+<p><strong>机制</strong>：把"从时间零点到暴露开始"的这段时间错误地算给暴露组。<strong>在这段时间里，患者按定义必须存活</strong>（否则不会被归为暴露组），<strong>因此暴露组凭空获得一段"不朽时间"</strong>。</p>
+<p><strong>典型案例</strong>：多项观察性研究曾报告"接受某药物治疗的患者生存更好"，重新分析后发现效应大部分或全部来自不朽时间。<strong>同类结构还出现在"依从性好的患者结局更好"（包括安慰剂组的依从者也结局更好——这本身证明依从性是健康的指标而非原因）。</strong></p>
+<p><strong>识别信号</strong>：<strong>暴露状态在随访开始后一段时间才确定</strong>。<strong>对策</strong>：靶试验模拟（第 05 页），把时间零点与处理策略定义清楚，或用时依协变量分析。</p>
+<p><strong>② 领先时间偏倚</strong>（第 03 页）；<strong>③ 幸存者偏倚</strong>；<strong>④ 时间窗偏倚</strong>（暴露窗定义不对称）。</p>
+<h2 id="6">6. 发表与报告层面的偏倚<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>机制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>发表偏倚</strong></td>
+<td><strong>阳性结果更容易发表</strong>（尤其小型研究）</td>
+</tr>
+<tr>
+<td><strong>结局报告偏倚</strong></td>
+<td>只报告显著的终点</td>
+</tr>
+<tr>
+<td><strong>时滞偏倚</strong></td>
+<td>阴性结果发表更晚</td>
+</tr>
+<tr>
+<td><strong>语言/引用偏倚</strong></td>
+<td>阳性结果更多被引用、被译成英文</td>
+</tr>
+<tr>
+<td><strong>重复发表</strong></td>
+<td>同一数据多次发表 → meta 分析重复计数</td>
+</tr>
+<tr>
+<td><strong>资助偏倚</strong></td>
+<td><strong>行业资助的试验更可能得出有利于资助方的结论</strong>（多项 meta 研究一致支持这一点）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对策</strong>：<strong>强制性试验注册（ClinicalTrials.gov 等）与结果上报</strong>、<strong>发表前预注册分析计划</strong>、meta 分析中的漏斗图与统计检验（第 08 页）。<strong>注册制度确实起了作用</strong>——一项被广泛引用的分析显示，某资助机构要求注册后，心血管试验报告阳性主要结局的比例大幅下降。</p>
+<h2 id="7">7. 数据分析阶段的自由度<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>同一份数据，不同的合理分析选择可以得出不同结论</strong>（"研究者自由度"、"分叉路径花园"）。选择包括：结局定义、协变量集合、离群值处理、亚组划分、时间窗。</p>
+<p><strong>多分析者研究</strong>（同一数据交给多个独立团队分析）显示，<strong>结论的离散程度远超一般人的预期</strong>——<strong>这是复现危机在方法学上的核心发现之一</strong>（🔗 心智与证据站第 03 页给出心理学侧的完整证据）。</p>
+<p><strong>对策</strong>：预注册、敏感性分析（<strong>报告"如果换一种合理选择，结论会怎样"</strong>）、公开数据与代码。</p>
+<h2 id="8">8. 亚组分析：为什么它几乎总是错的<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>问题</strong>：亚组多 → 多重比较；亚组样本小 → 功效不足且估计不稳；<strong>事后划分的亚组容易被数据驱动</strong>。</p>
+<p><strong>著名的教学例子</strong>：<strong>ISIS-2 试验</strong>的作者应审稿人对亚组分析的要求，<strong>按星座划分亚组</strong>，结果显示阿司匹林对双子座与天秤座患者"无效"甚至有害，对其他星座有效。<strong>这是用一个荒谬结果来演示方法学问题的经典手法。</strong></p>
+<p><strong>可信亚组效应的判据</strong>：<strong>预先设定</strong>、<strong>数量少</strong>、<strong>有先验生物学理由</strong>、<strong>交互作用检验显著</strong>（而非"一个亚组显著另一个不显著"）、<strong>在其他试验中可复现</strong>、<strong>效应量差异大</strong>。</p>
+<p><strong>最后一条要强调</strong>：<strong>"A 组 p=0.04、B 组 p=0.09" 不构成亚组差异的证据</strong>——<strong>必须检验交互作用本身</strong>。这是医学文献中最常见的统计错误之一。</p>
+<h2 id="9">9. 一张读文献的检查表<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<ol>
+<li><strong>随机化了吗？分配隐藏了吗？</strong></li>
+<li><strong>盲法覆盖了谁？主要终点是否主观？</strong></li>
+<li><strong>ITT 分析吗？失访多少？</strong></li>
+<li><strong>主要终点是预注册的那个吗？</strong>（去 ClinicalTrials.gov 对一下——<strong>这一步比想象中更常发现问题</strong>）</li>
+<li><strong>对照组是什么？</strong></li>
+<li><strong>报告了绝对效应吗？</strong></li>
+<li><strong>亚组结论是预设的吗？</strong></li>
+<li><strong>谁出的钱？</strong></li>
+<li><strong>观察性研究：暴露状态何时确定？有没有不朽时间？</strong></li>
+</ol>
+<hr />
+<p><em>下一页：把多项研究合起来看——系统综述、meta 分析与 GRADE 分级。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-effect-size.html"><span class="pager-label">上一页</span>循证 II · 效应量：RR、ARR、NNT 与 NNH</a>
+  <a class="pager-slot next" href="08-meta.html"><span class="pager-label">下一页</span>循证 IV · 系统综述、meta 分析与 GRADE</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

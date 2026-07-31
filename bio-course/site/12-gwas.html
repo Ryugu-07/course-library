@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连锁、GWAS 与多基因分数 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li class="active"><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、连锁不平衡：为什么不必测每个碱基</a></li>
+<li><a href="#gwas">二、GWAS 怎么做</a></li>
+<li><a href="#_2">三、"缺失遗传力"及其解答</a></li>
+<li><a href="#pgs">四、多基因分数（PGS）：能与不能</a></li>
+<li><a href="#_3">五、从关联走向机制</a></li>
+<li><a href="#_4">六、判读一则遗传学新闻的清单</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-gwas">遗传 III · 连锁、GWAS 与多基因分数<a class="headerlink" href="#iii-gwas" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：<strong>方法学与主要发现【实】</strong>；<strong>因果解释与跨群体可迁移性【争】</strong>；<strong>个体层面的预测应用【未定】</strong>。
+上一页给了群体遗传学的工具，本页把它们用在人类身上：如何在全基因组范围找到与性状相关的位点？这套方法在 2007 年后彻底改变了人类遗传学，也制造了大量误解。本页讲清它的原理、它的三个陷阱，以及多基因分数到底能做什么。</p>
+</blockquote>
+<h2 id="_1">一、连锁不平衡：为什么不必测每个碱基<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>连锁不平衡（LD）</strong>：物理上邻近的位点，其等位基因倾向于<strong>一起被继承</strong>（重组尚未把它们拆开），因而在群体中出现非随机的关联。度量常用 <span class="arithmatex">\(r^2\)</span>（两位点基因型的相关系数平方）。</p>
+<p>LD 随距离衰减，衰减速率取决于重组率与群体历史（瓶颈使 LD 延伸得更远）。<strong>人类基因组呈"单倍型块"结构</strong>：块内位点高度相关，块间由重组热点隔开。</p>
+<p><strong>这带来一个巨大的经济性</strong>：只需分型每个块里的少数<strong>标签 SNP</strong>，就能间接捕获整块的信息。于是无需全基因组测序，用<strong>基因分型芯片</strong>测约 50 万–200 万个 SNP，即可覆盖常见变异的大部分信息。<strong>GWAS 的可行性完全建立在 LD 之上。</strong></p>
+<p><strong>代价同样重要</strong>：LD 意味着 GWAS 找到的信号位点<strong>通常不是致病位点本身</strong>，只是与之相关的邻居。<strong>从关联信号定位到真正的因果变异与基因，是至今困难的一步</strong>（称为 fine-mapping）。</p>
+<h2 id="gwas">二、GWAS 怎么做<a class="headerlink" href="#gwas" title="Permanent link"></a></h2>
+<p>对每个 SNP，检验其基因型与性状的关联（连续性状用回归，病例对照用逻辑回归），得到 <span class="arithmatex">\(p\)</span> 值，画成 <strong>Manhattan 图</strong>。</p>
+<figure>
+<p><img alt="GWAS Manhattan 图" class="fig-img" src="assets/img/bio_gwas.svg" /></p>
+<figcaption><span class="fig-id">图 12-1</span> Manhattan 图：横轴为染色体位置，纵轴为 \(-\log_{10}p\)。由于同时检验约百万个位点，显著性阈值需做多重检验校正，惯用 <strong>\(5\times10^{-8}\)</strong>（红线，约等于 \(0.05/10^6\)）。超过阈值的信号呈"塔尖"状——一个因果变异因 <strong>连锁不平衡</strong>带动周围一整片位点同时显著，故信号是簇状而非单点。</figcaption>
+</figure>
+<p><strong>多重检验</strong>是核心统计问题：检验百万次，即使全无真信号，也会有大量 <span class="arithmatex">\(p&lt;0.05\)</span> 的假阳性。故采用全基因组显著性阈值 <span class="arithmatex">\(5\times10^{-8}\)</span>。<strong>这个阈值不是惯例，而是对约 100 万个独立检验做 Bonferroni 校正的结果。</strong></p>
+<p><strong>三个必须处理的陷阱</strong>：</p>
+<p><strong>① 群体分层（population stratification）</strong>——最经典的混杂。若病例与对照在祖先构成上不同，而某等位基因频率恰好随祖先变化，就会产生虚假关联。教科书例子："筷子使用基因"：在混合了东亚与欧洲祖先的样本中，任何在两群体间频率不同的位点都会与"用筷子"关联。<strong>校正方法</strong>：主成分分析（PCA）提取祖先轴并作为协变量、混合线性模型、或限制在单一祖先群体内分析。</p>
+<p><strong>② 关联不是因果</strong>：除 LD 与分层外，还有反向因果（疾病改变行为）、以及<strong>间接遗传效应</strong>（父母基因型通过塑造环境影响子代，即"遗传型–环境相关"）。</p>
+<p><strong>③ 效应量微小</strong>：常见变异对复杂性状的效应通常极小（OR 1.05–1.2 量级），<strong>几乎没有个体诊断价值</strong>。</p>
+<h2 id="_2">三、"缺失遗传力"及其解答<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>早期 GWAS 遇到一个尴尬：身高的双生子遗传力约 0.8，但最初找到的显著位点加起来只解释百分之几。这被称为<strong>缺失遗传力（missing heritability）</strong>问题，一度被认为是对多基因模型的挑战。</p>
+<p>现在的解答基本清楚，且是本页最重要的概念收获：</p>
+<ul>
+<li><strong>极度多基因</strong>：性状受<strong>成千上万</strong>个位点影响，绝大多数效应太小，在早期样本量下达不到显著阈值。当样本量增至数十万、上百万，可检出的位点数与解释的方差随之上升。</li>
+<li><strong>用全基因组 SNP 一次性估计</strong>（GREML/LDSC 等方法）显示，常见 SNP 整体可解释身高约一半的遗传力——<strong>方差一直在那里，只是分散在无数微效位点上</strong>。</li>
+<li><strong>其余部分</strong>来自罕见变异（芯片捕获不到）、结构变异、以及<strong>双生子法本身可能高估遗传力</strong>（共享环境、基因–环境相互作用被算进遗传项）。</li>
+</ul>
+<p><strong>"全基因组显著"是一个统计阈值，不是生物学边界</strong>——阈值之下有大量真实但微弱的信号。理解这一点，就理解了现代复杂性状遗传学的基本图景：<strong>Omnigenic 模型</strong>（Boyle 等）甚至主张，几乎所有在相关组织中表达的基因都会通过调控网络对性状有微小影响，"核心基因"只占少数。</p>
+<h2 id="pgs">四、多基因分数（PGS）：能与不能<a class="headerlink" href="#pgs" title="Permanent link"></a></h2>
+<p>把成千上万个位点的效应按权重求和，得到个体的<strong>多基因分数</strong>：</p>
+<div class="arithmatex">\[\text{PGS}_i = \sum_j \hat\beta_j\, x_{ij}\]</div>
+<p><strong>它能做什么</strong>【实】：
+- 在<strong>群体层面</strong>提供有意义的风险分层（如冠心病 PGS 最高 5% 的人群风险显著高于平均）；
+- 作为<strong>研究工具</strong>（孟德尔随机化、探究性状间的遗传相关）；
+- 在<strong>育种与农业</strong>中效果很好（可控交配、可控环境、大样本）。</p>
+<p><strong>它不能做什么</strong>【争/未定】：
+- <strong>个体预测精度有限</strong>：即使身高这种高遗传力性状，PGS 也只解释约 40% 的方差；多数疾病远低于此。<strong>分数高低是概率偏移，不是命运。</strong>
+- <strong>跨祖先迁移性差</strong>——这是最严重的实际问题。GWAS 样本严重偏向欧洲祖先人群，PGS 迁移到其他祖先群体时<strong>预测精度大幅下降</strong>（常降至 1/2–1/4）。原因是 LD 结构、等位基因频率与环境背景都不同。<strong>这既是科学问题，也是公平性问题</strong>：若临床应用，将系统性地让代表性不足的人群受益更少。
+- <strong>行为与社会性状的 PGS 要格外谨慎</strong>：它们混入大量间接效应（家庭环境、社会分层），<strong>不能被解释为"天生能力"的度量</strong>（承上页遗传力的四个误读）。</p>
+<h2 id="_3">五、从关联走向机制<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>GWAS 的信号大多落在<strong>非编码区</strong>（约 90% 以上），提示它们通过<strong>调控</strong>起作用（🔗 线一第二页的增强子）。要把关联变成机制，需要多层证据：</p>
+<ol>
+<li><strong>精细定位</strong>：在 LD 块中找出真正的因果变异（用跨祖先差异、功能注释）；</li>
+<li><strong>连到基因</strong>：eQTL（该变异是否影响某基因表达）、染色质构象（增强子与哪个启动子成环接触）——<strong>注意最近的基因常常不是靶基因</strong>；</li>
+<li><strong>功能验证</strong>：CRISPR 编辑该位点，看细胞表型是否改变（🔗 线六第二页）。</li>
+</ol>
+<p>一个成功范例：肥胖相关最强信号位于 <strong>FTO</strong> 基因内含子，长期被认为通过 FTO 起作用；后续工作显示该变异实际影响的是远处的 <strong>IRX3/IRX5</strong>，通过调控脂肪细胞的产热与储脂程序。<strong>这个案例是"最近的基因未必是靶基因"的经典教训</strong>，也展示了从统计关联走到生物学机制有多远。</p>
+<h2 id="_4">六、判读一则遗传学新闻的清单<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>作为本页的实用产出，遇到"科学家发现某某基因"时，依次问：</p>
+<ol>
+<li><strong>样本量与重复</strong>：是否在独立队列中重复？</li>
+<li><strong>效应量</strong>：OR 或解释方差是多少？（多数微小）</li>
+<li><strong>祖先构成</strong>：在哪个群体做的？能否外推？</li>
+<li><strong>是关联还是因果</strong>：有无功能验证？还是纯统计信号？</li>
+<li><strong>是否为复杂性状</strong>：若是，"某某基因"的说法本身就可疑——<strong>复杂性状没有"那个基因"</strong>。</li>
+</ol>
+<p>这五问能筛掉绝大部分误导性报道。</p>
+<hr />
+<p><em>下一页：遗传 IV——基因组的结构。人类基因组只有约 2% 编码蛋白，其余是什么？"垃圾 DNA"这个说法对不对？这是一场至今未平息的争论。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-popgen.html"><span class="pager-label">上一页</span>遗传 II · 群体遗传学核心</a>
+  <a class="pager-slot next" href="13-genome.html"><span class="pager-label">下一页</span>遗传 IV · 基因组的结构与非编码世界</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

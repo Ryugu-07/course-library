@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM 作为语言理论实验室 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li class="active"><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 一个史无前例的实验对象</a></li>
+<li><a href="#2-llm">2. 用 LLM 检验前五线（会师表）</a></li>
+<li><a href="#3-llm">3. 探针与句法：LLM 学到了乔姆斯基的树吗？</a></li>
+<li><a href="#4">4. 机制可解释性：把争论做成神经科学</a></li>
+<li><a href="#5-llm">5. LLM 的局限：它不是人（三条护栏）</a></li>
+<li><a href="#6">6. 要点与思考（线六收口）</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-llm">机器 III · LLM 作为语言理论实验室<a class="headerlink" href="#iii-llm" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Baroni 2022（作为语言学模型的神经网络）、Warstadt &amp; Bowman、Piantadosi 2023（现代 LLM 与语言学）、Anthropic 机制可解释性、Futrell &amp; Mahowald ｜ <strong>前置</strong>：全课 ｜ <strong>证据地位</strong>：这是<strong>方法论会师页</strong>——把前五线的争论重铸为可在 LLM 上做的实验。<strong>LLM 不只是研究对象，它是检验语言理论的"模式生物"。</strong>
+线六收官，也是全课会师。前面反复出现同一句话："这可以在 LLM 上做实验。"这一页把它系统化：<strong>LLM 是语言学</strong>史上<strong>第一个可完全观测、可干预、可重复的语言系统</strong>——你能读它每个神经元、能消融、能控制训练数据。它把过去只能思辨或间接推断的争论，第一次搬进可控实验室。</p>
+</blockquote>
+<h2 id="1">1. 一个史无前例的实验对象<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>研究人类语言，你<strong>碰不到</strong>理论要害：不能打开大脑读表征、不能控制一个孩子的全部语言输入、不能重跑一个人的语言习得。<strong>LLM 全都能</strong>：</p>
+<ul>
+<li><strong>完全可观测</strong>：每一层激活、每个注意力权重、每个 token 概率，全部可读（对比人脑只能间接成像）。</li>
+<li><strong>完全可干预</strong>：消融神经元、编辑激活、控制训练语料——<strong>因果实验</strong>，不只相关（Othello-GPT 的干预，ai-01）。</li>
+<li><strong>完全可重复</strong>：同种子同数据可复现；可训一群"同卵"模型做对照。</li>
+</ul>
+<p><strong>这是范式转变</strong>：Piantadosi 等人主张，LLM 是语言学的"<strong>模式生物</strong>"（像果蝇之于遗传学）——不是因为它等于人，而是因为它是一个<strong>可解剖的、真的会语言的系统</strong>，让理论第一次能被直接验证。<strong>但记住 mind-02/mean-02 的纪律：模式生物启发假设，不直接证明人类结论</strong>——果蝇不是人，LLM 也不是。</p>
+<h2 id="2-llm">2. 用 LLM 检验前五线（会师表）<a class="headerlink" href="#2-llm" title="Permanent link"></a></h2>
+<p>把全课的核心争论，逐条重铸为 LLM 实验：</p>
+<table>
+<thead>
+<tr>
+<th>线</th>
+<th>理论争论</th>
+<th>在 LLM 上怎么做实验</th>
+<th>现状</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一/三（轴 I）</td>
+<td>强先天论 vs 涌现：语法可从数据学吗？</td>
+<td>无 UG 的模型从纯语料学会复杂语法 → 削弱强先天论；但测<strong>数据效率</strong>（vs 儿童）暴露缺口</td>
+<td>【争】松动，效率缺口未解</td>
+</tr>
+<tr>
+<td>二</td>
+<td>surprisal = 加工难度</td>
+<td>用 LLM 概率算 surprisal，预测人类阅读时间</td>
+<td>【实】，且"人像更弱预测器"成新问题</td>
+</tr>
+<tr>
+<td>三</td>
+<td>分布假说能走多远</td>
+<td>探针读词/句表征的几何；类比、句法树可解码性</td>
+<td>【实】，句法结构确可探出</td>
+</tr>
+<tr>
+<td>三（接地）</td>
+<td>form ≠ meaning？</td>
+<td>玩具世界训练 + 探/干预内部世界模型（Othello-GPT 类）</td>
+<td>【前沿】，部分指涉接地已验</td>
+</tr>
+<tr>
+<td>五（轴 II）</td>
+<td>语言 ⊥ 推理？</td>
+<td>机制可解释性找 LLM 内的"语言子回路"vs"推理子回路"，测能否分离</td>
+<td>【前沿】，最热且够得着</td>
+</tr>
+<tr>
+<td>六（轴 III）</td>
+<td>预测 = 理解？</td>
+<td>三层接地分别测（功能基准/指涉探针/OOD 泛化）</td>
+<td>【实/前沿/思】分层</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这张表是全课的操作化总纲</strong>：每一行都是一个（你够得着的）研究问题。<strong>"语言如何促成智能"这个宏大命题，就这样被拆成十来个可在实验室里做的小问题。</strong> 这正是导论许诺的"把大问题磨成可做问题"。</p>
+<h2 id="3-llm">3. 探针与句法：LLM 学到了乔姆斯基的树吗？<a class="headerlink" href="#3-llm" title="Permanent link"></a></h2>
+<p>一个具体样本（承 ling-02）：Chomsky 说语言有<strong>层级句法树</strong>。LLM 没有内建树结构，它学到树了吗？</p>
+<ul>
+<li><strong>结构探针（Hewitt &amp; Manning）</strong>：从 BERT 的激活里，能用一个线性变换<strong>重建出依存句法树</strong>——树的深度对应激活空间里的<strong>平方距离</strong>。<strong>句法层级确实被隐式编码了</strong>，尽管从未被显式监督。</li>
+<li><strong>但形式不完全等于生成派的树</strong>：模型的表征是<strong>连续、分布式、上下文相关</strong>的，更像"软性、概率化的层级"，而非离散的 X-bar 结构。</li>
+<li><strong>启示</strong>：递归层级（ling-02 的【实】内核）<strong>可以</strong>由纯预测 + 通用架构涌现——但涌现出的形式，介于生成派的离散树与连接派的连续表征之间。<strong>这是对轴 I 一个漂亮的经验回答：不是非此即彼，而是"离散结构的连续实现"。</strong></li>
+</ul>
+<h2 id="4">4. 机制可解释性：把争论做成神经科学<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>线六反复指向同一个终局工具（承 ai-01 §5、ai-02 §4）：<strong>要真裁决"理解/世界模型/语言⊥推理"，得读出内部机制。</strong></p>
+<ul>
+<li><strong>特征（features）</strong>：用稀疏字典学习（SAE）把叠加的激活拆成单义特征——已能找到"语法一致性""指涉某实体""某语言"等可解释特征。</li>
+<li><strong>电路（circuits）</strong>：归纳头、"移动信息的"注意力头、事实回忆电路——把能力对应到可定位、可干预的子网络。</li>
+<li><strong>对语言理论的意义</strong>：过去"模型是否<strong>真的</strong>在做句法/推理/世界建模"只能靠行为<strong>猜</strong>（会被表层统计骗，中文房间的教训）；机制可解释性让你<strong>直接看</strong>。<strong>这是把语言学争论，转成对硅基网络的实验神经科学</strong>——一门刚诞生、你正好赶上的学科。</li>
+</ul>
+<h2 id="5-llm">5. LLM 的局限：它不是人（三条护栏）<a class="headerlink" href="#5-llm" title="Permanent link"></a></h2>
+<p>把 LLM 当模式生物，必须同时钉牢它<strong>不等于人</strong>的三处（全课纪律的汇总）：</p>
+<ol>
+<li><strong>数据效率鸿沟</strong>（mean-02、ling-03）：LLM 需 <span class="arithmatex">\(10^{12}\)</span> token，儿童 <span class="arithmatex">\(10^{7\text–8}\)</span>——差 4~5 个数量级。凡涉及"人<strong>如何</strong>习得"，LLM 只是弱类比。</li>
+<li><strong>无具身、无交互、无社会</strong>（mean-03、civ-01）：LLM 学在静态文本上；人学在多模态、具身、社会互动中。接地与意义的来源根本不同。</li>
+<li><strong>架构 ≠ 大脑</strong>（mind-01/02）：Transformer 的注意力不是皮层柱；LLM 单网络合一，人脑语言/推理分离。<strong>同构在"预测"这个抽象动词，差异在几乎所有实现细节。</strong></li>
+</ol>
+<p><strong>用法准则</strong>：LLM 是<strong>假设发生器与充分性证明器</strong>——它能证明"某能力<strong>可以</strong>从预测涌现"（存在性），能生成"人也许如此"的假设；但"人<strong>是否</strong>如此"必须回到人类证据（神经、发展、临床）裁决。<strong>守住这条，你就能用 LLM 而不被它误导。</strong></p>
+<h2 id="6">6. 要点与思考（线六收口）<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（全课在此会师）</strong> 六条线到这里合流：线一给结构与争论，线二给可算的尺子，线三给意义与接地，线四给文明尺度，线五给人脑对照，线六给可实验的机器。<strong>LLM 是把前五线全部"操作化"的枢纽</strong>——§2 的表就是你的研究地图。<strong>每一个曾经只能空谈的争论，现在都有了一个实验入口。</strong></p>
+<p><strong>思考 2（你的独特位置）</strong> 你同时具备：数学/信息论底子（线二）、动手能力（labs）、一个真实的 LLM 应用系统（Medusa）、和这门课给的立场地图。<strong>这让你能做很多纯理论语言学家做不了的事</strong>——把语言学争论写成代码、在模型上跑、用信息论量。<strong>这门课的最终目的，就是让你站到"能亲手做实验的语言理论研究者"这个稀缺位置上。</strong></p>
+<p><strong>思考 3（走向收官）</strong> 下一步是把这一切收拢成<strong>你自己的东西</strong>：实验双轨（labs）让你亲手跑通几个关键实验，收官（capstone）让你挑一条轴、一个可证伪小命题，写一份属于你的《语言—智能理论草案》。<strong>知识地图已经铺完，接下来是你在图上走出自己的路径。</strong> <span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>六线全部走完。下一页：实验双轨——代码实验（Zipf、word2vec、surprisal、信息瓶颈、世界模型探针）+ 思想实验（无语言者、给黑猩猩符号、只有视觉的 AI、失去文字的文明）。理论要落到手上，不可形式化的部分要靠思想实验去探。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="ai-02-understanding.html"><span class="pager-label">上一页</span>机器 II · 预测等于理解吗</a>
+  <a class="pager-slot next" href="labs.html"><span class="pager-label">下一页</span>实验双轨 · 代码 + 思想实验</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

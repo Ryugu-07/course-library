@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光通信系统 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li class="active"><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、系统构成</a></li>
+<li><a href="#_2">二、容量增长靠什么</a></li>
+<li><a href="#dsp">三、DSP：现代光通信的核心</a></li>
+<li><a href="#_3">四、极限：非线性香农极限</a></li>
+<li><a href="#_4">五、网络与应用形态</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">光纤 II · 光通信系统<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界主战场 ｜ 🔗 与语言站线二（信息论）、微电子站第十八页（CPO）互链。
+光通信在三十余年里把单纤容量提升了约六个数量级。本页讲清这个增长靠什么实现、系统由哪些部分构成、以及它现在逼近的极限——<strong>香农极限在光纤中的具体形态</strong>。</p>
+</blockquote>
+<h2 id="_1">一、系统构成<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[\text{数据} \to \text{编码/调制} \to \text{激光器 + 调制器} \to \text{光纤 + 放大器} \to \text{接收机} \to \text{DSP} \to \text{数据}\]</div>
+<p><strong>关键部件</strong>：
+- <strong>光源</strong>：DFB 激光（单纵模，第八页），需<strong>隔离器</strong>保护（第五页）；
+- <strong>调制器</strong>：直接调制（简单、有啁啾）或<strong>外调制</strong>（马赫-曾德尔，第三页结构；铌酸锂或硅光，第十五页）；
+- <strong>放大器</strong>：EDFA（第十四页）；
+- <strong>接收机</strong>：PIN/APD（直接探测）或<strong>相干接收</strong>（第九页）。</p>
+<h2 id="_2">二、容量增长靠什么<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>四个维度，逐个被用尽</strong>：</p>
+<p><strong>① 波长复用（WDM/DWDM）</strong>——<strong>最大的一次跃升</strong>。
+在一根光纤中同时传输几十到上百个波长通道，间隔可低至 50 GHz 甚至更密（灵活栅格）。<strong>C 带内可容纳约 80–100 个通道</strong>。</p>
+<p><strong>为什么可行</strong>：EDFA 能<strong>同时放大整个 C 带的所有波长</strong>（第十四页）——<strong>这是 WDM 得以规模化的关键使能技术</strong>。若每个波长都要单独光电转换再放大，成本将无法承受。</p>
+<p><strong>② 提高单通道速率</strong>：10G → 40G → 100G → 400G → 800G。受限于电子学带宽与器件速度。</p>
+<p><strong>③ 高阶调制格式</strong>：从 OOK（开关键控）到 <strong>QPSK、16QAM、64QAM</strong> ——<strong>每符号携带更多比特</strong>。</p>
+<p><strong>这需要相干探测</strong>（第九页）：因为高阶格式使用<strong>相位信息</strong>，而直接探测只测强度。</p>
+<p><strong>代价</strong>：星座点越密，<strong>对噪声越敏感</strong>。所需 OSNR 随阶数上升 → <strong>高阶格式只能用于较短距离</strong>。<strong>这是"频谱效率与传输距离"的根本权衡</strong>，与 🔗 语言站信息论的容量-噪声关系是同一回事。</p>
+<p><strong>④ 偏振复用（PDM）</strong>：两个正交偏振各传一路 → <strong>容量翻倍</strong>（第五页）。偏振漂移由 DSP 跟踪补偿。</p>
+<p><strong>合起来</strong>：现代相干系统 = <strong>PDM + 高阶 QAM + WDM + 强 DSP</strong>，单纤容量可达数十 Tb/s 量级。</p>
+<h2 id="dsp">三、DSP：现代光通信的核心<a class="headerlink" href="#dsp" title="Permanent link"></a></h2>
+<p><strong>这是过去十五年最大的变化</strong>——<strong>光通信在很大程度上变成了数字信号处理问题</strong>。</p>
+<p>接收端 DSP 承担：
+- <strong>色散补偿</strong>（静态，用数字滤波器，第十二页）；
+- <strong>偏振解复用与 PMD 跟踪</strong>（动态，自适应滤波）；
+- <strong>载波频偏与相位恢复</strong>；
+- <strong>非线性补偿</strong>（部分）；
+- <strong>前向纠错（FEC）</strong>：<strong>软判决 FEC 的编码增益可达 10 dB 以上</strong>，这直接等价于传输距离的成倍延长。</p>
+<p><strong>FEC 的地位值得强调</strong>：现代系统的原始误码率高到无法直接使用（可达 <span class="arithmatex">\(10^{-2}\)</span> 量级），<strong>全靠 FEC 纠正到 <span class="arithmatex">\(10^{-15}\)</span> 以下</strong>。<strong>"用编码换功率"是信息论最直接的工程兑现</strong>（🔗 语言站线二：信道编码定理）。</p>
+<p><strong>一个判断</strong>：<strong>光通信的进步，近年主要来自 DSP 与 CMOS 工艺的进步，而非光学器件本身</strong>。DSP 芯片的算力随摩尔定律增长（🔗 微电子站），使得越来越复杂的补偿算法变得可行。<strong>这是两个学科耦合的典型例子。</strong></p>
+<h2 id="_3">四、极限：非线性香农极限<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>光纤不是线性信道。</strong> 功率提高时，<strong>克尔非线性</strong>（第十四页）引起自相位调制、交叉相位调制、四波混频，使不同通道互相干扰。</p>
+<p><strong>于是出现一个特有的现象</strong>：</p>
+<ul>
+<li><strong>功率太低</strong> → 放大器噪声（ASE）主导，SNR 差；</li>
+<li><strong>功率太高</strong> → <strong>非线性噪声主导，SNR 反而下降</strong>；</li>
+<li><strong>中间存在一个最优功率</strong>，对应<strong>最大可达容量</strong>。</li>
+</ul>
+<p><strong>这条曲线称为"非线性香农极限"</strong>——它比线性信道的香农容量更严格，且<strong>不能简单靠加大功率来突破</strong>。</p>
+<p><strong>这与本讲义库其他站的"不可能性定律"是同一类</strong>：🔗 微电子站的 60 mV/dec、自动化站的水床效应、本站第七页的 BPP 守恒与第九页的散粒噪声极限。<strong>成熟工程学科都知道自己的天花板在哪。</strong></p>
+<p><strong>突破的方向只剩"增加并行度"</strong>：
+- <strong>空分复用（SDM）</strong>：多芯光纤、少模光纤（第十二页）；
+- <strong>拓展波段</strong>：从 C 带扩展到 L、S 带（需要新的放大器）；
+- <strong>空芯光纤</strong>：非线性极低，可提高功率上限。</p>
+<h2 id="_4">五、网络与应用形态<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>距离</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>数据中心内</strong></td>
+<td>&lt; 数百米</td>
+<td>多模/短距单模，<strong>成本与功耗敏感</strong>，VCSEL 或硅光</td>
+</tr>
+<tr>
+<td><strong>数据中心互联（DCI）</strong></td>
+<td>数十–百公里</td>
+<td>相干，可插拔模块</td>
+</tr>
+<tr>
+<td><strong>城域网</strong></td>
+<td>百公里级</td>
+<td>ROADM 灵活组网</td>
+</tr>
+<tr>
+<td><strong>长途干线</strong></td>
+<td>数百–数千公里</td>
+<td>相干 + EDFA 链 + 强 FEC</td>
+</tr>
+<tr>
+<td><strong>海底光缆</strong></td>
+<td>数千公里</td>
+<td><strong>中继供电与可靠性是核心约束</strong>，几十年免维护</td>
+</tr>
+<tr>
+<td><strong>接入网（PON）</strong></td>
+<td>数公里</td>
+<td>点到多点、无源分光，成本极度敏感</td>
+</tr>
+</tbody>
+</table>
+<p><strong>当前最大的驱动力是 AI 数据中心</strong>：GPU 集群之间需要巨大的互连带宽，<strong>且功耗成为首要约束</strong>。</p>
+<p><strong>这催生了共封装光学（CPO）</strong>（🔗 微电子站第十八页）：把光引擎与交换芯片封装在一起，<strong>省掉长电走线的驱动与均衡功耗</strong>。<strong>"每比特焦耳"取代"每秒比特"成为核心指标</strong>——这是光互连领域近年最重要的观念转变。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>容量增长靠四个维度</strong>：WDM、单通道速率、高阶调制、偏振复用；<strong>EDFA 是 WDM 的使能技术</strong>；</li>
+<li><strong>高阶调制需要相干探测</strong>，且频谱效率与传输距离根本冲突；</li>
+<li><strong>现代光通信在很大程度上是 DSP 问题</strong>；FEC 提供 10 dB 以上编码增益；</li>
+<li><strong>非线性香农极限</strong>：功率过高反而降低容量，存在最优功率；</li>
+<li><strong>突破方向是并行度（SDM、拓展波段、空芯光纤）</strong>；</li>
+<li><strong>AI 数据中心使"每比特焦耳"成为核心指标</strong>，驱动 CPO。</li>
+</ul>
+<hr />
+<p><em>下一页：让光通信成为可能的两项关键物理——光放大与非线性效应。前者是使能技术，后者既是限制也是工具。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-fiber.html"><span class="pager-label">上一页</span>光纤 I · 波导原理与色散</a>
+  <a class="pager-slot next" href="14-amplifier-nonlinear.html"><span class="pager-label">下一页</span>光纤 III · 光放大与非线性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

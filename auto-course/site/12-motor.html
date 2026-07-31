@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电机与矢量控制 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li class="active"><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、直流电机：最清晰的模型</a></li>
+<li><a href="#_2">二、交流电机与它的困难</a></li>
+<li><a href="#_3">三、矢量控制：一次坐标变换解决问题</a></li>
+<li><a href="#_4">四、无位置传感器控制</a></li>
+<li><a href="#_5">五、实际工程中的关键问题</a></li>
+<li><a href="#_6">六、与全课的连接</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">实务 II · 电机与矢量控制<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界核心技能 ｜ 这一页是运动控制的基石。
+电机把电能变成运动，是自动化系统最常见的执行机构。本页从最简单的直流电机模型出发，走到<strong>矢量控制（FOC）</strong>——它是现代交流伺服、电动汽车、机器人关节的通用方案，其核心思想是一次漂亮的<strong>坐标变换</strong>。</p>
+</blockquote>
+<h2 id="_1">一、直流电机：最清晰的模型<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>两个方程</strong>：</p>
+<div class="arithmatex">\[\text{电气：}\ V = Ri + L\frac{di}{dt} + \underbrace{K_e\omega}_{\text{反电动势}}, \qquad \text{机械：}\ J\dot{\omega} = \underbrace{K_t i}_{\text{电磁转矩}} - B\omega - T_L\]</div>
+<p><strong>关键性质（SI 单位下）</strong>：<span class="arithmatex">\(K_t = K_e\)</span>——<strong>转矩常数等于反电动势常数</strong>。这不是巧合，是能量守恒的直接结果（电功率 <span class="arithmatex">\(= K_e\omega i\)</span> 恰等于机械功率 <span class="arithmatex">\(= K_t i \cdot \omega\)</span>）。</p>
+<p><strong>结构上的洞察</strong>：
+- <strong>转矩正比于电流</strong> → <strong>控制电流就是控制转矩</strong>。这是所有运动控制的基础；
+- <strong>反电动势 <span class="arithmatex">\(K_e\omega\)</span> 构成一个天然的负反馈</strong>：转速越高，反电动势越大，电流越小 → <strong>直流电机自带速度负反馈</strong>，这使它天生稳定且易控；
+- 两个时间常数：<strong>电气 <span class="arithmatex">\(\tau_e = L/R\)</span></strong>（毫秒级）与<strong>机械 <span class="arithmatex">\(\tau_m = J/B\)</span></strong>（几十到几百毫秒）。<strong><span class="arithmatex">\(\tau_e \ll \tau_m\)</span> 正是级联控制（内电流环 + 外速度环）合理的物理依据</strong>（承第十一页的级联原则）。</p>
+<p><strong>级联结构（工业标准）</strong>：</p>
+<div class="arithmatex">\[\text{位置环} \to \text{速度环} \to \text{电流环} \to \text{功率变换器（第十一页）}\]</div>
+<p><strong>由内到外，带宽逐级降低约 5–10 倍</strong>。电流环带宽通常在千赫兹量级，速度环几百赫兹，位置环几十赫兹。</p>
+<h2 id="_2">二、交流电机与它的困难<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>直流电机好控，但有<strong>换向器与电刷</strong>——磨损、需维护、限制转速、产生火花。<strong>所以工业上主流是交流电机</strong>：</p>
+<ul>
+<li><strong>感应电机（异步）</strong>：结构最简单坚固、便宜，转子无绕组也无磁钢。<strong>是工业界数量最多的电机</strong>；</li>
+<li><strong>永磁同步电机（PMSM/BLDC）</strong>：转子用永磁体，<strong>功率密度与效率最高</strong>，是伺服、电动汽车、机器人关节的主流。</li>
+</ul>
+<p><strong>但交流电机难控</strong>：定子三相电流产生旋转磁场，转矩取决于<strong>磁场与转子的相对角度关系</strong>，是一个<strong>耦合的、随转子位置变化的非线性系统</strong>。直接用三相电流做 PID 几乎无法获得好的动态性能。</p>
+<h2 id="_3">三、矢量控制：一次坐标变换解决问题<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>FOC（磁场定向控制）</strong>的思想极其漂亮：<strong>换一个坐标系，把交流问题变成直流问题。</strong></p>
+<p><strong>两步变换</strong>：</p>
+<p><strong>① Clarke 变换</strong>（三相 → 两相静止坐标 <span class="arithmatex">\(\alpha\beta\)</span>）：把三个 120° 分布的量降为两个正交量（因三相电流和为零，本就只有两个自由度）。</p>
+<p><strong>② Park 变换</strong>（静止 <span class="arithmatex">\(\alpha\beta\)</span> → 旋转 <span class="arithmatex">\(dq\)</span>）：<strong>坐标系随转子磁场一起旋转</strong>。</p>
+<div class="arithmatex">\[\begin{bmatrix} i_d \\ i_q \end{bmatrix} = \begin{bmatrix} \cos\theta &amp; \sin\theta \\ -\sin\theta &amp; \cos\theta\end{bmatrix}\begin{bmatrix} i_\alpha \\ i_\beta\end{bmatrix}\]</div>
+<p><strong>变换后的结果</strong>：在旋转坐标系中，稳态下的正弦交流量<strong>变成了直流量</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(i_q\)</span>（交轴电流）→ 直接正比于转矩</strong>；</li>
+<li><strong><span class="arithmatex">\(i_d\)</span>（直轴电流）→ 控制磁场</strong>（PMSM 通常令 <span class="arithmatex">\(i_d = 0\)</span> 以获得最大转矩电流比；高速时用<strong>弱磁控制</strong>令 <span class="arithmatex">\(i_d&lt;0\)</span> 以扩展转速范围）。</li>
+</ul>
+<p><strong>于是复杂的交流电机被"解耦"成两个独立的直流量</strong>，各用一个 PI 控制器即可——<strong>而 PI 对直流量能做到零静差</strong>（第一页内模原理）。</p>
+<p><strong>这是本课最漂亮的一次"用变换化难为易"</strong>：不改变物理，只改变观察的坐标系，问题的结构就变简单了。<strong>同样的思想在数学（对角化）、信号处理（傅里叶）、物理（转动坐标系）中反复出现。</strong></p>
+<p><strong>实现所需</strong>：
+- <strong>转子位置 <span class="arithmatex">\(\theta\)</span></strong>（Park 变换必需）——由编码器/旋变提供，或用<strong>无位置传感器算法</strong>估计（观测器/滑模观测器/高频注入，第九、十五页的技术在此落地）；
+- <strong>电流采样</strong>（通常两相，第三相由和为零推出）；
+- <strong>SVPWM（空间矢量脉宽调制）</strong>：生成三相 PWM，比正弦 PWM 的直流电压利用率高约 15%。</p>
+<h2 id="_4">四、无位置传感器控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>编码器昂贵、增加体积、在恶劣环境下易失效。<strong>无传感器（sensorless）控制</strong>用估计替代测量：</p>
+<ul>
+<li><strong>中高速</strong>：基于反电动势的观测器（反电动势正比于转速，高速时信噪比好）；</li>
+<li><strong>零速与低速</strong>：反电动势趋于零，无法观测。改用<strong>高频信号注入</strong>——利用电机的凸极性（<span class="arithmatex">\(L_d \neq L_q\)</span>），注入高频电压并从响应中提取位置信息；</li>
+<li><strong>起动</strong>：常需开环强拖或专门的初始位置检测（含磁极极性判别）。</li>
+</ul>
+<p><strong>这是第九页状态估计理论最典型的工业落地</strong>，也是一个"理论直接创造商业价值"的例子——省掉编码器可显著降低成本，家电（空调压缩机、洗衣机）几乎全部采用无传感器控制。</p>
+<h2 id="_5">五、实际工程中的关键问题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>死区效应</strong>：为防止逆变器上下桥臂直通，PWM 需插入死区时间。<strong>死区造成输出电压畸变</strong>，在低速小电流时尤其明显，导致转矩脉动——需要<strong>死区补偿</strong>；</li>
+<li><strong>转矩脉动</strong>：来自齿槽转矩、磁链谐波、电流采样误差。精密应用需要谐波补偿；</li>
+<li><strong>参数漂移</strong>：电阻随温度变化显著（铜电阻温度系数约 0.4%/K），磁钢随温度退磁。<strong>在线参数辨识</strong>（第十八页）在高性能应用中是必需的；</li>
+<li><strong>机械谐振</strong>：负载与电机之间的柔性联轴、传动带、齿轮间隙会引入谐振峰。<strong>这是伺服调试中最常见的障碍</strong>——通常在速度环加<strong>陷波滤波器</strong>抑制。若不处理，提高增益时系统会在谐振频率上啸叫；</li>
+<li><strong>热与过载</strong>：电机的短时过载能力与热时间常数决定了实际可用的峰值转矩，<strong>控制器必须包含热模型保护</strong>。</li>
+</ul>
+<h2 id="_6">六、与全课的连接<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>电机控制几乎用上了本课的所有内容：</p>
+<table>
+<thead>
+<tr>
+<th>用到的</th>
+<th>在哪一页</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>级联 PI 与整定</td>
+<td>第六页</td>
+</tr>
+<tr>
+<td>带宽分配与稳定裕度</td>
+<td>第五页</td>
+</tr>
+<tr>
+<td>数字实现与采样延迟</td>
+<td>第十页（电流环采样率常达 10–20 kHz）</td>
+</tr>
+<tr>
+<td>状态估计（无传感器）</td>
+<td>第九页</td>
+</tr>
+<tr>
+<td>功率变换与 PWM</td>
+<td>第十一页</td>
+</tr>
+<tr>
+<td>非线性与参数变化</td>
+<td>第十五、十八页</td>
+</tr>
+<tr>
+<td>陷波滤波与柔性模态</td>
+<td>第五页回路整形</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"电机控制"因此是自动化专业最好的综合训练</strong>——它把理论、硬件、实时软件、调试经验全部串在一起，也是就业市场上需求最稳定的技能之一。</p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>转矩正比于电流</strong>——一切运动控制的基础；直流电机的反电动势提供天然负反馈；</li>
+<li><strong>级联结构（位置-速度-电流）与带宽逐级递减</strong>是工业标准；</li>
+<li><strong>FOC 的核心是坐标变换</strong>：把随转子旋转的交流量变成可用 PI 零静差控制的直流量；</li>
+<li><strong>无位置传感器控制</strong>是状态估计理论最成功的工业落地之一；</li>
+<li><strong>死区、谐振、参数漂移、热</strong>是实际调试中的主要障碍——<strong>其中机械谐振最常见</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：从单个回路走向整个工厂。PLC、现场总线、SCADA——工业自动化的实际形态，以及它与实验室理论的巨大差别。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-power-electronics.html"><span class="pager-label">上一页</span>实务 I · 电力电子与变换器</a>
+  <a class="pager-slot next" href="13-industrial.html"><span class="pager-label">下一页</span>实务 III · PLC、总线与工业系统</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

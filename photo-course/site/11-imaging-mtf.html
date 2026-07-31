@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成像质量与计算成像 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li class="active"><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#mtf">一、MTF：成像系统的频率响应</a></li>
+<li><a href="#_1">二、其他评价指标</a></li>
+<li><a href="#_2">三、计算成像：重新划分光学与算法的边界</a></li>
+<li><a href="#_3">四、诚实的边界：算法能做什么、不能做什么</a></li>
+<li><a href="#_4">五、系统工程视角</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">探测 III · 成像质量与计算成像<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界标准语言 + 前沿方向。
+"这个镜头好不好"需要一个客观答案。<strong>MTF</strong> 提供了它——把成像系统当作空间频率的滤波器（承第四页 4f 系统）。本页先讲清 MTF 这套语言，再讲计算成像如何模糊了"光学"与"算法"的边界，以及它的真实边界在哪。</p>
+</blockquote>
+<h2 id="mtf">一、MTF：成像系统的频率响应<a class="headerlink" href="#mtf" title="Permanent link"></a></h2>
+<p>承第四页：成像是线性滤波，<span class="arithmatex">\(\tilde{I} = \tilde{O}\cdot\mathrm{OTF}\)</span>。</p>
+<ul>
+<li><strong>PSF</strong>：点扩散函数（对点源的响应）；</li>
+<li><strong>OTF = FT{PSF}</strong>；<strong>MTF = |OTF|</strong>：对不同空间频率的<strong>对比度传递能力</strong>；</li>
+<li><strong>PTF = arg(OTF)</strong>：相位传递，<strong>影响图像的位置与形状失真</strong>（相位反转会造成伪细节）。</li>
+</ul>
+<p><strong>读 MTF 曲线的方法</strong>：
+- 横轴：空间频率（lp/mm 或 cycles/mm）；纵轴：对比度传递（0–1）；
+- <strong>低频 MTF 高 → 反差好、通透</strong>；<strong>高频 MTF 高 → 细节锐利</strong>；
+- <strong>截止频率</strong>：<span class="arithmatex">\(f_c = \frac{2\mathrm{NA}}{\lambda}\)</span>（非相干成像），<strong>超过它的信息完全不进入系统</strong>（第四页）；
+- <strong>衍射极限 MTF</strong> 是理论上限，实际系统因像差而低于它。</p>
+<figure>
+<p><img alt="MTF：衍射极限、像差与探测器" class="fig-img" src="assets/img/pho_mtf.svg" /></p>
+<figcaption><span class="fig-id">图 11-1</span> 系统 MTF 的构成。<strong>衍射极限</strong>（虚线）给出理论上限，在截止频率 \(f_c=2\mathrm{NA}/\lambda\) 处降为零；<strong>实际镜头</strong>（蓝）因像差而更低；<strong>探测器</strong>因像素有限尺寸而有自身 MTF（其零点在 \(1/p\)）；<strong>系统总 MTF 是各环节相乘</strong>（紫）。注意<strong>奈奎斯特频率 \(1/2p\)</strong>——高于它的信息会混叠成伪信号。<strong>系统性能由最差的环节主导</strong>，这就是"镜头与传感器必须匹配"的定量含义。</figcaption>
+</figure>
+<p><strong>级联规则</strong>：</p>
+<div class="arithmatex">\[\mathrm{MTF}_{\text{系统}} = \mathrm{MTF}_{\text{镜头}}\times\mathrm{MTF}_{\text{探测器}}\times\mathrm{MTF}_{\text{离焦/抖动}}\times\cdots\]</div>
+<p><strong>这个乘法关系给出一条重要的工程判断</strong>：<strong>任何一环很差，整体就好不了。</strong> 给一个平庸的镜头配一个高像素传感器，或反之，都是浪费——<strong>匹配比单项优秀更重要</strong>（承本课导论 §3）。</p>
+<p><strong>探测器的 MTF</strong>：像素是有限大小的方形，对光强做<strong>空间积分</strong> → 相当于一个 sinc 型低通，<strong>首个零点在 <span class="arithmatex">\(1/p\)</span>（<span class="arithmatex">\(p\)</span> 为像素间距）</strong>。</p>
+<p><strong>混叠</strong>：<strong>奈奎斯特频率 <span class="arithmatex">\(f_N = 1/(2p)\)</span></strong>。高于它的空间频率会折叠成低频伪信号（<strong>摩尔纹、伪色</strong>）。
+<strong>对策</strong>：光学低通滤波器（OLPF，故意轻微模糊）——<strong>但现代高像素传感器多已取消它</strong>，因为像素已足够密，且宁可保留锐度、用算法处理偶发摩尔纹。<strong>这是一个典型的"从光学解决转向算法解决"的迁移。</strong></p>
+<h2 id="_1">二、其他评价指标<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>点列图与波前误差</strong>：设计阶段常用。<strong>瑞利判据</strong>：波前 RMS 误差 <span class="arithmatex">\(&lt;\lambda/14\)</span>（或 PV <span class="arithmatex">\(&lt;\lambda/4\)</span>）视为"衍射受限"；</li>
+<li><strong>斯特列尔比（Strehl ratio）</strong>：实际 PSF 峰值 / 理想 PSF 峰值，<strong>&gt; 0.8 通常认为接近衍射受限</strong>；</li>
+<li><strong>对比度、杂散光与鬼像</strong>：镀膜与遮光设计的责任（第三页）；</li>
+<li><strong>畸变与色差</strong>：可部分由算法校正（第二页）。</li>
+</ul>
+<h2 id="_2">三、计算成像：重新划分光学与算法的边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>传统思路</strong>：光学系统尽力做到完美 → 探测器忠实记录 → 图像即最终产品。</p>
+<p><strong>计算成像的思路</strong>：<strong>光学与算法联合设计</strong>——光学系统<strong>不必</strong>产生"好看"的图像，只需<strong>编码足够的信息</strong>，由算法解码出所需结果。</p>
+<p><strong>代表性技术</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>思想</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>相位编码/波前编码</strong></td>
+<td>故意引入特定像差，使 PSF <strong>对离焦不敏感</strong> → 算法反卷积后获得<strong>极大景深</strong></td>
+</tr>
+<tr>
+<td><strong>光场相机</strong></td>
+<td>微透镜阵列记录光线的方向信息 → <strong>可事后重聚焦</strong>（代价：空间分辨率大幅下降）</td>
+</tr>
+<tr>
+<td><strong>压缩感知成像</strong></td>
+<td>利用信号稀疏性，用远少于奈奎斯特的测量重建（单像素相机）</td>
+</tr>
+<tr>
+<td><strong>编码孔径</strong></td>
+<td>用特定图案孔径，可做深度估计或 X 射线/伽马成像（无法用透镜时）</td>
+</tr>
+<tr>
+<td><strong>多帧/多曝光合成</strong></td>
+<td>HDR、超分辨、去噪（承第十页）</td>
+</tr>
+<tr>
+<td><strong>无透镜成像</strong></td>
+<td>传感器紧贴掩模，全靠计算重建 → 极薄，用于生物芯片</td>
+</tr>
+</tbody>
+</table>
+<p><strong>成功的关键在于"联合设计"</strong>：单独看，编码光学产生的原始图像往往很糟；但<strong>光学 + 算法作为整体</strong>，性能可超越任何一方单独优化的结果。</p>
+<p><strong>这与 🔗 微电子站第九页"把模拟难题转成数字问题"、第二页"畸变交给软件"是同一条主线</strong>——<strong>把约束从难的域转移到便宜的域。</strong></p>
+<h2 id="_3">四、诚实的边界：算法能做什么、不能做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>这是本页最需要清醒的部分</strong>（承第四页）：</p>
+<p><strong>能做</strong>：
+- <strong>补偿已知的、可逆的退化</strong>（反卷积、畸变校正、色差校正）；
+- <strong>提高 SNR</strong>（多帧平均——因为<strong>真的增加了光子</strong>）；
+- <strong>利用先验重建欠采样数据</strong>（压缩感知，前提是信号确实稀疏）；
+- <strong>提取非图像信息</strong>（深度、材质、光谱）。</p>
+<p><strong>不能做</strong>：
+- <strong>恢复截止频率之外的信息</strong>——它<strong>根本没有进入系统</strong>；
+- <strong>突破散粒噪声极限</strong>（第九页）——光子数就那么多；
+- <strong>凭空创造真实细节</strong>。</p>
+<p><strong>关于"AI 超分辨"</strong>：生成模型能产生<strong>看起来清晰</strong>的图像，但那些细节是<strong>根据训练先验推测的，不是测量到的</strong>。</p>
+<p><strong>这在不同场合的性质截然不同</strong>：
+- 消费摄影中，"看起来好"可能就够了；
+- <strong>在医学影像、司法取证、科学测量中，这是不可接受的</strong>——<strong>推测出的细节可能构成误诊或错误证据</strong>。</p>
+<p><strong>判读此类工作的标准问题</strong>：<strong>这些高频信息来自测量还是来自先验？有没有在"真值已知"的独立数据上验证过？</strong> 这与 🔗 生物站、语言站反复强调的判读纪律完全一致。</p>
+<h2 id="_4">五、系统工程视角<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>设计一个成像系统时，需要联合考虑：</p>
+<div class="arithmatex">\[\text{光源/照明} \to \text{光学} \to \text{探测器} \to \text{读出电子学} \to \text{算法}\]</div>
+<p><strong>常见的失衡</strong>（都是实际项目中反复出现的）：
+- 高级镜头配廉价传感器（或反之）；
+- 忽略照明——<strong>很多机器视觉问题的最佳解法是改善照明，而不是换更好的相机或写更强的算法</strong>。<strong>这是视觉工程中最实用的一条经验</strong>；
+- 只优化 MTF 而忽略噪声：<strong>MTF 高但 SNR 低的系统，实际观感很差</strong>。</p>
+<p><strong>综合指标</strong>：单看 MTF 或单看 SNR 都不够，可用<strong>噪声等效调制（NEM）</strong>或<strong>可探测量子效率（DQE）</strong>等把两者结合（医学影像领域尤其常用 DQE）。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>MTF 是成像系统的频率响应</strong>，系统 MTF 是各环节相乘 → <strong>匹配比单项优秀更重要</strong>；</li>
+<li><strong>像素带来 sinc 型 MTF 与奈奎斯特混叠</strong>；OLPF 的取消是"光学问题交给算法"的迁移；</li>
+<li><strong>斯特列尔比 &gt; 0.8 视为接近衍射受限</strong>；</li>
+<li><strong>计算成像的核心是光学与算法联合设计</strong>，把约束转移到便宜的域；</li>
+<li><strong>算法不能恢复未进入系统的信息、不能突破散粒噪声</strong>——AI 超分辨的细节来自先验而非测量，在医学与司法场合不可接受；</li>
+<li><strong>改善照明常比升级相机或算法更有效</strong>。</li>
+</ul>
+<hr />
+<p><em>线三结束。下一线转向光的另一大用途——传输信息。光纤是人类建造过的最重要的信息基础设施。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-image-sensor.html"><span class="pager-label">上一页</span>探测 II · 图像传感器</a>
+  <a class="pager-slot next" href="12-fiber.html"><span class="pager-label">下一页</span>光纤 I · 波导原理与色散</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

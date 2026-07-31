@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>心血管风险与他汀/降压的决策分析 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li class="active"><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 从"指标异常"到"总体风险"</a></li>
+<li><a href="#2">2. 他汀一级预防的完整账</a></li>
+<li><a href="#3">3. 降压：目标值之争</a></li>
+<li><a href="#4">4. 阿司匹林：一级预防的反转</a></li>
+<li><a href="#5">5. 生活方式干预：证据强度分层</a></li>
+<li><a href="#6">6. 把这一页收成一个决策流程</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">预防 I · 心血管风险与他汀/降压的决策分析<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>这一页是本站方法论的集中演示：<strong>同一种药，对不同人的价值可以相差十倍以上</strong>，而决定这个差别的不是化验单上的某个数字，而是<strong>这个人的总体绝对风险</strong>。理解了这一页，你就理解了现代预防医学的全部逻辑转变。</p>
+</blockquote>
+<h2 id="1">1. 从"指标异常"到"总体风险"<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>旧范式</strong>：胆固醇 &gt; 阈值 → 治疗；血压 &gt; 阈值 → 治疗。
+<strong>新范式</strong>：<strong>估算个体的 10 年（或终生）心血管事件绝对风险 → 用风险决定是否治疗与治疗强度。</strong></p>
+<p><strong>为什么必须转变</strong>：由第 06 页，<strong>ARR = 基线风险 × RRR</strong>。<strong>同样的降脂幅度，在高风险者身上产生的绝对获益是低风险者的十倍以上</strong>。<strong>而"胆固醇轻度升高的低风险年轻人"与"胆固醇正常的糖尿病老年吸烟者"，后者的绝对风险高得多。</strong></p>
+<p><strong>风险评分工具</strong>（各地区不同，必须用适配本地人群的）：Framingham、SCORE2（欧洲）、Pooled Cohort Equations（美国）、China-PAR（中国）。<strong>要点</strong>：<strong>这些方程在与其推导人群不同的群体中会系统性高估或低估</strong>——<strong>用错人群的方程是一个真实且常见的错误。</strong></p>
+<h2 id="2">2. 他汀一级预防的完整账<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Absolute benefit of statin therapy across baseline 10-year risk" src="assets/img/cli-15-risk.svg" /></p>
+<figcaption><span class="fig-id">图 15.1</span>他汀一级预防：固定相对风险降低约 25%，绝对获益随基线 10 年风险线性增长（柱，左轴），NNT 随之双曲下降（曲线，右轴）。虚线为常见的治疗阈值区间（10 年风险 7.5%–10%）。**图中同时标出肌肉症状的 NNH 量级（约 100）作为对照**——在低风险端，NNT 超过 NNH；在高风险端，NNT 远小于 NNH。**"阈值"本质上就是 NNT 与 NNH 交叉点附近的一个价值判断。**</figcaption>
+</figure>
+<table>
+<thead>
+<tr>
+<th>10 年基线风险</th>
+<th>ARR（10 年）</th>
+<th><strong>NNT</strong></th>
+<th>解读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.5%</td>
+<td>0.6%</td>
+<td><strong>160</strong></td>
+<td>多数人不会选择终身服药</td>
+</tr>
+<tr>
+<td>5%</td>
+<td>1.25%</td>
+<td><strong>80</strong></td>
+<td>边缘</td>
+</tr>
+<tr>
+<td><strong>7.5%</strong></td>
+<td>1.9%</td>
+<td><strong>53</strong></td>
+<td>常见阈值</td>
+</tr>
+<tr>
+<td>10%</td>
+<td>2.5%</td>
+<td><strong>40</strong></td>
+<td>多数指南推荐</td>
+</tr>
+<tr>
+<td>20%</td>
+<td>5%</td>
+<td><strong>20</strong></td>
+<td>明确推荐</td>
+</tr>
+<tr>
+<td>30%（如已有冠心病，二级预防）</td>
+<td>7.5%</td>
+<td><strong>13</strong></td>
+<td>强推荐</td>
+</tr>
+</tbody>
+</table>
+<p><strong>危害侧</strong>：<strong>肌肉症状</strong>是最常被报告的；<strong>但值得注意的是，在双盲随机试验中，他汀组与安慰剂组的肌肉症状发生率差异远小于开放标签观察中的报告率</strong>——<strong>n-of-1 随机试验（同一患者交替服用他汀与安慰剂）显示大部分症状在两种情况下都出现</strong>。<strong>这是"反安慰剂效应（nocebo）"最干净的证据之一</strong>（第 19 页）。<strong>横纹肌溶解极罕见</strong>；新发糖尿病的绝对增加很小（<strong>在高风险人群中获益仍远超此项</strong>）。</p>
+<p><strong>这一页的关键教学点</strong>：<strong>"该不该吃他汀"不是一个医学事实问题，而是一个在给定 NNT/NNH 下的价值判断</strong>。<strong>一个厌恶长期服药的人在 NNT = 80 时拒绝是完全理性的；另一个人在同样数字下接受也是理性的。</strong> 医生的工作是把数字给准，不是替人选择（第 24 页）。</p>
+<h2 id="3">3. 降压：目标值之争<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>降压的获益证据非常扎实</strong>（多种机制不同的药物一致降低卒中与心衰，第 09 页的"替代终点被验证"标准）。<strong>争论在于目标值。</strong></p>
+<p><strong>SPRINT 试验</strong>（强化目标收缩压 &lt; 120 vs &lt; 140）显示强化组主要心血管事件与全因死亡降低。<strong>但必须同时讲三件事</strong>：</p>
+<ol>
+<li><strong>SPRINT 的血压测量方式是"无人值守自动诊室血压"</strong>，其读数通常<strong>低于常规诊室血压</strong>——<strong>因此不能把"120"直接搬到常规测量上</strong>。这是一个真实且广泛的误读来源；</li>
+<li><strong>强化组的不良事件更多</strong>：低血压、晕厥、电解质紊乱、急性肾损伤；</li>
+<li><strong>纳入人群不含糖尿病患者与卒中病史者</strong>（ACCORD-BP 在糖尿病人群中未显示同样获益）——<strong>外推需谨慎</strong>（第 05 页）。</li>
+</ol>
+<p><strong>实践含义</strong>：<strong>目标值应个体化</strong>——<strong>年轻、高风险、耐受良好者更强化；高龄、体位性低血压、多重用药者更保守。</strong> 指南之间的分歧（第 09 页）正反映了这个权衡。</p>
+<p><strong>降压药的选择</strong>：<strong>一线四类（噻嗪类利尿剂、ACEI/ARB、钙通道阻滞剂）在硬终点上大体相当</strong>（🔗 姊妹站第 15 页给机制），<strong>选择主要由合并症、不良反应与成本决定</strong>。<strong>β 阻滞剂不作为无合并症高血压的首选</strong>（在预防卒中上略逊）。</p>
+<p><strong>一个有证据支持的实践更新</strong>：<strong>起始即用低剂量联合治疗（单片复方）优于单药加量</strong>——<strong>降压更快、依从性更好、不良反应不增加</strong>。</p>
+<h2 id="4">4. 阿司匹林：一级预防的反转<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>这是过去十年最重要的预防医学反转之一，也是本站最好的教学案例。</strong></p>
+<p><strong>旧建议</strong>：中年人常规服用小剂量阿司匹林预防心血管病。</p>
+<p><strong>2018 年前后的三项大型 RCT</strong>（ASPREE、ARRIVE、ASCEND）显示：<strong>在当代一级预防人群中，阿司匹林的心血管获益很小，而大出血的绝对增加与之相当或更大</strong>；<strong>ASPREE 在健康老年人中甚至观察到全因死亡略高</strong>。<strong>主要指南随后收窄或取消了一级预防的常规推荐。</strong></p>
+<p><strong>为什么会反转</strong>：<strong>背景风险下降了</strong>。随着他汀、控烟、降压的普及，<strong>当代人群的基线心血管风险远低于 1980–90 年代的试验人群</strong> → <strong>由 ARR = 基线 × RRR，绝对获益随之缩小，而出血风险不变</strong> → <strong>收益-危害天平翻转</strong>。</p>
+<p><strong>这个机制值得反复咀嚼</strong>：<strong>一项治疗的价值会随着其他治疗的进步而下降</strong>。<strong>"过去的试验结论可能因为背景改变而失效"是一条一般性教训</strong>，🔗 与你在预测层遇到的"regime 变化使历史校验失效"是同一件事。</p>
+<p><strong>二级预防（已有心血管事件者）中阿司匹林的获益仍然明确</strong>——<strong>这个区分绝不能混淆。</strong></p>
+<h2 id="5">5. 生活方式干预：证据强度分层<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>干预</th>
+<th>证据</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>戒烟</strong></td>
+<td><strong>最强</strong>，效应量最大</td>
+<td>获益在数年内显著；<strong>没有任何药物能比得上</strong></td>
+</tr>
+<tr>
+<td><strong>体力活动</strong></td>
+<td>强（观察性一致 + 机制 + 部分试验）</td>
+<td>剂量-反应，<strong>从久坐到少量活动的边际收益最大</strong></td>
+</tr>
+<tr>
+<td><strong>降钠</strong></td>
+<td>中等；<strong>对已有高血压者更明确</strong></td>
+<td>极低钠的最优点有争议</td>
+</tr>
+<tr>
+<td><strong>地中海饮食模式</strong></td>
+<td>中等（PREDIMED 试验；<strong>注意该试验因随机化问题重新分析发表</strong>，结论方向未变但强度调整）</td>
+<td><strong>饮食试验的方法学困难极大</strong>（无法盲法、依从性测量困难）</td>
+</tr>
+<tr>
+<td><strong>减重</strong></td>
+<td>对代谢指标明确；对硬终点证据较复杂</td>
+<td>GLP-1 类药物的 SELECT 试验提供了新证据</td>
+</tr>
+<tr>
+<td><strong>限酒</strong></td>
+<td><strong>"少量饮酒有益"的旧结论已被大幅削弱</strong></td>
+<td><strong>戒酒者偏倚</strong>（把因病戒酒者算进"不饮酒组"）解释了 J 形曲线的相当部分；孟德尔随机化不支持保护作用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最后一行是本站最喜欢的一个例子</strong>：<strong>"适量饮酒有益心脏"这个曾被广泛接受的结论，主要毁于一个选择偏倚</strong>——<strong>不饮酒组混入了因健康问题而戒酒的人</strong>（第 07 页）。<strong>修正这个偏倚后，保护效应大幅缩水或消失。</strong></p>
+<h2 id="6">6. 把这一页收成一个决策流程<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ol>
+<li><strong>算总体绝对风险</strong>（用适配人群的工具）；</li>
+<li><strong>算这个风险下的 ARR 与 NNT</strong>；</li>
+<li><strong>列出危害与 NNH</strong>，包括长期服药本身的负担；</li>
+<li><strong>确认患者的价值观</strong>：他更怕事件还是更怕吃药与副作用？</li>
+<li><strong>优先做效应量最大的事</strong>：<strong>戒烟 &gt; 大多数药物</strong>；</li>
+<li><strong>定期重估</strong>：风险会变，证据会变，<strong>背景发生率也会变</strong>（阿司匹林的教训）。</li>
+</ol>
+<hr />
+<p><em>下一页：糖尿病——把同样的框架用到一个"指标 vs 结局"分歧最尖锐的领域。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-headache-altered.html"><span class="pager-label">上一页</span>路径 V · 头痛与意识改变</a>
+  <a class="pager-slot next" href="16-diabetes.html"><span class="pager-label">下一页</span>预防 II · 糖尿病：目标值之争</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

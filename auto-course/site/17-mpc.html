@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最优控制与 MPC · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li class="active"><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、最优控制的两条经典路线</a></li>
+<li><a href="#mpc">二、MPC 的思想：在线滚动优化</a></li>
+<li><a href="#mpc_1">三、为什么 MPC 赢了</a></li>
+<li><a href="#_2">四、代价与工程现实</a></li>
+<li><a href="#_3">五、应用版图</a></li>
+<li><a href="#mpc-mpc">六、非线性 MPC 与鲁棒 MPC</a></li>
+<li><a href="#_4">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii-mpc">进阶 III · 最优控制与 MPC<a class="headerlink" href="#iii-mpc" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：研究生核心 + <strong>唯一大规模工业落地的"高级"方法</strong> ｜ 🔗 前置：凸优化（grad-math）。
+前面反复出现同一个短板：<strong>PID 无法处理约束</strong>（第六页）、<strong>LQR 无法处理约束</strong>（第八页）、<strong>鲁棒控制保守且难维护</strong>（第十六页）。而真实工程中约束无处不在——阀门开度 0–100%、温度不得超限、电流不得过载。<strong>MPC（模型预测控制）</strong>的全部成功，几乎都来自它对这一件事的正面回答。</p>
+</blockquote>
+<h2 id="_1">一、最优控制的两条经典路线<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>在讲 MPC 之前，先给出它的理论背景。最优控制求解：</p>
+<div class="arithmatex">\[\min_u \int_0^T L(x,u)\,dt + \Phi(x(T)) \quad \text{s.t.}\ \dot{x}=f(x,u)\]</div>
+<p><strong>① Pontryagin 极大值原理（PMP）</strong>：引入伴随变量（协态）<span class="arithmatex">\(\lambda\)</span>，把最优性条件写成两点边值问题。给出<strong>开环最优轨迹</strong>，是间接法的基础，在航天轨道优化中有经典应用（如燃料最省的 bang-bang 控制）。</p>
+<p><strong>② 动态规划（DP）/ HJB 方程</strong>：Bellman 最优性原理——<strong>最优轨迹的任意后段仍是最优的</strong>。给出<strong>闭环最优策略</strong> <span class="arithmatex">\(u^*(x)\)</span>，但需解偏微分方程（HJB），<strong>受维数灾难限制</strong>（状态维数一高就不可解）。</p>
+<p><strong>LQR 是这两条路线在"线性系统 + 二次代价 + 无约束"下的解析解</strong>（第八页）。<strong>一旦加入约束，解析解就不存在了</strong>——这就是 MPC 出场的地方。</p>
+<h2 id="mpc">二、MPC 的思想：在线滚动优化<a class="headerlink" href="#mpc" title="Permanent link"></a></h2>
+<p><strong>MPC 不去求解析的控制律，而是在每个采样时刻在线求解一个有限时域的优化问题</strong>：</p>
+<div class="arithmatex">\[\min_{u_0\cdots u_{N-1}} \sum_{k=0}^{N-1}\left(x_k^TQx_k + u_k^TRu_k\right) + x_N^TPx_N\]</div>
+<div class="arithmatex">\[\text{s.t.}\quad x_{k+1}=Ax_k+Bu_k,\quad \underbrace{u_{\min}\le u_k \le u_{\max}}_{\text{执行器约束}},\quad \underbrace{x_{\min}\le x_k\le x_{\max}}_{\text{安全/工艺约束}}\]</div>
+<p><strong>关键的三步循环（滚动时域）</strong>：</p>
+<ol>
+<li>用当前状态<strong>预测</strong>未来 <span class="arithmatex">\(N\)</span> 步；</li>
+<li><strong>优化</strong>出整段最优输入序列；</li>
+<li><strong>只执行第一步</strong>，下一时刻用新测量重新优化。</li>
+</ol>
+<figure>
+<p><img alt="MPC 滚动时域优化" class="fig-img" src="assets/img/aut_mpc.svg" /></p>
+<figcaption><span class="fig-id">图 17-1</span> MPC 的滚动时域机制。每一时刻，控制器在预测时域内规划一整条最优轨迹（虚线）使输出趋向设定值，同时<strong>显式满足输出上限与输入幅值/速率约束</strong>（阴影为不可行区）；但<strong>只执行第一个控制动作</strong>，随后基于新测量重新优化。<strong>"只执行第一步"正是反馈的来源</strong>——它使 MPC 在模型不准与有扰动时仍能自我纠正。</figcaption>
+</figure>
+<p><strong>"只执行第一步"这一点极其重要</strong>：若执行整段开环序列，模型误差会累积；每步重新优化则<strong>把开环最优变成了闭环反馈</strong>。<strong>这是第一页"预测—比较—修正"循环的第三次出现</strong>（反馈控制、观测器、MPC）。</p>
+<h2 id="mpc_1">三、为什么 MPC 赢了<a class="headerlink" href="#mpc_1" title="Permanent link"></a></h2>
+<p><strong>① 显式处理约束——这是决定性优势。</strong></p>
+<p>其他方法只能事后限幅（第六页的抗饱和是一种补救），MPC 则<strong>在优化时就知道约束的存在</strong>，从而能<strong>提前减速</strong>避免触限。更重要的是，它能利用约束边界：<strong>过程工业的利润往往来自"贴着约束运行"</strong>——最优操作点通常就在某个质量或安全限的边界上，能安全地贴近它就意味着直接的经济收益。<strong>这是 MPC 在炼化行业迅速普及的商业理由。</strong></p>
+<p><strong>② 天然处理 MIMO 与耦合</strong>：多变量在同一优化问题中协调，无需逐对解耦。</p>
+<p><strong>③ 可处理时滞与非最小相位</strong>：预测模型自然包含它们（对比第一页：时滞是经典反馈的头号敌人）。</p>
+<p><strong>④ 目标可直接表达经济指标</strong>：经济 MPC 直接优化利润而非跟踪误差。</p>
+<p><strong>⑤ 前馈自然融入</strong>：已知的未来设定值变化或可测扰动可直接放进预测。</p>
+<h2 id="_2">四、代价与工程现实<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>① 计算量</strong>：每个周期要解一个 QP。这曾把 MPC 限制在慢过程（采样周期以分钟计的化工装置），但情况已大变——<strong>显式 MPC</strong>（离线把解算成分段仿射函数，在线查表）、<strong>快速 QP 求解器</strong>、以及算力提升，使 MPC 已能用于毫秒级的电力电子与运动控制。</p>
+<p><strong>② 需要模型</strong>：模型质量直接决定性能。<strong>实践中，MPC 项目的大部分工作量在建模与辨识</strong>（第十八页），而非控制器本身。</p>
+<p><strong>③ 稳定性不自动</strong>：有限时域优化<strong>不天然保证闭环稳定</strong>。理论解法是加<strong>终端代价 <span class="arithmatex">\(P\)</span> 与终端约束集</strong>（构造 Lyapunov 函数论证，第十五页），工业实践中则常靠足够长的时域与充分测试。</p>
+<p><strong>④ 可行性</strong>：约束可能无解（扰动把状态推出可行域）。<strong>必须用软约束（松弛变量 + 惩罚）保证优化器总有解</strong>——<strong>硬约束在工程实现中是危险的</strong>，一次不可行就会让控制器失效。这是实现 MPC 时最重要的实务细节之一。</p>
+<p><strong>⑤ 维护门槛</strong>：现场人员难以像调 PID 那样直觉地调整。<strong>"谁来维护"是工业上采用高级控制的真实约束</strong>（承第十三、十六页）。</p>
+<h2 id="_3">五、应用版图<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>领域</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>炼化、石化</strong></td>
+<td>MPC 的发源地与主战场，数千套装置在运行；通常作为"先进过程控制层"运行在 DCS 之上</td>
+</tr>
+<tr>
+<td><strong>电力系统</strong></td>
+<td>机组调度、储能管理</td>
+</tr>
+<tr>
+<td><strong>汽车</strong></td>
+<td>发动机控制、底盘、自动驾驶的轨迹规划与跟踪</td>
+</tr>
+<tr>
+<td><strong>机器人</strong></td>
+<td>全身控制、足式机器人的落脚点规划（<strong>实时非线性 MPC 是当前热点</strong>）</td>
+</tr>
+<tr>
+<td><strong>半导体设备</strong></td>
+<td>温度、压力的多变量精密控制</td>
+</tr>
+<tr>
+<td><strong>建筑暖通</strong></td>
+<td>预测天气与占用率，优化能耗</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分层结构</strong>（工业标准做法）：MPC 通常不直接驱动执行器，而是<strong>给底层 PID 回路下达设定值</strong>。底层 PID 保证快速与安全，MPC 在上层做优化与协调。<strong>这个分层既利用了 MPC 的优化能力，又保留了 PID 的可靠性与可维护性</strong>——是理论与实践妥协的一个漂亮范例。</p>
+<h2 id="mpc-mpc">六、非线性 MPC 与鲁棒 MPC<a class="headerlink" href="#mpc-mpc" title="Permanent link"></a></h2>
+<ul>
+<li><strong>NMPC</strong>：预测模型为非线性，需在线解非凸优化。计算昂贵且可能陷入局部极小，但<strong>在机器人与航空航天中已有实时应用</strong>（借助实时迭代、SQP 与 GPU）；</li>
+<li><strong>鲁棒/管道 MPC（tube MPC）</strong>：为不确定性预留裕度，保证所有可能扰动下都满足约束。<strong>代价是保守</strong>（承第十六页的老问题）；</li>
+<li><strong>随机 MPC</strong>：用概率约束（"越限概率小于 5%"）代替硬约束，<strong>减少保守性</strong>，适合风电、需求预测等本质随机的场合；</li>
+<li><strong>学习型 MPC</strong>：用数据改进预测模型或代价函数——<strong>这是通往下一线的桥</strong>（第二十页）。</li>
+</ul>
+<h2 id="_4">七、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>PMP 给开环轨迹、DP/HJB 给闭环策略但受维数灾难</strong>；LQR 是无约束线性情形的解析解；</li>
+<li><strong>MPC = 在线滚动优化 + 只执行第一步</strong>，后者是反馈的来源；</li>
+<li><strong>显式处理约束是它压倒性的优势</strong>，且"贴着约束运行"直接创造经济价值；</li>
+<li><strong>稳定性需终端条件保证，可行性需软约束保护</strong>——两条关键实务；</li>
+<li><strong>分层架构（MPC 下达设定值、PID 执行）</strong>是工业标准，兼顾优化能力与可维护性；</li>
+<li><strong>项目的主要工作量在建模</strong>——这把我们带向下一页。</li>
+</ul>
+<hr />
+<p><em>下一页：既然模型如此关键，模型从哪来？系统辨识——从数据中获得模型；以及自适应控制——在运行中不断修正模型。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-robust.html"><span class="pager-label">上一页</span>进阶 II · 鲁棒控制与不确定性</a>
+  <a class="pager-slot next" href="18-sysid.html"><span class="pager-label">下一页</span>进阶 IV · 系统辨识与自适应</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

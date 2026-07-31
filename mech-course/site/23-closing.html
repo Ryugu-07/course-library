@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>力的传递 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">一、一条主线：从力到寿命</a></li>
+<li><a href="#_3">二、这门学科教的思维方式</a></li>
+<li><a href="#_4">三、与其他站的呼应</a></li>
+<li><a href="#_5">四、保质期</a></li>
+<li><a href="#_6">五、若要继续</a></li>
+<li><a href="#_7">六、最后</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">收官 · 力的传递<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>二十三页走完。这一页把它们收拢：这门学科教会人什么，以及为什么"力如何传递"值得成为一种看世界的方式。</p>
+</blockquote>
+<h2 id="_2">一、一条主线：从力到寿命<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>回看全课，所有内容挂在同一条链上：</p>
+<div class="arithmatex">\[\text{力} \to \text{应力} \to \text{变形与损伤} \to \text{累积} \to \text{失效} \to \text{寿命}\]</div>
+<ul>
+<li><strong>力进入结构</strong>，沿路径传递（第一页：力流），在截面突变处拥挤（应力集中）；</li>
+<li><strong>产生应力与变形</strong>（第二至五页），可能屈服、可能失稳；</li>
+<li><strong>动载荷引起振动</strong>（第六至九页），共振使应力放大数十倍；</li>
+<li><strong>交变应力累积损伤</strong>（第十四页），裂纹萌生扩展；</li>
+<li><strong>公差与制造偏差</strong>（第十五、十七至二十页）决定了实际的应力水平与缺陷分布；</li>
+<li><strong>最终由概率决定寿命</strong>（第十六页）。</li>
+</ul>
+<p><strong>机械设计的本质，是管理这条链上的每一环。</strong></p>
+<h2 id="_3">二、这门学科教的思维方式<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>① 先问"它会怎么坏"，再问"应力多大"。</strong> 屈服、断裂、疲劳、屈曲、磨损、蠕变、共振——<strong>判据完全不同</strong>。用错失效模式时，多精确的计算都无意义（第十六页）。<strong>这是本课最重要的一条职业习惯。</strong></p>
+<p><strong>② 材料放在哪里，比用多少更重要。</strong> 弯曲与扭转应力都在中性轴处为零 → 工字梁、空心轴、加强筋（第三页）；拓扑优化把这条原则自动化（第二十一页）；骨骼早已用演化算出了同样的答案。</p>
+<p><strong>③ 几何细节的影响是量级性的。</strong> 一个圆角能把疲劳寿命提高数倍；一处尖角能让整个设计报废。<strong>"画圆角"不是美化，是工程。</strong></p>
+<p><strong>④ 反直觉的结论要格外记住</strong>（本课有好几条）：
+- <strong>高强度钢不防屈曲</strong>（屈曲只看 <span class="arithmatex">\(E\)</span> 与几何，第四页）；
+- <strong>结构越柔越耐冲击</strong>（第五页），溃缩吸能正基于此；
+- <strong>超临界转速反而更平稳</strong>（第九页）；
+- <strong>共振时只有阻尼有用</strong>（第七页）；
+- <strong>管子粗一号往往比泵大一号更经济</strong>（第十三页，阻力 <span class="arithmatex">\(\propto 1/d^5\)</span>）；
+- <strong>弯曲刚度控制时铝优于钢，拉压刚度控制时二者相当</strong>（第二、二十页）。</p>
+<p><strong>这些都不是记忆题，而是"先分析主导机制再下判断"的产物。</strong></p>
+<p><strong>⑤ 可制造性先于优雅。</strong> 造不出来、装不进去、修不了的设计等于不存在（第十七页 DFM）。<strong>这是工科与理科最根本的分野</strong>，也是 🔗 微电子站说过的同一句话。</p>
+<p><strong>⑥ 减少零件数是最有力的可靠性手段。</strong> <span class="arithmatex">\(0.99^{100}\approx0.37\)</span>（第十六页）——<strong>复杂性本身就是敌人。</strong></p>
+<h2 id="_4">三、与其他站的呼应<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>这门课与讲义库其他站的连接密度很高：</p>
+<table>
+<thead>
+<tr>
+<th>呼应</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🔗 <strong>自动化站</strong></td>
+<td>机械是被控对象：谐振、间隙、摩擦、惯量比都是控制难题的来源；颤振是带时滞的反馈失稳；机床是力学与控制的交汇</td>
+</tr>
+<tr>
+<td>🔗 <strong>微电子站</strong></td>
+<td>同样的工程哲学（权衡、可制造性、抽象会漏）；半导体设备是精密机械的顶点</td>
+</tr>
+<tr>
+<td>🔗 <strong>物理站</strong></td>
+<td>提供力学与材料的物理基础；本课处理它不涉及的连续介质与工程约束</td>
+</tr>
+<tr>
+<td>🔗 <strong>生物站</strong></td>
+<td>骨小梁沿主应力排列 = 演化算出的拓扑优化；生物力学是共同边界</td>
+</tr>
+<tr>
+<td>🔗 <strong>数学站/grad-math</strong></td>
+<td>特征值问题（模态）、变分原理（有限元）、优化（拓扑优化）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">四、保质期<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>保质期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固体力学、振动、机构、传动原理（第一至十三页）</td>
+<td><strong>数十年</strong>，是稳定的经典</td>
+</tr>
+<tr>
+<td>疲劳断裂、公差、可靠性（第十四至十六页）</td>
+<td><strong>很稳定</strong>，标准会更新</td>
+</tr>
+<tr>
+<td>传统制造工艺（第十七、十八、二十页）</td>
+<td>原理稳定，<strong>参数与设备持续演进</strong></td>
+</tr>
+<tr>
+<td><strong>增材制造（第十九页）</strong></td>
+<td><strong>一到两年</strong>——工艺与认证进展快</td>
+</tr>
+<tr>
+<td>有限元与优化（第二十一页）</td>
+<td>方法稳定，<strong>软件与 AI 辅助变化快</strong></td>
+</tr>
+<tr>
+<td>产业与职业（第二十二页）</td>
+<td>随行业变化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>具体的材料许用值、工艺参数、标准条文</strong>——<strong>任何时候都必须查现行标准与供应商数据</strong>，不可依赖讲义中的量级值。</p>
+<h2 id="_6">五、若要继续<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>教材</strong>：Hibbeler《Mechanics of Materials》（材料力学，图解清晰）、Shigley《Mechanical Engineering Design》（机械设计的行业标准参考书）、Rao《Mechanical Vibrations》（振动）、Norton《Design of Machinery》（机构）、Ashby《Materials Selection in Mechanical Design》（选材方法论，<strong>极推荐</strong>）、Kalpakjian《Manufacturing Engineering and Technology》（制造）；</li>
+<li><strong>动手</strong>（这门课最该动手）：</li>
+<li>用 Python 复现本站所有图（<code>figs/</code> 下，可改可跑）；</li>
+<li>学一个 CAD（SolidWorks/Fusion/FreeCAD）+ 一个 CAE（Ansys/Abaqus，或开源的 CalculiX/Elmer）；</li>
+<li><strong>最有效的是拆一台旧设备</strong>——减速箱、硬盘、打印机。<strong>看真实的零件如何定位、密封、传力、防松，胜过读十页讲义</strong>；</li>
+<li>有条件就用 3D 打印做点结构件，亲手体会支撑、变形与各向异性；</li>
+<li><strong>跨站</strong>：🔗 自动化站（伺服与控制）、微电子站（精密设备）、数学站（振动与有限元的数学）。</li>
+</ul>
+<h2 id="_7">六、最后<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>机械工程处理的是<strong>看得见、摸得着、会坏的东西</strong>。</p>
+<p>它的美感与理科不同：不在于发现自然规律，而在于<strong>在材料会疲劳、加工有误差、成本有上限、时间有节点的重重约束下，让一台机器可靠地运转十年</strong>。</p>
+<p>这门学科最深的一课，或许是<strong>对约束的尊重</strong>。物理定律、材料极限、制造能力、成本、以及人手能不能伸进去拧那颗螺栓——每一项都在收窄可能性的空间。<strong>而工程师的价值，恰恰体现在这个不断收窄的空间里，仍能找到一个足够好、造得出、且用得久的解。</strong></p>
+<hr />
+<p><em>全课结束。愿你此后看任何一台机器时，都会下意识地问：力从哪里来，往哪里去，最后会从哪里断。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-frontier.html"><span class="pager-label">上一页</span>前沿 II · 产业前沿与职业路径</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

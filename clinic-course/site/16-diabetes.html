@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>糖尿病：目标值之争 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li class="active"><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 两条并发症通路，两种证据</a></li>
+<li><a href="#2">2. 三项试验的反转</a></li>
+<li><a href="#3">3. 药物选择：从"降糖力"到"器官保护"</a></li>
+<li><a href="#4">4. 筛查与"糖尿病前期"</a></li>
+<li><a href="#5-nnt">5. 自我监测血糖：一个 NNT 思维的应用</a></li>
+<li><a href="#6">6. 并发症筛查：这里的证据是扎实的</a></li>
+<li><a href="#7">7. 本页收成三条</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">预防 II · 糖尿病：目标值之争<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>糖尿病是"替代终点 vs 硬终点"矛盾最尖锐、也最有教学价值的领域：<strong>糖化血红蛋白降得越低越好——这个看似必然的推论，被三项大型试验同时证伪。</strong> 🔗 姊妹站第 20 页给出病理生理，本页只讲证据与决策。</p>
+</blockquote>
+<h2 id="1">1. 两条并发症通路，两种证据<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>微血管（视网膜、肾、神经）</th>
+<th>大血管（冠心病、卒中、外周动脉）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>与高血糖的关系</td>
+<td><strong>强，且是主要驱动因素</strong></td>
+<td><strong>高血糖只是多个风险因素之一</strong></td>
+</tr>
+<tr>
+<td>强化降糖的效果</td>
+<td><strong>明确减少</strong>（DCCT、UKPDS）</td>
+<td><strong>有限，且在部分试验中有害</strong></td>
+</tr>
+<tr>
+<td>主要干预</td>
+<td>控糖</td>
+<td><strong>降压、他汀、戒烟、抗血小板（二级预防）</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>这个区分是本页的骨架</strong>：<strong>"控糖"主要买的是微血管保护；心血管保护主要靠别的东西。</strong></p>
+<p><strong>一个反直觉但重要的数据点</strong>：<strong>在 2 型糖尿病中，控制血压与血脂对心血管事件的绝对获益，通常大于把糖化血红蛋白再降低 1 个百分点。</strong></p>
+<h2 id="2">2. 三项试验的反转<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>2008 年前后同时报告的三项大型试验</strong>（ACCORD、ADVANCE、VADT）都比较了强化降糖（目标糖化血红蛋白约 6.0–6.5%）与标准治疗：</p>
+<ul>
+<li><strong>ACCORD 的强化组全因死亡率升高，该组提前终止</strong>；</li>
+<li><strong>ADVANCE 与 VADT 未显示心血管获益</strong>；</li>
+<li>三者均显示<strong>严重低血糖显著增多</strong>、体重增加。</li>
+</ul>
+<p><strong>归因至今未完全明确</strong>（低血糖？降糖速度过快？特定药物组合？既有心血管病的亚组？），<strong>但结论足够稳固：在病程长、已有心血管病、年老的 2 型糖尿病患者中，强制把糖化血红蛋白压到接近正常没有获益且可能有害。</strong></p>
+<p><strong>同时必须讲清另一面</strong>：<strong>DCCT/EDIC（1 型）与 UKPDS（新诊断 2 型）显示早期严格控糖具有长期获益</strong>——<strong>即使后来血糖控制趋同，早期的差异仍在多年后转化为结局差异（"代谢记忆"/遗留效应）。</strong></p>
+<p><strong>综合起来的现代结论</strong>：<strong>目标值应个体化</strong>——</p>
+<table>
+<thead>
+<tr>
+<th>患者</th>
+<th>目标（示意）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>年轻、新诊断、无并发症、预期寿命长</td>
+<td><strong>更严格</strong>（如 &lt; 6.5–7.0%）</td>
+</tr>
+<tr>
+<td>病程长、已有心血管病、低血糖风险高、老年</td>
+<td><strong>更宽松</strong>（如 7.5–8.0%+）</td>
+</tr>
+<tr>
+<td>预期寿命有限、功能依赖</td>
+<td><strong>以避免症状与低血糖为目标</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>"目标值不是一个数字，而是一个函数"</strong>——自变量包括年龄、病程、并发症、低血糖风险与患者偏好。</p>
+<h2 id="3">3. 药物选择：从"降糖力"到"器官保护"<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>过去十年最大的变化</strong>：药物选择不再主要看降糖幅度，而看<strong>心肾结局证据</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>硬终点证据</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>二甲双胍</strong></td>
+<td>UKPDS 超重亚组显示获益；后续证据不如新药强</td>
+<td>仍常为一线：便宜、安全、不致低血糖</td>
+</tr>
+<tr>
+<td><strong>SGLT2 抑制剂</strong></td>
+<td><strong>心衰住院与肾脏进展明确减少</strong>，部分药物心血管死亡减少</td>
+<td><strong>获益部分独立于降糖</strong>——<strong>已扩展到非糖尿病的心衰与慢性肾病</strong></td>
+</tr>
+<tr>
+<td><strong>GLP-1 受体激动剂</strong></td>
+<td><strong>主要不良心血管事件减少</strong>，显著减重</td>
+<td>胃肠反应；注射为主</td>
+</tr>
+<tr>
+<td>DPP-4 抑制剂</td>
+<td><strong>心血管中性</strong></td>
+<td>温和、耐受好</td>
+</tr>
+<tr>
+<td>磺脲类</td>
+<td>中性</td>
+<td><strong>低血糖与体重增加</strong></td>
+</tr>
+<tr>
+<td>噻唑烷二酮</td>
+<td>复杂</td>
+<td><strong>心衰加重</strong></td>
+</tr>
+<tr>
+<td>胰岛素</td>
+<td>必要时不可替代</td>
+<td>低血糖是主要限制</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"降糖药变成器官保护药"这件事的方法论意义</strong>：<strong>它说明按机制/靶点分类的药物类别，其临床价值必须逐个由硬终点试验确定</strong>——<strong>同类药物不必然等效</strong>（🔗 姊妹站第 15 页的 β 阻滞剂在心衰中"只有三种有证据"是同一现象）。</p>
+<h2 id="4">4. 筛查与"糖尿病前期"<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>筛查 2 型糖尿病</strong>：在高危人群中有合理理由（早期干预可延缓进展），<strong>但要注意标签效应</strong>——被诊断为"糖尿病前期"的人中，<strong>相当比例在数年内血糖恢复正常或保持稳定，并不会进展</strong>。<strong>过度诊断的结构在这里同样成立</strong>（第 03 页）。</p>
+<p><strong>证据最强的干预是生活方式</strong>：<strong>糖尿病预防计划（DPP）显示，强化生活方式干预在预防/延缓进展上优于二甲双胍</strong>，效应量可观。<strong>但要诚实说明</strong>：试验中的生活方式干预是高强度、有支持的项目，<strong>与"医生嘱咐多运动"完全不是一回事</strong>——<strong>外推时必须考虑干预的可实施性</strong>（第 05 页）。</p>
+<h2 id="5-nnt">5. 自我监测血糖：一个 NNT 思维的应用<a class="headerlink" href="#5-nnt" title="Permanent link"></a></h2>
+<p><strong>1 型糖尿病与用胰岛素者</strong>：自我监测（或持续葡萄糖监测 CGM）<strong>必要且有证据</strong>。</p>
+<p><strong>未用胰岛素的 2 型糖尿病患者</strong>：<strong>常规自我血糖监测的多项 RCT 显示对糖化血红蛋白的改善很小或无，且可能增加焦虑</strong>。<strong>这是一个"看起来必然有用的做法在试验中站不住"的例子</strong>——<strong>测量本身不是干预</strong>，除非它连接到明确的行动规则。</p>
+<p>🔗 <strong>这条对你的工作直接同构</strong>：<strong>采集一个指标只有在它连接到行动规则时才有价值</strong>——第 01 页的"这个检查会改变我下一步吗"，在慢病自我管理上的翻版。</p>
+<h2 id="6">6. 并发症筛查：这里的证据是扎实的<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>与"控糖到极致"的争议相反，糖尿病并发症的定期筛查有明确证据</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>筛查</th>
+<th>频率（示意）</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>眼底（视网膜病变）</strong></td>
+<td>每 1–2 年</td>
+<td><strong>激光/抗 VEGF 治疗可防止失明</strong>——<strong>早期无症状，发现即可干预</strong></td>
+</tr>
+<tr>
+<td><strong>尿白蛋白/肌酐比 + eGFR</strong></td>
+<td>每年</td>
+<td><strong>RAAS 抑制剂与 SGLT2 抑制剂可延缓进展</strong></td>
+</tr>
+<tr>
+<td><strong>足部检查（感觉、血供）</strong></td>
+<td>每年或更频</td>
+<td><strong>溃疡与截肢可预防</strong></td>
+</tr>
+<tr>
+<td>血压、血脂</td>
+<td>常规</td>
+<td>见第 15 页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么这些筛查通过了 Wilson–Jungner 标准而"糖尿病前期筛查"更成问题</strong>（第 03 页）：<strong>这些并发症有明确的无症状早期阶段、且早期治疗确实优于晚期治疗</strong>——<strong>这正是那条最常不被满足的标准在这里被满足了。</strong></p>
+<h2 id="7">7. 本页收成三条<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ol>
+<li><strong>"控糖"与"减少心血管事件"是两个不同目标，需要不同的干预</strong>；</li>
+<li><strong>目标值个体化不是含糊其辞，而是有试验依据的结论</strong>（早期严格 vs 晚期宽松）；</li>
+<li><strong>药物选择应看硬终点证据而非降糖幅度</strong>——<strong>这是替代终点思维（第 09 页）在一个领域内被系统性纠正的成功案例。</strong></li>
+</ol>
+<hr />
+<p><em>下一页：癌症筛查——把第 03 页的筛查理论用到具体癌种上，给出完整的收益-危害账。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="15-cv-risk.html"><span class="pager-label">上一页</span>预防 I · 心血管风险与他汀/降压的决策分析</a>
+  <a class="pager-slot next" href="17-cancer-screening.html"><span class="pager-label">下一页</span>预防 III · 癌症筛查逐癌种证据对照</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

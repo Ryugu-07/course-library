@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>群体遗传学核心 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li class="active"><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#hardyweinberg">一、Hardy–Weinberg：零假设</a></li>
+<li><a href="#_1">二、遗传漂变：有限群体的随机性</a></li>
+<li><a href="#n_e">三、有效群体大小 \(N_e\)</a></li>
+<li><a href="#_2">四、选择：确定性的力</a></li>
+<li><a href="#_3">五、突变与迁移</a></li>
+<li><a href="#_4">六、四种力的相对强弱</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">遗传 II · 群体遗传学核心<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：【实】——本页是一套数学理论，其内部结论可证明，经验适用性也检验充分。
+视角从家系放大到<strong>群体</strong>：不再问"这对夫妇的孩子会怎样"，而问"这个等位基因在一万代后会怎样"。这是生物学中数学化最深的领域，本质上是一套<strong>随机过程理论</strong>——如果你熟悉马尔可夫链与扩散过程，会发现它出奇地亲切（🔗 研究生数学站概率线）。它也是理解演化的必备语言，线四全部建立在此。</p>
+</blockquote>
+<h2 id="hardyweinberg">一、Hardy–Weinberg：零假设<a class="headerlink" href="#hardyweinberg" title="Permanent link"></a></h2>
+<p>考虑一个位点两个等位基因，频率 <span class="arithmatex">\(p\)</span> 与 <span class="arithmatex">\(q=1-p\)</span>。在<strong>随机交配、无选择、无突变、无迁移、群体无限大</strong>的理想条件下，基因型频率为</p>
+<div class="arithmatex">\[p^2 : 2pq : q^2\]</div>
+<p>且<strong>等位基因频率世代不变</strong>。</p>
+<p>HW 平衡的价值不在于它成立，而在于它<strong>不成立时提供信息</strong>。它是群体遗传学的<strong>零假设</strong>：观察到偏离，就说明上述某个条件被破坏了——存在选择、近交、群体结构或基因分型错误。<strong>这正是物理学里"无外力则匀速直线运动"的角色：一个用来定义"什么算异常"的基准。</strong></p>
+<h2 id="_1">二、遗传漂变：有限群体的随机性<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>真实群体是有限的。每代配子的抽样带来随机涨落——<strong>遗传漂变</strong>。用 <strong>Wright–Fisher 模型</strong>刻画：群体大小 <span class="arithmatex">\(N\)</span>（二倍体则 <span class="arithmatex">\(2N\)</span> 个等位基因拷贝），下一代从当代按当前频率<strong>二项抽样</strong>产生。</p>
+<p>关键性质：</p>
+<ul>
+<li><strong>漂变是无偏的</strong>：<span class="arithmatex">\(E[p_{t+1}] = p_t\)</span>（期望不变，是个鞅），但<strong>方差</strong>每代增加 <span class="arithmatex">\(\dfrac{p(1-p)}{2N}\)</span>。</li>
+<li><strong>漂变必然导致固定或丢失</strong>：因为它是有界鞅，最终必然到达 0 或 1（除非有新突变或选择维持）。<strong>中性等位基因最终固定的概率 = 它当前的频率 <span class="arithmatex">\(p\)</span></strong>——这个漂亮的结论直接来自鞅的可选停时定理。</li>
+<li><strong>固定所需的平均时间</strong>（中性、初始频率 <span class="arithmatex">\(p\)</span>，条件于固定）约为 <span class="arithmatex">\(4N\)</span> 代。</li>
+<li><strong>杂合度衰减</strong>：<span class="arithmatex">\(H_t = H_0\left(1 - \frac{1}{2N}\right)^t \approx H_0 e^{-t/2N}\)</span>。</li>
+</ul>
+<figure>
+<p><img alt="不同群体大小下的遗传漂变" class="fig-img" src="assets/img/bio_drift.svg" /></p>
+<figcaption><span class="fig-id">图 11-1</span> Wright–Fisher 漂变模拟：每条轨迹是一个中性等位基因的频率随世代变化，起始频率均为 0.5。小群体（\(N=25\)，左）中漂变剧烈，多数位点在百代内即固定或丢失；大群体（\(N=500\)，右）中频率变化缓慢，多数仍在中间徘徊。**漂变强度与 \(N\) 成反比**——这使有效群体大小成为群体遗传学最重要的参数之一。</figcaption>
+</figure>
+<p><strong>核心直觉：<span class="arithmatex">\(N\)</span> 越小，漂变越强。</strong> 这一条支配了后面的一切——包括为什么小群体会丢失多样性、为什么中性理论要用 <span class="arithmatex">\(N\)</span> 来标定、以及为什么人类的遗传多样性低于许多物种。</p>
+<h2 id="n_e">三、有效群体大小 <span class="arithmatex">\(N_e\)</span><a class="headerlink" href="#n_e" title="Permanent link"></a></h2>
+<p>真实群体不满足 Wright–Fisher 的理想假设（性别比不均、繁殖成功度不均、群体大小波动、世代重叠）。<strong>有效群体大小 <span class="arithmatex">\(N_e\)</span></strong> 的定义是：<strong>表现出与该真实群体相同漂变强度的理想 Wright–Fisher 群体的大小</strong>。</p>
+<p><span class="arithmatex">\(N_e\)</span> 通常<strong>远小于</strong>实际数量 <span class="arithmatex">\(N\)</span>。三个原因值得记住：</p>
+<ul>
+<li><strong>性别比不均</strong>：<span class="arithmatex">\(N_e = \dfrac{4N_m N_f}{N_m + N_f}\)</span>——少数雄性垄断繁殖会大幅降低 <span class="arithmatex">\(N_e\)</span>。</li>
+<li><strong>群体大小波动</strong>：<span class="arithmatex">\(N_e\)</span> 近似为各代的<strong>调和平均数</strong>，因而被最小值主导——<strong>一次瓶颈的影响远超之后的恢复</strong>。</li>
+<li><strong>繁殖成功度方差大</strong>：方差越大，<span class="arithmatex">\(N_e\)</span> 越小。</li>
+</ul>
+<p><strong>人类的长期 <span class="arithmatex">\(N_e\)</span> 估计约为 10⁴ 量级</strong>——尽管现今有 80 亿人。这个数字告诉我们，人类在演化史的大部分时间里是一个相当小的群体，这解释了人类遗传多样性偏低（低于黑猩猩），也是线四第五页人类演化的重要背景。</p>
+<h2 id="_2">四、选择：确定性的力<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>给三种基因型赋予适应度 <span class="arithmatex">\(w_{11}, w_{12}, w_{22}\)</span>。以选择系数 <span class="arithmatex">\(s\)</span> 表示，等位基因频率的单代变化近似为</p>
+<div class="arithmatex">\[\Delta p \approx \frac{s\,p(1-p)}{\bar{w}}\ \ (\text{加性情形，弱选择})\]</div>
+<p>要点：</p>
+<ul>
+<li><span class="arithmatex">\(\Delta p \propto p(1-p)\)</span>——<strong>选择在中间频率时最快</strong>，在极端频率时很慢。所以有利突变<strong>刚出现时扩散极慢</strong>（此时它极易被漂变随机消灭），到中间频率后加速。</li>
+<li><strong>有利突变的固定概率</strong>（Haldane）：<span class="arithmatex">\(P_{\text{fix}} \approx 2s\)</span>（对小 <span class="arithmatex">\(s\)</span>、加性效应）。<strong>即使一个有 1% 优势的突变，也有约 98% 的概率被漂变消灭。</strong> 演化不是"好的必然胜出"，而是一个概率过程——这个反直觉的结果值得反复回味。</li>
+</ul>
+<p><strong>选择的形式</strong>：
+- <strong>定向选择</strong>：偏好一端（如抗药性上升）。
+- <strong>稳定化选择</strong>：偏好中间值（如出生体重——过轻过重死亡率都高），减少方差。
+- <strong>分裂选择</strong>：偏好两端，可能促成物种形成。
+- <strong>平衡选择</strong>：主动维持多态。经典例子——<strong>镰状细胞杂合子（HbAS）对疟疾抵抗力强</strong>，纯合突变型患镰状细胞病，纯合野生型易患疟疾，于是在疟疾流行区维持中间频率。另一个是 <strong>MHC 的极端多态性</strong>（负频率依赖选择：罕见型有优势）。</p>
+<h2 id="_3">五、突变与迁移<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>突变</strong>是变异的<strong>唯一终极来源</strong>。人类每代每个碱基突变率约 <span class="arithmatex">\(1.2\times10^{-8}\)</span>，<strong>每个新生儿携带约 50–100 个新生突变</strong>。突变率虽低，但基因组巨大，所以每代都有大量新变异进入群体。</p>
+<p><strong>突变–选择平衡</strong>：有害等位基因被选择清除，被突变补充，平衡频率约</p>
+<div class="arithmatex">\[\hat q \approx \frac{\mu}{s}\ (\text{显性有害}), \qquad \hat q \approx \sqrt{\frac{\mu}{s}}\ (\text{隐性有害})\]</div>
+<p><strong>这解释了为什么严重遗传病持续存在</strong>——不是因为选择失效，而是突变不断补货。<strong>隐性有害等位能维持高得多的频率</strong>，因为它藏在杂合子里躲避选择。</p>
+<p><strong>迁移（基因流）</strong>：迁移率 <span class="arithmatex">\(m\)</span> 时，群体分化程度约 <span class="arithmatex">\(F_{ST} \approx \dfrac{1}{1+4N_e m}\)</span>。<strong>推论极重要：只要每代有约一个迁移个体（<span class="arithmatex">\(N_e m \approx 1\)</span>），就足以阻止群体因漂变而显著分化。</strong> 基因流是极强的同质化力量——这条对理解人类群体结构（线四第五页）很关键。</p>
+<h2 id="_4">六、四种力的相对强弱<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>把四种力放在一起，判断哪种主导，看的是<strong>它们与 <span class="arithmatex">\(1/N_e\)</span> 的比较</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>力</th>
+<th>主导条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>选择</td>
+<td>$</td>
+</tr>
+<tr>
+<td>漂变</td>
+<td>$</td>
+</tr>
+<tr>
+<td>突变</td>
+<td>长期、提供原料</td>
+</tr>
+<tr>
+<td>迁移</td>
+<td><span class="arithmatex">\(N_e m \gtrsim 1\)</span> 即阻止分化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心结论</strong>：一个突变是否"有效中性"，<strong>不取决于它本身的效应大小，而取决于 <span class="arithmatex">\(s\)</span> 与 <span class="arithmatex">\(1/N_e\)</span> 的比较</strong>。同一个轻微有害的突变，在大群体中会被清除，在小群体中却可能随机固定。</p>
+<p><strong>这个判据是下一线（演化）的枢纽</strong>：它直接引出近中性理论，解释了为什么小群体会积累轻微有害突变、为什么基因组"垃圾"的多少与 <span class="arithmatex">\(N_e\)</span> 相关。<strong>记住这个不等式，群体遗传学的一大半就掌握了。</strong></p>
+<hr />
+<p><em>下一页：遗传 III——把群体遗传学的工具用于人类，寻找与性状相关的位点。GWAS 是怎么做的、为什么"缺失遗传力"曾困扰整个领域、以及多基因分数能做什么、不能做什么。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-mendel-quantitative.html"><span class="pager-label">上一页</span>遗传 I · 从孟德尔到定量遗传</a>
+  <a class="pager-slot next" href="12-gwas.html"><span class="pager-label">下一页</span>遗传 III · 连锁、GWAS 与多基因分数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

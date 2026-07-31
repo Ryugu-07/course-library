@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组合变形与屈曲 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li class="active"><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、欧拉临界载荷</a></li>
+<li><a href="#_2">二、柔度与失效模式的边界</a></li>
+<li><a href="#_3">三、为什么屈曲这么危险</a></li>
+<li><a href="#_4">四、其他失稳形式</a></li>
+<li><a href="#_5">五、组合变形的一般方法</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">力学 IV · 组合变形与屈曲<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>这一页讲一种与强度无关的失效</strong>。
+前三页的逻辑都是"应力超过许用值就失效"。<strong>屈曲不遵守这个逻辑</strong>——细长压杆可能在应力远低于屈服强度时<strong>突然失稳</strong>，且失稳后承载力急剧下降。<strong>它是结构失效中最危险的一类，因为它没有预兆、发展极快。</strong></p>
+</blockquote>
+<h2 id="_1">一、欧拉临界载荷<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>理想细长压杆的临界载荷：</p>
+<div class="arithmatex">\[P_{cr} = \frac{\pi^2 EI}{(\mu L)^2}\]</div>
+<p><span class="arithmatex">\(\mu\)</span> 是<strong>长度系数</strong>，取决于两端约束：</p>
+<table>
+<thead>
+<tr>
+<th>约束</th>
+<th><span class="arithmatex">\(\mu\)</span></th>
+<th>相对承载力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>两端铰支</td>
+<td>1.0</td>
+<td>1×</td>
+</tr>
+<tr>
+<td>一端固定一端自由</td>
+<td><strong>2.0</strong></td>
+<td><strong>0.25×</strong></td>
+</tr>
+<tr>
+<td>两端固定</td>
+<td>0.5</td>
+<td><strong>4×</strong></td>
+</tr>
+<tr>
+<td>一端固定一端铰支</td>
+<td>0.7</td>
+<td>2×</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这张表的工程价值极高</strong>：<strong>仅仅改变端部约束，承载力就能相差 16 倍</strong>（<span class="arithmatex">\(\mu\)</span> 从 2.0 到 0.5）。<strong>加强端部约束往往比加粗杆件便宜得多</strong>——这是压杆设计的第一手段。</p>
+<p><strong>注意公式里的三件事</strong>：
+- <strong>只含 <span class="arithmatex">\(E\)</span>，不含强度</strong>！<strong>高强度钢与普通钢的屈曲载荷完全相同</strong>（因为 <span class="arithmatex">\(E\)</span> 几乎一样）。<strong>用更贵的高强钢来防屈曲是纯粹的浪费</strong>——这是初学者最常见的误解之一；
+- <strong><span class="arithmatex">\(I\)</span> 取最小值</strong>：杆件总是绕<strong>最小惯性矩轴</strong>屈曲。所以矩形截面压杆会朝"薄"的方向弯曲；
+- <strong><span class="arithmatex">\(L^2\)</span> 在分母</strong>：长度是决定性因素，<strong>加支撑（缩短计算长度）效果立竿见影</strong>。</p>
+<h2 id="_2">二、柔度与失效模式的边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>定义<strong>柔度（长细比）</strong>：</p>
+<div class="arithmatex">\[\lambda = \frac{\mu L}{i}, \qquad i = \sqrt{\frac{I}{A}}\ (\text{惯性半径})\]</div>
+<figure>
+<p><img alt="压杆临界应力随柔度变化" class="fig-img" src="assets/img/mec_buckling.svg" /></p>
+<figcaption><span class="fig-id">图 4-1</span> 临界应力—柔度曲线。<strong>大柔度（细长）</strong>区遵循欧拉公式 \(\sigma_{cr}=\pi^2E/\lambda^2\)，与材料强度无关；<strong>小柔度（粗短）</strong>区直接由屈服强度控制；中间区材料已进入塑性，欧拉公式失效，工程上用经验直线或抛物线公式过渡。<strong>两条曲线的交点，就是"屈曲控制"与"强度控制"的分界</strong>——设计时必须先判断落在哪一区。</figcaption>
+</figure>
+<p><strong>三个区域</strong>：
+- <strong>大柔度杆</strong>（<span class="arithmatex">\(\lambda &gt; \lambda_p\)</span>，钢约 100）：<strong>欧拉公式适用，屈曲控制</strong>；
+- <strong>中柔度杆</strong>：材料部分屈服，欧拉公式<strong>不再适用</strong>（它假设全程弹性），用经验公式；
+- <strong>小柔度杆</strong>（粗短）：<strong>强度控制</strong>，按屈服校核。</p>
+<p><strong>必须先判断在哪个区，再选公式</strong>——直接套欧拉公式给粗短杆算，会得到荒谬的高值。</p>
+<h2 id="_3">三、为什么屈曲这么危险<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>① 它是不稳定的分岔，不是渐进的。</strong> 载荷达到临界值前，杆件几乎不弯；一旦越过，变形急剧增长。<strong>没有"快要坏了"的征兆。</strong></p>
+<p><strong>② 缺陷敏感性。</strong> 理想直杆的理论是漂亮的，<strong>但真实杆件总有初始弯曲、加载偏心、材料不均</strong>。这些微小缺陷会：
+- 使实际失稳载荷<strong>低于</strong>理论值；
+- 让变形从一开始就逐渐增长（不是突然分岔）。</p>
+<p><strong>最极端的是壳体屈曲</strong>：薄壁圆柱壳受轴压时，<strong>实测承载力可能只有理论值的 20–30%</strong>，且分散度极大。<strong>这是固体力学中理论与实验差距最大的问题之一</strong>，工程上只能靠大量试验数据与很大的安全系数。<strong>这个"缺陷敏感"的现象值得记住——它是"理想化模型可能严重高估"的经典案例。</strong></p>
+<p><strong>③ 后屈曲行为可能是灾难性的</strong>：某些结构（如壳体）屈曲后承载力<strong>下降</strong>，导致连锁垮塌。</p>
+<h2 id="_4">四、其他失稳形式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>屈曲不只是"压杆变弯"：</p>
+<ul>
+<li><strong>局部屈曲</strong>：薄壁截面的翼缘或腹板局部起皱。<strong>这限制了第三页"把材料移到外围"的策略</strong>——板太薄就会局部失稳。<strong>所以工字梁的翼缘宽厚比、管壁的径厚比都有限制</strong>，需要加劲肋。<strong>效率与稳定的权衡在此再次出现</strong>；</li>
+<li><strong>侧向扭转屈曲</strong>：细长梁受弯时，可能侧向弯曲并扭转失稳。<strong>这就是为什么深而窄的梁需要侧向支撑</strong>；</li>
+<li><strong>热屈曲</strong>：受热膨胀但被约束时产生压应力，可能屈曲（铁轨的"胀轨跑道"是典型事故）。</li>
+</ul>
+<h2 id="_5">五、组合变形的一般方法<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>回到综合分析。真实零件常同时承受多种载荷，标准流程：</p>
+<ol>
+<li><strong>分解载荷</strong>：把复杂受载分解为拉压、弯曲（两个方向）、扭转；</li>
+<li><strong>叠加应力</strong>（线弹性下叠加原理成立）：正应力代数相加，切应力矢量相加；</li>
+<li><strong>找危险截面与危险点</strong>；</li>
+<li><strong>写出该点应力状态</strong>，用屈服准则折算等效应力；</li>
+<li><strong>校核</strong>：<span class="arithmatex">\(\sigma_{eq} \le [\sigma] = \sigma_s / n\)</span>（<span class="arithmatex">\(n\)</span> 为安全系数，第十六页）；</li>
+<li><strong>单独校核稳定性</strong>（屈曲）与刚度（变形量）。</li>
+</ol>
+<p><strong>注意第 6 步</strong>：<strong>强度、刚度、稳定性是三个独立的校核项，缺一不可</strong>。
+- <strong>强度</strong>：会不会坏；
+- <strong>刚度</strong>：变形是否超出允许（机床主轴变形过大会影响加工精度，即使远未损坏）；
+- <strong>稳定性</strong>：会不会失稳。</p>
+<p><strong>工程实践中，机床、精密设备的设计常由刚度控制而非强度控制</strong>——它们的应力水平往往很低，但对变形极敏感。<strong>"强度够了"不等于"设计合格"。</strong></p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>屈曲与材料强度无关，只取决于 <span class="arithmatex">\(E\)</span> 与几何</strong>——用高强钢防屈曲是浪费；</li>
+<li><strong>端部约束的影响可达 16 倍</strong>，加支撑缩短计算长度是最有效手段；</li>
+<li><strong>必须先按柔度判断是屈曲控制还是强度控制</strong>；</li>
+<li><strong>屈曲危险在于无预兆 + 缺陷敏感</strong>，壳体屈曲实测值可能仅为理论值的 20–30%；</li>
+<li><strong>局部屈曲限制了薄壁化的极限</strong>——效率与稳定的权衡；</li>
+<li><strong>强度、刚度、稳定性是三个独立校核项</strong>，精密设备常由刚度控制。</li>
+</ul>
+<hr />
+<p><em>下一页：前面都是"分段公式"式的解法。能量法给出一个统一而强大的视角，它既是手算变形的利器，也是有限元法的理论基础。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-beam-torsion.html"><span class="pager-label">上一页</span>力学 III · 弯曲与扭转</a>
+  <a class="pager-slot next" href="05-energy-elasticity.html"><span class="pager-label">下一页</span>力学 V · 能量法与弹性力学入门</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

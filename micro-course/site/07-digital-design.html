@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时序、时钟与静态时序分析 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li class="active"><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、同步设计的契约</a></li>
+<li><a href="#_2">二、两个时序约束</a></li>
+<li><a href="#_3">三、时钟：理想与现实</a></li>
+<li><a href="#sta">四、静态时序分析（STA）</a></li>
+<li><a href="#_4">五、流水线：用面积换频率</a></li>
+<li><a href="#_5">六、后端流程速览</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">电路 II · 时序、时钟与静态时序分析<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界日常 ｜ <strong>这一页是数字后端工程师的主业</strong>。
+有了逻辑门还不够——必须让它们在<strong>时间</strong>上协同。本页讲同步设计的基本契约（建立/保持时间）、时钟网络的现实困难，以及决定"这颗芯片能跑多少 GHz"的那个分析：<strong>静态时序分析（STA）</strong>。这是学校里常被轻描淡写、而在工业界占据大量工时的内容。</p>
+</blockquote>
+<h2 id="_1">一、同步设计的契约<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>绝大多数数字芯片采用<strong>同步设计</strong>：所有状态元件（触发器）由同一个时钟边沿更新。这带来一个简单而强大的约定——<strong>只要每条组合路径能在一个时钟周期内稳定下来，整个系统的行为就是可预测的</strong>。</p>
+<p>触发器对输入有两个时间要求：</p>
+<ul>
+<li><strong>建立时间 <span class="arithmatex">\(t_{su}\)</span></strong>：数据必须在时钟边沿<strong>之前</strong>稳定这么久；</li>
+<li><strong>保持时间 <span class="arithmatex">\(t_h\)</span></strong>：数据必须在时钟边沿<strong>之后</strong>保持这么久。</li>
+</ul>
+<p>违反任一条，触发器可能进入<strong>亚稳态</strong>——输出既非 0 也非 1，在一段不确定的时间后随机落定。<strong>亚稳态无法被完全消除，只能把失效概率压到可接受</strong>（用同步器链，按 MTBF 指标设计）。<strong>跨时钟域（CDC）处理是数字设计中最容易出错、也最难调试的部分之一。</strong></p>
+<h2 id="_2">二、两个时序约束<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>设时钟周期 <span class="arithmatex">\(T\)</span>，组合逻辑延迟 <span class="arithmatex">\(t_{logic}\)</span>，触发器时钟到输出延迟 <span class="arithmatex">\(t_{cq}\)</span>：</p>
+<p><strong>建立时间（setup）约束——决定最高频率</strong>：</p>
+<div class="arithmatex">\[t_{cq} + t_{logic,\max} + t_{su} \le T + t_{skew}\]</div>
+<p><strong>保持时间（hold）约束——与频率无关</strong>：</p>
+<div class="arithmatex">\[t_{cq} + t_{logic,\min} \ge t_h + t_{skew}\]</div>
+<figure>
+<p><img alt="建立/保持时序与时序裕量" class="fig-img" src="assets/img/mic_timing.svg" /></p>
+<figcaption><span class="fig-id">图 7-1</span> 时序约束示意。数据必须落在时钟边沿前后的<strong>禁止窗口</strong>之外：太晚到达违反<strong>建立时间</strong>（限制最高频率，可通过降频修复）；太早到达违反<strong>保持时间</strong>（<strong>降频无法修复</strong>，必须插入延迟单元或改布局）。二者之间的余量称为<strong>时序裕量（slack）</strong>，负裕量即时序违例。</figcaption>
+</figure>
+<p><strong>两条约束的性质截然不同，这是本页最要紧的区分</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>建立时间违例</th>
+<th>保持时间违例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>成因</td>
+<td>路径太<strong>慢</strong></td>
+<td>路径太<strong>快</strong></td>
+</tr>
+<tr>
+<td>与频率关系</td>
+<td><strong>降频可修复</strong></td>
+<td><strong>降频无用</strong></td>
+</tr>
+<tr>
+<td>修复手段</td>
+<td>优化逻辑、加大驱动、流水线切分</td>
+<td>插入缓冲/延迟单元</td>
+</tr>
+<tr>
+<td>危险程度</td>
+<td>影响性能</td>
+<td><strong>芯片直接功能失效</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>保持时间违例是"硅片报废"级的问题</strong>——它不能靠降频规避，流片后发现基本只能重做。因此后端流程会不惜代价插入大量延迟单元来修复保持时间（哪怕付出面积与功耗）。</p>
+<h2 id="_3">三、时钟：理想与现实<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>理想时钟同时到达所有触发器。现实中：</p>
+<ul>
+<li><strong>时钟偏斜（skew）</strong>：不同触发器收到边沿的时刻不同。<strong>偏斜可正可负地影响两类约束</strong>——同向偏斜放松建立时间但收紧保持时间（所谓"有用偏斜"可被工具刻意利用）；</li>
+<li><strong>时钟抖动（jitter）</strong>：周期本身的随机波动（源自 PLL 噪声、电源噪声）。<strong>抖动只会消耗裕量</strong>，无法被利用；</li>
+<li><strong>时钟树功耗</strong>：时钟活动因子接近 1，且要驱动全芯片的触发器，<strong>时钟网络常占芯片总功耗的可观比例</strong>。</li>
+</ul>
+<p><strong>时钟树综合（CTS）</strong>是后端流程的关键一步：构造缓冲器树，使偏斜受控、且插入延迟合理。<strong>H 树</strong>等平衡结构在理论上偏斜最小，实际中则用工具自动构造并结合有用偏斜优化。</p>
+<p><strong>低功耗手段</strong>：<strong>时钟门控</strong>（在不需要更新的模块上关断时钟）是收益最高的低功耗技术之一，综合工具会自动插入。</p>
+<h2 id="sta">四、静态时序分析（STA）<a class="headerlink" href="#sta" title="Permanent link"></a></h2>
+<p><strong>STA 的思想</strong>：<strong>不做仿真</strong>，而是穷举所有时序路径，用延迟模型计算每条路径的裕量，检查是否满足约束。</p>
+<p><strong>为什么不用仿真</strong>：动态仿真只能覆盖你施加的激励，无法保证覆盖最坏情况路径。<strong>STA 是穷尽的、与激励无关的</strong>——它检查所有路径。代价是必须处理"假路径"（逻辑上永远不会同时激活的路径）与"多周期路径"，这需要设计者用<strong>约束文件（SDC）</strong>告诉工具。</p>
+<p><strong>约束文件写错是工业界的经典事故来源</strong>：约束太松 → 芯片跑不到目标频率甚至功能失效；约束太紧 → 面积功耗白白浪费、收敛困难。</p>
+<p><strong>PVT 角与多角多模式分析</strong>：延迟随<strong>工艺（Process）偏差、电压（Voltage）、温度（Temperature）</strong>变化，必须在多个"角"（如慢角、快角）下同时满足约束。现代芯片还有多种工作模式（高性能/低功耗/测试），于是要做 <strong>MMMC（多模式多角）</strong>分析——<strong>组合数量巨大，时序收敛因而成为后端流程中最耗时的环节</strong>。</p>
+<p><strong>一个反直觉的点</strong>：<strong>最快的工艺角对保持时间最危险</strong>（路径太快），<strong>最慢的角对建立时间最危险</strong>。所以"工艺做得好"不等于"没问题"，两头都要管。</p>
+<h2 id="_4">五、流水线：用面积换频率<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>若单周期路径太长，就把它<strong>切开</strong>，中间插入触发器——<strong>流水线（pipelining）</strong>。</p>
+<div class="arithmatex">\[T_{\min} \approx \max_i(t_{logic,i}) + t_{cq} + t_{su}\]</div>
+<p>切得越细，最长段越短，频率越高。<strong>代价</strong>：
+- 每级增加 <span class="arithmatex">\(t_{cq}+t_{su}\)</span> 的固定开销 → <strong>切分收益递减</strong>；
+- 触发器面积与功耗增加；
+- <strong>延迟（latency）变长</strong>，且分支预测失败的代价上升——<strong>这正是处理器流水线深度存在最优值的原因</strong>（🔗 cs 站体系结构线）。</p>
+<p><strong>这是又一处与 cs 站的接口</strong>：那里讲流水线冒险与分支预测，这里讲它的物理动因与代价。</p>
+<h2 id="_5">六、后端流程速览<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>数字后端（physical design）的主要步骤，第十三页会展开工具视角：</p>
+<ol>
+<li><strong>综合</strong>：RTL → 门级网表（映射到标准单元库）；</li>
+<li><strong>布局（placement）</strong>：确定每个单元的位置；</li>
+<li><strong>时钟树综合（CTS）</strong>；</li>
+<li><strong>布线（routing）</strong>：连接所有信号；</li>
+<li><strong>时序收敛</strong>：反复优化直到所有路径裕量非负；</li>
+<li><strong>物理验证</strong>：DRC/LVS；</li>
+<li><strong>签核（signoff）</strong>：STA、功耗、IR 压降、电迁移、串扰分析。</li>
+</ol>
+<p><strong>"时序收敛"是这个流程中最痛苦的部分</strong>——它是一个多目标（时序、面积、功耗、可布线性）互相冲突的迭代过程，往往需要数周到数月，且高度依赖工程师经验。<strong>这是微电子行业里"经验值钱"的典型环节。</strong></p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>建立时间限频率、保持时间决生死</strong>——两者性质完全不同；</li>
+<li><strong>STA 是穷举而非仿真</strong>，约束文件是它的输入契约，写错代价极高；</li>
+<li><strong>时钟网络是功耗大户</strong>，时钟门控是首选优化；</li>
+<li><strong>PVT 多角分析</strong>使问题规模爆炸，时序收敛因而成为工程主战场；</li>
+<li>流水线是<strong>用面积、功耗与延迟换频率</strong>的权衡，存在最优深度。</li>
+</ul>
+<hr />
+<p><em>下一页：转向模拟电路。数字世界可以靠抽象层层隔离，模拟世界不行——那里每个寄生参数都直接影响性能，而且它享受不到缩放的红利。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-cmos-digital.html"><span class="pager-label">上一页</span>电路 I · CMOS 反相器与数字基元</a>
+  <a class="pager-slot next" href="08-analog.html"><span class="pager-label">下一页</span>电路 III · 模拟集成电路</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>突触传递与可塑性 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li class="active"><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、化学突触的工作循环</a></li>
+<li><a href="#_2">二、主要递质系统</a></li>
+<li><a href="#_3">三、突触整合</a></li>
+<li><a href="#hebb">四、可塑性：Hebb 规则的分子实现</a></li>
+<li><a href="#_4">五、从突触到记忆：证据与保留【实/争】</a></li>
+<li><a href="#_5">六、突触与疾病、药物</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">脑 II · 突触传递与可塑性<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：<strong>突触传递机制【实】</strong>（多项诺奖）；<strong>LTP 作为学习的细胞机制【实/争】</strong>——LTP 现象确凿，"它就是记忆"则是推论，见末节。
+上一页讲单个神经元如何产生信号，本页讲信号如何传给下一个神经元——以及更重要的：<strong>这个传递的强度如何被经验改变</strong>。后者是学习与记忆的物理基础，也是本线通向"记忆"与"意识"的必经之路。</p>
+</blockquote>
+<h2 id="_1">一、化学突触的工作循环<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>绝大多数中枢突触是<strong>化学</strong>突触。一次传递的完整链条：</p>
+<ol>
+<li><strong>动作电位到达轴突末梢</strong> → 去极化；</li>
+<li><strong>电压门控 Ca²⁺ 通道打开</strong>，Ca²⁺ 内流（承上页：这是电→化学的转换点）；</li>
+<li><strong>Ca²⁺ 触发囊泡融合</strong>：由 SNARE 蛋白复合体介导膜融合，突触小泡将神经递质释放入突触间隙（约 20 nm）。<strong>突触结合蛋白（synaptotagmin）是 Ca²⁺ 传感器</strong>——这套分子机器的解析获 2013 年诺奖；</li>
+<li><strong>递质扩散并结合突触后受体</strong>（扩散 20 nm 只需微秒，线二第三页的扩散公式在此完全适用）；</li>
+<li><strong>突触后电位产生</strong>：兴奋性（EPSP，通常 Na⁺/Ca²⁺ 内流）或抑制性（IPSP，通常 Cl⁻ 内流或 K⁺ 外流）；</li>
+<li><strong>终止</strong>：递质被重摄取、酶解或扩散清除。</li>
+</ol>
+<p><strong>量子释放</strong>：递质以<strong>囊泡为单位</strong>释放，故突触后反应呈量子化——这是 Katz 的经典发现（诺奖）。单个囊泡产生的微小电位称"微终板电位"。</p>
+<p><strong>电突触</strong>（缝隙连接）则直接让离子流过，速度更快、可双向，在需要同步的回路（如某些抑制性中间神经元网络）中重要。</p>
+<h2 id="_2">二、主要递质系统<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>递质</th>
+<th>主要作用</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>谷氨酸</strong></td>
+<td>主要<strong>兴奋性</strong>递质</td>
+<td>AMPA（快）、NMDA（慢，Ca²⁺ 通透）、代谢型受体</td>
+</tr>
+<tr>
+<td><strong>GABA</strong></td>
+<td>主要<strong>抑制性</strong>递质（成熟脑）</td>
+<td>GABA_A（Cl⁻ 通道）、GABA_B（G 蛋白偶联）</td>
+</tr>
+<tr>
+<td><strong>甘氨酸</strong></td>
+<td>抑制性（脊髓、脑干）</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>乙酰胆碱</strong></td>
+<td>神经肌肉接头、脑内调节</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>多巴胺、5-羟色胺、去甲肾上腺素</strong></td>
+<td><strong>神经调质</strong>：不直接传信息，而是<strong>改变大片回路的增益与状态</strong></td>
+<td>见下</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重要区分</strong>：谷氨酸与 GABA 是<strong>快速点对点</strong>的信息传递（毫秒级、空间精确）；单胺类多为<strong>弥散性调质</strong>——少量神经元投射到广大区域，缓慢地改变整个网络的工作模式（注意、动机、觉醒、情绪）。</p>
+<p><strong>这个区分能纠正一个流行误解</strong>：把多巴胺说成"快乐分子"、5-羟色胺说成"幸福分子"是严重简化【炒作】。多巴胺在中脑边缘系统更接近编码<strong>奖赏预测误差</strong>（实际奖赏与预期之差）——这一发现与强化学习中的 TD 误差惊人对应，是计算神经科学最漂亮的成果之一（🔗 AI 站强化学习；下页展开）。</p>
+<h2 id="_3">三、突触整合<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>一个皮层神经元接收约 <strong>10³–10⁴</strong> 个突触输入。单个 EPSP 通常只有 0.1–1 mV，而触发动作电位需要约 15 mV 的去极化——<strong>必须多个输入协同</strong>：</p>
+<ul>
+<li><strong>空间总和</strong>：不同位置的输入同时到达；</li>
+<li><strong>时间总和</strong>：同一输入快速连续到达（在膜时间常数 <span class="arithmatex">\(\tau_m\)</span> 内）；</li>
+<li><strong>兴奋–抑制平衡（E/I balance）</strong>：皮层中兴奋与抑制近似平衡，使网络处于<strong>高响应、低饱和</strong>的状态。<strong>E/I 失衡与癫痫、以及部分神经发育障碍相关</strong>【机制部分【争】】。</li>
+</ul>
+<h2 id="hebb">四、可塑性：Hebb 规则的分子实现<a class="headerlink" href="#hebb" title="Permanent link"></a></h2>
+<p><strong>Hebb 假设（1949）</strong>："一起放电的神经元连在一起"（fire together, wire together）。<strong>长时程增强（LTP）</strong>是它的细胞学对应物。</p>
+<p><strong>NMDA 受体是关键的符合检测器（coincidence detector）</strong>——这是本页最精彩的机制：</p>
+<ul>
+<li>NMDA 受体通道在静息电位下被 <strong>Mg²⁺ 堵塞</strong>；</li>
+<li>要打开它，需要<strong>同时满足两个条件</strong>：(1) 谷氨酸结合（<strong>突触前活动</strong>）；(2) 突触后膜去极化把 Mg²⁺ 驱离（<strong>突触后活动</strong>）；</li>
+<li>二者同时满足 → Ca²⁺ 内流 → 激活 CaMKII 等激酶 → <strong>AMPA 受体插入突触后膜</strong> → 突触变强。</li>
+</ul>
+<p><strong>分子上直接实现了"前后同时活动才增强"的 Hebb 规则</strong>——一个受体分子充当了逻辑与门。这是分子机制与计算原理对应得最漂亮的例子之一。</p>
+<p><strong>长时程抑制（LTD）</strong>：低频刺激导致 Ca²⁺ 小幅持续升高 → 激活磷酸酶 → AMPA 受体内吞 → 突触变弱。<strong>增强与减弱由同一个 Ca²⁺ 信号的幅度与时程区分</strong>。</p>
+<p><strong>STDP（尖峰时序依赖可塑性）</strong>：更精细的规则——若突触前<strong>先于</strong>突触后放电（前因后果的顺序），突触增强；反之则减弱。时间窗约 ±20 ms。<strong>这让突触能学习因果的时间方向</strong>，而非仅仅相关性。</p>
+<p><strong>稳态可塑性</strong>：纯 Hebb 规则不稳定（强的越强，会失控）。神经元通过<strong>突触缩放</strong>整体调节所有突触强度，维持平均发放率——<strong>这是线二第一页控制论视角在突触层面的再现：一个负反馈把系统拉回工作点。</strong></p>
+<h2 id="_4">五、从突触到记忆：证据与保留【实/争】<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>支持 LTP 是记忆基础的证据</strong>：
+- 阻断 NMDA 受体损害多种学习；
+- 学习本身会诱发海马突触的类 LTP 变化；
+- 光遗传学操纵：人工诱导特定突触的增强/减弱，可以增强或削弱已形成的记忆（下下页的印迹研究）。</p>
+<p><strong>需要保留的地方</strong>【争】：
+- LTP 多在切片中用非生理性的强刺激诱导，与自然学习的对应并不完全；
+- 记忆的<strong>存储形式</strong>可能不只在突触权重——有研究提示<strong>胞内分子状态、核周体、甚至细胞兴奋性</strong>也参与；
+- <strong>突触蛋白的周转期只有数小时到数天，而记忆可保持数十年</strong>——如何在分子不断更换的情况下维持信息，仍未完全解决（候选机制包括自我维持的分子开关、结构性突触重塑、系统层面的重复巩固）。</p>
+<p><strong>这是本页最值得记住的诚实</strong>：<strong>"突触可塑性是学习的细胞机制"证据充分；"记忆就是突触权重"则是一个有力但未被完全证明的推论。</strong></p>
+<h2 id="_5">六、突触与疾病、药物<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>神经退行</strong>：阿尔茨海默病中<strong>突触丢失</strong>与认知下降的相关性，强于淀粉样斑块负荷——这是近年对"淀粉样级联假说"的重要修正之一【争】；</li>
+<li><strong>大多数精神类药物作用于突触传递</strong>（重摄取抑制、受体激动/拮抗）。<strong>但"化学失衡"（如"抑郁是 5-羟色胺不足"）是一个过度简化的模型</strong>，近年受到相当强的批评——药物起效延迟数周、而递质水平变化在数小时内，这个时间差本身就说明机制更复杂（涉及可塑性与网络重塑）【争】。本课只述机制，不涉治疗建议。</li>
+</ul>
+<hr />
+<p><em>下一页：脑 III——回路与编码。从单个突触上升到神经元群体：信息如何被编码，回路如何计算，以及"预测"为何可能是皮层的核心原理。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="21-neuron.html"><span class="pager-label">上一页</span>脑 I · 神经元的定量物理</a>
+  <a class="pager-slot next" href="23-circuits.html"><span class="pager-label">下一页</span>脑 III · 回路、编码与预测</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

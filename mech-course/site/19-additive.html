@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>增材制造 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li class="active"><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、它解除了哪条约束</a></li>
+<li><a href="#_2">二、主要工艺分类</a></li>
+<li><a href="#_3">三、金属增材的真实问题</a></li>
+<li><a href="#dfam">四、面向增材的设计（DfAM）</a></li>
+<li><a href="#_4">五、什么场合真正划算</a></li>
+<li><a href="#2026-07">六、前沿方向【核对于 2026-07】</a></li>
+<li><a href="#_5">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">制造 III · 增材制造<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科了解 + 研究生/业界热点 ｜ <strong>核对于 2026-07</strong>。
+增材制造（3D 打印）常被夸大为"想造什么就造什么"。真实情况更有意思：<strong>它确实解除了传统工艺的某些根本约束，同时引入了一批全新的、尚未完全解决的问题。</strong> 本页讲清它真正改变了什么、代价是什么、以及在什么场合它才真正划算。</p>
+</blockquote>
+<h2 id="_1">一、它解除了哪条约束<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>传统工艺的形状自由度受限于"工具可达性"</strong>：
+- 切削：刀具必须能进得去（承第十七页：内直角铣不出来）；
+- 铸造：必须能脱模、砂芯必须能取出；
+- 锻造：必须能脱模且金属能流动填满。</p>
+<p><strong>增材制造逐层堆积，不需要工具进入</strong>。于是可以做出：
+- <strong>复杂内部流道</strong>（随形冷却、换热器）；
+- <strong>点阵/多孔结构</strong>（轻量化、能量吸收、骨植入体的多孔界面）；
+- <strong>拓扑优化的有机形状</strong>（第二十一页）；
+- <strong>一体化零件</strong>（把几十个零件合并为一个——<strong>这直接提升可靠性</strong>，承第十六页"减少零件数"）。</p>
+<p><strong>核心价值判断</strong>：<strong>增材的价值不在"能打印"，而在"能做出传统工艺做不出的几何，且这个几何带来真实的性能收益"。</strong> 若一个零件用传统工艺也能做，那增材通常更慢更贵。</p>
+<h2 id="_2">二、主要工艺分类<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>工艺</th>
+<th>原理</th>
+<th>材料</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>粉末床熔融（PBF）</strong>：SLM/DMLS、EBM</td>
+<td>激光/电子束逐层熔化金属粉</td>
+<td>金属</td>
+<td><strong>精度高、致密</strong>；主流金属工艺</td>
+</tr>
+<tr>
+<td><strong>定向能量沉积（DED）</strong></td>
+<td>送粉/送丝同步熔化</td>
+<td>金属</td>
+<td>效率高、可修复零件、精度较低</td>
+</tr>
+<tr>
+<td><strong>材料挤出（FDM/FFF）</strong></td>
+<td>熔丝堆积</td>
+<td>塑料</td>
+<td>便宜、普及；各向异性强</td>
+</tr>
+<tr>
+<td><strong>光固化（SLA/DLP）</strong></td>
+<td>光敏树脂逐层固化</td>
+<td>树脂</td>
+<td>精度极高、表面好；力学性能有限</td>
+</tr>
+<tr>
+<td><strong>粘结剂喷射</strong></td>
+<td>喷粘结剂成形后烧结</td>
+<td>金属/陶瓷/砂</td>
+<td>效率高、无支撑应力；需烧结、收缩大</td>
+</tr>
+</tbody>
+</table>
+<p><strong>砂型 3D 打印</strong>值得单独提：它不直接打印零件，而是<strong>打印铸造用砂型</strong>——<strong>把增材的形状自由与铸造的材料成熟度结合起来</strong>，是当前工业上最务实的应用之一。</p>
+<h2 id="_3">三、金属增材的真实问题<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>这是本页最需要诚实的部分</strong>——粉末床熔融看似成熟，实际有一系列固有难题：</p>
+<p><strong>① 残余应力与变形。</strong> 激光局部快速熔化—凝固，冷却收缩受已成形部分约束 → <strong>巨大残余应力</strong>，可导致翘曲、开裂、甚至从基板上剥离。
+<strong>对策</strong>：预热基板、优化扫描策略（分区、旋转扫描方向）、<strong>打印后必须去应力退火</strong>（且通常在切下基板之前）。</p>
+<p><strong>② 支撑结构</strong>：悬垂角小于约 45° 的表面需要支撑（否则塌陷）。<strong>支撑要消耗材料、增加时间、且事后必须去除——去除本身常需机加工，且可能损伤表面</strong>。<strong>内部通道里的支撑往往根本无法去除</strong>，这直接限制了"复杂内腔"的自由度。<strong>这是"随形流道"设计中最现实的约束。</strong></p>
+<p><strong>③ 各向异性与缺陷</strong>：层间结合强度通常低于层内；未熔合、气孔、匙孔缺陷。<strong>疲劳性能对内部缺陷极其敏感</strong>（承第十四页），<strong>增材件的疲劳强度分散度显著大于锻件</strong>。</p>
+<p><strong>④ 表面粗糙度</strong>：粘粉、台阶效应，<span class="arithmatex">\(Ra\)</span> 通常在 10 μm 量级。<strong>关键配合面必须后续机加工</strong>——所以增材件往往是"增材 + 机加工"的混合流程。</p>
+<p><strong>⑤ 粉末与工艺一致性</strong>：粉末的粒度分布、球形度、氧含量、回收次数都影响质量。<strong>工艺参数窗口窄，跨设备重复性是产业化的主要障碍。</strong></p>
+<p><strong>⑥ 后处理链条长</strong>：去应力 → 切除基板 → 去支撑 → 热等静压（HIP，压合内部孔隙，显著改善疲劳性能）→ 机加工 → 表面处理。<strong>后处理成本常常超过打印本身</strong>。</p>
+<h2 id="dfam">四、面向增材的设计（DfAM）<a class="headerlink" href="#dfam" title="Permanent link"></a></h2>
+<p><strong>关键认知：把传统零件直接拿去打印，几乎总是不划算。</strong> 必须重新设计：</p>
+<ul>
+<li><strong>零件整合</strong>：把装配体合并成一个零件（减少连接、减少泄漏点、提高可靠性）；</li>
+<li><strong>拓扑优化 + 点阵填充</strong>：只在受力路径上留材料（第二十一页）；</li>
+<li><strong>自支撑设计</strong>：把悬垂角控制在 45° 以上、用泪滴形孔代替圆孔，<strong>从而免除支撑</strong>；</li>
+<li><strong>考虑打印方向</strong>：它同时决定各向异性、支撑量、表面质量与成本——<strong>打印方向是 DfAM 的首要决策</strong>；</li>
+<li><strong>保留加工余量</strong>：配合面预留后续机加工的量。</li>
+</ul>
+<h2 id="_4">五、什么场合真正划算<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>增材的经济学与传统工艺相反</strong>（这是最需要理解的一点）：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>传统（模具类）</th>
+<th>增材</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>固定成本</strong></td>
+<td>高（模具）</td>
+<td><strong>几乎为零</strong></td>
+</tr>
+<tr>
+<td><strong>单件成本</strong></td>
+<td>低且随批量下降</td>
+<td><strong>高且几乎不随批量下降</strong></td>
+</tr>
+<tr>
+<td><strong>复杂度成本</strong></td>
+<td>越复杂越贵</td>
+<td><strong>复杂度几乎免费</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>所以增材的优势区间是</strong>：
+- <strong>小批量、高价值</strong>（航空航天、医疗植入、赛车）；
+- <strong>高度定制化</strong>（个性化植入体、假肢、牙科）；
+- <strong>几何复杂且复杂性带来真实收益</strong>（随形冷却模具可缩短注塑周期、燃油喷嘴一体化）；
+- <strong>快速原型与迭代</strong>（这仍是使用量最大的场景）；
+- <strong>备件与维修</strong>（按需生产，减少库存；DED 可修复昂贵零件）。</p>
+<p><strong>不划算的场合</strong>：大批量简单零件——<strong>注塑一个塑料件几秒钟几分钱，打印要几小时几十块。</strong></p>
+<h2 id="2026-07">六、前沿方向【核对于 2026-07】<a class="headerlink" href="#2026-07" title="Permanent link"></a></h2>
+<ul>
+<li><strong>提高效率</strong>：多激光器并行、更大成形仓；</li>
+<li><strong>过程监控与闭环控制</strong>：熔池监测 + 实时调整——<strong>把打印从开环变成闭环</strong>（🔗 自动化站）。<strong>这是提高一致性、走向合格认证的关键</strong>；</li>
+<li><strong>新材料</strong>：难焊合金、高熵合金、金属基复合、陶瓷；</li>
+<li><strong>多材料与功能梯度</strong>：一个零件内部材料连续变化；</li>
+<li><strong>认证与标准</strong>：<strong>这是产业化的真正瓶颈</strong>——航空医疗等领域需要证明每一件的质量，而增材的逐件差异使传统的抽样验收逻辑难以适用。<strong>"如何认证一个每件都可能不同的工艺"是当前最关键的非技术难题。</strong></li>
+</ul>
+<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>增材解除的是"工具可达性"约束</strong>，价值在于做出传统工艺做不出的、且有真实收益的几何；</li>
+<li><strong>金属增材的真实问题</strong>：残余应力、支撑难去除、各向异性与缺陷、表面粗糙、后处理链长；</li>
+<li><strong>疲劳性能对内部缺陷极敏感</strong>，HIP 是关键后处理；</li>
+<li><strong>DfAM 的首要决策是打印方向</strong>；自支撑设计能省掉大量麻烦；</li>
+<li><strong>经济学与传统相反</strong>：固定成本近零、复杂度免费，但单件成本不随批量下降；</li>
+<li><strong>认证与一致性是产业化的核心瓶颈</strong>，闭环过程控制是突破方向。</li>
+</ul>
+<hr />
+<p><em>下一页：制造线的最后一块——材料选择与热处理。同一个形状，用什么材料、做什么处理，性能可以相差数倍。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-machining.html"><span class="pager-label">上一页</span>制造 II · 切削与精密加工</a>
+  <a class="pager-slot next" href="20-materials.html"><span class="pager-label">下一页</span>制造 IV · 材料选择与热处理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

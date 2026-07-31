@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>临床推理的心理学与误诊 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li class="active"><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 两种推理模式</a></li>
+<li><a href="#2">2. 误诊的三类来源</a></li>
+<li><a href="#3">3. 认知偏差目录（临床形态）</a></li>
+<li><a href="#4">4. 高危场景</a></li>
+<li><a href="#5">5. 有效的对策（区分有证据与无证据）</a></li>
+<li><a href="#6">6. 不确定性的沟通</a></li>
+<li><a href="#7">7. 一个必须建立的习惯：区分"诊断"与"标签"</a></li>
+<li><a href="#8">8. 本页收成一张卡片</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">诊断 IV · 临床推理的心理学与误诊<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>前三页给了工具。这一页说明<strong>为什么有工具的人仍然会错</strong>——而且错得有规律。<strong>诊断错误的主要来源不是知识不足，而是推理过程的系统性偏差</strong>，这一结论有相当扎实的实证基础。🔗 心智与证据站（:8094）第 10 页给出这些偏差的心理学原始证据与效应量，本页只讲临床形态与对策。</p>
+</blockquote>
+<h2 id="1">1. 两种推理模式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>模式识别（快）</strong>：经验丰富者看到一组特征即得出诊断。<strong>大多数情况下高效且准确</strong>——医学专长的核心正是<strong>大量的疾病脚本（illness script）</strong>与<strong>组块化</strong>（🔗 心智与证据站第 09 页）。</p>
+<p><strong>分析性推理（慢）</strong>：逐条列鉴别、评估证据、计算概率。<strong>慢、费力，但在非典型病例中不可替代。</strong></p>
+<p><strong>关键结论（这一点常被误传）</strong>：<strong>诊断错误不是"用了直觉"造成的，而是"该切换时没切换"造成的</strong>。<strong>单纯呼吁"多用分析性思维"的干预，效果证据薄弱</strong>；有效的做法是<strong>建立触发切换的机制</strong>（见第 5 节）。</p>
+<h2 id="2">2. 误诊的三类来源<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>大规模研究把诊断错误分成三类：</p>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>占比</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>无过错</strong>（no-fault）</td>
+<td>少数</td>
+<td>疾病表现确实不典型、极罕见病</td>
+</tr>
+<tr>
+<td><strong>系统因素</strong></td>
+<td>相当一部分</td>
+<td>检验结果未被跟进、交接失误、信息系统缺陷、时间压力</td>
+</tr>
+<tr>
+<td><strong>认知因素</strong></td>
+<td><strong>最大的一块</strong></td>
+<td>下面这张表</td>
+</tr>
+</tbody>
+</table>
+<p><strong>且系统与认知常常叠加</strong>：疲劳、打断、高负荷会<strong>放大</strong>认知偏差。<strong>"这是个人能力问题"是一个诊断错误研究早已抛弃的框架。</strong></p>
+<h2 id="3">3. 认知偏差目录（临床形态）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>偏差</th>
+<th>临床形态</th>
+<th>典型后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>过早闭合</strong>（premature closure）</td>
+<td>得到一个能解释的诊断后停止思考</td>
+<td><strong>最常见的单一原因</strong></td>
+</tr>
+<tr>
+<td><strong>锚定</strong></td>
+<td>抓住最初印象不放，后续证据被解释成支持它</td>
+<td>与过早闭合互相强化</td>
+</tr>
+<tr>
+<td><strong>确认偏差</strong></td>
+<td>只找支持性证据，忽略矛盾数据</td>
+<td>异常检验被"合理化"</td>
+</tr>
+<tr>
+<td><strong>可得性启发</strong></td>
+<td>最近见过/印象深的诊断被高估</td>
+<td>刚漏诊过肺栓塞的医生此后过度检查</td>
+</tr>
+<tr>
+<td><strong>代表性启发</strong></td>
+<td>只看"像不像典型病例"，<strong>忽略基础率</strong></td>
+<td>罕见病的典型表现 vs 常见病的非典型表现（<strong>后者远更常见</strong>）</td>
+</tr>
+<tr>
+<td><strong>诊断动量</strong></td>
+<td>前一位医生给的标签被后续所有人继承</td>
+<td>转诊链中的标签固化</td>
+</tr>
+<tr>
+<td><strong>搜索满足</strong>（satisfaction of search）</td>
+<td>找到一个异常就停止（<strong>影像判读高发</strong>）</td>
+<td>第二处骨折被漏</td>
+</tr>
+<tr>
+<td><strong>框架效应</strong></td>
+<td>转诊单的措辞改变判读</td>
+<td>"焦虑患者的胸痛"</td>
+</tr>
+<tr>
+<td><strong>归因偏差</strong></td>
+<td>把症状归给患者特征（<strong>肥胖、精神病史、物质使用</strong>）</td>
+<td><strong>系统性延误诊断，且加重健康不平等</strong></td>
+</tr>
+<tr>
+<td><strong>基础率忽视</strong></td>
+<td>只看检验结果不看验前概率</td>
+<td>第 01 页整页在讲</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"常见病的非典型表现比罕见病的典型表现更常见"</strong>——这句话是代表性启发的解药，也是本站最值得记住的一句临床格言。</p>
+<h2 id="4">4. 高危场景<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>误诊不是均匀分布的</strong>，集中在可预测的情境：</p>
+<ul>
+<li><strong>交接与转科</strong>（信息丢失 + 诊断动量）；</li>
+<li><strong>夜班与高负荷时段</strong>；</li>
+<li><strong>"复诊未好转"的病人</strong>——<strong>这是最重要的一个信号</strong>：<strong>没有按预期好转，意味着诊断可能错了</strong>，而不是"再观察几天"；</li>
+<li><strong>被贴过标签的患者</strong>（精神疾病、物质使用、"经常来"）——<strong>其躯体疾病被系统性延误</strong>，这一点有明确证据；</li>
+<li><strong>非典型人群</strong>：女性心梗（症状谱不同）、老年人感染（<strong>可无发热，表现为谵妄或跌倒</strong>）、儿童。</li>
+</ul>
+<h2 id="5">5. 有效的对策（区分有证据与无证据）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>证据较弱的</strong>：单纯的"注意偏差"教育、去偏训练、要求"多想想"。<strong>知道偏差不等于消除偏差</strong>——🔗 心智与证据站第 10 页给出这条结论的实验依据。</p>
+<p><strong>证据较好或机制上更可靠的</strong>：</p>
+<ol>
+<li><strong>强制性的结构化清单</strong>：如"最坏情况排除清单"（本站线三每页开头就是这个）；</li>
+<li><strong>诊断暂停（diagnostic time-out）</strong>：在下结论前问三个问题——</li>
+<li><strong>还有什么能解释这些表现？</strong></li>
+<li><strong>有什么发现是我的诊断解释不了的？</strong>（<strong>最有力的一个问题</strong>）</li>
+<li><strong>如果这个诊断错了，最危险的可能是什么？</strong></li>
+<li><strong>明确的"安全网"</strong>：告诉患者什么情况必须立即回来——<strong>它把"诊断不确定"从缺陷变成计划</strong>；</li>
+<li><strong>系统性反馈</strong>：<strong>没有结局反馈的诊断者无法校准</strong>。这是急诊与门诊的结构性缺陷（病人走了就不知道后来怎样）——<strong>主动追踪结局是校准的唯一途径</strong>；</li>
+<li><strong>决策支持工具与规则</strong>（Wells、PERC、HEART），<strong>在其验证过的人群中使用</strong>；</li>
+<li><strong>第二意见与团队复核</strong>，尤其在影像与病理判读中。</li>
+</ol>
+<p>🔗 <strong>这套对策与你在预测层建立的东西是同构的</strong>：预注册判据（= 决策规则）、事前验尸（= "如果错了最危险的是什么"）、记录置信度与实际命中率（= 结局反馈校准）。<strong>医学在这件事上比多数领域走得更远，因为它的反馈成本是人命。</strong></p>
+<h2 id="6">6. 不确定性的沟通<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>临床上不确定是常态而非例外</strong>。处理它有两条正确的做法与两条错误的做法：</p>
+<p><strong>正确</strong>：① <strong>明确说出概率与不确定性</strong>（"我认为最可能是 X，大约七成把握；但我们必须排除 Y，因为它很危险"）；② <strong>给出时间轴与安全网</strong>（"如果 48 小时没好转，或出现 Z，立刻回来"）。</p>
+<p><strong>错误</strong>：① <strong>假装确定</strong>（导致患者不遵守安全网）；② <strong>把不确定转化为无限检查</strong>（每个检查都有假阳性，第 03 页）。</p>
+<h2 id="7">7. 一个必须建立的习惯：区分"诊断"与"标签"<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>很多临床上的"诊断"其实是症状的重命名</strong>：眩晕、乏力、慢性疼痛、"自主神经功能紊乱"。<strong>给症状起个名字会产生解释感，但不增加任何可检验的预测</strong>——🔗 姊妹站第 24 页与心智与证据站第 05 页讲同一件事（"加了脑区名字但没增加可检验预测"）。</p>
+<p><strong>判据</strong>：<strong>这个诊断能预测什么？它改变什么处理？</strong> 若两者皆无，它就是一个标签，<strong>而标签会通过诊断动量固化，阻止后续的真正诊断</strong>。</p>
+<h2 id="8">8. 本页收成一张卡片<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>面对任何一个诊断，问：</p>
+<ol>
+<li><strong>我什么时候开始相信它的？在那之后我还认真考虑过别的可能吗？</strong>（锚定 + 过早闭合）</li>
+<li><strong>有哪个发现是它解释不了的？</strong>（最有力的一问）</li>
+<li><strong>如果我错了，最危险的漏诊是什么？我排除了吗？</strong></li>
+<li><strong>我的验前概率来自哪里？是这个场景的，还是教科书的？</strong></li>
+<li><strong>这个病人有没有让我不自觉降低警惕的特征？</strong>（归因偏差）</li>
+<li><strong>如果没有按预期好转，我的下一步计划是什么？</strong></li>
+</ol>
+<hr />
+<p><em>线一完。下一线转向证据：从"这个病人是什么病"转向"这个治疗到底有多大用"。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-screening.html"><span class="pager-label">上一页</span>诊断 III · 筛查悖论与过度诊断</a>
+  <a class="pager-slot next" href="05-study-design.html"><span class="pager-label">下一页</span>循证 I · 研究设计阶梯与因果推断</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>强度的微观起源与强化四法 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li class="active"><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-">1. 先读懂一条应力-应变曲线</a></li>
+<li><a href="#2">2. 强化四法（位错的四种障碍物）</a></li>
+<li><a href="#3">3. 高温：另一套规则（蠕变）</a></li>
+<li><a href="#4">4. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">性能 I · 强度的微观起源与强化四法<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>线一说"缺陷决定命运"，线二给了操纵组织的手段——本页收获：<strong>强度到底是什么、怎么把它调上去</strong>。核心只有一句话：<strong>塑性变形 = 位错运动，所以强化 = 给位错设障碍</strong>。四种障碍物对应工业上全部四类强化手段，每种都有一个可算的定量关系。</p>
+</blockquote>
+<h2 id="1-">1. 先读懂一条应力-应变曲线<a class="headerlink" href="#1-" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Stress-strain curves of three material families" src="assets/img/mat-08-stressstrain.svg" /></p>
+<figcaption><span class="fig-id">图 8.1</span>三大家族的拉伸曲线（示意）：陶瓷弹性段陡而短、直接断（×）；金属屈服后加工硬化再颈缩；高分子模量低但应变可达百分之几十——键合（结构 I）的性格在宏观曲线上原样显形。</figcaption>
+</figure>
+<p><strong>五个必读量</strong>：弹性模量 <span class="arithmatex">\(E\)</span>（斜率——键的事，热处理改不动，结构 I）；<strong>屈服强度 <span class="arithmatex">\(\sigma_y\)</span></strong>（位错开始大规模运动——本页主角，可调三倍以上）；抗拉强度 <span class="arithmatex">\(\sigma_{UTS}\)</span>（颈缩起点）；延伸率（韧性的粗指标）；曲线下面积（断裂功 ≈ 韧性）。</p>
+<p><strong>工程应力应变 vs 真应力应变</strong>：前者用原始截面（工程用、有"下降段"假象），后者用瞬时截面（材料本构、单调上升）——颈缩后的下降是几何效应不是材料变软【研：Considère 判据 <span class="arithmatex">\(d\sigma/d\varepsilon = \sigma\)</span> 给颈缩起点】。</p>
+<h2 id="2">2. 强化四法（位错的四种障碍物）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>障碍物</th>
+<th>定量关系</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>加工硬化</strong></td>
+<td>位错互相缠结</td>
+<td><span class="arithmatex">\(\sigma \propto \sqrt{\rho}\)</span>（Taylor）</td>
+<td>塑性耗尽、需退火恢复</td>
+</tr>
+<tr>
+<td><strong>固溶强化</strong></td>
+<td>溶质原子的应力场</td>
+<td><span class="arithmatex">\(\Delta\sigma \propto \sqrt{c}\)</span>（间隙式更凶）</td>
+<td>导电导热下降</td>
+</tr>
+<tr>
+<td><strong>细晶强化</strong></td>
+<td>晶界</td>
+<td><strong>Hall–Petch</strong> <span class="arithmatex">\(\sigma_y = \sigma_0 + kd^{-1/2}\)</span></td>
+<td>几乎无代价（唯一"强韧双赢"）</td>
+</tr>
+<tr>
+<td><strong>析出/弥散强化</strong></td>
+<td>第二相粒子</td>
+<td>切过 or 绕过（Orowan <span class="arithmatex">\(\Delta\sigma \propto 1/\lambda\)</span>）</td>
+<td>过时效退化、高温不稳</td>
+</tr>
+</tbody>
+</table>
+<figure class="plot">
+<p><img alt="Hall-Petch relation" src="assets/img/mat-08-hallpetch.svg" /></p>
+<figcaption><span class="fig-id">图 8.2</span>Hall–Petch 关系：屈服强度对 \(d^{-1/2}\) 呈直线——晶粒从 250 μm 细化到 4 μm，强度可翻倍以上；细晶是唯一**同时**提高强度与韧性的手段。</figcaption>
+</figure>
+<p><strong>析出强化的两种机制（铝合金与高温合金的命门）</strong>：粒子小而软 ⇒ 位错<strong>切过</strong>（强化随粒子长大而增）；粒子大而硬 ⇒ 位错<strong>绕过</strong>留下位错环（Orowan，强化随间距增大而减）——两条曲线交点即<strong>峰值时效</strong>。工业上"固溶处理→淬火→时效"（T6 状态）就是把粒子尺寸精确停在这个交点上；过时效 = 走过头掉下来（🔗 热力 III 的形核长大在此收租）。</p>
+<p><strong>Hall–Petch 的边界</strong>：晶粒细到 ~10–20 nm 以下出现<strong>反 Hall–Petch</strong>（晶界体积占比过大、变形机制切换为晶界滑动）——纳米材料的著名转折【研】。</p>
+<h2 id="3">3. 高温：另一套规则（蠕变）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>温度超过 <span class="arithmatex">\(0.4T_m\)</span> 后，"强度"这个概念要换成<strong>蠕变抗力</strong>：恒应力下应变随时间缓慢增长（一次/稳态/三次三段）。稳态蠕变率</p>
+<div class="arithmatex">\[
+\dot\varepsilon = A\,\sigma^n \exp\Big(-\frac{Q_c}{RT}\Big)
+\]</div>
+<p>——又是 Arrhenius（热力 II 的老朋友）。抗蠕变设计的三条铁律：<strong>提高熔点</strong>（钨、铌基）；<strong>消灭晶界</strong>（涡轮叶片做成单晶！结构 III 埋的伏笔在此兑现——晶界高温是软肋）；<strong>堆稳定的析出相</strong>（镍基高温合金的 γ′ 相占体积 60%+，且高温下不粗化）。</p>
+<p><strong>主线回响</strong>：室温怕位错动、高温怕晶界动——<strong>"什么在动"决定"设计什么"</strong>，服役温度是选材的第一分水岭。</p>
+<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>强度谱（MPa）：退火纯铝 ~35 ｜ 6061-T6 ~276 ｜ 低碳钢 ~250 ｜ 4340 淬火回火 ~1500 ｜ 马氏体时效钢 ~2000 ｜ 碳纤维束 ~4000；</li>
+<li>比强度（强度/密度）才是航空的货币：钛合金与高强钢强度相近但密度只有 57%；</li>
+<li><strong>反直觉三连</strong>：加工硬化让金属变强却<strong>变脆</strong>（塑性储备被提前消耗）；最强的钢不是最硬的钢（硬度高≠承载能力强，还要看韧性——下一页）；<strong>细晶是唯一的免费午餐</strong>——其余三法都在拿塑性/导电/热稳定性换强度。</li>
+</ul>
+<p>【研】对标 Courtney《Mechanical Behavior of Materials》与 Dieter；Taylor 关系推导、Orowan 应力、蠕变机制图（Ashby map）、Larson–Miller 参数外推是研究生标准装备。</p>
+<hr />
+<p><em>强度讲完了"扛得住多大力"，但工程事故几乎从不发生在屈服——而在裂纹。下一页：断裂、韧性与疲劳，材料失效的真实剧本。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="07-transformation.html"><span class="pager-label">上一页</span>热力 III · 相变与热处理</a>
+  <a class="pager-slot next" href="09-fracture.html"><span class="pager-label">下一页</span>性能 II · 断裂、韧性与疲劳</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

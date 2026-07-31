@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分布假说与向量语义 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li class="active"><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 分布假说：意义即上下文分布</a></li>
+<li><a href="#2">2. 从共现矩阵到向量</a></li>
+<li><a href="#3-word2vec">3. word2vec：预测即嵌入</a></li>
+<li><a href="#4">4. 语境化：从一个词一个向量到随语境流动</a></li>
+<li><a href="#5">5. 分布语义能走多远（缺口预告）</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">意义 I · 分布假说与向量语义<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Harris 1954、Firth 1957、Landauer &amp; Dumais (LSA)、Mikolov 2013 (word2vec)、Jurafsky &amp; Martin ch.6 ｜ <strong>前置</strong>：ling-01（意义即差异）、info-01（互信息）｜ <strong>证据地位</strong>：<strong>分布结构可学【实】</strong>，<strong>"分布 = 全部意义"【争】</strong>（缺口留给 mean-03 接地）。
+线三是全课的<strong>经验心脏</strong>，直答甲问、逼问乙问。它从一个 60 年前的假设出发——<strong>意义藏在共现里</strong>——一路走到词向量、走到 LLM 表征，也一路撞上它的天花板：<strong>分布能给你意义的骨架，但骨架关不关于世界，是另一回事。</strong></p>
+</blockquote>
+<h2 id="1">1. 分布假说：意义即上下文分布<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>Harris–Firth 分布假说</strong>：<strong>语义相近的词，出现在相似的上下文里。</strong> Firth 的名言：<strong>"观其伴而知其义（You shall know a word by the company it keeps）。"</strong></p>
+<p>这是 ling-01 索绪尔"意义即差异/关系"的<strong>可操作化</strong>：不再空谈"关系"，而是具体地——一个词的意义 <span class="arithmatex">\(\approx\)</span> 它的<strong>上下文分布</strong> <span class="arithmatex">\(P(\text{context}\mid w)\)</span>。"啤酒"和"红酒"意义近，因为它们的邻居高度重叠（喝、瓶、杯、干杯、微醺……）。<strong>意义从"词指向物"被彻底改写成"词嵌在词网里的统计位置"</strong>——一个<strong>能算</strong>的定义。</p>
+<p><strong>为什么这是甲问的钥匙</strong>：如果意义（至少一大部分）<strong>就住在共现统计里</strong>，那么一个只做"预测上下文/下一词"的系统，被这个任务<strong>逼着</strong>把这些统计结构学进去——就自动获得了意义的骨架。<strong>"预测下一词 → 学到语义"，第一块砖在这里。</strong></p>
+<h2 id="2">2. 从共现矩阵到向量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>把假说变成数字，最朴素的做法：<strong>词–上下文共现矩阵</strong> <span class="arithmatex">\(M\)</span>，<span class="arithmatex">\(M_{ij}\)</span> = 词 <span class="arithmatex">\(i\)</span> 与上下文 <span class="arithmatex">\(j\)</span> 共现次数。但原始计数被高频词主导，要用<strong>逐点互信息（PPMI）</strong>校正（info-01 的互信息回来了）：</p>
+<div class="arithmatex">\[\text{PPMI}(w, c) = \max\!\Big(0,\ \log_2 \frac{P(w, c)}{P(w)\,P(c)}\Big)\]</div>
+<p>它衡量"<span class="arithmatex">\(w\)</span> 与 <span class="arithmatex">\(c\)</span> 共现，比独立假设下<strong>超出</strong>多少"——正是搭配强度。每个词于是成为一个（稀疏、高维）向量，<strong>词义相似度 = 向量夹角（余弦相似度）</strong>。这就是<strong>向量空间语义</strong>：意义被搬进了几何。</p>
+<h2 id="3-word2vec">3. word2vec：预测即嵌入<a class="headerlink" href="#3-word2vec" title="Permanent link"></a></h2>
+<p>Mikolov 2013 的 <strong>word2vec</strong> 把"计数"换成"<strong>预测</strong>"：训练一个浅网络，用中心词预测上下文（skip-gram）或反之（CBOW）。副产品是每个词的<strong>稠密低维向量</strong>（如 300 维）。关键洞见——</p>
+<p><strong>"训练模型去预测上下文"和"分解共现矩阵"数学上近乎等价</strong>（Levy &amp; Goldberg 证明 skip-gram 隐式分解的正是 PPMI 矩阵）。<strong>所以"预测"和"分布统计"是一回事的两种实现</strong>——这条等价把 info-04"预测=压缩"接到了语义上：<strong>预测上下文，就是在压缩共现结构，就是在提取分布语义。</strong></p>
+<p><strong>著名现象——线性类比</strong>：
+$<span class="arithmatex">\(\vec{king} - \vec{man} + \vec{woman} \approx \vec{queen}\)</span>$</p>
+<figure>
+<p><img alt="词向量的类比平行四边形" class="fig-img" src="assets/img/mean_analogy.svg" /></p>
+<figcaption><span class="fig-id">图 mean-1</span> 词向量空间的类比结构：king→queen 与 man→woman 是近乎平行、等长的向量——"性别"成了空间里一个稳定方向。\(\vec{king}-\vec{man}+\vec{woman}\approx\vec{queen}\) 因此近似成立。意义关系被编码成**几何关系**，这是分布假说最惊人的兑现（2 维为投影示意）。</figcaption>
+</figure>
+<p>"性别""单复数""首都–国家"等关系，在向量空间里对应<strong>稳定的方向</strong>。意义关系 = 几何关系——这是分布假说最震撼的兑现，也是索绪尔"纯关系系统"的字面实现。</p>
+<h2 id="4">4. 语境化：从一个词一个向量到随语境流动<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>word2vec 给每个词<strong>一个</strong>固定向量——但 "bank"（河岸/银行）是一个词两个义。<strong>语境化嵌入（ELMo→BERT→GPT）</strong>修正了它：同一个词在不同句子里得到<strong>不同</strong>向量，由上下文动态计算（🔗 ai-07 Transformer 的自注意力就是干这个）。</p>
+<p>这是分布假说的<strong>升级</strong>：意义不再是词的静态属性，而是<strong>词 × 语境</strong>的函数——更贴近 ling-04 认知语法"意义随识解流动"的直觉。LLM 的内部表征，本质是把 Firth"观其伴而知其义"推到了极致：<strong>每个 token 的意义 = 它在整个上下文里的关系指纹。</strong></p>
+<h2 id="5">5. 分布语义能走多远（缺口预告）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>它抓住了什么（真的很多）</strong>：近义、类比、话题、情感、语法类别、甚至一部分常识关联——都能从纯分布涌现。这是【实】，可复现，是现代 NLP 的地基。</p>
+<p><strong>它天生抓不住什么</strong>：
+- <strong>指涉（reference）</strong>：向量知道"水"和"喝、渴、湿"共现，但向量本身不<strong>连接</strong>到真实的水（接地问题，mean-03）。
+- <strong>真值与世界</strong>：分布反映"人们怎么说"，不直接反映"世界是怎样"。语料里的偏见、错误会被忠实学进向量（info-04 §4 的裂缝）。
+- <strong>组合的无穷创造</strong>：静态向量对新颖组合意义乏力（虽然语境化模型改善了很多）——这是生成派（ling-02）留下的老问题：分布擅长<strong>存储</strong>，组合性需要<strong>生成</strong>。</p>
+<p><strong>所以分档</strong>："意义有可从分布学到的一大块结构" = 【实】；"意义 = 分布，全部" = 【争】。<strong>这道缝，就是线三后三页（可学习性、接地、三轴）要逐一勘探的地形。</strong></p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（把三条线接起来）</strong> 索绪尔（意义即关系，ling-01）→ 互信息（关系可算，info-01）→ 分布假说（意义即上下文分布）→ word2vec（预测即嵌入）→ 语境化（意义随语境流动）。<strong>这条链是全课最漂亮的一条</strong>：一个 1916 年的哲学直觉，经信息论加持，变成了今天 LLM 的表征机制。<strong>你研究"智能从语料涌现"，这条链就是它最实的一段脚手架。</strong></p>
+<p><strong>思考 2（分布是不是"影子"）</strong> 反方（Bender &amp; Koller，mean-03）会说：向量学到的是意义的<strong>影子（分布关联）</strong>，不是意义本身（关于世界）。正方（世界模型派，ai-01）会说：足够好的影子里，世界的结构会被反解出来（Othello-GPT）。<strong>这场"影子 vs 实质"之争，是甲问通往乙问的关卡</strong>——先把两边的最强论证都握在手里，别急着站队。</p>
+<p><strong>思考 3（做得动的）</strong> 在一小段语料上亲手建共现矩阵、算 PPMI、训一个玩具 word2vec，然后验证 king−man+woman≈queen——<strong>你会亲眼看见"意义"从纯计数里长出几何结构</strong>（labs L2）。再故意在有偏语料上训练，看向量如何吸进偏见——你就摸到了 §5 那道缝的边缘。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：意义 II——可学习性之争。分布能学到结构，但"从数据能学到多少"有没有<strong>数学上限</strong>？刺激贫乏（ling-02）在这里遇上 Gold 定理、PAC 学习与归纳偏置——轴 I 第一次被摆到可证明/可实验的台面上。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="info-04-compression.html"><span class="pager-label">上一页</span>信息 IV · 三种压缩与它的边界</a>
+  <a class="pager-slot next" href="mean-02-learnability.html"><span class="pager-label">下一页</span>意义 II · 可学习性之争</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

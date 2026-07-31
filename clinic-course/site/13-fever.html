@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>发热 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li class="active"><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 不能漏诊的</a></li>
+<li><a href="#2">2. 严重度评估</a></li>
+<li><a href="#3-vs">3. 感染 vs 非感染：生物标志物能帮多少</a></li>
+<li><a href="#4">4. 抗生素决策：五个有证据的原则</a></li>
+<li><a href="#5-fuo">5. 不明原因发热（FUO）</a></li>
+<li><a href="#6">6. 推理陷阱</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">路径 IV · 发热<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>发热的临床问题不是"退烧"，而是<strong>三件事</strong>：① 有没有需要立刻处理的严重感染？② 是不是感染？③ 要不要用抗生素、用多久？<strong>第三个问题是本页的重点，因为它同时是个体决策与公共卫生决策</strong>（🔗 姊妹站第 12 页讲耐药的演化机制）。</p>
+</blockquote>
+<h2 id="1">1. 不能漏诊的<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>诊断</th>
+<th>线索</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>脓毒症/感染性休克</strong></td>
+<td><strong>意识改变、呼吸急促、低血压、乳酸升高、毛细血管再充盈延迟</strong></td>
+</tr>
+<tr>
+<td><strong>细菌性脑膜炎</strong></td>
+<td>头痛 + 颈强直 + 意识改变 + 发热（<strong>四项俱全者不到半数</strong>）、皮疹</td>
+</tr>
+<tr>
+<td><strong>中性粒细胞减少性发热</strong></td>
+<td><strong>近期化疗</strong> → <strong>急症，立即经验性抗生素</strong></td>
+</tr>
+<tr>
+<td><strong>感染性心内膜炎</strong></td>
+<td>心杂音、栓塞现象、静脉药瘾、人工瓣膜</td>
+</tr>
+<tr>
+<td><strong>坏死性软组织感染</strong></td>
+<td><strong>疼痛与体征不成比例</strong>、皮下捻发感、迅速进展</td>
+</tr>
+<tr>
+<td><strong>疟疾/输入性感染</strong></td>
+<td><strong>旅行史</strong>——<strong>"发热 + 近期旅行"必须问到国家与时间</strong></td>
+</tr>
+<tr>
+<td><strong>中暑/恶性高热/5-羟色胺综合征/抗精神病药恶性综合征</strong></td>
+<td><strong>非感染性高热</strong>，用药史</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最后一条常被忽略</strong>：<strong>高热不等于感染</strong>。<strong>药物热、输血反应、恶性肿瘤（淋巴瘤）、自身免疫病、静脉血栓栓塞、肾上腺危象、甲状腺危象</strong>都能发热。</p>
+<h2 id="2">2. 严重度评估<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>脓毒症的现代定义</strong>：<strong>感染 + 器官功能障碍</strong>（不再用"SIRS 标准"）。床边筛查用<strong>呼吸频率、意识、收缩压</strong>三项；<strong>呼吸频率是最早改变也最常被漏测的生命体征</strong>。</p>
+<p><strong>乳酸</strong>是组织灌注的关键标志（🔗 姊妹站第 07 页），<strong>乳酸清除率比单次值更有意义</strong>。</p>
+<p><strong>关于"集束治疗（bundle）"的证据现状</strong>：<strong>早期抗生素与液体复苏的收益证据较强，但具体时限（如"1 小时内"）与固定液体量的强制性受到质疑</strong>——<strong>过量液体在部分患者中有害</strong>，而<strong>严格时限可能推动对非感染患者的过度用药</strong>。<strong>这是"好的干预被硬性指标化后产生副作用"的一个现实案例</strong>，也是第 09 页"指南阈值选定"问题的一个实例。</p>
+<h2 id="3-vs">3. 感染 vs 非感染：生物标志物能帮多少<a class="headerlink" href="#3-vs" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>标志物</th>
+<th>特点</th>
+<th>正确用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>白细胞计数</strong></td>
+<td><span class="arithmatex">\(LR\)</span> 低</td>
+<td><strong>单独几乎无诊断价值</strong></td>
+</tr>
+<tr>
+<td><strong>CRP</strong></td>
+<td>敏感、非特异；数小时升高</td>
+<td>趋势比单值有用</td>
+</tr>
+<tr>
+<td><strong>降钙素原 PCT</strong></td>
+<td>细菌感染相对特异，病毒升高少</td>
+<td><strong>最有证据的用途是指导"停用"抗生素</strong>——多项 RCT 显示 PCT 指导策略可缩短疗程而不增加不良结局；<strong>用它决定"是否开始"用药的证据较弱</strong></td>
+</tr>
+<tr>
+<td><strong>血培养</strong></td>
+<td>特异性高</td>
+<td><strong>用药前留取</strong>；污染（凝固酶阴性葡萄球菌单瓶阳性）是常见解读陷阱</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"检出病原体 ≠ 该病原体致病"</strong>（🔗 姊妹站第 11 页）：痰培养的念珠菌几乎总是定植；导管尖端培养阳性不等于导管相关血流感染；<strong>PCR 检出核酸可以是既往感染的残留</strong>。<strong>判断因果需要临床情境 + 定量 + 治疗反应。</strong></p>
+<h2 id="4">4. 抗生素决策：五个有证据的原则<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>① 多数急性上呼吸道感染不需要抗生素</strong>。<strong>急性支气管炎、多数咽炎、多数鼻窦炎、普通感冒</strong>——抗生素带来的症状改善极小（<strong>以小时计</strong>），而不良反应与耐药是确定的。<strong>Centor/McIsaac 评分</strong>用于链球菌性咽炎的分流。</p>
+<p><strong>② 早用 vs 观察等待</strong>。对部分情况（急性中耳炎、部分鼻窦炎），<strong>"延迟处方"策略</strong>（先给处方但建议 2–3 天后仍无好转再取药）<strong>显著减少抗生素使用而不增加并发症</strong>——<strong>这是把"时间作为诊断工具"制度化的一个成功设计</strong>。</p>
+<p><strong>③ 短疗程通常不劣于长疗程</strong>。多项非劣效试验支持在社区获得性肺炎、单纯性尿路感染、腹腔感染（源头已控制）等情况下使用更短疗程。<strong>"必须吃完整个疗程否则产生耐药"这条广为流传的说法缺乏证据支持</strong>——<strong>过长暴露反而增加选择压力</strong>。<strong>例外</strong>（仍需长疗程）：<strong>结核、心内膜炎、骨髓炎、深部脓肿、假体感染</strong>。</p>
+<p><strong>④ 降阶梯</strong>。经验性广谱 → <strong>48–72 小时按培养与药敏收窄</strong>。<strong>降阶梯是抗菌药管理中最一致被推荐、也最常被忽略的一步。</strong></p>
+<p><strong>⑤ 无症状不治疗</strong>。<strong>无症状菌尿</strong>（除妊娠与泌尿外科操作前）、<strong>定植菌</strong>、<strong>导管尖端阳性但无临床征象</strong>——<strong>治疗它们不改善结局，只增加耐药与艰难梭菌风险</strong>。</p>
+<p><strong>关于退热本身</strong>：<strong>发热是宿主反应而非疾病</strong>。<strong>常规使用解热药未显示改善感染结局</strong>，其价值主要在于舒适度。<strong>在重症患者中过度退热的收益证据尤其薄弱。</strong></p>
+<h2 id="5-fuo">5. 不明原因发热（FUO）<a class="headerlink" href="#5-fuo" title="Permanent link"></a></h2>
+<p><strong>经典定义</strong>：体温 &gt; 38.3 °C、持续 &gt; 3 周、经充分检查未确诊。</p>
+<p><strong>四大类病因</strong>（比例随地区与时代变化）：<strong>感染</strong>（结核、脓肿、心内膜炎）、<strong>恶性肿瘤</strong>（淋巴瘤最常见）、<strong>非感染性炎症</strong>（成人 Still 病、巨细胞动脉炎、血管炎）、<strong>其他</strong>（药物热、静脉血栓、人为发热）。<strong>且相当一部分最终无法确诊，其中多数自行缓解——这一点值得对患者明说。</strong></p>
+<p><strong>方法论要点</strong>：<strong>FUO 的核心不是"多做检查"，而是反复重新采集病史与查体</strong>（旅行、职业、动物接触、用药含非处方与保健品、性接触、家族史、植入物）。<strong>盲目扩大检查在低验前概率下必然产生假阳性瀑布</strong>（第 02、03 页）。</p>
+<h2 id="6">6. 推理陷阱<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>① 老年人与免疫抑制者可以不发热</strong>——<strong>甚至低体温</strong>，且低体温预示更差的结局。<strong>"没有发热"不能排除严重感染。</strong></p>
+<p><strong>② 抗生素有效 = 是细菌感染</strong>。<strong>多数自限性疾病会在几天内自行好转</strong>（第 19 页：自然史与均值回归）。<strong>这是"个人经验支持抗生素"的主要来源。</strong></p>
+<p><strong>③ 用药物热的可能性从不被考虑</strong>。<strong>β-内酰胺、磺胺、抗癫痫药</strong>等都可致药物热，<strong>且常在用药一到两周后出现</strong>。</p>
+<p><strong>④ 旅行史与暴露史不问</strong>。<strong>疟疾可以在离开疫区数月后发作，且恶性疟可迅速致命。</strong></p>
+<p><strong>⑤ 把"发热已退"当作治愈</strong>。<strong>心内膜炎、脓肿在抗生素下可暂时退热而病灶未清除。</strong></p>
+<hr />
+<p><em>下一页：头痛与意识改变——神经科的两大主诉，也是"不能漏诊"清单最长的一页。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-abdominal-pain.html"><span class="pager-label">上一页</span>路径 III · 腹痛</a>
+  <a class="pager-slot next" href="14-headache-altered.html"><span class="pager-label">下一页</span>路径 V · 头痛与意识改变</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

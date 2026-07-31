@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>铸、锻、焊 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li class="active"><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、铸造：一次成形复杂形状</a></li>
+<li><a href="#_2">二、锻造：改善内部组织</a></li>
+<li><a href="#_3">三、板料成形</a></li>
+<li><a href="#_4">四、焊接：连接与它的代价</a></li>
+<li><a href="#dfm">五、面向制造的设计（DFM）</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">制造 I · 铸、锻、焊<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界基础 ｜ <strong>本页讲原理与设计影响，不讲具体工艺参数</strong>（那些依赖设备、材料牌号与现场经验，须查标准与工艺手册）。
+机械设计的一条铁律：<strong>你只能设计出能被造出来的东西</strong>。而"能被造出来"取决于工艺。本页讲三类成形工艺——它们决定了零件的形状自由度、内部质量与成本结构。</p>
+</blockquote>
+<h2 id="_1">一、铸造：一次成形复杂形状<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>原理</strong>：熔融金属注入型腔，凝固成形。</p>
+<p><strong>优势</strong>：
+- <strong>形状自由度最高</strong>——复杂内腔、变截面、一体化结构（发动机缸体、机床床身、泵壳）；
+- <strong>材料利用率高</strong>，适合大批量；
+- 可铸造<strong>难以切削的材料</strong>（铸铁）。</p>
+<p><strong>固有问题（全部源于"凝固"这一物理过程）</strong>：</p>
+<p><strong>① 收缩与缩孔</strong>：金属凝固时体积收缩（钢约 3–5%）。<strong>最后凝固的部位若得不到补充，就形成缩孔</strong>。
+<strong>对策</strong>：<strong>冒口</strong>（额外的金属储备，让缩孔转移到冒口里，事后切除）、<strong>冷铁</strong>（局部加速冷却，控制凝固顺序）。<strong>核心思想是"顺序凝固"——让凝固从远端向冒口推进。</strong></p>
+<p><strong>② 壁厚要均匀</strong>：厚薄悬殊处，厚壁部位凝固慢、易缩孔，且冷却不均产生<strong>残余应力与变形</strong>。
+<strong>设计准则</strong>：<strong>避免局部厚大（热节）</strong>，用<strong>加强筋代替加厚</strong>——这与第三页"把材料移到外围"的结构原则不谋而合，两条准则在此互相支持。</p>
+<p><strong>③ 气孔、夹渣、偏析</strong>：需要合理的浇注系统与排气。</p>
+<p><strong>④ 铸造圆角</strong>：尖角处易产生<strong>热裂</strong>与应力集中。<strong>所有铸件转角都必须有圆角</strong>——这是铸造设计的第一条规则。</p>
+<p><strong>⑤ 拔模斜度</strong>：砂型/压铸都需要脱模，<strong>垂直于分型面的表面必须有斜度</strong>（通常 1–3°）。</p>
+<p><strong>材料特性</strong>：<strong>铸铁的石墨形态决定性能</strong>——片状石墨（灰铸铁）割裂基体故脆但<strong>减振性极好</strong>（机床床身用它正是为此）；球状石墨（球墨铸铁）韧性大幅提高，可替代部分铸钢件。</p>
+<h2 id="_2">二、锻造：改善内部组织<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>原理</strong>：在塑性状态下施加压力使金属流动成形。</p>
+<p><strong>关键优势不在形状，而在组织</strong>：
+- <strong>压合内部孔隙</strong>、细化晶粒；
+- <strong>形成连续的锻造流线（纤维组织）</strong>——沿流线方向的力学性能显著优于横向。</p>
+<p><strong>设计要点：让流线沿受力方向连续，且不被后续加工切断。</strong></p>
+<p><strong>这个原理有直接的工程后果</strong>：曲轴、连杆、齿轮坯、起重吊钩这类关键受力件必须锻造而非铸造或直接切削。<strong>从一整块钢料上切削出的吊钩，流线被切断，强度远低于锻造件</strong>——这不是理论推测，而是失效分析中反复验证的事实。</p>
+<p><strong>分类</strong>：自由锻（灵活、单件小批）、模锻（精度高、批量大、需模具）、辊锻、精锻（近净成形）。</p>
+<p><strong>冷加工与热加工的区别</strong>：
+- <strong>冷加工</strong>（低于再结晶温度）：<strong>加工硬化</strong>（强度升、塑性降）、表面质量好、精度高，但变形抗力大；
+- <strong>热加工</strong>（高于再结晶温度）：变形抗力小、塑性好，可大变形，但表面氧化、精度低。</p>
+<p><strong>加工硬化本身是一种强化手段</strong>：冷拔钢丝、冷轧板材的强度显著高于原始材料。<strong>这也是为什么反复弯折金属丝会先变硬、然后断裂</strong>（加工硬化 + 疲劳）。</p>
+<h2 id="_3">三、板料成形<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>冲压、拉深、弯曲、旋压——汽车覆盖件、家电外壳的主力工艺。</p>
+<p><strong>三个必须知道的现象</strong>：</p>
+<p><strong>① 回弹</strong>：弹性变形在卸载后恢复，<strong>导致实际角度小于模具角度</strong>。<strong>回弹补偿是冲压模具设计的核心难题</strong>，高强钢的回弹更严重（弹性应变更大）。现代做法是用有限元预测回弹并<strong>反向修正模具型面</strong>（承第十一页齿轮修形的同一思想：故意做不准，以便成形后正好准）。</p>
+<p><strong>② 起皱与拉裂</strong>：拉深时法兰区受压易起皱（用压边圈抑制），底部受拉易拉裂。<strong>成形极限图（FLD）</strong>给出主次应变的安全边界，是板料成形分析的标准工具。</p>
+<p><strong>③ 各向异性</strong>：轧制板材的性能随方向变化（<span class="arithmatex">\(r\)</span> 值），影响成形性与制耳。</p>
+<h2 id="_4">四、焊接：连接与它的代价<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>原理</strong>：局部熔化（或压力/扩散）使材料连成一体。</p>
+<p><strong>焊接的三个固有问题——它们全部源于"局部快速加热冷却"</strong>：</p>
+<p><strong>① 残余应力与变形</strong>：焊缝冷却收缩受周围约束 → <strong>产生接近屈服强度的残余拉应力</strong>，并使结构变形。
+<strong>对策</strong>：合理的焊接顺序、对称焊、反变形预置、焊后热处理（退火）、振动时效。</p>
+<p><strong>② 热影响区（HAZ）</strong>：焊缝旁未熔化但组织已改变的区域。<strong>它常常是接头最薄弱的部位</strong>——可能硬化变脆（淬硬倾向）或软化（调质钢回火）。<strong>碳当量</strong>用于评估钢材的焊接性与预热需求。</p>
+<p><strong>③ 缺陷与疲劳</strong>：气孔、夹渣、未熔合、裂纹；<strong>焊趾的几何突变 + 残余拉应力 → 疲劳性能显著低于母材</strong>（承第十四页）。</p>
+<p><strong>这三点合起来给出一条重要的设计准则</strong>：<strong>焊缝应尽量布置在低应力区，且避开疲劳关键部位</strong>；不可避免时，通过<strong>打磨焊趾、TIG 重熔、锤击</strong>改善。</p>
+<p><strong>其他连接方式的定位</strong>：
+- <strong>螺栓</strong>：可拆、可检、可调预紧；<strong>但预紧力控制是关键</strong>（松动、疲劳、应力松弛）；
+- <strong>铆接</strong>：可靠、无热影响，飞机结构大量使用；
+- <strong>粘接</strong>：应力分布均匀、可连接异种材料，但耐温与耐久性受限；
+- <strong>过盈</strong>：无附加件，但装配困难、边缘应力集中（第十五页）。</p>
+<h2 id="dfm">五、面向制造的设计（DFM）<a class="headerlink" href="#dfm" title="Permanent link"></a></h2>
+<p><strong>这是本页的落点</strong>——一个基本态度：<strong>设计时就要想着怎么造。</strong></p>
+<p>具体准则：
+- <strong>减少工序与装夹次数</strong>（每次重新装夹都引入误差，承第十五页尺寸链）；
+- <strong>统一特征</strong>：孔径、圆角、螺纹规格尽量归并，<strong>减少换刀与刀具种类</strong>；
+- <strong>避免难加工特征</strong>：深孔、内尖角（铣刀是圆的，<strong>内直角根本铣不出来</strong>）、封闭内腔；
+- <strong>留出刀具与工具空间</strong>：<strong>扳手要拧得进去</strong>——这是新手最常犯的错误之一；
+- <strong>明确基准</strong>，与装配基准一致（承第十五页）；
+- <strong>考虑批量</strong>：单件宜切削/增材，大批量宜铸锻冲压（模具成本被摊薄）。</p>
+<p><strong>一个成本判断</strong>：<strong>模具费用是固定成本，切削是可变成本</strong>。<strong>批量决定了工艺选择的经济性</strong>——这与 🔗 微电子站"ASIC 的 NRE vs 出货量"、自动化站"机械凸轮 vs 伺服"是完全同构的判断。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>铸造形状自由但受凝固物理约束</strong>：壁厚均匀、必有圆角、需冒口与拔模斜度；</li>
+<li><strong>锻造的价值在组织与流线</strong>——关键受力件必须锻造，流线不可被切断；</li>
+<li><strong>加工硬化既是问题也是强化手段</strong>；</li>
+<li><strong>板料成形的核心难题是回弹</strong>，用仿真反向修模；</li>
+<li><strong>焊接的三大问题源于局部加热</strong>：残余应力、热影响区、疲劳性能下降；</li>
+<li><strong>DFM 的核心是"减少工序、避开难加工特征、留出操作空间"</strong>；<strong>批量决定工艺经济性</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：切削加工——机械制造的主力工艺。它决定了精度的上限，也贡献了机床工程中最经典的稳定性问题：颤振。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="16-reliability.html"><span class="pager-label">上一页</span>失效 III · 安全系数与可靠性设计</a>
+  <a class="pager-slot next" href="18-machining.html"><span class="pager-label">下一页</span>制造 II · 切削与精密加工</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

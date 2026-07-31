@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>粘性、边界层与阻力 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li class="active"><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 23:03</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-stokes">1. 低雷诺数：Stokes 流的怪异世界</a></li>
+<li><a href="#2">2. 高雷诺数：边界层</a></li>
+<li><a href="#3">3. 分离：升力消失的地方</a></li>
+<li><a href="#4">4. 阻力的分解与升力</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">流体 II · 粘性、边界层与阻力<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Batchelor ch.4–5 / Schlichting《边界层理论》/ Purcell "Life at Low Reynolds Number" ｜ <strong>前置</strong>：fl-01
+粘性的作用极不均匀：在大部分区域可以忽略，却在紧贴壁面的薄层里完全主导——而正是这一层决定了阻力、升力与失速。Prandtl 1904 年的这个洞见，把流体力学从"漂亮但没用"变成了工程学科。</p>
+</blockquote>
+<figure class="plot">
+<p><img alt="圆球阻力系数随雷诺数的变化，含阻力危机。" src="assets/img/fl-02-viscous-drag.svg" /></p>
+<figcaption><span class="fig-id">图 fl-02.1</span>圆球阻力系数 \(C_D(\mathrm{Re})\)：低 \(Re\) 的 Stokes 律 \(C_D=24/\mathrm{Re}\)、中段平台、以及 \(\mathrm{Re}\sim3\times10^5\) 处因边界层转捩导致的<strong>阻力危机</strong>。</figcaption>
+</figure>
+<h2 id="1-stokes">1. 低雷诺数：Stokes 流的怪异世界<a class="headerlink" href="#1-stokes" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathrm{Re}\ll1\)</span> 时丢掉惯性项，N–S 退化为<strong>线性</strong>的 Stokes 方程：</p>
+<div class="arithmatex">\[\nabla p = \mu\nabla^2\mathbf u,\qquad \nabla\cdot\mathbf u = 0\]</div>
+<p><strong>Stokes 阻力【推导】</strong>：球体 <span class="arithmatex">\(F = 6\pi\mu a U\)</span>。</p>
+<p><strong>两个反直觉后果</strong>：</p>
+<p><strong>① 时间可逆性。</strong> 方程无时间导数、无非线性 → <strong>把驱动反向，流体精确回到原处</strong>（著名的甘油演示实验）。</p>
+<p><strong>② 扇贝定理（Purcell）</strong>：低 <span class="arithmatex">\(\mathrm{Re}\)</span> 下，<strong>任何往复对称的形变都不产生净位移</strong>——一开一合的扇贝原地不动。<strong>所以细菌必须用非往复的方式游动</strong>：螺旋鞭毛的旋转、或纤毛的非对称拍打。<strong>这是一条纯粹由方程对称性推出的生物学约束</strong>（🔗 bio 站的鞭毛马达）。</p>
+<h2 id="2">2. 高雷诺数：边界层<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathrm{Re}\gg1\)</span> 时，粘性项系数很小，但<strong>不能直接丢弃</strong>——因为壁面要求无滑移 <span class="arithmatex">\(\mathbf u=0\)</span>，而 Euler 方程只能满足法向条件。<strong>矛盾在壁面附近厚度为 <span class="arithmatex">\(\delta\)</span> 的薄层中化解</strong>。</p>
+<p><strong>量级平衡【标度推导】</strong>：层内粘性与惯性同量级 <span class="arithmatex">\(\dfrac{\mu U}{\delta^2}\sim\dfrac{\rho U^2}{L}\)</span> 给</p>
+<div class="arithmatex">\[\frac{\delta}{L}\sim\frac{1}{\sqrt{\mathrm{Re}}}\]</div>
+<p><strong>Blasius 解【引用】</strong>：平板层流边界层的相似解，<span class="arithmatex">\(\delta\approx5.0\,x/\sqrt{\mathrm{Re}_x}\)</span>，壁面切应力 <span class="arithmatex">\(\tau_w\propto x^{-1/2}\)</span>。</p>
+<p><strong>这就是 d'Alembert 佯谬的解答</strong>（fl-01）：无论 <span class="arithmatex">\(\mu\)</span> 多小，边界层始终存在，且<strong>它的存在改变了整个外流</strong>。</p>
+<h2 id="3">3. 分离：升力消失的地方<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>逆压梯度</strong>（<span class="arithmatex">\(dp/dx&gt;0\)</span>，如翼型后半段）会减速近壁流体，一旦壁面切应力变号，边界层<strong>脱离壁面</strong>——<strong>流动分离</strong>。</p>
+<p><strong>后果</strong>：
+- 尾流增大 → <strong>压差阻力（形阻）急剧上升</strong>；
+- 机翼失速：攻角过大 → 分离 → <strong>升力骤降</strong>；
+- 分离点位置决定一切，而它对边界层状态极敏感。</p>
+<p><strong>阻力危机【经典现象】</strong>：<span class="arithmatex">\(\mathrm{Re}\sim3\times10^5\)</span> 时，边界层由层流转捩为<strong>湍流</strong>。湍流边界层动量输运强、更"抗压"，<strong>分离点后移</strong> → 尾流变窄 → <strong>阻力系数骤降约 3–4 倍</strong>（图 fl-02.1 的陡坎）。</p>
+<p><strong>这解释了高尔夫球的酒窝</strong>：粗糙表面<strong>提前触发转捩</strong>，把阻力危机拉到更低的 <span class="arithmatex">\(\mathrm{Re}\)</span>，使球飞得更远。<strong>"人为制造湍流以减小阻力"——一个彻底反直觉、却每天被验证的工程事实。</strong></p>
+<h2 id="4">4. 阻力的分解与升力<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<div class="arithmatex">\[F_D = \underbrace{\text{摩擦阻力}}_{\tau_w\ \text{积分}} + \underbrace{\text{压差阻力}}_{\text{分离决定}}\]</div>
+<p>流线型物体以摩擦阻力为主（分离被推迟），钝体以压差阻力为主。</p>
+<p><strong>升力</strong>：由绕翼型的<strong>环量</strong> <span class="arithmatex">\(\Gamma\)</span> 给出 Kutta–Joukowski 定理 <span class="arithmatex">\(L = \rho U\Gamma\)</span>。环量并非凭空产生——Kelvin 定理（fl-01）要求总环量守恒，<strong>起动时脱落的"起动涡"携带等量反向环量</strong>。<strong>升力的产生与一个被留在身后的涡严格配对。</strong></p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（细菌与人的世界之别）</strong> 人游泳 <span class="arithmatex">\(\mathrm{Re}\sim10^6\)</span>：停止划水仍滑行数米（惯性）。细菌 <span class="arithmatex">\(\mathrm{Re}\sim10^{-5}\)</span>：<strong>停止转动鞭毛后滑行距离约为原子尺度</strong>——惯性完全不存在，"游泳"等价于"在极稠的糖浆中拧螺丝"。</p>
+<p><strong>例 2（边界层有多薄）</strong> 机翼弦长 1 m、<span class="arithmatex">\(\mathrm{Re}=10^7\)</span>：<span class="arithmatex">\(\delta\sim L/\sqrt{\mathrm{Re}}\sim0.3\)</span> mm。<strong>整架飞机的阻力，取决于不到半毫米厚的一层流体。</strong></p>
+<p><strong>例 3（阻力危机的量级）</strong> 光滑球 <span class="arithmatex">\(C_D\)</span> 从 0.5 降到 0.1 附近——<strong>同样速度下阻力降至约 1/5</strong>。高尔夫球正是靠它把飞行距离提高约一倍。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：<span class="arithmatex">\(\mathrm{Re}\)</span> 继续升高会怎样？流动失去规则性，进入物理学最著名的未解难题——湍流。这里我们只能得到标度律，得不到解。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="fl-01-continuum.html"><span class="pager-label">上一页</span>流体 I · 连续介质与 Navier–Stokes</a>
+  <a class="pager-slot next" href="fl-03-turbulence.html"><span class="pager-label">下一页</span>流体 III · 湍流与标度律</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

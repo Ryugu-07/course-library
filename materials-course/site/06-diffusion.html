@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扩散 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li class="active"><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-fick">1. Fick 定律（宏观语言）</a></li>
+<li><a href="#2-arrhenius">2. 微观机制与 Arrhenius（温度的独裁）</a></li>
+<li><a href="#3">3. 三个工程现场</a></li>
+<li><a href="#4">4. 反直觉清单</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">热力 II · 扩散：原子的迁徙学<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>相图指出的平衡要靠原子<strong>走过去</strong>才能实现——扩散是固态世界唯一的搬运方式，也是一切热处理、渗碳、烧结、半导体掺杂的时钟。本页三件事：Fick 定律（宏观唯象）、机制与 Arrhenius（微观定价）、以及工程上最好用的一根尺子——<span class="arithmatex">\(\sqrt{Dt}\)</span>。</p>
+</blockquote>
+<h2 id="1-fick">1. Fick 定律（宏观语言）<a class="headerlink" href="#1-fick" title="Permanent link"></a></h2>
+<p><strong>第一定律</strong>（稳态）：<span class="arithmatex">\(J = -D\,\dfrac{\partial C}{\partial x}\)</span>——顺浓度梯度搬运，<span class="arithmatex">\(D\)</span>（m²/s）是搬运效率。<strong>第二定律</strong>（非稳态，守恒 + 一式即得）：</p>
+<div class="arithmatex">\[
+\frac{\partial C}{\partial t} = D\,\frac{\partial^2 C}{\partial x^2}
+\]</div>
+<p>——<strong>就是热方程</strong>（🔗 数学站 pde-02 全套理论直接接管：误差函数解、高斯核、<span class="arithmatex">\(\sqrt{t}\)</span> 标度）。表面恒浓度的经典解（渗碳/渗氮/掺杂全用它）：</p>
+<div class="arithmatex">\[
+\frac{C(x,t) - C_0}{C_s - C_0} = \mathrm{erfc}\!\Big(\frac{x}{2\sqrt{Dt}}\Big)
+\]</div>
+<figure class="plot">
+<p><img alt="Carburizing concentration profiles" src="assets/img/mat-06-diffusion.svg" /></p>
+<figcaption><span class="fig-id">图 6.1</span>渗碳剖面随时间推进（\(D=10^{-11}\,\mathrm{m^2/s}\)，对应 \(\gamma\)-Fe 中的碳约 950 °C）：特征深度（虚线）按 \(\sqrt{Dt}\) 生长——渗层加倍要四倍时间，扩散工艺的第一笔账。</figcaption>
+</figure>
+<p><strong>万能尺子</strong>：扩散影响距离 <span class="arithmatex">\(x \sim \sqrt{Dt}\)</span>（🔗 布朗运动的 <span class="arithmatex">\(\sqrt t\)</span>——数学站随机过程/sde 线的同一根尺子：扩散本就是原子的随机游走）。<strong>工艺速算</strong>：渗层要加倍 ⇒ 时间四倍；"多深要多久"一律先用它估量级再谈精确解。</p>
+<h2 id="2-arrhenius">2. 微观机制与 Arrhenius（温度的独裁）<a class="headerlink" href="#2-arrhenius" title="Permanent link"></a></h2>
+<p>两种走法：<strong>间隙机制</strong>（小原子 C、N、H 在间隙里穿行——快）；<strong>空位机制</strong>（置换原子等空位换位——慢，且依赖空位浓度：结构 III 的指数曲线在此入股）。两个热激活因子相乘，总账仍是 Arrhenius：</p>
+<div class="arithmatex">\[
+D = D_0 \exp\Big(-\frac{Q}{RT}\Big)
+\]</div>
+<p><strong>数字感（三个 D 的震撼对比，~900 °C）</strong>：C 在 γ-Fe（间隙）~<span class="arithmatex">\(10^{-11}\)</span>；Fe 自扩散（空位）~<span class="arithmatex">\(10^{-16}\)</span>；室温下金属自扩散 &lt;<span class="arithmatex">\(10^{-40}\)</span> m²/s——<strong>间隙比置换快五个数量级、高温比室温快几十个数量级</strong>。两条工程直觉由此：渗碳可行而"渗镍"不可行（要靠镀层+互扩散）；室温下金属组织基本冻结（这就是热处理淬火"锁住"组织的原因，也是为什么固态相变都要加热）。</p>
+<p><strong>Arrhenius 作图法</strong>：<span class="arithmatex">\(\ln D\)</span> 对 <span class="arithmatex">\(1/T\)</span> 作图得直线、斜率给激活能 <span class="arithmatex">\(Q\)</span>——材料动力学万能的实验分析法（蠕变、氧化、反应速率同款；🔗 化学反应速率、物理站统计力学的玻尔兹曼因子——一个 <span class="arithmatex">\(e^{-Q/RT}\)</span> 统治所有热激活过程）。</p>
+<p><strong>捷径网络</strong>：晶界扩散 ≫ 体扩散（结构 III"高速路"的定量版：激活能约为体扩散的一半）、表面更快、位错管道居中——低温下捷径主导（纳米晶与烧结的动力学舞台，工艺 II）。</p>
+<h2 id="3">3. 三个工程现场<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>渗碳齿轮</strong>：930 °C × 6 h → 渗层 ~1 mm（图 6.1 的账），表面高碳淬火成马氏体耐磨、心部低碳保持韧性——<strong>梯度材料的元老</strong>；</li>
+<li><strong>半导体掺杂</strong>：硅中掺磷/硼的预沉积+推进两步全是 erfc/高斯解的应用（🔗 micro 站制程页——那边讲流程、这边讲方程）；现代浅结改用离子注入+快速退火，正是因为热扩散"太会走"控制不住；</li>
+<li><strong>均匀化退火</strong>：铸锭枝晶偏析（热力 I 的欠账）的抹平时间 <span class="arithmatex">\(t \sim L^2/D\)</span>（<span class="arithmatex">\(L\)</span> = 偏析间距）——细化组织使 <span class="arithmatex">\(L\)</span> 减半、退火时间省四分之三：<strong>尺度决定时钟</strong>。</li>
+</ul>
+<h2 id="4">4. 反直觉清单<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>扩散不需要浓度梯度也在发生（自扩散——梯度只是给了净流量方向）；真正的驱动力是<strong>化学势梯度</strong>：上坡扩散（往浓处走）在调幅分解里真实存在【研：spinodal，Cahn–Hilliard】——"Fick 定律是常态不是定律"；</li>
+<li>固体里的原子远非静止：熔点附近每个原子每秒跳位<strong>上百万次</strong>——固体只是"跳得慢的液体"；</li>
+<li>加热 100 °C 常抵得上时间乘几十倍——<strong>温度是指数杠杆、时间只是线性杠杆</strong>：改工艺先动温度。</li>
+</ul>
+<p>【研】对标 Shewmon《Diffusion in Solids》；Kirkendall 效应（互扩散速度不等 ⇒ 标记面移动——空位机制的直接证据）、Darken 方程、非稳态数值解（数学站数值线）是研究生功课。</p>
+<hr />
+<p><em>方向（热力学）与速度（扩散）都有了，合起来就能回答材料学最戏剧性的问题：组织怎么变、怎么被我们操纵——相变与热处理。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-thermo-phase.html"><span class="pager-label">上一页</span>热力 I · 相图：材料的地图</a>
+  <a class="pager-slot next" href="07-transformation.html"><span class="pager-label">下一页</span>热力 III · 相变与热处理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

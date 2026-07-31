@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>产业结构与职业路径 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li class="active"><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、垂直分工：一个被成本逼出来的结构</a></li>
+<li><a href="#_2">二、集中度与脆弱性</a></li>
+<li><a href="#_3">三、岗位地图：这些人具体在做什么</a></li>
+<li><a href="#_4">四、本硕博的实际分工</a></li>
+<li><a href="#_5">五、这个行业的几个特殊经济学</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="vi">前沿 VI · 产业结构与职业路径<a class="headerlink" href="#vi" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07</strong> ｜ 本页讲<strong>产业如何组织</strong>与<strong>人在其中做什么</strong>——这是技术课程通常不讲、但对理解这个领域至关重要的一层。
+半导体是现代工业中结构最特殊的产业之一：<strong>资本极度密集、分工极度专业、地理极度集中</strong>。本页解释这些特征从何而来（答案全部在前面的技术页里），并给出本硕博的实际去向。</p>
+</blockquote>
+<h2 id="_1">一、垂直分工：一个被成本逼出来的结构<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>早期半导体公司是 <strong>IDM（整合元件制造商）</strong>——自己设计、自己制造、自己封测。今天的主流是<strong>垂直分工</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>做什么</th>
+<th>特征</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>IP 供应商</strong></td>
+<td>提供可复用的电路模块（处理器核、接口 IP）</td>
+<td>轻资产，授权模式</td>
+</tr>
+<tr>
+<td><strong>Fabless（无晶圆厂设计公司）</strong></td>
+<td>只做设计</td>
+<td>不承担建厂资本</td>
+</tr>
+<tr>
+<td><strong>Foundry（代工厂）</strong></td>
+<td>只做制造</td>
+<td><strong>资本极重</strong>（单厂百亿到两百亿美元量级）</td>
+</tr>
+<tr>
+<td><strong>OSAT</strong></td>
+<td>封装与测试</td>
+<td>近年因先进封装而地位上升</td>
+</tr>
+<tr>
+<td><strong>EDA</strong></td>
+<td>设计工具</td>
+<td>高度集中，少数几家</td>
+</tr>
+<tr>
+<td><strong>设备</strong></td>
+<td>光刻、刻蚀、沉积、量测</td>
+<td><strong>极高技术壁垒</strong>，部分环节独家</td>
+</tr>
+<tr>
+<td><strong>材料</strong></td>
+<td>硅片、光刻胶、特种气体</td>
+<td>高纯度要求，供应链关键</td>
+</tr>
+<tr>
+<td><strong>IDM</strong></td>
+<td>全流程自持</td>
+<td>仍存在于存储、模拟、功率等领域</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么会演化成这样？答案在第十一、十四页</strong>：</p>
+<ol>
+<li><strong>建厂成本随节点指数上升</strong>，只有极大的产能利用率才能摊薄 → 制造必须集中到少数几家、服务全球客户；</li>
+<li><strong>设计成本也在上升</strong>，但远低于建厂 → 设计公司可以专注创意与产品定义；</li>
+<li><strong>良率与工艺 know-how 是长期积累</strong>，难以速成 → 后来者难以追赶；</li>
+<li><strong>代工模式</strong>（张忠谋的关键创新）<strong>降低了创业门槛</strong>——没有工厂也能做芯片，这直接催生了整个 fabless 产业与今天绝大多数芯片公司。</li>
+</ol>
+<p><strong>这是一次由成本结构驱动的产业重组</strong>，与许多行业的"专业化分工"是同一个经济学逻辑，只是被半导体的极端资本强度放大了。</p>
+<h2 id="_2">二、集中度与脆弱性<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>几个结构性事实：</p>
+<ul>
+<li><strong>先进逻辑制造</strong>高度集中在少数厂商与少数地区；</li>
+<li><strong>EUV 光刻机</strong>目前仅有一家供应商能够制造（第十二页），且其供应链本身跨越多国（光学、光源、精密机械各有专精厂商）；</li>
+<li><strong>EDA 工具</strong>集中于少数几家；</li>
+<li><strong>高纯材料与特种气体</strong>也存在关键节点。</li>
+</ul>
+<p><strong>后果</strong>：这条供应链<strong>又长又细，且每个环节都难以替代</strong>。任何一个节点的中断都会波及全球——这一点在近年的供应短缺与地缘博弈中反复显现。<strong>理解这条链的形状，是理解当前半导体地缘政治的技术前提。</strong></p>
+<p><strong>同时要避免一个误读</strong>：<strong>成熟制程（28nm 及以上）的产能分布远比先进制程分散</strong>，且汽车、工业、模拟、功率器件的绝大部分需求在成熟节点上。<strong>"半导体"不等于"最先进逻辑"</strong>——后者只是价值链顶端的一小部分，却吸引了绝大部分注意力。</p>
+<h2 id="_3">三、岗位地图：这些人具体在做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>按前面各线索对应到实际职位：</p>
+<p><strong>设计侧</strong></p>
+<table>
+<thead>
+<tr>
+<th>岗位</th>
+<th>日常工作</th>
+<th>对应本课</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>数字前端 / IC 设计</strong></td>
+<td>写 RTL、微架构设计、跑综合</td>
+<td>第六、七、十三页</td>
+</tr>
+<tr>
+<td><strong>验证工程师</strong></td>
+<td>搭验证平台、写激励、覆盖率收敛</td>
+<td>第十三页（<strong>人数常超设计</strong>）</td>
+</tr>
+<tr>
+<td><strong>数字后端 / 物理设计</strong></td>
+<td>布局布线、时序收敛、签核</td>
+<td>第七、十三、十四页</td>
+</tr>
+<tr>
+<td><strong>模拟 / 混合信号设计</strong></td>
+<td>手工设计电路与版图、仿真迭代</td>
+<td>第八、九页（<strong>最难自动化，最稀缺</strong>）</td>
+</tr>
+<tr>
+<td><strong>射频设计</strong></td>
+<td>前端链路、天线接口</td>
+<td>第十八页</td>
+</tr>
+<tr>
+<td><strong>DFT 工程师</strong></td>
+<td>扫描链、ATPG、可测性</td>
+<td>第十四页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>制造侧</strong></p>
+<table>
+<thead>
+<tr>
+<th>岗位</th>
+<th>日常工作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>工艺整合（PIE）</strong></td>
+<td>打通整条流程，定位并解决良率问题</td>
+</tr>
+<tr>
+<td><strong>模块工程师</strong></td>
+<td>专精某道工序（光刻/刻蚀/薄膜）</td>
+</tr>
+<tr>
+<td><strong>良率分析</strong></td>
+<td>数据分析、缺陷归因</td>
+</tr>
+<tr>
+<td><strong>器件工程师 / TCAD</strong></td>
+<td>器件建模与仿真</td>
+</tr>
+<tr>
+<td><strong>设备工程师</strong></td>
+<td>机台维护与调优</td>
+</tr>
+</tbody>
+</table>
+<p><strong>其他</strong>：EDA 算法研发、封装工程、测试工程、应用工程（FAE）、产品定义。</p>
+<p><strong>几条业界观察</strong>（对你最初的问题最直接）：
+- <strong>验证与后端的岗位数量远超"设计芯片"的浪漫想象</strong>——大部分人不是在发明新架构，而是在让复杂系统正确且按时收敛；
+- <strong>模拟与射频设计者稀缺</strong>，因为培养周期长（常需硕博 + 数年实践）且难以自动化（第十三页）；
+- <strong>良率工程师在代工厂地位极高</strong>，因为良率直接是利润；
+- <strong>"有没有流片经验"是硬门槛</strong>（第十一页：流片昂贵，所以有经验的人值钱）。</p>
+<h2 id="_4">四、本硕博的实际分工<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>承导论的三层结构，具体到这个行业：</p>
+<ul>
+<li><strong>本科</strong>：掌握器件 + 电路 + 数字设计基础，能做仿真与小规模设计。<strong>直接就业多进入验证、后端、测试、设备、工艺等岗位</strong>；</li>
+<li><strong>硕士</strong>：进入某条专门方向（模拟、射频、后端、器件、EDA）。<strong>这是进入设计岗位的主流门槛</strong>，尤其模拟与射频；</li>
+<li><strong>博士</strong>：极窄的研究方向 + 深度。去向包括研发部门（先进器件、新架构）、代工厂的技术开发、EDA 算法研发、以及学界。<strong>博士的价值在于"能解决没有现成方法的问题"</strong>。</li>
+</ul>
+<p><strong>一个现实提醒</strong>：这个行业的<strong>学习曲线长、反馈周期慢</strong>（一次流片数月），与软件行业的快速迭代文化差别很大。<strong>耐心与严谨的性格权重很高</strong>——因为错误的代价是数百万美元与数月时间（第十一页）。</p>
+<h2 id="_5">五、这个行业的几个特殊经济学<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>产能周期性</strong>：半导体是强周期行业，扩产决策提前数年做出，常与需求错配，形成"缺货—扩产—过剩"的循环；</li>
+<li><strong>学习曲线</strong>：良率随时间爬坡，<strong>早期成本极高、后期极低</strong>，这使得"抢先量产"具有巨大价值；</li>
+<li><strong>NRE 与摊薄</strong>：先进节点的设计与掩模成本极高，<strong>必须靠巨大出货量摊薄</strong>——这解释了为什么先进节点只有少数超大规模产品用得起，也解释了 Chiplet 复用的吸引力（第十五页）；</li>
+<li><strong>成熟节点的长尾价值</strong>：老节点的设备已折旧完毕、良率成熟，<strong>利润率往往很好</strong>，且需求稳定。<strong>"不是所有芯片都需要最先进"</strong>（第八、十五页反复出现的主题）。</li>
+</ul>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>产业的垂直分工是被资本强度与良率积累逼出来的</strong>，代工模式是关键创新；</li>
+<li><strong>供应链又长又细</strong>，集中度高，这是技术特性（尤其光刻）的直接后果；</li>
+<li><strong>"半导体 ≠ 先进逻辑"</strong>，成熟节点承载大量真实需求；</li>
+<li><strong>岗位分布与浪漫想象不同</strong>：验证、后端、良率是人数与价值的重心；</li>
+<li><strong>模拟/射频稀缺、流片经验值钱、良率工程师关键</strong>——这三条是本行业最实在的职业事实。</li>
+</ul>
+<hr />
+<p><em>下一页：收官。把二十页收拢成一个判断——微电子这门学科，究竟教会人什么。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="19-frontier.html"><span class="pager-label">上一页</span>前沿 V · 器件与工艺的下一步</a>
+  <a class="pager-slot next" href="21-closing.html"><span class="pager-label">下一页</span>收官 · 约束下的设计</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

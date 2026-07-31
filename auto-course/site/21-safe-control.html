@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>安全约束控制 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li class="active"><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、把"安全"形式化</a></li>
+<li><a href="#cbf">二、控制屏障函数（CBF）</a></li>
+<li><a href="#_2">三、可达性分析</a></li>
+<li><a href="#_3">四、其他框架</a></li>
+<li><a href="#_4">五、真实的困难</a></li>
+<li><a href="#_5">六、为什么这个方向重要</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">前沿 II · 安全约束控制<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：理论框架【实】（有严格证明）；<strong>在复杂真实系统上的可扩展性【争】</strong>。
+上一页留下一个问题：学习型控制灵活但无保证，传统控制有保证但不够灵活。<strong>能否两者兼得？</strong> 这正是近十年控制理论最活跃的方向——<strong>在保留性能的同时，给出可证明的安全保证</strong>。它也是控制学科对当前 AI 浪潮最独特的贡献。</p>
+</blockquote>
+<h2 id="_1">一、把"安全"形式化<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>第十四页讲的功能安全是<strong>工程流程</strong>层面的；本页讲的是<strong>数学</strong>层面的：<strong>把"安全"写成状态空间中的一个条件，并证明系统永远不会违反它。</strong></p>
+<p><strong>安全集</strong>：定义一个允许的状态集合 <span class="arithmatex">\(\mathcal{C}\)</span>（如"温度低于 80°C"、"机械臂不进入人所在区域"、"电池 SOC 在 10%–90% 之间"）。</p>
+<p><strong>安全 = 前向不变性（forward invariance）</strong>：</p>
+<blockquote>
+<p>若初始状态在 <span class="arithmatex">\(\mathcal{C}\)</span> 内，则<strong>在所有未来时刻都保持在 <span class="arithmatex">\(\mathcal{C}\)</span> 内</strong>。</p>
+</blockquote>
+<p><strong>注意这比"稳定性"更强也更实用</strong>：稳定性说的是"最终会收敛"，安全说的是"<strong>任何时刻都不越界</strong>"。<strong>工程上后者往往更重要</strong>——一个最终会收敛但中途超温烧毁的系统毫无价值。</p>
+<h2 id="cbf">二、控制屏障函数（CBF）<a class="headerlink" href="#cbf" title="Permanent link"></a></h2>
+<p><strong>核心思想</strong>（与 Lyapunov 函数对偶，很漂亮）：</p>
+<ul>
+<li><strong>Lyapunov 函数</strong> <span class="arithmatex">\(V\)</span>：证明系统<strong>趋向</strong>某点（稳定性）——要求 <span class="arithmatex">\(\dot V \le 0\)</span>；</li>
+<li><strong>屏障函数</strong> <span class="arithmatex">\(h\)</span>：证明系统<strong>不离开</strong>某集合（安全性）——要求在边界上"向内推"。</li>
+</ul>
+<p>定义 <span class="arithmatex">\(\mathcal{C} = \{x : h(x)\ge0\}\)</span>，<strong>CBF 条件</strong>为：</p>
+<div class="arithmatex">\[\sup_u \left[\dot{h}(x,u)\right] \ge -\alpha\big(h(x)\big)\]</div>
+<p><span class="arithmatex">\(\alpha\)</span> 是一个 K 类函数。<strong>直觉</strong>：当状态接近边界（<span class="arithmatex">\(h\to0\)</span>）时，允许的"下降速度"必须趋于零——<strong>越靠近边界，越必须减速</strong>。就像开车接近悬崖时必须减速一样。</p>
+<p><strong>关键的工程价值：CBF 可以作为一个"安全过滤器"</strong>。设任意标称控制器（PID、MPC、甚至神经网络策略）给出 <span class="arithmatex">\(u_{nom}\)</span>，求解一个小的二次规划：</p>
+<div class="arithmatex">\[u^* = \arg\min_u \|u - u_{nom}\|^2 \quad \text{s.t.}\quad \dot{h}(x,u) \ge -\alpha(h(x))\]</div>
+<p><strong>含义</strong>：<strong>尽可能执行标称控制器想做的事，只在必要时做最小修正以保证安全。</strong></p>
+<p><strong>这个结构极具吸引力</strong>：
+- 标称控制器可以是<strong>任何东西</strong>——包括无法给出保证的学习策略；
+- 安全性由 QP 约束<strong>保证</strong>（在假设成立的前提下）；
+- QP 规模小，可实时求解（毫秒级）；
+- <strong>它把"性能"与"安全"解耦</strong>：性能交给灵活的方法，安全交给可证明的过滤器。</p>
+<p><strong>这正是上一页那个困境的一个漂亮回答。</strong></p>
+<h2 id="_2">三、可达性分析<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>另一条路线：直接计算<strong>可达集</strong>。</p>
+<ul>
+<li><strong>前向可达集</strong>：从初始集出发，所有可能到达的状态；</li>
+<li><strong>后向可达集 / 生存集</strong>：从哪些状态出发，<strong>存在</strong>控制策略可以永远避免危险。</li>
+</ul>
+<p><strong>Hamilton–Jacobi 可达性</strong>给出严格的解，且<strong>天然处理对抗性扰动</strong>（把扰动当作对手，做微分博弈）——<strong>这是最严格的安全保证</strong>：即使扰动以最坏方式出现，也能保证安全。</p>
+<p><strong>代价是维数灾难</strong>：需在状态空间网格上解 PDE，实际可行的维数通常很低（约 5–6 维以内）。<strong>近似方法</strong>（多面体/椭球/zonotope 传播、学习值函数、分解为低维子问题）是主要的扩展手段。</p>
+<h2 id="_3">四、其他框架<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>鲁棒/管道 MPC</strong>（第十七页）：在约束上预留裕度，保证所有扰动下都可行——<strong>工业上最成熟的"有保证"方法</strong>；</li>
+<li><strong>形式化方法与时序逻辑</strong>：用 LTL/STL 规范表达复杂任务（"最终到达 A，且途中始终避开 B"），综合出满足规范的控制器。<strong>与 🔗 cs 站的模型检验同源</strong>；</li>
+<li><strong>仿真器/监控器架构（simplex）</strong>：一个高性能但不可信的控制器 + 一个简单可信的备份控制器 + 一个决策模块，在检测到危险时切换到备份。<strong>这是工程上最直观、也最容易被认证的方案</strong>——它与第十四页的多样性冗余思想一脉相承。</li>
+</ul>
+<h2 id="_4">五、真实的困难<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>必须诚实标注这些方法的限制：</p>
+<p><strong>① 都依赖模型。</strong> CBF 条件、可达集计算都需要动力学模型。<strong>模型错了，保证就是虚假的。</strong> 补救是鲁棒版本（考虑模型误差界），但需要知道误差界——<strong>而这本身很难确定</strong>。</p>
+<p><strong>② 构造屏障函数很难。</strong> 与 Lyapunov 函数一样，没有通用构造法。对简单约束（距离、限值）容易，对复杂任务（"安全地穿过人群"）则困难。近年有用学习来构造 CBF 的工作，<strong>但这又回到"学出来的东西需要验证"的循环</strong>。</p>
+<p><strong>③ 保守性。</strong> 严格保证往往过于保守，导致系统畏首畏尾、性能低下。<strong>这是第十六页鲁棒控制老问题的重现。</strong></p>
+<p><strong>④ 可扩展性。</strong> 高维系统、多智能体、混合离散连续系统仍是挑战。</p>
+<p><strong>⑤ 感知不确定性没有被涵盖。</strong> CBF 假定状态已知。<strong>在真实机器人上，"人在哪里"来自感知系统，而感知会出错</strong>——<strong>当前多数安全保证建立在"状态估计正确"这个未被保证的前提上</strong>。这是从理论到实际最大的缺口之一，也是当前活跃的研究方向。</p>
+<h2 id="_5">六、为什么这个方向重要<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>它代表了控制学科对当前技术趋势的独特回应：</p>
+<p><strong>AI 提供能力，控制提供保证。</strong></p>
+<ul>
+<li>机器学习擅长<strong>从数据中获得复杂行为</strong>，但难以说明"它什么时候会失败"；</li>
+<li>控制理论擅长<strong>证明系统的性质</strong>，但难以处理高维感知与复杂任务；</li>
+<li><strong>二者的结合，而非替代，是最可能的方向。</strong></li>
+</ul>
+<p><strong>这也回应了本课反复出现的主题</strong>：成熟工程学科的标志之一，是<strong>知道自己保证了什么、没保证什么</strong>（第五页水床效应、第十四页量化风险、第十六页鲁棒边界）。<strong>在一个"演示驱动"的时代，能诚实地陈述保证的边界，是一种稀缺的专业素养。</strong></p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>安全 = 前向不变性</strong>，比稳定性更强也更贴近工程需求；</li>
+<li><strong>CBF 与 Lyapunov 对偶</strong>：一个证明"趋向"，一个证明"不离开"；</li>
+<li><strong>CBF 安全过滤器</strong>可以给任意标称控制器（含学习策略）加上保证，且实时可解——这是当前最有工程吸引力的构造；</li>
+<li><strong>HJ 可达性最严格但受维数灾难限制</strong>；</li>
+<li><strong>所有方法都依赖模型，且假设状态已知</strong>——感知不确定性是最大的现实缺口；</li>
+<li><strong>"AI 提供能力，控制提供保证"</strong>是这条线的核心判断。</li>
+</ul>
+<hr />
+<p><em>下一页：本线最后一站，也最贴近你的问题——这个行业的产业形态、当前的技术前沿，以及本硕博的实际去向。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-learning-control.html"><span class="pager-label">上一页</span>前沿 I · 学习型控制</a>
+  <a class="pager-slot next" href="22-frontier.html"><span class="pager-label">下一页</span>前沿 III · 产业前沿与职业路径</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

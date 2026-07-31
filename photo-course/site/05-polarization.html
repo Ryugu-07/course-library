@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>偏振与晶体光学 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li class="active"><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、偏振态与描述</a></li>
+<li><a href="#_2">二、产生与操控偏振</a></li>
+<li><a href="#_3">三、几个重要应用</a></li>
+<li><a href="#_4">四、偏振在光纤中的麻烦</a></li>
+<li><a href="#_5">五、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">光学 V · 偏振与晶体光学<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 多个应用方向的基础。
+光是横波，<strong>电场的振动方向</strong>就是偏振。几何光学完全忽略它，但它在显示、测量、通信、量子信息中都是核心变量。本页讲清偏振的描述方法、产生与操控手段，以及它在工程中的主要用途。</p>
+</blockquote>
+<h2 id="_1">一、偏振态与描述<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>基本类型</strong>：线偏振、圆偏振（左/右旋）、椭圆偏振、以及<strong>非偏振（自然光）</strong>与部分偏振。</p>
+<p><strong>两套数学工具</strong>（用途不同，都要会）：</p>
+<p><strong>① Jones 矢量与 Jones 矩阵</strong>（仅适用于<strong>完全偏振</strong>光）：</p>
+<div class="arithmatex">\[\mathbf{E}=\begin{bmatrix}E_x \\ E_y e^{i\delta}\end{bmatrix}, \qquad \mathbf{E}' = \mathbf{J}\mathbf{E}\]</div>
+<p><strong>优点</strong>：保留相位，可处理相干叠加，<strong>器件级联就是矩阵连乘</strong>（与第一页光线矩阵、第三页薄膜矩阵同构）。</p>
+<p><strong>② Stokes 矢量与 Mueller 矩阵</strong>（可处理<strong>部分偏振与非偏振</strong>）：</p>
+<div class="arithmatex">\[\mathbf{S}=(S_0, S_1, S_2, S_3)^T\]</div>
+<p>四个分量都是<strong>强度的组合</strong>，因而<strong>可直接测量</strong>（Jones 矢量的绝对相位不可直接测）。<strong>偏振度</strong>：</p>
+<div class="arithmatex">\[\mathrm{DOP} = \frac{\sqrt{S_1^2+S_2^2+S_3^2}}{S_0}\]</div>
+<p><strong>庞加莱球</strong>把偏振态映射到球面：赤道是线偏振、两极是圆偏振。<strong>波片的作用就是绕球上某轴旋转</strong>——这个几何图像在设计偏振控制系统时极其直观。</p>
+<h2 id="_2">二、产生与操控偏振<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>① 二向色性（吸收型）</strong>：偏振片吸收一个方向的分量。便宜、宽带，<strong>但至少损失一半的自然光</strong>。</p>
+<p><strong>马吕斯定律</strong>：<span class="arithmatex">\(I = I_0\cos^2\theta\)</span>。</p>
+<p><strong>② 反射（布儒斯特角）</strong>：</p>
+<div class="arithmatex">\[\tan\theta_B = \frac{n_2}{n_1}\]</div>
+<p>在布儒斯特角，<strong>反射光完全是 s 偏振</strong>。<strong>这就是偏光太阳镜与相机偏振镜的原理</strong>——水面、玻璃、路面的反射眩光主要是水平偏振的 s 光，用垂直透光轴的偏振片即可滤除。<strong>摄影中"偏振镜能压暗天空、消除水面反光"正源于此。</strong></p>
+<p><strong>③ 双折射（晶体）</strong>：各向异性晶体中，o 光与 e 光折射率不同。
+- <strong>偏振分束</strong>：格兰-泰勒、沃拉斯顿棱镜；
+- <strong>波片</strong>：利用相位延迟 <span class="arithmatex">\(\Delta\varphi = \frac{2\pi}{\lambda}\Delta n\,d\)</span>
+  - <strong><span class="arithmatex">\(\lambda/2\)</span> 波片</strong>：旋转线偏振方向（转 <span class="arithmatex">\(2\theta\)</span>）；
+  - <strong><span class="arithmatex">\(\lambda/4\)</span> 波片</strong>：线偏振 ↔ 圆偏振。</p>
+<p><strong>④ 旋光与法拉第效应</strong>：
+- <strong>法拉第旋转</strong>（磁致）<strong>是非互易的</strong>——光反向传播时旋转不抵消而累加。
+- <strong>这个非互易性是光隔离器的物理基础</strong>：<span class="arithmatex">\(45°\)</span> 法拉第旋转 + 两个成 <span class="arithmatex">\(45°\)</span> 的偏振片 → 正向通过、反向阻断。
+- <strong>为什么必需</strong>：<strong>激光器对回光极其敏感</strong>，反射回腔内会造成功率与频率不稳定甚至损坏。<strong>几乎所有精密激光系统与光纤通信发射端都必须配隔离器</strong>（第十三页）。</p>
+<h2 id="_3">三、几个重要应用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>① 液晶显示（LCD）</strong>——<strong>这是偏振最大规模的工业应用</strong>（第十六页详述）：</p>
+<p>结构是"起偏器 + 液晶层 + 检偏器"。<strong>液晶分子在电场下改变取向 → 改变对偏振的旋转 → 与检偏器配合实现亮暗</strong>。</p>
+<p><strong>代价</strong>：<strong>起偏器至少吞掉一半光</strong>，这是 LCD 效率天然低于 OLED（自发光、无需偏振片）的根本原因之一。</p>
+<p><strong>② 应力双折射（光弹性）</strong>：透明材料受力时产生双折射，正交偏振下呈现彩色条纹 → <strong>可视化应力分布</strong>（🔗 机械站：这是有限元普及前的主要实验应力分析手段，至今用于验证与教学）。</p>
+<p><strong>它也是一个工程问题</strong>：塑料镜片、玻璃基板中的残余应力会引入不希望的双折射，<strong>在精密偏振系统（光刻、显示、干涉测量）中必须控制</strong>。</p>
+<p><strong>③ 椭偏仪（ellipsometry）</strong>：测量反射引起的偏振态变化，<strong>反演薄膜厚度与折射率</strong>，精度可达亚纳米。<strong>这是半导体产线的标准量测手段</strong>（🔗 微电子站：薄膜厚度监控）。</p>
+<p><strong>④ 偏振成像</strong>：物体表面的反射会改变偏振态 → <strong>可用于区分材质、去除反光、检测表面缺陷、水下与雾天成像</strong>。近年偏振传感器（片上偏振片阵列）使其走向实用。</p>
+<p><strong>⑤ 通信与量子</strong>：
+- <strong>偏振复用</strong>：光纤中用两个正交偏振各传一路 → <strong>容量翻倍</strong>（第十三页）；
+- <strong>量子密钥分发</strong>：偏振态编码量子比特（第十九页）。</p>
+<h2 id="_4">四、偏振在光纤中的麻烦<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>理想的圆对称光纤中，两个偏振模式简并</strong>。但<strong>真实光纤有微小的椭圆度与应力</strong> → <strong>双折射</strong> → 两偏振模速度不同。</p>
+<p><strong>后果</strong>：
+- <strong>偏振模色散（PMD）</strong>：脉冲展宽，<strong>限制高速长距系统</strong>；
+- <strong>偏振态随温度、弯曲、振动随机漂移</strong> → <strong>接收端必须做动态偏振跟踪</strong>；
+- 保偏光纤（PMF）通过<strong>故意引入强双折射</strong>把偏振锁定在一个轴上——<strong>用"更大的确定性缺陷"压制"随机的小缺陷"</strong>，这是一个漂亮的工程思路。</p>
+<p><strong>现代相干光通信系统的做法</strong>：<strong>不去对抗偏振漂移，而是用数字信号处理在接收端实时解偏振</strong>（第十三页）——<strong>"把光学难题转成数字问题"</strong>，与 🔗 微电子站第九页的主旋律完全一致。</p>
+<h2 id="_5">五、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Jones 处理完全偏振（保相位），Stokes/Mueller 处理部分偏振（可测量）</strong>；庞加莱球给出直观几何；</li>
+<li><strong>布儒斯特角反射光全是 s 偏振</strong>——偏光镜消除眩光的原理；</li>
+<li><strong>法拉第旋转的非互易性是光隔离器的基础</strong>，而隔离器是保护激光器的必需品；</li>
+<li><strong>LCD 是偏振最大的工业应用</strong>，偏振片的一半损耗是其效率短板；</li>
+<li><strong>椭偏仪是半导体薄膜量测的标准手段</strong>；</li>
+<li><strong>光纤中偏振随机漂移</strong>，现代做法是用 DSP 在接收端解偏振而非物理对抗。</li>
+</ul>
+<hr />
+<p><em>线一结束：光的两种描述已经完整。下一线转向光从哪里来——激光的原理，以及为什么它与普通光源有本质区别。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-fourier-optics.html"><span class="pager-label">上一页</span>光学 IV · 衍射与傅里叶光学</a>
+  <a class="pager-slot next" href="06-laser.html"><span class="pager-label">下一页</span>光源 I · 激光原理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

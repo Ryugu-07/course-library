@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>能量法与弹性力学入门 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li class="active"><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、应变能</a></li>
+<li><a href="#_2">二、卡氏定理：求变形的利器</a></li>
+<li><a href="#_3">三、超静定问题的统一解法</a></li>
+<li><a href="#_4">四、冲击与动载</a></li>
+<li><a href="#_5">五、弹性力学入门</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">力学 V · 能量法与弹性力学入门<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生入口 ｜ <strong>这一页把前四页统一起来，并搭起通往有限元的桥</strong>。
+前面用的是"针对每种载荷推一个公式"的方法。能量法换一个视角：<strong>从系统的应变能出发</strong>，一举得到变形、超静定解、以及冲击响应。更重要的是——<strong>它是有限元法的理论基础</strong>（第二十一页）。</p>
+</blockquote>
+<h2 id="_1">一、应变能<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>弹性体变形时储存的能量。对线弹性材料，单位体积应变能：</p>
+<div class="arithmatex">\[u = \frac{1}{2}\sigma\varepsilon = \frac{\sigma^2}{2E}\]</div>
+<p>各种基本变形的总应变能：</p>
+<div class="arithmatex">\[U_{\text{拉压}} = \frac{N^2 L}{2EA}, \qquad U_{\text{弯曲}} = \int\frac{M^2}{2EI}dx, \qquad U_{\text{扭转}} = \int\frac{T^2}{2GI_p}dx\]</div>
+<p><strong>共同形式</strong>：<span class="arithmatex">\(U = \dfrac{(\text{内力})^2 \times \text{长度}}{2 \times \text{刚度}}\)</span>。<strong>记住这个模式，各种情形都能类推。</strong></p>
+<h2 id="_2">二、卡氏定理：求变形的利器<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>Castigliano 第二定理</strong>：</p>
+<div class="arithmatex">\[\delta_i = \frac{\partial U}{\partial F_i}\]</div>
+<p><strong>应变能对某个力求偏导，等于该力作用点沿该力方向的位移。</strong></p>
+<p><strong>为什么好用</strong>：
+- 不必解微分方程，<strong>只需积分再求导</strong>；
+- <strong>特别适合复杂结构</strong>（曲杆、刚架、桁架）与<strong>组合变形</strong>；
+- 想求某处<strong>没有外力作用</strong>的位移？<strong>加一个虚设力 <span class="arithmatex">\(F_0\)</span>，求导后令 <span class="arithmatex">\(F_0=0\)</span></strong> 即可。这个技巧极其实用。</p>
+<p><strong>单位载荷法</strong>（莫尔积分）是它的等价形式，土木与机械都常用：</p>
+<div class="arithmatex">\[\delta = \int \frac{M \bar{M}}{EI}dx\]</div>
+<p><span class="arithmatex">\(\bar{M}\)</span> 是单位虚载荷引起的弯矩。</p>
+<h2 id="_3">三、超静定问题的统一解法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>第一页说超静定需要"平衡 + 变形协调 + 本构"三条腿。能量法把它变成一个<strong>标准流程</strong>：</p>
+<p><strong>力法（柔度法）</strong>：
+1. 解除多余约束，代之以未知力 <span class="arithmatex">\(X_1, X_2, \dots\)</span>，得到静定基本系统；
+2. 写出总应变能 <span class="arithmatex">\(U(X_i)\)</span>；
+3. 用<strong>变形协调条件</strong>——被解除处的位移为零：</p>
+<div class="arithmatex">\[\frac{\partial U}{\partial X_i} = 0\]</div>
+<ol>
+<li>解出 <span class="arithmatex">\(X_i\)</span>。</li>
+</ol>
+<p><strong>这是一个漂亮的转化</strong>：把"几何协调"变成了"能量对多余未知力取极值"。</p>
+<p><strong>最小势能原理</strong>是它的一般化：<strong>真实的位移场使系统总势能取最小值</strong>。</p>
+<div class="arithmatex">\[\Pi = U - W_{\text{外力功}} \to \min\]</div>
+<p><strong>这就是有限元法的出发点</strong>（第二十一页）：把位移场用有限个节点参数近似，让总势能对这些参数取极小，就得到刚度方程 <span class="arithmatex">\(\mathbf{K}\mathbf{u}=\mathbf{F}\)</span>。<strong>从这个意义上说，有限元法是能量法的数值化。</strong></p>
+<h2 id="_4">四、冲击与动载<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>能量法处理冲击特别方便：<strong>假设冲击过程中动能全部转为应变能</strong>（保守估计）。</p>
+<p>对重物 <span class="arithmatex">\(W\)</span> 从高度 <span class="arithmatex">\(h\)</span> 落下冲击弹性体：</p>
+<div class="arithmatex">\[K_d = 1 + \sqrt{1 + \frac{2h}{\delta_{st}}}\]</div>
+<p><span class="arithmatex">\(K_d\)</span> 是<strong>动荷系数</strong>，<span class="arithmatex">\(\delta_{st}\)</span> 是静态挠度。动应力 <span class="arithmatex">\(= K_d \times\)</span> 静应力。</p>
+<p><strong>两个极其重要的推论</strong>：</p>
+<p><strong>① 突加载荷（<span class="arithmatex">\(h=0\)</span>）时 <span class="arithmatex">\(K_d = 2\)</span></strong>——<strong>突然放上的载荷产生的应力，是缓慢放置的两倍</strong>。这个"2 倍"必须记住。</p>
+<p><strong>② 结构越"软"（<span class="arithmatex">\(\delta_{st}\)</span> 越大），动荷系数越小。</strong></p>
+<p><strong>第二条反直觉但极其重要</strong>：<strong>要抵抗冲击，应该让结构更柔而非更刚</strong>。因为柔性结构变形大、能吸收更多能量、峰值力更低。</p>
+<p><strong>工程上到处是这个原理的应用</strong>：
+- 汽车的<strong>溃缩吸能区</strong>（故意做软）；
+- 弹簧垫圈、缓冲器、橡胶减震块；
+- 登山绳必须有弹性（静力绳用于冲坠会伤人）；
+- <strong>长螺栓比短螺栓更耐冲击</strong>（同样变形量下应变能更大）——这是高强度螺栓连接设计中的一个要点。</p>
+<p><strong>"刚"未必安全</strong>——这是与"强度越高越好"同类的直觉误区。</p>
+<h2 id="_5">五、弹性力学入门<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>材料力学靠<strong>假设</strong>（平截面假定、单向应力等）简化问题；<strong>弹性力学</strong>则从一般的三维方程出发：</p>
+<p><strong>三组方程</strong>（正是第一页"三条腿"的严格形式）：</p>
+<div class="arithmatex">\[\underbrace{\sigma_{ij,j} + f_i = 0}_{\text{平衡}}, \qquad \underbrace{\varepsilon_{ij}=\tfrac{1}{2}(u_{i,j}+u_{j,i})}_{\text{几何}}, \qquad \underbrace{\sigma_{ij}=\lambda\varepsilon_{kk}\delta_{ij}+2\mu\varepsilon_{ij}}_{\text{本构}}\]</div>
+<p><strong>15 个未知量（6 应力 + 6 应变 + 3 位移）、15 个方程</strong>，加上边界条件构成完整的边值问题。</p>
+<p><strong>解析解极少</strong>（只有少数经典问题有：厚壁筒、圣维南扭转、孔边应力集中、赫兹接触），<strong>所以工程上主要靠数值解</strong>——这正是有限元存在的理由。</p>
+<p><strong>两个必须知道的经典结果</strong>：</p>
+<p><strong>① 圣维南原理</strong>：<strong>远离载荷作用区，应力分布与载荷的具体分布方式无关，只与其合力合力矩有关</strong>。</p>
+<p><strong>这个原理的实用价值极大</strong>：它使我们能用简化的载荷模型分析远场，也告诉我们<strong>局部细节只影响局部</strong>。<strong>"离作用点约一个特征尺寸之外，细节就不重要了"</strong> 是极有用的工程判断。</p>
+<p><strong>② 赫兹接触</strong>：两个弹性体接触时，接触区应力分布与压力、曲率、弹性常数的关系。<strong>最大切应力出现在表面以下约 0.5 倍接触半宽处</strong>——<strong>这解释了滚动轴承的疲劳剥落为什么起源于次表面</strong>（第十二页），而非表面。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>应变能的统一形式</strong>：<span class="arithmatex">\((\text{内力})^2 L/(2\times\text{刚度})\)</span>；</li>
+<li><strong>卡氏定理</strong>用求导代替解方程，虚设力技巧可求任意点位移；</li>
+<li><strong>能量法把超静定的几何协调转为能量极值</strong>；<strong>最小势能原理是有限元的出发点</strong>；</li>
+<li><strong>突加载荷动荷系数 = 2</strong>；<strong>结构越柔越耐冲击</strong>——溃缩吸能、长螺栓、弹性绳都基于此；</li>
+<li><strong>圣维南原理</strong>：局部细节只影响局部；<strong>赫兹接触</strong>的最大切应力在次表面，解释轴承的疲劳起源。</li>
+</ul>
+<hr />
+<p><em>线一结束：从力到应力、到变形、到失稳、到能量。下一线让结构动起来——动力学与振动，机械工程中最常见的现场问题来源。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-buckling.html"><span class="pager-label">上一页</span>力学 IV · 组合变形与屈曲</a>
+  <a class="pager-slot next" href="06-rigid-dynamics.html"><span class="pager-label">下一页</span>动力 I · 刚体动力学与转动惯量</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

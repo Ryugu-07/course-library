@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机器人学与状态估计 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li class="active"><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、运动学：从关节角到末端位姿</a></li>
+<li><a href="#_2">二、动力学</a></li>
+<li><a href="#_3">三、轨迹规划</a></li>
+<li><a href="#slam">四、状态估计与 SLAM</a></li>
+<li><a href="#_4">五、当前的活跃方向</a></li>
+<li><a href="#_5">六、机器人为什么是好的综合训练</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">进阶 V · 机器人学与状态估计<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：研究生方向 + 快速增长的产业 ｜ 本页把前面的工具用到一个完整对象上。
+机器人是控制理论最集中的应用场：它同时涉及<strong>非线性动力学</strong>（第十五页）、<strong>多变量控制</strong>（第七页）、<strong>状态估计</strong>（第九页）、<strong>约束优化</strong>（第十七页）与<strong>实时实现</strong>（第十、十三页）。本页给出机器人学的骨架，并说明控制在其中的位置。</p>
+</blockquote>
+<h2 id="_1">一、运动学：从关节角到末端位姿<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>正运动学</strong>：给定关节角 <span class="arithmatex">\(q\)</span>，求末端位姿 <span class="arithmatex">\(T(q)\)</span>。用 <strong>DH 参数</strong>或齐次变换矩阵逐关节连乘，<strong>总是有唯一解</strong>，计算直接。</p>
+<p><strong>逆运动学</strong>：给定期望位姿，求关节角。<strong>困难得多</strong>：
+- 可能<strong>无解</strong>（超出工作空间）；
+- 可能<strong>多解</strong>（如肘上/肘下两种姿态）；
+- 可能<strong>无穷解</strong>（冗余机器人，自由度多于任务维数——如 7 轴机械臂做 6 维任务，多出的自由度可用来避障或优化姿态）。</p>
+<p><strong>雅可比矩阵</strong> <span class="arithmatex">\(J(q)\)</span> 连接关节速度与末端速度：</p>
+<div class="arithmatex">\[\dot{p} = J(q)\dot{q}\]</div>
+<p><strong>奇异位形</strong>是关键概念：当 <span class="arithmatex">\(J\)</span> 降秩时，机器人在某些方向<strong>失去运动能力</strong>，而反解 <span class="arithmatex">\(\dot q = J^{-1}\dot p\)</span> 会要求<strong>无穷大的关节速度</strong>。</p>
+<p><strong>工程后果</strong>：轨迹必须避开奇异点附近，或使用<strong>阻尼最小二乘（DLS）</strong>伪逆：</p>
+<div class="arithmatex">\[\dot{q} = J^T(JJ^T+\lambda^2 I)^{-1}\dot{p}\]</div>
+<p><strong>这本质上是正则化</strong>（🔗 与岭回归同一数学）——<strong>用一点跟踪误差换取有界的关节速度</strong>。又一次"用精度换可行性"的权衡。</p>
+<h2 id="_2">二、动力学<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<div class="arithmatex">\[M(q)\ddot{q} + C(q,\dot{q})\dot{q} + G(q) + F(\dot q) = \tau\]</div>
+<ul>
+<li><span class="arithmatex">\(M(q)\)</span>：惯量矩阵（<strong>随姿态变化</strong>——这是机器人本质非线性的主要来源）；</li>
+<li><span class="arithmatex">\(C\)</span>：科氏与离心项；<span class="arithmatex">\(G\)</span>：重力项；<span class="arithmatex">\(F\)</span>：摩擦（第十五页的老对手）。</li>
+</ul>
+<p><strong>几个有用的结构性质</strong>（它们使许多控制方法成为可能）：
+- <span class="arithmatex">\(M\)</span> 对称正定；
+- <span class="arithmatex">\(\dot{M}-2C\)</span> <strong>反对称</strong>——这个性质直接用于 Lyapunov 稳定性证明；
+- <strong>对参数线性</strong>：<span class="arithmatex">\(\tau = Y(q,\dot q,\ddot q)\Theta\)</span>，<span class="arithmatex">\(\Theta\)</span> 是惯性参数向量。<strong>这使参数辨识成为线性最小二乘问题</strong>（第十八页），是工业机器人标定的基础。</p>
+<p><strong>主要控制方法</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>思想</th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>独立关节 PD/PID</strong></td>
+<td>每关节当作独立系统，把耦合当扰动</td>
+<td><strong>工业机器人的主流做法</strong>（高减速比使耦合减弱）</td>
+</tr>
+<tr>
+<td><strong>PD + 重力补偿</strong></td>
+<td>加上 <span class="arithmatex">\(G(q)\)</span> 前馈</td>
+<td>简单有效，可用无源性证明稳定</td>
+</tr>
+<tr>
+<td><strong>计算力矩法</strong></td>
+<td>用模型抵消非线性（反馈线性化，第十五页）</td>
+<td>性能好，<strong>依赖模型精度</strong></td>
+</tr>
+<tr>
+<td><strong>阻抗/导纳控制</strong></td>
+<td>不控位置或力，而控<strong>二者的动态关系</strong></td>
+<td><strong>人机协作与接触作业的关键</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>阻抗控制值得强调</strong>：与环境接触时，纯位置控制是危险的（微小位置误差可产生巨大接触力）。阻抗控制让机器人表现得像一个<strong>可调的弹簧-阻尼系统</strong>：</p>
+<div class="arithmatex">\[M_d\ddot{e} + B_d\dot{e} + K_d e = F_{ext}\]</div>
+<p><strong>设计者直接指定期望的"柔顺程度"</strong>——这是协作机器人（cobot）能安全地与人共处的技术基础。<strong>从"控制位置"转向"控制动态关系"，是一个观念上的跃迁。</strong></p>
+<h2 id="_3">三、轨迹规划<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>分层结构</strong>（与第十七页的 MPC 分层同构）：</p>
+<div class="arithmatex">\[\text{任务规划} \to \text{路径规划（几何）} \to \text{轨迹生成（含时间）} \to \text{跟踪控制}\]</div>
+<ul>
+<li><strong>路径规划</strong>：RRT/RRT<em>、PRM（采样法，适合高维）、A</em>/Dijkstra（栅格）、势场法（易陷局部极小）；</li>
+<li><strong>轨迹生成</strong>：在路径上分配时间，满足速度/加速度/加加速度（jerk）限制。<strong>限制 jerk 对减少机械振动与磨损很重要</strong>；</li>
+<li><strong>优化式方法</strong>：直接把避障与动力学约束写进优化问题——<strong>这正是 MPC 的思路</strong>（第十七页），当前主流方向。</li>
+</ul>
+<h2 id="slam">四、状态估计与 SLAM<a class="headerlink" href="#slam" title="Permanent link"></a></h2>
+<p>机器人必须知道自己在哪。这是第九页卡尔曼滤波的主战场。</p>
+<p><strong>SLAM（同步定位与建图）</strong>：在未知环境中，<strong>同时</strong>估计自身位姿与环境地图。</p>
+<p><strong>它的困难在于"鸡与蛋"</strong>：定位需要地图，建图需要定位。<strong>这在数学上是一个联合估计问题</strong>。</p>
+<p><strong>主要方法</strong>：
+- <strong>滤波式</strong>：EKF-SLAM（状态含机器人位姿 + 所有地标，<strong>协方差矩阵随地标数平方增长</strong>，难以扩展）；粒子滤波（FastSLAM，适合多峰分布）；
+- <strong>优化式（现代主流）</strong>：<strong>图优化 / 因子图</strong>——把位姿与观测建成图，求解非线性最小二乘。<strong>回环检测</strong>（认出"我来过这里"）提供强约束，可显著校正累积漂移；
+- <strong>传感器</strong>：激光雷达、视觉（VIO：视觉惯性里程计）、IMU、轮式里程计、GNSS。<strong>多传感器融合是常态</strong>，因为各自的误差特性互补（承第九页）。</p>
+<p><strong>关键概念——可观性退化</strong>：某些运动模式下部分状态不可观（如纯旋转时无法估计尺度、匀速直线运动时某些偏差无法辨识）。<strong>好的实现必须能表达"这个方向我不确定"</strong>，而非给出一个自信的错误估计。<strong>这是第九页那句"滤波器不能过度自信"在机器人上的具体化。</strong></p>
+<h2 id="_4">五、当前的活跃方向<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>足式机器人</strong>：欠驱动、接触切换、实时性要求高。<strong>实时非线性 MPC + 全身控制</strong>是当前主流框架，落脚点规划与平衡恢复是核心问题；</li>
+<li><strong>柔顺与接触作业</strong>：装配、打磨、人机协作——阻抗控制 + 力感知；</li>
+<li><strong>移动操作</strong>：底盘 + 机械臂协同，冗余度更高；</li>
+<li><strong>学习与控制结合</strong>（第二十页）：从演示中学习、sim2real、视觉-动作策略。<strong>这是当前投入最大、争议也最多的方向。</strong></li>
+</ul>
+<h2 id="_5">六、机器人为什么是好的综合训练<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>它把本课的几乎所有内容串在一起：</p>
+<table>
+<thead>
+<tr>
+<th>用到</th>
+<th>页</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>级联控制、PID 整定</td>
+<td>第六、十二页</td>
+</tr>
+<tr>
+<td>状态空间与 MIMO</td>
+<td>第七页</td>
+</tr>
+<tr>
+<td>状态估计与传感器融合</td>
+<td>第九页</td>
+</tr>
+<tr>
+<td>采样、实时性</td>
+<td>第十、十三页</td>
+</tr>
+<tr>
+<td>电机与驱动</td>
+<td>第十二页</td>
+</tr>
+<tr>
+<td>非线性与 Lyapunov</td>
+<td>第十五页</td>
+</tr>
+<tr>
+<td>约束优化与 MPC</td>
+<td>第十七页</td>
+</tr>
+<tr>
+<td>参数辨识</td>
+<td>第十八页</td>
+</tr>
+<tr>
+<td>功能安全（协作机器人的力/速度限制）</td>
+<td>第十四页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>且它有一个教学上的巨大优势：可以看见。</strong> 控制律的好坏直接表现为机器人动作的流畅或抖动——<strong>这种即时的、具身的反馈，是理解控制最有效的途径之一。</strong></p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>逆运动学可能无解/多解/无穷解</strong>；<strong>奇异位形</strong>处雅可比降秩，需阻尼伪逆（正则化）；</li>
+<li><strong>动力学的结构性质</strong>（对称正定、反对称、参数线性）是控制与辨识方法的基础；</li>
+<li><strong>工业机器人主流仍是独立关节 PID + 前馈</strong>——高减速比削弱了耦合；</li>
+<li><strong>阻抗控制把目标从"位置"改为"动态关系"</strong>，是接触作业与人机协作的关键；</li>
+<li><strong>SLAM 的现代主流是图优化 + 回环检测</strong>；</li>
+<li><strong>可观性退化时必须诚实表达不确定性</strong>。</li>
+</ul>
+<hr />
+<p><em>线四结束。下一线走向前沿：当模型难以获得、任务难以形式化时，能否让系统从数据中学会控制？以及——怎样在学习的同时保证安全。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-sysid.html"><span class="pager-label">上一页</span>进阶 IV · 系统辨识与自适应</a>
+  <a class="pager-slot next" href="20-learning-control.html"><span class="pager-label">下一页</span>前沿 I · 学习型控制</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

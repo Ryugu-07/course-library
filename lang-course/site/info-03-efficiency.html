@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通信效率塑造语言 · 语言 · 信息 · 智能</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">语言 · 信息 · 智能</a>
+    <div class="site-subtitle">符号系统如何产生智能与文明 · 研究型 seminar</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 定位、三术语与裁判地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 语言是什么</div><ul><li><a href="ling-01-saussure.html">语言 I · 结构主义：符号与差异系统</a></li><li><a href="ling-02-chomsky.html">语言 II · 生成语法：递归与普遍语法</a></li><li><a href="ling-03-functional.html">语言 III · 功能主义：语言来自使用</a></li><li><a href="ling-04-cognitive.html">语言 IV · 认知语言学：隐喻与构式</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 信息论（数学核心）</div><ul><li><a href="info-01-entropy.html">信息 I · 熵、信道与 Zipf 律</a></li><li><a href="info-02-surprisal.html">信息 II · 可预测性与加工难度</a></li><li class="active"><a href="info-03-efficiency.html">信息 III · 通信效率塑造语言</a></li><li><a href="info-04-compression.html">信息 IV · 三种压缩与它的边界</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 从语料到意义</div><ul><li><a href="mean-01-distributional.html">意义 I · 分布假说与向量语义</a></li><li><a href="mean-02-learnability.html">意义 II · 可学习性之争</a></li><li><a href="mean-03-grounding.html">意义 III · 符号接地问题</a></li><li><a href="mean-04-debates.html">意义 IV · 三条正交争议轴</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 从个体到文明</div><ul><li><a href="civ-01-cultural-evolution.html">文明 I · 文化演化与累积文化</a></li><li><a href="civ-02-literacy.html">文明 II · 识字性与语言起源</a></li><li><a href="civ-03-distributed.html">文明 III · 分布式认知与集体智能</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 预测的心智</div><ul><li><a href="mind-01-predictive-brain.html">心智 I · 预测脑与贝叶斯大脑</a></li><li><a href="mind-02-language-thought.html">心智 II · 语言与思维的关系</a></li><li><a href="mind-03-consciousness.html">心智 III · 自由能与意识【争·思】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 机器里的语言与智能</div><ul><li><a href="ai-01-emergence.html">机器 I · 涌现、Scaling 与世界模型</a></li><li><a href="ai-02-understanding.html">机器 II · 预测等于理解吗</a></li><li><a href="ai-03-language-lab.html">机器 III · LLM 作为语言理论实验室</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验与收官</div><ul><li><a href="labs.html">实验双轨 · 代码 + 思想实验</a></li><li><a href="capstone.html">收官 · 我的语言—智能理论草案</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 语言是一个带约束的优化问题</a></li>
+<li><a href="#2-zipf">2. 律一：常用的说短（Zipf 简省律的现代版）</a></li>
+<li><a href="#3-uid">3. 律二：把信息摊匀（均匀信息密度 UID）</a></li>
+<li><a href="#4-dlm">4. 律三：相关的放近（依存长度最小化 DLM）</a></li>
+<li><a href="#5">5. 三律合一：效率前沿上的语言</a></li>
+<li><a href="#6">6. 要点与思考</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">信息 III · 通信效率塑造语言<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Piantadosi 等 2011（词长）、Gibson 等 2019《Lang. as efficient communication》、Levy &amp; Jaeger 2007（UID）、Futrell 等（DLM）、Zipf 1949（省力）｜ <strong>前置</strong>：info-01、info-02 ｜ <strong>证据地位</strong>：【实】——这些是可测量、跨语言重复的定律；它们把 ling-03 功能派的"效率"从形容词变成了可算的量。
+中心思想：<strong>语言的形状不是任意的，它被"在有噪声、有限信道里高效沟通"这个压力雕刻。</strong> 这一页是功能主义（ling-03）拿到数学身份证的地方——三条效率律，每条都能证伪、都能在语料上测。</p>
+</blockquote>
+<h2 id="1">1. 语言是一个带约束的优化问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把说话建模成：<strong>在一条有噪声、容量有限的信道里，用最小代价可靠传递意义</strong>（Shannon 的信道编码问题，套到语言上）。两个方向拉锯：</p>
+<ul>
+<li><strong>说话人省力</strong> → 想短、想少、想省音（趋向压缩）；</li>
+<li><strong>听话人可靠</strong> → 想清楚、想抗噪、想低歧义（趋向冗余）。</li>
+</ul>
+<p><strong>好的语言 = 这对张力的帕累托前沿上的一个点。</strong> 下面三条律，分别是这个优化在<strong>词长、信息分布、语序</strong>三个层面的可测后果。它们共同把 ling-03 那句"结构是使用压力的沉淀"变成了<strong>能算的预测</strong>。</p>
+<h2 id="2-zipf">2. 律一：常用的说短（Zipf 简省律的现代版）<a class="headerlink" href="#2-zipf" title="Permanent link"></a></h2>
+<p><strong>Zipf 简省律</strong>：高频词更短（the, of, a, is）。但 Piantadosi–Tily–Gibson 2011 给了更准的版本——</p>
+<p><strong>词长不是最优编码于频率，而是最优编码于平均可预测性（surprisal）。</strong> 也就是：一个词该多长，取决于它在<strong>上下文中</strong>的平均信息量，而非它的裸频率。</p>
+<div class="arithmatex">\[\text{length}(w) \ \propto \ \mathbb{E}_{\text{context}}\big[-\log P(w\mid \text{context})\big]\]</div>
+<figure>
+<p><img alt="词长随可预测性增长" class="fig-img" src="assets/img/info_wordlen.svg" /></p>
+<figcaption><span class="fig-id">图 info-3</span> 词长随平均 surprisal 单调上升：越"意外"（信息量大）的词分配越长的形式，越可预测的词越短。这比 Zipf 的"频率决定长度"更准——它是香农最优码"信息量大者码长长"在自然语言里的回声（\(\text{len}\propto \mathbb{E}[-\log P]\)）。示意曲线。</figcaption>
+</figure>
+<p><strong>为什么深刻</strong>：这几乎就是 Shannon 无噪编码定理（码长 <span class="arithmatex">\(\approx\)</span> 自信息）的<strong>自然语言实证</strong>——语言像是在几万年里自发逼近了最优前缀码。<strong>注意它用的是 surprisal 而非频率</strong>：这正好把 info-02 的量接了进来，三页信息论在此闭环。</p>
+<h2 id="3-uid">3. 律二：把信息摊匀（均匀信息密度 UID）<a class="headerlink" href="#3-uid" title="Permanent link"></a></h2>
+<p><strong>UID 假说（Levy &amp; Jaeger）</strong>：说话人倾向于让信息<strong>均匀地</strong>流过时间——避免某一刻信息尖峰（听者跟不上、易出错）或信息低谷（浪费信道）。既然加工代价 <span class="arithmatex">\(\propto\)</span> surprisal（info-02），把 surprisal 摊平就是让加工<strong>匀速</strong>、总代价（若代价是 surprisal 的凸函数）最小。</p>
+<p>可测的后果——<strong>说话人在可选处，用冗余去削峰填谷</strong>：
+- 信息密度高的地方<strong>加词</strong>："I believe <strong>that</strong> he left"里的可选 "that"，更常出现在后文难预测时（补一个高概率词，稀释尖峰）。
+- 可预测处<strong>缩音/省略</strong>（弱读、脱落、缩写）。
+- 语速、停顿、重音都随局部信息密度调整。</p>
+<p><strong>UID 把 info-02 的加工定律升级成一条设计原则</strong>：不仅"意外的词难读"，而且"语言主动重排自己，避免让你连续吃到意外"。</p>
+<h2 id="4-dlm">4. 律三：相关的放近（依存长度最小化 DLM）<a class="headerlink" href="#4-dlm" title="Permanent link"></a></h2>
+<p>句子是线性的，但意义是结构的（ling-02 的树）。把树"压平"成词序时，<strong>有依存关系的词之间的线性距离</strong>要付记忆代价（跨越的距离越长，工作记忆负担越大，surprisal 越难维持）。</p>
+<p><strong>DLM 假说（Gibson, Futrell 等）</strong>：语言倾向于<strong>最小化总依存长度</strong>——让语法相关的词尽量靠近。可测证据（强【实】）：
+- 跨 <strong>37+ 种语言</strong>的依存树语料，真实语序的总依存长度<strong>显著短于</strong>随机重排的基线；
+- 语序共性（如形容词紧贴名词、助动词靠近主动词）大量可由 DLM 预测——<strong>不需要 UG 参数</strong>（回击 ling-02，支持 ling-03 功能解释）；
+- 这也解释了中心嵌套（center-embedding）为何难："the rat the cat the dog chased killed ate"——嵌套把依存拉长到爆掉工作记忆。</p>
+<h2 id="5">5. 三律合一：效率前沿上的语言<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>三条律指向同一件事：<strong>语言的词汇、韵律、语序，都坐在"沟通效率"的优化解附近。</strong></p>
+<table>
+<thead>
+<tr>
+<th>律</th>
+<th>优化什么</th>
+<th>可测量</th>
+<th>反驳了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简省律（词长）</td>
+<td>码长匹配信息量</td>
+<td>词长 vs 平均 surprisal</td>
+<td>"形式任意"</td>
+</tr>
+<tr>
+<td>UID</td>
+<td>信息随时间均匀</td>
+<td>局部 surprisal 方差</td>
+<td>"说话不优化听者"</td>
+</tr>
+<tr>
+<td>DLM</td>
+<td>记忆/线性化代价</td>
+<td>依存长度 vs 随机基线</td>
+<td>"语序共性需 UG"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对轴 I 的意义</strong>：这三律是<strong>涌现端最有力的弹药</strong>——大量语言"共性"可以不诉诸先天蓝图，而由<strong>通用的沟通/加工效率</strong>推出。但<strong>别过度收兵</strong>：效率解释了<strong>倾向</strong>，没解释<strong>离散范畴的生成机制</strong>（为什么是这套语法而非另一套同样高效的）——生成派的形式引擎在这块仍有话说（ling-03 §5 的软肋）。</p>
+<h2 id="6">6. 要点与思考<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>思考 1（效率论证的循环风险）</strong> "因为高效所以这样"若不独立度量效率，就是循环论证。这三律之所以是【实】而非【争】，正因为它们<strong>先独立定义了可算的代价</strong>（码长、surprisal 方差、依存长度），再去语料里验证——<strong>这就是把功能派主张从【争】拉到【实】的标准动作</strong>，也是你做研究该学的：先把"好"变成一个能算的数，再谈优化。</p>
+<p><strong>思考 2（信道视角看你的直觉）</strong> 你最初的直觉是"语言是压缩并传递经验的信道"。这一页给了它三个可操作的量。反过来问：一个<strong>没有噪声、无限带宽、无记忆限制</strong>的沟通者，会演化出什么样的语言？——大概率<strong>不是</strong>人类语言。<strong>人类语言的很多特征，是信道缺陷的印记</strong>。这个反事实，是你思考"语言为何长这样"的好支点（也接线四思想实验）。</p>
+<p><strong>思考 3（LLM 有没有这些律）</strong> LLM 的信道条件和人不同（超长上下文、无声道、算力充裕）。它生成的文本是否服从 UID、DLM？若不服从，说明这些律是<strong>人类信道特有</strong>的；若服从，说明它们是<strong>语料统计</strong>里就编码好的、模型照单学去了。这是个你能直接测的小课题（labs 可扩展）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：信息 IV——三种压缩与它的边界。把"预测""学习""意义"统一到一个词下：压缩。我们讲清预测≈压缩的深刻等价，也讲清压缩为什么不等于意义——这条边界，是全课甲乙两问的分水岭。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="info-02-surprisal.html"><span class="pager-label">上一页</span>信息 II · 可预测性与加工难度</a>
+  <a class="pager-slot next" href="info-04-compression.html"><span class="pager-label">下一页</span>信息 IV · 三种压缩与它的边界</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>缺陷：不完美的统治 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li class="active"><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 缺陷动物园（按维度点名）</a></li>
+<li><a href="#2">2. 位错的三条工作性质</a></li>
+<li><a href="#3">3. 晶界：第二主角</a></li>
+<li><a href="#4">4. 数字感与反直觉清单</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">结构 III · 缺陷：不完美的统治<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>本课主线的核心页。完美晶体的理论剪切强度约 <span class="arithmatex">\(G/30\)</span>——按此，普通钢应能扛 ~7 GPa，实测退火钢屈服只有 ~0.2 GPa，<strong>差了近两个数量级</strong>。1934 年 Taylor、Orowan、Polanyi 各自悟出同一个答案：晶体里有<strong>位错</strong>，变形不是整层原子一起滑，而是缺陷一个一个"蠕"过去。从此材料科学的世界观定型：<strong>性能不由完美部分决定，由缺陷决定；工程 = 设计缺陷</strong>。</p>
+</blockquote>
+<h2 id="1">1. 缺陷动物园（按维度点名）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>0 维 · 点缺陷</strong>：空位、间隙原子、置换/间隙杂质。空位是热力学的<strong>必然</strong>——形成耗能 <span class="arithmatex">\(E_v\)</span> 但赚熵，平衡浓度</p>
+<div class="arithmatex">\[
+\frac{n_v}{N} = \exp\Big(-\frac{E_v}{k_BT}\Big)
+\]</div>
+<p>（【推】混合熵 + 最小化自由能一步；<span class="arithmatex">\(E_v \sim 1\)</span> eV ⇒ 室温 ~<span class="arithmatex">\(10^{-17}\)</span>、熔点附近 ~<span class="arithmatex">\(10^{-4}\)</span>——<strong>指数的巨大跨度</strong>）。点缺陷是扩散的载体（热力 II：没有空位就没有扩散、就没有热处理）与半导体掺杂的本体（功能 I：十亿分之一的磷原子改变硅的电导十个数量级——<strong>缺陷工程最惊人的杠杆</strong>）。</p>
+<figure class="plot">
+<p><img alt="Equilibrium vacancy concentration vs temperature" src="assets/img/mat-03-vacancy.svg" /></p>
+<figcaption><span class="fig-id">图 3.1</span>空位平衡浓度随温度指数攀升（\(E_v = 1\,\mathrm{eV}\)）：室温到熔点跨越十几个数量级——高温工艺（退火、烧结、扩散）的一切动力学都骑在这条指数曲线上。</figcaption>
+</figure>
+<p><strong>1 维 · 位错</strong>（本页主角）：晶格中多插半张原子面的边界线（刃型）或螺旋错排（螺型），用 <strong>Burgers 矢量 <span class="arithmatex">\(\mathbf{b}\)</span></strong> 定量（绕缺陷一圈的闭合差——拓扑不变量：位错线不能凭空终止于晶内，只能成环或到界面，这是"拓扑保护"在材料里的原生案例）。</p>
+<p><strong>滑移的地毯机制</strong>：整层滑动要同时断开一整面的键（<span class="arithmatex">\(G/30\)</span> 的来源）；位错滑移每次只挪一列原子——<strong>像推地毯上的褶皱过屋、而不是拖整张地毯</strong>。所需应力（Peierls 应力）比理论强度低几个数量级——百倍强度之谜三行解开。金属能加工、能轧成箔拉成丝，全拜位错所赐。</p>
+<p><strong>2 维 · 界面</strong>：晶界（取向差界面——原子错排带，既是位错的墙、又是扩散的高速路和腐蚀的起点）；孪晶界；相界；表面。<strong>3 维</strong>：析出相、孔隙、夹杂——性能 I/II 的强化与失效之源。</p>
+<h2 id="2">2. 位错的三条工作性质<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<ul>
+<li><strong>应力场与相互作用</strong>：位错周围有弹性应力场（能量 <span class="arithmatex">\(\sim Gb^2\)</span> 每单位长度）——同号相斥异号相吸；<strong>缠结</strong>使继续变形越来越难 ⇒ <strong>加工硬化</strong>（冷拔铁丝越弯越硬的微观真相）；</li>
+<li><strong>增殖</strong>：Frank–Read 源在应力下像吹泡泡一样批量造位错（退火金属 <span class="arithmatex">\(10^6\)</span>、重变形金属 <span class="arithmatex">\(10^{15}\ \mathrm{m}^{-2}\)</span>——位错密度九个数量级的可调范围，是"缺陷工程"的主操纵杆）；</li>
+<li><strong>受阻</strong>：任何破坏晶格周期性的东西都挡位错——溶质原子、晶界、析出粒子、别的位错。<strong>性能 I 的"强化四法"就是这四种障碍物的目录</strong>（本页埋种，那页收割）。</li>
+</ul>
+<h2 id="3">3. 晶界：第二主角<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>晶界的双面性格一张表：</p>
+<table>
+<thead>
+<tr>
+<th>晶界作为…</th>
+<th>后果</th>
+<th>出场页</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位错的墙</td>
+<td>细晶强化（Hall–Petch：<span class="arithmatex">\(\sigma_y = \sigma_0 + k d^{-1/2}\)</span>）</td>
+<td>性能 I</td>
+</tr>
+<tr>
+<td>扩散高速路</td>
+<td>晶界扩散快体扩散几个数量级；烧结与蠕变的通道</td>
+<td>热力 II、工艺 II</td>
+</tr>
+<tr>
+<td>化学薄弱带</td>
+<td>晶间腐蚀、偏析、脆化</td>
+<td>工艺 IV</td>
+</tr>
+<tr>
+<td>高温的软肋</td>
+<td>蠕变时晶界滑动 ⇒ 涡轮叶片干脆做成<strong>单晶</strong>（消灭晶界）</td>
+<td>前沿 I</td>
+</tr>
+</tbody>
+</table>
+<p><strong>同一个缺陷，低温是英雄高温是叛徒</strong>——"缺陷好坏取决于服役条件"是选材判断力的核心一课。</p>
+<h2 id="4">4. 数字感与反直觉清单<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>理论强度 <span class="arithmatex">\(\sim G/30 \approx\)</span> 钢 7 GPa；实际退火纯铁 ~0.1 GPa；最强钢丝（琴钢丝，位错被操纵到极致）~4 GPa——<strong>从"被缺陷拖累"到"用缺陷武装"，工程在两个数量级间穿行</strong>；</li>
+<li>位错密度 <span class="arithmatex">\(10^6 \to 10^{15}\ \mathrm{m}^{-2}\)</span>：重变形金属每立方厘米的位错总长可达<strong>上千万公里</strong>（绕地球数百圈）；</li>
+<li><strong>反直觉三连</strong>：最纯的金属最软（没有溶质挡位错）；晶须/无缺陷微晶能逼近理论强度（证明理论没错，错的是以为晶体完美）；<strong>想让金属更强，不是消灭缺陷，而是让缺陷动弹不得</strong>——全课最重要的一句话。</li>
+</ul>
+<p>【研】位错理论对标 Hull &amp; Bacon《Introduction to Dislocations》；应力场推导、Peach–Koehler 力、部分位错与堆垛层错（FCC 塑性的精细结构）是研究生第一学期的功课。</p>
+<hr />
+<p><em>缺陷讲完了晶体的世界。可要是干脆不要晶格呢？下一页：非晶与玻璃——无序的秩序。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-crystal.html"><span class="pager-label">上一页</span>结构 II · 晶体学：秩序的几何</a>
+  <a class="pager-slot next" href="04-amorphous.html"><span class="pager-label">下一页</span>结构 IV · 非晶与玻璃</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

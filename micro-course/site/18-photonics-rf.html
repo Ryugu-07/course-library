@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>硅光与射频 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li class="active"><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、为什么需要光</a></li>
+<li><a href="#_2">二、硅光的元件与集成</a></li>
+<li><a href="#_3">三、共封装光学：当前的主战场</a></li>
+<li><a href="#_4">四、射频与毫米波</a></li>
+<li><a href="#_5">五、这两条线的共同主题</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">前沿 IV · 硅光与射频<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：硕博专门方向 ｜ <strong>核对于 2026-07</strong>。
+芯片不只处理数字信号，它还必须<strong>与外界通信</strong>——通过电缆、光纤、或空中的电磁波。本页讲两个把"非数字物理"集成进硅的方向：<strong>硅光子学</strong>（用光传数据）与<strong>射频/毫米波</strong>（无线）。两者都是硕博的独立方向，也都在当前系统瓶颈上处于关键位置。</p>
+</blockquote>
+<h2 id="_1">一、为什么需要光<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>电互连的困境</strong>（承第六、十五页）：</p>
+<ul>
+<li>铜导线的 <span class="arithmatex">\(RC\)</span> 延迟随缩放<strong>恶化</strong>，且高频下有趋肤效应与介质损耗；</li>
+<li><strong>传输能耗随距离线性增长</strong>——板级、机架级互连的功耗已成为数据中心的重大负担；</li>
+<li>带宽密度受限于导线间距与串扰。</li>
+</ul>
+<p><strong>光的优势</strong>：
+- <strong>损耗极低</strong>，传输能耗几乎与距离无关（在光纤中可传数十公里）；
+- <strong>波分复用（WDM）</strong>：同一根波导可同时承载多个波长，<strong>带宽密度极高</strong>；
+- 无电磁串扰。</p>
+<p><strong>代价</strong>：需要电-光与光-电<strong>转换</strong>，而转换器件本身耗能、占面积、且对温度敏感。<strong>所以"光是否划算"取决于距离与带宽——短距离电互连仍然更便宜。</strong> 光的性价比拐点正在随带宽需求增长而不断向短距离推移。</p>
+<h2 id="_2">二、硅光的元件与集成<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>硅光子学</strong>的核心思想：<strong>用 CMOS 工艺制造光学元件</strong>，从而借用整个半导体产业的制造能力与成本曲线。</p>
+<p>硅在通信波长（1310/1550 nm）<strong>透明</strong>，且与 SiO₂ 的折射率差极大，可以做成<strong>高约束波导</strong>——光被牢牢限制在很细的硅条中，使元件可以做得很小、集成度很高。</p>
+<p><strong>基本元件</strong>：
+- <strong>波导、分束器、光栅耦合器</strong>（把光纤的光耦合进芯片）；
+- <strong>调制器</strong>：把电信号加载到光上。硅本身没有线性电光效应，故用<strong>载流子色散效应</strong>（注入或耗尽载流子改变折射率），常见结构是<strong>马赫-曾德尔调制器（MZM）</strong>与<strong>微环调制器</strong>；
+- <strong>光电探测器</strong>：硅在通信波长不吸收（第一页：带隙太大），故需<strong>集成锗</strong>探测器——<strong>这是硅光工艺的关键增项</strong>；
+- <strong>光源</strong>：<strong>这是硅光最根本的困难</strong>。硅是<strong>间接带隙</strong>（第一页），发光效率极低，<strong>无法做出实用的硅激光器</strong>。解决办法是外接激光器或<strong>异质集成 III-V 材料</strong>（键合或直接生长）。<strong>"硅不发光"这个第一页提到的物理事实，至今是整个硅光路线最大的结构性障碍。</strong></p>
+<h2 id="_3">三、共封装光学：当前的主战场<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>光互连的位置正在向芯片靠近</strong>，路径大致是：</p>
+<div class="arithmatex">\[\text{机架间光纤} \to \text{可插拔光模块} \to \text{板载光学} \to \textbf{共封装光学（CPO）} \to \text{片上光互连}\]</div>
+<p><strong>CPO（co-packaged optics）</strong>：把光引擎与交换/计算芯片<strong>封装在一起</strong>，大幅缩短电走线。</p>
+<ul>
+<li><strong>收益</strong>：省掉长距离电走线所需的驱动器、重定时器与 DSP，<strong>每比特功耗显著下降</strong>；</li>
+<li><strong>业界进展</strong>【核对于 2026-07】：多家厂商已展示大容量 CPO 交换系统（如基于数十路每路约 100G PAM4 通道构成的多太比特光引擎），配套的低功耗光互连方案报告的能效已进入个位数皮焦每比特量级；</li>
+<li><strong>UCIe 等 chiplet 互连标准也在纳入光学的裸片间选项</strong>，指向<strong>机架级解耦</strong>——让内存与算力可以跨机箱池化（承第十五、十六页）。</li>
+</ul>
+<p><strong>尚存的困难</strong>：<strong>温度敏感性</strong>（微环谐振波长随温度漂移，需要闭环控温或波长锁定——<strong>又一个片上控制回路</strong>，🔗 自动化站）、<strong>激光器可靠性与冗余</strong>、<strong>可维修性</strong>（封装在一起后，坏一个光引擎怎么办）、以及测试。</p>
+<p><strong>判断</strong>：CPO 是当前最被看好的方向之一，因为它<strong>不需要解决"硅激光器"这个最难的问题</strong>（激光可以外置），却能拿到大部分功耗收益。<strong>这又是一次"选择较易解决的困难"</strong>（承第十二页浸没式的教训）。</p>
+<h2 id="_4">四、射频与毫米波<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>另一条"非数字"路线是无线。<strong>射频集成电路（RFIC）</strong>面对的核心挑战与基带数字完全不同：</p>
+<ul>
+<li><strong>噪声系数</strong>：接收链路的第一级低噪声放大器（LNA）几乎决定整个系统灵敏度（Friis 公式：后级噪声被前级增益压制）；</li>
+<li><strong>线性度</strong>：强干扰下的互调失真，用 IIP3 等指标衡量。<strong>线性度与功耗、增益直接冲突</strong>；</li>
+<li><strong>功率放大器（PA）效率</strong>：发射端功耗大户。<strong>线性度与效率是根本矛盾</strong>——高效率的开关型 PA 线性差，需要数字预失真（DPD）补偿。<strong>这又是"把模拟难题转成数字问题"</strong>（承第九页）；</li>
+<li><strong>相位噪声</strong>：本振纯度限制调制阶数与邻道抑制（承第九页 PLL）。</li>
+</ul>
+<p><strong>毫米波（5G FR2、6G 研究）的特殊性</strong>：
+- 频率高 → 波长短 → <strong>天线可以做小并集成进封装（AiP）</strong>，于是<strong>大规模相控阵</strong>成为可能；
+- 但<strong>路径损耗大、易被遮挡</strong> → 必须用<strong>波束成形</strong>对准用户。<strong>波束管理本质是一个实时优化与跟踪问题</strong>（🔗 自动化站）；
+- 硅工艺的高频性能（<span class="arithmatex">\(f_T/f_{max}\)</span>）随缩放提升，使 CMOS 能进入毫米波领域——<strong>这是缩放给模拟/射频带来的少数正面红利之一</strong>（对照第八页）。</p>
+<p><strong>工艺选择</strong>：射频前端常用 <strong>SOI、SiGe BiCMOS、GaAs、GaN</strong> 等专门工艺，而非最先进的逻辑节点——<strong>再次印证第八页"不是所有电路都想去 2nm"</strong>，也是 Chiplet 异质集成的又一动机。</p>
+<h2 id="_5">五、这两条线的共同主题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>硅光与射频看似无关，但共享同一组工程逻辑：</p>
+<ol>
+<li><strong>它们都是"模拟世界"，因而不享受数字缩放红利</strong>（承第八页）；</li>
+<li><strong>它们都在把难题往数字侧转移</strong>：DPD 校正 PA 非线性、数字均衡补偿信道、数字控制环路稳定光学器件；</li>
+<li><strong>它们都需要异质集成</strong>：III-V 激光器、锗探测器、GaN 功放——<strong>没有一种材料能干所有事</strong>，这正是先进封装（第十五页）成为关键使能技术的原因；</li>
+<li><strong>它们的性能最终都受噪声与物理定律封顶</strong>——香农极限之于通信，量子效率之于探测。</li>
+</ol>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>光的优势在长距离与带宽密度，代价在电光转换</strong>；拐点随带宽需求向短距离移动；</li>
+<li><strong>"硅不发光"（间接带隙）是硅光最根本的结构性障碍</strong>，当前方案是绕开而非解决；</li>
+<li><strong>CPO 是眼下最现实的落点</strong>，因为它避开了最难的问题却拿到大部分收益；</li>
+<li><strong>射频的核心矛盾是线性度 vs 效率、噪声 vs 功耗</strong>，解法越来越依赖数字校正；</li>
+<li><strong>两条线都指向异质集成</strong>——这是它们与第十五页封装线的汇合点。</li>
+</ul>
+<hr />
+<p><em>下一页：回到器件本身。GAA 之后是什么？背面供电、CFET、二维材料——以及一个诚实的问题：这些路线里，哪些已经确定，哪些还只是希望。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-accelerator.html"><span class="pager-label">上一页</span>前沿 III · 专用加速器</a>
+  <a class="pager-slot next" href="19-frontier.html"><span class="pager-label">下一页</span>前沿 V · 器件与工艺的下一步</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

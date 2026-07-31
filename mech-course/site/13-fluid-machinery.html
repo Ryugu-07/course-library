@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工程流体与泵风机要点 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li class="active"><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、基本方程</a></li>
+<li><a href="#_2">二、管路阻力：为什么是平方关系</a></li>
+<li><a href="#_3">三、泵与风机的选型</a></li>
+<li><a href="#_4">四、液压传动</a></li>
+<li><a href="#_5">五、流致振动与噪声</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">传动 IV · 工程流体与泵风机要点<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心的实用部分 ｜ <strong>范围声明</strong>：本页只给<strong>机械工程师日常需要的工程流体要点</strong>（管路、泵、风机、液压）。完整的流体力学（N-S 方程、边界层理论、湍流模型、CFD）属于能源动力/流体力学方向，不在本站范围；物理站也未覆盖连续介质力学。
+机械系统中几乎总有流体：润滑油、冷却水、液压油、压缩空气、燃气。<strong>不必成为流体力学家，但必须会算阻力、选对泵、并理解几个反直觉的规律。</strong></p>
+</blockquote>
+<h2 id="_1">一、基本方程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>连续性</strong>（不可压）：<span class="arithmatex">\(A_1v_1 = A_2v_2\)</span> —— 管径缩小则流速升高。</p>
+<p><strong>伯努利方程</strong>（理想流体、沿流线）：</p>
+<div class="arithmatex">\[p + \frac{1}{2}\rho v^2 + \rho g h = \text{常数}\]</div>
+<p><strong>工程形式</strong>（加上损失与泵功）：</p>
+<div class="arithmatex">\[\frac{p_1}{\rho g}+\frac{v_1^2}{2g}+z_1 + H_{\text{泵}} = \frac{p_2}{\rho g}+\frac{v_2^2}{2g}+z_2 + h_f\]</div>
+<p><strong>各项都以"米"为单位</strong>（称为压头/扬程），这是工程上最方便的记法——<strong>泵的性能直接用"扬程多少米"表示</strong>。</p>
+<h2 id="_2">二、管路阻力：为什么是平方关系<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>沿程损失（Darcy–Weisbach）</strong>：</p>
+<div class="arithmatex">\[h_f = \lambda\frac{L}{d}\cdot\frac{v^2}{2g}\]</div>
+<p><strong>局部损失</strong>：<span class="arithmatex">\(h_j = \zeta\dfrac{v^2}{2g}\)</span>（弯头、阀门、变径、进出口）。</p>
+<p><strong>核心结论：阻力与流速的平方成正比。</strong></p>
+<p><strong>这个平方关系的工程后果极大</strong>：
+- <strong>流量加倍 → 阻力增大 4 倍 → 泵功率增大 8 倍</strong>（功率 = 流量 × 压头）；
+- <strong>管径的影响更剧烈</strong>：<span class="arithmatex">\(v \propto 1/d^2\)</span>，代入得 <span class="arithmatex">\(h_f \propto 1/d^5\)</span>。<strong>管径增大 15%，阻力降低一半</strong>；
+- <strong>所以"管子粗一号"往往比"泵大一号"更经济</strong>——这是管路设计的第一原则。初投资增加，但长期能耗大幅下降。</p>
+<p><strong>沿程阻力系数 <span class="arithmatex">\(\lambda\)</span></strong>：
+- <strong>层流</strong>（<span class="arithmatex">\(Re&lt;2300\)</span>）：<span class="arithmatex">\(\lambda = 64/Re\)</span>，与粗糙度无关；
+- <strong>湍流</strong>：由 Moody 图或 Colebrook 公式给出，取决于 <span class="arithmatex">\(Re\)</span> 与<strong>相对粗糙度</strong>；<strong>完全湍流区 <span class="arithmatex">\(\lambda\)</span> 只取决于粗糙度</strong>。</p>
+<p><strong>局部损失常被低估</strong>：<strong>一个全开闸阀的阻力可能相当于几十倍管径的直管</strong>，而一个半开的阀门可达数百倍。<strong>弯头多的系统，局部损失往往超过沿程损失。</strong></p>
+<h2 id="_3">三、泵与风机的选型<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>核心工具：管路特性曲线 + 泵特性曲线</strong></p>
+<figure>
+<p><img alt="泵与管路的工作点" class="fig-img" src="assets/img/mec_pump.svg" /></p>
+<figcaption><span class="fig-id">图 13-1</span> 泵的选型图。<strong>管路特性曲线</strong>（红，抛物线：静扬程 + 与流量平方成正比的阻力）与<strong>泵的扬程—流量曲线</strong>（蓝）的<strong>交点即工作点</strong>——系统实际运行在此。图中同时给出效率曲线：<strong>工作点应尽量靠近效率最高点</strong>。若用阀门节流调节流量（把管路曲线变陡，工作点左移），泵仍消耗高扬程，<strong>多余能量全部损耗在阀门上</strong>；改用变频调速（把泵曲线整体下移）则节能显著。</figcaption>
+</figure>
+<p><strong>调节流量的两种方式，能耗差别巨大</strong>：
+- <strong>节流调节</strong>（关小阀门）：简单，但<strong>能量白白消耗在阀门上</strong>；
+- <strong>变频调速</strong>：按<strong>相似定律</strong>，<span class="arithmatex">\(Q\propto n\)</span>、<span class="arithmatex">\(H\propto n^2\)</span>、<strong><span class="arithmatex">\(P\propto n^3\)</span></strong>。</p>
+<p><strong><span class="arithmatex">\(P \propto n^3\)</span> 是本页最有价值的数字</strong>：<strong>转速降到 80%，流量降到 80%，而功率降到 51%</strong>。这就是为什么风机水泵的变频改造是工业节能中回报最快的项目之一（🔗 自动化站第十一、十二页：变频器与电机控制正是为此）。</p>
+<p><strong>气蚀（汽蚀）</strong>：泵入口压力低于液体饱和蒸气压时产生气泡，气泡在高压区溃灭产生冲击 → <strong>叶轮点蚀、噪声、振动、性能下降</strong>。</p>
+<p><strong>判据</strong>：装置汽蚀余量必须大于泵的必需汽蚀余量（<span class="arithmatex">\(\mathrm{NPSH}_a &gt; \mathrm{NPSH}_r\)</span>，通常留 0.5 m 以上裕量）。</p>
+<p><strong>对策</strong>：降低吸入管阻力、抬高液位、降低液温、泵尽量靠近液源。<strong>"泵装得太高"是气蚀最常见的原因。</strong></p>
+<h2 id="_4">四、液压传动<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>核心优势</strong>：<strong>功率密度极高</strong>——同样功率下，液压马达/缸的体积重量远小于电机。这就是挖掘机、压力机、飞机舵面用液压的原因。</p>
+<p><strong>帕斯卡原理</strong>：<span class="arithmatex">\(p = F/A\)</span>，压力全系统传递。液压系统压力通常 10–35 MPa，故小缸径即可产生巨大推力。</p>
+<p><strong>关键特性与问题</strong>：
+- <strong>压力由负载决定，流量由泵决定</strong>——这是液压最容易被初学者搞反的一点。<strong>泵不产生压力，它产生流量；压力是负载"顶"出来的</strong>；
+- <strong>油液可压缩性与管路弹性</strong>造成刚度有限 → 液压伺服系统有<strong>液压固有频率</strong>，限制控制带宽（🔗 自动化站）；
+- <strong>污染是头号杀手</strong>：据业界普遍经验，液压故障中很大比例源于油液污染。<strong>过滤精度与清洁度等级是液压系统设计的核心指标</strong>；
+- <strong>发热</strong>：节流调速的能量全部变热，需要冷却器。<strong>负载敏感与变量泵系统</strong>是为节能而生。</p>
+<p><strong>气动</strong>：介质可压缩 → <strong>刚度低、难以精确定位</strong>，但<strong>便宜、清洁、防爆、可过载</strong>。适合"到位即可"的动作（夹紧、推送），不适合精密位置控制。</p>
+<h2 id="_5">五、流致振动与噪声<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>涡激振动</strong>：流体绕过钝体产生周期性涡脱落（斯特劳哈尔数 <span class="arithmatex">\(St = fd/v \approx 0.2\)</span>）。当涡脱落频率接近结构固有频率时发生共振——<strong>换热器管束、烟囱、输电线的典型问题</strong>。对策是加扰流条、改变间距、增加阻尼；</li>
+<li><strong>水锤</strong>：阀门快速关闭时，流体动量突变产生压力冲击波，压力峰值可达工作压力的数倍，足以<strong>爆管</strong>。<strong>对策：延长阀门关闭时间、设置缓冲罐或安全阀</strong>；</li>
+<li><strong>管道脉动</strong>：往复泵/压缩机的脉动激励与管系声学模态耦合（承第九页）。</li>
+</ul>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>阻力 <span class="arithmatex">\(\propto v^2\)</span>，且 <span class="arithmatex">\(\propto 1/d^5\)</span></strong>——<strong>加大管径往往比加大泵更经济</strong>；</li>
+<li><strong>局部损失常被低估</strong>，阀门弯头多的系统它可能占主导；</li>
+<li><strong>工作点 = 泵曲线与管路曲线的交点</strong>；<strong>变频调速 <span class="arithmatex">\(P\propto n^3\)</span></strong>，是节能改造回报最高的手段之一；</li>
+<li><strong>气蚀由入口压力不足引起</strong>，"泵装太高"是最常见原因；</li>
+<li><strong>液压中压力由负载决定、流量由泵决定</strong>；<strong>污染是头号杀手</strong>；</li>
+<li><strong>涡激振动与水锤</strong>是流体引起的典型机械事故。</li>
+</ul>
+<hr />
+<p><em>线三结束。下一线转向一个更冷峻的主题：零件是怎么坏的。疲劳、断裂、公差与可靠性——这是把"设计"变成"能用十年的产品"的关键。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-bearing-tribology.html"><span class="pager-label">上一页</span>传动 III · 轴系、轴承与摩擦学</a>
+  <a class="pager-slot next" href="14-fatigue.html"><span class="pager-label">下一页</span>失效 I · 疲劳与断裂</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

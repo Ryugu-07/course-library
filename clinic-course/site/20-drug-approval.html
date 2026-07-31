@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>药物审批、加速批准与撤市 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li class="active"><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 制度是由灾难塑造的</a></li>
+<li><a href="#2">2. 审批的阶段与各自能回答什么</a></li>
+<li><a href="#3">3. 加速批准：收益与代价</a></li>
+<li><a href="#4">4. 上市后监测的现实</a></li>
+<li><a href="#5">5. 谁在生产证据</a></li>
+<li><a href="#6">6. 仿制药与生物类似药</a></li>
+<li><a href="#7">7. 读一份药品说明书的方法</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">边界 II · 药物审批、加速批准与撤市<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>药物监管制度是社会对前十九页问题给出的<strong>制度性答案</strong>：既然个人经验不可靠、既然替代终点会骗人、既然厂商有动机夸大，那就设一套强制性的证据门槛。<strong>这一页讲这套制度怎么运作、它的已知漏洞，以及几个改变了制度的灾难。</strong></p>
+</blockquote>
+<h2 id="1">1. 制度是由灾难塑造的<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>年代</th>
+<th>制度后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>磺胺酏剂（二甘醇溶剂）中毒</strong></td>
+<td>1937</td>
+<td>美国确立<strong>上市前安全性审查</strong></td>
+</tr>
+<tr>
+<td><strong>沙利度胺（反应停）致畸</strong></td>
+<td>1950s–60s</td>
+<td>确立<strong>上市前有效性证明</strong>与<strong>孕期用药审查</strong>；美国因审评员坚持未批准而幸免</td>
+</tr>
+<tr>
+<td><strong>己烯雌酚（DES）</strong></td>
+<td>1970s</td>
+<td><strong>跨代危害</strong>（女儿的阴道透明细胞癌）→ 长期随访意识</td>
+</tr>
+<tr>
+<td><strong>罗非昔布（万络）</strong></td>
+<td>2004 撤市</td>
+<td><strong>上市后安全性监测（药物警戒）强化</strong>、心血管安全性评估要求</td>
+</tr>
+<tr>
+<td><strong>罗格列酮争议</strong></td>
+<td>2007 起</td>
+<td>促成美国要求<strong>降糖药做心血管结局试验</strong>——<strong>这一条意外地催生了 SGLT2i/GLP-1 RA 的心肾获益发现</strong>（第 16 页）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最后一行值得玩味</strong>：<strong>一项为安全性而设的监管要求，反而带来了本领域最大的疗效发现</strong>。<strong>这是"强制做硬终点试验"的意外红利。</strong></p>
+<h2 id="2">2. 审批的阶段与各自能回答什么<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>对象</th>
+<th>主要问题</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>临床前</td>
+<td>细胞、动物</td>
+<td>机制、毒性</td>
+<td><strong>动物模型外推性差</strong>（🔗 姊妹站第 21 页：神经保护药的全面失败）</td>
+</tr>
+<tr>
+<td><strong>I 期</strong></td>
+<td>少数健康志愿者或患者</td>
+<td><strong>安全性、剂量、PK</strong></td>
+<td>不能测有效性</td>
+</tr>
+<tr>
+<td><strong>II 期</strong></td>
+<td>数十至数百患者</td>
+<td><strong>初步有效性、剂量优化</strong></td>
+<td><strong>失败率最高的一关</strong>（多因靶点错误）</td>
+</tr>
+<tr>
+<td><strong>III 期</strong></td>
+<td>数百至数千</td>
+<td><strong>有效性与常见不良反应</strong></td>
+<td><strong>样本不足以发现罕见危害</strong>；人群窄；随访短</td>
+</tr>
+<tr>
+<td><strong>IV 期/上市后</strong></td>
+<td>真实世界</td>
+<td><strong>罕见危害、长期效果、真实依从</strong></td>
+<td>被动报告系统敏感度低</td>
+</tr>
+</tbody>
+</table>
+<p><strong>核心结构性事实</strong>：<strong>III 期试验的规模按"检出有效性"设计，而不是按"检出罕见危害"设计</strong>。<strong>一个发生率 1/10000 的严重不良事件，在 3000 人的试验中很可能一例都不出现。</strong> <strong>所以"上市时安全"必然是暂定结论</strong>——<strong>这不是制度失灵，而是数学限制。</strong></p>
+<h2 id="3">3. 加速批准：收益与代价<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>允许基于替代终点批准，承诺上市后完成确证性试验</strong>（第 09 页）。</p>
+<p><strong>收益是真实的</strong>：HIV 治疗、部分肿瘤药与罕见病药因此提前数年到达患者。</p>
+<p><strong>代价也是真实的</strong>：</p>
+<ol>
+<li><strong>确证性试验常延迟或未完成</strong>——多项审计发现相当比例的加速批准适应证多年后仍缺乏确证证据；</li>
+<li><strong>撤回困难</strong>：一旦上市，医生与患者已形成使用习惯，<strong>撤回在政治与临床上都极为困难</strong>；</li>
+<li><strong>确证性试验本身也常用替代终点</strong>——<strong>等于没有验证</strong>；</li>
+<li><strong>定价与支付随批准同时发生</strong>，形成既得利益。</li>
+</ol>
+<p><strong>已发生的撤回案例说明制度确实会自我纠正，但速度慢</strong>：贝伐珠单抗的转移性乳腺癌适应证被撤销（无总生存获益）；某些肿瘤加速批准适应证在确证试验失败后由厂商主动撤回。</p>
+<p><strong>关于阿尔茨海默病抗淀粉样蛋白药物的争议</strong>（🔗 姊妹站第 21 页给机制）：<strong>这是当代最尖锐的案例</strong>——涉及替代终点（淀粉样蛋白清除）与临床终点（认知下降速率）的关系、<strong>统计显著与最小临床重要差异的差距</strong>（第 06 页）、ARIA 风险、以及高昂成本对医疗系统的影响。<strong>本站不给结论，但这个案例把本站前二十页的每一个工具都用到了，值得作为综合练习。</strong></p>
+<h2 id="4">4. 上市后监测的现实<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>被动报告系统</strong>（如 FAERS、各国药物警戒系统）<strong>敏感度低</strong>（严重报告不足）、<strong>无分母</strong>（不知道有多少人用了）、<strong>受媒体关注影响</strong>（报道后报告激增）。</p>
+<p><strong>主动监测</strong>（如基于大型医保/电子病历数据库的哨兵系统）是改进方向，<strong>但回到第 07 页的所有观察性研究偏倚问题</strong>——<strong>尤其"新使用者设计"与"不朽时间偏倚"的处理</strong>。</p>
+<p><strong>信号 → 因果的判断依据</strong>：时间关系、剂量-反应、<strong>去激发/再激发（停药好转、再用又发）</strong>、生物学合理性、<strong>其他解释是否被排除</strong>。</p>
+<h2 id="5">5. 谁在生产证据<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>行业资助占临床试验的大部分</strong>。<strong>多项 meta 研究一致发现：行业资助的试验更可能报告有利于资助方的结论</strong>——机制包括对照选择（第 05 页：低剂量对照、等待名单）、终点选择、发表偏倚、以及分析选择。</p>
+<p><strong>这不等于行业试验都不可信</strong>——<strong>大型行业 RCT 常常是方法学质量最高的</strong>（资源充足、多中心、严格监查）。<strong>正确的姿态是</strong>：<strong>看设计细节而不是看资助方标签，但把资助方作为"更仔细检查设计"的触发条件。</strong></p>
+<p><strong>改进机制</strong>：<strong>强制注册与结果上报</strong>、<strong>独立数据监查委员会</strong>、<strong>数据共享</strong>（允许第二方重分析——RIAT 项目对既往试验的重新分析揭示了若干重大问题）。</p>
+<p><strong>一个著名案例</strong>：奥司他韦的证据在很长时间里基于未公开的厂商数据；<strong>Cochrane 团队历时数年争取到完整临床研究报告后重新分析，得出的效应量明显小于早前的估计</strong>，并对住院与并发症的获益提出质疑。<strong>这一事件直接推动了临床试验数据透明化政策。</strong></p>
+<h2 id="6">6. 仿制药与生物类似药<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>仿制药</strong>：需证明<strong>生物等效性</strong>（PK 曲线的 AUC 与 <span class="arithmatex">\(C_{max}\)</span> 落在等效区间内），<strong>不需重做疗效试验</strong>——<strong>这是合理的，因为同一活性成分在同一暴露下应有同一效果</strong>。<strong>例外需注意</strong>：<strong>窄治疗指数药物</strong>（🔗 姊妹站第 14 页的名单）在换用不同厂家制剂时应谨慎监测。</p>
+<p><strong>生物类似药</strong>：因分子复杂、无法完全相同，需要<strong>更充分的分析与临床可比性证据</strong>，但仍远少于原研的全套试验。<strong>它们是控制生物药成本的主要手段</strong>（第 23 页）。</p>
+<h2 id="7">7. 读一份药品说明书的方法<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>说明书是一份法律文件，信息密度高但排布不便</strong>。<strong>读的顺序建议</strong>：</p>
+<ol>
+<li><strong>适应证</strong>——<strong>注意是基于什么试验、什么人群</strong>；</li>
+<li><strong>禁忌与警告（尤其黑框警告）</strong>；</li>
+<li><strong>不良反应表</strong>——<strong>注意看安慰剂组的发生率</strong>！<strong>只看治疗组的百分比会严重高估归因风险</strong>（这是第 06 页绝对风险思维的直接应用）；</li>
+<li><strong>相互作用</strong>（🔗 姊妹站第 13、14 页的 CYP 与 PD 叠加）；</li>
+<li><strong>特殊人群</strong>（肾肝功能、妊娠、老年）；</li>
+<li><strong>临床试验章节</strong>——<strong>主要终点是什么？绝对数字是多少？</strong></li>
+</ol>
+<p><strong>"看不良反应表要同时看安慰剂列"是本页最实用的一条操作技巧</strong>——<strong>很多"药物副作用"在安慰剂组的发生率几乎一样高</strong>（第 19 页的反安慰剂）。</p>
+<hr />
+<p><em>下一页：补充替代医学——把本线的工具用在一个最需要它们的领域。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="19-placebo.html"><span class="pager-label">上一页</span>边界 I · 安慰剂、自然史与均值回归</a>
+  <a class="pager-slot next" href="21-cam.html"><span class="pager-label">下一页</span>边界 III · 补充替代医学的证据检视</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

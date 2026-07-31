@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>疫苗与预防性用药 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li class="active"><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 疫苗的效力与效果</a></li>
+<li><a href="#2">2. 绝对风险的正确呈现</a></li>
+<li><a href="#3">3. 安全性：如何诚实地讨论</a></li>
+<li><a href="#4">4. 群体免疫阈值</a></li>
+<li><a href="#5">5. 预防性用药的三个例子</a></li>
+<li><a href="#6">6. 维生素与补充剂：预防线的诚实收尾</a></li>
+<li><a href="#7">7. 本页收成一条沟通模板</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">预防 IV · 疫苗与预防性用药<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p>预防性干预有一个共同的伦理特征：<strong>给健康人用药</strong>。这意味着<strong>安全性门槛远高于治疗性干预</strong>，也意味着<strong>风险沟通的质量直接决定公共健康结果</strong>。本页用本站的绝对风险装置来处理这个领域。</p>
+</blockquote>
+<h2 id="1">1. 疫苗的效力与效果<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>必须区分三个概念</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>定义</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>效力 efficacy</strong></td>
+<td><strong>RCT 条件下</strong>相对风险降低</td>
+<td>注册试验</td>
+</tr>
+<tr>
+<td><strong>效果 effectiveness</strong></td>
+<td><strong>真实世界</strong>中的降低</td>
+<td>上市后监测</td>
+</tr>
+<tr>
+<td><strong>影响 impact</strong></td>
+<td><strong>人群层面</strong>（含群体免疫的间接保护）</td>
+<td>公共卫生</td>
+</tr>
+</tbody>
+</table>
+<p><strong>效力 95% 意味着什么</strong>：<strong>接种组的发病风险是对照组的 5%</strong>，<strong>不是"95% 的人不会得病"</strong>。<strong>这是媒体报道中最常见的误读。</strong></p>
+<p><strong>由 ARR = 基线风险 × RRR</strong>：<strong>同一个效力，在流行期与非流行期的绝对获益完全不同</strong>。<strong>这解释了为什么疫苗的绝对获益在疫情高峰期最大，也解释了为什么在低流行期的试验难以做出显著结果。</strong></p>
+<h2 id="2">2. 绝对风险的正确呈现<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>以年龄分层的绝对获益是疫苗沟通中最有用的一件事</strong>。以严重疾病风险随年龄呈指数上升的病原体为例：</p>
+<ul>
+<li><strong>老年人</strong>：基线重症风险高 → <strong>NNV（需接种人数）小</strong> → 收益压倒性；</li>
+<li><strong>健康年轻人</strong>：基线重症风险低 → <strong>NNV 大</strong> → 收益仍为正但幅度小，<strong>此时罕见不良事件的相对权重上升</strong>。</li>
+</ul>
+<p><strong>这个结构解释了为什么许多国家对不同年龄组给出不同的推荐强度</strong>——<strong>不是"疫苗对年轻人无效"，而是"绝对获益随基线风险变化"</strong>（第 06 页）。<strong>能把这一点讲清楚的沟通，比"绝对安全有效"的口号更能建立信任。</strong></p>
+<h2 id="3">3. 安全性：如何诚实地讨论<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>本站的立场</strong>：<strong>罕见不良事件是真实的、被监测系统发现的、且发生率通常远低于对应疾病造成同类损害的风险。</strong></p>
+<p><strong>已确认的几个例子</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>疫苗</th>
+<th>量级</th>
+<th>对照</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>心肌炎</strong></td>
+<td>mRNA COVID 疫苗（<strong>年轻男性、第二剂后</strong>）</td>
+<td>每十万剂个位数量级</td>
+<td><strong>感染本身导致心肌炎的风险更高</strong></td>
+</tr>
+<tr>
+<td><strong>血栓伴血小板减少（TTS）</strong></td>
+<td>某些腺病毒载体疫苗</td>
+<td>每十万至百万剂量级</td>
+<td>部分国家据此调整了年龄推荐</td>
+</tr>
+<tr>
+<td><strong>肠套叠</strong></td>
+<td>早期轮状病毒疫苗</td>
+<td>使该产品退市；新一代风险极低</td>
+<td><strong>监测系统发挥作用的正面案例</strong></td>
+</tr>
+<tr>
+<td>格林-巴利综合征</td>
+<td>某些流感疫苗</td>
+<td>极低</td>
+<td>流感感染本身的风险更高</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"监测系统发现了这些事件"本身是系统在工作的证据，而不是系统失灵的证据</strong>——<strong>这一点在公共沟通中几乎总是被讲反。</strong></p>
+<p><strong>已被高质量证据推翻的说法</strong>：<strong>MMR 疫苗与孤独症的关联</strong>。源头是 1998 年一篇 12 例的论文，<strong>该文已被撤稿，作者因学术不端被吊销医师执照</strong>；此后<strong>多国数百万儿童规模的队列研究一致未发现关联</strong>。<strong>这是本站唯一一处使用"已被推翻"这样确定措辞的地方</strong>，因为证据强度确实达到了这个级别。</p>
+<p><strong>同时要理解疫苗犹豫不是纯粹的信息缺乏问题</strong>：它涉及信任、风险感知的心理学（<strong>罕见但生动的危害权重高于常见但抽象的收益</strong>，🔗 心智与证据站第 10 页）、以及历史与制度因素。<strong>单纯用数据纠正的效果有限</strong>——<strong>这是"知道偏差不等于消除偏差"在公共卫生上的翻版</strong>（第 04 页）。</p>
+<h2 id="4">4. 群体免疫阈值<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<div class="arithmatex">\[R_e = R_0(1 - pE) &lt; 1 \iff pE &gt; 1 - \frac{1}{R_0}\]</div>
+<table>
+<thead>
+<tr>
+<th>病</th>
+<th><span class="arithmatex">\(R_0\)</span>（量级）</th>
+<th>所需有效覆盖率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>麻疹</strong></td>
+<td>12–18</td>
+<td><strong>&gt; 92–95%</strong></td>
+</tr>
+<tr>
+<td>百日咳</td>
+<td>12–17</td>
+<td>&gt; 92%</td>
+</tr>
+<tr>
+<td>腮腺炎</td>
+<td>4–7</td>
+<td>75–86%</td>
+</tr>
+<tr>
+<td>脊灰</td>
+<td>5–7</td>
+<td>80–86%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>麻疹对覆盖率下降最敏感</strong>——<strong>这是它总是第一个卷土重来的数学原因</strong>，也是一个"阈值系统"的典型：<strong>覆盖率的小幅下降在越过临界点后引起爆发式变化</strong>。🔗 数学站与生命的逻辑站有 SIR 模型的完整推导。</p>
+<p><strong>注意两个复杂化</strong>：<strong>群体免疫假设混合均匀</strong>——<strong>现实中接种者聚集分布，因此局部覆盖率不足即可引起局部爆发</strong>，即使全国平均达标；<strong>且它只对人际传播的病原体成立</strong>（破伤风来自环境，无群体免疫）。</p>
+<h2 id="5">5. 预防性用药的三个例子<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>① HIV 暴露前预防（PrEP）</strong>：在高风险人群中<strong>效力很高且高度依赖依从性</strong>——<strong>"依从性决定效果"是本类干预的共同特征</strong>。<strong>这也是 ITT 与 per-protocol 分析差异巨大的典型场景</strong>（第 05 页）。</p>
+<p><strong>② 疟疾化学预防与旅行者预防</strong>：按目的地耐药格局选药；<strong>收益随目的地风险变化</strong>——<strong>又一次绝对风险计算</strong>。</p>
+<p><strong>③ 他莫昔芬/芳香化酶抑制剂用于乳腺癌一级预防</strong>：<strong>在高风险女性中确实降低发病率</strong>，<strong>但对死亡率的证据有限</strong>，且有子宫内膜癌与血栓风险 → <strong>接受率很低</strong>。<strong>这是一个"NNT 与 NNH 接近、因而多数人理性地选择不用"的教科书案例</strong>——<strong>低接受率不是患者"不理性"，而是他们的价值权衡与推荐者不同。</strong></p>
+<p><strong>④ 抗生素预防</strong>：<strong>有明确证据的场景很有限</strong>（某些手术的围术期预防、无脾者、风湿热二级预防、特定免疫抑制状态下的 PJP 预防）。<strong>"以防万一开点抗生素"在绝大多数情况下无证据支持且有害</strong>（第 13 页）。</p>
+<h2 id="6">6. 维生素与补充剂：预防线的诚实收尾<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>这个领域是"观察性研究与 RCT 系统性背离"最集中的地方</strong>（第 05 页）：</p>
+<table>
+<thead>
+<tr>
+<th>补充剂</th>
+<th>观察性关联</th>
+<th>RCT 结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>β-胡萝卜素</strong></td>
+<td>好</td>
+<td><strong>在吸烟者中增加肺癌</strong>（ATBC、CARET）</td>
+</tr>
+<tr>
+<td><strong>维生素 E</strong></td>
+<td>好</td>
+<td>无获益；某些剂量下有害信号</td>
+</tr>
+<tr>
+<td><strong>维生素 D</strong></td>
+<td>广泛的观察性关联</td>
+<td><strong>大型 RCT（VITAL 等）在一般人群中未显示预防癌症或心血管事件</strong>；<strong>对已缺乏者补充有明确骨骼获益</strong></td>
+</tr>
+<tr>
+<td><strong>鱼油</strong></td>
+<td>好</td>
+<td>结果不一，<strong>部分阳性试验的对照剂选择受质疑</strong>（第 05 页矿物油问题）</td>
+</tr>
+<tr>
+<td><strong>复合维生素</strong></td>
+<td>—</td>
+<td><strong>在营养充足人群中缺乏硬终点获益证据</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>共同解释</strong>：<strong>"服用补充剂"这个行为与大量未测量的健康优势相关</strong>（健康使用者偏倚）。<strong>且从食物中获得某营养素与吃提纯高剂量制剂，可能根本不是同一个干预</strong>（一致性假设，第 05 页）。</p>
+<p><strong>有明确证据的补充</strong>：<strong>孕前与孕早期叶酸（预防神经管缺陷）</strong>——<strong>这是营养补充中效应量最明确的一项</strong>；<strong>特定缺乏状态的针对性补充</strong>（缺铁、B12、维生素 D 缺乏）；<strong>特定人群的碘、维生素 K（新生儿）</strong>。</p>
+<p><strong>"有缺乏就补，没缺乏别补"</strong>——这条简单规则概括了当前证据的绝大部分。</p>
+<h2 id="7">7. 本页收成一条沟通模板<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对任何预防性干预，用同一个句式：</p>
+<blockquote>
+<p><strong>"在像您这样的情况下，不做这件事，未来 X 年发生 Y 的风险大约是 A%；做了以后大约是 B%。也就是说，每 1000 个像您这样的人接受它，大约有 N 个人因此避免了 Y，同时大约有 M 个人会经历 Z（副作用）。您怎么看这个权衡？"</strong></p>
+</blockquote>
+<p><strong>这个模板同时包含了绝对风险、时间尺度、NNT、NNH 与价值观征询</strong>——<strong>它是本站前 17 页的方法论压缩成的一句话。</strong> 第 24 页会展开它的沟通细节。</p>
+<hr />
+<p><em>线四完。下一线换个角度：为什么判断一个治疗是否有效这么难——安慰剂、自然史与均值回归。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-cancer-screening.html"><span class="pager-label">上一页</span>预防 III · 癌症筛查逐癌种证据对照</a>
+  <a class="pager-slot next" href="19-placebo.html"><span class="pager-label">下一页</span>边界 I · 安慰剂、自然史与均值回归</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

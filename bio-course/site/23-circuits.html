@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回路、编码与预测 · 生命的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">生命的逻辑</a>
+    <div class="site-subtitle">基础 · 人体 · 遗传 · 演化 · 脑与前沿</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 生命的基本盘</div><ul><li><a href="01-cell-energy.html">基础 I · 细胞、能量与代谢</a></li><li><a href="02-central-dogma.html">基础 II · 中心法则与基因表达</a></li><li><a href="03-proteins.html">基础 III · 蛋白质：从序列到机器</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 人体</div><ul><li><a href="04-homeostasis.html">人体 I · 稳态作为控制系统</a></li><li><a href="05-scaling.html">人体 II · 代谢、能量与标度律</a></li><li><a href="06-transport.html">人体 III · 循环与呼吸的物理</a></li><li><a href="07-immunity.html">人体 IV · 免疫：分布式识别与记忆</a></li><li><a href="08-microbiome.html">人体 V · 微生物组与全生物体</a></li><li><a href="09-aging.html">人体 VI · 衰老的生物学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 遗传</div><ul><li><a href="10-mendel-quantitative.html">遗传 I · 从孟德尔到定量遗传</a></li><li><a href="11-popgen.html">遗传 II · 群体遗传学核心</a></li><li><a href="12-gwas.html">遗传 III · 连锁、GWAS 与多基因分数</a></li><li><a href="13-genome.html">遗传 IV · 基因组的结构与非编码世界</a></li><li><a href="14-epigenetics.html">遗传 V · 表观遗传：机制与炒作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 演化</div><ul><li><a href="15-selection.html">演化 I · 选择的形式化</a></li><li><a href="16-neutral.html">演化 II · 中性理论与分子钟</a></li><li><a href="17-coalescent.html">演化 III · 溯祖理论</a></li><li><a href="18-phylogenetics.html">演化 IV · 系统发生与物种形成</a></li><li><a href="19-human-evolution.html">演化 V · 人类演化与古 DNA</a></li><li><a href="20-evolutionary-medicine.html">演化 VI · 演化医学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 脑</div><ul><li><a href="21-neuron.html">脑 I · 神经元的定量物理</a></li><li><a href="22-synapse.html">脑 II · 突触传递与可塑性</a></li><li class="active"><a href="23-circuits.html">脑 III · 回路、编码与预测</a></li><li><a href="24-connectome.html">脑 IV · 连接组学</a></li><li><a href="25-memory.html">脑 V · 记忆的物质基础</a></li><li><a href="26-consciousness.html">脑 VI · 意识研究的现状【争】</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="27-protein-design.html">前沿 I · 结构预测与蛋白设计</a></li><li><a href="28-editing.html">前沿 II · 基因编辑与基因治疗</a></li><li><a href="29-single-cell.html">前沿 III · 单细胞与空间组学</a></li><li><a href="30-organoids.html">前沿 IV · 类器官与胚胎模型</a></li><li><a href="31-ai-biology.html">前沿 V · AI 进入生物学</a></li><li><a href="32-bci.html">前沿 VI · 脑机接口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、编码：神经元表示什么</a></li>
+<li><a href="#_2">二、几个有代表性的回路计算</a></li>
+<li><a href="#_3">三、皮层的一般结构</a></li>
+<li><a href="#_4">四、预测编码：一个统一的候选原理</a></li>
+<li><a href="#_5">五、抑制、节律与网络状态</a></li>
+<li><a href="#_6">六、从回路到行为的距离</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">脑 III · 回路、编码与预测<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>证据地位</strong>：<strong>感受野、群体编码、奖赏预测误差【实】</strong>；<strong>预测编码作为皮层通用原理【争】</strong>。
+从单个突触上升到<strong>群体</strong>。核心问题变成：信息如何被一群神经元表示？回路如何计算？本页的落点是一个越来越有影响的主张——<strong>皮层的核心工作可能是预测</strong>，这也是本站与语言站（🔗 :8086 线五）交汇的地方。</p>
+</blockquote>
+<h2 id="_1">一、编码：神经元表示什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>感受野</strong>：Hubel 与 Wiesel（诺奖）记录猫的视皮层，发现 V1 神经元不响应弥散光斑，而响应<strong>特定朝向的边缘</strong>。沿视觉通路存在层级：</p>
+<div class="arithmatex">\[\text{视网膜（光点）} \to \text{LGN（中心-周边）} \to \text{V1（朝向边缘）} \to \text{V2、V4（轮廓、颜色）} \to \text{IT（物体、面孔）}\]</div>
+<p><strong>这个层级结构直接启发了卷积神经网络</strong>（局部感受野、层级特征、权重共享），是神经科学对 AI 影响最深的一笔（🔗 AI 站）。</p>
+<p><strong>编码方式的几个概念</strong>：</p>
+<ul>
+<li><strong>稀疏编码</strong>：任一时刻只有小部分神经元活跃。既节能（承线二：脑很贵），又利于解码。V1 的朝向选择性可以从"用稀疏基底重构自然图像"这一优化目标中推导出来（Olshausen &amp; Field）——<strong>这是"神经表征是对自然统计的最优编码"这一思想的经典范例。</strong></li>
+<li><strong>群体编码</strong>：单个神经元的调谐宽而含噪，但<strong>一群</strong>神经元的联合活动可精确表示变量。经典例子是运动皮层的<strong>群体向量</strong>：每个神经元对某个运动方向弱调谐，加权求和后能准确预测手臂运动方向——<strong>这正是脑机接口解码的原理基础</strong>（线六第六页）。</li>
+<li><strong>时间编码 vs 率编码</strong>：信息在发放<strong>频率</strong>里，还是在<strong>精确时刻</strong>里？两者都有证据，依系统而异（听觉系统的相位锁定明显依赖时刻）。</li>
+</ul>
+<h2 id="_2">二、几个有代表性的回路计算<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>① 侧抑制与对比增强</strong>：视网膜与感觉系统中，活跃单元抑制邻居 → 边界被增强（马赫带错觉的成因）。数学上近似<strong>空间上的高通滤波</strong>——回路结构直接实现了一个算子。</p>
+<p><strong>② 吸引子网络</strong>：循环连接可使网络活动稳定在若干"吸引子"状态。<strong>环形吸引子</strong>是被验证得最漂亮的一例——果蝇的中央复合体中存在一圈神经元，其活动峰<strong>编码动物的朝向</strong>，并随转身而在环上移动，即使黑暗中也能靠自身运动更新。<strong>这是一个被完整验证的"神经计算装置"，从解剖结构到动力学模型到行为，全线贯通。</strong>（哺乳动物的头方向细胞与之功能类似。）</p>
+<p><strong>③ 空间表征</strong>：海马的<strong>位置细胞</strong>（O'Keefe）与内嗅皮层的<strong>网格细胞</strong>（Moser 夫妇）——后者的放电场在环境中排成规则的六边形晶格，共获 2014 年诺奖。<strong>大脑内建了一套度量空间的坐标系</strong>；且越来越多证据显示同一套机制也用于组织<strong>非空间</strong>的概念关系（"认知地图"的广义版本）【争，但证据渐增】。</p>
+<p><strong>④ 奖赏预测误差</strong>：中脑多巴胺神经元的发放不编码奖赏本身，而编码<strong>实际奖赏 − 预期奖赏</strong>：意外奖赏 → 爆发；已预期的奖赏 → 无反应；预期而未得 → 抑制。<strong>这与强化学习中的 TD 误差在数学形式上直接对应</strong>（Schultz、Dayan、Montague）——是计算理论与神经数据吻合得最好的案例之一（🔗 AI 站强化学习）。</p>
+<h2 id="_3">三、皮层的一般结构<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>新皮层有相当规整的<strong>六层结构</strong>，各层的输入输出分工大致固定（第 4 层接收丘脑输入，2/3 层做皮层间水平通信，5/6 层输出到皮层下与丘脑）。<strong>皮层柱</strong>假说主张存在重复的功能单元。</p>
+<p><strong>规整性引出一个大胆猜想</strong>：既然视觉、听觉、体感、运动皮层的微观结构如此相似，是否存在一个<strong>通用的皮层算法</strong>，只因输入不同而学出不同功能？</p>
+<p><strong>支持证据</strong>：发育重接线实验中，把视觉输入导向听觉皮层，听觉皮层会发育出视觉样的感受野与朝向图；盲人的"视觉"皮层被触觉与语言任务征用。<strong>保留意见</strong>：不同区域仍有可观的细胞类型与连接差异，"通用"是近似而非严格。<strong>这仍是一个开放且重要的问题</strong>【争】。</p>
+<h2 id="_4">四、预测编码：一个统一的候选原理<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>本页的落点。<strong>预测编码</strong>主张：皮层不是被动接收信号，而是<strong>自上而下不断生成对输入的预测</strong>，向上传递的主要是<strong>预测误差</strong>。</p>
+<figure>
+<p><img alt="层级预测编码" class="fig-img" src="assets/img/bio_predictive.svg" /></p>
+<figcaption><span class="fig-id">图 23-1</span> 层级预测编码：高层向低层发送**预测**（下行），低层将未被解释的**预测误差**上传（上行）。高层编码抽象、缓慢变化的原因，低层编码快速、具体的特征。整个层级共同最小化各层预测误差。若该框架成立，**皮层上行通路传递的主要不是原始感觉数据，而是"意料之外的部分"**——这在信息论上等价于对感觉流做在线压缩。</figcaption>
+</figure>
+<p><strong>支持的现象</strong>：
+- <strong>重复抑制</strong>：重复刺激引起的反应减弱（被预测掉了）；
+- <strong>失匹配负波（MMN）</strong>：偏离规律的刺激引发特征性脑电成分；
+- <strong>知觉填补与错觉</strong>：知觉是"被感官约束的最佳猜测"；
+- <strong>感觉衰减</strong>：自己挠自己不痒（自身动作的后果可被预测并抵消）。</p>
+<p><strong>信息论含义</strong>（🔗 语言站 :8086）：只上传误差 = 只传"意外" = 对感觉流的高效压缩。<strong>同一个量 <span class="arithmatex">\(-\log P\)</span> 同时是加工难度、压缩残差、与贝叶斯惊异</strong>——这条跨层级的守恒，是"预测"作为核心概念最有力的地方。</p>
+<p><strong>必须的保留</strong>【争】：
+- 预测编码<strong>能干净解释知觉</strong>，是否为<strong>全脑通用原理</strong>（运动、决策、抽象推理都算？）远未定论；
+- 解剖学上，"预测"与"误差"是否由不同神经元群体分别承载，证据尚不充分；
+- <strong>自由能原理</strong>（Friston）把它推到极致，试图统一一切自适应系统。它数学优雅，但<strong>可证伪性受到严肃质疑</strong>——一个能解释一切的框架，往往排除不了任何观察。本课标【争】，不作为结论。</p>
+<h2 id="_5">五、抑制、节律与网络状态<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>抑制性中间神经元</strong>只占皮层神经元约 20%，但类型极其多样（PV、SST、VIP 等），各自靶向锥体细胞的不同部位，实现增益控制、时间窗限定与选择性门控。<strong>抑制不是"减法"，而是塑形与选路。</strong></li>
+<li><strong>脑节律</strong>：θ（4–8 Hz）、γ（30–80 Hz）等振荡协调不同区域的通信时间窗。"<strong>通过一致性通信</strong>"假说认为，相位对齐的区域间信息传递更有效【争，仍在检验】。</li>
+<li><strong>状态调制</strong>：清醒/睡眠/注意状态由神经调质系统（上页）大范围改变网络增益。<strong>同一回路在不同状态下计算不同的东西</strong>——这提醒我们，"回路功能"不是固定的。</li>
+</ul>
+<h2 id="_6">六、从回路到行为的距离<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>最后一句诚实的话。我们对<strong>单个神经元</strong>的理解相当深（可写方程），对<strong>小回路</strong>有若干漂亮的完整案例（环形吸引子、视网膜），但对<strong>认知</strong>（决策、语言、推理）如何由回路实现，理解仍然粗浅。</p>
+<p>这道鸿沟正是当前神经科学的主战场，也是接下来三页的动机：<strong>连接组学</strong>试图给出完整的接线图（下一页），<strong>记忆研究</strong>试图定位信息的物理载体，<strong>意识研究</strong>则直面最难的那一端。</p>
+<hr />
+<p><em>下一页：脑 IV——连接组学。如果有了每一个神经元和每一个突触的完整地图，我们能理解大脑吗？这个问题现在有了真实的数据可以回答。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-synapse.html"><span class="pager-label">上一页</span>脑 II · 突触传递与可塑性</a>
+  <a class="pager-slot next" href="24-connectome.html"><span class="pager-label">下一页</span>脑 IV · 连接组学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>超表面与超构光学 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li class="active"><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、基本思想</a></li>
+<li><a href="#_2">二、能做什么</a></li>
+<li><a href="#_3">三、诚实的评估：它到底成熟到什么程度</a></li>
+<li><a href="#_4">四、超构材料与更广的图景</a></li>
+<li><a href="#_5">五、超表面与计算的结合</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">前沿 I · 超表面与超构光学<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：物理与实验室成果【实】；<strong>大规模商业化程度【争】</strong>——本页会明确区分。
+传统光学元件靠<strong>几何厚度累积相位</strong>（透镜的厚薄决定光程差）。<strong>超表面换了一种思路：用亚波长尺度的人工结构，在一个平面内直接"写入"任意相位分布</strong>。这是过去十余年光学领域最活跃的方向之一，但它的实用化程度常被夸大。</p>
+</blockquote>
+<h2 id="_1">一、基本思想<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>传统折射透镜</strong>：</p>
+<div class="arithmatex">\[\varphi(r) = \frac{2\pi}{\lambda}\left(n-1\right)d(r)\]</div>
+<p>相位由<strong>厚度 <span class="arithmatex">\(d(r)\)</span></strong> 累积 → <strong>元件必然是弯曲且有体积的</strong>。</p>
+<p><strong>超表面</strong>：在平面上排布<strong>亚波长尺度的散射单元</strong>（纳米柱、纳米缝、V 形天线），<strong>每个单元独立赋予局部相位、振幅与偏振响应</strong>：</p>
+<div class="arithmatex">\[\varphi(x,y) = \text{由单元的几何参数直接设计}\]</div>
+<p><strong>要实现聚焦，只需让每点的相位满足</strong>：</p>
+<div class="arithmatex">\[\varphi(r) = -\frac{2\pi}{\lambda}\left(\sqrt{r^2+f^2}-f\right)\]</div>
+<p><strong>于是"透镜"变成了一片厚度不到一个波长的平板。</strong></p>
+<p><strong>三种主要的相位调控机制</strong>：
+- <strong>共振相位</strong>：利用散射体的谐振，相位随几何参数变化。<strong>带宽窄</strong>；
+- <strong>传播相位</strong>：把纳米柱当作截断波导，<strong>改变柱径即改变等效折射率</strong> → 相位可覆盖 <span class="arithmatex">\(0\)</span>–<span class="arithmatex">\(2\pi\)</span>。这是最常用的方式；
+- <strong>几何（Pancharatnam–Berry）相位</strong>：<strong>旋转各向异性单元的方向角</strong>即产生相位。<strong>对圆偏振光，相位精确等于 <span class="arithmatex">\(2\times\)</span> 旋转角</strong>——极其鲁棒（不依赖材料色散），<strong>但本质上偏振相关</strong>。</p>
+<h2 id="_2">二、能做什么<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><strong>超透镜（metalens）</strong>：平面、超薄、可与半导体工艺兼容制造；</li>
+<li><strong>消色差超透镜</strong>：<strong>用色散工程让不同波长共焦</strong>——这是超表面最受关注的成果之一，<strong>但通常以带宽窄、口径小、效率低为代价</strong>；</li>
+<li><strong>偏振复用</strong>：<strong>同一片元件对不同偏振呈现不同功能</strong>（如左旋成一个像、右旋成另一个像）——<strong>这是传统光学难以实现的</strong>；</li>
+<li><strong>涡旋光束、全息、光束整形</strong>；</li>
+<li><strong>超表面与传统光学的混合系统</strong>：用超表面校正传统镜头的像差；</li>
+<li><strong>集成到传感器上</strong>：片上偏振片阵列（第十页）、片上光谱仪、AR 波导耦合（第十六页）。</li>
+</ul>
+<h2 id="_3">三、诚实的评估：它到底成熟到什么程度<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>这是本页最需要谨慎的部分</strong>——超表面的论文数量与其商业落地程度存在明显落差。</p>
+<p><strong>真实的困难</strong>：</p>
+<p><strong>① 效率。</strong> 理想仿真效率可以很高，<strong>但实际器件受制造误差、吸收、以及未被利用的衍射级次影响</strong>，尤其在<strong>大口径、大数值孔径、宽带宽</strong>同时要求时，效率往往显著低于传统折射光学。</p>
+<p><strong>② 色差。</strong> 消色差超透镜的成果真实，但存在一个<strong>基本的物理约束</strong>：<strong>在给定的单元厚度下，可实现的群延迟范围有限</strong> → <strong>口径 × 带宽 × NA 三者不可兼得</strong>。<strong>目前的消色差超透镜多为小口径、窄带宽</strong>。这是物理限制，不是工艺问题。</p>
+<p><strong>③ 制造。</strong> 亚波长结构需要电子束光刻或深紫外光刻（🔗 微电子站第十二页）。
+- <strong>电子束</strong>：灵活但极慢，只适合研发；
+- <strong>DUV 步进曝光 + 纳米压印</strong>：可量产，但<strong>需要与半导体产线对接，且大面积均匀性是挑战</strong>；
+- <strong>成本</strong>：只有当"薄"或"集成"带来的价值超过成本时才划算。</p>
+<p><strong>④ 与成熟对手竞争。</strong> 传统塑料非球面透镜（第二页）<strong>极其便宜且性能优异</strong>。<strong>超表面要取代它，必须提供传统方案根本做不到的东西</strong>，而不只是"更薄一点"。</p>
+<p><strong>当前较可信的落点</strong>：
+- <strong>小口径、单波长或窄带的应用</strong>（3D 结构光的点阵投射器、光纤端面器件、内窥镜微型透镜）；
+- <strong>偏振与光谱调控</strong>（片上偏振成像、滤光）；
+- <strong>与传统光学混合</strong>（作为校正元件）；
+- <strong>AR 波导耦合</strong>（第十六页）——这是被寄予厚望的方向。</p>
+<p><strong>判读此类工作的问题清单</strong>（与本课其他页一致）：
+1. <strong>口径多大</strong>？（很多论文是几十微米）
+2. <strong>效率多少</strong>？（含所有损耗与杂散级次）
+3. <strong>带宽多宽</strong>？
+4. <strong>是仿真还是实测</strong>？
+5. <strong>能不能量产</strong>？</p>
+<h2 id="_4">四、超构材料与更广的图景<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>超表面是<strong>超构材料（metamaterial）</strong>在二维的形式。三维超构材料曾引发巨大关注：</p>
+<ul>
+<li><strong>负折射率</strong>：同时具有负介电常数与负磁导率 → 光线向"错误"方向折射。<strong>实验上已实现，但主要在微波频段；光频段因金属损耗极大而难以实用</strong>；</li>
+<li><strong>"完美透镜"</strong>：负折射平板可放大倏逝波，原理上突破衍射极限（第四页）。<strong>但损耗使其在光频段极难实现</strong>——<strong>这是一个理论优美、实践受阻的典型案例</strong>；</li>
+<li><strong>隐身斗篷</strong>：变换光学。<strong>实验演示多在微波、窄带、二维</strong>；<strong>宽带全向的可见光隐身在理论上就受因果律与色散的严格限制</strong>——<strong>这是一个被科普严重夸大的方向，值得明确指出。</strong></li>
+</ul>
+<p><strong>共同的教训</strong>：<strong>这些方向的物理是真实的，但"损耗"与"带宽"这两个约束反复地把它们挡在实用之外。</strong> 这与本讲义库其他站的模式一致——🔗 微电子站的 TFET/NC-FET、自动化站的 <span class="arithmatex">\(H_\infty\)</span>、本站第十九页的光计算，<strong>都是"原理成立但难以打败成熟对手"</strong>。</p>
+<h2 id="_5">五、超表面与计算的结合<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>一个有前景的方向：<strong>把超表面当作"光学编码器"，与算法联合设计</strong>（承第十一页计算成像）：</p>
+<ul>
+<li>超表面产生一个<strong>经过设计的、非常规的 PSF</strong>（例如对深度或波长高度敏感）；</li>
+<li>算法从这个编码图像中<strong>解码出深度、光谱或高分辨图像</strong>；</li>
+<li><strong>端到端优化</strong>：把超表面参数与神经网络一起训练。</li>
+</ul>
+<p><strong>这可能是超表面最有价值的用法</strong>——<strong>不与传统透镜比"成像好不好"，而是提供传统光学无法提供的编码能力</strong>。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>超表面用亚波长单元在平面内直接写入相位</strong>，三种机制（共振、传播、几何相位）；</li>
+<li><strong>几何相位极其鲁棒但偏振相关</strong>；</li>
+<li><strong>口径 × 带宽 × NA 三者不可兼得</strong>——消色差超透镜的物理限制；</li>
+<li><strong>效率、制造成本、与廉价非球面的竞争</strong>是产业化的真实障碍；</li>
+<li><strong>负折射与隐身在光频段受损耗与带宽限制</strong>，科普夸大严重；</li>
+<li><strong>最有价值的方向可能是"超表面 + 算法"的联合编码</strong>，而非替代传统透镜。</li>
+</ul>
+<hr />
+<p><em>下一页：用光做计算，以及量子光学正在打开的新可能。两个都极具诱惑，也都需要冷静的判读。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-sensing-lidar.html"><span class="pager-label">上一页</span>应用 III · 光谱传感与 LiDAR</a>
+  <a class="pager-slot next" href="19-quantum-optics.html"><span class="pager-label">下一页</span>前沿 II · 光计算与量子光学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

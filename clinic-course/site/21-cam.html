@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>补充替代医学的证据检视 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li class="active"><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 判据（与前二十页完全一致）</a></li>
+<li><a href="#2">2. 按证据分档</a></li>
+<li><a href="#3">3. 为什么无效疗法能持续存在</a></li>
+<li><a href="#4">4. 一个必须做的区分</a></li>
+<li><a href="#5">5. 与患者讨论的方式（这一节比证据表更重要）</a></li>
+<li><a href="#6">6. 把标准一致地用在两个方向</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">边界 III · 补充替代医学的证据检视<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p>这一页的目的<strong>不是站队，而是演示同一套标准的一致适用</strong>。本站对补充替代医学（CAM）使用的判据，与对他汀、支架、抗生素使用的判据完全相同——<strong>而这恰恰是最有价值的地方：一致的标准会同时否定一批主流做法和一批替代做法</strong>（第 09 页的"去实施"清单就是前者）。</p>
+</blockquote>
+<h2 id="1">1. 判据（与前二十页完全一致）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<ol>
+<li><strong>终点是硬终点还是主观量表？</strong>（第 09 页）</li>
+<li><strong>对照是什么？安慰剂、等待名单、还是无对照？</strong>（第 05 页）</li>
+<li><strong>是否盲法？主观结局未盲则效应被夸大</strong>（第 07 页）</li>
+<li><strong>效应量多大？超过最小临床重要差异吗？</strong>（第 06 页）</li>
+<li><strong>是否独立复现？有无发表偏倚？</strong>（第 08 页）</li>
+<li><strong>能否与自然史、均值回归、安慰剂区分？</strong>（第 19 页）</li>
+</ol>
+<p><strong>特别注意第 2 条</strong>：<strong>CAM 研究极高比例使用等待名单对照</strong>——<strong>这在结构上保证了阳性结果</strong>（🔗 心智与证据站在心理治疗研究中标注了同样的问题）。</p>
+<h2 id="2">2. 按证据分档<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>这不是按"传统 vs 现代"分类，而是按证据强度分类</strong>：</p>
+<p><strong>【有一定证据、机制多为非特异性】</strong></p>
+<ul>
+<li><strong>针刺用于慢性疼痛</strong>：大型个体患者数据 meta 分析显示<strong>优于无治疗对照，效应量中等</strong>；<strong>优于假针刺（sham）的差异较小且在多数分析中未超过最小临床重要差异</strong>。<strong>且假针刺研究显示"扎哪里"与"是否穿透皮肤"的影响小于预期</strong>——<strong>这提示效应主要是非特异性的（仪式、关注、期望）而非经络特异的</strong>。<strong>诚实的表述是：它对某些慢性疼痛可能有帮助，但作用机制很可能不是其理论所宣称的那个。</strong></li>
+<li><strong>某些草药的活性成分</strong>：<strong>这实际上是药理学而非替代医学</strong>——<strong>青蒿素（青蒿）、阿司匹林（柳树皮）、地高辛（洋地黄）、紫杉醇（红豆杉）都是从传统用药中提纯的现代药物</strong>。<strong>关键区别在于：它们经过了成分鉴定、剂量标准化与随机对照试验。</strong></li>
+<li><strong>正念/冥想用于焦虑与慢性疼痛</strong>：效应量小到中等，<strong>且多数研究对照组质量差</strong>（🔗 心智与证据站标为【摇】）。</li>
+</ul>
+<p><strong>【证据不支持】</strong></p>
+<ul>
+<li><strong>顺势疗法</strong>：<strong>其稀释度常超过阿伏伽德罗常数，制剂中不含任何原始分子</strong>；系统综述与多国官方评估结论一致为<strong>无超过安慰剂的效果</strong>；</li>
+<li><strong>多数补充剂用于一般人群的疾病预防</strong>（第 18 页）；</li>
+<li><strong>排毒、耳烛、颅骶疗法</strong>等：无可信机制且无有效性证据。</li>
+</ul>
+<p><strong>【有直接危害】</strong></p>
+<ul>
+<li><strong>重金属与掺假</strong>：多项检测发现部分传统药物制剂含铅、汞、砷，或<strong>掺入未申报的处方药</strong>（糖皮质激素、NSAIDs、西地那非）；</li>
+<li><strong>肝毒性</strong>：<strong>多种草药相关肝损伤已有明确报告</strong>（如某些含吡咯里西啶生物碱的植物、何首乌相关肝损伤报告）；<strong>"天然"不等于"无毒"</strong>——<strong>毒蕈、乌头、马兜铃酸（明确的肾毒性与致癌性）都是天然的</strong>；</li>
+<li><strong>药物相互作用</strong>：<strong>圣约翰草是强 CYP3A4 诱导剂</strong>（🔗 姊妹站第 13 页）→ <strong>使避孕药、免疫抑制剂、抗逆转录病毒药、华法林失效</strong>——<strong>这是 CAM 造成的最被低估的一类危害</strong>；</li>
+<li><strong>延误治疗（机会成本）</strong>：<strong>这是最严重的危害</strong>。有队列研究报告，可治愈癌症患者选择替代疗法替代常规治疗后，生存率显著降低。<strong>注意区分"补充（complementary，与常规治疗并用）"与"替代（alternative，取代常规治疗）"——后者的危害证据要明确得多。</strong></li>
+</ul>
+<h2 id="3">3. 为什么无效疗法能持续存在<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>这一节的内容完全来自第 19 页，把它用在这里</strong>：</p>
+<ol>
+<li><strong>自然史</strong>：多数就诊原因是自限性或波动性的；</li>
+<li><strong>均值回归</strong>：人们在最糟时寻求替代疗法；</li>
+<li><strong>安慰剂 + 仪式感</strong>：<strong>耗时长、有触碰、有个人关注、有解释框架的干预，安慰剂效应最强</strong>——<strong>CAM 在这些维度上通常优于匆忙的常规门诊</strong>；</li>
+<li><strong>确认偏差与幸存者叙事</strong>：见证故事来自成功者；</li>
+<li><strong>共同使用</strong>：与常规治疗并用时，功劳容易被归给后者；</li>
+<li><strong>未满足的需求</strong>：<strong>慢性疼痛、疲劳、功能性症状是常规医学做得最差的领域</strong>——<strong>CAM 的市场规模在很大程度上是常规医学的失败留下的空缺。</strong></li>
+</ol>
+<p><strong>第 6 条值得医学界严肃对待，而不是嘲笑</strong>：<strong>患者转向替代疗法，常常是因为在常规系统里没有被倾听、没有得到解释、或被告知"检查都正常"就结束了。</strong></p>
+<h2 id="4">4. 一个必须做的区分<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>补充（complementary）</th>
+<th>替代（alternative）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>与常规治疗</td>
+<td><strong>并用</strong></td>
+<td><strong>取代</strong></td>
+</tr>
+<tr>
+<td>主要风险</td>
+<td>相互作用、成本、延误</td>
+<td><strong>延误治疗、可预防的死亡</strong></td>
+</tr>
+<tr>
+<td>证据要求</td>
+<td>同上标准</td>
+<td>同上标准</td>
+</tr>
+</tbody>
+</table>
+<p><strong>本站的立场</strong>：<strong>对"补充"使用，主要关注相互作用与成本，并要求同样的证据标准；对"替代"使用（尤其在可治愈疾病中），有明确的危害证据。</strong></p>
+<h2 id="5">5. 与患者讨论的方式（这一节比证据表更重要）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>无效的做法</strong>：嘲笑、居高临下、直接说"那是骗人的"——<strong>这会导致患者不再告诉你他在用什么，从而失去发现相互作用的机会</strong>。</p>
+<p><strong>有证据支持的做法</strong>：</p>
+<ol>
+<li><strong>主动、非评判地询问</strong>（"很多人会同时用一些别的方法，您有在用什么吗？"）——<strong>主要目的是安全（相互作用）</strong>；</li>
+<li><strong>区分补充与替代</strong>：对前者关注安全，对后者明确说出风险；</li>
+<li><strong>承认未被满足的需求</strong>："您的疼痛我们确实还没控制好"——<strong>这比反驳更能建立信任</strong>；</li>
+<li><strong>提供替代方案</strong>：如果患者寻求的是关注与解释，就提供关注与解释（第 19 页）；</li>
+<li><strong>给出具体的安全信息</strong>而非笼统否定（"这个和您的华法林会有相互作用"比"那些没用"有效得多）。</li>
+</ol>
+<h2 id="6">6. 把标准一致地用在两个方向<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>本页最重要的一句话</strong>：<strong>如果我们用"缺乏假手术对照的高质量 RCT"否定某些替代疗法，那么同样的标准也否定了膝关节镜、部分椎体成形术、以及稳定性心绞痛的支架</strong>（第 09、19 页）。</p>
+<p><strong>证据标准的价值恰恰在于它不看对象的身份。</strong> 一个只用来攻击对方阵营的标准不是标准，是武器。</p>
+<p><strong>同样地</strong>：<strong>"有传统"不是证据，"是现代医学"也不是证据</strong>。<strong>放血疗法有两千年传统；Ic 类抗心律失常药是现代医学的产物且机制清晰——两者都杀人。</strong></p>
+<hr />
+<p><em>线五完。下一线转向系统层面：AI、成本效果与沟通。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-drug-approval.html"><span class="pager-label">上一页</span>边界 II · 药物审批、加速批准与撤市</a>
+  <a class="pager-slot next" href="22-ai-clinic.html"><span class="pager-label">下一页</span>前沿 I · AI 进入临床：证据现状</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

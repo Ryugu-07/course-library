@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>磁性与介电 · 材料的秩序</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">材料的秩序</a>
+    <div class="site-subtitle">结构 · 缺陷 · 性能 · 材料科学与工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 结构的语言</div><ul><li><a href="01-bonding.html">结构 I · 键合与材料四大家族</a></li><li><a href="02-crystal.html">结构 II · 晶体学：秩序的几何</a></li><li><a href="03-defects.html">结构 III · 缺陷：不完美的统治</a></li><li><a href="04-amorphous.html">结构 IV · 非晶与玻璃</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 热力学与动力学</div><ul><li><a href="05-thermo-phase.html">热力 I · 相图：材料的地图</a></li><li><a href="06-diffusion.html">热力 II · 扩散</a></li><li><a href="07-transformation.html">热力 III · 相变与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 性能与失效</div><ul><li><a href="08-strength.html">性能 I · 强度的微观起源与强化四法</a></li><li><a href="09-fracture.html">性能 II · 断裂、韧性与疲劳</a></li><li><a href="10-polymer.html">性能 III · 高分子：链的物理</a></li><li><a href="11-ceramics.html">性能 IV · 陶瓷与玻璃工程</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 功能材料</div><ul><li><a href="12-electronic.html">功能 I · 电子材料</a></li><li class="active"><a href="13-magnetic-dielectric.html">功能 II · 磁性与介电</a></li><li><a href="14-thermal-optical.html">功能 III · 热与光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 工艺与表征</div><ul><li><a href="15-solidification.html">工艺 I · 凝固、铸造与成形</a></li><li><a href="16-powder-am.html">工艺 II · 粉末、烧结与增材制造</a></li><li><a href="17-characterization.html">工艺 III · 表征：材料科学家的眼睛</a></li><li><a href="18-corrosion.html">工艺 IV · 腐蚀与防护</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿了望（核对于 2026-07）</div><ul><li><a href="19-advanced-structural.html">前沿 I · 先进结构材料</a></li><li><a href="20-energy-materials.html">前沿 II · 能源材料</a></li><li><a href="21-computational-ai.html">前沿 III · 计算材料学与 AI</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 磁性的来源与五种类型</a></li>
+<li><a href="#2-vs">2. 软磁 vs 硬磁：同一条曲线的两端</a></li>
+<li><a href="#3">3. 介电材料：从存电到发力</a></li>
+<li><a href="#4">4. 数字感与反直觉</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">功能 II · 磁性与介电材料<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>电动机、变压器、硬盘、扬声器靠磁；电容、传感器、压电驱动、超声探头靠介电。两类材料的共同语言是<strong>畴</strong>——磁畴与电畴的翻转与钉扎，决定了"软"（易翻转、低损耗）与"硬"（难翻转、能记忆）两种截然相反的工程性格。</p>
+</blockquote>
+<h2 id="1">1. 磁性的来源与五种类型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>磁矩来自电子自旋与轨道角动量。五分类（记前两条与铁磁三兄弟即可）：抗磁（所有物质都有的弱负响应）、顺磁（无序磁矩被外场轻微对齐）、<strong>铁磁</strong>（Fe、Co、Ni——交换作用使相邻自旋平行，自发磁化）、反铁磁（相邻反平行、净磁化为零）、<strong>亚铁磁</strong>（反平行但大小不等 ⇒ 有净磁化——铁氧体的家族）。</p>
+<p><strong>居里温度 <span class="arithmatex">\(T_C\)</span></strong>：热扰动战胜交换作用 ⇒ 铁磁消失（Fe 770 °C、Co 1121 °C、Ni 358 °C）——🔗 物理站相变章的经典二级相变范例。</p>
+<p><strong>磁畴</strong>：为降低退磁场能，自发磁化分成方向各异的畴（畴壁厚度 ~10–100 nm）；宏观磁化过程 = <strong>畴壁移动 + 畴转动</strong>——这就是磁滞的舞台。</p>
+<h2 id="2-vs">2. 软磁 vs 硬磁：同一条曲线的两端<a class="headerlink" href="#2-vs" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Soft vs hard magnetic hysteresis loops" src="assets/img/mat-13-hysteresis.svg" /></p>
+<figcaption><span class="fig-id">图 13.1</span>磁滞回线：软磁矫顽力 \(H_c\) 极小、回线细窄（每周期损耗 = 回线面积，故变压器铁损低）；硬磁 \(H_c\) 巨大、回线肥硕（能"记住"磁化状态 = 永磁体与磁记录）。**同一物理量的两个极端方向，对应两个完全不同的产业。**</figcaption>
+</figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>软磁</th>
+<th>硬磁（永磁）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标</td>
+<td><span class="arithmatex">\(H_c\)</span> 尽量小、<span class="arithmatex">\(\mu\)</span> 大、电阻大（抑涡流）</td>
+<td><span class="arithmatex">\(H_c\)</span> 与 <span class="arithmatex">\((BH)_{max}\)</span> 尽量大</td>
+</tr>
+<tr>
+<td>微观策略</td>
+<td><strong>消除钉扎</strong>：高纯、无内应力、无晶界（非晶/纳米晶）、织构对齐</td>
+<td><strong>制造钉扎</strong>：单畴颗粒、高磁晶各向异性、析出相</td>
+</tr>
+<tr>
+<td>材料</td>
+<td>硅钢（取向硅钢的 <span class="arithmatex">\(\langle001\rangle\)</span> 织构！结构 II）、坡莫合金、铁氧体、非晶带材（结构 IV）</td>
+<td><strong>Nd–Fe–B</strong>（当代最强，<span class="arithmatex">\((BH)_{max}\)</span> ~400 kJ/m³）、SmCo（耐温好）、铁氧体（便宜）</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>变压器、电机铁芯、电感</td>
+<td>电动车驱动电机、风机、硬盘、扬声器、耳机</td>
+</tr>
+</tbody>
+</table>
+<p><strong>主线回响</strong>：软磁要"没有缺陷"、硬磁要"全是缺陷"——<strong>同一个学科语言，两个相反的工程目标</strong>，这是"缺陷决定命运"最对称的一次演出。</p>
+<p><strong>产业现实</strong>：Nd–Fe–B 的高温性能靠添加<strong>镝/铽</strong>（重稀土，供应高度集中）——"少镝/无重稀土磁体"是长期研发热点；电机设计与材料选择在电动车上直接耦合（转子温度上限 ↔ 磁体牌号 ↔ 成本）。</p>
+<p><strong>磁记录一瞥</strong>：硬盘用垂直记录 + 高各向异性介质（记录密度 ↑ 需颗粒更小，但小到一定程度热扰动会擦除数据——<strong>超顺磁极限</strong>；HAMR 热辅助磁记录用局部加热临时降低矫顽力来突破它，是近年产业化的路线）。</p>
+<h2 id="3">3. 介电材料：从存电到发力<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>基础</strong>：极化机制（电子/离子/取向/界面）随频率依次"退场"——<strong>介电常数是频率的函数</strong>（高频用材料与工频完全不同）；损耗因子 <span class="arithmatex">\(\tan\delta\)</span> 决定发热（微波炉正是利用水的取向极化在 2.45 GHz 的损耗）。</p>
+<p><strong>电容器材料</strong>：<span class="arithmatex">\(C = \varepsilon_0\varepsilon_r A/d\)</span>——三条提升路径全部被工业用尽：高 <span class="arithmatex">\(\varepsilon_r\)</span>（BaTiO₃ 系铁电陶瓷 <span class="arithmatex">\(\varepsilon_r\)</span> 可达数千）、薄介质层、大面积（<strong>MLCC 多层陶瓷电容</strong>把上百层叠起来：一部手机上千颗，是电子工业用量最大的元件之一；材料上的挑战是层厚已进入亚微米、且需去 Pb 与稳定温度特性）。</p>
+<p><strong>铁电与压电（本页最有工程趣味的一段）</strong>：</p>
+<ul>
+<li><strong>铁电</strong>：自发极化且可被电场翻转（电畴——磁滞的电学镜像：<span class="arithmatex">\(P\)</span>-<span class="arithmatex">\(E\)</span> 回线）——FeRAM、可调介质；</li>
+<li><strong>压电</strong>：应力 ⇄ 电荷双向转换（PZT 是主力，<span class="arithmatex">\(d_{33}\)</span> 高；石英稳定用于振荡器）——超声探头、喷墨打印头、压电马达、爆震传感器、声呐、<strong>手机里的振动马达与麦克风</strong>；</li>
+<li><strong>热释电</strong>：温度变化 ⇒ 电荷 ⇒ 红外热释电传感器（走廊里的人体感应灯就是它）。</li>
+</ul>
+<p>三者是同一层级的对称性阶梯（压电 ⊃ 热释电 ⊃ 铁电）——<strong>晶体对称性直接决定能不能压电</strong>（无对称中心才可以）：结构 II 的几何在此第三次决定功能。<strong>无铅压电</strong>（PZT 含铅）是持续多年的研发方向，目前尚无全面替代者。</p>
+<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li><span class="arithmatex">\(\varepsilon_r\)</span>：真空 1 ｜ 聚乙烯 2.3 ｜ SiO₂ 3.9 ｜ Al₂O₃ 9 ｜ BaTiO₃ 1000–5000；</li>
+<li><span class="arithmatex">\((BH)_{max}\)</span> (kJ/m³)：铁氧体 ~30 ｜ AlNiCo ~50 ｜ SmCo ~200 ｜ Nd–Fe–B ~400——<strong>四十年间永磁性能提升一个数量级</strong>，直接使电动车驱动电机小型化成为可能；</li>
+<li><strong>反直觉</strong>：变压器铁芯要<strong>叠片</strong>不是为了机械，是为了切断涡流回路（损耗 ∝ 片厚²）；最好的软磁材料是<strong>非晶</strong>（无晶界钉扎——结构 IV 的性能兑现）；压电材料把"不对称"卖成了功能——<strong>对称性缺失本身就是一种可用的缺陷</strong>。</li>
+</ul>
+<p>【研】对标 Coey《Magnetism and Magnetic Materials》、Jaffe《Piezoelectric Ceramics》；交换作用的量子起源、磁各向异性能、Landau 铁电理论（🔗 物理站相变）是研究生纵深。</p>
+<hr />
+<p><em>下一页功能线收官：热与光——从涡轮叶片的隔热涂层到透明的条件、从热电转换到光纤的 0.2 dB/km。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-electronic.html"><span class="pager-label">上一页</span>功能 I · 电子材料</a>
+  <a class="pager-slot next" href="14-thermal-optical.html"><span class="pager-label">下一页</span>功能 III · 热与光</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

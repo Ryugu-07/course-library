@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>衍射与傅里叶光学 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li class="active"><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、衍射与分辨率极限</a></li>
+<li><a href="#_2">二、标量衍射理论</a></li>
+<li><a href="#_3">三、透镜做傅里叶变换</a></li>
+<li><a href="#4f">四、4f 系统：成像即滤波</a></li>
+<li><a href="#_4">五、超越衍射极限？</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">光学 IV · 衍射与傅里叶光学<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生工具 ｜ <strong>这是全课最美的一页</strong>。
+衍射给出几何光学永远给不出的东西——<strong>分辨率的物理极限</strong>。而傅里叶光学揭示了一个惊人的事实：<strong>一枚透镜在做傅里叶变换</strong>。这个视角让"成像"变成"滤波"，把整个光学系统纳入了信号处理的语言（🔗 数学站傅里叶分析、cs 站信号处理）。</p>
+</blockquote>
+<h2 id="_1">一、衍射与分辨率极限<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>为什么有极限</strong>：任何光学系统的孔径都是有限的，<strong>它截断了波前</strong> → 即使没有像差，点光源的像也不是点，而是<strong>艾里斑</strong>。</p>
+<p><strong>圆孔的艾里斑角半径</strong>：</p>
+<div class="arithmatex">\[\theta = 1.22\frac{\lambda}{D}\]</div>
+<p><strong>瑞利判据</strong>：两点可分辨，当一个点的中心落在另一个点的第一暗环上。<strong>在像空间给出分辨极限</strong>：</p>
+<div class="arithmatex">\[d_{\min} = \frac{0.61\lambda}{\mathrm{NA}}\]</div>
+<figure>
+<p><img alt="艾里斑与瑞利分辨判据" class="fig-img" src="assets/img/pho_airy.svg" /></p>
+<figcaption><span class="fig-id">图 4-1</span> 左：圆孔衍射的<strong>艾里图样</strong>——中央亮斑集中约 84% 的能量，外围为逐级衰减的暗亮环。右：两个等强度点源的合成强度。当间距等于<strong>瑞利判据</strong>时，合成曲线中央出现约 26% 的凹陷，恰可分辨；间距更小则合并为单峰。<strong>这条极限只取决于 \(\lambda\) 与 NA，与镜头做得多好无关</strong>——它是波动本性设下的边界。</figcaption>
+</figure>
+<p><strong>三条工程推论</strong>：</p>
+<p><strong>① 提高分辨率只有两条路：减小 <span class="arithmatex">\(\lambda\)</span> 或增大 NA。</strong> 这正是 🔗 微电子站第十二页光刻演进的全部逻辑（193 nm → 浸没提高 NA → EUV 减小 <span class="arithmatex">\(\lambda\)</span> → High-NA）。<strong>两个学科在这里用的是同一个公式。</strong></p>
+<p><strong>② 增大 NA 有物理上限</strong>：<span class="arithmatex">\(\mathrm{NA}=n\sin\theta &lt; n\)</span>。空气中 NA &lt; 1；<strong>浸没（提高 <span class="arithmatex">\(n\)</span>）是唯一出路</strong>——显微镜的油浸物镜（NA 可达 1.4）与光刻的水浸（NA 1.35）是同一个思想。</p>
+<p><strong>③ 相机的最佳光圈</strong>：收小光圈减小像差（第二页），但<strong>衍射斑随 F 数线性增大</strong>（<span class="arithmatex">\(d\approx 1.22\lambda F/\#\)</span>）。两条曲线相交处即最佳光圈——<strong>这解释了为什么每支镜头都有一个"最锐光圈"</strong>。</p>
+<h2 id="_2">二、标量衍射理论<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>惠更斯-菲涅耳原理</strong>的数学化。两个重要区域：</p>
+<ul>
+<li><strong>菲涅耳衍射（近场）</strong>：菲涅耳数 <span class="arithmatex">\(N_F = a^2/(\lambda z) \gtrsim 1\)</span>；</li>
+<li><strong>夫琅禾费衍射（远场）</strong>：<span class="arithmatex">\(N_F \ll 1\)</span>，<strong>衍射图样正比于孔径函数的傅里叶变换</strong>：</li>
+</ul>
+<div class="arithmatex">\[U(x,y) \propto \mathcal{F}\{t(\xi,\eta)\}\Big|_{f_x=x/\lambda z,\ f_y=y/\lambda z}\]</div>
+<p><strong>这是傅里叶光学的起点</strong>：<strong>远场 = 傅里叶变换。</strong></p>
+<p><strong>几个立即可用的结论</strong>：
+- 单缝 → sinc；圆孔 → 艾里（一阶贝塞尔）；
+- <strong>光栅 → 一系列衍射级次</strong>，方程 <span class="arithmatex">\(d\sin\theta = m\lambda\)</span>。<strong>这是所有光谱仪的核心</strong>（第十七页）；
+- <strong>孔径越小，衍射越发散</strong>——这是"缩小光斑"与"保持准直"之间的根本矛盾。</p>
+<h2 id="_3">三、透镜做傅里叶变换<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>核心结论</strong>：把物体放在透镜前焦面，<strong>后焦面上的场分布正是物体的傅里叶变换</strong>（相位因子在严格前焦面时消失）。</p>
+<div class="arithmatex">\[U_f(x,y) \propto \mathcal{F}\{t(\xi,\eta)\}\Big|_{f_x = x/\lambda f}\]</div>
+<p><strong>这个事实的分量</strong>：<strong>一枚玻璃透镜，以光速、并行、零功耗地完成了二维傅里叶变换。</strong> 电子计算机做同样大小的 2D FFT 需要可观的时间与能量。<strong>这正是"光计算"长期的诱惑所在</strong>（第十九页会诚实讨论它为何仍未普及）。</p>
+<p><strong>后焦面因此称为"频谱面"或"傅里叶面"</strong>——空间频率在这里被物理地分开：<strong>中心是低频（整体亮度与缓变），外围是高频（细节与边缘）</strong>。</p>
+<h2 id="4f">四、4f 系统：成像即滤波<a class="headerlink" href="#4f" title="Permanent link"></a></h2>
+<p><strong>4f 结构</strong>：物面 → 透镜1（<span class="arithmatex">\(f\)</span>）→ <strong>频谱面</strong>（<span class="arithmatex">\(2f\)</span> 处）→ 透镜2 → 像面（<span class="arithmatex">\(4f\)</span> 处）。</p>
+<p><strong>两次傅里叶变换 = 成像</strong>（倒像）。<strong>关键在于：可以在频谱面上放置滤波器，直接操作空间频率。</strong></p>
+<p><strong>这把成像系统变成了一个线性滤波器</strong>：</p>
+<div class="arithmatex">\[\text{像} = \text{物} * \mathrm{PSF}, \qquad \tilde{I} = \tilde{O}\cdot \mathrm{OTF}\]</div>
+<ul>
+<li><strong>PSF（点扩散函数）</strong> = 系统对点源的响应（理想时即艾里斑）；</li>
+<li><strong>OTF（光学传递函数）</strong> = PSF 的傅里叶变换；其模即 <strong>MTF</strong>（第十一页详谈）；</li>
+<li><strong>孔径的有限大小 = 一个低通滤波器</strong>——<strong>这就是分辨率极限的傅里叶语言</strong>：高于截止频率 <span class="arithmatex">\(f_c = 2\mathrm{NA}/\lambda\)</span> 的信息<strong>根本没有进入系统</strong>。</li>
+</ul>
+<p><strong>"信息没进来就永远补不回来"</strong> —— 这一点在第十一页讨论"能否用算法超越衍射极限"时至关重要。</p>
+<p><strong>经典的空间滤波应用</strong>（都极直观）：
+- <strong>低通</strong>（中心小孔）：滤除高频 → <strong>激光空间滤波/扩束整形</strong>，去除光路杂散；
+- <strong>高通</strong>（中心挡块）：<strong>暗场成像</strong>，边缘增强；
+- <strong>相位对比（Zernike，诺奖）</strong>：给零级光加 <span class="arithmatex">\(\lambda/4\)</span> 相移，<strong>把透明样品的相位差转成强度差</strong>——<strong>这是活细胞无需染色即可观察的原理</strong>，也是"相位翻译成强度"（第三页）的又一实例；
+- <strong>匹配滤波</strong>：光学模式识别。</p>
+<h2 id="_4">五、超越衍射极限？<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>必须分清两类"超越"</strong>：</p>
+<p><strong>① 真正获取了本已丢失的高频信息</strong>——需要<strong>新的物理途径</strong>：
+- <strong>结构光照明（SIM）</strong>：用条纹照明把高频信息"混频"搬入通带，重建后分辨率约提高一倍；
+- <strong>近场扫描（NSOM）</strong>：在近场直接探测倏逝波，突破远场限制；
+- <strong>单分子定位（PALM/STORM）</strong>与 <strong>STED</strong>（诺奖）：利用荧光分子的开关或受激辐射抑制，<strong>逐个定位分子中心</strong>——分辨率可达纳米级。<strong>注意它们并未突破衍射，而是绕过了它</strong>（对单个可分离的发光点，其中心位置可以定得远比艾里斑小）；</p>
+<p><strong>② 只是让已有信息更好看</strong>——<strong>反卷积</strong>。它能补偿传递函数的衰减，<strong>但对截止频率之外的信息无能为力</strong>，且会放大噪声。<strong>声称"用 AI 超越光学极限"的工作，多数属于这一类或依赖强先验</strong>——判读时要问：<strong>这些高频信息是从哪里来的？</strong></p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>分辨率极限 <span class="arithmatex">\(0.61\lambda/\mathrm{NA}\)</span> 只取决于波长与孔径</strong>，与加工水平无关；提高只有减小 <span class="arithmatex">\(\lambda\)</span> 或增大 NA 两条路（与光刻同理）；</li>
+<li><strong>远场衍射 = 傅里叶变换</strong>；<strong>透镜后焦面就是频谱面</strong>；</li>
+<li><strong>透镜以光速零功耗完成 2D 傅里叶变换</strong>——光计算的长期诱惑；</li>
+<li><strong>4f 系统把成像变成滤波</strong>，孔径即低通滤波器，截止频率 <span class="arithmatex">\(2\mathrm{NA}/\lambda\)</span>；</li>
+<li><strong>相位对比把相位变成强度</strong>，是活细胞观察的基础；</li>
+<li><strong>超分辨要么引入新物理途径，要么只是反卷积</strong>——<strong>没进来的信息补不回来</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：光还有一个几何光学完全忽略的属性——偏振。它在液晶显示、应力检测、光通信与量子光学中都是核心。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-interference.html"><span class="pager-label">上一页</span>光学 III · 干涉与相干性</a>
+  <a class="pager-slot next" href="05-polarization.html"><span class="pager-label">下一页</span>光学 V · 偏振与晶体光学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>反馈作为一种世界观 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">一、一条主线：性能与鲁棒性的权衡</a></li>
+<li><a href="#_3">二、三条不可逾越的边界</a></li>
+<li><a href="#_4">三、这门学科教的思维方式</a></li>
+<li><a href="#_5">四、"预测—比较—修正"：一个反复出现的结构</a></li>
+<li><a href="#_6">五、保质期</a></li>
+<li><a href="#_7">六、若要继续</a></li>
+<li><a href="#_8">七、最后</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">收官 · 反馈作为一种世界观<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>二十三页走完。这一页把它们收拢：这门学科教会人什么，哪些内容会过期、哪些不会，以及为什么"反馈"值得被当作一种看世界的方式。</p>
+</blockquote>
+<h2 id="_2">一、一条主线：性能与鲁棒性的权衡<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>回看全课，几乎所有内容都挂在同一条张力上：</p>
+<div class="arithmatex">\[\text{想要快、准、稳} \Rightarrow \text{提高增益} \Rightarrow \text{但模型是错的} \Rightarrow \text{高增益放大误差与噪声} \Rightarrow \text{失稳}\]</div>
+<p>整个控制理论，可以看作是在不断<strong>精确化</strong>这个权衡：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>权衡的表达方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>经典（第五页）</td>
+<td>增益裕度、相位裕度</td>
+</tr>
+<tr>
+<td>现代（第八页）</td>
+<td><span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span> 的相对权重</td>
+</tr>
+<tr>
+<td>鲁棒（第十六页）</td>
+<td><span class="arithmatex">\(\|WT\|_\infty&lt;1\)</span>：<strong>在你不了解的地方不要用力推</strong></td>
+</tr>
+<tr>
+<td>预测（第十七页）</td>
+<td>约束下的滚动优化</td>
+</tr>
+<tr>
+<td>安全（第二十一页）</td>
+<td>前向不变性的形式化保证</td>
+</tr>
+</tbody>
+</table>
+<p><strong>每一层都在回答同一个问题——"我能推多狠而不翻车"——只是答案越来越精确。</strong></p>
+<h2 id="_3">二、三条不可逾越的边界<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>成熟工程学科的标志，是它知道什么<strong>做不到</strong>。本课给出了三条：</p>
+<ol>
+<li><strong>水床效应</strong>（第五页）：<span class="arithmatex">\(\int_0^\infty \ln|S|\,d\omega = 0\)</span>。<strong>干扰抑制的总量守恒</strong>，你只能选择把代价放到哪个频段，不能消除它；</li>
+<li><strong>右半平面零点与时滞</strong>（第二页）：给可达带宽设定<strong>硬上限</strong>。这不是设计水平问题，是数学定理；</li>
+<li><strong>最优不蕴含鲁棒</strong>（第八页 Doyle 反例）：对标称模型优化到极致的设计，可能对模型误差异常脆弱。</li>
+</ol>
+<p><strong>这三条与其他学科的"不可能性结果"同属一类</strong>——🔗 微电子站的 60 mV/decade、信息论的香农极限、热力学第二定律。<strong>知道边界在哪，正是专业性的体现。</strong></p>
+<h2 id="_4">三、这门学科教的思维方式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>① 反馈能把不精确的东西变得精确。</strong> 这是本学科最深刻的洞见（第一页）。它解释了为什么廉价的执行器套上反馈就能做精密运动、为什么运放的开环增益不准却能做出精确的放大器、为什么生物体用不可靠的细胞维持了精确的内环境。</p>
+<p><strong>② 但反馈也会制造振荡。</strong> 同一个机制，加得不好就失稳。<strong>这个二重性值得推广到工程之外</strong>：任何"根据结果调整行为"的系统——组织管理、经济政策、学习过程——都同时具备自我纠正与自我振荡的潜力，且<strong>延迟越大越容易振荡</strong>。</p>
+<p><strong>③ 分层与时间尺度分离。</strong> 本课反复出现同一个结构：内环快、外环慢（电流—速度—位置，第十二页；MPC 下达设定值、PID 执行，第十七页；安全过滤器包住性能控制器，第二十一页）。<strong>把快慢分开，让每层解决自己尺度上的问题</strong>——这是复杂系统设计的通用智慧。</p>
+<p><strong>④ 可验证性常胜过最优性。</strong> 工业偏好增益调度胜过在线自适应（第十八页）、偏好梯形图胜过更强的语言（第十三页）、偏好 PID 胜过 <span class="arithmatex">\(H_\infty\)</span>（第六、十六页）。<strong>理由不是保守，而是：一个能被理解、被验证、被现场维护的次优方案，长期价值高于一个无人能维护的最优方案。</strong></p>
+<p><strong>⑤ 量化风险而非追求绝对安全</strong>（第十四页）。绝对安全不存在，工程的任务是把风险降到与后果相称的水平，并<strong>能论证它</strong>。</p>
+<h2 id="_5">四、"预测—比较—修正"：一个反复出现的结构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>本课中，同一个循环出现了三次：</p>
+<ul>
+<li><strong>反馈控制</strong>（第一页）：比较输出与目标，用误差修正；</li>
+<li><strong>状态观测器 / 卡尔曼滤波</strong>（第九页）：比较预测与测量，用新息修正估计；</li>
+<li><strong>MPC</strong>（第十七页）：预测未来、优化、执行一步、再测量重来。</li>
+</ul>
+<p><strong>而它还出现在本讲义库的其他站</strong>：🔗 生物站的预测脑与稳态调节、AI 站的梯度下降与时序差分学习。</p>
+<p><strong>这可能是工程与自然界中最普适的结构</strong>——<strong>任何要在不确定环境中维持目标的系统，都会演化出某种形式的"预测—比较—修正"。</strong> 学会它，你就获得了一副能看穿许多系统的眼镜。</p>
+<h2 id="_6">五、保质期<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>保质期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>经典控制（第一至六页）、状态空间与卡尔曼（第七至九页）</td>
+<td><strong>数十年</strong>，是稳定的经典</td>
+</tr>
+<tr>
+<td>数字实现、电力电子、电机（第十至十二页）</td>
+<td><strong>很稳定</strong>，器件会进步（SiC/GaN）但原理不变</td>
+</tr>
+<tr>
+<td>PLC 与工业系统（第十三、十四页）</td>
+<td>框架稳定，<strong>协议与工具会演进</strong></td>
+</tr>
+<tr>
+<td>非线性、鲁棒、MPC、辨识（第十五至十九页）</td>
+<td><strong>稳定的研究生内容</strong></td>
+</tr>
+<tr>
+<td><strong>学习型控制与安全控制（第二十、二十一页）</strong></td>
+<td><strong>一到两年</strong>——已标注核对于 2026-07</td>
+</tr>
+<tr>
+<td>产业与职业（第二十二页）</td>
+<td><strong>随行业变化</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">六、若要继续<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>教材</strong>：Åström &amp; Murray《Feedback Systems》（<strong>免费在线，最推荐的入门</strong>，视角现代且横跨多领域）、Franklin《Feedback Control of Dynamic Systems》（经典本科教材）、Khalil《Nonlinear Systems》（非线性圣经）、Rawlings &amp; Mayne《Model Predictive Control》（MPC 权威）、Åström &amp; Hägglund《Advanced PID Control》（PID 的深度处理）；</li>
+<li><strong>动手</strong>（这门课最值得动手）：用 Python 的 <code>python-control</code> 或 MATLAB/Simulink，把本课每张图都亲手重跑一遍——<strong>改参数、看曲线怎么动，是理解反馈最快的路径</strong>。本站所有图的代码在 <code>figs/</code> 下；</li>
+<li><strong>实物</strong>：一块开发板 + 一个直流电机 + 编码器，做一个速度环与位置环。<strong>亲手调一次 PID，胜过读十页理论</strong>；平衡小车（倒立摆）是经典的进阶项目；</li>
+<li><strong>跨站互链</strong>：🔗 数学站（Laplace、线性代数、ODE）、grad-math（优化、随机过程）、微电子站（PLL、Sigma-Delta、片上自适应调压都是控制回路）、AI 站（强化学习）、<strong>生物站</strong>（稳态、预测脑——同一套数学的生物版本）。</li>
+</ul>
+<h2 id="_8">七、最后<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p>控制工程有一个特点：<strong>它的成功是隐形的</strong>。</p>
+<p>一个工作良好的控制系统，表现就是"什么都没发生"——温度稳定、机器平顺、电网频率恒定、飞机平稳。<strong>没有人会注意到它。</strong> 只有当它失效时，人们才发现它一直在那里。</p>
+<p>这或许也是这门学科最好的隐喻：<strong>反馈的价值不在于做出惊人的动作，而在于让系统在扰动、误差、老化与意外之中，持续地保持在它应该在的地方。</strong></p>
+<p>而这件事——<strong>在一个不断偏离的世界里持续地纠正回来</strong>——大概不只是工程问题。</p>
+<hr />
+<p><em>全课结束。愿你在此后看任何一个系统时，都会下意识地问：它的反馈回路在哪里？增益多大？延迟多久？它稳定吗？</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-frontier.html"><span class="pager-label">上一页</span>前沿 III · 产业前沿与职业路径</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

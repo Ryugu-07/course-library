@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>不稳定性与对流 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li class="active"><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 23:03</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 线性稳定性分析：标准流程</a></li>
+<li><a href="#2-rayleighbenard">2. Rayleigh–Bénard 对流：图案形成的原型</a></li>
+<li><a href="#3">3. 几种经典失稳机制</a></li>
+<li><a href="#4">4. 转捩：线性理论的失效</a></li>
+<li><a href="#5">5. 练习与要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">流体 IV · 不稳定性与对流<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Drazin &amp; Reid《Hydrodynamic Stability》/ Chandrasekhar / Cross &amp; Hohenberg RMP ｜ <strong>前置</strong>：fl-01、asm-01（对称破缺与序参量）
+湍流不是凭空出现的，它是层流<strong>逐级失稳</strong>的终点。本页讲清失稳的判据、几种经典机制，以及一个漂亮的联系：<strong>流体的对流失稳与相变的对称破缺，共享同一套数学</strong>（Landau 理论，asm-01）。</p>
+</blockquote>
+<figure class="plot">
+<p><img alt="Rayleigh–Bénard 对流的分岔图与临界 Rayleigh 数。" src="assets/img/fl-04-instability-bifurcation.svg" /></p>
+<figcaption><span class="fig-id">图 fl-04.1</span>Rayleigh–Bénard 对流的<strong>超临界分岔</strong>：\(\mathrm{Ra}&lt;\mathrm{Ra}_c\) 时静止导热态稳定；越过 \(\mathrm{Ra}_c\approx1708\) 后对流振幅按 \(A\propto\sqrt{\mathrm{Ra}-\mathrm{Ra}_c}\) 生长——与 Landau 相变的序参量行为同形。</figcaption>
+</figure>
+<h2 id="1">1. 线性稳定性分析：标准流程<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>给定基本流 <span class="arithmatex">\(\bar{\mathbf u}\)</span>，加小扰动 <span class="arithmatex">\(\mathbf u'\propto e^{i(kx-\omega t)}\)</span>，线性化 N–S，解<strong>本征值问题</strong>得色散关系 <span class="arithmatex">\(\omega(k)\)</span>。</p>
+<div class="arithmatex">\[\mathrm{Im}\,\omega &gt; 0 \ \Longrightarrow\ \text{指数增长} \ \Longrightarrow\ \textbf{不稳定}\]</div>
+<p><strong>中性曲线</strong>（<span class="arithmatex">\(\mathrm{Im}\,\omega=0\)</span>）在参数平面上划出稳定与不稳定区，其最低点给出<strong>临界参数</strong>与<strong>最不稳定波长</strong>——后者决定了失稳后出现的<strong>图案尺度</strong>。</p>
+<p><strong>这套方法与 🔗 自动化站的稳定性分析是同一个数学</strong>：特征值实部的符号决定命运。区别在于这里的算子是偏微分的，谱是连续的。</p>
+<h2 id="2-rayleighbenard">2. Rayleigh–Bénard 对流：图案形成的原型<a class="headerlink" href="#2-rayleighbenard" title="Permanent link"></a></h2>
+<p>下热上冷的流体层。浮力驱动上升、粘性与热扩散阻碍，竞争由 <strong>Rayleigh 数</strong>刻画：</p>
+<div class="arithmatex">\[\mathrm{Ra} = \frac{g\alpha\Delta T\,d^3}{\nu\kappa}\]</div>
+<p><strong>临界值 <span class="arithmatex">\(\mathrm{Ra}_c\approx1708\)</span></strong>（上下刚性边界）。越过它，静止的导热态失稳，出现<strong>规则的对流胞</strong>（滚筒或六边形）。</p>
+<p><strong>为什么这是物理学的经典案例</strong>：
+- <strong>自发对称破缺</strong>：均匀的水平平移对称被破缺，选出特定波长（<span class="arithmatex">\(\lambda\approx2d\)</span>）；
+- <strong>振幅方程与 Landau 理论</strong>：在临界点附近，振幅 <span class="arithmatex">\(A\)</span> 满足</p>
+<div class="arithmatex">\[\partial_t A = \epsilon A - g|A|^2A,\qquad \epsilon\propto(\mathrm{Ra}-\mathrm{Ra}_c)\]</div>
+<p><strong>这与 asm-01 的 Landau 自由能给出完全相同的 <span class="arithmatex">\(A\propto\sqrt{\epsilon}\)</span>——一个平衡态相变的形式，出现在彻底非平衡的系统中</strong>。这是"图案形成"作为一门学科的起点（Cross &amp; Hohenberg）。</p>
+<p><strong>继续升高 <span class="arithmatex">\(\mathrm{Ra}\)</span></strong>：对流胞失稳 → 振荡 → 倍周期 → <strong>混沌</strong>（fl-05）。<strong>Lorenz 方程正是这个系统的三模截断。</strong></p>
+<h2 id="3">3. 几种经典失稳机制<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>驱动</th>
+<th>判据/现象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kelvin–Helmholtz</strong></td>
+<td>剪切（速度间断）</td>
+<td>无粘时任意小波长皆不稳定；<strong>云街、风吹水面起浪、木星条纹交界</strong></td>
+</tr>
+<tr>
+<td><strong>Rayleigh–Taylor</strong></td>
+<td>重流体在轻流体之上</td>
+<td>蘑菇状指进；<strong>超新星抛射、惯性约束聚变的头号敌人</strong></td>
+</tr>
+<tr>
+<td><strong>Rayleigh–Plateau</strong></td>
+<td>表面张力</td>
+<td>液柱在 <span class="arithmatex">\(\lambda&gt;2\pi R\)</span> 时断裂成液滴——<strong>水龙头的水流为何断成珠</strong></td>
+</tr>
+<tr>
+<td><strong>Taylor–Couette</strong></td>
+<td>旋转离心</td>
+<td>同轴筒间出现 Taylor 涡；<strong>是研究分岔序列的经典实验台</strong></td>
+</tr>
+<tr>
+<td><strong>Rayleigh 判据（旋转）</strong></td>
+<td>角动量分布</td>
+<td><span class="arithmatex">\(d(\Omega r^2)^2/dr&lt;0\)</span> 则不稳定——<strong>吸积盘为何需要 MRI</strong>（ap-05）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Kelvin–Helmholtz 的普遍性值得强调</strong>：任何有速度剪切的界面都可能失稳。<strong>它同时出现在云层、太阳日冕、星系际气体与实验室等离子体中</strong>——同一个色散关系，跨越二十个数量级。</p>
+<h2 id="4">4. 转捩：线性理论的失效<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>一个重要的诚实标注</strong>：<strong>管流（Poiseuille）在所有雷诺数下线性稳定</strong>，但实验中 <span class="arithmatex">\(\mathrm{Re}\gtrsim2000\)</span> 就会转捩为湍流。</p>
+<p><strong>矛盾如何化解</strong>：
+- 线性算子<strong>非正规（non-normal）</strong>：即使所有本征值衰减，扰动仍可<strong>瞬态放大</strong>几个数量级（"瞬态增长"）；
+- 放大后非线性接管，把系统推入湍流吸引子；
+- <strong>转捩因此是有限振幅、亚临界的</strong>——依赖扰动大小，且带有强烈的随机性与迟滞。</p>
+<p><strong>这是"线性稳定 ≠ 实际稳定"的教科书案例</strong>，在控制理论中有完全对应的现象（非正规系统的瞬态放大，🔗 自动化站）。</p>
+<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（对流胞的尺度）</strong> 一层 1 cm 厚的水，<span class="arithmatex">\(\Delta T=5\)</span> K：估算 <span class="arithmatex">\(\mathrm{Ra}\sim10^5\gg\mathrm{Ra}_c\)</span>——<strong>对流早已发生</strong>。这就是为什么加热锅底的水立刻翻滚，而不是靠热传导。</p>
+<p><strong>例 2（地幔对流）</strong> <span class="arithmatex">\(d\sim3000\)</span> km，尽管 <span class="arithmatex">\(\nu\)</span> 极大（<span class="arithmatex">\(\sim10^{21}\)</span> Pa·s），<span class="arithmatex">\(d^3\)</span> 的巨大使 <span class="arithmatex">\(\mathrm{Ra}\sim10^7\)</span>——<strong>地幔在对流，周期约亿年，这就是板块运动的引擎</strong>。</p>
+<p><strong>例 3（RT 不稳定与聚变）</strong> 惯性约束聚变中，靶丸压缩时轻推重形成 RT 不稳定，<strong>指进会刺穿燃料层、破坏点火</strong>。抑制它是该路线的核心工程难题之一（fl-06）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：失稳之后是什么？Lorenz 从对流方程截出三个模，意外发现了确定性系统中的不可预测——混沌。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="fl-03-turbulence.html"><span class="pager-label">上一页</span>流体 III · 湍流与标度律</a>
+  <a class="pager-slot next" href="fl-05-chaos.html"><span class="pager-label">下一页</span>非线性 · 混沌与奇怪吸引子</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

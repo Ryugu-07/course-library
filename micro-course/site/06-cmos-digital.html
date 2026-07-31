@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMOS 反相器与数字基元 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li class="active"><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、为什么是互补结构</a></li>
+<li><a href="#_2">二、静态特性：电压传输曲线</a></li>
+<li><a href="#cmos">三、延迟：CMOS 里的时间从哪来</a></li>
+<li><a href="#_3">四、功耗：第四页的公式落到门上</a></li>
+<li><a href="#_4">五、从反相器到逻辑门</a></li>
+<li><a href="#_5">六、标准单元：数字设计的抽象层</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-cmos">电路 I · CMOS 反相器与数字基元<a class="headerlink" href="#i-cmos" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+CMOS 反相器是整个数字世界的原子。它只有两个晶体管，却包含了数字集成电路的全部核心概念：静态特性、噪声容限、延迟、功耗。<strong>理解透这一个门，其余的逻辑门、加法器、乃至处理器，都只是它的组合。</strong></p>
+</blockquote>
+<h2 id="_1">一、为什么是互补结构<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>CMOS = <strong>Complementary</strong> MOS：把 PMOS 接在电源与输出之间（上拉网络），NMOS 接在输出与地之间（下拉网络），二者的栅极接同一输入。</p>
+<ul>
+<li>输入低 → PMOS 导通、NMOS 截止 → 输出被拉到 <span class="arithmatex">\(V_{DD}\)</span>；</li>
+<li>输入高 → NMOS 导通、PMOS 截止 → 输出被拉到地。</li>
+</ul>
+<p><strong>关键性质：稳态时上下管从不同时导通，因此没有从电源到地的直流通路。</strong> 静态功耗<strong>理论上只剩漏电</strong>。</p>
+<p><strong>这一点的历史意义怎么强调都不过分</strong>。早期的 NMOS 逻辑用电阻做上拉，输出为低时电源到地始终有电流——<strong>静态功耗正比于门的数量</strong>，这使大规模集成不可能。CMOS 把静态功耗降到几乎为零，<strong>才让"在一块芯片上放几十亿个门"成为可以想象的事</strong>。</p>
+<p><strong>代价</strong>：需要两倍的晶体管，以及 n 阱/p 阱工艺（更复杂，且带来第二页说的闩锁风险）。<strong>行业毫不犹豫地付了这个代价</strong>——这是权衡思维的经典范例。</p>
+<h2 id="_2">二、静态特性：电压传输曲线<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>把输入从 0 扫到 <span class="arithmatex">\(V_{DD}\)</span>，画出输出，得到 <strong>VTC（电压传输特性）</strong>。</p>
+<figure>
+<p><img alt="CMOS 反相器 VTC 与噪声容限" class="fig-img" src="assets/img/mic_inverter_vtc.svg" /></p>
+<figcaption><span class="fig-id">图 6-1</span> CMOS 反相器的电压传输曲线。曲线在中间区域<strong>极陡</strong>（增益 \(|dV_{out}/dV_{in}|\gg 1\)），两端平坦。定义 \(V_{IL}, V_{IH}\) 为增益 = −1 的两点，由此得到<strong>噪声容限</strong> \(NM_L=V_{IL}-V_{OL}\) 与 \(NM_H=V_{OH}-V_{IH}\)（阴影）。<strong>陡峭的过渡区正是数字电路能够抗噪、能够级联的根本</strong>——它把连续的模拟电压"整形"回干净的 0 与 1。</figcaption>
+</figure>
+<p><strong>为什么陡峭如此重要</strong>：过渡区的高增益意味着<strong>输入的小扰动被压缩、输出被推向轨</strong>。这就是数字信号能一级级传下去而不累积噪声的原因。<strong>数字电路本质上是一群被强行工作在高增益区的模拟放大器</strong>——它的"离散"是被恢复出来的，不是天生的。</p>
+<p><strong>对称设计</strong>：若希望阈值点 <span class="arithmatex">\(V_M\)</span> 落在 <span class="arithmatex">\(V_{DD}/2\)</span>，需要上下管驱动能力匹配。由于 <span class="arithmatex">\(\mu_n \approx 3\mu_p\)</span>（第一页），须令</p>
+<div class="arithmatex">\[\left(\frac{W}{L}\right)_p \approx 2\text{–}3 \times \left(\frac{W}{L}\right)_n\]</div>
+<p><strong>这个比例直接决定了标准单元的版图形状</strong>——你看到的所有标准单元库，PMOS 区域都明显宽于 NMOS 区域。</p>
+<h2 id="cmos">三、延迟：CMOS 里的时间从哪来<a class="headerlink" href="#cmos" title="Permanent link"></a></h2>
+<p>反相器的延迟本质上是<strong>给负载电容充放电的时间</strong>：</p>
+<div class="arithmatex">\[t_{pd} \approx \frac{C_L V_{DD}}{2 I_{on}} \quad \text{（一阶估计）}\]</div>
+<p>负载电容 <span class="arithmatex">\(C_L\)</span> 由三部分组成：<strong>下一级的栅电容 + 本级的源漏结电容 + 互连线电容</strong>。</p>
+<p><strong>几个关键工程结论</strong>：</p>
+<p><strong>① 扇出与驱动能力</strong>：延迟正比于扇出（驱动多少个门）、反比于自身尺寸。定义<strong>逻辑努力（logical effort）</strong>方法，可以系统地为路径上每一级选尺寸。<strong>结论：级联缓冲器的最优放大倍数约为 <span class="arithmatex">\(e \approx 2.7\)</span>（实际常用 3–4）</strong>——这是一个漂亮的、可以求导得出的优化结果。</p>
+<p><strong>② 互连开始主导</strong>：先进节点中，<strong>导线电阻与电容的贡献已经超过晶体管本身</strong>。导线越细，电阻越大（且有电子表面散射效应使电阻率进一步上升），这带来了 <span class="arithmatex">\(RC\)</span> 延迟随缩放<strong>恶化</strong>的问题。<strong>"缩放让一切变快"在互连上从来不成立</strong>——这是引入低κ介质、铜互连（乃至钌等新材料研究）的动机。</p>
+<p><strong>③ 电压与速度</strong>：<span class="arithmatex">\(I_{on}\)</span> 大致随 <span class="arithmatex">\((V_{DD}-V_{th})\)</span> 增长，所以降压会显著变慢。<strong>DVFS（动态调压调频）</strong>正是利用这条曲线，在性能与功耗间实时权衡（承第四页）。</p>
+<h2 id="_3">四、功耗：第四页的公式落到门上<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<div class="arithmatex">\[P = \alpha C_L V_{DD}^2 f + P_{\text{short-circuit}} + P_{\text{leak}}\]</div>
+<ul>
+<li><strong><span class="arithmatex">\(\alpha\)</span>（活动因子）</strong>：一个门平均多少个时钟周期翻转一次。典型逻辑约 0.1，时钟网络则接近 1——<strong>所以时钟树往往是全芯片最耗电的单一网络</strong>，时钟门控（clock gating）因而是最有效的低功耗手段之一；</li>
+<li><strong><span class="arithmatex">\(V_{DD}^2\)</span></strong>：最有力的旋钮，但受第四页的限制；</li>
+<li><strong>漏电</strong>：先进节点占比显著，且随温度指数上升。</li>
+</ul>
+<p><strong>能量-延迟权衡</strong>：把 <span class="arithmatex">\(V_{DD}\)</span> 作为参数，可以画出能量与延迟的权衡曲线。<strong>存在一个"最小能量点"，通常在近阈值甚至亚阈值区</strong>——但那里速度极慢且对变异极敏感。<strong>超低功耗设计（IoT、可穿戴）就工作在这个区域</strong>，而高性能设计则选择远离它。这是"没有最优只有权衡"的又一实例。</p>
+<h2 id="_4">五、从反相器到逻辑门<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>通用构造法则</strong>：
+- <strong>下拉网络（NMOS）</strong>实现逻辑函数的<strong>非</strong>形式：串联 = AND，并联 = OR；
+- <strong>上拉网络（PMOS）</strong>是下拉网络的<strong>对偶</strong>：串联↔并联。</p>
+<p>于是 <strong>NAND</strong> = NMOS 串联 + PMOS 并联；<strong>NOR</strong> = NMOS 并联 + PMOS 串联。</p>
+<p><strong>工程上的重要偏好：NAND 优于 NOR。</strong> 原因是 NOR 需要 PMOS <strong>串联</strong>，而 PMOS 本就慢（迁移率低），串联后更慢，为补偿需把宽度做得很大 → 面积与电容双双恶化。<strong>所以标准单元库以 NAND 为骨干，综合工具也偏好把逻辑映射成 NAND 形式</strong>——一个源自第一页"空穴迁移率低"的、贯穿到 EDA 工具的连锁后果。</p>
+<p><strong>堆叠的其他代价</strong>：串联管还受<strong>体效应</strong>（第三页）影响，上层管的 <span class="arithmatex">\(V_{th}\)</span> 被抬高。<strong>所以逻辑门的输入数一般不超过 4</strong>，更复杂的函数用多级实现。</p>
+<h2 id="_5">六、标准单元：数字设计的抽象层<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>标准单元（standard cell）</strong>是把常用门（INV、NAND、NOR、触发器、加法器等）预先设计好版图、表征好时序与功耗，形成<strong>单元库</strong>。所有单元具有<strong>统一的高度</strong>（便于按行排列、共享电源轨），宽度按复杂度变化。</p>
+<p><strong>这是一个关键的抽象层</strong>（承导论 §3）：
+- 数字设计者写 RTL，综合工具映射到单元库，布局布线工具摆放它们——<strong>全程不必接触晶体管</strong>；
+- 单元库的<strong>表征数据</strong>（不同负载与转换时间下的延迟、功耗）是上层工具赖以工作的模型；
+- <strong>抽象会漏</strong>：噪声、串扰、IR 压降、老化都不在简单的单元模型里，需要额外的分析流程去补（第七、十四页）。</p>
+<p><strong>单元高度（以金属轨数计）是节点密度的关键指标之一</strong>——近年的密度提升，很大一部分来自单元高度的降低（DTCO，第五页），而非单纯的晶体管缩小。</p>
+<hr />
+<p><em>下一页：有了逻辑门，还需要让它们在时间上协同。时序、触发器、时钟，以及那个决定芯片能跑多快的分析——静态时序分析。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-modern-device.html"><span class="pager-label">上一页</span>器件 V · 从短沟道效应到 GAA</a>
+  <a class="pager-slot next" href="07-digital-design.html"><span class="pager-label">下一页</span>电路 II · 时序、时钟与静态时序分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

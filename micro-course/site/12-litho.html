@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光刻的物理极限 · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li class="active"><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、瑞利公式：三个可用的旋钮</a></li>
+<li><a href="#_2">二、减小波长：一条走到尽头的路</a></li>
+<li><a href="#na">三、增大 NA：浸没式光刻</a></li>
+<li><a href="#k_1">四、减小 \(k_1\)：多重曝光与计算光刻</a></li>
+<li><a href="#euv">五、EUV：为什么它这么难</a></li>
+<li><a href="#_3">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">制造 II · 光刻的物理极限<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界最关键的技术瓶颈 ｜ <strong>核对于 2026-07</strong>（High-NA 部分属前沿）。
+一个看似矛盾的事实：主流光刻长期使用<strong>波长 193 nm</strong> 的光，却能画出<strong>十几纳米</strong>的结构。这怎么可能？本页把分辨率这件事算清楚——从瑞利公式出发，看行业如何用尽一切手段压榨每一个因子，以及为什么 EUV 需要一个国家级的工程努力才做得出来。</p>
+</blockquote>
+<h2 id="_1">一、瑞利公式：三个可用的旋钮<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>投影光刻的分辨率与焦深由<strong>瑞利判据</strong>给出：</p>
+<div class="arithmatex">\[R = k_1\frac{\lambda}{\mathrm{NA}}, \qquad \mathrm{DOF} = k_2\frac{\lambda}{\mathrm{NA}^2}\]</div>
+<ul>
+<li><span class="arithmatex">\(\lambda\)</span>：曝光波长；</li>
+<li><span class="arithmatex">\(\mathrm{NA} = n\sin\theta\)</span>：数值孔径（透镜收集光的能力，<span class="arithmatex">\(n\)</span> 为介质折射率）；</li>
+<li><span class="arithmatex">\(k_1\)</span>：工艺因子，<strong>理论下限约 0.25</strong>（单次曝光）。</li>
+</ul>
+<p><strong>要提高分辨率（<span class="arithmatex">\(R\)</span> 变小），只有三条路：减小 <span class="arithmatex">\(\lambda\)</span>、增大 NA、减小 <span class="arithmatex">\(k_1\)</span>。行业把这三条全部用尽了。</strong></p>
+<p><strong>注意第二个公式的残酷</strong>：<strong>焦深随 <span class="arithmatex">\(\mathrm{NA}^2\)</span> 反比下降</strong>。提高 NA 的代价是焦深急剧变浅——先进节点的焦深只有几十纳米量级。<strong>这就是上一页 CMP 平坦化必不可少的原因</strong>：表面起伏若超过焦深，图形就模糊了。<strong>分辨率与工艺容差是一对根本矛盾。</strong></p>
+<h2 id="_2">二、减小波长：一条走到尽头的路<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>历史路径：436 nm（g 线）→ 365 nm（i 线）→ 248 nm（KrF）→ <strong>193 nm（ArF）</strong> → 停滞。</p>
+<p><strong>为什么停在 193 nm</strong>：下一步本应是 157 nm（F₂ 激光），但<strong>没有合适的透镜材料</strong>（普通石英在该波长强烈吸收，CaF₂ 又有双折射问题），加上光刻胶与掩模材料的困难，<strong>157 nm 路线在 2000 年代初被整个行业放弃</strong>。</p>
+<p><strong>这是一个教科书级的技术路线失败案例</strong>：不是因为原理不通，而是<strong>材料与工程配套跟不上</strong>。行业转而去压榨另外两个因子——于是有了浸没式与多重曝光。</p>
+<h2 id="na">三、增大 NA：浸没式光刻<a class="headerlink" href="#na" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathrm{NA} = n\sin\theta\)</span>，在空气中 <span class="arithmatex">\(n=1\)</span>，故 NA &lt; 1（实际约 0.93 已接近极限）。</p>
+<p><strong>突破口</strong>：在透镜与晶圆之间<strong>注入超纯水</strong>（<span class="arithmatex">\(n = 1.44\)</span>）——<strong>浸没式光刻（immersion）</strong>。</p>
+<div class="arithmatex">\[\mathrm{NA}_{\max} = 1.44 \times \sin\theta \to \text{实际达到 } 1.35\]</div>
+<p><strong>等效于把波长从 193 nm 缩到约 134 nm</strong>，而不必更换光源与透镜体系。<strong>这是一次极其漂亮的工程绕道</strong>——用一层水买到了整整一代的分辨率。（提出者林本坚的这一构想使 193i 成为此后近二十年的主力平台。）</p>
+<p><strong>代价</strong>：水中气泡、污染、温度控制、扫描时的水膜稳定性——全部是新的工程难题，但都比换波长容易。<strong>"选择较易解决的困难"本身就是工程判断力。</strong></p>
+<h2 id="k_1">四、减小 <span class="arithmatex">\(k_1\)</span>：多重曝光与计算光刻<a class="headerlink" href="#k_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(k_1\)</span> 的单次曝光理论下限是 0.25。在 193i（<span class="arithmatex">\(\lambda/\mathrm{NA} \approx 143\)</span> nm）下，单次曝光的分辨率极限约为 <strong>36 nm 半周期</strong>。<strong>要做更小，只能把一层图形拆成多次曝光。</strong></p>
+<p><strong>多重图形化</strong>：
+- <strong>LELE（双重曝光双重刻蚀）</strong>：把密集图形拆成两套稀疏图形，分别曝光；
+- <strong>SADP/SAQP（自对准双/四重图形化）</strong>：先做一组芯轴，在其侧壁沉积间隔层，去除芯轴后剩下的侧壁就成了图形——<strong>周期直接减半（或四分之一），且"自对准"避免了套刻误差</strong>。</p>
+<p><strong>代价极其昂贵</strong>：工序数成倍增加、掩模数增加、周期变长、成本上升，<strong>且套刻误差成为新的良率杀手</strong>。<strong>在 EUV 出现前，7nm 级别的关键层需要多达四重甚至更多次图形化</strong>——这正是当时成本飙升的主因。</p>
+<p><strong>计算光刻</strong>：由于图形尺寸远小于波长，衍射效应严重，掩模上的图形与晶圆上的成像<strong>完全不同</strong>。于是需要：
+- <strong>OPC（光学邻近效应修正）</strong>：预先扭曲掩模图形（加衬线、锤头），使成像后接近目标；
+- <strong>相移掩模、离轴照明、光源-掩模协同优化（SMO）</strong>；
+- <strong>逆向光刻（ILT）</strong>：直接把它当作<strong>反问题</strong>求解——给定目标图形，反解出最优掩模。<strong>这是一个大规模优化问题，现在普遍用 GPU 加速甚至机器学习辅助</strong>（🔗 cs 站/AI 站）。</p>
+<p><strong>掩模上的图形已经完全不像最终电路了</strong>——它是为衍射方程"预补偿"过的产物。<strong>这是"用算力换制造能力"的典范。</strong></p>
+<h2 id="euv">五、EUV：为什么它这么难<a class="headerlink" href="#euv" title="Permanent link"></a></h2>
+<p><strong>极紫外光刻（EUV）</strong>：<span class="arithmatex">\(\lambda = 13.5\)</span> nm，比 193 nm 小了一个数量级，一步跨越多年积累的困难。</p>
+<figure>
+<p><img alt="光刻分辨率的演进" class="fig-img" src="assets/img/mic_litho.svg" /></p>
+<figcaption><span class="fig-id">图 12-1</span> 光刻能力的演进（半周期分辨率，纵轴对数）。波长从 436 nm 一路降到 193 nm 后<strong>停滞近二十年</strong>，期间靠<strong>浸没式（提高 NA）</strong>与<strong>多重图形化（降低有效 \(k_1\)）</strong>继续推进；EUV 把波长降至 13.5 nm，重新获得单次曝光能力；High-NA EUV 进一步提高 NA。<strong>虚线为各代单次曝光的瑞利极限</strong>——可以看到实际能力屡次突破单次极限，正是多重图形化的贡献。</figcaption>
+</figure>
+<p><strong>EUV 的困难几乎每一项都是根本性的</strong>：</p>
+<ol>
+<li><strong>所有材料都吸收 13.5 nm 的光</strong> → <strong>不能用透镜，必须全反射式</strong>；而普通反射镜也不行，需要<strong>多层布拉格反射镜</strong>（数十对 Mo/Si 交替层，靠干涉反射），每面镜子反射率仅约 70%。<strong>十几面镜子串起来，光能只剩百分之几</strong>；</li>
+<li><strong>必须在真空中工作</strong>（空气也吸收）；</li>
+<li><strong>光源极其困难</strong>：主流方案是用高功率 CO₂ 激光<strong>每秒数万次轰击锡液滴</strong>，激发等离子体产生 EUV。<strong>转换效率极低，光源功率与稳定性长期是量产瓶颈</strong>；</li>
+<li><strong>掩模是反射式的</strong>，且必须<strong>无缺陷</strong>——EUV 掩模缺陷检测与修复本身就是一个产业难题；</li>
+<li><strong>光刻胶的三难困境</strong>：分辨率、线边缘粗糙度、感光度<strong>三者互相冲突</strong>（RLS trade-off）。EUV 光子能量高、单位剂量的光子数少，导致<strong>散粒噪声</strong>成为随机缺陷的来源——<strong>这是一个把量子统计直接推到量产良率面前的问题</strong>。</li>
+</ol>
+<p><strong>结果</strong>：EUV 光刻机成为人类制造过程中最复杂的商用设备之一，单台价格上亿美元，且<strong>全球仅有一家供应商（ASML）能够制造</strong>——这个事实塑造了整个半导体地缘格局（第二十页）。</p>
+<p><strong>High-NA EUV</strong>：把 NA 从 0.33 提高到 0.55，进一步提升分辨率。代价是<strong>焦深进一步变浅</strong>、<strong>成像场尺寸减半</strong>（需要把大芯片拆开曝光再拼接），以及更昂贵的设备。<strong>它是延续缩放的关键，但也再次体现了"每一步都要付更大的代价"。</strong></p>
+<h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong><span class="arithmatex">\(R = k_1\lambda/\mathrm{NA}\)</span> 是理解整个光刻史的公式</strong>——三个因子被逐一压榨到极限；</li>
+<li><strong>焦深随 <span class="arithmatex">\(\mathrm{NA}^2\)</span> 反比恶化</strong>，分辨率与工艺容差是根本矛盾；</li>
+<li><strong>157 nm 的失败</strong>说明技术路线不只取决于原理，更取决于材料与配套；</li>
+<li><strong>浸没式</strong>是绕道的典范，<strong>多重图形化</strong>是用成本换分辨率，<strong>计算光刻</strong>是用算力换制造能力；</li>
+<li><strong>EUV 的每一项困难都源于"所有材料都吸收该波长"</strong>这一条物理事实；</li>
+<li>光刻的极限<strong>直接决定了整个行业的节奏</strong>，也决定了产业的集中度。</li>
+</ul>
+<hr />
+<p><em>下一页：设计与制造之间还隔着一整套软件——EDA。几十亿个晶体管不可能手工摆放，它们是被算法造出来的。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-fabrication.html"><span class="pager-label">上一页</span>制造 I · 从沙子到晶圆</a>
+  <a class="pager-slot next" href="13-eda.html"><span class="pager-label">下一页</span>制造 III · EDA：用算法造芯片</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

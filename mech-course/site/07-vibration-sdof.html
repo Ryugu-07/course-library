@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单自由度振动 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li class="active"><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、自由振动</a></li>
+<li><a href="#_2">二、受迫振动与共振</a></li>
+<li><a href="#_3">三、隔振：把振动挡在外面</a></li>
+<li><a href="#_4">四、动力吸振器</a></li>
+<li><a href="#_5">五、几种常见的激励源</a></li>
+<li><a href="#_6">六、自激振动：一类不同的危险</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">动力 II · 单自由度振动<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>机械现场问题的第一来源</strong>。
+一个质量、一个弹簧、一个阻尼器——最简单的振动模型，却包含了共振、隔振、减振的全部核心思想。<strong>机械工程师遇到的"抖动、噪声、断裂"问题，多数可以先用这个模型定性判断。</strong> 本页也与 🔗 自动化站第三页（二阶系统响应）是同一套数学的两种工程语言。</p>
+</blockquote>
+<h2 id="_1">一、自由振动<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[m\ddot{x} + c\dot{x} + kx = 0\]</div>
+<p>定义<strong>固有频率</strong>与<strong>阻尼比</strong>：</p>
+<div class="arithmatex">\[\omega_n = \sqrt{\frac{k}{m}}, \qquad \zeta = \frac{c}{2\sqrt{mk}}\]</div>
+<p><strong><span class="arithmatex">\(\omega_n\)</span> 只由刚度与质量决定</strong>——这是机械设计中最重要的一个量：<strong>要改变固有频率，只能改刚度或质量</strong>（加筋、减重、改支撑），改阻尼没用。</p>
+<p><strong>典型机械结构的阻尼比很小</strong>：金属结构 <span class="arithmatex">\(\zeta \approx 0.001\)</span>–<span class="arithmatex">\(0.01\)</span>，螺栓连接结构 <span class="arithmatex">\(0.01\)</span>–<span class="arithmatex">\(0.05\)</span>，橡胶阻尼件可达 <span class="arithmatex">\(0.1\)</span> 以上。<strong>这意味着机械系统本质上是"欠阻尼"的，一旦被激起就会振很久</strong>——这是与很多控制系统的重要区别。</p>
+<p><strong>实用的阻尼测量法——对数衰减率</strong>：</p>
+<div class="arithmatex">\[\delta = \ln\frac{x_i}{x_{i+1}} \approx 2\pi\zeta\]</div>
+<p><strong>敲一下、测衰减，就能估出阻尼比</strong>。这是现场最快的诊断手段之一。</p>
+<h2 id="_2">二、受迫振动与共振<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>简谐激励 <span class="arithmatex">\(F_0\sin\omega t\)</span> 下的稳态响应幅值：</p>
+<div class="arithmatex">\[X = \frac{F_0/k}{\sqrt{(1-r^2)^2 + (2\zeta r)^2}}, \qquad r = \frac{\omega}{\omega_n}\]</div>
+<figure>
+<p><img alt="受迫振动的频率响应" class="fig-img" src="assets/img/mec_resonance.svg" /></p>
+<figcaption><span class="fig-id">图 7-1</span> 放大因子随频率比 \(r=\omega/\omega_n\) 变化。<strong>共振（\(r\approx1\)）时响应被放大约 \(1/(2\zeta)\) 倍</strong>——对 \(\zeta=0.02\) 的钢结构就是 25 倍。注意三个区：\(r\ll1\) 为<strong>刚度控制</strong>（响应≈静变形），\(r\approx1\) 为<strong>阻尼控制</strong>（唯一有效的手段是加阻尼），\(r\gg1\) 为<strong>质量控制</strong>（响应趋于零）。<strong>\(r&gt;\sqrt2\) 之后放大因子小于 1，这是隔振的理论依据。</strong></figcaption>
+</figure>
+<p><strong>共振时的放大倍数 <span class="arithmatex">\(Q \approx 1/(2\zeta)\)</span></strong>。对 <span class="arithmatex">\(\zeta=0.01\)</span> 的结构，<strong>放大 50 倍</strong>——这就是为什么共振能轻易毁掉机器。</p>
+<p><strong>三个频段的不同对策</strong>（这是本页最实用的结论）：</p>
+<table>
+<thead>
+<tr>
+<th>频段</th>
+<th>控制因素</th>
+<th>有效对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(r \ll 1\)</span></td>
+<td><strong>刚度</strong></td>
+<td>加刚度（但会推高 <span class="arithmatex">\(\omega_n\)</span>）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(r \approx 1\)</span></td>
+<td><strong>阻尼</strong></td>
+<td><strong>只有加阻尼有效</strong>——加刚度或加质量只是把共振点挪走</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(r \gg 1\)</span></td>
+<td><strong>质量</strong></td>
+<td>加质量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"共振时只有阻尼管用"</strong> 是一条必须记住的判据。很多现场"加固反而更抖"的案例，正是因为加刚度把固有频率推到了激励频率上。</p>
+<h2 id="_3">三、隔振：把振动挡在外面<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>传递率</strong>（传到基础的力 / 激振力）：</p>
+<div class="arithmatex">\[TR = \frac{\sqrt{1+(2\zeta r)^2}}{\sqrt{(1-r^2)^2+(2\zeta r)^2}}\]</div>
+<p><strong>核心结论</strong>：<strong>只有 <span class="arithmatex">\(r &gt; \sqrt{2}\)</span> 时 <span class="arithmatex">\(TR&lt;1\)</span>，才真正起到隔振作用。</strong></p>
+<p><strong>这意味着隔振器必须"软"</strong>——要让 <span class="arithmatex">\(\omega_n\)</span> 远低于激励频率。</p>
+<p><strong>实用估算</strong>（工程上极常用）：隔振器的固有频率与静挠度的关系</p>
+<div class="arithmatex">\[f_n \approx \frac{1}{2\pi}\sqrt{\frac{g}{\delta_{st}}} \approx \frac{5}{\sqrt{\delta_{st}\ [\mathrm{mm}]}}\ \mathrm{Hz}\]</div>
+<p><strong>所以要隔离 50 Hz 的振动</strong>（需 <span class="arithmatex">\(f_n &lt; 35\)</span> Hz），静挠度至少约 2 mm；<strong>要隔离 10 Hz，静挠度需约 25 mm</strong>。<strong>低频隔振极其困难</strong>，这就是为什么精密仪器的隔振台又大又软（气浮隔振台的固有频率可低至 1 Hz 以下）。</p>
+<p><strong>一个必须注意的矛盾</strong>：
+- <strong>稳态隔振希望阻尼小</strong>（<span class="arithmatex">\(r&gt;\sqrt2\)</span> 时，阻尼大反而使传递率升高——看上面公式的分子）；
+- <strong>但过共振时需要阻尼</strong>（启停机过程要扫过共振点）。
+<strong>工程折中是取中等阻尼（<span class="arithmatex">\(\zeta \approx 0.05\)</span>–<span class="arithmatex">\(0.15\)</span>）</strong>，或使用变阻尼装置。</p>
+<h2 id="_4">四、动力吸振器<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>一个精妙的装置：给主系统附加一个小的质量-弹簧系统，<strong>调谐到激励频率</strong>，可使主系统在该频率上的振动<strong>降为零</strong>。</p>
+<p><strong>原理</strong>：吸振器以恰好反相的方式运动，其弹簧力抵消激励力。<strong>代价</strong>：
+- 只在<strong>窄带</strong>有效（激励频率变了就失效）；
+- <strong>原来的一个共振峰变成两个</strong>（分列于原频率两侧）——<strong>若激励频率漂移，可能落到新峰上而更糟</strong>。</p>
+<p><strong>应用</strong>：高层建筑的调谐质量阻尼器（TMD）、机床防颤振、发动机曲轴的扭振减振器、输电线的防舞动锤。<strong>它是"用一个精心设计的次系统吸走能量"的典范。</strong></p>
+<h2 id="_5">五、几种常见的激励源<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>工程中的振动来源，按频率特征识别（<strong>这是现场诊断的核心技能</strong>）：</p>
+<table>
+<thead>
+<tr>
+<th>特征频率</th>
+<th>可能来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1× 转速</strong></td>
+<td><strong>不平衡</strong>（最常见）</td>
+</tr>
+<tr>
+<td>2× 转速</td>
+<td>不对中、松动</td>
+</tr>
+<tr>
+<td>叶片数 × 转速</td>
+<td>叶片通过频率（风机、泵）</td>
+</tr>
+<tr>
+<td>齿数 × 转速</td>
+<td><strong>齿轮啮合频率</strong>（第十一页）</td>
+</tr>
+<tr>
+<td>特定非整数倍</td>
+<td><strong>轴承故障特征频率</strong>（第十二页）</td>
+</tr>
+<tr>
+<td>与转速无关的固定频率</td>
+<td>结构共振或外部激励</td>
+</tr>
+</tbody>
+</table>
+<p><strong>振动频谱分析因此成为设备状态监测的主要手段</strong>——<strong>看频谱就能定位故障源</strong>，这是预测性维护的技术基础（🔗 自动化站第二十二页）。</p>
+<h2 id="_6">六、自激振动：一类不同的危险<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>上面都是<strong>外部激励</strong>引起的受迫振动。还有一类<strong>自激振动</strong>：<strong>系统自己从恒定的能量源中汲取能量，维持振动</strong>。</p>
+<ul>
+<li><strong>切削颤振</strong>（第十八页）：切削力与振动耦合，形成正反馈；</li>
+<li><strong>摩擦引起的爬行/啸叫</strong>（刹车尖叫、导轨爬行）；</li>
+<li><strong>流体诱发振动</strong>（涡激振动、颤振）。</li>
+</ul>
+<p><strong>自激振动的特点</strong>：<strong>频率接近系统固有频率，但激励来自系统自身</strong>；<strong>加大切削量或速度到某个阈值就突然发生</strong>（本质是稳定性问题，🔗 自动化站第四页的失稳）。<strong>对策与受迫振动不同</strong>——不是躲开激励频率，而是<strong>改变系统的稳定性边界</strong>（改变刚度、加阻尼、改变切削参数、使用变螺旋角刀具）。</p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong><span class="arithmatex">\(\omega_n=\sqrt{k/m}\)</span> 只由刚度与质量决定</strong>；机械结构阻尼极小（<span class="arithmatex">\(\zeta\sim0.01\)</span>），共振放大可达数十倍；</li>
+<li><strong>三个频段三种对策</strong>——<strong>共振区只有阻尼有效</strong>；</li>
+<li><strong>隔振要求 <span class="arithmatex">\(r&gt;\sqrt2\)</span>，即隔振器必须"软"</strong>；低频隔振极难（<span class="arithmatex">\(f_n \approx 5/\sqrt{\delta_{st}}\)</span>）；</li>
+<li><strong>动力吸振器窄带有效，且会产生两个新峰</strong>；</li>
+<li><strong>按特征频率识别振源</strong>是现场诊断的核心技能；</li>
+<li><strong>自激振动来自系统内部的正反馈</strong>，对策是改变稳定性而非躲开频率。</li>
+</ul>
+<hr />
+<p><em>下一页：真实结构有无穷多个自由度。多自由度振动引入模态的概念——它把复杂的耦合振动分解成一组独立的简单振动，是振动分析的核心工具。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-rigid-dynamics.html"><span class="pager-label">上一页</span>动力 I · 刚体动力学与转动惯量</a>
+  <a class="pager-slot next" href="08-vibration-mdof.html"><span class="pager-label">下一页</span>动力 III · 多自由度与模态分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

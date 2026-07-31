@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>药代动力学的定量骨架 · 疾病的机制</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">疾病的机制</a>
+    <div class="site-subtitle">基础医学 · 从正常到失常 · 医学院体例</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 正常：结构与功能</div><ul><li><a href="01-anatomy.html">正常 I · 解剖学：身体的组织原则</a></li><li><a href="02-histology.html">正常 II · 四大基本组织与细胞社会</a></li><li><a href="03-physiology-core.html">正常 III · 生理学核心：稳态、体液与膜</a></li><li><a href="04-integration.html">正常 IV · 整合生理：循环-呼吸-肾的耦合</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 病理学总论</div><ul><li><a href="05-cell-injury.html">病理 I · 细胞损伤、适应与死亡</a></li><li><a href="06-inflammation.html">病理 II · 炎症与修复</a></li><li><a href="07-hemodynamics.html">病理 III · 血流动力学障碍与休克</a></li><li><a href="08-neoplasia.html">病理 IV · 肿瘤：从突变到转移</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 免疫与感染</div><ul><li><a href="09-immunity.html">免疫 I · 免疫系统的工作原理</a></li><li><a href="10-immunopathology.html">免疫 II · 超敏、自身免疫与免疫缺陷</a></li><li><a href="11-microbiology.html">感染 I · 病原体总论与致病机制</a></li><li><a href="12-antimicrobials.html">感染 II · 抗微生物药、耐药与疫苗</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 药理学</div><ul><li class="active"><a href="13-pharmacokinetics.html">药理 I · 药代动力学的定量骨架</a></li><li><a href="14-pharmacodynamics.html">药理 II · 药效学：受体、量效与治疗窗</a></li><li><a href="15-drugs-cv.html">药理 III · 各论：心血管与代谢</a></li><li><a href="16-drugs-cns.html">药理 IV · 各论：神经精神与镇痛</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 系统疾病机制</div><ul><li><a href="17-cardiovascular.html">系统 I · 心血管：从斑块到心衰</a></li><li><a href="18-respiratory.html">系统 II · 呼吸：阻塞、限制与换气衰竭</a></li><li><a href="19-renal.html">系统 III · 肾、水电解质与酸碱</a></li><li><a href="20-endocrine.html">系统 IV · 内分泌与代谢（以糖尿病为主线）</a></li><li><a href="21-neuro.html">系统 V · 神经：卒中、癫痫与神经退行</a></li><li><a href="22-gi-liver-heme.html">系统 VI · 消化、肝与血液</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿（核对于 2026-07）</div><ul><li><a href="23-molecular-therapy.html">前沿 I · 分子医学：单抗、CAR-T、基因治疗</a></li><li><a href="24-precision.html">前沿 II · 精准医学与 AI 在基础医学中的位置</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 疾病的通用语法</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1-adme">1. ADME 四过程</a></li>
+<li><a href="#2">2. 分布容积：一个"虚拟"体积</a></li>
+<li><a href="#3">3. 清除率与消除动力学</a></li>
+<li><a href="#4">4. 单剂量：一室与二室</a></li>
+<li><a href="#5">5. 多剂量与稳态：临床给药方案的全部依据</a></li>
+<li><a href="#6-i-ii-cyp">6. 代谢：I 相、II 相与 CYP</a></li>
+<li><a href="#7">7. 排泄与肾功能调整</a></li>
+<li><a href="#8">8. 特殊人群</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">药理 I · 药代动力学的定量骨架<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>药代动力学（PK）= 身体对药物做了什么</strong>，药效学（PD，下一页）= 药物对身体做了什么。PK 是一个线性房室系统，<strong>几乎所有临床给药规则都能从三个参数推出来</strong>：清除率 <span class="arithmatex">\(Cl\)</span>、分布容积 <span class="arithmatex">\(V_d\)</span>、生物利用度 <span class="arithmatex">\(F\)</span>。🔗 数学站常微分方程与 🔗 研究生数学线性系统那两页是本页的数学母体。</p>
+</blockquote>
+<h2 id="1-adme">1. ADME 四过程<a class="headerlink" href="#1-adme" title="Permanent link"></a></h2>
+<p><strong>吸收 Absorption → 分布 Distribution → 代谢 Metabolism → 排泄 Excretion</strong>。</p>
+<p><strong>吸收</strong>：口服药需穿过肠上皮，<strong>非离子型脂溶分子被动扩散最快</strong>。由 Henderson–Hasselbalch，弱酸 <span class="arithmatex">\(pK_a\)</span> 与环境 pH 决定离子化比例：</p>
+<div class="arithmatex">\[\text{弱酸}:\ \log_{10}\frac{[A^-]}{[HA]} = pH - pK_a\]</div>
+<p><strong>推论</strong>：弱酸（阿司匹林 <span class="arithmatex">\(pK_a \approx 3.5\)</span>）在胃的酸性环境中大部分非离子化 → 可被吸收；<strong>碱化尿液使弱酸在肾小管中离子化 → 不能重吸收 → 加速排出</strong>——这正是<strong>水杨酸中毒时用碳酸氢钠碱化尿液</strong>的机制，是酸碱化学的直接临床应用。</p>
+<p><strong>首过效应</strong>：口服药经门静脉入肝，部分在到达体循环前被代谢。<strong>生物利用度</strong></p>
+<div class="arithmatex">\[F = \frac{AUC_{\text{口服}}/D_{\text{口服}}}{AUC_{\text{静脉}}/D_{\text{静脉}}}\]</div>
+<p><strong>硝酸甘油首过效应极强 → 舌下含服绕开门脉</strong>；<strong>利多卡因口服无效 → 只能注射</strong>。<strong>直肠下段与舌下静脉回流绕过肝</strong>，是这条原理的两个解剖出口。</p>
+<h2 id="2">2. 分布容积：一个"虚拟"体积<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<div class="arithmatex">\[V_d = \frac{\text{体内药量}}{\text{血浆浓度}}\]</div>
+<p><strong>它不是真实体积，而是"如果药物在全身都是血浆浓度，需要多大体积"</strong>。所以：</p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(V_d\)</span>（70 kg）</th>
+<th>提示</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>≈ 3–5 L</td>
+<td>局限于血浆（<strong>大分子或高蛋白结合</strong>）</td>
+<td>华法林、肝素</td>
+</tr>
+<tr>
+<td>≈ 14 L</td>
+<td>分布于细胞外液</td>
+<td>氨基糖苷类、非去极化肌松药</td>
+</tr>
+<tr>
+<td>≈ 42 L</td>
+<td>全身体水</td>
+<td>乙醇、锂</td>
+</tr>
+<tr>
+<td><strong>≫ 42 L</strong>（可达数百 L）</td>
+<td><strong>大量组织结合</strong>（脂溶或与组织蛋白结合）</td>
+<td><strong>地高辛（~500 L）、氯喹、胺碘酮（数千 L）</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong><span class="arithmatex">\(V_d\)</span> 极大的临床后果</strong>：① <strong>透析清不掉</strong>（血中只占极小份额，如地高辛）；② <strong>需要负荷剂量</strong>；③ <strong>半衰期极长</strong>（胺碘酮停药后数月仍有活性）。</p>
+<p><strong>蛋白结合</strong>：<strong>白蛋白结合酸性药</strong>、<strong>α₁-酸性糖蛋白结合碱性药</strong>。<strong>只有游离药物有活性</strong>。低白蛋白血症（肝病、肾病综合征、危重）→ 游离比例上升 → <strong>同样的总浓度可能已中毒</strong>（苯妥英是经典例子，需测游离浓度）。</p>
+<h2 id="3">3. 清除率与消除动力学<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<div class="arithmatex">\[Cl = \frac{\text{消除速率}}{C} \quad [\text{体积/时间}]\]</div>
+<p><strong>总清除率 = 各器官清除率之和</strong>（<span class="arithmatex">\(Cl = Cl_{\text{肝}} + Cl_{\text{肾}} + \dots\)</span>）。器官清除率满足</p>
+<div class="arithmatex">\[Cl_{\text{器官}} = Q \times E,\qquad E = \frac{C_{\text{in}} - C_{\text{out}}}{C_{\text{in}}}\]</div>
+<p><span class="arithmatex">\(Q\)</span> 为器官血流，<span class="arithmatex">\(E\)</span> 为<strong>摄取分数</strong>。<strong>两个极端值得记</strong>：<strong>高摄取药物（<span class="arithmatex">\(E \to 1\)</span>，如利多卡因、普萘洛尔）受血流限制</strong>——心衰时肝血流下降则清除显著下降；<strong>低摄取药物（<span class="arithmatex">\(E \ll 1\)</span>，如华法林、苯妥英）受酶活与蛋白结合限制</strong>——受肝酶诱导/抑制影响大。</p>
+<p><strong>一级消除（绝大多数药物）</strong>：消除速率正比于浓度。</p>
+<div class="arithmatex">\[\frac{dC}{dt} = -k C,\qquad C(t) = C_0 e^{-kt},\qquad k = \frac{Cl}{V_d}\]</div>
+<p><strong>半衰期</strong>：</p>
+<div class="arithmatex">\[t_{1/2} = \frac{\ln 2}{k} = \frac{0.693\,V_d}{Cl}\]</div>
+<p><strong>这个公式是本页最该记住的一条</strong>：<strong>半衰期不是独立参数，它由 <span class="arithmatex">\(V_d\)</span> 与 <span class="arithmatex">\(Cl\)</span> 共同决定</strong>。所以肾功能下降（<span class="arithmatex">\(Cl\)</span> ↓）或分布容积增大（水肿、肥胖）都会延长半衰期。</p>
+<p><strong>零级消除（少数但危险）</strong>：消除酶饱和，速率恒定。<strong>"WEL PAS"——W</strong>arfarin（高剂量）、<strong>E</strong>thanol、<strong>L</strong>inezolid、<strong>P</strong>henytoin、<strong>A</strong>spirin（高剂量）、<strong>S</strong>alicylates。<strong>临床后果</strong>：剂量小幅增加 → 血药浓度<strong>非线性暴涨</strong>。<strong>苯妥英与乙醇是最典型的例子</strong>——这也是酒精中毒时"再喝一点点"可能致命的药代原因。</p>
+<p>其行为服从 <strong>Michaelis–Menten</strong>：</p>
+<div class="arithmatex">\[-\frac{dC}{dt} = \frac{V_{max} C}{K_m + C}\]</div>
+<p><span class="arithmatex">\(C \ll K_m\)</span> 时近似一级；<span class="arithmatex">\(C \gg K_m\)</span> 时退化为零级（恒速）。</p>
+<h2 id="4">4. 单剂量：一室与二室<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Single-dose plasma concentration: one- and two-compartment models" src="assets/img/med-13-pk-single.svg" /></p>
+<figcaption><span class="fig-id">图 13.1</span>静脉单次给药后的血药浓度（**半对数坐标**）。一室模型呈单一直线（斜率 \(=-k/2.303\)）。二室模型呈**双相**：快速下降的**分布相（α）**反映药物从血浆向组织再分布，随后是较平缓的**消除相（β）**。**临床含义**：对二室药物，给药后立刻测浓度会得到误导性的高值——治疗药物监测必须在分布相结束后取样（如地高辛须给药 6–8 小时后）。</figcaption>
+</figure>
+<p>一室模型静脉推注后：<span class="arithmatex">\(C(t) = \dfrac{D}{V_d}e^{-kt}\)</span>。取对数即得直线，<strong>斜率给 <span class="arithmatex">\(k\)</span>、截距给 <span class="arithmatex">\(V_d\)</span></strong>——这是最基础的参数估计方法。</p>
+<p><strong>二室</strong>：中央室（血浆 + 灌注丰富的器官）与外周室（肌肉、脂肪）。浓度是双指数：<span class="arithmatex">\(C(t) = A e^{-\alpha t} + B e^{-\beta t}\)</span>。<strong>硫喷妥钠的经典现象</strong>：单次诱导后患者数分钟即苏醒，<strong>不是因为药被消除，而是因为再分布到肌肉与脂肪</strong>；反复给药使外周室饱和后，<strong>苏醒时间急剧延长</strong>。</p>
+<h2 id="5">5. 多剂量与稳态：临床给药方案的全部依据<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="Multiple dosing, steady state, and loading dose" src="assets/img/med-13-pk-multi.svg" /></p>
+<figcaption><span class="fig-id">图 13.2</span>按固定间隔重复给药的血药浓度。**无负荷剂量时（实线）需约 4–5 个半衰期达到稳态**，且稳态水平与给药间隔无关、只由剂量率与清除率决定；缩短给药间隔（点线）不改变平均稳态浓度，但**减小峰谷波动**。**给予负荷剂量（虚线）可立即达到治疗浓度**，随后由维持剂量保持——这正是抗心律失常药、抗生素与抗癫痫药常用负荷量的原因。</figcaption>
+</figure>
+<p><strong>稳态浓度</strong>（连续输注或反复给药的平均值）：</p>
+<div class="arithmatex">\[C_{ss} = \frac{F \cdot D / \tau}{Cl} = \frac{\text{给药速率}}{Cl}\]</div>
+<p><strong>三条可直接用于临床的推论</strong>：</p>
+<ol>
+<li><strong><span class="arithmatex">\(C_{ss}\)</span> 只取决于剂量率与清除率</strong>——改变给药间隔而保持日总量不变，<strong>平均浓度不变，只改变波动幅度</strong>；</li>
+<li><strong>达到稳态需要 4–5 个 <span class="arithmatex">\(t_{1/2}\)</span></strong>（<span class="arithmatex">\(1-2^{-n}\)</span>：1 个半衰期 50%、2 个 75%、3 个 87.5%、4 个 93.75%、5 个 96.9%），<strong>与剂量无关</strong>。同理，<strong>停药后清除干净也需 4–5 个半衰期</strong>；</li>
+<li><strong>负荷剂量</strong>用于跨过这段等待：</li>
+</ol>
+<div class="arithmatex">\[D_{\text{负荷}} = \frac{C_{\text{目标}} \times V_d}{F}, \qquad D_{\text{维持}} = \frac{C_{ss} \times Cl \times \tau}{F}\]</div>
+<p><strong>注意这一对公式的分工</strong>：<strong>负荷剂量只依赖 <span class="arithmatex">\(V_d\)</span></strong>（要"装满"身体），<strong>维持剂量只依赖 <span class="arithmatex">\(Cl\)</span></strong>（要"补上流失"）。<strong>所以肾功能不全者需减维持剂量而通常不需减负荷剂量</strong>——这是一个经常被弄反、却完全可从公式读出的临床要点。</p>
+<h2 id="6-i-ii-cyp">6. 代谢：I 相、II 相与 CYP<a class="headerlink" href="#6-i-ii-cyp" title="Permanent link"></a></h2>
+<p><strong>I 相</strong>（氧化、还原、水解；主要由 <strong>CYP450</strong> 完成）→ 生成更极性的代谢物，<strong>常仍有活性</strong>；<strong>II 相</strong>（结合：葡萄糖醛酸化、硫酸化、乙酰化、谷胱甘肽结合）→ 通常<strong>灭活并利于排泄</strong>。</p>
+<p><strong>老年人 I 相功能下降更明显</strong>，故老年患者优先选择<strong>主要经 II 相代谢</strong>的药物（如劳拉西泮、奥沙西泮、替马西泮——"<strong>LOT</strong>"，相对安全）。</p>
+<p><strong>CYP 相互作用（临床事故的高发区）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>强诱导剂（<strong>降低</strong>底物浓度）</th>
+<th>强抑制剂（<strong>升高</strong>底物浓度）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>利福平</strong>、卡马西平、苯妥英、苯巴比妥、圣约翰草、慢性乙醇</td>
+<td><strong>唑类抗真菌</strong>、<strong>大环内酯（红霉素、克拉霉素）</strong>、<strong>蛋白酶抑制剂（利托那韦）</strong>、胺碘酮、西咪替丁、<strong>葡萄柚汁</strong>、急性乙醇</td>
+</tr>
+</tbody>
+</table>
+<p><strong>两个必须记住的具体后果</strong>：<strong>利福平使口服避孕药失效</strong>；<strong>唑类 + 他汀 → 横纹肌溶解风险显著升高</strong>。</p>
+<p><strong>前药</strong>需代谢激活：<strong>氯吡格雷经 CYP2C19 激活</strong>——<strong>CYP2C19 慢代谢者疗效差</strong>（这是药物基因组学最成熟的例子之一，见第 24 页）；<strong>可待因经 CYP2D6 转为吗啡</strong>——<strong>超快代谢者可发生致命呼吸抑制</strong>，这是它在儿童与哺乳期禁用的原因。</p>
+<p><strong>对乙酰氨基酚的毒性通路</strong>值得单独讲：常规剂量下主要经葡萄糖醛酸化与硫酸化（II 相）安全排出，少量经 CYP2E1 生成<strong>毒性中间体 NAPQI</strong>，被<strong>谷胱甘肽</strong>中和。<strong>过量时 II 相饱和 → NAPQI 大量生成 → 谷胱甘肽耗竭 → 肝小叶中心坏死</strong>。<strong>解毒剂 N-乙酰半胱氨酸补充谷胱甘肽前体</strong>，且<strong>越早越有效</strong>。<strong>慢性饮酒诱导 CYP2E1 且耗竭谷胱甘肽 → 中毒阈值下降</strong>——机制完全解释了临床剂量建议。</p>
+<h2 id="7">7. 排泄与肾功能调整<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>肾排泄 = 肾小球滤过（仅游离药）+ 肾小管分泌（主动，有竞争）− 重吸收（受尿 pH 影响）</strong>。</p>
+<p><strong>分泌竞争的经典例子</strong>：<strong>丙磺舒竞争性抑制青霉素的近端小管分泌 → 延长青霉素作用</strong>（历史上青霉素稀缺时的省药手段）；<strong>同理它抑制尿酸分泌 → 促尿酸排泄治痛风</strong>。</p>
+<p><strong>肾功能不全的剂量调整</strong>用 <strong>Cockcroft–Gault</strong> 估算肌酐清除率：</p>
+<div class="arithmatex">\[Cl_{cr} = \frac{(140 - \text{年龄}) \times \text{体重(kg)}}{72 \times S_{cr}(\text{mg/dL})}\ \times\ 0.85(\text{女性})\]</div>
+<p><strong>注意其前提</strong>：稳态肌酐、肌肉量正常。<strong>急性肾损伤时肌酐尚未升高，公式会严重高估肾功能</strong>；<strong>肌少的老年人与恶病质患者也会被高估</strong>——这是临床上过量给药的常见来源。</p>
+<p><strong>治疗窗窄、必须做治疗药物监测（TDM）的药</strong>：<strong>地高辛、锂、苯妥英、茶碱、氨基糖苷类、万古霉素、他克莫司、华法林（测 INR 而非浓度）</strong>。<strong>记住这份名单的实际意义</strong>：它们的中毒剂量与治疗剂量重叠。</p>
+<h2 id="8">8. 特殊人群<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>老年</strong>：<span class="arithmatex">\(V_d\)</span> 改变（体水↓、脂肪↑ → <strong>脂溶药半衰期延长</strong>）、白蛋白↓、肝肾功能↓、<strong>受体敏感性改变</strong>（对苯二氮䓬与抗胆碱药更敏感）。<strong>Beers 标准</strong>列出老年应避免的药物（抗胆碱药、长效苯二氮䓬、部分 NSAIDs）。</p>
+<p><strong>妊娠</strong>：血容量↑（<span class="arithmatex">\(V_d\)</span> ↑）、GFR ↑（<strong>清除加快</strong>）、<strong>胎盘转运</strong>（脂溶、非离子化、低分子量易过）。<strong>致畸窗口在器官发生期（受孕后 3–8 周）最敏感</strong>。<strong>已知致畸药</strong>：ACEI/ARB（胎儿肾发育异常）、华法林、异维 A 酸、丙戊酸、甲氨蝶呤、四环素、沙利度胺。<strong>FDA 已废弃 A/B/C/D/X 字母分级</strong>，改为叙述性的 PLLR 标签——旧字母分级仍在中文资料中流传，<strong>属于过期知识</strong>。</p>
+<p><strong>儿童</strong>：<strong>不是"缩小的成人"</strong>——新生儿肝酶不成熟（<strong>灰婴综合征</strong>：氯霉素葡萄糖醛酸化不足）、血脑屏障未完善、体表面积/体重比高。</p>
+<p><strong>基因多态性</strong>：<strong>CYP2D6</strong>（可待因、他莫昔芬、多种抗抑郁药）、<strong>CYP2C19</strong>（氯吡格雷、PPI）、<strong>TPMT/NUDT15</strong>（<strong>硫唑嘌呤致命性骨髓抑制，用药前应检测</strong>）、<strong>HLA-B*5701</strong>（阿巴卡韦超敏）、<strong>HLA-B*1502</strong>（<strong>卡马西平致 Stevens–Johnson 综合征，在亚裔中显著富集，用药前应筛查</strong>）。<strong>最后两项是"药物基因组学已进入常规临床"的确凿例子</strong>。</p>
+<hr />
+<p><em>下一页：药效学——受体理论、量效曲线与治疗窗，把"多大剂量产生多大效应"讲成一条可计算的关系。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-antimicrobials.html"><span class="pager-label">上一页</span>感染 II · 抗微生物药、耐药与疫苗</a>
+  <a class="pager-slot next" href="14-pharmacodynamics.html"><span class="pager-label">下一页</span>药理 II · 药效学：受体、量效与治疗窗</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

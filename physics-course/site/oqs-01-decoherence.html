@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>退相干与主方程 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li class="active"><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="comp-01-methods.html">计算物理 · 蒙卡与分子动力学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="neq-01-fluctuation.html">非平衡 · Langevin、线性响应与涨落定理</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 23:03</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先补一件工具：为什么需要密度矩阵</a></li>
+<li><a href="#2">2. 系统 + 环境：约化密度矩阵</a></li>
+<li><a href="#3">3. 为什么桌子不会处于叠加态</a></li>
+<li><a href="#4">4. 主方程：把演化写下来</a></li>
+<li><a href="#5">5. 测量：比"坍缩"更完整的描述</a></li>
+<li><a href="#6">6. 为什么这一页在今天很重要</a></li>
+<li><a href="#7">7. 要点回顾</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">开放量子系统 · 退相干与主方程<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Breuer &amp; Petruccione《The Theory of Open Quantum Systems》/ Nielsen &amp; Chuang ch.8 / Zurek RMP 2003 ｜ <strong>本页自足</strong>：不假设你熟悉密度矩阵，会从头搭起来。
+你在量子力学课上学的薛定谔方程，描述的是一个<strong>与世隔绝</strong>的系统。而现实中没有任何系统与世隔绝——它总在与空气分子、热辐射、周围的电磁场交换着什么。本页处理这个"现实版"的量子力学，并回答一个几乎人人都问过的问题：<strong>既然电子可以同时在两处，为什么桌子不行？</strong></p>
+</blockquote>
+<figure class="plot">
+<p><img alt="Bloch 球上的退相干过程与相干性衰减曲线。" src="assets/img/oqs-01-decoherence.svg" /></p>
+<figcaption><span class="fig-id">图 oqs-01.1</span>左：Bloch 球上，纯态在球面、混合态在球内。退相干使态向球心（或极点）收缩。右：布居弛豫（\(T_1\)）与相位相干性衰减（\(T_2\)）的典型曲线——<strong>相干性通常比能量衰减快得多</strong>。</figcaption>
+</figure>
+<h2 id="1">1. 先补一件工具：为什么需要密度矩阵<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>波函数不够用的场合。</strong> 设想两种情形：</p>
+<p><strong>(a)</strong> 一个自旋处于叠加态 <span class="arithmatex">\(|\psi\rangle = \tfrac{1}{\sqrt2}(|\uparrow\rangle+|\downarrow\rangle)\)</span>；
+<strong>(b)</strong> 一个自旋，有 50% 概率是 <span class="arithmatex">\(|\uparrow\rangle\)</span>、50% 概率是 <span class="arithmatex">\(|\downarrow\rangle\)</span>，但我们不知道是哪个。</p>
+<p><strong>沿 <span class="arithmatex">\(z\)</span> 方向测量，两者给出完全相同的结果</strong>（各 50%）。但沿 <span class="arithmatex">\(x\)</span> 方向测量：情形 (a) <strong>确定</strong>给出 <span class="arithmatex">\(+x\)</span>，情形 (b) 仍是各 50%。</p>
+<p><strong>所以它们是不同的物理状态</strong>——(a) 是<strong>相干叠加</strong>，(b) 是<strong>经典的无知</strong>。而波函数只能描述 (a)。</p>
+<p><strong>密度矩阵</strong>把两者统一进同一个对象：</p>
+<div class="arithmatex">\[\rho = \sum_i p_i\,|\psi_i\rangle\langle\psi_i|\]</div>
+<p>对情形 (a)：<span class="arithmatex">\(\rho_a = \tfrac12\begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix}\)</span>；对情形 (b)：<span class="arithmatex">\(\rho_b=\tfrac12\begin{pmatrix}1&amp;0\\0&amp;1\end{pmatrix}\)</span>。</p>
+<p><strong>区别全在非对角元上。</strong> 对角元是"在各基态上的概率"，<strong>非对角元（称为相干项）编码了叠加的相位关系</strong>——它才是量子性的所在。</p>
+<p><strong>判据</strong>：<span class="arithmatex">\(\mathrm{Tr}(\rho^2)=1\)</span> 为<strong>纯态</strong>（可用波函数描述），<span class="arithmatex">\(&lt;1\)</span> 为<strong>混合态</strong>。</p>
+<h2 id="2">2. 系统 + 环境：约化密度矩阵<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>现在考虑一个系统 <span class="arithmatex">\(S\)</span> 与环境 <span class="arithmatex">\(E\)</span>。整体是封闭的，遵守薛定谔方程；但<strong>我们只能测量系统</strong>。</p>
+<p><strong>"只关心系统"在数学上叫求偏迹（partial trace）</strong>：</p>
+<div class="arithmatex">\[\rho_S = \mathrm{Tr}_E\,\rho_{SE}\]</div>
+<p>直观地说：<strong>把环境的所有可能状态求和平均掉，剩下的就是我们能观测到的一切</strong>。</p>
+<p><strong>关键现象出现了。</strong> 设系统初态为叠加 <span class="arithmatex">\((|0\rangle+|1\rangle)/\sqrt2\)</span>，环境初态 <span class="arithmatex">\(|E_0\rangle\)</span>。若相互作用使得</p>
+<div class="arithmatex">\[|0\rangle|E_0\rangle\to|0\rangle|E_0\rangle,\qquad |1\rangle|E_0\rangle\to|1\rangle|E_1\rangle\]</div>
+<p>即<strong>环境"记录"了系统处于哪个态</strong>（这就是"环境在测量系统"的确切含义），则整体态变为纠缠态 <span class="arithmatex">\(\tfrac{1}{\sqrt2}(|0\rangle|E_0\rangle+|1\rangle|E_1\rangle)\)</span>。求偏迹后：</p>
+<div class="arithmatex">\[\rho_S = \frac12\begin{pmatrix}1 &amp; \langle E_1|E_0\rangle\\ \langle E_0|E_1\rangle &amp; 1\end{pmatrix}\]</div>
+<p><strong>非对角元被乘上了环境态的交叠 <span class="arithmatex">\(\langle E_1|E_0\rangle\)</span>。</strong> 当环境的两个状态变得几乎正交（<span class="arithmatex">\(\langle E_1|E_0\rangle\to0\)</span>，意味着环境"确凿地记录"了信息），<strong>非对角元趋于零——叠加的相干性消失了</strong>。</p>
+<p><strong>这就是退相干。</strong> 注意它的机制：<strong>信息泄漏到环境中</strong>。系统本身没有"坍缩"，只是它与环境纠缠了，而我们看不到环境。</p>
+<h2 id="3">3. 为什么桌子不会处于叠加态<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>上面的机制给出了一个可以估算的时标。<strong>物体越大、与环境耦合越强，环境记录信息越快，退相干越快。</strong></p>
+<p>粗略的量级感受（具体数值依模型与环境而异，此处只取量级）：
+- <strong>孤立原子在超高真空中</strong>：相干可维持秒量级；
+- <strong>超导量子比特</strong>：微秒到毫秒（这正是量子计算工程的主战场）；
+- <strong>一粒尘埃，仅受宇宙微波背景辐射照射</strong>：退相干时间远小于一秒；
+- <strong>一只猫</strong>：退相干时间小到没有任何意义。</p>
+<p><strong>结论</strong>：<strong>宏观物体的叠加态并非被禁止，而是维持不了任何可观测的时间。</strong> 你无法看到桌子的叠加，不是因为量子力学在大尺度失效，而是因为<strong>环境无时无刻不在"测量"它</strong>。</p>
+<p><strong>这是二十世纪后期量子基础研究最重要的洞见之一</strong>：经典世界的"经典性"不是外加的公设，而是<strong>从量子力学 + 环境相互作用中涌现</strong>出来的。</p>
+<p><strong>但必须诚实地划一条线</strong>【重要】：<strong>退相干解释了"为什么看不到干涉"，却没有解释"为什么最终只出现一个确定的结果"。</strong>
+- 它把相干叠加变成了<strong>看起来像</strong>经典概率混合的东西；
+- 但"到底哪一个真的发生了"——这个<strong>测量问题</strong>依然存在，不同的量子力学诠释（多世界、导波、客观坍缩等）对此给出不同回答。
+<strong>退相干是一个被广泛接受的物理机制，不是对诠释问题的解决。</strong> 混淆这两件事是这个领域最常见的误传。</p>
+<h2 id="4">4. 主方程：把演化写下来<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>我们希望有一个只涉及系统的演化方程。在若干合理近似下（环境很大且很快"忘记"过去，即马尔可夫近似；系统与环境耦合较弱），可以证明最一般的形式是 <strong>Lindblad 主方程</strong>：</p>
+<div class="arithmatex">\[\frac{d\rho}{dt} = \underbrace{-\frac{i}{\hbar}[H,\rho]}_{\text{幺正演化}} + \underbrace{\sum_k\left(L_k\rho L_k^\dagger - \tfrac12\{L_k^\dagger L_k,\rho\}\right)}_{\text{耗散项}}\]</div>
+<p><strong>逐项理解</strong>：
+- <strong>第一项</strong>就是熟悉的薛定谔演化（写成密度矩阵形式）；
+- <strong><span class="arithmatex">\(L_k\)</span> 称为 Lindblad 算符或跳跃算符</strong>，每一个代表环境施加的一种"作用方式"；
+- <strong>第一部分 <span class="arithmatex">\(L_k\rho L_k^\dagger\)</span></strong> 描述"跳跃发生了"，<strong>后面的反对易项</strong>保证概率守恒。</p>
+<p><strong>为什么形式必须是这样</strong>：它是保证 <span class="arithmatex">\(\rho\)</span> 始终<strong>保持厄米、迹为一、且半正定</strong>（即始终是合法的物理状态）的最一般演化。<strong>这不是一个模型假设，而是一个数学定理</strong>（Gorini–Kossakowski–Sudarshan–Lindblad）。</p>
+<p><strong>两个最常用的例子</strong>：</p>
+<p><strong>振幅衰减</strong>（<span class="arithmatex">\(L=\sqrt{\gamma}\,\sigma_-\)</span>）：激发态往基态跌落。<strong>这就是自发辐射</strong>，时标记作 <span class="arithmatex">\(T_1\)</span>。</p>
+<p><strong>纯退相位</strong>（<span class="arithmatex">\(L=\sqrt{\gamma_\phi/2}\,\sigma_z\)</span>）：能量不变，但相位被随机扰乱，<strong>非对角元指数衰减</strong>。</p>
+<p>合起来定义两个实验上最常报告的量：</p>
+<div class="arithmatex">\[\frac{1}{T_2} = \frac{1}{2T_1}+\frac{1}{T_\phi}\]</div>
+<p><strong><span class="arithmatex">\(T_1\)</span> 是能量弛豫时间，<span class="arithmatex">\(T_2\)</span> 是相干时间，且总有 <span class="arithmatex">\(T_2\le2T_1\)</span>。</strong> 一般 <span class="arithmatex">\(T_2\ll T_1\)</span>——<strong>相干性比能量更脆弱</strong>，因为扰乱相位比夺走一份能量容易得多。</p>
+<h2 id="5">5. 测量：比"坍缩"更完整的描述<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>初等量子力学里的测量公设（投影 + 坍缩）其实是理想情形。更一般的框架叫 <strong>POVM</strong>：一组算符 <span class="arithmatex">\(\{M_m\}\)</span> 满足 <span class="arithmatex">\(\sum_m M_m^\dagger M_m = I\)</span>，结果 <span class="arithmatex">\(m\)</span> 的概率为 <span class="arithmatex">\(p_m=\mathrm{Tr}(M_m^\dagger M_m\rho)\)</span>，测后态为 <span class="arithmatex">\(M_m\rho M_m^\dagger/p_m\)</span>。</p>
+<p><strong>它能描述投影测量做不到的事</strong>：不完美探测器、只提取部分信息的<strong>弱测量</strong>、以及"测量导致的反作用可以被调节"这一事实。</p>
+<p><strong>连续弱测量</strong>是当今实验的常规手段：不断地轻微窥探系统，一边获取信息一边尽量少扰动。<strong>Haroche 与 Wineland 因用这类方法直接观测单个量子系统的退相干过程而获 2012 年诺贝尔物理学奖</strong>——<strong>退相干从理论预言变成了可以逐帧录像的实验现象。</strong></p>
+<h2 id="6">6. 为什么这一页在今天很重要<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>量子技术的全部工程难度，几乎都可以归结为"对抗退相干"</strong>：</p>
+<ul>
+<li><strong>量子计算</strong>：算法能跑多深，取决于 <span class="arithmatex">\(T_2\)</span> 与门操作时间之比。<strong>量子纠错</strong>的整套理论（纠错码、阈值定理）就是为了在有噪声的硬件上维持相干；</li>
+<li><strong>量子传感</strong>：相干时间越长，可积累的相位越多，灵敏度越高；</li>
+<li><strong>量子通信</strong>：光子在光纤中的退相干限制了距离。</li>
+</ul>
+<p><strong>同时它也给出一个反向的洞见</strong>：退相干并非纯粹的敌人。<strong>耗散可以被设计</strong>——通过工程化的环境，可以把系统<strong>驱动到</strong>想要的量子态（耗散态制备），这是近年的活跃方向。</p>
+<h2 id="7">7. 要点回顾<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>密度矩阵</strong>统一描述相干叠加与经典混合；<strong>区别全在非对角元</strong>；</li>
+<li><strong>退相干 = 信息泄漏到环境</strong>：环境"记录"了系统状态，求偏迹后非对角元被环境态的交叠压制；</li>
+<li><strong>宏观叠加不是被禁止，而是维持不了可观测的时间</strong>——经典性是涌现的；</li>
+<li><strong>退相干解释了干涉的消失，没有解决"哪个结果发生"的测量问题</strong>——两者必须分清；</li>
+<li><strong>Lindblad 方程是保持物理合法性的最一般演化</strong>，<span class="arithmatex">\(T_1\)</span>、<span class="arithmatex">\(T_2\)</span> 是它的两个基本时标，且 <span class="arithmatex">\(T_2\le2T_1\)</span>；</li>
+<li><strong>量子技术的核心工程问题，就是与退相干赛跑。</strong><span class="arithmatex">\(\blacksquare\)</span></li>
+</ul>
+<hr />
+<p><em>下一页：既然相干性如此脆弱，实验上如何造出并维持宏观的量子态？答案是把物质冷到接近绝对零度——冷原子物理。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="aqm-03-path-density.html"><span class="pager-label">上一页</span>高量 III · 路径积分与密度矩阵</a>
+  <a class="pager-slot next" href="ced-01-boundary.html"><span class="pager-label">下一页</span>电动力学 I · 边值问题与多极展开</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

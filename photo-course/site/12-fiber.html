@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>波导原理与色散 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li class="active"><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、导光原理</a></li>
+<li><a href="#vs">二、单模 vs 多模</a></li>
+<li><a href="#1550-nm">三、损耗：为什么是 1550 nm</a></li>
+<li><a href="#_2">四、色散：脉冲为什么会展宽</a></li>
+<li><a href="#_3">五、光纤的种类与制造</a></li>
+<li><a href="#_4">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">光纤 I · 波导原理与色散<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ 光纤是人类建造过的最重要的信息基础设施之一。
+一根头发丝粗细的玻璃，能把光传输数十公里而只损失一半多一点的功率——<strong>这是材料科学与波导物理共同创造的奇迹</strong>。本页讲清光为什么能被约束在纤芯里、损耗为什么能做到那么低、以及限制传输容量的两大敌人：损耗与色散。</p>
+</blockquote>
+<h2 id="_1">一、导光原理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>几何光学图像</strong>：纤芯折射率 <span class="arithmatex">\(n_1\)</span> 略高于包层 <span class="arithmatex">\(n_2\)</span>，光以大于临界角入射时<strong>全内反射</strong>（第一页），被约束在纤芯中前进。</p>
+<p><strong>数值孔径</strong>：</p>
+<div class="arithmatex">\[\mathrm{NA}=\sqrt{n_1^2-n_2^2}\]</div>
+<p><strong>典型值</strong>：单模光纤 NA≈0.14（纤芯与包层折射率差仅约 0.3%——<strong>这个"弱导"设计正是低损耗与单模的关键</strong>）。</p>
+<p><strong>波动光学图像（更准确）</strong>：光纤是介质波导，只支持一组离散的<strong>导模</strong>。</p>
+<p><strong>归一化频率（V 数）</strong>：</p>
+<div class="arithmatex">\[V = \frac{2\pi a}{\lambda}\mathrm{NA}\]</div>
+<p><strong>单模条件</strong>：<span class="arithmatex">\(V &lt; 2.405\)</span>（贝塞尔函数的第一个零点）。</p>
+<p><strong>这直接决定了纤芯尺寸</strong>：1550 nm 波长下，单模光纤纤芯直径约 <strong>8–10 μm</strong>；多模则为 50 或 62.5 μm。</p>
+<p><strong>模场直径（MFD）</strong>比纤芯直径更实用——<strong>光场并非完全限制在纤芯内</strong>，有相当部分在包层中传播。<strong>耦合效率、弯曲损耗、非线性效应都由 MFD 决定，而非纤芯直径</strong>。</p>
+<h2 id="vs">二、单模 vs 多模<a class="headerlink" href="#vs" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>单模（SMF）</th>
+<th>多模（MMF）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纤芯</td>
+<td>8–10 μm</td>
+<td>50 / 62.5 μm</td>
+</tr>
+<tr>
+<td>带宽×距离</td>
+<td><strong>极高</strong></td>
+<td>受模间色散限制</td>
+</tr>
+<tr>
+<td>耦合难度</td>
+<td><strong>难</strong>（需精密对准）</td>
+<td>容易</td>
+</tr>
+<tr>
+<td>光源</td>
+<td>DFB/EML（贵）</td>
+<td>VCSEL（便宜）</td>
+</tr>
+<tr>
+<td>用途</td>
+<td>长距、高速骨干</td>
+<td>数据中心内、短距</td>
+</tr>
+</tbody>
+</table>
+<p><strong>多模的根本限制是模间色散</strong>：不同模式走的路径长度不同 → <strong>同时发出的光不同时到达</strong> → 脉冲展宽。</p>
+<p><strong>渐变折射率（GI）光纤</strong>是一个漂亮的对策：折射率从中心向外<strong>抛物线式递减</strong> → 走外圈路径长的模式<strong>在低折射率区跑得更快</strong> → <strong>各模式到达时间近似相等</strong>。这把多模光纤的带宽提高了两个数量级以上。</p>
+<p><strong>为什么数据中心仍大量用多模</strong>：<strong>器件成本</strong>。VCSEL + 多模光纤 + 宽松对准的总成本，远低于 DFB + 单模方案。<strong>在几百米距离内，这个成本优势压倒了带宽劣势</strong>——<strong>又一次"够用即可"的工程判断</strong>。</p>
+<h2 id="1550-nm">三、损耗：为什么是 1550 nm<a class="headerlink" href="#1550-nm" title="Permanent link"></a></h2>
+<p><strong>三种主要损耗机制</strong>（它们共同决定了通信窗口的位置）：</p>
+<ul>
+<li><strong>瑞利散射</strong>：材料密度微观涨落引起，<span class="arithmatex">\(\propto 1/\lambda^4\)</span> → <strong>短波长损耗大</strong>；</li>
+<li><strong>红外吸收</strong>：石英的分子振动吸收，<strong>长波长急剧上升</strong>；</li>
+<li><strong>OH⁻ 吸收峰</strong>：约 1383 nm 处的水峰（现代工艺已大幅消除）。</li>
+</ul>
+<p><strong>两条趋势相交处即最低损耗点</strong>：<strong>1550 nm，约 0.2 dB/km</strong>。</p>
+<p><strong>这个数字值得体会</strong>：0.2 dB/km 意味着<strong>传输 15 km 后仍保留约一半功率</strong>。<strong>普通窗玻璃若做到这个透明度，可以看穿数十公里厚</strong>。<strong>这是材料提纯的巨大成就</strong>——正是它把长距光通信从设想变成现实（相关贡献获诺贝尔物理学奖）。</p>
+<p><strong>通信波段</strong>：O 带（1310 nm，<strong>零色散</strong>）、C 带（1530–1565 nm，<strong>最低损耗 + EDFA 增益带</strong>）、L 带（1565–1625 nm）。<strong>C 带是长途干线的主战场</strong>。</p>
+<p><strong>其他损耗</strong>：弯曲损耗（<strong>弯曲半径过小时光会泄漏</strong>——这是布线的实际约束，抗弯光纤通过沟槽设计改善）、接续与连接器损耗。</p>
+<h2 id="_2">四、色散：脉冲为什么会展宽<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>色散使不同频率成分传播速度不同 → 脉冲展宽 → 码间干扰 → 限制速率×距离。</strong></p>
+<p><strong>单模光纤中的色散</strong>：</p>
+<div class="arithmatex">\[D = D_{\text{材料}} + D_{\text{波导}} \quad [\mathrm{ps/(nm\cdot km)}]\]</div>
+<ul>
+<li><strong>材料色散</strong>：<span class="arithmatex">\(n(\lambda)\)</span> 的变化；</li>
+<li><strong>波导色散</strong>：模场分布随波长变化 → <strong>可通过纤芯折射率剖面设计来调整</strong>。</li>
+</ul>
+<p><strong>这个可设计性极有价值</strong>：
+- <strong>标准单模光纤（SMF-28）</strong>：零色散在约 1310 nm；在 1550 nm 处 <span class="arithmatex">\(D\approx +17\)</span> ps/(nm·km)；
+- <strong>色散位移光纤（DSF）</strong>：把零色散点移到 1550 nm。<strong>但后来发现这是个错误</strong>——零色散处<strong>四波混频</strong>等非线性效应极强（第十四页），反而不利于 WDM；
+- <strong>非零色散位移光纤（NZ-DSF）</strong>：<strong>故意保留少量色散</strong>以抑制非线性，同时不至于过大。<strong>这是"一点点缺陷反而有益"的经典工程案例</strong>；
+- <strong>色散补偿光纤（DCF）</strong>：具有大负色散，用于抵消积累的正色散。</p>
+<p><strong>现代做法的转变</strong>（重要）：随着<strong>相干接收 + DSP</strong>的普及（第十三页），<strong>色散不再需要在光域补偿</strong>——<strong>接收端用数字滤波器精确补偿即可</strong>。这大幅简化了链路设计。<strong>又一次"把光学难题转成数字问题"</strong>（🔗 微电子站的同一主旋律）。</p>
+<p><strong>偏振模色散（PMD）</strong>：承第五页，随机、时变，<strong>难以静态补偿</strong>，同样交给 DSP 动态跟踪。</p>
+<h2 id="_3">五、光纤的种类与制造<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>保偏光纤（PMF）</strong>：故意引入强双折射锁定偏振（第五页）；</li>
+<li><strong>色散补偿、大有效面积光纤</strong>（降低非线性）；</li>
+<li><strong>多芯/少模光纤</strong>：<strong>空分复用（SDM）</strong>——在一根光纤里放多个纤芯或利用多个模式，是提升单纤容量的前沿方向；</li>
+<li><strong>光子晶体光纤（PCF）/空芯光纤</strong>：<strong>光在空气中传播</strong> → 非线性极低、时延更小（光速更接近 <span class="arithmatex">\(c\)</span>）。<strong>空芯光纤在低时延金融交易与特殊应用中已有部署</strong>，是活跃的研究方向。</li>
+</ul>
+<p><strong>制造</strong>：先做<strong>预制棒</strong>（MCVD/OVD/VAD 化学气相沉积，把高纯度玻璃层层沉积），再在拉丝塔上<strong>加热拉丝</strong>，同时在线镀覆保护涂层。<strong>几何比例在拉丝中被精确保持</strong>——一根一米的预制棒可拉出数十公里光纤。</p>
+<h2 id="_4">六、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li><strong>弱导（<span class="arithmatex">\(\Delta n \approx 0.3\%\)</span>）+ 全内反射</strong>是光纤导光的基础；<strong>单模条件 <span class="arithmatex">\(V&lt;2.405\)</span></strong> 决定纤芯只有 8–10 μm；</li>
+<li><strong>模场直径而非纤芯直径</strong>决定耦合、弯曲与非线性；</li>
+<li><strong>渐变折射率化解模间色散</strong>；多模因器件成本在短距仍占优；</li>
+<li><strong>1550 nm 的 0.2 dB/km</strong> 由瑞利散射与红外吸收两条曲线相交决定，是材料提纯的巨大成就；</li>
+<li><strong>波导色散可设计</strong>；<strong>零色散光纤因非线性反而不利</strong>，故有 NZ-DSF；</li>
+<li><strong>现代系统用 DSP 在电域补偿色散与 PMD</strong>，简化了光域设计。</li>
+</ul>
+<hr />
+<p><em>下一页：把光纤、激光器、探测器组装成系统。光通信如何在三十年里把容量提升了几个数量级，以及它现在面临的极限。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-imaging-mtf.html"><span class="pager-label">上一页</span>探测 III · 成像质量与计算成像</a>
+  <a class="pager-slot next" href="13-optical-comm.html"><span class="pager-label">下一页</span>光纤 II · 光通信系统</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>齿轮与传动系统 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li class="active"><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、齿廓啮合基本定律</a></li>
+<li><a href="#_2">二、为什么是渐开线</a></li>
+<li><a href="#_3">三、基本参数与几何</a></li>
+<li><a href="#_4">四、齿轮的两种失效模式</a></li>
+<li><a href="#_5">五、齿轮系与速比</a></li>
+<li><a href="#_6">六、传动系统设计的思路</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">传动 II · 齿轮与传动系统<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 业界核心零件。
+齿轮是机械传动的主力。它看似只是"带齿的轮子"，但<strong>齿廓的形状不是随意画的</strong>——它由一个严格的运动学要求推导而来。本页从这个要求出发，讲到齿轮的强度、失效与传动系统设计。</p>
+</blockquote>
+<h2 id="_1">一、齿廓啮合基本定律<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>要求</strong>：两轮以<strong>恒定传动比</strong>啮合。若传动比波动，从动轮就会周期性加减速 → 惯性力 → 振动与噪声（承第七页）。</p>
+<p><strong>基本定律</strong>：两齿廓在任一接触点的<strong>公法线，必须通过连心线上的一个固定点</strong>（节点 P）。</p>
+<div class="arithmatex">\[i = \frac{\omega_1}{\omega_2} = \frac{r_2}{r_1} = \text{常数}\]</div>
+<p><strong>满足这个条件的齿廓有多种</strong>，工程上主要用<strong>渐开线</strong>。</p>
+<h2 id="_2">二、为什么是渐开线<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>渐开线的定义：一条直线在基圆上纯滚动时，直线上一点的轨迹。</p>
+<p><strong>渐开线齿廓的四个决定性优点</strong>（这四条解释了它统治齿轮世界的原因）：</p>
+<p><strong>① 中心距可变而传动比不变。</strong> 装配误差、轴承磨损、热膨胀使中心距略有变化时，<strong>传动比仍严格恒定</strong>（只是压力角与齿隙略变）。<strong>这个性质对制造与装配极其宽容</strong>，是渐开线胜出的首要原因。</p>
+<p><strong>② 齿廓可用直边刀具加工。</strong> 渐开线齿轮的<strong>基本齿条是直线齿廓</strong>，因此可用简单的直线刃刀具（滚刀、插齿刀）以<strong>范成法</strong>加工——<strong>一把刀具可以加工同模数、任意齿数的齿轮</strong>。这是巨大的制造经济性优势。</p>
+<p><strong>③ 传力方向恒定。</strong> 啮合点始终沿<strong>啮合线</strong>（基圆的公切线）移动，压力角恒定 → <strong>轴承受力方向不变</strong>，利于设计。</p>
+<p><strong>④ 可互换性。</strong> 同模数、同压力角的齿轮都能互相啮合。<strong>标准压力角 20°</strong> 是全球通用标准。</p>
+<h2 id="_3">三、基本参数与几何<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>模数 <span class="arithmatex">\(m\)</span></strong> 是齿轮的"尺寸单位"：</p>
+<div class="arithmatex">\[d = mz, \qquad p = \pi m\]</div>
+<p><span class="arithmatex">\(d\)</span> 为分度圆直径，<span class="arithmatex">\(z\)</span> 为齿数，<span class="arithmatex">\(p\)</span> 为齿距。<strong>模数已标准化</strong>（1, 1.25, 1.5, 2, 2.5, 3, 4, 5…），<strong>因为刀具按模数配备</strong>。</p>
+<p><strong>两个必须掌握的概念</strong>：</p>
+<p><strong>① 重合度 <span class="arithmatex">\(\varepsilon\)</span></strong>：平均同时啮合的齿数。</p>
+<div class="arithmatex">\[\varepsilon &gt; 1 \ \text{是连续传动的必要条件}\]</div>
+<p><strong><span class="arithmatex">\(\varepsilon\)</span> 越大，载荷分担越均匀、噪声越小</strong>。直齿轮 <span class="arithmatex">\(\varepsilon\)</span> 通常在 1.2–1.8；<strong>斜齿轮因有轴向重合度，总重合度可达 2–3 以上，因而运转平稳、噪声低</strong>——这是汽车变速箱普遍用斜齿轮的原因（代价是产生轴向力，需要止推轴承）。</p>
+<p><strong>② 根切与最少齿数</strong>：齿数太少时，刀具会把齿根切去一部分，削弱强度。标准直齿轮（压力角 20°、正常齿）的<strong>理论最少齿数为 17</strong>。</p>
+<p><strong>变位齿轮</strong>是对策：把刀具径向移动一个距离加工。<strong>变位不改变模数与压力角，却能</strong>：
+- 避免根切（少于 17 齿也能做）；
+- <strong>调整中心距</strong>（配凑非标中心距）；
+- 平衡两轮的齿根强度与磨损。
+<strong>变位是齿轮设计中一个强有力却常被忽视的工具。</strong></p>
+<h2 id="_4">四、齿轮的两种失效模式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>这是齿轮设计的核心——两种失效机理完全不同，必须分别校核</strong>：</p>
+<figure>
+<p><img alt="齿轮的两种失效模式" class="fig-img" src="assets/img/mec_gear.svg" /></p>
+<figcaption><span class="fig-id">图 11-1</span> 齿轮的两类失效。<strong>齿根弯曲疲劳</strong>（上）：齿被当作悬臂梁，齿根圆角处应力集中，裂纹从此萌生并扩展直至断齿——一旦发生即为<strong>灾难性失效</strong>。<strong>齿面接触疲劳（点蚀）</strong>（下）：赫兹接触应力使次表面产生裂纹，材料逐片剥落——发展较缓，可通过监测发现。<strong>硬齿面齿轮通常由弯曲强度控制，软齿面由接触强度控制</strong>，这决定了设计时该优先加大模数还是加大直径。</figcaption>
+</figure>
+<p><strong>① 齿根弯曲疲劳</strong>（断齿）：把齿看作悬臂梁，齿根圆角处应力集中（承第一页）。</p>
+<div class="arithmatex">\[\sigma_F = \frac{F_t}{bm}Y_F \cdot (\text{各修正系数})\]</div>
+<p><strong>关键：<span class="arithmatex">\(\sigma_F \propto 1/m\)</span></strong> → <strong>提高弯曲强度靠增大模数</strong>（齿变大变粗）。</p>
+<p><strong>② 齿面接触疲劳</strong>（点蚀）：赫兹接触应力（承第五页）导致次表面裂纹与剥落。</p>
+<div class="arithmatex">\[\sigma_H \propto \sqrt{\frac{F_t}{b d}} \cdot (\cdots)\]</div>
+<p><strong>关键：<span class="arithmatex">\(\sigma_H\)</span> 与直径相关</strong> → <strong>提高接触强度靠增大直径（或提高齿面硬度）</strong>。</p>
+<p><strong>这个区别有直接的设计后果</strong>：
+- <strong>要抗断齿</strong>：增大模数（齿数不变则直径也增大，但主要靠模数）；
+- <strong>要抗点蚀</strong>：增大直径或<strong>表面硬化</strong>（渗碳淬火可使接触疲劳极限大幅提高）；
+- <strong>硬齿面齿轮</strong>（渗碳淬火，HRC 58–62）通常<strong>由弯曲强度控制</strong>；<strong>软齿面</strong>（调质）通常<strong>由接触强度控制</strong>。</p>
+<p><strong>其他失效</strong>：胶合（高速重载下油膜破裂、齿面焊合撕裂——靠润滑油极压添加剂与降低闪温对抗）、磨粒磨损、塑性变形。</p>
+<h2 id="_5">五、齿轮系与速比<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p><strong>定轴轮系</strong>：<span class="arithmatex">\(i_{\text{总}} = \prod i_k\)</span>，注意方向（外啮合反向、内啮合同向）。</p>
+<p><strong>行星轮系</strong>：用<strong>转化机构法</strong>（给整个系统加上 <span class="arithmatex">\(-\omega_H\)</span>，转化为定轴轮系）求解。</p>
+<p><strong>行星轮系的优点</strong>（现代传动的主流）：
+- <strong>功率分流</strong>：多个行星轮分担载荷 → <strong>同样体积传递更大功率</strong>；
+- <strong>同轴布置</strong>：输入输出同轴，结构紧凑；
+- <strong>大速比</strong>：单级可达 10 以上，复合式更大；
+- <strong>可实现差速</strong>（汽车差速器）与多档变速（自动变速箱）。</p>
+<p><strong>代价</strong>：制造精度要求高（<strong>多个行星轮必须均载</strong>，否则一个轮承担全部载荷），装配有齿数条件限制。</p>
+<p><strong>其他传动的定位</strong>：
+- <strong>蜗杆传动</strong>：单级速比可达 80，<strong>可自锁</strong>（承第一页），但<strong>效率低</strong>（自锁型常低于 50%，滑动摩擦大、发热严重）；
+- <strong>谐波减速器</strong>：体积小、速比大、<strong>回差极小</strong>，机器人关节常用；但刚度较低、寿命有限；
+- <strong>RV 减速器</strong>：刚度高、精度高、抗冲击，工业机器人主关节的主流；
+- <strong>带传动/链传动</strong>：可远距离、有缓冲；带传动<strong>可打滑（过载保护）</strong>但有滑差、链传动有多边形效应。</p>
+<h2 id="_6">六、传动系统设计的思路<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p><strong>分配速比的原则</strong>：
+- 多级减速时，<strong>高速级取较小速比、低速级取较大速比</strong>（使各级尺寸协调、浸油润滑深度合理）；
+- <strong>扭矩决定尺寸</strong>（承第六页）：低速级扭矩最大，因此尺寸最大——这是减速箱"一头大一头小"的原因。</p>
+<p><strong>齿轮传动的噪声与振动</strong>：<strong>啮合频率 = 齿数 × 转速</strong>（承第七页那张表）。齿轮制造误差、齿距偏差、装配偏心会在啮合频率周围产生<strong>边带</strong>——<strong>频谱上的边带间距对应故障轴的转速</strong>，这是齿轮箱故障诊断的关键判据。</p>
+<p><strong>修形</strong>：为补偿受载变形与制造误差，高端齿轮会做<strong>齿廓修形与齿向修鼓</strong>——让齿在受载后才成为理想形状。<strong>这是"故意做不准，以便受载后正好准"的精妙做法</strong>，在风电齿轮箱、汽车变速箱中是标准工艺。</p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>齿廓啮合基本定律</strong>要求公法线过节点；<strong>渐开线胜出的关键是中心距可变仍恒传动比 + 可用直刃刀具范成加工</strong>；</li>
+<li><strong>重合度 <span class="arithmatex">\(&gt;1\)</span> 是连续传动的必要条件</strong>，斜齿轮重合度高故平稳低噪；</li>
+<li><strong>变位是避免根切、配凑中心距、平衡强度的有力工具</strong>；</li>
+<li><strong>弯曲疲劳靠增大模数、接触疲劳靠增大直径或表面硬化</strong>——两种失效必须分别校核；</li>
+<li><strong>行星轮系靠功率分流实现紧凑大扭矩</strong>，代价是均载与精度要求；</li>
+<li><strong>啮合频率及其边带</strong>是齿轮箱诊断的核心特征。</li>
+</ul>
+<hr />
+<p><em>下一页：轴系与轴承——机器的关节。以及一个常被低估的学科：摩擦学。机械系统的能量损失与失效，很大一部分发生在两个表面接触的地方。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-mechanisms.html"><span class="pager-label">上一页</span>传动 I · 机构运动学</a>
+  <a class="pager-slot next" href="12-bearing-tribology.html"><span class="pager-label">下一页</span>传动 III · 轴系、轴承与摩擦学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

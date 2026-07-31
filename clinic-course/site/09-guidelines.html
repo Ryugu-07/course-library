@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>替代终点与指南是怎么做出来的 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li class="active"><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 硬终点与替代终点</a></li>
+<li><a href="#2">2. 替代终点失败的经典名单</a></li>
+<li><a href="#3">3. 加速批准：制度化的替代终点</a></li>
+<li><a href="#4">4. 指南是怎么做出来的</a></li>
+<li><a href="#5">5. 当指南互相矛盾时</a></li>
+<li><a href="#6-de-implementation">6. 去实施（de-implementation）：比新增更难的事</a></li>
+<li><a href="#7">7. 迁移：这一页与你的工作最直接相关的一节</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">循证 V · 替代终点与指南是怎么做出来的<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p>本页处理证据链条上最脆弱的两环：<strong>用什么来衡量"有效"</strong>，以及<strong>谁把证据变成"应该这样做"</strong>。这两环出问题时，前面所有的严谨都会被抵消。</p>
+</blockquote>
+<h2 id="1">1. 硬终点与替代终点<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>硬终点（patient-important outcome）</strong>：<strong>死亡、心梗、卒中、住院、骨折、失明、症状、功能、生活质量</strong>——<strong>患者自己在乎的事</strong>。</p>
+<p><strong>替代终点（surrogate)</strong>：<strong>血压、LDL、糖化血红蛋白、骨密度、肿瘤缩小率、CD4 计数、病毒载量、室性早搏数、脑淀粉样蛋白负荷</strong>——<strong>测起来快、便宜、事件多，因而能大幅缩短试验</strong>。</p>
+<p><strong>替代终点的合法性条件（Prentice 准则）非常严格</strong>：干预对硬终点的全部效应必须<strong>通过</strong>该替代终点传导。<strong>这在实践中极难满足</strong>，因为：① 干预常有多条通路（有的有益、有的有害）；② 替代终点与结局的相关性<strong>不等于</strong>"改变它就改变结局"。</p>
+<p><strong>一句话判据</strong>：<strong>"某指标是风险因素"与"改善该指标能改善结局"是两个独立的命题，后者必须单独证明。</strong></p>
+<h2 id="2">2. 替代终点失败的经典名单<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>这份名单是本站最重要的教学材料之一</strong>，因为每一条当年都被认为显而易见：</p>
+<table>
+<thead>
+<tr>
+<th>干预</th>
+<th>替代终点</th>
+<th>硬终点结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ic 类抗心律失常药</strong>（氟卡尼、恩卡尼）</td>
+<td><strong>室性早搏减少</strong> ✓</td>
+<td><strong>CAST 试验：死亡率显著升高</strong>，试验提前终止</td>
+</tr>
+<tr>
+<td><strong>烟酸、CETP 抑制剂（托彻普）</strong></td>
+<td><strong>HDL 升高</strong> ✓</td>
+<td>心血管事件无改善；托彻普组死亡率升高</td>
+</tr>
+<tr>
+<td><strong>强化降糖至接近正常</strong>（ACCORD）</td>
+<td>糖化血红蛋白降低 ✓</td>
+<td><strong>全因死亡率升高</strong>，该组提前终止</td>
+</tr>
+<tr>
+<td><strong>氟卡尼类以外：多种正性肌力药</strong></td>
+<td>心输出量、症状改善 ✓</td>
+<td><strong>长期死亡率升高</strong></td>
+</tr>
+<tr>
+<td><strong>雌激素替代</strong>（观察性 + 替代指标）</td>
+<td>血脂改善 ✓</td>
+<td>WHI：无心血管保护</td>
+</tr>
+<tr>
+<td><strong>氟化物治骨质疏松</strong></td>
+<td><strong>骨密度显著升高</strong> ✓</td>
+<td><strong>骨折反而增加</strong>（新骨质量差）</td>
+</tr>
+<tr>
+<td><strong>罗非昔布（COX-2 抑制剂）</strong></td>
+<td>胃肠道内镜下溃疡减少 ✓</td>
+<td><strong>心血管事件增加 → 撤市</strong>（第 20 页）</td>
+</tr>
+<tr>
+<td><strong>贝伐珠单抗用于转移性乳腺癌</strong></td>
+<td>无进展生存期延长 ✓</td>
+<td>总生存无改善 → <strong>该适应证被撤销</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>共同结构</strong>：<strong>机制讲得通 + 替代指标改善 + 医生的强烈直觉 = 仍然可能有害。</strong> 🔗 姊妹站收官页把这条列为全课七主题之一。</p>
+<p><strong>替代终点合法的少数例子</strong>：<strong>HIV 病毒载量与 CD4</strong>（与临床进展的关联极强且被多项试验反复验证）、<strong>血压与卒中</strong>（多个不同机制的降压药都降低卒中，说明是血压本身在起作用）、<strong>LDL 与心血管事件</strong>（他汀、依折麦布、PCSK9 抑制剂三类机制不同的药一致降低事件，加上孟德尔随机化的支持）。</p>
+<p><strong>注意上面两个成功例子的共同特征</strong>：<strong>多种不同机制的干预，改变同一个替代指标，都得到一致的硬终点获益</strong>。<strong>这才是替代终点被"验证"的真正标准</strong>——单一药物的单一试验做不到。</p>
+<h2 id="3">3. 加速批准：制度化的替代终点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>监管机构允许在替代终点上批准药物</strong>（尤其肿瘤与罕见病），条件是<strong>上市后完成确证性试验</strong>。</p>
+<p><strong>这个制度的收益与代价都是真实的</strong>：它让致命疾病的患者更早获得药物；<strong>但确证性试验常延迟多年甚至未完成，而已上市的药物很难撤回</strong>。多项审计研究发现，<strong>相当比例的加速批准适应证在多年后仍缺乏确证性证据，或确证试验仍以替代终点为主</strong>。第 20 页展开监管细节。</p>
+<h2 id="4">4. 指南是怎么做出来的<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>理想流程</strong>：定义问题（PICO）→ 系统综述 → GRADE 评级 → 权衡收益危害 → 考虑患者价值观与资源 → 形成推荐 → 外部评议 → 定期更新。</p>
+<p><strong>现实中的六个薄弱环节</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>证据基础</strong></td>
+<td>大量推荐建立在<strong>低质量证据或专家意见</strong>上——多项分析显示，主要学会指南中"基于最高级别证据"的推荐<strong>只占少数</strong></td>
+</tr>
+<tr>
+<td><strong>利益冲突</strong></td>
+<td>指南委员会成员与药械企业的经济关系普遍；<strong>部分指南的多数专家有相关利益申报</strong></td>
+</tr>
+<tr>
+<td><strong>专业学会的立场</strong></td>
+<td>制定某领域指南的往往正是该领域的专科医生，<strong>存在系统性的"扩大适应证"倾向</strong></td>
+</tr>
+<tr>
+<td><strong>阈值的选定</strong></td>
+<td>高血压、糖尿病、血脂的诊断阈值每次下调，<strong>都会一夜之间制造出数千万"患者"</strong>——阈值的选定常缺乏明确的收益-危害分析</td>
+</tr>
+<tr>
+<td><strong>更新滞后</strong></td>
+<td>新证据出现后指南更新常需数年</td>
+</tr>
+<tr>
+<td><strong>推荐强度与证据强度错配</strong></td>
+<td>第 08 页的 GRADE 分离原则<strong>在实践中经常被违反</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>判断一份指南质量的工具是 AGREE II</strong>，其核心维度包括：范围与目的、参与人员（<strong>是否有患者与非专科代表</strong>）、制定严谨性（<strong>是否系统检索、是否明示证据到推荐的链接</strong>）、表达清晰、适用性、<strong>编辑独立性（利益冲突管理）</strong>。</p>
+<p><strong>一条实用的读法</strong>：<strong>直接翻到每条推荐后面的证据等级与推荐强度</strong>。若大量推荐是"专家共识/C 级证据"，那这份指南在很大程度上是<strong>一群人的意见</strong>，虽然可能是最好的可得意见。</p>
+<h2 id="5">5. 当指南互相矛盾时<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>这不是罕见情况</strong>。同一主题上，不同国家、不同学会的指南常给出不同阈值与不同起始年龄（乳腺癌筛查起始年龄、PSA 筛查、他汀一级预防阈值、血压目标值）。</p>
+<p><strong>分歧的来源通常不是"看到了不同证据"，而是</strong>：</p>
+<ol>
+<li><strong>对同一证据的收益-危害权衡不同</strong>（把过度诊断看得多重？）；</li>
+<li><strong>对患者价值观的假设不同</strong>（默认患者厌恶风险还是厌恶吃药？）；</li>
+<li><strong>卫生系统与支付背景不同</strong>；</li>
+<li><strong>委员会构成不同</strong>（专科学会 vs 独立预防服务工作组，后者通常更保守）。</li>
+</ol>
+<p><strong>推论</strong>：<strong>当指南分歧时，多半意味着这是一个真正需要共同决策的问题</strong>——<strong>分歧本身就是信息</strong>：它告诉你这里没有一个对所有人都正确的答案（第 24 页）。</p>
+<h2 id="6-de-implementation">6. 去实施（de-implementation）：比新增更难的事<a class="headerlink" href="#6-de-implementation" title="Permanent link"></a></h2>
+<p><strong>把无效的做法停下来，比引入新做法困难得多</strong>。已被证据推翻但仍在广泛使用的例子（各地情况不同）：</p>
+<ul>
+<li>稳定性冠心病的常规支架（COURAGE、ISCHEMIA：<strong>改善症状但不减少心梗与死亡</strong>）；</li>
+<li>膝关节退行性半月板撕裂的关节镜手术（<strong>多项与假手术对照的试验显示无差别</strong>）；</li>
+<li>椎体成形术的早期热潮（<strong>假手术对照试验显示无优势</strong>，后续证据有争议）；</li>
+<li>大量的常规术前检查、无症状人群的"全套体检套餐"、上呼吸道感染的抗生素。</li>
+</ul>
+<p><strong>"假手术对照试验"的存在本身值得注意</strong>：它证明了<strong>手术也有巨大的安慰剂成分</strong>（第 19 页）。<strong>在手术领域缺乏对照试验，长期以来是循证医学最大的空白之一。</strong></p>
+<p><strong>去实施困难的原因</strong>：既得利益、"做点什么"的心理压力、患者期待、支付结构、<strong>以及"我见过它有用"的个人经验</strong>（第 19 页讲为什么个人经验在这里几乎必然误导）。</p>
+<h2 id="7">7. 迁移：这一页与你的工作最直接相关的一节<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>🔗 <strong>替代终点问题在预测与投研中的同构</strong>：</p>
+<ul>
+<li><strong>"模型在回测上表现好"是替代终点，"实盘赚钱"是硬终点</strong>——两者的关系需要单独证明，而不是假设；</li>
+<li><strong>"命题命中率"是替代终点，"决策质量改善"是硬终点</strong>——你在 2026-07 的收网校验里做的正是把替代指标对照到真正的基线；</li>
+<li><strong>"改善某个中间指标的策略"未必改善最终结果</strong>，因为干预有多条通路（CAST 的教训：抑制早搏的药同时有致心律失常作用）；</li>
+<li><strong>加速批准的结构 = 先用替代指标上线、承诺日后验证</strong>——<strong>如果不设强制的确证机制，那个"日后"通常不会到来</strong>。这条对任何"先上线再评估"的系统都成立。</li>
+</ul>
+<hr />
+<p><em>线二完。下一线换一种体例：以症状为纲，走一遍临床上真正的思考顺序。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-meta.html"><span class="pager-label">上一页</span>循证 IV · 系统综述、meta 分析与 GRADE</a>
+  <a class="pager-slot next" href="10-chest-pain.html"><span class="pager-label">下一页</span>路径 I · 胸痛</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

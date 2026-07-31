@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>疲劳与断裂 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li class="active"><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、疲劳：低应力下的累积损伤</a></li>
+<li><a href="#s-n">二、S-N 曲线与疲劳极限</a></li>
+<li><a href="#_2">三、影响疲劳强度的因素</a></li>
+<li><a href="#_3">四、变幅载荷与损伤累积</a></li>
+<li><a href="#_4">五、断裂力学：带裂纹的结构还能用吗</a></li>
+<li><a href="#_5">六、设计对策清单</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">失效 I · 疲劳与断裂<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生专门方向 ｜ <strong>这是机械失效中最重要的一页</strong>。
+一个广为引用的工程共识：<strong>机械零件的失效中，疲劳占绝大多数</strong>（各类统计给出的比例常在 80% 以上）。疲劳的可怕之处在于——<strong>应力远低于屈服强度，零件也会断；而且断裂前几乎没有宏观征兆。</strong> 本页讲清疲劳的机理、判据与设计对策。</p>
+</blockquote>
+<h2 id="_1">一、疲劳：低应力下的累积损伤<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>现象</strong>：在<strong>交变应力</strong>下，即使最大应力远低于屈服强度，零件也会在若干次循环后断裂。</p>
+<p><strong>过程分三阶段</strong>：
+1. <strong>裂纹萌生</strong>：通常在<strong>表面</strong>的应力集中处（承第一页），由局部微塑性变形产生滑移带；
+2. <strong>裂纹稳定扩展</strong>：每个循环推进一点，在断口上留下<strong>疲劳辉纹（贝壳纹）</strong>；
+3. <strong>瞬时断裂</strong>：剩余截面不足以承载，突然断开。</p>
+<p><strong>断口特征极具诊断价值</strong>：疲劳断口有<strong>光滑的扩展区</strong>（贝壳纹，可反推裂纹源与扩展方向）与<strong>粗糙的瞬断区</strong>。<strong>看断口就能判断是疲劳还是过载</strong>——这是失效分析的第一步。</p>
+<h2 id="s-n">二、S-N 曲线与疲劳极限<a class="headerlink" href="#s-n" title="Permanent link"></a></h2>
+<figure>
+<p><img alt="S-N 曲线与疲劳极限" class="fig-img" src="assets/img/mec_sn.svg" /></p>
+<figcaption><span class="fig-id">图 14-1</span> S-N 曲线（双对数）。<strong>钢</strong>（蓝）在约 \(10^6\text{–}10^7\) 次循环后曲线趋于水平——存在<strong>疲劳极限</strong>，低于此应力理论上可无限次循环；<strong>铝合金等有色金属</strong>（红）<strong>没有真正的疲劳极限</strong>，曲线持续下降，只能给出"条件疲劳极限"（如 \(10^7\) 次对应的应力）。<strong>这个差别有重大工程后果：铝结构必须按有限寿命设计并定期检查。</strong></figcaption>
+</figure>
+<p><strong>两类材料的根本差别</strong>：
+- <strong>钢与钛</strong>：存在疲劳极限 <span class="arithmatex">\(\sigma_{-1}\)</span>（约为抗拉强度的 0.4–0.5）。<strong>设计在其之下，可视为无限寿命</strong>；
+- <strong>铝、镁、铜合金</strong>：<strong>无疲劳极限</strong>，任何应力水平下累积足够循环都会失效。</p>
+<p><strong>这解释了航空领域的一项基本制度</strong>：铝合金机身必须按<strong>安全寿命/损伤容限</strong>设计，规定检查间隔与退役寿命——<strong>因为不存在"永远安全"的应力水平</strong>。</p>
+<p><strong>高周疲劳 vs 低周疲劳</strong>：
+- <strong>高周疲劳</strong>（<span class="arithmatex">\(N&gt;10^4\)</span>）：应力低、以弹性变形为主，用 S-N 曲线（应力寿命法）；
+- <strong>低周疲劳</strong>（<span class="arithmatex">\(N&lt;10^4\)</span>）：每次循环都有明显塑性，用<strong>应变寿命法</strong>（Coffin–Manson 关系）。压力容器的启停、热循环属于此类。</p>
+<h2 id="_2">三、影响疲劳强度的因素<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>材料手册给出的 <span class="arithmatex">\(\sigma_{-1}\)</span> 是光滑小试样在实验室条件下的值。实际零件必须打一系列折扣</strong>：</p>
+<div class="arithmatex">\[\sigma_{-1}^{\text{零件}} = \sigma_{-1}\cdot\frac{\varepsilon_\sigma \beta}{K_\sigma}\]</div>
+<table>
+<thead>
+<tr>
+<th>因素</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>应力集中 <span class="arithmatex">\(K_\sigma\)</span></strong></td>
+<td><strong>最重要</strong>——缺口、键槽、螺纹、台阶、焊缝</td>
+</tr>
+<tr>
+<td><strong>尺寸 <span class="arithmatex">\(\varepsilon_\sigma\)</span></strong></td>
+<td>大件疲劳强度低（缺陷概率大、应力梯度小）</td>
+</tr>
+<tr>
+<td><strong>表面质量 <span class="arithmatex">\(\beta\)</span></strong></td>
+<td><strong>粗糙表面显著降低疲劳强度</strong>；抛光提高</td>
+</tr>
+<tr>
+<td><strong>表面处理</strong></td>
+<td><strong>喷丸、滚压、渗氮引入残余压应力 → 大幅提高疲劳寿命</strong></td>
+</tr>
+<tr>
+<td><strong>平均应力</strong></td>
+<td>拉伸平均应力有害，压缩有益</td>
+</tr>
+<tr>
+<td><strong>腐蚀环境</strong></td>
+<td>腐蚀疲劳无疲劳极限，寿命大幅下降</td>
+</tr>
+</tbody>
+</table>
+<p><strong>残余压应力是提高疲劳寿命最有效、最经济的手段之一</strong>：喷丸处理可使弹簧、齿轮、曲轴的疲劳寿命提高数倍。<strong>原理是抵消部分外加拉应力</strong>——因为疲劳裂纹只在拉应力下张开扩展。</p>
+<p><strong>平均应力的处理</strong>：用 <strong>Goodman 图</strong>或 Soderberg 直线把非对称循环折算为等效对称循环。</p>
+<div class="arithmatex">\[\frac{\sigma_a}{\sigma_{-1}}+\frac{\sigma_m}{\sigma_b} = 1 \quad (\text{Goodman})\]</div>
+<h2 id="_3">四、变幅载荷与损伤累积<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>真实载荷不是等幅正弦。<strong>Miner 线性累积损伤准则</strong>：</p>
+<div class="arithmatex">\[D = \sum\frac{n_i}{N_i} = 1 \ \Rightarrow \ \text{失效}\]</div>
+<p><strong>它的局限必须知道</strong>：
+- <strong>忽略载荷顺序效应</strong>（先大后小与先小后大的实际寿命不同——大载荷会产生裂纹尖端残余压应力而延缓后续扩展）；
+- 实测的临界 <span class="arithmatex">\(D\)</span> 值分散很大（0.3–3 都出现过）；
+- <strong>工程上常取 <span class="arithmatex">\(D \le 0.3\)</span>–<span class="arithmatex">\(0.7\)</span> 作为保守判据</strong>。</p>
+<p><strong>载荷谱的获取</strong>：实测应变 → <strong>雨流计数法</strong>把随机载荷分解为一系列循环 → 代入 Miner 累加。<strong>雨流计数是疲劳分析的标准前处理</strong>，汽车、工程机械的耐久性开发都建立在实测载荷谱上。</p>
+<h2 id="_4">五、断裂力学：带裂纹的结构还能用吗<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>传统强度设计假设材料无缺陷。<strong>断裂力学承认裂纹存在</strong>，问：<strong>多大的裂纹是危险的？</strong></p>
+<p><strong>应力强度因子</strong>：</p>
+<div class="arithmatex">\[K_I = Y\sigma\sqrt{\pi a}\]</div>
+<p><span class="arithmatex">\(a\)</span> 为裂纹尺寸，<span class="arithmatex">\(Y\)</span> 为几何因子。<strong>失效判据</strong>：</p>
+<div class="arithmatex">\[K_I \ge K_{IC}\ (\text{断裂韧性，材料常数})\]</div>
+<p><strong>由此得到临界裂纹尺寸</strong>：</p>
+<div class="arithmatex">\[a_c = \frac{1}{\pi}\left(\frac{K_{IC}}{Y\sigma}\right)^2\]</div>
+<p><strong>这个式子是"损伤容限设计"的基础</strong>——它把"能容忍多大裂纹"变成可计算的量，从而可以规定<strong>无损检测的灵敏度要求与检查周期</strong>。</p>
+<p><strong>裂纹扩展速率（Paris 律）</strong>：</p>
+<div class="arithmatex">\[\frac{da}{dN} = C(\Delta K)^m, \qquad m \approx 3\text{–}4\]</div>
+<p>积分可得<strong>剩余寿命</strong>——飞机、压力容器、桥梁的检修间隔正是这样确定的。</p>
+<p><strong>一个重要的材料权衡</strong>：<strong>强度与断裂韧性通常反向变化</strong>。高强度钢的 <span class="arithmatex">\(K_{IC}\)</span> 往往较低 → <strong>临界裂纹尺寸小</strong> → 对缺陷更敏感。<strong>所以"用更高强度的材料"在含缺陷结构中可能反而更危险</strong>——这与第四页"高强钢不防屈曲"是同类的反直觉结论。</p>
+<h2 id="_5">六、设计对策清单<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>按有效性排序（这是本页最实用的产出）：</p>
+<ol>
+<li><strong>消除应力集中</strong>：加大圆角、平滑过渡、卸载槽、把开孔移到低应力区——<strong>成本最低、收益最大</strong>；</li>
+<li><strong>改善表面</strong>：降低粗糙度、避免加工刀痕（尤其横向刀痕）；</li>
+<li><strong>引入残余压应力</strong>：喷丸、滚压、渗氮；</li>
+<li><strong>降低应力幅</strong>：加大截面（注意也会加大尺寸效应）；</li>
+<li><strong>选材</strong>：注意强度与韧性的权衡；</li>
+<li><strong>结构上防止裂纹贯通</strong>：<strong>止裂设计</strong>（多路径传力、加止裂筋）；</li>
+<li><strong>可检测性设计</strong>：让关键部位<strong>能被检查到</strong>——损伤容限哲学的核心。</li>
+</ol>
+<p><strong>焊接结构要特别注意</strong>：焊缝有残余拉应力、几何突变、以及内部缺陷，<strong>焊趾是典型的疲劳起源</strong>。焊接结构的疲劳设计有专门的等级体系（按接头形式分级），且<strong>打磨焊趾、TIG 重熔可显著提高寿命</strong>。</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>疲劳是机械失效的主因</strong>，且发生在远低于屈服强度处；断口特征可用于诊断；</li>
+<li><strong>钢有疲劳极限，铝没有</strong>——后者必须按有限寿命 + 定期检查设计；</li>
+<li><strong>应力集中是最重要的影响因素</strong>；<strong>残余压应力（喷丸）是最经济的强化手段</strong>；</li>
+<li><strong>Miner 准则忽略顺序效应</strong>，工程上取保守的临界损伤值；雨流计数是标准前处理；</li>
+<li><strong>断裂力学给出临界裂纹尺寸与剩余寿命</strong>，是损伤容限与检修周期的依据；</li>
+<li><strong>强度与断裂韧性反向</strong>——高强材料对缺陷更敏感。</li>
+</ul>
+<hr />
+<p><em>下一页：公差与配合。图纸上多写一位小数，成本可能翻倍——这一页讲设计与制造之间的正式契约。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-fluid-machinery.html"><span class="pager-label">上一页</span>传动 IV · 工程流体与泵风机要点</a>
+  <a class="pager-slot next" href="15-tolerance.html"><span class="pager-label">下一页</span>失效 II · 公差、配合与几何量</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

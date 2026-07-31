@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>像差与光学系统设计 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li class="active"><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、像差从哪来</a></li>
+<li><a href="#seidel">二、五种单色像差（Seidel）</a></li>
+<li><a href="#_2">三、色差</a></li>
+<li><a href="#_3">四、光学设计：一个优化问题</a></li>
+<li><a href="#_4">五、公差与装调：设计之外的一半</a></li>
+<li><a href="#_5">六、非球面与自由曲面</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">光学 II · 像差与光学系统设计<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 + 研究生/业界专门方向（光学设计师是一个独立职业）。
+上一页的成像公式建立在<strong>近轴近似</strong>（<span class="arithmatex">\(\sin\theta \approx \theta\)</span>）之上。真实系统中光线角度不小，<strong>光线不再精确交于一点</strong>——这就是像差。<strong>校正像差的历史几乎就是光学工业的历史</strong>，也是光学设计这门手艺的核心。</p>
+</blockquote>
+<h2 id="_1">一、像差从哪来<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>把 <span class="arithmatex">\(\sin\theta\)</span> 展开：</p>
+<div class="arithmatex">\[\sin\theta = \theta - \frac{\theta^3}{3!} + \frac{\theta^5}{5!} - \cdots\]</div>
+<ul>
+<li>保留一次项 → <strong>近轴光学</strong>（理想成像）；</li>
+<li>保留三次项 → <strong>三阶像差（Seidel 像差）</strong>，即经典的五种单色像差；</li>
+<li>更高阶 → 高级像差，大孔径大视场系统必须考虑。</li>
+</ul>
+<p><strong>所以像差不是"制造缺陷"，而是几何本身的必然结果</strong>——<strong>即使加工完美，球面透镜也不能完美成像。</strong> 这一点常被误解。</p>
+<h2 id="seidel">二、五种单色像差（Seidel）<a class="headerlink" href="#seidel" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>像差</th>
+<th>现象</th>
+<th>依赖</th>
+<th>典型对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>球差</strong></td>
+<td>边缘光线与近轴光线焦点不同</td>
+<td>孔径³</td>
+<td>非球面、透镜组合、收小光圈</td>
+</tr>
+<tr>
+<td><strong>彗差</strong></td>
+<td>轴外点成彗星状拖尾</td>
+<td>孔径²×视场</td>
+<td>对称结构、光阑位置</td>
+</tr>
+<tr>
+<td><strong>像散</strong></td>
+<td>子午与弧矢焦线分离</td>
+<td>孔径×视场²</td>
+<td>弯月透镜、场镜</td>
+</tr>
+<tr>
+<td><strong>场曲</strong></td>
+<td>像面是弯曲的</td>
+<td>视场²</td>
+<td><strong>Petzval 条件</strong>、场平坦化</td>
+</tr>
+<tr>
+<td><strong>畸变</strong></td>
+<td>形状失真（桶形/枕形）</td>
+<td>视场³</td>
+<td>对称结构、<strong>软件校正</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>几个重要的工程认识</strong>：</p>
+<p><strong>① 球差与孔径的三次方成正比</strong> → <strong>收小光圈能显著改善画质</strong>，这是摄影常识的物理根源。但收小到一定程度后，<strong>衍射极限开始主导</strong>（第四页），画质反而下降——<strong>存在一个最佳光圈</strong>。</p>
+<p><strong>② 场曲由 Petzval 和决定</strong>：</p>
+<div class="arithmatex">\[\sum \frac{1}{n_i f_i} = 0 \ \Rightarrow\ \text{像面平坦}\]</div>
+<p><strong>要平场，必须有负透镜参与</strong>。<strong>这是"为什么好镜头必须多片、且有正有负"的根本原因之一</strong>——不是厂商想卖贵，而是数学上必需。</p>
+<p><strong>③ 畸变不损失清晰度，只改变几何</strong> → <strong>它是唯一可以用软件完美校正的像差</strong>。<strong>现代手机镜头正是利用这一点</strong>：<strong>故意允许较大畸变以换取其他像差的校正与体积的缩小，再由 ISP 实时校正</strong>。<strong>这是"光学 + 计算"分工的最早、也最成功的例子</strong>（第十一页会展开）。</p>
+<h2 id="_2">三、色差<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>折射率随波长变化（色散）</strong> → 不同颜色焦点不同。</p>
+<ul>
+<li><strong>纵向色差</strong>：不同波长焦点前后不同；</li>
+<li><strong>横向色差（倍率色差）</strong>：不同波长放大率不同 → <strong>边缘出现彩边</strong>。</li>
+</ul>
+<p><strong>消色差（achromat）</strong>：用<strong>正冕牌 + 负火石</strong>两片胶合，使两个波长（通常 F、C 线）共焦。</p>
+<p><strong>原理</strong>：两片玻璃的<strong>色散不同</strong>（阿贝数 <span class="arithmatex">\(V_d\)</span> 不同），可以让焦距相等而色散相消：</p>
+<div class="arithmatex">\[\frac{1}{f_1 V_1} + \frac{1}{f_2 V_2} = 0\]</div>
+<p><strong>复消色差（apochromat）</strong>：三个波长共焦，需要<strong>特殊色散玻璃（ED、萤石）</strong>——这正是高端镜头昂贵的主要原因之一。</p>
+<p><strong>反射镜完全没有色差</strong> → 大型天文望远镜与部分光刻系统采用反射式（🔗 微电子站：EUV 因所有材料吸收，<strong>只能全反射式</strong>）。</p>
+<h2 id="_3">四、光学设计：一个优化问题<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>现代光学设计的本质是数值优化</strong>：</p>
+<ul>
+<li><strong>变量</strong>：曲率半径、厚度、间隔、玻璃牌号（离散！）、非球面系数；</li>
+<li><strong>目标（评价函数）</strong>：各视场、各波长、各孔径的光线偏差加权平方和，或直接优化 MTF；</li>
+<li><strong>约束</strong>：焦距、后工作距、外形尺寸、<strong>可加工性、成本、公差敏感度</strong>；</li>
+<li><strong>方法</strong>：阻尼最小二乘（DLS）为主 + 全局搜索。</li>
+</ul>
+<p><strong>这是一个典型的非凸优化问题</strong>（🔗 grad-math），<strong>存在大量局部极小</strong>。<strong>所以光学设计师的核心技能不是"会点软件"，而是</strong>：
+1. <strong>选对初始结构</strong>（从经典结构出发：双高斯、库克三片、Petzval…）；
+2. 理解各像差之间的<strong>平衡关系</strong>（消一个往往激起另一个）；
+3. 判断何时该<strong>加一片透镜、改玻璃、还是引入非球面</strong>。</p>
+<p><strong>这与 🔗 微电子站的模拟电路设计极其相似</strong>——<strong>都是"低维但高度耦合的非凸设计空间，依赖经验与拓扑选择，难以完全自动化"</strong>。两个行业的资深设计师都同样稀缺。</p>
+<h2 id="_4">五、公差与装调：设计之外的一半<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>这是学校讲得最少、工业上最要命的部分。</strong></p>
+<p>一个在软件中完美的设计，若对<strong>元件偏心、倾斜、间隔误差、面形误差、折射率批次波动</strong>过于敏感，<strong>就无法量产</strong>。</p>
+<p><strong>公差分析</strong>（蒙特卡洛为主）给出：在给定加工与装配公差下，<strong>成品性能的分布</strong>（承 🔗 机械站第十五、十六页的统计思想）。</p>
+<p><strong>关键判断</strong>：<strong>设计时就要为公差留裕度</strong>。有经验的设计师会<strong>主动牺牲一点标称性能，换取对公差的不敏感</strong>——<strong>因为"标称最优但装不出来"的设计毫无价值</strong>。这与机械站"能松则松"、微电子站"可制造性先于优雅"是完全同一种工程成熟度。</p>
+<p><strong>装调</strong>：干涉仪检测面形、自准直仪对轴、主动补偿。<strong>高端光学系统（光刻物镜、空间望远镜）的装调本身就是一门极高门槛的技艺</strong>，且往往是良率与成本的决定环节。</p>
+<h2 id="_5">六、非球面与自由曲面<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>非球面</strong>：一个非球面可替代多片球面，<strong>显著减小体积重量</strong>。手机镜头全部是塑料非球面（模压成型，成本极低）；玻璃非球面则需精密模压或磨抛，成本高；</li>
+<li><strong>自由曲面</strong>：无旋转对称性，用于 AR/VR 光学、离轴系统、汽车照明。<strong>设计与检测难度都大幅上升</strong>——<strong>"能设计出来但测不出来"是自由曲面的现实瓶颈</strong>；</li>
+<li><strong>衍射光学元件（DOE）</strong>：利用衍射而非折射，<strong>色散符号与折射相反</strong> → 可与折射元件配合做消色差（"混合光学"），且极轻薄。缺点是有衍射级次杂散光。</li>
+</ul>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>像差是几何必然，不是加工缺陷</strong>；三阶展开给出五种单色像差；</li>
+<li><strong>球差 ∝ 孔径³</strong> 解释了收小光圈的效果，但受衍射极限限制存在最佳光圈；</li>
+<li><strong>平场需要负透镜（Petzval 条件）</strong>——好镜头必须多片有正有负；</li>
+<li><strong>畸变可由软件完美校正</strong>，这是"光学+计算"分工的起点；</li>
+<li><strong>消色差靠两种色散不同的玻璃</strong>；反射系统无色差；</li>
+<li><strong>光学设计是非凸优化，初始结构与经验决定成败</strong>，与模拟电路设计同构；</li>
+<li><strong>公差不敏感性比标称性能更重要</strong>——装不出来的设计等于不存在。</li>
+</ul>
+<hr />
+<p><em>下一页：换一副眼镜看光。把光当作波，立刻得到几何光学永远给不出的东西：干涉、相干性，以及精密测量的基础。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-geometric.html"><span class="pager-label">上一页</span>光学 I · 几何光学与成像</a>
+  <a class="pager-slot next" href="03-interference.html"><span class="pager-label">下一页</span>光学 III · 干涉与相干性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

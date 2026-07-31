@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么要反馈 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li class="active"><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#vs">一、开环 vs 闭环</a></li>
+<li><a href="#_1">二、反馈买到的四样东西</a></li>
+<li><a href="#_2">三、代价：反馈会制造不稳定</a></li>
+<li><a href="#_3">四、稳态误差与积分作用</a></li>
+<li><a href="#_4">五、反馈之外：前馈</a></li>
+<li><a href="#_5">六、反馈无处不在</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">经典 I · 为什么要反馈<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心——这是整门课的思想原点。
+反馈的定义只有一句话：<strong>测量输出，与目标比较，用误差驱动修正</strong>。但它带来的性质如此之多、如此深刻，以至于整个学科都建立在这一句话上。本页说明反馈<strong>买到了什么</strong>、以及<strong>代价是什么</strong>——后者正是全课其余部分要处理的问题。</p>
+</blockquote>
+<h2 id="vs">一、开环 vs 闭环<a class="headerlink" href="#vs" title="Permanent link"></a></h2>
+<p><strong>开环控制</strong>：按预定规律施加输入，不看结果。烤箱定时器、按固定开度供气、机器人按预编程轨迹运动。</p>
+<p><strong>闭环控制</strong>：测量实际输出，与设定值比较，按误差修正。</p>
+<p><strong>开环并非一无是处</strong>——它简单、便宜、绝不会失稳，且在<strong>对象特性已知且干扰很小</strong>时完全够用。工业上大量场合就用开环（步进电机开环定位、许多加热控制）。</p>
+<p><strong>但开环有三个致命弱点</strong>：</p>
+<ol>
+<li><strong>无法抵抗干扰</strong>：外界扰动（负载变化、风、环境温度）没有任何机制被察觉与补偿；</li>
+<li><strong>依赖模型精度</strong>：控制律基于对象模型，模型错了输出就错；</li>
+<li><strong>无法应对变化</strong>：对象参数随温度、老化、磨损漂移，开环控制器毫无办法。</li>
+</ol>
+<h2 id="_1">二、反馈买到的四样东西<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>考虑标准结构：控制器 <span class="arithmatex">\(C(s)\)</span>、被控对象 <span class="arithmatex">\(P(s)\)</span>，回路增益 <span class="arithmatex">\(L = PC\)</span>。闭环传递函数：</p>
+<div class="arithmatex">\[T = \frac{L}{1+L}\ (\text{跟踪}), \qquad S = \frac{1}{1+L}\ (\text{灵敏度})\]</div>
+<p><strong>注意一个恒等式，它将贯穿全课</strong>：</p>
+<div class="arithmatex">\[S + T = 1\]</div>
+<p><strong>① 降低对模型误差的敏感性。</strong> 对象增益变化 <span class="arithmatex">\(\Delta P/P\)</span> 引起的闭环变化：</p>
+<div class="arithmatex">\[\frac{\Delta T}{T} = S \cdot \frac{\Delta P}{P}\]</div>
+<p><strong><span class="arithmatex">\(|S| \ll 1\)</span> 的频段，对象误差被压缩了 <span class="arithmatex">\(|S|\)</span> 倍。</strong> 这就是导论说的"用增益换精度"——<strong>一个特性糟糕、会漂移的执行机构，套上高增益反馈后，闭环行为主要由控制器与反馈网络决定</strong>。</p>
+<p><strong>② 抑制干扰。</strong> 输出端干扰 <span class="arithmatex">\(d\)</span> 对输出的影响也被乘上 <span class="arithmatex">\(S\)</span>。<span class="arithmatex">\(|S|\)</span> 小的频段，干扰被压制。</p>
+<p><strong>③ 改变动态特性。</strong> 反馈可以改变系统的极点位置——把慢的变快、把振荡的变稳（第四页根轨迹讲这件事怎么做）。</p>
+<p><strong>④ 镇定不稳定对象。</strong> 有些对象本身就不稳定（倒立摆、某些飞行器、磁悬浮），<strong>只有反馈能让它们工作</strong>。这是反馈不可替代的场合。</p>
+<h2 id="_2">三、代价：反馈会制造不稳定<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>这是全课的中心张力。</strong> 反馈回路里，误差驱动修正、修正改变输出、输出又改变误差——<strong>如果这个循环的相位延迟足够大，修正就会变成"火上浇油"</strong>。</p>
+<p>直觉：假设某频率下回路的相移达到 180°，那么"负反馈"在该频率上实际变成了<strong>正反馈</strong>。若此时回路增益还大于 1，扰动就会被不断放大 → <strong>振荡或发散</strong>。</p>
+<p><strong>这直接给出了稳定性判据的雏形</strong>：要稳定，需要在增益降到 1 之前，相位还没转到 −180°。<strong>相位裕度</strong>正是这个余量的度量（第五页正式处理）。</p>
+<p><strong>时滞是反馈的头号敌人</strong>：纯延迟 <span class="arithmatex">\(e^{-\tau s}\)</span> 不改变幅值，却<strong>在高频引入无限累积的相位滞后</strong>。所以有大延迟的系统（长管道的化工过程、网络控制、有通信延迟的远程操作）<strong>必须降低增益、牺牲性能</strong>才能稳定。</p>
+<figure>
+<p><img alt="开环与闭环对干扰的响应" class="fig-img" src="assets/img/aut_openloop_vs_closed.svg" /></p>
+<figcaption><span class="fig-id">图 1-1</span> 同一对象受到阶跃扰动时的响应。<strong>开环</strong>（灰）无法察觉扰动，输出永久偏离目标；<strong>低增益闭环</strong>（绿）缓慢纠正，残余误差较大；<strong>适中增益</strong>（品红）快速回到设定值；<strong>高增益 + 时滞</strong>（红）则过冲并持续振荡。<strong>这四条曲线概括了整门课的全部张力</strong>：反馈能纠错，但推得太狠就会失稳。</figcaption>
+</figure>
+<h2 id="_3">四、稳态误差与积分作用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>只用比例控制（<span class="arithmatex">\(C = K\)</span>）时，闭环稳态误差为</p>
+<div class="arithmatex">\[e_{ss} = \frac{1}{1+K P(0)}\]</div>
+<p><strong>除非 <span class="arithmatex">\(K \to \infty\)</span>，否则误差永不为零。</strong> 这在很多应用中不可接受（温度必须精确到设定值、位置必须准确到位）。</p>
+<p><strong>解法是积分作用</strong>：<span class="arithmatex">\(C(s) = K_i/s\)</span>。积分器在直流（<span class="arithmatex">\(s\to 0\)</span>）有无穷大增益，于是 <span class="arithmatex">\(S(0) = 0\)</span>——<strong>只要还有误差，积分就持续累加修正，直到误差归零</strong>。</p>
+<p><strong>这就是 PID 里的 I</strong>（第六页详述），也是<strong>内模原理</strong>的最简单情形：<strong>要无静差地跟踪某类信号，控制回路内部必须包含该信号的模型</strong>（跟踪阶跃需要积分器、跟踪正弦需要该频率的谐振器）。<strong>这是一个漂亮而普适的结论。</strong></p>
+<p><strong>代价</strong>：积分器引入 −90° 相移，<strong>恶化稳定裕度</strong>；且带来<strong>积分饱和（windup）</strong>问题（第六页）。<strong>又是同一个权衡：性能与稳定性。</strong></p>
+<h2 id="_4">五、反馈之外：前馈<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>反馈是"事后纠错"——<strong>必须先有误差才能修正</strong>，因此永远滞后。若干扰<strong>可测</strong>或参考轨迹<strong>已知</strong>，可以用<strong>前馈</strong>主动补偿，不必等误差出现。</p>
+<ul>
+<li><strong>前馈的优点</strong>：不引入稳定性问题（不构成回路）、响应快；</li>
+<li><strong>前馈的缺点</strong>：完全依赖模型精度，无法处理未测量的干扰。</li>
+</ul>
+<p><strong>工程上的标准做法是二者结合</strong>：前馈负责快速、已知的部分，反馈负责纠正剩余误差与未知干扰。<strong>这是实际工业控制系统的常见架构</strong>（也是🔗 生物站"应变稳态"那一节的对应物：身体在运动前就提前升高心率，这是前馈；再靠反馈修正）。</p>
+<h2 id="_5">六、反馈无处不在<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>值得一提的是这个思想的普适性——<strong>同一套数学出现在极不相同的领域</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>领域</th>
+<th>反馈回路</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生理学</td>
+<td>体温、血糖、渗透压调节（🔗 生物站）</td>
+</tr>
+<tr>
+<td>电子电路</td>
+<td>运放负反馈、PLL、稳压器（🔗 微电子站）</td>
+</tr>
+<tr>
+<td>经济</td>
+<td>价格调节供需</td>
+</tr>
+<tr>
+<td>生态</td>
+<td>捕食者—猎物</td>
+</tr>
+<tr>
+<td>机器学习</td>
+<td>梯度下降（误差驱动的参数修正）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这不是牵强类比</strong>：它们服从同样的稳定性条件、同样的增益—时滞权衡、同样的振荡机制。<strong>学会反馈，就获得了一副能看穿许多系统的眼镜</strong>——这是本学科给人最耐久的东西。</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>反馈买到</strong>：降低模型敏感性、抑制干扰、重塑动态、镇定不稳定对象；</li>
+<li><strong>代价是可能失稳</strong>，根源在于回路的相位滞后；<strong>时滞是头号敌人</strong>；</li>
+<li><strong>积分作用消除静差</strong>，代价是相位滞后与饱和问题；</li>
+<li><strong><span class="arithmatex">\(S+T=1\)</span></strong> 是全课反复出现的恒等式；</li>
+<li><strong>前馈 + 反馈</strong>是工程实践的标准组合。</li>
+</ul>
+<hr />
+<p><em>下一页：要定量地谈这些，先得把系统写成数学。建模与传递函数——如何把一个物理装置变成可以分析的对象。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一页</span>00 · 怎么读这门课</a>
+  <a class="pager-slot next" href="02-modeling.html"><span class="pager-label">下一页</span>经典 II · 建模与传递函数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成本效果、QALY 与资源分配 · 从症状到决策</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从症状到决策</a>
+    <div class="site-subtitle">临床推理与循证医学 · 每条治疗都给出 NNT</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课（附免责声明）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 诊断推理的数学</div><ul><li><a href="01-bayes.html">诊断 I · 诊断即推断：先验、似然比、后验</a></li><li><a href="02-test-characteristics.html">诊断 II · 检验特性：敏感度、ROC 与截断值</a></li><li><a href="03-screening.html">诊断 III · 筛查悖论与过度诊断</a></li><li><a href="04-reasoning-errors.html">诊断 IV · 临床推理的心理学与误诊</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 循证医学</div><ul><li><a href="05-study-design.html">循证 I · 研究设计阶梯与因果推断</a></li><li><a href="06-effect-size.html">循证 II · 效应量：RR、ARR、NNT 与 NNH</a></li><li><a href="07-bias.html">循证 III · 偏倚目录</a></li><li><a href="08-meta.html">循证 IV · 系统综述、meta 分析与 GRADE</a></li><li><a href="09-guidelines.html">循证 V · 替代终点与指南是怎么做出来的</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 以症状为纲的临床路径</div><ul><li><a href="10-chest-pain.html">路径 I · 胸痛</a></li><li><a href="11-dyspnea.html">路径 II · 呼吸困难</a></li><li><a href="12-abdominal-pain.html">路径 III · 腹痛</a></li><li><a href="13-fever.html">路径 IV · 发热</a></li><li><a href="14-headache-altered.html">路径 V · 头痛与意识改变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 慢病、筛查与预防</div><ul><li><a href="15-cv-risk.html">预防 I · 心血管风险与他汀/降压的决策分析</a></li><li><a href="16-diabetes.html">预防 II · 糖尿病：目标值之争</a></li><li><a href="17-cancer-screening.html">预防 III · 癌症筛查逐癌种证据对照</a></li><li><a href="18-vaccines-prophylaxis.html">预防 IV · 疫苗与预防性用药</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 治疗学的边界</div><ul><li><a href="19-placebo.html">边界 I · 安慰剂、自然史与均值回归</a></li><li><a href="20-drug-approval.html">边界 II · 药物审批、加速批准与撤市</a></li><li><a href="21-cam.html">边界 III · 补充替代医学的证据检视</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 系统与前沿（核对于 2026-07）</div><ul><li><a href="22-ai-clinic.html">前沿 I · AI 进入临床：证据现状</a></li><li class="active"><a href="23-health-economics.html">系统 I · 成本效果、QALY 与资源分配</a></li><li><a href="24-communication.html">系统 II · 风险沟通与共同决策</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="25-closing.html">收官 · 在不确定性下行动</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 机会成本：本页的全部起点</a></li>
+<li><a href="#2">2. 四种经济学评价</a></li>
+<li><a href="#3-qaly">3. QALY：定义、用法与批评</a></li>
+<li><a href="#4">4. 成本效果的直觉排序</a></li>
+<li><a href="#5">5. 罕见病与"一次性疗法"的定价难题</a></li>
+<li><a href="#6">6. 卫生系统的三个"看不见的"成本效果问题</a></li>
+<li><a href="#7">7. 迁移：这一页与你工作的接口</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-qaly">系统 I · 成本效果、QALY 与资源分配<a class="headerlink" href="#i-qaly" title="Permanent link"></a></h1>
+<blockquote>
+<p>前面的页面都在问"这个治疗对这个人有多大用"。<strong>本页问一个不同的问题：在资源有限的前提下，把钱花在哪里能产生最多的健康？</strong> 这是一个不可回避的问题——<strong>不做显式的取舍，就会做隐式的、更不公平的取舍。</strong></p>
+</blockquote>
+<h2 id="1">1. 机会成本：本页的全部起点<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>任何医疗支出都排挤了别的支出。</strong> 花在一项年费百万的疗法上的钱，本可以用于筛查、疫苗、基层医疗或护士编制。</p>
+<p><strong>"不惜一切代价"在个体伦理上可以理解，在系统层面则不成立</strong>——<strong>因为"代价"落在看不见的其他患者身上</strong>。<strong>显式的成本效果分析的价值不在于省钱，而在于让这个取舍可见、可讨论、可问责。</strong></p>
+<h2 id="2">2. 四种经济学评价<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>收益的度量</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>成本最小化</strong></td>
+<td>假定效果相同</td>
+<td>仿制药替换</td>
+</tr>
+<tr>
+<td><strong>成本-效果分析 CEA</strong></td>
+<td><strong>自然单位</strong>（每避免一例卒中、每延长一年生命）</td>
+<td>同类干预比较</td>
+</tr>
+<tr>
+<td><strong>成本-效用分析 CUA</strong></td>
+<td><strong>QALY</strong></td>
+<td><strong>跨领域比较（最常用）</strong></td>
+</tr>
+<tr>
+<td>成本-收益分析</td>
+<td>货币</td>
+<td>需给健康定价，争议大</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-qaly">3. QALY：定义、用法与批评<a class="headerlink" href="#3-qaly" title="Permanent link"></a></h2>
+<p><strong>质量调整生命年（QALY）</strong> = 生存年数 × 该期间的健康效用值（<strong>1 = 完全健康，0 = 死亡</strong>，<strong>可为负</strong>）。</p>
+<p><strong>效用值的来源</strong>：EQ-5D 等量表 + 人群偏好调查（时间权衡法、标准博弈法）。</p>
+<div class="arithmatex">\[\text{增量成本效果比 }ICER = \frac{C_1 - C_0}{E_1 - E_0}\ \ [\text{每 QALY 的成本}]\]</div>
+<figure class="plot">
+<p><img alt="Cost-effectiveness plane with willingness-to-pay threshold" src="assets/img/cli-23-cea.svg" /></p>
+<figcaption><span class="fig-id">图 23.1</span>成本-效果平面。横轴为增量效果（QALY），纵轴为增量成本。**右下象限（更有效且更省钱）为绝对占优，应采纳；左上象限（更贵且更差）为被占优，应拒绝**——这两个象限不需要阈值判断。**真正需要决策的是右上象限（更有效但更贵）**，其取舍由**支付意愿阈值**（斜线）决定：斜线下方的干预被认为物有所值。散点表示概率敏感性分析的模拟结果，反映参数不确定性。</figcaption>
+</figure>
+<p><strong>阈值</strong>：各国不同（英国 NICE 长期使用每 QALY 约 2–3 万英镑量级的参考区间，并对终末期与高度创新疗法设例外）。<strong>世界卫生组织曾建议以人均 GDP 的倍数作参考，但该做法后来被其自身与学界批评为过于机械。</strong></p>
+<p><strong>对 QALY 的四条主要批评</strong>（<strong>必须一并讲，否则这一页就成了宣传</strong>）：</p>
+<ol>
+<li><strong>对残障者不利</strong>：基线效用低的人从同一干预中获得的 QALY 增量较小 → <strong>可能系统性地不利于慢性病与残障群体</strong>；</li>
+<li><strong>年龄隐含歧视</strong>：年轻人剩余寿命长 → 同一干预产生更多 QALY；</li>
+<li><strong>效用值的测量本身有争议</strong>：<strong>由谁评？</strong> 一般公众评估某状态时<strong>系统性低于实际处于该状态者的自评</strong>（<strong>适应现象</strong>）；</li>
+<li><strong>忽略分配公平</strong>：<strong>QALY 最大化对"谁获得"这件事是中立的</strong>，而社会通常并非如此（对重症、儿童、终末期有额外权重）。</li>
+</ol>
+<p><strong>这些批评没有推翻 QALY，但说明它是一个输入而非裁决</strong>——<strong>多数国家的评估机构在 ICER 之外还考虑严重程度、公平性、未满足需求与创新性。</strong></p>
+<h2 id="4">4. 成本效果的直觉排序<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>一些量级感（示意，随地区差异很大）</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>干预</th>
+<th>成本效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>儿童常规免疫、控烟政策、加碘/加氟</strong></td>
+<td><strong>常常是省钱的（cost-saving）</strong></td>
+</tr>
+<tr>
+<td>高血压与他汀用于高危者（仿制药）</td>
+<td>极佳</td>
+</tr>
+<tr>
+<td>结直肠癌与宫颈癌筛查</td>
+<td>好</td>
+</tr>
+<tr>
+<td>大多数常规慢病管理</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>晚期肿瘤的部分新药</strong></td>
+<td><strong>常在阈值之上很多</strong></td>
+</tr>
+<tr>
+<td><strong>部分罕见病基因/细胞疗法</strong></td>
+<td><strong>极高</strong>（单次数十万至数百万量级）</td>
+</tr>
+<tr>
+<td><strong>无适应证的影像检查与"套餐体检"</strong></td>
+<td><strong>负收益</strong>（花钱且有害，第 03、17 页）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>最后一行值得强调</strong>：<strong>"节省"的最大空间往往不在于拒绝昂贵的有效疗法，而在于停止无效或有害的常规做法</strong>（第 09 页的去实施）。</p>
+<h2 id="5">5. 罕见病与"一次性疗法"的定价难题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>基因与细胞疗法把一个旧问题推到极致</strong>：<strong>一次性给药、终身获益、极高价格</strong>。</p>
+<p><strong>结构性困难</strong>：</p>
+<ol>
+<li><strong>长期获益尚未观察到</strong>（疗效持久性未知）→ 模型必须外推；</li>
+<li><strong>一次性支付 vs 分期收益</strong>的错配 → <strong>催生了按疗效付费（outcome-based agreements）与分期付款等新支付模式</strong>；</li>
+<li><strong>人数极少 → 研发成本分摊到少数患者</strong>；</li>
+<li><strong>社会通常愿意为罕见与危重情况支付更多</strong>（"救援规则"）——<strong>这本身是一个价值判断，不是分析结论。</strong></li>
+</ol>
+<h2 id="6">6. 卫生系统的三个"看不见的"成本效果问题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>① 过度检查的级联</strong>：一次无适应证的影像 → 偶发瘤 → 随访影像 → 活检 → 并发症。<strong>每一步单独看都"合理"，整体是净危害</strong>（第 03 页）。</p>
+<p><strong>② 行政成本</strong>：不同卫生系统的行政开支占比差异巨大，<strong>这部分支出不产生任何健康</strong>。</p>
+<p><strong>③ 基层与预防的相对投入不足</strong>：<strong>基层医疗与公共卫生的成本效果通常远优于专科与住院服务</strong>，但资金分配常与之相反——<strong>部分原因是收益弥散且延迟，而支出立即可见</strong>（<strong>与第 17 页"筛查收益滞后"是同一个时间不对称</strong>）。</p>
+<h2 id="7">7. 迁移：这一页与你工作的接口<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>🔗 <strong>成本效果分析的形式与你熟悉的框架同构</strong>：</p>
+<ul>
+<li><strong>ICER = 增量成本 / 增量收益</strong>，本质上是<strong>边际分析</strong>——与资本配置的边际收益率比较是同一件事；</li>
+<li><strong>概率敏感性分析（图中的散点云）= 蒙特卡洛模拟参数不确定性</strong>，输出的是"在多大比例的情形下该干预低于阈值"——<strong>这正是你在预测层需要的东西：不是点估计，而是决策在参数不确定下的稳健性</strong>；</li>
+<li><strong>"占优"与"被占优"象限的存在</strong> 提醒：<strong>很多决策不需要阈值就能定</strong>，把精力花在真正需要权衡的那个象限；</li>
+<li><strong>QALY 的批评清单</strong> 是一个通用教训：<strong>任何把多维价值压成单一标量的指标，都会在被压掉的那些维度上产生系统性偏差</strong>——<strong>这对任何绩效指标都成立。</strong></li>
+</ul>
+<hr />
+<p><em>下一页：把所有数字交回给患者——风险沟通与共同决策。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-ai-clinic.html"><span class="pager-label">上一页</span>前沿 I · AI 进入临床：证据现状</a>
+  <a class="pager-slot next" href="24-communication.html"><span class="pager-label">下一页</span>系统 II · 风险沟通与共同决策</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

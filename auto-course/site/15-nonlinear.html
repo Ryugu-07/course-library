@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>非线性控制 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li class="active"><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、非线性系统特有的现象</a></li>
+<li><a href="#_2">二、工程中最常见的非线性</a></li>
+<li><a href="#lyapunov">三、Lyapunov 方法：不解方程判断稳定性</a></li>
+<li><a href="#_3">四、几种主要的设计方法</a></li>
+<li><a href="#_4">五、实用判断：什么时候真的需要非线性控制</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">进阶 I · 非线性控制<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：研究生核心 ｜ 🔗 前置：动力系统与相图（数学站）。
+第二页说过：经典控制的整座大厦建立在<strong>线性化</strong>之上。但真实系统总是非线性的，而且有些非线性<strong>本质上无法线性化</strong>——饱和、摩擦、间隙，以及那些只在非线性系统中才存在的现象。本页讲非线性系统特有的行为，以及处理它们的主要工具。</p>
+</blockquote>
+<h2 id="_1">一、非线性系统特有的现象<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>线性系统的性质极其"温和"：叠加成立、稳定性与初值无关、唯一平衡点、响应形状不随幅度变化。<strong>非线性系统全都不满足</strong>：</p>
+<p><strong>① 多个平衡点</strong>：单摆有稳定（下垂）与不稳定（倒立）两个平衡点。<strong>"系统是否稳定"这个问题本身必须改成"在哪个平衡点附近、多大范围内稳定"</strong>——引出<strong>吸引域（region of attraction）</strong>概念。</p>
+<p><strong>② 极限环</strong>：孤立的周期轨道，<strong>不依赖初始条件</strong>（线性系统的振荡幅度由初值决定，非线性极限环则收敛到固定幅度）。范德波尔振荡器是标准例子；实际中，带间隙或摩擦的伺服系统常出现极限环——<strong>表现为"稳不下来的小幅抖动"，这是伺服调试中的常见故障</strong>。</p>
+<p><strong>③ 有限逃逸时间</strong>：<span class="arithmatex">\(\dot{x}=x^2\)</span> 在有限时间内发散到无穷（线性系统只能指数发散，永远需要无限时间）。</p>
+<p><strong>④ 幅值依赖</strong>：小信号稳定不代表大信号稳定（<strong>这正是线性化只在工作点附近有效的原因</strong>）。</p>
+<p><strong>⑤ 混沌</strong>：确定性系统产生对初值极度敏感的不可预测行为。</p>
+<figure>
+<p><img alt="非线性系统的相平面" class="fig-img" src="assets/img/aut_phase_portrait.svg" /></p>
+<figcaption><span class="fig-id">图 15-1</span> 单摆的相平面（角度—角速度）。图中同时存在<strong>稳定平衡点</strong>（中心，下垂位置）与<strong>鞍点</strong>（倒立位置）。红色曲线是<strong>分界线（separatrix）</strong>，它把"摆动"轨道与"翻转"轨道分开——<strong>初始条件落在分界线内外，系统行为定性不同</strong>。这种"由初值决定定性行为"的现象在线性系统中不存在。</figcaption>
+</figure>
+<h2 id="_2">二、工程中最常见的非线性<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>理论上的奇异现象固然有趣，但工程师日常遇到的主要是这几种：</p>
+<table>
+<thead>
+<tr>
+<th>非线性</th>
+<th>表现</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>饱和</strong></td>
+<td>执行器到限</td>
+<td>积分饱和（第六页）、性能受限</td>
+</tr>
+<tr>
+<td><strong>死区</strong></td>
+<td>小输入无响应</td>
+<td>静差、极限环</td>
+</tr>
+<tr>
+<td><strong>库仑摩擦</strong></td>
+<td>静摩擦大于动摩擦</td>
+<td><strong>爬行（stick-slip）</strong>、定位不准</td>
+</tr>
+<tr>
+<td><strong>间隙/回差</strong></td>
+<td>齿轮、丝杠的空程</td>
+<td>极限环、换向误差</td>
+</tr>
+<tr>
+<td><strong>迟滞</strong></td>
+<td>输出取决于历史（磁滞、压电）</td>
+<td>定位重复性差</td>
+</tr>
+</tbody>
+</table>
+<p><strong>摩擦补偿</strong>是精密运动控制的经典难题：静摩擦使系统在低速时"走走停停"（爬行）。常用手段包括摩擦模型前馈补偿（LuGre 模型等）、加抖动信号（dither）、或用高刚度反馈"硬压"。<strong>没有通用完美解，通常需要针对具体机械结构调试。</strong></p>
+<h2 id="lyapunov">三、Lyapunov 方法：不解方程判断稳定性<a class="headerlink" href="#lyapunov" title="Permanent link"></a></h2>
+<p><strong>核心思想（极其优雅）</strong>：找一个"广义能量函数" <span class="arithmatex">\(V(x)\)</span>，若它沿系统轨迹<strong>持续下降</strong>，则系统必然趋向能量最低点——即稳定。</p>
+<p><strong>Lyapunov 直接法</strong>：若存在 <span class="arithmatex">\(V(x)\)</span> 满足
+- <span class="arithmatex">\(V(0)=0\)</span>，且 <span class="arithmatex">\(V(x)&gt;0\)</span>（正定）；
+- <span class="arithmatex">\(\dot{V}(x) = \nabla V \cdot f(x) \le 0\)</span>（沿轨迹不增），</p>
+<p>则平衡点稳定；若 <span class="arithmatex">\(\dot{V}&lt;0\)</span>（严格负定）则渐近稳定。</p>
+<p><strong>它的威力在于不需要解微分方程</strong>——只需检验一个不等式。对非线性系统这至关重要，因为解析解通常不存在。</p>
+<p><strong>它的困难在于找 <span class="arithmatex">\(V\)</span></strong>：没有通用构造法。常用套路——物理能量（机械系统的动能+势能是天然候选）、二次型 <span class="arithmatex">\(V=x^TPx\)</span>（对线性系统，<span class="arithmatex">\(P\)</span> 由 Lyapunov 方程给出）、以及<strong>平方和（SOS）规划</strong>等数值方法（近年可用凸优化自动搜索多项式 Lyapunov 函数，🔗 grad-math 优化线）。</p>
+<p><strong>LaSalle 不变集原理</strong>：当 <span class="arithmatex">\(\dot{V}\le0\)</span> 但不严格负定时，可通过分析 <span class="arithmatex">\(\dot V = 0\)</span> 的集合来判断收敛性——<strong>这在实际中极常用</strong>，因为严格负定往往难以达到。</p>
+<p><strong>Lyapunov 不只是分析工具，更是设计工具</strong>：<strong>反步法（backstepping）</strong>通过递归地构造 Lyapunov 函数来设计控制律，是非线性控制设计的主流方法之一。</p>
+<h2 id="_3">四、几种主要的设计方法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>① 反馈线性化</strong>：通过坐标变换与非线性反馈，<strong>精确抵消</strong>系统的非线性，使闭环成为线性系统。</p>
+<ul>
+<li><strong>优点</strong>：设计后可用全部线性工具；</li>
+<li><strong>致命弱点</strong>：<strong>依赖精确的模型抵消</strong>——模型有误差时抵消不完全，残余非线性可能造成严重问题。<strong>这与第四页"零极点对消"的陷阱是同一类风险</strong>；</li>
+<li>还需注意<strong>内动态（零动态）</strong>：被抵消后系统内部可能残留不可观的动态，<strong>若它不稳定（非最小相位），方法失效</strong>——第二页的右半平面零点在非线性版本中再次出现。</li>
+</ul>
+<p><strong>② 滑模控制（SMC）</strong>：设计一个滑模面 <span class="arithmatex">\(s(x)=0\)</span>，用<strong>高增益切换控制</strong>把状态强行"压"到面上并沿其滑动。</p>
+<ul>
+<li><strong>优点</strong>：<strong>对匹配不确定性与扰动有极强的鲁棒性</strong>（这是它最大的卖点），且设计相对简单；</li>
+<li><strong>代价</strong>：切换造成<strong>抖振（chattering）</strong>——高频振荡会激发未建模动态、磨损执行器、产生噪声。缓解手段有边界层（用饱和函数代替符号函数，牺牲部分精度）、高阶滑模（super-twisting）；</li>
+<li><strong>工业现实</strong>：抖振问题使纯滑模在很多场合难以直接应用，<strong>但滑模观测器（用于状态估计，无执行器磨损问题）应用相当广泛</strong>——例如第十二页的电机无位置传感器控制。<strong>这是一个"理论的某一半比另一半更实用"的典型例子。</strong></li>
+</ul>
+<p><strong>③ 增益调度</strong>：在多个工作点线性化并各设计一个控制器，按工作点插值切换。</p>
+<ul>
+<li><strong>工业上最实用的"非线性"方法</strong>，广泛用于航空（随高度马赫数调度）、发动机、过程控制；</li>
+<li><strong>注意事项</strong>：切换过程本身可能不稳定（即使每个局部控制器都稳定！），需保证慢变化或使用有稳定性保证的构造（如 LPV 方法）。</li>
+</ul>
+<p><strong>④ 无源性与能量成形</strong>：利用系统的物理结构（能量守恒、无源性）设计控制器，如机器人的 PD + 重力补偿。<strong>这类方法有很好的鲁棒性与物理直观</strong>，在机器人学中广泛使用（第十九页）。</p>
+<h2 id="_4">五、实用判断：什么时候真的需要非线性控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>诚实的工程判断</strong>（承导论的理论—实践落差）：</p>
+<p><strong>大多数情况下不需要</strong>——线性控制 + 足够裕度 + 抗饱和 + 增益调度，已能覆盖绝大部分工业需求。</p>
+<p><strong>确实需要的场合</strong>：
+- 工作范围极大，单个线性化模型无法覆盖（机器人大范围运动、飞行器全包线）；
+- 本质非线性主导（如强摩擦、间隙显著的精密定位）；
+- 对性能要求逼近物理极限（航天、高端伺服）；
+- 系统本身不稳定且非线性强（倒立摆类、某些飞行器）。</p>
+<p><strong>滑模与反馈线性化在论文中的出现频率，远高于它们在工业现场的部署频率</strong>——这不是说它们没用，而是说<strong>引入它们需要有明确的理由</strong>：额外的复杂度、调试难度与维护成本，必须被换来的性能所证明。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>非线性系统有线性系统不存在的现象</strong>：多平衡点、极限环、有限逃逸、幅值依赖、混沌；</li>
+<li><strong>工程中最常见的是饱和、死区、摩擦、间隙、迟滞</strong>——它们才是日常敌人；</li>
+<li><strong>Lyapunov 方法不解方程判稳定</strong>，且经反步法成为设计工具；难点在于构造 <span class="arithmatex">\(V\)</span>；</li>
+<li><strong>反馈线性化依赖精确抵消</strong>（与零极点对消同类风险）；<strong>滑模鲁棒但抖振</strong>，其观测器版本更实用；</li>
+<li><strong>增益调度是工业上最实用的非线性手段</strong>；</li>
+<li><strong>引入非线性方法需要明确理由</strong>——复杂度必须被性能收益证明。</li>
+</ul>
+<hr />
+<p><em>下一页：既然模型总是错的，能不能把"模型有多错"直接写进设计？鲁棒控制——从 Doyle 反例出发的一整套理论。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-safety.html"><span class="pager-label">上一页</span>实务 IV · 功能安全与可靠性</a>
+  <a class="pager-slot next" href="16-robust.html"><span class="pager-label">下一页</span>进阶 II · 鲁棒控制与不确定性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

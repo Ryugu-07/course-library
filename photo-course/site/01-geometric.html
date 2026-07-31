@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>几何光学与成像 · 光的工程</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">光的工程</a>
+    <div class="site-subtitle">光学 · 激光 · 探测 · 光纤 · 光电信息讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：光的两种描述</div><ul><li class="active"><a href="01-geometric.html">光学 I · 几何光学与成像</a></li><li><a href="02-aberration.html">光学 II · 像差与光学系统设计</a></li><li><a href="03-interference.html">光学 III · 干涉与相干性</a></li><li><a href="04-fourier-optics.html">光学 IV · 衍射与傅里叶光学</a></li><li><a href="05-polarization.html">光学 V · 偏振与晶体光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 光源</div><ul><li><a href="06-laser.html">光源 I · 激光原理</a></li><li><a href="07-gaussian-beam.html">光源 II · 高斯光束与谐振腔</a></li><li><a href="08-semiconductor-light.html">光源 III · LED 与半导体激光</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 探测与成像</div><ul><li><a href="09-detector.html">探测 I · 光电探测器与噪声</a></li><li><a href="10-image-sensor.html">探测 II · 图像传感器</a></li><li><a href="11-imaging-mtf.html">探测 III · 成像质量与计算成像</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 光纤与光通信</div><ul><li><a href="12-fiber.html">光纤 I · 波导原理与色散</a></li><li><a href="13-optical-comm.html">光纤 II · 光通信系统</a></li><li><a href="14-amplifier-nonlinear.html">光纤 III · 光放大与非线性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 集成与应用</div><ul><li><a href="15-silicon-photonics.html">应用 I · 集成光子与硅光</a></li><li><a href="16-display.html">应用 II · 显示技术</a></li><li><a href="17-sensing-lidar.html">应用 III · 光谱传感与 LiDAR</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 前沿</div><ul><li><a href="18-metasurface.html">前沿 I · 超表面与超构光学</a></li><li><a href="19-quantum-optics.html">前沿 II · 光计算与量子光学</a></li><li><a href="20-industry.html">前沿 III · 产业与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、基本定律与费马原理</a></li>
+<li><a href="#_2">二、成像方程与放大率</a></li>
+<li><a href="#_3">三、光阑、光瞳与渐晕</a></li>
+<li><a href="#_4">四、矩阵光学：把系统变成乘法</a></li>
+<li><a href="#_5">五、典型系统</a></li>
+<li><a href="#_6">六、几何光学在哪里失效</a></li>
+<li><a href="#_7">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">光学 I · 几何光学与成像<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+几何光学把光当作直线传播的<strong>射线</strong>，完全不涉及光的本质。<strong>这个粗糙的模型，却足以设计出人类几乎全部的光学系统</strong>——从眼镜到显微镜到光刻机物镜。本页讲清它的规则、它的强大之处，以及它在哪里必然失效。</p>
+</blockquote>
+<h2 id="_1">一、基本定律与费马原理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>反射</strong>：<span class="arithmatex">\(\theta_i = \theta_r\)</span>。<strong>折射（Snell 定律）</strong>：</p>
+<div class="arithmatex">\[n_1\sin\theta_1 = n_2\sin\theta_2\]</div>
+<p><strong>全内反射</strong>：从光密到光疏介质，入射角超过临界角 <span class="arithmatex">\(\theta_c = \arcsin(n_2/n_1)\)</span> 时全部反射。<strong>这是光纤（第十二页）与许多棱镜器件的物理基础。</strong></p>
+<p><strong>费马原理</strong>（更深刻的表述）：<strong>光沿光程取极值（通常是极小）的路径传播</strong>。</p>
+<div class="arithmatex">\[\delta\int n\,ds = 0\]</div>
+<p><strong>它的价值在于统一性</strong>：反射、折射、以及<strong>折射率渐变介质中的弯曲光线</strong>（梯度折射率透镜、大气蜃景、光纤的渐变折射率芯）全都由它导出。<strong>而且它与力学的最小作用量原理形式相同</strong>——🔗 物理站讲过这个类比，它不是巧合，而是波动方程短波长极限的普遍结构。</p>
+<h2 id="_2">二、成像方程与放大率<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>理想成像</strong>：物点发出的所有光线，经系统后交于同一像点。</p>
+<p><strong>薄透镜公式</strong>（牛顿形式与高斯形式）：</p>
+<div class="arithmatex">\[\frac{1}{s'} - \frac{1}{s} = \frac{1}{f}, \qquad m = \frac{s'}{s}\]</div>
+<p><strong>焦距由几何与折射率决定</strong>（磨镜者方程）：</p>
+<div class="arithmatex">\[\frac{1}{f} = (n-1)\left(\frac{1}{R_1}-\frac{1}{R_2}\right)\]</div>
+<p><strong>注意 <span class="arithmatex">\(f\)</span> 依赖 <span class="arithmatex">\(n\)</span>，而 <span class="arithmatex">\(n\)</span> 依赖波长</strong> → <strong>色差</strong>（第二页）。这是折射系统无法回避的固有问题，也是反射式望远镜在大口径领域胜出的原因之一。</p>
+<p><strong>三个必须掌握的系统参数</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>定义</th>
+<th>决定什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>焦距 <span class="arithmatex">\(f\)</span></strong></td>
+<td>—</td>
+<td>放大倍率、视场</td>
+</tr>
+<tr>
+<td><strong>F 数</strong> <span class="arithmatex">\(F/\# = f/D\)</span></td>
+<td>焦距/通光孔径</td>
+<td><strong>进光量（<span class="arithmatex">\(\propto 1/(F/\#)^2\)</span>）与衍射极限</strong></td>
+</tr>
+<tr>
+<td><strong>数值孔径</strong> <span class="arithmatex">\(\mathrm{NA}=n\sin\theta\)</span></td>
+<td>收集角</td>
+<td><strong>分辨率</strong>（第四页）与景深</td>
+</tr>
+</tbody>
+</table>
+<p><strong>F 数与 NA 的关系</strong>（近轴）：<span class="arithmatex">\(F/\# \approx 1/(2\mathrm{NA})\)</span>。</p>
+<p><strong>这两个量是光学系统的核心指标</strong>：<strong>大 NA = 高分辨率 + 大进光量，但同时 = 小景深 + 大像差 + 难加工</strong>。<strong>这是光学设计的第一权衡</strong>，贯穿显微镜、光刻机（🔗 微电子站第十二页：浸没式提高 NA）、相机镜头。</p>
+<h2 id="_3">三、光阑、光瞳与渐晕<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>孔径光阑</strong>决定进光量与 NA；<strong>视场光阑</strong>决定视场范围。</p>
+<p><strong>入瞳/出瞳</strong>是孔径光阑经前后系统所成的像——<strong>它们是系统间对接的接口</strong>。<strong>目视仪器的出瞳必须与人眼瞳孔匹配</strong>（望远镜出瞳大于眼瞳则浪费光，小则视场变暗）；<strong>光刻与显微系统的光瞳面是做照明整形与相位调控的关键位置</strong>（🔗 微电子站的离轴照明、光瞳整形）。</p>
+<p><strong>渐晕（vignetting）</strong>：边缘视场的光束被镜筒或后续镜片部分遮挡 → <strong>边缘变暗</strong>。相机镜头的边缘失光大多源于此，收小光圈可改善。</p>
+<h2 id="_4">四、矩阵光学：把系统变成乘法<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>近轴条件下，光线用 <span class="arithmatex">\((y, \theta)\)</span> 表示，每个元件是一个 <span class="arithmatex">\(2\times2\)</span> 矩阵：</p>
+<div class="arithmatex">\[\begin{bmatrix} y' \\ \theta'\end{bmatrix} = \mathbf{M}\begin{bmatrix} y \\ \theta\end{bmatrix}, \qquad
+\mathbf{M}_{\text{传播}}=\begin{bmatrix}1 &amp; d\\ 0 &amp; 1\end{bmatrix},\quad
+\mathbf{M}_{\text{透镜}}=\begin{bmatrix}1 &amp; 0\\ -1/f &amp; 1\end{bmatrix}\]</div>
+<p><strong>整个系统 = 矩阵连乘</strong>。这使复杂系统的近轴性质（焦距、主平面、成像位置）可以机械地算出。</p>
+<p><strong>它还有一个重要的延伸</strong>：<strong>同一套 ABCD 矩阵可以用于高斯光束的传播</strong>（第七页）——只需把实的光线参数换成复的光束参数 <span class="arithmatex">\(q\)</span>。<strong>这是几何光学与波动光学之间一座意外优雅的桥。</strong></p>
+<h2 id="_5">五、典型系统<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>放大镜/目镜</strong>：物在焦点内，成虚像；</li>
+<li><strong>显微镜</strong>：物镜成放大实像，目镜再放大。<strong>总放大率 = 物镜 × 目镜</strong>，但<strong>分辨率由物镜 NA 决定</strong>（第四页）——<strong>"空放大"（放大倍数超过分辨率所能支持的）没有意义</strong>，这是显微镜使用中最常见的误解；</li>
+<li><strong>望远镜</strong>：<span class="arithmatex">\(M = f_{\text{物}}/f_{\text{目}}\)</span>。<strong>开普勒式</strong>（两凸透镜，成倒像，可加分划板）用于天文与瞄准；<strong>伽利略式</strong>（凹目镜，正像，短）用于观剧镜；</li>
+<li><strong>摄影镜头</strong>：多组多片，为在大视场、大孔径下同时校正多种像差（第二页）；</li>
+<li><strong>投影与照明系统</strong>：科勒照明——<strong>把光源成像到光瞳面而非物面</strong>，从而获得均匀照明。<strong>这个思想在显微镜、光刻机中都是标准配置</strong>。</li>
+</ul>
+<h2 id="_6">六、几何光学在哪里失效<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p><strong>必须清楚它的边界</strong>：</p>
+<ol>
+<li><strong>无法给出分辨率极限</strong>。几何光学预言理想系统可以把点成为点——<strong>实际上衍射使它成为一个有限大小的斑</strong>（第四页艾里斑）。<strong>任何"分辨率"的讨论都必须用波动光学</strong>；</li>
+<li><strong>无法处理干涉与偏振</strong>（第三、五页）；</li>
+<li><strong>在尺度接近波长时完全失效</strong>——微纳结构、超表面（第十八页）必须用电磁理论；</li>
+<li><strong>对相干光的传播描述不准</strong>——激光束需要高斯光束理论（第七页）。</li>
+</ol>
+<p><strong>恰当的工作方式</strong>：<strong>用几何光学做系统布局与像差设计，用波动光学评估最终性能（分辨率、MTF、衍射效率）。</strong> 现代光学设计软件正是这样：光线追迹为主，衍射计算为辅。</p>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<ul>
+<li><strong>费马原理统一了反射、折射与渐变介质中的传播</strong>，并与力学最小作用量同构；</li>
+<li><strong>NA 与 F 数是核心指标</strong>：大 NA 带来高分辨率与大进光量，代价是小景深、大像差、难加工；</li>
+<li><strong>光瞳是系统对接与调控的关键面</strong>；</li>
+<li><strong>矩阵光学把近轴系统变成矩阵连乘</strong>，且可延伸到高斯光束；</li>
+<li><strong>显微镜的分辨率由物镜 NA 决定，放大倍数无法超越它</strong>；</li>
+<li><strong>几何光学给不出分辨率、干涉与偏振</strong>——这些必须交给波动光学。</li>
+</ul>
+<hr />
+<p><em>下一页：理想成像只存在于近轴。真实系统的光线不会精确交于一点——像差是光学设计的主要战场，而校正像差的历史，几乎就是光学工业的历史。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一页</span>00 · 怎么读这门课</a>
+  <a class="pager-slot next" href="02-aberration.html"><span class="pager-label">下一页</span>光学 II · 像差与光学系统设计</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

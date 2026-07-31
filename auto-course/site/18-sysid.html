@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>系统辨识与自适应 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li class="active"><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、辨识的基本流程</a></li>
+<li><a href="#_2">二、模型结构与参数估计</a></li>
+<li><a href="#_3">三、验证：最重要也最常被省略的一步</a></li>
+<li><a href="#_4">四、自适应控制</a></li>
+<li><a href="#_5">五、与机器学习的关系</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">进阶 IV · 系统辨识与自适应<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：研究生核心 + 业界实用 ｜ 🔗 与 AI 站的监督学习共享大量数学。
+上一页说 MPC 项目的主要工作量在建模。<strong>系统辨识</strong>就是从输入输出数据中获得模型的学科；<strong>自适应控制</strong>则更进一步——在运行过程中持续修正模型或控制器。两者都在回答同一个问题：<strong>当我们不知道对象是什么时，怎么办？</strong></p>
+</blockquote>
+<h2 id="_1">一、辨识的基本流程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[\text{实验设计} \to \text{采集数据} \to \text{选模型结构} \to \text{参数估计} \to \textbf{模型验证}\]</div>
+<p><strong>每一步都有可能毁掉整个结果</strong>，而最常被忽视的是第一步与最后一步。</p>
+<p><strong>实验设计（最容易被低估）</strong>：
+- <strong>激励信号必须"充分丰富"</strong>：若只用阶跃激励，只能激发有限频段，得到的模型在其他频段不可信。常用<strong>PRBS（伪随机二进制序列）</strong>或<strong>多正弦（chirp）</strong>，覆盖关心的频段；
+- <strong>持续激励条件</strong>：辨识 <span class="arithmatex">\(n\)</span> 个参数，输入至少需含 <span class="arithmatex">\(n/2\)</span> 个不同频率成分。<strong>这是一个可以严格陈述的条件</strong>，不是经验之谈；
+- <strong>幅度权衡</strong>：太小则信噪比差，太大则激发非线性、扰动生产。<strong>工业现场往往只允许很小的激励</strong>，这是真实约束；
+- <strong>闭环辨识的陷阱</strong>：若在闭环下采集数据，输入与噪声通过反馈相关，<strong>直接用开环方法会得到有偏的模型</strong>——甚至可能辨识出控制器的逆而非对象本身。需专门的闭环辨识方法。<strong>这是实践中极常见的错误。</strong></p>
+<h2 id="_2">二、模型结构与参数估计<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>常用结构</strong>（差别在于噪声怎么进入模型）：</p>
+<div class="arithmatex">\[\text{ARX：}\ A(q)y = B(q)u + e, \qquad \text{ARMAX：}\ A(q)y = B(q)u + C(q)e, \qquad \text{OE：}\ y = \frac{B(q)}{F(q)}u + e\]</div>
+<p><strong>ARX 的优点是参数估计为线性最小二乘</strong>（有闭式解），缺点是噪声模型受限、会产生偏差。OE（输出误差）模型的噪声假设更贴近实际，但需非线性优化。</p>
+<p><strong>参数估计的核心是预测误差方法（PEM）</strong>：</p>
+<div class="arithmatex">\[\hat{\theta} = \arg\min_\theta \sum_{t} \left(y(t) - \hat{y}(t|\theta)\right)^2\]</div>
+<p><strong>这与机器学习的经验风险最小化是同一个东西</strong>（🔗 AI 站）。事实上：
+- ARX 辨识 = 线性回归；
+- 正则化（岭回归）在辨识中同样用于抑制过拟合；
+- 模型阶次选择 = 模型复杂度选择，用 <strong>AIC/BIC</strong> 或交叉验证——<strong>与机器学习的模型选择完全同构</strong>。</p>
+<p><strong>子空间方法（N4SID 等）</strong>：直接从数据的 Hankel 矩阵通过 SVD 估计状态空间模型，<strong>特别适合 MIMO</strong>，且不需要事先指定复杂的参数化。是工业辨识软件的主力算法之一。</p>
+<h2 id="_3">三、验证：最重要也最常被省略的一步<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>用拟合优度评价模型是危险的</strong>——提高阶次总能让拟合更好，但那可能只是在拟合噪声。</p>
+<p><strong>必须做的验证</strong>：
+- <strong>交叉验证</strong>：用<strong>未参与辨识的数据</strong>检验预测能力。这是最基本的一条；
+- <strong>残差分析</strong>：残差应接近白噪声，且<strong>与输入不相关</strong>。若残差与输入仍相关，说明<strong>模型漏掉了动态</strong>——这是一个非常有力的诊断；
+- <strong>多步预测</strong>：一步预测好不代表多步预测好，而<strong>MPC 需要的恰恰是多步预测能力</strong>（第十七页）；
+- <strong>物理合理性</strong>：增益的符号与量级、时滞、稳态是否符合工艺常识。<strong>这一条能拦下大部分荒谬的模型。</strong></p>
+<p><strong>"所有模型都是错的，有些是有用的"</strong>（第二页）在这里有具体含义：<strong>辨识的目标不是最精确的模型，而是"对控制设计够用"的模型</strong>。控制关注的频段主要在<strong>穿越频率附近</strong>——低频与高频的精度不那么重要。<strong>为控制而辨识（identification for control）</strong>这一思想主张：辨识的加权应与控制目标一致。</p>
+<h2 id="_4">四、自适应控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>自适应控制</strong>在运行中在线调整，应对参数缓慢变化（磨损、温度、负载、批次）。</p>
+<p><strong>两条经典路线</strong>：</p>
+<p><strong>① 间接自适应（自校正调节器 STR）</strong>：在线辨识参数 → 按辨识结果重新设计控制器。模块清晰，但辨识与控制的交互可能出问题。</p>
+<p><strong>② 直接自适应（如 MRAC，模型参考自适应）</strong>：不显式辨识对象，而是<strong>直接调整控制器参数</strong>，使闭环行为跟随一个参考模型。用 Lyapunov 方法（第十五页）设计自适应律并证明稳定性。</p>
+<p><strong>关键的理论要求与实践陷阱</strong>：</p>
+<ul>
+<li><strong>持续激励是收敛的必要条件</strong>：<strong>若信号不够丰富，参数估计可能漂移</strong>——系统在稳态时（信号平淡）尤其危险。这是自适应控制最著名的失效模式；</li>
+<li><strong>鲁棒性问题</strong>：经典自适应律对未建模动态与扰动<strong>可能不鲁棒</strong>（1980 年代 Rohrs 等人的反例曾引发广泛反思——<strong>这与第八页 LQG 的 Doyle 反例是同一时期、同一性质的"理论翻车"</strong>）。补救手段包括 <span class="arithmatex">\(\sigma\)</span> 修正、死区、投影（把参数限制在合理范围内）；</li>
+<li><strong>工业上的谨慎</strong>：<strong>在安全关键系统中，在线自适应通常被严格限制或禁止</strong>——因为它使系统行为随时间变化，<strong>难以验证与认证</strong>（承第十四页功能安全：系统性可预测比性能更重要）。</li>
+</ul>
+<p><strong>实际更常见的折中</strong>：
+- <strong>增益调度</strong>（第十五页）：离线设计多组参数，按可测工况切换——<strong>行为可预测、可验证</strong>；
+- <strong>自整定</strong>：不连续自适应，而是在需要时（如换批次、维护后）执行一次整定；
+- <strong>参数在线估计但不自动闭环</strong>：估计结果提示操作员，由人决定是否更新。</p>
+<p><strong>这个"离线设计、在线切换"胜过"完全在线自适应"的模式，与第二十页学习型控制面对的困境完全一致。</strong></p>
+<h2 id="_5">五、与机器学习的关系<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>系统辨识与监督学习共享数学，但<strong>关注点不同</strong>，这个对照很有启发：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>系统辨识</th>
+<th>典型机器学习</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据</td>
+<td><strong>有时序、有动态、可主动设计实验</strong></td>
+<td>常假设独立同分布</td>
+</tr>
+<tr>
+<td>目标</td>
+<td>用于<strong>闭环控制</strong>，需保证稳定</td>
+<td>预测精度</td>
+</tr>
+<tr>
+<td>模型</td>
+<td>常要求<strong>可解释、低阶、有物理意义</strong></td>
+<td>可为黑箱</td>
+</tr>
+<tr>
+<td>数据量</td>
+<td>常<strong>很少</strong>（工业实验昂贵）</td>
+<td>常很大</td>
+</tr>
+<tr>
+<td>关键难点</td>
+<td><strong>闭环相关性、激励设计、外推</strong></td>
+<td>泛化、过拟合</td>
+</tr>
+</tbody>
+</table>
+<p><strong>"能主动设计实验"是辨识相对于被动学习的巨大优势</strong>——它可以选择激励什么频段。<strong>这个思想在机器学习中对应主动学习与实验设计</strong>，两个领域近年正在重新交汇（🔗 第二十页）。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>辨识的成败很大程度取决于实验设计</strong>：激励必须充分丰富，闭环数据需专门方法；</li>
+<li><strong>PEM = 经验风险最小化</strong>，辨识与监督学习数学同源；</li>
+<li><strong>验证靠交叉验证与残差白性，而非拟合优度</strong>；残差与输入相关意味着漏掉动态；</li>
+<li><strong>为控制而辨识</strong>：目标是"够用"而非"最准"，重点在穿越频率附近；</li>
+<li><strong>自适应控制的经典陷阱是激励不足导致参数漂移，以及对未建模动态不鲁棒</strong>；</li>
+<li><strong>工业上更偏好增益调度与自整定</strong>——因为可验证性优先于最优性。</li>
+</ul>
+<hr />
+<p><em>下一页：把前面所有工具用到一个具体而完整的对象上——机器人。运动学、动力学、轨迹规划与状态估计，是控制理论最集中的应用场。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-mpc.html"><span class="pager-label">上一页</span>进阶 III · 最优控制与 MPC</a>
+  <a class="pager-slot next" href="19-robotics.html"><span class="pager-label">下一页</span>进阶 V · 机器人学与状态估计</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

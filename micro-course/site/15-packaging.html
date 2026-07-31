@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>先进封装与 Chiplet · 芯片的逻辑</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">芯片的逻辑</a>
+    <div class="site-subtitle">器件 · 电路 · 制造 · 前沿 · 微电子讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：材料与器件</div><ul><li><a href="01-semiconductor.html">器件 I · 半导体物理最小必要集</a></li><li><a href="02-junction.html">器件 II · pn 结与二极管</a></li><li><a href="03-mosfet.html">器件 III · MOSFET 的工作原理</a></li><li><a href="04-scaling.html">器件 IV · 缩放定律与功耗墙</a></li><li><a href="05-modern-device.html">器件 V · 从短沟道效应到 GAA</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：电路</div><ul><li><a href="06-cmos-digital.html">电路 I · CMOS 反相器与数字基元</a></li><li><a href="07-digital-design.html">电路 II · 时序、时钟与静态时序分析</a></li><li><a href="08-analog.html">电路 III · 模拟集成电路</a></li><li><a href="09-mixed-signal.html">电路 IV · 数据转换器与锁相环</a></li><li><a href="10-memory.html">电路 V · 存储器与存储墙</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 制造与设计流程</div><ul><li><a href="11-fabrication.html">制造 I · 从沙子到晶圆</a></li><li><a href="12-litho.html">制造 II · 光刻的物理极限</a></li><li><a href="13-eda.html">制造 III · EDA：用算法造芯片</a></li><li><a href="14-yield-test.html">制造 IV · 良率、变异与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化与前沿</div><ul><li class="active"><a href="15-packaging.html">前沿 I · 先进封装与 Chiplet</a></li><li><a href="16-memory-frontier.html">前沿 II · 新型存储与存内计算</a></li><li><a href="17-accelerator.html">前沿 III · 专用加速器</a></li><li><a href="18-photonics-rf.html">前沿 IV · 硅光与射频</a></li><li><a href="19-frontier.html">前沿 V · 器件与工艺的下一步</a></li><li><a href="20-industry.html">前沿 VI · 产业结构与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、为什么封装突然重要</a></li>
+<li><a href="#chiplet">二、Chiplet：把芯片当乐高</a></li>
+<li><a href="#_2">三、封装技术的阶梯</a></li>
+<li><a href="#_3">四、把系统重新划分</a></li>
+<li><a href="#_4">五、热：新的主要约束</a></li>
+<li><a href="#_5">六、这如何改变了"摩尔定律"</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-chiplet">前沿 I · 先进封装与 Chiplet<a class="headerlink" href="#i-chiplet" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：硕博方向 + <strong>当前业界最热的领域之一</strong> ｜ <strong>核对于 2026-07</strong>。
+封装曾经是芯片制造中最不起眼的后段工序——把裸片装进塑料壳、引出管脚。<strong>过去十年它变成了行业最重要的创新战场之一。</strong> 原因在前面几页已经埋好：缩放变贵（第四页）、大芯片良率低（第十四页）、模拟不缩放（第八页）、存储墙（第十页）。<strong>封装是这四个问题的共同出口。</strong></p>
+</blockquote>
+<h2 id="_1">一、为什么封装突然重要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>四条因果链在此汇合：</p>
+<ol>
+<li><strong>良率经济学</strong>（第十四页）：良率随面积急剧下降 → 把大芯片拆小；</li>
+<li><strong>掩模版场尺寸上限</strong>（第十一页）：单颗芯片面积有物理上限 → 想要更大算力必须拼；</li>
+<li><strong>异质集成需求</strong>（第八页）：逻辑要最先进节点，模拟/IO/存储不需要 → 按需分别选节点；</li>
+<li><strong>存储带宽</strong>（第十页）：需要把存储放得<strong>极近</strong>且总线<strong>极宽</strong> → HBM。</li>
+</ol>
+<p><strong>结论</strong>："在一颗裸片上做完一切"不再是最优解。<strong>转向"分而治之，再拼装"。</strong></p>
+<h2 id="chiplet">二、Chiplet：把芯片当乐高<a class="headerlink" href="#chiplet" title="Permanent link"></a></h2>
+<p><strong>Chiplet（芯粒）</strong>：把原本单片的 SoC 拆成若干功能裸片，分别制造，再封装集成。</p>
+<p><strong>收益</strong>：
+- <strong>良率</strong>：小裸片良率高得多。把 600 mm² 拆成 4 颗 150 mm²，总体成本可显著下降；
+- <strong>混合节点</strong>：CPU 核用最先进节点，IO/模拟用成熟节点（便宜且性能更合适）——<strong>"不是所有电路都想去 2nm"</strong>（第八页）；
+- <strong>复用与快速衍生</strong>：同一套 chiplet 组合出不同规格产品，摊薄设计成本（先进节点一次设计投入极大）；
+- <strong>突破面积上限</strong>：多裸片拼装可超过掩模版场限制。</p>
+<p><strong>代价</strong>（必须诚实列出）：
+- <strong>裸片间互连的功耗与延迟</strong>远高于片内走线——每一次跨裸片通信都要付出能量与时间代价；
+- <strong>测试难度</strong>：必须保证每颗裸片在封装前就是好的（<strong>KGD，已知良好裸片</strong>），否则封装后整体报废，<strong>反而放大损失</strong>；
+- <strong>热管理</strong>：多裸片堆叠使散热路径复杂，热点难处理；
+- <strong>标准与生态</strong>：不同厂商的 chiplet 要能互操作，需要统一接口标准（如 <strong>UCIe</strong>）——<strong>这是当前产业博弈的焦点</strong>。</p>
+<h2 id="_2">三、封装技术的阶梯<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>特征</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>传统引线键合</strong></td>
+<td>金线连接，成本低</td>
+<td>低端、成熟产品</td>
+</tr>
+<tr>
+<td><strong>倒装焊（flip-chip）</strong></td>
+<td>裸片翻转，用凸点直连基板</td>
+<td>高性能通用方案</td>
+</tr>
+<tr>
+<td><strong>2.5D（硅中介层）</strong></td>
+<td>多裸片并排放在<strong>硅中介层</strong>上，中介层内有高密度布线</td>
+<td><strong>HBM + 逻辑的标准方案</strong></td>
+</tr>
+<tr>
+<td><strong>3D 堆叠（TSV）</strong></td>
+<td>裸片垂直堆叠，<strong>硅通孔</strong>穿透连接</td>
+<td>HBM 内部、3D 缓存</td>
+</tr>
+<tr>
+<td><strong>混合键合（hybrid bonding）</strong></td>
+<td><strong>铜-铜直接键合</strong>，无凸点</td>
+<td>键合间距可到微米级，<strong>当前最前沿</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键指标是互连密度与能效</strong>：从引线键合到混合键合，单位面积的连接数提升了数个数量级，每比特传输能耗大幅下降。<strong>混合键合是当前把裸片"缝"得最紧的技术</strong>，被用于 3D 缓存堆叠与高端图像传感器等。</p>
+<p><strong>HBM（高带宽存储）</strong>：把多层 DRAM 裸片用 TSV 垂直堆叠，通过硅中介层以<strong>极宽的总线</strong>（上千位）与逻辑裸片相连。
+- <strong>用极宽的低速总线替代窄而高速的总线</strong> → 在相同带宽下功耗低得多；
+- <strong>这是 AI 加速器的标配</strong>，也是当前先进封装产能最紧张的驱动力（第十页存储墙的直接产物）。</p>
+<h2 id="_3">四、把系统重新划分<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>Chiplet 迫使设计者重新思考一个问题：<strong>功能该如何在裸片间划分？</strong></p>
+<p><strong>划分原则</strong>：
+- 把<strong>通信密集</strong>的模块放在同一裸片内（跨裸片带宽昂贵）；
+- 按<strong>工艺需求</strong>分组：逻辑/SRAM/模拟/IO/射频各有最合适的节点；
+- 考虑<strong>热</strong>：高功耗裸片不要叠在散热差的位置；
+- 考虑<strong>良率</strong>：把最大最贵的部分拆小。</p>
+<p><strong>这与计算机体系结构中的划分问题、乃至分布式系统的设计权衡高度相似</strong>（🔗 cs 站）——<strong>只是这里的"网络延迟"以皮秒计，"带宽成本"以皮焦耳每比特计</strong>。</p>
+<p><strong>3D 堆叠带来的架构机会</strong>：把 SRAM 直接堆在逻辑上方，可以获得远超平面布局的缓存容量与带宽——<strong>这是缓解存储墙最直接的物理手段</strong>，已在商用产品中出现。</p>
+<h2 id="_4">五、热：新的主要约束<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>堆叠让散热变得根本性地困难</strong>：
+- 中间层的裸片被夹在中间，热量必须穿过邻居才能导出；
+- 功率密度局部极高（热点）；
+- <strong>温度升高 → 漏电上升 → 更热</strong>（第四页的正反馈）。</p>
+<p><strong>应对</strong>：热感知的布局与堆叠顺序、微流道液冷（研究中）、动态热管理（片上温度传感器 + 调频调压，<strong>又一个片上控制回路</strong>）。</p>
+<p><strong>一个判断</strong>：在 3D 集成时代，<strong>热而非晶体管，正在成为限制集成度的第一约束</strong>。这是从"电子学问题"转向"热-机-电协同问题"的转折。</p>
+<h2 id="_5">六、这如何改变了"摩尔定律"<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>行业出现了一个说法：<strong>"系统级缩放"取代"器件级缩放"</strong>——衡量进步的指标从"晶体管有多小"变成"<strong>单位体积/功耗内能集成多少功能</strong>"。</p>
+<p><strong>含义</strong>：
+- 器件缩放仍在继续，但<strong>不再是唯一引擎</strong>；
+- <strong>封装、互连、架构、软件协同</strong>共同贡献性能提升；
+- <strong>这也重塑了产业分工</strong>：封装厂（OSAT）与代工厂的界限模糊，代工厂大举进入先进封装。<strong>掌握先进封装产能，与掌握先进制程同等重要</strong>（第二十页）。</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Chiplet 的根本动机是经济学</strong>（良率曲线）与<strong>异质需求</strong>，不是单纯的技术炫技；</li>
+<li><strong>代价是互连能耗、测试（KGD）、热与标准生态</strong>；</li>
+<li><strong>HBM 是存储墙的直接产物</strong>，2.5D/3D 是它的物理载体；</li>
+<li><strong>混合键合</strong>是当前把裸片连得最紧的技术；</li>
+<li><strong>热正在成为第一约束</strong>；</li>
+<li>行业的进步指标正从<strong>器件级缩放</strong>转向<strong>系统级集成</strong>。</li>
+</ul>
+<hr />
+<p><em>下一页：如果搬运数据这么贵，能不能干脆在存储里做计算？新型存储器与存内计算——一条试图绕开存储墙的路。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-yield-test.html"><span class="pager-label">上一页</span>制造 IV · 良率、变异与可靠性</a>
+  <a class="pager-slot next" href="16-memory-frontier.html"><span class="pager-label">下一页</span>前沿 II · 新型存储与存内计算</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

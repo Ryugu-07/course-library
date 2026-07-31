@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弯曲与扭转 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li class="active"><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、梁的内力：剪力与弯矩</a></li>
+<li><a href="#_2">二、弯曲应力：中性轴与截面效率</a></li>
+<li><a href="#_3">三、扭转</a></li>
+<li><a href="#_4">四、剪切与挤压</a></li>
+<li><a href="#_5">五、组合变形与危险点</a></li>
+<li><a href="#_6">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">力学 III · 弯曲与扭转<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心——<strong>材料力学最实用的两章</strong>。
+机械零件的受载，绝大多数可归结为拉压、弯曲、扭转三种基本形式（及其组合）。拉压已在上页讲完。本页处理弯曲与扭转，并揭示一个贯穿机械设计的主题：<strong>材料放在哪里，比用多少材料更重要。</strong></p>
+</blockquote>
+<h2 id="_1">一、梁的内力：剪力与弯矩<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>梁受横向载荷时，任一截面上有<strong>剪力 <span class="arithmatex">\(Q\)</span></strong> 与<strong>弯矩 <span class="arithmatex">\(M\)</span></strong>。它们与分布载荷 <span class="arithmatex">\(q\)</span> 的微分关系：</p>
+<div class="arithmatex">\[\frac{dQ}{dx} = -q, \qquad \frac{dM}{dx} = Q\]</div>
+<p><strong>实用推论</strong>（画内力图的诀窍）：
+- <strong>剪力为零处，弯矩取极值</strong>——危险截面通常在这里；
+- 集中力处剪力图<strong>突跳</strong>，集中力偶处弯矩图<strong>突跳</strong>；
+- 均布载荷段，剪力图线性、弯矩图抛物线。</p>
+<p><strong>画剪力弯矩图是机械/土木工程师的基本功</strong>——它一眼指出"哪个截面最危险"。</p>
+<h2 id="_2">二、弯曲应力：中性轴与截面效率<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>平面弯曲的正应力公式：</p>
+<div class="arithmatex">\[\sigma = \frac{M y}{I}, \qquad \sigma_{\max} = \frac{M}{W}, \quad W = \frac{I}{y_{\max}}\]</div>
+<ul>
+<li><span class="arithmatex">\(I\)</span>：<strong>截面惯性矩</strong>（面积对中性轴的二阶矩）；</li>
+<li><span class="arithmatex">\(W\)</span>：<strong>抗弯截面模量</strong>；</li>
+<li><span class="arithmatex">\(y\)</span>：到<strong>中性轴</strong>的距离——中性轴上 <span class="arithmatex">\(\sigma=0\)</span>。</li>
+</ul>
+<p><strong>核心洞察：应力沿高度线性分布，中性轴附近的材料几乎不受力。</strong></p>
+<p>对矩形截面（宽 <span class="arithmatex">\(b\)</span>、高 <span class="arithmatex">\(h\)</span>）：</p>
+<div class="arithmatex">\[I = \frac{bh^3}{12}, \qquad W = \frac{bh^2}{6}\]</div>
+<p><strong>注意 <span class="arithmatex">\(h\)</span> 的三次方与二次方</strong>——把梁<strong>加高</strong>远比<strong>加宽</strong>有效。高度加倍，刚度提升 8 倍、强度提升 4 倍，而重量只增加 1 倍。</p>
+<p><strong>这直接解释了几乎所有型材的形状</strong>：</p>
+<figure>
+<p><img alt="截面形状对抗弯效率的影响" class="fig-img" src="assets/img/mec_section.svg" /></p>
+<figcaption><span class="fig-id">图 3-1</span> 等面积下不同截面的抗弯能力对比（以实心圆为基准）。弯曲应力沿高度线性分布、中性轴处为零，因此<strong>把材料移到远离中性轴处最有效</strong>：工字梁把大部分面积放在上下翼缘，圆管把材料放在外圈——在<strong>相同重量</strong>下抗弯截面模量可高出数倍。这就是工字钢、方管、自行车车架、飞机翼梁都做成空心或工字形的原因。</figcaption>
+</figure>
+<p><strong>工字梁的分工</strong>：翼缘（上下两片）承担弯曲正应力，腹板（中间竖板）承担剪力。<strong>每部分只干它擅长的事</strong>——这是结构设计的典范。</p>
+<p><strong>代价</strong>：薄壁截面容易<strong>局部屈曲</strong>（第四页），且抗扭性能差（见下节）。<strong>没有免费的午餐。</strong></p>
+<p><strong>梁的挠度</strong>由微分方程给出：</p>
+<div class="arithmatex">\[EI\frac{d^2 w}{dx^2} = M(x)\]</div>
+<p>常见结果（务必记住量级）：悬臂梁端部集中力 <span class="arithmatex">\(w = \dfrac{FL^3}{3EI}\)</span>；简支梁中点集中力 <span class="arithmatex">\(w=\dfrac{FL^3}{48EI}\)</span>。</p>
+<p><strong>注意 <span class="arithmatex">\(L^3\)</span></strong>：<strong>跨度是刚度的绝对主宰</strong>。跨度加倍，挠度增大 8 倍。<strong>"缩短跨度"往往比"加大截面"更有效</strong>——这是结构布置优先于尺寸设计的原因。</p>
+<h2 id="_3">三、扭转<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>圆轴扭转的切应力：</p>
+<div class="arithmatex">\[\tau = \frac{T\rho}{I_p}, \qquad \tau_{\max} = \frac{T}{W_p}, \qquad \varphi = \frac{TL}{GI_p}\]</div>
+<p><span class="arithmatex">\(I_p\)</span> 是极惯性矩，实心圆轴 <span class="arithmatex">\(I_p = \pi d^4/32\)</span>。</p>
+<p><strong>同样的规律</strong>：切应力沿半径线性分布，<strong>轴心处为零</strong>。所以<strong>空心轴的效率远高于实心轴</strong>——去掉中心那部分材料，损失的承载能力很小，减重却很可观。</p>
+<p><strong>一个可以直接算的对比</strong>：把实心轴挖成内外径比 0.6 的空心轴，<strong>重量减少 36%，而抗扭截面模量只减少约 13%</strong>。传动轴、自行车中轴、飞机操纵轴普遍做成空心，正是这个原因。</p>
+<p><strong>开口薄壁截面的致命弱点</strong>（这是一个必须知道的工程陷阱）：<strong>开口薄壁截面（如 C 型槽钢、开缝管）的抗扭刚度极低</strong>——比同样尺寸的闭口截面低<strong>几个数量级</strong>。</p>
+<p><strong>直观理解</strong>：闭口截面中，切应力可以沿封闭路径环流（形成"剪力流"）；一旦开口，这个环流被切断，只能靠薄壁自身的弯曲抵抗扭转。<strong>所以汽车车身、飞机机身、机床立柱都强调"闭口箱形结构"</strong>，而设计中开的每一个工艺孔、检修口都要评估其对扭转刚度的削弱。</p>
+<h2 id="_4">四、剪切与挤压<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>除了弯扭，连接件还要校核：
+- <strong>剪切</strong>：销、键、铆钉被剪断（<span class="arithmatex">\(\tau = F/A\)</span>）；
+- <strong>挤压</strong>：接触面被压溃（<span class="arithmatex">\(\sigma_{bs}=F/A_{bs}\)</span>）；
+- <strong>拉脱/剪脱</strong>：边距不足时材料被撕开。</p>
+<p><strong>这些是连接设计的常规校核项</strong>。<strong>实际失效常发生在连接处而非零件本体</strong>——因为那里有应力集中、有装配误差、有多种失效模式叠加。<strong>"结构的强度取决于它最弱的连接"</strong> 是可靠的经验。</p>
+<h2 id="_5">五、组合变形与危险点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>真实零件常同时承受多种载荷。例如<strong>传动轴</strong>同时受<strong>弯矩</strong>（齿轮径向力、皮带张力）与<strong>扭矩</strong>（传递功率）——这是机械设计中最常见的组合。</p>
+<p><strong>分析步骤</strong>：
+1. 分别算出各载荷引起的应力；
+2. 在<strong>危险截面</strong>上找<strong>危险点</strong>（通常是表面、离中性轴最远处）；
+3. 写出该点的应力状态（弯曲正应力 <span class="arithmatex">\(\sigma\)</span> + 扭转切应力 <span class="arithmatex">\(\tau\)</span>）；
+4. 用<strong>屈服准则</strong>（第二页）折算等效应力：</p>
+<div class="arithmatex">\[\sigma_{eq} = \sqrt{\sigma^2 + 3\tau^2} \quad (\text{von Mises，弯扭组合})\]</div>
+<p><strong>注意 <span class="arithmatex">\(3\tau^2\)</span> 中的系数 3</strong>——它来自 von Mises 准则，意味着<strong>切应力比正应力更"危险"</strong>（纯剪切时的屈服切应力约为 <span class="arithmatex">\(\sigma_s/\sqrt{3} \approx 0.577\sigma_s\)</span>）。这个系数是弯扭组合校核的关键，记错会低估危险。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>画剪力弯矩图</strong>是找危险截面的第一步；剪力过零处弯矩极值；</li>
+<li><strong>弯曲与扭转的应力都在中性轴/轴心处为零</strong> → <strong>把材料移到外围最有效</strong>（工字梁、空心轴）；</li>
+<li><strong><span class="arithmatex">\(I \propto h^3\)</span>、挠度 <span class="arithmatex">\(\propto L^3\)</span></strong>——加高比加宽有效，缩短跨度比加大截面更有效；</li>
+<li><strong>开口薄壁截面抗扭极差</strong>，闭口箱形结构是抗扭的正解；</li>
+<li><strong>组合变形用等效应力校核</strong>，弯扭组合中切应力的权重是 3。</li>
+</ul>
+<hr />
+<p><em>下一页：强度够了就安全吗？不一定——细长杆件可能在远低于屈服强度时突然失稳。屈曲是一种完全不同的失效模式。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-stress-strain.html"><span class="pager-label">上一页</span>力学 II · 应力、应变与材料行为</a>
+  <a class="pager-slot next" href="04-buckling.html"><span class="pager-label">下一页</span>力学 IV · 组合变形与屈曲</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

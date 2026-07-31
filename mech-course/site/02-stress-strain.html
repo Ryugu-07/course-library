@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>应力、应变与材料行为 · 机器的力学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">机器的力学</a>
+    <div class="site-subtitle">固体力学 · 振动 · 传动 · 制造 · 机械工程讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：固体力学</div><ul><li><a href="01-statics.html">力学 I · 静力学与受力分析</a></li><li class="active"><a href="02-stress-strain.html">力学 II · 应力、应变与材料行为</a></li><li><a href="03-beam-torsion.html">力学 III · 弯曲与扭转</a></li><li><a href="04-buckling.html">力学 IV · 组合变形与屈曲</a></li><li><a href="05-energy-elasticity.html">力学 V · 能量法与弹性力学入门</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：动力学与振动</div><ul><li><a href="06-rigid-dynamics.html">动力 I · 刚体动力学与转动惯量</a></li><li><a href="07-vibration-sdof.html">动力 II · 单自由度振动</a></li><li><a href="08-vibration-mdof.html">动力 III · 多自由度与模态分析</a></li><li><a href="09-rotordynamics.html">动力 IV · 转子动力学与工程振动</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 机构、传动与流体</div><ul><li><a href="10-mechanisms.html">传动 I · 机构运动学</a></li><li><a href="11-gears.html">传动 II · 齿轮与传动系统</a></li><li><a href="12-bearing-tribology.html">传动 III · 轴系、轴承与摩擦学</a></li><li><a href="13-fluid-machinery.html">传动 IV · 工程流体与泵风机要点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 失效与精度</div><ul><li><a href="14-fatigue.html">失效 I · 疲劳与断裂</a></li><li><a href="15-tolerance.html">失效 II · 公差、配合与几何量</a></li><li><a href="16-reliability.html">失效 III · 安全系数与可靠性设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 制造</div><ul><li><a href="17-forming.html">制造 I · 铸、锻、焊</a></li><li><a href="18-machining.html">制造 II · 切削与精密加工</a></li><li><a href="19-additive.html">制造 III · 增材制造</a></li><li><a href="20-materials.html">制造 IV · 材料选择与热处理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 计算与前沿</div><ul><li><a href="21-fem.html">前沿 I · 有限元与结构优化</a></li><li><a href="22-frontier.html">前沿 II · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、应力：为什么需要它</a></li>
+<li><a href="#mohr">二、主应力与 Mohr 圆</a></li>
+<li><a href="#_2">三、应变与本构关系</a></li>
+<li><a href="#_3">四、拉伸曲线：材料的身份证</a></li>
+<li><a href="#_4">五、屈服准则：什么时候开始塑性变形</a></li>
+<li><a href="#_5">六、其他材料行为</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">力学 II · 应力、应变与材料行为<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+上一页算的是"力有多大"，本页问"材料受得住吗"。答案需要两步：把力转成<strong>应力</strong>（单位面积上的力），把变形转成<strong>应变</strong>（单位长度的变形），再用<strong>材料的本构关系</strong>把两者连起来。这三个概念是全部固体力学的语言。</p>
+</blockquote>
+<h2 id="_1">一、应力：为什么需要它<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>同样 1000 N 的拉力，作用在 <span class="arithmatex">\(\phi\)</span>1 mm 的丝上会拉断，作用在 <span class="arithmatex">\(\phi\)</span>50 mm 的杆上毫无影响。<strong>决定材料命运的不是力，是应力</strong>：</p>
+<div class="arithmatex">\[\sigma = \frac{F}{A} \quad (\text{正应力}), \qquad \tau = \frac{F}{A} \quad (\text{切应力})\]</div>
+<p><strong>单位</strong>：Pa = N/m²，工程上常用 <strong>MPa = N/mm²</strong>（这个换算很方便：牛顿除以平方毫米直接得 MPa）。</p>
+<p><strong>应力是张量，不是矢量</strong>。一点的应力状态需要 <strong>6 个独立分量</strong>（三维）描述：</p>
+<div class="arithmatex">\[\boldsymbol{\sigma} = \begin{bmatrix} \sigma_x &amp; \tau_{xy} &amp; \tau_{xz} \\ \tau_{xy} &amp; \sigma_y &amp; \tau_{yz} \\ \tau_{xz} &amp; \tau_{yz} &amp; \sigma_z \end{bmatrix}\]</div>
+<p><strong>为什么必须是张量</strong>：同一点上，<strong>不同方向的截面承受的应力不同</strong>。所以"这一点的应力是多少"这个问题不完整——必须问"哪个方向的截面上"。</p>
+<h2 id="mohr">二、主应力与 Mohr 圆<a class="headerlink" href="#mohr" title="Permanent link"></a></h2>
+<p>既然应力随截面方向变化，自然要问：<strong>哪个方向最危险？</strong></p>
+<p><strong>主应力</strong>：存在三个互相垂直的方向，其截面上<strong>只有正应力、没有切应力</strong>。这些正应力 <span class="arithmatex">\(\sigma_1 \ge \sigma_2 \ge \sigma_3\)</span> 就是主应力——<strong>它们是应力张量的特征值</strong>（🔗 数学站线性代数：这就是实对称矩阵的谱分解，主方向即特征向量）。</p>
+<p><strong>最大切应力</strong>出现在与主方向成 45° 的面上：</p>
+<div class="arithmatex">\[\tau_{\max} = \frac{\sigma_1 - \sigma_3}{2}\]</div>
+<p><strong>Mohr 圆</strong>把这一切画成一个圆——它是应力状态变换的几何表示，至今是工程师快速判断的利器。</p>
+<p><strong>一个直接的实验印证</strong>：拉伸低碳钢试样时，<strong>滑移带（吕德斯带）出现在与轴线成 45° 的方向</strong>，正是最大切应力面。<strong>这说明塑性变形由切应力驱动</strong>——这个观察直接引出下面的屈服准则。</p>
+<h2 id="_2">三、应变与本构关系<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>应变</strong>度量变形：</p>
+<div class="arithmatex">\[\varepsilon = \frac{\Delta L}{L} \quad(\text{正应变}), \qquad \gamma = \text{角度改变} \quad(\text{切应变})\]</div>
+<p><strong>胡克定律</strong>（线弹性、各向同性）：</p>
+<div class="arithmatex">\[\sigma = E\varepsilon, \qquad \tau = G\gamma, \qquad \nu = -\frac{\varepsilon_{\text{横向}}}{\varepsilon_{\text{轴向}}}\]</div>
+<p>三个常数只有两个独立：</p>
+<div class="arithmatex">\[G = \frac{E}{2(1+\nu)}\]</div>
+<p><strong>典型值</strong>（要有量级感）：</p>
+<table>
+<thead>
+<tr>
+<th>材料</th>
+<th><span class="arithmatex">\(E\)</span> (GPa)</th>
+<th><span class="arithmatex">\(\nu\)</span></th>
+<th>密度 (g/cm³)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>钢</td>
+<td>~210</td>
+<td>0.30</td>
+<td>7.85</td>
+</tr>
+<tr>
+<td>铝合金</td>
+<td>~70</td>
+<td>0.33</td>
+<td>2.70</td>
+</tr>
+<tr>
+<td>钛合金</td>
+<td>~110</td>
+<td>0.34</td>
+<td>4.5</td>
+</tr>
+<tr>
+<td>铸铁</td>
+<td>100–170</td>
+<td>0.25</td>
+<td>7.2</td>
+</tr>
+<tr>
+<td>工程塑料</td>
+<td>1–4</td>
+<td>~0.4</td>
+<td>~1.2</td>
+</tr>
+<tr>
+<td>碳纤维复合（纵向）</td>
+<td>100–200</td>
+<td>—</td>
+<td>~1.6</td>
+</tr>
+</tbody>
+</table>
+<p><strong>一个极重要的工程事实</strong>：<strong>钢与铝的比刚度（<span class="arithmatex">\(E/\rho\)</span>）几乎相同</strong>（约 27 vs 26 GPa·cm³/g）。所以<strong>用铝替代钢并不能在同等重量下获得更高刚度</strong>——铝的优势在于同等<strong>强度</strong>下更轻、以及成形与耐蚀性。<strong>"换轻材料就能减重"是一个需要具体分析的直觉</strong>，取决于设计受强度控制还是受刚度控制。</p>
+<p><strong>泊松比的含义</strong>：拉伸时横向收缩。<span class="arithmatex">\(\nu=0.5\)</span> 意味着体积不变（橡胶接近）；金属约 0.3。<strong>存在 <span class="arithmatex">\(\nu&lt;0\)</span> 的超构材料</strong>（拉伸时横向也膨胀），是第二十二页的话题。</p>
+<h2 id="_3">四、拉伸曲线：材料的身份证<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<figure>
+<p><img alt="典型金属的应力-应变曲线" class="fig-img" src="assets/img/mec_stress_strain.svg" /></p>
+<figcaption><span class="fig-id">图 2-1</span> 典型工程应力—应变曲线。<strong>延性金属</strong>（如低碳钢，蓝）经历弹性段 → 屈服 → 强化 → 颈缩 → 断裂，断后延伸率大；<strong>脆性材料</strong>（如铸铁，红）几乎无塑性段即断裂。<strong>曲线下的面积代表韧性</strong>（单位体积吸收的能量）——延性材料远高于脆性材料，这正是它在冲击与超载下更安全的原因。虚线为 0.2% 残余应变法确定的<strong>条件屈服强度</strong> \(\sigma_{0.2}\)。</figcaption>
+</figure>
+<p><strong>关键点</strong>：
+- <strong>比例极限 / 弹性极限</strong>：卸载后能完全恢复；
+- <strong>屈服强度 <span class="arithmatex">\(\sigma_s\)</span>（或 <span class="arithmatex">\(\sigma_{0.2}\)</span>）</strong>：开始明显塑性变形。<strong>这是多数静强度设计的判据</strong>；
+- <strong>抗拉强度 <span class="arithmatex">\(\sigma_b\)</span></strong>：工程应力的最大值。注意<strong>它对应颈缩开始</strong>，而非真正的材料强度上限；
+- <strong>延伸率与断面收缩率</strong>：延性指标。</p>
+<p><strong>工程应力 vs 真应力</strong>：工程应力用<strong>原始</strong>截面积，真应力用<strong>瞬时</strong>截面积。颈缩后工程应力下降，但<strong>真应力仍在上升</strong>——材料并没有变弱，只是截面变小了。<strong>这个区别在成形工艺分析中至关重要</strong>（第十七页）。</p>
+<h2 id="_4">五、屈服准则：什么时候开始塑性变形<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>单向拉伸时判据很简单（<span class="arithmatex">\(\sigma &gt; \sigma_s\)</span>）。但<strong>复杂应力状态下呢？</strong> 需要把多维应力状态折算成一个等效值。</p>
+<p><strong>von Mises 准则（畸变能理论）</strong>——延性金属的标准判据：</p>
+<div class="arithmatex">\[\sigma_{eq} = \sqrt{\tfrac{1}{2}\left[(\sigma_1-\sigma_2)^2 + (\sigma_2-\sigma_3)^2 + (\sigma_3-\sigma_1)^2\right]} &lt; \sigma_s\]</div>
+<p><strong>物理含义</strong>：屈服由<strong>畸变能</strong>（改变形状的能量）控制，而非体积改变能。</p>
+<p><strong>一个有力的实验证据</strong>：<strong>静水压力（三向等压）下金属几乎不屈服</strong>——深海压力可以极大，材料却只是被均匀压缩。因为静水压力只改变体积、不改变形状，<span class="arithmatex">\(\sigma_{eq}=0\)</span>。<strong>这直接支持了畸变能理论。</strong></p>
+<p><strong>Tresca 准则（最大切应力）</strong>：<span class="arithmatex">\(\tau_{\max} = (\sigma_1-\sigma_3)/2 &lt; \sigma_s/2\)</span>。比 von Mises 略保守，形式简单，某些规范采用。</p>
+<p><strong>脆性材料用不同准则</strong>：铸铁、陶瓷、玻璃的失效由<strong>最大拉应力</strong>主导，因为它们的破坏机制是裂纹扩展而非滑移。<strong>所以脆性材料抗压远强于抗拉</strong>（铸铁抗压强度可达抗拉的 3–4 倍）——这就是为什么它常用于受压件（机床床身、发动机缸体）。</p>
+<p><strong>"先判断材料是延性还是脆性，再选准则"——用错准则的后果可能是灾难性的。</strong></p>
+<h2 id="_5">六、其他材料行为<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>蠕变</strong>：高温下长期恒定载荷造成缓慢变形。<strong>汽轮机叶片、发动机部件的寿命常由蠕变控制</strong>，判据是时间-温度参数；</li>
+<li><strong>应力松弛</strong>：恒定变形下应力随时间下降——<strong>这就是螺栓预紧力会衰减、需要定期复紧的原因</strong>；</li>
+<li><strong>各向异性</strong>：轧制金属、复合材料、增材制造件（第十九页）的性能随方向变化。<strong>复合材料设计的核心正是利用这一点</strong>——在受力方向铺纤维；</li>
+<li><strong>温度影响</strong>：多数金属高温下强度下降、延性上升；<strong>某些钢在低温下发生韧脆转变</strong>——历史上多起低温脆断事故与此有关，这也是低温结构必须做冲击韧性试验的原因。</li>
+</ul>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>应力是张量</strong>，主应力是它的特征值，Mohr 圆是几何表示；</li>
+<li><strong><span class="arithmatex">\(E/\rho\)</span> 在钢与铝中几乎相同</strong>——换材料减重必须看设计受什么控制；</li>
+<li><strong>屈服强度定静强度，抗拉强度对应颈缩</strong>；工程应力与真应力在大变形时分道扬镳；</li>
+<li><strong>延性金属用 von Mises（畸变能），脆性材料用最大拉应力</strong>——静水压力不引起屈服是关键证据；</li>
+<li><strong>蠕变、松弛、各向异性、韧脆转变</strong>是超出简单强度计算的真实工程因素。</li>
+</ul>
+<hr />
+<p><em>下一页：把应力分析用到最常见的两种受载形式——弯曲与扭转。你会看到一个反复出现的主题：材料的效率，取决于它离中性轴有多远。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-statics.html"><span class="pager-label">上一页</span>力学 I · 静力学与受力分析</a>
+  <a class="pager-slot next" href="03-beam-torsion.html"><span class="pager-label">下一页</span>力学 III · 弯曲与扭转</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

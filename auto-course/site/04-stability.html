@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>稳定性与根轨迹 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li class="active"><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、稳定性的定义与判据</a></li>
+<li><a href="#_2">二、根轨迹：看增益如何搬动极点</a></li>
+<li><a href="#_3">三、用零极点塑形：补偿器设计</a></li>
+<li><a href="#_4">四、一个必须警惕的陷阱：零极点对消</a></li>
+<li><a href="#nyquist">五、Nyquist 判据预告</a></li>
+<li><a href="#_5">六、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">经典 IV · 稳定性与根轨迹<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心。
+稳定性是控制系统的<strong>第一要求</strong>——一个不稳定的系统，其他所有指标都没有意义。本页讲两件事：<strong>如何在不解高阶方程的情况下判断稳定性</strong>（Routh 判据），以及<strong>如何直观地看到参数变化如何搬动极点</strong>（根轨迹）——后者是经典控制最具几何美感的工具。</p>
+</blockquote>
+<h2 id="_1">一、稳定性的定义与判据<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>BIBO 稳定</strong>：有界输入产生有界输出。对 LTI 系统，等价于：</p>
+<blockquote>
+<p><strong>闭环所有极点位于左半平面（实部严格为负）。</strong></p>
+</blockquote>
+<p>问题是：闭环特征方程 <span class="arithmatex">\(1 + L(s) = 0\)</span> 展开后是高阶多项式，<strong>五次以上没有求根公式</strong>。所以需要不解方程就能判断的办法。</p>
+<p><strong>Routh–Hurwitz 判据</strong>：把多项式系数排成劳斯表，<strong>第一列符号变化的次数 = 右半平面极点的个数</strong>。全部同号则稳定。</p>
+<p><strong>它的真正价值不在判断具体系统，而在给出参数范围</strong>。例如对 <span class="arithmatex">\(1 + \dfrac{K}{s(s+1)(s+5)} = 0\)</span>，劳斯判据直接给出稳定条件 <span class="arithmatex">\(0 &lt; K &lt; 30\)</span>——<strong>这是一个可以直接用于设计的结论</strong>：告诉你增益能推到多大。</p>
+<p><strong>必要条件（快速筛查）</strong>：所有系数同号且非零。不满足则必不稳定，可立即排除。</p>
+<h2 id="_2">二、根轨迹：看增益如何搬动极点<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>根轨迹</strong>回答一个设计者最关心的问题：<strong>当我调大增益 <span class="arithmatex">\(K\)</span>，闭环极点往哪里走？</strong></p>
+<p>闭环特征方程 <span class="arithmatex">\(1 + K G(s) = 0\)</span>，即 <span class="arithmatex">\(G(s) = -1/K\)</span>。当 <span class="arithmatex">\(K\)</span> 从 0 变到 ∞，满足该式的 <span class="arithmatex">\(s\)</span> 的轨迹就是根轨迹。</p>
+<p><strong>几条作图规则</strong>（不必死记，但要理解其含义）：</p>
+<ol>
+<li><strong>起点</strong>（<span class="arithmatex">\(K=0\)</span>）在<strong>开环极点</strong>，<strong>终点</strong>（<span class="arithmatex">\(K\to\infty\)</span>）在<strong>开环零点</strong>或无穷远；</li>
+<li>分支数 = 开环极点数；</li>
+<li><strong>实轴上的段</strong>：其右侧的开环极点+零点总数为奇数时属于根轨迹；</li>
+<li><strong>渐近线</strong>：<span class="arithmatex">\(n-m\)</span> 条，夹角 <span class="arithmatex">\(\dfrac{(2k+1)180°}{n-m}\)</span>，交点 <span class="arithmatex">\(\sigma_a = \dfrac{\sum p_i - \sum z_j}{n-m}\)</span>；</li>
+<li><strong>分离点</strong>：轨迹离开实轴处（两个实极点相遇后变为共轭复数——<strong>系统从过阻尼变为欠阻尼的临界点</strong>）；</li>
+<li><strong>与虚轴的交点</strong>：由劳斯判据求得，<strong>给出临界增益</strong>。</li>
+</ol>
+<figure>
+<p><img alt="根轨迹：增益如何搬动闭环极点" class="fig-img" src="assets/img/aut_rootlocus.svg" /></p>
+<figcaption><span class="fig-id">图 4-1</span> 系统 \(L(s)=\dfrac{K}{s(s+1)(s+5)}\) 的根轨迹。\(K\) 从 0 增大时，两个极点由实轴相遇后<strong>分离进入复平面</strong>（系统开始振荡），继续增大则<strong>穿过虚轴进入右半平面</strong>——闭环失稳。穿越点对应<strong>临界增益 \(K=30\)</strong>。这张图把"增益越大越快、但过大就失稳"这句话变成了可以看见的几何事实。</figcaption>
+</figure>
+<p><strong>根轨迹的价值</strong>：
+- <strong>一眼看出稳定的增益范围</strong>（轨迹穿越虚轴之处）；
+- <strong>看出可达的阻尼比</strong>（从原点画等 <span class="arithmatex">\(\zeta\)</span> 射线，与轨迹的交点即为可达设计点）；
+- <strong>看出补偿器该往哪加</strong>：加零点会<strong>把轨迹往左拉</strong>（改善稳定性与速度），加极点会<strong>往右推</strong>（恶化）。<strong>这直接指导了超前/滞后补偿器的设计。</strong></p>
+<h2 id="_3">三、用零极点塑形：补偿器设计<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>根轨迹给了一个直观的设计法：<strong>通过增加零极点，把根轨迹拉到期望的位置</strong>。</p>
+<p><strong>超前补偿器（lead）</strong>：</p>
+<div class="arithmatex">\[C(s) = K\frac{s+z}{s+p}, \qquad z &lt; p\]</div>
+<p>零点比极点更靠近原点 → <strong>贡献正相位</strong> → 把根轨迹向左拉 → <strong>改善动态响应与稳定裕度</strong>。<strong>代价是提升高频增益，放大噪声。</strong></p>
+<p><strong>滞后补偿器（lag）</strong>：<span class="arithmatex">\(z &gt; p\)</span>，两者都靠近原点。主要<strong>提高低频增益以减小稳态误差</strong>，对动态影响小。<strong>代价是引入相位滞后，需放在远离穿越频率处。</strong></p>
+<p><strong>超前-滞后</strong>：兼顾两者，工业上常见。</p>
+<p><strong>注意一个概念联系</strong>：超前补偿本质上就是<strong>比例 + 微分</strong>的实用形式（微分被加了高频极点做滤波），滞后补偿近似<strong>比例 + 积分</strong>。<strong>所以 PID 与超前滞后补偿是同一件事的两种表述</strong>（第六页）。</p>
+<h2 id="_4">四、一个必须警惕的陷阱：零极点对消<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>设计时容易想到：对象有个讨厌的极点，我就在控制器里放个零点把它<strong>对消</strong>掉。</p>
+<p><strong>这在数学上成立，在工程上危险</strong>：</p>
+<ul>
+<li><strong>对消永远不精确</strong>：对象参数会漂移、模型有误差，实际是一个"零极点对"靠得很近而非重合；</li>
+<li><strong>若被对消的是不稳定极点，结果是灾难</strong>：闭环传递函数看起来正常，但系统内部有一个不稳定模态<strong>不可控或不可观</strong>——它会在初始条件或扰动下发散，而你从输出上看不到征兆，直到系统炸掉。<strong>这在状态空间语言里就是"不可镇定"（第七页会正式讲）</strong>；</li>
+<li><strong>右半平面零点同样不能用右半平面极点对消</strong>。</li>
+</ul>
+<p><strong>铁律</strong>：<strong>绝不用对消来处理右半平面的极点或零点。</strong> 左半平面的对消也应留有裕度，不可依赖精确抵消。</p>
+<h2 id="nyquist">五、Nyquist 判据预告<a class="headerlink" href="#nyquist" title="Permanent link"></a></h2>
+<p>Routh 判据要求有多项式模型，但<strong>实际中我们常常只有频率响应的实测数据</strong>（扫频得到的 Bode 图），没有解析模型。<strong>Nyquist 判据</strong>允许<strong>直接从频率响应判断闭环稳定性</strong>，且能处理时滞（时滞在频域只是相位滞后，在多项式方法里却是超越函数，无法用 Routh 处理）。</p>
+<p><strong>这就是频域方法在工程上占主导地位的原因</strong>——它<strong>不需要模型，只需要测量</strong>。第五页展开。</p>
+<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li><strong>稳定 = 所有闭环极点在左半平面</strong>；</li>
+<li><strong>Routh 判据</strong>给出无需解方程的稳定条件，其价值在于<strong>给出参数范围</strong>；</li>
+<li><strong>根轨迹</strong>把"调增益"变成可见的几何运动，直接指导补偿器设计；</li>
+<li><strong>加零点往左拉（改善），加极点往右推（恶化）</strong>——超前/滞后补偿的几何直觉；</li>
+<li><strong>零极点对消是陷阱</strong>，尤其绝不能用于右半平面；</li>
+<li><strong>时滞与无模型场合需要频域方法</strong>——下一页的主题。</li>
+</ul>
+<hr />
+<p><em>下一页：频域分析。Bode 图、Nyquist 判据、增益裕度与相位裕度——这是工业界最常用的语言，因为它可以直接从实测数据出发，且能把全课的权衡统一到一张图上。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-time-response.html"><span class="pager-label">上一页</span>经典 III · 时域响应与性能指标</a>
+  <a class="pager-slot next" href="05-frequency.html"><span class="pager-label">下一页</span>经典 V · 频域分析与裕度</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

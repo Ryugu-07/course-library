@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>频域分析与裕度 · 反馈的艺术</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">反馈的艺术</a>
+    <div class="site-subtitle">控制 · 估计 · 执行 · 前沿 · 自动化讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 本科核心：经典控制</div><ul><li><a href="01-feedback.html">经典 I · 为什么要反馈</a></li><li><a href="02-modeling.html">经典 II · 建模与传递函数</a></li><li><a href="03-time-response.html">经典 III · 时域响应与性能指标</a></li><li><a href="04-stability.html">经典 IV · 稳定性与根轨迹</a></li><li class="active"><a href="05-frequency.html">经典 V · 频域分析与裕度</a></li><li><a href="06-pid.html">经典 VI · PID：工业界的真正主力</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 本科核心：现代控制</div><ul><li><a href="07-statespace.html">现代 I · 状态空间与能控能观</a></li><li><a href="08-lqr.html">现代 II · 极点配置与 LQR</a></li><li><a href="09-kalman.html">现代 III · 观测器与卡尔曼滤波</a></li><li><a href="10-digital.html">现代 IV · 数字控制与采样</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 执行机构与工业实务</div><ul><li><a href="11-power-electronics.html">实务 I · 电力电子与变换器</a></li><li><a href="12-motor.html">实务 II · 电机与矢量控制</a></li><li><a href="13-industrial.html">实务 III · PLC、总线与工业系统</a></li><li><a href="14-safety.html">实务 IV · 功能安全与可靠性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 研究生专业化</div><ul><li><a href="15-nonlinear.html">进阶 I · 非线性控制</a></li><li><a href="16-robust.html">进阶 II · 鲁棒控制与不确定性</a></li><li><a href="17-mpc.html">进阶 III · 最优控制与 MPC</a></li><li><a href="18-sysid.html">进阶 IV · 系统辨识与自适应</a></li><li><a href="19-robotics.html">进阶 V · 机器人学与状态估计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 前沿</div><ul><li><a href="20-learning-control.html">前沿 I · 学习型控制</a></li><li><a href="21-safe-control.html">前沿 II · 安全约束控制</a></li><li><a href="22-frontier.html">前沿 III · 产业前沿与职业路径</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-07-31 22:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">一、频率响应</a></li>
+<li><a href="#nyquist">二、Nyquist 判据</a></li>
+<li><a href="#_2">三、稳定裕度：离灾难有多远</a></li>
+<li><a href="#_3">四、回路整形：频域设计的思路</a></li>
+<li><a href="#_4">五、水床效应：一条不可逾越的定理</a></li>
+<li><a href="#_5">六、从实测数据出发</a></li>
+<li><a href="#_6">七、要点</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">经典 V · 频域分析与裕度<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>层次</strong>：本科核心 ｜ <strong>这是工业界最常用的分析语言</strong>。
+频域方法之所以在工程上占主导，有一个极实际的理由：<strong>它可以直接从实测数据出发</strong>——给系统扫频，测出幅值与相位，就能设计控制器，<strong>不需要解析模型</strong>。本页讲 Bode 图、Nyquist 判据、稳定裕度，并揭示控制论最深刻的一条限制：<strong>水床效应</strong>。</p>
+</blockquote>
+<h2 id="_1">一、频率响应<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>对 LTI 系统输入正弦 <span class="arithmatex">\(\sin(\omega t)\)</span>，稳态输出仍是同频正弦，只是<strong>幅值被放大 <span class="arithmatex">\(|G(j\omega)|\)</span> 倍、相位滞后 <span class="arithmatex">\(\angle G(j\omega)\)</span></strong>。把这两个量对频率作图，就是 <strong>Bode 图</strong>（幅值用 dB、频率用对数）。</p>
+<p><strong>为什么用对数</strong>：串联系统的传递函数相乘，取对数后变成<strong>相加</strong>——于是复杂系统的 Bode 图可以由各环节<strong>叠加</strong>得到，手工作图成为可能。这是 Bode 在 1930 年代的关键设计。</p>
+<p><strong>基本环节的渐近线</strong>（务必熟悉）：</p>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>幅值斜率</th>
+<th>相位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>积分 <span class="arithmatex">\(1/s\)</span></td>
+<td>−20 dB/dec</td>
+<td>−90°</td>
+</tr>
+<tr>
+<td>一阶惯性 <span class="arithmatex">\(\frac{1}{\tau s+1}\)</span></td>
+<td>转折后 −20 dB/dec</td>
+<td>0° → −90°</td>
+</tr>
+<tr>
+<td>二阶欠阻尼</td>
+<td>转折后 −40 dB/dec，谐振峰</td>
+<td>0° → −180°</td>
+</tr>
+<tr>
+<td>时滞 <span class="arithmatex">\(e^{-\tau s}\)</span></td>
+<td><strong>0 dB（不变）</strong></td>
+<td><strong><span class="arithmatex">\(-\omega\tau\)</span>，无限增长</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意最后一行</strong>：<strong>时滞不衰减幅值，却无限累积相位</strong>——这就是第一页说它是"反馈头号敌人"的定量表述。</p>
+<h2 id="nyquist">二、Nyquist 判据<a class="headerlink" href="#nyquist" title="Permanent link"></a></h2>
+<p>把 <span class="arithmatex">\(G(j\omega)\)</span> 在复平面上画成一条曲线（<span class="arithmatex">\(\omega\)</span> 从 <span class="arithmatex">\(-\infty\)</span> 到 <span class="arithmatex">\(+\infty\)</span>），<strong>Nyquist 判据</strong>给出闭环稳定的条件：</p>
+<div class="arithmatex">\[Z = N + P\]</div>
+<p><span class="arithmatex">\(Z\)</span> 是闭环右半平面极点数（要求为 0），<span class="arithmatex">\(P\)</span> 是开环右半平面极点数，<span class="arithmatex">\(N\)</span> 是曲线<strong>顺时针包围 <span class="arithmatex">\(-1\)</span> 点的次数</strong>。</p>
+<p><strong>对开环稳定的系统（<span class="arithmatex">\(P=0\)</span>）</strong>，条件简化为：<strong>Nyquist 曲线不包围 <span class="arithmatex">\(-1\)</span> 点</strong>。</p>
+<p><strong>为什么是 <span class="arithmatex">\(-1\)</span></strong>：闭环特征方程是 <span class="arithmatex">\(1+L(s)=0\)</span>，即 <span class="arithmatex">\(L(s) = -1\)</span>。<strong><span class="arithmatex">\(-1\)</span> 点就是"回路增益为 1 且相位为 180°"的那个临界状态</strong>——正是第一页说的"负反馈变成正反馈且增益足够"的条件。<strong>几何直观与物理直觉在此完全吻合。</strong></p>
+<h2 id="_2">三、稳定裕度：离灾难有多远<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>"不包围 <span class="arithmatex">\(-1\)</span>"是二元的，工程需要<strong>定量的余量</strong>：</p>
+<ul>
+<li><strong>增益裕度 GM</strong>：相位为 −180° 时，增益还能放大多少倍才到 1。典型要求 <strong>&gt; 6 dB（2 倍）</strong>；</li>
+<li><strong>相位裕度 PM</strong>：增益为 1（0 dB）时，相位离 −180° 还差多少。典型要求 <strong>45°–60°</strong>。</li>
+</ul>
+<figure>
+<p><img alt="Bode 图与增益/相位裕度" class="fig-img" src="assets/img/aut_bode_margins.svg" /></p>
+<figcaption><span class="fig-id">图 5-1</span> 开环 Bode 图与稳定裕度。<strong>穿越频率</strong> \(\omega_c\)（幅值过 0 dB 处）大致决定闭环带宽与响应速度；该处相位距 −180° 的余量即<strong>相位裕度</strong>。相位过 −180° 处的幅值余量为<strong>增益裕度</strong>。工程经验：<strong>PM ≈ 60° 对应 \(\zeta\approx0.6\)、超调约 10%</strong>——频域指标与第三页的时域指标由此直接对应。</figcaption>
+</figure>
+<p><strong>极其有用的经验关系</strong>：</p>
+<div class="arithmatex">\[\zeta \approx \frac{\mathrm{PM}}{100}\quad(\mathrm{PM} &lt; 70°), \qquad \omega_c \approx \omega_n\]</div>
+<p><strong>这条经验把频域设计与时域指标连了起来</strong>：客户要"超调小于 10%"，你就知道要设计 PM ≈ 60°；客户要"调节时间 0.5 秒"，你就知道穿越频率大致该放在哪里。<strong>这是经典控制最实用的一条转换。</strong></p>
+<p><strong>为什么不能只看裕度</strong>：GM 与 PM 都只看曲线上的<strong>一个点</strong>。曲线可能在别处很靠近 <span class="arithmatex">\(-1\)</span>（虽然两个裕度都合格）。更严格的指标是<strong>向量裕度</strong>（曲线到 <span class="arithmatex">\(-1\)</span> 的最短距离），它等价于 <span class="arithmatex">\(1/\|S\|_\infty\)</span>——<strong>这就通向了第十六页的 <span class="arithmatex">\(H_\infty\)</span> 理论</strong>。</p>
+<h2 id="_3">四、回路整形：频域设计的思路<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>回路整形（loop shaping）</strong>是频域设计的核心思想：<strong>按频段给回路增益 <span class="arithmatex">\(|L(j\omega)|\)</span> 规定形状</strong>。</p>
+<div class="arithmatex">\[\text{低频：}|L|\ \text{大} \quad\Longrightarrow\quad |S| = \frac{1}{|1+L|}\ \text{小} \quad\Longrightarrow\quad \text{跟踪准、抗扰强}\]</div>
+<div class="arithmatex">\[\text{高频：}|L|\ \text{小} \quad\Longrightarrow\quad |T|\ \text{小} \quad\Longrightarrow\quad \text{抑制噪声、避开未建模动态}\]</div>
+<div class="arithmatex">\[\text{穿越处：斜率约 −20 dB/dec} \quad\Longrightarrow\quad \text{足够的相位裕度}\]</div>
+<p><strong>这是一个清晰、可操作的设计配方</strong>：低频抬高（加积分/滞后）、高频压低（加滤波）、穿越区调整斜率与相位（加超前）。<strong>工业上大量控制器就是这样设计出来的。</strong></p>
+<h2 id="_4">五、水床效应：一条不可逾越的定理<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>现在讲控制论最深刻、也最少被外行知道的结果。</p>
+<p><strong>Bode 灵敏度积分定理</strong>：对开环稳定、相对阶 ≥ 2 的系统，</p>
+<div class="arithmatex">\[\int_0^\infty \ln|S(j\omega)|\,d\omega = 0\]</div>
+<p><strong>含义</strong>：<span class="arithmatex">\(\ln|S|\)</span> 曲线下的<strong>正负面积必须相等</strong>。你在某个频段把 <span class="arithmatex">\(|S|\)</span> 压到 1 以下（抑制干扰），就<strong>必然</strong>在另一个频段把它抬到 1 以上（放大干扰）。</p>
+<p><strong>这就是"水床效应"</strong>——按下这头，那头必然翘起来。</p>
+<p><strong>它不是设计水平的问题，是数学定理。</strong> 工程含义极其实在：</p>
+<ul>
+<li>你<strong>不可能</strong>设计出在所有频段都抑制干扰的控制器；</li>
+<li>只能<strong>选择</strong>把干扰放大放到你不在乎的频段（通常是高频，或没有干扰能量的频段）；</li>
+<li><strong>若系统有右半平面极点或零点，情况更糟</strong>：积分等式右边变成正数，意味着"必须付出的代价"更大——<strong>这是第二页说的"非最小相位系统性能有天花板"的严格版本</strong>。</li>
+</ul>
+<p><strong>这个定理与其他学科的"不可能性结果"同属一类</strong>：🔗 微电子站的 60 mV/dec 玻尔兹曼极限、信息论的香农极限、热力学第二定律。<strong>成熟的工程学科都有这样一条告诉你"什么做不到"的定律，而知道边界在哪，正是专业性的体现。</strong></p>
+<h2 id="_5">六、从实测数据出发<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>最后强调频域方法在工业上的决定性优势：</p>
+<ol>
+<li><strong>扫频实验</strong>（或用伪随机信号、阶跃辨识）直接得到 <span class="arithmatex">\(|G(j\omega)|\)</span> 与 <span class="arithmatex">\(\angle G(j\omega)\)</span>，<strong>无需知道物理模型</strong>；</li>
+<li>在实测 Bode 图上直接做回路整形；</li>
+<li><strong>时滞、柔性模态、非线性的一阶效应都自然包含在实测数据里</strong>——不必单独建模。</li>
+</ol>
+<p><strong>这就是为什么现场工程师更常用频域方法</strong>：它容忍"我不知道这台设备的精确模型"这个常态。（🔗 第十八页系统辨识会给出更系统的做法。）</p>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<ul>
+<li><strong>Bode 图的对数坐标使串联变叠加</strong>，是手工设计的基础；</li>
+<li><strong>Nyquist 的 <span class="arithmatex">\(-1\)</span> 点就是"增益 1、相位 180°"的临界条件</strong>；</li>
+<li><strong>PM ≈ 60° ↔ <span class="arithmatex">\(\zeta\)</span> ≈ 0.6 ↔ 超调约 10%</strong>——频域与时域的实用换算；</li>
+<li><strong>回路整形</strong>给出清晰配方：低频高、高频低、穿越处 −20 dB/dec；</li>
+<li><strong>水床效应是定理</strong>：干扰抑制的总量守恒，你只能选择把代价放在哪个频段；</li>
+<li><strong>频域方法可直接用实测数据</strong>，这是它在工业上占主导的根本原因。</li>
+</ul>
+<hr />
+<p><em>下一页：PID。理论讲完，来看工业界真正在用的东西——它占据了实际控制器的绝大多数，而它的工程细节（抗饱和、微分滤波、整定）恰恰是教科书讲得最少的。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-stability.html"><span class="pager-label">上一页</span>经典 IV · 稳定性与根轨迹</a>
+  <a class="pager-slot next" href="06-pid.html"><span class="pager-label">下一页</span>经典 VI · PID：工业界的真正主力</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>
