@@ -87,6 +87,14 @@
 
 **肥大细胞增多症**：反复潮红、低血压、腹泻，**血清类胰蛋白酶基线升高**是关键线索；**KIT D816V** 突变常见。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验超敏反应、自身免疫、移植排斥和免疫缺陷的机制；免疫抑制方案、过敏急救和移植用药必须以当地专科指南为准。
+- [Responses to alloantigens and transplant rejection](https://www.ncbi.nlm.nih.gov/sites/books/NBK27163/) — NLM/NIH Bookshelf：同种异体抗原、T 细胞反应与移植排斥。
+- [Type I Hypersensitivity Reaction](https://www.ncbi.nlm.nih.gov/books/NBK560561/) — NLM/NIH Bookshelf：IgE、肥大细胞和超敏反应分类。
+- [Type IV Hypersensitivity Reaction](https://www.ncbi.nlm.nih.gov/books/NBK562228/) — NLM/NIH Bookshelf：T 细胞介导的迟发型超敏反应、接触性皮炎与移植排斥。
+- [Biochemistry, Autoimmunity](https://www.ncbi.nlm.nih.gov/books/NBK576418/) — NLM/NIH Bookshelf：自身耐受与自身免疫的多因素机制。
+
 ---
 
 *下一页：感染的另一侧——病原体的分类、致病机制与它们各自的"战术"。*

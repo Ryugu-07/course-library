@@ -77,7 +77,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · {site_title}</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {{

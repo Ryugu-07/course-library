@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>控制与定制：LoRA / ControlNet / IP-Adapter · 从噪声到图像</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -143,7 +143,7 @@ W' = W + \Delta W = W + \frac{\alpha}{r}\, B A, \qquad B \in \mathbb{R}^{d \time
 x_{t-1} \leftarrow m \odot x_{t-1}^{\text{生成}} + (1 - m) \odot x_{t-1}^{\text{原图加噪}}
 \]</div>
 <p>朴素缝合在边界处易穿帮，故有<strong>专用 inpaint 模型</strong>（你已有的 <code>512-inpainting-ema</code> 就是）：U-Net 输入通道扩展，把掩码和被挖空的图作为额外输入一起训练——边界融合能力是学出来的。第 09 讲实操两种路线。</p>
-<p><strong>放大的两条路线</strong>：① <strong>前馈超分</strong>（ESRGAN 家族，<code>Models/upscale_models</code>）：一个专门训练的卷积网络一步 4×，快、忠实但不添新细节；② <strong>扩散重绘放大</strong>（hires 两段式 / tiled）：先放大再用低 denoise 图生图"补细节"——慢但细节是真的生成出来的。第 14 讲把两者拼成流水线。</p>
+<p><strong>放大的两条路线</strong>：1. <strong>前馈超分</strong>（ESRGAN 家族，<code>Models/upscale_models</code>）：一个专门训练的卷积网络一步 4×，快、忠实但不添新细节；2. <strong>扩散重绘放大</strong>（hires 两段式 / tiled）：先放大再用低 denoise 图生图"补细节"——慢但细节是真的生成出来的。第 14 讲把两者拼成流水线。</p>
 <h2 id="5">5. 原理篇总图<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>五讲的知识拼成一张完整地图（也是 ComfyUI 画布的"骨架谱"）：</p>
 <table>

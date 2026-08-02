@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="33-closing.html">收官 · 生命的统一逻辑</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -57,34 +57,44 @@
 <h2 id="alphafold">一、预测：AlphaFold 做到了什么<a class="headerlink" href="#alphafold" title="Permanent link"></a></h2>
 <p>线一第三页讲过折叠问题的难度（Levinthal 悖论、能量漏斗）。半个世纪里，测定结构靠 X 射线晶体学、核磁、冷冻电镜——每个结构耗时数月到数年。</p>
 <p><strong>AlphaFold2（2020）</strong>在 CASP 竞赛中对大量单体蛋白达到接近实验精度的预测。随后发布的预测数据库覆盖了 2 亿以上的蛋白序列，<strong>把"查结构"变成了日常操作</strong>。<strong>AlphaFold3</strong> 进一步扩展到蛋白–配体、蛋白–核酸等复合物的建模。</p>
-<p><strong>为什么它有效</strong>（简化的直觉）：
-- <strong>共演化信号</strong>：若两个残基在三维空间接触，它们的突变往往相关（一方变了，另一方需补偿性变化才能维持结构）。<strong>多序列比对（MSA）中的相关模式，编码了空间接触信息</strong>——这是深度学习之前就已知的思想，AlphaFold 把它用到了极致；
-- <strong>端到端几何建模</strong>：直接输出三维坐标，而非先预测接触图再重建；
-- <strong>注意力机制</strong>在残基对之间传递信息，隐式地做了类似三角不等式的几何一致性推理。</p>
-<p><strong>必须保留的限定</strong>（承线一第三页，仍然适用）：
-- <strong>预测终态 ≠ 理解折叠动力学</strong>；
-- <strong>静态结构 ≠ 功能</strong>：许多蛋白依赖构象变化、柔性区、多态平衡；
-- <strong>内在无序蛋白</strong>本就没有固定结构，而它们在信号传导与相分离中极重要；
-- <strong>点突变的精细效应</strong>预测仍不可靠——这直接限制了它在解读遗传变异（线三第三页）中的用途；
-- <strong>置信度不均</strong>：必须看 pLDDT/PAE 等指标，不能一概信任。</p>
+<p><strong>为什么它有效</strong>（简化的直觉）：</p>
+<ul>
+<li><strong>共演化信号</strong>：若两个残基在三维空间接触，它们的突变往往相关（一方变了，另一方需补偿性变化才能维持结构）。<strong>多序列比对（MSA）中的相关模式，编码了空间接触信息</strong>——这是深度学习之前就已知的思想，AlphaFold 把它用到了极致；</li>
+<li><strong>端到端几何建模</strong>：直接输出三维坐标，而非先预测接触图再重建；</li>
+<li><strong>注意力机制</strong>在残基对之间传递信息，隐式地做了类似三角不等式的几何一致性推理。</li>
+</ul>
+<p><strong>必须保留的限定</strong>（承线一第三页，仍然适用）：</p>
+<ul>
+<li><strong>预测终态 ≠ 理解折叠动力学</strong>；</li>
+<li><strong>静态结构 ≠ 功能</strong>：许多蛋白依赖构象变化、柔性区、多态平衡；</li>
+<li><strong>内在无序蛋白</strong>本就没有固定结构，而它们在信号传导与相分离中极重要；</li>
+<li><strong>点突变的精细效应</strong>预测仍不可靠——这直接限制了它在解读遗传变异（线三第三页）中的用途；</li>
+<li><strong>置信度不均</strong>：必须看 pLDDT/PAE 等指标，不能一概信任。</li>
+</ul>
 <h2 id="_1">二、设计：从预测到创造<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p>比预测更激进的一步是<strong>从头设计（de novo design）</strong>——<strong>造一个自然界从未演化出的蛋白</strong>。</p>
 <p>线一第三页给了它的理论空间：<span class="arithmatex">\(20^{100}\)</span> 的序列空间中，演化只探索了极小一角，<strong>大量物理上可行且有用的蛋白从未被尝试</strong>。</p>
-<p><strong>方法的演进</strong>：
-- <strong>早期（Rosetta，基于物理能量函数）</strong>：设计理想化的折叠（如 Top7，2003 年首个成功的全新折叠），费力且成功率低；
-- <strong>深度学习时代</strong>：<strong>RFdiffusion</strong> 用扩散模型——与图像生成同源的思想——<strong>从噪声中逐步"去噪"出合理的蛋白骨架</strong>，再用序列设计网络（如 ProteinMPNN）填上氨基酸序列。成功率与可及的复杂度大幅提升；
-- <strong>当前</strong>：Baker 实验室已发布后续版本（RFdiffusion2/3），其中酶设计的性能被报告为接近天然酶水平，通用性进一步提高。<strong>此处属快速变动区，具体版本与性能请查最新文献。</strong></p>
-<p><strong>已实现的设计目标</strong>：
-- <strong>结合蛋白</strong>：针对指定靶点设计高亲和力结合剂（潜在用于药物、诊断、中和病毒）；
-- <strong>酶</strong>：设计催化特定反应的活性位点（历史上最难的目标之一，近年有实质进展）；
-- <strong>自组装纳米结构</strong>：设计蛋白笼、纤维、二十面体壳——可用作疫苗支架（多价展示抗原可增强免疫应答，承线二第四页）；
-- <strong>传感器与开关</strong>：构象随配体切换的蛋白。</p>
+<p><strong>方法的演进</strong>：</p>
+<ul>
+<li><strong>早期（Rosetta，基于物理能量函数）</strong>：设计理想化的折叠（如 Top7，2003 年首个成功的全新折叠），费力且成功率低；</li>
+<li><strong>深度学习时代</strong>：<strong>RFdiffusion</strong> 用扩散模型——与图像生成同源的思想——<strong>从噪声中逐步"去噪"出合理的蛋白骨架</strong>，再用序列设计网络（如 ProteinMPNN）填上氨基酸序列。成功率与可及的复杂度大幅提升；</li>
+<li><strong>当前</strong>：Baker 实验室已发布后续版本（RFdiffusion2/3），其中酶设计的性能被报告为接近天然酶水平，通用性进一步提高。<strong>此处属快速变动区，具体版本与性能请查最新文献。</strong></li>
+</ul>
+<p><strong>已实现的设计目标</strong>：</p>
+<ul>
+<li><strong>结合蛋白</strong>：针对指定靶点设计高亲和力结合剂（潜在用于药物、诊断、中和病毒）；</li>
+<li><strong>酶</strong>：设计催化特定反应的活性位点（历史上最难的目标之一，近年有实质进展）；</li>
+<li><strong>自组装纳米结构</strong>：设计蛋白笼、纤维、二十面体壳——可用作疫苗支架（多价展示抗原可增强免疫应答，承线二第四页）；</li>
+<li><strong>传感器与开关</strong>：构象随配体切换的蛋白。</li>
+</ul>
 <h2 id="_2">三、这为什么是范式转变<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>传统路径</strong>：在自然界寻找一个大致合适的蛋白 → 定向进化改造它。<strong>受限于起点</strong>。</p>
 <p><strong>新路径</strong>：<strong>指定功能需求 → 直接设计满足需求的分子</strong>。这把蛋白工程从"筛选与改良"转向"按需制造"，与化学合成的历史地位类似——<strong>从采集天然产物，转向合成任意分子</strong>。</p>
-<p><strong>与本课其他部分的连接</strong>：
-- 🔗 线一第三页：设计的可行性建立在"序列决定结构"与"能量漏斗"之上；
-- 🔗 线四：定向进化本身是<strong>人工加速的自然选择</strong>（变异+选择+扩增），而从头设计<strong>绕过了演化</strong>——这是两种截然不同的搜索策略。演化受历史约束（线四第一页），设计不受，这正是它能探索演化未及之处的原因。</p>
+<p><strong>与本课其他部分的连接</strong>：</p>
+<ul>
+<li>🔗 线一第三页：设计的可行性建立在"序列决定结构"与"能量漏斗"之上；</li>
+<li>🔗 线四：定向进化本身是<strong>人工加速的自然选择</strong>（变异+选择+扩增），而从头设计<strong>绕过了演化</strong>——这是两种截然不同的搜索策略。演化受历史约束（线四第一页），设计不受，这正是它能探索演化未及之处的原因。</li>
+</ul>
 <h2 id="_3">四、局限与现实检验<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>必须泼的冷水</strong>：</p>
 <ul>

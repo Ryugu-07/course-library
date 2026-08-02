@@ -83,6 +83,14 @@
 
 **一个提醒**："癌 carcinoma（上皮来源）"与"肉瘤 sarcoma（间叶来源）"的区分不是命名癖好：**上皮癌主要经淋巴转移、肉瘤主要经血行转移**，分期与治疗路径因此不同（第 08 页）。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验四大基本组织、细胞外基质、肌肉和神经胶质的基础组织学；疾病诊断与治疗不由这些教材页单独决定。
+- [Histology, Epithelial Cell](https://www.ncbi.nlm.nih.gov/books/NBK559063/) — NLM/NIH Bookshelf：上皮细胞与屏障组织。
+- [Anatomy, Connective Tissue](https://www.ncbi.nlm.nih.gov/books/NBK538534/) — NLM/NIH Bookshelf：结缔组织、纤维与细胞外基质。
+- [Histology, Muscle](https://www.ncbi.nlm.nih.gov/books/NBK537195/) — NLM/NIH Bookshelf：骨骼、心肌与平滑肌组织学。
+- [Histology, Glial Cells](https://www.ncbi.nlm.nih.gov/books/NBK441945/) — NLM/NIH Bookshelf：神经胶质细胞与神经组织支持功能。
+
 ---
 
 *下一页：生理学核心——稳态、体液分区与膜转运，本站定量部分的起点。*

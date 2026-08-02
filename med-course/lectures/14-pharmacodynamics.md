@@ -122,6 +122,12 @@ $$\text{治疗指数 } TI = \frac{TD_{50}}{ED_{50}}$$
 2. **看到"作用时间与半衰期不符"** → 想到不可逆结合（阿司匹林、PPI、MAOI）或活性代谢物；
 3. **看到"停药后症状比治疗前更重"** → 想到受体上调造成的反跳，而不是"病加重了"。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验受体、剂量—反应关系、效能/效价、治疗窗和耐受；具体适应证与安全性必须回到当前药品标签和地区指南。
+- [Pharmacodynamics](https://www.ncbi.nlm.nih.gov/books/NBK507791/) — NLM/NIH Bookshelf：药物—靶点作用、受体占有率与剂量—效应关系。
+- [Drug Interactions and Labeling](https://www.fda.gov/drugs/development-resources/drug-interactions-labeling) — FDA：相互作用、标签与监管更新入口。
+
 ---
 
 *下两页进入各论。药理各论的信息量最大，但只要牢牢握住"受体类型 + G 蛋白通路 + 上面这条曲线"，绝大部分可以推导而非背诵。*

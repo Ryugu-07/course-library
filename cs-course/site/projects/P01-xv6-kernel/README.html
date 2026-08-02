@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P01 · xv6 内核实验全套（教师版） · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">先修知识</a></li>
+<li><a href="#_2">学习目标</a></li>
+<li><a href="#_3">周期、组队与平台条件</a></li>
+<li><a href="#_4">目录</a></li>
+<li><a href="#_5">五个里程碑与学生任务边界</a><ul>
+<li><a href="#m1-1">M1 · 系统调用与进程（第 1 周）</a></li>
+<li><a href="#m2-2">M2 · 页表与内存生命周期（第 2 周）</a></li>
+<li><a href="#m3-3">M3 · 锁与并发性能（第 3 周）</a></li>
+<li><a href="#m4-45">M4 · 文件系统与崩溃一致性（第 4–5 周）</a></li>
+<li><a href="#m5-mmap-6">M5 · mmap 集成与收官报告（第 6 周）</a></li>
+</ul>
+</li>
+<li><a href="#_6">给定接口契约</a></li>
+<li><a href="#_7">运行与验收命令</a></li>
+<li><a href="#_8">故障与边界测试</a></li>
+<li><a href="#rubric100">统一 Rubric（100 分）</a></li>
+<li><a href="#_9">交付物</a></li>
+<li><a href="#_10">学术诚信与协作</a></li>
+<li><a href="#_11">可选挑战</a></li>
+<li><a href="#_12">与讲义的关系</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p01-xv6">P01 · xv6 内核实验全套（教师版）<a class="headerlink" href="#p01-xv6" title="Permanent link"></a></h1>
+<blockquote>
+<p>这是课程作业设计和验收边界，不是参考实现。<code>starter/</code> 中的核心路径刻意保留 <code>TODO</code>/<code>NotImplemented</code>；教师可以据此发放基线、测试和报告要求，学生需要自己完成内核实现。</p>
+</blockquote>
+<h2 id="_1">先修知识<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>C 语言指针、数组、结构体、函数指针、基本并发与调试；能读少量 RISC-V 汇编。</li>
+<li>进程/线程、系统调用、虚拟地址与页表、锁与条件等待、inode/日志文件系统的基本概念。</li>
+<li>能使用 Git 做小步提交、用 GDB/QEMU 观察异常；会读测试失败而不是只追求“全绿”。</li>
+<li>Python 3.9+ 用于本目录的 fixture 驱动和结构验证。Python 驱动不替代 xv6 的真实验收。</li>
+</ul>
+<h2 id="_2">学习目标<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>完成后，学生应能：</p>
+<ol>
+<li>画出一次系统调用从用户 wrapper、trap、<code>syscall()</code> 分发到返回用户态的路径，并实现不破坏既有 ABI 的扩展。</li>
+<li>解释页表权限、缺页、地址空间生命周期和懒分配之间的关系；能定位一个错误页表映射的最小证据。</li>
+<li>在共享数据结构上写出明确的锁保护和锁顺序，比较粗粒度与细粒度设计的正确性、争用和公平性。</li>
+<li>让 inode/目录/日志在大文件、符号链接和指定崩溃点下保持可解释的一致状态。</li>
+<li>把文件页和虚拟内存页接起来，实现最小 <code>mmap/munmap</code> 的权限、缺页、脏页写回和清理语义。</li>
+</ol>
+<h2 id="_3">周期、组队与平台条件<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<ul>
+<li>建议周期：6 周，每周 6–8 小时；2 人一组，最多 3 人。每人必须能解释自己提交的关键路径。</li>
+<li>P01 的真实内核目标是 xv6-riscv + RISC-V GCC/Clang 交叉工具链 + QEMU。推荐 Linux 原生、WSL2，或已配置交叉工具链和 QEMU 的 Docker 环境。</li>
+<li>需要能运行 <code>make qemu</code>、<code>make grade</code> 以及课程指定的 <code>usertests</code>。不同 xv6 基线的补丁接口可能不同，教师发放时应固定 commit 和工具链版本。</li>
+<li><strong>平台诚实声明</strong>：本作业包只对上述 Linux/WSL2/Docker 条件给出运行约定；没有声称在 macOS 原生环境中实跑 xv6-riscv。macOS 可用于阅读、Git、Python 结构验证，但不能据此宣称 QEMU/交叉编译验收通过。</li>
+</ul>
+<h2 id="_4">目录<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code>P01-xv6-kernel/
+├── README.md                         # 发放说明与阶段边界
+├── rubric.md                         # 可复制评分表
+├── DESIGN.md                         # 学生设计报告模板
+├── starter/
+│   ├── api/contract.py               # Python 侧接口和数据模型
+│   ├── driver.py                     # 只展示契约/fixture，不实现内核逻辑
+│   ├── xv6_hooks.h                   # 可映射到 xv6 的 C 接口
+│   └── xv6_hooks.c                   # 可语法检查的 TODO 适配层
+├── fixtures/
+│   ├── contract_scenarios.json       # 公开契约输入与期望边界
+│   └── fault_injection.json          # 故障/边界场景说明
+├── tests/scaffold/test_scaffold.py   # 脚手架完整性测试，应该通过
+├── acceptance/                       # 学生实现后运行的验收清单，不在 scaffold CI 执行
+└── scripts/verify_scaffold.py        # 未完成 starter 也必须 exit 0
+</code></pre></div>
+<h2 id="_5">五个里程碑与学生任务边界<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>每个里程碑结束时提交一个可回滚 commit、一份测试日志和一段不超过一页的设计记录。教师可以把每阶段的公共测试只开放到对应阶段。</p>
+<h3 id="m1-1">M1 · 系统调用与进程（第 1 周）<a class="headerlink" href="#m1-1" title="Permanent link"></a></h3>
+<ul>
+<li>教师提供 xv6-riscv 固定基线、用户态测试骨架、系统调用号表和 CPU-bound/I/O-bound benchmark。</li>
+<li>学生实现 <code>trace(mask)</code>、<code>sysinfo</code> 和 <code>setpriority(pid, priority)</code>；调度策略可以从 RR 扩展，但必须保留 <code>sleep</code>/<code>wakeup</code> 语义和无饥饿证据。</li>
+<li>边界包括非法 PID、重复/空 mask、fork/exit 计数变化和低优先级最终仍获调度。不得改动已有用户程序 ABI，不得绕过系统调用入口直接改测试。</li>
+</ul>
+<h3 id="m2-2">M2 · 页表与内存生命周期（第 2 周）<a class="headerlink" href="#m2-2" title="Permanent link"></a></h3>
+<ul>
+<li>教师提供地址布局、页权限约定、缺页分类的观察脚本和只读/未映射边界 fixture。</li>
+<li>学生完成页表遍历/映射、用户权限检查、懒分配或缺页路径（以教师发放的基线要求为准），并处理进程 fork/exit 的页表资源。</li>
+<li>学生不能把整个用户地址空间预先复制成“能过测试”的特例；必须在报告中说明 PTE 权限、页对齐、物理页释放和错误返回的来源。不要在 starter 中寻找页表算法答案。</li>
+</ul>
+<h3 id="m3-3">M3 · 锁与并发性能（第 3 周）<a class="headerlink" href="#m3-3" title="Permanent link"></a></h3>
+<ul>
+<li>教师提供锁争用计数器、<code>kalloctest</code>/<code>bcachetest</code> 压测入口和一个故意反序加锁的分析补丁。</li>
+<li>学生把内存分配器改为每 CPU freelist（含 steal）并将 buffer cache 拆为可解释的桶/锁；同时给出等待图或日志来定位死锁。</li>
+<li>每个共享链表/桶要标明保护它的锁；跨桶移动必须给出全局锁序。不得用关闭中断包住整个临界区来逃避设计。</li>
+</ul>
+<h3 id="m4-45">M4 · 文件系统与崩溃一致性（第 4–5 周）<a class="headerlink" href="#m4-45" title="Permanent link"></a></h3>
+<ul>
+<li>教师提供 <code>bigfile</code>、<code>symlinktest</code>、崩溃注入点和磁盘布局说明，不提供文件系统实现补丁。</li>
+<li>学生扩展二级间接块，实现符号链接和有限深度解析，并在指定日志序号发生故障时解释重放/丢弃行为。</li>
+<li>学生必须说明 inode、位图、数据块与日志提交点之间的关系；不可一次性用内存镜像替代磁盘路径，也不可把“测试没崩”当作一致性证明。</li>
+</ul>
+<h3 id="m5-mmap-6">M5 · mmap 集成与收官报告（第 6 周）<a class="headerlink" href="#m5-mmap-6" title="Permanent link"></a></h3>
+<ul>
+<li>教师提供 <code>mmaptest</code>、权限/页对齐 fixture、回归测试和统一报告模板。</li>
+<li>学生实现最小 <code>mmap/munmap</code>：懒加载文件页、<code>MAP_SHARED</code> 读写权限检查、脏页写回、解除映射和进程退出清理；与前四阶段的页表、inode、锁和日志路径连通。</li>
+<li>交付五张小图：系统调用、调度、锁、文件系统、页表；并附一次故障从注入到可观察结果的时间线。教师验收只接受可复现的命令和日志。</li>
+</ul>
+<h2 id="_6">给定接口契约<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>Python 侧 <code>starter/api/contract.py</code> 是跨平台的契约镜像，供 fixture 驱动和报告引用；它不会模拟 xv6 的核心实现。必须保留以下语义和参数形状，学生在真实 xv6 中将其映射到相应的 C/内核入口：</p>
+<table>
+<thead>
+<tr>
+<th>契约</th>
+<th>输入</th>
+<th>成功/错误边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>map_user_page(PageMapping)</code></td>
+<td>VA、PA、权限、页大小</td>
+<td>VA/PA 按页对齐；权限冲突或未映射必须可观察地报错</td>
+</tr>
+<tr>
+<td><code>dispatch_syscall(SyscallRequest)</code></td>
+<td>syscall 号、参数、进程号</td>
+<td>非法号/非法指针不能静默成功；不得改变既有 ABI</td>
+</tr>
+<tr>
+<td><code>acquire_ordered_lock(LockRequest)</code></td>
+<td>锁名、当前持锁序列</td>
+<td>反序获取要被检测或被设计规则阻止</td>
+</tr>
+<tr>
+<td><code>recover_transaction(FsTransaction)</code></td>
+<td>日志记录、崩溃位置</td>
+<td>只重放完整已提交事务，未提交/撕裂尾部不能产生半更新</td>
+</tr>
+<tr>
+<td><code>resolve_mmap_fault(MmapFault)</code></td>
+<td>文件页、访问类型、映射权限</td>
+<td>越界、权限错误和缺页要区分；脏共享页最终要有写回策略</td>
+</tr>
+</tbody>
+</table>
+<p>C 侧 <code>starter/xv6_hooks.h</code> 只给出 typedef、函数签名和返回码；<code>xv6_hooks.c</code> 的 TODO 返回值是占位符，不能作为学生答案。学生可在自己的 xv6 fork 中实现适配，不必把教师脚手架复制进内核。</p>
+<h2 id="_7">运行与验收命令<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>在任意平台先运行不会调用未实现核心逻辑的 scaffold 检查：</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>scripts/verify_scaffold.py
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>tests/scaffold<span class="w"> </span>-v
+python3<span class="w"> </span>starter/driver.py<span class="w"> </span>--scenario<span class="w"> </span>fixtures/contract_scenarios.json
+</code></pre></div>
+<p>在教师指定的 Linux/WSL2/Docker xv6 环境中，学生实现后再运行：</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>xv6-riscv
+make<span class="w"> </span>qemu
+make<span class="w"> </span>grade
+</code></pre></div>
+<p><code>acceptance/README.md</code> 给出分阶段公共/隐藏验收契约；脚手架状态下不执行这些学生实现后测试，因此有意的 TODO 不会让仓库 CI 失败。教师应记录 xv6 基线 commit、QEMU 版本和 <code>make grade</code> 输出。</p>
+<h2 id="_8">故障与边界测试<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p><code>fixtures/fault_injection.json</code> 至少覆盖以下情况：非法用户指针、跨页映射、反序锁、日志提交前断电、符号链接循环、mmap 文件尾部和进程退出时脏页。公开测试只检查输入/输出契约和结构；真正的故障注入在 xv6 验收阶段运行。</p>
+<p>学生至少要补充一项未公开的边界测试，并在报告中写出“预期拒绝/恢复/继续服务”的理由：</p>
+<ul>
+<li>少数派或单 CPU 退化时，锁和调度不能靠偶然时序通过。</li>
+<li>文件系统更新的任一中间写入被截断，不能留下无主数据块或错误 inode 大小。</li>
+<li>映射长度不是页大小倍数、共享映射只读、访问文件 EOF 后的行为必须明确。</li>
+<li>发生一次锁持有者退出或异常返回后，不能永久留下不可解释的锁状态。</li>
+</ul>
+<h2 id="rubric100">统一 Rubric（100 分）<a class="headerlink" href="#rubric100" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">权重</th>
+<th>评分证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能正确性</td>
+<td style="text-align: right;">40%</td>
+<td>系统调用/页表/锁/文件系统/mmap 的阶段公共与回归测试、接口行为</td>
+</tr>
+<tr>
+<td>边界/故障测试</td>
+<td style="text-align: right;">25%</td>
+<td>故障注入、死锁复现与修复、异常输入、自写测试覆盖和日志</td>
+</tr>
+<tr>
+<td>性能或资源指标</td>
+<td style="text-align: right;">15%</td>
+<td>调度响应、公平性、锁争用、内存/磁盘开销；需有基线对照</td>
+</tr>
+<tr>
+<td>代码结构与文档</td>
+<td style="text-align: right;">10%</td>
+<td>锁顺序、资源生命周期、分层边界、注释和可复现命令</td>
+</tr>
+<tr>
+<td>实验报告与设计反思</td>
+<td style="text-align: right;">10%</td>
+<td>五张路径图、取舍、失败案例、证据解释和个人分工</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_9">交付物<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
+<ol>
+<li>学生 xv6 fork/patch 或明确的提交范围；不提交编译产物、磁盘镜像和私有密钥。</li>
+<li><code>README</code>/运行说明、阶段测试日志、至少一项自写边界测试。</li>
+<li><code>DESIGN.md</code> 对应的 2–6 页设计报告和五张小图；说明哪些接口来自题目、哪些是自行决定。</li>
+<li>组员分工、每人的关键代码 walkthrough 记录；教师抽问时每人都要能解释失败路径。</li>
+</ol>
+<h2 id="_10">学术诚信与协作<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
+<p>允许讨论概念、阅读 xv6 官方源码、互相审阅测试和引用公开资料；必须在报告中标明来源。禁止复制其他组的实现、网上完整解答、往届仓库或让代码生成工具直接产出核心页表/MVCC/Raft 类答案后不披露。可以使用工具辅助查错，但提交物必须由学生逐段解释；教师可用等价新故障口试。</p>
+<h2 id="_11">可选挑战<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
+<ul>
+<li>MLFQ/aging 与可视化调度时间线；测响应、公平和上下文切换的权衡。</li>
+<li>页表共享/写时复制、透明大页或更严格的用户指针审计。</li>
+<li>用等待图自动报告锁环，或做可配置桶数的 buffer cache 基准。</li>
+<li>软更新/更细的日志提交策略；或 <code>MAP_PRIVATE</code>/文件稀疏页，但必须先完成基础契约。</li>
+</ul>
+<h2 id="_12">与讲义的关系<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
+<ul>
+<li><a href="../../os-01-process-sched.html">os-01 · 进程、系统调用与调度</a>：M1。</li>
+<li><a href="../../os-02-concurrency.html">os-02 · 锁、竞态与死锁</a>：M3。</li>
+<li><a href="../../os-03-filesystem.html">os-03 · 文件系统与崩溃一致性</a>：M4–M5。</li>
+<li>页表与内存保护同时连接 <code>csapp-04</code> 的虚拟内存；最终报告要求把这条跨讲义路径画出来。讲义页末的 P01-A/B/C 是本项目的课程动机和阶段来源，本 README 是可直接下发的统一版本。</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

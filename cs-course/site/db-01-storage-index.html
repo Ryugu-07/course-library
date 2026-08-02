@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>存储与索引 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -84,11 +84,13 @@
 <p><strong>这就是 [实验 L05]</strong>：亲手实现 B+ 树的插入、分裂、范围扫描——<strong>数据库索引的心脏，写一遍就懂了 Postgres 的 <code>CREATE INDEX</code> 底下是什么</strong>。</p>
 <p><strong>哈希索引 vs B+ 树</strong>：哈希索引等值查 <span class="arithmatex">\(O(1)\)</span> 更快，但<strong>不支持范围、排序、前缀</strong>——所以数据库默认索引几乎都是 B+ 树。<strong>LSM 树</strong>（LevelDB/RocksDB、写优化）是另一条路线：写入先进内存 + 顺序刷盘、后台合并——<strong>牺牲读、优化写</strong>，适合写密集场景（时序、日志）。B+ 树 vs LSM 是现代存储引擎的两大门派。</p>
 <h2 id="4-medusa">4. 索引的实战判断（Medusa 视角）<a class="headerlink" href="#4-medusa" title="Permanent link"></a></h2>
-<p>你天天在用索引，这里把决策讲透：
-- <strong>建在哪列</strong>：高频出现在 <code>WHERE</code>/<code>JOIN</code>/<code>ORDER BY</code> 的列。Medusa 的 <code>articles.published_at</code>（时间范围查）、<code>events.entities</code>（jsonb，用 GIN 索引）、<code>article_id</code> 外键都是典型。
-- <strong>复合索引的顺序</strong>：<code>(a, b)</code> 索引能加速 <code>WHERE a=? AND b=?</code> 和 <code>WHERE a=?</code>，但<strong>加速不了单独 <code>WHERE b=?</code></strong>（最左前缀原则——因为 B+ 树按 a 先排）。
-- <strong>别过度索引</strong>：每个索引都拖慢写入、占空间。<strong>索引是给读优化、向写收税</strong>。
-- <strong>向量索引</strong>（你在用的 pgvector）：高维向量的近邻搜索用的是 HNSW / IVF 等<strong>近似</strong>索引（🔗 adv-01 的 LSH、数学站高维几何）——精确近邻在高维不可行，这是"维度诅咒"的工程妥协。</p>
+<p>你天天在用索引，这里把决策讲透：</p>
+<ul>
+<li><strong>建在哪列</strong>：高频出现在 <code>WHERE</code>/<code>JOIN</code>/<code>ORDER BY</code> 的列。Medusa 的 <code>articles.published_at</code>（时间范围查）、<code>events.entities</code>（jsonb，用 GIN 索引）、<code>article_id</code> 外键都是典型。</li>
+<li><strong>复合索引的顺序</strong>：<code>(a, b)</code> 索引能加速 <code>WHERE a=? AND b=?</code> 和 <code>WHERE a=?</code>，但<strong>加速不了单独 <code>WHERE b=?</code></strong>（最左前缀原则——因为 B+ 树按 a 先排）。</li>
+<li><strong>别过度索引</strong>：每个索引都拖慢写入、占空间。<strong>索引是给读优化、向写收税</strong>。</li>
+<li><strong>向量索引</strong>（你在用的 pgvector）：高维向量的近邻搜索用的是 HNSW / IVF 等<strong>近似</strong>索引（🔗 adv-01 的 LSH、数学站高维几何）——精确近邻在高维不可行，这是"维度诅咒"的工程妥协。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>看懂 <code>EXPLAIN ANALYZE</code></strong>（查询计划）是数据库调优的核心技能——它告诉你查询有没有用上索引、是全表扫还是索引扫、每步花多少。db-02 会专门讲怎么读它。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（B+ 树扇出数感）</strong> 页 8 KB、键 + 指针共 16 字节 → 每节点约 500 路。三层能存多少行？<span class="arithmatex">\(500^3 \approx 1.25\)</span> 亿。<strong>"三次 I/O 定位一亿行"——亲手算一次，你就懂了矮胖树的威力</strong>。</p>
@@ -101,14 +103,16 @@
 <h3 id="project-p02">📋 大 Project P02（第一阶段）· 存储引擎<a class="headerlink" href="#project-p02" title="Permanent link"></a></h3>
 <blockquote>
 <p><strong>教师版作业说明书，不提供完整解。</strong> P02 分三阶段随 db-01/02/03 展开，最终交付一个能跑 SQL 子集、带索引、带事务恢复的迷你关系数据库。</p>
-<p><strong>P02-A · 页式存储与索引</strong>
-- <strong>学习目标</strong>：把“表是一堆页、索引是一棵页树、缓冲池是数据库自己的缓存”落成代码。
-- <strong>教师提供</strong>：统一磁盘文件格式说明、<code>PageId/RID/Tuple</code> 接口骨架、随机插入/删除测试、百万行数据生成器、B+ 树可视化脚本。
-- <strong>学生任务</strong>：① 页式堆文件 + 槽目录，支持变长行的 insert/delete/update/get；② 缓冲池，支持 pin/unpin、dirty page、LRU 或 Clock 淘汰；③ 持久化 B+ 树索引，支持等值查找、范围扫描、节点分裂与合并。
-- <strong>接口约束</strong>：页大小固定；所有磁盘访问必须经过缓冲池；RID 在行移动或删除后语义要清楚；B+ 树叶子必须按序串联。
-- <strong>验收测试</strong>：重启后数据与索引仍一致；百万行导入可完成；索引查询比全表扫快至少一个数量级；随机删除后范围扫描顺序正确。
-- <strong>评分重点</strong>：页格式 25%，缓冲池 25%，B+ 树正确性 35%，持久化与压力测试 15%。
-- <strong>延伸挑战</strong>：实现 LRU-K，并用一组顺序扫 + 热点查找混合负载解释它为什么优于朴素 LRU。</p>
+<p><strong>P02-A · 页式存储与索引</strong></p>
+<ul>
+<li><strong>学习目标</strong>：把“表是一堆页、索引是一棵页树、缓冲池是数据库自己的缓存”落成代码。</li>
+<li><strong>教师提供</strong>：统一磁盘文件格式说明、<code>PageId/RID/Tuple</code> 接口骨架、随机插入/删除测试、百万行数据生成器、B+ 树可视化脚本。</li>
+<li><strong>学生任务</strong>：① 页式堆文件 + 槽目录，支持变长行的 insert/delete/update/get；② 缓冲池，支持 pin/unpin、dirty page、LRU 或 Clock 淘汰；③ 持久化 B+ 树索引，支持等值查找、范围扫描、节点分裂与合并。</li>
+<li><strong>接口约束</strong>：页大小固定；所有磁盘访问必须经过缓冲池；RID 在行移动或删除后语义要清楚；B+ 树叶子必须按序串联。</li>
+<li><strong>验收测试</strong>：重启后数据与索引仍一致；百万行导入可完成；索引查询比全表扫快至少一个数量级；随机删除后范围扫描顺序正确。</li>
+<li><strong>评分重点</strong>：页格式 25%，缓冲池 25%，B+ 树正确性 35%，持久化与压力测试 15%。</li>
+<li><strong>延伸挑战</strong>：实现 LRU-K，并用一组顺序扫 + 热点查找混合负载解释它为什么优于朴素 LRU。</li>
+</ul>
 </blockquote>
 <hr />
 <p><em>下一页：数据库 II——查询执行与优化：一条 SQL 怎么变成执行计划，优化器如何选出快的那条路。</em></p>

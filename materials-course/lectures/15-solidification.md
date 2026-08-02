@@ -8,6 +8,11 @@
 
 **铸锭三区**：模壁激冷区（细等轴晶）→ 柱状晶区（沿热流方向长）→ 中心等轴晶区。**控制手段**：
 
+<figure class="diagram" markdown="1">
+![Ingot zones and dendrite growth](assets/img/mat-15-ingot-dendrite.svg)
+<figcaption><span class="fig-id">图 15.1</span>铸锭从模壁向中心依次形成激冷区、柱状晶区和等轴晶核心；微观上枝晶沿热流方向长大，主干与侧枝共同决定偏析和晶粒形貌。</figcaption>
+</figure>
+
 | 目标 | 手段 | 机理 |
 |---|---|---|
 | 细化晶粒 | **孕育/变质处理**（加形核剂如 Al–Ti–B）、增大冷速、搅拌 | 增加形核点（Hall–Petch 强化 + 减少偏析，性能 I） |

@@ -27,7 +27,17 @@
 <figcaption><span class="fig-id">图 8.2</span>Hall–Petch 关系：屈服强度对 \(d^{-1/2}\) 呈直线——晶粒从 250 μm 细化到 4 μm，强度可翻倍以上；细晶是唯一**同时**提高强度与韧性的手段。</figcaption>
 </figure>
 
+<figure class="diagram" markdown="1">
+![Four obstacle families for strengthening](assets/img/mat-08-strengthening.svg)
+<figcaption><span class="fig-id">图 8.3</span>强化四法的共同骨架：位错前进时分别遇到位错缠结、溶质应变场、晶界和硬质析出粒子；障碍越难穿过或绕过，屈服强度越高。</figcaption>
+</figure>
+
 **析出强化的两种机制（铝合金与高温合金的命门）**：粒子小而软 ⇒ 位错**切过**（强化随粒子长大而增）；粒子大而硬 ⇒ 位错**绕过**留下位错环（Orowan，强化随间距增大而减）——两条曲线交点即**峰值时效**。工业上"固溶处理→淬火→时效"（T6 状态）就是把粒子尺寸精确停在这个交点上；过时效 = 走过头掉下来（🔗 热力 III 的形核长大在此收租）。
+
+<figure class="diagram" markdown="1">
+![Precipitation strengthening: cutting versus bypass](assets/img/mat-08-precipitation.svg)
+<figcaption><span class="fig-id">图 8.4</span>析出强化的两条竞争路径：小而软的粒子被位错切过，大而硬的粒子迫使位错绕过并留下 Orowan 环；两条强度曲线的交点对应峰值时效，继续长大则进入过时效。</figcaption>
+</figure>
 
 **Hall–Petch 的边界**：晶粒细到 ~10–20 nm 以下出现**反 Hall–Petch**（晶界体积占比过大、变形机制切换为晶界滑动）——纳米材料的著名转折【研】。
 

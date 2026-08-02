@@ -108,6 +108,13 @@
 
 **极端形式是脓毒症**：全身炎症 + 内皮弥漫损伤 + 凝血激活（**DIC**）+ 血管麻痹 → 多器官功能障碍（第 07 页）。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验急性/慢性炎症、炎症消退、创伤修复与脓毒症的基础框架；脓毒症诊断和治疗必须遵循当地最新指南。
+- [Pathology, Inflammation](https://www.ncbi.nlm.nih.gov/books/NBK534820/) — NLM/NIH Bookshelf：炎症介质、细胞反应与组织损伤。
+- [Physiology, Wound Healing](https://www.ncbi.nlm.nih.gov/books/NBK535406/) — NLM/NIH Bookshelf：止血、炎症、增殖和重塑四个重叠阶段。
+- [Sepsis fact sheet](https://www.who.int/news-room/fact-sheets/detail/sepsis) — WHO，2024：脓毒症的失调宿主反应、器官功能障碍和地区差异。
+
 ---
 
 *下一页：血流动力学障碍——水肿、血栓、栓塞、梗死与休克，把"血流出错"的所有形式一次讲清。*

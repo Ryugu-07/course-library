@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>存储层级与缓存 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -101,19 +101,23 @@
 </figure>
 <p><strong>关键数感</strong>：<strong>访问主存比 L1 慢约 100 倍，比一次 CPU 运算慢约 200 倍</strong>。所以现代程序的瓶颈<strong>常常不是"算得慢"而是"等内存"</strong>——CPU 大量时间在 stall（干等数据）。这颠覆了"数操作数"的朴素性能观：<strong>内存访问模式才是主角</strong>。</p>
 <h2 id="2">2. 局部性：缓存赖以生效的假设<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>缓存能加速，全靠程序有<strong>局部性</strong>：
-- <strong>时间局部性</strong>：刚访问的数据很快会再访问（循环变量、热点函数）。
-- <strong>空间局部性</strong>：访问了一个地址，附近地址很快也会访问（数组顺序遍历）。</p>
+<p>缓存能加速，全靠程序有<strong>局部性</strong>：</p>
+<ul>
+<li><strong>时间局部性</strong>：刚访问的数据很快会再访问（循环变量、热点函数）。</li>
+<li><strong>空间局部性</strong>：访问了一个地址，附近地址很快也会访问（数组顺序遍历）。</li>
+</ul>
 <p>缓存据此工作：以<strong>缓存行（cache line，通常 64 字节）</strong>为单位搬运——你读一个 <code>int</code>，它顺手把邻近 64 字节都拉进缓存。<strong>于是"顺序访问"几乎免费（一次搬运喂 16 个 int），"随机跳跃"每次都 miss</strong>。这条 64 字节的规律解释了本页所有性能现象。</p>
 <figure class="diagram">
 <p><img alt="缓存行读取相邻 64 字节的局部性效果" src="assets/img/csapp-02-cache-line.svg" /></p>
 <figcaption><span class="fig-id">图 csapp-02.2</span>缓存行——一次 miss 拉入相邻 64 字节，顺序访问很快，随机跳跃频繁 miss。</figcaption>
 </figure>
 <h2 id="3-miss">3. 缓存的组织与三种 miss<a class="headerlink" href="#3-miss" title="Permanent link"></a></h2>
-<p>缓存是硬件哈希表：地址被切成 <strong>[标记 tag | 组索引 set | 块内偏移]</strong>，按组索引找槽、比标记命中。组相联度（每组几路）平衡冲突与成本。<strong>三种 miss（3C 模型）</strong>：
-- <strong>强制 miss（cold）</strong>：第一次访问，躲不掉。
-- <strong>容量 miss</strong>：工作集比缓存大，装不下。
-- <strong>冲突 miss</strong>：不同地址映射到同一组互相踢出——<strong>"跨步恰好等于缓存大小的倍数"时灾难性</strong>（如遍历大矩阵的列，步长 = 行长）。</p>
+<p>缓存是硬件哈希表：地址被切成 <strong>[标记 tag | 组索引 set | 块内偏移]</strong>，按组索引找槽、比标记命中。组相联度（每组几路）平衡冲突与成本。<strong>三种 miss（3C 模型）</strong>：</p>
+<ul>
+<li><strong>强制 miss（cold）</strong>：第一次访问，躲不掉。</li>
+<li><strong>容量 miss</strong>：工作集比缓存大，装不下。</li>
+<li><strong>冲突 miss</strong>：不同地址映射到同一组互相踢出——<strong>"跨步恰好等于缓存大小的倍数"时灾难性</strong>（如遍历大矩阵的列，步长 = 行长）。</li>
+</ul>
 <p><strong>这直接推出优化手段</strong>：让工作集塞进缓存（<strong>分块 tiling</strong>）、让访问连续（<strong>改循环顺序、改数据布局 SoA vs AoS</strong>）。</p>
 <h2 id="4">4. 变现：矩阵乘法的循环顺序<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>最经典的实证——朴素矩阵乘 <span class="arithmatex">\(C=AB\)</span> 有 6 种循环嵌套顺序，<strong>数学完全等价，速度差数倍</strong>：</p>

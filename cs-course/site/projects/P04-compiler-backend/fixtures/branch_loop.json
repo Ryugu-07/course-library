@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "module": "branch_loop",
+  "functions": [
+    {
+      "name": "sum_to_n",
+      "params": [
+        {"name": "n", "ty": "i64"}
+      ],
+      "entry": "entry",
+      "blocks": [
+        {
+          "name": "entry",
+          "instructions": [
+            {"op": "const", "result": "one", "args": [], "attrs": {"value": 1}},
+            {"op": "const", "result": "acc", "args": [], "attrs": {"value": 0}},
+            {"op": "const", "result": "i", "args": [], "attrs": {"value": 0}}
+          ],
+          "terminator": {"op": "br", "targets": ["loop"]},
+          "successors": ["loop"]
+        },
+        {
+          "name": "loop",
+          "instructions": [
+            {"op": "lt", "result": "more", "args": ["i", "n"], "attrs": {}}
+          ],
+          "terminator": {"op": "br_if", "targets": ["body", "exit"]},
+          "successors": ["body", "exit"]
+        },
+        {
+          "name": "body",
+          "instructions": [
+            {"op": "add", "result": "acc", "args": ["acc", "i"], "attrs": {}},
+            {"op": "add", "result": "i", "args": ["i", "one"], "attrs": {}}
+          ],
+          "terminator": {"op": "br", "targets": ["loop"]},
+          "successors": ["loop"]
+        },
+        {
+          "name": "exit",
+          "instructions": [],
+          "terminator": {"op": "ret", "targets": [], "value": "acc"},
+          "successors": []
+        }
+      ]
+    }
+  ]
+}

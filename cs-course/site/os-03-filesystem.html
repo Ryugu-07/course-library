@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>文件系统与崩溃一致性 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -67,10 +67,12 @@ OSTEP 三大主题的最后一个——持久化。内存断电即失，<strong>
 </ul>
 <p><strong>磁盘布局</strong>：[超级块（全局元数据）| inode 位图 | 数据位图 | inode 表 | 数据块]。<strong>理解这个布局，你就能回答"创建一个文件要改磁盘上哪几处"</strong>——这正是崩溃一致性的关键。</p>
 <h2 id="2">2. 性能：为什么文件系统要那么多花招<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>磁盘（尤其机械盘）<strong>随机访问极慢</strong>（寻道 ~10 ms，是内存的十万倍，🔗 csapp-02）。文件系统的大量设计是在对抗这个：
-- <strong>块缓存（page cache）</strong>：把磁盘块缓存在内存——读写先命中内存，这是"第二次 <code>cat</code> 大文件秒开"的原因。
-- <strong>预读 + 延迟写</strong>：顺序读时提前拉、写时先攒在内存批量刷（这带来崩溃一致性的麻烦，见下）。
-- <strong>布局优化</strong>：把一个文件的块、把目录和它的 inode <strong>放得物理邻近</strong>，减少寻道（FFS 的柱面组思想）。SSD 时代随机访问便宜了，但<strong>写放大、擦除块</strong>又带来新约束（日志结构文件系统 LFS 顺应之）。</p>
+<p>磁盘（尤其机械盘）<strong>随机访问极慢</strong>（寻道 ~10 ms，是内存的十万倍，🔗 csapp-02）。文件系统的大量设计是在对抗这个：</p>
+<ul>
+<li><strong>块缓存（page cache）</strong>：把磁盘块缓存在内存——读写先命中内存，这是"第二次 <code>cat</code> 大文件秒开"的原因。</li>
+<li><strong>预读 + 延迟写</strong>：顺序读时提前拉、写时先攒在内存批量刷（这带来崩溃一致性的麻烦，见下）。</li>
+<li><strong>布局优化</strong>：把一个文件的块、把目录和它的 inode <strong>放得物理邻近</strong>，减少寻道（FFS 的柱面组思想）。SSD 时代随机访问便宜了，但<strong>写放大、擦除块</strong>又带来新约束（日志结构文件系统 LFS 顺应之）。</li>
+</ul>
 <h2 id="3">3. 崩溃一致性：本页的核心难题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="崩溃一致性：写日志→提交→应用；崩溃在提交前后的两种恢复。" src="assets/img/os-03-journaling.svg" /></p>
@@ -83,9 +85,11 @@ OSTEP 三大主题的最后一个——持久化。内存断电即失，<strong>
 </ul>
 <p>两种解法：</p>
 <p><strong>① fsck（崩溃后扫描修复）</strong>：重启后扫全盘，检查一致性并修补（位图与 inode 对不上就以 inode 为准等）。<strong>缺点</strong>：<strong>要扫整个磁盘</strong>，TB 级盘要几小时——不可接受。</p>
-<p><strong>② 预写日志（journaling / write-ahead logging）【核心机制】</strong>：<strong>先把"我要做的所有修改"作为一个事务写进磁盘上的日志区，写完并标记提交（commit）后，再把修改实际应用到文件系统</strong>。崩溃后只需<strong>重放日志</strong>：
-- 崩溃在日志写完提交前 → 日志不完整，丢弃，文件系统保持旧状态（原子性：修改要么全做要么全不做）。
-- 崩溃在提交后应用前 → 重放日志，补完修改。</p>
+<p><strong>② 预写日志（journaling / write-ahead logging）【核心机制】</strong>：<strong>先把"我要做的所有修改"作为一个事务写进磁盘上的日志区，写完并标记提交（commit）后，再把修改实际应用到文件系统</strong>。崩溃后只需<strong>重放日志</strong>：</p>
+<ul>
+<li>崩溃在日志写完提交前 → 日志不完整，丢弃，文件系统保持旧状态（原子性：修改要么全做要么全不做）。</li>
+<li>崩溃在提交后应用前 → 重放日志，补完修改。</li>
+</ul>
 <p><strong>关键洞察</strong>：<strong>通过"先顺序写日志、再更新原地"，把'多处修改'变成了'一次原子提交'</strong>——代价是每个数据写两遍（日志 + 原地），故有只记元数据的折中（ordered 模式）。<strong>这个"预写日志 → 提交 → 应用/重放"的模式，就是 db-03 数据库事务恢复（WAL）的原型</strong>——文件系统和数据库在崩溃一致性上是同一套思想，本站在此埋下这条主线。</p>
 <h2 id="4-fsync">4. fsync 与持久化的真相<a class="headerlink" href="#4-fsync" title="Permanent link"></a></h2>
 <p><code>write()</code> 返回<strong>不代表数据落盘</strong>——它可能还在内存的 page cache 里。要真正持久化必须 <code>fsync()</code>（强制刷盘）。<strong>这是无数数据丢失事故的根源</strong>：程序以为写成功了，断电后数据没了。数据库、消息队列在提交时必 <code>fsync</code>（并因此慢）。<strong>"写入成功 ≠ 持久化"是每个做存储/后端的人必须内化的一课</strong>（🔗 db-03、web-02 的数据可靠性）。</p>
@@ -100,14 +104,16 @@ OSTEP 三大主题的最后一个——持久化。内存断电即失，<strong>
 <hr />
 <h3 id="project-p01-xv6">📋 大 Project P01（第三阶段·收官）· xv6 文件系统<a class="headerlink" href="#project-p01-xv6" title="Permanent link"></a></h3>
 <blockquote>
-<p><strong>P01-C · 文件系统与 mmap</strong>（承接 P01-A/B）：
-- <strong>学习目标</strong>：理解 inode 指针树、路径解析、符号链接、文件页与虚拟内存页之间的关系；把“文件系统”和“虚拟内存”两章接起来。
-- <strong>教师提供</strong>：<code>bigfile</code>、<code>symlinktest</code>、<code>mmaptest</code> 公共测试，崩溃一致性讨论题，不提供内核实现补丁。
-- <strong>学生任务</strong>：① 给 inode 增加二级间接块，支持更大文件；② 实现 <code>symlink</code> 与递归路径解析，处理循环链接深度上限；③ 实现最小 <code>mmap/munmap</code>：懒加载文件页、脏页写回、进程退出清理映射。
-- <strong>接口约束</strong>：<code>mmap</code> 至少支持 <code>MAP_SHARED</code>、读写权限检查、页对齐；不得一次性把整个文件读进内存；符号链接解析必须避免无限递归。
-- <strong>验收测试</strong>：大文件读写正确；符号链接跨目录、删除目标、循环链接测试行为合理；<code>mmaptest</code> 全过；<code>usertests</code> 回归全过。
-- <strong>评分重点</strong>：inode 扩展 25%，路径/符号链接 20%，mmap 缺页与写回 35%，边界测试与报告 20%。
-- <strong>P01 总结报告</strong>：要求学生画出 xv6 的系统调用、调度、锁、文件系统、页表五张小图，并说明每阶段改动如何穿过这些边界。</p>
+<p><strong>P01-C · 文件系统与 mmap</strong>（承接 P01-A/B）：</p>
+<ul>
+<li><strong>学习目标</strong>：理解 inode 指针树、路径解析、符号链接、文件页与虚拟内存页之间的关系；把“文件系统”和“虚拟内存”两章接起来。</li>
+<li><strong>教师提供</strong>：<code>bigfile</code>、<code>symlinktest</code>、<code>mmaptest</code> 公共测试，崩溃一致性讨论题，不提供内核实现补丁。</li>
+<li><strong>学生任务</strong>：① 给 inode 增加二级间接块，支持更大文件；② 实现 <code>symlink</code> 与递归路径解析，处理循环链接深度上限；③ 实现最小 <code>mmap/munmap</code>：懒加载文件页、脏页写回、进程退出清理映射。</li>
+<li><strong>接口约束</strong>：<code>mmap</code> 至少支持 <code>MAP_SHARED</code>、读写权限检查、页对齐；不得一次性把整个文件读进内存；符号链接解析必须避免无限递归。</li>
+<li><strong>验收测试</strong>：大文件读写正确；符号链接跨目录、删除目标、循环链接测试行为合理；<code>mmaptest</code> 全过；<code>usertests</code> 回归全过。</li>
+<li><strong>评分重点</strong>：inode 扩展 25%，路径/符号链接 20%，mmap 缺页与写回 35%，边界测试与报告 20%。</li>
+<li><strong>P01 总结报告</strong>：要求学生画出 xv6 的系统调用、调度、锁、文件系统、页表五张小图，并说明每阶段改动如何穿过这些边界。</li>
+</ul>
 </blockquote>
 <hr />
 <p><em>操作系统三页完成。下一页转入网络 I：数据如何跨越世界到达，TCP/IP 分层与可靠传输、拥塞控制。</em></p>

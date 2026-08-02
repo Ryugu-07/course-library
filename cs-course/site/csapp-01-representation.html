@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>机器级表示 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -60,29 +60,35 @@
 <figcaption><span class="fig-id">图 csapp-01.4</span>IEEE754 位布局（符号|阶码|尾数）+ 浮点是对数刻度网格。</figcaption>
 </figure>
 <p>机器只有 0/1，一切类型都是<strong>对字节的解释约定</strong>。</p>
-<p><strong>整数</strong>：无符号是直接二进制；有符号用<strong>补码（two's complement）</strong>——最高位权重取负 <span class="arithmatex">\(-2^{w-1}\)</span>。补码的好处是<strong>加法器不用区分正负</strong>（<span class="arithmatex">\(a-b = a + (\sim b + 1)\)</span>），硬件极简。<strong>陷阱</strong>：
-- <strong>溢出回绕</strong>：<code>int</code> 加法溢出是<strong>未定义行为</strong>（C 里），无符号则模 <span class="arithmatex">\(2^w\)</span> 回绕。经典 bug：<code>for (unsigned i = n; i &gt;= 0; i--)</code> 永不终止（无符号永 <span class="arithmatex">\(\ge 0\)</span>）。
-- <strong>有符号/无符号混用</strong>：<code>sizeof</code> 返回无符号，<code>if (a - b &lt; 0)</code> 当 <code>a,b</code> 无符号时永假——<strong>大量安全漏洞源于此</strong>（长度检查被绕过，🔗 sec-01）。</p>
+<p><strong>整数</strong>：无符号是直接二进制；有符号用<strong>补码（two's complement）</strong>——最高位权重取负 <span class="arithmatex">\(-2^{w-1}\)</span>。补码的好处是<strong>加法器不用区分正负</strong>（<span class="arithmatex">\(a-b = a + (\sim b + 1)\)</span>），硬件极简。<strong>陷阱</strong>：</p>
+<ul>
+<li><strong>溢出回绕</strong>：<code>int</code> 加法溢出是<strong>未定义行为</strong>（C 里），无符号则模 <span class="arithmatex">\(2^w\)</span> 回绕。经典 bug：<code>for (unsigned i = n; i &gt;= 0; i--)</code> 永不终止（无符号永 <span class="arithmatex">\(\ge 0\)</span>）。</li>
+<li><strong>有符号/无符号混用</strong>：<code>sizeof</code> 返回无符号，<code>if (a - b &lt; 0)</code> 当 <code>a,b</code> 无符号时永假——<strong>大量安全漏洞源于此</strong>（长度检查被绕过，🔗 sec-01）。</li>
+</ul>
 <p><strong>浮点（IEEE 754）</strong>：<span class="arithmatex">\((-1)^s\times 1.M\times 2^{E-\text{bias}}\)</span>——符号 + 尾数 + 阶码。必须建立的直觉：<strong>浮点是对数刻度</strong>（大数间隙大），故 <code>0.1 + 0.2 != 0.3</code>、大数加小数会<strong>吞掉</strong>小数、比较浮点要用容差。特殊值 <code>NaN/Inf</code> 传播。<strong>"浮点不是实数、是实数的有损网格"</strong>——数值计算（🔗 数学站 num 线）的一切误差从这里生根。</p>
 <h2 id="2-c">2. C 与内存：指针、数组、结构体的真相<a class="headerlink" href="#2-c" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="结构体内存布局 + 对齐填充：{char;int;char} 12 字节 vs 重排 8 字节。" src="assets/img/csapp-01-struct-layout.svg" /></p>
 <figcaption><span class="fig-id">图 csapp-01.2</span>结构体内存布局 + 对齐填充：{char;int;char} 12 字节 vs 重排 8 字节。</figcaption>
 </figure>
-<p>C 是"带类型的汇编"——它的每个抽象都能翻译成地址算术：
-- <strong>指针 = 地址 + 类型</strong>（类型决定 <code>p+1</code> 走多少字节、解引用读几字节）。
-- <strong>数组 = 连续内存 + 无边界检查</strong>：<code>a[i]</code> 就是 <code>*(a+i)</code>——<strong>越界不报错，直接读写邻居</strong>，缓冲区溢出（sec-01）的物理根源。
-- <strong>结构体 = 带对齐的字节块</strong>：成员按<strong>对齐规则</strong>排布（<code>int</code> 落在 4 的倍数地址），故结构体有<strong>填充空洞</strong>；调整成员顺序能省内存（把大类型放前面）。<code>union</code> 则是同一块字节的多种解释。</p>
+<p>C 是"带类型的汇编"——它的每个抽象都能翻译成地址算术：</p>
+<ul>
+<li><strong>指针 = 地址 + 类型</strong>（类型决定 <code>p+1</code> 走多少字节、解引用读几字节）。</li>
+<li><strong>数组 = 连续内存 + 无边界检查</strong>：<code>a[i]</code> 就是 <code>*(a+i)</code>——<strong>越界不报错，直接读写邻居</strong>，缓冲区溢出（sec-01）的物理根源。</li>
+<li><strong>结构体 = 带对齐的字节块</strong>：成员按<strong>对齐规则</strong>排布（<code>int</code> 落在 4 的倍数地址），故结构体有<strong>填充空洞</strong>；调整成员顺序能省内存（把大类型放前面）。<code>union</code> 则是同一块字节的多种解释。</li>
+</ul>
 <p><strong>读法</strong>：<strong>C 里没有魔法，只有"这块字节怎么解释、走多远"</strong>。段错误 = 解引用了不该碰的地址；诡异数据 = 类型解释错了字节。学会用 <code>gdb</code> 看内存 + <code>sizeof/offsetof</code> 算布局，C 就透明了。</p>
 <h2 id="3">3. 汇编：控制流与函数调用的机器实现<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="函数调用栈帧：返回地址、保存寄存器、局部变量。" src="assets/img/csapp-01-stack-frame.svg" /></p>
 <figcaption><span class="fig-id">图 csapp-01.1</span>函数调用栈帧：返回地址、保存寄存器、局部变量。</figcaption>
 </figure>
-<p>高级语言的 <code>if/for/函数</code> 在机器层只有<strong>跳转</strong>和<strong>约定</strong>。看 x86-64（AT&amp;T 语法）关键映射：
-- <strong>条件/循环</strong> → 比较设置<strong>条件码</strong>（ZF/SF/OF/CF）+ 条件跳转 <code>je/jl/jg</code>。<code>for</code> 循环 = 初始化 + 条件跳转回边。
-- <strong>函数调用</strong> → <code>call</code> 压返回地址 + 跳转；<strong>调用约定</strong>规定参数走哪些寄存器（<code>rdi,rsi,rdx,...</code>）、返回值在 <code>rax</code>、哪些寄存器调用者/被调用者保存。
-- <strong>栈帧</strong> → 每次调用在栈上分配局部变量 + 保存现场；<code>rsp</code>/<code>rbp</code> 管理。<strong>递归就是栈帧的叠放</strong>，栈溢出 = 递归太深帧堆爆。</p>
+<p>高级语言的 <code>if/for/函数</code> 在机器层只有<strong>跳转</strong>和<strong>约定</strong>。看 x86-64（AT&amp;T 语法）关键映射：</p>
+<ul>
+<li><strong>条件/循环</strong> → 比较设置<strong>条件码</strong>（ZF/SF/OF/CF）+ 条件跳转 <code>je/jl/jg</code>。<code>for</code> 循环 = 初始化 + 条件跳转回边。</li>
+<li><strong>函数调用</strong> → <code>call</code> 压返回地址 + 跳转；<strong>调用约定</strong>规定参数走哪些寄存器（<code>rdi,rsi,rdx,...</code>）、返回值在 <code>rax</code>、哪些寄存器调用者/被调用者保存。</li>
+<li><strong>栈帧</strong> → 每次调用在栈上分配局部变量 + 保存现场；<code>rsp</code>/<code>rbp</code> 管理。<strong>递归就是栈帧的叠放</strong>，栈溢出 = 递归太深帧堆爆。</li>
+</ul>
 <p><strong>为什么要看汇编</strong>：① 理解<strong>性能</strong>（编译器做了什么优化、有没有向量化，🔗 perf 线）；② 理解<strong>安全</strong>（返回地址在栈上 ⇒ 溢出能劫持控制流，栈溢出攻击 sec-01）；③ 调试优化过的代码。<strong>你不用会写汇编，但要会读——它是"代码真正在做什么"的最终答案</strong>。</p>
 <h2 id="4-c">4. 从 C 到可执行：编译四步概览<a class="headerlink" href="#4-c" title="Permanent link"></a></h2>
 <p><code>gcc hello.c</code> 背后：<strong>预处理</strong>（展开宏/头文件）→ <strong>编译</strong>（C → 汇编）→ <strong>汇编</strong>（汇编 → 机器码目标文件 <code>.o</code>）→ <strong>链接</strong>（多个 <code>.o</code> + 库 → 可执行）。本页管前三步的"表示"，链接是 csapp-03 的主题。<strong>理解这条流水线，你才知道"undefined reference"（链接期）和"segfault"（运行期）是完全不同阶段的错误</strong>——报错定位能力就来自看清这条链。</p>

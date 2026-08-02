@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -69,9 +69,11 @@
 <p><strong>判据</strong>：能控性矩阵满秩</p>
 <div class="arithmatex">\[\mathcal{C} = [B \ \ AB \ \ A^2B \ \cdots\ A^{n-1}B], \qquad \mathrm{rank}(\mathcal{C}) = n\]</div>
 <p><strong>直观理解</strong>：<span class="arithmatex">\(B\)</span> 给出输入能直接推动的方向，<span class="arithmatex">\(AB\)</span> 是这些方向经过一步动态演化后到达的方向……若这些方向张成整个状态空间，就能控。<strong>若不能，说明状态空间中存在一个"输入无论如何也影响不到"的子空间。</strong></p>
-<p><strong>不能控的典型例子</strong>：
-- 两个完全相同、由同一信号驱动的子系统——<strong>你永远无法让它们状态不同</strong>；
-- 对称结构中的反对称模态（如两端对称加热的杆，其反对称温度分布无法被对称输入激励）。</p>
+<p><strong>不能控的典型例子</strong>：</p>
+<ul>
+<li>两个完全相同、由同一信号驱动的子系统——<strong>你永远无法让它们状态不同</strong>；</li>
+<li>对称结构中的反对称模态（如两端对称加热的杆，其反对称温度分布无法被对称输入激励）。</li>
+</ul>
 <h2 id="_3">三、能观性：我能不能从输出推断内部状态<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>定义</strong>：若能从有限时间的输出观测唯一确定初始状态，则系统<strong>能观</strong>。</p>
 <p><strong>判据</strong>：</p>
@@ -82,10 +84,12 @@
 <p><strong>① 它们解释了第四页那个"零极点对消"的陷阱。</strong></p>
 <p>当控制器零点与对象极点对消时，被对消的模态在系统中<strong>依然存在</strong>，只是<strong>变得不能控或不能观</strong>——从输入输出看不见它。若该模态稳定，只是浪费；<strong>若它不稳定，系统会内部发散而你从输出上毫无察觉，直到崩溃。</strong></p>
 <p><strong>Kalman 分解</strong>把系统分成四部分：能控能观、能控不能观、不能控能观、都不能。<strong>传递函数只反映"能控且能观"的那一部分</strong>——这就是为什么传递函数会"丢失信息"。</p>
-<p><strong>② 它们给出了设计的可行性条件</strong>：
-- <strong>能控 ⟹ 可以任意配置闭环极点</strong>（第八页）；
-- <strong>能观 ⟹ 可以设计观测器估计全部状态</strong>（第九页）；
-- 弱一些的条件：<strong>可镇定</strong>（不能控的模态本身稳定）、<strong>可检测</strong>（不能观的模态本身稳定）——<strong>工程上这才是真正需要的最低要求</strong>。</p>
+<p><strong>② 它们给出了设计的可行性条件</strong>：</p>
+<ul>
+<li><strong>能控 ⟹ 可以任意配置闭环极点</strong>（第八页）；</li>
+<li><strong>能观 ⟹ 可以设计观测器估计全部状态</strong>（第九页）；</li>
+<li>弱一些的条件：<strong>可镇定</strong>（不能控的模态本身稳定）、<strong>可检测</strong>（不能观的模态本身稳定）——<strong>工程上这才是真正需要的最低要求</strong>。</li>
+</ul>
 <p><strong>③ 它们指导传感器与执行器的配置。</strong> 这是极实际的用途：<strong>该在哪里装传感器？执行器该放哪？</strong> 答案是"使系统能观/能控，且条件数良好的位置"。<strong>这个问题在大型系统（电网、柔性结构、化工装置）中是真实的设计任务。</strong></p>
 <h2 id="_5">五、"程度"比"有无"更重要<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>秩判据是<strong>二元</strong>的（满秩或不满秩），但工程上真正关心的是<strong>程度</strong>：</p>
@@ -96,15 +100,19 @@
 <p><strong>这直接引出了模型降阶</strong>：把 Hankel 奇异值很小的状态（既难控又难观）<strong>直接删掉</strong>，得到低阶模型而几乎不损失输入输出行为。<strong>平衡截断是工业上处理高阶模型（如有限元得到的上千阶柔性结构模型）的标准手段。</strong></p>
 <p><strong>工程判断</strong>：<strong>"这个模态能不能控"往往不如"推动它要花多少代价"重要。</strong> 这与第五页水床效应的精神一致——控制理论的成熟之处，在于它能量化"代价"而不只判断"可不可能"。</p>
 <h2 id="_6">六、状态空间的优势与代价<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
-<p><strong>优势</strong>：
-- <strong>天然处理 MIMO</strong>：矩阵表示，无需逐对回路分析（经典方法处理多变量耦合非常笨拙）；
-- <strong>统一处理时变与非线性</strong>：<span class="arithmatex">\(\dot{x}=f(x,u,t)\)</span> 是同一框架；
-- <strong>最优控制的自然语言</strong>：LQR、MPC 都建立在状态空间上；
-- <strong>状态估计</strong>：卡尔曼滤波器需要状态模型。</p>
-<p><strong>代价</strong>：
-- <strong>需要模型</strong>——而经典频域方法可以直接用实测数据（第五页）。这是现代控制在工业推广中的真实阻力之一；
-- <strong>状态往往不可直接测量</strong>（需要观测器，第九页）；
-- <strong>鲁棒性不是自动的</strong>：LQR 有很好的裕度性质，但 LQG（LQR + 卡尔曼）<strong>可能完全没有鲁棒裕度</strong>（著名的 Doyle 1978 反例）——这个发现直接催生了 <span class="arithmatex">\(H_\infty\)</span> 理论（第十六页）。<strong>这是控制史上一次重要的"理论翻车"，值得记住。</strong></p>
+<p><strong>优势</strong>：</p>
+<ul>
+<li><strong>天然处理 MIMO</strong>：矩阵表示，无需逐对回路分析（经典方法处理多变量耦合非常笨拙）；</li>
+<li><strong>统一处理时变与非线性</strong>：<span class="arithmatex">\(\dot{x}=f(x,u,t)\)</span> 是同一框架；</li>
+<li><strong>最优控制的自然语言</strong>：LQR、MPC 都建立在状态空间上；</li>
+<li><strong>状态估计</strong>：卡尔曼滤波器需要状态模型。</li>
+</ul>
+<p><strong>代价</strong>：</p>
+<ul>
+<li><strong>需要模型</strong>——而经典频域方法可以直接用实测数据（第五页）。这是现代控制在工业推广中的真实阻力之一；</li>
+<li><strong>状态往往不可直接测量</strong>（需要观测器，第九页）；</li>
+<li><strong>鲁棒性不是自动的</strong>：LQR 有很好的裕度性质，但 LQG（LQR + 卡尔曼）<strong>可能完全没有鲁棒裕度</strong>（著名的 Doyle 1978 反例）——这个发现直接催生了 <span class="arithmatex">\(H_\infty\)</span> 理论（第十六页）。<strong>这是控制史上一次重要的"理论翻车"，值得记住。</strong></li>
+</ul>
 <h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>状态 = 预测未来所需的最小信息</strong>；<span class="arithmatex">\(A\)</span> 的特征值就是极点；</li>

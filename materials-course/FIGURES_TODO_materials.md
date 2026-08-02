@@ -1,10 +1,12 @@
-# 材料站插图待办（[diagram] 轨，交 GPT 按 SVG 铁律绘制）
+# 材料站插图完成记录
 
 **已完成（[plot] 轨，arch 用 matplotlib 生成，14 张）**：势阱、空位浓度、玻璃转变、匀晶相图+杠杆、渗碳剖面、TTT、三家族应力应变、Hall–Petch、S–N、聚合物模量-温度、Weibull、载流子-温度、磁滞回线、Ashby 图。源码 `figs/materials.py`，重生成：`~/ai-course/.venv/bin/python figs/materials.py`。
 
+**已完成（[diagram] 轨，23 张，2026-08-02 验收）**：下表全部结构示意图均已插入对应讲义。可复现脚本为 `figs/materials_diagrams_02_08.py`、`figs/materials_diagrams_09_16.py` 与 `figs/materials_diagrams_17_22.py`。验收覆盖脚本执行、SVG XML、`viewBox`、路径字体、最小线宽、讲义引用以及桌面/手机页面显示。
+
 **绘图铁律**（沿用六站规范，见 `~/COURSE_FIGURE_STYLE.md`）：图内文字一律英文/数学符号（中文进 figcaption，否则 tofu）；SVG 用路径而非字体依赖；配色用站点主色 `#147d6f`（孔雀石青）与浅色 `#7cc6b9`；线宽 ≥1.5；背景透明或白。
 
-## 待绘清单（按页码）
+## 完成清单（按页码）
 
 | 页 | 图 | 内容要点 |
 |---|---|---|
@@ -32,4 +34,4 @@
 | 18 腐蚀 | 八种腐蚀形态图示 | 缩略八宫格 |
 | 22 收官 | 选材四步流程图 | 翻译→筛选→排序→落地 |
 
-共约 23 张 [diagram]。优先级：03（缺陷三张）> 05 Fe–C > 08 强化四法 > 12 能带 > 其余。
+共 23 张 [diagram]，全部完成。原优先级为：03（缺陷三张）> 05 Fe–C > 08 强化四法 > 12 能带 > 其余。

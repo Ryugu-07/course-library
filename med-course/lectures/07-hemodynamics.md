@@ -99,6 +99,13 @@
 
 **脓毒症为何特殊**：不只是感染 + 低血压，而是**失调的宿主反应**——血管麻痹（iNOS/NO）、**内皮糖萼脱落 → 弥漫渗漏**、微循环分流（**大血管流量正常而毛细血管仍缺氧**）、**线粒体功能障碍**（细胞病性缺氧）。**这解释了为什么单纯把血压升上去并不足以救活患者。**
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验水肿、血栓/栓塞与休克的机制；实际诊断、抗凝和复苏策略需按当地指南与患者风险分层执行。
+- [Thrombosis](https://www.ncbi.nlm.nih.gov/books/NBK538430/) — NLM/NIH Bookshelf：血栓形成、Virchow 三要素与栓塞鉴别。
+- [Shock](https://www.ncbi.nlm.nih.gov/books/NBK531492/) — NLM/NIH Bookshelf：循环衰竭、休克类型与组织低灌注。
+- [Sepsis fact sheet](https://www.who.int/news-room/fact-sheets/detail/sepsis) — WHO，2024：感染相关器官功能障碍和脓毒性休克背景。
+
 ---
 
 *下一页：肿瘤——从单个突变细胞到全身转移，本站篇幅最长的一个总论主题。*

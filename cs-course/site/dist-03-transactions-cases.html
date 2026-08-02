@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分布式事务与大系统案例 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -60,25 +60,31 @@
 <figcaption><span class="fig-id">图 dist-03.3</span>两阶段提交时序 + 协调者崩溃导致的阻塞。</figcaption>
 </figure>
 <p>db-03 的事务在一台机器上。但如果一个操作要<strong>同时改多台机器</strong>（转账的两个账户在不同库、下单要扣库存+建订单在不同服务）——怎么保证"要么全成功要么全失败"？</p>
-<p><strong>两阶段提交（2PC）【机理级】</strong>：一个协调者 + 多个参与者。
-1. <strong>准备阶段</strong>：协调者问所有参与者"能提交吗？"，参与者各自做好准备（写好但不提交）、回复 yes/no。
-2. <strong>提交阶段</strong>：若<strong>全部</strong> yes，协调者广播"提交"，各参与者提交；只要有一个 no，广播"回滚"。</p>
+<p><strong>两阶段提交（2PC）【机理级】</strong>：一个协调者 + 多个参与者。</p>
+<ol>
+<li><strong>准备阶段</strong>：协调者问所有参与者"能提交吗？"，参与者各自做好准备（写好但不提交）、回复 yes/no。</li>
+<li><strong>提交阶段</strong>：若<strong>全部</strong> yes，协调者广播"提交"，各参与者提交；只要有一个 no，广播"回滚"。</li>
+</ol>
 <p><strong>2PC 的致命弱点——阻塞</strong>：如果协调者在阶段 2 之间<strong>崩溃</strong>，参与者们已经 say yes、锁着资源、<strong>却不知道该提交还是回滚</strong>，只能干等协调者恢复（<strong>阻塞</strong>）。这就是 2PC 被诟病的原因：<strong>协调者是单点、故障时参与者集体卡死</strong>。3PC 试图缓解但更复杂且假设更强，实践少用。<strong>根本出路是把协调者本身做成 Raft 组</strong>（dist-02）——用共识消灭单点，现代分布式数据库（Spanner、TiDB）正是"2PC 跨分片 + 每分片 Raft 复制"的组合。</p>
 <p><strong>替代范式——Saga</strong>：长事务拆成一串本地事务 + 对应的<strong>补偿操作</strong>（撤销）。不追求 ACID，而是"出错就补偿回滚"——<strong>用最终一致 + 业务补偿换掉分布式锁的阻塞</strong>，微服务架构的常用模式。<strong>"强一致的 2PC vs 最终一致的 Saga"又是一个 CAP 光谱上的工程选择</strong>。</p>
 <h2 id="2">2. 复制的三种拓扑<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>数据复制到多副本，谁能写、怎么同步——三种经典模式：
-- <strong>单主（主从）</strong>：一个主副本接受写、同步给从副本；读可以分摊到从。<strong>简单、无写冲突</strong>，但主是瓶颈和单点（故障要选主——又是共识）。Postgres 流复制、Medusa 若做读写分离就是这个。
-- <strong>多主</strong>：多个副本都能写——写吞吐高、多地就近，但<strong>写冲突要解决</strong>（后写胜/向量时钟/CRDT）。
-- <strong>无主（Dynamo 风格）</strong>：客户端写多个副本、读多个副本，用 <strong>quorum</strong>（<span class="arithmatex">\(W + R &gt; N\)</span> 保证读到最新）+ 冲突解决。高可用（AP），Cassandra/DynamoDB 的路子。</p>
+<p>数据复制到多副本，谁能写、怎么同步——三种经典模式：</p>
+<ul>
+<li><strong>单主（主从）</strong>：一个主副本接受写、同步给从副本；读可以分摊到从。<strong>简单、无写冲突</strong>，但主是瓶颈和单点（故障要选主——又是共识）。Postgres 流复制、Medusa 若做读写分离就是这个。</li>
+<li><strong>多主</strong>：多个副本都能写——写吞吐高、多地就近，但<strong>写冲突要解决</strong>（后写胜/向量时钟/CRDT）。</li>
+<li><strong>无主（Dynamo 风格）</strong>：客户端写多个副本、读多个副本，用 <strong>quorum</strong>（<span class="arithmatex">\(W + R &gt; N\)</span> 保证读到最新）+ 冲突解决。高可用（AP），Cassandra/DynamoDB 的路子。</li>
+</ul>
 <p><strong>读法</strong>：<strong>复制拓扑的选择 = "写在哪、冲突怎么办"的答案</strong>，直接由 CAP 取向决定。</p>
 <h2 id="3">3. 分片与一致性哈希：数据怎么摊开<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="一致性哈希环：机器/key 上环，加节点只影响相邻段。" src="assets/img/dist-03-consistent-hash.svg" /></p>
 <figcaption><span class="fig-id">图 dist-03.2</span>一致性哈希环：机器/key 上环，加节点只影响相邻段。</figcaption>
 </figure>
-<p>数据大到一台存不下 → <strong>分片（sharding/partition）</strong>：按某个 key 把数据分到多台。关键问题：<strong>怎么分，才能在增删机器时少搬数据？</strong>
-- <strong>朴素哈希 <code>hash(key) % N</code></strong>：N 一变（加/减机器），<strong>几乎所有 key 都要重新映射</strong>——灾难。
-- <strong>一致性哈希</strong>：把哈希空间做成一个<strong>环</strong>，机器和 key 都映射到环上，key 归属顺时针最近的机器。<strong>加一台机器只影响它相邻的一段 key</strong>，其余不动——<strong>"增删节点只搬 <span class="arithmatex">\(O(1/N)\)</span> 的数据"</strong>。配虚拟节点平衡负载。这是 Dynamo、Cassandra、CDN、分布式缓存的分片基石，一个优雅的小发明解决大问题。</p>
+<p>数据大到一台存不下 → <strong>分片（sharding/partition）</strong>：按某个 key 把数据分到多台。关键问题：<strong>怎么分，才能在增删机器时少搬数据？</strong></p>
+<ul>
+<li><strong>朴素哈希 <code>hash(key) % N</code></strong>：N 一变（加/减机器），<strong>几乎所有 key 都要重新映射</strong>——灾难。</li>
+<li><strong>一致性哈希</strong>：把哈希空间做成一个<strong>环</strong>，机器和 key 都映射到环上，key 归属顺时针最近的机器。<strong>加一台机器只影响它相邻的一段 key</strong>，其余不动——<strong>"增删节点只搬 <span class="arithmatex">\(O(1/N)\)</span> 的数据"</strong>。配虚拟节点平衡负载。这是 Dynamo、Cassandra、CDN、分布式缓存的分片基石，一个优雅的小发明解决大问题。</li>
+</ul>
 <h2 id="4-mapreduce">4. MapReduce：把并行的复杂性藏起来<a class="headerlink" href="#4-mapreduce" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="MapReduce 数据流：Map→shuffle→Reduce（词频例）。" src="assets/img/dist-03-mapreduce.svg" /></p>
@@ -91,13 +97,15 @@
 <li><strong>后继</strong>：Spark（内存化、DAG 执行更快）、Flink（流处理）继承了"声明计算、框架管分布式"的思想。<strong>这是"用受限的编程模型换自动的分布式"的最成功案例</strong>。</li>
 </ul>
 <h2 id="5">5. 系统设计的思维框架（面试 + 实战）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>把整条线收成一张可复用的地图——设计任何大系统时问这几层：
-1. <strong>需求与规模</strong>：读写比例、数据量、一致性要求、延迟目标（先量化，别空谈）。
-2. <strong>数据分片</strong>：按什么 key 分、用一致性哈希？
-3. <strong>复制与一致性</strong>：几副本、单主还是无主、CP 还是 AP？
-4. <strong>缓存</strong>：哪层加缓存（CDN/应用/数据库，🔗 csapp-02 缓存思想的系统级放大）、怎么失效。
-5. <strong>容错</strong>：哪些是单点、怎么故障转移、共识用在哪。
-6. <strong>瓶颈与演进</strong>：先找瓶颈（通常是数据库），再针对性扩展。</p>
+<p>把整条线收成一张可复用的地图——设计任何大系统时问这几层：</p>
+<ol>
+<li><strong>需求与规模</strong>：读写比例、数据量、一致性要求、延迟目标（先量化，别空谈）。</li>
+<li><strong>数据分片</strong>：按什么 key 分、用一致性哈希？</li>
+<li><strong>复制与一致性</strong>：几副本、单主还是无主、CP 还是 AP？</li>
+<li><strong>缓存</strong>：哪层加缓存（CDN/应用/数据库，🔗 csapp-02 缓存思想的系统级放大）、怎么失效。</li>
+<li><strong>容错</strong>：哪些是单点、怎么故障转移、共识用在哪。</li>
+<li><strong>瓶颈与演进</strong>：先找瓶颈（通常是数据库），再针对性扩展。</li>
+</ol>
 <p><strong>"缓存、分片、复制、共识"这四件套，能拼出你见过的几乎所有大系统</strong>——从这个框架看 Medusa，它现在是"单机 Postgres + 单体后端"，未来要扩展时，就是往这四件套上加东西。</p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（2PC 阻塞推演）</strong> 协调者在"收齐 yes 后、发提交前"崩溃——参与者处于什么状态、为什么不能自己决定、恢复后怎么办？<strong>理解"为什么 2PC 要把协调者做成高可用"</strong>。</p>
@@ -106,14 +114,16 @@
 <hr />
 <h3 id="project-p03-kv">📋 大 Project P03（第二阶段·收官）· 分片分布式 KV<a class="headerlink" href="#project-p03-kv" title="Permanent link"></a></h3>
 <blockquote>
-<p><strong>P03-B · 线性一致 KV 与分片迁移</strong>（承接 P03-A Raft）：
-- <strong>学习目标</strong>：理解“共识库只是复制日志，真正的系统还要处理客户端去重、配置变更、分片迁移与线性一致读”。
-- <strong>教师提供</strong>：KV 客户端、分片控制器接口、配置变更脚本、迁移期间的故障注入测试、线性一致性 checker。
-- <strong>学生任务</strong>：① 单 Raft 组 KV：<code>Get/Put/Append</code>、客户端请求去重、leader 变更重试；② shard controller：<code>Join/Leave/Move/Query</code>，生成分片到组的配置；③ sharded KV：按配置服务分片，配置变更时拉取/交接分片数据，迁移中不丢不重。
-- <strong>一致性约束</strong>：所有写必须进入对应 Raft 组日志；重复请求必须幂等；配置变更本身也要走 Raft；迁移期间旧组和新组不能同时接受同一分片写入。
-- <strong>验收测试</strong>：并发客户端下线性一致；leader 崩溃、网络分区、配置频繁变更时无丢写；迁移期间读写可继续或按清晰错误重试；隐藏测试会检查重复 RPC 与旧 leader 响应。
-- <strong>评分重点</strong>：单组 KV 25%，配置控制器 20%，迁移协议 30%，线性一致与故障测试 25%。
-- <strong>P03 总结报告</strong>：要求学生画出一次 <code>Put(k,v)</code> 在客户端、分片路由、Raft 日志、状态机应用、分片迁移中的生命周期。</p>
+<p><strong>P03-B · 线性一致 KV 与分片迁移</strong>（承接 P03-A Raft）：</p>
+<ul>
+<li><strong>学习目标</strong>：理解“共识库只是复制日志，真正的系统还要处理客户端去重、配置变更、分片迁移与线性一致读”。</li>
+<li><strong>教师提供</strong>：KV 客户端、分片控制器接口、配置变更脚本、迁移期间的故障注入测试、线性一致性 checker。</li>
+<li><strong>学生任务</strong>：① 单 Raft 组 KV：<code>Get/Put/Append</code>、客户端请求去重、leader 变更重试；② shard controller：<code>Join/Leave/Move/Query</code>，生成分片到组的配置；③ sharded KV：按配置服务分片，配置变更时拉取/交接分片数据，迁移中不丢不重。</li>
+<li><strong>一致性约束</strong>：所有写必须进入对应 Raft 组日志；重复请求必须幂等；配置变更本身也要走 Raft；迁移期间旧组和新组不能同时接受同一分片写入。</li>
+<li><strong>验收测试</strong>：并发客户端下线性一致；leader 崩溃、网络分区、配置频繁变更时无丢写；迁移期间读写可继续或按清晰错误重试；隐藏测试会检查重复 RPC 与旧 leader 响应。</li>
+<li><strong>评分重点</strong>：单组 KV 25%，配置控制器 20%，迁移协议 30%，线性一致与故障测试 25%。</li>
+<li><strong>P03 总结报告</strong>：要求学生画出一次 <code>Put(k,v)</code> 在客户端、分片路由、Raft 日志、状态机应用、分片迁移中的生命周期。</li>
+</ul>
 </blockquote>
 <hr />
 <p><em>系统线到此全部完成（18 页）——CSAPP、OS、网络、数据库、分布式、还差编译。下一页进入编译 I：源代码怎么变成能运行的东西。</em></p>

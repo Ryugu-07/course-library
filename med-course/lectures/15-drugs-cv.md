@@ -108,6 +108,13 @@
 
 **近十年最大的变化**：**SGLT2i 与 GLP-1 RA 从"降糖药"变成"器官保护药"**——**它们的心肾获益部分独立于血糖控制**，这也回过头质疑了"以糖化血红蛋白为唯一目标"的旧范式（🔗 姊妹站第 16 页用 ACCORD/ADVANCE/VADT 讲这场目标值之争）。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验心血管、肾脏和代谢药物的疾病背景与药物使用边界；药品选择、剂量和目标值以当地最新指南与药品标签为准。
+- [2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure](https://www.ahajournals.org/doi/epdf/10.1161/CIR.0000000000001063) — AHA/ACC/HFSA，2022：心衰药物分类与治疗框架。
+- [Chronic Coronary Disease Guidelines](https://www.acc.org/Guidelines/Hubs/Chronic-Coronary-Disease) — ACC/AHA：慢性冠状动脉疾病与二级预防指南入口。
+- [Standards of Care in Diabetes—2026](https://professional.diabetes.org/standards-of-care) — ADA，2026：糖尿病药物、心肾风险与综合管理。
+
 ---
 
 *下一页：神经精神药物各论——本站与心智与证据站的交接处。*

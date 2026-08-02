@@ -57,7 +57,7 @@ $$
 Q^\top A\, Q = \mathrm{diag}(\lambda_1, \dots, \lambda_n), \qquad \lambda_i \in \mathbb{R}
 $$
 
-三个组成部分及思路：①特征值全实（$\bar\xi^\top A \xi$ 两算）；②不同特征值的特征向量正交（$\lambda_1\langle\xi_1,\xi_2\rangle = \xi_2^\top A\xi_1 = \lambda_2\langle\xi_1,\xi_2\rangle$）；③归纳 + 不变子空间（$W^\perp$ 对对称变换不变）。
+三个组成部分及思路：1.特征值全实（$\bar\xi^\top A \xi$ 两算）；2.不同特征值的特征向量正交（$\lambda_1\langle\xi_1,\xi_2\rangle = \xi_2^\top A\xi_1 = \lambda_2\langle\xi_1,\xi_2\rangle$）；3.归纳 + 不变子空间（$W^\perp$ 对对称变换不变）。
 
 等价的**谱分解**写法：$A = \sum_i \lambda_i\, q_i q_i^\top$——对称矩阵 = 各特征方向上一维投影的加权和。
 

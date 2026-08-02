@@ -25,6 +25,7 @@ $$|\phi| = \frac{v}{\sqrt2},\qquad v=\sqrt{\frac{\mu^2}{\lambda}}$$
 **定律对称、真空选边**——这是 asm-01 铁磁的场论版。
 
 **Goldstone 定理【推导要点】**：写 $\phi=\tfrac{1}{\sqrt2}(v+h)e^{i\theta/v}$，代入 $V$：
+
 - **径向 $h$** 获得质量 $m_h^2 = 2\lambda v^2$（帽底的曲率）；
 - **角向 $\theta$** 在势中完全不出现 → **无质量的 Goldstone 玻色子**（沿帽檐运动零成本）。
 
@@ -39,6 +40,7 @@ $$|\phi| = \frac{v}{\sqrt2},\qquad v=\sqrt{\frac{\mu^2}{\lambda}}$$
 $$|D_\mu\phi|^2 = \tfrac12(\partial h)^2 + \underbrace{\frac{g^2v^2}{4}A_\mu A^\mu}_{\textbf{质量项}} + \frac{v}{2}\,\partial_\mu\theta\,g A^\mu+\cdots$$
 
 **两件事同时发生**：
+
 1. **规范场获得质量** $m_A = gv/2$——**来自与真空凝聚的耦合，而非手写**，规范不变性从未被破坏；
 2. **交叉项 $\partial_\mu\theta\,A^\mu$ 可用规范变换消去**（幺正规范 $\theta\to0$）——Goldstone 模被吸收，**变成有质量矢量场的纵向极化分量**。
 
@@ -83,6 +85,7 @@ $$m_f = \frac{y_f v}{\sqrt2}$$
 **成就**：一页拉氏量覆盖已知一切非引力现象，某些量的理论—实验符合达 $10^{-12}$ 量级（🔗 qft-02 的 $g-2$）。
 
 **已知的未完**：
+
 - **中微子质量**（标准模型原版预言为零，观测到振荡 → 必须扩展，pp-01）；
 - **暗物质与暗能量**（宇宙的约 95%，🔗 cosmo-01、ap-06）；
 - **重子不对称**（CKM 的 CP 破坏量级不够）；

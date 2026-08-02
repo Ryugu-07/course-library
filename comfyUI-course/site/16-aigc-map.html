@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AIGC 全景地图与四步框架 · 从噪声到图像</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -59,10 +59,10 @@
 <h2 id="1-aigc">1. 四步框架：一切 AIGC 的统一配方<a class="headerlink" href="#1-aigc" title="Permanent link"></a></h2>
 <p>回看本课程前 15 讲 + 姊妹课程，每个成功的生成系统都由四步构成：</p>
 <div class="arithmatex">\[
-\textbf{① 压缩表示} \;\to\; \textbf{② 生成范式} \;\to\; \textbf{③ 条件注入} \;\to\; \textbf{④ 解码回放}
+\text{1. 压缩表示} \;\to\; \text{2. 生成范式} \;\to\; \text{3. 条件注入} \;\to\; \text{4. 解码回放}
 \]</div>
-<p><strong>① 找一个紧凑表示</strong>：原始数据太大（4K 视频每秒几亿像素、每秒音频 4.4 万个采样点），先训练一个"压缩器"把它变小——图像用 VAE（第 04 讲，8× 空间压缩），视频用 3D VAE（再压时间维，第 17 讲），音频用神经编解码器（把波形变成离散 token，第 19 讲的 RVQ）。<strong>表示的质量决定整条管线的上限</strong>——这是各家最下本钱的隐形战场。</p>
-<p><strong>② 在表示上选生成范式</strong>：主流就两条（都在本课程推导过）——</p>
+<p><strong>1. 找一个紧凑表示</strong>：原始数据太大（4K 视频每秒几亿像素、每秒音频 4.4 万个采样点），先训练一个"压缩器"把它变小——图像用 VAE（第 04 讲，8× 空间压缩），视频用 3D VAE（再压时间维，第 17 讲），音频用神经编解码器（把波形变成离散 token，第 19 讲的 RVQ）。<strong>表示的质量决定整条管线的上限</strong>——这是各家最下本钱的隐形战场。</p>
+<p><strong>2. 在表示上选生成范式</strong>：主流就两条（都在本课程推导过）——</p>
 <table>
 <thead>
 <tr>
@@ -100,8 +100,8 @@
 </tbody>
 </table>
 <p>有趣的规律：<strong>时间结构强的模态（语言、语音、音乐）AR 有天然优势；空间细节重的模态（图像、视频画质）扩散占优</strong>——而 2025 年以来的趋势是两者杂交（AR 骨架 + 扩散补细节）。</p>
-<p><strong>③ 注入条件</strong>：文字（经文本编码器 + cross-attention，第 04 讲）、参考图/音（经对应编码器，第 05 讲 IP-Adapter 的思想在每个模态都有分身）、结构信号（ControlNet 思想同样跨模态繁殖：视频的姿态控制、音乐的旋律控制）。</p>
-<p><strong>④ 解码回放</strong>：表示解回原始模态——VAE Decoder、音频声码器（vocoder）、3D 的网格提取。往往还挂后处理链（放大、插帧、修复——第 14 讲的思想跨模态平移）。</p>
+<p><strong>3. 注入条件</strong>：文字（经文本编码器 + cross-attention，第 04 讲）、参考图/音（经对应编码器，第 05 讲 IP-Adapter 的思想在每个模态都有分身）、结构信号（ControlNet 思想同样跨模态繁殖：视频的姿态控制、音乐的旋律控制）。</p>
+<p><strong>4. 解码回放</strong>：表示解回原始模态——VAE Decoder、音频声码器（vocoder）、3D 的网格提取。往往还挂后处理链（放大、插帧、修复——第 14 讲的思想跨模态平移）。</p>
 <blockquote>
 <p><strong>用法</strong>：以后见到任何新模型发布（"XX 一句话生成 3D 世界"），按四问拆解：表示是什么？范式是哪个？吃什么条件？解码成什么？拆完它就不神秘了。这是本讲最值钱的一段话。</p>
 </blockquote>

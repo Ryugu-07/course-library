@@ -79,6 +79,14 @@
 
 **同样地**：**"有传统"不是证据，"是现代医学"也不是证据**。**放血疗法有两千年传统；Ic 类抗心律失常药是现代医学的产物且机制清晰——两者都杀人。**
 
+## 参考与更新
+
+**复审记录**：最后复审 **2026-08-02**；按六个月规则，下一次常规复审不晚于 **2027-02-02**。若安全信号、指南/监管更新或动态清单变化，则提前复审；具体适用地区以各条来源与当地最新版本为准。
+
+- [WHO Global traditional medicine strategy 2025–2034](https://www.who.int/westernpacific/publications/i/item/9789240113176)（传统医学政策框架；2025–2034；国际，不等于疗效认可。）
+- [NCCIH: St. John’s wort](https://www.nccih.nih.gov/health/st-johns-wort)（草药相互作用与安全性；持续更新；美国。）
+- [NCCIH: Safe use of complementary health products](https://www.nccih.nih.gov/health/safety)（补充/替代产品安全；持续更新；美国。）
+
 ---
 
 *线五完。下一线转向系统层面：AI、成本效果与沟通。*

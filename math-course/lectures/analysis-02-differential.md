@@ -43,7 +43,7 @@ $$
 
 **推论**：$f' \equiv 0 \Rightarrow f$ 恒常；$f' = g' \Rightarrow f = g + C$（不定积分理论的根据）。
 
-**定理（L'Hôpital）** $\frac00$ 或 $\frac{*}{\infty}$ 型，若 $\lim \frac{f'}{g'}$ 存在（或 $\infty$），则 $\lim\frac{f}{g} = \lim\frac{f'}{g'}$。三个纪律：①每用一次先验一次型；②$\lim f'/g'$ 不存在（非 $\infty$）时**不能反推**原极限不存在（如 $\frac{x + \sin x}{x}$）；③能用等价无穷小/Taylor 先化简，盲目连环洛必达是常见事故源。
+**定理（L'Hôpital）** $\frac00$ 或 $\frac{*}{\infty}$ 型，若 $\lim \frac{f'}{g'}$ 存在（或 $\infty$），则 $\lim\frac{f}{g} = \lim\frac{f'}{g'}$。三个纪律：1.每用一次先验一次型；2.$\lim f'/g'$ 不存在（非 $\infty$）时**不能反推**原极限不存在（如 $\frac{x + \sin x}{x}$）；3.能用等价无穷小/Taylor 先化简，盲目连环洛必达是常见事故源。
 
 ## 3. Taylor 公式
 

@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -84,9 +84,11 @@
 </tbody>
 </table>
 <p><strong>注意圆环与实心盘差一倍</strong>：同样质量下，<strong>质量分布在外缘的转动惯量最大</strong>。</p>
-<p><strong>这个事实的两面性</strong>（机械设计中反复出现的权衡）：
-- <strong>想要储能与平稳</strong>（飞轮、发动机曲轴飞轮、储能飞轮）→ <strong>把质量放外缘</strong>，最大化 <span class="arithmatex">\(I\)</span>；
-- <strong>想要快速响应</strong>（伺服电机转子、机器人关节、机床主轴）→ <strong>把质量集中在中心</strong>，最小化 <span class="arithmatex">\(I\)</span>。</p>
+<p><strong>这个事实的两面性</strong>（机械设计中反复出现的权衡）：</p>
+<ul>
+<li><strong>想要储能与平稳</strong>（飞轮、发动机曲轴飞轮、储能飞轮）→ <strong>把质量放外缘</strong>，最大化 <span class="arithmatex">\(I\)</span>；</li>
+<li><strong>想要快速响应</strong>（伺服电机转子、机器人关节、机床主轴）→ <strong>把质量集中在中心</strong>，最小化 <span class="arithmatex">\(I\)</span>。</li>
+</ul>
 <p><strong>伺服系统的关键指标是惯量比</strong>（负载惯量 / 电机惯量）。<strong>惯量比过大，系统响应迟钝、易振荡、难以整定</strong>——🔗 这直接连到自动化站第十二页的伺服调试。<strong>一个机械设计的选择（把质量放哪里），会变成控制工程师的噩梦或福音。</strong></p>
 <h2 id="_2">二、刚体动力学方程<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>平面运动</strong>：</p>
@@ -99,17 +101,21 @@
 <p><strong>旋转机械的不平衡是最常见的振动源。</strong> 一个偏心质量 <span class="arithmatex">\(m\)</span> 在半径 <span class="arithmatex">\(e\)</span> 处以 <span class="arithmatex">\(\omega\)</span> 旋转，产生离心力：</p>
 <div class="arithmatex">\[F = m e \omega^2\]</div>
 <p><strong>关键在 <span class="arithmatex">\(\omega^2\)</span></strong>：<strong>转速加倍，不平衡力增大四倍</strong>。这就是为什么低速时毫无问题的转子，升速后会剧烈振动——<strong>高速旋转机械对平衡的要求呈平方级严苛化</strong>。</p>
-<p><strong>两类平衡</strong>：
-- <strong>静平衡</strong>：质心在旋转轴上（消除合力）。<strong>对薄盘状零件（砂轮、风扇、皮带轮）足够</strong>；
-- <strong>动平衡</strong>：还要消除<strong>惯性力偶</strong>（消除合力矩）。<strong>对长转子（曲轴、电机转子、涡轮轴）必须做</strong>——因为两个大小相等方向相反、但不在同一平面的偏心，静态下能平衡，转动时却形成摇摆力偶。</p>
+<p><strong>两类平衡</strong>：</p>
+<ul>
+<li><strong>静平衡</strong>：质心在旋转轴上（消除合力）。<strong>对薄盘状零件（砂轮、风扇、皮带轮）足够</strong>；</li>
+<li><strong>动平衡</strong>：还要消除<strong>惯性力偶</strong>（消除合力矩）。<strong>对长转子（曲轴、电机转子、涡轮轴）必须做</strong>——因为两个大小相等方向相反、但不在同一平面的偏心，静态下能平衡，转动时却形成摇摆力偶。</li>
+</ul>
 <p><strong>工程实践</strong>：动平衡在<strong>两个校正平面</strong>上加/减配重完成，用动平衡机测量。<strong>平衡等级（如 ISO 的 G 级）按"许用偏心 × 转速"分级</strong>——转速越高，允许的残余不平衡越小。</p>
 <p><strong>往复机械的平衡更难</strong>：活塞的往复惯性力含<strong>一阶（<span class="arithmatex">\(\omega\)</span>）与二阶（<span class="arithmatex">\(2\omega\)</span>）</strong>分量。二阶力无法用简单配重完全平衡，需要<strong>平衡轴</strong>（以 <span class="arithmatex">\(2\omega\)</span> 反向旋转）。<strong>这就是四缸发动机常配平衡轴、而直列六缸天生平衡性好的原因</strong>——后者的一、二阶惯性力与力偶因气缸排列而自然抵消。<strong>发动机的"平顺性"很大程度上是刚体动力学的直接结果。</strong></p>
 <h2 id="_4">四、功率、扭矩与转速<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <div class="arithmatex">\[P = T\omega\]</div>
-<p><strong>这个简单公式支配了整个传动系统的设计逻辑</strong>：
-- 同样的功率，<strong>转速越低，扭矩越大</strong>；
-- <strong>扭矩决定尺寸</strong>（轴径、齿轮模数、键的尺寸都由扭矩定），<strong>功率不直接决定尺寸</strong>；
-- <strong>所以减速器的输出级总是最大最重的</strong>——它承受最大扭矩。</p>
+<p><strong>这个简单公式支配了整个传动系统的设计逻辑</strong>：</p>
+<ul>
+<li>同样的功率，<strong>转速越低，扭矩越大</strong>；</li>
+<li><strong>扭矩决定尺寸</strong>（轴径、齿轮模数、键的尺寸都由扭矩定），<strong>功率不直接决定尺寸</strong>；</li>
+<li><strong>所以减速器的输出级总是最大最重的</strong>——它承受最大扭矩。</li>
+</ul>
 <p><strong>推论</strong>：<strong>电机应尽量高速小扭矩，再用减速器换取扭矩</strong>。这样电机可以做得小而轻。<strong>这正是机器人关节、电动车驱动系统普遍采用高速电机 + 减速器的原因</strong>（直驱方案需要巨大的电机）。</p>
 <p><strong>代价</strong>：减速器带来<strong>回差（间隙）、摩擦、效率损失、以及额外的惯量与柔性</strong>——🔗 又一次成为自动化站的控制难题（第十九页的机器人关节柔性）。</p>
 <h2 id="_5">五、转动的能量与冲击<a class="headerlink" href="#_5" title="Permanent link"></a></h2>

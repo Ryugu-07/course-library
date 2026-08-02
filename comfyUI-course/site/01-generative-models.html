@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>生成模型：学分布与采样 · 从噪声到图像</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -61,8 +61,8 @@
 </figure>
 <p>判别式模型（分类器）学的是 <span class="arithmatex">\(p(y \mid x)\)</span>：给图，判猫狗。生成式模型学的是 <span class="arithmatex">\(p(x)\)</span> 本身——难度完全不是一个量级：判别只需在两类之间画一条边界，生成需要刻画"所有合理图像"在 78 万维空间中的分布形状。</p>
 <p>两个立刻能感受到的困难：</p>
-<p><strong>① 维数灾难下的"针尖流形"。</strong>随机撒一个 78 万维的点，得到的是电视雪花——合理图像在这个空间里占的体积测度趋近于零。它们聚在一个低维流形附近（改变光照、视角、表情是在流形上滑动，随机扰动像素则立刻掉下流形）。学分布 = 找到这个流形并把概率质量铺上去。</p>
-<p><strong>② 会算概率 ≠ 会采样。</strong>就算给你一个能对任意 <span class="arithmatex">\(x\)</span> 报出 <span class="arithmatex">\(p(x)\)</span> 数值的黑盒，从中采样仍然是难题（高维空间里既不能网格枚举也不能拒绝采样）。所以每条生成路线的核心设计，都是<strong>给采样修一条可行的路</strong>：普遍套路是"从一个容易采样的分布（高斯噪声 <span class="arithmatex">\(z\)</span>）出发，学一个变换把它运到数据分布上"。</p>
+<p><strong>1. 维数灾难下的"针尖流形"。</strong>随机撒一个 78 万维的点，得到的是电视雪花——合理图像在这个空间里占的体积测度趋近于零。它们聚在一个低维流形附近（改变光照、视角、表情是在流形上滑动，随机扰动像素则立刻掉下流形）。学分布 = 找到这个流形并把概率质量铺上去。</p>
+<p><strong>2. 会算概率 ≠ 会采样。</strong>就算给你一个能对任意 <span class="arithmatex">\(x\)</span> 报出 <span class="arithmatex">\(p(x)\)</span> 数值的黑盒，从中采样仍然是难题（高维空间里既不能网格枚举也不能拒绝采样）。所以每条生成路线的核心设计，都是<strong>给采样修一条可行的路</strong>：普遍套路是"从一个容易采样的分布（高斯噪声 <span class="arithmatex">\(z\)</span>）出发，学一个变换把它运到数据分布上"。</p>
 <div class="arithmatex">\[
 z \sim \mathcal{N}(0, I) \;\xrightarrow{\;\text{学到的变换}\;}\; x \sim p_{\text{data}}
 \]</div>

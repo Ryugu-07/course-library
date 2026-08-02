@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>系统与 Web 攻防 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li class="active"><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -52,24 +52,30 @@
 安全课的教学立场很明确——<strong>理解攻击是为了构建防御</strong>。这一页按"漏洞类别 + 其防御"的方式，讲清最常见、最重要的几类安全问题（内存安全、注入、XSS、CSRF、认证缺陷），每类都是"机理 → 为什么危险 → 怎么防"。这是防御性的知识：一个不懂这些攻击面的开发者，会无意中写出满是漏洞的代码。核心心法一句话：<strong>永远不要信任来自外部的输入</strong>。</p>
 </blockquote>
 <h2 id="1">1. 安全的思维方式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>普通开发问"怎么让它工作"，安全思维问"<strong>怎么让它出错、边界在哪、攻击者能控制什么</strong>"。三条基本原则贯穿全页：
-- <strong>不信任输入</strong>：一切来自外部（用户、网络、文件）的数据都可能是恶意的——<strong>必须校验、净化、限制</strong>（web-02 边界校验的安全动机）。
-- <strong>最小权限</strong>：每个组件只给完成任务所需的最小权限——出事时爆炸半径小。
-- <strong>纵深防御</strong>：不指望单一防线，多层叠加（一层被破还有下一层）。</p>
+<p>普通开发问"怎么让它工作"，安全思维问"<strong>怎么让它出错、边界在哪、攻击者能控制什么</strong>"。三条基本原则贯穿全页：</p>
+<ul>
+<li><strong>不信任输入</strong>：一切来自外部（用户、网络、文件）的数据都可能是恶意的——<strong>必须校验、净化、限制</strong>（web-02 边界校验的安全动机）。</li>
+<li><strong>最小权限</strong>：每个组件只给完成任务所需的最小权限——出事时爆炸半径小。</li>
+<li><strong>纵深防御</strong>：不指望单一防线，多层叠加（一层被破还有下一层）。</li>
+</ul>
 <h2 id="2">2. 内存安全漏洞（系统层）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="缓冲区溢出：写越界覆盖栈上返回地址的示意（教学用，讲防御：canary/ASLR/DEP）。" src="assets/img/sec-01-buffer-overflow.svg" /></p>
 <figcaption><span class="fig-id">图 sec-01.3</span>缓冲区溢出：写越界覆盖栈上返回地址的示意（教学用，讲防御：canary/ASLR/DEP）。</figcaption>
 </figure>
-<p>C/C++ 的内存 bug（csapp-04）不只是崩溃，是<strong>安全漏洞</strong>——攻击者可利用它控制程序：
-- <strong>缓冲区溢出</strong>：写超出缓冲区边界（csapp-01 数组无边界检查）→ 覆盖相邻内存。若覆盖了栈上的<strong>返回地址</strong>（csapp-03 函数调用），攻击者可让程序跳到他控制的代码——<strong>控制流劫持</strong>。这是几十年来最经典的漏洞类。
-- <strong>use-after-free / 二次释放</strong>：访问已释放内存（csapp-04）→ 可被操纵。
-- <strong>为什么至今仍是大问题</strong>：内存安全漏洞占业界严重漏洞约 <strong>70%</strong>。</p>
-<p><strong>防御（层层叠加）</strong>：
-- <strong>语言层根治</strong>：用<strong>内存安全语言</strong>（Rust rust-01 的所有权、或带 GC 的语言 pl-02）——<strong>从源头消灭这一整类漏洞</strong>，这是本站语言线与安全线的关键呼应。
-- <strong>编译器/OS 缓解</strong>：栈保护（canary，检测返回地址被覆盖）、<strong>ASLR</strong>（地址随机化，让攻击者猜不到地址）、<strong>DEP/NX</strong>（数据页不可执行，防注入代码运行）——<strong>这些让利用变难，但不根治</strong>。
-- <strong>工具</strong>：AddressSanitizer/valgrind 开发期抓越界（csapp-04）。
-- <strong>纪律</strong>：边界检查、用安全的字符串/缓冲 API。</p>
+<p>C/C++ 的内存 bug（csapp-04）不只是崩溃，是<strong>安全漏洞</strong>——攻击者可利用它控制程序：</p>
+<ul>
+<li><strong>缓冲区溢出</strong>：写超出缓冲区边界（csapp-01 数组无边界检查）→ 覆盖相邻内存。若覆盖了栈上的<strong>返回地址</strong>（csapp-03 函数调用），攻击者可让程序跳到他控制的代码——<strong>控制流劫持</strong>。这是几十年来最经典的漏洞类。</li>
+<li><strong>use-after-free / 二次释放</strong>：访问已释放内存（csapp-04）→ 可被操纵。</li>
+<li><strong>为什么至今仍是大问题</strong>：内存安全漏洞占业界严重漏洞约 <strong>70%</strong>。</li>
+</ul>
+<p><strong>防御（层层叠加）</strong>：</p>
+<ul>
+<li><strong>语言层根治</strong>：用<strong>内存安全语言</strong>（Rust rust-01 的所有权、或带 GC 的语言 pl-02）——<strong>从源头消灭这一整类漏洞</strong>，这是本站语言线与安全线的关键呼应。</li>
+<li><strong>编译器/OS 缓解</strong>：栈保护（canary，检测返回地址被覆盖）、<strong>ASLR</strong>（地址随机化，让攻击者猜不到地址）、<strong>DEP/NX</strong>（数据页不可执行，防注入代码运行）——<strong>这些让利用变难，但不根治</strong>。</li>
+<li><strong>工具</strong>：AddressSanitizer/valgrind 开发期抓越界（csapp-04）。</li>
+<li><strong>纪律</strong>：边界检查、用安全的字符串/缓冲 API。</li>
+</ul>
 <h2 id="3-web">3. 注入攻击（Web 层最经典）<a class="headerlink" href="#3-web" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="SQL 注入：拼接 vs 参数化查询（数据与代码分离）。" src="assets/img/sec-01-injection.svg" /></p>
@@ -88,10 +94,14 @@
 <figcaption><span class="fig-id">图 sec-01.1</span>XSS(恶意脚本进你的页面) vs CSRF(你的登录态被别站利用) 机理对比 + 各自防御。</figcaption>
 </figure>
 <p>Web 前端（web-03）的两类经典攻击，机理正好相反：</p>
-<p><strong>XSS（跨站脚本）</strong>：攻击者让<strong>恶意脚本在受害者浏览器里执行</strong>——通常因为网站把用户输入<strong>未经转义</strong>地放进页面（如评论区存了 <code>&lt;script&gt;</code> 标签，别人看到就执行）。危害：偷 cookie/token（web-02 会话）、冒充用户操作。
-- <strong>防御</strong>：<strong>输出编码/转义</strong>（把用户内容当文本显示，不当 HTML/JS 解释——现代前端框架 React 默认转义，所以 web-03 的 React 天然抵御大部分 XSS，但 <code>dangerouslySetInnerHTML</code> 会绕过要小心）；<strong>内容安全策略（CSP）</strong>（限制页面能执行哪些脚本）；cookie 设 <strong><code>HttpOnly</code></strong>（JS 读不到，偷不走）。</p>
-<p><strong>CSRF（跨站请求伪造）</strong>：攻击者诱导<strong>已登录用户的浏览器</strong>向目标网站发出非本意的请求（利用浏览器自动带 cookie）——如诱导你点一个链接，偷偷用你的登录态转账。
-- <strong>防御</strong>：<strong>CSRF token</strong>（表单带一个服务器验证的随机 token，第三方站点拿不到）；cookie 设 <strong><code>SameSite</code></strong>（限制跨站带 cookie，现代浏览器默认，是最有效的缓解）；对改状态的操作用 POST 而非 GET（web-01 方法语义）。</p>
+<p><strong>XSS（跨站脚本）</strong>：攻击者让<strong>恶意脚本在受害者浏览器里执行</strong>——通常因为网站把用户输入<strong>未经转义</strong>地放进页面（如评论区存了 <code>&lt;script&gt;</code> 标签，别人看到就执行）。危害：偷 cookie/token（web-02 会话）、冒充用户操作。</p>
+<ul>
+<li><strong>防御</strong>：<strong>输出编码/转义</strong>（把用户内容当文本显示，不当 HTML/JS 解释——现代前端框架 React 默认转义，所以 web-03 的 React 天然抵御大部分 XSS，但 <code>dangerouslySetInnerHTML</code> 会绕过要小心）；<strong>内容安全策略（CSP）</strong>（限制页面能执行哪些脚本）；cookie 设 <strong><code>HttpOnly</code></strong>（JS 读不到，偷不走）。</li>
+</ul>
+<p><strong>CSRF（跨站请求伪造）</strong>：攻击者诱导<strong>已登录用户的浏览器</strong>向目标网站发出非本意的请求（利用浏览器自动带 cookie）——如诱导你点一个链接，偷偷用你的登录态转账。</p>
+<ul>
+<li><strong>防御</strong>：<strong>CSRF token</strong>（表单带一个服务器验证的随机 token，第三方站点拿不到）；cookie 设 <strong><code>SameSite</code></strong>（限制跨站带 cookie，现代浏览器默认，是最有效的缓解）；对改状态的操作用 POST 而非 GET（web-01 方法语义）。</li>
+</ul>
 <p><strong>读法</strong>：XSS 是"恶意代码进了你的页面"、CSRF 是"你的登录态被别的站利用"——<strong>理解这对区别，才能正确选防御（转义 vs token）</strong>。两者都源于 Web 的信任模型漏洞。</p>
 <h2 id="5">5. 认证与访问控制缺陷<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <ul>

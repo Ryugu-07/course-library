@@ -2,6 +2,8 @@
 
 > 这一页是本站方法论的集中演示：**同一种药，对不同人的价值可以相差十倍以上**，而决定这个差别的不是化验单上的某个数字，而是**这个人的总体绝对风险**。理解了这一页，你就理解了现代预防医学的全部逻辑转变。
 
+> **地区与年份边界**：本页用美国 ACC/AHA 2019、USPSTF 2022 与英国 NICE NG238（2023）作为不同体系的例子；风险计算器、他汀/降压阈值和血压目标不能跨地区直接搬用，应以当地现行指南和适配人群的方程为准。
+
 ## 1. 从"指标异常"到"总体风险"
 
 **旧范式**：胆固醇 > 阈值 → 治疗；血压 > 阈值 → 治疗。
@@ -82,6 +84,14 @@
 4. **确认患者的价值观**：他更怕事件还是更怕吃药与副作用？
 5. **优先做效应量最大的事**：**戒烟 > 大多数药物**；
 6. **定期重估**：风险会变，证据会变，**背景发生率也会变**（阿司匹林的教训）。
+
+## 参考与更新
+
+**复审记录**：最后复审 **2026-08-02**；按六个月规则，下一次常规复审不晚于 **2027-02-02**。若安全信号、指南/监管更新或动态清单变化，则提前复审；具体适用地区以各条来源与当地最新版本为准。
+
+- [ACC/AHA 2019 Primary Prevention guideline](https://www.acc.org/Guidelines/Guidelines/2019/03/17/10/23/Primary-Prevention-of-Cardiovascular-Disease)（心血管一级预防；2019；美国。）
+- [USPSTF statin use in adults](https://www.uspreventiveservicestaskforce.org/uspstf/index.php/recommendation/statin-use-in-adults-preventive-medication)（他汀一级预防建议；2022；美国。）
+- [NICE NG238: Cardiovascular disease: risk assessment and reduction](https://www.nice.org.uk/guidance/ng238)（心血管风险评估与降脂；2023；英国。）
 
 ---
 

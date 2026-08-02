@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -104,9 +104,11 @@
 <p><strong>摩擦补偿</strong>是精密运动控制的经典难题：静摩擦使系统在低速时"走走停停"（爬行）。常用手段包括摩擦模型前馈补偿（LuGre 模型等）、加抖动信号（dither）、或用高刚度反馈"硬压"。<strong>没有通用完美解，通常需要针对具体机械结构调试。</strong></p>
 <h2 id="lyapunov">三、Lyapunov 方法：不解方程判断稳定性<a class="headerlink" href="#lyapunov" title="Permanent link"></a></h2>
 <p><strong>核心思想（极其优雅）</strong>：找一个"广义能量函数" <span class="arithmatex">\(V(x)\)</span>，若它沿系统轨迹<strong>持续下降</strong>，则系统必然趋向能量最低点——即稳定。</p>
-<p><strong>Lyapunov 直接法</strong>：若存在 <span class="arithmatex">\(V(x)\)</span> 满足
-- <span class="arithmatex">\(V(0)=0\)</span>，且 <span class="arithmatex">\(V(x)&gt;0\)</span>（正定）；
-- <span class="arithmatex">\(\dot{V}(x) = \nabla V \cdot f(x) \le 0\)</span>（沿轨迹不增），</p>
+<p><strong>Lyapunov 直接法</strong>：若存在 <span class="arithmatex">\(V(x)\)</span> 满足</p>
+<ul>
+<li><span class="arithmatex">\(V(0)=0\)</span>，且 <span class="arithmatex">\(V(x)&gt;0\)</span>（正定）；</li>
+<li><span class="arithmatex">\(\dot{V}(x) = \nabla V \cdot f(x) \le 0\)</span>（沿轨迹不增），</li>
+</ul>
 <p>则平衡点稳定；若 <span class="arithmatex">\(\dot{V}&lt;0\)</span>（严格负定）则渐近稳定。</p>
 <p><strong>它的威力在于不需要解微分方程</strong>——只需检验一个不等式。对非线性系统这至关重要，因为解析解通常不存在。</p>
 <p><strong>它的困难在于找 <span class="arithmatex">\(V\)</span></strong>：没有通用构造法。常用套路——物理能量（机械系统的动能+势能是天然候选）、二次型 <span class="arithmatex">\(V=x^TPx\)</span>（对线性系统，<span class="arithmatex">\(P\)</span> 由 Lyapunov 方程给出）、以及<strong>平方和（SOS）规划</strong>等数值方法（近年可用凸优化自动搜索多项式 Lyapunov 函数，🔗 grad-math 优化线）。</p>
@@ -134,11 +136,13 @@
 <h2 id="_4">五、实用判断：什么时候真的需要非线性控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>诚实的工程判断</strong>（承导论的理论—实践落差）：</p>
 <p><strong>大多数情况下不需要</strong>——线性控制 + 足够裕度 + 抗饱和 + 增益调度，已能覆盖绝大部分工业需求。</p>
-<p><strong>确实需要的场合</strong>：
-- 工作范围极大，单个线性化模型无法覆盖（机器人大范围运动、飞行器全包线）；
-- 本质非线性主导（如强摩擦、间隙显著的精密定位）；
-- 对性能要求逼近物理极限（航天、高端伺服）；
-- 系统本身不稳定且非线性强（倒立摆类、某些飞行器）。</p>
+<p><strong>确实需要的场合</strong>：</p>
+<ul>
+<li>工作范围极大，单个线性化模型无法覆盖（机器人大范围运动、飞行器全包线）；</li>
+<li>本质非线性主导（如强摩擦、间隙显著的精密定位）；</li>
+<li>对性能要求逼近物理极限（航天、高端伺服）；</li>
+<li>系统本身不稳定且非线性强（倒立摆类、某些飞行器）。</li>
+</ul>
 <p><strong>滑模与反馈线性化在论文中的出现频率，远高于它们在工业现场的部署频率</strong>——这不是说它们没用，而是说<strong>引入它们需要有明确的理由</strong>：额外的复杂度、调试难度与维护成本，必须被换来的性能所证明。</p>
 <h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>

@@ -56,6 +56,7 @@ $$\Delta = \frac{V}{2}\sum_{\mathbf k}\frac{\Delta}{E_k}\tanh\frac{E_k}{2k_BT}$$
 $$\frac{2\Delta_0}{k_BT_c}\approx3.53$$
 
 **这个比值与材料无关**——BCS 最漂亮的"指纹预言"，被实验一一验证；
+
 - **Fermi 面全面开隙** → 比热的指数律 ✓、隧道谱直接测出 $\Delta$ ✓、同位素效应 ✓（$\Delta\propto\omega_D\propto M^{-1/2}$）。
 
 ## 4. 对称破缺读法：与 pp-02 的会师
@@ -67,6 +68,7 @@ BCS 态破缺 **$U(1)$ 相位对称**，序参量 $\Delta=|\Delta|e^{i\varphi}$�
 **这就是 Anderson–Higgs 机制的凝聚态原型**——**粒子物理的 Higgs（pp-02）是同一机制的真空版本**。
 
 **宏观量子效应**：
+
 - **磁通量子化** $\Phi_0 = h/2e$——**那个 2 就是配对的直接实验签名**；
 - **Josephson 效应**：$I = I_c\sin\Delta\varphi$，两超导体间的相位差直接驱动电流。**SQUID 磁强计与超导量子比特**（🔗 qi 线的主流硬件）都建立在它之上——**量子计算机建在 BCS 之上**。
 

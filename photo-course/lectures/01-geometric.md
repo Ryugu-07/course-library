@@ -3,6 +3,11 @@
 > **层次**：本科核心。
 > 几何光学把光当作直线传播的**射线**，完全不涉及光的本质。**这个粗糙的模型，却足以设计出人类几乎全部的光学系统**——从眼镜到显微镜到光刻机物镜。本页讲清它的规则、它的强大之处，以及它在哪里必然失效。
 
+<figure markdown="1">
+![Ray transfer matrix for an optical system](assets/img/pho-01-ray-matrix.svg){ .fig-img }
+<figcaption><span class="fig-id">图 1-1</span> 近轴光线按元件顺序传播：传播矩阵 \(P(d)\) 改变光线高度 \(y\)，薄透镜矩阵 \(L(f)\) 改变角度 \(\theta\)，因此整个系统就是 \(L(f)P(d)\) 的矩阵乘积。图中不同高度的光线经过同一套规则汇聚到像点；增加镜片只需继续连乘矩阵，这正是 ABCD 光学的工程价值。</figcaption>
+</figure>
+
 ## 一、基本定律与费马原理
 
 **反射**：$\theta_i = \theta_r$。**折射（Snell 定律）**：

@@ -93,6 +93,13 @@ $$R_e = R_0\,(1 - pE) < 1 \iff pE > 1 - \frac{1}{R_0}$$
 
 **"疗程必须吃完否则产生耐药"是一条被广泛传播但证据薄弱的说法**——现代观点认为**过长疗程反而增加选择压力**，多个常见感染的短疗程试验显示非劣效。**注意例外**：结核、心内膜炎、骨髓炎、脓肿等仍需长疗程。**这条更新是"教科书结论会过期"的一个近例。**
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验抗微生物药、耐药、疫苗与合理用药的框架；药物选择、疗程和疫苗日程必须按患者所在地区的最新指南、药品标签和耐药谱调整。
+- [Antimicrobial resistance](https://www.who.int/our-work/antimicrobial-resistance) — WHO：耐药的全球公共卫生框架与行动方向。
+- [Principles of Vaccination](https://www.cdc.gov/pinkbook/hcp/table-of-contents/chapter-1-principles-of-vaccination.html) — CDC Pink Book：疫苗免疫原理、免疫程序与接种原则。
+- [Drug Safety Communications](https://www.fda.gov/drugs/drug-safety-and-availability/drug-safety-communications) — FDA：药品安全警示与标签更新入口，包括氟喹诺酮类的重要风险沟通。
+
 ---
 
 *线三完。下一线是药理学——先建立药代动力学的定量骨架，这是全站数学密度最高的一页。*

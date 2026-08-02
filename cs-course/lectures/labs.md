@@ -38,13 +38,13 @@
 
 | 编号 | Project | 对标原课 | 讲义页给出的说明书 |
 |---|---|---|---|
-| P01 | xv6 内核实验全套（页表 / 系统调用 / 锁 / 文件系统 / mmap） | MIT 6.S081 | os-01/02/03 页末分阶段作业说明书 |
-| P02 | 从零关系型数据库（存储引擎 + SQL 子集 + MVCC + WAL 恢复） | CMU 15-445 | db-01/02/03 三页累进作业说明书 |
-| P03 | 分布式 KV 存储（Raft + 分片 + 线性一致读） | MIT 6.824 | dist-02/03 页末作业说明书 |
-| P04 | 编译器后端（IR + SSA + 寄存器分配 + 窥孔优化） | Stanford CS143 后半 | comp-03 页末作业说明书 |
-| P05 | 迷你 TCP（用户态可靠传输：滑动窗口 + 重传 + 拥塞） | Stanford CS144 | net-01 页末作业说明书 |
-| P06 | 性能工程终极题（把一个基线程序优化 100×） | MIT 6.172 | perf-02 页末作业说明书 |
-| P07 | 迷你推理引擎（KV cache + 连续批处理 + 量化） | MLSys 课群 | mlsys-02 页末作业说明书 |
+| P01 | [xv6 内核实验全套（页表 / 系统调用 / 锁 / 文件系统 / mmap）](projects/P01-xv6-kernel/README.html) | MIT 6.S081 | os-01/02/03 页末分阶段作业说明书 |
+| P02 | [从零关系型数据库（存储引擎 + SQL 子集 + MVCC + WAL 恢复）](projects/P02-relational-db/README.html) | CMU 15-445 | db-01/02/03 三页累进作业说明书 |
+| P03 | [分布式 KV 存储（Raft + 分片 + 线性一致读）](projects/P03-distributed-kv/README.html) | MIT 6.824 | dist-02/03 页末作业说明书 |
+| P04 | [编译器后端（IR + SSA + 寄存器分配 + 窥孔优化）](projects/P04-compiler-backend/README.html) | Stanford CS143 后半 | comp-03 页末作业说明书 |
+| P05 | [迷你 TCP（用户态可靠传输：滑动窗口 + 重传 + 拥塞）](projects/P05-mini-tcp/README.html) | Stanford CS144 | net-01 页末作业说明书 |
+| P06 | [性能工程终极题（把一个基线程序优化 100×）](projects/P06-performance-100x/README.html) | MIT 6.172 | perf-02 页末作业说明书 |
+| P07 | [迷你推理引擎（KV cache + 连续批处理 + 量化）](projects/P07-mini-inference/README.html) | MLSys 课群 | mlsys-02 页末作业说明书 |
 
 ## 读法建议
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>语义、类型检查与解释器 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -64,10 +64,12 @@
 <h2 id="2">2. 类型检查：在运行前抓错<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p><strong>类型系统</strong>给每个表达式一个类型，检查操作是否合法（<code>"abc" + 3</code> 该不该报错？）——<strong>在程序运行前排除一整类错误</strong>。这是"用编译期的严格换运行期的安全"，静态类型语言（Rust/Java/TS）的核心价值。</p>
 <p><strong>类型检查怎么做【机理】</strong>：在 AST 上自底向上推导——字面量有已知类型，<code>e1 + e2</code> 要求两子式类型相容并给出结果类型，<code>if</code> 要求条件是布尔、两分支类型一致，函数调用检查实参与形参类型匹配。<strong>本质是一组"类型推导规则"在语法树上的递归应用</strong>（pl-01 会把它形式化成推理规则 <span class="arithmatex">\(\frac{\text{前提}}{\text{结论}}\)</span>——你会看到它和逻辑证明系统同构，Curry–Howard 的伏笔）。</p>
-<p><strong>静态 vs 动态类型的权衡</strong>：
-- <strong>静态</strong>（编译期检查）：早抓错、性能好（编译器知道类型可优化）、IDE 补全强——代价是要写类型、有时啰嗦。
-- <strong>动态</strong>（运行期检查，Python/JS）：灵活、写得快——代价是类型错误要跑到那行才暴露（Medusa 的 Python 就是动态类型，所以你靠测试和运行时防错）。
-- <strong>类型推断</strong>（Hindley–Milner，pl-01 细讲）：既静态安全又不用手写类型（编译器自动推），鱼与熊掌兼得——ML/Haskell/Rust 的局部类型推断都源于此。</p>
+<p><strong>静态 vs 动态类型的权衡</strong>：</p>
+<ul>
+<li><strong>静态</strong>（编译期检查）：早抓错、性能好（编译器知道类型可优化）、IDE 补全强——代价是要写类型、有时啰嗦。</li>
+<li><strong>动态</strong>（运行期检查，Python/JS）：灵活、写得快——代价是类型错误要跑到那行才暴露（Medusa 的 Python 就是动态类型，所以你靠测试和运行时防错）。</li>
+<li><strong>类型推断</strong>（Hindley–Milner，pl-01 细讲）：既静态安全又不用手写类型（编译器自动推），鱼与熊掌兼得——ML/Haskell/Rust 的局部类型推断都源于此。</li>
+</ul>
 <p><strong>[L04] 的选择</strong>：小语言可以先做<strong>动态类型</strong>（求值时检查）跑通，理解了再考虑加静态检查——<strong>分步走，先让语言能跑，再让它更安全</strong>。</p>
 <h2 id="3">3. 树遍历解释器：让语言活起来<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -86,10 +88,12 @@
 <p><img alt="树遍历→字节码→VM→JIT 的性能阶梯。" src="assets/img/comp-02-bytecode-vm.svg" /></p>
 <figcaption><span class="fig-id">图 comp-02.1</span>树遍历→字节码→VM→JIT 的性能阶梯。</figcaption>
 </figure>
-<p>树遍历解释器简单但<strong>慢</strong>（每次执行都遍历树、大量指针跳转、对缓存不友好）。生产级解释器（CPython、JVM、V8）多走<strong>字节码</strong>路线：
-- <strong>编译成字节码</strong>：把 AST 一次性翻译成紧凑的<strong>字节码指令</strong>（一个线性的、类似汇编的中间表示）。
-- <strong>虚拟机（VM）执行字节码</strong>：一个循环取指令、执行——<strong>指令线性存放、对缓存友好、无重复遍历</strong>，快得多。
-- <strong>再进一步 JIT</strong>：运行时把热点字节码<strong>编译成真实机器码</strong>（V8、JVM 的 HotSpot）——解释的灵活 + 编译的速度。</p>
+<p>树遍历解释器简单但<strong>慢</strong>（每次执行都遍历树、大量指针跳转、对缓存不友好）。生产级解释器（CPython、JVM、V8）多走<strong>字节码</strong>路线：</p>
+<ul>
+<li><strong>编译成字节码</strong>：把 AST 一次性翻译成紧凑的<strong>字节码指令</strong>（一个线性的、类似汇编的中间表示）。</li>
+<li><strong>虚拟机（VM）执行字节码</strong>：一个循环取指令、执行——<strong>指令线性存放、对缓存友好、无重复遍历</strong>，快得多。</li>
+<li><strong>再进一步 JIT</strong>：运行时把热点字节码<strong>编译成真实机器码</strong>（V8、JVM 的 HotSpot）——解释的灵活 + 编译的速度。</li>
+</ul>
 <p><strong>这条"树 → 字节码 → JIT"的进阶路线，是性能与复杂度的阶梯</strong>——[L04] 停在树遍历（教学清晰），想深挖就往字节码走（《Crafting Interpreters》下半部正是做这个）。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（作用域推演）</strong> 写一段带嵌套函数和同名变量的代码，手推每个变量引用绑定到哪个声明（词法作用域）——<strong>理解"闭包捕获的是定义处的环境"</strong>，这是 L04 最易错的点。</p>

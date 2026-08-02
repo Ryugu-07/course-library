@@ -36,16 +36,16 @@ $$
 **定理** 设 $X_1, \dots, X_n$ i.i.d. $N(\mu, \sigma^2)$，则：
 
 $$
-\text{①}\ \bar X \sim N\Big(\mu, \frac{\sigma^2}{n}\Big); \qquad
-\text{②}\ \frac{(n-1)S^2}{\sigma^2} \sim \chi^2(n-1); \qquad
-\text{③}\ \bar X \perp S^2
+\text{1.}\ \bar X \sim N\Big(\mu, \frac{\sigma^2}{n}\Big); \qquad
+\text{2.}\ \frac{(n-1)S^2}{\sigma^2} \sim \chi^2(n-1); \qquad
+\text{3.}\ \bar X \perp S^2
 $$
 
 $$
-\text{④（①②③合成）}\quad \frac{\bar X - \mu}{S/\sqrt{n}} \sim t(n-1)
+\text{4.（由 1--3 合成）}\quad \frac{\bar X - \mu}{S/\sqrt{n}} \sim t(n-1)
 $$
 
-逐条评注：①是正态线性封闭性（概率 III 性质 4）；②的自由度 $n-1$ 呼应"偷走一个自由度"；③**均值与方差独立是正态总体的特权**（一般分布不成立——它是 t 分布定义中"分子分母独立"的来源）；④是**实用之王**——$\sigma$ 未知时关于 $\mu$ 的一切推断（区间、检验）都从它出发。
+逐条评注：第 1 条是正态线性封闭性（概率 III 性质 4）；第 2 条的自由度 $n-1$ 呼应"偷走一个自由度"；第 3 条说明**均值与方差独立是正态总体的特权**（一般分布不成立——它是 t 分布定义中"分子分母独立"的来源）；第 4 条是**实用之王**——$\sigma$ 未知时关于 $\mu$ 的一切推断（区间、检验）都从它出发。
 
 两总体版本（统计 III/IV 要用）：方差比 $\dfrac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2} \sim F(n_1 - 1, n_2 - 1)$；均值差在方差相等假设下走合并方差的 t 分布。
 

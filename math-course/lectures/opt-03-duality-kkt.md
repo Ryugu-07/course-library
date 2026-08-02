@@ -48,16 +48,16 @@ $$
 
 $$
 \begin{aligned}
-&\text{① 平稳性:} && \nabla f(x^*) + \sum_i \lambda_i^* \nabla g_i(x^*) + \sum_j \nu_j^* \nabla h_j(x^*) = 0 \\
-&\text{② 原始可行:} && g_i(x^*) \leq 0,\quad h_j(x^*) = 0 \\
-&\text{③ 对偶可行:} && \lambda_i^* \geq 0 \\
-&\text{④ 互补松弛:} && \lambda_i^*\, g_i(x^*) = 0 \quad \forall i
+&\text{1. 平稳性:} && \nabla f(x^*) + \sum_i \lambda_i^* \nabla g_i(x^*) + \sum_j \nu_j^* \nabla h_j(x^*) = 0 \\
+&\text{2. 原始可行:} && g_i(x^*) \leq 0,\quad h_j(x^*) = 0 \\
+&\text{3. 对偶可行:} && \lambda_i^* \geq 0 \\
+&\text{4. 互补松弛:} && \lambda_i^*\, g_i(x^*) = 0 \quad \forall i
 \end{aligned}
 $$
 
 （凸问题 + Slater 下是**充要**条件；非凸时仅为必要条件——KKT 点是"约束版驻点"。）
 
-**逐条读**：①是数分 V Lagrange 乘数法的推广（目标梯度被约束梯度的锥组合抵消）；④是灵魂——**每条不等式约束"要么绷紧（$g_i = 0$），要么免费（$\lambda_i = 0$）"**，二者必居其一。价格机制的读法：不稀缺的资源价格为零。
+**逐条读**：第 1 条是数分 V Lagrange 乘数法的推广（目标梯度被约束梯度的锥组合抵消）；第 4 条是灵魂——**每条不等式约束"要么绷紧（$g_i = 0$），要么免费（$\lambda_i = 0$）"**，二者必居其一。价格机制的读法：不稀缺的资源价格为零。
 
 🔗 **AI 衔接对账**：SVM 的支持向量（ai 课 02 讲）正是互补松弛的产物——间隔外侧的点 $g_i < 0$ ⇒ $\alpha_i = 0$（对模型零贡献），$\alpha_i > 0$ 的点必在边界上；岭回归/Lasso 的"约束形式 $\|w\| \leq t$ 与惩罚形式 $+\lambda\|w\|$ 等价"正是 Lagrange 对偶的观点（ai 课 01 讲的正则化滑块 $\lambda$ 就是乘子）。
 

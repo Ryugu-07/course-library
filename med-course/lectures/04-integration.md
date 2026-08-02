@@ -112,6 +112,13 @@ $$pH = 6.1 + \log_{10}\frac{[HCO_3^-]}{0.03 \times PaCO_2}$$
 
 **阴离子间隙** $AG = [Na^+] - [Cl^-] - [HCO_3^-]$（正常 8–12，**须按白蛋白校正**：白蛋白每低 1 g/dL，AG 加 2.5）。高 AG 代酸的经典助记 **GOLD MARK**：糖原性/D-乳酸、氧脯氨酸、L-乳酸、甲醇、水杨酸、肾衰、酮症。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验氧输送、肾脏排泄和体液调节的整合生理；酸碱与循环的临床阈值应以当地最新指南和实验室参考范围为准。
+- [Physiology, Oxygen Transport](https://www.ncbi.nlm.nih.gov/books/NBK538336/) — NLM/NIH Bookshelf：血红蛋白、氧含量与组织氧输送。
+- [Physiology, Osmoregulation and Excretion](https://www.ncbi.nlm.nih.gov/books/NBK541108/) — NLM/NIH Bookshelf：渗透调节、肾脏与排泄。
+- [Physiology, Body Fluids](https://www.ncbi.nlm.nih.gov/books/NBK482447/) — NLM/NIH Bookshelf：体液容量、分布和跨区室变化。
+
 ---
 
 *线一完。下一线进入病理学总论——四组过程构成一切疾病的通用语法。*

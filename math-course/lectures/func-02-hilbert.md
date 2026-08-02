@@ -40,7 +40,7 @@ $$
 
 **标准正交系** $\{e_n\}$；**Bessel 不等式** $\sum|\langle x, e_n\rangle|^2 \leq \|x\|^2$（部分和是投影，投影不长）。**完全**（=正交基）时升级为等式：
 
-**定理（正交基的等价刻画）** 以下等价：① $\{e_n\}$ 完全（张成稠密）；② 展开式 $x = \sum \langle x, e_n\rangle e_n$ 对一切 $x$ 成立；③ **Parseval 等式** $\|x\|^2 = \sum|\langle x, e_n\rangle|^2$。
+**定理（正交基的等价刻画）** 以下等价：1. $\{e_n\}$ 完全（张成稠密）；2. 展开式 $x = \sum \langle x, e_n\rangle e_n$ 对一切 $x$ 成立；3. **Parseval 等式** $\|x\|^2 = \sum|\langle x, e_n\rangle|^2$。
 
 **后果（可分 Hilbert 空间的大一统）**：一切可分无穷维 Hilbert 空间同构于 $\ell^2$——坐标映射 $x \mapsto (\langle x, e_n\rangle)$ 保内积。**"本质上只有一个 Hilbert 空间"**：$L^2$ 的函数、$\ell^2$ 的序列、量子态空间，同一个抽象对象的不同穿着（高代 IV"同构=换记号"哲学的无穷维加冕）。Fourier 级数理论至此收官定调：三角系是 $L^2$ 的一组正交基，Fourier 展开就是无穷维坐标表示（数分 IV 的全部收敛纠结，在 $L^2$ 视角下是一句话）。
 
@@ -61,7 +61,7 @@ $$
 **例 1（投影实算）** 在 $L^2[0,1]$ 中求 $f = x^2$ 到 $M = \mathrm{span}\{1, x\}$ 的投影。
 *解*：设 $P f = a + bx$，正交条件 $\langle f - Pf, 1\rangle = \langle f - Pf, x\rangle = 0$ 给方程组：$a + \frac b2 = \frac13$，$\frac a2 + \frac b3 = \frac14$ ⇒ $a = -\frac16, b = 1$。$Pf = x - \frac16$——这同时是"用直线拟合 $x^2$"的最小二乘解（统计 V 的连续版）。
 
-**例 2（Parseval 反用）** $x$ 的 Fourier 系数平方和（实变 III 例 3 已演示 Basel 和）——正交基的等式③是"算级数和"的秘密武器。
+**例 2（Parseval 反用）** $x$ 的 Fourier 系数平方和（实变 III 例 3 已演示 Basel 和）——正交基的等式 3 是"算级数和"的秘密武器。
 
 **例 3（平行四边形排除法）** 证 $C[0,1]$ 配 $\|\cdot\|_\infty$ 非内积空间：取 $f = 1, g = x$，$\|f+g\|^2 + \|f-g\|^2 = 4 + 1 = 5 \neq 2(1 + 1) = 4$。一票否决。$\blacksquare$
 

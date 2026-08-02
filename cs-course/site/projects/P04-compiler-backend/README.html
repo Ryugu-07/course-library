@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P04 编译器后端：IR、SSA、寄存器分配与窥孔优化 · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">先修</a></li>
+<li><a href="#_2">目标</a></li>
+<li><a href="#_3">周期与组队</a></li>
+<li><a href="#_4">目录</a></li>
+<li><a href="#_5">里程碑</a></li>
+<li><a href="#_6">学生任务边界</a></li>
+<li><a href="#_7">给定接口契约</a></li>
+<li><a href="#_8">运行与验收命令</a></li>
+<li><a href="#_9">故障、边界与性能测试</a></li>
+<li><a href="#rubric4025151010">Rubric（40/25/15/10/10）</a></li>
+<li><a href="#_10">交付物</a></li>
+<li><a href="#_11">学术诚信</a></li>
+<li><a href="#_12">平台条件</a></li>
+<li><a href="#_13">可选挑战</a></li>
+<li><a href="#_14">讲义映射</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p04-irssa">P04 编译器后端：IR、SSA、寄存器分配与窥孔优化<a class="headerlink" href="#p04-irssa" title="Permanent link"></a></h1>
+<p>这是一个 6–8 周、教师提供骨架的课程大项目。目标是把一个已有的树遍历前端/解释器
+接到一个可观察的后端流水线：三地址码 IR → CFG → SSA → 优化 → 寄存器分配 → 目标代码。
+本目录是教师版作业说明与最小脚手架，不包含完整的 SSA、优化或寄存器分配答案。</p>
+<h2 id="_1">先修<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li><code>comp-01/02</code>：词法、语法、AST、解释执行与闭包；</li>
+<li><code>csapp-01</code>：整数表示、调用约定、汇编基本结构；</li>
+<li><code>perf-01/02</code>：基准测量、局部性与编译器优化的基本方法；</li>
+<li>能读写 Python 3.10+，能使用 <code>unittest</code>、<code>dataclasses</code> 和命令行；</li>
+<li>了解 CFG、支配关系、活跃变量和图着色的基本定义。</li>
+</ul>
+<h2 id="_2">目标<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>完成后，学生应能：</p>
+<ol>
+<li>设计一个可验证的三地址码 IR，并把基本块组织成 CFG；</li>
+<li>解释并实现变量重命名、支配边界与 φ 节点插入；</li>
+<li>实现至少三种保持语义的优化，并用解释器作为 oracle；</li>
+<li>从活跃变量构造冲突图，完成有限寄存器分配与 spill；</li>
+<li>输出 LLVM IR、字节码 VM 或受限 RISC-V 汇编中的一种，并报告正确性和性能证据。</li>
+</ol>
+<h2 id="_3">周期与组队<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>建议 6–8 周，2–3 人一组。每周至少提交一次可运行的阶段分支或日志。个人完成时，
+仍需按同样的里程碑交付；组员必须在设计报告中标记各自负责的模块和互审记录。</p>
+<h2 id="_4">目录<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>教师提供的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>starter/ir.py</code></td>
+<td>IR/CFG 数据结构、JSON fixture 解析器、后端阶段接口；核心阶段保留 TODO</td>
+</tr>
+<tr>
+<td><code>starter/driver.py</code></td>
+<td>fixture 驱动与 <code>--dump-ir/--dump-ssa/--dump-regalloc</code> 命令入口</td>
+</tr>
+<tr>
+<td><code>fixtures/branch_loop.json</code></td>
+<td>含分支和循环的非 SSA 机器可读场景</td>
+</tr>
+<tr>
+<td><code>tests/test_scaffold.py</code></td>
+<td>当前就应通过的文件、签名、fixture 与驱动结构测试</td>
+</tr>
+<tr>
+<td><code>acceptance/</code></td>
+<td>学生实现后运行的契约测试；默认跳过，避免 TODO 让仓库 CI 失败</td>
+</tr>
+<tr>
+<td><code>scripts/verify_scaffold.py</code></td>
+<td>仅依赖 Python 标准库的脚手架完整性检查</td>
+</tr>
+<tr>
+<td><code>DESIGN.md</code></td>
+<td>学生设计报告模板</td>
+</tr>
+<tr>
+<td><code>rubric.md</code></td>
+<td>可直接下发的细化评分表</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">里程碑<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ol>
+<li><strong>M1 · IR 与 CFG（第 1–2 周）</strong>：把给定 AST/fixture 降为三地址码；基本块边界、入口、
+   后继/前驱和终止指令可打印、可验证。</li>
+<li><strong>M2 · SSA（第 3 周）</strong>：实现支配树/支配边界、φ 插入和重命名；证明或测试循环、分支
+   汇合、嵌套作用域下每个 SSA 名字只有一个定义。</li>
+<li><strong>M3 · 优化（第 4–5 周）</strong>：实现常量折叠/传播、拷贝传播、死代码消除中的至少三项，
+   每个 pass 可单独开启、关闭并和解释器结果对照。</li>
+<li><strong>M4 · 寄存器分配（第 6 周）</strong>：完成活跃变量分析、冲突图、k 色着色、spill 和必要的
+   load/store；调用约定和控制流边界不能被破坏。</li>
+<li><strong>M5 · 目标与报告（第 7–8 周）</strong>：完成一种目标格式，加入错误诊断、benchmark、失败尝试
+   和设计报告；公开/隐藏程序都要通过语义 oracle。</li>
+</ol>
+<h2 id="_6">学生任务边界<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>教师提供 IR 字段约定、fixture、驱动入口、公开结构测试和解释器/golden output 接口。
+学生必须实现核心算法、必要的数据结构、阶段间验证、补充测试和报告。不得把一个完整的
+LLVM/编译器源码树当作答案提交，也不得把生产编译器的后端源码直接复制进项目。允许使用
+标准库和目标平台的编译器工具，但必须说明外部工具负责了哪一层。</p>
+<p>不要求学生重写 L04 的词法/解析器；可以使用等价的 AST 输入适配器。前端适配器不是本项目
+评分重点，后端阶段的输入必须能由 <code>starter/ir.py</code> 的公开 schema 重建。</p>
+<h2 id="_7">给定接口契约<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>下面的名字和参数是公开契约；返回值的具体内部表示由学生在 <code>DESIGN.md</code> 中固定。</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parse_module</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Module</span><span class="p">:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_module</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_ssa</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Module</span><span class="p">:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">passes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Module</span><span class="p">:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">allocate_registers</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">registers</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">RegisterAllocation</span><span class="p">:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span> <span class="o">...</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_program</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">Module</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">opt_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompileResult</span><span class="p">:</span> <span class="o">...</span>
+</code></pre></div>
+<p>脚手架只实现数据结构、fixture 解析、结构验证和可读 dump；<code>to_ssa</code>、<code>optimize</code>、
+<code>allocate_registers</code>、<code>emit</code>、<code>compile_program</code> 明确保留 <code>TODO/NotImplementedError</code>。
+学生实现后仍需保持以下不变量：</p>
+<ul>
+<li>CFG 的每个 successor 都存在，终止指令与边一致；</li>
+<li>SSA 名字单赋值，φ 的 incoming 与前驱边一一对应；</li>
+<li>优化前后解释器输出、异常行为和副作用顺序一致；</li>
+<li>spill 不改变调用约定、递归和局部变量作用域；</li>
+<li><code>--dump-ir</code>、<code>--dump-ssa</code>、<code>--dump-regalloc</code> 输出能定位到函数、块和指令。</li>
+</ul>
+<h2 id="_8">运行与验收命令<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p>在本项目目录执行：</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>scripts/verify_scaffold.py
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>tests<span class="w"> </span>-v
+python3<span class="w"> </span>-m<span class="w"> </span>py_compile<span class="w"> </span>starter/*.py<span class="w"> </span>scripts/verify_scaffold.py<span class="w"> </span>tests/test_scaffold.py<span class="w"> </span>acceptance/test_student_acceptance.py
+python3<span class="w"> </span>starter/driver.py<span class="w"> </span>--fixture<span class="w"> </span>fixtures/branch_loop.json<span class="w"> </span>--dump-ir
+<span class="nv">RUN_STUDENT_ACCEPTANCE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>acceptance<span class="w"> </span>-v
+</code></pre></div>
+<p>前四条是脚手架检查，未完成核心算法也应通过。最后一条是学生实现后的验收入口；在当前
+骨架上会因为 SSA/编译阶段尚未实现而失败，不能把它加入默认 CI 的必过 job。</p>
+<p>推荐学生另加：</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>starter/driver.py<span class="w"> </span>--fixture<span class="w"> </span>fixtures/branch_loop.json<span class="w"> </span>--dump-ssa
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>tests<span class="w"> </span>-v
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>acceptance<span class="w"> </span>-v
+</code></pre></div>
+<h2 id="_9">故障、边界与性能测试<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
+<p>公开测试至少覆盖：空函数、单块函数、无后继/多余后继、不可达块、分支汇合、循环回边、
+嵌套循环、递归调用、常量除零、未定义变量和重复 SSA 定义。学生应补充异常信息测试，
+并确保 malformed JSON 不会静默生成错误代码。</p>
+<p>隐藏验收建议注入：随机丢弃或打乱基本块顺序、深度 20 以上的循环、超过寄存器数的长生命期、
+递归深度、spill 后的异常路径和多返回点。性能记录至少包括编译耗时、IR 指令数、spill
+数量和目标程序 wall time；优化后的 benchmark 至少有两个输入出现可测改善，且不能靠删掉
+副作用或缩小输入作弊。</p>
+<h2 id="rubric4025151010">Rubric（40/25/15/10/10）<a class="headerlink" href="#rubric4025151010" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">权重</th>
+<th>评分要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能正确性</td>
+<td style="text-align: right;">40%</td>
+<td>IR/CFG、SSA、优化、寄存器分配/目标输出的公开与隐藏语义测试</td>
+</tr>
+<tr>
+<td>故障与边界</td>
+<td style="text-align: right;">25%</td>
+<td>循环、递归、异常、不可达块、寄存器不足和 malformed input</td>
+</tr>
+<tr>
+<td>性能/资源</td>
+<td style="text-align: right;">15%</td>
+<td>编译和运行 benchmark、spill/代码大小/运行时间的可复现实验</td>
+</tr>
+<tr>
+<td>结构与文档</td>
+<td style="text-align: right;">10%</td>
+<td>模块边界、诊断、测试组织、可读 dump 和 API 兼容性</td>
+</tr>
+<tr>
+<td>报告与反思</td>
+<td style="text-align: right;">10%</td>
+<td>设计取舍、失败尝试、oracle 证据、成员分工与限制</td>
+</tr>
+</tbody>
+</table>
+<p>详见 <a href="rubric.html"><code>rubric.md</code></a>。</p>
+<h2 id="_10">交付物<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
+<ul>
+<li>可从干净环境运行的源代码与锁定的运行命令；</li>
+<li><code>README.md</code>、<code>DESIGN.md</code>、补充测试和至少一个成功/失败 benchmark 日志；</li>
+<li>2–6 页设计报告，包含 CFG/SSA 示例、优化前后差异、寄存器分配/spill 例子和正确性证据；</li>
+<li>组员分工、代码审查记录、已知限制和复现实验的机器/编译器信息。</li>
+</ul>
+<h2 id="_11">学术诚信<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
+<p>可以阅读论文、教材、官方文档和标准库源码；引用外部代码、算法伪代码或自动生成内容时，
+必须在报告和提交记录中注明来源、改动范围和理解说明。不得共享未公开参考实现、绕过隐藏
+测试、篡改 oracle、伪造 benchmark 或把不同组员的提交伪装成个人工作。</p>
+<h2 id="_12">平台条件<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
+<p>脚手架与公开结构测试只需要 Python 3.10+ 和标准库，可在 Mac/Windows/Linux 上运行。目标
+输出可选 LLVM IR、字节码或受限 RISC-V；若选择 LLVM/RISC-V，报告中写明版本和额外安装项。
+GPU 不是本项目要求，CI 不应依赖 GPU。</p>
+<h2 id="_13">可选挑战<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
+<ul>
+<li>窥孔优化：代数恒等式、冗余 move、短跳转合并，并给出反例；</li>
+<li>尾递归优化或简单内联，同时说明栈追踪变化；</li>
+<li>线性扫描与图着色的对比，报告 spill 率和编译时间；</li>
+<li>将一个优化 pass 写成可检查的不变量/性质测试，而不只依赖例子。</li>
+</ul>
+<h2 id="_14">讲义映射<a class="headerlink" href="#_14" title="Permanent link"></a></h2>
+<ul>
+<li>主线：<a href="../../comp-03-codegen.html"><code>comp-03-codegen.md</code></a>；</li>
+<li>前端输入：<code>comp-01/02</code> 与 <a href="../../labs.html"><code>labs/L04-interpreter</code></a>；</li>
+<li>汇编/调用约定：<code>csapp-01</code>；</li>
+<li>活跃变量与不动点：<code>adv-02-spectral-online</code>、算法线图算法；</li>
+<li>局部性与 benchmark：<code>perf-01</code>、<code>perf-02-cache-practice</code>。</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

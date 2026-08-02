@@ -4,4 +4,4 @@
 
 - 浏览：`open site/index.html` 或 `python3 -m http.server -d site 8082`
 - 重建：`~/ai-course/.venv/bin/python build_site.py`
-- 已建：数学分析 6 页 + 高等代数 6 页；其余 15 门课为规划占位页（增补时把占位页当 spec，写完的 md 直接落 lectures/ 同名文件即可，无需改配置）
+- 已建：22 门课、71 页正文，全部课程均已有讲义页面；继续扩展时新增 Markdown 并在 `build_site.py` 的课程地图中登记即可

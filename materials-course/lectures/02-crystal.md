@@ -14,7 +14,17 @@
 | 体心立方 BCC | 8 | 0.68 | 2 | α-Fe、W、Cr、Mo |
 | 密排六方 HCP | 12 | 0.74 | 6 | Mg、Ti、Zn |
 
+<figure class="diagram" markdown="1">
+![FCC, BCC and HCP unit cells](assets/img/mat-02-cells.svg)
+<figcaption><span class="fig-id">图 2.1</span>三种金属晶胞的几何对比：FCC 与 HCP 都是配位数 12、致密度 0.74 的密排结构，而 BCC 的配位数与致密度较低；浅色面标出 FCC 的 \(\{111\}\) 与 HCP 的基面。</figcaption>
+</figure>
+
 FCC 与 HCP 同为最密堆积（0.74 是球堆积的数学极限——Kepler 猜想，1998 年才证毕），差别只在堆垛顺序 ABCABC vs ABAB——**一层之差，性格迥异**（FCC 滑移系多而延展、HCP 滑移系少而挑剔，见 §3）。
+
+<figure class="diagram" markdown="1">
+![Close-packed ABC and AB stacking sequences](assets/img/mat-02-stacking.svg)
+<figcaption><span class="fig-id">图 2.2</span>密排层的侧视：FCC 采用 ABCABC，HCP 采用 ABAB；每一层的局部几何相同，差别只在第三层回到 A 还是换到 C。</figcaption>
+</figure>
 
 **间隙位置**：密堆的缝隙（四面体/八面体间隙）是小原子的公寓——碳溶进铁的间隙是整个钢铁冶金的起点（FCC γ-Fe 的八面体间隙比 BCC 的大，所以奥氏体能溶更多碳——相图页那条 2.14% vs 0.02% 溶解度悬殊的几何原因，先按下）。
 

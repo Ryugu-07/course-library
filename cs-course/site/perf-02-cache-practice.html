@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>缓存优化实战 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,46 +55,60 @@ perf-01 建立了性能的科学方法，这一页把最大的性能杠杆——
 </blockquote>
 <h2 id="1">1. 缓存优化的四把手术刀<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>把 csapp-02 的原理落成四类可执行的手法：</p>
-<p><strong>① 改善空间局部性——让访问连续</strong>
-- 顺序遍历而非跳跃；行优先遍历行存数组（不是列优先）。
-- <strong>AoS → SoA</strong>（perf-01）：只用某几个字段时，把它们连续存。
-- <strong>打包数据</strong>：去掉不必要的填充、用更小的类型——<strong>塞进更少缓存行 = 更少 miss</strong>。</p>
-<p><strong>② 改善时间局部性——趁热复用</strong>
-- <strong>循环融合</strong>：两个都遍历同一数组的循环合并成一个——数据只加载一次、趁在缓存里做完所有事。
-- <strong>分块（tiling/blocking）</strong>：把大数据切成能装进缓存的块、块内充分复用再换块——<strong>矩阵乘、卷积、转置的核心手法</strong>（L01 已实测）。</p>
-<p><strong>③ 减少缓存未命中的总量</strong>
-- 更紧凑的数据结构（数组 &gt; 链表——链表每个节点一次 miss、指针跳来跳去缓存杀手）。
-- <strong>热/冷数据分离</strong>：常访问的字段和罕用的字段分开存，别让冷数据挤占缓存行。</p>
-<p><strong>④ 避免多线程的缓存灾难</strong>
-- <strong>伪共享</strong>（csapp-02）：不同线程写同一缓存行 → 缓存行乒乓。用填充/对齐让线程私有数据独占缓存行（🔗 par 线)。</p>
+<p><strong>① 改善空间局部性——让访问连续</strong></p>
+<ul>
+<li>顺序遍历而非跳跃；行优先遍历行存数组（不是列优先）。</li>
+<li><strong>AoS → SoA</strong>（perf-01）：只用某几个字段时，把它们连续存。</li>
+<li><strong>打包数据</strong>：去掉不必要的填充、用更小的类型——<strong>塞进更少缓存行 = 更少 miss</strong>。</li>
+</ul>
+<p><strong>② 改善时间局部性——趁热复用</strong></p>
+<ul>
+<li><strong>循环融合</strong>：两个都遍历同一数组的循环合并成一个——数据只加载一次、趁在缓存里做完所有事。</li>
+<li><strong>分块（tiling/blocking）</strong>：把大数据切成能装进缓存的块、块内充分复用再换块——<strong>矩阵乘、卷积、转置的核心手法</strong>（L01 已实测）。</li>
+</ul>
+<p><strong>③ 减少缓存未命中的总量</strong></p>
+<ul>
+<li>更紧凑的数据结构（数组 &gt; 链表——链表每个节点一次 miss、指针跳来跳去缓存杀手）。</li>
+<li><strong>热/冷数据分离</strong>：常访问的字段和罕用的字段分开存，别让冷数据挤占缓存行。</li>
+</ul>
+<p><strong>④ 避免多线程的缓存灾难</strong></p>
+<ul>
+<li><strong>伪共享</strong>（csapp-02）：不同线程写同一缓存行 → 缓存行乒乓。用填充/对齐让线程私有数据独占缓存行（🔗 par 线)。</li>
+</ul>
 <p><strong>读法</strong>：<strong>这四把刀覆盖了 90% 的实用缓存优化</strong>。遇到性能问题先问："数据访问连续吗？复用充分吗？结构紧凑吗？线程在抢缓存行吗？"</p>
 <h2 id="2">2. 数据结构的缓存代价：一个反直觉的真相<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="数组(连续,预取,少 miss) vs 链表(散落,每节点 miss) 的缓存行为。" src="assets/img/perf-02-array-vs-list.svg" /></p>
 <figcaption><span class="fig-id">图 perf-02.2</span>数组(连续,预取,少 miss) vs 链表(散落,每节点 miss) 的缓存行为。</figcaption>
 </figure>
-<p>算法课教你链表插入 O(1)、数组插入 O(n)——但在真实硬件上，<strong>遍历一个数组常常比遍历等长链表快一个数量级</strong>，因为：
-- 数组连续 → 硬件预取 + 每次 miss 拉一整行（16 个元素）→ 几乎无 miss。
-- 链表节点散落 → 每个节点一次 cache miss + 无法预取（不知道下个节点地址）。</p>
+<p>算法课教你链表插入 O(1)、数组插入 O(n)——但在真实硬件上，<strong>遍历一个数组常常比遍历等长链表快一个数量级</strong>，因为：</p>
+<ul>
+<li>数组连续 → 硬件预取 + 每次 miss 拉一整行（16 个元素）→ 几乎无 miss。</li>
+<li>链表节点散落 → 每个节点一次 cache miss + 无法预取（不知道下个节点地址）。</li>
+</ul>
 <p><strong>推论</strong>：<strong>"渐进复杂度相同（甚至更差）的数据结构，因为缓存行为可能快很多"</strong>——<code>std::vector</code> 常胜 <code>std::list</code>、扁平数组常胜指针树。现代高性能数据结构（B+ 树的高扇出 db-01、列存 db-02、ECS 游戏架构）本质都是<strong>为缓存重新设计的数据结构</strong>。<strong>这是算法理论与硬件现实的一个重要缝隙，性能工程师必须跨过它</strong>。</p>
 <h2 id="3">3. 编译器、内存与你的分工<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>优化里要清楚"谁该做什么"：
-- <strong>编译器擅长</strong>：局部优化、自动向量化（perf-01）、内联、寄存器分配（comp-03）——<strong>别手动做这些</strong>，反而妨碍它。
-- <strong>编译器不擅长</strong>：跨越大范围的数据布局重构、算法替换、分块——<strong>这些是你的活</strong>，因为它们需要理解程序的语义和访问模式，编译器看不到全局。
-- <strong>帮编译器</strong>：用 <code>restrict</code>/避免别名让它敢优化、写简单的循环让它能向量化、<code>-O2/-O3</code> 别忘开。</p>
+<p>优化里要清楚"谁该做什么"：</p>
+<ul>
+<li><strong>编译器擅长</strong>：局部优化、自动向量化（perf-01）、内联、寄存器分配（comp-03）——<strong>别手动做这些</strong>，反而妨碍它。</li>
+<li><strong>编译器不擅长</strong>：跨越大范围的数据布局重构、算法替换、分块——<strong>这些是你的活</strong>，因为它们需要理解程序的语义和访问模式，编译器看不到全局。</li>
+<li><strong>帮编译器</strong>：用 <code>restrict</code>/避免别名让它敢优化、写简单的循环让它能向量化、<code>-O2/-O3</code> 别忘开。</li>
+</ul>
 <p><strong>方法论闭环</strong>（perf-01 的科学方法在此实操）：<code>perf</code> 找热点 → 看是否 cache miss 高（<code>perf stat</code> 的 cache-misses）→ 判断内存还是算力受限（Roofline）→ 应用对应手术刀 → 再测量确认。<strong>每一步都有数字，不靠感觉</strong>。</p>
 <h2 id="4">4. 超越单机：性能优化的完整层级<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="优化层级金字塔：算法→数据布局→向量化→多核→GPU→分布式（收益递减、代价递增）。" src="assets/img/perf-02-optim-ladder.svg" /></p>
 <figcaption><span class="fig-id">图 perf-02.1</span>优化层级金字塔：算法→数据布局→向量化→多核→GPU→分布式（收益递减、代价递增）。</figcaption>
 </figure>
-<p>优化是有层级的，<strong>从高到低收益递减、代价递增</strong>——按顺序来：
-1. <strong>算法/数据结构</strong>（O(n²)→O(n log n)，收益最大，先做）。
-2. <strong>数据布局与缓存</strong>（本页，常见 2~10×）。
-3. <strong>向量化与指令级并行</strong>（perf-01，2~16×）。
-4. <strong>多核并行</strong>（par 线，~核数倍）。
-5. <strong>GPU/加速器</strong>（gpu 线，特定负载 10~100×）。
-6. <strong>分布式</strong>（跨机器，dist 线，用于超大规模）。</p>
+<p>优化是有层级的，<strong>从高到低收益递减、代价递增</strong>——按顺序来：</p>
+<ol>
+<li><strong>算法/数据结构</strong>（O(n²)→O(n log n)，收益最大，先做）。</li>
+<li><strong>数据布局与缓存</strong>（本页，常见 2~10×）。</li>
+<li><strong>向量化与指令级并行</strong>（perf-01，2~16×）。</li>
+<li><strong>多核并行</strong>（par 线，~核数倍）。</li>
+<li><strong>GPU/加速器</strong>（gpu 线，特定负载 10~100×）。</li>
+<li><strong>分布式</strong>（跨机器，dist 线，用于超大规模）。</li>
+</ol>
 <p><strong>先爬对楼层</strong>：一个 O(n²) 算法再怎么向量化也输给 O(n log n)——<strong>Amdahl 和这个层级表一起，构成"该优化什么、按什么顺序"的完整决策框架</strong>。这是把全站性能相关知识（算法/缓存/SIMD/并行/GPU/分布式）串成一条优化路线的总纲。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（数组 vs 链表实测）</strong> 遍历求和一个 1000 万元素的数组 vs 等长链表——<strong>数组快近十倍</strong>，用 <code>perf stat</code> 看 cache-misses 差异。<strong>"渐进复杂度不是全部"一次刻进去</strong>。</p>

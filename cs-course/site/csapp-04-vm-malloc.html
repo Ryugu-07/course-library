@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>虚拟内存与动态内存 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -71,9 +71,11 @@
 <figcaption><span class="fig-id">图 csapp-04.3</span>写时复制：fork 后父子共享只读页，写时才复制。</figcaption>
 </figure>
 <p>内存按<strong>页（通常 4 KB）</strong>为单位管理。<strong>页表</strong>是"虚拟页号 → 物理页帧号"的映射表，每进程一份。虚拟地址 = [虚拟页号 | 页内偏移]，翻译时查页表得物理页帧，拼上偏移。</p>
-<p><strong>两个工程要点</strong>：
-- <strong>多级页表</strong>：单层页表太大（64 位地址空间），故用多级（4 级）树形页表——<strong>只为用到的地址分配页表项</strong>，稀疏空间不浪费。
-- <strong>TLB（翻译后备缓冲）</strong>：页表在内存里，每次访存都查页表等于访存翻倍——于是用 TLB 缓存最近的翻译（🔗 csapp-02 缓存思想的再一次应用）。<strong>TLB miss 是真实的性能因素</strong>，大页（huge page）就是为减少 TLB 压力。</p>
+<p><strong>两个工程要点</strong>：</p>
+<ul>
+<li><strong>多级页表</strong>：单层页表太大（64 位地址空间），故用多级（4 级）树形页表——<strong>只为用到的地址分配页表项</strong>，稀疏空间不浪费。</li>
+<li><strong>TLB（翻译后备缓冲）</strong>：页表在内存里，每次访存都查页表等于访存翻倍——于是用 TLB 缓存最近的翻译（🔗 csapp-02 缓存思想的再一次应用）。<strong>TLB miss 是真实的性能因素</strong>，大页（huge page）就是为减少 TLB 压力。</li>
+</ul>
 <p><strong>按需分页的机制</strong>（🔗 csapp-03 缺页故障）：访问一个未在物理内存的页 → 触发<strong>缺页故障</strong> → 内核找空闲页帧、从磁盘调入、更新页表、重试指令——<strong>程序全程无感</strong>。物理内存满时，用页面置换算法（LRU 近似，🔗 adv-02 在线算法的竞争分析正是分析它）挑一页换出。</p>
 <p><strong>写时复制（COW）</strong>：<code>fork()</code> 不真复制内存，父子<strong>共享</strong>所有页并标记只读；任一方写时才触发故障、复制那一页。<strong>"fork 很快"的秘密就在 COW</strong>——这也是为什么 Redis 存快照、Python multiprocessing 能高效 fork。</p>
 <h2 id="3-malloc">3. 动态内存：malloc 底下是什么<a class="headerlink" href="#3-malloc" title="Permanent link"></a></h2>

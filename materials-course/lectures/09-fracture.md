@@ -14,6 +14,11 @@ $$
 
 **现代形式（Irwin）**：应力强度因子 $K = Y\sigma\sqrt{\pi a}$ 描述裂尖场强度，材料抵抗值 $K_{IC}$（**断裂韧性**，单位 MPa·√m）是新的材料常数。判据 $K < K_{IC}$。金属的 $K_{IC}$ 高不是因为表面能大（$\gamma_s$ 只有 J/m² 级），而是**裂尖塑性区消耗巨额功**（$G_c$ 可达 kJ/m²——三个数量级的差距全在塑性）：**韧性 = 让位错在裂尖前面帮你挡刀**。
 
+<figure class="diagram" markdown="1">
+![Crack-tip stress concentration and plastic zone](assets/img/mat-09-crack-tip.svg)
+<figcaption><span class="fig-id">图 9.1</span>裂纹把远场应力集中到裂尖，\(K=Y\sigma\sqrt{\pi a}\) 描述场强；脆性材料的塑性区很小，韧性材料能以更大的塑性区钝化裂尖、耗散断裂功。</figcaption>
+</figure>
+
 **容许缺陷尺寸**（设计的真正问题）：$a_c = \frac{1}{\pi}\big(\frac{K_{IC}}{Y\sigma}\big)^2$——**它把无损检测的能力与设计应力绑在一起**：能测出 2 mm 的裂纹，就得保证 $a_c > 2$ mm。"损伤容限设计"（航空标准做法）的全部数学在这一行。
 
 **强度-韧性的反相关**：高强钢的 $K_{IC}$ 通常更低（强度靠限制位错、韧性靠位错耗能——**同一个机制的两面**）。这是材料界最顽固的权衡之一，Ashby 图上表现为一条压制线；突破它是先进材料研究的永恒主题（前沿 I）。
@@ -28,9 +33,14 @@ BCC 金属（碳钢！）与部分 HCP 存在**韧脆转变温度 DBTT**：低�
 
 **80–90% 的机械失效来自疲劳**：远低于屈服强度的**交变**应力，循环足够多次后断裂。三阶段：裂纹萌生（表面滑移带、缺口、夹杂）→ 稳定扩展（每循环推进一点，断口留下**疲劳辉纹**）→ 瞬断。
 
+<figure class="diagram" markdown="1">
+![Three zones in a fatigue fracture surface](assets/img/mat-09-fatigue-fracture.svg)
+<figcaption><span class="fig-id">图 9.2</span>疲劳断口从源区萌生，稳定扩展区留下同心推进的辉纹，最后进入粗糙的瞬断区；断口上的三区对应疲劳寿命的三个阶段。</figcaption>
+</figure>
+
 <figure class="plot" markdown="1">
 ![S-N curves for steel and aluminum](assets/img/mat-09-sn.svg)
-<figcaption><span class="fig-id">图 9.1</span>S–N 曲线：钢存在疲劳极限（约 0.4–0.5 \(\sigma_{UTS}\)，低于它可近似无限寿命），铝合金没有——曲线一路下滑，任何应力幅下都有寿命上限。这条差别决定了铝制飞机必须按"有限寿命 + 定期检查"设计。</figcaption>
+<figcaption><span class="fig-id">图 9.3</span>S–N 曲线：钢存在疲劳极限（约 0.4–0.5 \(\sigma_{UTS}\)，低于它可近似无限寿命），铝合金没有——曲线一路下滑，任何应力幅下都有寿命上限。这条差别决定了铝制飞机必须按"有限寿命 + 定期检查"设计。</figcaption>
 </figure>
 
 **Paris 定律**（裂纹扩展速率）：$\dfrac{da}{dN} = C(\Delta K)^m$（$m \approx 3$）——寿命预测的工作马；结合 $a_c$ 与检测间隔即得**检修周期**。

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "project": "P01-xv6-kernel",
+  "scenarios": [
+    {
+      "id": "syscall-invalid-number",
+      "area": "syscall",
+      "kind": "boundary",
+      "input": {"syscall_number": 999, "arguments": [], "pid": 3},
+      "expected_contract": {"must_not": "silent_success", "error_class": "invalid_syscall"},
+      "student_required": true
+    },
+    {
+      "id": "page-crossing-permission",
+      "area": "page_table",
+      "kind": "boundary",
+      "input": {"virtual_address": 4095, "physical_address": 8192, "permissions": "user-read", "page_size": 4096},
+      "expected_contract": {"must_check": ["alignment", "user_permission"], "error_class": "invalid_mapping"},
+      "student_required": true
+    },
+    {
+      "id": "reverse-lock-order",
+      "area": "locks",
+      "kind": "fault",
+      "input": {"lock_name": "bcache[0]", "held_locks": ["bcache[1]", "inode"]},
+      "expected_contract": {"must_record": "lock_order_decision", "error_class": "possible_deadlock"},
+      "student_required": true
+    },
+    {
+      "id": "mmap-file-eof",
+      "area": "mmap",
+      "kind": "boundary",
+      "input": {"virtual_address": 16384, "file_offset": 8192, "access": "write", "mapping_permissions": "read", "file_length": 9000},
+      "expected_contract": {"must_not": "write_read_only_mapping", "error_class": "permission_or_eof"},
+      "student_required": true
+    }
+  ]
+}

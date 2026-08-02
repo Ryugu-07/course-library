@@ -109,6 +109,14 @@
 
 **肿瘤标志物的正确用法**（一个常见误区）：**绝大多数标志物不适合用于普通人群筛查**，因为在低患病率人群中阳性预测值极低（🔗 从症状到决策站第 01–03 页的贝叶斯论证）。它们的合理用途是**已确诊者的疗效监测与复发监测**。例外与部分例外：**AFP**（高危肝癌人群监测）、**PSA**（争议最大，见姊妹站第 17 页）、**CA-125**（不推荐用于一般人群卵巢癌筛查）。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验肿瘤生物学、转移、TNM 分期和肿瘤标志物；标志物与分期规则应以具体癌种的最新指南为准。
+- [Hallmarks of Cancer: New Dimensions](https://doi.org/10.1158/2159-8290.CD-21-1059) — Hanahan，Cell，2022：肿瘤标志性特征的原始综述框架。
+- [Cancer Staging](https://www.cancer.gov/about-cancer/diagnosis-staging/staging) — NCI/NIH：TNM 与临床分期的基本含义。
+- [Definition of metastasis](https://www.cancer.gov/publications/dictionaries/cancer-terms/def/metastasis) — NCI/NIH：转移的定义与传播路径。
+- [Tumor Marker Tests in Common Use](https://www.cancer.gov/about-cancer/diagnosis-staging/diagnosis/tumor-markers-list) — NCI/NIH：常用标志物及其用途边界。
+
 ---
 
 *线二完。下一线转向免疫与感染：身体与病原体的军备竞赛，以及这套防御系统攻击自己时会发生什么。*

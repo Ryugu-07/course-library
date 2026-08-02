@@ -9,11 +9,16 @@
 3. **排序**：用**材料指数**给幸存者打分（下节）；
 4. **落地**：查文档细节——可制造性、供应、成本波动、标准与认证、既往案例、回收（**多数选材最终死在第 4 步而不是第 3 步**）。
 
+<figure class="diagram" markdown="1">
+![Four-step material selection flow](assets/img/mat-22-selection-flow.svg)
+<figcaption><span class="fig-id">图 22.1</span>选材四步流程：先把工程需求翻译成约束集，再筛掉不合格材料，用材料指数排序，最后用工艺、供应、成本与标准等现实证据落地。第 4 步不是附录，而是把“图上最优”变成“工程可用”的关键。</figcaption>
+</figure>
+
 ## 2. 材料指数：把目标翻译成属性组合
 
 <figure class="plot" markdown="1">
 ![Ashby chart: modulus vs density](assets/img/mat-22-ashby.svg)
-<figcaption><span class="fig-id">图 22.1</span>Ashby 图（模量-密度，示意）：各家族占据不同区域；斜线是**指导线** \(E^{1/2}/\rho\) = 常数——沿它平移，线右上方的材料在"轻质刚性梁"这一目标下更优。选材从"背手册"变成"在图上画一条线"。</figcaption>
+<figcaption><span class="fig-id">图 22.2</span>Ashby 图（模量-密度，示意）：各家族占据不同区域；斜线是**指导线** \(E^{1/2}/\rho\) = 常数——沿它平移，线右上方的材料在"轻质刚性梁"这一目标下更优。选材从"背手册"变成"在图上画一条线"。</figcaption>
 </figure>
 
 **推导范式（以轻质刚性梁为例）【推】**：要求刚度 $S = C\dfrac{EI}{L^3}$ 给定、最小化质量 $m = \rho A L$。方形截面 $I = A^2/12$ ⇒ 由刚度约束解出 $A \propto (S/E)^{1/2}$，代入质量：

@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:46</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -77,14 +77,14 @@ d(\lambda, \nu) \leq f(x) \qquad \Rightarrow \qquad d^* \leq p^*
 <p><strong>定理（KKT）</strong> 强对偶成立时，<span class="arithmatex">\(x^*\)</span> 与 <span class="arithmatex">\((\lambda^*, \nu^*)\)</span> 分别为原/对偶最优解 <span class="arithmatex">\(\iff\)</span> 四组条件：</p>
 <div class="arithmatex">\[
 \begin{aligned}
-&amp;\text{① 平稳性:} &amp;&amp; \nabla f(x^*) + \sum_i \lambda_i^* \nabla g_i(x^*) + \sum_j \nu_j^* \nabla h_j(x^*) = 0 \\
-&amp;\text{② 原始可行:} &amp;&amp; g_i(x^*) \leq 0,\quad h_j(x^*) = 0 \\
-&amp;\text{③ 对偶可行:} &amp;&amp; \lambda_i^* \geq 0 \\
-&amp;\text{④ 互补松弛:} &amp;&amp; \lambda_i^*\, g_i(x^*) = 0 \quad \forall i
+&amp;\text{1. 平稳性:} &amp;&amp; \nabla f(x^*) + \sum_i \lambda_i^* \nabla g_i(x^*) + \sum_j \nu_j^* \nabla h_j(x^*) = 0 \\
+&amp;\text{2. 原始可行:} &amp;&amp; g_i(x^*) \leq 0,\quad h_j(x^*) = 0 \\
+&amp;\text{3. 对偶可行:} &amp;&amp; \lambda_i^* \geq 0 \\
+&amp;\text{4. 互补松弛:} &amp;&amp; \lambda_i^*\, g_i(x^*) = 0 \quad \forall i
 \end{aligned}
 \]</div>
 <p>（凸问题 + Slater 下是<strong>充要</strong>条件；非凸时仅为必要条件——KKT 点是"约束版驻点"。）</p>
-<p><strong>逐条读</strong>：①是数分 V Lagrange 乘数法的推广（目标梯度被约束梯度的锥组合抵消）；④是灵魂——<strong>每条不等式约束"要么绷紧（<span class="arithmatex">\(g_i = 0\)</span>），要么免费（<span class="arithmatex">\(\lambda_i = 0\)</span>）"</strong>，二者必居其一。价格机制的读法：不稀缺的资源价格为零。</p>
+<p><strong>逐条读</strong>：第 1 条是数分 V Lagrange 乘数法的推广（目标梯度被约束梯度的锥组合抵消）；第 4 条是灵魂——<strong>每条不等式约束"要么绷紧（<span class="arithmatex">\(g_i = 0\)</span>），要么免费（<span class="arithmatex">\(\lambda_i = 0\)</span>）"</strong>，二者必居其一。价格机制的读法：不稀缺的资源价格为零。</p>
 <p>🔗 <strong>AI 衔接对账</strong>：SVM 的支持向量（ai 课 02 讲）正是互补松弛的产物——间隔外侧的点 <span class="arithmatex">\(g_i &lt; 0\)</span> ⇒ <span class="arithmatex">\(\alpha_i = 0\)</span>（对模型零贡献），<span class="arithmatex">\(\alpha_i &gt; 0\)</span> 的点必在边界上；岭回归/Lasso 的"约束形式 <span class="arithmatex">\(\|w\| \leq t\)</span> 与惩罚形式 <span class="arithmatex">\(+\lambda\|w\|\)</span> 等价"正是 Lagrange 对偶的观点（ai 课 01 讲的正则化滑块 <span class="arithmatex">\(\lambda\)</span> 就是乘子）。</p>
 <h2 id="4">4. 求解套路与例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>KKT 手算流程</strong>：按互补松弛对"哪些约束绷紧"分类讨论 → 每种情形解平稳性方程 → 验可行性与 <span class="arithmatex">\(\lambda \geq 0\)</span> → 比较候选点。</p>

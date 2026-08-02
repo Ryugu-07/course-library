@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>同步原语与无锁结构 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -80,16 +80,20 @@
 <p><img alt="acquire/release 配对建立 happens-before 可见性。" src="assets/img/par-02-memory-order.svg" /></p>
 <figcaption><span class="fig-id">图 par-02.1</span>acquire/release 配对建立 happens-before 可见性。</figcaption>
 </figure>
-<p>par-01 说过 CPU 会重排内存操作。无锁代码里，<strong>一个线程写数据 + 写标志位，另一个线程读标志位 + 读数据——如果 CPU 重排了写的顺序，读线程可能看到"标志已置位但数据还没写好"</strong>。所以原子操作要带<strong>内存序（memory ordering）</strong>语义：
-- <strong>relaxed</strong>：只保证原子性，不约束顺序——最快，仅用于计数器等无同步需求。
-- <strong>acquire/release</strong>：<strong>release 写</strong>之前的所有写，对 <strong>acquire 读</strong>之后可见——<strong>这对配对建立"happens-before"，是无锁同步的主力</strong>（发布-订阅数据的正确姿势）。
-- <strong>seq_cst（顺序一致）</strong>：全局单一顺序，最强最慢，最易推理——<strong>不确定时用它</strong>。</p>
+<p>par-01 说过 CPU 会重排内存操作。无锁代码里，<strong>一个线程写数据 + 写标志位，另一个线程读标志位 + 读数据——如果 CPU 重排了写的顺序，读线程可能看到"标志已置位但数据还没写好"</strong>。所以原子操作要带<strong>内存序（memory ordering）</strong>语义：</p>
+<ul>
+<li><strong>relaxed</strong>：只保证原子性，不约束顺序——最快，仅用于计数器等无同步需求。</li>
+<li><strong>acquire/release</strong>：<strong>release 写</strong>之前的所有写，对 <strong>acquire 读</strong>之后可见——<strong>这对配对建立"happens-before"，是无锁同步的主力</strong>（发布-订阅数据的正确姿势）。</li>
+<li><strong>seq_cst（顺序一致）</strong>：全局单一顺序，最强最慢，最易推理——<strong>不确定时用它</strong>。</li>
+</ul>
 <p><strong>读法</strong>：<strong>内存序是"编译器和 CPU 允许怎么重排你的内存操作"的契约</strong>。这是并发最反直觉的部分——代码顺序 ≠ 执行顺序 ≠ 别的核看到的顺序。<strong>99% 的场景应该用锁或高层并发结构避开它；只有性能极致要求 + 你完全理解 acquire/release 时才手写无锁</strong>。</p>
 <h2 id="4">4. 高层并发结构:别自己造轮子<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>无锁难写对，所以实践中<strong>用久经考验的并发库</strong>：
-- <strong>并发容器</strong>：无锁队列（MPSC/MPMC）、并发哈希表（分段锁或无锁）、无锁环形缓冲区（生产者-消费者的高性能实现）。
-- <strong>读写锁 / RCU</strong>：读多写少时，RCU（Read-Copy-Update，Linux 内核大量使用）让<strong>读完全无锁无等待</strong>、写时复制新版本——极致读性能。
-- <strong>无等待（wait-free）</strong> 比无锁更强：保证每个操作有限步完成（无锁只保证系统整体前进、单个线程可能饿）——理论优雅但实现更难，少用。</p>
+<p>无锁难写对，所以实践中<strong>用久经考验的并发库</strong>：</p>
+<ul>
+<li><strong>并发容器</strong>：无锁队列（MPSC/MPMC）、并发哈希表（分段锁或无锁）、无锁环形缓冲区（生产者-消费者的高性能实现）。</li>
+<li><strong>读写锁 / RCU</strong>：读多写少时，RCU（Read-Copy-Update，Linux 内核大量使用）让<strong>读完全无锁无等待</strong>、写时复制新版本——极致读性能。</li>
+<li><strong>无等待（wait-free）</strong> 比无锁更强：保证每个操作有限步完成（无锁只保证系统整体前进、单个线程可能饿）——理论优雅但实现更难，少用。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>并发编程的成熟度体现在"知道何时用锁、何时用无锁库、几乎永不手写无锁算法"</strong>。手写无锁是专家在特定热点才做的事，且必须配大量测试 + 形式化验证（这类 bug 靠测试极难复现，🔗 os-02 的间歇性）。</p>
 <h2 id="5-rust-bug">5. 通往 Rust:类型系统消灭并发 bug<a class="headerlink" href="#5-rust-bug" title="Permanent link"></a></h2>
 <p>回顾这两页的所有噩梦——数据竞争、ABA、内存序错误——它们的共同点是：<strong>编译器不知道哪些数据被哪些线程共享、以什么方式同步</strong>，全靠程序员小心。<strong>Rust 的洞见（rust-02 详讲）</strong>：把这些信息编码进类型系统——<code>Send</code>/<code>Sync</code> trait 标记"能否跨线程"、借用检查器保证"要么多个只读、要么一个可写"，于是<strong>数据竞争在编译期被拒绝</strong>。<strong>"无畏并发"不是魔法，是把本页的纪律变成编译器强制的规则</strong>——这是本站并行线与语言线的关键呼应，读完 rust-02 你会回看这两页豁然开朗。</p>

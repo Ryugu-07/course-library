@@ -32,6 +32,7 @@ $$\text{length}(w) \ \propto \ \mathbb{E}_{\text{context}}\big[-\log P(w\mid \te
 **UID 假说（Levy & Jaeger）**：说话人倾向于让信息**均匀地**流过时间——避免某一刻信息尖峰（听者跟不上、易出错）或信息低谷（浪费信道）。既然加工代价 $\propto$ surprisal（info-02），把 surprisal 摊平就是让加工**匀速**、总代价（若代价是 surprisal 的凸函数）最小。
 
 可测的后果——**说话人在可选处，用冗余去削峰填谷**：
+
 - 信息密度高的地方**加词**："I believe **that** he left"里的可选 "that"，更常出现在后文难预测时（补一个高概率词，稀释尖峰）。
 - 可预测处**缩音/省略**（弱读、脱落、缩写）。
 - 语速、停顿、重音都随局部信息密度调整。
@@ -43,6 +44,7 @@ $$\text{length}(w) \ \propto \ \mathbb{E}_{\text{context}}\big[-\log P(w\mid \te
 句子是线性的，但意义是结构的（ling-02 的树）。把树"压平"成词序时，**有依存关系的词之间的线性距离**要付记忆代价（跨越的距离越长，工作记忆负担越大，surprisal 越难维持）。
 
 **DLM 假说（Gibson, Futrell 等）**：语言倾向于**最小化总依存长度**——让语法相关的词尽量靠近。可测证据（强【实】）：
+
 - 跨 **37+ 种语言**的依存树语料，真实语序的总依存长度**显著短于**随机重排的基线；
 - 语序共性（如形容词紧贴名词、助动词靠近主动词）大量可由 DLM 预测——**不需要 UG 参数**（回击 ling-02，支持 ling-03 功能解释）；
 - 这也解释了中心嵌套（center-embedding）为何难："the rat the cat the dog chased killed ate"——嵌套把依存拉长到爆掉工作记忆。

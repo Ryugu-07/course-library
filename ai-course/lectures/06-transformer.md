@@ -47,12 +47,12 @@ $$
 f_t &= \sigma(W_f [h_{t-1}, x_t] + b_f) &&\text{遗忘门：旧记忆保留多少}\\
 i_t &= \sigma(W_i [h_{t-1}, x_t] + b_i) &&\text{输入门：新信息写入多少}\\
 \tilde c_t &= \tanh(W_c [h_{t-1}, x_t] + b_c) &&\text{候选新内容}\\
-c_t &= f_t \odot c_{t-1} + i_t \odot \tilde c_t &&\text{★ 记忆更新}\\
+c_t &= f_t \odot c_{t-1} + i_t \odot \tilde c_t &&\star\;\text{记忆更新}\\
 o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &&\text{输出门}
 \end{aligned}
 $$
 
-盯住带 ★ 的那行：$c_t$ 的更新是**加法**。求导 $\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)$——不再有 $W$ 连乘；只要遗忘门开着（$f \approx 1$），梯度就沿细胞状态近乎无衰减地流回远处。**和 ResNet 的 $y = x + F(x)$ 是同一个药方：用加法通路替换连乘通路**（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。
+盯住带星号的那行：$c_t$ 的更新是**加法**。求导 $\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)$——不再有 $W$ 连乘；只要遗忘门开着（$f \approx 1$），梯度就沿细胞状态近乎无衰减地流回远处。**和 ResNet 的 $y = x + F(x)$ 是同一个药方：用加法通路替换连乘通路**（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。
 
 ### 2.4 seq2seq 与注意力的初登场
 

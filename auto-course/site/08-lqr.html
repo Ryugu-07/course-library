@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -58,10 +58,12 @@
 <div class="arithmatex">\[\dot{x} = (A - BK)x\]</div>
 <p><strong>定理</strong>：若 <span class="arithmatex">\((A,B)\)</span> 能控，则通过选择 <span class="arithmatex">\(K\)</span> 可以把 <span class="arithmatex">\(A-BK\)</span> 的特征值配置到<strong>任意期望位置</strong>（复数需共轭成对）。</p>
 <p><strong>这是一个很强的结论</strong>——它说明能控性一旦满足，动态特性完全可以重塑。单输入情形可用 Ackermann 公式直接算出 <span class="arithmatex">\(K\)</span>。</p>
-<p><strong>但问题随之而来</strong>：期望极点该选在哪？
-- 放得太靠左 → 响应快，但<strong>所需控制量巨大</strong>（第三页：执行器会饱和），且<strong>高带宽会激发未建模的高频动态</strong>（第二页）；
-- 放得太靠右 → 慢；
-- 多输入系统的 <span class="arithmatex">\(K\)</span> <strong>不唯一</strong>，还有额外自由度不知如何使用。</p>
+<p><strong>但问题随之而来</strong>：期望极点该选在哪？</p>
+<ul>
+<li>放得太靠左 → 响应快，但<strong>所需控制量巨大</strong>（第三页：执行器会饱和），且<strong>高带宽会激发未建模的高频动态</strong>（第二页）；</li>
+<li>放得太靠右 → 慢；</li>
+<li>多输入系统的 <span class="arithmatex">\(K\)</span> <strong>不唯一</strong>，还有额外自由度不知如何使用。</li>
+</ul>
 <p><strong>极点配置给了工具，没给判据。这正是 LQR 要解决的。</strong></p>
 <h2 id="lqr">二、LQR：把设计变成优化<a class="headerlink" href="#lqr" title="Permanent link"></a></h2>
 <p>不再直接指定极点，而是<strong>指定我们在意什么</strong>，让数学去找极点。定义二次型代价：</p>
@@ -75,10 +77,12 @@
 <p><span class="arithmatex">\(P\)</span> 是<strong>代数 Riccati 方程</strong>的正定解：</p>
 <div class="arithmatex">\[A^TP + PA - PBR^{-1}B^TP + Q = 0\]</div>
 <p><strong>这个结果的意义</strong>：设计者不再直接猜极点，而是<strong>回答一个更有物理意义的问题——"我更在乎状态偏差还是控制代价？"</strong> 权衡通过 <span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span> 的相对大小表达。</p>
-<p><strong>实用的整定直觉</strong>：
-- <strong><span class="arithmatex">\(Q\)</span> 变大 / <span class="arithmatex">\(R\)</span> 变小</strong> → 更激进，极点更靠左，控制量更大；
-- <strong><span class="arithmatex">\(R\)</span> 变大</strong> → 更保守、更省力；
-- <strong>Bryson 准则</strong>（好用的起点）：把 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 的对角元取为各变量最大可接受值平方的倒数——<strong>这使不同物理量纲的状态被公平地归一化</strong>，是实践中最常用的初始选择。</p>
+<p><strong>实用的整定直觉</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(Q\)</span> 变大 / <span class="arithmatex">\(R\)</span> 变小</strong> → 更激进，极点更靠左，控制量更大；</li>
+<li><strong><span class="arithmatex">\(R\)</span> 变大</strong> → 更保守、更省力；</li>
+<li><strong>Bryson 准则</strong>（好用的起点）：把 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 的对角元取为各变量最大可接受值平方的倒数——<strong>这使不同物理量纲的状态被公平地归一化</strong>，是实践中最常用的初始选择。</li>
+</ul>
 <figure>
 <p><img alt="LQR 权重权衡" class="fig-img" src="assets/img/aut_lqr.svg" /></p>
 <figcaption><span class="fig-id">图 8-1</span> 双积分器（质量块位置控制）在不同 \(R\)（控制惩罚）下的 LQR 响应。\(R\) 小（蓝）时控制器激进：状态快速收敛，但<strong>控制量峰值大</strong>（右图），实际中可能超出执行器能力；\(R\) 大（绿）时控制平缓省力，但收敛明显变慢。此例中 \(R\) 从 0.05 增到 20，反馈增益由 \(K\approx[4.5,\,5.4]\) 降到 \([0.16,\,0.37]\)。<strong>LQR 的本质，是让设计者在这条性能—能耗权衡曲线上选点，而非盲目猜极点位置。</strong></figcaption>
@@ -96,10 +100,12 @@
 <li><strong>积分增广</strong>：把积分状态 <span class="arithmatex">\(x_i = \int (r-y)dt\)</span> 加入状态向量，对增广系统做 LQR。<strong>这样得到的控制器天然包含积分作用，可消除静差</strong>——即所谓 LQI。<strong>这是工程上的标准做法</strong>，也再次印证第一页的内模原理。</li>
 </ul>
 <h2 id="lqr_2">五、LQR 与经典方法的关系<a class="headerlink" href="#lqr_2" title="Permanent link"></a></h2>
-<p><strong>它们不是对立的</strong>：
-- LQR 的闭环极点位置可以画出来，与根轨迹的直觉一致；
-- LQR 的回路传递函数满足<strong>Kalman 等式</strong>，由此可导出上面的裕度保证——<strong>这是频域与最优控制的接口</strong>；
-- 对单输入单输出系统，<strong>精心整定的 PID 与 LQR 的性能往往相差不大</strong>——LQR 的优势主要在 <strong>MIMO</strong> 与<strong>系统化的权衡表达</strong>。</p>
+<p><strong>它们不是对立的</strong>：</p>
+<ul>
+<li>LQR 的闭环极点位置可以画出来，与根轨迹的直觉一致；</li>
+<li>LQR 的回路传递函数满足<strong>Kalman 等式</strong>，由此可导出上面的裕度保证——<strong>这是频域与最优控制的接口</strong>；</li>
+<li>对单输入单输出系统，<strong>精心整定的 PID 与 LQR 的性能往往相差不大</strong>——LQR 的优势主要在 <strong>MIMO</strong> 与<strong>系统化的权衡表达</strong>。</li>
+</ul>
 <p><strong>工业现实</strong>：LQR 在航空航天、机器人、精密运动控制中确有应用（这些领域有好模型、多变量、且值得投入建模成本）。<strong>但在过程工业，PID 仍占主导，高级方法的位置主要由 MPC 占据</strong>（第十七页）——因为 MPC 能处理<strong>约束</strong>，而 LQR 不能。</p>
 <h2 id="lqr_3">六、LQR 的局限<a class="headerlink" href="#lqr_3" title="Permanent link"></a></h2>
 <table>

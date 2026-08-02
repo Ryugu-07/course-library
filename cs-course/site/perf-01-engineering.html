@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>测量、Roofline 与向量化 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -75,9 +75,11 @@
 <li><strong>纵轴</strong>：可达性能（FLOP/s）。</li>
 <li><strong>屋顶</strong>由两条线构成：斜线 = <strong>内存带宽</strong>限制（低算术强度时，性能被搬数据的速度卡住）、平线 = <strong>峰值算力</strong>限制（高算术强度时，被 CPU 算力卡住）。</li>
 </ul>
-<p><strong>你的程序落在哪决定策略</strong>：
-- <strong>内存受限</strong>（在斜线下，多数朴素程序）→ 优化<strong>数据访问</strong>：改善局部性、分块、减少访存（🔗 csapp-02、perf-02）。加更多计算单元没用，得喂饱它们。
-- <strong>算力受限</strong>（在平线下）→ 优化<strong>计算</strong>：向量化、用更少指令、更好算法。</p>
+<p><strong>你的程序落在哪决定策略</strong>：</p>
+<ul>
+<li><strong>内存受限</strong>（在斜线下，多数朴素程序）→ 优化<strong>数据访问</strong>：改善局部性、分块、减少访存（🔗 csapp-02、perf-02）。加更多计算单元没用，得喂饱它们。</li>
+<li><strong>算力受限</strong>（在平线下）→ 优化<strong>计算</strong>：向量化、用更少指令、更好算法。</li>
+</ul>
 <p><strong>这就是为什么矩阵乘法要分块</strong>（csapp-02 的 L01）：朴素版内存受限（算术强度低），分块提高数据复用 = 提高算术强度 = 把程序从内存屋顶推向算力屋顶。<strong>Roofline 是"先诊断再开药"的性能地图</strong>——HPC 工程师的第一张图。</p>
 <h2 id="3-cpu">3. 现代 CPU 的两大加速武器<a class="headerlink" href="#3-cpu" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -85,18 +87,24 @@
 <figcaption><span class="fig-id">图 perf-01.1</span>SIMD：一条指令同时算 8 个 float（标量 vs 向量）。</figcaption>
 </figure>
 <p>朴素的"一条指令一条指令顺序执行"远没榨干现代 CPU。两个必须理解的机制：</p>
-<p><strong>① 流水线与乱序执行</strong>：CPU 把每条指令拆成多个阶段（取指/译码/执行/写回）<strong>流水线并行</strong>，还会<strong>乱序执行</strong>（后面无依赖的指令先跑）、<strong>推测执行</strong>（猜分支方向提前跑）。
-- <strong>杀手——分支预测失败</strong>：<code>if</code> 猜错要清空流水线（十几个周期），<strong>难预测的分支（数据无规律）极伤性能</strong>。著名案例："<strong>排序后的数组遍历比未排序快数倍</strong>"——因为排序让分支变得可预测。优化手段：用<strong>无分支代码</strong>（条件移动、位运算）替代难预测分支。
-- <strong>数据依赖</strong>：一条指令等另一条的结果就没法并行——<strong>打破依赖链</strong>（如多个累加器并行求和）能显著提速。</p>
-<p><strong>② SIMD 向量化</strong>：一条指令同时对多个数据做同样运算（Single Instruction Multiple Data）——AVX 一次算 8 个 float、512 位一次 16 个。<strong>理论上直接 8~16× 加速</strong>。三种用法：
-- <strong>靠编译器自动向量化</strong>（<code>-O3</code>，最省事但脆弱——循环有依赖/别名/复杂控制流就失败）。
-- <strong>编译器提示</strong>（<code>#pragma</code>、<code>restrict</code> 消除别名疑虑让编译器敢向量化）。
-- <strong>手写 intrinsics</strong>（<code>_mm256_add_ps</code>，最可控但费力）。</p>
+<p><strong>① 流水线与乱序执行</strong>：CPU 把每条指令拆成多个阶段（取指/译码/执行/写回）<strong>流水线并行</strong>，还会<strong>乱序执行</strong>（后面无依赖的指令先跑）、<strong>推测执行</strong>（猜分支方向提前跑）。</p>
+<ul>
+<li><strong>杀手——分支预测失败</strong>：<code>if</code> 猜错要清空流水线（十几个周期），<strong>难预测的分支（数据无规律）极伤性能</strong>。著名案例："<strong>排序后的数组遍历比未排序快数倍</strong>"——因为排序让分支变得可预测。优化手段：用<strong>无分支代码</strong>（条件移动、位运算）替代难预测分支。</li>
+<li><strong>数据依赖</strong>：一条指令等另一条的结果就没法并行——<strong>打破依赖链</strong>（如多个累加器并行求和）能显著提速。</li>
+</ul>
+<p><strong>② SIMD 向量化</strong>：一条指令同时对多个数据做同样运算（Single Instruction Multiple Data）——AVX 一次算 8 个 float、512 位一次 16 个。<strong>理论上直接 8~16× 加速</strong>。三种用法：</p>
+<ul>
+<li><strong>靠编译器自动向量化</strong>（<code>-O3</code>，最省事但脆弱——循环有依赖/别名/复杂控制流就失败）。</li>
+<li><strong>编译器提示</strong>（<code>#pragma</code>、<code>restrict</code> 消除别名疑虑让编译器敢向量化）。</li>
+<li><strong>手写 intrinsics</strong>（<code>_mm256_add_ps</code>，最可控但费力）。</li>
+</ul>
 <p><strong>这就是 [实验 L07]</strong>：点积的标量版 / 编译器自动向量化版 / 手写 SIMD 版三者对比，实测加速比——<strong>亲手看到"一条指令算 8 个数"的威力，也看到编译器什么时候会/不会帮你向量化</strong>。</p>
 <h2 id="4-dod">4. 数据导向设计（DOD）：布局即性能<a class="headerlink" href="#4-dod" title="Permanent link"></a></h2>
-<p>现代性能优化的一大范式转变——<strong>从"面向对象"到"面向数据"</strong>：
-- <strong>AoS（结构体数组）</strong> <code>struct{x,y,z} points[N]</code> vs <strong>SoA（数组的结构体）</strong> <code>struct{x[N],y[N],z[N]}</code>：若只处理 <code>x</code>，SoA 让 <code>x</code> 连续 → 缓存友好 + 可向量化（🔗 csapp-02、db-01 列存同理）。
-- <strong>"设计数据布局以匹配访问模式和硬件"</strong>——游戏引擎、数据库、ML 框架的共同心法。<strong>性能常常不在算法在布局</strong>。</p>
+<p>现代性能优化的一大范式转变——<strong>从"面向对象"到"面向数据"</strong>：</p>
+<ul>
+<li><strong>AoS（结构体数组）</strong> <code>struct{x,y,z} points[N]</code> vs <strong>SoA（数组的结构体）</strong> <code>struct{x[N],y[N],z[N]}</code>：若只处理 <code>x</code>，SoA 让 <code>x</code> 连续 → 缓存友好 + 可向量化（🔗 csapp-02、db-01 列存同理）。</li>
+<li><strong>"设计数据布局以匹配访问模式和硬件"</strong>——游戏引擎、数据库、ML 框架的共同心法。<strong>性能常常不在算法在布局</strong>。</li>
+</ul>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（Amdahl 算账）</strong> 一个程序 60% 时间在函数 A、40% 在 B。把 A 加速 5×，总加速多少？（<span class="arithmatex">\(\frac{1}{0.4+0.6/5}\approx 1.9×\)</span>）——<strong>理解"为什么优化前必须先知道占比"</strong>。</p>
 <p><strong>例 2（分支预测实验）</strong> 遍历数组累加"大于阈值"的元素，对比数组排序前后的耗时——<strong>排序后快数倍，亲眼见分支预测的代价</strong>。这是最震撼的性能 demo 之一。</p>

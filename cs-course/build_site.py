@@ -7,6 +7,7 @@ COURSE 中已注册全部规划页；缺失文件构建时跳过并提示——�
 """
 
 import html
+import re
 import shutil
 import time
 from pathlib import Path
@@ -17,6 +18,7 @@ from pygments.formatters import HtmlFormatter
 ROOT = Path(__file__).parent
 LECTURES = ROOT / "lectures"
 LABS = ROOT / "labs"
+PROJECTS = ROOT / "projects"
 SITE = ROOT / "site"
 
 SITE_TITLE = "计算机讲义库"
@@ -109,7 +111,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · {site_title}</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {{
@@ -208,6 +210,75 @@ def render_page(md_name, nav_title, prev_item, next_item, build_time, existing):
     )
 
 
+def render_project_doc(src_path: Path, build_time: str) -> str:
+    """Render project Markdown as a readable site page while keeping sources."""
+    relative = src_path.relative_to(PROJECTS)
+    nested = len(relative.parts) > 1
+    asset_prefix = "../../" if nested else "../"
+    site_root = "../../" if nested else "../"
+    src = src_path.read_text(encoding="utf-8")
+    md = markdown.Markdown(extensions=MD_EXTENSIONS, extension_configs=MD_CONFIG)
+    body = md.convert(src)
+
+    body = re.sub(r'href="([^"#]+/README)\.md([#"]?)', r'href="\1.html\2', body)
+    body = re.sub(r'href="(README|rubric|DESIGN)\.md([#"]?)', r'href="\1.html\2', body)
+    body = re.sub(
+        r'href="\.\./\.\./lectures/([^"#]+)\.md([#"]?)',
+        rf'href="{site_root}\1.html\2',
+        body,
+    )
+    body = re.sub(
+        r'href="\.\./\.\./labs/[^"#]+/README\.(?:md|html)([#"]?)',
+        rf'href="{site_root}labs.html\1',
+        body,
+    )
+
+    toc = getattr(md, "toc", "")
+    toc_block = ""
+    if toc and toc.count("<li>") + toc.count("<li ") >= 3:
+        toc_block = f'<details class="page-toc"><summary>本页目录</summary>{toc}</details>'
+
+    heading = next(
+        (line.removeprefix("# ").strip() for line in src.splitlines() if line.startswith("# ")),
+        src_path.stem,
+    )
+    if nested:
+        nav = (
+            '<div class="nav-part"><div class="nav-part-title">课程入口</div><ul>'
+            f'<li><a href="{site_root}labs.html">实验总表</a></li>'
+            '<li><a href="../index.html">大项目索引</a></li>'
+            '<li><a href="README.html">项目说明</a></li>'
+            '<li><a href="rubric.html">评分细则</a></li>'
+            '<li><a href="DESIGN.html">设计报告模板</a></li>'
+            '</ul></div>'
+        )
+    else:
+        nav = (
+            '<div class="nav-part"><div class="nav-part-title">课程入口</div><ul>'
+            f'<li><a href="{site_root}labs.html">实验总表</a></li>'
+            f'<li><a href="{site_root}index.html">课程地图</a></li>'
+            '</ul></div>'
+        )
+
+    page = PAGE_TMPL.format(
+        title=html.escape(heading),
+        site_title="CS 大项目",
+        site_subtitle="教师版说明书 · starter · acceptance",
+        nav=nav,
+        toc_block=toc_block,
+        body=body,
+        prev_link='<span class="pager-slot prev"></span>',
+        next_link='<span class="pager-slot next"></span>',
+        build_time=build_time,
+    )
+    page = page.replace('href="assets/', f'href="{asset_prefix}assets/')
+    page = page.replace('src="assets/', f'src="{asset_prefix}assets/')
+    return page.replace(
+        '<a class="site-title" href="index.html">',
+        f'<a class="site-title" href="{site_root}index.html">',
+    )
+
+
 def write_pygments_css():
     light = HtmlFormatter(style="default").get_style_defs(".highlight")
     dark_raw = HtmlFormatter(style="native").get_style_defs(".highlight")
@@ -243,9 +314,35 @@ def main():
                 "build", "target", "__pycache__", "*.pyc", "*.out", "*.exe",
             ),
         )
+    # 大项目作业包与站点同步发布，学生可从总表进入 README、starter 与验收工具。
+    if PROJECTS.exists():
+        projects_dst = SITE / "projects"
+        if projects_dst.exists():
+            shutil.rmtree(projects_dst)
+        shutil.copytree(
+            PROJECTS,
+            projects_dst,
+            ignore=shutil.ignore_patterns(
+                "build", "target", "__pycache__", "*.pyc", "*.out", "*.exe",
+            ),
+        )
     write_pygments_css()
 
     build_time = time.strftime("%Y-%m-%d %H:%M")
+    if PROJECTS.exists():
+        project_docs = [PROJECTS / "README.md"]
+        for project_dir in sorted(path for path in PROJECTS.iterdir() if path.is_dir()):
+            project_docs.extend(
+                path for name in ("README.md", "rubric.md", "DESIGN.md")
+                if (path := project_dir / name).exists()
+            )
+        for src_path in project_docs:
+            relative = src_path.relative_to(PROJECTS).with_suffix(".html")
+            if relative == Path("README.html"):
+                relative = Path("index.html")
+            out = SITE / "projects" / relative
+            out.write_text(render_project_doc(src_path, build_time), encoding="utf-8")
+
     all_items = flat_lectures()
     existing = {m for m, _ in all_items if (LECTURES / m).exists()}
     missing = [m for m, _ in all_items if m not in existing]

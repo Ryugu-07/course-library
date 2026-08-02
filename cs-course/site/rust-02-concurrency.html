@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>并发、trait 与 unsafe 边界 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -57,10 +57,12 @@
 <li><strong><code>Sync</code></strong>：类型可以安全地被多线程<strong>共享引用</strong>（<code>&amp;T</code> 能跨线程）。</li>
 </ul>
 <p>编译器自动为大多数类型推导这两个标记，并<strong>强制</strong>：想跨线程共享可变数据，必须用<strong>同步类型</strong>——<code>Mutex&lt;T&gt;</code>（互斥锁，os-02）、<code>Arc&lt;T&gt;</code>（原子引用计数，多线程共享所有权）、<code>atomic</code>（无锁原语，par-02）。<strong>忘了加锁？编译不过</strong>——borrow checker 拦下。<strong>"数据竞争在 Rust 里是编译错误而非运行时灾难"</strong>，这就是"无畏并发"的字面兑现——你可以大胆写多线程，编译过了就没有数据竞争（死锁仍可能，那是逻辑问题 os-02，但数据竞争没了）。</p>
-<p><strong>典型模式</strong>：
-- 共享只读数据：<code>Arc&lt;T&gt;</code>（多线程共享所有权、不可变）。
-- 共享可变数据：<code>Arc&lt;Mutex&lt;T&gt;&gt;</code>（引用计数 + 锁）——编译器强制你先拿锁才能改。
-- 消息传递：<code>channel</code>（🔗 pl-02 函数式 + par-01 消息传递哲学）——"不要通过共享内存通信，要通过通信共享内存"（Go 的哲学 Rust 也支持）。</p>
+<p><strong>典型模式</strong>：</p>
+<ul>
+<li>共享只读数据：<code>Arc&lt;T&gt;</code>（多线程共享所有权、不可变）。</li>
+<li>共享可变数据：<code>Arc&lt;Mutex&lt;T&gt;&gt;</code>（引用计数 + 锁）——编译器强制你先拿锁才能改。</li>
+<li>消息传递：<code>channel</code>（🔗 pl-02 函数式 + par-01 消息传递哲学）——"不要通过共享内存通信，要通过通信共享内存"（Go 的哲学 Rust 也支持）。</li>
+</ul>
 <p><strong>这缝合了本站三条线</strong>：os-02 的锁/竞态 + par-02 的原子/内存序 + rust-01 的所有权 = <strong>Rust 把并发的正确性从"程序员自律"变成"编译器强制"</strong>。你读到这里回看 par-02 那些 ABA、内存序噩梦，会明白 Rust 消灭的正是它们。</p>
 <h2 id="2-traitrust">2. Trait：Rust 的抽象引擎<a class="headerlink" href="#2-traitrust" title="Permanent link"></a></h2>
 <p><strong>trait</strong> 是 Rust 的接口/多态机制——定义"一个类型能做什么"，是泛型和抽象的核心（类似 Java interface + Haskell typeclass，🔗 pl 线的类型类）：</p>
@@ -75,10 +77,12 @@
 <p><strong>读法</strong>：<strong>trait 让 Rust 既有 C 的性能又有高级语言的抽象</strong>——泛型 + trait bound 在编译期解决，运行时零负担。你写 <code>.iter().map().filter().collect()</code> 这样的函数式链，编译后和手写循环一样快。</p>
 <h2 id="3-unsafe">3. unsafe：安全网的边界<a class="headerlink" href="#3-unsafe" title="Permanent link"></a></h2>
 <p>Rust 的安全保证靠借用检查器，但有些事它<strong>证明不了安全</strong>（却确实安全）——底层内存操作、调用 C、实现无锁结构（par-02）、硬件寄存器访问。这时用 <strong><code>unsafe</code></strong> 块，解锁五种超能力（如解引用裸指针、调用 unsafe 函数）。</p>
-<p><strong>关键哲学——安全抽象封装 unsafe</strong>：
-- <code>unsafe</code> <strong>不是"关闭所有检查"</strong>——它只解锁那五种操作，借用检查在 unsafe 块内照常工作。
-- <strong>正确用法</strong>：用少量 <code>unsafe</code> 实现底层机制，然后<strong>用安全接口封装它</strong>、并<strong>由人来证明这个 unsafe 块满足安全不变量</strong>。标准库的 <code>Vec</code>、<code>Mutex</code> 内部都有 unsafe，但对外暴露完全安全的 API——<strong>"把不安全关进一个被审查过的小盒子、外面全是安全的"</strong>。
-- <strong>责任转移</strong>：安全代码里的 bug 编译器帮你挡；<code>unsafe</code> 里的 bug <strong>是你（人）在承诺"我证明过这里安全"</strong>。所以 unsafe 要少、要集中、要审查、要注释清楚安全论证。</p>
+<p><strong>关键哲学——安全抽象封装 unsafe</strong>：</p>
+<ul>
+<li><code>unsafe</code> <strong>不是"关闭所有检查"</strong>——它只解锁那五种操作，借用检查在 unsafe 块内照常工作。</li>
+<li><strong>正确用法</strong>：用少量 <code>unsafe</code> 实现底层机制，然后<strong>用安全接口封装它</strong>、并<strong>由人来证明这个 unsafe 块满足安全不变量</strong>。标准库的 <code>Vec</code>、<code>Mutex</code> 内部都有 unsafe，但对外暴露完全安全的 API——<strong>"把不安全关进一个被审查过的小盒子、外面全是安全的"</strong>。</li>
+<li><strong>责任转移</strong>：安全代码里的 bug 编译器帮你挡；<code>unsafe</code> 里的 bug <strong>是你（人）在承诺"我证明过这里安全"</strong>。所以 unsafe 要少、要集中、要审查、要注释清楚安全论证。</li>
+</ul>
 <p><strong>这是 Rust 工程哲学的精髓</strong>：不是"永远安全"（那做不了系统编程），而是<strong>"默认安全 + 显式标记的不安全边界 + 人对边界负责"</strong>——大部分代码享受编译器保护，极少数底层代码明确标出、集中审查。<strong>这个"把危险局部化并显式化"的思想，本身就是一种优秀的工程纪律</strong>（🔗 与 sec 线"缩小攻击面"、系统线"隔离"同构）。</p>
 <h2 id="4-rust">4. Rust 的定位:什么时候用它<a class="headerlink" href="#4-rust" title="Permanent link"></a></h2>
 <ul>

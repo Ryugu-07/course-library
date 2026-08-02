@@ -27,6 +27,11 @@ $$
 
 两种走法：**间隙机制**（小原子 C、N、H 在间隙里穿行——快）；**空位机制**（置换原子等空位换位——慢，且依赖空位浓度：结构 III 的指数曲线在此入股）。两个热激活因子相乘，总账仍是 Arrhenius：
 
+<figure class="diagram" markdown="1">
+![Vacancy and interstitial diffusion mechanisms](assets/img/mat-06-diffusion-mechanisms.svg)
+<figcaption><span class="fig-id">图 6.2</span>两种原子跳跃路径：置换原子等待空位并交换晶格位置；小原子则沿间隙网络连续跳跃，通常具有更低的迁移势垒。</figcaption>
+</figure>
+
 $$
 D = D_0 \exp\Big(-\frac{Q}{RT}\Big)
 $$

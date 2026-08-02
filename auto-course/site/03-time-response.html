@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -102,10 +102,12 @@
 <p><strong>关键公式</strong>（工程上极常用）：</p>
 <div class="arithmatex">\[M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}} \quad(\text{最大超调}), \qquad t_s \approx \frac{4}{\zeta\omega_n} \quad(2\%\ \text{调节时间})\]</div>
 <p><strong>两个可直接使用的经验值</strong>：<span class="arithmatex">\(\zeta = 0.707\)</span> → 超调约 4.3%；<span class="arithmatex">\(\zeta = 0.5\)</span> → 超调约 16%。</p>
-<p><strong>读法</strong>：
-- <strong><span class="arithmatex">\(\zeta\)</span> 控制超调</strong>（形状），<strong><span class="arithmatex">\(\omega_n\)</span> 控制速度</strong>（时间尺度）；
-- 极点的<strong>实部</strong>决定衰减速度，<strong>虚部</strong>决定振荡频率；
-- <strong>想更快就把极点往左推，想更稳就让它们更靠近实轴。</strong> 第四页的根轨迹就是在做这件事。</p>
+<p><strong>读法</strong>：</p>
+<ul>
+<li><strong><span class="arithmatex">\(\zeta\)</span> 控制超调</strong>（形状），<strong><span class="arithmatex">\(\omega_n\)</span> 控制速度</strong>（时间尺度）；</li>
+<li>极点的<strong>实部</strong>决定衰减速度，<strong>虚部</strong>决定振荡频率；</li>
+<li><strong>想更快就把极点往左推，想更稳就让它们更靠近实轴。</strong> 第四页的根轨迹就是在做这件事。</li>
+</ul>
 <h2 id="_3">三、主导极点近似<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>高阶系统看似复杂，但<strong>离虚轴最近的那对极点主导响应</strong>（其余极点衰减快得多）。</p>
 <p><strong>工程做法</strong>：若某对极点比其余极点靠右 5 倍以上距离，就可以用它们做<strong>二阶近似</strong>，直接套用上面的公式。<strong>这使得二阶系统的直觉可以覆盖大部分实际系统</strong>——这是经典控制得以实用的关键简化。</p>
@@ -144,9 +146,11 @@
 </tbody>
 </table>
 <p><strong>规律清晰</strong>：<strong>每增加一个积分器，就能无静差地跟踪高一阶的输入</strong>。这正是第一页内模原理的具体表现。</p>
-<p><strong>工程含义</strong>：
-- 定位系统要无静差跟踪阶跃 → 至少 1 型（<strong>这就是位置环里必须有积分的原因</strong>）；
-- 要无静差跟踪匀速运动（如跟踪转台、数控进给）→ 需要 2 型，或用<strong>前馈</strong>补偿（第一页：前馈不引入稳定性问题，工程上常优先选它）。</p>
+<p><strong>工程含义</strong>：</p>
+<ul>
+<li>定位系统要无静差跟踪阶跃 → 至少 1 型（<strong>这就是位置环里必须有积分的原因</strong>）；</li>
+<li>要无静差跟踪匀速运动（如跟踪转台、数控进给）→ 需要 2 型，或用<strong>前馈</strong>补偿（第一页：前馈不引入稳定性问题，工程上常优先选它）。</li>
+</ul>
 <h2 id="_5">五、指标之间的冲突<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>这是本页最该带走的东西。常用指标：</p>
 <ul>
@@ -192,10 +196,12 @@
 <li><strong>速率限制</strong>：阀门开合需要时间，电机加速度有限；</li>
 <li><strong>分辨率</strong>：数字执行器有量化台阶。</li>
 </ul>
-<p><strong>后果</strong>：
-- 设计上的"快"可能因饱和而无法实现——<strong>实际响应由执行器能力而非控制律决定</strong>；
-- 饱和期间反馈回路<strong>实际上断开</strong>了（输出不再随误差变化），若此时积分器继续累加 → <strong>积分饱和（windup）</strong>，导致巨大超调（第六页给解法）；
-- <strong>执行器能力应当是设计的起点而非事后检查</strong>：先算清楚"要达到这个响应速度，需要多大的力/电流/流量"，再看设备是否提供得起。<strong>这是学校常忽略、工程上极重要的一步。</strong></p>
+<p><strong>后果</strong>：</p>
+<ul>
+<li>设计上的"快"可能因饱和而无法实现——<strong>实际响应由执行器能力而非控制律决定</strong>；</li>
+<li>饱和期间反馈回路<strong>实际上断开</strong>了（输出不再随误差变化），若此时积分器继续累加 → <strong>积分饱和（windup）</strong>，导致巨大超调（第六页给解法）；</li>
+<li><strong>执行器能力应当是设计的起点而非事后检查</strong>：先算清楚"要达到这个响应速度，需要多大的力/电流/流量"，再看设备是否提供得起。<strong>这是学校常忽略、工程上极重要的一步。</strong></li>
+</ul>
 <h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>极点位置 ↔ 时域响应</strong>：实部定衰减、虚部定振荡，<span class="arithmatex">\(\zeta\)</span> 定超调、<span class="arithmatex">\(\omega_n\)</span> 定速度；</li>

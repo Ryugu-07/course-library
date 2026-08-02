@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -96,9 +96,11 @@
 <p><strong>这一节是本页的核心价值</strong>。理想 PID 公式直接实现，几乎一定出问题。</p>
 <p><strong>① 抗积分饱和（anti-windup）</strong>——最重要的一条。</p>
 <p>当执行器饱和（阀门全开、电流到限，第三页），实际输出不再跟随控制量，但<strong>积分项仍在累加</strong>误差。等到误差反向时，积分器里已经累积了巨大的值，需要很长时间"卸载"，造成<strong>严重超调与长时间失控</strong>。</p>
-<p><strong>解法</strong>：
-- <strong>条件积分</strong>：饱和时停止积分累加；
-- <strong>反算（back-calculation）</strong>：把饱和量反馈回积分器，按 <span class="arithmatex">\((u_{sat}-u)\)</span> 成比例地扣减积分。</p>
+<p><strong>解法</strong>：</p>
+<ul>
+<li><strong>条件积分</strong>：饱和时停止积分累加；</li>
+<li><strong>反算（back-calculation）</strong>：把饱和量反馈回积分器，按 <span class="arithmatex">\((u_{sat}-u)\)</span> 成比例地扣减积分。</li>
+</ul>
 <p><strong>任何实用 PID 都必须有抗饱和</strong>，否则第一次大扰动就会暴露问题。</p>
 <p><strong>② 微分项的三个修正</strong>：</p>
 <ul>
@@ -109,9 +111,11 @@
 <p><strong>③ 设定值加权（两自由度）</strong>：比例项也可只作用于部分设定值 <span class="arithmatex">\(u_P = K_p(\beta r - y)\)</span>。<strong>这让"跟踪设定值"与"抑制扰动"可以分别整定</strong>——单自由度 PID 的一个根本局限是这两个目标共用一组参数，无法独立优化。<strong>两自由度结构是工业上的常见做法。</strong></p>
 <p><strong>④ 无扰切换（bumpless transfer）</strong>：手动/自动切换、参数在线修改时，必须保证控制输出不跳变（通过初始化积分器实现）。<strong>这是投运现场的实际需求。</strong></p>
 <h2 id="_3">四、整定方法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>① Ziegler–Nichols（1942）</strong>：经典但需谨慎。
-- <strong>临界比例度法</strong>：只用 P，逐渐加大增益直到等幅振荡，记下临界增益 <span class="arithmatex">\(K_u\)</span> 与周期 <span class="arithmatex">\(T_u\)</span>，按表查参数；
-- <strong>反应曲线法</strong>：由开环阶跃响应的时滞 <span class="arithmatex">\(L\)</span> 与斜率求参数。</p>
+<p><strong>① Ziegler–Nichols（1942）</strong>：经典但需谨慎。</p>
+<ul>
+<li><strong>临界比例度法</strong>：只用 P，逐渐加大增益直到等幅振荡，记下临界增益 <span class="arithmatex">\(K_u\)</span> 与周期 <span class="arithmatex">\(T_u\)</span>，按表查参数；</li>
+<li><strong>反应曲线法</strong>：由开环阶跃响应的时滞 <span class="arithmatex">\(L\)</span> 与斜率求参数。</li>
+</ul>
 <p><strong>Z-N 的问题（必须知道）</strong>：它按"四分之一衰减比"设计，<strong>整定结果通常偏激进</strong>——超调大、裕度低（相位裕度常不足 30°）。<strong>在实际装置上做临界振荡实验本身也可能不安全。</strong> 它的价值是给出<strong>量级正确的起点</strong>，而非最终参数。</p>
 <p><strong>② 基于模型的整定</strong>：如 IMC（内模控制）/ Lambda 整定——先辨识一阶加时滞模型（FOPDT），再按闭环期望时间常数直接算参数。<strong>结果比 Z-N 保守稳健，是过程工业的主流做法</strong>，且只有一个可调旋钮（期望闭环速度），非常适合现场。</p>
 <p><strong>③ 频域整定</strong>：按目标相位裕度设计（第五页）。</p>

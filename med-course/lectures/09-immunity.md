@@ -103,6 +103,13 @@
 
 **肠道微生物组**塑造免疫系统发育（Treg/Th17 平衡）——🔗 生命的逻辑站第 08 页有该主题的证据强度评估，**其中相当一部分小鼠结论尚未在人类验证**。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验先天/适应性免疫、抗原识别、MHC、黏膜免疫和免疫记忆；具体免疫治疗与疫苗建议以现行指南和监管文件为准。
+- [Overview of the Immune System](https://pubweb-prod.niaid.nih.gov/research/immune-system-overview) — NIAID/NIH：免疫系统、PAMP/DAMP 与免疫失调总览。
+- [Basic Concepts in Immunology](https://www.ncbi.nlm.nih.gov/books/NBK10779/) — NLM/NIH Bookshelf：先天与适应性免疫的基础概念。
+- [Randomized trial of peanut consumption in infants at risk for peanut allergy](https://pubmed.ncbi.nlm.nih.gov/25705822/) — LEAP Study Team，NEJM，2015：早期花生暴露与过敏预防的原始随机试验。
+
 ---
 
 *下一页：当这套系统攻击错了目标——超敏反应、自身免疫与免疫缺陷。*

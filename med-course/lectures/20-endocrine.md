@@ -117,7 +117,15 @@
 
 **代谢综合征**（腹型肥胖 + 高血糖 + 高血压 + 高 TG + 低 HDL）作为一个诊断标签**存在争议**——**它是否比各组分单独评估提供更多信息，证据并不强**。本站按医学院体例列出，同时标明这一争议。
 
-**GLP-1 受体激动剂用于肥胖**是当前变化最快的领域：**司美格鲁肽与替尔泊肽（GIP/GLP-1 双激动）在试验中实现 15–20% 级别的体重下降**，**并有心血管结局获益证据（SELECT 试验）**。**待解问题**：停药后复胖、肌肉量丢失、长期安全性、可及性与成本。**核对于 2026-07；这一段是本页保质期最短的部分。**
+**GLP-1 受体激动剂用于肥胖**是当前变化最快的领域：**司美格鲁肽与替尔泊肽在各自试验和适应证人群中可达到约 15–20% 级别的平均体重下降**；以司美格鲁肽为主的 **SELECT** 试验还提供了特定高心血管风险、超重/肥胖人群的结局证据，**不能把该结果自动外推到所有药物、剂量或人群**。**待解问题**：停药后复胖、肌肉量丢失、长期安全性、可及性与成本。**核对于 2026-08-02；这一段是本页保质期最短的部分。**
+
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验糖尿病、甲状腺、肾上腺、骨代谢、肥胖和 GLP-1/GIP 药物的证据边界；适应证、剂量、医保和批准状态按地区与最新标签变化。
+- [Standards of Care in Diabetes—2026](https://professional.diabetes.org/standards-of-care) — ADA，2026：糖尿病诊断、药物与并发症管理。
+- [SELECT trial](https://pubmed.ncbi.nlm.nih.gov/37952131/) — Lincoff 等，NEJM，2023：司美格鲁肽在特定肥胖/超重心血管高风险人群中的心血管结局试验。
+- [Diagnosis of Cushing’s Syndrome](https://www.endocrine.org/clinical-practice-guidelines/diagnosis-of-cushing-syndrome) — Endocrine Society：库欣综合征的诊断指南。
+- [ATA Professional Guidelines](https://www.thyroid.org/professionals/ata-professional-guidelines/) — American Thyroid Association：甲状腺疾病专业指南入口。
 
 ---
 

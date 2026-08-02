@@ -103,6 +103,13 @@
 
 **局麻药**：阻滞电压门控 Na⁺ 通道。**弱碱性 → 炎症组织 pH 低使非离子型比例下降 → 局麻效果差**（这是"脓肿处打麻药不管用"的机制）；**加肾上腺素延长作用并减少出血**；**布比卡因心脏毒性最高**，**脂肪乳剂是全身毒性的解毒手段**。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验神经递质、镇静催眠药、抗抑郁药、抗精神病药、抗癫痫药和镇痛药的药理边界；适应证、剂量和警示以当地药品标签与指南为准。
+- [FDA boxed warning for benzodiazepines](https://www.fda.gov/drugs/drug-safety-and-availability/fda-requiring-boxed-warning-updated-improve-safe-use-benzodiazepine-drug-class) — FDA，2020：滥用、依赖、戒断及与阿片合用风险。
+- [CDC Clinical Practice Guideline for Prescribing Opioids for Pain—United States, 2022](https://www.cdc.gov/mmwr/volumes/71/rr/rr7103a1.htm) — CDC，2022：成人门诊疼痛中阿片处方的风险—获益与个体化原则。
+- [Operational Classification of Seizure Types (2017)](https://www.ilae.org/guidelines/definition-and-classification/operational-classification-2017) — ILAE，2017：癫痫发作分类正式文件。
+
 ---
 
 *线四完。下一线把病理总论与药理用回具体器官系统。*

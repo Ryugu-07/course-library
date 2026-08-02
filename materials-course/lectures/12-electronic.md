@@ -14,13 +14,18 @@
 
 $\sigma = nq\mu$（载流子浓度 × 电荷 × 迁移率）——**半导体的全部魔法在于 $n$ 可以被掺杂调节十个数量级以上**，而金属的 $n$ 是固定的。
 
+<figure class="diagram" markdown="1">
+![Band structures of conductor semiconductor and insulator](assets/img/mat-12-band-classes.svg)
+<figcaption><span class="fig-id">图 12.1</span>导体没有有效带隙，半导体有适中的带隙且可由施主/受主能级调节，绝缘体带隙很大；能带间距与掺杂能级共同决定导电能力。</figcaption>
+</figure>
+
 ## 2. 掺杂：十亿分之一的杠杆
 
 **n 型**：Si（4 价）掺 P（5 价），多一个电子进导带；**p 型**：掺 B（3 价），留一个空穴。掺杂浓度 $10^{15}$–$10^{20}$ cm⁻³ 对比硅原子密度 $5\times10^{22}$ cm⁻³——**百万分之一到十亿分之一的杂质，把电阻率改变六个数量级**。
 
 <figure class="plot" markdown="1">
 ![Carrier concentration vs inverse temperature](assets/img/mat-12-carriers.svg)
-<figcaption><span class="fig-id">图 12.1</span>掺杂半导体的载流子浓度三段：低温冻结（杂质未电离）、中温**外延平台**（\(n \approx N_d\)，器件工作区——性能稳定的原因）、高温本征段（\(n_i\) 指数暴涨、器件失效）。这张图解释了为什么芯片有工作温度上限，也解释了宽带隙半导体（GaN、SiC）为何能耐高温：\(E_g\) 大 ⇒ \(n_i\) 起飞得晚。</figcaption>
+<figcaption><span class="fig-id">图 12.2</span>掺杂半导体的载流子浓度三段：低温冻结（杂质未电离）、中温**外延平台**（\(n \approx N_d\)，器件工作区——性能稳定的原因）、高温本征段（\(n_i\) 指数暴涨、器件失效）。这张图解释了为什么芯片有工作温度上限，也解释了宽带隙半导体（GaN、SiC）为何能耐高温：\(E_g\) 大 ⇒ \(n_i\) 起飞得晚。</figcaption>
 </figure>
 
 **本征载流子** $n_i \propto \exp(-E_g/2k_BT)$——这一条不等式统治功率电子的技术路线：Si 器件结温上限约 150–175 °C，SiC/GaN 可上到 200 °C 以上并支持更高电压更小体积，这就是电动车与快充电源全面转向宽禁带的材料学原因（🔗 芯片站前沿页）。
@@ -30,6 +35,11 @@ $\sigma = nq\mu$（载流子浓度 × 电荷 × 迁移率）——**半导体的
 ## 3. 结与界面：功能诞生的地方
 
 **pn 结**：n 与 p 接触 ⇒ 载流子扩散 ⇒ 耗尽区内建电场 ⇒ 单向导电。**几乎所有电子器件都是界面的产物**：二极管（一个结）、双极晶体管（两个结）、MOSFET（金属-氧化物-半导体三层，靠栅压调控沟道——SiO₂ 是天赐的完美介质，硅的历史性优势有一半来自它的氧化物）、LED/激光（直接带隙半导体的复合发光——GaN 蓝光 LED 的 2014 诺奖是材料学胜利：难在 p 型 GaN 掺杂与衬底失配）、太阳能电池（前沿 II）。
+
+<figure class="diagram" markdown="1">
+![pn junction depletion region and band bending](assets/img/mat-12-pn-junction.svg)
+<figcaption><span class="fig-id">图 12.3</span>pn 结接触后，扩散留下带电离子形成耗尽区与内建电场；平衡能带发生弯曲，\(qV_{bi}\) 是阻挡多数载流子继续扩散的势垒。</figcaption>
+</figure>
 
 **导电聚合物一瞥**：共轭主链 + 掺杂可导电（2000 诺奖）——柔性显示、有机太阳能、生物电子的基础；性能不及无机但可溶液加工、可弯折，走的是"够用 + 便宜 + 柔性"路线。
 

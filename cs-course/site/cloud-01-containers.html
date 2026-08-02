@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>容器与 Docker 原理 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li class="active"><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -101,19 +101,23 @@
 </figure>
 <p>容器的隔离幻觉由 Linux 内核三个机制拼成：</p>
 <p><strong>① Namespace（命名空间）——隔离"看得见什么"</strong>
-让进程以为自己独占系统。几种 namespace 各隔离一样东西：
-- <strong>PID namespace</strong>：容器内进程以为自己是 PID 1、看不到宿主其他进程（🔗 os-01 进程）。
-- <strong>Mount namespace</strong>：独立的文件系统视图（🔗 os-03，容器有自己的"根"）。
-- <strong>Network namespace</strong>：独立的网络栈（自己的 IP、端口，🔗 net 线）。
-- <strong>UTS/IPC/User namespace</strong>：主机名、进程间通信、用户 ID 的隔离。</p>
+让进程以为自己独占系统。几种 namespace 各隔离一样东西：</p>
+<ul>
+<li><strong>PID namespace</strong>：容器内进程以为自己是 PID 1、看不到宿主其他进程（🔗 os-01 进程）。</li>
+<li><strong>Mount namespace</strong>：独立的文件系统视图（🔗 os-03，容器有自己的"根"）。</li>
+<li><strong>Network namespace</strong>：独立的网络栈（自己的 IP、端口，🔗 net 线）。</li>
+<li><strong>UTS/IPC/User namespace</strong>：主机名、进程间通信、用户 ID 的隔离。</li>
+</ul>
 <p><strong>"每个 namespace 隔离一种资源的可见性"</strong>——组合起来，容器内进程看到的是一个"只有自己"的干净系统，其实和宿主共享一个内核。</p>
 <p><strong>② Cgroup（控制组）——限制"能用多少"</strong>
 namespace 管"看得见什么"，cgroup 管"能用多少"——<strong>限制一个容器的 CPU、内存、I/O 配额</strong>（🔗 os-01 调度、csapp-04 内存）。这样一个容器失控不会吃垮整机。<code>docker run -m 512m</code> 就是设 cgroup 内存限制。</p>
 <p><strong>③ 分层镜像（Union FS）——高效打包</strong>
-容器<strong>镜像</strong>是分层的（每个 Dockerfile 指令一层），用联合文件系统叠起来：
-- <strong>层可共享</strong>：多个镜像基于同一个 <code>ubuntu</code> 层，只存一份（🔗 csapp-03 动态库共享、git 内容寻址 se-01 同思想——去重）。
-- <strong>写时复制</strong>：容器运行时的改动写到最上面的可写层，底层镜像只读不变（🔗 csapp-04 COW！同一个思想）。
-- <strong>可复现 + 高效分发</strong>：镜像有内容哈希、可推到仓库、拉取只下缺的层。</p>
+容器<strong>镜像</strong>是分层的（每个 Dockerfile 指令一层），用联合文件系统叠起来：</p>
+<ul>
+<li><strong>层可共享</strong>：多个镜像基于同一个 <code>ubuntu</code> 层，只存一份（🔗 csapp-03 动态库共享、git 内容寻址 se-01 同思想——去重）。</li>
+<li><strong>写时复制</strong>：容器运行时的改动写到最上面的可写层，底层镜像只读不变（🔗 csapp-04 COW！同一个思想）。</li>
+<li><strong>可复现 + 高效分发</strong>：镜像有内容哈希、可推到仓库、拉取只下缺的层。</li>
+</ul>
 <p><strong>Dockerfile</strong> 就是"如何构建这个镜像"的声明式脚本——<code>FROM 基础镜像</code> → <code>COPY 代码</code> → <code>RUN 装依赖</code> → <code>CMD 启动命令</code>，每行一层。</p>
 <h2 id="4-medusa">4. 容器化的实践与你的 Medusa<a class="headerlink" href="#4-medusa" title="Permanent link"></a></h2>
 <ul>

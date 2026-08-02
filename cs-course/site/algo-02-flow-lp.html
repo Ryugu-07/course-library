@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>网络流与线性规划 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -84,10 +84,12 @@
 <p><strong>方法论</strong>：<strong>学最大流最重要的不是算法本身，是"识别一个问题能否包装成流"的眼力</strong>。判据：有没有"守恒 + 容量瓶颈"的结构？有就试流。</p>
 <h2 id="4">4. 线性规划：算法与对偶的两张脸<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>LP：<span class="arithmatex">\(\max c^Tx\)</span> s.t. <span class="arithmatex">\(Ax\le b, x\ge 0\)</span>。</p>
-<p><strong>解法【骨架】</strong>：
-- <strong>单纯形法</strong>：在可行多面体的顶点间沿边走向更优——实践极快，但最坏指数（Klee–Minty 立方体）。几何直觉你已有：最优必在顶点（凸函数在凸多面体上）。
-- <strong>内点法</strong>：走多面体内部的中心路径趋近最优——<strong>多项式时间</strong>（Karmarkar），大规模求解器的主力。
-- <strong>椭球法</strong>：理论上首个多项式算法（Khachiyan），实践慢，但威力在于<strong>只要有分离预言机就能优化</strong>——组合优化里许多多项式结果靠它。</p>
+<p><strong>解法【骨架】</strong>：</p>
+<ul>
+<li><strong>单纯形法</strong>：在可行多面体的顶点间沿边走向更优——实践极快，但最坏指数（Klee–Minty 立方体）。几何直觉你已有：最优必在顶点（凸函数在凸多面体上）。</li>
+<li><strong>内点法</strong>：走多面体内部的中心路径趋近最优——<strong>多项式时间</strong>（Karmarkar），大规模求解器的主力。</li>
+<li><strong>椭球法</strong>：理论上首个多项式算法（Khachiyan），实践慢，但威力在于<strong>只要有分离预言机就能优化</strong>——组合优化里许多多项式结果靠它。</li>
+</ul>
 <p><strong>对偶与互补松弛</strong>（🔗 优化线原文）：强对偶 <span class="arithmatex">\(\max c^Tx=\min b^Ty\)</span>；<strong>互补松弛</strong>——最优处，"松弛的约束对应为零的对偶变量"。它在算法设计里是<strong>原始–对偶方法</strong>的引擎：许多近似算法（下页）就是"同时构造原始解与对偶证书、用对偶下界证明近似比"。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（匹配即流手算）</strong> 3×3 二分图画出来，加源汇建流网络，跑一遍增广路，验证最大流 = 最大匹配数、且最小割对应最小点覆盖——<strong>König 定理在你笔下从最大流掉出来</strong>。</p>

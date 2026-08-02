@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "scenario_id": "tiny-greedy-batch",
+  "model": {
+    "vocab_size": 32,
+    "hidden_size": 16,
+    "num_layers": 2,
+    "num_heads": 2,
+    "max_context": 64,
+    "dtype": "fp32",
+    "seed": 2026
+  },
+  "kv_cache": {
+    "page_size": 4,
+    "max_pages": 16,
+    "head_dim": 8
+  },
+  "scheduler": {
+    "max_batch_tokens": 8,
+    "max_active_requests": 3,
+    "aging_ticks": 4
+  },
+  "quantization": {
+    "mode": "none",
+    "bits": 32,
+    "group_size": 1,
+    "symmetric": true
+  },
+  "requests": [
+    {"request_id": "short", "prompt_tokens": [1, 2], "max_tokens": 3, "stop_token_id": 0},
+    {"request_id": "long", "prompt_tokens": [3, 4, 5, 6], "max_tokens": 5, "stop_token_id": 0}
+  ],
+  "reference": {
+    "short": [7, 8, 9],
+    "long": [10, 11, 12, 13, 14]
+  },
+  "platform": {
+    "cpu_required": true,
+    "numpy_optional": true,
+    "win_4060_ti_extension": true
+  }
+}

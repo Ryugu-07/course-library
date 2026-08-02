@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "project": "P03-distributed-kv",
+  "nodes": ["n1", "n2", "n3", "n4", "n5"],
+  "events": [
+    {"id": "majority-partition", "kind": "partition", "left": ["n1", "n2", "n3"], "right": ["n4", "n5"], "expected_contract": {"majority_can_progress": true, "minority_cannot_commit": true}},
+    {"id": "vote-across-partition", "kind": "message", "sender": "n1", "recipient": "n4", "term": 4, "message_type": "request_vote", "payload": {"last_log_index": 8, "last_log_term": 4}, "student_required": true},
+    {"id": "leader-crash-before-commit", "kind": "fault", "target": "n1", "after": "client_start_before_commit", "expected_contract": {"client_may_retry": true, "committed_entry_must_survive": true}, "student_required": true},
+    {"id": "duplicate-append-request", "kind": "client_retry", "client_id": "c1", "request_id": 9, "operation": "append", "key": "k", "value": "!", "expected_contract": {"apply_at_most_once": true}, "student_required": true},
+    {"id": "heal-network", "kind": "heal", "student_required": true},
+    {"id": "migration-config-jump", "kind": "migration", "shard": 2, "from_group": "g1", "to_group": "g2", "config_numbers": [7, 8, 9], "expected_contract": {"no_double_write": true, "dedup_state_moves": true}, "student_required": true},
+    {"id": "old-leader-read", "kind": "boundary", "target": "n4", "operation": "get", "expected_contract": {"must_not": "return_unconfirmed_value", "error_class": "not_leader_or_retry"}, "student_required": true}
+  ]
+}

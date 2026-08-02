@@ -6,6 +6,11 @@
 
 **结构层级**：单体 → 链（分子量 $M$，注意是**分布**不是单值：$M_n$ 数均、$M_w$ 重均、$M_w/M_n$ 多分散度）→ 链的构象（无规线团，均方末端距 $\langle R^2\rangle \propto N$——🔗 随机游走！数学站的布朗运动就是高分子链的构象统计）→ 凝聚态（非晶/半结晶/交联网络）。
 
+<figure class="diagram" markdown="1">
+![Polymer chain topology spectrum](assets/img/mat-10-chain-structures.svg)
+<figcaption><span class="fig-id">图 10.1</span>高分子链从线型、支化到交联网络，进一步形成半结晶球晶；拓扑与有序程度共同决定熔融、结晶、橡胶态和力学响应。</figcaption>
+</figure>
+
 **三分类（决定加工方式的第一问）**：
 
 | 类型 | 结构 | 加热行为 | 例 |
@@ -20,7 +25,7 @@
 
 <figure class="plot" markdown="1">
 ![Modulus vs temperature for polymers](assets/img/mat-10-modulusT.svg)
-<figcaption><span class="fig-id">图 10.1</span>模量-温度曲线：玻璃态（GPa）→ \(T_g\) 附近骤降三个数量级 → 橡胶平台（MPa，交联度决定其高度）→ 线型聚合物继续流动、交联者保持平台直到分解。一条曲线读完高分子的全部工程状态。</figcaption>
+<figcaption><span class="fig-id">图 10.2</span>模量-温度曲线：玻璃态（GPa）→ \(T_g\) 附近骤降三个数量级 → 橡胶平台（MPa，交联度决定其高度）→ 线型聚合物继续流动、交联者保持平台直到分解。一条曲线读完高分子的全部工程状态。</figcaption>
 </figure>
 
 **$T_g$ 决定用途**：室温在 $T_g$ 之下 = 硬塑料（PS、PMMA、PC）；之上 = 橡胶（天然橡胶 $T_g \approx -70$ °C）。**PVC 加增塑剂把 $T_g$ 从 +80 拉到 -40 °C**——同一种聚合物做出下水管与雨衣，配方工程的教科书案例。

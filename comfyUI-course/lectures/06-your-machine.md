@@ -11,16 +11,16 @@
 ```text
 E:\AI
 ├─ ComfyUI_windows_portable   程序本体+内嵌Python —— 别动里面的东西
-├─ Models                     ★ 所有模型: checkpoints/loras/vae/controlnet/...
+├─ Models                     * 所有模型: checkpoints/loras/vae/controlnet/...
 ├─ Inputs                     图生图的输入图放这里(Load Image 节点读这里)
-├─ Outputs                    ★ 生成结果落盘处(Save Image 节点写这里)
+├─ Outputs                    * 生成结果落盘处(Save Image 节点写这里)
 ├─ Workflows                  你自己保存的工作流 .json(本课程的 course/ 包也放这)
 ├─ User                       设置、数据库(comfyui.db)、Manager 配置 —— 备份重点
 ├─ Cache                      临时文件(可随时清空换空间)
 ├─ Logs                       启动与运行日志 —— 排障第一现场
 ├─ Tools                      aria2、7-Zip 等下载解压工具
 ├─ Start/Stop/Open_ComfyUI.*  启停脚本(桌面快捷方式指向它们)
-├─ extra_model_paths.yaml     ★ 模型路径配置(见第 4 节)
+├─ extra_model_paths.yaml     * 模型路径配置(见第 4 节)
 └─ ComfyUI_操作指南.md         GPT 写的速查手册(本课程的前身)
 ```
 

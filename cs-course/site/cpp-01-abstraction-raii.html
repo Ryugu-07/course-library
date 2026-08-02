@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>抽象、RAII 与值/移动语义 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -59,10 +59,12 @@ C++ 是一门矛盾又强大的语言：<strong>贴近硬件到能写操作系�
 <p><img alt="值语义(b 是 a 的拷贝) vs 引用/指针，栈上对象。" src="assets/img/cpp-01-value-semantics.svg" /></p>
 <figcaption><span class="fig-id">图 cpp-01.3</span>值语义(b 是 a 的拷贝) vs 引用/指针，栈上对象。</figcaption>
 </figure>
-<p>和 Python（py-01 变量是引用）、Java（对象是引用）不同，<strong>C++ 默认是值语义</strong>——变量<strong>就是</strong>对象本身，不是指向对象的引用：
-- <code>Widget a; Widget b = a;</code> <strong>b 是 a 的一份完整拷贝</strong>（调用拷贝构造函数），改 b 不影响 a。
-- 对象<strong>默认在栈上</strong>（<code>Widget w;</code> 不是 <code>new</code>）——随作用域自动创建销毁，无需 GC（🔗 csapp-03 栈帧）。
-- 要引用/间接，显式用<strong>引用 <code>&amp;</code></strong> 或<strong>指针 <code>*</code></strong>。</p>
+<p>和 Python（py-01 变量是引用）、Java（对象是引用）不同，<strong>C++ 默认是值语义</strong>——变量<strong>就是</strong>对象本身，不是指向对象的引用：</p>
+<ul>
+<li><code>Widget a; Widget b = a;</code> <strong>b 是 a 的一份完整拷贝</strong>（调用拷贝构造函数），改 b 不影响 a。</li>
+<li>对象<strong>默认在栈上</strong>（<code>Widget w;</code> 不是 <code>new</code>）——随作用域自动创建销毁，无需 GC（🔗 csapp-03 栈帧）。</li>
+<li>要引用/间接，显式用<strong>引用 <code>&amp;</code></strong> 或<strong>指针 <code>*</code></strong>。</li>
+</ul>
 <p><strong>后果</strong>：C++ 让你精确控制"拷贝还是共享"——这是性能的来源（无隐藏的堆分配、无 GC），也是复杂度的来源（要管拷贝成本、要懂什么时候发生拷贝）。<strong>"默认值语义 + 显式引用"是 C++ 内存模型的基石</strong>，理解它才能读懂 C++ 代码在做什么。</p>
 <h2 id="3-raiic">3. RAII:C++ 最伟大的创见<a class="headerlink" href="#3-raiic" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -75,10 +77,12 @@ C++ 是一门矛盾又强大的语言：<strong>贴近硬件到能写操作系�
 <span class="w">    </span><span class="c1">// ... 临界区 ...</span>
 <span class="p">}</span><span class="w">  </span><span class="c1">// 离开作用域，析构：自动解锁——哪怕中途抛异常也保证解锁</span>
 </code></pre></div>
-<p><strong>这解决了 C 的核心痛点</strong>（csapp-04）——手动 <code>malloc/free</code>、手动加锁解锁、手动关文件，极易忘记或在异常路径漏掉。RAII 让<strong>"作用域结束"自动触发清理</strong>，无论正常返回还是异常。<strong>智能指针</strong>是 RAII 管理内存的落地：
-- <code>std::unique_ptr</code>：<strong>独占所有权</strong>，离开作用域自动 <code>delete</code>——无泄漏、无二次释放。
-- <code>std::shared_ptr</code>：<strong>引用计数共享</strong>（🔗 pl-02、Python 的引用计数），最后一个引用消失才释放。
-- <strong>现代 C++ 铁律：几乎不再手写 <code>new/delete</code></strong>——用智能指针 + RAII 容器，内存 bug 大幅减少。</p>
+<p><strong>这解决了 C 的核心痛点</strong>（csapp-04）——手动 <code>malloc/free</code>、手动加锁解锁、手动关文件，极易忘记或在异常路径漏掉。RAII 让<strong>"作用域结束"自动触发清理</strong>，无论正常返回还是异常。<strong>智能指针</strong>是 RAII 管理内存的落地：</p>
+<ul>
+<li><code>std::unique_ptr</code>：<strong>独占所有权</strong>，离开作用域自动 <code>delete</code>——无泄漏、无二次释放。</li>
+<li><code>std::shared_ptr</code>：<strong>引用计数共享</strong>（🔗 pl-02、Python 的引用计数），最后一个引用消失才释放。</li>
+<li><strong>现代 C++ 铁律：几乎不再手写 <code>new/delete</code></strong>——用智能指针 + RAII 容器，内存 bug 大幅减少。</li>
+</ul>
 <p><strong>深远影响</strong>：RAII 是 C++ 对编程的重大贡献——<strong>"资源生命周期 = 对象生命周期 = 作用域"</strong>这个思想，Rust 的所有权（rust-01 的 drop）、Python 的 <code>with</code>（py-01）都是它的后裔。<strong>理解 RAII，你就理解了"确定性资源管理"这条区别于 GC 的路线</strong>（pl-02 的三条路线里，C++/Rust 走的正是这条）。</p>
 <h2 id="4">4. 移动语义:避免昂贵的拷贝<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <figure class="diagram">

@@ -80,6 +80,14 @@
 
 **别背表格，背原则**：① 浆膜腔是潜在腔隙，速度比体积更决定后果；② 皮节与牵涉痛是发育史留下的可预测地图；③ 有无侧支吻合决定该器官会不会梗死；④ 筋膜决定感染与压力往哪走；⑤ T2 亮的是水，绝大多数病变含水多。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验解剖定位、胸膜腔、皮节和医学方向术语；影像学或临床定位仍需结合当地教材与实践规范。
+- [Anatomy, Thorax](https://www.ncbi.nlm.nih.gov/books/NBK557710/) — NLM/NIH Bookshelf：胸廓、纵隔和胸腔结构总览。
+- [Anatomy, Skin, Dermatomes](https://www.ncbi.nlm.nih.gov/books/NBK535401/) — NLM/NIH Bookshelf：皮节与感觉分布。
+- [Anatomy, Thorax, Pleurae](https://www.ncbi.nlm.nih.gov/books/NBK541079/) — NLM/NIH Bookshelf：胸膜与胸膜腔解剖。
+- [Medical Terminology](https://www.ncbi.nlm.nih.gov/books/NBK607445/) — NLM/NIH Bookshelf：全身方向、位置与医学术语。
+
 ---
 
 *下一页：组织学——把"四大基本组织"作为身体的四种基本材料，并说明每种材料坏掉时会以什么形式表现。*

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>语义、函数式与垃圾回收 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -51,26 +51,34 @@
 pl-01 讲了语言的类型骨架，这一页补三块：<strong>形式语义</strong>（怎么严格定义"程序是什么意思"，而非靠直觉）、<strong>函数式编程范式</strong>（不可变、纯函数、高阶抽象的威力，以及它为什么在并发和 ML 时代复兴）、<strong>垃圾回收</strong>（内存自动管理的机制——你写 Python/JS 不用 free，底下发生了什么）。</p>
 </blockquote>
 <h2 id="1">1. 形式语义：程序"意义"的严格定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>编译器/解释器要正确，先得说清"程序该做什么"——这就是<strong>语义</strong>。三种风格：
-- <strong>操作语义（operational）</strong>：用<strong>归约规则</strong>定义"程序一步步怎么执行"（pl-01 的 β 归约、comp-02 的 <code>eval</code> 就是操作语义）。最直观、最常用于实现和证明。分小步（single-step，看每一步）和大步（big-step，直接给最终结果）。
-- <strong>指称语义（denotational）</strong>：把程序<strong>映射到数学对象</strong>（函数、集合）——"这个程序 = 这个数学函数"。抽象、优雅，用于推理程序等价。
-- <strong>公理语义（axiomatic）</strong>：用<strong>逻辑断言</strong>描述——<strong>Hoare 逻辑</strong> <span class="arithmatex">\(\{P\}\,C\,\{Q\}\)</span>："若执行前 <span class="arithmatex">\(P\)</span> 成立，执行 <span class="arithmatex">\(C\)</span> 后 <span class="arithmatex">\(Q\)</span> 成立"。这是<strong>程序验证</strong>的基础（🔗 与形式化方法、Lean 证明程序正确性相通）——循环不变量、前置/后置条件都从这来。</p>
+<p>编译器/解释器要正确，先得说清"程序该做什么"——这就是<strong>语义</strong>。三种风格：</p>
+<ul>
+<li><strong>操作语义（operational）</strong>：用<strong>归约规则</strong>定义"程序一步步怎么执行"（pl-01 的 β 归约、comp-02 的 <code>eval</code> 就是操作语义）。最直观、最常用于实现和证明。分小步（single-step，看每一步）和大步（big-step，直接给最终结果）。</li>
+<li><strong>指称语义（denotational）</strong>：把程序<strong>映射到数学对象</strong>（函数、集合）——"这个程序 = 这个数学函数"。抽象、优雅，用于推理程序等价。</li>
+<li><strong>公理语义（axiomatic）</strong>：用<strong>逻辑断言</strong>描述——<strong>Hoare 逻辑</strong> <span class="arithmatex">\(\{P\}\,C\,\{Q\}\)</span>："若执行前 <span class="arithmatex">\(P\)</span> 成立，执行 <span class="arithmatex">\(C\)</span> 后 <span class="arithmatex">\(Q\)</span> 成立"。这是<strong>程序验证</strong>的基础（🔗 与形式化方法、Lean 证明程序正确性相通）——循环不变量、前置/后置条件都从这来。</li>
+</ul>
 <p><strong>为什么要形式语义</strong>：① 语言设计无歧义（规范书里的语义定义让不同实现行为一致）；② <strong>证明编译器/优化正确</strong>（comp-03 的优化不改变语义——"不改变语义"要先有语义的严格定义）；③ 程序验证（证明这段代码满足规约）。<strong>"意义的数学化"是 PL 从手艺变成科学的关键</strong>。</p>
 <h2 id="2">2. 函数式编程：不可变的威力<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>pl-01 的 λ 演算是函数式的根。函数式范式的核心信条：
-- <strong>纯函数</strong>：输出只依赖输入、无副作用（不改全局、不做 I/O）——<strong>引用透明</strong>（同输入必同输出，可安全替换、缓存、并行）。
-- <strong>不可变数据</strong>：不修改、只创建新版本——<strong>消灭了一大类 bug 的根源</strong>（别名导致的意外修改、并发的数据竞争 os-02）。
-- <strong>高阶函数</strong>：函数当参数/返回值——<code>map</code>/<code>filter</code>/<code>reduce</code>（🔗 dist-03 MapReduce 直接借名！）、组合子、柯里化。</p>
-<p><strong>为什么函数式在今天复兴</strong>：
-- <strong>并发友好</strong>：不可变 + 无共享状态 = <strong>天然无数据竞争</strong>（par 线/os-02 的噩梦大半消失）——Erlang/Elixir 靠这个做高并发、Rust 借鉴不可变默认。
-- <strong>ML/数据流友好</strong>：纯函数 + 不可变正是 JAX/函数式 autodiff（mlsys-01）的基础——计算图是纯函数组合、可微、可并行、可优化。
-- <strong>易推理</strong>：无副作用的代码好测试、好验证（Hoare 逻辑更简单）。</p>
+<p>pl-01 的 λ 演算是函数式的根。函数式范式的核心信条：</p>
+<ul>
+<li><strong>纯函数</strong>：输出只依赖输入、无副作用（不改全局、不做 I/O）——<strong>引用透明</strong>（同输入必同输出，可安全替换、缓存、并行）。</li>
+<li><strong>不可变数据</strong>：不修改、只创建新版本——<strong>消灭了一大类 bug 的根源</strong>（别名导致的意外修改、并发的数据竞争 os-02）。</li>
+<li><strong>高阶函数</strong>：函数当参数/返回值——<code>map</code>/<code>filter</code>/<code>reduce</code>（🔗 dist-03 MapReduce 直接借名！）、组合子、柯里化。</li>
+</ul>
+<p><strong>为什么函数式在今天复兴</strong>：</p>
+<ul>
+<li><strong>并发友好</strong>：不可变 + 无共享状态 = <strong>天然无数据竞争</strong>（par 线/os-02 的噩梦大半消失）——Erlang/Elixir 靠这个做高并发、Rust 借鉴不可变默认。</li>
+<li><strong>ML/数据流友好</strong>：纯函数 + 不可变正是 JAX/函数式 autodiff（mlsys-01）的基础——计算图是纯函数组合、可微、可并行、可优化。</li>
+<li><strong>易推理</strong>：无副作用的代码好测试、好验证（Hoare 逻辑更简单）。</li>
+</ul>
 <p><strong>实践中的融合</strong>：现代主流语言都吸收了函数式特性——Python 的 <code>map</code>/lambda/列表推导、JS 的高阶函数、Rust 的迭代器 + <code>Option</code>/<code>Result</code>（避免 null，🔗 rust-01）。<strong>你不必写纯函数式语言，但"优先不可变、优先纯函数"是能立刻用上的工程纪律</strong>（写 Medusa 的数据处理时，纯函数管线比一堆可变状态好调试得多）。</p>
 <h2 id="3">3. 代数数据类型与模式匹配<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>函数式语言的一个杀手级特性，正在被所有现代语言抄——<strong>代数数据类型（ADT）+ 模式匹配</strong>：
-- <strong>和类型（sum type）</strong> <code>type Shape = Circle(r) | Rect(w,h)</code>——"要么是这个要么是那个"，编译器<strong>强制你处理所有情况</strong>（🔗 pl-01 的和类型 <span class="arithmatex">\(A+B\)</span>）。
-- <strong>模式匹配</strong> <code>match shape { Circle(r) =&gt; ..., Rect(w,h) =&gt; ... }</code>——按形状解构 + 分发，<strong>穷尽性检查</strong>保证不漏 case。
-- <strong><code>Option</code>/<code>Result</code> 消灭 null</strong>：把"可能没有值""可能出错"编码进类型（<code>Option&lt;T&gt;</code> = 有 T 或没有），<strong>强制处理"空"的情况</strong>——Tony Hoare 称 null 是他的"十亿美元错误"，ADT 是解药（rust-01 会看到 Rust 靠它根除空指针）。</p>
+<p>函数式语言的一个杀手级特性，正在被所有现代语言抄——<strong>代数数据类型（ADT）+ 模式匹配</strong>：</p>
+<ul>
+<li><strong>和类型（sum type）</strong> <code>type Shape = Circle(r) | Rect(w,h)</code>——"要么是这个要么是那个"，编译器<strong>强制你处理所有情况</strong>（🔗 pl-01 的和类型 <span class="arithmatex">\(A+B\)</span>）。</li>
+<li><strong>模式匹配</strong> <code>match shape { Circle(r) =&gt; ..., Rect(w,h) =&gt; ... }</code>——按形状解构 + 分发，<strong>穷尽性检查</strong>保证不漏 case。</li>
+<li><strong><code>Option</code>/<code>Result</code> 消灭 null</strong>：把"可能没有值""可能出错"编码进类型（<code>Option&lt;T&gt;</code> = 有 T 或没有），<strong>强制处理"空"的情况</strong>——Tony Hoare 称 null 是他的"十亿美元错误"，ADT 是解药（rust-01 会看到 Rust 靠它根除空指针）。</li>
+</ul>
 <p><strong>这是本站反复出现的主题的又一例</strong>：<strong>把"容易忘的运行时情况"编码进类型、让编译器强制处理</strong>——类型系统当纪律执行者（pl-01 的 soundness、rust 的所有权同一哲学）。</p>
 <h2 id="4">4. 垃圾回收：内存自动管理<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <figure class="diagram">

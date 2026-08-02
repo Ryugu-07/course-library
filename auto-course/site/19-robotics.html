@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,10 +55,12 @@
 </blockquote>
 <h2 id="_1">一、运动学：从关节角到末端位姿<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p><strong>正运动学</strong>：给定关节角 <span class="arithmatex">\(q\)</span>，求末端位姿 <span class="arithmatex">\(T(q)\)</span>。用 <strong>DH 参数</strong>或齐次变换矩阵逐关节连乘，<strong>总是有唯一解</strong>，计算直接。</p>
-<p><strong>逆运动学</strong>：给定期望位姿，求关节角。<strong>困难得多</strong>：
-- 可能<strong>无解</strong>（超出工作空间）；
-- 可能<strong>多解</strong>（如肘上/肘下两种姿态）；
-- 可能<strong>无穷解</strong>（冗余机器人，自由度多于任务维数——如 7 轴机械臂做 6 维任务，多出的自由度可用来避障或优化姿态）。</p>
+<p><strong>逆运动学</strong>：给定期望位姿，求关节角。<strong>困难得多</strong>：</p>
+<ul>
+<li>可能<strong>无解</strong>（超出工作空间）；</li>
+<li>可能<strong>多解</strong>（如肘上/肘下两种姿态）；</li>
+<li>可能<strong>无穷解</strong>（冗余机器人，自由度多于任务维数——如 7 轴机械臂做 6 维任务，多出的自由度可用来避障或优化姿态）。</li>
+</ul>
 <p><strong>雅可比矩阵</strong> <span class="arithmatex">\(J(q)\)</span> 连接关节速度与末端速度：</p>
 <div class="arithmatex">\[\dot{p} = J(q)\dot{q}\]</div>
 <p><strong>奇异位形</strong>是关键概念：当 <span class="arithmatex">\(J\)</span> 降秩时，机器人在某些方向<strong>失去运动能力</strong>，而反解 <span class="arithmatex">\(\dot q = J^{-1}\dot p\)</span> 会要求<strong>无穷大的关节速度</strong>。</p>
@@ -71,10 +73,12 @@
 <li><span class="arithmatex">\(M(q)\)</span>：惯量矩阵（<strong>随姿态变化</strong>——这是机器人本质非线性的主要来源）；</li>
 <li><span class="arithmatex">\(C\)</span>：科氏与离心项；<span class="arithmatex">\(G\)</span>：重力项；<span class="arithmatex">\(F\)</span>：摩擦（第十五页的老对手）。</li>
 </ul>
-<p><strong>几个有用的结构性质</strong>（它们使许多控制方法成为可能）：
-- <span class="arithmatex">\(M\)</span> 对称正定；
-- <span class="arithmatex">\(\dot{M}-2C\)</span> <strong>反对称</strong>——这个性质直接用于 Lyapunov 稳定性证明；
-- <strong>对参数线性</strong>：<span class="arithmatex">\(\tau = Y(q,\dot q,\ddot q)\Theta\)</span>，<span class="arithmatex">\(\Theta\)</span> 是惯性参数向量。<strong>这使参数辨识成为线性最小二乘问题</strong>（第十八页），是工业机器人标定的基础。</p>
+<p><strong>几个有用的结构性质</strong>（它们使许多控制方法成为可能）：</p>
+<ul>
+<li><span class="arithmatex">\(M\)</span> 对称正定；</li>
+<li><span class="arithmatex">\(\dot{M}-2C\)</span> <strong>反对称</strong>——这个性质直接用于 Lyapunov 稳定性证明；</li>
+<li><strong>对参数线性</strong>：<span class="arithmatex">\(\tau = Y(q,\dot q,\ddot q)\Theta\)</span>，<span class="arithmatex">\(\Theta\)</span> 是惯性参数向量。<strong>这使参数辨识成为线性最小二乘问题</strong>（第十八页），是工业机器人标定的基础。</li>
+</ul>
 <p><strong>主要控制方法</strong>：</p>
 <table>
 <thead>
@@ -122,10 +126,12 @@
 <p>机器人必须知道自己在哪。这是第九页卡尔曼滤波的主战场。</p>
 <p><strong>SLAM（同步定位与建图）</strong>：在未知环境中，<strong>同时</strong>估计自身位姿与环境地图。</p>
 <p><strong>它的困难在于"鸡与蛋"</strong>：定位需要地图，建图需要定位。<strong>这在数学上是一个联合估计问题</strong>。</p>
-<p><strong>主要方法</strong>：
-- <strong>滤波式</strong>：EKF-SLAM（状态含机器人位姿 + 所有地标，<strong>协方差矩阵随地标数平方增长</strong>，难以扩展）；粒子滤波（FastSLAM，适合多峰分布）；
-- <strong>优化式（现代主流）</strong>：<strong>图优化 / 因子图</strong>——把位姿与观测建成图，求解非线性最小二乘。<strong>回环检测</strong>（认出"我来过这里"）提供强约束，可显著校正累积漂移；
-- <strong>传感器</strong>：激光雷达、视觉（VIO：视觉惯性里程计）、IMU、轮式里程计、GNSS。<strong>多传感器融合是常态</strong>，因为各自的误差特性互补（承第九页）。</p>
+<p><strong>主要方法</strong>：</p>
+<ul>
+<li><strong>滤波式</strong>：EKF-SLAM（状态含机器人位姿 + 所有地标，<strong>协方差矩阵随地标数平方增长</strong>，难以扩展）；粒子滤波（FastSLAM，适合多峰分布）；</li>
+<li><strong>优化式（现代主流）</strong>：<strong>图优化 / 因子图</strong>——把位姿与观测建成图，求解非线性最小二乘。<strong>回环检测</strong>（认出"我来过这里"）提供强约束，可显著校正累积漂移；</li>
+<li><strong>传感器</strong>：激光雷达、视觉（VIO：视觉惯性里程计）、IMU、轮式里程计、GNSS。<strong>多传感器融合是常态</strong>，因为各自的误差特性互补（承第九页）。</li>
+</ul>
 <p><strong>关键概念——可观性退化</strong>：某些运动模式下部分状态不可观（如纯旋转时无法估计尺度、匀速直线运动时某些偏差无法辨识）。<strong>好的实现必须能表达"这个方向我不确定"</strong>，而非给出一个自信的错误估计。<strong>这是第九页那句"滤波器不能过度自信"在机器人上的具体化。</strong></p>
 <h2 id="_4">五、当前的活跃方向<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <ul>

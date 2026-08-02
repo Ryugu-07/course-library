@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P05 迷你 TCP：用户态可靠传输与离散网络模拟 · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">先修</a></li>
+<li><a href="#_2">目标</a></li>
+<li><a href="#_3">周期与组队</a></li>
+<li><a href="#_4">目录</a></li>
+<li><a href="#_5">里程碑</a></li>
+<li><a href="#_6">学生任务边界</a></li>
+<li><a href="#_7">给定接口契约</a></li>
+<li><a href="#_8">运行与验收命令</a></li>
+<li><a href="#_9">故障、边界与性能测试</a></li>
+<li><a href="#rubric4025151010">Rubric（40/25/15/10/10）</a></li>
+<li><a href="#_10">交付物</a></li>
+<li><a href="#_11">学术诚信</a></li>
+<li><a href="#_12">平台条件</a></li>
+<li><a href="#_13">可选挑战</a></li>
+<li><a href="#_14">讲义映射</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p05-tcp">P05 迷你 TCP：用户态可靠传输与离散网络模拟<a class="headerlink" href="#p05-tcp" title="Permanent link"></a></h1>
+<p>这是一个 6–8 周、2–3 人组队的大项目。学生在一个<strong>离散事件、不可靠网络模拟器</strong>上实现
+可靠、有序、受流量控制并带拥塞控制的字节流协议。这里的 UDP/网络只是教学 harness；本项目
+明确<strong>不是 raw socket 生产 TCP，也不要求替换操作系统 TCP 栈</strong>。</p>
+<h2 id="_1">先修<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li><code>net-01</code>：TCP/IP 分层、序号/确认、滑动窗口、AIMD 与慢启动；</li>
+<li><code>os-01/02</code>：文件描述符、定时器、状态机和并发的基本概念；</li>
+<li>Python 3.10+、<code>dataclasses</code>、队列/堆和 <code>unittest</code>；</li>
+<li>能用不变量描述“已发送未确认”“接收窗口”“下一个期望字节”。</li>
+</ul>
+<h2 id="_2">目标<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ol>
+<li>把“可靠字节流”拆成分段、序号、累积 ACK、乱序重组和 EOF；</li>
+<li>在可控的丢包、重复、乱序、延迟网络上实现 RTO/重传和流量控制；</li>
+<li>用显式连接状态机处理握手、关闭、半关闭和 TIME_WAIT；</li>
+<li>实现慢启动、拥塞避免、超时退让，并用日志解释 cwnd 的变化；</li>
+<li>用参考 endpoint 和文件 checksum 证明实现不是只在 happy path 上工作。</li>
+</ol>
+<h2 id="_3">周期与组队<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>建议 6–8 周，2–3 人一组；每周提交一个可回放的场景日志。个人项目必须保留同样的设计
+审查、故障矩阵和抓包/事件分析记录。</p>
+<h2 id="_4">目录<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>starter/packet.py</code></td>
+<td>Segment/packet JSON schema 与结构校验</td>
+</tr>
+<tr>
+<td><code>starter/network.py</code></td>
+<td>可注入丢包、重复、乱序、延迟和限速的离散网络接口</td>
+</tr>
+<tr>
+<td><code>starter/protocol.py</code></td>
+<td>ByteStream、Sender、Receiver、Connection 的公开接口；核心方法 TODO</td>
+</tr>
+<tr>
+<td><code>starter/driver.py</code></td>
+<td>读取网络 fixture 并回放一条最小 packet 事件</td>
+</tr>
+<tr>
+<td><code>fixtures/loss_reorder.json</code></td>
+<td>机器可读网络场景、载荷和测试 cases</td>
+</tr>
+<tr>
+<td><code>tests/test_scaffold.py</code></td>
+<td>当前应通过的结构、schema、网络 harness 测试</td>
+</tr>
+<tr>
+<td><code>acceptance/</code></td>
+<td>学生实现后才开启的可靠传输验收，默认跳过</td>
+</tr>
+<tr>
+<td><code>scripts/verify_scaffold.py</code></td>
+<td>仅 Python 标准库的脚手架检查</td>
+</tr>
+<tr>
+<td><code>DESIGN.md</code> / <code>rubric.md</code></td>
+<td>设计报告模板与细化评分</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">里程碑<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ol>
+<li><strong>M1 · ByteStream 与 packet（第 1 周）</strong>：确定字节流 EOF/容量契约，完成 Segment 编解码、
+   序号空间和 checksum/字段合法性测试。</li>
+<li><strong>M2 · sender/receiver（第 2–3 周）</strong>：分段、累积 ACK、乱序重组、重复包和接收窗口；
+   在 0% 丢包、可乱序场景下与参考 endpoint 互通。</li>
+<li><strong>M3 · 定时与重传（第 4 周）</strong>：可注入时钟、RTO 估计、超时重传、重传去重；每个计时器
+   都能在单元测试中推进，不读取真实 wall clock。</li>
+<li><strong>M4 · 连接状态机（第 5 周）</strong>：三次握手、四次挥手、半关闭、RST/错误和 TIME_WAIT，
+   日志可说明每次状态转移原因。</li>
+<li><strong>M5 · 流量/拥塞控制（第 6–7 周）</strong>：同时服从接收窗口和 cwnd，完成慢启动/AIMD；
+   输出吞吐、重传、RTT、cwnd/ssthresh 的时间序列。</li>
+<li><strong>M6 · 互通与报告（第 8 周）</strong>：0/10/30% 丢包、重复/乱序/长延迟混合测试，与参考
+   endpoint 互通，提交故障矩阵和性能报告。</li>
+</ol>
+<h2 id="_6">学生任务边界<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>教师提供 packet 字段约定、离散网络、事件回放、公开 fixture、参考黑盒 endpoint 的调用
+边界和 checksum/文件校验规则。学生实现 ByteStream、sender/receiver、RTO/重传、连接
+状态机、流量控制和拥塞控制；可替换数据结构但不可改变公开方法的语义。</p>
+<p>不得调用真实网络、操作系统 TCP、第三方可靠传输库或把一个现成 TCP 实现改名提交。可以
+使用 Python 标准库中的 <code>heapq</code>、<code>random</code>、<code>enum</code> 和日志工具。harness 的随机种子、时钟
+和故障注入必须可复现。</p>
+<h2 id="_7">给定接口契约<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Segment</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ByteStream</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Sender</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_application_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Segment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span> <span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Receiver</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Segment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Connection</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">segment</span><span class="p">:</span> <span class="n">Segment</span><span class="p">,</span> <span class="n">now</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segment</span><span class="p">]:</span> <span class="o">...</span>
+</code></pre></div>
+<p><code>starter/network.py</code> 的 <code>DiscreteNetwork</code> 是教师提供的故障注入层，学生不得把它改成真实
+套接字。发送端的有效发送量必须满足 <code>min(advertised_window, congestion_window)</code>；序号空间、
+ACK 累积规则、timer 单调时间和连接状态转移应在 <code>DESIGN.md</code> 中明确。</p>
+<h2 id="_8">运行与验收命令<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p>在本项目目录执行：</p>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>scripts/verify_scaffold.py
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>tests<span class="w"> </span>-v
+python3<span class="w"> </span>-m<span class="w"> </span>py_compile<span class="w"> </span>starter/*.py<span class="w"> </span>scripts/verify_scaffold.py<span class="w"> </span>tests/test_scaffold.py<span class="w"> </span>acceptance/test_student_acceptance.py
+python3<span class="w"> </span>starter/driver.py<span class="w"> </span>--fixture<span class="w"> </span>fixtures/loss_reorder.json
+<span class="nv">RUN_STUDENT_ACCEPTANCE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>acceptance<span class="w"> </span>-v
+</code></pre></div>
+<p>前四条属于脚手架 CI，当前 TODO 也应通过；最后一条显式开启学生验收，在未实现 sender/
+receiver 时预期失败。教师 CI 不应无条件执行该 job。</p>
+<h2 id="_9">故障、边界与性能测试<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
+<p>公开层覆盖：0% 丢包、单包/空 payload、最大 payload、重复包、乱序包、ACK 过期、窗口为 0、
+延迟大于 RTO、序号回绕、SYN/FIN 丢失、半关闭、RST 和连接取消。隐藏场景组合 10%/30% 丢包、
+突发丢包、重复+乱序、ACK-only 包、带宽上限、长 RTT 和多个并发连接。</p>
+<p>正确性必须用文件长度、字节 checksum、首个/最后一个序号和 receiver 输出对照，而不是只看
+“连接最终关闭”。性能至少记录 goodput、总 ticks、重传数、峰值 in-flight、cwnd/ssthresh、
+RTO/RTT；固定 seed，比较窗口大小和故障率，并解释吞吐/公平性的变化。</p>
+<h2 id="rubric4025151010">Rubric（40/25/15/10/10）<a class="headerlink" href="#rubric4025151010" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">权重</th>
+<th>评分要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能正确性</td>
+<td style="text-align: right;">40%</td>
+<td>字节流、分段、ACK、重组、重传、连接与拥塞控制的契约测试</td>
+</tr>
+<tr>
+<td>故障与边界</td>
+<td style="text-align: right;">25%</td>
+<td>丢包/乱序/重复/延迟/窗口为 0/回绕/关闭与错误路径</td>
+</tr>
+<tr>
+<td>性能/资源</td>
+<td style="text-align: right;">15%</td>
+<td>goodput、ticks、重传率、cwnd/RTO 数据和可复现实验</td>
+</tr>
+<tr>
+<td>结构与文档</td>
+<td style="text-align: right;">10%</td>
+<td>层次边界、状态机、可观察日志、可注入时钟、测试组织</td>
+</tr>
+<tr>
+<td>报告与反思</td>
+<td style="text-align: right;">10%</td>
+<td>故障矩阵、抓包/事件分析、失败尝试、成员分工与限制</td>
+</tr>
+</tbody>
+</table>
+<p>详见 <a href="rubric.html"><code>rubric.md</code></a>。</p>
+<h2 id="_10">交付物<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
+<ul>
+<li>可在无网络权限环境运行的模拟协议实现；</li>
+<li><code>README.md</code>、<code>DESIGN.md</code>、补充单元/场景测试和固定 seed 的事件日志；</li>
+<li>2–6 页报告，包含状态机图、序号/窗口不变量、RTO/cwnd 曲线和至少一个失败案例；</li>
+<li>0%、10%、30% 丢包/乱序矩阵、与参考 endpoint 的互通结果和运行环境。</li>
+</ul>
+<h2 id="_11">学术诚信<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
+<p>可查阅 RFC、教材和课程讲义，必须注明引用。不得复制 Linux/BSD/QUIC/第三方可靠 UDP 的
+实现、绕过故障注入、篡改参考 checksum、伪造丢包实验或伪造抓包日志。自动生成代码也必须
+由提交者解释状态机和每个不变量。</p>
+<h2 id="_12">平台条件<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
+<p>脚手架、离散网络和公开测试只需要 Python 3.10+ 标准库，Mac/Windows/Linux 均可。不要把
+管理员权限、真实网卡、UDP 端口、root、特定内核 TCP 行为写入作业依赖。若选做实时可视化，
+把它放在非必需的报告工具中。</p>
+<h2 id="_13">可选挑战<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
+<ul>
+<li>fast retransmit/fast recovery，并比较超时与三次重复 ACK；</li>
+<li>SACK 或 selective repeat 的事件日志；</li>
+<li>两条连接共享 bottleneck 时的 AIMD 公平性实验；</li>
+<li>用性质测试检查重复/乱序的任意排列都不改变最终字节流；</li>
+<li>将同一协议适配到真实 UDP，仅作隔离实验，必须与核心评分路径分开并说明风险。</li>
+</ul>
+<h2 id="_14">讲义映射<a class="headerlink" href="#_14" title="Permanent link"></a></h2>
+<ul>
+<li>主线：<a href="../../net-01-tcpip.html"><code>net-01-tcpip.md</code></a>；</li>
+<li>进程/计时器背景：<code>os-01/02</code>；</li>
+<li>应用层互通背景：<code>net-02-application.md</code>；</li>
+<li>小实验对照：<a href="../../labs.html"><code>labs/L12-http-server</code></a>（只借鉴测试组织，
+  不把 HTTP/TCP 生产 socket 当作本项目实现）。</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>运行时、GIL 与性能生态 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -56,9 +56,11 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <p><img alt="CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。" src="assets/img/py-02-cpython.svg" /></p>
 <figcaption><span class="fig-id">图 py-02.3</span>CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。</figcaption>
 </figure>
-<p>你写的 <code>.py</code> 不是直接执行的。CPython（最主流的实现）分两步（🔗 comp-02 的"字节码 + 虚拟机"）：
-1. <strong>编译成字节码</strong>：<code>.py</code> → 一串字节码指令（<code>.pyc</code> 缓存）——这是编译，不是机器码。
-2. <strong>字节码解释器执行</strong>：一个大循环逐条取字节码、执行——<strong>这就是 Python"慢"的根源</strong>：每条操作都要经过解释器的分发、每个对象都是堆上的装箱对象（<code>int</code> 也是对象，带引用计数 + 类型信息）、动态类型意味着每次操作都要运行时查类型。</p>
+<p>你写的 <code>.py</code> 不是直接执行的。CPython（最主流的实现）分两步（🔗 comp-02 的"字节码 + 虚拟机"）：</p>
+<ol>
+<li><strong>编译成字节码</strong>：<code>.py</code> → 一串字节码指令（<code>.pyc</code> 缓存）——这是编译，不是机器码。</li>
+<li><strong>字节码解释器执行</strong>：一个大循环逐条取字节码、执行——<strong>这就是 Python"慢"的根源</strong>：每条操作都要经过解释器的分发、每个对象都是堆上的装箱对象（<code>int</code> 也是对象，带引用计数 + 类型信息）、动态类型意味着每次操作都要运行时查类型。</li>
+</ol>
 <p><strong>"慢"的量级</strong>：纯 Python 数值循环比 C 慢约 <strong>50–100 倍</strong>——因为 C 直接在寄存器上算，Python 每步都在解释 + 装箱。<strong>但这不是 Python 的失败</strong>——它用运行速度换开发速度和灵活性，且热点可以下沉（第 4 节）。<strong>理解"Python 慢在解释 + 装箱 + 动态"，你就知道该在哪优化</strong>（把热循环交给 numpy/C，而非用纯 Python 硬扛）。</p>
 <p><strong>内存管理</strong>：CPython 用<strong>引用计数为主 + 分代 GC 补充</strong>（🔗 pl-02）——对象引用归零立即回收（及时、可预测），循环引用靠周期性 GC 清。所以 Python 里"什么时候释放内存"比追踪式 GC 更可预测，但引用计数的更新有开销、且是 GIL 的一个原因。</p>
 <h2 id="2-gil">2. GIL：多线程并行的墙<a class="headerlink" href="#2-gil" title="Permanent link"></a></h2>
@@ -73,9 +75,11 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <li><strong>CPU 密集任务</strong>（纯 Python 计算）：多线程<strong>无并行加速</strong>，甚至因锁竞争更慢（🔗 par-01 Amdahl 的极端——串行部分是整个解释器）。</li>
 <li><strong>I/O 密集任务</strong>：多线程<strong>有效</strong>——因为线程等 I/O 时<strong>释放 GIL</strong>，别的线程能跑。所以"多线程做并发下载/请求"在 Python 里是可行的。</li>
 </ul>
-<p><strong>这直接决定 Medusa 的并发选择</strong>：
-- 等数据库、等 DeepSeek API = <strong>I/O 密集</strong> → <strong>async 或多线程都行</strong>（GIL 不碍事，等待时释放）。
-- 本地跑 embedding、大量数值计算 = <strong>CPU 密集</strong> → 多线程没用，要<strong>多进程</strong>或<strong>下沉到 C/numpy</strong>（下节）。</p>
+<p><strong>这直接决定 Medusa 的并发选择</strong>：</p>
+<ul>
+<li>等数据库、等 DeepSeek API = <strong>I/O 密集</strong> → <strong>async 或多线程都行</strong>（GIL 不碍事，等待时释放）。</li>
+<li>本地跑 embedding、大量数值计算 = <strong>CPU 密集</strong> → 多线程没用，要<strong>多进程</strong>或<strong>下沉到 C/numpy</strong>（下节）。</li>
+</ul>
 <h2 id="3-gil">3. 三条绕开 GIL / 提速的路<a class="headerlink" href="#3-gil" title="Permanent link"></a></h2>
 <ul>
 <li><strong>多进程（multiprocessing）</strong>：每个进程有自己的解释器 + GIL——<strong>真正并行用满多核</strong>，代价是进程间通信要序列化（pickle）+ 内存不共享（🔗 os-01 进程 vs 线程、par-01 消息传递）。CPU 密集的 Python 并行正道。</li>
@@ -88,18 +92,22 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <p><img alt="下沉热点：Python 胶水层 + numpy/C/CUDA 底座。" src="assets/img/py-02-numpy-sink.svg" /></p>
 <figcaption><span class="fig-id">图 py-02.1</span>下沉热点：Python 胶水层 + numpy/C/CUDA 底座。</figcaption>
 </figure>
-<p>Python 之所以统治数据科学/AI，不是因为快，而是因为<strong>它是一层友好的胶水，底下挂着高度优化的 C/Fortran/CUDA 库</strong>：
-- <strong>numpy</strong>：向量化数组运算——一个 <code>a * b</code>（数组）在 C 层用连续内存 + SIMD（🔗 perf-01）算完，<strong>比 Python 循环快几十上百倍</strong>。诀窍是<strong>别写 Python 循环，写数组操作</strong>（把循环下沉到 C）。
-- <strong>pandas / polars</strong>：数据框，列式 + 向量化（🔗 db-02 列存、perf-02）。
-- <strong>PyTorch / JAX</strong>：张量运算 + autodiff，底下是 CUDA（🔗 gpu 线、mlsys 线）——你的 embedding 生成、模型推理全靠它们把重活丢给 GPU。
-- <strong>Cython / C 扩展 / ctypes / PyO3(Rust)</strong>：把你自己的热点函数写成编译语言。</p>
+<p>Python 之所以统治数据科学/AI，不是因为快，而是因为<strong>它是一层友好的胶水，底下挂着高度优化的 C/Fortran/CUDA 库</strong>：</p>
+<ul>
+<li><strong>numpy</strong>：向量化数组运算——一个 <code>a * b</code>（数组）在 C 层用连续内存 + SIMD（🔗 perf-01）算完，<strong>比 Python 循环快几十上百倍</strong>。诀窍是<strong>别写 Python 循环，写数组操作</strong>（把循环下沉到 C）。</li>
+<li><strong>pandas / polars</strong>：数据框，列式 + 向量化（🔗 db-02 列存、perf-02）。</li>
+<li><strong>PyTorch / JAX</strong>：张量运算 + autodiff，底下是 CUDA（🔗 gpu 线、mlsys 线）——你的 embedding 生成、模型推理全靠它们把重活丢给 GPU。</li>
+<li><strong>Cython / C 扩展 / ctypes / PyO3(Rust)</strong>：把你自己的热点函数写成编译语言。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>Python 性能优化的第一原则是"下沉热点"</strong>——用 profiler（<code>cProfile</code>）找瓶颈，把热循环改成 numpy 向量化操作或 C 扩展，让 Python 只当调度层。<strong>对 Medusa</strong>：数据处理用 pandas/numpy 向量化而非 Python 循环；真要极致性能的小热点，可考虑 Rust 写扩展（🔗 rust 线，PyO3 让 Rust 无缝当 Python 库）。</p>
 <h2 id="5-python">5. 打包与依赖：Python 的另一个痛点<a class="headerlink" href="#5-python" title="Permanent link"></a></h2>
-<p>Python 的依赖管理是出了名的乱（🔗 csapp-03 动态链接、cloud-01 容器的动机之一就是治它）：
-- <strong>虚拟环境</strong>：<code>venv</code>/<code>conda</code> 隔离每个项目的依赖——<strong>别往全局装</strong>（你的课程站都用独立 venv，正确）。
-- <strong>依赖锁定</strong>：<code>requirements.txt</code>/<code>pyproject.toml</code> + lockfile 固定版本——保证可复现（🔗 se-02、sec-02 供应链）。
-- <strong>现代工具</strong>：<code>uv</code>/<code>poetry</code>/<code>pip-tools</code> 让依赖管理更可靠。
-- <strong>容器化终极方案</strong>：把 Python + 依赖打进 Docker（🔗 cloud-01）——彻底消除"环境不一致"，Medusa 的 Postgres 已容器化，应用层同理可控。</p>
+<p>Python 的依赖管理是出了名的乱（🔗 csapp-03 动态链接、cloud-01 容器的动机之一就是治它）：</p>
+<ul>
+<li><strong>虚拟环境</strong>：<code>venv</code>/<code>conda</code> 隔离每个项目的依赖——<strong>别往全局装</strong>（你的课程站都用独立 venv，正确）。</li>
+<li><strong>依赖锁定</strong>：<code>requirements.txt</code>/<code>pyproject.toml</code> + lockfile 固定版本——保证可复现（🔗 se-02、sec-02 供应链）。</li>
+<li><strong>现代工具</strong>：<code>uv</code>/<code>poetry</code>/<code>pip-tools</code> 让依赖管理更可靠。</li>
+<li><strong>容器化终极方案</strong>：把 Python + 依赖打进 Docker（🔗 cloud-01）——彻底消除"环境不一致"，Medusa 的 Postgres 已容器化，应用层同理可控。</li>
+</ul>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（GIL 实证）</strong> 写一个 CPU 密集函数（如大量纯 Python 求和），分别用单线程、多线程（4 线程）、多进程（4 进程）跑，测时间——<strong>多线程不加速甚至更慢、多进程才快</strong>，GIL 的墙亲眼可见。再换成 I/O 密集（sleep 模拟），多线程就有效了。</p>
 <p><strong>例 2（numpy 下沉）</strong> 同一个数组运算用 Python 循环 vs numpy 向量化，测加速比（几十倍起）——<strong>理解"把循环下沉到 C"为什么是 Python 性能的正道</strong>。Medusa 数据处理直接可用。</p>

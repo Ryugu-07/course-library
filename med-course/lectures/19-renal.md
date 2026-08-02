@@ -96,6 +96,14 @@ $$FeNa = \frac{U_{Na}\times P_{Cr}}{P_{Na}\times U_{Cr}}\times 100\%$$
 
 **移植**（免疫学见第 10 页）是终末期肾病生存与生活质量最好的选择，**限制在供体短缺**。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验 AKI、CKD、肾小球病、水电解质、酸碱、尿路感染和透析/移植的疾病框架；分期、药物剂量、透析和移植决策以当地肾脏病指南为准。
+- [KDIGO Guidelines](https://kdigo.org/guidelines/) — KDIGO：肾脏病临床实践指南总入口。
+- [KDIGO 2024 CKD Evaluation and Management Guideline](https://kdigo.org/guidelines/ckd-evaluation-and-management/) — KDIGO，2024：CKD 评估、分层与管理。
+- [KDIGO 2022 Diabetes Management in CKD Guideline](https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf) — KDIGO，2022：糖尿病合并 CKD 的综合管理。
+- [Asymptomatic Bacteriuria](https://www.idsociety.org/practice-guideline/asymptomatic-bacteriuria/) — IDSA，2019：无症状菌尿的筛查与治疗边界。
+
 ---
 
 *下一页：内分泌与代谢，以糖尿病为主线——本站与心血管、肾脏、神经三线的交汇点。*

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>事务、MVCC 与恢复 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,11 +55,13 @@
 </blockquote>
 <h2 id="1-acid">1. ACID 与并发的威胁<a class="headerlink" href="#1-acid" title="Permanent link"></a></h2>
 <p><strong>ACID</strong>：<strong>原子性</strong>（Atomicity，全做或全不做）、<strong>一致性</strong>（Consistency，不破坏约束）、<strong>隔离性</strong>（Isolation，并发如串行）、<strong>持久性</strong>（Durability，提交不丢）。前三个防并发与故障，最后一个防断电。</p>
-<p><strong>并发事务不控制会怎样</strong>（隔离性要消灭的异常）：
-- <strong>脏读</strong>：读到别的事务还没提交的数据（它可能回滚）。
-- <strong>不可重复读</strong>：同一事务内两次读同一行结果不同（别人中途改了并提交）。
-- <strong>幻读</strong>：两次范围查询行数不同（别人插了新行）。
-- <strong>丢失更新</strong>：os-02 的竞态在数据库版（两个事务读同一值各自加、后写覆盖前写）。</p>
+<p><strong>并发事务不控制会怎样</strong>（隔离性要消灭的异常）：</p>
+<ul>
+<li><strong>脏读</strong>：读到别的事务还没提交的数据（它可能回滚）。</li>
+<li><strong>不可重复读</strong>：同一事务内两次读同一行结果不同（别人中途改了并提交）。</li>
+<li><strong>幻读</strong>：两次范围查询行数不同（别人插了新行）。</li>
+<li><strong>丢失更新</strong>：os-02 的竞态在数据库版（两个事务读同一值各自加、后写覆盖前写）。</li>
+</ul>
 <p><strong>隔离级别</strong>是"允许哪些异常换多少并发"的旋钮：读未提交 &lt; 读已提交 &lt; 可重复读 &lt; <strong>可串行化</strong>（最严，完全等价某个串行顺序，无任何异常）。<strong>级别越高越安全越慢</strong>——又一个 CS 里无处不在的权衡。Postgres 默认"读已提交"，Medusa 若有并发写要想清楚够不够。</p>
 <h2 id="2">2. 可串行化：正确性的黄金标准<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -86,10 +88,12 @@
 </figure>
 <p><strong>问题</strong>：事务提交了但脏页还在缓冲池没落盘，此刻断电——怎么保证已提交的不丢（D）、未提交的不残留（A）？<strong>答案是预写日志 WAL（Write-Ahead Logging）</strong>，和 os-03 文件系统日志是<strong>同一思想</strong>：</p>
 <p><strong>WAL 铁律</strong>：<strong>任何数据页写回磁盘之前，描述这次修改的日志必须先落盘</strong>（write-ahead）。日志是<strong>顺序追加</strong>的（快），记录每次修改的 redo（如何重做）和 undo（如何撤销）信息。</p>
-<p><strong>ARIES 恢复三阶段【骨架】</strong>：崩溃重启后——
-1. <strong>分析</strong>：扫日志，确定崩溃时哪些事务未完成、哪些脏页。
-2. <strong>Redo（重做）</strong>：从日志重放所有修改（包括未提交的），把数据库恢复到崩溃<strong>那一刻</strong>的精确状态。
-3. <strong>Undo（撤销）</strong>：回滚所有未提交事务的修改（用 undo 信息）。</p>
+<p><strong>ARIES 恢复三阶段【骨架】</strong>：崩溃重启后——</p>
+<ol>
+<li><strong>分析</strong>：扫日志，确定崩溃时哪些事务未完成、哪些脏页。</li>
+<li><strong>Redo（重做）</strong>：从日志重放所有修改（包括未提交的），把数据库恢复到崩溃<strong>那一刻</strong>的精确状态。</li>
+<li><strong>Undo（撤销）</strong>：回滚所有未提交事务的修改（用 undo 信息）。</li>
+</ol>
 <p><strong>结果</strong>：已提交的事务其修改一定在（D，靠 redo）、未提交的一定没有（A，靠 undo）。<strong>"先写日志、崩溃后重放 redo 撤销 undo"——这套机制让数据库能在任意时刻断电而不损坏</strong>。提交的定义就是"<strong>commit 日志记录落盘</strong>"那一刻（所以提交要 <code>fsync</code>，慢但可靠，🔗 os-03 "写入 ≠ 持久化")。</p>
 <p><strong>这条主线的完整闭环</strong>：os-03 文件系统日志 → 本页数据库 WAL → dist-02 分布式的复制日志（Raft log）——<strong>"把状态变更写成一条不可变的顺序日志"是可靠系统的元思想</strong>，本站三处呼应，你会在 dist 线看到它第三次登场。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
@@ -99,14 +103,16 @@
 <hr />
 <h3 id="project-p02">📋 大 Project P02（第三阶段·收官）· 事务与恢复<a class="headerlink" href="#project-p02" title="Permanent link"></a></h3>
 <blockquote>
-<p><strong>P02-C · ACID、MVCC 与 WAL</strong>（承接 P02-A/B）：
-- <strong>学习目标</strong>：让学生体验“正确的数据库不是能查数据，而是在并发和崩溃下仍然不撒谎”。
-- <strong>教师提供</strong>：事务 API 骨架、并发事务调度器、崩溃注入 harness（在指定日志序号后 kill 进程）、隔离异常测试样例。
-- <strong>学生任务</strong>：① 选择 MVCC 快照隔离或 2PL 可串行化路线，并在报告中说明取舍；② 实现事务开始/提交/回滚、版本可见性或锁管理、死锁检测/写冲突处理；③ 实现 WAL，保证 commit record 落盘后 redo/undo 恢复正确。
-- <strong>正确性约束</strong>：提交点必须有明确定义；任何数据页刷盘前对应日志必须已刷；并发读写不得出现脏读、丢失更新；回滚必须清理索引与数据版本的一致性。
-- <strong>验收测试</strong>：隔离级别测试通过；崩溃发生在“写日志前/写日志后/提交后/脏页刷盘后”的多种时刻，重启后已提交在、未提交无；长事务读快照期间并发写不破坏可见性。
-- <strong>评分重点</strong>：事务语义 25%，并发控制 30%，WAL 恢复 30%，故障注入报告 15%。
-- <strong>P02 总结报告</strong>：要求学生用一条 SQL 从解析、计划、索引访问、事务提交、WAL 落盘到崩溃恢复画出端到端路径。</p>
+<p><strong>P02-C · ACID、MVCC 与 WAL</strong>（承接 P02-A/B）：</p>
+<ul>
+<li><strong>学习目标</strong>：让学生体验“正确的数据库不是能查数据，而是在并发和崩溃下仍然不撒谎”。</li>
+<li><strong>教师提供</strong>：事务 API 骨架、并发事务调度器、崩溃注入 harness（在指定日志序号后 kill 进程）、隔离异常测试样例。</li>
+<li><strong>学生任务</strong>：① 选择 MVCC 快照隔离或 2PL 可串行化路线，并在报告中说明取舍；② 实现事务开始/提交/回滚、版本可见性或锁管理、死锁检测/写冲突处理；③ 实现 WAL，保证 commit record 落盘后 redo/undo 恢复正确。</li>
+<li><strong>正确性约束</strong>：提交点必须有明确定义；任何数据页刷盘前对应日志必须已刷；并发读写不得出现脏读、丢失更新；回滚必须清理索引与数据版本的一致性。</li>
+<li><strong>验收测试</strong>：隔离级别测试通过；崩溃发生在“写日志前/写日志后/提交后/脏页刷盘后”的多种时刻，重启后已提交在、未提交无；长事务读快照期间并发写不破坏可见性。</li>
+<li><strong>评分重点</strong>：事务语义 25%，并发控制 30%，WAL 恢复 30%，故障注入报告 15%。</li>
+<li><strong>P02 总结报告</strong>：要求学生用一条 SQL 从解析、计划、索引访问、事务提交、WAL 落盘到崩溃恢复画出端到端路径。</li>
+</ul>
 </blockquote>
 <hr />
 <p><em>数据库三页完成。下一页进入分布式 I——多台机器协作的世界：时钟、一致性模型，以及 CAP 定理为什么让你必须取舍。</em></p>

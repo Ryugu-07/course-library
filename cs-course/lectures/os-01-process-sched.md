@@ -66,6 +66,7 @@
 > **教师版作业说明书，不提供完整解。** xv6 是 MIT 6.S081 用的教学版 Unix，麻雀虽小五脏俱全。P01 分三阶段随 os-01/02/03 展开，目标是让学生亲手改过系统调用、调度、锁、文件系统与虚拟内存。
 >
 > **P01-A · 系统调用与进程**
+>
 > - **学习目标**：理解一次系统调用从用户态 wrapper 到 trap、`syscall()` 分发、内核实现、返回用户态的全链路；理解进程表、调度器与时间片。
 > - **教师提供**：xv6-riscv 基线、`make grade` 公共测试、`user/trace.c` 与 `user/sysinfotest.c` 的测试骨架、一个可重复的 CPU-bound / I/O-bound 调度 benchmark。
 > - **学生任务**：① 实现 `trace(mask)`，按 bitmask 打印指定系统调用轨迹；② 实现 `sysinfo`，报告空闲内存与进程数；③ 增加 `setpriority(pid, prio)` 并把默认 RR 扩展成简单优先级调度，要求保留无饥饿策略（如 aging）。

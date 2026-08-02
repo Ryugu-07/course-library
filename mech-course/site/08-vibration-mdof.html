@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -72,22 +72,28 @@
 <p><strong>注意阻尼的前提</strong>：只有<strong>比例阻尼</strong>（<span class="arithmatex">\(\mathbf{C}=\alpha\mathbf{M}+\beta\mathbf{K}\)</span>，即瑞利阻尼）才能被同一组模态解耦。<strong>真实结构的阻尼往往不是比例的</strong>（局部阻尼器、连接摩擦），此时需要复模态分析。<strong>工程上常直接假设比例阻尼并给各阶模态指定实测阻尼比</strong>——这是一个务实但需要意识到的近似。</p>
 <h2 id="_3">三、模态的工程意义<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>① 只有少数几阶模态重要。</strong> 高阶模态频率高、且通常被激励不到。<strong>工程上常只保留前若干阶</strong>（模态截断），把上万自由度的模型降到几十个模态——<strong>这使得动力学仿真可行</strong>，也是 🔗 自动化站第七页"平衡截断降阶"的力学版本。</p>
-<p><strong>② 振型决定"哪里该加固"。</strong> 若某阶模态的振型在某处位移大，则：
-- 在<strong>位移大处加质量</strong> → 降低该阶频率；
-- 在<strong>变形大（应变能高）处加刚度</strong> → 提高该阶频率。</p>
+<p><strong>② 振型决定"哪里该加固"。</strong> 若某阶模态的振型在某处位移大，则：</p>
+<ul>
+<li>在<strong>位移大处加质量</strong> → 降低该阶频率；</li>
+<li>在<strong>变形大（应变能高）处加刚度</strong> → 提高该阶频率。</li>
+</ul>
 <p><strong>在振型的节点处加固几乎无效</strong>——这是很多"加了筋却没用"的原因。<strong>必须先看振型，再决定加哪里。</strong></p>
 <p><strong>③ 振型决定"哪里该测量"。</strong> 传感器放在节点上会测不到该阶模态。<strong>这与 🔗 自动化站第七页的"能观性"是同一个概念</strong>——传感器位置决定了哪些模态可观测。</p>
 <h2 id="_4">四、实验模态分析：业界的标准手段<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>理论计算需要模型，<strong>实验模态分析（EMA）直接从实测得到模态参数</strong>：</p>
-<p><strong>流程</strong>：
-1. <strong>激励</strong>：力锤敲击（快速、适合现场）或激振器（可控、适合精细测量）；
-2. <strong>测量</strong>：加速度计或激光测振仪采集响应；
-3. <strong>计算频响函数（FRF）</strong> <span class="arithmatex">\(H(\omega) = X(\omega)/F(\omega)\)</span>；
-4. <strong>参数识别</strong>：从 FRF 的峰值提取固有频率、阻尼比、振型。</p>
-<p><strong>它的用途</strong>：
-- <strong>验证有限元模型</strong>（计算与实测对不上，说明模型的边界条件或连接刚度假设错了——<strong>这是最常见的原因</strong>）；
-- <strong>诊断现场振动问题</strong>：先测出结构固有频率，再与激励频率比对；
-- <strong>模型修正</strong>：用实测数据反调有限元模型参数。</p>
+<p><strong>流程</strong>：</p>
+<ol>
+<li><strong>激励</strong>：力锤敲击（快速、适合现场）或激振器（可控、适合精细测量）；</li>
+<li><strong>测量</strong>：加速度计或激光测振仪采集响应；</li>
+<li><strong>计算频响函数（FRF）</strong> <span class="arithmatex">\(H(\omega) = X(\omega)/F(\omega)\)</span>；</li>
+<li><strong>参数识别</strong>：从 FRF 的峰值提取固有频率、阻尼比、振型。</li>
+</ol>
+<p><strong>它的用途</strong>：</p>
+<ul>
+<li><strong>验证有限元模型</strong>（计算与实测对不上，说明模型的边界条件或连接刚度假设错了——<strong>这是最常见的原因</strong>）；</li>
+<li><strong>诊断现场振动问题</strong>：先测出结构固有频率，再与激励频率比对；</li>
+<li><strong>模型修正</strong>：用实测数据反调有限元模型参数。</li>
+</ul>
 <p><strong>一个实践要点</strong>：<strong>有限元算出的固有频率往往偏高</strong>，因为模型中的连接（螺栓、焊缝、导轨）通常被建得过于刚硬，而真实连接有柔性与间隙。<strong>"计算频率比实测高 10–30%"是常见现象</strong>，模型修正的主要工作就是调这些连接刚度。</p>
 <h2 id="_5">五、连续体的振动<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>杆、梁、板、壳有无穷多自由度。经典解给出解析的频率与振型。</p>

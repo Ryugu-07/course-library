@@ -91,6 +91,13 @@
 
 **SASP 是理解"老化即慢性炎症（inflammaging）"的枢纽**，也是**衰老细胞清除剂（senolytics）**这一新药类别的理论基础——🔗 生命的逻辑站第 09 页有该机制的生物学全景与证据强度评估，本站不重复。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验细胞适应、可逆损伤、细胞死亡与坏死形态；具体病理诊断需结合组织学、临床和实验室证据。
+- [Histology, Cell Death](https://www.ncbi.nlm.nih.gov/books/NBK526045/) — NLM/NIH Bookshelf：凋亡、坏死与其他细胞死亡形式。
+- [Pathology, Inflammation](https://www.ncbi.nlm.nih.gov/books/NBK534820/) — NLM/NIH Bookshelf：损伤后炎症反应的病理学基础。
+- [Necrosis Pathology](https://www.ncbi.nlm.nih.gov/books/NBK557627/) — NLM/NIH Bookshelf：坏死形态、机制与临床关联。
+
 ---
 
 *下一页：炎症与修复——身体对损伤的标准应答程序，以及为什么这个程序本身常常就是疾病。*

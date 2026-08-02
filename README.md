@@ -51,6 +51,19 @@ start-courses.bat
 
 课程入口是仓库根目录的 `index.html`。
 
+## 质量检查
+
+课程源文件修改后，先重建对应站点，再执行结构审查：
+
+```bash
+python3 -m pip install -r requirements-build.txt
+python3 tools/rebuild_all.py ai-course cs-course
+python3 tools/course_audit.py
+python3 tools/check_external_links.py med-course/lectures clinic-course/lectures
+```
+
+不传课程名时，`rebuild_all.py` 会重建全部 18 个站点。审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。
+
 ## Mac 端更新仓库
 
 各套原始课程仍保存在各自原目录。运行下面的脚本会把最新内容同步进本仓库，同时排除虚拟环境、模型、数据缓存、输出目录、真实 `.env` 和系统文件：

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "description": "教师故障注入目录；只描述故障点，不给出内核修复步骤。",
+  "faults": [
+    {"id": "fs-crash-before-commit", "target": "filesystem", "cut_after_log_record": 2, "expected": "discard-uncommitted-work"},
+    {"id": "symlink-cycle", "target": "path-resolution", "path": "/a/b", "cycle": ["/a/b", "/a/c", "/a/b"], "expected": "bounded-error"},
+    {"id": "mmap-dirty-exit", "target": "mmap", "dirty_page": true, "process_exits": true, "expected": "write-back-or-explicit-error"},
+    {"id": "lock-holder-abort", "target": "concurrency", "holder": "cpu-1", "waiter": "cpu-2", "expected": "no-permanent-unexplained-lock"}
+  ]
+}

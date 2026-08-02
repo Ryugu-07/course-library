@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>核函数优化阶梯 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -70,9 +70,11 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 <p><img alt="归约优化阶梯 naive 原子加→共享内存树形→warp shuffle。" src="assets/img/gpu-02-reduce-ladder.svg" /></p>
 <figcaption><span class="fig-id">图 gpu-02.2</span>归约优化阶梯 naive 原子加→共享内存树形→warp shuffle。</figcaption>
 </figure>
-<p>比共享内存更快的 block 内协作——<strong>warp 内 32 线程直接通过寄存器交换数据</strong>，不经共享内存：
-- <strong>warp shuffle（<code>__shfl_*</code>）</strong>：warp 内线程互读寄存器——<strong>归约（求和/求最大）在 warp 内可以不用共享内存、几条指令搞定</strong>（[L08] 的最高优化级）。
-- <strong>warp 级归约 + block 级归约的两级模式</strong>：先 warp 内 shuffle 归约、每 warp 出一个部分和、再由一个 warp 归约这些部分和——<strong>这是 GPU 上求和/softmax 分母/范数的标准高效实现</strong>。</p>
+<p>比共享内存更快的 block 内协作——<strong>warp 内 32 线程直接通过寄存器交换数据</strong>，不经共享内存：</p>
+<ul>
+<li><strong>warp shuffle（<code>__shfl_*</code>）</strong>：warp 内线程互读寄存器——<strong>归约（求和/求最大）在 warp 内可以不用共享内存、几条指令搞定</strong>（[L08] 的最高优化级）。</li>
+<li><strong>warp 级归约 + block 级归约的两级模式</strong>：先 warp 内 shuffle 归约、每 warp 出一个部分和、再由一个 warp 归约这些部分和——<strong>这是 GPU 上求和/softmax 分母/范数的标准高效实现</strong>。</li>
+</ul>
 <p><strong>读法</strong>：GPU 归约优化的阶梯 naive（全局内存原子加，慢）→ 共享内存树形归约 → warp shuffle，是[L08]要亲手走一遍的经典进化，<strong>每一级都在减少慢内存访问、增加片上协作</strong>。</p>
 <h2 id="4-attention-kernel-flashattention">4. 玩具 Attention Kernel:摸到 FlashAttention 的直觉<a class="headerlink" href="#4-attention-kernel-flashattention" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -83,9 +85,11 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 <p><strong>FlashAttention 的核心洞察</strong>（[实验 L09] 的目标）：<strong>不把 <span class="arithmatex">\(N\times N\)</span> 中间矩阵写回全局内存</strong>——用 tiling 把 Q、K、V 分块搬进共享内存，<strong>在片上流式地</strong>算局部 attention 并用"<strong>在线 softmax</strong>"（增量更新最大值和归一化因子，数值稳定）累积结果。<strong>中间矩阵从不落全局内存 → 内存访问量从 <span class="arithmatex">\(O(N^2)\)</span> 降到 <span class="arithmatex">\(O(N)\)</span></strong>，长序列大幅加速且省显存。</p>
 <p><strong>这缝合了本站三条线</strong>：GPU tiling（本页）+ 数值稳定的 softmax（🔗 数学站/ai 课的 log-sum-exp 技巧）+ Roofline"减少内存访问"（perf 线）。<strong>[L09] 做一个玩具版</strong>——不追求生产性能，但走通"分块 + 在线 softmax + 不落中间矩阵"的核心思路，你就摸到了 vLLM/FlashAttention 这类引擎（mlsys-02）最关键内核的骨架。</p>
 <h2 id="5">5. 优化闭环与工具<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>GPU 优化和 CPU 一样是<strong>测量驱动</strong>（perf-01）：
-- <strong>Nsight Compute / Nsight Systems</strong>：GPU 的 profiler——看 kernel 的占用率、内存吞吐、warp 发散、bank 冲突、是内存受限还是算力受限。
-- <strong>闭环</strong>：profile → 判断瓶颈（占用率？合并？发散？）→ 应用对应阶梯手法 → 再 profile。<strong>别凭感觉优化 GPU，Nsight 会告诉你真正的瓶颈在哪</strong>。</p>
+<p>GPU 优化和 CPU 一样是<strong>测量驱动</strong>（perf-01）：</p>
+<ul>
+<li><strong>Nsight Compute / Nsight Systems</strong>：GPU 的 profiler——看 kernel 的占用率、内存吞吐、warp 发散、bank 冲突、是内存受限还是算力受限。</li>
+<li><strong>闭环</strong>：profile → 判断瓶颈（占用率？合并？发散？）→ 应用对应阶梯手法 → 再 profile。<strong>别凭感觉优化 GPU，Nsight 会告诉你真正的瓶颈在哪</strong>。</li>
+</ul>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（tiling 复用率）</strong> 矩阵乘用 <span class="arithmatex">\(32\times32\)</span> 的 tile，每个全局元素被复用多少次？（约 32 次）——<strong>算一次，理解"tiling 把慢访问摊薄 32 倍"</strong>，GPU 矩阵乘为什么快一目了然。</p>
 <p><strong>例 2（归约三级对比）</strong> 在 [L08] 里对同一个求和跑 naive 原子加 / 共享内存树形 / warp shuffle 三版，测吞吐——<strong>亲手走完 GPU 归约优化阶梯</strong>，每级快多少心里有数。</p>

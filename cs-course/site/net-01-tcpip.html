@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分层、TCP/IP 与拥塞控制 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -126,10 +126,12 @@
 </ul>
 <p><strong>读法</strong>：<strong>拥塞控制是"自私的个体遵守简单规则、涌现出全局良序"的绝佳范例</strong>（🔗 与博弈论、物理站的涌现同构）。AIMD 为什么公平稳定，可以用一个二维相图证明（收敛到公平线上），是理论之美与工程实用的少见合体。</p>
 <h2 id="5-tcp-vs-udp">5. TCP vs UDP：什么时候不要可靠<a class="headerlink" href="#5-tcp-vs-udp" title="Permanent link"></a></h2>
-<p><strong>UDP</strong> 是"裸 IP + 端口"——不可靠、无序、无连接，但<strong>快、简单、无队头阻塞</strong>。选择取决于需求：
-- <strong>要可靠有序</strong> → TCP：网页、文件、数据库（Medusa 的一切 HTTP/Postgres 连接）。
-- <strong>要低延迟、丢几个无所谓</strong> → UDP：实时视频/语音、游戏、DNS。<strong>丢一帧视频不如迟到——这时 TCP 的重传反而有害</strong>。
-- <strong>现代趋势 QUIC</strong>（HTTP/3 的底座）：在 UDP 上重新实现可靠性 + 加密，<strong>避开 TCP 的队头阻塞、加速握手</strong>——"既要 UDP 的灵活又要 TCP 的可靠"（net-02 细说）。</p>
+<p><strong>UDP</strong> 是"裸 IP + 端口"——不可靠、无序、无连接，但<strong>快、简单、无队头阻塞</strong>。选择取决于需求：</p>
+<ul>
+<li><strong>要可靠有序</strong> → TCP：网页、文件、数据库（Medusa 的一切 HTTP/Postgres 连接）。</li>
+<li><strong>要低延迟、丢几个无所谓</strong> → UDP：实时视频/语音、游戏、DNS。<strong>丢一帧视频不如迟到——这时 TCP 的重传反而有害</strong>。</li>
+<li><strong>现代趋势 QUIC</strong>（HTTP/3 的底座）：在 UDP 上重新实现可靠性 + 加密，<strong>避开 TCP 的队头阻塞、加速握手</strong>——"既要 UDP 的灵活又要 TCP 的可靠"（net-02 细说）。</li>
+</ul>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（三次握手为什么是三次）</strong> 论证两次不够（服务器无法确认客户端能收）、四次多余——<strong>最小回合数的推理，理解协议设计的"恰好够用"</strong>。</p>
 <p><strong>例 2（AIMD 锯齿）</strong> 画出单个 TCP 连接窗口随时间的锯齿曲线，标出慢启动、拥塞避免、丢包减半——<strong>"带宽的呼吸"可视化</strong>，再想两个连接如何收敛到公平。</p>

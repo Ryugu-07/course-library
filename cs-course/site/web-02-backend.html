@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>后端工程 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li class="active"><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -56,10 +56,12 @@
 <p><img alt="后端骨架：路由→中间件→校验→处理→数据库→响应。" src="assets/img/web-02-request-flow.svg" /></p>
 <figcaption><span class="fig-id">图 web-02.3</span>后端骨架：路由→中间件→校验→处理→数据库→响应。</figcaption>
 </figure>
-<p>后端服务器的核心循环：<strong>接收 HTTP 请求 → 路由到对应处理函数 → 执行业务逻辑（常含数据库）→ 返回响应</strong>。FastAPI 里：
-- <strong>路由</strong>：<code>@app.get("/articles/{id}")</code> 把 URL 模式绑到函数，路径参数/查询参数/请求体自动解析。
-- <strong>数据校验</strong>：FastAPI 用 Pydantic <strong>声明式校验 + 类型转换</strong>——请求进来先按 schema 验证（🔗 pl 线类型即契约在 Web 的实用形态），不合法自动返回 422。<strong>"在边界处校验输入"是后端可靠性的第一道防线</strong>（也是 sec 线的第一道：永远不信任客户端输入）。
-- <strong>中间件</strong>：横切关注点（认证、日志、CORS、限流）放在请求处理前后统一处理——<strong>别在每个处理函数里重复</strong>。</p>
+<p>后端服务器的核心循环：<strong>接收 HTTP 请求 → 路由到对应处理函数 → 执行业务逻辑（常含数据库）→ 返回响应</strong>。FastAPI 里：</p>
+<ul>
+<li><strong>路由</strong>：<code>@app.get("/articles/{id}")</code> 把 URL 模式绑到函数，路径参数/查询参数/请求体自动解析。</li>
+<li><strong>数据校验</strong>：FastAPI 用 Pydantic <strong>声明式校验 + 类型转换</strong>——请求进来先按 schema 验证（🔗 pl 线类型即契约在 Web 的实用形态），不合法自动返回 422。<strong>"在边界处校验输入"是后端可靠性的第一道防线</strong>（也是 sec 线的第一道：永远不信任客户端输入）。</li>
+<li><strong>中间件</strong>：横切关注点（认证、日志、CORS、限流）放在请求处理前后统一处理——<strong>别在每个处理函数里重复</strong>。</li>
+</ul>
 <h2 id="2-orm">2. ORM 与数据库交互:方便背后的陷阱<a class="headerlink" href="#2-orm" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="N+1 查询：列表 1 次 + 循环每项 1 次 = N+1，改 JOIN 预加载 1 次。" src="assets/img/web-02-n-plus-1.svg" /></p>
@@ -90,10 +92,12 @@
 <li><strong>会话维持</strong>（web-01 的状态）：<strong>服务端 session</strong>（session id 存 cookie、数据存服务端）vs <strong>JWT</strong>（自包含 token，服务端无状态但难撤销）——取舍见 sec-02。<strong>cookie 要设 <code>HttpOnly</code>+<code>Secure</code>+<code>SameSite</code></strong>（🔗 sec 线防 XSS 窃取和 CSRF）。</li>
 </ul>
 <h2 id="5">5. 错误处理、日志与可观测性<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>生产后端的成熟度体现在<strong>出错时的表现</strong>：
-- <strong>错误处理</strong>：区分"预期错误"（用户输入非法 → 4xx + 清晰信息）和"意外错误"（bug/依赖挂 → 5xx + 别泄露内部细节给用户，但内部记全栈）。<strong>别让异常裸奔到用户</strong>（暴露堆栈 = 信息泄露 sec 线）。
-- <strong>结构化日志</strong>：日志是排查生产问题的眼睛——记请求 id、关键路径、错误上下文。<strong>Medusa 24/7 跑，日志是你唯一的现场</strong>（memory 里提到的"RSS 断供 3 天静默失败"正是缺乏告警/可观测的教训）。
-- <strong>可观测性三支柱</strong>：日志（发生了什么）、指标（多少、多快——QPS/延迟/错误率）、追踪（一个请求跨服务的路径）。<strong>"你无法优化/修复你看不见的东西"</strong>——这是后端运维的第一原则（cloud-02 深入）。</p>
+<p>生产后端的成熟度体现在<strong>出错时的表现</strong>：</p>
+<ul>
+<li><strong>错误处理</strong>：区分"预期错误"（用户输入非法 → 4xx + 清晰信息）和"意外错误"（bug/依赖挂 → 5xx + 别泄露内部细节给用户，但内部记全栈）。<strong>别让异常裸奔到用户</strong>（暴露堆栈 = 信息泄露 sec 线）。</li>
+<li><strong>结构化日志</strong>：日志是排查生产问题的眼睛——记请求 id、关键路径、错误上下文。<strong>Medusa 24/7 跑，日志是你唯一的现场</strong>（memory 里提到的"RSS 断供 3 天静默失败"正是缺乏告警/可观测的教训）。</li>
+<li><strong>可观测性三支柱</strong>：日志（发生了什么）、指标（多少、多快——QPS/延迟/错误率）、追踪（一个请求跨服务的路径）。<strong>"你无法优化/修复你看不见的东西"</strong>——这是后端运维的第一原则（cloud-02 深入）。</li>
+</ul>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（抓 N+1）</strong> 写一段"取文章列表再循环取每篇的标签"的 ORM 代码，开 SQL 日志数查询次数，然后改成 JOIN 预加载——<strong>亲眼看 N+1 从几百次查询降到 1 次</strong>。后端最高频的性能修复。</p>
 <p><strong>例 2（async 判断）</strong> 判断三个后端任务（查数据库、调 LLM API、本地跑 embedding）哪些适合 async、哪个要丢进程池——<strong>把"async 治 I/O、进程治 CPU"用到 Medusa</strong>。</p>

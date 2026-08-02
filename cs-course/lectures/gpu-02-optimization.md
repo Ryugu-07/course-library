@@ -32,6 +32,7 @@ GPU 靠"线程多到掩盖延迟"工作（gpu-01）。**占用率（occupancy）
 </figure>
 
 比共享内存更快的 block 内协作——**warp 内 32 线程直接通过寄存器交换数据**，不经共享内存：
+
 - **warp shuffle（`__shfl_*`）**：warp 内线程互读寄存器——**归约（求和/求最大）在 warp 内可以不用共享内存、几条指令搞定**（[L08] 的最高优化级）。
 - **warp 级归约 + block 级归约的两级模式**：先 warp 内 shuffle 归约、每 warp 出一个部分和、再由一个 warp 归约这些部分和——**这是 GPU 上求和/softmax 分母/范数的标准高效实现**。
 
@@ -54,6 +55,7 @@ GPU 靠"线程多到掩盖延迟"工作（gpu-01）。**占用率（occupancy）
 ## 5. 优化闭环与工具
 
 GPU 优化和 CPU 一样是**测量驱动**（perf-01）：
+
 - **Nsight Compute / Nsight Systems**：GPU 的 profiler——看 kernel 的占用率、内存吞吐、warp 发散、bank 冲突、是内存受限还是算力受限。
 - **闭环**：profile → 判断瓶颈（占用率？合并？发散？）→ 应用对应阶梯手法 → 再 profile。**别凭感觉优化 GPU，Nsight 会告诉你真正的瓶颈在哪**。
 

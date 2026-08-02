@@ -40,6 +40,7 @@ $$\hat{x}_{k|k-1} = A\hat{x}_{k-1} + Bu_{k-1}, \qquad P_{k|k-1} = AP_{k-1}A^T + 
 **更新（测量更新）**——用新观测修正：
 
 $$K_k = P_{k|k-1}C^T\left(CP_{k|k-1}C^T + R\right)^{-1}$$
+
 $$\hat{x}_k = \hat{x}_{k|k-1} + K_k\left(y_k - C\hat{x}_{k|k-1}\right), \qquad P_k = (I-K_kC)P_{k|k-1}$$
 
 <figure markdown="1">

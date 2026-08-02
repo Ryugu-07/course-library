@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>并行模型与缓存一致性 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -75,16 +75,20 @@ perf 线在单核上榨性能，到了极限就得用<strong>多核</strong>。�
 <p><img alt="数据并行 vs 任务并行 的分解方式。" src="assets/img/par-01-data-task.svg" /></p>
 <figcaption><span class="fig-id">图 par-01.1</span>数据并行 vs 任务并行 的分解方式。</figcaption>
 </figure>
-<p>把工作拆给多核，两种基本模式：
-- <strong>数据并行</strong>：同样的操作作用于大量数据的不同部分（数组每段一个线程、矩阵每块一个核）——<strong>规整、易扩展、GPU 的天下</strong>（gpu 线）。SIMD（perf-01）是数据并行的指令级版，GPU 是它的大规模版。
-- <strong>任务并行</strong>：不同的任务并行做（一个线程解码、一个渲染、一个 I/O）——<strong>不规整、靠任务调度</strong>。</p>
+<p>把工作拆给多核，两种基本模式：</p>
+<ul>
+<li><strong>数据并行</strong>：同样的操作作用于大量数据的不同部分（数组每段一个线程、矩阵每块一个核）——<strong>规整、易扩展、GPU 的天下</strong>（gpu 线）。SIMD（perf-01）是数据并行的指令级版，GPU 是它的大规模版。</li>
+<li><strong>任务并行</strong>：不同的任务并行做（一个线程解码、一个渲染、一个 I/O）——<strong>不规整、靠任务调度</strong>。</li>
+</ul>
 <p><strong>分治天然并行</strong>（🔗 algo-01）：归并排序左右两半可并行、MapReduce（dist-03）是数据并行的分布式版。<strong>识别"哪部分是数据并行"是并行化的第一步</strong>——数据并行好扩展，优先找它。</p>
 <h2 id="4">4. 共享内存并行编程模型<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>在多核上写并行代码的几种抽象：
-- <strong>线程 + 锁</strong>（os-02）：最底层、最灵活、最易错（竞态、死锁）。
-- <strong>OpenMP</strong>：<code>#pragma omp parallel for</code> 一行把循环并行化——<strong>声明式、适合数据并行的规整循环</strong>，科学计算常用。
-- <strong>任务并行库</strong>（TBB、Cilk、Rust rayon）：你描述任务和依赖，运行时用<strong>工作窃取（work-stealing）</strong>调度器自动负载均衡——空闲线程从忙线程"偷"任务，优雅解决负载不均。
-- <strong>消息传递（MPI）</strong>：不共享内存，进程间显式发消息——<strong>多机集群</strong>的模型（HPC 超算、跨节点，与 dist 线相通）。</p>
+<p>在多核上写并行代码的几种抽象：</p>
+<ul>
+<li><strong>线程 + 锁</strong>（os-02）：最底层、最灵活、最易错（竞态、死锁）。</li>
+<li><strong>OpenMP</strong>：<code>#pragma omp parallel for</code> 一行把循环并行化——<strong>声明式、适合数据并行的规整循环</strong>，科学计算常用。</li>
+<li><strong>任务并行库</strong>（TBB、Cilk、Rust rayon）：你描述任务和依赖，运行时用<strong>工作窃取（work-stealing）</strong>调度器自动负载均衡——空闲线程从忙线程"偷"任务，优雅解决负载不均。</li>
+<li><strong>消息传递（MPI）</strong>：不共享内存，进程间显式发消息——<strong>多机集群</strong>的模型（HPC 超算、跨节点，与 dist 线相通）。</li>
+</ul>
 <p><strong>选择</strong>：规整数据并行用 OpenMP/GPU、不规则任务用工作窃取、跨机器用 MPI。<strong>"共享内存 vs 消息传递"是并行编程的两大哲学</strong>——前者方便但受限于单机 + 一致性成本，后者可扩展到千万核但要显式通信。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（Amdahl 算天花板）</strong> 程序 90% 可并行，无限核的加速上限？（<span class="arithmatex">\(1/0.1 = 10×\)</span>）——<strong>"10% 串行就锁死在 10× 以内"，理解为什么要死磕串行部分</strong>。</p>

@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -74,20 +74,26 @@
 </figure>
 <h2 id="_3">三、中心权衡：开关频率<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>提高开关频率的好处</strong>：电感电容体积变小（磁性元件与电容的储能需求 <span class="arithmatex">\(\propto 1/f_{sw}\)</span>）、动态响应更快、纹波更小。</p>
-<p><strong>代价</strong>：
-- <strong>开关损耗</strong> <span class="arithmatex">\(\propto f_{sw}\)</span>：每次通断的过渡过程中电压电流同时非零，产生损耗；
-- <strong>驱动损耗</strong>、<strong>磁芯损耗</strong>上升；
-- <strong>EMI（电磁干扰）</strong>加剧。</p>
-<p><strong>这个权衡塑造了整个行业的技术路线</strong>：
-- <strong>软开关技术</strong>（ZVS/ZCS、谐振变换器）：让开关动作发生在电压或电流为零的时刻，<strong>大幅降低开关损耗</strong>，从而允许更高频率；
-- <strong>宽禁带半导体（SiC、GaN）</strong>：🔗 微电子站第一页提到它们的大带隙。<strong>更高的击穿场强 → 器件更薄、导通电阻更低；更快的开关速度 → 开关损耗更小</strong>。它们使高频高效变换成为可能，正在电动汽车、光伏、数据中心电源中快速普及。</p>
+<p><strong>代价</strong>：</p>
+<ul>
+<li><strong>开关损耗</strong> <span class="arithmatex">\(\propto f_{sw}\)</span>：每次通断的过渡过程中电压电流同时非零，产生损耗；</li>
+<li><strong>驱动损耗</strong>、<strong>磁芯损耗</strong>上升；</li>
+<li><strong>EMI（电磁干扰）</strong>加剧。</li>
+</ul>
+<p><strong>这个权衡塑造了整个行业的技术路线</strong>：</p>
+<ul>
+<li><strong>软开关技术</strong>（ZVS/ZCS、谐振变换器）：让开关动作发生在电压或电流为零的时刻，<strong>大幅降低开关损耗</strong>，从而允许更高频率；</li>
+<li><strong>宽禁带半导体（SiC、GaN）</strong>：🔗 微电子站第一页提到它们的大带隙。<strong>更高的击穿场强 → 器件更薄、导通电阻更低；更快的开关速度 → 开关损耗更小</strong>。它们使高频高效变换成为可能，正在电动汽车、光伏、数据中心电源中快速普及。</li>
+</ul>
 <p><strong>这是微电子与自动化的直接交汇点</strong>：器件物理的进步，直接打开了系统层面的设计空间。</p>
 <h2 id="_4">四、变换器的控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>变换器本身就是一个<strong>被控对象</strong>，且是本课理论的绝佳应用：</p>
-<p><strong>两个环路（级联结构）</strong>：
-- <strong>内环电流环</strong>：快速，限制电感电流（保护器件），改善动态；
-- <strong>外环电压环</strong>：慢速，调节输出电压。
-- <strong>内环带宽通常是外环的 5–10 倍</strong>——<strong>级联控制的通用原则：内环必须比外环快得多，否则两环会相互干扰</strong>（这个原则在电机、机器人、过程控制中同样适用）。</p>
+<p><strong>两个环路（级联结构）</strong>：</p>
+<ul>
+<li><strong>内环电流环</strong>：快速，限制电感电流（保护器件），改善动态；</li>
+<li><strong>外环电压环</strong>：慢速，调节输出电压。</li>
+<li><strong>内环带宽通常是外环的 5–10 倍</strong>——<strong>级联控制的通用原则：内环必须比外环快得多，否则两环会相互干扰</strong>（这个原则在电机、机器人、过程控制中同样适用）。</li>
+</ul>
 <p><strong>建模的特殊性</strong>：变换器是<strong>开关（非线性、时变）系统</strong>，不能直接用线性理论。标准做法是<strong>状态空间平均法</strong>：在一个开关周期内对状态方程取平均，得到连续的等效模型，再线性化。</p>
 <p><strong>一个著名的坑</strong>：<strong>Boost 与 Buck-Boost 变换器在连续导通模式下，其控制到输出的传递函数含右半平面零点</strong>（第二页！）。</p>
 <p><strong>物理直觉</strong>：要提高输出电压，需要增大占空比；但增大占空比意味着<strong>更长时间把电感与负载断开</strong>，于是<strong>输出电压瞬间先下降</strong>，之后电感储能增加才使输出升高。<strong>这就是非最小相位的物理来源。</strong></p>

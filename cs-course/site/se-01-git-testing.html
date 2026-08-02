@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Git 内部原理与测试 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li class="active"><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -69,13 +69,15 @@
 <li><strong>内容寻址的含义</strong>：<strong>对象的名字就是它内容的哈希</strong>——内容相同则哈希相同则是同一个对象（自动去重）；内容改一个字节哈希全变（🔗 crypto-01 抗碰撞、os-03 内容寻址的伏笔）。<strong>这保证了完整性</strong>：commit 哈希覆盖了整个历史（每个 commit 含父 commit 哈希 → 改任何历史都会让后续所有哈希变 → 篡改可检测，这也是区块链的思想 crypto-02）。</li>
 </ul>
 <p><strong>commit 是一个 DAG</strong>（有向无环图，🔗 algo 线）：每个 commit 指向父 commit，分支合并产生多父——<strong>git 历史就是一张 commit 的 DAG，分支只是指向某个 commit 的可移动指针</strong>。</p>
-<p><strong>这一下讲清了所有命令</strong>：
-- <strong>branch</strong> = 一个指向 commit 的指针（创建分支几乎零成本——只写一个 41 字节的文件）。
-- <strong>HEAD</strong> = "我在哪"的指针。
-- <strong>commit</strong> = 造一个新对象、把当前分支指针移过去。
-- <strong>merge</strong> = 造一个有两个父的 commit。
-- <strong>rebase</strong> = 把一串 commit 重新在另一个基点上"重放"（造新 commit、换父）。
-- <strong>git 很少真的删东西</strong>——对象留在数据库里（所以误删能找回，<code>reflog</code> 是你的后悔药）。</p>
+<p><strong>这一下讲清了所有命令</strong>：</p>
+<ul>
+<li><strong>branch</strong> = 一个指向 commit 的指针（创建分支几乎零成本——只写一个 41 字节的文件）。</li>
+<li><strong>HEAD</strong> = "我在哪"的指针。</li>
+<li><strong>commit</strong> = 造一个新对象、把当前分支指针移过去。</li>
+<li><strong>merge</strong> = 造一个有两个父的 commit。</li>
+<li><strong>rebase</strong> = 把一串 commit 重新在另一个基点上"重放"（造新 commit、换父）。</li>
+<li><strong>git 很少真的删东西</strong>——对象留在数据库里（所以误删能找回，<code>reflog</code> 是你的后悔药）。</li>
+</ul>
 <p><strong>读法</strong>：<strong>Git 不是"文件的快照序列"的模糊概念，是"内容寻址对象组成的 DAG + 可移动的分支指针"</strong>——记住这个模型，你就从"背命令"升级到"推理 git 在干什么"。这是本页最高价值的认知。</p>
 <h2 id="2">2. 分支模型与协作<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <ul>
@@ -117,10 +119,12 @@
 </tbody>
 </table>
 <p><strong>金字塔原则：底层多、顶层少</strong>——单元测试快而稳，E2E 慢而脆（别倒过来堆一堆 E2E）。</p>
-<p><strong>什么值得测</strong>：
-- <strong>核心逻辑、边界条件、易错处、修过的 bug（回归测试——bug 修了写个测试防它复活）</strong>。
-- <strong>别为了覆盖率测试 getter/setter 这种琐碎</strong>——覆盖率是参考不是目标（100% 覆盖 ≠ 没 bug）。
-- <strong>测行为不测实现</strong>：测"函数做对了什么"，别测"它内部怎么做的"（否则重构就假失败）。</p>
+<p><strong>什么值得测</strong>：</p>
+<ul>
+<li><strong>核心逻辑、边界条件、易错处、修过的 bug（回归测试——bug 修了写个测试防它复活）</strong>。</li>
+<li><strong>别为了覆盖率测试 getter/setter 这种琐碎</strong>——覆盖率是参考不是目标（100% 覆盖 ≠ 没 bug）。</li>
+<li><strong>测行为不测实现</strong>：测"函数做对了什么"，别测"它内部怎么做的"（否则重构就假失败）。</li>
+</ul>
 <h2 id="4-tdd">4. TDD 与测试的哲学<a class="headerlink" href="#4-tdd" title="Permanent link"></a></h2>
 <p><strong>测试驱动开发（TDD）</strong>：先写测试（红）→ 写最少代码让它过（绿）→ 重构（重构时测试保驾）。<strong>价值不只在测试本身</strong>——<strong>先写测试逼你先想清楚"这个函数的契约是什么"</strong>（输入输出、边界），是一种设计工具。不必教条式全程 TDD，但"写代码前先想怎么验证它对"是好习惯。</p>
 <p><strong>可测试性 = 好设计的副产品</strong>：难测的代码往往是设计差的信号（耦合太紧、副作用太多、依赖太硬）。<strong>纯函数最好测</strong>（pl-02，同输入同输出）——这是"优先纯函数"又一个理由。依赖注入、mock 外部服务（数据库、LLM API）让单元测试快而独立。</p>

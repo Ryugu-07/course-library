@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P07 设计与系统报告模板 · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 模型与接口范围</a></li>
+<li><a href="#2-kv-cache">2. 单请求与 KV cache</a></li>
+<li><a href="#3-continuous-batching-scheduler">3. Continuous batching scheduler</a></li>
+<li><a href="#4-paged-kv">4. Paged KV 资源管理</a></li>
+<li><a href="#5-quantization">5. Quantization</a></li>
+<li><a href="#6">6. 正确性与故障矩阵</a></li>
+<li><a href="#7">7. 性能与平台</a></li>
+<li><a href="#8">8. 反思与后续</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p07">P07 设计与系统报告模板<a class="headerlink" href="#p07" title="Permanent link"></a></h1>
+<h2 id="1">1. 模型与接口范围<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<ul>
+<li>组员、分工、提交 commit：</li>
+<li>模型 schema、随机种子、tokenizer/参考实现：</li>
+<li>CPU、NumPy、GPU 路径分别支持什么：</li>
+</ul>
+<h2 id="2-kv-cache">2. 单请求与 KV cache<a class="headerlink" href="#2-kv-cache" title="Permanent link"></a></h2>
+<ul>
+<li>prefill/decode 数据流：</li>
+<li>K/V 的 shape、dtype、page layout：</li>
+<li>cache 命中、append、释放和取消不变量：</li>
+</ul>
+<h2 id="3-continuous-batching-scheduler">3. Continuous batching scheduler<a class="headerlink" href="#3-continuous-batching-scheduler" title="Permanent link"></a></h2>
+<ul>
+<li>submit/cancel/step 状态机：</li>
+<li>token budget、优先级/aging、公平性和防饿死证据：</li>
+<li>一个请求时间线：</li>
+</ul>
+<h2 id="4-paged-kv">4. Paged KV 资源管理<a class="headerlink" href="#4-paged-kv" title="Permanent link"></a></h2>
+<ul>
+<li>page size、handle、引用、回收和碎片：</li>
+<li>预算不足/OOM、异常释放、请求隔离如何处理：</li>
+</ul>
+<h2 id="5-quantization">5. Quantization<a class="headerlink" href="#5-quantization" title="Permanent link"></a></h2>
+<ul>
+<li>bits、scale/zero-point、group size、校准数据：</li>
+<li>误差指标、反量化路径和精度边界：</li>
+</ul>
+<h2 id="6">6. 正确性与故障矩阵<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>设备</th>
+<th>结果/golden</th>
+<th style="text-align: right;">TTFT</th>
+<th style="text-align: right;">TPOT</th>
+<th style="text-align: right;">KV bytes</th>
+<th>失败原因或修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="7">7. 性能与平台<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li>固定请求流、预热、重复、统计量：</li>
+<li>CPU/NumPy/Win 4060 Ti（如有）的版本与显存：</li>
+<li>batch utilization、page 碎片和量化增量收益：</li>
+</ul>
+<h2 id="8">8. 反思与后续<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<ul>
+<li>最大瓶颈是否从计算转移到内存/调度？</li>
+<li>哪个优化牺牲了什么？</li>
+<li>若再有两周，先实现哪个可选挑战？</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -92,11 +92,11 @@ h_t = \tanh(W_h h_{t-1} + W_x x_t + b)
 f_t &amp;= \sigma(W_f [h_{t-1}, x_t] + b_f) &amp;&amp;\text{遗忘门：旧记忆保留多少}\\
 i_t &amp;= \sigma(W_i [h_{t-1}, x_t] + b_i) &amp;&amp;\text{输入门：新信息写入多少}\\
 \tilde c_t &amp;= \tanh(W_c [h_{t-1}, x_t] + b_c) &amp;&amp;\text{候选新内容}\\
-c_t &amp;= f_t \odot c_{t-1} + i_t \odot \tilde c_t &amp;&amp;\text{★ 记忆更新}\\
+c_t &amp;= f_t \odot c_{t-1} + i_t \odot \tilde c_t &amp;&amp;\star\;\text{记忆更新}\\
 o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &amp;&amp;\text{输出门}
 \end{aligned}
 \]</div>
-<p>盯住带 ★ 的那行：<span class="arithmatex">\(c_t\)</span> 的更新是<strong>加法</strong>。求导 <span class="arithmatex">\(\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)\)</span>——不再有 <span class="arithmatex">\(W\)</span> 连乘；只要遗忘门开着（<span class="arithmatex">\(f \approx 1\)</span>），梯度就沿细胞状态近乎无衰减地流回远处。<strong>和 ResNet 的 <span class="arithmatex">\(y = x + F(x)\)</span> 是同一个药方：用加法通路替换连乘通路</strong>（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。</p>
+<p>盯住带星号的那行：<span class="arithmatex">\(c_t\)</span> 的更新是<strong>加法</strong>。求导 <span class="arithmatex">\(\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)\)</span>——不再有 <span class="arithmatex">\(W\)</span> 连乘；只要遗忘门开着（<span class="arithmatex">\(f \approx 1\)</span>），梯度就沿细胞状态近乎无衰减地流回远处。<strong>和 ResNet 的 <span class="arithmatex">\(y = x + F(x)\)</span> 是同一个药方：用加法通路替换连乘通路</strong>（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。</p>
 <h3 id="24-seq2seq">2.4 seq2seq 与注意力的初登场<a class="headerlink" href="#24-seq2seq" title="Permanent link"></a></h3>
 <p>机器翻译需要"读完一句话，写出另一句话"——<strong>seq2seq</strong>（2014）：一个 RNN（编码器）把源句压成一个向量，另一个 RNN（解码器）从这个向量展开生成译文。立刻暴露<strong>信息瓶颈</strong>：不管句子多长，全部意义都要挤过一个固定维数的向量——长句翻译质量断崖式下跌。</p>
 <p>Bahdanau et al. (2014) 的修复从根上改变了历史：别压成一个向量，<strong>解码器每生成一个词，回头"看一眼"源句的所有位置，按相关性加权</strong>：</p>

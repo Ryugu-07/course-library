@@ -27,11 +27,11 @@
 
 在 ComfyUI 里点 菜单 → Workflow → Browse Templates → **Text to Image**（或加载课程工作流包的 `wf02_sdxl_txt2img.json`），画布上是这七个节点：
 
-### ① Load Checkpoint —— 拆包三大件
+### 1. Load Checkpoint —— 拆包三大件
 
 选 `sd_xl_base_1.0.safetensors`。它吐出三条线：MODEL（紫）+ CLIP（黄）+ VAE（红）——**正是第 04 讲"checkpoint = 三大件打包"的画布证明**。一个节点，整机零件全取出。
 
-### ②③ CLIP Text Encode ×2 —— 把文字变向量
+### 2.3. CLIP Text Encode ×2 —— 把文字变向量
 
 两个一模一样的节点，黄线进橙线出：$\text{提示词} \xrightarrow{\text{CLIP}} c$。上面那个接 KSampler 的 `positive` 口，下面接 `negative` 口——回忆第 03 讲 CFG 的公式：**这两条橙线就是 $\epsilon_\theta(c_+)$ 与 $\epsilon_\theta(c_-)$ 的两个条件**，负面提示是"被推离的参照物"，不是过滤器。
 
@@ -43,11 +43,11 @@
 负面: low quality, blurry, watermark, text, extra limbs
 ```
 
-### ④ Empty Latent Image —— 采样起点 $z_T$
+### 4. Empty Latent Image —— 采样起点 $z_T$
 
 生成一张指定尺寸的**潜空间噪声**（粉线出）。填 1024×1024（SDXL 的原生分辨率，第 04 讲）；`batch_size=1`。第 01 讲的 $z \sim \mathcal{N}(0, I)$ 就是它——严格说它产出全零张量、噪声由 KSampler 按种子注入，但数学身份不变：一切从高斯开始。
 
-### ⑤ KSampler —— 整个上篇的数学浓缩在这一个节点
+### 5. KSampler —— 整个上篇的数学浓缩在这一个节点
 
 四条输入线全部各就各位：MODEL（$\epsilon_\theta$）、positive/negative（CFG 的两个条件）、latent_image（起点 $z_T$）。它执行的就是第 02–03 讲的循环：**按 scheduler 排好噪声刻度 → 每步双跑模型做 CFG → 用 sampler 的积分格式走一步 → 循环 steps 次**。参数用第 03 讲的甜区：
 
@@ -56,11 +56,11 @@ steps=25, cfg=6.0, sampler=dpmpp_2m, scheduler=karras,
 seed=任意, denoise=1.0   (文生图=全程去噪, 第02讲)
 ```
 
-### ⑥ VAE Decode —— 显影
+### 6. VAE Decode —— 显影
 
 粉线（去噪完成的 $z_0$）+ 红线（VAE）→ 蓝线（像素图）。潜空间到人眼世界的最后一跳（第 04 讲）。
 
-### ⑦ Save Image —— 落盘
+### 7. Save Image —— 落盘
 
 写入 `E:\AI\Outputs`（第 06 讲的启动参数指定的）。**顺带把整个工作流 JSON 嵌进 PNG 元数据**——所以任何 ComfyUI 生成的 PNG 拖回画布都能还原完整工作流（复现自己旧图、学别人图的头号途径；也提醒你：**发图给别人 = 连提示词带参数一起发了**，介意就先洗掉元数据）。
 

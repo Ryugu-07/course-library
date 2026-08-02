@@ -37,6 +37,11 @@ $$
 
 ## 4. Fe–C 相图（工业之王，值得单独背）
 
+<figure class="diagram" markdown="1">
+![Simplified iron carbon phase diagram](assets/img/mat-05-fe-c.svg)
+<figcaption><span class="fig-id">图 5.2</span>简化 Fe–C 相图把五个角色放在同一张地图上：铁素体 \(\alpha\)、奥氏体 \(\gamma\)、渗碳体 Fe₃C、珠光体与液相；四个必背锚点是 727 °C、0.77%C、2.14%C 和 1148 °C。</figcaption>
+</figure>
+
 五个角色：**铁素体 α**（BCC，溶碳 ≤0.02%——间隙太小，结构 II 的几何伏笔兑现）、**奥氏体 γ**（FCC，溶碳至 2.14%——高温才有）、**渗碳体 Fe₃C**（硬脆化合物）、**珠光体**（共析产物：α+Fe₃C 层片）、液相。两条关键水平线：共晶 1148 °C（铸铁的世界，C>2.14%）与**共析 727 °C**：
 
 $$

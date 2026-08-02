@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -103,23 +103,29 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Sigma-Delta 的思想值得单独讲</strong>，因为它是"用数字换模拟"的典范：
-- <strong>过采样</strong>：以远高于奈奎斯特的频率采样，把量化噪声摊到更宽频带，带内噪声下降（每 4 倍过采样得 1 位）；
-- <strong>噪声整形</strong>：用反馈环路把量化噪声<strong>推到高频</strong>，再用数字滤波器滤掉。<strong>这是一个负反馈系统，其稳定性分析与 🔗 自动化站的方法完全一致</strong>；
-- 结果：用<strong>低精度</strong>的比较器（甚至 1 位）加上<strong>高精度的时间</strong>，换来极高的幅度分辨率。<strong>它把对模拟器件精度的要求，转移给了数字信号处理</strong>——而数字部分恰恰随工艺缩放而变便宜。</p>
+<p><strong>Sigma-Delta 的思想值得单独讲</strong>，因为它是"用数字换模拟"的典范：</p>
+<ul>
+<li><strong>过采样</strong>：以远高于奈奎斯特的频率采样，把量化噪声摊到更宽频带，带内噪声下降（每 4 倍过采样得 1 位）；</li>
+<li><strong>噪声整形</strong>：用反馈环路把量化噪声<strong>推到高频</strong>，再用数字滤波器滤掉。<strong>这是一个负反馈系统，其稳定性分析与 🔗 自动化站的方法完全一致</strong>；</li>
+<li>结果：用<strong>低精度</strong>的比较器（甚至 1 位）加上<strong>高精度的时间</strong>，换来极高的幅度分辨率。<strong>它把对模拟器件精度的要求，转移给了数字信号处理</strong>——而数字部分恰恰随工艺缩放而变便宜。</li>
+</ul>
 <p><strong>这条思路是现代混合信号设计的主旋律</strong>：<strong>尽可能把模拟难题转化为数字问题</strong>，因为数字享受缩放红利、模拟不享受（第八页）。SAR ADC 的流行、数字辅助校准、以及数字 PLL 的兴起，都是同一逻辑。</p>
 <h2 id="_4">四、锁相环：芯片的心跳<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>PLL</strong> 用负反馈把输出时钟锁定到参考时钟，并可倍频。基本结构：</p>
 <div class="arithmatex">\[\text{鉴相器（PFD）} \to \text{电荷泵 + 环路滤波器} \to \text{压控振荡器（VCO）} \to \text{分频器} \to \text{回到 PFD}\]</div>
 <p><strong>这是一个标准的负反馈控制系统</strong>，其环路带宽、相位裕度、稳定性分析与 🔗 自动化站的经典控制<strong>完全同构</strong>——PLL 的环路滤波器就是一个控制器，设计取舍与 PID 整定同理。</p>
-<p><strong>核心指标是相位噪声/抖动</strong>，它决定：
-- 数字系统：时钟抖动直接吃掉时序裕量（第七页）；
-- 高速 ADC：如上节，抖动封顶分辨率；
-- 无线通信：本振相位噪声导致邻道干扰泄漏，直接限制接收机性能。</p>
-<p><strong>关键权衡——环路带宽的选择</strong>：
-- 带宽<strong>宽</strong>：能快速抑制 VCO 自身的噪声（VCO 噪声在环路带宽内被反馈压制），但<strong>参考时钟的噪声会被放行</strong>；
-- 带宽<strong>窄</strong>：滤掉参考噪声，但 VCO 噪声在带宽外原样暴露。
-- <strong>最优带宽在两条噪声曲线的交点</strong>——这是一个可以画出来、可以求解的工程决策，也是 PLL 设计的第一步。</p>
+<p><strong>核心指标是相位噪声/抖动</strong>，它决定：</p>
+<ul>
+<li>数字系统：时钟抖动直接吃掉时序裕量（第七页）；</li>
+<li>高速 ADC：如上节，抖动封顶分辨率；</li>
+<li>无线通信：本振相位噪声导致邻道干扰泄漏，直接限制接收机性能。</li>
+</ul>
+<p><strong>关键权衡——环路带宽的选择</strong>：</p>
+<ul>
+<li>带宽<strong>宽</strong>：能快速抑制 VCO 自身的噪声（VCO 噪声在环路带宽内被反馈压制），但<strong>参考时钟的噪声会被放行</strong>；</li>
+<li>带宽<strong>窄</strong>：滤掉参考噪声，但 VCO 噪声在带宽外原样暴露。</li>
+<li><strong>最优带宽在两条噪声曲线的交点</strong>——这是一个可以画出来、可以求解的工程决策，也是 PLL 设计的第一步。</li>
+</ul>
 <p><strong>近年趋势</strong>：<strong>全数字 PLL（ADPLL）</strong>用时间数字转换器（TDC）与数字环路滤波器替代模拟电荷泵，<strong>再次体现"把模拟问题数字化"的主旋律</strong>——数字环路可编程、易移植、随工艺缩放受益。</p>
 <h2 id="_5">五、其他关键接口电路<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>

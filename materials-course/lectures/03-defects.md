@@ -19,7 +19,17 @@ $$
 
 **1 维 · 位错**（本页主角）：晶格中多插半张原子面的边界线（刃型）或螺旋错排（螺型），用 **Burgers 矢量 $\mathbf{b}$** 定量（绕缺陷一圈的闭合差——拓扑不变量：位错线不能凭空终止于晶内，只能成环或到界面，这是"拓扑保护"在材料里的原生案例）。
 
+<figure class="diagram" markdown="1">
+![Edge dislocation and Burgers circuit](assets/img/mat-03-edge-dislocation.svg)
+<figcaption><span class="fig-id">图 3.2</span>刃型位错的截面示意：多余半原子面在位错核心终止；沿 Burgers 回路逐段走完后，末点与起点的闭合差就是 \(\mathbf{b}\)。</figcaption>
+</figure>
+
 **滑移的地毯机制**：整层滑动要同时断开一整面的键（$G/30$ 的来源）；位错滑移每次只挪一列原子——**像推地毯上的褶皱过屋、而不是拖整张地毯**。所需应力（Peierls 应力）比理论强度低几个数量级——百倍强度之谜三行解开。金属能加工、能轧成箔拉成丝，全拜位错所赐。
+
+<figure class="diagram" markdown="1">
+![Whole-plane slip versus wrinkle-by-wrinkle motion](assets/img/mat-03-carpet-analogy.svg)
+<figcaption><span class="fig-id">图 3.3</span>地毯类比：整层滑动要求所有键同时移动，而位错像褶皱逐列推进，只在局部跨越势垒，所以实际塑性所需应力远低于理想晶体强度。</figcaption>
+</figure>
 
 **2 维 · 界面**：晶界（取向差界面——原子错排带，既是位错的墙、又是扩散的高速路和腐蚀的起点）；孪晶界；相界；表面。**3 维**：析出相、孔隙、夹杂——性能 I/II 的强化与失效之源。
 
@@ -39,6 +49,11 @@ $$
 | 扩散高速路 | 晶界扩散快体扩散几个数量级；烧结与蠕变的通道 | 热力 II、工艺 II |
 | 化学薄弱带 | 晶间腐蚀、偏析、脆化 | 工艺 IV |
 | 高温的软肋 | 蠕变时晶界滑动 ⇒ 涡轮叶片干脆做成**单晶**（消灭晶界） | 前沿 I |
+
+<figure class="diagram" markdown="1">
+![Grain boundary with barrier, diffusion and weakness roles](assets/img/mat-03-grain-boundary.svg)
+<figcaption><span class="fig-id">图 3.4</span>晶界的三重身份：取向错配带阻挡位错、为原子提供快速扩散通道，同时也是偏析与晶间腐蚀的薄弱带。</figcaption>
+</figure>
 
 **同一个缺陷，低温是英雄高温是叛徒**——"缺陷好坏取决于服役条件"是选材判断力的核心一课。
 

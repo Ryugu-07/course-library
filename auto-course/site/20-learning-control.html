@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -88,26 +88,34 @@
 <p><strong>Bellman 方程与 HJB 方程本质相同</strong>（第十七页）。<strong>差别在传统与假设</strong>：控制假定有模型、要求稳定性证明、面向物理系统；RL 假定模型未知、靠试错、最初面向游戏与仿真。</p>
 <p><strong>一个常被忽略的历史事实</strong>：动态规划（Bellman，1950 年代）同时是两个领域的源头。<strong>"强化学习是新东西"是一种错觉</strong>——新的是深度网络作为函数逼近器，以及由此带来的规模。</p>
 <h2 id="_2">二、主要路线<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>① 无模型 RL（model-free）</strong>：直接从交互中学策略（PPO、SAC 等）。
-- <strong>优点</strong>：不需要模型；
-- <strong>致命弱点</strong>：<strong>样本效率极低</strong>——常需百万到十亿次交互。<strong>在仿真中可行，在真实设备上通常不可行</strong>（一台真实机器人跑不了一百万次尝试，而且会先坏掉）。</p>
-<p><strong>② 基于模型的 RL / 学习型 MPC</strong>：先从数据学一个动态模型，再用规划或 MPC 求解。
-- <strong>样本效率高得多</strong>（这是它对真实系统更实用的原因）；
-- 与第十七、十八页直接接续：<strong>这本质上就是"辨识 + MPC"，只是模型可以是神经网络</strong>；
-- 难点：模型误差在长时域预测中累积；优化器会<strong>利用模型的错误</strong>（找到模型里存在、现实中不存在的"漏洞"）——<strong>这是基于模型 RL 的典型失效模式</strong>。</p>
+<p><strong>① 无模型 RL（model-free）</strong>：直接从交互中学策略（PPO、SAC 等）。</p>
+<ul>
+<li><strong>优点</strong>：不需要模型；</li>
+<li><strong>致命弱点</strong>：<strong>样本效率极低</strong>——常需百万到十亿次交互。<strong>在仿真中可行，在真实设备上通常不可行</strong>（一台真实机器人跑不了一百万次尝试，而且会先坏掉）。</li>
+</ul>
+<p><strong>② 基于模型的 RL / 学习型 MPC</strong>：先从数据学一个动态模型，再用规划或 MPC 求解。</p>
+<ul>
+<li><strong>样本效率高得多</strong>（这是它对真实系统更实用的原因）；</li>
+<li>与第十七、十八页直接接续：<strong>这本质上就是"辨识 + MPC"，只是模型可以是神经网络</strong>；</li>
+<li>难点：模型误差在长时域预测中累积；优化器会<strong>利用模型的错误</strong>（找到模型里存在、现实中不存在的"漏洞"）——<strong>这是基于模型 RL 的典型失效模式</strong>。</li>
+</ul>
 <p><strong>③ 模仿学习 / 从演示学习</strong>：从人类示范中学策略。避开了奖励设计，但存在<strong>分布偏移</strong>问题（一旦偏离演示轨迹就进入没见过的状态），需 DAgger 等方法缓解。</p>
-<p><strong>④ 学习 + 传统控制的混合</strong>：<strong>这是工程上最现实的路线</strong>——
-- 用学习<strong>补偿模型残差</strong>（在物理模型基础上学一个修正项）；
-- 用学习做<strong>高层决策</strong>，底层仍用可验证的控制器执行；
-- 用学习<strong>整定</strong>传统控制器的参数。
-<strong>保留了传统方法的稳定性保证，同时获得数据的灵活性。</strong></p>
+<p><strong>④ 学习 + 传统控制的混合</strong>：<strong>这是工程上最现实的路线</strong>——</p>
+<ul>
+<li>用学习<strong>补偿模型残差</strong>（在物理模型基础上学一个修正项）；</li>
+<li>用学习做<strong>高层决策</strong>，底层仍用可验证的控制器执行；</li>
+<li>用学习<strong>整定</strong>传统控制器的参数。
+<strong>保留了传统方法的稳定性保证，同时获得数据的灵活性。</strong></li>
+</ul>
 <h2 id="sim2real">三、sim2real：核心工程难题<a class="headerlink" href="#sim2real" title="Permanent link"></a></h2>
 <p>真实交互昂贵，于是先在仿真中训练，再迁移到实物。<strong>但仿真与现实总有差距（reality gap）</strong>：接触与摩擦模型不准、传感器噪声与延迟、执行器动态、材料参数。</p>
-<p><strong>主流缓解手段</strong>：
-- <strong>域随机化</strong>：训练时随机化物理参数、纹理、延迟，<strong>迫使策略对参数不敏感</strong>——本质上是<strong>在追求鲁棒性</strong>（🔗 第十六页：这与 <span class="arithmatex">\(H_\infty\)</span> 的"为一族模型设计"精神相通，只是用采样代替了范数界）；
-- <strong>系统辨识 + 仿真校准</strong>（第十八页）；
-- <strong>真实数据微调</strong>；
-- <strong>保守的动作空间</strong>（限制策略输出范围）。</p>
+<p><strong>主流缓解手段</strong>：</p>
+<ul>
+<li><strong>域随机化</strong>：训练时随机化物理参数、纹理、延迟，<strong>迫使策略对参数不敏感</strong>——本质上是<strong>在追求鲁棒性</strong>（🔗 第十六页：这与 <span class="arithmatex">\(H_\infty\)</span> 的"为一族模型设计"精神相通，只是用采样代替了范数界）；</li>
+<li><strong>系统辨识 + 仿真校准</strong>（第十八页）；</li>
+<li><strong>真实数据微调</strong>；</li>
+<li><strong>保守的动作空间</strong>（限制策略输出范围）。</li>
+</ul>
 <p><strong>诚实的现状</strong>：sim2real 在<strong>运动控制类任务</strong>（足式机器人行走、无人机敏捷飞行）上已有相当扎实的成功；在<strong>接触丰富的精细操作</strong>（柔性物体、装配）上仍然困难，因为接触与形变的仿真本身就不准。</p>
 <h2 id="_3">四、为什么工业采用缓慢【争】<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>这是本页最需要诚实的部分。学习型控制在论文与演示中成果惊人，但<strong>在工业控制中的实际部署仍然有限</strong>，原因具体：</p>
@@ -117,12 +125,14 @@
 <p><strong>④ 数据获取昂贵</strong>：工业设备不允许大量试错，且故障数据天然稀缺。</p>
 <p><strong>⑤ 可维护性</strong>：现场工程师能调 PID，但无法调一个神经网络（承第十三、十六页反复出现的同一约束）。</p>
 <p><strong>⑥ 与现有方法的比较常不公平</strong>：许多论文把学习方法与<strong>未经认真整定的 PID</strong> 比较。<strong>精心整定的传统控制器往往比宣传的更强</strong>——这是判读此类工作时最该警惕的一点。</p>
-<p><strong>判读一篇学习型控制论文的清单</strong>：
-1. 是仿真还是<strong>真实硬件</strong>？
-2. 与<strong>认真整定的</strong>传统方法比了吗？
-3. 需要多少交互样本？
-4. 分布外与故障工况测试了吗？
-5. 有无安全保证机制？</p>
+<p><strong>判读一篇学习型控制论文的清单</strong>：</p>
+<ol>
+<li>是仿真还是<strong>真实硬件</strong>？</li>
+<li>与<strong>认真整定的</strong>传统方法比了吗？</li>
+<li>需要多少交互样本？</li>
+<li>分布外与故障工况测试了吗？</li>
+<li>有无安全保证机制？</li>
+</ol>
 <h2 id="_4">五、真正有前景的落点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>不是"取代 PID"，而是几个传统方法确实力不从心的地方：</p>
 <ul>

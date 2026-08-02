@@ -101,6 +101,14 @@ $$\text{Cl} = \frac{U_x \cdot V}{P_x} \quad\text{（肾）}\qquad \text{Cl} = \f
 
 **记住一条**：**"β₁ 心、β₂ 肺"**——所以选择性 β₁ 阻滞剂用于心脏病而尽量避免诱发支气管痉挛，但**大剂量下选择性丢失**。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验稳态、体液分区、膜转运与水盐平衡的基础概念；具体患者的电解质解释需结合检验方法和临床情境。
+- [Physiology, Homeostasis](https://www.ncbi.nlm.nih.gov/books/NBK559138/) — NLM/NIH Bookshelf：稳态与反馈调节。
+- [Physiology, Body Fluids](https://www.ncbi.nlm.nih.gov/books/NBK482447/) — NLM/NIH Bookshelf：体液分区、渗透压与容量。
+- [Physiology, Membrane](https://www.ncbi.nlm.nih.gov/books/NBK538211/) — NLM/NIH Bookshelf：膜结构、转运和电生理基础。
+- [Physiology, Water Balance](https://www.ncbi.nlm.nih.gov/books/NBK541059/) — NLM/NIH Bookshelf：水摄入、排出与调节。
+
 ---
 
 *下一页：整合生理——把循环、呼吸、肾三个系统作为一个耦合的氧输送与酸碱调控系统来看。*

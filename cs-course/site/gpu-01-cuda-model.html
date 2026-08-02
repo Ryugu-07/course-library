@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CUDA 编程模型 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,9 +55,11 @@ CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"
 <p><img alt="CPU(少数强核,大控制/缓存) vs GPU(数千弱核,几乎全是算术单元) 芯片示意。" src="assets/img/gpu-01-cpu-vs-gpu.svg" /></p>
 <figcaption><span class="fig-id">图 gpu-01.3</span>CPU(少数强核,大控制/缓存) vs GPU(数千弱核,几乎全是算术单元) 芯片示意。</figcaption>
 </figure>
-<p>CPU 和 GPU 优化的是<strong>两个不同目标</strong>：
-- <strong>CPU 优化延迟</strong>：让<strong>单个</strong>任务尽快完成——大缓存、乱序执行、分支预测、深流水线（perf-01），把硅片大量用在"让一条指令流跑得快"的控制逻辑上。
-- <strong>GPU 优化吞吐</strong>：让<strong>海量</strong>任务的总完成量最大——把硅片几乎全用在<strong>算术单元</strong>上，控制逻辑极简。单个任务不快，但<strong>同时跑几万个</strong>，总吞吐碾压。</p>
+<p>CPU 和 GPU 优化的是<strong>两个不同目标</strong>：</p>
+<ul>
+<li><strong>CPU 优化延迟</strong>：让<strong>单个</strong>任务尽快完成——大缓存、乱序执行、分支预测、深流水线（perf-01），把硅片大量用在"让一条指令流跑得快"的控制逻辑上。</li>
+<li><strong>GPU 优化吞吐</strong>：让<strong>海量</strong>任务的总完成量最大——把硅片几乎全用在<strong>算术单元</strong>上，控制逻辑极简。单个任务不快，但<strong>同时跑几万个</strong>，总吞吐碾压。</li>
+</ul>
 <p><strong>代价</strong>：GPU 靠"线程多到能掩盖延迟"工作——一个线程等内存时，硬件<strong>瞬间切换</strong>到别的就绪线程（零开销切换，因为寄存器都在片上），于是内存延迟被<strong>大量并发线程掩盖</strong>掉。<strong>"用并发掩盖延迟"是 GPU 的核心生存策略</strong>，与 CPU"用缓存降低延迟"是两条路。<strong>推论：GPU 上线程不够多 = 延迟藏不住 = 性能差</strong>。</p>
 <h2 id="2-simt">2. SIMT 与线程层级<a class="headerlink" href="#2-simt" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -117,9 +119,11 @@ CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"
 </tr>
 </tbody>
 </table>
-<p><strong>两个决定性能的铁律</strong>：
-- <strong>合并访问（coalescing）</strong>：一个 warp 的 32 线程若访问<strong>连续</strong>的全局内存地址，硬件把它们<strong>合并成一次内存事务</strong>——高效；若访问分散（跨步大），退化成 32 次事务——慢 32 倍。<strong>"让相邻线程访问相邻地址"是 GPU 内存优化的第一条</strong>（🔗 csapp-02 缓存行、perf-02 SoA 布局在 GPU 上放大成生死问题）。
-- <strong>善用共享内存（tiling）</strong>：全局内存慢，故把数据<strong>分块搬进共享内存</strong>、block 内线程反复复用、算完再换块——这正是 csapp-02/perf-02 的分块思想在 GPU 上的核心应用。矩阵乘、卷积、attention 全靠它。</p>
+<p><strong>两个决定性能的铁律</strong>：</p>
+<ul>
+<li><strong>合并访问（coalescing）</strong>：一个 warp 的 32 线程若访问<strong>连续</strong>的全局内存地址，硬件把它们<strong>合并成一次内存事务</strong>——高效；若访问分散（跨步大），退化成 32 次事务——慢 32 倍。<strong>"让相邻线程访问相邻地址"是 GPU 内存优化的第一条</strong>（🔗 csapp-02 缓存行、perf-02 SoA 布局在 GPU 上放大成生死问题）。</li>
+<li><strong>善用共享内存（tiling）</strong>：全局内存慢，故把数据<strong>分块搬进共享内存</strong>、block 内线程反复复用、算完再换块——这正是 csapp-02/perf-02 的分块思想在 GPU 上的核心应用。矩阵乘、卷积、attention 全靠它。</li>
+</ul>
 <h2 id="4-kernel">4. 一个 kernel 的样子：向量加法<a class="headerlink" href="#4-kernel" title="Permanent link"></a></h2>
 <p>最小完整例子，理解 CUDA 的骨架：
 <div class="highlight"><pre><span></span><code><span class="kr">__global__</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">vec_add</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="o">*</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>

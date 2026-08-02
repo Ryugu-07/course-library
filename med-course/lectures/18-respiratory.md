@@ -92,6 +92,14 @@
 
 **睡眠呼吸暂停**：上气道反复塌陷 → 间歇低氧 + 觉醒 → 交感激活 → **高血压（尤其难治性）、房颤、代谢紊乱**。**它是"可治疗的继发性高血压"中最常被漏诊的一个**（第 17 页）。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验 COPD、哮喘、间质性肺病、肺高压、肺炎/ARDS 与睡眠呼吸暂停的疾病框架；治疗阶梯、适应证和药物选择以当地最新版指南为准。
+- [GOLD 2026 Report](https://goldcopd.org/wp-content/uploads/2025/12/GOLD-REPORT-2026-v1.3-8Dec2025_WMV.pdf) — GOLD，2026：COPD 诊断、分层和管理。
+- [GINA Reports](https://ginasthma.org/reports/) — GINA：哮喘全球策略报告及年度更新入口。
+- [ATS/ERS/JRS/ALAT Clinical Practice Guideline for IPF](https://academic.oup.com/ajrccm/article/205/9/e18/8492145) — ATS/ERS/JRS/ALAT，2022：特发性肺纤维化诊断与管理。
+- [ATS/ESICM/SCCM Clinical Practice Guideline for ARDS](https://academic.oup.com/ajrccm/article/195/9/1253/8500154) — ATS/ESICM/SCCM，2017：ARDS 机械通气与支持治疗。
+
 ---
 
 *下一页：肾脏、水电解质与酸碱——把第 03、04 页的定量工具用到底。*

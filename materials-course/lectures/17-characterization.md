@@ -11,6 +11,11 @@
 | nm–原子 | **TEM/STEM** | **XRD**（体相）、电子衍射 | EELS、原子探针 APT |
 | 表面几个原子层 | AFM/STM | LEED | **XPS**（化学态）、AES、SIMS |
 
+<figure class="diagram" markdown="1">
+![Characterization techniques scale map](assets/img/mat-17-scale-map.svg)
+<figcaption><span class="fig-id">图 17.1</span>表征技术尺度地图（示意）：横轴从原子细节到体平均，纵轴分成形貌、结构、成分/化学态。方块给出常用技术的典型定位；注意“分辨率高”不等于“统计代表性强”，局部细节与体平均要分开问。</figcaption>
+</figure>
+
 **四问定选型**：看多小？（尺度）看什么？（形貌/结构/成分）破坏样品可以吗？（XRD 无损、TEM 要减薄到 <100 nm）要统计代表性还是局部细节？（XRD 是体平均，TEM 是"管中窥豹"——**这条最容易被忽视，也最容易导致错误结论**）。
 
 ## 2. 三大主力

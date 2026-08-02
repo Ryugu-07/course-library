@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -93,20 +93,26 @@
 <li><strong>技术映射</strong>：把逻辑网络映射到具体标准单元库——<strong>这是一个覆盖问题</strong>，经典解法是树覆盖的动态规划（<strong>与编译器的指令选择是同一个算法</strong>）；</li>
 <li><strong>约束驱动</strong>：综合完全由约束文件（SDC）引导——<strong>约束写错，后面全错</strong>（承第七页）。</li>
 </ul>
-<p><strong>验证</strong>（占据芯片项目的大部分工时，这是学校严重低估的部分）：
-- <strong>仿真</strong>：写测试激励跑波形，覆盖率驱动；
-- <strong>形式验证</strong>：等价性检查（综合前后是否一致）、属性检查（模型检验，🔗 cs 站）；
-- <strong>UVM 等验证方法学</strong>：构建可复用的验证平台。</p>
+<p><strong>验证</strong>（占据芯片项目的大部分工时，这是学校严重低估的部分）：</p>
+<ul>
+<li><strong>仿真</strong>：写测试激励跑波形，覆盖率驱动；</li>
+<li><strong>形式验证</strong>：等价性检查（综合前后是否一致）、属性检查（模型检验，🔗 cs 站）；</li>
+<li><strong>UVM 等验证方法学</strong>：构建可复用的验证平台。</li>
+</ul>
 <p><strong>业界现实</strong>：在大型芯片项目中，<strong>验证工程师的数量常常超过设计工程师</strong>。"设计一个模块两周，验证它三个月"并不夸张。<strong>因为流片错误的代价是数百万美元与数月时间</strong>（第十一页）。</p>
 <h2 id="_2">三、后端：物理设计<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>① 布局（placement）</strong>：决定每个标准单元的坐标。
-- 目标：总线长最短、时序满足、密度均匀、可布线；
-- <strong>这是一个大规模非凸优化问题</strong>。经典方法是<strong>解析式布局</strong>——先把线长用二次型或对数-指数光滑函数近似，解出连续解（大规模稀疏线性系统），再逐步施加密度约束把单元"推开"合法化。<strong>规模达数千万个单元</strong>；</p>
+<p><strong>① 布局（placement）</strong>：决定每个标准单元的坐标。</p>
+<ul>
+<li>目标：总线长最短、时序满足、密度均匀、可布线；</li>
+<li><strong>这是一个大规模非凸优化问题</strong>。经典方法是<strong>解析式布局</strong>——先把线长用二次型或对数-指数光滑函数近似，解出连续解（大规模稀疏线性系统），再逐步施加密度约束把单元"推开"合法化。<strong>规模达数千万个单元</strong>；</li>
+</ul>
 <p><strong>② 时钟树综合（CTS）</strong>：构造缓冲树，控制偏斜与插入延迟（第七页）；</p>
-<p><strong>③ 布线（routing）</strong>：在多层金属上连接所有网络。
-- <strong>全局布线</strong>：把芯片划分为网格，规划每条网络大致走哪些通道——本质是<strong>多商品流问题</strong>；
-- <strong>详细布线</strong>：确定精确的轨道与过孔，必须满足所有设计规则；
-- <strong>迷宫布线（Lee 算法）与 A*</strong> 是基本工具，但真实问题需处理数百万条网络、十几层金属、以及先进节点极其复杂的规则。</p>
+<p><strong>③ 布线（routing）</strong>：在多层金属上连接所有网络。</p>
+<ul>
+<li><strong>全局布线</strong>：把芯片划分为网格，规划每条网络大致走哪些通道——本质是<strong>多商品流问题</strong>；</li>
+<li><strong>详细布线</strong>：确定精确的轨道与过孔，必须满足所有设计规则；</li>
+<li><strong>迷宫布线（Lee 算法）与 A*</strong> 是基本工具，但真实问题需处理数百万条网络、十几层金属、以及先进节点极其复杂的规则。</li>
+</ul>
 <p><strong>④ 时序收敛与签核</strong>：反复优化（改尺寸、插缓冲、改布局）直到所有路径裕量非负，然后做全面签核分析——STA、功耗、IR 压降、电迁移、串扰、天线效应。</p>
 <p><strong>这个流程的痛苦之处在于耦合</strong>：改布局影响布线，布线影响寄生参数，寄生参数影响时序，修时序又要改布局。<strong>它是一个高维、多目标、强耦合的迭代过程</strong>，大型芯片一轮完整流程需要数天到数周的机时，整体收敛需要数月。</p>
 <h2 id="eda">四、为什么 EDA 是算法的富矿<a class="headerlink" href="#eda" title="Permanent link"></a></h2>

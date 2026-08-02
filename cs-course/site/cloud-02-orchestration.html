@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>编排、K8s 与可观测性 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li class="active"><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -64,11 +64,13 @@
 <li><strong>控制器不断对比"期望 vs 实际"，驱动实际趋向期望</strong>：挂了一个副本 → 控制器发现"实际 2 ≠ 期望 3" → 启一个新的。这个"<strong>观察 → 对比 → 调整</strong>"的循环永不停。</li>
 </ul>
 <p><strong>这就是 K8s 的灵魂——"你说要什么状态，我持续保证它成立"</strong>（🔗 与 dist-02 Raft 的状态机复制、se-02 CD 的期望状态、甚至 React"UI=f(state)" web-03 同一种声明式哲学）。你不写"怎么做"（命令式脚本），只写"要什么"（期望状态），系统自己 reconcile。<strong>自愈能力就是控制循环的自然结果</strong>——不是特意编程"挂了就重启"，而是"实际偏离期望就纠正"的通用机制顺带实现了自愈。</p>
-<p><strong>核心抽象</strong>：
-- <strong>Pod</strong>：最小部署单位（一个或几个紧密容器），有自己的 IP。
-- <strong>Deployment</strong>：声明"这个应用要几个副本"——管理 Pod 的创建、滚动更新、回滚。
-- <strong>Service</strong>：给一组 Pod 一个稳定的访问入口 + 负载均衡（Pod 会来来去去、IP 会变，Service 提供不变的名字，🔗 dist 的服务发现）。
-- <strong>控制平面</strong>：API server（入口）+ <strong>etcd</strong>（存所有状态，🔗 dist-02 Raft 集群！K8s 的大脑就是个 Raft 存储）+ scheduler（决定 Pod 放哪台机器，🔗 os-01 调度的分布式版）+ controller（跑控制循环）。</p>
+<p><strong>核心抽象</strong>：</p>
+<ul>
+<li><strong>Pod</strong>：最小部署单位（一个或几个紧密容器），有自己的 IP。</li>
+<li><strong>Deployment</strong>：声明"这个应用要几个副本"——管理 Pod 的创建、滚动更新、回滚。</li>
+<li><strong>Service</strong>：给一组 Pod 一个稳定的访问入口 + 负载均衡（Pod 会来来去去、IP 会变，Service 提供不变的名字，🔗 dist 的服务发现）。</li>
+<li><strong>控制平面</strong>：API server（入口）+ <strong>etcd</strong>（存所有状态，🔗 dist-02 Raft 集群！K8s 的大脑就是个 Raft 存储）+ scheduler（决定 Pod 放哪台机器，🔗 os-01 调度的分布式版）+ controller（跑控制循环）。</li>
+</ul>
 <h2 id="3-k8s">3. K8s 提供的能力<a class="headerlink" href="#3-k8s" title="Permanent link"></a></h2>
 <ul>
 <li><strong>自愈</strong>：容器/节点挂了自动重建/迁移（控制循环）。</li>
@@ -93,10 +95,12 @@
 </ul>
 <p><strong>回收 Medusa 的教训</strong>（memory 血泪）："<strong>webapp 挂一周</strong>""<strong>RSS 断供 3 天静默失败</strong>""<strong>无主动告警</strong>""<strong>MedusaPredict 静默失败 4 天</strong>"——<strong>这些全是可观测性缺失的经典案例</strong>：系统坏了没人知道，因为没有监控 + 告警。<strong>本页给出的解药</strong>：哪怕最简单的健康检查（定时 curl 关键端点，挂了发个通知）+ 关键指标监控（articles 表还在涨吗？预测 state 更新了吗？），就能把"3 天后偶然发现"变成"3 分钟内收到告警"。<strong>可观测性不是大厂专利，是任何 24/7 系统的基本生存装备</strong>——这是本页对你最实用的一课。</p>
 <h2 id="5-sre">5. SRE:可靠性的工程化<a class="headerlink" href="#5-sre" title="Permanent link"></a></h2>
-<p>Google 的 <strong>SRE（站点可靠性工程）</strong> 把"运维"变成"工程"：
-- <strong>SLI/SLO/SLA</strong>：服务水平<strong>指标/目标/协议</strong>——用数字定义"多可靠算可靠"（如 99.9% 可用）。<strong>别追求 100%（成本无穷、也无必要）</strong>——定一个合理目标，留<strong>错误预算</strong>（允许的不可用额度）给发布和创新。
-- <strong>消除琐务（toil）</strong>：重复的手动运维（memory 里"手动点开 webapp"）要自动化——<strong>人应该做工程，不是当人肉 cron</strong>。
-- <strong>无指责复盘（blameless postmortem）</strong>：故障后复盘系统和流程的问题，不追究个人——<strong>从故障中学习</strong>（memory 里那些故障复盘正是这个精神）。</p>
+<p>Google 的 <strong>SRE（站点可靠性工程）</strong> 把"运维"变成"工程"：</p>
+<ul>
+<li><strong>SLI/SLO/SLA</strong>：服务水平<strong>指标/目标/协议</strong>——用数字定义"多可靠算可靠"（如 99.9% 可用）。<strong>别追求 100%（成本无穷、也无必要）</strong>——定一个合理目标，留<strong>错误预算</strong>（允许的不可用额度）给发布和创新。</li>
+<li><strong>消除琐务（toil）</strong>：重复的手动运维（memory 里"手动点开 webapp"）要自动化——<strong>人应该做工程，不是当人肉 cron</strong>。</li>
+<li><strong>无指责复盘（blameless postmortem）</strong>：故障后复盘系统和流程的问题，不追究个人——<strong>从故障中学习</strong>（memory 里那些故障复盘正是这个精神）。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>可靠性是设计出来的，不是救火救出来的</strong>——冗余、自愈、可观测、快速回滚（se-02）、渐进发布，这些前置的工程投入，换来的是不用半夜起来救火。<strong>对你 24/7 的 Medusa，往这个方向走一小步（哪怕就加个健康检查告警），生活质量就大不一样。</strong></p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（声明式的威力）</strong> 描述"手动保证 3 个副本一直在"（要不断检查 + 手动重启）vs K8s Deployment（声明 replicas: 3）——<strong>理解"声明期望 + 控制循环自愈"比命令式脚本强在哪</strong>。</p>

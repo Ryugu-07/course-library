@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "project": "P02-relational-db",
+  "description": "教师注入点；fixture 不编码 redo/undo 实现答案。",
+  "faults": [
+    {"id": "page-checksum-error", "layer": "storage", "event": "restart", "expected": "detect-before-use"},
+    {"id": "duplicate-key-empty-range", "layer": "index", "keys": [7, 7], "range": [8, 8], "expected": "documented-key-and-empty-range-semantics"},
+    {"id": "long-snapshot-concurrent-update", "layer": "mvcc", "reader_snapshot": 10, "writer_commit": 11, "expected": "reader-view-stable"},
+    {"id": "wal-before-commit-crash", "layer": "recovery", "crash_after": "update-before-commit", "expected": "no-uncommitted-effect"},
+    {"id": "wal-after-commit-before-data-page", "layer": "recovery", "crash_after": "commit-before-data-page", "expected": "redo-committed-effect"}
+  ]
+}

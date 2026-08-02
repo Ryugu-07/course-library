@@ -60,7 +60,7 @@ $$\text{低频：}|L|\ \text{大} \quad\Longrightarrow\quad |S| = \frac{1}{|1+L|
 
 $$\text{高频：}|L|\ \text{小} \quad\Longrightarrow\quad |T|\ \text{小} \quad\Longrightarrow\quad \text{抑制噪声、避开未建模动态}$$
 
-$$\text{穿越处：斜率约 −20 dB/dec} \quad\Longrightarrow\quad \text{足够的相位裕度}$$
+$$\text{穿越处：斜率约 -20 dB/dec} \quad\Longrightarrow\quad \text{足够的相位裕度}$$
 
 **这是一个清晰、可操作的设计配方**：低频抬高（加积分/滞后）、高频压低（加滤波）、穿越区调整斜率与相位（加超前）。**工业上大量控制器就是这样设计出来的。**
 

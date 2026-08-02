@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>现代 C++、STL、模板与并发 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -56,43 +56,53 @@ cpp-01 讲 C++ 的内存与生命周期模型，这一页讲你实际写 C++ 时
 <p><img alt="STL 正交设计：容器—迭代器—算法解耦（m+n 而非 m×n）。" src="assets/img/cpp-02-stl-orthogonal.svg" /></p>
 <figcaption><span class="fig-id">图 cpp-02.3</span>STL 正交设计：容器—迭代器—算法解耦（m+n 而非 m×n）。</figcaption>
 </figure>
-<p><strong>STL</strong> 是 C++ 标准库的精华，一个优雅的正交设计——<strong>容器、算法、迭代器三者解耦</strong>：
-- <strong>容器</strong>：<code>vector</code>（动态数组，默认首选，🔗 csapp-02 缓存友好的连续内存）、<code>map</code>/<code>set</code>（红黑树，有序）、<code>unordered_map</code>/<code>unordered_set</code>（哈希表，🔗 db-01）、<code>deque</code>/<code>list</code>/<code>array</code>。<strong>选容器 = 选底层数据结构 + 缓存行为</strong>（🔗 perf-02"数组胜链表"在此：优先 <code>vector</code>）。
-- <strong>算法</strong>：<code>sort</code>/<code>find</code>/<code>transform</code>/<code>accumulate</code>/<code>copy</code>……<strong>泛型算法通过迭代器操作任何容器</strong>——<code>std::sort</code> 能排 vector、也能排 array，因为它只依赖迭代器接口。
-- <strong>迭代器</strong>：<strong>容器和算法之间的桥</strong>——算法不知道容器是什么，只通过迭代器遍历。这个解耦让 <span class="arithmatex">\(M\)</span> 个容器 × <span class="arithmatex">\(N\)</span> 个算法只需 <span class="arithmatex">\(M+N\)</span> 份代码而非 <span class="arithmatex">\(M\times N\)</span>（🔗 comp-01 的 IR 解耦、net 分层同一种"中间抽象"思想）。</p>
+<p><strong>STL</strong> 是 C++ 标准库的精华，一个优雅的正交设计——<strong>容器、算法、迭代器三者解耦</strong>：</p>
+<ul>
+<li><strong>容器</strong>：<code>vector</code>（动态数组，默认首选，🔗 csapp-02 缓存友好的连续内存）、<code>map</code>/<code>set</code>（红黑树，有序）、<code>unordered_map</code>/<code>unordered_set</code>（哈希表，🔗 db-01）、<code>deque</code>/<code>list</code>/<code>array</code>。<strong>选容器 = 选底层数据结构 + 缓存行为</strong>（🔗 perf-02"数组胜链表"在此：优先 <code>vector</code>）。</li>
+<li><strong>算法</strong>：<code>sort</code>/<code>find</code>/<code>transform</code>/<code>accumulate</code>/<code>copy</code>……<strong>泛型算法通过迭代器操作任何容器</strong>——<code>std::sort</code> 能排 vector、也能排 array，因为它只依赖迭代器接口。</li>
+<li><strong>迭代器</strong>：<strong>容器和算法之间的桥</strong>——算法不知道容器是什么，只通过迭代器遍历。这个解耦让 <span class="arithmatex">\(M\)</span> 个容器 × <span class="arithmatex">\(N\)</span> 个算法只需 <span class="arithmatex">\(M+N\)</span> 份代码而非 <span class="arithmatex">\(M\times N\)</span>（🔗 comp-01 的 IR 解耦、net 分层同一种"中间抽象"思想）。</li>
+</ul>
 <p><strong>现代写法</strong>：C++20 的 <strong>ranges</strong> 让 STL 可组合、可管道化（<code>v | filter | transform</code>，🔗 pl-02 函数式、py-01 生成器）——比裸迭代器清爽得多。</p>
 <h2 id="2">2. 模板:零成本泛型（及其代价）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="模板单态化：一份代码为每个类型生成专门代码（零成本泛型）。" src="assets/img/cpp-02-template-mono.svg" /></p>
 <figcaption><span class="fig-id">图 cpp-02.2</span>模板单态化：一份代码为每个类型生成专门代码（零成本泛型）。</figcaption>
 </figure>
-<p><strong>模板</strong>是 C++ 泛型编程的机制——写一次代码、适用多种类型，<strong>编译期为每个用到的类型生成专门代码（单态化）</strong>：
-- <strong>零成本</strong>：<code>std::vector&lt;int&gt;</code> 和 <code>std::vector&lt;double&gt;</code> 各生成专门代码，<strong>和手写一样快</strong>（🔗 cpp-01 零成本抽象、rust-02 泛型单态化同理）——不像 Java 泛型的类型擦除 + 装箱。
-- <strong>图灵完备的编译期计算</strong>：模板元编程能在<strong>编译期</strong>算东西（<code>constexpr</code> 现代化了它）——把运行期工作挪到编译期。
-- <strong>代价</strong>：
-  - <strong>编译慢 + 代码膨胀</strong>（每个类型一份实例）。
-  - <strong>错误信息噩梦</strong>：模板出错的报错又长又难读（C++20 的 <strong>concepts</strong> 大幅改善——给模板参数加约束，错误更清晰，🔗 rust-02 的 trait bound 是同一思想）。
-  - <strong>duck typing 式</strong>：模板不检查类型"是什么"，只要求它"支持用到的操作"（🔗 py-01 鸭子类型的编译期版）——concepts 把这个约束显式化。</p>
+<p><strong>模板</strong>是 C++ 泛型编程的机制——写一次代码、适用多种类型，<strong>编译期为每个用到的类型生成专门代码（单态化）</strong>：</p>
+<ul>
+<li><strong>零成本</strong>：<code>std::vector&lt;int&gt;</code> 和 <code>std::vector&lt;double&gt;</code> 各生成专门代码，<strong>和手写一样快</strong>（🔗 cpp-01 零成本抽象、rust-02 泛型单态化同理）——不像 Java 泛型的类型擦除 + 装箱。</li>
+<li><strong>图灵完备的编译期计算</strong>：模板元编程能在<strong>编译期</strong>算东西（<code>constexpr</code> 现代化了它）——把运行期工作挪到编译期。</li>
+<li><strong>代价</strong>：</li>
+<li><strong>编译慢 + 代码膨胀</strong>（每个类型一份实例）。</li>
+<li><strong>错误信息噩梦</strong>：模板出错的报错又长又难读（C++20 的 <strong>concepts</strong> 大幅改善——给模板参数加约束，错误更清晰，🔗 rust-02 的 trait bound 是同一思想）。</li>
+<li><strong>duck typing 式</strong>：模板不检查类型"是什么"，只要求它"支持用到的操作"（🔗 py-01 鸭子类型的编译期版）——concepts 把这个约束显式化。</li>
+</ul>
 <p><strong>读法</strong>：<strong>模板 = 编译期的鸭子类型 + 单态化</strong>——威力极大（STL 全靠它），但历史上难用，现代 C++（concepts）在补救。理解它你才懂 STL 为什么能又泛型又快。</p>
 <h2 id="3-c">3. 现代 C++:让语言好用起来<a class="headerlink" href="#3-c" title="Permanent link"></a></h2>
-<p>C++11 是分水岭——之后的"现代 C++"比老 C++ 好写太多，几条必须用的：
-- <strong><code>auto</code> 类型推导</strong>：<code>auto x = ...</code> 不用写冗长类型（🔗 pl-01 HM 推断的实用版）。
-- <strong>范围 for</strong>：<code>for (auto&amp; x : container)</code> 而非裸迭代器。
-- <strong>lambda</strong>：<code>[](int x){ return x*2; }</code> 匿名函数 + 闭包（🔗 pl-01 λ 演算、py 高阶函数）——STL 算法的好搭档。
-- <strong>智能指针</strong>（cpp-01）：<code>unique_ptr</code>/<code>shared_ptr</code> 取代裸 <code>new/delete</code>。
-- <strong>移动语义 + <code>std::move</code></strong>（cpp-01）。
-- <strong><code>constexpr</code></strong>：编译期常量计算。
-- <strong><code>std::optional</code>/<code>std::variant</code>/<code>std::expected</code></strong>：类型安全地表达"可能没值/多种类型/可能出错"（🔗 pl-02 的 ADT、rust 的 Option/Result——现代 C++ 也在往这个方向走）。</p>
+<p>C++11 是分水岭——之后的"现代 C++"比老 C++ 好写太多，几条必须用的：</p>
+<ul>
+<li><strong><code>auto</code> 类型推导</strong>：<code>auto x = ...</code> 不用写冗长类型（🔗 pl-01 HM 推断的实用版）。</li>
+<li><strong>范围 for</strong>：<code>for (auto&amp; x : container)</code> 而非裸迭代器。</li>
+<li><strong>lambda</strong>：<code>[](int x){ return x*2; }</code> 匿名函数 + 闭包（🔗 pl-01 λ 演算、py 高阶函数）——STL 算法的好搭档。</li>
+<li><strong>智能指针</strong>（cpp-01）：<code>unique_ptr</code>/<code>shared_ptr</code> 取代裸 <code>new/delete</code>。</li>
+<li><strong>移动语义 + <code>std::move</code></strong>（cpp-01）。</li>
+<li><strong><code>constexpr</code></strong>：编译期常量计算。</li>
+<li><strong><code>std::optional</code>/<code>std::variant</code>/<code>std::expected</code></strong>：类型安全地表达"可能没值/多种类型/可能出错"（🔗 pl-02 的 ADT、rust 的 Option/Result——现代 C++ 也在往这个方向走）。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>写现代 C++（C++17/20），别写"带类的 C"</strong>——用 RAII + 智能指针 + STL + auto + lambda，代码会安全清晰得多。老式手动内存管理的 C++ 是 bug 温床。</p>
 <h2 id="4-c">4. C++ 并发:工具与深水陷阱<a class="headerlink" href="#4-c" title="Permanent link"></a></h2>
-<p>C++11 起有了标准并发库（🔗 par 线、os-02）：
-- <strong><code>std::thread</code></strong>：线程；<strong><code>std::mutex</code> + <code>std::lock_guard</code></strong>（RAII 锁，cpp-01）：互斥；<strong><code>std::condition_variable</code></strong>：条件等待（🔗 os-02 生产者消费者）。
-- <strong><code>std::atomic</code></strong>：原子操作（🔗 par-02 CAS、无锁）；<strong>内存序</strong>（<code>memory_order</code>）：C++ 的内存模型（par-02 的内存序标准正是 C++11 定义的，影响了整个行业）。
-- <strong><code>std::async</code>/<code>future</code>/<code>promise</code></strong>：任务级并发。</p>
-<p><strong>深水陷阱（C++ 并发比大多数语言更危险）</strong>：
-- <strong>数据竞争 = 未定义行为</strong>：C++ 里数据竞争不只是"结果错"，是 <strong>UB</strong>（编译器可假设它不发生、做出灾难性优化）。而 C++<strong>不帮你检查</strong>——全靠你正确加锁（🔗 rust-02 对比：Rust 编译期禁止数据竞争）。
-- <strong>手动锁易死锁</strong>（os-02 四条件）、易忘解锁（RAII 锁缓解）、易伪共享（🔗 csapp-02、par-01）。
-- <strong>工具</strong>：ThreadSanitizer 运行时抓数据竞争（必用）。</p>
+<p>C++11 起有了标准并发库（🔗 par 线、os-02）：</p>
+<ul>
+<li><strong><code>std::thread</code></strong>：线程；<strong><code>std::mutex</code> + <code>std::lock_guard</code></strong>（RAII 锁，cpp-01）：互斥；<strong><code>std::condition_variable</code></strong>：条件等待（🔗 os-02 生产者消费者）。</li>
+<li><strong><code>std::atomic</code></strong>：原子操作（🔗 par-02 CAS、无锁）；<strong>内存序</strong>（<code>memory_order</code>）：C++ 的内存模型（par-02 的内存序标准正是 C++11 定义的，影响了整个行业）。</li>
+<li><strong><code>std::async</code>/<code>future</code>/<code>promise</code></strong>：任务级并发。</li>
+</ul>
+<p><strong>深水陷阱（C++ 并发比大多数语言更危险）</strong>：</p>
+<ul>
+<li><strong>数据竞争 = 未定义行为</strong>：C++ 里数据竞争不只是"结果错"，是 <strong>UB</strong>（编译器可假设它不发生、做出灾难性优化）。而 C++<strong>不帮你检查</strong>——全靠你正确加锁（🔗 rust-02 对比：Rust 编译期禁止数据竞争）。</li>
+<li><strong>手动锁易死锁</strong>（os-02 四条件）、易忘解锁（RAII 锁缓解）、易伪共享（🔗 csapp-02、par-01）。</li>
+<li><strong>工具</strong>：ThreadSanitizer 运行时抓数据竞争（必用）。</li>
+</ul>
 <p><strong>这正是 rust 线的最佳对照</strong>：C++ 给你全部并发能力<strong>但不保证安全</strong>（自律 + 工具），Rust 用类型系统<strong>在编译期消灭数据竞争</strong>（rust-02"无畏并发"）。<strong>写 C++ 并发要极度小心、配 sanitizer；这也解释了为什么新系统项目越来越多选 Rust</strong>。</p>
 <h2 id="5-c-vs-rust-vs-python">5. C++ vs Rust vs Python:一张收束图<a class="headerlink" href="#5-c-vs-rust-vs-python" title="Permanent link"></a></h2>
 <figure class="diagram">

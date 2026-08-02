@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -87,18 +87,22 @@ CMOS 反相器是整个数字世界的原子。它只有两个晶体管，却包
 </ul>
 <p><strong>能量-延迟权衡</strong>：把 <span class="arithmatex">\(V_{DD}\)</span> 作为参数，可以画出能量与延迟的权衡曲线。<strong>存在一个"最小能量点"，通常在近阈值甚至亚阈值区</strong>——但那里速度极慢且对变异极敏感。<strong>超低功耗设计（IoT、可穿戴）就工作在这个区域</strong>，而高性能设计则选择远离它。这是"没有最优只有权衡"的又一实例。</p>
 <h2 id="_4">五、从反相器到逻辑门<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p><strong>通用构造法则</strong>：
-- <strong>下拉网络（NMOS）</strong>实现逻辑函数的<strong>非</strong>形式：串联 = AND，并联 = OR；
-- <strong>上拉网络（PMOS）</strong>是下拉网络的<strong>对偶</strong>：串联↔并联。</p>
+<p><strong>通用构造法则</strong>：</p>
+<ul>
+<li><strong>下拉网络（NMOS）</strong>实现逻辑函数的<strong>非</strong>形式：串联 = AND，并联 = OR；</li>
+<li><strong>上拉网络（PMOS）</strong>是下拉网络的<strong>对偶</strong>：串联↔并联。</li>
+</ul>
 <p>于是 <strong>NAND</strong> = NMOS 串联 + PMOS 并联；<strong>NOR</strong> = NMOS 并联 + PMOS 串联。</p>
 <p><strong>工程上的重要偏好：NAND 优于 NOR。</strong> 原因是 NOR 需要 PMOS <strong>串联</strong>，而 PMOS 本就慢（迁移率低），串联后更慢，为补偿需把宽度做得很大 → 面积与电容双双恶化。<strong>所以标准单元库以 NAND 为骨干，综合工具也偏好把逻辑映射成 NAND 形式</strong>——一个源自第一页"空穴迁移率低"的、贯穿到 EDA 工具的连锁后果。</p>
 <p><strong>堆叠的其他代价</strong>：串联管还受<strong>体效应</strong>（第三页）影响，上层管的 <span class="arithmatex">\(V_{th}\)</span> 被抬高。<strong>所以逻辑门的输入数一般不超过 4</strong>，更复杂的函数用多级实现。</p>
 <h2 id="_5">六、标准单元：数字设计的抽象层<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>标准单元（standard cell）</strong>是把常用门（INV、NAND、NOR、触发器、加法器等）预先设计好版图、表征好时序与功耗，形成<strong>单元库</strong>。所有单元具有<strong>统一的高度</strong>（便于按行排列、共享电源轨），宽度按复杂度变化。</p>
-<p><strong>这是一个关键的抽象层</strong>（承导论 §3）：
-- 数字设计者写 RTL，综合工具映射到单元库，布局布线工具摆放它们——<strong>全程不必接触晶体管</strong>；
-- 单元库的<strong>表征数据</strong>（不同负载与转换时间下的延迟、功耗）是上层工具赖以工作的模型；
-- <strong>抽象会漏</strong>：噪声、串扰、IR 压降、老化都不在简单的单元模型里，需要额外的分析流程去补（第七、十四页）。</p>
+<p><strong>这是一个关键的抽象层</strong>（承导论 §3）：</p>
+<ul>
+<li>数字设计者写 RTL，综合工具映射到单元库，布局布线工具摆放它们——<strong>全程不必接触晶体管</strong>；</li>
+<li>单元库的<strong>表征数据</strong>（不同负载与转换时间下的延迟、功耗）是上层工具赖以工作的模型；</li>
+<li><strong>抽象会漏</strong>：噪声、串扰、IR 压降、老化都不在简单的单元模型里，需要额外的分析流程去补（第七、十四页）。</li>
+</ul>
 <p><strong>单元高度（以金属轨数计）是节点密度的关键指标之一</strong>——近年的密度提升，很大一部分来自单元高度的降低（DTCO，第五页），而非单纯的晶体管缩小。</p>
 <hr />
 <p><em>下一页：有了逻辑门，还需要让它们在时间上协同。时序、触发器、时钟，以及那个决定芯片能跑多快的分析——静态时序分析。</em></p>

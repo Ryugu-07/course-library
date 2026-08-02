@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>推理系统与算子优化 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -59,9 +59,11 @@
 <p><img alt="Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。" src="assets/img/mlsys-02-prefill-decode.svg" /></p>
 <figcaption><span class="fig-id">图 mlsys-02.3</span>Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。</figcaption>
 </figure>
-<p>LLM 生成是<strong>自回归</strong>的——一个 token 一个 token 地出，每个新 token 依赖前面所有 token。这带来独特的两阶段结构：
-- <strong>Prefill（预填充）</strong>：处理输入 prompt，一次并行算完所有输入 token——<strong>算力受限</strong>（大矩阵乘，GPU 吃饱）。
-- <strong>Decode（解码）</strong>：逐个生成输出 token，每步只算一个——<strong>内存受限</strong>（每步要读整个模型权重却只算一个 token，算术强度极低，Roofline 落在带宽屋顶，perf-01）。</p>
+<p>LLM 生成是<strong>自回归</strong>的——一个 token 一个 token 地出，每个新 token 依赖前面所有 token。这带来独特的两阶段结构：</p>
+<ul>
+<li><strong>Prefill（预填充）</strong>：处理输入 prompt，一次并行算完所有输入 token——<strong>算力受限</strong>（大矩阵乘，GPU 吃饱）。</li>
+<li><strong>Decode（解码）</strong>：逐个生成输出 token，每步只算一个——<strong>内存受限</strong>（每步要读整个模型权重却只算一个 token，算术强度极低，Roofline 落在带宽屋顶，perf-01）。</li>
+</ul>
 <p><strong>关键洞察</strong>：<strong>decode 阶段 GPU 算力大量闲置</strong>（在等着把权重从显存搬进来），这决定了推理优化的方向——<strong>要么提高每次搬权重服务的请求数（批处理），要么减少要搬的数据（量化）</strong>。</p>
 <h2 id="2-kv-cache">2. KV Cache：推理的核心数据结构<a class="headerlink" href="#2-kv-cache" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -85,18 +87,22 @@
 <li><strong>投机解码（speculative decoding）</strong>：用一个小的"草稿模型"快速生成几个候选 token，大模型<strong>一次并行验证</strong>——把内存受限的 decode 变得更"算力密集"、加速生成而不改变输出分布。<strong>一个用小模型加速大模型的巧妙系统技巧</strong>。</li>
 </ul>
 <h2 id="4">4. 模型压缩:量化、蒸馏、剪枝<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>让模型更小更快（尤其本地部署，你的 4060 Ti / comfy 课直接相关）：
-- <strong>量化（quantization）</strong>：把权重从 fp16 降到 int8/int4——<strong>显存减半再减半、decode 阶段搬权重更快</strong>（decode 是内存受限，量化直接加速）。关键是<strong>保持精度</strong>（GPTQ/AWQ 等在量化时补偿误差）。<strong>"4-bit 量化让 70B 模型跑进消费级显卡"就是量化的胜利</strong>——你在本地跑量化模型（GGUF/AWQ）时用的正是它。
-- <strong>蒸馏（distillation）</strong>：用大模型（teacher）的输出训练小模型（student）——<strong>小模型学到大模型的行为，体积小几倍</strong>。DeepSeek/Qwen 的小模型多经蒸馏。
-- <strong>剪枝（pruning）</strong>：删掉不重要的权重/结构——理论优雅但硬件加速不易（非结构化稀疏 GPU 不友好）。</p>
+<p>让模型更小更快（尤其本地部署，你的 4060 Ti / comfy 课直接相关）：</p>
+<ul>
+<li><strong>量化（quantization）</strong>：把权重从 fp16 降到 int8/int4——<strong>显存减半再减半、decode 阶段搬权重更快</strong>（decode 是内存受限，量化直接加速）。关键是<strong>保持精度</strong>（GPTQ/AWQ 等在量化时补偿误差）。<strong>"4-bit 量化让 70B 模型跑进消费级显卡"就是量化的胜利</strong>——你在本地跑量化模型（GGUF/AWQ）时用的正是它。</li>
+<li><strong>蒸馏（distillation）</strong>：用大模型（teacher）的输出训练小模型（student）——<strong>小模型学到大模型的行为，体积小几倍</strong>。DeepSeek/Qwen 的小模型多经蒸馏。</li>
+<li><strong>剪枝（pruning）</strong>：删掉不重要的权重/结构——理论优雅但硬件加速不易（非结构化稀疏 GPU 不友好）。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>推理优化 = 减少要搬的数据（量化/压缩）× 提高硬件利用率（批处理/融合）× 减少冗余计算（KV cache/投机）</strong>——这三个杠杆覆盖了几乎所有 LLM 推理加速手段，是一张能装下 vLLM/TensorRT-LLM 全部技巧的地图。</p>
 <h2 id="5-medusa">5. 端到端：一次推理请求的旅程（Medusa 视角）<a class="headerlink" href="#5-medusa" title="Permanent link"></a></h2>
-<p>把全页串起来——你的 Medusa 发一个 DeepSeek 请求，服务端发生什么：
-1. 请求进入调度器，<strong>连续批处理</strong>把它拼进当前 batch。
-2. <strong>Prefill</strong> 阶段并行处理你的 prompt，建立 <strong>KV Cache</strong>（PagedAttention 分页管理）。
-3. <strong>Decode</strong> 阶段逐 token 生成，每步复用 KV Cache、可能用<strong>投机解码</strong>加速。
-4. 模型可能是<strong>量化</strong>版以省显存提吞吐。
-5. 流式返回 token（🔗 net-02 的 SSE/流式）。</p>
+<p>把全页串起来——你的 Medusa 发一个 DeepSeek 请求，服务端发生什么：</p>
+<ol>
+<li>请求进入调度器，<strong>连续批处理</strong>把它拼进当前 batch。</li>
+<li><strong>Prefill</strong> 阶段并行处理你的 prompt，建立 <strong>KV Cache</strong>（PagedAttention 分页管理）。</li>
+<li><strong>Decode</strong> 阶段逐 token 生成，每步复用 KV Cache、可能用<strong>投机解码</strong>加速。</li>
+<li>模型可能是<strong>量化</strong>版以省显存提吞吐。</li>
+<li>流式返回 token（🔗 net-02 的 SSE/流式）。</li>
+</ol>
 <p><strong>理解这条链，你就懂了"为什么长 prompt 首 token 慢（prefill）、生成速度稳定（decode 内存受限）、并发高时仍不卡（连续批处理）"</strong>——从此 LLM API 的性能表现对你不再是黑盒。</p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（KV Cache 算账）</strong> 一个模型 32 层、隐藏维 4096、fp16，估算 2048 token 上下文的 KV Cache 显存（约 2 × 32 × 4096 × 2048 × 2 字节 ≈ 1 GB/请求）——<strong>理解"为什么长上下文 + 高并发那么吃显存"</strong>，PagedAttention 为什么重要。</p>

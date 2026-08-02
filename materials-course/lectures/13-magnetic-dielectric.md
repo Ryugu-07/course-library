@@ -10,11 +10,16 @@
 
 **磁畴**：为降低退磁场能，自发磁化分成方向各异的畴（畴壁厚度 ~10–100 nm）；宏观磁化过程 = **畴壁移动 + 畴转动**——这就是磁滞的舞台。
 
+<figure class="diagram" markdown="1">
+![Magnetic domains and domain-wall motion](assets/img/mat-13-domains.svg)
+<figcaption><span class="fig-id">图 13.1</span>未磁化材料由方向杂乱的多畴组成；外场推动畴壁并使磁矩转向，最终形成近似单一方向的饱和磁化。</figcaption>
+</figure>
+
 ## 2. 软磁 vs 硬磁：同一条曲线的两端
 
 <figure class="plot" markdown="1">
 ![Soft vs hard magnetic hysteresis loops](assets/img/mat-13-hysteresis.svg)
-<figcaption><span class="fig-id">图 13.1</span>磁滞回线：软磁矫顽力 \(H_c\) 极小、回线细窄（每周期损耗 = 回线面积，故变压器铁损低）；硬磁 \(H_c\) 巨大、回线肥硕（能"记住"磁化状态 = 永磁体与磁记录）。**同一物理量的两个极端方向，对应两个完全不同的产业。**</figcaption>
+<figcaption><span class="fig-id">图 13.2</span>磁滞回线：软磁矫顽力 \(H_c\) 极小、回线细窄（每周期损耗 = 回线面积，故变压器铁损低）；硬磁 \(H_c\) 巨大、回线肥硕（能"记住"磁化状态 = 永磁体与磁记录）。**同一物理量的两个极端方向，对应两个完全不同的产业。**</figcaption>
 </figure>
 
 | | 软磁 | 硬磁（永磁） |

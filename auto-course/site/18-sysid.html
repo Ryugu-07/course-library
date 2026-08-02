@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,29 +55,35 @@
 <h2 id="_1">一、辨识的基本流程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[\text{实验设计} \to \text{采集数据} \to \text{选模型结构} \to \text{参数估计} \to \textbf{模型验证}\]</div>
 <p><strong>每一步都有可能毁掉整个结果</strong>，而最常被忽视的是第一步与最后一步。</p>
-<p><strong>实验设计（最容易被低估）</strong>：
-- <strong>激励信号必须"充分丰富"</strong>：若只用阶跃激励，只能激发有限频段，得到的模型在其他频段不可信。常用<strong>PRBS（伪随机二进制序列）</strong>或<strong>多正弦（chirp）</strong>，覆盖关心的频段；
-- <strong>持续激励条件</strong>：辨识 <span class="arithmatex">\(n\)</span> 个参数，输入至少需含 <span class="arithmatex">\(n/2\)</span> 个不同频率成分。<strong>这是一个可以严格陈述的条件</strong>，不是经验之谈；
-- <strong>幅度权衡</strong>：太小则信噪比差，太大则激发非线性、扰动生产。<strong>工业现场往往只允许很小的激励</strong>，这是真实约束；
-- <strong>闭环辨识的陷阱</strong>：若在闭环下采集数据，输入与噪声通过反馈相关，<strong>直接用开环方法会得到有偏的模型</strong>——甚至可能辨识出控制器的逆而非对象本身。需专门的闭环辨识方法。<strong>这是实践中极常见的错误。</strong></p>
+<p><strong>实验设计（最容易被低估）</strong>：</p>
+<ul>
+<li><strong>激励信号必须"充分丰富"</strong>：若只用阶跃激励，只能激发有限频段，得到的模型在其他频段不可信。常用<strong>PRBS（伪随机二进制序列）</strong>或<strong>多正弦（chirp）</strong>，覆盖关心的频段；</li>
+<li><strong>持续激励条件</strong>：辨识 <span class="arithmatex">\(n\)</span> 个参数，输入至少需含 <span class="arithmatex">\(n/2\)</span> 个不同频率成分。<strong>这是一个可以严格陈述的条件</strong>，不是经验之谈；</li>
+<li><strong>幅度权衡</strong>：太小则信噪比差，太大则激发非线性、扰动生产。<strong>工业现场往往只允许很小的激励</strong>，这是真实约束；</li>
+<li><strong>闭环辨识的陷阱</strong>：若在闭环下采集数据，输入与噪声通过反馈相关，<strong>直接用开环方法会得到有偏的模型</strong>——甚至可能辨识出控制器的逆而非对象本身。需专门的闭环辨识方法。<strong>这是实践中极常见的错误。</strong></li>
+</ul>
 <h2 id="_2">二、模型结构与参数估计<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>常用结构</strong>（差别在于噪声怎么进入模型）：</p>
 <div class="arithmatex">\[\text{ARX：}\ A(q)y = B(q)u + e, \qquad \text{ARMAX：}\ A(q)y = B(q)u + C(q)e, \qquad \text{OE：}\ y = \frac{B(q)}{F(q)}u + e\]</div>
 <p><strong>ARX 的优点是参数估计为线性最小二乘</strong>（有闭式解），缺点是噪声模型受限、会产生偏差。OE（输出误差）模型的噪声假设更贴近实际，但需非线性优化。</p>
 <p><strong>参数估计的核心是预测误差方法（PEM）</strong>：</p>
 <div class="arithmatex">\[\hat{\theta} = \arg\min_\theta \sum_{t} \left(y(t) - \hat{y}(t|\theta)\right)^2\]</div>
-<p><strong>这与机器学习的经验风险最小化是同一个东西</strong>（🔗 AI 站）。事实上：
-- ARX 辨识 = 线性回归；
-- 正则化（岭回归）在辨识中同样用于抑制过拟合；
-- 模型阶次选择 = 模型复杂度选择，用 <strong>AIC/BIC</strong> 或交叉验证——<strong>与机器学习的模型选择完全同构</strong>。</p>
+<p><strong>这与机器学习的经验风险最小化是同一个东西</strong>（🔗 AI 站）。事实上：</p>
+<ul>
+<li>ARX 辨识 = 线性回归；</li>
+<li>正则化（岭回归）在辨识中同样用于抑制过拟合；</li>
+<li>模型阶次选择 = 模型复杂度选择，用 <strong>AIC/BIC</strong> 或交叉验证——<strong>与机器学习的模型选择完全同构</strong>。</li>
+</ul>
 <p><strong>子空间方法（N4SID 等）</strong>：直接从数据的 Hankel 矩阵通过 SVD 估计状态空间模型，<strong>特别适合 MIMO</strong>，且不需要事先指定复杂的参数化。是工业辨识软件的主力算法之一。</p>
 <h2 id="_3">三、验证：最重要也最常被省略的一步<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>用拟合优度评价模型是危险的</strong>——提高阶次总能让拟合更好，但那可能只是在拟合噪声。</p>
-<p><strong>必须做的验证</strong>：
-- <strong>交叉验证</strong>：用<strong>未参与辨识的数据</strong>检验预测能力。这是最基本的一条；
-- <strong>残差分析</strong>：残差应接近白噪声，且<strong>与输入不相关</strong>。若残差与输入仍相关，说明<strong>模型漏掉了动态</strong>——这是一个非常有力的诊断；
-- <strong>多步预测</strong>：一步预测好不代表多步预测好，而<strong>MPC 需要的恰恰是多步预测能力</strong>（第十七页）；
-- <strong>物理合理性</strong>：增益的符号与量级、时滞、稳态是否符合工艺常识。<strong>这一条能拦下大部分荒谬的模型。</strong></p>
+<p><strong>必须做的验证</strong>：</p>
+<ul>
+<li><strong>交叉验证</strong>：用<strong>未参与辨识的数据</strong>检验预测能力。这是最基本的一条；</li>
+<li><strong>残差分析</strong>：残差应接近白噪声，且<strong>与输入不相关</strong>。若残差与输入仍相关，说明<strong>模型漏掉了动态</strong>——这是一个非常有力的诊断；</li>
+<li><strong>多步预测</strong>：一步预测好不代表多步预测好，而<strong>MPC 需要的恰恰是多步预测能力</strong>（第十七页）；</li>
+<li><strong>物理合理性</strong>：增益的符号与量级、时滞、稳态是否符合工艺常识。<strong>这一条能拦下大部分荒谬的模型。</strong></li>
+</ul>
 <p><strong>"所有模型都是错的，有些是有用的"</strong>（第二页）在这里有具体含义：<strong>辨识的目标不是最精确的模型，而是"对控制设计够用"的模型</strong>。控制关注的频段主要在<strong>穿越频率附近</strong>——低频与高频的精度不那么重要。<strong>为控制而辨识（identification for control）</strong>这一思想主张：辨识的加权应与控制目标一致。</p>
 <h2 id="_4">四、自适应控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>自适应控制</strong>在运行中在线调整，应对参数缓慢变化（磨损、温度、负载、批次）。</p>
@@ -90,10 +96,12 @@
 <li><strong>鲁棒性问题</strong>：经典自适应律对未建模动态与扰动<strong>可能不鲁棒</strong>（1980 年代 Rohrs 等人的反例曾引发广泛反思——<strong>这与第八页 LQG 的 Doyle 反例是同一时期、同一性质的"理论翻车"</strong>）。补救手段包括 <span class="arithmatex">\(\sigma\)</span> 修正、死区、投影（把参数限制在合理范围内）；</li>
 <li><strong>工业上的谨慎</strong>：<strong>在安全关键系统中，在线自适应通常被严格限制或禁止</strong>——因为它使系统行为随时间变化，<strong>难以验证与认证</strong>（承第十四页功能安全：系统性可预测比性能更重要）。</li>
 </ul>
-<p><strong>实际更常见的折中</strong>：
-- <strong>增益调度</strong>（第十五页）：离线设计多组参数，按可测工况切换——<strong>行为可预测、可验证</strong>；
-- <strong>自整定</strong>：不连续自适应，而是在需要时（如换批次、维护后）执行一次整定；
-- <strong>参数在线估计但不自动闭环</strong>：估计结果提示操作员，由人决定是否更新。</p>
+<p><strong>实际更常见的折中</strong>：</p>
+<ul>
+<li><strong>增益调度</strong>（第十五页）：离线设计多组参数，按可测工况切换——<strong>行为可预测、可验证</strong>；</li>
+<li><strong>自整定</strong>：不连续自适应，而是在需要时（如换批次、维护后）执行一次整定；</li>
+<li><strong>参数在线估计但不自动闭环</strong>：估计结果提示操作员，由人决定是否更新。</li>
+</ul>
 <p><strong>这个"离线设计、在线切换"胜过"完全在线自适应"的模式，与第二十页学习型控制面对的困境完全一致。</strong></p>
 <h2 id="_5">五、与机器学习的关系<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>系统辨识与监督学习共享数学，但<strong>关注点不同</strong>，这个对照很有启发：</p>

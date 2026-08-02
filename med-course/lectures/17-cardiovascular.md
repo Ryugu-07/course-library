@@ -100,7 +100,15 @@
 
 **① 自律性异常**（缺血、电解质、儿茶酚胺）；**② 触发活动**（早后除极 EAD——**长 QT 与尖端扭转**；迟后除极 DAD——**钙超载，如地高辛中毒**）；**③ 折返**（**最常见**）——需要三个条件：**两条通路、单向阻滞、传导足够慢**。
 
-**房颤**：机制为肺静脉肌袖异位灶 + 心房基质重构（**"房颤本身促进房颤"**——电重构与结构重构）。**风险不在心律本身而在血栓栓塞与心衰**。**CHA₂DS₂-VASc 评分决定抗凝**——🔗 姊妹站第 15 页用它讲绝对风险与 NNT 的计算。**心率控制 vs 节律控制**的长期结局在多数患者中相近（AFFIRM），**但早期节律控制策略在近年试验中显示获益**（EAST-AFNET 4）——**指南据此更新，是"证据推动实践变化"的近例**。
+**房颤**：机制为肺静脉肌袖异位灶 + 心房基质重构（**"房颤本身促进房颤"**——电重构与结构重构）。**风险不在心律本身而在血栓栓塞与心衰**。**CHA₂DS₂-VASc 不是单独“决定抗凝”的开关**：应按适用指南、地区和经验证的年卒中/体循环栓塞风险，结合出血风险、合并症、患者偏好与房颤负荷共同决策，并定期复评。**ESC 2024（欧洲）指南**使用去掉性别项的 **CHA₂DS₂-VA**：1 分应考虑抗凝，≥2 分推荐抗凝；**美国 2023 ACC/AHA/ACCP/HRS 指南**按年血栓栓塞风险作推荐，可使用 CHA₂DS₂-VASc 等经验证评分，中间风险还可结合其他风险修饰因素和共享决策。机械瓣、风湿性二尖瓣狭窄等特殊情形需遵循专门建议；年龄、血压、心衰、糖尿病、血管病、肾功能、出血风险、房颤负荷或患者偏好改变时，应动态复评。🔗 姊妹站第 15 页用风险与 NNT 说明为什么不能把评分当成自动处方。**心率控制 vs 节律控制**的长期结局在多数患者中相近（AFFIRM），**但早期节律控制策略在近年试验中显示获益**（EAST-AFNET 4）——**指南据此更新，是"证据推动实践变化"的近例**。
+
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验冠状动脉疾病、心肌梗死、心衰、瓣膜病、房颤和抗凝决策的框架；抗栓与节律管理必须按患者所在地区的最新版指南执行。
+- [2024 ESC Guidelines for the management of atrial fibrillation](https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/atrial-fibrillation/) — ESC，2024：AF-CARE、CHA₂DS₂-VA 与动态复评。
+- [2023 ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation](https://www.ahajournals.org/doi/10.1161/CIR.0000000000001193) — 美国 ACC/AHA/ACCP/HRS，2023：按年血栓栓塞风险、共享决策与周期性复评。
+- [2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure](https://www.ahajournals.org/doi/epdf/10.1161/CIR.0000000000001063) — AHA/ACC/HFSA，2022：心衰分期与药物治疗。
+- [Fourth Universal Definition of Myocardial Infarction](https://pubmed.ncbi.nlm.nih.gov/30571511/) — ESC/ACC/AHA/WHF，2018：心肌损伤与心肌梗死的定义。
 
 ---
 

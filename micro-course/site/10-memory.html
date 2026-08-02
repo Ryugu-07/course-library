@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -102,10 +102,12 @@
 <li>读写快，与逻辑工艺完全兼容 → 用作片上缓存；</li>
 <li><strong>代价是面积大</strong>（6 个晶体管/比特）。</li>
 </ul>
-<p><strong>三个设计张力</strong>（全部围绕同一个矛盾）：
-- <strong>读稳定性</strong>：读操作会扰动存储节点，可能翻转数据（读扰动）；
-- <strong>写能力</strong>：必须能强行翻转锁存；
-- <strong>保持裕度</strong>：低压下双稳态可能失稳。</p>
+<p><strong>三个设计张力</strong>（全部围绕同一个矛盾）：</p>
+<ul>
+<li><strong>读稳定性</strong>：读操作会扰动存储节点，可能翻转数据（读扰动）；</li>
+<li><strong>写能力</strong>：必须能强行翻转锁存；</li>
+<li><strong>保持裕度</strong>：低压下双稳态可能失稳。</li>
+</ul>
 <p>用<strong>静态噪声容限（SNM）</strong>衡量。<strong>问题在于：提高写能力要求访问管强，而提高读稳定性要求访问管弱</strong>——两者直接冲突，且<strong>在低压与大变异下同时恶化</strong>。这就是为什么 SRAM 往往是<strong>决定芯片最低工作电压（<span class="arithmatex">\(V_{min}\)</span>）</strong>的模块，也催生了 8T 等读写分离单元（用面积换稳定性）。</p>
 <p><strong>关键的产业事实：SRAM 面积缩放已显著放缓。</strong> 逻辑还在缩，SRAM 却几乎停滞——因为它对变异极其敏感（承第八页 Pelgrom：<strong>精度用面积买</strong>）。<strong>后果是缓存在芯片面积中占比越来越高，且成为先进节点成本上升的主要推手之一</strong>，这也强化了把缓存分离到单独裸片、用 3D 堆叠连接的动机（第十五页）。</p>
 <h2 id="dram">三、DRAM：一个电容和它的漏电<a class="headerlink" href="#dram" title="Permanent link"></a></h2>
@@ -120,23 +122,29 @@
 <p><strong>DRAM 工艺与逻辑工艺不兼容</strong>（需要特殊的电容与低漏电晶体管），所以<strong>DRAM 通常是独立芯片</strong>。这正是"存储墙"的物理起点：数据必须跨越封装、走上电路板才能到达处理器。</p>
 <h2 id="nand">四、NAND 闪存：用可靠性换密度<a class="headerlink" href="#nand" title="Permanent link"></a></h2>
 <p><strong>浮栅/电荷俘获</strong>：在栅极中嵌入一个绝缘包围的电荷存储层，注入电荷改变 <span class="arithmatex">\(V_{th}\)</span>，从而记录信息。断电电荷仍在 → <strong>非易失</strong>。</p>
-<p><strong>三个关键性质</strong>：
-- <strong>块擦除</strong>：只能按大块擦除（数百 KB–MB），不能按字节改写 → 需要 <strong>FTL（闪存转换层）</strong>做地址映射与垃圾回收（🔗 cs 站文件系统与存储）；
-- <strong>有限寿命</strong>：每次擦写都损伤隧穿氧化层，<strong>P/E 循环次数有限</strong>（SLC 数万次，QLC 仅数百到数千次）→ 需要<strong>磨损均衡</strong>；
-- <strong>多比特存储</strong>：SLC/MLC/TLC/QLC，一个单元存 1/2/3/4 位。<strong>每增加一位，需要区分的电平数翻倍，裕度指数下降</strong> → 速度、寿命、可靠性同步恶化。<strong>这是纯粹的"密度换可靠性"权衡</strong>，也是消费级 SSD 越来越便宜、但耐久度越来越低的原因。</p>
+<p><strong>三个关键性质</strong>：</p>
+<ul>
+<li><strong>块擦除</strong>：只能按大块擦除（数百 KB–MB），不能按字节改写 → 需要 <strong>FTL（闪存转换层）</strong>做地址映射与垃圾回收（🔗 cs 站文件系统与存储）；</li>
+<li><strong>有限寿命</strong>：每次擦写都损伤隧穿氧化层，<strong>P/E 循环次数有限</strong>（SLC 数万次，QLC 仅数百到数千次）→ 需要<strong>磨损均衡</strong>；</li>
+<li><strong>多比特存储</strong>：SLC/MLC/TLC/QLC，一个单元存 1/2/3/4 位。<strong>每增加一位，需要区分的电平数翻倍，裕度指数下降</strong> → 速度、寿命、可靠性同步恶化。<strong>这是纯粹的"密度换可靠性"权衡</strong>，也是消费级 SSD 越来越便宜、但耐久度越来越低的原因。</li>
+</ul>
 <p><strong>3D NAND 是一次范式转移</strong>：平面缩放走到尽头后，改为<strong>垂直堆叠</strong>（现已达数百层），用一次刻蚀打通所有层。<strong>"不再缩小，而是堆高"——这个思路后来蔓延到了整个行业</strong>（3D 集成、Chiplet，第十五页）。<strong>NAND 是第一个成功转向三维的大宗半导体产品</strong>，具有示范意义。</p>
 <p><strong>纠错是必需品而非可选项</strong>：现代 NAND 的原始误码率高到无法直接使用，必须依赖强大的 ECC（LDPC 等）。<strong>存储系统的可靠性是"用编码换来的"</strong>（🔗 cs 站/数学站信息论）。</p>
 <h2 id="_2">五、存储墙<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>处理器性能的增长长期快于存储带宽与延迟的改善</strong>，两者差距持续扩大——这就是<strong>存储墙（memory wall）</strong>。</p>
-<p><strong>今天的具体表现</strong>：
-- 大量 AI 与数据密集型负载<strong>受限于内存带宽而非算力</strong>——加速器的计算单元大部分时间在等数据；
-- <strong>数据搬运的能耗远超计算本身</strong>。从片外 DRAM 读取一个数所消耗的能量，可比一次浮点运算高<strong>两个数量级以上</strong>。<strong>"计算是免费的，搬运是昂贵的"</strong> 是现代芯片设计的核心信条之一；
-- 于是架构设计的重心从"提高算力"转向"<strong>减少数据移动</strong>"。</p>
-<p><strong>应对手段</strong>（后面各页展开）：
-- <strong>更近</strong>：大容量片上缓存、3D 堆叠缓存；
-- <strong>更宽</strong>：<strong>HBM</strong>——把 DRAM 裸片堆叠并通过硅中介层以极宽总线连接（第十五页）。这是当前 AI 加速器的标准配置，也是先进封装最大的商业驱动力；
-- <strong>更聪明</strong>：数据流架构、算子融合、近存计算；
-- <strong>更激进</strong>：<strong>存内计算</strong>——直接在存储阵列里做运算，彻底避免搬运（第十六页）。</p>
+<p><strong>今天的具体表现</strong>：</p>
+<ul>
+<li>大量 AI 与数据密集型负载<strong>受限于内存带宽而非算力</strong>——加速器的计算单元大部分时间在等数据；</li>
+<li><strong>数据搬运的能耗远超计算本身</strong>。从片外 DRAM 读取一个数所消耗的能量，可比一次浮点运算高<strong>两个数量级以上</strong>。<strong>"计算是免费的，搬运是昂贵的"</strong> 是现代芯片设计的核心信条之一；</li>
+<li>于是架构设计的重心从"提高算力"转向"<strong>减少数据移动</strong>"。</li>
+</ul>
+<p><strong>应对手段</strong>（后面各页展开）：</p>
+<ul>
+<li><strong>更近</strong>：大容量片上缓存、3D 堆叠缓存；</li>
+<li><strong>更宽</strong>：<strong>HBM</strong>——把 DRAM 裸片堆叠并通过硅中介层以极宽总线连接（第十五页）。这是当前 AI 加速器的标准配置，也是先进封装最大的商业驱动力；</li>
+<li><strong>更聪明</strong>：数据流架构、算子融合、近存计算；</li>
+<li><strong>更激进</strong>：<strong>存内计算</strong>——直接在存储阵列里做运算，彻底避免搬运（第十六页）。</li>
+</ul>
 <h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <ul>
 <li><strong>存储层次是被物理逼出来的</strong>，不是设计偏好；</li>

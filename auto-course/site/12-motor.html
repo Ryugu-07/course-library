@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -57,10 +57,12 @@
 <p><strong>两个方程</strong>：</p>
 <div class="arithmatex">\[\text{电气：}\ V = Ri + L\frac{di}{dt} + \underbrace{K_e\omega}_{\text{反电动势}}, \qquad \text{机械：}\ J\dot{\omega} = \underbrace{K_t i}_{\text{电磁转矩}} - B\omega - T_L\]</div>
 <p><strong>关键性质（SI 单位下）</strong>：<span class="arithmatex">\(K_t = K_e\)</span>——<strong>转矩常数等于反电动势常数</strong>。这不是巧合，是能量守恒的直接结果（电功率 <span class="arithmatex">\(= K_e\omega i\)</span> 恰等于机械功率 <span class="arithmatex">\(= K_t i \cdot \omega\)</span>）。</p>
-<p><strong>结构上的洞察</strong>：
-- <strong>转矩正比于电流</strong> → <strong>控制电流就是控制转矩</strong>。这是所有运动控制的基础；
-- <strong>反电动势 <span class="arithmatex">\(K_e\omega\)</span> 构成一个天然的负反馈</strong>：转速越高，反电动势越大，电流越小 → <strong>直流电机自带速度负反馈</strong>，这使它天生稳定且易控；
-- 两个时间常数：<strong>电气 <span class="arithmatex">\(\tau_e = L/R\)</span></strong>（毫秒级）与<strong>机械 <span class="arithmatex">\(\tau_m = J/B\)</span></strong>（几十到几百毫秒）。<strong><span class="arithmatex">\(\tau_e \ll \tau_m\)</span> 正是级联控制（内电流环 + 外速度环）合理的物理依据</strong>（承第十一页的级联原则）。</p>
+<p><strong>结构上的洞察</strong>：</p>
+<ul>
+<li><strong>转矩正比于电流</strong> → <strong>控制电流就是控制转矩</strong>。这是所有运动控制的基础；</li>
+<li><strong>反电动势 <span class="arithmatex">\(K_e\omega\)</span> 构成一个天然的负反馈</strong>：转速越高，反电动势越大，电流越小 → <strong>直流电机自带速度负反馈</strong>，这使它天生稳定且易控；</li>
+<li>两个时间常数：<strong>电气 <span class="arithmatex">\(\tau_e = L/R\)</span></strong>（毫秒级）与<strong>机械 <span class="arithmatex">\(\tau_m = J/B\)</span></strong>（几十到几百毫秒）。<strong><span class="arithmatex">\(\tau_e \ll \tau_m\)</span> 正是级联控制（内电流环 + 外速度环）合理的物理依据</strong>（承第十一页的级联原则）。</li>
+</ul>
 <p><strong>级联结构（工业标准）</strong>：</p>
 <div class="arithmatex">\[\text{位置环} \to \text{速度环} \to \text{电流环} \to \text{功率变换器（第十一页）}\]</div>
 <p><strong>由内到外，带宽逐级降低约 5–10 倍</strong>。电流环带宽通常在千赫兹量级，速度环几百赫兹，位置环几十赫兹。</p>
@@ -84,10 +86,12 @@
 </ul>
 <p><strong>于是复杂的交流电机被"解耦"成两个独立的直流量</strong>，各用一个 PI 控制器即可——<strong>而 PI 对直流量能做到零静差</strong>（第一页内模原理）。</p>
 <p><strong>这是本课最漂亮的一次"用变换化难为易"</strong>：不改变物理，只改变观察的坐标系，问题的结构就变简单了。<strong>同样的思想在数学（对角化）、信号处理（傅里叶）、物理（转动坐标系）中反复出现。</strong></p>
-<p><strong>实现所需</strong>：
-- <strong>转子位置 <span class="arithmatex">\(\theta\)</span></strong>（Park 变换必需）——由编码器/旋变提供，或用<strong>无位置传感器算法</strong>估计（观测器/滑模观测器/高频注入，第九、十五页的技术在此落地）；
-- <strong>电流采样</strong>（通常两相，第三相由和为零推出）；
-- <strong>SVPWM（空间矢量脉宽调制）</strong>：生成三相 PWM，比正弦 PWM 的直流电压利用率高约 15%。</p>
+<p><strong>实现所需</strong>：</p>
+<ul>
+<li><strong>转子位置 <span class="arithmatex">\(\theta\)</span></strong>（Park 变换必需）——由编码器/旋变提供，或用<strong>无位置传感器算法</strong>估计（观测器/滑模观测器/高频注入，第九、十五页的技术在此落地）；</li>
+<li><strong>电流采样</strong>（通常两相，第三相由和为零推出）；</li>
+<li><strong>SVPWM（空间矢量脉宽调制）</strong>：生成三相 PWM，比正弦 PWM 的直流电压利用率高约 15%。</li>
+</ul>
 <h2 id="_4">四、无位置传感器控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>编码器昂贵、增加体积、在恶劣环境下易失效。<strong>无传感器（sensorless）控制</strong>用估计替代测量：</p>
 <ul>

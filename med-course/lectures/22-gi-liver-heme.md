@@ -121,6 +121,14 @@
 
 **血管性血友病**是最常见的遗传性出血病：**vWF 既桥接血小板黏附又携带并稳定因子 VIII** → **同时表现初级止血缺陷 + APTT 延长**。**一个分子、两条通路**——这是把本页两张表连起来的例子。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验消化道、肝病、贫血、白血病和凝血障碍的基础框架；筛查、抗病毒、肝硬化和输血/凝血处理以当地最新指南为准。
+- [AASLD Practice Guidelines](https://www.aasld.org/practice-guidelines) — AASLD：肝病与肝移植专业指南总入口。
+- [Portal Hypertension and Varices in Cirrhosis](https://www.aasld.org/practice-guidelines/portal-hypertension-bleeding-cirrhosis) — AASLD：肝硬化门脉高压与出血管理。
+- [AGA Clinical Practice Guideline on Gastrointestinal Evaluation of Iron Deficiency Anemia](https://els-jbs-prod-cdn.jbs.elsevierhealth.com/article/S0016-5085%2820%2934847-2/fulltext) — AGA，2020：缺铁性贫血的消化道评估。
+- [Hepatitis B Guidance](https://www.idsociety.org/practice-guideline/hepatitis-b/hepatitis-b/) — AASLD/IDSA：乙肝筛查与治疗指导入口。
+
 ---
 
-*线五完。下两页转向前沿：分子医学疗法与精准医学，核对于 2026-07。*
+*线五完。下两页转向前沿：分子医学疗法与精准医学，核对于 2026-08-02。*

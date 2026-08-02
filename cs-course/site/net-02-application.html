@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HTTP、TLS 与现代网络 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -90,10 +90,12 @@
 </table>
 <p><strong>读法</strong>：每一代都在解决上一代<strong>暴露出的新瓶颈</strong>——这是理解一切技术演进的范式（"解决方案创造新问题"）。HTTP/2 的多路复用解决了 1.1 的应用层队头阻塞，却因为<strong>底下还是 TCP</strong>（丢包重传阻塞整条连接）而不彻底，直到 HTTP/3 把可靠性搬到 UDP 上的 QUIC 才根治——<strong>net-01 埋的"QUIC 避开 TCP 队头阻塞"伏笔在此收线</strong>。</p>
 <h2 id="2-dns">2. DNS：互联网的电话簿<a class="headerlink" href="#2-dns" title="Permanent link"></a></h2>
-<p>你输入 <code>medusa.hhzi.eu.cc</code>，机器需要 IP 才能连。<strong>DNS</strong> 是把域名翻译成 IP 的<strong>分布式分层数据库</strong>：
-- <strong>层级</strong>：根服务器 → 顶级域（<code>.cc</code>）→ 权威服务器，逐级查询。
-- <strong>缓存</strong>：各级大量缓存（你的系统、路由器、ISP），否则根服务器会被打爆——<strong>DNS 是"分层 + 缓存"扩展性设计的教科书</strong>。
-- <strong>它也是性能因素</strong>：首次访问一个域名要 DNS 查询（几十 ms），故有 DNS 预解析、长 TTL 缓存。</p>
+<p>你输入 <code>medusa.hhzi.eu.cc</code>，机器需要 IP 才能连。<strong>DNS</strong> 是把域名翻译成 IP 的<strong>分布式分层数据库</strong>：</p>
+<ul>
+<li><strong>层级</strong>：根服务器 → 顶级域（<code>.cc</code>）→ 权威服务器，逐级查询。</li>
+<li><strong>缓存</strong>：各级大量缓存（你的系统、路由器、ISP），否则根服务器会被打爆——<strong>DNS 是"分层 + 缓存"扩展性设计的教科书</strong>。</li>
+<li><strong>它也是性能因素</strong>：首次访问一个域名要 DNS 查询（几十 ms），故有 DNS 预解析、长 TTL 缓存。</li>
+</ul>
 <p><strong>安全一提</strong>：传统 DNS 明文、可被劫持/投毒 → DNSSEC（签名）、DoH/DoT（加密 DNS）。<strong>"域名解析"这一步也是攻击面</strong>（🔗 sec 线）。</p>
 <h2 id="3-tls-crypto-02">3. TLS：锁图标背后（复习 crypto-02，网络视角）<a class="headerlink" href="#3-tls-crypto-02" title="Permanent link"></a></h2>
 <p><code>https</code> = HTTP over TLS。从网络分层看，TLS 夹在传输层（TCP）和应用层（HTTP）之间。<strong>握手做三件事</strong>（🔗 crypto-02 详证）：① 用非对称密码<strong>交换出对称会话密钥</strong>（前向保密）；② 服务器用<strong>证书</strong>证明身份（PKI 信任链）；③ 之后用对称密钥（AES-GCM）加密所有 HTTP 数据。</p>
@@ -116,10 +118,12 @@
 </ul>
 <p><strong>方法论</strong>：<strong>Web 性能优化 = 减少往返次数 × 缩短每次往返距离 × 减少传输字节</strong>。这三个杠杆覆盖了几乎所有前端性能手段，是一张能装很多知识的心智地图。</p>
 <h2 id="5-websocket">5. WebSocket 与实时通信<a class="headerlink" href="#5-websocket" title="Permanent link"></a></h2>
-<p>HTTP 是客户端发起的请求—响应，<strong>服务器无法主动推送</strong>。要实时（聊天、行情、Medusa 若做实时推送）需要：
-- <strong>WebSocket</strong>：在 HTTP 握手后<strong>升级</strong>成全双工长连接，双向随时发消息。
-- <strong>SSE（Server-Sent Events）</strong>：服务器单向推流，更简单。
-- <strong>轮询/长轮询</strong>：退化方案，客户端反复问。</p>
+<p>HTTP 是客户端发起的请求—响应，<strong>服务器无法主动推送</strong>。要实时（聊天、行情、Medusa 若做实时推送）需要：</p>
+<ul>
+<li><strong>WebSocket</strong>：在 HTTP 握手后<strong>升级</strong>成全双工长连接，双向随时发消息。</li>
+<li><strong>SSE（Server-Sent Events）</strong>：服务器单向推流，更简单。</li>
+<li><strong>轮询/长轮询</strong>：退化方案，客户端反复问。</li>
+</ul>
 <p><strong>选择取决于方向与频率</strong>——这是 web-02 后端设计实时功能时的决策点。</p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（一次网页加载的全链路）</strong> 从在浏览器敲 <code>https://medusa.hhzi.eu.cc</code> 到页面显示，列出所有网络步骤：DNS 解析 → TCP 握手 → TLS 握手 → HTTP 请求 → (CDN 命中?) → 响应 → 渲染。<strong>这是最经典的系统面试题"输入 URL 后发生了什么"，也是本站网络线的集大成</strong>——你应该能一口气讲完。</p>

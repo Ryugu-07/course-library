@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -60,11 +60,13 @@
 <li><strong>OTF = FT{PSF}</strong>；<strong>MTF = |OTF|</strong>：对不同空间频率的<strong>对比度传递能力</strong>；</li>
 <li><strong>PTF = arg(OTF)</strong>：相位传递，<strong>影响图像的位置与形状失真</strong>（相位反转会造成伪细节）。</li>
 </ul>
-<p><strong>读 MTF 曲线的方法</strong>：
-- 横轴：空间频率（lp/mm 或 cycles/mm）；纵轴：对比度传递（0–1）；
-- <strong>低频 MTF 高 → 反差好、通透</strong>；<strong>高频 MTF 高 → 细节锐利</strong>；
-- <strong>截止频率</strong>：<span class="arithmatex">\(f_c = \frac{2\mathrm{NA}}{\lambda}\)</span>（非相干成像），<strong>超过它的信息完全不进入系统</strong>（第四页）；
-- <strong>衍射极限 MTF</strong> 是理论上限，实际系统因像差而低于它。</p>
+<p><strong>读 MTF 曲线的方法</strong>：</p>
+<ul>
+<li>横轴：空间频率（lp/mm 或 cycles/mm）；纵轴：对比度传递（0–1）；</li>
+<li><strong>低频 MTF 高 → 反差好、通透</strong>；<strong>高频 MTF 高 → 细节锐利</strong>；</li>
+<li><strong>截止频率</strong>：<span class="arithmatex">\(f_c = \frac{2\mathrm{NA}}{\lambda}\)</span>（非相干成像），<strong>超过它的信息完全不进入系统</strong>（第四页）；</li>
+<li><strong>衍射极限 MTF</strong> 是理论上限，实际系统因像差而低于它。</li>
+</ul>
 <figure>
 <p><img alt="MTF：衍射极限、像差与探测器" class="fig-img" src="assets/img/pho_mtf.svg" /></p>
 <figcaption><span class="fig-id">图 11-1</span> 系统 MTF 的构成。<strong>衍射极限</strong>（虚线）给出理论上限，在截止频率 \(f_c=2\mathrm{NA}/\lambda\) 处降为零；<strong>实际镜头</strong>（蓝）因像差而更低；<strong>探测器</strong>因像素有限尺寸而有自身 MTF（其零点在 \(1/p\)）；<strong>系统总 MTF 是各环节相乘</strong>（紫）。注意<strong>奈奎斯特频率 \(1/2p\)</strong>——高于它的信息会混叠成伪信号。<strong>系统性能由最差的环节主导</strong>，这就是"镜头与传感器必须匹配"的定量含义。</figcaption>
@@ -124,27 +126,35 @@
 <p><strong>这与 🔗 微电子站第九页"把模拟难题转成数字问题"、第二页"畸变交给软件"是同一条主线</strong>——<strong>把约束从难的域转移到便宜的域。</strong></p>
 <h2 id="_3">四、诚实的边界：算法能做什么、不能做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>这是本页最需要清醒的部分</strong>（承第四页）：</p>
-<p><strong>能做</strong>：
-- <strong>补偿已知的、可逆的退化</strong>（反卷积、畸变校正、色差校正）；
-- <strong>提高 SNR</strong>（多帧平均——因为<strong>真的增加了光子</strong>）；
-- <strong>利用先验重建欠采样数据</strong>（压缩感知，前提是信号确实稀疏）；
-- <strong>提取非图像信息</strong>（深度、材质、光谱）。</p>
-<p><strong>不能做</strong>：
-- <strong>恢复截止频率之外的信息</strong>——它<strong>根本没有进入系统</strong>；
-- <strong>突破散粒噪声极限</strong>（第九页）——光子数就那么多；
-- <strong>凭空创造真实细节</strong>。</p>
+<p><strong>能做</strong>：</p>
+<ul>
+<li><strong>补偿已知的、可逆的退化</strong>（反卷积、畸变校正、色差校正）；</li>
+<li><strong>提高 SNR</strong>（多帧平均——因为<strong>真的增加了光子</strong>）；</li>
+<li><strong>利用先验重建欠采样数据</strong>（压缩感知，前提是信号确实稀疏）；</li>
+<li><strong>提取非图像信息</strong>（深度、材质、光谱）。</li>
+</ul>
+<p><strong>不能做</strong>：</p>
+<ul>
+<li><strong>恢复截止频率之外的信息</strong>——它<strong>根本没有进入系统</strong>；</li>
+<li><strong>突破散粒噪声极限</strong>（第九页）——光子数就那么多；</li>
+<li><strong>凭空创造真实细节</strong>。</li>
+</ul>
 <p><strong>关于"AI 超分辨"</strong>：生成模型能产生<strong>看起来清晰</strong>的图像，但那些细节是<strong>根据训练先验推测的，不是测量到的</strong>。</p>
-<p><strong>这在不同场合的性质截然不同</strong>：
-- 消费摄影中，"看起来好"可能就够了；
-- <strong>在医学影像、司法取证、科学测量中，这是不可接受的</strong>——<strong>推测出的细节可能构成误诊或错误证据</strong>。</p>
+<p><strong>这在不同场合的性质截然不同</strong>：</p>
+<ul>
+<li>消费摄影中，"看起来好"可能就够了；</li>
+<li><strong>在医学影像、司法取证、科学测量中，这是不可接受的</strong>——<strong>推测出的细节可能构成误诊或错误证据</strong>。</li>
+</ul>
 <p><strong>判读此类工作的标准问题</strong>：<strong>这些高频信息来自测量还是来自先验？有没有在"真值已知"的独立数据上验证过？</strong> 这与 🔗 生物站、语言站反复强调的判读纪律完全一致。</p>
 <h2 id="_4">五、系统工程视角<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>设计一个成像系统时，需要联合考虑：</p>
 <div class="arithmatex">\[\text{光源/照明} \to \text{光学} \to \text{探测器} \to \text{读出电子学} \to \text{算法}\]</div>
-<p><strong>常见的失衡</strong>（都是实际项目中反复出现的）：
-- 高级镜头配廉价传感器（或反之）；
-- 忽略照明——<strong>很多机器视觉问题的最佳解法是改善照明，而不是换更好的相机或写更强的算法</strong>。<strong>这是视觉工程中最实用的一条经验</strong>；
-- 只优化 MTF 而忽略噪声：<strong>MTF 高但 SNR 低的系统，实际观感很差</strong>。</p>
+<p><strong>常见的失衡</strong>（都是实际项目中反复出现的）：</p>
+<ul>
+<li>高级镜头配廉价传感器（或反之）；</li>
+<li>忽略照明——<strong>很多机器视觉问题的最佳解法是改善照明，而不是换更好的相机或写更强的算法</strong>。<strong>这是视觉工程中最实用的一条经验</strong>；</li>
+<li>只优化 MTF 而忽略噪声：<strong>MTF 高但 SNR 低的系统，实际观感很差</strong>。</li>
+</ul>
 <p><strong>综合指标</strong>：单看 MTF 或单看 SNR 都不够，可用<strong>噪声等效调制（NEM）</strong>或<strong>可探测量子效率（DQE）</strong>等把两者结合（医学影像领域尤其常用 DQE）。</p>
 <h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>

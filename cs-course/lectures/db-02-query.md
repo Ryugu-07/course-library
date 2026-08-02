@@ -44,6 +44,7 @@ SQL 是**声明式**的——你说"我要 30 岁以上用户按注册时间排�
 </figure>
 
 执行计划是一棵**算子树**，数据自底向上流。两种执行模型：
+
 - **火山模型（Volcano / 迭代器）**：每个算子实现 `next()`，上层反复调下层拉一行——简单、经典，但**每行一次虚函数调用**开销大。
 - **向量化执行**：一次处理**一批**行（一列的一个 chunk）——**摊薄函数调用、对缓存和 SIMD 友好**（🔗 csapp-02、perf 线），现代分析型数据库（DuckDB、ClickHouse）的核心加速。**这是"批处理摊薄开销"思想在数据库的体现**，和 GPU 批处理、深度学习 batch 同源。
 
@@ -78,6 +79,7 @@ SQL 是**声明式**的——你说"我要 30 岁以上用户按注册时间排�
 ### 📋 大 Project P02（第二阶段）· 查询执行
 
 > **P02-B · SQL 子集与执行计划**（承接 P02-A）：
+>
 > - **学习目标**：理解 SQL 如何变成关系代数、物理算子树与可执行迭代器；学习用测试定义 SQL 语义。
 > - **教师提供**：SQL 子集语法、AST 类型、TPC-H 风格小数据集、golden result 文件、`EXPLAIN` 输出格式样例。
 > - **学生任务**：① 解析 `SELECT ... FROM ... WHERE ... JOIN ... GROUP BY ... ORDER BY ... LIMIT` 的核心子集；② 实现 Volcano 算子：SeqScan / IndexScan / Filter / Project / Sort / NestedLoopJoin / HashJoin / Aggregate；③ 实现规则优化器：谓词下推、投影裁剪、索引选择、简单 join 顺序启发式。

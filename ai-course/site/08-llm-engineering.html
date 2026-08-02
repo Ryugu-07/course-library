@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,20 +55,20 @@
 </figure>
 <h2 id="1-llm">1. 先理解你的"员工"：LLM 的三个物理性质<a class="headerlink" href="#1-llm" title="Permanent link"></a></h2>
 <p>工程是针对材料特性的设计，先看清材料。</p>
-<p><strong>① 输出是采样，不是查询。</strong>模型每一步给出的是下一个 token 的<strong>概率分布</strong>（第 07 讲），实际输出靠采样。<strong>温度</strong> <span class="arithmatex">\(T\)</span> 控制分布的尖锐度——把 logits 除以 <span class="arithmatex">\(T\)</span> 再过 softmax：</p>
+<p><strong>1. 输出是采样，不是查询。</strong>模型每一步给出的是下一个 token 的<strong>概率分布</strong>（第 07 讲），实际输出靠采样。<strong>温度</strong> <span class="arithmatex">\(T\)</span> 控制分布的尖锐度——把 logits 除以 <span class="arithmatex">\(T\)</span> 再过 softmax：</p>
 <div class="arithmatex">\[
 \mathbb{P}(w_i) = \frac{e^{z_i / T}}{\sum_j e^{z_j / T}}
 \]</div>
 <p><span class="arithmatex">\(T \to 0\)</span> 退化为贪心（永远选最大概率，输出趋于确定但呆板）；<span class="arithmatex">\(T\)</span> 大则分布拉平（多样但混乱）。top-p 采样则只在累积概率前 <span class="arithmatex">\(p\)</span> 的候选里采。工程含义：<strong>同一个问题问两遍，答案本来就可以不同</strong>——需要稳定输出的场合（分类、抽取）把温度调低、把格式钉死；需要创意的场合反之。</p>
-<p><strong>② 幻觉是本性，不是 bug。</strong>模型的训练目标是"输出<strong>像</strong>训练语料的文本"（第 07 讲的极大似然），不是"输出真话"。当它不知道答案时，损失函数曾奖励它给出"最像答案的答案"——于是编造的参考文献格式完美、编造的 API 用法看起来无比合理。对齐训练能缓解但无法根除。工程含义：<strong>关键事实必须在模型外部验证</strong>（第 14 讲展开）。</p>
-<p><strong>③ 上下文就是全部记忆。</strong>模型没有硬盘：权重冻结着训练时的知识（有截止日期），除此之外它只"知道"当前上下文窗口里的内容，对话关闭即失忆。且窗口有限（数万到百万 token），塞太满还会"变笨"。工程含义：<strong>你负责在每次调用时把该给的信息给全</strong>——这件事重要到催生了一个专门的工种，见第 3 节。</p>
+<p><strong>2. 幻觉是本性，不是 bug。</strong>模型的训练目标是"输出<strong>像</strong>训练语料的文本"（第 07 讲的极大似然），不是"输出真话"。当它不知道答案时，损失函数曾奖励它给出"最像答案的答案"——于是编造的参考文献格式完美、编造的 API 用法看起来无比合理。对齐训练能缓解但无法根除。工程含义：<strong>关键事实必须在模型外部验证</strong>（第 14 讲展开）。</p>
+<p><strong>3. 上下文就是全部记忆。</strong>模型没有硬盘：权重冻结着训练时的知识（有截止日期），除此之外它只"知道"当前上下文窗口里的内容，对话关闭即失忆。且窗口有限（数万到百万 token），塞太满还会"变笨"。工程含义：<strong>你负责在每次调用时把该给的信息给全</strong>——这件事重要到催生了一个专门的工种，见第 3 节。</p>
 <h2 id="2">2. 提示词工程：把话说明白<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p><strong>Prompt engineering</strong>——通过设计输入文本来引导输出质量。GPT-3 发现 in-context learning（第 07 讲）后，"改输入"成了不训练模型就能"编程"模型的唯一手段。核心技法五条，每条都有明确的机理：</p>
-<p><strong>① 把任务说完整</strong>：角色（你是谁）、任务（做什么）、约束（格式/长度/语言）、受众（写给谁看）。机理毫不神秘：LLM 在模拟"这段文本的合理延续"，你给的设定越具体，它模拟的目标分布越窄，输出方差越小。</p>
-<p><strong>② Few-shot 示例</strong>：给 2~5 个"输入→输出"范例再提问。对格式要求严格的任务（抽取、改写、打标签），一个好例子顶一百字描述——示例直接展示了目标分布的样本。</p>
-<p><strong>③ 思维链（Chain-of-Thought, CoT）</strong>：要求"先一步步推理，再给答案"（Wei et al. 2022；zero-shot 版本只需加一句 "Let's think step by step"）。为什么有效？回到第 06 讲的架构：Transformer 生成<strong>每个 token 的计算量是固定的</strong>（一次前向传播），要求直接报答案 = 要求一步算完多步问题；而"先写推理过程"让模型<strong>把中间结果写进上下文</strong>，后续步骤能"看见"前面的草稿——<strong>上下文成了外置的工作记忆</strong>，串行计算深度随生成长度线性增长。这也正是第 07 讲推理模型（o1/R1）的原理雏形：它们只是把"写很长的思维链"用强化学习练到了极致。</p>
-<p><strong>④ 自洽性（self-consistency）</strong>：同一问题采样多条思维链，对最终答案投票。机理是朴素的概率论：若单次正确率 <span class="arithmatex">\(p &gt; 0.5\)</span> 且错误方式分散，多数投票的正确率随采样数上升（每条链的错误各不相同，正确答案却相同——方差被平均掉了，第 03 讲 bagging 的逻辑在推理上的重演）。</p>
-<p><strong>⑤ 给出口</strong>：明确允许"信息不足时回答不知道"。否则你等于强迫模型在"编一个"和"违抗指令"之间二选一，而它的训练偏向前者。</p>
+<p><strong>1. 把任务说完整</strong>：角色（你是谁）、任务（做什么）、约束（格式/长度/语言）、受众（写给谁看）。机理毫不神秘：LLM 在模拟"这段文本的合理延续"，你给的设定越具体，它模拟的目标分布越窄，输出方差越小。</p>
+<p><strong>2. Few-shot 示例</strong>：给 2~5 个"输入→输出"范例再提问。对格式要求严格的任务（抽取、改写、打标签），一个好例子顶一百字描述——示例直接展示了目标分布的样本。</p>
+<p><strong>3. 思维链（Chain-of-Thought, CoT）</strong>：要求"先一步步推理，再给答案"（Wei et al. 2022；zero-shot 版本只需加一句 "Let's think step by step"）。为什么有效？回到第 06 讲的架构：Transformer 生成<strong>每个 token 的计算量是固定的</strong>（一次前向传播），要求直接报答案 = 要求一步算完多步问题；而"先写推理过程"让模型<strong>把中间结果写进上下文</strong>，后续步骤能"看见"前面的草稿——<strong>上下文成了外置的工作记忆</strong>，串行计算深度随生成长度线性增长。这也正是第 07 讲推理模型（o1/R1）的原理雏形：它们只是把"写很长的思维链"用强化学习练到了极致。</p>
+<p><strong>4. 自洽性（self-consistency）</strong>：同一问题采样多条思维链，对最终答案投票。机理是朴素的概率论：若单次正确率 <span class="arithmatex">\(p &gt; 0.5\)</span> 且错误方式分散，多数投票的正确率随采样数上升（每条链的错误各不相同，正确答案却相同——方差被平均掉了，第 03 讲 bagging 的逻辑在推理上的重演）。</p>
+<p><strong>5. 给出口</strong>：明确允许"信息不足时回答不知道"。否则你等于强迫模型在"编一个"和"违抗指令"之间二选一，而它的训练偏向前者。</p>
 <div class="admonition tip">
 <p class="admonition-title">提示词的现实边界</p>
 <p>提示词工程解决"单次调用说清楚"的问题，但它有天花板：说得再清楚，模型不知道的事它还是不知道（知识截止、私有数据），太长的任务它还是会迷路。前者引出上下文工程，后者引出编排与循环。"魔法咒语式提示词"（"深呼吸""我给你小费"）的收益随模型变强已趋近于零，<strong>把任务和材料交代清楚</strong>才是长期有效的部分。</p>
@@ -76,7 +76,7 @@
 <h2 id="3">3. 上下文工程：把料备齐<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>Context engineering</strong>——这个词 2024–2025 年间取代提示词工程成为行业主话语，重心转移标志着认识的深化：<strong>决定输出质量的首要因素，往往不是指令的措辞，而是上下文里有没有干活所需的信息</strong>。把 LLM 想成一位新来的、患顺行性遗忘症的天才同事：每次找他，你递过去的文件夹里有什么，他就只知道什么。</p>
 <p>上下文窗口里通常装六类东西：系统提示（长期人设与规则）、对话历史、<strong>检索来的资料</strong>、工具调用的结果、少样本示例、当前问题。工程要点三条：</p>
-<p><strong>① RAG（检索增强生成）</strong>——解决"模型不知道"的标准方案。私有文档、最新资讯不在训练数据里，就在回答前检索出来塞进上下文：</p>
+<p><strong>1. RAG（检索增强生成）</strong>——解决"模型不知道"的标准方案。私有文档、最新资讯不在训练数据里，就在回答前检索出来塞进上下文：</p>
 <ol>
 <li><strong>切块（chunking）</strong>：把文档库切成几百 token 的段落；</li>
 <li><strong>向量化</strong>：用嵌入模型把每块变成向量（第 06 讲 word2vec 思想的段落版：语义相近 → 向量相近）；</li>
@@ -84,8 +84,8 @@
 <li><strong>重排（rerank）</strong>：用更精细的模型对候选块二次排序，取精华入上下文；</li>
 <li>生成时要求<strong>引用出处</strong>——幻觉的部分解药：答案有据可查。</li>
 </ol>
-<p><strong>② 上下文不是越多越好。</strong>实验反复证实两个现象：<strong>lost in the middle</strong>（长上下文中间部分的信息，被利用的概率显著低于开头结尾）与<strong>上下文腐烂</strong>（对话拖得越长、塞入的无关信息越多，模型表现越差——旧的错误、跑偏的讨论都在污染后续每次生成）。对策：只放相关的，把关键信息放开头或结尾，长对话适时<strong>重开并带摘要迁移</strong>，把"已确认的结论"压缩后再续。</p>
-<p><strong>③ 上下文经济学。</strong>API 按 token 计费，且注意力的 <span class="arithmatex">\(O(n^2)\)</span>（第 06 讲）让长上下文又慢又贵；<strong>prompt caching</strong>（前缀不变的部分缓存复用，价格约一折）改变了成本结构——把稳定内容（系统提示、文档）放前面、多变内容放后面，是省钱的结构设计。上下文是稀缺资源，<strong>"该给什么"与"不给什么"同等重要</strong>——这个约束到第 09 讲会再次出场，成为 Skills 设计"延迟加载"的直接动机。</p>
+<p><strong>2. 上下文不是越多越好。</strong>实验反复证实两个现象：<strong>lost in the middle</strong>（长上下文中间部分的信息，被利用的概率显著低于开头结尾）与<strong>上下文腐烂</strong>（对话拖得越长、塞入的无关信息越多，模型表现越差——旧的错误、跑偏的讨论都在污染后续每次生成）。对策：只放相关的，把关键信息放开头或结尾，长对话适时<strong>重开并带摘要迁移</strong>，把"已确认的结论"压缩后再续。</p>
+<p><strong>3. 上下文经济学。</strong>API 按 token 计费，且注意力的 <span class="arithmatex">\(O(n^2)\)</span>（第 06 讲）让长上下文又慢又贵；<strong>prompt caching</strong>（前缀不变的部分缓存复用，价格约一折）改变了成本结构——把稳定内容（系统提示、文档）放前面、多变内容放后面，是省钱的结构设计。上下文是稀缺资源，<strong>"该给什么"与"不给什么"同等重要</strong>——这个约束到第 09 讲会再次出场，成为 Skills 设计"延迟加载"的直接动机。</p>
 <h2 id="4">4. 编排工程：把活拆开<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>单次调用有极限：让模型"一口气写一份 50 页的行业研报"，效果必然平庸——任务太长、要求太多，注意力和篇幅都不够分。<strong>编排（orchestration / workflow）工程</strong>的思路：<strong>把大任务拆成多个小步骤，每步一次 LLM 调用（或普通代码），用确定性的程序骨架把它们接起来。</strong></p>
 <p>常用模式五种：</p>

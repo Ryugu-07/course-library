@@ -12,6 +12,7 @@
 </figure>
 
 LLM 生成是**自回归**的——一个 token 一个 token 地出，每个新 token 依赖前面所有 token。这带来独特的两阶段结构：
+
 - **Prefill（预填充）**：处理输入 prompt，一次并行算完所有输入 token——**算力受限**（大矩阵乘，GPU 吃饱）。
 - **Decode（解码）**：逐个生成输出 token，每步只算一个——**内存受限**（每步要读整个模型权重却只算一个 token，算术强度极低，Roofline 落在带宽屋顶，perf-01）。
 
@@ -45,6 +46,7 @@ LLM 生成是**自回归**的——一个 token 一个 token 地出，每个新 
 ## 4. 模型压缩:量化、蒸馏、剪枝
 
 让模型更小更快（尤其本地部署，你的 4060 Ti / comfy 课直接相关）：
+
 - **量化（quantization）**：把权重从 fp16 降到 int8/int4——**显存减半再减半、decode 阶段搬权重更快**（decode 是内存受限，量化直接加速）。关键是**保持精度**（GPTQ/AWQ 等在量化时补偿误差）。**"4-bit 量化让 70B 模型跑进消费级显卡"就是量化的胜利**——你在本地跑量化模型（GGUF/AWQ）时用的正是它。
 - **蒸馏（distillation）**：用大模型（teacher）的输出训练小模型（student）——**小模型学到大模型的行为，体积小几倍**。DeepSeek/Qwen 的小模型多经蒸馏。
 - **剪枝（pruning）**：删掉不重要的权重/结构——理论优雅但硬件加速不易（非结构化稀疏 GPU 不友好）。
@@ -54,6 +56,7 @@ LLM 生成是**自回归**的——一个 token 一个 token 地出，每个新 
 ## 5. 端到端：一次推理请求的旅程（Medusa 视角）
 
 把全页串起来——你的 Medusa 发一个 DeepSeek 请求，服务端发生什么：
+
 1. 请求进入调度器，**连续批处理**把它拼进当前 batch。
 2. **Prefill** 阶段并行处理你的 prompt，建立 **KV Cache**（PagedAttention 分页管理）。
 3. **Decode** 阶段逐 token 生成，每步复用 KV Cache、可能用**投机解码**加速。

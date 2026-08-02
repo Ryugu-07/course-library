@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>时钟与一致性模型 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -51,10 +51,12 @@
 分布式系统是"用多台机器协作，对外装成一台可靠机器"的艺术——为了扩展性（一台不够）和容错（一台会挂）。但它引入了单机世界没有的三个恶魔：<strong>没有全局时钟、消息会丢会延迟、机器会独立崩溃</strong>。这一页建立分布式的世界观：时间为什么不可靠、"一致"到底有几种含义、以及 CAP 定理逼你做的那个残酷取舍。</p>
 </blockquote>
 <h2 id="1">1. 分布式的三个残酷现实<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>单机的确定性在分布式里全部失效——<strong>"分布式计算的八大谬误"</strong> 的核心三条：
-1. <strong>网络不可靠</strong>：消息会丢失、延迟、乱序、重复（net-01 的 IP 尽力而为，放大到系统级）。
-2. <strong>没有共享时钟</strong>：每台机器的时钟独立漂移，<strong>你无法可靠判断两台机器上的事件谁先谁后</strong>。
-3. <strong>节点独立故障</strong>：一台崩溃时，别的节点<strong>分不清它是"挂了"还是"只是慢/网络断了"</strong>——这个"无法区分崩溃与缓慢"是分布式最深的困难根源。</p>
+<p>单机的确定性在分布式里全部失效——<strong>"分布式计算的八大谬误"</strong> 的核心三条：</p>
+<ol>
+<li><strong>网络不可靠</strong>：消息会丢失、延迟、乱序、重复（net-01 的 IP 尽力而为，放大到系统级）。</li>
+<li><strong>没有共享时钟</strong>：每台机器的时钟独立漂移，<strong>你无法可靠判断两台机器上的事件谁先谁后</strong>。</li>
+<li><strong>节点独立故障</strong>：一台崩溃时，别的节点<strong>分不清它是"挂了"还是"只是慢/网络断了"</strong>——这个"无法区分崩溃与缓慢"是分布式最深的困难根源。</li>
+</ol>
 <p><strong>这三条推出分布式的一切复杂性</strong>。单机程序员的直觉（顺序、时间、"要么成功要么失败"）在这里全要重建。</p>
 <h2 id="2-lamport">2. 时间与因果：Lamport 的洞察<a class="headerlink" href="#2-lamport" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -111,12 +113,16 @@
 <figcaption><span class="fig-id">图 dist-01.1</span>CAP 定理：网络分区时 C/A 二选一，标 CP(etcd/Postgres) vs AP(Cassandra/DNS)。</figcaption>
 </figure>
 <p><strong>CAP 定理</strong>：一个分布式系统在<strong>网络分区（P，Partition，消息不通）发生时</strong>，无法同时保证<strong>一致性（C）</strong>和<strong>可用性（A）</strong>，只能二选一。</p>
-<p><strong>为什么【直觉证明】</strong>：网络分区把节点切成两组互不通信。此刻来了个写请求：
-- 若坚持<strong>一致性（CP）</strong>：必须拒绝服务（不能让两组各写各的产生分歧）——牺牲可用性。
-- 若坚持<strong>可用性（AP）</strong>：两组都接受请求各自处理——但它们的数据分歧了，牺牲一致性。</p>
-<p><strong>关键澄清</strong>：CAP 常被误读。<strong>分区不发生时，C 和 A 可以兼得</strong>；CAP 说的是<strong>分区发生时的强制取舍</strong>。而分区在真实网络中<strong>必然偶尔发生</strong>，所以每个分布式系统都隐含选了 CP 或 AP：
-- <strong>CP 系统</strong>（一致优先）：Postgres 主从、ZooKeeper、etcd——宁可拒绝服务也不返回错数据（🔗 dist-02 的共识系统都是 CP）。
-- <strong>AP 系统</strong>（可用优先）：Cassandra、DynamoDB、DNS——永远响应，接受最终一致。</p>
+<p><strong>为什么【直觉证明】</strong>：网络分区把节点切成两组互不通信。此刻来了个写请求：</p>
+<ul>
+<li>若坚持<strong>一致性（CP）</strong>：必须拒绝服务（不能让两组各写各的产生分歧）——牺牲可用性。</li>
+<li>若坚持<strong>可用性（AP）</strong>：两组都接受请求各自处理——但它们的数据分歧了，牺牲一致性。</li>
+</ul>
+<p><strong>关键澄清</strong>：CAP 常被误读。<strong>分区不发生时，C 和 A 可以兼得</strong>；CAP 说的是<strong>分区发生时的强制取舍</strong>。而分区在真实网络中<strong>必然偶尔发生</strong>，所以每个分布式系统都隐含选了 CP 或 AP：</p>
+<ul>
+<li><strong>CP 系统</strong>（一致优先）：Postgres 主从、ZooKeeper、etcd——宁可拒绝服务也不返回错数据（🔗 dist-02 的共识系统都是 CP）。</li>
+<li><strong>AP 系统</strong>（可用优先）：Cassandra、DynamoDB、DNS——永远响应，接受最终一致。</li>
+</ul>
 <p><strong>方法论</strong>：<strong>"这个系统在网络分区时该拒绝服务还是返回可能过期的数据？"</strong>——这个问题的答案决定了你的整个架构。对 Medusa：分析数据晚一点没关系（可 AP/最终一致），但如果有涉及一致性的关键写，就要 CP。<strong>没有正确答案，只有适配业务的取舍</strong>。（更精细的 PACELC 定理补充：即使无分区，也要在延迟 L 和一致性 C 间取舍。）</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（逻辑时钟手算）</strong> 三节点互发几条消息，手算每个事件的 Lamport 时间戳，验证"因果先后 ⇒ 时间戳递增"——<strong>理解"用整数排因果"，也理解它为什么不能反推（时间戳小不代表因果先）</strong>。</p>

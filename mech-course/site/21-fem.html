@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,11 +55,13 @@
 有限元法（FEM）把第一至五页的固体力学变成<strong>计算机能解的问题</strong>。它是机械工程师最常用的分析工具，<strong>也是最容易被误用的工具</strong>——因为它总能给出漂亮的彩色云图，无论输入是否合理。本页讲原理、讲怎么用对、以及它如何延伸到自动生成结构的拓扑优化。</p>
 </blockquote>
 <h2 id="_1">一、原理：从能量法到刚度方程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p><strong>思路</strong>（承第五页最小势能原理）：
-1. 把连续体<strong>离散</strong>成有限个单元，单元由节点连接；
-2. 在每个单元内，用<strong>形函数</strong>把位移场表示为节点位移的插值：<span class="arithmatex">\(\mathbf{u} = \mathbf{N}\mathbf{u}_e\)</span>；
-3. 由几何关系得应变 <span class="arithmatex">\(\boldsymbol{\varepsilon}=\mathbf{B}\mathbf{u}_e\)</span>，由本构得应力；
-4. 写出总势能，令其对节点位移取极小 → <strong>单元刚度矩阵</strong>：</p>
+<p><strong>思路</strong>（承第五页最小势能原理）：</p>
+<ol>
+<li>把连续体<strong>离散</strong>成有限个单元，单元由节点连接；</li>
+<li>在每个单元内，用<strong>形函数</strong>把位移场表示为节点位移的插值：<span class="arithmatex">\(\mathbf{u} = \mathbf{N}\mathbf{u}_e\)</span>；</li>
+<li>由几何关系得应变 <span class="arithmatex">\(\boldsymbol{\varepsilon}=\mathbf{B}\mathbf{u}_e\)</span>，由本构得应力；</li>
+<li>写出总势能，令其对节点位移取极小 → <strong>单元刚度矩阵</strong>：</li>
+</ol>
 <div class="arithmatex">\[\mathbf{k}_e = \int_V \mathbf{B}^T\mathbf{D}\mathbf{B}\,dV\]</div>
 <ol>
 <li>组装成整体方程并施加边界条件：</li>
@@ -135,21 +137,25 @@
 <div class="arithmatex">\[\min_{\rho} \ \mathbf{u}^T\mathbf{K}(\rho)\mathbf{u} \quad \text{s.t.}\ \sum \rho_i v_i \le V^*,\ \ \rho_i\in[0,1]\]</div>
 <p>把每个单元的"存在与否"松弛为连续密度 <span class="arithmatex">\(\rho\)</span>，用惩罚指数抑制中间密度，用<strong>伴随法</strong>高效求梯度（🔗 grad-math 优化线；伴随法与深度学习的反向传播是同一思想）。</p>
 <p><strong>结果往往像骨骼或树枝</strong>——因为它们解决的是同一个问题：<strong>在给定材料下最有效地传递载荷</strong>。（🔗 生物站：骨小梁沿主应力方向排列，是演化"算"出的拓扑优化解。）</p>
-<p><strong>工程现实</strong>：
-- <strong>结果需要"翻译"成可制造的形状</strong>——原始结果往往充满细碎特征；
-- <strong>传统工艺常无法制造</strong> → <strong>这正是增材制造与拓扑优化天然配对的原因</strong>（第十九页）；
-- 现代做法是在优化中<strong>加入制造约束</strong>（最小尺寸、拔模方向、自支撑角度）；
-- <strong>目标函数的选择决定一切</strong>：以柔度最小为目标得到的结构，<strong>未必满足疲劳、屈曲或动态要求</strong>——需要多目标或后续校核。</p>
+<p><strong>工程现实</strong>：</p>
+<ul>
+<li><strong>结果需要"翻译"成可制造的形状</strong>——原始结果往往充满细碎特征；</li>
+<li><strong>传统工艺常无法制造</strong> → <strong>这正是增材制造与拓扑优化天然配对的原因</strong>（第十九页）；</li>
+<li>现代做法是在优化中<strong>加入制造约束</strong>（最小尺寸、拔模方向、自支撑角度）；</li>
+<li><strong>目标函数的选择决定一切</strong>：以柔度最小为目标得到的结构，<strong>未必满足疲劳、屈曲或动态要求</strong>——需要多目标或后续校核。</li>
+</ul>
 <h2 id="_6">六、仿真在产品开发中的位置<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>前期</strong>：概念比选、快速迭代（<strong>仿真最有价值的阶段</strong>——此时改动成本最低）；</li>
 <li><strong>中期</strong>：详细设计验证、优化；</li>
 <li><strong>后期</strong>：问题诊断、失效复现。</li>
 </ul>
-<p><strong>与试验的关系</strong>：<strong>仿真不能取代试验，二者互补</strong>。
-- 仿真给出<strong>全场信息</strong>（试验只能测有限测点）、可做参数研究；
-- 试验给出<strong>真实边界条件与材料行为</strong>，并<strong>验证模型</strong>。
-- <strong>标准做法是"仿真—试验相关性分析"</strong>：用试验数据修正模型（承第八页：实测模态修正有限元模型），修正后的模型才用于外推。</p>
+<p><strong>与试验的关系</strong>：<strong>仿真不能取代试验，二者互补</strong>。</p>
+<ul>
+<li>仿真给出<strong>全场信息</strong>（试验只能测有限测点）、可做参数研究；</li>
+<li>试验给出<strong>真实边界条件与材料行为</strong>，并<strong>验证模型</strong>。</li>
+<li><strong>标准做法是"仿真—试验相关性分析"</strong>：用试验数据修正模型（承第八页：实测模态修正有限元模型），修正后的模型才用于外推。</li>
+</ul>
 <p><strong>数字孪生</strong>（第二十二页）是这个思路的延伸：让模型与实物持续同步。</p>
 <h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>

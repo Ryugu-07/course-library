@@ -137,6 +137,13 @@ $$Cl_{cr} = \frac{(140 - \text{年龄}) \times \text{体重(kg)}}{72 \times S_{c
 
 **基因多态性**：**CYP2D6**（可待因、他莫昔芬、多种抗抑郁药）、**CYP2C19**（氯吡格雷、PPI）、**TPMT/NUDT15**（**硫唑嘌呤致命性骨髓抑制，用药前应检测**）、**HLA-B*5701**（阿巴卡韦超敏）、**HLA-B*1502**（**卡马西平致 Stevens–Johnson 综合征，在亚裔中显著富集，用药前应筛查**）。**最后两项是"药物基因组学已进入常规临床"的确凿例子**。
 
+## 参考与更新
+
+- **最后审查：2026-08-02。** 本节来源用于核验 ADME、清除、半衰期、稳态、酶代谢和药物相互作用的基础概念；实际剂量调整必须依据药品标签、患者肝肾功能与当地指南。
+- [Pharmacokinetics](https://www.ncbi.nlm.nih.gov/books/NBK557744/) — NLM/NIH Bookshelf：吸收、分布、代谢、排泄及清除参数。
+- [Drug Interactions: Relevant Regulatory Guidance and Policy Documents](https://www.fda.gov/drugs/drug-interactions-labeling/drug-interactions-relevant-regulatory-guidance-and-policy-documents) — FDA：药物相互作用的监管资料入口。
+- [ICH M12: Drug Interaction Studies](https://www.fda.gov/media/184436/download) — ICH/FDA：药物相互作用研究的国际技术指南。
+
 ---
 
 *下一页：药效学——受体理论、量效曲线与治疗窗，把"多大剂量产生多大效应"讲成一条可计算的关系。*

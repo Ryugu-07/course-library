@@ -28,7 +28,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-23 15:45</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -133,13 +133,13 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 <p>1986 年 Rumelhart、Hinton、Williams 在 Nature 发表这套算法（思想此前多次被独立发现：Werbos 1974 的博士论文、更早的控制论文献，但 1986 年这篇让它出圈），Minsky 的判决被推翻，神经网络第一次复兴开始：1989 年 LeCun 用它训练卷积网络识别手写邮编（第 05 讲主角的前身），Hornik 证明万能逼近，一切看起来欣欣向荣。</p>
 <h2 id="4-19952006">4. 第二次寒冬（1995–2006）：为什么又不行了<a class="headerlink" href="#4-19952006" title="Permanent link"></a></h2>
 <p>复兴只维持了不到十年。90 年代中期起，神经网络在学术界再次失宠，这次的对手正是第 02 讲的 SVM。原因值得逐条看清，<strong>因为后来深度学习的爆发恰好是这些原因被逐条消除</strong>：</p>
-<p><strong>① 梯度消失——深不下去的数学根源。</strong>盯住方程二连乘的结构，从输出层回传到第 <span class="arithmatex">\(l\)</span> 层：</p>
+<p><strong>1. 梯度消失——深不下去的数学根源。</strong>盯住方程二连乘的结构，从输出层回传到第 <span class="arithmatex">\(l\)</span> 层：</p>
 <div class="arithmatex">\[
 \delta^{(l)} = \Big[\prod_{k=l+1}^{L} \mathrm{diag}\big(\sigma'(z^{(k-1)})\big)\, W^{(k)\top}\Big]\, \delta^{(L)} \cdot (\text{按序整理})
 \]</div>
 <p>粗略地按范数估计，每回传一层，<span class="arithmatex">\(\|\delta\|\)</span> 被乘上一个约为 <span class="arithmatex">\(\|W\| \cdot \max\sigma'\)</span> 的因子。而 sigmoid 的导数 <span class="arithmatex">\(\sigma'(z) = \sigma(z)(1 - \sigma(z)) \leq \frac14\)</span>（在 <span class="arithmatex">\(z=0\)</span> 处取最大；两侧饱和区几乎为 0）。若权重不大，每层至少缩水 4 倍，<strong>10 层就是 <span class="arithmatex">\(4^{-10} \approx 10^{-6}\)</span></strong>——底层梯度实际为零，"深"网络的底层根本训不动。反过来若 <span class="arithmatex">\(\|W\|\)</span> 大，连乘就爆炸。梯度消失/爆炸是深度的原罪，1991 年 Hochreiter 的硕士论文就把它说透了（此人后来发明 LSTM，第 06 讲再见）。</p>
-<p><strong>② 数据太少、算力太弱。</strong>几千个样本训不动大网络（第 01 讲：复杂模型需要大 <span class="arithmatex">\(n\)</span>）；CPU 训练以周计。</p>
-<p><strong>③ 理论气质完败。</strong>SVM：凸优化全局最优、VC 理论保泛化、调参少且行为可解释。神经网络：非凸、局部极小、初始化玄学、"炼丹"。审稿人的风向直接反映生态：当年论文里出现"neural network"就难中，SVM 成为默认基线。</p>
+<p><strong>2. 数据太少、算力太弱。</strong>几千个样本训不动大网络（第 01 讲：复杂模型需要大 <span class="arithmatex">\(n\)</span>）；CPU 训练以周计。</p>
+<p><strong>3. 理论气质完败。</strong>SVM：凸优化全局最优、VC 理论保泛化、调参少且行为可解释。神经网络：非凸、局部极小、初始化玄学、"炼丹"。审稿人的风向直接反映生态：当年论文里出现"neural network"就难中，SVM 成为默认基线。</p>
 <h2 id="5-hinton-20062012">5. Hinton 的坚守（2006–2012）<a class="headerlink" href="#5-hinton-20062012" title="Permanent link"></a></h2>
 <p>大多数人转向了。Geoffrey Hinton 没有——从 70 年代读博起他就认定"大脑显然是靠某种梯度式学习工作的，这条路不可能错"。加拿大 CIFAR 研究所在神经网络最不受待见的年代给了他和 Bengio、LeCun 一小笔长期经费（后来被戏称为"加拿大黑手党"的三人组，2018 年共享图灵奖）。</p>
 <p>2006 年，Hinton 在 Science 发表深度信念网络（DBN）：<strong>逐层无监督预训练</strong>——先让每一层单独学习重构输入（受限玻尔兹曼机，RBM），学完一层再堆下一层，最后用反向传播整体微调。这绕开了梯度消失（每层的起点已在不错的位置），首次证明<strong>训练深层网络是可行的</strong>。同一篇论文里，他刻意启用了一个新名字：<strong>deep learning</strong>——部分原因是"neural network"这个词在审稿人那里名声太差，换个说法才发得出去。</p>

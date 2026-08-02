@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>共识与 Raft · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -70,17 +70,23 @@
 <figcaption><span class="fig-id">图 dist-02.3</span>日志复制：Leader 追加→多数派确认→提交→应用。</figcaption>
 </figure>
 <p>Paxos 是第一个正确的共识算法，但<strong>出了名地难懂</strong>。Raft 明确以"可理解性"为设计目标，把共识拆成三个相对独立的子问题：</p>
-<p><strong>① 领导者选举（Leader Election）</strong>
-- 节点有三态：<strong>Follower / Candidate / Leader</strong>。正常时一个 Leader、其余 Follower。
-- Leader 定期发<strong>心跳</strong>。Follower 一段时间（选举超时）没收到心跳，就认为 Leader 挂了，转 Candidate、<strong>增加任期号（term）</strong>、发起投票。
-- <strong>多数派投票</strong>：得到超过半数选票者当选 Leader。<strong>"多数派（quorum）"是 Raft 一切正确性的基石</strong>——任意两个多数派必有交集，保证不会同时选出两个 Leader、保证已提交的数据不丢。
-- 随机化选举超时避免选票僵持（🔗 呼应 algo-03 用随机打破对称）。</p>
-<p><strong>② 日志复制（Log Replication）</strong>
-- 客户端命令只发给 Leader；Leader 追加到自己日志，并行发给 Followers。
-- 当一条日志被<strong>多数派</strong>确认写入，Leader 就<strong>提交（commit）</strong>它、应用到状态机、回复客户端。<strong>"多数派确认才算提交"保证：即使少数节点崩溃，已提交的命令仍在多数节点上、选出的新 Leader 一定有它</strong>（这是安全性的核心论证）。</p>
-<p><strong>③ 安全性约束</strong>
-- <strong>选举限制</strong>：只有日志"足够新"的 Candidate 才能当选——保证新 Leader 不会丢失已提交的日志。
-- <strong>Leader 只提交自己任期的日志</strong>（避免一个微妙的已提交日志被覆盖的 bug）。</p>
+<p><strong>① 领导者选举（Leader Election）</strong></p>
+<ul>
+<li>节点有三态：<strong>Follower / Candidate / Leader</strong>。正常时一个 Leader、其余 Follower。</li>
+<li>Leader 定期发<strong>心跳</strong>。Follower 一段时间（选举超时）没收到心跳，就认为 Leader 挂了，转 Candidate、<strong>增加任期号（term）</strong>、发起投票。</li>
+<li><strong>多数派投票</strong>：得到超过半数选票者当选 Leader。<strong>"多数派（quorum）"是 Raft 一切正确性的基石</strong>——任意两个多数派必有交集，保证不会同时选出两个 Leader、保证已提交的数据不丢。</li>
+<li>随机化选举超时避免选票僵持（🔗 呼应 algo-03 用随机打破对称）。</li>
+</ul>
+<p><strong>② 日志复制（Log Replication）</strong></p>
+<ul>
+<li>客户端命令只发给 Leader；Leader 追加到自己日志，并行发给 Followers。</li>
+<li>当一条日志被<strong>多数派</strong>确认写入，Leader 就<strong>提交（commit）</strong>它、应用到状态机、回复客户端。<strong>"多数派确认才算提交"保证：即使少数节点崩溃，已提交的命令仍在多数节点上、选出的新 Leader 一定有它</strong>（这是安全性的核心论证）。</li>
+</ul>
+<p><strong>③ 安全性约束</strong></p>
+<ul>
+<li><strong>选举限制</strong>：只有日志"足够新"的 Candidate 才能当选——保证新 Leader 不会丢失已提交的日志。</li>
+<li><strong>Leader 只提交自己任期的日志</strong>（避免一个微妙的已提交日志被覆盖的 bug）。</li>
+</ul>
 <p><strong>Raft 的正确性口诀</strong>：<strong>任何时刻至多一个 Leader；已提交的日志永不丢失、永不改变顺序</strong>。这两条靠"多数派交集"贯穿始终。</p>
 <h2 id="4">4. 从共识到生产系统<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <ul>
@@ -103,14 +109,16 @@
 <h3 id="project-p03-raft">📋 大 Project P03（第一阶段）· Raft 共识库<a class="headerlink" href="#project-p03-raft" title="Permanent link"></a></h3>
 <blockquote>
 <p><strong>教师版作业说明书，不提供完整解。</strong> P03 分两阶段随 dist-02/03 展开，最终是一个分片的、线性一致的分布式 KV。第一阶段只做可复用 Raft 库。</p>
-<p><strong>P03-A · Raft 共识库</strong>
-- <strong>学习目标</strong>：把 Raft 的三个不变量写进代码和测试：任期单调、日志匹配、已提交日志不丢。
-- <strong>教师提供</strong>：单机多节点网络模拟器、可控随机种子、丢包/延迟/分区/崩溃重启故障注入、公开测试分层（election/basic log/persistence/snapshot）。
-- <strong>学生任务</strong>：① 领导者选举与心跳；② 日志复制、commit index、apply channel；③ 持久化当前任期、投票、日志并支持崩溃恢复；④ 快照与日志压缩。
-- <strong>接口约束</strong>：Raft 模块只通过 <code>Start(command)</code>、<code>ApplyMsg</code>、持久化接口与上层交互；不得让 KV 逻辑泄漏进 Raft；所有 RPC handler 必须在任期变化时立即降级。
-- <strong>验收测试</strong>：稳定网络 3/5 节点能选主并提交；少数派分区不能提交；leader 崩溃后新 leader 继续提交；节点反复崩溃重启后日志一致；快照后旧日志截断仍能恢复。
-- <strong>评分重点</strong>：选举 20%，日志复制 30%，持久化 20%，快照 15%，故障测试与调试日志 15%。
-- <strong>教师提示</strong>：要求学生在报告里列出 Raft 不变量和对应代码位置；这比“测试过了”更能检验理解。</p>
+<p><strong>P03-A · Raft 共识库</strong></p>
+<ul>
+<li><strong>学习目标</strong>：把 Raft 的三个不变量写进代码和测试：任期单调、日志匹配、已提交日志不丢。</li>
+<li><strong>教师提供</strong>：单机多节点网络模拟器、可控随机种子、丢包/延迟/分区/崩溃重启故障注入、公开测试分层（election/basic log/persistence/snapshot）。</li>
+<li><strong>学生任务</strong>：① 领导者选举与心跳；② 日志复制、commit index、apply channel；③ 持久化当前任期、投票、日志并支持崩溃恢复；④ 快照与日志压缩。</li>
+<li><strong>接口约束</strong>：Raft 模块只通过 <code>Start(command)</code>、<code>ApplyMsg</code>、持久化接口与上层交互；不得让 KV 逻辑泄漏进 Raft；所有 RPC handler 必须在任期变化时立即降级。</li>
+<li><strong>验收测试</strong>：稳定网络 3/5 节点能选主并提交；少数派分区不能提交；leader 崩溃后新 leader 继续提交；节点反复崩溃重启后日志一致；快照后旧日志截断仍能恢复。</li>
+<li><strong>评分重点</strong>：选举 20%，日志复制 30%，持久化 20%，快照 15%，故障测试与调试日志 15%。</li>
+<li><strong>教师提示</strong>：要求学生在报告里列出 Raft 不变量和对应代码位置；这比“测试过了”更能检验理解。</li>
+</ul>
 </blockquote>
 <hr />
 <p><em>下一页：分布式 III——分布式事务与大系统案例：跨机器的原子操作，以及 MapReduce/一致性哈希/大规模存储怎么落地。</em></p>

@@ -8,8 +8,16 @@ import numpy as np
 OUTPUT = Path(__file__).parent / "output"
 OUTPUT.mkdir(exist_ok=True)
 
-# macOS 中文字体（避免图上中文变方块）
-matplotlib.rcParams["font.sans-serif"] = ["PingFang SC", "Hiragino Sans GB", "Arial Unicode MS"]
+# Prefer local CJK fonts, then let DejaVu supply math symbols and exponents.
+matplotlib.rcParams["font.sans-serif"] = [
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "Arial Unicode MS",
+    "DejaVu Sans",
+]
+matplotlib.rcParams["mathtext.fontset"] = "dejavusans"
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 np.random.seed(42)

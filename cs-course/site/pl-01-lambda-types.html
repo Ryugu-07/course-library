@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>λ 演算与类型系统 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -76,10 +76,12 @@ e ::= x \mid \lambda x.e \mid e_1\,e_2
 \frac{\Gamma \vdash e_1 : \tau_1 \to \tau_2 \quad \Gamma \vdash e_2 : \tau_1}{\Gamma \vdash e_1\,e_2 : \tau_2}
 \]</div>
 <p>读作："在上下文 <span class="arithmatex">\(\Gamma\)</span> 下，若 <span class="arithmatex">\(e_1\)</span> 是 <span class="arithmatex">\(\tau_1\to\tau_2\)</span> 的函数、<span class="arithmatex">\(e_2\)</span> 是 <span class="arithmatex">\(\tau_1\)</span>，则应用结果是 <span class="arithmatex">\(\tau_2\)</span>"。<strong>类型检查就是构造这样一棵推导树</strong>（🔗 与数学证明同构，下一节揭晓）。</p>
-<p><strong>类型安全的核心定理【机理】</strong>：<strong>Progress（进展）+ Preservation（保持）= Soundness（可靠性）</strong>：
-- <strong>Preservation</strong>：若 <span class="arithmatex">\(e:\tau\)</span> 且 <span class="arithmatex">\(e\to e'\)</span>，则 <span class="arithmatex">\(e':\tau\)</span>（求值不改变类型）。
-- <strong>Progress</strong>：良类型的项要么是值、要么能继续求值（不会卡在无意义的中间态）。
-- 两者合起来："<strong>良类型的程序不会出错（well-typed programs don't go wrong）</strong>"——Milner 的名言。<strong>这是类型系统价值的精确数学表述</strong>：类型检查通过 = 证明了程序不会有某类运行时错误。</p>
+<p><strong>类型安全的核心定理【机理】</strong>：<strong>Progress（进展）+ Preservation（保持）= Soundness（可靠性）</strong>：</p>
+<ul>
+<li><strong>Preservation</strong>：若 <span class="arithmatex">\(e:\tau\)</span> 且 <span class="arithmatex">\(e\to e'\)</span>，则 <span class="arithmatex">\(e':\tau\)</span>（求值不改变类型）。</li>
+<li><strong>Progress</strong>：良类型的项要么是值、要么能继续求值（不会卡在无意义的中间态）。</li>
+<li>两者合起来："<strong>良类型的程序不会出错（well-typed programs don't go wrong）</strong>"——Milner 的名言。<strong>这是类型系统价值的精确数学表述</strong>：类型检查通过 = 证明了程序不会有某类运行时错误。</li>
+</ul>
 <h2 id="3">3. 多态与类型推断：既安全又不啰嗦<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>STLC 要处处写类型，且 <code>identity</code> 函数要为每个类型写一遍。<strong>参数多态（泛型）</strong>解决之：<span class="arithmatex">\(\forall \alpha.\ \alpha\to\alpha\)</span> 一个 <code>id</code> 适用所有类型（System F 的核心）。</p>
 <p><strong>Hindley–Milner 类型推断（ML/Haskell/Rust 局部推断的根）</strong>：<strong>编译器自动推出类型，不用你写</strong>——通过<strong>合一（unification）</strong>：把类型当带未知数的方程、求解约束（<code>id 3</code> ⇒ <code>α = int</code>）。<strong>HM 让你既享受静态类型的安全、又几乎不用写类型标注</strong>——鱼与熊掌兼得（comp-02 埋的伏笔在此揭晓）。这是编程语言理论最实用的成果之一，你写 Rust 的 <code>let x = ...</code> 不用标类型，背后就是它。</p>

@@ -32,7 +32,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -53,6 +53,9 @@
 <p><strong>层次</strong>：本科接触 + 业界快速增长 ｜ <strong>核对于 2026-07</strong> ｜ 🔗 与自动化站（机器人感知）、生物站（医学成像）互链。
 光是最通用的<strong>非接触测量工具</strong>：不碰到样品就能知道它的成分、形状、距离、速度、温度。本页讲三类主要用途——<strong>光谱（测成分）、干涉与结构光（测形状）、LiDAR（测距离与速度）</strong>。</p>
 </blockquote>
+<p><img alt="LiDAR 的时间延迟与拍频" class="fig-img" src="assets/img/pho-17-lidar.svg" /></p>
+<figcaption><span class="fig-id">图 17-1</span> 左：dToF 由脉冲与回波的时间差测距，\(R=c\Delta t/2\)，所以厘米级精度需要皮秒级计时；右：FMCW 把回波延迟变成拍频 \(f_b=S\tau\)，再由 \(f_b=2SR/c\) 解出距离。<strong>相干拍频同时携带多普勒信息，并天然抑制非相干环境光</strong>，但对激光线性调频与信号处理要求更高。</figcaption>
+
 <h2 id="_1">一、光谱：用颜色识别物质<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p><strong>原理</strong>：每种物质有特征的吸收/发射/散射谱——<strong>光谱是分子的指纹</strong>。</p>
 <p><strong>主要技术</strong>：</p>
@@ -87,13 +90,17 @@
 </tr>
 </tbody>
 </table>
-<p><strong>分光的两条路线</strong>：
-- <strong>色散型</strong>：光栅（第四页 <span class="arithmatex">\(d\sin\theta=m\lambda\)</span>）把不同波长散开到探测器阵列上。<strong>简单直观</strong>；
-- <strong>傅里叶变换型（FTIR）</strong>：用迈克尔逊干涉仪扫描光程差，测得干涉图后<strong>做傅里叶变换得到光谱</strong>（第三、四页）。
-  <strong>优势</strong>：<strong>所有波长同时测量（多路复用/Fellgett 优势）+ 通光量大（Jacquinot 优势）</strong> → <strong>信噪比显著高于色散型</strong>，这是中红外光谱仪普遍采用它的原因。</p>
-<p><strong>拉曼的困境与对策</strong>：拉曼散射截面极小（约 <span class="arithmatex">\(10^{-30}\)</span> cm²，比荧光弱几个数量级）。
-- <strong>表面增强拉曼（SERS）</strong>：金属纳米结构的局域场增强可达数个数量级，甚至实现单分子检测；
-- 需要<strong>陷波滤波器</strong>滤除极强的瑞利散射（第三页薄膜）。</p>
+<p><strong>分光的两条路线</strong>：</p>
+<ul>
+<li><strong>色散型</strong>：光栅（第四页 <span class="arithmatex">\(d\sin\theta=m\lambda\)</span>）把不同波长散开到探测器阵列上。<strong>简单直观</strong>；</li>
+<li><strong>傅里叶变换型（FTIR）</strong>：用迈克尔逊干涉仪扫描光程差，测得干涉图后<strong>做傅里叶变换得到光谱</strong>（第三、四页）。
+  <strong>优势</strong>：<strong>所有波长同时测量（多路复用/Fellgett 优势）+ 通光量大（Jacquinot 优势）</strong> → <strong>信噪比显著高于色散型</strong>，这是中红外光谱仪普遍采用它的原因。</li>
+</ul>
+<p><strong>拉曼的困境与对策</strong>：拉曼散射截面极小（约 <span class="arithmatex">\(10^{-30}\)</span> cm²，比荧光弱几个数量级）。</p>
+<ul>
+<li><strong>表面增强拉曼（SERS）</strong>：金属纳米结构的局域场增强可达数个数量级，甚至实现单分子检测；</li>
+<li>需要<strong>陷波滤波器</strong>滤除极强的瑞利散射（第三页薄膜）。</li>
+</ul>
 <h2 id="_2">二、光纤传感<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>光纤本身就是传感器</strong>——这是它常被忽略的一面：</p>
 <ul>
@@ -163,11 +170,13 @@
 <li><strong>可用低峰值功率</strong>（连续波），眼安全性好；</li>
 <li><strong>挑战</strong>：需要<strong>高相干、可快速线性调频的激光源</strong>（技术门槛高），信号处理复杂。</li>
 </ul>
-<p><strong>扫描方式</strong>：
-- <strong>机械旋转</strong>：视场大、成熟，但体积与可靠性受限；
-- <strong>MEMS 微镜</strong>：小型化，扫描角度受限；
-- <strong>光学相控阵（OPA）</strong>：<strong>完全固态、无运动部件</strong>，用集成光子学实现（第十五页）。<strong>这是最理想的方案，但目前受限于阵列规模、旁瓣与效率</strong>【前沿】；
-- <strong>Flash</strong>：一次照亮整个视场，用面阵探测。简单但作用距离受限（能量分散）。</p>
+<p><strong>扫描方式</strong>：</p>
+<ul>
+<li><strong>机械旋转</strong>：视场大、成熟，但体积与可靠性受限；</li>
+<li><strong>MEMS 微镜</strong>：小型化，扫描角度受限；</li>
+<li><strong>光学相控阵（OPA）</strong>：<strong>完全固态、无运动部件</strong>，用集成光子学实现（第十五页）。<strong>这是最理想的方案，但目前受限于阵列规模、旁瓣与效率</strong>【前沿】；</li>
+<li><strong>Flash</strong>：一次照亮整个视场，用面阵探测。简单但作用距离受限（能量分散）。</li>
+</ul>
 <p><strong>产业判断</strong>【核对于 2026-07】：<strong>dToF 已大规模量产</strong>（车载与手机）；<strong>FMCW 与固态 OPA 被视为下一代方向</strong>，但成本与成熟度仍是障碍。<strong>这是一个技术路线尚未收敛的领域。</strong></p>
 <h2 id="_4">五、其他重要传感<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <ul>

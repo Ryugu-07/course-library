@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>训练系统与并行策略 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -55,25 +55,31 @@
 <p><img alt="反向模式 autodiff：计算图前向存中间值、反向链式累积梯度。" src="assets/img/mlsys-01-autodiff.svg" /></p>
 <figcaption><span class="fig-id">图 mlsys-01.3</span>反向模式 autodiff：计算图前向存中间值、反向链式累积梯度。</figcaption>
 </figure>
-<p>PyTorch/JAX 的核心是<strong>自动微分（autodiff）</strong>——你写前向计算，框架自动算梯度（ai-course 的反向传播的工程实现）。机制是<strong>计算图</strong>：每个操作是节点、数据流是边。
-- <strong>前向</strong>：按图计算输出，同时<strong>记录每步的中间值</strong>（反向要用）。
-- <strong>反向（反向模式 autodiff）</strong>：从损失出发，沿图反向用<strong>链式法则</strong>逐节点累积梯度。<strong>反向模式对"多输入单输出"（正是神经网络：百万参数 → 一个 loss）最高效</strong>——一次反向传播算出所有参数的梯度，代价约等于一次前向。
-- <strong>动态图 vs 静态图</strong>：PyTorch 动态图（边跑边建，灵活易调试）；JAX/编译式静态图（先建图再编译优化，可做算子融合、更快）。<strong>"灵活 vs 可优化"又一次权衡</strong>——现代趋势是 <code>torch.compile</code> 这类把动态图 JIT 编译（🔗 comp 线的编译优化用到 ML）。</p>
+<p>PyTorch/JAX 的核心是<strong>自动微分（autodiff）</strong>——你写前向计算，框架自动算梯度（ai-course 的反向传播的工程实现）。机制是<strong>计算图</strong>：每个操作是节点、数据流是边。</p>
+<ul>
+<li><strong>前向</strong>：按图计算输出，同时<strong>记录每步的中间值</strong>（反向要用）。</li>
+<li><strong>反向（反向模式 autodiff）</strong>：从损失出发，沿图反向用<strong>链式法则</strong>逐节点累积梯度。<strong>反向模式对"多输入单输出"（正是神经网络：百万参数 → 一个 loss）最高效</strong>——一次反向传播算出所有参数的梯度，代价约等于一次前向。</li>
+<li><strong>动态图 vs 静态图</strong>：PyTorch 动态图（边跑边建，灵活易调试）；JAX/编译式静态图（先建图再编译优化，可做算子融合、更快）。<strong>"灵活 vs 可优化"又一次权衡</strong>——现代趋势是 <code>torch.compile</code> 这类把动态图 JIT 编译（🔗 comp 线的编译优化用到 ML）。</li>
+</ul>
 <p><strong>关键系统洞察</strong>：<strong>训练的显存大头是"为反向保存的中间激活值"</strong>，不是参数本身——这直接引出下面的省显存技术。</p>
 <h2 id="2">2. 显存：永远不够的资源<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="训练显存四部分（参数/梯度/优化器状态/激活），16 字节/参数条形图。" src="assets/img/mlsys-01-memory.svg" /></p>
 <figcaption><span class="fig-id">图 mlsys-01.2</span>训练显存四部分（参数/梯度/优化器状态/激活），16 字节/参数条形图。</figcaption>
 </figure>
-<p>训练时 GPU 显存装着四样东西，缺一不可：
-1. <strong>模型参数</strong>（如 7B 模型 fp16 = 14 GB）。
-2. <strong>梯度</strong>（同参数量级）。
-3. <strong>优化器状态</strong>（Adam 混合精度要存 fp32 主权重 + 动量 + 方差，约 12 字节/参数——<strong>优化器状态常是最大头</strong>）。
-4. <strong>激活值</strong>（前向的中间结果，为反向保存，随 batch 和序列长度涨）。</p>
-<p><strong>省显存的核心技术</strong>（让大模型能在有限显存上训）：
-- <strong>混合精度（mixed precision）</strong>：用 fp16/bf16 算（省一半显存 + 更快），关键处（如梯度累加）保留 fp32 防数值问题——<strong>现代训练标配</strong>。
-- <strong>梯度检查点（gradient checkpointing）</strong>：不保存所有激活值，反向时<strong>重算</strong>一部分——<strong>用计算换显存</strong>（Roofline 权衡 perf-01），能训更大模型/更长序列。
-- <strong>ZeRO / 优化器状态分片</strong>：把优化器状态、梯度、参数<strong>分散到多卡</strong>，每卡只存一份分片——DeepSpeed ZeRO 的核心，让万亿参数可训。</p>
+<p>训练时 GPU 显存装着四样东西，缺一不可：</p>
+<ol>
+<li><strong>模型参数</strong>（如 7B 模型 fp16 = 14 GB）。</li>
+<li><strong>梯度</strong>（同参数量级）。</li>
+<li><strong>优化器状态</strong>（Adam 混合精度要存 fp32 主权重 + 动量 + 方差，约 12 字节/参数——<strong>优化器状态常是最大头</strong>）。</li>
+<li><strong>激活值</strong>（前向的中间结果，为反向保存，随 batch 和序列长度涨）。</li>
+</ol>
+<p><strong>省显存的核心技术</strong>（让大模型能在有限显存上训）：</p>
+<ul>
+<li><strong>混合精度（mixed precision）</strong>：用 fp16/bf16 算（省一半显存 + 更快），关键处（如梯度累加）保留 fp32 防数值问题——<strong>现代训练标配</strong>。</li>
+<li><strong>梯度检查点（gradient checkpointing）</strong>：不保存所有激活值，反向时<strong>重算</strong>一部分——<strong>用计算换显存</strong>（Roofline 权衡 perf-01），能训更大模型/更长序列。</li>
+<li><strong>ZeRO / 优化器状态分片</strong>：把优化器状态、梯度、参数<strong>分散到多卡</strong>，每卡只存一份分片——DeepSpeed ZeRO 的核心，让万亿参数可训。</li>
+</ul>
 <p><strong>这些都是"在固定显存里训更大模型"的工程手段</strong>——你在 comfy 课看到"显存不够跑不了大模型"的抱怨，MLSys 就是系统性地解决它。你的 4060 Ti 16GB 训练时也天天面对这个约束。</p>
 <h2 id="3">3. 分布式训练：一张卡装不下时<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -118,10 +124,12 @@
 </ul>
 <p><strong>真实的大模型训练是"3D 并行"</strong>——数据 × 张量 × 流水线三种组合，加上 ZeRO 分片，才能把万亿参数塞进几千张卡高效训练。<strong>"怎么切模型和数据到几千张卡"是 MLSys 最核心的系统设计问题</strong>。</p>
 <h2 id="4">4. 数据管线与训练效率<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>GPU 很贵，<strong>不能让它等数据</strong>。训练系统的另一半是喂数据：
-- <strong>数据加载流水线</strong>：多进程预取、预处理与训练重叠——别让 GPU 空转等 CPU 读数据（🔗 与 os 的 I/O、生产者-消费者同构）。
-- <strong>检查点（checkpointing）</strong>：定期存模型状态——训练几个月中途宕机能恢复（🔗 db-03/dist 的持久化思想在训练里）。
-- <strong>可观测性</strong>：监控 GPU 利用率、吞吐（tokens/s）、loss 曲线——<strong>GPU 利用率低就是钱在燃烧</strong>，MLSys 工程师盯着这些指标。</p>
+<p>GPU 很贵，<strong>不能让它等数据</strong>。训练系统的另一半是喂数据：</p>
+<ul>
+<li><strong>数据加载流水线</strong>：多进程预取、预处理与训练重叠——别让 GPU 空转等 CPU 读数据（🔗 与 os 的 I/O、生产者-消费者同构）。</li>
+<li><strong>检查点（checkpointing）</strong>：定期存模型状态——训练几个月中途宕机能恢复（🔗 db-03/dist 的持久化思想在训练里）。</li>
+<li><strong>可观测性</strong>：监控 GPU 利用率、吞吐（tokens/s）、loss 曲线——<strong>GPU 利用率低就是钱在燃烧</strong>，MLSys 工程师盯着这些指标。</li>
+</ul>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（显存算账）</strong> 用 Adam 训一个 7B 参数模型（混合精度），按经验法则约 <strong>16 字节/参数</strong>（fp16 参数 2 + fp16 梯度 2 + fp32 主权重 4 + 动量 4 + 方差 4）估算 ≈ 112 GB，还没算激活——<strong>理解"为什么 7B 模型单张消费卡训不动"</strong>，以及 ZeRO/量化为什么必要。</p>
 <p><strong>例 2（选并行策略）</strong> 模型能装进单卡但想用 8 卡加速 → 数据并行；单层大到装不下 → 张量并行；模型极深跨多节点 → 流水线。给三个场景各选策略。<strong>把并行三件套用到决策</strong>。</p>

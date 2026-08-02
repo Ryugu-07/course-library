@@ -26,6 +26,11 @@ $$
 | 残余压应力 | 表面受压需先抵消才能张开裂纹 | **钢化玻璃**（急冷）、化学强化（离子交换：手机盖板玻璃） |
 | 复合/层状 | 界面偏转裂纹路径（仿贝壳珍珠层） | CMC 涡轮部件、层状陶瓷 |
 
+<figure class="diagram" markdown="1">
+![Transformation toughening at a zirconia crack tip](assets/img/mat-11-transformation-toughening.svg)
+<figcaption><span class="fig-id">图 11.2</span>裂尖应力诱发稳定四方氧化锆转为单斜相，3–5% 的体积膨胀在裂尖周围建立压应力区，促使裂纹闭合并提高断裂韧性。</figcaption>
+</figure>
+
 **钢化玻璃的两个性格**：强度提升数倍，但一旦破坏（裂纹穿透压应力层）**整片爆成小颗粒**——安全玻璃的"安全"指碎片不锋利，不是不碎。**陶瓷基复合材料（CMC）**是航空发动机热端的当代主角：密度只有镍基高温合金的三分之一、耐温高 150–200 °C，代价是制造成本与环境障涂层配套（前沿 I 展开）。
 
 ## 3. 热冲击：陶瓷的第二杀手

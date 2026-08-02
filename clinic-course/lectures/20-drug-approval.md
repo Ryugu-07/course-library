@@ -2,6 +2,8 @@
 
 > 药物监管制度是社会对前十九页问题给出的**制度性答案**：既然个人经验不可靠、既然替代终点会骗人、既然厂商有动机夸大，那就设一套强制性的证据门槛。**这一页讲这套制度怎么运作、它的已知漏洞，以及几个改变了制度的灾难。**
 
+> **地区与年份边界**：本页审批流程和加速批准以美国 FDA 为例；EMA、NMPA 及其他监管机构在终点、审评路径、上市后要求和撤回机制上可能不同，FDA 的制度不能写成全球通用规则。
+
 ## 1. 制度是由灾难塑造的
 
 | 事件 | 年代 | 制度后果 |
@@ -26,7 +28,7 @@
 
 **核心结构性事实**：**III 期试验的规模按"检出有效性"设计，而不是按"检出罕见危害"设计**。**一个发生率 1/10000 的严重不良事件，在 3000 人的试验中很可能一例都不出现。** **所以"上市时安全"必然是暂定结论**——**这不是制度失灵，而是数学限制。**
 
-## 3. 加速批准：收益与代价
+## 3. 美国 FDA 的加速批准：收益与代价
 
 **允许基于替代终点批准，承诺上市后完成确证性试验**（第 09 页）。
 
@@ -79,6 +81,15 @@
 6. **临床试验章节**——**主要终点是什么？绝对数字是多少？**
 
 **"看不良反应表要同时看安慰剂列"是本页最实用的一条操作技巧**——**很多"药物副作用"在安慰剂组的发生率几乎一样高**（第 19 页的反安慰剂）。
+
+## 参考与更新
+
+**复审记录**：最后复审 **2026-08-02**；按六个月规则，下一次常规复审不晚于 **2027-02-02**。若安全信号、指南/监管更新或动态清单变化，则提前复审；具体适用地区以各条来源与当地最新版本为准。
+
+- [FDA Drug Development Process](https://www.fda.gov/patients/learn-about-drug-and-device-approvals/drug-development-process)（药物研发与审批流程；持续更新；美国。）
+- [FDA Accelerated Approval Program](https://www.fda.gov/drugs/nda-and-bla-approvals/accelerated-approval-program)（加速批准与确证性试验要求；持续更新；美国。）
+- [FDA Generic Drug Facts](https://www.fda.gov/drugs/generic-drugs/generic-drug-facts)（仿制药审批基础；持续更新；美国。）
+- [FDA postmarket requirements and commitments](https://www.fda.gov/drugs/guidance-compliance-regulatory-information/postmarket-requirements-and-commitments)（上市后要求与承诺；持续更新；美国。）
 
 ---
 

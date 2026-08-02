@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "project": "P02-relational-db",
+  "schemas": [
+    {
+      "name": "accounts",
+      "columns": [
+        {"name": "id", "type": "integer"},
+        {"name": "owner", "type": "text"},
+        {"name": "balance", "type": "integer"}
+      ],
+      "primary_key": "id"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "pinned-buffer-exhaustion",
+      "area": "buffer_pool",
+      "kind": "boundary",
+      "input": {"capacity": 2, "pinned_pages": [1, 2], "request_page": 3},
+      "expected_contract": {"must_not": "evict_pinned_page", "allowed": ["wait", "explicit_error"]},
+      "student_required": true
+    },
+    {
+      "id": "bplus-root-split",
+      "area": "index",
+      "kind": "boundary",
+      "input": {"keys": [1, 2, 3, 4, 5], "order": 3},
+      "expected_contract": {"must_preserve": ["sorted_leaf_chain", "all_keys_reachable"]},
+      "student_required": true
+    },
+    {
+      "id": "write-skew-snapshot",
+      "area": "mvcc",
+      "kind": "fault",
+      "input": {"transactions": ["T1 read A write B", "T2 read B write A"]},
+      "expected_contract": {"must_define": "isolation_outcome", "must_not": "dirty_read"},
+      "student_required": true
+    },
+    {
+      "id": "torn-wal-tail",
+      "area": "recovery",
+      "kind": "fault",
+      "input": {"complete_records": 2, "partial_tail": true, "commit_seen": false},
+      "expected_contract": {"must": "discard_partial_uncommitted_tail", "recovery_is_idempotent": true},
+      "student_required": true
+    }
+  ]
+}

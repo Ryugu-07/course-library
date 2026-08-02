@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P06 设计与性能报告模板 · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 工作负载与环境</a></li>
+<li><a href="#2">2. 正确性契约</a></li>
+<li><a href="#3-baseline">3. Baseline 测量</a></li>
+<li><a href="#4">4. 优化日志</a></li>
+<li><a href="#5">5. 瓶颈迁移与扩展性</a></li>
+<li><a href="#6">6. 结论、限制与后续</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p06">P06 设计与性能报告模板<a class="headerlink" href="#p06" title="Permanent link"></a></h1>
+<h2 id="1">1. 工作负载与环境<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<ul>
+<li>组员、分工、提交 commit：</li>
+<li>CPU/GPU、内存、操作系统、编译器和版本：</li>
+<li>输入尺寸、seed、steps、CFLAGS、线程/亲和设置：</li>
+</ul>
+<h2 id="2">2. 正确性契约<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<ul>
+<li>candidate 与独立 baseline oracle 如何比较：</li>
+<li>误差阈值、digest、边界哨兵、<code>work_units</code> 如何防止删工作：</li>
+<li>通过的规模/seed/steps 和一个失败案例：</li>
+</ul>
+<h2 id="3-baseline">3. Baseline 测量<a class="headerlink" href="#3-baseline" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th style="text-align: right;">值</th>
+<th style="text-align: right;">重复数/统计量</th>
+<th>工具</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wall time</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cache miss / IPC</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>memory</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>初始瓶颈假设与证据：</p>
+<h2 id="4">4. 优化日志<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>commit</th>
+<th>单一主要改动</th>
+<th>假设</th>
+<th>正确性</th>
+<th style="text-align: right;">wall time</th>
+<th style="text-align: right;">加速</th>
+<th>资源/计数器</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>baseline</td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">1.0×</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>至少保留一个“更快但错误”或“理论合理但退化”的尝试，并解释根因。</p>
+<h2 id="5">5. 瓶颈迁移与扩展性<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li>不同尺寸的 cache/算力/同步瓶颈：</li>
+<li>线程或 GPU 扩展曲线：</li>
+<li>Roofline 位置如何变化：</li>
+</ul>
+<h2 id="6">6. 结论、限制与后续<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<ul>
+<li>最终分档与未达到 100× 的原因：</li>
+<li>平台特定性与 fallback：</li>
+<li>如果再有两周，下一步实验：</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

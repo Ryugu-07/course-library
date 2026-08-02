@@ -13,9 +13,9 @@
 
 **计算三板斧**：
 
-**① 化累次（Fubini）**：$X$-型区域 $\iint_D f\,d\sigma = \int_a^b dx \int_{y_1(x)}^{y_2(x)} f\,dy$。**交换积分次序**是高频操作：画出区域→按另一变量重新描述边界（有些积分只有换序后才积得动，如 $\int_0^1 dx\int_x^1 e^{-y^2}dy$）。
+**1. 化累次（Fubini）**：$X$-型区域 $\iint_D f\,d\sigma = \int_a^b dx \int_{y_1(x)}^{y_2(x)} f\,dy$。**交换积分次序**是高频操作：画出区域→按另一变量重新描述边界（有些积分只有换序后才积得动，如 $\int_0^1 dx\int_x^1 e^{-y^2}dy$）。
 
-**② 变量替换**：
+**2. 变量替换**：
 
 $$
 \iint_D f(x,y)\,dx\,dy = \iint_{D'} f\big(x(u,v), y(u,v)\big)\,\Big|\det\frac{\partial(x,y)}{\partial(u,v)}\Big|\,du\,dv
@@ -23,7 +23,7 @@ $$
 
 Jacobi 行列式 = 局部面积缩放率（🔗 与数分 V 隐函数定理、概率页"随机变量变换的密度公式"、归一化流同源）。**极坐标** $dx\,dy = r\,dr\,d\theta$；**柱坐标** $dV = r\,dr\,d\theta\,dz$；**球坐标** $dV = \rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta$。
 
-**③ 对称性**：区域对称 + 被积函数奇偶性，先砍再算；轮换对称性（$x,y,z$ 地位对等时 $\iiint x^2 = \frac13\iiint(x^2+y^2+z^2)$）。
+**3. 对称性**：区域对称 + 被积函数奇偶性，先砍再算；轮换对称性（$x,y,z$ 地位对等时 $\iiint x^2 = \frac13\iiint(x^2+y^2+z^2)$）。
 
 **名例（高斯积分）**：$I = \int_{-\infty}^\infty e^{-x^2}dx$，则 $I^2 = \iint e^{-(x^2+y^2)}dx\,dy \xrightarrow{\text{极坐标}} \int_0^{2\pi}\!\!\int_0^\infty e^{-r^2} r\,dr\,d\theta = \pi$，故 $I = \sqrt\pi$。🔗 概率论正态分布的入场券。
 

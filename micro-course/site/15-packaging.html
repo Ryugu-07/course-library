@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -63,16 +63,20 @@
 <p><strong>结论</strong>："在一颗裸片上做完一切"不再是最优解。<strong>转向"分而治之，再拼装"。</strong></p>
 <h2 id="chiplet">二、Chiplet：把芯片当乐高<a class="headerlink" href="#chiplet" title="Permanent link"></a></h2>
 <p><strong>Chiplet（芯粒）</strong>：把原本单片的 SoC 拆成若干功能裸片，分别制造，再封装集成。</p>
-<p><strong>收益</strong>：
-- <strong>良率</strong>：小裸片良率高得多。把 600 mm² 拆成 4 颗 150 mm²，总体成本可显著下降；
-- <strong>混合节点</strong>：CPU 核用最先进节点，IO/模拟用成熟节点（便宜且性能更合适）——<strong>"不是所有电路都想去 2nm"</strong>（第八页）；
-- <strong>复用与快速衍生</strong>：同一套 chiplet 组合出不同规格产品，摊薄设计成本（先进节点一次设计投入极大）；
-- <strong>突破面积上限</strong>：多裸片拼装可超过掩模版场限制。</p>
-<p><strong>代价</strong>（必须诚实列出）：
-- <strong>裸片间互连的功耗与延迟</strong>远高于片内走线——每一次跨裸片通信都要付出能量与时间代价；
-- <strong>测试难度</strong>：必须保证每颗裸片在封装前就是好的（<strong>KGD，已知良好裸片</strong>），否则封装后整体报废，<strong>反而放大损失</strong>；
-- <strong>热管理</strong>：多裸片堆叠使散热路径复杂，热点难处理；
-- <strong>标准与生态</strong>：不同厂商的 chiplet 要能互操作，需要统一接口标准（如 <strong>UCIe</strong>）——<strong>这是当前产业博弈的焦点</strong>。</p>
+<p><strong>收益</strong>：</p>
+<ul>
+<li><strong>良率</strong>：小裸片良率高得多。把 600 mm² 拆成 4 颗 150 mm²，总体成本可显著下降；</li>
+<li><strong>混合节点</strong>：CPU 核用最先进节点，IO/模拟用成熟节点（便宜且性能更合适）——<strong>"不是所有电路都想去 2nm"</strong>（第八页）；</li>
+<li><strong>复用与快速衍生</strong>：同一套 chiplet 组合出不同规格产品，摊薄设计成本（先进节点一次设计投入极大）；</li>
+<li><strong>突破面积上限</strong>：多裸片拼装可超过掩模版场限制。</li>
+</ul>
+<p><strong>代价</strong>（必须诚实列出）：</p>
+<ul>
+<li><strong>裸片间互连的功耗与延迟</strong>远高于片内走线——每一次跨裸片通信都要付出能量与时间代价；</li>
+<li><strong>测试难度</strong>：必须保证每颗裸片在封装前就是好的（<strong>KGD，已知良好裸片</strong>），否则封装后整体报废，<strong>反而放大损失</strong>；</li>
+<li><strong>热管理</strong>：多裸片堆叠使散热路径复杂，热点难处理；</li>
+<li><strong>标准与生态</strong>：不同厂商的 chiplet 要能互操作，需要统一接口标准（如 <strong>UCIe</strong>）——<strong>这是当前产业博弈的焦点</strong>。</li>
+</ul>
 <h2 id="_2">三、封装技术的阶梯<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -111,31 +115,39 @@
 </tbody>
 </table>
 <p><strong>关键指标是互连密度与能效</strong>：从引线键合到混合键合，单位面积的连接数提升了数个数量级，每比特传输能耗大幅下降。<strong>混合键合是当前把裸片"缝"得最紧的技术</strong>，被用于 3D 缓存堆叠与高端图像传感器等。</p>
-<p><strong>HBM（高带宽存储）</strong>：把多层 DRAM 裸片用 TSV 垂直堆叠，通过硅中介层以<strong>极宽的总线</strong>（上千位）与逻辑裸片相连。
-- <strong>用极宽的低速总线替代窄而高速的总线</strong> → 在相同带宽下功耗低得多；
-- <strong>这是 AI 加速器的标配</strong>，也是当前先进封装产能最紧张的驱动力（第十页存储墙的直接产物）。</p>
+<p><strong>HBM（高带宽存储）</strong>：把多层 DRAM 裸片用 TSV 垂直堆叠，通过硅中介层以<strong>极宽的总线</strong>（上千位）与逻辑裸片相连。</p>
+<ul>
+<li><strong>用极宽的低速总线替代窄而高速的总线</strong> → 在相同带宽下功耗低得多；</li>
+<li><strong>这是 AI 加速器的标配</strong>，也是当前先进封装产能最紧张的驱动力（第十页存储墙的直接产物）。</li>
+</ul>
 <h2 id="_3">四、把系统重新划分<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>Chiplet 迫使设计者重新思考一个问题：<strong>功能该如何在裸片间划分？</strong></p>
-<p><strong>划分原则</strong>：
-- 把<strong>通信密集</strong>的模块放在同一裸片内（跨裸片带宽昂贵）；
-- 按<strong>工艺需求</strong>分组：逻辑/SRAM/模拟/IO/射频各有最合适的节点；
-- 考虑<strong>热</strong>：高功耗裸片不要叠在散热差的位置；
-- 考虑<strong>良率</strong>：把最大最贵的部分拆小。</p>
+<p><strong>划分原则</strong>：</p>
+<ul>
+<li>把<strong>通信密集</strong>的模块放在同一裸片内（跨裸片带宽昂贵）；</li>
+<li>按<strong>工艺需求</strong>分组：逻辑/SRAM/模拟/IO/射频各有最合适的节点；</li>
+<li>考虑<strong>热</strong>：高功耗裸片不要叠在散热差的位置；</li>
+<li>考虑<strong>良率</strong>：把最大最贵的部分拆小。</li>
+</ul>
 <p><strong>这与计算机体系结构中的划分问题、乃至分布式系统的设计权衡高度相似</strong>（🔗 cs 站）——<strong>只是这里的"网络延迟"以皮秒计，"带宽成本"以皮焦耳每比特计</strong>。</p>
 <p><strong>3D 堆叠带来的架构机会</strong>：把 SRAM 直接堆在逻辑上方，可以获得远超平面布局的缓存容量与带宽——<strong>这是缓解存储墙最直接的物理手段</strong>，已在商用产品中出现。</p>
 <h2 id="_4">五、热：新的主要约束<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p><strong>堆叠让散热变得根本性地困难</strong>：
-- 中间层的裸片被夹在中间，热量必须穿过邻居才能导出；
-- 功率密度局部极高（热点）；
-- <strong>温度升高 → 漏电上升 → 更热</strong>（第四页的正反馈）。</p>
+<p><strong>堆叠让散热变得根本性地困难</strong>：</p>
+<ul>
+<li>中间层的裸片被夹在中间，热量必须穿过邻居才能导出；</li>
+<li>功率密度局部极高（热点）；</li>
+<li><strong>温度升高 → 漏电上升 → 更热</strong>（第四页的正反馈）。</li>
+</ul>
 <p><strong>应对</strong>：热感知的布局与堆叠顺序、微流道液冷（研究中）、动态热管理（片上温度传感器 + 调频调压，<strong>又一个片上控制回路</strong>）。</p>
 <p><strong>一个判断</strong>：在 3D 集成时代，<strong>热而非晶体管，正在成为限制集成度的第一约束</strong>。这是从"电子学问题"转向"热-机-电协同问题"的转折。</p>
 <h2 id="_5">六、这如何改变了"摩尔定律"<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>行业出现了一个说法：<strong>"系统级缩放"取代"器件级缩放"</strong>——衡量进步的指标从"晶体管有多小"变成"<strong>单位体积/功耗内能集成多少功能</strong>"。</p>
-<p><strong>含义</strong>：
-- 器件缩放仍在继续，但<strong>不再是唯一引擎</strong>；
-- <strong>封装、互连、架构、软件协同</strong>共同贡献性能提升；
-- <strong>这也重塑了产业分工</strong>：封装厂（OSAT）与代工厂的界限模糊，代工厂大举进入先进封装。<strong>掌握先进封装产能，与掌握先进制程同等重要</strong>（第二十页）。</p>
+<p><strong>含义</strong>：</p>
+<ul>
+<li>器件缩放仍在继续，但<strong>不再是唯一引擎</strong>；</li>
+<li><strong>封装、互连、架构、软件协同</strong>共同贡献性能提升；</li>
+<li><strong>这也重塑了产业分工</strong>：封装厂（OSAT）与代工厂的界限模糊，代工厂大举进入先进封装。<strong>掌握先进封装产能，与掌握先进制程同等重要</strong>（第二十页）。</li>
+</ul>
 <h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>Chiplet 的根本动机是经济学</strong>（良率曲线）与<strong>异质需求</strong>，不是单纯的技术炫技；</li>

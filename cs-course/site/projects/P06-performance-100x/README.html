@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P06 性能工程终极题：把一个基线程序优化到 100× · CS 大项目</title>
+<link rel="stylesheet" href="../../assets/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/style.css?v=20260802">
+<link rel="stylesheet" href="../../assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="../../index.html">CS 大项目</a>
+    <div class="site-subtitle">教师版说明书 · starter · acceptance</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程入口</div><ul><li><a href="../../labs.html">实验总表</a></li><li><a href="../index.html">大项目索引</a></li><li><a href="README.html">项目说明</a></li><li><a href="rubric.html">评分细则</a></li><li><a href="DESIGN.html">设计报告模板</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">先修</a></li>
+<li><a href="#_2">目标</a></li>
+<li><a href="#_3">周期与组队</a></li>
+<li><a href="#_4">目录</a></li>
+<li><a href="#_5">里程碑</a></li>
+<li><a href="#_6">学生任务边界</a></li>
+<li><a href="#_7">给定接口契约</a></li>
+<li><a href="#_8">运行与验收命令</a></li>
+<li><a href="#_9">故障、边界与性能测试</a></li>
+<li><a href="#rubric4025151010">Rubric（40/25/15/10/10）</a></li>
+<li><a href="#_10">交付物</a></li>
+<li><a href="#_11">学术诚信</a></li>
+<li><a href="#_12">平台条件</a></li>
+<li><a href="#_13">可选挑战</a></li>
+<li><a href="#_14">讲义映射</a></li>
+</ul>
+</div>
+</details>
+<h1 id="p06-100">P06 性能工程终极题：把一个基线程序优化到 100×<a class="headerlink" href="#p06-100" title="Permanent link"></a></h1>
+<p>这是一个 6–8 周、2–3 人组队的性能工程项目。学生从一个刻意朴素但正确的 C baseline
+开始，按照“测量 → 假设 → 一次改动 → 复测”的纪律，逐层尝试算法/数据布局/缓存/SIMD/
+多线程/可选 GPU。目标不是承诺每台机器都正好 100×，而是用可审计证据解释收益、退化和
+瓶颈迁移。本目录提供 baseline、benchmark harness 和防止删工作的 correctness contract，
+不提供任何直接优化答案。</p>
+<h2 id="_1">先修<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li><code>csapp-01/02</code>：内存层级、缓存、数据表示；</li>
+<li><code>perf-01/02</code>：测量方法、Roofline、局部性和优化层级；</li>
+<li>C11、编译器优化级别、指针/数组、基本多线程概念；</li>
+<li>能阅读 benchmark 输出并区分 wall time、吞吐、误差和噪声。</li>
+</ul>
+<h2 id="_2">目标<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ol>
+<li>建立固定机器/编译器/输入/重复次数的可信 baseline；</li>
+<li>用性能计数器或替代指标定位算力、内存、分支、同步和 I/O 瓶颈；</li>
+<li>逐次完成至少三层优化，并保存每次 before/after 和失败尝试；</li>
+<li>在不改变输出语义的情况下，争取分档加速：20×、50×、100×；</li>
+<li>解释为什么某一优化只在某些规模、核心数或编译器上有效。</li>
+</ol>
+<h2 id="_3">周期与组队<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>建议 6–8 周，2–3 人一组。每个主要优化点使用一个独立 commit，提交前由另一名成员复核
+正确性命令和 benchmark 参数。个人完成时同样保留优化日志。</p>
+<h2 id="_4">目录<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>starter/benchmark.h</code></td>
+<td>workload、结果和 baseline/candidate 函数契约</td>
+</tr>
+<tr>
+<td><code>starter/baseline.c</code></td>
+<td>可编译、可运行、故意朴素的标量 5-point stencil oracle</td>
+</tr>
+<tr>
+<td><code>starter/candidate.c</code></td>
+<td>学生实现入口；当前是带 TODO 的失败 stub</td>
+</tr>
+<tr>
+<td><code>starter/benchmark.c</code></td>
+<td>计时、独立 oracle、全输出比较、checksum、删工作检测</td>
+</tr>
+<tr>
+<td><code>Makefile</code></td>
+<td>本地 C11 build/run 入口</td>
+</tr>
+<tr>
+<td><code>fixtures/stencil.json</code></td>
+<td>workload、误差阈值、重复和分档目标</td>
+</tr>
+<tr>
+<td><code>tests/test_scaffold.py</code></td>
+<td>当前应通过的结构、编译和 baseline smoke test</td>
+</tr>
+<tr>
+<td><code>acceptance/</code></td>
+<td>开启后要求 candidate 正确并达成契约；当前 stub 预期失败</td>
+</tr>
+<tr>
+<td><code>scripts/verify_scaffold.py</code></td>
+<td>Python 标准库检查文件、C 接口和 fixture</td>
+</tr>
+<tr>
+<td><code>DESIGN.md</code> / <code>rubric.md</code></td>
+<td>报告模板与评分细则</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">里程碑<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ol>
+<li><strong>M1 · 基线与契约（第 1 周）</strong>：编译并运行 <code>--baseline</code>，理解输入生成、五点 stencil、
+   checksum、独立 oracle 和 <code>work_units</code>；固定机器信息。</li>
+<li><strong>M2 · 测量（第 2 周）</strong>：重复取中位数/分位数，记录 cache miss、IPC、频率、线程数或
+   可用替代指标，画出 Roofline/瓶颈假设。</li>
+<li><strong>M3 · 算法/布局/缓存（第 3–4 周）</strong>：每次只改一个主要因素，尝试数据布局、blocking、
+   循环顺序或算法替换；保留退化实验。</li>
+<li><strong>M4 · SIMD/多线程（第 5–6 周）</strong>：自动向量化、intrinsics 或线程并行，说明对齐、
+   边界、伪共享、同步和可扩展性；不得为了加速跳过 oracle。</li>
+<li><strong>M5 · 终局与报告（第 7–8 周）</strong>：隐藏规模无退化，达到分档目标或解释瓶颈，提交完整
+   优化阶梯、正确性日志、资源数据和反思。</li>
+</ol>
+<h2 id="_6">学生任务边界<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>教师提供一个简单、正确、可编译的 baseline 和 candidate 函数入口。学生实现 <code>candidate.c</code>
+（可拆成自己的 <code>.c/.h</code>），并可改动数据布局、算法、编译选项和并行策略，但必须保持公共
+函数签名或提供兼容适配器。benchmark harness 的 oracle、误差阈值、输入规模和防删工作检查
+不得被削弱；任何更改都必须在报告中解释并由教师批准。</p>
+<p>禁止把编译器的 <code>-O3</code> 单独当作学生优化、硬编码 fixture 输出、缩小输入、跳过计算、只返回
+预存 checksum、删除边界元素或把计时区间移到工作之外。允许使用标准 C、OpenMP、SIMD
+intrinsics、Metal/CUDA（可选），但平台依赖和 fallback 必须明确。</p>
+<h2 id="_7">给定接口契约<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<div class="highlight"><pre><span></span><code><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="n">steps</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">seed</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">WorkloadConfig</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">baseline_stencil</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">output</span><span class="p">,</span>
+<span class="w">                     </span><span class="kt">size_t</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">steps</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">student_stencil</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">input</span><span class="p">,</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">output</span><span class="p">,</span>
+<span class="w">                    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">steps</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">run_benchmark</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">WorkloadConfig</span><span class="w"> </span><span class="o">*</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">use_student</span><span class="p">,</span>
+<span class="w">                  </span><span class="n">BenchmarkResult</span><span class="w"> </span><span class="o">*</span><span class="n">result</span><span class="p">);</span>
+<span class="kt">uint64_t</span><span class="w"> </span><span class="nf">digest_grid</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">grid</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+</code></pre></div>
+<p>正确性契约：harness 在独立 buffer 上运行 teacher baseline 作为 oracle；candidate 输出必须与
+oracle 的每个元素在 <code>max_abs_error</code> 内一致，并通过 digest、边界/哨兵检查。<code>work_units</code> 和
+输入/输出大小会被记录；candidate 返回错误、没有写出结果或只生成常量都会失败。benchmark
+结果的 <code>correct</code> 只能由 harness 计算，不能由 candidate 自报。</p>
+<h2 id="_8">运行与验收命令<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p>在本项目目录执行：</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>clean<span class="w"> </span>all
+./build/benchmark
+./build/benchmark<span class="w"> </span>--candidate
+python3<span class="w"> </span>scripts/verify_scaffold.py
+python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>tests<span class="w"> </span>-v
+python3<span class="w"> </span>-m<span class="w"> </span>py_compile<span class="w"> </span>scripts/verify_scaffold.py<span class="w"> </span>tests/test_scaffold.py<span class="w"> </span>acceptance/test_student_acceptance.py
+<span class="nv">RUN_STUDENT_ACCEPTANCE</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>discover<span class="w"> </span>-s<span class="w"> </span>acceptance<span class="w"> </span>-v
+</code></pre></div>
+<p><code>make clean all</code>、baseline、脚手架检查和语法/结构测试应通过；candidate 在当前 TODO stub
+上返回非零，属于预期未完成状态。默认 CI 不运行 opt-in acceptance。学生实现后，candidate
+必须先通过正确性，再谈 20×/50×/100× 的性能分档。</p>
+<h2 id="_9">故障、边界与性能测试<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
+<p>公开边界：宽高小于 3、非方形网格、steps=0/1/多步、奇数尺寸、输入全零/高梯度、浮点误差、
+输出缓冲未初始化、溢出风险。隐藏测试使用不同 seed、大小、steps、编译器和线程数；检查
+边界不越界、输出全网格一致、候选不会依赖固定 fixture。</p>
+<p>性能测试固定 CPU 亲和/频率策略（能做到时）、编译器版本、<code>CFLAGS</code>、输入、预热和重复数，
+报告中位数与离散度。至少记录 baseline/candidate 的 wall time、加速比、吞吐、cache miss/
+IPC（或替代指标）、内存占用和线程扩展；每次主要改动只出现一个因果解释。</p>
+<h2 id="rubric4025151010">Rubric（40/25/15/10/10）<a class="headerlink" href="#rubric4025151010" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">权重</th>
+<th>评分要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功能正确性</td>
+<td style="text-align: right;">40%</td>
+<td>candidate 通过独立 oracle、误差、边界和防删工作契约</td>
+</tr>
+<tr>
+<td>故障与边界</td>
+<td style="text-align: right;">25%</td>
+<td>尺寸/steps/seed/浮点/编译器/线程变化和退化输入</td>
+</tr>
+<tr>
+<td>性能/资源</td>
+<td style="text-align: right;">15%</td>
+<td>测量纪律、优化阶梯、分档加速、cache/IPC/内存/扩展性</td>
+</tr>
+<tr>
+<td>结构与文档</td>
+<td style="text-align: right;">10%</td>
+<td>小步 commit、接口稳定、构建复现、工具链和平台说明</td>
+</tr>
+<tr>
+<td>报告与反思</td>
+<td style="text-align: right;">10%</td>
+<td>假设—实验—结论、失败尝试、瓶颈迁移、成员分工和限制</td>
+</tr>
+</tbody>
+</table>
+<p>详见 <a href="rubric.html"><code>rubric.md</code></a>。</p>
+<h2 id="_10">交付物<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
+<ul>
+<li>candidate 源码、构建文件和可在规定平台复现的命令；</li>
+<li>baseline/candidate 的正确性日志、每次优化 commit 与 benchmark CSV/文本；</li>
+<li>2–6 页报告：硬件/编译器、baseline、优化阶梯、性能计数器、失败尝试、误差和结论；</li>
+<li>若使用 GPU/并行，附 fallback、线程/显存条件和可重复的资源记录。</li>
+</ul>
+<h2 id="_11">学术诚信<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
+<p>可以使用编译器手册、CPU/GPU 官方 intrinsic 文档和论文，必须标注引用与平台。不得复制
+完整 6.172/生产库 benchmark、伪造 counters、硬编码答案、删除 oracle、隐藏错误结果或把
+他人优化 commit 改写为自己的原创。自动生成代码必须能解释内存访问、同步和正确性证明。</p>
+<h2 id="_12">平台条件<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
+<p>baseline 和脚手架默认只需要 C11 编译器（Mac 的 clang、Linux gcc/clang、Windows clang-cl/
+MinGW 均可）和 Python 3.10+。<code>perf</code>、<code>likwid</code>、VTune、OpenMP、Metal/CUDA 为可选工具；报告
+必须写清实际使用的工具。GPU 不是基础评分的必要条件。</p>
+<h2 id="_13">可选挑战<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
+<ul>
+<li>设计 cache-oblivious 或 tiled 版本并解释工作集；</li>
+<li>比较 auto-vectorization、SIMD intrinsics 和多线程的 Roofline 迁移；</li>
+<li>添加 NUMA/线程亲和、伪共享对照或精度/吞吐可调模式；</li>
+<li>在 Win 4060 Ti 上做 CUDA/共享内存版本，但保持 C/Python CPU oracle；</li>
+<li>用 perf counter 或 sanitizer 找出一次“速度变快但其实错误”的尝试。</li>
+</ul>
+<h2 id="_14">讲义映射<a class="headerlink" href="#_14" title="Permanent link"></a></h2>
+<ul>
+<li>主线：<a href="../../perf-02-cache-practice.html"><code>perf-02-cache-practice.md</code></a>；</li>
+<li>测量与 Roofline：<code>perf-01-engineering.md</code>；</li>
+<li>数据/缓存表示：<code>csapp-01/02</code>；</li>
+<li>SIMD/并行：<a href="../../labs.html"><code>labs/L01-cache-blocking</code></a>、
+  <a href="../../labs.html"><code>labs/L07-simd</code></a>、<code>par-01/02</code>、<code>gpu-01/02</code>。</li>
+</ul>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="../../assets/katex/katex.min.js"></script>
+<script defer src="../../assets/katex/auto-render.min.js"></script>
+<script defer src="../../assets/site.js"></script>
+</body>
+</html>

@@ -34,9 +34,18 @@ y_test = true_f(x_test) + np.random.randn(n_test) * 0.25      # 测试集同样�
 def fit_poly(x, y, degree, lam=0.0):
     """多项式最小二乘, lam>0 时是岭回归 (X^T X + λI)^{-1} X^T y"""
     X = np.vander(x, degree + 1)            # 范德蒙矩阵: [x^k, ..., x, 1]
-    A = X.T @ X + lam * np.eye(degree + 1)
-    w = np.linalg.solve(A, X.T @ y)
-    return w
+    if lam == 0.0:
+        # 直接解正规方程会把 Vandermonde 矩阵的病态性平方，导致高次
+        # 多项式的训练误差出现数值假象（本应随假设空间增大而不升）。
+        return np.linalg.lstsq(X, y, rcond=None)[0]
+
+    # 增广最小二乘与 (XᵀX + λI)w = Xᵀy 等价，但数值更稳定。
+    reg = np.sqrt(lam) * np.eye(degree + 1)
+    return np.linalg.lstsq(
+        np.vstack([X, reg]),
+        np.concatenate([y, np.zeros(degree + 1)]),
+        rcond=None,
+    )[0]
 
 def predict(w, x):
     return np.vander(x, len(w)) @ w

@@ -68,6 +68,7 @@ $$C_{ox} = \frac{\varepsilon_{ox}}{t_{ox}}$$
 $$I_{D,\text{sat}} \approx W\, C_{ox}\, v_{sat}\,(V_{GS}-V_{th})$$
 
 **关键差别**：
+
 - 对过驱动电压是**线性**而非平方；
 - **与沟道长度 $L$ 几乎无关**——继续缩短 $L$ 不再直接增加驱动电流；
 - $g_m \approx W C_{ox} v_{sat}$ 趋于饱和。

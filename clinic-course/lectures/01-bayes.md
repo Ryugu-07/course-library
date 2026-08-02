@@ -12,7 +12,7 @@ $$P(D \mid T^+) = \frac{P(T^+ \mid D)\,P(D)}{P(T^+ \mid D)P(D) + P(T^+ \mid \bar
 
 **这个式子的形式不方便床边用**。改写成**几率（odds）形式**后它变得极其好用：
 
-$$\underbrace{\frac{P(D\mid T^+)}{P(\bar D\mid T^+)}}_{\text{验后几率}} = \underbrace{\frac{P(D)}{P(\bar D)}}_{\text{验前几率}} \times \underbrace{\frac{P(T^+\mid D)}{P(T^+\mid \bar D)}}_{\textbf{似然比 LR}^+}$$
+$$\underbrace{\frac{P(D\mid T^+)}{P(\bar D\mid T^+)}}_{\text{验后几率}} = \underbrace{\frac{P(D)}{P(\bar D)}}_{\text{验前几率}} \times \underbrace{\frac{P(T^+\mid D)}{P(T^+\mid \bar D)}}_{\text{似然比 LR}^+}$$
 
 **验后几率 = 验前几率 × 似然比。** 一句话，一次乘法。
 
@@ -122,6 +122,14 @@ $$P_{rx} = \frac{1}{1 + \dfrac{\text{治疗获益}}{\text{治疗危害}}}$$
 2. **敏感度与特异度是检验的属性，预测值是情境的属性**（第 02 页展开）；
 3. **LR 在 0.5–2 之间的检查几乎没有信息量**，但仍有成本与危害；
 4. **只在"检查结果会改变行动"的概率区间里做检查。**
+
+## 参考与更新
+
+**复审记录**：最后复审 **2026-08-02**；按六个月规则，下一次常规复审不晚于 **2027-02-02**。若安全信号、指南/监管更新或动态清单变化，则提前复审；具体适用地区以各条来源与当地最新版本为准。
+
+- [NICE NG158: Venous thromboembolic diseases](https://www.nice.org.uk/guidance/NG158)（临床指南中的概率分层与 D-二聚体路径；2020，后续更新；英国。）
+- [STARD 2015](https://www.bmj.com/content/351/bmj.h5527)（诊断准确性研究报告规范；2015；国际。）
+- [Cochrane Handbook](https://www.cochrane.org/authors/handbooks-and-manuals/handbook/current)（证据综合与效应解释；当前版本页面；国际。）
 
 ---
 

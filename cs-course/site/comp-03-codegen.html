@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IR、优化与代码生成 · 计算机讲义库</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
 <script>
 (function() {
@@ -30,7 +30,7 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-24 00:30</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -86,9 +86,11 @@
 <p>最后一步把优化后的 IR 翻成<strong>目标机器码</strong>——指令选择（IR 操作 → 机器指令，可能一对多）、指令调度（重排以利流水线、隐藏延迟）、生成最终二进制。</p>
 <p><strong>LLVM 的现代架构</strong>（把全站编译知识收成一张图）：
 <div class="highlight"><pre><span></span><code>Clang/Rust/Swift 前端 → LLVM IR（SSA）→ 一堆优化 pass → 各架构后端（x86/ARM/RISC-V/... 甚至 GPU）
-</code></pre></div>
-- <strong>前后端彻底解耦</strong>：新语言只写前端（生成 LLVM IR）就免费获得所有优化 + 所有目标平台；新芯片只写后端。<strong>Rust、Swift、Julia 能快速拥有工业级性能，全靠站在 LLVM 肩上</strong>。
-- <strong>这正是 comp-01 "IR 解耦 <span class="arithmatex">\(m+n\)</span>" 的终极实现</strong>——一个共享 IR + 可插拔的优化 pass + 多后端，是过去二十年编译器工程最成功的架构。</p>
+</code></pre></div></p>
+<ul>
+<li><strong>前后端彻底解耦</strong>：新语言只写前端（生成 LLVM IR）就免费获得所有优化 + 所有目标平台；新芯片只写后端。<strong>Rust、Swift、Julia 能快速拥有工业级性能，全靠站在 LLVM 肩上</strong>。</li>
+<li><strong>这正是 comp-01 "IR 解耦 <span class="arithmatex">\(m+n\)</span>" 的终极实现</strong>——一个共享 IR + 可插拔的优化 pass + 多后端，是过去二十年编译器工程最成功的架构。</li>
+</ul>
 <p><strong>为什么你要懂后端</strong>：① 写<strong>对优化友好</strong>的代码（别手动做编译器能做的、但要帮编译器看清意图——如避免指针别名让它敢优化）；② 读懂 <code>-O2 -S</code> 的汇编做性能分析（perf 线）；③ 理解"为什么 debug 版慢、release 版快"。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（转 SSA）</strong> 把一段有重复赋值和一个 if 汇合的代码转成 SSA（重命名 + 在汇合处放 φ）——<strong>理解 φ 函数"按来路选值"的作用</strong>，SSA 的核心一次看懂。</p>

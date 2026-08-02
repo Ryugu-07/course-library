@@ -31,7 +31,7 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-07-31 22:59</div>
+    <div class="build-time">构建于 2026-08-03 01:09</div>
   </div>
 </nav>
 <main id="content">
@@ -69,10 +69,12 @@
 <p><strong>由第五页，延迟在穿越频率处引入相位滞后</strong>：</p>
 <div class="arithmatex">\[\Delta\phi \approx -\omega_c T \times \frac{180°}{\pi}\ \text{（每 } T \text{ 的延迟）}\]</div>
 <p><strong>这是数字控制最关键的工程结论</strong>：<strong>采样周期直接消耗相位裕度</strong>。</p>
-<p><strong>经验准则</strong>：
-- 采样率取闭环带宽的 <strong>10–30 倍</strong>（远高于奈奎斯特的 2 倍！）；
-- 奈奎斯特只保证<strong>信号重建</strong>，而控制需要保证<strong>稳定裕度</strong>——后者要求严格得多；
-- 若采样率只有带宽的 5 倍，相位损失可达 20°–30°，<strong>足以把一个设计良好的控制器推向振荡边缘</strong>。</p>
+<p><strong>经验准则</strong>：</p>
+<ul>
+<li>采样率取闭环带宽的 <strong>10–30 倍</strong>（远高于奈奎斯特的 2 倍！）；</li>
+<li>奈奎斯特只保证<strong>信号重建</strong>，而控制需要保证<strong>稳定裕度</strong>——后者要求严格得多；</li>
+<li>若采样率只有带宽的 5 倍，相位损失可达 20°–30°，<strong>足以把一个设计良好的控制器推向振荡边缘</strong>。</li>
+</ul>
 <p><strong>这条经验是新手最常忽略、也最容易被现场教训的一条。</strong></p>
 <h2 id="_3">三、离散化方法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>把连续控制器 <span class="arithmatex">\(C(s)\)</span> 变成数字实现 <span class="arithmatex">\(C(z)\)</span>：</p>
@@ -111,17 +113,21 @@
 <p><strong>一个实用建议</strong>：<strong>采样率足够高时，各种离散化方法差别不大</strong>；采样率偏低时才需要仔细选择。<strong>所以第一优先级是把采样率提上去</strong>，而非纠结离散化方法。</p>
 <h2 id="z">四、z 域中的稳定性<a class="headerlink" href="#z" title="Permanent link"></a></h2>
 <p>连续系统稳定 ⟺ 极点在左半平面；<strong>离散系统稳定 ⟺ 极点在单位圆内</strong>（<span class="arithmatex">\(|z|&lt;1\)</span>）。</p>
-<p>映射关系 <span class="arithmatex">\(z = e^{sT}\)</span>：
-- 左半平面 → 单位圆内；
-- 虚轴 → 单位圆；
-- <strong>实部越负（衰减越快）→ 越靠近原点</strong>；
-- 采样频率的一半对应 <span class="arithmatex">\(z=-1\)</span>（负实轴）。</p>
+<p>映射关系 <span class="arithmatex">\(z = e^{sT}\)</span>：</p>
+<ul>
+<li>左半平面 → 单位圆内；</li>
+<li>虚轴 → 单位圆；</li>
+<li><strong>实部越负（衰减越快）→ 越靠近原点</strong>；</li>
+<li>采样频率的一半对应 <span class="arithmatex">\(z=-1\)</span>（负实轴）。</li>
+</ul>
 <p><strong>一个容易误解的点</strong>：极点靠近原点意味着响应快（几拍就衰减完），但<strong>这也意味着控制器非常激进</strong>——每个采样周期都要产生大的控制作用。<strong>"死拍控制"（把所有极点配到原点）理论上有限拍收敛，实际上因控制量巨大且对模型误差极敏感而很少使用。</strong></p>
 <h2 id="_4">五、数字实现的其他现实问题<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p><strong>① 量化</strong>：
-- <strong>ADC 量化</strong>：分辨率不足时形成"极限环"——系统在最小分辨率附近来回振荡，无法稳定在设定点；
-- <strong>控制器内部字长</strong>：定点实现中，系数量化会移动极点位置。<strong>高阶滤波器用直接型实现对系数误差极其敏感</strong>，工业上普遍改用<strong>二阶节级联（SOS）</strong>——这是数字信号处理与控制共享的实践智慧；
-- <strong>积分器的量化</strong>：小误差可能因量化而永远无法累积，导致静差消不掉。</p>
+<p><strong>① 量化</strong>：</p>
+<ul>
+<li><strong>ADC 量化</strong>：分辨率不足时形成"极限环"——系统在最小分辨率附近来回振荡，无法稳定在设定点；</li>
+<li><strong>控制器内部字长</strong>：定点实现中，系数量化会移动极点位置。<strong>高阶滤波器用直接型实现对系数误差极其敏感</strong>，工业上普遍改用<strong>二阶节级联（SOS）</strong>——这是数字信号处理与控制共享的实践智慧；</li>
+<li><strong>积分器的量化</strong>：小误差可能因量化而永远无法累积，导致静差消不掉。</li>
+</ul>
 <p><strong>② 抖动（jitter）</strong>：采样时刻不准。实时性差的系统（在通用操作系统上跑控制）会有明显抖动，<strong>等效于随机的时变延迟，直接伤害稳定裕度</strong>。<strong>这就是工业上使用实时操作系统或专用硬件（PLC、DSP、FPGA）的原因</strong>（第十三页）。</p>
 <p><strong>③ 任务调度与执行顺序</strong>：应当<strong>先输出、后计算</strong>（把上周期算好的结果在周期开始时立即输出），以减小延迟的抖动——<strong>输出延迟固定，比平均延迟更小但抖动大要好</strong>。这是嵌入式控制的标准实践。</p>
 <p><strong>④ 数值问题</strong>：定点 vs 浮点、溢出保护、积分器的饱和限幅（第六页的抗饱和在数字实现中同样必需）。</p>
