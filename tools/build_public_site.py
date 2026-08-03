@@ -64,6 +64,11 @@ def main() -> int:
         destination.parent.mkdir(parents=True)
         shutil.copytree(root / name / "site", destination)
 
+    shutil.copy2(
+        root / "agent-lab" / "minimal_swe_agent.py",
+        output / "agent-lab" / "minimal_swe_agent.py",
+    )
+
     (output / "_headers").write_text(HEADERS, encoding="ascii")
 
     files = [path for path in output.rglob("*") if path.is_file()]
