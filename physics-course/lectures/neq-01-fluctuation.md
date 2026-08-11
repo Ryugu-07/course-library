@@ -5,15 +5,17 @@
 
 ## 1. Langevin 与涨落-耗散（FDT 第一课）
 
-布朗粒子（数学站 sde 线的方程，物理装填）：$m\dot v = -\gamma v + \xi(t)$，$\langle\xi(t)\xi(t')\rangle = 2D\delta(t - t')$。
+布朗粒子（数学站 sde 线的方程，物理装填）：$m\dot v = -\gamma v + \xi(t)$，$\langle\xi(t)\xi(t')\rangle = 2D_\xi\delta(t - t')$。这里 $D_\xi$ 是**力噪声强度**，不是位置扩散系数。
 
-**定理（Einstein 关系）【推导】** 长时间平衡要求 $\langle\frac12mv^2\rangle = \frac12k_BT$（均分，sm-02）：解 OU 过程的稳态方差 $= \frac{D}{2\gamma m}\cdot m^2\cdots$ 整理得
+**定理（Einstein 关系）【推导】** 把方程除以 $m$ 后是 OU 过程；其稳态方差为 $\langle v^2\rangle=D_\xi/(\gamma m)$。长时间平衡又要求 $\langle\frac12mv^2\rangle = \frac12k_BT$（均分，sm-02），所以
 
 $$
-D = 2\gamma k_BT \quad\Longleftrightarrow\quad D_{\text{扩散}} = \frac{k_BT}{\gamma}\ (\text{位置扩散系数})
+D_\xi = \gamma k_BT,
+\qquad
+D_x = \frac{k_BT}{\gamma}\quad(\text{位置扩散系数})
 $$
 
-$\blacksquare$ **读法**：**噪声强度与摩擦系数被温度锁死**——它们是同一微观碰撞的两面（撞你的分子既推你乱走又拖你减速）；1905 年 Einstein 由此从布朗运动称出 $k_B$（原子实在性的判决实验——Perrin 诺奖）。**这是"涨落-耗散"主题的第一乐章**。
+$\blacksquare$ **读法**：**噪声强度与摩擦系数被温度锁死**——它们是同一微观碰撞的两面（撞你的分子既推你乱走又拖你减速）。若改用白噪声写法 $\xi(t)=\sqrt{2\gamma k_BT}\,\eta(t)$，式中的因子 2 落在振幅平方里；不要再把 $D_\xi$ 与 $D_x$ 混成一个 $D$。1905 年 Einstein 由此从布朗运动称出 $k_B$（原子实在性的判决实验——Perrin 诺奖）。**这是"涨落-耗散"主题的第一乐章**。
 
 ## 2. 线性响应与 Kubo 公式
 

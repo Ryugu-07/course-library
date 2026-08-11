@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,6 +50,13 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#schwarzschild">学习层：把 Schwarzschild 圆轨道读成一条势能曲线</a><ul>
+<li><a href="#gr-schwarzschild-learning-title">1. 先钉住范围：哪一个定理、哪一种粒子？</a></li>
+<li><a href="#2">2. 有效势的归一化：能量水平就是一条水平线</a></li>
+<li><a href="#3-l">3. 先预测，再拖动：固定 ℓ 会看到什么？</a></li>
+<li><a href="#4-schwarzschild">4. Schwarzschild 有效势实验</a></li>
+</ul>
+</li>
 <li><a href="#1-einstein">1. Einstein 场方程</a></li>
 <li><a href="#2-schwarzschild">2. Schwarzschild 解</a></li>
 <li><a href="#3">3. 三大经典检验（测地线的收割）</a></li>
@@ -51,6 +69,79 @@
 <p><strong>对标</strong>：Carroll §4–5 ｜ <strong>前置</strong>：gr-01、流形几何 IV（Ricci/Bianchi）
 本页立起理论的心脏——<strong>Einstein 场方程</strong>（物质告诉时空怎么弯），并求出它最著名的精确解——<strong>Schwarzschild 时空</strong>（球对称真空），随即收割三大经典检验：水星进动、光线弯曲、雷达延迟。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="gr-schwarzschild-learning-title" class="learning-layer">
+<h2 id="schwarzschild">学习层：把 Schwarzschild 圆轨道读成一条势能曲线<a class="headerlink" href="#schwarzschild" title="Permanent link"></a></h2>
+<h3 id="gr-schwarzschild-learning-title">1. 先钉住范围：哪一个定理、哪一种粒子？<a class="headerlink" href="#gr-schwarzschild-learning-title" title="Permanent link"></a></h3>
+<p>本学习层只讨论 <strong>Schwarzschild 外部的类时、赤道面测地线</strong>：粒子满足 <span class="arithmatex">\(u^\mu u_\mu=-1\)</span>，取 <span class="arithmatex">\(θ=\pi/2\)</span>，并且始终在 <span class="arithmatex">\(r&gt;2\)</span>。这里使用几何单位 <span class="arithmatex">\(G=M=c=1\)</span>；长度 <span class="arithmatex">\(r\)</span> 已用 <span class="arithmatex">\(GM/c^2\)</span> 归一化，固有时 <span class="arithmatex">\(\tau\)</span> 用 <span class="arithmatex">\(GM/c^3\)</span> 归一化，<span class="arithmatex">\(E\)</span> 是单位静质量的守恒能量，<span class="arithmatex">\(\ell\)</span> 是单位静质量的守恒角动量（以 <span class="arithmatex">\(GM/c\)</span> 为单位）。这不是在视界内积分，也不是光子的 null 测地线。</p>
+<p>Birkhoff 定理的适用条件要说完整：在四维 Einstein 引力中，一个足够光滑、球对称的<strong>真空区域</strong>（<span class="arithmatex">\(T_{\mu\nu}=0\)</span>，本页取 <span class="arithmatex">\(\Lambda=0\)</span>，<span class="arithmatex">\(r\)</span> 是面积半径）在合适的局部坐标片上必为 Schwarzschild，并在 <span class="arithmatex">\(\nabla r\)</span> 为类空的外部片上静态。它是局部真空结论，不负责物质源的内部、全局延拓或非球对称扰动；若保留 <span class="arithmatex">\(\Lambda\ne0\)</span>，相应答案是 Schwarzschild–(A)dS，而非本页的渐近平直 Schwarzschild 外部。</p>
+<h3 id="2">2. 有效势的归一化：能量水平就是一条水平线<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>从</p>
+<div class="arithmatex">\[
+\left(\frac{dr}{d\tau}\right)^2=E^2-\left(1-\frac2r\right)\left(1+\frac{\ell^2}{r^2}\right)
+\]</div>
+<p>得到本实验采用的唯一归一化：</p>
+<div class="arithmatex">\[
+\frac12\left(\frac{dr}{d\tau}\right)^2+V_{\rm eff}(r)=K,\qquad
+K=\frac{E^2-1}{2},\qquad
+V_{\rm eff}(r)=-\frac1r+\frac{\ell^2}{2r^2}-\frac{\ell^2}{r^3}.
+\]</div>
+<p>因此允许区满足 <span class="arithmatex">\(K\ge V_{\rm eff}\)</span>，等号是转向点；若等号同时在势的极值处，就是圆轨道。这里的 <span class="arithmatex">\(V_{\rm eff}\)</span> 已经把静质量和 <span class="arithmatex">\(c\)</span> 等尺度吸收进去，不能再把它和未归一化的 Newton 势或 null 有效势直接比较。</p>
+<h3 id="3-l">3. 先预测，再拖动：固定 ℓ 会看到什么？<a class="headerlink" href="#3-l" title="Permanent link"></a></h3>
+<p>由</p>
+<div class="arithmatex">\[
+V'_{\rm eff}=0\quad\Longleftrightarrow\quad r^2-\ell^2r+3\ell^2=0
+\]</div>
+<p>可见阈值是 <span class="arithmatex">\(\ell^2=12\)</span>。当 <span class="arithmatex">\(\ell^2&lt;12\)</span> 时没有两个外部极值，因而没有圆轨道势垒；当 <span class="arithmatex">\(\ell^2&gt;12\)</span> 时</p>
+<div class="arithmatex">\[
+r_\pm=\frac{\ell^2\pm\ell\sqrt{\ell^2-12}}{2},
+\]</div>
+<p>其中内支 <span class="arithmatex">\(r_-\)</span> 是势垒顶、<strong>不稳定</strong>，外支 <span class="arithmatex">\(r_+\)</span> 是势阱底、<strong>稳定</strong>。在阈值 <span class="arithmatex">\(\ell^2=12\)</span> 两支合并于 <span class="arithmatex">\(r=6\)</span>，这才是 Schwarzschild 类时稳定圆轨道族的内边界，即 ISCO（innermost stable circular orbit）。所以“<span class="arithmatex">\(L\)</span> 再大也存在 ISCO <span class="arithmatex">\(r=6\)</span>”是混淆：ISCO 不是任意固定 <span class="arithmatex">\(\ell\)</span> 的稳定半径；固定 <span class="arithmatex">\(\ell&gt;\sqrt{12}\)</span> 有两支，且外支随 <span class="arithmatex">\(\ell\)</span> 增大而向外移动。</p>
+<p>图上另外标出 <span class="arithmatex">\(r=2\)</span>（horizon）与 <span class="arithmatex">\(r=3\)</span>（photon sphere）只是尺度参照：<span class="arithmatex">\(r=3\)</span> 属于 null 测地线的光子圆轨道，光子要用另一套 null 有效势；它既不是本实验的类时 ISCO，也不能把 <span class="arithmatex">\(r=2,3,6\)</span> 统称成 EHT 光环。EHT 的成像环是光传播、引力透镜和发射分布共同形成的观测结构，不能由一条类时粒子势曲线直接等同推出。</p>
+<h3 id="4-schwarzschild">4. Schwarzschild 有效势实验<a class="headerlink" href="#4-schwarzschild" title="Permanent link"></a></h3>
+<p>下面的确定性实验用 <span class="arithmatex">\(\ell\)</span> 和 <span class="arithmatex">\(E\)</span> 两个滑杆重画 <span class="arithmatex">\(V_{\rm eff}\)</span> 与 <span class="arithmatex">\(K\)</span>，标出稳定/不稳定圆轨道、允许区和转向点，并把所有输入与根放进数值账本。滑杆改变的是同一个归一化模型；没有随机抽样，也没有把交互历史累积到图中。</p>
+<div class="learning-lab" data-learning-lab="schwarzschild-orbits">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(\ell\)</span> 后画 <span class="arithmatex">\(V_{\rm eff}(r)\)</span>，再画 <span class="arithmatex">\(K=(E^2-1)/2\)</span>。阴影允许区满足 <span class="arithmatex">\(K\ge V_{\rm eff}\)</span>，交点是转向点；<span class="arithmatex">\(\ell^2&gt;12\)</span> 时内支 <span class="arithmatex">\(r_-\)</span> 不稳定、外支 <span class="arithmatex">\(r_+\)</span> 稳定，<span class="arithmatex">\(\ell^2=12\)</span> 时两支在 <span class="arithmatex">\(r=6\)</span> 合并为 ISCO。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(\ell\)</span>、<span class="arithmatex">\(\ell^2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(E\)</span></th>
+<th>读图目的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无势垒</td>
+<td style="text-align: right;"><span class="arithmatex">\(2.5\)</span>、<span class="arithmatex">\(6.25\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.05\)</span></td>
+<td><span class="arithmatex">\(\ell^2&lt;12\)</span>，没有圆轨道极值</td>
+</tr>
+<tr>
+<td>ISCO</td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{12}\)</span>、<span class="arithmatex">\(12\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{8/9}\)</span></td>
+<td>两支合并于 <span class="arithmatex">\(r=6\)</span>，为临界稳定</td>
+</tr>
+<tr>
+<td>束缚轨道</td>
+<td style="text-align: right;"><span class="arithmatex">\(4\)</span>、<span class="arithmatex">\(16\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.975\)</span></td>
+<td>外支 <span class="arithmatex">\(r_+=12\)</span> 的势阱与有限允许区</td>
+</tr>
+<tr>
+<td>高角动量</td>
+<td style="text-align: right;"><span class="arithmatex">\(6.5\)</span>、<span class="arithmatex">\(42.25\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.02\)</span></td>
+<td><span class="arithmatex">\(r_-=3.25\)</span> 不稳定、<span class="arithmatex">\(r_+=39\)</span> 稳定；<span class="arithmatex">\(r=3\)</span> 仍只是 null 参照</td>
+</tr>
+</tbody>
+</table>
+<p><strong>迁移问题：</strong>若把实验对象改成光子，能否只把 <span class="arithmatex">\(E\)</span> 滑杆改成某个值继续使用这条类时曲线？先作答，再用“检查迁移答案”核对：不能，null 测地线要从 <span class="arithmatex">\(d\tau=0\)</span> 重新得到另一套有效势；<span class="arithmatex">\(r=3\)</span> 的 photon sphere 不能被当成这里的 ISCO。</p>
+</div>
+</section>
 <h2 id="1-einstein">1. Einstein 场方程<a class="headerlink" href="#1-einstein" title="Permanent link"></a></h2>
 <p><strong>需求清单</strong>：张量方程（广义协变）；源 = 能动张量 <span class="arithmatex">\(T_{\mu\nu}\)</span>（sr-01 四动量的场版——能量密度/动量流/应力打包）；守恒 <span class="arithmatex">\(\nabla^\mu T_{\mu\nu} = 0\)</span> 须自动成立；牛顿极限回收 Poisson 方程 <span class="arithmatex">\(\nabla^2\Phi = 4\pi G\rho\)</span>。</p>
 <p><strong>唯一答案【构造级论证】</strong>：几何侧要一个"二阶导、对称、自动无散"的张量——<strong>Bianchi 恒等式</strong>（流形 IV）说 Einstein 张量 <span class="arithmatex">\(G_{\mu\nu} = R_{\mu\nu} - \frac12 R\,g_{\mu\nu}\)</span> 恰好 <span class="arithmatex">\(\nabla^\mu G_{\mu\nu} \equiv 0\)</span>（几何恒等式 ⇒ 能量守恒不是附加假设而是<strong>结构自带</strong>）：</p>
@@ -63,17 +154,19 @@ G_{\mu\nu} + \Lambda g_{\mu\nu} = \frac{8\pi G}{c^4}\,T_{\mu\nu}
 <p><img alt="Schwarzschild 有效势" src="assets/img/gr-02-effective-potential.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>Schwarzschild 有效势比牛顿多一项 \(-L^2/r^3\)：近距离势垒被压低，允许粒子"坠入"——近日点进动与黑洞吸积的根。</figcaption>
 </figure>
-<p><strong>定理（Schwarzschild 1916 / Birkhoff）</strong> 球对称真空解唯一且静态：</p>
+<p><strong>定理（Schwarzschild 1916 / Birkhoff，条件限定）</strong> 在 <span class="arithmatex">\(T_{\mu\nu}=0\)</span>、<span class="arithmatex">\(\Lambda=0\)</span> 的足够光滑球对称真空区域内，使用面积半径 <span class="arithmatex">\(r\)</span> 的解在局部上唯一为 Schwarzschild；外部 <span class="arithmatex">\(r&gt;r_s\)</span> 的坐标片是静态的。这里的“唯一”是局部真空结论，不包含物质内部、全局延拓或非球对称扰动；若 <span class="arithmatex">\(\Lambda\ne0\)</span>，对应的是 Schwarzschild–(A)dS：</p>
 <div class="arithmatex">\[
 ds^2 = -\Big(1 - \frac{r_s}{r}\Big)c^2dt^2 + \Big(1 - \frac{r_s}{r}\Big)^{-1}dr^2 + r^2d\Omega^2, \qquad r_s = \frac{2GM}{c^2}
 \]</div>
 <p><strong>【骨架】</strong> 球对称 ansatz <span class="arithmatex">\(ds^2 = -e^{2\alpha(r)}dt^2 + e^{2\beta(r)}dr^2 + r^2d\Omega^2\)</span> 代入 <span class="arithmatex">\(R_{\mu\nu} = 0\)</span>：两条独立 ODE 给 <span class="arithmatex">\(\alpha = -\beta\)</span> 与 <span class="arithmatex">\((re^{2\alpha})' = 1\)</span>——积分即得；常数由牛顿极限对号（<span class="arithmatex">\(g_{00} \to -(1 + \frac{2\Phi}{c^2})\)</span>，gr-01 字典）。<span class="arithmatex">\(\blacksquare\)</span>（Birkhoff：球对称自动静态——球对称脉动不辐射引力波：ced-02"无偶极辐射"的引力版预告。）</p>
-<p><strong>Schwarzschild 半径</strong>：太阳 3 km、地球 9 mm——普通天体的 <span class="arithmatex">\(r_s\)</span> 深埋体内（外部解照用）；<span class="arithmatex">\(r \leq r_s\)</span> 的完整故事（视界、黑洞）留给 gr-03。</p>
+<p><strong>Schwarzschild 半径</strong>：太阳 3 km、地球 9 mm——普通天体的 <span class="arithmatex">\(r_s\)</span> 深埋体内（外部解照用）；本页学习层只取外部 <span class="arithmatex">\(r&gt;r_s\)</span>，<span class="arithmatex">\(r \leq r_s\)</span> 的完整故事（视界、黑洞）留给 gr-03。</p>
 <h2 id="3">3. 三大经典检验（测地线的收割）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>Schwarzschild 测地线：对称性给两个守恒量（能量 <span class="arithmatex">\(E\)</span>、角动量 <span class="arithmatex">\(L\)</span>——Killing 矢量，Noether/流形语言），化为一维有效势问题（mech-01 的方法在弯曲时空重演）：</p>
+<p>Schwarzschild 测地线：对称性给两个守恒量（能量 <span class="arithmatex">\(E\)</span>、角动量——Killing 矢量，Noether/流形语言），化为一维有效势问题（mech-01 的方法在弯曲时空重演）。为避免把不同单位的势混在一起，以下速查式也采用 <span class="arithmatex">\(G=M=c=1\)</span>、<span class="arithmatex">\(r\)</span> 以 <span class="arithmatex">\(GM/c^2\)</span> 为单位，并只对外部类时赤道测地线成立：</p>
 <div class="arithmatex">\[
-\frac12\dot r^2 + V_{\text{eff}}(r) = \text{const}, \qquad V_{\text{eff}} = -\frac{GM}{r} + \frac{L^2}{2r^2} - \underbrace{\frac{GML^2}{c^2r^3}}_{\text{广相新项}}
+\frac12\dot r^2 + V_{\text{eff}}(r) = \frac{E^2-1}{2}, \qquad V_{\text{eff}} = -\frac1r + \frac{\ell^2}{2r^2} - \frac{\ell^2}{r^3},
+\qquad \dot r=\frac{dr}{d\tau}.
 \]</div>
+<p>其中 <span class="arithmatex">\(\tau\)</span> 已按 <span class="arithmatex">\(GM/c^3\)</span> 归一化，<span class="arithmatex">\(\ell\)</span> 按 <span class="arithmatex">\(GM/c\)</span> 归一化；这就是本页实验的有效势归一化。光子满足的是 null 条件，不能把这条类时势直接套到光线上。</p>
 <p><strong>水星近日点进动【推导骨架】</strong>：新 <span class="arithmatex">\(\frac{1}{r^3}\)</span> 项微扰 Kepler 轨道（qm-04 式的微扰思路用在轨道方程上）：每圈进动</p>
 <div class="arithmatex">\[
 \Delta\varphi = \frac{6\pi GM}{c^2a(1 - e^2)} \approx 43''/\text{世纪}
@@ -83,7 +176,7 @@ ds^2 = -\Big(1 - \frac{r_s}{r}\Big)c^2dt^2 + \Big(1 - \frac{r_s}{r}\Big)^{-1}dr^
 <p><strong>Shapiro 雷达延迟</strong>：掠日雷达信号往返多 ~200 μs【引用】——第四检验；卡西尼号验证至 <span class="arithmatex">\(10^{-5}\)</span> 精度。</p>
 <h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（进动量级迁移）</strong> 同公式用于近双星 PSR B1913+16：进动 4.2°/年（水星的 3.5 万倍）——强场系统把"世纪级效应"变成"年级"；该双星的轨道衰减是引力波的首个证据（gr-03 接力）。</p>
-<p><strong>例 2（有效势读图）</strong> <span class="arithmatex">\(V_{\text{eff}}\)</span> 新项使小 <span class="arithmatex">\(r\)</span> 处势垒<strong>有限</strong>：<span class="arithmatex">\(L\)</span> 再大也存在最内稳定圆轨道 <strong>ISCO <span class="arithmatex">\(r = 6GM/c^2\)</span></strong>（对 <span class="arithmatex">\(V_{\text{eff}}\)</span> 求二阶导归零）——吸积盘内缘、黑洞成像亮环尺寸的理论刻度（gr-03/EHT）。</p>
+<p><strong>例 2（有效势读图）</strong> 在归一化变量中，<span class="arithmatex">\(V_{\text{eff}}\)</span> 的新项改变了近距势垒。ISCO 是类时稳定圆轨道族的最内边界：<span class="arithmatex">\(\ell^2=12\)</span> 时两支圆轨道在 <span class="arithmatex">\(r=6\)</span> 合并并满足 <span class="arithmatex">\(V''_{\text{eff}}=0\)</span>；但对任意固定 <span class="arithmatex">\(\ell^2&gt;12\)</span>，仍有内侧不稳定支 <span class="arithmatex">\(r_-\)</span> 与外侧稳定支 <span class="arithmatex">\(r_+\)</span>，不能说“<span class="arithmatex">\(\ell\)</span> 再大也固定存在 <span class="arithmatex">\(r=6\)</span> 的 ISCO”。<span class="arithmatex">\(r=3\)</span> 是 null photon sphere，EHT 光环还涉及光线传播、透镜和发射分布，不能与 ISCO 或 horizon 混为同一个尺度。</p>
 <p><strong>例 3（透镜小算）</strong> 太阳质量恒星在 1 kpc 处：Einstein 环半径 <span class="arithmatex">\(\theta_E = \sqrt{\frac{4GM}{c^2}\frac{D_{LS}}{D_LD_S}} \sim\)</span> mas 级——微透镜光变曲线的时标 ~ 周：OGLE 类巡天找暗天体的设计参数。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：把解推进视界之内——黑洞、引力波与宇宙学度规：广相的三大前沿出口一次打通。</em></p>
@@ -96,5 +189,7 @@ ds^2 = -\Big(1 - \frac{r_s}{r}\Big)c^2dt^2 + \Big(1 - \frac{r_s}{r}\Big)^{-1}dr^
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/schwarzschild-orbits.js"></script>
 </body>
 </html>

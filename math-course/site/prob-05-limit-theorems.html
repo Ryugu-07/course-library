@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -37,11 +48,20 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 两把不等式</a></li>
-<li><a href="#2">2. 三种收敛</a></li>
+<li><a href="#_1">学习层：平均之后，谁在变成钟形？</a><ul>
+<li><a href="#1">1. 具体谜题：单件不像正态，平均为什么能像？</a></li>
+<li><a href="#2">2. 先预测：在碰实验之前写下三句话</a></li>
+<li><a href="#3-lln-clt">3. 最小模型：LLN 管位置，CLT 管形状</a></li>
+<li><a href="#4">4. 可操作实验：让三个母分布接受同一把尺子</a></li>
+<li><a href="#5">5. 误区与边界：实验没有替定理放宽条件</a></li>
+<li><a href="#6">6. 回到正式定理：直方图应该翻译成什么句子？</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 两把不等式</a></li>
+<li><a href="#2_1">2. 三种收敛</a></li>
 <li><a href="#3-lln">3. 大数定律（LLN）</a></li>
 <li><a href="#4-clt">4. 中心极限定理（CLT，概率论皇冠）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,7 +69,61 @@
 <blockquote>
 <p>概率论的收官页回答一个哲学级问题：<strong>为什么随机的世界里有稳定的规律？</strong>答案两条：大数定律（频率稳定到概率、平均稳定到期望——统计学存在的前提）与中心极限定理（大量独立扰动之和趋向正态——正态分布无处不在的原因）。工具是两把不等式和特征函数。</p>
 </blockquote>
-<h2 id="1">1. 两把不等式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：平均之后，谁在变成钟形？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：单件不像正态，平均为什么能像？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>想象一条生产线：单件误差可能在一个区间内均匀分布，也可能明显右偏，还可能因为两种工艺路线而形成双峰。质检员每次抽取 <span class="arithmatex">\(n\)</span> 件，报告平均误差。单件误差明明没有钟形，为什么“平均误差”常常可以用正态曲线描述？这里的“常常”又依赖什么？</p>
+<p>关键是不要把两个随机对象混成一个：<span class="arithmatex">\(X\)</span> 是<strong>一次观测</strong>，<span class="arithmatex">\(\bar X_n\)</span> 是 <span class="arithmatex">\(n\)</span> 次观测的平均。中心极限定理讨论的是后者在标准化以后呈现的分布形状，不是宣称每个 <span class="arithmatex">\(X_i\)</span> 自己会变成正态。</p>
+<h3 id="2">2. 先预测：在碰实验之前写下三句话<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不操作下面的图，预测三件事：</p>
+<ol>
+<li><span class="arithmatex">\(n=1\)</span> 时，均匀、右偏、双峰三种母分布的直方图会不会已经像标准正态？</li>
+<li>增大 <span class="arithmatex">\(n\)</span> 时，原始平均 <span class="arithmatex">\(\bar X_n\)</span> 的中心和宽度会怎样变化？把它换成 <span class="arithmatex">\(Z_n=\sqrt n(\bar X_n-\mu)/\sigma\)</span> 后，哪个变化被消除了？</li>
+<li>把“每次平均里取多少个样本”从 <span class="arithmatex">\(n\)</span> 改成“重复实验多少次”会不会也让单次分布变正态？</li>
+</ol>
+<p>第三问很容易混淆：重复次数只让经验直方图画得更稳定；它不是 CLT 里的样本量 <span class="arithmatex">\(n\)</span>。</p>
+<h3 id="3-lln-clt">3. 最小模型：LLN 管位置，CLT 管形状<a class="headerlink" href="#3-lln-clt" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(X_1,X_2,\ldots\)</span> 独立同分布，</p>
+<div class="arithmatex">\[
+EX_i=\mu,\qquad 0&lt;DX_i=\sigma^2&lt;\infty,\qquad
+\bar X_n=\frac1n\sum_{i=1}^nX_i.
+\]</div>
+<p>先把两个结论并排放好：</p>
+<ul>
+<li><strong>LLN</strong>：<span class="arithmatex">\(\bar X_n\xrightarrow{P}\mu\)</span>。它说平均值越来越集中在 <span class="arithmatex">\(\mu\)</span> 附近，是关于“位置/误差大小”的结论；并且 <span class="arithmatex">\(D\bar X_n=\sigma^2/n\)</span>，所以原始平均的波动尺度是 <span class="arithmatex">\(\sigma/\sqrt n\)</span>。</li>
+<li><strong>CLT</strong>：<span class="arithmatex">\(Z_n=\dfrac{\bar X_n-\mu}{\sigma/\sqrt n}=\dfrac{\sum_{i=1}^nX_i-n\mu}{\sigma\sqrt n}\xrightarrow{d}N(0,1)\)</span>。它先移走中心、再除以自然波动尺度，讨论剩下的“形状”。</li>
+</ul>
+<p>因此常见的有限样本写法</p>
+<div class="arithmatex">\[
+\bar X_n\ \mathrel{\approx}\ N\!\left(\mu,\frac{\sigma^2}{n}\right)
+\]</div>
+<p>是近似，不是对每个有限 <span class="arithmatex">\(n\)</span> 的等式。它的好坏依赖母分布和 <span class="arithmatex">\(n\)</span>；偏斜或尾部较重的分布往往需要更大的 <span class="arithmatex">\(n\)</span> 才能看出对称的钟形。</p>
+<h3 id="4">4. 可操作实验：让三个母分布接受同一把尺子<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验把每次平均转换为</p>
+<div class="arithmatex">\[
+Z_n=\frac{\sqrt n(\bar X_n-\mu)}{\sigma},
+\]</div>
+<p>再叠加标准正态密度 <span class="arithmatex">\(\varphi(z)=(2\pi)^{-1/2}e^{-z^2/2}\)</span>。请选择均匀、偏斜或双峰分布，拖动 <span class="arithmatex">\(n\)</span>，观察经验直方图如何从母分布的个性走向共同的参考曲线。每个设置都用固定种子生成同样的 <span class="arithmatex">\(R=2000\)</span> 次重复实验，因此刷新页面不会把可复现性误认为“又一次随机巧合”。</p>
+<div class="learning-lab" data-learning-lab="clt" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>实验比较 <span class="arithmatex">\(U(0,1)\)</span>、均值为 <span class="arithmatex">\(1\)</span> 方差为 <span class="arithmatex">\(1\)</span> 的指数分布，以及由两个对称小区间组成的双峰分布；三者都满足 <span class="arithmatex">\(0&lt;\sigma^2&lt;\infty\)</span>。每次重复取 <span class="arithmatex">\(n\)</span> 个独立样本，绘制 <span class="arithmatex">\(Z_n=\sqrt n(\bar X_n-\mu)/\sigma\)</span> 的经验直方图，并与 <span class="arithmatex">\(N(0,1)\)</span> 的密度曲线比较。<span class="arithmatex">\(n=1\)</span> 时不会自动正态；增大 <span class="arithmatex">\(n\)</span> 只是在有限样本下逐渐改善近似，重复次数 <span class="arithmatex">\(R\)</span> 只影响直方图的平滑程度。</p>
+</div>
+<h3 id="5">5. 误区与边界：实验没有替定理放宽条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>CLT 不是 LLN 的漂亮画法</strong>：LLN 关心 <span class="arithmatex">\(\bar X_n\)</span> 是否靠近 <span class="arithmatex">\(\mu\)</span>；CLT 关心标准化后的 <span class="arithmatex">\(Z_n\)</span> 是否在分布意义下接近 <span class="arithmatex">\(N(0,1)\)</span>。一个说“落点”，一个说“形状”。</li>
+<li><strong>有限方差是经典版本的门槛</strong>：这里需要独立同分布和 <span class="arithmatex">\(0&lt;\sigma^2&lt;\infty\)</span>。若方差不存在，不能把这条 Lindeberg–Lévy CLT 直接套上去；可能需要完全不同的极限理论，而不是“多取样本就一定正态”。</li>
+<li><strong>有限 <span class="arithmatex">\(n\)</span> 没有统一魔法数字</strong>：<span class="arithmatex">\(n\ge30\)</span> 只是某些教材场景的经验口号，不是定理。偏斜、重尾、离散或双峰母分布的有限样本误差可能不同；Berry–Esseen 这类速率结论还会加入更强的矩条件。</li>
+<li><strong>标准化使用的 <span class="arithmatex">\(\mu,\sigma\)</span> 是总体参数</strong>：实验知道它们，是为了隔离 CLT 的机制；真实数据里若用估计量替代，还会引出统计推断中的额外误差。</li>
+</ul>
+<h3 id="6">6. 回到正式定理：直方图应该翻译成什么句子？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>最后把画面翻译回严格表述：对独立同分布的 <span class="arithmatex">\(X_i\)</span>，只要 <span class="arithmatex">\(EX_i=\mu\)</span> 且 <span class="arithmatex">\(0&lt;DX_i=\sigma^2&lt;\infty\)</span>，就有</p>
+<div class="arithmatex">\[
+\frac{\sum_{i=1}^nX_i-n\mu}{\sigma\sqrt n}\xrightarrow{d}N(0,1).
+\]</div>
+<p>这里的箭头是<strong>依分布收敛</strong>：它保证连续区间概率等在极限处匹配，并不保证某一次有限样本的直方图、某一个样本点或每个尾部概率都已经精确等于正态。带着“独立同分布—有限正方差—正确标准化—有限样本只作近似”这四个检查项，再回看下面的正式证明与应用，CLT 的威力和边界会同时保留下来。</p>
+</section>
+<h2 id="1_1">1. 两把不等式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>Markov 不等式</strong> <span class="arithmatex">\(X \geq 0\)</span>：</p>
 <div class="arithmatex">\[
 P(X \geq a) \leq \frac{EX}{a}
@@ -60,7 +134,7 @@ P(X \geq a) \leq \frac{EX}{a}
 P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
 \]</div>
 <p>——只用期望方差就能给概率上界，<strong>分布未知时的兜底武器</strong>（代价是很松；分布已知时直接算）。🔗 ai 课 01 讲的 Hoeffding 不等式是它的指数级强化版（要求有界），泛化界一族全是这类"集中不等式"的后代。</p>
-<h2 id="2">2. 三种收敛<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 三种收敛<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -100,9 +174,9 @@ P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
 <h2 id="4-clt">4. 中心极限定理（CLT，概率论皇冠）<a class="headerlink" href="#4-clt" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="中心极限定理均值趋于正态" src="assets/img/prob-05-clt.svg" /></p>
-<figcaption><span class="fig-id">图 5.1</span>无论原分布多不像正态，\(n\) 个独立样本的标准化均值都收敛到标准正态——概率论的皇冠。</figcaption>
+<figcaption><span class="fig-id">图 5.1</span>对独立同分布且具有有限非零方差的样本，\(n\) 个观测的标准化均值收敛到标准正态——概率论的皇冠。</figcaption>
 </figure>
-<p><strong>定理（Lindeberg–Lévy）</strong> <span class="arithmatex">\(X_1, X_2, \dots\)</span> i.i.d.，<span class="arithmatex">\(EX_1 = \mu,\ DX_1 = \sigma^2 &lt; \infty\)</span>，则</p>
+<p><strong>定理（Lindeberg–Lévy）</strong> <span class="arithmatex">\(X_1, X_2, \dots\)</span> i.i.d.，<span class="arithmatex">\(EX_1 = \mu,\ 0 &lt; DX_1 = \sigma^2 &lt; \infty\)</span>，则</p>
 <div class="arithmatex">\[
 \frac{\sum_{i=1}^n X_i - n\mu}{\sigma\sqrt{n}} \;\xrightarrow{d}\; N(0, 1)
 \]</div>
@@ -111,10 +185,10 @@ P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
 <p><strong>推论（De Moivre–Laplace）</strong> 二项分布的正态近似：<span class="arithmatex">\(B(n, p) \approx N(np,\ npq)\)</span>（<span class="arithmatex">\(n\)</span> 大时；<span class="arithmatex">\(np, nq \geq 5\)</span> 经验可用；精细计算加连续性修正 <span class="arithmatex">\(\pm 0.5\)</span>）。</p>
 <p><strong>两个使用要点</strong>：</p>
 <ul>
-<li><strong>收敛速率</strong>：Berry–Esseen 定理给出偏差 <span class="arithmatex">\(O(1/\sqrt n)\)</span>——"<span class="arithmatex">\(n \geq 30\)</span> 近似可用"的老口诀的理论背景（偏态分布要更大的 <span class="arithmatex">\(n\)</span>）；</li>
+<li><strong>收敛速率</strong>：若还满足三阶绝对中心矩 <span class="arithmatex">\(E|X_1-\mu|^3&lt;\infty\)</span>，Berry–Esseen 定理给出分布函数偏差 <span class="arithmatex">\(O(1/\sqrt n)\)</span>；常数还受标准化三阶矩影响，所以“<span class="arithmatex">\(n \geq 30\)</span> 近似可用”只能是经验口诀，偏斜或重尾分布往往需要更大的 <span class="arithmatex">\(n\)</span>；</li>
 <li><strong>Monte Carlo 误差条</strong>：估计量 <span class="arithmatex">\(\bar X\)</span> 近似 <span class="arithmatex">\(N(\mu, \frac{\sigma^2}{n})\)</span> ⇒ 误差按 <span class="arithmatex">\(\frac{1}{\sqrt n}\)</span> 收缩——<strong>精度多一位小数，样本多一百倍</strong>。🔗 这就是 ai 课 08 讲 self-consistency 采样收益递减、以及一切模拟实验样本量设计的定量依据。</li>
 </ul>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Chebyshev 兜底）</strong> <span class="arithmatex">\(EX = 100, DX = 10\)</span>，估计 <span class="arithmatex">\(P(80 &lt; X &lt; 120)\)</span>。
 <em>解</em>：<span class="arithmatex">\(P(|X - 100| \geq 20) \leq \frac{10}{400} = 0.025\)</span> ⇒ <span class="arithmatex">\(P \geq 0.975\)</span>。（若已知正态则精确值远高——兜底不等式的"松"要有体感。）</p>
 <p><strong>例 2（CLT 标准应用）</strong> 某保险公司 10000 名投保人，每人年理赔概率 0.006，每次理赔 1 万元。求总理赔超 80 万元的概率。
@@ -123,6 +197,7 @@ P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
 <em>解</em>：<span class="arithmatex">\(1.96\frac{\sigma}{\sqrt n} \leq 0.01 \Rightarrow n \geq (196)^2 \approx 3.8\times 10^4\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>概率论五页完工。它的两个直系后继在侧栏等着：数理统计（把本页的极限定理变成推断工具）与随机过程（让随机变量随时间演化）——占位页均已备好规划。</em></p>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="prob-04-moments.html"><span class="pager-label">上一页</span>概率 IV · 数字特征与条件期望</a>
@@ -132,5 +207,7 @@ P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/clt.js"></script>
 </body>
 </html>

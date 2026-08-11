@@ -29,7 +29,7 @@ $$
 u(\omega) = \frac{\hbar\omega^3}{\pi^2c^3}\,\frac{1}{e^{\hbar\omega/k_BT} - 1} \quad (\text{Planck 公式})
 $$
 
-低频退化为 Rayleigh–Jeans（$\propto \omega^2T$——经典均分），高频被指数压灭——**紫外灾难的解除**：能量量子化 $E = \hbar\omega$ 让高频模式"买不起入场券"（1900 年 Planck 由此打开量子世界）。积分得 **Stefan–Boltzmann** $u \propto T^4$、峰值 Wien 位移 $\lambda_{\max}T = $ 常数——太阳表面 5800 K 峰在可见光、人体 310 K 峰在红外（热成像）、宇宙 2.725 K 峰在微波（CMB——cosmo-02 的主角就是一条完美 Planck 曲线）。
+低频退化为 Rayleigh–Jeans（$\propto \omega^2T$——经典均分），高频被指数压灭——**紫外灾难的解除**：能量量子化 $E = \hbar\omega$ 让高频模式"买不起入场券"（1900 年 Planck 由此打开量子世界）。积分得 **Stefan–Boltzmann** $u \propto T^4$、峰值 Wien 位移 $\lambda_{\max}T = b$（$b$ 为 Wien 常数）——太阳表面 5800 K 峰在可见光、人体 310 K 峰在红外（热成像）、宇宙 2.725 K 峰在微波（CMB——cosmo-02 的主角就是一条完美 Planck 曲线）。
 
 **声子比热**：Debye 模型把晶格振动当"声子气"同法处理——低温 $C_V \propto T^3$（实验吻合，Dulong–Petit 低温失效的解答；solid-01 详展）。
 

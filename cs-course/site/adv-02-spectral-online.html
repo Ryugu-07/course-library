@@ -85,7 +85,7 @@ x^T L x = \sum_{(u,v)\in E}(x_u - x_v)^2 \ge 0
 \]</div>
 <p>——"不知未来"的代价的最坏定量。</p>
 <p><strong>样板一：缓存/分页置换</strong> 内存装 <span class="arithmatex">\(k\)</span> 页，缺页要换出一页——换哪个？LRU / FIFO 都是 <strong><span class="arithmatex">\(k\)</span>-竞争</strong>（最坏是最优的 <span class="arithmatex">\(k\)</span> 倍），且这是确定性算法的下界。<strong>随机化 marking 算法把竞争比降到 <span class="arithmatex">\(O(\log k)\)</span></strong>——又一次随机性打败最坏情况（呼应 algo-03）。这直接是 csapp-02 缓存、os-03 页面置换的理论天花板。</p>
-<p><strong>样板二：租还是买（ski rental）</strong> 滑雪租 $1/天、买 $B，不知还要滑几天——<strong>"先租到累计花费 = <span class="arithmatex">\(B\)</span> 时再买"是 2-竞争</strong>，且随机化能到 <span class="arithmatex">\(\frac{e}{e-1}\approx1.58\)</span>。这个玩具模型是<strong>一切"何时从租用切换到自建"决策的原型</strong>（云上按量付费 vs 包年、连接池、缓存预热……）。</p>
+<p><strong>样板二：租还是买（ski rental）</strong> 滑雪每天租金 1 元、买断价为 <span class="arithmatex">\(B\)</span> 元，不知还要滑几天——<strong>"先租到累计花费等于 <span class="arithmatex">\(B\)</span> 元时再买"是 2-竞争</strong>，且随机化能到 <span class="arithmatex">\(\frac{e}{e-1}\approx1.58\)</span>。这个玩具模型是<strong>一切"何时从租用切换到自建"决策的原型</strong>（云上按量付费 vs 包年、连接池、缓存预热……）。</p>
 <figure class="plot">
 <p><img alt="滑雪租赁问题租到阈值再买的竞争比" src="assets/img/adv-02-ski-rental.svg" /></p>
 <figcaption><span class="fig-id">图 adv-02.3</span>Ski rental——先租到累计成本 B 再买，最坏总成本不超过离线最优的 2 倍。</figcaption>

@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -37,15 +48,25 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 数项级数</a><ul>
+<li><a href="#_1">学习层：跳跃也能被正弦拼出来吗？</a><ul>
+<li><a href="#1">1. 具体谜题：平滑的波，怎样合成有棱角的信号？</a></li>
+<li><a href="#2">2. 先预测：动手之前写下四个答案</a></li>
+<li><a href="#3">3. 最小模型：系数就是正交投影</a></li>
+<li><a href="#4">4. 动手验证：把目标、部分和、频谱放在同一张实验台</a></li>
+<li><a href="#5">5. 误区与边界：图像变近，不等于无条件一致收敛</a></li>
+<li><a href="#6-dirichlet">6. 回到定理：Dirichlet 收敛定理究竟保证什么？</a></li>
+<li><a href="#7">7. 迁移题：换函数，仍然先投影再判断极限</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 数项级数</a><ul>
 <li><a href="#11-iff">1.1 正项级数（部分和单调，收敛 \(\iff\) 有界）</a></li>
 <li><a href="#12">1.2 任意项级数</a></li>
 </ul>
 </li>
-<li><a href="#2">2. 函数项级数与一致收敛</a></li>
-<li><a href="#3">3. 幂级数</a></li>
+<li><a href="#2_1">2. 函数项级数与一致收敛</a></li>
+<li><a href="#3_1">3. 幂级数</a></li>
 <li><a href="#4-fourier">4. Fourier 级数</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +74,85 @@
 <blockquote>
 <p>级数回答"无限个数/函数加起来是什么意思"。本页三层：数项级数（收敛判别工具箱）→ 函数项级数（<strong>一致收敛</strong>——本页乃至下册分析的分水岭概念）→ 两大特殊家族（幂级数与 Fourier 级数）。</p>
 </blockquote>
-<h2 id="1">1. 数项级数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：跳跃也能被正弦拼出来吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：平滑的波，怎样合成有棱角的信号？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先看周期方波</p>
+<div class="arithmatex">\[
+f(x)=\operatorname{sign}(\sin x).
+\]</div>
+<p>它在每个整数倍的 <span class="arithmatex">\(\pi\)</span> 处跳跃，却据说可以由一串连续的正弦波相加得到。这里有三个不同的问题，不能用一个“越来越像”含糊带过：系数从哪里来？跳跃点到底收敛到什么数？增加谐波之后，边缘的过冲是否真的消失？</p>
+<p>再把同一把尺子交给周期锯齿波 <span class="arithmatex">\(f(x)=x\)</span>（先在 <span class="arithmatex">\((-\pi,\pi)\)</span> 定义，再周期延拓）。它在周期端点从 <span class="arithmatex">\(\pi\)</span> 跳回 <span class="arithmatex">\(-\pi\)</span>，但系数会换成另一种明确的交替衰减规律。两种信号的差异，正好把“投影”“收敛”和“Gibbs 现象”拆开。</p>
+<h3 id="2">2. 先预测：动手之前写下四个答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不要拖动实验，预测：</p>
+<ol>
+<li>方波是奇函数；在 <span class="arithmatex">\(\{1,\cos nx,\sin nx\}\)</span> 中，哪些系数应该自动为零？方波的 <span class="arithmatex">\(b_1,b_3,b_5\)</span> 谁大谁小？</li>
+<li>在方波的跳跃点 <span class="arithmatex">\(x=0\)</span>，部分和应当趋向 <span class="arithmatex">\(1\)</span>、<span class="arithmatex">\(-1\)</span>，还是左右极限的平均？在连续点 <span class="arithmatex">\(x=\pi/2\)</span> 呢？</li>
+<li>把 <span class="arithmatex">\(N\)</span> 变大时，Gibbs 过冲的<strong>高度</strong>会不会趋于零？如果高度不消失，为什么肉眼仍会觉得图像更贴近？</li>
+<li>锯齿波的周期端点是同一个点：在 <span class="arithmatex">\(x=\pi\)</span> 处，Fourier 级数会选择左极限 <span class="arithmatex">\(\pi\)</span>，右极限 <span class="arithmatex">\(-\pi\)</span>，还是它们的平均？</li>
+</ol>
+<p>把预测写下来再看图，能防止把有限项图像的视觉印象误当成收敛定理。</p>
+<h3 id="3">3. 最小模型：系数就是正交投影<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\([-\pi,\pi]\)</span> 上取归一化内积</p>
+<div class="arithmatex">\[
+\langle g,h\rangle=\frac1\pi\int_{-\pi}^{\pi}g(x)h(x)\,dx.
+\]</div>
+<p><span class="arithmatex">\(\cos nx\)</span> 与 <span class="arithmatex">\(\sin mx\)</span> 的不同成员彼此正交，且各自范数为 <span class="arithmatex">\(1\)</span>；常数函数 <span class="arithmatex">\(1\)</span> 的平方范数为 <span class="arithmatex">\(2\)</span>。所以把 <span class="arithmatex">\(f\)</span> 投影到三角函数方向上，得到</p>
+<div class="arithmatex">\[
+a_n=\langle f,\cos nx\rangle,\qquad b_n=\langle f,\sin nx\rangle,
+\]</div>
+<p>而常数方向的投影是 <span class="arithmatex">\(\langle f,1\rangle/2=a_0/2\)</span>。这不是“把图像拟合得像”的经验公式，而是正交投影的坐标公式。截断在第 <span class="arithmatex">\(N\)</span> 个谐波就是</p>
+<div class="arithmatex">\[
+S_N(x)=\frac{a_0}{2}+\sum_{n=1}^{N}\bigl(a_n\cos nx+b_n\sin nx\bigr).
+\]</div>
+<p>两个可手算的系数表如下：</p>
+<ul>
+<li>方波 <span class="arithmatex">\(f(x)=\operatorname{sign}(\sin x)\)</span> 是奇函数，所以 <span class="arithmatex">\(a_0=a_n=0\)</span>；直接积分给出</li>
+</ul>
+<div class="arithmatex">\[
+b_n=\begin{cases}\dfrac{4}{\pi n},&amp;n\text{ 为奇数},\\[4pt]0,&amp;n\text{ 为偶数}.\end{cases}
+\]</div>
+<ul>
+<li>锯齿波在 <span class="arithmatex">\((-\pi,\pi)\)</span> 上取 <span class="arithmatex">\(f(x)=x\)</span>，也是奇函数，所以 <span class="arithmatex">\(a_0=a_n=0\)</span>；分部积分给出</li>
+</ul>
+<div class="arithmatex">\[
+b_n=\frac{2(-1)^{n+1}}{n}.
+\]</div>
+<p>两者的 <span class="arithmatex">\(1/n\)</span> 衰减也提醒我们：跳跃带来的高频尾巴并不会很快消失。</p>
+<h3 id="4">4. 动手验证：把目标、部分和、频谱放在同一张实验台<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>下面的原生 SVG 实验可以切换方波和锯齿波，拖动谐波数 <span class="arithmatex">\(N\)</span>，并用滑块或直接拖动图中的观察点 <span class="arithmatex">\(x_0\)</span>。蓝线是目标函数，金线是 <span class="arithmatex">\(S_N\)</span>；下图画有符号的 <span class="arithmatex">\(b_n\)</span>，所以锯齿波的交替符号不会被频谱的高度藏掉。</p>
+<p>先试默认状态：方波、<span class="arithmatex">\(N=5\)</span>、<span class="arithmatex">\(x_0=\pi/2\)</span>。再把观察点吸附到 <span class="arithmatex">\(x_0=0\)</span>，比较一个连续点和一个跳跃点的读数。</p>
+<div class="learning-lab" data-learning-lab="fourier">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认状态为方波、<span class="arithmatex">\(N=5\)</span>、<span class="arithmatex">\(x_0=\pi/2\)</span>。此时</p>
+<div class="arithmatex">\[
+S_5(x)=\frac4\pi\left(\sin x+\frac{\sin3x}{3}+\frac{\sin5x}{5}\right),
+\qquad S_5\left(\frac\pi2\right)=\frac{52}{15\pi}\approx1.103.
+\]</div>
+<p>因为 <span class="arithmatex">\(f(\pi/2)=1\)</span>，<span class="arithmatex">\(1.103\)</span> 说明有限截断即使在方波的平坦区也可以超过平台值；经典 Gibbs 过冲应当在跳跃邻域观察，而不是把精确跳跃点的平均值读成过冲。在跳跃点 <span class="arithmatex">\(x_0=0\)</span>，<span class="arithmatex">\(S_5(0)=0\)</span>，正好是左右极限 <span class="arithmatex">\((-1+1)/2\)</span>。方波的 <span class="arithmatex">\(b_1=4/\pi,b_3=4/(3\pi),b_5=4/(5\pi)\)</span>，偶数项为零；切换到锯齿波时使用 <span class="arithmatex">\(b_n=2(-1)^{n+1}/n\)</span>，周期端点的左右极限为 <span class="arithmatex">\(\pi\)</span> 与 <span class="arithmatex">\(-\pi\)</span>，平均值为 <span class="arithmatex">\(0\)</span>。</p>
+</div>
+<h3 id="5">5. 误区与边界：图像变近，不等于无条件一致收敛<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>系数不是逐点调参。</strong> <span class="arithmatex">\(a_n,b_n\)</span> 是在内积空间里沿正交方向的投影；正交性消除了其他频率，才得到积分公式。</li>
+<li><strong>连续点与跳跃点要分开读。</strong> 在满足 Dirichlet 条件的周期函数的连续点，<span class="arithmatex">\(S_N(x)\to f(x)\)</span>；在跳跃点，极限是 <span class="arithmatex">\((f(x^-)+f(x^+))/2\)</span>。锯齿波在 <span class="arithmatex">\(x=\pi\)</span> 的 Fourier 极限是 <span class="arithmatex">\(0\)</span>，不是 <span class="arithmatex">\(\pi\)</span>。</li>
+<li><strong>Gibbs 过冲的高度不因 <span class="arithmatex">\(N\to\infty\)</span> 而消失。</strong> 对固定跳跃，局部缩放后过冲高度趋向约 <span class="arithmatex">\(0.08949\)</span> 倍的跳跃幅度；但显著过冲集中在宽度约为 <span class="arithmatex">\(1/N\)</span> 的窄区域里，所以整体图像会显得更贴近。</li>
+<li><strong>不能把“看起来更接近”写成一致收敛。</strong> 每个有限 <span class="arithmatex">\(N\)</span> 的 <span class="arithmatex">\(S_N\)</span> 都是连续函数；若它们在包含跳跃的区间上一致收敛，连续函数的一致极限仍应连续，这与方波或周期锯齿波的不连续性矛盾。因此含跳跃时，连续部分和不可能在整个周期上一致收敛到不连续极限。</li>
+</ul>
+<h3 id="6-dirichlet">6. 回到定理：Dirichlet 收敛定理究竟保证什么？<a class="headerlink" href="#6-dirichlet" title="Permanent link"></a></h3>
+<p>对周期延拓按段 <span class="arithmatex">\(C^1\)</span>、且每点左右极限存在的 <span class="arithmatex">\(f\)</span>，Fourier 部分和满足</p>
+<div class="arithmatex">\[
+\lim_{N\to\infty}S_N(x)=\frac{f(x^-)+f(x^+)}2.
+\]</div>
+<p>连续点上两侧极限都等于 <span class="arithmatex">\(f(x)\)</span>，于是得到函数值；跳跃点上得到平均值。这个结论是逐点（更准确地说，逐点按上述值）收敛的结论，并没有在含跳跃的整段上承诺一致收敛。方波和锯齿波正是同一个定理的两个可视化样本：跳跃位置不同，平均值规则相同。</p>
+<h3 id="7">7. 迁移题：换函数，仍然先投影再判断极限<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<ol>
+<li>设 <span class="arithmatex">\(g(x)=1+2\cos x-\sin2x\)</span>。按本页的系数约定写出 <span class="arithmatex">\(a_0,a_1,b_2\)</span> 以及其余系数，并说明为什么这一步不需要“拟合”：答案应为 <span class="arithmatex">\(a_0=2,a_1=2,b_2=-1\)</span>，其余系数为零。</li>
+<li>对周期锯齿波 <span class="arithmatex">\(h(x)=x\)</span>，在 <span class="arithmatex">\(x=\pi\)</span> 处写出 <span class="arithmatex">\(h(\pi^-)\)</span>、<span class="arithmatex">\(h(\pi^+)\)</span> 和 Fourier 极限；再解释为什么把端点的函数值改成 <span class="arithmatex">\(0\)</span> 不会改变积分系数，却会让“级数收敛到函数值”的表述更准确。</li>
+<li>最后给自己一个反例检查：如果某个周期函数连续但只有有限个角点，为什么“部分和连续”不再自动阻止一致收敛？还需要回到具体的光滑性、系数衰减或一致收敛判别，而不是从“有 Fourier 级数”直接推出一致收敛。</li>
+</ol>
+</section>
+<h2 id="1_1">1. 数项级数<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="部分和数列收敛到级数和" src="assets/img/analysis-04-series-partial.svg" /></p>
 <figcaption><span class="fig-id">图 4.1</span>级数收敛 = 部分和数列 \(S_N\) 收敛：几何级数与交错调和级数分别趋于 \(1\) 与 \(\ln 2\)。</figcaption>
@@ -104,7 +203,7 @@
 <li><strong>Leibniz 判别法</strong>：交错级数 <span class="arithmatex">\(\sum(-1)^n u_n\)</span>，<span class="arithmatex">\(u_n\)</span> 单调趋 0 ⇒ 收敛，且余项 <span class="arithmatex">\(|R_n| \leq u_{n+1}\)</span>。代表：<span class="arithmatex">\(\sum\frac{(-1)^n}{n}\)</span> 条件收敛；</li>
 <li><strong>Dirichlet 判别法</strong>：<span class="arithmatex">\(\{\)</span>部分和有界<span class="arithmatex">\(\}\times\{\)</span>单调趋 0<span class="arithmatex">\(\}\)</span>；<strong>Abel 判别法</strong>：<span class="arithmatex">\(\{\)</span>收敛<span class="arithmatex">\(\}\times\{\)</span>单调有界<span class="arithmatex">\(\}\)</span>。（与反常积分的同名判别法完全平行——一套思想两处兑现。）</li>
 </ul>
-<h2 id="2">2. 函数项级数与一致收敛<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 函数项级数与一致收敛<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：<span class="arithmatex">\(S(x) = \sum u_n(x)\)</span> 逐点收敛时，连续性/可积性/可导性能否从 <span class="arithmatex">\(u_n\)</span> 传给 <span class="arithmatex">\(S\)</span>？<strong>答案：逐点收敛不够</strong>（反例：<span class="arithmatex">\(f_n(x) = x^n\)</span> 在 <span class="arithmatex">\([0,1]\)</span> 逐点收敛到不连续函数）。需要更强的收敛：</p>
 <p><strong>定义（一致收敛）</strong> <span class="arithmatex">\(S_n \rightrightarrows S\)</span> 于 <span class="arithmatex">\(D\)</span> <span class="arithmatex">\(\iff \sup_{x \in D}|S_n(x) - S(x)| \to 0\)</span>——<strong>一个 <span class="arithmatex">\(N\)</span> 管住所有 <span class="arithmatex">\(x\)</span></strong>（对比逐点：每个 <span class="arithmatex">\(x\)</span> 各配各的 <span class="arithmatex">\(N\)</span>）。</p>
 <p><strong>判别工具</strong>：</p>
@@ -119,7 +218,7 @@
 <li><strong>逐项求导</strong>：需 <span class="arithmatex">\(\sum u_n'\)</span> 一致收敛（对导数级数提要求，不是对原级数）。</li>
 </ol>
 <p>🔗 <strong>AI 衔接</strong>：一致收敛是"函数序列极限保性质"的通行证——万能逼近定理（ai 课 04 讲）里"一致稠密"的"一致"就是它。</p>
-<h2 id="3">3. 幂级数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 幂级数<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理（Abel）</strong> <span class="arithmatex">\(\sum a_n x^n\)</span> 在 <span class="arithmatex">\(x_0 \neq 0\)</span> 收敛 ⇒ 在 <span class="arithmatex">\(|x| &lt; |x_0|\)</span> 内绝对收敛。⇒ 收敛域是以原点为心的区间。</p>
 <p><strong>收敛半径（Cauchy–Hadamard）</strong>：</p>
 <div class="arithmatex">\[
@@ -134,10 +233,10 @@ f(x) \sim \frac{a_0}{2} + \sum_{n=1}^{\infty}(a_n \cos nx + b_n \sin nx), \qquad
 a_n = \frac1\pi \int_{-\pi}^{\pi} f\cos nx\,dx, \quad b_n = \frac1\pi \int_{-\pi}^{\pi} f\sin nx\,dx
 \]</div>
 <p>（系数公式的来历：假设可逐项积分，两边乘 <span class="arithmatex">\(\cos nx\)</span> 积分，正交性杀掉其余所有项——<strong>系数 = 在正交基上的投影</strong>，这是高代 VI 内积空间观点的直接应用，两页对照读。）</p>
-<p><strong>定理（Dirichlet 收敛定理）</strong> <span class="arithmatex">\(f\)</span> 按段光滑，则 Fourier 级数处处收敛到 <span class="arithmatex">\(\frac{f(x^+) + f(x^-)}{2}\)</span>（连续点即 <span class="arithmatex">\(f(x)\)</span>）。</p>
+<p><strong>定理（Dirichlet 收敛定理）</strong> 对周期延拓按段 <span class="arithmatex">\(C^1\)</span>、且每点左右极限存在的 <span class="arithmatex">\(f\)</span>，Fourier 级数处处收敛到 <span class="arithmatex">\(\frac{f(x^+) + f(x^-)}{2}\)</span>（连续点即 <span class="arithmatex">\(f(x)\)</span>）。</p>
 <p><strong>Parseval 等式</strong>：<span class="arithmatex">\(\dfrac{a_0^2}{2} + \sum(a_n^2 + b_n^2) = \dfrac1\pi\int_{-\pi}^{\pi} f^2\,dx\)</span>——"能量守恒"：函数的能量 = 各频率分量能量之和。</p>
 <p>奇偶函数正弦/余弦展开；周期 <span class="arithmatex">\(2l\)</span> 的伸缩版本。🔗 <strong>AI 衔接</strong>：Fourier 是"信号 → 频域"的原型，声谱图（comfy 课 19 讲 mel 谱）、位置编码的三角函数族（ai 课 06 讲）都是它的后代；Parseval 在泛函页升格为 Hilbert 空间的普遍定理。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（判敛综合）</strong> 判别 <span class="arithmatex">\(\sum\limits_{n=1}^\infty \dfrac{n!}{n^n}\)</span>。
 <em>解</em>：比值法 <span class="arithmatex">\(\frac{a_{n+1}}{a_n} = \frac{(n+1)!\,n^n}{(n+1)^{n+1} n!} = \left(\frac{n}{n+1}\right)^n \to \frac1e &lt; 1\)</span>，收敛。（顺带记住 <span class="arithmatex">\(\frac{n!}{n^n}\)</span> 的衰减本质是 <span class="arithmatex">\(e^{-n}\)</span> 级。）</p>
 <p><strong>例 2（幂级数求和）</strong> 求 <span class="arithmatex">\(\sum\limits_{n=1}^\infty \dfrac{x^n}{n}\)</span> 的和函数。
@@ -158,5 +257,7 @@ a_n = \frac1\pi \int_{-\pi}^{\pi} f\cos nx\,dx, \quad b_n = \frac1\pi \int_{-\pi
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/fourier.js"></script>
 </body>
 </html>

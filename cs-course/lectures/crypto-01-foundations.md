@@ -33,7 +33,7 @@
 <figcaption><span class="fig-id">图 crypto-01.1</span>对称与公钥密码——同一把密钥适合高速通信，公私钥对解决公开信道上的密钥分发。</figcaption>
 </figure>
 
-**Diffie–Hellman 密钥交换【推导级】**：公开大素数 $p$ 与生成元 $g$。Alice 选私密 $a$、发 $g^a\bmod p$；Bob 选 $b$、发 $g^b$。双方各算 $ (g^b)^a = (g^a)^b = g^{ab}\bmod p$ = 共享密钥。**窃听者看到 $g,g^a,g^b$ 却算不出 $g^{ab}$**——这就是**计算 Diffie–Hellman 难题**，其硬度依托**离散对数难题**（DL）：知道 $g^a$ 反求 $a$ 在合适的群里没有已知高效算法。$\blacksquare$ 妙处：**两人在公开信道上，凭各自的秘密，凭空生成了共享秘密**。
+**Diffie–Hellman 密钥交换【推导级】**：公开大素数 $p$ 与生成元 $g$。Alice 选私密 $a$、发 $g^a\bmod p$；Bob 选 $b$、发 $g^b$。双方各自计算 $(g^b)^a = (g^a)^b = g^{ab}\bmod p$，得到同一个共享密钥。**窃听者看到 $g,g^a,g^b$ 却算不出 $g^{ab}$**——这就是**计算 Diffie–Hellman 难题**，其硬度依托**离散对数难题**（DL）：知道 $g^a$ 反求 $a$ 在合适的群里没有已知高效算法。$\blacksquare$ 妙处：**两人在公开信道上，凭各自的秘密，凭空生成了共享秘密**。
 
 <figure class="diagram" markdown="1">
 ![Diffie-Hellman 密钥交换时序](assets/img/crypto-01-dh-exchange.svg)

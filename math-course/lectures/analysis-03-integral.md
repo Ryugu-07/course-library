@@ -67,7 +67,7 @@ $$
 
 | 量 | 公式 |
 |---|---|
-| 平面面积 | $\int_a^b |f - g|\,dx$；极坐标 $\frac12\int_\alpha^\beta r^2(\theta)\,d\theta$ |
+| 平面面积 | $\int_a^b \lvert f - g\rvert\,dx$；极坐标 $\frac12\int_\alpha^\beta r^2(\theta)\,d\theta$ |
 | 弧长 | $\int_a^b \sqrt{1 + f'^2}\,dx$；参数式 $\int\sqrt{x'^2_t + y'^2_t}\,dt$ |
 | 旋转体体积 | 绕 $x$ 轴 $\pi\int f^2 dx$；柱壳法绕 $y$ 轴 $2\pi\int x f\,dx$ |
 | 旋转曲面侧面积 | $2\pi \int f\sqrt{1 + f'^2}\,dx$ |

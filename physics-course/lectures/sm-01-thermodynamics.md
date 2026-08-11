@@ -55,7 +55,7 @@ $T \to 0$ 时 $S \to S_0$（常数，可取零）——绝对零度不可通过�
 
 **例 1（Carnot 数字）** 电厂 $T_1 = 800$ K、$T_2 = 300$ K：$\eta_{\max} = 1 - \frac{300}{800} = 62.5\%$——实际 ~40%（不可逆损耗）；热泵反着用：COP $= \frac{T_2}{T_1 - T_2}$ 可远大于 1——"搬热比造热便宜"的定量原因。
 
-**例 2（熵增计算）** 1 kg 20°C 水与 1 kg 80°C 水混合：终温 50°C，$\Delta S = mc\big[\ln\frac{323}{293} + \ln\frac{323}{353}\big] > 0$（算出 $\approx +24$ J/K）——温差消失的代价以熵记账；反向自发分离的概率在 sm-02 将量化为 $e^{-\Delta S/k}$ 级的天文小数。
+**例 2（熵增计算）** 1 kg 20°C 水与 1 kg 80°C 水混合：终温 50°C，$\Delta S = mc\big[\ln\frac{323}{293} + \ln\frac{323}{353}\big] > 0$（取 $c\approx4.18\ \mathrm{kJ/(kg\,K)}$，算出 $\approx +36$ J/K）——温差消失的代价以熵记账；反向自发分离的概率在 sm-02 将量化为 $e^{-\Delta S/k}$ 级的天文小数。
 
 **例 3（Maxwell 关系实战）** 证明理想气体等温膨胀 $\Delta S = nR\ln\frac{V_2}{V_1}$：用 $\big(\frac{\partial S}{\partial V}\big)_T = \big(\frac{\partial p}{\partial T}\big)_V = \frac{nR}{V}$ 积分——不测任何热量、纯状态方程推熵变：方法论的样板。$\blacksquare$
 

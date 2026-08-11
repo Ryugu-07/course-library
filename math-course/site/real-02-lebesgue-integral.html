@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -37,11 +48,19 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 积分的三级定义</a></li>
-<li><a href="#2">2. 三大收敛定理（本页顶点，按强度排列）</a></li>
+<li><a href="#_1">学习层：极限先走，面积会不会跟上？</a><ul>
+<li><a href="#1">1. 具体谜题：尖峰真的“消失”了吗？</a></li>
+<li><a href="#2">2. 先做预测：三种序列分别能换序吗？</a></li>
+<li><a href="#3">3. 最小模型：三条定理各自检查什么？</a></li>
+<li><a href="#4">4. 反例与边界：相似的图形，不相同的定理</a></li>
+<li><a href="#5">5. 迁移提示：把新序列交给哪条定理？</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 积分的三级定义</a></li>
+<li><a href="#2_1">2. 三大收敛定理（本页顶点，按强度排列）</a></li>
 <li><a href="#3-fubini">3. Fubini 定理（重积分换序的最终裁决）</a></li>
-<li><a href="#4">4. 收官视野：微分与积分的和解</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#4_1">4. 收官视野：微分与积分的和解</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,7 +68,38 @@
 <blockquote>
 <p>Riemann 按定义域切条，Lebesgue <strong>按值域切层</strong>——"数钱不按拿到的顺序，而按面额分堆"。换一个切法，可积函数的世界豁然开朗，且"积分与极限交换"获得了三条终极裁决（三大收敛定理）——数分 IV 里小心翼翼的一致收敛条件，从此多数场合可以退休。</p>
 </blockquote>
-<h2 id="1">1. 积分的三级定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：极限先走，面积会不会跟上？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：尖峰真的“消失”了吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\([0,1]\)</span> 上看</p>
+<div class="arithmatex">\[
+f_n(x)=n\mathbb{1}_{(0,1/n)}(x).
+\]</div>
+<p>对每个固定的 <span class="arithmatex">\(x&gt;0\)</span>，当 <span class="arithmatex">\(n\)</span> 足够大时 <span class="arithmatex">\(x\notin(0,1/n)\)</span>，所以 <span class="arithmatex">\(f_n(x)\to0\)</span>；但每一根尖峰的面积都等于 <span class="arithmatex">\(n\cdot(1/n)=1\)</span>。如果只盯着一个点，会预测</p>
+<div class="arithmatex">\[
+\lim_n\int_0^1 f_n\,dx=\int_0^1\lim_n f_n\,dx=0
+\]</div>
+<p>这个预测为什么错？错的不是逐点极限，而是把“质量集中到越来越窄的区域”当成了“质量已经没有”。</p>
+<h3 id="2">2. 先做预测：三种序列分别能换序吗？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>请先猜：<span class="arithmatex">\(1_{[1/n,1]}\)</span> 的面积会不会增加到极限面积？<span class="arithmatex">\(n1_{(0,1/n)}\)</span> 的面积会不会跟着点值一起下降？<span class="arithmatex">\(x^n\)</span> 应该用单调收敛还是控制收敛来处理？交互图把这三个答案放在同一条 <span class="arithmatex">\([0,1]\)</span> 轴上，方便把“看起来趋于 0”和“积分真的趋于 0”分开。</p>
+<h3 id="3">3. 最小模型：三条定理各自检查什么？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把空间固定为 <span class="arithmatex">\(( [0,1],\mathcal B,m )\)</span>，其中 <span class="arithmatex">\(m([0,1])=1\)</span>。要交换 <span class="arithmatex">\(\lim\)</span> 与 <span class="arithmatex">\(\int\)</span>，最小的正式条件是：</p>
+<ol>
+<li><strong>MCT（Levi）</strong>：<span class="arithmatex">\(0\le f_n\uparrow f\)</span>；非负性和逐点单调递增共同保证 <span class="arithmatex">\(\lim_n\int f_n=\int f\)</span>，不要求控制函数；</li>
+<li><strong>Fatou</strong>：只要 <span class="arithmatex">\(f_n\ge0\)</span> 可测，就有 <span class="arithmatex">\(\int\liminf f_n\le\liminf\int f_n\)</span>；它给的是不等式，不会凭空替你补上等号；</li>
+<li><strong>DCT</strong>：<span class="arithmatex">\(f_n\to f\)</span> a.e.，并且存在 <span class="arithmatex">\(g\in L^1\)</span> 使 <span class="arithmatex">\(|f_n|\le g\)</span>；这个可积“天花板”阻止质量逃逸，于是 <span class="arithmatex">\(\int f_n\to\int f\)</span>。</li>
+</ol>
+<h3 id="4">4. 反例与边界：相似的图形，不相同的定理<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(n1_{(0,1/n)}\)</span> 非负，所以 Fatou 没有问题；它既不单调递增，也没有可积的统一控制函数，因而 MCT 与 DCT 都不能使用。相反，<span class="arithmatex">\(x^n\)</span> 在 <span class="arithmatex">\([0,1]\)</span> 上有 <span class="arithmatex">\(0\le x^n\le1\)</span>，DCT 适用，但它随 <span class="arithmatex">\(n\)</span> 递减，不满足 MCT 的“向上”条件。一个常见边界是：每个 <span class="arithmatex">\(f_n\)</span> 各自有界，远不等于存在同一个可积 <span class="arithmatex">\(g\)</span> 控制所有 <span class="arithmatex">\(n\)</span>；尖峰正是这个差别的验尸报告。</p>
+<h3 id="5">5. 迁移提示：把新序列交给哪条定理？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>遇到新的 <span class="arithmatex">\(f_n\)</span>，按这个顺序写在草稿上：先问是否非负，再问是否单调递增，再问是否 a.e. 收敛，最后尝试找一个与 <span class="arithmatex">\(n\)</span> 无关且属于 <span class="arithmatex">\(L^1\)</span> 的 <span class="arithmatex">\(g\)</span>。例如看到 <span class="arithmatex">\(n1_{(0,1/n)}\)</span>，不要只写“逐点趋于 0”，还要写出为什么任何统一支配函数都至少呈 <span class="arithmatex">\(1/x\)</span> 级别，因而不可积。</p>
+<div class="learning-lab" data-learning-lab="lebesgue">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验在 \( [0,1] \) 上比较三个序列：\(1_{[1/n,1]}\) 的积分为 \(1-1/n\)，\(n1_{(0,1/n)}\) 的积分恒为 \(1\)，\(x^n\) 的积分为 \(1/(n+1)\)。脚本加载后可选择序列、拖动 \(n\)，并查看 SVG 图像与 MCT/Fatou/DCT 条件检查；即使脚本不可用，上述公式仍给出完整判断。</p>
+</div>
+</section>
+<h2 id="1_1">1. 积分的三级定义<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Riemann 竖切与 Lebesgue 横切" src="assets/img/real-02-riemann-vs-lebesgue.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>Riemann 竖切定义域、Lebesgue 横切值域——后者度量每个"水平层"的宽度，故能积分更病态的函数。</figcaption>
@@ -60,9 +110,9 @@
 <li><strong>非负可测 <span class="arithmatex">\(f\)</span></strong>：<span class="arithmatex">\(\int f = \sup\{\int\varphi : 0 \leq \varphi \leq f,\ \varphi \text{ 简单}\}\)</span>（下方简单函数的极限；允许 <span class="arithmatex">\(+\infty\)</span>）；</li>
 <li><strong>一般可测 <span class="arithmatex">\(f\)</span></strong>：拆正负部 <span class="arithmatex">\(f = f^+ - f^-\)</span>，<span class="arithmatex">\(\int f = \int f^+ - \int f^-\)</span>；两者都有限称<strong>可积</strong>（<span class="arithmatex">\(f \in L^1\)</span>），等价于 <span class="arithmatex">\(\int|f| &lt; \infty\)</span>——<strong>Lebesgue 可积天生是绝对可积</strong>（概率 IV 期望要求绝对收敛的真相：<span class="arithmatex">\(EX\)</span> 就是 Lebesgue 积分）。</li>
 </ol>
-<p><strong>与 Riemann 的关系（两条定论）</strong>：R 可积 ⇒ L 可积且值相等（L 是 R 的扩张而非另起炉灶）；<strong>R 可积 <span class="arithmatex">\(\iff\)</span> a.e. 连续</strong>（Lebesgue 判据——Riemann 积分的适用范围由 Lebesgue 理论精确刻画，颇有诗意）。Dirichlet 函数：R 不可积，L 积分 <span class="arithmatex">\(= 0\)</span>（a.e. 为 0）。</p>
+<p><strong>与 Riemann 的关系（两条定论）</strong>：在同一个有限闭区间 <span class="arithmatex">\([a,b]\)</span> 上，Riemann 可积函数一定 Lebesgue 可积且值相等（L 是 R 的扩张而非另起炉灶）；更精确地说，若 <span class="arithmatex">\(f:[a,b]\to\mathbb R\)</span> <strong>有界</strong>，则 <span class="arithmatex">\(f\)</span> Riemann 可积 <span class="arithmatex">\(\iff\)</span> 它的不连续点集测度为 0（Lebesgue 判据，也就是这里带有“有界 + 紧区间”前提的 a.e. 连续）。Dirichlet 函数：在 <span class="arithmatex">\([0,1]\)</span> 上 R 不可积，L 积分 <span class="arithmatex">\(= 0\)</span>（a.e. 为 0）。</p>
 <p><strong>零测集免责</strong>：a.e. 相等的函数积分相同——积分"看不见"零测集，<span class="arithmatex">\(L^1\)</span> 里的函数本质上是"a.e. 等价类"。</p>
-<h2 id="2">2. 三大收敛定理（本页顶点，按强度排列）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 三大收敛定理（本页顶点，按强度排列）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理 1（Levi 单调收敛，MCT）</strong> <span class="arithmatex">\(0 \leq f_n \uparrow f\)</span>（单调升）⇒</p>
 <div class="arithmatex">\[
 \lim_n \int f_n = \int f
@@ -78,10 +128,10 @@
 <h2 id="3-fubini">3. Fubini 定理（重积分换序的最终裁决）<a class="headerlink" href="#3-fubini" title="Permanent link"></a></h2>
 <p><strong>定理（Fubini–Tonelli）</strong> 乘积测度空间上：<strong>非负</strong>可测函数累次积分随便换序（Tonelli，无条件）；一般函数只要 <span class="arithmatex">\(\iint |f| &lt; \infty\)</span>（先用 Tonelli 验证这一条！）则换序合法且等于二重积分。</p>
 <p>——数分 VI 那句"连续函数可换序"的成人版：先对 <span class="arithmatex">\(|f|\)</span> 用 Tonelli 自检，再对 <span class="arithmatex">\(f\)</span> 换序，两步走遍天下。概率 III 联合分布求边缘、卷积公式的合法性即由此。</p>
-<h2 id="4">4. 收官视野：微分与积分的和解<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>Newton–Leibniz 公式的 Lebesgue 终极版（陈述级）：单调函数 a.e. 可导（Lebesgue 定理——单调性强得惊人）；<span class="arithmatex">\(F(x) = \int_a^x f\,dt\)</span> a.e. 可导且 <span class="arithmatex">\(F' = f\)</span> a.e.；$F' $ 可积且 N–L 成立 <span class="arithmatex">\(\iff F\)</span> <strong>绝对连续</strong>——"微积分基本定理到底要什么条件"这个从数分 III 悬到现在的问题，最终答案是绝对连续性。反例名角：Cantor 函数（魔鬼阶梯——连续、单调、a.e. 导数为 0，却从 0 爬到 1；N–L 对它失效）。</p>
+<h2 id="4_1">4. 收官视野：微分与积分的和解<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>Newton–Leibniz 公式的 Lebesgue 终极版（陈述级）：单调函数 a.e. 可导（Lebesgue 定理——单调性强得惊人）；<span class="arithmatex">\(F(x) = \int_a^x f\,dt\)</span> a.e. 可导且 <span class="arithmatex">\(F' = f\)</span> a.e.；<span class="arithmatex">\(F'\)</span> 可积且 N–L 成立 <span class="arithmatex">\(\iff F\)</span> <strong>绝对连续</strong>——"微积分基本定理到底要什么条件"这个从数分 III 悬到现在的问题，最终答案是绝对连续性。反例名角：Cantor 函数（魔鬼阶梯——连续、单调、a.e. 导数为 0，却从 0 爬到 1；N–L 对它失效）。</p>
 <p>🔗 <strong>衔接</strong>：概率论的全部积分（期望、密度、收敛定理）默认在 Lebesgue 意义下运行——概率 IV/V 的每次"取期望换极限"背后都是 DCT；下一页 <span class="arithmatex">\(L^p\)</span> 空间把可积函数组织成 Banach/Hilbert 空间，交棒泛函分析。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（DCT 标准应用）</strong> 求 <span class="arithmatex">\(\lim_n \int_0^1 \frac{n\sin(x/n)}{x(1 + x^2)}dx\)</span>：被积 <span class="arithmatex">\(\to \frac{1}{1+x^2}\)</span> 逐点；控制 <span class="arithmatex">\(|n\sin(x/n)| \leq x\)</span> 给 <span class="arithmatex">\(|f_n| \leq \frac{1}{1+x^2} \in L^1\)</span> ⇒ 换序，极限 <span class="arithmatex">\(= \arctan 1 = \frac{\pi}{4}\)</span>。</p>
 <p><strong>例 2（逐项积分）</strong> <span class="arithmatex">\(\int_0^1 \frac{-\ln x}{1 - x}dx\)</span>（Tonelli 演示）：展开 <span class="arithmatex">\(\frac{1}{1-x} = \sum x^n\)</span>，非负 ⇒ 逐项积分合法：<span class="arithmatex">\(\sum_n \int_0^1 (-\ln x)x^n dx = \sum_n \frac{1}{(n+1)^2} = \frac{\pi^2}{6}\)</span>——Basel 和（数分 IV）从一个积分里长出来。</p>
 <p><strong>例 3（质量逃逸辨认）</strong> <span class="arithmatex">\(f_n = \mathbb{1}_{[n, n+1]}\)</span>：逐点 <span class="arithmatex">\(\to 0\)</span>，<span class="arithmatex">\(\int f_n \equiv 1\)</span>——质量逃向水平无穷；任何控制函数 <span class="arithmatex">\(g \geq \sup_n f_n = \mathbb{1}_{[1,\infty)}\)</span> 不可积 ⇒ DCT 拒签，换序确实非法。<strong>定理的反例与定理同等重要。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
@@ -96,5 +146,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/lebesgue.js"></script>
 </body>
 </html>

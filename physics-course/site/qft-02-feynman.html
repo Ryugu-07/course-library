@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,6 +50,15 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：从一张接触图追到可观测量</a><ul>
+<li><a href="#feynman-learning-title">具体谜题：四条外腿怎样相遇？</a></li>
+<li><a href="#_2">先预测：哪一个因子最容易被数错？</a></li>
+<li><a href="#_3">最小模型：只保留一个局域四价顶点</a></li>
+<li><a href="#_4">形式推导：让每一笔都对得上</a></li>
+<li><a href="#_5">边界 / 反例：振幅不是观测量，图也不是轨迹</a></li>
+<li><a href="#_6">迁移提示：换一个相互作用，账本哪里变？</a></li>
+</ul>
+</li>
 <li><a href="#1-dyson">1. 相互作用绘景与 Dyson 展开</a></li>
 <li><a href="#2-feynman-phi4">2. Feynman 规则（\(\phi^4\) 样板）</a></li>
 <li><a href="#3">3. 虚粒子与"力"的图景</a></li>
@@ -52,16 +72,59 @@
 <p><strong>对标</strong>：Peskin &amp; Schroeder §4 ｜ <strong>前置</strong>：qft-01、qm-04（微扰论）、aqm-02（散射语言）
 自由场只会独奏；加上相互作用项，场论开始"算物理"。本页把微扰展开机械化为 <strong>Feynman 图</strong>：内线 = 传播子、顶点 = 耦合、对一切图求和——二十世纪物理最成功的计算技术，QED 由此算到小数点后十位。</p>
 </blockquote>
+<div data-learning-page></div>
+
 <figure class="diagram">
 <p><img alt="Feynman 图：顶点 + 内外线（如 e⁻e⁺→μ⁻μ⁺），本站最标志性的图。" src="assets/img/qft-02-feynman.svg" /></p>
 <figcaption><span class="fig-id">图 qft-02.1</span>Feynman 图：顶点 + 内外线（如 e⁻e⁺→μ⁻μ⁺），本站最标志性的图。</figcaption>
 </figure>
+<section aria-labelledby="feynman-learning-title" class="learning-layer">
+<h2 id="_1">学习层：从一张接触图追到可观测量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="feynman-learning-title">具体谜题：四条外腿怎样相遇？<a class="headerlink" href="#feynman-learning-title" title="Permanent link"></a></h3>
+<p>想象你只知道一次散射的入射态 <span class="arithmatex">\(p_1,p_2\)</span> 和出射态 <span class="arithmatex">\(p_3,p_4\)</span>，却还没有一张图。对局域的 <span class="arithmatex">\(\phi^4\)</span> 相互作用，问题是：<strong>四条外腿要在几个相互作用位置相遇？图上的线究竟记录什么？</strong>先不要把它想成四个小球留下的轨迹；我们要追踪的是矩阵元里的连接与因子。</p>
+<h3 id="_2">先预测：哪一个因子最容易被数错？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>在看推导前写下你的预测：一次 <span class="arithmatex">\(\phi^4\)</span> 插入会带来几个场？四个外部场接到它们上面有多少种排列？最后的顶点因子应当是 <span class="arithmatex">\(-i\lambda\)</span>，还是 <span class="arithmatex">\(-i\lambda/4!\)</span>？预测的目标不是猜中，而是让接下来的账本有一个可检验的落点。</p>
+<h3 id="_3">最小模型：只保留一个局域四价顶点<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>取</p>
+<div class="arithmatex">\[
+\mathcal L_{int}(x)=-\frac{\lambda}{4!}\phi(x)^4,
+\qquad
+S=T\exp\left(i\int d^4x\,\mathcal L_{int}(x)\right).
+\]</div>
+<p>我们只取 <span class="arithmatex">\(S\)</span> 的一阶项，忽略圈图、真空泡和外腿归一化的细节。这个最小模型足以显示：Dyson 系数、Wick 缩并、顶点规则与动量守恒怎样连成一条链。</p>
+<h3 id="_4">形式推导：让每一笔都对得上<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>一阶项是 <span class="arithmatex">\(-i\lambda/4!\int d^4x\,\phi(x)^4\)</span>。Wick 定理把四个外部场接到同一点的四个 <span class="arithmatex">\(\phi(x)\)</span> 上；有 <span class="arithmatex">\(4!\)</span> 个双射连接，于是</p>
+<div class="arithmatex">\[
+\frac{-i\lambda}{4!}\times4!=-i\lambda.
+\]</div>
+<p>外腿的平面波在同一个 <span class="arithmatex">\(x\)</span> 处相乘，再对顶点位置积分：</p>
+<div class="arithmatex">\[
+\int d^4x\,e^{i(p_1+p_2-p_3-p_4)\cdot x}
+=(2\pi)^4\delta^4(p_1+p_2-p_3-p_4).
+\]</div>
+<p>下面的交互式账本把这六笔按顺序点亮；它画的是<strong>组合学记号</strong>，不是粒子的字面运动。</p>
+<div class="learning-lab" data-learning-lab="feynman">
+<p><strong>无 JavaScript 时也可读：</strong>树级 <span class="arithmatex">\(\phi^4\)</span> 的 <span class="arithmatex">\(2\to2\)</span> 接触图只有一个相互作用位置。Dyson 一阶给 <span class="arithmatex">\(-i\lambda/4!\)</span>，Wick 连接给 <span class="arithmatex">\(4!\)</span>，二者相消为顶点因子 <span class="arithmatex">\(-i\lambda\)</span>；对顶点位置积分给 <span class="arithmatex">\((2\pi)^4\delta^4(p_1+p_2-p_3-p_4)\)</span>，约化振幅按约定写作 <span class="arithmatex">\(i\mathcal M=-i\lambda\)</span>。</p>
+<ol>
+<li>标记外部态：<span class="arithmatex">\(p_1,p_2\to p_3,p_4\)</span>。</li>
+<li>展开 Dyson 一阶项：在一个 <span class="arithmatex">\(x\)</span> 插入 <span class="arithmatex">\(\phi(x)^4\)</span>。</li>
+<li>数 Wick 连接：四个外腿到四个场有 <span class="arithmatex">\(4!\)</span> 种。</li>
+<li>抵消 <span class="arithmatex">\(4!\)</span> 与 <span class="arithmatex">\(1/4!\)</span>，得到 <span class="arithmatex">\(-i\lambda\)</span>。</li>
+<li>积分 <span class="arithmatex">\(x\)</span>，得到四维动量守恒的 <span class="arithmatex">\(\delta\)</span> 函数。</li>
+<li>再经过平方、通量、相空间与态归一化，才得到截面或计数率。</li>
+</ol>
+</div>
+<h3 id="_5">边界 / 反例：振幅不是观测量，图也不是轨迹<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>从图得到的是 <span class="arithmatex">\(i\mathcal M\)</span>（以及整体动量 <span class="arithmatex">\(\delta\)</span> 函数），不是直接的截面；还必须处理 <span class="arithmatex">\(|\mathcal M|^2\)</span>、相空间、通量和约定相关的归一化。更高阶会出现圈积分、对称因子与重整化。QED 也要诚实表述：它的微扰级数一般被认为是<strong>渐近级数，而非已证明收敛的级数</strong>；低阶之所以极其准确，是因为精细结构常数 <span class="arithmatex">\(\alpha\approx1/137\)</span> 很小，使可用的低阶项通常迅速变小。小耦合带来可控的截断，不等于数学上的收敛保证。</p>
+<h3 id="_6">迁移提示：换一个相互作用，账本哪里变？<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>把同一套流程迁移到一个带 <span class="arithmatex">\(\phi^3\)</span> 顶点的玩具模型，或迁移到 QED 的 <span class="arithmatex">\(-e\bar\psi\gamma^\mu\psi A_\mu\)</span> 顶点：先写外部态，再数局部场的连接，最后做顶点位置积分。哪些因子来自顶点的阶数，哪些因子来自 Wick 连接，哪些步骤直到得到 <span class="arithmatex">\(\mathcal M\)</span> 之后才发生？</p>
+</section>
 <h2 id="1-dyson">1. 相互作用绘景与 Dyson 展开<a class="headerlink" href="#1-dyson" title="Permanent link"></a></h2>
 <p>加相互作用 <span class="arithmatex">\(\mathcal L_{int}\)</span>（样板：<span class="arithmatex">\(-\frac{\lambda}{4!}\phi^4\)</span>；QED：<span class="arithmatex">\(-e\bar\psi\gamma^\mu\psi A_\mu\)</span>）。散射矩阵：</p>
 <div class="arithmatex">\[
 S = T\exp\Big(i\int\mathcal L_{int}\,d^4x\Big)
 \]</div>
-<p><strong>【骨架】</strong> 相互作用绘景（qm-04 含时微扰的场版）：自由部分吃进场的演化、<span class="arithmatex">\(\mathcal L_{int}\)</span> 逐阶展开——时序指数即 Dyson 级数。<span class="arithmatex">\(\blacksquare\)</span> 展开参数：QED 的 <span class="arithmatex">\(\alpha \approx \frac{1}{137}\)</span>（qm-04 登基的常数在此就业）——<strong>小耦合使逐阶计算收敛得极快</strong>（微扰论成功的物理前提；强耦合世界见 §4 诚实边界）。</p>
+<p><strong>【骨架】</strong> 相互作用绘景（qm-04 含时微扰的场版）：自由部分吃进场的演化、<span class="arithmatex">\(\mathcal L_{int}\)</span> 逐阶展开——时序指数即 Dyson 级数。<span class="arithmatex">\(\blacksquare\)</span> 展开参数：QED 的 <span class="arithmatex">\(\alpha \approx \frac{1}{137}\)</span>（qm-04 登基的常数在此就业）——<strong>小耦合使低阶项通常迅速变小，但 QED 的微扰级数一般是渐近的，并非已证明收敛</strong>（微扰论成功的物理前提；强耦合世界见 §4 诚实边界）。</p>
 <p><strong>Wick 定理【陈述 + 机理】</strong>：自由场的时序乘积 = 全部"两两配对"（缩并 = 传播子 <span class="arithmatex">\(D_F\)</span>）之和——高斯型理论的组合恒等式（概率的 Isserlis/Wick 定理同名同物：<strong>高斯矩 = 配对求和</strong>，概率线的老朋友）。<strong>每种配对方式 ⇒ 一张图</strong>：Feynman 图是 Wick 组合学的记账法。</p>
 <h2 id="2-feynman-phi4">2. Feynman 规则（<span class="arithmatex">\(\phi^4\)</span> 样板）<a class="headerlink" href="#2-feynman-phi4" title="Permanent link"></a></h2>
 <p>动量空间规则：</p>
@@ -91,10 +154,10 @@ S = T\exp\Big(i\int\mathcal L_{int}\,d^4x\Big)
 </tr>
 </tbody>
 </table>
-<p><strong>画图 → 查表 → 乘起来 = 振幅</strong>；截面由 <span class="arithmatex">\(|\mathcal M|^2\)</span> × 相空间（aqm-02 的 <span class="arithmatex">\(\frac{d\sigma}{d\Omega}\)</span> 语言 + sr-01 四动量守恒）。<strong>树图 = 经典级</strong>（<span class="arithmatex">\(\hbar\)</span> 展开的首阶）、<strong>圈图 = 量子修正</strong>——"量子涨落"在图语言里就是圈。</p>
+<p><strong>画图 → 查表 → 乘起来 = 振幅</strong>；截面由 <span class="arithmatex">\(|\mathcal M|^2\)</span> × 相空间（aqm-02 的 <span class="arithmatex">\(\frac{d\sigma}{d\Omega}\)</span> 语言 + sr-01 四动量守恒）。<strong>树图通常是 <span class="arithmatex">\(\hbar\)</span> 计数中的领先阶</strong>、<strong>圈图是量子修正</strong>——"量子涨落"在图语言里体现为圈；这不是说树图本身是经典粒子轨迹。</p>
 <p><strong>QED 规则速览</strong>：电子线（Dirac 传播子）、光子线、唯一顶点 <span class="arithmatex">\(-ie\gamma^\mu\)</span>（三线：两费米一光子）——<strong>一个顶点生成全部电磁现象</strong>：Compton 散射、<span class="arithmatex">\(e^+e^-\to\mu^+\mu^-\)</span>、韧致辐射……全是同一顶点的不同拼法（树级计算属 P&amp;S §5 的标准作业【引用】）。</p>
 <h2 id="3">3. 虚粒子与"力"的图景<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>内线粒子不满足 <span class="arithmatex">\(k^2 = m^2\)</span>（<strong>离壳/虚粒子</strong>——只是积分变量的名字，不是"真的粒子短暂违法"：拟人化止步于此）。<strong>静态极限对账</strong>（qft-01 §4 的完成式）：两费米子交换光子的树图 ⇒ Coulomb 势；交换有质量标量 ⇒ Yukawa 势——<strong>"相互作用 = 交换规范玻色子"</strong>从口号变成可计算命题（pp-01 把它升为组织原理）。</p>
+<p>内线标记的四动量通常不满足 <span class="arithmatex">\(k^2 = m^2\)</span>（<strong>离壳/虚粒子</strong>——它是传播子积分中的变量，不是"真的粒子短暂违法"：拟人化止步于此）。<strong>静态极限对账</strong>（qft-01 §4 的完成式）：两费米子交换光子的树图 ⇒ Coulomb 势；交换有质量标量 ⇒ Yukawa 势——<strong>"相互作用 = 交换规范玻色子"</strong>从口号变成可计算命题（pp-01 把它升为组织原理）。</p>
 <p><strong>QED 的战绩单</strong>：电子反常磁矩 <span class="arithmatex">\(g - 2\)</span>——图逐阶算：<span class="arithmatex">\(\frac{g-2}{2} = \frac{\alpha}{2\pi}\)</span>（Schwinger 单圈，衣袖级推导【引用】）+ 高阶……理论与实验吻合到 <strong><span class="arithmatex">\(10^{-12}\)</span> 量级</strong>——<strong>人类最精确的理论-实验对表</strong>；Lamb 位移（qm-04 表中的那行）同账房出品。</p>
 <h2 id="4">4. 诚实边界（本页的第二档标注）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>树图与单圈结构属【推导/骨架】可信区；<strong>圈积分发散的系统处理（正规化 + 重整化）</strong>在下一页以【骨架】呈现；<strong>强耦合</strong>（QCD 低能、临界现象的定量）微扰论失效——格点场论（comp-01 的路径积分蒙卡）与 RG（asm-03/qft-03）接管：知道微扰论的失效边界与知道它的规则同等重要。</p>
@@ -113,5 +176,7 @@ S = T\exp\Big(i\int\mathcal L_{int}\,d^4x\Big)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/feynman.js"></script>
 </body>
 </html>

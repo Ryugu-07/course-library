@@ -5,12 +5,12 @@
 
 <figure class="plot" markdown="1">
 ![Higgs 墨西哥帽势与破缺前后的对比。](assets/img/pp-02-higgs-potential.svg)
-<figcaption><span class="fig-id">图 pp-02.1</span>Higgs 势 \(V=-\mu^2|\phi|^2+\lambda|\phi|^4\)。\(\mu^2>0\) 时最小值在原点（对称真空）；\(\mu^2<0\) 时形成"墨西哥帽"，真空简并于 \(|\phi|=v/\sqrt2\) 的圆环——<strong>定律对称而真空选边</strong>。径向激发即物理 Higgs 粒子，角向零模被规范场吃掉。</figcaption>
+<figcaption><span class="fig-id">图 pp-02.1</span>Higgs 势 \(V=-\mu^2|\phi|^2+\lambda|\phi|^4\)。\(\mu^2>0\) 时形成"墨西哥帽"，真空简并于 \(|\phi|=v/\sqrt2\) 的圆环；\(\mu^2<0\) 时最小值在原点（对称真空）——<strong>定律对称而真空选边</strong>。径向激发即物理 Higgs 粒子，角向零模被规范场吃掉。</figcaption>
 </figure>
 
 ## 1. 病灶：质量与规范的冲突
 
-规范场的质量项 $\tfrac12m^2A_\mu A^\mu$ 在 $A_\mu\to A_\mu-\partial_\mu\alpha/e$ 下不不变——**手写质量等于谋杀规范对称**，并连带毁掉可重整性（🔗 qft-03 §3 的判据）。
+规范场的质量项 $\tfrac12m^2A_\mu A^\mu$ 在 $A_\mu\to A_\mu-\partial_\mu\alpha/e$ 下不保持不变——**手写质量等于谋杀规范对称**，并连带毁掉可重整性（🔗 qft-03 §3 的判据）。
 
 费米子同样违宪：$SU(2)_L$ 只作用于左手场，故 $m\bar\psi_L\psi_R$ 不是不变量（pp-01 的宇称破坏结构使左右手份属不同表示）。
 

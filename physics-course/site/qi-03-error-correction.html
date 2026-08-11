@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,6 +50,15 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：只测错误的指纹，不测逻辑内容</a><ul>
+<li><a href="#qec-learning-title">具体谜题：未知态经过一条坏链路</a></li>
+<li><a href="#2">先预测：如果第 2 位翻了，读数是什么？</a></li>
+<li><a href="#bit-flip-repetition-code">最小模型：三比特 bit-flip repetition code</a></li>
+<li><a href="#_2">形式推导：四种综合，四个分支</a></li>
+<li><a href="#_3">边界 / 反例：这个码明确不能做什么</a></li>
+<li><a href="#_4">迁移提示：把“指纹”方法搬到别处</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 三重困境与破局思想</a></li>
 <li><a href="#2-shor">2. 三比特码到 Shor 码【推导级】</a></li>
 <li><a href="#3">3. 阈值定理与表面码</a></li>
@@ -52,20 +72,97 @@
 <p><strong>对标</strong>：Nielsen &amp; Chuang §10 ｜ <strong>前置</strong>：qi-01/02、aqm-03（退相干）、信息论 II（经典纠错）
 量子计算的生死题：叠加态碰不得（测量塌缩）、复制不得（不可克隆）、还被环境持续偷看（退相干）——<strong>纠错似乎三面无门</strong>。本页讲透绕出去的思想（把信息藏进纠缠、只测"错误的指纹"），走到阈值定理与今日 NISQ 现实。</p>
 </blockquote>
+<div data-learning-page></div>
+
 <figure class="diagram">
 <p><img alt="三比特纠错码线路：编码→错误→症状测量→纠正。" src="assets/img/qi-03-3qubit-code.svg" /></p>
 <figcaption><span class="fig-id">图 qi-03.1</span>三比特纠错码线路：编码→错误→症状测量→纠正。</figcaption>
 </figure>
+<section aria-labelledby="qec-learning-title" class="learning-layer">
+<h2 id="_1">学习层：只测错误的指纹，不测逻辑内容<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="qec-learning-title">具体谜题：未知态经过一条坏链路<a class="headerlink" href="#qec-learning-title" title="Permanent link"></a></h3>
+<p>设逻辑 qubit 是 <span class="arithmatex">\(|\psi\rangle=\alpha|0\rangle+\beta|1\rangle\)</span>，传输时恰有一位发生 bit-flip。你不能直接测三个位来投票：那会把叠加态的逻辑内容暴露给测量。<strong>能否只测某些关联，就知道是哪一位坏了？</strong></p>
+<h3 id="2">先预测：如果第 2 位翻了，读数是什么？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不看表，预测 <span class="arithmatex">\(X_2\)</span> 作用在 <span class="arithmatex">\(\alpha|000\rangle+\beta|111\rangle\)</span> 后，<span class="arithmatex">\(Z_1Z_2\)</span> 和 <span class="arithmatex">\(Z_2Z_3\)</span> 的符号。再预测一个没有错误的代码字会不会给出同样的符号。你的答案应当只依赖错误位置，而不依赖 <span class="arithmatex">\(\alpha,\beta\)</span>。</p>
+<h3 id="bit-flip-repetition-code">最小模型：三比特 bit-flip repetition code<a class="headerlink" href="#bit-flip-repetition-code" title="Permanent link"></a></h3>
+<p>编码基底为 <span class="arithmatex">\(|0_L\rangle=|000\rangle\)</span>、<span class="arithmatex">\(|1_L\rangle=|111\rangle\)</span>，所以</p>
+<div class="arithmatex">\[
+|\psi_L\rangle=\alpha|000\rangle+\beta|111\rangle.
+\]</div>
+<p>用两个稳定子（奇偶校验）<span class="arithmatex">\(S_1=Z_1Z_2\)</span>、<span class="arithmatex">\(S_2=Z_2Z_3\)</span> 做综合测量。它们检验相邻两位是否相同，但不区分代码空间里的 <span class="arithmatex">\(\alpha\)</span> 与 <span class="arithmatex">\(\beta\)</span>。</p>
+<h3 id="_2">形式推导：四种综合，四个分支<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>四个候选错误的状态与综合为</p>
+<div class="arithmatex">\[
+\begin{array}{c|c|c}
+E &amp; E|\psi_L\rangle &amp; (S_1,S_2)\\ \hline
+I &amp; \alpha|000\rangle+\beta|111\rangle &amp; (+,+)\\
+X_1 &amp; \alpha|100\rangle+\beta|011\rangle &amp; (-,+)\\
+X_2 &amp; \alpha|010\rangle+\beta|101\rangle &amp; (-,-)\\
+X_3 &amp; \alpha|001\rangle+\beta|110\rangle &amp; (+,-)
+\end{array}
+\]</div>
+<p>综合测量读出的是错误的 syndrome；在这个理想模型里它不泄露 <span class="arithmatex">\(\alpha,\beta\)</span>。下面的实验台把 Encode → Error → Syndrome → Correct 逐格走一遍。</p>
+<div class="learning-lab" data-learning-lab="qec">
+<p><strong>无 JavaScript 时也可读：</strong>先编码为 <span class="arithmatex">\(\alpha|000\rangle+\beta|111\rangle\)</span>，再选择一个错误：</p>
+<table>
+<thead>
+<tr>
+<th>错误</th>
+<th>状态</th>
+<th>综合 <span class="arithmatex">\((Z_1Z_2,Z_2Z_3)\)</span></th>
+<th>恢复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(I\)</span></td>
+<td><span class="arithmatex">\(\alpha\lvert000\rangle+\beta\lvert111\rangle\)</span></td>
+<td><span class="arithmatex">\((+,+)\)</span></td>
+<td><span class="arithmatex">\(I\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(X_1\)</span></td>
+<td><span class="arithmatex">\(\alpha\lvert100\rangle+\beta\lvert011\rangle\)</span></td>
+<td><span class="arithmatex">\((-,+)\)</span></td>
+<td><span class="arithmatex">\(X_1\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(X_2\)</span></td>
+<td><span class="arithmatex">\(\alpha\lvert010\rangle+\beta\lvert101\rangle\)</span></td>
+<td><span class="arithmatex">\((-,-)\)</span></td>
+<td><span class="arithmatex">\(X_2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(X_3\)</span></td>
+<td><span class="arithmatex">\(\alpha\lvert001\rangle+\beta\lvert110\rangle\)</span></td>
+<td><span class="arithmatex">\((+,-)\)</span></td>
+<td><span class="arithmatex">\(X_3\)</span></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Encode：</strong><span class="arithmatex">\(|\psi\rangle\mapsto|\psi_L\rangle\)</span>。</li>
+<li><strong>Error：</strong>注入 <span class="arithmatex">\(I\)</span>、<span class="arithmatex">\(X_1\)</span>、<span class="arithmatex">\(X_2\)</span> 或 <span class="arithmatex">\(X_3\)</span> 之一。</li>
+<li><strong>Syndrome：</strong>只测 <span class="arithmatex">\(Z_1Z_2\)</span> 与 <span class="arithmatex">\(Z_2Z_3\)</span> 的 <span class="arithmatex">\(\pm1\)</span>。</li>
+<li><strong>Correct：</strong>按表施加相应的 <span class="arithmatex">\(X_i\)</span>，回到代码空间。</li>
+</ol>
+<p><strong>边界：</strong>这只纠正一个 bit-flip（<span class="arithmatex">\(X\)</span>）错误；任意相位错误（<span class="arithmatex">\(Z\)</span>）不受保护，两个 bit-flip 也可能超出它的纠错能力。编码的是关联，不是把一个未知态复制三份，因此没有违反不可克隆定理。</p>
+</div>
+<h3 id="_3">边界 / 反例：这个码明确不能做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>若发生 <span class="arithmatex">\(Z_2\)</span>，则 <span class="arithmatex">\(Z_2|\psi_L\rangle=\alpha|000\rangle-\beta|111\rangle\)</span>，两个稳定子仍给 <span class="arithmatex">\((+,+)\)</span>；三比特 bit-flip 码看不见它，也不能把它恢复。若有两个 <span class="arithmatex">\(X\)</span> 错误，多数表决也可能把错误方向认反。相位码、Shor 九比特码或表面码才把 <span class="arithmatex">\(X\)</span> 与 <span class="arithmatex">\(Z\)</span> 两类信息一起纳入设计。</p>
+<h3 id="_4">迁移提示：把“指纹”方法搬到别处<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>在纸上给三比特码加一个 Hadamard 层，问它怎样把相位错误换成另一个基底中的 bit-flip；再比较 Shor 九比特码为何需要两层重复结构。最后写一句自己的边界声明：你的码能纠正哪类、多少个错误？综合测量是否仍然不读取逻辑振幅？</p>
+</section>
 <h2 id="1">1. 三重困境与破局思想<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>经典纠错靠<strong>复制</strong>（重复码多数表决）——量子三堵墙：不可克隆（qi-01）；测量破坏叠加；错误还是<strong>连续</strong>的（任意小角度偏转，不止翻转）。</p>
-<p><strong>破局（Shor 1995）</strong>：不复制<strong>态</strong>，把逻辑信息编进<strong>多体纠缠的关联</strong>里；不测<strong>数据</strong>，测<strong>错误征状</strong>（syndrome——稳定子的本征值：只暴露"哪错了"、不暴露"<span class="arithmatex">\(\alpha, \beta\)</span> 是多少"）；连续错误被征状测量<strong>离散化</strong>（塌缩到"没错/X 错/Z 错"的分支——测量的破坏性反成盟友）。</p>
+<p>经典纠错靠<strong>复制经典符号</strong>（重复码多数表决）——量子三堵墙：不可克隆（qi-01）；测量破坏叠加；错误还是<strong>连续</strong>的（任意小角度偏转，不止翻转）。量子编码复制的是计算基态之间的关联，不是把一个未知态做成三份独立副本。</p>
+<p><strong>破局（Shor 1995）</strong>：不复制<strong>态</strong>，把逻辑信息编进<strong>多体纠缠的关联</strong>里；不测<strong>数据</strong>，测<strong>错误征状</strong>（syndrome——稳定子的本征值：只暴露"哪错了"、不暴露"<span class="arithmatex">\(\alpha, \beta\)</span> 是多少"）。对一个设计好的完整量子码，连续误差可在 Pauli 基底中分解，综合测量把可纠正分支区分开；但不是每个小码都能纠正每类分支——本页三比特实验只处理一个 <span class="arithmatex">\(X\)</span> 错误，<span class="arithmatex">\(Z\)</span> 相位错误的综合仍是 <span class="arithmatex">\((+,+)\)</span>。</p>
 <h2 id="2-shor">2. 三比特码到 Shor 码【推导级】<a class="headerlink" href="#2-shor" title="Permanent link"></a></h2>
-<p><strong>三比特翻转码</strong>：<span class="arithmatex">\(|0_L\rangle = |000\rangle,\ |1_L\rangle = |111\rangle\)</span>（编码 = 两个 CNOT——是纠缠不是克隆：<span class="arithmatex">\(\alpha|000\rangle + \beta|111\rangle \neq (\alpha|0\rangle+\beta|1\rangle)^{\otimes3}\)</span>）。<strong>征状测量</strong>：测 <span class="arithmatex">\(Z_1Z_2\)</span> 与 <span class="arithmatex">\(Z_2Z_3\)</span>（奇偶校验的量子版）——四种征状定位"哪一位翻了"而对 <span class="arithmatex">\((\alpha, \beta)\)</span> 零信息；按征状施 <span class="arithmatex">\(X\)</span> 修复。<span class="arithmatex">\(\blacksquare\)</span> 只防 <span class="arithmatex">\(X\)</span> 错；<strong>相位错</strong>（<span class="arithmatex">\(Z\)</span>：<span class="arithmatex">\(|1\rangle \to -|1\rangle\)</span>——量子特有）在 Hadamard 基下是翻转错 ⇒ 三比特相位码同构。</p>
-<p><strong>Shor 九比特码</strong>：两层嵌套（相位码套翻转码）——<strong>任意单比特错误</strong>（<span class="arithmatex">\(X, Z, Y = XZ\)</span> 及其任意线性组合——连续错误的离散化在此兑现）可纠。<strong>稳定子语言一嘴【引用】</strong>：码空间 = 一组对易 Pauli 算符的共同 +1 本征空间——群论（抽代线）接管纠错设计；CSS 构造把经典好码成对翻译成量子码。</p>
+<p><strong>三比特翻转码</strong>：<span class="arithmatex">\(|0_L\rangle = |000\rangle,\ |1_L\rangle = |111\rangle\)</span>（编码 = 两个 CNOT——是关联不是克隆：<span class="arithmatex">\(\alpha|000\rangle + \beta|111\rangle \neq (\alpha|0\rangle+\beta|1\rangle)^{\otimes3}\)</span>）。<strong>综合测量</strong>：测 <span class="arithmatex">\(Z_1Z_2\)</span> 与 <span class="arithmatex">\(Z_2Z_3\)</span>（奇偶校验的量子版）——四种综合定位"哪一位翻了"而对 <span class="arithmatex">\((\alpha, \beta)\)</span> 零信息；按综合施 <span class="arithmatex">\(X\)</span> 修复。<span class="arithmatex">\(\blacksquare\)</span> 这个码只纠正一个 <span class="arithmatex">\(X\)</span> bit-flip；<strong>相位错</strong>（<span class="arithmatex">\(Z\)</span>：<span class="arithmatex">\(|1\rangle \to -|1\rangle\)</span>）在 Hadamard 基下可转成翻转错，因此需要另建三比特相位码，不能把本码当作通用保护。</p>
+<p><strong>Shor 九比特码</strong>：两层嵌套（相位码套翻转码）——在理想噪声模型中，<strong>任意单比特 Pauli 错误</strong>（<span class="arithmatex">\(X, Z, Y = XZ\)</span> 及其线性组合）可纠；这是九比特码的能力，不是上面三比特 bit-flip 码的能力。<strong>稳定子语言一嘴【引用】</strong>：码空间 = 一组对易 Pauli 算符的共同 +1 本征空间——群论（抽代线）接管纠错设计；CSS 构造把经典好码成对翻译成量子码。</p>
 <h2 id="3">3. 阈值定理与表面码<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>定理（容错阈值）【引用+机理】</strong> 若单步物理错误率 <span class="arithmatex">\(p &lt; p_{\text{th}}\)</span>，则用码级联/扩码可把逻辑错误率压到任意小，开销多项式对数级。
-<em>机理</em>：一层编码把错误率 <span class="arithmatex">\(p \to cp^2\)</span>（两个错才致命）——<span class="arithmatex">\(p &lt; \frac1c\)</span> 时逐层平方压低（<strong>与 it2-02 信道编码定理同一精神</strong>：冗余对抗噪声，量子版的额外难点是纠错电路自己也出错——"容错"二字的分量）。</p>
-<p><strong>表面码（当前主流路线）</strong>：qubit 排在二维格上、只需近邻测量（工程友好），阈值高（~1%——实验可及）；逻辑错误率随码距指数压低——<strong>2023–24 年起 Google/各平台已演示"扩码变好"的盈亏平衡跨越</strong>【引用】：纠错从理论走进了数据。代价：<strong>一个好逻辑比特 ≈ 千级物理比特</strong>——"百万物理比特跑 Shor"的产业路线图刻度。</p>
+<em>机理直觉</em>：对理想的重复码，一层编码把错误率近似写成 <span class="arithmatex">\(p \to cp^2\)</span>（两个错才致命）——<span class="arithmatex">\(p &lt; \frac1c\)</span> 时逐层平方压低。完整阈值定理还要把门、测量和综合电路本身的错误纳入容错构造；这里的平方关系是帮助建立直觉的玩具模型（<strong>与 it2-02 信道编码定理同一精神</strong>）。</p>
+<p><strong>表面码（重要路线之一）</strong>：qubit 排在二维格上、只需近邻测量（工程友好）；阈值、逻辑错误率和物理 qubit 开销都依噪声模型、解码器与硬件实现而变，不能用单一的 "~1%" 或 "~千级" 概括。其核心直觉仍是：码距增大时，低于阈值的逻辑错误率可快速下降；工程演示的意义正在于检验这条标度，而不是给出一张通用资源价格表。</p>
 <h2 id="4-nisq-2026">4. NISQ 现实地图（2026 快照，按老规矩标注时效）<a class="headerlink" href="#4-nisq-2026" title="Permanent link"></a></h2>
 <p><strong>NISQ</strong>（含噪中等规模量子）：百到千级物理比特、无全面纠错。<strong>现实主义三条</strong>：</p>
 <ul>
@@ -88,5 +185,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/qec.js"></script>
 </body>
 </html>

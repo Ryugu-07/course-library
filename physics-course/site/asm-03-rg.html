@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,47 +50,204 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：把“换尺度”变成一条可读的流</a><ul>
+<li><a href="#rg-learning-title">1. 谜题：粗粒化以后，温度到底往哪儿走？</a></li>
+<li><a href="#2">2. 先预测：先不要点实验台</a></li>
+<li><a href="#3-1d-toy">3. 最小模型：一条精确闭合的 1D 链 + 一个明确的 toy</a></li>
+<li><a href="#4">4. 动手操作：两个页签，先读数再读图</a></li>
+<li><a href="#5">5. 误区 / 边界：这页的公式没有声称什么</a></li>
+<li><a href="#6">6. 正式映射：从一条相线到参数空间的雅可比</a></li>
+<li><a href="#7">7. 迁移问题：换模型时，先问“哪些假设还在？”</a></li>
+</ul>
+</li>
 <li><a href="#1-rg">1. RG 变换：粗粒化 + 重标度</a></li>
 <li><a href="#2-ising-rg">2. 一维 Ising 的精确 RG【推导】</a></li>
 <li><a href="#3">3. 临界指数 = 不动点的线性化</a></li>
 <li><a href="#4-rg">4. RG 的世界观辐射（本页的真正遗产）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">统计进阶 III · 重整化群入门<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Goldenfeld §9 / Cardy 入门 ｜ <strong>前置</strong>：asm-01/02、ode-03（不动点与线性化——RG 的数学就是它）
-二十世纪后半叶物理学最深的思想（Wilson 1971，诺奖）：<strong>逐尺度看世界</strong>。粗粒化 + 重标度 = 参数空间的动力系统；<strong>临界点 = 不动点，临界指数 = 不动点处线性化的特征值</strong>——普适性（asm-02 之谜）由此一句话解释：不同材料流向同一个不动点。</p>
+二十世纪后半叶物理学最深的思想（Wilson 1971，诺奖）：<strong>逐尺度看世界</strong>。粗粒化 + 重标度 = 参数空间的动力系统；<strong>临界点 = 不动点，临界指数 = 不动点处线性化的特征值</strong>——普适性（asm-02 之谜）由此得到一个机制解释：满足相同维数、对称性与相互作用范围等条件的系统，可能流向同一不动点；不是所有微观细节都自动无关。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="rg-learning-title" class="learning-layer">
+<h2 id="_1">学习层：把“换尺度”变成一条可读的流<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="rg-learning-title">1. 谜题：粗粒化以后，温度到底往哪儿走？<a class="headerlink" href="#rg-learning-title" title="Permanent link"></a></h3>
+<p>你把一维铁磁链每隔一个格点抽掉，再把剩下的格距重新命名为一个单位。看起来只是删掉一半变量，参数却发生了确定的变化。<strong>谜题</strong>是：如果每一步都把短距离细节抹掉，为什么还能从流向判断“没有有限温相变”？以及，低温端的“长程关联”是否就等同于“临界点”？</p>
+<h3 id="2">2. 先预测：先不要点实验台<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>对无外场一维最近邻链，若 <span class="arithmatex">\(K_0=1\)</span>，预测 <span class="arithmatex">\(K_1\)</span> 与 <span class="arithmatex">\(T_1/J=1/K_1\)</span> 相对 <span class="arithmatex">\(K_0,T_0/J\)</span> 如何变化。</li>
+<li>关联长度用 <strong>connected correlation</strong> 定义时，抽稀一格并重标度后，当前粗粒格单位中的 <span class="arithmatex">\(\xi\)</span> 应该变大、变小还是不变？若换回原始长度单位呢？</li>
+<li>二维 toy 流中若 <span class="arithmatex">\(u_0=0\)</span>，而 <span class="arithmatex">\(v_0\neq0\)</span>，你预测它会不会离开临界流形？若 <span class="arithmatex">\(u_0\neq0\)</span>，即使 <span class="arithmatex">\(v_0\)</span> 很快衰减，最终会发生什么？</li>
+</ol>
+<h3 id="3-1d-toy">3. 最小模型：一条精确闭合的 1D 链 + 一个明确的 toy<a class="headerlink" href="#3-1d-toy" title="Permanent link"></a></h3>
+<p><strong>A：无外场一维 Ising decimation。</strong> 取</p>
+<div class="arithmatex">\[
+H=-J\sum_i s_i s_{i+1},\qquad s_i=\pm1,\qquad K=\beta J=\frac{J}{k_BT},\qquad b=2.
+\]</div>
+<p>在 <span class="arithmatex">\(h_{\mathrm{phys}}=0\)</span> 且只保留最近邻耦合时，求和掉偶数格点可以精确写成同一形式（外加与自旋无关的自由能常数）：</p>
+<div class="arithmatex">\[
+\tanh K'=\tanh^2K,\qquad K'=\operatorname{artanh}(\tanh^2K).
+\]</div>
+<p>有限温度的对称 Gibbs 状态有 <span class="arithmatex">\(\langle s_i\rangle=0\)</span>，因此本实验的 connected 两点函数为</p>
+<div class="arithmatex">\[
+C_c(r)=\langle s_0s_r\rangle-\langle s_0\rangle\langle s_r\rangle=(\tanh K)^r,\qquad \frac{\xi_c}{a}=-\frac{1}{\log(\tanh K)}.
+\]</div>
+<p>这里 <span class="arithmatex">\(a\)</span> 是当前粗粒格距。抽稀后 <span class="arithmatex">\(a'=2a\)</span>，<span class="arithmatex">\(\xi_c/a'\)</span> 由 <span class="arithmatex">\(K'\)</span> 重新计算；换回原始长度单位则 <span class="arithmatex">\(2^n\xi_c(K_n)/a_n\)</span> 保持不变，这是同一物理长度的两种记账。</p>
+<p><strong>B：临界点附近的二维 toy linearized flow。</strong> 这不是某个具体材料或具体模型的指数表，而是用来读懂线性化的教学动力系统：</p>
+<div class="arithmatex">\[
+u'=b^{y_t}u,\qquad v'=b^{y_i}v,\qquad y_t&gt;0,\quad y_i&lt;0.
+\]</div>
+<p>把 <span class="arithmatex">\(u\)</span> 当作热方向的 scaling field、<span class="arithmatex">\(v\)</span> 当作无关方向；<span class="arithmatex">\(u=0\)</span> 是 toy 的临界流形，且在“<span class="arithmatex">\(u\)</span> 就是温度偏离量、标度假设成立”的条件下 <span class="arithmatex">\(\nu=1/y_t\)</span>。这里的 <span class="arithmatex">\(y_t,y_i,\nu\)</span> <strong>只属于这个 toy 的参数化</strong>，不能冒充某种材料或具体模型的指数。</p>
+<h3 id="4">4. 动手操作：两个页签，先读数再读图<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验台的 A 页签调 <span class="arithmatex">\(K_0\)</span>（等价地读 <span class="arithmatex">\(T_0/J=1/K_0\)</span>）和迭代步数，逐行显示 <span class="arithmatex">\(K_n,T_n/J,\xi_c/a_n\)</span> 以及换回原始单位的物理关联长度，并用 SVG 画出流向。B 页签调 <span class="arithmatex">\(b,y_t,y_i,u_0,v_0\)</span> 和步数：图中的竖线是 <span class="arithmatex">\(u=0\)</span> 临界流形，横纵方向分别标出 relevant/irrelevant 流；表格给出每一步的 <span class="arithmatex">\(u_n,v_n\)</span>。所有数值都由公式直接计算，不抽样、不卡随机种子。</p>
+<div class="learning-lab" data-learning-lab="rg-flow">
+<p><strong>无 JavaScript 时的静态读法：</strong>A 页签以 <span class="arithmatex">\(K_0=1\)</span>、<span class="arithmatex">\(n=4\)</span> 为例；B 页签以 <span class="arithmatex">\(b=2,y_t=1,y_i=-1,u_0=0.25,v_0=0.8,n=4\)</span> 为例。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">A: <span class="arithmatex">\(n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(K_n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(T_n/J\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\xi_c/a_n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(2^n\xi_c/a_n\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.000000</td>
+<td style="text-align: right;">1.000000</td>
+<td style="text-align: right;">3.671861</td>
+<td style="text-align: right;">3.671861</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.662501</td>
+<td style="text-align: right;">1.509431</td>
+<td style="text-align: right;">1.835930</td>
+<td style="text-align: right;">3.671861</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.350061</td>
+<td style="text-align: right;">2.856644</td>
+<td style="text-align: right;">0.917965</td>
+<td style="text-align: right;">3.671861</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.113672</td>
+<td style="text-align: right;">8.797236</td>
+<td style="text-align: right;">0.458983</td>
+<td style="text-align: right;">3.671861</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.012812</td>
+<td style="text-align: right;">78.054616</td>
+<td style="text-align: right;">0.229491</td>
+<td style="text-align: right;">3.671861</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">B: <span class="arithmatex">\(n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(u_n\)</span>（relevant）</th>
+<th style="text-align: right;"><span class="arithmatex">\(v_n\)</span>（irrelevant）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.2500</td>
+<td style="text-align: right;">0.8000</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.5000</td>
+<td style="text-align: right;">0.4000</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.0000</td>
+<td style="text-align: right;">0.2000</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.0000</td>
+<td style="text-align: right;">0.1000</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4.0000</td>
+<td style="text-align: right;">0.0500</td>
+</tr>
+</tbody>
+</table>
+<p>所以 A 的 <span class="arithmatex">\(K\)</span> 流向高温固定点 <span class="arithmatex">\(K=0\)</span>，但原始单位的 <span class="arithmatex">\(\xi_c\)</span> 只是在重标度记账下保持；B 中 <span class="arithmatex">\(u_0\neq0\)</span> 最终离开线性化邻域，而 <span class="arithmatex">\(u_0=0\)</span> 才留在 toy 临界流形上。</p>
+</div>
+<h3 id="5">5. 误区 / 边界：这页的公式没有声称什么<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>低温固定点不等于有限温临界点</strong>：一维映射的 <span class="arithmatex">\(K=\infty\)</span> 是 <span class="arithmatex">\(T=0\)</span> 端点；在对称零温极限里 <span class="arithmatex">\(\xi_c\)</span> 可发散，但这不是有限温相变。一般有序相还会有 <span class="arithmatex">\(\langle s_0s_r\rangle\to m^2\)</span> 的平台，必须先减去 <span class="arithmatex">\(m^2\)</span> 才能谈 connected correlation length；在精确 <span class="arithmatex">\(T=0\)</span> 的纯基态中，连接涨落甚至可以完全消失。</li>
+<li><strong>A 的精确闭合有边界</strong>：<span class="arithmatex">\(\tanh K'=\tanh^2K\)</span> 只适用于无外场的一维最近邻链、抽稀比例 <span class="arithmatex">\(b=2\)</span>（周期链或无限链的 bulk 记账）；有限开链的端点会带边界项。加外场、长程相互作用或换到更高维后，不能直接套这条一维映射。</li>
+<li><strong>RG 一般会生成新耦合</strong>：精确积掉自由度通常产生外场、次近邻、长程和多自旋项；“仍是 Ising 形”只有在特殊闭合情形成立，或是把完整有效作用量截断并投影回某个 ansatz 的近似，不能说截断后总保持 Ising 形。</li>
+<li><strong><span class="arithmatex">\(\beta\)</span> 的符号要先约定</strong>：本页若写 <span class="arithmatex">\(\beta_{\ell}(g)=\mathrm d g/\mathrm d\ell\)</span>，取 <span class="arithmatex">\(\ell=\log b\)</span> 沿粗粒化、向长距离走；有些场论文本用 <span class="arithmatex">\(\beta_{\mu}(g)=\mathrm d g/\mathrm d\log\mu\)</span>，而 <span class="arithmatex">\(\mu\propto1/L\)</span>，所以两者符号相反。相关/无关的判别以本页的 <span class="arithmatex">\(b^{y_i}\)</span> 约定为准。</li>
+<li><strong>B 是线性化玩具</strong>：它只在临界点附近且变量仍在小邻域时可信；<span class="arithmatex">\(\nu=1/y_t\)</span> 还需要 <span class="arithmatex">\(u\)</span> 确实是热 scaling field、并采用相应的关联长度标度假设。它不是具体材料、格子或模型的数值预测。</li>
+<li><strong>普适性有条件</strong>：同一普适类通常要求维数、序参量对称性、相互作用范围、守恒律/动力学类别等关键结构相同；微观晶格常数等细节可能无关，但改变这些结构可以改变固定点与指数。</li>
+</ul>
+<h3 id="6">6. 正式映射：从一条相线到参数空间的雅可比<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>一般把所有允许的耦合收成 <span class="arithmatex">\(g=(g_1,g_2,\ldots)\)</span>，粗粒化与重标度是</p>
+<div class="arithmatex">\[
+g'=R_b(g),\qquad R_b(g^*)=g^*,\qquad \delta g_i'=b^{y_i}\delta g_i.
+\]</div>
+<p><span class="arithmatex">\(y_i&gt;0\)</span> 的 relevant 方向会放大，必须调准才能落到临界流形；<span class="arithmatex">\(y_i&lt;0\)</span> 的 irrelevant 方向会衰减；<span class="arithmatex">\(y_i=0\)</span> 是 marginal，需要更高阶项判断。若温度偏离量 <span class="arithmatex">\(t\)</span> 沿 <span class="arithmatex">\(y_t&gt;0\)</span> 方向，关联长度满足</p>
+<div class="arithmatex">\[
+\xi(t)=b\,\xi(b^{y_t}t)\quad\Longrightarrow\quad \xi(t)\propto |t|^{-1/y_t},\qquad \nu=\frac1{y_t}.
+\]</div>
+<p>这里的 <span class="arithmatex">\(b\)</span> 是离散粗粒化的尺度因子；把 <span class="arithmatex">\(b=e^\ell\)</span> 取连续极限才得到 beta 函数。固定点、线性化和临界指数的关系是正式映射，A 的一维精确流与 B 的 toy 只是在不同参数空间里的两个可计算投影。</p>
+<h3 id="7">7. 迁移问题：换模型时，先问“哪些假设还在？”<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<ol>
+<li>对 A 取 <span class="arithmatex">\(K_0=1.5\)</span>，不用实验台先估计 <span class="arithmatex">\(K_1\)</span> 的方向，并说明 <span class="arithmatex">\(T/J\)</span> 与 <span class="arithmatex">\(\xi_c/a_n\)</span> 各自为什么变化；再用 <span class="arithmatex">\(\xi_{\mathrm{phys}}/a_0=2^n\xi_c/a_n\)</span> 检查长度记账。</li>
+<li>在 B 中令 <span class="arithmatex">\(u_0=0,v_0=0.7\)</span>，分别把 <span class="arithmatex">\(y_i\)</span> 调成 <span class="arithmatex">\(-0.2\)</span> 和 <span class="arithmatex">\(-1.5\)</span>，解释两条轨迹都留在临界流形但靠近速度不同；再令 <span class="arithmatex">\(u_0=0.02\)</span>，说明为什么“很小”不等于“无关”。</li>
+<li>把“二维 toy 的 <span class="arithmatex">\(y_t=1\)</span>”换成二维方格 Ising、三维短程磁体或含长程相互作用的模型时，哪些输入（维数、对称性、相互作用范围、是否有外场）必须重新检查？写出一个不能从本页直接搬走的指数，并说明原因。</li>
+</ol>
+</section>
 <h2 id="1-rg">1. RG 变换：粗粒化 + 重标度<a class="headerlink" href="#1-rg" title="Permanent link"></a></h2>
-<p><strong>三步操作</strong>：① <strong>粗粒化</strong>：把 <span class="arithmatex">\(b^d\)</span> 个自旋合成一个块自旋（多数表决/求和）——积掉短波涨落；② <strong>重标度</strong>：长度除以 <span class="arithmatex">\(b\)</span> 恢复原格距；③ <strong>读出新耦合</strong>：粗粒系统仍是 Ising 形（+ 新生项），耦合常数被映射 <span class="arithmatex">\(K' = R(K)\)</span>。</p>
-<p><strong>核心观察</strong>：关联长度按 <span class="arithmatex">\(\xi' = \xi/b\)</span> 缩短 ⇒ <strong>不动点只有两种</strong>：<span class="arithmatex">\(\xi = 0\)</span>（平庸：高温乱/低温齐——粗粒化后更乱/更齐的两个汇）与 <span class="arithmatex">\(\xi = \infty\)</span>（<strong>临界不动点</strong>——粗粒化后自相似：临界点的涨落"没有特征尺度"，分形式的自相似是它的视觉面目）。</p>
+<p><strong>三步操作</strong>：① <strong>粗粒化</strong>：把 <span class="arithmatex">\(b^d\)</span> 个自旋合成一个块自旋（多数表决/求和）——积掉短波涨落；② <strong>重标度</strong>：长度除以 <span class="arithmatex">\(b\)</span> 恢复原格距；③ <strong>读出新有效作用量</strong>：一般得到更大的耦合空间 <span class="arithmatex">\(g' = R_b(g)\)</span>，其中可能包括外场、长程、次近邻和多自旋项。只有特殊的精确闭合（本页 A）或明确声明的截断投影，才可以把它简写成单个 <span class="arithmatex">\(K'=R(K)\)</span>。</p>
+<p><strong>核心观察</strong>：用 connected 两点函数定义的关联长度，在当前粗粒格单位中按 <span class="arithmatex">\(\xi_c' = \xi_c/b\)</span> 缩短。有限相关长度的相通常流向短程的平庸吸引子；临界固定点才要求 <span class="arithmatex">\(\xi_c/a=\infty\)</span>，即没有有限相关尺度。低温固定点可能是零温有序端点，不能仅凭“低温”或未减去 <span class="arithmatex">\(m^2\)</span> 的总关联就把它叫作临界固定点。</p>
 <h2 id="2-ising-rg">2. 一维 Ising 的精确 RG【推导】<a class="headerlink" href="#2-ising-rg" title="Permanent link"></a></h2>
-<p>抽稀（decimation）：对偶数格点求和。两步转移矩阵 <span class="arithmatex">\(T^2\)</span> 仍是 Ising 型转移矩阵 ⇒ 新耦合满足</p>
+<p>抽稀（decimation）：对偶数格点求和。在<strong>无外场一维最近邻链</strong>的 bulk 中，两步转移矩阵 <span class="arithmatex">\(T^2\)</span> 仍可写成同一最近邻 Ising 形式，差一个与自旋无关的加性常数 ⇒ 新耦合满足</p>
 <div class="arithmatex">\[
 \tanh K' = \tanh^2 K \qquad (K = \beta J)
 \]</div>
-<p><strong>流图分析</strong>（ode-03 的一维相线）：<span class="arithmatex">\(\tanh K &lt; 1\)</span> ⇒ <span class="arithmatex">\(K' &lt; K\)</span> <strong>恒流向高温不动点 <span class="arithmatex">\(K = 0\)</span></strong>——唯一的另一个不动点 <span class="arithmatex">\(K = \infty\)</span>（零温）不稳定：<strong>一维无有限温相变的 RG 证明</strong>（asm-02 转移矩阵结论的第三种证法，且给出"为什么"：任何有限耦合都被粗粒化冲淡）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>流图分析</strong>（ode-03 的一维相线）：对有限 <span class="arithmatex">\(K&gt;0\)</span>，<span class="arithmatex">\(\tanh K &lt; 1\)</span> ⇒ <span class="arithmatex">\(K' &lt; K\)</span>，所以流向高温不动点 <span class="arithmatex">\(K=0\)</span>；扩展参数空间里的 <span class="arithmatex">\(K=\infty\)</span> 是零温端点。它不是有限温临界点，因而得到<strong>一维无有限温相变的 RG 证明</strong>（asm-02 转移矩阵结论的第三种证法，且给出“为什么”：任何有限耦合终会被粗粒化冲淡）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <h2 id="3">3. 临界指数 = 不动点的线性化<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="RG 流与不动点" src="assets/img/asm-03-rg-flow.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>RG 流：耦合在 \(\beta(g)=0\) 的不动点处停驻，稳定/不稳定不动点决定相与临界行为，临界指数由不动点线性化给出。</figcaption>
+<figcaption><span class="fig-id">图 3.1</span>RG 流：耦合在 \(\beta(g)=0\) 的不动点处停驻；沿本页约定的粗粒化方向，相关/无关方向决定临界流形与临界行为，临界指数由不动点线性化给出。</figcaption>
 </figure>
 <p>临界不动点 <span class="arithmatex">\(K^*\)</span> 附近线性化（ode-03 的 Jacobi 流程）：<span class="arithmatex">\(\delta K' = \Lambda\,\delta K\)</span>，特征值写成 <span class="arithmatex">\(\Lambda_i = b^{y_i}\)</span>：</p>
 <ul>
 <li><span class="arithmatex">\(y_i &gt; 0\)</span>：<strong>相关方向</strong>（偏离被放大——温度、外场：必须调准才能到临界点，实验上"临界点难伺候"的原因）；</li>
-<li><span class="arithmatex">\(y_i &lt; 0\)</span>：<strong>无关方向</strong>（细节被冲刷——格子形状、次近邻耦合……）——<strong>普适性的机制</strong>：微观千差万别的系统，无关方向统统衰减，流进同一个不动点 ⇒ 同一套指数。</li>
+<li><span class="arithmatex">\(y_i &lt; 0\)</span>：<strong>无关方向</strong>（某些微观细节被冲刷——例如在同一普适类内的格子形状、弱次近邻耦合……）。这解释了普适性的一个机制，但只有在维数、对称性、相互作用范围等关键结构相同的条件下，系统才可能流进同一个不动点。</li>
 </ul>
 <p><strong>指数的换算【推导】</strong>：关联长度 <span class="arithmatex">\(\xi(\delta K) = b\,\xi(b^{y_t}\delta K)\)</span> 迭代至 <span class="arithmatex">\(O(1)\)</span> ⇒ <span class="arithmatex">\(\xi \propto |\delta K|^{-1/y_t}\)</span>——<span class="arithmatex">\(\nu = \frac{1}{y_t}\)</span>；同法产出全部指数并给<strong>标度关系</strong>（<span class="arithmatex">\(\alpha + 2\beta + \gamma = 2\)</span> 等——指数不独立，两个 <span class="arithmatex">\(y\)</span> 生成全家【骨架：自由能的齐次标度形式 <span class="arithmatex">\(f(t, h) = b^{-d}f(b^{y_t}t, b^{y_h}h)\)</span> 逐个求导】）。<strong>有限尺寸标度</strong>一嘴：<span class="arithmatex">\(L\)</span> 有限时 <span class="arithmatex">\(\xi \to L\)</span> 截断——数值模拟提取指数的标准技术（comp-01 的 Ising 模拟由此定量）。</p>
 <h2 id="4-rg">4. RG 的世界观辐射（本页的真正遗产）<a class="headerlink" href="#4-rg" title="Permanent link"></a></h2>
 <ul>
 <li><strong>有效理论哲学</strong>：任何理论都是"某尺度下的有效描述"，无关算符沿流衰减——<strong>为什么低能物理可以不知道高能细节</strong>（工程能用连续介质、化学能不管夸克）：现代物理的认识论支柱；</li>
-<li><strong>场论的重整化</strong>（qft-03）：同一思想在动量空间——耦合常数"跑动"、可重整性 = 只有有限个相关方向；</li>
-<li><strong>临界维数</strong>：<span class="arithmatex">\(d \geq 4\)</span> 时涨落无关（回收 Ginzburg/平均场——asm-01 闭环），<span class="arithmatex">\(4 - \epsilon\)</span> 展开【引用 Wilson–Fisher】给三维指数的系统计算；</li>
+<li><strong>场论的重整化</strong>（qft-03）：在动量/能标上也会出现跑动耦合和尺度依赖；RG 是组织紫外与红外描述的框架，但场论与统计物理的变量、可观测量和固定点解释要逐项对应，不能用一句“完全相同”替代映射。</li>
+<li><strong>临界维数</strong>：对短程 Ising/<span class="arithmatex">\(\phi^4\)</span> 普适类，上临界维数为 <span class="arithmatex">\(d_c=4\)</span>；<span class="arithmatex">\(d&gt;4\)</span> 时平均场标度占主导，<span class="arithmatex">\(d=4\)</span> 还会有边际对数修正，<span class="arithmatex">\(4-\epsilon\)</span> 展开【引用 Wilson–Fisher】才是从四维附近系统计算低维指数的方法；这不是任意相互作用的普遍结论。</li>
 <li>🔗 <strong>ML 回声</strong>：深度网络逐层抽象与 RG 粗粒化的类比（层 = 尺度）是活跃研究纲领【引用】；扩散模型逐噪声尺度生成（comfy 课）与"逐尺度处理"同气质——"multi-scale 是自然与算法共享的组织原则"。</li>
 </ul>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（一维 RG 亲手迭代）</strong> <span class="arithmatex">\(K_0 = 1\)</span>：<span class="arithmatex">\(\tanh K' = \tanh^21 \approx 0.58^2\cdots\)</span>——数值迭代四五步看 <span class="arithmatex">\(K \to 0\)</span> 的奔流；换 <span class="arithmatex">\(K_0 = 3\)</span> 依旧——"任何有限耦合终归高温"的手感。</p>
 <p><strong>例 2（二维近似 RG）</strong> 三角格多数表决的实空间 RG（Niemeijer–van Leeuwen 一阶【引用】）：得 <span class="arithmatex">\(K^* \approx 0.34\)</span>、<span class="arithmatex">\(y_t \approx 0.88\)</span>（精确 <span class="arithmatex">\(K^* = 0.275, y_t = 1\)</span>）——粗糙近似已捕捉不动点结构：RG 的稳健性演示。</p>
 <p><strong>例 3（标度关系验证）</strong> 用 asm-02 对照表验证 <span class="arithmatex">\(\alpha + 2\beta + \gamma = 2\)</span>：平均场 <span class="arithmatex">\(0 + 1 + 1 = 2\)</span> ✓；二维 <span class="arithmatex">\(0 + \frac14 + \frac74 = 2\)</span> ✓；三维 <span class="arithmatex">\(0.110 + 0.652 + 1.237 \approx 2\)</span> ✓——三套指数一条恒等式：标度理论的体检单。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -94,5 +262,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/rg-flow.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@
 """
 
 import html
+import re
 import shutil
 import time
 from pathlib import Path
@@ -17,6 +18,20 @@ from pygments.formatters import HtmlFormatter
 ROOT = Path(__file__).parent
 LECTURES = ROOT / "lectures"
 SITE = ROOT / "site"
+SHARED = ROOT.parent / "course-shared"
+
+LEARNING_LAB_RE = re.compile(r'data-learning-lab="([a-z0-9-]+)"')
+LEARNING_HEAD = """<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>"""
 
 SITE_TITLE = "本科数学复习库"
 SITE_SUBTITLE = "定义 · 定理 · 证明思路 · 速查"
@@ -127,7 +142,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 <title>{title} · {site_title}</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/pygments.css">{learning_head}
 <script>
 (function() {{
   var t = localStorage.getItem('theme');
@@ -161,10 +176,32 @@ PAGE_TMPL = """<!DOCTYPE html>
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
-<script defer src="assets/site.js"></script>
+<script defer src="assets/site.js"></script>{learning_scripts}
 </body>
 </html>
 """
+
+
+def learning_assets(src: str):
+    names = list(dict.fromkeys(LEARNING_LAB_RE.findall(src)))
+    if not names:
+        return "", ""
+    missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
+    scripts = ['<script defer src="assets/learning/learning.js"></script>']
+    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
+
+
+def previous_build_time(out: Path, fallback: str) -> str:
+    if not out.exists():
+        return fallback
+    match = re.search(
+        r'<div class="build-time">构建于 ([^<]+)</div>',
+        out.read_text(encoding="utf-8"),
+    )
+    return match.group(1) if match else fallback
 
 
 def html_name(md_name: str) -> str:
@@ -197,6 +234,7 @@ def flat_lectures():
 
 def render_page(md_name, nav_title, prev_item, next_item, build_time):
     src = (LECTURES / md_name).read_text(encoding="utf-8")
+    learning_head, learning_scripts = learning_assets(src)
     md = markdown.Markdown(extensions=MD_EXTENSIONS, extension_configs=MD_CONFIG)
     body = md.convert(src)
     toc = getattr(md, "toc", "")
@@ -219,6 +257,7 @@ def render_page(md_name, nav_title, prev_item, next_item, build_time):
         prev_link=pager(prev_item, "上一页", "prev"),
         next_link=pager(next_item, "下一页", "next"),
         build_time=build_time,
+        learning_head=learning_head, learning_scripts=learning_scripts,
     )
 
 
@@ -238,6 +277,11 @@ def main():
         src = ROOT / "tools" / asset
         if src.exists():
             shutil.copy(src, SITE / "assets" / asset)
+    learning_dst = SITE / "assets" / "learning"
+    if learning_dst.exists():
+        shutil.rmtree(learning_dst)
+    if SHARED.exists():
+        shutil.copytree(SHARED, learning_dst)
     # 图片：把 images/ 源目录整体拷进 site/assets/img/（GPT/matplotlib 生成的插图放这里）
     img_src = ROOT / "images"
     if img_src.exists():
@@ -254,10 +298,18 @@ def main():
         print("⚠️  缺少文件, 先跳过:", ", ".join(missing))
     for i, (md_name, nav_title) in enumerate(items):
         out = SITE / html_name(md_name)
-        out.write_text(render_page(md_name, nav_title,
-                                   items[i - 1] if i > 0 else None,
-                                   items[i + 1] if i < len(items) - 1 else None,
-                                   build_time), encoding="utf-8")
+        previous = out.read_text(encoding="utf-8") if out.exists() else None
+        page_time = previous_build_time(out, build_time)
+        page = render_page(md_name, nav_title,
+                           items[i - 1] if i > 0 else None,
+                           items[i + 1] if i < len(items) - 1 else None,
+                           page_time)
+        if page != previous:
+            page = render_page(md_name, nav_title,
+                               items[i - 1] if i > 0 else None,
+                               items[i + 1] if i < len(items) - 1 else None,
+                               build_time)
+            out.write_text(page, encoding="utf-8")
         print(f"✓ {out.name}")
     print(f"\n完成: 共 {len(items)} 页 → {SITE}/")
 

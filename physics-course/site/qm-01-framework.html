@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,11 +50,21 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#sterngerlach">学习层：从 Stern–Gerlach 的两束光斑到投影测量</a><ul>
+<li><a href="#qm-framework-learning-title">1. 具体情境：第二块磁铁会给出什么？</a></li>
+<li><a href="#2">2. 先预测：在打开实验前写下四个比例</a></li>
+<li><a href="#3-xz">3. 最小二能级模型：在 x–z 大圆上算概率</a></li>
+<li><a href="#4">4. 动手实验：调分析器，再选择投影分支</a></li>
+<li><a href="#5">5. 误区 / 边界：这套图和按钮没有声称什么</a></li>
+<li><a href="#6">6. 回到正式公理：为什么同轴重复确定、不相容轴又有概率？</a></li>
+<li><a href="#7">7. 迁移题：换一个角度，自己闭环</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 为什么必须量子（三条实验判决）</a></li>
-<li><a href="#2">2. 公理体系（配泛函语言对照）</a></li>
+<li><a href="#2_1">2. 公理体系（配泛函语言对照）</a></li>
 <li><a href="#3">3. 不确定性原理（定理，非哲学）</a></li>
-<li><a href="#4">4. 定态与一般解法</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#4_1">4. 定态与一般解法</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,13 +73,114 @@
 <p><strong>对标</strong>：Griffiths <em>QM</em> §1–3 ｜ <strong>前置</strong>：泛函 II（Hilbert 空间——量子力学的数学就是它）、em-03（经典原子之死）、概率线
 量子力学的公理体系一页立齐：态 = Hilbert 空间矢量、观测量 = 自伴算符、测量 = 谱投影 + Born 概率、演化 = Schrödinger 方程。你的泛函分析在此整体变现——<strong>量子力学是 Hilbert 空间理论的物理实例化</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="qm-framework-learning-title" class="learning-layer">
+<h2 id="sterngerlach">学习层：从 Stern–Gerlach 的两束光斑到投影测量<a class="headerlink" href="#sterngerlach" title="Permanent link"></a></h2>
+<h3 id="qm-framework-learning-title">1. 具体情境：第二块磁铁会给出什么？<a class="headerlink" href="#qm-framework-learning-title" title="Permanent link"></a></h3>
+<p>Stern–Gerlach 装置把银原子束送入<strong>非均匀</strong>磁场；磁矩与场梯度的相互作用把束流分成两个可分辨的空间通道。把其中一个通道选出来，就得到一个可重复制备的二能级输入，例如记作 <span class="arithmatex">\(\lvert +z\rangle\)</span>。现在把第二块分析器绕 <span class="arithmatex">\(y\)</span> 轴转到方向 <span class="arithmatex">\(\mathbf n(\theta_m)\)</span>：它仍然只有两个输出，记为“<span class="arithmatex">\(+\)</span>”与“<span class="arithmatex">\(-\)</span>”。</p>
+<p>这里的箭头是 Bloch 球上对量子态/分析器的参数化，不是说原子在测量前已经带着一个等待被相机揭示的经典自旋方向。实验要比较的是<strong>许多同样制备的原子</strong>在两个输出通道的计数比例。</p>
+<h3 id="2">2. 先预测：在打开实验前写下四个比例<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不拖动下面的实验台，预测：</p>
+<ol>
+<li><span class="arithmatex">\(+z\)</span> 输入送入 <span class="arithmatex">\(z\)</span> 分析器，会不会全走“<span class="arithmatex">\(+\)</span>”通道？</li>
+<li>同一个输入改送入 <span class="arithmatex">\(x\)</span> 分析器，两个通道各占多少？</li>
+<li><span class="arithmatex">\(-z\)</span> 输入再测 <span class="arithmatex">\(z\)</span>，结果是否与 <span class="arithmatex">\(+z\)</span> 相反？</li>
+<li>对 <span class="arithmatex">\(+z\)</span> 先选择 <span class="arithmatex">\(+x\)</span>，再把分析器转回 <span class="arithmatex">\(z\)</span>，第二次还会不会确定？</li>
+</ol>
+<p>不要把“同一次原子先后通过两块装置”与“许多次重复制备的频率”混为一谈：下面的条形宽度表达 Born 概率，不是一段随机动画。</p>
+<h3 id="3-xz">3. 最小二能级模型：在 x–z 大圆上算概率<a class="headerlink" href="#3-xz" title="Permanent link"></a></h3>
+<p>只看 Bloch 球的 <span class="arithmatex">\(x\)</span>–<span class="arithmatex">\(z\)</span> 大圆（<span class="arithmatex">\(y=0\)</span>），令角度从 <span class="arithmatex">\(+z\)</span> 朝 <span class="arithmatex">\(+x\)</span> 测量：</p>
+<div class="arithmatex">\[
+\mathbf n(\theta)=(\sin\theta,0,\cos\theta),\qquad
+\lvert +_\theta\rangle=\cos\frac\theta2\lvert +z\rangle+\sin\frac\theta2\lvert -z\rangle.
+\]</div>
+<p><span class="arithmatex">\(\theta_s\)</span> 是制备态的参数，<span class="arithmatex">\(\theta_m\)</span> 是分析器的 <span class="arithmatex">\(+\)</span> 方向；<span class="arithmatex">\(+z,+x,-z\)</span> 分别可用 <span class="arithmatex">\(0^\circ,90^\circ,180^\circ\)</span> 标记。对自旋算符 <span class="arithmatex">\(S_{\mathbf n}=\frac\hbar2\,\mathbf n\cdot\boldsymbol\sigma\)</span>，理想分析器的投影算符为</p>
+<div class="arithmatex">\[
+P_\pm(\theta_m)=\frac12\left(I\pm\mathbf n(\theta_m)\cdot\boldsymbol\sigma\right).
+\]</div>
+<p>Born 规则给出本实验的核心数值（角度差可以取任意实数，平方会处理相应的周期性）：</p>
+<div class="arithmatex">\[
+p(+)=\langle P_+\rangle=\cos^2\!\left(\frac{\theta_m-\theta_s}{2}\right),\qquad
+p(-)=\langle P_-\rangle=\sin^2\!\left(\frac{\theta_m-\theta_s}{2}\right).
+\]</div>
+<p>若在一次理想投影测量中<strong>条件选择</strong>保留“<span class="arithmatex">\(+\)</span>”分支，后续态更新为 <span class="arithmatex">\(P_+\lvert\psi\rangle/\sqrt{p(+)}\)</span>，在这个大圆模型里就是 <span class="arithmatex">\(\theta_s\leftarrow\theta_m\)</span>；保留“<span class="arithmatex">\(-\)</span>”则是 <span class="arithmatex">\(\theta_s\leftarrow\theta_m+\pi\)</span>。按钮不会替你抽一个随机结果，而是让你检查每一个条件分支的后续预测。</p>
+<h3 id="4">4. 动手实验：调分析器，再选择投影分支<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先用 <span class="arithmatex">\(+z,+x,-z\)</span> 预设，再拖动分析器角度 <span class="arithmatex">\(\theta_m\)</span>。观察二维大圆上的制备方向与分析器方向、两个概率条和分束示意如何一起变化。点击“保留 <span class="arithmatex">\(+\)</span>”或“保留 <span class="arithmatex">\(-\)</span>”会按投影公理更新当前态；随后把分析器留在原轴再看一次，或转到不相容轴后再看一次。实验只计算公式，不模拟随机抽样，因此每次刷新都给出同样的数值。</p>
+<div class="learning-lab" data-learning-lab="quantum-measurement">
+<p><strong>无 JavaScript 时的静态读法：</strong>角度从 <span class="arithmatex">\(+z\)</span> 朝 <span class="arithmatex">\(+x\)</span> 计，使用
+<span class="arithmatex">\(p(+)=\cos^2((\theta_m-\theta_s)/2)\)</span>、<span class="arithmatex">\(p(-)=\sin^2((\theta_m-\theta_s)/2)\)</span>。表中“选 <span class="arithmatex">\(+x\)</span>”表示第一次测量在 <span class="arithmatex">\(x\)</span> 轴上<strong>条件保留</strong> <span class="arithmatex">\(+\)</span> 分支，第二次再测 <span class="arithmatex">\(z\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>制备/历史</th>
+<th style="text-align: right;">分析器</th>
+<th style="text-align: right;"><span class="arithmatex">\(p(+)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(p(-)\)</span></th>
+<th>条件保留的分支 / 后续态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(+z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>保留 <span class="arithmatex">\(+\)</span> → <span class="arithmatex">\(+z\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(+z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(x\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
+<td>保留 <span class="arithmatex">\(+\)</span> → <span class="arithmatex">\(+x\)</span>（保留 <span class="arithmatex">\(-\)</span> → <span class="arithmatex">\(-x\)</span>）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(-z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>保留 <span class="arithmatex">\(-\)</span> → <span class="arithmatex">\(-z\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(+z\to\)</span> 选 <span class="arithmatex">\(+x\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(z\)</span>（第二次）</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
+<td>第一步保留 <span class="arithmatex">\(+\)</span> → <span class="arithmatex">\(+x\)</span>；第二步未选</td>
+</tr>
+</tbody>
+</table>
+<p>点击实验中的“保留”是选择性投影后的条件更新，不是把一个本来就有经典方向的粒子“读出来”。</p>
+</div>
+<h3 id="5">5. 误区 / 边界：这套图和按钮没有声称什么<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>不是隐藏经典箭头</strong>：<span class="arithmatex">\(\theta_s\)</span> 是二能级纯态的 Bloch 参数；<span class="arithmatex">\(p(+)\ne0,1\)</span> 并不是装置不够精密，而是量子态对另一投影基的 Born 概率。</li>
+<li><strong>不是普遍三维自旋模拟</strong>：这里限制在 <span class="arithmatex">\(y=0\)</span> 的大圆，省略了相位和一般方位角；完整 qubit 还需要 Bloch 球的第三个坐标。</li>
+<li><strong>不是工程级 Stern–Gerlach 仿真</strong>：真实装置有场形状、速度分布、探测效率和退相干；这里把它们理想化为两个正交投影通道。</li>
+<li><strong>“塌缩”只作操作性简称</strong>：本页采用理想射影测量/投影公理的教学模型；按钮能裁决的是给定分支下的后续状态更新，不能由此裁决测量问题的本体论。</li>
+</ul>
+<h3 id="6">6. 回到正式公理：为什么同轴重复确定、不相容轴又有概率？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>投影满足 <span class="arithmatex">\(P_+^2=P_+\)</span>、<span class="arithmatex">\(P_-^2=P_-\)</span>、<span class="arithmatex">\(P_+P_-=0\)</span> 且 <span class="arithmatex">\(P_++P_-=I\)</span>。因此，若第一次已经条件保留 <span class="arithmatex">\(+\mathbf n\)</span>，紧接着沿同一轴测量：</p>
+<div class="arithmatex">\[
+p(+\mathbf n\mid +\mathbf n)=\langle +\mathbf n\rvert P_+(\mathbf n)\lvert+\mathbf n\rangle=1,\qquad
+p(-\mathbf n\mid +\mathbf n)=0.
+\]</div>
+<p>若在两次之间插入 <span class="arithmatex">\(+x\)</span> 轴，第一次的选择性投影把后续输入改为 <span class="arithmatex">\(\lvert+x\rangle\)</span>；再测 <span class="arithmatex">\(z\)</span> 就有</p>
+<div class="arithmatex">\[
+p(+z\mid +x)=\cos^2\frac{90^\circ}{2}=\frac12,\qquad p(-z\mid +x)=\frac12.
+\]</div>
+<p>密度算符写法是 <span class="arithmatex">\(\rho\mapsto P_\pm\rho P_\pm/p(\pm)\)</span>（选择性结果）或 <span class="arithmatex">\(\rho\mapsto P_+\rho P_++P_-\rho P_-\)</span>（忽略结果）。这两句把实验的“分束—选支—再测”收回到 Born 规则与投影公理，而不把图形当作经典轨迹的证据。</p>
+<h3 id="7">7. 迁移题：换一个角度，自己闭环<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>取初态 <span class="arithmatex">\(+z\)</span>，把分析器调到 <span class="arithmatex">\(\theta_m=60^\circ\)</span>，先手算 <span class="arithmatex">\(p(+)\)</span> 与 <span class="arithmatex">\(p(-)\)</span>；若条件保留“<span class="arithmatex">\(-\)</span>”，再把分析器调回 <span class="arithmatex">\(z\)</span>，预测第二次的两个概率。然后用 <span class="arithmatex">\(P_\pm(\theta)\)</span> 验证：为什么这仍然是同一套公理，而不是为 Stern–Gerlach 另造一条经验规则？最后说明这个二维实验遗漏了哪一个 Bloch 球自由度。</p>
+</section>
 <figure class="diagram">
-<p><img alt="Stern–Gerlach：非均匀磁场把银原子束分成上下两束：自旋量子化 + 测量塌缩的实验图。" src="assets/img/qm-01-stern-gerlach.svg" /></p>
-<figcaption><span class="fig-id">图 qm-01.1</span>Stern–Gerlach：非均匀磁场把银原子束分成上下两束：自旋量子化 + 测量塌缩的实验图。</figcaption>
+<p><img alt="Stern–Gerlach：非均匀磁场把银原子束分成上下两束的自旋分束与理想投影测量示意。" src="assets/img/qm-01-stern-gerlach.svg" /></p>
+<figcaption><span class="fig-id">图 qm-01.1</span>Stern–Gerlach：非均匀磁场把银原子束分成上下两束的自旋分束与理想投影测量示意。</figcaption>
 </figure>
 <h2 id="1">1. 为什么必须量子（三条实验判决）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>黑体辐射（sm-03：能量量子 <span class="arithmatex">\(\hbar\omega\)</span>）；光电效应（光子 <span class="arithmatex">\(E = \hbar\omega\)</span>——光的粒子性）；电子双缝干涉（<strong>单个电子</strong>逐个发射仍积累出干涉条纹——物质的波动性，de Broglie <span class="arithmatex">\(p = \hbar k\)</span>）。合并：<strong>微观对象既非经典粒子也非经典波</strong>——需要新框架。</p>
-<h2 id="2">2. 公理体系（配泛函语言对照）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 公理体系（配泛函语言对照）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -80,13 +202,13 @@
 </tr>
 <tr>
 <td>测量</td>
-<td>得本征值 <span class="arithmatex">\(a_n\)</span>，概率 <span class="arithmatex">\(\lvert\langle a_n\vert\psi\rangle\rvert^2\)</span>（Born 规则），测后塌缩到本征态</td>
+<td>得本征值 <span class="arithmatex">\(a_n\)</span>，概率 <span class="arithmatex">\(\langle\psi\rvert P_n\lvert\psi\rangle\)</span>（非简并时为 <span class="arithmatex">\(\lvert\langle a_n\vert\psi\rangle\rvert^2\)</span>）；在理想投影模型中按 <span class="arithmatex">\(P_n\)</span> 更新后续态（非简并时才是唯一的本征态）</td>
 <td>正交投影（泛函 II 投影定理）</td>
 </tr>
 <tr>
 <td>演化</td>
 <td><span class="arithmatex">\(i\hbar\frac{\partial}{\partial t}\lvert\psi\rangle = \hat H\lvert\psi\rangle\)</span></td>
-<td>酉群 <span class="arithmatex">\(e^{-i\hat Ht/\hbar}\)</span>（保范——概率守恒）</td>
+<td>酉群 <span class="arithmatex">\(e^{-i\hat Ht/\hbar}\)</span>（<span class="arithmatex">\(\hat H\)</span> 不显含时间；时变 <span class="arithmatex">\(\hat H(t)\)</span> 需用时间有序 <span class="arithmatex">\(\mathcal T\exp[-\frac{i}{\hbar}\int_0^t\hat H(\tau)\,d\tau]\)</span>；保范——概率守恒）</td>
 </tr>
 </tbody>
 </table>
@@ -95,7 +217,7 @@
 [\hat x, \hat p] = i\hbar
 \]</div>
 <p>（mech-03 的字典 <span class="arithmatex">\(\{q,p\} = 1 \to \frac{1}{i\hbar}[\hat x,\hat p]\)</span> 兑现——经典力学按泊松括号整体翻译。）</p>
-<p><strong>期望值与演化</strong>：<span class="arithmatex">\(\langle A\rangle = \langle\psi|\hat A|\psi\rangle\)</span>；<strong>Ehrenfest 定理【推导】</strong>（Schrödinger 方程代入求导一行）：<span class="arithmatex">\(\frac{d\langle A\rangle}{dt} = \frac{1}{i\hbar}\langle[\hat A, \hat H]\rangle\)</span>——期望值走经典方程（对应原理的定理形态；与经典 <span class="arithmatex">\(\frac{df}{dt} = \{f, H\}\)</span> 逐字平行）。</p>
+<p><strong>期望值与演化</strong>：<span class="arithmatex">\(\langle A\rangle = \langle\psi|\hat A|\psi\rangle\)</span>；<strong>Ehrenfest 定理【推导】</strong>（Schrödinger 方程代入求导一行）：<span class="arithmatex">\(\frac{d\langle A\rangle}{dt} = \frac{1}{i\hbar}\langle[\hat A, \hat H]\rangle + \left\langle\frac{\partial\hat A}{\partial t}\right\rangle\)</span>——若 <span class="arithmatex">\(\hat A\)</span> 无显含时间，才退化为前一项；期望值在合适条件下走经典方程（与经典 <span class="arithmatex">\(\frac{df}{dt} = \{f, H\}\)</span> 平行）。</p>
 <h2 id="3">3. 不确定性原理（定理，非哲学）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>定理（Robertson）【推导】</strong> 对任意态：</p>
 <div class="arithmatex">\[
@@ -105,17 +227,17 @@
 <div class="arithmatex">\[
 \sigma_x\sigma_p \geq \frac{\hbar}{2}
 \]</div>
-<p><strong>读法</strong>：不是测量技术的缺陷，是<strong>非对易算符没有共同本征态</strong>的数学事实；Fourier 对偶（数分 IV：窄函数宽频谱）的物理化身——位置与动量互为 Fourier 变换的表象。</p>
-<h2 id="4">4. 定态与一般解法<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>读法</strong>：这里的下界不是简单的测量技术误差；非对易算符通常不存在共同的完备本征基，因而一般不能同时具有确定值。下界具体依赖态中的对易子期望 <span class="arithmatex">\(\frac12\big|\langle[\hat A,\hat B]\rangle\big|\)</span>；对 <span class="arithmatex">\(x,p\)</span>，还不存在可归一化的共同本征态。Fourier 对偶（数分 IV：窄函数宽频谱）的物理化身——位置与动量互为 Fourier 变换的表象。</p>
+<h2 id="4_1">4. 定态与一般解法<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>分离变量（pde-01 的方法在量子的主场）：<span class="arithmatex">\(\hat H\psi_n = E_n\psi_n\)</span>（<strong>定态 Schrödinger 方程</strong>——自伴算符的本征值问题：能级 = 谱，泛函 III 的语言完全接管），一般解</p>
 <div class="arithmatex">\[
 \Psi(x, t) = \sum_n c_n\,\psi_n(x)\,e^{-iE_nt/\hbar}, \qquad c_n = \langle\psi_n|\Psi(0)\rangle
 \]</div>
 <p>——正交展开（泛函 II Fourier 展开的量子版）：<strong>解量子问题 = 求谱 + 展开初态</strong>。定态的 <span class="arithmatex">\(|\Psi|^2\)</span> 不随时间变（名字的由来）；动力学来自能级间的相位差拍（例 3）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（Born 规则手算）</strong> <span class="arithmatex">\(\Psi = \frac{1}{\sqrt2}\psi_1 + \frac{1}{\sqrt2}\psi_2\)</span>：测能量得 <span class="arithmatex">\(E_1, E_2\)</span> 各半概率；测后塌缩——再测必得同值（投影的幂等性）。期望 <span class="arithmatex">\(\langle H\rangle = \frac{E_1+E_2}{2}\)</span> 但<strong>单次测量永远得不到这个值</strong>——期望值 ≠ 可能读数：量子概率的第一课。</p>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1（Born 规则手算）</strong> <span class="arithmatex">\(\Psi = \frac{1}{\sqrt2}\psi_1 + \frac{1}{\sqrt2}\psi_2\)</span>：测能量得 <span class="arithmatex">\(E_1, E_2\)</span> 各半概率；按投影公理更新后续态——再测必得同值（投影的幂等性）。期望 <span class="arithmatex">\(\langle H\rangle = \frac{E_1+E_2}{2}\)</span> 但<strong>单次测量永远得不到这个值</strong>——期望值 ≠ 可能读数：量子概率的第一课。</p>
 <p><strong>例 2（不确定性数量级）</strong> 电子限制在原子尺度 <span class="arithmatex">\(\sigma_x \sim 10^{-10}\)</span> m：<span class="arithmatex">\(\sigma_p \geq \frac{\hbar}{2\sigma_x}\)</span> ⇒ 动能 <span class="arithmatex">\(\sim\frac{\sigma_p^2}{2m} \sim\)</span> eV 级——<strong>原子的尺寸-能量刻度由不确定性原理锁定</strong>（电子不塌进核：压得越紧动能越贵——em-03 经典塌缩悖论的量子解答）。</p>
-<p><strong>例 3（相位差拍）</strong> 上例叠加态的 <span class="arithmatex">\(|\Psi(x,t)|^2\)</span> 含 <span class="arithmatex">\(\cos\frac{(E_2 - E_1)t}{\hbar}\)</span> 项——概率密度以 Bohr 频率振荡：<strong>"能级差 = 跃迁频率"</strong>（光谱线的出处，atom-01 收线）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（相位差拍）</strong> 上例叠加态的 <span class="arithmatex">\(|\Psi(x,t)|^2\)</span> 含 <span class="arithmatex">\(\cos\frac{(E_2 - E_1)t}{\hbar}\)</span> 项——概率密度以 <span class="arithmatex">\(\omega_{21}=(E_2-E_1)/\hbar\)</span> 的 Bohr 角频率振荡：<strong>能级差除以 <span class="arithmatex">\(\hbar\)</span> 才是角频率</strong>（光谱线的出处，atom-01 收线）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：把框架跑起来——一维标准问题全家（方阱/隧穿）与谐振子的升降算符法：量子力学最优雅的代数。</em></p>
 </article>
@@ -127,5 +249,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/quantum-measurement.js"></script>
 </body>
 </html>

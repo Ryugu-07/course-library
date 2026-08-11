@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -37,6 +48,14 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">一道具体谜题：什么方向没有被转弯？</a><ul>
+<li><a href="#_2">先预测</a></li>
+<li><a href="#_3">最小模型</a></li>
+<li><a href="#eigen-geometry">可操作实验：eigen-geometry</a></li>
+<li><a href="#_5">误区与边界</a></li>
+<li><a href="#_6">返回正式理论</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 特征值与特征向量</a></li>
 <li><a href="#2">2. 对角化</a></li>
 <li><a href="#3-cayleyhamilton">3. Cayley–Hamilton 与最小多项式</a></li>
@@ -48,14 +67,96 @@
 </details>
 <h1 id="v">高代 V · 特征值与标准形<a class="headerlink" href="#v" title="Permanent link"></a></h1>
 <blockquote>
-<p>上一页的问题在此求解：给定线性变换，找一组基使它的矩阵最简单。答案分两层——运气好（可对角化）时矩阵能变成对角阵，变换 = 沿特征方向各自伸缩；运气不好时也有兜底的最简形态：Jordan 标准形。特征值理论是线性代数的"光谱学"：<strong>看一个变换，就看它的特征值</strong>。</p>
+<p>上一页的问题在此求解：给定线性变换，找一组基使它的矩阵最简单。答案分两层——运气好（可对角化）时矩阵能变成对角阵，变换 = 沿特征方向各自伸缩；运气不好时也有兜底的最简形态：Jordan 标准形。特征值理论是线性代数的“光谱学”：<strong>先看特征值，再看特征子空间与 Jordan 结构</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">一道具体谜题：什么方向没有被转弯？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>想象一张带方格的透明胶片，原点固定，胶片上的每个箭头都被同一个矩阵 <span class="arithmatex">\(A\)</span> 搬到新位置。大多数箭头会改变长度，也会改变方向；但有些方向可能只被拉长、压短，甚至反向。问题是：<strong>怎样从几何图像中找出这些方向？</strong></p>
+<div class="cl-prompt">
+
+先不要急着求行列式：对下面四个变换，分别猜一猜哪些直线会被变换后仍留在自己身上；再猜单位圆会变成什么。把“直线不变”与“箭头不动”分开写下。
+
+</div>
+<h3 id="_2">先预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>请在实验台中依次点击四个预设，并在观察前先做三件事：</p>
+<ol>
+<li>只看变换前的方向，预测哪些方向会保留；</li>
+<li>预测向量 <span class="arithmatex">\(x\)</span> 与 <span class="arithmatex">\(Ax\)</span> 的长度和方向关系；</li>
+<li>预测单位圆的主轴是否一定给出特征方向。</li>
+</ol>
+<p>实验台把网格、单位圆、向量和实特征方向分层画出；你要解释的是“为什么”，不是记住某张图。</p>
+<h3 id="_3">最小模型<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>取一个非零向量 <span class="arithmatex">\(x\)</span>。如果存在数 <span class="arithmatex">\(\lambda\)</span> 使</p>
+<div class="arithmatex">\[
+Ax=\lambda x,
+\]</div>
+<p>那么 <span class="arithmatex">\(x\)</span> 所张成的过原点直线被 <span class="arithmatex">\(A\)</span> 映入自身，这条直线的方向就是特征方向，<span class="arithmatex">\(x\)</span> 是该方向上的一个特征向量。它通常<strong>不是固定点</strong>：<span class="arithmatex">\(\lambda=2\)</span> 会把箭头变长，<span class="arithmatex">\(0&lt;\lambda&lt;1\)</span> 会把箭头压短，<span class="arithmatex">\(\lambda&lt;0\)</span> 还会把箭头反向；<span class="arithmatex">\(\lambda=0\)</span> 则把整条直线压到原点。长度缩放因子是 <span class="arithmatex">\(\lvert\lambda\rvert\)</span>，同一条方向上的任意非零倍数都代表同一个特征方向。</p>
+<p>单位圆上的点同时满足 <span class="arithmatex">\(x_1^2+x_2^2=1\)</span>。矩阵把它变成椭圆（可逆时）或退化椭圆；这是整个圆的集合图像，不等于每一条半径都是特征方向。只有在额外的对称性下，椭圆的主轴才有那个特权。</p>
+<h3 id="eigen-geometry">可操作实验：eigen-geometry<a class="headerlink" href="#eigen-geometry" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="eigen-geometry">
+
+若脚本未加载，仍可阅读本节下方的“静态读法”：它列出四个预设的精确特征值与方向。
+
+</div>
+<h4 id="_4">无脚本静态读法：四个预设的精确答案<a class="headerlink" href="#_4" title="Permanent link"></a></h4>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>精确特征值</th>
+<th>实特征方向（方向可取任意非零倍数）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\operatorname{diag}(2,\tfrac12)\)</span></td>
+<td><span class="arithmatex">\(2\to\operatorname{span}\{(1,0)^\mathsf{T}\}\)</span>；<span class="arithmatex">\(\tfrac12\to\operatorname{span}\{(0,1)^\mathsf{T}\}\)</span></td>
+<td>两条坐标轴</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(3\to\operatorname{span}\{(1,1)^\mathsf{T}\}\)</span>；<span class="arithmatex">\(1\to\operatorname{span}\{(1,-1)^\mathsf{T}\}\)</span></td>
+<td>两条正交方向</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(1\)</span>（代数重数 2）</td>
+<td>只有 <span class="arithmatex">\(\operatorname{span}\{(1,0)^\mathsf{T}\}\)</span>；几何重数 1，不可对角化</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(i\)</span>，<span class="arithmatex">\(-i\)</span></td>
+<td>没有非零实特征向量；在复数域可取 <span class="arithmatex">\((1,-i)^\mathsf{T}\)</span> 对应 <span class="arithmatex">\(i\)</span>，<span class="arithmatex">\((1,i)^\mathsf{T}\)</span> 对应 <span class="arithmatex">\(-i\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>在对称矩阵预设中，单位圆的椭圆主轴确实沿 <span class="arithmatex">\((1,1)\)</span> 与 <span class="arithmatex">\((1,-1)\)</span>；这来自实对称矩阵的正交谱定理。Jordan 预设的单位圆仍是一般椭圆，但只有一条实特征方向；旋转预设把单位圆保持为圆，却没有实特征方向。</p>
+<h3 id="_5">误区与边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>特征向量不是“固定不动的向量”。</strong> <span class="arithmatex">\(Ax=\lambda x\)</span> 表示方向所在直线不变；只有 <span class="arithmatex">\(\lambda=1\)</span> 时这个具体向量才不变，<span class="arithmatex">\(\lambda=-1\)</span> 会反向，其他值会改变长度。</li>
+<li><strong>重复特征值不保证可对角化。</strong> Jordan 预设只有一个独立的实特征方向，虽然 <span class="arithmatex">\(\lambda=1\)</span> 出现两次，仍不能凑出一组二维特征基。</li>
+<li><strong>一般实矩阵不一定有实特征向量。</strong> 90 度旋转的特征值是 <span class="arithmatex">\(i\)</span> 与 <span class="arithmatex">\(-i\)</span>，所以在实平面中没有可画出的特征方向；“实矩阵”不等于“特征值全为实数”。</li>
+<li><strong>单位圆的椭圆主轴不是普遍答案。</strong> “主轴就是特征向量”只在实对称等保证正交主轴的特殊情形成立；一般实矩阵的方向可能发生剪切，不能从椭圆主轴直接读出全部特征向量。</li>
+<li><strong>不要把对角化当成普遍结论。</strong> 只有拥有足够多线性无关的特征向量时才能对角化；否则要使用 Jordan 形或其他适合的分解。</li>
+<li><strong>幂的长期行为也有边界。</strong> 谱半径控制渐近指数率，但主导 Jordan 块会带来 <span class="arithmatex">\(k^r\)</span> 因子；非正规矩阵在长期渐近以前还可能出现明显的瞬态放大。</li>
+</ul>
+<h3 id="_6">返回正式理论<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>把实验中的“保留方向”写成方程，就是</p>
+<div class="arithmatex">\[
+(\lambda I-A)\xi=0,
+\qquad
+\det(\lambda I-A)=0.
+\]</div>
+<p>先由特征多项式找候选 <span class="arithmatex">\(\lambda\)</span>，再求核空间 <span class="arithmatex">\(V_\lambda=\ker(\lambda I-A)\)</span>，最后比较几何重数和代数重数。这个流程解释了四个预设的差别：互异特征值给出独立方向；重复特征值要检查核空间维数；复特征值需要换到复数域；Jordan 块记录缺失的特征方向如何被幂零部分补上。</p>
+</section>
 <h2 id="1">1. 特征值与特征向量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="特征向量是只缩放不旋转的方向" src="assets/img/algebra-05-eigenvectors.svg" /></p>
-<figcaption><span class="fig-id">图 5.1</span>特征向量是矩阵 \(A\) 只缩放、不旋转的特殊方向；单位圆经 \(A\) 映射成椭圆，主轴正是特征向量、伸缩比是特征值。</figcaption>
+<figcaption><span class="fig-id">图 5.1</span>特征向量是矩阵 \(A\) 只缩放、不转向的特殊方向；单位圆经一般实矩阵 \(A\) 可映成椭圆或退化椭圆，只有在实对称等特殊情形下，椭圆主轴才与特征方向重合。</figcaption>
 </figure>
-<p><strong>定义</strong> <span class="arithmatex">\(A\xi = \lambda\xi\ (\xi \neq 0)\)</span>：<span class="arithmatex">\(\xi\)</span> 是只被<strong>伸缩不被转向</strong>的方向，<span class="arithmatex">\(\lambda\)</span> 是伸缩率。</p>
+<p><strong>定义</strong> <span class="arithmatex">\(A\xi = \lambda\xi\ (\xi \neq 0)\)</span>：<span class="arithmatex">\(\xi\)</span> 是只被<strong>伸缩不被转向</strong>的方向，<span class="arithmatex">\(\lambda\)</span> 是伸缩率；当 <span class="arithmatex">\(\lambda&lt;0\)</span> 时箭头反向，特征向量描述的是方向而非固定不动的点。</p>
 <p><strong>求法</strong>：<span class="arithmatex">\((\lambda I - A)\xi = 0\)</span> 有非零解 <span class="arithmatex">\(\iff\)</span> <strong>特征多项式</strong> <span class="arithmatex">\(f(\lambda) = \det(\lambda I - A) = 0\)</span>。<span class="arithmatex">\(n\)</span> 阶方阵在 <span class="arithmatex">\(\mathbb{C}\)</span> 上恰有 <span class="arithmatex">\(n\)</span> 个特征值（计重数）。</p>
 <p><strong>两个恒等式</strong>（验算神器 + 考试常客）：</p>
 <div class="arithmatex">\[
@@ -64,7 +165,7 @@
 <p><strong>性质速查</strong>：<span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(A^\top\)</span> 特征值相同；<span class="arithmatex">\(f(A)\)</span> 的特征值为 <span class="arithmatex">\(f(\lambda_i)\)</span>（多项式映射特征值——由 <span class="arithmatex">\(A^k\xi = \lambda^k \xi\)</span> 逐项得）；可逆时 <span class="arithmatex">\(A^{-1}\)</span> 的特征值为 <span class="arithmatex">\(\lambda_i^{-1}\)</span>；相似矩阵特征多项式相同（<span class="arithmatex">\(\det(\lambda I - T^{-1}AT) = \det(T^{-1}(\lambda I - A)T)\)</span>）；三角阵特征值 = 对角元。</p>
 <p><strong>特征子空间</strong> <span class="arithmatex">\(V_\lambda = \ker(\lambda I - A)\)</span>。<strong>几何重数</strong> <span class="arithmatex">\(\dim V_\lambda\)</span> ≤ <strong>代数重数</strong>（<span class="arithmatex">\(\lambda\)</span> 在特征多项式中的重数）——这条不等式是能否对角化的胜负手。</p>
 <h2 id="2">2. 对角化<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定理（对角化判据）</strong> <span class="arithmatex">\(n\)</span> 阶方阵 <span class="arithmatex">\(A\)</span> 可对角化（<span class="arithmatex">\(\exists\)</span> 可逆 <span class="arithmatex">\(T\)</span>：<span class="arithmatex">\(T^{-1}AT = \mathrm{diag}(\lambda_1,\dots,\lambda_n)\)</span>）<span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(A\)</span> 有 <span class="arithmatex">\(n\)</span> 个线性无关的特征向量 <span class="arithmatex">\(\iff\)</span> 每个特征值的几何重数 = 代数重数。<strong>充分条件</strong>：<span class="arithmatex">\(n\)</span> 个特征值互异（不同特征值的特征向量自动线性无关——归纳可证）。</p>
+<p><strong>定理（对角化判据）</strong> <span class="arithmatex">\(n\)</span> 阶方阵 <span class="arithmatex">\(A\)</span> 可对角化（<span class="arithmatex">\(\exists\)</span> 可逆 <span class="arithmatex">\(T\)</span>：<span class="arithmatex">\(T^{-1}AT = \mathrm{diag}(\lambda_1,\dots,\lambda_n)\)</span>）<span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(A\)</span> 有 <span class="arithmatex">\(n\)</span> 个线性无关的特征向量 <span class="arithmatex">\(\iff\)</span> 每个特征值的几何重数 = 代数重数。<strong>充分条件</strong>：<span class="arithmatex">\(n\)</span> 个特征值互异（不同特征值的特征向量自动线性无关——归纳可证）。这只是判据，不是所有矩阵都能满足的结论。</p>
 <p><span class="arithmatex">\(T\)</span> 的列 = 特征向量，对角元 = 对应特征值（顺序配套）。<strong>对角化的红利</strong>：</p>
 <div class="arithmatex">\[
 A^k = T\,\mathrm{diag}(\lambda_1^k, \dots, \lambda_n^k)\,T^{-1}
@@ -80,10 +181,11 @@ A\ \text{可对角化} \iff m(\lambda)\ \text{无重根}
 <p>（例：幂等阵 <span class="arithmatex">\(A^2 = A\)</span> 的 <span class="arithmatex">\(m \mid \lambda^2 - \lambda\)</span> 无重根 ⇒ 投影必可对角化，特征值只有 0/1——与高代 IV 例 3 的直和分解互为表里。）</p>
 <h2 id="4-jordan">4. Jordan 标准形（兜底定理）<a class="headerlink" href="#4-jordan" title="Permanent link"></a></h2>
 <p><strong>Jordan 块</strong> <span class="arithmatex">\(J_k(\lambda) = \begin{pmatrix} \lambda &amp; 1 &amp; &amp; \\ &amp; \lambda &amp; \ddots &amp; \\ &amp; &amp; \ddots &amp; 1 \\ &amp; &amp; &amp; \lambda \end{pmatrix}\)</span>（对角 <span class="arithmatex">\(\lambda\)</span>、上对角 1）。</p>
-<p><strong>定理</strong> 复数域上任意方阵相似于唯一的（不计块序）<strong>Jordan 形</strong> <span class="arithmatex">\(J = \mathrm{diag}(J_{k_1}(\lambda_1), \dots)\)</span>。</p>
-<p>结构解读：<span class="arithmatex">\(J_k(\lambda) = \lambda I + N\)</span>，<span class="arithmatex">\(N\)</span> 幂零（<span class="arithmatex">\(N^k = 0\)</span>）——<strong>任何线性变换 = 对角部分（伸缩）+ 幂零部分（"错位推移"）</strong>。对角化失败的全部障碍被隔离进幂零部分。</p>
-<p><strong>计算实务</strong>（会算 <span class="arithmatex">\(\leq 4\)</span> 阶即可）：特征值 <span class="arithmatex">\(\lambda\)</span> 的块总数 = 几何重数；块的尺寸分布由秩序列 <span class="arithmatex">\(\mathrm{rank}(A - \lambda I)^j\)</span> 决定（<span class="arithmatex">\(j\)</span> 阶秩差数出 <span class="arithmatex">\(\geq j\)</span> 阶块的个数）。</p>
-<p>🔗 <strong>AI 衔接</strong>：矩阵幂的行为由最大特征值主宰（<span class="arithmatex">\(\|A^k\| \sim |\lambda_{\max}|^k\)</span>）——RNN 梯度消失/爆炸的谱分析（ai 课 06 讲 <span class="arithmatex">\(\|W\|^{t-k}\)</span>）、幂法求主特征向量（PageRank、数值页）都是特征值理论的直接变现。</p>
+<p><strong>定理</strong> 复数域上任意方阵相似于唯一的（不计块序）<strong>Jordan 形</strong> <span class="arithmatex">\(J = \mathrm{diag}(J_{k_1}(\lambda_1), \dots)\)</span>。这不是说任意矩阵都可对角化；只有所有 Jordan 块大小都为 1 时才是对角阵。</p>
+<p>结构解读：在复数域的一组 Jordan 基下，<span class="arithmatex">\(J_k(\lambda)=\lambda I+N\)</span>，<span class="arithmatex">\(N\)</span> 幂零（<span class="arithmatex">\(N^k=0\)</span>）；把各块的对角部分合在一起得到半单部分 <span class="arithmatex">\(S\)</span>，把上对角部分合在一起得到幂零部分 <span class="arithmatex">\(N\)</span>，且 <span class="arithmatex">\(SN=NS\)</span>。因此是<strong>在 Jordan 基下（等价地，使用可交换的半单–幂零分解）</strong>的 <span class="arithmatex">\(A=S+N\)</span>，不是原坐标中任意逐项的拆分。对角化失败的障碍被隔离进幂零部分。</p>
+<p><strong>计算实务</strong>（会算 <span class="arithmatex">\(\leq 4\)</span> 阶即可）：特征值 <span class="arithmatex">\(\lambda\)</span> 的块总数 = 几何重数。令 <span class="arithmatex">\(N=A-\lambda I\)</span>，则
+<span class="arithmatex">\(\mathrm{rank}(N^{j-1})-\mathrm{rank}(N^j)\)</span> 恰等于尺寸 <span class="arithmatex">\(\geq j\)</span> 的 Jordan 块个数；这串秩差因此确定块的尺寸分布。</p>
+<p>🔗 <strong>AI 衔接</strong>：矩阵幂的渐近指数率由谱半径 <span class="arithmatex">\(\rho(A)=\max_i|\lambda_i|\)</span> 控制；对任意一致矩阵范数，<span class="arithmatex">\(\limsup_{k\to\infty}\|A^k\|^{1/k}=\rho(A)\)</span>。但主导 Jordan 块可能带来 <span class="arithmatex">\(k^r\rho(A)^k\)</span> 因子，非正规矩阵在长期渐近前还可能瞬态放大，所以 <span class="arithmatex">\(\|A^k\|\sim|\lambda_{\max}|^k\)</span> 对一般矩阵不成立——RNN 梯度消失/爆炸的谱分析（ai 课 06 讲 <span class="arithmatex">\(\|W\|^{t-k}\)</span>）、幂法求主特征向量（PageRank、数值页）都是特征值理论的直接变现。</p>
 <h2 id="5">5. 实用速查：矩阵幂三条路<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -109,7 +211,7 @@ A\ \text{可对角化} \iff m(\lambda)\ \text{无重根}
 </table>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（完整对角化流程）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 4 &amp; 6 &amp; 0 \\ -3 &amp; -5 &amp; 0 \\ -3 &amp; -6 &amp; 1 \end{pmatrix}\)</span>。
-<em>解</em>：<span class="arithmatex">\(\det(\lambda I - A) = (\lambda - 1)^2(\lambda + 2)\)</span>。<span class="arithmatex">\(\lambda = 1\)</span>：解 <span class="arithmatex">\((I - A)x = 0\)</span> 得两个无关特征向量 <span class="arithmatex">\((-2,1,0)^\top, (0,0,1)^\top\)</span>（几何重数 2 = 代数重数 ✓）；<span class="arithmatex">\(\lambda = -2\)</span>：<span class="arithmatex">\((1,-1,1)^\top\)</span>。可对角化，<span class="arithmatex">\(T\)</span> 三列拼特征向量，<span class="arithmatex">\(T^{-1}AT = \mathrm{diag}(1,1,-2)\)</span>。<strong>流程：特征多项式 → 逐特征值解齐次组 → 数无关向量个数做判据。</strong></p>
+<em>解</em>：<span class="arithmatex">\(\det(\lambda I - A) = (\lambda - 1)^2(\lambda + 2)\)</span>。<span class="arithmatex">\(\lambda = 1\)</span>：解 <span class="arithmatex">\((I - A)x = 0\)</span> 得两个无关特征向量 <span class="arithmatex">\((-2,1,0)^\top, (0,0,1)^\top\)</span>，代回分别为 <span class="arithmatex">\(A(-2,1,0)^\top=(-2,1,0)^\top\)</span>、<span class="arithmatex">\(A(0,0,1)^\top=(0,0,1)^\top\)</span>（几何重数 2 = 代数重数 ✓）；<span class="arithmatex">\(\lambda = -2\)</span>：可取 <span class="arithmatex">\((-1,1,1)^\top\)</span>，且 <span class="arithmatex">\(A(-1,1,1)^\top=(2,-2,-2)^\top=-2(-1,1,1)^\top\)</span>。可对角化，<span class="arithmatex">\(T\)</span> 三列拼特征向量，<span class="arithmatex">\(T^{-1}AT = \mathrm{diag}(1,1,-2)\)</span>。另外 <span class="arithmatex">\(\mathrm{tr}\,A=0=1+1-2\)</span>，<span class="arithmatex">\(\det A=-2=1\cdot1\cdot(-2)\)</span>，与恒等式一致。<strong>流程：特征多项式 → 逐特征值解齐次组 → 代回验算 → 数无关向量个数做判据。</strong></p>
 <p><strong>例 2（Fibonacci 通项）</strong> <span class="arithmatex">\(\begin{pmatrix} F_{n+1} \\ F_n \end{pmatrix} = \begin{pmatrix} 1 &amp; 1 \\ 1 &amp; 0 \end{pmatrix}\begin{pmatrix} F_n \\ F_{n-1} \end{pmatrix}\)</span>。特征值 <span class="arithmatex">\(\varphi = \frac{1+\sqrt5}{2},\ \psi = \frac{1-\sqrt5}{2}\)</span>，对角化后取幂得</p>
 <div class="arithmatex">\[
 F_n = \frac{\varphi^n - \psi^n}{\sqrt 5}
@@ -128,5 +230,7 @@ F_n = \frac{\varphi^n - \psi^n}{\sqrt 5}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/eigen-geometry.js"></script>
 </body>
 </html>

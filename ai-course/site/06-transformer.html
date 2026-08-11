@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -61,6 +72,50 @@
 <blockquote>
 <p><strong>诞生场景</strong>：CNN 吃定了图像，但语言是另一种生物：句子变长、顺序敏感（"猫追狗"≠"狗追猫"）、依赖可以横跨很远（"那只我上周在邻居家院子里见过的<strong>猫</strong>……<strong>它</strong>"）。为序列而生的 RNN 统治了 NLP 十年，却始终被两个毛病纠缠：记不住远处、算得太慢。2017 年，Google 的八人小组扔出一篇标题狂妄的论文——《Attention Is All You Need》：把循环彻底扔掉，只留注意力。这个叫 <strong>Transformer</strong> 的架构不仅吞掉了 NLP，后来还回头吞掉了视觉，成为今天一切大模型的骨架。本讲从 RNN 的困境出发，一步步推到 Transformer 的每个部件——<strong>知其然，更知其为什么非这么设计不可</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：注意力到底在“选择”什么</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：query「它」应该向谁取值？</h3>
+<p>把句子缩成四个 token：「猫」、「追」、「老鼠」、「它」。下面的两个头使用手写的确定性玩具权重。先猜：当 query 是「它」时，两个头的 softmax 行会不会相同？打开 causal mask 后，第三个位置还能读取第四个位置吗？</p>
+</div>
+<div class="learning-prediction">
+<h3>先做预测，再读矩阵</h3>
+<p>不看答案先写下三句：<strong>①</strong> 没有 mask 时，每个位置都能看到四个 key；<strong>②</strong> 有 mask 时，第 <span class="arithmatex">\(i\)</span> 行只能保留 <span class="arithmatex">\(j\le i\)</span>；<strong>③</strong> 两个头即使输入相同，也可能因为 <span class="arithmatex">\(W^Q,W^K,W^V\)</span> 不同而得到不同的混合。再点击 query 按钮，看猜测是否与热力图一致。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：四个矩阵乘法</h3>
+<p>每个头把 <span class="arithmatex">\(X\in\mathbb R^{4\times4}\)</span> 投影成 <span class="arithmatex">\(Q,K,V\in\mathbb R^{4\times2}\)</span>，计算 <span class="arithmatex">\(S=QK^\top/\sqrt2\in\mathbb R^{4\times4}\)</span>，逐行 softmax 得到 <span class="arithmatex">\(A\)</span>，最后取 <span class="arithmatex">\(O=AV\in\mathbb R^{4\times2}\)</span>。两个头的输出拼接成四维向量；真实模型还会乘一个 <span class="arithmatex">\(W^O\)</span>，本 lab 为了看清混合暂时省略它。</p>
+</div>
+<div class="learning-formal">
+<h3>形式化步骤：从 token 到一行权重</h3>
+<ol>
+<li>先把 token 与位置编码相加，得到一行输入 <span class="arithmatex">\(x_i\)</span>；本实验把这一步折叠进固定的四维 toy embedding。</li>
+<li>用三个独立投影产生角色：<span class="arithmatex">\(q_i=x_iW^Q\)</span>（我在找什么）、<span class="arithmatex">\(k_j=x_jW^K\)</span>（我能被怎样匹配）、<span class="arithmatex">\(v_j=x_jW^V\)</span>（匹配后实际拿走的内容）。</li>
+<li>对一个 query 行做缩放点积：<span class="arithmatex">\(s_{ij}=q_i\cdot k_j/\sqrt{d_k}\)</span>。若是 decoder 的因果注意力，把未来位置的分数改成 <span class="arithmatex">\(-\infty\)</span>。</li>
+<li>softmax 把分数变成非负且和为 1 的权重 <span class="arithmatex">\(a_{ij}\)</span>；输出是 <span class="arithmatex">\(o_i=\sum_j a_{ij}v_j\)</span>。因此“注意力”是一个可读的加权平均，不是凭空生成新 token。</li>
+<li>训练时，一层里的四个 query 可以同时算出整张 <span class="arithmatex">\(QK^\top\)</span> 矩阵（mask 只是把非法格子屏蔽）；自回归推理时下一个 token 依赖刚生成的 token，所以生成过程仍然按步串行。</li>
+</ol>
+</div>
+<div class="learning-boundary">
+<h3>边界与反例：可视化不等于语义证明</h3>
+<ul>
+<li>本 lab 的权重是玩具设定；一格权重大，只能说明这组参数在这个输入上更偏向某个 value，不能证明真实模型学到了“它指代猫”。</li>
+<li>关闭因果 mask 会让未来 token 泄漏到当前行，适合双向编码器的示意，却不适合训练自回归生成器。</li>
+<li>若所有 query/key 内积都相同，softmax 会接近均匀分布；注意力不会自动产生稀疏、可解释的选择。</li>
+<li>正弦位置编码的公式可以代入任意整数位置，但“能计算”不等于“训练范围外一定能可靠外推”；实际表现仍取决于训练分布、频率和模型学习到的规则。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：区分并行与依赖</h3>
+<p>若把四个 token 扩成 <span class="arithmatex">\(n\)</span> 个，注意力分数矩阵从 <span class="arithmatex">\(4\times4\)</span> 变成 <span class="arithmatex">\(n\times n\)</span>。请分别回答：训练一个已知序列时，哪一维可以并行；生成第 <span class="arithmatex">\(t+1\)</span> 个 token 时，哪一个新依赖迫使你等待；总成本为什么不只有 <span class="arithmatex">\(O(n^2d)\)</span>，还要加上投影与 FFN 的 <span class="arithmatex">\(O(nd^2)\)</span>？</p>
+</div>
+<div class="learning-lab" data-learning-lab="transformer">
+<p><strong>无 JavaScript 时的静态版本：</strong>记住四个 token 的形状账本：每头 <span class="arithmatex">\(Q,K,V:4\times2\)</span>，分数与权重是 <span class="arithmatex">\(4\times4\)</span>，输出两头拼成四维。对 query「它」，先按 <span class="arithmatex">\(S=QK^\top/\sqrt2\)</span> 算一行，再 softmax 并对四个 value 做加权和；开启 causal mask 时，未来列的分数是 <span class="arithmatex">\(-\infty\)</span>、权重为 0。页面脚本加载后可逐个查看两个 toy head 的 Q/K/V、分数热力图、softmax 热力图和输出混合。</p>
+</div>
+</section>
+
 <h2 id="1">1. 前置：词怎么变成向量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="正弦位置编码" src="assets/img/06-positional-encoding.svg" /></p>
@@ -115,7 +170,7 @@ o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &a
 <p><img alt="注意力权重矩阵" src="assets/img/06-attention-weights.svg" /></p>
 <figcaption><span class="fig-id">图 6.2</span>注意力权重矩阵：每个 query 对所有 key 做 softmax，得到一行权重——决定"看哪些词"，Transformer 的核心运算。</figcaption>
 </figure>
-<p>2017 年的暴论：<strong>把循环整个扔掉</strong>。让序列里每个词直接与所有词（包括自己）两两交互——<strong>自注意力（self-attention）</strong>。任意两词之间的路径长度从 RNN 的 <span class="arithmatex">\(O(n)\)</span> 降到 <span class="arithmatex">\(O(1)\)</span>（信号不衰减），且所有位置的计算完全独立（GPU 满载并行）。两宗罪一次清账。代价后面说。</p>
+<p>2017 年的暴论：<strong>把循环从主干中扔掉</strong>，用自注意力配合逐位置的 FFN、残差与归一化。让序列里每个词直接与所有词（包括自己）两两交互——<strong>自注意力（self-attention）</strong>。任意两词之间的路径长度从 RNN 的 <span class="arithmatex">\(O(n)\)</span> 降到 <span class="arithmatex">\(O(1)\)</span>（信号不必逐步传递）。在训练时，一层内所有位置可以组成矩阵并行计算；但自回归推理要等前一个 token 生成后才能得到下一个 token，仍然是串行生成。两宗罪一次清账，但代价后面说。</p>
 <h3 id="31-query-key-value">3.1 Query / Key / Value<a class="headerlink" href="#31-query-key-value" title="Permanent link"></a></h3>
 <p>自注意力的运作可以类比一次数据库检索。每个词的嵌入向量 <span class="arithmatex">\(x_i \in \mathbb{R}^{d_{\text{model}}}\)</span> 经三个<strong>学习到的</strong>线性投影，生成三种角色：</p>
 <div class="arithmatex">\[
@@ -127,7 +182,7 @@ v_i = W^V x_i \quad (\text{value：我实际的内容})
 <div class="arithmatex">\[
 \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
 \]</div>
-<p>一个具体图景：处理"它"这个词时，<span class="arithmatex">\(q_{\text{它}}\)</span> 与 <span class="arithmatex">\(k_{\text{猫}}\)</span> 内积很大 → "它"的新表示大量混入 <span class="arithmatex">\(v_{\text{猫}}\)</span> → <strong>指代消解在一层内完成</strong>，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是<strong>上下文相关</strong>的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。</p>
+<p>一个具体图景：处理"它"这个词时，它的 <span class="arithmatex">\(q\)</span> 与"猫"的 <span class="arithmatex">\(k\)</span> 内积很大 → "它"的新表示大量混入"猫"的 <span class="arithmatex">\(v\)</span> → <strong>指代消解在一层内完成</strong>，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是<strong>上下文相关</strong>的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。</p>
 <h3 id="32-sqrtd_k">3.2 为什么除以 <span class="arithmatex">\(\sqrt{d_k}\)</span>：完整推导<a class="headerlink" href="#32-sqrtd_k" title="Permanent link"></a></h3>
 <p>这个不起眼的分母是面试高频题，更是理解"训练稳定性"的好样本。设 <span class="arithmatex">\(q, k \in \mathbb{R}^{d_k}\)</span> 的各分量独立、均值 0、方差 1（初始化时近似成立）。内积 <span class="arithmatex">\(q^\top k = \sum_{i=1}^{d_k} q_i k_i\)</span> 的均值与方差：</p>
 <div class="arithmatex">\[
@@ -155,7 +210,7 @@ PE_{(pos,\,2i)} = \sin\!\big(pos/10000^{2i/d}\big), \qquad PE_{(pos,\,2i+1)} = \
 \begin{pmatrix} \cos(\omega_i \Delta) &amp; \sin(\omega_i \Delta) \\ -\sin(\omega_i \Delta) &amp; \cos(\omega_i \Delta) \end{pmatrix}
 \begin{pmatrix} \sin(\omega_i\, pos) \\ \cos(\omega_i\, pos) \end{pmatrix}
 \]</div>
-<p>——每一对维度上是一个只依赖 <span class="arithmatex">\(\Delta\)</span> 的旋转矩阵。<span class="arithmatex">\(\blacksquare\)</span> 于是"相隔 <span class="arithmatex">\(\Delta\)</span> 个词"这种<strong>相对位置关系</strong>对模型是一个线性可学的模式；不同维度的 <span class="arithmatex">\(\omega_i\)</span> 构成从高频到低频的"位置进制表"，任意长度可外推。（现代 LLM 多用它的近亲 <strong>RoPE</strong>——直接把 <span class="arithmatex">\(q, k\)</span> 向量按位置旋转，出发点同源；也有直接学位置向量的方案。）</p>
+<p>——每一对维度上是一个只依赖 <span class="arithmatex">\(\Delta\)</span> 的旋转矩阵。<span class="arithmatex">\(\blacksquare\)</span> 于是"相隔 <span class="arithmatex">\(\Delta\)</span> 个词"这种<strong>相对位置关系</strong>对模型是一个线性可学的模式；不同维度的 <span class="arithmatex">\(\omega_i\)</span> 构成从高频到低频的"位置进制表"。公式本身可以为任意整数位置计算编码，但这不保证模型在训练范围外可靠外推；外推表现取决于训练分布与模型学到的函数。（现代 LLM 多用它的近亲 <strong>RoPE</strong>——直接把 <span class="arithmatex">\(q, k\)</span> 向量按位置旋转，出发点同源；也有直接学位置向量的方案。）</p>
 <h3 id="35">3.5 组装整机<a class="headerlink" href="#35" title="Permanent link"></a></h3>
 <p>一个 Transformer 块 = 两个子层，每个子层都套上第 05 讲的两件法宝——残差连接与归一化：</p>
 <div class="arithmatex">\[
@@ -196,7 +251,7 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 </table>
 <p>后面的故事（第 07 讲）由 decoder-only 主演。</p>
 <h3 id="36">3.6 代价与账本<a class="headerlink" href="#36" title="Permanent link"></a></h3>
-<p>自注意力的复杂度是 <span class="arithmatex">\(O(n^2 d)\)</span>（<span class="arithmatex">\(n \times n\)</span> 的注意力矩阵），RNN 是 <span class="arithmatex">\(O(n d^2)\)</span>：</p>
+<p>自注意力的核心分数与加权值计算是 <span class="arithmatex">\(O(n^2 d)\)</span>（<span class="arithmatex">\(n \times n\)</span> 的注意力矩阵）；但每层总账还要加上 Q/K/V 与输出投影、以及逐位置 FFN 的 <span class="arithmatex">\(O(n d^2)\)</span>。因此不能只记一个 <span class="arithmatex">\(n^2\)</span>：</p>
 <table>
 <thead>
 <tr>
@@ -214,14 +269,14 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 <td><span class="arithmatex">\(O(n)\)</span></td>
 </tr>
 <tr>
-<td>自注意力</td>
-<td><span class="arithmatex">\(O(n^2 d)\)</span></td>
-<td><span class="arithmatex">\(O(1)\)</span></td>
+<td>自注意力 + FFN</td>
+<td><span class="arithmatex">\(O(n^2 d + n d^2)\)</span></td>
+<td>训练时 <span class="arithmatex">\(O(1)\)</span>；自回归推理按步生成</td>
 <td><span class="arithmatex">\(O(1)\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>Transformer 用"对序列长度平方"的计算量，换来了<strong>零串行</strong>与<strong>零距离</strong>。2017 年 <span class="arithmatex">\(n\)</span> 只有几百，这笔交易血赚；今天上下文拉到十万、百万 token，<span class="arithmatex">\(n^2\)</span> 就是"长上下文为什么贵"（第 08 讲的现实约束）的直接根源，也催生了 FlashAttention、稀疏/线性注意力等一整个研究方向。</p>
+<p>Transformer 用"对序列长度平方"的注意力计算，换来了一层内的<strong>矩阵并行</strong>与任意两位置之间 <span class="arithmatex">\(O(1)\)</span> 的信息路径。2017 年 <span class="arithmatex">\(n\)</span> 只有几百，这笔交易血赚；今天上下文拉到十万、百万 token，<span class="arithmatex">\(n^2\)</span> 就是"长上下文为什么贵"（第 08 讲的现实约束）的直接根源，也催生了 FlashAttention、稀疏/线性注意力等一整个研究方向。这里的并行指训练时已知整段序列的层内计算，不包括仍需逐 token 推进的自回归生成。</p>
 <p>还有一层更深的意味：对比 CNN（硬编码局部性）与 RNN（硬编码顺序递归），<strong>Transformer 的结构先验最弱</strong>——它只假设"表示间的两两交互有用"，其余一切交给数据。第 01 讲的偏差–方差逻辑预言：弱先验模型需要更多数据，但数据管够时上限更高。于是当数据真的管够（整个互联网），Transformer 不仅统治语言，还以 ViT（2020，把图像切成 16×16 的块当"词"处理）反攻视觉，把 CNN 从王座上请了下去。<strong>一个架构通吃所有模态</strong>——这为"规模化"铺平了道路，那正是下一讲的主题。</p>
 <h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <table>
@@ -246,7 +301,7 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 </tr>
 <tr>
 <td>自注意力</td>
-<td><span class="arithmatex">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\)</span>；任意两词路径 <span class="arithmatex">\(O(1)\)</span>，完全并行</td>
+<td><span class="arithmatex">\(\mathrm{softmax}(QK^\top/\sqrt{d_k})V\)</span>；训练时位置可并行，生成时仍逐 token</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\sqrt{d_k}\)</span></td>
@@ -266,11 +321,11 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 </tr>
 <tr>
 <td>权衡</td>
-<td><span class="arithmatex">\(O(n^2)\)</span> 换零串行零距离；弱先验 + 大数据 = 通吃</td>
+<td>注意力 <span class="arithmatex">\(O(n^2d)\)</span> 另加投影/FFN <span class="arithmatex">\(O(nd^2)\)</span>；训练并行、生成串行；弱先验 + 大数据 = 通吃</td>
 </tr>
 </tbody>
 </table>
-<p><strong>动手</strong>：跑 <code>labs/lab06_attention_transformer.py</code>——先用纯 numpy 实现缩放点积注意力并可视化注意力矩阵（看"它"盯上"猫"），再用 PyTorch 训练一个 mini char-GPT 在小语料上学会生成文本。你将在几分钟内目睹一个 Transformer 从乱码进化到通顺。</p>
+<p><strong>动手</strong>：在本页的 transformer lab 中点击四个 query token，查看两个确定性 toy head 的 <span class="arithmatex">\(Q/K/V\)</span>、<span class="arithmatex">\(QK^\top/\sqrt{d_k}\)</span> 分数、softmax 热力图和输出混合；再打开 causal mask，观察未来列如何变成 0。记住：这能展示运算结构，不等于证明 toy 权重学到了真实语义。</p>
 <p><strong>延伸阅读</strong>：Vaswani et al. "Attention Is All You Need" (2017)；Jay Alammar "The Illustrated Transformer"（图解经典，搜索可得）；Karpathy 的视频 "Let's build GPT from scratch"（lab06 的灵感来源）。</p>
 <hr />
 <p><em>下一讲：架构定了，接下来发生的事情简单粗暴——把它变大。大十倍、大百倍、大万倍。为什么变大就能变强？什么时候停？2020 年的一篇论文给出了幂律答案，OpenAI 据此押上全部筹码，大语言模型的时代开始了。</em></p>
@@ -283,5 +338,7 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/transformer.js"></script>
 </body>
 </html>

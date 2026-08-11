@@ -79,8 +79,8 @@ $$\hat q \approx \frac{\mu}{s}\ (\text{显性有害}), \qquad \hat q \approx \sq
 
 | 力 | 主导条件 |
 |---|---|
-| 选择 | $|s| \gg 1/N_e$ |
-| 漂变 | $|s| \lesssim 1/N_e$（**近中性**） |
+| 选择 | $\lvert s\rvert \gg 1/N_e$ |
+| 漂变 | $\lvert s\rvert \lesssim 1/N_e$（**近中性**） |
 | 突变 | 长期、提供原料 |
 | 迁移 | $N_e m \gtrsim 1$ 即阻止分化 |
 

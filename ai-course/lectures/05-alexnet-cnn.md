@@ -2,6 +2,59 @@
 
 > **诞生场景**：2012 年之前，计算机视觉的标准流程是：博士们手工设计特征（SIFT、HOG……一个好特征够发一篇顶会），再喂给 SVM。ImageNet 挑战赛（120 万张图、1000 类）上，这套流程的错误率卡在 26% 附近逐年只降零点几。2012 年 9 月 30 日，Hinton 的两个学生 Krizhevsky 和 Sutskever 用一个 8 层卷积神经网络（AlexNet）拿到 **15.3%**，领先第二名 10.9 个百分点——竞赛史上从未有过的断层。整个领域一夜转向，深度学习热潮就此点燃。本讲讲清楚：CNN 是什么、为什么它天生适合图像、以及 2012 年到底是哪几件事凑齐了。
 
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：一个小窗口如何看见边缘</h2>
+<div class="learning-puzzle">
+<h3>具体图像谜题：白色方块的左边是什么方向？</h3>
+<p>把下面的 5×5 网格看成一张黑底白方块的图像：1 是亮像素，0 是暗像素。先只看窗口行 <span class="arithmatex">\(r=1\)</span>、列 <span class="arithmatex">\(c=0\)</span> 的 3×3 小块，并暂时使用竖直边缘核。这个窗口的左侧是 0，右侧是 1；在不把核翻转的前提下，输出应该是<strong>正、负还是接近 0</strong>？</p>
+<pre aria-label="5乘5像素谜题与窗口">X =          K_edge =       当前窗口 X[1:4, 0:3] =
+0 0 0 0 0    -1  0  1       0 1 1
+0 1 1 1 0    -2  0  2       0 1 1
+0 1 1 1 0    -1  0  1       0 1 1
+0 1 1 1 0
+0 0 0 0 0</pre>
+</div>
+<div class="learning-prediction">
+<h3>先预测，再让窗口移动</h3>
+<p>先写下三个答案再打开实验：<strong>①</strong> <span class="arithmatex">\(H=W=5,k=3,p=0,s=1\)</span> 时输出是几乘几？<strong>②</strong> 同一个亮方块向右平移一格，边缘响应的数值会消失，还是主要在特征图上向右移动？<strong>③</strong> 若把步长改为 <span class="arithmatex">\(s=2\)</span>、填充改为 <span class="arithmatex">\(p=1\)</span>，<span class="arithmatex">\(5\times5\)</span> 输入的输出尺寸是多少？点击“下一窗口”，用逐项乘加检查自己的预测。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：只保留一个核和一个输出</h3>
+<p>先忘掉 AlexNet 的数百万参数，只保留一个像素网格 <span class="arithmatex">\(X\)</span>、一个 <span class="arithmatex">\(3\times3\)</span> 核 <span class="arithmatex">\(K\)</span> 和一个输出位置。本实验把偏置固定为 <span class="arithmatex">\(b=0\)</span>。窗口左上角由 <span class="arithmatex">\(r s-p,\;c s-p\)</span> 给出，越过边界的像素按 0 处理；输出就是窗口与核的逐元素乘积之和。移动窗口时，<strong>同一份 K</strong> 被再次使用，这正是参数共享，而不是为每个位置另存一套权重。</p>
+</div>
+<div class="learning-lab" data-learning-lab="convolution">
+<p><strong>无 JavaScript 时的静态版本：</strong>下面的输入、核与计算仍然可读；固定偏置 <span class="arithmatex">\(b=0\)</span>，默认采用 CNN 实际使用的互相关（不翻转核）、步长 <span class="arithmatex">\(s=1\)</span>、填充 <span class="arithmatex">\(p=0\)</span>。在窗口 <span class="arithmatex">\(r=1,c=0\)</span> 处，逐项计算为 <span class="arithmatex">\(0\times(-1)+1\times0+1\times1+0\times(-2)+1\times0+1\times2+0\times(-1)+1\times0+1\times1=4\)</span>；整个输出特征图为：</p>
+<pre aria-label="静态卷积输出">3   0  -3
+4   0  -4
+3   0  -3
+
+输出尺寸 = floor((5 + 2×0 - 3) / 1) + 1 = 3×3。
+脚本加载后：可切换边缘、模糊、锐化三个核；改步长/填充；点击像素编辑输入；移动或逐格扫描窗口；查看感受野、逐项乘积和输出特征图。</pre>
+</div>
+<div class="learning-boundary">
+<h3>误区与边界：卷积不会自动解决一切</h3>
+<ul>
+<li>严格数学卷积会先把核旋转 180°；深度学习框架通常实现的是<strong>互相关（cross-correlation）</strong>，即按显示顺序逐项相乘、不翻转。核是可学习参数时，翻转可视作重新编号；但对 Sobel 这类手工核，翻转会改变边缘方向，不能把两个运算当成同一个。</li>
+<li>参数共享带来的是理想条件下的<strong>平移等变</strong>：输入平移，特征响应也随之平移。它不是天然平移不变；有限边界、零填充、步长采样、池化和最后的分类头都可能改变响应，最多在合适设计下带来有限的位置鲁棒性。</li>
+<li>边界窗口看到的不是“缺失的真实像素”，而是约定的填充值；不同 padding 会改变输出尺寸与边缘响应。步长大于 1 还会跳过部分位置，微小平移可能落入不同采样格。</li>
+<li>边缘/模糊/锐化核只是建立直觉的固定滤波器；真正的 CNN 通过损失函数和反向传播学习核，不能看到一个漂亮响应就断言它已经学到了物体语义。</li>
+</ul>
+</div>
+<div class="learning-formal">
+<h3>回到正式公式：从玩具网格到 CNN</h3>
+<p>严格的二维离散卷积是 <span class="arithmatex">\( (X*K)[i,j]=\sum_{u,v}X[i-u,j-v]K[u,v] \)</span>；而 CNN 的前向层通常是互相关：</p>
+<p><span class="arithmatex">\( Y[i,j]=b+\sum_{u=0}^{k_h-1}\sum_{v=0}^{k_w-1}X[i s-p+u,\;j s-p+v]K[u,v] \)</span>，越界位置由 padding 规则补值。于是</p>
+<p><span class="arithmatex">\( H_{\text{out}}=\left\lfloor\frac{H+2p_h-k_h}{s_h}\right\rfloor+1,\qquad W_{\text{out}}=\left\lfloor\frac{W+2p_w-k_w}{s_w}\right\rfloor+1. \)</span></p>
+<p>多通道输入时，核还要沿通道求和：<span class="arithmatex">\(Y_{o,i,j}=b_o+\sum_{c,u,v}X_{c,i s-p+u,j s-p+v}K_{o,c,u,v}\)</span>；若有 <span class="arithmatex">\(C_{\text{out}}\)</span> 个输出核，参数量是 <span class="arithmatex">\(C_{\text{out}}(C_{\text{in}}k_hk_w+1)\)</span>。同一个 <span class="arithmatex">\(K_o\)</span> 在所有空间位置复用，才同时得到局部连接、参数共享与平移等变的归纳偏置。</p>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：从一个响应到一整层</h3>
+<p>若把一个核换成 64 个核，输出会多出哪一维？若把 <span class="arithmatex">\(3\times3\)</span>、步长 1 的层改成步长 2，为什么“输入向右一格，响应也向右一格”的直觉不再能逐格成立？请用四行伪代码写出：取窗口 → 逐元素乘加 → 加偏置 → 写入特征图，并标出哪一个循环共享同一组参数。</p>
+</div>
+</section>
+
 
 <figure class="diagram" markdown="1">
 ![卷积操作：卷积核在特征图上滑动 + 特征层级（边→纹理→物体）。](assets/img/05-cnn-conv.svg)
@@ -40,7 +93,7 @@ $$
 (I \star K)(i,j) = \sum_{m}\sum_{n} I(i+m,\, j+n)\, K(m,n)
 $$
 
-（核是学出来的，翻不翻转只是参数的重排，无实质差别，故行业统一叫"卷积"。）$K$ 是一个小窗口（如 $3\times3$），称为**卷积核 / 滤波器**：它在图像上滑动，每个位置输出"该处邻域与模板的匹配程度"，得到一张**特征图**。经典手工核可以帮助建立直觉——比如 $K = \begin{pmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{pmatrix}$（Sobel）输出竖直边缘图。CNN 与手工特征时代的分野在于：**核里的数字不再由人设计，而是当成参数由反向传播学出来**。
+（核是学出来的，翻转可以看作参数的重新编号，所以框架通常统一称为"卷积"；但对固定的手工核，翻转会改变响应方向，不能把两个运算当成同一个。）$K$ 是一个小窗口（如 $3\times3$），称为**卷积核 / 滤波器**：它在图像上滑动，每个位置输出"该处邻域与模板的匹配程度"，得到一张**特征图**。经典手工核可以帮助建立直觉——比如 $K = \begin{pmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{pmatrix}$（Sobel）输出竖直边缘图。CNN 与手工特征时代的分野在于：**核里的数字不再由人设计，而是当成参数由反向传播学出来**。
 
 一个卷积层含多个核（比如 64 个），每个核产出一张特征图；对多通道输入，核的形状是 $k \times k \times C_{\text{in}}$，跨通道求和。输出尺寸（输入宽 $W$、核宽 $k$、边缘补零 $p$、步幅 $s$）：
 
@@ -66,11 +119,11 @@ $$
 \big((T_\Delta I) \star K\big)(i,j) = \sum_{m,n} I(i - \Delta_1 + m,\, j - \Delta_2 + n) K(m,n) = (I \star K)(i - \Delta_1,\, j - \Delta_2) = \big(T_\Delta (I \star K)\big)(i,j)
 $$
 
-即 $T_\Delta I \star K = T_\Delta(I \star K)$：**先平移再卷积 = 先卷积再平移**。猫往右挪 10 像素，特征图上的"猫响应"也恰好右挪 10 像素、值不变——模式识别与位置解耦。这叫**等变（equivariance）**；配合后面的池化与最终的全局汇聚，逐渐升级为**不变（invariance）**：无论猫在哪，"有猫"的判断不变。
+即 $T_\Delta I \star K = T_\Delta(I \star K)$：**先平移再卷积 = 先卷积再平移**。在理想的无限网格或边界处理完全一致时，猫往右挪 10 像素，特征图上的响应也右挪 10 像素、数值保持对应——这叫**等变（equivariance）**。真实的有限图像还会遇到边界、离散步长与下采样；后面的池化/汇聚可以带来一定位置鲁棒性，但卷积层本身并不天然提供**不变性（invariance）**，最终分类是否不随位置改变取决于整套架构与数据。
 
 ### 2.4 池化与感受野
 
-**池化（pooling）**：把特征图每个 $2\times2$ 小块换成其最大值（max pooling），尺寸减半。作用：缩小计算量、扩大后续层视野、并提供局部平移不变性（模式挪动 1 像素，最大值多半不变）。
+**池化（pooling）**：把特征图每个 $2\times2$ 小块换成其最大值（max pooling），尺寸减半。作用：缩小计算量、扩大后续层视野、并在某些局部变化下增加位置鲁棒性（模式挪动 1 像素时最大值可能不变）；它不是对任意平移的严格不变性。
 
 **感受野**：输出图上一个像素"看得见"的输入区域。逐层递推（第 $l$ 层核宽 $k_l$、步幅 $s_l$）：
 

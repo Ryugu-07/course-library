@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -36,7 +47,7 @@
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 原理：扩散模型十分钟版</a></li>
-<li><a href="#2-2026-10">2. 工具地图（2026 年初快照，时效同第 10 讲声明）</a></li>
+<li><a href="#2">2. 工具地图（按工作流选择，不做排行榜）</a></li>
 <li><a href="#3">3. 提示词：结构化描述一张画</a></li>
 <li><a href="#4">4. 学术与工作中的正确用法</a></li>
 <li><a href="#_1">本讲小结</a></li>
@@ -45,11 +56,73 @@
 </details>
 <h1 id="16">第 16 讲 · 实战：文生图<a class="headerlink" href="#16" title="Permanent link"></a></h1>
 <blockquote>
-<p>文生图（text-to-image）是生成式 AI 的另一条主线：2022 年（与 ChatGPT 同年）Stable Diffusion 开源与 Midjourney 走红，让"打字出图"飞入寻常百姓家。本讲一半讲原理——扩散模型的思想值得你的数学背景咀嚼——一半讲实操：提示词怎么写、工具怎么选、边界在哪。</p>
+<p>文生图（text-to-image）是生成式 AI 的另一条主线：2022 年（与 ChatGPT 同年）Stable Diffusion 开源与 Midjourney 走红，让"打字出图"飞入寻常百姓家。本讲一半讲原理——扩散模型的思想值得你的数学背景咀嚼——一半讲实操：提示词怎么写、工具怎么选、边界在哪。文中的交互只用固定的玩具数组，不调用模型，也不生成真实图片。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：扩散是在已知噪声通道上学习时刻相关的预测</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：模型要猜哪一种“噪声”？</h3>
+<p>把一张固定的 <span class="arithmatex">\(12\times12\)</span> 像素图记为 <span class="arithmatex">\(x_0\)</span>。如果我们从 <span class="arithmatex">\(x_0\)</span> 一口气构造出 <span class="arithmatex">\(x_t\)</span>，训练目标里的 <span class="arithmatex">\(\epsilon\)</span> 是最后一次转移才加入的 <span class="arithmatex">\(\epsilon_t\)</span>，还是从 <span class="arithmatex">\(x_0\)</span> 到 <span class="arithmatex">\(x_t\)</span> 的合成噪声？先写下答案。再猜：当 <span class="arithmatex">\(\bar\alpha_t\)</span> 很小时，噪声预测只错一点，重建的 <span class="arithmatex">\(\hat x_0\)</span> 会只错一点，还是会被放大？</p>
+</div>
+<div class="learning-prediction">
+<h3>先做预测，再打开实验</h3>
+<p>先预测三件事：<strong>①</strong> <span class="arithmatex">\(\bar\alpha_t\)</span> 越小，<span class="arithmatex">\(\mathrm{SNR}=\bar\alpha_t/(1-\bar\alpha_t)\)</span> 越大还是越小？<strong>②</strong> 若 <span class="arithmatex">\(\hat\epsilon=\epsilon+\delta e\)</span>，其中 <span class="arithmatex">\(e\)</span> 的均方根为 1，<span class="arithmatex">\(\delta\)</span> 固定时，把 <span class="arithmatex">\(t\)</span> 推向 1，<span class="arithmatex">\(\hat x_0\)</span> 的误差会怎样？<strong>③</strong> CFG 中 <span class="arithmatex">\(w=0\)</span>、<span class="arithmatex">\(w=1\)</span>、<span class="arithmatex">\(w>1\)</span> 分别对应原点、条件点，还是沿条件方向越过条件点？拖动前先给出自己的几何答案。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：闭式加噪 + 固定的教学 schedule</h3>
+<p>实验固定一张像素图、固定种子生成的一组高斯数组和一个误差方向 <span class="arithmatex">\(e\)</span>。它使用 <span class="arithmatex">\(\bar\alpha(t)=\cos^2(\pi t/2)\)</span>，并把 <span class="arithmatex">\(t\)</span> 限制在 <span class="arithmatex">\([0,0.96]\)</span>；这是为了让公式容易读的教学 schedule，不是某个产品的调度器，也不是对真实采样质量的估计。</p>
+<div class="arithmatex">\[
+x_t=\sqrt{\bar\alpha_t}\,x_0+\sqrt{1-\bar\alpha_t}\,\epsilon,\qquad
+\epsilon\sim\mathcal N(0,I).
+\]</div>
+<p>这里的 <span class="arithmatex">\(\epsilon\)</span> 是闭式表达式中的<strong>聚合噪声</strong>。它把从 <span class="arithmatex">\(x_0\)</span> 到 <span class="arithmatex">\(x_t\)</span> 的所有增量效果折叠成一个标准高斯变量；它与最后一步刚加入的 <span class="arithmatex">\(\epsilon_t\)</span> 分布上都可为高斯，但不是同一个样本。</p>
+</div>
+<div class="learning-formal">
+<h3>形式化步骤：误差为什么会放大？</h3>
+<ol>
+<li>逐步过程里的 <span class="arithmatex">\(\epsilon_t\)</span> 只描述一次 <span class="arithmatex">\(x_{t-1}\to x_t\)</span> 的转移；把过程合并成闭式后，DDPM 常见的 epsilon 训练目标是对闭式中抽到的聚合 <span class="arithmatex">\(\epsilon\)</span> 做 <span class="arithmatex">\(\lVert\epsilon-\epsilon_\theta(x_t,t)\rVert^2\)</span>，不是要求网络复述最后一个 <span class="arithmatex">\(\epsilon_t\)</span>。</li>
+<li>在这套常见参数化下，用预测噪声还原干净样本：<span class="arithmatex">\(\hat x_0=(x_t-\sqrt{1-\bar\alpha_t}\,\hat\epsilon)/\sqrt{\bar\alpha_t}\)</span>。沿用 <span class="arithmatex">\(\hat\epsilon=\epsilon+\delta e\)</span> 并记误差向量 <span class="arithmatex">\(r=\hat\epsilon-\epsilon=\delta e\)</span>，直接相减得到 <span class="arithmatex">\(\hat x_0-x_0=-\sqrt{(1-\bar\alpha_t)/\bar\alpha_t}\,r\)</span>。因此绝对误差的放大因子是 <span class="arithmatex">\(\sqrt{(1-\bar\alpha_t)/\bar\alpha_t}\)</span>，均方误差的放大因子是它的平方，即 <span class="arithmatex">\(1/\mathrm{SNR}\)</span>。</li>
+<li>epsilon prediction 只是常见的一种参数化。网络也可以按约定预测 <span class="arithmatex">\(x_0\)</span>、<span class="arithmatex">\(v\)</span>，或 score；例如某套 VP 高斯约定下 <span class="arithmatex">\(\sigma_t=\sqrt{1-\bar\alpha_t}\)</span> 时，最优的时刻条件 score 与 epsilon 预测可通过 <span class="arithmatex">\(s(x_t,t)\approx-\epsilon_\theta(x_t,t)/\sigma_t\)</span> 转换。这个比例依赖 <span class="arithmatex">\(t\)</span> 和参数化；它描述的是加噪边缘分布在当前时刻的 score（在相应训练/转换成立时），不是网络直接等同于自然图像分布的一个全局梯度。</li>
+<li>反向采样还需要 scheduler/sampler：它规定离散时间步、如何把 epsilon/<span class="arithmatex">\(x_0\)</span>/v/score 互换、后验均值与方差以及是否注入随机量。模型预测配合采样器才构成反向轨迹；“模型一项就完整逆转”会漏掉这层工程与数学约定。</li>
+</ol>
+</div>
+<div class="learning-model">
+<h3>CFG 几何：在两次预测之间作外推</h3>
+<p>在常见的 classifier-free guidance 写法中，同时得到无条件预测 <span class="arithmatex">\(\epsilon_u\)</span> 与条件预测 <span class="arithmatex">\(\epsilon_c\)</span>，再计算</p>
+<div class="arithmatex">\[
+\epsilon_{\mathrm{guided}}=\epsilon_u+w(\epsilon_c-\epsilon_u).
+\]</div>
+<p><span class="arithmatex">\(w=0\)</span> 是无条件预测，<span class="arithmatex">\(w=1\)</span> 恰好是条件预测，<span class="arithmatex">\(w>1\)</span> 是沿着无条件到条件的方向继续外推。较大的 <span class="arithmatex">\(w\)</span> 可能加强条件一致性，但也可能牺牲多样性、放大伪影或过饱和；甜点区与 scale 的具体定义取决于模型、训练方式、采样器和实现。下方二维图只演示向量几何，不代表真实图片质量。</p>
+<p>这里的 <span class="arithmatex">\(w\)</span> 采用许多界面常见的 scale 约定。Ho 与 Salimans 原论文写成 <span class="arithmatex">\(\tilde\epsilon=(1+w_{\mathrm{paper}})\epsilon_c-w_{\mathrm{paper}}\epsilon_u\)</span>，因此本页的 <span class="arithmatex">\(w=1+w_{\mathrm{paper}}\)</span>；跨论文或软件比较数值前必须先对公式，不能只看参数名。</p>
+</div>
+<div class="learning-boundary">
+<h3>边界：哪些直觉不能直接外推？</h3>
+<ul>
+<li>本页的固定像素图、固定高斯种子和 cosine schedule 只让误差传播可计算；真实系统可能在 latent 空间工作，使用不同 schedule、参数化、噪声偏置、分辨率和采样步数。</li>
+<li>文本交叉注意力是 latent diffusion 等常见架构中的一种条件注入方式，不是所有图像生成路线都必须使用的机制；也有拼接、适配器、控制支路、自回归 token 等路线。</li>
+<li>提示词的词序、权重语法和分词影响依模型而异；“越靠前权重越高”不是通用定律。负面提示只在支持它的管线中作为额外条件起作用，也不是保证清除某种内容的开关。</li>
+<li>ControlNet 是常见的参考/控制支路之一，不是锁定姿势或构图的唯一解；参考图、适配器、局部重绘与其他条件方式的行为要按具体管线验证。</li>
+<li>平台、模型和硬件的速度、成本、隐私、可控性与输出差异随版本和配置变化；不要从一个产品或一台 M4 的体验推出普遍排名或性能结论。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：换参数化、换条件、换采样器</h3>
+<p>如果网络改为预测 <span class="arithmatex">\(x_0\)</span> 或 <span class="arithmatex">\(v\)</span>，重建公式和误差放大账本要怎样随 schedule 改写？如果只把采样步数减半，哪些量由 sampler 改变，哪些量仍由网络在给定 <span class="arithmatex">\(x_t,t\)</span> 上预测？最后解释：为什么把 <span class="arithmatex">\(w\)</span> 从 1 调到 4 是几何外推，而不是“把文字概率简单乘四”？</p>
+</div>
+<div class="learning-experiment">
+<h3>交互实验：加噪/重建与 CFG 几何</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>在 <span class="arithmatex">\(t=0.80\)</span> 时，<span class="arithmatex">\(\bar\alpha\approx0.0955\)</span>、<span class="arithmatex">\(\mathrm{SNR}\approx0.1056\)</span>，绝对误差放大因子约为 <span class="arithmatex">\(3.08\)</span>；若噪声预测误差方向的 RMS 为 1、<span class="arithmatex">\(\delta=0.10\)</span>，重建误差的 RMS 约为 <span class="arithmatex">\(0.308\)</span>。CFG 的静态向量取 <span class="arithmatex">\(\epsilon_u=(1.1,0.35)\)</span>、<span class="arithmatex">\(\epsilon_c=(2.3,1.7)\)</span>：<span class="arithmatex">\(w=0\)</span> 停在无条件点，<span class="arithmatex">\(w=1\)</span> 到达条件点，<span class="arithmatex">\(w=4\)</span> 越过条件点。交互只显示固定数组、玩具图案和几何指标，不展示真实模型，也不估计任何产品效果。</p>
+<div class="learning-lab" data-learning-lab="diffusion-denoise">
+<p>实验脚本未加载时：用上面的两个静态例子分别计算噪声误差放大因子，并在纸上画出从 <span class="arithmatex">\(\epsilon_u\)</span> 指向 <span class="arithmatex">\(\epsilon_c\)</span> 的直线。</p>
+</div>
+</div>
+</section>
+
 <h2 id="1">1. 原理：扩散模型十分钟版<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>LLM 逐 token 生成文本，图像这边的主流是完全不同的思路——<strong>扩散模型（diffusion model）</strong>：先学会"毁掉"图像，再学会逆转毁灭。</p>
-<p><strong>前向过程（固定的、不用学）</strong>：给真实图像 <span class="arithmatex">\(x_0\)</span> 逐步加高斯噪声，<span class="arithmatex">\(T\)</span> 步后变成纯噪声。每步</p>
+<p>LLM 常逐 token 生成文本；经典图像扩散路线采用另一种思路——<strong>扩散模型（diffusion model）</strong>：先定义逐步破坏图像的已知噪声通道，再学习与之配套的反向生成过程。今天也存在自回归、流式与混合路线，所以这不是所有图像模型的统一模板。</p>
+<p><strong>前向过程（固定的、不用学）</strong>：给真实图像 <span class="arithmatex">\(x_0\)</span> 逐步加高斯噪声；schedule 通常让终点分布接近预设的标准高斯先验，而有限步时不必字面上“完全没有信号”。每步</p>
 <div class="arithmatex">\[
 x_t = \sqrt{1 - \beta_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon_t, \qquad \epsilon_t \sim \mathcal{N}(0, I)
 \]</div>
@@ -57,48 +130,51 @@ x_t = \sqrt{1 - \beta_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon_t, \qquad \epsilo
 <div class="arithmatex">\[
 x_t = \sqrt{\bar\alpha_t}\, x_0 + \sqrt{1 - \bar\alpha_t}\, \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)
 \]</div>
-<p><strong>反向过程（学习目标）</strong>：训练一个神经网络 <span class="arithmatex">\(\epsilon_\theta(x_t, t)\)</span>，看着加噪图 <span class="arithmatex">\(x_t\)</span> 猜出"刚才加进去的噪声是什么"。损失朴素得出奇：</p>
+<p><strong>反向过程（学习目标）</strong>：训练一个神经网络 <span class="arithmatex">\(\epsilon_\theta(x_t, t)\)</span>，看着加噪图 <span class="arithmatex">\(x_t\)</span> 预测闭式表达式中的<strong>聚合噪声</strong> <span class="arithmatex">\(\epsilon\)</span>。它不是在猜最后一步刚加入的 <span class="arithmatex">\(\epsilon_t\)</span>；后者只描述一次局部转移，而闭式里的 <span class="arithmatex">\(\epsilon\)</span> 已经把从 <span class="arithmatex">\(x_0\)</span> 到 <span class="arithmatex">\(x_t\)</span> 的增量合并了。损失朴素得出奇：</p>
 <div class="arithmatex">\[
 L = \mathbb{E}_{x_0, t, \epsilon}\Big[\big\|\epsilon - \epsilon_\theta(x_t, t)\big\|^2\Big]
 \]</div>
-<p>（这个平方损失可以从变分下界 ELBO 严格推出——DDPM 论文（Ho et al. 2020）的核心推导，对学过随机过程的读者是一次愉快的阅读，此处按下。）<strong>生成</strong> = 从纯噪声出发，用训练好的网络一步步去噪，噪声中"显影"出一张新图。直觉：模型学到的是"自然图像分布的梯度场"（score），去噪即沿着梯度把随机点推回数据流形上——第 01 讲"生成式建模 = 学分布"在图像上的实现。</p>
-<p><strong>文字怎么控制图</strong>：文本经编码器变成向量（第 06 讲的 Transformer），通过交叉注意力注入每一步去噪——"每一步都往符合描述的方向掰"。掰的力度由 <strong>guidance scale（CFG）</strong>控制：同时算"有条件"与"无条件"两次预测，按 <span class="arithmatex">\(\epsilon_{\text{uncond}} + w(\epsilon_{\text{cond}} - \epsilon_{\text{uncond}})\)</span> 外推。<span class="arithmatex">\(w\)</span> 大 = 贴文字但呆板，<span class="arithmatex">\(w\)</span> 小 = 自由但跑题——你在工具里调的那个"提示词强度"就是它。</p>
-<p>（补充一嘴生态现状：扩散并非唯一路线——自回归式生图（GPT 系的图像能力）把图像当 token 序列生成，语义理解与图文一致性常更强；扩散系在质感与生态工具链上占优。两条路线正在融合。）</p>
-<h2 id="2-2026-10">2. 工具地图（2026 年初快照，时效同第 10 讲声明）<a class="headerlink" href="#2-2026-10" title="Permanent link"></a></h2>
+<p>（DDPM 的加权目标可从变分下界逐项得到；这里常写的无权平方损失 <span class="arithmatex">\(L_{\mathrm{simple}}\)</span> 是对各时刻项重新加权后的简化目标，不能不加说明地与原始 ELBO 画等号。）<strong>生成</strong> = 从噪声先验出发，交替使用网络预测与 scheduler/sampler 规定的更新一步步去噪。epsilon prediction 只是常见参数化之一，也可以预测 <span class="arithmatex">\(x_0\)</span>、<span class="arithmatex">\(v\)</span> 或 score；不同参数化要按 schedule 做转换。常见 VP 高斯约定下，epsilon 与时刻条件 score 有类似 <span class="arithmatex">\(s(x_t,t)\approx-\epsilon_\theta/\sqrt{1-\bar\alpha_t}\)</span> 的时刻相关比例，不能把网络直接说成自然图像分布的全局梯度。</p>
+<p><strong>文字怎么控制图</strong>：在 latent diffusion 等常见架构中，文本编码器输出的向量会通过交叉注意力等条件通道影响每一步去噪；这不是所有图像生成路线的必备机制。CFG 同时算"无条件"与"有条件"两次预测，按
+<span class="arithmatex">\(\epsilon_{\text{guided}}=\epsilon_u+w(\epsilon_c-\epsilon_u)\)</span>
+组合：<span class="arithmatex">\(w=0\)</span> 是无条件预测，<span class="arithmatex">\(w=1\)</span> 是条件预测，<span class="arithmatex">\(w&gt;1\)</span> 是越过条件预测的外推。较大的 <span class="arithmatex">\(w\)</span> 可能更贴条件，但也可能牺牲多样性或出现伪影；具体 scale 定义和甜点区依实现而异。</p>
+<p>本页采用的是常见界面 scale 约定；Ho 与 Salimans 的原论文把同一组合写成 <span class="arithmatex">\((1+w_{\mathrm{paper}})\epsilon_c-w_{\mathrm{paper}}\epsilon_u\)</span>，所以两者数值相差 1。跨工具比较 CFG 数值时，应先核对它实际使用的公式。</p>
+<p>（补充一嘴生态现状：扩散并非唯一路线——有些系统把图像表示为 token 或其他序列来生成，也有 latent、流式和混合式路线。不同架构在分辨率、控制接口、速度、成本和一致性上的取舍依版本与任务而变，不能用一条产品排序概括。）</p>
+<h2 id="2">2. 工具地图（按工作流选择，不做排行榜）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
-<th>工具</th>
+<th>路线</th>
 <th>形态</th>
-<th>特点</th>
+<th>适合先检查</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Midjourney</td>
-<td>订阅制网页/Discord</td>
-<td>艺术感与美学上限的代名词，控制精度一般</td>
+<td>托管式聊天/图像产品</td>
+<td>网页或应用内对话</td>
+<td>当前模型能力、编辑接口、隐私条款、计费与导出限制</td>
 </tr>
 <tr>
-<td>GPT/Gemini 内置生图</td>
-<td>聊天产品内置</td>
-<td>胜在"听得懂人话"：对话式迭代改图、图文混排、文字渲染准</td>
+<td>开放权重扩散路线</td>
+<td>本地或云端工作流</td>
+<td>模型许可证、显存/内存需求、采样器与控制扩展的兼容性</td>
 </tr>
 <tr>
-<td>Stable Diffusion / Flux 系</td>
-<td><strong>开源</strong>，本地或云</td>
-<td>控制力天花板（LoRA 微调、ControlNet），有折腾成本</td>
+<td>节点式/桌面式工作流工具</td>
+<td>把模型、条件和采样步骤显式连线</td>
+<td>是否需要可复现的 seed、版本锁定、批处理或局部重绘</td>
 </tr>
 <tr>
-<td>即梦、可图、通义万相等</td>
-<td>国内产品</td>
-<td>直连可用、中文理解好、价格友好</td>
+<td>自回归或混合式图像系统</td>
+<td>序列、latent 或混合生成</td>
+<td>条件接口、分辨率、速度和编辑能力是否满足当前任务</td>
 </tr>
 </tbody>
 </table>
-<p>选择逻辑：追求美学 → Midjourney 系；要"改图听指挥"与图文结合 → 聊天产品内置；要精确控制/批量/隐私 → 本地开源（你的 M4 24GB 跑 SDXL 级模型无压力，入口是 ComfyUI 或 DrawThings.app）；日常轻量 → 国内产品。</p>
+<p>选择逻辑：先按任务需要决定是快速迭代、可复现控制、批量处理还是本地隐私，再查当前版本的模型卡、硬件要求、价格与数据政策。即使同一条路线，模型、采样器、前端和参数也会改变体验；一台机器能否顺畅运行，要用目标模型和分辨率实测，不从硬件型号直接推断结果。</p>
 <h2 id="3">3. 提示词：结构化描述一张画<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>文生图提示词的通用骨架（越靠前权重越高）：</p>
+<p>文生图提示词的常见骨架（只是组织信息的起点，不是所有模型的固定权重规则）：</p>
 <div class="highlight"><pre><span></span><code>[主体]（谁/什么，外观细节） + [动作/情境] + [环境背景] +
 [构图视角]（特写/全景/俯视） + [光线]（黄昏逆光/柔光棚拍） +
 [风格媒介]（水彩/胶片摄影/等距插画/像素风） + [质量词]（细节丰富…）
@@ -106,24 +182,25 @@ L = \mathbb{E}_{x_0, t, \epsilon}\Big[\big\|\epsilon - \epsilon_\theta(x_t, t)\b
 <p>例："一只戴圆框眼镜的橘猫，趴在堆满数学书的木桌上打盹，午后阳光从左侧窗户斜射进来，浅景深特写，暖色胶片质感，插画风格"。要点：</p>
 <ul>
 <li><strong>写画面，不写抽象</strong>："孤独感"不如"空旷车站的长椅上一个小小的背影"；模型看得见名词和形容词，看不见你的心情；</li>
-<li><strong>负面提示</strong>（支持的工具）：把不想要的列出来（多余的手指、水印、文字）；</li>
-<li><strong>迭代是常态</strong>：一次出图只是抽签，正确姿势是固定种子（seed）后微调措辞、或用"图生图/局部重绘"在满意的构图上继续雕；对话式产品直接说"保持整体不变，把背景换成雨夜"；</li>
-<li><strong>精确控制</strong>（进阶，开源系）：ControlNet 用骨架图/深度图/线稿锁定姿势与构图，字面意义的"按图施工"——需要精确复现特定姿态时的唯一解。</li>
+<li><strong>词序和权重依模型而异</strong>：有的编码器、分词器或前端会对位置、括号/数值权重作不同处理；把顺序当作可验证的变量，不要当成普遍定律；</li>
+<li><strong>负面提示</strong>（仅在支持的工具中）：可以提供额外的反向条件，例如不希望出现水印或多余手指，但它不是保证清除某种内容的开关；</li>
+<li><strong>迭代是常态</strong>：固定 seed 往往能在同一模型、采样器和参数栈中帮助复现随机性，但换版本/分辨率/管线后不保证一致；图生图、局部重绘和对话式编辑也各有改变幅度；</li>
+<li><strong>精确控制</strong>（进阶）：ControlNet 是用骨架图/深度图/线稿等条件约束姿势与构图的常见控制支路之一，但不是唯一解，效果取决于模型、控制图、权重和采样设置。</li>
 </ul>
 <h2 id="4">4. 学术与工作中的正确用法<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <ul>
 <li><strong>能用</strong>：PPT 封面与氛围插图、公众号配图、活动海报底图、论文的<strong>概念示意</strong>草稿（最终版建议矢量工具重绘）；</li>
-<li><strong>慎用/别用</strong>：<strong>论文的数据图表</strong>——图表必须由代码从数据生成（matplotlib 等，第 15 讲），生图模型画的坐标轴是"长得像图表的画"，学术场合使用属于造假；涉及真实人物的图像（肖像权 + 深度伪造红线）；期刊明令禁止的 AI 生成插图（投稿前查政策，同第 13 讲）。</li>
+<li><strong>慎用/别用</strong>：<strong>承载证据的论文数据图表</strong>必须由真实数据和可复核代码生成（matplotlib 等，第 15 讲）；生图模型画的坐标轴只是“长得像图表的画”，若把它冒充观测或实验结果就是数据失实。涉及真实人物时要核对肖像、隐私与深度合成规则；投稿前也要查目标期刊对 AI 生成或编辑图像的当前政策（同第 13 讲）。</li>
 </ul>
-<p><strong>版权现状一句话</strong>（截至 2026 年初，变动中）：多数司法辖区认为<strong>纯 AI 生成、无实质人类创作参与的图像不受版权保护</strong>；训练数据的版权诉讼仍在进行。商用前查目标平台与所在地的最新规则，重要商业项目让 AI 出概念稿、人类完成终稿是稳妥路径。</p>
+<p><strong>版权与合规提醒</strong>：生成物的著作权/邻接权、训练数据许可、肖像与隐私、平台条款和期刊政策都依具体政策、管辖区、事实和版本而变；不要用一句“多数地区都怎样”替代判断。商用、投稿或涉及真实人物前，查当前平台、目标期刊与所在地的规则，必要时让机构或专业人士复核。让 AI 做概念稿、由人类完成并记录实质创作过程有时更便于说明来源，但也不是自动合规的保证。</p>
 <h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <ul>
-<li>扩散模型：学"猜噪声"，生成 = 从纯噪声逐步显影；文本经交叉注意力控制方向，CFG 调力度；</li>
-<li>工具四象限：美学（MJ）/ 听话（聊天内置）/ 控制（开源本地）/ 直连（国内）；</li>
-<li>提示词 = 主体 + 情境 + 构图 + 光线 + 风格；写画面不写抽象；迭代靠 seed 与局部重绘；</li>
-<li>学术红线：数据图表必须代码画；人物图像与期刊政策先查后用。</li>
+<li>扩散模型：闭式加噪中的 epsilon 是聚合噪声；生成还需要参数化转换与 scheduler/sampler；</li>
+<li>文本条件依架构而异；CFG 用 <span class="arithmatex">\(\epsilon_u+w(\epsilon_c-\epsilon_u)\)</span> 做无条件到条件的插值/外推；</li>
+<li>提示词 = 主体 + 情境 + 构图 + 光线 + 风格；顺序、负面提示和控制支路都要按模型验证；</li>
+<li>学术与商用：数据图表必须代码画；平台、期刊、版权与人物相关规则先查当前要求。</li>
 </ul>
-<p><strong>动手</strong>：任选一个可用的生图工具，用第 3 节的骨架为你手头的某个 PPT 生成一张封面图；然后把同一个提示词删掉构图和光线部分再生成一次，对比差距——你会立刻理解结构化提示词的价值。</p>
+<p><strong>动手</strong>：先在本页实验中把 <span class="arithmatex">\(t\)</span> 推到高噪声处、固定 <span class="arithmatex">\(\delta\)</span>，记录重建误差放大；再把 CFG 的 <span class="arithmatex">\(w\)</span> 设为 0、1、4，解释向量和玩具图案的变化。若之后使用真实工具，把模型、版本、seed、采样器和参数一并记录，不把玩具实验当作产品效果承诺。</p>
 <hr />
 <p><em>下一讲：把 AI 用在幻灯片和文档上——从"给我做个 PPT"的失望，到"大纲—逐页—成稿"的正确工作流。</em></p>
 </article>
@@ -135,5 +212,7 @@ L = \mathbb{E}_{x_0, t, \epsilon}\Big[\big\|\epsilon - \epsilon_\theta(x_t, t)\b
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/diffusion-denoise.js"></script>
 </body>
 </html>

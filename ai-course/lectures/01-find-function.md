@@ -2,6 +2,89 @@
 
 > **诞生场景**：20 世纪 50 年代，人们想让计算机识别手写邮政编码、判断细胞是否癌变、区分雷达信号里的飞机与飞鸟。这类任务的共同点是：**人类自己说不清判断规则，却能轻松做出判断**。既然写不出规则，能不能让机器从例子里自己"学"出规则？这就是**模式识别（pattern recognition）**——机器学习的起点。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：训练误差降了，验证误差为什么会升？</h2>
+
+<div class="learning-puzzle">
+<h3>具体情境：给一只传感器做标定</h3>
+<p>一台温度传感器每次给出原始读数 <span class="arithmatex">\(x\)</span>，工程师用一支更可靠的参考仪器得到校准值 <span class="arithmatex">\(y\)</span>。我们想找一个函数，把以后读到的原始数转换成校准值。下面的 8 个训练点用于拟合，另留出 7 个点作为<strong>验证点</strong>；蓝色方点默认可见，并且只应读作本实验的验证集。</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先预测，再按预设按钮</h3>
+<p>先猜三个趋势：<strong>①</strong> 用一次函数时，模型可能同时在训练点和验证点上偏得较远；<strong>②</strong> 提高到适度的二次函数后，训练与验证 MSE 可能一起下降；<strong>③</strong> 让七次函数插过全部训练点后，训练 MSE 会继续下降，但验证点附近可能出现弯折，样本外 MSE 反而上升。最后点“正则化”，看给高阶模型加一点约束是否能缓解这种摆动。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小模型：同一组传感器数据，换复杂度</h3>
+<p>实验把原始读数归一化为 <span class="arithmatex">\(z=(x-5)/5\)</span>，再使用多项式 <span class="arithmatex">\(f(x)=a_0+a_1z+\cdots+a_dz^d\)</span>。预设的 <span class="arithmatex">\(d\)</span> 是模型复杂度；<span class="arithmatex">\(\lambda\)</span> 是岭式权重惩罚。脚本用固定数据和确定性的正规方程求解，不调用远程 ML 库，也不把这个小程序包装成生产训练引擎。</p>
+<p>训练 MSE 记作 <span class="arithmatex">\(R_{\mathrm{train}}\)</span>，验证 MSE 记作 <span class="arithmatex">\(R_{\mathrm{val}}\)</span>。本实验显示的<strong>泛化差</strong>严格定义为 <span class="arithmatex">\(R_{\mathrm{val}}-R_{\mathrm{train}}\)</span>；它可以为负，也不是总体真实风险 <span class="arithmatex">\(R(f)\)</span> 的全部。</p>
+</div>
+
+<div class="learning-experiment">
+<h3>实验：只用预设观察训练–验证张力</h3>
+<div class="learning-lab" data-learning-lab="generalization-gap" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>横坐标 <span class="arithmatex">\(x\)</span> 是传感器原始读数，纵坐标 <span class="arithmatex">\(y\)</span> 是参考仪器的校准值。训练集固定为：</p>
+<table>
+<thead><tr><th>点</th><th><span class="arithmatex">\(x\)</span></th><th><span class="arithmatex">\(y\)</span></th></tr></thead>
+<tbody>
+<tr><td>T1</td><td>0</td><td>1.10</td></tr>
+<tr><td>T2</td><td>1.4</td><td>2.00</td></tr>
+<tr><td>T3</td><td>2.8</td><td>3.70</td></tr>
+<tr><td>T4</td><td>4.2</td><td>5.37</td></tr>
+<tr><td>T5</td><td>5.6</td><td>6.48</td></tr>
+<tr><td>T6</td><td>7</td><td>8.96</td></tr>
+<tr><td>T7</td><td>8.4</td><td>10.24</td></tr>
+<tr><td>T8</td><td>9.8</td><td>12.88</td></tr>
+</tbody>
+</table>
+<p>保留验证集为：</p>
+<table>
+<thead><tr><th>点</th><th><span class="arithmatex">\(x\)</span></th><th><span class="arithmatex">\(y\)</span></th></tr></thead>
+<tbody>
+<tr><td>V1</td><td>0.7</td><td>1.61</td></tr>
+<tr><td>V2</td><td>2.1</td><td>2.82</td></tr>
+<tr><td>V3</td><td>3.5</td><td>4.31</td></tr>
+<tr><td>V4</td><td>4.9</td><td>5.85</td></tr>
+<tr><td>V5</td><td>6.3</td><td>7.68</td></tr>
+<tr><td>V6</td><td>7.7</td><td>9.51</td></tr>
+<tr><td>V7</td><td>9.1</td><td>11.63</td></tr>
+</tbody>
+</table>
+<p>预设结论可由这些行和公式复核，不把伪造的精确 MSE 写进静态文本：</p>
+<ul>
+<li><strong>欠拟合：</strong><span class="arithmatex">\(d=1,\lambda=0\)</span>，模型表达力有限；在这组固定数据上训练与验证都仍有明显残差。</li>
+<li><strong>适度拟合：</strong><span class="arithmatex">\(d=2,\lambda=0\)</span>，默认预设；它捕捉主要弯曲趋势，验证 MSE 低于高阶插值预设。</li>
+<li><strong>插值 / 过拟合：</strong><span class="arithmatex">\(d=7,\lambda=0\)</span>，8 个训练点对应 7 次多项式；训练 MSE 在精确算术下为 0，但保留验证点上的 MSE 明显变大。</li>
+<li><strong>正则化：</strong><span class="arithmatex">\(d=7,\lambda=0.01\)</span>，训练误差不再追求插值，验证表现相对高阶无约束预设回落；这只是这组数据的演示结论，不是所有数据集的保证。</li>
+</ul>
+<p>脚本加载后，点击预设按钮即可查看真实计算的 <span class="arithmatex">\(R_{\mathrm{train}}\)</span>、<span class="arithmatex">\(R_{\mathrm{val}}\)</span> 与 <span class="arithmatex">\(R_{\mathrm{val}}-R_{\mathrm{train}}\)</span>。图中的保留点始终标为“验证点”；本实验只画训练点和验证点。</p>
+</div>
+</div>
+
+<div class="learning-boundary">
+<h3>误区与边界：泛化差不是一个万能分数</h3>
+<ul>
+<li><strong>泛化差可为负：</strong>如果这次验证集碰巧更容易、噪声更小，可能出现 <span class="arithmatex">\(R_{\mathrm{val}}&lt;R_{\mathrm{train}}\)</span>。负值并不表示模型在所有未来样本上都比训练集更好。</li>
+<li><strong>它不是总体真实风险：</strong>训练 MSE 与验证 MSE 都只是有限样本平均；<span class="arithmatex">\(R_{\mathrm{val}}-R_{\mathrm{train}}\)</span> 只描述这两个经验量的差，不能替代对未知分布取期望的 <span class="arithmatex">\(R(f)\)</span>，也没有包含偏差、方差、噪声等全部泛化误差。</li>
+<li><strong>经典 U 形是平均图景：</strong>把很多可能的训练集或数据重复后取平均，常会看到偏差下降、方差上升、误差先降后升的 U 形；单个数据集、单个随机划分不必严格服从这条曲线。参数量继续越过插值门槛后，测试误差还可能再次下降，这个边界现象叫<strong>双下降</strong>，不能被本次小实验的经典 U 形预设覆盖。</li>
+</ul>
+</div>
+
+<div class="learning-formal">
+<h3>回到工程规则：验证集选复杂度，最终评估只收尾</h3>
+<p>在传感器标定项目中，训练集用来求 <span class="arithmatex">\(a_0,\ldots,a_d\)</span>；验证集用来比较 <span class="arithmatex">\(d\)</span>、<span class="arithmatex">\(\lambda\)</span>、特征处理和停止规则。每看一次验证结果并据此改预设，就是在用验证集参与决策，所以验证集也可能被反复调到过拟合。</p>
+<p>独立的最终评估数据应该像封存的现场校验记录：复杂度和超参数全部冻结后，最后只做<strong>一次</strong>评估并报告。交互实验默认不画这组数据，也不让读者反复查看它；否则它就会偷偷变成验证集。若现场分布与实验室分布不同，即使验证 gap 很小，也不能宣称总体风险已经被测准。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移题：把“看起来更准”拆成可审计的选择</h3>
+<p>若下一批传感器的原始读数范围超出 <span class="arithmatex">\([0,10]\)</span>，先问：这是插值还是外推？若验证点来自同一台传感器而部署时换了另一台，训练–验证划分是否仍代表目标分布？最后写出一条规则：只有在验证集上选定复杂度并冻结模型后，才允许打开封存的最终评估结果。</p>
+</div>
+</section>
+
 ## 1. 从一个分类问题说起
 
 <figure class="plot" markdown="1">
@@ -131,10 +214,10 @@ $$
 - **偏差（bias）**：平均而言模型系统性地偏离真相多少——模型太简单、表达力不够时偏差大（**欠拟合**）；
 - **方差（variance）**：换一批训练数据，模型预测抖动多大——模型太复杂、对训练集的偶然细节过度敏感时方差大（**过拟合**）。
 
-经典图像：随模型复杂度上升，偏差单调下降、方差单调上升，测试误差呈 U 形——存在一个"刚刚好"的复杂度。**lab01 会让你亲手画出这条 U 形曲线**（用多项式次数当复杂度旋钮）。
+经典示意图常把复杂度提高画成“偏差下降、方差上升”，于是平均测试误差呈 U 形，暗示存在一个“刚刚好”的复杂度。这里的单调变化和 U 形都是对模型族、训练集与噪声作简化后的平均图景，不是每个数据集、每次划分都必须服从的定律。**上方的 generalization-gap 实验**固定一组小数据，让你先观察预设之间的训练–验证差异，再把这条平均图景当作需要检验的假设。
 
 !!! warning "现代注脚：双下降"
-    深度学习时代发现，把模型复杂度推到"参数量远超样本数"的区域后，测试误差可能**再次下降**（double descent，Belkin et al. 2019）。经典 U 形没有错，但它只描述了图像的左半段。这提示经典理论对超大模型的解释力有限——第 07 讲的 Scaling Laws 会再次撞见这个主题。
+    深度学习时代发现，跨过插值阈值并继续增加参数后，测试误差在某些模型与训练设置中可能**再次下降**（double descent，Belkin et al. 2019）。这不把经典 U 形升级成“完整曲线的左半段”，而是说明风险–复杂度关系依赖模型族、优化、正则化与数据分布；第 07 讲的 Scaling Laws 会再次撞见这个主题。
 
 ### 3.3 正则化：给复杂度上缰绳
 
@@ -201,7 +284,7 @@ $$
 
 即 $n$ 个点上能实现的标签组合的最大数目。若某组 $n$ 个点上 $2^n$ 种标签全能实现，称这组点被 $\mathcal{H}$ **打散（shatter）**。
 
-**定义（VC 维）**：$\mathrm{VC}(\mathcal{H}) = $ 能被打散的点集的最大规模。
+**定义（VC 维）**：$\mathrm{VC}(\mathcal{H})$ 是能被 $\mathcal{H}$ 打散的点集的最大规模。
 
 例子（值得自己验证）：
 
@@ -245,9 +328,13 @@ $$
 
 理论讲完，一条实践铁律：**评估必须用没参与过任何决策的数据。**
 
+把它落到一个传感器标定项目：训练集是原始读数与参考仪器读数的配对，用来求模型参数；验证集是同一任务中预先留出的配对，用来选多项式次数、正则化强度和停止规则。复杂度提高时，训练误差可以继续下降，甚至把训练读数几乎逐点穿过；但曲线在两个读数之间摆动，新的传感器读数的误差可能上升。此时实验中报告的泛化差是 \(R_{\mathrm{val}}-R_{\mathrm{train}}\)，它可为负，也只是两个有限验证的经验 MSE 之差，不等于未知现场分布上的总体真实风险，更不是泛化误差的全部。
+
 - **训练集**：喂给优化算法找参数；
 - **验证集**：选超参数（多项式次数、$\lambda$、网络层数……）——注意超参数的选择也是一种"学习"，也会过拟合验证集；
 - **测试集**：只在最终评估时用**一次**。反复看测试集再调模型，等于把测试集变成了验证集，报出来的数字就是自欺。
+
+只有当复杂度和超参数已经由验证集选定并冻结，才打开封存的测试集做最终一次评估；本讲的交互图默认不绘制 test 点，也不提供反复查看 test 的路径。若你连续看测试结果再改模型，测试集就已承担验证集的角色，最后的数字不再是独立评估。
 
 数据少时用 **k 折交叉验证**：分 k 份，轮流留一份验证、其余训练，平均 k 次结果——以 k 倍计算换取对全部数据的利用。
 
@@ -263,7 +350,7 @@ $$
 | VC 维 | 无限假设类的复杂度度量 = 最大可打散点数 |
 | NFL | 没有万能算法；一切学习都依赖归纳偏置 |
 
-**动手**：跑 `labs/lab01_find_function.py`——用多项式拟合亲手制造欠拟合与过拟合，画出训练/测试误差的 U 形曲线，观察正则化如何救场。
+**动手**：操作本讲上方的 generalization-gap 实验——用预设多项式比较训练/验证 MSE 与 \(R_{\mathrm{val}}-R_{\mathrm{train}}\)，观察正则化如何改变高阶模型的样本外表现；真正的 test 集只在模型冻结后最终评估一次。
 
 **延伸阅读**：Shalev-Shwartz & Ben-David《Understanding Machine Learning》第 2–6 章（本讲理论的完整版）；李航《统计学习方法》第 1 章。
 

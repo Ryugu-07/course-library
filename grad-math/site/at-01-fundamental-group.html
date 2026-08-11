@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -37,11 +48,19 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 同伦：连续变形的等价</a></li>
-<li><a href="#2">2. 基本群</a></li>
+<li><a href="#_1">学习层：把“绕几圈”抬到实线</a><ul>
+<li><a href="#1">1. 先固定问题：环路、基点与覆盖</a></li>
+<li><a href="#2">2. 预测：形状可以回摆，端点为什么不动？</a></li>
+<li><a href="#3">3. 实验读法：两张图与一个数值账本</a></li>
+<li><a href="#4">4. 术语边界：哪些话可以说，哪些话不能偷换</a></li>
+<li><a href="#5">5. 迁移问题：把“终点账本”带到别处</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 同伦：连续变形的等价</a></li>
+<li><a href="#2_1">2. 基本群</a></li>
 <li><a href="#3-pi_1s1-cong-mathbbz">3. \(\pi_1(S^1) \cong \mathbb{Z}\)（第一块非平凡砖）</a></li>
 <li><a href="#4-at-02">4. 计算工具箱（预告 at-02）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,18 +73,68 @@
 <p><img alt="基本群：环路在空间里能否收缩（圆环 vs 圆盘），\pi_1 记录&quot;洞&quot;。" src="assets/img/at-01-fundamental-group.svg" /></p>
 <figcaption><span class="fig-id">图 at-01.1</span>基本群：环路在空间里能否收缩（圆环 vs 圆盘），\(\pi_1\) 记录"洞"。</figcaption>
 </figure>
-<h2 id="1">1. 同伦：连续变形的等价<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：把“绕几圈”抬到实线<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 先固定问题：环路、基点与覆盖<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把圆周写成</p>
+<div class="arithmatex">\[
+S^1=\{z\in\mathbb C:|z|=1\},\qquad p:\mathbb R\longrightarrow S^1,
+\quad p(x)=e^{2\pi i x}.
+\]</div>
+<p>这里的 <span class="arithmatex">\(1\)</span> 是 <span class="arithmatex">\(S^1\)</span> 的基点，<span class="arithmatex">\(0\)</span> 是它选定的提升起点。<span class="arithmatex">\(p(x+k)=p(x)\)</span>（<span class="arithmatex">\(k\)</span> 为整数），所以实线像一架无限楼梯：每跨过一层，圆周上的投影又回到同一个基点。</p>
+<p>对于以 <span class="arithmatex">\(1\)</span> 为起点的路径 <span class="arithmatex">\(γ:[0,1]→S^1\)</span>，一旦规定 <span class="arithmatex">\(ℓ(0)=0\)</span>，覆盖空间的路径提升定理给出唯一的提升 <span class="arithmatex">\(ℓ\)</span> 使</p>
+<div class="arithmatex">\[
+p\circ\widetilde\gamma=\gamma.
+\]</div>
+<p>若 <span class="arithmatex">\(γ\)</span> 还是以 <span class="arithmatex">\(1\)</span> 为终点的回路，那么 <span class="arithmatex">\(ℓ(1)∈p^{-1}(1)=ℤ\)</span>。这个整数就是绕数；若终点不是 <span class="arithmatex">\(1\)</span>，则提升终点一般只是某个实数，不能随意叫作绕数。</p>
+<h3 id="2">2. 预测：形状可以回摆，端点为什么不动？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>本实验固定 <span class="arithmatex">\(a=1\)</span>，使用一族提升</p>
+<div class="arithmatex">\[
+\widetilde\gamma_{n,\lambda}(t)=nt+\lambda a\sin(2\pi t),
+\qquad n\in\mathbb Z,\quad \lambda\ge 0.
+\]</div>
+<p>其中 <span class="arithmatex">\(n\)</span> 是离散的绕数预设，<span class="arithmatex">\(λ\)</span> 只把路径在实线上来回拉扯。先猜：把 <span class="arithmatex">\(λ\)</span> 从 <span class="arithmatex">\(0\)</span> 拉大，右图的实线会如何改变？到 <span class="arithmatex">\(t=1\)</span> 时，终点会不会离开整数？再拖动进度 <span class="arithmatex">\(t\)</span>，比较实线上的点 <span class="arithmatex">\(ℓ(t)\)</span> 与左图的投影 <span class="arithmatex">\(p(ℓ(t))\)</span>。</p>
+<p>两端的正弦项同时为零，因此</p>
+<div class="arithmatex">\[
+\widetilde\gamma_{n,\lambda}(0)=0,
+\qquad \widetilde\gamma_{n,\lambda}(1)=n,
+\qquad p(0)=p(n)=1.
+\]</div>
+<p>所以 <span class="arithmatex">\(λ\)</span> 可以让中间形状大变，却不能改变端点账本：这是“固定端点同伦保持提升终点”的可视化版本。</p>
+<h3 id="3">3. 实验读法：两张图与一个数值账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>左图显示 <span class="arithmatex">\(p∘ℓ\)</span> 在圆周上的投影，右图显示实线中的提升 <span class="arithmatex">\(ℓ(t)\)</span>。移动 <span class="arithmatex">\(t\)</span> 时，两个当前点同步移动；右图的水平整数线提示纤维 <span class="arithmatex">\(p^{-1}(1)=ℤ\)</span>，而终点标记始终在 <span class="arithmatex">\(n\)</span> 层。数值账本同时列出当前 <span class="arithmatex">\(t\)</span>、当前提升值、投影坐标、起点 <span class="arithmatex">\(ℓ(0)=0\)</span> 与终点 <span class="arithmatex">\(ℓ(1)=n\)</span>。</p>
+<p>若只改变 <span class="arithmatex">\(λ\)</span>，投影路径可能在圆周上前进又后退，但每个 <span class="arithmatex">\(λ\)</span> 给出同一对固定基点的回路同伦类；若改变离散的 <span class="arithmatex">\(n\)</span>，终点层数改变，因而得到不同的基本群元素。这个“终点层数”正是</p>
+<div class="arithmatex">\[
+\pi_1(S^1,1)\xrightarrow{\ \deg\ }\mathbb Z
+\]</div>
+<p>的计算影像。</p>
+<h3 id="4">4. 术语边界：哪些话可以说，哪些话不能偷换<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>基本群元素是<strong>固定基点的回路同伦类</strong>：<span class="arithmatex">\(γ(0)=γ(1)=1\)</span>，同伦 <span class="arithmatex">\(H(s,t)\)</span> 也必须在两端始终固定为 <span class="arithmatex">\(1\)</span>。它不是“任意一条路”的集合，也不是自由同伦类。</li>
+<li>给定提升起点后，路径提升是唯一的；在本实验中选择 <span class="arithmatex">\(ℓ(0)=0\)</span> 才能把终点读成一个确定的整数。</li>
+<li>只有投影是回路时，提升终点才保证落在整数纤维 <span class="arithmatex">\(p^{-1}(1)=ℤ\)</span>。固定端点的同伦会保持这个提升终点。</li>
+<li>一般空间的“洞数”不是一个简单整数：<span class="arithmatex">\(π_1\)</span> 可能非交换，例如八字形的自由群 <span class="arithmatex">\(F_2\)</span>。自由同伦允许基点移动；在道路连通情形，它更接近于基本群元素的共轭类，不能和基点同伦混为一谈。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="winding-lift">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(n=1,λ=0\)</span>，提升为 <span class="arithmatex">\(ℓ(t)=t\)</span>，从 <span class="arithmatex">\(0\)</span> 到 <span class="arithmatex">\(1\)</span>；一般地 <span class="arithmatex">\(ℓ(0)=0\)</span>、<span class="arithmatex">\(ℓ(1)=n\)</span>，而 <span class="arithmatex">\(p(0)=p(n)=1\)</span>。脚本加载后可切换负、零、正的离散绕数，调节固定端点的回摆与移动进度，并对照圆周投影和实线提升。</p>
+</div>
+<h3 id="5">5. 迁移问题：把“终点账本”带到别处<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(γ_0,γ_1\)</span> 都是以 <span class="arithmatex">\(1\)</span> 为起点和终点的回路，并且通过固定端点的同伦相连。给它们的提升都选起点 <span class="arithmatex">\(0\)</span>：你能否用同伦提升说明两条提升的终点必须相同？反过来，若两条提升终点分别为 <span class="arithmatex">\(0\)</span> 与 <span class="arithmatex">\(1\)</span>，为什么这足以说明原回路不在 <span class="arithmatex">\(π_1(S^1,1)\)</span> 中同伦？最后思考：把圆周换成环面或八字形时，什么仍可由提升记录，什么不再能用一个整数概括？</p>
+</section>
+<h2 id="1_1">1. 同伦：连续变形的等价<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 映射同伦 <span class="arithmatex">\(f \simeq g\)</span>：存在连续 <span class="arithmatex">\(H: X\times[0,1] \to Y\)</span>，<span class="arithmatex">\(H_0 = f, H_1 = g\)</span>（"电影"连接两映射）。道路同伦：端点固定的同伦。<strong>同伦等价</strong>的空间（<span class="arithmatex">\(fg \simeq \mathrm{id}\)</span>，<span class="arithmatex">\(gf \simeq \mathrm{id}\)</span>）：比同胚更粗的"相同"——圆环带 <span class="arithmatex">\(\simeq\)</span> 圆（压扁）、<span class="arithmatex">\(\mathbb{R}^n \simeq\)</span> 点（缩回）——<strong>代数拓扑的不变量都是同伦不变量</strong>：看"形变骨架"不看"皮肉尺寸"。</p>
-<h2 id="2">2. 基本群<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(\pi_1(X, x_0)\)</span>：基点 <span class="arithmatex">\(x_0\)</span> 出发的回路的道路同伦类，乘法 = 接续走。
+<h2 id="2_1">2. 基本群<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>定义</strong> <span class="arithmatex">\(\pi_1(X, x_0)\)</span>：以基点 <span class="arithmatex">\(x_0\)</span> 为起点和终点的回路，在<strong>固定基点的道路同伦</strong>下的等价类，乘法 = 接续走。自由同伦允许基点移动，不能直接替代这里的等价关系。
 <strong>群公理验证【骨架】</strong>：结合律/单位（常值路）/逆（倒放）都"差一个重参数化的同伦"——三张标准同伦图（Hatcher §1.1 的图）；道路连通时基点选取只差同构（沿连接路共轭）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>函子性</strong>（本学科的方法论核心）：连续映射 <span class="arithmatex">\(f: X \to Y\)</span> 诱导群同态 <span class="arithmatex">\(f_*: \pi_1(X) \to \pi_1(Y)\)</span>，且 <span class="arithmatex">\((fg)_* = f_*g_*\)</span>、恒等映射诱导恒等——<strong>"空间与映射"被系统翻译成"群与同态"</strong>；同伦等价诱导同构。范畴论气质的第一次正式出场：不变量之所以能判非同胚，正因翻译保持结构。</p>
+<p><strong>函子性</strong>（本学科的方法论核心）：连续映射 <span class="arithmatex">\(f: X \to Y\)</span> 诱导群同态 <span class="arithmatex">\(f_*: \pi_1(X,x_0) \to \pi_1(Y,f(x_0))\)</span>，且 <span class="arithmatex">\((fg)_* = f_*g_*\)</span>、恒等映射诱导恒等——<strong>"空间与映射"被系统翻译成"群与同态"</strong>；同伦等价诱导同构。范畴论气质的第一次正式出场：不变量之所以能判非同胚，正因翻译保持结构。</p>
 <h2 id="3-pi_1s1-cong-mathbbz">3. <span class="arithmatex">\(\pi_1(S^1) \cong \mathbb{Z}\)</span>（第一块非平凡砖）<a class="headerlink" href="#3-pi_1s1-cong-mathbbz" title="Permanent link"></a></h2>
 <p><strong>定理</strong> 圆周的基本群是 <span class="arithmatex">\(\mathbb{Z}\)</span>，由"绕一圈"生成；同构由<strong>卷绕数</strong>给出。
 <strong>【证明骨架（提升论证，结构完整）】</strong> 覆盖映射 <span class="arithmatex">\(p: \mathbb{R} \to S^1\)</span>，<span class="arithmatex">\(t \mapsto e^{2\pi it}\)</span>（螺旋楼梯投影到圆）。
 ① <strong>道路提升引理</strong>：<span class="arithmatex">\(S^1\)</span> 中始于 <span class="arithmatex">\(1\)</span> 的道路唯一提升为 <span class="arithmatex">\(\mathbb{R}\)</span> 中始于 <span class="arithmatex">\(0\)</span> 的道路（紧致性切小段、每段落在均匀覆盖邻域里逐段抬升——拓扑 II 紧致性的标准用法）；
-② <strong>同伦提升引理</strong>：道路同伦也唯一提升（同法对方块紧致性）；
-③ 定义 <span class="arithmatex">\(\deg(\gamma) = \tilde\gamma(1)\)</span>（提升的终点——必为整数：楼梯爬了几层）。②保证同伦类不变；满射（爬 <span class="arithmatex">\(n\)</span> 层的螺旋线）与单射（终点同层 ⇒ 提升同伦 ⇒ 原路同伦）给同构。<span class="arithmatex">\(\blacksquare\)</span></p>
+② <strong>同伦提升引理</strong>：固定端点的道路同伦也唯一提升（同法对方块紧致性）；
+③ 对以 <span class="arithmatex">\(1\)</span> 为终点的回路定义 <span class="arithmatex">\(\deg(\gamma) = \tilde\gamma(1)\)</span>（此时提升终点必为整数——楼梯爬了几层）。②保证同伦类不变；满射（爬 <span class="arithmatex">\(n\)</span> 层的螺旋线）与单射（终点同层 ⇒ 提升同伦 ⇒ 原路同伦）给同构。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>立收的红利（一颗定理三枚果）</strong>：</p>
 <ul>
 <li><strong>Brouwer 不动点定理（二维）【证明】</strong>：圆盘自映射无不动点 ⇒ 可造收缩 <span class="arithmatex">\(D^2 \to S^1\)</span>（沿 <span class="arithmatex">\(f(x)\)</span> 到 <span class="arithmatex">\(x\)</span> 的射线打到边界）⇒ 函子性给 <span class="arithmatex">\(\mathbb{Z} = \pi_1(S^1)\)</span> 是 <span class="arithmatex">\(\pi_1(D^2) = 0\)</span> 的直和项——矛盾。<span class="arithmatex">\(\blacksquare\)</span>（<strong>博弈论 I 欠的 Kakutani/Brouwer 至此有拓扑证明</strong>——Nash 均衡存在性的地基正式落地。）</li>
@@ -74,7 +143,7 @@
 </ul>
 <h2 id="4-at-02">4. 计算工具箱（预告 at-02）<a class="headerlink" href="#4-at-02" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(\pi_1(S^n) = 0\ (n\geq2)\)</span>（回路可推离一点再缩——<strong>高维球面单连通</strong>）；乘积 <span class="arithmatex">\(\pi_1(X\times Y) = \pi_1(X)\times\pi_1(Y)\)</span>【一行】⇒ 环面 <span class="arithmatex">\(\pi_1(T^2) = \mathbb{Z}^2\)</span>（两种绕法交换）；<strong>8 字形（两圆一点粘）</strong> <span class="arithmatex">\(\pi_1 = F_2\)</span>（<strong>自由群</strong>——两种绕法不交换：<span class="arithmatex">\(aba^{-1}b^{-1} \neq e\)</span>，非交换性的拓扑出生地；证明需 van Kampen，下一页主菜）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（卷绕数亲算）</strong> <span class="arithmatex">\(\gamma(t) = e^{2\pi i\cdot 3t}\)</span>：提升 <span class="arithmatex">\(\tilde\gamma(t) = 3t\)</span>、<span class="arithmatex">\(\deg = 3\)</span>——"绕三圈"的正式户口；复变 III 留数定理的绕数与此同源（辐角原理是两线的桥【引用】）。</p>
 <p><strong>例 2（不变量判非同胚）</strong> <span class="arithmatex">\(\mathbb{R}^2\)</span> 与 <span class="arithmatex">\(\mathbb{R}^2\setminus\{0\}\)</span>：后者 <span class="arithmatex">\(\pi_1 = \mathbb{Z}\)</span>（同伦等价于 <span class="arithmatex">\(S^1\)</span>）前者平凡——<strong>"挖一点"被群测出来</strong>（拓扑 II 连通性数分叉判不了的，基本群接管：不变量的分辨率升级）。</p>
 <p><strong>例 3（mfld-02 对账）</strong> <span class="arithmatex">\(H^1_{dR}(\mathbb{R}^2\setminus\{0\}) \neq 0\)</span>（角度形式）与 <span class="arithmatex">\(\pi_1 = \mathbb{Z}\)</span> 测的是<strong>同一个洞</strong>——分析的探测器与代数的探测器在最小例子上对上号（de Rham 定理的第一次显灵）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -89,5 +158,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/winding-lift.js"></script>
 </body>
 </html>

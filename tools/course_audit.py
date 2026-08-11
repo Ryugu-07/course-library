@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 
 LOCAL_ATTRS = {"href", "src", "poster"}
 SKIP_SCHEMES = {"data", "http", "https", "javascript", "mailto", "tel"}
+SKIP_TEXT_TAGS = {"code", "pre", "script", "style"}
 PARAGRAPH_RE = re.compile(r"<p(?:\s[^>]*)?>(.*?)</p>", re.IGNORECASE | re.DOTALL)
 RAW_LIST_RE = re.compile(r"(?m)^[ \t]*(?:[-+*]|\d+[.)])[ \t]+")
 
@@ -26,9 +27,26 @@ class PageParser(HTMLParser):
         self.ids: list[str] = []
         self.refs: list[str] = []
         self.images_without_alt = 0
+        self.raw_dollar_text: list[str] = []
+        self.learning_page_markers = 0
+        self.learning_layers = 0
+        self.learning_labs: list[str] = []
+        self.script_srcs: list[str] = []
+        self.stylesheet_hrefs: list[str] = []
+        self._skip_text_depth = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in SKIP_TEXT_TAGS:
+            self._skip_text_depth += 1
         values = dict(attrs)
+        if "data-learning-page" in values:
+            self.learning_page_markers += 1
+        lab_name = values.get("data-learning-lab")
+        if lab_name:
+            self.learning_labs.append(lab_name)
+        classes = set((values.get("class") or "").split())
+        if "learning-layer" in classes:
+            self.learning_layers += 1
         element_id = values.get("id")
         if element_id:
             self.ids.append(element_id)
@@ -38,6 +56,25 @@ class PageParser(HTMLParser):
                 self.refs.append(value)
         if tag == "img" and not values.get("alt"):
             self.images_without_alt += 1
+        if tag == "script" and values.get("src"):
+            self.script_srcs.append(values["src"])
+        if (
+            tag == "link"
+            and "stylesheet" in (values.get("rel") or "").split()
+            and values.get("href")
+        ):
+            self.stylesheet_hrefs.append(values["href"])
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in SKIP_TEXT_TAGS and self._skip_text_depth:
+            self._skip_text_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_text_depth or "$" not in data:
+            return
+        snippet = " ".join(data.split())
+        if snippet:
+            self.raw_dollar_text.append(snippet[:120])
 
 
 def site_html_files(root: Path) -> list[Path]:
@@ -51,6 +88,10 @@ def is_local_ref(value: str) -> bool:
     if not value or value.startswith("#"):
         return False
     return urlsplit(value).scheme.lower() not in SKIP_SCHEMES
+
+
+def has_asset(refs: list[str], suffix: str) -> bool:
+    return any(unquote(urlsplit(ref).path).endswith(suffix) for ref in refs)
 
 
 def audit_html(root: Path, details: list[str], counts: Counter[str]) -> None:
@@ -76,6 +117,42 @@ def audit_html(root: Path, details: list[str], counts: Counter[str]) -> None:
                 f"Missing img alt: {page.relative_to(root)} "
                 f"({parser.images_without_alt})"
             )
+
+        for snippet in parser.raw_dollar_text:
+            counts["raw_math_delimiter"] += 1
+            details.append(
+                f"Unrendered math delimiter: {page.relative_to(root)}: {snippet}"
+            )
+
+        if parser.learning_page_markers or parser.learning_labs:
+            counts["learning_pages"] += 1
+            counts["learning_labs"] += len(parser.learning_labs)
+            contract_errors = []
+            if parser.learning_page_markers != 1:
+                contract_errors.append(
+                    f"expected one data-learning-page marker, got "
+                    f"{parser.learning_page_markers}"
+                )
+            if parser.learning_layers != 1:
+                contract_errors.append(
+                    f"expected one learning-layer section, got {parser.learning_layers}"
+                )
+            if not has_asset(parser.script_srcs, "assets/learning/learning.js"):
+                contract_errors.append("missing learning.js")
+            if not has_asset(
+                parser.stylesheet_hrefs, "assets/learning/learning.css"
+            ):
+                contract_errors.append("missing learning.css")
+            for lab_name in sorted(set(parser.learning_labs)):
+                if not has_asset(
+                    parser.script_srcs, f"assets/learning/labs/{lab_name}.js"
+                ):
+                    contract_errors.append(f"missing lab script for {lab_name}")
+            for error in contract_errors:
+                counts["learning_contract"] += 1
+                details.append(
+                    f"Learning contract: {page.relative_to(root)}: {error}"
+                )
 
         for ref in parser.refs:
             counts["refs"] += 1
@@ -156,11 +233,13 @@ def main() -> int:
             "html_parse",
             "duplicate_id",
             "img_no_alt",
+            "raw_math_delimiter",
             "missing_ref",
             "malformed_list_block",
             "bad_svg",
             "bad_workflow_json",
             "bad_workflow_shape",
+            "learning_contract",
         )
         if counts[name]
     }
@@ -169,6 +248,8 @@ def main() -> int:
         "Audit summary: "
         f"html={counts['html']} refs={counts['refs']} svg={counts['svg']} "
         f"workflows={counts['workflow_json']} "
+        f"learning_pages={counts['learning_pages']} "
+        f"learning_labs={counts['learning_labs']} "
         f"malformed_list_items={counts['malformed_list_item']}"
     )
     if failures:

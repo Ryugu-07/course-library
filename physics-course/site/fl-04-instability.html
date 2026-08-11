@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -39,93 +50,238 @@
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：中性曲线怎样选出真实的对流胞</a><ul>
+<li><a href="#fl-instability-learning-title">1. 先把 RBC 的边界条件钉死</a></li>
+<li><a href="#2-mu">2. 自由滑移解析中性曲线与符号正确的 \(\mu\)</a></li>
+<li><a href="#3">3. 动手实验：同一中性判据，右图真的重画胞格</a></li>
+<li><a href="#4-onset-rolls">4. 模式选择：为什么近 onset 先看到 rolls</a></li>
+<li><a href="#5">5. 迁移题：换条件时，哪些结论还能搬过去？</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 线性稳定性分析：标准流程</a></li>
-<li><a href="#2-rayleighbenard">2. Rayleigh–Bénard 对流：图案形成的原型</a></li>
-<li><a href="#3">3. 几种经典失稳机制</a></li>
-<li><a href="#4">4. 转捩：线性理论的失效</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#2-rayleighbenard">2. Rayleigh–Bénard：图案形成的原型</a></li>
+<li><a href="#3_1">3. 几种经典失稳机制</a></li>
+<li><a href="#4">4. 转捩：线性稳定不等于任意条件下必然层流</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">流体 IV · 不稳定性与对流<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Drazin &amp; Reid《Hydrodynamic Stability》/ Chandrasekhar / Cross &amp; Hohenberg RMP ｜ <strong>前置</strong>：fl-01、asm-01（对称破缺与序参量）
-湍流不是凭空出现的，它是层流<strong>逐级失稳</strong>的终点。本页讲清失稳的判据、几种经典机制，以及一个漂亮的联系：<strong>流体的对流失稳与相变的对称破缺，共享同一套数学</strong>（Landau 理论，asm-01）。</p>
+湍流不是凭空出现的，而是层流在扰动、几何和非线性共同作用下可能到达的失稳终点。本页用 Rayleigh–Bénard（RBC）把一条中性曲线、一个近临界正规形和<strong>真实改变胞格宽度的对流图案</strong>接起来；其余经典失稳则明确写出适用边界。</p>
 </blockquote>
 <figure class="plot">
 <p><img alt="Rayleigh–Bénard 对流的分岔图与临界 Rayleigh 数。" src="assets/img/fl-04-instability-bifurcation.svg" /></p>
-<figcaption><span class="fig-id">图 fl-04.1</span>Rayleigh–Bénard 对流的<strong>超临界分岔</strong>：\(\mathrm{Ra}&lt;\mathrm{Ra}_c\) 时静止导热态稳定；越过 \(\mathrm{Ra}_c\approx1708\) 后对流振幅按 \(A\propto\sqrt{\mathrm{Ra}-\mathrm{Ra}_c}\) 生长——与 Landau 相变的序参量行为同形。</figcaption>
+<figcaption><span class="fig-id">图 fl-04.1</span>这张静态分岔图采用上下<strong>无滑移刚性边界</strong>的参考临界值 \(\mathrm{Ra}_c\approx1707.76\)，所以 \(A\propto\sqrt{\mathrm{Ra}-\mathrm{Ra}_c}\) 只是近临界超临界分岔的示意。下面的互动实验<strong>明确只采用自由滑移边界的解析中性曲线</strong>，两种边界条件不可混用。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="fl-instability-learning-title" class="learning-layer">
+<h2 id="_1">学习层：中性曲线怎样选出真实的对流胞<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="fl-instability-learning-title">1. 先把 RBC 的边界条件钉死<a class="headerlink" href="#fl-instability-learning-title" title="Permanent link"></a></h3>
+<p>考虑无限水平层 <span class="arithmatex">\(0&lt;z&lt;d\)</span>，下热上冷，温差 <span class="arithmatex">\(\Delta T&gt;0\)</span>。近似是 <strong>Boussinesq</strong>：密度只在浮力项中随温度线性变化，其余物性取常数；上下边界等温。Rayleigh 数为</p>
+<div class="arithmatex">\[
+\mathrm{Ra}=\frac{g\alpha\Delta T\,d^3}{\nu\kappa},
+\]</div>
+<p>其中 <span class="arithmatex">\(\nu\)</span> 是运动黏度、<span class="arithmatex">\(\kappa\)</span> 是热扩散率。线性化的是静止导热态；水平波数写成 <span class="arithmatex">\(k=a/d\)</span>，因此 <span class="arithmatex">\(a\)</span> 是无量纲水平波数。无穷水平意味着 <span class="arithmatex">\(a\)</span> 可以连续取值，最先失稳的是中性曲线最低点对应的模式。</p>
+<p>同样是“等温水平层”，机械边界不同，临界数就不同：</p>
+<table>
+<thead>
+<tr>
+<th>机械边界（上下均等温）</th>
+<th>临界数据与读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无滑移刚性边界</td>
+<td><span class="arithmatex">\(\mathrm{Ra}_c\approx1707.76\)</span>，<span class="arithmatex">\(a_c\approx3.1163\)</span>，<span class="arithmatex">\(\lambda_c/d\approx2.016\)</span>；常用实验/刚性容器参考值</td>
+</tr>
+<tr>
+<td>自由滑移边界</td>
+<td><span class="arithmatex">\(\mathrm{Ra}_c=27\pi^4/4\approx657.51\)</span>，<span class="arithmatex">\(a_c=\pi/\sqrt2\approx2.2214\)</span>，<span class="arithmatex">\(\lambda_c/d=2\sqrt2\approx2.828\)</span>；本互动实验唯一使用的解析模型</td>
+</tr>
+</tbody>
+</table>
+<p>因此，图 fl-04.1 的 <span class="arithmatex">\(1707.76\)</span> 不能被拿来替换实验中的自由滑移临界值。下面的“中性曲线”也不是刚性边界的拟合，而是自由滑移解析解。</p>
+<h3 id="2-mu">2. 自由滑移解析中性曲线与符号正确的 \(\mu\)<a class="headerlink" href="#2-mu" title="Permanent link"></a></h3>
+<p>自由滑移、等温边界下，取第一垂直模 <span class="arithmatex">\(\sin(\pi z/d)\)</span>，线性稳定性给出</p>
+<div class="arithmatex">\[
+\mathrm{Ra}_N(a)=\frac{(a^2+\pi^2)^3}{a^2}.
+\]</div>
+<p>令 <span class="arithmatex">\(q=a^2\)</span>，则</p>
+<div class="arithmatex">\[
+\frac{\mathrm d\mathrm{Ra}_N}{\mathrm dq}
+ =\frac{(q+\pi^2)^2(2q-\pi^2)}{q^2},
+\qquad
+q_c=\frac{\pi^2}{2},
+\]</div>
+<p>从而</p>
+<div class="arithmatex">\[
+a_c=\frac{\pi}{\sqrt2},\qquad
+\mathrm{Ra}_c=\mathrm{Ra}_N(a_c)=\frac{27\pi^4}{4}.
+\]</div>
+<p>为把“当前 <span class="arithmatex">\(a\)</span> 模式离中性线有多远”写成一个符号正确、无量纲的教学量，实验定义</p>
+<div class="arithmatex">\[
+\mu=\frac{\mathrm{Ra}}{\mathrm{Ra}_N(a)}-1.
+\]</div>
+<p><span class="arithmatex">\(\mu&gt;0\)</span> 表示该波数在这个近临界模型中位于不稳定一侧，<span class="arithmatex">\(\mu&lt;0\)</span> 表示位于稳定一侧。它是近临界控制量/增长倾向的代理，<strong>不是有物理单位的精确增长率</strong>；真正的线性增长率还要由带 <span class="arithmatex">\(\nu,\kappa,\mathrm{Pr}\)</span> 和边界条件的线性化 Boussinesq 本征值问题给出。</p>
+<h3 id="3">3. 动手实验：同一中性判据，右图真的重画胞格<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先点四个预设，再拖动 <span class="arithmatex">\(\mathrm{Ra}\)</span>、<span class="arithmatex">\(a\)</span>、初始振幅 <span class="arithmatex">\(A_0\)</span> 和演化进度 <span class="arithmatex">\(\tau\)</span>。左/上图标出 <span class="arithmatex">\(\mathrm{Ra}_N(a)\)</span>、当前点和最低点；右/下图在固定的 <span class="arithmatex">\(L/d=10\)</span> 水平窗口内构造</p>
+<div class="arithmatex">\[
+\psi=A\sin(\pi z)\sin(ax),\qquad
+u=\frac{\partial\psi}{\partial z},\qquad
+w=-\frac{\partial\psi}{\partial x}.
+\]</div>
+<p>这里 <span class="arithmatex">\(x,z\)</span> 已用 <span class="arithmatex">\(d\)</span> 无量纲化。为让热冷方向与速度符号一致，图中还用
+<span class="arithmatex">\(\theta'\propto-A\sin(\pi z)\cos(ax)\)</span> 做符号示意：<span class="arithmatex">\(w&gt;0\)</span> 的区域标为热上升，<span class="arithmatex">\(w&lt;0\)</span> 的区域标为冷下降。改变 <span class="arithmatex">\(a\)</span> 会同时改变 <span class="arithmatex">\(\lambda/d=2\pi/a\)</span>、零点分割和固定窗口内的胞数，而不是只让一条曲线换个位置。箭头方向由速度场决定，箭头长度为了可读性做了归一化。</p>
+<p>实验的幅度演化使用选定的超临界近临界正规形</p>
+<div class="arithmatex">\[
+\frac{\mathrm dA}{\mathrm d\tau}=\mu A-gA^3,\qquad g=1.2,
+\qquad
+A_\infty=\sqrt{\max(\mu/g,0)}.
+\]</div>
+<p><span class="arithmatex">\(\tau\)</span> 只是模型时间的记号；若把它写成 <span class="arithmatex">\(t\)</span>，同一条式子就是
+<span class="arithmatex">\(\mathrm dA/\mathrm dt=\mu A-gA^3\)</span>。它描述的是选定的超临界近临界情形，
+不是所有 RBC 装置的普适全局动力学。</p>
+<p><span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(\tau\)</span> 都是教学归一化变量；<span class="arithmatex">\(A_\infty\)</span> 是这个正规形的饱和值，不是任意 RBC 装置的普适全局饱和值。实验用该方程的确定性解析解画 <span class="arithmatex">\(A(\tau)\)</span>，不抽随机数，也不把它冒充精确的物理增长率。</p>
+<div class="learning-lab" data-learning-lab="rayleigh-benard">
+<p><strong>无 JavaScript 时的静态读法：</strong>只使用自由滑移解析式
+<span class="arithmatex">\(\mathrm{Ra}_N(a)=(a^2+\pi^2)^3/a^2\)</span>，其最低点为
+<span class="arithmatex">\((a_c,\mathrm{Ra}_c)=(\pi/\sqrt2,27\pi^4/4)\approx(2.2214,657.51)\)</span>。
+<span class="arithmatex">\(\mu=\mathrm{Ra}/\mathrm{Ra}_N(a)-1\)</span> 的正负决定所选波数模式在此教学模型中位于中性线哪一侧；<span class="arithmatex">\(\lambda/d=2\pi/a\)</span> 决定固定 <span class="arithmatex">\(L/d=10\)</span> 窗口内胞格的尺度与数量。流线与速度由
+<span class="arithmatex">\(\psi=A\sin(\pi z)\sin(ax)\)</span>、<span class="arithmatex">\(u=\partial_z\psi\)</span>、<span class="arithmatex">\(w=-\partial_x\psi\)</span> 构造。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathrm{Ra}\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(a\)</span></th>
+<th>读图</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>亚临界衰减</td>
+<td style="text-align: right;"><span class="arithmatex">\(500\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi/\sqrt2\)</span></td>
+<td><span class="arithmatex">\(\mathrm{Ra}&lt;657.51\)</span>，<span class="arithmatex">\(\mu&lt;0\)</span>，<span class="arithmatex">\(A\)</span> 衰减</td>
+</tr>
+<tr>
+<td>临界模式</td>
+<td style="text-align: right;"><span class="arithmatex">\(657.51\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi/\sqrt2\)</span></td>
+<td><span class="arithmatex">\(\mu=0\)</span>，只剩三次项的缓慢衰减</td>
+</tr>
+<tr>
+<td>超临界选模</td>
+<td style="text-align: right;"><span class="arithmatex">\(900\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi/\sqrt2\)</span></td>
+<td>最低点附近 <span class="arithmatex">\(\mu&gt;0\)</span>，<span class="arithmatex">\(A\)</span> 趋向 <span class="arithmatex">\(\sqrt{\mu/1.2}\)</span></td>
+</tr>
+<tr>
+<td>离开最优波数后重新稳定</td>
+<td style="text-align: right;"><span class="arithmatex">\(900\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4.4\)</span></td>
+<td>虽然 <span class="arithmatex">\(\mathrm{Ra}&gt;657.51\)</span>，但该 <span class="arithmatex">\(a\)</span> 的 <span class="arithmatex">\(\mathrm{Ra}_N(a)&gt;900\)</span>，所以 <span class="arithmatex">\(\mu&lt;0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>振幅 <span class="arithmatex">\(A\)</span> 是无量纲教学归一化，不是以米、秒或温度计量的装置振幅；<span class="arithmatex">\(\mu\)</span> 也不是带单位的精确增长率。</p>
+</div>
+<h3 id="4-onset-rolls">4. 模式选择：为什么近 onset 先看到 rolls<a class="headerlink" href="#4-onset-rolls" title="Permanent link"></a></h3>
+<p>在理想 Boussinesq、近临界、上下对称的设置中，平移/反射等对称性使一组平行 <strong>rolls</strong>（滚筒状对流胞）成为最直接的首选分支。六边形（hexagons）并非“同一条自由滑移曲线必然选出的图案”：它通常需要非 Boussinesq 效应、上下不对称、温度依赖物性或其他额外的对称性破缺来允许相应耦合。继续升高 <span class="arithmatex">\(\mathrm{Ra}\)</span> 后，rolls 的失稳、振荡、侧带、缺陷和混沌路线依赖几何、边界、Prandtl 数 <span class="arithmatex">\(\mathrm{Pr}\)</span> 与扰动；不能把“倍周期”写成所有 RBC 装置的必然路线。Lorenz 三模方程是一个重要截断模型，不是所有高 <span class="arithmatex">\(\mathrm{Ra}\)</span> 对流的全球动力学定理。</p>
+<h3 id="5">5. 迁移题：换条件时，哪些结论还能搬过去？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>若把实验换成无滑移刚性边界，能否仍用 <span class="arithmatex">\(\mathrm{Ra}_N=(a^2+\pi^2)^3/a^2\)</span> 和 <span class="arithmatex">\(657.51\)</span>？
+   <strong>不能。</strong> 这条解析曲线属于自由滑移模型；刚性边界的临界数据是 <span class="arithmatex">\(\mathrm{Ra}_c\approx1707.76\)</span>、<span class="arithmatex">\(a_c\approx3.1163\)</span>、<span class="arithmatex">\(\lambda_c/d\approx2.016\)</span>，需要相应的刚性边界本征值问题。</li>
+<li>在实验中取 <span class="arithmatex">\(\mathrm{Ra}=900\)</span>、<span class="arithmatex">\(a=4.4\)</span>，为什么整体已经高于自由滑移最低临界值，却仍可“重新稳定”？
+   因为临界值是对所有 <span class="arithmatex">\(a\)</span> 的最小值；固定的这个模式要比较 <span class="arithmatex">\(900\)</span> 与 <span class="arithmatex">\(\mathrm{Ra}_N(4.4)\)</span>。若后者更大，则 <span class="arithmatex">\(\mu&lt;0\)</span>，只是该波数重新稳定，其他更接近 <span class="arithmatex">\(a_c\)</span> 的模式仍可能不稳定。</li>
+<li>在 <span class="arithmatex">\(\mu&gt;0\)</span> 时把 <span class="arithmatex">\(A_0\)</span> 减半，会不会改变 <span class="arithmatex">\(A_\infty\)</span>？
+   <strong>在这条正规形内不会。</strong>它改变的是到达饱和值的确定性瞬态；<span class="arithmatex">\(A_\infty=\sqrt{\mu/g}\)</span> 由 <span class="arithmatex">\(\mu,g\)</span> 决定。真实装置若存在噪声、缺陷或多个竞争模，选模历史会更复杂。</li>
+</ol>
+</section>
 <h2 id="1">1. 线性稳定性分析：标准流程<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>给定基本流 <span class="arithmatex">\(\bar{\mathbf u}\)</span>，加小扰动 <span class="arithmatex">\(\mathbf u'\propto e^{i(kx-\omega t)}\)</span>，线性化 N–S，解<strong>本征值问题</strong>得色散关系 <span class="arithmatex">\(\omega(k)\)</span>。</p>
-<div class="arithmatex">\[\mathrm{Im}\,\omega &gt; 0 \ \Longrightarrow\ \text{指数增长} \ \Longrightarrow\ \textbf{不稳定}\]</div>
-<p><strong>中性曲线</strong>（<span class="arithmatex">\(\mathrm{Im}\,\omega=0\)</span>）在参数平面上划出稳定与不稳定区，其最低点给出<strong>临界参数</strong>与<strong>最不稳定波长</strong>——后者决定了失稳后出现的<strong>图案尺度</strong>。</p>
-<p><strong>这套方法与 🔗 自动化站的稳定性分析是同一个数学</strong>：特征值实部的符号决定命运。区别在于这里的算子是偏微分的，谱是连续的。</p>
-<h2 id="2-rayleighbenard">2. Rayleigh–Bénard 对流：图案形成的原型<a class="headerlink" href="#2-rayleighbenard" title="Permanent link"></a></h2>
-<p>下热上冷的流体层。浮力驱动上升、粘性与热扩散阻碍，竞争由 <strong>Rayleigh 数</strong>刻画：</p>
-<div class="arithmatex">\[\mathrm{Ra} = \frac{g\alpha\Delta T\,d^3}{\nu\kappa}\]</div>
-<p><strong>临界值 <span class="arithmatex">\(\mathrm{Ra}_c\approx1708\)</span></strong>（上下刚性边界）。越过它，静止的导热态失稳，出现<strong>规则的对流胞</strong>（滚筒或六边形）。</p>
-<p><strong>为什么这是物理学的经典案例</strong>：</p>
+<p>给定基本流 <span class="arithmatex">\(\bar{\mathbf u}\)</span>，加小扰动并作 Fourier/本征模分解，例如
+<span class="arithmatex">\(\mathbf u'\propto e^{ikx+\sigma t}\)</span>。线性化 Navier–Stokes 与能量方程后，求本征值 <span class="arithmatex">\(\sigma(k)\)</span>：</p>
+<div class="arithmatex">\[
+\operatorname{Re}\sigma&gt;0\Longrightarrow\text{指数增长},\qquad
+\operatorname{Re}\sigma=0\Longrightarrow\text{中性},\qquad
+\operatorname{Re}\sigma&lt;0\Longrightarrow\text{线性衰减}.
+\]</div>
+<p>中性曲线是参数空间中 <span class="arithmatex">\(\operatorname{Re}\sigma=0\)</span> 的集合；其最低点通常给出最先失稳的控制参数和最偏好的尺度。但“最低点选出哪个模式”仍要连同边界、几何、非线性耦合和扰动来源一起读，不能把一条曲线当作完整的全局动力学。</p>
+<h2 id="2-rayleighbenard">2. Rayleigh–Bénard：图案形成的原型<a class="headerlink" href="#2-rayleighbenard" title="Permanent link"></a></h2>
+<p>下热上冷时，浮力驱动上升，黏性和热扩散阻碍运动。RBC 的经典之处不是只有一个临界数，而是同一问题同时展示了：</p>
 <ul>
-<li><strong>自发对称破缺</strong>：均匀的水平平移对称被破缺，选出特定波长（<span class="arithmatex">\(\lambda\approx2d\)</span>）；</li>
-<li><strong>振幅方程与 Landau 理论</strong>：在临界点附近，振幅 <span class="arithmatex">\(A\)</span> 满足</li>
+<li><strong>自发对称破缺</strong>：均匀导热态失稳后，水平平移对称被选定的波数和相位打破；</li>
+<li><strong>尺度选择</strong>：自由滑移解析曲线的最低点在 <span class="arithmatex">\(a_c=\pi/\sqrt2\)</span>，而刚性边界的标准参考值在 <span class="arithmatex">\(a_c\approx3.1163\)</span>；</li>
+<li><strong>正规形</strong>：在选定的超临界、近 onset 分支上，<span class="arithmatex">\(A\)</span> 的平方根标度来自 <span class="arithmatex">\(dA/d\tau=\mu A-gA^3\)</span>，但这不是所有装置的普适远离临界动力学；</li>
+<li><strong>模式竞争</strong>：Boussinesq 对称性近 onset 倾向 rolls，hexagons 与后续转捩需要额外条件，路线取决于 <span class="arithmatex">\(\mathrm{Pr}\)</span>、几何和边界。</li>
 </ul>
-<div class="arithmatex">\[\partial_t A = \epsilon A - g|A|^2A,\qquad \epsilon\propto(\mathrm{Ra}-\mathrm{Ra}_c)\]</div>
-<p><strong>这与 asm-01 的 Landau 自由能给出完全相同的 <span class="arithmatex">\(A\propto\sqrt{\epsilon}\)</span>——一个平衡态相变的形式，出现在彻底非平衡的系统中</strong>。这是"图案形成"作为一门学科的起点（Cross &amp; Hohenberg）。</p>
-<p><strong>继续升高 <span class="arithmatex">\(\mathrm{Ra}\)</span></strong>：对流胞失稳 → 振荡 → 倍周期 → <strong>混沌</strong>（fl-05）。<strong>Lorenz 方程正是这个系统的三模截断。</strong></p>
-<h2 id="3">3. 几种经典失稳机制<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>因此，<span class="arithmatex">\(\mathrm{Ra}&gt;\mathrm{Ra}_c\)</span> 的意思首先是“至少有一类波数进入不稳定侧”，不是“任意预先选定的 <span class="arithmatex">\(a\)</span> 都会长大”。</p>
+<h2 id="3_1">3. 几种经典失稳机制<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
 <th>机制</th>
 <th>驱动</th>
-<th>判据/现象</th>
+<th>判据/适用边界</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Kelvin–Helmholtz</strong></td>
-<td>剪切（速度间断）</td>
-<td>无粘时任意小波长皆不稳定；<strong>云街、风吹水面起浪、木星条纹交界</strong></td>
+<td>速度剪切</td>
+<td>“任意小波长不稳定”只对理想无粘、零厚度涡片且忽略重力、表面张力和有限剪切层等正规化时成立；真实界面会被这些效应截断或改变</td>
 </tr>
 <tr>
 <td><strong>Rayleigh–Taylor</strong></td>
 <td>重流体在轻流体之上</td>
-<td>蘑菇状指进；<strong>超新星抛射、惯性约束聚变的头号敌人</strong></td>
+<td>浮力倒置导致指进；增长谱会受黏性、表面张力、有限厚度和几何影响</td>
 </tr>
 <tr>
 <td><strong>Rayleigh–Plateau</strong></td>
 <td>表面张力</td>
-<td>液柱在 <span class="arithmatex">\(\lambda&gt;2\pi R\)</span> 时断裂成液滴——<strong>水龙头的水流为何断成珠</strong></td>
+<td>液柱在 <span class="arithmatex">\(\lambda&gt;2\pi R\)</span> 的长波段倾向断裂成液滴</td>
 </tr>
 <tr>
 <td><strong>Taylor–Couette</strong></td>
 <td>旋转离心</td>
-<td>同轴筒间出现 Taylor 涡；<strong>是研究分岔序列的经典实验台</strong></td>
+<td>同轴筒间出现 Taylor 涡，是研究分岔与模式竞争的经典实验台</td>
 </tr>
 <tr>
-<td><strong>Rayleigh 判据（旋转）</strong></td>
+<td><strong>Rayleigh 旋转判据</strong></td>
 <td>角动量分布</td>
-<td><span class="arithmatex">\(d(\Omega r^2)^2/dr&lt;0\)</span> 则不稳定——<strong>吸积盘为何需要 MRI</strong>（ap-05）</td>
+<td><span class="arithmatex">\(d(r^2\Omega)^2/dr&lt;0\)</span> 的判据限定于无粘、轴对称扰动；不能直接替代磁化盘的判据</td>
+</tr>
+<tr>
+<td><strong>磁旋转不稳定（MRI）</strong></td>
+<td>磁张力与差分旋转</td>
+<td>弱磁场可使 <span class="arithmatex">\(d\Omega/dr&lt;0\)</span> 的磁化盘失稳，是与无粘 Rayleigh 判据不同的机制</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Kelvin–Helmholtz 的普遍性值得强调</strong>：任何有速度剪切的界面都可能失稳。<strong>它同时出现在云层、太阳日冕、星系际气体与实验室等离子体中</strong>——同一个色散关系，跨越二十个数量级。</p>
-<h2 id="4">4. 转捩：线性理论的失效<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>一个重要的诚实标注</strong>：<strong>管流（Poiseuille）在所有雷诺数下线性稳定</strong>，但实验中 <span class="arithmatex">\(\mathrm{Re}\gtrsim2000\)</span> 就会转捩为湍流。</p>
-<p><strong>矛盾如何化解</strong>：</p>
+<p>尤其不要把 Rayleigh 判据和 MRI 写成同一个结论：MRI 依赖磁场耦合，即使角动量分布满足无粘轴对称判据，也可能通过另一条磁流体谱失稳。</p>
+<h2 id="4">4. 转捩：线性稳定不等于任意条件下必然层流<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>理想圆管中的 Hagen–Poiseuille 基流对无穷小扰动是经典线性稳定的，但实验中仍能在有限振幅扰动下发生亚临界转捩。工程上常引用 <span class="arithmatex">\(\mathrm{Re}\sim2000\)</span> 作为量级提示，而不是材料常数或普适阈值：入口长度、粗糙度、弯头、来流噪声、扰动幅度和测量判据都会改变观察到的转捩位置。</p>
+<p>矛盾由两层机制化解：</p>
 <ul>
-<li>线性算子<strong>非正规（non-normal）</strong>：即使所有本征值衰减，扰动仍可<strong>瞬态放大</strong>几个数量级（"瞬态增长"）；</li>
-<li>放大后非线性接管，把系统推入湍流吸引子；</li>
-<li><strong>转捩因此是有限振幅、亚临界的</strong>——依赖扰动大小，且带有强烈的随机性与迟滞。</li>
+<li>非正规线性算子可在所有本征值衰减时产生很大的瞬态放大；</li>
+<li>被放大的有限扰动进入非线性自维持结构，才可能走向湍流。</li>
 </ul>
-<p><strong>这是"线性稳定 ≠ 实际稳定"的教科书案例</strong>，在控制理论中有完全对应的现象（非正规系统的瞬态放大，🔗 自动化站）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（对流胞的尺度）</strong> 一层 1 cm 厚的水，<span class="arithmatex">\(\Delta T=5\)</span> K：估算 <span class="arithmatex">\(\mathrm{Ra}\sim10^5\gg\mathrm{Ra}_c\)</span>——<strong>对流早已发生</strong>。这就是为什么加热锅底的水立刻翻滚，而不是靠热传导。</p>
-<p><strong>例 2（地幔对流）</strong> <span class="arithmatex">\(d\sim3000\)</span> km，尽管 <span class="arithmatex">\(\nu\)</span> 极大（<span class="arithmatex">\(\sim10^{21}\)</span> Pa·s），<span class="arithmatex">\(d^3\)</span> 的巨大使 <span class="arithmatex">\(\mathrm{Ra}\sim10^7\)</span>——<strong>地幔在对流，周期约亿年，这就是板块运动的引擎</strong>。</p>
-<p><strong>例 3（RT 不稳定与聚变）</strong> 惯性约束聚变中，靶丸压缩时轻推重形成 RT 不稳定，<strong>指进会刺穿燃料层、破坏点火</strong>。抑制它是该路线的核心工程难题之一（fl-06）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>所以“线性稳定”只排除了无穷小扰动的指数失稳，不能保证任意 <span class="arithmatex">\(\mathrm{Re}\)</span>、任意入口条件和任意扰动下都保持可观察的层流。</p>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1（对流胞尺度）</strong> 一层 <span class="arithmatex">\(1\,\mathrm{cm}\)</span> 厚的水，<span class="arithmatex">\(\Delta T=5\,\mathrm K\)</span> 时，使用室温水的量级物性可得 <span class="arithmatex">\(\mathrm{Ra}\)</span> 远高于 <span class="arithmatex">\(10^3\)</span> 的临界量级；实际锅内还会受自由表面、侧壁和物性变化影响，不能把它当成无限水平自由滑移精确实验。</p>
+<p><strong>例 2（地幔对流）</strong> 地幔模型中常见的是<strong>动力黏度</strong>
+<span class="arithmatex">\(\eta\approx10^{21}\,\mathrm{Pa\,s}\)</span>，不是运动黏度。二者关系是</p>
+<div class="arithmatex">\[
+\nu=\frac{\eta}{\rho},\qquad [\eta]=\mathrm{Pa\,s},\qquad [\nu]=\mathrm{m^2\,s^{-1}}.
+\]</div>
+<p>把 <span class="arithmatex">\(\eta\)</span> 直接写进 <span class="arithmatex">\(\nu\)</span> 的位置会造成单位错误；地幔 Rayleigh 数还要结合 <span class="arithmatex">\(\rho,\kappa,\alpha,\Delta T,d\)</span> 与有效黏度的温压依赖估算。虽然 <span class="arithmatex">\(d^3\)</span> 很大、对流时间尺度约为百万至亿年，但这不意味着可以忽略黏度模型。</p>
+<p><strong>例 3（RT 不稳定与聚变）</strong> 惯性约束聚变压缩时，轻流体推动重流体会激发 Rayleigh–Taylor 指进，破坏燃料层的对称压缩；抑制并预测有限厚度、黏性和界面扰动下的增长，是工程核心难题之一。 <span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>下一页：失稳之后是什么？Lorenz 从对流方程截出三个模，意外发现了确定性系统中的不可预测——混沌。</em></p>
+<p><em>下一页：失稳之后是什么？Lorenz 从对流方程截出三个模，展示确定性系统中的不可预测——混沌。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="fl-03-turbulence.html"><span class="pager-label">上一页</span>流体 III · 湍流与标度律</a>
@@ -135,5 +291,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/rayleigh-benard.js"></script>
 </body>
 </html>

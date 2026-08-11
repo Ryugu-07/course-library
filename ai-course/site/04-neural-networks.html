@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -52,6 +63,48 @@
 <blockquote>
 <p><strong>诞生场景</strong>：前三讲的模型都在"人给的特征"上找函数。可要是连特征都说不清呢？大脑没人给它设计特征，靠约 860 亿个神经元互联自己搞定了一切。1943 年起，一批研究者开始琢磨：<strong>能不能仿照神经元，搭出会学习的机器？</strong>这条路线在此后六十年里两起两落——被寄予厚望、被判死刑、复活、再被 SVM 按在地上、再翻盘统治世界。本讲讲透它的原理与恩怨，核心是完整推导那个让多层网络成为可能的算法：<strong>反向传播</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：把“反向传播”变成可追踪的消息</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：一条边变大，损失会怎样？</h3>
+<p>下面的实验固定一个 2 → 2 → 1 网络和一个样本。先猜：把 <span class="arithmatex">\(w_{11}\)</span>（<span class="arithmatex">\(x_1\to h_1\)</span>）稍微调大，预测 <span class="arithmatex">\(\hat y\)</span> 会让平方损失上升还是下降？不要先算完整梯度，只根据这条路径上每个局部导数的符号作答。</p>
+</div>
+<div class="learning-prediction">
+<h3>先做预测，再看答案</h3>
+<p>初始样例是 <span class="arithmatex">\(x=(0.8,-0.4)\)</span>、目标 <span class="arithmatex">\(y=0.6\)</span>；默认激活函数为 sigmoid。预测以下三件事：<strong>①</strong> 哪个隐藏节点的 <span class="arithmatex">\(z\)</span> 为负？<strong>②</strong> <span class="arithmatex">\(\partial L/\partial w_{11}\)</span> 的符号是什么？<strong>③</strong> 中心差分和解析梯度应不应该接近？然后在实验中切换到 ReLU，观察第二个隐藏节点被“截断”后消息如何改变。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：只保留四个部件</h3>
+<p>前向计算是 <span class="arithmatex">\(z_1=W_1x+b_1\)</span>、<span class="arithmatex">\(a_1=\sigma(z_1)\)</span>、<span class="arithmatex">\(z_y=v^\top a_1+b_y\)</span>、<span class="arithmatex">\(\hat y=\sigma(z_y)\)</span>；损失取 <span class="arithmatex">\(L=\tfrac12(\hat y-y)^2\)</span>。实验只让你观察一个样本和一个选中参数，因此它是“显微镜”，不是完整的 XOR 训练器。</p>
+</div>
+<div class="learning-formal">
+<h3>形式化步骤：局部导数如何接力</h3>
+<ol>
+<li>输出端先传回 <span class="arithmatex">\(\partial L/\partial \hat y=\hat y-y\)</span>，再乘输出激活的局部导数，得到 <span class="arithmatex">\(\delta_y=\partial L/\partial z_y\)</span>。</li>
+<li>沿输出边回传：<span class="arithmatex">\(\partial L/\partial a_{1,i}=\delta_yv_i\)</span>；经过隐藏激活后，<span class="arithmatex">\(\delta_i=\delta_yv_i\sigma'(z_i)\)</span>。</li>
+<li>到达输入边时，消息与“上游激活”相乘：<span class="arithmatex">\(\partial L/\partial w_{ij}=\delta_i x_j\)</span>，偏置梯度则是 <span class="arithmatex">\(\partial L/\partial b_i=\delta_i\)</span>。</li>
+<li>中心差分把同一个参数改成 <span class="arithmatex">\(w+\varepsilon\)</span> 与 <span class="arithmatex">\(w-\varepsilon\)</span>，用 <span class="arithmatex">\([L(w+\varepsilon)-L(w-\varepsilon)]/(2\varepsilon)\)</span> 做独立校验；真正训练仍使用解析梯度的负方向。</li>
+</ol>
+</div>
+<div class="learning-boundary">
+<h3>边界与反例：什么时候直觉会失效？</h3>
+<ul>
+<li>ReLU 在 <span class="arithmatex">\(z=0\)</span> 处不可微；若差分步长跨过这个拐点，数值梯度和选定的次梯度不一致是预期的边界现象。</li>
+<li>梯度为零不等于参数“没有作用”：可能是上游误差为零，也可能是 ReLU 把局部导数置零；要同时看节点的 <span class="arithmatex">\(z,a\)</span> 与回传消息。</li>
+<li>数值差分不是训练方法：参数越多，所需前向次数越多；它适合在小模型上抓转置、符号或索引错误。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把消息传给另一层</h3>
+<p>如果输出层改成两个 logit 并接 softmax + 交叉熵，哪一步要改写，哪一步（“误差 × 上层激活”）仍然不变？再想象一个 batch：哪些量可以沿样本维并行，哪些参数梯度需要累加？把答案写成四行伪代码。</p>
+</div>
+<div class="learning-lab" data-learning-lab="backprop">
+<p><strong>无 JavaScript 时的静态版本：</strong>固定样例给出 <span class="arithmatex">\(z_1=0.86\)</span>、<span class="arithmatex">\(z_2=-0.95\)</span>。sigmoid 下先逐层算出 <span class="arithmatex">\(a_1,a_2,\hat y\)</span>，再用 <span class="arithmatex">\(\partial L/\partial w_{11}=(\hat y-y)\sigma'(z_y)v_1\sigma'(z_1)x_1\)</span>；中心差分应在合适的 <span class="arithmatex">\(\varepsilon\)</span> 下接近同一个数。页面脚本加载后可选择 sigmoid/ReLU、任意一条边或偏置、查看 SVG 计算图，并只对选中参数执行一步梯度下降。</p>
+</div>
+</section>
+
 <h2 id="1-19431969">1. 从神经元到感知机（1943–1969）<a class="headerlink" href="#1-19431969" title="Permanent link"></a></h2>
 <p>1943 年 McCulloch 和 Pitts 提出神经元的数学漫画：输入加权求和，超过阈值就"放电"：</p>
 <div class="arithmatex">\[
@@ -68,7 +121,7 @@ a = \sigma\Big(\sum_j w_j x_j + b\Big)
 <div class="arithmatex">\[
 z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 \]</div>
-<p>这就是<strong>多层感知机（MLP）</strong>。XOR 立即被解决：两个隐藏神经元分别实现"或"和"与"，输出层算"或减与"（lab04 里你会亲手训出这个解）。更一般地：</p>
+<p>这就是<strong>多层感知机（MLP）</strong>。XOR 在表示上可以被解决：两个隐藏神经元分别实现"或"和"与"，输出层算"或减与"。但“存在一个能表示 XOR 的参数点”和“训练算法能找到它”是两件事；下方 lab 固定一个小网络来观察梯度，而不是完整的 XOR 训练器。更一般地：</p>
 <p><strong>定理（万能逼近，Cybenko 1989 / Hornik 1991）</strong>：设 <span class="arithmatex">\(\sigma\)</span> 是任意非常数、有界、连续的"挤压型"函数。则形如 <span class="arithmatex">\(g(x) = \sum_{i=1}^{N} c_i\, \sigma(w_i^\top x + b_i)\)</span> 的单隐层网络全体，在紧集上对连续函数一致稠密——即对任意连续 <span class="arithmatex">\(f\)</span> 与 <span class="arithmatex">\(\epsilon &gt; 0\)</span>，存在足够宽的单隐层网络 <span class="arithmatex">\(g\)</span> 使 <span class="arithmatex">\(\sup_x |f(x) - g(x)| &lt; \epsilon\)</span>。</p>
 <p><em>证明思路（Cybenko 的泛函分析论证）</em>：反证。设逼近不到的连续函数存在，则网络全体张成的子空间在 <span class="arithmatex">\(C(K)\)</span> 中不稠密；由 Hahn–Banach 定理，存在非零有界线性泛函在该子空间上恒零；由 Riesz 表示定理，该泛函对应一个非零符号测度 <span class="arithmatex">\(\mu\)</span>，满足 <span class="arithmatex">\(\int \sigma(w^\top x + b)\, d\mu(x) = 0\)</span> 对一切 <span class="arithmatex">\(w, b\)</span> 成立。最后证明挤压函数族"足够丰富"（取 <span class="arithmatex">\(w\)</span> 方向的极限可逼出半空间指示函数，进而由傅里叶论证）迫使 <span class="arithmatex">\(\mu = 0\)</span>，矛盾。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p>两点必须泼的冷水，也是这条定理最常被误读的地方：</p>
@@ -129,7 +182,7 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 <li>沿途用方程三、四收集所有梯度；</li>
 <li>SGD 更新。</li>
 </ol>
-<p><strong>复杂度</strong>：反向传播的乘加次数与前向同阶（每层一次矩阵-向量乘）——<strong>算全部梯度的代价 ≈ 2 次前向传播</strong>，与参数个数无关。对比一下就知道这有多惊人：数值差分要对每个参数扰动一次、做 <span class="arithmatex">\(O(\text{参数数})\)</span> 次前向；一个百万参数的网络，反向传播快百万倍的量级。没有这个效率，深度学习不存在。本质上它是<strong>多元链式法则 + 动态规划</strong>（<span class="arithmatex">\(\delta^{(l)}\)</span> 是被复用的子问题答案），也是今天所有深度学习框架里"自动微分"（反向模式）的数学内核——PyTorch 的 <code>loss.backward()</code> 做的就是上面四个方程在计算图上的一般化。</p>
+<p><strong>复杂度</strong>：反向传播的乘加次数与前向同阶（每层一次矩阵-向量乘），算全部梯度只需前向的<strong>常数倍</strong>，而不是按参数个数重复前向。对比一下就知道这有多惊人：数值差分要对每个参数扰动一次、做 <span class="arithmatex">\(O(\text{参数数})\)</span> 次前向；一个百万参数的网络，反向传播与数值差分之间可有百万量级的成本差异。没有这个效率，深度学习不存在。本质上它是<strong>多元链式法则 + 动态规划</strong>（<span class="arithmatex">\(\delta^{(l)}\)</span> 是被复用的子问题答案），也是今天所有深度学习框架里"自动微分"（反向模式）的数学内核——PyTorch 的 <code>loss.backward()</code> 做的就是上面四个方程在计算图上的一般化。</p>
 <p>1986 年 Rumelhart、Hinton、Williams 在 Nature 发表这套算法（思想此前多次被独立发现：Werbos 1974 的博士论文、更早的控制论文献，但 1986 年这篇让它出圈），Minsky 的判决被推翻，神经网络第一次复兴开始：1989 年 LeCun 用它训练卷积网络识别手写邮编（第 05 讲主角的前身），Hornik 证明万能逼近，一切看起来欣欣向荣。</p>
 <h2 id="4-19952006">4. 第二次寒冬（1995–2006）：为什么又不行了<a class="headerlink" href="#4-19952006" title="Permanent link"></a></h2>
 <p>复兴只维持了不到十年。90 年代中期起，神经网络在学术界再次失宠，这次的对手正是第 02 讲的 SVM。原因值得逐条看清，<strong>因为后来深度学习的爆发恰好是这些原因被逐条消除</strong>：</p>
@@ -137,7 +190,7 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 <div class="arithmatex">\[
 \delta^{(l)} = \Big[\prod_{k=l+1}^{L} \mathrm{diag}\big(\sigma'(z^{(k-1)})\big)\, W^{(k)\top}\Big]\, \delta^{(L)} \cdot (\text{按序整理})
 \]</div>
-<p>粗略地按范数估计，每回传一层，<span class="arithmatex">\(\|\delta\|\)</span> 被乘上一个约为 <span class="arithmatex">\(\|W\| \cdot \max\sigma'\)</span> 的因子。而 sigmoid 的导数 <span class="arithmatex">\(\sigma'(z) = \sigma(z)(1 - \sigma(z)) \leq \frac14\)</span>（在 <span class="arithmatex">\(z=0\)</span> 处取最大；两侧饱和区几乎为 0）。若权重不大，每层至少缩水 4 倍，<strong>10 层就是 <span class="arithmatex">\(4^{-10} \approx 10^{-6}\)</span></strong>——底层梯度实际为零，"深"网络的底层根本训不动。反过来若 <span class="arithmatex">\(\|W\|\)</span> 大，连乘就爆炸。梯度消失/爆炸是深度的原罪，1991 年 Hochreiter 的硕士论文就把它说透了（此人后来发明 LSTM，第 06 讲再见）。</p>
+<p>粗略地按范数估计，每回传一层，<span class="arithmatex">\(\|\delta\|\)</span> 被乘上一个约为 <span class="arithmatex">\(\|W\| \cdot \max\sigma'\)</span> 的因子。而 sigmoid 的导数 <span class="arithmatex">\(\sigma'(z) = \sigma(z)(1 - \sigma(z)) \leq \frac14\)</span>（在 <span class="arithmatex">\(z=0\)</span> 处取最大；两侧饱和区几乎为 0）。如果权重的谱范数没有抵消这个缩放，连续层的梯度就会快速衰减；在一个简化的单位尺度估计中，<strong>10 层可出现 <span class="arithmatex">\(4^{-10} \approx 10^{-6}\)</span> 的量级</strong>——底层梯度几乎收不到信号。反过来若 <span class="arithmatex">\(\|W\|\)</span> 大，连乘就可能爆炸。梯度消失/爆炸是深度的原罪，1991 年 Hochreiter 的硕士论文就把它说透了（此人后来发明 LSTM，第 06 讲再见）。</p>
 <p><strong>2. 数据太少、算力太弱。</strong>几千个样本训不动大网络（第 01 讲：复杂模型需要大 <span class="arithmatex">\(n\)</span>）；CPU 训练以周计。</p>
 <p><strong>3. 理论气质完败。</strong>SVM：凸优化全局最优、VC 理论保泛化、调参少且行为可解释。神经网络：非凸、局部极小、初始化玄学、"炼丹"。审稿人的风向直接反映生态：当年论文里出现"neural network"就难中，SVM 成为默认基线。</p>
 <h2 id="5-hinton-20062012">5. Hinton 的坚守（2006–2012）<a class="headerlink" href="#5-hinton-20062012" title="Permanent link"></a></h2>
@@ -187,7 +240,7 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 </tr>
 </tbody>
 </table>
-<p><strong>动手</strong>：跑 <code>labs/lab04_backprop_xor.py</code>——纯 numpy 实现上面四个方程，训练 MLP 解 XOR；再用<strong>数值梯度检查</strong>（中心差分对照解析梯度，相对误差应 <span class="arithmatex">\(&lt; 10^{-7}\)</span>）验证你的推导一字不差。这是全课程最值得亲手写的一个实验。</p>
+<p><strong>动手</strong>：在本页的 backprop lab 中固定一个 2→2→1 网络，切换 sigmoid/ReLU，选一条边或一个偏置，读出前向节点值与链式法则消息；再用中心差分做梯度检查。默认状态下相对误差应很小，但靠近 ReLU 的 <span class="arithmatex">\(z=0\)</span> 拐点时要把差异解释为不可微边界，而不是盲目追求一个阈值。</p>
 <p><strong>延伸阅读</strong>：Nielsen《Neural Networks and Deep Learning》第 2 章（反向传播讲得最细的免费教材，neuralnetworksanddeeplearning.com）；Rumelhart, Hinton &amp; Williams (1986)。</p>
 <hr />
 <p><em>下一讲：2012 年 9 月 30 日，ImageNet 竞赛结果公布，一个名叫 AlexNet 的模型把错误率从 26% 砍到 15%，全场哗然。深度学习的热潮由此点燃——而它用的网络结构 CNN，把"归纳偏置"这个概念演绎到了极致。</em></p>
@@ -200,5 +253,7 @@ z^{(l)} = W^{(l)} a^{(l-1)} + b^{(l)}, \qquad a^{(l)} = \sigma(z^{(l)})
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/backprop.js"></script>
 </body>
 </html>

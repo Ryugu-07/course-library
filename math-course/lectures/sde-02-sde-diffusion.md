@@ -59,7 +59,7 @@ $$
 dx = \Big[-\frac{1}{2}\beta x - \beta\,\underbrace{\nabla_x \log p_t(x)}_{\text{score}}\Big]dt + \sqrt{\beta}\,d\bar B_t
 $$
 
-时间倒流的 SDE 存在，且只需多知道一项——**score**（沿途每个时刻分布的对数梯度）；神经网络 $\epsilon_\theta$ 学的正是它（comfy 课 02 §3.5 的等价性）。**概率流 ODE**：存在与反向 SDE 边际分布完全相同的确定性 ODE（把噪声项换成再加一份 score 漂移）——**采样器下拉框里 ODE 系与 SDE/ancestral 系的分野**（comfy 课 03 的表格），在本页是同一个 Fokker–Planck 方程的两种路径实现。**Langevin 动力学**（$dx = \nabla\log p\,dx + \sqrt2\,dB$：以任意 $p$ 为平稳分布的 SDE——§3 Boltzmann 公式反用）是 score-based 采样的原型，也是 MCMC 家族的一员。
+时间倒流的 SDE 存在，且只需多知道一项——**score**（沿途每个时刻分布的对数梯度）；神经网络 $\epsilon_\theta$ 学的正是它（comfy 课 02 §3.5 的等价性）。**概率流 ODE**：存在与反向 SDE 边际分布完全相同的确定性 ODE（把噪声项换成再加一份 score 漂移）——**采样器下拉框里 ODE 系与 SDE/ancestral 系的分野**（comfy 课 03 的表格），在本页是同一个 Fokker–Planck 方程的两种路径实现。**Langevin 动力学**（$dx = \nabla\log p(x)\,dt + \sqrt2\,dB_t$：以 $p$ 为平稳分布的 SDE——§3 Boltzmann 公式反用）是 score-based 采样的原型，也是 MCMC 家族的一员。
 
 ## 5. 典型例题
 

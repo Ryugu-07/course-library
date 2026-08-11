@@ -43,7 +43,7 @@ $$
 
 **三大名应用（每个都值得知道机理）**：
 
-- **Goemans–Williamson MaxCut**【骨架】：把 $x_i \in \{\pm1\}$ 松弛为单位向量（$X = $ Gram 矩阵 $\succeq 0$）解 SDP，随机超平面取整——**期望 0.878 倍最优**（比值 = $\min\frac{\theta/\pi}{(1-\cos\theta)/2}$ 的一页微积分）：组合优化近似算法的巅峰之作，"松弛-取整"范式的旗舰；
+- **Goemans–Williamson MaxCut**【骨架】：把 $x_i \in \{\pm1\}$ 松弛为单位向量，以半正定 Gram 矩阵 $X \succeq 0$ 解 SDP，再用随机超平面取整——**期望 0.878 倍最优**（比值 = $\min\frac{\theta/\pi}{(1-\cos\theta)/2}$ 的一页微积分）：组合优化近似算法的巅峰之作，"松弛-取整"范式的旗舰；
 - **控制论的 LMI**：Lyapunov 不等式 $A^\top P + PA \prec 0$（ode-03 稳定性的矩阵版）是 SDP 可行性问题——"找 Lyapunov 函数"从艺术变成求解器调用；
 - **多项式优化 / SOS**：$p(x) \geq 0$ 的"平方和证书"是 SDP——非凸多项式问题的凸层级逼近（Lasserre 层级【引用】）。
 

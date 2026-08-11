@@ -2,6 +2,50 @@
 
 > **诞生场景**：CNN 吃定了图像，但语言是另一种生物：句子变长、顺序敏感（"猫追狗"≠"狗追猫"）、依赖可以横跨很远（"那只我上周在邻居家院子里见过的**猫**……**它**"）。为序列而生的 RNN 统治了 NLP 十年，却始终被两个毛病纠缠：记不住远处、算得太慢。2017 年，Google 的八人小组扔出一篇标题狂妄的论文——《Attention Is All You Need》：把循环彻底扔掉，只留注意力。这个叫 **Transformer** 的架构不仅吞掉了 NLP，后来还回头吞掉了视觉，成为今天一切大模型的骨架。本讲从 RNN 的困境出发，一步步推到 Transformer 的每个部件——**知其然，更知其为什么非这么设计不可**。
 
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：注意力到底在“选择”什么</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：query「它」应该向谁取值？</h3>
+<p>把句子缩成四个 token：「猫」、「追」、「老鼠」、「它」。下面的两个头使用手写的确定性玩具权重。先猜：当 query 是「它」时，两个头的 softmax 行会不会相同？打开 causal mask 后，第三个位置还能读取第四个位置吗？</p>
+</div>
+<div class="learning-prediction">
+<h3>先做预测，再读矩阵</h3>
+<p>不看答案先写下三句：<strong>①</strong> 没有 mask 时，每个位置都能看到四个 key；<strong>②</strong> 有 mask 时，第 <span class="arithmatex">\(i\)</span> 行只能保留 <span class="arithmatex">\(j\le i\)</span>；<strong>③</strong> 两个头即使输入相同，也可能因为 <span class="arithmatex">\(W^Q,W^K,W^V\)</span> 不同而得到不同的混合。再点击 query 按钮，看猜测是否与热力图一致。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：四个矩阵乘法</h3>
+<p>每个头把 <span class="arithmatex">\(X\in\mathbb R^{4\times4}\)</span> 投影成 <span class="arithmatex">\(Q,K,V\in\mathbb R^{4\times2}\)</span>，计算 <span class="arithmatex">\(S=QK^\top/\sqrt2\in\mathbb R^{4\times4}\)</span>，逐行 softmax 得到 <span class="arithmatex">\(A\)</span>，最后取 <span class="arithmatex">\(O=AV\in\mathbb R^{4\times2}\)</span>。两个头的输出拼接成四维向量；真实模型还会乘一个 <span class="arithmatex">\(W^O\)</span>，本 lab 为了看清混合暂时省略它。</p>
+</div>
+<div class="learning-formal">
+<h3>形式化步骤：从 token 到一行权重</h3>
+<ol>
+<li>先把 token 与位置编码相加，得到一行输入 <span class="arithmatex">\(x_i\)</span>；本实验把这一步折叠进固定的四维 toy embedding。</li>
+<li>用三个独立投影产生角色：<span class="arithmatex">\(q_i=x_iW^Q\)</span>（我在找什么）、<span class="arithmatex">\(k_j=x_jW^K\)</span>（我能被怎样匹配）、<span class="arithmatex">\(v_j=x_jW^V\)</span>（匹配后实际拿走的内容）。</li>
+<li>对一个 query 行做缩放点积：<span class="arithmatex">\(s_{ij}=q_i\cdot k_j/\sqrt{d_k}\)</span>。若是 decoder 的因果注意力，把未来位置的分数改成 <span class="arithmatex">\(-\infty\)</span>。</li>
+<li>softmax 把分数变成非负且和为 1 的权重 <span class="arithmatex">\(a_{ij}\)</span>；输出是 <span class="arithmatex">\(o_i=\sum_j a_{ij}v_j\)</span>。因此“注意力”是一个可读的加权平均，不是凭空生成新 token。</li>
+<li>训练时，一层里的四个 query 可以同时算出整张 <span class="arithmatex">\(QK^\top\)</span> 矩阵（mask 只是把非法格子屏蔽）；自回归推理时下一个 token 依赖刚生成的 token，所以生成过程仍然按步串行。</li>
+</ol>
+</div>
+<div class="learning-boundary">
+<h3>边界与反例：可视化不等于语义证明</h3>
+<ul>
+<li>本 lab 的权重是玩具设定；一格权重大，只能说明这组参数在这个输入上更偏向某个 value，不能证明真实模型学到了“它指代猫”。</li>
+<li>关闭因果 mask 会让未来 token 泄漏到当前行，适合双向编码器的示意，却不适合训练自回归生成器。</li>
+<li>若所有 query/key 内积都相同，softmax 会接近均匀分布；注意力不会自动产生稀疏、可解释的选择。</li>
+<li>正弦位置编码的公式可以代入任意整数位置，但“能计算”不等于“训练范围外一定能可靠外推”；实际表现仍取决于训练分布、频率和模型学习到的规则。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：区分并行与依赖</h3>
+<p>若把四个 token 扩成 <span class="arithmatex">\(n\)</span> 个，注意力分数矩阵从 <span class="arithmatex">\(4\times4\)</span> 变成 <span class="arithmatex">\(n\times n\)</span>。请分别回答：训练一个已知序列时，哪一维可以并行；生成第 <span class="arithmatex">\(t+1\)</span> 个 token 时，哪一个新依赖迫使你等待；总成本为什么不只有 <span class="arithmatex">\(O(n^2d)\)</span>，还要加上投影与 FFN 的 <span class="arithmatex">\(O(nd^2)\)</span>？</p>
+</div>
+<div class="learning-lab" data-learning-lab="transformer">
+<p><strong>无 JavaScript 时的静态版本：</strong>记住四个 token 的形状账本：每头 <span class="arithmatex">\(Q,K,V:4\times2\)</span>，分数与权重是 <span class="arithmatex">\(4\times4\)</span>，输出两头拼成四维。对 query「它」，先按 <span class="arithmatex">\(S=QK^\top/\sqrt2\)</span> 算一行，再 softmax 并对四个 value 做加权和；开启 causal mask 时，未来列的分数是 <span class="arithmatex">\(-\infty\)</span>、权重为 0。页面脚本加载后可逐个查看两个 toy head 的 Q/K/V、分数热力图、softmax 热力图和输出混合。</p>
+</div>
+</section>
+
 ## 1. 前置：词怎么变成向量
 
 <figure class="plot" markdown="1">
@@ -83,7 +127,7 @@ RNN 还有个与生俱来的工程死穴：$h_t$ 依赖 $h_{t-1}$，**必须逐�
 <figcaption><span class="fig-id">图 6.2</span>注意力权重矩阵：每个 query 对所有 key 做 softmax，得到一行权重——决定"看哪些词"，Transformer 的核心运算。</figcaption>
 </figure>
 
-2017 年的暴论：**把循环整个扔掉**。让序列里每个词直接与所有词（包括自己）两两交互——**自注意力（self-attention）**。任意两词之间的路径长度从 RNN 的 $O(n)$ 降到 $O(1)$（信号不衰减），且所有位置的计算完全独立（GPU 满载并行）。两宗罪一次清账。代价后面说。
+2017 年的暴论：**把循环从主干中扔掉**，用自注意力配合逐位置的 FFN、残差与归一化。让序列里每个词直接与所有词（包括自己）两两交互——**自注意力（self-attention）**。任意两词之间的路径长度从 RNN 的 $O(n)$ 降到 $O(1)$（信号不必逐步传递）。在训练时，一层内所有位置可以组成矩阵并行计算；但自回归推理要等前一个 token 生成后才能得到下一个 token，仍然是串行生成。两宗罪一次清账，但代价后面说。
 
 ### 3.1 Query / Key / Value
 
@@ -101,7 +145,7 @@ $$
 \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
 $$
 
-一个具体图景：处理"它"这个词时，$q_{\text{它}}$ 与 $k_{\text{猫}}$ 内积很大 → "它"的新表示大量混入 $v_{\text{猫}}$ → **指代消解在一层内完成**，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是**上下文相关**的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。
+一个具体图景：处理"它"这个词时，它的 $q$ 与"猫"的 $k$ 内积很大 → "它"的新表示大量混入"猫"的 $v$ → **指代消解在一层内完成**，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是**上下文相关**的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。
 
 ### 3.2 为什么除以 $\sqrt{d_k}$：完整推导
 
@@ -144,7 +188,7 @@ $$
 \begin{pmatrix} \sin(\omega_i\, pos) \\ \cos(\omega_i\, pos) \end{pmatrix}
 $$
 
-——每一对维度上是一个只依赖 $\Delta$ 的旋转矩阵。$\blacksquare$ 于是"相隔 $\Delta$ 个词"这种**相对位置关系**对模型是一个线性可学的模式；不同维度的 $\omega_i$ 构成从高频到低频的"位置进制表"，任意长度可外推。（现代 LLM 多用它的近亲 **RoPE**——直接把 $q, k$ 向量按位置旋转，出发点同源；也有直接学位置向量的方案。）
+——每一对维度上是一个只依赖 $\Delta$ 的旋转矩阵。$\blacksquare$ 于是"相隔 $\Delta$ 个词"这种**相对位置关系**对模型是一个线性可学的模式；不同维度的 $\omega_i$ 构成从高频到低频的"位置进制表"。公式本身可以为任意整数位置计算编码，但这不保证模型在训练范围外可靠外推；外推表现取决于训练分布与模型学到的函数。（现代 LLM 多用它的近亲 **RoPE**——直接把 $q, k$ 向量按位置旋转，出发点同源；也有直接学位置向量的方案。）
 
 ### 3.5 组装整机
 
@@ -169,14 +213,14 @@ $$
 
 ### 3.6 代价与账本
 
-自注意力的复杂度是 $O(n^2 d)$（$n \times n$ 的注意力矩阵），RNN 是 $O(n d^2)$：
+自注意力的核心分数与加权值计算是 $O(n^2 d)$（$n \times n$ 的注意力矩阵）；但每层总账还要加上 Q/K/V 与输出投影、以及逐位置 FFN 的 $O(n d^2)$。因此不能只记一个 $n^2$：
 
 | | 每层计算量 | 串行步数 | 最远信息路径 |
 |---|---|---|---|
 | RNN | $O(n d^2)$ | $O(n)$ | $O(n)$ |
-| 自注意力 | $O(n^2 d)$ | $O(1)$ | $O(1)$ |
+| 自注意力 + FFN | $O(n^2 d + n d^2)$ | 训练时 $O(1)$；自回归推理按步生成 | $O(1)$ |
 
-Transformer 用"对序列长度平方"的计算量，换来了**零串行**与**零距离**。2017 年 $n$ 只有几百，这笔交易血赚；今天上下文拉到十万、百万 token，$n^2$ 就是"长上下文为什么贵"（第 08 讲的现实约束）的直接根源，也催生了 FlashAttention、稀疏/线性注意力等一整个研究方向。
+Transformer 用"对序列长度平方"的注意力计算，换来了一层内的**矩阵并行**与任意两位置之间 $O(1)$ 的信息路径。2017 年 $n$ 只有几百，这笔交易血赚；今天上下文拉到十万、百万 token，$n^2$ 就是"长上下文为什么贵"（第 08 讲的现实约束）的直接根源，也催生了 FlashAttention、稀疏/线性注意力等一整个研究方向。这里的并行指训练时已知整段序列的层内计算，不包括仍需逐 token 推进的自回归生成。
 
 还有一层更深的意味：对比 CNN（硬编码局部性）与 RNN（硬编码顺序递归），**Transformer 的结构先验最弱**——它只假设"表示间的两两交互有用"，其余一切交给数据。第 01 讲的偏差–方差逻辑预言：弱先验模型需要更多数据，但数据管够时上限更高。于是当数据真的管够（整个互联网），Transformer 不仅统治语言，还以 ViT（2020，把图像切成 16×16 的块当"词"处理）反攻视觉，把 CNN 从王座上请了下去。**一个架构通吃所有模态**——这为"规模化"铺平了道路，那正是下一讲的主题。
 
@@ -187,14 +231,14 @@ Transformer 用"对序列长度平方"的计算量，换来了**零串行**与**
 | RNN | 时间上共享参数的递归记忆；死穴 = 梯度沿时间指数衰减 + 串行 |
 | LSTM | 门控 + 细胞状态加法通路（ResNet 的先声），缓解而非根治 |
 | 注意力起源 | seq2seq 信息瓶颈的补丁：按相关性加权回看全句 |
-| 自注意力 | $\mathrm{softmax}(QK^\top/\sqrt{d_k})V$；任意两词路径 $O(1)$，完全并行 |
+| 自注意力 | $\mathrm{softmax}(QK^\top/\sqrt{d_k})V$；训练时位置可并行，生成时仍逐 token |
 | $\sqrt{d_k}$ | 内积方差 $= d_k$，不除则 softmax 饱和、梯度死亡 |
 | 多头 | 多个子空间学不同关系类型 |
 | 位置编码 | 注意力是集合运算，语序需显式注入；三角编码使相对位移线性可学 |
 | Transformer 块 | (注意力 + FFN) × 残差 × LayerNorm，堆 N 层 |
-| 权衡 | $O(n^2)$ 换零串行零距离；弱先验 + 大数据 = 通吃 |
+| 权衡 | 注意力 $O(n^2d)$ 另加投影/FFN $O(nd^2)$；训练并行、生成串行；弱先验 + 大数据 = 通吃 |
 
-**动手**：跑 `labs/lab06_attention_transformer.py`——先用纯 numpy 实现缩放点积注意力并可视化注意力矩阵（看"它"盯上"猫"），再用 PyTorch 训练一个 mini char-GPT 在小语料上学会生成文本。你将在几分钟内目睹一个 Transformer 从乱码进化到通顺。
+**动手**：在本页的 transformer lab 中点击四个 query token，查看两个确定性 toy head 的 $Q/K/V$、$QK^\top/\sqrt{d_k}$ 分数、softmax 热力图和输出混合；再打开 causal mask，观察未来列如何变成 0。记住：这能展示运算结构，不等于证明 toy 权重学到了真实语义。
 
 **延伸阅读**：Vaswani et al. "Attention Is All You Need" (2017)；Jay Alammar "The Illustrated Transformer"（图解经典，搜索可得）；Karpathy 的视频 "Let's build GPT from scratch"（lab06 的灵感来源）。
 
