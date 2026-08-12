@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -28,175 +39,170 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-12 18:36</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 地图：三大国际家族 + 中国梯队</a><ul>
-<li><a href="#_1">国际三巨头</a></li>
-<li><a href="#_2">中国梯队</a></li>
-<li><a href="#vs">推理模型 vs 普通模型：先分清这个</a></li>
-</ul>
-</li>
+<li><a href="#1">1. 地图：用任务维度代替易过时的型号排名</a></li>
 <li><a href="#2">2. 选型的六个维度</a></li>
-<li><a href="#3">3. 怎么判断"哪个更强"：基准的坑</a></li>
-<li><a href="#4-2026">4. 按场景的推荐配置（2026 年初快照）</a></li>
-<li><a href="#_3">本讲小结</a></li>
+<li><a href="#3">3. 公开基准应该怎样读</a></li>
+<li><a href="#4">4. 一个可执行的选型流程</a></li>
+<li><a href="#_1">本讲小结</a></li>
 </ul>
 </div>
 </details>
-<h1 id="10">第 10 讲 · 模型地图与选型<a class="headerlink" href="#10" title="Permanent link"></a></h1>
+<h1 id="10">第 10 讲 · 模型地图与选型：先审计评测，再谈高分<a class="headerlink" href="#10" title="Permanent link"></a></h1>
 <blockquote>
-<p>下篇开篇先解决最高频的问题：<strong>这么多模型，干某件活到底该用哪个？</strong>本讲给你一张地图和一套选型方法。地图（具体产品名、排位）时效性强，以 2026 年初为快照，会过期；<strong>选型方法（维度、试用套路、避坑原则）长期有效</strong>——重点吸收后者。</p>
+<p>模型名、版本、价格和服务接口会变；本讲把重点放在不随榜单更新而失效的选型方法：定义目标任务，保存可追溯的题目来源，隔离开发与测试，并把每个分数写成一份评测账本。公开基准、盲评和私人题集都可以提供线索，但没有哪一种天然免疫污染、选择偏差或分布错配。</p>
 </blockquote>
-<div class="admonition warning">
-<p class="admonition-title">时效声明</p>
-<p>模型版本以月为单位更新，本讲提到的具体型号可能已有新版。用前花两分钟核对官网；但"家族气质"（各家的强项传统）变化很慢，地图的骨架可以放心用。</p>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：高分是否可信，先问“它从哪里来？”</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：一个 92 分的 benchmark，能直接代表你的工作能力吗？</h3>
+<p>假设有一套固定公开题库。某些题面或答案直接出现在训练资料里；另一些题没有逐字出现，却只是同一模板换了名字；团队还可能反复查看测试分来调 prompt、解码参数或模型配置。与此同时，公开题库偏重推理，而你的私人任务偏重代码和写作。请先判断：这四种情况会不会都把公开分推高？它们是否都叫“数据污染”？若你只能保留一份分数，应该保留 observed benchmark、剔除风险题后的 clean subset，还是一次冻结后才打开的私有 holdout？</p>
 </div>
-<h2 id="1">1. 地图：三大国际家族 + 中国梯队<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<h3 id="_1">国际三巨头<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
-<table>
-<thead>
-<tr>
-<th>家族</th>
-<th>厂商</th>
-<th>家族气质与传统强项</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>GPT / o 系列</td>
-<td>OpenAI</td>
-<td>综合能力均衡的六边形战士；推理系列（o 系）开创测试时计算范式；生态最大、教程最多</td>
-</tr>
-<tr>
-<td>Claude 系列</td>
-<td>Anthropic</td>
-<td>写代码与智能体任务的口碑之王（Claude Code）；长文写作自然、"人味"足；对齐细腻、拒答边界稳</td>
-</tr>
-<tr>
-<td>Gemini 系列</td>
-<td>Google</td>
-<td>原生多模态（图/音/视频）最强；超长上下文（百万级 token）先行者；与 Google 全家桶打通</td>
-</tr>
-</tbody>
-</table>
-<p>各家产品线通常分三档：<strong>旗舰</strong>（最强最贵）、<strong>主力</strong>（性价比平衡，日常默认）、<strong>轻量</strong>（快而便宜，跑量任务）。同代模型内"贵 ≈ 强"大体成立，但<strong>跨用途不成立</strong>——写诗不需要旗舰推理模型，那是浪费钱还更慢。</p>
-<h3 id="_2">中国梯队<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
-<table>
-<thead>
-<tr>
-<th>家族</th>
-<th>厂商</th>
-<th>特点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>DeepSeek</td>
-<td>深度求索</td>
-<td>开源旗舰；V 系通用、R 系推理；API 价格极低，性价比标杆；R1 以低成本复现推理能力震动业界</td>
-</tr>
-<tr>
-<td>Qwen（通义千问）</td>
-<td>阿里</td>
-<td>开源谱系最全（0.5B 到百 B 级都有），本地部署首选之一；多模态齐全</td>
-</tr>
-<tr>
-<td>Kimi</td>
-<td>月之暗面</td>
-<td>长文本起家，K 系推理模型开源</td>
-</tr>
-<tr>
-<td>GLM</td>
-<td>智谱</td>
-<td>学术界出身，国内 To B 生态深</td>
-</tr>
-<tr>
-<td>豆包</td>
-<td>字节</td>
-<td>C 端产品化最强，日活最大</td>
-</tr>
-</tbody>
-</table>
-<p>中国模型的两个实用意义：<strong>便宜</strong>（同能力档 API 价格常低一个数量级）与<strong>可及</strong>（国内网络直连、支付方便；国际模型的官方服务在国内访问受限）。开源权重（DeepSeek/Qwen 等）还意味着可以本地部署——数据不出门（第 11 讲实操）。</p>
-<h3 id="vs">推理模型 vs 普通模型：先分清这个<a class="headerlink" href="#vs" title="Permanent link"></a></h3>
-<p>第 07 讲讲过原理（RL 训练的长思维链），选型时这是第一个岔路口：</p>
+<div class="learning-prediction">
+<h3>先做预测，再打开账本</h3>
+<p>先写下你的预测：<strong>①</strong> 直接污染最像“题目被看过”，应在题级 provenance 中单独标记；<strong>②</strong> 近重复即使不是同一字符串，也可能把熟悉模板的收益带进测试，不能只靠精确去重；<strong>③</strong> 固定测试集被反复用于挑选 prompt 时，问题不必进入训练集，也会形成针对测试集的自适应过拟合；<strong>④</strong> 只增加候选模型/提示并报告最好分，winner 的噪声偏差通常会变大；<strong>⑤</strong> 即使完全无污染，公开题权重和私人任务权重不同，排名也可能反转。</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：四个分数、三个来源标签</h3>
+<p>对题目 <span class="arithmatex">\(i\)</span>，把真实能力记为 <span class="arithmatex">\(q_i\)</span>，固定题目噪声记为 <span class="arithmatex">\(\varepsilon_i\)</span>。干净分数是 <span class="arithmatex">\(p_i^{clean}=\mathrm{clip}(q_i+\varepsilon_i,0,1)\)</span>。若题目被直接看过或存在可辨认的近重复，就在观察账本中加入增益：</p>
+<div class="arithmatex">\[
+p_i^{obs}=\mathrm{clip}\bigl(p_i^{clean}+g_{direct}d_i+g_{near}n_i,0,1\bigr).
+\]</div>
+<p><span class="arithmatex">\(d_i\)</span> 和 <span class="arithmatex">\(n_i\)</span> 是 provenance 标记，不是“模型能力”的一部分。<strong>Observed benchmark</strong> 对全题求平均；<strong>clean subset</strong> 只在排除已标记风险题后平均；<strong>oracle baseline</strong> 是在这个玩具世界里没有泄漏增益的参考值。三者不能混写成一个“真实分数”。尤其要注意：若被剔除的风险题集中在某些 family 或难度，clean subset 同时改变了题目组成；它与全题 oracle 的差不能直接解释成“污染量”，还要报告覆盖率、分项结果，必要时按目标分布重加权。</p>
+<p>第二块实验把候选 <span class="arithmatex">\(j=1,\ldots,K\)</span> 的公开分写成 <span class="arithmatex">\(S_j=q_j+\bar\varepsilon_j\)</span>，选择 <span class="arithmatex">\(\hat j=\arg\max_j S_j\)</span>。报告的 winner 分会包含“最大噪声”的成分；候选数 <span class="arithmatex">\(K\)</span>、测试题数 <span class="arithmatex">\(m\)</span> 和独立重复的分布一起决定这份乐观差，而不是一次跑出的漂亮数字。</p>
+</div>
+<div class="learning-formal">
+<h3>动手验证：一次只改变一个旋钮</h3>
+<ol>
+<li>在固定题库中先把直接污染率设为 0，再逐步增加；观察 observed benchmark、clean subset 和逐题 hash 标记。再单独调近重复泄漏增益，确认近重复题即使没有 direct 标记也会改变 observed 分。</li>
+<li>读题级账本：<code>family/topic</code> 描述题目覆盖，<code>trueAbility</code> 是玩具潜变量，<code>deterministicHash/noise</code> 让选择和结果可复现。把 provenance 看成数据字段，而不是事后解释。</li>
+<li>在第二块只增加候选数，或只减少公开测试题数；比较当前一次的 winner 与 64 次固定重复的 P10、中位数、均值、P90 和“潜在分”。若 winner 分高于潜在分，不要立刻把它称为能力提升。</li>
+<li>点击“冻结并只开一次私有 holdout”前先写下公开 winner；点击后观察 holdout 与公开选择参数一起锁定，并注意它不能被用来继续调参。本页会话内的重置不会重新隐藏 holdout；刷新页面只能重放这个教学玩具，不是生产评测的访问控制。</li>
+<li>在第三块切换私人任务配比。公开题权重不变，若私人权重偏向代码或写作，重新计算的总分可能反转；这一次没有污染，变的是 estimand——你究竟要估计谁的任务表现。</li>
+</ol>
+<p>实验的数值是确定性重放：同一个滑杆状态会得到同一张账本。重复实验的直方图是 64 次预先规定种子的离散分布，不是从一次随机跑推导出的定理。</p>
+</div>
+<div class="learning-boundary">
+<h3>误区边界：不要把相邻问题压成“污染”二字</h3>
 <ul>
-<li><strong>普通（即答）模型</strong>：写作、翻译、摘要、聊天、格式转换——响应快、便宜；</li>
-<li><strong>推理模型</strong>：数学、复杂代码调试、多步逻辑、规划——先"思考"几秒到几分钟再回答，贵且慢，但难题正确率高一截。</li>
+<li><strong>直接污染</strong>：测试题、答案或高度可识别的评测材料进入训练/提示/开发资料；应追踪时间、来源和版本。它是 provenance 问题，不能只看分数反推。</li>
+<li><strong>近重复泄漏</strong>：题目换表述、数字或上下文，但保留同一模板、解法或答案结构；精确字符串去重不够，还需要语义/模板去重与人工抽查。近重复不是“必然污染”的同义词，而是需要审查的相似性证据。</li>
+<li><strong>自适应过拟合</strong>：团队反复看同一个测试集，针对分数改 prompt、工具链、解码或训练设置。测试题没有进入训练资料，也可能被“调熟”；因此开发集、验证集、测试集和私有 holdout 要有清晰边界，并记录每次查看与改动。</li>
+<li><strong>分布错配</strong>：公开题测的是一个加权分布，目标工作测的是另一个加权分布。它不是污染，也不一定能靠多做公开题修复；应报告分项分数、目标权重和排名稳定性。</li>
+<li><strong>删题后的选择偏差</strong>：clean subset 只有在风险标记与题目能力、family、难度近似独立时，才容易与原题集总体比较。现实里应同时给出保留率、被删题构成、分层结果与重加权口径，不能把“删后变低/变高”自动归因于污染。</li>
+<li>竞技场式盲评能减少直接针对固定题面的机会，但它不自动证明“无法污染”：评测协议、参与者、样本选择、重复观察和训练资料仍要问。十道私人题也不天然可靠；题数少、相关性高、覆盖窄或被反复看过都会让不确定性很大。</li>
+<li>本实验把真实能力概率写成已知潜变量，现实中它不可直接观测；固定 hash/noise 只保证可复现与可审计，不替代真实题目去重、独立标注、置信区间、时间切分或安全审查。</li>
 </ul>
-<p>常见浪费：用推理模型干翻译（慢且无增益）；常见翻车：用即答模型做多步数学（第 08 讲：单 token 计算量固定，一步算不完多步题）。<strong>难题给推理模型，快活给即答模型</strong>，一句话记住。</p>
+</div>
+<div class="learning-transfer">
+<h3>回到方法：把一张榜单改造成评测协议</h3>
+<p>选型前先写 <strong>evaluation contract</strong>：目标任务与失败代价、候选集合、数据版本、题目来源与许可、去重规则、时间切分、标签协议、开发/测试边界、随机种子、停止规则、统计摘要和发布门槛。每一行结果至少能回答“哪一版题、哪一种模型/提示、谁在什么时候运行、是否看过反馈、哪些题被排除、分项与总体如何计算”。公开 benchmark 可用来发现候选与回归变化；私人任务集用来判断适配；冻结 holdout 用来做一次性确认。三者的证据角色不同。</p>
+<p>重复运行时报告均值、分布或置信区间，并说明重复单位、是否共享题目、是否共享随机种子和是否存在自适应选择。持续更新题库时保留旧版本与时间切分，让“分数上涨”能区分能力变化、题库老化、协议变化和污染暴露。</p>
+</div>
+<div class="learning-transfer">
+<h3>迁移问题：把账本带到你的真实任务</h3>
+<p>你要比较的是代码修复、研究问答、中文改写，还是一个带工具的端到端流程？为每类任务各写几道代表题，标出来源、时间、近重复家族、失败代价和允许的开发反馈。若一个候选在公开题上领先，但在私人目标分布上落后，你会选择重加权、补题、换模型，还是承认公开 benchmark 不是当前 estimand？如果只有十道私人题，怎样用时间切分、重复标注、置信区间或后续盲题来表达“我还不知道”？</p>
+</div>
+<div class="learning-experiment">
+<h3>交互实验：benchmark-contamination</h3>
+<div class="learning-lab" data-learning-lab="benchmark-contamination">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定题库含 16 题，按推理、代码、知识、写作四个 family 各 4 题；每题公开 <code>family/topic</code>、真实能力概率、8 位 deterministic hash、固定 noise 和 near-duplicate 元数据。默认直接污染率为 25%，近重复泄漏增益为 +12 个百分点，直接命中题的玩具增益为 +22 个百分点。观察分数把增益加到 clean 概率；clean subset 则剔除 direct 或 near 风险题。滑杆改变的是固定账本中的标记或增益，不会重新抽题。</p>
+<p>第二块默认有 12 个候选、10 道公开测试题和 64 次预先定种子的重复回放；当前一次 winner 分、winner 潜在分、乐观差，以及回放的 P10/中位数/均值/P90 都应一起读。私有 holdout 固定为 24 题，只有点击一次后才显示，并在本页会话内保持锁定；它是协议对照，不是让你继续挑分的第二个开发集。</p>
+<p>第三块默认把公开题权重设为推理 40%、代码 30%、知识 20%、写作 10%；私人任务配比可切到均匀、写作重或工程重。若排名反转，原因是目标分布不同，而不是某个隐藏的污染率。</p>
+</div>
+</div>
+</section>
+
+<h2 id="1">1. 地图：用任务维度代替易过时的型号排名<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>模型目录会随版本、地区、套餐和部署形态变化。本页不把具体型号排成固定名次；更稳健的地图是先问任务需要什么能力，再在当前可用的候选中做小规模、可复现的比较：</p>
+<table>
+<thead>
+<tr>
+<th>任务维度</th>
+<th>先检查什么</th>
+<th>需要留下的证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多步推理</td>
+<td>分步约束、反例、计算与拒答是否稳定</td>
+<td>固定题集、最终答案与中间验证</td>
+</tr>
+<tr>
+<td>代码与工具</td>
+<td>测试通过率、补丁可读性、工具权限与失败恢复</td>
+<td>仓库版本、测试日志、人工审查</td>
+</tr>
+<tr>
+<td>长文档</td>
+<td>召回位置、引用准确性、上下文中段是否被忽略</td>
+<td>带定位标记的文档题与来源</td>
+</tr>
+<tr>
+<td>多模态</td>
+<td>输入格式、分辨率、表格/图像理解边界</td>
+<td>原始样本、预处理、错误分类</td>
+</tr>
+<tr>
+<td>写作与改写</td>
+<td>受众、风格、事实保真和编辑成本</td>
+<td>盲评 rubric、修改轮次与反例</td>
+</tr>
+<tr>
+<td>成本与部署</td>
+<td>延迟、吞吐、价格、隐私和合规约束</td>
+<td>当前版本、配置、计费与数据政策</td>
+</tr>
+</tbody>
+</table>
+<p>同一模型在不同维度上可以同时强和弱；“综合榜第一”不能替代任务契约。推理/即答、托管/本地、旗舰/轻量等标签只是候选空间的组织方式，最终仍要在目标任务上验证。</p>
 <h2 id="2">2. 选型的六个维度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <ol>
-<li><strong>能力匹配</strong>：任务的瓶颈能力是什么？代码 → 看编程基准与口碑；数学 → 推理系；创作 → 文风口味（主观，必须亲测）；</li>
-<li><strong>上下文长度</strong>：要一次读几百页文档？确认窗口够，并记住第 08 讲的警告——标称一百万不等于中间部分真被读进去了（lost in the middle）；</li>
-<li><strong>多模态</strong>：要读图、读 PDF 扫描件、听音频吗？</li>
-<li><strong>价格</strong>：API 按 token 计费，输入/输出分开算，推理模型的"思考 token"也收费。跑量任务（批处理十万条数据）价格差一个数量级就是十倍账单；</li>
-<li><strong>速度</strong>：交互场景在乎首 token 延迟，批处理在乎吞吐；</li>
-<li><strong>部署约束</strong>：数据能不能出内网/出境？不能 → 开源模型本地部署或国内合规云。科研数据、商业机密先想这条。</li>
+<li><strong>能力匹配</strong>：先写任务的瓶颈和失败代价，再选候选，不要从模型名倒推用途；</li>
+<li><strong>上下文与信息位置</strong>：确认窗口、检索和中段召回，不把标称长度当作“全部读懂”；</li>
+<li><strong>多模态与工具边界</strong>：明确它能读什么、能调用什么，以及哪些动作必须人工确认；</li>
+<li><strong>成本与速度</strong>：记录输入/输出、推理预算、并发、首 token 延迟和批处理吞吐；</li>
+<li><strong>部署与数据治理</strong>：检查数据是否能出内网/出境、保存多久、谁可访问和如何删除；</li>
+<li><strong>证据质量</strong>：公开分数、盲评、私人题集和 holdout 的证据角色分开写，给出不确定性和时间边界。</li>
 </ol>
-<h2 id="3">3. 怎么判断"哪个更强"：基准的坑<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>公开基准（MMLU、数学竞赛、SWE-bench 等）可参考，但三个坑要知道：</p>
+<h2 id="3">3. 公开基准应该怎样读<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>公开基准有用，但更适合当作候选筛选和回归报警器，而不是最终签字：</p>
 <ul>
-<li><strong>刷榜与污染</strong>：基准题目可能混进训练数据（第 01 讲用语：测试集泄漏进训练集），分数系统性虚高；</li>
-<li><strong>基准 ≠ 你的任务</strong>：数学竞赛分数高，不代表给你改中文论文改得好；</li>
-<li><strong>饱和</strong>：老基准大家都 90+ 分，失去区分度。</li>
+<li><strong>先查 provenance</strong>：题目来源、发布时间、训练资料边界、版本、许可与去重方法是否公开；</li>
+<li><strong>再查独立性</strong>：开发/验证/测试是否隔离，是否反复看测试反馈，是否发生测试集自适应；</li>
+<li><strong>看分项而非只看总分</strong>：family、topic、难度、时间段和失败类型可能揭示任务分布错配；</li>
+<li><strong>报告不确定性</strong>：题目数、相关性、重复运行、置信区间/分布和选择规则必须一起出现；</li>
+<li><strong>用时间切分与持续更新</strong>：旧题库会饱和，也可能被逐渐调熟；新版本要保留旧协议以便解释变化。</li>
 </ul>
-<p>更可靠的两个信号：<strong>竞技场式盲评</strong>（如 LMArena：真人盲测两个匿名回答投票，难刷）与<strong>你自己的 10 道题</strong>——把你真实工作中的典型任务存成一套私人测试题，新模型出来就跑一遍。半小时的亲测胜过读十篇评测文章，这是本讲最值得执行的一条建议。</p>
-<h2 id="4-2026">4. 按场景的推荐配置（2026 年初快照）<a class="headerlink" href="#4-2026" title="Permanent link"></a></h2>
-<table>
-<thead>
-<tr>
-<th>场景</th>
-<th>推荐思路</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>日常问答/学习</td>
-<td>任一家主力档即可，重要的是用熟一个、了解它的脾气</td>
-</tr>
-<tr>
-<td>写代码</td>
-<td>Claude 系或 GPT 主力档 + 编程智能体（第 11、15 讲）；预算紧用 DeepSeek</td>
-</tr>
-<tr>
-<td>数学推导/难题</td>
-<td>推理模型（o 系 / R 系 / Gemini 思考档），开思维链慢慢算</td>
-</tr>
-<tr>
-<td>论文精读/长文档</td>
-<td>长上下文强的（Gemini/Kimi/Claude），配合第 13 讲的方法</td>
-</tr>
-<tr>
-<td>批量数据处理</td>
-<td>轻量档或 DeepSeek——先小样本验证质量，再上量</td>
-</tr>
-<tr>
-<td>敏感数据</td>
-<td>本地部署开源模型（Qwen/DeepSeek 蒸馏版，第 11 讲实操）</td>
-</tr>
-<tr>
-<td>文生图/多模态创作</td>
-<td>专门模型，见第 16 讲</td>
-</tr>
-</tbody>
-</table>
-<p>一个被反复验证的使用哲学：<strong>主力模型用深，比广撒网强。</strong>每个模型有自己的脾气（对指令格式的偏好、拒答的边界、幻觉的高发区），摸熟一个的收益大于浅尝十个。选一个主力 + 一个推理备胎 + 一个便宜跑量的，三件套足够覆盖 95% 的需求。</p>
-<h2 id="_3">本讲小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>竞技场式盲评、公开基准和私人任务题集可以互补。盲评降低固定题面被直接针对的机会，但不等于无法污染；私人题集贴近工作，但十题并不天然可靠。真正的提升来自协议、来源、隔离与复核，而不是某一种榜单的光环。</p>
+<h2 id="4">4. 一个可执行的选型流程<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ol>
+<li>从真实工作中抽取覆盖不同 family/topic 的任务，冻结一份尚未用于调参的测试版本；</li>
+<li>另建开发集，允许快速迭代，但记录每次改 prompt、工具、模型、解码参数和查看结果的时间；</li>
+<li>运行 2–4 个候选，先看分项、错误类型、成本和人工修订量；若要扩展候选，预先写选择规则，避免只报最好的一次；</li>
+<li>对近重复做模板/语义审查，对直接来源做 provenance 检查，对时间敏感知识做时间切分；</li>
+<li>选定后只打开一次冻结私有 holdout，确认是否与公开结论一致；不一致就回到账本，而不是挑一个更好看的分数；</li>
+<li>上线前按版本、数据、配置、种子、评测脚本和人工签字归档，后续持续更新并保留历史协议。</li>
+</ol>
+<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <ul>
-<li>地图会过期，方法不会：能力/上下文/多模态/价格/速度/部署六维度过一遍；</li>
-<li>推理模型 vs 即答模型是第一岔路：难题上推理，快活上即答；</li>
-<li>不迷信基准：建一套自己的 10 道测试题，新模型出来跑一遍；</li>
-<li>三件套配置：主力用深 + 推理备胎 + 便宜跑量。</li>
+<li>高分要先问来源：直接污染、近重复、自适应过拟合和任务分布错配是四个不同问题；</li>
+<li>observed benchmark、clean subset、重复回放和私有 holdout 各自回答不同问题，不能互相冒充；</li>
+<li>多次试模型/提示后只报告最好测试分会产生 winner's curse；均值、分布或置信区间比一次随机跑更诚实；</li>
+<li>公开题高分不保证私人任务高分；用 provenance、去重、时间切分、开发/测试隔离和持续更新建立证据链。</li>
 </ul>
-<p><strong>动手</strong>：现在就建你的私人测试题集——从你最近的真实工作里挑 10 个任务（一段要润色的论文、一个要调试的 bug、一道专业题……），存进一个文档。这是你此后每次选型的量尺。</p>
+<p><strong>动手</strong>：从最近的真实工作里挑至少 10 个任务，按 family/topic、时间、来源和失败代价建表；明确哪些可用于开发、哪些只在最终确认时打开。每次改 prompt 或模型都写入评测账本，而不是只保存最高分截图。</p>
 <hr />
-<p><em>下一讲：选好了模型，怎么把工具链装起来——从零安装到跑通第一个 API 调用和第一个本地模型。</em></p>
+<p><em>下一讲：把候选选好后，怎么安装工具、固定环境并跑通第一个 API 与本地模型。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="09-tools-agents-mcp.html"><span class="pager-label">上一讲</span>09 · 工具调用、智能体、MCP 与 Skills</a>
@@ -206,5 +212,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/benchmark-contamination.js"></script>
 </body>
 </html>

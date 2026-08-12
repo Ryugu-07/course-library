@@ -729,7 +729,9 @@
           thresholdRange,
           makeElement(api, "div", { className: "cc-scale" }, ["50%（全收）", "99%（严）"]),
           coverageOutput,
-          makeElement(api, "div", { className: "cc-coverage-grid" }, coverageButtons),
+          makeElement(api, "div", { className: "cc-coverage-grid" }, coverageButtons.map(function (choice) {
+            return choice.button;
+          })),
           makeElement(api, "p", { className: "cc-help", text: "快捷键按 score 排序取近似 coverage；同分会使实际 coverage 偏离目标。" })
         ]),
         makeElement(api, "fieldset", { className: "cc-control-section" }, [

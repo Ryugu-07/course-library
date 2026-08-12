@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,27 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-12 18:22</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 条件期望的测度论定义</a></li>
-<li><a href="#2">2. 鞅：定义与例子库</a></li>
-<li><a href="#3">3. 停时与可选停止定理</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#_1">学习层：停止以后，账本为什么不能随便合上？</a><ul>
+<li><a href="#1">1. 具体谜题：赌场允许你什么时候收手？</a></li>
+<li><a href="#2">2. 先预测，再动手</a></li>
+<li><a href="#3">3. 最小模型：随机游走、过滤与可预测下注</a></li>
+<li><a href="#4">4. 动手验证：三本相互咬合的账</a></li>
+<li><a href="#5">5. 误区与边界：哪一步真的会坏？</a></li>
+<li><a href="#6-ost">6. 回到定理：把“停止账”翻译成 OST</a></li>
+<li><a href="#7">7. 迁移问题：换一个过程，你会检查哪一栏？</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 条件期望的测度论定义</a></li>
+<li><a href="#2_1">2. 鞅：定义与例子库</a></li>
+<li><a href="#3_1">3. 停时与可选停止定理</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +74,99 @@
 <p><img alt="鞅样本轨道（公平赌博，条件期望不变）：可 [plot]。" src="assets/img/mt-03-martingale.svg" /></p>
 <figcaption><span class="fig-id">图 mt-03.1</span>鞅样本轨道（公平赌博，条件期望不变）：可 [plot]。</figcaption>
 </figure>
-<h2 id="1">1. 条件期望的测度论定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：停止以后，账本为什么不能随便合上？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：赌场允许你什么时候收手？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>你从筹码位置 <span class="arithmatex">\(k\)</span> 出发，每局公平地向左或向右走一步；走到 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(N\)</span> 就停。直觉会说“每一步公平，所以无论什么时候停，平均筹码都应是 <span class="arithmatex">\(k\)</span>”。但另一个游戏从 <span class="arithmatex">\(0\)</span> 出发，只在第一次到达 <span class="arithmatex">\(+1\)</span> 时停：它几乎必然最终拿到 <span class="arithmatex">\(1\)</span>，难道这就是一个“必胜策略”？</p>
+<p>本页要拆开的谜题是：<strong>停止规则只看过去，为什么仍可能破坏把 <span class="arithmatex">\(E X_n=E X_0\)</span> 直接搬到 <span class="arithmatex">\(E X_\tau=E X_0\)</span>？</strong> 答案不在“停时不合法”，而在于让 <span class="arithmatex">\(n\to\infty\)</span> 时，期望是否还能穿过这个极限。</p>
+<h3 id="2">2. 先预测，再动手<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不要看实验输出，写下你的预测：</p>
+<ul>
+<li>取 <span class="arithmatex">\(N=10,k=3\)</span> 的对称走廊，猜 <span class="arithmatex">\(P(\text{先到 }N)\)</span> 和 <span class="arithmatex">\(E\tau\)</span>；它们应分别接近多少？</li>
+<li>对首达 <span class="arithmatex">\(+1\)</span> 的游戏，若只把在时间 <span class="arithmatex">\(T\)</span> 前已经停下的样本放进平均值，和把<strong>所有</strong>样本的 <span class="arithmatex">\(X_{\tau\wedge T}\)</span> 都放进平均值，哪一个会接近 <span class="arithmatex">\(0\)</span>？没有停下的少数样本会做什么补偿？</li>
+<li>若下注额 <span class="arithmatex">\(b_n\)</span> 只能由前 <span class="arithmatex">\(n\)</span> 局决定，公平硬币能否让 <span class="arithmatex">\(E W_H\)</span> 在固定时域 <span class="arithmatex">\(H\)</span> 变成正数？“输后加倍”改变的是期望，还是尾部风险？</li>
+</ul>
+<p>把预测写成一句可检验的话：<strong>“停止鞅的每个有限时刻账本都公平；要得到终点账本，还需要 ______。”</strong></p>
+<h3 id="3">3. 最小模型：随机游走、过滤与可预测下注<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(\xi_1,\xi_2,\ldots\)</span> 独立且取 <span class="arithmatex">\(\pm1\)</span>。从 <span class="arithmatex">\(k\)</span> 出发的游走为</p>
+<div class="arithmatex">\[
+S_n=k+\sum_{i=1}^n\xi_i,\qquad
+\mathcal F_n=\sigma(\xi_1,\ldots,\xi_n).
+\]</div>
+<p>在对称情形 <span class="arithmatex">\(P(\xi_{n+1}=1)=P(\xi_{n+1}=-1)=1/2\)</span>，<span class="arithmatex">\(S_n\)</span> 是鞅；<span class="arithmatex">\(S_n^2-n\)</span> 也是鞅。走廊停止时间</p>
+<div class="arithmatex">\[
+\tau_{0,N}=\inf\{n\ge0:S_n\in\{0,N\}\}
+\]</div>
+<p>只看已经发生的路径，因此是停时；而 <span class="arithmatex">\(S_{n\wedge\tau_{0,N}}\)</span> 始终落在 <span class="arithmatex">\([0,N]\)</span>，这给出最干净的可选停止账本。</p>
+<p>若向上概率改为 <span class="arithmatex">\(p\)</span>、向下概率为 <span class="arithmatex">\(q=1-p\)</span>，则</p>
+<div class="arithmatex">\[
+E[S_{n+1}-S_n\mid\mathcal F_n]=p-q=2p-1.
+\]</div>
+<p>所以 <span class="arithmatex">\(S_n\)</span> <strong>只有在 <span class="arithmatex">\(p=1/2\)</span> 时才是鞅</strong>。偏置时应改用 <span class="arithmatex">\(r^{S_n}\)</span>（<span class="arithmatex">\(r=q/p\)</span>，且 <span class="arithmatex">\(p\ne q\)</span>）这样的调和量；脚本会把偏置公式和公平鞅公式分开显示。</p>
+<p>还可以把每局下注写成</p>
+<div class="arithmatex">\[
+W_{n+1}=W_n+b_n\xi_{n+1},\qquad b_n\in\mathcal F_n.
+\]</div>
+<p><span class="arithmatex">\(b_n\)</span> 是<strong>可预测策略</strong>：它可以看见过去，不能看见下一枚硬币。公平时
+<span class="arithmatex">\(E[W_{n+1}-W_n\mid\mathcal F_n]=b_nE[\xi_{n+1}\mid\mathcal F_n]=0\)</span>，所以有限时域内任何这样的策略仍没有正期望；偏置时这一步变成 <span class="arithmatex">\((2p-1)b_n\)</span>，不能偷换成鞅论证。</p>
+<h3 id="4">4. 动手验证：三本相互咬合的账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>在下方实验中，先保留固定种子，逐项改变一个参数：</p>
+<ol>
+<li><strong>有限走廊</strong>：调 <span class="arithmatex">\(N,k\)</span> 和向上概率 <span class="arithmatex">\(p\)</span>。图上只画一条可复现路径，账本同时给出终点与步数；批量样本给出 <span class="arithmatex">\(\widehat P(\text{hit }N)\)</span>、<span class="arithmatex">\(\widehat E\tau\)</span>、理论值和 <span class="arithmatex">\(2\,\mathrm{SE}\)</span>。在 <span class="arithmatex">\(p=1/2\)</span> 时检查 <span class="arithmatex">\(k/N\)</span> 与 <span class="arithmatex">\(k(N-k)\)</span>；改成偏置后，观察 <span class="arithmatex">\(k/N\)</span> 不再是答案。</li>
+<li><strong>无下界首达</strong>：调截断时间 <span class="arithmatex">\(T\)</span>。所有样本都进入 <span class="arithmatex">\(X_{\tau\wedge T}\)</span> 的平均，因此应围绕有限停时的理论值 <span class="arithmatex">\(0\)</span>；只留下已在 <span class="arithmatex">\(T\)</span> 前命中的样本，平均终点却是 <span class="arithmatex">\(1\)</span>。同时看未停止样本的比例和负的尾部均值：它们是被筛掉的补偿项。</li>
+<li><strong>可预测策略</strong>：在公平硬币上切换固定下注、封顶加倍和根据过去位置反向下注。固定时域 <span class="arithmatex">\(H\)</span> 下，批量最终财富的平均值只应在 Monte Carlo 误差内靠近 <span class="arithmatex">\(0\)</span>；加倍可以放大波动和最大下注额，不能制造正期望。</li>
+</ol>
+<p>这里的“理论值”是有限模型的解析值；带帽子的是固定伪随机数下的 Monte Carlo 估计。脚本不会把有限批量当成定理证明。</p>
+<div class="learning-lab" data-learning-lab="optional-stopping">
+<p><strong>无 JavaScript 时的静态读法：</strong>取对称走廊 <span class="arithmatex">\(N=10,k=3\)</span>。则
+<span class="arithmatex">\(P(\text{hit }N)=k/N=0.3\)</span>，<span class="arithmatex">\(E\tau=k(N-k)=21\)</span>；有限批量只会在抽样误差内靠近这两个数。对从 <span class="arithmatex">\(0\)</span> 首达 <span class="arithmatex">\(+1\)</span> 的游走，任意有限 <span class="arithmatex">\(T\)</span> 都满足
+<span class="arithmatex">\(E[X_{\tau\wedge T}]=0\)</span>，但已在 <span class="arithmatex">\(T\)</span> 前停止的样本都以 <span class="arithmatex">\(X_\tau=1\)</span> 结束；未停止的负尾部把全体平均拉回 <span class="arithmatex">\(0\)</span>。严格地说，<span class="arithmatex">\(\tau&lt;\infty\)</span> a.s. 而 <span class="arithmatex">\(E\tau=\infty\)</span>，所以不能把 <span class="arithmatex">\(\tau\)</span> 直接代入 OST。公平硬币下，过去可见的下注额 <span class="arithmatex">\(b_n\)</span> 只能改变方差与尾部，固定有限时域的 <span class="arithmatex">\(E W_H\)</span> 仍为初始财富；偏置硬币则不再是同一个鞅问题。脚本加载后可重置并查看三本账、单条路径、<span class="arithmatex">\(2\,\mathrm{SE}\)</span> 与截断说明。</p>
+</div>
+<h3 id="5">5. 误区与边界：哪一步真的会坏？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>“<span class="arithmatex">\(\tau&lt;\infty\)</span> a.s.” 不等于“<span class="arithmatex">\(E\tau&lt;\infty\)</span>”。对称游走首达 <span class="arithmatex">\(+1\)</span> 时，<span class="arithmatex">\(\tau\)</span> 几乎处处有限，但其尾部约为 <span class="arithmatex">\(n^{-1/2}\)</span>，因而 <span class="arithmatex">\(E\tau=\sum_nP(\tau&gt;n)=\infty\)</span>。</li>
+<li>对每个固定 <span class="arithmatex">\(T\)</span>，<span class="arithmatex">\(\tau\wedge T\)</span> 有界，所以 <span class="arithmatex">\(E X_{\tau\wedge T}=E X_0=0\)</span>；然而 <span class="arithmatex">\(X_{\tau\wedge T}\to X_\tau=1\)</span> a.s.，期望不能自动过极限。这里失败的是一致可积性，不是停时定义。</li>
+<li>“只统计已经停下的样本”是在算条件量 <span class="arithmatex">\(E[X_\tau\mid\tau\le T]\)</span>，不是 <span class="arithmatex">\(E[X_{\tau\wedge T}]\)</span>。当终点被停止规则强行固定时，这个选择偏差尤其容易被误读成“策略赚钱”。</li>
+<li>“停止时刻只看过去”仍不够让 OST 无条件成立；“最后一次访问某点”会偷看未来，甚至连停时都不是。</li>
+<li>偏置游走的 <span class="arithmatex">\(S_n\)</span> 有漂移；不能因为它仍画成一条上下跳的路径，就继续套用对称鞅的 <span class="arithmatex">\(k/N\)</span> 和 <span class="arithmatex">\(k(N-k)\)</span>。偏置公式必须换成相应的调和函数/差分方程。</li>
+<li>每个交互结果都是有限批量、有限 <span class="arithmatex">\(T\)</span>、固定 PRNG 的数值证据；显示的 <span class="arithmatex">\(2\,\mathrm{SE}\)</span> 只描述抽样波动，不能消除截断误差，也不能证明 a.s. 或 <span class="arithmatex">\(L^1\)</span> 收敛。</li>
+</ul>
+<h3 id="6-ost">6. 回到定理：把“停止账”翻译成 OST<a class="headerlink" href="#6-ost" title="Permanent link"></a></h3>
+<p>离散时间中，一个稳妥的版本是：若 <span class="arithmatex">\(X\)</span> 是 <span class="arithmatex">\(X_0\in L^1\)</span> 的鞅，<span class="arithmatex">\(\tau\)</span> 是停时，并且满足以下任一条件，则 <span class="arithmatex">\(X_\tau\)</span> 可积且</p>
+<div class="arithmatex">\[
+E[X_\tau]=E[X_0]:
+\]</div>
+<ol>
+<li><span class="arithmatex">\(\tau\)</span> 有界；</li>
+<li><span class="arithmatex">\(\tau&lt;\infty\)</span> a.s. 且停止族 <span class="arithmatex">\(\{X_{n\wedge\tau}:n\ge0\}\)</span> <strong>一致可积</strong>（特别地，存在确定常数 <span class="arithmatex">\(C\)</span> 使 <span class="arithmatex">\(|X_{n\wedge\tau}|\le C\)</span> a.s.）；</li>
+<li><span class="arithmatex">\(E\tau&lt;\infty\)</span> 且增量一致有界：<span class="arithmatex">\(|X_{n+1}-X_n|\le C\)</span> a.s. 对所有 <span class="arithmatex">\(n\)</span>。</li>
+</ol>
+<p>因为 <span class="arithmatex">\(X_{n\wedge\tau}\)</span> 本身是鞅，有限 <span class="arithmatex">\(n\)</span> 时 <span class="arithmatex">\(E X_{n\wedge\tau}=E X_0\)</span>。条件 1 直接稳定；条件 2 用 a.s. 收敛加一致可积性；条件 3 则由
+<span class="arithmatex">\(|X_{n\wedge\tau}|\le |X_0|+C\tau\)</span> 得到可积支配。原页“停止过程有界”的说法可保留为条件 2 的一个充分情形，但必须理解为<strong>确定性统一界</strong>，不能把任意逐路径界或仅仅 a.s. 有限误当成一致可积。</p>
+<p>应用到走廊：<span class="arithmatex">\(S_{n\wedge\tau_{0,N}}\)</span> 有界，先对每个 <span class="arithmatex">\(m\)</span> 以有界停时
+<span class="arithmatex">\(\tau_{0,N}\wedge m\)</span> 应用 <span class="arithmatex">\(S_n^2-n\)</span>，再用单调收敛把 <span class="arithmatex">\(m\to\infty\)</span>。具体地，</p>
+<div class="arithmatex">\[
+E[S_{\tau_{0,N}\wedge m}^2-(\tau_{0,N}\wedge m)]=k^2,
+\qquad
+E[\tau_{0,N}\wedge m]=E[S_{\tau_{0,N}\wedge m}^2]-k^2\le N^2.
+\]</div>
+<p>于是 <span class="arithmatex">\(E\tau_{0,N}\le N^2\)</span>，再以有界收敛处理终点，才得到</p>
+<div class="arithmatex">\[
+k=E[S_\tau]=N\,P(S_\tau=N),
+\qquad
+k^2=E[S_\tau^2-\tau]=Nk-E\tau,
+\]</div>
+<p>即</p>
+<div class="arithmatex">\[
+P(S_\tau=N)=\frac{k}{N},\qquad E\tau=k(N-k).
+\]</div>
+<p>第一式是“公平资本的终点账”；第二式是“平方资本减去时间”的账。首达 <span class="arithmatex">\(+1\)</span> 的反例则清楚指出：每个有限账都平衡，不代表无限远的终点账仍能平衡。</p>
+<h3 id="7">7. 迁移问题：换一个过程，你会检查哪一栏？<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>设一个有限状态 Markov 链有吸收边界，奖励过程为 <span class="arithmatex">\(R_n\)</span>，并令停止规则是“首次进入目标集合”。你会先找哪一个鞅或调和函数，来把目标命中概率写成边界值问题？若状态空间不再有限、停止时间只保证 a.s. 有限，你会给出哪一种一致可积性、<span class="arithmatex">\(E\tau&lt;\infty\)</span> 或尾部估计，才有资格让 <span class="arithmatex">\(n\to\infty\)</span>？最后思考：把公平硬币换成 <span class="arithmatex">\(p\ne1/2\)</span> 后，<span class="arithmatex">\(r^{S_n}\)</span> 的边界账本如何替代 <span class="arithmatex">\(S_n\)</span>，以及一个可预测策略的“正漂移”究竟来自策略还是来自硬币本身？</p>
+</section>
+<h2 id="1_1">1. 条件期望的测度论定义<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义（Kolmogorov）</strong> <span class="arithmatex">\(X \in L^1\)</span>，子 σ-代数 <span class="arithmatex">\(\mathcal{G} \subseteq \mathcal{F}\)</span>。<span class="arithmatex">\(E[X \mid \mathcal{G}]\)</span> 是满足以下两条的随机变量 <span class="arithmatex">\(Z\)</span>：</p>
 <ol>
 <li><span class="arithmatex">\(Z\)</span> 是 <span class="arithmatex">\(\mathcal{G}\)</span>-可测（"只用 <span class="arithmatex">\(\mathcal{G}\)</span> 的信息构造"）；</li>
@@ -61,7 +174,7 @@
 </ol>
 <p><strong>存在唯一【骨架】</strong>：唯一性（a.s.）由两条性质 + π–λ；存在性两条路——<strong>Radon–Nikodym</strong>（<span class="arithmatex">\(G \mapsto \int_G X\,dP\)</span> 是关于 <span class="arithmatex">\(P|_\mathcal{G}\)</span> 绝对连续的符号测度，其密度即 <span class="arithmatex">\(Z\)</span>；R–N 定理本身【引用】实变）；或先在 <span class="arithmatex">\(L^2\)</span> 中取<strong>正交投影</strong>到 <span class="arithmatex">\(\mathcal{G}\)</span>-可测子空间（泛函 II 投影定理——"条件期望 = 投影"从类比升格为构造），再稠密延拓到 <span class="arithmatex">\(L^1\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>性质工具箱</strong>（日用九件，前四给一行理由）：线性；<strong>塔性质</strong> <span class="arithmatex">\(E[E[X\mid\mathcal{G}]\mid\mathcal{H}] = E[X\mid\mathcal{H}]\)</span>（<span class="arithmatex">\(\mathcal{H}\subseteq\mathcal{G}\)</span>；两边对 <span class="arithmatex">\(\mathcal{H}\)</span> 的每块局部平均都等于 <span class="arithmatex">\(X\)</span> 的）；<strong>取出已知</strong> <span class="arithmatex">\(E[YX\mid\mathcal{G}] = Y\,E[X\mid\mathcal{G}]\)</span>（<span class="arithmatex">\(Y\)</span> 为 <span class="arithmatex">\(\mathcal{G}\)</span>-可测，简单函数逼近）；独立丢弃 <span class="arithmatex">\(X \perp \mathcal{G} \Rightarrow E[X\mid\mathcal{G}] = EX\)</span>；条件 Jensen <span class="arithmatex">\(\varphi(E[X\mid\mathcal{G}]) \leq E[\varphi(X)\mid\mathcal{G}]\)</span>（凸 <span class="arithmatex">\(\varphi\)</span>）；条件 MCT/DCT/Fatou；<span class="arithmatex">\(L^2\)</span> 中是压缩（投影范数 <span class="arithmatex">\(\leq 1\)</span>）。</p>
-<h2 id="2">2. 鞅：定义与例子库<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 鞅：定义与例子库<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>过滤</strong> <span class="arithmatex">\(\{\mathcal{F}_n\}\)</span>：递增的 σ-代数流（"信息随时间累积"）；<span class="arithmatex">\(X_n\)</span> <strong>适应</strong>：<span class="arithmatex">\(X_n \in \mathcal{F}_n\)</span>-可测。</p>
 <p><strong>定义</strong> <span class="arithmatex">\(\{X_n\}\)</span> 是<strong>鞅</strong>：适应、可积、且</p>
 <div class="arithmatex">\[
@@ -69,13 +182,13 @@ E[X_{n+1} \mid \mathcal{F}_n] = X_n \quad \text{a.s.}
 \]</div>
 <p>（上鞅 <span class="arithmatex">\(\leq\)</span>：赌场对你不利；下鞅 <span class="arithmatex">\(\geq\)</span>：对你有利。记法：<strong>下鞅向上飘</strong>。）</p>
 <p><strong>例子库（比定义重要）</strong>：① 独立零均值和 <span class="arithmatex">\(S_n\)</span>；② <span class="arithmatex">\(S_n^2 - n\sigma^2\)</span>（补偿平方）；③ <strong>指数鞅</strong> <span class="arithmatex">\(e^{\theta S_n}/(Ee^{\theta X})^n\)</span>（大偏差与 hdp 线的种子）；④ <strong>Doob 鞅</strong> <span class="arithmatex">\(X_n = E[Y \mid \mathcal{F}_n]\)</span>（对固定目标的逐步估计——<strong>任何"随信息更新的预测"都是鞅</strong>：贝叶斯后验均值、你的预测层对某命题的滚动概率估计，只要更新是条件期望）；⑤ 分支过程 <span class="arithmatex">\(Z_n/\mu^n\)</span>；⑥ 凸函数作用于鞅得下鞅（条件 Jensen——<span class="arithmatex">\(|X_n|, X_n^2\)</span> 自动下鞅，mt-04 不等式的原料）。</p>
-<h2 id="3">3. 停时与可选停止定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 停时与可选停止定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>停时</strong> <span class="arithmatex">\(\tau\)</span>：<span class="arithmatex">\(\{\tau \leq n\} \in \mathcal{F}_n\)</span>——"是否停下来只看已发生的"（"首次到达 <span class="arithmatex">\(A\)</span>"是停时；"最后一次访问 <span class="arithmatex">\(A\)</span>"不是——要偷看未来）。停止过程 <span class="arithmatex">\(X_{n\wedge\tau}\)</span> 仍是鞅<strong>【证明】</strong>：<span class="arithmatex">\(X_{(n+1)\wedge\tau} - X_{n\wedge\tau} = \mathbb{1}_{\tau &gt; n}(X_{n+1} - X_n)\)</span>，而 <span class="arithmatex">\(\mathbb{1}_{\tau &gt; n} \in \mathcal{F}_n\)</span>，取出已知 + 鞅性即零。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理（可选停止，OST）</strong> <span class="arithmatex">\(X\)</span> 鞅、<span class="arithmatex">\(\tau\)</span> 停时，以下任一条件下 <span class="arithmatex">\(E X_\tau = E X_0\)</span>：
-(a) <span class="arithmatex">\(\tau\)</span> 有界；(b) <span class="arithmatex">\(\tau &lt; \infty\)</span> a.s. 且 <span class="arithmatex">\(X_{n\wedge\tau}\)</span> 一致有界；(c) <span class="arithmatex">\(E\tau &lt; \infty\)</span> 且增量有界。
-<strong>【证明（a）+ 骨架（b,c）】</strong>（a）：<span class="arithmatex">\(EX_{n\wedge\tau} = EX_0\)</span>（停止鞅），<span class="arithmatex">\(n \geq\)</span> 界时 <span class="arithmatex">\(X_{n\wedge\tau} = X_\tau\)</span>。（b)(c)：<span class="arithmatex">\(X_{n\wedge\tau} \to X_\tau\)</span> a.s.，条件保证一致可积（mt-01 §2）⇒ 期望过极限。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>定理（可选停止，OST）</strong> <span class="arithmatex">\(X\)</span> 是 <span class="arithmatex">\(X_0\in L^1\)</span> 的离散时间鞅、<span class="arithmatex">\(\tau\)</span> 是停时。以下任一条件下 <span class="arithmatex">\(X_\tau\)</span> 可积且 <span class="arithmatex">\(E X_\tau = E X_0\)</span>：
+(a) <span class="arithmatex">\(\tau\)</span> 有界；(b) <span class="arithmatex">\(\tau &lt; \infty\)</span> a.s. 且停止族 <span class="arithmatex">\(\{X_{n\wedge\tau}:n\ge0\}\)</span> 一致可积（特别是存在确定常数 <span class="arithmatex">\(C\)</span> 使 <span class="arithmatex">\(|X_{n\wedge\tau}|\le C\)</span> a.s.）；(c) <span class="arithmatex">\(E\tau &lt; \infty\)</span> 且存在确定常数 <span class="arithmatex">\(C\)</span> 使 <span class="arithmatex">\(|X_{n+1}-X_n|\le C\)</span> a.s. 对所有 <span class="arithmatex">\(n\)</span>。
+<strong>【证明（a）+ 骨架（b,c）】</strong>（a）：<span class="arithmatex">\(EX_{n\wedge\tau}=EX_0\)</span>（停止鞅），<span class="arithmatex">\(n\)</span> 大于界时 <span class="arithmatex">\(X_{n\wedge\tau}=X_\tau\)</span>。（b）：<span class="arithmatex">\(X_{n\wedge\tau}\to X_\tau\)</span> a.s.，一致可积性给出期望过极限。（c）：<span class="arithmatex">\(|X_{n\wedge\tau}|\le |X_0|+C\tau\)</span>，右侧可积，故可用支配收敛。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>警世反例（必背）</strong>：简单对称随机游走，<span class="arithmatex">\(\tau\)</span> = 首达 <span class="arithmatex">\(+1\)</span>：<span class="arithmatex">\(\tau &lt; \infty\)</span> a.s. 但 <span class="arithmatex">\(EX_\tau = 1 \neq 0\)</span>——"必胜策略"存在却需要<strong>无限赌本与无限时间</strong>（<span class="arithmatex">\(E\tau = \infty\)</span>，条件 (c) 破产）。<strong>OST 的条件不是装饰</strong>：一切"翻倍赌注必赢"骗局的数学验尸报告。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（赌徒破产，OST 两行版）</strong> 对称游走从 <span class="arithmatex">\(k\)</span> 出发，<span class="arithmatex">\(\tau\)</span> = 首达 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(N\)</span>：<span class="arithmatex">\(X_{n\wedge\tau}\)</span> 有界 ⇒ OST(b)：<span class="arithmatex">\(k = E X_\tau = N\cdot P(\text{达 }N)\)</span> ⇒ <span class="arithmatex">\(P = k/N\)</span>。再对鞅 <span class="arithmatex">\(S_n^2 - n\)</span> 用 OST：<span class="arithmatex">\(E\tau = k(N-k)\)</span>。（本科随机过程页的差分方程解法，在鞅语言下缩成两行——<strong>鞅是"免解方程"的杠杆</strong>。）</p>
 <p><strong>例 2（Doob 鞅体感）</strong> <span class="arithmatex">\(Y\)</span> = 明天的收盘价，<span class="arithmatex">\(\mathcal{F}_n\)</span> = 今晚为止的信息：<span class="arithmatex">\(X_n = E[Y\mid\mathcal{F}_n]\)</span> 是鞅——<strong>理性预测的修正本身不可预测</strong>（若可预测就该提前修正）。有效市场假说的鞅表述、以及"预测复盘时不该系统性单向修正"的审计标准。</p>
 <p><strong>例 3（指数鞅预热）</strong> <span class="arithmatex">\(X_i\)</span> i.i.d. Rademacher（±1 等概率）：<span class="arithmatex">\(M_n = e^{\theta S_n}/(\cosh\theta)^n\)</span> 是鞅（一行验证）。对 <span class="arithmatex">\(\tau\)</span> = 首达 <span class="arithmatex">\(\pm a\)</span> 用 OST 可解首达时的矩母函数——mt-04 Azuma 与 hdp 线 Chernoff 的共同祖先。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -90,5 +203,7 @@ E[X_{n+1} \mid \mathcal{F}_n] = X_n \quad \text{a.s.}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/optional-stopping.js"></script>
 </body>
 </html>

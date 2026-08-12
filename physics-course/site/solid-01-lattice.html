@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,52 +43,193 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-12 18:37</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一条链怎样把局部跳跃变成端点态</a><ul>
+<li><a href="#solid-ssh-learning-title">1. 具体谜题：只改两种近邻跳跃，为什么端点会“听见”bulk？</a></li>
+<li><a href="#2">2. 先预测：在拖动滑杆以前写下可判决的答案</a></li>
+<li><a href="#3-hamiltonian">3. 最小模型：同一个 Hamiltonian 的三种读法</a></li>
+<li><a href="#4">4. 动手验证：让四张图互相对账</a></li>
+<li><a href="#5">5. 误区与边界：拓扑保护不是“任何扰动都免疫”</a></li>
+<li><a href="#6">6. 回到公式：从图上的量回到能带语言</a></li>
+<li><a href="#7">7. 迁移题：换参数、换边界、换扰动</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 晶格语言速成</a></li>
-<li><a href="#2">2. 晶格振动：从弹簧链到色散关系</a></li>
+<li><a href="#2_1">2. 晶格振动：从弹簧链到色散关系</a></li>
 <li><a href="#3">3. 声子：振动的量子</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">固体 I · 晶格与声子<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i-ssh">固体 I · 晶格、SSH 链与声子<a class="headerlink" href="#i-ssh" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Kittel §1–5 ｜ <strong>前置</strong>：mech-04（简正模——本页是它的无穷版）、sm-03（Bose 统计）
-固体物理的第一课：<strong>周期性</strong>。晶格的语言（布拉伐格子、倒格子、布里渊区）+ 晶格振动的量子（声子）。方法论主线一句话：<strong>周期结构的一切问题都搬到倒空间（Fourier 空间）解</strong>——固体物理是 Fourier 分析的重度产业用户。</p>
+<p><strong>对标</strong>：Kittel §1–5、SSH 原型模型 ｜ <strong>前置</strong>：mech-04（简正模——本页是它的无穷版）、qm-02（隧穿/方阱）；Bloch 语言会在本页先最小引入，并在 solid-02 系统展开
+固体物理的第一课是周期性：实空间的局部耦合如何在倒空间组织成能带，又如何在边界留下体内看不见的态？本页先用一个可数值检验的 SSH 二聚化链把这条链路闭合，再回到晶格、倒格子与声子。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="solid-ssh-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一条链怎样把局部跳跃变成端点态<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="solid-ssh-learning-title">1. 具体谜题：只改两种近邻跳跃，为什么端点会“听见”bulk？<a class="headerlink" href="#solid-ssh-learning-title" title="Permanent link"></a></h3>
+<p>把一维链的键交替成弱—强—弱—强。每一条键都只是局部跃迁，bulk 里却出现两条带；当强键跨过原胞边界时，开边界链的两端可能出现靠近零能的态。谜题是：</p>
+<ul>
+<li>若 bulk 只知道 <span class="arithmatex">\(t_1,t_2\)</span>，它怎样知道一个开链有无边界态？</li>
+<li>“绕原点一圈”的图形为什么能预测端点？</li>
+<li>有限链的两端明明相距很远，为什么两个近零态仍会劈裂，而不是精确地停在 <span class="arithmatex">\(E=0\)</span>？</li>
+</ul>
+<p>这里的“端点”不是把一个孤立原子硬塞到链边上，而是先声明原胞和终止方式，再比较同一个 bulk 的两种开法。</p>
+<h3 id="2">2. 先预测：在拖动滑杆以前写下可判决的答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>暂取 <span class="arithmatex">\(N=8\)</span> 个原胞，默认终止为
+<span class="arithmatex">\(A_1{-}B_1{-}A_2{-}B_2\cdots A_N{-}B_N\)</span>，其中胞内键为 <span class="arithmatex">\(t_1\)</span>、跨胞键为 <span class="arithmatex">\(t_2\)</span>。</p>
+<ol>
+<li>取 <span class="arithmatex">\((t_1,t_2)=(0.45,1.10)\)</span>：<span class="arithmatex">\(q(k)\)</span> 的轨迹是否包围原点？本终止约定下 winding 是 <span class="arithmatex">\(0\)</span> 还是 <span class="arithmatex">\(1\)</span>？开链谱的哪两级最可能靠近 0？</li>
+<li>取 <span class="arithmatex">\((t_1,t_2)=(1.10,0.45)\)</span>：局部键只是交换强弱，为什么端点结论会变？</li>
+<li>取 <span class="arithmatex">\(t_1=t_2\)</span>：轨迹会不会穿过原点？此时能否给 winding 一个连续、稳定的整数？</li>
+<li>在拓扑参数下，把 <span class="arithmatex">\(N\)</span> 从偶数改成奇数。你预测的是“拓扑数改变”，还是“有限尺寸的离散能级和劈裂改变”？</li>
+</ol>
+<p>先记下答案，再点击实验里的“拓扑（<span class="arithmatex">\(t_2&gt;t_1\)</span>）”预设；不要先用图形替你猜。</p>
+<h3 id="3-hamiltonian">3. 最小模型：同一个 Hamiltonian 的三种读法<a class="headerlink" href="#3-hamiltonian" title="Permanent link"></a></h3>
+<p>在基底 <span class="arithmatex">\((A_1,B_1,\ldots,A_N,B_N)\)</span> 中，默认弱端终止的开链 Hamiltonian 是</p>
+<div class="arithmatex">\[
+H_N=\sum_{n=1}^{N}t_1\bigl(\lvert A_n\rangle\langle B_n\rvert+\mathrm{h.c.}\bigr)
++\sum_{n=1}^{N-1}t_2\bigl(\lvert B_n\rangle\langle A_{n+1}\rvert+\mathrm{h.c.}\bigr),
+\qquad t_1,t_2&gt;0.
+\]</div>
+<p>它有三个互相咬合的读法。</p>
+<p><strong>局部读法。</strong> 链上的键交替为 <span class="arithmatex">\(t_1,t_2,t_1,t_2,\ldots,t_1\)</span>。把两端连起来得到周期链，再用 Bloch 基底，取</p>
+<div class="arithmatex">\[
+H(k)=\begin{pmatrix}0&amp;q(k)^*\\q(k)&amp;0\end{pmatrix},
+\qquad q(k)=t_1+t_2e^{ik}.
+\]</div>
+<p><strong>bulk 读法。</strong> 因此</p>
+<div class="arithmatex">\[
+q(k)=\bigl(t_1+t_2\cos k,\ t_2\sin k\bigr),
+\qquad E_\pm(k)=\pm\lvert q(k)\rvert.
+\]</div>
+<p><span class="arithmatex">\(q(k)\)</span> 是以 <span class="arithmatex">\((t_1,0)\)</span> 为圆心、半径 <span class="arithmatex">\(t_2\)</span> 的轨迹；本页固定 <span class="arithmatex">\(k:0\to2\pi\)</span> 的方向和原胞，所以</p>
+<div class="arithmatex">\[
+w=\frac{1}{2\pi}\oint dk\,\partial_k\arg q(k)
+=\begin{cases}1,&amp;t_2&gt;t_1,\\0,&amp;t_1&gt;t_2.\end{cases}
+\]</div>
+<p>若 <span class="arithmatex">\(t_1=t_2\)</span>，<span class="arithmatex">\(q(\pi)=0\)</span>，bulk gap <span class="arithmatex">\(2\lvert t_2-t_1\rvert\)</span> 闭合，<span class="arithmatex">\(\arg q\)</span> 在原点没有定义，<strong>winding 不定义</strong>。</p>
+<p><strong>边界读法。</strong> 当 <span class="arithmatex">\(t_2&gt;t_1\)</span> 且采用默认终止，两端的近零波函数主要在不同子晶格上，理想半无限链的包络满足</p>
+<div class="arithmatex">\[
+\lvert\psi_{A_n}\rvert\propto\left\lvert\frac{t_1}{t_2}\right\rvert^{n-1},
+\qquad
+\lvert\psi_{B_n}\rvert\propto\left\lvert\frac{t_1}{t_2}\right\rvert^{N-n}.
+\]</div>
+<p>有限 <span class="arithmatex">\(N\)</span> 时左右包络重叠，形成一对 <span class="arithmatex">\(E_\pm\simeq\pm C(t_1/t_2)^N\)</span> 的小能量；除非退化极限 <span class="arithmatex">\(t_1=0\)</span>，它们不是精确零能。</p>
+<p>定义手征算符 <span class="arithmatex">\(\Gamma=\mathrm{diag}(1,-1,1,-1,\ldots)\)</span>，则
+<span class="arithmatex">\(\{\Gamma,H_N\}=0\)</span>：每个 <span class="arithmatex">\(E\)</span> 都有一个 <span class="arithmatex">\(-E\)</span> 的伙伴。本实验数值检查的是这种<strong>子晶格手征对称</strong>及其谱配对；不要把它与 BdG Hamiltonian 的粒子—空穴冗余混为一谈。实跃迁的 SSH 模型还可讨论其他反幺正对称，但本页的 <span class="arithmatex">\(E\leftrightarrow-E\)</span> 结论只需手征对称。</p>
+<h3 id="4">4. 动手验证：让四张图互相对账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>点击 <strong>拓扑（<span class="arithmatex">\(t_2&gt;t_1\)</span>）</strong>，先看四个同步视图：</p>
+<ol>
+<li><strong>开链结构图</strong>：金色/蓝色键按强弱交替，默认两端截在 <span class="arithmatex">\(t_1\)</span> 键；在拓扑预设中这正是弱端。切换“反向终止”后，边界与同一 bulk winding 的对应关系会改变。</li>
+<li><strong>有限链谱</strong>：每条横线是一个本征能级。拓扑预设下中间两条近零能级是一对有限尺寸劈裂；拖动 <span class="arithmatex">\(N\)</span> 或让 <span class="arithmatex">\(t_1/t_2\)</span> 变小，劈裂通常按指数尺度下降。</li>
+<li><strong>选中态格点概率</strong>：用“选中能级”滑杆选择任一级。选到近零对时，有限链的单个能量本征态通常是“左端 ± 右端”的对称/反对称混合，所以概率会同时在两端；两个近零态的线性组合才可以更像单端局域态。</li>
+<li><strong>bulk <span class="arithmatex">\(q(k)\)</span> 轨迹</strong>：拖动 <span class="arithmatex">\(t_1,t_2\)</span>，观察圆是否包围原点。通过 <span class="arithmatex">\(t_1=t_2\)</span> 时，圆正好碰到原点，能隙归零且 winding 不能继续沿用。</li>
+</ol>
+<p>再依次点“平庸（<span class="arithmatex">\(t_1&gt;t_2\)</span>）”“临界（<span class="arithmatex">\(t_1=t_2\)</span>）”，对照开链、谱、概率和轨迹。实验不调用远程库；有限矩阵由对称 Jacobi 旋转数值对角化，并实时给出谱的 <span class="arithmatex">\(E\leftrightarrow-E\)</span> 配对残差与 <span class="arithmatex">\(\{\Gamma,H\}\)</span> 残差。</p>
+<div class="learning-lab" data-learning-lab="ssh-edge-state">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验使用 <span class="arithmatex">\(N\)</span> 个二原子原胞、默认开链
+<span class="arithmatex">\(A_1{-}B_1{-}A_2\cdots A_N{-}B_N\)</span>。胞内键是 <span class="arithmatex">\(t_1\)</span>，跨胞键是 <span class="arithmatex">\(t_2\)</span>，两者均为正。bulk 变量为
+<span class="arithmatex">\(q(k)=(t_1+t_2\cos k,t_2\sin k)\)</span>，所以 <span class="arithmatex">\(t_2&gt;t_1\)</span> 时圆包围原点、<span class="arithmatex">\(w=1\)</span> 并在这个终止下有边界态；<span class="arithmatex">\(t_1&gt;t_2\)</span> 时 <span class="arithmatex">\(w=0\)</span>；<span class="arithmatex">\(t_1=t_2\)</span> 时 gap <span class="arithmatex">\(=0\)</span>，winding 不定义。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(t_1\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(t_2\)</span></th>
+<th style="text-align: right;">bulk gap <span class="arithmatex">\(2\lvert t_2-t_1\rvert\)</span></th>
+<th>默认终止下的读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平庸</td>
+<td style="text-align: right;">1.10</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">1.30</td>
+<td><span class="arithmatex">\(w=0\)</span>，没有受拓扑要求的端点近零对</td>
+</tr>
+<tr>
+<td>临界</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0.80</td>
+<td style="text-align: right;">0</td>
+<td><span class="arithmatex">\(q(\pi)=0\)</span>，winding 不定义</td>
+</tr>
+<tr>
+<td>拓扑</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">1.10</td>
+<td style="text-align: right;">1.30</td>
+<td><span class="arithmatex">\(w=1\)</span>，两端态有限尺寸混合并劈裂</td>
+</tr>
+</tbody>
+</table>
+<p>静态核对公式为</p>
+<div class="arithmatex">\[
+H_N=\sum_n t_1\lvert A_n\rangle\langle B_n\rvert
++\sum_{n<N}t_2\lvert B_n\rangle\langle A_{n+1}\rvert+\mathrm{h.c.},
+\quad E_\pm(k)=\pm\sqrt{t_1^2+t_2^2+2t_1t_2\cos k},
+\quad \Delta_\mathrm{bulk}=2|t_2-t_1|.
+\]</div>
+
+<p>有限链的近零两级约为 <span class="arithmatex">\(\pm C(t_1/t_2)^N\)</span>（<span class="arithmatex">\(C\)</span> 依赖具体 <span class="arithmatex">\(N,t_1,t_2\)</span>），故有限 <span class="arithmatex">\(t_1\)</span> 时一般不精确为零。奇数/偶数 <span class="arithmatex">\(N\)</span> 都是 <span class="arithmatex">\(N\)</span> 个 <span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(N\)</span> 个 <span class="arithmatex">\(B\)</span>，不会仅因原胞数奇偶产生子晶格不平衡的精确零模；奇偶主要改变允许能级和有限尺寸劈裂。反向终止会交换边界切在哪里，必须连同原胞约定一起解释。</p>
+</div>
+<h3 id="5">5. 误区与边界：拓扑保护不是“任何扰动都免疫”<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>先固定终止再谈边界态。</strong> 本页的 <span class="arithmatex">\(q=t_1+t_2e^{ik}\)</span>、原胞 <span class="arithmatex">\((A_n,B_n)\)</span> 与默认弱端终止共同规定了“<span class="arithmatex">\(t_2&gt;t_1\Rightarrow w=1\)</span> 且有端点态”。交换原胞或把链从强键处截断，会重新标记 winding 与端点；bulk 不会凭空改变，边界对应关系改变了。</li>
+<li><strong>winding 需要 bulk gap。</strong> <span class="arithmatex">\(t_1=t_2\)</span> 时圆穿过原点，<span class="arithmatex">\(E_\pm(\pi)=0\)</span>，不能在 gap 闭合的点把 winding 当成仍然稳定的整数。</li>
+<li><strong>零能钉扎需要手征对称。</strong> 只要保持手征对称且 bulk gap 不闭合，端点态可在无序下移动但仍受对称约束；加入任意子晶格对角势（例如 <span class="arithmatex">\(\mu_A\ne\mu_B\)</span>）会破坏 <span class="arithmatex">\(\{\Gamma,H\}=0\)</span>，端点能量可离开零，甚至与 bulk 混合。端点态不是对所有扰动、相互作用或耗散都免疫。</li>
+<li><strong>有限链不是半无限链。</strong> 两端态的指数尾巴重叠会造成 <span class="arithmatex">\(\pm E\)</span> 劈裂；看见“不是零”不等于拓扑消失。增大 <span class="arithmatex">\(N\)</span> 或减小 <span class="arithmatex">\(t_1/t_2\)</span> 才是在本模型内压低劈裂的办法。</li>
+<li><strong>Zak 相位要说规范。</strong> 在固定的周期 Bloch 规范、原胞和轨道嵌入下，手征 SSH 模型的下带 Zak 相位可与 <span class="arithmatex">\(\pi w\)</span>（模 <span class="arithmatex">\(2\pi\)</span>）对应；但单独报一个“Zak = 0/\pi”不说明原胞原点、轨道位置和规范是不完整的。改原胞/终止会改变相位代表与极化的参考，也会改变哪一端暴露出边界态；本页用明确的 <span class="arithmatex">\(q(k)\)</span> 和终止避免把 convention 当材料无关的绝对标签。</li>
+</ul>
+<h3 id="6">6. 回到公式：从图上的量回到能带语言<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>局部跳跃 <span class="arithmatex">\(t_1,t_2\)</span> 是紧束缚矩阵的非对角元；Fourier 变换把它们压缩成复数 <span class="arithmatex">\(q(k)\)</span>。<span class="arithmatex">\(q\)</span> 绕原点的次数是不能在保持 gap 时连续抹掉的整数，开边界则把这个 bulk 差异翻译成端点谱流。实验中的四张图分别对应：键强度 <span class="arithmatex">\(\to H_N\)</span>、<span class="arithmatex">\(H_N\)</span> 的本征值/本征矢、<span class="arithmatex">\(H(k)\)</span> 的 <span class="arithmatex">\(q\)</span> 轨迹、以及 <span class="arithmatex">\(\Gamma H_N\Gamma=-H_N\)</span> 的数值核对。</p>
+<p>不要把这句话扩张成“所有边界态都拓扑”或“winding 直接等于任意边界的态数”：它依赖维度、对称类、bulk gap、终止和所选的原胞。SSH 是最小但不是无条件的定理替代品。</p>
+<h3 id="7">7. 迁移题：换参数、换边界、换扰动<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<ol>
+<li>取 <span class="arithmatex">\(N=9\)</span>、<span class="arithmatex">\((t_1,t_2)=(0.72,1.08)\)</span>。先预测 <span class="arithmatex">\(w\)</span>、bulk gap、近零劈裂的趋势，以及选中近零本征态的概率分布；再与实验数值检查比较。</li>
+<li>保持同一个 bulk 参数，把终止切到强键一侧。你预计端点态会保留、消失，还是换到另一种 <span class="arithmatex">\(t_1&gt;t_2\)</span> 的参数区？回答时必须同时写出“原胞/终止改变”的理由。</li>
+<li>在默认拓扑链上给每个格点加同一个对角势 <span class="arithmatex">\(\mu I\)</span>，以及给 A/B 加相反对角势。哪一个只把谱整体平移，哪一个破坏手征配对并让端点离开零？为什么“有边界态”和“精确零能”是两句不同的判断？</li>
+</ol>
+</div>
+</section>
 <h2 id="1">1. 晶格语言速成<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>布拉伐格子</strong>：<span class="arithmatex">\(\mathbf R = n_1\mathbf a_1 + n_2\mathbf a_2 + n_3\mathbf a_3\)</span>（平移不变的点阵）+ 基元（每格点上的原子组）= 晶体结构。三维 14 种布拉伐格子【引用】；常客：简单立方、体心（bcc）、面心（fcc——最密堆积之一）、金刚石结构（fcc + 双原子基元——硅的家）。</p>
-<p><strong>倒格子</strong>：<span class="arithmatex">\(\mathbf b_i\)</span> 满足 <span class="arithmatex">\(\mathbf a_i\cdot\mathbf b_j = 2\pi\delta_{ij}\)</span>——<strong>晶格的 Fourier 对偶</strong>（周期函数只含倒格矢频率分量：数分 IV Fourier 级数的三维版）。<strong>布里渊区</strong>：倒空间的"元胞"（Wigner–Seitz 式取法）——所有波动问题的舞台（§2 与 solid-02 的 <span class="arithmatex">\(k\)</span> 都住在这里）。</p>
-<p><strong>X 射线衍射</strong>：Bragg 条件 <span class="arithmatex">\(2d\sin\theta = n\lambda\)</span> ⟺ von Laue 条件"动量转移 = 倒格矢"（<strong>衍射图样直接拍摄倒格子</strong>——opt-01"远场 = Fourier 变换"的晶体版：晶体学就是三维傅里叶光学；DNA 双螺旋的照片 51 号是它的名场面）。</p>
-<h2 id="2">2. 晶格振动：从弹簧链到色散关系<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>布拉伐格子</strong>：<span class="arithmatex">\(\mathbf R = n_1\mathbf a_1 + n_2\mathbf a_2 + n_3\mathbf a_3\)</span>（平移不变的点阵）+ 基元（每格点上的原子组）= 晶体结构。三维 14 种布拉伐格子；常客：简单立方、体心（bcc）、面心（fcc——最密堆积之一）、金刚石结构（fcc + 双原子基元——硅的家）。SSH 链把“一维原胞含两个对象”变成一个可以完整写出的紧束缚实验：它不是声子模型，却与双原子晶格共享“原胞、倒空间、分支”的语言。</p>
+<p><strong>倒格子</strong>：<span class="arithmatex">\(\mathbf b_i\)</span> 满足 <span class="arithmatex">\(\mathbf a_i\cdot\mathbf b_j = 2\pi\delta_{ij}\)</span>——<strong>晶格的 Fourier 对偶</strong>（周期函数只含倒格矢频率分量：数分 IV Fourier 级数的三维版）。<strong>布里渊区</strong>：倒空间的“元胞”（Wigner–Seitz 式取法）——SSH 实验的 <span class="arithmatex">\(k\in[0,2\pi)\)</span> 与 solid-02 的一维 Bloch <span class="arithmatex">\(k\)</span> 都住在这里。</p>
+<p><strong>X 射线衍射</strong>：Bragg 条件 <span class="arithmatex">\(2d\sin\theta = n\lambda\)</span> ⟺ von Laue 条件“动量转移 = 倒格矢”（<strong>衍射图样直接拍摄倒格子</strong>——opt-01“远场 = Fourier 变换”的晶体版：晶体学就是三维傅里叶光学；DNA 双螺旋的照片 51 号是它的名场面）。</p>
+<h2 id="2_1">2. 晶格振动：从弹簧链到色散关系<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="双原子链声子色散" src="assets/img/solid-01-phonon.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>双原子链的声子色散：低频声学支（原子同相）与高频光学支（反相），中间是禁带。</figcaption>
+<figcaption><span class="fig-id">图 1.1</span>双原子链的声子色散：低频声学支（原子同相）与高频光学支（反相振动），中间是禁带。</figcaption>
 </figure>
 <p><strong>一维单原子链【推导】</strong>：近邻弹簧模型 <span class="arithmatex">\(m\ddot u_n = C(u_{n+1} + u_{n-1} - 2u_n)\)</span>，试解 <span class="arithmatex">\(u_n = e^{i(kna - \omega t)}\)</span>（周期结构的 Bloch 式猜解——solid-02 的预演）：</p>
 <div class="arithmatex">\[
 \omega(k) = 2\sqrt{\frac{C}{m}}\,\Big|\sin\frac{ka}{2}\Big|
 \]</div>
 <p><strong>色散关系读法</strong>：长波 <span class="arithmatex">\(\omega \approx v_sk\)</span>（线性——声波，<span class="arithmatex">\(v_s = a\sqrt{C/m}\)</span>：<strong>固体的声速是弹簧常数的宏观回声</strong>）；区界 <span class="arithmatex">\(k = \pm\frac\pi a\)</span> 处群速为零（驻波——Bragg 反射自锁）；<span class="arithmatex">\(k\)</span> 只在第一布里渊区有意义（<span class="arithmatex">\(k\)</span> 与 <span class="arithmatex">\(k + \frac{2\pi}{a}\)</span> 描述同一格点运动——离散采样的混叠，数值/信号的 Nyquist 同源）。</p>
-<p><strong>双原子链【骨架】</strong>：两支解——<strong>声学支</strong>（长波齐动 = 声音）与<strong>光学支</strong>（原胞内反相振动，<span class="arithmatex">\(\omega\)</span> 有隙、可与光耦合——红外吸收的来源；名字的出处）。三维：<span class="arithmatex">\(3p\)</span> 支（<span class="arithmatex">\(p\)</span> = 基元原子数），3 支声学 + 其余光学。</p>
+<p><strong>双原子链【骨架】</strong>：两支解——<strong>声学支</strong>（长波齐动 = 声音）与<strong>光学支</strong>（原胞内反相振动，<span class="arithmatex">\(\omega\)</span> 有隙、可与光耦合——红外吸收的来源；名字的出处）。三维：<span class="arithmatex">\(3p\)</span> 支（<span class="arithmatex">\(p\)</span> = 基元原子数），3 支声学 + 其余光学。SSH 链中的两分量是局部轨道/格点振幅，不是声学与光学声子的直接替身；它提供的是把“二原胞 + gap + 边界”看清楚的紧束缚骨架。</p>
 <h2 id="3">3. 声子：振动的量子<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>每个简正模是一个谐振子（mech-04 → qm-02 流水线）⇒ 能量量子化 <span class="arithmatex">\(\hbar\omega_k\)</span>——<strong>声子</strong>：晶格振动的粒子化身（玻色子，数不守恒，<span class="arithmatex">\(\mu = 0\)</span>——与光子同族）。</p>
 <p><strong>Debye 比热【推导骨架】</strong>：声子气按 Planck 同款处理（sm-03），线性色散 + 模式总数截断（Debye 频率 <span class="arithmatex">\(\omega_D\)</span>——自由度守恒定截断）：</p>
 <div class="arithmatex">\[
 C_V \propto T^3\ (T \ll \Theta_D), \qquad C_V \to 3Nk_B\ (T \gg \Theta_D)
 \]</div>
-<p>——低温 <span class="arithmatex">\(T^3\)</span> 律（实验金标准）与高温 Dulong–Petit 一网收；<span class="arithmatex">\(\Theta_D\)</span>（Debye 温度）= 晶格的"量子/经典分界线"（金刚石 2200 K——室温下"量子固体"，比热远低于经典值；铅 105 K——室温已经典）。</p>
-<p><strong>声子的工作清单</strong>：热传导（声子气的输运——绝缘体导热靠它；边界/缺陷散射解释纳米材料导热差）；电阻的温度依赖（电子被声子散射——solid-02）；超导配对的媒人（电子-声子耦合——cm-02 BCS 的红娘）；中子散射测色散（直接给 <span class="arithmatex">\(\omega(k)\)</span> 曲线——实验与 §2 公式对表）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（倒格子亲算）</strong> 二维正方格 <span class="arithmatex">\(a\)</span>：倒格子也是正方格、边长 <span class="arithmatex">\(\frac{2\pi}{a}\)</span>；fcc 的倒格子是 bcc（互为对偶——【引用】验证）——"实空间越密、倒空间越疏"的 Fourier 直觉。</p>
+<p>——低温 <span class="arithmatex">\(T^3\)</span> 律（实验金标准）与高温 Dulong–Petit 一网收；<span class="arithmatex">\(\Theta_D\)</span>（Debye 温度）= 晶格的“量子/经典分界线”（金刚石 2200 K——室温下“量子固体”，比热远低于经典值；铅 105 K——室温已经典）。</p>
+<p><strong>声子的工作清单</strong>：热传导（声子气的输运——绝缘体导热靠它；边界/缺陷散射解释纳米材料导热差）；电阻的温度依赖（电子被声子散射——solid-02）；超导配对的媒人（电子—声子耦合——cm-02 BCS 的红娘）；中子散射测色散（直接给 <span class="arithmatex">\(\omega(k)\)</span> 曲线——实验与 §2 公式对表）。</p>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（倒格子亲算）</strong> 二维正方格 <span class="arithmatex">\(a\)</span>：倒格子也是正方格、边长 <span class="arithmatex">\(\frac{2\pi}{a}\)</span>；fcc 的倒格子是 bcc（互为对偶）——“实空间越密、倒空间越疏”的 Fourier 直觉。</p>
 <p><strong>例 2（色散关系读图）</strong> 一维链 <span class="arithmatex">\(C, m\)</span> 给定：区界频率 <span class="arithmatex">\(\omega_{\max} = 2\sqrt{C/m}\)</span> ~ THz 量级（原子弹簧的固有节拍）——固体的红外/拉曼光谱窗口由此设定。</p>
-<p><strong>例 3（Debye 数量级）</strong> 铜 <span class="arithmatex">\(\Theta_D \approx 343\)</span> K：室温比热已近 <span class="arithmatex">\(3Nk_B\)</span>（经典）✓；10 K 时 <span class="arithmatex">\(C \propto T^3\)</span> 掉四个量级——低温物理实验"样品一冷比热消失"的日常，也是稀释制冷机能把 mK 级样品"冻透"的原因。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（Debye 数量级）</strong> 铜 <span class="arithmatex">\(\Theta_D \approx 343\)</span> K：室温比热已近 <span class="arithmatex">\(3Nk_B\)</span>（经典）✓；10 K 时 <span class="arithmatex">\(C \propto T^3\)</span> 掉四个量级——低温物理实验“样品一冷比热消失”的日常，也是稀释制冷机能把 mK 级样品“冻透”的原因。</p>
 <hr />
 <p><em>下一页：把电子放进周期势——Bloch 定理与能带：导体/绝缘体/半导体的三分天下，以及晶体管为什么可能。</em></p>
 </article>
@@ -89,5 +241,7 @@ C_V \propto T^3\ (T \ll \Theta_D), \qquad C_V \to 3Nk_B\ (T \gg \Theta_D)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ssh-edge-state.js"></script>
 </body>
 </html>

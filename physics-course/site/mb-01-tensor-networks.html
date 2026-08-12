@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +43,29 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 00:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_2">学习层：一条量子链的“桥”到底要多宽？</a><ul>
+<li><a href="#mb-tensor-learning-title">1. 具体谜题：把一条切开的链交给一个窄接口</a></li>
+<li><a href="#2">2. 先做预测：先猜桥宽，再打开实验台</a></li>
+<li><a href="#3-coefficient-matrix-svd">3. 最小模型：双分割 coefficient matrix → SVD → 纠缠谱</a></li>
+<li><a href="#4-bond-dimension">4. 动手验证：固定 bond dimension，看截断究竟保留了什么</a></li>
+<li><a href="#5-rank">5. 误区与边界：低熵、低 rank、面积律不是同一句话</a></li>
+<li><a href="#6-formalmps-cut">6. 回到 formal：MPS 为什么把每个 cut 的答案串起来</a></li>
+<li><a href="#7">7. 迁移问题：把桥宽账本带到新态</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 指数墙与纠缠的地图</a></li>
 <li><a href="#2-mpssvd">2. 矩阵乘积态（MPS）：SVD 的物理加冕</a></li>
 <li><a href="#3">3. 变分蒙卡与神经网络波函数</a></li>
 <li><a href="#4">4. 全站收束</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
-<li><a href="#_2">物理讲义库落成</a></li>
+<li><a href="#_3">物理讲义库落成</a></li>
 </ul>
 </div>
 </details>
@@ -53,18 +74,140 @@
 <p><strong>对标</strong>：Schollwöck（DMRG 综述）/ Orús（TN 入门）｜ <strong>前置</strong>：cm-01、qi-01（纠缠熵）、数学站 nla（SVD——本页的发动机）
 量子多体的根本困境：<span class="arithmatex">\(N\)</span> 个自旋的 Hilbert 空间维数 <span class="arithmatex">\(2^N\)</span>——50 个自旋就存不下。现代解法的洞察：<strong>物理态只住在这个空间的极小角落</strong>（低纠缠态），张量网络就是这个角落的坐标系。本页立起 MPS/DMRG 的思想（SVD 的物理加冕）与变分蒙卡，收尾连到神经网络波函数与量子模拟——全站最后一页，恰好停在"物理 × 计算 × ML"三线交汇的前沿入口。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="mb-tensor-learning-title" class="learning-layer">
+<h2 id="_2">学习层：一条量子链的“桥”到底要多宽？<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h3 id="mb-tensor-learning-title">1. 具体谜题：把一条切开的链交给一个窄接口<a class="headerlink" href="#mb-tensor-learning-title" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(N=6\)</span> 个 qubit 排成一条链，在第 <span class="arithmatex">\(k\)</span> 个位置切开。左边有 <span class="arithmatex">\(k\)</span> 个 qubit，右边有 <span class="arithmatex">\(N-k\)</span> 个 qubit；整态仍有 <span class="arithmatex">\(2^N\)</span> 个振幅，但切口两边只通过一个“接口”交换信息。谜题是：<strong>接口至少需要多少条独立通道，才能不丢掉这个态？</strong></p>
+<p>这里的“通道数”不是物理上的粒子数，而是系数矩阵的秩。它会把四个容易混在一起的词拆开：</p>
+<ul>
+<li><strong>Schmidt rank</strong>：精确表示所需的通道数；</li>
+<li><strong>Schmidt coefficients</strong> <span class="arithmatex">\(\sigma_i\)</span>：每条通道的权重；</li>
+<li><strong>entanglement spectrum</strong>：约定 <span class="arithmatex">\(\xi_i=-\ln p_i\)</span>，其中 <span class="arithmatex">\(p_i=\sigma_i^2\)</span> 是约化密度矩阵的本征值；</li>
+<li><strong>截断误差</strong>：固定接口宽度 <span class="arithmatex">\(\chi\)</span> 时，被丢掉的总权重，而不是“丢掉了多少个系数”。</li>
+</ul>
+<h3 id="2">2. 先做预测：先猜桥宽，再打开实验台<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对下面四个 <span class="arithmatex">\(N=6\)</span> 的确定态，先写下第 <span class="arithmatex">\(k=3\)</span> 个 cut 的 Schmidt rank，再预测 <span class="arithmatex">\(\chi=2\)</span> 是否能在所有 cuts 上精确表达：</p>
+<ol>
+<li>product：<span class="arithmatex">\(|000000\rangle\)</span>；</li>
+<li>GHZ：<span class="arithmatex">\(\bigl(|000000\rangle+|111111\rangle\bigr)/\sqrt2\)</span>；</li>
+<li>链式 cluster-like：<span class="arithmatex">\(\prod_{j=1}^{5}\mathrm{CZ}_{j,j+1}|+\rangle^{\otimes 6}\)</span>；</li>
+<li>固定种子的实随机 toy：把 64 个确定性伪随机振幅归一化。</li>
+</ol>
+<p>特别预测两件反直觉的事：GHZ 并不需要随链长增长的 rank；而随机 toy 的中间 cut 通常会把 <span class="arithmatex">\(8\)</span> 条独立通道都用上。最后问自己：如果只知道 <span class="arithmatex">\(S\leq\ln\chi\)</span>，是否就能断言“精确”或“高保真”？</p>
+<h3 id="3-coefficient-matrix-svd">3. 最小模型：双分割 coefficient matrix → SVD → 纠缠谱<a class="headerlink" href="#3-coefficient-matrix-svd" title="Permanent link"></a></h3>
+<p>以计算基底的二进制字符串为行列索引，把全态振幅重排为</p>
+<div class="arithmatex">\[
+C^{(k)}_{\alpha\beta}=c_{\alpha\beta},
+\qquad C^{(k)}\in\mathbb{C}^{2^k\times 2^{N-k}},
+\qquad \sum_{\alpha,\beta}\lvert C^{(k)}_{\alpha\beta}\rvert^2=1.
+\]</div>
+<p>对这一个<strong>双分割系数矩阵</strong>做 SVD：</p>
+<div class="arithmatex">\[
+C^{(k)}=U\,\mathrm{diag}(\sigma_1,\sigma_2,\ldots)\,V^{\dagger},
+\qquad \sigma_1\geq\sigma_2\geq\cdots\geq0.
+\]</div>
+<p>它等价于 Schmidt 分解</p>
+<div class="arithmatex">\[
+\lvert\psi\rangle=\sum_i\sigma_i\lvert u_i\rangle_A\lvert v_i\rangle_B.
+\]</div>
+<p>因此 <span class="arithmatex">\(p_i=\sigma_i^2\)</span>，<span class="arithmatex">\(\rho_A=CC^{\dagger}\)</span> 的非零本征值就是 <span class="arithmatex">\(p_i\)</span>；纠缠熵为</p>
+<div class="arithmatex">\[
+S_k=-\sum_i p_i\ln p_i,
+\qquad \xi_i=-\ln p_i\quad(p_i&gt;0),
+\qquad r_k=\#\{i:\sigma_i&gt;0\}.
+\]</div>
+<p><span class="arithmatex">\(\sigma_i\)</span> 是 Schmidt 系数，不能未经说明就把它们本身叫作 entanglement spectrum；本页采用 <span class="arithmatex">\(\xi_i=-\ln p_i\)</span> 的约定。实验会同时显示 <span class="arithmatex">\(C^{(k)}\)</span>、<span class="arithmatex">\(p_i\)</span> 和 <span class="arithmatex">\(\xi_i\)</span>，让三个层次互相对账。</p>
+<h3 id="4-bond-dimension">4. 动手验证：固定 bond dimension，看截断究竟保留了什么<a class="headerlink" href="#4-bond-dimension" title="Permanent link"></a></h3>
+<p>实验台的控制顺序就是算法顺序：先选态，再选 cut，再调固定 bond dimension <span class="arithmatex">\(\chi\)</span>。</p>
+<ol>
+<li><strong>Coefficient matrix</strong> 面板显示 <span class="arithmatex">\(C^{(k)}\)</span> 的每个振幅；矩阵尺寸随 <span class="arithmatex">\(2^k\times2^{N-k}\)</span> 改变。</li>
+<li><strong>Schmidt/SVD</strong> 面板显示 <span class="arithmatex">\(p_i=\sigma_i^2\)</span> 的权重柱、被 <span class="arithmatex">\(\chi\)</span> 切开的尾部和 <span class="arithmatex">\(\xi_i=-\ln p_i\)</span>。</li>
+<li>对最优 rank-<span class="arithmatex">\(\chi\)</span> 近似，Eckart–Young 给出 <span class="arithmatex">\(\varepsilon_\chi=\sum_{i&gt;\chi}p_i=1-\sum_{i\leq\chi}p_i\)</span>、<span class="arithmatex">\(F_\chi=\sqrt{1-\varepsilon_\chi}\)</span>、<span class="arithmatex">\(F_\chi^2=1-\varepsilon_\chi\)</span>。这里 <span class="arithmatex">\(F_\chi\)</span> 明确指归一化截断态的 overlap amplitude，<span class="arithmatex">\(F_\chi^2\)</span> 是常用的 squared fidelity；实验两者都标出，避免“保真度”口径漂移。</li>
+<li>链底部把每个 cut 画成一座桥，标出 <span class="arithmatex">\((r_k,S_k)\)</span>。金色标记“最窄桥”（局部 rank/entropy 最小），蓝色标记精确 MPS 的最大需求 <span class="arithmatex">\(\chi_* = \max_k r_k\)</span>；这两个量不要混为一个“瓶颈”。</li>
+</ol>
+<div class="learning-lab" data-learning-lab="entanglement-cut">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(N=6\)</span>，<span class="arithmatex">\(k=3\)</span> 时 <span class="arithmatex">\(C\)</span> 是 <span class="arithmatex">\(8\times8\)</span> 矩阵。默认 GHZ 态的非零元只有</p>
+<pre><code>C^{(3)}_{0,0}=C^{(3)}_{7,7}=1/√2，其他元为 0。
+σ=(1/√2, 1/√2, 0, …)，p=(1/2, 1/2, 0, …)，S=ln 2，r=2。
+χ=1: εχ=1/2，Fχ=1/√2，Fχ²=1/2；χ=2: εχ=0，Fχ=1。</code></pre>
+<table>
+<thead>
+<tr>
+<th>固定态（<span class="arithmatex">\(N=6\)</span>）</th>
+<th style="text-align: right;">各 cut 的 exact Schmidt rank</th>
+<th>中间 cut 的读法</th>
+<th><span class="arithmatex">\(\chi=2\)</span> 能否跨过所有 cut？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>product 态（全零计算基）</td>
+<td style="text-align: right;"><span class="arithmatex">\(1,1,1,1,1\)</span></td>
+<td><span class="arithmatex">\(S_k=0\)</span></td>
+<td>能，精确</td>
+</tr>
+<tr>
+<td>GHZ</td>
+<td style="text-align: right;"><span class="arithmatex">\(2,2,2,2,2\)</span></td>
+<td><span class="arithmatex">\(p=(1/2,1/2)\)</span>，<span class="arithmatex">\(S_k=\ln2\)</span></td>
+<td>能，精确</td>
+</tr>
+<tr>
+<td>链式 cluster-like</td>
+<td style="text-align: right;"><span class="arithmatex">\(2,2,2,2,2\)</span></td>
+<td>每个相邻 cut 至多一条 graph-state 纠缠边，<span class="arithmatex">\(S_k=\ln2\)</span></td>
+<td>能，精确</td>
+</tr>
+<tr>
+<td>固定随机 toy</td>
+<td style="text-align: right;"><span class="arithmatex">\(2,4,8,4,2\)</span>（本 toy 为满秩）</td>
+<td>权重通常不均匀，<span class="arithmatex">\(S_3\)</span> 需由完整谱计算</td>
+<td>不能精确跨过中间 cut</td>
+</tr>
+</tbody>
+</table>
+<p>因此 exact MPS bond dimension 是 <span class="arithmatex">\(\chi_*=\max_k r_k\)</span>；但若只求近似，真正要看的不是 rank，而是 <span class="arithmatex">\(\sum_{i&gt;\chi}p_i\)</span>。随机行只是一组 <span class="arithmatex">\(64\)</span> 维的可复现实验数据，不是 Page 定理，也不声称代表随机态系综的渐近平均。</p>
+</div>
+<h3 id="5-rank">5. 误区与边界：低熵、低 rank、面积律不是同一句话<a class="headerlink" href="#5-rank" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Exact rank 与近似 <span class="arithmatex">\(\chi\)</span> 不同。</strong> 一个态可以有很大的 exact rank，但尾部权重极小，因而用小 <span class="arithmatex">\(\chi\)</span> 得到高保真近似；反过来，若保真度目标很高，必须检查具体谱的尾和，而不是只看一个 rank 标签。</li>
+<li><strong><span class="arithmatex">\(S\leq\ln\chi\)</span> 只是容量上界。</strong> 它是 rank-<span class="arithmatex">\(\chi\)</span> 表示的必要条件，不是充分条件。比如谱权重 <span class="arithmatex">\((0.8,0.1,0.1)\)</span> 的熵约为 <span class="arithmatex">\(0.639&lt;\ln2\)</span>，但 exact rank 是 <span class="arithmatex">\(3\)</span>，<span class="arithmatex">\(\chi=2\)</span> 时最多保留 <span class="arithmatex">\(F^2=0.9\)</span>；熵没有告诉你尾部如何分布。</li>
+<li><strong>面积律有前提。</strong> 一维、局域、短程、通常还要有能隙和适当的基态条件时，许多体系的基态纠缠熵才呈现与边界相关的面积律；临界基态可有对数修正，激发态、长时间演化态、无序/随机态和高维问题不能直接套用“所有局域哈密顿量都满足面积律”。面积律也主要约束熵；它本身不把 exact rank 变成固定小数，也不自动给出某个保真度下的 <span class="arithmatex">\(\chi\)</span>。</li>
+<li><strong>MPS 有规范冗余。</strong> 内部键上做可逆变换 <span class="arithmatex">\(A^{s_j}\mapsto X_{j-1}^{-1}A^{s_j}X_j\)</span>，物理态不变。<span class="arithmatex">\(\chi\)</span> 是表示容量，不是唯一参数坐标；左/右规范或 mixed-canonical form 才把 SVD 的 Schmidt 系数放到清楚的位置。</li>
+<li><strong>随机 toy 不是定理。</strong> 本实验的伪随机向量、有限 <span class="arithmatex">\(N\)</span> 和有限精度只用于把“中间 cut 需要更多通道”变成可复核观察；Page 型陈述必须另行声明随机系综、平均/典型性与维数极限。</li>
+</ul>
+<h3 id="6-formalmps-cut">6. 回到 formal：MPS 为什么把每个 cut 的答案串起来<a class="headerlink" href="#6-formalmps-cut" title="Permanent link"></a></h3>
+<p>开放边界 MPS 写成</p>
+<div class="arithmatex">\[
+c_{s_1\cdots s_N}=\sum_{a_1,\ldots,a_{N-1}}
+A^{s_1}_{1a_1}A^{s_2}_{a_1a_2}\cdots A^{s_N}_{a_{N-1}1}.
+\]</div>
+<p>在第 <span class="arithmatex">\(k\)</span> 个 cut 上，虚拟指标 <span class="arithmatex">\(a_k\)</span> 的取值最多为 <span class="arithmatex">\(\chi_k\)</span>，所以 <span class="arithmatex">\(r_k\leq\chi_k\)</span> 且 <span class="arithmatex">\(S_k\leq\ln\chi_k\)</span>。对所有 cuts 同时要求精确表示时，最小的统一 bond dimension 为</p>
+<div class="arithmatex">\[
+\chi_*=\max_{1\leq k&lt;N}r_k.
+\]</div>
+<p>这解释了链图的两种读法：金色“最窄桥”告诉你哪里局部最容易压缩；蓝色最大桥需求才决定统一 MPS 的 exact capacity。DMRG 做的不是凭空假定态低秩，而是在一组有限 <span class="arithmatex">\(\chi\)</span> 的 MPS 中变分最小化 <span class="arithmatex">\(\langle\psi|H|\psi\rangle\)</span>；若能隙、纠缠谱衰减等条件让截断尾部很小，它就会高效，但“低熵”仍不能替代对谱尾和误差的检查。</p>
+<h3 id="7">7. 迁移问题：把桥宽账本带到新态<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<ol>
+<li>对六 qubit 的 Bell-pair 链 <span class="arithmatex">\(\lvert\Phi^+\rangle_{12}\lvert\Phi^+\rangle_{34}\lvert\Phi^+\rangle_{56}\)</span>，其中 <span class="arithmatex">\(\lvert\Phi^+\rangle=(\lvert00\rangle+\lvert11\rangle)/\sqrt2\)</span>，预测 cuts <span class="arithmatex">\(k=1,2,3,4,5\)</span> 的 rank 图样。哪几座桥是最窄的？统一 exact <span class="arithmatex">\(\chi_*\)</span> 是多少？</li>
+<li>构造一个只在某个 cut 有 Schmidt 权重 <span class="arithmatex">\((0.8,0.1,0.1)\)</span> 的态。为什么 <span class="arithmatex">\(S&lt;\ln2\)</span> 仍不能说 <span class="arithmatex">\(\chi=2\)</span> 精确？若要求 squared fidelity 至少 <span class="arithmatex">\(0.99\)</span>，你还缺什么信息？</li>
+<li>把“局域基态通常可压缩”迁移到二维 PEPS、临界链或 quench 后的态：逐项写下你需要重新检查的条件，并区分“有一个近似算法表现不错”与“有一个无条件定理”。</li>
+</ol>
+</section>
 <figure class="diagram">
 <p><img alt="MPS/张量网络图：张量方块 + 物理腿/虚拟键的连线。" src="assets/img/mb-01-tensor-network.svg" /></p>
 <figcaption><span class="fig-id">图 mb-01.1</span>MPS/张量网络图：张量方块 + 物理腿/虚拟键的连线。</figcaption>
 </figure>
 <h2 id="1">1. 指数墙与纠缠的地图<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>一般态 <span class="arithmatex">\(|\psi\rangle = \sum c_{s_1\cdots s_N}|s_1\cdots s_N\rangle\)</span>——<span class="arithmatex">\(2^N\)</span> 个系数。<strong>但物理基态特殊</strong>：局域哈密顿量的基态满足<strong>面积律</strong>【引用】——子区域纠缠熵 ∝ 边界面积而非体积（一维 = 常数！对比随机态的体积律）：<strong>自然界的基态是低纠缠的</strong>——指数空间里的可压缩角落（🔗 与"自然图像住在低维流形"（ai 课/mfld-01 例 3）完全同构：<strong>物理与 ML 面对同一种"名义维数巨大、实际结构低维"的幸运</strong>）。</p>
+<p>一般态 <span class="arithmatex">\(|\psi\rangle = \sum c_{s_1\cdots s_N}|s_1\cdots s_N\rangle\)</span>——<span class="arithmatex">\(2^N\)</span> 个系数。<strong>但一类物理基态特殊</strong>：在一维短程局域、能隙等条件下，许多局域哈密顿量的基态满足<strong>面积律</strong>【引用】——子区域纠缠熵 ∝ 边界面积而非体积（一维 = 常数！对比典型高维随机系综的体积律）：<strong>自然界的一部分基态是低纠缠的</strong>——指数空间里的可压缩角落（🔗 与"自然图像住在低维流形"（ai 课/mfld-01 例 3）完全同构：<strong>物理与 ML 面对同一种"名义维数巨大、实际结构低维"的幸运</strong>）。这不是所有局域哈密顿量、所有激发态或所有有限随机 toy 的无条件结论。</p>
 <h2 id="2-mpssvd">2. 矩阵乘积态（MPS）：SVD 的物理加冕<a class="headerlink" href="#2-mpssvd" title="Permanent link"></a></h2>
 <p><strong>构造【推导级】</strong>：对系数张量沿链逐点做 SVD（数学站 nla-01 的 Eckart–Young 连环使用），每步只保留前 <span class="arithmatex">\(\chi\)</span> 个奇异值：</p>
 <div class="arithmatex">\[
 c_{s_1s_2\cdots s_N} \approx \sum_{\{a\}} A^{s_1}_{a_1}A^{s_2}_{a_1a_2}\cdots A^{s_N}_{a_{N-1}}
 \]</div>
-<p>——<strong>态 = 一串小矩阵的乘积</strong>；参数从 <span class="arithmatex">\(2^N\)</span> 压到 <span class="arithmatex">\(O(N\chi^2)\)</span>。<strong>键维 <span class="arithmatex">\(\chi\)</span> 的含义</strong>：截断处的奇异值谱 = 纠缠谱——<span class="arithmatex">\(\chi\)</span> 直接封顶纠缠熵 <span class="arithmatex">\(S \leq \ln\chi\)</span>。对<strong>一维有能隙局域哈密顿量的基态</strong>，面积律使 MPS 通常能以适中的 <span class="arithmatex">\(\chi\)</span> 高效逼近，而不是说每个面积律态都能被固定的小 <span class="arithmatex">\(\chi\)</span> 精确表示；临界系统还会出现对数纠缠修正。压缩格式与物理规律因此相配（Eckart–Young + 纠缠谱衰减，是 DMRG 成功的核心解释）。</p>
+<p>——<strong>态 = 一串小矩阵的乘积</strong>；参数从 <span class="arithmatex">\(2^N\)</span> 压到 <span class="arithmatex">\(O(N\chi^2)\)</span>。<strong>键维 <span class="arithmatex">\(\chi\)</span> 的含义</strong>：截断处的奇异值是 Schmidt 系数，其平方 <span class="arithmatex">\(p_i=\sigma_i^2\)</span> 是约化密度矩阵的谱（常用 entanglement spectrum 再记作 <span class="arithmatex">\(\xi_i=-\ln p_i\)</span>）——<span class="arithmatex">\(\chi\)</span> 直接封顶纠缠熵 <span class="arithmatex">\(S \leq \ln\chi\)</span>。对<strong>一维有能隙局域哈密顿量的基态</strong>，面积律使 MPS 通常能以适中的 <span class="arithmatex">\(\chi\)</span> 高效逼近，而不是说每个面积律态都能被固定的小 <span class="arithmatex">\(\chi\)</span> 精确表示；临界系统还会出现对数纠缠修正。压缩格式与物理规律因此相配（Eckart–Young + 纠缠谱衰减，是 DMRG 成功的核心解释）。</p>
 <p><strong>DMRG【机理级】</strong>：在 MPS 族内变分极小化 <span class="arithmatex">\(\langle\psi|H|\psi\rangle\)</span>（qm-04 变分法的多体版）——逐点扫描优化局部张量（交替最小二乘的气质，数学站优化线）。<strong>战绩</strong>：一维量子系统的基态能量算到机器精度级——凝聚态数值的金标准（White 1992【引用】）；二维用 PEPS 推广（收缩变难【引用】）、临界系统用 MERA（尺度分层——<strong>RG 思想（asm-03）内建进网络结构</strong>：张量网络是"RG 的数据结构化"）。</p>
 <h2 id="3">3. 变分蒙卡与神经网络波函数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>VMC 框架</strong>：参数化试探态 <span class="arithmatex">\(|\psi_\theta\rangle\)</span>，蒙卡采样（comp-01 Metropolis 按 <span class="arithmatex">\(|\psi|^2\)</span>）估计能量与梯度、随机梯度下降——<strong>"猜家族 + 采样 + 优化"</strong>：物理版的机器学习训练循环（逐项对应：模型/损失/SGD）。</p>
@@ -77,8 +220,9 @@ c_{s_1s_2\cdots s_N} \approx \sum_{\{a\}} A^{s_1}_{a_1}A^{s_2}_{a_1a_2}\cdots A^
 <p><strong>例 2（面积律的反差数感）</strong> 随机态的半链纠缠熵 <span class="arithmatex">\(\sim \frac N2\ln2\)</span>（体积律）需要 <span class="arithmatex">\(\chi \sim 2^{N/2}\)</span>；基态 <span class="arithmatex">\(S \sim O(1)\)</span> 只需 <span class="arithmatex">\(\chi \sim\)</span> 几十——<strong>同一空间里"天堂角落"与"荒野"的压缩比差指数</strong>：DMRG 为什么专治基态、难治高激发/长时间演化（纠缠随时间线性增长【引用】）的一句话答案。</p>
 <p><strong>例 3（VMC 玩具全流程）</strong> 一维横场 Ising（<span class="arithmatex">\(N = 10\)</span>）：RBM 拟设 + Metropolis + SGD 找基态、对照精确对角化——百行代码在你的 4060 Ti 上十分钟收敛：<strong>全站最后一个上机作业，物理 × ML 的毕业设计</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<h2 id="_2">物理讲义库落成<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">物理讲义库落成<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>四十七页走完：牛顿的苹果 → 场与波 → 熵与量子 → 时空曲率 → 规范对称 → 多体涌现。回望全程，三条母题反复出现：<strong>变分原理</strong>（力学-量子-场论-ML 的通用语法）、<strong>对称性</strong>（Noether-规范-破缺——守恒与相互作用与质量的总出处）、<strong>统计涌现</strong>（配分函数-相变-RG——多者异也）。它们与数学站的地基、AI 站的应用连成一张网——<strong>物理是这张网的中枢</strong>：往下是数学的严格，往上是计算与智能的工程。祝复习顺利、常回来查表。</p>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="neq-01-fluctuation.html"><span class="pager-label">上一页</span>非平衡 · Langevin、线性响应与涨落定理</a>
@@ -88,5 +232,7 @@ c_{s_1s_2\cdots s_N} \approx \sum_{\{a\}} A^{s_1}_{a_1}A^{s_2}_{a_1a_2}\cdots A^
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/entanglement-cut.js"></script>
 </body>
 </html>

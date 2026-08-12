@@ -735,7 +735,7 @@
       label: "初值 u₀",
       min: -1,
       max: 1,
-      step: 0.05,
+      step: 0.01,
       value: 0.25,
       minLabel: "-1",
       maxLabel: "1"

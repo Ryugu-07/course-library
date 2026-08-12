@@ -29,7 +29,7 @@ ComfyUI 界面 → 菜单 Workflow → Open（或直接把 `.json` 文件**拖�
 
 ## 拓展篇（视频/音乐/3D）为什么没有 wf 文件
 
-拓展篇实战（第 18/20/21 讲）**直接使用 ComfyUI 内置模板**（菜单 → Workflow → Browse Templates 的 Video / Audio / 3D 分区）：这些模板与模型版本配套发布、随 ComfyUI 更新自动跟新，比课程自带静态 JSON 更不易过期。各讲内有对应的模板名与参数指引。
+拓展篇实战（第 18/20/21/22 讲）**直接使用 ComfyUI 内置模板**（菜单 → Workflow → Browse Templates 的 Video / Audio / 3D 分区）：这些模板与模型版本配套发布、随 ComfyUI 更新自动更新，比课程自带静态 JSON 更不易过期。H3 尤其应从 Template Library 的 T2V/I2V/R2V 官方模板进入，因为 `fl2va` 与 `ref2va` 使用不同权重；课程不复制一份会迅速过期的静态 JSON。各讲内有对应的模板名与参数指引。
 
 ## 排障速记
 
