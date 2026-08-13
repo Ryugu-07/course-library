@@ -36,10 +36,11 @@ try {
   <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li class="active"><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 00:19</div>
+    <div class="build-time">构建于 2026-08-13 11:53</div>
   </div>
 </nav>
 <main id="content">
@@ -310,7 +311,7 @@ P_{\mathrm{maj}}(n)&amp;=\rho p+(1-\rho)\sum_{j=\lceil n/2\rceil}^{n}{n\choose j
 <li>生成时要求<strong>引用出处</strong>，并把每个命题绑定到实际支持它的片段——这能提高可追溯性、帮助审计，但<strong>引用不保证来源真实、没有过期或没有被模型误读</strong>；RAG 不是事实真伪证明器。</li>
 </ol>
 <p><strong>2. 上下文不是越多越好。</strong>在一些模型与任务的长上下文评测中会观察到<strong>lost in the middle</strong>（中间位置的信息利用率可能低于开头或结尾），但效应依赖模型、位置、格式和问题；<strong>上下文腐烂</strong>也不是固定定律，而是无关信息、旧错误和跑偏历史累积后可能出现的退化。对策：只放相关的，测试不同排序，把关键信息放在可验证的位置，长对话适时<strong>重开并带摘要迁移</strong>，把"已确认的结论"压缩后再续。</p>
-<p><strong>3. 上下文经济学。</strong>在标准的稠密全注意力中，序列两两交互的分数矩阵随长度呈二次增长（第 06 讲）；实际延迟和显存还取决于 hidden size、KV cache、注意力实现、批处理和服务方式，因此不能只用 <span class="arithmatex">\(O(n^2)\)</span> 预测端到端成本。<strong>Prompt caching</strong> 可以复用满足服务商命中条件的稳定前缀，减少重复计算或计费；命中规则、价格和收益由具体服务商与配置决定，不应写成固定折扣。把稳定内容放前、多变内容放后常是有用的缓存设计，但仍要测命中率、时延和质量。上下文是稀缺资源，<strong>"该给什么"与"不给什么"同等重要</strong>——这个约束到第 09 讲会再次出场，成为 Skills 设计"延迟加载"的直接动机。</p>
+<p><strong>3. 上下文经济学。</strong>在标准的稠密全注意力中，序列两两交互的分数矩阵随长度呈二次增长（第 06 讲）；实际延迟和显存还取决于 hidden size、KV cache、注意力实现、批处理和服务方式，因此不能只用 <span class="arithmatex">\(O(n^2)\)</span> 预测端到端成本。<strong>Prompt caching</strong> 可以复用满足服务商命中条件的稳定前缀，减少重复计算或计费；命中规则、价格和收益由具体服务商与配置决定，不应写成固定折扣。把稳定内容放前、多变内容放后常是有用的缓存设计，但仍要测命中率、时延和质量。上下文是稀缺资源，<strong>"该给什么"与"不给什么"同等重要</strong>——这个约束到第 09 讲会再次出场，成为 Skills 设计"延迟加载"的直接动机；第 19 讲再把它接到 TTFT、KV cache、批处理与排队的服务账本。</p>
 <h2 id="4">4. 编排工程：把活拆开<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>单次调用有极限：让模型"一口气写一份 50 页的行业研报"，效果必然平庸——任务太长、要求太多，注意力和篇幅都不够分。<strong>编排（orchestration / workflow）工程</strong>的思路：<strong>把大任务拆成多个小步骤，每步一次 LLM 调用（或普通代码），用确定性的程序骨架把它们接起来。</strong></p>
 <p>常用模式五种：</p>

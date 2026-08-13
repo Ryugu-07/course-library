@@ -69,6 +69,9 @@ COURSE = [
         ("17-slides-docs.md", "17 · 实战：PPT 与文档"),
         ("18-paper-writing.md", "18 · 实战：论文与长文写作"),
     ]),
+    ("专题 · AI 系统工程", [
+        ("19-inference-serving.md", "19 · 推理服务：延迟、吞吐与排队"),
+    ]),
     ("实验室", [
         ("labs.md", "实验总览（lab01–lab10）"),
     ]),

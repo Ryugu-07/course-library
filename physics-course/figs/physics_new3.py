@@ -38,11 +38,11 @@ def decoherence():
                 fontsize=11, color=INK,
                 arrowprops=dict(arrowstyle="->", color="#888"))
     a2.set_xlabel("time"); a2.set_ylabel("normalized signal")
-    a2.set_title("Coherence decays faster than energy", color=INK, fontsize=11)
+    a2.set_title("Example parameters: coherence decays first", color=INK, fontsize=11)
     a2.legend(frameon=False, fontsize=9.5)
     a2.set_ylim(-0.55, 1.05)
     fig.tight_layout()
-    save(fig, "oqs-01-decoherence")
+    save(fig, "oqs-01-decoherence", reproducible=True)
 
 # ── amo-01 · 多普勒冷却力 + BEC 双峰 ────────────────────
 def cold_atoms():

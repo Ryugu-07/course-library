@@ -1,0 +1,182 @@
+# 第 19 讲 · 推理服务：延迟、吞吐与排队
+
+> 模型能不能回答只是第一关；服务还要回答：**用户多久看到第一个 token？多久拿到完整答案？同一块硬件每秒完成多少请求？在 SLO 内完成多少？** 这些问题看似都叫“快”，其实对应不同的账本。本讲用一份固定的 toy request ledger，拆开 prefill、decode、排队、批处理与 KV-cache，再把调度策略放进一个可审计的离散 tick 模拟器。数值全部是教学造的容量与请求，不是任何厂商、模型或硬件的实测 benchmark。
+
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：同一块硬件，为什么“更高吞吐”可能让用户更不耐烦？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：长请求挡在门口时，谁先拿到答案？</h3>
+<p>固定账本的第一行 <code>R01</code> 是一个 prompt=18、output=12 的长请求；紧接着的 <code>R02</code>、<code>R03</code>、<code>R04</code> 都是只需 2–3 个输出 token 的短请求。假设硬件每个离散 tick 能做 24 个 prefill token，并同时推进 3 个 decode slot。现在先不打开实验：若策略是“来一个做完一个”，你预计 R02 会不会在 R01 完成前结束？若把请求凑成静态 batch，哪些短请求会改善，哪些会被等待凑批抵消？下一批会不会被 R01 拖住？连续 batching 又会怎样改变它们的完成顺序？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测，再改变一个旋钮</h3>
+<p>请先写下四个预测，并为每个预测指出你会看哪一列账本：<strong>①</strong> 增大到达率 <span class="arithmatex">\(\lambda\)</span> 会先推高 queue delay 和 p95/p99，而不一定立刻改变单请求的 TPOT；<strong>②</strong> 真实系统里 batch 可能摊薄固定开销，但 wait 也会把“等一会儿凑批”加进 TTFT；本 toy 不奖励额外的 batch 加速，只比较分组与调度；<strong>③</strong> continuous batching 让后来请求进入 ready 集、竞争后续 decode 服务机会，但并没有删除长请求所需的 token；<strong>④</strong> 同样的请求吞吐不等于同样的 per-user latency，SLO goodput 才会惩罚“快但太晚”的完成。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小模型：三条流水线账本</h3>
+<p>实验固定以下 toy 硬件容量；所有策略都用同一份容量，区别只在调度政策：</p>
+<table>
+<thead><tr><th>账本</th><th>教学设定</th><th>它记录什么</th></tr></thead>
+<tbody>
+<tr><td>离散时间</td><td><span class="arithmatex">\(\Delta t=100\text{ ms}\)</span></td><td>scheduler 每个 tick 先处理到达，再推进既有 decode，最后推进 prefill</td></tr>
+<tr><td>prefill</td><td>每 tick 24 prompt token</td><td>整段输入的计算；完成后请求才可拿首 token</td></tr>
+<tr><td>decode</td><td>每 tick 最多推进 3 个 ready sequence，每个被选中的 sequence 产 1 token</td><td>自回归输出；ready 数超过 3 时按轮转顺序分享服务机会</td></tr>
+<tr><td>KV-cache</td><td>每个已缓存 token=0.25 MB，预算 72 token</td><td>曲线记录当前已缓存 prompt+output token；admission 另按 prompt+output 的最坏长度做 toy reserve</td></tr>
+</tbody>
+</table>
+<p>请求的到达坐标 <code>at</code> 是固定的相对形状。ledger 有 16 个请求、15 个到达间隔；给定名义到达率 <span class="arithmatex">\(\lambda\)</span> 后，脚本把整段 trace 的跨度缩放为 <span class="arithmatex">\(15/\lambda\)</span> 秒，再按 <code>at</code> 的相对位置放置每个请求。因此改变 <span class="arithmatex">\(\lambda\)</span> 是压缩或拉伸同一份 ledger，不是重新抽样；有限 trace 中局部间隔仍不均匀。prefill 是批内 prompt token 总量除以容量后向上取整的 tick 数，批量本身不会凭空减少 token 工作量；decode 每 tick 从 ready 集中按轮转次序选至多 3 条，各发一个 token。这个模型故意省略真实 batching 的 kernel 摊销或效率曲线，也省略网络、CPU、通信、kernel launch、tokenizer 以及 prefill/decode 资源争用。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式化步骤：从事件到指标</h3>
+<ol>
+<li><strong>排队。</strong>请求到达后先进入 FIFO queue；策略决定何时把队首的至多 <span class="arithmatex">\(B\)</span> 个请求送进 prefill。静态 batching 只有当前 batch 完成才开下一批；continuous batching 可在旧请求 decode 时启动新的 prefill 微批；immediate 是 <span class="arithmatex">\(B=1\)</span>、不等待凑批且只允许一个请求占用 decode。若候选微批超出 KV reserve，脚本只接纳仍能放下的 FIFO 前缀，而不是让可容纳的队首请求跟着整批永久卡住。</li>
+<li><strong>prefill → 首 token。</strong>设请求 <span class="arithmatex">\(i\)</span> 的到达、prefill 开始、prefill 完成、首 token、完成时刻分别为 <span class="arithmatex">\(a_i,s_i,p_i,f_i,c_i\)</span>。本实验的 <span class="arithmatex">\(p_i\)</span> 是批完成的时间，故 <span class="arithmatex">\(\mathrm{queueDelay}_i=s_i-a_i\)</span>，<span class="arithmatex">\(\mathrm{TTFT}_i=f_i-a_i\)</span>。</li>
+<li><strong>decode。</strong>若 output token 数为 <span class="arithmatex">\(n_i>1\)</span>，<span class="arithmatex">\(\mathrm{TPOT}_i=(c_i-f_i)/(n_i-1)\)</span>，即首 token 之后相邻 token 的平均间隔；<span class="arithmatex">\(\mathrm{E2E}_i=c_i-a_i\)</span>。因此 TTFT 不能被 TPOT 替代：一个服务可以很快吐出首 token，却让完整答案很晚结束。</li>
+<li><strong>聚合。</strong>对观察窗口内已完成请求排序，用 nearest-rank 读 p50/p95/p99；若窗口结束仍有请求在队列、prefill 或 decode 中，就把这些请求计入“未完成 / backlog”，并给完成样本的尾延迟加删失标记 <code>†</code>——不能把幸运完成子集当成全体 p95/p99。吞吐是固定观察窗口内完成请求数除以窗口长度，token throughput 同理；goodput 只数 <span class="arithmatex">\(\mathrm{E2E}_i\le\mathrm{SLO}\)</span> 的请求，再除以同一窗口。并发 <span class="arithmatex">\(L\)</span> 是到达—完成或观察窗末区间内的平均/峰值 in-flight 数，不是 batch size。</li>
+</ol>
+</div>
+
+<div class="learning-boundary">
+<h3>误解与边界：什么时候一句“吞吐提升”不够？</h3>
+<ul>
+<li><strong>Throughput ≠ per-user latency。</strong>真实系统里的 batch 可能让硬件单位时间完成更多 token，也可能让某个用户因等待凑批而 TTFT 变大；p95/p99 要从请求级完成时间算，不能拿平均 token/s 代替。本 toy 不建模额外的 batch 加速。</li>
+<li><strong>Little 定律有前提。</strong>在稳定系统、足够长的时间平均、同一类 in-flight 请求且没有持续增长的队列时，<span class="arithmatex">\(L=\lambda W\)</span>：平均并发 = 长期完成率 × 平均逗留时间。本实验是有限 trace；过载时队列会增长，不能把一次短窗口的 <span class="arithmatex">\(L\)</span>、<span class="arithmatex">\(\lambda\)</span>、<span class="arithmatex">\(W\)</span> 当作稳定态证明。</li>
+<li><strong>batch 不是魔法。</strong>静态 batch 会等最慢成员结束才开下一批，形成 head-of-line（HOL）边界；continuous batching 每 tick 重组可服务集合，让后来者竞争后续 slot，但仍受 decode 容量、prefill 带宽和 KV-cache 预算限制。</li>
+<li><strong>p99 不是“最慢机器”的同义词。</strong>它是这个请求样本和这个 percentile 定义下的位置统计量；16 个请求的 p95/p99 甚至可能落在同一个样本。扩大样本、换流量混合或换窗口，都可能改变它。</li>
+<li><strong>KV-cache 不是普通显存余量。</strong>prompt 长度、并发序列数和已生成长度共同增长；只盯 batch size 而不按 token reserve，可能在长输出时爆预算。这里的 0.25 MB/token 只是透明的 toy 常数。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：固定容量下比较三种调度</h3>
+<div class="learning-lab" data-learning-lab="inference-queue" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定 ledger 有 16 个请求；R01 是长请求，R02–R04 是紧随其后的短请求。把到达率、最大 batch、最大等待、E2E SLO 记在纸上，先分别预测 immediate、static、continuous 的 p95 与 SLO 通过数。每个 tick 的可审计顺序是“接收已到达请求 → 给旧 decode active 发 token → 启动可接纳的 prefill → 推进 prefill”；刚完成 prefill 的请求要到下一个 tick 才拿首 token。观察窗口取“最后到达 + 1.4 s”：窗口内完成的请求才有 E2E；仍在队列、prefill 或 decode 的请求要单独计为未完成 / backlog，已完成子集的 p50/p95/p99 只能作为带 <code>†</code> 的删失统计，不能冒充全体尾延迟。脚本加载后会显示三策略对照、请求级 TTFT/TPOT/E2E、未完成数、KV-cache 峰值和 tick/event 表。所有数值都是本讲的可复算玩具，不是产品测量。</p>
+<table>
+<thead><tr><th>请求</th><th><code>at</code></th><th>prompt</th><th>output</th><th>角色</th></tr></thead>
+<tbody>
+<tr><td>R01</td><td>0.00</td><td>18</td><td>12</td><td>长请求</td></tr>
+<tr><td>R02</td><td>0.10</td><td>6</td><td>2</td><td>短请求</td></tr>
+<tr><td>R03</td><td>0.22</td><td>5</td><td>3</td><td>短请求</td></tr>
+<tr><td>R04</td><td>0.38</td><td>7</td><td>2</td><td>短请求</td></tr>
+<tr><td>R05</td><td>0.95</td><td>10</td><td>5</td><td>中请求</td></tr>
+<tr><td>R06</td><td>1.08</td><td>5</td><td>2</td><td>短请求</td></tr>
+<tr><td>R07</td><td>1.22</td><td>6</td><td>4</td><td>中请求</td></tr>
+<tr><td>R08</td><td>2.10</td><td>16</td><td>8</td><td>长请求</td></tr>
+<tr><td>R09</td><td>2.20</td><td>5</td><td>2</td><td>短请求</td></tr>
+<tr><td>R10</td><td>2.33</td><td>8</td><td>3</td><td>短请求</td></tr>
+<tr><td>R11</td><td>3.15</td><td>12</td><td>6</td><td>中请求</td></tr>
+<tr><td>R12</td><td>3.28</td><td>5</td><td>2</td><td>短请求</td></tr>
+<tr><td>R13</td><td>3.40</td><td>6</td><td>3</td><td>短请求</td></tr>
+<tr><td>R14</td><td>4.30</td><td>9</td><td>4</td><td>中请求</td></tr>
+<tr><td>R15</td><td>4.40</td><td>5</td><td>2</td><td>短请求</td></tr>
+<tr><td>R16</td><td>4.52</td><td>7</td><td>3</td><td>短请求</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="learning-return">
+<h3>回到定理：队列、并发与容量不是三个独立数字</h3>
+<p>如果把请求从到达直到完整完成都算作 in-flight，稳定条件下的长期平均并发 <span class="arithmatex">\(L\)</span>、完成率 <span class="arithmatex">\(\lambda\)</span> 与平均 E2E <span class="arithmatex">\(W\)</span> 才满足 <span class="arithmatex">\(L=\lambda W\)</span>。这给容量规划一个 sanity check：若每秒只能完成 2 个请求，而平均请求在系统里停留 3 秒，长期平均并发大约应为 6。它不能告诉你 p99、不同长度请求的公平性或 KV 峰值，也不能在过载的有限 trace 上被机械套用。</p>
+<p>回看谜题：immediate 把调度简单化，却把每 tick 的 3 次 decode 服务机会主动降成 1 次；static 把输入组成批次，却让下一批等待最慢成员；continuous 让后来请求进入 ready 集，并在后续 tick 分享有限服务机会。它们改变的是<strong>工作何时被安排</strong>，不是 prompt token、output token 或 KV-cache 的物理账本。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移题：把 toy ledger 换成你的服务</h3>
+<p>某内部摘要服务有两个流量族：短请求占 80%，prompt=200/output=40；长请求占 20%，prompt=2,000/output=800。硬件有固定 prefill 带宽、4 个 decode slot 和 KV-cache 上限；产品要求短请求 E2E p95 ≤ 1.5 s，长请求 E2E p95 ≤ 8 s。你会如何设计分队列、batch/wait、最大并发和 admission control？请先用 <span class="arithmatex">\(L=\lambda W\)</span> 做稳定性数量级检查，再列出至少三条需要真实压测才能确定的量（例如 prefill/decode 争用、长度混合下的 p99、KV reserve 与碎片），并说明为什么平均 token/s 不能单独回答“能否达标”。</p>
+</div>
+</section>
+
+## 1. 先统一词汇：用户看到的“快”有四种时间
+
+一条流式回答至少有两个用户感知节点：首 token 到达，以及最后一个 token 到达。把它们混为一个 latency，调度讨论很快会失真。
+
+| 指标 | 请求级定义 | 适合回答的问题 |
+|---|---|---|
+| queue delay | prefill 开始 − 请求到达 | 请求在 scheduler 前面等了多久？ |
+| TTFT（time to first token） | 首 token − 请求到达 | 用户多久看到服务“开始说话”？ |
+| TPOT / inter-token latency | （最后 token − 首 token）/（output token−1） | 已开始生成后，token 间隔多大？ |
+| E2E / completion latency | 最后 token − 请求到达 | 用户多久拿到完整回答？ |
+
+TTFT 里包含排队与 prefill；TPOT 主要暴露 decode 阶段；E2E 则是两者的总账。一个长回答可以 TTFT 很好但 E2E 很差，一个短回答可以 TPOT 很好却因为排队而完全错过 SLO。报告时至少把这三列一起报出，而不是用一个平均 latency 代替。
+
+## 2. prefill 与 decode：同一台机器上的两种压力
+
+**Prefill** 一次读取 prompt 的全部 token，计算量跟输入长度有关，天然适合把多个请求的输入拼成 batch。**Decode** 自回归地一次产生一个 token；每个 active sequence 都要反复读取模型权重并访问自己的 KV-cache。于是服务端会遇到两种不同瓶颈：
+
+- prompt 很长、同时到达的请求很多时，prefill 让 TTFT 和 queue delay 上升；
+- 输出很长、active sequence 很多时，decode slot 和 KV-cache 让 TPOT、E2E 和峰值显存上升。
+
+这也是“batch size 越大越好”不成立的原因。prefill 的批处理可能提高硬件利用率；decode 的批处理受序列长度混合影响，最慢请求会拖住静态批次，且每个额外 active sequence 都有 KV-cache 代价。连续 batching 的核心不是让每个请求都更快，而是在迭代边界重组可服务序列，让后来请求也能竞争接下来的服务机会，并及时移除已经完成的序列。
+
+### 相关系统：把本讲的 toy 机制放回论文语境
+
+本讲的 continuous/dynamic batching 是教学抽象，不是某个系统的复刻。Orca（Yu et al., OSDI 2022）把调度粒度从“整个请求”推进到“单次 iteration”，解释了为什么一个 batch 内先完成的序列不必继续绑住整个 batch；可读其 [OSDI 论文](https://www.usenix.org/system/files/osdi22-yu.pdf)。vLLM 的 PagedAttention（Kwon et al., 2023）把 KV-cache 的内存管理作为服务吞吐的重要问题，见 [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)。Sarathi-Serve（Agrawal et al., OSDI 2024）进一步讨论 chunked-prefill 与 decode 互相干扰的 throughput–latency trade-off，见 [USENIX OSDI 2024 页面](https://www.usenix.org/conference/osdi24/presentation/agrawal)。这些论文中的实验数字、硬件与实现都不应替换本讲的固定 toy 容量。
+
+术语口径也要看定义而不是只看缩写：NVIDIA 的 [NIM metrics 文档](https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html)把 TTFT 定义为提交请求到收到首 token 的时间，并将 ITL 称为 TPOT；它还提醒具体工具是否包含 TTFT、网络或空响应会影响可比性。本讲的 TTFT/TPOT 公式是为固定 toy ledger 明确写出的请求级定义，不能直接与任何产品报告的数字横比。
+
+## 3. 三种调度政策：选择题，而不是品牌排名
+
+### Immediate / 单请求服务
+
+每次只接一个请求：逻辑最简单，便于隔离请求，但在本讲的 toy 硬件上主动只用 1 个 decode slot。它适合做“没有 batching 时”的基线，不代表现实系统必然如此。
+
+### Static batching / 静态批处理
+
+在一个等待窗口内收集至多 \(B\) 个请求，整批进入 prefill，再一起 decode；下一批通常要等上一批完全结束。批处理在真实硬件上可能摊薄固定成本，但本讲 toy 只保留固定 token 容量，不附送这种效率红利。长度混合仍会制造 HOL：R01 还在生成时，后来者可能已经在队列里等下一批，即使当前 tick 还有未用的 decode 服务机会。
+
+### Continuous / dynamic batching
+
+把“批”看作每个 tick 都会变化的 active 集合。新请求可以在旧请求仍 decode 时进入，已完成的短请求及时退出。它通常更能填满 decode slot，但 scheduler 更复杂，需要同时管理公平性、prefill 与 decode 争用、KV-cache reserve、最大等待和取消/超时。
+
+三者的公平比较必须固定：请求 ledger、硬件容量、到达率、SLO 和时间窗口。只改变策略，才知道指标变化来自调度，而不是换了一批更容易的请求。
+
+## 4. 吞吐、并发、goodput：把分母写在报告里
+
+在有限 trace 中，本讲使用：
+
+$$
+\text{request throughput}=\frac{\text{观察窗内完成请求数}}{T_{\rm obs}},\qquad
+\text{token throughput}=\frac{\text{这些请求生成的 token 数}}{T_{\rm obs}}.
+$$
+
+若 SLO 是 \(T\)，则：
+
+$$
+\text{goodput}=\frac{\#\{i:\mathrm{E2E}_i\le T\}}{T_{\rm obs}},
+\qquad
+\text{goodput ratio}=\frac{\#\text{SLO 内请求}}{\#\text{请求}}.
+$$
+
+这里 \(T_{\rm obs}\) 明确取“最后到达时刻 + 1.4 秒”，三种策略共用同一分母；throughput 是系统在这段固定观察窗口完成了多少，不是某个用户的等待时间。goodput 把服务目标放回分子。若窗口结束仍有请求没完成，完成请求的尾延迟必须标记为删失，不能只报“完成得快的那一批”。并发则是同时在系统中的请求数，包含排队、prefill 和 decode 中的请求；batch size 只是某个时刻的调度选择，二者不能互换。
+
+### Little 定律的正确使用
+
+Little 定律 \(L=\lambda W\) 很有用，但它不是任何截图中三个数字的恒等式。它要求研究的是稳定系统的长期时间平均：输入率与完成率相匹配，队列不持续增长，\(L\) 与 \(W\) 统计的是同一类对象。过载期间可以看到队列越来越长；这时把有限窗口的 arrival rate 代入，得到的只是带边界效应的数，不是稳定态容量结论。实践中用它做数量级 sanity check，再用真实长度分布、p95/p99、KV 和错误/取消路径验证。
+
+## 5. 容量规划 checklist：从产品 SLO 反推服务预算
+
+1. **先写请求分布。**记录 prompt/output token 的分位数、流量峰值、突发系数、请求族和取消率；不要只写一个平均 token 数。
+2. **拆 SLO。**分别定 TTFT、TPOT、E2E 的 p50/p95/p99，并写清统计窗口、成功定义和超时/取消是否进入分母。
+3. **测两阶段容量。**单独测 prefill token/s 与 decode token/s；再测二者并发时是否争用同一带宽、同一显存和同一调度队列。
+4. **给 KV-cache 留账。**按并发序列、prompt 长度、已生成长度和 KV 每 token 字节数做 reserve；为长尾请求设置 admission control 或上限，不能只按 batch 数限流。
+5. **比较调度策略。**在同一 ledger 上比较 immediate、static、continuous；记录 queue delay、TTFT、TPOT、E2E、吞吐、goodput、峰值并发和峰值 KV，而不是只挑最漂亮的一列。
+6. **专门造边界流量。**长请求挡在短请求前、突发到达、混合长度、KV 接近上限、上游重试和取消，都要单独看 p95/p99 与公平性。
+7. **用 Little 做 sanity check。**只在稳定时间窗内用 \(L\approx\lambda W\) 检查数量级；一旦 arrival rate 逼近服务率，优先观察队列增长和 goodput，而不是把平均 throughput 当安全余量。
+8. **最后才谈硬件数量。**扩容前先定位是 prefill、decode、KV、CPU 调度、网络还是外部依赖成为瓶颈；toy 模拟只帮助你提出测量问题，不能替真实压测或容量承诺。
+
+## 本讲小结
+
+- TTFT、TPOT、E2E、queue delay 是不同时间段；p50/p95/p99 必须来自请求级分布；
+- prefill 更像输入处理，decode 更像逐 token 的 active-sequence 竞争；KV-cache 把并发与输出长度连起来；
+- static batching 在真实系统里可能摊薄固定开销，却也可能产生 head-of-line；continuous batching 重组 active 集合，但 scheduler 与 reserve 更复杂；
+- throughput、concurrency、latency、goodput 的分母不同；Little 定律只在稳定系统的时间平均假设下使用；
+- 容量规划先固定流量 ledger 与 SLO，再测分阶段容量和长尾边界。
+
+**动手**：先用“头阻塞”预设观察 R01–R04 的请求级账本，再切到“过载”预设，把到达率降回平稳而不改 SLO。哪一个指标先恢复？如果只看 token/s，你会漏掉哪一类用户？

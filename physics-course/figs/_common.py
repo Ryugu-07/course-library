@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 ACC   = "#a03d3d"   # 靛蓝主色
 ACC2  = "#d18a8a"   # 浅靛蓝
@@ -19,9 +20,25 @@ plt.rcParams.update({
     "figure.dpi": 100,
 })
 
-IMG = "/Users/karasuakamatsu/physics-course/images"
+IMG = Path(__file__).resolve().parent.parent / "images"
 
-def save(fig, name):
-    fig.savefig(f"{IMG}/{name}.svg", format="svg", bbox_inches="tight")
+def save(fig, name, reproducible=False):
+    path = IMG / f"{name}.svg"
+    if reproducible:
+        with matplotlib.rc_context({"svg.hashsalt": "course-library"}):
+            fig.savefig(
+                path,
+                format="svg",
+                bbox_inches="tight",
+                metadata={"Date": None},
+            )
+    else:
+        fig.savefig(path, format="svg", bbox_inches="tight")
     plt.close(fig)
+    if reproducible:
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            "\n".join(line.rstrip() for line in text.splitlines()) + "\n",
+            encoding="utf-8",
+        )
     print("✓", name)
