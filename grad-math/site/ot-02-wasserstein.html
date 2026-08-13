@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,55 +41,189 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 16:33</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#wasserstein-learning-title">学习层：先让分位数走，再谈分布的测地线</a><ul>
+<li><a href="#1">1. 具体谜题：同一批质量，究竟走哪一条“直线”？</a></li>
+<li><a href="#2">2. 透明的一维离散模型：共同分位数就是耦合</a></li>
+<li><a href="#3-wasserstein">3. 形式化：从离散耦合到 Wasserstein 测地线</a></li>
+<li><a href="#4">4. 边界清单：四个容易说错的句子</a></li>
+<li><a href="#5">5. 互动实验：把三种账本放在同一屏</a></li>
+<li><a href="#6">6. 迁移题：把一维直觉带到高维，但不要越界</a></li>
+</ul>
+</li>
 <li><a href="#1-brenier">1. Brenier 定理</a></li>
 <li><a href="#2-wasserstein">2. Wasserstein 空间的几何</a></li>
 <li><a href="#3">3. 统计与计算的现实</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii-wasserstein-brenier">最优传输 II · Wasserstein 几何与 Brenier 定理<a class="headerlink" href="#ii-wasserstein-brenier" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Santambrogio §1.3、§5–7 / Villani <em>Topics</em> 入门章 ｜ <strong>前置</strong>：ot-01、cvx-01、概率 V
-平方成本 <span class="arithmatex">\(c = \|x-y\|^2\)</span> 的世界格外美好：<strong>Brenier 定理</strong>说最优映射是凸函数的梯度（高维的"单调重排"）；<span class="arithmatex">\(W_2\)</span> 让概率分布全体成为一个<strong>几何空间</strong>——有距离、有测地线、有重心，"分布的插值与平均"从此有正确定义。</p>
+平方成本 <span class="arithmatex">\(c = \|x-y\|^2\)</span> 的世界格外美好：在源测度绝对连续等条件下，<strong>Brenier 定理</strong>说最优映射是凸函数的梯度（高维的"单调重排"）；<span class="arithmatex">\(W_2\)</span> 让概率分布全体成为一个<strong>几何空间</strong>——有距离、有测地线、有重心，"分布的插值与平均"从此有正确定义。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="wasserstein-learning-title" class="learning-layer">
+<h2 id="wasserstein-learning-title">学习层：先让分位数走，再谈分布的测地线<a class="headerlink" href="#wasserstein-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：同一批质量，究竟走哪一条“直线”？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取两个一维离散分布</p>
+<div class="arithmatex">\[
+\mu_0=\delta_0,\qquad
+\mu_1=0.35\,\delta_{-2}+0.65\,\delta_{2}.
+\]</div>
+<p>先不看公式，写下三个预测：</p>
+<ul>
+<li>若把 <span class="arithmatex">\(\mu_0\)</span> 的质量允许拆分，最优耦合会有几条正质量边？它们各自承载多少质量？</li>
+<li><span class="arithmatex">\(t=\frac12\)</span> 时，McCann 位移插值会出现一个原子还是两个原子？混合插值 <span class="arithmatex">\((1-t)\mu_0+t\mu_1\)</span> 呢？</li>
+<li>若 <span class="arithmatex">\(D=W_2(\mu_0,\mu_1)\)</span>，你预计 <span class="arithmatex">\(W_2(\mu_0,\mu_t)=tD\)</span> 与 <span class="arithmatex">\(W_2(\mu_t,\mu_1)=(1-t)D\)</span> 是否成立？</li>
+</ul>
+<p>把答案先写成可检验的数值：这里 <span class="arithmatex">\(D=\sqrt{0.35\cdot 2^2+0.65\cdot 2^2}=2\)</span>；位移插值在 <span class="arithmatex">\(t=\frac12\)</span> 的位置应为 <span class="arithmatex">\(-1\)</span>、<span class="arithmatex">\(1\)</span>，质量为 <span class="arithmatex">\(0.35\)</span>、<span class="arithmatex">\(0.65\)</span>，而混合插值仍保留 <span class="arithmatex">\(0\)</span>、<span class="arithmatex">\(-2\)</span>、<span class="arithmatex">\(2\)</span> 三个位置。打开实验后只核对预测，不把动画直觉当作证明。</p>
+<h3 id="2">2. 透明的一维离散模型：共同分位数就是耦合<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>把每个原子 <span class="arithmatex">\((x_i,a_i)\)</span> 按位置排序，令</p>
+<div class="arithmatex">\[
+I_i=[A_{i-1},A_i),\qquad A_i=\sum_{k\le i}a_k,
+\]</div>
+<p>则分位数函数 <span class="arithmatex">\(Q_\mu(u)=x_i\)</span>（<span class="arithmatex">\(u\in I_i\)</span>）。对 <span class="arithmatex">\(\mu_0\)</span> 与 <span class="arithmatex">\(\mu_1\)</span> 使用同一个 <span class="arithmatex">\(u\in[0,1]\)</span>，得到耦合</p>
+<div class="arithmatex">\[
+\pi_Q=(Q_{\mu_0},Q_{\mu_1})_\#\mathrm{Unif}[0,1],
+\qquad
+W_2^2(\mu_0,\mu_1)=\int_0^1|Q_{\mu_0}(u)-Q_{\mu_1}(u)|^2\,du.
+\]</div>
+<p>有限表中，每个两个区间的重叠长度就是一条运输边的质量：</p>
+<div class="arithmatex">\[
+\pi_{ij}=|I_i\cap J_j|.
+\]</div>
+<p>例如上面的 <span class="arithmatex">\(I=[0,1)\)</span>、<span class="arithmatex">\(J_1=[0,0.35)\)</span>、<span class="arithmatex">\(J_2=[0.35,1)\)</span>，所以
+<span class="arithmatex">\(\pi_{1,1}=0.35\)</span>、<span class="arithmatex">\(\pi_{1,2}=0.65\)</span>。这不是抽样近似，也不是把质量偷偷复制；它正好满足行和列边缘。若多个源区间落入同一个目标区间，就是质量汇合；一个源区间与多个目标区间相交，就是质量拆分。</p>
+<p>在这个耦合上定义</p>
+<div class="arithmatex">\[
+X_t=(1-t)Q_{\mu_0}(U)+tQ_{\mu_1}(U),
+\qquad \mu_t=\mathcal L(X_t).
+\]</div>
+<p>每个 <span class="arithmatex">\(u\)</span> 的速度 <span class="arithmatex">\(Q_{\mu_1}(u)-Q_{\mu_0}(u)\)</span> 不随 <span class="arithmatex">\(t\)</span> 变化，且</p>
+<div class="arithmatex">\[
+W_2(\mu_s,\mu_t)=|t-s|W_2(\mu_0,\mu_1).
+\]</div>
+<p>这条等式解释“匀速”：它是耦合下的二次平均速度恒定，不是说每个时刻的密度都光滑，也不是说原子会自动变成密度。</p>
+<h3 id="3-wasserstein">3. 形式化：从离散耦合到 Wasserstein 测地线<a class="headerlink" href="#3-wasserstein" title="Permanent link"></a></h3>
+<p>记</p>
+<div class="arithmatex">\[
+\mathcal P_2(\mathbb R^d)=\left\{\mu:\int\|x\|^2\,d\mu(x)&lt;\infty\right\},
+\]</div>
+<p>并定义</p>
+<div class="arithmatex">\[
+W_2^2(\mu,\nu)=\inf_{\pi\in\Pi(\mu,\nu)}
+\int\|x-y\|^2\,d\pi(x,y).
+\]</div>
+<p>若 <span class="arithmatex">\(\pi^*\)</span> 是任一最优耦合，则</p>
+<div class="arithmatex">\[
+\mu_t=((1-t)x+ty)_\#\pi^*,\qquad 0\le t\le1,
+\]</div>
+<p>是一条 <span class="arithmatex">\(W_2\)</span> 测地线，并满足上面的匀速恒等式。<strong>只有在确实存在最优映射 <span class="arithmatex">\(T\)</span> 时</strong>，才可把它写成 <span class="arithmatex">\(\mu_t=((1-t)\mathrm{id}+tT)_\#\mu_0\)</span>。一维凸成本时共同分位数给出这条最优耦合；高维一般不能把“排序”或 Brenier map 当作无条件存在的黑箱。</p>
+<p>线性混合</p>
+<div class="arithmatex">\[
+\widetilde\mu_t=(1-t)\mu_0+t\mu_1
+\]</div>
+<p>是在<strong>概率测度的向量空间</strong>里取平均，而不是沿 <span class="arithmatex">\(W_2\)</span> 的最短路。它保留两个端点的质量标签，因此会产生“淡入淡出”的鬼影；位移插值保留的是耦合粒子的运动。</p>
+<h3 id="4">4. 边界清单：四个容易说错的句子<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>情形</th>
+<th>正确读法</th>
+<th>实验中的检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>质量拆分</td>
+<td>原子分布通常没有把每个源原子整体送往一个目标原子的 Monge 映射；Kantorovich 耦合仍然存在</td>
+<td>看共同分位数区间的重叠表</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t=0,1\)</span></td>
+<td><span class="arithmatex">\(\mu_0\)</span>、<span class="arithmatex">\(\mu_1\)</span> 必须原样恢复；不能因合并同位置原子而丢质量</td>
+<td>端点按钮与质量和</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mu_0=\mu_1\)</span></td>
+<td><span class="arithmatex">\(W_2=0\)</span>，最短路是常值；速度公式不应除以 <span class="arithmatex">\(W_2\)</span></td>
+<td>“相同分布”预设</td>
+</tr>
+<tr>
+<td>原子边界</td>
+<td><span class="arithmatex">\(Q_\mu\)</span> 是阶梯函数，<span class="arithmatex">\(\mu_t\)</span> 可有原子、拆分和汇合；这不违反测地线定义</td>
+<td>“原子边界”预设</td>
+</tr>
+</tbody>
+</table>
+<p>此外，<span class="arithmatex">\(W_2\)</span> 的唯一性也要分层说：最优耦合可能不唯一；若 <span class="arithmatex">\(\mu_0\)</span> 绝对连续且成本为平方欧氏距离，Brenier 定理给出 <span class="arithmatex">\(\mu_0\)</span>-几乎处处唯一的最优映射，因此由它生成的位移路径唯一。没有绝对连续性时，不应声称“高维总有一个 Brenier map”。</p>
+<h3 id="5">5. 互动实验：把三种账本放在同一屏<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>实验使用原生 JS/SVG，不抽样、不依赖外部库；滑块、按钮和选择框均保留触控尺寸，窄屏时控件与指标会响应式收束。可选五个确定性预设：</p>
+<ol>
+<li><strong>质量拆分</strong>：一处供给分到两处需求，直接看出映射与耦合的区别；</li>
+<li><strong>平移三峰</strong>：所有共同分位数位移相同，位移路径是形状平移；</li>
+<li><strong>质量汇合</strong>：多个源原子抵达同一目标原子；</li>
+<li><strong>相同分布</strong>：<span class="arithmatex">\(W_2=0\)</span> 的退化边界；</li>
+<li><strong>原子边界</strong>：不等权原子同时拆分与汇合。</li>
+</ol>
+<div class="learning-lab" data-learning-lab="wasserstein-geodesic">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 对“质量拆分”预设，分位数区间为
+<span class="arithmatex">\(I_0=[0,1)\)</span>、<span class="arithmatex">\(J_1=[0,0.35)\)</span>、<span class="arithmatex">\(J_2=[0.35,1)\)</span>，所以耦合质量为
+<span class="arithmatex">\(\pi_{0,1}=0.35\)</span>、<span class="arithmatex">\(\pi_{0,2}=0.65\)</span>。在 <span class="arithmatex">\(t=1/2\)</span> 时，位移原子为
+<span class="arithmatex">\(-1\)</span>（质量 <span class="arithmatex">\(0.35\)</span>）与 <span class="arithmatex">\(1\)</span>（质量 <span class="arithmatex">\(0.65\)</span>）；混合插值保留
+<span class="arithmatex">\(0,-2,2\)</span> 三个位置，质量分别为 <span class="arithmatex">\(0.5,0.175,0.325\)</span>。</p>
+</div>
+<p>画面上方是分位数/粒子耦合：蓝色为源、橙色为目标、绿色为当前位移位置，线宽和点半径编码质量；下方并列显示 McCann 位移与混合插值。指标同时报告 <span class="arithmatex">\(W_2(\mu_0,\mu_1)\)</span>、两段测地线距离、匀速检查，以及混合路径的两端距离。静态 fallback 是：逐个重叠 <span class="arithmatex">\(I_i\cap J_j\)</span>，把长度填进 <span class="arithmatex">\(\pi_{ij}\)</span>，再用 <span class="arithmatex">\(z_t=(1-t)x_i+ty_j\)</span>；总质量恒为 <span class="arithmatex">\(1\)</span>，并检查 <span class="arithmatex">\(\sum\pi_{ij}(y_j-x_i)^2\)</span>。</p>
+<h3 id="6">6. 迁移题：把一维直觉带到高维，但不要越界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>给出两个二维离散分布，先写一个耦合，再问它是否最优。哪些交换边会降低平方成本？若有多个最优耦合，生成的测地线是否可能不同？</li>
+<li>令 <span class="arithmatex">\(\mu_0\)</span> 有密度、<span class="arithmatex">\(\mu_1\)</span> 是有限原子分布。Brenier 映射在哪个方向成立？为什么“目标有原子”本身不妨碍从绝对连续源出发的映射，但反过来从一个原子源出发通常无法映到两个不同目标位置？</li>
+<li>对任意耦合 <span class="arithmatex">\(\pi\)</span> 定义 <span class="arithmatex">\(\mu_t^\pi=((1-t)x+ty)_\#\pi\)</span>，令 <span class="arithmatex">\(C(\pi)=\int\|x-y\|^2\,d\pi\)</span>。用同一耦合证明
+  <span class="arithmatex">\(W_2(\mu_s^\pi,\mu_t^\pi)\le |s-t|\sqrt{C(\pi)}\)</span>，从而曲线长度至多为 <span class="arithmatex">\(\sqrt{C(\pi)}\)</span>；另一方面任何连接曲线的长度都至少是端点距离 <span class="arithmatex">\(W_2(\mu_0,\mu_1)\)</span>。若这里的耦合取最优值 <span class="arithmatex">\(C(\pi)=W_2^2(\mu_0,\mu_1)\)</span>，两界夹出常速测地线；不要把任意耦合都称为测地线。</li>
+<li>把平方成本换成 <span class="arithmatex">\(W_p\)</span> 或换成一般代价后，哪些步骤仍然是耦合的推前，哪些步骤依赖一维分位数排序或二次欧氏结构？</li>
+</ul>
+</section>
 <h2 id="1-brenier">1. Brenier 定理<a class="headerlink" href="#1-brenier" title="Permanent link"></a></h2>
-<p><strong>定理（Brenier 1987）</strong> <span class="arithmatex">\(\mu\)</span> 绝对连续（有密度），<span class="arithmatex">\(c = \frac12\|x - y\|^2\)</span>：存在唯一最优传输映射，且它是某凸函数的梯度：</p>
+<p><strong>定理（Brenier 1987）</strong> 设 <span class="arithmatex">\(\mu,\nu\in\mathcal P_2(\mathbb R^d)\)</span>，且 <span class="arithmatex">\(\mu\)</span> 对 Lebesgue 测度绝对连续；对成本 <span class="arithmatex">\(c(x,y)=\frac12\|x-y\|^2\)</span>，存在 <span class="arithmatex">\(\mu\)</span>-几乎处处定义的唯一最优传输映射，且它是某凸函数的梯度：</p>
 <div class="arithmatex">\[
 T = \nabla\phi, \qquad \phi \text{ 凸}, \quad (\nabla\phi)_\#\mu = \nu
 \]</div>
 <p><strong>【骨架】</strong> 对偶（ot-01）的最优 <span class="arithmatex">\(\varphi\)</span> 做 c-变换：平方成本下 <span class="arithmatex">\(c\)</span>-凹性 ⟺ <span class="arithmatex">\(\phi(x) = \frac{\|x\|^2}{2} - \varphi(x)\)</span> <strong>凸</strong>（Legendre 语言，cvx-01）；对偶取等条件（Fenchel–Young！）逼出 <span class="arithmatex">\(y \in \partial\phi(x)\)</span>；<span class="arithmatex">\(\mu\)</span> 绝对连续时凸函数 a.e. 可微（凸分析【引用 Rademacher/Alexandrov】）⇒ <span class="arithmatex">\(\partial\phi\)</span> a.e. 单点 = <span class="arithmatex">\(\nabla\phi\)</span>：计划集中在映射图上——Kantorovich 解自动是 Monge 解。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：<strong>"凸函数的梯度"= 一维单调映射的高维正名</strong>（一维凸函数导数单调增——ot-01 §3 的单调重排恰是特例）；唯一性与结构一步到位。<strong>Monge–Ampère 方程</strong>：<span class="arithmatex">\(T_\#\mu = \nu\)</span> 的换元写开是 <span class="arithmatex">\(\det(\nabla^2\phi)\,\rho_\nu(\nabla\phi) = \rho_\mu\)</span>——完全非线性 PDE（正则性理论 = Caffarelli 的名作【引用】）：OT 与 PDE 的深水接口，知其坐标即可。</p>
+<p><strong>读法</strong>：<strong>"凸函数的梯度"= 一维单调映射的高维正名</strong>（一维凸函数导数单调增——ot-01 §3 的单调重排恰是特例）；唯一性与结构一步到位。这里的绝对连续性是源测度的条件，不是“所有高维分布都有 Brenier map”。在密度足够正规、映射可用经典 Hessian 表示时，<span class="arithmatex">\(T_\#\mu=\nu\)</span> 的换元写开是
+<span class="arithmatex">\(\det(\nabla^2\phi(x))\,\rho_\nu(\nabla\phi(x))=\rho_\mu(x)\)</span>；一般情形要用 Aleksandrov/弱解语言，不能跳过正则性假设。它是完全非线性 PDE（正则性理论 = Caffarelli 的名作【引用】）：OT 与 PDE 的深水接口，知其坐标即可。</p>
 <h2 id="2-wasserstein">2. Wasserstein 空间的几何<a class="headerlink" href="#2-wasserstein" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Wasserstein 位移插值" src="assets/img/ot-02-wasserstein-interp.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>Wasserstein 测地线：两个分布间的"位移插值"——质量沿最优传输路径平滑搬运，是生成模型插值的几何。</figcaption>
 </figure>
 <p><span class="arithmatex">\(W_2\)</span> 是（二阶矩有限的）概率分布空间上的<strong>度量</strong>（三角不等式经"粘合引理"耦合拼接【骨架】）；且<strong>度量化弱收敛</strong>：<span class="arithmatex">\(W_2(\mu_n, \mu) \to 0 \iff \mu_n \xrightarrow{d} \mu\)</span> + 二阶矩收敛【引用】——比 KL 温柔得多的拓扑（as-01 依分布收敛的度量化——统计与 OT 的接口）。</p>
-<p><strong>测地线（McCann 插值）</strong>：两分布间的"最短路径"</p>
+<p><strong>测地线（McCann 插值）</strong>：取任一最优耦合 <span class="arithmatex">\(\pi^*\in\Pi(\mu_0,\mu_1)\)</span>，两分布间的"最短路径"为</p>
 <div class="arithmatex">\[
-\mu_t = \big((1-t)\,\mathrm{id} + t\,T\big)_\#\mu_0
+\mu_t = \big((1-t)x+ty\big)_\#\pi^*
 \]</div>
-<p>——<strong>沿最优映射匀速搬运</strong>：粒子各自直线行进。对比线性插值 <span class="arithmatex">\((1-t)\mu_0 + t\mu_1\)</span>（两座山峰此消彼长——"鬼影"）：McCann 插值是<strong>山峰平移</strong>——形状在移动而非淡入淡出。"分布的正确动画"：形状插值、风格渐变、领域自适应的几何依据。</p>
+<p>若最优映射 <span class="arithmatex">\(T\)</span> 存在，上式才可化为 <span class="arithmatex">\(\big((1-t)\mathrm{id}+tT\big)_\#\mu_0\)</span>。——<strong>沿最优耦合的直线轨迹匀速搬运</strong>：粒子各自直线行进，且 <span class="arithmatex">\(W_2(\mu_s,\mu_t)=|s-t|W_2(\mu_0,\mu_1)\)</span>。对比线性插值 <span class="arithmatex">\((1-t)\mu_0 + t\mu_1\)</span>（两座山峰此消彼长——"鬼影"）：McCann 插值是<strong>质量沿耦合移动</strong>，但原子情形不保证每个中间时刻仍是单峰。"分布的正确动画"：形状插值、风格渐变、领域自适应的几何依据。</p>
 <p><strong>Wasserstein 重心</strong>：<span class="arithmatex">\(\min_\nu \sum\lambda_iW_2^2(\mu_i, \nu)\)</span>——多个分布的"Fréchet 均值"：平均多张直方图/形状时保持形态（算术平均则糊成多峰）。</p>
 <p><strong>Otto 微积分一瞥【引用】</strong>：<span class="arithmatex">\(W_2\)</span> 空间可视为无穷维黎曼流形（mfld 线预告），其上<strong>热方程 = 熵泛函的梯度流</strong>（JKO 格式）——"扩散 = 分布空间里的最速下降"：Fokker–Planck（sc-02）、Langevin 采样、扩散模型的又一层几何解读；分数阶推广与函数不等式（log-Sobolev）住在这条街【引用 Villani】。</p>
 <h2 id="3">3. 统计与计算的现实<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>经验分布的收敛速率（维数灾难）【引用 Dudley/Fournier–Guillin】</strong>：<span class="arithmatex">\(E\,W_2(\hat\mu_n, \mu) \asymp n^{-1/d}\)</span>（<span class="arithmatex">\(d &gt; 4\)</span>）——<strong>高维下 OT 的样本代价指数级</strong>（对比 KL 基于密度估计的困难：各有各的灾难）；工程对策：切片 OT（随机一维投影平均——一维可排序！ot-01 §3 的复用）、投影/低维结构假设、或熵正则化（下一页 Sinkhorn 的统计红利之一）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（Brenier 显式解：高斯对高斯）</strong> <span class="arithmatex">\(\mu = N(m_1, \Sigma_1) \to \nu = N(m_2, \Sigma_2)\)</span>：最优映射线性 <span class="arithmatex">\(T(x) = m_2 + A(x - m_1)\)</span>，<span class="arithmatex">\(A = \Sigma_1^{-1/2}\big(\Sigma_1^{1/2}\Sigma_2\Sigma_1^{1/2}\big)^{1/2}\Sigma_1^{-1/2}\)</span>（验证 <span class="arithmatex">\(A\)</span> 对称正定 ⇒ 是凸函数 <span class="arithmatex">\(\frac12x^\top Ax + \cdots\)</span> 的梯度 ✓），且</p>
+<p><strong>经验分布的收敛速率（维数灾难，条件性结论）【引用 Dudley/Fournier–Guillin】</strong>：在指定的 <span class="arithmatex">\(W_2\)</span> 风险口径、足够的矩/尾部控制与相应正则条件下，<span class="arithmatex">\(d&gt;4\)</span> 时常见的误差量级可写作
+<span class="arithmatex">\(E\,W_2(\hat\mu_n, \mu)\lesssim n^{-1/d}\)</span>；精确的上下界还依赖 <span class="arithmatex">\(p\)</span>、维数、尾部、分布结构以及是否带对数因子，不能把这个幂率当成无条件的普遍等式。它说明高维下 OT 的样本复杂度会明显恶化（对比 KL 基于密度估计的困难：各有各的灾难）；工程对策：切片 OT（随机一维投影平均——一维可排序！ot-01 §3 的复用）、投影/低维结构假设、或熵正则化（下一页 Sinkhorn 的统计红利之一）。</p>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（Brenier 显式解：高斯对高斯）</strong> <span class="arithmatex">\(\mu = N(m_1, \Sigma_1) \to \nu = N(m_2, \Sigma_2)\)</span>；当协方差正定时，最优映射线性 <span class="arithmatex">\(T(x) = m_2 + A(x - m_1)\)</span>，<span class="arithmatex">\(A = \Sigma_1^{-1/2}\big(\Sigma_1^{1/2}\Sigma_2\Sigma_1^{1/2}\big)^{1/2}\Sigma_1^{-1/2}\)</span>（验证 <span class="arithmatex">\(A\)</span> 对称正定 ⇒ 是凸函数 <span class="arithmatex">\(\frac12x^\top Ax + \cdots\)</span> 的梯度 ✓），且</p>
 <div class="arithmatex">\[
 W_2^2 = \|m_1 - m_2\|^2 + \mathrm{tr}\big(\Sigma_1 + \Sigma_2 - 2(\Sigma_1^{1/2}\Sigma_2\Sigma_1^{1/2})^{1/2}\big)
 \]</div>
-<p>——<strong>Bures 度量</strong>：唯一有闭式的高维情形（矩阵分析 II 的矩阵平方根在此营业）；FID（生成图像的标准评测指标！）就是特征空间上的这个公式——<strong>你每次看到 FID 分数都在用本例</strong>。</p>
+<p>——这是<strong>高斯族</strong>上的 Bures/Wasserstein 闭式，并非一般高维分布唯一可闭式计算的情形；退化协方差需要用广义平方根或极限处理。FID 在指定的特征空间里，把样本均值与协方差代入这个 Gaussian Fréchet/Bures 公式，是对特征分布的二阶 Gaussian 近似；它忽略高阶结构，也有有限样本估计偏差，因此不能等同于原始特征分布的真实 <span class="arithmatex">\(W_2\)</span>。</p>
 <p><strong>例 2（McCann vs 线性插值）</strong> <span class="arithmatex">\(\mu_0 = \delta_0, \mu_1 = \delta_1\)</span>：McCann 给 <span class="arithmatex">\(\delta_t\)</span>（点在走）；线性给 <span class="arithmatex">\((1-t)\delta_0 + t\delta_1\)</span>（两点闪烁）——最小例子把"平移 vs 鬼影"看穿。</p>
-<p><strong>例 3（重心的体感）</strong> 两个单峰直方图（峰在 0 与 10）：算术平均 = 双峰；<span class="arithmatex">\(W_2\)</span> 重心 = 峰在 5 的单峰——<strong>"平均形状"与"形状的平均"之别</strong>；多受试者脑图谱、字体平均、气候情景合成选后者的理由。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（重心的体感）</strong> 两个<strong>相同形状、仅作平移</strong>的单峰直方图（峰在 0 与 10）：算术平均 = 双峰；<span class="arithmatex">\(W_2\)</span> 重心 = 峰在 5 的单峰——<strong>"平均形状"与"形状的平均"之别</strong>。对任意单峰直方图不能无条件推出重心仍单峰；这里的结论依赖共同形状的平移结构。多受试者脑图谱、字体平均、气候情景合成选后者的理由。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：把 OT 算出来——熵正则化与 Sinkhorn 算法（收敛性证明）、切片 OT，以及生成模型对账（WGAN 与流匹配），最优传输收官。</em></p>
 </article>
@@ -90,5 +235,7 @@ W_2^2 = \|m_1 - m_2\|^2 + \mathrm{tr}\big(\Sigma_1 + \Sigma_2 - 2(\Sigma_1^{1/2}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/wasserstein-geodesic.js"></script>
 </body>
 </html>

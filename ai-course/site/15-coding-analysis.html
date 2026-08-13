@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -29,7 +40,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-08-13 16:33</div>
   </div>
 </nav>
 <main id="content">
@@ -38,8 +49,8 @@
 <ul>
 <li><a href="#1">1. 三个层次，三种用法</a></li>
 <li><a href="#2-l1">2. L1 日常辅助：问得好，答得准</a></li>
-<li><a href="#3-l2l3-vibe-coding">3. L2/L3 智能体开发：vibe coding 的正确姿势</a></li>
-<li><a href="#4-csv">4. 自动数据分析：从 CSV 到报告</a></li>
+<li><a href="#3-l2l3">3. L2/L3 智能体开发：把验收写进循环</a></li>
+<li><a href="#4-csv">4. 自动数据分析：从 CSV 到可复跑报告</a></li>
 <li><a href="#5">5. 常见问题速答</a></li>
 <li><a href="#_1">本讲小结</a></li>
 </ul>
@@ -47,8 +58,78 @@
 </details>
 <h1 id="15">第 15 讲 · 实战：写代码与数据分析<a class="headerlink" href="#15" title="Permanent link"></a></h1>
 <blockquote>
-<p>写代码是 LLM 目前最强、验证最闭环的应用场景（第 09 讲：测试提供客观信号）。本讲给出三个层次的工作流——日常辅助、整项目开发、自动数据分析——以及"代码经验少"的使用者最该守住的一条底线：<strong>理解权不外包</strong>。</p>
+<p>写代码适合与 AI 协作，因为输入、输出和测试可以落成可执行契约；数据分析却多了一层风险：代码可能成功运行，同时悄悄改变了记录集合、join 粒度、缺失处理或分母。这里的重点不是让模型代做真实分析，而是学会把每一个结论还原成一条可检查的溯源链。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：先审计“数据变成了什么”，再相信指标</h2>
+
+<div class="learning-puzzle">
+<h3>谜题：同一批订单，为什么“north 合格率”会变？</h3>
+<p>下面的 toy 账本有 6 条订单和一张客户维表。目标指标暂定为：</p>
+<div class="arithmatex">\[\text{north 合格率}=\frac{\text{north 且 qualified 的订单数}}{\text{north 订单数}}\]</div>
+<p>请先预测，再打开实验：如果客户维表出现重复键、少一个键，或在计算前先筛掉不合格记录，naive 结果会怎样？这些数字是为了暴露机制而构造的确定性练习，不是任何真实业务的结论。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小溯源账本：原始记录 → 变换 → 指标</h3>
+<table>
+<thead><tr><th>order_id</th><th>customer_id</th><th>region</th><th>qualified</th><th>amount</th></tr></thead>
+<tbody>
+<tr><td>o1</td><td>c1</td><td>north</td><td>是</td><td>10</td></tr>
+<tr><td>o2</td><td>c2</td><td>south</td><td>是</td><td>20</td></tr>
+<tr><td>o3</td><td>c3</td><td>north</td><td>否</td><td>30</td></tr>
+<tr><td>o4</td><td>c4</td><td>south</td><td>是</td><td>40</td></tr>
+<tr><td>o5</td><td>c5</td><td>north</td><td>是</td><td>50</td></tr>
+<tr><td>o6</td><td>c6</td><td>south</td><td>是</td><td>60</td></tr>
+</tbody>
+</table>
+<p>正确基线中，<code>north</code> 的分子是 o1、o5 共 2 条，分母是 o1、o3、o5 共 3 条，因此是 <strong>2/3</strong>。注意：join 不是指标；它是会改变行集合的变换，必须把输入行数、输出行数和被丢弃/复制的键写出来。</p>
+</div>
+
+<div class="learning-formal">
+<h3>四个护栏：让静默错误变成可见状态</h3>
+<ol>
+<li><strong>validate join：</strong>如果业务语义是一条订单对应一条客户记录，先断言维表 <code>customer_id</code> 唯一。重复键不是“多一点数据”，而是 join 粒度改变。</li>
+<li><strong>行数检查：</strong>若这是保留全部订单的 enrichment，join 后应有 6 行；少于 6 行提示缺失/inner join，超过 6 行提示一对多膨胀。</li>
+<li><strong>缺失报告：</strong>列出未匹配的键与受影响的源行。inner join 的默认行为可能只是返回一个看起来很整齐的子集。</li>
+<li><strong>分母声明：</strong>报告“2/3”时同时写分子、分母和筛选顺序；“先筛 qualified 再算合格率”会把分母改成 2，变成 2/2，这回答的是另一个问题。</li>
+</ol>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：预测 → 逐步护栏 → 对比结果</h3>
+<div class="learning-lab" data-learning-lab="data-provenance" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认基线为 2/3。切换四个预设，记录 join 前后行数，再手算 north 的分子/分母；点击“启用下一项护栏”逐项打开 4 个护栏，重复键会被阻断，缺失键会被报告，分母口径差异会显式显示。点击“去重后重跑”只是在教学上修复重复维表键，真实项目仍应回到来源修复并保留修改记录。</p>
+<table>
+<thead><tr><th>预设</th><th>故障点</th><th>naive 观察</th><th>审计动作</th></tr></thead>
+<tbody>
+<tr><td>正确基线</td><td>无</td><td>6 → 6；2/3</td><td>四项护栏通过</td></tr>
+<tr><td>重复键</td><td>c5 出现两次</td><td>6 → 7；3/4</td><td>validate join 阻断，再修复键</td></tr>
+<tr><td>缺失</td><td>c6 不在维表</td><td>6 → 5；south 行被丢</td><td>报告 c6 与 dropped row</td></tr>
+<tr><td>分母变化</td><td>先筛 qualified</td><td>2/2，不是全量问题的 2/3</td><td>声明全量或筛选后口径</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="learning-boundary">
+<h3>如何读 naive 与 audited result</h3>
+<ul>
+<li><strong>naive result</strong> 是“代码顺利跑完后直接报出的数”，不等于它错误，也不等于它有业务含义；先问它使用了哪一组行、哪一个分母。</li>
+<li><strong>audited result</strong> 不是“更漂亮的数字”，而是带有 join 约束、行数、缺失清单与分母声明的结果。若护栏失败，最诚实的 audited result 可能是“阻断，暂不下结论”。</li>
+<li>重复行、缺失值和分母变化会改变结论的算术对象；它们不需要复杂模型，也不需要真实数据才能被发现。小型确定性表适合做第一道验收测试。</li>
+</ul>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移到真实分析：让 AI 交付证据链</h3>
+<p>让 AI 写分析代码时，不只要求“给我一个百分比”，而是要求它交付：源表行数与键约束、每一步变换的行数、缺失报告、分子/分母和筛选顺序、关键中间表的抽样行，以及可独立运行的断言。你仍要抽查原始记录和中间结果；本实验只训练审计习惯，不替代领域定义、数据治理或因果设计。</p>
+<p>推荐的最小提示词是：“先列出数据契约和指标分母；每次 join 后报告行数、重复键、未匹配键；再给 naive 与 audited 两条结果；任何护栏失败就停在警告，不要静默修复。”</p>
+</div>
+</section>
+
 <h2 id="1">1. 三个层次，三种用法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -66,7 +147,7 @@
 </tr>
 <tr>
 <td>L2 任务级</td>
-<td>编程智能体（Claude Code 等）</td>
+<td>编程智能体</td>
 <td>提需求、做验收的人</td>
 </tr>
 <tr>
@@ -78,58 +159,44 @@
 </table>
 <h2 id="2-l1">2. L1 日常辅助：问得好，答得准<a class="headerlink" href="#2-l1" title="Permanent link"></a></h2>
 <ul>
-<li><strong>写小函数</strong>：给足输入输出契约——"写一个 Python 函数：输入 DataFrame 和列名，返回该列的异常值行（IQR 法），保留原索引，处理空列的边界情况，附 3 个测试用例"。契约越完整，返工越少（第 14 讲技巧 1 的代码版）；</li>
-<li><strong>看不懂的代码</strong>："逐块解释这段代码，重点说明[正则/这个 groupby 链]在做什么，然后指出可能的坑"；</li>
-<li><strong>报错求医</strong>：贴<strong>完整的报错栈</strong> + 相关代码 + "我已经试过 X"。只贴最后一行错误信息等于让医生隔着门诊病；</li>
-<li><strong>翻译</strong>：跨语言迁移（"把这段 MATLAB 改写成 numpy，保持数值行为一致"）是它的舒适区。</li>
+<li><strong>写小函数</strong>：给足输入输出契约，并要求边界测试、失败模式和不变量；例如指定保留索引、空列行为和测试用例。</li>
+<li><strong>看不懂的代码</strong>：逐块解释数据流，要求指出隐式类型转换、对齐规则、异常处理和可能改变行集合的操作。</li>
+<li><strong>报错求医</strong>：贴完整报错栈、相关代码和已尝试步骤；修复后要求复现原错误并跑回归测试。</li>
+<li><strong>翻译</strong>：跨语言迁移是常见的辅助场景，但仍需核对库版本、数值行为和边界条件。</li>
 </ul>
-<h2 id="3-l2l3-vibe-coding">3. L2/L3 智能体开发：vibe coding 的正确姿势<a class="headerlink" href="#3-l2l3-vibe-coding" title="Permanent link"></a></h2>
-<p>用编程智能体（第 11 讲已装好）从零做一个工具的标准循环：</p>
-<p><strong>1. 先谈需求再动工</strong>。第一条消息别说"帮我写个记账程序"，说：</p>
-<div class="highlight"><pre><span></span><code>我想做一个命令行记账工具，Python。需求：
-- 记一笔：金额、分类、备注、日期（默认今天），存本地 CSV
-- 查询：按月汇总、按分类汇总
-- 我是初学者，代码请保持简单直白，不要过度设计
-先给我：文件结构 + 数据格式 + 你打算怎么拆步骤。我确认后再写代码。
+<h2 id="3-l2l3">3. L2/L3 智能体开发：把验收写进循环<a class="headerlink" href="#3-l2l3" title="Permanent link"></a></h2>
+<p>用编程智能体从零做一个工具时，先让它给出需求拆解、数据格式和验证计划，再逐步实现。每一步都运行主流程和边界测试；尤其对数据任务，先固定样本、键约束、筛选口径和期望计数，再扩大数据规模。若一口气改动多个模块，出了问题会更难定位，因此要把变更切成可回看的小步。</p>
+<p>一个可复用的请求模板：</p>
+<div class="highlight"><pre><span></span><code>先给我数据契约、变换图和验收断言，不要直接下结论。
+每次 join 报告：左/右行数、键唯一性、匹配/未匹配计数、输出行数。
+指标必须同时输出 numerator、denominator、筛选顺序与审计备注。
+先用固定小样本跑通，再扩展；任何断言失败就停下来说明原因。
 </code></pre></div>
-<p>"先方案后代码"这一步能拦下 80% 的方向性返工（第 14 讲技巧 6、7 的合体）。</p>
-<p><strong>2. 小步走，步步验</strong>。让它一次实现一个功能，你跑一下、看一眼再继续。智能体一口气改十个文件的模式，出错时你将无从审起。</p>
-<p><strong>3. 报错直接回喂</strong>。跑出错就把报错原样贴回去——"看报错→改→再跑"这个循环它自己能转（第 08 讲循环工程），你只需在方向跑偏时踩刹车。</p>
-<p><strong>4. 验收要动真格</strong>。它说"完成了"不算完成（第 08 讲：不让模型自己宣布成功）：亲手跑主流程、试边界输入（空文件、负数、中文路径）、让它"写一组测试并跑给我看"。</p>
-<p><strong>5. 收尾三连</strong>：让它写 README（怎么运行）、把过程中的设计决定记进注释、生成 <code>requirements.txt</code>。三个月后的你会感谢这一步。</p>
-<div class="admonition tip">
-<p class="admonition-title">给代码经验少的学习者</p>
-<p>vibe coding 的甜蜜陷阱：项目跑起来了，你却讲不出它为什么能跑。两条自救纪律：<strong>每个模块让 AI 逐块讲解，直到你能复述"这块为什么这么设计"</strong>；以及定期做"无 AI 挑战"——小改动自己动手写，写不动就说明理解已经悬空（第 12 讲依赖性自检的代码版）。你的目标是"借 AI 写出超出自己水平的代码，同时把自己的水平拉上去"，前半句人人会，后半句才是本课程的要求。</p>
-</div>
-<h2 id="4-csv">4. 自动数据分析：从 CSV 到报告<a class="headerlink" href="#4-csv" title="Permanent link"></a></h2>
-<p>数据分析是"智能体 + 代码执行"的天然场景，流程已经高度成熟：</p>
-<p><strong>标准工作流</strong>（聊天产品的代码解释器 / 编程智能体皆可）：</p>
+<p>代码经验少时，要求 AI 解释“这一步为什么不会复制/丢失记录”，并自己改一个小边界案例。能复述数据流与断言，才算理解了代码。</p>
+<h2 id="4-csv">4. 自动数据分析：从 CSV 到可复跑报告<a class="headerlink" href="#4-csv" title="Permanent link"></a></h2>
+<p>数据分析可以使用代码解释器或编程智能体，但“自动”只意味着减少机械操作，不意味着跳过定义与验收。推荐顺序是：</p>
 <ol>
-<li><strong>给数据 + 给背景</strong>：上传 CSV，说清每列含义、数据怎么来的、你关心什么问题——列名叫 <code>var3</code> 而你不解释，分析必然肤浅；</li>
-<li><strong>先探索后假设</strong>："先做探索性分析：形状、缺失、分布、异常值，输出你观察到的 5 个最值得追问的现象"——让它当侦探，别一上来就要结论；</li>
-<li><strong>追问与钻取</strong>：对有意思的现象连环追问（"按地区拆开看""控制价格后还成立吗"）；</li>
-<li><strong>产出</strong>：让它输出图 + 完整可复跑的脚本——<strong>脚本是交付物的一部分</strong>，保证分析可复现（科研场景这是硬要求）。</li>
+<li><strong>给数据与背景</strong>：说明字段含义、来源、时间范围、单位、主键和目标问题；</li>
+<li><strong>先探索后假设</strong>：先输出形状、缺失、重复键、分布和异常值，再提出可检验的问题；</li>
+<li><strong>逐步钻取</strong>：每次分组、过滤或 join 都保留行数与分母，避免只看最终图；</li>
+<li><strong>交付脚本与账本</strong>：报告图表、原始计数、指标公式、版本和可复跑脚本；</li>
+<li><strong>独立抽查</strong>：手算或用第二种工具核对关键数字，并检查静默丢行、重复膨胀和口径变化。</li>
 </ol>
-<p><strong>三条红线</strong>（第 13 讲红线三的展开）：</p>
-<ul>
-<li>统计方法要说理："为什么选这个检验？前提假设满足吗？"——不接受黑箱 p 值；</li>
-<li>关键数字抽查：随机挑两个汇总数字，用 Excel/手工透视核对——静默的数据对齐错误比崩溃可怕；</li>
-<li>相关不是因果：让它明确区分"数据显示相关"与"可以下因果结论"，并列出混杂因素。</li>
-</ul>
-<p><strong>动手</strong>：跑 <code>labs/lab10_auto_analysis.py</code>——一个微型"分析智能体"：你给它一个 CSV，它（通过 DeepSeek API）自主决定写什么分析代码、执行、解读结果再决定下一步。这是第 08/09 讲循环工程 + 本讲工作流的合体演示，也是课程实验的收官之作。</p>
+<p>统计方法要说明问题与前提，关键数字要能回到中间结果，相关关系不能自动升级为因果结论。真实数据还需要处理测量误差、抽样机制、隐私与访问权限；本讲的玩具实验只覆盖数据管线层面的第一道防线。</p>
+<p><strong>动手</strong>：先运行本讲的“数据分析溯源账本”，再把相同的断言格式移植到 <code>labs/lab10_auto_analysis.py</code> 的小样本流程中。它可以帮助你检查分析智能体的代码，但不应替你决定指标定义或研究结论。</p>
 <h2 id="5">5. 常见问题速答<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <ul>
-<li><strong>它写的代码风格老旧/用了废弃 API？</strong>——知识截止（第 14 讲坑 5）。给它贴最新文档片段，或明确指定版本："用 pandas 2.x 的写法"；</li>
-<li><strong>改 A 坏了 B？</strong>——上下文里没有 B 的信息。用智能体（它能读全项目）而非聊天框贴片段；重要项目上 git，每步可回滚（智能体时代 git 从"团队协作工具"变成了"个人后悔药"，务必用上）；</li>
-<li><strong>生成的代码越改越乱？</strong>——上下文腐烂（第 14 讲坑 3）。新开会话，只带上"当前代码 + 我要什么"重新开始；</li>
-<li><strong>什么时候不该用 AI 写？</strong>——安全敏感（鉴权、支付）、性能关键路径、你完全无法验证正确性的领域。这些地方要么自己写，要么找人审。</li>
+<li><strong>代码风格老旧或用了废弃 API？</strong> 给出项目实际版本和官方文档片段，再让它补一个最小回归测试。</li>
+<li><strong>改 A 坏了 B？</strong> 限定变更范围，先读取相关模块和测试，再逐步提交；重要项目保留可回滚版本。</li>
+<li><strong>生成的代码越改越乱？</strong> 新开会话，只带当前代码、契约、失败测试和明确的验收标准。</li>
+<li><strong>什么时候不该用 AI 写？</strong> 在安全敏感、性能关键、数据权限或你无法独立验证的地方，先缩小问题、找人工复核或暂停自动化。</li>
 </ul>
 <h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <ul>
-<li>三层用法各就各位：片段问聊天框，任务交智能体，项目当产品经理；</li>
-<li>智能体开发五步：先方案→小步走→回喂报错→动真格验收→收尾三连；</li>
-<li>数据分析四步：给背景→先探索→再钻取→交脚本；三条红线防静默错误；</li>
-<li>底线：理解权不外包——能复述设计原因，才算你的代码。</li>
+<li>写代码的闭环来自契约、断言和可复跑测试；</li>
+<li>数据分析的关键不是最终百分比，而是原始记录、变换步骤、分子/分母和缺失/重复状态；</li>
+<li>让 AI 同时交付 naive 与 audited result，护栏失败时允许阻断；</li>
+<li>理解权不外包：你必须能解释每个数字来自哪些行、经过哪些操作、回答哪个问题。</li>
 </ul>
 <hr />
 <p><em>下一讲从代码切到图像：文生图的原理（扩散模型，给你的数学背景加一点推导彩蛋）与实操（提示词结构、工具选择、版权边界）。</em></p>
@@ -142,5 +209,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/data-provenance.js"></script>
 </body>
 </html>
