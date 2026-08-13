@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +43,28 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 21:42</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：第二定律允许短暂“倒流”，概率要付多少代价？</a><ul>
+<li><a href="#fluctuation-learning-title">1. 具体谜题：平均向右的随机步，为什么仍会走出负熵轨迹？</a></li>
+<li><a href="#2">2. 先预测：负熵轨迹消失了吗？</a></li>
+<li><a href="#3">3. 最小模型：一条路径与其时间反演成对记账</a></li>
+<li><a href="#4">4. 动手验证：精确恒等式与抽样估计分开</a></li>
+<li><a href="#5">5. 误区与边界</a></li>
+<li><a href="#6-jarzynski-crooks">6. 回到 Jarzynski 与 Crooks：同一条路径比结构</a></li>
+<li><a href="#7">7. 迁移问题</a></li>
+</ul>
+</li>
 <li><a href="#1-langevin-fdt">1. Langevin 与涨落-耗散（FDT 第一课）</a></li>
 <li><a href="#2-kubo">2. 线性响应与 Kubo 公式</a></li>
 <li><a href="#3-jarzynski">3. 涨落定理与 Jarzynski 等式（现代突破）</a></li>
-<li><a href="#4">4. 收官对账：扩散模型（本站的隐藏主线闭环）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#4_1">4. 收官对账：扩散模型（本站的隐藏主线闭环）</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,6 +73,87 @@
 <p><strong>对标</strong>：Kubo 线性响应 / Sekimoto–Seifert 随机热力学入门 ｜ <strong>前置</strong>：sm-02、数学站 sde 线（Langevin/FP 已建）、信息论线
 平衡统计力学管"静态"；真实世界在流动、耗散、驱动。本页三级台阶：<strong>涨落-耗散定理</strong>（涨落与摩擦同源）、<strong>线性响应（Kubo）</strong>（响应 = 平衡涨落的回声）、<strong>涨落定理与 Jarzynski</strong>（把热力学第二定律升级为等式的现代突破）——终点连回扩散模型与信息热力学。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="fluctuation-learning-title" class="learning-layer">
+<h2 id="_1">学习层：第二定律允许短暂“倒流”，概率要付多少代价？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="fluctuation-learning-title">1. 具体谜题：平均向右的随机步，为什么仍会走出负熵轨迹？<a class="headerlink" href="#fluctuation-learning-title" title="Permanent link"></a></h3>
+<p>设每一步向右概率 <span class="arithmatex">\(p&gt;1/2\)</span>，向左概率 <span class="arithmatex">\(q=1-p\)</span>。多数长轨迹净向右，但某些轨迹仍会净向左。宏观第二定律说平均熵产生非负，并没有禁止每一条微观轨迹出现负值；涨落定理进一步给出正负轨迹的概率比。</p>
+<p>实验把“时间反演路径比”压缩成一枚偏置硬币。它是满足局域详细平衡的离散模型，不是任意非平衡数据都自动服从的拟合公式。</p>
+<h3 id="2">2. 先预测：负熵轨迹消失了吗？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>选择平衡、弱驱动、强驱动、短轨迹或反向偏置预设。先判断分布会塌在 <span class="arithmatex">\(\Sigma=0\)</span>，还是平均 <span class="arithmatex">\(\langle\Sigma\rangle&gt;0\)</span> 但仍保留负尾部。随后比较精确分布与有限样本指数平均。</p>
+<p>尤其注意：强驱动会让负熵轨迹更稀有，却让它们在 <span class="arithmatex">\(\langle e^{-\Sigma}\rangle\)</span> 中权重更大。有限样本看不到它们时，估计会严重偏离 1。</p>
+<h3 id="3">3. 最小模型：一条路径与其时间反演成对记账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>一条 <span class="arithmatex">\(n\)</span> 步路径含 <span class="arithmatex">\(N_+\)</span> 次向右、<span class="arithmatex">\(N_-\)</span> 次向左，净流 <span class="arithmatex">\(J=N_+-N_-\)</span>。定义无量纲熵产生</p>
+<div class="arithmatex">\[
+\Sigma=J\ln\frac{p}{q}.
+\]</div>
+<p>反向路径交换 <span class="arithmatex">\(N_+\)</span> 与 <span class="arithmatex">\(N_-\)</span>。二项式组合数相同，因此</p>
+<div class="arithmatex">\[
+\frac{P(\Sigma)}{P(-\Sigma)}
+=\left(\frac pq\right)^J
+=e^\Sigma.
+\]</div>
+<p>这就是该稳态随机游走的详细涨落对称性。把两边乘 <span class="arithmatex">\(P(-\Sigma)e^{-\Sigma}\)</span> 并求和得到积分涨落定理</p>
+<div class="arithmatex">\[
+\left\langle e^{-\Sigma}\right\rangle=1.
+\]</div>
+<p>再由 Jensen：<span class="arithmatex">\(e^{-\langle\Sigma\rangle}\le1\)</span>，故 <span class="arithmatex">\(\langle\Sigma\rangle\ge0\)</span>。不等式来自等式，却只约束平均，不禁止单条负熵轨迹。</p>
+<p>当 <span class="arithmatex">\(p&lt;1/2\)</span> 时，<span class="arithmatex">\(J\)</span> 的平均为负、亲和力 <span class="arithmatex">\(A=\ln(p/q)\)</span> 也为负，所以 <span class="arithmatex">\(\Sigma=JA\)</span> 的平均仍为正。不能把“向左”直接叫作“负熵”；符号必须连同驱动力约定一起定义。</p>
+<h3 id="4">4. 动手验证：精确恒等式与抽样估计分开<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>左图显示 <span class="arithmatex">\(P(\Sigma)\)</span>，红柱是负熵轨迹；表格逐对检查 <span class="arithmatex">\(P(\Sigma)/P(-\Sigma)=e^\Sigma\)</span>。右图用固定伪随机种子逐步增加样本数，显示样本 <span class="arithmatex">\(\langle e^{-\Sigma}\rangle\)</span> 如何接近或远离精确值 1。调整 <span class="arithmatex">\(p\)</span>、路径长度和样本量，观察“驱动更强”同时增加平均熵产生并恶化指数平均的采样难度。</p>
+<div class="learning-lab" data-learning-lab="fluctuation-symmetry">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>精确结论</th>
+<th>有限样本风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(p=1/2\)</span></td>
+<td><span class="arithmatex">\(A=0\)</span>，所有路径 <span class="arithmatex">\(\Sigma=0\)</span></td>
+<td>指数平均恒为 1</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p\)</span> 略大于 <span class="arithmatex">\(1/2\)</span></td>
+<td>正负轨迹均常见，平均为正</td>
+<td>对称性容易观察</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p\)</span> 远大于 <span class="arithmatex">\(1/2\)</span></td>
+<td>负 <span class="arithmatex">\(\Sigma\)</span> 指数稀有</td>
+<td>少量关键轨迹主导 <span class="arithmatex">\(e^{-\Sigma}\)</span></td>
+</tr>
+<tr>
+<td>路径很短</td>
+<td>分布离散且宽</td>
+<td>“违反平均方向”的轨迹不罕见</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p&lt;1/2\)</span></td>
+<td><span class="arithmatex">\(J\)</span> 与 <span class="arithmatex">\(A\)</span> 同时反号，平均 <span class="arithmatex">\(\Sigma\)</span> 仍正</td>
+<td>不可只看位移符号</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“违反第二定律的轨迹”是口语简写。</strong>随机热力学中要明确系统熵、环境熵和总熵产生；这里只演示总熵产生的路径概率比。</li>
+<li><strong>定理依赖动力学与初始条件。</strong>微观可逆性、局域详细平衡、稳态或指定正反向协议等条件决定采用哪一种 Crooks/Evans–Searles/Gallavotti–Cohen 形式。</li>
+<li><strong>有限样本偏离不是等式失效。</strong>原始指数样本均值在独立同分布抽样下可无偏却具有巨大方差，典型有限样本仍常漏掉主导尾部；再取对数得到的 Jarzynski 自由能估计还会产生有限样本偏差。</li>
+<li><strong><span class="arithmatex">\(\langle e^{-\Sigma}\rangle=1\)</span> 不等于 <span class="arithmatex">\(\langle\Sigma\rangle=0\)</span>。</strong>Jensen 只给平均非负，严格正值与非平衡耗散相容。</li>
+<li><strong>本 toy 没有内部能与功。</strong>把 <span class="arithmatex">\(\Sigma\)</span> 直接叫作 <span class="arithmatex">\(\beta(W-\Delta F)\)</span> 需要具体正反协议和初始平衡分布，不能只换符号。</li>
+</ul>
+<h3 id="6-jarzynski-crooks">6. 回到 Jarzynski 与 Crooks：同一条路径比结构<a class="headerlink" href="#6-jarzynski-crooks" title="Permanent link"></a></h3>
+<p>Crooks 关系比较前向做功分布与反向协议；Jarzynski 等式对前向路径指数平均。它们与本 toy 共享“正向路径概率 / 时间反演路径概率 = 指数熵产生”的骨架。不同定理的边界项和系综不同，真正可迁移的是路径配对与归一化推理，而不是把公式名称互换。</p>
+<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>设强驱动下负熵轨迹概率约为 <span class="arithmatex">\(10^{-6}\)</span>。若希望以 95% 概率至少看到一条，样本量需多大数量级？用 <span class="arithmatex">\(1-(1-10^{-6})^N\ge0.95\)</span> 估算，并解释为什么“样本均值看起来稳定”仍可能严重低估 Jarzynski 指数平均。</p>
+</section>
 <h2 id="1-langevin-fdt">1. Langevin 与涨落-耗散（FDT 第一课）<a class="headerlink" href="#1-langevin-fdt" title="Permanent link"></a></h2>
 <p>布朗粒子（数学站 sde 线的方程，物理装填）：<span class="arithmatex">\(m\dot v = -\gamma v + \xi(t)\)</span>，<span class="arithmatex">\(\langle\xi(t)\xi(t')\rangle = 2D_\xi\delta(t - t')\)</span>。这里 <span class="arithmatex">\(D_\xi\)</span> 是<strong>力噪声强度</strong>，不是位置扩散系数。</p>
 <p><strong>定理（Einstein 关系）【推导】</strong> 把方程除以 <span class="arithmatex">\(m\)</span> 后是 OU 过程；其稳态方差为 <span class="arithmatex">\(\langle v^2\rangle=D_\xi/(\gamma m)\)</span>。长时间平衡又要求 <span class="arithmatex">\(\langle\frac12mv^2\rangle = \frac12k_BT\)</span>（均分，sm-02），所以</p>
@@ -75,14 +177,14 @@ D_x = \frac{k_BT}{\gamma}\quad(\text{位置扩散系数})
 <div class="arithmatex">\[
 \big\langle e^{-W/k_BT}\big\rangle = e^{-\Delta F/k_BT}
 \]</div>
-<p>——<strong>任意远离平衡的过程，功的指数平均精确等于自由能差</strong>（等式！）。Jensen 不等式一行退回第二定律（<span class="arithmatex">\(\langle W\rangle \geq \Delta F\)</span>——信息论线的 Jensen 又一次执法）；骨架：沿轨迹的路径积分 + 时间反演对称（Crooks 定理 <span class="arithmatex">\(\frac{P_F(W)}{P_R(-W)} = e^{(W - \Delta F)/k_BT}\)</span> 是母定理【引用】）。<strong>实验落地</strong>：光镊拉 RNA 发卡（em-03 辐射压的仪器）——从不可逆拉伸数据提取平衡 <span class="arithmatex">\(\Delta F\)</span> ✓【引用】：<strong>"用暴力实验测平衡量"的魔法</strong>；违反第二定律的轨迹存在但按 <span class="arithmatex">\(e^{-\Delta S/k_B}\)</span> 指数稀有（涨落定理的定量版——sm-01 例 2 的"天文小概率"获得精确公式）。</p>
+<p>——若系统初始于相应温度的平衡态，并按给定外部协议演化，则即使驱动远离准静态，功的指数平均仍给出平衡自由能差。Jensen 不等式一行退回 <span class="arithmatex">\(\langle W\rangle \geq \Delta F\)</span>；Crooks 关系还要求明确定义前向与时间反向协议。光镊拉伸单分子是经典实验场景：可由重复非平衡做功轨迹估计 <span class="arithmatex">\(\Delta F\)</span>，但低功尾部稀缺会造成巨大方差，而对样本指数平均再取对数的自由能估计还具有有限样本偏差。所谓“负熵轨迹”是总熵产生的统计涨落，不是宏观装置可持续逆转第二定律。</p>
 <p><strong>信息热力学一嘴</strong>：Landauer 原理——擦除 1 bit 至少耗散 <span class="arithmatex">\(k_BT\ln2\)</span>（信息是物理的：信息论线与热力学的最终焊点；Maxwell 妖被"妖的记忆要擦除"收编【引用实验验证】）。</p>
-<h2 id="4">4. 收官对账：扩散模型（本站的隐藏主线闭环）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 收官对账：扩散模型（本站的隐藏主线闭环）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>comfy 课 02/数学站 sde 线的扩散模型在本页语言里：<strong>前向加噪 = 把数据分布耗散到平衡（高斯）</strong>；<strong>反向生成 = 受控的非平衡过程</strong>（score 场扮演"驱动力"逆着熵流搬运概率）——训练目标与非平衡自由能/得分匹配的联系是活跃研究线【引用 Sohl-Dickstein 起源论文的标题即"非平衡热力学"】。<strong>"生成模型是台非平衡热机"</strong>——你的两条学习主线（ML 与物理）在本站最后一页数学上正式合流。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Einstein 关系测 <span class="arithmatex">\(k_B\)</span>）</strong> 1 μm 胶体球、水中 <span class="arithmatex">\(\gamma = 6\pi\eta a\)</span>（Stokes）：<span class="arithmatex">\(D = \frac{k_BT}{6\pi\eta a} \approx 0.4\ \mu\mathrm{m}^2/\mathrm{s}\)</span>——显微镜下方均位移 vs 时间的斜率：Perrin 实验的桌面复刻（本科实验室可做的诺奖）。</p>
 <p><strong>例 2（Jarzynski 玩具验证）</strong> 过阻尼粒子 + 匀速拖动的谐势阱（可解模型）：<span class="arithmatex">\(W\)</span> 呈高斯分布、验证 <span class="arithmatex">\(\langle e^{-\beta W}\rangle = e^{-\beta\Delta F}\)</span>（高斯的 MGF 一行——概率线）——等式在最小模型上亲手成立。</p>
-<p><strong>例 3（Landauer 数量级）</strong> 室温擦 1 bit：<span class="arithmatex">\(k_BT\ln2 \approx 3\times10^{-21}\)</span> J；现代 CPU 每次逻辑翻转耗散 ~<span class="arithmatex">\(10^{-15}\)</span> J——距物理极限还有六个量级：<strong>可逆计算/低功耗的理论天花板</strong>在哪，一道乘法题。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（Landauer 数量级）</strong> 室温擦除 1 bit 的 Landauer 下界为 <span class="arithmatex">\(k_BT\ln2 \approx 3\times10^{-21}\)</span> J。真实数字器件一次操作的能耗取决于工艺、工作负载、互连、存储层级与系统边界，不能用一个固定“CPU 翻转能耗”代表全部现代计算；把某个实测能耗除以上式，才得到该设备与理想擦除下界的数量级距离。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>最后一页：量子多体的现代方法——张量网络与变分蒙卡：把"指数大的希尔伯特空间"压进可计算的角落。</em></p>
 </article>
@@ -94,5 +196,7 @@ D_x = \frac{k_BT}{\gamma}\quad(\text{位置扩散系数})
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/fluctuation-symmetry.js"></script>
 </body>
 </html>

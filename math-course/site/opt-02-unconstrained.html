@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,34 +41,166 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 21:29</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同一个步长，为什么有人下山、有人原地打转？</a><ul>
+<li><a href="#unconstrained-learning-title">1. 具体谜题：旋转的椭圆碗上，下一步到底会怎样？</a></li>
+<li><a href="#2">2. 先预测：在打开结果前写下三个判断</a></li>
+<li><a href="#3">3. 最小精确模型：把二维问题拆成两个一维因子</a></li>
+<li><a href="#4">4. 可操作实验：先选判断，再揭开轨迹和账本</a></li>
+<li><a href="#5">5. 误区与边界：每一句保证都要带上条件</a></li>
+<li><a href="#6">6. 迁移问题：模型变了，哪些结论要重写？</a></li>
+</ul>
+</li>
 <li><a href="#1-v">1. 最优性条件（回收数分 V）</a></li>
-<li><a href="#2">2. 下降法框架</a></li>
-<li><a href="#3">3. 梯度下降及其收敛速率（本页核心）</a></li>
+<li><a href="#2_1">2. 下降法框架</a></li>
+<li><a href="#3_1">3. 梯度下降及其收敛速率（本页核心）</a></li>
 <li><a href="#4-newton">4. Newton 法：用曲率导航</a></li>
-<li><a href="#5">5. 方法选型速查</a></li>
-<li><a href="#6">6. 典型例题</a></li>
+<li><a href="#5_1">5. 方法选型速查</a></li>
+<li><a href="#6_1">6. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii-newton">优化 II · 无约束优化：从梯度下降到 Newton 法<a class="headerlink" href="#ii-newton" title="Permanent link"></a></h1>
 <blockquote>
-<p>无约束问题 <span class="arithmatex">\(\min_x f(x)\)</span> 的算法全景。主线三问：<strong>往哪走</strong>（下降方向）、<strong>走多远</strong>（步长）、<strong>多快到</strong>（收敛速率）。收敛速率一节是本页核心——"条件数决定一切"的定量版本，也是理解深度学习各种优化器为何存在的理论底座。</p>
+<p>无约束问题 <span class="arithmatex">\(\min_x f(x)\)</span> 的算法全景。主线三问：<strong>往哪走</strong>（下降方向）、<strong>走多远</strong>（步长）、<strong>多快到</strong>（收敛速率）。收敛速率一节是本页核心——条件数给出一阶方法最重要的定量尺度，但不替代具体谱形、初始方向和步长的分析，也是理解深度学习各种优化器为何存在的理论底座。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="unconstrained-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一个步长，为什么有人下山、有人原地打转？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="unconstrained-learning-title">1. 具体谜题：旋转的椭圆碗上，下一步到底会怎样？<a class="headerlink" href="#unconstrained-learning-title" title="Permanent link"></a></h3>
+<p>把损失想成一个二维的椭圆碗。碗的两条主轴已经旋转了 <span class="arithmatex">\(30^\circ\)</span>，沿一条轴的曲率是 <span class="arithmatex">\(\mu=1\)</span>，沿另一条轴的曲率是 <span class="arithmatex">\(L=10\)</span>。从单位圆上的</p>
+<div class="arithmatex">\[
+x_0=(\cos(-20^\circ),\sin(-20^\circ))
+\]</div>
+<p>出发，只用固定步长梯度下降。现在只改学习率：</p>
+<div class="arithmatex">\[
+\alpha=0.18\quad\text{或}\quad\alpha=0.22.
+\]</div>
+<p>前者在陡轴上的一步因子是 <span class="arithmatex">\(1-0.18\times10=-0.8\)</span>，后者是 <span class="arithmatex">\(1-0.22\times10=-1.2\)</span>。<strong>你先猜：哪一种会在陡轴上变号？哪一种会把目标值降下来？哪一种最终会失控？</strong> 注意，图上的坐标轴不是碗的主轴；只看 <span class="arithmatex">\(x_1,x_2\)</span> 的左右摆动，很容易把“变号”误读成“发散”。</p>
+<h3 id="2">2. 先预测：在打开结果前写下三个判断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不要点击“核对预测”，对当前预设写下：</p>
+<ol>
+<li><span class="arithmatex">\(\alpha\)</span> 是低于 <span class="arithmatex">\(1/L\)</span>、介于 <span class="arithmatex">\(1/L\)</span> 与 <span class="arithmatex">\(2/L\)</span>，还是达到/越过 <span class="arithmatex">\(2/L\)</span>？</li>
+<li>在主轴坐标中，<span class="arithmatex">\(r_\mu=1-\alpha\mu\)</span> 与 <span class="arithmatex">\(r_L=1-\alpha L\)</span> 的符号和绝对值分别是什么？</li>
+<li>你预测轨迹属于“收敛”“变号振荡但收敛”还是“发散/不收敛”？目标值、坐标分量和到原点的距离，哪一个才是本实验首先记账的量？</li>
+</ol>
+<p>预测不是猜图形，而是先读两个一维因子：<span class="arithmatex">\(|r_i|&lt;1\)</span> 才会在第 <span class="arithmatex">\(i\)</span> 个特征方向上衰减；<span class="arithmatex">\(r_i&lt;0\)</span> 只说明该模态交替换号。</p>
+<h3 id="3">3. 最小精确模型：把二维问题拆成两个一维因子<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(Q(\theta)\)</span> 的列是旋转后的正交主轴，</p>
+<div class="arithmatex">\[
+Q(\theta)=\begin{pmatrix}\cos\theta&amp;-\sin\theta\\\sin\theta&amp;\cos\theta\end{pmatrix},\qquad
+H=Q(\theta)\begin{pmatrix}\mu&amp;0\\0&amp;L\end{pmatrix}Q(\theta)^\mathsf T,
+\]</div>
+<p>其中 <span class="arithmatex">\(0&lt;\mu\le L\)</span>。实验只研究这个<strong>精确二维、对称正定二次型</strong>：</p>
+<div class="arithmatex">\[
+f(x)=\frac12x^\mathsf T Hx,\qquad \nabla f(x)=Hx,\qquad x^*=0.
+\]</div>
+<p>换到主轴坐标 <span class="arithmatex">\(z=Q^\mathsf T x\)</span> 后，梯度下降</p>
+<div class="arithmatex">\[
+x_{k+1}=x_k-\alpha Hx_k
+\]</div>
+<p>就是</p>
+<div class="arithmatex">\[
+z_{\mu,k+1}=(1-\alpha\mu)z_{\mu,k},\qquad z_{L,k+1}=(1-\alpha L)z_{L,k}.
+\]</div>
+<p>这给出一张可逐行核对的稳定性账本：条件数 <span class="arithmatex">\(\kappa=L/\mu\)</span>；对所有初始方向都稳定收敛的固定步长范围是</p>
+<div class="arithmatex">\[
+0&lt;\alpha&lt;\frac2L.
+\]</div>
+<p>在通常的 <span class="arithmatex">\(L\)</span>-光滑下降保证中，<span class="arithmatex">\(\alpha\le1/L\)</span> 时目标值单调下降；当 <span class="arithmatex">\(1/L&lt;\alpha&lt;2/L\)</span> 时，陡方向的因子可能为负，于是坐标/模态可以变号，但在这个精确二次 toy 中仍可收敛。<span class="arithmatex">\(\alpha&gt;2/L\)</span> 时含有 <span class="arithmatex">\(L\)</span> 模态的分量发散；在边界 <span class="arithmatex">\(\alpha=2/L\)</span>，该模态因子为 <span class="arithmatex">\(-1\)</span>，严格说是等幅振荡而不是增长发散，但已经不收敛，所以实验把 <span class="arithmatex">\(\alpha\ge2/L\)</span> 归入“发散/失稳”类。这里不要把“目标值单调”偷换成“每个坐标或欧氏距离都必须单调”；后者不是一般梯度下降定理的结论。</p>
+<p>等距地比较固定步长时，最优常数步长为</p>
+<div class="arithmatex">\[
+\alpha_\mathrm{opt}=\frac2{L+\mu},\qquad
+\max\{|1-\alpha_\mathrm{opt}\mu|,|1-\alpha_\mathrm{opt}L|\}
+ =\frac{\kappa-1}{\kappa+1}.
+\]</div>
+<p>右边是这个精确二次模型中误差二范数的最坏特征方向收缩因子；它不是每条轨迹、每个初始方向的实际步数承诺。</p>
+<h3 id="4">4. 可操作实验：先选判断，再揭开轨迹和账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>下面的实验固定 <span class="arithmatex">\(\mu=1\)</span> 和单位长度初点，用 <span class="arithmatex">\(\kappa=L\)</span> 决定另一条主轴曲率，并把步长改写成无量纲油门 <span class="arithmatex">\(\beta=\alpha L\)</span>。先选预设，再调 <span class="arithmatex">\(\kappa\)</span>、<span class="arithmatex">\(\beta\)</span>、主轴旋转角、初始方向角和迭代次数，最后预测“收敛 / 换号收敛 / 发散”。核对前，轨迹、图表、指标和迭代表保持隐藏。</p>
+<div class="learning-lab" data-learning-lab="optimization-landscape">
+<p><strong>无 JavaScript 时的静态读法：</strong>初点长度为 <span class="arithmatex">\(1\)</span>；<span class="arithmatex">\(\theta\)</span> 是主轴旋转角，<span class="arithmatex">\(\varphi\)</span> 是初始方向角。表中的“振荡”表示某个主轴因子变号但仍收敛；“发散”一栏把 <span class="arithmatex">\(\alpha=2/L\)</span> 的边界不收敛也归入失稳类。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(\kappa=L/\mu\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\((\theta,\varphi)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\beta=\alpha L\)</span></th>
+<th style="text-align: right;">快轴乘子 <span class="arithmatex">\(1-\beta\)</span></th>
+<th>预测</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>良态</td>
+<td style="text-align: right;"><span class="arithmatex">\(4\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((35^\circ,20^\circ)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.80\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.20\)</span></td>
+<td>不换号收敛</td>
+</tr>
+<tr>
+<td>病态</td>
+<td style="text-align: right;"><span class="arithmatex">\(25\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((-35^\circ,25^\circ)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.00\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>快轴一步消失，慢轴很慢</td>
+</tr>
+<tr>
+<td>保守</td>
+<td style="text-align: right;"><span class="arithmatex">\(10\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((25^\circ,40^\circ)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.50\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.50\)</span></td>
+<td>不换号收敛</td>
+</tr>
+<tr>
+<td>近极限</td>
+<td style="text-align: right;"><span class="arithmatex">\(10\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((28^\circ,-20^\circ)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.85\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-0.85\)</span></td>
+<td>换号但收敛</td>
+</tr>
+<tr>
+<td>发散</td>
+<td style="text-align: right;"><span class="arithmatex">\(10\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((28^\circ,-20^\circ)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.20\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1.20\)</span></td>
+<td>发散</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实验的等高线使用同一个 <span class="arithmatex">\(H\)</span>，蓝色轨迹在原坐标中走，虚线标出旋转后的两个特征方向；右图把 <span class="arithmatex">\(\|x_k\|_2/\|x_0\|_2\)</span> 与 <span class="arithmatex">\(f(x_k)/f(x_0)\)</span> 放到对数纵轴上。逐步账本会同时列出 <span class="arithmatex">\(x_k\)</span>、主轴坐标 <span class="arithmatex">\(z_k\)</span>、目标值和误差，便于定位“哪一个模态先出问题”。这只是一个精确 SPD 二次 toy；它不能替非凸函数宣称任意的鞍点、局部极小或发散行为。</p>
+<h3 id="5">5. 误区与边界：每一句保证都要带上条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“步长小于 <span class="arithmatex">\(2/L\)</span> 就每个坐标都不变号”是错的。</strong> 只要 <span class="arithmatex">\(1/L&lt;\alpha&lt;2/L\)</span>，<span class="arithmatex">\(L\)</span> 模态因子就可能为负；变号本身不等于发散。</li>
+<li><strong>“目标值下降，所以距离和坐标也下降”是错的。</strong> 目标值是加权二次能量；一般问题中坐标分量和到解的距离没有这样的普遍单调保证。本 toy 的特殊正交结构只能帮助我们精确计算，不能扩大定理范围。</li>
+<li><strong>“<span class="arithmatex">\(\alpha=2/L\)</span> 也算稳定”是错的。</strong> 边界的 <span class="arithmatex">\(L\)</span> 模态等幅翻转，既不衰减也不收敛；严格的全局稳定收敛区间是开区间 <span class="arithmatex">\(0&lt;\alpha&lt;2/L\)</span>。</li>
+<li><strong>“条件数决定每一条轨迹”是错的。</strong> <span class="arithmatex">\(\kappa\)</span> 控制经典最坏情形尺度，但初始方向、实际谱形、步长和停止准则都会改变观察到的步数。</li>
+<li><strong>“Newton 永远一步到位”是错的。</strong> 对本页的精确二次型，若 Hessian 和线性方程组都精确，Newton 确实一步到 <span class="arithmatex">\(x^*=0\)</span>；一般非线性函数只在适当正则性和足够近的起点下才有局部二次收敛，而且 Hessian 不正定时方向还可能不是下降方向。</li>
+</ul>
+<h3 id="6">6. 迁移问题：模型变了，哪些结论要重写？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>如果把 <span class="arithmatex">\(H\)</span> 换成一个只“近似”已知的 Hessian，或把更新改成带动量的二阶递推，你会如何从特征方向重新写稳定多项式？如果 <span class="arithmatex">\(H\)</span> 不再正定，<span class="arithmatex">\(f\)</span> 可能有鞍点或无下界；此时“<span class="arithmatex">\(0&lt;\alpha&lt;2/L\)</span> 就收敛到全局最小”还剩下哪一部分？请分别指出需要的凸性、光滑性、谱界和线性求解假设，而不要把这个二维椭圆碗的图像当作任意非凸地形的定理。</p>
+</section>
 <h2 id="1-v">1. 最优性条件（回收数分 V）<a class="headerlink" href="#1-v" title="Permanent link"></a></h2>
 <p>一阶必要：<span class="arithmatex">\(\nabla f(x^*) = 0\)</span>；二阶充分：<span class="arithmatex">\(\nabla f = 0\)</span> 且 <span class="arithmatex">\(\nabla^2 f(x^*) \succ 0\)</span> ⇒ 严格局部极小。凸问题中一阶条件即充要（优化 I）。算法的目标因此明确：<strong>找驻点</strong>（凸时即终点；非凸时接受"够好的"驻点——深度学习的现实立场）。</p>
-<h2 id="2">2. 下降法框架<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 下降法框架<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[
 x_{k+1} = x_k + \alpha_k d_k, \qquad \nabla f(x_k)^\top d_k &lt; 0\ \text{（下降方向）}
 \]</div>
 <p><strong>步长 <span class="arithmatex">\(\alpha_k\)</span> 的选法</strong>：精确线搜索（<span class="arithmatex">\(\min_\alpha f(x_k + \alpha d_k)\)</span>，理论用）；<strong>Armijo 回溯</strong>（实用标准：从大步长起，不满足"充分下降" <span class="arithmatex">\(f(x_k + \alpha d) \leq f(x_k) + c\,\alpha \nabla f^\top d\)</span> 就减半）；固定步长（深度学习的常态，代价是要调参——"学习率"之名由此而来）。</p>
-<h2 id="3">3. 梯度下降及其收敛速率（本页核心）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 梯度下降及其收敛速率（本页核心）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="梯度下降在等高线上走向极小" src="assets/img/opt-02-gradient-descent.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>梯度下降沿负梯度逐步走向极小；病态（等高线拉长）时来回震荡——收敛速率由条件数决定。</figcaption>
@@ -86,8 +229,8 @@ x_{k+1} = x_k + \alpha_k d_k, \qquad \nabla f(x_k)^\top d_k &lt; 0\ \text{（下
 </tbody>
 </table>
 <p><em>强凸情形的证明骨架（两行）</em>：由 <span class="arithmatex">\(L\)</span>-光滑的下降引理 <span class="arithmatex">\(f(x_{k+1}) \leq f(x_k) - \frac{1}{2L}\|\nabla f\|^2\)</span>，再用强凸的 PL 不等式 <span class="arithmatex">\(\|\nabla f\|^2 \geq 2\mu(f - f^*)\)</span>，代入得 <span class="arithmatex">\(f(x_{k+1}) - f^* \leq (1 - \frac{\mu}{L})(f(x_k) - f^*)\)</span>。</p>
-<p><strong>几何读法（比公式重要）</strong>：等高线是圆（<span class="arithmatex">\(\kappa = 1\)</span>）时一步到底；等高线是细长椭圆（<span class="arithmatex">\(\kappa\)</span> 大）时梯度方向偏离圆心方向，轨迹<strong>锯齿形震荡</strong>，每步只前进一点——<strong>收敛步数正比于条件数</strong>。病态曲率是一切一阶方法的公敌。</p>
-<p>🔗 <strong>AI 衔接</strong>：这张表是理解深度学习优化器动物园的钥匙——momentum 把 <span class="arithmatex">\(\kappa\)</span> 依赖改善到 <span class="arithmatex">\(\sqrt\kappa\)</span>（Nesterov 加速的成果）；Adam/RMSProp 用逐坐标缩放近似"预条件"来压 <span class="arithmatex">\(\kappa\)</span>；BatchNorm 的平滑作用也常用"改善条件数"解释（ai 课 05 讲）。SGD 则是本节的随机化版本：噪声梯度换取每步 <span class="arithmatex">\(1/n\)</span> 的成本（ai 课 04 讲）。</p>
+<p><strong>几何读法（比公式重要）</strong>：等高线是圆（<span class="arithmatex">\(\kappa = 1\)</span>）且取 <span class="arithmatex">\(\alpha=1/L\)</span> 时一步到底；等高线是细长椭圆（<span class="arithmatex">\(\kappa\)</span> 大）时，梯度方向常偏离指向圆心的方向，轨迹可能在谷壁间锯齿。对表中 <span class="arithmatex">\(\alpha=1/L\)</span> 的标准强凸上界，达到给定精度的迭代数按 <span class="arithmatex">\(O(\kappa\log(1/\varepsilon))\)</span> 缩放；具体轨迹仍取决于谱、步长与初始方向。</p>
+<p>🔗 <strong>AI 衔接</strong>：在标准光滑强凸模型中，适当的加速梯度法可把复杂度对 <span class="arithmatex">\(\kappa\)</span> 的依赖由 <span class="arithmatex">\(\kappa\)</span> 改善到 <span class="arithmatex">\(\sqrt\kappa\)</span>。RMSProp/Adam 的逐坐标缩放有预条件直觉，但在一般非凸随机问题上，不能据此自动推出条件数变小或训练更快；SGD 则用有噪但更便宜的梯度估计替代全梯度（ai 课 04 讲）。</p>
 <h2 id="4-newton">4. Newton 法：用曲率导航<a class="headerlink" href="#4-newton" title="Permanent link"></a></h2>
 <p>对二阶 Taylor（数分 V）<span class="arithmatex">\(f(x_k + d) \approx f + \nabla f^\top d + \frac12 d^\top H d\)</span> 求极小，得</p>
 <div class="arithmatex">\[
@@ -97,7 +240,7 @@ d_k = -H(x_k)^{-1}\nabla f(x_k), \qquad x_{k+1} = x_k - H^{-1}\nabla f
 <p><strong>代价</strong>：每步要 Hessian（<span class="arithmatex">\(O(n^2)\)</span> 存储）并解线性方程组（<span class="arithmatex">\(O(n^3)\)</span>）——<span class="arithmatex">\(n\)</span> 上百万（深度学习）时不可行；非凸区域 <span class="arithmatex">\(H\)</span> 不正定时方向可能不下降（需修正）。</p>
 <p><strong>拟 Newton（BFGS）</strong>：不算 Hessian，用相邻两步的梯度差<strong>逐步拼出</strong>它的近似 <span class="arithmatex">\(B_k\)</span>（割线条件 <span class="arithmatex">\(B_{k+1}(x_{k+1} - x_k) = \nabla f_{k+1} - \nabla f_k\)</span>——一维割线法的多维版），秩二修正保正定。<strong>L-BFGS</strong>（只存最近 <span class="arithmatex">\(m\)</span> 步、<span class="arithmatex">\(O(mn)\)</span> 内存）是经典机器学习（逻辑回归、CRF）时代的主力优化器，至今仍是中等规模光滑问题的首选。</p>
 <p><strong>共轭梯度（CG）</strong>一嘴：专解二次型/线性方程组 <span class="arithmatex">\(Ax = b\)</span> 的迭代法，<span class="arithmatex">\(n\)</span> 步理论精确、每步只需矩阵乘向量——大规模稀疏问题之王（🔗 数值分析页详述；Newton 法内层的方程组常用它解，得"截断 Newton"）。</p>
-<h2 id="5">5. 方法选型速查<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 方法选型速查<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -124,7 +267,7 @@ d_k = -H(x_k)^{-1}\nabla f(x_k), \qquad x_{k+1} = x_k - H^{-1}\nabla f
 </tr>
 </tbody>
 </table>
-<h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h2 id="6_1">6. 典型例题<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
 <p><strong>例 1（条件数体感）</strong> <span class="arithmatex">\(f = \frac12(x_1^2 + 100 x_2^2)\)</span>（<span class="arithmatex">\(\kappa = 100\)</span>），从 <span class="arithmatex">\((100, 1)\)</span> 出发做精确线搜索梯度下降：迭代点在两条"谷壁"间锯齿弹跳，误差每步乘 <span class="arithmatex">\(\big(\frac{\kappa-1}{\kappa+1}\big)^2 \approx 0.96\)</span>——要 100+ 步；Newton 法一步到 <span class="arithmatex">\((0,0)\)</span>（二次函数的 Hessian 恒定，一步精确）。<strong>这个 <span class="arithmatex">\(2\)</span> 维小例子浓缩了本页全部要义，值得手算一轮。</strong></p>
 <p><strong>例 2（求解全流程）</strong> <span class="arithmatex">\(\min f = x_1^2 + 2x_2^2 - 2x_1x_2 - 4x_2\)</span>。
 <em>解</em>：<span class="arithmatex">\(\nabla f = (2x_1 - 2x_2,\ 4x_2 - 2x_1 - 4)^\top = 0\)</span> ⇒ <span class="arithmatex">\(x^* = (2, 2)\)</span>；Hessian <span class="arithmatex">\(\begin{pmatrix} 2 &amp; -2 \\ -2 &amp; 4\end{pmatrix}\)</span> 顺序主子式 <span class="arithmatex">\(2, 4 &gt; 0\)</span> 正定 ⇒ 全局极小（凸 + 驻点）。</p>
@@ -140,5 +283,7 @@ d_k = -H(x_k)^{-1}\nabla f(x_k), \qquad x_{k+1} = x_k - H^{-1}\nabla f
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/optimization-landscape.js"></script>
 </body>
 </html>

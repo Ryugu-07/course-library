@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,28 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 21:42</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：数学上完全等价，为什么机器会给出不同答案？</a><ul>
+<li><a href="#numerical-error-learning-title">1. 具体谜题：把步长再缩小，导数反而更不准</a></li>
+<li><a href="#2">2. 先预测：等价改写还是盲目加精度？</a></li>
+<li><a href="#3">3. 三个最小模型：误差是怎样进入账本的？</a></li>
+<li><a href="#4">4. 动手验证：红线是运算路径，蓝线是稳定参照</a></li>
+<li><a href="#5">5. 误区与边界</a></li>
+<li><a href="#6">6. 回到理论：前向误差、后向误差与条件数</a></li>
+<li><a href="#7">7. 迁移问题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 误差的来源与度量</a></li>
-<li><a href="#2">2. 浮点数系统</a></li>
-<li><a href="#3">3. 灾难性相消（头号杀手）</a></li>
+<li><a href="#2_1">2. 浮点数系统</a></li>
+<li><a href="#3_1">3. 灾难性相消（头号杀手）</a></li>
 <li><a href="#4-vs">4. 条件数与稳定性：问题的错 vs 算法的错</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,18 +70,106 @@
 <blockquote>
 <p>数值分析回答一个被纯数学掩盖的问题：<strong>公式在纸上对，在机器上算出来对吗？</strong>计算机用有限位数表示实数，每一步都在舍入——本页建立"误差从哪来、怎么放大、如何驯服"的基本语言。这一页的思维（条件数、灾难性相消、稳定改写）在深度学习的 fp16/fp8 时代重新成为一线技能。</p>
 </blockquote>
+<div data-learning-page></div>
+
 <figure class="diagram">
 <p><img alt="浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。" src="assets/img/num-01-float-line.svg" /></p>
 <figcaption><span class="fig-id">图 num-01.1</span>浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。</figcaption>
 </figure>
+<section aria-labelledby="numerical-error-learning-title" class="learning-layer">
+<h2 id="_1">学习层：数学上完全等价，为什么机器会给出不同答案？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="numerical-error-learning-title">1. 具体谜题：把步长再缩小，导数反而更不准<a class="headerlink" href="#numerical-error-learning-title" title="Permanent link"></a></h3>
+<p>中央差分</p>
+<div class="arithmatex">\[
+f'(x)\approx\frac{f(x+h)-f(x-h)}{2h}
+\]</div>
+<p>在实数算术中随 <span class="arithmatex">\(h\to0\)</span> 收敛；在机器里，<span class="arithmatex">\(h\)</span> 太小时两个函数值越来越接近，相减丢掉有效数字，再除以很小的 <span class="arithmatex">\(h\)</span> 把舍入误差放大。于是误差先按截断项下降，跨过平衡点后又上升，形成一条 U 曲线。</p>
+<p>这不是浮点数“偶尔出错”，而是两类误差竞争的可预测结果。更重要的是：<strong>问题的条件数</strong>与<strong>算法的稳定性</strong>必须分别记账。</p>
+<h3 id="2">2. 先预测：等价改写还是盲目加精度？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>选择四个情境之一：根式相消、余弦相消、中央差分、求和顺序。先预测哪种变化能改善结果：</p>
+<ul>
+<li>用代数恒等式避开近数相减；</li>
+<li>继续把差分步长缩到最小；</li>
+<li>用补偿变量保存被大数吞掉的小项。</li>
+</ul>
+<p>揭晓前，数值、误差曲线和诊断账都保持隐藏。</p>
+<h3 id="3">3. 三个最小模型：误差是怎样进入账本的？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p><strong>相消。</strong>当 <span class="arithmatex">\(x\)</span> 很小时，</p>
+<div class="arithmatex">\[
+\frac{\sqrt{1+x}-1}{x}
+=\frac{1}{\sqrt{1+x}+1},
+\qquad
+1-\cos x=2\sin^2\frac{x}{2}.
+\]</div>
+<p>左式在浮点路径中先产生两个几乎相等的数再相减；右式在实数算术完全等价，却避开了信息相消。稳定改写不是改变问题，而是改变舍入误差经过的路线。</p>
+<p><strong>截断与舍入平衡。</strong>中央差分的截断误差为 <span class="arithmatex">\(O(h^2)\)</span>，而函数求值与相减造成的舍入项可粗略写成 <span class="arithmatex">\(O(\varepsilon_{\rm mach}/h)\)</span>，总误差模型为</p>
+<div class="arithmatex">\[
+E(h)\approx C_1h^2+C_2\frac{\varepsilon_{\rm mach}}{h}.
+\]</div>
+<p>所以最优 <span class="arithmatex">\(h\)</span> 不是零；常数量级依赖函数、尺度和实现，实验只展示 <span class="arithmatex">\(e^x\)</span> 在 <span class="arithmatex">\(x=1\)</span> 的一个具体双精度路径。</p>
+<p><strong>长求和。</strong>序列 <span class="arithmatex">\(10^{16},1,1,\ldots,1,-10^{16}\)</span> 的精确和等于小项个数。朴素顺序会让许多 <span class="arithmatex">\(1\)</span> 在加到 <span class="arithmatex">\(10^{16}\)</span> 时消失；Kahan 补偿求和用额外变量回收每步遗失的低位。它能显著改善很多求和，但不是任意病态问题的万能精确算法。</p>
+<h3 id="4">4. 动手验证：红线是运算路径，蓝线是稳定参照<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>拖动十进制尺度，观察直接表达式的相对误差。中央差分会出现 U 形；根式和余弦的直接式会在小尺度突然失去数字；求和情境固定一组对抗顺序，比较朴素与 Kahan。账本把“数学值”“浮点路径”“问题条件”分开，不允许用一句“电脑精度不够”结束诊断。</p>
+<div class="learning-lab" data-learning-lab="floating-point-error">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>直接路径</th>
+<th>稳定路径</th>
+<th>核心判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\bigl(\sqrt{1+x}-1\bigr)/x\)</span>，<span class="arithmatex">\(x\ll1\)</span></td>
+<td>近数相减</td>
+<td>有理化</td>
+<td>同一问题，不同稳定性</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(1-\cos x\)</span>，<span class="arithmatex">\(x\ll1\)</span></td>
+<td>结果可能舍入成 0</td>
+<td><span class="arithmatex">\(2\sin^2(x/2)\)</span></td>
+<td>恒等改写保存低位</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(f'(1)\)</span> 的中央差分</td>
+<td><span class="arithmatex">\(h\)</span> 太大有截断、太小有相消</td>
+<td>选平衡尺度</td>
+<td>“更小”不等于“更准”</td>
+</tr>
+<tr>
+<td>大数、小项、大数相消</td>
+<td>朴素顺序吞掉小项</td>
+<td>补偿求和</td>
+<td>加法不满足机器结合律</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>条件数属于问题。</strong>它问精确输出对输入扰动有多敏感；换一个稳定算法不能消除问题本身的敏感性。</li>
+<li><strong>稳定性属于算法。</strong>后向稳定意味着计算结果可解释为邻近输入的精确答案；它不保证病态问题的前向误差小。</li>
+<li><strong><code>==</code> 不是一概禁止。</strong>离散计数、精确可表示的哨兵值或经过证明的路径可以比较；近似实数结果通常应使用与尺度相称的绝对/相对容差。</li>
+<li><strong>Kahan 不是魔法。</strong>极端溢出、下溢、NaN、并行重排与更高精度要求仍需单独处理。</li>
+<li><strong>图中的“真值”有范围。</strong>稳定恒等式可作本 toy 的可靠参照；一般科学计算需要更高精度、解析值或可证明误差界交叉验证。</li>
+</ul>
+<h3 id="6">6. 回到理论：前向误差、后向误差与条件数<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>设算法返回 <span class="arithmatex">\(\widehat y\)</span>。前向误差比较 <span class="arithmatex">\(\widehat y\)</span> 与精确 <span class="arithmatex">\(f(x)\)</span>；后向误差寻找一个小扰动 <span class="arithmatex">\(\Delta x\)</span>，使 <span class="arithmatex">\(\widehat y=f(x+\Delta x)\)</span>。若算法后向稳定，仍只能得到“前向误差约为条件数乘后向误差”的结论。于是诊断顺序是：先问输入问题是否病态，再问算法是否额外放大误差。</p>
+<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>softmax 的直接式含有 <span class="arithmatex">\(e^{x_i}\)</span>，大正数会溢出。证明把所有 logits 同减 <span class="arithmatex">\(m=\max_i x_i\)</span> 不改变 softmax，再解释这属于稳定改写而不是改善 softmax 问题的条件数。若输入本身只精确到 fp16，改写还能挽回哪些误差，不能挽回哪些？</p>
+</section>
 <h2 id="1">1. 误差的来源与度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>四个来源</strong>：模型误差（数学模型 ≠ 现实）、观测误差（数据本身带噪）、<strong>截断误差</strong>（无穷过程砍成有限：Taylor 截断、迭代提前停）、<strong>舍入误差</strong>（有限位表示）。数值分析主管后两个。</p>
 <p><strong>度量</strong>：绝对误差 <span class="arithmatex">\(e = |\hat x - x|\)</span>；<strong>相对误差</strong> <span class="arithmatex">\(e_r = \frac{|\hat x - x|}{|x|}\)</span>（跨量级比较用它）；有效数字 <span class="arithmatex">\(n\)</span> 位 <span class="arithmatex">\(\approx\)</span> 相对误差 <span class="arithmatex">\(\leq \frac12 \times 10^{1-n}\)</span>。</p>
-<h2 id="2">2. 浮点数系统<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>IEEE 754 双精度：<span class="arithmatex">\(x = \pm 1.f \times 2^e\)</span>，53 位尾数——<strong>机器精度</strong> <span class="arithmatex">\(\varepsilon_{\text{mach}} = 2^{-52} \approx 2.2 \times 10^{-16}\)</span>（相邻浮点数的相对间距；双精度约 16 位有效十进制数字）。每次四则运算结果被舍入：<span class="arithmatex">\(fl(a \circ b) = (a \circ b)(1 + \delta),\ |\delta| \leq \varepsilon_{\text{mach}}\)</span>。</p>
-<p>三条立刻反直觉的推论：浮点加法<strong>不满足结合律</strong>（求和顺序影响结果——大数吃小数：<span class="arithmatex">\(10^{16} + 1 - 10^{16} = 0\)</span>）；比较浮点数不能用 <code>==</code>（用容差）；长求和应从小到大加或用 Kahan 补偿求和。</p>
+<h2 id="2_1">2. 浮点数系统<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>IEEE 754 binary64 的有效精度为 53 个二进制位。1 与下一个可表示数的间距常记作<strong>机器 epsilon</strong> <span class="arithmatex">\(\varepsilon_{\text{mach}}=2^{-52}\approx2.2\times10^{-16}\)</span>；在 round-to-nearest 且结果为正规数等标准假设下，相对舍入误差界常用<strong>单位舍入</strong> <span class="arithmatex">\(u=2^{-53}\)</span>。于是四则运算的基本模型写成 <span class="arithmatex">\(fl(a\circ b)=(a\circ b)(1+\delta)\)</span>、<span class="arithmatex">\(|\delta|\le u\)</span>；溢出、下溢与非正规数要另行处理。</p>
+<p>三条立刻反直觉的推论：浮点加法<strong>不满足结合律</strong>（求和顺序影响结果——按通常从左到右的双精度计算，<span class="arithmatex">\(10^{16} + 1 - 10^{16} = 0\)</span>）；近似实数结果的相等判断应使用与问题尺度相称的绝对/相对容差，而离散计数和经过证明的精确可表示值仍可用 <code>==</code>；长求和可按绝对值从小到大，或采用成对/Kahan 等补偿算法。</p>
 <p>🔗 深度学习语境：fp32/fp16/bf16/fp8 就是不同档位的 <span class="arithmatex">\(\varepsilon_{\text{mach}}\)</span>（fp16 只有 <span class="arithmatex">\(\sim 10^{-3}\)</span> 的相对精度、动态范围窄——混合精度训练里 loss scaling 防下溢、bf16 牺牲精度换范围，全是本节逻辑；comfy 课 04 讲的量化是更极端的同类交易）。</p>
-<h2 id="3">3. 灾难性相消（头号杀手）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 灾难性相消（头号杀手）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>两个相近的数相减，有效数字批量阵亡</strong>：<span class="arithmatex">\(x = 0.12345678\)</span>，<span class="arithmatex">\(y = 0.12345612\)</span>，各 8 位有效，差 <span class="arithmatex">\(6.6\times10^{-7}\)</span> 只剩 2 位——<strong>前导位相同的部分在相减中携带的信息归零，相对误差放大约 <span class="arithmatex">\(\frac{|x|}{|x-y|}\)</span> 倍</strong>。</p>
 <p>对策是<strong>代数改写，绕开相减</strong>（必会三例）：</p>
 <table>
@@ -96,12 +205,12 @@
 <div class="arithmatex">\[
 \kappa = \Big|\frac{x f'(x)}{f(x)}\Big|
 \]</div>
-<p>（例：<span class="arithmatex">\(f = \sqrt x\)</span> 的 <span class="arithmatex">\(\kappa = \frac12\)</span> 良态；两相近数之差的 <span class="arithmatex">\(\kappa = \frac{|x|}{|x - y|}\)</span> 巨大——第 3 节的灾难就是"病态问题"；矩阵版 <span class="arithmatex">\(\kappa(A) = \|A\|\|A^{-1}\|\)</span> 下一页主演。）<strong>病态问题换任何算法都救不了</strong>——只能换问题的提法。</p>
+<p>（例：<span class="arithmatex">\(f = \sqrt x\)</span> 的 <span class="arithmatex">\(\kappa = \frac12\)</span> 良态。对两输入差 <span class="arithmatex">\(g(x,y)=x-y\)</span>，若按分量相对扰动 <span class="arithmatex">\(|\Delta x|\le\epsilon|x|,|\Delta y|\le\epsilon|y|\)</span> 计量，条件数为 <span class="arithmatex">\(\frac{|x|+|y|}{|x-y|}\)</span>，相近数时巨大；而“先准确表示了两个数，再把它们相减”的浮点实现还要另查算法路径。矩阵版 <span class="arithmatex">\(\kappa(A) = \|A\|\|A^{-1}\|\)</span> 下一页主演。）<strong>病态问题无法靠代数重排消除输入敏感度</strong>；可改进的是模型、输入精度或问题表述。</p>
 <p><strong>数值稳定性（算法的品行）</strong>：算法引入的误差是否被不必要地放大。同一问题不同算法品行可以天差地别（求根公式两种写法即例）。<strong>后向稳定</strong>的现代表述：算出的解是"某个邻近问题的精确解"——好算法把锅完全甩给输入扰动。</p>
 <p><strong>总账</strong>：最终误差 <span class="arithmatex">\(\lesssim\)</span> 条件数 × (输入误差 + 算法等效扰动)。诊断次序：结果不对，先问问题病不病（条件数），再查算法稳不稳。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（相消实测）</strong> 用求根公式解 <span class="arithmatex">\(x^2 - 10^8 x + 1 = 0\)</span>：直接公式给小根 <span class="arithmatex">\(\approx 0\)</span>（相消致全损）；韦达改写给 <span class="arithmatex">\(x_2 = 1/10^8 = 10^{-8}\)</span>（精确到机器精度）。<strong>一行改写挽回 16 位有效数字。</strong></p>
-<p><strong>例 2（条件数计算）</strong> <span class="arithmatex">\(f(x) = \ln x\)</span> 在 <span class="arithmatex">\(x \approx 1\)</span> 处：<span class="arithmatex">\(\kappa = \big|\frac{x \cdot 1/x}{\ln x}\big| = \frac{1}{|\ln x|} \to \infty\)</span>——<span class="arithmatex">\(x\)</span> 靠近 1 时对数是病态的（<code>log1p(x-1)</code> 存在的理由）。</p>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1（相消实测）</strong> 用求根公式解 <span class="arithmatex">\(x^2-10^8x+1=0\)</span>：直接用 <span class="arithmatex">\(\bigl(10^8-\sqrt{10^{16}-4}\bigr)/2\)</span> 算小根会严重丢位，在某些精度/实现上甚至舍入为 0；先稳定计算大根，再用韦达关系 <span class="arithmatex">\(x_1x_2=1\)</span> 得小根，可保留接近 <span class="arithmatex">\(10^{-8}\)</span> 的有效信息。挽回多少位取决于具体格式和中间运算，不应固定宣称恰好 16 位。</p>
+<p><strong>例 2（条件数计算）</strong> <span class="arithmatex">\(f(x)=\ln x\)</span> 在 <span class="arithmatex">\(x\approx1\)</span> 处的相对条件数为 <span class="arithmatex">\(\kappa=1/|\ln x|\to\infty\)</span>：若输入已经以 <span class="arithmatex">\(x\)</span> 的形式舍入到 1，没有算法能恢复丢失扰动。若原始数据本来就是小量 <span class="arithmatex">\(y=x-1\)</span>，<code>log1p(y)</code> 则能避免先形成 <span class="arithmatex">\(1+y\)</span> 再相消的额外算法误差；这是“问题条件”与“求值稳定性”分账的典型例子。</p>
 <p><strong>例 3（求和顺序）</strong> 单精度下从大到小累加 <span class="arithmatex">\(\sum_{n=1}^{10^7} \frac1n\)</span> 与从小到大加，结果差在第 4 位有效数字——小项先聚成气候再遇大项，信息不被吞。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：线性方程组 <span class="arithmatex">\(Ax = b\)</span> 的数值解——LU 分解、选主元的必要性、病态矩阵与迭代法。</em></p>
@@ -114,5 +223,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/floating-point-error.js"></script>
 </body>
 </html>
