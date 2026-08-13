@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -29,7 +40,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-08-13 13:54</div>
   </div>
 </nav>
 <main id="content">
@@ -53,6 +64,84 @@
 <blockquote>
 <p>科研工作流的每个环节——选题、文献、推导、实验、写作——AI 都能显著提速，但每个环节的<strong>失败模式</strong>各不相同：文献环节它会编造引用，推导环节它会顺着你的错误走，写作环节它会把你带进学术不端的灰区。本讲按科研流程逐环节给出"怎么用 + 红线在哪"。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：先把科研比较分层，再谈“AI 更好”</h2>
+
+<div class="learning-puzzle">
+<h3>具体误判：把任务分配差异当成方法差异</h3>
+<p>一个课题组试用 AI 辅助文献筛选与代码分析。负责人把“通过预先盲评的任务数”当成功指标：基线组通过 <strong>85/150</strong>，AI 组通过 <strong>114/250</strong>。他于是写下结论：“AI 辅助把成功率从 56.7% 降到了 45.6%，不值得采用。”这个句子看似有分子、有分母、有对照，仍可能把<strong>任务难度的分配</strong>误认成工具效果。</p>
+<p>在继续算之前先预测：如果把任务按“简单/困难”分层，AI 是否会在两个层内都更好？如果会，为什么总体率还可能更低？下面的玩具账本只用整数计数；它不是某项真实研究的证据，而是审计“分母从哪里来”的练习。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小可审计对象：2×2×2 计数账本</h3>
+<p>两个方法（AI 辅助 <span class="arithmatex">\(A=1\)</span>、基线 <span class="arithmatex">\(A=0\)</span>）× 两个任务层（简单/困难）× 两个结果（成功/失败）构成 2×2×2。每个率都写成“成功数 / 该格总数”，失败数不被隐藏：</p>
+<div class="arithmatex">\[
+\begin{array}{c|ccc|ccc|c}
+&\multicolumn{3}{c|}{\text{简单任务}}&\multicolumn{3}{c|}{\text{困难任务}}&\\
+\text{方法}&S&F&N&S&F&N&\text{粗率}\\ \hline
+\text{基线}&80&20&100&5&45&50&85/150=56.7\%\\
+\text{AI 辅助}&90&10&100&24&126&150&114/250=45.6\%
+\end{array}
+\]</div>
+<p>因此层内差（AI − 基线）是：简单层 <span class="arithmatex">\(90/100-80/100=+10\)</span> 个百分点；困难层 <span class="arithmatex">\(24/150-5/50=+6\)</span> 个百分点。两层都更好，但粗合并差是 <span class="arithmatex">\(114/250-85/150\approx-11.1\)</span> 个百分点——这就是 Simpson 悖论在“方法 × 任务难度”混杂下的可审计版本。</p>
+</div>
+
+<div class="learning-formal">
+<h3>粗合并、固定目标权重标准化：同一层内率，两个问题</h3>
+<ol>
+<li><strong>粗合并：</strong>保留每个方法实际收到的任务构成，直接相加成功数与总数。它回答“这两组实际做过的任务总体通过率是多少”，但在任务分配不平衡时不回答“同一类任务上方法会怎样”。</li>
+<li><strong>标准化：</strong>先把目标构成固定为简单 100 个、困难 100 个（权重 50%/50%），再放入各层观察率。基线的投影成功数是 <span class="arithmatex">\(80/100\times100=80\)</span> 与 <span class="arithmatex">\(5/50\times100=10\)</span>，合计 <span class="arithmatex">\(90/200=45\%\)</span>；AI 是 <span class="arithmatex">\(90+24/150\times100=106\)</span>，即 <span class="arithmatex">\(106/200=53\%\)</span>。固定目标权重下的差是 <strong>+8 个百分点</strong>。</li>
+</ol>
+<p>这里的 100/100 是<strong>事先固定的目标构成</strong>，不是把观察到的样本偷偷复制，也不是因为“标准化”这个词就获得了因果识别。这个示例特意选了能投影出整数成功数的计数，方便手算；真实分析应保留精确分数和不确定性，而不是为了好看四舍五入。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>混杂账：先看分配，不要只看百分比</h3>
+<p>基线组的困难任务占比是 <span class="arithmatex">\(50/150=33.3\%\)</span>，AI 组是 <span class="arithmatex">\(150/250=60\%\)</span>，相差 <strong>+26.7 个百分点</strong>。困难任务成功率低，又更集中在 AI 组，于是它在粗合并分母中留下了更大的“困难任务权重”。这就是混杂的机制，而不是一个只需背诵的方向反转口诀。</p>
+<p>换情景可以检验你是否理解了机制：<strong>无反转</strong>把 AI 困难层改成 12/75，粗合并差变为 +1.6 个百分点；<strong>平衡分配</strong>把 AI 困难层改成 8/50，两个方法的困难任务占比都为 33.3%，粗合并差变为 +8.7 个百分点。三套情景的层内差都仍是 +10 与 +6，固定 50/50 标准化差都仍是 +8；变的是任务构成，不是层内率。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>三种读法与识别边界</h3>
+<ul>
+<li><strong>描述性分层：</strong>报告简单/困难层内的成功率和差异。它需要定义一致的成功判据、可靠的评分与非空分母；本身不声称 AI 导致了差异。</li>
+<li><strong>描述性标准化：</strong>把观察到的层内率放到预先指定的目标权重上，回答“若构成相同，这些观察率会拼出什么总体率”。在观察性资料中，它不能自动变成因果效果；目标权重若由看过结果后选择，也会引入分析自由度。</li>
+<li><strong>因果标准化：</strong>若要把 <span class="arithmatex">\(\sum_s w_s[\mathbb E(Y\mid A=1,S=s)-\mathbb E(Y\mid A=0,S=s)]\)</span> 解释为目标人群的平均因果效果，还要明确并辩护识别假设：<strong>positivity</strong>（每个任务层都有两种方法的支持）、<strong>exchangeability / 无未测混杂</strong>（给定层后，方法分配与两种潜在结果独立：<span class="arithmatex">\(Y^a\perp A\mid S\)</span>）、<strong>consistency</strong>（实际接受的方法与定义清楚、版本唯一的处理一致，观察结果等于该处理下的潜在结果）。计数表只能显示“有没有支持”，不能证明后两项。</li>
+<li><strong>随机试验：</strong>在每个难度层内随机分配 AI 或基线，可以由设计支持条件 exchangeability；仍须检查执行偏离、脱落、干扰/溢出、评分盲法和结果测量。观察性标准化与分层描述不能冒充随机试验。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：先预测，再展开计数</h3>
+<div class="learning-lab" data-learning-lab="simpson-confounding">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认“反转”账本见上方 2×2×2 表。粗合并为基线 85/150=56.7%、AI 114/250=45.6%，差为 −11.1 个百分点；逐层差为 +10、+6 个百分点；固定目标计数（简单 100、困难 100）后，基线为 (80+10)/200=45%，AI 为 (90+16)/200=53%，标准化差为 +8 个百分点。困难任务占比为基线 50/150=33.3%、AI 150/250=60%，分配差 +26.7 个百分点。切换“无反转”或“平衡分配”可复核上一段的三组结果。</p>
+<table>
+<thead><tr><th>预设</th><th>AI 困难层</th><th>AI 粗合并</th><th>粗合并差</th><th>标准化差</th><th>困难占比分配差</th></tr></thead>
+<tbody>
+<tr><td>反转</td><td>24/150</td><td>114/250</td><td>−11.1 pp</td><td>+8 pp</td><td>+26.7 pp</td></tr>
+<tr><td>无反转</td><td>12/75</td><td>102/175</td><td>+1.6 pp</td><td>+8 pp</td><td>+9.5 pp</td></tr>
+<tr><td>平衡</td><td>8/50</td><td>98/150</td><td>+8.7 pp</td><td>+8 pp</td><td>0 pp</td></tr>
+</tbody>
+</table>
+<p>实验会记录你的总体方向预测并即时反馈；动态模型在 Node 无 DOM 环境也导出同一套计数算法，且会检查整数计数、成功/失败守恒、positivity、标准化投影与“每层更好”等不变量。表格在窄屏内自行滚动，不让账本把页面撑出横向滚动。</p>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移到真实科研分析的验证纪律</h3>
+<p>在实际 A/B 或观察性比较中，把下面的顺序写进分析计划，而不是看到总体结果后才补分层：</p>
+<ol>
+<li>在看结果前定义成功判据、任务难度分层、主估计量和目标权重；记录缺失、拒答、失败和分配流程，不能只导出“成功率”。</li>
+<li>先列整数计数和每层分母，再报层内率、粗合并率、标准化率；用独立脚本或小样本手算核对汇总，防止 AI 生成的代码悄悄错配任务和结果。</li>
+<li>把“分配不平衡”当作需要解释的研究结果：是随机化失败、研究者挑题、参与者自选，还是 AI 被安排了更难的剩余任务？没有机制说明时，不把方向性差异写成工具因果效果。</li>
+<li>用独立评分者、盲法复核、预先登记的敏感性分析和新任务复现来验证；AI 可以帮你生成分层表和反例，但每个分子、分母、排除规则和假设都由研究者审计。</li>
+</ol>
+</div>
+</section>
+
 <h2 id="1">1. 文献：最大的提速点，最密的幻觉区<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <h3 id="11">1.1 检索与发现<a class="headerlink" href="#11" title="Permanent link"></a></h3>
 <ul>
@@ -154,5 +243,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/simpson-confounding.js"></script>
 </body>
 </html>

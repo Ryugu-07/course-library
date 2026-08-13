@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +43,26 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 14:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#cosmo-frw-learning-title">学习层：三种“视界”到底是哪一种边界？</a><ul>
+<li><a href="#1">1. 先做一个因果预测</a></li>
+<li><a href="#2-frw-toy-model">2. 透明的平坦 FRW toy model</a></li>
+<li><a href="#3">3. 四个教学预设：先看解析极限</a></li>
+<li><a href="#4">4. 动手实验：看图、读账本、再预测</a></li>
+<li><a href="#5">5. 三个概念的因果边界</a></li>
+<li><a href="#6">6. 模型边界与迁移题</a></li>
+</ul>
+</li>
 <li><a href="#1-friedmann">1. Friedmann 方程</a></li>
 <li><a href="#2">2. 宇宙的会计制度：组分与稀释律</a></li>
 <li><a href="#3-cdm">3. ΛCDM 账本（观测宇宙学的现状）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,6 +71,150 @@
 <p><strong>对标</strong>：Ryden §4–6 ｜ <strong>前置</strong>：gr-03（FRW 度规）、sm 线
 把整个宇宙当一个物理系统：均匀各向同性 + Einstein 方程 = <strong>一个标度因子 <span class="arithmatex">\(a(t)\)</span> 的 ODE</strong>。本页推 Friedmann 方程、建"宇宙学的会计制度"（各组分如何稀释）、给出 ΛCDM 的账本——宇宙 95% 由未知项构成的现代处境。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="cosmo-frw-learning-title" class="learning-layer">
+<h2 id="cosmo-frw-learning-title">学习层：三种“视界”到底是哪一种边界？<a class="headerlink" href="#cosmo-frw-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先做一个因果预测<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>想象今天在某个共动星系发出一束光。下面三个问题看起来都像“它离我们多远”，但答案不是同一个量：</p>
+<ol>
+<li><strong>Hubble sphere</strong>：此刻满足 <span class="arithmatex">\(H D=c\)</span> 的距离是多少？它是不是光子绝对过不来的边界？</li>
+<li><strong>粒子视界</strong>：从模型起点到现在，过去发出的光最多已经让我们联系到多远？</li>
+<li><strong>事件视界</strong>：从现在往未来发出的光，最远最终还能联系到多远？</li>
+</ol>
+<p>先在脑中写下你的判断，再打开下方实验。尤其预测：若没有 <span class="arithmatex">\(\Lambda\)</span>，把未来积分真的做到 <span class="arithmatex">\(a'=\infty\)</span> 会发生什么；若是纯 de Sitter，过去的粒子积分又是否收敛？</p>
+<h3 id="2-frw-toy-model">2. 透明的平坦 FRW toy model<a class="headerlink" href="#2-frw-toy-model" title="Permanent link"></a></h3>
+<p>固定今天 <span class="arithmatex">\(a_0=1\)</span>，取空间平坦、只保留辐射、物质和宇宙学常数：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H(a)&amp;=H_0E(a),\\
+E(a)&amp;=\sqrt{\Omega_r a^{-4}+\Omega_m a^{-3}+\Omega_\Lambda},\\
+\Omega_r+\Omega_m+\Omega_\Lambda&amp;=1.
+\end{aligned}
+\]</div>
+<p>实验中所有距离都除以 <span class="arithmatex">\(c/H_0\)</span>；因此以下数字是无量纲的。物理距离 = <span class="arithmatex">\((c/H_0)\)</span> 乘无量纲距离：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+D_H(a)&amp;=\frac{c}{H(a)}=\frac{c}{H_0}\frac1{E(a)},\\
+D_p(a)&amp;=a c\int_0^a\frac{da'}{a'^2H(a')},\\
+D_e(a)&amp;=a c\int_a^\infty\frac{da'}{a'^2H(a')}.
+\end{aligned}
+\]</div>
+<p>这里 <span class="arithmatex">\(D_H\)</span> 是瞬时的 <strong>Hubble sphere</strong>，<span class="arithmatex">\(D_p\)</span> 是物理的粒子视界，<span class="arithmatex">\(D_e\)</span> 是物理的事件视界。后两者是光锥累计量，而不是把 <span class="arithmatex">\(H\)</span> 在某个时刻倒过来就得到的同一个半径。</p>
+<p>为了让积分账本可以逐项复核，令</p>
+<div class="arithmatex">\[
+\begin{aligned}
+I_p(a)&amp;=\int_0^a\frac{dx}{\sqrt{\Omega_r+\Omega_m x+\Omega_\Lambda x^4}},\\
+I_e(a)&amp;=\int_0^{1/a}\frac{du}{\sqrt{\Omega_r u^4+\Omega_m u^3+\Omega_\Lambda}}.
+\end{aligned}
+\]</div>
+<p>第一式只是把 <span class="arithmatex">\(1/(a'^2E(a'))\)</span> 展开；第二式用 <span class="arithmatex">\(u=1/a'\)</span> 把<strong>精确的未来无穷端点</strong> <span class="arithmatex">\(a'=\infty\)</span> 变成 <span class="arithmatex">\(u=0\)</span>。所以</p>
+<div class="arithmatex">\[
+\frac{D_p}{c/H_0}=aI_p(a),qquad \frac{D_e}{c/H_0}=aI_e(a).
+\]</div>
+<p>实验不会把 <span class="arithmatex">\(a'=\infty\)</span> 偷换成某个有限上限：若 <span class="arithmatex">\(I_e\)</span> 发散，读数明确写“发散 / 不存在”。</p>
+<h3 id="3">3. 四个教学预设：先看解析极限<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th><span class="arithmatex">\(E(a)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(D_H/(c/H_0)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(D_p/(c/H_0)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(D_e/(c/H_0)\)</span></th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纯辐射</td>
+<td><span class="arithmatex">\(a^{-2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^2\)</span></td>
+<td style="text-align: right;">发散 / 不存在</td>
+<td>过去积分收敛，未来没有加速尾巴把光隔开</td>
+</tr>
+<tr>
+<td>纯物质</td>
+<td><span class="arithmatex">\(a^{-3/2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^{3/2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2a^{3/2}\)</span></td>
+<td style="text-align: right;">发散 / 不存在</td>
+<td><span class="arithmatex">\(a=1\)</span> 时粒子视界是 <span class="arithmatex">\(2c/H_0\)</span>，但事件视界不存在</td>
+</tr>
+<tr>
+<td>纯 de Sitter</td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;">发散 / 不存在</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>平坦切片向过去无限延伸；未来事件视界有限</td>
+</tr>
+<tr>
+<td>ΛCDM toy</td>
+<td><span class="arithmatex">\(\sqrt{\Omega_r a^{-4}+\Omega_m a^{-3}+\Omega_\Lambda}\)</span></td>
+<td style="text-align: right;">数值</td>
+<td style="text-align: right;">数值</td>
+<td style="text-align: right;">数值</td>
+<td>三项都在账本中；不是最新精密拟合</td>
+</tr>
+</tbody>
+</table>
+<p>两条最容易漏写的边界是：</p>
+<ul>
+<li><strong><span class="arithmatex">\(a\to0\)</span></strong>：辐射主导时 <span class="arithmatex">\(D_H,D_p\sim a^2\)</span>；物质主导时 <span class="arithmatex">\(D_H\sim a^{3/2}\)</span>、<span class="arithmatex">\(D_p\sim2a^{3/2}\)</span>。若模型还含早期辐射或物质且未来积分收敛，则 <span class="arithmatex">\(D_e\sim a\lim_{a\to0}I_e(a)\to0\)</span>。纯 de Sitter 是例外：<span class="arithmatex">\(I_p\)</span> 从 <span class="arithmatex">\(0\)</span> 端发散，而 <span class="arithmatex">\(D_e=(c/H_0)/\sqrt{\Omega_\Lambda}\)</span> 在所有 <span class="arithmatex">\(a\)</span> 上保持常数。</li>
+<li><strong><span class="arithmatex">\(a'\to\infty\)</span></strong>：只要 <span class="arithmatex">\(\Omega_\Lambda=0\)</span>，<span class="arithmatex">\(I_e\)</span> 发散，事件视界就不存在；不能用“积分到 <span class="arithmatex">\(a'=10^3\)</span>”之类的有限数冒充它。只要 <span class="arithmatex">\(\Omega_\Lambda&gt;0\)</span>，未来渐近 <span class="arithmatex">\(H\to H_0\sqrt{\Omega_\Lambda}\)</span>，事件积分收敛，并且 <span class="arithmatex">\(D_e\to(c/H_0)/\sqrt{\Omega_\Lambda}\)</span>（当 <span class="arithmatex">\(a\to\infty\)</span>）。</li>
+</ul>
+<h3 id="4">4. 动手实验：看图、读账本、再预测<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先点击“物质主导”和“de Sitter”，把 <span class="arithmatex">\(a\)</span> 留在 <span class="arithmatex">\(1\)</span>，用上表手算，再切换到“辐射主导”和“ΛCDM toy”。观察同一张<strong>因果 / 距离图</strong>如何把有限曲线与“∞（发散）”分开；下方<strong>积分账本</strong>逐行显示 <span class="arithmatex">\(E(a)\)</span>、<span class="arithmatex">\(I_p\)</span>、<span class="arithmatex">\(I_e\)</span> 和三个距离。</p>
+<div class="learning-lab" data-learning-lab="cosmological-horizons">
+<p><strong>无 JavaScript 时的静态 fallback（单位均为 <span class="arithmatex">\(c/H_0\)</span>）：</strong></p>
+<p>手算采用 <span class="arithmatex">\(a=1\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(E(1)\)</span></th>
+<th style="text-align: right;">Hubble sphere <span class="arithmatex">\(D_H\)</span></th>
+<th style="text-align: right;">粒子视界 <span class="arithmatex">\(D_p\)</span></th>
+<th style="text-align: right;">事件视界 <span class="arithmatex">\(D_e\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>物质主导：<span class="arithmatex">\(\Omega_m=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_0^1 \frac{da'}{\sqrt{a'}}=2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_1^\infty \frac{da'}{\sqrt{a'}}=\infty\)</span>，不存在</td>
+</tr>
+<tr>
+<td>de Sitter：<span class="arithmatex">\(\Omega_\Lambda=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_0^1 \frac{da'}{a'^2}=\infty\)</span>，不存在有限粒子视界</td>
+<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_1^\infty \frac{da'}{a'^2}=1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>这两个手算例子同时提醒：Hubble sphere、粒子视界和事件视界可以相等、不同，或其中一个根本没有有限值；“视界”不能只看一个名字。</p>
+</div>
+<h3 id="5">5. 三个概念的因果边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Hubble sphere 通常不是因果边界。</strong> 在某一时刻，共动星系的退行速度写成 <span class="arithmatex">\(v_{\rm rec}=H D\)</span>；<span class="arithmatex">\(D&gt;c/H\)</span> 只表示这个整体膨胀坐标下的退行速度超过 <span class="arithmatex">\(c\)</span>。它不是局域惯性系里两个相邻物体的相对速度，因此不违反局域狭义相对论；局部光速仍为 <span class="arithmatex">\(c\)</span>。光子能否穿过某个 <span class="arithmatex">\(D_H\)</span>，要沿整个 FRW 光锥积分判断。</li>
+<li><strong>粒子视界回答“过去能否联系”。</strong> <span class="arithmatex">\(D_p\)</span> 是过去光锥从模型起点累计出的最大物理距离：它回答“从过去发来的信号，原则上已经有机会到达我们吗？”它不回答未来发信。</li>
+<li><strong>事件视界回答“未来能否联系”。</strong> <span class="arithmatex">\(D_e\)</span> 把从现在到 <span class="arithmatex">\(a'=\infty\)</span> 的未来都计入：它回答“现在发出的信号，未来是否仍有机会到达目标观察者？”没有加速晚期时，未来积分发散，答案是不存在有限事件视界。</li>
+</ul>
+<p>“超光速退行”与“不可联系”不是同一句话：前者是瞬时、整体膨胀的 <span class="arithmatex">\(HD\)</span> 读数；后者是光锥积分的收敛性与边界条件。</p>
+<h3 id="6">6. 模型边界与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>这是一个<strong>透明的教学 toy</strong>：平坦、只含三种成分、<span class="arithmatex">\(w_\Lambda=-1\)</span>，没有曲率、早期热历史细节、扰动、引力透镜或精密观测参数拟合。ΛCDM 预设的数字只为比较积分结构，不应读成当前最佳宇宙学参数。</p>
+<p>迁移题：</p>
+<ol>
+<li>不看实验，证明纯物质在任意 <span class="arithmatex">\(a&gt;0\)</span> 都有 <span class="arithmatex">\(D_p=2D_H\)</span>，但 <span class="arithmatex">\(D_e\)</span> 发散。这个比值是否意味着 Hubble sphere 是因果边界？</li>
+<li>纯 de Sitter 的 <span class="arithmatex">\(D_p\)</span> 为什么发散而 <span class="arithmatex">\(D_e\)</span> 有限？分别指出两个积分的发散端点。</li>
+<li>若给定某个新 <span class="arithmatex">\(E(a)\)</span>，先检查 <span class="arithmatex">\(a\to0\)</span> 和 <span class="arithmatex">\(a\to\infty\)</span> 的幂次，再决定粒子/事件积分是否收敛；不要先画图再凭有限坐标轴猜“视界”。</li>
+</ol>
+</section>
 <h2 id="1-friedmann">1. Friedmann 方程<a class="headerlink" href="#1-friedmann" title="Permanent link"></a></h2>
 <p>FRW 度规（gr-03）+ 理想流体 <span class="arithmatex">\(T_{\mu\nu}\)</span> 代入场方程<strong>【骨架，一个牛顿式替代推导给直觉】</strong>：</p>
 <div class="arithmatex">\[
@@ -104,7 +268,7 @@
 \]</div>
 <p><strong>三行注脚</strong>：<strong>暗物质</strong>——星系旋转曲线平坦、引力透镜（gr-02）、CMB 声学峰三路证据合指"有引力不发光的组分"（粒子身份未知——pp 线的头号悬案之一）；<strong>暗能量</strong>——1998 超新星测距发现加速膨胀（诺奖 2011），与 Λ（<span class="arithmatex">\(w = -1\)</span>）一致（"是否恰为常数"是当前观测焦点【引用 DESI 类】）；<strong>平坦性</strong> <span class="arithmatex">\(\Omega_k \approx 0\)</span>——CMB 声学标尺量出的空间几何（cosmo-02）。<strong>"95% 未知"不是失败而是坐标</strong>：定量宇宙学把无知精确到了小数点。</p>
 <p><strong>年龄积分</strong>：<span class="arithmatex">\(t_0 = \int_0^1\frac{da}{aH(a)} \approx 13.8\)</span> Gyr（ΛCDM 参数代入数值积分——与最老球状星团自洽 ✓：曾经的"年龄危机"被 Λ 化解【引用】）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（稀释律推导练手）</strong> 辐射为何 <span class="arithmatex">\(a^{-4}\)</span>：数密度 <span class="arithmatex">\(a^{-3}\)</span> × 每光子能量红移 <span class="arithmatex">\(a^{-1}\)</span>——两行；由此定"物质-辐射平权"时刻 <span class="arithmatex">\(1 + z_{eq} = \frac{\Omega_m}{\Omega_r} \approx 3400\)</span>（cosmo-02 热历史的第一块路标）。</p>
 <p><strong>例 2（de Sitter 未来）</strong> Λ 主导后 <span class="arithmatex">\(a \propto e^{Ht}\)</span>：星系将逐个越出视界——<strong>远期宇宙学家将看到空荡的天</strong>（"观测窗口在关闭"的物理实感）；反推：我们恰在"账本还可读"的时代做宇宙学。</p>
 <p><strong>例 3（Friedmann 量纲核算）</strong> 用 <span class="arithmatex">\(H_0 = 70\)</span> km/s/Mpc 算 <span class="arithmatex">\(\rho_c\)</span>：<span class="arithmatex">\(\approx 9\times10^{-27}\ \mathrm{kg/m^3}\)</span>——银河系内密度高它百万倍：<strong>"宇宙平均"与"我们附近"差得远</strong>，均匀性只在 &gt;100 Mpc 尺度成立（宇宙学原理的适用边界）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -119,5 +283,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cosmological-horizons.js"></script>
 </body>
 </html>

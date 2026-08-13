@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -29,7 +40,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-08-13 13:54</div>
   </div>
 </nav>
 <main id="content">
@@ -51,14 +62,78 @@
 <blockquote>
 <p>AI 对学习者是双刃剑中最锋利的一把：用对了，你拥有一位 24 小时在线、无限耐心、什么都懂一点的私人导师；用错了，它替你完成作业、你如期交差，脑子里却什么都没留下。<strong>分水岭只有一条：让 AI 帮你思考，还是替你思考。</strong>本讲给出用对它的具体方法与提示词模板。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>学习层：熟悉感不是闭卷检索</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：为什么“刚看过”会赢在现在，却可能输在下周？</h3>
+<p>想象同一章材料有 <strong>12 个学习事件</strong>。方案 A 把预算花在连续重读；方案 B 每次合上材料先回忆，再看反馈；方案 C 按固定的“重读 → 检索 → 检索”混合。先预测两个赢家：刚读完时谁最像“会了”？延迟一段时间、真正闭卷作答时谁更可能取回答案？注意，<strong>看起来流畅</strong>和<strong>能在没有线索时取回</strong>是两个不同的信号。</p>
+</div>
+<div class="learning-prediction">
+<h3>先做预测，再改变一个旋钮</h3>
+<p>打开实验前，分别写下即时赢家和延迟赢家。然后只改变一个变量：把<strong>间隔</strong>从短调长、把<strong>难度</strong>调高，或把<strong>反馈质量</strong>调到 0。若你看到即时曲线和延迟曲线分叉，问自己：我刚才把“识别得很顺”误当成了“能独立生成”吗？</p>
+</div>
+<div class="learning-model">
+<h3>最小模型：三个可读的机制账本</h3>
+<ol>
+<li><strong>熟悉感 F：</strong>再次看到材料会很快抬高它；它可以解释“这段很眼熟”“答案一出现我就觉得会”。F 高不代表合上材料后能从零生成。</li>
+<li><strong>检索强度 R：</strong>用线索不足的闭卷尝试从记忆取回答案；成功或接近成功的费力检索会更新 R。它是练习过的取回倾向，不是一次真实考试分数。</li>
+<li><strong>反馈支持 S：</strong>答案、纠错或解释把失败变成可用的对照；S 越高，模型让反馈在后续延迟中减慢衰减。无反馈时，困难检索可能只留下“我想不起来”，不会自动转成稳定记忆。</li>
+</ol>
+<p>页面里的 <strong>F / R / S 都是确定性机制 toy model 的无量纲代理量</strong>。它们不是对个人记忆的测量，不是心理测量工具，也不能精确预测你的分数或某个群体的保持率。延迟轴是抽象时间单位；这里不把 Ebbinghaus 曲线的形状或参数当成跨任务、跨人群的普适常数。模型的价值是把“重读提高熟悉感”和“检索加反馈改变延迟保持”分开，方便你手算和质疑每一步。</p>
+</div>
+<div class="learning-formal">
+<h3>把三个策略放进同一事件预算</h3>
+<p>设第 <span class="arithmatex">\(i\)</span> 个事件前的间隔为 <span class="arithmatex">\(g_i\)</span>，同一个 <span class="arithmatex">\(g_i\)</span> 同时用于三种方案。每个事件先发生一个有界衰减，再发生动作更新：</p>
+<ul>
+<li><strong>重读：</strong> <span class="arithmatex">\(F \leftarrow F + a(1-F)\)</span>，且只给 <span class="arithmatex">\(R\)</span> 一个很小的旁路更新；这代表“再看一遍”能让当下更流畅，但并不等价于闭卷生成。</li>
+<li><strong>检索：</strong>先计算一个被难度压低、被已有 <span class="arithmatex">\(F,R\)</span> 和间隔支撑的尝试代理 <span class="arithmatex">\(q\)</span>；反馈质量 <span class="arithmatex">\(b\)</span> 决定失败后有多少可用修复，随后 <span class="arithmatex">\(R\)</span> 增长。<span class="arithmatex">\(q\)</span> 不是随机答题结果，而是透明的期望式信号。</li>
+<li><strong>混合：</strong>固定重复“重读、检索、检索”的动作序列；事件数仍然和另外两种方案相同，不能把混合方案偷偷加时。</li>
+</ul>
+<p>所有状态被夹在 <span class="arithmatex">\([0,1]\)</span>，延迟曲线按 <span class="arithmatex">\(D(d)=D_0\exp[-r d/(0.85+1.5S)]\)</span> 生成，其中 <span class="arithmatex">\(r\)</span> 随 toy 难度增加。这个式子只是把“状态越稳定，衰减越慢”写成可检查的教学假设；它不是对人类记忆的定律。</p>
+</div>
+<div class="learning-boundary">
+<h3>研究连接与边界：为什么“费力”也需要设计</h3>
+<ul>
+<li><strong>retrieval practice：</strong>闭卷回忆把“知道答案”变成一次取回动作，通常比只重读更直接地练习未来要做的事；但效应会依赖题型、线索、材料、反馈、延迟和学习者，不能夸成所有任务/人群恒定有效。</li>
+<li><strong>spacing：</strong>把事件分开会增加当下的遗忘压力，正好减少“刚看过”的线索；间隔不是越长越好，也不是独立于难度、反馈和最终目标的万能旋钮。</li>
+<li><strong>feedback：</strong>检索失败后给出答案或解释，可以把错误尝试接到正确表征；没有及时、正确且可理解的反馈，困难可能变成挫败或错误巩固。高难度不应被浪漫化为“越难越好”。</li>
+<li><strong>desirable difficulty：</strong>适量的费力让学习者必须加工和取回；若难度让大多数事件都落在“完全不会”，却没有反馈和逐步支架，困难就不再是 desirable。实验的第二个预设专门展示这个失败边界。</li>
+</ul>
+<p>因此这不是“永远不要重读”的处方：首次建构概念、检查结构、准备线索或需要流畅度时，重读有位置；关键是不要只用即时熟悉感判断学习是否发生。对重要考试或工作任务，应结合真实的闭卷题、延迟测验和个人记录来校准，而不是把本 toy model 当成测量器。</p>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把 AI 放在检索之后</h3>
+<p>请让 AI 根据你刚读的本讲或第 04 讲生成 3 道题，但要求它<strong>先只给题目</strong>。你闭卷作答后，再让它逐题给出最小提示、正确答案、错误原因和一个延迟复测时间。检查提示词是否保留了你的检索事件：如果 AI 直接把摘要和答案塞回来了，你获得的是熟悉感，不一定是练习。</p>
+</div>
+<div class="learning-experiment">
+<h3>交互实验：同一预算下，重读、检索 + 反馈、混合安排</h3>
+<div class="learning-lab" data-learning-lab="retrieval-practice">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认预设有 12 个事件，间隔 0.7、难度 45%、反馈 85%。用下面的手算账本比较：重读的 F 快速上升但 R 较低；检索 + 反馈的即时代理较低而延迟 R 较高；混合安排按“重读、检索、检索”循环。预设二把难度设为 90%、反馈设为 0%，用于观察无反馈检索失败边界；预设三增加间隔并保留反馈，用于观察 spacing 与 feedback 的共同作用。界面中的百分比只是 toy model 的代理值，不是个人测量。</p>
+<table>
+<thead><tr><th>事件</th><th>间隔</th><th>重读动作后 F</th><th>重读动作后 R</th><th>检索动作后 F</th><th>检索动作后 R</th><th>检索动作后 S</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>0</td><td>0.330</td><td>0.061</td><td>0.098</td><td>0.226</td><td>0.230</td></tr>
+<tr><td>2</td><td>0.7</td><td>0.509</td><td>0.079</td><td>0.116</td><td>0.366</td><td>0.331</td></tr>
+<tr><td>3</td><td>0.7</td><td>0.637</td><td>0.096</td><td>0.135</td><td>0.474</td><td>0.421</td></tr>
+<tr><td>4</td><td>0.7</td><td>0.729</td><td>0.112</td><td>0.154</td><td>0.559</td><td>0.501</td></tr>
+<tr><td>12</td><td>0.7</td><td>0.946</td><td>0.213</td><td>0.306</td><td>0.844</td><td>0.859</td></tr>
+</tbody>
+</table>
+<p>默认预设的结果可手算复核：重读即时代理约 <strong>82.3%</strong>、第 7 单位延迟回忆约 <strong>17.8%</strong>；检索 + 反馈即时约 <strong>48.9%</strong>、第 7 单位约 <strong>61.6%</strong>；混合即时约 <strong>78.6%</strong>、第 7 单位约 <strong>56.3%</strong>。四舍五入会产生微小差异。表中 F/R/S 状态是模型账本，不是心理量表。</p>
+</div>
+</div>
+</section>
+
 <h2 id="1">1. 第一性原理：学习是改变大脑，不是产出答案<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>认知科学的基本事实：记忆与理解产生于<strong>费力的检索与加工</strong>（desirable difficulty）。做题的价值不在答案本身，而在你搜索、碰壁、重构的那二十分钟——<strong>答案直接出现，学习就没有发生</strong>。所以一切方法可以归结为一条元规则：</p>
+<p>认知科学给出的一个重要提醒是：长期记忆与可迁移理解往往需要<strong>主动检索与加工</strong>，而不只是反复接触。做题的价值不只在答案，也在你搜索、碰壁和重构的过程；若答案过早出现，最关键的主动加工很可能被跳过。因此本讲采用一条元规则：</p>
 <blockquote>
 <p><strong>把 AI 放在"产生费力思考"的位置上，而不是"消除费力思考"的位置上。</strong></p>
 </blockquote>
 <p>具体化为三条使用纪律：</p>
 <ol>
-<li><strong>先自己干</strong>：先做题/先读文献/先写代码，卡住 15–20 分钟再问——此时你带着具体的困惑去问，收获十倍于直接要答案；</li>
+<li><strong>先自己干</strong>：先做题/先读文献/先写代码，给自己一段与任务难度相称的独立尝试时间再问——此时你带着具体的困惑去问，通常比直接要答案更容易形成可检索的理解；</li>
 <li><strong>要提示不要答案</strong>：明确指示"给我一个提示，不要给完整解答"；</li>
 <li><strong>拿到帮助后复述</strong>：合上对话，自己从头把思路走一遍——走不通说明只是"看懂了"，没学会。</li>
 </ol>
@@ -132,7 +207,7 @@
 </tr>
 <tr>
 <td>纪律</td>
-<td>先自己干 20 分钟；拿到帮助后独立复述；每周依赖性自检</td>
+<td>先独立尝试；拿到帮助后闭卷复述；每周做依赖性自检</td>
 </tr>
 </tbody>
 </table>
@@ -148,5 +223,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/retrieval-practice.js"></script>
 </body>
 </html>

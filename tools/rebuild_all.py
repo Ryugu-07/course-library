@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -30,6 +31,35 @@ BUILDERS = {
     "wxb-course": "wxb-course/build_site.py",
 }
 
+BUILD_TIME_RE = re.compile(
+    rb'(<div class="build-time">\xe6\x9e\x84\xe5\xbb\xba\xe4\xba\x8e )'
+    rb'[^<]+'
+    rb'(</div>)'
+)
+BUILD_TIME_SENTINEL = rb"\1__BUILD_TIME__\2"
+
+
+def generated_pages(site: Path) -> dict[Path, bytes]:
+    if not site.is_dir():
+        return {}
+    return {path: path.read_bytes() for path in site.rglob("*.html")}
+
+
+def restore_timestamp_only_changes(previous: dict[Path, bytes]) -> int:
+    restored = 0
+    for path, old_bytes in previous.items():
+        if not path.is_file():
+            continue
+        new_bytes = path.read_bytes()
+        if new_bytes == old_bytes:
+            continue
+        old_stable = BUILD_TIME_RE.sub(BUILD_TIME_SENTINEL, old_bytes)
+        new_stable = BUILD_TIME_RE.sub(BUILD_TIME_SENTINEL, new_bytes)
+        if old_stable == new_stable:
+            path.write_bytes(old_bytes)
+            restored += 1
+    return restored
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -45,8 +75,12 @@ def main() -> int:
     selected = args.courses or list(BUILDERS)
     for name in selected:
         builder = root / BUILDERS[name]
+        previous = generated_pages(builder.parent / "site")
         print(f"\n==> Rebuilding {name}", flush=True)
         subprocess.run([sys.executable, builder.name], cwd=builder.parent, check=True)
+        restored = restore_timestamp_only_changes(previous)
+        if restored:
+            print(f"Preserved timestamps on {restored} unchanged page(s)")
     print(f"\nPASS: rebuilt {len(selected)} course site(s)")
     return 0
 

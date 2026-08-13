@@ -59,10 +59,11 @@ start-courses.bat
 python3 -m pip install -r requirements-build.txt
 python3 tools/rebuild_all.py ai-course cs-course
 python3 tools/course_audit.py
+python3 tools/learning_coverage.py --remaining
 python3 tools/check_external_links.py med-course/lectures clinic-course/lectures
 ```
 
-不传课程名时，`rebuild_all.py` 会重建全部 18 个站点。审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。
+不传课程名时，`rebuild_all.py` 会重建全部 18 个站点；若页面除了“构建于”时间外没有变化，它会保留原文件，避免无意义的全站差异。结构审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。`learning_coverage.py` 从四站生成器的 `COURSE` 注册表读取正式讲义，统计数学、物理与 AI 中已达到完整“学习层 + 交互实验”契约的页面；导论和实验索引不进入分母。
 
 ## Mac 端更新仓库
 

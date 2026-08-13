@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,27 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 13:54</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#nla-krylov-learning-title">学习层：CG 的收敛，到底是 κ 还是谱的形状？</a><ul>
+<li><a href="#1">1. 具体谜题：同一个条件数，为什么实际步数可以差很多？</a></li>
+<li><a href="#2">2. 先预测，再展开账本</a></li>
+<li><a href="#3-a-">3. 最小模型：误差多项式、A-范数与真残差</a></li>
+<li><a href="#4-chebyshev">4. Chebyshev 界：最坏情形，不是预测器</a></li>
+<li><a href="#5">5. 透明预条件：改变有效谱，而不是隐藏捷径</a></li>
+<li><a href="#6-n">6. 边界、有限精度与“n 步精确”的准确说法</a></li>
+</ul>
+</li>
 <li><a href="#1-krylov">1. Krylov 子空间</a></li>
 <li><a href="#2-cg">2. CG 的收敛性（主菜，证明结构完整）</a></li>
 <li><a href="#3">3. 预条件：实战的灵魂</a></li>
 <li><a href="#4">4. 随机化数值线代一瞥（现代附录）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -50,6 +70,158 @@
 <p><strong>对标</strong>：Trefethen &amp; Bau Lectures 32–40 ｜ <strong>前置</strong>：nla-01/02、本科数值 II、优化 II（CG 预告）
 当 <span class="arithmatex">\(n\)</span> 到百万级、矩阵稀疏（只有 <span class="arithmatex">\(O(n)\)</span> 个非零），分解法（<span class="arithmatex">\(O(n^3)\)</span>）出局——唯一买得起的操作是<strong>矩阵乘向量</strong>。Krylov 方法的纲领：只用乘向量，在"乘出来的子空间"里找最优解。CG 的收敛性证明是本页主菜，预条件是本页的实战灵魂。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="nla-krylov-learning-title" class="learning-layer">
+<h2 id="nla-krylov-learning-title">学习层：CG 的收敛，到底是 κ 还是谱的形状？<a class="headerlink" href="#nla-krylov-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：同一个条件数，为什么实际步数可以差很多？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先把“系统很大”的干扰拿掉，只看一个完全可复核的对角 SPD 教学模型：</p>
+<div class="arithmatex">\[
+A=\operatorname{diag}(\lambda_1,\ldots,\lambda_n),\qquad b=Ax_*,\qquad x_0=0.
+\]</div>
+<p>比较下面两组 <span class="arithmatex">\(n=12\)</span> 的谱：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\Lambda_{\rm uniform}&amp;=\{1,\tfrac{35}{11},\tfrac{59}{11},\ldots,\tfrac{275}{11}\},\\
+\Lambda_{\rm cluster}&amp;=\{1,1,1,1,8,8,8,8,25,25,25,25\}.
+\end{aligned}
+\]</div>
+<p>两者都有</p>
+<div class="arithmatex">\[
+\kappa(A)=\frac{\lambda_{\max}}{\lambda_{\min}}=\frac{25}{1}=25,
+\]</div>
+<p>但第一组把谱铺满 <span class="arithmatex">\([1,25]\)</span>，第二组只有三个不同特征值。取 <span class="arithmatex">\(x_*=(1,\ldots,1)^\top\)</span>，先不要运行：你预测哪一个更早让 <span class="arithmatex">\(\|e_k\|_A\)</span> 接近零？再问一个更尖锐的问题：若矩阵和 κ 都不变，只把 <span class="arithmatex">\(e_0=x_*-x_0\)</span> 改成只含最小、最大两个特征向量方向，实际步数会不会也改变？</p>
+<h3 id="2">2. 先预测，再展开账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>下面的实验只构造 <span class="arithmatex">\(n\leq12\)</span> 的<strong>对角</strong>系统，不生成稠密大矩阵、不抽样、不把百万维数据伪装成 benchmark。每个预设都固定 <span class="arithmatex">\(A\)</span>、<span class="arithmatex">\(b\)</span> 和 <span class="arithmatex">\(x_0\)</span>，只让你切换已经写进账本的教学问题：</p>
+<ol>
+<li><strong>同 κ：均匀谱 vs 三簇谱</strong>——预期三簇谱只需要消灭三个有效特征值方向，明显早于均匀谱。</li>
+<li><strong>同谱：初始方向权重</strong>——预期只含两个端点方向的误差在两步内结束；这不是 κ 变好了，而是其余特征向量方向的初始权重为零。</li>
+<li><strong>透明预条件：分组对角 <span class="arithmatex">\(M\)</span></strong>——预期 PCG 看到的是 <span class="arithmatex">\(\mu_i=\lambda_i/m_i\)</span> 的三档有效谱，条件数和实际步数都下降；<span class="arithmatex">\(M\)</span> 的每个对角条目在实验中公开列出。</li>
+<li><strong>边界：<span class="arithmatex">\(\kappa=1\)</span> 与零残差</strong>——<span class="arithmatex">\(A=7I\)</span> 的非零误差一步结束；若 <span class="arithmatex">\(r_0=0\)</span>，根本不应计算 <span class="arithmatex">\(\alpha_0\)</span>，零步已经是答案。</li>
+</ol>
+<p>拖动“逐步展开到第 <span class="arithmatex">\(k\)</span> 步”时，蓝线是归一化 <span class="arithmatex">\(A\)</span>-范数误差
+<span class="arithmatex">\(\|e_k\|_A/\|e_0\|_A\)</span>，红色虚线是归一化的<strong>真</strong>残差
+<span class="arithmatex">\(\|b-Ax_k\|_2/\|r_0\|_2\)</span>，金色点线是 Chebyshev 条件数上界。下方再看有效谱、初始能量权重、残差多项式滤波值和逐行 recurrence 账本。先在心里押一个答案，再点“核对预测”；反馈只针对当前这个小模型，不把定理界说成步数预言。</p>
+<div class="learning-lab" data-learning-lab="cg-spectrum">
+<p><strong>JavaScript 失效时的静态 fallback（可手算 2×2）：</strong>取</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}1&amp;0\\0&amp;4\end{pmatrix},\qquad
+x_*=(1,1)^\top,\qquad x_0=(0,0)^\top,\qquad b=(1,4)^\top.
+\]</div>
+<p>于是 <span class="arithmatex">\(r_0=b-Ax_0=(1,4)^\top\)</span>、<span class="arithmatex">\(p_0=r_0\)</span>，并且</p>
+<div class="arithmatex">\[
+\alpha_0=\frac{r_0^\top r_0}{p_0^\top Ap_0}=\frac{17}{65},\qquad
+x_1=\left(\frac{17}{65},\frac{68}{65}\right)^\top.
+\]</div>
+<p>用 recurrence 得</p>
+<div class="arithmatex">\[
+r_1=r_0-\alpha_0Ap_0=\left(\frac{48}{65},-\frac{12}{65}\right)^\top,
+\]</div>
+<p>而直接重算也给</p>
+<div class="arithmatex">\[
+b-Ax_1=\left(1-\frac{17}{65},4-\frac{272}{65}\right)^\top
+=\left(\frac{48}{65},-\frac{12}{65}\right)^\top.
+\]</div>
+<p>这就是本实验要求的“recurrence 与显式真残差对账”。接着</p>
+<div class="arithmatex">\[
+\beta_0=\frac{r_1^\top r_1}{r_0^\top r_0}=\frac{144}{4225},
+\qquad
+p_1=r_1+\beta_0p_0=\left(\frac{3264}{4225},-\frac{204}{4225}\right)^\top,
+\]</div>
+<p>再算</p>
+<div class="arithmatex">\[
+\alpha_1=\frac{r_1^\top r_1}{p_1^\top Ap_1}=\frac{65}{68},
+\qquad r_2=0,qquad x_2=x_*.
+\]</div>
+<p>所以 <span class="arithmatex">\(\kappa=4\)</span> 的这个 2×2 例子在两步内精确结束。逐步读数为</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\|e_k\|_A/\|e_0\|_A\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\|r_k\|_2/\|r_0\|_2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(2((\sqrt4-1)/(\sqrt4+1))^k\)</span>（截到 1）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;"><span class="arithmatex">\(6/\sqrt{325}\approx0.3328\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(12/65\approx0.1846\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2/3\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2/9\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>这里 CG 的 <span class="arithmatex">\(A\)</span>-范数误差按嵌套 Krylov 空间最小化；残差二范数只是另一个读数，不能从这个例子的下降就推出“残差二范数总是单调”。</p>
+</div>
+<h3 id="3-a-">3. 最小模型：误差多项式、A-范数与真残差<a class="headerlink" href="#3-a-" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(e_k=x_*-x_k\)</span>。对称正定 <span class="arithmatex">\(A\)</span> 给出内积</p>
+<div class="arithmatex">\[
+\langle u,v\rangle_A=u^\top Av,\qquad \|u\|_A=\sqrt{u^\top Au}.
+\]</div>
+<p>CG 的精确算术目标不是“每一步都让任意范数下降”，而是</p>
+<div class="arithmatex">\[
+x_k=\arg\min_{x\in x_0+\mathcal K_k(A,r_0)}\|x_*-x\|_A,
+\qquad
+\|e_k\|_A\leq\|e_{k-1}\|_A.
+\]</div>
+<p>在对角谱坐标里，<span class="arithmatex">\(e_k=p_k(A)e_0\)</span>，其中 <span class="arithmatex">\(p_k(0)=1\)</span>。因此第 <span class="arithmatex">\(i\)</span> 个特征方向的误差被 <span class="arithmatex">\(p_k(\lambda_i)\)</span> 乘上；而</p>
+<div class="arithmatex">\[
+r_k=b-Ax_k=Ae_k,
+\]</div>
+<p>所以实验可以同时显示“方向权重 × 多项式滤波”。某个方向若 <span class="arithmatex">\(e_{0,i}=0\)</span>，它虽然属于 <span class="arithmatex">\(\operatorname{spec}(A)\)</span>，却不在这一次具体问题的有效误差里；实际收敛依赖这些权重，而不只依赖一个 κ。</p>
+<p>标准 CG 的三项 recurrence 是</p>
+<div class="arithmatex">\[
+\begin{aligned}
+r_k&amp;=b-Ax_k, &amp; p_0&amp;=r_0,\\
+\alpha_k&amp;=\frac{r_k^\top r_k}{p_k^\top Ap_k}, &amp; x_{k+1}&amp;=x_k+\alpha_kp_k,\\
+r_{k+1}&amp;=r_k-\alpha_kAp_k, &amp;
+\beta_k&amp;=\frac{r_{k+1}^\top r_{k+1}}{r_k^\top r_k},\\
+p_{k+1}&amp;=r_{k+1}+\beta_kp_k.
+\end{aligned}
+\]</div>
+<p>实验对每一行同时保留 recurrence 得到的 <span class="arithmatex">\(r_k\)</span> 和显式 <span class="arithmatex">\(b-Ax_k\)</span>，用
+<span class="arithmatex">\(\|r_k^{\rm rec}-(b-Ax_k)\|_2\)</span> 做断言。这样“残差很小”不会因为只维护一条递推而失去可审计性。</p>
+<h3 id="4-chebyshev">4. Chebyshev 界：最坏情形，不是预测器<a class="headerlink" href="#4-chebyshev" title="Permanent link"></a></h3>
+<p>记 <span class="arithmatex">\(\kappa=\lambda_{\max}/\lambda_{\min}\)</span>。归一化的经典界为</p>
+<div class="arithmatex">\[
+\frac{\|e_k\|_A}{\|e_0\|_A}
+\leq \min\left\{1,\,2\left(\frac{\sqrt\kappa-1}{\sqrt\kappa+1}\right)^k\right\}.
+\]</div>
+<p>它只知道一个谱区间，故必须把它读成<strong>所有允许初始方向和谱形状中的最坏情形上界</strong>。三簇谱的实际多项式只需在三个点附近变小，可能远低于这个区间界；但“界很松”不等于定理错，也不等于下一次任意问题都会三步结束。</p>
+<p>边界 <span class="arithmatex">\(\kappa=1\)</span> 要单独处理：<span class="arithmatex">\(A=\lambda I\)</span> 时 <span class="arithmatex">\(r_0\neq0\)</span> 的 CG 一步精确，不能把
+<span class="arithmatex">\(((\sqrt\kappa-1)/(\sqrt\kappa+1))^k\)</span> 的 <span class="arithmatex">\(0^0\)</span> 当作普通数值表达式。<span class="arithmatex">\(r_0=0\)</span> 时 <span class="arithmatex">\(x_0=x_*\)</span>，应在 <span class="arithmatex">\(k=0\)</span> 停止；否则 <span class="arithmatex">\(\alpha_0\)</span> 的分母和 <span class="arithmatex">\(\beta_0\)</span> 的分母可能被错误地写成零。</p>
+<h3 id="5">5. 透明预条件：改变有效谱，而不是隐藏捷径<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>预条件 CG 用一个易解的 SPD <span class="arithmatex">\(M\)</span> 改善几何。对本实验的对角模型，<span class="arithmatex">\(M=\operatorname{diag}(m_i)\)</span>，所以</p>
+<div class="arithmatex">\[
+z_k=M^{-1}r_k,\qquad \rho_k=r_k^\top z_k,
+\]</div>
+<p>并把标准公式中的 <span class="arithmatex">\(r_k^\top r_k\)</span> 换成 <span class="arithmatex">\(r_k^\top z_k\)</span>。有效谱是</p>
+<div class="arithmatex">\[
+\mu_i=\frac{\lambda_i}{m_i},qquad
+\kappa_{\rm eff}=\frac{\max_i\mu_i}{\min_i\mu_i}.
+\]</div>
+<p>实验的预设把 12 个均匀谱条目分成三组，公开选择 <span class="arithmatex">\(m_i\)</span> 使三组 <span class="arithmatex">\(\mu_i\)</span> 分别落在 <span class="arithmatex">\(1,1.25,1.5\)</span>；因此原始 <span class="arithmatex">\(\kappa=25\)</span>，但 <span class="arithmatex">\(\kappa_{\rm eff}=1.5\)</span>，而且有效谱只有三档。这里的“预条件有效”来自谱结构的透明重标度，不是把答案直接塞进 <span class="arithmatex">\(x_*\)</span>；账本仍然显示原始真残差 <span class="arithmatex">\(b-Ax_k\)</span>。</p>
+<h3 id="6-n">6. 边界、有限精度与“n 步精确”的准确说法<a class="headerlink" href="#6-n" title="Permanent link"></a></h3>
+<ul>
+<li>精确算术中，CG 至多在最小多项式次数步结束；一般上界是 <span class="arithmatex">\(n\)</span>，但重复特征值、有效初始方向和聚集谱都可能让实际次数小于 <span class="arithmatex">\(n\)</span>。</li>
+<li>浮点算术会损失 <span class="arithmatex">\(A\)</span>-共轭方向的精确正交性，故“第 <span class="arithmatex">\(n\)</span> 步一定得到机器精确解”不是可交付的工程承诺。实验把达到容差和显式残差 gap 分开显示，不把浮点结果写成理论精确。</li>
+<li><span class="arithmatex">\(\|e_k\|_A\)</span> 是 CG 的最小化对象；<span class="arithmatex">\(\|r_k\|_2\)</span> 没有同样的单调保证，甚至可以出现小幅回升。预条件改变的是有效几何，不会自动保证每个未预条件的残差读数都按同一比例下降。</li>
+<li>真实大问题的成本取决于稀疏矩阵-向量乘、预条件器求解、内存和并行通信；本实验故意只做小型、可逐项断言的模型，不能从它外推“百万维需要几步”或壁钟性能。</li>
+</ul>
+</section>
 <h2 id="1-krylov">1. Krylov 子空间<a class="headerlink" href="#1-krylov" title="Permanent link"></a></h2>
 <div class="arithmatex">\[
 \mathcal{K}_k(A, b) = \mathrm{span}\{b,\ Ab,\ A^2b,\ \dots,\ A^{k-1}b\}
@@ -135,7 +307,7 @@
 <p><strong>读法</strong>：<strong>"好的预条件器 = 对问题结构的洞察"</strong>——Krylov 框架是通用引擎，预条件是领域知识的接口；工业界解大问题的时间九成花在这里。（🔗 优化 II 的"Adam ≈ 对角预条件"、BatchNorm 改善条件数——同一思想在深度学习的方言。）</p>
 <h2 id="4">4. 随机化数值线代一瞥（现代附录）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>随机 SVD</strong>【骨架】：<span class="arithmatex">\(Y = A\Omega\)</span>（<span class="arithmatex">\(\Omega\)</span> 为 <span class="arithmatex">\(n\times(k{+}p)\)</span> 高斯随机阵）→ QR 得 <span class="arithmatex">\(Q\)</span> → 对小矩阵 <span class="arithmatex">\(Q^\top A\)</span> 做精确 SVD——<strong>用随机投影抓列空间</strong>（hdp-02 JL 引理的直系应用），误差以高概率 <span class="arithmatex">\(\lesssim \sigma_{k+1}\)</span>【引用 Halko–Martinsson–Tropp】。大数据低秩近似的默认起手式（sklearn <code>randomized_svd</code> 即它）——<strong>hdp 线与 nla 线在此正式握手</strong>。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（谱聚集实验设计）</strong> 两个 <span class="arithmatex">\(\kappa = 10^4\)</span> 的 SPD 矩阵：谱均匀分布 vs 聚成 3 簇——CG 迭代数前者 ~数百、后者 ~10（各簇一根多项式零点）；<strong>报告 CG 性能时"谱形状"比"条件数"信息量大</strong>。</p>
 <p><strong>例 2（Chebyshev 界亲算）</strong> <span class="arithmatex">\(\kappa = 100\)</span>：收缩因子 <span class="arithmatex">\(\frac{9}{11} \approx 0.818\)</span>，要降 <span class="arithmatex">\(10^6\)</span> 倍需 <span class="arithmatex">\(k \approx \frac{\ln 10^6}{\ln(11/9)} \approx 69\)</span> 步——对照梯度下降同题 <span class="arithmatex">\(\approx 3500\)</span> 步（<span class="arithmatex">\(\big(\frac{99}{101}\big)^k\)</span>）：<span class="arithmatex">\(\sqrt\kappa\)</span> 的现金价值。</p>
 <p><strong>例 3（何时不用 Krylov）</strong> <span class="arithmatex">\(n = 500\)</span> 稠密良态系统：直接 Cholesky（<span class="arithmatex">\(O(n^3)\)</span> 但常数小、稳定、可复用分解）完胜迭代——<strong>"大稀疏用 Krylov、小稠密用分解"</strong>：方法选型的第一分岔（数值 II 的表在研究生版续订）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -150,5 +322,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cg-spectrum.js"></script>
 </body>
 </html>
