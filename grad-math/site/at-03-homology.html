@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,94 +41,318 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li class="active"><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 18:25</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 单纯同调：数洞的线性代数</a></li>
-<li><a href="#2">2. 公理化视角与工具箱</a></li>
-<li><a href="#3">3. 三张支票的兑付</a></li>
-<li><a href="#4">4. 代数拓扑三页收官盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#_1">学习层：同一条圈，填得掉还是填不掉？</a><ul>
+<li><a href="#1">1. 具体谜题：实心与空心三角形</a></li>
+<li><a href="#2">2. 先预测：四个预设的账本</a></li>
+<li><a href="#3-z_1b_1">3. 最小模型：\(Z_1/B_1\) 的矩阵版本</a></li>
+<li><a href="#4">4. 动手验证：读图、读矩阵、读分类</a></li>
+<li><a href="#5">5. 误区与边界：两本系数账不能混写</a></li>
+<li><a href="#6">6. 回到定理：为什么边界的边界为零？</a></li>
+<li><a href="#7">7. 迁移问题：换系数、换空间、换不变量</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 单纯链复形：系数先行</a></li>
+<li><a href="#2-betti">2. 矩阵、秩与 Betti 数</a></li>
+<li><a href="#3">3. 三角形手算与四面体表面</a></li>
+<li><a href="#4_1">4. 公理化红利与比较定理</a><ul>
+<li><a href="#41-brouwer-n1-reduced-homology">4.1 Brouwer 不动点：\(n=1\) 也要用 reduced homology</a></li>
+<li><a href="#42-h_1">4.2 \(H_1\) 与基本群：先说清连通性</a></li>
+<li><a href="#43-mayervietoriseuler">4.3 Mayer–Vietoris、Euler 与持续同调</a></li>
+</ul>
+</li>
+<li><a href="#5-smith-normal-form-torsion">5. 整数同调的边界：Smith normal form 与 torsion</a></li>
+<li><a href="#6_1">6. 练习与要点</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii">代数拓扑 III · 同调<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<h1 id="iii">代数拓扑 III · 同调与边界账本<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Hatcher §2.1–2.2 ｜ <strong>前置</strong>：at-01/02、高代 IV（商空间）、mfld-02（de Rham 预告）
-基本群只测一维洞且可非交换难算；<strong>同调</strong>用交换群把"所有维度的洞"一次测完，且<strong>可机械计算</strong>（线性代数！）。本页从单纯同调的手算入门，到公理化的红利（Brouwer 高维版、Euler 示性数的统一），代数拓扑三页收官。</p>
+<p><strong>对标</strong>：Hatcher §2.1–2.2 ｜ <strong>前置</strong>：at-01/02、高代 IV（商空间）、mfld-02（de Rham 预告）<br />
+同调把空间翻译成链复形，再用 <span class="arithmatex">\(\ker\partial/\operatorname{im}\partial\)</span> 记录“闭而未填”的障碍。本页同时维护两本账：理论可用 <span class="arithmatex">\(\mathbb Z\)</span> 系数讨论定向与 torsion；下方交互实验<strong>明确只在有限二维单纯复形上取 <span class="arithmatex">\(\mathbb F_2\)</span> 系数</strong>，只做 GF(2) 线性代数，<strong>不冒充整数同调，也不检测 torsion</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
 <figure class="diagram">
 <p><img alt="单纯复形 + 边界算子 \partial，同调群数&quot;洞&quot;。" src="assets/img/at-03-homology.svg" /></p>
-<figcaption><span class="fig-id">图 at-03.1</span>单纯复形 + 边界算子 \(\partial\)，同调群数"洞"。</figcaption>
+<figcaption><span class="fig-id">图 at-03.1</span>单纯复形与边界算子：同调不是把“洞”画出来，而是把闭链模掉边界后的代数障碍留下来。</figcaption>
 </figure>
-<h2 id="1">1. 单纯同调：数洞的线性代数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>装置</strong>：空间三角剖分成单纯形（点/边/三角/四面体…）；<strong>链群</strong> <span class="arithmatex">\(C_k\)</span> = <span class="arithmatex">\(k\)</span>-单纯形的形式整系数组合（自由交换群——高代 IV 的直和）；<strong>边界算子</strong> <span class="arithmatex">\(\partial_k: C_k \to C_{k-1}\)</span>：</p>
+<section class="learning-layer">
+<h2 id="_1">学习层：同一条圈，填得掉还是填不掉？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：实心与空心三角形<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取三个顶点 <span class="arithmatex">\(v_0,v_1,v_2\)</span>，按边序</p>
 <div class="arithmatex">\[
-\partial[v_0, \dots, v_k] = \sum_i (-1)^i\,[v_0, \dots, \hat v_i, \dots, v_k]
+e_{01},\quad e_{12},\quad e_{20}
 \]</div>
-<p>（交替符号给定向——mfld-02 楔积反对称的离散亲戚。）</p>
-<p><strong>引理（<span class="arithmatex">\(\partial^2 = 0\)</span>）【证明】</strong> 两次删点 <span class="arithmatex">\((i, j)\)</span> 的项出现两次、符号相反（先删 <span class="arithmatex">\(i\)</span> 后删 <span class="arithmatex">\(j\)</span> 与反序差一个 <span class="arithmatex">\((-1)\)</span>——指标平移一位）——逐项相消。<span class="arithmatex">\(\blacksquare\)</span>（与 <span class="arithmatex">\(d^2 = 0\)</span>（mfld-02）同一句话："边界没有边界"。）</p>
-<p><strong>定义（同调群）</strong></p>
+<p>组成 1-chain</p>
 <div class="arithmatex">\[
-H_k = \frac{\ker\partial_k\ (\text{闭链: 无边界的圈})}{\mathrm{im}\,\partial_{k+1}\ (\text{边界: 填得掉的圈})}
+c=e_{01}+e_{12}+e_{20}.
 \]</div>
-<p>——<strong>"围而不填"的 <span class="arithmatex">\(k\)</span> 维圈</strong>：<span class="arithmatex">\(H_0\)</span> 数连通块、<span class="arithmatex">\(H_1\)</span> 数环洞、<span class="arithmatex">\(H_2\)</span> 数空腔。计算 = 两个整数矩阵的核与像（Smith 标准形——高代的算法性在此变成拓扑的可计算性）。</p>
-<p><strong>手算双例（本页的核心练习，务必亲手）</strong>：
-<strong>球面 <span class="arithmatex">\(S^2\)</span></strong>（四面体的表面）：<span class="arithmatex">\(H_0 = \mathbb{Z}\)</span>，<span class="arithmatex">\(H_1 = 0\)</span>（每个圈都是某两面之界），<span class="arithmatex">\(H_2 = \mathbb{Z}\)</span>（全体面之和是无边界的"空腔壳"）——一个二维洞；
-<strong>环面 <span class="arithmatex">\(T^2\)</span></strong>（标准方格剖分或用下述工具）：<span class="arithmatex">\(H_0 = \mathbb{Z}\)</span>，<span class="arithmatex">\(H_1 = \mathbb{Z}^2\)</span>（经线纬线两个独立环洞），<span class="arithmatex">\(H_2 = \mathbb{Z}\)</span>——"甜甜圈 = 1 块 + 2 环 + 1 腔"的代数指纹。</p>
-<h2 id="2">2. 公理化视角与工具箱<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>奇异同调（用连续映射的单纯形替代剖分——对一切空间有定义、同伦不变【引用等价性】）满足 <strong>Eilenberg–Steenrod 公理</strong>：函子性、同伦不变、长正合列、切除。使用层面两大件：</p>
-<ul>
-<li><strong>Mayer–Vietoris 长正合列</strong>（同调版 van Kampen）：<span class="arithmatex">\(X = U\cup V\)</span> 时三者同调串成长正合列——分块计算引擎，球面的归纳计算 <span class="arithmatex">\(H_k(S^n) = \mathbb{Z}\ (k = 0, n)\)</span> 三行完成【骨架】；</li>
-<li><strong><span class="arithmatex">\(H_1\)</span> = 基本群的交换化</strong>（Hurewicz【引用】）：<span class="arithmatex">\(H_1 \cong \pi_1^{ab}\)</span>——8 字形 <span class="arithmatex">\(\pi_1 = F_2\)</span> 而 <span class="arithmatex">\(H_1 = \mathbb{Z}^2\)</span>：<strong>同调抹掉非交换信息换取可计算性</strong>（分辨率与易算性的交易，本课程分类学主题的又一例）。</li>
-</ul>
-<h2 id="3">3. 三张支票的兑付<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>① Brouwer 不动点定理（任意维）【证明】</strong> 若 <span class="arithmatex">\(D^n\)</span> 自映射无不动点 ⇒ 收缩 <span class="arithmatex">\(r: D^n \to S^{n-1}\)</span> 存在；函子性：<span class="arithmatex">\(\mathbb{Z} = H_{n-1}(S^{n-1})\)</span> 要穿过 <span class="arithmatex">\(H_{n-1}(D^n) = 0\)</span>——矛盾。<span class="arithmatex">\(\blacksquare\)</span>（at-01 二维版的高维完全体；<strong>博弈论/Kakutani 的地基最终版</strong>。）</p>
-<p><strong>② 维数不变性【证明】</strong> <span class="arithmatex">\(\mathbb{R}^m \cong \mathbb{R}^n \Rightarrow\)</span> 去一点后同伦等价于 <span class="arithmatex">\(S^{m-1}\)</span> 与 <span class="arithmatex">\(S^{n-1}\)</span>，同调不同（<span class="arithmatex">\(m \neq n\)</span> 时）——<strong>"维数是拓扑不变量"</strong>这句显然的话原来需要同调才能证（数分/拓扑多年欠账的最终清偿）。</p>
-<p><strong>③ Euler 示性数的统一【定理】</strong> <span class="arithmatex">\(\chi = \sum(-1)^k\,\mathrm{rank}\,H_k\)</span>（Betti 数的交替和），且 = 任何剖分的 <span class="arithmatex">\(V - E + F - \cdots\)</span>【骨架：秩-零化度定理逐层核算——纯高代】。图论 II 的 <span class="arithmatex">\(V - E + F = 2\)</span>、微分几何 II 的 <span class="arithmatex">\(\int K\,dA = 2\pi\chi\)</span>、本页的 Betti 数——<strong>三门课的 <span class="arithmatex">\(\chi\)</span> 是同一个数</strong>：全站最大跨度的一次会师。</p>
-<p><strong>🔗 现代出口</strong>：<strong>持续同调</strong>（TDA）——让剖分尺度从 0 扫到 ∞、记录每个洞的生灭区间（barcode）：<strong>"数据的形状"的正式技术</strong>（点云的环结构、材料孔隙、脑网络……）；计算全靠本页的矩阵算法——你的数据分析工具箱里有一格属于同调。</p>
-<h2 id="4">4. 代数拓扑三页收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先不要看矩阵，预测两件事：</p>
+<ol>
+<li>每个顶点在 <span class="arithmatex">\(c\)</span> 的边界里出现几次？在 <span class="arithmatex">\(\mathbb F_2\)</span> 中这会留下什么？</li>
+<li>若三角形内部有一个 2-simplex <span class="arithmatex">\(f_{012}\)</span>，<span class="arithmatex">\(c\)</span> 是否属于 <span class="arithmatex">\(\operatorname{im}\partial_2\)</span>？若内部为空，答案会不会改变？</li>
+</ol>
+<p>关键是：实心与空心的 <span class="arithmatex">\(\partial_1\)</span> 完全相同，差别只在 <span class="arithmatex">\(C_2\)</span> 和 <span class="arithmatex">\(\partial_2\)</span>。因此“是 cycle”与“是 boundary”是两个不同问题。</p>
+<h3 id="2">2. 先预测：四个预设的账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>交互默认把三角边界选为 <span class="arithmatex">\(c\)</span>，正好把前两个预设拉开：</p>
 <table>
 <thead>
 <tr>
-<th>页</th>
-<th>不变量</th>
-<th>分辨率</th>
-<th>可计算性</th>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\((V,E,F)\)</span></th>
+<th style="text-align: right;">预期 <span class="arithmatex">\((\beta_0,\beta_1,\beta_2)\)</span>（<span class="arithmatex">\(\mathbb F_2\)</span>）</th>
+<th>默认 <span class="arithmatex">\(c\)</span> 的分类</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>I</td>
-<td><span class="arithmatex">\(\pi_1\)</span></td>
-<td>一维洞、非交换全息</td>
-<td>难（字问题不可判定【引用】）</td>
+<td>实心三角形</td>
+<td style="text-align: right;"><span class="arithmatex">\((3,3,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1,0,0)\)</span></td>
+<td>boundary：<span class="arithmatex">\(c=\partial_2 f_{012}\)</span></td>
 </tr>
 <tr>
-<td>II</td>
-<td>覆盖对应 / van Kampen</td>
-<td>子群层次</td>
-<td>分治可算</td>
+<td>只有三角边界</td>
+<td style="text-align: right;"><span class="arithmatex">\((3,3,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1,1,0)\)</span></td>
+<td>homology class：<span class="arithmatex">\(c\in Z_1\setminus B_1\)</span></td>
 </tr>
 <tr>
-<td>III</td>
-<td><span class="arithmatex">\(H_k\)</span></td>
-<td>全维度、交换化</td>
-<td><strong>线性代数级</strong></td>
+<td>三角环 + 孤立点</td>
+<td style="text-align: right;"><span class="arithmatex">\((4,3,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((2,1,0)\)</span></td>
+<td>homology class</td>
+</tr>
+<tr>
+<td>四面体表面</td>
+<td style="text-align: right;"><span class="arithmatex">\((4,6,4)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1,0,1)\)</span></td>
+<td>boundary：默认链是某个面 <span class="arithmatex">\(f_{012}\)</span> 的边界</td>
 </tr>
 </tbody>
 </table>
-<p>"造不变量→函子性→翻译问题"的方法论至此完整示范三轮——它就是二十世纪数学的中央战略（本科站四次点题的"不变量分类"在研究生站的完全体）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（亲手 Smith 一次）</strong> 圆 <span class="arithmatex">\(S^1\)</span> 的三角形剖分（3 点 3 边）：写出 <span class="arithmatex">\(\partial_1\)</span> 矩阵、算核与像 ⇒ <span class="arithmatex">\(H_1 = \mathbb{Z}, H_0 = \mathbb{Z}\)</span>——第一次全手工同调计算（20 分钟，值回票价）。</p>
-<p><strong>例 2（Betti 数当指纹）</strong> 球面 <span class="arithmatex">\((1,0,1)\)</span> vs 环面 <span class="arithmatex">\((1,2,1)\)</span>：<span class="arithmatex">\(H_1\)</span> 一举分开二者（基本群也能，但同调是"矩阵可算"的）；<span class="arithmatex">\(\chi = 2\)</span> vs <span class="arithmatex">\(0\)</span> 与 Gauss–Bonnet 对账 ✓。</p>
-<p><strong>例 3（M–V 上手）</strong> 用 Mayer–Vietoris 算 8 字形的同调（两圆并于一点）：<span class="arithmatex">\(H_1 = \mathbb{Z}^2\)</span>——与 <span class="arithmatex">\(\pi_1^{ab} = F_2^{ab} = \mathbb{Z}^2\)</span>（Hurewicz）双路核验。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>这里的 <span class="arithmatex">\(\beta_2=1\)</span> 不是“所有情况下有一个空腔”的同义词；它表示独立的 2-cycle 模掉 3-boundary 后还有一个维度。四面体表面是闭曲面的例子，实验本身没有 <span class="arithmatex">\(C_3\)</span>，所以此处 <span class="arithmatex">\(\beta_2=\dim\ker\partial_2\)</span>。</p>
+<h3 id="3-z_1b_1">3. 最小模型：<span class="arithmatex">\(Z_1/B_1\)</span> 的矩阵版本<a class="headerlink" href="#3-z_1b_1" title="Permanent link"></a></h3>
+<p>对有限二维单纯复形 <span class="arithmatex">\(K\)</span>，实验取</p>
+<div class="arithmatex">\[
+C_2(K;\mathbb F_2)\xrightarrow{\partial_2}C_1(K;\mathbb F_2)\xrightarrow{\partial_1}C_0(K;\mathbb F_2),
+\qquad \partial_1\partial_2=0.
+\]</div>
+<p>若把顶点、边、面分别排成基，<span class="arithmatex">\(\partial_1\)</span> 是“顶点 × 边”的 0/1 矩阵，<span class="arithmatex">\(\partial_2\)</span> 是“边 × 面”的 0/1 矩阵。对一个边系数向量 <span class="arithmatex">\(c\)</span>：</p>
+<div class="arithmatex">\[
+Z_1=\ker\partial_1,\qquad B_1=\operatorname{im}\partial_2,\qquad H_1=Z_1/B_1.
+\]</div>
+<p>所以界面先问“<span class="arithmatex">\(\partial_1c=0\)</span> 吗？”；只有 <span class="arithmatex">\(c\in Z_1\)</span> 时，才有资格问它是否在 <span class="arithmatex">\(B_1\)</span> 中。三种结果的含义是：</p>
+<ul>
+<li><strong>not a cycle</strong>：<span class="arithmatex">\(c\notin Z_1\)</span>，它连 <span class="arithmatex">\(H_1\)</span> 的代表都不是；</li>
+<li><strong>boundary</strong>：<span class="arithmatex">\(c\in B_1\)</span>，所以在商空间 <span class="arithmatex">\(Z_1/B_1\)</span> 里是零类；</li>
+<li><strong>homology class</strong>：<span class="arithmatex">\(c\in Z_1\setminus B_1\)</span>，代表一个非零的 <span class="arithmatex">\(H_1\)</span> 类。</li>
+</ul>
+<p>GF(2) 消元只用“交换行、加另一行”，没有浮点误差。设 <span class="arithmatex">\(r_k=\operatorname{rank}_{\mathbb F_2}\partial_k\)</span>，则在本实验的二维截断中</p>
+<div class="arithmatex">\[
+\beta_0=V-r_1,\qquad
+\beta_1=E-r_1-r_2,\qquad
+\beta_2=F-r_2.
+\]</div>
+<p>这是逐层 rank–nullity：<span class="arithmatex">\(\dim Z_k=\dim C_k-r_k\)</span>，再减去 <span class="arithmatex">\(\dim B_k=r_{k+1}\)</span>。</p>
+<h3 id="4">4. 动手验证：读图、读矩阵、读分类<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>在“同调边界账本”中依次做：</p>
+<ol>
+<li>保持默认的三角边界链，比较“实心三角形”和“只有三角边界”；</li>
+<li>点击一条边，使 <span class="arithmatex">\(\partial_1c\)</span> 出现非零顶点，确认它变成 <strong>not a cycle</strong>；</li>
+<li>在实心三角形中点击“取第一面边界”，观察一个 2-chain 见证 <span class="arithmatex">\(c=\partial_2 b\)</span>；</li>
+<li>读 <span class="arithmatex">\(\partial_1,\partial_2\)</span> 的 0/1 矩阵、秩、kernel 维数、Betti 数和 Euler 对账；</li>
+<li>切到四面体表面，选择一个面边界，再清空或改变边，区分“某面边界”和“整个表面的 2-cycle”。</li>
+</ol>
+<div class="learning-lab" data-learning-lab="homology-boundary">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验固定 <span class="arithmatex">\(\mathbb F_2\)</span> 系数，边界矩阵只有 0/1；实心与空心三角形的 <span class="arithmatex">\(\partial_1\)</span> 相同，但只有实心者有 <span class="arithmatex">\(\partial_2\)</span> 的面列。默认选 <span class="arithmatex">\(c=e_{01}+e_{12}+e_{20}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(\operatorname{rank}\partial_1\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\operatorname{rank}\partial_2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\((\beta_0,\beta_1,\beta_2)\)</span></th>
+<th>默认链</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实心三角形</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;"><span class="arithmatex">\((1,0,0)\)</span></td>
+<td>boundary</td>
+</tr>
+<tr>
+<td>只有三角边界</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><span class="arithmatex">\((1,1,0)\)</span></td>
+<td>homology class</td>
+</tr>
+<tr>
+<td>三角环 + 孤立点</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><span class="arithmatex">\((2,1,0)\)</span></td>
+<td>homology class</td>
+</tr>
+<tr>
+<td>四面体表面</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;"><span class="arithmatex">\((1,0,1)\)</span></td>
+<td>默认面边界是 boundary</td>
+</tr>
+</tbody>
+</table>
+<p>三角形的公共 <span class="arithmatex">\(\partial_1\)</span>（行 <span class="arithmatex">\(v_0,v_1,v_2\)</span>，列 <span class="arithmatex">\(e_{01},e_{12},e_{20}\)</span>）为</p>
+<div class="arithmatex">\[
+\partial_1=\begin{bmatrix}1&amp;0&amp;1\\1&amp;1&amp;0\\0&amp;1&amp;1\end{bmatrix}.
+\]</div>
+<p>实心三角形多出</p>
+<div class="arithmatex">\[
+\partial_2=\begin{bmatrix}1\\1\\1\end{bmatrix},\qquad
+\partial_1\partial_2=\begin{bmatrix}0\\0\\0\end{bmatrix}\quad\text{in }\mathbb F_2.
+\]</div>
+<p>因此默认 <span class="arithmatex">\(c=(1,1,1)^T\)</span> 满足 <span class="arithmatex">\(\partial_1c=0\)</span>；实心情形 <span class="arithmatex">\(c=\partial_2(1)\)</span>，空心情形没有面列可供填充。若脚本失败，以上表格、矩阵和分类仍给出完整的手算路径。</p>
+</div>
+<h3 id="5">5. 误区与边界：两本系数账不能混写<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong><span class="arithmatex">\(\mathbb F_2\)</span> 不是 <span class="arithmatex">\(\mathbb Z\)</span> 的简写。</strong> 在 <span class="arithmatex">\(\mathbb F_2\)</span> 中 <span class="arithmatex">\(1=-1\)</span>，所以有向边反向只改一个本来就相同的符号；实验故意忘掉 orientation。它算的是 <span class="arithmatex">\(H_k(K;\mathbb F_2)\)</span> 的维数，不是 <span class="arithmatex">\(H_k(K;\mathbb Z)\)</span> 的完整结构。</li>
+<li><strong>Betti 数不检测 torsion。</strong> 整数同调的有限生成分解写成 <span class="arithmatex">\(H_k(K;\mathbb Z)\cong \mathbb Z^{\beta_k}\oplus T_k\)</span>，其中 <span class="arithmatex">\(T_k\)</span> 是 torsion 子群；<span class="arithmatex">\(\beta_k\)</span> 只记录自由部分的秩。只看秩无法区分 torsion。更进一步，<span class="arithmatex">\(\mathbb F_2\)</span> 维数还可能受到整数 torsion 的影响：例如 <span class="arithmatex">\(\mathbb{RP}^2\)</span> 的 <span class="arithmatex">\(H_1(-;\mathbb Z)\cong\mathbb Z/2\)</span>，而 <span class="arithmatex">\(H_1(-;\mathbb F_2)\)</span> 有一维，所以不能把 F₂ 的维数直接叫作整数 Betti 数。</li>
+<li><strong>整数矩阵需要 Smith normal form。</strong> 对 <span class="arithmatex">\(\mathbb Z\)</span> 系数，边界矩阵带有 <span class="arithmatex">\(\pm1\)</span>，允许的行列变换必须是 unimodular 的；在 <span class="arithmatex">\(\mathbb Q\)</span> 或 <span class="arithmatex">\(\mathbb R\)</span> 上算 rank 只能看到自由秩，看不到对角元 <span class="arithmatex">\(d_i&gt;1\)</span> 产生的 <span class="arithmatex">\(\mathbb Z/d_i\)</span> torsion。因此“同调就是线性代数”只有在明确系数是域（本实验是 <span class="arithmatex">\(\mathbb F_2\)</span>）时才准确；整数同调要把 Smith normal form 的分解信息保留下来。</li>
+<li><strong><span class="arithmatex">\(H_2\)</span> 不等于任何空间的“空腔数”。</strong> 定义始终是 <span class="arithmatex">\(H_2=Z_2/B_2=\ker\partial_2/\operatorname{im}\partial_3\)</span>。它测 2-dimensional cycles modulo 3-boundaries；闭曲面的基本类是一个重要来源，但一般单纯复形中的 2-cycle 可能是组合性的、非流形的，不能一律命名为空腔。</li>
+</ul>
+<h3 id="6">6. 回到定理：为什么边界的边界为零？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>整数系数下</p>
+<div class="arithmatex">\[
+\partial[v_0,\ldots,v_k]=\sum_{i=0}^k(-1)^i[v_0,\ldots,\widehat v_i,\ldots,v_k].
+\]</div>
+<p>在 <span class="arithmatex">\(\partial^2\)</span> 中，每个删去两个顶点的 <span class="arithmatex">\((k-2)\)</span>-面有两条出现路径；两条路径的符号相反，于是相消。模 2 后符号被忘掉，但每项仍出现两次，而 <span class="arithmatex">\(1+1=0\)</span>，所以同样得到 <span class="arithmatex">\(\partial^2=0\)</span>。这不是某个预设的数值巧合，而是链复形可以定义同调商空间的结构原因。</p>
+<h3 id="7">7. 迁移问题：换系数、换空间、换不变量<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<ol>
+<li>把实心三角形的 <span class="arithmatex">\(\partial_2=[1,1,1]^T\)</span> 改回整数带向边界，写出带正负号的列；为什么把它逐项模 2 后 orientation 消失？</li>
+<li>设计一个整数边界矩阵，其 Smith normal form 有非平凡对角元；说明为什么只算 rational rank 会漏掉一个有限循环群。</li>
+<li>对 path-connected 空间 <span class="arithmatex">\(X\)</span>，把八字形的 <span class="arithmatex">\(\pi_1=F_2\)</span> abelianize，预测 <span class="arithmatex">\(H_1\)</span>；再问：如果 <span class="arithmatex">\(X\)</span> 不 path-connected，为什么必须逐个分支陈述这个比较？</li>
+<li>对一个有 3-simplex 的复形，重新检查 <span class="arithmatex">\(\beta_2=\dim\ker\partial_2-\operatorname{rank}\partial_3\)</span>；这一步会怎样改变“面环”的直觉？</li>
+</ol>
+</section>
+<h2 id="1_1">1. 单纯链复形：系数先行<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(K\)</span> 是有限单纯复形，系数环 <span class="arithmatex">\(A\)</span> 可以取 <span class="arithmatex">\(\mathbb Z\)</span>，也可以取域 <span class="arithmatex">\(\mathbb F_2\)</span>。选定每个单纯形的生成元后</p>
+<div class="arithmatex">\[
+C_k(K;A)=\bigoplus_{\sigma\in K^{(k)}}A[\sigma],
+\qquad \partial_k:C_k\to C_{k-1},\qquad \partial_{k-1}\partial_k=0.
+\]</div>
+<p>当 <span class="arithmatex">\(A=\mathbb Z\)</span> 时，<span class="arithmatex">\(C_k\)</span> 是自由交换群；选定向后用交替符号定义边界。改变一个 <span class="arithmatex">\(k\)</span>-单纯形的 orientation 是把相应基向量乘以 <span class="arithmatex">\(-1\)</span>，不会改变整数同调群的同构类型。</p>
+<p>当 <span class="arithmatex">\(A=\mathbb F_2=\mathbb Z/2\)</span> 时，<span class="arithmatex">\(-1=1\)</span>。因此本页实验可把每条边、每个面只看作一个无向基元，边界矩阵是 0/1 矩阵，运算全部模 2。这是一个明确的系数选择，不是“把整数计算省略符号”后仍声称得到同一个群。</p>
+<p>同调定义为</p>
+<div class="arithmatex">\[
+H_k(K;A)=\frac{Z_k(K;A)}{B_k(K;A)},\qquad
+Z_k=\ker\partial_k,\qquad B_k=\operatorname{im}\partial_{k+1}.
+\]</div>
+<p>非空复形的 <span class="arithmatex">\(H_0(K;\mathbb Z)\)</span> 是各 path-component 的 <span class="arithmatex">\(\mathbb Z\)</span> 直和；在 <span class="arithmatex">\(\mathbb F_2\)</span> 上则是各连通分支的一维 <span class="arithmatex">\(\mathbb F_2\)</span> 直和，所以 <span class="arithmatex">\(\beta_0\)</span> 数连通分支。这里的“连通”对单纯复形等价于其 1-skeleton 的连通。</p>
+<h2 id="2-betti">2. 矩阵、秩与 Betti 数<a class="headerlink" href="#2-betti" title="Permanent link"></a></h2>
+<p>在域 <span class="arithmatex">\(F\)</span> 上，选定基以后所有问题归结为精确的有限维线性代数。令</p>
+<div class="arithmatex">\[
+r_k=\operatorname{rank}_F(\partial_k),\qquad
+\beta_k^F=\dim_F H_k(K;F).
+\]</div>
+<p>一般公式是</p>
+<div class="arithmatex">\[
+\beta_k^F=(\dim C_k-r_k)-r_{k+1}.
+\]</div>
+<p>有限二维实验没有 <span class="arithmatex">\(C_3\)</span>，因而 <span class="arithmatex">\(r_3=0\)</span>，得到</p>
+<div class="arithmatex">\[
+\beta_0=V-r_1,\qquad \beta_1=E-r_1-r_2,\qquad \beta_2=F-r_2.
+\]</div>
+<p>秩—零化度定理还给出 Euler 对账：</p>
+<div class="arithmatex">\[
+\chi(K)=\sum_k(-1)^k\dim_F C_k
+       =\sum_k(-1)^k\beta_k^F.
+\]</div>
+<p>对整数同调，应把 <span class="arithmatex">\(\beta_k\)</span> 理解为 <span class="arithmatex">\(H_k(K;\mathbb Z)\)</span> 的自由秩；torsion 不贡献 Euler 特征，但也不会因为 Euler 对得上就自动消失。</p>
+<h2 id="3">3. 三角形手算与四面体表面<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>三角形公共边界矩阵是</p>
+<div class="arithmatex">\[
+\partial_1=\begin{bmatrix}1&amp;0&amp;1\\1&amp;1&amp;0\\0&amp;1&amp;1\end{bmatrix}\quad(\mathbb F_2).
+\]</div>
+<p>三行相加为零，且任意两行独立，所以 <span class="arithmatex">\(\operatorname{rank}\partial_1=2\)</span>。</p>
+<p><strong>实心三角形</strong>再添一个面，</p>
+<div class="arithmatex">\[
+\partial_2=\begin{bmatrix}1\\1\\1\end{bmatrix},\qquad r_2=1.
+\]</div>
+<p>所以 <span class="arithmatex">\((\beta_0,\beta_1,\beta_2)=(3-2,3-2-1,1-1)=(1,0,0)\)</span>。</p>
+<p><strong>只有三角边界</strong>没有 2-simplex，<span class="arithmatex">\(r_2=0\)</span>，所以 <span class="arithmatex">\((\beta_0,\beta_1,\beta_2)=(1,1,0)\)</span>。同一向量 <span class="arithmatex">\((1,1,1)^T\)</span> 仍在 <span class="arithmatex">\(\ker\partial_1\)</span>，但没有 <span class="arithmatex">\(\partial_2\)</span> 的列可以生成它。</p>
+<p><strong>三角环加孤立点</strong>只是在 <span class="arithmatex">\(\partial_1\)</span> 下面多一行零行：<span class="arithmatex">\(V=4,E=3,F=0,r_1=2\)</span>，故 <span class="arithmatex">\((2,1,0)\)</span>。这说明 <span class="arithmatex">\(\beta_0\)</span> 与 <span class="arithmatex">\(\beta_1\)</span> 记录的是不同维度的障碍。</p>
+<p><strong>四面体表面</strong>有 <span class="arithmatex">\(V=4,E=6,F=4\)</span>。每个顶点—边连通图给 <span class="arithmatex">\(r_1=3\)</span>；四个面边界的唯一模 2 关系是“每条边出现两次”的总和关系，故 <span class="arithmatex">\(r_2=3\)</span>。于是 <span class="arithmatex">\((\beta_0,\beta_1,\beta_2)=(1,0,1)\)</span>。这里的非零 <span class="arithmatex">\(H_2\)</span> 类是整个闭表面的组合基本类；一个单独的三角面边界仍是 <span class="arithmatex">\(B_1\)</span> 中的 1-chain。</p>
+<h2 id="4_1">4. 公理化红利与比较定理<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>奇异同调把“选定剖分”换成所有连续奇异单纯形，因此对一般空间有定义，并满足 Eilenberg–Steenrod 公理。本文采用的系数群为固定的 <span class="arithmatex">\(G\)</span>，并把 <strong>additivity</strong> 明确约定为不交并的直和：</p>
+<ul>
+<li><strong>函子性与同伦不变性</strong>：连续映射诱导同调群同态，同伦映射诱导同一个同态；</li>
+<li><strong>长正合列（exactness）</strong>：一对 <span class="arithmatex">\((X,A)\)</span> 有长正合列 <span class="arithmatex">\(\cdots\to H_n(A;G)\to H_n(X;G)\to H_n(X,A;G)\to H_{n-1}(A;G)\to\cdots\)</span>；</li>
+<li><strong>切除（excision）</strong>：在适当闭包条件下，从子空间切掉的部分不改变相对同调；</li>
+<li><strong>维数公理（dimension）</strong>：<span class="arithmatex">\(H_0(\{\ast\};G)\cong G\)</span>，而 <span class="arithmatex">\(H_n(\{\ast\};G)=0\)</span>（<span class="arithmatex">\(n\ne0\)</span>）；</li>
+<li><strong>加性公理（additivity）</strong>：对不交并 <span class="arithmatex">\(X=\coprod_{\alpha}X_\alpha\)</span>，<span class="arithmatex">\(H_n(X;G)\cong\bigoplus_{\alpha}H_n(X_\alpha;G)\)</span>。这里是直和，因为奇异链是有限个奇异单纯形的形式和。</li>
+</ul>
+<p>约化同调把维数公理改写成 <span class="arithmatex">\(\widetilde H_n(\{\ast\};G)=0\)</span>；它不是装饰，而是在 degree 0 正确表达“一个可缩空间没有约化洞”。</p>
+<h3 id="41-brouwer-n1-reduced-homology">4.1 Brouwer 不动点：<span class="arithmatex">\(n=1\)</span> 也要用 reduced homology<a class="headerlink" href="#41-brouwer-n1-reduced-homology" title="Permanent link"></a></h3>
+<p>若连续 <span class="arithmatex">\(f:D^n\to D^n\)</span> 没有不动点，可沿着从 <span class="arithmatex">\(f(x)\)</span> 经过 <span class="arithmatex">\(x\)</span> 的射线取其与 <span class="arithmatex">\(S^{n-1}\)</span> 的交点，得到一个 retraction</p>
+<div class="arithmatex">\[
+r:D^n\to S^{n-1},\qquad r|_{S^{n-1}}=\operatorname{id}.
+\]</div>
+<p>令 <span class="arithmatex">\(i:S^{n-1}\hookrightarrow D^n\)</span> 为包含，则 <span class="arithmatex">\(r\circ i=\operatorname{id}\)</span>。对所有 <span class="arithmatex">\(n\ge1\)</span> 在 <span class="arithmatex">\(\mathbb Z\)</span> 系数的<strong>约化同调</strong>上取 degree <span class="arithmatex">\(n-1\)</span>：</p>
+<div class="arithmatex">\[
+\widetilde H_{n-1}(S^{n-1};\mathbb Z)\cong\mathbb Z,\qquad
+\widetilde H_{n-1}(D^n;\mathbb Z)=0.
+\]</div>
+<p>于是 <span class="arithmatex">\(\widetilde H_{n-1}(r)\circ\widetilde H_{n-1}(i)\)</span> 一方面应为恒等，另一方面因中间群为 0 只能为零，矛盾。特别地，<span class="arithmatex">\(n=1\)</span> 时目标是 <span class="arithmatex">\(\widetilde H_0(S^0)\cong\mathbb Z\)</span>，而 <span class="arithmatex">\(\widetilde H_0(D^1)=0\)</span>；若误用普通 <span class="arithmatex">\(H_0(D^1)\cong\mathbb Z\)</span>，这个反证确实会失效。</p>
+<h3 id="42-h_1">4.2 <span class="arithmatex">\(H_1\)</span> 与基本群：先说清连通性<a class="headerlink" href="#42-h_1" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(X\)</span> <strong>path-connected</strong>，选定基点 <span class="arithmatex">\(x_0\)</span>，则 Hurewicz 的低维结论给出</p>
+<div class="arithmatex">\[
+H_1(X;\mathbb Z)\cong \pi_1(X,x_0)^{\mathrm{ab}}
+ =\pi_1(X,x_0)/[\pi_1(X,x_0),\pi_1(X,x_0)].
+\]</div>
+<p>同调保留回路的交换化信息：八字形的 <span class="arithmatex">\(\pi_1=F_2\)</span> 非交换，而 <span class="arithmatex">\(H_1\cong\mathbb Z^2\)</span>。若 <span class="arithmatex">\(X\)</span> 不是 path-connected，必须逐个 path-component 说明这条同构；不能把一个未连通空间的所有回路压成一个未经说明的单一基本群。</p>
+<h3 id="43-mayervietoriseuler">4.3 Mayer–Vietoris、Euler 与持续同调<a class="headerlink" href="#43-mayervietoriseuler" title="Permanent link"></a></h3>
+<p>Mayer–Vietoris 长正合列把 <span class="arithmatex">\(X=U\cup V\)</span> 的同调接起来，是分块计算引擎。对球面可用两半球覆盖：交集同伦等价于 <span class="arithmatex">\(S^{n-1}\)</span>，长正合列逐维推出</p>
+<div class="arithmatex">\[
+H_k(S^n;\mathbb Z)\cong
+\begin{cases}
+\mathbb Z,&amp;k=0,n,\\
+0,&amp;\text{otherwise},
+\end{cases}
+\]</div>
+<p>（<span class="arithmatex">\(n\ge1\)</span>，并按约化版本处理低维边界）。环面则有 <span class="arithmatex">\(H_1(T^2;\mathbb Z)\cong\mathbb Z^2\)</span>、<span class="arithmatex">\(H_2(T^2;\mathbb Z)\cong\mathbb Z\)</span>。这些整数结论不是本实验的 F₂ 输出，除非另行用系数变换与相应理论证明。</p>
+<p>同调还给出三个经典兑现：</p>
+<ol>
+<li><strong>Brouwer 不动点定理</strong>的高维反证如上，关键是约化同调在 <span class="arithmatex">\(n=1\)</span> 的正确 degree 0 行为；</li>
+<li><strong>维数不变性</strong>：去一点后 <span class="arithmatex">\(\mathbb R^m\setminus\{0\}\simeq S^{m-1}\)</span>，不同维球面的约化同调不同；</li>
+<li><strong>Euler 示性数统一</strong>：<span class="arithmatex">\(V-E+F-\cdots\)</span> 与 Betti 数交替和相等，但两者都不能替代整数 Smith 数据。</li>
+</ol>
+<p>现代出口是持续同调：让剖分尺度变化，记录每个 <span class="arithmatex">\(H_k\)</span> 类的生灭区间。每个尺度仍然要先选系数；“barcode 可计算”不等于“torsion 自动被测到”。</p>
+<h2 id="5-smith-normal-form-torsion">5. 整数同调的边界：Smith normal form 与 torsion<a class="headerlink" href="#5-smith-normal-form-torsion" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(\mathbb Z\)</span> 上，边界矩阵是整数矩阵。对 <span class="arithmatex">\(\partial_k\)</span> 做 Smith normal form，使用左右 unimodular 矩阵把它化为</p>
+<div class="arithmatex">\[
+U\partial_kV=\operatorname{diag}(d_1,\ldots,d_r,0,\ldots),\qquad d_i\mid d_{i+1}.
+\]</div>
+<p>非单位 <span class="arithmatex">\(d_i\)</span> 携带有限循环群的 torsion 信息；仅仅在 <span class="arithmatex">\(\mathbb Q\)</span> 上行化或只记录一个 rank，会把这些 <span class="arithmatex">\(d_i\)</span> 全部抹掉。因而“整数同调也就是线性代数”需要补上 Smith normal form 这句限定：矩阵是输入，整数允许的变换和不变量结构才是答案。</p>
+<p>系数换成 <span class="arithmatex">\(\mathbb F_2\)</span> 后，<span class="arithmatex">\(\mathbb Z\)</span> 的方向符号消失，且模 2 的维数未必等于整数自由秩。实验的优点是 GF(2) 消元快速、透明、适合检验 <span class="arithmatex">\(Z_1/B_1\)</span> 的定义；它的边界也同样明确：不返回 <span class="arithmatex">\(H_k(K;\mathbb Z)\)</span> 的群分解，不报告 Smith 对角元，不检测 torsion。</p>
+<h2 id="6_1">6. 练习与要点<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<p><strong>例 1（边界账本）</strong> 对空心三角形写出 <span class="arithmatex">\(\partial_1\)</span>，验证 <span class="arithmatex">\((1,1,1)^T\in Z_1\)</span>，再说明 <span class="arithmatex">\(B_1=0\)</span>。切换到实心三角形后写出 <span class="arithmatex">\(\partial_2\)</span>，验证同一向量进入 <span class="arithmatex">\(B_1\)</span>。</p>
+<p><strong>例 2（球面表面）</strong> 四面体表面的四个面相加是一个 2-cycle：每条边恰出现两次。它代表 <span class="arithmatex">\(H_2\)</span> 的非零类；不要把这句话改写为“某个 2-chain 的边界”，因为这里讨论的是 2-chain 自身的边界为零。相反，一个单独面的三条边是某个 2-chain 的边界。</p>
+<p><strong>例 3（系数对照）</strong> 说明为什么 <span class="arithmatex">\(\mathbb{RP}^2\)</span> 的整数 <span class="arithmatex">\(H_1\cong\mathbb Z/2\)</span> 不能由整数 Betti 数看出，而在 <span class="arithmatex">\(\mathbb F_2\)</span> 中会出现一维类。指出实验没有能力区分“整数无 torsion”和“某些 torsion 在模 2 后留下维数”。</p>
+<p><strong>例 4（公理与应用）</strong> 把 Brouwer 反证逐行写成 <span class="arithmatex">\(\widetilde H_{n-1}(S^{n-1})\to\widetilde H_{n-1}(D^n)\)</span>，检查 <span class="arithmatex">\(n=1\)</span> 的 <span class="arithmatex">\(S^0\)</span>；再用 path-connected 假设把八字形的 <span class="arithmatex">\(H_1\)</span> 与 <span class="arithmatex">\(\pi_1^{ab}\)</span> 对账。</p>
 <hr />
-<p><em>最后一门：代数进阶——Sylow 定理、Galois 对应全证与五次方程不可解：本科抽代"山顶眺望"的正式登顶。</em></p>
+<p><em>代数拓扑三页收官：at-01 的 <span class="arithmatex">\(\pi_1\)</span> 保留非交换回路，at-02 用覆盖与 van Kampen 分治，at-03 用链复形把各维闭链模掉边界；每次都要先写清不变量、系数与适用边界。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="at-02-covering.html"><span class="pager-label">上一页</span>代数拓扑 II · 覆盖空间与 van Kampen</a>
@@ -127,5 +362,7 @@ H_k = \frac{\ker\partial_k\ (\text{闭链: 无边界的圈})}{\mathrm{im}\,\part
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/homology-boundary.js"></script>
 </body>
 </html>

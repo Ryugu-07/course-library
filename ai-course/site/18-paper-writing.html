@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -29,119 +40,294 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-08-13 18:09</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
-<li><a href="#1-ai">1. 全流程地图：每个环节用多少 AI</a></li>
-<li><a href="#2">2. 初稿：协作写而不是代写</a></li>
-<li><a href="#3">3. 引用：头号雷区的完整处置</a></li>
-<li><a href="#4-ai">4. 打磨：AI 最闪光的环节</a></li>
-<li><a href="#5">5. 合规收尾</a></li>
-<li><a href="#_1">本讲小结</a></li>
-<li><a href="#_2">课程结语</a></li>
+<li><a href="#_1">学习层：一句听起来正确的话，为什么还不能提交？</a><ul>
+<li><a href="#paper-evidence-learning-title">1. 具体谜题：四个“核对过”不是同一件事</a></li>
+<li><a href="#2">2. 先预测：哪一关会先失败？</a></li>
+<li><a href="#3-claim-source-matrix">3. 最小模型：claim-source matrix</a></li>
+<li><a href="#4">4. 动手验证：逐关运行证据链</a></li>
+<li><a href="#5">5. 误区与边界</a></li>
+<li><a href="#6">6. 回到写作：每段都能画成一条证据链</a></li>
+<li><a href="#7">7. 迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 从问题到成稿：按责任划分任务</a></li>
+<li><a href="#2_1">2. 段落协作：先交论证包，再让模型改文字</a></li>
+<li><a href="#3">3. 引用工作流：发现、核对、采纳、生成格式</a></li>
+<li><a href="#4_1">4. 多轮打磨：每轮只问一种失败</a></li>
+<li><a href="#5_1">5. 合规、披露与保密</a></li>
+<li><a href="#_2">本讲小结</a></li>
+<li><a href="#_3">课程结语</a></li>
 </ul>
 </div>
 </details>
 <h1 id="18">第 18 讲 · 实战：论文与长文写作<a class="headerlink" href="#18" title="Permanent link"></a></h1>
 <blockquote>
-<p>收官之讲，处理最重的写作场景。论文写作与第 13 讲（科研方法）和第 17 讲（长文档工程）深度重叠，本讲不重复，聚焦三件事：<strong>从想法到成稿的完整工作流、每个环节的允许边界、以及引用这个头号雷区</strong>。原则一以贯之：AI 是加速器与磨刀石，<strong>学术贡献与文责必须是你的</strong>。</p>
+<p>论文不是“文字很多的文档”，而是一条可追溯的论证链：<strong>论断、证据、限定词、来源定位与作者责任</strong>必须逐项对得上。AI 可以帮助检索分诊、结构检查与语言编辑，但不能替作者决定证据支持了什么，也不能承担署名、保密和投稿责任。</p>
 </blockquote>
-<h2 id="1-ai">1. 全流程地图：每个环节用多少 AI<a class="headerlink" href="#1-ai" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="paper-evidence-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一句听起来正确的话，为什么还不能提交？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="paper-evidence-learning-title">1. 具体谜题：四个“核对过”不是同一件事<a class="headerlink" href="#paper-evidence-learning-title" title="Permanent link"></a></h3>
+<p>假设候选来源有一个能打开的标识符，标题和作者也对得上。你能否据此写下“工具 A 因果性地提高了所有研究生的科研效率”？不能。至少还有四个互不替代的问题：</p>
+<ol>
+<li><strong>身份</strong>：标识符、标题、作者、年份和版本是否指向同一条记录？</li>
+<li><strong>支持</strong>：原文研究设计、样本和结果是否蕴含当前论断的强度与范围？</li>
+<li><strong>定位</strong>：直接引文、表格数字和页码能否由另一位读者复核？</li>
+<li><strong>溯源与政策</strong>：你是否回到原始来源，并核对了具体投稿目标的当前规则与保密环境？</li>
+</ol>
+<p>DOI 或书目元数据能帮助识别和发现记录，但不替你判断研究是否可靠、结论是否为真，或者当前句子是否获得支持。反过来，标识符暂时未解析也不等于来源已被证伪；准确结论是“身份尚未建立，不能采纳”。</p>
+<h3 id="2">2. 先预测：哪一关会先失败？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验台内置五组<strong>完全虚构</strong>的教学记录，不联网，也不冒充真实论文。先只读预设名，预测第一个非 PASS 的 guard：</p>
 <table>
 <thead>
 <tr>
-<th>阶段</th>
-<th>AI 参与度</th>
-<th>用法</th>
+<th>预设</th>
+<th>先预测的故障</th>
+<th>正确处置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>干净链条</td>
+<td>无</td>
+<td>提交限定的描述性论断</td>
+</tr>
+<tr>
+<td>scope inflation</td>
+<td>样本、因果或外推越界</td>
+<td>把主张缩回证据覆盖范围</td>
+</tr>
+<tr>
+<td>元数据不一致 / 未解析</td>
+<td>身份未建立</td>
+<td>留在候选池，不写入参考文献</td>
+</tr>
+<tr>
+<td>引文定位 / 原文不匹配</td>
+<td>quote 或 locator 不可复核</td>
+<td>打开原文，按版本逐字重查</td>
+</tr>
+<tr>
+<td>二手转引</td>
+<td>未回到 primary source</td>
+<td>沿引用链回到原始记录</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-claim-source-matrix">3. 最小模型：claim-source matrix<a class="headerlink" href="#3-claim-source-matrix" title="Permanent link"></a></h3>
+<p>把一个段落拆成原子论断，再为每条论断记录来源和支持边界：</p>
+<table>
+<thead>
+<tr>
+<th>论断维度</th>
+<th>必须记什么</th>
+<th>常见越界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>样本与任务</td>
+<td>人群、任务、时间、纳入标准</td>
+<td>从 12 个固定任务外推到所有任务</td>
+</tr>
+<tr>
+<td>关系强度</td>
+<td>描述、相关、预测还是因果</td>
+<td>把观察性差异改写成“导致”</td>
+</tr>
+<tr>
+<td>外部效度</td>
+<td>证据真正覆盖的场景</td>
+<td>把单中心或单数据集写成普遍规律</td>
+</tr>
+<tr>
+<td>数值与原话</td>
+<td>分子、分母、单位、版本、locator</td>
+<td>引用摘要转述，却标成正文原话</td>
+</tr>
+</tbody>
+</table>
+<p>证据账本要同时输出两条状态：</p>
+<ul>
+<li><strong>论断支持状态</strong>：<code>SUPPORTED / UNSUPPORTED / UNVERIFIED</code>，回答“当前证据链是否支持这句限定论断”；</li>
+<li><strong>投稿就绪状态</strong>：<code>READY / REVISE / BLOCKED</code>，还要考虑目标政策、申报与保密环境。</li>
+</ul>
+<p>这两条不能合并。比如一条限定论断已经得到虚构原始记录支持，但目标期刊的最新 AI 政策尚未核对，此时论断仍可为 <code>SUPPORTED</code>，稿件却必须是 <code>REVISE</code>、<code>submission-ready = false</code>。政策阻断不是事实性证伪。</p>
+<h3 id="4">4. 动手验证：逐关运行证据链<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先选一个失败预设并提交预测，再逐次点击“运行下一关”。观察 claim-source matrix 中哪一行从 PASS 变成 WARN 或 BLOCK，然后比较原论断与限定论断。最后把目标政策切换为“具体投稿目标”，确认一个干净证据链为什么仍不能在未核对最新政策时直接提交。</p>
+<div class="learning-lab" data-learning-lab="evidence-ledger">
+<p><strong>无 JavaScript 时的静态读法：</strong>实验只使用虚构编号 <code>FIC-SRC-01</code> 至 <code>FIC-SRC-05</code>，不会访问 DOI、Crossref 或任何论文数据库。默认目标是“作者草稿”，四关结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>身份</th>
+<th>范围 / 蕴含</th>
+<th>引文 / 定位</th>
+<th>溯源 / 政策</th>
+<th>论断支持</th>
+<th>投稿状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>干净链条</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>SUPPORTED</td>
+<td>READY</td>
+</tr>
+<tr>
+<td>scope inflation</td>
+<td>PASS</td>
+<td>BLOCK</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>UNSUPPORTED</td>
+<td>BLOCKED</td>
+</tr>
+<tr>
+<td>元数据不一致</td>
+<td>BLOCK</td>
+<td>WARN</td>
+<td>BLOCK</td>
+<td>WARN</td>
+<td>UNVERIFIED</td>
+<td>BLOCKED</td>
+</tr>
+<tr>
+<td>定位不匹配</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>BLOCK</td>
+<td>PASS</td>
+<td>UNVERIFIED</td>
+<td>BLOCKED</td>
+</tr>
+<tr>
+<td>二手转引</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>BLOCK</td>
+<td>UNVERIFIED</td>
+<td>BLOCKED</td>
+</tr>
+</tbody>
+</table>
+<p>干净预设的原句只声称：在 12 条虚构的固定任务记录中，A 的平均完成时间低于 B，不主张因果或外推。scope inflation 则把它夸张成“工具 A 因果性地提高了所有研究生在所有科研任务中的效率”。修订不是换几个同义词，而是把句子收回到“12 名参与者、固定任务、观察性描述、无外推”的证据范围。</p>
+<p>若把干净预设的目标改为“具体投稿目标”，证据三关仍支持限定论断，但政策关给出 WARN：目标规则会变化，必须在投稿当天核对并留存版本。此时投稿状态为 REVISE，而不是把论断改判为假。</p>
+</div>
+<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>候选不是引用。</strong> LLM 可以生成检索词、作者名变体或候选题目，语义检索也可排序候选；在作者打开来源、核对身份与原文前，候选不得直接进入参考文献。</li>
+<li><strong>摘要不是全文证书。</strong> 摘要适合分诊是否值得精读，通常不足以核对限定条件、分析口径、表格数值和反例。把一段文字交给 AI 做 entailment 检查也只能当第二读者，不能替代作者回到原文。</li>
+<li><strong>可解析不等于支持。</strong> DOI 解析或 Crossref 元数据匹配解决的是身份与发现问题，不验证研究质量、统计设计或当前论断。</li>
+<li><strong>声望不是证据质量。</strong> 期刊名、引用数和作者知名度都不能替代研究设计、数据、可复现性与相关领域的证据综合。</li>
+<li><strong>政策不是永久常量。</strong> 投稿前查看具体期刊、会议、学校或资助方的当前页面，并记录日期与版本。不同目标可能要求不同的披露位置和粒度。</li>
+<li><strong>保密先于便利。</strong> 未公开稿件、受限数据、审稿材料与合作方内容，只能进入机构和目标政策明确批准的环境；不确定时停止上传并询问负责人。</li>
+</ul>
+<h3 id="6">6. 回到写作：每段都能画成一条证据链<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>一段结果讨论可以按四句构造：先写观察到什么，再写证据位置，然后写限定条件，最后写仍未排除的替代解释。例如：</p>
+<div class="highlight"><pre><span></span><code>在固定任务集 T-12 的 12 条教学记录中，A 的平均完成时间为 82 秒，
+B 为 97 秒（虚构记录 FIC-SRC-01，Table 2）。这是非随机描述性比较，
+不能单独识别因果效应，也不外推到其他人群或任务。
+</code></pre></div>
+<p>AI 可以在你提供论断、证据与限制后检查跳步、术语一致性或语言表达；它若引入新数字、新来源或更强限定词，就必须回到账本重新验收。</p>
+<h3 id="7">7. 迁移任务<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>拿一段自己的课程报告，给每个可争论句标上 <code>claim_id</code>。为它填五列：来源身份、原文定位、支持范围、当前限定词、目标政策状态。删去任何找不到 locator 的直接引文；把“证明、导致、普遍”逐一改成与你的研究设计相称的动词。最后让同伴只看账本，尝试复核你的段落。</p>
+</section>
+<h2 id="1">1. 从问题到成稿：按责任划分任务<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>不要用“AI 参与度高或低”替代判断。更稳定的做法是问：这一步需要什么输入证据、谁能验收、失败会造成什么后果？</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>AI 可以协助</th>
+<th>作者必须验收</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>选题与假设</td>
-<td>陪练</td>
-<td>头脑风暴、挑战你的假设（"这个 idea 最可能死在哪"）</td>
+<td>扩展问题空间、生成反例、列替代解释</td>
+<td>新颖性、可证伪性、资源与伦理边界</td>
 </tr>
 <tr>
-<td>文献综述</td>
-<td>高（但逐条验证）</td>
-<td>第 13 讲全套：语义检索、精读脚手架、综述骨架</td>
+<td>文献发现</td>
+<td>检索词、同义词、候选排序、阅读提纲</td>
+<td>每条来源身份、原文、版本和支持范围</td>
 </tr>
 <tr>
-<td>方法与实验</td>
-<td>中</td>
-<td>代码复现与分析（第 15 讲），统计选择要说理</td>
+<td>方法与分析</td>
+<td>代码草案、测试、可视化、异常检查</td>
+<td>设计选择、数据来源、统计口径、复现记录</td>
 </tr>
 <tr>
-<td><strong>结果解读与论点</strong></td>
-<td><strong>低——核心贡献区</strong></td>
-<td>只当质疑者用，结论必须你自己下</td>
+<td>结果与论证</td>
+<td>质疑跳步、比较多种解释</td>
+<td>主论点、因果强度、限制与学术贡献</td>
 </tr>
 <tr>
-<td>初稿撰写</td>
-<td>中</td>
-<td>骨架你定，段落协作写（见下）</td>
-</tr>
-<tr>
-<td>润色与合规</td>
-<td>高</td>
-<td>语言打磨、格式、投稿杂务</td>
+<td>文字与格式</td>
+<td>改写、翻译、压缩、格式检查</td>
+<td>语义不漂移、引用不丢失、最终逐句负责</td>
 </tr>
 </tbody>
 </table>
-<p>一眼看出规律：<strong>两头重、中间轻</strong>——越靠近"学术判断"的环节 AI 参与度越低，这不是道德姿态，而是署名责任的直接推论。</p>
-<h2 id="2">2. 初稿：协作写而不是代写<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>实操中最有效的段落级工作流，介于"全自己写"（慢）与"全让它写"（空洞 + 越界）之间：</p>
-<p><strong>你出论证，它出文字，你再改回来。</strong>对每一段：</p>
-<div class="highlight"><pre><span></span><code>这一段要表达的论证是：[X 方法在小样本下更稳，因为正则化项约束了
-方差；证据是表 2 第 3 行 vs 第 5 行的对比；要预先回应&quot;是否只是
-调参差异&quot;的质疑，用附录 B 的消融实验回应]。
-请写成 150 词左右的学术段落，逻辑连接词清晰，不要引入我没给的论据。
+<p>核心原则不是“越靠近结论就完全不用 AI”，而是<strong>任何无法由作者独立解释、验证与承担责任的内容都不能进入稿件</strong>。</p>
+<h2 id="2_1">2. 段落协作：先交论证包，再让模型改文字<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>给模型的最小论证包包含：本段主张、证据位置、限定词、替代解释和不可引入的新内容。例如：</p>
+<div class="highlight"><pre><span></span><code>主张：在数据集 D 的预注册分析中，方法 A 的中位误差低于 B。
+证据：表 2 第 3、5 行；单位为 mm；95% 区间见附录 B。
+边界：这是单数据集结果，不写成普遍优越；不作因果解释。
+任务：改成 120 词结果段，不添加数字、来源或机制解释，逐项列出改动。
 </code></pre></div>
-<p>要点全在提示词里体现了：<strong>论点、证据、反驳全部由你提供</strong>——AI 做的是"学术语言的排版"，它不被允许发明论据（明确写上这条约束，否则它会热心地帮你"补充"）。写作顺序建议依旧是经典的：方法 → 结果 → 引言 → 摘要（引言最需要全局感，留到后面）；每部分的骨架先行（第 17 讲第 4 节）。</p>
-<p><strong>中译英路线</strong>：中文思维快的作者，可以中文写初稿 → AI 译成学术英语 → <strong>逐句对照回改</strong>。逐句对照不可省：译文偶尔会悄悄改变限定词的强度（"可能提高"译成"提高"），而限定词强度在学术写作里就是命。</p>
-<h2 id="3">3. 引用：头号雷区的完整处置<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>第 13 讲的红线在写作阶段升级为完整流程：</p>
+<p>中译英也遵守同一验收：逐句检查否定、概率、数量词和限定词。<code>may</code>、<code>is associated with</code>、<code>improves</code> 与 <code>causes</code> 不是文风差异，而是不同强度的科学主张。</p>
+<h2 id="3">3. 引用工作流：发现、核对、采纳、生成格式<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <ol>
-<li><strong>绝不让 LLM 生成参考文献列表</strong>——一条都不行，这是幻觉重灾区（编造的文献以假乱真）；</li>
-<li>文献必须来自你验证过的来源：数据库检索、你读过的论文、AI 推荐<strong>但你已逐条到 Google Scholar/DOI 核实</strong>的条目；</li>
-<li>引用管理交给专业工具（Zotero 免费够用）：插件自动插引用、换期刊一键换格式——这个环节的自动化靠传统软件，不靠 LLM；</li>
-<li>AI 可以做的引用相关工作：帮你判断"这个论断需要引用支撑吗"、检查引用与论断是否匹配（"我引用 A 支持 B 论断，A 真的说了 B 吗？"——把 A 的摘要贴给它对照）。</li>
+<li><strong>发现</strong>：数据库、引文网络或 AI 只生成候选集合；</li>
+<li><strong>核对身份</strong>：标题、作者、年份、版本、标识符相互一致；</li>
+<li><strong>核对支持</strong>：打开原文，记录具体表、页、段、方法与限制；</li>
+<li><strong>采纳</strong>：只有通过前面两关的来源才能进入证据账本和参考文献库；</li>
+<li><strong>生成格式</strong>：用引用管理器从已核对的库生成文中引用与参考文献表，再人工抽查。</li>
 </ol>
-<h2 id="4-ai">4. 打磨：AI 最闪光的环节<a class="headerlink" href="#4-ai" title="Permanent link"></a></h2>
-<p>初稿完成后的多轮 pass，每轮一个焦点（一次全查等于全不查）：</p>
+<p>“不要让 LLM 直接生成并提交参考文献列表”不等于禁止它帮助找候选。真正的红线是：<strong>未经逐条打开和核对的候选不能伪装成已采纳来源</strong>。</p>
+<h2 id="4_1">4. 多轮打磨：每轮只问一种失败<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
-<li><strong>逻辑 pass</strong>："只挑论证问题：哪里跳步、哪里论据不支撑论点、哪里会被审稿人抓住？不改文字。"</li>
-<li><strong>语言 pass</strong>："逐句润色为规范学术英语，输出修改对照表 + 理由"（对照表保住你的控制权与学习机会，第 13 讲）；</li>
-<li><strong>一致性 pass</strong>：术语统一、符号统一、数字与图表对得上（第 17 讲）；</li>
-<li><strong>审稿模拟</strong>："扮演最严苛的 Reviewer 2 写拒稿意见"——投稿前最便宜的一次"预答辩"；</li>
-<li><strong>压缩 pass</strong>：超页数时"把这节压缩 30%，损失最少的信息"，它做这个出奇地好。</li>
+<li><strong>论证轮</strong>：哪里跳步，证据与主张是否同强度，替代解释有没有被隐藏；</li>
+<li><strong>数字轮</strong>：正文、表格、图注、摘要的数值、单位、分母和版本是否一致；</li>
+<li><strong>引用轮</strong>：每条引文能否定位，二手转引是否已回到原始来源；</li>
+<li><strong>语言轮</strong>：术语、时态、代词、否定和限定词是否漂移；</li>
+<li><strong>审稿轮</strong>：让 AI 或同伴扮演批评者列问题，但由作者判断哪些意见成立；</li>
+<li><strong>压缩轮</strong>：删重复和背景，不删限制条件、失败结果或必要证据。</li>
 </ul>
-<h2 id="5">5. 合规收尾<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>把每轮修改保存为可比较版本。一次要求“全面润色”会把论证修改和语言修改混在一起，反而难以验收。</p>
+<h2 id="5_1">5. 合规、披露与保密<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>投稿目标的 AI、署名、数据、图像、版权和披露政策可能变化，因此本页不给“多数期刊都如何”的永久结论。提交前查看目标官方说明，并保留核对日期。人类作者对稿件的准确性、完整性、原创性、引用、许可和披露负最终责任；AI 工具不能凭输出质量获得署名责任。</p>
+<p>披露应写实际用途，而不是套用一个万能模板：使用了什么工具和版本、在哪些任务上使用、作者怎样复核、是否影响方法可复现性。若 AI 参与研究方法或数据分析，方法部分还要给出足够复现信息。不要把保密稿件、审稿材料或受限数据上传到未经明确批准的服务。</p>
+<p>AI detector 的分数不是作者身份、抄袭或不当使用的可靠证据。合规判断应基于来源、版本、修改记录、政策和作者可解释性，而不是追逐一个不可复核的“AI 率”。</p>
+<h2 id="_2">本讲小结<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <ul>
-<li><strong>政策</strong>：投稿前查目标期刊/会议的最新 AI 政策（变动快）。共同底线：AI 不能署名作者；多数要求申报实质性使用；</li>
-<li><strong>申报模板</strong>（按需改写）：<em>"作者使用 [工具名] 辅助语言润色与文字编辑。所有学术内容、分析与结论均由作者完成，作者对全文内容负全责。"</em></li>
-<li><strong>AI 检测器</strong>：现有检测工具误报率高（尤其对非母语作者的规整英语），不足为凭；但反过来，<strong>全篇 AI 味</strong>（空洞排比、万物"delve"、每段结构雷同）审稿人肉眼可辨。避免的方法不是"降 AI 率"的猫鼠游戏，而是第 2 节的工作流本身——论证是你的，文字自然有你的指纹；</li>
-<li><strong>文责自负</strong>：最后一遍通读，确认每一句话你都愿意在答辩现场为它辩护。签字权从未外包——这句话是第 14 讲的收束，也是全课程应用篇的收束。</li>
+<li>把论文看成 claim-source-provenance 链，而不只是流畅文本；</li>
+<li>身份解析、论断支持、引文定位与投稿政策是四个不同检查；</li>
+<li>AI 可帮助发现候选和编辑文字，作者必须逐条核对并承担责任；</li>
+<li>论断支持与投稿就绪要分账，政策未知不等于论断被证伪；</li>
+<li>保密材料只进入明确获批准的环境。</li>
 </ul>
-<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<ul>
-<li>参与度地图：两头重中间轻，核心贡献区 AI 只当质疑者；</li>
-<li>段落工作流：论点证据你给，文字它排，逐句你收；</li>
-<li>引用零容忍：LLM 不产参考文献，逐条核实 + Zotero 管理；</li>
-<li>打磨分 pass：逻辑/语言/一致性/审稿模拟/压缩，一轮一焦点；</li>
-<li>申报透明 + 文责自负。</li>
-</ul>
-<p><strong>动手</strong>：拿你手头任何一段写过的学术文字（课程论文、报告皆可），完整走一遍第 4 节的五个 pass——每个 pass 单独开一轮对话。这半小时会让你对"AI 辅助写作"的真实价值形成手感。</p>
 <hr />
-<h2 id="_2">课程结语<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>十八讲主线到此完整。回望这条路：从 Fisher 的鸢尾花到 Hinton 的坚守，从间隔与对偶到注意力与 Scaling Laws，从聊天框到智能体——<strong>"找函数"的故事讲了九十年，函数越找越大，而找函数的人的核心素养从未改变：把问题定义清楚、对证据保持诚实、让验证成为本能。</strong>第 19 讲是独立的系统工程专题：把模型放进真实服务后，再追问延迟、吞吐、排队与容量边界。</p>
-<p>这也恰好是使用 AI 的素养。工具会继续以月为单位迭代，本课程下篇的具体产品名终将过时；但上篇的原理、以及贯穿全课的 verify 文化，保质期以十年计。</p>
-<p>接下来往哪走，三个方向任选：<strong>读论文</strong>（从本课延伸阅读清单开始，上篇已给你读懂它们的全部数学）；<strong>做东西</strong>（把 lab09 的手搓智能体扩展成你自己的工具）；<strong>教别人</strong>（第 12 讲的费曼技巧——把这门课讲给一个朋友听，你会发现哪些地方你以为懂了）。</p>
-<p>祝学习愉快。</p>
+<h2 id="_3">课程结语<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>从“找函数”的原理，到检索、写作、智能体和推理服务，本课程真正反复练习的是同一种能力：定义问题、记录证据、暴露假设、让失败可见。工具会快速变化，这套验收习惯不会。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="17-slides-docs.html"><span class="pager-label">上一讲</span>17 · 实战：PPT 与文档</a>
@@ -151,5 +337,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/evidence-ledger.js"></script>
 </body>
 </html>
