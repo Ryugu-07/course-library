@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,94 +41,206 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 19:58</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同样都“稳定”，为什么一杯水会先晃得更厉害？</a><ul>
+<li><a href="#ode-stability-learning-title">1. 具体谜题：最终回去，途中会不会越走越远？</a></li>
+<li><a href="#2">2. 先预测：不要先看相图</a></li>
+<li><a href="#3">3. 最小模型：长期、局部与瞬态三本账</a></li>
+<li><a href="#4">4. 动手验证：同时看相图和长度账本</a></li>
+<li><a href="#5">5. 误区与边界</a></li>
+<li><a href="#6-lyapunov">6. 回到定理：Lyapunov 方程把谱变成能量</a></li>
+<li><a href="#7">7. 迁移问题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 化组与矩阵指数</a></li>
-<li><a href="#2">2. 平面相图：特征值决定几何</a></li>
-<li><a href="#3">3. 非线性系统：线性化判稳</a></li>
-<li><a href="#4-ai">4. 动力系统一瞥与 AI 衔接</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#2_1">2. 平面线性系统分类</a></li>
+<li><a href="#3-lyapunov">3. 非线性系统与 Lyapunov 方法</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">常微分 III · 线性系统与稳定性<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>任何高阶方程都可化为一阶方程组 <span class="arithmatex">\(\mathbf{x}' = A\mathbf{x}\)</span>——于是 ODE 的问题变成矩阵的问题：<strong>解 = 矩阵指数，长期行为 = 特征值的实部</strong>。本页从矩阵指数到相图分类到 Lyapunov 稳定性，是"动力系统"观点的入门，也是本站高代 V 投资回报最高的一页。</p>
+<p>一个系统最终回到原点，并不表示它一路都在靠近原点。线性系统把这个差别说得很精确：特征值控制长期命运，特征向量的几何还会控制途中怎样绕行、拉伸和暂时放大。</p>
 </blockquote>
-<h2 id="1">1. 化组与矩阵指数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(n\)</span> 阶方程令 <span class="arithmatex">\(x_1 = y, x_2 = y', \dots\)</span> 即化为 <span class="arithmatex">\(\mathbf{x}' = A\mathbf{x}\)</span>（伴随矩阵形式；特征多项式恰是上一页的特征方程——两页在此合体）。</p>
-<p><strong>矩阵指数</strong>：<span class="arithmatex">\(e^{At} = \sum_{k=0}^{\infty}\frac{(At)^k}{k!}\)</span>（逐项求导验证 <span class="arithmatex">\(\frac{d}{dt}e^{At} = Ae^{At}\)</span>），初值问题的解一步写出：</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ode-stability-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同样都“稳定”，为什么一杯水会先晃得更厉害？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="ode-stability-learning-title">1. 具体谜题：最终回去，途中会不会越走越远？<a class="headerlink" href="#ode-stability-learning-title" title="Permanent link"></a></h3>
+<p>设状态满足 <span class="arithmatex">\(\dot{\mathbf x}=A\mathbf x\)</span>。下面三句话看起来相近，其实层级不同：</p>
+<ol>
+<li>每条轨线最终都趋于原点；</li>
+<li>从足够近处出发，轨线永远不会跑出指定邻域；</li>
+<li>欧氏长度 <span class="arithmatex">\(\|\mathbf x(t)\|_2\)</span> 从一开始就单调下降。</li>
+</ol>
+<p>第一句是渐近吸引，第二句是 Lyapunov 稳定，二者合起来才是渐近稳定；第三句更强。非正规矩阵可以同时满足前两句，却让某些初值先被拉长，再缓慢衰减。</p>
+<h3 id="2">2. 先预测：不要先看相图<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>依次选择“稳定结点”“鞍点”“稳定焦点”“中心”和“非正规瞬态”预设，先判断：</p>
+<ul>
+<li>所有解是否趋于零？</li>
+<li>原点是否 Lyapunov 稳定？</li>
+<li>是否可能出现 <span class="arithmatex">\(\|\mathbf x(t)\|_2&gt;\|\mathbf x(0)\|_2\)</span>？</li>
+</ul>
+<p>特别留意中心和零实部 Jordan 块：它们的特征值实部都不为正，却不能据此得到相同结论。</p>
+<h3 id="3">3. 最小模型：长期、局部与瞬态三本账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>常系数线性系统的解是</p>
 <div class="arithmatex">\[
-\mathbf{x}(t) = e^{At}\mathbf{x}_0
+\mathbf x(t)=e^{At}\mathbf x_0,
+\qquad
+e^{At}=\sum_{k=0}^{\infty}\frac{(At)^k}{k!}.
 \]</div>
-<p><strong>计算</strong>（高代 V 全套上岗）：<span class="arithmatex">\(A\)</span> 可对角化 <span class="arithmatex">\(= Q\,\mathrm{diag}(e^{\lambda_i t})\,Q^{-1}\)</span>；不可对角化走 Jordan（<span class="arithmatex">\(e^{Jt}\)</span> 中重根块带 <span class="arithmatex">\(t^k\)</span> 因子——上一页"重根乘 <span class="arithmatex">\(x\)</span>"的矩阵真相）。非齐次 <span class="arithmatex">\(\mathbf{x}' = A\mathbf{x} + \mathbf{f}(t)\)</span> 的常数变易公式：<span class="arithmatex">\(\mathbf{x} = e^{At}\mathbf{x}_0 + \int_0^t e^{A(t-s)}\mathbf{f}(s)\,ds\)</span>。</p>
-<h2 id="2">2. 平面相图：特征值决定几何<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="四类相图鞍点焦点结点中心" src="assets/img/ode-03-phase-portrait.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>线性系统 \(\dot{\mathbf x}=A\mathbf x\) 的相图由 \(A\) 的特征值决定：实异号→鞍点、复根→焦点/中心、实同号→结点。</figcaption>
-</figure>
-<p>二维系统 <span class="arithmatex">\(\mathbf{x}' = A\mathbf{x}\)</span> 的轨线全景由 <span class="arithmatex">\(A\)</span> 的特征值 <span class="arithmatex">\(\lambda_{1,2}\)</span> 分类（<strong>这张表值得画在纸上记</strong>）：</p>
+<p>对实 <span class="arithmatex">\(2\times2\)</span> 矩阵，记 <span class="arithmatex">\(\tau=\operatorname{tr}A\)</span>、<span class="arithmatex">\(\Delta=\det A\)</span>、<span class="arithmatex">\(D=\tau^2-4\Delta\)</span>。特征值为</p>
+<div class="arithmatex">\[
+\lambda_{1,2}=\frac{\tau\pm\sqrt{D}}{2}.
+\]</div>
+<p>二维连续系统是 Hurwitz 的充要条件为 <span class="arithmatex">\(\tau&lt;0\)</span> 且 <span class="arithmatex">\(\Delta&gt;0\)</span>，等价于全部特征值实部严格为负。此时原点全局渐近稳定。若 <span class="arithmatex">\(D&lt;0\)</span>，轨线旋转；若 <span class="arithmatex">\(D&gt;0\)</span>，看见的是实特征方向；若 <span class="arithmatex">\(\Delta&lt;0\)</span>，一正一负，必为鞍点。</p>
+<p>但长度是否立即下降，要看对称部分</p>
+<div class="arithmatex">\[
+\frac{d}{dt}\frac12\|\mathbf x\|_2^2
+=\mathbf x^\mathsf T\frac{A+A^\mathsf T}{2}\mathbf x.
+\]</div>
+<p>只有对称部分半负定，欧氏长度才对所有初值不增。它不是 Hurwitz 稳定的必要条件。</p>
+<h3 id="4">4. 动手验证：同时看相图和长度账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验固定一个二维初值，直接计算 <span class="arithmatex">\(e^{At}\mathbf x_0\)</span>。左图显示轨线与方向场，右图显示 <span class="arithmatex">\(\|\mathbf x(t)\|_2/\|\mathbf x_0\|_2\)</span>；账本另列迹、行列式、判别式、特征值、最大放大和最终状态。改变预设或初始方向，核对自己的预测。</p>
+<div class="learning-lab" data-learning-lab="ode-stability">
+<p><strong>无 JavaScript 时的静态读法：</strong>以下结论已经覆盖实验的关键边界。</p>
 <table>
 <thead>
 <tr>
+<th>预设矩阵</th>
 <th>特征值</th>
-<th>平衡点类型</th>
-<th>图像</th>
+<th>长期行为</th>
+<th>欧氏长度</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>两负实根</td>
-<td><strong>稳定结点</strong></td>
-<td>全部流入</td>
+<td><span class="arithmatex">\(\begin{pmatrix}-1&amp;0\\0&amp;-2\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(-1,-2\)</span></td>
+<td>全部趋零</td>
+<td>单调下降</td>
 </tr>
 <tr>
-<td>两正实根</td>
-<td>不稳定结点</td>
-<td>全部流出</td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;0\\0&amp;-1\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(1,-1\)</span></td>
+<td>鞍点，不稳定</td>
+<td>某些方向增长</td>
 </tr>
 <tr>
-<td>一正一负</td>
-<td><strong>鞍点</strong></td>
-<td>沿稳定方向进、不稳方向出（不稳定）</td>
+<td><span class="arithmatex">\(\begin{pmatrix}-0.25&amp;-1\\1&amp;-0.25\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(-0.25\pm i\)</span></td>
+<td>螺旋趋零</td>
+<td>单调下降</td>
 </tr>
 <tr>
-<td>复根 <span class="arithmatex">\(\alpha \pm i\beta\)</span>，<span class="arithmatex">\(\alpha &lt; 0\)</span></td>
-<td><strong>稳定焦点</strong></td>
-<td>螺旋吸入</td>
+<td><span class="arithmatex">\(\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(\pm i\)</span></td>
+<td>Lyapunov 稳定但不吸引</td>
+<td>保持不变</td>
 </tr>
 <tr>
-<td>复根，<span class="arithmatex">\(\alpha &gt; 0\)</span></td>
-<td>不稳定焦点</td>
-<td>螺旋甩出</td>
+<td><span class="arithmatex">\(\begin{pmatrix}-1&amp;8\\0&amp;-2\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(-1,-2\)</span></td>
+<td>最终趋零</td>
+<td>某些方向先放大</td>
 </tr>
 <tr>
-<td>纯虚根 <span class="arithmatex">\(\pm i\beta\)</span></td>
-<td><strong>中心</strong></td>
-<td>闭轨道绕圈（临界情形）</td>
+<td><span class="arithmatex">\(\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(0,0\)</span></td>
+<td>非平凡 Jordan 块，不稳定</td>
+<td>线性增长</td>
 </tr>
 </tbody>
 </table>
-<p>一句话总纲：<strong>所有特征值实部 <span class="arithmatex">\(&lt; 0\)</span> ⟺ 渐近稳定</strong>（<span class="arithmatex">\(e^{\lambda t} \to 0\)</span>）；有一个实部 <span class="arithmatex">\(&gt; 0\)</span> 即不稳定。（离散系统 <span class="arithmatex">\(x_{n+1} = Ax_n\)</span> 的对应判据是<strong>模</strong> <span class="arithmatex">\(&lt; 1\)</span>——随机过程 II/数值 II 谱半径的老朋友；连续看实部、离散看模，一对镜像。）</p>
-<h2 id="3">3. 非线性系统：线性化判稳<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>非线性系统 <span class="arithmatex">\(\mathbf{x}' = F(\mathbf{x})\)</span> 在平衡点 <span class="arithmatex">\(\mathbf{x}^*\)</span>（<span class="arithmatex">\(F(\mathbf{x}^*) = 0\)</span>）附近，用 Jacobi 矩阵 <span class="arithmatex">\(J = DF(\mathbf{x}^*)\)</span> 线性化（数分 V 的微分=局部线性化，再次上岗）：</p>
-<p><strong>定理（线性化判稳，Hartman–Grobman 精神）</strong> <span class="arithmatex">\(J\)</span> 的特征值实部全非零（双曲情形）时，非线性系统在平衡点附近的定性行为与线性化系统相同。⚠️ 中心（纯虚根）是例外——线性化说了不算，高阶项定生死。</p>
-<p><strong>Lyapunov 直接法</strong>（不解方程判稳的第二条路）：找"能量函数" <span class="arithmatex">\(V(\mathbf{x}) &gt; 0\)</span>（<span class="arithmatex">\(V(\mathbf{x}^*) = 0\)</span>），若沿轨线 <span class="arithmatex">\(\dot V = \nabla V \cdot F \leq 0\)</span> 则稳定（<span class="arithmatex">\(&lt; 0\)</span> 则渐近稳定）——<strong>能量不增的系统跑不远</strong>。找 <span class="arithmatex">\(V\)</span> 是艺术（物理能量、二次型 <span class="arithmatex">\(\mathbf{x}^\top P\mathbf{x}\)</span> 是首选试探）。</p>
-<p><strong>名例（Lotka–Volterra 捕食者-猎物）</strong>：<span class="arithmatex">\(x' = x(a - by),\ y' = y(-c + dx)\)</span>。平衡点 <span class="arithmatex">\((c/d, a/b)\)</span> 处线性化得纯虚根（中心，判稳失效）——但存在守恒量 <span class="arithmatex">\(V\)</span>（Lyapunov 函数的守恒版）证明轨道是闭的：<strong>猎物与捕食者数量永恒振荡</strong>，生态学最著名的数学结论（建模页再会）。</p>
-<h2 id="4-ai">4. 动力系统一瞥与 AI 衔接<a class="headerlink" href="#4-ai" title="Permanent link"></a></h2>
-<p>超出线性的世界一嘴：<strong>极限环</strong>（孤立闭轨，如 van der Pol 振子——自激振荡）；<strong>混沌</strong>（Lorenz 系统：确定性方程 + 对初值指数敏感 = 不可长期预测，"蝴蝶效应"；三维以上自治系统才可能）。</p>
-<p>🔗 <strong>AI 衔接（密集区）</strong>：梯度流 <span class="arithmatex">\(\mathbf{x}' = -\nabla f\)</span> 的平衡点=驻点、<span class="arithmatex">\(J = -\nabla^2 f\)</span>、极小点 ⟺ 稳定（优化 II 的静态图景在此获得动力学生命，<span class="arithmatex">\(f\)</span> 本身就是 Lyapunov 函数）；RNN 的梯度消失/爆炸 = 本页"实部/模决定长期行为"（ai 课 06 讲）；Neural ODE 把 <span class="arithmatex">\(\mathbf{x}' = F_\theta(\mathbf{x})\)</span> 当网络层；扩散模型的概率流 ODE（comfy 课 03 讲）是本页方程的时变版——<strong>你在 KSampler 里跑的就是一条 <span class="arithmatex">\(\mathbf{x}' = F(\mathbf{x}, t)\)</span> 的数值轨线</strong>。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（矩阵指数解系统）</strong> <span class="arithmatex">\(\mathbf{x}' = \begin{pmatrix} 0 &amp; 1 \\ -2 &amp; -3\end{pmatrix}\mathbf{x}\)</span>：特征值 <span class="arithmatex">\(-1, -2\)</span>（两负实根 → 稳定结点），特征向量 <span class="arithmatex">\((1,-1), (1,-2)\)</span>，通解 <span class="arithmatex">\(\mathbf{x} = C_1 e^{-t}\binom{1}{-1} + C_2 e^{-2t}\binom{1}{-2}\)</span>。</p>
-<p><strong>例 2（分类速判）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 1 &amp; -2 \\ 1 &amp; -1 \end{pmatrix}\)</span>：<span class="arithmatex">\(\mathrm{tr} = 0, \det = 1 &gt; 0\)</span> ⇒ 特征值 <span class="arithmatex">\(\pm i\)</span>——中心，轨道为椭圆。（二维速判口诀：<span class="arithmatex">\(\det &lt; 0\)</span> 鞍点；<span class="arithmatex">\(\det &gt; 0\)</span> 看迹的符号定稳/不稳，判别式定结点/焦点。）</p>
-<p><strong>例 3（Lyapunov 直接法）</strong> <span class="arithmatex">\(x' = -x + y^2,\ y' = -y + x^2\)</span> 在原点：取 <span class="arithmatex">\(V = \frac12(x^2 + y^2)\)</span>，<span class="arithmatex">\(\dot V = -x^2 - y^2 + xy(x + y) &lt; 0\)</span>（原点附近高阶项被压制）⇒ 渐近稳定。不解方程，一个能量函数定乾坤。<span class="arithmatex">\(\blacksquare\)</span></p>
+</div>
+<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“实部都不大于零就稳定”是错的。</strong>虚轴上的特征值必须是半单的，非平凡 Jordan 块会产生 <span class="arithmatex">\(t^k\)</span> 增长；只有全部特征值实部严格为负才能保证渐近稳定。</li>
+<li><strong>Hartman–Grobman 不是一句万能判稳口号。</strong>它只在双曲平衡点附近给出流的拓扑等价；出现零实部特征值时，高阶项可能改变稳定性。</li>
+<li><strong>相图分类不等于欧氏距离分类。</strong>换一个等价范数或 Lyapunov 二次型，Hurwitz 系统总能找到严格下降的“能量”，但指定的 <span class="arithmatex">\(\|\cdot\|_2\)</span> 仍可短暂增加。</li>
+<li><strong>线性化只回答局部问题。</strong>非线性系统远离平衡点后可能遇到别的平衡点、极限环或逃逸区域。</li>
+</ul>
+<h3 id="6-lyapunov">6. 回到定理：Lyapunov 方程把谱变成能量<a class="headerlink" href="#6-lyapunov" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(A\)</span> Hurwitz，则对任意正定 <span class="arithmatex">\(Q\)</span>，存在唯一正定 <span class="arithmatex">\(P\)</span> 满足</p>
+<div class="arithmatex">\[
+A^\mathsf TP+PA=-Q.
+\]</div>
+<p>于是 <span class="arithmatex">\(V(\mathbf x)=\mathbf x^\mathsf TP\mathbf x\)</span> 沿轨线严格下降。这个定理解释了为何非正规系统即使欧氏长度先放大，仍有另一把“尺子”能单调记录它走向原点。</p>
+<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>梯度流在极小点附近的 Jacobian 是负 Hessian；RNN 的离散传播则看特征值模和奇异值。请解释：为什么“谱半径小于 1”描述离散系统的长期命运，却仍不能单独保证每一步的梯度范数都缩小？</p>
+</section>
+<h2 id="1">1. 化组与矩阵指数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(n\)</span> 阶标量方程可通过 <span class="arithmatex">\(x_1=y,x_2=y',\dots\)</span> 化为一阶系统。齐次常系数问题</p>
+<div class="arithmatex">\[
+\dot{\mathbf x}=A\mathbf x,\qquad \mathbf x(0)=\mathbf x_0
+\]</div>
+<p>的唯一解为 <span class="arithmatex">\(\mathbf x(t)=e^{At}\mathbf x_0\)</span>。若 <span class="arithmatex">\(A=Q\Lambda Q^{-1}\)</span> 可对角化，则 <span class="arithmatex">\(e^{At}=Qe^{\Lambda t}Q^{-1}\)</span>；Jordan 块会额外产生多项式因子。非齐次系统的常数变易公式为</p>
+<div class="arithmatex">\[
+\mathbf x(t)=e^{At}\mathbf x_0+\int_0^t e^{A(t-s)}\mathbf f(s)\,ds.
+\]</div>
+<h2 id="2_1">2. 平面线性系统分类<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<figure class="plot">
+<p><img alt="稳定结点、鞍点、稳定焦点与中心的相图。" src="assets/img/ode-03-phase-portrait.svg" /></p>
+<figcaption><span class="fig-id">图 3.1</span>特征值决定长期类型，特征向量和非正规性决定轨线如何进入或离开。</figcaption>
+</figure>
+<table>
+<thead>
+<tr>
+<th>特征值</th>
+<th>类型</th>
+<th>稳定性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>两个负实根</td>
+<td>稳定结点</td>
+<td>渐近稳定</td>
+</tr>
+<tr>
+<td>两个正实根</td>
+<td>不稳定结点</td>
+<td>不稳定</td>
+</tr>
+<tr>
+<td>一正一负</td>
+<td>鞍点</td>
+<td>不稳定</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha\pm i\beta,\alpha&lt;0\)</span></td>
+<td>稳定焦点</td>
+<td>渐近稳定</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha\pm i\beta,\alpha&gt;0\)</span></td>
+<td>不稳定焦点</td>
+<td>不稳定</td>
+</tr>
+<tr>
+<td>纯虚共轭根且半单</td>
+<td>中心型</td>
+<td>稳定但不渐近稳定</td>
+</tr>
+</tbody>
+</table>
+<p>重复或虚轴特征值必须继续检查 Jordan 结构；“连续看实部、离散看模”只在严格不等式的双曲情形最省心。</p>
+<h2 id="3-lyapunov">3. 非线性系统与 Lyapunov 方法<a class="headerlink" href="#3-lyapunov" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\(\dot{\mathbf x}=F(\mathbf x)\)</span> 的平衡点 <span class="arithmatex">\(\mathbf x^*\)</span>，线性化矩阵为 <span class="arithmatex">\(J=DF(\mathbf x^*)\)</span>。若 <span class="arithmatex">\(J\)</span> 没有虚轴特征值，则线性化给出局部定性分类；若有零实部特征值，需用高阶项、中心流形或 Lyapunov 方法继续判断。</p>
+<p>Lyapunov 直接法寻找 <span class="arithmatex">\(V(\mathbf x^*)=0\)</span>、邻域内 <span class="arithmatex">\(V&gt;0\)</span> 的函数。若 <span class="arithmatex">\(\dot V\le0\)</span> 可得到稳定性的条件；若 <span class="arithmatex">\(\dot V&lt;0\)</span> 可得到渐近稳定。半负定情形要结合 LaSalle 不变性原理，不能仅凭一个等号方向自动宣告趋于平衡点。</p>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1。</strong> <span class="arithmatex">\(A=\begin{pmatrix}0&amp;1\\-2&amp;-3\end{pmatrix}\)</span> 的特征值为 <span class="arithmatex">\(-1,-2\)</span>，故为稳定结点，通解可写成两个衰减特征模之和。</p>
+<p><strong>例 2。</strong> <span class="arithmatex">\(A=\begin{pmatrix}1&amp;-2\\1&amp;-1\end{pmatrix}\)</span> 有 <span class="arithmatex">\(\tau=0,\Delta=1,D=-4\)</span>，特征值为 <span class="arithmatex">\(\pm i\)</span>。该具体矩阵可对角化并产生有界周期轨线；但不能把“纯虚根”脱离半单条件推广到任意矩阵。</p>
+<p><strong>例 3。</strong> 对 <span class="arithmatex">\(x'=-x+y^2,\ y'=-y+x^2\)</span>，取 <span class="arithmatex">\(V=(x^2+y^2)/2\)</span>。在足够小邻域内，三次项被负二次项控制，故 <span class="arithmatex">\(\dot V&lt;0\)</span>，原点局部渐近稳定。</p>
 <hr />
-<p><em>常微分三页完工。下一门：把微积分搬到复平面上——复变函数，"解析"二字带来一连串好得不像话的定理。</em></p>
+<p><em>这页把“特征值决定长期命运”补成了完整说法：谱给结局，几何给过程，Lyapunov 函数给证书。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ode-02-linear.html"><span class="pager-label">上一页</span>常微分 II · 高阶线性方程</a>
@@ -127,5 +250,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ode-stability.js"></script>
 </body>
 </html>

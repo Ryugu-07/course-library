@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,55 +43,155 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-13 19:58</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一块磁铁怎样从“没有偏好”长出两个选择？</a><ul>
+<li><a href="#landau-learning-title">1. 具体谜题：双井何时出现，何时突然换边？</a></li>
+<li><a href="#2">2. 先预测：数低谷之前先说答案</a></li>
+<li><a href="#3">3. 最小模型：一个能容纳两类相变的多项式</a></li>
+<li><a href="#4">4. 动手验证：给每个驻点贴身份标签</a></li>
+<li><a href="#5">5. 误区与边界</a></li>
+<li><a href="#6">6. 回到理论：对称性决定允许项，不独自决定答案</a></li>
+<li><a href="#7">7. 迁移问题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 相变的语言</a></li>
-<li><a href="#2-landau">2. Landau 理论（对称性 + 解析性的最小模型）</a></li>
-<li><a href="#3">3. 平均场的普适预言与它的失败</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#2-landau">2. 四次 Landau 理论</a></li>
+<li><a href="#3_1">3. 空间涨落与平均场失效</a></li>
+<li><a href="#4_1">4. 练习</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-landau">统计进阶 I · 相变与 Landau 理论<a class="headerlink" href="#i-landau" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Goldenfeld §1–5 / Pathria §12 ｜ <strong>前置</strong>：sm-01/02、优化 I（凸性）
-相变是统计物理最深的现象：<strong>无穷多个温和的自由度合谋出不连续</strong>。本页立起语言（序参量、对称破缺、临界指数）与第一代理论（Landau 平均场）——它优雅、普适、并且在临界点附近<strong>定量地错</strong>：这个"错"恰是重整化群（asm-03）的出生证。</p>
+<p><strong>对标</strong>：Goldenfeld §1–5 / Pathria §12 ｜ <strong>前置</strong>：sm-01/02、优化 I
+Landau 理论不从每一个原子出发，而是先问：相变附近，什么宏观量能够区分两相？对称性允许自由能怎样写？这套方法非常有解释力，也把自己的失效条件写在了公式里。</p>
 </blockquote>
-<h2 id="1">1. 相变的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>分类</strong>：一级相变（序参量跳变、潜热、共存——冰水）；<strong>连续（二级）相变</strong>（序参量连续归零、涨落发散——临界点：磁铁的 Curie 点、水的临界点、超导转变）。</p>
-<p><strong>序参量</strong>：区分两相的量——磁化 <span class="arithmatex">\(m\)</span>（铁磁）、密度差（液气）、凝聚波函数（超导/超流）。<strong>对称性自发破缺</strong>：哈密顿量对称（上下自旋等价）而低温态不对称（磁化选了方向）——<strong>"定律的对称 ≠ 状态的对称"</strong>：本页最重要的世界观（从磁铁到 Higgs 机制（pp-02）到宇宙早期相变（cosmo-02），同一句话统治三十个数量级的能标）。</p>
-<p><strong>严格性注脚【引用】</strong>：有限系统无相变（配分函数 = 有限项解析和）——<strong>非解析性只在热力学极限 <span class="arithmatex">\(N \to \infty\)</span> 出现</strong>（Lee–Yang 零点趋近实轴的图像）："无穷"不是数学洁癖，是相变存在的前提。</p>
-<h2 id="2-landau">2. Landau 理论（对称性 + 解析性的最小模型）<a class="headerlink" href="#2-landau" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
 <figure class="plot">
-<p><img alt="Landau 自由能双井" src="assets/img/asm-01-landau.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>Landau 自由能：\(T&gt;T_c\) 单谷（对称相），\(T<T_c\) 变双谷（自发对称破缺），序参量从零连续长出。</figcaption>
-</figcaption>
+<p><img alt="Landau 自由能从单井变成双井。" src="assets/img/asm-01-landau.svg" /></p>
+<figcaption><span class="fig-id">图 asm-01.1</span>四次 Landau 模型在零外场下的连续对称破缺：高温单井，临界点变平，低温出现等深双井。</figcaption>
 </figure>
-<p><strong>纲领</strong>：临界点附近 <span class="arithmatex">\(m\)</span> 小——自由能按 <span class="arithmatex">\(m\)</span> 展开，<strong>只保留对称性允许的项</strong>（Ising 对称 <span class="arithmatex">\(m \to -m\)</span> 排除奇次项）：</p>
+<section aria-labelledby="landau-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一块磁铁怎样从“没有偏好”长出两个选择？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="landau-learning-title">1. 具体谜题：双井何时出现，何时突然换边？<a class="headerlink" href="#landau-learning-title" title="Permanent link"></a></h3>
+<p>把序参量想成广场上的人群倾向：<span class="arithmatex">\(m=0\)</span> 表示没有净偏好，<span class="arithmatex">\(m&gt;0\)</span> 与 <span class="arithmatex">\(m&lt;0\)</span> 是对称的两种集体选择。降温可以把中央低谷抬成山脊，让两侧各长出一个低谷；外场 <span class="arithmatex">\(h\)</span> 则像广播，轻轻把地形向一边倾斜。</p>
+<p>但“有两个低谷”还不够。我们还要区分：全局平衡、亚稳态、失稳极值、两相等深的共存点，以及局部极小消失的 spinodal。</p>
+<h3 id="2">2. 先预测：数低谷之前先说答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对实验的六个预设，先预测：</p>
+<ul>
+<li>有几个局部极小？全局平衡在 <span class="arithmatex">\(m=0\)</span> 还是 <span class="arithmatex">\(m\ne0\)</span>？</li>
+<li>改变参数时，平衡序参量是连续长出还是跳变？</li>
+<li>哪个点是两相等深，哪个点只是亚稳态消失？</li>
+</ul>
+<p>“四次连续相变”和“六次一级相变”尤其容易混淆：二者都可能画出双井，但参数经过的路径不同。</p>
+<h3 id="3">3. 最小模型：一个能容纳两类相变的多项式<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验使用无量纲自由能密度</p>
 <div class="arithmatex">\[
-F(m, T) = F_0 + \frac{a(T - T_c)}{2}m^2 + \frac{b}{4}m^4 \qquad (a, b &gt; 0)
+f(m)=\frac{t}{2}m^2+\frac{u}{4}m^4+\frac{v}{6}m^6-hm,
+\qquad v&gt;0,
 \]</div>
-<p><strong>【推导（极小化）】</strong> <span class="arithmatex">\(T &gt; T_c\)</span>：单井、<span class="arithmatex">\(m = 0\)</span>；<span class="arithmatex">\(T &lt; T_c\)</span>：<span class="arithmatex">\(m^2\)</span> 项变负——<strong>双井</strong>（mech-04 零模/失稳的自由能版），极小在</p>
+<p>其中 <span class="arithmatex">\(t\)</span> 与 <span class="arithmatex">\(T-T_c\)</span> 同号，<span class="arithmatex">\(h\)</span> 是与 <span class="arithmatex">\(m\)</span> 共轭的外场。驻点满足</p>
 <div class="arithmatex">\[
-m = \pm\sqrt{\frac{a(T_c - T)}{b}} \;\propto\; (T_c - T)^{1/2}
+f'(m)=tm+um^3+vm^5-h=0,
 \]</div>
-<p>——序参量以幂律生长，<strong>临界指数</strong> <span class="arithmatex">\(\beta = \frac12\)</span>；同法算出磁化率 <span class="arithmatex">\(\chi \propto |T - T_c|^{-1}\)</span>（<span class="arithmatex">\(\gamma = 1\)</span>——临界点处对外场无限敏感）、临界等温线 <span class="arithmatex">\(\delta = 3\)</span>、比热跳变（<span class="arithmatex">\(\alpha = 0\)</span>）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>双井的物理剧场</strong>：外场 <span class="arithmatex">\(-hm\)</span> 使双井倾斜——一级相变与磁滞（亚稳态 = 局部极小：过冷水、过热液体的自由能面语言）；井间壁垒 ⇒ 成核动力学【引用】。<strong>Ginzburg–Landau 推广</strong>：<span class="arithmatex">\(m \to m(\mathbf x)\)</span> 加梯度项 <span class="arithmatex">\(\frac{c}{2}|\nabla m|^2\)</span>——界面张力、关联长度 <span class="arithmatex">\(\xi \propto |T - T_c|^{-1/2}\)</span>（涨落的空间尺度在临界点<strong>发散</strong>：乳光临界现象的公式）、超导的 GL 方程（cm-02 的接口）。</p>
-<h2 id="3">3. 平均场的普适预言与它的失败<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>Landau = 平均场</strong>（每个自旋感受平均磁化——涨落被忽略）。<strong>普适预言</strong>：临界指数与材料细节无关（只看对称性）——<strong>方向正确</strong>（实验确实分"普适类"）；<strong>数值错误</strong>：三维 Ising 实测 <span class="arithmatex">\(\beta \approx 0.326\)</span>（非 <span class="arithmatex">\(\frac12\)</span>）、<span class="arithmatex">\(\gamma \approx 1.237\)</span>（非 1）——</p>
-<p><strong>病根【Ginzburg 判据，骨架】</strong>：临界点附近涨落幅度与序参量本身同阶（<span class="arithmatex">\(\xi\)</span> 发散使"平均"失去代表性）——平均场在 <span class="arithmatex">\(d &lt; 4\)</span> 维<strong>必然</strong>在足够近临界处失效（上临界维数 <span class="arithmatex">\(d_c = 4\)</span>：维数越低涨落越凶——一维 Ising 甚至无相变，asm-02 证明）。<strong>"涨落主导的物理需要新方法"</strong>——重整化群（asm-03）接单。</p>
-<p>🔗 <strong>ML 对账（本线的特别福利）</strong>：平均场近似 = 变分推断的 mean-field family（comfy 课 VAE/数学站信息论的 ELBO——同名同物：用独立分布近似关联分布、在自由能泛函上变分）；序参量/对称破缺的语言也在神经网络训练动力学分析中日常出没【引用】。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（Landau 手算全套）</strong> 给定 <span class="arithmatex">\(a, b\)</span> 数值：算 <span class="arithmatex">\(T &lt; T_c\)</span> 的 <span class="arithmatex">\(m(T)\)</span>、<span class="arithmatex">\(\chi(T)\)</span> 两侧、比热跳变 <span class="arithmatex">\(\Delta C = \frac{a^2T_c}{2b}\)</span>——一页纸把四个临界指数全部产出（平均场的高效与整齐正是它迷人的地方）。</p>
-<p><strong>例 2（对称性决定展开）</strong> 若系统无 <span class="arithmatex">\(m \to -m\)</span> 对称（如液气转变以密度为序参量）：允许 <span class="arithmatex">\(m^3\)</span> 项 ⇒ 一般给一级相变；调参数使三次项系数为零 = <strong>临界点</strong>（液气临界点与 Ising 同普适类的 Landau 层面理由）——"对称性决定相变类型"的操作版。</p>
-<p><strong>例 3（Ginzburg 判据估算）</strong> 超导体涨落区宽度 <span class="arithmatex">\(\sim 10^{-14}\,T_c\)</span>（关联长度大、涨落弱——平均场极好用：BCS/GL 成功的原因）；液氦 λ 转变涨落区 <span class="arithmatex">\(\sim O(1)\)</span>——平均场全线失效：<strong>同一理论在不同材料的适用性由 Ginzburg 数一票裁定</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>曲率 <span class="arithmatex">\(f''(m)&gt;0\)</span> 是局部极小，<span class="arithmatex">\(f''(m)&lt;0\)</span> 是局部极大。局部极小中自由能最低者才是平衡态；更高者是亚稳态。</p>
+<p>当 <span class="arithmatex">\(h=0,u&gt;0\)</span> 且忽略不影响稳定性的六次修正时，<span class="arithmatex">\(t&lt;0\)</span> 的平衡序参量为</p>
+<div class="arithmatex">\[
+m_\star=\pm\sqrt{-t/u},\qquad |m_\star|\propto(-t)^{1/2}.
+\]</div>
+<p>所以平均场 <span class="arithmatex">\(\beta=1/2\)</span>。零场磁化率在两侧分别为 <span class="arithmatex">\(\chi_+=1/t\)</span> 与 <span class="arithmatex">\(\chi_-=1/(2|t|)\)</span>，指数同为 <span class="arithmatex">\(\gamma=1\)</span>，振幅却相差 2。</p>
+<p>若 <span class="arithmatex">\(u&lt;0,v&gt;0\)</span>，零场可出现一级相变。非零极小与 <span class="arithmatex">\(m=0\)</span> 等深时</p>
+<div class="arithmatex">\[
+t_{\mathrm{coex}}=\frac{3u^2}{16v},
+\qquad
+m_{\mathrm{coex}}^2=-\frac{3u}{4v}.
+\]</div>
+<p>这不是 spinodal。<span class="arithmatex">\(m=0\)</span> 在 <span class="arithmatex">\(t=0\)</span> 失去局部稳定性；非零驻点则在 <span class="arithmatex">\(t=u^2/(4v)\)</span> 成对出现。共存点位于二者之间。</p>
+<h3 id="4">4. 动手验证：给每个驻点贴身份标签<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验扫描 <span class="arithmatex">\(f'(m)=0\)</span> 的全部实根，并用曲率与自由能把它们标成 global、metastable、unstable 或 marginal。图上同时显示自由能地形和参数温度轴；账本列出驻点、曲率、相对自由能以及当前预测是否命中。</p>
+<div class="learning-lab" data-learning-lab="landau-free-energy">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(v=1,h=0\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>地形与平衡</th>
+<th>关键判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(t=0.8,u=1\)</span></td>
+<td><span class="arithmatex">\(m=0\)</span> 单井</td>
+<td>对称相</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t=-0.8,u=1\)</span></td>
+<td>等深双井</td>
+<td>连续破缺相</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t=0,u=1\)</span></td>
+<td>原点四次平坦</td>
+<td>临界点，曲率为零</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t=-0.8,u=1,h=0.18\)</span></td>
+<td>双井倾斜</td>
+<td>一边全局，一边亚稳</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(u=-1,t=3/16\)</span></td>
+<td><span class="arithmatex">\(m=0\)</span> 与 <span class="arithmatex">\(m=\pm\sqrt{3/4}\)</span> 等深</td>
+<td>一级相变共存</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(u=-1,t=1/4\)</span></td>
+<td>非零极值刚成对出现</td>
+<td>非零分支 spinodal</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>有限系统不会产生真正的热力学非解析性。</strong>有限尺寸仍会出现双峰、快速 crossover 和长寿命亚稳态；严格相变要在热力学极限中定义。</li>
+<li><strong>允许三次项不等于“一般必然一级”。</strong>序参量的平移、控制参数、稳定高阶项和终点结构都要一起分析；液气临界点可在适当变量下呈现 Ising 型有效对称性。</li>
+<li><strong><span class="arithmatex">\(\alpha=0\)</span> 需要说明约定。</strong>四次平均场模型给出有限的比热跳跃，常记为 <span class="arithmatex">\(\alpha=0\)</span>；这不是对数发散的自动同义词。</li>
+<li><strong>Landau 是平均场。</strong>靠近低维临界点时，长程涨落会推翻它的定量指数。加入 <span class="arithmatex">\(\frac{c}{2}|\nabla m|^2\)</span> 得到 Landau–Ginzburg 泛函后，Ginzburg 判据才定量告诉我们平均场窗口有多宽。</li>
+</ul>
+<h3 id="6">6. 回到理论：对称性决定允许项，不独自决定答案<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(m\mapsto-m\)</span> 对称性在 <span class="arithmatex">\(h=0\)</span> 时排除奇次项；稳定性要求最高保留项系数为正。极小化给平衡态，二阶导给局部响应，参数空间中的等深条件给共存线。Landau 理论的力量来自这条推理链，而不是某一张双井图。</p>
+<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(m\)</span> 换成空间场 <span class="arithmatex">\(m(\mathbf x)\)</span> 后，两个不同符号的区域之间为何不能突然跳变？请用梯度能解释界面宽度和表面张力，并说明为什么临界点附近关联长度增大会让“每个小块只感受平均值”的图景变差。</p>
+</section>
+<h2 id="1">1. 相变的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一级相变通常伴随序参量跳变、潜热与相共存；连续相变的序参量连续变化，而响应和关联长度可发散。序参量是区分相的宏观变量；自发对称破缺意味着控制方程保持对称，而某个平衡态选择了不对称取值。</p>
+<p>有限自由度的配分函数通常是参数的解析函数。热力学极限中 Lee–Yang 零点可逼近实轴，才为非解析性提供机制。</p>
+<h2 id="2-landau">2. 四次 Landau 理论<a class="headerlink" href="#2-landau" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\(m\mapsto-m\)</span> 对称的连续转变，最小展开是</p>
+<div class="arithmatex">\[
+F=F_0+\frac{a(T-T_c)}2m^2+\frac b4m^4-hm,
+\qquad a,b&gt;0.
+\]</div>
+<p>零场极小化给 <span class="arithmatex">\(T&gt;T_c\)</span> 时 <span class="arithmatex">\(m=0\)</span>，<span class="arithmatex">\(T&lt;T_c\)</span> 时 <span class="arithmatex">\(m=\pm\sqrt{a(T_c-T)/b}\)</span>。平均场指数为 <span class="arithmatex">\(\beta=1/2\)</span>、<span class="arithmatex">\(\gamma=1\)</span>、<span class="arithmatex">\(\delta=3\)</span>；平衡自由能的二阶温度导数给有限比热跳跃，常以 <span class="arithmatex">\(\alpha=0\)</span> 记账。</p>
+<h2 id="3_1">3. 空间涨落与平均场失效<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>Landau–Ginzburg 泛函加入 <span class="arithmatex">\(\frac c2|\nabla m|^2\)</span>，由此产生界面、关联长度和临界涨落。标量短程模型的上临界维数为 4；在 <span class="arithmatex">\(d&lt;4\)</span> 且足够靠近临界点时，平均场指数一般失效。三维 Ising 的 <span class="arithmatex">\(\beta\)</span> 约为 <span class="arithmatex">\(0.326\)</span>，而不是 <span class="arithmatex">\(1/2\)</span>；真正的普适类还取决于维数、序参量分量、对称性与相互作用范围。</p>
+<h2 id="4_1">4. 练习<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ol>
+<li>从四次模型分别在 <span class="arithmatex">\(t&gt;0\)</span> 与 <span class="arithmatex">\(t&lt;0\)</span> 计算零场磁化率，解释相同指数为何对应不同振幅。</li>
+<li>对 <span class="arithmatex">\(u&lt;0,v&gt;0\)</span> 的六次模型，联立 <span class="arithmatex">\(f'(m)=0\)</span> 与 <span class="arithmatex">\(f(m)=f(0)\)</span> 推导共存点。</li>
+<li>说明有限系统的双峰概率分布为何是相共存的前兆，却不是严格非解析性的证明。</li>
+</ol>
 <hr />
-<p><em>下一页：把最小的相变模型解到底——Ising 模型：一维精确解（无相变的证明）、二维的 Onsager 奇迹与平均场的对照。</em></p>
+<p><em>下一页将把这套地形语言与 Ising 微观模型对账，再由重整化群解释平均场为什么会在临界区失手。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ced-02-radiation.html"><span class="pager-label">上一页</span>电动力学 II · 推迟势与辐射</a>
@@ -90,5 +201,7 @@ m = \pm\sqrt{\frac{a(T_c - T)}{b}} \;\propto\; (T_c - T)^{1/2}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/landau-free-energy.js"></script>
 </body>
 </html>
