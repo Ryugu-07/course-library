@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,58 +41,195 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-15 09:29</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1-ai-01">1. 快速复置（ai 课 01 已证部分）</a></li>
-<li><a href="#2">2. 对称化：无限类一致收敛的引擎</a></li>
-<li><a href="#3">3. 学习论基本定理</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#_1">学习层：先猜标签能不能实现，再打开行为账本</a><ul>
+<li><a href="#slt-vc-learning-title">1. 具体谜题：同样是“画一条边界”，表达力差在哪里？</a></li>
+<li><a href="#2">2. 先预测：答案在揭示前保持关闭</a></li>
+<li><a href="#3-vc">3. 最小模型：固定点账本与 VC 量词</a></li>
+<li><a href="#4">4. 动手验证：从局部结果回到全局定义</a></li>
+<li><a href="#5">5. 误区与边界：标签账本不是学习保证</a></li>
+<li><a href="#6">6. 迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 快速复置：从行为数到增长函数</a></li>
+<li><a href="#2_1">2. 对称化：把总体风险换成双样本差</a></li>
+<li><a href="#3">3. 学习论基本定理与两种样本复杂度</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii-vc">统计学习 II · VC 理论与学习论基本定理<a class="headerlink" href="#ii-vc" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：SSBD <em>UML</em> §6、Mohri §3 ｜ <strong>前置</strong>：slt-01、本科 ai 课 01 讲（VC 维与 Sauer 已证）
-无限假设类的 union bound 失效——出路是"数行为不数函数"（VC 维）。本科 ai 课已给 Sauer 引理全证；本页补齐真正的硬核：<strong>双样本对称化技巧</strong>（无限类一致收敛的证明引擎）与<strong>学习论基本定理</strong>（VC 有限 ⟺ 可学——充要！），并给下界的对偶面。</p>
+无限假设类的 union bound 失效，出路是“数行为而不数函数”。本页把有限点上的组合事实接到双样本对称化、ERM 与可学习性；交互只研究三种明确的二分类类，不把一个 toy 配置冒充全局定理。</p>
 </blockquote>
+<div data-learning-page></div>
+
 <figure class="diagram">
 <p><img alt="VC 维：一族分类器能&quot;打散&quot;多少点（如直线打散 3 点、打不散 4 点的 XOR）。" src="assets/img/slt-02-vc-shatter.svg" /></p>
-<figcaption><span class="fig-id">图 slt-02.1</span>VC 维：一族分类器能"打散"多少点（如直线打散 3 点、打不散 4 点的 XOR）。</figcaption>
+<figcaption><span class="fig-id">图 slt-02.1</span>VC 维：一族分类器能“打散”多少点（如直线打散 3 点、打不散 4 点的 XOR）。</figcaption>
 </figure>
-<h2 id="1-ai-01">1. 快速复置（ai 课 01 已证部分）<a class="headerlink" href="#1-ai-01" title="Permanent link"></a></h2>
-<p>增长函数 <span class="arithmatex">\(\Pi_{\mathcal{H}}(m)\)</span> = <span class="arithmatex">\(m\)</span> 个点上可实现的标签模式数；VC 维 <span class="arithmatex">\(d\)</span> = 最大可打散规模；<strong>Sauer 引理</strong>：<span class="arithmatex">\(\Pi_{\mathcal{H}}(m) \leq \sum_{i\leq d}\binom mi \leq \big(\frac{em}{d}\big)^d\)</span>——多项式增长（证明见 ai 课 01 讲，本站不重复）。范例：半空间 <span class="arithmatex">\(d = n+1\)</span>；区间并、多项式阈值各有公式；<strong>凸多边形类 <span class="arithmatex">\(d = \infty\)</span></strong>（圆上点集可任意打散——"看起来简单的类可以无限复杂"的警世例）。</p>
-<h2 id="2">2. 对称化：无限类一致收敛的引擎<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定理（VC 一致收敛）</strong> 以概率 <span class="arithmatex">\(1 - \delta\)</span>：</p>
+<section aria-labelledby="slt-vc-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先猜标签能不能实现，再打开行为账本<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="slt-vc-learning-title">1. 具体谜题：同样是“画一条边界”，表达力差在哪里？<a class="headerlink" href="#slt-vc-learning-title" title="Permanent link"></a></h3>
+<p>下面的实验把标签固定为二元的 <span class="arithmatex">\(0/1\)</span>，并把点集也固定下来。比较三类假设：</p>
 <div class="arithmatex">\[
-\sup_{h\in\mathcal{H}}\big|L_S(h) - L_{\mathcal{D}}(h)\big| \;\leq\; C\sqrt{\frac{d\ln(m/d) + \ln(1/\delta)}{m}}
+\begin{aligned}
+\mathcal H_{\mathrm{thr}}&amp;=\{x\mapsto\mathbf 1\{x\ge t\}:t\in\mathbb R\},\\
+\mathcal H_{\mathrm{int}}&amp;=\{x\mapsto\mathbf 1\{a\le x\le b\}:a\le b\},\\
+\mathcal H_{\mathrm{hs}}&amp;=\{x\mapsto\mathbf 1\{w^\mathsf Tx+b\ge0\}:w\in\mathbb R^2,b\in\mathbb R\}.
+\end{aligned}
 \]</div>
-<p><strong>【证明骨架（对称化三步，结构完整）】</strong>
-<strong>① 幽灵样本（symmetrization）</strong>：引入独立副本 <span class="arithmatex">\(S' \sim \mathcal{D}^m\)</span>：</p>
+<p>阈值只能在数轴上留下一个“从 0 到 1”的后缀；区间只能留下一个连续的 1 块；平面仿射半空间的边界是一条直线。先问自己：一个有序两点集上，阈值能否实现左 1、右 0？三个有序点上的交替 <span class="arithmatex">\(1,0,1\)</span> 呢？正方形四个顶点的 XOR 呢？</p>
+<h3 id="2">2. 先预测：答案在揭示前保持关闭<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在下方选择类别、固定点集和目标标签串，再选择“可实现”或“不可实现”。目标标签按点的显示顺序读，例如 <code>1010</code> 表示第 1、3 个点为 1。点击“揭示账本”之前，实验不会显示正确性、已实现标签集合或增长计数；可以随时重置，换一组预测。</p>
+<div class="learning-lab" data-learning-lab="vc-shattering">
+<p><strong>无 JavaScript 时的静态读法：</strong>标签是二分类 <span class="arithmatex">\(0\)</span>–<span class="arithmatex">\(1\)</span>，下面的计数是<strong>这个固定点集</strong>上的 <span class="arithmatex">\(|\mathcal H|_S|\)</span>，不是已经对所有点集取最大值的增长函数 <span class="arithmatex">\(\Pi_{\mathcal H}(m)\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>固定点集</th>
+<th>目标/缺失标签</th>
+<th style="text-align: right;">已实现标签数</th>
+<th>结论读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1D 阈值</td>
+<td>单点 <code>0</code></td>
+<td><code>0, 1</code> 都实现</td>
+<td style="text-align: right;">2</td>
+<td>一个点被打散，故 <span class="arithmatex">\(\mathrm{VC}\ge1\)</span></td>
+</tr>
+<tr>
+<td>1D 阈值</td>
+<td>有序两点 <code>0&lt;1</code></td>
+<td>缺 <code>10</code>；实现 <code>00,01,11</code></td>
+<td style="text-align: right;">3</td>
+<td>这个两点集未被打散</td>
+</tr>
+<tr>
+<td>1D 区间</td>
+<td>两点 <code>0&lt;1</code></td>
+<td><code>00,01,10,11</code> 全实现</td>
+<td style="text-align: right;">4</td>
+<td>一个两点集被打散，故 <span class="arithmatex">\(\mathrm{VC}\ge2\)</span></td>
+</tr>
+<tr>
+<td>1D 区间</td>
+<td>三点 <code>0&lt;1&lt;2</code></td>
+<td>缺交替 <code>101</code>；其余 7 个实现</td>
+<td style="text-align: right;">7</td>
+<td>这个三点集未被打散</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb R^2\)</span> 仿射半空间</td>
+<td>非共线三角形</td>
+<td>8 个三位串全实现</td>
+<td style="text-align: right;">8</td>
+<td>一个三点集被打散，故 <span class="arithmatex">\(\mathrm{VC}\ge3\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb R^2\)</span> 仿射半空间</td>
+<td>凸四边形正方形</td>
+<td>缺 XOR <code>1010,0101</code>；其余 14 个实现</td>
+<td style="text-align: right;">14</td>
+<td>这个四点集未被打散</td>
+</tr>
+</tbody>
+</table>
+<p>若脚本不可用，仍可按表检查：阈值的 1 必须是有序后缀，区间的 1 必须连续；平面中 XOR 的同类对角线凸包相交，不能由一条仿射直线严格分开。</p>
+</div>
+<h3 id="3-vc">3. 最小模型：固定点账本与 VC 量词<a class="headerlink" href="#3-vc" title="Permanent link"></a></h3>
+<p>对点集 <span class="arithmatex">\(S=\{x_1,\ldots,x_m\}\)</span>，记</p>
 <div class="arithmatex">\[
-P\Big(\sup_{\mathcal{H}}|L_S - L_{\mathcal{D}}| &gt; \varepsilon\Big) \;\leq\; 2\,P\Big(\sup_{\mathcal{H}}|L_S - L_{S'}| &gt; \tfrac\varepsilon2\Big)
+\mathcal H|_S=\{(h(x_1),\ldots,h(x_m)):h\in\mathcal H\},
+\qquad
+\Pi_{\mathcal H}(m)=\max_{|S|=m}|\mathcal H|_S|.
 \]</div>
-<p>（Chebyshev 说 <span class="arithmatex">\(L_{S'}\)</span> 大概率贴近 <span class="arithmatex">\(L_{\mathcal{D}}\)</span>，把"与看不见的总体比"换成"与另一份样本比"——<strong>总体从证明中消失了</strong>。）
-<strong>② 行为有限化</strong>：<span class="arithmatex">\(\sup\)</span> 里只剩 <span class="arithmatex">\(2m\)</span> 个样本点，<span class="arithmatex">\(\mathcal{H}\)</span> 在其上至多 <span class="arithmatex">\(\Pi_{\mathcal{H}}(2m)\)</span> 种行为——<strong>union bound 的对象从无限函数变为有限模式</strong>（Sauer 说这是多项式 <span class="arithmatex">\(\big(\frac{2em}{d}\big)^d\)</span>）；
-<strong>③ 随机符号 + Hoeffding</strong>：固定行为模式后，<span class="arithmatex">\(L_S - L_{S'}\)</span> 的分布可用随机交换对 <span class="arithmatex">\((z_i, z_i')\)</span> 生成（Rademacher 符号 <span class="arithmatex">\(\sigma_i\)</span> 登场——下一页的主角在此出生），Hoeffding 给单模式尾界 <span class="arithmatex">\(e^{-m\varepsilon^2/8}\)</span>；与 ② 的多项式相乘，解出 <span class="arithmatex">\(\varepsilon\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>结构读法</strong>：三步分别解决"总体不可见 / 函数无限多 / 单事件要集中"——<strong>对称化是把 hdp 的集中不等式送进无限函数类的运载火箭</strong>（hdp-04 的 chaining 是另一枚：熵积分路线给同阶结果，两条路线在覆盖数处会师——Haussler 引理【引用】把 VC 维换算为覆盖数）。</p>
-<h2 id="3">3. 学习论基本定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（Fundamental Theorem of Statistical Learning）</strong> 对二分类 0-1 损失，以下<strong>等价</strong>：
-（a）<span class="arithmatex">\(\mathcal{H}\)</span> agnostic PAC 可学；（b）ERM 是成功的学习算法；（c）<span class="arithmatex">\(\mathcal{H}\)</span> 有一致收敛性质；（d）<span class="arithmatex">\(\mathrm{VC}(\mathcal{H}) = d &lt; \infty\)</span>。
-且样本复杂度 <span class="arithmatex">\(m(\varepsilon, \delta) = \Theta\big(\frac{d + \ln(1/\delta)}{\varepsilon^2}\big)\)</span>（可实现情形 <span class="arithmatex">\(\varepsilon\)</span> 一次方）。</p>
-<p><strong>已证的拼图</strong>：(d)⇒(c) 即 §2；(c)⇒(b)⇒(a) 即 slt-01 的三段论。剩下<strong>下界方向 (a)⇒(d)</strong>：
-<strong>【骨架（<span class="arithmatex">\(d = \infty\)</span> 不可学）】</strong> 打散集上重演 slt-01 NFL 的构造——<span class="arithmatex">\(d\)</span> 个可打散点上放均匀分布 + 随机标签，任何算法在未见点上错一半；<span class="arithmatex">\(d = \infty\)</span> 时该构造对任意 <span class="arithmatex">\(m\)</span> 可行 ⇒ 样本复杂度无穷。定量下界 <span class="arithmatex">\(m \gtrsim \frac{d}{\varepsilon^2}\)</span> 同构造精细化（概率方法再次出手）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法（这一定理的分量）</strong>：<strong>可学性被一个组合量完全刻画</strong>——不多不少恰是 VC 维：上界（Sauer+对称化）与下界（NFL 构造）在同一量上会师，学习论少有的"闭合"定理。哲学收束：<em>"能学 = 假设类在有限点上的表达力受多项式约束"</em>——表达力与泛化的对立在此定量化（ai 课 01"深网 VC 界空洞"的裂缝也因此更醒目：现代网络逃出该框架的解释是 slt-03/04 的margin/稳定性路线与仍开放的部分）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（VC 维手算）</strong> <span class="arithmatex">\(\mathbb{R}^2\)</span> 上轴平行矩形类：可打散 4 点（菱形排布）、任 5 点必有一点被其余"包围"（取各方向极值点的矩形必含第五点）⇒ <span class="arithmatex">\(d = 4\)</span>。样本复杂度 <span class="arithmatex">\(O(\frac{4 + \ln(1/\delta)}{\varepsilon^2})\)</span> 立即可用。</p>
-<p><strong>例 2（对称化的必要性自检）</strong> 为何不能直接对无限类打 union bound？——事件数无限、和发散；为何幽灵样本能救？——sup 的随机性被限制在 <span class="arithmatex">\(2m\)</span> 个点的<strong>已实现行为</strong>上，Sauer 把它压成多项式。两问能答清，对称化就懂了。</p>
-<p><strong>例 3（下界的实践读法）</strong> VC 下界说 <span class="arithmatex">\(m \gtrsim d/\varepsilon^2\)</span> 对<strong>最坏分布</strong>成立——真实分布常远好于最坏（margin 大、低噪声），这正是"理论样本数悲观、实践少得多也行"的正解（而非理论错误）；分布相关的精细界即下一页 Rademacher 的卖点。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>“<span class="arithmatex">\(S\)</span> 被打散”意味着 <span class="arithmatex">\(|\mathcal H|_S|=2^m\)</span>。量词不能省略：<strong>存在一个</strong>大小为 <span class="arithmatex">\(m\)</span> 的被打散点集，只给出 <span class="arithmatex">\(\mathrm{VC}(\mathcal H)\ge m\)</span>；要证明 <span class="arithmatex">\(\mathrm{VC}(\mathcal H)&lt;m\)</span>，必须证明<strong>对每一个</strong>大小为 <span class="arithmatex">\(m\)</span> 的点集，都有至少一个标签串缺失。所以下方的正方形 XOR 是一个清楚的失败见证，却单独不能证明所有四点集都失败。</p>
+<p>这六个固定配置正好给出熟悉的下界样本：阈值的一点、区间的两点、平面半空间的非共线三点。相应的上界还需要全称论证：任意两个有序点对阈值都漏掉一个方向；任意三个有序点的区间都不能实现交替；对平面中的任意四点，Radon 定理给出一个两组凸包相交的划分，把两组标成相反类别就不可能被仿射直线严格分开。凸四边形的 XOR 只是这个全称论证最容易看见的特例。</p>
+<h3 id="4">4. 动手验证：从局部结果回到全局定义<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后先看三件事：目标串是否在 <span class="arithmatex">\(\mathcal H|_S\)</span> 中、固定配置的行为数 <span class="arithmatex">\(|\mathcal H|_S|\)</span>，以及它与 <span class="arithmatex">\(2^m\)</span> 的比较。只有行为数等于 <span class="arithmatex">\(2^m\)</span>，这一个配置才提供“打散”的下界证据；行为数小于 <span class="arithmatex">\(2^m\)</span> 只说明当前配置没有被打散，不能把它误读为全类的 VC 上界。</p>
+<h3 id="5">5. 误区与边界：标签账本不是学习保证<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>一个失败配置不是上界证明。</strong> 要把“半空间 VC 维是 3”中的“至多 3”写成定理，必须覆盖所有四点配置；一个正方形只负责让 XOR 失败变得可见。</li>
+<li><strong>固定配置的行为数不是增长函数本身。</strong> <span class="arithmatex">\(|\mathcal H|_S|\)</span> 依赖 <span class="arithmatex">\(S\)</span>；<span class="arithmatex">\(\Pi_{\mathcal H}(m)\)</span> 还要对所有大小为 <span class="arithmatex">\(m\)</span> 的 <span class="arithmatex">\(S\)</span> 取最大值。</li>
+<li><strong>可分离不等于统计学无误差。</strong> 这里仅检查几何可实现性；样本来自分布后，还要分别声明标签噪声、风险、损失和学习算法。</li>
+<li><strong>边界约定需要固定。</strong> 本页用 <span class="arithmatex">\(\mathbf1\{\cdot\ge0\}\)</span>，有限点上的可分离标签可等价地改写成有正间隔的严格分离；不把“穿过点”的画法当成任意数据的保证。</li>
+</ul>
+<h3 id="6">6. 迁移问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若把阈值换成“两段区间的并”，有序标签串允许出现几次 <span class="arithmatex">\(0\to1\)</span> 的切换？你能否先给出一个固定点集的下界，再用“对任意点集”的论证给出上界？再问同一类别在真实数据上出现标签噪声时，为什么“存在一个无误分类器”这句话必须从 realizable 假设中拿掉？</p>
+</section>
+<h2 id="1">1. 快速复置：从行为数到增长函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>对二分类假设类，增长函数不是“有多少个函数”，而是所有 <span class="arithmatex">\(m\)</span> 点限制上最多能出现多少个 <span class="arithmatex">\(0/1\)</span> 串：</p>
+<div class="arithmatex">\[
+\Pi_{\mathcal H}(m)=\max_{|S|=m}|\mathcal H|_S|,
+\qquad
+\operatorname{VC}(\mathcal H)=\sup\{m:\exists S,\ |S|=m,\ |\mathcal H|_S|=2^m\}.
+\]</div>
+<p>Sauer 引理（<span class="arithmatex">\(d=\operatorname{VC}(\mathcal H)&lt;\infty\)</span>，且 <span class="arithmatex">\(m\ge d\)</span>）给出</p>
+<div class="arithmatex">\[
+\Pi_{\mathcal H}(m)\le\sum_{i=0}^{d}\binom mi
+\le\left(\frac{em}{d}\right)^d.
+\]</div>
+<p>交互中的三个类在其自然域上分别有 <span class="arithmatex">\(\operatorname{VC}(\mathcal H_{\mathrm{thr}})=1\)</span>、<span class="arithmatex">\(\operatorname{VC}(\mathcal H_{\mathrm{int}})=2\)</span>，以及 <span class="arithmatex">\(\operatorname{VC}(\mathcal H_{\mathrm{hs}})=3\)</span>。这些等式都包含两部分：一个具体点集的下界，以及覆盖所有下一规模点集的上界。</p>
+<h2 id="2_1">2. 对称化：把总体风险换成双样本差<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>现在回到统计学习。样本是 <span class="arithmatex">\(Z_i=(X_i,Y_i)\stackrel{\mathrm{iid}}\sim\mathcal D\)</span>，标签为 <span class="arithmatex">\(Y_i\in\{0,1\}\)</span>，损失是二分类 0-1 损失</p>
+<div class="arithmatex">\[
+\ell_h(x,y)=\mathbf1\{h(x)\ne y\},\qquad
+L_{\mathcal D}(h)=E_{Z\sim\mathcal D}\ell_h(Z),\qquad
+L_S(h)=\frac1m\sum_{i=1}^m\ell_h(Z_i).
+\]</div>
+<p><strong>定理（一个常用的 VC 一致收敛上界）</strong> 在通常可测性条件下，以概率至少 <span class="arithmatex">\(1-\delta\)</span>，当 <span class="arithmatex">\(m\ge d\)</span> 时</p>
+<div class="arithmatex">\[
+\sup_{h\in\mathcal H}|L_S(h)-L_{\mathcal D}(h)|
+\le C\sqrt{\frac{d\ln(em/d)+\ln(C/\delta)}{m}}.
+\]</div>
+<p>这是用增长函数和 union bound 得到的方便形式；<span class="arithmatex">\(C\)</span> 是与版本有关的普适常数。它的核心不是把无限个 <span class="arithmatex">\(h\)</span> 逐个相加，而是先把它们在有限样本上的行为合并。</p>
+<p><strong>【证明骨架：三个量词要对齐】</strong></p>
+<p><strong>① 幽灵样本（ghost sample）</strong>：引入独立副本 <span class="arithmatex">\(S'\sim\mathcal D^m\)</span>。对有界的 0-1 损失，先用独立副本的集中性把总体均值换成第二个经验均值；一个常见的常数版本是，在 <span class="arithmatex">\(m\varepsilon^2\)</span> 足够大时</p>
+<div class="arithmatex">\[
+\Pr\!\left(\sup_{h\in\mathcal H}|L_S(h)-L_{\mathcal D}(h)|&gt;\varepsilon\right)
+\le2\Pr\!\left(\sup_{h\in\mathcal H}|L_S(h)-L_{S'}(h)|&gt;\frac\varepsilon2\right).
+\]</div>
+<p>这里用的是 ghost-sample 对称化加 Hoeffding 型集中，不是“Chebyshev 直接让 <span class="arithmatex">\(L_{S'}\)</span> 贴近总体”的一句替代；小样本条件和常数随教材版本调整。</p>
+<p><strong>② 行为有限化</strong>：条件在合并后的 <span class="arithmatex">\(2m\)</span> 个带标签样本上，<span class="arithmatex">\(h\)</span> 对这些点的预测只通过它在 <span class="arithmatex">\(2m\)</span> 个输入点上的限制发生变化，最多有 <span class="arithmatex">\(\Pi_{\mathcal H}(2m)\)</span> 种模式。因此 union bound 的对象是有限行为模式，而不是无限个函数。</p>
+<p><strong>③ 随机交换与 Hoeffding</strong>：逐对交换 <span class="arithmatex">\((Z_i,Z_i')\)</span> 的位置，引入 Rademacher 符号 <span class="arithmatex">\(\sigma_i\)</span>。固定一个行为模式后，经验风险差是有界独立符号和的平均，Hoeffding 给出 <span class="arithmatex">\(\exp(-c m\varepsilon^2)\)</span> 型尾界；再乘上 <span class="arithmatex">\(\Pi_{\mathcal H}(2m)\)</span> 并用 Sauer，即得上面的平方根速率。</p>
+<p>对称化解决的是“总体不可见”，Sauer 解决的是“函数无限多”，集中不等式解决的是“单个有限模式仍会波动”。三步分别承担不同工作，不能把 ghost sample 说成让总体随机变量凭空消失，也不能把一次固定配置的行为数直接叫作全局增长函数。</p>
+<h2 id="3">3. 学习论基本定理与两种样本复杂度<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>定理（Fundamental Theorem of Statistical Learning，二分类版本）</strong> 在标准的可测性/可分离性假设下，以下命题等价：</p>
+<ol>
+<li><span class="arithmatex">\(\mathcal H\)</span> 有限 VC 维；</li>
+<li><span class="arithmatex">\(\mathcal H\)</span> 具有分布无关的 realizable PAC 学习算法；</li>
+<li><span class="arithmatex">\(\mathcal H\)</span> 具有分布无关的 agnostic PAC 学习算法；</li>
+<li>经验风险最小化（ERM）在相应的可测 ERM 存在时给出一致收敛意义下的成功学习器。</li>
+</ol>
+<p>“PAC 可学”必须带上损失和噪声模型。这里是 binary、0-1、i.i.d.：</p>
+<ul>
+<li><strong>Realizable</strong>：存在 <span class="arithmatex">\(h^*\in\mathcal H\)</span> 使 <span class="arithmatex">\(L_{\mathcal D}(h^*)=0\)</span>。一致 ERM 的经典 VC 上界给出
+  <span class="arithmatex">\(\displaystyle m=O\!\left(\frac{d\ln(1/\varepsilon)+\ln(1/\delta)}{\varepsilon}\right)\)</span>；重点是误差依赖 <span class="arithmatex">\(1/\varepsilon\)</span>。精心构造的 PAC 学习器可达到 minimax 阶 <span class="arithmatex">\(\Theta((d+\ln(1/\delta))/\varepsilon)\)</span>，但不能把这个最优阶不加说明地归给任意一致 ERM。</li>
+<li><strong>Agnostic</strong>：不假设 <span class="arithmatex">\(\mathcal H\)</span> 中有零风险真值，目标是 <span class="arithmatex">\(L_{\mathcal D}(\hat h)\le\inf_{h\in\mathcal H}L_{\mathcal D}(h)+\varepsilon\)</span>。由一致收敛控制 ERM 的过拟合，基本 VC 增长界给
+  <span class="arithmatex">\(\displaystyle m=O\!\left(\frac{d\ln(1/\varepsilon)+\ln(1/\delta)}{\varepsilon^2}\right)\)</span>；重点是 <span class="arithmatex">\(1/\varepsilon^2\)</span>。更精细的 VC/Rademacher 分析在标准设定下可去掉显示的 <span class="arithmatex">\(\ln(1/\varepsilon)\)</span>，agnostic minimax 阶为 <span class="arithmatex">\(\Theta((d+\ln(1/\delta))/\varepsilon^2)\)</span>。</li>
+</ul>
+<p>因此“可实现情形把 <span class="arithmatex">\(\varepsilon\)</span> 从二次降为一次”是速率层面的对比，不是说 agnostic 情形没有任何可学性。反过来，有限 VC 也不意味着某个任意实现的 ERM 一定可调用：若最小化器不存在、选择不唯一或函数族的事件不可测，需要可测选择、可分离版本或近似 ERM 的额外处理。这些是定理的技术前提，不是交互页面可以自动检查的内容。</p>
+<p>下界方向的骨架仍是 slt-01 的 NFL 构造：在被打散点集上放分布，再对未见点的标签作随机化；若 VC 无穷，则对任意样本量都能找到这样的困难规模。上界用 Sauer 加对称化，二者共同说明“有限 VC 维”是分布无关二分类学习的组合刻画。</p>
+<p>最后不要说深度网络“逃出”VC 理论。深网假设类仍有 VC 维、伪维或参数/范数相关的复杂度；原始最坏情形 VC 界可能很松，所以 margin、稳定性、压缩和数据分布等分析会提供更有用的解释，但它们是补充视角，不是离开统计学习理论。</p>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（同一套量词）</strong> <span class="arithmatex">\(\mathbb R^2\)</span> 上轴平行矩形类可用四个适当位置的点给出 <span class="arithmatex">\(d\ge4\)</span>；对任意五点，至多四点能成为 <span class="arithmatex">\(x/y\)</span> 各方向的极值，剩下点落在其余点的轴平行包围矩形内，因而某种标记不能实现，得到 <span class="arithmatex">\(d\le4\)</span>。把 <span class="arithmatex">\(d=4\)</span> 代入学习界时，agnostic 0-1 学习看 <span class="arithmatex">\(1/\varepsilon^2\)</span> 主阶，realizable 学习看 <span class="arithmatex">\(1/\varepsilon\)</span> 主阶；二者不能混写。</p>
+<p><strong>例 2（对称化自检）</strong> 为什么不能直接对无限类打 union bound？因为没有可控的有限事件数。为什么 ghost sample 能救？因为条件在 <span class="arithmatex">\(2m\)</span> 个点后，只剩 <span class="arithmatex">\(\Pi_{\mathcal H}(2m)\)</span> 个已实现行为；再由 Sauer 把它压成多项式。若解释中出现“Chebyshev 自动完成对称化”，就要回头补上独立副本、集中条件和常数范围。</p>
+<p><strong>例 3（下界的实践读法）</strong> VC 下界针对最坏分布；真实分布若有大 margin、低噪声或低有效维，常可远好于最坏界。这解释了理论界的保守性，却不改变上界/下界的量词，也不把经验上的好效果说成深网不受 VC 复杂度约束。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>下一页：把"最坏情形组合量"换成"数据自己说话的复杂度"——Rademacher 复杂度：更紧的界、更广的损失、以及 margin 理论。</em></p>
+<p><em>下一页：把最坏情形组合量换成“数据自己说话的复杂度”——Rademacher 复杂度、更紧的界、更广的损失，以及 margin 理论。</em></p>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="slt-01-pac.html"><span class="pager-label">上一页</span>统计学习 I · PAC 框架与有限类</a>
@@ -91,5 +239,7 @@ P\Big(\sup_{\mathcal{H}}|L_S - L_{\mathcal{D}}| &gt; \varepsilon\Big) \;\leq\; 2
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/vc-shattering.js"></script>
 </body>
 </html>

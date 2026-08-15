@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,13 +43,20 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-15 09:29</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#fourier-optics-learning-title">学习层：先预测，孔径怎样写出远场？</a><ul>
+<li><a href="#fourier-optics-predict">1. 先做两个预测</a></li>
+<li><a href="#fourier-optics-coordinate">2. 一个不藏量纲的标准模型</a></li>
+<li><a href="#fourier-optics-bench">3. 动手：从透射函数到强度</a></li>
+<li><a href="#fourier-optics-boundaries">4. 假设与边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 干涉：相位差记账</a></li>
 <li><a href="#2-huygensfresnel">2. 衍射：Huygens–Fresnel 与两大标准像</a></li>
 <li><a href="#3">3. 傅里叶光学（现代总纲）</a></li>
@@ -51,6 +69,45 @@
 <p><strong>对标</strong>：Hecht <em>Optics</em> 主干 ｜ <strong>前置</strong>：em-02、数分 IV（Fourier）
 光是电磁波（em-02 已证），本页收割波动性的三大现象：<strong>干涉</strong>（叠加 + 相位差）、<strong>衍射</strong>（障碍即源——Huygens）、以及现代视角的总纲——<strong>远场衍射 = 傅里叶变换</strong>：透镜是一台光学 Fourier 变换器。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="fourier-optics-learning-title" class="learning-layer">
+<h2 id="fourier-optics-learning-title">学习层：先预测，孔径怎样写出远场？<a class="headerlink" href="#fourier-optics-learning-title" title="Permanent link"></a></h2>
+<h3 id="fourier-optics-predict">1. 先做两个预测<a class="headerlink" href="#fourier-optics-predict" title="Permanent link"></a></h3>
+<p>把一个一维孔径送入远场。先不要看下面的揭示，预测：</p>
+<ol>
+<li>把缝宽变窄，单缝衍射包络的中央主瓣会变宽、变窄，还是不变？若图像按峰值归一化，透过的总功率是否也不变？</li>
+<li>保持缝宽不变而增大双缝中心距，干涉条纹在无量纲频率坐标上的间距会变大、变小，还是不变？单缝包络会不会跟着移动？</li>
+</ol>
+<p>实验台先要求提交这两个判断，提交前不会显示答案。然后切换单缝、双缝和光栅，分别看孔径透射与远场强度怎样对应。</p>
+<h3 id="fourier-optics-coordinate">2. 一个不藏量纲的标准模型<a class="headerlink" href="#fourier-optics-coordinate" title="Permanent link"></a></h3>
+<p>取参考长度 <span class="arithmatex">\(a\)</span>，把孔径坐标和观察坐标写成</p>
+<div class="arithmatex">\[
+\xi=\frac{x}{a},\qquad u=\frac{a}{\lambda}\sin\theta\simeq\frac{a\theta}{\lambda}.
+\]</div>
+<p><span class="arithmatex">\(\xi\)</span> 与 <span class="arithmatex">\(u\)</span> 都是<strong>无量纲</strong>的；实验中的横轴明确标成 <span class="arithmatex">\(\xi=x/a\)</span> 和 <span class="arithmatex">\(u=(a/\lambda)\sin\theta\)</span>。令单缝宽度为 <span class="arithmatex">\(wa\)</span>、相邻缝中心距为 <span class="arithmatex">\(da\)</span>，并以孔径中心为相位原点。采用归一化的复场振幅 <span class="arithmatex">\(A(0)=1\)</span>：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+A_1(u)&amp;=\operatorname{sinc}(\pi wu),\\
+A_2(u)&amp;=\operatorname{sinc}(\pi wu)\cos(\pi du),\\
+A_N(u)&amp;=\operatorname{sinc}(\pi wu)\,\frac{\sin(N\pi du)}{N\sin(\pi du)},\\
+\operatorname{sinc}(z)&amp;=\frac{\sin z}{z},\qquad \operatorname{sinc}(0)=1.
+\end{aligned}
+\]</div>
+<p>这里的 <span class="arithmatex">\(A\)</span> 是<strong>复振幅</strong>，不是亮度；探测器读到的是
+<span class="arithmatex">\(I(u)/I(0)=|A(u)|^2\)</span>。对称孔径让本实验的相位参考下 <span class="arithmatex">\(A\)</span> 恰为实数，但这不等于“振幅和强度是同一个量”。光栅阵因子在 <span class="arithmatex">\(\sin(\pi du)=0\)</span> 处取可去奇点的极限；其主极大位于 <span class="arithmatex">\(u=m/d\)</span>，但每个峰仍乘着有限缝宽的 sinc 包络。</p>
+<h3 id="fourier-optics-bench">3. 动手：从透射函数到强度<a class="headerlink" href="#fourier-optics-bench" title="Permanent link"></a></h3>
+<p>下面的实验台画出同一组参数的孔径透射 <span class="arithmatex">\(t(\xi)\)</span> 与远场归一化强度 <span class="arithmatex">\(I(u)/I(0)\)</span>。先提交预测，再缩窄 <span class="arithmatex">\(w\)</span>、增大 <span class="arithmatex">\(d\)</span>，最后提高光栅缝数 <span class="arithmatex">\(N\)</span>。注意：归一化强度便于比较形状；真实的窄缝还会减少通光量。</p>
+<div class="learning-lab" data-learning-lab="fourier-optics">
+<p><strong>无 JavaScript 时的静态读法：</strong>使用无量纲坐标 <span class="arithmatex">\(\xi=x/a\)</span>、<span class="arithmatex">\(u=(a/\lambda)\sin\theta\)</span>。矩形单缝给出 <span class="arithmatex">\(A_1=\operatorname{sinc}(\pi wu)\)</span>；双缝在同一有限缝宽包络上乘 <span class="arithmatex">\(\cos(\pi du)\)</span>；<span class="arithmatex">\(N\)</span> 缝再乘 <span class="arithmatex">\(\sin(N\pi du)/(N\sin(\pi du))\)</span>，在分母为零处使用连续极限。强度始终是 <span class="arithmatex">\(|A|^2\)</span>，不是 <span class="arithmatex">\(A\)</span> 本身。变窄缝会让包络变宽但降低未归一化通光量；增大中心距会让条纹间距 <span class="arithmatex">\(\Delta u=1/d\)</span> 变小，而不会移动单缝包络。光栅的 <span class="arithmatex">\(u=m/d\)</span> 是阵因子主极大，是否显眼还由 sinc 包络决定。</p>
+</div>
+<h3 id="fourier-optics-boundaries">4. 假设与边界<a class="headerlink" href="#fourier-optics-boundaries" title="Permanent link"></a></h3>
+<ul>
+<li>这是单色、相干、均匀照明下的一维<strong>标量夫琅禾费</strong>模型，并用傍轴近似 <span class="arithmatex">\(\sin\theta\simeq\theta\)</span>；它忽略偏振、矢量边界条件、像差、噪声和有限探测器。</li>
+<li>“分辨率”不能只由一条公式决定。圆孔的 <span class="arithmatex">\(1.22\lambda/D\)</span> 是常用的 <strong>Rayleigh 判据约定</strong>，不是所有仪器、噪声和算法都必须服从的唯一边界；一维缝的零点宽度也不要直接冒充圆孔 Rayleigh 数。</li>
+<li>4f 系统在频率面上做的是乘以传递函数 <span class="arithmatex">\(H(u)\)</span>：滤波能改变对比度、平滑或增强边缘，但被挡掉的频率没有被恢复，因此滤波不等于超分辨。本实验不加入会暗示“恢复缺失频率”的透明滤镜。</li>
+</ul>
+</section>
 <h2 id="1">1. 干涉：相位差记账<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="双缝干涉与衍射包络" src="assets/img/opt-01-double-slit.svg" /></p>
@@ -67,15 +124,17 @@
 I(\theta) = I_0\,\mathrm{sinc}^2\Big(\frac{\pi a\sin\theta}{\lambda}\Big)
 \]</div>
 <p>暗纹 <span class="arithmatex">\(a\sin\theta = m\lambda\)</span>；中央主瓣宽 <span class="arithmatex">\(\sim \frac{2\lambda}{a}\)</span>——<strong>缝越窄、散得越开</strong>（Fourier 对偶的物理宣言，§3 点题）。</p>
-<p><strong>圆孔与分辨极限</strong>：Airy 斑第一暗环 <span class="arithmatex">\(\theta \approx 1.22\frac{\lambda}{D}\)</span> ⇒ <strong>Rayleigh 判据</strong>：望远镜/显微镜/相机的分辨率天花板由口径与波长锁死（哈勃为什么要大镜子、光刻为什么追短波长（EUV 13.5 nm——芯片制程战争的物理内核）、超分辨显微镜为什么值诺奖——都在这条公式上做文章）。</p>
-<p><strong>光栅</strong>：<span class="arithmatex">\(N\)</span> 缝干涉 × 单缝衍射包络——主极大 <span class="arithmatex">\(d\sin\theta = m\lambda\)</span> 锐度 <span class="arithmatex">\(\propto N\)</span>：光谱仪的原理（atom-01 的谱线测量靠它）。</p>
+<p><strong>圆孔与分辨率约定</strong>：Airy 斑第一暗环 <span class="arithmatex">\(\theta \approx 1.22\frac{\lambda}{D}\)</span>；把两点刚好可分辨取在“一个峰对准另一个的第一暗环”是常用的 <strong>Rayleigh 判据</strong>。它是可沟通的判据，不是脱离像差、噪声、采样和重建方法的唯一分辨率定律；超分辨方法也不能被这一个数字概括。</p>
+<p><strong>光栅</strong>：<span class="arithmatex">\(N\)</span> 缝干涉 × 单缝衍射包络——阵因子主极大满足 <span class="arithmatex">\(d\sin\theta = m\lambda\)</span>，峰会随 <span class="arithmatex">\(N\)</span> 增多而变窄，但有限缝宽的包络仍决定哪些级次能看见：这才是光谱仪的理想化骨架（atom-01 的谱线测量靠它）。</p>
 <h2 id="3">3. 傅里叶光学（现代总纲）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（夫琅禾费衍射 = Fourier 变换）【骨架】</strong> 远场（或透镜焦面）的复振幅</p>
+<p><strong>定理（标量夫琅禾费衍射 = Fourier 变换）【骨架】</strong> 在远场（或透镜焦面）的复振幅</p>
 <div class="arithmatex">\[
-U(\theta) \;\propto\; \int t(x)\,e^{-ik x\sin\theta}\,dx = \hat t\Big(\frac{k\sin\theta}{}\Big)
+U(\theta) \;\propto\; \int t(x)\,e^{-ikx\sin\theta}\,dx
+ = \hat t(k\sin\theta),
+\qquad \hat t(q)=\int t(x)e^{-iqx}\,dx.
 \]</div>
-<p>——<strong>孔径函数的 Fourier 变换</strong>（Huygens 积分在远场近似下的直接形态）。单缝 → sinc、双缝 → 余弦条纹、光栅 → 梳状谱：§1–2 的全部结果是"查 Fourier 变换表"（数分 IV 的表在此变成光学仪器手册）。</p>
-<p><strong>推论（透镜 = 模拟计算机）</strong>：透镜把远场搬到焦面——焦面上就是物的<strong>空间频谱</strong>；在焦面上做遮挡 = 空间滤波（4f 系统：高通 = 边缘增强、低通 = 去噪平滑——<strong>光速运行的图像滤波器</strong>，比数字卷积早半个世纪）。阿贝成像理论：显微镜分辨率 = 物镜能收集的最高空间频率——Rayleigh 判据的频域重述。</p>
+<p>——<strong>孔径函数的 Fourier 变换</strong>（Huygens 积分在远场近似下的直接形态）。单缝 → sinc、双缝 → 余弦调制、光栅 → 梳状谱：§1–2 的理想结果都来自这一个积分，而不是把复振幅直接当作强度。</p>
+<p><strong>推论（透镜把频谱搬到焦面）</strong>：透镜把远场搬到焦面——焦面上可读出物的<strong>空间频谱</strong>；4f 系统在此用传递函数做空间滤波，低通可平滑、高通可强调边缘，但遮挡就是乘法意义上的信息丢失，不能凭空恢复被挡的频率，也不自动带来超分辨。阿贝成像理论把显微镜的可收集最高空间频率与分辨率联系起来，是 Rayleigh 约定的频域视角之一。</p>
 <p>🔗 <strong>对账</strong>：图像的频域直觉（ai/comfy 课里潜空间、低频构图/高频细节的语言）在光学里是<strong>物理实体</strong>——"高频=细节"这句话最初是焦面上看得见摸得着的光斑位置。</p>
 <h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（双缝手算）</strong> <span class="arithmatex">\(\lambda = 633\)</span> nm（氦氖激光）、<span class="arithmatex">\(d = 0.1\)</span> mm、屏距 2 m：条纹间距 <span class="arithmatex">\(\Delta y = \frac{\lambda L}{d} \approx 12.7\)</span> mm——桌面可见；换白光则各色条纹错开成彩带（零级白色居中）。</p>
@@ -92,5 +151,7 @@ U(\theta) \;\propto\; \int t(x)\,e^{-ik x\sin\theta}\,dx = \hat t\Big(\frac{k\si
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/fourier-optics.js"></script>
 </body>
 </html>
