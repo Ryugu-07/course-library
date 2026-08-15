@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,66 +41,239 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-15 11:02</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 一阶方程与特征线法</a></li>
-<li><a href="#2-dalembert">2. 波动方程：d'Alembert 公式</a></li>
-<li><a href="#3-pde">3. 热方程：热核与高斯的 PDE 身份</a></li>
-<li><a href="#4-fourier">4. Fourier 变换法（求解引擎的现代形态）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#_1">学习层：扰动是“还没到”，还是“已经有尾巴”？</a><ul>
+<li><a href="#1">1. 一道先判断、后计算的谜题</a></li>
+<li><a href="#2">2. 三个公式先放在一起</a></li>
+<li><a href="#3">3. 看图时要问的三个问题</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 输运方程：特征线是信息的轨道</a><ul>
+<li><a href="#11">1.1 全直线、常系数的严格推导</a></li>
+<li><a href="#12">1.2 边界条件不能凭空消失</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 波动方程：依赖区间与两列行波</a><ul>
+<li><a href="#21-dalembert">2.1 因式分解与 d'Alembert 公式</a></li>
+<li><a href="#22">2.2 有限传播的精确含义</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 热方程：热核把局部初值变成全局尾巴</a><ul>
+<li><a href="#31">3.1 热核与卷积</a></li>
+<li><a href="#32">3.2 瞬时正性不是“每个初值都正”</a></li>
+<li><a href="#33">3.3 光滑化与最大值原理的适用域</a></li>
+</ul>
+</li>
+<li><a href="#4-fourier">4. Fourier 视角：三种传播的频率账本</a></li>
+<li><a href="#5">5. 与扩散模型的边界：相关，但不能偷换</a></li>
+<li><a href="#6">6. 典型例题与迁移题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">偏微分 II · 特征线、行波与热核<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>分离变量适合有界域，本页的武器面向无界域与更深的结构：<strong>特征线</strong>（信息沿什么路径传播）、<strong>d'Alembert 公式</strong>（波动的行波真相）、<strong>热核</strong>（扩散的基本解——高斯分布在此以 PDE 身份复出，并与扩散模型正面相认）、<strong>Fourier 变换法</strong>（把 PDE 变代数）。</p>
+<p>同一个“初始扰动”，可以原样搬运、沿锥形区域分成两路，也可以立刻在整条直线上留下高斯尾巴。本页用特征线、d'Alembert 公式、热核卷积和 Fourier 模态，把这三种传播性格放在同一把尺子上比较。</p>
 </blockquote>
-<h2 id="1">1. 一阶方程与特征线法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>一阶线性 PDE <span class="arithmatex">\(a(x,t)u_t + b(x,t)u_x = 0\)</span> 的解法哲学：找<strong>特征曲线</strong>——沿其方向导数为零的曲线族，解沿特征线<strong>守恒</strong>。</p>
-<p>样板（输运方程）：<span class="arithmatex">\(u_t + c\,u_x = 0\)</span>，特征线 <span class="arithmatex">\(x - ct = \text{常数}\)</span>，通解</p>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：扰动是“还没到”，还是“已经有尾巴”？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 一道先判断、后计算的谜题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一小块初始信号放在原点。为了让“支撑在哪里”可见，固定使用非负的 tent 初值</p>
 <div class="arithmatex">\[
-u(x, t) = f(x - ct)
+\varphi(x)=\max(1-|x|,0)=
+\begin{cases}
+1-|x|,&amp;|x|\le 1,\\
+0,&amp;|x|&gt;1,
+\end{cases}
+\qquad \psi(x)=0.
 \]</div>
-<p>——初始波形<strong>原样右移</strong>，速度 <span class="arithmatex">\(c\)</span>。"解 PDE = 找到信息的传播路径"，双曲型方程的世界观一行入门。</p>
-<h2 id="2-dalembert">2. 波动方程：d'Alembert 公式<a class="headerlink" href="#2-dalembert" title="Permanent link"></a></h2>
-<p>全直线上 <span class="arithmatex">\(u_{tt} = a^2 u_{xx}\)</span>，<span class="arithmatex">\(u(x,0) = \varphi,\ u_t(x,0) = \psi\)</span>。</p>
-<p><em>推导（三行）</em>：算子分解 <span class="arithmatex">\(\partial_{tt} - a^2\partial_{xx} = (\partial_t - a\partial_x)(\partial_t + a\partial_x)\)</span> ⇒ 通解 = 左行波 + 右行波 <span class="arithmatex">\(u = F(x + at) + G(x - at)\)</span>（特征变量 <span class="arithmatex">\(\xi = x - at, \eta = x + at\)</span> 下方程化为 <span class="arithmatex">\(u_{\xi\eta} = 0\)</span>）；配初值解出 <span class="arithmatex">\(F, G\)</span>：</p>
+<p>它连续、紧支撑于 <span class="arithmatex">\([-1,1]\)</span>、非负且不恒为零。现在比较三条全直线模型：</p>
 <div class="arithmatex">\[
-u(x,t) = \frac{\varphi(x - at) + \varphi(x + at)}{2} + \frac{1}{2a}\int_{x - at}^{x + at}\psi(s)\,ds
+\begin{array}{c|c}
+\text{输运}&amp;u_t+c u_x=0\\
+\text{波动}&amp;u_{tt}=a^2u_{xx},\quad u(x,0)=\varphi(x),\ u_t(x,0)=\psi(x)\\
+\text{热}&amp;u_t=\kappa u_{xx},\quad u(x,0)=\varphi(x)
+\end{array}
 \]</div>
-<p><strong>读法</strong>：解只依赖初值在<strong>依赖区间</strong> <span class="arithmatex">\([x - at,\ x + at]\)</span> 上的值——扰动以速度 <span class="arithmatex">\(a\)</span> 的锋面传播（有限传播速度，双曲的身份证）；初位移劈成两半各奔东西。有界弦的分离变量解（上一页）与行波解可互相翻译（驻波 = 对向行波叠加——<span class="arithmatex">\(\sin kx\cos kat = \frac12[\sin k(x{+}at) + \sin k(x{-}at)]\)</span>）。</p>
-<h2 id="3-pde">3. 热方程：热核与高斯的 PDE 身份<a class="headerlink" href="#3-pde" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="热核随时间铺开的高斯" src="assets/img/pde-02-heat-kernel.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>热核是随时间铺开的高斯：总面积守恒、越来越矮胖，把点热源扩散开——这也是扩散模型加噪的连续极限。</figcaption>
-</figure>
-<p>全直线上 <span class="arithmatex">\(u_t = a^2 u_{xx}\)</span>，<span class="arithmatex">\(u(x, 0) = \varphi\)</span>。<strong>基本解（热核）</strong>——初值为点源 <span class="arithmatex">\(\delta(x)\)</span> 的解：</p>
+<p>先不看图，预测固定点</p>
 <div class="arithmatex">\[
-\Phi(x, t) = \frac{1}{\sqrt{4\pi a^2 t}}\, e^{-\frac{x^2}{4a^2 t}}
+x_*=5,\qquad t_*=3,\qquad c=1,\quad a=1,\quad \kappa=1
 \]</div>
-<p><strong>这就是 <span class="arithmatex">\(N(0,\ 2a^2 t)\)</span> 的密度</strong>——方差随时间线性增长的高斯。一般初值的解 = 初值与热核的卷积：</p>
+<p>处三种解是“严格为 <span class="arithmatex">\(0\)</span>”还是“严格为正”。关键不是小数显示成了什么，而是依赖区域和积分核的符号。</p>
+<div class="cl-prompt">
+
+先在下面实验的预测门中提交三项判断。不要把“热尾巴可能很小”写成“等于零”：在本题的非负、非零 tent 条件下，热核在每个有限 \(x\) 处都严格为正。
+
+</div>
+<h3 id="2">2. 三个公式先放在一起<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>特征线给出输运解</p>
 <div class="arithmatex">\[
-u(x, t) = (\varphi * \Phi(\cdot, t))(x) = \int_{-\infty}^{\infty}\varphi(y)\,\Phi(x - y, t)\,dy
+u_{\mathrm{tr}}(x,t)=\varphi(x-ct).
 \]</div>
-<p><strong>三重身份的会师（本页高光）</strong>：热核 = 布朗运动的转移密度（随机过程 IV：<span class="arithmatex">\(B_t \sim N(0, t)\)</span>——<strong>热方程是布朗运动的宏观面目</strong>，Einstein 1905 的洞见）；= 中心极限定理的连续化身（概率 V：无数微小碰撞之和）；= <strong>扩散模型的命名出处</strong>（comfy 课 02：前向加噪 <span class="arithmatex">\(q(x_t|x_0)\)</span> 正是热核形式的高斯，"diffusion"不是比喻是本义——生图模型在潜空间里跑的就是一个热方程加噪再倒放）。</p>
-<p><strong>性格对照</strong>（与波动方程针锋相对）：无穷传播速度（<span class="arithmatex">\(t &gt; 0\)</span> 瞬间处处非零）；无限光滑化（初值再糙，解立刻 <span class="arithmatex">\(C^\infty\)</span>——卷积磨皮）；<strong>不可逆</strong>（倒推热方程严重病态——数值 I 条件数的极端案例；扩散模型"学习反向过程"之所以是本事，正因为反向在数学上是病态的，要靠数据先验兜底）。<strong>最大值原理</strong>：热方程的解的最值在初始或边界取得（内部不冒尖）——唯一性证明的标准武器，椭圆方程同款（复变 II 最大模原理的实亲戚）。</p>
-<h2 id="4-fourier">4. Fourier 变换法（求解引擎的现代形态）<a class="headerlink" href="#4-fourier" title="Permanent link"></a></h2>
-<p>对 <span class="arithmatex">\(x\)</span> 做 Fourier 变换 <span class="arithmatex">\(\hat u(\xi, t) = \int u\,e^{-i\xi x}dx\)</span>：<strong>求导变乘法</strong> <span class="arithmatex">\(\widehat{u_{xx}} = -\xi^2\hat u\)</span>——PDE 降为对每个频率 <span class="arithmatex">\(\xi\)</span> 的 ODE：</p>
+<p>零初速度的一维波方程给出 d'Alembert 解</p>
 <div class="arithmatex">\[
-u_t = a^2 u_{xx} \;\xrightarrow{\;\mathcal{F}\;}\; \hat u_t = -a^2\xi^2 \hat u \;\Rightarrow\; \hat u = \hat\varphi(\xi)\,e^{-a^2\xi^2 t}
+u_{\mathrm{wave}}(x,t)=\frac12\varphi(x-at)+\frac12\varphi(x+at).
 \]</div>
-<p>反变换即热核卷积公式（高斯的 Fourier 变换还是高斯）。<strong>方法读法</strong>：Fourier 基是常系数微分算子的"特征向量"（<span class="arithmatex">\(\partial_x e^{i\xi x} = i\xi e^{i\xi x}\)</span>）——变换法就是"在特征基下解方程"，与高代 V 对角化、上一页分离变量、泛函 III 谱定理是<strong>同一个思想的四种口音</strong>；每个频率模态独立衰减 <span class="arithmatex">\(e^{-\xi^2 t}\)</span>（高频先死）也与上一页 <span class="arithmatex">\(\lambda_n \sim n^2\)</span> 的结论无缝衔接。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（d'Alembert 直用）</strong> <span class="arithmatex">\(\varphi = \frac{1}{1+x^2}\)</span>，<span class="arithmatex">\(\psi = 0\)</span>：<span class="arithmatex">\(u = \frac12\big[\frac{1}{1+(x-at)^2} + \frac{1}{1+(x+at)^2}\big]\)</span>——钟形包一分为二，各以速度 <span class="arithmatex">\(a\)</span> 东西而去。</p>
-<p><strong>例 2（依赖区间判断）</strong> 波方程 <span class="arithmatex">\(a = 1\)</span>，初值仅在 <span class="arithmatex">\([-1, 1]\)</span> 非零，问 <span class="arithmatex">\((x, t) = (5, 3)\)</span> 处解是否为零：依赖区间 <span class="arithmatex">\([5-3, 5+3] = [2, 8]\)</span> 与 <span class="arithmatex">\([-1,1]\)</span> 不交 ⇒ <strong>解为零</strong>（锋面还没到）。热方程同问：<strong>非零</strong>（无穷传播速度）——两型方程的性格一题分辨。</p>
-<p><strong>例 3（变换法解半无界）</strong> 热方程 <span class="arithmatex">\(x &gt; 0\)</span>、边界 <span class="arithmatex">\(u(0,t) = 0\)</span>：奇延拓初值到全直线再用热核卷积（镜像法）——延拓的奇偶由边界条件类型决定（Dirichlet 奇延拓 / Neumann 偶延拓），数分 IV 延拓技巧的 PDE 应用。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>全直线热方程给出热核卷积</p>
+<div class="arithmatex">\[
+u_{\mathrm{heat}}(x,t)=\int_{-\infty}^{\infty}
+\varphi(y)G_\kappa(x-y,t)\,dy,
+\qquad
+G_\kappa(z,t)=\frac{1}{\sqrt{4\pi\kappa t}}
+e^{-z^2/(4\kappa t)},\quad t&gt;0.
+\]</div>
+<p>在默认点，前两式分别读成 <span class="arithmatex">\(\varphi(2)\)</span> 与 <span class="arithmatex">\([\varphi(2)+\varphi(8)]/2\)</span>，所以严格为 <span class="arithmatex">\(0\)</span>。第三式只在 <span class="arithmatex">\([-1,1]\)</span> 上有贡献；对 <span class="arithmatex">\(|y|&lt;1\)</span>，<span class="arithmatex">\(\varphi(y)&gt;0\)</span>，而 <span class="arithmatex">\(G_1(5-y,3)&gt;0\)</span>，故积分严格为正。</p>
+<div class="learning-lab" data-learning-lab="pde-propagation">
+<p><strong>无 JavaScript 时的静态读法：</strong>初值是 <span class="arithmatex">\(\varphi(x)=\max(1-|x|,0)\)</span>，固定观测点为 <span class="arithmatex">\(x_*=5\)</span>。在 <span class="arithmatex">\(t=3,c=a=\kappa=1\)</span> 时，输运为 <span class="arithmatex">\(\varphi(2)=0\)</span>；零初速度波动为 <span class="arithmatex">\([\varphi(2)+\varphi(8)]/2=0\)</span>；热解为</p>
+<div class="arithmatex">\[
+\int_{-1}^{1}(1-|y|)\frac{e^{-(5-y)^2/12}}{\sqrt{12\pi}}\,dy&gt;0.
+\]</div>
+<p>答案揭晓后，实验可改变 <span class="arithmatex">\(t,c,a,\kappa\)</span>，但三幅图继续使用同一固定坐标轴；下方的 Fourier 读数显示 <span class="arithmatex">\(\exp(-\kappa k^2t)\)</span>。坐标轴若没有脚本也不影响上述严格结论。</p>
+</div>
+<h3 id="3">3. 看图时要问的三个问题<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ol>
+<li><strong>信息从哪里来？</strong> 输运只访问一条特征线，波动只访问一个依赖区间；热解把所有 <span class="arithmatex">\(y\)</span> 都交给正的 Gaussian 权重。</li>
+<li><strong>零是结构结论还是数值舍入？</strong> 紧支撑 tent 在特征线或依赖区间之外确实为零；热核尾部可能低于显示精度，但在本条件下数学上仍为正。</li>
+<li><strong>调参数改变了什么？</strong> <span class="arithmatex">\(c\)</span> 和 <span class="arithmatex">\(a\)</span> 改变锥或平移速度，<span class="arithmatex">\(\kappa\)</span> 改变热核的宽度；Fourier 中高频的衰减率则按 <span class="arithmatex">\(\kappa k^2\)</span> 加速。</li>
+</ol>
+</section>
+<h2 id="1_1">1. 输运方程：特征线是信息的轨道<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<h3 id="11">1.1 全直线、常系数的严格推导<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>先明确模型边界：这里讨论的是<strong>全直线 <span class="arithmatex">\(x\in\mathbb R\)</span>、常数速度 <span class="arithmatex">\(c\)</span>、无源项，并给定初值 <span class="arithmatex">\(u(x,0)=\varphi(x)\)</span></strong> 的经典问题。设终点为 <span class="arithmatex">\((x,t)\)</span>，沿着参数 <span class="arithmatex">\(s\)</span> 走曲线</p>
+<div class="arithmatex">\[
+X(s)=x+c(s-t),
+\qquad X(t)=x,\quad X(0)=x-ct.
+\]</div>
+<p>链式法则给出</p>
+<div class="arithmatex">\[
+\frac{d}{ds}u(X(s),s)=u_t(X(s),s)+X'(s)u_x(X(s),s)
+ =u_t+c u_x=0.
+\]</div>
+<p>因此 <span class="arithmatex">\(u(X(s),s)\)</span> 沿线守恒，比较 <span class="arithmatex">\(s=t\)</span> 与 <span class="arithmatex">\(s=0\)</span> 得</p>
+<div class="arithmatex">\[
+\boxed{u(x,t)=\varphi(x-ct)}.
+\]</div>
+<p>当 <span class="arithmatex">\(c&gt;0\)</span> 时图形向右搬运；<span class="arithmatex">\(c&lt;0\)</span> 时向左搬运；形状、幅值和所有 Fourier 模态的模长都不因输运而衰减。若 <span class="arithmatex">\(\operatorname{supp}\varphi\subset[-R,R]\)</span>，则</p>
+<div class="arithmatex">\[
+\operatorname{supp}u(\cdot,t)\subset[-R+ct,R+ct]
+\]</div>
+<p>（端点次序应按 <span class="arithmatex">\(c\)</span> 的符号理解），这就是最直接的有限传播。</p>
+<h3 id="12">1.2 边界条件不能凭空消失<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>在半直线或有限区间上，特征线可能从边界进入计算域：这时必须给入流边界数据。例如 <span class="arithmatex">\(c&gt;0\)</span> 的区间问题需要在左端提供 <span class="arithmatex">\(u(0,t)\)</span>；只给初值一般不能唯一决定后续解。变量系数 <span class="arithmatex">\(u_t+b(x,t)u_x=0\)</span> 仍可在足够光滑时沿 <span class="arithmatex">\(X'(s)=b(X(s),s)\)</span> 追踪，但特征线不再是平行直线，且系数、边界和源项会改变公式。</p>
+<p>所以“有限传播”在本页的最干净版本，依赖的是全直线上的局部常系数模型与合适的初值；它不是任意 PDE、任意边界或非局部算子的通用口号。</p>
+<h2 id="2_1">2. 波动方程：依赖区间与两列行波<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<h3 id="21-dalembert">2.1 因式分解与 d'Alembert 公式<a class="headerlink" href="#21-dalembert" title="Permanent link"></a></h3>
+<p>考虑全直线上的常系数 Cauchy 问题</p>
+<div class="arithmatex">\[
+u_{tt}=a^2u_{xx},\qquad a&gt;0,\qquad
+u(x,0)=\varphi(x),\quad u_t(x,0)=\psi(x).
+\]</div>
+<p>若 <span class="arithmatex">\(\varphi,\psi\)</span> 足够光滑，上式给出经典解；本页实验的 tent 在 <span class="arithmatex">\(x=-1,0,1\)</span> 有折角，因此公式仍可按连续解/弱解理解，但不应把折角处的二阶导数当作普通函数使用。</p>
+<p>算子分解为</p>
+<div class="arithmatex">\[
+\partial_t^2-a^2\partial_x^2
+=(\partial_t-a\partial_x)(\partial_t+a\partial_x).
+\]</div>
+<p>令 <span class="arithmatex">\(\xi=x-at,\ \eta=x+at\)</span>。在这两个坐标下方程变为 <span class="arithmatex">\(u_{\xi\eta}=0\)</span>，故</p>
+<div class="arithmatex">\[
+u(x,t)=F(x-at)+G(x+at).
+\]</div>
+<p>初位移和初速度分别给出</p>
+<div class="arithmatex">\[
+F(x)+G(x)=\varphi(x),
+\qquad
+-aF'(x)+aG'(x)=\psi(x).
+\]</div>
+<p>对第二式积分并与第一式配对，得到</p>
+<div class="arithmatex">\[
+\boxed{
+u(x,t)=\frac{\varphi(x-at)+\varphi(x+at)}2
++\frac{1}{2a}\int_{x-at}^{x+at}\psi(y)\,dy
+}.
+\]</div>
+<p>第一项是初位移拆成左右两列行波；第二项是初速度在依赖区间上的累计贡献。当 <span class="arithmatex">\(\psi=0\)</span> 时，tent 初值恰好变成两个高度减半、速度分别为 <span class="arithmatex">\(\pm a\)</span> 的复制品。</p>
+<h3 id="22">2.2 有限传播的精确含义<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\((x,t)\)</span> 处的波解只读取初值在</p>
+<div class="arithmatex">\[
+I(x,t)=[x-at,x+at]
+\]</div>
+<p>上的值。如果 <span class="arithmatex">\(\varphi\)</span> 与 <span class="arithmatex">\(\psi\)</span> 都支撑在 <span class="arithmatex">\([-R,R]\)</span>，且 <span class="arithmatex">\(I(x,t)\cap[-R,R]=\varnothing\)</span>，那么 <span class="arithmatex">\(u(x,t)=0\)</span>。对于默认点，<span class="arithmatex">\(I(5,3)=[2,8]\)</span>，它与 <span class="arithmatex">\([-1,1]\)</span> 不交；又因为 <span class="arithmatex">\(\psi=0\)</span>，波解严格为零。</p>
+<p>这个结论同样有边界：有限区间上的波会从边界反射或吸收，反射后的波仍有有限速度，但不能继续把无边界的 d'Alembert 公式直接套上去；变系数、外力和低正则初值则需要相应的能量解或弱解理论。全直线、常系数、给齐初值正是这里公式和依赖锥成立的假设。</p>
+<h2 id="3_1">3. 热方程：热核把局部初值变成全局尾巴<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<h3 id="31">3.1 热核与卷积<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>在全直线上考虑</p>
+<div class="arithmatex">\[
+u_t=\kappa u_{xx},\qquad \kappa&gt;0,\qquad u(x,0)=\varphi(x).
+\]</div>
+<p>点源初值 <span class="arithmatex">\(\delta_0\)</span> 的基本解是</p>
+<div class="arithmatex">\[
+G_\kappa(x,t)=\frac{1}{\sqrt{4\pi\kappa t}}
+\exp\!\left(-\frac{x^2}{4\kappa t}\right),\qquad t&gt;0.
+\]</div>
+<p>它的积分为 <span class="arithmatex">\(1\)</span>，方差为 <span class="arithmatex">\(2\kappa t\)</span>；一般初值通过叠加得到</p>
+<div class="arithmatex">\[
+u(x,t)=(G_\kappa(\cdot,t)*\varphi)(x)
+=\int_{\mathbb R}G_\kappa(x-y,t)\varphi(y)\,dy.
+\]</div>
+<h3 id="32">3.2 瞬时正性不是“每个初值都正”<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>对本页的假设：<span class="arithmatex">\(\varphi\)</span> 非负、紧支撑、非零，且 <span class="arithmatex">\(t&gt;0\)</span>。由于 <span class="arithmatex">\(G_\kappa(x-y,t)&gt;0\)</span> 对每个有限的 <span class="arithmatex">\(x,y\)</span> 都成立，而 <span class="arithmatex">\(\varphi\)</span> 在一段正长度区间上为正，所以</p>
+<div class="arithmatex">\[
+u(x,t)&gt;0\qquad\text{对所有 }x\in\mathbb R.
+\]</div>
+<p>这叫热方程在全直线上的瞬时正性或无限传播：不是说信息以无限大的物理速度传递，而是精确的 Gaussian 解没有紧支撑。若 <span class="arithmatex">\(\varphi\)</span> 符号变化，正负部分可能在卷积中抵消，不能把“热解严格为正”无条件外推；若 <span class="arithmatex">\(\varphi\equiv0\)</span>，解当然仍为零。</p>
+<h3 id="33">3.3 光滑化与最大值原理的适用域<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(\varphi\in L^1(\mathbb R)\)</span>（或取有界、增长受控的初值并使用相应的热半群），则对任意 <span class="arithmatex">\(t&gt;0\)</span>，<span class="arithmatex">\(G_\kappa(\cdot,t)*\varphi\)</span> 对 <span class="arithmatex">\(x\)</span> 是 <span class="arithmatex">\(C^\infty\)</span> 的：可以把 <span class="arithmatex">\(x\)</span> 导数移到 Gaussian 上，因为每阶导数仍是可积的快速衰减函数。这个“立即光滑化”说的是正时间的全直线卷积，不是说 <span class="arithmatex">\(t=0\)</span> 的初值突然变光滑，也不自动覆盖任意增长的分布或任意边界奇性。</p>
+<p>最大值原理也要带着域和正则性读。若 <span class="arithmatex">\(Q=(\ell,r)\times(0,T]\)</span>，<span class="arithmatex">\(u\in C^{2,1}(Q)\cap C(\overline Q)\)</span> 且满足 <span class="arithmatex">\(u_t-\kappa u_{xx}=0\)</span>，则最大值和最小值在抛物边界</p>
+<div class="arithmatex">\[
+([\ell,r]\times\{0\})\cup(\{\ell,r\}\times[0,T])
+\]</div>
+<p>上取得（强最大值原理还给出内部取到非平凡极值时的刚性）。全直线问题要额外要求有界性或合适的增长控制，才能用截断区间取极限。最大值原理限制的是极值如何传播，并不等于符号变化的初值会被改造成正函数。</p>
+<h2 id="4-fourier">4. Fourier 视角：三种传播的频率账本<a class="headerlink" href="#4-fourier" title="Permanent link"></a></h2>
+<p>取 Fourier 变换约定</p>
+<div class="arithmatex">\[
+\widehat f(k)=\int_{\mathbb R}f(x)e^{-ikx}\,dx.
+\]</div>
+<p>对热方程，<span class="arithmatex">\(\widehat{u_{xx}}=-k^2\widehat u\)</span>，所以每个频率独立满足</p>
+<div class="arithmatex">\[
+\partial_t\widehat u(k,t)=-\kappa k^2\widehat u(k,t),
+\qquad
+\boxed{\widehat u(k,t)=e^{-\kappa k^2t}\widehat\varphi(k)}.
+\]</div>
+<p>因此 <span class="arithmatex">\(k=0\)</span> 的总质量不衰减，高频 <span class="arithmatex">\(|k|\)</span> 越大衰减越快；实验中的“Fourier 模态衰减”就是</p>
+<div class="arithmatex">\[
+\exp(-\kappa k^2t).
+\]</div>
+<p>对照三种因子：输运是 <span class="arithmatex">\(e^{-ickt}\)</span>，模长为 <span class="arithmatex">\(1\)</span>，只积累相位；波动的模态是 <span class="arithmatex">\(\cos(akt)\)</span> 与 <span class="arithmatex">\(\sin(akt)\)</span> 的振荡组合，不发生热式单调衰减；热方程是 <span class="arithmatex">\(e^{-\kappa k^2t}\)</span>，把细节按 <span class="arithmatex">\(k^2\)</span> 的速度抹掉。</p>
+<h2 id="5">5. 与扩散模型的边界：相关，但不能偷换<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>热核与布朗运动确实相连：无漂移、常数各向同性噪声的前向 SDE</p>
+<div class="arithmatex">\[
+dX_t=\sqrt{2\kappa}\,dW_t
+\]</div>
+<p>的密度满足 <span class="arithmatex">\(p_t=\kappa p_{xx}\)</span>。但一般扩散模型的前向过程可以有时间表、漂移、状态依赖扩散系数或在高维潜空间中运行；它不总是一个自治热方程。若前向 SDE 为</p>
+<div class="arithmatex">\[
+dX_t=b(X_t,t)\,dt+\sigma(X_t,t)\,dW_t,
+\]</div>
+<p>密度遵循相应的 Fokker--Planck 方程，而不是自动等于 <span class="arithmatex">\(p_t=\kappa\Delta p\)</span>。</p>
+<p>反向生成过程也不能写成“把热方程简单倒放”。反向时间的随机过程需要当前分布的 score <span class="arithmatex">\(\nabla_x\log p_t(x)\)</span>（一般系数还涉及扩散张量与时间约定），而这个 score 由数据或模型学习。数学上的逆热问题病态，是因为反演 Fourier 因子要乘上 <span class="arithmatex">\(e^{+\kappa k^2t}\)</span>，高频噪声会被巨大放大；这不等于生成模型在逐点求一个热方程的逆函数，生成过程依靠的是分布先验与学习到的 score。</p>
+<h2 id="6">6. 典型例题与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（特征线）</strong> <span class="arithmatex">\(u_t-2u_x=0\)</span>、<span class="arithmatex">\(u(x,0)=1/(1+x^2)\)</span>。这里 <span class="arithmatex">\(c=-2\)</span>，所以 <span class="arithmatex">\(u(x,t)=1/[1+(x+2t)^2]\)</span>：峰值向左移动，宽度和高度不变。</p>
+<p><strong>例 2（依赖区间）</strong> 若波方程速度 <span class="arithmatex">\(a=1\)</span>，初值与初速度都支撑在 <span class="arithmatex">\([-1,1]\)</span>，则 <span class="arithmatex">\((5,3)\)</span> 的依赖区间为 <span class="arithmatex">\([2,8]\)</span>，解为 <span class="arithmatex">\(0\)</span>。同一 tent 初值放入热方程时，卷积核在 <span class="arithmatex">\([-1,1]\)</span> 上始终正，解为正。</p>
+<p><strong>例 3（边界）</strong> 半直线 <span class="arithmatex">\(x&gt;0\)</span> 的热方程若给 Dirichlet 条件 <span class="arithmatex">\(u(0,t)=0\)</span>，可对初值做奇延拓再用全直线热核；Neumann 条件则对应偶延拓。镜像法改变的是边界问题的核，不能拿全直线的“无限传播”一句话替代边界条件。</p>
+<p><strong>迁移题</strong></p>
+<ol>
+<li>证明 <span class="arithmatex">\(u_t+cu_x=0\)</span> 的 <span class="arithmatex">\(L^p(\mathbb R)\)</span> 范数在 <span class="arithmatex">\(1\le p\le\infty\)</span> 下保持不变；再说明热方程为什么只保证 <span class="arithmatex">\(L^\infty\)</span> 范数不增而不是保持不变。</li>
+<li>将 tent 换成一个有正有负、积分为 <span class="arithmatex">\(0\)</span> 的紧支撑函数。哪一步正性证明失效？能否构造某个观测点让热卷积恰好为 <span class="arithmatex">\(0\)</span>？</li>
+<li>从 <span class="arithmatex">\(\widehat u(k,t)=e^{-\kappa k^2t}\widehat\varphi(k)\)</span> 解释逆热问题的条件数为什么随最高频率指数爆炸，并写出一个必须的正则化想法。</li>
+</ol>
 <hr />
-<p><em>分析线至此全线完工（数分 → ODE → 复变 → 实变 → 泛函 → PDE）。剩余：代数几何线四门与数学建模。</em></p>
+<p><em>本页的主线：双曲型方程先问“依赖锥到没到”，抛物型方程先问“卷积核的符号与频率衰减是什么”。下一步可把这些全直线公式带到有界域的谱展开与数值离散。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pde-01-separation.html"><span class="pager-label">上一页</span>偏微分 I · 三大方程与分离变量</a>
@@ -99,5 +283,7 @@ u_t = a^2 u_{xx} \;\xrightarrow{\;\mathcal{F}\;}\; \hat u_t = -a^2\xi^2 \hat u \
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/pde-propagation.js"></script>
 </body>
 </html>
