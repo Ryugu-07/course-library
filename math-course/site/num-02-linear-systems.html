@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,83 +41,247 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-15 14:57</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：小残差为什么不保证小前向误差？</a><ul>
+<li><a href="#1">1. 先预测，再看交点</a></li>
+<li><a href="#2">2. 条件数与稳定性要分账</a></li>
+<li><a href="#3">3. 动手核对：四个量必须同时出现</a></li>
+</ul>
+</li>
 <li><a href="#1-gauss-lu">1. 直接法：Gauss 消元 = LU 分解</a></li>
-<li><a href="#2">2. 病态方程组：条件数的主战场</a></li>
-<li><a href="#3">3. 迭代法：大型稀疏的主场</a></li>
+<li><a href="#2_1">2. 病态方程组：条件数的主战场</a></li>
+<li><a href="#3_1">3. 迭代法：大型稀疏的主场</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">数值 II · 线性方程组的数值解法<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><span class="arithmatex">\(Ax = b\)</span> 是科学计算的头号内核（离散化 PDE、最小二乘、回归、图算法……最后都落到它）。高代 II 说"Cramer 法则给出解"——数值分析的第一句话是：<strong>永远别用 Cramer 算</strong>（<span class="arithmatex">\(O(n \cdot n!)\)</span>）。本页两条路线：直接法（有限步精确，中小稠密）与迭代法（逐步逼近，大型稀疏），外加病态矩阵的诊断学。</p>
+<p><span class="arithmatex">\(Ax=b\)</span> 是科学计算的头号内核（离散化 PDE、最小二乘、回归、图算法……最后都落到它）。高代 II 说“Cramer 法则给出解”；数值分析再追问：<strong>这个解对输入有多敏感，算法又有没有额外添乱？</strong>本页把直接法、迭代法和病态诊断放在同一张账上。</p>
 </blockquote>
-<h2 id="1-gauss-lu">1. 直接法：Gauss 消元 = LU 分解<a class="headerlink" href="#1-gauss-lu" title="Permanent link"></a></h2>
-<p>高代 II 的消元法，矩阵语言重述：消元过程 = 左乘一串单位下三角阵，得</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="linear-conditioning-learning-title" class="learning-layer">
+<h2 id="_1">学习层：小残差为什么不保证小前向误差？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测，再看交点<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把二维方程组看成两条直线的交点。两条法向的夹角很大时，右端有一点移动，交点只会轻轻移动；法向几乎平行时，两条直线像两把很窄的剪刀，右端同样大小的移动可能把交点沿着一条长方向推得很远。</p>
+<p>先回答实验台的四个问题：</p>
+<ol>
+<li>病态矩阵的敏感方向受到一个很小的右端扰动时，前向误差会不会远大于残差？</li>
+<li>同一个 <span class="arithmatex">\(A\)</span> 换到非敏感方向，是否必然达到 <span class="arithmatex">\(\kappa_2(A)\)</span> 倍？</li>
+<li>报告小残差后，还要把哪些条件数和归一化量带回来？</li>
+<li>部分选主元是在治愈问题，还是只是在约束算法的舍入路径？</li>
+</ol>
+<p>揭示前不显示数值参数、教学预设、图表或结果。提交后可以连续调节角度、扰动大小、扰动方向和真解尺度；“重新预测”会重新上锁。</p>
+<div class="learning-lab" data-learning-lab="linear-conditioning">
+<p><strong>无 JavaScript 时的静态读法：</strong>令 <span class="arithmatex">\(0&lt;\theta\leq\pi/2\)</span>，</p>
 <div class="arithmatex">\[
-A = LU \quad (L \text{ 单位下三角}, U \text{ 上三角})
+A(\theta)=\begin{pmatrix}1&amp;0\\ \cos\theta&amp;\sin\theta\end{pmatrix},
+\qquad x^*=\begin{pmatrix}1\\0\end{pmatrix},
+\qquad b=A x^*.
 \]</div>
-<p>解 <span class="arithmatex">\(Ax = b\)</span> 变两次三角回代：<span class="arithmatex">\(Ly = b\)</span>（前代）、<span class="arithmatex">\(Ux = y\)</span>（回代）。<strong>计算量</strong>：分解 <span class="arithmatex">\(\sim \frac{n^3}{3}\)</span> 乘加，回代 <span class="arithmatex">\(\sim n^2\)</span>——<strong>同一 <span class="arithmatex">\(A\)</span> 多个右端 <span class="arithmatex">\(b\)</span> 时只分解一次</strong>（这是"分解"视角优于"消元"视角的实用理由；求 <span class="arithmatex">\(A^{-1}\)</span> 再乘 <span class="arithmatex">\(b\)</span> 则是既慢又损精度的双输操作，工程铁律：<strong>永远解方程组，不求逆</strong>）。</p>
-<p><strong>选主元为什么不可省</strong>：主元过小时消元乘数巨大，舍入误差被放大（数值 I 的相消灾难在矩阵里的形态）。<strong>列主元</strong>（每列选绝对值最大者换到主元位）以 <span class="arithmatex">\(O(n^2)\)</span> 的比较代价换回稳定性——工业标准配置（LAPACK 的 <code>getrf</code>）。</p>
-<p><strong>对称正定的特权（Cholesky）</strong>：<span class="arithmatex">\(A = LL^\top\)</span>——计算量减半（<span class="arithmatex">\(\frac{n^3}{6}\)</span>）、<strong>无需选主元也稳定</strong>、分解成功本身就是正定性的数值判据（高代 VI 判据的算法化）。协方差矩阵、正规方程、二次型优化里到处是它。</p>
-<h2 id="2">2. 病态方程组：条件数的主战场<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>这里两行的法向夹角就是 <span class="arithmatex">\(\theta\)</span>。因为</p>
+<div class="arithmatex">\[
+A^\mathsf{T}A=\begin{pmatrix}1+\cos^2\theta&amp;\cos\theta\sin\theta\\
+\cos\theta\sin\theta&amp;\sin^2\theta\end{pmatrix},
+\]</div>
+<p>其特征值为 <span class="arithmatex">\(1+\cos\theta\)</span> 与 <span class="arithmatex">\(1-\cos\theta\)</span>，所以</p>
+<div class="arithmatex">\[
+\sigma_{\max}=\sqrt{1+\cos\theta},\qquad
+\sigma_{\min}=\sqrt{1-\cos\theta},\qquad
+\kappa_2(A)=\frac{\sigma_{\max}}{\sigma_{\min}}=\cot\frac\theta2.
+\]</div>
+<p>取左奇异向量 <span class="arithmatex">\(u_{\min}=(-1,1)^\mathsf{T}/\sqrt2\)</span>，令 <span class="arithmatex">\(\delta b=\eta\|b\|_2u_{\min}\)</span>，例如 <span class="arithmatex">\(\eta=0.01\)</span>。若 <span class="arithmatex">\(\widehat x\)</span> 精确解的是 <span class="arithmatex">\(A\widehat x=b+\delta b\)</span>，那么</p>
+<div class="arithmatex">\[
+r=b-A\widehat x=-\delta b,
+\qquad
+\rho=\frac{\|r\|_2}{\|b\|_2}=\eta,
+\]</div>
+<p>而当 <span class="arithmatex">\(\delta b\)</span> 沿某个单位方向 <span class="arithmatex">\(u\)</span> 时，前向误差满足这里的<strong>精确关系</strong></p>
+<div class="arithmatex">\[
+\frac{\|\widehat x-x^*\|_2}{\|x^*\|_2}
+=\rho\,\frac{\|b\|_2}{\|x^*\|_2}
+\frac{\|A^{-1}u\|_2}{1}.
+\]</div>
+<p>敏感方向给出 <span class="arithmatex">\(\|A^{-1}u_{\min}\|_2=1/\sigma_{\min}\)</span>；非敏感方向则接近 <span class="arithmatex">\(1/\sigma_{\max}\)</span>。因此 <span class="arithmatex">\(\kappa_2\)</span> 是 2-范数下的最坏方向因子和上界尺度，不是每一次扰动都会正好放大 <span class="arithmatex">\(\kappa_2\)</span> 倍。<span class="arithmatex">\(\|b\|/\|x^*\|\)</span>、扰动方向和绝对/相对缩放都会进入残差到前向误差的换算。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(\theta\)</span></th>
+<th>扰动方向</th>
+<th style="text-align: right;"><span class="arithmatex">\(\kappa_2(A)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\rho=\|r\|/\|b\|\)</span></th>
+<th>前向误差的读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>良态：直角</td>
+<td style="text-align: right;"><span class="arithmatex">\(90^\circ\)</span></td>
+<td><span class="arithmatex">\(u_{\min}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\%\)</span></td>
+<td>约为 <span class="arithmatex">\(1\%\)</span></td>
+</tr>
+<tr>
+<td>近乎平行</td>
+<td style="text-align: right;"><span class="arithmatex">\(5^\circ\)</span></td>
+<td><span class="arithmatex">\(u_{\min}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx22.9\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\%\)</span></td>
+<td>约为 <span class="arithmatex">\(23\%\)</span>，但不必恰好等于 <span class="arithmatex">\(\kappa\rho\)</span></td>
+</tr>
+<tr>
+<td>方向例外</td>
+<td style="text-align: right;"><span class="arithmatex">\(5^\circ\)</span></td>
+<td><span class="arithmatex">\(u_{\max}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx22.9\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\%\)</span></td>
+<td>约为 <span class="arithmatex">\(1\%\)</span>；同一个 <span class="arithmatex">\(\kappa\)</span> 不会强迫最坏放大</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(b/x\)</span> 陷阱</td>
+<td style="text-align: right;"><span class="arithmatex">\(5^\circ\)</span></td>
+<td><span class="arithmatex">\(u_{\min}\)</span>，<span class="arithmatex">\(x^*=(0,1)^\mathsf{T}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx22.9\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\%\)</span></td>
+<td><span class="arithmatex">\(\|b\|/\|x^*\|\)</span> 变小，归一化改变读法</td>
+</tr>
+</tbody>
+</table>
+<p>两条原始直线是 <span class="arithmatex">\(x_1=b_1\)</span> 与 <span class="arithmatex">\(\cos\theta\,x_1+\sin\theta\,x_2=b_2\)</span>；虚线把右端换成 <span class="arithmatex">\(b+\delta b\)</span>。绿色点为 <span class="arithmatex">\(x^*\)</span>，红色点为 <span class="arithmatex">\(\widehat x\)</span>。脚本可用时，图旁的表格还会列出 <span class="arithmatex">\(\|r\|/\|b\|\)</span>、标准后向误差、相对前向误差、<span class="arithmatex">\(\kappa\rho\)</span> 上界和精确恒等式。</p>
+</div>
+<h3 id="2">2. 条件数与稳定性要分账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p><strong>问题条件性</strong>问：输入稍微改变，精确答案会改变多少？对满秩方阵，<span class="arithmatex">\(\kappa_2(A)=\|A\|_2\|A^{-1}\|_2\)</span>；它属于问题本身。<strong>算法稳定性</strong>问：舍入误差是否可以解释为某个邻近问题的误差？部分选主元通常改善 LU 的后向稳定性，却不改变 <span class="arithmatex">\(\kappa_2(A)\)</span>；它不能把几乎平行的两条直线变成直角。</p>
+<p>因此“小残差”首先说明后向误差小，不能单独推出小前向误差。对精确的 <span class="arithmatex">\(A\)</span> 和 <span class="arithmatex">\(b\)</span> 扰动，常用相对上界是</p>
+<div class="arithmatex">\[
+\frac{\|\widehat x-x\|_2}{\|x\|_2}
+\leq \kappa_2(A)\frac{\|\delta b\|_2}{\|b\|_2},
+\qquad b=Ax,
+\]</div>
+<p>但本页实验故意把“上界”和“本次方向”分开显示。<span class="arithmatex">\(\kappa\)</span> 约为 <span class="arithmatex">\(10^k\)</span> 只表示最坏情形存在 <span class="arithmatex">\(10^k\)</span> 数量级的相对放大风险；它不保证每个实例都损失恰好 <span class="arithmatex">\(k\)</span> 位，也不能替代输入精度、方向和算法误差的检查。</p>
+<h3 id="3">3. 动手核对：四个量必须同时出现<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验的精确账本使用</p>
+<div class="arithmatex">\[
+\rho=\frac{\|r\|_2}{\|b\|_2},
+\qquad
+\eta_b=\frac{\|r\|_2}{\|A\|_2\|\widehat x\|_2+\|b\|_2},
+\qquad
+\eta_f=\frac{\|\widehat x-x^*\|_2}{\|x^*\|_2}.
+\]</div>
+<p>对本 toy，<span class="arithmatex">\(r=-\delta b\)</span> 和 <span class="arithmatex">\(\delta x=A^{-1}\delta b\)</span> 是可直接验算的恒等式；所以不是“看曲线猜病态”，而是把原始残差、标准后向误差、方向增益、<span class="arithmatex">\(\|b\|/\|x^*\|\)</span> 与前向误差逐项对齐。若换成扰动 <span class="arithmatex">\(\delta A\)</span>，还要把 <span class="arithmatex">\(\|\delta A\|/\|A\|\)</span> 加入条件误差预算。</p>
+</section>
+<h2 id="1-gauss-lu">1. 直接法：Gauss 消元 = LU 分解<a class="headerlink" href="#1-gauss-lu" title="Permanent link"></a></h2>
+<p>高代中的消元过程，矩阵语言重述为</p>
+<div class="arithmatex">\[
+A=LU\quad(L\text{ 单位下三角},\ U\text{ 上三角}),
+\]</div>
+<p>然后解两次三角系统：<span class="arithmatex">\(Ly=b\)</span>（前代）、<span class="arithmatex">\(Ux=y\)</span>（回代）。以下统一按“一次乘法或加法计 1 flop”计成本：稠密 LU 分解约为 <span class="arithmatex">\(\frac23n^3\)</span> flops，每个右端的两次三角解约为 <span class="arithmatex">\(2n^2\)</span> flops；选主元的比较、交换是 <span class="arithmatex">\(O(n^2)\)</span> 的低阶开销。<strong>同一 <span class="arithmatex">\(A\)</span> 有多个右端时只做一次分解</strong>，不要先求 <span class="arithmatex">\(A^{-1}\)</span> 再乘 <span class="arithmatex">\(b\)</span>。</p>
+<p>Cramer 法则没有一个脱离实现的唯一复杂度：若每个替换行列式都用 Laplace/余子式展开，<span class="arithmatex">\(n\)</span> 个行列式是 <span class="arithmatex">\(O(n\,n!)\)</span> 级别；若用消元来算每个行列式，也约为 <span class="arithmatex">\(O(n^4)\)</span>。两种口径都比一次 LU 加回代差，而且 Cramer 的行列式相减也可能带来严重舍入误差，所以它适合证明存在性和小规模手算，不适合作为数值求解器。</p>
+<p><strong>选主元为什么不可省。</strong>若主元很小，消元乘数会很大，舍入误差可能沿后续运算放大。部分选主元在每列把绝对值最大的候选行换到主元位置，通常显著改善 LU 的算法稳定性；它改变的是计算路径，不改变问题的 <span class="arithmatex">\(\kappa(A)\)</span>。即使 LU 后向稳定，病态问题仍可能有大的前向误差。</p>
+<p><strong>对称正定的特权（Cholesky）。</strong>若 <span class="arithmatex">\(A=A^\mathsf{T}\)</span> 且 <span class="arithmatex">\(x^\mathsf{T}Ax&gt;0\)</span>（所有非零 <span class="arithmatex">\(x\)</span>），则</p>
+<div class="arithmatex">\[
+A=LL^\mathsf{T}.
+\]</div>
+<p>实稠密 Cholesky 分解约为 <span class="arithmatex">\(\frac13n^3\)</span> flops，约是 LU 主项的一半；每个右端仍需约 <span class="arithmatex">\(2n^2\)</span> flops 的三角解。SPD 前提成立时无需一般 LU 那样选主元，算法在通常舍入模型下后向稳定；“分解出现正对角元”是实务中的正定诊断，但不是把任意对称矩阵都变成 SPD 的魔法。</p>
+<p>正规方程要特别小心。满列秩 <span class="arithmatex">\(A\)</span> 时 <span class="arithmatex">\(A^\mathsf{T}A\)</span> 是 SPD，可以 Cholesky，但在 2-范数下</p>
+<div class="arithmatex">\[
+\kappa_2(A^\mathsf{T}A)=
+\frac{\sigma_{\max}(A)^2}{\sigma_{\min}(A)^2}
+=\kappa_2(A)^2.
+\]</div>
+<p>所以最小二乘通常优先 QR 或 SVD，而不是为了省一步直接形成 <span class="arithmatex">\(A^\mathsf{T}A\)</span>。</p>
+<h2 id="2_1">2. 病态方程组：条件数的主战场<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="良态与病态方程组的几何" src="assets/img/num-02-condition.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>条件数的几何：良态方程组两直线近乎垂直、交点清晰；病态方程组两直线近乎平行，输入微扰导致解剧烈漂移。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>条件数的几何：良态方程组两直线交点清晰；病态方程组的两条法向近乎平行，右端微扰会让交点沿敏感方向漂移。学习层实验给出同一几何的可调精确账本。</figcaption>
 </figure>
-<p><strong>矩阵条件数</strong> <span class="arithmatex">\(\kappa(A) = \|A\|\,\|A^{-1}\|\)</span>（谱范数下 <span class="arithmatex">\(= \sigma_{\max}/\sigma_{\min}\)</span>，奇异值之比）。<strong>误差放大定理</strong>：</p>
+<p><strong>矩阵条件数</strong></p>
 <div class="arithmatex">\[
-\frac{\|\delta x\|}{\|x\|} \;\lesssim\; \kappa(A)\,\Big(\frac{\|\delta A\|}{\|A\|} + \frac{\|\delta b\|}{\|b\|}\Big)
+\kappa(A)=\|A\|\,\|A^{-1}\|,
+\qquad
+\kappa_2(A)=\frac{\sigma_{\max}(A)}{\sigma_{\min}(A)}
 \]</div>
-<p>——输入的相对扰动被放大至多 <span class="arithmatex">\(\kappa\)</span> 倍。<strong>经验读法：<span class="arithmatex">\(\kappa \approx 10^k\)</span> 意味着解损失约 <span class="arithmatex">\(k\)</span> 位有效数字</strong>（双精度 16 位打底，<span class="arithmatex">\(\kappa &gt; 10^{12}\)</span> 基本没法信）。</p>
-<p>两条诊断要点：<strong>残差小 ≠ 解准</strong>（<span class="arithmatex">\(\|b - A\hat x\|\)</span> 小只说明后向误差小，病态时前向误差仍可巨大——高代里没有的区分，数值分析的招牌观念）；名例 <strong>Hilbert 矩阵</strong> <span class="arithmatex">\(h_{ij} = \frac{1}{i+j-1}\)</span>（多项式最小二乘的正规方程），<span class="arithmatex">\(n = 10\)</span> 时 <span class="arithmatex">\(\kappa \sim 10^{13}\)</span>——这就是"多项式拟合别用正规方程、要用正交多项式或 QR"的原因（统计 V 共线性问题的极端标本；🔗 优化 II 条件数决定收敛速度——同一个 <span class="arithmatex">\(\kappa\)</span>，直接法里吃精度，迭代法里吃速度，两头堵）。</p>
-<h2 id="3">3. 迭代法：大型稀疏的主场<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>分裂法框架</strong>：<span class="arithmatex">\(A = M - N\)</span>（<span class="arithmatex">\(M\)</span> 好解），迭代</p>
+<p>（可逆时）。它是输入到输出的最坏相对敏感度；对线性映射的 2-范数，最坏方向正好由最小奇异向量给出。一般带 <span class="arithmatex">\(\delta A,\delta b\)</span> 的前向误差公式是条件数乘输入相对扰动的一阶/上界量，具体实例还会受扰动方向、<span class="arithmatex">\(\|b\|/\|x\|\)</span> 和归一化方式影响。</p>
+<p>对任意近似解 <span class="arithmatex">\(\widehat x\)</span>，先定义残差</p>
 <div class="arithmatex">\[
-x^{(k+1)} = M^{-1}N x^{(k)} + M^{-1} b
+r=b-A\widehat x.
 \]</div>
-<p><strong>定理（收敛充要条件）</strong> 迭代矩阵 <span class="arithmatex">\(G = M^{-1}N\)</span> 的<strong>谱半径</strong> <span class="arithmatex">\(\rho(G) &lt; 1\)</span>（高代 V 的谱半径决定矩阵幂的命运——误差 <span class="arithmatex">\(e^{(k)} = G^k e^{(0)}\)</span>，一行看穿）。<span class="arithmatex">\(\rho\)</span> 越小收敛越快；充分条件常用：<span class="arithmatex">\(A\)</span> 严格对角占优 ⇒ Jacobi 与 Gauss–Seidel 皆收敛。</p>
+<p>小 <span class="arithmatex">\(\|r\|\)</span> 说明 <span class="arithmatex">\(\widehat x\)</span> 是某个邻近右端问题的精确解，不能独立证明 <span class="arithmatex">\(\widehat x\)</span> 接近原问题的 <span class="arithmatex">\(x\)</span>。规范的诊断顺序是：先报告 <span class="arithmatex">\(\|r\|/\|b\|\)</span> 或标准后向误差，再结合 <span class="arithmatex">\(\kappa(A)\)</span>、输入尺度和目标前向误差；不能用“残差小”一句话代替条件性检查。</p>
+<p>经典例子是 Hilbert 矩阵 <span class="arithmatex">\(h_{ij}=1/(i+j-1)\)</span>。它在较大阶数时极端病态，正规方程还会把条件数平方；这正是多项式拟合应优先使用正交基、QR 或 SVD 的数值理由。统计中的共线性、优化中的狭长谷底和这里的近乎平行直线，都是同一敏感度结构的不同外观。</p>
+<h2 id="3_1">3. 迭代法：大型稀疏的主场<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>分裂法框架：</strong><span class="arithmatex">\(A=M-N\)</span>，于是</p>
+<div class="arithmatex">\[
+x^{(k+1)}=M^{-1}N x^{(k)}+M^{-1}b,
+\qquad G=M^{-1}N.
+\]</div>
+<p>在 <span class="arithmatex">\(M\)</span> 可逆且使用固定线性迭代的前提下，收敛的充要条件是 <span class="arithmatex">\(\rho(G)&lt;1\)</span>；误差满足 <span class="arithmatex">\(e^{(k)}=G^k e^{(0)}\)</span>。<span class="arithmatex">\(\rho(G)\)</span> 越小，渐近收敛越快，但这不是说每一步都简单地乘上同一个标量。</p>
 <table>
 <thead>
 <tr>
 <th>方法</th>
 <th><span class="arithmatex">\(M\)</span></th>
-<th>特点</th>
+<th>前提与特点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Jacobi</strong></td>
 <td><span class="arithmatex">\(D\)</span>（对角）</td>
-<td>全用旧值，天然并行</td>
+<td><span class="arithmatex">\(\rho(G_J)&lt;1\)</span> 才是充要条件；严格对角占优是常用充分条件，天然并行</td>
 </tr>
 <tr>
 <td><strong>Gauss–Seidel</strong></td>
-<td><span class="arithmatex">\(D - L\)</span>（下三角）</td>
-<td>边算边用新值，通常快一倍，串行</td>
+<td><span class="arithmatex">\(D-L\)</span>（下三角）</td>
+<td>同样看迭代矩阵；严格对角占优或 SPD 等条件可保证收敛，边算边用新值</td>
 </tr>
 <tr>
 <td>SOR</td>
-<td>GS + 松弛因子 <span class="arithmatex">\(\omega\)</span></td>
-<td>调好 <span class="arithmatex">\(\omega\)</span> 可数量级加速（知其名）</td>
+<td>GS 加松弛因子 <span class="arithmatex">\(\omega\)</span></td>
+<td>需要合适的 <span class="arithmatex">\(\omega\)</span> 和相应收敛条件，不能把“调好后很快”当成无条件定理</td>
 </tr>
 </tbody>
 </table>
-<p><strong>共轭梯度（CG，对称正定专属之王）</strong>：把 <span class="arithmatex">\(Ax = b\)</span> 变成 <span class="arithmatex">\(\min \frac12 x^\top A x - b^\top x\)</span>（优化 II 的老朋友），沿一组"A-共轭"方向逐维精确搜索——理论 <span class="arithmatex">\(n\)</span> 步精确，实用当迭代法用：每步只要<strong>一次矩阵乘向量</strong>（稀疏矩阵 <span class="arithmatex">\(O(\text{nnz})\)</span>），收敛速率由 <span class="arithmatex">\(\sqrt{\kappa}\)</span> 控制。<strong>预条件</strong>（找 <span class="arithmatex">\(M \approx A\)</span> 变换问题压 <span class="arithmatex">\(\kappa\)</span>）是它的标配外挂——"压条件数"这个主题第三次出现（数值 I 改写、优化 II Newton、此处预条件），已是贯穿线。</p>
-<p><strong>选型速查</strong>：中小稠密 → 列主元 LU；对称正定 → Cholesky；大型稀疏对称正定 → CG（+预条件）；大型稀疏一般 → GMRES 一族（知其名）。</p>
+<p><strong>共轭梯度（CG）只给 SPD 矩阵。</strong>它等价于在</p>
+<div class="arithmatex">\[
+\min_x\ \frac12x^\mathsf{T}Ax-b^\mathsf{T}x
+\]</div>
+<p>上做 <span class="arithmatex">\(A\)</span>-共轭方向搜索，因此要求 <span class="arithmatex">\(A=A^\mathsf{T}\succ0\)</span>。精确算术中至多 <span class="arithmatex">\(n\)</span> 步得到精确解；浮点运算中通常是近似收敛。经典能量范数界为</p>
+<div class="arithmatex">\[
+\frac{\|e_k\|_A}{\|e_0\|_A}
+\leq
+2\left(\frac{\sqrt{\kappa_2(A)}-1}{\sqrt{\kappa_2(A)}+1}\right)^k.
+\]</div>
+<p>稀疏矩阵每步主要成本是一次矩阵乘向量 <span class="arithmatex">\(O(\mathrm{nnz})\)</span>；预条件器 <span class="arithmatex">\(M\approx A\)</span> 通过改变有效谱来压低预条件系统的条件数，但必须满足相应的 SPD/可解前提。对一般非对称矩阵，改看 GMRES 等方法，不能直接套 CG 的结论。</p>
+<p><strong>选型速查：</strong>中小稠密一般矩阵 → 部分选主元 LU；SPD 稠密 → Cholesky；大型稀疏 SPD → CG 加预条件；大型稀疏一般矩阵 → GMRES 一族。</p>
 <h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（选主元的必要性，手算级）</strong> <span class="arithmatex">\(\begin{pmatrix} 10^{-8} &amp; 1 \\ 1 &amp; 1 \end{pmatrix}x = \begin{pmatrix}1 \\ 2\end{pmatrix}\)</span>：不选主元，乘数 <span class="arithmatex">\(10^8\)</span>，消元后舍入把真解信息全部冲掉，解出 <span class="arithmatex">\(x_1 \approx 0\)</span>（真解 <span class="arithmatex">\(x_1 \approx 1\)</span>）；交换两行后一切正常。<strong>一次行交换 = 全部精度。</strong></p>
-<p><strong>例 2（Jacobi 收敛判断）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 4 &amp; 1 \\ 2 &amp; 3 \end{pmatrix}\)</span>：严格对角占优（<span class="arithmatex">\(4 &gt; 1,\ 3 &gt; 2\)</span>）⇒ Jacobi/GS 必收敛。迭代矩阵 <span class="arithmatex">\(G_J = \begin{pmatrix} 0 &amp; -1/4 \\ -2/3 &amp; 0\end{pmatrix}\)</span>，<span class="arithmatex">\(\rho = \sqrt{\frac{1}{6}} \approx 0.41\)</span>——每步误差乘 0.41，约 5 步一位有效数字。</p>
-<p><strong>例 3（条件数体检）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 1 &amp; 1 \\ 1 &amp; 1.0001 \end{pmatrix}\)</span>，<span class="arithmatex">\(\kappa \approx 4\times10^4\)</span>：<span class="arithmatex">\(b\)</span> 的第 4 位小数变动可致解的第 1 位变动——两根几乎平行的直线求交点，图一画就懂病态的几何：<strong>交角越小越病态</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（选主元的必要性，手算级）。</strong></p>
+<div class="arithmatex">\[
+\begin{pmatrix}10^{-8}&amp;1\\1&amp;1\end{pmatrix}x=
+\begin{pmatrix}1\\2\end{pmatrix}.
+\]</div>
+<p>不选主元时第一步乘数为 <span class="arithmatex">\(10^8\)</span>；在有限精度中，后续减法可能冲掉 <span class="arithmatex">\(x_1\)</span> 的信息。交换两行后主元为 1，舍入路径稳健得多。交换行改善的是算法稳定性，不是把这个矩阵的条件数改成 1。</p>
+<p><strong>例 2（Jacobi 收敛判断）。</strong><span class="arithmatex">\(A=\begin{pmatrix}4&amp;1\\2&amp;3\end{pmatrix}\)</span> 严格对角占优，所以 Jacobi 与 Gauss–Seidel 都收敛。Jacobi 迭代矩阵</p>
+<div class="arithmatex">\[
+G_J=\begin{pmatrix}0&amp;-1/4\\-2/3&amp;0\end{pmatrix},
+\qquad
+\rho(G_J)=\sqrt{1/6}\approx0.41;
+\]</div>
+<p>因此渐近误差按约 <span class="arithmatex">\(0.41\)</span> 的谱尺度衰减，而“约几步一位有效数字”仍取决于初始误差和停止准则。</p>
+<p><strong>例 3（条件数体检）。</strong></p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}1&amp;1\\1&amp;1.0001\end{pmatrix}
+\]</div>
+<p>的两行法向几乎平行，<span class="arithmatex">\(\kappa\)</span> 约为 <span class="arithmatex">\(4\times10^4\)</span>。这意味着某些方向上的输入相对扰动可能被放大到 <span class="arithmatex">\(10^4\)</span> 量级；它不是说任何 <span class="arithmatex">\(b\)</span> 的第 4 位小数都会必然改写答案的第 1 位，也不是说一个稳定的 LU 算法能消除这种问题条件性。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>下一页：非线性方程求根（Newton 法的主场）与"用简单函数逼近复杂函数"——插值与拟合。</em></p>
+<p><em>下一页：非线性方程求根（Newton 法的主场）与“用简单函数逼近复杂函数”——插值与拟合。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="num-01-error.html"><span class="pager-label">上一页</span>数值 I · 误差与数值稳定性</a>
@@ -116,5 +291,7 @@ x^{(k+1)} = M^{-1}N x^{(k)} + M^{-1} b
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/linear-conditioning.js"></script>
 </body>
 </html>

@@ -118,34 +118,44 @@ def fl05_lorenz():
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(10.0, 4.3))
     # Lorenz
     s, r, b = 10.0, 28.0, 8/3
-    dt, n = 0.006, 12000
-    x, y, z = 1.0, 1.0, 20.0
+    dt, n = 0.005, 16000
     X, Z = np.empty(n), np.empty(n)
+
+    def rhs(state):
+        xx, yy, zz = state
+        return np.array((s*(yy-xx), xx*(r-zz)-yy, xx*yy-b*zz))
+
+    state = np.array((1.0, 1.0, 20.0))
     for i in range(n):
-        dx = s*(y-x); dy = x*(r-z)-y; dz = x*y-b*z
-        x += dt*dx; y += dt*dy; z += dt*dz
-        X[i], Z[i] = x, z
-    a1.plot(X, Z, color=ACC, lw=0.35, alpha=.85)
+        k1 = rhs(state)
+        k2 = rhs(state + .5*dt*k1)
+        k3 = rhs(state + .5*dt*k2)
+        k4 = rhs(state + dt*k3)
+        state += dt*(k1 + 2*k2 + 2*k3 + k4)/6
+        X[i], Z[i] = state[0], state[2]
+    a1.plot(X[2000:], Z[2000:], color=ACC, lw=0.35, alpha=.85)
     a1.set_xlabel("$x$"); a1.set_ylabel("$z$")
     a1.set_title(r"Lorenz attractor ($\sigma$=10, $\rho$=28, $\beta$=8/3)",
                  color=INK, fontsize=11.5)
     # Logistic
-    rs = np.linspace(2.8, 4.0, 1400)
-    for rr in rs:
-        xv = 0.5
-        for _ in range(300):
-            xv = rr*xv*(1-xv)
-        pts = []
-        for _ in range(120):
-            xv = rr*xv*(1-xv); pts.append(xv)
-        a2.plot([rr]*len(pts), pts, ",", color=ACC, alpha=.35)
+    rs = np.linspace(2.8, 4.0, 1200)
+    xv = np.full_like(rs, 0.5)
+    for _ in range(400):
+        xv = rs*xv*(1-xv)
+    orbit = np.empty((96, rs.size))
+    for i in range(orbit.shape[0]):
+        xv = rs*xv*(1-xv)
+        orbit[i] = xv
+    # A dense point cloud is rasterized inside the SVG; axes and labels stay vector.
+    a2.scatter(np.tile(rs, orbit.shape[0]), orbit.ravel(), s=.08,
+               color=ACC, alpha=.35, linewidths=0, rasterized=True)
     a2.axvline(3.5699, color=RED, ls=":", lw=1.4)
     a2.text(3.58, 0.06, r"$r_\infty$", fontsize=11, color=RED)
     a2.set_xlabel("$r$"); a2.set_ylabel("$x$")
     a2.set_title("Logistic map: period doubling", color=INK, fontsize=11.5)
     a2.set_xlim(2.8, 4.0)
     fig.tight_layout()
-    save(fig, "fl-05-chaos-lorenz")
+    save(fig, "fl-05-chaos-lorenz", reproducible=True)
 
 
 def fl06_regimes():
