@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,89 +43,296 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-15 12:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 从约束的烦恼到广义坐标</a></li>
-<li><a href="#2-eulerlagrange">2. 最小作用量原理与 Euler–Lagrange 方程</a></li>
-<li><a href="#3-noether">3. Noether 定理（本页顶点）</a></li>
-<li><a href="#4">4. 实战：拉格朗日方法的流水线</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#mech-02-learning-title">学习层：椭圆轨道上的角动量，为什么会“漏掉”？</a><ul>
+<li><a href="#1">1. 先看一个可计算的谜题</a></li>
+<li><a href="#2">2. 驻值不是一般的最小值</a></li>
+<li><a href="#3">3. 动手：先提交三项判断</a></li>
+<li><a href="#4">4. 三个“对称”不要混为一谈</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 位形空间、约束与广义坐标</a></li>
+<li><a href="#2-hamilton-eulerlagrange">2. Hamilton 原理与 Euler–Lagrange 方程</a><ul>
+<li><a href="#eulerlagrange">Euler–Lagrange 的三行推导</a></li>
+</ul>
+</li>
+<li><a href="#3-lt-v">3. \(L=T-V\) 的边界与坐标表达</a></li>
+<li><a href="#4_1">4. 循环坐标：守恒量的最快入口</a></li>
+<li><a href="#5-noether">5. Noether：从精确不变性到守恒律</a><ul>
+<li><a href="#_1">精确对称性</a></li>
+<li><a href="#_2">准对称性与边界项</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 时间平移与能量：条件式结论</a></li>
+<li><a href="#7">7. 一套可复核的拉格朗日工作流</a><ul>
+<li><a href="#_3">迁移题</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
 <h1 id="ii">力学 II · 拉格朗日力学与变分原理<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Goldstein §1–2 / Landau <em>Mechanics</em> §1–2 ｜ <strong>前置</strong>：mech-01、数分 V（变分预备）、优化 III（约束）
-力学的第二种写法：不谈力，谈<strong>作用量</strong>——自然选择使 <span class="arithmatex">\(S = \int L\,dt\)</span> 取极值的路径。这一页是理论物理的世界观奠基：广义坐标消约束、Euler–Lagrange 方程、以及物理学最深刻的定理之一——<strong>Noether：对称性 ⇒ 守恒律</strong>。</p>
+拉格朗日力学把“画出每个约束力”换成“在位形空间上写一个标量 <span class="arithmatex">\(L\)</span>”。核心不是一句“自然界总在最小化作用量”，而是固定端点下的<strong>驻作用量</strong>：真实路径的一阶变分为零。由此得到 Euler–Lagrange 方程、循环坐标和 Noether 守恒律；每一步都要把模型的对称性、边界条件和适用范围说清楚。</p>
 </blockquote>
-<h2 id="1">1. 从约束的烦恼到广义坐标<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>牛顿方程处理约束（摆的杆、斜面）要引入未知约束力——<strong>为不关心的量解方程</strong>。拉格朗日的出路：选<strong>广义坐标</strong> <span class="arithmatex">\(q_1, \dots, q_n\)</span>（恰好参数化允许的位形——约束自动满足：单摆用 <span class="arithmatex">\(\theta\)</span> 而不是 <span class="arithmatex">\((x,y)\)</span> + 杆长方程）。约束力从此隐身（理想约束不做虚功——D'Alembert 原理是通往 EL 方程的另一条路【引用】）。</p>
-<h2 id="2-eulerlagrange">2. 最小作用量原理与 Euler–Lagrange 方程<a class="headerlink" href="#2-eulerlagrange" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="最小作用量原理" src="assets/img/mech-02-least-action.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>最小作用量原理：真实路径让作用量 \(S=\int L\,dt\) 取极值——邻近试探路径的 \(S\) 都更大，Euler–Lagrange 方程正是 \(\delta S=0\)。</figcaption>
-</figure>
-<p><strong>原理（Hamilton）</strong>：真实路径使作用量</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="mech-02-learning-title" class="learning-layer">
+<h2 id="mech-02-learning-title">学习层：椭圆轨道上的角动量，为什么会“漏掉”？<a class="headerlink" href="#mech-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先看一个可计算的谜题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取二维振子</p>
 <div class="arithmatex">\[
-S[q] = \int_{t_1}^{t_2} L(q, \dot q, t)\,dt, \qquad L = T - V
+L=\frac12(\dot x^2+\dot y^2)-\frac12(\omega_x^2x^2+\omega_y^2y^2),
+\qquad \omega_x,\omega_y&gt;0,
 \]</div>
-<p>在固定端点的路径变分下取驻值。</p>
-<p><strong>定理（Euler–Lagrange 方程）【推导】</strong> <span class="arithmatex">\(\delta S = 0 \iff\)</span></p>
+<p>并固定非轴初值</p>
 <div class="arithmatex">\[
-\frac{d}{dt}\frac{\partial L}{\partial \dot q_i} - \frac{\partial L}{\partial q_i} = 0
+(x_0,y_0,\dot x_0,\dot y_0)=(1,0.7,0.35,0.8).
 \]</div>
-<p><em>推导（变分法基本引理三步）</em>：取扰动 <span class="arithmatex">\(q + \epsilon\eta\)</span>（<span class="arithmatex">\(\eta\)</span> 端点为零），<span class="arithmatex">\(\frac{dS}{d\epsilon}\big|_0 = \int\big(\frac{\partial L}{\partial q}\eta + \frac{\partial L}{\partial\dot q}\dot\eta\big)dt\)</span>；第二项分部积分（端点项因 <span class="arithmatex">\(\eta = 0\)</span> 消灭）；对一切 <span class="arithmatex">\(\eta\)</span> 为零 ⇒ 被积括号恒为零（基本引理——若 <span class="arithmatex">\(\int f\eta = 0\)</span> 对一切光滑 <span class="arithmatex">\(\eta\)</span> 则 <span class="arithmatex">\(f \equiv 0\)</span>，反证用局部化的 bump 函数）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>对账</strong>：<span class="arithmatex">\(L = \frac12 m\dot{\mathbf r}^2 - V\)</span> 代入 EL ⇒ <span class="arithmatex">\(m\ddot{\mathbf r} = -\nabla V\)</span>——牛顿方程回收 ✓。<strong>但 EL 更强</strong>：形式在<strong>任意广义坐标下不变</strong>（推导没用到坐标的任何性质）——换坐标不用重推方程，这是它对牛顿框架的第一重碾压；第二重：只需写出标量 <span class="arithmatex">\(T, V\)</span>，不用受力分析画图。</p>
-<p>🔗 <strong>方法论出口</strong>：变分原理是物理的通用语法（光学 Fermat 原理、广相的测地线与 Einstein–Hilbert 作用量、场论的一切拉氏量——后面每门课的第一页都是"写下 <span class="arithmatex">\(L\)</span>"）；数学侧它就是泛函极值（数分 V 的无穷维版），机器学习里"损失泛函 + 变分"的气质同源（如变分推断之名）。</p>
-<h2 id="3-noether">3. Noether 定理（本页顶点）<a class="headerlink" href="#3-noether" title="Permanent link"></a></h2>
-<p><strong>定理（Noether 1918）</strong> 若作用量在单参数连续变换 <span class="arithmatex">\(q_i \to q_i + \epsilon\,K_i(q, t)\)</span> 下不变（对称性），则</p>
+<p>它的解不需要数值积分：</p>
 <div class="arithmatex">\[
-Q = \sum_i \frac{\partial L}{\partial \dot q_i}\,K_i \quad \text{沿真实运动守恒}
+x(t)=x_0\cos(\omega_xt)+\frac{\dot x_0}{\omega_x}\sin(\omega_xt),
+\quad
+y(t)=y_0\cos(\omega_yt)+\frac{\dot y_0}{\omega_y}\sin(\omega_yt).
 \]</div>
-<p><strong>【推导】</strong> 对称性给 <span class="arithmatex">\(0 = \delta L = \sum\big(\frac{\partial L}{\partial q_i}K_i + \frac{\partial L}{\partial\dot q_i}\dot K_i\big)\)</span>；用 EL 方程把 <span class="arithmatex">\(\frac{\partial L}{\partial q_i}\)</span> 换成 <span class="arithmatex">\(\frac{d}{dt}\frac{\partial L}{\partial\dot q_i}\)</span>：整个表达式合并成全导数 <span class="arithmatex">\(\frac{d}{dt}\big(\sum\frac{\partial L}{\partial\dot q_i}K_i\big) = 0\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（时间平移对称需带边界项的推广版，结论 = 能量守恒【骨架】。）</p>
-<p><strong>三大守恒律的出身表</strong>（mech-01 的悬案一次结清）：</p>
+<p>先不要打开实验台，预测三件事：</p>
+<ol>
+<li>当 <span class="arithmatex">\(\omega_x=\omega_y\)</span> 时，<span class="arithmatex">\(L_z=x\dot y-y\dot x\)</span> 是否恒定？</li>
+<li>当 <span class="arithmatex">\(\omega_x\ne\omega_y\)</span> 时，能量是否仍恒定？</li>
+<li>一般各向异性初值的 <span class="arithmatex">\(L_z\)</span> 是单调变化，还是来回振荡？</li>
+</ol>
+<p>关键的对账式是</p>
+<div class="arithmatex">\[
+E=\frac12(\dot x^2+\dot y^2)+\frac12(\omega_x^2x^2+\omega_y^2y^2),
+\qquad
+L_z=x\dot y-y\dot x,
+\]</div>
+<div class="arithmatex">\[
+\frac{dL_z}{dt}=(\omega_x^2-\omega_y^2)xy.
+\]</div>
+<p>所以“能量守恒”与“旋转对称”是两笔不同的账：时间不显含保证前者；平面旋转不改变 <span class="arithmatex">\(L\)</span> 才保证后者。</p>
+<h3 id="2">2. 驻值不是一般的最小值<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>Hamilton 原理说：在 <span class="arithmatex">\(t_1,t_2\)</span> 固定且端点 <span class="arithmatex">\(q(t_1),q(t_2)\)</span> 固定的路径变分中，真实路径满足</p>
+<div class="arithmatex">\[
+\delta S=0,
+\qquad S[q]=\int_{t_1}^{t_2}L(q,\dot q,t)\,dt.
+\]</div>
+<p>这只是<strong>一阶条件</strong>。二阶变分在某些问题上为正时，路径才是局部最小；它也可能是局部最大或鞍点。出现共轭点（存在非零 Jacobi 变分、端点处再次相交的变分方向）后，局部最小性还会丢失。因此“最小作用量原理”是容易误导的简称，不是一般定理；本页始终使用“驻作用量”。</p>
+<h3 id="3">3. 动手：先提交三项判断<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>下面的实验台只在提交三项预测后显示轨道、能量/角动量读数和精确时间账本。滑块改变 <span class="arithmatex">\(\omega_y/\omega_x\)</span> 与时间视窗；所有轨迹都由上面的正弦余弦闭式解直接计算。</p>
+<div class="learning-lab" data-learning-lab="noether-symmetry">
+<p><strong>无 JavaScript 时的静态读法：</strong>令 <span class="arithmatex">\(\omega_x=1\)</span>，<span class="arithmatex">\(r=\omega_y/\omega_x\)</span>。一般预设使用同一非轴初值 <span class="arithmatex">\((1,0.7,0.35,0.8)\)</span>，故 <span class="arithmatex">\(L_z(0)=0.555\)</span>。下表的 <span class="arithmatex">\(E\)</span> 是精确常数；“<span class="arithmatex">\(L_z\)</span>”描述整条解析轨迹，而不是某个有限采样点的噪声。</p>
 <table>
 <thead>
 <tr>
-<th>对称性</th>
-<th>变换</th>
-<th>守恒量</th>
+<th>预设</th>
+<th style="text-align: right;"><span class="arithmatex">\(r=\omega_y/\omega_x\)</span></th>
+<th>初值 <span class="arithmatex">\((x,y,\dot x,\dot y)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(E\)</span></th>
+<th>对称性与 <span class="arithmatex">\(L_z\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>空间平移不变</td>
-<td><span class="arithmatex">\(\mathbf r \to \mathbf r + \epsilon\hat{\mathbf n}\)</span></td>
-<td>动量</td>
+<td>各向同性</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\((1,0.7,0.35,0.8)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.12625\)</span></td>
+<td>旋转对称；<span class="arithmatex">\(L_z=0.555\)</span> 恒定</td>
 </tr>
 <tr>
-<td>空间旋转不变</td>
-<td>绕轴转 <span class="arithmatex">\(\epsilon\)</span></td>
-<td>角动量</td>
+<td>弱破缺</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.2\)</span></td>
+<td><span class="arithmatex">\((1,0.7,0.35,0.8)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.23405\)</span></td>
+<td>无旋转对称；一般 <span class="arithmatex">\(L_z\)</span> 有界振荡</td>
 </tr>
 <tr>
-<td>时间平移不变</td>
-<td><span class="arithmatex">\(t \to t + \epsilon\)</span></td>
-<td>能量</td>
+<td>强破缺</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.8\)</span></td>
+<td><span class="arithmatex">\((1,0.7,0.35,0.8)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.67505\)</span></td>
+<td>无旋转对称；一般 <span class="arithmatex">\(L_z\)</span> 有界振荡</td>
+</tr>
+<tr>
+<td>轴轨道例外</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.8\)</span></td>
+<td><span class="arithmatex">\((1,0,0.35,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.56125\)</span></td>
+<td><span class="arithmatex">\(y=\dot y=0\)</span>，故 <span class="arithmatex">\(L_z=0\)</span>；这不恢复模型的旋转对称</td>
 </tr>
 </tbody>
 </table>
-<p><strong>读法</strong>：<strong>守恒律不是巧合，是时空对称性的直接后果</strong>——"为什么能量守恒"的终极答案是"物理定律今天和明天一样"。这条定理统治后面的一切：场论的荷守恒（qft-01）、粒子物理的规范对称（pp-01）、乃至"能量在膨胀宇宙中不守恒"（宇宙学——时间平移对称破缺，cosmo-01 的伏笔）。🔗 ML 侧回声：等变网络（ai 课 05 CNN 平移等变的推广）正是"把 Noether 的对称性哲学搬进架构设计"。</p>
-<h2 id="4">4. 实战：拉格朗日方法的流水线<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>流程</strong>：选广义坐标 → 写 <span class="arithmatex">\(T, V\)</span>（标量，随便什么坐标）→ EL 方程 → （能找对称性先收守恒量）。</p>
-<p><strong>样板（单摆，30 秒）</strong>：<span class="arithmatex">\(L = \frac12 ml^2\dot\theta^2 + mgl\cos\theta\)</span> ⇒ EL：<span class="arithmatex">\(\ddot\theta = -\frac gl\sin\theta\)</span>——不画受力图、不算杆的张力。</p>
-<p><strong>样板（双摆，牛顿框架的噩梦、拉氏框架的作业题）</strong>：两个角度坐标、写 <span class="arithmatex">\(T\)</span>（含交叉项）与 <span class="arithmatex">\(V\)</span>，EL 给两条耦合方程——混沌系统的标准入口（ode-03 的混沌一嘴在此有了具体主角）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（循环坐标）</strong> <span class="arithmatex">\(L\)</span> 不含某 <span class="arithmatex">\(q_k\)</span>（"循环坐标"）⇒ EL 直接给 <span class="arithmatex">\(\frac{\partial L}{\partial\dot q_k}\)</span> 守恒——Noether 的最速特例；中心力场 <span class="arithmatex">\(L = \frac12m(\dot r^2 + r^2\dot\theta^2) - V(r)\)</span> 中 <span class="arithmatex">\(\theta\)</span> 循环 ⇒ <span class="arithmatex">\(mr^2\dot\theta = L\)</span> 角动量守恒（mech-01 的结果一行再得）。</p>
-<p><strong>例 2（约束的杠杆）</strong> 珠子沿旋转铁丝圈（角速度 <span class="arithmatex">\(\omega\)</span>）滑动：一个坐标 <span class="arithmatex">\(\theta\)</span>，<span class="arithmatex">\(L = \frac12 ma^2\dot\theta^2 + \frac12ma^2\omega^2\sin^2\theta + mga\cos\theta\)</span>——离心效应自动出现在有效势里，EL 一步给动力学；牛顿框架需在旋转系里补两种惯性力。</p>
-<p><strong>例 3（Fermat = 力学的光学孪生）</strong> 光走时间泛函 <span class="arithmatex">\(\int\frac{n\,ds}{c}\)</span> 的极值路径：变分给折射定律（Snell）——<strong>"自然界的极值原理"跨领域重演</strong>；这条类比历史上直接启发了量子力学的路径积分（aqm-03 收线）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><span class="arithmatex">\(E\)</span> 在所有 <span class="arithmatex">\(\omega_x,\omega_y\)</span> 不显含时间的预设上都恒定。弱/强破缺的“有界振荡”来自精确的 <span class="arithmatex">\(x(t),y(t)\)</span>；轴轨道是故意选出的不显露扭矩的特殊初态。若脚本可用，提交后再用固定坐标轴的 <span class="arithmatex">\(x\)</span>-<span class="arithmatex">\(y\)</span> 轨道和 <span class="arithmatex">\(E,L_z\)</span> 时间账本核对这些结论。</p>
+</div>
+<h3 id="4">4. 三个“对称”不要混为一谈<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>以各向异性振子为例：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>要问的问题</th>
+<th>本模型的答案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>方程/模型</td>
+<td>把所有位形同时旋转，<span class="arithmatex">\(L\)</span> 是否不变？</td>
+<td>仅当 <span class="arithmatex">\(\omega_x=\omega_y\)</span>；这是 Noether 对称性条件。</td>
+</tr>
+<tr>
+<td>轨迹</td>
+<td>某一条解曲线是否看起来有轴或镜像？</td>
+<td>可以；例如 <span class="arithmatex">\(y=\dot y=0\)</span> 的解永远在 <span class="arithmatex">\(x\)</span> 轴上。</td>
+</tr>
+<tr>
+<td>初始状态</td>
+<td>选定的 <span class="arithmatex">\((q_0,\dot q_0)\)</span> 是否被某变换固定？</td>
+<td>轴初值被离散反射 <span class="arithmatex">\(y\mapsto-y\)</span> 固定，却不被任意连续旋转固定；它不能替整个方程宣布旋转对称。</td>
+</tr>
+</tbody>
+</table>
+<p>一条轨迹的偶然几何性质不是一条作用量对所有路径的连续变换不变性。Noether 守恒量属于后者。</p>
+</section>
+<h2 id="1_1">1. 位形空间、约束与广义坐标<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>牛顿方程在笛卡尔坐标中会把杆长、接触面、铰链等约束力也当成未知量。拉格朗日方法先描述允许的位形：若约束可写成</p>
+<div class="arithmatex">\[
+f_a(q,t)=0,
+\]</div>
+<p>并且约束梯度在局部保持满秩，它们是<strong>正则的完整（holonomic）约束</strong>。用足够少的广义坐标 <span class="arithmatex">\(q_1,\ldots,q_n\)</span> 参数化约束面，理想约束的虚功在允许虚位移上为零，约束力就不必显式求出。单摆用 <span class="arithmatex">\(\theta\)</span> 取代 <span class="arithmatex">\((x,y)\)</span> 加一条杆长方程，就是这个思想。</p>
+<p>“任意换个变量都行”也不准确。Euler–Lagrange 方程的坐标形式在<strong>光滑、正则的广义坐标变换</strong>下等价：局部变换 <span class="arithmatex">\(Q=Q(q,t)\)</span> 要有非退化 Jacobian，速度按链式法则变换；若是时间依赖变换，还要把显含时间和边界项一起带上。一个不可逆、不可微、把不同位形粘在一起的任意代换，不能被称为坐标不变性。非完整约束或奇异拉格朗日量还需要额外的约束动力学，不能偷偷塞进普通的独立 <span class="arithmatex">\(q_i\)</span> 方程。</p>
+<h2 id="2-hamilton-eulerlagrange">2. Hamilton 原理与 Euler–Lagrange 方程<a class="headerlink" href="#2-hamilton-eulerlagrange" title="Permanent link"></a></h2>
+<p>一般力学模型先写成标量</p>
+<div class="arithmatex">\[
+L=L(q,\dot q,t),
+\qquad S[q]=\int_{t_1}^{t_2}L(q,\dot q,t)\,dt.
+\]</div>
+<p>这里的 <span class="arithmatex">\(L=T-V\)</span> 只对<strong>自然机械系统</strong>是方便的特例：动能是速度的正定二次型，势能 <span class="arithmatex">\(V\)</span> 不依赖速度（可另有显含时间）。一般相互作用必须保留完整的 <span class="arithmatex">\(L(q,\dot q,t)\)</span>，后面仍使用同一个变分方程。</p>
+<h3 id="eulerlagrange">Euler–Lagrange 的三行推导<a class="headerlink" href="#eulerlagrange" title="Permanent link"></a></h3>
+<p>取光滑扰动 <span class="arithmatex">\(q_i^\epsilon=q_i+\epsilon\eta_i\)</span>，并令固定端点的扰动满足 <span class="arithmatex">\(\eta_i(t_1)=\eta_i(t_2)=0\)</span>。链式法则给出</p>
+<div class="arithmatex">\[
+\left.\frac{dS[q^\epsilon]}{d\epsilon}\right|_{\epsilon=0}
+=\int_{t_1}^{t_2}\sum_i\left(
+\frac{\partial L}{\partial q_i}\eta_i+
+\frac{\partial L}{\partial\dot q_i}\dot\eta_i
+\right)dt.
+\]</div>
+<p>令 <span class="arithmatex">\(p_i=\partial L/\partial\dot q_i\)</span>，对第二项分部积分：</p>
+<div class="arithmatex">\[
+\delta S=\left[\sum_i p_i\eta_i\right]_{t_1}^{t_2}
++\int_{t_1}^{t_2}\sum_i\left(
+\frac{\partial L}{\partial q_i}-\frac{dp_i}{dt}
+\right)\eta_i\,dt.
+\]</div>
+<p>边界项因固定端点消失；基本引理说对任意内部 <span class="arithmatex">\(\eta_i\)</span> 积分为零只能来自被积函数恒为零，于是</p>
+<div class="arithmatex">\[
+\boxed{\frac{d}{dt}\frac{\partial L}{\partial\dot q_i}-\frac{\partial L}{\partial q_i}=0.}
+\]</div>
+<p>在自然系统 <span class="arithmatex">\(L=\frac12g_{ij}(q)\dot q_i\dot q_j-V(q)\)</span> 中，<span class="arithmatex">\(g_{ij}\)</span> 是位形空间的动能度量。把同一个标量 <span class="arithmatex">\(T\)</span> 写到极坐标、球坐标或摆角坐标里，会自动带出坐标基底的 <span class="arithmatex">\(q\)</span> 依赖；这正是广义坐标的力量，而不是“随便替换符号”。</p>
+<h2 id="3-lt-v">3. <span class="arithmatex">\(L=T-V\)</span> 的边界与坐标表达<a class="headerlink" href="#3-lt-v" title="Permanent link"></a></h2>
+<p>若粒子在平面中心势中运动，</p>
+<div class="arithmatex">\[
+L=\frac12m(\dot r^2+r^2\dot\theta^2)-V(r).
+\]</div>
+<p>这里是自然系统，<span class="arithmatex">\(\theta\)</span> 是循环坐标，后面会立即得到角动量。单摆也属于此类：</p>
+<div class="arithmatex">\[
+L=\frac12ml^2\dot\theta^2+mgl\cos\theta
+\quad\Longrightarrow\quad
+\ddot\theta+\frac gl\sin\theta=0.
+\]</div>
+<p>但带速度耦合的电磁相互作用不能写成单纯的 <span class="arithmatex">\(T-V\)</span>：</p>
+<div class="arithmatex">\[
+L=\frac12m\dot{\mathbf r}^{\,2}+e\mathbf A(\mathbf r,t)\!\cdot\!\dot{\mathbf r}-e\phi(\mathbf r,t).
+\]</div>
+<p>它的 Euler–Lagrange 方程在适当单位约定下给出 <span class="arithmatex">\(m\ddot{\mathbf r}=e(\mathbf E+\dot{\mathbf r}\times\mathbf B)\)</span>。向量势项不是势能 <span class="arithmatex">\(V(\mathbf r)\)</span>；它依赖速度，仍然是合法的广义拉格朗日量。对这类模型，能量也必须用 <span class="arithmatex">\(E=\sum_i p_i\dot q_i-L\)</span> 检查，不能机械套 <span class="arithmatex">\(T+V\)</span>。</p>
+<h2 id="4_1">4. 循环坐标：守恒量的最快入口<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>若某个 <span class="arithmatex">\(q_k\)</span> 不显含在 <span class="arithmatex">\(L\)</span> 中，</p>
+<div class="arithmatex">\[
+\frac{\partial L}{\partial q_k}=0
+\quad\Longrightarrow\quad
+\frac{dp_k}{dt}=0,
+\qquad p_k=\frac{\partial L}{\partial\dot q_k}.
+\]</div>
+<p>这就是循环坐标（cyclic/ignorable coordinate）。中心势的 <span class="arithmatex">\(\theta\)</span> 循环，因此</p>
+<div class="arithmatex">\[
+p_\theta=mr^2\dot\theta=L_z
+\]</div>
+<p>守恒；它是旋转对称的 Noether 定理在极坐标中的一行版本。自由粒子的平移坐标也给出线动量。若外场显含位置或时间，先检查对应的 <span class="arithmatex">\(L\)</span> 是否真的不变，不能只看轨迹画得像对称。</p>
+<h2 id="5-noether">5. Noether：从精确不变性到守恒律<a class="headerlink" href="#5-noether" title="Permanent link"></a></h2>
+<p>考虑固定时间的单参数变换</p>
+<div class="arithmatex">\[
+q_i\longmapsto q_i+\varepsilon K_i(q,t),
+\qquad
+\delta q_i=K_i.
+\]</div>
+<h3 id="_1">精确对称性<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>若作用量的局部拉格朗日量在该变换下精确不变，<span class="arithmatex">\(\delta L=0\)</span>，则</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\delta L
+&amp;=\sum_i\left(\frac{\partial L}{\partial q_i}K_i+p_i\frac{dK_i}{dt}\right)\\
+&amp;=\sum_i\left(\frac{\partial L}{\partial q_i}-\dot p_i\right)K_i
+ +\frac{d}{dt}\left(\sum_i p_iK_i\right).
+\end{aligned}
+\]</div>
+<p>沿 Euler–Lagrange 轨迹，第一项为零，所以</p>
+<div class="arithmatex">\[
+\boxed{Q=\sum_i p_iK_i,\qquad \frac{dQ}{dt}=0.}
+\]</div>
+<p>平移 <span class="arithmatex">\(K=\hat{\mathbf n}\)</span> 给动量；平面旋转 <span class="arithmatex">\(K=(-y,x)\)</span> 给 <span class="arithmatex">\(Q=xp_y-yp_x=L_z\)</span>。二维振子只有在 <span class="arithmatex">\(\omega_x=\omega_y\)</span> 时对任意旋转满足 <span class="arithmatex">\(\delta L=0\)</span>。</p>
+<h3 id="_2">准对称性与边界项<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>有些变换不让 <span class="arithmatex">\(L\)</span> 原地不动，而是只改变一个全导数：</p>
+<div class="arithmatex">\[
+\delta L=\frac{dF(q,t)}{dt}.
+\]</div>
+<p>同样的恒等式给出</p>
+<div class="arithmatex">\[
+\boxed{Q=\sum_i p_iK_i-F,\qquad \frac{dQ}{dt}=0.}
+\]</div>
+<p>这是准对称性（quasi-symmetry），不能把 <span class="arithmatex">\(F\)</span> 悄悄删掉。具体地，自由粒子 <span class="arithmatex">\(L=\frac12m\dot x^2\)</span> 在 Galilei boost 的无穷小变换 <span class="arithmatex">\(\delta x=t\)</span> 下有 <span class="arithmatex">\(\delta L=m\dot x=d(mx)/dt\)</span>，所以 <span class="arithmatex">\(F=mx\)</span>，守恒量</p>
+<div class="arithmatex">\[
+Q=pt-mx=-m(x-\dot x\,t)
+\]</div>
+<p>正是匀速运动的初始位置账本。加入一个全导数 <span class="arithmatex">\(dG(q,t)/dt\)</span> 不改 Euler–Lagrange 方程，却会改变动量的表示和 Noether 边界项；这就是“作用量相同到边界项”必须保留的原因。</p>
+<h2 id="6">6. 时间平移与能量：条件式结论<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>定义</p>
+<div class="arithmatex">\[
+E=\sum_i p_i\dot q_i-L.
+\]</div>
+<p>沿真实运动直接微分：</p>
+<div class="arithmatex">\[
+\frac{dE}{dt}
+=\sum_i(\dot p_i-\partial L/\partial q_i)\dot q_i-\frac{\partial L}{\partial t}
+=-\frac{\partial L}{\partial t}.
+\]</div>
+<p>因此当 <span class="arithmatex">\(\partial L/\partial t=0\)</span> 时，<span class="arithmatex">\(E\)</span> 守恒。对速度二次齐次、无显含时间的自然系统，它退化为熟悉的 <span class="arithmatex">\(T+V\)</span>；对含 <span class="arithmatex">\(\mathbf A\cdot\dot{\mathbf r}\)</span> 的模型则必须回到定义。外部驱动、时间依赖约束或时变电磁势都可能使 <span class="arithmatex">\(\partial L/\partial t\ne0\)</span>，这时 <span class="arithmatex">\(E\)</span> 的变化率正由该项给出。</p>
+<p>同一条件的对称性说法是：时间平移若是模型的对称变换，就有能量守恒。不要把一个无显含时间的局部力学模型外推为任意宇宙背景下的“全局能量守恒”：膨胀时空可能没有全局时间平移 Killing 场，有限系统的边界和外源也会改变全局账本。是否存在全局能量，要另查时空对称性、边界条件和定义域。</p>
+<h2 id="7">7. 一套可复核的拉格朗日工作流<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ol>
+<li><strong>先列约束和自由度</strong>：确认是正则的完整约束，选局部可逆的广义坐标。</li>
+<li><strong>写完整 <span class="arithmatex">\(L(q,\dot q,t)\)</span></strong>：自然系统可用 <span class="arithmatex">\(T-V\)</span>，速度依赖相互作用不能硬拆成势能。</li>
+<li><strong>求共轭动量并做变分</strong>：<span class="arithmatex">\(p_i=\partial L/\partial\dot q_i\)</span>，再套 Euler–Lagrange。</li>
+<li><strong>先找循环坐标与连续对称</strong>：精确不变给 <span class="arithmatex">\(Q=p\cdot K\)</span>，准对称还要减 <span class="arithmatex">\(F\)</span>。</li>
+<li><strong>检查显含时间</strong>：<span class="arithmatex">\(E=p\cdot\dot q-L\)</span>，并验证 <span class="arithmatex">\(dE/dt=-\partial_tL\)</span>。</li>
+<li><strong>分别检查方程、轨迹和初态</strong>：一条特殊轨迹的几何性质不能替代整个模型的对称性证明。</li>
+</ol>
+<h3 id="_3">迁移题<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li>对中心势用极坐标重新推导 <span class="arithmatex">\(p_\theta=mr^2\dot\theta\)</span>，并说明这一步使用的是旋转不变性还是仅仅使用了一个坐标记号。</li>
+<li>对自由粒子的 Galilei boost 验证 <span class="arithmatex">\(\delta L=d(mx)/dt\)</span>，再解释为什么 <span class="arithmatex">\(Q=pt-mx\)</span> 在 <span class="arithmatex">\(\dot x\)</span> 恒定时不随时间变。</li>
+<li>对各向异性振子从 <span class="arithmatex">\(\delta q=(-y,x)\)</span> 直接算出 <span class="arithmatex">\(\delta L\)</span>，并指出轴轨道为什么不能反推旋转对称。</li>
+<li>给一个显含时间的 <span class="arithmatex">\(V(q,t)\)</span>，用 <span class="arithmatex">\(dE/dt=-\partial_tL\)</span> 说明能量变化来自外部做功，而不是 Euler–Lagrange 失效。</li>
+</ul>
 <hr />
-<p><em>下一页：再换一次坐标——把 <span class="arithmatex">\(\dot q\)</span> 换成动量 <span class="arithmatex">\(p\)</span>：哈密顿力学，相空间的几何学与泊松括号，量子力学与统计物理的共同门厅。</em></p>
+<p><em>下一页：把 <span class="arithmatex">\((q,\dot q)\)</span> 换成 <span class="arithmatex">\((q,p)\)</span>——Legendre 变换、Hamilton 方程、相空间流与 Poisson 括号。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mech-01-newton.html"><span class="pager-label">上一页</span>力学 I · 牛顿力学与守恒律</a>
@@ -124,5 +342,7 @@ Q = \sum_i \frac{\partial L}{\partial \dot q_i}\,K_i \quad \text{沿真实运动
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/noether-symmetry.js"></script>
 </body>
 </html>
