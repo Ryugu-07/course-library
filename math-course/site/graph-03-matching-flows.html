@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,26 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li class="active"><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-17 15:40</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#max-flow-learning-title">学习层：一条反向边，为什么能救回全局最优？</a><ul>
+<li><a href="#1">1. 先做预测：第一条路走错了，还有没有后悔药？</a></li>
+<li><a href="#2">2. 四本账：容量、守恒、残量与割</a></li>
+<li><a href="#3">3. 算法边界：最大流最小割不等于“随便走都立刻结束”</a></li>
+<li><a href="#4-hall">4. 从流回到匹配与 Hall 证书</a></li>
+<li><a href="#5">5. 迁移问题：瓶颈在哪里，改一单位容量值多少钱？</a></li>
+</ul>
+</li>
 <li><a href="#1-hall">1. 二部图匹配与 Hall 定理</a></li>
-<li><a href="#2">2. 网络流：最大流 = 最小割</a></li>
-<li><a href="#3">3. 最短路与图算法速查</a></li>
+<li><a href="#2_1">2. 网络流：最大流 = 最小割</a></li>
+<li><a href="#3_1">3. 最短路与图算法速查</a></li>
 <li><a href="#4-pagerank">4. 随机游走与 PageRank（三门课会师）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 <li><a href="#_1">扩展线收束</a></li>
 </ul>
 </div>
@@ -50,6 +69,96 @@
 <blockquote>
 <p>收官页三大块：<strong>匹配</strong>（Hall 婚配定理——"什么时候人人有对象"）、<strong>网络流</strong>（最大流最小割——LP 对偶在离散世界的加冕礼，优化 IV 的欠条在此清偿）、以及<strong>图上的算法与随机游走</strong>（PageRank 与 Markov 链的会师）。图论在此从"结构的描述"升级为"资源的调度"。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="max-flow-learning-title" class="learning-layer">
+<h2 id="max-flow-learning-title">学习层：一条反向边，为什么能救回全局最优？<a class="headerlink" href="#max-flow-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先做预测：第一条路走错了，还有没有后悔药？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一个应急配送网络只有四个中转位置。每条有向边上的数字是每小时最多能通过的箱数；你已经沿 <span class="arithmatex">\(s\to a\to b\to t\)</span> 送出 1 箱，随后看起来所有继续向前的路都被堵住。请先判断：</p>
+<ol>
+<li>已经送出的那 1 箱是否一定属于某个最大流，还是可能需要把其中一段撤回再改道？</li>
+<li>残量网络里的反向边代表新建一条反向管道，还是代表取消一部分既有流？</li>
+<li>找到一个值为 2 的可行流，是否已经证明 2 是最优值？还缺什么证书？</li>
+<li>容量都是整数时能否找到整数最大流？这个结论能否无条件推广到任意线性规划？</li>
+</ol>
+<p>实验在提交预测前隐藏路径、流量和割。揭示后可逐次增广，也可直接运行到证书；每一步都把原边流量、正向余量、反向余量和中间点守恒放进同一张账本。</p>
+<div class="learning-lab" data-learning-lab="max-flow-min-cut">
+<p><strong>无 JavaScript 时的完整静态读法：</strong>考虑边容量全为 1 的网络</p>
+<div class="arithmatex">\[
+s\to a,quad s\to b,quad a\to b,quad a\to t,quad b\to t.
+\]</div>
+<p>若第一次沿 <span class="arithmatex">\(s\to a\to b\to t\)</span> 增广 1，当前流值是 1，且 <span class="arithmatex">\(a\to b\)</span>、<span class="arithmatex">\(b\to t\)</span> 已饱和。残量网络会加入 <span class="arithmatex">\(b\to a\)</span>，容量等于已经走过 <span class="arithmatex">\(a\to b\)</span> 的流量 1。第二条增广路是</p>
+<div class="arithmatex">\[
+s\to b\to a\to t,
+\]</div>
+<p>其中 <span class="arithmatex">\(b\to a\)</span> 是残量反向边。沿它增广会把原边 <span class="arithmatex">\(a\to b\)</span> 的流从 1 减回 0，同时把 <span class="arithmatex">\(s\to b\)</span> 与 <span class="arithmatex">\(a\to t\)</span> 各加 1。最终</p>
+<div class="arithmatex">\[
+f(s,a)=f(a,t)=1,qquad f(s,b)=f(b,t)=1,qquad f(a,b)=0,
+\]</div>
+<p>所以流值为 2。此时残量网络中从 <span class="arithmatex">\(s\)</span> 出发已无可走的正余量边；可达集是 <span class="arithmatex">\(S=\{s\}\)</span>，割边 <span class="arithmatex">\(s\to a,s\to b\)</span> 的容量和也是 2。可行流给下界，割给上界；二者相等才构成最优证书。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>增广路</th>
+<th style="text-align: right;">瓶颈</th>
+<th style="text-align: right;"><span class="arithmatex">\(f(a,b)\)</span></th>
+<th style="text-align: right;">总流值</th>
+<th>证书状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始</td>
+<td>无</td>
+<td style="text-align: right;">--</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td><span class="arithmatex">\(t\)</span> 仍在残量图中可达</td>
+</tr>
+<tr>
+<td>1</td>
+<td><span class="arithmatex">\(s\to a\to b\to t\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td>只有可行流，尚未证明最优</td>
+</tr>
+<tr>
+<td>2</td>
+<td><span class="arithmatex">\(s\to b\to a\to t\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+<td><span class="arithmatex">\(S=\{s\}\)</span>，割容量 <span class="arithmatex">\(=2\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="2">2. 四本账：容量、守恒、残量与割<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对每条原边 <span class="arithmatex">\(e=(u,v)\)</span>，可行流满足 <span class="arithmatex">\(0\le f_e\le c_e\)</span>；除 <span class="arithmatex">\(s,t\)</span> 外，每个顶点满足流入等于流出。残量网络同时记录</p>
+<div class="arithmatex">\[
+c_f(u,v)=c(u,v)-f(u,v),\qquad c_f(v,u)=f(u,v).
+\]</div>
+<p>第一项表示还能继续送多少，第二项表示最多能撤回多少。反向余量不是物理管道，而是<strong>修改旧决定的自由度</strong>。这也是增广路算法能从局部选择中恢复的原因。</p>
+<p>任取 <span class="arithmatex">\(s\in S,t\notin S\)</span>，割容量只计算从 <span class="arithmatex">\(S\)</span> 指向补集的<strong>原始正向边</strong>：</p>
+<div class="arithmatex">\[
+c(S,\bar S)=\sum_{u\in S,\,v\notin S}c(u,v).
+\]</div>
+<p>反向跨割边不加进这个和。由流守恒，任意可行流值都不超过任意割容量。算法停机时，令 <span class="arithmatex">\(S\)</span> 为残量图里从 <span class="arithmatex">\(s\)</span> 可达的顶点；若 <span class="arithmatex">\(t\)</span> 不可达，则所有从 <span class="arithmatex">\(S\)</span> 出去的原边饱和、所有进入 <span class="arithmatex">\(S\)</span> 的原边流为零，因而流值恰等于该割容量。</p>
+<h3 id="3">3. 算法边界：最大流最小割不等于“随便走都立刻结束”<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Ford--Fulkerson 是增广框架。</strong> 路径选择可以是 DFS，也可以来自别的规则。整数容量时每次至少增广 1，因此有限步停机，并存在整数最大流。</li>
+<li><strong>Edmonds--Karp 固定用 BFS。</strong> 它每次选择边数最少的增广路，得到 <span class="arithmatex">\(O(VE^2)\)</span> 的多项式时间界；这不是任意 DFS 路径规则的复杂度。</li>
+<li><strong>无理容量需要谨慎。</strong> 任意路径版 Ford--Fulkerson 可能不终止，甚至路径选择不当时不收敛到最大值；最大流最小割定理本身仍成立，算法停机论证却不能照搬整数情形。</li>
+<li><strong>整数性有结构前提。</strong> 网络流约束矩阵的特殊结构保证整数容量存在整数最优流；不能据此宣称任意线性规划都有整数最优解。</li>
+<li><strong>“找到大流”不是证明。</strong> 只有再给出同值割，或等价地证明残量图中没有 <span class="arithmatex">\(s\to t\)</span> 路，才关闭最优性缺口。</li>
+</ul>
+<h3 id="4-hall">4. 从流回到匹配与 Hall 证书<a class="headerlink" href="#4-hall" title="Permanent link"></a></h3>
+<p>把二部图左侧每点接到源、右侧每点接到汇，并给所有边容量 1。一条整数流路径 <span class="arithmatex">\(s\to x\to y\to t\)</span> 就是一对匹配边；容量与守恒保证每个顶点最多用一次。若最大流不能覆盖左侧全部顶点，最小割会暴露一个选择不足的集合，正是 Hall 条件失败的算法证书。于是“匹配、增广路、最小顶点覆盖和网络流”不是四个孤立技巧，而是同一套残量与对偶语言。</p>
+<h3 id="5">5. 迁移问题：瓶颈在哪里，改一单位容量值多少钱？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>对实验里的最终最小割任选一条割边，把容量增加 1，再预测最大流是否一定增加 1。随后把一条<strong>不在任何当前最小割上</strong>的边增加 1，比较结果。由此说明：瓶颈边给出局部的容量影子价格线索，但最小割可能不唯一，改动后瓶颈也会迁移；“某条边在一张最小割上”不能单独保证任意幅度扩容都等量提升系统吞吐。</p>
+</section>
 <figure class="diagram">
 <p><img alt="二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。" src="assets/img/graph-03-bipartite-matching.svg" /></p>
 <figcaption><span class="fig-id">图 graph-03.1</span>二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。</figcaption>
@@ -62,15 +171,15 @@
 \]</div>
 <p>（"任何 <span class="arithmatex">\(k\)</span> 个姑娘合起来认识至少 <span class="arithmatex">\(k\)</span> 个小伙"——没有任何一群人被挤在过窄的选择里。）必要性显然；充分性的经典证法是<strong>增广路</strong>：未匹配点出发交替走"非匹配边/匹配边"，找到增广路则翻转它使匹配 +1——这个算法思想同时是匈牙利算法与下节最大流的引擎。</p>
 <p><strong>König 定理</strong>（二部图）：最大匹配 = 最小顶点覆盖——第一对"最大 = 最小"对偶（下节是它的推广），也是 LP 对偶在二部图上恰好整数可解的体现。</p>
-<h2 id="2">2. 网络流：最大流 = 最小割<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>设定</strong>：有向网络，源 <span class="arithmatex">\(s\)</span> 汇 <span class="arithmatex">\(t\)</span>，边有容量。<strong>流</strong>：不超容量、中间点守恒；<strong>割</strong>：分离 <span class="arithmatex">\(s, t\)</span> 的边集，容量 = 跨割边容量和。显然任何流 ≤ 任何割（流必须穿过割——弱对偶，一行）。</p>
+<h2 id="2_1">2. 网络流：最大流 = 最小割<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>设定</strong>：有向网络，源 <span class="arithmatex">\(s\)</span> 汇 <span class="arithmatex">\(t\)</span>，边有容量。<strong>流</strong>：不超容量、中间点守恒；<strong>割</strong>：取 <span class="arithmatex">\(s\in S,t\notin S\)</span>，容量是从 <span class="arithmatex">\(S\)</span> 指向 <span class="arithmatex">\(\bar S\)</span> 的原始有向边容量和，不把反向跨割边混入。显然任何流值 <span class="arithmatex">\(\leq\)</span> 任何割容量（把中间点守恒在 <span class="arithmatex">\(S\)</span> 内求和即可——弱对偶，一行）。</p>
 <p><strong>定理（最大流最小割，Ford–Fulkerson 1956）</strong></p>
 <div class="arithmatex">\[
 \max\text{-flow} = \min\text{-cut}
 \]</div>
-<p><em>算法即证明</em>：反复找<strong>增广路</strong>（残量网络中 <span class="arithmatex">\(s \to t\)</span> 的可行路径，含"退流"反向边）提升流量；找不到时，<span class="arithmatex">\(s\)</span> 可达集与其余的割<strong>恰好被流填满</strong>——该流与该割互证最优。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>三重读法</strong>：<strong>LP 强对偶的组合化身</strong>（流 LP 的对偶恰是割 LP，且此处整数解免费——优化 IV 影子价格在此变成"瓶颈边"）；<strong>瓶颈定律</strong>（系统吞吐由最窄截面决定——供应链、带宽、人力的通用诊断语言）；<strong>归约枢纽</strong>——二部匹配（Hall/König 是其特例：源连 <span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(Y\)</span> 连汇、容量全 1）、项目选择、图像分割（视觉里的 graph cut）都化归最大流。</p>
-<h2 id="3">3. 最短路与图算法速查<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><em>算法即证明</em>：反复找<strong>增广路</strong>（残量网络中 <span class="arithmatex">\(s \to t\)</span> 的正余量路径，含“退流”反向边）提升流量；找不到时，<span class="arithmatex">\(s\)</span> 可达集与其余部分形成的割<strong>恰好被流填满</strong>——该流与该割互证最优。整数容量下任意增广路版会有限步停机；一般实容量要使用有终止保证的实现或独立的极限/LP 论证，不能把任意路径规则的停机当作定理前提。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>三重读法</strong>：<strong>LP 强对偶的组合化身</strong>（标准流 LP 的对偶可取到由 <span class="arithmatex">\(s\)</span>-<span class="arithmatex">\(t\)</span> 割表示的最优解；整数容量再由网络矩阵结构保证存在整数最优流——优化 IV 的影子价格在此变成“瓶颈边”）；<strong>瓶颈定律</strong>（系统吞吐由最窄截面决定——供应链、带宽、人力的通用诊断语言）；<strong>归约枢纽</strong>——二部匹配（Hall/König 是其特例：源连 <span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(Y\)</span> 连汇、容量全 1）、项目选择、图像分割（视觉里的 graph cut）都化归最大流。</p>
+<h2 id="3_1">3. 最短路与图算法速查<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -109,14 +218,14 @@
 </table>
 <p><strong>图着色</strong>一嘴：色数 <span class="arithmatex">\(\chi(G)\)</span>（相邻异色的最少颜色）；贪心给上界 <span class="arithmatex">\(\Delta + 1\)</span>（最大度+1）；判定 <span class="arithmatex">\(\chi \leq k\)</span>（<span class="arithmatex">\(k\geq3\)</span>）NP-完全。应用原型：排考试（冲突课程异时段）、寄存器分配——<strong>"冲突图 + 着色"是资源互斥调度的通用模板</strong>。</p>
 <h2 id="4-pagerank">4. 随机游走与 PageRank（三门课会师）<a class="headerlink" href="#4-pagerank" title="Permanent link"></a></h2>
-<p>图上随机游走：每步等概率走向邻居——<strong>图上的 Markov 链</strong>（转移矩阵 <span class="arithmatex">\(P = D^{-1}A\)</span>）。连通非二部图 ⇒ 平稳分布存在唯一（随机过程页的遍历定理），且无向图的平稳分布 <span class="arithmatex">\(\pi_v \propto \deg(v)\)</span>（度大者常驻）。</p>
-<p><strong>PageRank</strong>：网页 = 顶点、链接 = 有向边，重要性 = "随机冲浪者"的平稳分布（阻尼 <span class="arithmatex">\(\alpha \approx 0.85\)</span>：以 <span class="arithmatex">\(1-\alpha\)</span> 概率随机跳跃——保证遍历性，修掉死胡同与周期陷阱）：</p>
+<p>图上随机游走：每步等概率走向邻居——<strong>图上的 Markov 链</strong>（无向图可写 <span class="arithmatex">\(P = D^{-1}A\)</span>）。有限连通无向图的平稳分布唯一且满足 <span class="arithmatex">\(\pi_v \propto \deg(v)\)</span>（度大者常驻）；若图二部，链有周期 2，普通迭代会振荡而不从任意初态收敛。加入自环、惰性步或其他非周期机制，才得到通常所说的遍历收敛。对有向图则要分别检查不可约性、周期性和零出度点。</p>
+<p><strong>PageRank</strong>：网页 = 顶点、链接 = 有向边，重要性 = “随机冲浪者”的平稳分布。先把零出度网页的行替换为约定的跳转分布，使 <span class="arithmatex">\(P\)</span> 真正随机；再以 <span class="arithmatex">\(1-\alpha\)</span> 的概率跳转（经典实现常取 <span class="arithmatex">\(\alpha\approx0.85\)</span>，但它是设计参数而非定理常数），从而打破死胡同与周期陷阱：</p>
 <div class="arithmatex">\[
 \pi = \alpha P^\top \pi + (1 - \alpha)\frac{\mathbf 1}{n}
 \]</div>
 <p>求解 = 幂法迭代（数值线的幂法 + 随机过程的平稳分布 + 本页的图——<strong>三门课在一个改变互联网的公式里会师</strong>）。谱隙决定收敛速度（那句"第二特征值统治一切"第五次出场）。</p>
 <p>🔗 <strong>现代出口一瞥</strong>：图神经网络（GNN）= "邻居聚合"的可学习版（消息传递 ≈ 随机游走算子的参数化）；知识图谱/因果图（Medusa 的因果网正是带类型边的有向图，中心性/连通分量分析直接可用）；谱聚类 = 图 Laplacian 的特征向量（高代谱理论 + 本页）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Hall 判定）</strong> 4 名学生各会做题集 <span class="arithmatex">\(\{1,2\}, \{2,3\}, \{1,2\}, \{2\}\)</span>，能否每人分一道不同的题？取 <span class="arithmatex">\(S = \{1, 3, 4\}\)</span>（会 <span class="arithmatex">\(\{1,2\}, \{1,2\}, \{2\}\)</span>）：<span class="arithmatex">\(|N(S)| = 2 &lt; 3\)</span>——<strong>Hall 条件破产，无解</strong>；且指出了病灶（这三人挤在两道题里）。Hall 定理的价值：不可行时给出"证据"。</p>
 <p><strong>例 2（最大流手算）</strong> 菱形网络：<span class="arithmatex">\(s\to a\)</span>(3), <span class="arithmatex">\(s\to b\)</span>(2), <span class="arithmatex">\(a\to b\)</span>(1), <span class="arithmatex">\(a\to t\)</span>(2), <span class="arithmatex">\(b\to t\)</span>(3)。增广 <span class="arithmatex">\(s a t\)</span>(2)、<span class="arithmatex">\(s b t\)</span>(2)、<span class="arithmatex">\(s a b t\)</span>(1)：总流 5；割 <span class="arithmatex">\(\{sa, sb\}\)</span> 容量 <span class="arithmatex">\(= 5\)</span> 相等 ⇒ 双双最优 ✓。</p>
 <p><strong>例 3（PageRank 直觉）</strong> 三页环 <span class="arithmatex">\(A\to B\to C\to A\)</span> 加一条 <span class="arithmatex">\(B\to A\)</span>：无阻尼时求 <span class="arithmatex">\(\pi P = \pi\)</span> 得 <span class="arithmatex">\(\pi \propto (2, 2, 1)\)</span>（<span class="arithmatex">\(C\)</span> 只有一票来源）——<strong>链接结构即投票结构</strong>；加阻尼后数值微调但排序不变。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -132,5 +241,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/max-flow-min-cut.js"></script>
 </body>
 </html>
