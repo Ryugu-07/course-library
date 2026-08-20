@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,22 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#poynting-radiation-learning-title">学习层：先核对 E/B/S 方向，再问远场功率</a><ul>
+<li><a href="#1-mathbf-emathbf-bmathbf-k-poynting">1. 平面波：\(\mathbf E\)、\(\mathbf B\)、\(\mathbf k\) 与 Poynting 矢量</a></li>
+<li><a href="#2">2. 短电偶极：角分布与三个空间区域</a></li>
+<li><a href="#3">3. 预测门与静态后备</a></li>
+</ul>
+</li>
 <li><a href="#1-poynting">1. Poynting 定理：场的能量记账</a></li>
-<li><a href="#2">2. 场的动量与辐射压</a></li>
-<li><a href="#3">3. 辐射：加速电荷发光</a></li>
+<li><a href="#2_1">2. 场的动量与辐射压</a></li>
+<li><a href="#3_1">3. 辐射：加速电荷发光</a></li>
 <li><a href="#4">4. 练习与要点</a></li>
 </ul>
 </div>
@@ -51,16 +68,84 @@
 <p><strong>对标</strong>：Griffiths §8、§11 入门 ｜ <strong>前置</strong>：em-01/02
 本页给"场是实在的"补齐力学证据：场携带<strong>能量</strong>（Poynting 定理）与<strong>动量</strong>（辐射压），并回答一个改变世界的问题——<strong>加速电荷为什么辐射</strong>（Larmor 公式）。这是本科电磁的收官，也是天线、同步辐射与"经典原子必塌缩"悖论（量子力学的引信）的出发点。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="poynting-radiation-learning-title" class="learning-layer">
+<h2 id="poynting-radiation-learning-title">学习层：先核对 E/B/S 方向，再问远场功率<a class="headerlink" href="#poynting-radiation-learning-title" title="Permanent link"></a></h2>
+<p>实验分成两个模式，但共享同一条审计顺序：先确认局部场的方向关系，再确认能流是瞬时还是时间平均，最后才把球面通量解释成辐射功率。脚本采用归一化 <span class="arithmatex">\(c=\varepsilon_0=\mu_0=1\)</span>，只为把方向和量纲账看清楚。</p>
+<h3 id="1-mathbf-emathbf-bmathbf-k-poynting">1. 平面波：<span class="arithmatex">\(\mathbf E\)</span>、<span class="arithmatex">\(\mathbf B\)</span>、<span class="arithmatex">\(\mathbf k\)</span> 与 Poynting 矢量<a class="headerlink" href="#1-mathbf-emathbf-bmathbf-k-poynting" title="Permanent link"></a></h3>
+<p>对无源均匀介质中的线性平面波，</p>
+<div class="arithmatex">\[
+\mathbf B_0=\frac{1}{c}\hat{\mathbf k}\times\mathbf E_0,
+\qquad
+\mathbf S(t)=\frac{\mathbf E(t)\times\mathbf B(t)}{\mu_0},
+\qquad
+\langle\mathbf S\rangle=\frac{\mathbf E_0\times\mathbf B_0}{2\mu_0}.
+\]</div>
+<p>所以 <span class="arithmatex">\(\mathbf E\perp\mathbf B\perp\mathbf k\)</span>，且 <span class="arithmatex">\(\langle\mathbf S\rangle\)</span> 与 <span class="arithmatex">\(+\mathbf k\)</span> 同向。瞬时场若写成 <span class="arithmatex">\(\cos(\omega t-\mathbf k\cdot\mathbf r)\)</span>，瞬时 <span class="arithmatex">\(\mathbf S\)</span> 还带 <span class="arithmatex">\(\cos^2\)</span>；相位为 <span class="arithmatex">\(\pi/2\)</span> 的某一时刻可以有瞬时能流为零，但一个周期平均的能流仍非零。反向 <span class="arithmatex">\(\mathbf B\)</span> 即使偶然保留 <span class="arithmatex">\(|E|/(c|B|)=1\)</span>，也会把能流翻向 <span class="arithmatex">\(-\mathbf k\)</span>，不能只验振幅比。</p>
+<h3 id="2">2. 短电偶极：角分布与三个空间区域<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>令点偶极源 <span class="arithmatex">\(\mathbf p(t)=p_0\cos(\omega t)\hat{\mathbf z}\)</span>，且源尺寸远小于波长、运动非相对论。辐射区的远场满足</p>
+<div class="arithmatex">\[
+ \frac{dP}{d\Omega}=\frac{p_0^2\omega^4}{32\pi^2\varepsilon_0c^3}\sin^2\theta,
+ \qquad
+ P_{\rm rad}=\frac{p_0^2\omega^4}{12\pi\varepsilon_0c^3}.
+\]</div>
+<p>沿偶极轴 <span class="arithmatex">\(\theta=0\)</span> 不辐射，赤道面最强；积分 <span class="arithmatex">\(\int\sin^2\theta\,d\Omega=8\pi/3\)</span> 才得到总功率。这个 <span class="arithmatex">\(P\propto\omega^4\)</span> 只在<strong>固定 <span class="arithmatex">\(p_0\)</span>、短偶极、非相对论、谐稳态</strong>这些条件同时成立时使用，不能推出笼统的“频率越高，任意短波天线越高效”。真实天线效率还受尺寸与波长的比例、阻抗匹配、导体损耗、介质损耗、馈电和带宽影响。</p>
+<p>区域也必须分账：源本身的有限尺寸与电流分布不由点偶极远场式解决；源附近 <span class="arithmatex">\(kr\ll1\)</span> 有 <span class="arithmatex">\(1/r^3\)</span>、<span class="arithmatex">\(1/r^2\)</span> 的近场/反应性项，能量可以在场和源之间往返；辐射区 <span class="arithmatex">\(kr\gg1\)</span> 才由 <span class="arithmatex">\(1/r\)</span> 项主导，球面上的周期平均径向通量稳定地给出净辐射功率；<span class="arithmatex">\(kr\approx1\)</span> 是过渡区，不能硬套纯远场方向图。</p>
+<h3 id="3">3. 预测门与静态后备<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先回答当前模式的能流方向、偶极轴向节点、可以读取净辐射的区域和 <span class="arithmatex">\(\omega\)</span> 幂律。提交前不显示方向图、数值或账本；切换模式、预设、相位、观察角或 <span class="arithmatex">\(kr\)</span> 会重新上锁。</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认平面波取 <span class="arithmatex">\(\mathbf E=\hat x\)</span>、<span class="arithmatex">\(\mathbf B=\hat y\)</span>、<span class="arithmatex">\(\mathbf k=\hat z\)</span>，因此 <span class="arithmatex">\(\mathbf E\times\mathbf B=+\hat z\)</span>，周期平均值比相应峰值小一半。偶极默认 <span class="arithmatex">\(\theta=60^\circ\)</span>、<span class="arithmatex">\(kr=8\)</span>，已进入本实验的辐射区教学阈值；<span class="arithmatex">\(\sin^2\theta=3/4\)</span>，但轴向 <span class="arithmatex">\(\theta=0\)</span> 的功率为零。下面的账本明确写出近场不能直接当净辐射。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>解析读数</th>
+<th>条件/边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正确平面波</td>
+<td><span class="arithmatex">\(\mathbf B=\hat k\times\mathbf E/c\)</span>，<span class="arithmatex">\(\langle\mathbf S\rangle\parallel+\mathbf k\)</span></td>
+<td>无源平面波；时间平均取一个完整周期</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(B\)</span> 反向预设</td>
+<td><span class="arithmatex">\(\lvert E\rvert/(c\lvert B\rvert)\)</span> 可仍为 1，但 <span class="arithmatex">\(\mathbf E\times\mathbf B\parallel-\mathbf k\)</span></td>
+<td>方向账失败，不能用振幅比掩盖</td>
+</tr>
+<tr>
+<td>偶极方向图</td>
+<td><span class="arithmatex">\(dP/d\Omega\propto\sin^2\theta\)</span>，<span class="arithmatex">\(P_{\rm rad}=p_0^2\omega^4/(12\pi\varepsilon_0c^3)\)</span></td>
+<td>固定 <span class="arithmatex">\(p_0\)</span>、短偶极、非相对论、谐稳态</td>
+</tr>
+<tr>
+<td>近场/源附近</td>
+<td><span class="arithmatex">\(1/r^3,1/r^2\)</span> 项可见，能量可返回源</td>
+<td>不把瞬时 <span class="arithmatex">\(S\)</span> 或局部储能全叫作辐射功率</td>
+</tr>
+<tr>
+<td>辐射区</td>
+<td><span class="arithmatex">\(1/r\)</span> 项主导，<span class="arithmatex">\(\langle\mathbf S\rangle\simeq\langle S_r\rangle\hat r\)</span></td>
+<td><span class="arithmatex">\(kr\gg1\)</span>，球面通量才给净远场辐射</td>
+</tr>
+</tbody>
+</table>
+<p>微波炉和手机的频率例子也不能被压成“频率高/低”的二分：微波炉主要涉及金属腔体、门缝/网孔的电磁屏蔽和波导截止，以及食物材料的介电损耗；手机能否穿墙还取决于波长相对孔隙的尺度、墙体介电常数与电导率造成的反射/吸收、天线和链路预算。它们不是由本节的点偶极 <span class="arithmatex">\(\omega^4\)</span> 式单独决定的。</p>
+<div class="learning-lab" data-learning-lab="poynting-radiation">
+<p><strong>静态读法提示：</strong>脚本失效时，先按右手定则检查 E/B/S，再检查源尺寸、<span class="arithmatex">\(kr\)</span> 区域和时间平均条件，最后使用偶极角分布与功率式；不要把近场反应性能量或真实天线效率混入远场 <span class="arithmatex">\(P_{\rm rad}\)</span>。</p>
+</div>
+</section>
 <h2 id="1-poynting">1. Poynting 定理：场的能量记账<a class="headerlink" href="#1-poynting" title="Permanent link"></a></h2>
 <p><strong>定理【推导】</strong> 从 Lorentz 力对电荷做功率 <span class="arithmatex">\(\mathbf J\cdot\mathbf E\)</span> 出发，用 Ampère–Maxwell 消 <span class="arithmatex">\(\mathbf J\)</span>、矢量恒等式 <span class="arithmatex">\(\nabla\cdot(\mathbf E\times\mathbf B) = \mathbf B\cdot(\nabla\times\mathbf E) - \mathbf E\cdot(\nabla\times\mathbf B)\)</span> 与 Faraday：</p>
 <div class="arithmatex">\[
 \frac{\partial u}{\partial t} + \nabla\cdot\mathbf S = -\mathbf J\cdot\mathbf E, \qquad u = \frac{\varepsilon_0E^2}{2} + \frac{B^2}{2\mu_0}, \quad \mathbf S = \frac{\mathbf E\times\mathbf B}{\mu_0}
 \]</div>
 <p><strong>读法</strong>：<strong>连续性方程</strong>（与电荷守恒同型——"守恒律的标准长相"：密度 + 流 + 源汇）：<span class="arithmatex">\(u\)</span> = 场的能量密度、<span class="arithmatex">\(\mathbf S\)</span>（Poynting 矢量）= 能流密度、右端 = 场与物质的能量交换。<strong>能量在场中流动</strong>：给电阻供能的能量从导线<strong>侧面</strong>的场流入（算例经典【引用 Griffiths §8.1】）——颠覆"能量在电线里跑"的直觉。</p>
-<h2 id="2">2. 场的动量与辐射压<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 场的动量与辐射压<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>场还带动量：<span class="arithmatex">\(\mathbf g = \varepsilon_0\,\mathbf E\times\mathbf B = \frac{\mathbf S}{c^2}\)</span>（动量密度）<strong>【骨架】</strong>（对 Lorentz 力密度做与 §1 平行的记账，应力张量 <span class="arithmatex">\(T_{ij}\)</span> 携带动量流【引用 §8.2】）。</p>
 <p><strong>辐射压</strong>：电磁波打在吸收面上 <span class="arithmatex">\(P = \frac{I}{c}\)</span>（反射加倍）——阳光 <span class="arithmatex">\(\sim 5\ \mu\mathrm{Pa}\)</span>：微小但真实（彗尾方向、太阳帆、光镊的原理——光镊已是诺奖级实验室日常）。<strong>光子语言预告</strong>：<span class="arithmatex">\(E = pc\)</span> 的经典对应（sr-01 四动量、atom-01 光电效应两处收线）。</p>
-<h2 id="3">3. 辐射：加速电荷发光<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 辐射：加速电荷发光<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="偶极辐射角分布" src="assets/img/em-03-dipole-radiation.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>偶极辐射的角分布 \(\propto\sin^2\theta\)：沿振荡轴方向不辐射、垂直方向最强——天线方向图的物理原型。</figcaption>
@@ -73,14 +158,14 @@ P = \frac{q^2 a^2}{6\pi\varepsilon_0 c^3}
 <p>（量纲 + <span class="arithmatex">\(\frac1r\)</span> 场论证定形，系数由偶极辐射的角分布积分——完整推导在 ced-02 推迟势之后。）<strong>辐射功率 <span class="arithmatex">\(\propto\)</span> 加速度平方</strong>。</p>
 <p><strong>三个立即的物理</strong>：</p>
 <ul>
-<li><strong>天线</strong>：驱动电荷振荡 <span class="arithmatex">\(a \sim \omega^2 x_0\)</span> ⇒ <span class="arithmatex">\(P \propto \omega^4\)</span>——短波高效（天线尺寸 ~ 波长的工程根源）；</li>
+<li><strong>短偶极模型下的频率缩放</strong>：在固定 <span class="arithmatex">\(p_0\)</span>、短偶极、非相对论、谐稳态条件下 <span class="arithmatex">\(p_0\sim qx_0\)</span>，所以 <span class="arithmatex">\(P \propto \omega^4\)</span>；这不是任意真实短波天线“更高效”的定理，尺寸、匹配和损耗仍需单独核对；</li>
 <li><strong>瑞利散射 <span class="arithmatex">\(\propto \omega^4\)</span></strong>：束缚电子被阳光驱动再辐射——蓝光散射强于红光 16 倍：<strong>天空为什么蓝、夕阳为什么红</strong>，一个幂律的功劳；</li>
 <li><strong>经典原子的死刑判决</strong>：绕核电子向心加速 ⇒ 持续辐射 ⇒ 能量流失 ⇒ 轨道塌缩（估算寿命 <span class="arithmatex">\(\sim 10^{-11}\)</span> s【引用】）——<strong>经典物理自己证明了自己在原子尺度必须让位</strong>：量子力学（qm-01）的引信在此点燃。</li>
 </ul>
 <h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（Poynting 流向亲算）</strong> 充电中的平板电容：<span class="arithmatex">\(\mathbf E\)</span> 轴向增长、边缘 <span class="arithmatex">\(\mathbf B\)</span> 环向（位移电流的 Ampère 环）⇒ <span class="arithmatex">\(\mathbf S = \frac{\mathbf E\times\mathbf B}{\mu_0}\)</span> 指向<strong>内部</strong>——能量从侧面流入填充场能 <span class="arithmatex">\(\frac{\varepsilon_0E^2}{2}\)</span>，记账严丝合缝（做一遍这道题，场的实在感落地）。</p>
 <p><strong>例 2（辐射压数量级）</strong> 100 kW 激光聚焦 1 g 反射帆：<span class="arithmatex">\(F = \frac{2P}{c} \approx 0.67\ \mathrm{mN}\)</span>，<span class="arithmatex">\(a \approx 0.67\ \mathrm{m/s^2}\)</span>——激光推进的可行性一算便知（突破摄星计划的物理底账）。</p>
-<p><strong>例 3（ω⁴ 的应用题）</strong> 为何微波炉（GHz）不"辐射逃逸"而手机信号穿墙：频率与结构尺度的匹配 + 网孔 ≪ 波长的屏蔽（波导截止）——em 三页知识的综合判断题。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（频率、屏蔽与材料的综合判断）</strong> 微波炉的“辐射不逃逸”主要由金属腔体、门缝/网孔的尺度与波导截止、以及门封结构决定；手机穿墙则要同时看波长相对墙体孔隙的尺度、墙体的介电常数与电导率引起的反射/吸收、天线和链路预算。不能把二者归结为一个 <span class="arithmatex">\(\omega^4\)</span> 幂律或“高频必被网孔挡住、低频必穿透”的二分。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>电磁三页完卷。下一页：把"光速对谁都一样"当公理会发生什么——狭义相对论：时空的重新装配。</em></p>
 </article>
@@ -92,5 +177,7 @@ P = \frac{q^2 a^2}{6\pi\varepsilon_0 c^3}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/poynting-radiation.js"></script>
 </body>
 </html>

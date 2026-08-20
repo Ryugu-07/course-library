@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,26 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 适应性与简单过程</a></li>
+<li><a href="#_1">学习层：左端点负责适应，二次变差负责修正，期望等距另算一笔</a><ul>
+<li><a href="#1">1. 先预测：同一条路径的三个和会差多少？</a></li>
+<li><a href="#2">2. 三种取点：可测性与修正不能混成一句话</a></li>
+<li><a href="#3">3. 一条路径与期望等距：两个量词，两个账本</a></li>
+<li><a href="#4-seed">4. 动手实验：固定 seed，沿嵌套分割读账</a></li>
+<li><a href="#5">5. 迁移问题：把“适应”带到一般被积过程</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 适应性与简单过程</a></li>
 <li><a href="#2-ito">2. Itô 等距（构造的发动机）</a></li>
-<li><a href="#3">3. 稠密延拓（泛函分析收尾）</a></li>
+<li><a href="#3_1">3. 稠密延拓（泛函分析收尾）</a></li>
 <li><a href="#4-ito">4. 作为过程的 Itô 积分：鞅性质</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -50,8 +69,93 @@
 <p><strong>对标</strong>：Øksendal §3 ｜ <strong>前置</strong>：sc-01、mt-03/04、泛函 I（等距延拓）
 一阶变差无穷让 <span class="arithmatex">\(\int f\,dB\)</span> 无法逐路径定义（sc-01）。Itô 的出路是放弃逐路径、改走 <span class="arithmatex">\(L^2\)</span>：<strong>简单过程上显式定义 → 等距性质 → 稠密延拓</strong>——与实变/泛函里"完备化"的手法完全同构。本页把这三步走严，并配齐鞅性质。</p>
 </blockquote>
-<h2 id="1">1. 适应性与简单过程<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>被积函数的资格</strong>（<span class="arithmatex">\(\mathcal{V}[0,T]\)</span> 类）：<span class="arithmatex">\(f(t,\omega)\)</span> 可测、<strong>适应</strong>（<span class="arithmatex">\(f_t \in \mathcal{F}_t\)</span>——不偷看未来，本科 sde-01 的 forward-only 在此是可测性条件）、<span class="arithmatex">\(E\int_0^T f^2\,dt &lt; \infty\)</span>。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ito-learning-title" class="learning-layer">
+<h2 id="_1">学习层：左端点负责适应，二次变差负责修正，期望等距另算一笔<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：同一条路径的三个和会差多少？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>固定 <span class="arithmatex">\(B_0=0\)</span>、均匀分割 <span class="arithmatex">\(t_j=jT/n\)</span>，把被积函数取为适应过程 <span class="arithmatex">\(H_t=B_t\)</span>。实验分别计算</p>
+<div class="arithmatex">\[
+I_n^{\mathrm L}=\sum_j B_{t_j}\Delta B_j,\qquad
+I_n^{\mathrm R}=\sum_j B_{t_{j+1}}\Delta B_j,\qquad
+I_n^{\mathrm M}=\sum_j\frac{B_{t_j}+B_{t_{j+1}}}{2}\Delta B_j.
+\]</div>
+<p>先预测四件事：</p>
+<ol>
+<li>哪一个取值 <span class="arithmatex">\(B_{t_j}\)</span> 对 <span class="arithmatex">\(\mathcal F_{t_j}\)</span> 可测，因而是 Itô 简单过程的合法左端点？</li>
+<li>右端点和中点相对左端点分别多出 <span class="arithmatex">\(Q_n\)</span> 和 <span class="arithmatex">\(Q_n/2\)</span>，还是都不多？</li>
+<li>一条路径上的 <span class="arithmatex">\(Q_n=\sum_j(\Delta B_j)^2\)</span> 能否证明二次变差定理？</li>
+<li><span class="arithmatex">\(E[(\int_0^T B_t\,dB_t)^2]\)</span> 与 <span class="arithmatex">\(E\int_0^T B_t^2dt\)</span> 的共同解析目标是 <span class="arithmatex">\(T^2/2\)</span>、<span class="arithmatex">\(T\)</span> 还是 <span class="arithmatex">\(0\)</span>？</li>
+</ol>
+<h3 id="2">2. 三种取点：可测性与修正不能混成一句话<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>逐段代数恒等式给出</p>
+<div class="arithmatex">\[
+I_n^{\mathrm R}-I_n^{\mathrm L}=Q_n,\qquad
+I_n^{\mathrm M}-I_n^{\mathrm L}=\frac12Q_n,\qquad
+I_n^{\mathrm M}=\frac12B_T^2.
+\]</div>
+<p>左端 <span class="arithmatex">\(B_{t_j}\)</span> 是 <span class="arithmatex">\(\mathcal F_{t_j}\)</span>-可测，符合适应性；右端 <span class="arithmatex">\(B_{t_{j+1}}\)</span> 偷看了下一段增量，中点也不是同一个左端点简单过程。对 Brownian 的细分极限，<span class="arithmatex">\(Q_n\)</span> 在适当分割下趋向 <span class="arithmatex">\(T\)</span>，于是</p>
+<div class="arithmatex">\[
+\int_0^T B_t\,dB_t=\frac{B_T^2-T}{2},\qquad
+\int_0^T B_t\circ dB_t=\frac{B_T^2}{2},\qquad
+I^{\mathrm R}\to\frac{B_T^2+T}{2}.
+\]</div>
+<p>最后一个右端和只是这里的修正对照；它不是因为“换一个写法”就自动成为 Itô 积分。</p>
+<h3 id="3">3. 一条路径与期望等距：两个量词，两个账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>单路径图只能回答“这条离散路径的 <span class="arithmatex">\(Q_n\)</span>、左和、右和与中点和是多少”。它不能回答期望，也不能独自证明几乎处处、依概率或 <span class="arithmatex">\(L^2\)</span> 的收敛。对 <span class="arithmatex">\(N\)</span> 条由同一规则生成的独立路径，实验另记</p>
+<div class="arithmatex">\[
+\widehat E[(I_n^{\mathrm L})^2],\qquad
+\widehat E\left[\sum_j B_{t_j}^2\Delta t_j\right],\qquad
+E\int_0^T B_t^2dt=\frac{T^2}{2}.
+\]</div>
+<p>前两项是有限样本的 Monte Carlo 诊断；第三项是解析目标。它们接近时是在检查离散模型与等距方向一致，仍不是一条样本“证明定理”。</p>
+<h3 id="4-seed">4. 动手实验：固定 seed，沿嵌套分割读账<a class="headerlink" href="#4-seed" title="Permanent link"></a></h3>
+<p>实验用固定 seed 生成最高 dyadic 层的 Gaussian 增量，再向下聚合到当前层；切换层数不会换一条路径。揭示前，路径、层数、样本数与账本全部隐藏；揭示后可调 <span class="arithmatex">\(T\)</span>、分割层数、路径数和当前显示路径。</p>
+<div class="learning-lab" data-learning-lab="ito-integral-ledger">
+<p><strong>无 JavaScript 时的静态读法：</strong> 取 <span class="arithmatex">\(H_t=B_t\)</span>、<span class="arithmatex">\(B_0=0\)</span>。对任何有限分割，左、右、中点三列满足</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>公式</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>左端 Itô 和</td>
+<td><span class="arithmatex">\(I_n^{\mathrm L}=\frac12(B_T^2-Q_n)\)</span></td>
+<td>适应，细分后趋向 Itô 积分</td>
+</tr>
+<tr>
+<td>右端和</td>
+<td><span class="arithmatex">\(I_n^{\mathrm R}=I_n^{\mathrm L}+Q_n\)</span></td>
+<td>非左端点，极限比 Itô 多 <span class="arithmatex">\(T\)</span></td>
+</tr>
+<tr>
+<td>中点和</td>
+<td><span class="arithmatex">\(I_n^{\mathrm M}=I_n^{\mathrm L}+Q_n/2=B_T^2/2\)</span></td>
+<td>Stratonovich 型修正</td>
+</tr>
+<tr>
+<td>单路径二次变差</td>
+<td><span class="arithmatex">\(Q_n=\sum(\Delta B_j)^2\)</span></td>
+<td>有限样本诊断，不能单独证明定理</td>
+</tr>
+<tr>
+<td>期望等距</td>
+<td><span class="arithmatex">\(E[(\int B\,dB)^2]=E\int B^2dt=T^2/2\)</span></td>
+<td>需要期望/多路径量词</td>
+</tr>
+</tbody>
+</table>
+<p>数值表的路径列和样本列必须分开阅读；有限 <span class="arithmatex">\(N\)</span> 的均值偏差是抽样误差，不是 Itô 等距失效。</p>
+</div>
+<h3 id="5">5. 迁移问题：把“适应”带到一般被积过程<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(H_t\)</span> 不是 <span class="arithmatex">\(B_t\)</span> 而是一个只在 <span class="arithmatex">\(t_j\)</span> 时可观测的交易策略，左端和仍然如何定义？若改用中点方案，怎样用半鞅二次变差写出修正？请同时标注适应性、平方可积性和极限方式；不要以一条漂亮路径图代替条件期望或 <span class="arithmatex">\(L^2\)</span> 论证。</p>
+</section>
+<h2 id="1_1">1. 适应性与简单过程<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>被积函数的资格</strong>（<span class="arithmatex">\(\mathcal{V}[0,T]\)</span> 类）：<span class="arithmatex">\(f(t,\omega)\)</span> 可测、<strong>适应并取可预测版本</strong>（<span class="arithmatex">\(f_t \in \mathcal{F}_t\)</span>——不偷看未来；连续适应过程自动给出可预测版本）、<span class="arithmatex">\(E\int_0^T f^2\,dt &lt; \infty\)</span>。</p>
 <p><strong>简单过程</strong>：<span class="arithmatex">\(\varphi(t) = \sum_j e_j\,\mathbb{1}_{[t_j, t_{j+1})}(t)\)</span>，<span class="arithmatex">\(e_j \in \mathcal{F}_{t_j}\)</span>-可测有界。对它积分<strong>显式定义</strong>：</p>
 <div class="arithmatex">\[
 \int_0^T \varphi\,dB := \sum_j e_j\big(B_{t_{j+1}} - B_{t_j}\big)
@@ -63,9 +167,21 @@
 E\Big[\Big(\int_0^T\varphi\,dB\Big)^2\Big] \;=\; E\Big[\int_0^T \varphi^2\,dt\Big]
 \]</div>
 <p><strong>【证明】</strong> 展开平方为双重和。交叉项（<span class="arithmatex">\(i &lt; j\)</span>）：<span class="arithmatex">\(E[e_ie_j\Delta B_i\Delta B_j] = E\big[e_ie_j\Delta B_i\,E(\Delta B_j\mid\mathcal{F}_{t_j})\big] = 0\)</span>（塔性质 + 未来增量零均值——<strong>适应性在此杀死交叉项</strong>）；对角项：<span class="arithmatex">\(E[e_j^2(\Delta B_j)^2] = E\big[e_j^2\,E((\Delta B_j)^2\mid\mathcal{F}_{t_j})\big] = E[e_j^2]\Delta t_j\)</span>。求和即得。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：积分映射 <span class="arithmatex">\(\varphi \mapsto \int\varphi\,dB\)</span> 是从 <span class="arithmatex">\(L^2(dt\times dP)\)</span> 到 <span class="arithmatex">\(L^2(dP)\)</span> 的<strong>等距</strong>——"随机积分的勾股定理"（本科 sde-01 预告的正式版）。等距 = 保范线性映射 = 可以安全延拓。</p>
-<h2 id="3">3. 稠密延拓（泛函分析收尾）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>引理（稠密性）【骨架】</strong> 任意 <span class="arithmatex">\(f \in \mathcal{V}\)</span> 可被简单过程按 <span class="arithmatex">\(L^2(dt\times dP)\)</span> 逼近：有界连续 → 用左端点采样的简单过程（DCT）；有界可测 → 磨光成连续（卷积，实变）；一般 → 截断。三级逼近与实变 II 的积分构造同构。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：积分映射 <span class="arithmatex">\(\varphi \mapsto \int\varphi\,dB\)</span> 是从可预测子空间 <span class="arithmatex">\(L^2_{\mathrm{pred}}(dt\times dP)\)</span> 到 <span class="arithmatex">\(L^2(dP)\)</span> 的<strong>等距</strong>——"随机积分的勾股定理"（本科 sde-01 预告的正式版）。等距 = 保范线性映射 = 可以安全延拓。</p>
+<h2 id="3_1">3. 稠密延拓（泛函分析收尾）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>引理（可预测简单过程的稠密性）【骨架】</strong> 先把定义域写成可预测平方可积空间 <span class="arithmatex">\(L^2_{\mathrm{pred}}(dt\times dP)\)</span>。其中的 elementary predictable processes</p>
+<div class="arithmatex">\[
+\varphi(t,\omega)=\sum_j \xi_j(\omega)\,\mathbf 1_{(t_j,t_{j+1}]}(t),
+\qquad \xi_j\in L^\infty(\mathcal F_{t_j}),
+\]</div>
+<p>在该空间中稠密。证明不靠普通时间卷积（卷积核可能读取 <span class="arithmatex">\(t\)</span> 之后的值而离开可预测 <span class="arithmatex">\(\sigma\)</span>-代数），而按以下骨架进行：先对有界左连续适应过程用左端点阶梯逼近；再用可预测 <span class="arithmatex">\(\sigma\)</span>-代数由集合 <span class="arithmatex">\(A\times(s,t]\)</span>、<span class="arithmatex">\(A\in\mathcal F_s\)</span> 生成这一事实和单调类论证推广到一般有界可预测过程；最后对 <span class="arithmatex">\(f^{(K)}=(-K)\vee(f\wedge K)\)</span> 截断，并令 <span class="arithmatex">\(K\to\infty\)</span>。在标准 Brownian 过滤下，也可把每个时间格的系数写成不偷看未来的条件期望投影</p>
+<div class="arithmatex">\[
+\xi_{j,n}=
+E\!\left[\left.\frac1{\Delta t_j}\int_{t_j}^{t_{j+1}}f_s\,ds\right|\mathcal F_{t_j}\right],
+\qquad
+\varphi_n=\sum_j\xi_{j,n}\mathbf 1_{(t_j,t_{j+1}]},
+\]</div>
+<p>再用 <span class="arithmatex">\(L^2\)</span> 条件期望的收缩性与网格加密得到逼近。三级逼近的关键是“可预测性先保住，再做 <span class="arithmatex">\(L^2\)</span> 极限”，不是把随机过程当作普通二维函数去磨光。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>定义（Itô 积分）</strong> 取简单过程 <span class="arithmatex">\(\varphi_n \to f\)</span>，则 <span class="arithmatex">\(\int\varphi_n dB\)</span> 是 <span class="arithmatex">\(L^2(dP)\)</span> 中的 Cauchy 列（<strong>等距把被积函数的 Cauchy 性原样搬运</strong>），其极限即 <span class="arithmatex">\(\int_0^T f\,dB\)</span>——与逼近序列无关（等距再用一次）。<span class="arithmatex">\(\blacksquare\)</span>
 （<strong>这就是泛函 I"有界线性算子在稠密子空间上定义后唯一延拓"的标准剧目</strong>——随机积分是泛函分析定理的一次著名出演。）</p>
 <h2 id="4-ito">4. 作为过程的 Itô 积分：鞅性质<a class="headerlink" href="#4-ito" title="Permanent link"></a></h2>
@@ -77,7 +193,7 @@ E\Big[\Big(\int_0^T\varphi\,dB\Big)^2\Big] \;=\; E\Big[\int_0^T \varphi^2\,dt\Bi
 </ol>
 <p><strong>零均值推论</strong>：<span class="arithmatex">\(E\int_0^t f\,dB = 0\)</span>——"公平赌博"从直觉变成定理链的产物。</p>
 <p><strong>推广一嘴【引用】</strong>：被积条件放宽到 <span class="arithmatex">\(P(\int f^2 dt &lt; \infty) = 1\)</span> 时积分仍可定义但只是<strong>局部鞅</strong>（真鞅可能失守——金融里"局部鞅 ≠ 鞅"正是泡沫模型的数学缝隙）；对一般连续半鞅积分、协变差 <span class="arithmatex">\(\langle M, N\rangle\)</span> 的 Kunita–Watanabe 理论见 K–S §3。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（亲手算 <span class="arithmatex">\(\int_0^T B\,dB\)</span>）</strong> 用分割 <span class="arithmatex">\(\varphi_n = \sum B_{t_j}\mathbb{1}_{[t_j,t_{j+1})}\)</span>：</p>
 <div class="arithmatex">\[
 \sum_j B_{t_j}\Delta B_j = \frac12\sum\big[(B_{t_{j+1}}^2 - B_{t_j}^2) - (\Delta B_j)^2\big] = \frac{B_T^2}{2} - \frac12\sum(\Delta B_j)^2 \to \frac{B_T^2 - T}{2}
@@ -96,5 +212,7 @@ E\Big[\Big(\int_0^T\varphi\,dB\Big)^2\Big] \;=\; E\Big[\int_0^T \varphi^2\,dt\Bi
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ito-integral-ledger.js"></script>
 </body>
 </html>

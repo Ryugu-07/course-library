@@ -3,6 +3,78 @@
 > **对标**：Shalev-Shwartz & Ben-David *UML* §2–4 ｜ **前置**：hdp-01、本科 ai 课 01 讲
 > 统计学习理论回答一个问题：**"从数据学出的规则，凭什么对新数据有效？"** 本页把 ai 课 01 讲的泛化故事升级为正式理论：PAC 可学性的定义、有限类的完整定理（可实现与不可知两种情形全证）、以及"没有免费午餐"的严格版。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="pac-learning-title">
+
+## 学习层：先猜复杂度，再把定理与一次数据分开
+
+<h3 id="pac-learning-title">1. 具体谜题：同一个有限假设类，保证和观测各自说什么？</h3>
+
+先固定一个有限类 $\mathcal H$，大小记为 $H=|\mathcal H|$，再固定容许精度 $\varepsilon$ 与失败概率 $\delta$。本实验同时放入两本账：一本文字上可推广到所有 i.i.d. 分布的 **PAC 定理账**，以及一份固定数据排列上的 **realized train/test 观测账**。后者不是前者的替身。
+
+### 2. 先预测：$\varepsilon$、$\delta$ 和 $H$ 到底怎样收费？
+
+揭示前先回答：
+
+1. 在有限类可实现情形，union bound 给出的样本复杂度按 $1/\varepsilon$ 还是 $1/\varepsilon^2$ 增长？不可知情形呢？
+2. 把 $H$ 加倍，定理中的代价是加倍还是只增加一个对数项？
+3. 一次固定训练/测试划分得到的 test error，是否自动等于 PAC 上界，或能替代概率 $1-\delta$ 的量词？
+
+### 3. 两个有限类上界：先写清量词
+
+在 realizable 假设下，存在零风险假设且一致 ERM 的经典有限类账本是
+
+$$
+m_{\mathrm{real}}(\varepsilon,\delta,H)=\left\lceil\frac{\ln(H/\delta)}{\varepsilon}\right\rceil,
+\qquad
+\Pr(\exists\text{ 坏假设全程不犯错})\le H e^{-m\varepsilon}.
+$$
+
+在 agnostic 情形，用 Hoeffding 加 union bound 控制所有有限假设的经验风险偏差，可用
+
+$$
+m_{\mathrm{agn}}(\varepsilon,\delta,H)=\left\lceil\frac{2\ln(2H/\delta)}{\varepsilon^2}\right\rceil.
+$$
+
+前者的 $1/\varepsilon$ 与后者的 $1/\varepsilon^2$ 是不同噪声假设下的**定理上界**。它们都不是某一次数据的 test error 预测，更不是从一次 ERM 运行反推分布保证。
+
+### 4. 动手实验：先选答案，再揭示两本账
+
+实验使用一个固定的有限二分类规则集和一份固定排列的 20 个样本。你可以改变 $H,\varepsilon,\delta$ 与训练前缀长度 $m$，先选择三项答案，再揭示：realizable/agnostic 的样本复杂度、union-bound 失败项、ERM 在这一次数据上的 train error 与 test error。最后两项只标为 **realized observation**，不写成 PAC 保证。
+
+<div class="learning-lab" data-learning-lab="pac-sample-complexity" markdown="1">
+
+**无 JavaScript 时的静态读法：**默认取 $H=8,\varepsilon=0.20,\delta=0.10,m=12$。理论项先独立记账：
+$m_{\mathrm{real}}=\lceil\ln(8/0.1)/0.2\rceil=22$，
+$m_{\mathrm{agn}}=\lceil2\ln(16/0.1)/0.2^2\rceil=254$，
+而 $\min(1,8e^{-0.2\cdot12})\approx0.726$ 是 realizable union-bound failure 上界，不是实际失败频率。
+
+| 账本种类 | 数值/读法 | 量词与身份 |
+|---|---:|---|
+| 有限类大小 $H$ | $8$ | 被 union bound 计数的假设数 |
+| realizable 样本复杂度 | $22$ | 若 $m\ge22$，给出相应的 $\varepsilon,\delta$ 定理保证 |
+| agnostic 样本复杂度 | $254$ | 噪声不被排除时的另一条上界 |
+| 本次实际训练误差 | ERM 选 $h_2$：$1/12\approx0.0833$ | 一次 realized observation |
+| 本次实际测试误差 | 同一 $h_2$ 在剩余 8 点：$4/8=0.5$ | 一次 realized observation，不是上界 |
+
+静态阅读时，先把最后两行和前面三行分开：理论上界描述对随机样本的概率事件；一次 train/test 数字只描述这份已实现数据。即使 test error 小于上界，也不能把一次观测升级成证明；即使它大于某个未满足前提的数，也不能反向否定定理。
+
+</div>
+
+### 5. 误区 / 边界：先挑后估为什么要统一控制？
+
+- 单个预先指定的 $h$ 可以用 Hoeffding；但 ERM 的 $\hat h$ 依赖同一份样本，必须对整个有限类做 union bound，不能把“挑完再估”伪装成单假设事件。
+- $m_{\mathrm{real}}$ 和 $m_{\mathrm{agn}}$ 是给定 $H,\varepsilon,\delta$ 的 sufficient upper bounds，常数和更精细的算法/下界可改进，但不能把它们写成一次实验的预测值。
+- 固定 train/test 划分不是自动的 i.i.d. 概率实验；本页把它标成审计样本，用来练习 ERM、误差分账和量词纪律。
+- 有限类假设是关键归纳偏置；当 $H$ 无限时，逐函数 union bound 失效，要转向 VC、Rademacher、稳定性或其他复杂度。
+
+### 6. 迁移题
+
+若把 $H$ 从 $8$ 增长到 $8\times10^6$，在固定 $\varepsilon,\delta$ 下两条公式各增加多少？若把同一算法换成一个依赖测试集调参的流程，为什么“test error”不再是一个干净的 hold-out 观测？把这两个问题分别用 $\ln H$ 与“数据依赖的选择”回答。
+
+</section>
+
 ## 1. 形式框架
 
 **要素**：域 $\mathcal{Z} = \mathcal{X}\times\mathcal{Y}$、未知分布 $\mathcal{D}$、假设类 $\mathcal{H}$、损失 $\ell$（本页取 0-1）。**真实风险** $L_{\mathcal{D}}(h) = E_{\mathcal{D}}[\ell(h, Z)]$；**经验风险** $L_S(h) = \frac1m\sum\ell(h, z_i)$；学习算法 = 从样本 $S \sim \mathcal{D}^m$ 到假设的映射，**ERM**：$\hat h \in \arg\min_{h\in\mathcal{H}} L_S(h)$。

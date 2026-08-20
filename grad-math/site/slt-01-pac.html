@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,26 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先猜复杂度，再把定理与一次数据分开</a><ul>
+<li><a href="#pac-learning-title">1. 具体谜题：同一个有限假设类，保证和观测各自说什么？</a></li>
+<li><a href="#2-varepsilondelta-h">2. 先预测：\(\varepsilon\)、\(\delta\) 和 \(H\) 到底怎样收费？</a></li>
+<li><a href="#3">3. 两个有限类上界：先写清量词</a></li>
+<li><a href="#4">4. 动手实验：先选答案，再揭示两本账</a></li>
+<li><a href="#5">5. 误区 / 边界：先挑后估为什么要统一控制？</a></li>
+<li><a href="#6">6. 迁移题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 形式框架</a></li>
 <li><a href="#2">2. 有限类定理（两种情形全证）</a></li>
-<li><a href="#3">3. 没有免费午餐（严格版）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#3_1">3. 没有免费午餐（严格版）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +69,86 @@
 <p><strong>对标</strong>：Shalev-Shwartz &amp; Ben-David <em>UML</em> §2–4 ｜ <strong>前置</strong>：hdp-01、本科 ai 课 01 讲
 统计学习理论回答一个问题：<strong>"从数据学出的规则，凭什么对新数据有效？"</strong> 本页把 ai 课 01 讲的泛化故事升级为正式理论：PAC 可学性的定义、有限类的完整定理（可实现与不可知两种情形全证）、以及"没有免费午餐"的严格版。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="pac-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先猜复杂度，再把定理与一次数据分开<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="pac-learning-title">1. 具体谜题：同一个有限假设类，保证和观测各自说什么？<a class="headerlink" href="#pac-learning-title" title="Permanent link"></a></h3>
+<p>先固定一个有限类 <span class="arithmatex">\(\mathcal H\)</span>，大小记为 <span class="arithmatex">\(H=|\mathcal H|\)</span>，再固定容许精度 <span class="arithmatex">\(\varepsilon\)</span> 与失败概率 <span class="arithmatex">\(\delta\)</span>。本实验同时放入两本账：一本文字上可推广到所有 i.i.d. 分布的 <strong>PAC 定理账</strong>，以及一份固定数据排列上的 <strong>realized train/test 观测账</strong>。后者不是前者的替身。</p>
+<h3 id="2-varepsilondelta-h">2. 先预测：<span class="arithmatex">\(\varepsilon\)</span>、<span class="arithmatex">\(\delta\)</span> 和 <span class="arithmatex">\(H\)</span> 到底怎样收费？<a class="headerlink" href="#2-varepsilondelta-h" title="Permanent link"></a></h3>
+<p>揭示前先回答：</p>
+<ol>
+<li>在有限类可实现情形，union bound 给出的样本复杂度按 <span class="arithmatex">\(1/\varepsilon\)</span> 还是 <span class="arithmatex">\(1/\varepsilon^2\)</span> 增长？不可知情形呢？</li>
+<li>把 <span class="arithmatex">\(H\)</span> 加倍，定理中的代价是加倍还是只增加一个对数项？</li>
+<li>一次固定训练/测试划分得到的 test error，是否自动等于 PAC 上界，或能替代概率 <span class="arithmatex">\(1-\delta\)</span> 的量词？</li>
+</ol>
+<h3 id="3">3. 两个有限类上界：先写清量词<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在 realizable 假设下，存在零风险假设且一致 ERM 的经典有限类账本是</p>
+<div class="arithmatex">\[
+m_{\mathrm{real}}(\varepsilon,\delta,H)=\left\lceil\frac{\ln(H/\delta)}{\varepsilon}\right\rceil,
+\qquad
+\Pr(\exists\text{ 坏假设全程不犯错})\le H e^{-m\varepsilon}.
+\]</div>
+<p>在 agnostic 情形，用 Hoeffding 加 union bound 控制所有有限假设的经验风险偏差，可用</p>
+<div class="arithmatex">\[
+m_{\mathrm{agn}}(\varepsilon,\delta,H)=\left\lceil\frac{2\ln(2H/\delta)}{\varepsilon^2}\right\rceil.
+\]</div>
+<p>前者的 <span class="arithmatex">\(1/\varepsilon\)</span> 与后者的 <span class="arithmatex">\(1/\varepsilon^2\)</span> 是不同噪声假设下的<strong>定理上界</strong>。它们都不是某一次数据的 test error 预测，更不是从一次 ERM 运行反推分布保证。</p>
+<h3 id="4">4. 动手实验：先选答案，再揭示两本账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验使用一个固定的有限二分类规则集和一份固定排列的 20 个样本。你可以改变 <span class="arithmatex">\(H,\varepsilon,\delta\)</span> 与训练前缀长度 <span class="arithmatex">\(m\)</span>，先选择三项答案，再揭示：realizable/agnostic 的样本复杂度、union-bound 失败项、ERM 在这一次数据上的 train error 与 test error。最后两项只标为 <strong>realized observation</strong>，不写成 PAC 保证。</p>
+<div class="learning-lab" data-learning-lab="pac-sample-complexity">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(H=8,\varepsilon=0.20,\delta=0.10,m=12\)</span>。理论项先独立记账：
+<span class="arithmatex">\(m_{\mathrm{real}}=\lceil\ln(8/0.1)/0.2\rceil=22\)</span>，
+<span class="arithmatex">\(m_{\mathrm{agn}}=\lceil2\ln(16/0.1)/0.2^2\rceil=254\)</span>，
+而 <span class="arithmatex">\(\min(1,8e^{-0.2\cdot12})\approx0.726\)</span> 是 realizable union-bound failure 上界，不是实际失败频率。</p>
+<table>
+<thead>
+<tr>
+<th>账本种类</th>
+<th style="text-align: right;">数值/读法</th>
+<th>量词与身份</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有限类大小 <span class="arithmatex">\(H\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(8\)</span></td>
+<td>被 union bound 计数的假设数</td>
+</tr>
+<tr>
+<td>realizable 样本复杂度</td>
+<td style="text-align: right;"><span class="arithmatex">\(22\)</span></td>
+<td>若 <span class="arithmatex">\(m\ge22\)</span>，给出相应的 <span class="arithmatex">\(\varepsilon,\delta\)</span> 定理保证</td>
+</tr>
+<tr>
+<td>agnostic 样本复杂度</td>
+<td style="text-align: right;"><span class="arithmatex">\(254\)</span></td>
+<td>噪声不被排除时的另一条上界</td>
+</tr>
+<tr>
+<td>本次实际训练误差</td>
+<td style="text-align: right;">ERM 选 <span class="arithmatex">\(h_2\)</span>：<span class="arithmatex">\(1/12\approx0.0833\)</span></td>
+<td>一次 realized observation</td>
+</tr>
+<tr>
+<td>本次实际测试误差</td>
+<td style="text-align: right;">同一 <span class="arithmatex">\(h_2\)</span> 在剩余 8 点：<span class="arithmatex">\(4/8=0.5\)</span></td>
+<td>一次 realized observation，不是上界</td>
+</tr>
+</tbody>
+</table>
+<p>静态阅读时，先把最后两行和前面三行分开：理论上界描述对随机样本的概率事件；一次 train/test 数字只描述这份已实现数据。即使 test error 小于上界，也不能把一次观测升级成证明；即使它大于某个未满足前提的数，也不能反向否定定理。</p>
+</div>
+<h3 id="5">5. 误区 / 边界：先挑后估为什么要统一控制？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>单个预先指定的 <span class="arithmatex">\(h\)</span> 可以用 Hoeffding；但 ERM 的 <span class="arithmatex">\(\hat h\)</span> 依赖同一份样本，必须对整个有限类做 union bound，不能把“挑完再估”伪装成单假设事件。</li>
+<li><span class="arithmatex">\(m_{\mathrm{real}}\)</span> 和 <span class="arithmatex">\(m_{\mathrm{agn}}\)</span> 是给定 <span class="arithmatex">\(H,\varepsilon,\delta\)</span> 的 sufficient upper bounds，常数和更精细的算法/下界可改进，但不能把它们写成一次实验的预测值。</li>
+<li>固定 train/test 划分不是自动的 i.i.d. 概率实验；本页把它标成审计样本，用来练习 ERM、误差分账和量词纪律。</li>
+<li>有限类假设是关键归纳偏置；当 <span class="arithmatex">\(H\)</span> 无限时，逐函数 union bound 失效，要转向 VC、Rademacher、稳定性或其他复杂度。</li>
+</ul>
+<h3 id="6">6. 迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若把 <span class="arithmatex">\(H\)</span> 从 <span class="arithmatex">\(8\)</span> 增长到 <span class="arithmatex">\(8\times10^6\)</span>，在固定 <span class="arithmatex">\(\varepsilon,\delta\)</span> 下两条公式各增加多少？若把同一算法换成一个依赖测试集调参的流程，为什么“test error”不再是一个干净的 hold-out 观测？把这两个问题分别用 <span class="arithmatex">\(\ln H\)</span> 与“数据依赖的选择”回答。</p>
+</section>
 <h2 id="1">1. 形式框架<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>要素</strong>：域 <span class="arithmatex">\(\mathcal{Z} = \mathcal{X}\times\mathcal{Y}\)</span>、未知分布 <span class="arithmatex">\(\mathcal{D}\)</span>、假设类 <span class="arithmatex">\(\mathcal{H}\)</span>、损失 <span class="arithmatex">\(\ell\)</span>（本页取 0-1）。<strong>真实风险</strong> <span class="arithmatex">\(L_{\mathcal{D}}(h) = E_{\mathcal{D}}[\ell(h, Z)]\)</span>；<strong>经验风险</strong> <span class="arithmatex">\(L_S(h) = \frac1m\sum\ell(h, z_i)\)</span>；学习算法 = 从样本 <span class="arithmatex">\(S \sim \mathcal{D}^m\)</span> 到假设的映射，<strong>ERM</strong>：<span class="arithmatex">\(\hat h \in \arg\min_{h\in\mathcal{H}} L_S(h)\)</span>。</p>
 <p><strong>定义（PAC 可学，agnostic 版）</strong> <span class="arithmatex">\(\mathcal{H}\)</span> 可学：存在算法与样本复杂度 <span class="arithmatex">\(m(\varepsilon, \delta)\)</span>，对<strong>一切</strong>分布 <span class="arithmatex">\(\mathcal{D}\)</span>，<span class="arithmatex">\(m \geq m(\varepsilon,\delta)\)</span> 个样本以概率 <span class="arithmatex">\(\geq 1-\delta\)</span> 保证</p>
@@ -66,12 +166,12 @@ L_{\mathcal{D}}(\hat h) \leq L_S(\hat h) + \tfrac\varepsilon2 \leq L_S(h^*) + \t
 \]</div>
 <p>（中间用 ERM 定义。）<span class="arithmatex">\(\blacksquare\)</span>
 <strong>结构读法</strong>：<strong>"一致收敛 ⇒ ERM 成功"</strong>——泛化理论的中心三段论（后两页只是把 ① 的工具从 union bound 升级为 VC/Rademacher）；<span class="arithmatex">\(\varepsilon\)</span> vs <span class="arithmatex">\(\varepsilon^2\)</span> 的速率差（可实现 <span class="arithmatex">\(\frac1m\)</span> vs 不可知 <span class="arithmatex">\(\frac{1}{\sqrt m}\)</span>）：零风险情形"好消息更容易确认"——<strong>噪声让学习贵一个平方</strong>。</p>
-<h2 id="3">3. 没有免费午餐（严格版）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 没有免费午餐（严格版）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理（NFL）</strong> 0-1 损失、<span class="arithmatex">\(|\mathcal{X}| \geq 2m\)</span>：对任何学习算法 <span class="arithmatex">\(A\)</span>，存在分布 <span class="arithmatex">\(\mathcal{D}\)</span>（且可实现于全函数类）使 <span class="arithmatex">\(E_S[L_{\mathcal{D}}(A(S))] \geq \frac18\)</span>（同时最优假设风险为 0）。
 <strong>【骨架】</strong> 在 <span class="arithmatex">\(2m\)</span> 个点上均匀支撑、标签由随机函数生成：算法只见过一半的点，未见点上任何预测对"平均的真函数"错一半；对函数取平均后必存在单个坏函数（概率方法——期望论证的反向使用，图论组合线的老朋友）。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>读法</strong>：<strong>全函数类不可学</strong>（<span class="arithmatex">\(m(\varepsilon,\delta) = \infty\)</span>）——学习必须先押注归纳偏置（ai 课 01 讲 NFL 的正式版）；"<span class="arithmatex">\(\mathcal{H}\)</span> 的复杂度"因此不是技术参数而是<strong>知识论承诺的度量</strong>，量化它正是后两页的全部内容。</p>
 <p><strong>误差分解定型</strong>：<span class="arithmatex">\(L_{\mathcal{D}}(\hat h) = \underbrace{\min_{\mathcal{H}}L_{\mathcal{D}}}_{\text{逼近误差}} + \underbrace{(L_{\mathcal{D}}(\hat h) - \min)}_{\text{估计误差}}\)</span>——类越大逼近越好、估计越难：<strong>偏差–方差权衡的学习论版本</strong>，模型选择（SRM/正则化，slt-04）在此谱系上运作。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（样本复杂度手算）</strong> 一百万个假设、<span class="arithmatex">\(\varepsilon = 0.01, \delta = 0.001\)</span>：不可知情形 <span class="arithmatex">\(m \geq \frac{2(\ln 2\times10^6 + \ln 10^3)}{10^{-4}} \approx 4.3\times10^5\)</span>——<strong>假设数取对数后几乎免费</strong>（<span class="arithmatex">\(|\mathcal{H}|\)</span> 翻倍只加 <span class="arithmatex">\(\ln 2\)</span>）；贵的是精度平方（hdp-01 例 2 的口诀重现：对数便宜、平方贵）。</p>
 <p><strong>例 2（离散化论证）</strong> 实参数模型（如 <span class="arithmatex">\(d\)</span> 个 32 位浮点权重的网络）：<span class="arithmatex">\(|\mathcal{H}| \leq 2^{32d}\)</span> ⇒ <span class="arithmatex">\(m = O\big(\frac{d + \ln(1/\delta)}{\varepsilon^2}\big)\)</span>——<strong>参数量级的样本复杂度</strong>，有限类定理已能给深度网络一个（粗糙的）界；"每个参数付常数个样本"的工程口感由此。但它解释不了过参数化网络为何泛化（<span class="arithmatex">\(d \gg m\)</span> 仍工作）——经典理论的著名裂缝（ai 课 01/07 的未解之谜在正式理论中的位置）。</p>
 <p><strong>例 3（① 与 ② 的分工自检）</strong> 若只要求"输出的 <span class="arithmatex">\(\hat h\)</span> 泛化"而不比 <span class="arithmatex">\(h^*\)</span>：单假设 Hoeffding 够吗？——不够：<span class="arithmatex">\(\hat h\)</span> 依赖 <span class="arithmatex">\(S\)</span>（挑出来的），单点界失效——<strong>"先挑后估必须一致界"</strong>，ai 课 01 讲那个 1000 人抛硬币的比喻在此是定理结构。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -86,5 +186,7 @@ L_{\mathcal{D}}(\hat h) \leq L_S(\hat h) + \tfrac\varepsilon2 \leq L_S(h^*) + \t
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/pac-sample-complexity.js"></script>
 </body>
 </html>

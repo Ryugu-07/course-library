@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 度量空间与完备性</a></li>
+<li><a href="#_1">学习层：三张证书都盖章，压缩迭代才是定理</a><ul>
+<li><a href="#1">1. 先预测：到底是哪一张资格证失效？</a></li>
+<li><a href="#2">2. 最小模型：把三张证书分开记账</a></li>
+<li><a href="#3">3. 动手实验：先预测，后打开账本</a></li>
+<li><a href="#4">4. 迁移问题：从标量模型回到函数空间</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 度量空间与完备性</a></li>
 <li><a href="#2-banach">2. 压缩映像原理（Banach 不动点定理）</a></li>
 <li><a href="#3-banach">3. 赋范空间与 Banach 空间</a></li>
-<li><a href="#4">4. 有限维与无穷维的分水岭</a></li>
+<li><a href="#4_1">4. 有限维与无穷维的分水岭</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
 </div>
@@ -49,7 +67,47 @@
 <blockquote>
 <p>泛函分析 = "无穷维空间上的线性代数 + 分析"。研究对象从数与函数升级为<strong>空间与算子</strong>。本页立好地基：度量与完备性、压缩映像原理（本站被引三次的欠条在此正式清偿）、赋范空间与 Banach 空间，以及无穷维与有限维的第一道分水岭。</p>
 </blockquote>
-<h2 id="1">1. 度量空间与完备性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="banach-learning-title" class="learning-layer">
+<h2 id="_1">学习层：三张证书都盖章，压缩迭代才是定理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：到底是哪一张资格证失效？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>对迭代 <span class="arithmatex">\(x_{n+1}=Tx_n\)</span>，不要把“看起来在收缩”直接当成 Banach 定理。需要分别核对：</p>
+<ol>
+<li><strong>完备性</strong>：<span class="arithmatex">\(D\)</span> 作为度量空间是否接住所有 Cauchy 极限？<span class="arithmatex">\(\mathbb R\)</span> 和闭区间是，开区间通常不是。</li>
+<li><strong>不变域</strong>：<span class="arithmatex">\(T(D)\subseteq D\)</span> 是否成立？即使 <span class="arithmatex">\(T\)</span> 在整个 <span class="arithmatex">\(\mathbb R\)</span> 上是压缩，限制到一个不变性失败的 <span class="arithmatex">\(D\)</span> 仍不能套定理。</li>
+<li><strong>全局压缩证书</strong>：是否有同一个 <span class="arithmatex">\(q&lt;1\)</span> 对 <span class="arithmatex">\(D\)</span> 中所有点成立？一次轨迹变近，既不能证明全局 Lipschitz，也不能替代唯一性证明。</li>
+</ol>
+<p>先对下表预测“可证”“域逃逸”“空间不完备”或“没有压缩证书”。实验揭示后才显示实际误差、先验界与后验界；后两者有公式不等于假设已经满足。</p>
+<h3 id="2">2. 最小模型：把三张证书分开记账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验只用仿射映射 <span class="arithmatex">\(T(x)=qx+b\)</span>，但把定义域单独作为模型的一部分。若 <span class="arithmatex">\(q\ne1\)</span>，代数固定点为</p>
+<div class="arithmatex">\[
+x^*=\frac{b}{1-q}.
+\]</div>
+<p>在完整且不变的定义域上，<span class="arithmatex">\(|q|&lt;1\)</span> 给出全局压缩证书。令 <span class="arithmatex">\(e_n=|x_n-x^*|\)</span>，则实际误差和两类证书分别是</p>
+<div class="arithmatex">\[
+e_n\quad\text{（实际误差）},\qquad
+\underbrace{\frac{|q|^n}{1-|q|}|x_1-x_0|}_{\text{先验界}},\qquad
+\underbrace{\frac{|q|}{1-|q|}|x_n-x_{n-1}|}_{\text{后验界}}.
+\]</div>
+<p>先验界只使用初始步长和迭代次数；后验界使用已经观测到的最近一步。它们都必须在“完整 + 自映射 + 压缩”的证书范围内解释，不能把一条形式不等式包装成定理。</p>
+<h3 id="3">3. 动手实验：先预测，后打开账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>揭示前只选择判断；揭示后可换预设并调节 <span class="arithmatex">\(q,b,x_0\)</span>。图中同时画轨道与两种界，表格逐行列出 <span class="arithmatex">\(x_n\)</span>、<span class="arithmatex">\(|x_n-x^*|\)</span>、先验界、后验界和是否已经逃出 <span class="arithmatex">\(D\)</span>。</p>
+<div class="learning-lab" data-learning-lab="banach-contraction">
+<p><strong>无 JavaScript 时的静态读法：</strong> 默认模型取 <span class="arithmatex">\(D=\mathbb R\)</span>、<span class="arithmatex">\(T(x)=0.6x+1\)</span>、<span class="arithmatex">\(x_0=0\)</span>。此时 <span class="arithmatex">\(D\)</span> 完备且不变，<span class="arithmatex">\(q=0.6&lt;1\)</span> 是全局压缩证书，<span class="arithmatex">\(x^*=2.5\)</span>；实际误差、先验界和后验界应分别按上式读取。四个边界样本如下：</p>
+<p>| 情形 | 定义域与映射 | 完备 | 不变 | 全局 <span class="arithmatex">\(|q|&lt;1\)</span> | 结论 |
+|---|---|---:|---:|---:|---|
+| 合法证书 | <span class="arithmatex">\(\mathbb R,\ T(x)=0.6x+1\)</span> | 是 | 是 | 是 | 唯一固定点，迭代收敛 |
+| 闭域证书 | <span class="arithmatex">\([0,1],\ T(x)=0.5x+0.25\)</span> | 是 | 是 | 是 | 唯一固定点在闭域内 |
+| 域逃逸 | <span class="arithmatex">\([0,1],\ T(x)=0.6x+0.8,\ x_0=0.9\)</span> | 是 | 否（<span class="arithmatex">\(x_1=1.34\)</span>） | 是 | 不能在该域套定理，固定点 <span class="arithmatex">\(2\)</span> 也在域外 |
+| 不完备 | <span class="arithmatex">\((0,1),\ T(x)=0.5x,\ x_0=0.5\)</span> | 否 | 是 | 是 | <span class="arithmatex">\(x_n\to0\notin D\)</span>，不保证域内固定点 |
+| 非压缩 | <span class="arithmatex">\(\mathbb R,\ T(x)=1.1x\)</span> | 是 | 是 | 否 | 迭代从 <span class="arithmatex">\(x_0\ne0\)</span> 膨胀，只有形式固定点 <span class="arithmatex">\(0\)</span> |</p>
+<p>有限行的数字只能展示诊断；它们不能替代对定义域、量词和完备性的证明。</p>
+</div>
+<h3 id="4">4. 迁移问题：从标量模型回到函数空间<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>Picard 积分算子在 <span class="arithmatex">\(C[0,h]\)</span> 上的压缩常数依赖区间长度；换到全时间区间时，局部不变域与分段延拓如何接起来？请把“换一个范数”“缩短区间”“先完备化再迭代”分别标注为改变哪一张证书，而不要只说“<span class="arithmatex">\(|g'|&lt;1\)</span> 所以一定收敛”。</p>
+</section>
+<h2 id="1_1">1. 度量空间与完备性<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 度量空间 <span class="arithmatex">\((X, d)\)</span>：<span class="arithmatex">\(d\)</span> 满足正定、对称、三角不等式。由此定义收敛、Cauchy 列、开闭集、连续——数分 I 的语言原样迁移（那一页就是按"将来能搬家"写的）。</p>
 <p><strong>完备</strong>：Cauchy 列必收敛于空间内。例：<span class="arithmatex">\(\mathbb{R}^n\)</span>、<span class="arithmatex">\(C[a,b]\)</span>（配 <span class="arithmatex">\(\max\)</span> 度量）、<span class="arithmatex">\(L^p\)</span>（实变 III）完备；<span class="arithmatex">\(\mathbb{Q}\)</span>、多项式全体（配 max 度量）不完备。不完备空间可<strong>完备化</strong>（唯一地填洞——<span class="arithmatex">\(\mathbb{Q} \to \mathbb{R}\)</span>、Riemann 可积 <span class="arithmatex">\(\to L^p\)</span> 两大先例）。</p>
 <h2 id="2-banach">2. 压缩映像原理（Banach 不动点定理）<a class="headerlink" href="#2-banach" title="Permanent link"></a></h2>
@@ -60,7 +118,7 @@
 <p><strong>定义</strong> 线性空间 + 范数 <span class="arithmatex">\(\|\cdot\|\)</span>（正定、齐次、三角）⇒ 赋范空间；<span class="arithmatex">\(d(x,y) = \|x - y\|\)</span> 成度量空间；<strong>完备的赋范空间 = Banach 空间</strong>。</p>
 <p><strong>主力例子清单</strong>：<span class="arithmatex">\(\mathbb{R}^n\)</span>（任意范数）、<span class="arithmatex">\(C[a,b]\)</span> 配 <span class="arithmatex">\(\|f\|_\infty = \max|f|\)</span>（一致收敛的空间语言：按此范数收敛 ⟺ 一致收敛——数分 IV 的概念在此获得几何身份）、<span class="arithmatex">\(L^p\)</span> 与 <span class="arithmatex">\(\ell^p\)</span>（实变 III）。</p>
 <p><strong>范数等价</strong>：有限维空间上<strong>一切范数等价</strong>（诱导同样的收敛与拓扑）——所以高代不用操心用哪个范数；无穷维上<strong>范数不等价</strong>（<span class="arithmatex">\(C[0,1]\)</span> 上 <span class="arithmatex">\(\|\cdot\|_\infty\)</span> 与 <span class="arithmatex">\(\|\cdot\|_1\)</span> 给出不同的收敛概念）——选范数=选拓扑=选问题，泛函分析的第一自觉。</p>
-<h2 id="4">4. 有限维与无穷维的分水岭<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 有限维与无穷维的分水岭<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>定理（Riesz 引理引出的判据）</strong> 赋范空间的闭单位球紧 <span class="arithmatex">\(\iff\)</span> 空间有限维。</p>
 <p>——数分 I 的 Bolzano–Weierstrass（有界列必有收敛子列）在无穷维<strong>失效</strong>：<span class="arithmatex">\(L^2\)</span> 中的标准正交列 <span class="arithmatex">\(\{e_n\}\)</span> 有界（<span class="arithmatex">\(\|e_n\| = 1\)</span>）却两两距离 <span class="arithmatex">\(\sqrt2\)</span>——永无收敛子列。<strong>后果深远</strong>：无穷维上"有界闭集上连续函数取最值"不再免费（最优化的存在性要重新奋斗——变分法直接法、弱收敛等概念因此而生，知其动机即可）。这是"无穷维不是有限维的简单放大"的第一声警钟。</p>
 <p><strong>级数与完备性的等价刻画</strong>：赋范空间完备 <span class="arithmatex">\(\iff\)</span> 绝对收敛级数必收敛（<span class="arithmatex">\(\sum\|x_n\| &lt; \infty \Rightarrow \sum x_n\)</span> 收敛）——数分 IV"绝对收敛⇒收敛"原来是完备性的化身。</p>
@@ -80,5 +138,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/banach-contraction.js"></script>
 </body>
 </html>

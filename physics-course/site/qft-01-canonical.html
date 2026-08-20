@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,22 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先在有限盒里数清模式，再谈连续场</a><ul>
+<li><a href="#canonical-field-learning-title">1. 先预测：一个正则化模式到底贡献什么？</a></li>
+<li><a href="#2">2. 静态后备：有限实模式的逐项账本</a></li>
+<li><a href="#3">3. 四笔账不能合并</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 为什么必须是"场"</a></li>
-<li><a href="#2">2. 经典场的拉格朗日力学</a></li>
-<li><a href="#3">3. 正则量子化（本页主菜）</a></li>
+<li><a href="#2_1">2. 经典场的拉格朗日力学</a></li>
+<li><a href="#3_1">3. 正则量子化（本页主菜）</a></li>
 <li><a href="#4-feynman">4. 传播子（通往 Feynman 图的接口）</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
@@ -50,11 +67,112 @@
 <h1 id="i">场论 I · 经典场与正则量子化<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Peskin &amp; Schroeder §2 ｜ <strong>前置</strong>：mech-02/04、qm-02（升降算符——本页的主角）、sr-01
-量子场论 = 狭义相对论 + 量子力学的唯一和解方案。核心构造一句话：<strong>场 = 每个动量模式一个谐振子；粒子 = 振子的激发量子</strong>。本页对最简单的 Klein–Gordon 场把这句话完整推演——qm-02 升降算符的投资在此获得最大一笔分红。</p>
+量子场论是把量子原理、狭义相对论与局域相互作用放进同一套语言的标准框架。核心构造一句话：<strong>自由场 = 每个独立模式一个谐振子；粒子 = 振子的激发量子</strong>。本页对最简单的 Klein–Gordon 场把这句话完整推演——qm-02 升降算符的投资在此获得最大一笔分红。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="canonical-field-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先在有限盒里数清模式，再谈连续场<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="canonical-field-learning-title">1. 先预测：一个正则化模式到底贡献什么？<a class="headerlink" href="#canonical-field-learning-title" title="Permanent link"></a></h3>
+<p>实验使用 <span class="arithmatex">\(1\)</span> 维周期有限盒中的<strong>自由实标量场</strong>，长度 <span class="arithmatex">\(L\)</span> 固定为有限值，只保留 <span class="arithmatex">\(|n|\le K\)</span> 的有限模式。先回答：</p>
+<ol>
+<li>每个独立实模式是不是一个能级为 <span class="arithmatex">\((q+\frac12)\omega\)</span> 的谐振子？</li>
+<li>cutoff <span class="arithmatex">\(K\)</span> 增大时，占据数贡献与零点项是否要分开记账？</li>
+<li>有限盒、有限模式的精确求和，是否已经等同于相互作用 QFT 的非微扰构造？</li>
+<li>对实场，<span class="arithmatex">\(a^\dagger\)</span> 是否还需要另一个独立的反粒子产生算符？</li>
+</ol>
+<p>揭示前只保留问题；提交后才显示模式表、能级、占据数、零点能、cutoff 和交互 SVG。这个实验是从正则量子化走向连续记号的受控桥梁，不把桥梁冒充终点。</p>
+<h3 id="2">2. 静态后备：有限实模式的逐项账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="canonical-field-modes">
+<p><strong>JavaScript 失效时的静态读法：</strong>取 <span class="arithmatex">\(L=2\pi\)</span>、<span class="arithmatex">\(m=1\)</span>、<span class="arithmatex">\(K=3\)</span>。用独立实模式的壳标记 <span class="arithmatex">\(n=0,1,2,3\)</span>，其中 <span class="arithmatex">\(g_0=1\)</span>，<span class="arithmatex">\(g_n=2\)</span>（<span class="arithmatex">\(n&gt;0\)</span>，对应 cosine/sine 两个实模式；不是把复场的 <span class="arithmatex">\(+k\)</span>、<span class="arithmatex">\(-k\)</span> 再重复计数）。</p>
+<div class="arithmatex">\[
+k_n=\frac{2\pi n}{L},\qquad
+\omega_n=\sqrt{k_n^2+m^2},\qquad
+E_{n,r}=\left(q_{n,r}+\frac12\right)\omega_n.
+\]</div>
+<p>对 cutoff 内的全部独立实振子，</p>
+<div class="arithmatex">\[
+H_K=\sum_{n=0}^{K}\sum_{r=1}^{g_n}
+\left(q_{n,r}+\frac12\right)\omega_n
+=E_{\rm exc}(K)+E_0(K),
+\]</div>
+<p>其中 <span class="arithmatex">\(E_{\rm exc}(K)=\sum q_{n,r}\omega_n\)</span>，<span class="arithmatex">\(E_0(K)=\frac12\sum g_n\omega_n\)</span>。例如默认的“<span class="arithmatex">\(n=1\)</span> 单模激发”可读成：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(g_n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(k_n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\omega_n\)</span></th>
+<th><span class="arithmatex">\(q_{n,r}\)</span></th>
+<th style="text-align: right;">零点项 <span class="arithmatex">\(\frac12g_n\omega_n\)</span></th>
+<th style="text-align: right;">占据项 <span class="arithmatex">\(\sum_rq_{n,r}\omega_n\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td><span class="arithmatex">\([0]\)</span></td>
+<td style="text-align: right;">0.50000</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.41421</td>
+<td><span class="arithmatex">\([1,0]\)</span></td>
+<td style="text-align: right;">1.41421</td>
+<td style="text-align: right;">1.41421</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2.23607</td>
+<td><span class="arithmatex">\([0,0]\)</span></td>
+<td style="text-align: right;">2.23607</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.16228</td>
+<td><span class="arithmatex">\([0,0]\)</span></td>
+<td style="text-align: right;">3.16228</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>合计</strong></td>
+<td style="text-align: right;"><strong>7</strong></td>
+<td style="text-align: right;"><span class="arithmatex">\(\Lambda=3\)</span></td>
+<td style="text-align: right;">—</td>
+<td>—</td>
+<td style="text-align: right;"><strong><span class="arithmatex">\(E_0\approx7.31256\)</span></strong></td>
+<td style="text-align: right;"><strong><span class="arithmatex">\(E_{\rm exc}\approx1.41421\)</span></strong></td>
+</tr>
+</tbody>
+</table>
+<p>所以 <span class="arithmatex">\(H_K\approx8.72678\)</span>，并且 <span class="arithmatex">\(H_K-E_0-E_{\rm exc}=0\)</span> 是最重要的代数对账。改变 <span class="arithmatex">\(K\)</span> 会改变有限盒里的零点和 cutoff 账本；改变占据 profile 则改变激发项。这里没有相互作用项、没有连续极限，也没有声称构造了相互作用 QFT 的非微扰 Hilbert 空间。</p>
+<p><strong>边界提醒：</strong>实标量场的 <span class="arithmatex">\(a^\dagger\)</span> 产生同一种中性粒子；只有复标量场才用独立的 <span class="arithmatex">\(a\)</span> 与 <span class="arithmatex">\(b^\dagger\)</span> 分别记粒子与反粒子。玻色对易关系是量子化选择，并受相对论局域理论的 spin–statistics 约束；不能说它单凭 <span class="arithmatex">\(a^\dagger\)</span> 互相对易就被“推出来”。Feynman <span class="arithmatex">\(i\varepsilon\)</span> 是时序传播子的边界处方，不等同于 retarded Green 函数的因果支撑。</p>
+</div>
+<h3 id="3">3. 四笔账不能合并<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验把每个 shell 的 <span class="arithmatex">\(g_n\)</span>、<span class="arithmatex">\(\omega_n\)</span>、占据数、单振子能级、零点项和占据项分开显示，再报告</p>
+<div class="arithmatex">\[
+M_K=1+2K,\qquad
+\Lambda=\frac{2\pi K}{L},\qquad
+H_K-E_0(K)-E_{\rm exc}(K)=0.
+\]</div>
+<p><span class="arithmatex">\(M_K\)</span> 是有限盒里独立实振子数；正负动量的计数已经被实基的 degeneracy 吸收。<span class="arithmatex">\(E_0(K)\)</span> 对 cutoff 敏感，而固定占据 profile 的 <span class="arithmatex">\(E_{\rm exc}(K)\)</span> 只有在 cutoff 包含所占据的模式后才保持不变。正规排序在这个自由、受监管的模型里可以理解为减去一个 c-number 零点项，但不等于已经处理了相互作用、重整化或非微扰构造。</p>
+</section>
 <h2 id="1">1. 为什么必须是"场"<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>单粒子相对论量子力学自败：<span class="arithmatex">\(E = \pm\sqrt{p^2c^2 + m^2c^4}\)</span> 的负能解无法丢弃（完备性）；因果性出漏（传播幅在类空间隔外不严格为零）；且 <span class="arithmatex">\(E = mc^2\)</span> 允许<strong>粒子数改变</strong>（对撞造新粒子——实验日常）——单粒子的 Hilbert 空间装不下。<strong>出路</strong>：把"粒子"降级为派生概念、把<strong>场</strong>升为基本对象——粒子数可变、反粒子自动出现、因果性由场的对易结构保证（§3）。</p>
-<h2 id="2">2. 经典场的拉格朗日力学<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>自由方程的正频解可以组成一个单粒子子空间，所以问题不能粗略说成“负能解因完备性绝对不能丢”。真正的张力来自三处：Klein–Gordon 密度不像 Schrödinger 概率密度那样处处正；正能量、严格局域化与相对论因果结构不能同时按非相对论直觉实现；更关键的是，相对论性相互作用允许<strong>粒子数改变</strong>（对撞产生新粒子），固定粒子数的单粒子 Hilbert 空间不足以描述这种过程。<strong>出路</strong>：把场作为基本算符、把粒子视为其激发——Fock 空间容纳可变粒子数，复场同时容纳粒子与反粒子。</p>
+<p>还要分清“相关”与“传信”：Feynman 传播子在类空间隔可以非零，这本身不表示能够超光速发送信息；局域玻色场在类空间隔的交换子为零（费米场用反交换子的相应条件），即<strong>微因果性</strong>，才是局域可观测量互不影响的操作性保证。</p>
+<h2 id="2_1">2. 经典场的拉格朗日力学<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>场论 = 无穷维的 mech-02：拉氏密度 <span class="arithmatex">\(\mathcal L(\phi, \partial_\mu\phi)\)</span>，作用量 <span class="arithmatex">\(S = \int\mathcal L\,d^4x\)</span>，Euler–Lagrange：</p>
 <div class="arithmatex">\[
 \partial_\mu\frac{\partial\mathcal L}{\partial(\partial_\mu\phi)} - \frac{\partial\mathcal L}{\partial\phi} = 0
@@ -64,23 +182,24 @@
 \mathcal L = \frac12\partial_\mu\phi\,\partial^\mu\phi - \frac12 m^2\phi^2 \;\Rightarrow\; (\Box + m^2)\phi = 0
 \]</div>
 <p>平面波解的色散 <span class="arithmatex">\(\omega_{\mathbf k}^2 = \mathbf k^2 + m^2\)</span>——<strong>场是耦合谐振子的连续极限</strong>（solid-01 弹簧链 <span class="arithmatex">\(\to\)</span> 连续介质：色散关系里 <span class="arithmatex">\(m\)</span> 是"光学支的隙"——凝聚态与场论互为极限的第一照面）。<strong>Noether 定理的场版</strong>（mech-02 平移到场）：时空平移 ⇒ 能动张量守恒；内部相位对称 ⇒ 荷守恒（复场 <span class="arithmatex">\(\phi \to e^{i\alpha}\phi\)</span> 给出"电荷"——pp-01 规范原理的种子）。</p>
-<h2 id="3">3. 正则量子化（本页主菜）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 正则量子化（本页主菜）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>流程（qm-02 的仪式放大到无穷维）</strong>：正则动量 <span class="arithmatex">\(\pi = \dot\phi\)</span>、等时对易关系 <span class="arithmatex">\([\phi(\mathbf x), \pi(\mathbf y)] = i\delta^3(\mathbf x - \mathbf y)\)</span>（mech-03 字典的场版）；按模式展开：</p>
 <div class="arithmatex">\[
 \phi(\mathbf x) = \int\frac{d^3k}{(2\pi)^3\sqrt{2\omega_{\mathbf k}}}\Big(a_{\mathbf k}e^{i\mathbf k\cdot\mathbf x} + a^\dagger_{\mathbf k}e^{-i\mathbf k\cdot\mathbf x}\Big)
 \]</div>
-<p><strong>【推导】</strong> 对易关系换算成 <span class="arithmatex">\([a_{\mathbf k}, a^\dagger_{\mathbf k'}] = (2\pi)^3\delta^3(\mathbf k - \mathbf k')\)</span>——<strong>每个 <span class="arithmatex">\(\mathbf k\)</span> 一套升降算符</strong>；哈密顿量对角化为</p>
+<p>上式的连续积分是形式记号；做 cutoff 时先放入有限盒，再选独立的实模式。对本页的 <span class="arithmatex">\(1\)</span> 维示范，<span class="arithmatex">\(n=0\)</span> 有一个实模式，<span class="arithmatex">\(n&gt;0\)</span> 的 cosine/sine 两个实模式合起来代表一对正负动量，不再把 <span class="arithmatex">\(\pm k\)</span> 当成两套额外的复场自由度重复相加。</p>
+<p><strong>【推导】</strong> 对易关系换算成 <span class="arithmatex">\([a_{\mathbf k}, a^\dagger_{\mathbf k'}] = (2\pi)^3\delta^3(\mathbf k - \mathbf k')\)</span>——<strong>每个独立实模式一套升降算符</strong>；哈密顿量对角化为</p>
 <div class="arithmatex">\[
 \hat H = \int\frac{d^3k}{(2\pi)^3}\,\omega_{\mathbf k}\Big(a^\dagger_{\mathbf k}a_{\mathbf k} + \frac12\Big)
 \]</div>
-<p><span class="arithmatex">\(\blacksquare\)</span> <strong>世界观交割</strong>：真空 <span class="arithmatex">\(|0\rangle\)</span>（一切 <span class="arithmatex">\(a|0\rangle = 0\)</span>）；<strong>粒子 = <span class="arithmatex">\(a^\dagger_{\mathbf k}|0\rangle\)</span></strong>（能量 <span class="arithmatex">\(\omega_{\mathbf k}\)</span>、动量 <span class="arithmatex">\(\mathbf k\)</span> 的激发量子——"粒子"从本体降为场的音符）；多粒子态自动对称（<span class="arithmatex">\(a^\dagger\)</span> 互相对易）——<strong>玻色统计不是假设是推论</strong>（自旋-统计定理的一半；费米场用反对易子给出另一半——qm-03/sm-03 的欠条在场论层面结清）。负能解的安置：<span class="arithmatex">\(a^\dagger\)</span> 系数携带正能反粒子——复场时 <span class="arithmatex">\(e^{+i\omega t}\)</span> 模式 = <strong>反粒子的产生</strong>：Dirac 之谜的现代答案。</p>
+<p><span class="arithmatex">\(\blacksquare\)</span> <strong>世界观交割</strong>：真空 <span class="arithmatex">\(|0\rangle\)</span>（<span class="arithmatex">\(a_{\mathbf k}|0\rangle=0\)</span>）；对<strong>实标量场</strong>，<span class="arithmatex">\(a^\dagger_{\mathbf k}|0\rangle\)</span> 是一种中性粒子的激发，不能再从同一个实场拆出独立的反粒子。对<strong>复标量场</strong>，场展开含独立的 <span class="arithmatex">\(a_{\mathbf k}\)</span> 与 <span class="arithmatex">\(b^\dagger_{\mathbf k}\)</span>：前者对应粒子，后者对应反粒子。玻色对易关系是量子化时选取的代数，并由相对论局域理论的 spin–statistics 定理约束；多粒子态的对称性不能表述为单凭 <span class="arithmatex">\(a^\dagger\)</span> 对易就被推出来。负频率项在复场中与独立的反粒子算符配对，这是粒子/反粒子区分的正确位置。</p>
 <p><strong>真空能一嘴</strong>：<span class="arithmatex">\(\int\frac12\omega_{\mathbf k}\)</span> 发散——第一次撞见紫外无穷（能量差可测：Casimir 力 ✓ qm-02 例 3；引力语境则成宇宙学常数问题【第三档边界，如实标注】）；处理哲学（只有差值可测/正规排序）是 qft-03 重整化的序曲。</p>
 <h2 id="4-feynman">4. 传播子（通往 Feynman 图的接口）<a class="headerlink" href="#4-feynman" title="Permanent link"></a></h2>
 <p><strong>Feynman 传播子</strong>：<span class="arithmatex">\(D_F(x - y) = \langle0|T\phi(x)\phi(y)|0\rangle\)</span>（时序真空关联——"场在真空里的涟漪如何传播"）：</p>
 <div class="arithmatex">\[
 \tilde D_F(k) = \frac{i}{k^2 - m^2 + i\epsilon}
 \]</div>
-<p><strong>【骨架】</strong> 模式展开代入 + 时序的阶跃函数积分表示；<span class="arithmatex">\(i\epsilon\)</span> 处方 = 围道绕极点的选择（复变 III 留数在场论的岗位）= 因果边界条件（mp-01 推迟 Green 函数的量子亲戚）。<span class="arithmatex">\(\blacksquare\)</span> 静态极限对账：交换该传播子 ⇒ Yukawa 势 <span class="arithmatex">\(\frac{e^{-mr}}{r}\)</span>（aqm-02 Born 近似的 <span class="arithmatex">\(\frac{1}{q^2 + m^2}\)</span> 认祖归宗）——<strong>"力 = 交换虚粒子"的定量出生地</strong>；下一页它是 Feynman 图的内线。</p>
+<p><strong>【骨架】</strong> 模式展开代入 + 时序的阶跃函数积分表示；<span class="arithmatex">\(i\epsilon\)</span> 处方选择 Feynman 时序传播子的极点边界条件。它不是 retarded Green 函数的定义，也不应单独改写成“类空间隔外的推迟因果支撑”；后者要回到交换子和 retarded 解的因果结构。<span class="arithmatex">\(\blacksquare\)</span> 静态极限对账：交换该传播子 ⇒ Yukawa 势 <span class="arithmatex">\(\frac{e^{-mr}}{r}\)</span>（aqm-02 Born 近似的 <span class="arithmatex">\(\frac{1}{q^2 + m^2}\)</span> 认祖归宗）——<strong>"力 = 交换虚粒子"的定量出生地</strong>；下一页它是 Feynman 图的内线。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（量纲体操）</strong> 自然单位下 <span class="arithmatex">\([\mathcal L] = 4\)</span>（质量量纲）⇒ <span class="arithmatex">\([\phi] = 1\)</span>、<span class="arithmatex">\([m^2\phi^2]\)</span> ✓、耦合 <span class="arithmatex">\(\lambda\phi^4\)</span> 的 <span class="arithmatex">\([\lambda] = 0\)</span>（无量纲——qft-03 可重整性判据的量纲预演）——一分钟学会场论的量纲速算。</p>
 <p><strong>例 2（Noether 荷亲算）</strong> 复 KG 场 <span class="arithmatex">\(\phi \to e^{i\alpha}\phi\)</span>：<span class="arithmatex">\(j^\mu = i(\phi^*\partial^\mu\phi - \phi\partial^\mu\phi^*)\)</span>，验证 <span class="arithmatex">\(\partial_\mu j^\mu = 0\)</span>（用运动方程两行）——"电荷守恒 = 相位对称"的手算版。</p>
@@ -96,5 +215,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/canonical-field-modes.js"></script>
 </body>
 </html>

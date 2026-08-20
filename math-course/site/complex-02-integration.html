@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#contour-winding-learning-title">学习层：先分清方向、绕数、形变和数值误差</a><ul>
+<li><a href="#1-winding-number">1. 参数化方向与 winding number</a></li>
+<li><a href="#2">2. 解析区内形变、跨越奇点</a></li>
+<li><a href="#3">3. 预测门与静态后备</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 复积分与第一块基石</a></li>
 <li><a href="#2-cauchy">2. Cauchy 积分公式：边界决定内部</a></li>
-<li><a href="#3">3. 三连推论：多米诺</a></li>
+<li><a href="#3_1">3. 三连推论：多米诺</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
 </div>
@@ -48,6 +65,73 @@
 <blockquote>
 <p>复变的主定理全在本页：Cauchy 积分定理（解析函数沿闭路积分为零）与 Cauchy 积分公式（边界值决定内部一切）。由它们像多米诺一样倒出：解析⇒无穷可导、Liouville 定理、代数基本定理——高代 I 欠下的那张证明欠条，在这里用三行还清。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="contour-winding-learning-title" class="learning-layer">
+<h2 id="contour-winding-learning-title">学习层：先分清方向、绕数、形变和数值误差<a class="headerlink" href="#contour-winding-learning-title" title="Permanent link"></a></h2>
+<p>本实验只取一个最小但不含糊的被积函数</p>
+<div class="arithmatex">\[
+f(z)=\frac{1}{z-a},\qquad a\text{ 是奇点}.
+\]</div>
+<p>把一条围道写成 <span class="arithmatex">\(z(t)\)</span> 后，积分是 <span class="arithmatex">\(\int f(z(t))z'(t)\,dt\)</span>。因此本页把四个容易被一张漂亮曲线混在一起的对象拆开：参数化方向改变 <span class="arithmatex">\(dz\)</span> 的符号；winding number 是拓扑账；不穿过奇点的解析区内形变检验 Cauchy 定理；闭合梯形只是数值近似，误差不能被叫作 winding 的变化。</p>
+<h3 id="1-winding-number">1. 参数化方向与 winding number<a class="headerlink" href="#1-winding-number" title="Permanent link"></a></h3>
+<p>取</p>
+<div class="arithmatex">\[
+z_\eta(t)=\bigl(1+\eta\cos 3t\bigr)(\cos t+i\sin t),\quad 0\le t\le2\pi,
+\]</div>
+<p>其中 <span class="arithmatex">\(\eta\)</span> 是形变幅度；顺时针方向把虚部改成 <span class="arithmatex">\(-\sin t\)</span>。winding number 用相对奇点的连续辐角增量定义：</p>
+<div class="arithmatex">\[
+n(C,a)=\frac1{2\pi}\Delta_C\arg(z-a).
+\]</div>
+<p>反向参数化同时把 <span class="arithmatex">\(n\)</span> 与 <span class="arithmatex">\(\oint_C dz/(z-a)\)</span> 变号。若 <span class="arithmatex">\(a\)</span> 在围道外，<span class="arithmatex">\(n=0\)</span>；若 <span class="arithmatex">\(a\)</span> 在内，逆时针为 <span class="arithmatex">\(+1\)</span>、顺时针为 <span class="arithmatex">\(-1\)</span>。</p>
+<h3 id="2">2. 解析区内形变、跨越奇点<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>只要 <span class="arithmatex">\(C_0\)</span> 到 <span class="arithmatex">\(C_1\)</span> 的形变整个避开 <span class="arithmatex">\(a\)</span>，<span class="arithmatex">\(1/(z-a)\)</span> 在扫过的区域内解析，于是</p>
+<div class="arithmatex">\[
+\oint_{C_0}\frac{dz}{z-a}=\oint_{C_1}\frac{dz}{z-a}=2\pi i\,n.
+\]</div>
+<p>这不是“半径差不多所以面积差不多”，而是无奇点解析区中的路径不变性。若奇点落到路径上，积分本身不定义，winding 也不定义；数值程序可能打印一个很大的数，但那是模型失去定义域，不应伪装成一个很大的 quadrature error。</p>
+<h3 id="3">3. 预测门与静态后备<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先回答当前预设的 winding、形变是否仍在同一解析区、反向参数化的后果，以及“奇点命中”和“数值误差”是否分开。提交前不显示 SVG、复积分数字或账本；改变预设、方向、形变或 <span class="arithmatex">\(N\)</span> 会重新上锁。</p>
+<p><strong>无 JavaScript 时的静态后备：</strong>默认取 <span class="arithmatex">\(a=0.35+0.18i\)</span>、逆时针、<span class="arithmatex">\(\eta=0.16\)</span>、<span class="arithmatex">\(N=64\)</span>。当前围道和基准圆都绕奇点一次，因此解析值为 <span class="arithmatex">\(2\pi i\)</span>；反向后为 <span class="arithmatex">\(-2\pi i\)</span>。闭合梯形的数值项只应作为逼近 <span class="arithmatex">\(2\pi i\)</span> 的误差读数。下面三行分别代表拓扑、解析和定义域的不同状态。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>奇点位置</th>
+<th style="text-align: right;">当前 winding（逆时针）</th>
+<th>解析值</th>
+<th>数值账本应如何读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>奇点在内</td>
+<td><span class="arithmatex">\(0.35+0.18i\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+1\)</span></td>
+<td><span class="arithmatex">\(2\pi i\)</span></td>
+<td>当前形变与基准圆的积分应一致；误差随 <span class="arithmatex">\(N\)</span> 细化而单独变小</td>
+</tr>
+<tr>
+<td>奇点在外</td>
+<td><span class="arithmatex">\(1.35+0.18i\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(0\)</span></td>
+<td>解析区内闭路积分为零；非零项是求积误差，不是残余 winding</td>
+</tr>
+<tr>
+<td>奇点在路径上</td>
+<td><span class="arithmatex">\(1\)</span>，基准圆 <span class="arithmatex">\(\lvert z\rvert=1\)</span></td>
+<td style="text-align: right;">未定义</td>
+<td>未定义</td>
+<td>先报告路径奇点；不把发散/非有限值记成 quadrature error</td>
+</tr>
+</tbody>
+</table>
+<p>交互围道图只画有限采样点，不能代替“形变全程避开奇点”的解析条件；账本会同时列出当前围道、基准圆、<span class="arithmatex">\(2\pi i n\)</span>、梯形近似和复数误差。</p>
+<div class="learning-lab" data-learning-lab="contour-winding">
+<p><strong>静态读法提示：</strong>若脚本失效，按上表先检查方向与 winding，再检查奇点是否落在路径上，最后才讨论 <span class="arithmatex">\(N\)</span> 段闭合复合梯形的误差。</p>
+</div>
+</section>
 <h2 id="1">1. 复积分与第一块基石<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 沿曲线 <span class="arithmatex">\(C\)</span>：<span class="arithmatex">\(\int_C f(z)\,dz = \int_a^b f(z(t))\,z'(t)\,dt\)</span>（数分 VI 第二型曲线积分的复打包）。基本估计（<strong>ML 不等式</strong>）：<span class="arithmatex">\(\big|\int_C f\,dz\big| \leq \max_C|f| \cdot \mathrm{len}(C)\)</span>——复变证明里出镜率最高的一行。</p>
 <p><strong>基础例（一切计算的原子）</strong>：绕 <span class="arithmatex">\(z_0\)</span> 的圆周上</p>
@@ -71,7 +155,7 @@ f(z_0) = \frac{1}{2\pi i}\oint_C \frac{f(z)}{z - z_0}\,dz
 f^{(n)}(z_0) = \frac{n!}{2\pi i}\oint_C \frac{f(z)}{(z - z_0)^{n+1}}\,dz
 \]</div>
 <p><strong>推论（本页最大惊雷）</strong>：解析（可导一次）⇒ <strong>无穷可导</strong>——实函数世界"可导一次未必两次"的阶梯在复平面塌缩成一级。顺带 <strong>Cauchy 估计</strong>：<span class="arithmatex">\(|f^{(n)}(z_0)| \leq \frac{n!\,M}{R^n}\)</span>（<span class="arithmatex">\(M\)</span> = 半径 <span class="arithmatex">\(R\)</span> 圆上的最大模）。</p>
-<h2 id="3">3. 三连推论：多米诺<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 三连推论：多米诺<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>Liouville 定理</strong>：有界整函数（全平面解析）必为常数。
 <em>证明一行</em>：Cauchy 估计 <span class="arithmatex">\(|f'(z_0)| \leq \frac{M}{R} \xrightarrow{R\to\infty} 0\)</span>——处处 <span class="arithmatex">\(f' = 0\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（对照实函数：<span class="arithmatex">\(\sin x\)</span> 有界不常数——复平面上 <span class="arithmatex">\(\sin z\)</span> 无界（复变 I），世界是自洽的。）</p>
 <p><strong>代数基本定理</strong>：复系数 <span class="arithmatex">\(n \geq 1\)</span> 次多项式必有根。
@@ -92,5 +176,7 @@ f^{(n)}(z_0) = \frac{n!}{2\pi i}\oint_C \frac{f(z)}{(z - z_0)^{n+1}}\,dz
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/contour-winding.js"></script>
 </body>
 </html>

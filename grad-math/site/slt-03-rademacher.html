@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,22 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#rademacher-complexity-learning-title">学习层：把经验复杂度、概率证书和一次 gap 分开</a><ul>
+<li><a href="#1-rademacher">1. 经验 Rademacher 复杂度：先对每个符号取上确界</a></li>
+<li><a href="#2">2. 三个读数的量词</a></li>
+<li><a href="#3">3. 预测门与静态后备：先承认这个界是空泛的</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 定义与直觉</a></li>
-<li><a href="#2">2. 主定理（全证）</a></li>
-<li><a href="#3">3. 计算工具箱</a></li>
+<li><a href="#2_1">2. 主定理（全证）</a></li>
+<li><a href="#3_1">3. 计算工具箱</a></li>
 <li><a href="#4-margin-svm-boosting">4. Margin 界：解释 SVM 与 boosting</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
@@ -50,13 +67,82 @@
 <p><strong>对标</strong>：Mohri <em>FML</em> §3.1–3.3、§5.4 ｜ <strong>前置</strong>：slt-01/02、hdp-01、mt-04（McDiarmid）
 VC 维是"最坏情形"的组合量；<strong>Rademacher 复杂度</strong>让数据自己报复杂度——更紧、适用任意实值损失、且对核方法与神经网络可直接计算。本页给主定理全证，并走到解释 SVM/boosting 泛化的 <strong>margin 界</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="rademacher-complexity-learning-title" class="learning-layer">
+<h2 id="rademacher-complexity-learning-title">学习层：把经验复杂度、概率证书和一次 gap 分开<a class="headerlink" href="#rademacher-complexity-learning-title" title="Permanent link"></a></h2>
+<p>本实验固定一个 <span class="arithmatex">\(m=6\)</span> 的带标签样本、一个有限函数类和一个 12 点均匀参考分布。有限类让“sup”可以完整枚举；固定参考分布让一次 realized gap 可以精确复核，但它仍然不是高概率量词的替身。</p>
+<h3 id="1-rademacher">1. 经验 Rademacher 复杂度：先对每个符号取上确界<a class="headerlink" href="#1-rademacher" title="Permanent link"></a></h3>
+<p>把每个候选函数的损失限制写成 <span class="arithmatex">\(\ell_h(S)=(\ell_h(z_1),\ldots,\ell_h(z_m))\)</span>。脚本逐一枚举 <span class="arithmatex">\(2^m=64\)</span> 个符号向量，而不是随机抽几个标签：</p>
+<div class="arithmatex">\[
+\widehat{\mathfrak R}_S(\ell\circ\mathcal H)
+=\frac1{2^m}\sum_{\sigma\in\{-1,+1\}^m}
+\max_{h\in\mathcal H}\frac1m\sum_{i=1}^m\sigma_i\ell_h(z_i).
+\]</div>
+<p>函数类从 4 个候选切到 8 个候选时，上确界的候选集合变大，所以经验复杂度不会因为“候选更多”而降低；但一次把标签打乱后仍能拟合的观察，最多是高容量的证据，不能单独断言 <span class="arithmatex">\(\widehat{\mathfrak R}_S\)</span> 已接近某个上限。严格的 <span class="arithmatex">\(\widehat{\mathfrak R}_S\)</span> 必须保留“对每个 <span class="arithmatex">\(\sigma\)</span> 取 sup，再对所有 <span class="arithmatex">\(\sigma\)</span> 平均”的顺序。</p>
+<h3 id="2">2. 三个读数的量词<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\([0,1]\)</span> 值损失，实验显示经验风险 <span class="arithmatex">\(R_S(h)\)</span>、参考分布风险 <span class="arithmatex">\(R_D(h)\)</span> 和一次 realized gap</p>
+<div class="arithmatex">\[
+\operatorname{gap}_{\rm realized}=R_D(h)-R_S(h)
+\]</div>
+<p>分别属于不同账本。这里的 <span class="arithmatex">\(R_D\)</span> 是声明好的 12 点教学分布上的精确平均，所以可以复算；它不是“看了这一个 holdout 就得到的总体真理”。</p>
+<p>经验 Rademacher 版本的统一高概率证书写成</p>
+<div class="arithmatex">\[
+R_D(h)\le R_S(h)+2\widehat{\mathfrak R}_S(\ell\circ\mathcal H)
+ +3\sqrt{\frac{\log(2/\delta)}{2m}},
+\qquad\text{概率至少 }1-\delta,
+\]</div>
+<p>并利用 <span class="arithmatex">\(R_D(h)\le1\)</span> 把显示值裁到 1。证书是对 iid 样本量词的上界；realized gap 是这次固定账本的差；经验复杂度是符号平均。三者数值偶尔相近，也不能互换定义。</p>
+<h3 id="3">3. 预测门与静态后备：先承认这个界是空泛的<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认选择 8 个候选的丰富有限类，固定 <span class="arithmatex">\(m=6\)</span>、<span class="arithmatex">\(2^m=64\)</span>，按上式完整枚举得到 <span class="arithmatex">\(\widehat{\mathfrak R}_S\)</span>。取 <span class="arithmatex">\(\delta=0.05\)</span> 后，右端的原始证书按 <span class="arithmatex">\(R_S+2\widehat{\mathfrak R}_S+3\sqrt{\log(40)/12}\)</span> 计算；在本页的 <span class="arithmatex">\(m=6\)</span> 配置中它会超过 1，故显示证书裁成 1，是 <strong>vacuous（空泛）</strong> 的统一界，而不是一个有用的数值预测。账本保留“原始证书”和“裁剪后证书”两列。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>固定内容</th>
+<th>精确/观测方式</th>
+<th>应得出的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\widehat{\mathfrak R}_S\)</span></td>
+<td><span class="arithmatex">\(m=6\)</span>，8 个有限候选</td>
+<td>对 64 个 <span class="arithmatex">\(\sigma\)</span> 逐一算 <span class="arithmatex">\(\max_h\)</span> 再平均</td>
+<td>这是经验复杂度；不靠一次随机标签实验下结论</td>
+</tr>
+<tr>
+<td>高概率证书</td>
+<td><span class="arithmatex">\(\delta=0.05\)</span></td>
+<td>先保留原始右端，再显示 <span class="arithmatex">\(\min(1,\text{right-hand side})\)</span></td>
+<td>本配置原始值 <span class="arithmatex">\(&gt;1\)</span>，裁剪值为 1，界是 vacuous</td>
+</tr>
+<tr>
+<td>realized gap</td>
+<td>同一 ERM 行的 <span class="arithmatex">\(R_D-R_S\)</span></td>
+<td>12 点固定参考分布逐项计算</td>
+<td>这是一次已实现差，不是概率证书</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\delta=0.01\)</span></td>
+<td>其他条件不变</td>
+<td>松弛项增大</td>
+<td>证书更保守，不会因为置信度更高而自动变紧</td>
+</tr>
+</tbody>
+</table>
+<p>交互 SVG 左侧画 64 个符号向量的上确界，右侧把 <span class="arithmatex">\(R_S\)</span>、<span class="arithmatex">\(R_D\)</span>、原始/裁剪证书分开；表格逐个列出函数，避免把“随机标签可拟合”误写成 Rademacher 复杂度已达上限。</p>
+<div class="learning-lab" data-learning-lab="rademacher-complexity">
+<p><strong>静态读法提示：</strong>脚本失效时仍可用本节公式复核：先枚举 <span class="arithmatex">\(\sigma\)</span>，再取 sup 和平均；然后分别计算固定参考风险、realized gap 与原始证书。m=6 下证书裁到 1 是本实验需要被看见的教学结论。</p>
+</div>
+</section>
 <h2 id="1">1. 定义与直觉<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义（经验 Rademacher 复杂度）</strong> <span class="arithmatex">\(\sigma_i\)</span> i.i.d. 均匀 <span class="arithmatex">\(\pm1\)</span>（Rademacher 变量——slt-02 对称化第三步的主角转正）：</p>
 <div class="arithmatex">\[
 \hat{\mathfrak{R}}_S(\mathcal{F}) = E_\sigma\Big[\sup_{f\in\mathcal{F}}\frac1m\sum_{i=1}^m \sigma_i f(z_i)\Big], \qquad \mathfrak{R}_m(\mathcal{F}) = E_S\,\hat{\mathfrak{R}}_S(\mathcal{F})
 \]</div>
-<p><strong>直觉</strong>：<span class="arithmatex">\(\sigma\)</span> 是纯噪声标签——<span class="arithmatex">\(\hat{\mathfrak{R}}\)</span> 度量<strong>函数类拟合随机噪声的能力</strong>。能把噪声都拟合好的类必然过拟合；"复杂度 = 对噪声的亲和力"是比"打散点数"更贴近机器学习实感的定义（ai 课"把标签打乱看网络还能不能记住"的著名实验，测的就是它）。</p>
-<h2 id="2">2. 主定理（全证）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>直觉</strong>：<span class="arithmatex">\(\sigma\)</span> 是纯噪声符号——<span class="arithmatex">\(\hat{\mathfrak{R}}\)</span> 度量<strong>函数类与许多独立随机符号对齐的平均最优能力</strong>。它与“把标签打乱看模型还能不能记住”的实验共享容量直觉，但两者不是同一个统计量：一次随机重标后训练误差归零，只给出高容量的证据；计算 <span class="arithmatex">\(\hat{\mathfrak R}_S\)</span> 仍须对每个 <span class="arithmatex">\(\sigma\)</span> 在整个函数类上取上确界，再对 <span class="arithmatex">\(\sigma\)</span> 求平均。</p>
+<h2 id="2_1">2. 主定理（全证）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理（Rademacher 泛化界）</strong> <span class="arithmatex">\(\mathcal{F}\)</span> 取值 <span class="arithmatex">\([0,1]\)</span>，以概率 <span class="arithmatex">\(\geq 1-\delta\)</span>，对一切 <span class="arithmatex">\(f \in \mathcal{F}\)</span>：</p>
 <div class="arithmatex">\[
 E f \;\leq\; \frac1m\sum_i f(z_i) + 2\,\mathfrak{R}_m(\mathcal{F}) + \sqrt{\frac{\ln(1/\delta)}{2m}}
@@ -74,7 +160,7 @@ E_S\Phi = E_S\sup_{\mathcal{F}} E_{S'}\Big[\tfrac1m\sum(f(z_i') - f(z_i))\Big]
 \]</div>
 <p>（拆成两个 sup，各是一份 Rademacher 复杂度。）<span class="arithmatex">\(\blacksquare\)</span>
 （对比 slt-02：同一套幽灵样本 + 符号技巧，但<strong>不经过增长函数</strong>——因此不限 0-1 损失、不需要组合结构；VC 界成为特例：Massart 引理【引用】<span class="arithmatex">\(\hat{\mathfrak{R}} \leq \sqrt{2\ln\Pi(m)}/\sqrt m\)</span> + Sauer 即回收 slt-02。）</p>
-<h2 id="3">3. 计算工具箱<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 计算工具箱<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>Talagrand 收缩引理【引用】</strong>：<span class="arithmatex">\(\varphi\)</span> 为 <span class="arithmatex">\(L\)</span>-Lipschitz ⇒ <span class="arithmatex">\(\mathfrak{R}(\varphi\circ\mathcal{F}) \leq L\,\mathfrak{R}(\mathcal{F})\)</span>——<strong>损失函数一层"白过"</strong>（hinge/logistic 都是 1-Lipschitz），只需算假设类本身；</li>
 <li><strong>线性类【证明】</strong>：<span class="arithmatex">\(\mathcal{F} = \{x \mapsto \langle w, x\rangle: \|w\| \leq B\}\)</span>，<span class="arithmatex">\(\|x_i\| \leq R\)</span>：</li>
@@ -95,7 +181,7 @@ L_{\mathcal{D}}^{0\text{-}1}(w) \;\leq\; \hat L_S^{\rho}(w) + \frac{2BR/\rho}{\s
 <p><strong>读法</strong>：<strong>泛化由 <span class="arithmatex">\(\frac{BR}{\rho\sqrt m}\)</span> 控制——与维数无关，与"间隔相对尺度"有关</strong>。SVM 最大化 <span class="arithmatex">\(\rho\)</span> 正是在直接优化这个界（ai 课 02"大间隔 ⇒ 泛化"的定理版）；boosting 的"训练误差为零后继续训练还能降测试误差"之谜同解——它在继续扩大 margin【引用 Schapire et al.】；深度学习的 margin/范数分析是该纲领的现代延长线（部分成功、整体仍开放——诚实边界）。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（有限类回收）</strong> <span class="arithmatex">\(|\mathcal{F}| = N\)</span>：Massart 给 <span class="arithmatex">\(\hat{\mathfrak{R}} \leq \sqrt{2\ln N}/\sqrt m\)</span> ⇒ 主定理回收 slt-01 定理 B（常数略异）——三条路线（union bound / VC / Rademacher）在有限类上会师，互为校验。</p>
-<p><strong>例 2（噪声拟合实验的理论读法）</strong> 把 CIFAR 标签全打乱，大网络训练误差仍归零 ⇒ 其 <span class="arithmatex">\(\hat{\mathfrak{R}} \approx\)</span> 上限 ⇒ <strong>一致收敛路线给不出非平凡界</strong>（Zhang et al. 实验的正式含义）——不是"理论死了"，是"必须走数据/算法相关路线"（margin、稳定性 slt-04、隐式偏置）：把著名实验翻译成理论语言是本页的验收题。</p>
+<p><strong>例 2（噪声拟合实验的理论读法）</strong> 大网络能把一组随机打乱的 CIFAR 标签训练到零误差，说明该训练管线具有很强的记忆能力；它<strong>没有直接算出</strong>函数类的 <span class="arithmatex">\(\hat{\mathfrak R}_S\)</span>，更不能由单次重标断言复杂度已到上限。合理结论是：只依赖全局容量、且不利用数据分布或算法偏置的简单一致收敛界，很可能十分宽松；这推动我们研究 margin、稳定性（slt-04）、压缩和隐式偏置等更贴近训练过程的量。把证据、统计量与定理结论分开，才是著名随机标签实验的正确理论读法。</p>
 <p><strong>例 3（线性界的量纲自检）</strong> <span class="arithmatex">\(\frac{BR}{\sqrt m}\)</span>：<span class="arithmatex">\(B\)</span> 与 <span class="arithmatex">\(R\)</span> 各自缩放会被 <span class="arithmatex">\(w^\top x\)</span> 的不变性抵消——界只依赖无量纲组合 <span class="arithmatex">\(BR/\rho\)</span>（margin 版）：量纲分析（本科建模页）在学习论里同样是防错器。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：一致收敛之外的第二条泛化路线——算法稳定性与正则化，以及在线学习（感知机、OGD 与 regret），统计学习四页收官。</em></p>
@@ -108,5 +194,7 @@ L_{\mathcal{D}}^{0\text{-}1}(w) \;\leq\; \hat L_S^{\rho}(w) + \frac{2BR/\rho}{\s
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/rademacher-complexity.js"></script>
 </body>
 </html>

@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：平稳不等于混合，谱也不会替你补结构条件</a><ul>
+<li><a href="#markov-learning-title">1. 先预测：三个性质到底各自保证什么？</a></li>
+<li><a href="#2">2. 静态后备：三个反例把边界钉住</a></li>
+<li><a href="#3">3. 账本的四层读法</a></li>
+<li><a href="#4">4. 定理边界与迁移</a></li>
+</ul>
+</li>
 <li><a href="#1-markov">1. Markov 性与转移矩阵</a></li>
 <li><a href="#2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov</a></li>
-<li><a href="#3">3. 状态分类：链的解剖学</a></li>
-<li><a href="#4">4. 首达概率与吸收问题</a></li>
+<li><a href="#3_1">3. 状态分类：链的解剖学</a></li>
+<li><a href="#4_1">4. 首达概率与吸收问题</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
 </div>
@@ -49,6 +67,74 @@
 <blockquote>
 <p>Markov 链是"只看现在、不问过去"的随机演化——这个看似粗暴的假设换来了完整的矩阵化理论：演化 = 矩阵幂。本页管"怎么转移、状态什么性格"，下一页管"转移到最后去哪"。高等代数的矩阵工具在此整装上岗。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="markov-learning-title" class="learning-layer">
+<h2 id="_1">学习层：平稳不等于混合，谱也不会替你补结构条件<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="markov-learning-title">1. 先预测：三个性质到底各自保证什么？<a class="headerlink" href="#markov-learning-title" title="Permanent link"></a></h3>
+<p>实验固定三张小转移矩阵，先不显示矩阵幂、TV 距离、特征值和结果账本。请先回答：</p>
+<ol>
+<li><span class="arithmatex">\(\pi P=\pi\)</span> 是“平稳分布”的方程，还是已经证明了链不可约、非周期并且从任意初态收敛？</li>
+<li>有限状态链不可约且非周期时，<span class="arithmatex">\(\mu_t=\mu_0P^t\)</span> 是否从每个初始分布都趋向同一个唯一 <span class="arithmatex">\(\pi\)</span>？</li>
+<li>不可约的周期链是否可以有唯一平稳分布，却让 <span class="arithmatex">\(\operatorname{TV}(\mu_t,\pi)\)</span> 永远不趋于 <span class="arithmatex">\(0\)</span>？</li>
+<li>可约链是否可能有多个闭类、多个平稳分布，因而让长期行为依赖初始状态？</li>
+</ol>
+<p>揭示前不显示数值参数或图表；提交后再用同一个 <span class="arithmatex">\(P\)</span> 同时核对结构、<span class="arithmatex">\(P^t\)</span>、分布和谱。这样“定理条件”与“一条样本曲线”不会混成一句混合保证。</p>
+<h3 id="2">2. 静态后备：三个反例把边界钉住<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="markov-mixing">
+<p><strong>JavaScript 失效时的静态读法：</strong>以下使用行随机矩阵，状态从 <span class="arithmatex">\(0\)</span> 开始，<span class="arithmatex">\(\operatorname{TV}(\mu,\nu)=\frac12\sum_i|\mu_i-\nu_i|\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th><span class="arithmatex">\(P\)</span></th>
+<th>结构证书</th>
+<th>平稳与谱</th>
+<th>从 <span class="arithmatex">\(\delta_0\)</span> 读什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不可约、非周期</td>
+<td><span class="arithmatex">\(\begin{pmatrix}0.8&amp;0.2\\0.3&amp;0.7\end{pmatrix}\)</span></td>
+<td>一个互通类，<span class="arithmatex">\(d=1\)</span></td>
+<td><span class="arithmatex">\(\pi=(0.6,0.4)\)</span>，<span class="arithmatex">\(\lambda=(1,0.5)\)</span></td>
+<td><span class="arithmatex">\(\delta_0P^t=(0.6+0.4\cdot0.5^t,\,0.4-0.4\cdot0.5^t)\)</span>，故 <span class="arithmatex">\(\operatorname{TV}=0.4\cdot0.5^t\)</span></td>
+</tr>
+<tr>
+<td>不可约、周期</td>
+<td><span class="arithmatex">\(\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span></td>
+<td>一个互通类，<span class="arithmatex">\(d=2\)</span></td>
+<td><span class="arithmatex">\(\pi=(0.5,0.5)\)</span>，<span class="arithmatex">\(\lambda=(1,-1)\)</span></td>
+<td>分布在 <span class="arithmatex">\(\delta_0,\delta_1\)</span> 间交替；TV 永远为 <span class="arithmatex">\(0.5\)</span></td>
+</tr>
+<tr>
+<td>可约、两吸收类</td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\0.5&amp;0.5&amp;0\end{pmatrix}\)</span></td>
+<td>闭类 <span class="arithmatex">\(\{0\},\{1\}\)</span>；全链不可约性失败</td>
+<td><span class="arithmatex">\(\pi_a=(a,1-a,0)\)</span>，<span class="arithmatex">\(\lambda=(1,1,0)\)</span></td>
+<td><span class="arithmatex">\(\delta_0,\delta_1\)</span> 各自永远吸收；<span class="arithmatex">\(\delta_2P=(0.5,0.5,0)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>第一行给出一个精确的谱对账：非平凡特征值的模为 <span class="arithmatex">\(0.5\)</span>，而从 <span class="arithmatex">\(\delta_0\)</span> 出发的 TV 恰为 <span class="arithmatex">\(0.4\cdot|0.5|^t\)</span>。第二行的 <span class="arithmatex">\(-1\)</span> 不衰减，所以“有平稳分布”不推出点态分布收敛。第三行甚至没有唯一的全局平稳分布；<span class="arithmatex">\(P^t\)</span> 仍然可以精确算出，但它不能凭空制造不可约性。</p>
+<h3 id="3">3. 账本的四层读法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对任意行分布 <span class="arithmatex">\(\mu_0\)</span>，实验逐项列出</p>
+<div class="arithmatex">\[
+P^t,\qquad \mu_t=\mu_0P^t,\qquad
+\operatorname{TV}(\mu_t,\pi)=\frac12\sum_i|(\mu_t)_i-\pi_i|,\qquad
+\|\pi P-\pi\|_1.
+\]</div>
+<p>谱栏报告 <span class="arithmatex">\(P\)</span> 的特征值和非平凡谱模 <span class="arithmatex">\(\rho_\star=\max_{j\ge2}|\lambda_j|\)</span>，并把 <span class="arithmatex">\(\rho_\star^t\)</span> 与当前 TV 放在一起。对第一张二维模型，二者给出精确等式；一般链中谱信息需要结合可逆性、范数和初始分布等假设，不能把一个 <span class="arithmatex">\(\rho_\star^t\)</span> 数字自动宣称为所有 TV 的等号。平稳残差接近零只说明所选 <span class="arithmatex">\(\pi\)</span> 解了平稳方程；不可约、非周期和可约证书仍要另行报告。</p>
+<h3 id="4">4. 定理边界与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>有限 + 不可约</strong>给唯一平稳分布；再加<strong>非周期</strong>才得到从任意初态到 <span class="arithmatex">\(\pi\)</span> 的分布收敛。周期链的 Cesàro 平均可以收敛，但逐步分布可能振荡。</li>
+<li><strong>可约</strong>时应先拆互通类和闭类。平稳分布可以有多个，瞬态类的质量会流向闭类；“看起来收敛”的一条初始轨迹不是唯一性证书。</li>
+<li>对无限状态空间，常返/正常返、平稳分布存在性和混合还要另加条件；本实验的有限矩阵不替代那些定理。</li>
+<li><span class="arithmatex">\(\pi P=\pi\)</span> 是不变性方程，不是“链已经跑了很久”的经验拟合；<span class="arithmatex">\(P^t\)</span> 的每一行和为 <span class="arithmatex">\(1\)</span> 也不等于每一行都趋向同一个 <span class="arithmatex">\(\pi\)</span>。</li>
+</ul>
+</div>
+</section>
 <h2 id="1-markov">1. Markov 性与转移矩阵<a class="headerlink" href="#1-markov" title="Permanent link"></a></h2>
 <p><strong>定义（Markov 性）</strong> 离散时间、可数状态的过程 <span class="arithmatex">\(\{X_n\}\)</span> 满足</p>
 <div class="arithmatex">\[
@@ -60,20 +146,20 @@ P(X_{n+1} = j \mid X_n = i,\ X_{n-1}, \dots, X_0) = P(X_{n+1} = j \mid X_n = i) 
 <h2 id="2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov<a class="headerlink" href="#2-n-chapmankolmogorov" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Markov 链收敛到平稳分布" src="assets/img/stoch-02-markov-converge.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>\(n\) 步转移让分布 \(P(X_n{=}\cdot)\) 随 \(n\) 收敛到平稳分布 \(\pi\)（虚线）——初始状态被遗忘，链的长期归宿由 \(\pi\) 决定。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>对图中这条有限、不可约且非周期的链，\(n\) 步转移让分布 \(P(X_n{=}\cdot)\) 收敛到唯一平稳分布 \(\pi\)（虚线），初始状态因而被遗忘；周期链或可约链不能直接套用这句话。</figcaption>
 </figure>
 <p><strong>定理（C–K 方程）</strong> <span class="arithmatex">\(n\)</span> 步转移概率 <span class="arithmatex">\(p_{ij}^{(n)} = P(X_{m+n} = j \mid X_m = i)\)</span> 满足</p>
 <div class="arithmatex">\[
 p_{ij}^{(m+n)} = \sum_k p_{ik}^{(m)}\, p_{kj}^{(n)} \qquad \Longleftrightarrow \qquad P^{(m+n)} = P^{(m)} P^{(n)} \;\Rightarrow\; P^{(n)} = P^n
 \]</div>
 <p>（<em>证明一行</em>：对中间时刻的状态 <span class="arithmatex">\(k\)</span> 用全概率公式 + Markov 性。）<strong>演化 = 矩阵幂</strong>——分布的传播是 <span class="arithmatex">\(\pi^{(n)} = \pi^{(0)} P^n\)</span>。计算 <span class="arithmatex">\(P^n\)</span> 的正规武器正是高代 V 的对角化：<span class="arithmatex">\(P = Q\Lambda Q^{-1} \Rightarrow P^n = Q\Lambda^n Q^{-1}\)</span>，特征值的幂决定一切长期行为（<span class="arithmatex">\(|\lambda| &lt; 1\)</span> 的成分衰减、<span class="arithmatex">\(\lambda = 1\)</span> 的成分存活——下一页平稳分布的伏笔）。</p>
-<h2 id="3">3. 状态分类：链的解剖学<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 状态分类：链的解剖学<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>可达与互通</strong>：<span class="arithmatex">\(i \to j\)</span>（某 <span class="arithmatex">\(n\)</span> 使 <span class="arithmatex">\(p_{ij}^{(n)} &gt; 0\)</span>）；互通 <span class="arithmatex">\(i \leftrightarrow j\)</span> 是等价关系 ⇒ 状态空间分解为若干<strong>互通类</strong>。<strong>不可约链</strong>：全空间一个类（哪都去得了）。</p>
 <p><strong>常返与瞬过</strong>：从 <span class="arithmatex">\(i\)</span> 出发<strong>必定</strong>（概率 1）返回 <span class="arithmatex">\(i\)</span> 则称<strong>常返</strong>，否则<strong>瞬过</strong>（有正概率一去不返）。判据：<span class="arithmatex">\(i\)</span> 常返 <span class="arithmatex">\(\iff \sum_n p_{ii}^{(n)} = \infty\)</span>（期望返回次数无穷）。常返再分：<strong>正常返</strong>（平均返回时间 <span class="arithmatex">\(\mu_i &lt; \infty\)</span>）与零常返（回得来但平均要等无穷久——无限状态空间才会出现）。</p>
 <p><strong>周期</strong>：<span class="arithmatex">\(d(i) = \gcd\{n: p_{ii}^{(n)} &gt; 0\}\)</span>；<span class="arithmatex">\(d = 1\)</span> 称非周期。（棋盘式来回跳的链 <span class="arithmatex">\(d = 2\)</span>——分布永远震荡不收敛，这是下一页收敛定理要排除周期的原因。）</p>
 <p><strong>类性质</strong>：互通的状态同常返/瞬过、同周期——"性格是整个互通类的"，验一个代表即可。</p>
 <p><strong>名例（一维随机游走的相变）</strong>：对称（<span class="arithmatex">\(p = \frac12\)</span>）时常返（回得了家），不对称时瞬过（漂走）。（Pólya 定理进阶版：简单随机游走在 <span class="arithmatex">\(\mathbb{Z}^1, \mathbb{Z}^2\)</span> 常返、<span class="arithmatex">\(\mathbb{Z}^3\)</span> 起瞬过——"喝醉的人总能回家，喝醉的鸟可能回不了巢"。）</p>
-<h2 id="4">4. 首达概率与吸收问题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 首达概率与吸收问题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>首达概率</strong> <span class="arithmatex">\(f_{ij}\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发迟早到达 <span class="arithmatex">\(j\)</span> 的概率。求法（<strong>一步分析法</strong>，本页的万能钥匙）：对第一步的去向做全概率分解，得线性方程组。</p>
 <p><strong>赌徒破产问题（必会全解）</strong> 本金 <span class="arithmatex">\(i\)</span>，每局 <span class="arithmatex">\(\pm 1\)</span>（概率 <span class="arithmatex">\(p/q\)</span>），到 <span class="arithmatex">\(N\)</span> 收手、到 <span class="arithmatex">\(0\)</span> 破产。记 <span class="arithmatex">\(h_i\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发最终到 <span class="arithmatex">\(N\)</span> 的概率。一步分析：</p>
 <div class="arithmatex">\[
@@ -102,5 +188,7 @@ h_i = \begin{cases} \dfrac{i}{N} &amp; p = q = \tfrac12 \\[2mm] \dfrac{1 - (q/p)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/markov-mixing.js"></script>
 </body>
 </html>

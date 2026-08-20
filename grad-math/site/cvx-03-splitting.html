@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#l1">学习层：一个精确 L1 问题，两种拆法，两本残差账</a><ul>
+<li><a href="#splitting-learning-title">1. 先固定能验算的凸问题</a></li>
+<li><a href="#2">2. 预测门：步长假设和残差身份</a></li>
+<li><a href="#3">3. 两个算法的透明模型</a></li>
+<li><a href="#4">4. 读账边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 对偶上升法及其脆弱</a></li>
 <li><a href="#2-method-of-multipliers">2. 增广拉格朗日（Method of Multipliers）</a></li>
 <li><a href="#3-admm">3. ADMM：既要稳健又要可拆</a></li>
-<li><a href="#4">4. 应用形态学（一个模板生成一族求解器）</a></li>
+<li><a href="#4_1">4. 应用形态学（一个模板生成一族求解器）</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -50,6 +68,94 @@
 <p><strong>对标</strong>：Boyd et al. <em>Distributed Optimization via ADMM</em>（专著级综述）｜ <strong>前置</strong>：cvx-01/02、本科优化 III
 大规模问题的解法哲学：<strong>拆</strong>——把纠缠的目标拆成各自好解的块，用对偶变量协调。本页从对偶上升法的缺陷出发，经增广拉格朗日的修复，抵达 <strong>ADMM</strong>：统计学习与分布式计算的主力求解器。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="splitting-learning-title" class="learning-layer">
+<h2 id="l1">学习层：一个精确 L1 问题，两种拆法，两本残差账<a class="headerlink" href="#l1" title="Permanent link"></a></h2>
+<h3 id="splitting-learning-title">1. 先固定能验算的凸问题<a class="headerlink" href="#splitting-learning-title" title="Permanent link"></a></h3>
+<p>实验不把“跑得像”当成证明，只处理一个有闭式最优解的目标：</p>
+<div class="arithmatex">\[
+\min_{x\in\mathbb R^2} F(x)=f(x)+g(x)
+=\frac12\lVert x-b\rVert_2^2+\lambda\lVert x\rVert_1,
+\qquad b=(3,-3/2),\quad\lambda=3/4.
+\]</div>
+<p><span class="arithmatex">\(\nabla f\)</span> 的 Lipschitz 常数是 <span class="arithmatex">\(L=1\)</span>，所以精确解由软阈值直接给出：</p>
+<div class="arithmatex">\[
+x^*=\operatorname{soft}(b,\lambda)=(9/4,-3/4),
+\qquad F^*=45/16=2.8125.
+\]</div>
+<p>比较两条实际轨迹：prox-gradient 直接处理 <span class="arithmatex">\(f+g\)</span>；ADMM 把同一个目标改写成 <span class="arithmatex">\(f(x)+g(z)\)</span>、约束 <span class="arithmatex">\(x-z=0\)</span>。问题、最优点和 <span class="arithmatex">\(F^*\)</span> 都不换，换的只是协调变量与残差记账方式。</p>
+<h3 id="2">2. 预测门：步长假设和残差身份<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先回答再揭晓：</p>
+<ol>
+<li>对 prox-gradient，标准单调下降的教科书条件是否是 <span class="arithmatex">\(0&lt;\alpha\le 1/L\)</span>？本 toy 的二次 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(\alpha&lt;2/L\)</span> 时还会显示稳定的谱因子，但这不是任意凸问题的通用保证。</li>
+<li>对 <span class="arithmatex">\(x=z\)</span> 的 ADMM，primal residual 是 <span class="arithmatex">\(x-z\)</span> 还是目标值差？scaled dual residual 又应写成 <span class="arithmatex">\(\rho(z_k-z_{k-1})\)</span> 还是 <span class="arithmatex">\(z_k-z_{k-1}\)</span>？</li>
+<li>有限步的 <span class="arithmatex">\(F(x_k)\)</span> 很接近 <span class="arithmatex">\(F^*\)</span>，是否就已经证明一般 ADMM 或 prox-gradient 的收敛定理？答案应是否定的。</li>
+</ol>
+<p>预测提交前，轨迹、目标值、精确解和残差表都隐藏；换预设、<span class="arithmatex">\(\alpha\)</span>、<span class="arithmatex">\(\rho\)</span> 或迭代次数会重新锁门。</p>
+<h3 id="3">3. 两个算法的透明模型<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>prox-gradient 的每一步是</p>
+<div class="arithmatex">\[
+x_{k+1}=\operatorname{soft}\bigl(x_k-\alpha(x_k-b),\alpha\lambda\bigr),
+\qquad
+G_\alpha(x_k)=\frac{x_k-x_{k+1}}{\alpha}.
+\]</div>
+<p>账本中的 PG“原始残差”明确标作 <span class="arithmatex">\(\lVert G_\alpha(x_k)\rVert\)</span>；它不是 ADMM 的约束残差，PG 没有独立的 dual residual。</p>
+<p>ADMM 的 scaled form 是</p>
+<div class="arithmatex">\[
+x_{k+1}=\frac{b+\rho(z_k-u_k)}{1+\rho},\qquad
+z_{k+1}=\operatorname{soft}(x_{k+1}+u_k,\lambda/\rho),\qquad
+u_{k+1}=u_k+x_{k+1}-z_{k+1},
+\]</div>
+<p>并记</p>
+<div class="arithmatex">\[
+r_{k+1}=x_{k+1}-z_{k+1},\qquad
+s_{k+1}=\rho(z_{k+1}-z_k).
+\]</div>
+<p>目标表同时显示目标函数 <span class="arithmatex">\(F\)</span>（PG 在 <span class="arithmatex">\(x_k\)</span> 上、ADMM 在 <span class="arithmatex">\(z_k\)</span> 上）与 ADMM 的 split objective <span class="arithmatex">\(f(x_k)+g(z_k)\)</span>。后者在有限步可能低于 <span class="arithmatex">\(F^*\)</span>，因为 <span class="arithmatex">\(x_k\ne z_k\)</span> 时它不是原问题的可行点；不要把它误读成“突破最优下界”。</p>
+<div class="learning-lab" data-learning-lab="operator-splitting">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认从 <span class="arithmatex">\(x_0=z_0=u_0=(0,0)\)</span>、<span class="arithmatex">\(\alpha=0.8\)</span>、<span class="arithmatex">\(\rho=1\)</span> 运行 12 步。精确参照仍是</p>
+<div class="arithmatex">\[
+x^*=(2.25,-0.75),\quad F^*=2.8125,
+\]</div>
+<p>并按下表区分两类残差：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th style="text-align: right;">第一步可复核的目标</th>
+<th style="text-align: right;">原始残差栏</th>
+<th style="text-align: right;">对偶残差栏</th>
+<th>步长/参数假设</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prox-gradient</td>
+<td style="text-align: right;"><span class="arithmatex">\(F(x_1)=2.925\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\lVert G_{0.8}(x_0)\rVert\approx2.372\)</span></td>
+<td style="text-align: right;">不适用：没有 split dual variable</td>
+<td><span class="arithmatex">\(0&lt;\alpha\le1/L\)</span> 给标准下降读法</td>
+</tr>
+<tr>
+<td>ADMM</td>
+<td style="text-align: right;"><span class="arithmatex">\(F(z_1)=4.21875\)</span>；<span class="arithmatex">\(f(x_1)+g(z_1)=1.96875\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\lVert x_1-z_1\rVert\approx1.061\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\rho\lVert z_1-z_0\rVert=0.75\)</span></td>
+<td><span class="arithmatex">\(\rho&gt;0\)</span>；<span class="arithmatex">\(f,g\)</span> 闭、真、凸，未增广 Lagrangian 有鞍点且两子问题可取最小值</td>
+</tr>
+</tbody>
+</table>
+<p>表中的数值只是有限轨迹的第一行，不是一般定理。透明证书要看 <span class="arithmatex">\(F^*\)</span>、定义过的残差、<span class="arithmatex">\(\alpha\)</span>/ <span class="arithmatex">\(\rho\)</span> 假设和问题结构是否同时满足。</p>
+</div>
+<h3 id="4">4. 读账边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>PG 的步长要写清楚。</strong><span class="arithmatex">\(0&lt;\alpha\le1/L\)</span> 是本页用来解释下降账的标准条件；若把 <span class="arithmatex">\(\alpha\)</span> 调到 <span class="arithmatex">\(1/L\)</span> 以上，脚本会单独显示“超出标准 PG 条件”，不会用这张二维图替代一般分析。</li>
+<li><strong>ADMM 的 <span class="arithmatex">\(\rho\)</span> 是正的度量/条件数参数，不是“越大压约束、越小压目标”的普适定律。</strong>增大或减小 <span class="arithmatex">\(\rho\)</span> 会同时改变 <span class="arithmatex">\(x/z\)</span> 子问题的条件、primal residual 的尺度和 dual residual 的尺度；某个问题上 primal 变快时，dual 或目标进展可能变慢。残差平衡只是调参线索，不是最优参数证明。</li>
+<li><strong>有限迭代不是一般证明。</strong>本实验能精确算 <span class="arithmatex">\(x^*\)</span>，所以可以显示目标 gap 与真实误差作教学对照；一般 ADMM 收敛陈述要写明 <span class="arithmatex">\(f,g\)</span> 闭、真、凸，存在未增广 Lagrangian 的 primal-dual 鞍点，并且每个子问题的最小值能够取得（适当的约束资格可用于推出这些条件，但不能只写“强对偶”）。</li>
+<li><strong>split objective 不是原问题可行目标。</strong>只有当 <span class="arithmatex">\(x=z\)</span> 时 <span class="arithmatex">\(f(x)+g(z)=F(x)\)</span>；先看可行性，再解释目标数值。</li>
+</ul>
+</section>
 <h2 id="1">1. 对偶上升法及其脆弱<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>约束问题 <span class="arithmatex">\(\min f(x)\ \text{s.t.}\ Ax = b\)</span>，对偶函数 <span class="arithmatex">\(q(y) = \min_x L(x, y)\)</span>。<strong>对偶上升</strong>：交替"给定 <span class="arithmatex">\(y\)</span> 解 <span class="arithmatex">\(x\)</span>""对 <span class="arithmatex">\(y\)</span> 做梯度上升"（<span class="arithmatex">\(\nabla q(y) = Ax^* - b\)</span>——对偶梯度恰是约束残差【一行：Danskin 定理/包络定理】）：</p>
 <div class="arithmatex">\[
@@ -61,7 +167,7 @@ x_{k+1} = \arg\min_x L(x, y_k), \qquad y_{k+1} = y_k + \alpha_k(Ax_{k+1} - b)
 <div class="arithmatex">\[
 L_\rho(x, y) = f(x) + y^\top(Ax - b) + \frac{\rho}{2}\|Ax - b\|^2
 \]</div>
-<p><span class="arithmatex">\(x\)</span>-步对 <span class="arithmatex">\(L_\rho\)</span> 求解（罚项补足强凸性——<strong>平坦方向被 <span class="arithmatex">\(\rho\)</span> 项撑起</strong>），<span class="arithmatex">\(y\)</span>-步固定步长 <span class="arithmatex">\(\rho\)</span>：</p>
+<p><span class="arithmatex">\(x\)</span>-步对 <span class="arithmatex">\(L_\rho\)</span> 求解。注意二次项的 Hessian 增量是 <span class="arithmatex">\(\rho A^\top A\)</span>：它只沿 <span class="arithmatex">\(A\)</span> 能看见的方向提供曲率；<span class="arithmatex">\(\ker A\)</span> 中的方向仍然没有被罚项“撑起”。所以不能把增广项自动说成全空间强凸，<span class="arithmatex">\(x\)</span>-子问题的有限可解性仍要由 <span class="arithmatex">\(f\)</span> 的曲率/强制性、<span class="arithmatex">\(A\)</span> 的秩或其他结构条件保证。<span class="arithmatex">\(y\)</span>-步固定步长取 <span class="arithmatex">\(\rho\)</span>：</p>
 <div class="arithmatex">\[
 y_{k+1} = y_k + \rho\,(Ax_{k+1} - b)
 \]</div>
@@ -78,11 +184,11 @@ y_{k+1} &amp;= y_k + \rho(Ax_{k+1} + Bz_{k+1} - c)
 \end{aligned}
 \]</div>
 <p>——<strong>Gauss–Seidel 式的"轮流坐庄"</strong>（数值 II 迭代法的既视感）：每块面对的都是"自己 + 二次项"的好问题（常有闭式：prox！cvx-02 的算子库整个接入——<span class="arithmatex">\(g\)</span> 是 L1 时 <span class="arithmatex">\(z\)</span>-步 = 软阈值）。</p>
-<p><strong>定理（收敛性）【骨架】</strong> <span class="arithmatex">\(f, g\)</span> 闭凸、强对偶成立，则 ADMM 满足：残差 <span class="arithmatex">\(Ax_k + Bz_k - c \to 0\)</span>、目标值 → 最优、<span class="arithmatex">\(y_k \to\)</span> 对偶最优。
-<em>思路</em>：Lyapunov 函数 <span class="arithmatex">\(V_k = \frac1\rho\|y_k - y^*\|^2 + \rho\|B(z_k - z^*)\|^2\)</span> 单调不增且每步下降量控制残差（三条最优性不等式相加配平——Boyd 附录的六页代数，结构清晰簿记较重，骨架级掌握恰当）。<span class="arithmatex">\(\blacksquare\)</span>
-（速率：一般凸 <span class="arithmatex">\(O(1/k)\)</span>（遍历意义）【引用】；不保证快，胜在<strong>稳（几乎不挑参数）+ 拆（步步可分布式）</strong>。）</p>
-<p><strong>读法</strong>：ADMM = 增广拉格朗日的稳健 + 对偶上升的可拆——两代方法的合题。<span class="arithmatex">\(\rho\)</span> 的角色：大 <span class="arithmatex">\(\rho\)</span> 压约束残差快、小 <span class="arithmatex">\(\rho\)</span> 压目标快（自适应 <span class="arithmatex">\(\rho\)</span> 的工程惯例【引用】）。</p>
-<h2 id="4">4. 应用形态学（一个模板生成一族求解器）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>定理（收敛性）【骨架】</strong> 对两块 <span class="arithmatex">\(f,g\)</span>，需要它们是闭、真、凸函数，存在满足 <span class="arithmatex">\(Ax^*+Bz^*=c\)</span> 的 primal-dual 鞍点（即未增广 Lagrangian 的鞍点），并且每个交替子问题的最小值能够取得。满足这些条件时，标准两块 ADMM 给出原始残差 <span class="arithmatex">\(Ax_k+Bz_k-c\to0\)</span>、目标值趋于最优，并在相应的解存在/取值条件下给出对偶变量收敛；“强对偶”或某个约束资格可以是推出鞍点存在的途径，但不能替代鞍点与子问题可解性的陈述。
+<em>思路</em>：在鞍点存在且子问题确实取到最小值的前提下，标准证明用带解的 Lyapunov/firmly-nonexpansive 账本控制 <span class="arithmatex">\(V_k\)</span> 的下降；常见形式如 <span class="arithmatex">\(V_k = \frac1\rho\|y_k-y^*\|^2+\rho\|B(z_k-z^*)\|^2\)</span> 还要配合相应的秩与范数条件。三条最优性不等式相加才能得到残差控制，不能从一张有限轨迹图反推定理。<span class="arithmatex">\(\blacksquare\)</span>
+（速率：一般凸 <span class="arithmatex">\(O(1/k)\)</span>（遍历意义）【引用】；不保证快。它的理论入口对任意 <span class="arithmatex">\(\rho&gt;0\)</span> 都成立，但实际条件数、残差平衡和每步代价仍会随 <span class="arithmatex">\(\rho\)</span> 改变；“拆”才是它可分布式的结构优势。）</p>
+<p><strong>读法</strong>：ADMM = 增广拉格朗日的稳健 + 对偶上升的可拆——两代方法的合题。<span class="arithmatex">\(\rho\)</span> 改变的是增广度量与两个子问题的数值条件：它常让 primal/dual residual 以不同速度变化，具体目标进展取决于 <span class="arithmatex">\(A,B,f,g\)</span> 的谱与尺度；“让两类残差同量级”的自适应规则是工程启发式，不是“大 <span class="arithmatex">\(\rho\)</span> 压约束、小 <span class="arithmatex">\(\rho\)</span> 压目标”的一般定理【引用】。</p>
+<h2 id="4_1">4. 应用形态学（一个模板生成一族求解器）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -118,7 +224,7 @@ y_{k+1} &amp;= y_k + \rho(Ax_{k+1} + Bz_{k+1} - c)
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（ADMM 手推 Lasso）</strong> 写出三步的显式公式：<span class="arithmatex">\(x\)</span>-步 = 解 <span class="arithmatex">\((A^\top A + \rho I)x = A^\top b + \rho(z - u)\)</span>（岭回归型——正则化的另一次上岗）、<span class="arithmatex">\(z\)</span>-步 = 软阈值、<span class="arithmatex">\(u\)</span>-步 = 残差累加（scaled form）。三行即一个可实现的 Lasso 求解器——亲手写进 30 行 numpy 是本页的最佳作业。</p>
 <p><strong>例 2（为什么不三块交替）</strong> 三块及以上的朴素 ADMM <strong>可以发散</strong>（Chen–He–Ye–Yuan 反例【引用】）——"两块的和谐不自动推广"：把问题重组成两块（变量堆叠）是标准规避法。定理边界即工程红线。</p>
-<p><strong>例 3（对偶上升崩溃的实感）</strong> <span class="arithmatex">\(f(x) = c^\top x\)</span>（线性）+ 等式约束：<span class="arithmatex">\(x\)</span>-步 <span class="arithmatex">\(\arg\min\)</span> 无界 ⇒ 对偶上升死；同题加 <span class="arithmatex">\(\frac\rho2\|Ax-b\|^2\)</span> 立刻良定——增广项"扶起平坦方向"的最小演示。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（对偶上升崩溃的实感）</strong> <span class="arithmatex">\(f(x) = c^\top x\)</span>（线性）+ 等式约束：<span class="arithmatex">\(x\)</span>-步 <span class="arithmatex">\(\arg\min\)</span> 可能无界 ⇒ 对偶上升死。若 <span class="arithmatex">\(A\)</span> 对所有变量方向有足够秩，使 <span class="arithmatex">\(A^\top A\succ0\)</span>，加入 <span class="arithmatex">\(\frac\rho2\|Ax-b\|^2\)</span> 才会给这个线性 toy 一个强凸二次骨架；若 <span class="arithmatex">\(\ker A\)</span> 中仍有 <span class="arithmatex">\(c\)</span> 的非零分量，增广项也不会自动良定。增广项只扶起它能观测的方向。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：二阶世界的高峰——内点法与半定规划：多项式时间凸优化的理论与 SDP 的应用版图，凸优化四页收官。</em></p>
 </article>
@@ -130,5 +236,7 @@ y_{k+1} &amp;= y_k + \rho(Ax_{k+1} + Bz_{k+1} - c)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/operator-splitting.js"></script>
 </body>
 </html>

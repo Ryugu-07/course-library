@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,15 +43,21 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：镜像法不是魔术，而是一张可核对的边界账</a><ul>
+<li><a href="#image-charge-learning-title">1. 先固定接地平面模型</a></li>
+<li><a href="#2">2. 四项透明核对</a></li>
+<li><a href="#3">3. 读账边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 唯一性定理（一切技巧的执照）</a></li>
-<li><a href="#2">2. 分离变量：球谐版全流程</a></li>
+<li><a href="#2_1">2. 分离变量：球谐版全流程</a></li>
 <li><a href="#3-green">3. Green 函数的正式化</a></li>
 <li><a href="#4">4. 多极展开（远场的标准语言）</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
@@ -52,19 +69,68 @@
 <p><strong>对标</strong>：Jackson §1–4 ｜ <strong>前置</strong>：em-01、mp-01（Legendre/Green 函数）、pde2-03（唯一性）
 Jackson 前半的主体是一门手艺：<strong>在给定边界下解 Laplace/Poisson 方程</strong>。本页把兵器谱配齐（唯一性定理、镜像法的进阶、分离变量的球谐版、Green 函数的正式化）并立起<strong>多极展开</strong>——"远看一切电荷分布"的标准语言。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="image-charge-learning-title" class="learning-layer">
+<h2 id="_1">学习层：镜像法不是魔术，而是一张可核对的边界账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="image-charge-learning-title">1. 先固定接地平面模型<a class="headerlink" href="#image-charge-learning-title" title="Permanent link"></a></h3>
+<p>取物理区域为 <span class="arithmatex">\(z&gt;0\)</span>，接地导体平面为 <span class="arithmatex">\(z=0\)</span>，真实点电荷 <span class="arithmatex">\(q\)</span> 放在 <span class="arithmatex">\((0,0,d)\)</span>，其中 <span class="arithmatex">\(d&gt;0\)</span>。用数学上的镜像电荷 <span class="arithmatex">\(-q\)</span> 放在 <span class="arithmatex">\((0,0,-d)\)</span>，在物理半空间内构造</p>
+<div class="arithmatex">\[
+V(\rho,z)=kq\left[\frac1{\sqrt{\rho^2+(z-d)^2}}-\frac1{\sqrt{\rho^2+(z+d)^2}}\right],
+\qquad k=\frac1{4\pi\varepsilon_0}.
+\]</div>
+<p>实验使用 <span class="arithmatex">\(k=1\)</span> 的无量纲单位，因此 <span class="arithmatex">\(\varepsilon_0=1/(4\pi)\)</span>。先预测：平面上的 <span class="arithmatex">\(V\)</span> 是否逐点为零？法向场的方向和大小怎样随 <span class="arithmatex">\(\rho\)</span> 变？诱导总电荷会趋向 <span class="arithmatex">\(-q\)</span>、<span class="arithmatex">\(q\)</span> 还是 <span class="arithmatex">\(0\)</span>？</p>
+<h3 id="2">2. 四项透明核对<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(z=0^+\)</span>，真实电荷和镜像到每个平面点的距离相等，所以</p>
+<div class="arithmatex">\[
+V(\rho,0)=0,\qquad \mathbf E_t(\rho,0)=0,
+\]</div>
+<p>而法向分量为</p>
+<div class="arithmatex">\[
+E_z(\rho,0^+)=-\frac{2kqd}{(\rho^2+d^2)^{3/2}},
+\qquad
+\sigma(\rho)=\varepsilon_0E_z(\rho,0^+)= -\frac{qd}{2\pi(\rho^2+d^2)^{3/2}}.
+\]</div>
+<p>把面电荷积分到半径 <span class="arithmatex">\(R\)</span> 的圆盘：</p>
+<div class="arithmatex">\[
+Q_{\mathrm{ind}}(R)=-q\left(1-\frac{d}{\sqrt{R^2+d^2}}\right)\xrightarrow[R\to\infty]{}-q.
+\]</div>
+<p>真实电荷受到的力可以用镜像场计算，但镜像不是第二个真实电荷：</p>
+<div class="arithmatex">\[
+\mathbf F=q\mathbf E_{\mathrm{image}}(0,0,d)= -\frac{kq^2}{4d^2}\,\hat{\mathbf z}.
+\]</div>
+<p>实验会逐点显示 <span class="arithmatex">\(V\)</span>、切向场、<span class="arithmatex">\(E_z\)</span> 与闭式值的误差，再显示力和诱导电荷积分；这些是同一解析模型的交叉核对，不是抽样测量。</p>
+<div class="learning-lab" data-learning-lab="image-charge-boundary">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认 <span class="arithmatex">\(q=1,d=1,k=1\)</span>。在 <span class="arithmatex">\(\rho=0,1,2\)</span> 三个平面点，边界电势与切向场均为 <span class="arithmatex">\(0\)</span>；法向场分别为</p>
+<p>| <span class="arithmatex">\(\rho\)</span> | <span class="arithmatex">\(V(\rho,0)\)</span> | <span class="arithmatex">\(|E_t|\)</span> | 闭式 <span class="arithmatex">\(E_z\)</span> | 真实电荷所受力 <span class="arithmatex">\(F_z\)</span> |
+|---:|---:|---:|---:|---:|
+| 0 | 0 | 0 | <span class="arithmatex">\(-2\)</span> | <span class="arithmatex">\(-1/4\)</span> |
+| 1 | 0 | 0 | <span class="arithmatex">\(-1/\sqrt2\approx-0.707107\)</span> | <span class="arithmatex">\(-1/4\)</span> |
+| 2 | 0 | 0 | <span class="arithmatex">\(-2/5^{3/2}\approx-0.178885\)</span> | <span class="arithmatex">\(-1/4\)</span> |</p>
+<p>对应 <span class="arithmatex">\(\sigma(\rho)=-1/[2\pi(\rho^2+1)^{3/2}]\)</span>，其全平面积分是 <span class="arithmatex">\(Q_{\mathrm{ind}}=-1=-q\)</span>，半径 <span class="arithmatex">\(R\)</span> 内的部分是 <span class="arithmatex">\(-(1-1/\sqrt{R^2+1})\)</span>。图中的下方 <span class="arithmatex">\(-q\)</span> 只是构造 Dirichlet Green 函数的数学像，<strong>不是物理区域内新放置的电荷</strong>。</p>
+<p>镜像结论依赖唯一性条件：物理区域取 <span class="arithmatex">\(z&gt;0\)</span>，给定平面上的 Dirichlet 值 <span class="arithmatex">\(V=0\)</span>，并要求无穷远处解按所选衰减条件消失。若换成非零边界、有限导体、Neumann 问题或不指定无穷远行为，必须重新检查唯一性与附加条件；有限表格不能替代那个证明。</p>
+</div>
+<h3 id="3">3. 读账边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>镜像不是物理源。</strong>它只是在 <span class="arithmatex">\(z&gt;0\)</span> 内产生同一个势的辅助源；导体表面真实的响应由 <span class="arithmatex">\(\sigma=\varepsilon_0E_n\)</span> 表示。</li>
+<li><strong>边界核对要分量。</strong><span class="arithmatex">\(V=0\)</span>、<span class="arithmatex">\(E_t=0\)</span> 和 <span class="arithmatex">\(E_z\)</span> 的闭式值是不同证书；只看一张等势图不能证明场与力都正确。</li>
+<li><strong>唯一性是收尾条件。</strong>验证边界后能否把构造解称为物理解，取决于区域、Dirichlet/Neumann 类型与无穷远条件；不能把“镜像法有效”写成无条件技巧。</li>
+<li><strong>有限点不是一般边值定理。</strong>交互表只审计所选半径和参数，球面、带电平面及介质界面需要各自的 Green 函数或匹配条件。</li>
+</ul>
+</section>
 <h2 id="1">1. 唯一性定理（一切技巧的执照）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定理【推导】</strong> 给定区域内 <span class="arithmatex">\(\rho\)</span> 与边界上的 <span class="arithmatex">\(V\)</span>（Dirichlet）或 <span class="arithmatex">\(\frac{\partial V}{\partial n}\)</span>（Neumann），Poisson 方程解唯一（Neumann 差常数）。
+<p><strong>定理【推导】</strong> 给定区域内 <span class="arithmatex">\(\rho\)</span> 与边界上的 <span class="arithmatex">\(V\)</span>（Dirichlet），Poisson 方程解唯一；给定 <span class="arithmatex">\(\frac{\partial V}{\partial n}\)</span>（Neumann）时，还必须满足由散度定理给出的总通量兼容条件，解才存在，并且只唯一到一个加法常数。
 <em>证</em>：两解之差 <span class="arithmatex">\(u\)</span> 调和且边界项为零；Green 第一恒等式 <span class="arithmatex">\(\int|\nabla u|^2 = \oint u\frac{\partial u}{\partial n} = 0\)</span> ⇒ <span class="arithmatex">\(\nabla u \equiv 0\)</span>。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>读法</strong>：<strong>"猜出来的解就是唯一的解"</strong>——镜像法的合法性来源（猜一组像电荷、验证边界条件、唯一性收工）；也是 pde2-03 能量法的物理版。</p>
 <p><strong>镜像法进阶（Jackson 名题）</strong>：接地导体球外点电荷 <span class="arithmatex">\(q\)</span>（距 <span class="arithmatex">\(d\)</span>）：像电荷 <span class="arithmatex">\(q' = -\frac{a}{d}q\)</span> 于 <span class="arithmatex">\(\frac{a^2}{d}\)</span> 处【验证：球面上两电荷势恰抵消——反演点的几何】；不接地/带电球 = 再叠加中心像电荷——一套反演几何吃遍球类边值题。</p>
-<h2 id="2">2. 分离变量：球谐版全流程<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 分离变量：球谐版全流程<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>轴对称 Laplace 通解（mp-01 的 Legendre 在主场）：</p>
 <div class="arithmatex">\[
 V(r, \theta) = \sum_\ell\Big(A_\ell r^\ell + \frac{B_\ell}{r^{\ell+1}}\Big)P_\ell(\cos\theta)
 \]</div>
 <p><strong>样板（Jackson 必做题）</strong>：均匀外场中的导体球——边界条件（球面等势 + 远场 <span class="arithmatex">\(-E_0r\cos\theta\)</span>）只激活 <span class="arithmatex">\(\ell = 1\)</span>：<span class="arithmatex">\(V = -E_0\big(r - \frac{a^3}{r^2}\big)\cos\theta\)</span>——感应偶极矩 <span class="arithmatex">\(p = 4\pi\varepsilon_0a^3E_0\)</span>（极化率 <span class="arithmatex">\(\propto\)</span> 体积：介电响应的原型；瑞利散射 <span class="arithmatex">\(\propto\omega^4\)</span>（em-03）里的那个偶极子就这么来的）。介质球同法（内外解拼接 + 界面条件）——静电屏蔽/退极化因子全家。</p>
 <h2 id="3-green">3. Green 函数的正式化<a class="headerlink" href="#3-green" title="Permanent link"></a></h2>
-<p><strong>Dirichlet Green 函数</strong>：<span class="arithmatex">\(\nabla'^2G_D = -\delta\)</span>、边界上 <span class="arithmatex">\(G_D = 0\)</span>，则</p>
+<p><strong>Dirichlet Green 函数</strong>采用 Gaussian 型归一化：<span class="arithmatex">\(\nabla'^2G_D(\mathbf r,\mathbf r')=-4\pi\delta^3(\mathbf r-\mathbf r')\)</span>、边界上 <span class="arithmatex">\(G_D=0\)</span>，则</p>
 <div class="arithmatex">\[
 V(\mathbf r) = \frac{1}{4\pi\varepsilon_0}\int\rho\,G_D\,dV' - \frac{1}{4\pi}\oint V_{\text{边界}}\,\frac{\partial G_D}{\partial n'}\,dA'
 \]</div>
@@ -92,5 +158,7 @@ V(\mathbf r) = \frac{1}{4\pi\varepsilon_0}\Big[\frac{Q}{r} + \frac{\mathbf p\cdo
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/image-charge-boundary.js"></script>
 </body>
 </html>

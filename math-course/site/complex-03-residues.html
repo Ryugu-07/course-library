@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 02:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先审计围道，再让留数定理出具证书</a><ul>
+<li><a href="#residue-learning-title">1. 预测门：每一个极点真的能被普通定理接纳吗？</a></li>
+<li><a href="#2-winding">2. 透明模型：位置、阶数和 winding 分账</a></li>
+<li><a href="#3">3. 读账规则与边界</a></li>
+</ul>
+</li>
 <li><a href="#1-taylor">1. Taylor 级数与收敛半径之谜</a></li>
 <li><a href="#2-laurent">2. Laurent 级数与奇点分类</a></li>
-<li><a href="#3">3. 留数定理（本课程的收官大定理）</a></li>
+<li><a href="#3_1">3. 留数定理（本课程的收官大定理）</a></li>
 <li><a href="#4">4. 收割实积分（留数定理的名场面）</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
@@ -49,6 +66,87 @@
 <blockquote>
 <p>收官页三步走：Taylor/Laurent 级数（解析函数的显微镜）→ 奇点分类（病灶的病理学）→ <strong>留数定理</strong>（把积分变成数系数的机械操作，反手收割一批实积分）。数分 IV 留下的那个收敛半径之谜也在本页揭晓。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="residue-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先审计围道，再让留数定理出具证书<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="residue-learning-title">1. 预测门：每一个极点真的能被普通定理接纳吗？<a class="headerlink" href="#residue-learning-title" title="Permanent link"></a></h3>
+<p>本实验固定一族有理型 Laurent 数据：每个极点都有<strong>极点阶数</strong>和留数，围道是一个可改变方向、半径和绕行次数的圆。先预测三件事：</p>
+<ol>
+<li>是否存在 <code>on-contour</code> 极点；若有，普通留数定理是否还能直接给出围道积分？</li>
+<li>对一个严格在圆内的极点，顺时针一次还是逆时针一次的 winding sign 应该是什么？绕两圈会怎样？</li>
+<li>留数和究竟只收 inside，还是把 outside 也加进来，或把 on-contour 当成“半个 inside”？</li>
+</ol>
+<p>点击揭晓前，极点分类、绕数、留数和、SVG 与审计表都隐藏。换预设、半径、方向或绕行次数会重新锁住预测。</p>
+<h3 id="2-winding">2. 透明模型：位置、阶数和 winding 分账<a class="headerlink" href="#2-winding" title="Permanent link"></a></h3>
+<p>设围道是圆 <span class="arithmatex">\(C\)</span>，中心 <span class="arithmatex">\(c\)</span>、半径 <span class="arithmatex">\(R\)</span>，方向符号为 <span class="arithmatex">\(epsilonin{+1,-1}\)</span>，绕行次数为 <span class="arithmatex">\(n\)</span>。对极点 <span class="arithmatex">\(z_k\)</span>，实验先按</p>
+<div class="arithmatex">\[
+\lvert z_k-c\rvert &lt; R,\quad =R,\quad &gt;R
+\]</div>
+<p>审计为 <strong>inside / on-contour / outside</strong>。只有在第一或第三种情形，绕数才定义为</p>
+<div class="arithmatex">\[
+n(C,z_k)=
+\begin{cases}
+\epsilon n,&amp;z_k\text{ inside},\\
+0,&amp;z_k\text{ outside}.
+\end{cases}
+\]</div>
+<p><code>on-contour</code> 的绕数在本实验中记为 <strong>undefined</strong>，不是 <span class="arithmatex">\(1/2\)</span>。当且仅当没有极点落在围道上，透明证书才是</p>
+<div class="arithmatex">\[
+\oint_C f(z)\,dz=2\pi i\sum_k n(C,z_k)\operatorname{Res}(f,z_k).
+\]</div>
+<p>这里的“极点阶数”仍要单独登记：二阶、三阶极点并不会因为留数表只显示一个 <span class="arithmatex">\(c_{-1}\)</span> 就变成单极点；阶数判定与留数计算是两本账。</p>
+<div class="learning-lab" data-learning-lab="residue-ledger">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取逆时针单位圆、绕行一次，极点为
+<span class="arithmatex">\(z=0\)</span>（一阶，<span class="arithmatex">\(operatorname{Res}=1\)</span>）、<span class="arithmatex">\(z=1/2\)</span>（二阶，<span class="arithmatex">\(operatorname{Res}=-1/2\)</span>）和 <span class="arithmatex">\(z=3/2\)</span>（三阶，<span class="arithmatex">\(operatorname{Res}=2\)</span>）。因此前两个是 inside，后一项是 outside：</p>
+<table>
+<thead>
+<tr>
+<th>极点</th>
+<th style="text-align: right;">阶数</th>
+<th>位置</th>
+<th style="text-align: right;">winding</th>
+<th style="text-align: right;">留数</th>
+<th style="text-align: right;">winding × 留数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">1</td>
+<td>inside</td>
+<td style="text-align: right;"><span class="arithmatex">\(+1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(1/2\)</span></td>
+<td style="text-align: right;">2</td>
+<td>inside</td>
+<td style="text-align: right;"><span class="arithmatex">\(+1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1/2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(3/2\)</span></td>
+<td style="text-align: right;">3</td>
+<td>outside</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>inside 留数和为 <span class="arithmatex">\(1/2\)</span>，winding 加权和也为 <span class="arithmatex">\(1/2\)</span>，所以普通定理给出 <span class="arithmatex">\(oint_C f\,dz=\pi i\)</span>。若把围道改为顺时针双绕，加权和会变成 <span class="arithmatex">\(-1\)</span>；若把极点移到 <span class="arithmatex">\(|z|=1\)</span> 上，普通留数定理<strong>不可直接使用</strong>，实验只给出 <code>on-contour</code> 警告，不给出积分数值。有限阶数、inside/outside/on-contour、方向和 winding 必须全部先通过审计。</p>
+</div>
+<h3 id="3">3. 读账规则与边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>普通定理有前提。</strong>极点在围道上时，主值、缩进围道或半留数需要额外的局部几何与积分定义；它们不是本页普通定理的自动分支。</li>
+<li><strong>方向不是装饰。</strong>逆时针给正 winding，顺时针给负 winding；多重绕行按次数线性累加。</li>
+<li><strong>外部奇点不入账。</strong>它们可以影响函数的全局解析表达式，却不进入当前围道的 residue sum。</li>
+<li><strong>有限实验不是一般证明。</strong>SVG 只画所选圆与有限个极点；留数定理的适用仍由“闭曲线、有限孤立奇点、无极点在曲线上”等条件保证。</li>
+</ul>
+</section>
 <h2 id="1-taylor">1. Taylor 级数与收敛半径之谜<a class="headerlink" href="#1-taylor" title="Permanent link"></a></h2>
 <p><strong>定理</strong> <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(z_0\)</span> 解析 ⇒ 在最大解析圆盘内 <span class="arithmatex">\(f(z) = \sum_{n=0}^\infty \frac{f^{(n)}(z_0)}{n!}(z - z_0)^n\)</span>，且<strong>收敛半径 = <span class="arithmatex">\(z_0\)</span> 到最近奇点的距离</strong>。</p>
 <p>（<em>来源</em>：Cauchy 积分公式中把 <span class="arithmatex">\(\frac{1}{z - z_0}\)</span> 展成几何级数——解析与幂级数在复平面是同义词。）</p>
@@ -90,7 +188,7 @@ f(z) = \sum_{n=-\infty}^{+\infty} c_n (z - z_0)^n
 </tbody>
 </table>
 <p>本性奇点的狂野一嘴（Picard 大定理）：任意小邻域内取遍<strong>几乎所有</strong>复值——病得最重也最深刻。</p>
-<h2 id="3">3. 留数定理（本课程的收官大定理）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 留数定理（本课程的收官大定理）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="围道积分等于内部留数和" src="assets/img/complex-03-contour-residue.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>留数定理：闭围道上的积分 \(\oint f\,dz=2\pi i\) 乘以围道内部所有极点留数之和——围道外的奇点毫不相干。</figcaption>
@@ -129,5 +227,7 @@ f(z) = \sum_{n=-\infty}^{+\infty} c_n (z - z_0)^n
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/residue-ledger.js"></script>
 </body>
 </html>

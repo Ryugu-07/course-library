@@ -3,6 +3,77 @@
 > **对标**：Trefethen & Bau *NLA* Lectures 1–19 ｜ **前置**：本科高代 V–VI、数值 I–II
 > 研究生数值线代的纲领（Trefethen 的开篇宣言）：**一切算法围绕矩阵分解组织，一切误差分析围绕"后向稳定 + 条件数"组织**。本页立起这两根柱子：SVD 作为"最诚实的分解"、Householder QR 作为稳定算法的典范、以及后向误差分析的正式语言。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="svd-learning-title">
+
+## 学习层：奇异值很稳，不代表奇异向量也稳
+
+<h3 id="svd-learning-title">1. 先预测：Weyl、gap 与低秩残差各管哪一笔账？</h3>
+
+实验固定一个对称正定的 $2\times2$ toy：
+
+$$
+A=\begin{pmatrix}\sigma_1&0\\0&\sigma_2\end{pmatrix},\qquad
+E=\begin{pmatrix}0&\eta\\\eta&0\end{pmatrix},\qquad
+\sigma_1>\sigma_2>0.
+$$
+
+先判断四件事：奇异值位移是否总受 $\|E\|_2$ 控制；同样大小的 $\|E\|_2$ 在小谱隙下是否能明显旋转奇异向量；rank-1 截断残差是否等于下一奇异值；以及 gap 证书何时失效。提交前隐藏参数、图表和结果，揭示后才打开可调账本。
+
+### 2. 静态后备：把数值稳定性与方向敏感性分开
+
+<div class="learning-lab" data-learning-lab="svd-perturbation" markdown="1">
+
+**JavaScript 失效时的静态读法：**奇异值的 Weyl 不等式是
+
+$$
+|\sigma_i(A+E)-\sigma_i(A)|\le \|E\|_2.
+$$
+
+它不含 gap，因此即使 $\sigma_1-\sigma_2$ 很小，奇异值仍然有这个范数级稳定性。相反，奇异向量需要分离条件：Wedin 或 Davis–Kahan 型结论的共同形状是“扰动范数除以有效谱隙”，而不是只看 $\|E\|_2$。在本对称 toy 中可以直接算出顶右奇异向量的旋转角
+
+$$
+\theta=\frac12\arctan\frac{2\eta}{\sigma_1-\sigma_2}.
+$$
+
+若 $\mathrm{gap}=\sigma_1-\sigma_2$ 且 $\mathrm{gap}-\|E\|_2>0$，一个保守的分离证书是
+
+$$
+\sin\theta\le
+\min\!\left(1,\frac{\|E\|_2}{\mathrm{gap}-\|E\|_2}\right).
+$$
+
+这是本 toy 的 gap 证书形状；当分母不为正时，实验明确显示“证书失效”，而不是把它叫作向量收敛或稳定。对一般矩阵要按 Wedin 的左右奇异子空间分离量和相应残差形式重新核对，不能把这个 $2\times2$ 公式外推成无条件定理。
+
+| 预设 | $(\sigma_1,\sigma_2,\eta)$ | Weyl 最大位移 | gap / 角度 | rank-1 残差 |
+|---|---|---:|---:|---:|
+| 大 gap | $(3,1,0.05)$ | $\approx0.00125\le0.05$ | gap $=2$，$\theta\approx1.43^\circ$ | $\|A+E-A_1\|_2=\sigma_2(A+E)\approx0.99875$ |
+| 小 gap | $(3,2.95,0.05)$ | $\approx0.03090\le0.05$ | gap $=0.05$，$\theta\approx31.72^\circ$ | $\sigma_2(A+E)\approx2.91910$ |
+| 证书边界 | $(3,2.9,0.15)$ | 仍 $\le0.15$ | gap $-\|E\|_2<0$，角度证书无效 | 仍由下一奇异值精确核对 |
+
+Eckart–Young 在这张账上是另一件事：
+
+$$
+\|A+E-(A+E)_1\|_2=\sigma_2(A+E),\qquad
+\|A+E-(A+E)_1\|_F=\sigma_2(A+E)
+$$
+
+（因为这里是 $2\times2$ 且只剩一个尾项）。所以“奇异值对输入扰动稳定”“奇异向量对小 gap 敏感”“低秩逼近残差由尾部奇异值定价”必须分成三行，不可用一个残差图替代。
+
+### 3. 原始残差不是自动的“小后向误差”
+
+对线性方程 $\widehat x$ 的原始残差 $r=b-A\widehat x$，$\|r\|_2$ 仍带着问题的量纲和尺度；允许同时扰动 $A,b$ 的范数向相对后向误差记为
+
+$$
+\eta_{A,b}=\frac{\|r\|_2}{\|A\|_2\|\widehat x\|_2+\|b\|_2}.
+$$
+
+因此“小原始残差”只有在报告 $\|A\|_2\|\widehat x\|_2+\|b\|_2$ 的归一化后，才可以称为小的相对后向误差。若只允许 $b$ 扰动，分母才取 $\|b\|_2$。前向误差还要经过条件数、方向和问题尺度转换；本实验的 SVD 残差 $\sigma_2(A+E)$ 是低秩逼近误差，不要把它改名成线性方程求解的后向误差。
+</div>
+
+</section>
+
 ## 1. SVD：数值世界的中心分解
 
 <figure class="plot" markdown="1">
@@ -46,7 +117,15 @@ $$
 
 **例 2（正规方程 vs QR 数值实验设计）** 取 $\kappa(A) = 10^6$ 的病态最小二乘：正规方程有效精度 $\sim 10^{-16}\times10^{12} = 10^{-4}$，QR $\sim 10^{-10}$——**六位数字的差距**来自"条件数是否被平方"一个决定。sklearn 的 `lstsq` 走 SVD/QR 而非正规方程，原因在此。
 
-**例 3（后向语言的翻译练习）** "解 $Ax = b$ 得到的 $\tilde x$ 残差 $\|A\tilde x - b\|$ 很小"——这是前向还是后向陈述？*答*：后向（$\tilde x$ 精确解了 $b + r$ 的问题）；残差小 ≠ 误差小（差 $\kappa$ 倍）——**"看残差判断解好坏"只在良态问题上合法**：把这句话讲清楚，本页的语言就掌握了。$\blacksquare$
+**例 3（后向语言的翻译练习）** "解 $Ax = b$ 得到的 $\tilde x$ 原始残差 $\|A\tilde x - b\|$ 很小"——这是一个未归一化的残差陈述，不应直接叫“小后向误差”。相对后向误差应写为
+
+$$
+\eta_{A,b}=\frac{\|A\tilde x-b\|}{\|A\|\,\|\tilde x\|+\|b\|}.
+$$
+
+这是允许同时扰动 $A,b$ 的范数向相对后向误差；若题目只允许右端 $b$ 扰动，则使用 $\|A\tilde x-b\|/\|b\|$。
+
+它说明 $\tilde x$ 精确解决了某个邻近输入问题；残差小仍不等于前向误差小，后者还差条件数和扰动方向。$\blacksquare$
 
 ---
 

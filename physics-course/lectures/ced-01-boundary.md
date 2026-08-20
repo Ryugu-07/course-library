@@ -3,9 +3,81 @@
 > **对标**：Jackson §1–4 ｜ **前置**：em-01、mp-01（Legendre/Green 函数）、pde2-03（唯一性）
 > Jackson 前半的主体是一门手艺：**在给定边界下解 Laplace/Poisson 方程**。本页把兵器谱配齐（唯一性定理、镜像法的进阶、分离变量的球谐版、Green 函数的正式化）并立起**多极展开**——"远看一切电荷分布"的标准语言。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="image-charge-learning-title">
+
+## 学习层：镜像法不是魔术，而是一张可核对的边界账
+
+<h3 id="image-charge-learning-title">1. 先固定接地平面模型</h3>
+
+取物理区域为 $z>0$，接地导体平面为 $z=0$，真实点电荷 $q$ 放在 $(0,0,d)$，其中 $d>0$。用数学上的镜像电荷 $-q$ 放在 $(0,0,-d)$，在物理半空间内构造
+
+$$
+V(\rho,z)=kq\left[\frac1{\sqrt{\rho^2+(z-d)^2}}-\frac1{\sqrt{\rho^2+(z+d)^2}}\right],
+\qquad k=\frac1{4\pi\varepsilon_0}.
+$$
+
+实验使用 $k=1$ 的无量纲单位，因此 $\varepsilon_0=1/(4\pi)$。先预测：平面上的 $V$ 是否逐点为零？法向场的方向和大小怎样随 $\rho$ 变？诱导总电荷会趋向 $-q$、$q$ 还是 $0$？
+
+### 2. 四项透明核对
+
+在 $z=0^+$，真实电荷和镜像到每个平面点的距离相等，所以
+
+$$
+V(\rho,0)=0,\qquad \mathbf E_t(\rho,0)=0,
+$$
+
+而法向分量为
+
+$$
+E_z(\rho,0^+)=-\frac{2kqd}{(\rho^2+d^2)^{3/2}},
+\qquad
+\sigma(\rho)=\varepsilon_0E_z(\rho,0^+)= -\frac{qd}{2\pi(\rho^2+d^2)^{3/2}}.
+$$
+
+把面电荷积分到半径 $R$ 的圆盘：
+
+$$
+Q_{\mathrm{ind}}(R)=-q\left(1-\frac{d}{\sqrt{R^2+d^2}}\right)\xrightarrow[R\to\infty]{}-q.
+$$
+
+真实电荷受到的力可以用镜像场计算，但镜像不是第二个真实电荷：
+
+$$
+\mathbf F=q\mathbf E_{\mathrm{image}}(0,0,d)= -\frac{kq^2}{4d^2}\,\hat{\mathbf z}.
+$$
+
+实验会逐点显示 $V$、切向场、$E_z$ 与闭式值的误差，再显示力和诱导电荷积分；这些是同一解析模型的交叉核对，不是抽样测量。
+
+<div class="learning-lab" data-learning-lab="image-charge-boundary" markdown="1">
+
+**JavaScript 失效时的静态 fallback：**默认 $q=1,d=1,k=1$。在 $\rho=0,1,2$ 三个平面点，边界电势与切向场均为 $0$；法向场分别为
+
+| $\rho$ | $V(\rho,0)$ | $|E_t|$ | 闭式 $E_z$ | 真实电荷所受力 $F_z$ |
+|---:|---:|---:|---:|---:|
+| 0 | 0 | 0 | $-2$ | $-1/4$ |
+| 1 | 0 | 0 | $-1/\sqrt2\approx-0.707107$ | $-1/4$ |
+| 2 | 0 | 0 | $-2/5^{3/2}\approx-0.178885$ | $-1/4$ |
+
+对应 $\sigma(\rho)=-1/[2\pi(\rho^2+1)^{3/2}]$，其全平面积分是 $Q_{\mathrm{ind}}=-1=-q$，半径 $R$ 内的部分是 $-(1-1/\sqrt{R^2+1})$。图中的下方 $-q$ 只是构造 Dirichlet Green 函数的数学像，**不是物理区域内新放置的电荷**。
+
+镜像结论依赖唯一性条件：物理区域取 $z>0$，给定平面上的 Dirichlet 值 $V=0$，并要求无穷远处解按所选衰减条件消失。若换成非零边界、有限导体、Neumann 问题或不指定无穷远行为，必须重新检查唯一性与附加条件；有限表格不能替代那个证明。
+
+</div>
+
+### 3. 读账边界
+
+- **镜像不是物理源。**它只是在 $z>0$ 内产生同一个势的辅助源；导体表面真实的响应由 $\sigma=\varepsilon_0E_n$ 表示。
+- **边界核对要分量。**$V=0$、$E_t=0$ 和 $E_z$ 的闭式值是不同证书；只看一张等势图不能证明场与力都正确。
+- **唯一性是收尾条件。**验证边界后能否把构造解称为物理解，取决于区域、Dirichlet/Neumann 类型与无穷远条件；不能把“镜像法有效”写成无条件技巧。
+- **有限点不是一般边值定理。**交互表只审计所选半径和参数，球面、带电平面及介质界面需要各自的 Green 函数或匹配条件。
+
+</section>
+
 ## 1. 唯一性定理（一切技巧的执照）
 
-**定理【推导】** 给定区域内 $\rho$ 与边界上的 $V$（Dirichlet）或 $\frac{\partial V}{\partial n}$（Neumann），Poisson 方程解唯一（Neumann 差常数）。
+**定理【推导】** 给定区域内 $\rho$ 与边界上的 $V$（Dirichlet），Poisson 方程解唯一；给定 $\frac{\partial V}{\partial n}$（Neumann）时，还必须满足由散度定理给出的总通量兼容条件，解才存在，并且只唯一到一个加法常数。
 *证*：两解之差 $u$ 调和且边界项为零；Green 第一恒等式 $\int|\nabla u|^2 = \oint u\frac{\partial u}{\partial n} = 0$ ⇒ $\nabla u \equiv 0$。$\blacksquare$
 **读法**：**"猜出来的解就是唯一的解"**——镜像法的合法性来源（猜一组像电荷、验证边界条件、唯一性收工）；也是 pde2-03 能量法的物理版。
 
@@ -23,7 +95,7 @@ $$
 
 ## 3. Green 函数的正式化
 
-**Dirichlet Green 函数**：$\nabla'^2G_D = -\delta$、边界上 $G_D = 0$，则
+**Dirichlet Green 函数**采用 Gaussian 型归一化：$\nabla'^2G_D(\mathbf r,\mathbf r')=-4\pi\delta^3(\mathbf r-\mathbf r')$、边界上 $G_D=0$，则
 
 $$
 V(\mathbf r) = \frac{1}{4\pi\varepsilon_0}\int\rho\,G_D\,dV' - \frac{1}{4\pi}\oint V_{\text{边界}}\,\frac{\partial G_D}{\partial n'}\,dA'
