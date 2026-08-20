@@ -15,6 +15,7 @@ from pathlib import Path
 
 import markdown
 from pygments.formatters import HtmlFormatter
+from tools.workflow_contracts import validate_all
 
 ROOT = Path(__file__).parent
 LECTURES = ROOT / "lectures"
@@ -113,6 +114,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/ecosystem-labs.js"></script>
 <script defer src="assets/site.js"></script>
 </body>
 </html>
@@ -186,7 +188,7 @@ def write_pygments_css():
 def main():
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "assets").mkdir(exist_ok=True)
-    for asset in ["style.css", "site.js"]:
+    for asset in ["style.css", "site.js", "ecosystem-labs.js"]:
         src = ROOT / "tools" / asset
         if src.exists():
             shutil.copy(src, SITE / "assets" / asset)
@@ -197,6 +199,19 @@ def main():
         if img_dst.exists():
             shutil.rmtree(img_dst)
         shutil.copytree(img_src, img_dst)
+    # 课程自带的 UI/API 工作流也是网页教具；发布到稳定相对路径供直接下载。
+    workflow_src = ROOT / "workflows"
+    if workflow_src.exists():
+        workflow_report = validate_all(workflow_src)
+        workflow_dst = SITE / "assets" / "workflows"
+        if workflow_dst.exists():
+            shutil.rmtree(workflow_dst)
+        shutil.copytree(workflow_src, workflow_dst)
+        print(
+            "✓ workflow contracts "
+            f"({workflow_report['ui_files']} UI + {workflow_report['api_files']} API, "
+            f"{workflow_report['checks']} checks)"
+        )
     write_pygments_css()
 
     build_time = time.strftime("%Y-%m-%d %H:%M")

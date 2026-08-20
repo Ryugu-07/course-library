@@ -1,90 +1,107 @@
-# 第 10 讲 · 模型生态：选型与下载清单
+# 第 10 讲 · 模型生态：兼容性与核验清单
 
-> 你的安装缺的不是能力是弹药（第 00 讲的诊断）。本讲三件事：**去哪下、怎么挑、下什么**——最后一节是为"16GB 显卡 + VRChat 动漫素材"定制的第一批清单，照单抓药后，第 11–14 讲全部玩法解锁。
+> 模型生态真正缺的不是“一个排行榜”，而是一套能在版本变化后继续工作的核验方法。本讲用模型家族、任务、条件接口、loader、证据和许可把选择拆开；具体名称只是 **2026-08-20 快照**，不是永久推荐。
 
-!!! warning "时效声明"
-    模型圈以周为单位迭代，本讲的**具体模型名**是 2026 年初的快照，**挑选方法**长期有效。下载前在社区（civitai 排行榜）花五分钟确认有没有更新的主流选择。
+!!! warning "快照与边界"
+    2026-08-20 的模型、模板、节点包、许可证和文件名都可能过期。官方模板存在不等于模型开放，模型开放不等于你的 16GB 能跑，16GB 跑通也不等于可以商用。每次换版本、变体或精度，都重新核验。
 
-## 1. 两大货源 + 国内通道
+## 1. 证据先于下载
 
-- **Civitai**（civitai.com）：社区微调模型与 LoRA 的绝对主阵地，按底模筛选、带示例图和参数、有排行榜。生图圈的"应用商店"；
-- **Hugging Face**：官方权重（SDXL base、ControlNet、IP-Adapter 等一手发布）；
-- **国内通道**：HF 有镜像 `hf-mirror.com`（把链接里的 huggingface.co 换成它即可）；civitai 访问不稳时可用 liblib 等国内站找同款热门模型。你 `E:\AI\Tools` 里的 **aria2** 是多线程下载器，大文件比浏览器稳得多：
+选择一个模型时，先把“它是什么”和“我怎样证明它能接入”分开记录：
 
-```powershell
-E:\AI\Tools\aria2\aria2c.exe -x 8 -s 8 -d E:\AI\Models\checkpoints "下载直链"
-```
-
-## 2. 怎么读一个 Civitai 模型页（防坑清单）
-
-按重要性排序，五个必看栏目：
-
-1. **Base Model**：写着 SDXL 1.0 / Illustrious / Pony / SD1.5 / FLUX——**第一过滤条件**。LoRA 必须配对应底模（第 05 讲：$\Delta W$ 依附于 $W$）；
-2. **示例图的参数**：点开示例图能看到完整生成参数（提示词/采样器/cfg/steps）——**这是官方配方，第一张图照抄它**，跑通了再改；
-3. **版本与文件**：选 `.safetensors`（第 04 讲的安全铁律）；同版本多个文件时，`pruned/fp16` 足够推理用（更小）；
-4. **触发词（Trigger Words）**：LoRA 常需要特定词激活（第 11 讲展开），页面上明确标注；
-5. **License/权限**：个人玩基本无碍；若图片要商用，看清该模型的许可条款（各家差异大）。
-
-## 3. 动漫模型系谱：你的场景该用什么
-
-动漫方向的微调模型有清晰的世代更替（都基于 SDXL 架构，但**互相不完全兼容 LoRA**，选定一系再下配件）：
-
-| 世代 | 代表 | 特点 |
+| 证据层 | 能证明什么 | 不能证明什么 |
 |---|---|---|
-| SD1.5 动漫时代 | Anything、Counterfeit | 2023 年的经典，512 分辨率，已过时 |
-| Pony 系 | Pony Diffusion V6 XL | 首个 danbooru 标签深度训练的 SDXL；需要 `score_9, score_8_up...` 一串专属质量咒语 |
-| **Illustrious 系** | Illustrious-XL 及其微调（WAI、NoobAI 同源系） | **2025–26 动漫主流**：danbooru 标签理解极佳、角色词库全、构图质量高 |
+| **ComfyUI 官方 Workflow Templates** | 当前 ComfyUI 支持的工作流入口、节点连法、所需文件名；加载模板时会检查缺失模型 | 你的显存一定够、具体变体一定有同一许可证、第三方节点安全 |
+| 官方模型卡/权重仓库 | 架构描述、文件组成、使用条件、许可证与来源 | 本机 ComfyUI 版本、模板版本或 16GB 峰值 |
+| Comfy Registry / Manager | 节点包的版本、安装和启用层；可辅助定位缺失节点 | 模型质量、模型与 loader 的兼容性、任意第三方代码的安全保证 |
+| 社区模型页 | 候选发现、示例图、触发词、社区工作流线索 | 官方支持、许可证清晰、当前版本仍可复现 |
 
-**给你的建议：直接入 Illustrious 系**（跳过历史包袱），理由：VRChat 动漫角色风格匹配度最高、当前 LoRA 生态最活跃、对 danbooru 标签的理解意味着提示词有一套**确定性的词表**可查——这对数学背景的你是好消息：
+**官方模板库是一等支持证据之一**，因为它把工作流、模型链接和缺模型检查放在同一个入口；它不是“质量排名”。Registry/Manager 是版本/安装层，不是模型兼容性证明。第三方节点仍要审查来源、精确版本、安装脚本和会执行的代码。
+
+官方入口：[Templates](https://docs.comfy.org/interface/features/template)、[ComfyUI workflow templates 仓库](https://github.com/Comfy-Org/workflow_templates)、[ComfyUI Registry](https://registry.comfy.org/)。
+
+## 2. 长期有效的模型兼容矩阵
+
+矩阵只描述接口契约；“控制需求”表示需要继续寻找匹配的 adapter/ControlNet/模型专用节点，不表示它们天然互换。
+
+| 家族 | 适合先核对的任务 | 去噪/条件骨架 | 常见 loader 形态 | 控制兼容性要查 | 证据与许可 |
+|---|---|---|---|---|---|
+| SD1.5 | txt2img、img2img、基础结构控制 | U-Net；CLIP → CONDITIONING；SD VAE 形状契约 | `CheckpointLoaderSimple` 常见，也可能拆件 | adapter/ControlNet 必须标明 SD1.5；不要只看文件名 | 官方文生图教程 + 具体模型卡/许可证 |
+| SDXL | txt2img、img2img、SDXL 生态中的控制与 LoRA | U-Net；双 text encoder → CONDITIONING；SDXL VAE 契约 | 完整 checkpoint 或与模板配套的分体 loader | LoRA、ControlNet、IP-Adapter 要确认 SDXL 变体 | Stability 官方仓库 + 当前模板 + 具体微调版许可 |
+| FLUX | 长提示词、图像生成/编辑等模型专用工作流 | 多模态 Diffusion Transformer；文本编码组合与 flow 采样按变体 | 常见分体 model/text encoder/VAE loader；以模板为准 | FLUX 专用 adapter、编辑模型和节点要逐项核验 | [官方模型卡](https://huggingface.co/black-forest-labs/FLUX.1-dev) + 当前模板 + FLUX 变体许可 |
+| Qwen-Image | 文字渲染、图像生成/编辑等官方路线 | DiT-style diffusion model；Qwen 文本编码器与模型专用 conditioning | 官方示例为 `diffusion_models/` + `text_encoders/` + `vae/` | Qwen-Image 专用 control/edit/LoRA 与模板要配套 | [官方 Qwen-Image 示例](https://github.com/comfyanonymous/ComfyUI_examples/tree/master/qwen_image) + [模型卡](https://huggingface.co/Qwen/Qwen-Image) + 具体许可证 |
+
+矩阵不输出“最好”或“第一名”。一个候选只有在任务、家族、条件类型、loader、模板、文件、精度、依赖和许可证都对上后，才值得进入本机测试。
+
+## 3. 互动选择器：先生成核验队列
+
+下面的选择器按五个维度筛选：任务、模型家族、显存预算、控制需求、许可/来源证据。结果是**需要核验的清单，不是虚构排名**；“16GB”选项只会把候选放进实测队列，不会替你宣称能运行。
+
+<div data-comfy-lab="model-selector"></div>
+
+## 4. 每个候选都要填的核验卡
+
+把模型页、模板页和本机实验放进同一条记录。文件名可以变，字段不要省：
 
 ```text
-Illustrious 系提示词范式(danbooru 标签, 逗号分隔):
-1girl, silver hair, long hair, red eyes, school uniform,
-standing, classroom, window light,
-masterpiece, best quality, highly detailed
-负面: worst quality, low quality, bad anatomy, bad hands,
-      extra digits, watermark, signature
+model:            具体仓库名 / 变体名
+family:           SD1.5 | SDXL | FLUX | Qwen-Image | 其他
+task:             txt2img / img2img-edit / structure-control / ...
+source:           官方模型卡或仓库 URL；社区页只作发现入口
+license:          具体版本的 LICENSE / model card 原文位置
+template:         当前 ComfyUI 官方模板名、版本或截图记录
+loader:           CheckpointLoader / UNET-Model + CLIP + VAE / 专用节点
+model_files:      文件名、目录、哈希、是否缺模型
+precision:        fp32 / fp16 / bf16 / fp8 / 量化名称；不要只写“轻量”
+dependencies:     ComfyUI 版本、模板包、Registry/Manager 节点包及精确版本
+control:          文本 / 参考图 / ControlNet / LoRA / 模型专用控制
+vram_test:        分辨率、batch、峰值、耗时、offload、OOM 与输出检查
+verified_at:      YYYY-MM-DD
 ```
 
-标签不是自由发挥，是查表——danbooru 的标签维基就是词典；这套词表也正是第 12 讲 ControlNet + 你的 VRChat 截图工作流的提示词基础。
+### 4.1 Loader 与模板的核对顺序
 
-## 4. 第一批下载清单（约 18–22GB 磁盘）
+1. 从当前官方模板或官方教程开始，确认节点类型和模型目录；模板弹出的缺模型列表只说明“文件未找到”，不说明许可证或显存。
+2. 对照模型卡核对 denoiser、文本编码器、VAE、精度和许可证；不要用同名文件替换不同家族组件。
+3. 只有在核心节点跑通后，才加入 LoRA、ControlNet、IP-Adapter 或第三方节点；每加一层都固定 seed 并记录显存变化。
+4. Registry/Manager 只负责安装/版本层的操作；若工作流出现红节点，先审查该节点包，再决定是否安装。
 
-按第 05 讲总表的"部件"组织，放进对应的 `E:\AI\Models` 子目录：
+### 4.2 16GB 实测，而不是预算徽章
 
-| # | 部件 | 推荐（2026 初快照） | 去处 | 大小 | 用途 |
-|---|---|---|---|---|---|
-| 1 | 动漫主力 checkpoint | Illustrious-XL 系热门微调（civitai 按 Illustrious 筛，排行榜前列挑口味） | `checkpoints/` | ~6.6GB | 第 11–13 讲主力 |
-| 2 | 通用写实 checkpoint | Juggernaut XL 或 RealVisXL（任一） | `checkpoints/` | ~6.6GB | 写实/材质/场景 |
-| 3 | SDXL 修复版 VAE | `sdxl_vae.safetensors`（fp16-fix 版） | `vae/` | ~330MB | 个别微调模型发灰时外挂 |
-| 4 | ControlNet 万能包 | **Xinsir controlnet-union-sdxl (promax)** —— 一个文件同时支持 openpose/canny/depth/lineart 等 | `controlnet/` | ~2.5GB | 第 12 讲全部实验 |
-| 5 | IP-Adapter 主体 | `ip-adapter_sdxl_vit-h.safetensors` | `ipadapter/` | ~700MB | 第 13 讲 |
-| 6 | CLIP 图像塔 | CLIP-ViT-H-14 图像编码器（IP-Adapter 官方仓库配套） | `clip_vision/` | ~2.5GB | IP-Adapter 的眼睛 |
-| 7 | 放大模型 | `4x-UltraSharp` + `RealESRGAN_x4plus_anime_6B`（动漫专用） | `upscale_models/` | 各 ~65MB | 第 14 讲 |
-| 8 | 2–3 个 LoRA | 在 civitai 按"你的 #1 底模"筛选，挑画风/角色各一 | `loras/` | 各 ~50–200MB | 第 11 讲练手 |
+“显存预算”筛选的意义是安排实验：
 
-清单刻意**不含** FLUX/Qwen（第二阶段，等 SDXL 生态玩顺再上，那时 16GB 下的 fp8 选型另议）和 SDXL-inpaint 专用模型（第 09 讲路线 A 暂够用；将来需要大面积重绘时再补）。
+| 预算档 | 先记录 | 不得推断 |
+|---|---|---|
+| 8GB 或更低 | 低分辨率、CPU offload、batch、VAE 峰值 | 不得推断所有低精度文件都能跑 |
+| 16GB | 精度/量化、目标分辨率、控制件数量、峰值与耗时 | 不得推断“官方模板存在”就是通过 |
+| 24GB 以上/外部算力 | 模型加载、并发、长提示词和多图控制 | 不得推断换回 16GB 仍有同样边界 |
+| 未知 | 先查官方来源，再做最小模板实验 | 不得用社区截图替代本机证据 |
 
-**管理纪律（从第一个文件开始养成）**：
+一次跑通只回答“这组变量曾经通过”；要判断是否可用，还要重复并记录稳定性、输出质量、依赖版本和许可证。
 
-1. 文件名保留版本号（`illustriousXL_v20.safetensors` 别改成 `anime.safetensors`——三个月后你分不清）；
-2. `loras/` 下按 `style/`、`char/` 建子目录（第 06 讲：下拉框支持相对路径）；
-3. 在 `E:\AI\Models\models.md` 里一行一条记录：`文件名 | 来源链接 | 底模 | 触发词`——这是你的弹药库台账，也是唯一需要"备份"的模型信息（第 06 讲）。
+## 5. 社区模型页的安全读法
 
-## 5. 换了模型之后：参数要跟着换
+社区页依然有用，但它适合作为候选发现，不应承担官方证明的职责。至少核对：
 
-新 checkpoint 到手的标准动作（每次都做，形成流程）：
+- Base model/family 是否明确，LoRA、ControlNet 和 checkpoint 是否属于同一接口家族；
+- 示例图是否给出完整参数，能否迁移到当前模板；
+- 文件格式、版本、哈希、触发词和依赖是否写清；
+- LICENSE、训练数据/人物权利、可否商用是否来自具体版本，而不是评论区一句话；
+- 下载后是否只在隔离、可回滚的目录里加载；模型文件和第三方节点都不要盲信。
 
-1. 模型页示例图的参数**原样跑一张**（提示词、采样器、cfg、steps 全抄）——先确认"药是好药"；
-2. 换成你的提示词，参数不动，再跑——确认"药对你的症"；
-3. 之后才开始按第 08 讲的方法调参。动漫系模型常见差异：cfg 甜区偏低（4–7）、质量词/负面词有各自约定（模型页会写）、`euler_ancestral` 或 `dpmpp_2s_ancestral` 是社区惯用搭配。
+`safetensors` 是文件格式选择，不等于许可证；“公开下载”也不等于“开放许可”。
 
 ## 上机任务
 
-1. 按清单下载 #1（动漫主力）+ #4（ControlNet union）+ #7（两个放大器）——这是后面三讲的最小弹药；其余可边学边补；
-2. 建好 `models.md` 台账，把已有的 3 个底模也补记进去；
-3. 用新动漫 checkpoint 照模型页配方出第一张图，然后用第 3 节的 danbooru 范式描述一个你的 VRChat 角色，看它能还原几成。
+1. 在官方 Templates 中分别搜索 SD1.5、SDXL、FLUX、Qwen-Image 的当前入口，记录模板版本和缺模型清单。
+2. 从四个家族各挑一个候选，填写上面的核验卡；先不比较画质排名，只比较证据是否完整。
+3. 在固定 seed、固定输入和固定分辨率下，逐个记录 loader、精度、峰值显存、耗时、OOM 与输出检查。
+4. 对每个第三方节点包记录 Registry/GitHub 来源、精确版本、许可和安全审查结果；没有记录就不加入工作流。
+
+## 来源与快照说明
+
+本页的动态事实以 **2026-08-20** 为记录日；产品名单、模板目录、Registry 版本和社区热门程度会变化。更新页面时优先重新读取官方 Templates、官方模型卡和具体许可证，再修改矩阵；不要仅把“最新”换成另一个名称。
 
 ---
 
-*弹药到位。下一讲把 LoRA 挂上工作流——几十 MB 改画风的低秩数学（第 05 讲），落到画布上只是一个节点加两个滑块，但滑多少、叠几个、为什么失效，全有讲究。*
+*选型完成的标志不是下载了一堆文件，而是每个文件都能回答：它属于哪个家族、由哪个 loader 读取、由哪份模板证明、在什么变量下实测、许可证来自哪里。*

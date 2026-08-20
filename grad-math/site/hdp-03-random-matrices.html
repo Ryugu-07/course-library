@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#hdp03-learning-title">学习层：一次矩阵计算，究竟能替哪个结论作证？</a><ul>
+<li><a href="#1">1. 先预测，再打开账本</a></li>
+<li><a href="#2">2. 三个对象，三套归一化</a></li>
+<li><a href="#3">3. 实验怎样读</a></li>
+<li><a href="#4">4. 失效边界：先问假设，再读数字</a></li>
+</ul>
+</li>
 <li><a href="#1-">1. ε-网：把球面数字化</a></li>
-<li><a href="#2">2. 随机矩阵的谱范数</a></li>
-<li><a href="#3">3. 兑现欠条：协方差估计定理</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#2_1">2. 随机矩阵的谱范数</a></li>
+<li><a href="#3_1">3. 兑现欠条：协方差估计定理</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +67,98 @@
 <p><strong>对标</strong>：Vershynin <em>HDP</em> §4.2–4.6 ｜ <strong>前置</strong>：hdp-01/02、高代 V/VI、矩阵分析 I（可后补）
 本页解决一个模式问题：<strong>如何控制"无穷多个方向的上确界"</strong>——矩阵谱范数 <span class="arithmatex">\(\|A\| = \sup_{\|u\|=1}\|Au\|\)</span> 是连续统上的 sup，union bound 直接失效。解法是本课程最重要的技术之一：<strong>ε-网离散化</strong>。产出：随机矩阵谱范数界与上一页欠下的协方差估计定理。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="hdp03-learning-title" class="learning-layer">
+<h2 id="hdp03-learning-title">学习层：一次矩阵计算，究竟能替哪个结论作证？<a class="headerlink" href="#hdp03-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测，再打开账本<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>实验固定伪随机数发生器和 seed；默认矩阵很小，足够把 <span class="arithmatex">\(A^\top A\)</span> 的双精度特征值、power iteration 与有限方向扫描同时算出来。先不要看结果，预测：</p>
+<ol>
+<li>若 <span class="arithmatex">\(\mathcal G\subset S^{n-1}\)</span> 只是有限方向网格，<span class="arithmatex">\(\max_{v\in\mathcal G}\|Av\|_2\)</span> 与 <span class="arithmatex">\(\|A\|\)</span> 的关系是哪一个？它是否就是单位球面上的 supremum？</li>
+<li>对独立、零均值、单位尺度的 Gaussian 或 Rademacher 矩形矩阵，<span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 应该读成一次样本的确定上界，还是高概率的典型尺度？</li>
+<li>把同一个名字“谱”搬到 Wigner、矩形 iid 矩阵和 sample covariance 上时，半圆律、Marchenko–Pastur 与算子范数结论能否直接互换？</li>
+</ol>
+<p>点击“揭示账本”之前，实验隐藏数值结果；预测错了也保留这次记录。结果只解释当前固定矩阵，不把一条 seed 路径伪装成高概率定理。</p>
+<h3 id="2">2. 三个对象，三套归一化<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>模型与归一化</th>
+<th>应该引用的典型谱尺度</th>
+<th>不应混用的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wigner</td>
+<td>对称 <span class="arithmatex">\(W=W^\top\)</span>，独立上三角变量 <span class="arithmatex">\(\xi_{ij}\)</span>，<span class="arithmatex">\(W_{ij}=\xi_{ij}/\sqrt n\)</span></td>
+<td>半圆律的特征值支撑约为 <span class="arithmatex">\([-2,2]\)</span>；<span class="arithmatex">\(\|W\|\)</span> 的边缘尺度约为 <span class="arithmatex">\(2\)</span></td>
+<td>这是对称特征值对象，不是矩形 iid 的 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 表达式，也不是 MP</td>
+</tr>
+<tr>
+<td>矩形 iid</td>
+<td><span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span>，条目独立、方差约为 <span class="arithmatex">\(1\)</span>，不先除以 <span class="arithmatex">\(\sqrt m\)</span></td>
+<td><span class="arithmatex">\(\|A\|\sim\sqrt m+\sqrt n\)</span> 的高概率尺度</td>
+<td>这是算子范数尺度；不能把它当作 Wigner 的半圆律或 covariance 的特征值边缘</td>
+</tr>
+<tr>
+<td>sample covariance</td>
+<td><span class="arithmatex">\(X\in\mathbb R^{m\times n}\)</span>，<span class="arithmatex">\(S=X^\top X/m\)</span></td>
+<td><span class="arithmatex">\(S\)</span> 的 MP 上边缘约为 <span class="arithmatex">\((1+\sqrt{n/m})^2\)</span>；且 <span class="arithmatex">\(\|S\|=\|X\|^2/m\)</span></td>
+<td>MP 讨论 <span class="arithmatex">\(S\)</span> 的特征值；<span class="arithmatex">\(\|X\|\)</span> 仍是矩形矩阵问题，不能少掉平方与 <span class="arithmatex">\(m\)</span> 的归一化</td>
+</tr>
+</tbody>
+</table>
+<p>因此本页实验把对象、矩阵形状、归一化、比较基准一起显示。<code>Gaussian</code> 与 <code>Rademacher</code> 都用固定 seed；相关/低秩和重尾预设则是<strong>失败边界诊断</strong>，不是 iid 次高斯定理的额外样本。</p>
+<h3 id="3">3. 实验怎样读<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>小矩阵的“精确”栏是针对本实验尺寸的双精度 Jacobi 特征值计算：矩形 iid 与 Wigner 先看 <span class="arithmatex">\(A^\top A\)</span>，sample covariance 直接看 <span class="arithmatex">\(S\)</span>。power iteration 从固定初始向量出发，只是一个近似算法；方向网格则只取有限个单位向量。</p>
+<p>必有的确定性关系是</p>
+<div class="arithmatex">\[
+\max_{v\in\mathcal G}\|Av\|_2\leq \sup_{\|u\|_2=1}\|Au\|_2=\|A\|.
+\]</div>
+<p>网格越密，通常越接近，但“网格最大值”不是单位球面上的 supremum，也不是一个自动成立的 <span class="arithmatex">\(\varepsilon\)</span>-网证书。脚本用同一固定矩阵把这个下界、power iteration 近似和小矩阵特征值并排显示。</p>
+<div class="learning-lab" data-learning-lab="random-matrix-norm">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认预设是 <span class="arithmatex">\(5\times4\)</span> 的矩形 Gaussian 矩阵，条目服从 <span class="arithmatex">\(N(0,1)\)</span>，seed 为 <code>20260722</code>；方向网格是各坐标二维平面上的有限角度网格，不是整个 <span class="arithmatex">\(S^3\)</span>。下表的数值只描述这一张固定矩阵；加载脚本后还可切换 Rademacher、Wigner、sample covariance、相关/低秩与 heavy-tail 诊断。</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>静态读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>精确/双精度值</td>
+<td>默认 Gaussian：<span class="arithmatex">\(\|A\|\approx3.539316\)</span>；以 <span class="arithmatex">\(A^\top A\)</span> 的最大特征值开平方得到，不是把有限方向扫描叫作精确值</td>
+</tr>
+<tr>
+<td>power iteration</td>
+<td>默认 18 步约为 <span class="arithmatex">\(3.539316\)</span>；固定初始向量和有限步数得到近似，误差来自算法迭代，不是随机定理的失败概率</td>
+</tr>
+<tr>
+<td>方向网格</td>
+<td>共 148 个方向，默认最大值约为 <span class="arithmatex">\(3.455315\le3.539316\)</span>；它不是单位球上确界</td>
+</tr>
+<tr>
+<td>典型尺度</td>
+<td><span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 是 iid 次高斯的高概率阶，不是这次抽样的确定上界</td>
+</tr>
+<tr>
+<td>量词</td>
+<td>一次固定 seed 只给一个样本；不能单独证明“以高概率”或半圆律/MP 的渐近结论</td>
+</tr>
+</tbody>
+</table>
+<p>切换到同一 seed <code>20260722</code> 的 Rademacher 后，精确/幂迭代/网格约为 <span class="arithmatex">\(3.290658/3.290658/3.162278\)</span>；这两个固定矩阵都只是教学用的可复现实例。</p>
+</div>
+<h3 id="4">4. 失效边界：先问假设，再读数字<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>相关/低秩：</strong>若 <span class="arithmatex">\(A=uv^\top+E\)</span>，秩一项的范数是 <span class="arithmatex">\(\|u\|_2\|v\|_2\)</span>；它可以达到 <span class="arithmatex">\(\sqrt{mn}\)</span> 级，远离 iid 的 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span>。相关条目破坏了独立性，必须把结构写进模型或改用相应的协方差/低秩分析。</li>
+<li><strong>重尾：</strong>若条目只有很弱的矩条件，甚至方差不存在，一个极端条目就可能支配 <span class="arithmatex">\(\|A\|\)</span>；不能把亚高斯尾界的常数悄悄沿用。截断、稳健化或额外矩假设是另一条理论路线。</li>
+<li><strong>样本与定理：</strong>即使 Gaussian 预设的数值落在 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 附近，也只说明这次固定样本；高概率结论要对随机矩阵取概率，并保留独立性、尾部、归一化和维度量词。</li>
+</ul>
+</section>
 <h2 id="1-">1. ε-网：把球面数字化<a class="headerlink" href="#1-" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(\mathcal{N} \subseteq S^{n-1}\)</span> 是 <strong>ε-网</strong>：球面任一点距 <span class="arithmatex">\(\mathcal{N}\)</span> 不超过 <span class="arithmatex">\(\varepsilon\)</span>。</p>
 <p><strong>引理（网的大小）【证明】</strong> 单位球面存在 <span class="arithmatex">\(|\mathcal{N}| \leq \big(1 + \frac{2}{\varepsilon}\big)^n \leq \big(\frac{3}{\varepsilon}\big)^n\)</span> 的 ε-网。
@@ -60,7 +170,7 @@
 \]</div>
 <p><em>证</em>：取达到 <span class="arithmatex">\(\|A\|\)</span> 的 <span class="arithmatex">\(u^*\)</span>，网点 <span class="arithmatex">\(u\)</span> 距其 <span class="arithmatex">\(\leq \frac14\)</span>：<span class="arithmatex">\(\|Au\| \geq \|Au^*\| - \|A\|\cdot\frac14 \geq \frac34\|A\|\)</span>……整理即得（对称版同法用二次型的 Lipschitz 性）。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>模式定型</strong>：<strong>连续 sup ≤ 常数 × 有限 max</strong> + 每个网点用 hdp-01 集中 + union bound 付 <span class="arithmatex">\(e^{Cn}\)</span> 网点数——三件套从此通杀"算子级"的概率界。</p>
-<h2 id="2">2. 随机矩阵的谱范数<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 随机矩阵的谱范数<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Wigner 半圆律" src="assets/img/hdp-03-semicircle.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>Wigner 半圆律：大随机对称矩阵的特征值分布收敛到半圆——随机矩阵谱的普适规律。</figcaption>
@@ -70,8 +180,9 @@
 \|A\| \;\leq\; CK\big(\sqrt{m} + \sqrt{n} + t\big)
 \]</div>
 <p><strong>【证明】</strong> 三件套执行：取 <span class="arithmatex">\(S^{m-1}, S^{n-1}\)</span> 上的 <span class="arithmatex">\(\frac14\)</span>-网（大小 <span class="arithmatex">\(\leq 9^m, 9^n\)</span>）；固定网点对 <span class="arithmatex">\((u, v)\)</span>：<span class="arithmatex">\(\langle Au, v\rangle = \sum_{ij}A_{ij}u_iv_j\)</span> 是独立亚高斯量的线性组合，<span class="arithmatex">\(\|\cdot\|_{\psi_2} \leq CK\)</span>（hdp-01 的"方差式相加"，权重平方和 <span class="arithmatex">\(= \|u\|^2\|v\|^2 = 1\)</span>）⇒ 尾界 <span class="arithmatex">\(2e^{-cs^2/K^2}\)</span>；union bound 于 <span class="arithmatex">\(9^{m+n}\)</span> 对网点，取 <span class="arithmatex">\(s = CK(\sqrt m + \sqrt n + t)\)</span> 吃掉网点数的指数。双侧离散化引理（<span class="arithmatex">\(\|A\| \leq 2\max\langle Au, v\rangle\)</span> 变体）收尾。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：<span class="arithmatex">\(m \times n\)</span> 随机矩阵的谱范数 <span class="arithmatex">\(\approx \sqrt m + \sqrt n\)</span>——<strong>元素是 <span class="arithmatex">\(O(1)\)</span> 的、矩阵却只有根号级的算子范数</strong>：随机方向互相抵消，"无结构的噪声没有主方向"。对照确定性最坏情形 <span class="arithmatex">\(\|A\| \leq \sqrt{mn}\)</span>（全 1 矩阵达到）——随机性便宜了 <span class="arithmatex">\(\sqrt{\min(m,n)}\)</span> 倍。渐近精确版【引用】：Bai–Yin 定律（<span class="arithmatex">\(\frac{\|A\|}{\sqrt n} \to 2\)</span>，方阵）与 Wigner 半圆律、Marchenko–Pastur 谱分布——随机矩阵理论的门牌，知其名。</p>
-<h2 id="3">3. 兑现欠条：协方差估计定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>读法</strong>：对独立、零均值、单位尺度的 <span class="arithmatex">\(m\times n\)</span> 矩形 iid 矩阵，谱范数的典型尺度是 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span>——<strong>元素是 <span class="arithmatex">\(O(1)\)</span> 的、矩阵却只有根号级的算子范数</strong>：随机方向互相抵消，"无结构的噪声没有主方向"。这是高概率尺度，不是一次样本的确定上界；确定性最坏情形仍是 <span class="arithmatex">\(\|A\|\leq\sqrt{mn}\)</span>（全 1 矩阵达到）。</p>
+<p>不要把相邻的三个名字压成一个结论：Bai–Yin/矩形算子范数先服务于 iid 矩形矩阵；Wigner 半圆律要求对称且通常按 <span class="arithmatex">\(1/\sqrt n\)</span> 归一化；Marchenko–Pastur 描述 <span class="arithmatex">\(S=X^\top X/m\)</span> 的样本协方差特征值。归一化一换，数值尺度就要跟着换；一张固定矩阵也不可能单独证明这些高概率或渐近定理。</p>
+<h2 id="3_1">3. 兑现欠条：协方差估计定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理（hdp-02 §2 的正身）</strong> 亚高斯各向同性，<span class="arithmatex">\(m\)</span> 个样本：以概率 <span class="arithmatex">\(1 - 2e^{-t^2}\)</span>，</p>
 <div class="arithmatex">\[
 \|\hat\Sigma - I\|_{\mathrm{op}} \leq CK^2\Big(\sqrt{\frac{n + t^2}{m}} + \frac{n + t^2}{m}\Big)
@@ -79,7 +190,7 @@
 <p>故 <span class="arithmatex">\(m \gtrsim \varepsilon^{-2}(n + t^2)\)</span> 时误差 <span class="arithmatex">\(\leq \varepsilon\)</span>。
 <strong>【骨架】</strong> 对称版三件套：<span class="arithmatex">\(\langle(\hat\Sigma - I)u, u\rangle = \frac1m\sum_i\big(\langle X_i, u\rangle^2 - 1\big)\)</span>——独立零均值<strong>亚指数</strong>量（亚高斯的平方！hdp-01 §2 的那句话正是为此准备）的均值 ⇒ Bernstein 双段尾；union bound 于 <span class="arithmatex">\(9^n\)</span> 网点：小偏差段给 <span class="arithmatex">\(\sqrt{n/m}\)</span>、大偏差段给 <span class="arithmatex">\(n/m\)</span>，恰是定理的两项。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>读法</strong>：<strong>"样本 ≈ 维数"即可谱一致估计</strong>；两项结构 = Bernstein 的高斯/指数双段在样本量上的投影（<span class="arithmatex">\(m \gg n\)</span> 时根号项主导——渐近统计的 <span class="arithmatex">\(\sqrt{n/m}\)</span> 速率；<span class="arithmatex">\(m \sim n\)</span> 时线性项显形——高维修正）。🔗 PCA 的样本量依据、高维回归 <span class="arithmatex">\((X^\top X)\)</span> 的条件保障、以及"embedding 空间协方差白化要多少数据"全部由此定价。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（网技术的手感）</strong> 用 §1 双引理证明：对称随机符号矩阵（元素 ±1）<span class="arithmatex">\(\|A\| \leq C\sqrt n\)</span> w.h.p.——按三件套写全每一步（这是本页的标准自测题：三步能独立写出，ε-网就学会了）。</p>
 <p><strong>例 2（数值对账）</strong> 模拟 <span class="arithmatex">\(1000\times1000\)</span> 标准高斯矩阵：<span class="arithmatex">\(\|A\| \approx 2\sqrt{1000} \approx 63\)</span>（Bai–Yin）；定理的常数 <span class="arithmatex">\(C\)</span> 给的是同阶上界——<strong>理论管阶、模拟定常数</strong>，两者互为 verify（你的实验习惯在此有理论座位）。</p>
 <p><strong>例 3（各向异性推广）</strong> 一般协方差 <span class="arithmatex">\(\Sigma\)</span>：白化后套定理得 <span class="arithmatex">\(\|\hat\Sigma - \Sigma\|_{\mathrm{op}} \leq \varepsilon\|\Sigma\|_{\mathrm{op}}\)</span>（相对误差版）——实际数据不各向同性时的正确引用姿势（直接搬绝对误差版是常见误用）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -94,5 +205,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/random-matrix-norm.js"></script>
 </body>
 </html>

@@ -26,6 +26,19 @@
 
 评测任务要覆盖真实分布：小修复、跨文件功能、失败测试、模糊需求、大日志、权限受限和无法完成的任务。每个任务包含初始仓库状态、用户目标、允许工具、验收脚本和风险检查。
 
+每次运行还要保存完整的系统配置，而不是只写模型名：
+
+~~~text
+RunConfig =
+  dataset + instance + repository commit + environment image
+  + model + decoding/reasoning settings
+  + prompt + agent harness + tools + policy + task verifier
+  + evaluation harness + grader version
+  + budget + timeout + random seed
+~~~
+
+软件工程 benchmark 至少有两种容易混淆的 harness：**agent harness** 产生行动轨迹和最终补丁；**evaluation harness** 在隔离环境中应用补丁、运行验收并判分。SWE-bench 的官方 evaluation harness 使用分层 Docker 镜像来准备仓库环境、应用预测补丁、执行测试和产出结果。它让判分环境更可复现，却不会自动证明上游 agent 没见过测试、任务没有污染，或所有现实软件工程工作都被覆盖。
+
 不要只收集成功案例。Agent 是否能在权限不足时正确停止、在测试不可用时诚实报告，也是能力的一部分。
 
 ## 4. 可重复与不确定性
@@ -33,6 +46,15 @@
 模型输出有随机性，同一任务要运行多次，并记录模型版本、参数、工具版本和基点提交。一次 100% 成功不能证明稳定；平均成功率也可能掩盖某类任务全面退化。
 
 对比版本时固定任务集和环境，报告置信区间或至少报告样本量。生产指标与离线评测互补：离线可控，生产更真实但受用户行为和环境影响。
+
+最少做两条正交对照，才有资格讨论改进来自哪里：
+
+| 对照 | 固定什么 | 改变什么 | 能回答什么 |
+|---|---|---|---|
+| model-only | prompt、agent harness、工具、权限、task verifier、evaluation harness、镜像、任务、预算与超时 | 模型/推理配置 | 在这套宿主与判分协议里，模型变化带来什么？ |
+| harness-only | 模型、推理配置、prompt、evaluation harness、镜像、任务、预算与超时 | agent harness 的工具、上下文、循环、权限或任务内验证 | 宿主工程变化带来什么？ |
+
+combined 对照可以回答“新系统整体是否更好”，却不能单独归因。若两个版本连仓库镜像、超时和验收器也不同，分数差甚至可能主要来自评测协议变化。
 
 ## 5. Trace 驱动改进
 
@@ -55,8 +77,9 @@
 
 ## 7. 本章实验
 
-实验 08 用模拟任务集比较 v0 与 v1。调整故障率和候选策略，观察成功率、错误完成、安全事件和成本并不会同时朝同一方向变化。发布判断是多指标约束，而不是追求一个最高分。
+实验 08 用模拟任务集比较 v0 与 v1。先选 model-only、harness-only 或 combined 对照，再调整故障率和候选策略；观察成功率、错误完成、安全事件和成本并不会同时朝同一方向变化。实验必须显示哪一层被改变，并把失败归入 context、tool、runtime、verification 或 safety，不能把所有退化都归咎于“模型不够聪明”。发布判断是多指标约束，而不是追求一个最高分。
 
 !!! warning "评测污染"
     如果 Agent 见过验收脚本或直接针对固定答案优化，分数会虚高。把验收放在独立位置，保留隐藏任务，并定期加入真实失败案例。
 
+**一手参考：**[SWE-bench evaluation harness](https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md)；[SWE-agent](https://github.com/SWE-agent/SWE-agent)；[mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)。

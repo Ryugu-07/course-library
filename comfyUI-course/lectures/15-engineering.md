@@ -1,29 +1,31 @@
 # 第 15 讲 · 工程化与排障
 
-> 收官讲，四件事：扩展节点的安装与治理、工作流资产管理、把 ComfyUI 变成可编程服务（顺便解开你机器上 Codex_Bridge 的身世之谜）、以及一张排障总表。目标是把前面十四讲的玩法**沉淀成可持续运转的个人生产系统**。
+> 基础实战篇的收束讲，四件事：扩展节点的安装与治理、工作流资产管理、把 ComfyUI 变成可编程服务（顺便解开你机器上 Codex_Bridge 的身世之谜）、以及一张排障总表。目标是把前面十四讲的玩法**沉淀成可持续运转的个人生产系统**，再进入 16–22 讲的多模态扩展。
 
 ## 1. 自定义节点：安装与治理
 
-### 1.1 用 Manager 装（你的启动参数已开启）
+### 1.1 用 Manager 装（新旧界面先分清）
 
-界面里打开 **Manager**（工具栏按钮）：
+截至 2026-08-20，官方新 Manager 用左侧筛选、顶部搜索和右侧详情面板管理 node pack；旧界面的按钮名称可能不同。界面里打开 **Manager**：
 
-- **Install Custom Nodes**：搜索安装。课程用到的四件套一次装齐：`comfyui_controlnet_aux`（第 12 讲 Win 侧预处理）、`ComfyUI_IPAdapter_plus`（第 13 讲）、`ComfyUI-Impact-Pack`（第 14 讲 FaceDetailer）、`rgthree-comfy`（通用体验增强：进度条、更好的 LoRA 加载器等，你朋友工作流也在用）；
-- **Install Missing Custom Nodes**：加载别人的工作流出现一片**红色节点**（本地没有的节点类型）时，一键补齐缺的包——学习别人工作流的标配动作；
+- **搜索 Node Pack / Node**：先确认包的 Registry 唯一名、来源、所含节点和可选版本，再安装当前工作流真正需要的包；
+- **Missing nodes 筛选/提示**：加载工作流出现红色节点时定位候选包。不要因为按钮允许 “Install All” 就跳过逐包审查；同名节点、弃用版本和图外依赖仍要核对；
 - 装完**必须重启 ComfyUI**（节点在启动时注册）。
 
 ### 1.2 治理纪律（节点包 = 任意代码）
 
-第 06 讲的提醒在此升级为纪律：自定义节点是**装进你机器的第三方 Python 代码**，Manager 不做安全审查。三条红线：
+第 06 讲的提醒在此升级为纪律：自定义节点是**装进你机器的第三方 Python/前端代码**。Comfy Registry 会做规则扫描，并给通过标准的版本显示验证标记；Registry 标准禁止 `eval/exec`、运行时 `pip install` 和代码混淆。这个机制能降低风险，却不是“任意节点都安全”的证明，也不覆盖 Registry 之外的手工安装。三条红线：
 
-1. 装前看一眼 GitHub：星数、最近更新时间、issue 区是否活跃——课程点名的这几个都是万星级老牌项目；
+1. 装前核对 Registry/GitHub 身份、许可、精确版本、最近维护、安全说明和将执行的安装步骤；星数不是代码审计；
 2. **别囤积**：每装一个包，启动变慢一分、依赖冲突概率加一分。原则"用到才装，半年不用就卸"；
 3. 出诡异问题（启动报错/节点失灵）时，Manager 里**禁用一半节点包二分排查**——依赖地狱的标准解法。portable 版的依赖装在内嵌 Python 里（第 06 讲），最坏情况整个 portable 目录重解压即满血复活，你的资产都在外面，无痛。
+
+一手入口：[Manager 新界面](https://docs.comfy.org/manager/pack-management)；[Comfy Registry 版本与验证](https://docs.comfy.org/registry/overview)；[Registry 安全标准](https://docs.comfy.org/registry/standards)。
 
 ## 2. 工作流资产管理
 
 - **命名与归档**：`E:\AI\Workflows` 下按用途分文件夹（`txt2img/`、`vrchat/`、`upscale/`），文件名带版本（`vrchat_pose_v3.json`）——和第 10 讲模型台账同一个精神：**三个月后的你是陌生人**；
-- **PNG 即备份**：每张成图自带工作流（第 07 讲），Outputs 目录天然是"带结果的版本历史"。重要配方额外存 json，双保险；
+- **带 metadata 的 PNG 可作回载线索**：ComfyUI 的标准保存节点通常把工作流写进 PNG metadata，拖回画布即可恢复；经过社交平台、截图、压缩或清理 metadata 后，这份信息可能丢失。Outputs 只能在确认 metadata 仍在时充当“带结果的版本历史”，重要配方仍要另存 JSON 并记录资产版本；
 - **git 化（可选进阶）**：工作流 json 是文本，`E:\AI\Workflows` 完全可以 git init 起来——你在 Medusa 已有的版本管理习惯平移即可，改坏了随时回滚。
 
 ## 3. API：把 ComfyUI 变成服务（Codex_Bridge 解密）
@@ -34,21 +36,53 @@ ComfyUI 本体就是个 HTTP 服务（你的 8188 端口）。它有两种工作
 
 ```python
 import json, requests
-wf = json.load(open("workflow_api.json"))          # API 格式工作流
-wf["6"]["inputs"]["text"] = "a cat in spacesuit"   # 程序化改提示词(节点号.inputs.字段)
-requests.post("http://127.0.0.1:8188/prompt", json={"prompt": wf})
-# 完成后去 /history 取结果, 成图落在 E:\AI\Outputs
+
+with open("workflow_api.json", encoding="utf-8") as handle:
+    wf = json.load(handle)                         # API 格式执行图
+
+# 从 KSampler 的 positive 支路逆向找文本编码器；ControlNet 等节点可能夹在中间。
+def find_text_encoder(nodes, start_id):
+    pending, seen = [str(start_id)], set()
+    while pending:
+        node_id = pending.pop()
+        if node_id in seen:
+            continue
+        seen.add(node_id)
+        node = nodes[node_id]
+        if node.get("class_type") == "CLIPTextEncode" and "text" in node["inputs"]:
+            return node
+        for value in node.get("inputs", {}).values():
+            if isinstance(value, list) and len(value) == 2 and str(value[0]) in nodes:
+                pending.append(str(value[0]))
+    raise ValueError("positive branch has no CLIPTextEncode")
+
+sampler = next(node for node in wf.values() if node.get("class_type") == "KSampler")
+positive = find_text_encoder(wf, sampler["inputs"]["positive"][0])
+positive["inputs"]["text"] = "a cat in spacesuit"
+
+response = requests.post(
+    "http://127.0.0.1:8188/prompt",
+    json={"prompt": wf},
+    timeout=30,
+)
+response.raise_for_status()
+prompt_id = response.json()["prompt_id"]
+# 用 /ws 接收进度，或查询 /history/{prompt_id}；不要把“已入队”当“已出图”。
 ```
+
+完整生命周期是：`POST /prompt` 先校验执行图并返回 `prompt_id`/队列位置或 `node_errors`；`/ws` 推送开始、缓存、执行、进度和错误事件；完成后 `/history/{prompt_id}` 给出该任务的结果。脚本必须分别处理“校验失败、已入队、执行中、执行失败、已完成”，不能只看 HTTP 200。
+
+接口与事件以当前 [ComfyUI server routes](https://docs.comfy.org/development/comfyui-server/comms_routes) 为准。
 
 **任何能发 HTTP 的东西都能指挥 ComfyUI 出图**——批量脚本、定时任务、别的 AI。
 
 ### 3.2 你机器上那个 Codex_Bridge 是什么
 
-现在可以解密第 00 讲清单里的疑点了：`E:\AI\Workflows\Codex_Bridge_SDXL_Img2Img_API.json` + `Run_Codex_Bridge_Img2Img.ps1` 就是上面这套机制的现成实例——**一个 API 格式的图生图工作流 + 一段调用脚本，让 Codex（AI 编程助手）能远程指挥这台机器的 ComfyUI 生图**。这正是你 AIGC 工作流项目里"Claude 当管理、Codex 当生图操作员"分工的技术底座。用姊妹课程第 08 讲的话说：**ComfyUI 在这里是编排工程里的一个"确定性节点"，AI 是编排者**。学完本课程，你自己就能写这样的桥——它不再是黑盒。
+现在可以解密第 00 讲清单里的疑点了：`E:\AI\Workflows\Codex_Bridge_SDXL_Img2Img_API.json` + `Run_Codex_Bridge_Img2Img.ps1` 就是上面这套机制的现成实例——**一个 API 格式的图生图工作流 + 一段调用脚本，让 Codex（AI 编程助手）能远程指挥这台机器的 ComfyUI 生图**。这正是你 AIGC 工作流项目里“Claude 当管理、Codex 当生图操作员”分工的技术底座。用姊妹课程第 08 讲的话说：**ComfyUI 在这里是一个可调用、可记录的执行节点，AI 是编排者**。固定 seed 和版本有助于复现，却不保证所有 GPU kernel、第三方节点或外部资产都逐位确定；所以桥接脚本仍要保存环境与输出证据。
 
 ### 3.3 给你的展望（不急着做）
 
-这个 API 通道 + 你的 tailscale 网络意味着：Mac 侧脚本可以批量投喂"骨架图 × 提示词矩阵"，Win 侧过夜生产，早上收结果——第 12 讲的 VRChat 管线完全可以自动化成"每晚出货"的流水线。等手动流程跑顺了值得做一版。
+这个 API 通道可以把“骨架图 × 提示词矩阵”变成批处理，但 ComfyUI 本地服务不应未经认证直接暴露到公网。跨机器访问应放在受控私网/VPN、主机防火墙和明确访问规则后，输入输出目录也要限制；先在 `127.0.0.1` 跑通并保存请求、工作流哈希、`prompt_id` 与结果，再考虑远程队列。
 
 ## 4. 排障总表（贴墙级）
 
@@ -68,9 +102,9 @@ requests.post("http://127.0.0.1:8188/prompt", json={"prompt": wf})
 
 ## 课程结语
 
-十六讲走完。回看这条路：从"学分布与采样"的第一性原理，到 DDPM 的 ELBO、采样器的 ODE、三大件与外挂件的架构，再到你 E:\AI 机器上每一个节点、每一个参数、每一条管线——**ComfyUI 的画布从头到尾就是原理篇那几页数学的可视化**。你现在拥有的不是一堆操作步骤，而是一张完整的地图：新模型、新节点、新玩法出来时（它们每周都在出），你知道它落在地图的哪个位置、动了哪个部件、该用什么纪律去验证。
+基础主线 00–15 至此闭环。回看这条路：从"学分布与采样"的第一性原理，到 DDPM 的 ELBO、采样器的 ODE、三大件与外挂件的架构，再到你 E:\AI 机器上每一个节点、每一个参数、每一条管线——**ComfyUI 的画布从头到尾就是原理篇那几页数学的可视化**。你现在拥有的不是一堆操作步骤，而是一张可维护的地图：新模型、新节点、新玩法出来时，你能判断它落在哪一层、改变了什么契约、该留下哪些版本和证据。16–22 讲再把这套方法扩展到视频、音频、3D 与声画联合工作流。
 
-三个自然的下一步，按兴趣任选：**产量线**——把第 12/13 讲的 VRChat 管线跑成日常，攒素材库；**深度线**——用你的角色截图炼第一个 LoRA（第 11 讲的预告，16GB 卡完全够）；**工程线**——写你自己的 API 批量脚本（第 3 节），把两台机器连成自动生产线。无论哪条，方法都是这门课反复练的那一句：**固定变量，单点实验，理解每一步为什么。**
+三个自然的下一步，按兴趣任选：**产量线**——把第 12/13 讲的 VRChat 管线跑成日常，攒素材库；**深度线**——用获得授权的角色截图训练第一个 LoRA（第 11 讲的预告；16GB 可进入低分辨率、合适精度与 batch 的实测队列，不对任意架构作保证）；**工程线**——写你自己的 API 批量脚本（第 3 节），把两台机器连成自动生产线。无论哪条，方法都是这门课反复练的那一句：**固定变量，单点实验，理解每一步为什么。**
 
 祝出图愉快。
 

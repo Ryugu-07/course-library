@@ -3,6 +3,9 @@ name: Course audit
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 2 * * 1"
 
 jobs:
   generated-sites:
@@ -21,5 +24,7 @@ jobs:
         run: python tools/course_audit.py
       - name: Audit learning-layer coverage contracts
         run: python tools/learning_coverage.py
+      - name: Report fast-moving ecosystem freshness
+        run: python tools/ecosystem_freshness.py --strict
       - name: Assemble public hosting output
         run: python tools/build_public_site.py

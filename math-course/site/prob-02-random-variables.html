@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,27 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同一分布，四种镜头能不能互相翻译？</a><ul>
+<li><a href="#random-variables-learning-title">1. 具体谜题：一根“概率曲线”到底能不能看见所有质量？</a></li>
+<li><a href="#2">2. 先预测：四个读数器先各写一句话</a></li>
+<li><a href="#3">3. 最小模型：四种表示只是同一测度的不同投影</a></li>
+<li><a href="#4">4. 可操作实验：先过预测门，再切换同一份账本</a></li>
+<li><a href="#5">5. 误区与边界：每一种图都要带着条件读</a></li>
+<li><a href="#6">6. 迁移问题：换模型后，哪一条翻译规则还成立？</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 随机变量与分布函数</a></li>
-<li><a href="#2">2. 离散型：分布列与四大分布</a></li>
-<li><a href="#3">3. 连续型：密度与四大分布</a></li>
-<li><a href="#4">4. 随机变量函数的分布</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#2_1">2. 离散型：分布列与四大分布</a></li>
+<li><a href="#3_1">3. 连续型：密度与四大分布</a></li>
+<li><a href="#4_1">4. 随机变量函数的分布</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,10 +69,114 @@
 <blockquote>
 <p>随机变量把"随机结果"翻译成"数"，从此微积分全套工具进场。本页两件事：分布的描述工具（分布函数/分布列/密度），以及<strong>常见分布全家福</strong>——每个分布都记三件事：它建模什么场景、参数含义、期望方差。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="random-variables-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一分布，四种镜头能不能互相翻译？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="random-variables-learning-title">1. 具体谜题：一根“概率曲线”到底能不能看见所有质量？<a class="headerlink" href="#random-variables-learning-title" title="Permanent link"></a></h3>
+<p>把同一个随机变量交给四个读数器：离散时看点质量 / PMF，所有情形都看 CDF，绝对连续部分看密度下的区间面积，再用 quantile 把概率刻度反过来映回数轴。谜题是：如果分布在 <span class="arithmatex">\(x=0.4\)</span> 处突然放了 <span class="arithmatex">\(0.3\)</span> 的质量，同时剩余 <span class="arithmatex">\(0.7\)</span> 均匀铺在 <span class="arithmatex">\([0,1]\)</span> 上，那么“密度在 <span class="arithmatex">\(0.4\)</span> 附近是多少”和“<span class="arithmatex">\(P(X=0.4)\)</span> 是多少”为什么不是同一个问题？</p>
+<p>再把 <span class="arithmatex">\(X\sim U(-1,1)\)</span> 变成 <span class="arithmatex">\(Y=X^2\)</span>。这个函数先下降后上升；当 <span class="arithmatex">\(y&gt;0\)</span> 时，<span class="arithmatex">\(x=+\sqrt y\)</span> 与 <span class="arithmatex">\(x=-\sqrt y\)</span> 两条路径都会到达同一个 <span class="arithmatex">\(y\)</span>。只套一条单调 Jacobian 会漏掉一半质量。</p>
+<h3 id="2">2. 先预测：四个读数器先各写一句话<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验前，先回答：</p>
+<ol>
+<li>离散三点分布在 <span class="arithmatex">\(x=1\)</span> 处的 CDF 是平滑经过，还是跳跃？跳跃高度应当和哪个量相等？</li>
+<li>混合模型在 <span class="arithmatex">\(x=0.4\)</span> 的点概率、连续部分密度和区间概率，分别应该由哪一本账记录？能否用一个普通 PDF 把三者一次性包办？</li>
+<li>若 <span class="arithmatex">\(p\)</span> 落在原子造成的 CDF 跳跃高度内部，<span class="arithmatex">\(Q(p)=\inf\{x:F(x)\ge p\}\)</span> 会线性插值，还是停在原子位置？</li>
+<li>对 <span class="arithmatex">\(Y=X^2\)</span> 和 <span class="arithmatex">\(y=0.25\)</span>，原像有几个？两个原像的密度贡献应该相加还是相减？</li>
+</ol>
+<h3 id="3">3. 最小模型：四种表示只是同一测度的不同投影<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先固定四个完全解析的预设：</p>
+<p><strong>离散模型。</strong> <span class="arithmatex">\(P(X=0)=0.2,\ P(X=1)=0.5,\ P(X=2)=0.3\)</span>。点质量是 PMF 的条目，CDF 在 <span class="arithmatex">\(0,1,2\)</span> 处跳跃。</p>
+<p><strong>绝对连续模型。</strong> <span class="arithmatex">\(X\sim U(0,1)\)</span>，<span class="arithmatex">\(f_X(x)=1\)</span>（<span class="arithmatex">\(0&lt;x&lt;1\)</span>），所以 <span class="arithmatex">\(F(x)=x\)</span>（在 <span class="arithmatex">\([0,1]\)</span> 内），<span class="arithmatex">\(P(a&lt;X\le b)=\int_a^b f_X(x)\,dx=b-a\)</span>。</p>
+<p><strong>混合模型。</strong></p>
+<div class="arithmatex">\[
+\mathcal L(X)=0.3\,\delta_{0.4}+0.7\,U(0,1).
+\]</div>
+<p>它在 <span class="arithmatex">\(0.4\)</span> 有原子质量 <span class="arithmatex">\(0.3\)</span>，连续部分的密度是 <span class="arithmatex">\(0.7\)</span>（在 <span class="arithmatex">\([0,1]\)</span> 上），但<strong>整个分布没有一个普通的 Lebesgue PDF</strong> 可以把原子也表示成面积。比如</p>
+<div class="arithmatex">\[
+P(0.2&lt;X\le0.5)=0.7(0.5-0.2)+0.3=0.51.
+\]</div>
+<p><strong>非单调变换。</strong> <span class="arithmatex">\(X\sim U(-1,1),\ Y=X^2\)</span>。对 <span class="arithmatex">\(0&lt;y&lt;1\)</span>，</p>
+<div class="arithmatex">\[
+F_Y(y)=P(-\sqrt y\le X\le\sqrt y)=\sqrt y,\qquad
+f_Y(y)=\frac{1/2}{2\sqrt y}+\frac{1/2}{2\sqrt y}=\frac1{2\sqrt y}.
+\]</div>
+<p>两项分别来自 <span class="arithmatex">\(+\sqrt y\)</span> 与 <span class="arithmatex">\(-\sqrt y\)</span>，不能把 <span class="arithmatex">\(g(x)=x^2\)</span> 当成全域单调函数来套一条逆函数公式。</p>
+<p>四种表示的翻译规则可以压缩成：</p>
+<ol>
+<li><strong>点质量 / PMF</strong>：<span class="arithmatex">\(p(x)=P(X=x)\)</span>，离散时对所有支持点求和；连续点的 <span class="arithmatex">\(p(x)\)</span> 可以处处为 <span class="arithmatex">\(0\)</span>。</li>
+<li><strong>CDF</strong>：<span class="arithmatex">\(F(x)=P(X\le x)\)</span>，总是右连续；原子表现为跳跃，连续部分表现为斜率。</li>
+<li><strong>密度 / 区间面积</strong>：若全分布绝对连续，<span class="arithmatex">\(P(a&lt;X\le b)=\int_a^b f\)</span>。混合分布只能把连续部分面积和原子质量分开相加。</li>
+<li><strong>Quantile / generalized inverse</strong>：<span class="arithmatex">\(Q(p)=\inf\{x:F(x)\ge p\}\)</span>。CDF 有跳跃时，跳跃对应的整段 <span class="arithmatex">\(p\)</span> 都映回同一个原子位置。</li>
+</ol>
+<h3 id="4">4. 可操作实验：先过预测门，再切换同一份账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>下方实验固定预设和解析公式，不调用随机数。揭示后可以切换四个模型、改变区间 <span class="arithmatex">\((a,b]\)</span> 和 quantile grid 点数 <span class="arithmatex">\(N\)</span>。四格图共用同一个模型：PMF / 点质量、CDF、密度与区间面积、quantile / generalized inverse。图内标注使用英文，方便把 <span class="arithmatex">\(F\)</span>、density、area、<span class="arithmatex">\(Q\)</span> 这些符号和正文公式对齐。</p>
+<div class="learning-lab" data-learning-lab="distribution-map" markdown="1">
+<p><strong>无 JavaScript 时的完整静态读法：</strong>四个预设都用解析式读取，绝不把 quantile grid 冒充 IID 随机样本。令 <span class="arithmatex">\(p_i=(i+\tfrac12)/N\)</span>，网格点为 <span class="arithmatex">\(Q(p_i)\)</span>，每个点权重 <span class="arithmatex">\(1/N\)</span>；它是中点积分 / 可视化规则，因此相同预设和 <span class="arithmatex">\(N\)</span> 每次都给出相同结果。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>点质量 / PMF</th>
+<th>CDF 与区间</th>
+<th>密度读法</th>
+<th>Quantile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(0,1,2\)</span> 三点离散</td>
+<td><span class="arithmatex">\(0.2,0.5,0.3\)</span></td>
+<td>在 <span class="arithmatex">\(0,1,2\)</span> 跳跃；<span class="arithmatex">\(P(0.5&lt;X\le1.5)=0.5\)</span></td>
+<td>没有普通密度，用点质量求和</td>
+<td><span class="arithmatex">\(Q(0.2)=0,\ Q(0.21)=1\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(U(0,1)\)</span></td>
+<td>每个点 <span class="arithmatex">\(P(X=x)=0\)</span></td>
+<td><span class="arithmatex">\(F(x)=x\)</span>；<span class="arithmatex">\(P(0.2&lt;X\le0.7)=0.5\)</span></td>
+<td><span class="arithmatex">\(f=1\)</span>，区间面积就是 <span class="arithmatex">\(0.5\)</span></td>
+<td><span class="arithmatex">\(Q(p)=p\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(0.3\delta_{0.4}+0.7U(0,1)\)</span></td>
+<td><span class="arithmatex">\(P(X=0.4)=0.3\)</span></td>
+<td><span class="arithmatex">\(F(0.4^-)=0.28,\ F(0.4)=0.58\)</span>；<span class="arithmatex">\(P(0.2&lt;X\le0.5)=0.21+0.3=0.51\)</span></td>
+<td>连续部分密度为 <span class="arithmatex">\(0.7\)</span>，但原子不是这条密度的面积；没有完整普通 PDF</td>
+<td><span class="arithmatex">\(0.28\le p\le0.58\)</span> 时 <span class="arithmatex">\(Q(p)=0.4\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(Y=X^2,\ X\sim U(-1,1)\)</span></td>
+<td>每个 <span class="arithmatex">\(y\)</span> 的点概率为 <span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(F_Y(y)=\sqrt y\)</span>；<span class="arithmatex">\(P(0.25&lt;Y\le0.64)=0.8-0.5=0.3\)</span></td>
+<td><span class="arithmatex">\(f_Y(y)=1/(2\sqrt y)\)</span>，来自两个原像贡献相加</td>
+<td><span class="arithmatex">\(Q(p)=p^2\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>“点概率为 <span class="arithmatex">\(0\)</span>”不等于“不可能”：例如 <span class="arithmatex">\(U(0,1)\)</span> 中 <span class="arithmatex">\(P(X=0.5)=0\)</span>，但 <span class="arithmatex">\(P(0.49&lt;X\le0.51)=0.02&gt;0\)</span>；对 <span class="arithmatex">\(Y=X^2\)</span>，<span class="arithmatex">\(P(Y=0.25)=0\)</span> 也不妨碍邻近区间有正概率。混合模型则正好提供反例：<span class="arithmatex">\(P(X=0.4)=0.3&gt;0\)</span>，所以不能把所有分布都硬说成“处处有 PDF”。</p>
+</div>
+<h3 id="5">5. 误区与边界：每一种图都要带着条件读<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>CDF 不是 PMF 的另一种画法而已。</strong> PMF 只把质量放在离散点；CDF 累积所有不超过 <span class="arithmatex">\(x\)</span> 的质量。连续分布也有 CDF，即使每个点的概率都是 <span class="arithmatex">\(0\)</span>。</li>
+<li><strong>密度值不是点概率。</strong> <span class="arithmatex">\(f(0.5)=1\)</span> 不是 <span class="arithmatex">\(P(X=0.5)=1\)</span>；点概率要看原子，区间概率要积面积。密度在单点的取值甚至可以修改而不改变分布。</li>
+<li><strong>混合分布没有“处处 PDF”这句捷径。</strong> 连续部分可以有密度，但原子是相对于 Lebesgue 测度的奇异质量，必须单独记账。</li>
+<li><strong>非单调变换不能只保留一个根。</strong> <span class="arithmatex">\(Y=X^2\)</span> 在 <span class="arithmatex">\(y&gt;0\)</span> 有两个原像；分布函数法先求 <span class="arithmatex">\(P(g(X)\le y)\)</span> 最稳妥，公式法也必须对所有可行原像求和。</li>
+<li><strong>广义逆不是普通函数的逐点反解。</strong> CDF 跳跃时，<span class="arithmatex">\(Q(p)=\inf\{x:F(x)\ge p\}\)</span> 会把一段概率刻度压到原子；连续严格增只是更简单的特例。</li>
+<li><strong>quantile grid 不是随机实验。</strong> 网格点是人为固定的 <span class="arithmatex">\(p_i\)</span>，没有 IID、没有随机 seed 方差，也不能用一张网格图声称“抽样结果”。它适合确定性积分与比较表示。</li>
+</ul>
+<h3 id="6">6. 迁移问题：换模型后，哪一条翻译规则还成立？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>把混合模型的原子从 <span class="arithmatex">\(0.4\)</span> 移到 <span class="arithmatex">\(0.8\)</span>，保持原子权重 <span class="arithmatex">\(0.3\)</span>。写出 <span class="arithmatex">\(F(0.8^-)\)</span>、<span class="arithmatex">\(F(0.8)\)</span>，并判断 <span class="arithmatex">\(Q(p)\)</span> 在哪一段 <span class="arithmatex">\(p\)</span> 上恒等于 <span class="arithmatex">\(0.8\)</span>。</li>
+<li>若 <span class="arithmatex">\(X\sim U(-2,2)\)</span> 且 <span class="arithmatex">\(Y=X^2\)</span>，先用事件法写出 <span class="arithmatex">\(F_Y(y)\)</span>，再解释为什么 <span class="arithmatex">\(f_Y(y)\)</span> 仍要把正负两个根相加；支持集和 <span class="arithmatex">\(y=0\)</span> 附近的密度会怎样变化？</li>
+<li>对任意给定 CDF，如何用 <span class="arithmatex">\(Q(p_i)\)</span> 和等权中点规则近似 <span class="arithmatex">\(E[h(X)]\)</span>？写出近似式，并说明它何时只是确定性积分近似，不能当作 Monte Carlo 误差条。</li>
+<li>给出一个点概率为 <span class="arithmatex">\(0\)</span> 但区间概率为正的例子，再给出一个含原子的混合分布例子；分别指出应查看 CDF 的斜率还是跳跃。</li>
+</ol>
+</section>
 <h2 id="1">1. 随机变量与分布函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 随机变量 <span class="arithmatex">\(X: \Omega \to \mathbb{R}\)</span>（可测函数——每个事件 <span class="arithmatex">\(\{X \leq x\}\)</span> 都在事件域内）。</p>
 <p><strong>分布函数</strong> <span class="arithmatex">\(F(x) = P(X \leq x)\)</span>。<strong>特征性质</strong>（是分布函数 <span class="arithmatex">\(\iff\)</span> 三条全满足）：单调不减；右连续；<span class="arithmatex">\(F(-\infty) = 0, F(+\infty) = 1\)</span>。区间概率 <span class="arithmatex">\(P(a &lt; X \leq b) = F(b) - F(a)\)</span>；单点概率 <span class="arithmatex">\(P(X = a) = F(a) - F(a^-)\)</span>（跳跃高度，连续分布处处为零——<strong>连续型单点概率为 0 但不代表不可能</strong>）。</p>
-<h2 id="2">2. 离散型：分布列与四大分布<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 离散型：分布列与四大分布<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="连续与离散四大分布" src="assets/img/prob-02-distributions.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>四大分布一览：连续型（正态钟形、指数）与离散型（二项、Poisson）——概率论的"常用词汇表"。</figcaption>
@@ -107,7 +231,7 @@
 </tbody>
 </table>
 <p><strong>泊松定理</strong>（二项的极限）：<span class="arithmatex">\(n \to \infty,\ np \to \lambda\)</span> 时 <span class="arithmatex">\(B(n, p) \to P(\lambda)\)</span>——"大量机会 × 微小概率 = 泊松"，<span class="arithmatex">\(n \geq 100, np \leq 10\)</span> 时近似可用。<strong>几何分布的无记忆性</strong>：<span class="arithmatex">\(P(X &gt; m + n \mid X &gt; m) = P(X &gt; n)\)</span>（离散唯一；"已经失败 m 次"不改变未来——赌徒谬误的数学反驳）。</p>
-<h2 id="3">3. 连续型：密度与四大分布<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 连续型：密度与四大分布<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(F(x) = \int_{-\infty}^x f(t)\,dt\)</span>；<span class="arithmatex">\(f \geq 0\)</span>，<span class="arithmatex">\(\int f = 1\)</span>；<span class="arithmatex">\(F' = f\)</span>（连续点处）。</p>
 <table>
 <thead>
@@ -159,7 +283,7 @@
 <li>线性变换保正态：<span class="arithmatex">\(aX + b \sim N(a\mu + b, a^2\sigma^2)\)</span>；</li>
 <li>为什么无处不在——中心极限定理（概率 V）给出解释；🔗 高斯噪声贯穿扩散模型全线（comfy 课 02 讲的每一个 <span class="arithmatex">\(\epsilon\)</span>）。</li>
 </ul>
-<h2 id="4">4. 随机变量函数的分布<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 随机变量函数的分布<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(Y = g(X)\)</span> 的分布：</p>
 <ul>
 <li><strong>离散</strong>：把 <span class="arithmatex">\(X\)</span> 的取值代进 <span class="arithmatex">\(g\)</span>，同值合并概率；</li>
@@ -171,7 +295,7 @@ f_Y(y) = f_X\big(g^{-1}(y)\big)\,\Big|\frac{d\,g^{-1}(y)}{dy}\Big|
 \]</div>
 <p>（导数因子 = 一维 Jacobi——变量替换的"密度守恒"：<span class="arithmatex">\(|f_Y\,dy| = |f_X\,dx|\)</span>。🔗 归一化流生成模型的核心公式就是它的多维版，行列式换成 Jacobi 行列式，数分 VI/V 呼应。）</p>
 <p><strong>必会两例</strong>：<span class="arithmatex">\(X \sim N(0,1) \Rightarrow Y = X^2 \sim \chi^2(1)\)</span>（分布函数法，密度 <span class="arithmatex">\(\frac{1}{\sqrt{2\pi y}}e^{-y/2}\)</span>——统计页三大分布的起点）；<span class="arithmatex">\(F\)</span> 连续严格增时 <span class="arithmatex">\(F(X) \sim U(0,1)\)</span>（<strong>概率积分变换</strong>——一切随机数生成的原理：均匀数过 <span class="arithmatex">\(F^{-1}\)</span> 得任意分布）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（正态概率）</strong> 某测量 <span class="arithmatex">\(X \sim N(10, 4)\)</span>，求 <span class="arithmatex">\(P(8 &lt; X \leq 14)\)</span>。
 <em>解</em>：标准化 <span class="arithmatex">\(P(-1 &lt; Z \leq 2) = \Phi(2) - \Phi(-1) = 0.9772 - (1 - 0.8413) = 0.8185\)</span>。</p>
 <p><strong>例 2（泊松近似）</strong> 某书 500 页共 100 个错字，求某页至少 2 个错字的概率。
@@ -189,5 +313,7 @@ f_Y(y) = f_X\big(g^{-1}(y)\big)\,\Big|\frac{d\,g^{-1}(y)}{dy}\Big|
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/distribution-map.js"></script>
 </body>
 </html>

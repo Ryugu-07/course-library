@@ -22,7 +22,7 @@
 <details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
 <details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
 <details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
-<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage"><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Coding Agent Harness 架构对照</a></li></ul></details>
 <details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
     <div class="sidebar-foot">
       <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
@@ -49,9 +49,12 @@
 </blockquote>
 <h2 id="1">1. 从聊天模型到行动系统<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>普通聊天只有一条短链：用户输入文字，模型预测下一段文字。模型即使说“我已经打开文件”，也不代表电脑上真的发生了任何事情。Agent 多出了一层<strong>宿主程序</strong>：它把模型的结构化意图解释成真实操作，再把操作结果送回模型。于是系统从“一次回答”变成“观察、决定、行动、再观察”的循环。</p>
+<p>在编码智能体社区里，这层宿主通常叫 <strong>agent harness</strong>。它不是又一个模型，也不只是界面外壳，而是把模型放进真实任务所需的一整套工程：循环、工具与 Executor、上下文和会话、权限与沙箱、验证、轨迹和预算。更准确的分解是：</p>
+<p><strong>Agent system = Model + Harness。</strong></p>
+<p>同一个模型放进不同 harness，可能看见不同上下文、拥有不同工具、得到不同重试和验证策略，最终成功率与风险都会改变；同一个 harness 换模型也会改变结果。因此“某模型在某榜单得分”只有连同 harness、环境和评测协议才是一条完整证据。</p>
 <p>可以用一个严格但朴素的公式理解：</p>
-<p><strong>Agent = 模型决策 + 工具执行 + 循环控制 + 状态与边界。</strong></p>
-<p>模型负责在不确定信息下选择下一步；工具负责确定性动作；循环负责让上一步的结果影响下一步；状态负责保存目标、历史、预算和中间进度；边界负责阻止模型做超出授权的事情。四者缺一，系统就会退化成聊天、脚本或失控自动化。</p>
+<p><strong>Harness = 工具执行 + 循环控制 + 状态与边界 + 验证与轨迹。</strong></p>
+<p>模型负责在不确定信息下选择下一步；工具负责确定性动作；循环负责让上一步的结果影响下一步；状态负责保存目标、历史、预算和中间进度；边界负责阻止模型做超出授权的事情；验证负责用外部证据关上“完成”这扇门。缺少其中任何一层，系统就会退化成聊天、固定脚本、无法复现的演示或失控自动化。</p>
 <div class="logic-map">
   <div><strong>目标</strong><span>人类想得到什么</span></div><b>→</b>
   <div><strong>上下文</strong><span>这一轮知道什么</span></div><b>→</b>
@@ -116,6 +119,29 @@
 <p>如果中间任何箭头没有记录，你就很难调试；如果 executor_result 没有回填，模型只能猜刚才发生了什么；如果 final_answer 没有完成证据，Agent 可能只是自信地提前结束。</p>
 <h2 id="5">5. 本章检查<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>遇到一个新功能时，先回答四个问题：新信息由谁提供？下一步由谁决定？真实动作由谁执行？成功由什么外部证据证明？能回答这四问，才算从“把 AI 当魔法”进入“把 Agent 当系统”。</p>
+<p>还要分开两种容易混写的闭环：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>何时发生</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务内 verification</td>
+<td>一次运行尚未结束时</td>
+<td>这次补丁是否真的通过了约定测试，能否宣布完成？</td>
+</tr>
+<tr>
+<td>任务外 evaluation</td>
+<td>多个任务、版本或重复运行之间</td>
+<td>这套 model + harness 配置是否比基线稳定，失败集中在哪一层？</td>
+</tr>
+</tbody>
+</table>
+<p>verification 的一次 PASS 不能证明系统总体可靠；evaluation 的平均成功率也不能替代当前任务的具体测试证据。第 27 章会把两层接成可复现的版本评测台。</p>
 <div class="admonition note">
 <p class="admonition-title">思考题</p>
 <p>如果模型输出“测试已经通过”，但 executor 从未运行测试，错误属于模型能力、工具能力、验证策略，还是界面表达？试着用本章四角色重新描述。</p>

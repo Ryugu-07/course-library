@@ -63,7 +63,7 @@ STAGES = [
             ("27-observability-evals.md", "27 · 轨迹、成本与评测"),
             ("28-project-mini-codex.md", "28 · 项目一：Mini Codex"),
             ("29-project-agent-team.md", "29 · 项目二：Agent 工程团队"),
-            ("30-codex-claude-code.md", "30 · Codex 与 Claude Code 架构对照"),
+            ("30-codex-claude-code.md", "30 · Coding Agent Harness 架构对照"),
         ],
     ),
 ]
@@ -84,4 +84,3 @@ PROJECT_CHAPTERS = {"28-project-mini-codex.md", "29-project-agent-team.md"}
 
 def flat_chapters():
     return [item for _, chapters in STAGES for item in chapters]
-

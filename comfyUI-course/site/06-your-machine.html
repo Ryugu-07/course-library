@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 00:36</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
@@ -51,7 +51,8 @@
 <p>实战篇从"盘家底"开始。这一讲把 <code>E:\AI</code> 下的每个目录、每个脚本、每个配置文件过一遍——全部内容都对照你机器的实际状态核实过。知道每样东西在哪、归谁管，是后面一切操作和排障的地基。</p>
 </blockquote>
 <h2 id="1-portable">1. 大局：portable 版意味着什么<a class="headerlink" href="#1-portable" title="Permanent link"></a></h2>
-<p>你装的是 <strong>ComfyUI Windows Portable</strong>（当前 0.22.0）：整个程序 + 一个<strong>专属的内嵌 Python</strong>（3.13 + PyTorch 2.11/cu130）都在 <code>E:\AI\ComfyUI_windows_portable</code> 里，与系统 Python、与 Medusa 的环境<strong>完全隔离</strong>——互不打扰，删目录即卸载。这是最省心的安装形态。你的启动命令还带了一整套定制参数（下面逐个讲），把所有"会长大的东西"都挪出了程序目录——这套组织相当干净，值得保持。</p>
+<p>你装的是 <strong>ComfyUI Windows Portable</strong>（2026-07-10 实机快照为 0.22.0）：整个程序 + 一个<strong>专属的内嵌 Python</strong>（3.13 + PyTorch 2.11/cu130）都在 <code>E:\AI\ComfyUI_windows_portable</code> 里，与系统 Python、与 Medusa 的环境<strong>完全隔离</strong>——互不打扰，删目录即卸载。这是最省心的安装形态。你的启动命令还带了一整套定制参数（下面逐个讲），把所有"会长大的东西"都挪出了程序目录——这套组织相当干净，值得保持。</p>
+<p>这句是<strong>历史盘点</strong>，不是“今天仍运行 0.22.0”的推断。截至 2026-08-20，官方稳定版已到 v0.33.1；是否已经升级必须重新查看启动日志或 Manager 的版本信息。后续章节凡涉及新模板，都以“当前 ComfyUI 版本 + 模板版本 + 节点版本”三项共同核验，不能只看这张旧清单。</p>
 <h2 id="2-eai">2. E:\AI 目录地图（实机核实版）<a class="headerlink" href="#2-eai" title="Permanent link"></a></h2>
 <div class="highlight"><pre><span></span><code>E:\AI
 ├─ ComfyUI_windows_portable   程序本体+内嵌Python —— 别动里面的东西
@@ -150,9 +151,9 @@
 <p>另外记住这台机器的特殊性：它同时是 Medusa 的生产机（常驻 python 进程 + Postgres + 每 4h 的抓取任务）。生图是重 GPU 轻 CPU 的活、Medusa 反之，二者基本兼容，但<strong>大批量生图请避开 07:30–09:00 的分析窗口</strong>——那是它一天中最忙的时候。</p>
 <h2 id="6">6. 更新与备份<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <ul>
-<li><strong>更新 ComfyUI</strong>：portable 包内有 <code>update</code> 目录（<code>update_comfyui.bat</code>），或用 Manager 的 Update 按钮。<strong>别追最新</strong>：生图生态的节点/模型兼容性以"能跑"为大，稳定运行的版本没事别升，升级前看一眼社区有没有炸锅；</li>
-<li><strong>备份什么</strong>：<code>E:\AI\User</code>（设置+数据库）、<code>E:\AI\Workflows</code>（你的劳动成果）、<code>extra_model_paths.yaml</code>。<strong>Models 不用备份</strong>（都能重新下载，太大），记录一份"我装了哪些模型"的清单即可（第 10 讲给你清单模板）；</li>
-<li><strong>安全提醒</strong>（呼应第 04 讲）：只下 <code>.safetensors</code>；自定义节点是<strong>任意代码</strong>，装之前看一眼 GitHub 星数和最近更新（第 15 讲展开）。</li>
+<li><strong>更新 ComfyUI</strong>：portable 包内有 <code>update</code> 目录（<code>update_comfyui.bat</code>），或用 Manager 的 Update 按钮。课程在 2026-08-20 以官方稳定版 <strong>v0.33.1</strong> 做兼容性检查；不要盲目滚动更新，也不要长期停在已不满足模板要求的旧版。升级前记录当前提交/版本、备份下面三类资产，升级后先用官方模板做最小冒烟测试，再恢复第三方节点；</li>
+<li><strong>备份什么</strong>：<code>E:\AI\User</code>（设置+数据库）、<code>E:\AI\Workflows</code>（你的劳动成果）、<code>extra_model_paths.yaml</code>。大模型通常不做重复全量备份，但必须保存文件名、来源、版本、哈希和许可证；已经下架、自己训练或无法重新取得的资产要单独备份，不能假设所有链接永久有效；</li>
+<li><strong>安全提醒</strong>（呼应第 04/15 讲）：权重优先使用来源明确的 <code>.safetensors</code>，但文件格式不替代许可与来源检查；自定义节点是会在本机执行的第三方代码，安装前核对 Registry/GitHub 身份、精确版本、许可、安装脚本和安全说明。星数只能帮助发现项目，不是代码审计。</li>
 </ul>
 <h2 id="_1">上机任务<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <ol>
@@ -171,6 +172,7 @@
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/ecosystem-labs.js"></script>
 <script defer src="assets/site.js"></script>
 </body>
 </html>

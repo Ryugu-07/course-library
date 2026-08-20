@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 00:36</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
@@ -58,7 +58,7 @@
 </details>
 <h1 id="22-minimax-h3">第 22 讲 · MiniMax H3：把参考素材编排成一条声画镜头<a class="headerlink" href="#22-minimax-h3" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>资料快照：2026-08-13。</strong> MiniMax 于 2026-07-31 正式发布 H3；ComfyUI 随后提供开放权重的原生 T2V、I2V 与 R2V 模板。本讲不是一张“新模型参数表”，而是一次工作流升级：从“写提示词生成视频”，走向“给每份图片、视频和声音分配明确职责，再生成同步声画”。模型、模板与许可仍在快速变化，安装前请回看文末的一手来源。</p>
+<p><strong>资料核验：2026-08-20。</strong> MiniMax 于 2026-07-31 正式发布 H3；ComfyUI 随后提供开放权重的原生 T2V、I2V 与 R2V 模板。本讲不是一张“新模型参数表”，而是一次工作流升级：从“写提示词生成视频”，走向“给每份图片、视频和声音分配明确职责，再生成同步声画”。模型、模板与许可仍在快速变化，安装前请回看文末的一手来源。</p>
 </blockquote>
 <figure class="diagram h3-routing">
 <p><img alt="MiniMax H3 把文字、身份图、动作视频与声音参考按角色编排为同步声画输出" src="assets/img/22-h3-context-routing.svg" /></p>
@@ -150,14 +150,14 @@
 </tbody>
 </table>
 <p>上述四个文件约占 <strong>42.5 GB 磁盘</strong>；若还要保留同量化的 <code>ref2va</code>，再加约 21 GB。磁盘占用不是峰值显存，但它已经说明 H3 不是“16GB 卡下载一个 checkpoint 就舒服跑”的级别：扩散主干单文件就超过显存，文本编码器也几乎占满整卡，运行时必然依赖阶段性加载、CPU 内存卸载和较小的时空 latent。</p>
-<p>仓库的 <code>nvfp4_awq</code> 文本编码器并不要求 Blackwell GPU；模型卡建议在可用 PyTorch CUDA 13.0 的环境优先试 <code>int8_convrot</code> diffusion model，否则才考虑 <code>fp8_scaled</code>。这台 Win 机在 2026-07-10 的快照是 PyTorch 2.11/cu130，格式条件看起来匹配，但 <strong>ComfyUI 仍是 0.22.0，而 H3 教程要求 0.30.0 或更新版本</strong>。先升级软件，再谈模型文件。</p>
+<p>仓库的 <code>nvfp4_awq</code> 文本编码器并不要求 Blackwell GPU；模型卡建议在可用 PyTorch CUDA 13.0 的环境优先试 <code>int8_convrot</code> diffusion model，否则才考虑 <code>fp8_scaled</code>。这台 Win 机在 2026-07-10 的快照是 PyTorch 2.11/cu130，格式条件看起来匹配，但当时的 ComfyUI 仍是 0.22.0，低于 H3 教程要求的 0.30.0。<strong>截至 2026-08-20，课程推荐把官方稳定版 v0.33.1 与对应 H3 模板作为安装目标</strong>；先升级并让模板完成依赖预检，再谈模型文件。</p>
 <h2 id="4-4060-ti-16gb">4. 这台 4060 Ti 16GB 应该怎样开始<a class="headerlink" href="#4-4060-ti-16gb" title="Permanent link"></a></h2>
 <p>把“能打开模板”“能跑出一条”和“能高频迭代”分成三层，不要用一次侥幸运行替代可用性判断。</p>
 <h3 id="a-comfy-cloud">路线 A：先在 Comfy Cloud 学会语义<a class="headerlink" href="#a-comfy-cloud" title="Permanent link"></a></h3>
 <p>官方教程为 T2V、I2V、R2V 都提供 Cloud 入口。它适合先验证提示词结构和参考分工，不需要在本地下载四十多 GB 文件；代价是按服务计费，素材会离开本机，上传前要确认隐私、肖像、声音授权与当前服务条款。</p>
 <h3 id="b-fl2va">路线 B：本地只装 <code>fl2va</code>，先跑最小镜头<a class="headerlink" href="#b-fl2va" title="Permanent link"></a></h3>
 <ol>
-<li>备份 <code>user/</code>、自定义节点列表和当前工作流，再把 ComfyUI 更新到 <strong>0.30.0+</strong>；不要在旧 0.22 环境里手抄新节点。</li>
+<li>备份 <code>user/</code>、自定义节点列表和当前工作流，再把 ComfyUI 更新到当前稳定版（课程快照为 <strong>v0.33.1</strong>）；0.30.0 只是教程最低门槛，不应把“刚过最低版本”当作完整兼容证书。不要在旧 0.22 环境里手抄新节点。</li>
 <li>在 Template Library → Video 搜索 <strong>MiniMax H3 T2V</strong>，让模板弹窗给出当前配套文件；先只装 T2V/I2V 共用的 <code>fl2va</code> 组合。</li>
 <li>使用模板自带的 preview megapixels、短时长、单镜头。固定 seed，只改提示词；先证明端到端声画能输出，再增加像素与帧数。</li>
 <li>同时记录磁盘读取、系统内存、峰值显存、首轮加载时间与第二轮生成时间。若系统内存持续顶满或反复在 CPU/GPU 间搬运导致迭代不可接受，就停止堆优化插件，转云端或更大显存机器。</li>
@@ -258,6 +258,7 @@ Keep the room tone quiet; preserve the face and jacket from &lt;Picture 1&gt;.
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/ecosystem-labs.js"></script>
 <script defer src="assets/site.js"></script>
 </body>
 </html>

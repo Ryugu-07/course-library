@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 00:36</div>
+    <div class="build-time">构建于 2026-08-20 12:50</div>
   </div>
 </nav>
 <main id="content">
@@ -37,7 +37,7 @@
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 自定义节点：安装与治理</a><ul>
-<li><a href="#11-manager">1.1 用 Manager 装（你的启动参数已开启）</a></li>
+<li><a href="#11-manager">1.1 用 Manager 装（新旧界面先分清）</a></li>
 <li><a href="#12">1.2 治理纪律（节点包 = 任意代码）</a></li>
 </ul>
 </li>
@@ -55,43 +55,74 @@
 </details>
 <h1 id="15">第 15 讲 · 工程化与排障<a class="headerlink" href="#15" title="Permanent link"></a></h1>
 <blockquote>
-<p>收官讲，四件事：扩展节点的安装与治理、工作流资产管理、把 ComfyUI 变成可编程服务（顺便解开你机器上 Codex_Bridge 的身世之谜）、以及一张排障总表。目标是把前面十四讲的玩法<strong>沉淀成可持续运转的个人生产系统</strong>。</p>
+<p>基础实战篇的收束讲，四件事：扩展节点的安装与治理、工作流资产管理、把 ComfyUI 变成可编程服务（顺便解开你机器上 Codex_Bridge 的身世之谜）、以及一张排障总表。目标是把前面十四讲的玩法<strong>沉淀成可持续运转的个人生产系统</strong>，再进入 16–22 讲的多模态扩展。</p>
 </blockquote>
 <h2 id="1">1. 自定义节点：安装与治理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<h3 id="11-manager">1.1 用 Manager 装（你的启动参数已开启）<a class="headerlink" href="#11-manager" title="Permanent link"></a></h3>
-<p>界面里打开 <strong>Manager</strong>（工具栏按钮）：</p>
+<h3 id="11-manager">1.1 用 Manager 装（新旧界面先分清）<a class="headerlink" href="#11-manager" title="Permanent link"></a></h3>
+<p>截至 2026-08-20，官方新 Manager 用左侧筛选、顶部搜索和右侧详情面板管理 node pack；旧界面的按钮名称可能不同。界面里打开 <strong>Manager</strong>：</p>
 <ul>
-<li><strong>Install Custom Nodes</strong>：搜索安装。课程用到的四件套一次装齐：<code>comfyui_controlnet_aux</code>（第 12 讲 Win 侧预处理）、<code>ComfyUI_IPAdapter_plus</code>（第 13 讲）、<code>ComfyUI-Impact-Pack</code>（第 14 讲 FaceDetailer）、<code>rgthree-comfy</code>（通用体验增强：进度条、更好的 LoRA 加载器等，你朋友工作流也在用）；</li>
-<li><strong>Install Missing Custom Nodes</strong>：加载别人的工作流出现一片<strong>红色节点</strong>（本地没有的节点类型）时，一键补齐缺的包——学习别人工作流的标配动作；</li>
+<li><strong>搜索 Node Pack / Node</strong>：先确认包的 Registry 唯一名、来源、所含节点和可选版本，再安装当前工作流真正需要的包；</li>
+<li><strong>Missing nodes 筛选/提示</strong>：加载工作流出现红色节点时定位候选包。不要因为按钮允许 “Install All” 就跳过逐包审查；同名节点、弃用版本和图外依赖仍要核对；</li>
 <li>装完<strong>必须重启 ComfyUI</strong>（节点在启动时注册）。</li>
 </ul>
 <h3 id="12">1.2 治理纪律（节点包 = 任意代码）<a class="headerlink" href="#12" title="Permanent link"></a></h3>
-<p>第 06 讲的提醒在此升级为纪律：自定义节点是<strong>装进你机器的第三方 Python 代码</strong>，Manager 不做安全审查。三条红线：</p>
+<p>第 06 讲的提醒在此升级为纪律：自定义节点是<strong>装进你机器的第三方 Python/前端代码</strong>。Comfy Registry 会做规则扫描，并给通过标准的版本显示验证标记；Registry 标准禁止 <code>eval/exec</code>、运行时 <code>pip install</code> 和代码混淆。这个机制能降低风险，却不是“任意节点都安全”的证明，也不覆盖 Registry 之外的手工安装。三条红线：</p>
 <ol>
-<li>装前看一眼 GitHub：星数、最近更新时间、issue 区是否活跃——课程点名的这几个都是万星级老牌项目；</li>
+<li>装前核对 Registry/GitHub 身份、许可、精确版本、最近维护、安全说明和将执行的安装步骤；星数不是代码审计；</li>
 <li><strong>别囤积</strong>：每装一个包，启动变慢一分、依赖冲突概率加一分。原则"用到才装，半年不用就卸"；</li>
 <li>出诡异问题（启动报错/节点失灵）时，Manager 里<strong>禁用一半节点包二分排查</strong>——依赖地狱的标准解法。portable 版的依赖装在内嵌 Python 里（第 06 讲），最坏情况整个 portable 目录重解压即满血复活，你的资产都在外面，无痛。</li>
 </ol>
+<p>一手入口：<a href="https://docs.comfy.org/manager/pack-management">Manager 新界面</a>；<a href="https://docs.comfy.org/registry/overview">Comfy Registry 版本与验证</a>；<a href="https://docs.comfy.org/registry/standards">Registry 安全标准</a>。</p>
 <h2 id="2">2. 工作流资产管理<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <ul>
 <li><strong>命名与归档</strong>：<code>E:\AI\Workflows</code> 下按用途分文件夹（<code>txt2img/</code>、<code>vrchat/</code>、<code>upscale/</code>），文件名带版本（<code>vrchat_pose_v3.json</code>）——和第 10 讲模型台账同一个精神：<strong>三个月后的你是陌生人</strong>；</li>
-<li><strong>PNG 即备份</strong>：每张成图自带工作流（第 07 讲），Outputs 目录天然是"带结果的版本历史"。重要配方额外存 json，双保险；</li>
+<li><strong>带 metadata 的 PNG 可作回载线索</strong>：ComfyUI 的标准保存节点通常把工作流写进 PNG metadata，拖回画布即可恢复；经过社交平台、截图、压缩或清理 metadata 后，这份信息可能丢失。Outputs 只能在确认 metadata 仍在时充当“带结果的版本历史”，重要配方仍要另存 JSON 并记录资产版本；</li>
 <li><strong>git 化（可选进阶）</strong>：工作流 json 是文本，<code>E:\AI\Workflows</code> 完全可以 git init 起来——你在 Medusa 已有的版本管理习惯平移即可，改坏了随时回滚。</li>
 </ul>
 <h2 id="3-api-comfyui-codex_bridge">3. API：把 ComfyUI 变成服务（Codex_Bridge 解密）<a class="headerlink" href="#3-api-comfyui-codex_bridge" title="Permanent link"></a></h2>
 <h3 id="31">3.1 机制<a class="headerlink" href="#31" title="Permanent link"></a></h3>
 <p>ComfyUI 本体就是个 HTTP 服务（你的 8188 端口）。它有两种工作流格式：<strong>UI 格式</strong>（画布用，含节点坐标）和 <strong>API 格式</strong>（纯执行图）。设置里开启开发者模式后，菜单多出 "Export (API)"——导出的 json 可以直接 POST：</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">requests</span>
-<span class="n">wf</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;workflow_api.json&quot;</span><span class="p">))</span>          <span class="c1"># API 格式工作流</span>
-<span class="n">wf</span><span class="p">[</span><span class="s2">&quot;6&quot;</span><span class="p">][</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;a cat in spacesuit&quot;</span>   <span class="c1"># 程序化改提示词(节点号.inputs.字段)</span>
-<span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;http://127.0.0.1:8188/prompt&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="n">wf</span><span class="p">})</span>
-<span class="c1"># 完成后去 /history 取结果, 成图落在 E:\AI\Outputs</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;workflow_api.json&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+    <span class="n">wf</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>                         <span class="c1"># API 格式执行图</span>
+
+<span class="c1"># 从 KSampler 的 positive 支路逆向找文本编码器；ControlNet 等节点可能夹在中间。</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_text_encoder</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">start_id</span><span class="p">):</span>
+    <span class="n">pending</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">start_id</span><span class="p">)],</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;CLIPTextEncode&quot;</span> <span class="ow">and</span> <span class="s2">&quot;text&quot;</span> <span class="ow">in</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">node</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                <span class="n">pending</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;positive branch has no CLIPTextEncode&quot;</span><span class="p">)</span>
+
+<span class="n">sampler</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">wf</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;KSampler&quot;</span><span class="p">)</span>
+<span class="n">positive</span> <span class="o">=</span> <span class="n">find_text_encoder</span><span class="p">(</span><span class="n">wf</span><span class="p">,</span> <span class="n">sampler</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="s2">&quot;positive&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">positive</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;a cat in spacesuit&quot;</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;http://127.0.0.1:8188/prompt&quot;</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="n">wf</span><span class="p">},</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<span class="n">prompt_id</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;prompt_id&quot;</span><span class="p">]</span>
+<span class="c1"># 用 /ws 接收进度，或查询 /history/{prompt_id}；不要把“已入队”当“已出图”。</span>
 </code></pre></div>
+<p>完整生命周期是：<code>POST /prompt</code> 先校验执行图并返回 <code>prompt_id</code>/队列位置或 <code>node_errors</code>；<code>/ws</code> 推送开始、缓存、执行、进度和错误事件；完成后 <code>/history/{prompt_id}</code> 给出该任务的结果。脚本必须分别处理“校验失败、已入队、执行中、执行失败、已完成”，不能只看 HTTP 200。</p>
+<p>接口与事件以当前 <a href="https://docs.comfy.org/development/comfyui-server/comms_routes">ComfyUI server routes</a> 为准。</p>
 <p><strong>任何能发 HTTP 的东西都能指挥 ComfyUI 出图</strong>——批量脚本、定时任务、别的 AI。</p>
 <h3 id="32-codex_bridge">3.2 你机器上那个 Codex_Bridge 是什么<a class="headerlink" href="#32-codex_bridge" title="Permanent link"></a></h3>
-<p>现在可以解密第 00 讲清单里的疑点了：<code>E:\AI\Workflows\Codex_Bridge_SDXL_Img2Img_API.json</code> + <code>Run_Codex_Bridge_Img2Img.ps1</code> 就是上面这套机制的现成实例——<strong>一个 API 格式的图生图工作流 + 一段调用脚本，让 Codex（AI 编程助手）能远程指挥这台机器的 ComfyUI 生图</strong>。这正是你 AIGC 工作流项目里"Claude 当管理、Codex 当生图操作员"分工的技术底座。用姊妹课程第 08 讲的话说：<strong>ComfyUI 在这里是编排工程里的一个"确定性节点"，AI 是编排者</strong>。学完本课程，你自己就能写这样的桥——它不再是黑盒。</p>
+<p>现在可以解密第 00 讲清单里的疑点了：<code>E:\AI\Workflows\Codex_Bridge_SDXL_Img2Img_API.json</code> + <code>Run_Codex_Bridge_Img2Img.ps1</code> 就是上面这套机制的现成实例——<strong>一个 API 格式的图生图工作流 + 一段调用脚本，让 Codex（AI 编程助手）能远程指挥这台机器的 ComfyUI 生图</strong>。这正是你 AIGC 工作流项目里“Claude 当管理、Codex 当生图操作员”分工的技术底座。用姊妹课程第 08 讲的话说：<strong>ComfyUI 在这里是一个可调用、可记录的执行节点，AI 是编排者</strong>。固定 seed 和版本有助于复现，却不保证所有 GPU kernel、第三方节点或外部资产都逐位确定；所以桥接脚本仍要保存环境与输出证据。</p>
 <h3 id="33">3.3 给你的展望（不急着做）<a class="headerlink" href="#33" title="Permanent link"></a></h3>
-<p>这个 API 通道 + 你的 tailscale 网络意味着：Mac 侧脚本可以批量投喂"骨架图 × 提示词矩阵"，Win 侧过夜生产，早上收结果——第 12 讲的 VRChat 管线完全可以自动化成"每晚出货"的流水线。等手动流程跑顺了值得做一版。</p>
+<p>这个 API 通道可以把“骨架图 × 提示词矩阵”变成批处理，但 ComfyUI 本地服务不应未经认证直接暴露到公网。跨机器访问应放在受控私网/VPN、主机防火墙和明确访问规则后，输入输出目录也要限制；先在 <code>127.0.0.1</code> 跑通并保存请求、工作流哈希、<code>prompt_id</code> 与结果，再考虑远程队列。</p>
 <h2 id="4">4. 排障总表（贴墙级）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>按症状查（日志永远在 <code>E:\AI\Logs</code>，报错第一现场）：</p>
 <table>
@@ -151,8 +182,8 @@
 </tbody>
 </table>
 <h2 id="_1">课程结语<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>十六讲走完。回看这条路：从"学分布与采样"的第一性原理，到 DDPM 的 ELBO、采样器的 ODE、三大件与外挂件的架构，再到你 E:\AI 机器上每一个节点、每一个参数、每一条管线——<strong>ComfyUI 的画布从头到尾就是原理篇那几页数学的可视化</strong>。你现在拥有的不是一堆操作步骤，而是一张完整的地图：新模型、新节点、新玩法出来时（它们每周都在出），你知道它落在地图的哪个位置、动了哪个部件、该用什么纪律去验证。</p>
-<p>三个自然的下一步，按兴趣任选：<strong>产量线</strong>——把第 12/13 讲的 VRChat 管线跑成日常，攒素材库；<strong>深度线</strong>——用你的角色截图炼第一个 LoRA（第 11 讲的预告，16GB 卡完全够）；<strong>工程线</strong>——写你自己的 API 批量脚本（第 3 节），把两台机器连成自动生产线。无论哪条，方法都是这门课反复练的那一句：<strong>固定变量，单点实验，理解每一步为什么。</strong></p>
+<p>基础主线 00–15 至此闭环。回看这条路：从"学分布与采样"的第一性原理，到 DDPM 的 ELBO、采样器的 ODE、三大件与外挂件的架构，再到你 E:\AI 机器上每一个节点、每一个参数、每一条管线——<strong>ComfyUI 的画布从头到尾就是原理篇那几页数学的可视化</strong>。你现在拥有的不是一堆操作步骤，而是一张可维护的地图：新模型、新节点、新玩法出来时，你能判断它落在哪一层、改变了什么契约、该留下哪些版本和证据。16–22 讲再把这套方法扩展到视频、音频、3D 与声画联合工作流。</p>
+<p>三个自然的下一步，按兴趣任选：<strong>产量线</strong>——把第 12/13 讲的 VRChat 管线跑成日常，攒素材库；<strong>深度线</strong>——用获得授权的角色截图训练第一个 LoRA（第 11 讲的预告；16GB 可进入低分辨率、合适精度与 batch 的实测队列，不对任意架构作保证）；<strong>工程线</strong>——写你自己的 API 批量脚本（第 3 节），把两台机器连成自动生产线。无论哪条，方法都是这门课反复练的那一句：<strong>固定变量，单点实验，理解每一步为什么。</strong></p>
 <p>祝出图愉快。</p>
 <hr />
 <p><em>工作流实验室页有全部 7 个配套工作流的加载说明与分级练习。</em></p>
@@ -164,6 +195,7 @@
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/ecosystem-labs.js"></script>
 <script defer src="assets/site.js"></script>
 </body>
 </html>

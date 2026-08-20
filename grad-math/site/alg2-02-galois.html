@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,25 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li class="active"><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 三个前置概念（各一段）</a></li>
-<li><a href="#2">2. 主定理</a></li>
-<li><a href="#3">3. 工作例（把对应盘活）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#galois-learning-title">学习层：谁固定谁，格就倒过来</a><ul>
+<li><a href="#1">1. 具体谜题：一个子群究竟“看不见”什么？</a></li>
+<li><a href="#2">2. 预测门：先写答案，再打开账本</a></li>
+<li><a href="#3">3. 最小模型：两张格、三本账</a></li>
+<li><a href="#4">4. 误区与边界：定理的门槛不能省</a></li>
+<li><a href="#5">5. 检查点：把“反序”说完整</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 三个前置概念（各一段）</a></li>
+<li><a href="#2_1">2. 主定理</a></li>
+<li><a href="#3_1">3. 工作例（把对应盘活）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,12 +72,184 @@ Galois 理论的主定理：<strong>域扩张的中间域 ⟷ Galois 群的子�
 <p><img alt="Galois 对应：域扩张塔 ↔ 子群格 的倒挂对应。" src="assets/img/alg2-02-galois.svg" /></p>
 <figcaption><span class="fig-id">图 alg2-02.1</span>Galois 对应：域扩张塔 ↔ 子群格 的倒挂对应。</figcaption>
 </figure>
-<h2 id="1">1. 三个前置概念（各一段）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="galois-learning-title" class="learning-layer">
+<h2 id="galois-learning-title">学习层：谁固定谁，格就倒过来<a class="headerlink" href="#galois-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：一个子群究竟“看不见”什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(K/F\)</span> 想成一组带有对称动作的对象。子群 <span class="arithmatex">\(H\)</span> 允许的动作越多，能被所有动作同时保留下来的量就越少；因此不动域</p>
+<div class="arithmatex">\[
+K^H=\{x\in K:h(x)=x\ \text{for every }h\in H\}
+\]</div>
+<p>会随着 <span class="arithmatex">\(H\)</span> 变大而变小。这个“动作越多，留下的量越少”就是反序的直觉。</p>
+<p>先在 <span class="arithmatex">\(K=\mathbb Q(a,b)\)</span>、<span class="arithmatex">\(a=\sqrt2\)</span>、<span class="arithmatex">\(b=\sqrt3\)</span> 中试一行：<span class="arithmatex">\(\sigma(a)=-a,\sigma(b)=b\)</span>。如果 <span class="arithmatex">\(H=\langle\sigma\rangle\)</span>，<span class="arithmatex">\(a\)</span> 被翻转而 <span class="arithmatex">\(b\)</span> 被保留，所以猜 <span class="arithmatex">\(K^H=\mathbb Q(b)\)</span>；同时 <span class="arithmatex">\(|H|=2\)</span>，故 <span class="arithmatex">\([K:K^H]=2\)</span>，而 <span class="arithmatex">\([K^H:\mathbb Q]=[G:H]=2\)</span>。实验要做的是把这条局部直觉扩展成<strong>全部子群、全部固定域和全部次数证书</strong>。</p>
+<p>在 <span class="arithmatex">\(x^3-2\)</span> 的分裂域中，三根</p>
+<div class="arithmatex">\[
+\alpha_1=\alpha=\sqrt[3]2,\qquad \alpha_2=\omega\alpha,\qquad \alpha_3=\omega^2\alpha
+\]</div>
+<p>被 <span class="arithmatex">\(S_3\)</span> 置换。这里“固定一个根、交换另外两个根”的对换子群会留下一个三次根域；而 <span class="arithmatex">\(A_3\)</span> 固定的是 <span class="arithmatex">\(\mathbb Q(\omega)\)</span>。先猜一猜：哪个子群的固定域是实根域？它为什么不是正规扩张？</p>
+<h3 id="2">2. 预测门：先写答案，再打开账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>不要先看下方实验的证书。对每一行预测固定域、指数和正规性；提交后，界面才显示对应格与商群信息。</p>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>预测 <span class="arithmatex">\(K^H\)</span></th>
+<th style="text-align: right;">预测 <span class="arithmatex">\([G:H]=[K^H:F]\)</span></th>
+<th>预测正规性与商群</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(V_4\)</span>，<span class="arithmatex">\(H=\langle\sigma\rangle\)</span></td>
+<td>？</td>
+<td style="text-align: right;">？</td>
+<td>？</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S_3\)</span>，<span class="arithmatex">\(H=A_3\)</span></td>
+<td>？</td>
+<td style="text-align: right;">？</td>
+<td>？</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S_3\)</span>，<span class="arithmatex">\(H=\langle(12)\rangle\)</span></td>
+<td>？</td>
+<td style="text-align: right;">？</td>
+<td>？</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(E=\mathbb Q(\sqrt[3]2)/\mathbb Q\)</span> 直接套定理</td>
+<td>？</td>
+<td style="text-align: right;">？</td>
+<td>？</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3">3. 最小模型：两张格、三本账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对有限 Galois 扩张 <span class="arithmatex">\(K/F\)</span>，实验只显示三条可以逐项核对的账：</p>
+<ol>
+<li><strong>包含账</strong>：<span class="arithmatex">\(H_1\subseteq H_2\)</span> 时 <span class="arithmatex">\(K^{H_2}\subseteq K^{H_1}\)</span>；图的左右两张格用英文节点标记，选中一项会同时高亮子群和固定域。</li>
+<li><strong>次数账</strong>：<span class="arithmatex">\(|H|=[K:K^H]\)</span>，<span class="arithmatex">\([G:H]=[K^H:F]\)</span>，而 <span class="arithmatex">\(|G|=[K:F]\)</span>。因此指数不是一个孤立的群论数字，它就是中间域的扩张次数。</li>
+<li><strong>正规性账</strong>：<span class="arithmatex">\(H\trianglelefteq G\)</span> 时才有群商 <span class="arithmatex">\(G/H\)</span>，并且 <span class="arithmatex">\(K^H/F\)</span> 正规；非正规时界面给出共轭见证，而不是伪造一个商群。</li>
+</ol>
+<p>操作顺序是：选择 <span class="arithmatex">\(V_4\)</span> 或 <span class="arithmatex">\(S_3\)</span>，先完成预测门；再逐项选择子群，观察固定域、<span class="arithmatex">\(|H|\)</span>、<span class="arithmatex">\([G:H]\)</span>、正规性和商群证书；最后用图和静态表反查一个练习。模型只枚举本页两个有限 Galois 扩张，不是任意多项式求解器或通用 CAS。</p>
+<div class="learning-lab" data-learning-lab="galois-correspondence">
+<p><strong>JavaScript 失效时的静态后备：</strong>以下表格就是完整实验账本。记 <span class="arithmatex">\(a=\sqrt2,b=\sqrt3\)</span>，<span class="arithmatex">\(\alpha=\sqrt[3]2\)</span>，<span class="arithmatex">\(\omega^3=1\)</span> 且 <span class="arithmatex">\(\omega\ne1\)</span>。</p>
+<p><strong>例 A：<span class="arithmatex">\(K=\mathbb Q(\sqrt2,\sqrt3)\)</span>，<span class="arithmatex">\(G=V_4\)</span>。</strong> 群元素全部是</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>对 <span class="arithmatex">\((a,b)\)</span> 的作用</th>
+<th style="text-align: right;">元素阶</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(e\)</span></td>
+<td><span class="arithmatex">\((a,b)\mapsto(a,b)\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma\)</span></td>
+<td><span class="arithmatex">\((a,b)\mapsto(-a,b)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\tau\)</span></td>
+<td><span class="arithmatex">\((a,b)\mapsto(a,-b)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma\tau\)</span></td>
+<td><span class="arithmatex">\((a,b)\mapsto(-a,-b)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>| 子群 <span class="arithmatex">\(H\)</span>（全部元素） | <span class="arithmatex">\(K^H\)</span> | <span class="arithmatex">\(|H|\)</span> | <span class="arithmatex">\([G:H]=[K^H:\mathbb Q]\)</span> | 正规性；商群 |
+|---|---|---:|---:|---|
+| <span class="arithmatex">\(\{e\}\)</span> | <span class="arithmatex">\(K=\mathbb Q(a,b)\)</span> | 1 | 4 | 是；<span class="arithmatex">\(V_4\)</span> |
+| <span class="arithmatex">\(\langle\sigma\rangle=\{e,\sigma\}\)</span> | <span class="arithmatex">\(\mathbb Q(b)=\mathbb Q(\sqrt3)\)</span> | 2 | 2 | 是；<span class="arithmatex">\(C_2\)</span> |
+| <span class="arithmatex">\(\langle\tau\rangle=\{e,\tau\}\)</span> | <span class="arithmatex">\(\mathbb Q(a)=\mathbb Q(\sqrt2)\)</span> | 2 | 2 | 是；<span class="arithmatex">\(C_2\)</span> |
+| <span class="arithmatex">\(\langle\sigma\tau\rangle=\{e,\sigma\tau\}\)</span> | <span class="arithmatex">\(\mathbb Q(ab)=\mathbb Q(\sqrt6)\)</span> | 2 | 2 | 是；<span class="arithmatex">\(C_2\)</span> |
+| <span class="arithmatex">\(V_4=\{e,\sigma,\tau,\sigma\tau\}\)</span> | <span class="arithmatex">\(\mathbb Q\)</span> | 4 | 1 | 是；<span class="arithmatex">\(1\)</span> |</p>
+<p><span class="arithmatex">\(V_4\)</span> 交换，所以每个子群正规；这就是四行商群证书的共同理由。子群格的包含方向与固定域格的包含方向相反：<span class="arithmatex">\(V_4\supset\langle\sigma\rangle\supset\{e\}\)</span> 对应 <span class="arithmatex">\(\mathbb Q\subset\mathbb Q(\sqrt3)\subset K\)</span>。</p>
+<p><strong>例 B：<span class="arithmatex">\(K=\mathbb Q(\alpha,\omega)\)</span>，<span class="arithmatex">\(G=S_3\)</span>。</strong> 令 <span class="arithmatex">\(\alpha_1=\alpha,\alpha_2=\omega\alpha,\alpha_3=\omega^2\alpha\)</span>；六个群元素全部是</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>在 <span class="arithmatex">\((\alpha_1,\alpha_2,\alpha_3)\)</span> 上的置换</th>
+<th style="text-align: right;">元素阶</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(e\)</span></td>
+<td><span class="arithmatex">\(e\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(r\)</span></td>
+<td><span class="arithmatex">\((123)\)</span></td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(r^2\)</span></td>
+<td><span class="arithmatex">\((132)\)</span></td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_{12}\)</span></td>
+<td><span class="arithmatex">\((12)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_{13}\)</span></td>
+<td><span class="arithmatex">\((13)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_{23}\)</span></td>
+<td><span class="arithmatex">\((23)\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>| 子群 <span class="arithmatex">\(H\)</span>（全部元素） | <span class="arithmatex">\(K^H\)</span> | <span class="arithmatex">\(|H|\)</span> | <span class="arithmatex">\([S_3:H]=[K^H:\mathbb Q]\)</span> | 正规性；商群证书 |
+|---|---|---:|---:|---|
+| <span class="arithmatex">\(\{e\}\)</span> | <span class="arithmatex">\(K=\mathbb Q(\alpha,\omega)\)</span> | 1 | 6 | 是；<span class="arithmatex">\(S_3\)</span> |
+| <span class="arithmatex">\(\langle t_{12}\rangle=\{e,t_{12}\}\)</span> | <span class="arithmatex">\(\mathbb Q(\alpha_3)=\mathbb Q(\omega^2\alpha)\)</span> | 2 | 3 | 否；<span class="arithmatex">\(r\langle t_{12}\rangle r^{-1}=\langle t_{23}\rangle\)</span> |
+| <span class="arithmatex">\(\langle t_{13}\rangle=\{e,t_{13}\}\)</span> | <span class="arithmatex">\(\mathbb Q(\alpha_2)=\mathbb Q(\omega\alpha)\)</span> | 2 | 3 | 否；<span class="arithmatex">\(r\langle t_{13}\rangle r^{-1}=\langle t_{12}\rangle\)</span> |
+| <span class="arithmatex">\(\langle t_{23}\rangle=\{e,t_{23}\}\)</span> | <span class="arithmatex">\(\mathbb Q(\alpha_1)=\mathbb Q(\alpha)\)</span> | 2 | 3 | 否；<span class="arithmatex">\(r\langle t_{23}\rangle r^{-1}=\langle t_{13}\rangle\)</span> |
+| <span class="arithmatex">\(A_3=\{e,r,r^2\}\)</span> | <span class="arithmatex">\(\mathbb Q(\omega)\)</span> | 3 | 2 | 是；<span class="arithmatex">\(A_3=\ker(\operatorname{sgn})\)</span>，<span class="arithmatex">\(S_3/A_3\cong C_2\)</span> |
+| <span class="arithmatex">\(S_3=\{e,r,r^2,t_{12},t_{13},t_{23}\}\)</span> | <span class="arithmatex">\(\mathbb Q\)</span> | 6 | 1 | 是；<span class="arithmatex">\(1\)</span> |</p>
+<p><strong>失败边界：为什么不能直接对 <span class="arithmatex">\(\mathbb Q(\sqrt[3]2)/\mathbb Q\)</span> 套用？</strong> 令 <span class="arithmatex">\(E=\mathbb Q(\alpha)\)</span>。它的极小多项式 <span class="arithmatex">\(x^3-2\)</span> 在 <span class="arithmatex">\(E\)</span> 中只有实根 <span class="arithmatex">\(\alpha\)</span>，另外两个根 <span class="arithmatex">\(\omega\alpha,\omega^2\alpha\)</span> 不在 <span class="arithmatex">\(E\)</span>；所以 <span class="arithmatex">\(E/\mathbb Q\)</span> 可分但不正规，不是 Galois 扩张。事实上 <span class="arithmatex">\(\operatorname{Aut}_{\mathbb Q}(E)\)</span> 只有恒等，而 <span class="arithmatex">\(\mathbb Q\subset E\)</span> 已有两个中间端点，不能把它当作一个阶为 <span class="arithmatex">\([E:\mathbb Q]=3\)</span> 的 Galois 群来建立一一对应。正确做法是进入正规闭包 <span class="arithmatex">\(K=\mathbb Q(\alpha,\omega)\)</span>，在 <span class="arithmatex">\(K/\mathbb Q\)</span> 的 <span class="arithmatex">\(S_3\)</span> 对应中，<span class="arithmatex">\(E=K^{\langle t_{23}\rangle}\)</span>；这里应用的是大扩张的对应，不是 <span class="arithmatex">\(E/\mathbb Q\)</span> 的对应。</p>
+</div>
+<h3 id="4">4. 误区与边界：定理的门槛不能省<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>有限 Galois 是前提。</strong> 对任意有限扩张只写 <span class="arithmatex">\(G=\operatorname{Aut}_F(K)\)</span>，不能自动得到中间域和子群的双射；<span class="arithmatex">\(E=\mathbb Q(\sqrt[3]2)\)</span> 正是反例。</li>
+<li><strong>反序不是记号游戏。</strong> <span class="arithmatex">\(H\)</span> 越大，固定条件越多，<span class="arithmatex">\(K^H\)</span> 越小；把 <span class="arithmatex">\(\langle\sigma\rangle\)</span> 错配成 <span class="arithmatex">\(\mathbb Q(\sqrt2)\)</span> 会同时破坏固定性和次数账。</li>
+<li><strong>商群需要正规子群。</strong> <span class="arithmatex">\(S_3\)</span> 的对换子群没有群商 <span class="arithmatex">\(S_3/H\)</span>；“指数为 3”仍然成立，但它只是三次固定域的次数，不是一个三阶商群。</li>
+<li><strong>次数公式有适用域。</strong> <span class="arithmatex">\([K:E]=|H|\)</span> 与 <span class="arithmatex">\([E:F]=[G:H]\)</span> 是对 <span class="arithmatex">\(K/F\)</span> 有限 Galois、<span class="arithmatex">\(E=K^H\)</span> 的证书，不能把非正规扩张的自同构群大小硬换进来。</li>
+<li><strong>本实验不是 CAS。</strong> 置换、子群、固定域名称和商群证书都来自这两个预先证明的例子；脚本不会枚举任意多项式的根、域或 Galois 群。</li>
+</ul>
+<h3 id="5">5. 检查点：把“反序”说完整<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\(V_4\)</span> 中取 <span class="arithmatex">\(H=\langle\tau\rangle\)</span>：写出 <span class="arithmatex">\(K^H\)</span>、<span class="arithmatex">\([K:K^H]\)</span> 和 <span class="arithmatex">\([K^H:\mathbb Q]\)</span>，并说明 <span class="arithmatex">\(\sqrt2\)</span> 为什么留下。</li>
+<li>在 <span class="arithmatex">\(S_3\)</span> 中取 <span class="arithmatex">\(H=A_3\)</span>：用 <span class="arithmatex">\(A_3=\ker(\operatorname{sgn})\)</span> 给出正规性证书，并写出对应的固定域和商群。</li>
+<li>在 <span class="arithmatex">\(S_3\)</span> 中取 <span class="arithmatex">\(H=\langle t_{23}\rangle\)</span>：说明它固定 <span class="arithmatex">\(\alpha_1\)</span>，为什么 <span class="arithmatex">\(\mathbb Q(\alpha_1)/\mathbb Q\)</span> 不是正规扩张，以及指数 3 在哪里出现。</li>
+<li>解释 <span class="arithmatex">\(H_1\subset H_2\)</span> 为什么推出 <span class="arithmatex">\(K^{H_2}\subset K^{H_1}\)</span>；再用 <span class="arithmatex">\(V_4\)</span> 的中间三域各写一条具体包含链。</li>
+</ol>
+</section>
+<h2 id="1_1">1. 三个前置概念（各一段）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>分裂域</strong>：<span class="arithmatex">\(f\)</span> 的全部根恰好都在、且由根生成的扩张 <span class="arithmatex">\(K/F\)</span>（存在唯一至同构【骨架：逐根添加 + 同构延拓引理】）。</p>
 <p><strong>正规扩张</strong>：<span class="arithmatex">\(F\)</span> 上不可约多项式在 <span class="arithmatex">\(K\)</span> 中要么无根要么全根——"根不落单"（⟺ 某多项式的分裂域）。</p>
 <p><strong>可分扩张</strong>：极小多项式无重根。特征 0 与有限域上<strong>自动可分</strong>【骨架：重根 ⟺ <span class="arithmatex">\(\gcd(f, f') \neq 1\)</span>，特征 0 时 <span class="arithmatex">\(f' \neq 0\)</span> 且次数更低】——本课程（特征 0 主场）可分性白送，不设障碍。</p>
 <p><strong>Galois 扩张</strong> = 正规 + 可分；<strong>Galois 群</strong> <span class="arithmatex">\(\mathrm{Gal}(K/F)\)</span> = 固定 <span class="arithmatex">\(F\)</span> 逐点的 <span class="arithmatex">\(K\)</span>-自同构群。基本事实【骨架】：自同构把根搬到根（系数在 <span class="arithmatex">\(F\)</span> 里不动 ⇒ 代入保方程）⇒ <span class="arithmatex">\(\mathrm{Gal}\)</span> 嵌入根的置换群；<span class="arithmatex">\(|\mathrm{Gal}(K/F)| = [K : F]\)</span>（Galois 扩张的标志性等式，由本原元定理或 Artin 引理【引用】）。</p>
-<h2 id="2">2. 主定理<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 主定理<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理（Galois 对应）</strong> <span class="arithmatex">\(K/F\)</span> 有限 Galois，<span class="arithmatex">\(G = \mathrm{Gal}(K/F)\)</span>：</p>
 <div class="arithmatex">\[
 \big\{\text{中间域 } F \subseteq E \subseteq K\big\} \;\longleftrightarrow\; \big\{\text{子群 } H \leq G\big\}
@@ -66,7 +257,7 @@ Galois 理论的主定理：<strong>域扩张的中间域 ⟷ Galois 群的子�
 <p><span class="arithmatex">\(E \mapsto \mathrm{Gal}(K/E)\)</span>（固定 <span class="arithmatex">\(E\)</span> 的自同构），<span class="arithmatex">\(H \mapsto K^H\)</span>（<span class="arithmatex">\(H\)</span> 的不动域）——<strong>互逆、反序</strong>（域越大群越小），且：<span class="arithmatex">\([K : E] = |H|\)</span>、<span class="arithmatex">\([E : F] = [G : H]\)</span>；<strong><span class="arithmatex">\(E/F\)</span> 正规 ⟺ <span class="arithmatex">\(H \trianglelefteq G\)</span></strong>，此时 <span class="arithmatex">\(\mathrm{Gal}(E/F) \cong G/H\)</span>。</p>
 <p><strong>【骨架（两个引擎）】</strong> 引擎一（Artin）：<span class="arithmatex">\(|H| = [K : K^H]\)</span>——不动域的次数恰是群的阶（线性无关性论证：Dedekind 引理说不同自同构线性无关【引用】）；引擎二：Galois 扩张的判据 <span class="arithmatex">\(K^G = F\)</span>（"被全群固定的只有底域"）。两引擎合成互逆性；正规性对应 = "共轭子群 ↔ 共轭中间域"的整理。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>与 at-02 的对表兑现</strong>：中间域 ↔ 子群（反序）恰如覆盖空间 ↔ 子群；正规扩张 ↔ 正规子群恰如正规覆盖——<strong>两张 Galois 对应表逐行同构</strong>（范畴级同型的两个化身；本科抽代 II 的预告至此双向闭合）。</p>
-<h2 id="3">3. 工作例（把对应盘活）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 工作例（把对应盘活）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>例 A（全站标准例）</strong> <span class="arithmatex">\(K = \mathbb{Q}(\sqrt2, \sqrt3)\)</span>：<span class="arithmatex">\([K:\mathbb{Q}] = 4\)</span>（本科已证），<span class="arithmatex">\(G = \{\mathrm{id}, \sigma, \tau, \sigma\tau\} \cong V_4\)</span>（<span class="arithmatex">\(\sigma: \sqrt2\mapsto-\sqrt2\)</span>；<span class="arithmatex">\(\tau: \sqrt3\mapsto-\sqrt3\)</span>）。<span class="arithmatex">\(V_4\)</span> 的三个 2 阶子群 ↔ 三个中间二次域：</p>
 <div class="arithmatex">\[
 \langle\sigma\rangle \leftrightarrow \mathbb{Q}(\sqrt3), \quad \langle\tau\rangle \leftrightarrow \mathbb{Q}(\sqrt2), \quad \langle\sigma\tau\rangle \leftrightarrow \mathbb{Q}(\sqrt6)
@@ -74,7 +265,7 @@ Galois 理论的主定理：<strong>域扩张的中间域 ⟷ Galois 群的子�
 <p>（各是"谁固定谁"的一行验证——<strong>第三个中间域 <span class="arithmatex">\(\mathbb{Q}(\sqrt6)\)</span> 靠肉眼容易漏、靠群论不可能漏</strong>：对应的第一次实战价值。）</p>
 <p><strong>例 B（不交换的样本）</strong> <span class="arithmatex">\(x^3 - 2\)</span> 的分裂域 <span class="arithmatex">\(\mathbb{Q}(\sqrt[3]2, \omega)\)</span>（<span class="arithmatex">\(\omega\)</span> = 三次单位根）：次数 6、<span class="arithmatex">\(G \cong S_3\)</span>（三根的全置换实现）。<span class="arithmatex">\(S_3\)</span> 的子群格 ↔ 中间域格：<span class="arithmatex">\(A_3 \trianglelefteq S_3\)</span> ↔ 正规中间域 <span class="arithmatex">\(\mathbb{Q}(\omega)\)</span>；三个不正规的 <span class="arithmatex">\(\langle\)</span>对换<span class="arithmatex">\(\rangle\)</span> ↔ 三个共轭域 <span class="arithmatex">\(\mathbb{Q}(\sqrt[3]2\,\omega^k)\)</span>（<strong>不正规子群对应"根不齐"的域</strong>——正规性判据的活教材）。</p>
 <p><strong>例 C（有限域，一行全解）</strong> <span class="arithmatex">\(\mathrm{Gal}(\mathbb{F}_{p^n}/\mathbb{F}_p) = \langle\mathrm{Frob}: x\mapsto x^p\rangle \cong \mathbb{Z}_n\)</span>（循环！）——中间域 ↔ <span class="arithmatex">\(n\)</span> 的因子：本科抽代 II 的有限域结构定理原来是 Galois 对应的最简调用。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（对应反查）</strong> 例 B 中求固定 <span class="arithmatex">\(\mathbb{Q}(\sqrt[3]2)\)</span> 的子群：<span class="arithmatex">\([E:\mathbb{Q}] = 3 \Rightarrow [G:H] = 3 \Rightarrow |H| = 2\)</span>——是哪个对换？（固定实根、交换两复根者。）"次数算指数、指数锁子群"的标准操作。</p>
 <p><strong>例 2（分圆域）</strong> <span class="arithmatex">\(\mathrm{Gal}(\mathbb{Q}(\zeta_n)/\mathbb{Q}) \cong (\mathbb{Z}/n)^*\)</span>【骨架：<span class="arithmatex">\(\zeta_n \mapsto \zeta_n^k\)</span>，<span class="arithmatex">\(k\)</span> 互素】——交换！正十七边形可作图 = <span class="arithmatex">\((\mathbb{Z}/17)^*\cong\mathbb{Z}_{16}\)</span> 有 2-幂塔（Gauss 19 岁的成名作在对应语言里两行讲清——本科尺规作图判据的正向应用）。</p>
 <p><strong>例 3（对表默写）</strong> 不看书写出 Galois/覆盖空间对应的六行对照表（对象/态射/正规性/商/万有对象/"群"）——两学科同构的记忆即理解。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -89,5 +280,7 @@ Galois 理论的主定理：<strong>域扩张的中间域 ⟷ Galois 群的子�
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/galois-correspondence.js"></script>
 </body>
 </html>

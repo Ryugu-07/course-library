@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,50 +41,222 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:14</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 外测度：给一切集合先估个长度</a></li>
-<li><a href="#2">2. 可测集：外测度在哪里变成真测度</a></li>
-<li><a href="#3">3. 可测函数与"几乎处处"</a></li>
+<li><a href="#measure-learning-title">学习层：有限图像如何变成极限结论？</a><ul>
+<li><a href="#1">1. 先预测，再打开三本长度账</a></li>
+<li><a href="#a-cantor-c">A. 标准三分 Cantor 集 C</a></li>
+<li><a href="#b-fat-cantor-f">B. 一个可精确求极限测度的 fat Cantor 集 F</a></li>
+<li><a href="#c-01">C. [0,1] 中可数稠密集的 ε 覆盖</a></li>
+<li><a href="#2">2. 图像与定理的边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 外测度：给一切集合先估个长度</a></li>
+<li><a href="#2_1">2. 可测集：外测度在哪里变成真测度</a></li>
+<li><a href="#3">3. 可测函数与“几乎处处”</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-lebesgue">实变 I · Lebesgue 测度<a class="headerlink" href="#i-lebesgue" title="Permanent link"></a></h1>
 <blockquote>
-<p>实变函数论的出发点是 Riemann 积分的三宗罪：太多函数不可积（Dirichlet 函数）、积分与极限交换要苛刻的一致收敛（数分 IV 的痛）、<span class="arithmatex">\(\int\)</span> 与 <span class="arithmatex">\(\lim\)</span> 的理论地基不稳。Lebesgue 的方案先解决一个更基本的问题：<strong>"集合的长度"到底怎么定义？</strong>——这就是测度论，也是概率公理化（概率 I 的 σ-代数）的真正老家。</p>
+<p>实变函数论的出发点是 Riemann 积分的三宗罪：太多函数不可积（Dirichlet 函数）、积分与极限交换要苛刻的一致收敛（数分 IV 的痛）、<code>∫</code> 与 <code>lim</code> 的理论地基不稳。Lebesgue 的方案先解决一个更基本的问题：<strong>“集合的长度”到底怎么定义？</strong>——这就是测度论，也是概率公理化（概率 I 的 σ-代数）的真正老家。</p>
 </blockquote>
-<h2 id="1">1. 外测度：给一切集合先估个长度<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义（Lebesgue 外测度）</strong> 用可数个开区间覆盖 <span class="arithmatex">\(E\)</span>，取总长的下确界：</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="measure-learning-title" class="learning-layer">
+<h2 id="measure-learning-title">学习层：有限图像如何变成极限结论？<a class="headerlink" href="#measure-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测，再打开三本长度账<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>本页实验把三个容易混淆的对象放在同一套确定性读法里：标准三分 Cantor 集的有限阶段、一个明确的 fat Cantor 集构造，以及 <code>[0,1]</code> 中去重后的二进制有理数前缀。先回答预测门，再看图和账本。预测门的第一个问题始终是：<strong>有限阶段的像素只能证明当前阶段的组合与长度，不能替极限集合发言。</strong></p>
+<p>实验使用的 fat Cantor 集不是“凭图看起来更厚”，而是精确定义的递归：<code>F₀=[0,1]</code>；第 <code>n</code> 步从每个当前闭区间删去一个长度 <code>4⁻ⁿ</code> 的中间开区间。第 <code>n</code> 步总共删去 <code>2⁻⁽ⁿ⁺¹⁾</code>，所以极限剩余长度可以直接求出。稠密集则取</p>
 <div class="arithmatex">\[
-m^*(E) = \inf\Big\{\sum_{k=1}^{\infty}|I_k| : E \subset \bigcup_k I_k\Big\}
+D=\{0,1\}\cup\bigcup_{k\geq1}\left\{\frac{2j+1}{2^k}:0\leq j&lt;2^{k-1}\right\};
 \]</div>
-<p>性质：非负、单调、<strong>次可加</strong>（<span class="arithmatex">\(m^*(\cup E_k) \leq \sum m^*(E_k)\)</span>）、区间的外测度=长度、平移不变。</p>
-<p><strong>立竿见影的收获</strong>：可数集测度为零（每点罩 <span class="arithmatex">\(\frac{\varepsilon}{2^k}\)</span> 的小区间）——<strong>有理数集 <span class="arithmatex">\(\mathbb{Q}\)</span> 长度为 0</strong>；更妙的是存在不可数的零测集（Cantor 集：不可数却零测——"多"与"长"是两回事）。</p>
-<h2 id="2">2. 可测集：外测度在哪里变成真测度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>外测度对<strong>任意</strong>集合有定义，但只有次可加没有可加——要可列可加（概率公理的第三条！）必须筛选出"行为好"的集合。</p>
-<p><strong>Carathéodory 判据</strong>：<span class="arithmatex">\(E\)</span> 可测 <span class="arithmatex">\(\iff\)</span> 它把任何集合切得"不多不少"：</p>
+<p>这是所有二进制有理数在 <code>[0,1]</code> 中的去重枚举，有限前缀越来越细，但每个前缀仍然只是有限点集。</p>
+<div class="learning-lab" data-learning-lab="cantor-measure">
+<p><strong>无 JavaScript 时的静态读法：</strong>下列数字就是实验的完整确定性后备；脚本加载后，选择对象、调节阶段/层级和 <code>ε</code>，先完成预测门，才会显示对应的图、指标和账本。图中的实心矩形或圆点是有限阶段像素；虚线、细线和 <code>C∞/F∞</code> 标记是理论极限或闭包的符号标记，不是把有限像素冒充成极限集合。</p>
+<h3 id="a-cantor-c">A. 标准三分 Cantor 集 <code>C</code><a class="headerlink" href="#a-cantor-c" title="Permanent link"></a></h3>
+<p>令 <code>C₀=[0,1]</code>，每一步从每个当前区间删去中间三分之一。第 <code>n</code> 阶段有 <code>2ⁿ</code> 个区间，每段长度 <code>3⁻ⁿ</code>，故</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">第 <code>n</code> 阶段的精确式</th>
+<th>极限读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>区间数</td>
+<td style="text-align: right;"><code>2ⁿ</code></td>
+<td>这是有限阶段的组合数</td>
+</tr>
+<tr>
+<td>单段长度</td>
+<td style="text-align: right;"><code>1/3ⁿ</code></td>
+<td>每一段都仍是闭区间</td>
+</tr>
+<tr>
+<td>剩余总长度</td>
+<td style="text-align: right;"><code>2ⁿ/3ⁿ=(2/3)ⁿ</code></td>
+<td>作为 <code>C</code> 的开区间覆盖预算趋于 <code>0</code></td>
+</tr>
+<tr>
+<td>第 <code>n</code> 步删去总长度（<code>n≥1</code>）</td>
+<td style="text-align: right;"><code>2ⁿ⁻¹/3ⁿ</code></td>
+<td>这一行只记当前一步</td>
+</tr>
+<tr>
+<td>累计删去总长度</td>
+<td style="text-align: right;"><code>(3ⁿ−2ⁿ)/3ⁿ</code></td>
+<td>趋于 <code>1</code></td>
+</tr>
+<tr>
+<td>外覆盖预算</td>
+<td style="text-align: right;"><code>m*(C)≤2ⁿ/3ⁿ</code></td>
+<td>对每个 <code>n</code> 成立，所以 <code>m*(C)=0</code></td>
+</tr>
+</tbody>
+</table>
+<p>最后一行用的是外测度定义：<code>C⊂Cₙ</code>，而 <code>Cₙ</code> 是 <code>2ⁿ</code> 个区间的并，故 <code>m*(C)≤(2/3)ⁿ</code>；令 <code>n→∞</code> 即得零测度。也可以用 <code>Cₙ↓C</code>、<code>m(C₀)&lt;∞</code> 和测度从上连续性：<code>m(C)=lim m(Cₙ)=0</code>。不可数性来自另一个定理：<code>{0,2}^{N}</code> 的三进制编码与 <code>C</code> 对应；它不来自任何有限阶段图。</p>
+<h3 id="b-fat-cantor-f">B. 一个可精确求极限测度的 fat Cantor 集 <code>F</code><a class="headerlink" href="#b-fat-cantor-f" title="Permanent link"></a></h3>
+<p>从 <code>F₀=[0,1]</code> 开始。第 <code>n</code> 步（<code>n≥1</code>）每个当前区间删去一个中间开区间，删去长度固定为 <code>dₙ=4⁻ⁿ</code>。当前有 <code>2ⁿ⁻¹</code> 个母区间，因此</p>
 <div class="arithmatex">\[
-m^*(T) = m^*(T \cap E) + m^*(T \cap E^c), \quad \forall T
+\text{第 }n\text{ 步删去总长度}=2^{n-1}4^{-n}=2^{-(n+1)}.
 \]</div>
-<p><strong>定理</strong> 可测集全体构成 <strong>σ-代数</strong>（对补、可数并/交封闭），<span class="arithmatex">\(m^*\)</span> 限制其上是<strong>测度</strong>（可列可加）；区间、开集、闭集、Borel 集全可测。——概率 I 那个"事件域"的一般理论在此落成：<strong>概率空间就是全测度为 1 的测度空间</strong>，概率论从此是测度论的分支（Kolmogorov 1933 的实质）。</p>
-<p><strong>不可测集存在（Vitali，概率 I 承诺的兑现）</strong>：在 <span class="arithmatex">\([0,1]\)</span> 上按"差为有理数"分等价类、每类选一点（选择公理）成集 <span class="arithmatex">\(V\)</span>；<span class="arithmatex">\(V\)</span> 的可数个平移拷贝不交且并起来夹在 <span class="arithmatex">\([0,1]\)</span> 与 <span class="arithmatex">\([-1,2]\)</span> 之间——<span class="arithmatex">\(V\)</span> 若有测度 <span class="arithmatex">\(c\)</span>，则 <span class="arithmatex">\(1 \leq \sum c \leq 3\)</span>：<span class="arithmatex">\(c = 0\)</span> 给 <span class="arithmatex">\(\leq 0\)</span>、<span class="arithmatex">\(c &gt; 0\)</span> 给 <span class="arithmatex">\(\infty\)</span>，皆矛盾。<span class="arithmatex">\(\blacksquare\)</span> <strong>"给所有子集定义长度"在数学上不可能</strong>——σ-代数不是官僚主义，是必需品。</p>
-<h2 id="3">3. 可测函数与"几乎处处"<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(f\)</span> 可测 <span class="arithmatex">\(\iff\)</span> 一切 <span class="arithmatex">\(\{x: f(x) &gt; a\}\)</span> 可测（与概率 II 随机变量的定义逐字相同——随机变量就是概率空间上的可测函数，两门课在此正式合流）。</p>
-<p><strong>封闭性（可测函数的皮实）</strong>：四则、复合（外层连续）、以及关键的——<strong>逐点极限仍可测</strong>（<span class="arithmatex">\(\sup, \inf, \limsup, \lim\)</span> 全封闭；对比：连续函数的逐点极限可以不连续——数分 IV 的痛点，可测性没有这个软肋，这是 Lebesgue 理论极限定理漂亮的底层原因）。</p>
-<p><strong>几乎处处（a.e.）</strong>：性质在零测集之外成立。测度论的口头禅——Dirichlet 函数 a.e. 等于 0；概率论的"以概率 1"（概率 V 强大数定律）是同一概念的方言。</p>
-<p><strong>逼近结构（三层阶梯，证明的通用脚手架）</strong>：可测函数 = 简单函数（可测集示性函数的有限线性组合 <span class="arithmatex">\(\sum a_i \mathbb{1}_{E_i}\)</span>）的逐点极限；非负可测函数可被简单函数<strong>单调</strong>逼近——下一页积分的定义就踩着这级台阶。</p>
+<p>递归产生的每个子区间都为正长，且 <code>F=∩ₙFₙ</code> 是闭的、无内点的完全集；本页需要的测度计算完全由下表给出：</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">第 <code>n</code> 阶段的精确式</th>
+<th>极限读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>区间数</td>
+<td style="text-align: right;"><code>2ⁿ</code></td>
+<td>每个母区间分成左右两个子区间</td>
+</tr>
+<tr>
+<td>单段长度</td>
+<td style="text-align: right;"><code>(2ⁿ+1)/2²ⁿ⁺¹</code></td>
+<td>由剩余总长度除以 <code>2ⁿ</code></td>
+</tr>
+<tr>
+<td>剩余总长度</td>
+<td style="text-align: right;"><code>(2ⁿ+1)/2ⁿ⁺¹ = 1/2+1/2ⁿ⁺¹</code></td>
+<td>下降到 <code>1/2</code></td>
+</tr>
+<tr>
+<td>第 <code>n</code> 步删去总长度</td>
+<td style="text-align: right;"><code>1/2ⁿ⁺¹</code></td>
+<td>几何级数的一项</td>
+</tr>
+<tr>
+<td>累计删去总长度</td>
+<td style="text-align: right;"><code>(2ⁿ−1)/2ⁿ⁺¹</code></td>
+<td>上升到 <code>1/2</code></td>
+</tr>
+<tr>
+<td>外覆盖预算</td>
+<td style="text-align: right;"><code>m*(F)≤(2ⁿ+1)/2ⁿ⁺¹</code></td>
+<td>这个上界趋于 <code>1/2</code>，不是零</td>
+</tr>
+</tbody>
+</table>
+<p>由 <code>Fₙ↓F</code> 和测度从上连续性，</p>
+<div class="arithmatex">\[
+m(F)=\lim_{n\to\infty}m(F_n)=\lim_{n\to\infty}\left(\frac12+\frac1{2^{n+1}}\right)=\frac12.
+\]</div>
+<p>因此这里的“fat”是有证明的正测度：删除长度的总和恰好为 <code>1/2</code>。有限阶段图本身仍不能证明正测度；正测度来自这个删除公式和极限定理。</p>
+<h3 id="c-01">C. <code>[0,1]</code> 中可数稠密集的 <code>ε</code> 覆盖<a class="headerlink" href="#c-01" title="Permanent link"></a></h3>
+<p>取 <code>D</code> 的前 <code>K</code> 层：先有 <code>0,1</code>，再加入第 <code>k</code> 层的奇数二进制分数。点数是</p>
+<div class="arithmatex">\[
+N_K=2^K+1.
+\]</div>
+<p>将这些点按 <code>q₀,…,qₙ₋₁</code> 编号，用长度为 <code>ε/2ⁱ⁺¹</code> 的小区间覆盖 <code>qᵢ</code>，则前缀和尾部预算为</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">精确式</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前缀点数</td>
+<td style="text-align: right;"><code>N=2ᴷ+1</code></td>
+<td>有限点集，不是整个 <code>D</code></td>
+</tr>
+<tr>
+<td>第 <code>i</code> 个单点覆盖长度</td>
+<td style="text-align: right;"><code>ε/2ⁱ⁺¹</code></td>
+<td>端点区间可在 <code>R</code> 中取，交 <code>[0,1]</code> 只会更短</td>
+</tr>
+<tr>
+<td>前 <code>N</code> 点的外覆盖预算</td>
+<td style="text-align: right;"><code>ε(1−2⁻ᴺ)</code></td>
+<td>几何级数前 <code>N</code> 项</td>
+</tr>
+<tr>
+<td>尾部预算</td>
+<td style="text-align: right;"><code>ε·2⁻ᴺ</code></td>
+<td>补齐整个可数枚举</td>
+</tr>
+<tr>
+<td>整个 <code>D</code> 的预算</td>
+<td style="text-align: right;"><code>ε</code></td>
+<td>对任意 <code>ε&gt;0</code> 都可取，所以 <code>m*(D)=m(D)=0</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>D</code> 在 <code>[0,1]</code> 中稠密，因为每个二进制网格层都把最大间隔再二等分；但 <code>D</code> 可数，所以测度为 <code>0</code>。它的闭包是 <code>\overline D=[0,1]</code>，闭包测度是 <code>1</code>。<strong>稠密不等于正测度</strong>：集合本身和它的闭包是两个不同对象。</p>
+<h3 id="2">2. 图像与定理的边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ul>
+<li>有限阶段图只能显示有限个区间、有限个像素或有限个点，以及由它们计算出的有限账本；它不能单独证明不可数性、零测度、正测度或不可测性。</li>
+<li>标准 Cantor 集的零测度要写出外覆盖预算趋于 <code>0</code>，或明确使用测度从上连续性；“图越来越碎”不是证明。</li>
+<li>fat Cantor 集的正测度要写出每一步的具体删除长度 <code>4⁻ⁿ</code>、总删除级数 <code>1/2</code>，再用从上连续性得到 <code>m(F)=1/2</code>。</li>
+<li>可数稠密集的零测度要使用可数覆盖的 <code>ε/2ⁱ⁺¹</code> 账本；<code>\overline D=[0,1]</code> 不能反推 <code>m(D)=1</code>。</li>
+<li>Vitali 不可测集依赖等价类选代表和选择公理。有限点图既不能构造它，也不能证明不可测性；“点看起来散乱”不是 Carathéodory 判据。</li>
+</ul>
+</div>
+</section>
+<h2 id="1_1">1. 外测度：给一切集合先估个长度<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>定义（Lebesgue 外测度）</strong> 用可数个开区间覆盖 <code>E</code>，取总长的下确界：</p>
+<div class="arithmatex">\[
+m^*(E)=\inf\left\{\sum_{k=1}^{\infty}|I_k|:\ E\subset\bigcup_kI_k\right\}.
+\]</div>
+<p>性质：非负、单调、<strong>次可加</strong>（<code>m*(∪Eₖ)≤∑m*(Eₖ)</code>）、区间的外测度等于长度、平移不变。</p>
+<p><strong>立竿见影的收获</strong>：可数集测度为零。若 <code>E={x₁,x₂,…}</code>，给 <code>xₖ</code> 一个长度为 <code>ε/2ᵏ</code> 的小区间，则总长不超过 <code>ε</code>；由于 <code>ε</code> 任意，<code>m*(E)=0</code>。所以 <code>[0,1]</code> 中的有理数集长度为 <code>0</code>。Cantor 集则提醒我们：不可数也不代表正测度。</p>
+<h2 id="2_1">2. 可测集：外测度在哪里变成真测度<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>外测度对<strong>任意</strong>集合都有定义，但只有次可加没有可加。要得到可列可加，筛选满足 Carathéodory 判据的集合：</p>
+<div class="arithmatex">\[
+E\text{ 可测}\iff m^*(T)=m^*(T\cap E)+m^*(T\cap E^c),\qquad\forall T.
+\]</div>
+<p><strong>定理</strong> 可测集全体构成 <strong>σ-代数</strong>（对补、可数并/交封闭），<code>m*</code> 限制其上是<strong>测度</strong>（可列可加）；区间、开集、闭集、Borel 集全可测。概率空间就是全测度为 <code>1</code> 的测度空间，概率公理化正是在这里取得地基。</p>
+<p><strong>不可测集存在（Vitali）</strong>：在 <code>[0,1]</code> 上按“差为有理数”分等价类，每类选一点组成 <code>V</code>。取 <span class="arithmatex">\(q\in\mathbb Q\cap[-1,1]\)</span> 的可数个平移 <span class="arithmatex">\(V+q\)</span>；它们两两不交，其并集包含 <code>[0,1]</code> 且落在 <code>[-1,2]</code> 中。若 <code>V</code> 可测且测度为 <code>c</code>，则 <span class="arithmatex">\(c=0\)</span> 会导致这份并集测度为 <code>0</code>，而 <span class="arithmatex">\(c&gt;0\)</span> 会导致其测度为 <span class="arithmatex">\(\infty\)</span>，都与包含和有界性矛盾。这个论证依赖选择公理，不能被有限阶段图替代。</p>
+<h2 id="3">3. 可测函数与“几乎处处”<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>定义</strong> <code>f</code> 可测 <code>⇔</code> 一切 <code>{x:f(x)&gt;a}</code> 可测（对所有实数 <code>a</code>）。</p>
+<p><strong>封闭性</strong>：在运算有定义的地方，有限四则、外层连续函数复合，以及可测函数列的逐点极限仍可测；可数族的 <code>sup</code>、<code>inf</code> 与函数列的 <code>limsup</code>、<code>liminf</code> 也保留可测性。这里的“可数”不能省：任意不可数族的逐点上确界未必可测。对比连续函数，逐点极限可以不连续；可测世界对序列极限更稳健。</p>
+<p><strong>几乎处处（a.e.）</strong>：性质在零测集之外成立。Dirichlet 函数 <code>1_Q</code> 在 Lebesgue 意义下几乎处处等于 <code>0</code>，但在每个区间里都有有理点和无理点；“稠密”与“正测度”再次分开。</p>
+<p><strong>逼近结构</strong>：可测函数是简单函数 <code>∑aᵢ1_Eᵢ</code> 的逐点极限；非负可测函数可由简单函数单调逼近。下一页的 Lebesgue 积分就建立在这级台阶上。</p>
 <h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（零测集操作）</strong> 证明 <span class="arithmatex">\([0,1]\)</span> 中无理数集测度为 1：<span class="arithmatex">\(m([0,1]) = m(\mathbb{Q}\cap[0,1]) + m(\text{无理数}) = 0 + m(\text{无理数})\)</span>。——"满满一区间几乎全是无理数"的严格版。</p>
-<p><strong>例 2（Cantor 集测度）</strong> 每步挖掉中间三分之一：剩余长度 <span class="arithmatex">\(\big(\frac23\big)^n \to 0\)</span> ⇒ <span class="arithmatex">\(m(C) = 0\)</span>；但 <span class="arithmatex">\(C\)</span> 与 <span class="arithmatex">\(\{0,2\}^{\mathbb N}\)</span> 一一对应——不可数。<strong>不可数 ≠ 正测度</strong>。</p>
-<p><strong>例 3（可测函数判定）</strong> Dirichlet 函数 <span class="arithmatex">\(\mathbb{1}_{\mathbb{Q}}\)</span>：<span class="arithmatex">\(\{x : f &gt; a\}\)</span> 只有 <span class="arithmatex">\(\varnothing, \mathbb{Q}, \mathbb{R}\)</span> 三种可能——全可测 ⇒ 可测函数。Riemann 世界的头号刺头，在可测世界是最温顺的简单函数。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（零测集操作）</strong> 证明 <code>[0,1]</code> 中无理数集测度为 <code>1</code>：</p>
+<div class="arithmatex">\[
+m([0,1])=m(\mathbb Q\cap[0,1])+m(([0,1]\setminus\mathbb Q))=0+m(([0,1]\setminus\mathbb Q)).
+\]</div>
+<p><strong>例 2（Cantor 集）</strong> 标准 Cantor 集的第 <code>n</code> 阶段由 <code>2ⁿ</code> 个长度 <code>3⁻ⁿ</code> 的区间覆盖，预算 <code>(2/3)ⁿ→0</code>，所以 <code>m(C)=0</code>；不可数性则由三进制 <code>0/2</code> 编码单独证明。fat Cantor 集若每步按上面删除 <code>4⁻ⁿ</code>，则 <code>m(F)=1/2</code>。</p>
+<p><strong>例 3（可测函数判定）</strong> Dirichlet 函数 <code>1_Q</code> 的超水平集只有 <code>∅</code>、<code>Q</code>、<code>R</code>（按阈值分情况），全是 Lebesgue 可测集，因此它是可测函数；它的积分为 <code>0</code>。<span class="arithmatex">\(\square\)</span></p>
 <hr />
-<p><em>下一页：在测度地基上重建积分——Lebesgue 积分与三大收敛定理，"积分与极限交换"从此有法可依。</em></p>
+<p><em>下一页：在测度地基上重建积分——Lebesgue 积分与三大收敛定理，积分与极限交换从此有法可依。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="complex-03-residues.html"><span class="pager-label">上一页</span>复变 III · 级数与留数定理</a>
@@ -83,5 +266,7 @@ m^*(T) = m^*(T \cap E) + m^*(T \cap E^c), \quad \forall T
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cantor-measure.js"></script>
 </body>
 </html>

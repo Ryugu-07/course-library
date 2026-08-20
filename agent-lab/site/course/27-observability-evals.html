@@ -22,7 +22,7 @@
 <details class="nav-stage"><summary>第四阶段 · 安全与人类控制</summary><ul><li><a href="15-approval-policy.html">15 · 审批策略</a></li><li><a href="16-sandbox-network.html">16 · 沙箱、文件与网络</a></li><li><a href="17-injection-secrets.html">17 · 提示词注入与秘密保护</a></li><li><a href="18-human-interface.html">18 · Diff、打断、转向与审计</a></li></ul></details>
 <details class="nav-stage"><summary>第五阶段 · 多 Agent 与并行</summary><ul><li><a href="19-subagent-isolation.html">19 · 子 Agent 与上下文隔离</a></li><li><a href="20-parallel-orchestration.html">20 · 并行调度与结果汇总</a></li><li><a href="21-worktrees-conflicts.html">21 · Worktree 与写入冲突</a></li><li><a href="22-reviewer-judge.html">22 · Reviewer、Judge 与共识</a></li></ul></details>
 <details class="nav-stage"><summary>第六阶段 · 可扩展 Agent 平台</summary><ul><li><a href="23-instructions-skills.html">23 · 指令、Skills 与渐进加载</a></li><li><a href="24-mcp-tools.html">24 · MCP 与外部系统</a></li><li><a href="25-hooks-plugins.html">25 · Hooks、Plugins 与生命周期</a></li><li><a href="26-product-surfaces.html">26 · CLI、IDE、App、Cloud 与 SDK</a></li></ul></details>
-<details class="nav-stage" open><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a class="current" aria-current="page" href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Codex 与 Claude Code 架构对照</a></li></ul></details>
+<details class="nav-stage" open><summary>第七阶段 · 生产化与完整项目</summary><ul><li><a class="current" aria-current="page" href="27-observability-evals.html">27 · 轨迹、成本与评测</a></li><li><a href="28-project-mini-codex.html">28 · 项目一：Mini Codex</a></li><li><a href="29-project-agent-team.html">29 · 项目二：Agent 工程团队</a></li><li><a href="30-codex-claude-code.html">30 · Coding Agent Harness 架构对照</a></li></ul></details>
 <details class="nav-stage"><summary>互动实验室</summary><ul><li><a href="lab-01-loop.html">实验 01 · Agent 循环逐帧播放器</a></li><li><a href="lab-02-provider.html">实验 02 · 三种 Provider 数据包检查器</a></li><li><a href="lab-03-retry.html">实验 03 · 重试与停止状态机</a></li><li><a href="lab-04-context.html">实验 04 · 上下文预算模拟器</a></li><li><a href="lab-05-permission.html">实验 05 · 权限与沙箱判定台</a></li><li><a href="lab-06-subagents.html">实验 06 · 子 Agent 任务拆分器</a></li><li><a href="lab-07-extension.html">实验 07 · 扩展机制选择器</a></li><li><a href="lab-08-eval.html">实验 08 · Agent 版本评测台</a></li></ul></details>
     <div class="sidebar-foot">
       <button id="theme-toggle" type="button" aria-label="切换主题">☀ / ☾</button>
@@ -87,10 +87,45 @@
 <p>最危险的指标是“模型说完成”的比例。它应与独立验收结果比较，形成 false completion。</p>
 <h2 id="3">3. 建立任务集<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>评测任务要覆盖真实分布：小修复、跨文件功能、失败测试、模糊需求、大日志、权限受限和无法完成的任务。每个任务包含初始仓库状态、用户目标、允许工具、验收脚本和风险检查。</p>
+<p>每次运行还要保存完整的系统配置，而不是只写模型名：</p>
+<div class="highlight"><pre><span></span><code>RunConfig =
+  dataset + instance + repository commit + environment image
+  + model + decoding/reasoning settings
+  + prompt + agent harness + tools + policy + task verifier
+  + evaluation harness + grader version
+  + budget + timeout + random seed
+</code></pre></div>
+<p>软件工程 benchmark 至少有两种容易混淆的 harness：<strong>agent harness</strong> 产生行动轨迹和最终补丁；<strong>evaluation harness</strong> 在隔离环境中应用补丁、运行验收并判分。SWE-bench 的官方 evaluation harness 使用分层 Docker 镜像来准备仓库环境、应用预测补丁、执行测试和产出结果。它让判分环境更可复现，却不会自动证明上游 agent 没见过测试、任务没有污染，或所有现实软件工程工作都被覆盖。</p>
 <p>不要只收集成功案例。Agent 是否能在权限不足时正确停止、在测试不可用时诚实报告，也是能力的一部分。</p>
 <h2 id="4">4. 可重复与不确定性<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>模型输出有随机性，同一任务要运行多次，并记录模型版本、参数、工具版本和基点提交。一次 100% 成功不能证明稳定；平均成功率也可能掩盖某类任务全面退化。</p>
 <p>对比版本时固定任务集和环境，报告置信区间或至少报告样本量。生产指标与离线评测互补：离线可控，生产更真实但受用户行为和环境影响。</p>
+<p>最少做两条正交对照，才有资格讨论改进来自哪里：</p>
+<table>
+<thead>
+<tr>
+<th>对照</th>
+<th>固定什么</th>
+<th>改变什么</th>
+<th>能回答什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>model-only</td>
+<td>prompt、agent harness、工具、权限、task verifier、evaluation harness、镜像、任务、预算与超时</td>
+<td>模型/推理配置</td>
+<td>在这套宿主与判分协议里，模型变化带来什么？</td>
+</tr>
+<tr>
+<td>harness-only</td>
+<td>模型、推理配置、prompt、evaluation harness、镜像、任务、预算与超时</td>
+<td>agent harness 的工具、上下文、循环、权限或任务内验证</td>
+<td>宿主工程变化带来什么？</td>
+</tr>
+</tbody>
+</table>
+<p>combined 对照可以回答“新系统整体是否更好”，却不能单独归因。若两个版本连仓库镜像、超时和验收器也不同，分数差甚至可能主要来自评测协议变化。</p>
 <h2 id="5-trace">5. Trace 驱动改进<a class="headerlink" href="#5-trace" title="Permanent link"></a></h2>
 <p>失败轨迹可以标注根因：</p>
 <ol>
@@ -106,11 +141,12 @@
 <p>重复的仓库索引、相同文档和不变工具定义可以缓存；大日志摘要可以由便宜模型完成；高风险架构决策使用更强模型。成本优化不能破坏来源与版本检查，否则缓存旧文件会让 Agent 基于过期事实工作。</p>
 <p>预算应与任务价值绑定。自动格式修复不值得无限推理；生产事故诊断可以分配更高时间和模型预算，但权限仍不能自动扩大。</p>
 <h2 id="7">7. 本章实验<a class="headerlink" href="#7" title="Permanent link"></a></h2>
-<p>实验 08 用模拟任务集比较 v0 与 v1。调整故障率和候选策略，观察成功率、错误完成、安全事件和成本并不会同时朝同一方向变化。发布判断是多指标约束，而不是追求一个最高分。</p>
+<p>实验 08 用模拟任务集比较 v0 与 v1。先选 model-only、harness-only 或 combined 对照，再调整故障率和候选策略；观察成功率、错误完成、安全事件和成本并不会同时朝同一方向变化。实验必须显示哪一层被改变，并把失败归入 context、tool、runtime、verification 或 safety，不能把所有退化都归咎于“模型不够聪明”。发布判断是多指标约束，而不是追求一个最高分。</p>
 <div class="admonition warning">
 <p class="admonition-title">评测污染</p>
 <p>如果 Agent 见过验收脚本或直接针对固定答案优化，分数会虚高。把验收放在独立位置，保留隐藏任务，并定期加入真实失败案例。</p>
 </div>
+<p><strong>一手参考：</strong><a href="https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md">SWE-bench evaluation harness</a>；<a href="https://github.com/SWE-agent/SWE-agent">SWE-agent</a>；<a href="https://github.com/SWE-agent/mini-swe-agent">mini-swe-agent</a>。</p>
       <div class="chapter-complete"><label><input type="checkbox" data-reading-complete="27-observability-evals"><span>我已经能复述本章的核心逻辑</span></label></div>
     </article>
     <footer class="pager"><a class="pager-slot prev" href="26-product-surfaces.html"><span>上一页</span><strong>26 · CLI、IDE、App、Cloud 与 SDK</strong></a><a class="pager-slot next" href="28-project-mini-codex.html"><span>下一页</span><strong>28 · 项目一：Mini Codex</strong></a></footer>

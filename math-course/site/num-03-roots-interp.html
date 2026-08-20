@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,31 +41,210 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#roots-interp-learning-title">学习层：快的步骤，什么时候仍然有证书？</a><ul>
+<li><a href="#1">1. 先预测，再打开两本账</a></li>
+<li><a href="#2">2. 最小模型：三种求根步骤各自保证什么？</a></li>
+<li><a href="#3">3. 插值的稳定计算：节点、公式、误差范数</a></li>
+<li><a href="#4">4. 误区与迁移</a></li>
+</ul>
+</li>
 <li><a href="#1-fx-0">1. 非线性方程求根 \(f(x) = 0\)</a></li>
-<li><a href="#2">2. 多项式插值</a></li>
+<li><a href="#2_1">2. 多项式插值</a></li>
 <li><a href="#3-runge">3. Runge 现象与两条出路</a></li>
-<li><a href="#4">4. 最小二乘拟合（数据带噪时的正确姿势）</a></li>
+<li><a href="#4_1">4. 最小二乘拟合（数据带噪时的正确姿势）</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">数值 III · 方程求根、插值与逼近<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>两个古老而常用的主题。求根是"迭代思想"的教学样板（二分的稳、Newton 的快、不动点的统一视角）；插值与逼近回答"怎么用简单函数替身复杂函数"——以及那个著名的反例：<strong>点取得越多越糟</strong>的 Runge 现象。</p>
+<p>两个古老而常用的主题。求根是"迭代思想"的教学样板（二分的稳、Newton 的快、不动点的统一视角）；插值与逼近回答"怎么用简单函数替身复杂函数"——以及那个著名的反例：对特定函数使用等距节点做全局高次插值时，<strong>加点也可能更糟</strong>的 Runge 现象。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="roots-interp-learning-title" class="learning-layer">
+<h2 id="roots-interp-learning-title">学习层：快的步骤，什么时候仍然有证书？<a class="headerlink" href="#roots-interp-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测，再打开两本账<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>求根时先不要看轨迹：对当前函数预设，判断二分法是否拥有连续性与变号证书；再判断一个很小的 <span class="arithmatex">\(|f(x)|\)</span> 是否已经足以保证很小的 <span class="arithmatex">\(|x-r|\)</span>。插值时先判断：在 Runge 函数的均匀误差上，等距节点还是端部加密的 Chebyshev 节点更可靠，以及这个判断需要哪些函数与误差范数条件。</p>
+<p>实验有一个<strong>预测门</strong>：选择预设、回答当前模式的两个判断，再点击“核对预测”才会显示曲线、数值和逐步账本。改变函数、步数或节点数后，预测会重新锁定；这样“先写下条件，再看结果”不会被图形的第一眼替代。</p>
+<h3 id="2">2. 最小模型：三种求根步骤各自保证什么？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\([a,b]\)</span> 上连续，且 <span class="arithmatex">\(f(a)f(b)\leq0\)</span>。二分法令 <span class="arithmatex">\(m=(a+b)/2\)</span>，保留仍然变号的一半区间。它的证书是</p>
+<div class="arithmatex">\[
+r\in[a_k,b_k],\qquad |m_k-r|\leq\frac{b_k-a_k}{2};
+\]</div>
+<p>证书来自中间值定理，不来自“当前残差看起来很小”。Newton 步</p>
+<div class="arithmatex">\[
+x_{k+1}=x_k-\frac{f(x_k)}{f'(x_k)}
+\]</div>
+<p>是局部线性化：单根 <span class="arithmatex">\(f'(r)\neq0\)</span>、初值落在合适邻域且导数不太小时，才有局部二次收敛的保证；它本身不维护区间，候选点可能越界。保守/阻尼 Newton 保留一个有效变号区间，只有当 Newton 候选点在区间内且残差下降时才接受，否则缩短步长或回退到中点。它的区间证书与二分同源，但速度不必每步二次。</p>
+<p>三种量必须分列记录：</p>
+<div class="arithmatex">\[
+\text{残差 }|f(x_k)|,\qquad
+\text{根误差 }|x_k-r|,\qquad
+\text{区间证书 }r\in[a_k,b_k].
+\]</div>
+<p>若 <span class="arithmatex">\(f'(r)\)</span> 很小，局部反推还会把残差放大成根误差：由 <span class="arithmatex">\(f(x)\approx f'(r)(x-r)\)</span> 可见，小残差不普遍等于小根误差。实验将“导数过小”“候选越界”“没有有效变号区间”单独列为状态，不把它们埋进一个收敛数字。</p>
+<h3 id="3">3. 插值的稳定计算：节点、公式、误差范数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对节点 <span class="arithmatex">\(x_i\)</span> 和数据 <span class="arithmatex">\(y_i=f(x_i)\)</span>，用重心公式</p>
+<div class="arithmatex">\[
+P_N(x)=\frac{\displaystyle\sum_{i=0}^{N-1}\frac{w_i y_i}{x-x_i}}
+{\displaystyle\sum_{i=0}^{N-1}\frac{w_i}{x-x_i}},\qquad
+w_i=\frac1{\displaystyle\prod_{j\ne i}(x_i-x_j)}.
+\]</div>
+<p>脚本对权重乘积做对数缩放来构造 <span class="arithmatex">\(w_i\)</span>，并在 <span class="arithmatex">\(x=x_i\)</span> 时直接返回 <span class="arithmatex">\(y_i\)</span>；实际求值使用上面的稳定重心式，避免先展开幂基或把巨大乘积带入计算。比较的是</p>
+<div class="arithmatex">\[
+E_N=\max_{x\in[-1,1]}|f(x)-P_N(x)|,
+\qquad
+\Lambda_N=\max_{x\in[-1,1]}
+\frac{\sum_i\left|\frac{w_i}{x-x_i}\right|}
+{\left|\sum_i\frac{w_i}{x-x_i}\right|},
+\]</div>
+<p>其中 <span class="arithmatex">\(\Lambda_N(x)\)</span> 是 Lebesgue 函数，<span class="arithmatex">\(\Lambda_N\)</span> 是它的最大值。Chebyshev 节点的优势是对区间上的光滑函数、均匀范数和 Runge 型端部振荡提供更好的稳定/逼近尺度；它不是对任意噪声数据、任意权重范数或奇异函数的无条件定理。</p>
+<div class="learning-lab" data-learning-lab="root-interpolation">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验固定函数，不允许把交互中的“示例”误读成所有函数的定理。求根预设及其条件如下；“区间证书”只有在函数在区间上连续并且端点变号（或端点已经是根）时才有意义。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th><span class="arithmatex">\(f(x)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\([a,b]\)</span></th>
+<th style="text-align: right;">已知根 <span class="arithmatex">\(r\)</span></th>
+<th>要留意的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>余弦交点</td>
+<td><span class="arithmatex">\(\cos x-x\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0,1]\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.7390851332\ldots\)</span></td>
+<td>连续、单根，Newton 可作局部比较</td>
+</tr>
+<tr>
+<td>三次方程</td>
+<td><span class="arithmatex">\(x^3-x-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([1,2]\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.3247179572\ldots\)</span></td>
+<td>连续、单根；初值离开邻域时仍可能越界</td>
+</tr>
+<tr>
+<td>平根提示</td>
+<td><span class="arithmatex">\((x-1)^3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0,2]\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>有变号但 <span class="arithmatex">\(f'(r)=0\)</span>，不适用单根二次收敛保证</td>
+</tr>
+<tr>
+<td>无变号</td>
+<td><span class="arithmatex">\((x-1)^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0,2]\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>连续但端点同号，二分无区间证书</td>
+</tr>
+</tbody>
+</table>
+<p>二分、Newton 与保守 Newton 的静态账本读法是：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>每步</th>
+<th>残差栏</th>
+<th>根误差栏</th>
+<th>区间证书栏</th>
+<th>状态栏</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>二分</td>
+<td><span class="arithmatex">\(m=(a+b)/2\)</span>，保留变号半区间</td>
+<td><span class="arithmatex">\(\lvert f(m)\rvert\)</span></td>
+<td><span class="arithmatex">\(\lvert m-r\rvert\)</span></td>
+<td><span class="arithmatex">\(r\in[a,b]\)</span>，所以 <span class="arithmatex">\(\lvert m-r\rvert\le(b-a)/2\)</span></td>
+<td>连续/变号不满足时停止</td>
+</tr>
+<tr>
+<td>Newton</td>
+<td><span class="arithmatex">\(x-f(x)/f'(x)\)</span></td>
+<td><span class="arithmatex">\(\lvert f(x)\rvert\)</span></td>
+<td><span class="arithmatex">\(\lvert x-r\rvert\)</span></td>
+<td>无（除非另行护栏）</td>
+<td><span class="arithmatex">\(\lvert f'(x)\rvert\)</span> 过小或候选越界</td>
+</tr>
+<tr>
+<td>保守/阻尼 Newton</td>
+<td>接受区间内的降残差步，否则减半或取中点</td>
+<td><span class="arithmatex">\(\lvert f(x)\rvert\)</span></td>
+<td><span class="arithmatex">\(\lvert x-r\rvert\)</span></td>
+<td>有效变号区间的半宽</td>
+<td>接受 Newton、阻尼、区间回退</td>
+</tr>
+</tbody>
+</table>
+<p>因此，若某一行的 <span class="arithmatex">\(|f(x)|\)</span> 很小而 <span class="arithmatex">\(|x-r|\)</span> 仍不小，不能据此否定二分证书；应检查 <span class="arithmatex">\(f'(r)\)</span>、单根假设和区间是否仍然有效。脚本可用时，表中每一行都会同时显示这四个数值/状态，并把 raw Newton 的越界与保守 Newton 的回退分开。</p>
+<p>插值部分固定 Runge 函数</p>
+<div class="arithmatex">\[
+f(x)=\frac1{1+25x^2},\qquad -1\le x\le1,
+\]</div>
+<p>并比较同样数量 <span class="arithmatex">\(N\)</span> 个节点：</p>
+<div class="arithmatex">\[
+x_i^{\rm eq}=-1+\frac{2i}{N-1},\qquad
+x_i^{\rm ch}=\cos\frac{i\pi}{N-1}\quad(0\le i&lt;N),
+\]</div>
+<p>（实现按从左到右排序）。静态判断表为：</p>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>端部分布</th>
+<th>Runge 均匀最大误差</th>
+<th>Lebesgue 读法</th>
+<th>条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>等距</td>
+<td>端部稀疏</td>
+<td>次数升高时端部振荡可能放大</td>
+<td><span class="arithmatex">\(\Lambda_N(x)\)</span> 在端部形成高峰</td>
+<td>特定 Runge 例子、全局高次插值</td>
+</tr>
+<tr>
+<td>Chebyshev-Lobatto</td>
+<td>端部加密</td>
+<td>通常显著压低该例的 <span class="arithmatex">\(E_N\)</span></td>
+<td><span class="arithmatex">\(\Lambda_N\)</span> 更均衡，<span class="arithmatex">\(\Lambda_N\)</span> 较小</td>
+<td>光滑函数与均匀范数等条件下的比较</td>
+</tr>
+</tbody>
+</table>
+<p>改变 <span class="arithmatex">\(N\)</span> 后应同时看 <span class="arithmatex">\(E_N^{\rm eq},E_N^{\rm ch}\)</span> 与 <span class="arithmatex">\(\Lambda_N^{\rm eq}(x),\Lambda_N^{\rm ch}(x)\)</span>；交互数值是在均匀采样网格上近似最大值，不能把有限网格读成解析极值。只看插值曲线经过节点，也不能判断区间内部误差。Lebesgue 常数只是从节点数据误差到插值误差的放大因子，不是“Chebyshev 对所有任务永远最优”的口号。</p>
+</div>
+<h3 id="4">4. 误区与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“二分总能收敛”是错的。</strong> 需要函数在区间上连续且端点变号；同号端点可能包着偶重根，也可能根本没有根。</li>
+<li><strong>“Newton 比二分快，所以应替代二分”是错的。</strong> Newton 是局部方法；导数过小、初值不在单根邻域或候选越界时，保守护栏才是可解释的退路。</li>
+<li><strong>“小残差就是小根误差”是错的。</strong> 还要看导数尺度、根的重数、输入/输出条件数；实验把两者分账正是为了阻止这个偷换。</li>
+<li><strong>“Runge 现象证明高次插值总是坏”是错的。</strong> 它是一个特定函数、区间、等距节点和均匀误差范数下的反例；节点策略、函数正则性与误差范数都要写清楚。</li>
+<li><strong>“Chebyshev 节点无条件最好”也是错的。</strong> 这里的优势对应光滑函数的全局插值和区间均匀误差；噪声、非均匀权重、奇异点或分段方法会改变选择。</li>
+</ul>
+</div>
+</section>
 <h2 id="1-fx-0">1. 非线性方程求根 <span class="arithmatex">\(f(x) = 0\)</span><a class="headerlink" href="#1-fx-0" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Newton 法切线求根" src="assets/img/num-03-newton.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>Newton 法：在当前点作切线，切线与横轴的交点是下一个猜测——二阶收敛，求根的主力。</figcaption>
 </figure>
-<p><strong>二分法</strong>：连续函数变号区间反复对半（零点定理，数分 I 的算法化）。每步区间减半——<strong>线性收敛</strong>、绝对稳健、要 <span class="arithmatex">\(k\)</span> 位精度约 <span class="arithmatex">\(\log_2\frac{b-a}{\varepsilon}\)</span> 步。<strong>打底用</strong>。</p>
+<p><strong>二分法</strong>：连续函数变号区间反复对半（零点定理，数分 I 的算法化）。在连续与变号假设成立、函数求值符号可靠时，每步区间减半——<strong>线性收敛</strong>、区间证书稳健；要把绝对误差压到 <span class="arithmatex">\(\varepsilon\)</span>，步数约为 <span class="arithmatex">\(\log_2\frac{b-a}{\varepsilon}\)</span>。<strong>打底用</strong>。</p>
 <p><strong>不动点迭代</strong>（统一视角）：改写 <span class="arithmatex">\(f(x) = 0 \iff x = g(x)\)</span>，迭代 <span class="arithmatex">\(x_{k+1} = g(x_k)\)</span>。</p>
 <p><strong>定理（局部收敛）</strong> <span class="arithmatex">\(g\)</span> 连续可微，<span class="arithmatex">\(|g'(x^*)| &lt; 1\)</span> ⇒ 附近迭代收敛（误差 <span class="arithmatex">\(e_{k+1} \approx g'(x^*)e_k\)</span>，线性收敛率 <span class="arithmatex">\(|g'|\)</span>）；<span class="arithmatex">\(|g'(x^*)| &gt; 1\)</span> 则推开。
 （压缩映像原理的局部版——ODE 页 Picard 迭代、本页 Newton 法、值迭代（优化 IV）全是这一个定理的分身。同一方程的不同改写 <span class="arithmatex">\(g\)</span> 收敛性天差地别——<strong>改写是技术活</strong>，例 1 演示。）</p>
@@ -63,7 +253,7 @@
 x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}
 \]</div>
 <p><strong>二次收敛</strong>（<span class="arithmatex">\(e_{k+1} \approx \frac{|f''|}{2|f'|}e_k^2\)</span>——有效数字每步翻倍；视角二：它是 <span class="arithmatex">\(g = x - f/f'\)</span> 的不动点迭代且 <span class="arithmatex">\(g'(x^*) = 0\)</span>，"收敛率为零"即超线性）。代价与风险：要导数、单根附近才保证、初值差会飞（实务：二分圈定 + Newton 收尾）。<strong>割线法</strong>：差商代导数，收敛阶 <span class="arithmatex">\(\approx 1.618\)</span>（黄金比！），免导数——不会求导时的 Newton。🔗 优化 II 的 Newton/拟 Newton 正是本节在 <span class="arithmatex">\(\nabla f = 0\)</span> 上的多维版；<code>torch</code> 里 <code>rsqrt</code> 类硬件指令的内部实现也是 Newton 迭代。</p>
-<h2 id="2">2. 多项式插值<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 多项式插值<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：过 <span class="arithmatex">\(n+1\)</span> 个点 <span class="arithmatex">\((x_i, y_i)\)</span> 求次数 <span class="arithmatex">\(\leq n\)</span> 的多项式（存在唯一——Vandermonde 行列式非零，高代 II）。两种写法同一多项式：</p>
 <p><strong>Lagrange 形式</strong>（理论顺手）：<span class="arithmatex">\(P_n(x) = \sum_i y_i\, \ell_i(x)\)</span>，基函数 <span class="arithmatex">\(\ell_i(x) = \prod_{j \neq i}\frac{x - x_j}{x_i - x_j}\)</span>（在 <span class="arithmatex">\(x_i\)</span> 取 1、其余节点取 0）。</p>
 <p><strong>Newton 形式</strong>（计算顺手）：<span class="arithmatex">\(P_n(x) = f[x_0] + f[x_0,x_1](x - x_0) + f[x_0,x_1,x_2](x-x_0)(x-x_1) + \cdots\)</span>，系数是<strong>差商</strong>（差商表递推 <span class="arithmatex">\(f[x_i..x_j] = \frac{f[x_{i+1}..x_j] - f[x_i..x_{j-1}]}{x_j - x_i}\)</span>）——<strong>加一个新点只需添一项</strong>，增量友好。</p>
@@ -74,12 +264,12 @@ f(x) - P_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)
 <h2 id="3-runge">3. Runge 现象与两条出路<a class="headerlink" href="#3-runge" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Runge 现象高次插值边缘振荡" src="assets/img/num-03-runge.svg" /></p>
-<figcaption><span class="fig-id">图 3.2</span>Runge 现象：等距节点上用高次多项式插值，边缘剧烈振荡——次数越高越糟，警示"高次插值 ≠ 更准"。</figcaption>
+<figcaption><span class="fig-id">图 3.2</span>Runge 现象：对该 Runge 函数使用等距节点做全局高次插值，端部误差会随所取次数序列显著放大；“加点”不自动等于“更准”。</figcaption>
 </figure>
-<p><strong>反例（Runge, 1901）</strong>：<span class="arithmatex">\(f(x) = \frac{1}{1 + 25x^2}\)</span> 在 <span class="arithmatex">\([-1,1]\)</span> 等距节点插值——次数越高，<strong>区间端部震荡越猛</strong>，<span class="arithmatex">\(n \to \infty\)</span> 不收敛反爆炸。根源：余项中 <span class="arithmatex">\(\prod(x - x_i)\)</span> 在等距节点下端部巨大 + 高阶导数增长。<strong>"多项式次数"是又一个过拟合旋钮</strong>——这正是 ai 课 01 讲（lab01 亲手做过的）过拟合实验的数值分析出处；插值（穿过每个点）对带噪数据必然过拟合。</p>
-<p><strong>出路一（换节点）</strong>：<strong>Chebyshev 节点</strong> <span class="arithmatex">\(x_i = \cos\frac{(2i+1)\pi}{2n+2}\)</span>（端部加密），使 <span class="arithmatex">\(\max|\prod(x - x_i)|\)</span> 最小——高次插值起死回生（谱方法的地基，知其所以然即可）。</p>
+<p><strong>反例（Runge, 1901）</strong>：<span class="arithmatex">\(f(x) = \frac{1}{1 + 25x^2}\)</span> 在 <span class="arithmatex">\([-1,1]\)</span> 上取越来越密的等距节点做全局插值时，插值多项式不在整个区间上一致收敛，端部会出现不断放大的振荡。根源可从节点多项式、Lebesgue 放大与函数复奇点共同理解，不能只把责任归给某一个余项因子。<strong>"多项式次数"可能成为过拟合旋钮</strong>——这与 ai 课 01 讲的偏差—方差问题相通；对带噪数据强制穿过每点通常会放大噪声，但是否“必然变差”仍取决于噪声模型、节点、度量与正则化。</p>
+<p><strong>出路一（换节点）</strong>：取 <strong>Chebyshev 根</strong> <span class="arithmatex">\(x_i = \cos\frac{(2i+1)\pi}{2n+2}\)</span>（端部加密），其首一节点多项式在 <span class="arithmatex">\([-1,1]\)</span> 上达到 minimax 尺度；上方实验使用的是同时包含两个端点的 <strong>Chebyshev–Lobatto 节点</strong> <span class="arithmatex">\(x_i=\cos\frac{i\pi}{n}\)</span>。两族公式不同，但都把节点向端部聚集，并显著改善本页 Runge 例子的均匀误差与 Lebesgue 放大；不能把其中一条公式悄悄换成另一条（谱方法的地基，知其所以然即可）。</p>
 <p><strong>出路二（降次分段）——三次样条</strong>：每段三次多项式，节点处 <span class="arithmatex">\(C^2\)</span> 拼接（函数、一二阶导全连续）+ 两个边界条件 ⇒ 系数由三对角方程组唯一定（追赶法 <span class="arithmatex">\(O(n)\)</span> 解，上一页的特例）。样条以"分段低次"换取无震荡 + 极好的光滑视觉——CAD、字体、动画曲线的工业标准。<strong>心法：宁可分段低次，不要全局高次。</strong></p>
-<h2 id="4">4. 最小二乘拟合（数据带噪时的正确姿势）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 最小二乘拟合（数据带噪时的正确姿势）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>放弃"穿过每点"，改求 <span class="arithmatex">\(\min_c \sum_i \big(y_i - \sum_k c_k \varphi_k(x_i)\big)^2\)</span>——正规方程 <span class="arithmatex">\(A^\top A c = A^\top y\)</span>（高代最小二乘/统计 V OLS 的同一公式第三次出场）。数值要点回收上一页：正规方程条件数是 <span class="arithmatex">\(\kappa(A)^2\)</span>（平方级恶化！），认真做用 <strong>QR 分解</strong>直接解最小二乘——"同一数学、不同算法、精度两个档次"的又一标本。</p>
 <p><strong>插值 vs 拟合的选择判据</strong>：数据精确（函数表、几何造型）→ 插值/样条；数据带噪（实验、统计）→ 低维拟合 + 残差诊断（统计 V）。</p>
 <h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
@@ -97,5 +287,7 @@ f(x) - P_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/root-interpolation.js"></script>
 </body>
 </html>

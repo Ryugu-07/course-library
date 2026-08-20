@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,22 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#em-02-learning-title">学习层：一束平面波能否同时通过所有约束？</a><ul>
+<li><a href="#1">1. 先过预测门：看见一条“波”还不够</a></li>
+<li><a href="#2">2. 实验台：从偏振到约束账本</a></li>
+<li><a href="#3">3. 适用域与反例</a></li>
+</ul>
+</li>
 <li><a href="#1-faraday">1. Faraday 感应与位移电流</a></li>
-<li><a href="#2">2. 光的诞生（教科书物理最高光的两行）</a></li>
-<li><a href="#3">3. 势的语言与规范（承前启后）</a></li>
+<li><a href="#2_1">2. 光的诞生（教科书物理最高光的两行）</a></li>
+<li><a href="#3_1">3. 势的语言与规范（承前启后）</a></li>
 <li><a href="#4">4. 练习与要点</a></li>
 </ul>
 </div>
@@ -51,23 +68,65 @@
 <p><strong>对标</strong>：Griffiths §7、§9 ｜ <strong>前置</strong>：em-01、pde-02（波动方程）
 物理学史上最著名的"补丁"：Maxwell 给 Ampère 定律加了一项位移电流，方程组闭合的瞬间——<strong>光从方程里跑了出来</strong>。本页推导这一切，并把电磁波的性质（横波、偏振、能流）配齐。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="em-02-learning-title" class="learning-layer">
+<h2 id="em-02-learning-title">学习层：一束平面波能否同时通过所有约束？<a class="headerlink" href="#em-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先过预测门：看见一条“波”还不够<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>本实验只讨论<strong>均匀、无源、线性真空中的单色平面波</strong>。采用复振幅约定
+<span class="arithmatex">\(\mathbf E(\mathbf r,t)=\operatorname{Re}[\mathbf E_0e^{i(\mathbf k\cdot\mathbf r-\omega t)}]\)</span>，并在归一化单位中取
+<span class="arithmatex">\(c=\omega=|\mathbf k|=1\)</span>。先不打开实验台，预测下面三件事：</p>
+<ol>
+<li>对非零的无源平面波，<span class="arithmatex">\(\mathbf E\)</span> 和 <span class="arithmatex">\(\mathbf B\)</span> 是否都必须垂直于 <span class="arithmatex">\(\mathbf k\)</span>？</li>
+<li>若 <span class="arithmatex">\(\mathbf E\)</span> 的方向已知，<span class="arithmatex">\(\mathbf B\)</span> 应该沿 <span class="arithmatex">\(\mathbf k\times\mathbf E\)</span>、<span class="arithmatex">\(\mathbf E\times\mathbf k\)</span>，还是与 <span class="arithmatex">\(\mathbf E\)</span> 平行？</li>
+<li>在真空无源区关闭位移电流后，Ampère 方程还能否与 Faraday 方程拼成一个有限频率的自持传播波？</li>
+</ol>
+<h3 id="2">2. 实验台：从偏振到约束账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>选择线偏振、圆偏振、非法纵向 <span class="arithmatex">\(\mathbf E\)</span>、错误 <span class="arithmatex">\(\mathbf B\)</span> 方向或关闭位移电流的预设；揭晓后拖动固定观察点的相位。图中分别投影 <span class="arithmatex">\(\mathbf E\)</span>、<span class="arithmatex">\(\mathbf B\)</span>、<span class="arithmatex">\(\mathbf k\)</span> 到 <span class="arithmatex">\(xy\)</span>、<span class="arithmatex">\(xz\)</span>、<span class="arithmatex">\(yz\)</span> 三个平面，账本逐项计算</p>
+<div class="arithmatex">\[
+\mathbf k\cdot\mathbf E=0,\qquad \mathbf k\cdot\mathbf B=0,\qquad
+\mathbf B=\frac1\omega\mathbf k\times\mathbf E,
+\]</div>
+<div class="arithmatex">\[
+\frac{|\mathbf E|}{c|\mathbf B|}=1,\qquad
+\langle\mathbf S\rangle\propto
+\operatorname{Re}(\mathbf E_0\times\mathbf B_0^*)\parallel\mathbf k,
+\qquad \mathbf k\times\mathbf B=-\frac{\omega}{c^2}\mathbf E.
+\]</div>
+<p>最后一式是无源 Ampère–Maxwell 方程的平面波形式；如果去掉位移电流，右侧会变成 <span class="arithmatex">\(0\)</span>，而非 <span class="arithmatex">\(-\omega\mathbf E/c^2\)</span>。</p>
+<div class="learning-lab" data-learning-lab="maxwell-constraints">
+<p><strong>无 JavaScript 时的静态读法：</strong>以下表格使用 <span class="arithmatex">\(c=\omega=|\mathbf k|=1\)</span>、<span class="arithmatex">\(\mathbf k=\hat{\mathbf z}\)</span>，复振幅时间因子为 <span class="arithmatex">\(e^{-i\omega t}\)</span>。圆偏振写成
+<span class="arithmatex">\(\mathbf E_0=\hat{\mathbf x}+i\hat{\mathbf y}\)</span>、<span class="arithmatex">\(\mathbf B_0=\hat{\mathbf y}-i\hat{\mathbf x}\)</span>；其余预设用实振幅。表中的“残差”是约束左、右两边之差的模；<span class="arithmatex">\(\langle\mathbf S\rangle\)</span> 是时间平均 Poynting 方向。</p>
+<p><strong>预测门的答案：</strong>非零无源平面波中 <span class="arithmatex">\(\mathbf E\perp\mathbf k\)</span>、<span class="arithmatex">\(\mathbf B\perp\mathbf k\)</span>；Faraday 给出 <span class="arithmatex">\(\mathbf B=(1/\omega)\mathbf k\times\mathbf E\)</span>；关闭位移电流后，<span class="arithmatex">\(\mathbf k\times\mathbf B=0\)</span> 与非零波要求 <span class="arithmatex">\(\mathbf k\times\mathbf B=-(\omega/c^2)\mathbf E\)</span> 冲突。</p>
+<p>| 预设 | <span class="arithmatex">\(\mathbf E_0\)</span> | <span class="arithmatex">\(\mathbf B_0\)</span> | <span class="arithmatex">\(\mathbf k\cdot\mathbf E\)</span> | <span class="arithmatex">\(\mathbf k\cdot\mathbf B\)</span> | <span class="arithmatex">\(\mathbf B-(\mathbf k\times\mathbf E)/\omega\)</span> | <span class="arithmatex">\(|E|/(c|B|)\)</span> | <span class="arithmatex">\(\langle\mathbf S\rangle\)</span> | Ampère–Maxwell |
+|---|---|---|---:|---:|---:|---:|---|---|
+| 线偏振 | <span class="arithmatex">\(\hat x\)</span> | <span class="arithmatex">\(\hat y\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(+\hat z\)</span> | 通过 |
+| 圆偏振 | <span class="arithmatex">\(\hat x+i\hat y\)</span> | <span class="arithmatex">\(\hat y-i\hat x\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(+\hat z\)</span> | 通过 |
+| 非法纵向 <span class="arithmatex">\(E\)</span> | <span class="arithmatex">\(\hat z\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(\infty\)</span> | <span class="arithmatex">\(0\)</span> | 失败，残差 <span class="arithmatex">\(1\)</span> |
+| 错误 <span class="arithmatex">\(B\)</span> 方向 | <span class="arithmatex">\(\hat x\)</span> | <span class="arithmatex">\(-\hat y\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(2\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(-\hat z\)</span> | 失败，残差 <span class="arithmatex">\(2\)</span> |
+| 关闭位移电流 | <span class="arithmatex">\(\hat x\)</span> | <span class="arithmatex">\(\hat y\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(0\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(+\hat z\)</span> | 含位移项通过；关闭后失败，残差 <span class="arithmatex">\(1\)</span> |</p>
+<p>投影视图的静态读法是：线偏振只有 <span class="arithmatex">\(E_x,B_y,k_z\)</span>；圆偏振的实场在 <span class="arithmatex">\(xy\)</span> 平面旋转，但 <span class="arithmatex">\(\mathbf B\)</span> 始终由 <span class="arithmatex">\(\mathbf k\times\mathbf E/\omega\)</span> 给出；非法纵向预设只违反 <span class="arithmatex">\(\mathbf k\cdot\mathbf E=0\)</span> 就已不能是这类无源波；错误 <span class="arithmatex">\(B\)</span> 的能流反向；关闭位移电流则破坏 Ampère–Maxwell 账本。</p>
+</div>
+<h3 id="3">3. 适用域与反例<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>这里的横向性、<span class="arithmatex">\(|E|=c|B|\)</span> 和 <span class="arithmatex">\(\langle\mathbf S\rangle\parallel\mathbf k\)</span> 是<strong>单色平面波在均匀无源线性真空中的结论</strong>，不是任意电磁场的逐点定律。多个频率的叠加、局域波包、天线附近的近场、反射/透射边界和有限束都需要保留相应的空间结构与边界条件；介质中还要改用介质的本构关系，不能直接套用 <span class="arithmatex">\(\varepsilon_0,\mu_0\)</span> 的真空比例。</p>
+</section>
 <h2 id="1-faraday">1. Faraday 感应与位移电流<a class="headerlink" href="#1-faraday" title="Permanent link"></a></h2>
 <p><strong>Faraday 定律</strong>：变化的磁通感生电场——<span class="arithmatex">\(\oint\mathbf E\cdot d\boldsymbol\ell = -\frac{d\Phi_B}{dt}\)</span> ⟺</p>
 <div class="arithmatex">\[
 \nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t}
 \]</div>
 <p>（负号 = Lenz 定律：感应总在抵抗变化——能量守恒的守门员；发电机、变压器的全部原理。）</p>
-<p><strong>Maxwell 的补丁【推导】</strong>：静磁的 <span class="arithmatex">\(\nabla\times\mathbf B = \mu_0\mathbf J\)</span> 与电荷守恒 <span class="arithmatex">\(\nabla\cdot\mathbf J = -\frac{\partial\rho}{\partial t}\)</span> 冲突（对前者取散度：左边恒零、右边非零——数分 V 的 <span class="arithmatex">\(\nabla\cdot(\nabla\times) = 0\)</span> 当检察官）。修复：补上<strong>位移电流</strong> <span class="arithmatex">\(\varepsilon_0\frac{\partial\mathbf E}{\partial t}\)</span>，散度检验恰好通过（用 Gauss 定律）。<span class="arithmatex">\(\blacksquare\)</span>——<strong>由数学自洽性倒逼出的新物理</strong>：理论物理方法论的第一次完整示范。</p>
-<p><strong>Maxwell 方程组（真空）</strong>：</p>
+<p><strong>Maxwell 的补丁【推导】</strong>：若把 Ampère 方程暂写成静磁形式 <span class="arithmatex">\(\nabla\times\mathbf B = \mu_0\mathbf J\)</span>，取散度会得到 <span class="arithmatex">\(\nabla\cdot\mathbf J=0\)</span>；但一般源的连续性方程是 <span class="arithmatex">\(\nabla\cdot\mathbf J=-\partial_t\rho\)</span>，两者只在特殊的定常情形相容。补上<strong>位移电流</strong> <span class="arithmatex">\(\varepsilon_0\partial_t\mathbf E\)</span> 后，Gauss 定律的时间导数正好补偿连续性方程，方程组对任意局域源保持一致。<span class="arithmatex">\(\blacksquare\)</span>——<strong>由数学自洽性倒逼出的新物理</strong>：理论物理方法论的经典示范。</p>
+<p><strong>真空中的 Maxwell 方程组（允许有源）</strong>：真空指本构常数为 <span class="arithmatex">\(\varepsilon_0,\mu_0\)</span>，并不等于没有电荷和电流：</p>
 <div class="arithmatex">\[
 \nabla\cdot\mathbf E = \frac{\rho}{\varepsilon_0}, \quad \nabla\cdot\mathbf B = 0, \quad \nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t}, \quad \nabla\times\mathbf B = \mu_0\mathbf J + \mu_0\varepsilon_0\frac{\partial\mathbf E}{\partial t}
 \]</div>
-<h2 id="2">2. 光的诞生（教科书物理最高光的两行）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 光的诞生（教科书物理最高光的两行）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="电磁波 E 与 B 垂直传播" src="assets/img/em-02-em-wave.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>电磁波：\(\mathbf E\) 与 \(\mathbf B\) 相互垂直、又都垂直于传播方向，同相振荡以光速前进——Maxwell 方程的直接产物。</figcaption>
 </figure>
-<p>真空无源区（<span class="arithmatex">\(\rho = 0, \mathbf J = 0\)</span>）：对 Faraday 取旋度、代入 Ampère–Maxwell，用 <span class="arithmatex">\(\nabla\times(\nabla\times\mathbf E) = \nabla(\nabla\cdot\mathbf E) - \nabla^2\mathbf E\)</span>（解几/数分恒等式）与 <span class="arithmatex">\(\nabla\cdot\mathbf E = 0\)</span>：</p>
+<p>在<strong>无源真空区域</strong>（<span class="arithmatex">\(\rho=0,\mathbf J=0\)</span>），再假设场足够光滑且区域均匀，才可以对 Faraday 取旋度并代入 Ampère–Maxwell。用 <span class="arithmatex">\(\nabla\times(\nabla\times\mathbf E)=\nabla(\nabla\cdot\mathbf E)-\nabla^2\mathbf E\)</span> 与 <span class="arithmatex">\(\nabla\cdot\mathbf E=0\)</span>：</p>
 <div class="arithmatex">\[
 \nabla^2\mathbf E = \mu_0\varepsilon_0\,\frac{\partial^2\mathbf E}{\partial t^2}
 \]</div>
@@ -76,15 +135,16 @@
 c = \frac{1}{\sqrt{\mu_0\varepsilon_0}} \approx 3\times10^8\ \mathrm{m/s}
 \]</div>
 <p><strong>两个静态常数（电的 <span class="arithmatex">\(\varepsilon_0\)</span>、磁的 <span class="arithmatex">\(\mu_0\)</span>）拼出光速</strong>——Maxwell 由此判定"光是电磁波"：理论统一的黄金标准案例（电、磁、光学三门学科在两行推导里合并）。</p>
-<p><strong>平面波解的性质【推导】</strong>：<span class="arithmatex">\(\mathbf E = \mathbf E_0 e^{i(\mathbf k\cdot\mathbf r - \omega t)}\)</span> 代回方程组——<span class="arithmatex">\(\nabla\cdot\mathbf E = 0 \Rightarrow \mathbf k\perp\mathbf E\)</span>（<strong>横波</strong>）；Faraday 给 <span class="arithmatex">\(\mathbf B = \frac{\mathbf k\times\mathbf E}{\omega}\)</span>（<span class="arithmatex">\(\mathbf E \perp \mathbf B \perp \mathbf k\)</span> 右手系、<span class="arithmatex">\(|E| = c|B|\)</span>）。<strong>偏振</strong> = <span class="arithmatex">\(\mathbf E\)</span> 在横平面内的取向自由度（线偏/圆偏——两个独立分量的相位关系；偏振片、3D 眼镜、量子光学 qubit（qi-01）的物理载体）。</p>
-<h2 id="3">3. 势的语言与规范（承前启后）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>平面波解的性质【推导】</strong>：在这个均匀无源真空区域取单色 ansatz <span class="arithmatex">\(\mathbf E=\mathbf E_0e^{i(\mathbf k\cdot\mathbf r-\omega t)}\)</span>，并对 <span class="arithmatex">\(\mathbf B\)</span> 使用同一频率与波矢。代回方程组先得 <span class="arithmatex">\(\mathbf k\cdot\mathbf E_0=0\)</span>、<span class="arithmatex">\(\mathbf k\cdot\mathbf B_0=0\)</span>，Faraday 给 <span class="arithmatex">\(\mathbf B_0=(\mathbf k\times\mathbf E_0)/\omega\)</span>；Ampère–Maxwell 再给 <span class="arithmatex">\(|\mathbf k|=\omega/c\)</span>。因此对这<strong>一条</strong>波有 <span class="arithmatex">\(\mathbf E\perp\mathbf B\perp\mathbf k\)</span>、<span class="arithmatex">\(|E|=c|B|\)</span>。<strong>偏振</strong>是 <span class="arithmatex">\(\mathbf E_0\)</span> 在横平面内的复振幅自由度（线偏/圆偏由两个分量的相位关系区分）；这句话不把单色平面波结论推广到任意场。</p>
+<p>关闭位移电流在这里为何失败也可以直接看出：无源时没有 <span class="arithmatex">\(\mathbf J\)</span>，若删去 <span class="arithmatex">\(\mu_0\varepsilon_0\partial_t\mathbf E\)</span>，Ampère 方程的平面波形式会要求 <span class="arithmatex">\(\mathbf k\times\mathbf B=0\)</span>；而保留 Faraday 与非零横向 <span class="arithmatex">\(\mathbf E\)</span> 时，必有 <span class="arithmatex">\(\mathbf k\times\mathbf B=-(\omega/c^2)\mathbf E\)</span>。除非退化到 <span class="arithmatex">\(\omega=0\)</span> 或零场，否则不能组成有限频率的真空传播波。这不是说位移电流在所有低频问题中都不能近似：在特定导体的准静态尺度上，若位移项相对传导电流确实很小，忽略它可以是受控的近似；本页实验不在那个 regime。</p>
+<h2 id="3_1">3. 势的语言与规范（承前启后）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(\mathbf B = \nabla\times\mathbf A\)</span>、<span class="arithmatex">\(\mathbf E = -\nabla V - \frac{\partial\mathbf A}{\partial t}\)</span>：自动满足两条无源方程；剩下两条在 <strong>Lorenz 规范</strong>（<span class="arithmatex">\(\nabla\cdot\mathbf A + \frac{1}{c^2}\frac{\partial V}{\partial t} = 0\)</span>）下解耦成对称的波动方程</p>
 <div class="arithmatex">\[
 \Box V = -\frac{\rho}{\varepsilon_0}, \qquad \Box\mathbf A = -\mu_0\mathbf J \qquad \Big(\Box = \nabla^2 - \frac{1}{c^2}\frac{\partial^2}{\partial t^2}\Big)
 \]</div>
-<p>——带源波动方程：解即推迟势（ced-02 的主角）。<strong>规范自由</strong>（<span class="arithmatex">\(\mathbf A \to \mathbf A + \nabla\chi\)</span>，<span class="arithmatex">\(V \to V - \frac{\partial\chi}{\partial t}\)</span> 不改场）此处是计算便利，到 pp-01 将升格为"决定相互作用形式的第一原理"。</p>
+<p>——这是<strong>带源的真空</strong>波动方程：解即推迟势（ced-02 的主角）。它和上面的无源平面波是两种不同的取法，不能把推迟势的近源结构当成平面波；在边界、介质界面和天线近场处也必须保留几何与本构条件。<strong>规范自由</strong>（<span class="arithmatex">\(\mathbf A \to \mathbf A + \nabla\chi\)</span>，<span class="arithmatex">\(V \to V - \frac{\partial\chi}{\partial t}\)</span> 不改场）此处是计算便利，到 pp-01 将升格为"决定相互作用形式的第一原理"。</p>
 <h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（数量级体感）</strong> 阳光强度 <span class="arithmatex">\(\sim 1.4\ \mathrm{kW/m^2}\)</span>：由 <span class="arithmatex">\(I = \frac{c\varepsilon_0E_0^2}{2}\)</span> 反解 <span class="arithmatex">\(E_0 \approx 1\ \mathrm{kV/m}\)</span>、<span class="arithmatex">\(B_0 \approx 3\ \mu\mathrm T\)</span>——阳光的电场千伏每米级、磁场却比地磁还弱：<span class="arithmatex">\(|E| = c|B|\)</span> 的日常读数。</p>
+<p><strong>例 1（数量级体感）</strong> 对一束近似局部平面、单色线偏振的正弦波，阳光强度 <span class="arithmatex">\(\sim 1.4\ \mathrm{kW/m^2}\)</span>：由 <span class="arithmatex">\(I = \frac{c\varepsilon_0E_0^2}{2}\)</span> 反解 <span class="arithmatex">\(E_0 \approx 1\ \mathrm{kV/m}\)</span>、<span class="arithmatex">\(B_0 \approx 3\ \mu\mathrm T\)</span>——阳光的电场千伏每米级、磁场却比地磁还弱。这个等式是该理想波的振幅关系，不是任意辐射场的逐点规则。</p>
 <p><strong>例 2（波段一览）</strong> 同一方程组、不同 <span class="arithmatex">\(\omega\)</span>：无线电—微波—红外—可见（400–700 nm）—紫外—X—γ——<strong>"光谱只是频率轴上的地名"</strong>；波长与结构尺度匹配决定应用（天线 ~ 波长、显微极限 ~ 波长——opt-01 衍射极限伏笔）。</p>
 <p><strong>例 3（Lenz 判向练习）</strong> 磁铁 N 极插向线圈：磁通增 ⇒ 感应电流产生反向磁场（面对磁铁一侧成 N 极）排斥之——"感应永远唱反调"；涡流刹车、无线充电的方向判断同法。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
@@ -98,5 +158,7 @@ c = \frac{1}{\sqrt{\mu_0\varepsilon_0}} \approx 3\times10^8\ \mathrm{m/s}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/maxwell-constraints.js"></script>
 </body>
 </html>

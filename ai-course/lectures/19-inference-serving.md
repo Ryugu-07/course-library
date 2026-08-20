@@ -106,6 +106,23 @@
 
 TTFT 里包含排队与 prefill；TPOT 主要暴露 decode 阶段；E2E 则是两者的总账。一个长回答可以 TTFT 很好但 E2E 很差，一个短回答可以 TPOT 很好却因为排队而完全错过 SLO。报告时至少把这三列一起报出，而不是用一个平均 latency 代替。
 
+### 边界框：推理服务不是 Agent harness
+
+本讲的 serving engine 接收 token/多模态输入，管理 batch、prefill、decode、KV-cache 和流式返回；它回答“怎样把一次模型请求高效执行”。Agent harness 位于外层，负责选择何时请求模型、给哪些工具、怎样保存会话、哪些动作需要审批、如何验证任务，以及失败后是否继续。两层通过 API 相连，却不能互相冒充：
+
+| 层 | 典型状态 | 典型指标 |
+|---|---|---|
+| 推理服务 | 请求队列、KV 页、batch、token stream | TTFT、TPOT、吞吐、峰值显存、错误率 |
+| Agent harness | 任务、工具结果、权限、补丁、验证与轨迹 | 任务成功率、错误完成、安全事件、总 token/时间、可恢复性 |
+
+例如 Qwen3.8-27B 可以由 Transformers、SGLang 或 vLLM 暴露成兼容 API，再接入某个 coding harness；换 serving engine 可能改变延迟、吞吐和支持的工具调用解析，换 harness 可能改变上下文、工具、验证和任务结果。任何端到端对比都要同时记录两层版本。一次任务的总时间还应写成近似分解：
+
+$$
+T_{task}=\sum_{j=1}^{N_{model}}T_{serve,j}+T_{tools}+T_{verification}+T_{queue/approval},
+$$
+
+所以把每轮 `reasoning_effort` 调低并不保证整个 Agent 更快：若分析不足导致更多失败与重试，模型调用次数和工具轮次可能反而上升。模型卡或服务基准只能回答其协议覆盖的部分，不能替代完整任务轨迹。
+
 ## 2. prefill 与 decode：同一台机器上的两种压力
 
 **Prefill** 一次读取 prompt 的全部 token，计算量跟输入长度有关，天然适合把多个请求的输入拼成 batch。**Decode** 自回归地一次产生一个 token；每个 active sequence 都要反复读取模型权重并访问自己的 KV-cache。于是服务端会遇到两种不同瓶颈：

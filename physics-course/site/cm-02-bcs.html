@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,14 +43,20 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-20 13:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 现象清单（理论要交的作业）</a></li>
+<li><a href="#bcs-learning-title">学习层：能隙方程到底解出了什么？</a><ul>
+<li><a href="#1">1. 先过预测门：临界点、普适比与谱峰</a></li>
+<li><a href="#2-debye">2. 固定模型：有限 Debye 壳层里的有限温方程</a></li>
+<li><a href="#3">3. 理论审查：模型账本不能冒充材料结论</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 现象清单（理论要交的作业）</a></li>
 <li><a href="#2-cooper-fermi">2. Cooper 配对：Fermi 海上的不稳定性</a></li>
 <li><a href="#3-bcs">3. BCS 基态与能隙方程</a></li>
 <li><a href="#4-pp-02">4. 对称破缺读法：与 pp-02 的会师</a></li>
@@ -50,45 +67,140 @@
 <h1 id="ii-bcs">凝聚态 II · 超导 BCS 理论<a class="headerlink" href="#ii-bcs" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Tinkham《Introduction to Superconductivity》/ Altland &amp; Simons §6 / de Gennes ｜ <strong>前置</strong>：cm-01、sm-03、asm-01（对称破缺/GL）
-凝聚态最辉煌的定理级故事：<strong>电子居然结对</strong>（声子做媒的弱吸引 + Fermi 海托底 = 任意弱吸引都不稳定）→ 配对凝聚开能隙 → 零电阻与 Meissner 效应。BCS（1957）是"涌现"的旗舰案例，也是规范对称破缺（pp-02 Higgs）思想的凝聚态原产地。</p>
+凝聚态最辉煌的定理级故事：<strong>电子居然结对</strong>（声子做媒的弱吸引 + Fermi 海托底 = 任意弱吸引都不稳定）→ 配对凝聚开能隙。BCS（1957）是"涌现"的旗舰案例，也是规范对称破缺（pp-02 Higgs）思想的凝聚态原产地；零电阻与 Meissner 是超导相的实验性质，不能仅由本页的能隙数值自动推出。</p>
 </blockquote>
 <figure class="plot">
 <p><img alt="BCS 能隙随温度的变化与准粒子态密度。" src="assets/img/cm-02-bcs-gap.svg" /></p>
-<figcaption><span class="fig-id">图 cm-02.1</span>左：能隙 \(\Delta(T)\) 由自洽能隙方程解出，在 \(T_c\) 处连续趋零（二阶相变），零温值满足普适比 \(2\Delta_0/k_BT_c\approx3.53\)。右：准粒子态密度 \(N(E)=N(0)E/\sqrt{E^2-\Delta^2}\)，在 \(E=\Delta\) 处发散——<strong>隧道谱直接测量的就是这条曲线</strong>。</figcaption>
+<figcaption><span class="fig-id">图 cm-02.1</span>左：在本页规定的弱耦合、平衡、各向同性 s 波模型中，能隙 \(\Delta(T)\) 由自洽方程解出并在 \(T_c\) 处趋零；只有弱耦合极限才有 \(2\Delta_0/k_BT_c\to3.53\)。右：理想准粒子态密度 \(N(E)=N(0)E/\sqrt{E^2-\Delta^2}\) 在 \(E=\Delta\) 处有奇点，寿命、温度和仪器展宽会将其钝化。</figcaption>
 </figure>
-<h2 id="1">1. 现象清单（理论要交的作业）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>零电阻</strong>（<span class="arithmatex">\(T&lt;T_c\)</span>，超导环中电流年计无衰减）；<strong>Meissner 效应</strong>（完全抗磁，磁通被逐出——<strong>不是"理想导体"的推论而是独立现象</strong>，它才是"超导是新热力学相"的判据）；<strong>比热在 <span class="arithmatex">\(T_c\)</span> 跳变</strong>且低温呈 <span class="arithmatex">\(e^{-\Delta/k_BT}\)</span>（<strong>能隙存在的指纹</strong>）；<strong>同位素效应</strong> <span class="arithmatex">\(T_c\propto M^{-1/2}\)</span>（<strong>媒人是晶格</strong>——声子质量的指纹，破案的关键线索）。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="bcs-learning-title" class="learning-layer">
+<h2 id="bcs-learning-title">学习层：能隙方程到底解出了什么？<a class="headerlink" href="#bcs-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先过预测门：临界点、普适比与谱峰<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>实验台先要求三个判断：在 <span class="arithmatex">\(T/T_c=0.95\)</span> 时能隙是否仍为正？在 <span class="arithmatex">\(T\ge T_c\)</span> 时是否还能保留正能隙根？比值 <span class="arithmatex">\(2\Delta_0/(k_BT_c)\)</span> 接近 3.53 的前提是什么？预测对象是<strong>这个自洽模型的解</strong>，不是对某一种实验材料的自动诊断。</p>
+<h3 id="2-debye">2. 固定模型：有限 Debye 壳层里的有限温方程<a class="headerlink" href="#2-debye" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(k_B=1\)</span>，<span class="arithmatex">\(\lambda=N(0)V&gt;0\)</span>，常态单自旋 DOS 在 <span class="arithmatex">\(0\le\xi\le\omega_D\)</span> 内近似常数；配对是平衡、各向同性 s 波，且只保留有限 Debye 截断。除去 <span class="arithmatex">\(\Delta=0\)</span> 的边界情形，能隙由</p>
+<div class="arithmatex">\[
+F(\Delta;T)=\lambda\int_0^{\omega_D}
+\frac{\tanh\!\left(\sqrt{\xi^2+\Delta^2}/2T\right)}
+{\sqrt{\xi^2+\Delta^2}}\,d\xi-1=0,
+\qquad \Delta&gt;0
+\]</div>
+<p>自洽决定。数值上先用同一个固定求积计算积分，再用二分寻找正根。临界温度由正常态边界的方程</p>
+<div class="arithmatex">\[
+\lambda\int_0^{\omega_D}\frac{\tanh(\xi/2T_c)}{\xi}\,d\xi=1
+\]</div>
+<p>给出。<span class="arithmatex">\(\,T\ge T_c\,\)</span> 时，<span class="arithmatex">\(F(0;T)\le0\)</span>，实验台明确返回 <span class="arithmatex">\(\Delta=0\)</span> 并标记“无正能隙根”，避免把临界边界的零点误当成另一个正解或制造 <span class="arithmatex">\(\Delta/\Delta_0\)</span> 的 0/0。</p>
+<div class="learning-lab" data-learning-lab="bcs-gap">
+<p><strong>无 JavaScript 时的静态读法：</strong>把 <span class="arithmatex">\(k_B=1\)</span>、<span class="arithmatex">\(\lambda=0.30\)</span>、<span class="arithmatex">\(\omega_D=1\)</span> 代入上面的方程。有限截断的零温解为</p>
+<div class="arithmatex">\[
+\Delta_0=\frac{\omega_D}{\sinh(1/\lambda)}\simeq2\omega_De^{-1/\lambda},
+\]</div>
+<p>而 <span class="arithmatex">\(T_c\)</span> 解正常态方程。此组参数的静态核对值是 <span class="arithmatex">\(\Delta_0\approx0.071439\)</span>、<span class="arithmatex">\(T_c\approx0.040450\)</span>、<span class="arithmatex">\(2\Delta_0/T_c\approx3.53225\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>静态核对</th>
+<th style="text-align: right;"><span class="arithmatex">\(T/T_c\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\Delta(T)/\Delta_0\)</span></th>
+<th style="text-align: right;">积分残差 <span class="arithmatex">\(F=\lambda I-1\)</span></th>
+<th>解的状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>零温</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">约 0</td>
+<td>正能隙 <span class="arithmatex">\(\Delta_0\)</span></td>
+</tr>
+<tr>
+<td>中温</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.95700</td>
+<td style="text-align: right;">约 0</td>
+<td>正能隙二分根</td>
+</tr>
+<tr>
+<td>接近临界</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">0.38054</td>
+<td style="text-align: right;">约 0</td>
+<td>正能隙二分根</td>
+</tr>
+<tr>
+<td>临界点</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">约 0</td>
+<td>临界边界，不取正根</td>
+</tr>
+<tr>
+<td>临界以上</td>
+<td style="text-align: right;">1.10</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx-0.0286\)</span></td>
+<td>正常态，无正能隙根</td>
+</tr>
+</tbody>
+</table>
+<p>准粒子 DOS 的静态表达式是</p>
+<div class="arithmatex">\[
+\frac{N_\Gamma(E)}{N(0)}=
+\operatorname{Re}\frac{E+i\Gamma}{\sqrt{(E+i\Gamma)^2-\Delta(T)^2}}.
+\]</div>
+<p><span class="arithmatex">\(\Gamma=0\)</span> 是理想曲线：<span class="arithmatex">\(E&lt;\Delta\)</span> 时为 0，在 <span class="arithmatex">\(E=\Delta\)</span> 有平方根奇点；<span class="arithmatex">\(\Gamma&gt;0\)</span> 是 Dynes/数值展宽。以零温、<span class="arithmatex">\(\Gamma/\Delta_0=0.04\)</span> 为例，<span class="arithmatex">\(E/\Delta_0=0,0.5,1,1.5,2\)</span> 的理想 DOS 依次为 <span class="arithmatex">\(0,0,\infty,1.342,1.155\)</span>，展宽后零能 DOS 约为 0.040、边缘约为 2.576。图上的纵轴会截断理想奇点，但模型函数保留其发散含义。</p>
+<p><strong>预测门答案：</strong>接近 <span class="arithmatex">\(T_c\)</span> 时正能隙很小但仍为正；<span class="arithmatex">\(T\ge T_c\)</span> 时只保留 <span class="arithmatex">\(\Delta=0\)</span> 的正常态边界；3.53 只属于弱耦合、平衡、各向同性 s 波 BCS 极限，有限截断的数值比值只是接近它。</p>
+</div>
+<h3 id="3">3. 理论审查：模型账本不能冒充材料结论<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>3.53 的适用域</strong>：<span class="arithmatex">\(2\Delta_0/(k_BT_c)\approx3.53\)</span> 是弱耦合、平衡、各向同性 s 波 BCS 极限的结果；强耦合修正会改变它，不能说它对所有超导体“与材料无关”。</li>
+<li><strong>DOS 的理想化</strong>：<span class="arithmatex">\(E=\Delta\)</span> 的理想奇点会被准粒子寿命、有限温度卷积和仪器分辨率钝化；实验谱线的峰高不是本模型无展宽公式的直接数值。</li>
+<li><strong>实验判据分层</strong>：自洽能隙说明模型中有配对序参量和准粒子谱隙；能隙存在本身不等于已经证明零电阻，也不等于已经证明 Meissner 效应。</li>
+<li><strong>不要越界推广</strong>：这里不把弱耦合 BCS 方程推广到强耦合、非常规配对、高温超导或二维相位涨落；这些情形需要额外的微观机制、序参量结构或有限温涨落理论。</li>
+<li><strong>两本账分开</strong>：实验台的 <span class="arithmatex">\(\Delta(T)\)</span>、残差、比值和 DOS 是模型的自洽解与数值诊断；真实材料结论还需要输运、磁响应、谱学和材料参数等独立证据。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 现象清单（理论要交的作业）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>零电阻</strong>（<span class="arithmatex">\(T&lt;T_c\)</span>，超导环中电流可长期无衰减）；<strong>Meissner 效应</strong>（磁通被排斥——<strong>不是“理想导体”的推论而是独立现象</strong>，它才表明进入新的热力学相）；<strong>比热在 <span class="arithmatex">\(T_c\)</span> 附近出现异常</strong>，并在完全开隙的弱耦合 s 波模型低温区呈指数抑制；<strong>同位素效应</strong>在最简声子弱耦合图景、其他参数近似不随质量变化时给出 <span class="arithmatex">\(T_c\propto M^{-1/2}\)</span>。真实材料的同位素指数可以偏离 <span class="arithmatex">\(1/2\)</span>，因此它是晶格参与的诊断线索，不是所有超导体必须满足的单一判据。这些都是独立实验账目，不能由一条能隙曲线代替。</p>
 <h2 id="2-cooper-fermi">2. Cooper 配对：Fermi 海上的不稳定性<a class="headerlink" href="#2-cooper-fermi" title="Permanent link"></a></h2>
 <p><strong>吸引从哪来【机理】</strong>：电子极化晶格、留下正电尾迹，吸引后来者——<strong>延迟的间接吸引</strong>。能标为声子频率 <span class="arithmatex">\(\omega_D\)</span>（solid-01），在 Fermi 面附近的窄壳层内胜过屏蔽后的库仑斥力。</p>
 <p><strong>Cooper 问题【完整推导】</strong>：在填满的 Fermi 海之上放两个电子（动量 <span class="arithmatex">\(\mathbf k,-\mathbf k\)</span>，自旋单态），壳层 <span class="arithmatex">\(\omega_D\)</span> 内有常吸引 <span class="arithmatex">\(-V\)</span>。设波函数 <span class="arithmatex">\(\psi=\sum_k a_k|\mathbf k,-\mathbf k\rangle\)</span>，薛定谔方程给</p>
 <div class="arithmatex">\[(2\xi_k - E)a_k = V\sum_{k'}a_{k'}\]</div>
 <p>两边除以 <span class="arithmatex">\((2\xi_k-E)\)</span> 并对 <span class="arithmatex">\(k\)</span> 求和，消去公因子得<strong>自洽条件</strong></p>
 <div class="arithmatex">\[1 = V\sum_k\frac{1}{2\xi_k-E}\approx N(0)V\int_0^{\omega_D}\frac{d\xi}{2\xi-E}\]</div>
-<p>积分并解出束缚能：</p>
-<div class="arithmatex">\[E_b = 2\hbar\omega_D\,e^{-2/N(0)V}\]</div>
+<p>令 <span class="arithmatex">\(E=-E_b&lt;0\)</span>，有限截断积分给出</p>
+<div class="arithmatex">\[
+E_b=\frac{2\hbar\omega_D}{e^{2/N(0)V}-1}
+\simeq 2\hbar\omega_D\,e^{-2/N(0)V}
+\qquad\bigl(N(0)V\ll1\bigr).
+\]</div>
 <p><strong>结论惊人：任意弱的吸引都产生束缚态</strong>。三维自由空间做不到这一点——<strong>是 Fermi 海的态密度托底改变了问题的维数性质</strong>（Pauli 阻塞把二体问题变成"有底座的"二维型问题）。</p>
 <p><strong><span class="arithmatex">\(e^{-1/x}\)</span> 的非微扰性</strong>：它对 <span class="arithmatex">\(V\)</span> 的一切阶泰勒展开皆为零——<strong>微扰论永远看不见超导</strong>（🔗 qft-02 §4 失效清单的凝聚态名例）。</p>
 <h2 id="3-bcs">3. BCS 基态与能隙方程<a class="headerlink" href="#3-bcs" title="Permanent link"></a></h2>
 <p><strong>变分波函数</strong>：</p>
 <div class="arithmatex">\[|\mathrm{BCS}\rangle = \prod_{\mathbf k}\left(u_{\mathbf k}+v_{\mathbf k}c^\dagger_{\mathbf k\uparrow}c^\dagger_{-\mathbf k\downarrow}\right)|0\rangle,\qquad |u_k|^2+|v_k|^2=1\]</div>
-<p>所有动量对"要么空、要么成对"的<strong>相干叠加</strong>。粒子数不确定而相位确定——<strong>数与相的共轭在此显形</strong>。</p>
+<p>所有动量对“要么空、要么成对”的<strong>相干叠加</strong>。这个 grand-canonical 平均场 ansatz 不具有确定粒子数；有限体系可以做粒子数投影，而自发相位选择是在热力学极限的平均场语言中出现。它不是说孤立有限样品真的丢失了电荷守恒。</p>
 <p><strong>平均场解耦 + Bogoliubov 变换【推导骨架】</strong>：定义 <span class="arithmatex">\(\Delta = V\sum_k\langle c_{-k\downarrow}c_{k\uparrow}\rangle\)</span>，哈密顿量被对角化为准粒子形式，准粒子能谱</p>
 <div class="arithmatex">\[E_k = \sqrt{\xi_k^2+\Delta^2}\]</div>
 <p><strong>准粒子 = 电子与空穴的相干叠加</strong>（cm-01 准粒子概念的极致）。自洽条件即<strong>能隙方程</strong>：</p>
 <div class="arithmatex">\[\Delta = \frac{V}{2}\sum_{\mathbf k}\frac{\Delta}{E_k}\tanh\frac{E_k}{2k_BT}\]</div>
-<p><strong>三条产出</strong>：</p>
+<p><strong>在上述有限截断模型中的三条产出</strong>：</p>
 <ul>
-<li><strong>零温隙</strong>：<span class="arithmatex">\(\Delta_0 = 2\hbar\omega_D e^{-1/N(0)V}\)</span>（Cooper 指数再现）；</li>
-<li><strong>临界温度</strong>：<span class="arithmatex">\(k_BT_c = 1.14\,\hbar\omega_D e^{-1/N(0)V}\)</span>，两式相除给<strong>普适比</strong></li>
+<li><strong>零温隙</strong>：<span class="arithmatex">\(\Delta_0 = \hbar\omega_D/\sinh[1/N(0)V]\simeq2\hbar\omega_D e^{-1/N(0)V}\)</span>（弱耦合时才可使用右侧近似）；</li>
+<li><strong>临界温度</strong>：<span class="arithmatex">\(T_c\)</span> 由 <span class="arithmatex">\(1/N(0)V=\int_0^{\omega_D}d\xi\,\tanh[\xi/(2k_BT_c)]/\xi\)</span> 数值解出；在弱耦合且 <span class="arithmatex">\(\omega_D\gg k_BT_c\)</span> 时才有 <span class="arithmatex">\(k_BT_c\simeq1.14\,\hbar\omega_D e^{-1/N(0)V}\)</span>，两式相除才趋于</li>
 </ul>
 <div class="arithmatex">\[\frac{2\Delta_0}{k_BT_c}\approx3.53\]</div>
-<p><strong>这个比值与材料无关</strong>——BCS 最漂亮的"指纹预言"，被实验一一验证；</p>
+<p><strong>这个 3.53 不是无条件的材料常数</strong>：它只是在弱耦合、平衡、各向同性 s 波 BCS 极限中的普适极限；有限截断、强耦合或非常规序参量都会改变讨论。</p>
 <ul>
-<li><strong>Fermi 面全面开隙</strong> → 比热的指数律 ✓、隧道谱直接测出 <span class="arithmatex">\(\Delta\)</span> ✓、同位素效应 ✓（<span class="arithmatex">\(\Delta\propto\omega_D\propto M^{-1/2}\)</span>）。</li>
+<li><strong>Fermi 面全面开隙</strong> → 在这个模型中得到比热的指数律与隧道谱的能隙指纹；真实材料是否同时表现零电阻、Meissner 效应或同位素效应，需要独立实验检验。</li>
 </ul>
 <h2 id="4-pp-02">4. 对称破缺读法：与 pp-02 的会师<a class="headerlink" href="#4-pp-02" title="Permanent link"></a></h2>
-<p>BCS 态破缺 <strong><span class="arithmatex">\(U(1)\)</span> 相位对称</strong>，序参量 <span class="arithmatex">\(\Delta=|\Delta|e^{i\varphi}\)</span>——<strong>这是 asm-01 的 Ginzburg–Landau 理论的微观兑现</strong>（GL 可由 BCS 在 <span class="arithmatex">\(T\to T_c\)</span> 附近导出，Gor'kov）。</p>
-<p><strong>Meissner 效应 = 光子在超导体内变重</strong>：规范场吃掉相位模而获得质量，磁场被指数屏蔽，穿透深度 <span class="arithmatex">\(\lambda_L=\sqrt{m/\mu_0ne^2}\)</span>。</p>
+<p>BCS 平均场在热力学极限选择粒子数全局 <strong><span class="arithmatex">\(U(1)\)</span> 相位</strong>，序参量 <span class="arithmatex">\(\Delta=|\Delta|e^{i\varphi}\)</span>——<strong>这是 asm-01 的 Ginzburg–Landau 理论的微观兑现</strong>（GL 可由 BCS 在 <span class="arithmatex">\(T\to T_c\)</span> 附近导出，Gor'kov）。这里的“破缺”是可观测序参量的平均场/热力学极限说法；电磁局域规范变换是描述冗余，不能把它本身当作一个直接可观测量声称被破坏。</p>
+<p>这里的对称破缺和能隙是平均场模型的理论语言；即使某个谱学拟合显示出能隙，也不能单凭它宣称样品已经证明零电阻或 Meissner。强耦合、非常规、高温超导和二维相位涨落不由本页的弱耦合方程覆盖。</p>
+<p><strong>Meissner 效应的 Anderson–Higgs 读法</strong>：相位模与电磁场耦合，使介质中的横向电磁响应出现有效质量尺度，静磁场因而指数屏蔽。最简 London 模型给 <span class="arithmatex">\(\lambda_L=\sqrt{m/(\mu_0n_s e^2)}\)</span>；这里的 <span class="arithmatex">\(n_s\)</span> 是超流刚度对应的有效载流子密度，真实材料还会有能带、温度和非局域修正。</p>
 <p><strong>这就是 Anderson–Higgs 机制的凝聚态原型</strong>——<strong>粒子物理的 Higgs（pp-02）是同一机制的真空版本</strong>。</p>
 <p><strong>宏观量子效应</strong>：</p>
 <ul>
@@ -97,8 +209,8 @@
 </ul>
 <p><strong>类型 I / II</strong>：由 GL 参数 <span class="arithmatex">\(\kappa=\lambda/\xi\)</span> 区分。<span class="arithmatex">\(\kappa&gt;1/\sqrt2\)</span> 的第二类超导体允许磁通线（涡旋）穿入，<strong>这才使高场超导磁体成为可能</strong>（MRI、加速器、托卡马克，🔗 fl-06）。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（非微扰指数的手感）</strong> <span class="arithmatex">\(N(0)V=0.3\)</span>：<span class="arithmatex">\(\Delta_0\sim2\hbar\omega_D e^{-3.3}\)</span>。取 <span class="arithmatex">\(\omega_D\sim300\)</span> K 得 <span class="arithmatex">\(\Delta\sim\)</span> meV、<span class="arithmatex">\(T_c\sim10\)</span> K ✓。<strong>这就是常规超导体的天花板逻辑</strong>：<span class="arithmatex">\(e^{-1/N(0)V}\)</span> 把 <span class="arithmatex">\(T_c\)</span> 压在声子能标的百分之几——<strong>高温超导为何必须另有机制的第一直觉</strong>【未解，第三档边界】。</p>
-<p><strong>例 2（普适比当体检）</strong> 实测 <span class="arithmatex">\(2\Delta_0/k_BT_c\)</span>：Al 约 3.4、Pb 约 4.4。<strong>前者是教科书弱耦合 BCS，后者的偏离指向强耦合修正（Eliashberg）</strong>——一个比值就能区分两类超导体。</p>
+<p><strong>例 1（非微扰指数的手感）</strong> <span class="arithmatex">\(N(0)V=0.3\)</span>：<span class="arithmatex">\(\Delta_0\sim2\hbar\omega_D e^{-3.3}\)</span>。取 <span class="arithmatex">\(\omega_D\sim300\)</span> K 得 <span class="arithmatex">\(\Delta\sim\)</span> meV、<span class="arithmatex">\(T_c\sim10\)</span> K 的弱耦合数量级。指数说明在固定声子能标和弱耦合下 <span class="arithmatex">\(T_c\)</span> 会被强烈压低，<strong>不是声子机制的普适温度上限</strong>：强耦合、轻元素的高频声子、压力和材料电子结构都会改变估计，不能由这行公式推出“高温超导必然不是声子机制”。</p>
+<p><strong>例 2（弱耦合比作诊断线索）</strong> 实测 <span class="arithmatex">\(2\Delta_0/k_BT_c\)</span>：Al 约 3.4、Pb 约 4.4。前者接近弱耦合 BCS，后者的偏离与强耦合修正（Eliashberg）一致；但单个比值还会受各向异性、多能隙和谱拟合口径影响，不能独自完成材料分类。</p>
 <p><strong>例 3（磁通量子的日常）</strong> <span class="arithmatex">\(\Phi_0=h/2e\approx2.07\times10^{-15}\)</span> Wb。SQUID 以它为刻度测量脑磁场（fT 量级）——<strong>"配对电荷 <span class="arithmatex">\(2e\)</span>"每天在医院被数出来</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一门：粒子物理两页——把"对称性决定相互作用"推到极致：规范原理、标准模型的粒子谱与 Higgs 机制。</em></p>
@@ -111,5 +223,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/bcs-gap.js"></script>
 </body>
 </html>
