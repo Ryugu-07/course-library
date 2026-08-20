@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,25 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:30</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 依分布收敛的正式基础</a></li>
-<li><a href="#2">2. 三大工具</a></li>
+<li><a href="#convergence-tools-learning-title">学习层：结论证书与反例选择器</a><ul>
+<li><a href="#1">1. 先标记目标，再检查假设</a></li>
+<li><a href="#2">2. 五个完全解析的序列模型</a></li>
+<li><a href="#3-fallback">3. 静态 fallback：逐项结论证书</a></li>
+<li><a href="#4">4. 三个工具的证书 / 反例</a></li>
+<li><a href="#5">5. 边界与迁移</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 依分布收敛的正式基础</a></li>
+<li><a href="#2_1">2. 三大工具</a></li>
 <li><a href="#3">3. 联合渐近与多维版</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,12 +68,127 @@
 <p><strong>对标</strong>：van der Vaart <em>AS</em> §2–3 ｜ <strong>前置</strong>：mt-01/02、本科概率 V、统计 I–II
 渐近统计 = "样本量趋于无穷时统计程序的精确行为"。本页配齐三件日用工具：<strong>Slutsky</strong>（收敛的代数）、<strong>连续映射</strong>（收敛的函数演算）、<strong>Delta 方法</strong>（"估计量的函数"的极限分布）——它们是后两页一切定理的语法。</p>
 </blockquote>
-<h2 id="1">1. 依分布收敛的正式基础<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="convergence-tools-learning-title" class="learning-layer">
+<h2 id="convergence-tools-learning-title">学习层：结论证书与反例选择器<a class="headerlink" href="#convergence-tools-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先标记目标，再检查假设<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>这一页暂时不使用鞅。实验只处理可以完全写出有限 PMF、概率和矩的序列或三角阵列；它的任务不是用有限图证明极限定理，而是训练“我究竟拿到了哪一种收敛证书”。标量结论的常用方向是</p>
+<div class="arithmatex">\[
+L^p\ (p\ge1)\Longrightarrow L^1\Longrightarrow \xrightarrow{P}\Longrightarrow\xrightarrow{d},
+\qquad
+\xrightarrow{\mathrm{a.s.}}\Longrightarrow\xrightarrow{P},
+\]</div>
+<p>但反向箭头通常需要额外条件。特别是“依分布收敛”若极限不是常数，并不自动给出同一概率空间上的依概率、a.s. 或 <span class="arithmatex">\(L^p\)</span> 结论。</p>
+<p>实验有两个页签：<strong>序列 / 三角阵列</strong>显示 exact PMF、<span class="arithmatex">\(E X_n\)</span>、<span class="arithmatex">\(E|X_n|\)</span>、<span class="arithmatex">\(E X_n^2\)</span> 和证书表；<strong>Slutsky / CMT / Delta</strong>显示假设检查、结论与边界。提交预测前，曲线、数值和答案都隐藏。</p>
+<h3 id="2">2. 五个完全解析的序列模型<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(U,U_1,U_2,\ldots\)</span> 为均匀变量，<span class="arithmatex">\(\varepsilon,\varepsilon_n,\varepsilon_{nk}\)</span> 为取 <span class="arithmatex">\(\pm1\)</span> 且概率各为 <span class="arithmatex">\(1/2\)</span> 的 Rademacher 变量。</p>
+<p><strong>nested rare spike</strong> 取同一个 <span class="arithmatex">\(U\)</span>：</p>
+<div class="arithmatex">\[
+X_n=n\mathbf 1\{U\le1/n\}.
+\]</div>
+<p>因此 <span class="arithmatex">\(P(X_n=n)=1/n\)</span>、<span class="arithmatex">\(P(X_n=0)=1-1/n\)</span>、<span class="arithmatex">\(E|X_n|=1\)</span>、<span class="arithmatex">\(E X_n^2=n\)</span>。对每个 <span class="arithmatex">\(U&gt;0\)</span>，最终有 <span class="arithmatex">\(n&gt;1/U\)</span>，故 <span class="arithmatex">\(X_n\to0\)</span> a.s.，也依概率和依分布收敛到 <span class="arithmatex">\(0\)</span>，但不 <span class="arithmatex">\(L^1\)</span>、不 <span class="arithmatex">\(L^2\)</span>。这是“a.s. 不自动给 <span class="arithmatex">\(L^p\)</span>”的精确反例。</p>
+<p><strong>independent rare spike</strong> 改用独立的 <span class="arithmatex">\(U_n\)</span>，有限时刻的 PMF 和上述完全相同，所以 <span class="arithmatex">\(X_n\to0\)</span> 依概率、依分布，但 <span class="arithmatex">\(E|X_n|=1\)</span>、<span class="arithmatex">\(E X_n^2=n\)</span>。另一方面，对 <span class="arithmatex">\(N\le n\le M\)</span> 没有尖峰的概率是</p>
+<div class="arithmatex">\[
+\prod_{n=N}^{M}\left(1-\frac1n\right)=\frac{N-1}{M}\longrightarrow0.
+\]</div>
+<p>故尖峰无穷多次发生，a.s. 不收敛。这是“依概率不自动给 a.s.”的反例；它和上一个模型共享每个有限 <span class="arithmatex">\(n\)</span> 的账本，却有不同的路径结论。</p>
+<p><strong>scaled Rademacher</strong> 取 <span class="arithmatex">\(X_n=\varepsilon_n/\sqrt n\)</span>。这里 <span class="arithmatex">\(|X_n|=1/\sqrt n\)</span> 是确定的，所以 a.s.、依概率、<span class="arithmatex">\(L^1\)</span>、<span class="arithmatex">\(L^2\)</span> 都收敛到 <span class="arithmatex">\(0\)</span>，且 <span class="arithmatex">\(E X_n^2=1/n\)</span>。</p>
+<p><strong>fixed Rademacher</strong> 取 <span class="arithmatex">\(X_n=\varepsilon\)</span>。它在同一空间上 a.s.、依概率、<span class="arithmatex">\(L^1\)</span>、<span class="arithmatex">\(L^2\)</span> 收敛到非退化的 <span class="arithmatex">\(\varepsilon\)</span>，依分布极限是 Rademacher，而不是常数 <span class="arithmatex">\(0\)</span>。这提醒我们先写极限对象，不能把“收敛”默认为“趋零”。</p>
+<p><strong>Rademacher triangular array</strong> 的第 <span class="arithmatex">\(n\)</span> 行是</p>
+<div class="arithmatex">\[
+T_n=\frac{\varepsilon_{n1}+\cdots+\varepsilon_{nn}}{\sqrt n},
+\qquad
+P\left(T_n=\frac{j}{\sqrt n}\right)=\binom n{(n+j)/2}2^{-n}
+\]</div>
+<p>（<span class="arithmatex">\(j=-n,-n+2,\ldots,n\)</span>）。每一行精确满足 <span class="arithmatex">\(E T_n=0\)</span>、<span class="arithmatex">\(E T_n^2=1\)</span>、<span class="arithmatex">\(E T_n^4=3-2/n\)</span>；CLT 才给出 <span class="arithmatex">\(T_n\xrightarrow{d}N(0,1)\)</span>。行间没有默认的共同路径，所以实验只认证依分布结论；有限 lattice 图不能证明一般 CLT。</p>
+<h3 id="3-fallback">3. 静态 fallback：逐项结论证书<a class="headerlink" href="#3-fallback" title="Permanent link"></a></h3>
+<p>关闭 JavaScript 时，取 <span class="arithmatex">\(n=8\)</span>。下表中的“有 / 无 / 不作断言”是理论结论，不是从有限柱状图猜出来的；PMF 和矩是该固定 <span class="arithmatex">\(n\)</span> 的精确快照。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>a.s.</th>
+<th>依概率</th>
+<th><span class="arithmatex">\(L^1\)</span></th>
+<th><span class="arithmatex">\(L^2\)</span></th>
+<th>依分布极限</th>
+<th>精确账本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nested spike</td>
+<td>有，极限 <span class="arithmatex">\(0\)</span></td>
+<td>有</td>
+<td>无</td>
+<td>无</td>
+<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td><span class="arithmatex">\(P(X_n=n)=1/n\)</span>，<span class="arithmatex">\(E\lvert X_n\rvert=1\)</span>，<span class="arithmatex">\(E X_n^2=n\)</span></td>
+</tr>
+<tr>
+<td>independent spike</td>
+<td>无</td>
+<td>有，极限 <span class="arithmatex">\(0\)</span></td>
+<td>无</td>
+<td>无</td>
+<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td>无尖峰区间概率 <span class="arithmatex">\((N-1)/M\)</span></td>
+</tr>
+<tr>
+<td>scaled Rademacher</td>
+<td>有，极限 <span class="arithmatex">\(0\)</span></td>
+<td>有</td>
+<td>有</td>
+<td>有</td>
+<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td><span class="arithmatex">\(\lvert X_n\rvert=n^{-1/2}\)</span>，<span class="arithmatex">\(E X_n^2=1/n\)</span></td>
+</tr>
+<tr>
+<td>fixed Rademacher</td>
+<td>有，极限 <span class="arithmatex">\(\varepsilon\)</span></td>
+<td>有</td>
+<td>有</td>
+<td>有</td>
+<td>Rademacher</td>
+<td><span class="arithmatex">\(P(\varepsilon=\pm1)=1/2\)</span></td>
+</tr>
+<tr>
+<td>triangular array</td>
+<td>本页不作断言</td>
+<td>本页不作断言</td>
+<td>本页不作断言</td>
+<td>本页不作断言</td>
+<td><span class="arithmatex">\(N(0,1)\)</span>（CLT）</td>
+<td><span class="arithmatex">\(E T_n=0\)</span>，<span class="arithmatex">\(E T_n^2=1\)</span>，<span class="arithmatex">\(E T_n^4=3-2/n\)</span></td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 三个工具的证书 / 反例<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Slutsky</strong>：若 <span class="arithmatex">\(X_n\xrightarrow{d}X\)</span> 且 <span class="arithmatex">\(Y_n\xrightarrow{P}c\)</span>，其中 <span class="arithmatex">\(c\)</span> 是常数，则和、积、在 <span class="arithmatex">\(c\ne0\)</span> 时的商可由联合收敛和连续映射推出。若两个边缘都只收敛到非退化分布，边缘信息不决定联合结构：<span class="arithmatex">\(X=Y=R\)</span> 时 <span class="arithmatex">\(X+Y=2R\)</span>，<span class="arithmatex">\(X=R,Y=-R\)</span> 时 <span class="arithmatex">\(X+Y=0\)</span>，不能直接套定理。</li>
+<li><strong>连续映射</strong>：<span class="arithmatex">\(g\)</span> 必须在极限变量的相关支撑上连续。<span class="arithmatex">\(X_n=R/n\to0\)</span>、<span class="arithmatex">\(g(x)=x^2\)</span> 是可用证书；<span class="arithmatex">\(X_n=1/n\to0\)</span>、<span class="arithmatex">\(g(x)=1/x\)</span> 在 <span class="arithmatex">\(0\)</span> 处不连续，则 <span class="arithmatex">\(g(X_n)=n\)</span> 发散，不能把形式代入当作结论。</li>
+<li><strong>Delta method</strong>：需要 <span class="arithmatex">\(\sqrt n(T_n-\theta)\xrightarrow{d}Z\)</span>，并且 <span class="arithmatex">\(g\)</span> 在 <span class="arithmatex">\(\theta\)</span> 可微、<span class="arithmatex">\(g'(\theta)\ne0\)</span> 才能得到一阶尺度。取 <span class="arithmatex">\(T_n=1+R/\sqrt n,g(x)=x^2\)</span>，有 <span class="arithmatex">\(\sqrt n(g(T_n)-1)=2R+1/\sqrt n\)</span>；若改为 <span class="arithmatex">\(\theta=0\)</span>，则 <span class="arithmatex">\(g'(0)=0\)</span>，<span class="arithmatex">\(\sqrt nT_n^2\to0\)</span> 而 <span class="arithmatex">\(nT_n^2=1\)</span>，必须切换到二阶尺度。</li>
+</ul>
+<p>反例选择器让你先选择一个拟议箭头，再选模型：依概率不推出 a.s. 选 independent spike；a.s. 不推出 <span class="arithmatex">\(L^2\)</span> 选 nested spike；有限图不证明一般定理选 triangular array；两个非退化边缘不能直接套 Slutsky 选两种 coupling。选择器的答案是在提交后才显示。</p>
+<h3 id="5">5. 边界与迁移<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(L^p\)</span>、依概率、依分布的结论必须写明目标变量；“矩看起来稳定”不是 <span class="arithmatex">\(L^p\)</span> 收敛证书。</li>
+<li>三角阵列的每行可以有精确 PMF，但行间独立、同分布、Lindeberg 条件或共同概率空间等信息要另行声明；有限图只展示当前行。</li>
+<li>连续映射的“连续”是对极限支撑说的；有界连续函数可用于依分布收敛，但不连续函数需要额外边界质量条件。</li>
+<li>一阶 Delta 的导数为零不是小误差，而是主项消失；要重标度并保留二阶项，极限类型也可能改变。</li>
+<li>迁移到 MLE、t 统计量或机器学习风险时，先把 CLT/相合性作为输入证书，再逐条检查 Slutsky、CMT、Delta 的条件；不要用一次 finite-n 图替代渐近证明。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="convergence-tools">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认模型为 nested spike、<span class="arithmatex">\(n=8\)</span>，反例选择器默认“依概率是否自动给 a.s.”。工具页默认 Slutsky 的常数极限案例。交互的每个 PMF、概率、矩和 toy 变换都由解析式直接计算；SVG 只画有限账本，结论证书来自上面的条件和反例论证。</p>
+</div>
+</section>
+<h2 id="1_1">1. 依分布收敛的正式基础<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义升级（Portmanteau 定理，选三条常用）【引用】</strong> <span class="arithmatex">\(X_n \xrightarrow{d} X\)</span> 等价于：对一切有界连续 <span class="arithmatex">\(f\)</span>，<span class="arithmatex">\(Ef(X_n) \to Ef(X)\)</span>；对一切 <span class="arithmatex">\(P(X \in \partial A) = 0\)</span> 的集合，<span class="arithmatex">\(P(X_n \in A) \to P(X \in A)\)</span>；分布函数在连续点处处收敛（本科定义）。
 （第一条是工作定义——"对一切温和的检验函数过关"；测度的弱收敛语言与实变/泛函的弱拓扑同源。）</p>
 <p><strong>特征函数工具（Lévy 连续性定理）【引用】</strong> <span class="arithmatex">\(\varphi_{X_n}(t) \to \varphi_X(t)\)</span> 逐点（极限在 0 连续）<span class="arithmatex">\(\iff X_n \xrightarrow{d} X\)</span>——CLT 证明（本科概率 V）的引擎，正式引用备案。</p>
 <p><strong>紧性（Prokhorov）一嘴【引用】</strong>：胎紧（tight，质量不逃逸）⟺ 依分布收敛子列存在——"分布列的 Bolzano–Weierstrass"，证明存在极限分布时的兜底工具。</p>
-<h2 id="2">2. 三大工具<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 三大工具<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理（连续映射，CMT）</strong> <span class="arithmatex">\(X_n \xrightarrow{d} X\)</span>、<span class="arithmatex">\(g\)</span> 在 <span class="arithmatex">\(X\)</span> 的支撑上连续 ⇒ <span class="arithmatex">\(g(X_n) \xrightarrow{d} g(X)\)</span>。
 <strong>【骨架】</strong> Portmanteau 第一条：<span class="arithmatex">\(Ef(g(X_n)) = E(f\circ g)(X_n)\)</span>，<span class="arithmatex">\(f\circ g\)</span> 有界连续。<span class="arithmatex">\(\blacksquare\)</span>（对 <span class="arithmatex">\(\xrightarrow{P}\)</span>、a.s. 同样成立。）</p>
 <p><strong>定理（Slutsky）</strong> <span class="arithmatex">\(X_n \xrightarrow{d} X\)</span>，<span class="arithmatex">\(Y_n \xrightarrow{P} c\)</span>（常数），则</p>
@@ -72,7 +206,7 @@ X_n + Y_n \xrightarrow{d} X + c, \qquad Y_nX_n \xrightarrow{d} cX, \qquad X_n/Y_
 <p><strong>记号纪律（<span class="arithmatex">\(o_P/O_P\)</span> 演算）</strong>：<span class="arithmatex">\(o_P(1)\)</span> = 依概率趋零；<span class="arithmatex">\(O_P(1)\)</span> = 胎紧。运算规则如同小 o/大 O（<span class="arithmatex">\(o_P\cdot O_P = o_P\)</span> 等）——渐近论证的速记法，后两页全程使用。</p>
 <h2 id="3">3. 联合渐近与多维版<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>多维 Delta：<span class="arithmatex">\(\sqrt n(T_n - \theta) \xrightarrow{d} N(0, \Sigma)\)</span> ⇒ <span class="arithmatex">\(\sqrt n(g(T_n) - g(\theta)) \xrightarrow{d} N(0,\ \nabla g^\top\Sigma\nabla g)\)</span>（同证，Jacobi 替导数）。<strong>Cramér–Wold 装置【引用】</strong>：多维依分布收敛 ⟺ 一切线性组合一维收敛——"多维问题一维化"的官方通道（多维 CLT 由一维 CLT + C–W 一行获得）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（样本方差的渐近分布，三工具合演）</strong> <span class="arithmatex">\(S_n^2 = \frac1n\sum(X_i - \bar X)^2\)</span>：分解 <span class="arithmatex">\(= \frac1n\sum(X_i - \mu)^2 - (\bar X - \mu)^2\)</span>；第一项 CLT 给 <span class="arithmatex">\(\sqrt n(\cdot - \sigma^2) \xrightarrow{d} N(0, \mu_4 - \sigma^4)\)</span>，第二项 <span class="arithmatex">\(\sqrt n(\bar X - \mu)^2 = O_P(1)\cdot o_P(1) = o_P(1)\)</span>——Slutsky 合并：</p>
 <div class="arithmatex">\[
 \sqrt n(S_n^2 - \sigma^2) \xrightarrow{d} N(0,\ \mu_4 - \sigma^4)
@@ -91,5 +225,7 @@ X_n + Y_n \xrightarrow{d} X + c, \qquad Y_nX_n \xrightarrow{d} cX, \qquad X_n/Y_
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/convergence-tools.js"></script>
 </body>
 </html>

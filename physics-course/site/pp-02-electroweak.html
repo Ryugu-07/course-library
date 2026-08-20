@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,14 +43,20 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 病灶：质量与规范的冲突</a></li>
+<li><a href="#_1">学习层：先猜哪个中性组合无质量</a><ul>
+<li><a href="#1">1. 预测门：矩阵的零方向会是谁？</a></li>
+<li><a href="#2">2. 最小推导：先把规范荷写出来</a></li>
+<li><a href="#3">3. 反例、边界与迁移</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 病灶：质量与规范的冲突</a></li>
 <li><a href="#2-goldstone">2. 自发破缺与 Goldstone 定理</a></li>
 <li><a href="#3-higgs-goldstone">3. Higgs 机制：规范场吃掉 Goldstone</a></li>
 <li><a href="#4-weinbergsalam">4. 电弱落地：Weinberg–Salam</a></li>
@@ -57,7 +74,55 @@
 <p><img alt="Higgs 墨西哥帽势与破缺前后的对比。" src="assets/img/pp-02-higgs-potential.svg" /></p>
 <figcaption><span class="fig-id">图 pp-02.1</span>Higgs 势 \(V=-\mu^2|\phi|^2+\lambda|\phi|^4\)。\(\mu^2&gt;0\) 时形成"墨西哥帽"，真空简并于 \(|\phi|=v/\sqrt2\) 的圆环；\(\mu^2&lt;0\) 时最小值在原点（对称真空）——<strong>定律对称而真空选边</strong>。径向激发即物理 Higgs 粒子，角向零模被规范场吃掉。</figcaption>
 </figure>
-<h2 id="1">1. 病灶：质量与规范的冲突<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：先猜哪个中性组合无质量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 预测门：矩阵的零方向会是谁？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>本页实验固定一个树级、单个 Higgs <span class="arithmatex">\(SU(2)_L\)</span> 双重态的有限模型。给定 <span class="arithmatex">\(g,g',v\)</span>，先预测中性基底 <span class="arithmatex">\((W^3,B)\)</span> 的质量矩阵是否有零特征值、正确的 Weinberg 角是否把它对角化，以及 <span class="arithmatex">\(v=0\)</span> 或错误混合角会报告什么。提交五项预测前，数值账本和 SVG 结果保持隐藏。</p>
+<h3 id="2">2. 最小推导：先把规范荷写出来<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对于泛 <span class="arithmatex">\(U(1)\)</span> 复标量，若</p>
+<div class="arithmatex">\[
+D_\mu=\partial_\mu-i g q A_\mu,\qquad \phi=\frac{v+h}{\sqrt2},
+\]</div>
+<p>则 <span class="arithmatex">\(|D\phi|^2\)</span> 的矢量质量项是</p>
+<div class="arithmatex">\[
+\frac{g^2q^2v^2}{2}A_\mu A^\mu=\frac12(gqv)^2A_\mu A^\mu,
+\qquad m_A=gqv.
+\]</div>
+<p>因此泛 <span class="arithmatex">\(U(1)\)</span> 并不自动给出 <span class="arithmatex">\(gv/2\)</span>；那个因子来自表示/生成元归一化。对 SM 双重态 <span class="arithmatex">\(\Phi=(0,v/\sqrt2)^T\)</span>、<span class="arithmatex">\(T^a=\tau^a/2\)</span>、<span class="arithmatex">\(Y=1/2\)</span>，中性质量项才是</p>
+<div class="arithmatex">\[
+\frac{v^2}{8}(gW^3-g'B)^2
+=\frac12(W^3,B)\,\frac{v^2}{4}
+\begin{pmatrix}g^2&amp;-gg'\\-gg'&amp;g'^2\end{pmatrix}
+\binom{W^3}{B}.
+\]</div>
+<p>其零方向与重方向分别是</p>
+<div class="arithmatex">\[
+A=\sin\theta_W W^3+\cos\theta_W B,\qquad
+Z=\cos\theta_W W^3-\sin\theta_W B,
+\]</div>
+<p>其中 <span class="arithmatex">\(\tan\theta_W=g'/g\)</span>。实验会把数值本征分解与这些解析核对逐项放在同一张账本里。</p>
+<h3 id="3">3. 反例、边界与迁移<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>错误混合角</strong>：矩阵的本征值仍然不变，但把错误的 <span class="arithmatex">\(A/Z\)</span> 旋转代回去会留下非零的非对角元；这不是一个新的物理光子质量。</li>
+<li><strong><span class="arithmatex">\(v=0\)</span></strong>：整个质量矩阵为零，<span class="arithmatex">\(m_W=m_Z=m_\gamma=0\)</span>；中性本征基由质量矩阵选不出来，不能把任意角度称为唯一的物理混合角。</li>
+<li><strong>范围</strong>：这是树级质量生成机制的代数审计，忽略圈修正、重整化方案、额外 Higgs 多重态和完整标准模型参数拟合；调节参数得到的曲线不是实验测量。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="electroweak-mixing">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(g=0.65\)</span>、<span class="arithmatex">\(g'=0.35\)</span>、<span class="arithmatex">\(v=246\,\mathrm{GeV}\)</span>。令 <span class="arithmatex">\(r=\sqrt{g^2+g'^2}\)</span>，则</p>
+<div class="arithmatex">\[
+M_0^2=\frac{v^2}{4}\begin{pmatrix}g^2&amp;-gg'\\-gg'&amp;g'^2\end{pmatrix}
+\approx\begin{pmatrix}6392.0&amp;-3441.8\\-3441.8&amp;1853.3\end{pmatrix}\,\mathrm{GeV}^2,
+\]</div>
+<p>解析特征值是 <span class="arithmatex">\(0\)</span> 与 <span class="arithmatex">\(v^2r^2/4\)</span>，所以 <span class="arithmatex">\(m_\gamma=0\)</span>、<span class="arithmatex">\(m_W=gv/2\approx79.95\,\mathrm{GeV}\)</span>、<span class="arithmatex">\(m_Z=vr/2\approx90.80\,\mathrm{GeV}\)</span>。<span class="arithmatex">\(\theta_W=\arctan(g'/g)\approx28.30^\circ\)</span>，<span class="arithmatex">\(\sin\theta_W=g'/r\)</span>、<span class="arithmatex">\(\cos\theta_W=g/r\)</span>，且两条电荷核对都给 <span class="arithmatex">\(e\approx0.308\)</span>：</p>
+<div class="arithmatex">\[
+e=g\sin\theta_W=g'\cos\theta_W.
+\]</div>
+<p>把角度故意偏移会留下非零旋转后非对角元；设 <span class="arithmatex">\(v=0\)</span> 则矩阵与三个质量都为零且混合基不由质量项唯一确定。这里的数字是树级单双重态模型的计算结果，不是测量值或完整 SM 拟合。</p>
+</div>
+</section>
+<h2 id="1_1">1. 病灶：质量与规范的冲突<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>规范场的质量项 <span class="arithmatex">\(\tfrac12m^2A_\mu A^\mu\)</span> 在 <span class="arithmatex">\(A_\mu\to A_\mu-\partial_\mu\alpha/e\)</span> 下不保持不变——<strong>手写质量等于谋杀规范对称</strong>，并连带毁掉可重整性（🔗 qft-03 §3 的判据）。</p>
 <p>费米子同样违宪：<span class="arithmatex">\(SU(2)_L\)</span> 只作用于左手场，故 <span class="arithmatex">\(m\bar\psi_L\psi_R\)</span> 不是不变量（pp-01 的宇称破坏结构使左右手份属不同表示）。</p>
 <p><strong>结论：标准模型里"质量"整体违宪，需要一个合法的来源。</strong></p>
@@ -70,14 +135,17 @@
 <li><strong>径向 <span class="arithmatex">\(h\)</span></strong> 获得质量 <span class="arithmatex">\(m_h^2 = 2\lambda v^2\)</span>（帽底的曲率）；</li>
 <li><strong>角向 <span class="arithmatex">\(\theta\)</span></strong> 在势中完全不出现 → <strong>无质量的 Goldstone 玻色子</strong>（沿帽檐运动零成本）。</li>
 </ul>
-<p><strong>一般表述</strong>：每破缺一个连续对称生成元，出现一个无质量玻色子。凝聚态实例：声学声子、磁振子。</p>
+<p><strong>一般表述（有前提）</strong>：对相对论性理论中的<strong>内部连续对称</strong>自发破缺，每个破缺生成元对应一个 Goldstone 模。凝聚态是非相对论性系统，色散、约束和时空对称混合会改变计数，不能把“一个生成元一个模”机械套用到所有声学声子或磁振子。</p>
 <p><strong>麻烦</strong>：自然界没有观测到这些无质量标量粒子。</p>
 <h2 id="3-higgs-goldstone">3. Higgs 机制：规范场吃掉 Goldstone<a class="headerlink" href="#3-higgs-goldstone" title="Permanent link"></a></h2>
-<p><strong>关键转折：若被破缺的是局域（规范）对称。</strong> 把普通导数换成协变导数 <span class="arithmatex">\(D_\mu=\partial_\mu-igA_\mu\)</span>，展开动能项于真空附近：</p>
-<div class="arithmatex">\[|D_\mu\phi|^2 = \tfrac12(\partial h)^2 + \underbrace{\frac{g^2v^2}{4}A_\mu A^\mu}_{\textbf{质量项}} + \frac{v}{2}\,\partial_\mu\theta\,g A^\mu+\cdots\]</div>
+<p><strong>关键转折：若被破缺的是局域（规范）对称。</strong> 对泛 <span class="arithmatex">\(U(1)\)</span> 写 <span class="arithmatex">\(D_\mu=\partial_\mu-igqA_\mu\)</span>，并用 <span class="arithmatex">\(\phi=(v+h)e^{i\theta/v}/\sqrt2\)</span> 参数化真空附近的场：</p>
+<div class="arithmatex">\[
+|D_\mu\phi|^2=\tfrac12(\partial h)^2+\tfrac12(v+h)^2\left(\frac{\partial_\mu\theta}{v}-gqA_\mu\right)^2.
+\]</div>
+<p>展开最后一项才得到 <span class="arithmatex">\(\tfrac12g^2q^2v^2A_\mu A^\mu\)</span>；因此规范场质量是 <span class="arithmatex">\(m_A=gqv\)</span>，而不是在未声明归一化时自动写成 <span class="arithmatex">\(gv/2\)</span>。</p>
 <p><strong>两件事同时发生</strong>：</p>
 <ol>
-<li><strong>规范场获得质量</strong> <span class="arithmatex">\(m_A = gv/2\)</span>——<strong>来自与真空凝聚的耦合，而非手写</strong>，规范不变性从未被破坏；</li>
+<li><strong>规范场获得质量</strong> <span class="arithmatex">\(m_A = gqv\)</span>——<strong>来自与真空凝聚的耦合，而非手写</strong>，规范不变性从未被破坏；只有在明确给出表示/生成元归一化后，才可把它改写成某个 <span class="arithmatex">\(gv/2\)</span> 的特例；</li>
 <li><strong>交叉项 <span class="arithmatex">\(\partial_\mu\theta\,A^\mu\)</span> 可用规范变换消去</strong>（幺正规范 <span class="arithmatex">\(\theta\to0\)</span>）——Goldstone 模被吸收，<strong>变成有质量矢量场的纵向极化分量</strong>。</li>
 </ol>
 <p><strong>自由度守恒是最好的检验</strong>：无质量矢量 2 个极化 + 1 个 Goldstone = 有质量矢量 3 个极化 ✓。<strong>"光子吃了 Goldstone 长胖"。</strong></p>
@@ -93,26 +161,26 @@
 <p><strong>光子 = 未破缺的那个组合</strong>（<span class="arithmatex">\(A_\mu = \sin\theta_W W^3_\mu+\cos\theta_W B_\mu\)</span>），保持无质量 ✓。<strong>LEP 的高精度测量全面验证了这套关系</strong>【引用】。</p>
 <p><strong>费米子质量</strong>：Yukawa 耦合 <span class="arithmatex">\(-y\,\bar\psi_L\phi\,\psi_R\)</span> 是合法的不变量（<span class="arithmatex">\(\phi\)</span> 恰好补齐 <span class="arithmatex">\(SU(2)\)</span> 指标），破缺后给</p>
 <div class="arithmatex">\[m_f = \frac{y_f v}{\sqrt2}\]</div>
-<p><strong>一切基本粒子的质量同源于同一个 <span class="arithmatex">\(v\)</span></strong>——但耦合 <span class="arithmatex">\(y_f\)</span> 的巨大等级（顶夸克 <span class="arithmatex">\(\sim1\)</span> 到电子 <span class="arithmatex">\(\sim10^{-6}\)</span>）<strong>本身没有解释</strong>【第三档悬案】。</p>
-<p><strong>夸克混合</strong>：Yukawa 矩阵非对角化导致 CKM 矩阵，其复相位提供标准模型中唯一的 CP 破坏源——<strong>但其大小不足以解释宇宙的重子不对称</strong>（§5）。</p>
+<p>在树级、单个 Higgs 双重态的 SM 中，<span class="arithmatex">\(W/Z\)</span> 与带 Yukawa 的带电费米子质量由 <span class="arithmatex">\(v\)</span> 乘以各自的耦合生成；这不等于把质子质量写成某个 <span class="arithmatex">\(y_pv\)</span>，因为质子质量主要来自 QCD 束缚能。最小 SM 中微子无质量，观测到的中微子质量属于扩展边界；而 Yukawa 耦合从顶夸克到电子的巨大等级<strong>本身没有解释</strong>【第三档悬案】。</p>
+<p><strong>夸克混合</strong>：Yukawa 矩阵非对角化导致 CKM 矩阵，其复相位是夸克扇区的 CP 破坏源之一；完整 SM 还允许强 CP 的 <span class="arithmatex">\(\theta\)</span> 项，若纳入有质量中微子的扩展，轻子混合还会带来额外相位。CKM 破坏的大小不足以解释宇宙的重子不对称（§5）。</p>
 <h2 id="5-2012">5. 2012 判决与标准模型的边界<a class="headerlink" href="#5-2012" title="Permanent link"></a></h2>
-<p><strong>LHC 在 125 GeV 处发现新粒子</strong>，且其产生率与各衰变道分支比与标准模型 Higgs 一致（诺奖 2013）。</p>
-<p><strong>最关键的指纹</strong>：<strong>耦合强度正比于质量</strong>——这正是"质量源于 Higgs"的直接可证伪预言（§6 例 2）。</p>
+<p><strong>LHC 在 125 GeV 处发现新粒子</strong>，其产生率与各衰变道分支比在测量不确定度内总体与标准模型 Higgs 预期相容（诺奖 2013）。</p>
+<p><strong>最关键的指纹</strong>：在树级 SM 结构中，带质量粒子的 Higgs 耦合与其质量成正比；实验检验的是带有不确定度、圈修正和 QCD 修正的相容性，不是要求每个数据点严格落在一条无误差直线上（§6 例 2）。</p>
 <p><strong>诚实的边界清单</strong>：</p>
-<p><strong>成就</strong>：一页拉氏量覆盖已知一切非引力现象，某些量的理论—实验符合达 <span class="arithmatex">\(10^{-12}\)</span> 量级（🔗 qft-02 的 <span class="arithmatex">\(g-2\)</span>）。</p>
+<p><strong>成就</strong>：在已经检验的能标和观测量上，标准模型对大量非引力现象给出高度成功、可重复的计算；不同观测量的理论误差、实验误差与适用范围不同，不能压成一个统一的精度口号。</p>
 <p><strong>已知的未完</strong>：</p>
 <ul>
 <li><strong>中微子质量</strong>（标准模型原版预言为零，观测到振荡 → 必须扩展，pp-01）；</li>
 <li><strong>暗物质与暗能量</strong>（宇宙的约 95%，🔗 cosmo-01、ap-06）；</li>
 <li><strong>重子不对称</strong>（CKM 的 CP 破坏量级不够）；</li>
 <li><strong>引力的量子化</strong>（qft-03 §5：不可重整 → 需新框架）；</li>
-<li><strong>等级问题与三代之谜</strong>。</li>
+<li><strong>等级问题与三代之谜</strong>：量子修正的高能敏感性是真问题，但其精调程度取决于 UV 截断、对称性和具体方案，不能无条件写成固定的精调数字。</li>
 </ul>
 <p><strong>超出部分（超对称、大统一、弦论）属第三档了望塔</strong>——本站在此如实收针，不作超出证据的断言。</p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（自由度会计）</strong> 破缺前：<span class="arithmatex">\(SU(2)\times U(1)\)</span> 的 4 个无质量矢量（各 2 极化）+ 复二重态（4 个实标量）= <strong>12</strong>；破缺后：<span class="arithmatex">\(W^\pm,Z\)</span>（各 3）+ 光子（2）+ Higgs（1）= <strong>12</strong> ✓。<strong>五分钟核账，胜过千言。</strong></p>
-<p><strong>例 2（Yukawa 直线）</strong> 把 LHC 实测的各粒子—Higgs 耦合强度对其质量作图：<span class="arithmatex">\(b,\tau,t,W,Z\)</span> 落在同一条直线上。<strong>"耦合 ∝ 质量"是 Higgs 机制的核心可证伪预言，而实验给出了直线。</strong> 这是"读一张实验图理解一个机制"的范例。</p>
-<p><strong>例 3（等级问题的量级）</strong> <span class="arithmatex">\(v=246\)</span> GeV 与 Planck 标度 <span class="arithmatex">\(10^{19}\)</span> GeV 相差 17 个数量级。标量质量的量子修正天然被拉向高标度（<span class="arithmatex">\(\delta m_h^2\sim\Lambda^2\)</span>），要保持 125 GeV 需要精调到约 <span class="arithmatex">\(10^{-34}\)</span>——<strong>"为什么 Higgs 这么轻"是当前高能物理的中心悬案</strong>，也是了望塔入口的坐标。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 2（Yukawa 关系）</strong> 把 LHC 测得的各粒子—Higgs 耦合强度对其质量作图：树级 SM 预期是比例关系，<span class="arithmatex">\(b,\tau,t,W,Z\)</span> 的测量在误差与圈/QCD 修正范围内与它相容。<strong>"耦合 ∝ 质量"是树级结构的可检验预言，不是要求所有点严格落在无误差直线上。</strong></p>
+<p><strong>例 3（等级问题的量级）</strong> <span class="arithmatex">\(v=246\)</span> GeV 与 Planck 标度 <span class="arithmatex">\(10^{19}\)</span> GeV 相差许多数量级；在带有高 UV 截断的朴素有效场论估计中，标量质量会出现 <span class="arithmatex">\(\delta m_h^2\sim\Lambda^2\)</span> 的高能敏感性。问题的严重程度取决于 UV 假设、对称性和具体方案，不能无条件压成固定精调数字。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：非平衡统计物理——涨落定理与线性响应：把"耗散"与"涨落"焊在一起的现代热力学。</em></p>
 </article>
@@ -124,5 +192,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/electroweak-mixing.js"></script>
 </body>
 </html>

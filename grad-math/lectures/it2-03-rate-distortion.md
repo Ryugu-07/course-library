@@ -3,6 +3,63 @@
 > **对标**：Cover & Thomas §10、§11 ｜ **前置**：it2-01/02、本科信息论 II、优化 III
 > 收官页两个方向：**率失真理论**——有损压缩的极限（JPEG/MP3/神经压缩的理论天花板）；**大偏差与 Sanov 定理**——"稀有事件的概率按 KL 散度指数计价"：KL 的第三重身份（前两重：编码代价、统计距离），也是 hdp 线 Chernoff 界的完全体形态。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="rate-distortion-learning-title">
+
+## 学习层：先猜失真预算的价格
+
+<h3 id="rate-distortion-learning-title">具体谜题：一个公平 bit 允许错多少？</h3>
+
+令 \(X\sim\operatorname{Bernoulli}(1/2)\)，重构 \(\hat X\in\{0,1\}\)，失真为汉明距离
+
+$$
+d(x,\hat x)=\mathbf 1\{x\ne\hat x\}.
+$$
+
+失真 \(D\) 是每个源符号的平均错位预算。先预测：从 \(D=0\) 放宽到 \(D=1/2\)，所需率会升高、保持不变，还是降到 0？再看实验台把答案与一个数值稳定的 BA 测试信道逐项对账。
+
+<div class="learning-lab" data-learning-lab="rate-distortion" markdown="1">
+
+**无 JavaScript 时的静态读法：**本实验默认 \(D=0.20\)。二元熵端点约定 \(H_2(0)=H_2(1)=0\)，并且
+
+$$
+R(D)=\begin{cases}
+1-H_2(D),&0\le D\le\frac12,\\
+0,&D\ge\frac12,
+\end{cases}\qquad
+H_2(D)=-D\log_2D-(1-D)\log_2(1-D).
+$$
+
+因此
+
+| \(D\) | \(H_2(D)\) | \(R(D)\)（bits/source symbol） | 读法 |
+|---:|---:|---:|---|
+| \(D<0\) | 非法 | 非法 | 失真预算不能为负 |
+| 0 | 0 | 1 | 无损恢复公平 bit |
+| 0.20 | 0.721928 | 0.278072 | 默认点 |
+| \(1/2\) | 1 | 0 | 常数重构已够用 |
+| 0.60 | 不再用于闭式段 | 0 | \(D\ge1/2\) 的零率平台 |
+
+达到默认点的最小测试信道可以取
+
+$$
+W(\hat x\mid x)=\begin{pmatrix}0.8&0.2\\0.2&0.8\end{pmatrix},\qquad
+q(\hat x)=(0.5,0.5),\qquad E[d(X,\hat X)]=0.2.
+$$
+
+于是 \(I(X;\hat X)=1-H_2(0.2)=0.278072\) bits。BA 账本用自然指数的 \(\exp(-\beta d)\) 做迭代，但每行用 log-sum-exp 归一化；默认点的 \(\beta=\ln4\approx1.386294\)，数值的 \(I\) 与闭式 \(R(D)\) 应只差舍入误差。
+
+**四个对象不要混为一谈：**\(R(D)\) 是 i.i.d. 源、每符号失真约束下的渐近 operational theorem 边界；\(I(X;\hat X)\ge R(D)\) 是任意测试联合分布的互信息下界；一个有限 \(n\) 的单次码只有 \(M\) 个码字、率为 \(\log_2M/n\)，还要实际测它的失真；finite-blocklength 可能需要高于渐近边界的余量，\(R(D)\) 不承诺每个 \(n\) 都能恰好取等。
+
+</div>
+
+<h3>反例与迁移</h3>
+
+若把 \(D\) 误当作“每条消息最多错 \(D\) 的比例”，就把平均失真 operational theorem 偷换成了逐条保证；若把 \(I\) 的测试信道直接称作一个有限码，又忽略了码本覆盖和整数码字。迁移练习：把公平 bit 改成偏置 Bernoulli，先写出适用的失真范围，再检查 \(R(D)\) 是否仍是本页的同一个闭式。
+
+</section>
+
 ## 1. 率失真理论：有损压缩的极限
 
 **设定**：失真度量 $d(x, \hat x)$（如平方误差/汉明距离），允许平均失真 $\leq D$，问最少码率。
@@ -13,11 +70,30 @@ $$
 R(D) = \min_{p(\hat x\mid x):\ E\,d(X,\hat X) \leq D}\ I(X; \hat X)
 $$
 
-且此 $R(D)$ 恰是可达的最小码率（正逆定理均成立【骨架：正向 = 随机码本 + 联合典型性（it2-02 的证明机器换个方向开——码字当"重建"用）；逆向 = Fano 链】）。
+且在 i.i.d. 源、单字母失真和标准平均失真准则下，此 $R(D)$ 是渐近可达的最小率：对任意 $\epsilon>0$，长 block 可以把率压到 $R(D)+\epsilon$ 且满足失真约束；反向定理排除低于 $R(D)$ 的渐近率。它不是“任意有限 block 的单次码长”公式。
 
-**读法**：**压缩 = 用互信息买失真的市场**，$R(D)$ 是价目表：$R(0) = H$（无损极限，回收 it2-01）；$D$ 大到一定程度 $R = 0$（均值重建即可）。凸性【一行：时间共享论证】保证价目表无套利。
+**读法**：**压缩 = 用互信息买失真的市场**，$R(D)$ 是价目表：对本页公平 bit，$R(0)=1$（无损极限，回收 it2-01）；$D\ge1/2$ 时常数重构即可给出 $R=0$。凸性【一行：时间共享论证】保证价目表无套利。
 
-**两个闭式价目表【引用推导】**：伯努利-汉明：$R(D) = h(p) - h(D)$；**高斯-平方误差**：
+**本页的精确闭式价目表【限定模型】**：当 $X\sim\operatorname{Bernoulli}(1/2)$、$\hat X\in\{0,1\}$、失真为汉明距离时，
+
+$$
+R(D)=\begin{cases}
+1-H_2(D),&0\le D\le\frac12,\\
+0,&D\ge\frac12,
+\end{cases}\qquad R(D)\text{ 对 }D<0\text{ 无定义}.
+$$
+
+**下界**来自误差变量 $E=X\oplus\hat X$：
+
+$$
+I(X;\hat X)=1-H(X\mid\hat X)\ge1-H(E)\ge1-H_2(D),\qquad D\le\frac12.
+$$
+
+最后一个不等号用的是二元熵在 $[0,1/2]$ 上递增；若 $D\ge1/2$，输出常数 0 的零率重构已有 $E[d]=1/2\le D$。**可达性**取 BSC 测试信道 $\hat X=X\oplus Z$、$Z\sim\operatorname{Bernoulli}(D)$，其 $q(\hat X)$ 仍均匀，恰有 $I=1-H_2(D)$。
+
+偏置 Bernoulli 的一般式需要额外分段和适用范围，不能把 $h(p)-h(D)$ 不加条件地写成所有 $p,D$ 的公式；本页实验只验证公平 bit 的精确边界。
+
+**高斯-平方误差**（另一个模型）：
 
 $$
 R(D) = \frac12\log\frac{\sigma^2}{D}

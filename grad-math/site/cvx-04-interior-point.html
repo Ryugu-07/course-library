@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先预测中心路径，再核对两本账</a><ul>
+<li><a href="#1-lp">1. 一个明确的二维 LP</a></li>
+<li><a href="#2-tgap">2. 预测门：t、gap 和边界</a></li>
+<li><a href="#3">3. 透明账本：可行性、对偶性与互补性</a></li>
+<li><a href="#4">4. 反例与迁移边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 障碍法：把约束烧进目标</a></li>
 <li><a href="#2">2. 自和谐：复杂度理论的钥匙</a></li>
 <li><a href="#3-sdp">3. 半定规划（SDP）</a></li>
-<li><a href="#4">4. 凸优化四页收官盘点</a></li>
+<li><a href="#4_1">4. 凸优化四页收官盘点</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -50,6 +68,61 @@
 <p><strong>对标</strong>：Boyd &amp; Vandenberghe §11 / Nesterov–Nemirovski（理论源头）｜ <strong>前置</strong>：cvx-01–03、本科优化 IV、数值 II
 凸优化收官：<strong>内点法</strong>——让"多项式时间解凸问题"成为定理的算法（本科优化 IV 提过名字，本页给机理与复杂度），及其最重要的应用疆域 <strong>SDP</strong>（半定规划：变量是矩阵的 LP，组合优化与控制论的瑞士军刀）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：先预测中心路径，再核对两本账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-lp">1. 一个明确的二维 LP<a class="headerlink" href="#1-lp" title="Permanent link"></a></h3>
+<p>实验只处理</p>
+<div class="arithmatex">\[
+\min_{x\in\mathbb R^2} c^Tx=-x_1-2x_2
+\quad\mathrm{s.t.}\quad -x_1\leq0,\ -x_2\leq0,\ x_1+x_2\leq1.
+\]</div>
+<p>它有严格可行初值 <span class="arithmatex">\(x_0=(1/3,1/3)\)</span>，最优顶点是 <span class="arithmatex">\((0,1)\)</span>。令</p>
+<div class="arithmatex">\[
+s=(x_1,x_2,1-x_1-x_2),\qquad
+F_t(x)=t(-x_1-2x_2)-\log x_1-\log x_2-\log(1-x_1-x_2).
+\]</div>
+<p>脚本对每个 <span class="arithmatex">\(t&gt;0\)</span> 用带 backtracking 的 Newton 解 <span class="arithmatex">\(\nabla F_t=0\)</span>，并保留每次最终的原始点、slack、乘子和残差，而不是只画一条“看起来像路径”的曲线。</p>
+<h3 id="2-tgap">2. 预测门：t、gap 和边界<a class="headerlink" href="#2-tgap" title="Permanent link"></a></h3>
+<p>先猜：增大 <span class="arithmatex">\(t\)</span> 时路径会靠近哪个顶点？三条不等式给出的对偶间隙是 <span class="arithmatex">\(3/t\)</span> 还是 <span class="arithmatex">\(1/t\)</span>？从边界初值、或从可行集只有 <span class="arithmatex">\((0,0)\)</span> 的退化 LP 启动时，Newton 是否应该给出一个数值答案？提交前结果隐藏；揭晓后可切换 <span class="arithmatex">\(t\)</span> 和四种正常/失败场景。</p>
+<h3 id="3">3. 透明账本：可行性、对偶性与互补性<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(Ax\leq b\)</span> 写 <span class="arithmatex">\(s=b-Ax\)</span>。中心路径的驻点给出</p>
+<div class="arithmatex">\[
+\lambda_i(t)=\frac{1}{t s_i},\qquad
+c+A^T\lambda=0,qquad
+s_i\lambda_i=\frac1t.
+\]</div>
+<p>因此在本例 <span class="arithmatex">\(m=3\)</span> 时，脚本应同时显示</p>
+<div class="arithmatex">\[
+\text{gap}=c^Tx-(-b^T\lambda)=\sum_i s_i\lambda_i=\frac3t,
+\]</div>
+<p>以及 primal slack 全为正、<span class="arithmatex">\(\lambda_i\geq0\)</span>、stationarity residual 和互补 residual。<span class="arithmatex">\(t\to\infty\)</span> 时 <span class="arithmatex">\(x_1\)</span> 与第三个 slack 靠近零，但每个有限 <span class="arithmatex">\(t\)</span> 仍在严格内部。</p>
+<h3 id="4">4. 反例与迁移边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>不可严格可行</strong>：加入 <span class="arithmatex">\(x_1+x_2\leq0\)</span> 后，和 <span class="arithmatex">\(x_1,x_2\geq0\)</span> 合起来只剩边界点 <span class="arithmatex">\((0,0)\)</span>；log barrier 没有定义域，实验给 <code>no-strict-feasible-point</code> 失败状态。</li>
+<li><strong>非严格/病态初值</strong>：<span class="arithmatex">\(x_1=0\)</span> 在对数项处发散；<span class="arithmatex">\(x_1=10^{-10}\)</span> 虽形式上严格，却触发病态初值状态，不把浮点噪声包装成成功。</li>
+<li><strong>理论边界</strong>：这张二维图只审计一个 LP 的中心路径方程和 Newton 数值，不是一般多项式复杂度证明。自和谐障碍的复杂度定理需要单独的函数类与参数条件；SDP 的 <span class="arithmatex">\(-\log\det X\)</span>、锥内点和秩退化也单列，不能从这个三角形 toy 直接推出。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="interior-central-path">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认 <span class="arithmatex">\(t=1\)</span>、<span class="arithmatex">\(x_0=(1/3,1/3)\)</span>。Newton 得到</p>
+<div class="arithmatex">\[
+x^*(1)\approx(0.311108,0.451606),\quad
+s\approx(0.311108,0.451606,0.237286),
+\]</div>
+<p>并给出</p>
+<div class="arithmatex">\[
+\lambda\approx(3.214320,2.214320,4.214320),\quad
+\text{primal}=-1.214320,\quad
+\text{dual}=-4.214320,
+\]</div>
+<p>这里对偶目标按本页的 <span class="arithmatex">\(Ax\leq b\)</span> 约定是 <span class="arithmatex">\(-b^T\lambda=-\lambda_3\approx-4.214320\)</span>，所以</p>
+<div class="arithmatex">\[
+\text{primal}-\text{dual}=3=\frac{3}{t},
+\]</div>
+<p>且三行 <span class="arithmatex">\(s_i\lambda_i\approx1\)</span>、最小 slack <span class="arithmatex">\(\approx0.237286\)</span>。在 <span class="arithmatex">\(t=10\)</span> 时 <span class="arithmatex">\(x\approx(0.089617,0.863121)\)</span>、gap <span class="arithmatex">\(\approx0.3\)</span>，路径明显靠近 <span class="arithmatex">\((0,1)\)</span>；边界初值、病态初值和无严格可行 LP 都应显示失败原因而非伪造路径。这个二维数值实验不承担一般复杂度或 SDP 结论。</p>
+</div>
+</section>
 <h2 id="1">1. 障碍法：把约束烧进目标<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>约束问题 <span class="arithmatex">\(\min f_0(x)\ \text{s.t.}\ f_i(x) \leq 0\)</span>。<strong>对数障碍</strong>：</p>
 <div class="arithmatex">\[
@@ -79,7 +152,7 @@ O\big(\sqrt{\nu}\,\ln\tfrac{\nu}{\varepsilon}\big)\ \text{次 Newton 迭代}
 <li><strong>控制论的 LMI</strong>：Lyapunov 不等式 <span class="arithmatex">\(A^\top P + PA \prec 0\)</span>（ode-03 稳定性的矩阵版）是 SDP 可行性问题——"找 Lyapunov 函数"从艺术变成求解器调用；</li>
 <li><strong>多项式优化 / SOS</strong>：<span class="arithmatex">\(p(x) \geq 0\)</span> 的"平方和证书"是 SDP——非凸多项式问题的凸层级逼近（Lasserre 层级【引用】）。</li>
 </ul>
-<h2 id="4">4. 凸优化四页收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 凸优化四页收官盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -115,7 +188,7 @@ O\big(\sqrt{\nu}\,\ln\tfrac{\nu}{\varepsilon}\big)\ \text{次 Newton 迭代}
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（中心路径亲算）</strong> <span class="arithmatex">\(\min x\ \text{s.t.}\ x \geq 0\)</span>（一维 LP）：<span class="arithmatex">\(x^*(t) = \arg\min[tx - \ln x] = \frac1t\)</span>——路径从内部滑向最优点 <span class="arithmatex">\(0\)</span>，间隙恰 <span class="arithmatex">\(\frac1t = \frac mt\)</span> ✓（定理在最小例子上的显影）。</p>
 <p><strong>例 2（LMI 上手）</strong> 判定 <span class="arithmatex">\(\dot x = Ax\)</span>，<span class="arithmatex">\(A = \begin{pmatrix}-1 &amp; 2\\ 0 &amp; -3\end{pmatrix}\)</span> 的稳定性：解 <span class="arithmatex">\(A^\top P + PA = -I\)</span>（Lyapunov 方程，线性！）得 <span class="arithmatex">\(P \succ 0\)</span> ⇒ 稳定——ode-03 的特征值判据与 SDP 路线双验证。</p>
-<p><strong>例 3（松弛-取整的体感）</strong> 三角形图 MaxCut：SDP 最优 = 2.25（向量排成 120°），随机超平面期望切 <span class="arithmatex">\(= 3\times\frac{120°}{180°}\cdot\frac{?}{}\)</span>……亲手算这个三顶点例子（答案 2，比值 <span class="arithmatex">\(\frac{2}{2.25} \approx 0.889 &gt; 0.878\)</span> ✓）——GW 算法在最小非平凡图上走一遍。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（松弛-取整的体感）</strong> 三角形图 MaxCut：SDP 最优 = 2.25（向量排成 120°），随机超平面期望切 <span class="arithmatex">\(= 3\times\frac{120°}{180°}=2\)</span>，比值 <span class="arithmatex">\(\frac{2}{2.25} \approx 0.889 &gt; 0.878\)</span> ✓——GW 算法在最小非平凡图上走一遍。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一门：数值线性代数——同样的矩阵问题，问"在浮点与有限步的现实里怎么算得又快又稳"。</em></p>
 </article>
@@ -127,5 +200,7 @@ O\big(\sqrt{\nu}\,\ln\tfrac{\nu}{\varepsilon}\big)\ \text{次 Newton 迭代}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/interior-central-path.js"></script>
 </body>
 </html>

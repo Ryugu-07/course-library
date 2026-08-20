@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：最大值看到的，比终点更多</a><ul>
+<li><a href="#1-learning-contract">1. Learning contract</a></li>
+<li><a href="#2">2. 反射原理账本</a></li>
+<li><a href="#3">3. 边界、反例与迁移</a></li>
+<li><a href="#4">4. 动手实验：预测门、解析账本和固定路径</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 布朗运动：随机游走的极限</a></li>
-<li><a href="#2">2. 几何布朗运动与金融一瞥</a></li>
-<li><a href="#3">3. 鞅：公平赌博的数学</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#2_1">2. 几何布朗运动与金融一瞥</a></li>
+<li><a href="#3_1">3. 鞅：公平赌博的数学</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,6 +66,53 @@
 <blockquote>
 <p>收官页打开两扇通往研究生阶段的门：<strong>布朗运动</strong>（连续时间随机过程之王，金融数学的地基）与<strong>鞅</strong>（"公平赌博"的数学化，现代概率的统一语言）。定位是"一瞥"：定义、核心性质、两个漂亮应用——深挖属于随机分析课，但这一瞥足够支撑你读懂 Black–Scholes 和扩散模型的 SDE 语言。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：最大值看到的，比终点更多<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-learning-contract">1. Learning contract<a class="headerlink" href="#1-learning-contract" title="Permanent link"></a></h3>
+<p>本页实验只处理从 <span class="arithmatex">\(B_0=0\)</span> 出发的<strong>标准布朗运动</strong>。你要区分四件事：终点事件 <span class="arithmatex">\(\{B_T\ge a\}\)</span>、路径事件 <span class="arithmatex">\(\{M_T\ge a\}\)</span>（其中 <span class="arithmatex">\(M_T=\max_{0\le s\le T}B_s\)</span>）、首次通过时间 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t\ge a\}\)</span>，以及密度 <span class="arithmatex">\(f_{\tau_a}\)</span>。固定 seed 的折线只负责让“路径可能先越界、最后又回来”可见；反射原理和解析公式才是定理证据。</p>
+<p>先写下预测，再打开实验：</p>
+<ol>
+<li>当 <span class="arithmatex">\(a&gt;0,T&gt;0\)</span> 时，<span class="arithmatex">\(P(M_T\ge a)\)</span> 是 <span class="arithmatex">\(P(B_T\ge a)\)</span> 的几倍？</li>
+<li><span class="arithmatex">\(P(\tau_a\le T)\)</span> 应该等于最大值事件、终点事件，还是密度在 <span class="arithmatex">\(T\)</span> 的数值？</li>
+<li>若 <span class="arithmatex">\(a\le0\)</span> 或 <span class="arithmatex">\(T=0\)</span>，起点 <span class="arithmatex">\(B_0=0\)</span> 会怎样改写上面的连续公式？</li>
+</ol>
+<h3 id="2">2. 反射原理账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对正阈值 <span class="arithmatex">\(a&gt;0\)</span>，把所有在 <span class="arithmatex">\(T\)</span> 前首次到达 <span class="arithmatex">\(a\)</span>、但最终落在 <span class="arithmatex">\(a\)</span> 以下的路径，在首次到达时刻之后关于水平线 <span class="arithmatex">\(a\)</span> 反射。反射后的终点落在 <span class="arithmatex">\(a\)</span> 以上，且这一步保持 Wiener 路径的概率结构，因此</p>
+<div class="arithmatex">\[
+P(M_T\ge a)=2P(B_T\ge a)=2\left[1-\Phi\left(\frac a{\sqrt T}\right)\right],
+\qquad a&gt;0,\ T&gt;0.
+\]</div>
+<p>又因为 <span class="arithmatex">\(\{\tau_a\le T\}=\{M_T\ge a\}\)</span>，所以首次通过时间的 CDF 是</p>
+<div class="arithmatex">\[
+F_{\tau_a}(T)=2\left[1-\Phi\left(\frac a{\sqrt T}\right)\right],
+\qquad
+f_{\tau_a}(t)=\frac{a}{\sqrt{2\pi}\,t^{3/2}}\exp\left(-\frac{a^2}{2t}\right),\quad t&gt;0.
+\]</div>
+<p>这里的“密度”不是把 CDF 再除以 <span class="arithmatex">\(T\)</span>，而是对上式真正求导。特别是终点越界概率只看一个时刻，而最大值事件看整条连续路径；二者差的正是那些“先上穿、后回落”的路径。</p>
+<h3 id="3">3. 边界、反例与迁移<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li>若 <span class="arithmatex">\(a&lt;0\)</span>，以及按 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t\ge a\}\)</span> 的约定取 <span class="arithmatex">\(a=0\)</span>，起点已经在阈值上方或阈值处，所以 <span class="arithmatex">\(\tau_a=0\)</span> 几乎处处，CDF 在 <span class="arithmatex">\(0\)</span> 有原子，不能继续声称上面的 <span class="arithmatex">\(t&gt;0\)</span> 密度覆盖全部分布。</li>
+<li>若 <span class="arithmatex">\(T=0\)</span>，<span class="arithmatex">\(B_0=M_0=0\)</span>：<span class="arithmatex">\(a&gt;0\)</span> 时两个越界事件概率都是 <span class="arithmatex">\(0\)</span>；<span class="arithmatex">\(a\le0\)</span> 时都是 <span class="arithmatex">\(1\)</span>。因此不能把 <span class="arithmatex">\(T&gt;0\)</span> 的连续正态端点公式机械代入 <span class="arithmatex">\(T=0\)</span>，也不能把 <span class="arithmatex">\(2P(B_0\ge a)\)</span> 当作一般反射定理。</li>
+<li>反例：一条离散采样路径没有越过 <span class="arithmatex">\(a\)</span>，不代表连续路径没有越过；线性插值也不等于 Brownian 桥的精确条件分布。固定 seed 图像是直觉材料，不是有限 Monte Carlo 对定理的证明。</li>
+<li>迁移：带漂移的 <span class="arithmatex">\(X_t=\mu t+\sigma B_t\)</span> 需要先标准化或换测度；离散随机游走的首次越界还会遇到跳跃和格点 overshoot，不能直接照抄连续密度。</li>
+</ul>
+<h3 id="4">4. 动手实验：预测门、解析账本和固定路径<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认 <span class="arithmatex">\(a=1,T=1\)</span>。答案提交前，理论读数和路径图保持隐藏；提交后可以切换 <span class="arithmatex">\(a\)</span>、<span class="arithmatex">\(T\)</span>，直接查看解析概率、首次通过密度和固定 seed 的三条离散路径。图中的路径不重新抽样，因此改变参数不会制造 Monte Carlo 证据。</p>
+<div class="learning-lab" data-learning-lab="brownian-first-passage">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 默认 <span class="arithmatex">\(a=T=1\)</span>。记 <span class="arithmatex">\(\Phi\)</span> 为标准正态 CDF，则</p>
+<div class="arithmatex">\[
+P(B_1\ge1)=1-\Phi(1)\approx0.1587,
+\quad P(M_1\ge1)=P(\tau_1\le1)=2[1-\Phi(1)]\approx0.3173,
+\]</div>
+<p>并且</p>
+<div class="arithmatex">\[
+f_{\tau_1}(1)=\frac{e^{-1/2}}{\sqrt{2\pi}}\approx0.2420.
+\]</div>
+<p>边界读法是：<span class="arithmatex">\(a\le0\)</span> 时 <span class="arithmatex">\(\tau_a=0\)</span> 有点质量；<span class="arithmatex">\(T=0,a&gt;0\)</span> 时三种越界/CDF 数值为 <span class="arithmatex">\(0\)</span>，而 <span class="arithmatex">\(T=0,a\le0\)</span> 时起点事件为 <span class="arithmatex">\(1\)</span>。固定 seed 路径只用于视觉检查“最大值不由终点完全决定”，不用于证明反射原理。</p>
+</div>
+</section>
 <h2 id="1">1. 布朗运动：随机游走的极限<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="布朗运动样本轨道" src="assets/img/stoch-04-brownian.svg" /></p>
@@ -58,14 +123,14 @@
 <p>（与 Poisson 过程恰成一对：同为独立平稳增量，一个连续正态、一个跳跃泊松——独立增量过程的两大原色。）</p>
 <p><strong>基本量</strong>：<span class="arithmatex">\(B(t) \sim N(0, t)\)</span>；<span class="arithmatex">\(\mathrm{Cov}(B(s), B(t)) = \min(s, t)\)</span>（<em>一行推导</em>：<span class="arithmatex">\(s &lt; t\)</span> 时 <span class="arithmatex">\(E[B_s B_t] = E[B_s(B_s + (B_t - B_s))] = s\)</span>，独立增量灭掉交叉项）。</p>
 <p><strong>三条轨道性格</strong>（认知级）：轨道<strong>连续但处处不可导</strong>（数分 II 那个"病态"的 Weierstrass 函数在此成为常态——瞬时速度不存在，"速度"的方差是 <span class="arithmatex">\(\frac{1}{\Delta t} \to \infty\)</span>）；<strong>自相似</strong> <span class="arithmatex">\(B(ct) \overset{d}{=} \sqrt{c}\,B(t)\)</span>（分形）；<strong>二次变差</strong> <span class="arithmatex">\(\sum(\Delta B)^2 \to t\)</span>（普通函数为 0——这条"<span class="arithmatex">\((dB)^2 = dt\)</span>"正是 Itô 微积分需要重新发明链式法则的原因，随机分析的入口路标）。</p>
-<h2 id="2">2. 几何布朗运动与金融一瞥<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 几何布朗运动与金融一瞥<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>股价不能为负、涨跌按<strong>比例</strong>发生，故建模对数：</p>
 <div class="arithmatex">\[
 S(t) = S_0 \exp\Big(\big(\mu - \tfrac{\sigma^2}{2}\big)t + \sigma B(t)\Big)
 \]</div>
 <p>——<strong>几何布朗运动</strong>（GBM）：对数收益率正态、独立增量（有效市场的数学表述），<span class="arithmatex">\(E S(t) = S_0 e^{\mu t}\)</span>。那个 <span class="arithmatex">\(-\frac{\sigma^2}{2}\)</span> 修正项来自 Jensen 不等式（概率 IV：<span class="arithmatex">\(E e^X &gt; e^{EX}\)</span>，波动本身抬高期望，要扣回去；严格推导即 Itô 引理的第一次上岗）。<strong>Black–Scholes 期权定价</strong>即在 GBM + 无套利下推出——金融工程整栋大楼的地基就是本页这个过程。</p>
 <p>⚠️ 清醒剂：GBM 假设收益正态、波动恒定——真实市场厚尾、波动聚集（你的研报库里"尾部风险"一词的数学背景）；它是"第一近似"而非真相。</p>
-<h2 id="3">3. 鞅：公平赌博的数学<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 鞅：公平赌博的数学<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(\{M_n\}\)</span> 关于信息流 <span class="arithmatex">\(\{\mathcal{F}_n\}\)</span>（到 <span class="arithmatex">\(n\)</span> 为止的全部历史）是<strong>鞅</strong>，若 <span class="arithmatex">\(E|M_n| &lt; \infty\)</span> 且</p>
 <div class="arithmatex">\[
 E[M_{n+1} \mid \mathcal{F}_n] = M_n
@@ -76,7 +141,7 @@ E[M_{n+1} \mid \mathcal{F}_n] = M_n
 <p>——"没有能把公平赌博变成稳赢的退出策略"（赌徒的所有"打法"在数学上被一句话终结）。它同时是强大的<strong>计算工具</strong>：</p>
 <p><strong>应用（赌徒破产的鞅式秒解）</strong> 对称赌局，本金 <span class="arithmatex">\(i\)</span>、目标 <span class="arithmatex">\(N\)</span>：<span class="arithmatex">\(S_n\)</span> 是鞅，OST 给 <span class="arithmatex">\(i = E[S_\tau] = N \cdot h_i + 0 \cdot (1 - h_i)\)</span> ⇒ <span class="arithmatex">\(h_i = i/N\)</span>——随机过程 II 里解差分方程的结论，一行拿到。再用鞅 <span class="arithmatex">\(S_n^2 - n\)</span>：<span class="arithmatex">\(E[\tau] = i(N - i)\)</span>（期望局数，同样一行）。<strong>鞅方法 = 找对守恒量</strong>，与物理里的守恒律思维同构。</p>
 <p>🔗 <strong>衔接</strong>：鞅是"信息与公平"的语言——金融定价的核心定理（风险中性测度下折现价格是鞅）、概率算法分析（Azuma 不等式一族集中不等式）都说这门语言；扩散模型的 SDE <span class="arithmatex">\(dx = f\,dt + g\,dB\)</span>（comfy 课 03 讲的采样方程）里的 <span class="arithmatex">\(dB\)</span> 就是本页的布朗运动增量——你在 ComfyUI 里每按一次生成，就有一条离散化的布朗轨道在潜空间里被采样。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（布朗运动概率计算）</strong> <span class="arithmatex">\(B(2) \sim N(0, 2)\)</span>，求 <span class="arithmatex">\(P(B(2) &gt; 1 \mid B(1) = 1)\)</span>。
 <em>解</em>：<span class="arithmatex">\(B(2) - B(1) \sim N(0,1)\)</span> 独立于历史：<span class="arithmatex">\(P(B(2) - B(1) &gt; 0) = \frac12\)</span>。（独立增量把条件概率变成增量概率——布朗运动计算的第一反射。）</p>
 <p><strong>例 2（协方差）</strong> 求 <span class="arithmatex">\(D(B(1) + B(3))\)</span>。
@@ -94,5 +159,7 @@ E[M_{n+1} \mid \mathcal{F}_n] = M_n
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/brownian-first-passage.js"></script>
 </body>
 </html>

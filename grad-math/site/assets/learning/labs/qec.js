@@ -1,531 +1,480 @@
-(function () {
+(function (root, factory) {
   "use strict";
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var ERROR_ORDER = ["I", "X1", "X2", "X3"];
-  var ERROR_INFO = {
-    I: {
-      label: "I（无错误）",
-      short: "I",
-      state: "α|000⟩ + β|111⟩",
-      syndrome: ["+", "+"],
-      correction: "I",
-      location: "没有需要定位的翻转"
-    },
-    X1: {
-      label: "X₁（第 1 位翻转）",
-      short: "X₁",
-      state: "α|100⟩ + β|011⟩",
-      syndrome: ["−", "+"],
-      correction: "X₁",
-      location: "第 1 位"
-    },
-    X2: {
-      label: "X₂（第 2 位翻转）",
-      short: "X₂",
-      state: "α|010⟩ + β|101⟩",
-      syndrome: ["−", "−"],
-      correction: "X₂",
-      location: "第 2 位"
-    },
-    X3: {
-      label: "X₃（第 3 位翻转）",
-      short: "X₃",
-      state: "α|001⟩ + β|110⟩",
-      syndrome: ["+", "−"],
-      correction: "X₃",
-      location: "第 3 位"
+  var exported = factory(root);
+
+  if (typeof module === "object" && module.exports) module.exports = exported;
+  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
+    root.CourseLearning.register("qec", exported.mount);
+  }
+  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
+    try {
+      var report = exported.selfTest();
+      console.log("qec self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
+    } catch (error) {
+      console.error("qec self-test: FAIL\n" + error.stack);
+      process.exitCode = 1;
     }
+  }
+})(typeof window !== "undefined" ? window : null, function (host) {
+  "use strict";
+
+  var STYLE_ID = "cl-qec-syndrome-styles";
+  var INSTANCE = 0;
+  var EPS = 1e-10;
+  var STYLE_TEXT = [
+    ".cl-qec-syndrome-lab{--qec-blue:#315f9d;--qec-gold:#9b6a12;--qec-green:#39734d;--qec-red:#b64335;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
+    ".cl-qec-syndrome-lab *,.cl-qec-syndrome-lab *::before,.cl-qec-syndrome-lab *::after{box-sizing:border-box;}",
+    ".cl-qec-syndrome-lab [hidden]{display:none!important;}.cl-qec-syndrome-lab h2,.cl-qec-syndrome-lab h3{margin:0;color:var(--fg);}.cl-qec-syndrome-lab h2{font-size:1.25rem;}.cl-qec-syndrome-lab h3{font-size:1.05rem;}",
+    ".cl-qec-syndrome-lab p{overflow-wrap:anywhere;}.cl-qec-syndrome-lab .qec-note,.cl-qec-syndrome-lab .qec-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;}",
+    ".cl-qec-syndrome-lab .qec-control-grid{display:grid;grid-template-columns:minmax(190px,.85fr) minmax(0,1.15fr);gap:14px;align-items:start;}.cl-qec-syndrome-lab .qec-field{display:grid;gap:6px;min-width:0;}.cl-qec-syndrome-lab .qec-field label,.cl-qec-syndrome-lab legend{color:var(--fg-soft);font-size:13px;font-weight:700;}.cl-qec-syndrome-lab select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;}",
+    ".cl-qec-syndrome-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.cl-qec-syndrome-lab output{color:var(--accent);font-variant-numeric:tabular-nums;}",
+    ".cl-qec-syndrome-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.cl-qec-syndrome-lab button:hover{border-color:var(--accent);}.cl-qec-syndrome-lab button[aria-pressed=true],.cl-qec-syndrome-lab button.qec-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}.cl-qec-syndrome-lab button:focus-visible,.cl-qec-syndrome-lab select:focus-visible,.cl-qec-syndrome-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
+    ".cl-qec-syndrome-lab .qec-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--qec-gold);background:var(--bg);}.cl-qec-syndrome-lab .qec-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px;}.cl-qec-syndrome-lab .qec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.cl-qec-syndrome-lab .qec-actions>*{flex:1 1 150px;}.cl-qec-syndrome-lab .qec-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.cl-qec-syndrome-lab .qec-pass{color:var(--qec-green);}.cl-qec-syndrome-lab .qec-warn{color:var(--qec-red);}",
+    ".cl-qec-syndrome-lab .qec-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.cl-qec-syndrome-lab .qec-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr);gap:16px;align-items:start;}.cl-qec-syndrome-lab .qec-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.cl-qec-syndrome-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.cl-qec-syndrome-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
+    ".cl-qec-syndrome-lab .qec-wire{stroke:currentColor;stroke-width:1.5;stroke-opacity:.72;}.cl-qec-syndrome-lab .qec-stage-box{fill:var(--bg);stroke:var(--border);stroke-width:1.2;}.cl-qec-syndrome-lab .qec-gate{fill:var(--qec-blue);stroke:var(--bg);stroke-width:2;}.cl-qec-syndrome-lab .qec-phase-gate{fill:var(--qec-gold);stroke:var(--bg);stroke-width:2;}.cl-qec-syndrome-lab .qec-correction{fill:var(--qec-green);stroke:var(--bg);stroke-width:2;}.cl-qec-syndrome-lab .qec-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72;}.cl-qec-syndrome-lab .qec-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.7;}.cl-qec-syndrome-lab .qec-independent{fill:none;stroke:var(--qec-blue);stroke-width:3;}.cl-qec-syndrome-lab .qec-correlated{fill:none;stroke:var(--qec-red);stroke-width:3;stroke-dasharray:8 5;}.cl-qec-syndrome-lab .qec-point{fill:var(--qec-gold);stroke:var(--bg);stroke-width:2;}",
+    ".cl-qec-syndrome-lab .qec-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0;}.cl-qec-syndrome-lab .qec-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.cl-qec-syndrome-lab .qec-metric:nth-child(1){border-top-color:var(--qec-blue);}.cl-qec-syndrome-lab .qec-metric:nth-child(2){border-top-color:var(--qec-gold);}.cl-qec-syndrome-lab .qec-metric:nth-child(3){border-top-color:var(--qec-green);}.cl-qec-syndrome-lab .qec-metric:nth-child(4){border-top-color:var(--qec-red);}.cl-qec-syndrome-lab .qec-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.cl-qec-syndrome-lab .qec-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
+    ".cl-qec-syndrome-lab .qec-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;}.cl-qec-syndrome-lab table{width:100%;min-width:720px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.cl-qec-syndrome-lab th,.cl-qec-syndrome-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.cl-qec-syndrome-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.cl-qec-syndrome-lab .qec-selected{background:var(--bg);box-shadow:inset 3px 0 0 var(--qec-red);}.cl-qec-syndrome-lab .qec-callout{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--qec-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}.cl-qec-syndrome-lab .qec-boundary{border-left-color:var(--qec-red);}.cl-qec-syndrome-lab .qec-formula{max-width:100%;overflow-x:auto;padding:9px 11px;border-left:3px solid var(--accent);background:var(--bg);font-family:\"SF Mono\",Menlo,Consolas,monospace;font-size:12px;line-height:1.65;}",
+    "@media(max-width:800px){.cl-qec-syndrome-lab .qec-layout{grid-template-columns:minmax(0,1fr);}.cl-qec-syndrome-lab .qec-control-grid{grid-template-columns:minmax(0,1fr);}}",
+    "@media(max-width:620px){.cl-qec-syndrome-lab .qec-choice-row{grid-template-columns:minmax(0,1fr);}.cl-qec-syndrome-lab .qec-stage{padding:6px;}.cl-qec-syndrome-lab table{font-size:11.5px;}.cl-qec-syndrome-lab th,.cl-qec-syndrome-lab td{padding-left:5px;padding-right:5px;}}",
+    "@media(prefers-reduced-motion:reduce){.cl-qec-syndrome-lab *{animation:none!important;transition:none!important;}}"
+  ].join("\n");
+
+  var ERROR_DEFINITIONS = [
+    { id: "I", label: "I（无错误）", bitMask: [0, 0, 0], phaseMask: [0, 0, 0], group: "无错误" },
+    { id: "X1", label: "X₁（第 1 位）", bitMask: [1, 0, 0], phaseMask: [0, 0, 0], group: "单 bit-flip" },
+    { id: "X2", label: "X₂（第 2 位）", bitMask: [0, 1, 0], phaseMask: [0, 0, 0], group: "单 bit-flip" },
+    { id: "X3", label: "X₃（第 3 位）", bitMask: [0, 0, 1], phaseMask: [0, 0, 0], group: "单 bit-flip" },
+    { id: "X1X2", label: "X₁X₂（双错）", bitMask: [1, 1, 0], phaseMask: [0, 0, 0], group: "双/三 bit-flip" },
+    { id: "X1X3", label: "X₁X₃（双错）", bitMask: [1, 0, 1], phaseMask: [0, 0, 0], group: "双/三 bit-flip" },
+    { id: "X2X3", label: "X₂X₃（双错）", bitMask: [0, 1, 1], phaseMask: [0, 0, 0], group: "双/三 bit-flip" },
+    { id: "X1X2X3", label: "X₁X₂X₃（三错）", bitMask: [1, 1, 1], phaseMask: [0, 0, 0], group: "双/三 bit-flip" },
+    { id: "Z1", label: "Z₁（相位错）", bitMask: [0, 0, 0], phaseMask: [1, 0, 0], group: "相位 / Pauli" },
+    { id: "Z2", label: "Z₂（相位错）", bitMask: [0, 0, 0], phaseMask: [0, 1, 0], group: "相位 / Pauli" },
+    { id: "Z3", label: "Z₃（相位错）", bitMask: [0, 0, 0], phaseMask: [0, 0, 1], group: "相位 / Pauli" },
+    { id: "Y2", label: "Y₂（X+Z）", bitMask: [0, 1, 0], phaseMask: [0, 1, 0], group: "相位 / Pauli" }
+  ];
+  var ERROR_BY_ID = Object.create(null);
+  ERROR_DEFINITIONS.forEach(function (definition) { ERROR_BY_ID[definition.id] = definition; });
+  var CORRECTION_BY_SYNDROME = {
+    "++": { id: "I", mask: [0, 0, 0] },
+    "-+": { id: "X1", mask: [1, 0, 0] },
+    "--": { id: "X2", mask: [0, 1, 0] },
+    "+-": { id: "X3", mask: [0, 0, 1] }
   };
 
-  var STAGES = [
-    { label: "准备", title: "先保留一个逻辑 qubit", description: "把未知逻辑态写成 |ψ⟩ = α|0⟩ + β|1⟩。我们只会测错误的指纹，不测 α、β。" },
-    { label: "Encode", title: "把逻辑态放进代码空间", description: "两个 CNOT 把逻辑信息编码为 |ψ_L⟩ = α|000⟩ + β|111⟩。这是关联的编码，不是制造三份独立的未知态。" },
-    { label: "Error", title: "让一个可选的 X 错误发生", description: "选择 I、X₁、X₂ 或 X₃；实验只注入一个 bit-flip，并把对应的状态分支显示出来。" },
-    { label: "Syndrome", title: "测两个奇偶校验", description: "测 Z₁Z₂ 与 Z₂Z₃ 的本征值。四种符号只依赖错误位置，不依赖逻辑振幅 α、β。" },
-    { label: "Correct", title: "按指纹施加恢复门", description: "综合为 −+、--、+- 时分别施加 X₁、X₂、X₃；++ 对应 I。理想情况下回到代码空间。" }
-  ];
-
-  function setAttrs(node, attrs) {
-    Object.keys(attrs).forEach(function (key) {
-      node.setAttribute(key, attrs[key]);
-    });
-    return node;
+  function finite(value) { return typeof value === "number" && isFinite(value); }
+  function near(left, right, tolerance) {
+    var scale = Math.max(1, Math.abs(left), Math.abs(right));
+    return Math.abs(left - right) <= (tolerance || EPS) * scale;
   }
-
-  function makeElement(doc, tag, className, text) {
-    var node = doc.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text;
-    return node;
+  function validateProbability(probability) {
+    if (!finite(probability) || probability < 0 || probability > 1) throw new RangeError("p must be in [0, 1]");
+    return probability;
   }
-
-  function makeSvgElement(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    if (attrs) setAttrs(node, attrs);
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function replaceContents(root, child) {
-    while (root.firstChild) root.removeChild(root.firstChild);
-    root.appendChild(child);
-  }
-
-  function injectStyles(doc) {
-    if (doc.querySelector && doc.querySelector("style[data-cl-qec-style]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute("data-cl-qec-style", "true");
-    style.textContent = [
-      ".cl-lab { --cl-bg: var(--block-bg, #f5f0e3); --cl-bg-deep: var(--code-bg, #f1ece0); --cl-fg: var(--fg, #2c2a26); --cl-muted: var(--fg-soft, #6b6557); --cl-border: var(--border, #e0d7c4); --cl-accent: var(--accent, #a03d3d); --cl-link: var(--link, #1f5f8b); --cl-good: #477a5a; --cl-warn: #a35b31; color: var(--cl-fg); margin: 2em 0; font-size: .96em; line-height: 1.65; }",
-      ".cl-lab *, .cl-lab *::before, .cl-lab *::after { box-sizing: border-box; }",
-      ".cl-lab button { font: inherit; color: var(--cl-fg); background: var(--cl-bg); border: 1px solid var(--cl-border); border-radius: 6px; cursor: pointer; line-height: 1.35; }",
-      ".cl-lab button:hover:not(:disabled) { border-color: var(--cl-accent); color: var(--cl-accent); }",
-      ".cl-lab button:focus-visible, .cl-lab input:focus-visible + label { outline: 3px solid color-mix(in srgb, var(--cl-link) 45%, transparent); outline-offset: 2px; }",
-      ".cl-lab button:disabled { cursor: not-allowed; opacity: .48; }",
-      ".cl-qec-lab { border: 1px solid var(--cl-border); border-radius: 8px; background: var(--cl-bg); padding: clamp(1rem, 2.5vw, 1.6rem); }",
-      ".cl-lab-title { margin: 0 0 .25rem; color: var(--cl-accent); font-size: 1.35rem; }",
-      ".cl-lab-intro { margin: 0 0 1rem; color: var(--cl-muted); }",
-      ".cl-error-fieldset { border: 1px solid var(--cl-border); border-radius: 6px; margin: 1rem 0; padding: .7rem .8rem .8rem; }",
-      ".cl-error-fieldset legend { color: var(--cl-accent); font-weight: 700; padding: 0 .35rem; }",
-      ".cl-radio-list { display: grid; gap: .5rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }",
-      ".cl-radio-option { align-items: center; background: var(--cl-bg-deep); border: 1px solid var(--cl-border); border-radius: 6px; display: flex; gap: .45rem; min-height: 2.75rem; padding: .45rem .55rem; }",
-      ".cl-radio-option:focus-within, .cl-radio-option.cl-radio-selected { border-color: var(--cl-accent); box-shadow: inset 3px 0 var(--cl-accent); }",
-      ".cl-radio-option input { accent-color: var(--cl-accent); margin: 0; }",
-      ".cl-radio-option label { align-items: center; cursor: pointer; display: flex; flex: 1; font-size: .91em; line-height: 1.35; min-height: 44px; }",
-      ".cl-qec-stage-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }",
-      ".cl-qec-stage { flex: 1 1 8rem; min-width: 7rem; padding: .55rem .7rem; }",
-      ".cl-qec-stage[aria-current='step'] { background: var(--cl-accent); border-color: var(--cl-accent); color: var(--cl-bg); font-weight: 700; }",
-      ".cl-qec-stage.cl-stage-done { border-color: var(--cl-good); color: var(--cl-good); }",
-      ".cl-qec-stage.cl-stage-done[aria-current='step'] { color: var(--cl-bg); }",
-      ".cl-qec-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.3fr) minmax(17rem, .9fr); margin-top: 1rem; }",
-      ".cl-circuit-figure, .cl-state-card, .cl-syndrome-card { border: 1px solid var(--cl-border); border-radius: 6px; margin: 0; min-width: 0; padding: .75rem; }",
-      ".cl-circuit-figure { background: var(--cl-bg-deep); }",
-      ".cl-circuit-figure figcaption { color: var(--cl-muted); font-size: .86em; line-height: 1.45; margin-top: .5rem; }",
-      ".cl-qec-svg { display: block; height: auto; max-width: 100%; width: 100%; }",
-      ".cl-qec-svg text { fill: var(--cl-fg); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }",
-      ".cl-circuit-wire { fill: none; stroke: var(--cl-link); stroke-linecap: round; stroke-width: 3; }",
-      ".cl-circuit-label { fill: var(--cl-muted) !important; font-size: 16px; font-weight: 700; }",
-      ".cl-circuit-stage-label { fill: var(--cl-muted) !important; font-size: 15px; font-weight: 700; }",
-      ".cl-circuit-stage-box { fill: var(--cl-bg); opacity: .35; stroke: var(--cl-border); stroke-width: 1.5; transition: opacity .2s, stroke .2s; }",
-      ".cl-circuit-stage-box.cl-circuit-current { opacity: .95; stroke: var(--cl-accent); stroke-width: 2.5; }",
-      ".cl-circuit-stage-box.cl-circuit-done { opacity: .62; stroke: var(--cl-good); }",
-      ".cl-circuit-gate { fill: var(--cl-bg); stroke: var(--cl-link); stroke-width: 2; }",
-      ".cl-circuit-gate-text { fill: var(--cl-link) !important; font-family: 'SF Mono', Menlo, Consolas, monospace !important; font-size: 15px; font-weight: 700; }",
-      ".cl-circuit-gate.cl-circuit-recovery { stroke: var(--cl-good); }",
-      ".cl-circuit-gate-text.cl-circuit-recovery { fill: var(--cl-good) !important; }",
-      ".cl-circuit-control { fill: var(--cl-link); }",
-      ".cl-circuit-target { fill: var(--cl-bg); stroke: var(--cl-link); stroke-width: 2; }",
-      ".cl-circuit-target-text { fill: var(--cl-link) !important; font-size: 18px; font-weight: 700; }",
-      ".cl-state-card { background: var(--cl-bg); }",
-      ".cl-card-title { font-size: 1rem; margin: 0 0 .55rem; }",
-      ".cl-state-expression { background: var(--cl-bg-deep); border-left: 4px solid var(--cl-accent); border-radius: 2px 6px 6px 2px; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 1.02em; margin: 0 0 .75rem; overflow-x: auto; padding: .7rem .75rem; white-space: nowrap; }",
-      ".cl-state-status { color: var(--cl-muted); font-size: .9em; margin: .35rem 0; }",
-      ".cl-state-definition { display: grid; gap: .25rem .7rem; grid-template-columns: auto 1fr; margin: .7rem 0 0; }",
-      ".cl-state-definition dt { color: var(--cl-muted); font-size: .86em; }",
-      ".cl-state-definition dd { margin: 0; }",
-      ".cl-syndrome-card { background: var(--cl-bg); margin-top: 1rem; }",
-      ".cl-syndrome-readout { display: grid; gap: .5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: .6rem 0; }",
-      ".cl-measurement { background: var(--cl-bg-deep); border: 1px solid var(--cl-border); border-radius: .5rem; padding: .5rem .6rem; }",
-      ".cl-measurement-label { color: var(--cl-muted); display: block; font-size: .82em; }",
-      ".cl-measurement-value { color: var(--cl-accent); display: block; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 1.25em; font-weight: 700; }",
-      ".cl-syndrome-summary { color: var(--cl-muted); font-size: .88em; margin: .5rem 0 0; }",
-      ".cl-map-card { border: 1px solid var(--cl-border); border-radius: 6px; margin-top: 1rem; overflow-x: auto; padding: .75rem; }",
-      ".cl-map-title { font-size: 1rem; margin: 0 0 .55rem; }",
-      ".cl-syndrome-map { border-collapse: collapse; font-size: .9em; width: 100%; }",
-      ".cl-syndrome-map th, .cl-syndrome-map td { border-bottom: 1px solid var(--cl-border); padding: .45rem .55rem; text-align: left; }",
-      ".cl-syndrome-map th { color: var(--cl-muted); font-weight: 600; }",
-      ".cl-syndrome-map tr.cl-map-selected { background: color-mix(in srgb, var(--cl-accent) 15%, transparent); box-shadow: inset 3px 0 var(--cl-accent); }",
-      ".cl-syndrome-map tr.cl-map-selected td:first-child { color: var(--cl-accent); font-weight: 700; }",
-      ".cl-qec-boundary { background: color-mix(in srgb, var(--cl-warn) 10%, var(--cl-bg)); border: 1px solid color-mix(in srgb, var(--cl-warn) 45%, var(--cl-border)); border-radius: 6px; color: var(--cl-muted); margin: 1rem 0 0; padding: .7rem .85rem; }",
-      ".cl-qec-boundary strong { color: var(--cl-warn); }",
-      ".cl-qec-description { color: var(--cl-muted); margin: .35rem 0 .7rem; min-height: 3.2em; }",
-      ".cl-qec-footer { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; margin-top: 1rem; }",
-      ".cl-qec-footer-group { display: flex; flex-wrap: wrap; gap: .5rem; }",
-      ".cl-control { padding: .5rem .8rem; }",
-      ".cl-control-primary { background: var(--cl-accent) !important; border-color: var(--cl-accent) !important; color: var(--cl-bg) !important; font-weight: 700; }",
-      ".cl-live { color: var(--cl-muted); font-size: .86em; margin: .65rem 0 0; min-height: 1.3em; }",
-      "@media (max-width: 720px) { .cl-radio-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cl-qec-grid { grid-template-columns: 1fr; } .cl-qec-lab { padding: 1rem .8rem; } }",
-      "@media (max-width: 420px) { .cl-radio-list { grid-template-columns: 1fr; } .cl-qec-stage { flex-basis: 45%; } }",
-      "@media (prefers-reduced-motion: reduce) { .cl-lab * { scroll-behavior: auto !important; transition: none !important; } }"
-    ].join("\n");
-    var host = doc.head || doc.documentElement || doc.body;
-    if (host) host.appendChild(style);
-  }
-
-  function makeGate(doc, x, y, text, extraClass) {
-    var group = makeSvgElement(doc, "g", { "class": "cl-circuit-gate-group" });
-    group.appendChild(makeSvgElement(doc, "rect", { x: String(x - 22), y: String(y - 19), width: "44", height: "38", rx: "7", "class": "cl-circuit-gate " + (extraClass || "") }));
-    group.appendChild(makeSvgElement(doc, "text", { x: String(x), y: String(y + 6), "class": "cl-circuit-gate-text " + (extraClass || ""), "text-anchor": "middle" }, text));
-    return group;
-  }
-
-  function makeCircuit(doc) {
-    var figure = makeElement(doc, "figure", "cl-circuit-figure");
-    var svg = makeSvgElement(doc, "svg", {
-      "class": "cl-qec-svg",
-      "viewBox": "0 0 720 260",
-      "role": "img",
-      "aria-labelledby": "cl-qec-svg-title cl-qec-svg-desc"
-    });
-    svg.appendChild(makeSvgElement(doc, "title", { id: "cl-qec-svg-title" }, "三比特 bit-flip repetition code 流程"));
-    svg.appendChild(makeSvgElement(doc, "desc", { id: "cl-qec-svg-desc" }, "三条 qubit 线依次经过 Encode、Error、Syndrome 与 Correct 四个阶段；当前错误位置和综合符号会随选择更新。"));
-
-    var ys = [82, 132, 182];
-    var stageXs = [160, 325, 490, 630];
-    var stageWidths = [125, 115, 120, 115];
-    var stageLabels = ["Encode", "Error", "Syndrome", "Correct"];
-    var stageBoxes = [];
-    stageXs.forEach(function (x, index) {
-      var box = makeSvgElement(doc, "rect", {
-        x: String(x - stageWidths[index] / 2), y: "43", width: String(stageWidths[index]), height: "174", rx: "12", "class": "cl-circuit-stage-box"
-      });
-      stageBoxes.push(box);
-      svg.appendChild(box);
-      svg.appendChild(makeSvgElement(doc, "text", { x: String(x), y: "29", "class": "cl-circuit-stage-label", "text-anchor": "middle" }, stageLabels[index]));
-    });
-
-    ys.forEach(function (y, index) {
-      svg.appendChild(makeSvgElement(doc, "line", { x1: "55", y1: String(y), x2: "684", y2: String(y), "class": "cl-circuit-wire" }));
-      svg.appendChild(makeSvgElement(doc, "text", { x: "28", y: String(y + 5), "class": "cl-circuit-label", "text-anchor": "middle" }, "q" + (index + 1)));
-    });
-
-    /* Encode: q1 controls two CNOT targets, assuming q2 and q3 begin in |0⟩. */
-    var encode = makeSvgElement(doc, "g", { "class": "cl-encode-gate" });
-    encode.appendChild(makeSvgElement(doc, "line", { x1: "160", y1: String(ys[0]), x2: "160", y2: String(ys[2]), "class": "cl-circuit-wire" }));
-    encode.appendChild(makeSvgElement(doc, "circle", { cx: "160", cy: String(ys[0]), r: "7", "class": "cl-circuit-control" }));
-    [ys[1], ys[2]].forEach(function (y) {
-      encode.appendChild(makeSvgElement(doc, "circle", { cx: "160", cy: String(y), r: "13", "class": "cl-circuit-target" }));
-      encode.appendChild(makeSvgElement(doc, "line", { x1: "151", y1: String(y), x2: "169", y2: String(y), "class": "cl-circuit-wire" }));
-      encode.appendChild(makeSvgElement(doc, "line", { x1: "160", y1: String(y - 9), x2: "160", y2: String(y + 9), "class": "cl-circuit-wire" }));
-    });
-    svg.appendChild(encode);
-
-    var errorGates = {};
-    ERROR_ORDER.forEach(function (key, index) {
-      var group = makeGate(doc, 325, key === "I" ? 132 : ys[index - 1], key === "I" ? "I" : "X", "");
-      errorGates[key] = group;
-      svg.appendChild(group);
-    });
-
-    var syndromeGates = makeSvgElement(doc, "g", { "class": "cl-syndrome-gates" });
-    var syndromeTop = makeGate(doc, 467, 105, "?", "");
-    var syndromeBottom = makeGate(doc, 515, 160, "?", "");
-    syndromeGates.appendChild(syndromeTop);
-    syndromeGates.appendChild(syndromeBottom);
-    svg.appendChild(syndromeGates);
-
-    var recoveryGates = {};
-    ERROR_ORDER.forEach(function (key, index) {
-      var group = makeGate(doc, 630, key === "I" ? 132 : ys[index - 1], key === "I" ? "I" : "X", "cl-circuit-recovery");
-      recoveryGates[key] = group;
-      svg.appendChild(group);
-    });
-
-    svg.appendChild(makeSvgElement(doc, "text", { x: "467", y: "235", "class": "cl-circuit-label", "text-anchor": "middle" }, "Z₁Z₂"));
-    svg.appendChild(makeSvgElement(doc, "text", { x: "515", y: "235", "class": "cl-circuit-label", "text-anchor": "middle" }, "Z₂Z₃"));
-    figure.appendChild(svg);
-    figure.appendChild(makeElement(doc, "figcaption", "cl-circuit-caption", "电路图只显示阶段和校验逻辑；综合测量的是关联，不是数据 qubit 的逻辑内容。"));
-
-    function setGroupVisibility(groups, selectedKey) {
-      Object.keys(groups).forEach(function (key) {
-        groups[key].setAttribute("opacity", key === selectedKey ? "1" : ".08");
-      });
+  function validateMask(mask) {
+    if (!Array.isArray(mask) || mask.length !== 3 || mask.some(function (value) { return value !== 0 && value !== 1; })) {
+      throw new RangeError("mask must contain three binary entries");
     }
-
+    return mask.slice();
+  }
+  function xorMask(left, right) { return left.map(function (value, index) { return value ^ right[index]; }); }
+  function maskString(mask) { return validateMask(mask).join(""); }
+  function maskWeight(mask) { return validateMask(mask).reduce(function (total, value) { return total + value; }, 0); }
+  function syndromeForMask(mask) {
+    var values = validateMask(mask);
+    return [values[0] ^ values[1] ? "−" : "+", values[1] ^ values[2] ? "−" : "+"];
+  }
+  function syndromeKey(syndrome) {
+    return syndrome.map(function (value) { return value === "−" ? "-" : value; }).join("");
+  }
+  function definition(errorId) {
+    if (!ERROR_BY_ID[errorId]) throw new RangeError("unknown error id");
+    return ERROR_BY_ID[errorId];
+  }
+  function stateExpression(errorId) {
+    var item = definition(errorId);
+    var first = maskString(item.bitMask);
+    var second = item.bitMask.map(function (value) { return value ? 0 : 1; }).join("");
+    var sign = maskWeight(item.phaseMask) % 2 ? "−" : "+";
+    return "α|" + first + "⟩ " + sign + " β|" + second + "⟩";
+  }
+  function analyzeError(errorId) {
+    var item = definition(errorId);
+    var syndrome = syndromeForMask(item.bitMask);
+    var correction = CORRECTION_BY_SYNDROME[syndromeKey(syndrome)];
+    var correctedBitMask = xorMask(item.bitMask, correction.mask);
+    var logicalX = maskWeight(correctedBitMask) === 3;
+    var phaseResidual = maskWeight(item.phaseMask) > 0;
+    var logicalFailure = logicalX || phaseResidual;
+    var outcome = logicalX && phaseResidual ? "逻辑 X 与相位残留" : logicalX ? "恢复后成为逻辑 X" : phaseResidual ? "相位分量未被纠正" : "回到代码空间";
     return {
-      node: figure,
-      update: function (stepIndex, errorKey) {
-        stageBoxes.forEach(function (box, index) {
-          box.classList.remove("cl-circuit-current", "cl-circuit-done");
-          var stageNumber = index + 1;
-          if (stepIndex === stageNumber) box.classList.add("cl-circuit-current");
-          else if (stepIndex > stageNumber) box.classList.add("cl-circuit-done");
-        });
-        setGroupVisibility(errorGates, errorKey);
-        setGroupVisibility(recoveryGates, stepIndex >= 4 ? errorKey : "__none__");
-        var info = ERROR_INFO[errorKey];
-        syndromeTop.querySelector(".cl-circuit-gate-text").textContent = stepIndex >= 3 ? info.syndrome[0] : "?";
-        syndromeBottom.querySelector(".cl-circuit-gate-text").textContent = stepIndex >= 3 ? info.syndrome[1] : "?";
-        syndromeTop.setAttribute("opacity", stepIndex >= 3 ? "1" : ".22");
-        syndromeBottom.setAttribute("opacity", stepIndex >= 3 ? "1" : ".22");
-      }
+      id: item.id,
+      label: item.label,
+      group: item.group,
+      bitMask: item.bitMask.slice(),
+      phaseMask: item.phaseMask.slice(),
+      bitWeight: maskWeight(item.bitMask),
+      phaseWeight: maskWeight(item.phaseMask),
+      state: stateExpression(errorId),
+      syndrome: syndrome,
+      correction: correction.id,
+      correctedBitMask: correctedBitMask,
+      logicalX: logicalX,
+      phaseResidual: phaseResidual,
+      logicalFailure: logicalFailure,
+      outcome: outcome,
+      syndromeLeaksLogicalAmplitudes: false
     };
   }
-
-  function makeStateCard(doc) {
-    var card = makeElement(doc, "section", "cl-state-card");
-    card.setAttribute("aria-labelledby", "cl-qec-state-title");
-    var stateTitle = makeElement(doc, "h3", "cl-card-title", "状态账本");
-    stateTitle.id = "cl-qec-state-title";
-    card.appendChild(stateTitle);
-    var expression = makeElement(doc, "div", "cl-state-expression");
-    expression.setAttribute("role", "img");
-    expression.setAttribute("aria-label", "当前三比特状态");
-    var status = makeElement(doc, "p", "cl-state-status");
-    var definition = makeElement(doc, "dl", "cl-state-definition");
-    var logicalTerm = makeElement(doc, "dd");
-    var locationTerm = makeElement(doc, "dd");
-    definition.appendChild(makeElement(doc, "dt", "", "逻辑信息"));
-    definition.appendChild(logicalTerm);
-    definition.appendChild(makeElement(doc, "dt", "", "错误位置"));
-    definition.appendChild(locationTerm);
-    card.appendChild(expression);
-    card.appendChild(status);
-    card.appendChild(definition);
-    return {
-      node: card,
-      update: function (stepIndex, errorKey) {
-        var info = ERROR_INFO[errorKey];
-        if (stepIndex === 0) {
-          expression.textContent = "|ψ⟩ = α|0⟩ + β|1⟩";
-          status.textContent = "还没有把逻辑态放进代码空间。";
-          logicalTerm.textContent = "未知的 α、β 保持为振幅";
-          locationTerm.textContent = "尚未注入错误";
-        } else if (stepIndex === 1) {
-          expression.textContent = "|ψ_L⟩ = α|000⟩ + β|111⟩";
-          status.textContent = "Encode 完成：三比特共享一个逻辑信息。";
-          logicalTerm.textContent = "α、β 仍然只描述一个逻辑 qubit";
-          locationTerm.textContent = "等待一个 X 错误";
-        } else if (stepIndex === 2 || stepIndex === 3) {
-          expression.textContent = info.state;
-          status.textContent = stepIndex === 2 ? "Error 已注入；现在只看编码字的关联。" : "Syndrome 只暴露错误指纹，不测量逻辑内容。";
-          logicalTerm.textContent = "α、β 没有出现在 syndrome 中";
-          locationTerm.textContent = info.location;
-        } else {
-          expression.textContent = "" + info.correction + "·(" + info.state + ") = α|000⟩ + β|111⟩";
-          status.textContent = "Correct 完成：理想模型中回到代码空间。";
-          logicalTerm.textContent = "逻辑态恢复为 α|0⟩ + β|1⟩ 的编码版本";
-          locationTerm.textContent = info.location + "；已施加 " + info.correction;
-        }
-      }
-    };
+  function independentLogicalFailure(probability) {
+    var p = validateProbability(probability);
+    return 3 * p * p * (1 - p) + p * p * p;
   }
-
-  function makeSyndromeCard(doc) {
-    var card = makeElement(doc, "section", "cl-syndrome-card");
-    card.setAttribute("aria-labelledby", "cl-qec-syndrome-title");
-    var syndromeTitle = makeElement(doc, "h3", "cl-card-title", "综合测量");
-    syndromeTitle.id = "cl-qec-syndrome-title";
-    card.appendChild(syndromeTitle);
-    var readout = makeElement(doc, "div", "cl-syndrome-readout");
-    var top = makeElement(doc, "div", "cl-measurement");
-    var bottom = makeElement(doc, "div", "cl-measurement");
-    top.appendChild(makeElement(doc, "span", "cl-measurement-label", "Z₁Z₂"));
-    bottom.appendChild(makeElement(doc, "span", "cl-measurement-label", "Z₂Z₃"));
-    var topValue = makeElement(doc, "span", "cl-measurement-value", "?");
-    var bottomValue = makeElement(doc, "span", "cl-measurement-value", "?");
-    top.appendChild(topValue);
-    bottom.appendChild(bottomValue);
-    readout.appendChild(top);
-    readout.appendChild(bottom);
-    var summary = makeElement(doc, "p", "cl-syndrome-summary", "尚未测量。综合是错误的指纹，不是 α、β 的测量。");
-    card.appendChild(readout);
-    card.appendChild(summary);
-    return {
-      node: card,
-      update: function (stepIndex, errorKey) {
-        var info = ERROR_INFO[errorKey];
-        topValue.textContent = stepIndex >= 3 ? info.syndrome[0] : "?";
-        bottomValue.textContent = stepIndex >= 3 ? info.syndrome[1] : "?";
-        if (stepIndex < 3) summary.textContent = "尚未测量。综合是错误的指纹，不是 α、β 的测量。";
-        else if (stepIndex === 3) summary.textContent = "综合映射：I(++), X1(-+), X2(--), X3(+-)。当前读数只告诉我们错误位置。";
-        else summary.textContent = "已按综合施加 " + info.correction + "；理想情况下逻辑信息保持不变。";
-      }
-    };
+  function independentBreakdown(probability) {
+    var p = validateProbability(probability);
+    var zero = Math.pow(1 - p, 3);
+    var one = 3 * p * Math.pow(1 - p, 2);
+    var two = 3 * p * p * (1 - p);
+    var three = p * p * p;
+    return { zero: zero, one: one, two: two, three: three, success: zero + one, failure: two + three };
   }
-
-  function makeMapCard(doc) {
-    var card = makeElement(doc, "section", "cl-map-card");
-    card.setAttribute("aria-labelledby", "cl-qec-map-title");
-    var mapTitle = makeElement(doc, "h3", "cl-map-title", "综合映射表");
-    mapTitle.id = "cl-qec-map-title";
-    card.appendChild(mapTitle);
-    var table = makeElement(doc, "table", "cl-syndrome-map");
-    var caption = makeElement(doc, "caption", "cl-visually-hidden", "I(++), X1(-+), X2(--), X3(+-)");
-    table.appendChild(caption);
-    var head = makeElement(doc, "thead");
-    var headRow = makeElement(doc, "tr");
-    ["错误", "Z₁Z₂, Z₂Z₃", "恢复"].forEach(function (label) { headRow.appendChild(makeElement(doc, "th", "", label)); });
+  function correlatedLogicalFailure(probability) { return validateProbability(probability); }
+  function predictionAnswer(probability) {
+    var p = validateProbability(probability);
+    if (near(p, 0, 1e-12) || near(p, 0.5, 1e-12) || near(p, 1, 1e-12)) return "equal";
+    return p < 0.5 ? "correlated" : "independent";
+  }
+  function formatValue(value, digits) {
+    if (!finite(value)) return "∞";
+    var places = digits === undefined ? 5 : digits;
+    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+  }
+  function installStyles(doc) {
+    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
+    var style = doc.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = STYLE_TEXT;
+    doc.head.appendChild(style);
+  }
+  function makeTable(api, headers, rows, label) {
+    var table = api.el("table", { "aria-label": label });
+    var head = api.el("thead");
+    var headRow = api.el("tr");
+    headers.forEach(function (header) { headRow.appendChild(api.el("th", { scope: "col" }, header)); });
     head.appendChild(headRow);
     table.appendChild(head);
-    var body = makeElement(doc, "tbody");
-    var rows = {};
-    ERROR_ORDER.forEach(function (key) {
-      var info = ERROR_INFO[key];
-      var row = makeElement(doc, "tr");
-      row.appendChild(makeElement(doc, "td", "", key));
-      row.appendChild(makeElement(doc, "td", "", "(" + info.syndrome[0] + info.syndrome[1] + ")"));
-      row.appendChild(makeElement(doc, "td", "", info.correction));
-      body.appendChild(row);
-      rows[key] = row;
+    var body = api.el("tbody");
+    rows.forEach(function (row) {
+      var tableRow = api.el("tr");
+      row.forEach(function (cell, index) { tableRow.appendChild(api.el(index === 0 ? "th" : "td", index === 0 ? { scope: "row" } : {}, cell)); });
+      body.appendChild(tableRow);
     });
     table.appendChild(body);
-    card.appendChild(table);
-    card.appendChild(makeElement(doc, "p", "cl-state-status", "约定：综合顺序为 (Z₁Z₂, Z₂Z₃)，+ 表示 +1 本征值，− 表示 −1 本征值。"));
-    return {
-      node: card,
-      update: function (errorKey) {
-        Object.keys(rows).forEach(function (key) {
-          rows[key].classList.toggle("cl-map-selected", key === errorKey);
-        });
-      }
-    };
+    return table;
   }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument || !root.appendChild) return;
-    var doc = root.ownerDocument;
-    try {
-      injectStyles(doc);
-      var shell = makeElement(doc, "section", "cl-lab cl-qec-lab");
-      shell.setAttribute("aria-labelledby", "cl-qec-title");
-      var title = makeElement(doc, "h2", "cl-lab-title", "三比特纠错台：用综合定位一次 bit-flip");
-      title.id = "cl-qec-title";
-      shell.appendChild(title);
-      shell.appendChild(makeElement(doc, "p", "cl-lab-intro", "先选一个确定的错误，再按 Encode → Error → Syndrome → Correct 走完一遍。每一步都显示状态；没有随机噪声，也不会偷看逻辑振幅。"));
-
-      var fieldset = makeElement(doc, "fieldset", "cl-error-fieldset");
-      fieldset.appendChild(makeElement(doc, "legend", "", "选择错误（I / X₁ / X₂ / X₃）"));
-      var radioList = makeElement(doc, "div", "cl-radio-list");
-      var radioLabels = {};
-      var radios = {};
-      ERROR_ORDER.forEach(function (key, index) {
-        var option = makeElement(doc, "div", "cl-radio-option");
-        var input = makeElement(doc, "input");
-        var id = "cl-qec-error-" + key.toLowerCase();
-        input.type = "radio";
-        input.name = "cl-qec-error";
-        input.id = id;
-        input.value = key;
-        input.checked = index === 0;
-        var label = makeElement(doc, "label", "", ERROR_INFO[key].label);
-        label.htmlFor = id;
-        option.appendChild(input);
-        option.appendChild(label);
-        radioList.appendChild(option);
-        radioLabels[key] = option;
-        radios[key] = input;
-        input.addEventListener("change", function () {
-          if (input.checked) {
-            errorKey = key;
-            if (currentStep > 1) currentStep = 1;
-            render();
-            announce("已选择 " + ERROR_INFO[key].label + "；可以从 Error 步骤继续。");
-          }
-        });
-      });
-      fieldset.appendChild(radioList);
-      shell.appendChild(fieldset);
-
-      var description = makeElement(doc, "p", "cl-qec-description");
-      shell.appendChild(description);
-
-      var stageControls = makeElement(doc, "div", "cl-qec-stage-controls");
-      stageControls.setAttribute("role", "group");
-      stageControls.setAttribute("aria-label", "三比特纠错步骤控制");
-      var stageButtons = [];
-      [1, 2, 3, 4].forEach(function (stageIndex) {
-        var button = makeElement(doc, "button", "cl-qec-stage", STAGES[stageIndex].label);
-        button.type = "button";
-        button.setAttribute("aria-label", "执行 " + STAGES[stageIndex].title);
-        button.addEventListener("click", function () {
-          if (stageIndex <= currentStep + 1) {
-            currentStep = stageIndex;
-            render();
-            announce("已完成 " + STAGES[stageIndex].label + "：" + STAGES[stageIndex].title);
-          }
-        });
-        stageControls.appendChild(button);
-        stageButtons.push(button);
-      });
-      shell.appendChild(stageControls);
-
-      var circuit = makeCircuit(doc);
-      var stateCard = makeStateCard(doc);
-      var syndromeCard = makeSyndromeCard(doc);
-      var qecGrid = makeElement(doc, "div", "cl-qec-grid");
-      qecGrid.appendChild(circuit.node);
-      var rightColumn = makeElement(doc, "div", "cl-qec-right-column");
-      rightColumn.appendChild(stateCard.node);
-      rightColumn.appendChild(syndromeCard.node);
-      qecGrid.appendChild(rightColumn);
-      shell.appendChild(qecGrid);
-
-      var mapCard = makeMapCard(doc);
-      shell.appendChild(mapCard.node);
-
-      var boundary = makeElement(doc, "aside", "cl-qec-boundary");
-      boundary.appendChild(makeElement(doc, "strong", "", "边界 / 反例："));
-      boundary.appendChild(doc.createTextNode(" 这个三比特重复码只纠正一个 bit-flip（X）错误。它不能保护任意相位错误 Z；两个 bit-flip 也可能被多数表决误判。要同时处理 X、Z，需要相位码、Shor 码或其他完整量子纠错码。编码的是逻辑关联，不是对未知态的三次独立复制，因此没有违反不可克隆定理。"));
-      shell.appendChild(boundary);
-
-      var footer = makeElement(doc, "div", "cl-qec-footer");
-      var footerGroup = makeElement(doc, "div", "cl-qec-footer-group");
-      var back = makeElement(doc, "button", "cl-control", "← 上一步");
-      var reset = makeElement(doc, "button", "cl-control", "重置");
-      back.type = "button";
-      reset.type = "button";
-      footerGroup.appendChild(back);
-      footerGroup.appendChild(reset);
-      footer.appendChild(footerGroup);
-      shell.appendChild(footer);
-      var live = makeElement(doc, "p", "cl-live");
-      live.setAttribute("aria-live", "polite");
-      shell.appendChild(live);
-
-      var currentStep = 0;
-      var errorKey = "I";
-
-      function announce(message) {
-        live.textContent = message;
-        if (api && typeof api.announce === "function") api.announce(root, message);
-      }
-
-      function render() {
-        var stage = STAGES[currentStep];
-        description.textContent = stage.description;
-        stageButtons.forEach(function (button, index) {
-          var stageIndex = index + 1;
-          button.disabled = stageIndex > currentStep + 1;
-          if (stageIndex === currentStep) button.setAttribute("aria-current", "step");
-          else button.removeAttribute("aria-current");
-          if (stageIndex < currentStep) button.classList.add("cl-stage-done");
-          else button.classList.remove("cl-stage-done");
-        });
-        Object.keys(radioLabels).forEach(function (key) {
-          radioLabels[key].classList.toggle("cl-radio-selected", key === errorKey);
-          radios[key].checked = key === errorKey;
-        });
-        circuit.update(currentStep, errorKey);
-        stateCard.update(currentStep, errorKey);
-        syndromeCard.update(currentStep, errorKey);
-        mapCard.update(errorKey);
-        back.disabled = currentStep === 0;
-      }
-
-      back.addEventListener("click", function () {
-        currentStep = Math.max(0, currentStep - 1);
-        render();
-        announce("返回到 " + STAGES[currentStep].label + "：" + STAGES[currentStep].title);
-      });
-      reset.addEventListener("click", function () {
-        currentStep = 0;
-        errorKey = "I";
-        render();
-        announce("已重置：请选择一个错误并从 Encode 开始。");
-      });
-
-      render();
-      replaceContents(root, shell);
-    } catch (error) {
-      /* 保留 Markdown 的 no-JS fallback；运行时失败不应让整页失去内容。 */
+  function circuitSvg(api, analysis, instance) {
+    var titleId = "qec-circuit-title-" + instance;
+    var descId = "qec-circuit-desc-" + instance;
+    var svg = api.svg("svg", { viewBox: "0 0 760 290", role: "img", "aria-labelledby": titleId + " " + descId });
+    svg.appendChild(api.svg("title", { id: titleId }, "三比特纠错 Encode Error Syndrome Correct 电路"));
+    svg.appendChild(api.svg("desc", { id: descId }, "显示错误位、两个综合符号和恢复门；综合只取决于错误指纹。"));
+    var ys = [78, 140, 202];
+    [{ x: 140, w: 122, label: "Encode" }, { x: 315, w: 112, label: "Error" }, { x: 480, w: 126, label: "Syndrome" }, { x: 650, w: 112, label: "Correct" }].forEach(function (stage) {
+      svg.appendChild(api.svg("rect", { x: stage.x - stage.w / 2, y: 36, width: stage.w, height: 202, className: "qec-stage-box" }));
+      svg.appendChild(api.svg("text", { x: stage.x, y: 24, "text-anchor": "middle", "font-size": "13", "font-weight": "700" }, stage.label));
+    });
+    ys.forEach(function (y, index) {
+      svg.appendChild(api.svg("line", { x1: 32, y1: y, x2: 724, y2: y, className: "qec-wire" }));
+      svg.appendChild(api.svg("text", { x: 18, y: y + 4, "text-anchor": "middle", "font-size": "12" }, "q" + (index + 1)));
+    });
+    var encode = api.svg("g");
+    encode.appendChild(api.svg("line", { x1: 140, y1: ys[0], x2: 140, y2: ys[2], className: "qec-wire" }));
+    encode.appendChild(api.svg("circle", { cx: 140, cy: ys[0], r: 7, className: "qec-gate" }));
+    [ys[1], ys[2]].forEach(function (y) {
+      encode.appendChild(api.svg("circle", { cx: 140, cy: y, r: 13, className: "qec-gate" }));
+      encode.appendChild(api.svg("line", { x1: 131, y1: y, x2: 149, y2: y, className: "qec-wire" }));
+      encode.appendChild(api.svg("line", { x1: 140, y1: y - 9, x2: 140, y2: y + 9, className: "qec-wire" }));
+    });
+    svg.appendChild(encode);
+    analysis.bitMask.forEach(function (value, index) {
+      if (!value) return;
+      var x = 315;
+      svg.appendChild(api.svg("circle", { cx: x, cy: ys[index], r: 17, className: "qec-gate" }));
+      svg.appendChild(api.svg("line", { x1: x - 8, y1: ys[index] - 8, x2: x + 8, y2: ys[index] + 8, className: "qec-wire" }));
+      svg.appendChild(api.svg("line", { x1: x - 8, y1: ys[index] + 8, x2: x + 8, y2: ys[index] - 8, className: "qec-wire" }));
+    });
+    analysis.phaseMask.forEach(function (value, index) {
+      if (!value) return;
+      var phaseX = 350;
+      svg.appendChild(api.svg("circle", { cx: phaseX, cy: ys[index], r: 13, className: "qec-phase-gate" }));
+      svg.appendChild(api.svg("text", { x: phaseX, y: ys[index] + 5, "text-anchor": "middle", "font-size": "12", "font-weight": "700" }, "Z"));
+    });
+    svg.appendChild(api.svg("rect", { x: 459, y: 72, width: 42, height: 28, rx: 5, className: "qec-gate" }));
+    svg.appendChild(api.svg("rect", { x: 459, y: 180, width: 42, height: 28, rx: 5, className: "qec-gate" }));
+    svg.appendChild(api.svg("text", { x: 480, y: 91, "text-anchor": "middle", "font-size": "12", "font-weight": "700" }, analysis.syndrome[0]));
+    svg.appendChild(api.svg("text", { x: 480, y: 199, "text-anchor": "middle", "font-size": "12", "font-weight": "700" }, analysis.syndrome[1]));
+    svg.appendChild(api.svg("text", { x: 480, y: 260, "text-anchor": "middle", "font-size": "11" }, "S₁=Z₁Z₂   S₂=Z₂Z₃"));
+    if (analysis.correction !== "I") {
+      var correctionIndex = CORRECTION_BY_SYNDROME[syndromeKey(analysis.syndrome)].mask.indexOf(1);
+      var correctionX = 650;
+      svg.appendChild(api.svg("circle", { cx: correctionX, cy: ys[correctionIndex], r: 17, className: "qec-correction" }));
+      svg.appendChild(api.svg("line", { x1: correctionX - 8, y1: ys[correctionIndex] - 8, x2: correctionX + 8, y2: ys[correctionIndex] + 8, className: "qec-wire" }));
+      svg.appendChild(api.svg("line", { x1: correctionX - 8, y1: ys[correctionIndex] + 8, x2: correctionX + 8, y2: ys[correctionIndex] - 8, className: "qec-wire" }));
     }
+    return svg;
   }
-
-  if (window.CourseLearning && typeof window.CourseLearning.register === "function") {
-    window.CourseLearning.register("qec", function (root, api) {
-      mount(root, api);
+  function probabilitySvg(api, probability, instance) {
+    var titleId = "qec-probability-title-" + instance;
+    var descId = "qec-probability-desc-" + instance;
+    var svg = api.svg("svg", { viewBox: "0 0 760 335", role: "img", "aria-labelledby": titleId + " " + descId });
+    svg.appendChild(api.svg("title", { id: titleId }, "独立与全相关 bit-flip 逻辑失败率"));
+    svg.appendChild(api.svg("desc", { id: descId }, "蓝线为独立错误 3p²(1-p)+p³，红色虚线为全相关三重错误 p。"));
+    var left = 62;
+    var top = 30;
+    var width = 640;
+    var height = 240;
+    var bottom = top + height;
+    var x = function (p) { return left + p / 0.5 * width; };
+    var y = function (failure) { return bottom - failure / 0.5 * height; };
+    [0, 0.25, 0.5].forEach(function (tick) {
+      var lineY = y(tick);
+      svg.appendChild(api.svg("line", { x1: left, y1: lineY, x2: left + width, y2: lineY, className: "qec-grid" }));
+      svg.appendChild(api.svg("text", { x: left - 8, y: lineY + 4, "text-anchor": "end", "font-size": "11" }, String(tick)));
+    });
+    [0, 0.25, 0.5].forEach(function (tick) {
+      var lineX = x(tick);
+      svg.appendChild(api.svg("line", { x1: lineX, y1: top, x2: lineX, y2: bottom, className: "qec-grid" }));
+      svg.appendChild(api.svg("text", { x: lineX, y: bottom + 22, "text-anchor": "middle", "font-size": "11" }, String(tick)));
+    });
+    svg.appendChild(api.svg("line", { x1: left, y1: top, x2: left, y2: bottom, className: "qec-axis" }));
+    svg.appendChild(api.svg("line", { x1: left, y1: bottom, x2: left + width, y2: bottom, className: "qec-axis" }));
+    var independentPath = "";
+    var correlatedPath = "";
+    for (var index = 0; index <= 50; index += 1) {
+      var p = index / 100;
+      independentPath += (index === 0 ? "M" : "L") + x(p) + "," + y(independentLogicalFailure(p));
+      correlatedPath += (index === 0 ? "M" : "L") + x(p) + "," + y(correlatedLogicalFailure(p));
+    }
+    svg.appendChild(api.svg("path", { d: independentPath, className: "qec-independent" }));
+    svg.appendChild(api.svg("path", { d: correlatedPath, className: "qec-correlated" }));
+    svg.appendChild(api.svg("circle", { cx: x(probability), cy: y(independentLogicalFailure(probability)), r: 5, className: "qec-point" }));
+    svg.appendChild(api.svg("circle", { cx: x(probability), cy: y(correlatedLogicalFailure(probability)), r: 5, className: "qec-point" }));
+    svg.appendChild(api.svg("text", { x: left + width, y: 18, "text-anchor": "end", "font-size": "12" }, "p 与逻辑失败率"));
+    svg.appendChild(api.svg("text", { x: left + 12, y: top + 18, "font-size": "11" }, "蓝：独立   红虚线：全相关"));
+    return svg;
+  }
+  function appendErrorOptions(api, select) {
+    var groups = Object.create(null);
+    ERROR_DEFINITIONS.forEach(function (item) {
+      if (!groups[item.group]) {
+        groups[item.group] = api.el("optgroup", { label: item.group });
+        select.appendChild(groups[item.group]);
+      }
+      groups[item.group].appendChild(api.el("option", { value: item.id }, item.label));
     });
   }
-}());
+  function renderErrorLedger(api, selectedId) {
+    var table = api.el("table", { "aria-label": "三比特错误综合与恢复账本" });
+    var head = api.el("thead");
+    var headRow = api.el("tr");
+    ["错误", "X 位掩码", "综合 (S₁,S₂)", "恢复", "恢复后"].forEach(function (header) { headRow.appendChild(api.el("th", { scope: "col" }, header)); });
+    head.appendChild(headRow);
+    table.appendChild(head);
+    var body = api.el("tbody");
+    ERROR_DEFINITIONS.forEach(function (item) {
+      var result = analyzeError(item.id);
+      var row = api.el("tr", { className: item.id === selectedId ? "qec-selected" : "" });
+      [item.id, maskString(item.bitMask), "(" + result.syndrome.join(",") + ")", result.correction, result.outcome].forEach(function (cell, index) {
+        row.appendChild(api.el(index === 0 ? "th" : "td", index === 0 ? { scope: "row" } : {}, cell));
+      });
+      body.appendChild(row);
+    });
+    table.appendChild(body);
+    return table;
+  }
+  function mount(root, api) {
+    if (!root || !root.ownerDocument || !api || typeof api.el !== "function" || typeof api.svg !== "function") return;
+    installStyles(root.ownerDocument);
+    var instance = INSTANCE += 1;
+    var state = { errorId: "X2", probability: 0.1, prediction: null, revealed: false };
+    var shell = api.el("section", { className: "cl-qec-syndrome-lab", "aria-labelledby": "qec-title-" + instance });
+    shell.appendChild(api.el("h2", { id: "qec-title-" + instance }, "三比特纠错台：综合只看错误指纹"));
+    shell.appendChild(api.el("p", { className: "qec-note" }, "先选择一个确定的 Pauli 错误，再预测独立与相关噪声的逻辑失败率。实验只维护 α、β 的符号分支，不读取它们的数值。"));
+    var controls = api.el("div", { className: "qec-control-grid" });
+    var errorField = api.el("div", { className: "qec-field" });
+    errorField.appendChild(api.el("label", { htmlFor: "qec-error-" + instance }, "错误情景"));
+    var errorSelect = api.el("select", { id: "qec-error-" + instance, "aria-label": "选择量子错误情景" });
+    appendErrorOptions(api, errorSelect);
+    errorSelect.value = "X2";
+    errorField.appendChild(errorSelect);
+    controls.appendChild(errorField);
+    var probabilityField = api.el("div", { className: "qec-field" });
+    var probabilityLabel = api.el("label", { htmlFor: "qec-p-" + instance }, "每位 bit-flip 边缘概率 p");
+    var probabilityOutput = api.el("output", { id: "qec-p-value-" + instance, htmlFor: "qec-p-" + instance }, "0.10");
+    probabilityLabel.appendChild(api.el("span", {}, "（"));
+    probabilityLabel.appendChild(probabilityOutput);
+    probabilityLabel.appendChild(api.el("span", {}, "）"));
+    var probabilityRange = api.el("input", { id: "qec-p-" + instance, type: "range", min: "0", max: "0.5", step: "0.01", value: "0.1", "aria-label": "每位独立 bit-flip 概率 p" });
+    probabilityField.appendChild(probabilityLabel);
+    probabilityField.appendChild(probabilityRange);
+    controls.appendChild(probabilityField);
+    shell.appendChild(controls);
+    var prompt = api.el("div", { className: "qec-prompt" });
+    var promptTitle = api.el("strong", {}, "");
+    prompt.appendChild(promptTitle);
+    var choices = api.el("div", { className: "qec-choice-row", role: "group", "aria-label": "相关错误逻辑失败率预测" });
+    var choiceButtons = {};
+    [["independent", "独立错误更高"], ["correlated", "全相关错误更高"], ["equal", "二者相等"]].forEach(function (item) {
+      var button = api.el("button", { type: "button", "data-choice": item[0] }, item[1]);
+      button.addEventListener("click", function () { state.prediction = item[0]; renderPrediction(); });
+      choices.appendChild(button);
+      choiceButtons[item[0]] = button;
+    });
+    prompt.appendChild(choices);
+    var actions = api.el("div", { className: "qec-actions" });
+    var check = api.el("button", { type: "button", className: "qec-primary" }, "核对预测");
+    var reset = api.el("button", { type: "button" }, "重置");
+    var feedback = api.el("p", { className: "qec-feedback" }, "先选一个预测。");
+    actions.appendChild(check);
+    actions.appendChild(reset);
+    prompt.appendChild(actions);
+    prompt.appendChild(feedback);
+    shell.appendChild(prompt);
+    var revealed = api.el("section", { className: "qec-revealed", hidden: true, "aria-live": "polite" });
+    shell.appendChild(revealed);
+    root.replaceChildren(shell);
+
+    function renderPrediction() {
+      Object.keys(choiceButtons).forEach(function (key) { choiceButtons[key].setAttribute("aria-pressed", state.prediction === key ? "true" : "false"); });
+    }
+    function renderResults(analysis, probability) {
+      var breakdown = independentBreakdown(probability);
+      revealed.replaceChildren();
+      revealed.appendChild(api.el("h3", {}, "Encode → Error → Syndrome → Correct"));
+      var metrics = api.el("div", { className: "qec-metrics" });
+      [["当前错误", analysis.label], ["综合", "(" + analysis.syndrome.join(",") + ")"], ["恢复", analysis.correction], ["逻辑内容泄露", analysis.syndromeLeaksLogicalAmplitudes ? "是" : "否（0 bits）"]].forEach(function (item) {
+        var metric = api.el("div", { className: "qec-metric" });
+        metric.appendChild(api.el("span", {}, item[0]));
+        metric.appendChild(api.el("strong", {}, item[1]));
+        metrics.appendChild(metric);
+      });
+      revealed.appendChild(metrics);
+      var layout = api.el("div", { className: "qec-layout" });
+      var circuitStage = api.el("div", { className: "qec-stage" });
+      circuitStage.appendChild(circuitSvg(api, analysis, instance));
+      circuitStage.appendChild(api.el("p", { className: "qec-note" }, analysis.state + "；综合是错误的指纹，不是 α、β 的测量。"));
+      layout.appendChild(circuitStage);
+      var probabilityStage = api.el("div", { className: "qec-stage" });
+      probabilityStage.appendChild(probabilitySvg(api, probability, instance));
+      layout.appendChild(probabilityStage);
+      revealed.appendChild(layout);
+      revealed.appendChild(api.el("h3", {}, "错误综合账本"));
+      revealed.appendChild(api.el("p", { className: "qec-note" }, "双错的综合会伪装成另一种单错：例如 X₁X₂ 的 (+,−) 与 X₃ 相同，按表施 X₃ 后留下 X₁X₂X₃=X_L。"));
+      var errorLedger = api.el("div", { className: "qec-ledger" });
+      errorLedger.appendChild(renderErrorLedger(api, analysis.id));
+      revealed.appendChild(errorLedger);
+      revealed.appendChild(api.el("h3", {}, "概率账本"));
+      var probabilityLedger = api.el("div", { className: "qec-ledger" });
+      probabilityLedger.appendChild(makeTable(api, ["噪声模型 / 事件", "概率", "是否逻辑失败"], [
+        ["独立：恰好 0 错", formatValue(breakdown.zero, 6), "否"],
+        ["独立：恰好 1 错", formatValue(breakdown.one, 6), "否"],
+        ["独立：恰好 2 错", formatValue(breakdown.two, 6), "是：伪装单错后成为 X_L"],
+        ["独立：恰好 3 错", formatValue(breakdown.three, 6), "是：综合为 ++，留下 X_L"],
+        ["独立总失败", formatValue(breakdown.failure, 6), "3p²(1−p)+p³"],
+        ["全相关：I / X₁X₂X₃", "1−p / " + formatValue(probability, 6), "失败率 = p"]
+      ], "独立与相关错误概率账本"));
+      revealed.appendChild(probabilityLedger);
+      revealed.appendChild(api.el("p", { className: "qec-formula" }, "P_fail,ind(p)=3p²(1−p)+p³=" + formatValue(independentLogicalFailure(probability), 6) + "; P_fail,corr(p)=p=" + formatValue(correlatedLogicalFailure(probability), 6)));
+      revealed.appendChild(api.el("div", { className: analysis.logicalFailure ? "qec-callout qec-boundary" : "qec-callout" }, "边界：本码只纠正一个 X bit-flip。Z 与两个 Z 稳定子对易，综合为 ++；Y 含 Z 分量，也不能被本码完整纠正。综合不泄露 α、β，但它只区分本码设计的错误集合。"));
+      revealed.appendChild(api.el("div", { className: "qec-callout" }, "相关反例：令每位边缘 bit-flip 概率都为 p，但以概率 p 同时施加 X₁X₂X₃、否则施加 I。三位边缘仍都是 p，实际逻辑失败率却是 p，而不是独立公式；相关结构必须进入噪声模型。"));
+    }
+    function render() {
+      state.errorId = errorSelect.value;
+      state.probability = Number(probabilityRange.value);
+      probabilityOutput.textContent = formatValue(state.probability, 2);
+      promptTitle.textContent = "先预测：当前 p=" + formatValue(state.probability, 2) + " 时，哪条噪声模型的逻辑失败率更高？";
+      var analysis = analyzeError(state.errorId);
+      var correct = state.prediction && state.prediction === predictionAnswer(state.probability);
+      renderPrediction();
+      if (!state.revealed) {
+        revealed.hidden = true;
+        feedback.className = "qec-feedback";
+        feedback.textContent = state.prediction ? "预测已记录，点击“核对预测”查看综合与概率账本。" : "先选一个预测。";
+        return;
+      }
+      revealed.hidden = false;
+      feedback.className = "qec-feedback " + (correct ? "qec-pass" : "qec-warn");
+      feedback.textContent = (correct ? "预测命中。" : "预测未命中。") + " 当前错误的综合为 (" + analysis.syndrome.join(",") + ")。";
+      renderResults(analysis, state.probability);
+      if (api.announce) api.announce(root, feedback.textContent);
+    }
+    errorSelect.addEventListener("change", function () { state.prediction = null; state.revealed = false; render(); });
+    probabilityRange.addEventListener("input", function () { state.prediction = null; state.revealed = false; render(); });
+    check.addEventListener("click", function () {
+      if (!state.prediction) {
+        feedback.className = "qec-feedback qec-warn";
+        feedback.textContent = "请先作出预测。";
+        return;
+      }
+      state.revealed = true;
+      render();
+    });
+    reset.addEventListener("click", function () {
+      state.errorId = "X2";
+      state.probability = 0.1;
+      state.prediction = null;
+      state.revealed = false;
+      errorSelect.value = "X2";
+      probabilityRange.value = "0.1";
+      render();
+    });
+    render();
+  }
+  function selfTest() {
+    var checks = 0;
+    function assert(condition, message) {
+      checks += 1;
+      if (!condition) throw new Error(message);
+    }
+    function assertThrows(fn, message) {
+      var threw = false;
+      try { fn(); } catch (error) { threw = true; }
+      assert(threw, message);
+    }
+    assert(syndromeKey(syndromeForMask([0, 0, 0])) === "++", "no-error syndrome");
+    assert(syndromeKey(syndromeForMask([0, 1, 0])) === "--", "X2 syndrome");
+    assert(analyzeError("X1").correction === "X1" && !analyzeError("X1").logicalFailure, "single X1 corrected");
+    assert(analyzeError("X2").correction === "X2" && !analyzeError("X2").logicalFailure, "single X2 corrected");
+    assert(analyzeError("X3").correction === "X3" && !analyzeError("X3").logicalFailure, "single X3 corrected");
+    assert(syndromeKey(analyzeError("X1X2").syndrome) === "+-", "double X1X2 mimics X3");
+    assert(analyzeError("X1X2").correction === "X3", "double X1X2 gets X3 recovery");
+    assert(analyzeError("X1X2").logicalX, "double X1X2 becomes logical X");
+    assert(analyzeError("X1X3").logicalX && analyzeError("X2X3").logicalX, "all double errors become logical X");
+    assert(syndromeKey(analyzeError("X1X2X3").syndrome) === "++" && analyzeError("X1X2X3").logicalX, "triple error hides as no error");
+    assert(syndromeKey(analyzeError("Z2").syndrome) === "++" && analyzeError("Z2").phaseResidual, "phase error invisible to syndrome");
+    assert(syndromeKey(analyzeError("Y2").syndrome) === "--" && analyzeError("Y2").phaseResidual, "Y keeps phase residual");
+    assert(analyzeError("X2").syndromeLeaksLogicalAmplitudes === false, "syndrome does not inspect amplitudes");
+    assert(near(independentLogicalFailure(0), 0, 1e-12), "independent p=0");
+    assert(near(independentLogicalFailure(0.1), 0.028, 1e-12), "independent p=.1 formula");
+    assert(near(independentLogicalFailure(1), 1, 1e-12), "independent p=1");
+    assert(near(correlatedLogicalFailure(0.1), 0.1, 1e-12), "correlated p=.1 counterexample");
+    assert(predictionAnswer(0.1) === "correlated", "correlated model is higher below p=.5");
+    assert(predictionAnswer(0.8) === "independent", "independent model is higher above p=.5");
+    assert(predictionAnswer(0) === "equal" && predictionAnswer(0.5) === "equal" && predictionAnswer(1) === "equal", "prediction crossings");
+    assertThrows(function () { independentLogicalFailure(-0.1); }, "reject negative p");
+    assertThrows(function () { correlatedLogicalFailure(1.1); }, "reject p above one");
+    return { checks: checks, presets: ERROR_DEFINITIONS.length };
+  }
+  return {
+    ERROR_DEFINITIONS: ERROR_DEFINITIONS.slice(),
+    syndromeForMask: syndromeForMask,
+    analyzeError: analyzeError,
+    independentLogicalFailure: independentLogicalFailure,
+    independentBreakdown: independentBreakdown,
+    correlatedLogicalFailure: correlatedLogicalFailure,
+    predictionAnswer: predictionAnswer,
+    mount: mount,
+    selfTest: selfTest
+  };
+});

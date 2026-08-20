@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +41,18 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:30</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先猜失真预算的价格</a><ul>
+<li><a href="#rate-distortion-learning-title">具体谜题：一个公平 bit 允许错多少？</a></li>
+<li><a href="#_2">反例与迁移</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 率失真理论：有损压缩的极限</a></li>
 <li><a href="#2-sanov">2. 类型方法与 Sanov 定理</a></li>
 <li><a href="#3">3. 信息论进阶三页收官</a></li>
@@ -49,15 +65,101 @@
 <p><strong>对标</strong>：Cover &amp; Thomas §10、§11 ｜ <strong>前置</strong>：it2-01/02、本科信息论 II、优化 III
 收官页两个方向：<strong>率失真理论</strong>——有损压缩的极限（JPEG/MP3/神经压缩的理论天花板）；<strong>大偏差与 Sanov 定理</strong>——"稀有事件的概率按 KL 散度指数计价"：KL 的第三重身份（前两重：编码代价、统计距离），也是 hdp 线 Chernoff 界的完全体形态。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="rate-distortion-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先猜失真预算的价格<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="rate-distortion-learning-title">具体谜题：一个公平 bit 允许错多少？<a class="headerlink" href="#rate-distortion-learning-title" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>，重构 <span class="arithmatex">\(\hat X\in\{0,1\}\)</span>，失真为汉明距离</p>
+<div class="arithmatex">\[
+d(x,\hat x)=\mathbf 1\{x\ne\hat x\}.
+\]</div>
+<p>失真 <span class="arithmatex">\(D\)</span> 是每个源符号的平均错位预算。先预测：从 <span class="arithmatex">\(D=0\)</span> 放宽到 <span class="arithmatex">\(D=1/2\)</span>，所需率会升高、保持不变，还是降到 0？再看实验台把答案与一个数值稳定的 BA 测试信道逐项对账。</p>
+<div class="learning-lab" data-learning-lab="rate-distortion">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验默认 <span class="arithmatex">\(D=0.20\)</span>。二元熵端点约定 <span class="arithmatex">\(H_2(0)=H_2(1)=0\)</span>，并且</p>
+<div class="arithmatex">\[
+R(D)=\begin{cases}
+1-H_2(D),&amp;0\le D\le\frac12,\\
+0,&amp;D\ge\frac12,
+\end{cases}\qquad
+H_2(D)=-D\log_2D-(1-D)\log_2(1-D).
+\]</div>
+<p>因此</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(D\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(H_2(D)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(R(D)\)</span>（bits/source symbol）</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(D&lt;0\)</span></td>
+<td style="text-align: right;">非法</td>
+<td style="text-align: right;">非法</td>
+<td>失真预算不能为负</td>
+</tr>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>无损恢复公平 bit</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.721928</td>
+<td style="text-align: right;">0.278072</td>
+<td>默认点</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td>常数重构已够用</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">不再用于闭式段</td>
+<td style="text-align: right;">0</td>
+<td><span class="arithmatex">\(D\ge1/2\)</span> 的零率平台</td>
+</tr>
+</tbody>
+</table>
+<p>达到默认点的最小测试信道可以取</p>
+<div class="arithmatex">\[
+W(\hat x\mid x)=\begin{pmatrix}0.8&amp;0.2\\0.2&amp;0.8\end{pmatrix},\qquad
+q(\hat x)=(0.5,0.5),\qquad E[d(X,\hat X)]=0.2.
+\]</div>
+<p>于是 <span class="arithmatex">\(I(X;\hat X)=1-H_2(0.2)=0.278072\)</span> bits。BA 账本用自然指数的 <span class="arithmatex">\(\exp(-\beta d)\)</span> 做迭代，但每行用 log-sum-exp 归一化；默认点的 <span class="arithmatex">\(\beta=\ln4\approx1.386294\)</span>，数值的 <span class="arithmatex">\(I\)</span> 与闭式 <span class="arithmatex">\(R(D)\)</span> 应只差舍入误差。</p>
+<p><strong>四个对象不要混为一谈：</strong><span class="arithmatex">\(R(D)\)</span> 是 i.i.d. 源、每符号失真约束下的渐近 operational theorem 边界；<span class="arithmatex">\(I(X;\hat X)\ge R(D)\)</span> 是任意测试联合分布的互信息下界；一个有限 <span class="arithmatex">\(n\)</span> 的单次码只有 <span class="arithmatex">\(M\)</span> 个码字、率为 <span class="arithmatex">\(\log_2M/n\)</span>，还要实际测它的失真；finite-blocklength 可能需要高于渐近边界的余量，<span class="arithmatex">\(R(D)\)</span> 不承诺每个 <span class="arithmatex">\(n\)</span> 都能恰好取等。</p>
+</div>
+<h3 id="_2">反例与迁移<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>若把 <span class="arithmatex">\(D\)</span> 误当作“每条消息最多错 <span class="arithmatex">\(D\)</span> 的比例”，就把平均失真 operational theorem 偷换成了逐条保证；若把 <span class="arithmatex">\(I\)</span> 的测试信道直接称作一个有限码，又忽略了码本覆盖和整数码字。迁移练习：把公平 bit 改成偏置 Bernoulli，先写出适用的失真范围，再检查 <span class="arithmatex">\(R(D)\)</span> 是否仍是本页的同一个闭式。</p>
+</section>
 <h2 id="1">1. 率失真理论：有损压缩的极限<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>设定</strong>：失真度量 <span class="arithmatex">\(d(x, \hat x)\)</span>（如平方误差/汉明距离），允许平均失真 <span class="arithmatex">\(\leq D\)</span>，问最少码率。</p>
 <p><strong>定义与定理（率失真函数）</strong></p>
 <div class="arithmatex">\[
 R(D) = \min_{p(\hat x\mid x):\ E\,d(X,\hat X) \leq D}\ I(X; \hat X)
 \]</div>
-<p>且此 <span class="arithmatex">\(R(D)\)</span> 恰是可达的最小码率（正逆定理均成立【骨架：正向 = 随机码本 + 联合典型性（it2-02 的证明机器换个方向开——码字当"重建"用）；逆向 = Fano 链】）。</p>
-<p><strong>读法</strong>：<strong>压缩 = 用互信息买失真的市场</strong>，<span class="arithmatex">\(R(D)\)</span> 是价目表：<span class="arithmatex">\(R(0) = H\)</span>（无损极限，回收 it2-01）；<span class="arithmatex">\(D\)</span> 大到一定程度 <span class="arithmatex">\(R = 0\)</span>（均值重建即可）。凸性【一行：时间共享论证】保证价目表无套利。</p>
-<p><strong>两个闭式价目表【引用推导】</strong>：伯努利-汉明：<span class="arithmatex">\(R(D) = h(p) - h(D)\)</span>；<strong>高斯-平方误差</strong>：</p>
+<p>且在 i.i.d. 源、单字母失真和标准平均失真准则下，此 <span class="arithmatex">\(R(D)\)</span> 是渐近可达的最小率：对任意 <span class="arithmatex">\(\epsilon&gt;0\)</span>，长 block 可以把率压到 <span class="arithmatex">\(R(D)+\epsilon\)</span> 且满足失真约束；反向定理排除低于 <span class="arithmatex">\(R(D)\)</span> 的渐近率。它不是“任意有限 block 的单次码长”公式。</p>
+<p><strong>读法</strong>：<strong>压缩 = 用互信息买失真的市场</strong>，<span class="arithmatex">\(R(D)\)</span> 是价目表：对本页公平 bit，<span class="arithmatex">\(R(0)=1\)</span>（无损极限，回收 it2-01）；<span class="arithmatex">\(D\ge1/2\)</span> 时常数重构即可给出 <span class="arithmatex">\(R=0\)</span>。凸性【一行：时间共享论证】保证价目表无套利。</p>
+<p><strong>本页的精确闭式价目表【限定模型】</strong>：当 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>、<span class="arithmatex">\(\hat X\in\{0,1\}\)</span>、失真为汉明距离时，</p>
+<div class="arithmatex">\[
+R(D)=\begin{cases}
+1-H_2(D),&amp;0\le D\le\frac12,\\
+0,&amp;D\ge\frac12,
+\end{cases}\qquad R(D)\text{ 对 }D&lt;0\text{ 无定义}.
+\]</div>
+<p><strong>下界</strong>来自误差变量 <span class="arithmatex">\(E=X\oplus\hat X\)</span>：</p>
+<div class="arithmatex">\[
+I(X;\hat X)=1-H(X\mid\hat X)\ge1-H(E)\ge1-H_2(D),\qquad D\le\frac12.
+\]</div>
+<p>最后一个不等号用的是二元熵在 <span class="arithmatex">\([0,1/2]\)</span> 上递增；若 <span class="arithmatex">\(D\ge1/2\)</span>，输出常数 0 的零率重构已有 <span class="arithmatex">\(E[d]=1/2\le D\)</span>。<strong>可达性</strong>取 BSC 测试信道 <span class="arithmatex">\(\hat X=X\oplus Z\)</span>、<span class="arithmatex">\(Z\sim\operatorname{Bernoulli}(D)\)</span>，其 <span class="arithmatex">\(q(\hat X)\)</span> 仍均匀，恰有 <span class="arithmatex">\(I=1-H_2(D)\)</span>。</p>
+<p>偏置 Bernoulli 的一般式需要额外分段和适用范围，不能把 <span class="arithmatex">\(h(p)-h(D)\)</span> 不加条件地写成所有 <span class="arithmatex">\(p,D\)</span> 的公式；本页实验只验证公平 bit 的精确边界。</p>
+<p><strong>高斯-平方误差</strong>（另一个模型）：</p>
 <div class="arithmatex">\[
 R(D) = \frac12\log\frac{\sigma^2}{D}
 \]</div>
@@ -119,5 +221,7 @@ P\big(\hat P_n \in E\big) \;\doteq\; 2^{-n\,\min_{Q\in E} D_{\mathrm{KL}}(Q\|P)}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/rate-distortion.js"></script>
 </body>
 </html>

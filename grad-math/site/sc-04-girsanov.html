@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先核对测度方向，再谈“去漂移”</a><ul>
+<li><a href="#1-learning-contract">1. Learning contract</a></li>
+<li><a href="#2">2. 符号、方向与目标矩</a></li>
+<li><a href="#3-novikov">3. Novikov、绝对连续边界与有限样本反例</a></li>
+<li><a href="#4">4. 动手实验：固定增量的预测门与权重账本</a></li>
+</ul>
+</li>
 <li><a href="#1-girsanov">1. Girsanov 定理：换测度 = 换漂移</a></li>
-<li><a href="#2">2. 鞅表示定理：对冲的存在性执照</a></li>
+<li><a href="#2_1">2. 鞅表示定理：对冲的存在性执照</a></li>
 <li><a href="#3-feynmankacsde-pde">3. Feynman–Kac：SDE ⇄ PDE 词典</a></li>
-<li><a href="#4">4. 随机分析四页资产盘点</a></li>
+<li><a href="#4_1">4. 随机分析四页资产盘点</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -50,6 +68,61 @@
 <p><strong>对标</strong>：Øksendal §8 / Shreve <em>SCF-II</em> §5 ｜ <strong>前置</strong>：sc-01–03、mt-03/04、pde2 线（Feynman–Kac 一节）
 随机分析收官：三大定理各管金融数学的一根支柱——<strong>Girsanov</strong>（风险中性测度为何存在）、<strong>鞅表示</strong>（为何一切期权都能对冲）、<strong>Feynman–Kac</strong>（SDE 与 PDE 的官方词典）。本科 sde-03 的"风险中性定价"从操作口诀升格为定理体系。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：先核对测度方向，再谈“去漂移”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-learning-contract">1. Learning contract<a class="headerlink" href="#1-learning-contract" title="Permanent link"></a></h3>
+<p>本实验固定一组由 seed 生成的 Gaussian 增量，并把它们解释成 <span class="arithmatex">\(P\)</span> 下的 Brownian 路径。模型是</p>
+<div class="arithmatex">\[
+X_t=\sigma\theta t+\sigma B_t,
+\qquad
+Z_T=\frac{dQ}{dP}\Big|_{\mathcal F_T}
+=\exp\left(-\theta B_T-\frac12\theta^2T\right).
+\]</div>
+<p>目标不是把有限样本平均“调到正确”，而是先把以下四件事说对：RN 导数的<strong>方向</strong>是 <span class="arithmatex">\(dQ/dP\)</span>，指数中的线性项是负号；<span class="arithmatex">\(P\)</span> 下的 <span class="arithmatex">\(X\)</span> 带漂移，<span class="arithmatex">\(Q\)</span> 下它变成无漂移；常数有限 <span class="arithmatex">\(\theta\)</span>、有限 <span class="arithmatex">\(T\)</span> 时 Novikov 给出真鞅和等价测度；当 <span class="arithmatex">\(|\theta|\)</span> 变大时，有限重要性采样会出现权重退化。</p>
+<p>先预测四件事，再打开实验：</p>
+<ol>
+<li>若 <span class="arithmatex">\(B_t+\theta t\)</span> 在 <span class="arithmatex">\(Q\)</span> 下是 Brownian，<span class="arithmatex">\(dQ/dP\)</span> 的 <span class="arithmatex">\(B_T\)</span> 项应取正号还是负号？</li>
+<li><span class="arithmatex">\(P\)</span> 下 <span class="arithmatex">\(X_t=\sigma\theta t+\sigma B_t\)</span>，加权后的 <span class="arithmatex">\(Q\)</span> 下漂移是多少？</li>
+<li>常数有限 <span class="arithmatex">\(\theta\)</span>、有限 <span class="arithmatex">\(T\)</span> 时，<span class="arithmatex">\(E_P\exp(\frac12\theta^2T)\)</span> 是有限数还是无法判断？</li>
+<li>保持样本量不变而增大 <span class="arithmatex">\(|\theta|\)</span>，ESS 会更均匀还是更集中？</li>
+</ol>
+<h3 id="2">2. 符号、方向与目标矩<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>由 <span class="arithmatex">\(\tilde B_t=B_t+\theta t\)</span> 在 <span class="arithmatex">\(Q\)</span> 下为标准 Brownian，反解得 <span class="arithmatex">\(B_t=\tilde B_t-\theta t\)</span>。因此</p>
+<div class="arithmatex">\[
+X_t=\sigma\theta t+\sigma(\tilde B_t-\theta t)=\sigma\tilde B_t,
+\]</div>
+<p>这正是“<span class="arithmatex">\(P\)</span> 下带漂移，<span class="arithmatex">\(Q\)</span> 下无漂移”的方向。对任意终值或路径量 <span class="arithmatex">\(G\)</span>，关系是</p>
+<div class="arithmatex">\[
+E^Q[G]=E^P[Z_TG],
+\quad
+Z_T=\exp\left(-\theta B_T-\frac12\theta^2T\right),
+\quad
+E^P[Z_T]=1.
+\]</div>
+<p>例如 <span class="arithmatex">\(X_T\)</span> 的目标矩是 <span class="arithmatex">\(E^Q[X_T]=0\)</span>、<span class="arithmatex">\(E^Q[X_T^2]=\sigma^2T\)</span>；路径量 <span class="arithmatex">\(A_T=\int_0^T X_tdt\)</span> 也应在 <span class="arithmatex">\(Q\)</span> 下有零均值。实验把同一批增量代入这些加权平均，并同时报告原始权重均值、归一化和、ESS 与目标矩。</p>
+<h3 id="3-novikov">3. Novikov、绝对连续边界与有限样本反例<a class="headerlink" href="#3-novikov" title="Permanent link"></a></h3>
+<p>常数参数时</p>
+<div class="arithmatex">\[
+E^P\exp\left(\frac12\int_0^T\theta^2dt\right)=\exp\left(\frac12\theta^2T\right)&lt;\infty,
+\]</div>
+<p>且 <span class="arithmatex">\(Z_T&gt;0\)</span> 几乎处处，所以有限 <span class="arithmatex">\(T\)</span> 上 <span class="arithmatex">\(Q\sim P\)</span>。<span class="arithmatex">\(T=0\)</span> 是退化但合法的边界：<span class="arithmatex">\(Z_0=1\)</span>。这句话不能外推成“任何漂移都能换掉”：无限时间、未控制的随机 <span class="arithmatex">\(\theta_t\)</span>、Novikov 失败或指数局部鞅不是真鞅时，需要另外的均匀可积性、Kazamaki 条件或局部化论证，不能自动得到同一个概率测度。</p>
+<p>反例是重要性采样本身：把有限个 <span class="arithmatex">\(Z_i\)</span> 除以 <span class="arithmatex">\(\sum_iZ_i\)</span> 后权重和必为 <span class="arithmatex">\(1\)</span>，这不是 <span class="arithmatex">\(E^P[Z_T]=1\)</span> 的证明；大漂移下一个或少数路径可能承担几乎全部权重，ESS 下降也不表示 Girsanov 定理失效。迁移到非 Gaussian 噪声或随机波动率时，指数形式、可积性和绝对连续性都要重新检查。</p>
+<h3 id="4">4. 动手实验：固定增量的预测门与权重账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认 <span class="arithmatex">\(\theta=1,T=1,\sigma=1\)</span>，固定生成 <span class="arithmatex">\(192\)</span> 条、每条 <span class="arithmatex">\(48\)</span> 段的 Gaussian 增量。提交预测前，答案、图和账本隐藏；提交后可切换 <span class="arithmatex">\(\theta,T,\sigma\)</span>。同一 seed 让参数变化只改变模型解释和权重，不重新抽样。</p>
+<div class="learning-lab" data-learning-lab="girsanov-weights">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 默认模型为</p>
+<div class="arithmatex">\[
+X_t=t+B_t,
+\qquad
+Z_1=\exp(-B_1-1/2),
+\qquad
+\frac{dQ}{dP}=Z_1.
+\]</div>
+<p>解析读法是 <span class="arithmatex">\(E_P[Z_1]=1\)</span>、<span class="arithmatex">\(E_Q[X_1]=0\)</span>、<span class="arithmatex">\(E_Q[X_1^2]=1\)</span>，而 Novikov 值为 <span class="arithmatex">\(e^{1/2}\approx1.6487\)</span>；路径量 <span class="arithmatex">\(A_1=\int_0^1X_tdt\)</span> 的 <span class="arithmatex">\(Q\)</span> 下目标均值也是 <span class="arithmatex">\(0\)</span>。ESS 应按 <span class="arithmatex">\(1/\sum_iw_i^2\)</span> 读取，<span class="arithmatex">\(|\theta|\)</span> 大时通常下降。固定样本的数值只能检查这些目标的有限样本近似，不能证明 RN 指数是真鞅。</p>
+</div>
+</section>
 <h2 id="1-girsanov">1. Girsanov 定理：换测度 = 换漂移<a class="headerlink" href="#1-girsanov" title="Permanent link"></a></h2>
 <p><strong>动机</strong>：本科 sde-03 里"把 <span class="arithmatex">\(\mu\)</span> 换成 <span class="arithmatex">\(r\)</span>"是黑箱操作。真相：<strong>换一个概率测度，布朗运动的漂移就变了</strong>。</p>
 <p><strong>定理（Girsanov）</strong> <span class="arithmatex">\(\theta_t\)</span> 适应且满足 Novikov 条件 <span class="arithmatex">\(E\exp\big(\frac12\int_0^T\theta^2dt\big) &lt; \infty\)</span>。定义</p>
@@ -59,7 +132,7 @@ Z_T = \exp\Big(-\int_0^T\theta_s\,dB_s - \frac12\int_0^T\theta_s^2\,ds\Big), \qq
 <p>则在新测度 <span class="arithmatex">\(Q\)</span> 下，<span class="arithmatex">\(\tilde B_t = B_t + \int_0^t\theta_s ds\)</span> 是标准布朗运动。</p>
 <p><strong>【骨架】</strong> 三步：① <span class="arithmatex">\(Z_t\)</span> 是指数鞅（Itô 公式验证 <span class="arithmatex">\(dZ = -\theta Z\,dB\)</span>，无漂移项——sc-01 §3 鞅③的推广；Novikov 保证真鞅而非仅局部鞅，<span class="arithmatex">\(EZ_T = 1\)</span> 使 <span class="arithmatex">\(Q\)</span> 是概率测度）；② 计算 <span class="arithmatex">\(\tilde B\)</span> 在 <span class="arithmatex">\(Q\)</span> 下的矩母函数：<span class="arithmatex">\(E^Q[e^{\lambda\tilde B_t}] = E^P[Z_t e^{\lambda\tilde B_t}]\)</span>——两个指数合并配方（高斯配方术），得 <span class="arithmatex">\(e^{\lambda^2t/2}\)</span>；③ 独立增量同法逐段验证，Lévy 刻画（sc-01 §3）收尾。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>读法</strong>：<strong>测度变换是"漂移的橡皮擦"</strong>——<span class="arithmatex">\(P\)</span> 下的 <span class="arithmatex">\(dX = \mu dt + \sigma dB\)</span> 在 <span class="arithmatex">\(Q\)</span> 下可改写为 <span class="arithmatex">\(dX = r\,dt + \sigma d\tilde B\)</span>（取 <span class="arithmatex">\(\theta = \frac{\mu - r}{\sigma}\)</span>，<strong>市场风险价格</strong>）。波动率 <span class="arithmatex">\(\sigma\)</span> 换不掉（二次变差是路径性质，测度等价变换动不了它——sc-01 §2 的定理在此显出深意：<strong>你能改变对世界的概率评估，改不了路径的粗糙度</strong>）。<span class="arithmatex">\(Z\)</span> 的形态即统计学的似然比——Girsanov 是连续时间的似然比变换（与渐近统计线的 LAN 理论遥相呼应）。</p>
-<h2 id="2">2. 鞅表示定理：对冲的存在性执照<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 鞅表示定理：对冲的存在性执照<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理</strong> 布朗过滤下的任何平方可积鞅 <span class="arithmatex">\(M_t\)</span> 必可表示为</p>
 <div class="arithmatex">\[
 M_t = M_0 + \int_0^t h_s\,dB_s \qquad (h \text{ 适应、唯一})
@@ -82,7 +155,7 @@ dY = e^{-r(s-t)}\Big[\underbrace{u_t + \mu u_x + \tfrac12\sigma^2u_{xx} - ru}_{=
 \]</div>
 <p>漂移被 PDE 精确消灭 ⇒ <span class="arithmatex">\(Y\)</span> 是（局部）鞅；取期望（有界性/局部化论证后）：<span class="arithmatex">\(u(t,x) = EY_t = EY_T = E[e^{-r(T-t)}\Phi(X_T)]\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>读法</strong>：<strong>PDE 的解 = 沿扩散路径的期望</strong>——两个世界的官方翻译器：Black–Scholes 方程 ⇄ 风险中性期望（sde-03 两条定价路线原是一条）；热方程 ⇄ 布朗运动期望（pde2 线/本科 pde-02 的"热核=转移密度"的定理版）；数值上开出两条路——解 PDE（网格法）或模拟 SDE（Monte Carlo），<strong>维数低走 PDE、维数高走 MC</strong> 的行业分工由此定型。反向词典（生成元、Kolmogorov 前后向方程）与位势项推广同框【引用】。</p>
-<h2 id="4">4. 随机分析四页资产盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 随机分析四页资产盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -129,5 +202,7 @@ dY = e^{-r(s-t)}\Big[\underbrace{u_t + \mu u_x + \tfrac12\sigma^2u_{xx} - ru}_{=
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/girsanov-weights.js"></script>
 </body>
 </html>

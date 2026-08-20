@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,7 +41,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li class="active"><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
@@ -38,7 +49,12 @@
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 自信息与熵</a></li>
-<li><a href="#2">2. 信源编码：熵 = 压缩的物理极限</a></li>
+<li><a href="#_1">学习层：先预测四符号码的平均长度</a><ul>
+<li><a href="#entropy-learning-title">具体谜题：非二进概率怎样落到整数码长？</a></li>
+<li><a href="#_2">反例与迁移</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 信源编码：熵是渐近平均极限</a></li>
 <li><a href="#3">3. 🔗 全站对账</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
@@ -53,6 +69,87 @@
 <p><img alt="二元熵曲线" src="assets/img/info-01-entropy.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>二元熵 \(H(p)\)：不确定性在 \(p=0.5\)（最难猜）时最大 1 bit、在确定事件（\(p=0\) 或 \(1\)）时为零——熵是"平均意外程度"。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="entropy-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先预测四符号码的平均长度<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="entropy-learning-title">具体谜题：非二进概率怎样落到整数码长？<a class="headerlink" href="#entropy-learning-title" title="Permanent link"></a></h3>
+<p>固定一个无记忆信源</p>
+<div class="arithmatex">\[
+P(A,B,C,D)=(0.4,0.3,0.2,0.1).
+\]</div>
+<p>先不看实验台，预测三件事：</p>
+<ol>
+<li>定长码、一符号 Huffman 码、二符号分组 Huffman 码，哪一个每个源符号的平均码长最低？</li>
+<li>下面这棵确定性 Huffman 树的 Kraft 和会不会超过 1？</li>
+<li>熵 <span class="arithmatex">\(H\)</span> 是不是每一条消息都能兑现的整数 bit 数？</li>
+</ol>
+<p>这个分布是刻意选的：四个概率都不是 <span class="arithmatex">\(2^{-k}\)</span> 的整齐边界。Huffman 的一个确定性并列处理约定是“权重相同时按原符号顺序作左子树优先”，于是</p>
+<div class="arithmatex">\[
+A\mapsto0,\qquad B\mapsto10,\qquad C\mapsto110,\qquad D\mapsto111.
+\]</div>
+<div class="learning-lab" data-learning-lab="source-coding">
+<p><strong>无 JavaScript 时的静态读法：</strong>对上述 <span class="arithmatex">\(P\)</span>，一符号 Huffman 码的账本为</p>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th style="text-align: right;"><span class="arithmatex">\(P\)</span></th>
+<th style="text-align: right;">码字</th>
+<th style="text-align: right;">长度</th>
+<th style="text-align: right;">理想长度 <span class="arithmatex">\(-\log_2P\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(A\)</span></td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.321928</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(B\)</span></td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.736966</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(C\)</span></td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">110</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2.321928</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(D\)</span></td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">111</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3.321928</td>
+</tr>
+</tbody>
+</table>
+<p>因此</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H&amp;=-\sum_i p_i\log_2p_i=1.846439\text{ bits},\\
+L_1&amp;=0.4(1)+0.3(2)+0.2(3)+0.1(3)=1.9\text{ bits},\\
+\sum_i2^{-\ell_i}&amp;=2^{-1}+2^{-2}+2^{-3}+2^{-3}=1.
+\end{aligned}
+\]</div>
+<p>定长码需要 <span class="arithmatex">\(\lceil\log_2 4\rceil=2\)</span> bits/符号。若把独立源符号两两分组，对 16 个块的乘积分布再作 Huffman，默认确定性树给出约 <span class="arithmatex">\(L_2/2=1.865000\)</span> bits/源符号；分组长度 <span class="arithmatex">\(g=3\)</span> 时约为 <span class="arithmatex">\(1.859000\)</span>。分组的改善来自块级整数码长更细地逼近 <span class="arithmatex">\(gH\)</span>，不是把单个符号的码长变成分数。</p>
+<p>这里确实有</p>
+<div class="arithmatex">\[
+H\le L_1=1.9&lt;H+1=2.846439,
+\]</div>
+<p>但它是平均值的定理。<span class="arithmatex">\(A\)</span> 的这一条消息用 1 bit，<span class="arithmatex">\(D\)</span> 的这一条消息用 3 bits；某一条消息的长度可以高于或低于 <span class="arithmatex">\(H\)</span>。更不能把“渐近平均极限”读成“每条消息都能无损压到 <span class="arithmatex">\(H\)</span> bits”：<span class="arithmatex">\(H\)</span> 通常不是整数，信源编码定理说的是长序列、平均每符号码长可以逼近 <span class="arithmatex">\(H\)</span>，并不承诺单次消息或任意有限 block 恰好达到它。</p>
+</div>
+<h3 id="_2">反例与迁移<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>如果把 <span class="arithmatex">\(P\)</span> 换成带强上下文的字符流，独立乘积分布 <span class="arithmatex">\(P(a)P(b)\)</span> 就不再是块的真实分布；此时更好的分组码可能只是错误模型的幻觉。迁移练习：保留同一四符号边缘分布，改变相邻符号的相关性，重新问“块 Huffman 的平均长度”和“熵率”分别由什么决定。</p>
+</div>
+</section>
 <p><strong>自信息</strong>：事件发生所携带的"惊讶度" <span class="arithmatex">\(I(x) = -\log p(x)\)</span>（以 2 为底单位比特）。为什么必须是对数？三条公理锁死：惊讶度只依赖概率且随 <span class="arithmatex">\(p\)</span> 递减、对 <span class="arithmatex">\(p\)</span> 连续、<strong>独立事件的惊讶度相加</strong>（<span class="arithmatex">\(I(pq) = I(p) + I(q)\)</span>）——柯西函数方程仅有对数解（与决策树页熵公理化同一论证的事件版）。小概率事件信息量大："狗咬人"不是新闻。</p>
 <p><strong>熵</strong>：平均惊讶度</p>
 <div class="arithmatex">\[
@@ -67,13 +164,13 @@ H(X) = -\sum_x p(x)\log p(x) = E[-\log p(X)]
 <p><strong>联合熵与条件熵</strong>：<span class="arithmatex">\(H(X, Y) = E[-\log p(X,Y)]\)</span>；<span class="arithmatex">\(H(Y \mid X) = E[-\log p(Y \mid X)]\)</span>（知道 <span class="arithmatex">\(X\)</span> 后对 <span class="arithmatex">\(Y\)</span> 剩余的不确定性）。</p>
 <p><strong>链式法则</strong>：<span class="arithmatex">\(H(X, Y) = H(X) + H(Y \mid X)\)</span>（对数把乘法概率变加法——概率 I 乘法公式取对数即得）。</p>
 <p><strong>信息不增原理</strong>：<span class="arithmatex">\(H(Y \mid X) \leq H(Y)\)</span>，取等当且仅当独立——<strong>多看一眼不会更糊涂</strong>（平均意义；个别观测可以增加困惑）。差值就是下一页的互信息。</p>
-<h2 id="2">2. 信源编码：熵 = 压缩的物理极限<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2">2. 信源编码：熵是渐近平均极限<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：给字符分配 0/1 码字，要求<strong>前缀码</strong>（无码字是另一码字的前缀——即时可解），最小化平均码长 <span class="arithmatex">\(L = \sum p_i \ell_i\)</span>。</p>
 <p><strong>Kraft 不等式</strong>：长度 <span class="arithmatex">\(\{\ell_i\}\)</span> 的前缀码存在 <span class="arithmatex">\(\iff \sum_i 2^{-\ell_i} \leq 1\)</span>。
 （<em>证明直觉</em>：把码字看作满二叉树的叶子，长度 <span class="arithmatex">\(\ell\)</span> 的码字占据整棵树 <span class="arithmatex">\(2^{-\ell}\)</span> 的"份额"，总份额不超过 1。）</p>
 <p><strong>定理（Shannon 信源编码定理）</strong> 任何前缀码 <span class="arithmatex">\(L \geq H(X)\)</span>；且存在编码使 <span class="arithmatex">\(L &lt; H(X) + 1\)</span>。</p>
 <p><em>下界证明骨架（两行，值得记）</em>：<span class="arithmatex">\(L - H = \sum p_i \ell_i + \sum p_i \log p_i = -\sum p_i \log\frac{2^{-\ell_i}}{p_i} \geq -\log\sum 2^{-\ell_i} \geq 0\)</span>——中间是 Jensen（<span class="arithmatex">\(\log\)</span> 凹），末尾是 Kraft。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：最优码长 <span class="arithmatex">\(\ell_i^* \approx -\log p_i\)</span>（<strong>高频短码、低频长码</strong>——摩尔斯电码的 e 是一个点，直觉先于理论一百年）；熵是压缩的<strong>不可逾越下界</strong>——"这个文件还能不能再压"有客观答案。<strong>Huffman 算法</strong>（贪心：反复合并两个最小概率）构造最优前缀码——数值上界内的工程实现（zip 的祖先部件）。</p>
+<p><strong>读法</strong>：最优码长 <span class="arithmatex">\(\ell_i^* \approx -\log p_i\)</span>（<strong>高频短码、低频长码</strong>——摩尔斯电码的 e 是一个点，直觉先于理论一百年）；熵是压缩的<strong>渐近平均下界</strong>——它不是每条消息的长度，也不是“每条消息都能无损压到 <span class="arithmatex">\(H\)</span> bits”的承诺。<strong>Huffman 算法</strong>（贪心：反复合并两个最小概率）构造最优前缀码；对块做 Huffman 则把整数码长的舍入摊到更长的 block 上。</p>
 <h2 id="3">3. 🔗 全站对账<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <ul>
 <li><strong>决策树信息增益</strong>（ai 课 03）：选特征 = 最大化 <span class="arithmatex">\(H(Y) - H(Y\mid A)\)</span>——本页条件熵的直接应用，那页的公理化证明与本页 §1 是同一个定理；</li>
@@ -82,7 +179,7 @@ H(X) = -\sum_x p(x)\log p(x) = E[-\log p(X)]
 </ul>
 <h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（二十问游戏）</strong> 8 个等可能候选：<span class="arithmatex">\(H = 3\)</span> 比特 ⇒ 最优二分提问恰需 3 问。若分布为 <span class="arithmatex">\((\frac12, \frac14, \frac18, \frac18)\)</span>：<span class="arithmatex">\(H = 1.75\)</span>——先问"是不是第一个"的不均匀问法平均 1.75 问，<strong>比盲目二分（2 问）省</strong>：好的提问顺序 = 好的编码。</p>
-<p><strong>例 2（熵的计算与比较）</strong> <span class="arithmatex">\(X \sim B(1, 0.9)\)</span>：<span class="arithmatex">\(h(0.9) = -0.9\log 0.9 - 0.1\log 0.1 \approx 0.469\)</span> 比特——偏硬币悬念不到半比特；这正是它可压缩的原因（1000 次投掷 ≈ 469 比特存下，而非 1000）。</p>
+<p><strong>例 2（熵的计算与比较）</strong> <span class="arithmatex">\(X \sim B(1, 0.9)\)</span>：<span class="arithmatex">\(h(0.9) = -0.9\log 0.9 - 0.1\log 0.1 \approx 0.469\)</span> 比特——偏硬币悬念不到半比特；这表示长序列的平均极限约为每次 0.469 bit，不表示任意一条有限投掷记录都恰好需要这个长度。</p>
 <p><strong>例 3（Huffman 构造）</strong> 概率 <span class="arithmatex">\((0.4, 0.2, 0.2, 0.1, 0.1)\)</span>：反复合并最小二者 → 码长 <span class="arithmatex">\((1, 3, 3, 3, 3)\)</span> 或 <span class="arithmatex">\((2,2,2,3,3)\)</span>（等优），<span class="arithmatex">\(L = 2.2\)</span>；对照 <span class="arithmatex">\(H \approx 2.12\)</span>——卡在 <span class="arithmatex">\([H, H+1)\)</span> 内 ✓。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：两个分布之间的"距离"——KL 散度与互信息：MLE 的信息论真身、以及为什么整个机器学习都在最小化一个 KL。</em></p>
@@ -95,5 +192,7 @@ H(X) = -\sum_x p(x)\log p(x) = E[-\log p(X)]
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/source-coding.js"></script>
 </body>
 </html>

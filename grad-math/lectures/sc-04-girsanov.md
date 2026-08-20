@@ -3,6 +3,86 @@
 > **对标**：Øksendal §8 / Shreve *SCF-II* §5 ｜ **前置**：sc-01–03、mt-03/04、pde2 线（Feynman–Kac 一节）
 > 随机分析收官：三大定理各管金融数学的一根支柱——**Girsanov**（风险中性测度为何存在）、**鞅表示**（为何一切期权都能对冲）、**Feynman–Kac**（SDE 与 PDE 的官方词典）。本科 sde-03 的"风险中性定价"从操作口诀升格为定理体系。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+
+## 学习层：先核对测度方向，再谈“去漂移”
+
+### 1. Learning contract
+
+本实验固定一组由 seed 生成的 Gaussian 增量，并把它们解释成 $P$ 下的 Brownian 路径。模型是
+
+$$
+X_t=\sigma\theta t+\sigma B_t,
+\qquad
+Z_T=\frac{dQ}{dP}\Big|_{\mathcal F_T}
+=\exp\left(-\theta B_T-\frac12\theta^2T\right).
+$$
+
+目标不是把有限样本平均“调到正确”，而是先把以下四件事说对：RN 导数的**方向**是 $dQ/dP$，指数中的线性项是负号；$P$ 下的 $X$ 带漂移，$Q$ 下它变成无漂移；常数有限 $\theta$、有限 $T$ 时 Novikov 给出真鞅和等价测度；当 $|\theta|$ 变大时，有限重要性采样会出现权重退化。
+
+先预测四件事，再打开实验：
+
+1. 若 $B_t+\theta t$ 在 $Q$ 下是 Brownian，$dQ/dP$ 的 $B_T$ 项应取正号还是负号？
+2. $P$ 下 $X_t=\sigma\theta t+\sigma B_t$，加权后的 $Q$ 下漂移是多少？
+3. 常数有限 $\theta$、有限 $T$ 时，$E_P\exp(\frac12\theta^2T)$ 是有限数还是无法判断？
+4. 保持样本量不变而增大 $|\theta|$，ESS 会更均匀还是更集中？
+
+### 2. 符号、方向与目标矩
+
+由 $\tilde B_t=B_t+\theta t$ 在 $Q$ 下为标准 Brownian，反解得 $B_t=\tilde B_t-\theta t$。因此
+
+$$
+X_t=\sigma\theta t+\sigma(\tilde B_t-\theta t)=\sigma\tilde B_t,
+$$
+
+这正是“$P$ 下带漂移，$Q$ 下无漂移”的方向。对任意终值或路径量 $G$，关系是
+
+$$
+E^Q[G]=E^P[Z_TG],
+\quad
+Z_T=\exp\left(-\theta B_T-\frac12\theta^2T\right),
+\quad
+E^P[Z_T]=1.
+$$
+
+例如 $X_T$ 的目标矩是 $E^Q[X_T]=0$、$E^Q[X_T^2]=\sigma^2T$；路径量 $A_T=\int_0^T X_tdt$ 也应在 $Q$ 下有零均值。实验把同一批增量代入这些加权平均，并同时报告原始权重均值、归一化和、ESS 与目标矩。
+
+### 3. Novikov、绝对连续边界与有限样本反例
+
+常数参数时
+
+$$
+E^P\exp\left(\frac12\int_0^T\theta^2dt\right)=\exp\left(\frac12\theta^2T\right)<\infty,
+$$
+
+且 $Z_T>0$ 几乎处处，所以有限 $T$ 上 $Q\sim P$。$T=0$ 是退化但合法的边界：$Z_0=1$。这句话不能外推成“任何漂移都能换掉”：无限时间、未控制的随机 $\theta_t$、Novikov 失败或指数局部鞅不是真鞅时，需要另外的均匀可积性、Kazamaki 条件或局部化论证，不能自动得到同一个概率测度。
+
+反例是重要性采样本身：把有限个 $Z_i$ 除以 $\sum_iZ_i$ 后权重和必为 $1$，这不是 $E^P[Z_T]=1$ 的证明；大漂移下一个或少数路径可能承担几乎全部权重，ESS 下降也不表示 Girsanov 定理失效。迁移到非 Gaussian 噪声或随机波动率时，指数形式、可积性和绝对连续性都要重新检查。
+
+### 4. 动手实验：固定增量的预测门与权重账本
+
+实验默认 $\theta=1,T=1,\sigma=1$，固定生成 $192$ 条、每条 $48$ 段的 Gaussian 增量。提交预测前，答案、图和账本隐藏；提交后可切换 $\theta,T,\sigma$。同一 seed 让参数变化只改变模型解释和权重，不重新抽样。
+
+<div class="learning-lab" data-learning-lab="girsanov-weights" markdown="1">
+
+**JavaScript 失效时的静态 fallback：** 默认模型为
+
+$$
+X_t=t+B_t,
+\qquad
+Z_1=\exp(-B_1-1/2),
+\qquad
+\frac{dQ}{dP}=Z_1.
+$$
+
+解析读法是 $E_P[Z_1]=1$、$E_Q[X_1]=0$、$E_Q[X_1^2]=1$，而 Novikov 值为 $e^{1/2}\approx1.6487$；路径量 $A_1=\int_0^1X_tdt$ 的 $Q$ 下目标均值也是 $0$。ESS 应按 $1/\sum_iw_i^2$ 读取，$|\theta|$ 大时通常下降。固定样本的数值只能检查这些目标的有限样本近似，不能证明 RN 指数是真鞅。
+
+</div>
+
+</section>
+
 ## 1. Girsanov 定理：换测度 = 换漂移
 
 **动机**：本科 sde-03 里"把 $\mu$ 换成 $r$"是黑箱操作。真相：**换一个概率测度，布朗运动的漂移就变了**。

@@ -3,6 +3,81 @@
 > **对标**：Vershynin *HDP* §7.1–8.3 ｜ **前置**：hdp-01–03
 > 收官页处理最一般的问题形态：**随机过程在无穷参数集上的上确界** $E\sup_{t\in T} X_t$——统计学习的泛化误差、经验过程的偏差都长这个样子。从"一步 ε-网"升级为"多尺度 chaining"，顶点是 Dudley 熵积分。这页是高维概率通往统计学习理论（slt 线）的桥。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="hdp04-learning-title">
+
+<h2 id="hdp04-learning-title">学习层：一棵固定二叉树，三种“最大值”语言</h2>
+
+### 1. 先预测：同一棵树上的三个数字不是同一个对象
+
+实验固定一棵深度 $K$ 的完整二叉树。每条第 $k$ 层边的增量为独立 $g_e\sim N(0,1)$ 乘上
+
+$$
+\sigma_k=0.86\cdot0.42^{k-1},\qquad
+X_v=\sum_{e\in\operatorname{path}(\mathrm{root},v)}\sigma_{\operatorname{level}(e)}g_e.
+$$
+
+同一份 seed 同时生成所有边，所以叶节点之间通过共同祖先相关，且增量满足由路径差定义的亚高斯度量。先预测：
+
+1. 对 $|L|=2^K$ 个叶子一次性做 union bound，和把每一层的最大增量逐级记账，哪一个期望上界更紧？
+2. 固定 seed 的 $\max_{v\in L}X_v$ 是期望上界、定理等式，还是一条样本路径的观测值？
+3. Dudley / generic chaining 的自然量词是“每一条样本都等号成立”，还是 $E\sup$ 的上界语言？有限树上的图能否证明无限指标集的一般定理？
+
+揭示前隐藏三种最大值和每一级数字；改变树深度或 seed 后预测重新上锁。
+
+### 2. 两种理论账本与一条样本账本
+
+令 $V=\sum_{k=1}^K\sigma_k^2$。把所有叶子当成一次性 $V$-次高斯变量，单尺度 union-bound 语言给出
+
+$$
+U_{\mathrm{single}}=\sqrt{2V\log|L|}.
+$$
+
+沿树按尺度接力，则第 $k$ 层有 $2^k$ 条边，逐级的高斯 max 项是
+
+$$
+u_k=\sigma_k\sqrt{2\log(2^k)},\qquad
+U_{\mathrm{chain}}=\sum_{k=1}^K u_k.
+$$
+
+这是一个有限树上的多尺度 union-bound 账本，与 Dudley 熵积分 / generic chaining 的思想同向；它不是把常数、截断端点和一般度量空间的证明全部压缩成一个等式。对固定 seed，实验另外计算
+
+$$
+M_{\mathrm{sample}}=\max_{v\in L}X_v,\qquad
+M_{\mathrm{chain}}=\sum_{k=1}^K\max_{e\text{ 在第 }k\text{ 层}}\Delta_e,
+$$
+
+其中 $M_{\mathrm{sample}}\le M_{\mathrm{chain}}$ 是这棵树上的样本级确定性不等式。它们都不能改名为 $E\sup$。
+
+### 3. 可运行实验：看树、看逐级账、看量词
+
+选择固定 seed 预设或调整有限深度 $K$。SVG 左侧画共享祖先与叶值，右侧并列单尺度上界、多尺度上界、固定 seed 样本最大值和样本级链上界；下方表格逐级列出 $\sigma_k$、实际最大增量和理论贡献。
+
+<div class="learning-lab" data-learning-lab="chaining-tree" markdown="1">
+
+**JavaScript 失效时的静态 fallback：**默认 $K=5$、seed=`31031`、叶节点数 $32$。尺度为 $0.86,0.3612,0.151704,0.06371568,0.0267605856$。三本账可读为：
+
+| 账本 | 默认静态值 | 正确量词 |
+|---|---:|---|
+| 单尺度 $U_{\rm single}=\sqrt{2V\log32}$ | $2.494686$ | 期望上界语言 |
+| 多尺度 $U_{\rm chain}=\sum_k\sigma_k\sqrt{2\log2^k}$ | $2.143879$ | 有限树的多尺度期望上界账本 |
+| 固定 seed $\max_vX_v$ | $0.813619$ | 一次可复现样本的最大值 |
+| 样本级 $\sum_k\max_e\Delta_e$ | $1.458464$ | 当前路径上的确定性链上界 |
+
+默认 seed 只决定这一次边增量；它不是“Dudley 对每条样本都给出等式”的证据。
+
+</div>
+
+### 4. 边界、反例与迁移
+
+- **Dudley / generic chaining 是期望上界语言**：$E\sup$、高概率版本和一次样本的 $\max X_v$ 必须分栏；固定 seed 的最大值可以偶然高于或低于某个期望上界，不能由一次路径裁决定理。
+- **有限树不是一般定理证明**：这里的 $2^K$ 个叶子、固定几何尺度和 Gaussian 边增量是可计算教学模型；一般指标集需要覆盖数、度量、可测性和极限/积分条件。
+- **单尺度不一定总输**：本实验的快速衰减尺度让多尺度账本更紧；换尺度、常数或度量后应重新比较，不能把“chaining 更小”当成无条件口号。
+- **迁移提示**：把叶子换成函数类或数据集上的损失函数，写出 $d(f,g)^2$ 与覆盖数 $N(\varepsilon)$；再说明哪一项对应统计学习里的经验过程，而不是把有限树的样本最大值直接当作泛化误差。
+
+</section>
+
 ## 1. 问题与亚高斯过程
 
 **对象**：随机过程 $(X_t)_{t\in T}$，指标集 $T$ 带度量 $d$；**亚高斯增量条件**：

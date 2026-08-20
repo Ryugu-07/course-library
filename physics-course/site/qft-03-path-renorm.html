@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,22 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 00:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#renormalization-scale-learning-title">学习层：把 cutoff、scheme 和 observable 分开记账</a><ul>
+<li><a href="#1-logarithmic-toy-ledger">1. 一个明确标注的 logarithmic toy ledger</a></li>
+<li><a href="#2-running-coupling-toy">2. 一圈 running coupling：符号和极点只属于 toy</a></li>
+<li><a href="#3">3. 静态证书、边界与迁移</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 场的路径积分</a></li>
 <li><a href="#2">2. 发散从哪来：单圈的解剖</a></li>
-<li><a href="#3">3. 重整化：三步操作</a></li>
+<li><a href="#3_1">3. 重整化：三步操作</a></li>
 <li><a href="#4">4. 跑动耦合与重整化群</a></li>
 <li><a href="#5-wilson">5. Wilson 的和解：有效理论</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
@@ -51,11 +68,95 @@
 <h1 id="iii">场论 III · 路径积分与重整化<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Peskin &amp; Schroeder §9–12 / Srednicki / Weinberg I §12 ｜ <strong>前置</strong>：qft-01/02、aqm-03（路径积分）、asm-03（RG——本页是它的动量空间孪生）
-场论收官：<strong>路径积分</strong>（现代场论的官方语言）与<strong>重整化</strong>（圈图发散的系统驯服）。核心思想一句话——<strong>发散不是理论的病，是"假装理论适用到无穷高能"的病</strong>。重整化 = 承认自己是有效理论。</p>
+场论收官：<strong>路径积分</strong>（现代场论的官方语言）与<strong>重整化</strong>（把正规化后的参数依赖组织成可比较的物理预测）。发散通常提示裸表达式、极限操作、对称性实现或有效理论边界需要被重新组织；“理论假装适用到无穷高能”只是其中一种 EFT 诊断，不能解释所有发散。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="renormalization-scale-learning-title" class="learning-layer">
+<h2 id="renormalization-scale-learning-title">学习层：把 cutoff、scheme 和 observable 分开记账<a class="headerlink" href="#renormalization-scale-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-logarithmic-toy-ledger">1. 一个明确标注的 logarithmic toy ledger<a class="headerlink" href="#1-logarithmic-toy-ledger" title="Permanent link"></a></h3>
+<p>实验只使用下面这条教学账本，不声称它是完整 QED、QCD 或 <span class="arithmatex">\(\phi^4\)</span> 圈图计算：</p>
+<div class="arithmatex">\[
+O(\Lambda)=g_{\rm bare}(\Lambda)+\beta\log\frac{\Lambda}{\mu}.
+\]</div>
+<p>这里 <span class="arithmatex">\(\Lambda\)</span> 是 regulator（动量 cutoff），<span class="arithmatex">\(\mu\)</span> 是 renormalization scale，<span class="arithmatex">\(g_{\rm bare}\)</span> 是依赖 regulator 的参数，<span class="arithmatex">\(O\)</span> 才是 toy physical observable。先固定 <span class="arithmatex">\(g_{\rm bare}\)</span>，把 <span class="arithmatex">\(\Lambda\)</span> 从 <span class="arithmatex">\(\mu\)</span> 增大，<span class="arithmatex">\(O\)</span> 会随对数项改变；这不是“测到的物理量依赖仪器 cutoff”，而是一个没有施加 renormalization condition 的不完整账本。</p>
+<p>在 <span class="arithmatex">\(\mu\)</span> 处施加条件 <span class="arithmatex">\(O_R(\mu)=g_R(\mu)\)</span>，并定义</p>
+<div class="arithmatex">\[
+\delta g(\Lambda,\mu)=-\beta\log\frac{\Lambda}{\mu},
+\qquad
+g_{\rm bare}(\Lambda)=g_R(\mu)+\delta g(\Lambda,\mu).
+\]</div>
+<p>代回后，loop log 与 counterterm 逐项抵消，<span class="arithmatex">\(O(\Lambda)=g_R(\mu)\)</span>。这展示的是 toy 的 cancellation；真实理论还要说明对称性、scheme、所有参数和高阶余项。改变 scheme 可以改变 <span class="arithmatex">\(g_R\)</span> 的有限部分和 beta 的高阶表示，但不能把 regulator 当成 observable。</p>
+<p><strong>静态 fallback：</strong>取 <span class="arithmatex">\(\beta=0.2,\mu=1,g_R=0.8\)</span>，并列固定 bare 与施加条件后的两本账。固定 bare 取 <span class="arithmatex">\(g_{\rm bare}=0.8\)</span>，所以第一行 <span class="arithmatex">\(\Lambda=\mu\)</span> 恰好对齐。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(\Lambda\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\beta\log(\Lambda/\mu)\)</span></th>
+<th style="text-align: right;">fixed bare 的 <span class="arithmatex">\(O(\Lambda)\)</span></th>
+<th style="text-align: right;">counterterm <span class="arithmatex">\(\delta g\)</span></th>
+<th style="text-align: right;">tuned bare</th>
+<th style="text-align: right;">cancellation 后 <span class="arithmatex">\(O\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.800000</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.800000</td>
+<td style="text-align: right;">0.800000</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.138629</td>
+<td style="text-align: right;">0.938629</td>
+<td style="text-align: right;">-0.138629</td>
+<td style="text-align: right;">0.661371</td>
+<td style="text-align: right;">0.800000</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.277259</td>
+<td style="text-align: right;">1.077259</td>
+<td style="text-align: right;">-0.277259</td>
+<td style="text-align: right;">0.522741</td>
+<td style="text-align: right;">0.800000</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.415888</td>
+<td style="text-align: right;">1.215888</td>
+<td style="text-align: right;">-0.415888</td>
+<td style="text-align: right;">0.384112</td>
+<td style="text-align: right;">0.800000</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-running-coupling-toy">2. 一圈 running coupling：符号和极点只属于 toy<a class="headerlink" href="#2-running-coupling-toy" title="Permanent link"></a></h3>
+<p>第二个模式使用另一个明确标注的 one-loop toy beta function</p>
+<div class="arithmatex">\[
+\mu\frac{dg}{d\mu}=b g^2,
+\qquad
+g(\mu)=\frac{g(\mu_0)}{1-b g(\mu_0)\log(\mu/\mu_0)}.
+\]</div>
+<p>若 <span class="arithmatex">\(b&gt;0\)</span>，沿 UV 方向 <span class="arithmatex">\(\mu/\mu_0\)</span> 增大时，<span class="arithmatex">\(g\)</span> 增大，toy 极点在 <span class="arithmatex">\(\log(\mu/\mu_0)=1/[b g(\mu_0)]\)</span>；若 <span class="arithmatex">\(b&lt;0\)</span>，UV 方向的耦合减小，而同一形式的极点落在 IR 方向。分母为零只是这条一圈 toy 解的边界：接近它时微扰展开失去可信度，不能把极点直接当作可观测粒子或完整理论的定理。</p>
+<h3 id="3">3. 静态证书、边界与迁移<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>regulator</strong> 规定如何暂时控制表达式（这里是 <span class="arithmatex">\(\Lambda\)</span>）；<strong>renormalization scheme</strong> 规定有限部分如何定义参数（例如在 <span class="arithmatex">\(\mu\)</span> 的 subtraction condition）；<strong>physical observable</strong> 是施加条件后比较的量；<strong>EFT validity</strong> 是能标远离未知高能结构、截断误差仍可控的范围。四者不能互换。</li>
+<li>一圈 beta 的符号能说明这个 toy 的局部 running 方向；它不独自证明完整 QED/QCD 的所有阈值、scheme 或非微扰现象。</li>
+<li><span class="arithmatex">\(\Lambda_{\rm QCD}\)</span> 附近的耦合变强只说明微扰 QCD 失效，需要非微扰方法；它不等于“从一圈发散直接证明禁闭”。</li>
+<li>counterterm cancellation 依赖已经写出的 renormalization condition；没有条件时，固定 bare 的 cutoff 扫描只是暴露未完成的参数重定义。</li>
+<li>迁移到 QED、QCD 或 <span class="arithmatex">\(\phi^4\)</span> 时，先列 regulator、scheme、对称性和可观测量，再检查 beta 的阶数、阈值和 EFT 误差。不要把这个 toy 的 <span class="arithmatex">\(b g^2\)</span> 解读成完整模型的数值预测。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="renormalization-scale">
+<p><strong>无 JavaScript 时的静态读法：</strong>账本模式取上表参数；running 模式取 <span class="arithmatex">\(g(\mu_0)=0.25\)</span>，<span class="arithmatex">\(b=+0.5\)</span> 或 <span class="arithmatex">\(b=-0.5\)</span>，在 <span class="arithmatex">\(\ell=\log(\mu/\mu_0)\)</span> 上观察分母和极点方向。预测门先问固定 bare、counterterm 和 beta 符号；提交后才显示 SVG、逐项账本、极点边界和迁移提示。图形是有限 toy 曲线，不是完整 QED/QCD 计算。</p>
+</div>
+</section>
 <figure class="plot">
 <p><img alt="QED 与 QCD 的跑动耦合：屏蔽与渐近自由。" src="assets/img/qft-03-running.svg" /></p>
-<figcaption><span class="fig-id">图 qft-03.1</span>跑动耦合常数。<strong>QED</strong>（\(\beta&gt;0\)）随能标升高而变强——真空极化的屏蔽效应；<strong>QCD</strong>（\(\beta&lt;0\)）随能标升高而变弱——<strong>渐近自由</strong>，并在 \(\Lambda_{\rm QCD}\sim200\) MeV 附近发散，微扰论失效（夸克禁闭区）。</figcaption>
+<figcaption><span class="fig-id">图 qft-03.1</span>跑动耦合的示意。<strong>QED</strong>（\(\beta&gt;0\)）在合适的能标区间随能标升高而变强；<strong>QCD</strong>（\(\beta&lt;0\)）在微扰 UV 区域表现为渐近自由。接近 \(\Lambda_{\rm QCD}\) 时耦合变强、微扰展开失效；这张示意图和一圈 running 本身不证明禁闭。</figcaption>
 </figure>
 <h2 id="1">1. 场的路径积分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>aqm-03 的公式升维（对场的一切历史求和）：</p>
@@ -74,33 +175,33 @@
 <p><strong>病灶的物理定位</strong>：<span class="arithmatex">\(\ell\to\infty\)</span> 即<strong>短距离</strong>。发散意味着"我们假装这个理论一直适用到零距离"——<strong>这个假设本身才是错的</strong>。</p>
 <p><strong>正规化</strong>（先给积分立规矩，发散被参数化而非消失）：</p>
 <ul>
-<li><strong>动量截断</strong> <span class="arithmatex">\(\Lambda\)</span>：物理直观，但破坏规范不变性；</li>
-<li><strong>维数正规化</strong> <span class="arithmatex">\(d=4-\epsilon\)</span>：保规范不变性，发散显为 <span class="arithmatex">\(1/\epsilon\)</span> 极点。<strong>这是现代标准做法</strong>【引用】。</li>
+<li><strong>动量截断</strong> <span class="arithmatex">\(\Lambda\)</span>：物理直观，但通常不显式保持规范不变性，需要额外的对称性恢复/匹配处理；</li>
+<li><strong>维数正规化</strong> <span class="arithmatex">\(d=4-\epsilon\)</span>：在合适的规范保持实现、反常已处理且 counterterm 保持相关对称性的前提下，通常能保留规范对称结构，发散显为 <span class="arithmatex">\(1/\epsilon\)</span> 极点。<strong>这是常用工具，不是无条件的对称性保证</strong>【引用】。</li>
 </ul>
-<h2 id="3">3. 重整化：三步操作<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 重整化：三步操作<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>① 承认裸参数不可观测。</strong> 拉氏量中的 <span class="arithmatex">\(m_0,\lambda_0\)</span> 是形式记号，实验测不到它们。</p>
 <p><strong>② 用实验定义物理参数</strong>：例如在某个动量点 <span class="arithmatex">\(s_0\)</span> 定义 <span class="arithmatex">\(\lambda_R \equiv -\mathcal M(s_0)\)</span>。</p>
 <p><strong>③ 消去裸参数。</strong> 把 <span class="arithmatex">\(\lambda_0\)</span> 用 <span class="arithmatex">\(\lambda_R\)</span> 表达后代回，得到</p>
 <div class="arithmatex">\[\mathcal M(s) = -\lambda_R - \frac{3\lambda_R^2}{32\pi^2}\ln\frac{s}{s_0}+O(\lambda_R^3)\]</div>
-<p><strong><span class="arithmatex">\(\Lambda\)</span>（或 <span class="arithmatex">\(1/\epsilon\)</span>）完全消失</strong>——<strong>用物理量表达物理量，发散逐阶相消</strong>。这就是重整化的全部内容：不是"减去无穷大"，而是"承认参数必须由实验定"。</p>
-<p><strong>可重整性判据</strong>：耦合的质量量纲 <span class="arithmatex">\(\ge0\)</span>。四维中 <span class="arithmatex">\([\lambda_{\phi^4}]=0\)</span> ✓，<span class="arithmatex">\([\lambda_{\phi^6}]=-2\)</span> ✗，<span class="arithmatex">\([G_N]=-2\)</span> ✗。<strong>只需有限个参数即可吸收全部无穷 → <span class="arithmatex">\(\phi^4\)</span>、QED、标准模型全体可重整。</strong></p>
+<p>在这个已经施加 renormalization condition 的 toy/阶次里，<span class="arithmatex">\(\Lambda\)</span>（或 <span class="arithmatex">\(1/\epsilon\)</span>）从所写的物理量表达式中消失——<strong>用物理量表达物理量，发散逐阶相消</strong>。这不是对任意裸表达式的自动删除，而是参数定义、对称性和阶次组织共同给出的结果。</p>
+<p><strong>power-counting 判据</strong>：耦合的质量量纲 <span class="arithmatex">\(\ge0\)</span> 是判断微扰可重整性的必要框架（在给定维数和局域展开下组织 counterterm），不是脱离其它结构的充分定理。四维中 <span class="arithmatex">\([\lambda_{\phi^4}]=0\)</span>、<span class="arithmatex">\([\lambda_{\phi^6}]=-2\)</span>、<span class="arithmatex">\([G_N]=-2\)</span>；还要检查规范/全局对称性、允许的 counterterm、反常、幺正性与其它一致性条件。不能仅凭三组量纲就概括完整 QED、QCD 或标准模型的全部 UV 行为。</p>
 <h2 id="4">4. 跑动耦合与重整化群<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>物理耦合依赖定义能标 <span class="arithmatex">\(\mu\)</span>，其变化率即 <span class="arithmatex">\(\beta\)</span> 函数：</p>
 <div class="arithmatex">\[\mu\frac{d\lambda}{d\mu} = \beta(\lambda)\]</div>
 <p><strong>这是 asm-03 的 RG 流在动量空间的孪生</strong>：粗粒化 ⟺ 降能标；不动点、相关/无关方向逐字对应。</p>
 <p><strong>两大剧本</strong>：</p>
 <ul>
-<li><strong>QED</strong>：<span class="arithmatex">\(\beta&gt;0\)</span>。真空极化产生<strong>屏蔽</strong>——虚正负电子对包围裸电荷，远看电荷变小。故高能（近距）耦合更强：<span class="arithmatex">\(\alpha(m_e)=1/137\to\alpha(M_Z)\approx1/128\)</span> ✓（实测）；</li>
-<li><strong>QCD</strong>：<span class="arithmatex">\(\beta&lt;0\)</span>（胶子自相互作用导致<strong>反屏蔽</strong>）——<strong>渐近自由</strong>（诺奖 2004）。高能夸克近乎自由（深度非弹散射 ✓），低能耦合发散 → <strong>夸克禁闭</strong>，微扰论失效，由格点接管。</li>
+<li><strong>QED</strong>：在常用约定下电子真空极化给出正的 beta 贡献，体现屏蔽与 UV 增长。单电子的一圈 toy 公式只能展示方向；从 <span class="arithmatex">\(1/137\)</span> 到约 <span class="arithmatex">\(1/128\)</span> 的精确比较还要包含所有在相关能标活跃的带电自由度、阈值匹配、scheme 和更高阶修正，不能由该一项独自声称得到。</li>
+<li><strong>QCD</strong>：<span class="arithmatex">\(\beta&lt;0\)</span> 的微扰 UV 系数（胶子自相互作用产生反屏蔽）给出<strong>渐近自由</strong>。接近 <span class="arithmatex">\(\Lambda_{\rm QCD}\)</span> 时耦合变强、微扰论失效；禁闭是需要非微扰动力学与证据的独立结论，不是从一圈 running 的发散直接推出。</li>
 </ul>
 <h2 id="5-wilson">5. Wilson 的和解：有效理论<a class="headerlink" href="#5-wilson" title="Permanent link"></a></h2>
 <p><strong>现代读法</strong>：一切场论都是<strong>有效理论</strong>。高能自由度被积掉后，其影响以两种形式留存——跑动的参数，以及被 <span class="arithmatex">\((E/\Lambda)^n\)</span> 压低的无关算符。</p>
 <p><strong>这与 asm-03"低能不必知道高能细节"是同一句话的两种说法</strong>。</p>
 <p><strong>后果</strong>：<strong>"不可重整"不再是死刑，而是"有效范围有限"的标签</strong>。广义相对论作为有效场论在低能完全可用，只在接近 Planck 能标时失效——<strong>这正是量子引力问题的精确表述</strong>（本站第三档边界，如实标注）。</p>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>例 1（量纲判可重整）</strong> 四维中由 <span class="arithmatex">\([\mathcal L]=4\)</span> 反推：<span class="arithmatex">\(\phi^4\)</span> 可重整、<span class="arithmatex">\(\phi^6\)</span> 与引力不可重整。<strong>一分钟的量纲体操，给出二十世纪两大结论的入口。</strong></p>
-<p><strong>例 2（跑动的数值体感）</strong> 单圈 QED：<span class="arithmatex">\(\alpha(\mu)=\dfrac{\alpha_0}{1-\frac{2\alpha_0}{3\pi}\ln(\mu/m_e)}\)</span>。代入 <span class="arithmatex">\(\mu=M_Z\approx91\)</span> GeV 验证 <span class="arithmatex">\(1/137\to1/128\)</span> 的量级 ✓。<strong>"常数不常"的亲手确认。</strong></p>
-<p><strong>例 3（Landau 极点是诚实而非缺陷）</strong> 上式分母归零处 <span class="arithmatex">\(\alpha\to\infty\)</span>，对 QED 约在 <span class="arithmatex">\(10^{286}\)</span> eV——<strong>远超一切物理能标，甚至远超 Planck 能标</strong>。这说明 QED 在其适用域内完好无损，且<strong>理论自带失效路标</strong>。<strong>重整化群给出的是一份体检报告。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（power-counting 分类）</strong> 四维中由 <span class="arithmatex">\([\mathcal L]=4\)</span> 反推：<span class="arithmatex">\(\phi^4\)</span> 属于 power-counting 可重整类，<span class="arithmatex">\(\phi^6\)</span> 与引力属于负质量量纲类；完整结论仍要检查对称性、反常和 counterterm 结构。<strong>一分钟的量纲体操，给出二十世纪两大结论的入口。</strong></p>
+<p><strong>例 2（跑动的数值体感）</strong> 单电子一圈 toy：<span class="arithmatex">\(\alpha(\mu)=\dfrac{\alpha_0}{1-\frac{2\alpha_0}{3\pi}\ln(\mu/m_e)}\)</span>。它能展示正 beta 的方向和对数增长；代入 <span class="arithmatex">\(\mu=M_Z\)</span> 不能单独当作 <span class="arithmatex">\(1/137\to1/128\)</span> 的精确推导，因为还缺阈值、其它带电自由度、scheme 与高阶项。<strong>"常数不常"的结构体感。</strong></p>
+<p><strong>例 3（Landau 极点是 toy 的边界）</strong> 上式分母归零处 <span class="arithmatex">\(\alpha\to\infty\)</span>；若把单电子、单圈公式极端外推，常会得到约 <span class="arithmatex">\(10^{286}\)</span> eV 的数量级。这个数字只能标为极粗示意，远非可观测预言；它提示该外推失去可信度，而不证明完整 QED 在某个可测能标真的有极点。<strong>重整化群给出的是一份带适用域的体检报告。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一门：凝聚态理论两页——二次量子化把"多电子"变成"场"，BCS 让电子结对超导：qft 的语法在固体里的第二人生。</em></p>
 </article>
@@ -112,5 +213,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/renormalization-scale.js"></script>
 </body>
 </html>
