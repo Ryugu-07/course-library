@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,27 +43,113 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:34</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一层层的壳，怎样把恒星撑住？</a><ul>
+<li><a href="#stellar-structure-learning-title">1. 具身情境：把恒星切成同心薄壳</a></li>
+<li><a href="#2">2. 先预测：表面和维里哪两行应该对账？</a></li>
+<li><a href="#3-laneemden-mr">3. 形式桥：Lane–Emden 到 M、R 与维里</a></li>
+<li><a href="#4">4. 误区 / 边界：这个玩具没有偷偷包含什么？</a></li>
+<li><a href="#5">5. 回到正式语言</a></li>
+<li><a href="#6">6. 迁移题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 四个结构方程</a></li>
-<li><a href="#2">2. 维里定理：恒星的核心逻辑</a></li>
+<li><a href="#2_1">2. 维里定理：恒星的核心逻辑</a></li>
 <li><a href="#3">3. 主序与质光关系</a></li>
-<li><a href="#4">4. 演化：离开主序之后</a></li>
-<li><a href="#5">5. 观测检验：星团</a></li>
-<li><a href="#6">6. 练习与要点</a></li>
+<li><a href="#4_1">4. 演化：离开主序之后</a></li>
+<li><a href="#5_1">5. 观测检验：星团</a></li>
+<li><a href="#6_1">6. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">天体 II · 恒星结构与演化<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Kippenhahn &amp; Weigert《Stellar Structure and Evolution》/ Prialnik / Clayton ｜ <strong>前置</strong>：ap-01、sm-01（热力学）、fl-04（对流）
-恒星是引力与压强的百万年僵持。<strong>四个方程加上物态、不透明度与产能率，就唯一确定了一颗恒星</strong>——这被称为 Vogt–Russell 定理（虽非严格定理，但抓住了要害）。本页讲清这套方程如何给出主序、质光关系与演化终局。</p>
+恒星是引力与压强的百万年僵持。给定对称性、边界、物态、组成与输运闭合后，四个结构方程可以构造一个模型；把这句话推广成“唯一确定真实恒星”通常被称为 Vogt–Russell 关系或猜想，而不是严格定理。本页先把结构账本立稳，再说明哪些主序与演化结论需要额外物理。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="stellar-structure-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一层层的壳，怎样把恒星撑住？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="stellar-structure-learning-title">1. 具身情境：把恒星切成同心薄壳<a class="headerlink" href="#stellar-structure-learning-title" title="Permanent link"></a></h3>
+<p>想象把一颗静止、球对称的恒星切成许多同心薄壳。半径 <span class="arithmatex">\(r\)</span> 内的质量 <span class="arithmatex">\(m(r)\)</span> 向内拉；外侧壳层的压力差向外顶。平衡不是“压力很大”一句话，而是每一层都满足</p>
+<div class="arithmatex">\[
+\frac{dP}{dr}=-\frac{Gm\rho}{r^2},\qquad \frac{dm}{dr}=4\pi r^2\rho.
+\]</div>
+<p>下面的玩具把物态固定为多方关系 <span class="arithmatex">\(P=K\rho^{1+1/n}\)</span>，用 Lane–Emden 的无量纲函数 <span class="arithmatex">\(\theta(\xi)\)</span> 逐步积分；它让中心、表面、质量、半径和维里账本都能被追踪。</p>
+<h3 id="2">2. 先预测：表面和维里哪两行应该对账？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不打开实验台，预测：</p>
+<ul>
+<li>从中心向外走到第一零点时，<span class="arithmatex">\(\theta\)</span>、<span class="arithmatex">\(\rho\)</span> 和 <span class="arithmatex">\(P\)</span> 哪一个先被强行设为零？</li>
+<li>若外部表面压力取 <span class="arithmatex">\(P(R)=0\)</span>，静力平衡的积分账本是否满足 <span class="arithmatex">\(3\int P\,dV+\Omega\approx0\)</span>？</li>
+<li>把中心密度从 <span class="arithmatex">\(1\)</span> 调到 <span class="arithmatex">\(4\)</span> 会不会改变同一个 <span class="arithmatex">\(n\)</span> 的无量纲零点 <span class="arithmatex">\(\xi_1\)</span>？</li>
+</ul>
+<h3 id="3-laneemden-mr">3. 形式桥：Lane–Emden 到 M、R 与维里<a class="headerlink" href="#3-laneemden-mr" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(r=a\xi\)</span>、<span class="arithmatex">\(\rho=\rho_c\theta^n\)</span>、<span class="arithmatex">\(P=P_c\theta^{n+1}\)</span>，则</p>
+<div class="arithmatex">\[
+\frac{1}{\xi^2}\frac{d}{d\xi}\left(\xi^2\frac{d\theta}{d\xi}\right)+\theta^n=0,
+\quad \theta(0)=1,\quad \theta'(0)=0.
+\]</div>
+<p>本实验从正则中心展开式起步，找到第一个零点 <span class="arithmatex">\(\xi_1\)</span>，并取</p>
+<div class="arithmatex">\[
+a^2=\frac{(n+1)K\rho_c^{1/n-1}}{4\pi G},\quad R=a\xi_1,\quad
+M=4\pi a^3\rho_c\big(-\xi_1^2\theta'(\xi_1)\big).
+\]</div>
+<p>对 <span class="arithmatex">\(n&lt;5\)</span> 的这个零外压多方球，实验还计算 <span class="arithmatex">\(\Omega=-\frac{3}{5-n}\frac{GM^2}{R}\)</span> 与 <span class="arithmatex">\(3\int P\,dV\)</span>，把静力方程的积分结果翻译成维里残差。<span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(\rho_c\)</span> 是模型输入，不是观测到的“恒星演化按钮”。</p>
+<div class="learning-lab" data-learning-lab="stellar-structure">
+<p><strong>无 JavaScript 时的静态读法（示范单位 <span class="arithmatex">\(K=G=\rho_c=1\)</span>）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>多方模型</th>
+<th style="text-align: right;"><span class="arithmatex">\(\xi_1\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(R\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(M\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(P(R)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(3\int P\,dV+\Omega\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(n=1.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.65376\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.62969\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.02640\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-4.1\times10^{-5}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(n=3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.89685\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.89113\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4.55468\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1.8\times10^{-5}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>中心条件是 <span class="arithmatex">\(m(0)=0,\theta(0)=1,\theta'(0)=0\)</span>；表面条件是第一零点 <span class="arithmatex">\(\theta(\xi_1)=0\)</span>，因此这里的外压为零。有限步长带来表中小残差；它不是新的物理常数。</p>
+</div>
+<h3 id="4">4. 误区 / 边界：这个玩具没有偷偷包含什么？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>假设是模型的一部分</strong>：这里是 Newtonian、静态、球对称、无旋转无磁场的 hydrostatic toy；EOS 是固定多方关系。</li>
+<li><strong>opacity 与 energy transport 缺席</strong>：没有 <span class="arithmatex">\(\kappa\)</span>、辐射/对流温度梯度、核能率 <span class="arithmatex">\(\epsilon\)</span> 或 <span class="arithmatex">\(dL/dr\)</span>，所以实验不能预测光度、主序寿命或演化路径。</li>
+<li><strong>维里项有边界条件</strong>：若表面压力不为零，积分维里关系会带表面项；本页的 <span class="arithmatex">\(3\int P\,dV+\Omega\approx0\)</span> 依赖 <span class="arithmatex">\(P(R)=0\)</span>。</li>
+<li><strong>多方曲线不是恒星族谱</strong>：改变 <span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(K\)</span> 或 <span class="arithmatex">\(\rho_c\)</span> 得到的是一族 toy 结构；不能把它们当成普遍的质量–光度律或真实恒星演化序列。</li>
+<li><strong>数值账本不是定理证明</strong>：RK4 与有限步长检验这个具体模型；结构方程的一般存在性、稳定性和演化还需额外分析。</li>
+</ul>
+<p>大质量恒星的核心坍缩超新星也不能只按初始质量贴标签：氢包层仍在时观测上归入 II 型；氢包层被风或伴星剥掉、氦层仍在时归入 Ib；氢和氦都被剥掉时归入 Ic。剥离程度取决于质量损失、金属丰度和双星相互作用，因此 II/Ib/Ic 是包层与谱线边界，不是一个只由 <span class="arithmatex">\(M_{\rm ZAMS}\)</span> 决定的硬质量阈值。</p>
+<h3 id="5">5. 回到正式语言<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>完整恒星结构还需把静力平衡、质量守恒、能量守恒和能量输运与 <span class="arithmatex">\(P(\rho,T)\)</span>、<span class="arithmatex">\(\kappa(\rho,T)\)</span>、<span class="arithmatex">\(\epsilon(\rho,T)\)</span> 及组成演化耦合。这个 lab 只把第一层 hydrostatic/EOS 账本透明化，因此它适合检查边界和量纲，不适合替代恒星演化计算。</p>
+<h3 id="6">6. 迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若把表面压力改成非零的 <span class="arithmatex">\(P_s\)</span>，试从静力方程积分推断维里账本会多出哪一项。再说明为什么同一个无量纲 <span class="arithmatex">\(n\)</span> 的剖面，在改变 <span class="arithmatex">\(K\)</span> 或 <span class="arithmatex">\(\rho_c\)</span> 后可以改变 <span class="arithmatex">\(M\)</span>、<span class="arithmatex">\(R\)</span> 和 <span class="arithmatex">\(P_c\)</span>，却不自动得到一条真实主序演化轨迹。</p>
+</section>
 <figure class="plot">
 <p><img alt="赫罗图：主序、巨星支、白矮星区及演化路径。" src="assets/img/ap-02-stellar-hr.svg" /></p>
 <figcaption><span class="fig-id">图 ap-02.1</span>赫罗图（\(\log T_{\rm eff}\)–\(\log L\)）：<strong>主序</strong>贯穿对角线（氢燃烧），右上为<strong>巨星支</strong>，左下为<strong>白矮星</strong>。虚线为 1 \(M_\odot\) 恒星的演化路径：主序 → 红巨星 → 水平支 → 渐近巨星支 → 行星状星云 → 白矮星。</figcaption>
@@ -60,9 +157,9 @@
 <h2 id="1">1. 四个结构方程<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[\frac{dP}{dr}=-\frac{Gm\rho}{r^2}\quad(\text{流体静力平衡}),\qquad \frac{dm}{dr}=4\pi r^2\rho\]</div>
 <div class="arithmatex">\[\frac{dL}{dr}=4\pi r^2\rho\,\epsilon,\qquad \frac{dT}{dr}=\begin{cases}-\dfrac{3\kappa\rho L}{64\pi\sigma r^2T^3} &amp; \text{辐射输运}\\[4pt] \text{绝热梯度} &amp; \text{对流}\end{cases}\]</div>
-<p>配以物态 <span class="arithmatex">\(P(\rho,T)\)</span>、不透明度 <span class="arithmatex">\(\kappa\)</span>（ap-01）、产能率 <span class="arithmatex">\(\epsilon\)</span>（ap-03）。</p>
+<p>配以物态 <span class="arithmatex">\(P(\rho,T)\)</span>、不透明度 <span class="arithmatex">\(\kappa\)</span>（ap-01）、产能率 <span class="arithmatex">\(\epsilon\)</span>（ap-03）和中心/表面边界条件。上面的 Lane–Emden 实验只保留静力方程与多方 EOS；它没有把 <span class="arithmatex">\(\kappa\)</span>、<span class="arithmatex">\(\epsilon\)</span> 或温度输运算进去。</p>
 <p><strong>Schwarzschild 判据</strong>：当辐射梯度陡于绝热梯度时对流启动——<strong>这是 fl-04 的对流失稳在恒星内部的形态</strong>。太阳外层 30% 是对流区（其表面米粒组织正是对流胞，🔗 fl-04）。</p>
-<h2 id="2">2. 维里定理：恒星的核心逻辑<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 维里定理：恒星的核心逻辑<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>对引力束缚系统，<span class="arithmatex">\(2\langle E_k\rangle + \langle E_g\rangle = 0\)</span>，故</p>
 <div class="arithmatex">\[E_{\rm total} = \tfrac12\langle E_g\rangle &lt; 0,\qquad \langle E_k\rangle = -\tfrac12 \langle E_g\rangle\]</div>
 <p><strong>推论极其重要</strong>：恒星<strong>辐射掉能量后会收缩，而收缩使内部变热</strong>——</p>
@@ -75,9 +172,9 @@
 </ul>
 <p><strong>而简并核心失去这个负反馈</strong>——这正是氦闪与 Ia 型超新星的成因（ap-04）。</p>
 <h2 id="3">3. 主序与质光关系<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>标度分析【推导骨架】</strong>：由静力平衡 <span class="arithmatex">\(P\sim GM^2/R^4\)</span>、理想气体 <span class="arithmatex">\(P\sim\rho T\)</span> 得 <span class="arithmatex">\(T\propto M/R\)</span>；代入辐射输运（Kramers 不透明度）可得</p>
+<p><strong>标度分析【推导骨架】</strong>：在理想气体、给定组成、特定不透明度与稳定输运等额外假设下，由静力平衡 <span class="arithmatex">\(P\sim GM^2/R^4\)</span>、理想气体 <span class="arithmatex">\(P\sim\rho T\)</span> 得 <span class="arithmatex">\(T\propto M/R\)</span>；代入辐射输运（Kramers 不透明度）可得一个常见的近似</p>
 <div class="arithmatex">\[L \propto M^{3\text{–}4}\]</div>
-<p><strong>观测符合 <span class="arithmatex">\(L\propto M^{3.5}\)</span> 量级</strong>。</p>
+<p><strong>观测符合 <span class="arithmatex">\(L\propto M^{3.5}\)</span> 量级</strong>，但指数随质量、组成、输运机制和样本选择变化；它不是 Lane–Emden toy 的输出，也不是脱离条件的恒星演化定律。</p>
 <p><strong>寿命的惊人后果</strong>：</p>
 <div class="arithmatex">\[t \sim \frac{M}{L}\propto M^{-2.5}\]</div>
 <ul>
@@ -91,16 +188,16 @@
 <li><strong>下限约 0.08 <span class="arithmatex">\(M_\odot\)</span></strong>：更低则核心温度点不着氢 → <strong>褐矮星</strong>；</li>
 <li><strong>上限约 100+ <span class="arithmatex">\(M_\odot\)</span></strong>：辐射压超过引力（Eddington 极限，ap-05）→ 剧烈星风与不稳定。</li>
 </ul>
-<h2 id="4">4. 演化：离开主序之后<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 演化：离开主序之后<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>中低质量（<span class="arithmatex">\(\lesssim8M_\odot\)</span>）</strong>：
 氢耗尽 → 核心收缩、壳层氢燃烧 → 外层膨胀变冷 → <strong>红巨星</strong> → 氦核简并 → <strong>氦闪</strong>（简并态无负反馈，热失控点火）→ 水平支氦燃烧 → 渐近巨星支（双壳层燃烧、热脉冲、s 过程，ap-03）→ 抛射外层成<strong>行星状星云</strong> → 留下 <strong>白矮星</strong>（ap-04）。</p>
 <p><strong>大质量（<span class="arithmatex">\(\gtrsim8M_\odot\)</span>）</strong>：
-依次燃烧 H→He→C→Ne→O→Si，形成<strong>洋葱结构</strong>；<strong>硅燃烧只持续约一天</strong>（因中微子冷却极强）→ 铁核无法产能（ap-03）→ 核心坍缩 → <strong>II 型超新星</strong> → 中子星或黑洞。</p>
+依次燃烧 H→He→C→Ne→O→Si，形成<strong>洋葱结构</strong>；<strong>硅燃烧只持续约一天</strong>（因中微子冷却极强）→ 铁核无法产能（ap-03）→ 核心坍缩。若氢包层保留，谱线归入 <strong>II 型</strong>；若氢被剥离但氦保留，归入 <strong>Ib 型</strong>；若氢、氦都被剥离，归入 <strong>Ic 型</strong>。这些 II/Ib/Ic 边界由包层和双星/恒星风剥离决定，不能把 <span class="arithmatex">\(8M_\odot\)</span> 当成三类之间的唯一质量分界；坍缩遗迹仍可能是中子星或黑洞。</p>
 <p><strong>燃烧阶段的时标压缩是惊人的</strong>：氢燃烧数百万年、氦数十万年、碳数百年、硅约一天。<strong>恒星的一生中，最后 0.0001% 的时间决定了它留给宇宙的遗产。</strong></p>
-<h2 id="5">5. 观测检验：星团<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 观测检验：星团<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>同一星团的恒星同时诞生、成分相同、距离相同，只有质量不同</strong>——<strong>天然的对照实验</strong>。</p>
 <p><strong>主序拐点</strong>（turn-off）给出年龄：质量越大越早离开主序，拐点位置随时间沿主序下移。<strong>球状星团的拐点年龄约 120–130 亿年，这曾是宇宙年龄下限的独立证据</strong>（与 cosmo-01 的 <span class="arithmatex">\(H_0\)</span> 独立互证）。</p>
-<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h2 id="6_1">6. 练习与要点<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
 <p><strong>例 1（太阳中心温度估算）</strong> 由静力平衡量级估计 <span class="arithmatex">\(T_c\sim\dfrac{GM m_p}{k_B R}\sim10^7\)</span> K——<strong>与详细模型给出的约 1.5×10⁷ K 同量级</strong>，一个量纲分析就抓住了核心。</p>
 <p><strong>例 2（为什么恒星不爆炸也不塌缩）</strong> 理想气体 + 负热容构成稳定的负反馈；<strong>一旦核心简并（压强不依赖温度），负反馈失效</strong> → 氦闪、碳爆轰。<strong>"物态方程决定稳定性"是本页最深的一条。</strong></p>
 <p><strong>例 3（日震学）</strong> 太阳表面的振荡模式（p 模）如同地震波，可反演内部声速剖面——<strong>这使恒星内部成为可观测的</strong>，并曾精确验证了标准太阳模型（顺带把太阳中微子问题的责任推给了中微子振荡而非模型，atom-01）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -115,5 +212,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/stellar-structure.js"></script>
 </body>
 </html>

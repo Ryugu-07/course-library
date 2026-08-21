@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +43,26 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先做一块均匀滤镜，再问光从哪里来</a><ul>
+<li><a href="#radiative-transfer-learning-title">1. 具身开场：一束手电穿过有雾的玻璃盒</a></li>
+<li><a href="#2">2. 形式桥：衰减项、源函数项与光学深度贡献</a></li>
+<li><a href="#3">3. 预测门：先判主导项和边界</a></li>
+<li><a href="#4">4. 动手：沿光学深度读两本账</a></li>
+<li><a href="#5">5. 误区 / 模型边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 比强度与辐射转移方程</a></li>
-<li><a href="#2">2. 有效温度与观测量</a></li>
-<li><a href="#3">3. 不透明度：光子如何被阻挡</a></li>
-<li><a href="#4">4. 谱线：天体物理的信息主干</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#2_1">2. 有效温度与观测量</a></li>
+<li><a href="#3_1">3. 不透明度：光子如何被阻挡</a></li>
+<li><a href="#4_1">4. 谱线：天体物理的信息主干</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,6 +71,86 @@
 <p><strong>对标</strong>：Rybicki &amp; Lightman《Radiative Processes》/ Mihalas《Stellar Atmospheres》/ Carroll &amp; Ostlie ch.9 ｜ <strong>前置</strong>：em-03（辐射）、sm-02、atom-01（谱线）
 <strong>天文学是一门几乎只能通过光来做的实验科学</strong>——除极少数例外（中微子、引力波、陨石），我们对天体的一切认识都编码在到达地球的光子里。本页讲清光如何携带信息、又如何在传播中被改造。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="radiative-transfer-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先做一块均匀滤镜，再问光从哪里来<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="radiative-transfer-learning-title">1. 具身开场：一束手电穿过有雾的玻璃盒<a class="headerlink" href="#radiative-transfer-learning-title" title="Permanent link"></a></h3>
+<p>把一束强度为 <span class="arithmatex">\(I_{\rm in}\)</span> 的光送进一只均匀雾盒。雾会吸收/散射掉一部分光，也会沿视线发光；探测器只看到盒子出口。你调节“看起来有多厚”的光学厚度 <span class="arithmatex">\(\tau\)</span>：薄时，入口信息仍清楚；厚时，出口越来越像介质自己的源函数。这个小盒子能把“传播中的信息”和“介质的发射”分开记账，但它不会凭一条出射亮度反推出整颗恒星的大气。</p>
+<h3 id="2">2. 形式桥：衰减项、源函数项与光学深度贡献<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>均匀、恒定源函数的标量转移方程是</p>
+<div class="arithmatex">\[
+\frac{dI}{d\tau}=-I+S,
+\qquad
+\boxed{I_{\rm out}=I_{\rm in}e^{-\tau}+S(1-e^{-\tau})}.
+\]</div>
+<p>出口账本只有两项：入口光的透射贡献 <span class="arithmatex">\(T=I_{\rm in}e^{-\tau}\)</span>，以及每个光学深度小层发出的光在到达出口前的加权贡献。对 <span class="arithmatex">\(0\le t\le\tau\)</span>，</p>
+<div class="arithmatex">\[
+I_{\rm src}(\tau)=\int_0^\tau S(t)e^{-(\tau-t)}\,dt
+=S(1-e^{-\tau})
+\]</div>
+<p>（本实验取 <span class="arithmatex">\(S(t)=S\)</span>）。因此 <span class="arithmatex">\(I_{\rm out}-S=(I_{\rm in}-S)e^{-\tau}\)</span>：有限 <span class="arithmatex">\(\tau\)</span> 下只有在 <span class="arithmatex">\(I_{\rm in}=S\)</span> 的特殊边界时才有 <span class="arithmatex">\(I_{\rm out}=S\)</span>；否则只能在 <span class="arithmatex">\(\tau\to\infty\)</span> 的极限中趋近源函数。</p>
+<p>薄极限要保留入口光的一阶衰减：<span class="arithmatex">\(e^{-\tau}=1-\tau+O(\tau^2)\)</span>，所以</p>
+<div class="arithmatex">\[
+T=I_{\rm in}(1-\tau)+O(\tau^2),\qquad I_{\rm src}=S\tau+O(\tau^2),\qquad I_{\rm out}=I_{\rm in}+(S-I_{\rm in})\tau+O(\tau^2).
+\]</div>
+<h3 id="3">3. 预测门：先判主导项和边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验先隐藏曲线、分层贡献和源函数闭合。对当前预设预测：</p>
+<ol>
+<li>薄 slab 中，出口的主要项是透射入口光、源函数发光，还是两者可比？</li>
+<li>当 <span class="arithmatex">\(\tau\)</span> 有限且 <span class="arithmatex">\(I_{\rm in}\ne S\)</span> 时，能否精确写 <span class="arithmatex">\(I_{\rm out}=S\)</span>？</li>
+<li>若介质有散射，是否自动有 <span class="arithmatex">\(S=B\)</span>？LTE、纯散射和部分热化的边界分别是什么？</li>
+</ol>
+<h3 id="4">4. 动手：沿光学深度读两本账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后可切换薄/厚 LTE、入口与源函数相等、以及散射源函数预设，并调节 <span class="arithmatex">\(\tau\)</span> 与 <span class="arithmatex">\(I_{\rm in}\)</span>。响应式图显示光线从入口到出口的强度轨迹和 <span class="arithmatex">\(S\)</span> 水平线；表格按光学深度区间列出每层对出口的源函数贡献、透射入口项、总和与 LTE/散射边界。</p>
+<div class="learning-lab" data-learning-lab="radiative-transfer">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认取薄 LTE slab：<span class="arithmatex">\(I_{\rm in}=0.25\)</span>、<span class="arithmatex">\(S=B=1.40\)</span>、<span class="arithmatex">\(\tau=0.25\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本层</th>
+<th style="text-align: right;">数值 / 公式</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入口透射</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.25e^{-0.25}=0.19470\)</span></td>
+<td>入口信息乘逃逸因子</td>
+</tr>
+<tr>
+<td>slab 源函数总贡献</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.40(1-e^{-0.25})=0.30968\)</span></td>
+<td><span class="arithmatex">\(\int_0^{0.25}S e^{-(0.25-t)}dt\)</span></td>
+</tr>
+<tr>
+<td>出口强度</td>
+<td style="text-align: right;"><span class="arithmatex">\(I_{\rm out}=0.50438\)</span></td>
+<td>两项相加，有限厚度下不等于 <span class="arithmatex">\(S\)</span></td>
+</tr>
+<tr>
+<td>源函数边界</td>
+<td style="text-align: right;">LTE：<span class="arithmatex">\(S=B\)</span></td>
+<td>这是源函数闭合，不是由观测亮度自动推出的温度</td>
+</tr>
+<tr>
+<td>厚度极限</td>
+<td style="text-align: right;"><span class="arithmatex">\(\tau\gg1\Rightarrow I_{\rm out}\to S\)</span></td>
+<td>需要 stated limit；薄 slab 不可直接套用</td>
+</tr>
+</tbody>
+</table>
+<p>散射时 <span class="arithmatex">\(S=(1-\epsilon)J+\epsilon B\)</span>；只有完全热化（<span class="arithmatex">\(\epsilon=1\)</span>）或额外满足 <span class="arithmatex">\(J=B\)</span> 等条件才退化为 <span class="arithmatex">\(S=B\)</span>。这个均匀 slab 是正演玩具，不是恒星大气的唯一反演器。</p>
+</div>
+<h3 id="5">5. 误区 / 模型边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>光学厚并不等于“看见真实表面”：它只说明贡献函数通常集中在 <span class="arithmatex">\(\tau\sim1\)</span> 的层，<span class="arithmatex">\(S\)</span> 还可能随深度、频率和角度变化。</li>
+<li>LTE 给出 <span class="arithmatex">\(S_\nu=B_\nu(T)\)</span> 的局部闭合；散射源函数包含 <span class="arithmatex">\(J_\nu\)</span>，不应把“有光子”直接改写成黑体。</li>
+<li><span class="arithmatex">\(I_{\rm out}\approx S\)</span> 可能只是大 <span class="arithmatex">\(\tau\)</span> 的数值近似；亮度/源函数相等必须写出 <span class="arithmatex">\(I_{\rm in}=S\)</span> 或 <span class="arithmatex">\(\tau\to\infty\)</span> 等条件。</li>
+<li>本实验只做恒定 <span class="arithmatex">\(S\)</span>、单频、单方向、均匀 slab 的正演；恒星大气反演还需要结构、频率依赖、不透明度、几何、边界条件和观测噪声模型。</li>
+</ul>
+</section>
 <figure class="plot">
 <p><img alt="辐射转移方程的解：光学厚度对出射强度的影响与谱线形成。" src="assets/img/ap-01-radiative-transfer.svg" /></p>
 <figcaption><span class="fig-id">图 ap-01.1</span>左：强度随光学厚度趋于源函数 \(I\to S\)。右：<strong>谱线形成</strong>——线心不透明度高，形成于温度较低的高层，故呈吸收线；温度反转时同一机制给出发射线。</figcaption>
@@ -60,15 +159,15 @@
 <p><strong>比强度</strong> <span class="arithmatex">\(I_\nu\)</span>：单位面积、单位立体角、单位频率的能流。<strong>它在真空中沿光线守恒</strong>（这是"照片亮度与距离无关"的原因，而流量 <span class="arithmatex">\(F_\nu\propto1/d^2\)</span> 才随距离下降）。</p>
 <p>沿光线的演化：</p>
 <div class="arithmatex">\[\frac{dI_\nu}{ds} = -\alpha_\nu I_\nu + j_\nu\]</div>
-<p>定义<strong>光学厚度</strong> <span class="arithmatex">\(d\tau_\nu = \alpha_\nu ds\)</span> 与<strong>源函数</strong> <span class="arithmatex">\(S_\nu = j_\nu/\alpha_\nu\)</span>：</p>
+<p>这里 <span class="arithmatex">\(\alpha_\nu\)</span> 是<strong>每单位长度</strong>的消光系数；若用<strong>质量不透明度</strong> <span class="arithmatex">\(\kappa_\nu\)</span>，则 <span class="arithmatex">\(\alpha_\nu=\rho\kappa_\nu\)</span>。定义<strong>光学厚度</strong> <span class="arithmatex">\(d\tau_\nu = \alpha_\nu ds\)</span> 与<strong>源函数</strong> <span class="arithmatex">\(S_\nu = j_\nu/\alpha_\nu\)</span>：</p>
 <div class="arithmatex">\[\boxed{\ \frac{dI_\nu}{d\tau_\nu} = -I_\nu + S_\nu\ }\quad\Longrightarrow\quad I_\nu(\tau) = I_\nu(0)e^{-\tau}+\int_0^\tau S_\nu e^{-(\tau-\tau')}d\tau'\]</div>
 <p><strong>两个极限</strong>：</p>
 <ul>
-<li><strong>光学薄</strong> <span class="arithmatex">\(\tau\ll1\)</span>：<span class="arithmatex">\(I_\nu\approx I_\nu(0)+\int S_\nu d\tau\)</span>——<strong>看穿整个介质，信息来自全体积</strong>（星云、星际气体）；</li>
+<li><strong>光学薄</strong> <span class="arithmatex">\(\tau\ll1\)</span>：<span class="arithmatex">\(I_\nu\approx I_\nu(0)(1-\tau)+\int S_\nu d\tau\)</span>（常源时为 <span class="arithmatex">\(I_{\rm in}+(S-I_{\rm in})\tau\)</span>）——<strong>看穿整个介质，信息来自全体积</strong>（星云、星际气体）；</li>
 <li><strong>光学厚</strong> <span class="arithmatex">\(\tau\gg1\)</span>：<span class="arithmatex">\(I_\nu\to S_\nu\)</span>——<strong>只能看到 <span class="arithmatex">\(\tau\sim1\)</span> 的那一层</strong>，且强度趋于当地源函数。</li>
 </ul>
 <p><strong>热平衡下 <span class="arithmatex">\(S_\nu = B_\nu(T)\)</span>（Planck 函数）</strong> → 光学厚天体发出黑体谱。<strong>这就是恒星近似为黑体的原因</strong>，也解释了"恒星表面"的含义：<strong>所谓光球，就是 <span class="arithmatex">\(\tau\approx2/3\)</span> 的那一层</strong>——它不是物理界面，而是一个光学定义。</p>
-<h2 id="2">2. 有效温度与观测量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 有效温度与观测量<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[L = 4\pi R^2\sigma T_{\rm eff}^4\]</div>
 <p><strong><span class="arithmatex">\(T_{\rm eff}\)</span> 是定义式，不是实测温度</strong>——它是"若为黑体则应有的温度"。</p>
 <p><strong>天文的观测语言</strong>：</p>
@@ -78,17 +177,19 @@
 <li><strong>色指数</strong> <span class="arithmatex">\(B-V\)</span>：两波段星等差，<strong>是温度的代理</strong>（越蓝越热）。</li>
 </ul>
 <p><strong>HR 图的横轴正是色指数或 <span class="arithmatex">\(T_{\rm eff}\)</span></strong>（ap-02）。</p>
-<h2 id="3">3. 不透明度：光子如何被阻挡<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(\alpha_\nu\)</span> 的主要来源：</p>
+<h2 id="3_1">3. 不透明度：光子如何被阻挡<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\alpha_\nu\)</span>（每单位长度）的主要来源：</p>
 <ul>
 <li><strong>电子散射（Thomson）</strong>：<span class="arithmatex">\(\sigma_T=6.65\times10^{-29}\ \mathrm{m^2}\)</span>，<strong>与频率无关</strong>，主导高温电离区（也定义 Eddington 光度，ap-05）；</li>
-<li><strong>自由-自由（轫致）吸收</strong>：<span class="arithmatex">\(\propto\rho T^{-7/2}\)</span>（<strong>Kramers 律</strong>，ap-02 会用）；</li>
+<li><strong>自由-自由（轫致）吸收</strong>：灰度/频率积分的 Kramers 标度是质量不透明度 <span class="arithmatex">\(\kappa_{\rm ff}\propto\rho T^{-7/2}\)</span>，因此每长度系数 <span class="arithmatex">\(\alpha_{\rm ff}=\rho\kappa_{\rm ff}\propto\rho^2T^{-7/2}\)</span>；这不是任意频率都可直接套用的律；</li>
 <li><strong>束缚-自由（光电离）</strong>：产生吸收边；</li>
 <li><strong>束缚-束缚</strong>：<strong>谱线</strong>；</li>
 <li><strong>负氢离子 H⁻</strong>：太阳型恒星光球的主要不透明度来源。</li>
 </ul>
+<p>在分辨频率的自由-自由吸收中还要保留频率边界，例如
+<span class="arithmatex">\(\alpha_{\nu,\rm ff}\propto\rho^2T^{-1/2}\nu^{-3}(1-e^{-h\nu/k_BT})g_{\rm ff}\)</span>（系数和离子丰度省略）；因此不能把质量不透明度的 Kramers 标度、每长度的 <span class="arithmatex">\(\alpha_\nu\)</span> 和全频率的频谱律混写。</p>
 <p><strong>光子的随机行走</strong>：光学厚介质中光子走 <span class="arithmatex">\(N\sim\tau^2\)</span> 步才逃出。<strong>太阳中心产生的光子扩散到表面需要约十万年量级</strong>——<strong>我们看到的阳光，其能量早已在路上待了很久</strong>。</p>
-<h2 id="4">4. 谱线：天体物理的信息主干<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 谱线：天体物理的信息主干<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>谱线携带的信息量惊人</strong>：</p>
 <ul>
 <li><strong>波长</strong> → 元素种类（atom-01）；</li>
@@ -101,7 +202,7 @@
 <li><strong>塞曼分裂</strong> → 磁场（太阳黑子磁场的测量方式）。</li>
 </ul>
 <p><strong>Saha 方程的一个漂亮后果</strong>：氢的巴尔末线在 A 型星（约 10000 K）最强——<strong>不是因为 A 型星氢最多，而是因为该温度下处于 <span class="arithmatex">\(n=2\)</span> 能级的氢原子比例最高</strong>。<strong>恒星光谱分类（OBAFGKM）曾被误以为是成分序列，实为温度序列</strong>——这是天文学史上一次重要的概念澄清。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（<span class="arithmatex">\(\tau=2/3\)</span> 的来历）</strong> Eddington 近似下求解转移方程给 <span class="arithmatex">\(T(\tau)^4=\tfrac{3}{4}T_{\rm eff}^4(\tau+\tfrac23)\)</span>——<strong>在 <span class="arithmatex">\(\tau=2/3\)</span> 处 <span class="arithmatex">\(T=T_{\rm eff}\)</span></strong>，故光球定义于此。</p>
 <p><strong>例 2（临边昏暗）</strong> 太阳边缘偏暗：视线斜穿大气，<span class="arithmatex">\(\tau=2/3\)</span> 对应更高（更冷）的层。<strong>这是"只能看到 <span class="arithmatex">\(\tau\sim1\)</span> 层"的直接可视化证据</strong>，且可用来反推大气温度梯度。</p>
 <p><strong>例 3（多普勒的量级）</strong> 木星使太阳产生约 12 m/s 的视向速度摆动。<strong>现代高精度光谱仪的稳定度已达 m/s 量级</strong>，这正是径向速度法探测系外行星的物理基础。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -116,5 +217,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/radiative-transfer.js"></script>
 </body>
 </html>

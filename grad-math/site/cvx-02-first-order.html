@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,25 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#first-order-learning-title">学习层：先把目标和残差分清，再谈“加速”</a><ul>
+<li><a href="#1-l1">1. 具体玩具：一个碗、一个 L1 折角、两套公平比较</a></li>
+<li><a href="#2">2. 精确桥梁：步长、残差和可用的界</a></li>
+<li><a href="#3">3. 预测门：速率界不是逐点承诺</a></li>
+<li><a href="#4">4. 动手实验：两张目标账、四条有限轨迹</a></li>
+<li><a href="#5">5. 边界：加速是速率声明，不是逐点竞赛</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 梯度下降：两条速率的完整证明</a></li>
 <li><a href="#2-nesterov-1k2">2. Nesterov 加速：\(1/k^2\) 与下界</a></li>
-<li><a href="#3">3. 近端梯度：收编不可微项</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#3_1">3. 近端梯度：收编不可微项</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +68,121 @@
 <p><strong>对标</strong>：Nesterov <em>Lectures</em> §2 / Bubeck <em>Convex Optimization</em> §3 ｜ <strong>前置</strong>：本科优化 II、cvx-01
 本科优化 II 给了收敛速率表；本页逐行兑付证明，并补上两块新版图：<strong>Nesterov 加速</strong>（<span class="arithmatex">\(1/k^2\)</span>——一阶方法的速度极限）与<strong>近端梯度</strong>（把 L1 等不可微正则项收编进梯度法）。证明模板只有一个：<strong>找对势函数</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="first-order-learning-title" class="learning-layer">
+<h2 id="first-order-learning-title">学习层：先把目标和残差分清，再谈“加速”<a class="headerlink" href="#first-order-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-l1">1. 具体玩具：一个碗、一个 L1 折角、两套公平比较<a class="headerlink" href="#1-l1" title="Permanent link"></a></h3>
+<p>实验固定</p>
+<div class="arithmatex">\[
+f(x)=\frac12\big[(x_1-2)^2+4(x_2+2)^2\big],\qquad
+g(x)=\frac12\lVert x\rVert_1,\qquad F(x)=f(x)+g(x),
+\]</div>
+<p>从 <span class="arithmatex">\(x_0=(5,4)\)</span> 出发。<span class="arithmatex">\(f\)</span> 是 <span class="arithmatex">\(L=4\)</span>-光滑、<span class="arithmatex">\(\mu=1\)</span>-强凸的二次函数；<span class="arithmatex">\(g\)</span> 是闭、真、凸但在坐标轴上不可微的 L1 项。两个精确参照点不同：</p>
+<div class="arithmatex">\[
+x_f^*=(2,-2),\quad f^*=0;\qquad
+x_F^*=(3/2,-15/8),\quad F^*=\frac{59}{32}=1.84375.
+\]</div>
+<p>因此实验把比较分成两组，并在表头明确写出目标：</p>
+<ul>
+<li><strong>平滑组</strong>：GD 与 Nesterov 动量法都最小化 <span class="arithmatex">\(f\)</span>，可核对 <span class="arithmatex">\(L,\mu\)</span> 下的平滑目标 gap 与梯度残差；</li>
+<li><strong>复合组</strong>：proximal gradient（ISTA）与 FISTA-style 近端加速都最小化 <span class="arithmatex">\(F\)</span>，可核对 prox-gradient mapping 与复合目标 gap。</li>
+</ul>
+<p>GD/Nesterov 的 <span class="arithmatex">\(F(x_k)-F^*\)</span> 只作为“把平滑轨迹放回复合问题后会怎样”的诊断，不能假装它们在求解 L1 目标。这样才不会把不同目标的曲线排成一个虚假的冠军榜。</p>
+<h3 id="2">2. 精确桥梁：步长、残差和可用的界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>平滑梯度步为</p>
+<div class="arithmatex">\[
+x_{k+1}=x_k-\alpha\nabla f(x_k),\qquad
+G_f(x_k)=\nabla f(x_k).
+\]</div>
+<p>近端梯度步为</p>
+<div class="arithmatex">\[
+x_{k+1}=\operatorname{soft}_{\alpha/2}
+\bigl(x_k-\alpha\nabla f(x_k)\bigr),\qquad
+G_{\alpha,F}(x_k)=\frac{x_k-x_{k+1}}{\alpha}.
+\]</div>
+<p>这里的 <span class="arithmatex">\(\operatorname{soft}_{\tau}(t)=\operatorname{sign}(t)\max(|t|-\tau,0)\)</span>；PG 的残差是 prox-gradient mapping，不是普通梯度范数。若 <span class="arithmatex">\(0&lt;\alpha\le1/L\)</span>，凸光滑目标的标准账本为</p>
+<div class="arithmatex">\[
+f(x_k)-f^*\le \frac{\lVert x_0-x_f^*\rVert^2}{2\alpha k},
+\]</div>
+<p>而在本页的 <span class="arithmatex">\(\mu\)</span>-强凸平滑情形，GD 还可用</p>
+<div class="arithmatex">\[
+f(x_k)-f^*\le(1-\alpha\mu)^k\bigl(f(x_0)-f^*\bigr).
+\]</div>
+<p>对 FISTA/近端加速，若使用任意 <span class="arithmatex">\(0&lt;\alpha\le1/L\)</span>，复合凸问题的一种标准最坏情形界是</p>
+<div class="arithmatex">\[
+F(x_k)-F^*\le\frac{2\lVert x_0-x_F^*\rVert^2}{\alpha(k+1)^2};
+\]</div>
+<p>普通 PG 的对应 <span class="arithmatex">\(1/k\)</span> 界是 <span class="arithmatex">\(\lVert x_0-x_F^*\rVert^2/(2\alpha k)\)</span>。这些都是带着目标、强凸性和步长假设的证书；实验的有限行只核对证书，不替代一般证明。</p>
+<h3 id="3">3. 预测门：速率界不是逐点承诺<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先回答，再揭示轨迹、目标 gap、残差和界：</p>
+<ol>
+<li>默认 <span class="arithmatex">\(\alpha=1/L=1/4\)</span> 是否满足平滑组与复合组的标准步长假设？把步长调到 <span class="arithmatex">\(1.25/L\)</span> 后，有限二次轨迹仍可能运行，这是否恢复一般下降定理？</li>
+<li>“<span class="arithmatex">\(1/k^2\)</span>”应读成最坏情形的速率界，还是每一个 <span class="arithmatex">\(k\)</span> 都比 GD 的函数值小？</li>
+<li>PG 的残差应读作 <span class="arithmatex">\(\|\nabla f(x_k)\|\)</span>，还是 <span class="arithmatex">\(\|G_{\alpha,F}(x_k)\|\)</span>？</li>
+<li>一张有限曲线是否能证明加速法在每个点、每个函数上都更快？</li>
+</ol>
+<p>改变步长预设或迭代次数会重新锁门；提交前不显示任何数值轨迹和界。</p>
+<h3 id="4">4. 动手实验：两张目标账、四条有限轨迹<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后可选择安全步长、保守步长或超出标准条件的诊断预设，并调整迭代次数。SVG 左栏比较同一个 <span class="arithmatex">\(f\)</span> 上的 GD/Nesterov，右栏比较同一个 <span class="arithmatex">\(F\)</span> 上的 PG/FISTA；表格逐行报告各自的 objective gap、残差、<span class="arithmatex">\(1/k\)</span> 或 <span class="arithmatex">\(1/k^2\)</span> 界，以及当前假设是否有效。加速曲线可以非单调、可以交叉；“达到更好的最坏情形阶数”不等于点态排序。</p>
+<div class="learning-lab" data-learning-lab="first-order-methods">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 <span class="arithmatex">\(\alpha=1/L=1/4\)</span>、<span class="arithmatex">\(x_0=(5,4)\)</span>。平滑参照为 <span class="arithmatex">\(x_f^*=(2,-2)\)</span>、<span class="arithmatex">\(f^*=0\)</span>；复合参照为 <span class="arithmatex">\(x_F^*=(3/2,-15/8)\)</span>、<span class="arithmatex">\(F^*=59/32\)</span>。第一步可手算为：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>目标</th>
+<th>第一步点</th>
+<th style="text-align: right;">objective gap</th>
+<th style="text-align: right;">残差</th>
+<th style="text-align: right;">第一步有效界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GD</td>
+<td><span class="arithmatex">\(f\)</span></td>
+<td><span class="arithmatex">\((17/4,-2)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(81/32=2.53125\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(9/4=2.25\)</span>（<span class="arithmatex">\(\|\nabla f\|\)</span>）</td>
+<td style="text-align: right;">凸界 <span class="arithmatex">\(90\)</span>；强凸界 <span class="arithmatex">\(459/8=57.375\)</span></td>
+</tr>
+<tr>
+<td>Nesterov</td>
+<td><span class="arithmatex">\(f\)</span></td>
+<td><span class="arithmatex">\((17/4,-2)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(81/32\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(9/4\)</span>（<span class="arithmatex">\(\|\nabla f\|\)</span>）</td>
+<td style="text-align: right;"><span class="arithmatex">\(90\)</span>（<span class="arithmatex">\(2LR_f^2/4\)</span>）</td>
+</tr>
+<tr>
+<td>PG / ISTA</td>
+<td><span class="arithmatex">\(F\)</span></td>
+<td><span class="arithmatex">\((33/8,-15/8)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(441/128\approx3.4453125\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\|G_{1/4,F}(x_1)\|=21/8\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(R_F^2/(2\alpha)=2993/32=93.53125\)</span></td>
+</tr>
+<tr>
+<td>FISTA-style</td>
+<td><span class="arithmatex">\(F\)</span></td>
+<td><span class="arithmatex">\((33/8,-15/8)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(441/128\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\|G_{1/4,F}(x_1)\|=21/8\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2LR_F^2/4=R_F^2/(2\alpha)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>其中 <span class="arithmatex">\(R_f^2=\|(5,4)-(2,-2)\|^2=45\)</span>、<span class="arithmatex">\(R_F^2=\|(5,4)-(3/2,-15/8)\|^2=2993/64\)</span>。表中的界是“在假设成立时的上界”，不是下一步实际 gap 的预测值；有限轨迹不能替代证书。</p>
+</div>
+<h3 id="5">5. 边界：加速是速率声明，不是逐点竞赛<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>目标必须相同。</strong>本实验的 GD/Nesterov 平滑组与 PG/FISTA 复合组分别比较；把 <span class="arithmatex">\(f\)</span> 的 gap 与 <span class="arithmatex">\(F\)</span> 的 gap 直接排序没有数学意义。</li>
+<li><strong>步长必须带假设。</strong><span class="arithmatex">\(0&lt;\alpha\le1/L\)</span> 给出这里使用的标准下降/速率读法；超步长可能在这个二维二次上暂时稳定，但不自动拥有一般凸问题的证书。</li>
+<li><strong>加速不保证逐点更小。</strong>动量会让目标值或残差出现波纹、交叉和回撤；<span class="arithmatex">\(O(1/k^2)\)</span> 是最坏情形阶数，不能改写成“每一步都赢”。</li>
+<li><strong>有限实验不是证明。</strong>一张轨迹只能检查本玩具的数值与假设标记；一般收敛定理仍需凸性、光滑性/强凸性、近端可计算性和相应步长。</li>
+</ul>
+</section>
 <h2 id="1">1. 梯度下降：两条速率的完整证明<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="一阶方法收敛速率对比" src="assets/img/cvx-02-rates.svg" /></p>
@@ -58,22 +192,34 @@
 <p><strong>定理（凸 + <span class="arithmatex">\(L\)</span>-光滑，<span class="arithmatex">\(\alpha = 1/L\)</span>）</strong> <span class="arithmatex">\(f(x_k) - f^* \leq \dfrac{L\|x_0 - x^*\|^2}{2k}\)</span>。
 <strong>【证明】</strong> 势函数 <span class="arithmatex">\(\Phi_k = \|x_k - x^*\|^2\)</span>：</p>
 <div class="arithmatex">\[
-\Phi_{k+1} = \Phi_k - \frac2L\langle\nabla f_k, x_k - x^*\rangle + \frac{1}{L^2}\|\nabla f_k\|^2 \leq \Phi_k - \frac2L\big(f_k - f^*\big) + \frac{2}{L^2}\cdot\frac{L}{2}\cdot\frac{2(f_k - f^*)}{2}
+\Phi_{k+1} = \Phi_k - \frac2L\langle\nabla f_k, x_k - x^*\rangle + \frac{1}{L^2}\|\nabla f_k\|^2.
 \]</div>
-<p>整理（凸性一阶条件 <span class="arithmatex">\(\langle\nabla f_k, x_k - x^*\rangle \geq f_k - f^*\)</span> + 下降引理）得 <span class="arithmatex">\(\frac2L(f_k - f^*) \leq \Phi_k - \Phi_{k+1}\)</span>；望远镜求和 + <span class="arithmatex">\(f_k\)</span> 单调降：<span class="arithmatex">\(k\)</span> 步后 <span class="arithmatex">\(f_k - f^* \leq \frac{L\Phi_0}{2k}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>对凸且 <span class="arithmatex">\(L\)</span>-光滑的函数，强化的一阶不等式</p>
+<div class="arithmatex">\[
+\langle\nabla f(x),x-x^*\rangle
+\ge f(x)-f^*+\frac{1}{2L}\|\nabla f(x)\|^2
+\]</div>
+<p>由光滑凸插值不等式得到（等价地，可对 <span class="arithmatex">\(f(\cdot)-\langle\nabla f(x),\cdot\rangle\)</span> 使用下降引理）。代回上式后梯度范数项恰好抵消，得到 <span class="arithmatex">\(\frac2L(f_k-f^*)\le\Phi_k-\Phi_{k+1}\)</span>；望远镜求和，再用 <span class="arithmatex">\(f_k\)</span> 单调下降，便有 <span class="arithmatex">\(f_k-f^*\le L\Phi_0/(2k)\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>定理（+<span class="arithmatex">\(\mu\)</span>-强凸）</strong> <span class="arithmatex">\(\Phi_{k+1} \leq \big(1 - \frac\mu L\big)\Phi_k\)</span>——线性收敛。
 <strong>【证明】</strong> 同一展开，凸性条件换强凸版 <span class="arithmatex">\(\langle\nabla f_k, x_k - x^*\rangle \geq f_k - f^* + \frac\mu2\Phi_k\)</span>，配合下降引理消去函数值项。<span class="arithmatex">\(\blacksquare\)</span>（本科优化 II 那张表的两行至此有据可查；condition number <span class="arithmatex">\(\kappa = L/\mu\)</span> 的统治力在证明里显形。）</p>
 <h2 id="2-nesterov-1k2">2. Nesterov 加速：<span class="arithmatex">\(1/k^2\)</span> 与下界<a class="headerlink" href="#2-nesterov-1k2" title="Permanent link"></a></h2>
-<p><strong>算法（加速梯度，动量形式）</strong>：</p>
+<p><strong>算法（实验采用的 FISTA 型动量形式）</strong>：令 <span class="arithmatex">\(t_0=1\)</span>、<span class="arithmatex">\(y_0=x_0\)</span>，</p>
 <div class="arithmatex">\[
-y_k = x_k + \frac{k-1}{k+2}\,(x_k - x_{k-1}), \qquad x_{k+1} = y_k - \frac1L\nabla f(y_k)
+x_{k+1}=y_k-\frac1L\nabla f(y_k),\qquad
+t_{k+1}=\frac{1+\sqrt{1+4t_k^2}}2,
+\]</div>
+<div class="arithmatex">\[
+y_{k+1}=x_{k+1}+\frac{t_k-1}{t_{k+1}}(x_{k+1}-x_k).
 \]</div>
 <p><strong>定理（Nesterov 1983）</strong> 凸 + <span class="arithmatex">\(L\)</span>-光滑：<span class="arithmatex">\(f(x_k) - f^* \leq \dfrac{2L\|x_0 - x^*\|^2}{(k+1)^2}\)</span>。
-<strong>【骨架】</strong> 估计序列/双势函数法：构造 <span class="arithmatex">\(\Phi_k = A_k(f(x_k) - f^*) + \frac L2\|z_k - x^*\|^2\)</span>（<span class="arithmatex">\(z_k\)</span> 为辅助点、<span class="arithmatex">\(A_k \sim k^2\)</span>），逐步验证 <span class="arithmatex">\(\Phi_{k+1} \leq \Phi_k\)</span>——动量系数 <span class="arithmatex">\(\frac{k-1}{k+2}\)</span> 恰好是让两项交换律成立的唯一选择（"魔法系数"是代数配平的产物，非玄学）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理（一阶方法下界，Nesterov）【骨架】</strong> 存在 <span class="arithmatex">\(L\)</span>-光滑凸函数（"最坏的链条函数"：<span class="arithmatex">\(f = \frac L4\big[\frac12 x_1^2 + \frac12\sum(x_{i+1} - x_i)^2 - x_1\big]\)</span> 型），使<strong>任何</strong>只用梯度信息的方法 <span class="arithmatex">\(k\)</span> 步后 <span class="arithmatex">\(f - f^* \geq \frac{cL\|x_0 - x^*\|^2}{(k+1)^2}\)</span>。
-<em>机理</em>：该函数的梯度每步只能"点亮"一个新坐标——信息以每步一维的速度传播，<span class="arithmatex">\(k\)</span> 步只能触及前 <span class="arithmatex">\(k\)</span> 维，尾巴的能量给出下界。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>合读</strong>：加速法达到下界——<strong><span class="arithmatex">\(1/k^2\)</span> 是一阶世界的光速</strong>；"动量"不是工程 trick 而是最优性的实现（强凸版加速 <span class="arithmatex">\(\big(1 - \sqrt{\mu/L}\big)^k\)</span> 同理达界：<span class="arithmatex">\(\kappa\)</span> 改进为 <span class="arithmatex">\(\sqrt\kappa\)</span>——本科优化 II 预告的兑现）。</p>
-<h2 id="3">3. 近端梯度：收编不可微项<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<strong>【骨架】</strong> 估计序列/双势函数法：构造 <span class="arithmatex">\(\Phi_k=A_k(f(x_k)-f^*)+\frac L2\|z_k-x^*\|^2\)</span>（<span class="arithmatex">\(z_k\)</span> 为辅助点、<span class="arithmatex">\(A_k\sim k^2\)</span>），逐步验证 <span class="arithmatex">\(\Phi_{k+1}\le\Phi_k\)</span>。上面的 <span class="arithmatex">\(t_k\)</span> 递推是一种让代数配平成立的经典日程，并非唯一可行的加速系数；其他 Nesterov 参数化也可得到同阶界。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>定理（一阶 oracle 下界，Nesterov）【骨架】</strong> 对每个给定的确定性一阶 oracle 方法和步数 <span class="arithmatex">\(k\)</span>，在维数相对 <span class="arithmatex">\(k\)</span> 足够大、初始半径受限为 <span class="arithmatex">\(\|x_0-x^*\|\le R\)</span> 的函数类中，存在一个依赖该方法的 <span class="arithmatex">\(L\)</span>-光滑凸函数，使</p>
+<div class="arithmatex">\[
+f(x_k)-f^*\ge \frac{cLR^2}{(k+1)^2}.
+\]</div>
+<p>随机化方法需要相应的随机 oracle 下界版本，量词不能写成“先固定一个函数，再难住所有方法”。在线性张成假设下，链条函数的梯度每步只能点亮一个新坐标；去掉该假设则需 resisting-oracle 构造来旋转尚未暴露的方向。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>合读</strong>：加速法在这个 oracle 模型下达到阶意义的下界，因此 <span class="arithmatex">\(1/k^2\)</span> 是该函数类的一阶最坏情形最优阶；强凸版在相应假设下把条件数依赖从 <span class="arithmatex">\(\kappa\)</span> 改进到 <span class="arithmatex">\(\sqrt\kappa\)</span>。</p>
+<h2 id="3_1">3. 近端梯度：收编不可微项<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>问题形态</strong>：<span class="arithmatex">\(\min f(x) + h(x)\)</span>——光滑损失 + 不可微但"简单"的正则项（L1、示性函数、核范数）。</p>
 <p><strong>近端算子</strong>（cvx-01 语言的运算化）：</p>
 <div class="arithmatex">\[
@@ -83,7 +229,7 @@ y_k = x_k + \frac{k-1}{k+2}\,(x_k - x_{k-1}), \qquad x_{k+1} = y_k - \frac1L\nab
 <p><strong>算法（ISTA / 近端梯度）</strong>：<span class="arithmatex">\(x_{k+1} = \mathrm{prox}_{h/L}\big(x_k - \frac1L\nabla f(x_k)\big)\)</span>——"光滑部分走梯度、简单部分交 prox"。
 <strong>定理【引用（证明与 §1 平行）】</strong> 速率与纯梯度法同：凸 <span class="arithmatex">\(1/k\)</span>、强凸线性、可加速为 FISTA 的 <span class="arithmatex">\(1/k^2\)</span>【引用 Beck–Teboulle】。</p>
 <p><strong>读法</strong>：<strong>Lasso、稀疏字典、低秩补全的求解器骨架就是这一行迭代</strong>；软阈值算子解释了 L1 的稀疏机理（小于阈值的分量被精确置零——本科优化 I 次微分含区间的算法化身）。prox 演算与共轭的关系：Moreau 分解 <span class="arithmatex">\(v = \mathrm{prox}_h(v) + \mathrm{prox}_{h^*}(v)\)</span>——cvx-01 的变换表直接变成算子库【引用】。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（证明的迁移测试）</strong> 把 §1 凸情形证明改写为投影梯度法版本（约束凸集 <span class="arithmatex">\(C\)</span>）：唯一改动 = 投影非扩张性 <span class="arithmatex">\(\|\Pi_C(x) - x^*\| \leq \|x - x^*\|\)</span>（泛函 II）插入势函数链——能独立完成此改写，势函数法即入手。</p>
 <p><strong>例 2（软阈值亲算）</strong> <span class="arithmatex">\(\min \frac12(x - 3)^2 + |x|\)</span>：prox 一步 <span class="arithmatex">\(x^* = \mathrm{sign}(3)\max(3 - 1, 0) = 2\)</span>；改 <span class="arithmatex">\(|x|\)</span> 系数为 4：<span class="arithmatex">\(x^* = 0\)</span>——<strong>正则强到一定程度解精确归零</strong>，稀疏性的最小实例。</p>
 <p><strong>例 3（加速的震荡副作用）</strong> 加速法的 <span class="arithmatex">\(f(x_k)\)</span> <strong>非单调</strong>（动量冲过头再拉回——阻尼振荡，ode-02 欠阻尼的既视感；严格对应：加速法的连续极限是二阶 ODE <span class="arithmatex">\(\ddot x + \frac3t\dot x + \nabla f = 0\)</span>【引用 Su–Boyd–Candès】）——训练曲线"加速方法有波纹"不是 bug 而是速度的代价。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -98,5 +244,7 @@ y_k = x_k + \frac{k-1}{k+2}\,(x_k - x_{k-1}), \qquad x_{k+1} = y_k - \frac1L\nab
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/first-order-methods.js"></script>
 </body>
 </html>

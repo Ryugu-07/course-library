@@ -1,77 +1,211 @@
-# 随机微积分 III · Black–Scholes 与期权定价
+# 随机微积分 III · Black–Scholes、Greeks 与离散对冲
 
-> 金融数学的皇冠：给"未来的权利"定价。本页从无套利原理出发，用 Itô 引理与 Delta 对冲推出 Black–Scholes 方程，解出期权定价公式，并讲清那个最反直觉的结论——**股票的预期收益率不进公式**。最后落到实务语言：希腊字母与隐含波动率（你 IBKR 期权页上的每个数字）。
+> **对标**：Shreve *Stochastic Calculus for Finance II* §5–7 ｜ **前置**：sde-01、sde-02、概率 II、PDE II
+> 这页把三个容易混淆的对象拆开：连续完备市场中的定价定理、无套利的 put-call parity，以及一条固定 seed 的有限次 delta-hedge 场景。最后一个账本有误差并不反驳前两个结论。
 
-## 1. 舞台设定
+<div data-learning-page></div>
 
-<figure class="plot" markdown="1">
-![GBM 价格路径与看涨期权收益](assets/img/sde-03-gbm-payoff.svg)
-<figcaption><span class="fig-id">图 3.1</span>金融的两块地基：几何布朗运动的价格路径（左）与欧式看涨期权到期的"曲棍球杆"收益 \(\max(S_T-K,0)\)（右）。</figcaption>
-</figure>
+<section class="learning-layer" markdown="1" aria-labelledby="black-scholes-learning-title">
 
-**市场模型**：股价走几何布朗运动 $dS = \mu S\,dt + \sigma S\,dB$（上上页已解出）；无风险利率 $r$（银行账户 $dM = rM\,dt$）；无摩擦、可做空、连续交易。
+<h2 id="black-scholes-learning-title">学习层：先分清“公式、复制定理、一次路径”</h2>
 
-**欧式看涨期权（call）**：到期日 $T$ 以行权价 $K$ 买入股票的权利，到期收益 $\max(S_T - K, 0)$。问题：**今天该值多少钱 $V(S, t)$？**
+### 1. 直觉案例：为什么价格里没有股票的历史漂移？
 
-**定价原理（无套利）**：若两个组合未来现金流必然相同，今天必须同价——否则买低卖高白吃午餐（市场会立刻吃掉它）。整门金融数学建立在这一条公理上（对比物理的能量守恒）。
-
-## 2. Delta 对冲推出 B–S 方程（本页核心推导）
-
-构造组合：**持有一份期权，做空 $\Delta$ 股股票**，$\Pi = V - \Delta S$。由 Itô 引理（$V$ 是 $(S, t)$ 的函数）：
+假设股票满足
 
 $$
-d\Pi = dV - \Delta\,dS = \Big(V_t + \mu S V_S + \frac12\sigma^2 S^2 V_{SS} - \Delta\mu S\Big)dt + \big(V_S - \Delta\big)\sigma S\,dB
+dS_t=\mu S_t\,dt+\sigma S_t\,dW_t,\qquad dM_t=rM_t\,dt,
 $$
 
-**取 $\Delta = V_S$**：随机项**完全消失**——组合瞬时无风险！无套利 ⇒ 它只能赚无风险利率 $d\Pi = r\Pi\,dt$。代入整理：
+其中 $M_t$ 是银行账户。我们要给欧式 call
+$C(S,t)=\text{value of }\max(S_T-K,0)$ 定价。
+
+先做四个预测，再打开实验台：
+
+1. 价格公式里的漂移应是历史/场景漂移 $\mu$，还是无风险利率 $r$？
+2. 连续复制定理与每隔 $\Delta t$ 调一次仓的路径，哪一个允许出现 terminal hedge error？
+3. $T=0$ 时，$d_1,d_2$ 是否仍可直接代入？
+4. $\sigma=0$ 时，是“公式发散”，还是风险中性股票路径退化为确定路径？
+
+核心直觉是：持有一份期权、做空 $\Delta$ 股股票时，股票的随机项可以在瞬间被抵消。能被股票直接对冲的方向风险不需要另付风险溢价；剩下的曲率和融资才进入定价方程。
+
+### 2. 形式推导桥：从 Itô 到风险中性价格
+
+对 $\Pi=C-\Delta S$ 用 Itô 引理：
 
 $$
-\boxed{\;V_t + \frac{1}{2}\sigma^2 S^2 V_{SS} + rSV_S - rV = 0\;}
+d\Pi=\left(C_t+\mu SC_S+\frac12\sigma^2S^2C_{SS}-\Delta\mu S\right)dt
+ +(C_S-\Delta)\sigma S\,dW_t.
 $$
 
-**Black–Scholes 方程**（1973；Merton 同年补全，1997 诺奖）。两个立即的观察：
-
-- **$\mu$ 不见了**——推导中被对冲项精确抵消。**股票涨跌的预期不影响期权价格**：因为你随时可以用股票本身对冲掉方向风险，剩下需要定价的只有"弯曲程度"（$V_{SS}$ 项）对波动的暴露。这是金融数学最深的一课：**能对冲的风险不值钱，定价的是对冲不掉的部分**；
-- 变量代换后它就是**热方程**（倒着走：从到期收益向今天扩散）——pde-02 的全部理论直接接管（解的存在唯一、光滑化：不管到期收益多尖，今天的价格曲线是光滑的）。
-
-## 3. B–S 公式与风险中性定价
-
-解方程（或用下述概率法）得欧式 call 公式：
+取 $\Delta=C_S$，随机项消失；在**无摩擦、可连续交易且市场完备**的模型中，无风险组合只能按 $r$ 增长：
 
 $$
-C = S_0\,\Phi(d_1) - K e^{-rT}\,\Phi(d_2), \qquad
-d_{1,2} = \frac{\ln(S_0/K) + (r \pm \frac{\sigma^2}{2})T}{\sigma\sqrt{T}}
+d\Pi=r\Pi\,dt
+\quad\Longrightarrow\quad
+\boxed{C_t+\frac12\sigma^2S^2C_{SS}+rSC_S-rC=0}.
 $$
 
-（$\Phi$ = 标准正态分布函数——概率 II 的老朋友坐镇华尔街。）**读法**：第一项 = 到期拿到股票的"期望现值"，第二项 = 付出行权价的期望现值；$\Phi(d_2)$ 恰是（风险中性世界里）行权的概率。
-
-**风险中性定价（第二条推导路，更深的视角）**：存在一个"风险中性测度" $Q$（把 GBM 的漂移 $\mu$ 换成 $r$），使得
+因此 $\mu$ 在方程中抵消。等价地，在风险中性测度 $Q$ 下，
 
 $$
-V = e^{-rT}\, E^{Q}\big[\text{payoff}\big]
+\begin{aligned}
+C_t=C(S_t,t)&=e^{-r\tau}E_t^Q[(S_T-K)^+],\qquad \tau=T-t,\\
+dS_t&=rS_t\,dt+\sigma S_t\,dW_t^Q.
+\end{aligned}
 $$
 
-——**定价 = 在假想世界里算期望再贴现**：那个世界里所有资产都只赚 $r$（投资者不要求风险补偿）。$\mu$ 消失的第二种解释：换测度换掉了它（Girsanov 定理的入门陈述，知其名）。工程意义巨大：**任何复杂衍生品都可以"在 $Q$ 下 Monte Carlo 模拟 payoff 取平均"定价**（数值线 + 概率 V 的方法直接变成生产工具）。**Put–call 平价**：$C - P = S_0 - Ke^{-rT}$（无套利一行论证：两边到期payoff 恒等——不依赖任何模型，比 B–S 更硬）。
+### 3. 公式、平价和 Greeks：把每一笔放回自己的定义
 
-## 4. 希腊字母与隐含波动率（实务接口）
+令 $\tau=T-t>0$，且 $S>0,\sigma>0$：
 
-| 希腊 | 定义 | 语义 | 备注 |
-|---|---|---|---|
-| Delta $\Delta = V_S$ | 对股价敏感度 | 对冲比率（§2 的主角）| call 的 $\Delta = \Phi(d_1) \in (0,1)$ |
-| Gamma $\Gamma = V_{SS}$ | Delta 的变化率 | 对冲需要再平衡的频率 | 平值临近到期最大 |
-| Vega $= V_\sigma$ | 对波动率敏感 | "买期权 = 买波动" | B–S 里唯一不可观测参数的敏感度 |
-| Theta $= V_t$ | 时间衰减 | 持有期权每天的"房租" | 通常为负 |
+$$
+d_1=\frac{\ln(S/K)+(r+\frac12\sigma^2)\tau}{\sigma\sqrt{\tau}},
+\qquad d_2=d_1-\sigma\sqrt{\tau}.
+$$
 
-**隐含波动率（IV）**：市场价反解 $\sigma$——**期权市场其实在交易波动率**。若 B–S 完全正确，各行权价的 IV 应是同一常数；实际画出来是**微笑/偏斜曲线**——市场在给模型没有的东西定价（肥尾、跳跃、崩盘恐惧——时间序列页 GARCH 的厚尾在此以价格形式显形）。**IV 曲面是"模型失效的地图"，也是市场情绪的温度计**（VIX 指数即 S&P 期权 IV 的加权——"恐慌指数"的数学身份）。
+实验台会同时显示
 
-## 5. 典型例题
+$$
+C=S\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),\qquad
+P=C-S+Ke^{-r\tau}.
+$$
 
-**例 1（B–S 计算）** $S_0 = 100, K = 100, r = 5\%, \sigma = 20\%, T = 1$：$d_1 = \frac{0.05 + 0.02}{0.2} = 0.35$，$d_2 = 0.15$；$C = 100\Phi(0.35) - 95.12\,\Phi(0.15) \approx 100(0.637) - 95.12(0.560) \approx 10.4$——平值一年期期权约值股价的 10%（这个量级值得记住：$C \approx 0.4\,\sigma\sqrt{T}\,S$ 的速算式）。
+一张到期支付 $K$ 的零息债券在到期时交付现金 $K$，今天的价格是
+$Ke^{-r\tau}$。因此，
 
-**例 2（平价套利）** 市场上 $C = 12, P = 5, S_0 = 100, Ke^{-rT} = 95$：$C - P = 7 \neq 100 - 95 = 5$——违反平价 2 元：卖 call 买 put 买股票借钱，锁定无风险 2 元。**无套利不是假设是警察**。
+$$
+\begin{aligned}
+\text{call}+\text{债券}&\longrightarrow (S_T-K)^+ + K,\\
+\text{put}+\text{股票}&\longrightarrow (K-S_T)^+ + S_T.
+\end{aligned}
+$$
 
-**例 3（Delta 对冲演练）** 持有 100 份 $\Delta = 0.6$ 的 call，对冲需做空 60 股；股价涨后 $\Delta \to 0.7$，需再空 10 股——**Gamma 决定了你追着市场调仓的忙碌程度**（对冲是动态过程,不是一锤子买卖——§2 推导里"连续交易"假设的实务代价）。$\blacksquare$
+两边都等于 $S_T$，无套利先给出今天的价格关系
+
+$$
+C_t+Ke^{-r\tau}=P_t+S_t,
+$$
+
+也就是
+
+$$
+\boxed{C_t-P_t=S_t-Ke^{-r\tau}}.
+$$
+
+不依赖 GBM 的具体分布；它是无套利现金流复制，不是“再加一个波动率公式”。
+
+常用 Greeks（$\Theta=C_t$，按日历时间求导）是
+
+| Greek | call | put |
+|---|---|---|
+| $\Delta$ | $\Phi(d_1)$ | $\Phi(d_1)-1$ |
+| $\Gamma$ | $\frac{\phi(d_1)}{S\sigma\sqrt{\tau}}$ | 同 call |
+| Vega | $S\phi(d_1)\sqrt{\tau}$ | 同 call |
+| $\Theta$ | $-\frac{S\phi(d_1)\sigma}{2\sqrt{\tau}}-rKe^{-r\tau}\Phi(d_2)$ | $-\frac{S\phi(d_1)\sigma}{2\sqrt{\tau}}+rKe^{-r\tau}\Phi(-d_2)$ |
+| $\rho$ | $K\tau e^{-r\tau}\Phi(d_2)$ | $-K\tau e^{-r\tau}\Phi(-d_2)$ |
+
+### 4. 模型边界与常见误读
+
+> **模型边界面板**
+>
+> - **连续复制**需要 GBM、常数 $r,\sigma$、无摩擦、市场完备和连续交易。
+> - **有限网格账本**只生成一个固定 seed 的场景；它不是连续对冲定理，也不是最坏情形误差上界。
+> - $\mu$ 不进入 B–S 价格，但可以作为生成路径的场景漂移；不要把“场景路径”读成“定价输入”。
+> - $T=0$ 时价格直接是 payoff，$S=K$ 处 payoff 不可微；页内用 $\Delta=1/2$ 作为显示约定，$\Gamma$ 不是普通有限函数。
+> - $\sigma=0$ 时风险中性股票确定为 $S_T=Se^{r\tau}$，call 变成 $\max(S-Ke^{-r\tau},0)$；在 forward-ATM $S=Ke^{-r\tau}$ 处，$\Delta$ 是单侧/显示约定，Vega 是 $\sigma\downarrow0$ 的单侧值，$\Gamma,\Theta,\rho$ 标为 unavailable，不能把 $0/0$ 的 $d_1$ 形式硬代进去。
+> - 交互边界元数据会把 `one-sided` 与 `unavailable` 写出来；这不改变普通内点的数字 Greeks。
+
+### 5. 确定性实验：先过预测门，再读两本账
+
+预测提交后，实验台显示五个 Greeks、put-call parity 残差、GBM 路径，以及每一行的股票、目标 delta、持股、现金、组合价值和误差。切换“细分”只改变有限次再平衡的场景账本；切换“sigma=0”则把边界行为直接暴露出来。
+
+<div class="learning-lab" data-learning-lab="black-scholes-hedge" markdown="1">
+
+**无 JavaScript 时的静态读法：** 取 $S_0=K=100,r=0.05,\sigma=0.2,T=1$。标准正态函数记作 $\Phi,\phi$。
+
+| 账本 | 公式/静态读数 | 量词 |
+|---|---|---|
+| 欧式 call | $C=S_0\Phi(d_1)-Ke^{-rT}\Phi(d_2)\approx10.4506$ | 模型价格 |
+| 欧式 put | $P=C-S_0+Ke^{-rT}\approx5.5735$ | 由平价核对 |
+| 平价残差 | $C-P-(S_0-Ke^{-rT})=0$ | 无套利恒等式 |
+| 初始复制组合 | $\Delta_0=\Phi(d_1)$，现金 $=C-\Delta_0S_0$ | 连续理论的起点 |
+| 有限路径 | $S_{j+1}=S_j\exp((\mu-\sigma^2/2)\Delta t+\sigma\sqrt{\Delta t}z_j)$ | 固定 seed 的场景 |
+| 终点误差 | 最后组合价值 $-$ $(S_T-K)^+$ | **离散场景，不是定理** |
+| $T=0$ | $C=(S-K)^+$；$\Delta=1,0$，ATM 显示约定 $1/2$；kink 上 $\Gamma,\text{Vega},\Theta$ unavailable，非 kink 的 $\Theta$ 只取到期前单侧值 | payoff 边界 |
+| $\sigma=0$ | $C=\max(S-Ke^{-r\tau},0)$；远离 forward kink 时 $\Gamma=\text{Vega}=0$，forward-ATM 的 $\Delta$ 单侧、Vega 单侧且 $\Gamma,\Theta,\rho$ unavailable | 确定性边界 |
+
+若交互失效，先用前五行复核公式和自融资关系，再把最后一行读成“本条路径在本调仓网格下发生了多少误差”，不要把它改写成“B–S 误差”。
+
+</div>
+
+</section>
+
+## 1. 市场模型与无套利复制
+
+本页的定理性声明有明确前提：
+
+1. 股票按 GBM 演化，波动率 $\sigma$ 与短利率 $r$ 为常数；
+2. 可以无摩擦交易、借贷和做空；
+3. 交易连续，且股票和银行账户构成完备市场；
+4. 期权是欧式，只有到期 payoff，没有提前行权。
+
+若交易有 bid-ask spread、跳跃、随机波动率、融资约束或离散交易，下面的精确公式就变成基准模型，而不是完整现实。
+
+## 2. Black–Scholes 公式与 Greeks
+
+在普通区域 $\tau>0,\sigma>0,S>0$，风险中性解为
+
+$$
+C(S,t)=S\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),
+\quad
+P(S,t)=Ke^{-r\tau}\Phi(-d_2)-S\Phi(-d_1).
+$$
+
+这里的 Vega 是对“波动率的一个绝对单位”求导；交易屏幕常把它再除以 $100$ 或按一天缩放。Theta 的符号也取决于日历时间和显示单位，不能只看一个未经标注的数字。
+
+## 3. Put-call parity 的独立地位
+
+持有 call 加上债券与持有 put 加股票的到期现金流分别是
+
+$$
+(S_T-K)^+ + K
+\quad\text{和}\quad
+(K-S_T)^+ + S_T.
+$$
+
+第一行中的零息债券今天值 $Ke^{-r\tau}$、到期支付 $K$；两边到期都等于 $S_T$，故今天价值必须满足
+
+$$
+C_t+Ke^{-r\tau}=P_t+S_t
+\quad\Longleftrightarrow\quad
+C_t-P_t=S_t-Ke^{-r\tau}.
+$$
+
+这个论证只依赖可复制现金流与无套利；它不需要知道 $\mu$，也不需要先相信 Black–Scholes 的 PDE。
+
+## 4. 连续对冲与离散账本
+
+连续理论的 delta 是 $C_S$。在有限网格 $0=t_0<\cdots<t_n=T$，实验按以下自融资规则记账：
+
+$$
+\begin{aligned}
+B_{j+1}^{\rm pre}&=B_j e^{r\Delta t},\\
+\Delta B_{j+1}&=-(\Delta_{j+1}-\Delta_j)S_{t_{j+1}},\\
+V_{j+1}^{\rm hedge}&=\Delta_{j+1}S_{t_{j+1}}+B_{j+1}.
+\end{aligned}
+$$
+
+到期前一行会再平衡；最后一行保留到期前的持仓，与 $(S_T-K)^+$ 比较。它是一个 deterministic seeded simulation：同一参数会重复同一账本，但它没有替代连续时间极限、概率量词或误差估计。
+
+## 5. 三个检查题
+
+**例 1（漂移隔离）** 把路径生成器的 $\mu$ 从 $0.08$ 改到 $-0.08$，公式价格不应变化；路径和有限对冲误差会变化。这正是定价测度与场景测度的接口。
+
+**例 2（边界先于公式）** 在 $T=0,S=K$ 处，call 的价格为 $0$，但 payoff 的普通导数不存在。一个交互组件选择 $1/2$ 只是可重复的显示 convention，不是宣称 kink 有唯一经典 delta。
+
+**例 3（平价审计）** 若屏幕给出的 $C_t-P_t$ 与 $S_t-Ke^{-r\tau}$ 不同，先检查股息、融资利率、行权/交割约定，再谈波动率模型；平价是最先应审计的现金流恒等式。$\blacksquare$
 
 ---
 
-*随机微积分三页完工：Itô 演算 → SDE 与分布演化 → 无套利定价。扩散模型与期权定价共享同一套数学的事实，是"抽象的回报"最好的当代例证。下一门：时间序列分析。*
+*本页收束随机微积分的金融接口：Itô 引理提供局部账本，delta 对冲消去随机项，风险中性定价给出精确公式；现实交易再用跳跃、随机波动率、交易成本和离散风险把模型边界补回来。*

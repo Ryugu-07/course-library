@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,23 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 问题：闭合困难</a></li>
+<li><a href="#fl03-learning-title">学习层：把级串读成一张尺度账，而不是一台 DNS</a><ul>
+<li><a href="#1">1. 具体故事：搅拌器送进来的能量去了哪里？</a></li>
+<li><a href="#2-k41">2. 正式桥：K41 尺度基线与带条件的精确关系</a></li>
+<li><a href="#3-k41">3. 可操作实验：同一张尺子比较 K41 与间歇性</a></li>
+<li><a href="#4">4. 误区与适用边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 问题：闭合困难</a></li>
 <li><a href="#2-richardson-kolmogorov-1941">2. Richardson 级串与 Kolmogorov 1941</a></li>
-<li><a href="#3-45">3. 唯一的精确结果：4/5 律</a></li>
+<li><a href="#3-45">3. 一个带条件的精确关系：4/5 律</a></li>
 <li><a href="#4-k41">4. K41 的裂缝：间歇性</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
@@ -56,9 +74,120 @@
 <p><img alt="湍流能谱的 Kolmogorov -5/3 律与三个尺度区。" src="assets/img/fl-03-turbulence-spectrum.svg" /></p>
 <figcaption><span class="fig-id">图 fl-03.1</span>湍流能谱 \(E(k)\)：含能区（注入）、<strong>惯性区 \(E(k)\propto k^{-5/3}\)</strong>（能量级串，无耗散无注入）、耗散区（\(k&gt;1/\eta\) 指数截断）。</figcaption>
 </figure>
-<h2 id="1">1. 问题：闭合困难<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>把速度分解为均值与脉动 <span class="arithmatex">\(\mathbf u = \bar{\mathbf u}+\mathbf u'\)</span>，代入 N–S 取平均得 <strong>Reynolds 方程</strong>：</p>
-<div class="arithmatex">\[\rho\bar u_j\partial_j\bar u_i = -\partial_i\bar p + \mu\nabla^2\bar u_i - \rho\,\partial_j\underbrace{\overline{u'_iu'_j}}_{\text{Reynolds 应力}}\]</div>
+<div data-learning-page></div>
+
+<section aria-labelledby="fl03-learning-title" class="learning-layer">
+<h2 id="fl03-learning-title">学习层：把级串读成一张尺度账，而不是一台 DNS<a class="headerlink" href="#fl03-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故事：搅拌器送进来的能量去了哪里？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把水槽想成有三个账房：大尺度 <span class="arithmatex">\(L\)</span> 接受外部输入，小涡在惯性区把能量向更小的 <span class="arithmatex">\(r\)</span> 传递，Kolmogorov 微尺度 <span class="arithmatex">\(\eta\)</span> 最后交给黏性耗散。你要追踪的不是每个涡的轨迹，而是同一笔单位质量能量通量 <span class="arithmatex">\(\varepsilon\)</span> 在尺度之间怎样保持。</p>
+<p>先预测，再打开实验台：</p>
+<ol>
+<li>在惯性区内，能量通量会随 <span class="arithmatex">\(r\)</span> 增大、减小，还是近似恒定？</li>
+<li>三维正向级串的纵向三阶结构函数 <span class="arithmatex">\(S_3(r)\)</span> 的符号是什么？</li>
+<li>在同一个 <span class="arithmatex">\(p=6\)</span> 上，间歇性修正的 <span class="arithmatex">\(\zeta_6\)</span> 会比 <span class="arithmatex">\(6/3\)</span> 大还是小？</li>
+</ol>
+<p>实验揭示前只保留预测门；揭示后才显示尺度带、能谱、通量、<span class="arithmatex">\(4/5\)</span> 律和 K41/She–Lévêque 指数对照。</p>
+<h3 id="2-k41">2. 正式桥：K41 尺度基线与带条件的精确关系<a class="headerlink" href="#2-k41" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\([\varepsilon]=L^2T^{-3}\)</span>，且声明的局域各向同性、足够宽的惯性区和高 Reynolds 数条件成立，量纲分析给出尺度 <span class="arithmatex">\(r\)</span> 上的速度差和涡周转时间：</p>
+<div class="arithmatex">\[
+\delta u(r)\sim(\varepsilon r)^{1/3},\qquad
+\tau_r\sim\frac r{\delta u(r)}=\varepsilon^{-1/3}r^{2/3}.
+\]</div>
+<p>能谱和 Kolmogorov 微尺度分别写成</p>
+<div class="arithmatex">\[
+E(k)=C_K\varepsilon^{2/3}k^{-5/3},\qquad
+\eta=\left(\frac{\nu^3}{\varepsilon}\right)^{1/4},\qquad k_\eta\sim\eta^{-1}.
+\]</div>
+<p>其中 <span class="arithmatex">\(\delta u(r)\)</span>、<span class="arithmatex">\(\tau_r\)</span> 和 <span class="arithmatex">\(E(k)\)</span> 只有在声明假设、教学窗口宽度和样本门槛同时满足时才作为 K41 读数发证；区外只标作 extrapolation 或 null。</p>
+<p>本页采用的 <span class="arithmatex">\(E(k)\)</span> 是<strong>按单位质量、三维各向同性壳层积分的能谱约定</strong>：</p>
+<div class="arithmatex">\[
+\int_0^\infty E(k)\,\mathrm dk=\frac12\left\langle|\mathbf u|^2\right\rangle.
+\]</div>
+<p>因此 <span class="arithmatex">\([E]=L^3T^{-2}\)</span>（SI 为 <span class="arithmatex">\(\mathrm{m^3\,s^{-2}}\)</span>）；若记录的是单位体积能量，需再乘 <span class="arithmatex">\(\rho\)</span>。这里 <span class="arithmatex">\(k\approx1/r\)</span> 只表示尺度对应关系，不是 Fourier 变量与实空间间隔的精确等号。<span class="arithmatex">\(C_K\approx1.5\)</span> 只是这个约定下的教学基准，不是脱离定义的普适数字：它会随一维/三维（壳层、纵向或横向）谱定义和 Fourier 归一化约定改变。</p>
+<p>在 <span class="arithmatex">\(10\eta\lesssim r\lesssim L/10\)</span> 的候选惯性带内，且至少有 <strong>1 个 decade、2 个惯性样本</strong>并满足已声明假设时，级串通量的尺度读数才写成</p>
+<div class="arithmatex">\[
+\Pi(r)\approx\varepsilon,
+\]</div>
+<p>不是说每个瞬时涡都携带相同能量，而是统计平均上的通量 ledger 近似平坦。</p>
+<p>三维不可压、齐次、各向同性、统计定常且高 Reynolds 数的教学窗口内，还有一个带条件的精确纵向 <span class="arithmatex">\(4/5\)</span> 律。先固定符号：取 <span class="arithmatex">\(\hat{\mathbf r}=\mathbf r/|\mathbf r|\)</span> 从 <span class="arithmatex">\(\mathbf x\)</span> 指向 <span class="arithmatex">\(\mathbf x+\mathbf r\)</span>，定义</p>
+<div class="arithmatex">\[
+\delta u_\parallel(\mathbf x,\mathbf r)=\big[\mathbf u(\mathbf x+\mathbf r)-\mathbf u(\mathbf x)\big]\cdot\hat{\mathbf r}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+S_3(r)=\left\langle(\delta u_\parallel)^3\right\rangle
+=-\frac45\varepsilon r.
+\]</div>
+<p>负号与三维正向能量级串的方向一致；它不是“所有湍流数据在所有尺度都自动满足”的图形标签。有限 Reynolds 数、强各向异性、非定常、边界和强迫修正都要重新检查条件。图外或门槛不足的 <span class="arithmatex">\(S_3\)</span> 只作 extrapolation，或留为 null。</p>
+<h3 id="3-k41">3. 可操作实验：同一张尺子比较 K41 与间歇性<a class="headerlink" href="#3-k41" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="turbulence-cascade">
+<p><strong>JavaScript 失效时的静态读法：</strong>默认账本可取 <span class="arithmatex">\(L=1\)</span>、<span class="arithmatex">\(\nu=10^{-5}\)</span>、<span class="arithmatex">\(\varepsilon=1\)</span>、<span class="arithmatex">\(C_K=1.5\)</span>。于是
+<span class="arithmatex">\(\eta=(10^{-15})^{1/4}\approx1.778\times10^{-4}\)</span>，<span class="arithmatex">\(L/\eta\approx5623\)</span>，而可读的惯性带必须避开两端，例如只把 <span class="arithmatex">\(10\eta\lesssim r\lesssim L/10\)</span> 当作教学窗口；本实验把至少 <strong>1 个 decade 且至少 2 个惯性样本</strong>作为发证门槛。门槛之外的 K41 数值是 extrapolation 或 null，不是已验证结果。</p>
+<table>
+<thead>
+<tr>
+<th>读数</th>
+<th>K41</th>
+<th>间歇性对照（She–Lévêque）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>结构函数指数</td>
+<td><span class="arithmatex">\(\zeta_p=p/3\)</span></td>
+<td><span class="arithmatex">\(\zeta_p=p/9+2[1-(2/3)^{p/3}]\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p=3\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(1\)</span>，这里只比较 (\langle</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p=6\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(\approx1.778\)</span>，高阶标度被压低</td>
+</tr>
+<tr>
+<td>三维纵向 signed 三阶矩</td>
+<td><span class="arithmatex">\(S_3=-4\varepsilon r/5\)</span></td>
+<td>这是精确律条件下的独立账，不由绝对值拟合指数重新证明</td>
+</tr>
+</tbody>
+</table>
+<p>实验的 scale ledger 逐行列出 <span class="arithmatex">\(r,k,\delta u,\tau_r,E(k),\Pi(r)\)</span> 和 signed <span class="arithmatex">\(S_3(r)\)</span>，并明确标出 under-assumed-conditions 或 extrapolation/null；通量图使用同一无量纲纵轴 <span class="arithmatex">\(\Pi/\varepsilon\)</span> 与 <span class="arithmatex">\(-S_3/(\varepsilon r)\)</span>。再用同一组 <span class="arithmatex">\(p\)</span> 画出常用绝对值结构函数的两套 <span class="arithmatex">\(\zeta_p\)</span>。能谱和通量曲线是由公式直接生成的确定性教学数据，不是 DNS 样本。</p>
+</div>
+<h3 id="4">4. 误区与适用边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>过强说法</th>
+<th>更准确的读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“看到 <span class="arithmatex">\(k^{-5/3}\)</span> 就证明流动是湍流。”</td>
+<td>这是一个标度诊断；有限带宽、各向异性和非定常系统都可能制造相似斜率。</td>
+</tr>
+<tr>
+<td>“K41 说明每个结构函数都严格是 <span class="arithmatex">\(p/3\)</span>。”</td>
+<td>间歇性使高阶 <span class="arithmatex">\(\zeta_p\)</span> 偏离 <span class="arithmatex">\(p/3\)</span>；K41 是基线尺度假设，不是所有阶数的精确定理。</td>
+</tr>
+<tr>
+<td>“<span class="arithmatex">\(4/5\)</span> 律只要三维就无条件成立。”</td>
+<td>还需要不可压、齐次、各向同性、统计定常和惯性区/高 Reynolds 数等条件，并注意强迫与黏性修正。</td>
+</tr>
+<tr>
+<td>“这台实验已经解析了湍流。”</td>
+<td>它是尺度账本：不解 Navier–Stokes，不生成 DNS，不证明每个真实流动服从 K41。</td>
+</tr>
+</tbody>
+</table>
+<p>本页把“可由量纲推出的尺度”“统计通量的读法”“带条件的精确律”和“经验间歇性比较”分成四栏。换成二维逆级串、壁湍流、旋转/分层流或低 Reynolds 数后，符号、区间和适用条件都要重新核对。</p>
+</section>
+<h2 id="1_1">1. 问题：闭合困难<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>把速度分解为均值与脉动 <span class="arithmatex">\(\mathbf u = \bar{\mathbf u}+\mathbf u'\)</span>，代入 N–S 取平均得 <strong>Reynolds 方程</strong>（若另声明统计稳态，才可删去第一项）：</p>
+<div class="arithmatex">\[\rho\left(\partial_t\bar u_i+\bar u_j\partial_j\bar u_i\right) = -\partial_i\bar p + \mu\nabla^2\bar u_i - \rho\,\partial_j\underbrace{\overline{u'_iu'_j}}_{\text{Reynolds 应力}}\]</div>
 <p><strong>新出现的 <span class="arithmatex">\(\overline{u'_iu'_j}\)</span> 未知</strong>。为它写方程，又会出现三阶矩；如此无穷递归——<strong>这就是闭合问题（closure problem）</strong>，是非线性项 <span class="arithmatex">\((\mathbf u\cdot\nabla)\mathbf u\)</span> 的直接后果。</p>
 <p><strong>工程对策【引用，非严格】</strong>：涡粘模型（<span class="arithmatex">\(k\)</span>–<span class="arithmatex">\(\varepsilon\)</span>、<span class="arithmatex">\(k\)</span>–<span class="arithmatex">\(\omega\)</span> SST）用经验关系强行闭合；LES 只解大涡、模化小涡；DNS 完全求解但<strong>代价随 <span class="arithmatex">\(\mathrm{Re}^{9/4}\)</span> 增长</strong>（见 §4），只能用于低 <span class="arithmatex">\(\mathrm{Re}\)</span> 研究。<strong>至今没有第一性原理的闭合方案。</strong></p>
 <h2 id="2-richardson-kolmogorov-1941">2. Richardson 级串与 Kolmogorov 1941<a class="headerlink" href="#2-richardson-kolmogorov-1941" title="Permanent link"></a></h2>
@@ -66,29 +195,32 @@
 <p><strong>K41 的三条假设</strong>：</p>
 <ol>
 <li><strong>局域各向同性</strong>：小尺度忘记了大尺度的方向性；</li>
-<li><strong>惯性区</strong>：存在 <span class="arithmatex">\(\eta \ll r \ll L\)</span> 的尺度范围，统计量<strong>只依赖能量耗散率 <span class="arithmatex">\(\varepsilon\)</span> 与尺度 <span class="arithmatex">\(r\)</span></strong>（既不依赖注入方式，也不依赖粘性）；</li>
+<li><strong>惯性区</strong>：存在 <span class="arithmatex">\(\eta \ll r \ll L\)</span> 的尺度范围，统计量<strong>只依赖能量耗散率 <span class="arithmatex">\(\varepsilon\)</span> 与尺度 <span class="arithmatex">\(r\)</span></strong>（既不依赖注入方式，也不依赖粘性）；本页把 <span class="arithmatex">\(10\eta\lesssim r\lesssim L/10\)</span>、至少 1 个 decade 且至少 2 个样本作为教学窗口门槛；</li>
 <li><strong>能量级串守恒</strong>：惯性区内传递率 = 耗散率 <span class="arithmatex">\(\varepsilon\)</span>。</li>
 </ol>
-<p><strong>纯量纲分析【推导】</strong>：<span class="arithmatex">\([\varepsilon]=\mathrm{m^2/s^3}\)</span>，要构造速度差 <span class="arithmatex">\(\delta u(r)\)</span>：</p>
+<p><strong>纯量纲分析【推导】</strong>：<span class="arithmatex">\([\varepsilon]=\mathrm{m^2/s^3}\)</span>，要构造速度差 <span class="arithmatex">\(\delta u(r)\)</span>；这给出惯性窗口内的 K41 基线，不会单独证明窗口存在：</p>
 <div class="arithmatex">\[\delta u(r)\sim(\varepsilon r)^{1/3}\quad\Longrightarrow\quad S_2(r)=\overline{(\delta u)^2}\propto(\varepsilon r)^{2/3}\]</div>
 <p>傅里叶空间即得<strong>著名的 <span class="arithmatex">\(-5/3\)</span> 律</strong>：</p>
 <div class="arithmatex">\[\boxed{\,E(k) = C_K\,\varepsilon^{2/3}k^{-5/3}\,}\]</div>
-<p><strong><span class="arithmatex">\(C_K\approx1.5\)</span> 是普适常数</strong>，在大气、海洋、风洞、天体等级差极大的系统中被反复验证——<strong>这是湍流理论最坚实的成果</strong>。</p>
+<p><strong><span class="arithmatex">\(C_K\approx1.5\)</span> 只是特定谱约定下的常用基准</strong>；它依赖一维/三维谱的定义、是否做壳层或分量积分，以及 Fourier 归一化。不能把不同 convention 的数值直接比较成同一个普适常数。</p>
 <p><strong>Kolmogorov 微尺度</strong>：粘性主导的截断尺度</p>
 <div class="arithmatex">\[\eta = \left(\frac{\nu^3}{\varepsilon}\right)^{1/4},\qquad \frac{L}{\eta}\sim\mathrm{Re}^{3/4}\]</div>
-<h2 id="3-45">3. 唯一的精确结果：4/5 律<a class="headerlink" href="#3-45" title="Permanent link"></a></h2>
-<p>K41 大部分是量纲分析，但有<strong>一条从 N–S 严格导出</strong>的结果（Kolmogorov 1941）：</p>
+<h2 id="3-45">3. 一个带条件的精确关系：4/5 律<a class="headerlink" href="#3-45" title="Permanent link"></a></h2>
+<p>K41 大部分是量纲分析；在三维不可压、齐次、各向同性、统计定常的高 Reynolds 数惯性窗口中，N–S 还严格给出下面这个关系（Kolmogorov 1941）：</p>
 <div class="arithmatex">\[S_3(r)=\overline{(\delta u_\parallel)^3} = -\tfrac{4}{5}\,\varepsilon r\]</div>
-<p><strong>它是湍流理论中极少数的精确关系</strong>，且<strong>负号直接给出能量向小尺度传递的方向</strong>（三维）。<strong>二维湍流则相反——能量反向级串到大尺度</strong>（这就是大气与海洋中大涡旋能长期存在、以及木星大红斑的机制）。</p>
+<p>这是湍流理论中少数带条件的 exact laws 之一；<strong>负号直接给出三维能量向小尺度正向级串的方向</strong>。二维不能只写成“把符号反过来”：二维同时受能量和涡量平方（enstrophy）守恒约束，典型情形是<strong>能量逆级串到大尺度、涡量平方正向级串到小尺度</strong>。两种级串对应不同的 exact laws、通量定义和标度（系数也依赖符号约定），不能把三维 <span class="arithmatex">\(4/5\)</span> 律原样套到二维或其他流动。</p>
 <h2 id="4-k41">4. K41 的裂缝：间歇性<a class="headerlink" href="#4-k41" title="Permanent link"></a></h2>
 <p><strong>Landau 的批评</strong>：<span class="arithmatex">\(\varepsilon\)</span> 在空间上并非均匀，而是<strong>高度间歇</strong>——耗散集中在稀疏的强涡结构中。</p>
 <p><strong>后果</strong>：高阶结构函数偏离 K41 预言</p>
-<div class="arithmatex">\[S_p(r)\propto r^{\zeta_p},\qquad \zeta_p \ne p/3\ (p\ \text{较大时})\]</div>
-<p><strong>实测 <span class="arithmatex">\(\zeta_p\)</span> 是 <span class="arithmatex">\(p\)</span> 的凹函数</strong>——这就是<strong>反常标度</strong>。多重分形模型（She–Lévêque 等）能拟合，但<strong>尚无第一性原理的推导</strong>。</p>
+<div class="arithmatex">\[
+S_p^{\mathrm{abs}}(r)=\left\langle|\delta u_\parallel|^p\right\rangle\propto r^{\zeta_p},\qquad \zeta_p \ne p/3\ (p\ \text{较大时}).
+\]</div>
+<p>这里的 <span class="arithmatex">\(S_p^{\mathrm{abs}}\)</span> 是常用的绝对值高阶结构函数；signed 的 <span class="arithmatex">\(S_3=\langle(\delta u_\parallel)^3\rangle\)</span> 另由 <span class="arithmatex">\(4/5\)</span> 律单独记账，不能用绝对值 <span class="arithmatex">\(\zeta_3\)</span> 代替它。</p>
+<p><strong>实测 <span class="arithmatex">\(\zeta_p\)</span> 是 <span class="arithmatex">\(p\)</span> 的凹函数</strong>——这就是<strong>反常标度</strong>。相对于 K41，较高阶的 <span class="arithmatex">\(\zeta_p\)</span> 降低意味着小尺度增量的尾部更重、绝对值结构函数随尺度缩小衰减得更慢；它不是把 signed <span class="arithmatex">\(S_3\)</span> 的符号改掉。多重分形模型（She–Lévêque 等）能拟合，但<strong>尚无第一性原理的推导</strong>。</p>
 <p><strong>这与 asm-03 的重整化群形成有趣对照</strong>：临界现象中反常指数已由 RG 解释；<strong>湍流中同样的"反常标度"至今没有对应的理论</strong>。<strong>这是本站最坦率的一处"未解"标注。</strong></p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（DNS 为什么贵）</strong> 需解析到 <span class="arithmatex">\(\eta\)</span>，网格数 <span class="arithmatex">\(\sim(L/\eta)^3\sim\mathrm{Re}^{9/4}\)</span>，加上时间步长约束，总计算量 <span class="arithmatex">\(\sim\mathrm{Re}^{3}\)</span>。<strong><span class="arithmatex">\(\mathrm{Re}=10^6\)</span> 的飞机绕流，DNS 所需算力远超任何现有超算</strong>——这就是工程必须依赖模型的原因。</p>
-<p><strong>例 2（大气的级串）</strong> 取 <span class="arithmatex">\(\varepsilon\sim10^{-3}\)</span> W/kg、<span class="arithmatex">\(\nu\approx1.5\times10^{-5}\)</span> m²/s：<span class="arithmatex">\(\eta\sim(\nu^3/\varepsilon)^{1/4}\sim0.5\)</span> mm。<strong>几公里的天气尺度，最终在毫米尺度上变成热</strong>——中间跨越七个数量级的级串。</p>
+<p><strong>例 2（大气的级串）</strong> 取 <span class="arithmatex">\(\varepsilon\sim10^{-3}\)</span> W/kg、<span class="arithmatex">\(\nu\approx1.5\times10^{-5}\)</span> m²/s：<span class="arithmatex">\(\eta\sim(\nu^3/\varepsilon)^{1/4}\approx1.36\)</span> mm。若天气尺度取几公里，<span class="arithmatex">\(L/\eta\)</span> 约为 <span class="arithmatex">\(10^6\)</span>，即<strong>约六个 decades</strong> 的级串，最终在毫米尺度上变成热。</p>
 <p><strong>例 3（湍流为什么"混合得好"）</strong> 湍流扩散系数 <span class="arithmatex">\(\sim u'L \gg \nu\)</span>。<strong>这就是搅拌咖啡的原理</strong>：分子扩散需要数小时，湍流混合只要几秒——<strong>代价是耗散了你搅拌的能量</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：湍流从哪里来？答案是层流的失稳。线性稳定性分析、对流胞与分岔——从有序到混沌的第一步。</em></p>
@@ -101,5 +233,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/turbulence-cascade.js"></script>
 </body>
 </html>

@@ -2,6 +2,58 @@
 
 > 用样本给未知参数一个"最佳猜测"。两条造估计量的路（矩法、极大似然）、三把评价的尺（无偏、有效、相合）、一条理论天花板（Cramér–Rao 下界）。MLE 一节是全统计与机器学习交汇最深的地方——**训练神经网络的那个损失函数，就是本页的负对数似然**。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="estimator-risk-learning-title">
+
+## 学习层：“瞄得正”不是唯一目标，风险必须在重复抽样世界里读
+
+<h3 id="estimator-risk-learning-title">1. 先预测：偏差能不能换方差？</h3>
+
+实验固定 Bernoulli 样本 $K\sim\operatorname{Binomial}(n,p)$，比较三种估计：
+
+$$
+\hat p_{\mathrm{MLE}}=\frac Kn,
+\qquad
+\hat p_L=\frac{K+1}{n+2},
+\qquad
+\hat p_S=\frac{K+2}{n+4}.
+$$
+
+先判断：有偏估计的 MSE 能否低于无偏估计？标准 $1/[nI(p)]$ 是否直接约束所有有偏估计的方差？只看当前样本算出的一个数，能否知道估计量在重复抽样下的 MSE？
+
+提交后，实验穷举 $K=0,\ldots,n$，精确计算 $E\hat p$、Bias、Variance 与 MSE，并扫描真值 $p$。这会把“当前估计值”与“估计规则的风险函数”分开。
+
+### 2. 静态后备：MSE 的两本账
+
+<div class="learning-lab" data-learning-lab="estimator-risk" markdown="1">
+
+平方损失下
+
+$$
+R(p,\hat p)=E_p(\hat p-p)^2
+=\operatorname{Var}_p(\hat p)+\operatorname{Bias}_p(\hat p)^2.
+$$
+
+| 估计量 | 偏差 | 方差 | 读法 |
+|---|---:|---:|---|
+| $K/n$ | $0$ | $p(1-p)/n$ | Bernoulli 内点恰好达到无偏 CR 下界 |
+| $(K+1)/(n+2)$ | $(1-2p)/(n+2)$ | $np(1-p)/(n+2)^2$ | 向 $1/2$ 收缩，牺牲偏差降低方差 |
+| $(K+2)/(n+4)$ | $2(1-2p)/(n+4)$ | $np(1-p)/(n+4)^2$ | 收缩更强，中心附近更稳，边缘可能偏得更多 |
+
+标准 Cramér–Rao 结论在正则条件下约束**无偏**估计的方差。Bernoulli 的 $p=0,1$ 是参数空间的非正则边界，标准内点 CR 定理不在端点发证；实验虚线在端点降到零只表示公式的连续延拓。对有偏估计 $T$，相应下界含 $1+b'(\theta)$ 因子；因此不能看到一条收缩曲线低于 $1/[nI]$ 就宣布违反定理。
+
+### 3. 三条评价纪律
+
+- **无偏不是统一赢家。**若损失是平方误差，有限样本应比较完整 MSE；偏差与方差的取舍依赖参数区域和任务代价。
+- **相合不描述有限样本。**一个估计量可以相合，却在当前 $n$ 下方差很大；也可以有限样本有偏，但偏差随 $n$ 消失。
+- **风险函数依赖未知真值。**实践中的交叉验证、bootstrap、Bayes 风险或 minimax 分析是在不同假设下估风险，不能从一次误差直接读出总体 MSE。
+- Bernoulli 样本比例有限样本达到 CR 界是特殊结构；“MLE 普遍有限样本无偏有效”是错误迁移。
+
+</div>
+
+</section>
+
 ## 1. 矩估计：最朴素的路
 
 **原理**：用样本矩顶替总体矩，解方程。总体 $k$ 阶矩 $\mu_k(\theta) = E X^k$ 是参数的函数，令

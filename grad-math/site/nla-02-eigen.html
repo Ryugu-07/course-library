@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 为什么必须迭代</a></li>
+<li><a href="#nla02-learning-title">学习层：残差很小，特征向量就一定准吗？</a><ul>
+<li><a href="#1">1. 具体谜题：四种迭代在同一张小矩阵上赛跑</a></li>
+<li><a href="#2-gap">2. 正式桥：算法更新、残差、角度和 gap 是四本账</a></li>
+<li><a href="#3">3. 可操作实验：先押注，再打开四条迭代轨迹</a></li>
+<li><a href="#4">4. 误区与适用边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 为什么必须迭代</a></li>
 <li><a href="#2-ii">2. 幂法家族（数值 II 的升级版）</a></li>
 <li><a href="#3-qr">3. QR 迭代（工业标准）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,27 +67,135 @@
 <p><strong>对标</strong>：Trefethen &amp; Bau Lectures 24–29 ｜ <strong>前置</strong>：nla-01、本科高代 V、数值 II（幂法）
 特征值问题有个先天限制：<strong>五次以上多项式无求根公式</strong>（Abel——本科高代 I/抽代的定理在此变成算法约束）⇒ 特征值算法<strong>必然是迭代的</strong>。本页从幂法家族到工业标准 QR 迭代，机理讲透。</p>
 </blockquote>
-<h2 id="1">1. 为什么必须迭代<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="nla02-learning-title" class="learning-layer">
+<h2 id="nla02-learning-title">学习层：残差很小，特征向量就一定准吗？<a class="headerlink" href="#nla02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：四种迭代在同一张小矩阵上赛跑<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一个 <span class="arithmatex">\(2\times2\)</span> 对称矩阵想成一张会拉伸纸片的装置：纸片最后只沿两个正交主轴伸缩，但你只允许每轮做一次矩阵乘法或一次小型线性求解。取</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}4&amp;1\\1&amp;2\end{pmatrix},\qquad x_0=(1,0.35)^\mathsf T.
+\]</div>
+<p>先预测四件事：幂法会靠近哪一个特征方向；把位移放在目标特征值附近的反幂法是否更快；Rayleigh 商迭代为什么在对称问题上突然加速；以及 QR 的次对角元会不会像一个可审计的“谱分离计”。预测时还要回答一个陷阱问题：若 <span class="arithmatex">\(\|Ax-\rho x\|\)</span> 很小，是否已经证明方向很准？</p>
+<h3 id="2-gap">2. 正式桥：算法更新、残差、角度和 gap 是四本账<a class="headerlink" href="#2-gap" title="Permanent link"></a></h3>
+<p>四个更新分别是</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\text{幂法:}&amp;\quad x_{k+1}=\frac{Ax_k}{\|Ax_k\|},\\
+\text{反幂法:}&amp;\quad x_{k+1}=\frac{(A-\mu I)^{-1}x_k}{\|(A-\mu I)^{-1}x_k\|},\\
+\text{Rayleigh:}&amp;\quad \rho_k=\frac{x_k^* A x_k}{x_k^* x_k},\quad
+x_{k+1}=\frac{(A-\rho_kI)^{-1}x_k}{\|(A-\rho_kI)^{-1}x_k\|},\\
+\text{对称 QR:}&amp;\quad A_k=Q_kR_k,\quad A_{k+1}=R_kQ_k=Q_k^\mathsf T A_kQ_k.
+\end{aligned}
+\]</div>
+<p>每一行都记录 Rayleigh 估计 <span class="arithmatex">\(\rho\)</span>、残差</p>
+<div class="arithmatex">\[
+r=Ax-\rho x,\qquad \|r\|_2,
+\]</div>
+<p>以及相对目标特征向量的夹角 <span class="arithmatex">\(\theta\)</span>。对正规矩阵先写成复酉谱分解
+<span class="arithmatex">\(A=U\Lambda U^*\)</span>，并取 <span class="arithmatex">\(x^*x=1\)</span>、<span class="arithmatex">\(\rho=x^*Ax\)</span>。另一本账记录当前估计与其余谱的距离</p>
+<div class="arithmatex">\[
+\operatorname{sep}_i(\rho)=\min_{j\ne i}|\lambda_j-\rho|.
+\]</div>
+<p>对正规矩阵，若 <span class="arithmatex">\(x\)</span> 主要对应单个 <span class="arithmatex">\(\lambda_i\)</span>，则
+[
+\sin\theta_i\le \frac{|r|_2}{\operatorname{sep}_i(\rho)},\qquad
+r=Ax-\rho x.
+]
+只有在把 <span class="arithmatex">\(\rho\)</span> 换成精确的 <span class="arithmatex">\(\lambda_i\)</span> 时，分母才退化为
+<span class="arithmatex">\(\operatorname{gap}_i=\min_{j\ne i}|\lambda_j-\lambda_i|\)</span>。因此小残差没有当前的 separation 就不是方向精度承诺。实对称矩阵只是上述复酉表述的实数特例；非正规矩阵还会受到特征向量条件数和伪谱影响，本实验对它明确显示“无角度证书”，不会借用正规定理。</p>
+<h3 id="3">3. 可操作实验：先押注，再打开四条迭代轨迹<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="eigen-iteration">
+<p><strong>JavaScript 失效时的静态读法：</strong>对默认矩阵，精确特征值为
+<span class="arithmatex">\(\lambda_1=3+\sqrt2\approx4.4142\)</span>、<span class="arithmatex">\(\lambda_2=3-\sqrt2\approx1.5858\)</span>，顶端谱隙为 <span class="arithmatex">\(2\sqrt2\approx2.8284\)</span>。幂法的渐近因子是 <span class="arithmatex">\(|\lambda_2/\lambda_1|\)</span>；反幂法按位移 <span class="arithmatex">\(\mu\)</span> 选择最近特征值；对称问题的 Rayleigh 商迭代在不撞上奇异线性系统时表现出三次局部收敛；对称 QR 保持正交相似并把严格下三角元压向零。</p>
+<table>
+<thead>
+<tr>
+<th>账本行</th>
+<th>要看什么</th>
+<th>可以写出的条件句</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>幂法</td>
+<td><span class="arithmatex">\(\|r_k\|_2\)</span>、<span class="arithmatex">\(\theta_k\)</span>、<span class="arithmatex">\(\operatorname{gap}\)</span></td>
+<td>唯一的最大模特征值、非零初始投影和足够的可对角化/谱分解条件同时成立时，才有这条收敛故事</td>
+</tr>
+<tr>
+<td>反幂法</td>
+<td>位移 <span class="arithmatex">\(\mu\)</span>、最近谱点与 separation</td>
+<td><span class="arithmatex">\(\mu\notin\sigma(A)\)</span>，最近谱点唯一、线性系统可稳定求解且初始向量含该方向时，目标方向才会占优势</td>
+</tr>
+<tr>
+<td>Rayleigh 商</td>
+<td><span class="arithmatex">\(\rho_k\)</span> 与残差</td>
+<td>对称/Hermitian 的非退化局部邻域给出三次结论；精确特征对与非精确奇异移位要分开记录</td>
+</tr>
+<tr>
+<td>对称 QR</td>
+<td>对角估计、严格下三角范数、累计基的角度</td>
+<td>对称且谱适当分离时正交相似保谱并支持 deflation；小 gap 仍会让单个特征向量角度敏感</td>
+</tr>
+<tr>
+<td>非正规预设</td>
+<td>残差和角度证书</td>
+<td>残差可计算，但不能把对称/正规 gap 证书移植过来</td>
+</tr>
+</tbody>
+</table>
+<p>表格是静态后备；浏览器实验还会给出每轮 SVG 轨迹和可横向滚动的逐轮 ledger。它只迭代 <span class="arithmatex">\(2\times2\)</span> 教学矩阵，不模拟库实现中的 Hessenberg reduction、移位策略或浮点工作量。</p>
+</div>
+<h3 id="4">4. 误区与适用边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>过强说法</th>
+<th>更准确的读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“残差小，所以特征向量已经准确。”</td>
+<td>先报告谱隙；对称/正规情形可用 gap 证书，非正规情形还要考虑特征向量条件数与伪谱。</td>
+</tr>
+<tr>
+<td>“QR 迭代永远把每个矩阵变成实对角阵。”</td>
+<td>实 QR 对一般实矩阵需要 <span class="arithmatex">\(2\times2\)</span> 实 Schur 块处理共轭复谱；这里展示的是对称小矩阵。</td>
+</tr>
+<tr>
+<td>“Rayleigh 商迭代对所有矩阵都三次收敛。”</td>
+<td>三次局部结论依赖对称/Hermitian 结构与非退化条件；精确收敛、奇异移位失败和非正规行为必须分开。</td>
+</tr>
+<tr>
+<td>“谱隙只影响特征值，不影响方向。”</td>
+<td>特征值可稳定而方向很敏感；小 gap 正是角度 ledger 必须单独报告的原因。</td>
+</tr>
+</tbody>
+</table>
+<p>残差是可审计的数值诊断，角度是几何结果，gap 是把两者连接起来的条件。三者必须分栏读，不能用一张漂亮的收敛曲线替代适用条件。</p>
+</section>
+<h2 id="1_1">1. 为什么必须迭代<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>特征值 = 特征多项式的根；反之任何多项式都是某伴随矩阵的特征多项式——<strong>求特征值 ⊇ 求根</strong>，故无有限步精确算法（Abel–Ruffini 的数值推论）。⚠️ 但"经由特征多项式求特征值"是数值犯罪：根对系数病态（Wilkinson 多项式——数值 I 的名例正是为此准备的）；正确路线是<strong>直接对矩阵做正交相似变换</strong>。</p>
 <h2 id="2-ii">2. 幂法家族（数值 II 的升级版）<a class="headerlink" href="#2-ii" title="Permanent link"></a></h2>
-<p><strong>幂法</strong>：<span class="arithmatex">\(x_{k+1} = Ax_k/\|Ax_k\|\)</span> → 主特征向量，速率 <span class="arithmatex">\(|\lambda_2/\lambda_1|^k\)</span>（本科已证）。两个换挡装置：</p>
+<p><strong>幂法</strong>：<span class="arithmatex">\(x_{k+1} = Ax_k/\|Ax_k\|\)</span> → 主特征向量，速率 <span class="arithmatex">\(|\lambda_2/\lambda_1|^k\)</span>（本科已证）。这里默认最大模特征值唯一、初始向量在该方向上的投影非零，并且没有不可控的 Jordan/非正规放大；否则可能停滞、振荡或只收敛到不想要的方向。两个换挡装置：</p>
 <ul>
-<li><strong>反幂法</strong>：对 <span class="arithmatex">\((A - \mu I)^{-1}\)</span> 用幂法——收敛到<strong>距 <span class="arithmatex">\(\mu\)</span> 最近</strong>的特征值（谱被 <span class="arithmatex">\(\frac{1}{\lambda - \mu}\)</span> 重排，最近者变最大）：有好的特征值近似时提取特征向量的标准手段；</li>
-<li><strong>Rayleigh 商迭代</strong>：每步用当前向量的 Rayleigh 商 <span class="arithmatex">\(\mu_k = \frac{x^\top Ax}{x^\top x}\)</span> 更新位移——对称阵上<strong>三次收敛</strong>【引用】（有效数字每步三倍：Rayleigh 商本身二阶精确 + 反幂法放大，正反馈）。</li>
+<li><strong>反幂法</strong>：对 <span class="arithmatex">\((A - \mu I)^{-1}\)</span> 用幂法——在 <span class="arithmatex">\(\mu\notin\sigma(A)\)</span>、最近谱点唯一且线性系统可稳定求解时收敛到<strong>距 <span class="arithmatex">\(\mu\)</span> 最近</strong>的特征值（谱被 <span class="arithmatex">\(\frac{1}{\lambda - \mu}\)</span> 重排，最近者变最大）；初始向量仍须含有目标方向，非正规问题还要留意条件数；</li>
+<li><strong>Rayleigh 商迭代</strong>：每步用当前向量的 Rayleigh 商 <span class="arithmatex">\(\mu_k = \frac{x^*Ax}{x^*x}\)</span> 更新位移——对称/Hermitian 阵在非退化局部邻域且移位系统可解时有<strong>三次局部收敛</strong>【引用】（有效数字每步三倍是局部模型，不是任意矩阵的承诺）。若残差已达到舍入精度，记为 exact convergence；若残差仍不小却遇到奇异移位，记为 singular-shift failure。</li>
 </ul>
 <h2 id="3-qr">3. QR 迭代（工业标准）<a class="headerlink" href="#3-qr" title="Permanent link"></a></h2>
 <p><strong>朴素版</strong>：<span class="arithmatex">\(A_k = Q_kR_k\)</span>（QR 分解），<span class="arithmatex">\(A_{k+1} = R_kQ_k\)</span>。
-<strong>为什么有效【机理，两层】</strong>：① <span class="arithmatex">\(A_{k+1} = Q_k^\top A_kQ_k\)</span>——正交相似（谱不变，nla-01 的美德）；② 它暗中等价于对整组基做幂法（<strong>同时迭代</strong>：<span class="arithmatex">\(A^k\)</span> 的 QR 分解与 <span class="arithmatex">\(\prod Q_i\)</span> 的关系【骨架】）——各特征值按模长梯度逐个"沉淀"到对角线，下三角以 <span class="arithmatex">\(|\lambda_{i+1}/\lambda_i|^k\)</span> 归零。</p>
+<strong>为什么有效【机理，两层】</strong>：① <span class="arithmatex">\(A_{k+1} = Q_k^\top A_kQ_k\)</span>——正交相似（谱不变，nla-01 的美德）；② 它暗中等价于对整组基做幂法（<strong>同时迭代</strong>：<span class="arithmatex">\(A^k\)</span> 的 QR 分解与 <span class="arithmatex">\(\prod Q_i\)</span> 的关系【骨架】）——当特征值按适合的模长/Schur 顺序分离、初始 QR 旗标不退化时，各特征值才会逐个"沉淀"到对角或 Schur 块；一般实矩阵的极限可以是准上三角，而不是实对角阵。</p>
 <p><strong>从 <span class="arithmatex">\(O(n^4)\)</span> 到实用的三件工程</strong>：
 ① <strong>先化 Hessenberg 形</strong>（上三角 + 一条次对角线；Householder 有限步可达——"能有限步做的先做完"）：每步 QR 从 <span class="arithmatex">\(O(n^3)\)</span> 降到 <span class="arithmatex">\(O(n^2)\)</span>；
-② <strong>位移</strong>：对 <span class="arithmatex">\(A_k - \mu_kI\)</span> 迭代（Wilkinson 位移取右下 <span class="arithmatex">\(2\times2\)</span> 块的特征值）——收敛从线性提到（对称时）三次，机理同 Rayleigh 商迭代；
-③ <strong>缩减</strong>：次对角元一旦归零即分块，问题越算越小。
-合成品即 LAPACK 的 <code>eig</code>：实践中 <span class="arithmatex">\(O(n^3)\)</span> 拿全谱——<strong>"你每次调 <code>np.linalg.eig</code> 都在跑这套三件套"</strong>。</p>
-<p><strong>对称特殊化</strong>：Hessenberg 形变三对角、全程保对称，配合 Wilkinson 位移有收敛性定理保证【引用】；另有分治法与 MRRR 等竞品。<strong>SVD 的算法</strong>：对 <span class="arithmatex">\(\begin{pmatrix}0 &amp; A\\ A^\top &amp; 0\end{pmatrix}\)</span> 或双对角化后走同族迭代（<strong>不要</strong>通过 <span class="arithmatex">\(A^\top A\)</span>——条件数平方，nla-01 戒律重申）。</p>
+② <strong>位移</strong>：对 <span class="arithmatex">\(A_k - \mu_kI\)</span> 迭代（Wilkinson 位移取右下 <span class="arithmatex">\(2\times2\)</span> 块的特征值）——在对称/Hermitian、谱分离和正确 deflation 的局部条件下，收敛可从线性显著加速，某些情形达到三次量级，机理同 Rayleigh 商迭代；
+③ <strong>缩减</strong>：严格下三角元一旦归零即分块，问题越算越小。
+这条路线是许多密集特征值库的概念骨架；LAPACK 的具体 driver 还会组合平衡、Hessenberg/三对角化、移位、deflation、Schur 回代等工程步骤，不能等同于这里的教学循环，也不能把每次 <code>np.linalg.eig</code> 简化成这三步。</p>
+<p><strong>对称特殊化</strong>：Hessenberg 形变三对角、全程保对称；在谱分离、位移策略和 deflation 条件满足时，Wilkinson 位移有相应的收敛性理论【引用】；另有分治法与 MRRR 等竞品。<strong>SVD 的算法</strong>：对 <span class="arithmatex">\(\begin{pmatrix}0 &amp; A\\ A^\top &amp; 0\end{pmatrix}\)</span> 或双对角化后走同族迭代（<strong>不要</strong>通过 <span class="arithmatex">\(A^\top A\)</span>——条件数平方，nla-01 戒律重申）。</p>
 <p><strong>扰动理论衔接（矩阵分析预告）</strong>：对称阵特征值完美稳定（Weyl：<span class="arithmatex">\(|\lambda_i(A+E) - \lambda_i(A)| \leq \|E\|\)</span>——ma-01 将证）；非对称可以病态（伪谱语言【引用 Trefethen】）；<strong>特征向量</strong>的稳定性由谱隙决定（相邻特征值近则向量剧烈旋转——PCA 主轴在特征值接近时不可信的数学出处，统计 V 实务警告的定理版）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（同时迭代的体感）</strong> 对 <span class="arithmatex">\(2\times2\)</span> 矩阵手跑三轮朴素 QR 迭代，观察次对角元按 <span class="arithmatex">\(|\lambda_2/\lambda_1|\)</span> 比例衰减——机理②的最小实证。</p>
-<p><strong>例 2（位移的威力）</strong> 同题加 Wilkinson 位移：一轮内次对角元近零——线性 vs 三次收敛的手感对比（迭代次数从几十到个位数的工业差距）。</p>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（同时迭代的体感）</strong> 对 <span class="arithmatex">\(2\times2\)</span> 矩阵手跑三轮朴素 QR 迭代，观察严格下三角元在适用的谱分离条件下按 <span class="arithmatex">\(|\lambda_2/\lambda_1|\)</span> 的尺度衰减——机理②的最小实证。</p>
+<p><strong>例 2（位移的威力）</strong> 同题加 Wilkinson 位移：在适用的对称、分离谱条件下，严格下三角元可快速变小——比较线性与局部高阶收敛的手感（教学现象不等于所有矩阵或所有浮点路径的保证）。</p>
 <p><strong>例 3（谱隙与主轴稳定性）</strong> 协方差谱 <span class="arithmatex">\(\{10, 9.9, 1\}\)</span>：前两个主成分方向对数据扰动极敏感（隙 0.1），而"前二维子空间"整体稳定（与第三隙 8.9）——<strong>报告 PCA 时"子空间可信、单轴不可信"的定量依据</strong>（Davis–Kahan 定理的实用读法【引用】）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：大规模稀疏世界的王者——Krylov 子空间方法：CG 的收敛性证明、GMRES 与预条件的艺术。</em></p>
@@ -82,5 +208,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/eigen-iteration.js"></script>
 </body>
 </html>

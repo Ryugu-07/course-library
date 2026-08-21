@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,29 +41,182 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:34</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 复可导：一个苛刻得多的条件</a></li>
+<li><a href="#complex-analytic-learning-title">学习层：方向探针先报警，C–R 账本再下结论</a><ul>
+<li><a href="#1">1. 先看一根小箭头能不能被同一个复数乘法解释</a></li>
+<li><a href="#2-jacobiancr">2. 精确桥梁：实 Jacobian、C–R 残差与方向商</a></li>
+<li><a href="#3">3. 预测门：先给结论，再打开方向与邻域两本账</a></li>
+<li><a href="#4">4. 动手实验：一张可复算的方向诊断表</a></li>
+<li><a href="#5">5. 边界：三种“可导”不能互换</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 复可导：一个苛刻得多的条件</a></li>
 <li><a href="#2">2. 调和函数：解析的实部与虚部</a></li>
-<li><a href="#3">3. 初等函数：熟脸的复身份</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#3_1">3. 初等函数：熟脸的复身份</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-cauchyriemann">复变 I · 解析函数与 Cauchy–Riemann 方程<a class="headerlink" href="#i-cauchyriemann" title="Permanent link"></a></h1>
 <blockquote>
-<p>复变函数论只研究一类函数——<strong>解析函数</strong>（复可导），但这一个条件的后果好得不像话：可导一次就无穷可导、局部就是幂级数、由边界值定内部值……本页先讲清"复可导为什么这么强"：答案藏在 Cauchy–Riemann 方程里。</p>
+<p>复变函数论只研究一类函数——<strong>解析函数</strong>（在开集上处处复可导），但这一个条件的后果好得不像话：自动无穷可导、局部就是幂级数、由边界值定内部值……本页先讲清“开集上的复可导为什么这么强”：答案藏在 Cauchy–Riemann 方程里。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="complex-analytic-learning-title" class="learning-layer">
+<h2 id="complex-analytic-learning-title">学习层：方向探针先报警，C–R 账本再下结论<a class="headerlink" href="#complex-analytic-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先看一根小箭头能不能被同一个复数乘法解释<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把复平面当作二维实平面。在点 <span class="arithmatex">\(z_0\)</span> 放三根很短的箭头：沿 <span class="arithmatex">\(1\)</span>、沿 <span class="arithmatex">\(i\)</span>、沿 <span class="arithmatex">\(1+i\)</span>。若 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(z_0\)</span> 复可导，那么这三根箭头的首阶变化都必须是<strong>同一个复数乘法</strong>：</p>
+<div class="arithmatex">\[
+Df(z_0)[v]=f'(z_0)v.
+\]</div>
+<p>这比“每个方向各自有一个斜率”苛刻得多。<span class="arithmatex">\(z^2\)</span> 会把小箭头统一旋转、伸缩；<span class="arithmatex">\(\bar z\)</span> 会把它们翻过实轴；<span class="arithmatex">\(|z|^2\)</span> 在原点的一阶变化全部消失，却在离开原点后不再由一个复数乘法统一解释。实验把这三个几何直觉和一个参数族放进同一张账本。</p>
+<h3 id="2-jacobiancr">2. 精确桥梁：实 Jacobian、C–R 残差与方向商<a class="headerlink" href="#2-jacobiancr" title="Permanent link"></a></h3>
+<p>写 <span class="arithmatex">\(f=u+iv\)</span>。以下等价关系以 <span class="arithmatex">\(u,v\)</span> 在 <span class="arithmatex">\(z_0=x_0+iy_0\)</span> <strong>实 Fréchet 可微</strong>为前提，其实 Jacobian 为</p>
+<div class="arithmatex">\[
+J_f=\begin{pmatrix}u_x&amp;u_y\\v_x&amp;v_y\end{pmatrix}.
+\]</div>
+<p>复导数存在，当且仅当这个实线性映射是“乘以某个复数”的矩阵：</p>
+<div class="arithmatex">\[
+u_x=v_y,\qquad u_y=-v_x.
+\]</div>
+<p>为了逐项核对，记 C–R 残差</p>
+<div class="arithmatex">\[
+r_1=u_x-v_y,\qquad r_2=u_y+v_x.
+\]</div>
+<p>对任意非零方向 <span class="arithmatex">\(w=a+ib\)</span>，实微分给出方向导数 <span class="arithmatex">\(Df(z_0)[w]\)</span>；方向商</p>
+<div class="arithmatex">\[
+Q_w=\frac{Df(z_0)[w]}{w}
+\]</div>
+<p>只有在所有方向一致时才是复导数。有限个 <span class="arithmatex">\(Q_w\)</span> 是<strong>诊断探针</strong>，不是邻域解析性的证明。</p>
+<p>四个对象的精确账本是：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th><span class="arithmatex">\(u,v\)</span></th>
+<th><span class="arithmatex">\((r_1,r_2)\)</span></th>
+<th>复可导性</th>
+<th>邻域解析性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(z^2\)</span></td>
+<td><span class="arithmatex">\(x^2-y^2, 2xy\)</span></td>
+<td><span class="arithmatex">\((0,0)\)</span> 处处</td>
+<td>处处，<span class="arithmatex">\(f'=2z\)</span></td>
+<td>是</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\bar z\)</span></td>
+<td><span class="arithmatex">\(x, -y\)</span></td>
+<td><span class="arithmatex">\((2,0)\)</span> 处处</td>
+<td>处处否</td>
+<td>否</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lvert z\rvert^2\)</span></td>
+<td><span class="arithmatex">\(x^2+y^2, 0\)</span></td>
+<td><span class="arithmatex">\((2x,2y)\)</span></td>
+<td>仅 <span class="arithmatex">\(z=0\)</span>，导数为 <span class="arithmatex">\(0\)</span></td>
+<td>否</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p_\lambda(z)=z^2+\lambda\lvert z\rvert^2\)</span></td>
+<td><span class="arithmatex">\((1+\lambda)x^2+(\lambda-1)y^2, 2xy\)</span></td>
+<td><span class="arithmatex">\((2\lambda x,2\lambda y)\)</span></td>
+<td><span class="arithmatex">\(z=0\)</span>；若 <span class="arithmatex">\(\lambda=0\)</span> 则处处</td>
+<td>仅 <span class="arithmatex">\(\lambda=0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>这里的“仅 <span class="arithmatex">\(z=0\)</span>”是<strong>在一个点复可导</strong>，不是“在原点解析”。<span class="arithmatex">\(p_\lambda\)</span> 是 <span class="arithmatex">\(z,\bar z\)</span> 的参数化实多项式；解析要求某个开邻域中的每一点都复可导。由于这些对象的 <span class="arithmatex">\(u,v\)</span> 都处处实可微，C–R 在这里确实是充分必要条件；一般只知道偏导数存在并满足 C–R，并不足以推出复可导。</p>
+<h3 id="3">3. 预测门：先给结论，再打开方向与邻域两本账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验默认在 <span class="arithmatex">\(z_0=1+i\)</span>、<span class="arithmatex">\(\lambda=1/2\)</span>。先预测：</p>
+<ol>
+<li>四个对象中，哪些在这个点满足 C–R？</li>
+<li>把点移到 <span class="arithmatex">\(z_0=0\)</span> 后，<span class="arithmatex">\(|z|^2\)</span> 和 <span class="arithmatex">\(p_{1/2}\)</span> 的复导数是否存在？它们是否因此解析？</li>
+<li>若 <span class="arithmatex">\(Q_1,Q_i,Q_{1+i}\)</span> 三个方向商刚好相同，是否已经证明函数在邻域解析？</li>
+<li>看到所有 <span class="arithmatex">\(u,v\)</span> 都是实多项式，能否直接把“实可微”叫作“复解析”？</li>
+</ol>
+<p>提交前不显示 Jacobian、C–R 残差、方向商、导数和 SVG。改变函数、点或参数会重新锁门。</p>
+<h3 id="4">4. 动手实验：一张可复算的方向诊断表<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后可在原点、一般点和坐标轴点之间切换，并调节 <span class="arithmatex">\(\lambda\)</span>。表中逐行列出四个函数的 <span class="arithmatex">\(u_x-v_y\)</span>、<span class="arithmatex">\(u_y+v_x\)</span>、三个有限方向商、点复导数和邻域分类；SVG 把方向商画在一个复系数平面中。它展示的是有限诊断，结论仍由精确 C–R 公式和量词决定。</p>
+<div class="learning-lab" data-learning-lab="complex-analytic">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(z_0=1+i\)</span>、<span class="arithmatex">\(\lambda=1/2\)</span>，方向探针为 <span class="arithmatex">\(1,i,1+i\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th style="text-align: right;"><span class="arithmatex">\((r_1,r_2)\)</span></th>
+<th><span class="arithmatex">\(Q_1\)</span></th>
+<th><span class="arithmatex">\(Q_i\)</span></th>
+<th><span class="arithmatex">\(Q_{1+i}\)</span></th>
+<th>点复导数</th>
+<th>邻域结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(z^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((0,0)\)</span></td>
+<td><span class="arithmatex">\(2+2i\)</span></td>
+<td><span class="arithmatex">\(2+2i\)</span></td>
+<td><span class="arithmatex">\(2+2i\)</span></td>
+<td><span class="arithmatex">\(2+2i\)</span></td>
+<td>解析</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\bar z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((2,0)\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(-1\)</span></td>
+<td><span class="arithmatex">\(-i\)</span></td>
+<td>不存在</td>
+<td>非解析</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lvert z\rvert^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((2,2)\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(-2i\)</span></td>
+<td><span class="arithmatex">\(2-2i\)</span></td>
+<td>不存在</td>
+<td>非解析</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p_{1/2}(z)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1,1)\)</span></td>
+<td><span class="arithmatex">\(3+2i\)</span></td>
+<td><span class="arithmatex">\(2+i\)</span></td>
+<td><span class="arithmatex">\(3+i\)</span></td>
+<td>不存在</td>
+<td>非解析</td>
+</tr>
+</tbody>
+</table>
+<p>把点改为 <span class="arithmatex">\(z_0=0\)</span> 时，<span class="arithmatex">\(z^2\)</span>、<span class="arithmatex">\(|z|^2\)</span> 和 <span class="arithmatex">\(p_{1/2}\)</span> 的 C–R 残差都为 <span class="arithmatex">\((0,0)\)</span>，三者都有点复导数 <span class="arithmatex">\(0\)</span>；但后两者仍没有解析邻域。有限方向一致只能说明“在这些探针上没有发现冲突”，不能证明一个开邻域中的全称命题。</p>
+</div>
+<h3 id="5">5. 边界：三种“可导”不能互换<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>实可微</strong>只说 <span class="arithmatex">\(J_f\)</span> 存在；<span class="arithmatex">\(\bar z\)</span> 和 <span class="arithmatex">\(|z|^2\)</span> 都满足这一点。</li>
+<li><strong>在一点复可导</strong>要求 C–R 在该点成立（在本实验的多项式模型中，实可微前提自动满足）。<span class="arithmatex">\(|z|^2\)</span> 在原点是标准反例：<span class="arithmatex">\(f(h)/h=\bar h\to0\)</span>，但离开原点 C–R 立即失败。</li>
+<li><strong>解析</strong>要求在开集内处处复可导。不能用有限采样点、有限方向或一条轨迹替代邻域量词。</li>
+</ul>
+<p>因此“探针通过”是调试信号，不是定理证明；要把结论升级为解析性，必须回到账本中的函数公式和邻域条件。</p>
+</section>
 <figure class="plot">
 <p><img alt="共形映射：z\mapsto z^2 或 e^z 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。" src="assets/img/complex-01-conformal.svg" /></p>
 <figcaption><span class="fig-id">图 complex-01.1</span>共形映射：\(z\mapsto z^2\) 或 \(e^z\) 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。</figcaption>
 </figure>
-<h2 id="1">1. 复可导：一个苛刻得多的条件<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 复可导：一个苛刻得多的条件<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(f: \mathbb{C} \to \mathbb{C}\)</span> 在 <span class="arithmatex">\(z_0\)</span> 可导：<span class="arithmatex">\(f'(z_0) = \lim_{\Delta z \to 0}\frac{f(z_0 + \Delta z) - f(z_0)}{\Delta z}\)</span>。形式与实函数一样，<strong>杀伤力在极限过程</strong>：<span class="arithmatex">\(\Delta z\)</span> 可以沿复平面<strong>任何方向</strong>趋零，所有方向必须给出同一个极限——二维的自由度全被锁死（对比数分 V：多元实函数各偏导存在远不足以可微；复可导比"可微"还强得多）。在区域内处处可导称<strong>解析（全纯）</strong>。</p>
 <p><strong>定理（Cauchy–Riemann 方程）</strong> <span class="arithmatex">\(f = u(x,y) + iv(x,y)\)</span> 在一点可导 <span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(u, v\)</span> 可微且</p>
 <div class="arithmatex">\[
@@ -64,12 +228,12 @@
 <h2 id="2">2. 调和函数：解析的实部与虚部<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p>解析函数的 <span class="arithmatex">\(u, v\)</span> 都满足 <strong>Laplace 方程</strong> <span class="arithmatex">\(u_{xx} + u_{yy} = 0\)</span>（对 C–R 交叉求导即得）——称<strong>调和函数</strong>。反之，单连通域上任一调和 <span class="arithmatex">\(u\)</span> 都可配出<strong>共轭调和</strong> <span class="arithmatex">\(v\)</span> 使 <span class="arithmatex">\(u + iv\)</span> 解析（用 C–R 积分出 <span class="arithmatex">\(v\)</span>，例 2 演示）。</p>
 <p>🔗 这是复变与物理/PDE 的接口：平面静电场、稳态温度场、理想流体的势都调和——解析函数论 = 平面位势理论的语言（PDE 页 Laplace 方程再会）。</p>
-<h2 id="3">3. 初等函数：熟脸的复身份<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 初等函数：熟脸的复身份<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>指数</strong> <span class="arithmatex">\(e^z = e^x(\cos y + i\sin y)\)</span>（Euler 公式为定义之本）：处处解析，<span class="arithmatex">\((e^z)' = e^z\)</span>，但<strong>以 <span class="arithmatex">\(2\pi i\)</span> 为周期</strong>——实函数没有的新性格，也是对数多值的根源。</p>
 <p><strong>三角</strong> <span class="arithmatex">\(\cos z = \frac{e^{iz} + e^{-iz}}{2}\)</span>：复平面上 <span class="arithmatex">\(|\cos z|\)</span> <strong>无界</strong>（<span class="arithmatex">\(\cos(iy) = \cosh y \to \infty\)</span>）——"有界性"是实轴的错觉。</p>
 <p><strong>对数（多值性的大本营）</strong>：<span class="arithmatex">\(\mathrm{Ln}\, z = \ln|z| + i(\arg z + 2k\pi)\)</span>——无穷多值，相邻枝差 <span class="arithmatex">\(2\pi i\)</span>。取主辐角 <span class="arithmatex">\(\arg z \in (-\pi, \pi]\)</span> 得<strong>主值</strong> <span class="arithmatex">\(\ln z\)</span>，在割破负实轴的平面上解析。<strong>幂</strong> <span class="arithmatex">\(z^a = e^{a\,\mathrm{Ln}z}\)</span> 一般多值（<span class="arithmatex">\(i^i = e^{-\pi/2 - 2k\pi}\)</span>——全是实数，复变第一惊奇）。</p>
 <p>多值处理的纪律：算之前先选定单值分支（割线 + 主值），跨越割线必换枝——留数计算实积分时（复变 III）这是主要坑源。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（C–R 判可导）</strong> <span class="arithmatex">\(f(z) = x^2 + iy^2\)</span>：C–R 要求 <span class="arithmatex">\(2x = 2y\)</span> 且 <span class="arithmatex">\(0 = 0\)</span>——仅在直线 <span class="arithmatex">\(y = x\)</span> 上可导，<strong>无处解析</strong>（解析需要邻域）。"可导点集"与"解析区域"的区别一题看清。</p>
 <p><strong>例 2（共轭调和全流程）</strong> <span class="arithmatex">\(u = x^2 - y^2 + x\)</span>，求 <span class="arithmatex">\(v\)</span> 使 <span class="arithmatex">\(f = u + iv\)</span> 解析。
 <em>解</em>：<span class="arithmatex">\(v_y = u_x = 2x + 1 \Rightarrow v = 2xy + y + \varphi(x)\)</span>；再 <span class="arithmatex">\(v_x = 2y + \varphi' = -u_y = 2y \Rightarrow \varphi' = 0\)</span>。故 <span class="arithmatex">\(v = 2xy + y + C\)</span>，且 <span class="arithmatex">\(f = z^2 + z + iC\)</span>（拼回 <span class="arithmatex">\(z\)</span> 的表达式验明正身）。</p>
@@ -85,5 +249,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/complex-analytic.js"></script>
 </body>
 </html>

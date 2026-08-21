@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li class="active"><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 博弈三要素与囚徒困境</a></li>
+<li><a href="#nash-learning-title">学习层：均衡是存在、唯一，还是只是一个可怕的平衡？</a><ul>
+<li><a href="#1">1. 具体故事：两个应用要不要同时上线？</a></li>
+<li><a href="#2">2. 正式桥：最佳回应是两条不等式，不是一个好结果</a></li>
+<li><a href="#3">3. 可操作实验：四种谱系放在同一台矩阵上</a></li>
+<li><a href="#4">4. 误区与适用边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 博弈三要素与囚徒困境</a></li>
 <li><a href="#2-nash">2. Nash 均衡</a></li>
-<li><a href="#3">3. 混合策略与存在性定理</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#3_1">3. 混合策略与存在性定理</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +70,117 @@
 <p><img alt="2×2 收益矩阵（囚徒困境）+ 最佳反应箭头指向 Nash 均衡格。" src="assets/img/game-01-nash-payoff.svg" /></p>
 <figcaption><span class="fig-id">图 game-01.1</span>2×2 收益矩阵（囚徒困境）+ 最佳反应箭头指向 Nash 均衡格。</figcaption>
 </figure>
-<h2 id="1">1. 博弈三要素与囚徒困境<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="nash-learning-title" class="learning-layer">
+<h2 id="nash-learning-title">学习层：均衡是存在、唯一，还是只是一个可怕的平衡？<a class="headerlink" href="#nash-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故事：两个应用要不要同时上线？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>两家地图应用准备在同一座城市推出路线推荐。每家都可以选 <strong>早</strong> 或 <strong>晚</strong> 发布；收益同时记录市场份额和对方的损失。你不能只问“我的最佳动作是什么”，因为最佳动作取决于对方最后按下的按钮。</p>
+<p>先不要看收益表的判定结果。对实验台的四个小博弈，逐个预测：</p>
+<ol>
+<li>有多少个纯策略 Nash 均衡？</li>
+<li>是否还存在双方都真正随机化的混合均衡？</li>
+<li>在当前收益基数下的 payoff-sum maximizer（收益和最大格）是否一定是 Nash 均衡？</li>
+</ol>
+<p>实验台在预测提交前隐藏最佳回应、均衡、payoff-sum maximizer 和 minimax 账本；先把“会发生什么”写下来，再让矩阵反驳你的直觉。</p>
+<h3 id="2">2. 正式桥：最佳回应是两条不等式，不是一个好结果<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>设行玩家的两个动作是 <span class="arithmatex">\(R_0,R_1\)</span>，列玩家的两个动作是 <span class="arithmatex">\(C_0,C_1\)</span>，收益格为</p>
+<div class="arithmatex">\[
+G_{ij}=(u_{ij},v_{ij}),\qquad i,j\in\{0,1\}.
+\]</div>
+<p>对固定的列 <span class="arithmatex">\(C_j\)</span>，行玩家的最佳回应集合是</p>
+<div class="arithmatex">\[
+BR_1(C_j)=\operatorname*{argmax}_{i\in\{0,1\}}u_{ij};
+\]</div>
+<p>对固定的行 <span class="arithmatex">\(R_i\)</span>，列玩家的最佳回应集合是</p>
+<div class="arithmatex">\[
+BR_2(R_i)=\operatorname*{argmax}_{j\in\{0,1\}}v_{ij}.
+\]</div>
+<p>格 <span class="arithmatex">\((i,j)\)</span> 是纯 Nash 均衡，当且仅当 <span class="arithmatex">\(i\in BR_1(C_j)\)</span> 且 <span class="arithmatex">\(j\in BR_2(R_i)\)</span>。这只说“没有单方面改按钮的收益动机”，没有说总收益最大。</p>
+<p>若行玩家以 <span class="arithmatex">\(p\)</span> 选 <span class="arithmatex">\(R_0\)</span>，列玩家以 <span class="arithmatex">\(q\)</span> 选 <span class="arithmatex">\(C_0\)</span>，并写行收益矩阵为
+<span class="arithmatex">\(\begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}\)</span>，列收益矩阵为
+<span class="arithmatex">\(\begin{pmatrix}e&amp;f\\g&amp;h\end{pmatrix}\)</span>，则真正的内点混合均衡必须满足对方无差异：</p>
+<div class="arithmatex">\[
+q=\frac{d-b}{a-b-c+d},\qquad
+p=\frac{h-g}{e-f-g+h}.
+\]</div>
+<p>只有 <span class="arithmatex">\(0&lt;p,q&lt;1\)</span> 才是双方都使用两种动作的内点解；分母为零时不能做形式除法，必须回到最佳回应不等式检查边界或连续的一族均衡。有限博弈保证至少一个混合均衡，但不保证唯一。</p>
+<h3 id="3">3. 可操作实验：四种谱系放在同一台矩阵上<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="nash-equilibrium" markdown="1">
+<p><strong>JavaScript 失效时的静态读法：</strong>收益对按“行玩家，列玩家”书写。最佳回应是逐列给行玩家找较大第一分量，再逐行给列玩家找较大第二分量。</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>四个收益格（按 <span class="arithmatex">\(R_0C_0,R_0C_1,R_1C_0,R_1C_1\)</span>）</th>
+<th>纯 NE</th>
+<th>混合/边界读法</th>
+<th>当前 payoff-sum maximizer 与零和</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>优势策略</td>
+<td><span class="arithmatex">\((3,3),(0,5),(5,0),(1,1)\)</span></td>
+<td><span class="arithmatex">\((R_1,C_1)\)</span> 唯一</td>
+<td>没有内点混合</td>
+<td><span class="arithmatex">\((R_0,C_0)\)</span> 收益和 6，但不是 NE；非零和</td>
+</tr>
+<tr>
+<td>协调</td>
+<td><span class="arithmatex">\((4,4),(0,0),(0,0),(2,2)\)</span></td>
+<td><span class="arithmatex">\((R_0,C_0),(R_1,C_1)\)</span></td>
+<td><span class="arithmatex">\(p=q=1/3\)</span>；存在但不唯一</td>
+<td><span class="arithmatex">\((R_0,C_0)\)</span> 收益和 8；非零和</td>
+</tr>
+<tr>
+<td>Matching pennies</td>
+<td><span class="arithmatex">\((1,-1),(-1,1),(-1,1),(1,-1)\)</span></td>
+<td>没有</td>
+<td><span class="arithmatex">\(p=q=1/2\)</span>；唯一</td>
+<td>每格收益和 0；零和 minimax 值 0</td>
+</tr>
+<tr>
+<td>退化边界</td>
+<td><span class="arithmatex">\((1,3),(1,0),(1,3),(1,0)\)</span></td>
+<td><span class="arithmatex">\((R_0,C_0),(R_1,C_0)\)</span></td>
+<td>行玩家完全无差异；<span class="arithmatex">\((p,C_0)\)</span> 对所有 <span class="arithmatex">\(0\le p\le1\)</span> 都是 NE</td>
+<td>payoff-sum maximizer 是 <span class="arithmatex">\(R_0C_0\)</span> 与 <span class="arithmatex">\(R_1C_0\)</span> 并列；非零和</td>
+</tr>
+</tbody>
+</table>
+<p>这张表是静态后备，不替代实验中的逐格判定。尤其要把三句话分开：<strong>存在</strong>表示至少有一个均衡，<strong>唯一</strong>表示没有另一个均衡，<strong>payoff-sum maximizer</strong> 表示在当前收益基数下收益和最大；它们不是同义词。这里的收益和最大格不是独立仿射不变量：每位玩家各自平移只给每格加同一常数，但不同的正缩放会改变两位玩家收益在总和中的权重，因此可能改变最大格。</p>
+</div>
+<h3 id="4">4. 误区与适用边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>容易说过头的句子</th>
+<th>精确读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“Nash 均衡就是最好的结果。”</td>
+<td>它只排除单方面有利偏离；囚徒困境的均衡可以 Pareto 劣于另一个格。收益和最大格还只是在当前基数下的 payoff-sum maximizer。</td>
+</tr>
+<tr>
+<td>“算出一组 <span class="arithmatex">\(p,q\)</span> 就得到唯一均衡。”</td>
+<td>内点公式只找内点候选；纯均衡、边界均衡和退化连续族仍要检查。</td>
+</tr>
+<tr>
+<td>“存在性等于唯一性。”</td>
+<td>Nash 定理给有限博弈至少一个混合均衡，不给唯一性或选择机制。</td>
+</tr>
+<tr>
+<td>“零和 minimax 可以用于任意收益矩阵。”</td>
+<td>minimax 等于均衡值是零和结构的结论；一般和博弈要分别保留两位玩家的收益与最佳回应。</td>
+</tr>
+</tbody>
+</table>
+<p>实验求解的是精确的 <span class="arithmatex">\(2\times2\)</span> 有限模型，不是学习动态、信念更新、重复博弈或真实市场预测。改变收益会改变均衡；“协调失败”还需要把沟通、制度和均衡选择机制放回模型。</p>
+</section>
+<h2 id="1_1">1. 博弈三要素与囚徒困境<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>策略型（标准型）博弈</strong>：玩家集合、每人的策略集、每人的<strong>收益函数</strong>（依赖所有人的策略组合）。二人有限博弈写成收益矩阵。</p>
 <p><strong>囚徒困境</strong>（全学科的果蝇）：</p>
 <table>
@@ -85,12 +213,13 @@ u_i(s_i^*, s_{-i}^*) \geq u_i(s_i, s_{-i}^*), \quad \forall s_i,\ \forall i
 \]</div>
 <p><strong>读法</strong>：不是"最优的结果"，是"<strong>自我强化的僵局</strong>"——一旦大家都这么玩，没人有动机先动（囚徒困境的双招供是 NE，尽管它糟糕：均衡 ≠ 效率，这是本页第二个重要教训）。<strong>纯策略 NE 的找法（划线法）</strong>：对每个对手策略列，给自己的最佳回应画线；双双画线的格子即 NE。</p>
 <p><strong>多重均衡与协调问题</strong>：猎鹿博弈（合作猎鹿 vs 各自抓兔）有两个纯 NE——(鹿,鹿) 高效但要互信，(兔,兔) 保守但稳。<strong>均衡选择靠博弈之外的东西</strong>：惯例、沟通、制度、焦点效应（Schelling point）——"为什么大家都靠右行驶"的数学位置。</p>
-<h2 id="3">3. 混合策略与存在性定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 混合策略与存在性定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>猜硬币（我配你反）没有纯 NE——任何确定选择都会被对手利用。出路：<strong>随机化</strong>。混合策略 = 策略上的概率分布，收益取期望（概率 IV 上岗）。</p>
 <p><strong>无差异原则（手算引擎）</strong>：混合均衡中，你的混合概率必须让<strong>对手</strong>在其所用的纯策略间<strong>恰好无差异</strong>（否则他会全押更优的那个，你的混合就被利用）。例：猜硬币双方各 <span class="arithmatex">\(\frac12\)</span>——让对手左右为难恰是自保（扑克的诈唬频率、点球的方向分布、猜拳的均匀随机都由此定量化）。</p>
 <p><strong>定理（Nash 1950）</strong> 任何有限博弈（有限玩家、有限策略）<strong>必存在</strong>至少一个（混合策略）Nash 均衡。</p>
-<p><em>证明思路（一段话，值得记住轮廓）</em>：混合策略组合的空间是单纯形之积（紧凸集）；"所有人同时换成最佳回应"定义了一个（集值）映射；收益连续 ⇒ 映射满足 <strong>Kakutani 不动点定理</strong>（Brouwer 的集值推广——拓扑页紧致性 + 凸性的合演）的条件；不动点 = 人人都在最佳回应 = NE。<span class="arithmatex">\(\blacksquare\)</span> ——与一般均衡存在性（Arrow–Debreu）同款武器；"均衡存在"这类经济学大定理的数学芯片都是不动点（泛函 I 压缩映像的非构造性亲戚：<strong>保证存在，不告诉你在哪</strong>——计算 NE 是 PPAD-难，另一个故事）。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><em>证明思路（一段话，值得记住轮廓）</em>：先把每个纯策略嵌入其混合策略单纯形的顶点，也就是说纯策略是退化的混合策略。混合策略组合空间
+<span class="arithmatex">\(X=\prod_i\Delta(S_i)\)</span> 非空、紧且凸；期望收益连续，并且对每个玩家自己的混合策略是仿射的。于是最佳回应对应 <span class="arithmatex">\(BR_i(x_{-i})\)</span> 非空、紧且凸值；有限策略下它具有闭图，因而上半连续。乘积对应 <span class="arithmatex">\(BR=\prod_iBR_i\)</span> 把 <span class="arithmatex">\(X\)</span> 映到非空紧凸子集，并满足 <strong>Kakutani 不动点定理</strong>（Brouwer 的集值推广）的全部条件：定义域非空紧凸、值非空紧凸、对应上半连续。不动点就是人人都在最佳回应的混合策略组合，纯策略均衡则是其中落在单纯形顶点的退化情形。<span class="arithmatex">\(\blacksquare\)</span> ——与一般均衡存在性（Arrow–Debreu）同款武器；"均衡存在"这类经济学大定理的数学芯片都是不动点（泛函 I 压缩映像的非构造性亲戚：<strong>保证存在，不告诉你在哪</strong>——计算 NE 是 PPAD-难，另一个故事）。</p>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（划线法）</strong> 性别之战：<span class="arithmatex">\((2,1)\)</span> 看球 / <span class="arithmatex">\((1,2)\)</span> 看剧 / 错开各得 0。划线得两个纯 NE（一起看球、一起看剧）+ 一个混合 NE（各 <span class="arithmatex">\(\frac23\)</span> 押自己偏好，期望收益 <span class="arithmatex">\(\frac23 &lt; 1\)</span>——<strong>混合均衡可以劣于任一纯均衡</strong>：协调失败有价）。</p>
 <p><strong>例 2（无差异原则手算）</strong> 上例的混合 NE：设男方以 <span class="arithmatex">\(p\)</span> 看球，要让女方无差异：<span class="arithmatex">\(1\cdot p = 2(1-p) \Rightarrow p = \frac23\)</span> ✓（注意：<strong>你的概率由对手的收益定</strong>——初学最反直觉的一步）。</p>
 <p><strong>例 3（公共品博弈）</strong> <span class="arithmatex">\(n\)</span> 人各选贡献 0 或 1，总贡献翻倍均分：贡献 1 的私人回报 <span class="arithmatex">\(\frac{2}{n} &lt; 1\)</span>（<span class="arithmatex">\(n &gt; 2\)</span> 时）⇒ 全员搭便车是唯一 NE——囚徒困境的 <span class="arithmatex">\(n\)</span> 人版；税收/强制缴纳社保的博弈论辩护词。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -105,5 +234,7 @@ u_i(s_i^*, s_{-i}^*) \geq u_i(s_i, s_{-i}^*), \quad \forall s_i,\ \forall i
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/nash-equilibrium.js"></script>
 </body>
 </html>

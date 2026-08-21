@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,26 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li class="active"><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先做路线证书，再决定“能不能走完”</a><ul>
+<li><a href="#graph-certificates-learning-title">1. 具身开场：给一张园区地图做交接班</a></li>
+<li><a href="#2">2. 形式桥：从邻接矩阵到可核验账本</a></li>
+<li><a href="#3">3. 预测门：先在脑中贴标签</a></li>
+<li><a href="#4">4. 动手：同一矩阵的五本证书</a></li>
+<li><a href="#5">5. 误区 / 模型边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 基本语言与握手定理</a></li>
-<li><a href="#2">2. 连通与树</a></li>
+<li><a href="#2_1">2. 连通与树</a></li>
 <li><a href="#3-euler-hamilton">3. Euler 与 Hamilton：透明与深渊的对照</a></li>
 <li><a href="#4-euler">4. 平面图与 Euler 公式</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +68,76 @@
 <blockquote>
 <p>图 = 顶点 + 边，关系的最简数学模型。1736 年 Euler 用它一举解决七桥问题，顺手创立了这门学科。本页走主干：度与握手定理 → 连通与树 → Euler/Hamilton 两类回路（一个透明一个 NP 难的著名对照）→ 平面图与 Euler 公式（拓扑的示性数在离散世界的分身）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="graph-certificates-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先做路线证书，再决定“能不能走完”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="graph-certificates-learning-title">1. 具身开场：给一张园区地图做交接班<a class="headerlink" href="#graph-certificates-learning-title" title="Permanent link"></a></h3>
+<p>你接手一张小型园区道路图：顶点是路口，边是道路。调度员问四个不同的问题：能否从一个路口走遍每条路？能否每个路口只进一次？这张图是不是一棵无环的管线骨架？能否把它铺在一张纸上而不让道路交叉？它们都“像是在走图”，但证书的对象、充分性和算法难度并不相同。实验台把同一张有限邻接矩阵交给五个检查器，要求每个结论带着证据出现。</p>
+<h3 id="2">2. 形式桥：从邻接矩阵到可核验账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对简单无向图 <span class="arithmatex">\(A=A^{\mathsf T}\in\{0,1\}^{n\times n}\)</span>，边集是 <span class="arithmatex">\(A_{ij}=1\)</span> 的无序对，</p>
+<div class="arithmatex">\[
+\deg(i)=\sum_j A_{ij},\qquad 2|E|=\sum_i\deg(i).
+\]</div>
+<p>连通性由有限次 BFS/DFS 给出；树的精确证书是“连通且 <span class="arithmatex">\(|E|=n-1\)</span>”（等价地再加无环）。Euler 回路的充要条件是所有<strong>非孤立</strong>顶点在同一连通分量且度全偶；若把闭合回路也算作 Euler 通路，则通路的奇度顶点数必须是 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>（<span class="arithmatex">\(0\)</span> 时就是回路）。Hamilton 回路改为顶点约束，实验用有限回溯逐一搜索，而不是把一个启发式当成否证。</p>
+<p>平面性先有必要筛子：简单图 <span class="arithmatex">\(|E|\le 3n-6\)</span>，二部简单图 <span class="arithmatex">\(|E|\le2n-4\)</span>。筛子通过只表示“还没有被这个证书排除”。对本实验的有限图，最后再穷举每个顶点的循环邻接顺序；面遍历若满足 <span class="arithmatex">\(V-E+F=2\)</span>，给出平面嵌入证书。边界很重要：Dirac 条件 <span class="arithmatex">\(\delta\ge n/2\)</span> 是 Hamilton 的<strong>充分</strong>条件，不满足时只是未决；边数上界通过时也不是平面性的证明。</p>
+<h3 id="3">3. 预测门：先在脑中贴标签<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>默认图是 <span class="arithmatex">\(K_4\)</span>。揭示账本前预测：</p>
+<ol>
+<li><span class="arithmatex">\(K_4\)</span> 的每个顶点度为 <span class="arithmatex">\(3\)</span>，它有 Euler 回路吗？</li>
+<li>同一张图有 Hamilton 回路吗？“每条边一次”和“每个顶点一次”会不会自动互相推出？</li>
+<li><span class="arithmatex">\(|E|\le3V-6\)</span> 通过后，能否单独断言图平面？若一个启发式没有找到回路，是否已经证明不存在？</li>
+</ol>
+<h3 id="4">4. 动手：同一矩阵的五本证书<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后可切换路径、环、<span class="arithmatex">\(K_4\)</span>、<span class="arithmatex">\(K_5\)</span>、<span class="arithmatex">\(K_{3,3}\)</span> 和 Petersen 图。可视化显示顶点/边及平面性证书；表格逐行记录邻接有效性、度序列、连通分量、树、Euler、Hamilton、二部性、必要边界和最终平面性。每行都标出“定义/充要/必要/充分/精确有限搜索”的逻辑角色。</p>
+<div class="learning-lab" data-learning-lab="graph-certificates">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(K_4\)</span>（四个顶点两两相连）。</p>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th>静态证书</th>
+<th>逻辑角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>邻接/度</td>
+<td><span class="arithmatex">\(A=A^{\mathsf T}\)</span>，对角为 <span class="arithmatex">\(0\)</span>；<span class="arithmatex">\(\deg=(3,3,3,3)\)</span>，<span class="arithmatex">\(2E=12\)</span></td>
+<td>定义 + 握手定理必要条件</td>
+</tr>
+<tr>
+<td>连通/树</td>
+<td>1 个连通分量，<span class="arithmatex">\(E=6\ne V-1=3\)</span></td>
+<td>树的充要条件，故不是树</td>
+</tr>
+<tr>
+<td>Euler</td>
+<td>奇度顶点数 <span class="arithmatex">\(4\)</span></td>
+<td>Euler 通路充要条件失败，故无 Euler 回路/通路</td>
+</tr>
+<tr>
+<td>Hamilton</td>
+<td>回路 <span class="arithmatex">\(0\to1\to2\to3\to0\)</span></td>
+<td>有限精确构造，故有 Hamilton 回路</td>
+</tr>
+<tr>
+<td>平面性</td>
+<td><span class="arithmatex">\(E=6\le3V-6=6\)</span>；循环邻接顺序给 <span class="arithmatex">\(F=4\)</span>，<span class="arithmatex">\(V-E+F=2\)</span></td>
+<td>边数只是必要筛子；旋转系统是精确平面证书</td>
+</tr>
+</tbody>
+</table>
+<p>“边数筛子通过”“Dirac 条件不满足”与“某次搜索没找到”都不能写成不存在证明；需要失败的充要判据或明确的有限反证证书。</p>
+</div>
+<h3 id="5">5. 误区 / 模型边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>Euler 数边，Hamilton 数点；一张图可以像 <span class="arithmatex">\(K_4\)</span> 一样 Hamilton 但不 Euler，也可以 Euler 但不 Hamilton。</li>
+<li>度和为偶只是可实现度序列的必要条件；它不是充分条件。平面边数上界同样只是必要条件。</li>
+<li>“没有找到”只有在搜索空间已经被穷举并且算法返回精确证书时才是结论；贪心、随机采样和有限次启发式都只能留下未决状态。</li>
+<li>本实验只处理显式给出的有限简单无向图；多重边、有向图、加权图和无限图需要重新声明对象与判据。</li>
+</ul>
+</section>
 <figure class="diagram">
 <p><img alt="一张示例图 + 图的基本概念（顶点/边/度/路径/连通分量），配几种特殊图（完全图/二部图/树）。" src="assets/img/graph-02-graph-types.svg" /></p>
 <figcaption><span class="fig-id">图 graph-02.1</span>一张示例图 + 图的基本概念（顶点/边/度/路径/连通分量），配几种特殊图（完全图/二部图/树）。</figcaption>
@@ -56,11 +145,11 @@
 <h2 id="1">1. 基本语言与握手定理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>图 <span class="arithmatex">\(G = (V, E)\)</span>；度 <span class="arithmatex">\(\deg(v)\)</span> = 关联边数。有向/无向、简单图/多重图、完全图 <span class="arithmatex">\(K_n\)</span>（边数 <span class="arithmatex">\(\binom n2\)</span>）、二部图（顶点两色、边只跨色——判据：<strong>无奇圈</strong>）。</p>
 <p><strong>握手定理</strong>：<span class="arithmatex">\(\sum_{v} \deg(v) = 2|E|\)</span>（每条边贡献两个度——双计数的最小样板）。<strong>推论</strong>：奇度顶点必有偶数个——"聚会上握过奇数次手的人有偶数个"；也是度序列可实现性的第一道闸门（例 1）。</p>
-<h2 id="2">2. 连通与树<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 连通与树<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>树</strong> = 连通无圈图，图论的骨架结构。<strong>五重等价刻画</strong>（背诵级）：<span class="arithmatex">\(n\)</span> 顶点的图，以下等价——1. 连通无圈；2. 连通且恰 <span class="arithmatex">\(n-1\)</span> 条边；3. 无圈且恰 <span class="arithmatex">\(n-1\)</span> 条边；4. 任两点<strong>唯一</strong>路径；5. 极小连通（删任一边即断）。</p>
 <p><strong>生成树</strong>：含全部顶点的树子图（连通图必有）。<strong>最小生成树（MST）贪心算法</strong>：Kruskal（按边权从小到大，不成圈就收）/ Prim（从一点长大）——<em>贪心为何正确</em>：<strong>交换论证</strong>（若最优解不含当前最小安全边，换入它不会变差）——贪心算法正确性证明的标准范式（与 Huffman 同款，优化线的思想在离散世界续集）。<strong>Cayley 公式</strong>一嘴：<span class="arithmatex">\(n\)</span> 个标号顶点的树有 <span class="arithmatex">\(n^{n-2}\)</span> 棵（优雅得过分的计数结论，Prüfer 序列双射证明——上一页双计数的高级演出）。</p>
 <h2 id="3-euler-hamilton">3. Euler 与 Hamilton：透明与深渊的对照<a class="headerlink" href="#3-euler-hamilton" title="Permanent link"></a></h2>
-<p><strong>Euler 回路</strong>（每条<strong>边</strong>恰走一次）：<strong>定理（Euler 1736）</strong> 连通图有 Euler 回路 <span class="arithmatex">\(\iff\)</span> <strong>全部顶点偶度</strong>（有 Euler 通路 <span class="arithmatex">\(\iff\)</span> 恰两个奇度点）。
+<p><strong>Euler 回路</strong>（每条<strong>边</strong>恰走一次）：<strong>定理（Euler 1736）</strong> 非孤立部分连通的图有 Euler 回路 <span class="arithmatex">\(\iff\)</span> <strong>全部顶点偶度</strong>；Euler 通路的充要条件是奇度顶点数为 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>，其中 <span class="arithmatex">\(0\)</span> 正是闭合回路。
 <em>证明思路</em>：必要性显然（每次过境一进一出消耗偶度）；充分性构造式——从任一点走圈、剩余部分递归接圈。七桥问题四个奇度点 ⇒ 无解，两百年悬案一行判决。</p>
 <p><strong>Hamilton 回路</strong>（每个<strong>顶点</strong>恰访一次）：看似孪生，实为深渊——<strong>判定是 NP-完全问题</strong>（没有已知的高效判据；与 Euler 的 <span class="arithmatex">\(O(E)\)</span> 判定形成算法复杂性的教科书对照——"相似的问题可以有天壤之别的难度"）。只有充分条件可用：<strong>Dirac 定理</strong>——<span class="arithmatex">\(n \geq 3\)</span> 且每点度 <span class="arithmatex">\(\geq \frac n2\)</span> ⇒ 有 Hamilton 回路（"足够稠密必有环游"）。旅行商问题（TSP）= 加权版 Hamilton，组合优化的名题（优化 IV 分支定界的主战场之一）。</p>
 <h2 id="4-euler">4. 平面图与 Euler 公式<a class="headerlink" href="#4-euler" title="Permanent link"></a></h2>
@@ -71,10 +160,10 @@ V - E + F = 2
 <p>（<span class="arithmatex">\(F\)</span> 含无界外面；<em>证明</em>：对生成树归纳——树时 <span class="arithmatex">\(F=1, E=V-1\)</span> ✓，每加一条边恰新增一个面。）<strong>这就是拓扑页 Euler 示性数 <span class="arithmatex">\(\chi\)</span> 的离散原型</strong>（球面 <span class="arithmatex">\(\chi = 2\)</span>——平面图即球面上的图，Gauss–Bonnet 页的 <span class="arithmatex">\(\chi\)</span> 在此有了可数的定义）。</p>
 <p><strong>推论（非平面性判据）</strong>：简单平面图 <span class="arithmatex">\(E \leq 3V - 6\)</span>（每面至少 3 边、每边贡献 2 面，双计数）⇒ <strong><span class="arithmatex">\(K_5\)</span> 非平面</strong>（<span class="arithmatex">\(10 &gt; 9\)</span>）；二部图加强为 <span class="arithmatex">\(E \leq 2V - 4\)</span> ⇒ <strong><span class="arithmatex">\(K_{3,3}\)</span> 非平面</strong>（三户人家接三种管线必交叉——水电气难题的死刑判决）。<strong>Kuratowski 定理</strong>（陈述）：非平面 <span class="arithmatex">\(\iff\)</span> 含 <span class="arithmatex">\(K_5\)</span> 或 <span class="arithmatex">\(K_{3,3}\)</span> 的剖分——两个最小反例就是全部障碍。</p>
 <p><strong>四色定理</strong>一嘴：平面图顶点四色可染（1976 计算机辅助证明——数学证明观念的分水岭事件；五色定理有纸笔证明，Euler 公式 + 归纳）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（度序列判定）</strong> 序列 <span class="arithmatex">\((3, 3, 3, 1)\)</span> 可实现吗？度和 <span class="arithmatex">\(= 10\)</span> 为偶 ✓ 但三个 3 度点要在 4 顶点图中各连 3 边，1 度点只能吸收一条——检查（Erdős–Gallai 或直接构造）失败：<strong>度和为偶是必要不充分</strong>。</p>
 <p><strong>例 2（Euler 应用：一笔画）</strong> 田字格（<span class="arithmatex">\(3\times3\)</span> 顶点网格）能否一笔画？数奇度点：四条边中点度 3，共 4 个奇度点 <span class="arithmatex">\(&gt; 2\)</span> ⇒ 不能；去掉一条外边使奇度点降到 2 ⇒ 能，且必须从奇度点起笔。<strong>一笔画问题 = 数奇度点</strong>，小学谜题的完备判据。</p>
-<p><strong>例 3（平面性判断）</strong> Petersen 图（10 顶点 15 边）：<span class="arithmatex">\(E = 15 \leq 3V - 6 = 24\)</span>——<strong>边数判据通过但它仍非平面</strong>（含 <span class="arithmatex">\(K_5\)</span> 剖分）：必要条件不背锅，判死刑要用 Kuratowski。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（平面性判断）</strong> Petersen 图（10 顶点 15 边）：<span class="arithmatex">\(E = 15 \leq 3V - 6 = 24\)</span>——<strong>边数判据通过但它仍非平面</strong>。对每个顶点的循环邻接顺序作有限穷举，没有任何旋转系统给出 <span class="arithmatex">\(V-E+F=2\)</span>，所以这是旋转系统的精确否证；不额外声称未经给出的 Kuratowski 剖分。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：图上的两大定理系统——匹配（Hall 婚配定理）与网络流（最大流最小割 = LP 对偶的组合化身），外加 PageRank 与 Markov 链的会师。</em></p>
 </article>
@@ -86,5 +175,7 @@ V - E + F = 2
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/graph-certificates.js"></script>
 </body>
 </html>

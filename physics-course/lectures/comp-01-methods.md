@@ -3,6 +3,55 @@
 > **对标**：Newman *Computational Physics* / Frenkel–Smit 入门 ｜ **前置**：sm-02、asm-02、数学站数值线 + 概率线（本页大量复用）
 > 一页把物理模拟的两大范式立起来：**蒙特卡洛**（采样构型空间——统计的路）与**分子动力学**（积分运动方程——力学的路），以及共同的行规（误差条、平衡判定、有限尺寸）。数学侧的引擎（Markov 链、辛积分、方差缩减）你的数学站已建，本页只接物理插头。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="computational-physics-learning-title">
+
+## 学习层：算法给的是一条带条件的证据链，不是一段漂亮动画
+
+<h3 id="computational-physics-learning-title">1. 先预测：平稳、独立与守恒是三件事</h3>
+
+实验把 $8\times8$ Ising Metropolis 回放与谐振子积分放在同一台审计台上。先判断：
+
+1. Metropolis 满足细致平衡，是否意味着相邻构型彼此独立？
+2. 记录了 $N$ 次测量，标准误是否可以不看自相关就一律按 $1/\sqrt N$ 缩放？
+3. Velocity Verlet 是辛、时间可逆的二阶方法，是否意味着原始哈密顿量在每一步精确不变？
+
+提交后才显示接受率、lag-1 相关、诊断性有效样本数，以及 Verlet/RK4 的能量误差轨迹。两个模式共用“目标、算法、观测、证书边界”四列表，不让“能跑”替代“采到了对的分布”或“长期结构可信”。
+
+### 2. 静态后备：两条链各自缺哪一环
+
+<div class="learning-lab" data-learning-lab="monte-carlo-md" markdown="1">
+
+| 方法 | 数学目标 | 当前可验量 | 仍需另验 |
+|---|---|---|---|
+| Metropolis | $\pi(s)\propto e^{-\beta E(s)}$ 为平稳分布 | $\Delta E$、接受率、能量/磁化序列 | 不可约性、热化、混合、自相关、有限尺寸 |
+| Velocity Verlet | 近似 Hamilton 流且保持辛结构 | 时间反演、稳定区、能量误差有界振荡 | 步长收敛、力场截断、热浴与系综误差 |
+| RK4 对照 | 高阶局部截断精度 | 同初值同 $\Delta t$ 的能量轨迹 | 非辛长时间偏差不由阶数单独决定 |
+
+对周期边界二维 Ising，单点翻转的
+
+$$
+\Delta E=2s_i\sum_{j\sim i}s_j,
+\qquad
+a(s\to s')=\min\{1,e^{-\beta\Delta E}\}.
+$$
+
+细致平衡保证正确的不变分布，却不提供混合速度。实验的 $N_{\mathrm{eff}}\approx N(1-\rho_1)/(1+\rho_1)$ 只是一阶 AR 形状的透明诊断，不是完整积分自相关时间估计；临界附近长记忆尤其会让它过度乐观。
+
+对 $\ddot x=-\omega^2x$，Velocity Verlet 的线性稳定条件是 $\lvert\omega\Delta t\rvert<2$。稳定区内真能量通常围绕初值振荡；后向误差分析解释的是近似守恒一个影子哈密顿量，而非逐步精确守恒原来的 $H$。
+
+### 3. 可复现不等于已验证
+
+- 固定 seed 让同一条随机链可重放，但不会增加独立样本，也不会替代多链、热化和自相关诊断。
+- 接受率既不是越高越好，也不是平稳性证书；提议尺度、目标分布与可达性共同决定效率。
+- “Verlet 能量不漂”只在适当稳定步长和足够光滑的保守系统中成立。约束、碰撞、非保守力与热浴要重新分析。
+- MC 的系综平均与 MD 的时间平均相等需要遍历与极限条件；两条有限轨迹一致是很好的交叉检查，但不是统计力学公理的证明。
+
+</div>
+
+</section>
+
 ## 1. Metropolis 蒙特卡洛（统计物理的采样机）
 
 **问题**：算 $\langle A\rangle = \frac{1}{Z}\sum_s A(s)e^{-\beta E(s)}$——构型空间天文大、$Z$ 算不了。**方案**：造一条 Markov 链，其平稳分布恰是 Boltzmann（数学站随机过程线的平稳分布理论 + MCMC 正身）：

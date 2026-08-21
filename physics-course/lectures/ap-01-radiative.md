@@ -3,6 +3,78 @@
 > **对标**：Rybicki & Lightman《Radiative Processes》/ Mihalas《Stellar Atmospheres》/ Carroll & Ostlie ch.9 ｜ **前置**：em-03（辐射）、sm-02、atom-01（谱线）
 > **天文学是一门几乎只能通过光来做的实验科学**——除极少数例外（中微子、引力波、陨石），我们对天体的一切认识都编码在到达地球的光子里。本页讲清光如何携带信息、又如何在传播中被改造。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="radiative-transfer-learning-title">
+
+## 学习层：先做一块均匀滤镜，再问光从哪里来
+
+<h3 id="radiative-transfer-learning-title">1. 具身开场：一束手电穿过有雾的玻璃盒</h3>
+
+把一束强度为 $I_{\rm in}$ 的光送进一只均匀雾盒。雾会吸收/散射掉一部分光，也会沿视线发光；探测器只看到盒子出口。你调节“看起来有多厚”的光学厚度 $\tau$：薄时，入口信息仍清楚；厚时，出口越来越像介质自己的源函数。这个小盒子能把“传播中的信息”和“介质的发射”分开记账，但它不会凭一条出射亮度反推出整颗恒星的大气。
+
+### 2. 形式桥：衰减项、源函数项与光学深度贡献
+
+均匀、恒定源函数的标量转移方程是
+
+$$
+\frac{dI}{d\tau}=-I+S,
+\qquad
+\boxed{I_{\rm out}=I_{\rm in}e^{-\tau}+S(1-e^{-\tau})}.
+$$
+
+出口账本只有两项：入口光的透射贡献 $T=I_{\rm in}e^{-\tau}$，以及每个光学深度小层发出的光在到达出口前的加权贡献。对 $0\le t\le\tau$，
+
+$$
+I_{\rm src}(\tau)=\int_0^\tau S(t)e^{-(\tau-t)}\,dt
+=S(1-e^{-\tau})
+$$
+
+（本实验取 $S(t)=S$）。因此 $I_{\rm out}-S=(I_{\rm in}-S)e^{-\tau}$：有限 $\tau$ 下只有在 $I_{\rm in}=S$ 的特殊边界时才有 $I_{\rm out}=S$；否则只能在 $\tau\to\infty$ 的极限中趋近源函数。
+
+薄极限要保留入口光的一阶衰减：$e^{-\tau}=1-\tau+O(\tau^2)$，所以
+
+$$
+T=I_{\rm in}(1-\tau)+O(\tau^2),\qquad I_{\rm src}=S\tau+O(\tau^2),\qquad I_{\rm out}=I_{\rm in}+(S-I_{\rm in})\tau+O(\tau^2).
+$$
+
+### 3. 预测门：先判主导项和边界
+
+实验先隐藏曲线、分层贡献和源函数闭合。对当前预设预测：
+
+1. 薄 slab 中，出口的主要项是透射入口光、源函数发光，还是两者可比？
+2. 当 $\tau$ 有限且 $I_{\rm in}\ne S$ 时，能否精确写 $I_{\rm out}=S$？
+3. 若介质有散射，是否自动有 $S=B$？LTE、纯散射和部分热化的边界分别是什么？
+
+### 4. 动手：沿光学深度读两本账
+
+揭示后可切换薄/厚 LTE、入口与源函数相等、以及散射源函数预设，并调节 $\tau$ 与 $I_{\rm in}$。响应式图显示光线从入口到出口的强度轨迹和 $S$ 水平线；表格按光学深度区间列出每层对出口的源函数贡献、透射入口项、总和与 LTE/散射边界。
+
+<div class="learning-lab" data-learning-lab="radiative-transfer" markdown="1">
+
+**无 JavaScript 时的静态读法：**默认取薄 LTE slab：$I_{\rm in}=0.25$、$S=B=1.40$、$\tau=0.25$。
+
+| 账本层 | 数值 / 公式 | 解释 |
+|---|---:|---|
+| 入口透射 | $0.25e^{-0.25}=0.19470$ | 入口信息乘逃逸因子 |
+| slab 源函数总贡献 | $1.40(1-e^{-0.25})=0.30968$ | $\int_0^{0.25}S e^{-(0.25-t)}dt$ |
+| 出口强度 | $I_{\rm out}=0.50438$ | 两项相加，有限厚度下不等于 $S$ |
+| 源函数边界 | LTE：$S=B$ | 这是源函数闭合，不是由观测亮度自动推出的温度 |
+| 厚度极限 | $\tau\gg1\Rightarrow I_{\rm out}\to S$ | 需要 stated limit；薄 slab 不可直接套用 |
+
+散射时 $S=(1-\epsilon)J+\epsilon B$；只有完全热化（$\epsilon=1$）或额外满足 $J=B$ 等条件才退化为 $S=B$。这个均匀 slab 是正演玩具，不是恒星大气的唯一反演器。
+
+</div>
+
+### 5. 误区 / 模型边界
+
+- 光学厚并不等于“看见真实表面”：它只说明贡献函数通常集中在 $\tau\sim1$ 的层，$S$ 还可能随深度、频率和角度变化。
+- LTE 给出 $S_\nu=B_\nu(T)$ 的局部闭合；散射源函数包含 $J_\nu$，不应把“有光子”直接改写成黑体。
+- $I_{\rm out}\approx S$ 可能只是大 $\tau$ 的数值近似；亮度/源函数相等必须写出 $I_{\rm in}=S$ 或 $\tau\to\infty$ 等条件。
+- 本实验只做恒定 $S$、单频、单方向、均匀 slab 的正演；恒星大气反演还需要结构、频率依赖、不透明度、几何、边界条件和观测噪声模型。
+
+</section>
+
 <figure class="plot" markdown="1">
 ![辐射转移方程的解：光学厚度对出射强度的影响与谱线形成。](assets/img/ap-01-radiative-transfer.svg)
 <figcaption><span class="fig-id">图 ap-01.1</span>左：强度随光学厚度趋于源函数 \(I\to S\)。右：<strong>谱线形成</strong>——线心不透明度高，形成于温度较低的高层，故呈吸收线；温度反转时同一机制给出发射线。</figcaption>
@@ -16,13 +88,13 @@
 
 $$\frac{dI_\nu}{ds} = -\alpha_\nu I_\nu + j_\nu$$
 
-定义**光学厚度** $d\tau_\nu = \alpha_\nu ds$ 与**源函数** $S_\nu = j_\nu/\alpha_\nu$：
+这里 $\alpha_\nu$ 是**每单位长度**的消光系数；若用**质量不透明度** $\kappa_\nu$，则 $\alpha_\nu=\rho\kappa_\nu$。定义**光学厚度** $d\tau_\nu = \alpha_\nu ds$ 与**源函数** $S_\nu = j_\nu/\alpha_\nu$：
 
 $$\boxed{\ \frac{dI_\nu}{d\tau_\nu} = -I_\nu + S_\nu\ }\quad\Longrightarrow\quad I_\nu(\tau) = I_\nu(0)e^{-\tau}+\int_0^\tau S_\nu e^{-(\tau-\tau')}d\tau'$$
 
 **两个极限**：
 
-- **光学薄** $\tau\ll1$：$I_\nu\approx I_\nu(0)+\int S_\nu d\tau$——**看穿整个介质，信息来自全体积**（星云、星际气体）；
+- **光学薄** $\tau\ll1$：$I_\nu\approx I_\nu(0)(1-\tau)+\int S_\nu d\tau$（常源时为 $I_{\rm in}+(S-I_{\rm in})\tau$）——**看穿整个介质，信息来自全体积**（星云、星际气体）；
 - **光学厚** $\tau\gg1$：$I_\nu\to S_\nu$——**只能看到 $\tau\sim1$ 的那一层**，且强度趋于当地源函数。
 
 **热平衡下 $S_\nu = B_\nu(T)$（Planck 函数）** → 光学厚天体发出黑体谱。**这就是恒星近似为黑体的原因**，也解释了"恒星表面"的含义：**所谓光球，就是 $\tau\approx2/3$ 的那一层**——它不是物理界面，而是一个光学定义。
@@ -43,13 +115,16 @@ $$L = 4\pi R^2\sigma T_{\rm eff}^4$$
 
 ## 3. 不透明度：光子如何被阻挡
 
-$\alpha_\nu$ 的主要来源：
+$\alpha_\nu$（每单位长度）的主要来源：
 
 - **电子散射（Thomson）**：$\sigma_T=6.65\times10^{-29}\ \mathrm{m^2}$，**与频率无关**，主导高温电离区（也定义 Eddington 光度，ap-05）；
-- **自由-自由（轫致）吸收**：$\propto\rho T^{-7/2}$（**Kramers 律**，ap-02 会用）；
+- **自由-自由（轫致）吸收**：灰度/频率积分的 Kramers 标度是质量不透明度 $\kappa_{\rm ff}\propto\rho T^{-7/2}$，因此每长度系数 $\alpha_{\rm ff}=\rho\kappa_{\rm ff}\propto\rho^2T^{-7/2}$；这不是任意频率都可直接套用的律；
 - **束缚-自由（光电离）**：产生吸收边；
 - **束缚-束缚**：**谱线**；
 - **负氢离子 H⁻**：太阳型恒星光球的主要不透明度来源。
+
+在分辨频率的自由-自由吸收中还要保留频率边界，例如
+$\alpha_{\nu,\rm ff}\propto\rho^2T^{-1/2}\nu^{-3}(1-e^{-h\nu/k_BT})g_{\rm ff}$（系数和离子丰度省略）；因此不能把质量不透明度的 Kramers 标度、每长度的 $\alpha_\nu$ 和全频率的频谱律混写。
 
 **光子的随机行走**：光学厚介质中光子走 $N\sim\tau^2$ 步才逃出。**太阳中心产生的光子扩散到表面需要约十万年量级**——**我们看到的阳光，其能量早已在路上待了很久**。
 

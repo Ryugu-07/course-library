@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li class="active"><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一个“最诚实分布”不会自动变成真实世界，一条容量公式也不是单次免错券</a><ul>
+<li><a href="#maxent-channel-learning-title">1. 先预测：约束、输入与信道各管哪一层？</a></li>
+<li><a href="#2">2. 静态后备：两本账分别验</a></li>
+<li><a href="#3">3. 从玩具账本回到定理</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 最大熵原理</a></li>
-<li><a href="#2">2. 信道容量：噪声中的可靠通信</a></li>
-<li><a href="#3">3. 压缩即预测即智能（全课收束）</a></li>
+<li><a href="#2_1">2. 信道容量：噪声中的可靠通信</a></li>
+<li><a href="#3_1">3. 压缩即预测即智能（全课收束）</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
 </div>
@@ -52,6 +69,72 @@
 <p><img alt="有噪信道模型：输入 X →（转移概率矩阵/噪声）→ 输出 Y，信道容量 C=\max I(X;Y)。" src="assets/img/info-03-channel.svg" /></p>
 <figcaption><span class="fig-id">图 info-03.1</span>有噪信道模型：输入 X →（转移概率矩阵/噪声）→ 输出 Y，信道容量 \(C=\max I(X;Y)\)。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="maxent-channel-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一个“最诚实分布”不会自动变成真实世界，一条容量公式也不是单次免错券<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="maxent-channel-learning-title">1. 先预测：约束、输入与信道各管哪一层？<a class="headerlink" href="#maxent-channel-learning-title" title="Permanent link"></a></h3>
+<p>实验把两个常被一句话揉在一起的问题并排放置：</p>
+<ol>
+<li>在有限支撑 <span class="arithmatex">\(\{0,1,2,3\}\)</span> 上，只给均值 <span class="arithmatex">\(E[X]=m\)</span>，最大熵解表达的是“在这些约束内不额外下注”，还是已经识别了数据生成机制？</li>
+<li>对翻转率为 <span class="arithmatex">\(\varepsilon\)</span> 的二元对称信道，<span class="arithmatex">\(R&lt;C\)</span> 是单次传输零错误，还是存在一列长块码使误码率趋零？</li>
+<li>容量 <span class="arithmatex">\(C=\max_{p(x)}I(X;Y)\)</span> 优化的是输入分布还是噪声本身？</li>
+</ol>
+<p>提交前不显示最优分布、互信息曲线和容量差。揭示后，左栏解同一个有限最大熵问题，右栏扫描 BSC 的输入偏置 <span class="arithmatex">\(q=P(X=1)\)</span>；这样“约束选择”“输入设计”和“信道规律”不会偷换成同一个旋钮。</p>
+<h3 id="2">2. 静态后备：两本账分别验<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="maxent-channel" markdown="1">
+<p><strong>JavaScript 失效时的静态读法：</strong>有限最大熵问题为</p>
+<div class="arithmatex">\[
+\max_{p_i\ge0}-\sum_{i=0}^{3}p_i\log_2p_i,
+\qquad \sum_i p_i=1,
+\qquad \sum_i i p_i=m.
+\]</div>
+<p>内点解有指数族形式 <span class="arithmatex">\(p_i(\lambda)=e^{\lambda i}/\sum_j e^{\lambda j}\)</span>，<span class="arithmatex">\(\lambda\)</span> 由均值约束唯一确定；<span class="arithmatex">\(m=1.5\)</span> 时 <span class="arithmatex">\(\lambda=0\)</span>，因此四点均匀且 <span class="arithmatex">\(H=2\)</span> bit。端点 <span class="arithmatex">\(m=0\)</span> 或 <span class="arithmatex">\(3\)</span> 时可行集退化成点质量，熵为 <span class="arithmatex">\(0\)</span>，不能继续套“内点指数族”而忽略边界。</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>精确量</th>
+<th>正确解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(m=1.5\)</span></td>
+<td><span class="arithmatex">\(p=(1/4,1/4,1/4,1/4)\)</span>，<span class="arithmatex">\(H=2\)</span> bit</td>
+<td>给定支撑和均值后的最大熵解</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(m=0\)</span></td>
+<td><span class="arithmatex">\(p=(1,0,0,0)\)</span>，<span class="arithmatex">\(H=0\)</span></td>
+<td>约束本身已经把分布钉死</td>
+</tr>
+<tr>
+<td>BSC，<span class="arithmatex">\(q=1/2\)</span></td>
+<td><span class="arithmatex">\(I(X;Y)=1-h_2(\varepsilon)=C\)</span></td>
+<td>对称输入达到容量</td>
+</tr>
+<tr>
+<td>BSC，<span class="arithmatex">\(q=0\)</span> 或 <span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(I(X;Y)=0\)</span></td>
+<td>输入恒定，输出再随机也没有消息</td>
+</tr>
+</tbody>
+</table>
+<p>对 BSC，<span class="arithmatex">\(P(Y=1)=\varepsilon+q(1-2\varepsilon)\)</span>，所以</p>
+<div class="arithmatex">\[
+I(X;Y)=h_2\!\left(\varepsilon+q(1-2\varepsilon)\right)-h_2(\varepsilon).
+\]</div>
+<p>曲线在 <span class="arithmatex">\(q=1/2\)</span> 达最大值，不是因为均匀输入“减少了翻转”，而是它让输出边缘熵最大。实验同时报告 <span class="arithmatex">\(C-I\)</span>，让“当前输入表现”与“信道可达到的上限”分账。</p>
+<h3 id="3">3. 从玩具账本回到定理<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>最大熵依赖你写下的约束与参考测度。</strong>遗漏一个已知约束会改变答案；选出的分布是推理规则的结果，不是经验真实性证书。</li>
+<li><strong>容量是每次信道使用的渐近速率。</strong><span class="arithmatex">\(R&lt;C\)</span> 允许块长趋大时构造误码率趋零的码族，不保证有限块、指定译码器或单个符号零错误。</li>
+<li><strong><span class="arithmatex">\(I(X;Y)\)</span> 是当前输入分布下的互信息。</strong>只有再对 <span class="arithmatex">\(p(x)\)</span> 最大化才得到容量；一般非对称信道的最优输入未必均匀。</li>
+<li>本实验只处理离散四点最大熵和 BSC。连续变量还要说明基准测度，微分熵也不具备离散熵那种坐标不变的绝对含义。</li>
+</ul>
+</div>
+</section>
 <h2 id="1">1. 最大熵原理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>原理（Jaynes）</strong>：在满足已知约束的所有分布中，选<strong>熵最大</strong>的那个——除了已知的，不额外假设任何东西（"最诚实的无知"，Occam 剃刀的分布版）。</p>
 <p><strong>求解 = 带约束的凸优化</strong>（优化 III 的 Lagrange 全套上岗）。对约束 <span class="arithmatex">\(E[f_k(X)] = c_k\)</span>，Lagrange 函数对 <span class="arithmatex">\(p(x)\)</span> 求偏导置零，得通解形式：</p>
@@ -82,15 +165,15 @@ p^*(x) \propto \exp\Big(\sum_k \lambda_k f_k(x)\Big) \qquad \text{（指数族�
 </tbody>
 </table>
 <p>高斯至此三重身份齐备：CLT 的极限（概率 V）、热核（pde-02）、<strong>给定均值方差下最诚实的假设</strong>（本页）——"为什么默认高斯"从此有三条独立的答案。统计力学对账一嘴：Boltzmann 分布 <span class="arithmatex">\(p \propto e^{-E/kT}\)</span> 恰是"给定平均能量的最大熵分布"——热力学熵与信息熵在数学上是同一个函数（Shannon 请教 von Neumann 命名时的著名轶事有其严肃内核）。<strong>指数族</strong>也是统计 II 里"有充分统计量、共轭先验"的那族分布——三门课在此互认。</p>
-<h2 id="2">2. 信道容量：噪声中的可靠通信<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 信道容量：噪声中的可靠通信<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>信道</strong>：输入 <span class="arithmatex">\(X\)</span>，输出 <span class="arithmatex">\(Y \sim p(y\mid x)\)</span>（噪声）。<strong>容量</strong>：</p>
 <div class="arithmatex">\[
 C = \max_{p(x)} I(X; Y)
 \]</div>
 <p><strong>定理（Shannon 信道编码定理，1948）</strong> 传输速率 <span class="arithmatex">\(R &lt; C\)</span> 时，存在编码方案使错误率任意小；<span class="arithmatex">\(R &gt; C\)</span> 则不可能。</p>
 <p><strong>革命性在哪</strong>：噪声信道上竟能<strong>任意可靠</strong>地通信（此前工程师以为噪声必然导致错误积累），代价只是速率不超过 <span class="arithmatex">\(C\)</span>——手段是<strong>冗余编码</strong>（把信息摊在长块上，让噪声"平均掉"——大数定律的通信版）。证明思想（随机编码 + 典型序列）是概率方法的名演；实用纠错码（汉明码、LDPC、Polar 码——5G 里的那个）是把存在性变成工程的七十年长跑。<strong>例</strong>：二元对称信道（翻转概率 <span class="arithmatex">\(\varepsilon\)</span>）：<span class="arithmatex">\(C = 1 - h(\varepsilon)\)</span>——上一页例 3 的互信息恰是它（均匀输入达到最大）。</p>
-<p><strong>微分熵</strong>一嘴（连续版）：<span class="arithmatex">\(h(X) = -\int f\ln f\)</span>；可为负（不再是"绝对不确定性"，只有差值/相对量有不变意义）；高斯在给定方差下最大化它（§1 的连续版）；高斯信道容量 <span class="arithmatex">\(C = \frac12\log(1 + \mathrm{SNR})\)</span>——<strong>香农极限</strong>，通信工程的北极星。</p>
-<h2 id="3">3. 压缩即预测即智能（全课收束）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>微分熵</strong>一嘴（连续版）：<span class="arithmatex">\(h(X)=-\int f\ln f\)</span> 以自然对数计，单位是 nat；它可为负（不再是“绝对不确定性”，只有差值/相对量有不变意义），高斯在给定方差下最大化它（§1 的连续版）。若容量统一用 bit/次信道使用，则高斯信道写成 <span class="arithmatex">\(C=\frac12\log_2(1+\mathrm{SNR})\)</span>；若全程用 <span class="arithmatex">\(\ln\)</span>，同一数值改以 nat/次计。底数与单位必须一起换。</p>
+<h2 id="3_1">3. 压缩即预测即智能（全课收束）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>三块拼图合成一个命题：</p>
 <ol>
 <li><strong>预测 → 压缩</strong>（算术编码）：给定预测模型 <span class="arithmatex">\(q(x_{t+1} \mid x_{\leq t})\)</span>，算术编码能以<strong>恰好 <span class="arithmatex">\(-\log q\)</span> 比特</strong>编码实际出现的符号——任何预测器都可机械地变成压缩器，压缩率 = 模型的交叉熵；</li>
@@ -113,5 +196,7 @@ C = \max_{p(x)} I(X; Y)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/maxent-channel.js"></script>
 </body>
 </html>

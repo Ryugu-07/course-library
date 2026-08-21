@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,25 +41,106 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:34</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#perron">学习层：先看网络会不会混合，再谈 Perron 向量</a><ul>
+<li><a href="#perron-frobenius-learning-title">1. 具身开场：四台相同的路由器，四种长期行为</a></li>
+<li><a href="#2">2. 形式桥：非负性、强连通性与周期的分层账本</a></li>
+<li><a href="#3">3. 预测门：四种矩阵先分班</a></li>
+<li><a href="#4">4. 动手：谱、类结构与幂法三线对读</a></li>
+<li><a href="#5">5. 误区 / 模型边界</a></li>
+</ul>
+</li>
 <li><a href="#1-perron">1. Perron 定理（正矩阵情形）</a></li>
-<li><a href="#2">2. 总后台：一张定理服务四门课</a></li>
-<li><a href="#3">3. 谱隙与混合时间（定量补遗）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#2_1">2. 总后台：一张定理服务四门课</a></li>
+<li><a href="#3_1">3. 谱隙与混合时间（定量补遗）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii-perronfrobenius">矩阵分析 III · 非负矩阵与 Perron–Frobenius<a class="headerlink" href="#iii-perronfrobenius" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Horn &amp; Johnson §8 / Meyer §8 ｜ <strong>前置</strong>：ma-01、本科随机过程 II–III、图论组合 III
-元素非负的矩阵（转移阵、邻接阵、投入产出表）有一套超出一般理论的美好谱结构——<strong>Perron–Frobenius 定理</strong>：最大特征值是正实数、特征向量可取全正。它是 Markov 链平稳分布、PageRank、人口模型、经济投入产出的<strong>总后台</strong>。矩阵分析线在此收官。</p>
+元素非负的矩阵（转移阵、邻接阵、投入产出表）有一套超出一般理论的谱结构：谱半径是非负实特征值；再加不可约性时它为正且有逐元素全正的特征向量，再加本原性才得到严格外围谱隙与原始幂法收敛。它是 Markov 链平稳分布、PageRank、人口模型、经济投入产出的<strong>总后台</strong>。矩阵分析线在此收官。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="perron-frobenius-learning-title" class="learning-layer">
+<h2 id="perron">学习层：先看网络会不会混合，再谈 Perron 向量<a class="headerlink" href="#perron" title="Permanent link"></a></h2>
+<h3 id="perron-frobenius-learning-title">1. 具身开场：四台相同的路由器，四种长期行为<a class="headerlink" href="#perron-frobenius-learning-title" title="Permanent link"></a></h3>
+<p>把非负矩阵看成一个“资源沿有向网络转移”的规则：<span class="arithmatex">\(A_{ij}&gt;0\)</span> 表示从 <span class="arithmatex">\(i\)</span> 到 <span class="arithmatex">\(j\)</span> 有通道。你反复按下同一个转移按钮，想预测长期比例。严格正的网络一步就能互相到达；有些网络虽然强连通，却只能在奇偶时刻轮换；可约网络甚至有互不回流的强连通类。它们都满足“元素非负”，但幂迭代的画面和可说出的定理不同。</p>
+<h3 id="2">2. 形式桥：非负性、强连通性与周期的分层账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(A\ge0\)</span>，有向图的强连通分量（SCC）给出不可约性的精确翻译。若 <span class="arithmatex">\(A&gt;0\)</span>，则它本原；若 <span class="arithmatex">\(A\ge0\)</span> 不可约，周期</p>
+<div class="arithmatex">\[
+h=\gcd\{\text{所有闭路长度}\}
+\]</div>
+<p>满足 <span class="arithmatex">\(h=1\)</span> 当且仅当本原。不可约矩阵的 Perron 根 <span class="arithmatex">\(\rho&gt;0\)</span> 有正右特征向量 <span class="arithmatex">\(v&gt;0\)</span>，但外围谱可能是</p>
+<div class="arithmatex">\[
+\{\rho e^{2\pi i k/h}:k=0,\ldots,h-1\}.
+\]</div>
+<p>所以只有本原时才有谱隙 <span class="arithmatex">\(|\lambda_2|&lt;\rho\)</span> 并由定理保证归一化幂法收敛。可约矩阵必须先按 SCC 作块三角化；全局 <span class="arithmatex">\(\rho\)</span> 是临界块 Perron 根的最大值。可约性本身既不推出 Perron 向量唯一，也不推出它必然不唯一：要实际计算 <span class="arithmatex">\(\dim\ker(A-\rho I)\)</span>，并报告这些向量的支持。</p>
+<h3 id="3">3. 预测门：四种矩阵先分班<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验先隐藏谱点、SCC、周期和迭代表。对当前预设预测：</p>
+<ol>
+<li>严格正是否自动意味着本原？</li>
+<li>不可约但周期为 <span class="arithmatex">\(2\)</span> 时，<span class="arithmatex">\(A^kx/\|A^kx\|\)</span> 是否对任意非对称起点收敛？</li>
+<li>可约矩阵的长期结论，能否不看 SCC 就写成“唯一全正 Perron 向量”？揭示后还要看实际 Perron 特征空间的维数和支持。</li>
+</ol>
+<h3 id="4">4. 动手：谱、类结构与幂法三线对读<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>揭示后可切换正矩阵、本原但非正矩阵、周期不可约矩阵和可约矩阵。可视化左侧画有向支持图，右侧画外围谱在复平面上的位置，底部显示归一化幂法最后状态；账本同时列出 <span class="arithmatex">\(\rho\)</span>、Perron 向量、周期、外围谱、谱隙比例、有限步是否看见收敛，以及可约情形的临界 SCC。</p>
+<div class="learning-lab" data-learning-lab="perron-frobenius">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(A=\begin{pmatrix}2&amp;1\\1&amp;2\end{pmatrix}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>静态证书</th>
+<th>结论边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>非负 / 正</td>
+<td><span class="arithmatex">\(A&gt;0\)</span></td>
+<td>正 <span class="arithmatex">\(⇒\)</span> 本原；这是充分条件，不是不可约的定义</td>
+</tr>
+<tr>
+<td>Perron 根 / 向量</td>
+<td><span class="arithmatex">\(\rho=3\)</span>，<span class="arithmatex">\(v\propto(1,1)^\mathsf T&gt;0\)</span></td>
+<td>正矩阵：主根单且严格占优</td>
+</tr>
+<tr>
+<td>幂法</td>
+<td>起点 <span class="arithmatex">\(x=(1,0.25)&gt;0\)</span>，归一化方向趋 <span class="arithmatex">\((1,1)\)</span></td>
+<td>定理起点是逐元素严格正；若允许零或带符号起点，需检查 Perron 投影非零，有限表仍是诊断</td>
+</tr>
+<tr>
+<td>外围谱 / 混合</td>
+<td><span class="arithmatex">\(\{3\}\)</span>，<span class="arithmatex">\(\lvert\lambda_2\rvert/\rho=1/3\)</span></td>
+<td>本原才给严格小于 <span class="arithmatex">\(1\)</span> 的外围次大比例</td>
+</tr>
+<tr>
+<td>边界</td>
+<td><span class="arithmatex">\(\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span> 不可约但周期 <span class="arithmatex">\(2\)</span></td>
+<td>外围谱 <span class="arithmatex">\(\{1,-1\}\)</span>，幂法会振荡；不可约不等于本原</td>
+</tr>
+</tbody>
+</table>
+<p>可约矩阵则另列 SCC、各块 Perron 根与临界类；“某次有限迭代看起来稳定”不替代周期/谱结构的判定。</p>
+</div>
+<h3 id="5">5. 误区 / 模型边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>不可约只保证网络强连通与正 Perron 向量；它不排除周期外围谱，因此不保证原始归一化幂法收敛。</li>
+<li>幂法的有限步收敛、初始向量的特殊对称性和一条漂亮曲线都不是谱隙定理。周期矩阵从特殊起点可能“看起来不动”，不能反推本原。</li>
+<li>可约矩阵要区分 SCC、临界类和块三角耦合；全局根存在不等于全局 Perron 向量全正，也不能仅凭可约性断言唯一或不唯一，须报告 Perron 谱空间维数与支持。</li>
+<li>本实验使用显式有限实非负矩阵；随机矩阵的行/列约定、左/右特征向量和归一化方向必须在应用中另行声明。</li>
+</ul>
+</section>
 <h2 id="1-perron">1. Perron 定理（正矩阵情形）<a class="headerlink" href="#1-perron" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="幂迭代收敛到主特征向量" src="assets/img/ma-03-perron.svg" /></p>
@@ -56,9 +148,9 @@
 </figure>
 <p><strong>定理（Perron 1907）</strong> <span class="arithmatex">\(A &gt; 0\)</span>（逐元素严格正），则：
 ① <span class="arithmatex">\(\rho(A)\)</span> 本身是特征值（<strong>正实数</strong>）；② 对应特征向量可取<strong>逐元素严格正</strong>（Perron 向量）；③ <span class="arithmatex">\(\rho(A)\)</span> 是<strong>单</strong>根，且是唯一模最大的特征值（其余严格小）；④ 幂法必收敛：<span class="arithmatex">\(\frac{A^k x}{\|A^kx\|} \to\)</span> Perron 向量（任意 <span class="arithmatex">\(x &gt; 0\)</span> 起步）。</p>
-<p><strong>【骨架（Collatz–Wielandt 变分刻画路线）】</strong> 定义 <span class="arithmatex">\(r(x) = \min_i \frac{(Ax)_i}{x_i}\)</span>（<span class="arithmatex">\(x \geq 0, x\neq0\)</span>）：<span class="arithmatex">\(\rho = \max_x r(x)\)</span>。① 紧性给最大点 <span class="arithmatex">\(v\)</span>；② 若 <span class="arithmatex">\(Av \neq \rho v\)</span>（某分量严格大），用 <span class="arithmatex">\(A(Av) &gt; \rho\,(Av)\)</span>（正性把"≥ 且一处 &gt;"放大成"处处 &gt;"——<strong>正性是引擎</strong>）与 <span class="arithmatex">\(r\)</span> 的最大性矛盾 ⇒ <span class="arithmatex">\(Av = \rho v\)</span>；<span class="arithmatex">\(v = \frac{1}{\rho}Av &gt; 0\)</span>（正矩阵乘非负非零向量严格正）；③④ 由"其余特征值的特征向量必有变号分量、模严格小于 <span class="arithmatex">\(\rho\)</span>"（三角不等式取等条件的分析）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>Frobenius 推广（非负情形）</strong>：<span class="arithmatex">\(A \geq 0\)</span> <strong>不可约</strong>（关联图强连通——图论语言进场）：①② 保持（Perron 向量正、<span class="arithmatex">\(\rho\)</span> 单根）；但模最大特征值可能有多个——恰为 <span class="arithmatex">\(h\)</span> 个均匀分布在圆周上（<span class="arithmatex">\(h\)</span> = 周期）；<strong>本原</strong>（不可约 + 非周期）时完全回到 Perron 结论。可约情形按强连通分量分块三角化逐块分析【引用】。</p>
-<h2 id="2">2. 总后台：一张定理服务四门课<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>【骨架（Collatz–Wielandt 变分刻画路线）】</strong> 定义 <span class="arithmatex">\(r(x) = \min_i \frac{(Ax)_i}{x_i}\)</span>（这里必须是逐元素 <span class="arithmatex">\(x&gt;0\)</span>）：<span class="arithmatex">\(\rho = \max_{x&gt;0} r(x)\)</span>；也可用 <span class="arithmatex">\(\rho=\min_{x&gt;0}\max_i\frac{(Ax)_i}{x_i}\)</span>。① 紧性给最大点 <span class="arithmatex">\(v\)</span>；② 若 <span class="arithmatex">\(Av \neq \rho v\)</span>（某分量严格大），用 <span class="arithmatex">\(A(Av) &gt; \rho\,(Av)\)</span>（正性把"≥ 且一处 &gt;"放大成"处处 &gt;"——<strong>正性是引擎</strong>）与 <span class="arithmatex">\(r\)</span> 的最大性矛盾 ⇒ <span class="arithmatex">\(Av = \rho v\)</span>；<span class="arithmatex">\(v = \frac{1}{\rho}Av &gt; 0\)</span>（正矩阵乘非负非零向量严格正）；③④ 由"其余特征值的特征向量必有变号分量、模严格小于 <span class="arithmatex">\(\rho\)</span>"（三角不等式取等条件的分析）。若幂法起点不是 <span class="arithmatex">\(x&gt;0\)</span>，则需另行确认它在 Perron 左特征空间上的投影不为零。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>Frobenius 推广（非负情形）</strong>：<span class="arithmatex">\(A \geq 0\)</span> <strong>不可约</strong>（关联图强连通——图论语言进场）：①② 保持（Perron 向量正、<span class="arithmatex">\(\rho\)</span> 单根）；但模最大特征值可能有多个——恰为 <span class="arithmatex">\(h\)</span> 个均匀分布在圆周上（<span class="arithmatex">\(h\)</span> = 周期）；<strong>本原</strong>（不可约 + 非周期）时完全回到 Perron 结论。可约情形按强连通分量分块三角化逐块分析，并以实际 <span class="arithmatex">\(\ker(A-\rho I)\)</span> 的维数与支持描述 Perron 向量，而不是由“可约”三个字预判唯一性【引用】。</p>
+<h2 id="2_1">2. 总后台：一张定理服务四门课<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -71,7 +163,7 @@
 <tr>
 <td><strong>Markov 链</strong>（随机过程 II/III）</td>
 <td>转移阵 <span class="arithmatex">\(P\)</span>（行和 1 ⇒ <span class="arithmatex">\(\rho = 1\)</span>，Gershgorin+行和）</td>
-<td>平稳分布 = <span class="arithmatex">\(P^\top\)</span> 的 Perron 向量；<strong>不可约非周期 ⇒ 唯一且幂法收敛</strong>——遍历定理的线性代数证明；混合速度 = 第二特征值（谱隙——"<span class="arithmatex">\(\lvert\lambda_2\rvert\)</span> 统治一切"的总出处）</td>
+<td>平稳分布 = <span class="arithmatex">\(P^\top\)</span> 的 Perron 向量；<strong>有限不可约非周期 ⇒ 唯一且幂法收敛</strong>。可逆/正规情形可直接用第二特征值描述混合；非正规链还要计入条件数、Jordan 或奇异值效应</td>
 </tr>
 <tr>
 <td><strong>PageRank</strong>（图论 III）</td>
@@ -90,10 +182,10 @@
 </tr>
 </tbody>
 </table>
-<p><strong>读法</strong>：<strong>"非负 + 强连通 ⇒ 唯一的正主方向"</strong>——凡是"系统的长期占比/排名/结构"问题，答案都是某个 Perron 向量；求它的算法都是幂法（数值 II）；收敛都看谱隙。一条定理在四个学科收租，是"结构决定谱"的最佳样板。</p>
-<h2 id="3">3. 谱隙与混合时间（定量补遗）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>读法</strong>：<strong>"非负 + 强连通 ⇒ 唯一的正主方向"</strong>，但这不等于原始幂法必收敛。凡是"系统的长期占比/排名/结构"问题，先找 Perron 向量，再检查是否本原以及起点的 Perron 投影；周期情形要改用惰性化、Cesàro 平均或其他结构化算法。收敛速率还取决于谱隙和非正规性。一条定理在四个学科收租，是"结构决定谱"的最佳样板。</p>
+<h2 id="3_1">3. 谱隙与混合时间（定量补遗）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>本原非负矩阵：<span class="arithmatex">\(\frac{A^k}{\rho^k} \to v w^\top\)</span>（Perron 左右向量的外积——秩一极限），误差 <span class="arithmatex">\(\sim\big|\frac{\lambda_2}{\rho}\big|^k\)</span>【骨架：Jordan 分解按模排序，次大块衰减主导】。Markov 语言：混合时间 <span class="arithmatex">\(\approx \frac{1}{1 - |\lambda_2|}\)</span>（谱隙的倒数）——<strong>图的连通"瓶颈"越细，<span class="arithmatex">\(\lambda_2\)</span> 越贴近 1，混合越慢</strong>（Cheeger 不等式把这句直觉定量化：谱隙 ⟺ 图的导通率【引用】——谱图理论的门牌，MCMC 诊断与社区发现共用）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（PF 全套手算）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 2 &amp; 1\end{pmatrix}\)</span>（非负不可约）：特征值 <span class="arithmatex">\(2, -1\)</span>——<span class="arithmatex">\(\rho = 2\)</span> 正实 ✓ 单根 ✓；Perron 向量 <span class="arithmatex">\((1, 2)^\top &gt; 0\)</span> ✓；<span class="arithmatex">\(|\lambda_2/\rho| = \frac12\)</span> ⇒ 幂法每步误差减半。五分钟把定理四条全验一遍。</p>
 <p><strong>例 2（周期的反例）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}\)</span>（二部图/周期 2）：特征值 <span class="arithmatex">\(\pm1\)</span>——模最大者两个 ✗ 幂法震荡不收敛——<strong>Frobenius 情形"非周期"条件的必要性</strong>；PageRank 的随机跳跃、Markov 链的"惰性化"（<span class="arithmatex">\(\frac{I+P}{2}\)</span>）都是给周期打的疫苗。</p>
 <p><strong>例 3（Leontief 判可行）</strong> <span class="arithmatex">\(C = \begin{pmatrix}0.2 &amp; 0.3\\ 0.4 &amp; 0.1\end{pmatrix}\)</span>：行和 <span class="arithmatex">\(&lt; 1\)</span> ⇒（Gershgorin）<span class="arithmatex">\(\rho &lt; 1\)</span> ⇒ 任何需求向量都有非负产出方案 <span class="arithmatex">\((I-C)^{-1}d = \sum C^kd\)</span>——级数的每项都是"第 <span class="arithmatex">\(k\)</span> 轮间接需求"：<strong>经济学含义与 Neumann 级数逐项对应</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -108,5 +200,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/perron-frobenius.js"></script>
 </body>
 </html>

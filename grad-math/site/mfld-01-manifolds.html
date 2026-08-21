@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,26 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li class="active"><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：地图换算、切向量与秩检查</a><ul>
+<li><a href="#mfld-atlas-learning-title">1. 具身情境：一颗行星的地图没有“全局经纬线”</a></li>
+<li><a href="#2">2. 先预测：坐标换算会不会把方向压扁？</a></li>
+<li><a href="#3">3. 形式桥：内在转移与外部嵌入分栏</a></li>
+<li><a href="#4">4. 误区 / 边界：三组容易混淆的词</a></li>
+<li><a href="#5">5. 回到正式语言</a></li>
+<li><a href="#6">6. 迁移题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 光滑流形：图册的语言</a></li>
-<li><a href="#2">2. 切空间：没有外部空间的切向量</a></li>
-<li><a href="#3">3. 子流形与正则值（造流形的机器）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#2_1">2. 切空间：没有外部空间的切向量</a></li>
+<li><a href="#3_1">3. 子流形与正则值（造流形的机器）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,30 +69,113 @@
 <p><strong>对标</strong>：Lee <em>Smooth Manifolds</em> §1–3 ｜ <strong>前置</strong>：本科拓扑 I–II、数分 V、微分几何 I–II
 流形 = "局部像 <span class="arithmatex">\(\mathbb{R}^n\)</span>、整体可以弯曲缠绕"的空间——把微积分从欧氏空间解放到一般弯曲对象上的语言工程。本页立好三块基石：<strong>流形的定义</strong>（图册）、<strong>光滑映射</strong>（借坐标定义、验证与坐标无关）、<strong>切空间</strong>（没有外部空间时"切向量"是什么——本课程第一个真正的抽象飞跃）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="mfld-atlas-learning-title" class="learning-layer">
+<h2 id="_1">学习层：地图换算、切向量与秩检查<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="mfld-atlas-learning-title">1. 具身情境：一颗行星的地图没有“全局经纬线”<a class="headerlink" href="#mfld-atlas-learning-title" title="Permanent link"></a></h3>
+<p>想给一颗圆形行星做地图：从北极投影得到一张坐标卡，从南极投影得到另一张。每一张地图都只覆盖一个开邻域，不能把整颗圆硬塞进一张无奇点的欧氏图；真正需要检查的是两张地图重叠部分的换算是否光滑。球面只是同一件事的二维版本。</p>
+<h3 id="2">2. 先预测：坐标换算会不会把方向压扁？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不打开实验台，预测三件事：</p>
+<ul>
+<li>在 <span class="arithmatex">\(S^1\)</span> 的两个立体投影卡上，若北卡坐标为 <span class="arithmatex">\(u\neq0\)</span>，南卡坐标 <span class="arithmatex">\(v\)</span> 是 <span class="arithmatex">\(u\)</span>、<span class="arithmatex">\(1/u\)</span> 还是 <span class="arithmatex">\(u^2\)</span>？其 Jacobian 的秩是多少？</li>
+<li>在 <span class="arithmatex">\(S^2\)</span> 上，<span class="arithmatex">\(v=u/\|u\|^2\)</span> 的二维 Jacobian 会不会满秩？</li>
+<li>对锥面 <span class="arithmatex">\(F^{-1}(0)\)</span>，锥尖 <span class="arithmatex">\(p=(0,0,0)\)</span> 是否满足正则值定理的秩条件？</li>
+</ul>
+<h3 id="3">3. 形式桥：内在转移与外部嵌入分栏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>圆的两张立体投影卡可写成</p>
+<div class="arithmatex">\[
+\phi_N(x,y)=\frac{x}{1-y}=u,\qquad \phi_S(x,y)=\frac{x}{1+y}=v,
+\]</div>
+<p>于是重叠区的转移为 <span class="arithmatex">\(v=1/u\)</span>，<span class="arithmatex">\(D(v/u)=[-1/u^2]\)</span>。球面的二维版本是</p>
+<div class="arithmatex">\[
+\phi_N^{-1}(u)=\frac{(2u_1,2u_2,\|u\|^2-1)}{1+\|u\|^2},
+\qquad
+\phi_S\circ\phi_N^{-1}(u)=\frac{u}{\|u\|^2},
+\]</div>
+<p>其 Jacobian 在 <span class="arithmatex">\(u\neq0\)</span> 时可逆，行列式为 <span class="arithmatex">\(-\|u\|^{-4}\)</span>。这两行是<strong>内在图册的换坐标</strong>；实验台旁边的圆/椭圆/锥形只是嵌入 <span class="arithmatex">\(\mathbb{R}^n\)</span> 的外部画面，不能把画面当作流形的定义。</p>
+<p>切空间再用正则值账本对接：若 <span class="arithmatex">\(F:\mathbb{R}^N\to\mathbb{R}^k\)</span>，则嵌入子流形在 <span class="arithmatex">\(p\)</span> 处的切空间是 <span class="arithmatex">\(\ker dF_p\)</span>；正则值条件要求对<strong>所有</strong> <span class="arithmatex">\(p\in F^{-1}(q)\)</span> 都有 <span class="arithmatex">\(\operatorname{rank}dF_p=k\)</span>。</p>
+<div class="learning-lab" data-learning-lab="manifold-atlas">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>对象 / 检查点</th>
+<th>坐标或 Jacobian</th>
+<th>rank / 结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(S^1\)</span> 两卡</td>
+<td><span class="arithmatex">\(v=1/u\)</span>，<span class="arithmatex">\(D=[-1/u^2]\)</span>（<span class="arithmatex">\(u\neq0\)</span>）</td>
+<td>rank <span class="arithmatex">\(=1\)</span>，转移局部可逆</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S^2\)</span> 两卡</td>
+<td><span class="arithmatex">\(v=u/\|u\|^2\)</span>，<span class="arithmatex">\(\det D=-\|u\|^{-4}\)</span></td>
+<td>rank <span class="arithmatex">\(=2\)</span>，转移局部可逆</td>
+</tr>
+<tr>
+<td>圆 <span class="arithmatex">\(F=x^2+y^2\)</span>，level <span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(dF_p=[2x,2y]\)</span>，<span class="arithmatex">\(p\in S^1\)</span></td>
+<td>rank <span class="arithmatex">\(=1\)</span>，<span class="arithmatex">\(\dim\ker dF_p=1\)</span></td>
+</tr>
+<tr>
+<td>球面 <span class="arithmatex">\(F=x^2+y^2+z^2\)</span>，level <span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(dF_p=[2x,2y,2z]\)</span>，<span class="arithmatex">\(p\in S^2\)</span></td>
+<td>rank <span class="arithmatex">\(=1\)</span>，<span class="arithmatex">\(\dim\ker dF_p=2\)</span></td>
+</tr>
+<tr>
+<td>锥面 <span class="arithmatex">\(F=x^2+y^2-z^2\)</span>，level <span class="arithmatex">\(0\)</span> 的普通点</td>
+<td><span class="arithmatex">\(dF_p\)</span> 满秩</td>
+<td><span class="arithmatex">\(\ker dF_p\)</span> 是二维切空间</td>
+</tr>
+<tr>
+<td>锥面 <span class="arithmatex">\(F=x^2+y^2-z^2\)</span>，level <span class="arithmatex">\(0\)</span> 的锥尖</td>
+<td>锥尖 <span class="arithmatex">\(p=0\)</span> 时 <span class="arithmatex">\(dF_0=[0,0,0]\)</span></td>
+<td>rank <span class="arithmatex">\(=0\)</span>，<span class="arithmatex">\(0\)</span> 不是正则值；这里只报告三维 Jacobian kernel，不称切空间</td>
+</tr>
+</tbody>
+</table>
+<p>表格中的几个点用于读公式；正则值的全称不是“抽到几个点都过关”，而是 level set 中每一点都要满秩。锥面的普通点切空间是二维，锥尖没有定义良好的流形切空间；锥尖的失败足以阻止整条 level set 作为光滑嵌入子流形被正则值定理认证。</p>
+</div>
+<h3 id="4">4. 误区 / 边界：三组容易混淆的词<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>内在图册 ≠ 嵌入画面</strong>：流形可以先作为抽象拓扑空间定义；嵌入只提供一种可视化与计算方式。</li>
+<li><strong>局部坐标 ≠ 全局覆盖</strong>：一张卡只需覆盖一个邻域，图册的联合覆盖才覆盖 <span class="arithmatex">\(M\)</span>；球面没有无奇点的单张欧氏坐标。</li>
+<li><strong>正则值 ≠ 任意 level set</strong>：<span class="arithmatex">\(F^{-1}(q)\)</span> 只有在每个原像点满秩时才由定理保证为子流形；奇异 level set 不能靠“看起来像曲面”补条件。</li>
+<li><strong>切向量 ≠ 外部箭头本身</strong>：导子定义在没有嵌入时仍然成立；嵌入中的核 <span class="arithmatex">\(\ker dF_p\)</span> 是它在该表示下的具体模型。</li>
+</ul>
+<h3 id="5">5. 回到正式语言<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>图册的转移映射把“借坐标定义、换坐标验证”变成一个严格协议；导子把 <span class="arithmatex">\(T_pM\)</span> 定义成作用在 <span class="arithmatex">\(C^\infty(M)\)</span> 上的方向导数；正则值定理则把满秩 Jacobian 翻译成局部平直的子流形。实验台的 rank ledger 只负责把这三层字典在 <span class="arithmatex">\(S^1\)</span>、<span class="arithmatex">\(S^2\)</span> 和锥面上对齐。</p>
+<h3 id="6">6. 迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若把圆的半径从 <span class="arithmatex">\(1\)</span> 改为 <span class="arithmatex">\(r&gt;0\)</span>，哪些 chart transition 不变，哪些 <span class="arithmatex">\(dF_p\)</span> 的数值改变？再说明为什么“每个点都有某张坐标卡”不等于“存在一张覆盖全空间的坐标卡”。</p>
+</section>
 <figure class="diagram">
 <p><img alt="流形的图册：局部坐标卡 + 转移映射把弯曲空间&quot;拼&quot;起来。" src="assets/img/mfld-01-chart.svg" /></p>
 <figcaption><span class="fig-id">图 mfld-01.1</span>流形的图册：局部坐标卡 + 转移映射把弯曲空间"拼"起来。</figcaption>
 </figure>
 <h2 id="1">1. 光滑流形：图册的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(n\)</span> 维<strong>拓扑流形</strong> <span class="arithmatex">\(M\)</span>：Hausdorff、第二可数（拓扑 II 的分离性与可数性在此当门卫——排除病态例）、且每点有邻域同胚于 <span class="arithmatex">\(\mathbb{R}^n\)</span> 的开集。同胚 <span class="arithmatex">\(\varphi_\alpha: U_\alpha \to \mathbb{R}^n\)</span> 称<strong>坐标卡</strong>；一族覆盖全 <span class="arithmatex">\(M\)</span> 的卡即<strong>图册</strong>。</p>
+<p><strong>定义</strong> <span class="arithmatex">\(n\)</span> 维<strong>拓扑流形</strong> <span class="arithmatex">\(M\)</span>：Hausdorff、第二可数（拓扑 II 的分离性与可数性在此当门卫——排除病态例）、且每点有邻域同胚于 <span class="arithmatex">\(\mathbb{R}^n\)</span> 的开集。坐标卡是同胚 <span class="arithmatex">\(\varphi_\alpha:U_\alpha\to V_\alpha\)</span>，其中 <span class="arithmatex">\(U_\alpha\subset M\)</span> 开、<span class="arithmatex">\(V_\alpha\subset\mathbb{R}^n\)</span> 也开；一族覆盖全 <span class="arithmatex">\(M\)</span> 的卡即<strong>图册</strong>。</p>
 <p><strong>光滑结构</strong>：任意两卡的<strong>转移映射</strong> <span class="arithmatex">\(\varphi_\beta\circ\varphi_\alpha^{-1}\)</span>（欧氏开集之间的映射——可以谈光滑！）都 <span class="arithmatex">\(C^\infty\)</span>。<strong>读法</strong>：流形本身没有坐标，<strong>光滑性是"换坐标的方式"携带的</strong>——地图集的隐喻是字面的：地球没有经纬线，但任两张地图的换算是光滑的。</p>
 <p><strong>例子库</strong>：<span class="arithmatex">\(\mathbb{R}^n\)</span>、球面 <span class="arithmatex">\(S^n\)</span>（两个立体投影卡——转移映射 <span class="arithmatex">\(x \mapsto x/\|x\|^2\)</span> 光滑 ✓）、环面 <span class="arithmatex">\(T^n\)</span>、射影空间 <span class="arithmatex">\(\mathbb{RP}^n\)</span>（拓扑 I 商空间机器的产品）、矩阵群 <span class="arithmatex">\(GL_n\)</span>（开子集）与 <span class="arithmatex">\(SO(n)\)</span>（下述正则值技术的产品）、<strong>构型空间</strong>（机器人臂的姿态全体——流形语言的工程户口）。</p>
 <p><strong>光滑映射</strong>：<span class="arithmatex">\(f: M \to N\)</span> 光滑 = 每对坐标卡下的表示 <span class="arithmatex">\(\psi\circ f\circ\varphi^{-1}\)</span> 光滑（转移映射的光滑性保证定义与选卡无关——<strong>"借坐标定义、验证无关性"是本课程反复使用的仪式</strong>）。微分同胚 = 光滑可逆且逆光滑（流形世界的"相等"）。</p>
-<h2 id="2">2. 切空间：没有外部空间的切向量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 切空间：没有外部空间的切向量<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>微分几何 I/II 的曲线曲面活在 <span class="arithmatex">\(\mathbb{R}^3\)</span> 里，切向量是外部空间的箭头；抽象流形没有"外面"——切向量必须内在地定义。两条等价路线：</p>
 <p><strong>路线 A（曲线速度）</strong>：过 <span class="arithmatex">\(p\)</span> 的光滑曲线 <span class="arithmatex">\(\gamma\)</span> 的等价类（在任一坐标卡下速度相同者等价）——直观但依赖坐标验证。</p>
 <p><strong>路线 B（导子，正式定义）</strong>：<span class="arithmatex">\(T_pM\)</span> = 满足 Leibniz 律的线性泛函 <span class="arithmatex">\(v: C^\infty(M) \to \mathbb{R}\)</span>（<span class="arithmatex">\(v(fg) = v(f)g(p) + f(p)v(g)\)</span>）全体——<strong>"切向量 = 方向导数算子"</strong>：不问箭头指哪，只问"沿它求导是什么操作"（把对象定义为它的作用——代数化的现代口味，与"分布 = 对测试函数的作用"pde2-01 同一哲学）。</p>
 <p><strong>定理</strong> <span class="arithmatex">\(T_pM\)</span> 是 <span class="arithmatex">\(n\)</span> 维线性空间，坐标卡给基 <span class="arithmatex">\(\big\{\frac{\partial}{\partial x^i}\big|_p\big\}\)</span>。
 <strong>【骨架】</strong> 导子性质 + Taylor 展开（Hadamard 引理：<span class="arithmatex">\(f = f(p) + \sum(x^i - p^i)g_i\)</span>）逼出 <span class="arithmatex">\(v = \sum v(x^i)\frac{\partial}{\partial x^i}\)</span>——分量恰是 <span class="arithmatex">\(v\)</span> 作用在坐标函数上的值。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>微分（推前）</strong>：光滑 <span class="arithmatex">\(f: M \to N\)</span> 诱导线性映射 <span class="arithmatex">\(df_p: T_pM \to T_{f(p)}N\)</span>（<span class="arithmatex">\(df_p(v)(g) = v(g\circ f)\)</span>——导子的语言里链式法则是定义本身）；坐标下就是 <strong>Jacobi 矩阵</strong>（数分 V 认祖归宗：多元微分学原来一直在做流形的局部理论）。</p>
-<h2 id="3">3. 子流形与正则值（造流形的机器）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（正则值定理 / 隐函数定理的流形版）</strong> <span class="arithmatex">\(f: M \to N\)</span> 光滑，<span class="arithmatex">\(q \in N\)</span> 是<strong>正则值</strong>（<span class="arithmatex">\(df_p\)</span> 满秩 <span class="arithmatex">\(\forall p \in f^{-1}(q)\)</span>），则 <span class="arithmatex">\(f^{-1}(q)\)</span> 是 <span class="arithmatex">\(\dim M - \dim N\)</span> 维嵌入子流形。
+<h2 id="3_1">3. 子流形与正则值（造流形的机器）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>定理（正则值定理 / 隐函数定理的流形版）</strong> <span class="arithmatex">\(f: M \to N\)</span> 光滑，<span class="arithmatex">\(q \in N\)</span> 是<strong>正则值</strong>（<span class="arithmatex">\(df_p\)</span> 满秩 <span class="arithmatex">\(\forall p \in f^{-1}(q)\)</span>），则 <span class="arithmatex">\(f^{-1}(q)\)</span> 是 <span class="arithmatex">\(\dim M - \dim N\)</span> 维嵌入子流形。注意这里的“<span class="arithmatex">\(\forall\)</span>”不能被几个绘图点或单个数值样例替代。
 <strong>【骨架】</strong> 隐函数定理（数分 V）逐点给出局部坐标平直化——"解集是流形"的判据。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>流水线产品</strong>：<span class="arithmatex">\(S^n = \{\|x\|^2 = 1\}\)</span>（1 是 <span class="arithmatex">\(\|x\|^2\)</span> 的正则值——一行验证）；<span class="arithmatex">\(SO(n) = \{A^\top A = I\}\)</span>（维数 <span class="arithmatex">\(\frac{n(n-1)}{2}\)</span>——旋转群是流形：<strong>Lie 群</strong>的入场券）；约束优化的可行集（优化 III 的正则性条件即"约束流形"的合法性——两门课的暗线接通）。</p>
 <p>（<strong>Whitney 嵌入定理【引用】</strong>：任何 <span class="arithmatex">\(n\)</span> 维流形可嵌入 <span class="arithmatex">\(\mathbb{R}^{2n}\)</span>——抽象流形并不比"欧氏空间里的曲面"更多，但内在语言让证明与计算摆脱嵌入的偶然性。）</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（图册亲手造）</strong> 给 <span class="arithmatex">\(S^1\)</span> 造两卡图册（角度参数 <span class="arithmatex">\((0, 2\pi)\)</span> 与 <span class="arithmatex">\((-\pi, \pi)\)</span>）：写出转移映射（分段平移）验证光滑——最小流形的完整仪式。</p>
-<p><strong>例 2（正则值机器）</strong> <span class="arithmatex">\(f(x,y,z) = x^2 + y^2 - z^2\)</span>：<span class="arithmatex">\(f^{-1}(1)\)</span> 是流形（单叶双曲面——解几 II 的曲面获得正式身份）；<span class="arithmatex">\(f^{-1}(0)\)</span> <strong>不是</strong>（锥尖处 <span class="arithmatex">\(df = 0\)</span>：0 非正则值）——机器的适用边界一题看清。</p>
+<p><strong>例 2（正则值机器）</strong> <span class="arithmatex">\(f(x,y,z) = x^2 + y^2 - z^2\)</span>：<span class="arithmatex">\(f^{-1}(1)\)</span> 是流形（单叶双曲面——解几 II 的曲面获得正式身份）；<span class="arithmatex">\(f^{-1}(0)\)</span> 在锥尖处 <span class="arithmatex">\(df = 0\)</span>，所以 0 不是正则值，正则值定理不能把<strong>整个</strong> level set 认证为光滑子流形。离开锥尖的普通部分仍有二维切空间，可单独研究；锥尖只留下三维 Jacobian kernel，不能把它叫作切空间——机器的适用边界一题看清。</p>
 <p><strong>例 3（🔗 数据流形假设）</strong> "自然图像分布在低维流形附近"（ai/comfy 课的口头禅）：本页给这句话的每个词以定义——维数 = 图册的 <span class="arithmatex">\(n\)</span>（内在自由度：光照/姿态/表情），切空间 = 局部合法扰动方向（对抗样本工作在法方向、数据增强工作在切方向——一句话的几何分类）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：在流形上积分——微分形式、外微分与 Stokes 定理：数分 VI 三大公式的终极统一。</em></p>
@@ -85,5 +188,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/manifold-atlas.js"></script>
 </body>
 </html>

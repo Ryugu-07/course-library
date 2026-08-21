@@ -3,6 +3,57 @@
 > **对标**：van der Vaart *AS* §5.2–5.5 ｜ **前置**：as-01、本科统计 II、mt-02
 > 本科统计 II 承诺过"MLE 渐近正态且达 Cramér–Rao 界"——本页兑付：**相合性**（为什么 MLE 找得到真值）、**渐近正态性**（$\sqrt n$ 速率 + Fisher 信息的逆当方差）、**渐近有效性**（为什么它是"讲究人的选择"）。证明结构本身（M-估计的三段论）比结论更值得带走。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="mle-asymptotics-learning-title">
+
+## 学习层：渐近钟形不是有限样本印章，边界也不会因样本变多而消失
+
+<h3 id="mle-asymptotics-learning-title">1. 先预测：正则定理在哪些地方停止发证？</h3>
+
+用 Bernoulli 模型 $X_i\sim\operatorname{Bernoulli}(p)$ 做一台可穷举的显微镜。MLE 为 $\hat p=K/n$，$K\sim\operatorname{Binomial}(n,p)$。先判断：
+
+1. $\sqrt n(\hat p-p)\Rightarrow N(0,p(1-p))$ 是否意味着每个有限 $n$ 的 $\hat p$ 都精确正态？
+2. 真值 $p=0$ 或 $1$ 时，能否直接沿用“真值为参数空间内点”的 Taylor/Fisher 证明？
+3. 名义 95% 的 Wald 区间是否在所有 $(n,p)$ 上都精确覆盖 95%？
+
+揭示后，实验不抽 Monte Carlo 样本，而是枚举 $K=0,\ldots,n$ 的全部二项质量；因此柱状图、均值、方差和区间覆盖率都是确定的，正态曲线才是近似层。
+
+### 2. 静态后备：Bernoulli 内点是“恰好能双重对账”的特例
+
+<div class="learning-lab" data-learning-lab="mle-asymptotics" markdown="1">
+
+对 $0<p<1$，
+
+$$
+E(\hat p)=p,
+\qquad
+\operatorname{Var}(\hat p)=\frac{p(1-p)}n,
+\qquad
+I(p)=\frac1{p(1-p)}.
+$$
+
+所以这个特例中 $\operatorname{Var}(\hat p)=1/[nI(p)]$ 在有限样本就成立；这来自样本均值和一参数指数族的特殊结构，不能倒推出“一般 MLE 都在有限样本无偏并达到 CR 界”。
+
+| 状态 | 精确分布 | 正态近似能否直接套 |
+|---|---|---|
+| $0<p<1$，$n$ 有限 | $P(\hat p=k/n)=\binom nkp^k(1-p)^{n-k}$ | 只是近似，质量仍在离散格点上 |
+| $n\to\infty$，固定内点 $p$ | 标准化后二项分布趋正态 | 正则 CLT/Taylor 路线成立 |
+| $p=0$ 或 $1$ | $\hat p$ 退化在边界 | 内点、非退化信息与常规正态极限失效 |
+
+实验还对所有 $k$ 穷举 Wald 与 Wilson 区间是否覆盖真值，并按二项概率加权。覆盖率是 $(n,p)$ 的离散函数；“95%”是构造的名义目标或渐近校准，不是逐参数精确恒等式。
+
+### 3. 从特例回到一般 MLE
+
+- **相合性先于局部展开。**若可识别性、良分离最大点或一致大数律失败，先把 $\hat\theta$ 拉回 $\theta_0$ 邻域的步骤就不存在。
+- **真值内点与信息非奇异不是装饰。**边界、混合模型、不可识别参数和奇异信息阵通常产生截断、混合或非 $\sqrt n$ 极限。
+- **渐近有效性需要局部正则比较口径。**Hodges 型超有效现象说明“某一个点方差更小”不等于在邻域中普遍更好。
+- **误设模型要换方差。**伪真值附近通常出现 sandwich 协方差；把模型内 Fisher 逆直接当真实抽样方差可能低估不确定性。
+
+</div>
+
+</section>
+
 ## 1. 相合性：KL 的胜利
 
 MLE 是 **M-估计**（最大化经验准则 $M_n(\theta) = \frac1n\sum\ln f(X_i;\theta)$）的特例；总体准则 $M(\theta) = E_{\theta_0}\ln f(X;\theta)$。

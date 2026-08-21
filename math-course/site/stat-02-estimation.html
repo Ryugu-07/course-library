@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：“瞄得正”不是唯一目标，风险必须在重复抽样世界里读</a><ul>
+<li><a href="#estimator-risk-learning-title">1. 先预测：偏差能不能换方差？</a></li>
+<li><a href="#2-mse">2. 静态后备：MSE 的两本账</a></li>
+<li><a href="#3">3. 三条评价纪律</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 矩估计：最朴素的路</a></li>
 <li><a href="#2-mle">2. 极大似然估计（MLE，本页主菜）</a></li>
-<li><a href="#3">3. 评价估计量：三把尺</a></li>
+<li><a href="#3_1">3. 评价估计量：三把尺</a></li>
 <li><a href="#4-cramerrao">4. Cramér–Rao 下界：无偏估计的天花板</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
@@ -49,6 +66,68 @@
 <blockquote>
 <p>用样本给未知参数一个"最佳猜测"。两条造估计量的路（矩法、极大似然）、三把评价的尺（无偏、有效、相合）、一条理论天花板（Cramér–Rao 下界）。MLE 一节是全统计与机器学习交汇最深的地方——<strong>训练神经网络的那个损失函数，就是本页的负对数似然</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="estimator-risk-learning-title" class="learning-layer">
+<h2 id="_1">学习层：“瞄得正”不是唯一目标，风险必须在重复抽样世界里读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="estimator-risk-learning-title">1. 先预测：偏差能不能换方差？<a class="headerlink" href="#estimator-risk-learning-title" title="Permanent link"></a></h3>
+<p>实验固定 Bernoulli 样本 <span class="arithmatex">\(K\sim\operatorname{Binomial}(n,p)\)</span>，比较三种估计：</p>
+<div class="arithmatex">\[
+\hat p_{\mathrm{MLE}}=\frac Kn,
+\qquad
+\hat p_L=\frac{K+1}{n+2},
+\qquad
+\hat p_S=\frac{K+2}{n+4}.
+\]</div>
+<p>先判断：有偏估计的 MSE 能否低于无偏估计？标准 <span class="arithmatex">\(1/[nI(p)]\)</span> 是否直接约束所有有偏估计的方差？只看当前样本算出的一个数，能否知道估计量在重复抽样下的 MSE？</p>
+<p>提交后，实验穷举 <span class="arithmatex">\(K=0,\ldots,n\)</span>，精确计算 <span class="arithmatex">\(E\hat p\)</span>、Bias、Variance 与 MSE，并扫描真值 <span class="arithmatex">\(p\)</span>。这会把“当前估计值”与“估计规则的风险函数”分开。</p>
+<h3 id="2-mse">2. 静态后备：MSE 的两本账<a class="headerlink" href="#2-mse" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="estimator-risk">
+<p>平方损失下</p>
+<div class="arithmatex">\[
+R(p,\hat p)=E_p(\hat p-p)^2
+=\operatorname{Var}_p(\hat p)+\operatorname{Bias}_p(\hat p)^2.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>估计量</th>
+<th style="text-align: right;">偏差</th>
+<th style="text-align: right;">方差</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(K/n\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(p(1-p)/n\)</span></td>
+<td>Bernoulli 内点恰好达到无偏 CR 下界</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((K+1)/(n+2)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1-2p)/(n+2)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(np(1-p)/(n+2)^2\)</span></td>
+<td>向 <span class="arithmatex">\(1/2\)</span> 收缩，牺牲偏差降低方差</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((K+2)/(n+4)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2(1-2p)/(n+4)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(np(1-p)/(n+4)^2\)</span></td>
+<td>收缩更强，中心附近更稳，边缘可能偏得更多</td>
+</tr>
+</tbody>
+</table>
+<p>标准 Cramér–Rao 结论在正则条件下约束<strong>无偏</strong>估计的方差。Bernoulli 的 <span class="arithmatex">\(p=0,1\)</span> 是参数空间的非正则边界，标准内点 CR 定理不在端点发证；实验虚线在端点降到零只表示公式的连续延拓。对有偏估计 <span class="arithmatex">\(T\)</span>，相应下界含 <span class="arithmatex">\(1+b'(\theta)\)</span> 因子；因此不能看到一条收缩曲线低于 <span class="arithmatex">\(1/[nI]\)</span> 就宣布违反定理。</p>
+<h3 id="3">3. 三条评价纪律<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>无偏不是统一赢家。</strong>若损失是平方误差，有限样本应比较完整 MSE；偏差与方差的取舍依赖参数区域和任务代价。</li>
+<li><strong>相合不描述有限样本。</strong>一个估计量可以相合，却在当前 <span class="arithmatex">\(n\)</span> 下方差很大；也可以有限样本有偏，但偏差随 <span class="arithmatex">\(n\)</span> 消失。</li>
+<li><strong>风险函数依赖未知真值。</strong>实践中的交叉验证、bootstrap、Bayes 风险或 minimax 分析是在不同假设下估风险，不能从一次误差直接读出总体 MSE。</li>
+<li>Bernoulli 样本比例有限样本达到 CR 界是特殊结构；“MLE 普遍有限样本无偏有效”是错误迁移。</li>
+</ul>
+</div>
+</section>
 <h2 id="1">1. 矩估计：最朴素的路<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>原理</strong>：用样本矩顶替总体矩，解方程。总体 <span class="arithmatex">\(k\)</span> 阶矩 <span class="arithmatex">\(\mu_k(\theta) = E X^k\)</span> 是参数的函数，令</p>
 <div class="arithmatex">\[
@@ -69,7 +148,7 @@ L(\theta) = \prod_{i=1}^{n} f(x_i;\, \theta), \qquad \hat\theta_{\mathrm{MLE}} =
 </ul>
 <p><strong>不变性</strong>：<span class="arithmatex">\(\hat\theta\)</span> 是 <span class="arithmatex">\(\theta\)</span> 的 MLE ⇒ <span class="arithmatex">\(g(\hat\theta)\)</span> 是 <span class="arithmatex">\(g(\theta)\)</span> 的 MLE（换参数免重算）。</p>
 <p>🔗 <strong>AI 衔接（本站最重要的一条线）</strong>：最小化交叉熵 = 最大化对数似然（ai 课 07 讲 LLM 的训练目标 <span class="arithmatex">\(-\sum\log P(w_t\mid w_{&lt;t})\)</span> 就是 <span class="arithmatex">\(-\ell\)</span>）；最小二乘 = 高斯噪声假设下的 MLE（正态例子里 <span class="arithmatex">\(\hat\mu\)</span> 的推导已经证明了）；MAP = MLE + 先验 = 正则化（概率 I、ai 课 03 讲拉普拉斯平滑）。<strong>"机器学习训练"在统计语言里就是大规模 MLE。</strong></p>
-<h2 id="3">3. 评价估计量：三把尺<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 评价估计量：三把尺<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>1. 无偏性</strong>：<span class="arithmatex">\(E\hat\theta = \theta\)</span>（瞄得正）。<span class="arithmatex">\(\bar X\)</span> 对 <span class="arithmatex">\(\mu\)</span> 无偏；<span class="arithmatex">\(S^2\)</span> 对 <span class="arithmatex">\(\sigma^2\)</span> 无偏而 <span class="arithmatex">\(\hat\sigma^2_{\mathrm{MLE}}\)</span> 偏小（差因子 <span class="arithmatex">\(\frac{n-1}{n}\)</span>，大样本消失——"渐近无偏"）。</p>
 <p><strong>2. 有效性</strong>：同为无偏，方差小者优（瞄得正还要抖得少）。</p>
 <p><strong>3. 相合性</strong>：<span class="arithmatex">\(\hat\theta_n \xrightarrow{P} \theta\)</span>（样本无限多时收敛到真值——底线要求，矩法与 MLE 在正则条件下都满足；依据是大数定律）。</p>
@@ -103,5 +182,7 @@ D(\hat\theta) \geq \frac{1}{n\, I(\theta)}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/estimator-risk.js"></script>
 </body>
 </html>

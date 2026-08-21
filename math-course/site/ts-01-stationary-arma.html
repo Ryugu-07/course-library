@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +41,19 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li class="active"><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#acf-acf">学习层：总体 ACF 是指纹模板，样本 ACF 只是带噪照片</a><ul>
+<li><a href="#arma-learning-title">1. 先预测：一条轨迹能替总体发证吗？</a></li>
+<li><a href="#2">2. 静态后备：先查根，再谈指纹</a></li>
+<li><a href="#3">3. 三条建模纪律</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 平稳性：时序分析的入场券</a></li>
 <li><a href="#2-ar-ma-arma">2. AR / MA / ARMA 三件套</a></li>
 <li><a href="#3-boxjenkins">3. Box–Jenkins 建模流程（实操主线）</a></li>
@@ -48,6 +65,65 @@
 <blockquote>
 <p>统计线的方法默认样本 i.i.d.——时间序列恰恰相反：<strong>今天与昨天相关，相关性本身就是信息</strong>。本页立好平稳性语言，建起经典建模武器库 ARMA，给出"看图定阶"的实操流程。它是 Medusa 预测层与一切金融数据分析的统计学正音。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="arma-learning-title" class="learning-layer">
+<h2 id="acf-acf">学习层：总体 ACF 是指纹模板，样本 ACF 只是带噪照片<a class="headerlink" href="#acf-acf" title="Permanent link"></a></h2>
+<h3 id="arma-learning-title">1. 先预测：一条轨迹能替总体发证吗？<a class="headerlink" href="#arma-learning-title" title="Permanent link"></a></h3>
+<p>实验让 AR(1) 与 MA(1) 共用同一份固定随机回放。先判断：</p>
+<ol>
+<li><span class="arithmatex">\(X_t=X_{t-1}+\varepsilon_t\)</span> 的一条有限轨迹即便看起来围绕零，是否具有有限的平稳方差？</li>
+<li>MA(1) 的<strong>总体</strong> ACF 在 lag <span class="arithmatex">\(&gt;1\)</span> 精确为零，有限样本 ACF 是否也会逐项精确截尾？</li>
+<li>样本均值和方差在某个窗口内稳定，是否足以证明整个随机过程平稳？</li>
+</ol>
+<p>提交后才显示理论 ACF、样本 ACF、根模和方差。移动样本长度会收紧抽样波动，但不会把一张样本图升级成对所有有限维分布或协方差结构的证明。</p>
+<h3 id="2">2. 静态后备：先查根，再谈指纹<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="arma-diagnostics">
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>结构条件</th>
+<th>总体方差</th>
+<th>总体 ACF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AR(1)</td>
+<td><span class="arithmatex">\(\lvert\phi\rvert&lt;1\)</span></td>
+<td><span class="arithmatex">\(\sigma^2/(1-\phi^2)\)</span></td>
+<td><span class="arithmatex">\(\rho(k)=\phi^k\)</span></td>
+</tr>
+<tr>
+<td>AR(1)，<span class="arithmatex">\(\phi=1\)</span></td>
+<td>单位根，平稳条件失败</td>
+<td>不存在有限常数平稳方差</td>
+<td>不能套 <span class="arithmatex">\(\phi^k\)</span> 的平稳解释</td>
+</tr>
+<tr>
+<td>MA(1)</td>
+<td>对任意有限 <span class="arithmatex">\(\theta\)</span> 都宽平稳</td>
+<td><span class="arithmatex">\(\sigma^2(1+\theta^2)\)</span></td>
+<td><span class="arithmatex">\(\rho(1)=\theta/(1+\theta^2)\)</span>，<span class="arithmatex">\(k&gt;1\)</span> 时为 <span class="arithmatex">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>MA(1) 的可逆性另要求 <span class="arithmatex">\(\lvert\theta\rvert&lt;1\)</span>；<strong>不可逆不等于不平稳</strong>。可逆性保证创新表示可由观测唯一恢复，而平稳性来自它本来就是有限个白噪声的线性组合。</p>
+<p>实验用固定 seed 生成回放，并把每个 lag 的</p>
+<div class="arithmatex">\[
+\widehat\rho(k)-\rho(k)
+\]</div>
+<p>逐行列出。图上的 <span class="arithmatex">\(\pm1.96/\sqrt n\)</span> 只是白噪声 ACF 常用的单项近似参考带；多个 lag 同时检查、参数先估后检或非高斯重尾情形都需要更严谨的诊断。</p>
+<h3 id="3">3. 三条建模纪律<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>根条件是模型证书，轨迹图是观测。</strong>对 <span class="arithmatex">\(\lvert\phi\rvert\ge1\)</span>，实验仍可生成有限序列，但会停止报告平稳方差和总体 ACF 证书。</li>
+<li><strong>“截尾/拖尾”说的是总体模式。</strong>样本 ACF 永远带抽样波动，Box–Jenkins 识别还要结合 PACF、信息准则、残差和领域结构。</li>
+<li><strong>宽平稳不自动给遍历性。</strong>用时间平均替总体平均需要额外条件；一条路径无法仅凭视觉证明严平稳或遍历。</li>
+<li><strong>白噪声残差不是“每个样本相关恰为零”。</strong>它是总体不相关结构，实务上用联合检验与不确定性判断，而不是逐点追求零。</li>
+</ul>
+</div>
+</section>
 <h2 id="1">1. 平稳性：时序分析的入场券<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>宽平稳（协方差平稳）</strong>：均值恒定 <span class="arithmatex">\(E X_t = \mu\)</span>；自协方差只依赖间隔 <span class="arithmatex">\(\gamma(k) = \mathrm{Cov}(X_t, X_{t+k})\)</span>（与 <span class="arithmatex">\(t\)</span> 无关）。（严平稳 = 全部联合分布平移不变，更强；高斯过程两者等价。）</p>
 <p><strong>为什么必须平稳</strong>：只有一条实现路径的数据，要用"时间平均"顶替"总体平均"（遍历性）——规律不随时间漂移是前提。<strong>非平稳序列直接建模 = 用会动的尺子量东西</strong>（下一页伪回归的事故现场）。</p>
@@ -113,5 +189,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/arma-diagnostics.js"></script>
 </body>
 </html>

@@ -8,6 +8,67 @@
 <figcaption><span class="fig-id">图 fl-02.1</span>圆球阻力系数 \(C_D(\mathrm{Re})\)：低 \(Re\) 的 Stokes 律 \(C_D=24/\mathrm{Re}\)、中段平台、以及 \(\mathrm{Re}\sim3\times10^5\) 处因边界层转捩导致的<strong>阻力危机</strong>。</figcaption>
 </figure>
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="viscous-boundary-learning-title">
+
+## 学习层：两条渐近公式住在两个不同世界，不能跨雷诺数搬家
+
+<h3 id="viscous-boundary-learning-title">1. 先预测：小粘性是否等于处处无粘？</h3>
+
+实验并排放置两种经典近似：低雷诺数无界流体中的刚性球 Stokes 阻力，以及高雷诺数、零压梯度平板上的层流 Blasius 标度。先判断：
+
+1. $F=6\pi\mu aU$ 能否直接外推到 $\mathrm{Re}=10^5$？
+2. 外流雷诺数很大时，粘性项是否可以在包含无滑移壁面的整个区域处处删掉？
+3. $\delta_{99}\approx5x/\sqrt{\mathrm{Re}_x}$ 能否单独预测逆压梯度中的分离点？
+
+提交后，Stokes 模式会在离开 creeping-flow 区时停止物理证书；平板模式则把厚度、局部摩阻和转捩提示分账，不让“薄”被误读成“不重要”。
+
+### 2. 静态后备：先读无量纲比，再选公式
+
+<div class="learning-lab" data-learning-lab="viscous-boundary-layer" markdown="1">
+
+球半径为 $a$ 时取直径定义
+
+$$
+\mathrm{Re}=\frac{2\rho Ua}{\mu},
+\qquad
+F_D=6\pi\mu aU,
+\qquad
+C_D=\frac{F_D}{\tfrac12\rho U^2\pi a^2}=\frac{24}{\mathrm{Re}}.
+$$
+
+最后两个等式是同一个 Stokes 解的两种写法，都要求 $\mathrm{Re}\ll1$ 及相应的无界、稳态、刚性无滑移球假设。把 $24/\mathrm{Re}$ 画到高 $\mathrm{Re}$ 只能展示错误外推，不能预测尾流、分离或阻力危机。
+
+对零压梯度光滑平板层流，局部参考量为
+
+$$
+\mathrm{Re}_x=\frac{Ux}{\nu},
+\qquad
+\delta_{99}\approx\frac{5x}{\sqrt{\mathrm{Re}_x}},
+\qquad
+C_{f,x}=\frac{0.664}{\sqrt{\mathrm{Re}_x}}.
+$$
+
+交互台把 $\mathrm{Re}_x$ 与长度 $x$ 当作两项独立的**相似缩放参数**，并固定 $U$；因此每组读数都隐含回算 $\nu=Ux/\mathrm{Re}_x$。若研究同一种流体的沿程发展，就不能独立拨这两个旋钮，而应固定 $U,\nu$ 后由 $x$ 自动决定 $\mathrm{Re}_x$。
+
+| 量 | 它回答什么 | 它不回答什么 |
+|---|---|---|
+| $\delta_{99}$ | 速度达到约 $0.99U$ 的层厚尺度 | 逆压梯度分离位置 |
+| $C_{f,x}$ | 当前 $x$ 的局部壁面摩阻 | 整块板或钝体的总阻力系数 |
+| 常用转捩 $\mathrm{Re}_x$ | 光滑低扰动平板的经验参考 | 任意粗糙度、自由流扰动下的普适阈值 |
+
+### 3. 边界层是一种奇异摄动
+
+- 高外流 $\mathrm{Re}$ 只说明远离壁面时粘性相对小；无滑移条件制造很大的法向速度梯度，使薄层内 $\mu\nabla^2\mathbf u$ 仍与惯性同阶。
+- 零压梯度 Blasius 解没有分离机制。逆压梯度需要新的边界层方程与壁面切应力演化，不能靠厚度公式单独判断。
+- Stokes 时间可逆性与扇贝定理依赖 creeping-flow 极限及形变/边界条件。小但非零惯性、非牛顿流体或非互易驱动会改变结论。
+- 图中的速度剖面用满足无滑移和外缘匹配的二次曲线作教学示意；Blasius 相似剖面本身需数值解非线性 ODE。
+
+</div>
+
+</section>
+
 ## 1. 低雷诺数：Stokes 流的怪异世界
 
 $\mathrm{Re}\ll1$ 时丢掉惯性项，N–S 退化为**线性**的 Stokes 方程：

@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +43,27 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 简并压：不依赖温度的压强</a></li>
-<li><a href="#2-chandrasekhar">2. 白矮星与 Chandrasekhar 极限</a></li>
+<li><a href="#compact-learning-title">学习层：把“简并压”拆成标度、结构与边界</a><ul>
+<li><a href="#1">1. 具体开场：同一个压强词，三种物理不能拼成一锅</a></li>
+<li><a href="#2-chandrasekhar">2. 形式桥：从费米动量到 Chandrasekhar 阶数量级</a></li>
+<li><a href="#3-tov">3. 结构桥：中子星必须换支撑机制并进入 TOV</a></li>
+<li><a href="#4">4. 模型边界与常见误读</a></li>
+<li><a href="#5">5. 致密简并互动实验</a></li>
+<li><a href="#6">6. 迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 简并压：不依赖温度的压强</a></li>
+<li><a href="#2-chandrasekhar_1">2. 白矮星与 Chandrasekhar 极限</a></li>
 <li><a href="#3">3. 中子星</a></li>
-<li><a href="#4">4. 黑洞</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#4_1">4. 黑洞</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,35 +72,174 @@
 <p><strong>对标</strong>：Shapiro &amp; Teukolsky《Black Holes, White Dwarfs and Neutron Stars》/ Glendenning ｜ <strong>前置</strong>：sm-03（量子统计）、gr-02（Schwarzschild）、ap-02
 恒星死后剩下什么，取决于<strong>量子简并压能否顶住引力</strong>。本页是本站几条线索最集中的一次汇合：<strong>费米统计（sm-03）+ 广义相对论（gr-02）+ 核物理（atom-01）共同决定了一个天体的命运</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="compact-learning-title" class="learning-layer">
+<h2 id="compact-learning-title">学习层：把“简并压”拆成标度、结构与边界<a class="headerlink" href="#compact-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体开场：同一个压强词，三种物理不能拼成一锅<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先看三个相互衔接但不互相替代的模型：</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>当前支撑/判据</th>
+<th>先预测</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>白矮星</td>
+<td>电子费米海的简并压</td>
+<td><span class="arithmatex">\(n_e\)</span> 加倍时，非相对论 <span class="arithmatex">\(P\)</span> 的幂指数是多少？质量增大时 <span class="arithmatex">\(R\)</span> 向哪边走？</td>
+</tr>
+<tr>
+<td>中子星</td>
+<td>中子/核物质状态方程进入 TOV</td>
+<td>与牛顿估计相比，<span class="arithmatex">\(P/c^2\)</span> 和 <span class="arithmatex">\(1-2Gm/(rc^2)\)</span> 会让梯度变大还是变小？EOS 变硬会不会改变 toy 最大质量？</td>
+</tr>
+<tr>
+<td>黑洞</td>
+<td>几何边界 <span class="arithmatex">\(R\le r_s=2GM/c^2\)</span></td>
+<td>进入 <span class="arithmatex">\(r_s\)</span> 后，能否继续把“简并压支撑的静态星体”当作同一个模型？</td>
+</tr>
+</tbody>
+</table>
+<p>实验先收下四项预测，再打开同屏质量—半径图和账本。切换对象时，电子简并、核物质 EOS/TOV、黑洞几何会保持独立标签；这不是界面上的三个名字，而是三个不同的模型边界。</p>
+<h3 id="2-chandrasekhar">2. 形式桥：从费米动量到 Chandrasekhar 阶数量级<a class="headerlink" href="#2-chandrasekhar" title="Permanent link"></a></h3>
+<p>对白矮星用平均每电子重子数 <span class="arithmatex">\(\mu_e\)</span>，有</p>
+<div class="arithmatex">\[
+n_e\simeq\frac{\rho}{\mu_e m_p}\simeq
+\frac{3M}{4\pi\mu_e m_pR^3},\qquad
+p_F=\hbar(3\pi^2n_e)^{1/3}.
+\]</div>
+<p>定义 <span class="arithmatex">\(x=p_F/(m_ec)\)</span>：<span class="arithmatex">\(x\ll1\)</span> 是非相对论电子，<span class="arithmatex">\(x\gg1\)</span> 是极端相对论电子。对应的尺度为</p>
+<div class="arithmatex">\[
+P_{\rm NR}\propto n_e^{5/3}\propto
+\frac{M^{5/3}}{\mu_e^{5/3}R^5},\qquad
+P_{\rm ER}\propto n_e^{4/3}\propto
+\frac{M^{4/3}}{\mu_e^{4/3}R^4}.
+\]</div>
+<p>把平均引力压只作为 <span class="arithmatex">\(P_G\sim GM^2/R^4\)</span> 的尺度估计：</p>
+<ul>
+<li><span class="arithmatex">\(P_{\rm NR}\sim P_G\)</span> 给出 <span class="arithmatex">\(R_{\rm NR}\propto \mu_e^{-5/3}M^{-1/3}\)</span>，即白矮星 toy 的质量越大、半径越小；</li>
+<li><span class="arithmatex">\(P_{\rm ER}\sim P_G\)</span> 时双方同为 <span class="arithmatex">\(R^{-4}\)</span>，半径消失，留下 <span class="arithmatex">\(M_{\rm Ch}\propto\mu_e^{-2}\)</span>。把 Lane–Emden 几何系数压进“阶数量级 toy”可写成 <span class="arithmatex">\(M_{\rm Ch}\approx5.83\,\mu_e^{-2}M_\odot\)</span>，<span class="arithmatex">\(\mu_e=2\)</span> 时约 <span class="arithmatex">\(1.46M_\odot\)</span>；这不是把完整恒星结构精确求完。</li>
+</ul>
+<p>互动模型还显示 <span class="arithmatex">\(P_{\rm NR}/P_G\)</span>、<span class="arithmatex">\(P_{\rm ER}/P_G\)</span> 和 <span class="arithmatex">\(x\)</span>。它们是标度诊断：没有解球对称结构方程、温度、旋转、磁场或真实组成梯度，所以不能读取成观测质量—半径拟合。</p>
+<h3 id="3-tov">3. 结构桥：中子星必须换支撑机制并进入 TOV<a class="headerlink" href="#3-tov" title="Permanent link"></a></h3>
+<p>电子被压入质子后，物质支撑不是“更小的白矮星”，而是核物质状态方程和中子相关的微观压力。静态球对称结构的 TOV 方程写成</p>
+<div class="arithmatex">\[
+\frac{dP}{dr}
+=-\frac{G(\rho+P/c^2)(m+4\pi r^3P/c^2)}
+{r^2(1-2Gm/(rc^2))},\qquad
+\frac{dm}{dr}=4\pi r^2\rho.
+\]</div>
+<p>本实验用 <span class="arithmatex">\(P_{\rm EOS}=P_0(\rho/\rho_0)^\Gamma\)</span> 作为透明 toy EOS；先在径向网格上数值积分给定的 <span class="arithmatex">\(\rho(r)\)</span> 形状并归一化，使 <span class="arithmatex">\(m(R)=M\)</span>，所以账本中的 <span class="arithmatex">\(m(r)\)</span> 与 <span class="arithmatex">\(\rho(r)\)</span> 由 <span class="arithmatex">\(dm/dr=4\pi r^2\rho\)</span> 同一条积分构造。实验只在一个中点和几个半径分数上评估 TOV 压力梯度：<span class="arithmatex">\(\rho+P/c^2\)</span> 是压强的引力质量修正，<span class="arithmatex">\(m+4\pi r^3P/c^2\)</span> 是内部压力的质量修正，分母是紧致度修正；它没有继续积分 <span class="arithmatex">\(dP/dr\)</span> 成为完整恒星解。真实最大质量不是由这个二参数幂律单独决定；EOS 软/硬、旋转、温度和相变都会移动边界。</p>
+<p>在 <span class="arithmatex">\(R\sim10\text{--}12\)</span> km、<span class="arithmatex">\(M\sim1.4M_\odot\)</span> 时 <span class="arithmatex">\(GM/(Rc^2)\)</span> 已约 <span class="arithmatex">\(0.17\)</span>，所以“牛顿多方程 + 一个漂亮半径”不能冒充精密中子星计算。实验把 TOV 修正比、EOS 标签和 toy 最大质量单独显示。</p>
+<h3 id="4">4. 模型边界与常见误读<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>误读</th>
+<th>边界账</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“简并压不依赖温度，所以任何致密星都由同一简并压支撑。”</td>
+<td>电子简并是白矮星支路；中子星要核物质 EOS/TOV；黑洞是 <span class="arithmatex">\(R\le r_s\)</span> 的几何边界。</td>
+</tr>
+<tr>
+<td>“<span class="arithmatex">\(R\propto M^{-1/3}\)</span> 可以一直外推到 <span class="arithmatex">\(R=0\)</span>。”</td>
+<td>这只来自非相对论 <span class="arithmatex">\(\gamma=5/3\)</span> 的尺度平衡；当 <span class="arithmatex">\(x\)</span> 变大，模型跨入 <span class="arithmatex">\(\gamma=4/3\)</span> 的质量边界。</td>
+</tr>
+<tr>
+<td>“Chandrasekhar 质量就是所有致密天体的质量上限。”</td>
+<td>它是电子简并白矮星的阶数量级；中子星上限依赖核物质 EOS，黑洞没有同一静态星体支撑问题。</td>
+</tr>
+<tr>
+<td>“Newtonian polytrope 算出了中子星半径。”</td>
+<td>Newtonian polytrope 可作教学标度，不能替代 TOV、真实 EOS、边界条件和旋转。</td>
+</tr>
+<tr>
+<td>“半径小于 Schwarzschild 半径只是另一种 EOS。”</td>
+<td><span class="arithmatex">\(R\le r_s\)</span> 时应切换到黑洞边界描述；不能继续用静态简并星的压力账本掩盖几何边界。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5">5. 致密简并互动实验<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="compact-degeneracy">
+<p><strong>JavaScript 失效时的静态后备账本：</strong>先读白矮星 <span class="arithmatex">\(\mu_e=2\)</span>、<span class="arithmatex">\(M=0.8M_\odot\)</span> 的 toy，再对照独立的中子星和黑洞行。</p>
+<table>
+<thead>
+<tr>
+<th>对象/行</th>
+<th>输入</th>
+<th>ledger 读法</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>白矮星质量—半径 toy</td>
+<td><span class="arithmatex">\(M=0.8M_\odot,\mu_e=2\)</span></td>
+<td><span class="arithmatex">\(R_{\rm toy}\approx7.0\times10^3(M/M_\odot)^{-1/3}\)</span> km；先看 <span class="arithmatex">\(x=p_F/(m_ec)\)</span> 再标 NR/transition/ER</td>
+<td><span class="arithmatex">\(M_{\rm Ch}\approx5.83\,\mu_e^{-2}\approx1.46M_\odot\)</span></td>
+</tr>
+<tr>
+<td>Chandra 阶数量级</td>
+<td><span class="arithmatex">\(\gamma=4/3\)</span></td>
+<td><span class="arithmatex">\(P_{\rm ER}\propto M^{4/3}R^{-4}\)</span> 与 <span class="arithmatex">\(P_G\propto M^2R^{-4}\)</span> 比较，<span class="arithmatex">\(R\)</span> 消去</td>
+<td>超过该 toy 质量后需坍缩/爆发等新模型</td>
+</tr>
+<tr>
+<td>中子星 TOV toy</td>
+<td><span class="arithmatex">\(M=1.4M_\odot,R=12\)</span> km，软/硬 EOS 二选一</td>
+<td>归一化 <span class="arithmatex">\(\rho(r),m(r)\)</span> 使 <span class="arithmatex">\(dm/dr=4\pi r^2\rho\)</span>，再记录 <span class="arithmatex">\(GM/(Rc^2)\)</span>、TOV/牛顿梯度比、<span class="arithmatex">\(1-2Gm/(rc^2)\)</span>、EOS <span class="arithmatex">\(P(\rho)\)</span></td>
+<td>最大质量是 EOS 边界，不是 <span class="arithmatex">\(M_{\rm Ch}\)</span></td>
+</tr>
+<tr>
+<td>黑洞边界</td>
+<td><span class="arithmatex">\(M=10M_\odot,R=20\)</span> km</td>
+<td><span class="arithmatex">\(r_s\approx29.5\)</span> km，故 <span class="arithmatex">\(R&lt;r_s\)</span>；不再显示静态简并支撑</td>
+<td>几何黑洞边界</td>
+</tr>
+</tbody>
+</table>
+<p>图中的蓝色曲线只是白矮星 <span class="arithmatex">\(R\propto M^{-1/3}\)</span> toy，绿色是中子星半径的示意 EOS 支路，红色虚线是 <span class="arithmatex">\(r_s(M)\)</span>，金点是当前模型。它们用于比较尺度和边界，不是同一条连续物态曲线，也不是观测拟合。</p>
+</div>
+<h3 id="6">6. 迁移问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>给任意致密对象做计算接口时，至少要保留 supportMechanism、equationOfState、compactness、schwarzschildRadius 和 validity 字段。若只输出一个“压力足够大”布尔值，电子简并、核物质刚度和黑洞几何会被错误合并，最终连模型失败的原因都无法追溯。</p>
+</div>
+</section>
 <figure class="plot">
 <p><img alt="致密天体的质量—半径关系：白矮星与中子星分支及各自的质量上限。" src="assets/img/ap-04-mass-radius.svg" /></p>
-<figcaption><span class="fig-id">图 ap-04.1</span>质量—半径关系。<strong>白矮星</strong>分支 \(R\propto M^{-1/3}\)（非相对论简并），趋近 <strong>Chandrasekhar 极限 \(\approx1.4M_\odot\)</strong> 时半径趋于零；<strong>中子星</strong>分支类似但尺度小三个数量级，上限受核物质状态方程约束（约 \(2\text{–}2.3M_\odot\)）。虚线为 Schwarzschild 半径。</figcaption>
+<figcaption><span class="fig-id">图 ap-04.1</span>质量—半径关系的示意尺度图。<strong>白矮星</strong>分支 \(R\propto M^{-1/3}\) 是非相对论简并 toy，靠近 <strong>Chandrasekhar 阶数量级 \(\approx1.4M_\odot\)</strong> 时该 toy 支路失效；<strong>中子星</strong>分支需要独立的核物质状态方程与 TOV，上限依 EOS 而变。虚线为 Schwarzschild 半径，不是完整星体求解。</figcaption>
 </figure>
-<h2 id="1">1. 简并压：不依赖温度的压强<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 简并压：不依赖温度的压强<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>Pauli 原理</strong>（sm-03）：费米子填满动量空间至 <span class="arithmatex">\(p_F\)</span>，</p>
 <div class="arithmatex">\[n = \frac{8\pi}{3h^3}p_F^3\ \Longrightarrow\ p_F\propto n^{1/3}\]</div>
 <p><strong>非相对论</strong>（<span class="arithmatex">\(p_F\ll mc\)</span>）：<span class="arithmatex">\(P \propto n^{5/3}\)</span>，多方指数 <span class="arithmatex">\(\gamma=5/3\)</span>；
 <strong>极端相对论</strong>（<span class="arithmatex">\(p_F\gg mc\)</span>）：<span class="arithmatex">\(P \propto n^{4/3}\)</span>，<span class="arithmatex">\(\gamma=4/3\)</span>。</p>
 <p><strong>关键在于 <span class="arithmatex">\(P\)</span> 与 <span class="arithmatex">\(T\)</span> 无关</strong>——<strong>这就是 ap-02 说的"简并核心失去负反馈"的根源</strong>：能量注入不再引起膨胀降温，于是热失控（氦闪、Ia 超新星）。</p>
-<h2 id="2-chandrasekhar">2. 白矮星与 Chandrasekhar 极限<a class="headerlink" href="#2-chandrasekhar" title="Permanent link"></a></h2>
-<p>电子简并压支撑，质量—半径关系（非相对论）：</p>
+<h2 id="2-chandrasekhar_1">2. 白矮星与 Chandrasekhar 极限<a class="headerlink" href="#2-chandrasekhar_1" title="Permanent link"></a></h2>
+<p>电子简并压支撑的教学 toy，质量—半径关系（非相对论）：</p>
 <div class="arithmatex">\[R\propto M^{-1/3}\]</div>
 <p><strong>质量越大，半径越小</strong>——与日常直觉相反，且预示了灾难。</p>
 <p><strong>Chandrasekhar 极限【标度推导】</strong>：把简并压（<span class="arithmatex">\(\gamma=4/3\)</span> 时 <span class="arithmatex">\(P\propto M^{4/3}/R^4\)</span>）与引力压（<span class="arithmatex">\(\propto M^2/R^4\)</span>）比较——<strong>两者对 <span class="arithmatex">\(R\)</span> 的依赖完全相同</strong> → <span class="arithmatex">\(R\)</span> 消失，只剩一个临界质量：</p>
 <div class="arithmatex">\[M_{\rm Ch}\approx1.4\,M_\odot\]</div>
 <p><strong>这是一个纯粹由 <span class="arithmatex">\(\hbar\)</span>、<span class="arithmatex">\(c\)</span>、<span class="arithmatex">\(G\)</span>、<span class="arithmatex">\(m_p\)</span> 组合出的质量</strong>：</p>
-<div class="arithmatex">\[M_{\rm Ch}\sim\left(\frac{\hbar c}{G}\right)^{3/2}\frac{1}{m_p^2} = \frac{m_{\rm Pl}^3}{m_p^2}\]</div>
-<p><strong>基本常数直接给出了一个天体质量尺度</strong>——本站最漂亮的量纲结果之一。</p>
+<div class="arithmatex">\[M_{\rm Ch}\sim\left(\frac{\hbar c}{G}\right)^{3/2}\frac{1}{\mu_e^2m_p^2} = \frac{m_{\rm Pl}^3}{\mu_e^2m_p^2}\]</div>
+<p><strong>基本常数与组成参数 <span class="arithmatex">\(\mu_e\)</span> 共同给出了一个天体质量尺度</strong>；<span class="arithmatex">\(\mu_e^{-2}\)</span> 不是可省略的装饰因子——本站最漂亮的量纲结果之一。</p>
 <p><strong>观测后果——Ia 型超新星</strong>：白矮星吸积达到极限时碳爆轰。<strong>由于爆发条件近乎固定，峰值光度高度一致</strong> → <strong>标准烛光</strong> → 用于测距 → <strong>1998 年发现宇宙加速膨胀</strong>（cosmo-01 的暗能量）。<strong>一个量子统计的极限，成了宇宙学的标尺。</strong></p>
 <h2 id="3">3. 中子星<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>超过 <span class="arithmatex">\(M_{\rm Ch}\)</span> 的核心继续坍缩，电子被压进质子（<span class="arithmatex">\(e^-+p\to n+\nu_e\)</span>，逆 β 衰变）→ <strong>中子简并压接手</strong>。</p>
+<p>超过电子简并白矮星的 <span class="arithmatex">\(M_{\rm Ch}\)</span> 阶数量级后，核心继续坍缩，电子被压进质子（<span class="arithmatex">\(e^-+p\to n+\nu_e\)</span>，逆 β 衰变）→ <strong>支撑机制切换到核物质 EOS/TOV</strong>；这不是把白矮星电子简并支路延伸到更小半径。</p>
 <p><strong>尺度</strong>：<span class="arithmatex">\(M\sim1.4M_\odot\)</span>，<span class="arithmatex">\(R\sim10\)</span> km，<span class="arithmatex">\(\rho\sim10^{17}\ \mathrm{kg/m^3}\)</span>（<strong>超过原子核密度</strong>）。</p>
 <p><strong>必须用广义相对论</strong>：<span class="arithmatex">\(GM/Rc^2\sim0.2\)</span>，牛顿力学失效。静态球对称的结构方程是 <strong>TOV 方程</strong>：</p>
 <div class="arithmatex">\[\frac{dP}{dr}=-\frac{G(\rho+P/c^2)(m+4\pi r^3P/c^2)}{r^2(1-2Gm/rc^2)}\]</div>
 <p><strong>注意压强本身也产生引力</strong>（<span class="arithmatex">\(P/c^2\)</span> 项）——<strong>在广义相对论中，压强不能无限地帮你抵抗引力，它反而加剧了引力</strong>。这是黑洞不可避免的深层原因之一。</p>
-<p><strong>质量上限</strong>：依赖<strong>核物质状态方程</strong>（强相互作用，至今不能从第一性原理算准）【前沿/未定】。观测上已发现约 <span class="arithmatex">\(2M_\odot\)</span> 的脉冲星，<strong>这排除了过软的状态方程</strong>；GW170817 的潮汐形变测量则给出了上限约束。<strong>中子星因此成为核物质物态的天然实验室</strong>——地面加速器无法达到这个密度区间。</p>
+<p><strong>质量上限</strong>：依赖<strong>核物质状态方程</strong>（强相互作用，至今不能从第一性原理算准）【前沿/未定】。观测上已发现约 <span class="arithmatex">\(2M_\odot\)</span> 的脉冲星，<strong>这排除了过软的状态方程</strong>；GW170817 的潮汐形变测量则给出了上限约束。<strong>中子星因此成为核物质物态的天然实验室</strong>——地面加速器不能直接制备并长期维持与中子星内部相同的<strong>冷平衡、富中子致密物质</strong>；加速器实验可以约束相关核物质性质，但不等同于静态星体内部。</p>
 <p><strong>脉冲星</strong>：强磁场（<span class="arithmatex">\(10^8\)</span>–<span class="arithmatex">\(10^{15}\)</span> G）快速旋转的中子星，射电束扫过地球形成脉冲。<strong>自转极稳定，可与原子钟媲美</strong>，用于引力波探测（脉冲星测时阵）与广义相对论检验（Hulse–Taylor 双脉冲星的轨道衰减，间接证实引力波，gr-03）。</p>
-<h2 id="4">4. 黑洞<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 黑洞<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>若无任何压强能顶住，坍缩至 Schwarzschild 半径之内（gr-02）：</p>
 <div class="arithmatex">\[r_s = \frac{2GM}{c^2}\]</div>
 <p><strong>无毛定理</strong>：稳态黑洞只由质量、角动量、电荷描述。</p>
@@ -91,7 +250,7 @@
 <li><strong>事件视界望远镜</strong>成像 M87* 与 Sgr A* 的"阴影"，与广义相对论预言的尺寸一致。</li>
 </ul>
 <p><strong>Hawking 辐射</strong>【理论，未观测】：<span class="arithmatex">\(T_H = \dfrac{\hbar c^3}{8\pi GMk_B}\)</span>。恒星级黑洞的 <span class="arithmatex">\(T_H\sim10^{-8}\)</span> K，<strong>远低于 CMB 温度（2.7 K），故实际在吸收而非蒸发</strong>。<strong>信息佯谬</strong>至今是量子引力的核心问题（qft 线与 gr 线的交界，本站第三档边界）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（白矮星密度）</strong> <span class="arithmatex">\(M=M_\odot\)</span>、<span class="arithmatex">\(R\sim R_\oplus\)</span>：<span class="arithmatex">\(\rho\sim10^9\ \mathrm{kg/m^3}\)</span>——<strong>一茶匙约一吨</strong>。中子星再高八个数量级：<strong>一茶匙约十亿吨</strong>。</p>
 <p><strong>例 2（为什么 <span class="arithmatex">\(R\propto M^{-1/3}\)</span>）</strong> 简并压 <span class="arithmatex">\(\propto n^{5/3}\propto (M/R^3)^{5/3}\)</span>，引力压 <span class="arithmatex">\(\propto M^2/R^4\)</span>，令二者相等即得。<strong>质量增加时必须靠缩小半径来提高简并压</strong>——直到相对论效应使这条路走不通。</p>
 <p><strong>例 3（中子星的自转）</strong> 半径从 <span class="arithmatex">\(10^6\)</span> km 缩到 10 km，角动量守恒使自转周期缩短约 <span class="arithmatex">\(10^{10}\)</span> 倍——<strong>这就是毫秒脉冲星的来历</strong>（🔗 mech-01 角动量守恒的极端体现）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -106,5 +265,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/compact-degeneracy.js"></script>
 </body>
 </html>

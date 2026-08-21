@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,15 +41,21 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：有限码能精确验，容量定理却必须说清量词</a><ul>
+<li><a href="#channel-coding-learning-title">1. 先预测：哪一个数属于哪一层？</a></li>
+<li><a href="#2">2. 静态后备：重复码是一台诚实的有限块显微镜</a></li>
+<li><a href="#3">3. 四个边界条件</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 设置与联合典型性</a></li>
-<li><a href="#2">2. 可达性（正向定理）的证明</a></li>
+<li><a href="#2_1">2. 可达性（正向定理）的证明</a></li>
 <li><a href="#3-r-c">3. 逆定理（\(R &gt; C\) 不可能）</a></li>
 <li><a href="#4">4. 微分熵与高斯信道（连续世界一页速通）</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
@@ -54,6 +71,67 @@
 <p><img alt="有噪信道：输入→转移矩阵→输出，容量 C=\max I(X;Y)。" src="assets/img/it2-02-channel.svg" /></p>
 <figcaption><span class="fig-id">图 it2-02.1</span>有噪信道：输入→转移矩阵→输出，容量 \(C=\max I(X;Y)\)。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="channel-coding-learning-title" class="learning-layer">
+<h2 id="_1">学习层：有限码能精确验，容量定理却必须说清量词<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="channel-coding-learning-title">1. 先预测：哪一个数属于哪一层？<a class="headerlink" href="#channel-coding-learning-title" title="Permanent link"></a></h3>
+<p>下面三句话只有各自在正确量词下才成立：</p>
+<ol>
+<li>一个长度为 <span class="arithmatex">\(n\)</span> 的具体码可以穷举收到的 <span class="arithmatex">\(2^n\)</span> 个词，得到<strong>这个码、这个译码器</strong>的精确误码率。</li>
+<li>随机编码证明里的 union bound 比较 <span class="arithmatex">\(2^{nR}\)</span> 个候选与单个假配对约 <span class="arithmatex">\(2^{-nI}\)</span> 的指数；它不要求那些错误事件彼此独立。</li>
+<li><span class="arithmatex">\(R&gt;C\)</span> 的逆定理排除的是“存在误码率随 <span class="arithmatex">\(n\)</span> 趋零的码族”，而不是宣称每个有限码都具有同一个固定误码率。</li>
+</ol>
+<p>先判断这三层能否互相替代；提交后再同时查看重复码的精确二项尾概率、最近邻全枚举结果与典型性指数账本。</p>
+<h3 id="2">2. 静态后备：重复码是一台诚实的有限块显微镜<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="channel-coding">
+<p>长度为奇数 <span class="arithmatex">\(n\)</span> 的二元重复码只有码字 <span class="arithmatex">\(0^n,1^n\)</span>，多数译码的误码率可精确写成</p>
+<div class="arithmatex">\[
+P_e^{\mathrm{rep}}(n,\varepsilon)
+=\sum_{k=(n+1)/2}^{n}\binom nk\varepsilon^k(1-\varepsilon)^{n-k},
+\qquad R_{\mathrm{rep}}=\frac1n.
+\]</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(n\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\varepsilon=0.1\)</span> 的精确 <span class="arithmatex">\(P_e\)</span></th>
+<th style="text-align: right;">码率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.028\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/3\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.00856\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/5\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>它把可靠性换成了越来越低的码率，因此不能用“<span class="arithmatex">\(P_e\)</span> 下降”就宣布接近容量。实验还逐一枚举所有接收词，并在最近邻平局时均匀拆分；枚举值必须与上面的二项尾概率相同，这是实现层的独立对账。</p>
+<p>证明骨架另列一笔带松弛量 <span class="arithmatex">\(\delta&gt;0\)</span> 的指数赛跑：</p>
+<div class="arithmatex">\[
+2^{nR}\,2^{-n(C-\delta)}=2^{-n(C-R-\delta)}.
+\]</div>
+<p>当 <span class="arithmatex">\(C-R-\delta&gt;0\)</span> 时它衰减，说明随机编码平均错误分析为何有机会闭合；它不是重复码的精确误码率，也没有把“典型性失败”那一项从证明中抹掉。</p>
+<h3 id="3">3. 四个边界条件<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>有限块不等于渐近。</strong>一个有限码表现优秀是构造证据，不能替代对一整列码、任意目标误码与充分大块长的量词证明。</li>
+<li><strong>低于容量不等于指定码好用。</strong>定理说存在码族；重复码、错误译码器或受复杂度限制的实现仍可能很差。</li>
+<li><strong>高于容量不等于每个有限实验立刻失败。</strong>强逆定理还能给更尖锐结论，但本页基础逆定理只需要证明误码不能趋零。</li>
+<li><strong>容量不自动提供算法。</strong>随机码本的存在性与高效编码、译码、有限长度色散和工程约束是不同问题。</li>
+</ul>
+</div>
+</section>
 <h2 id="1">1. 设置与联合典型性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>离散无记忆信道 <span class="arithmatex">\(p(y\mid x)\)</span>；码率 <span class="arithmatex">\(R\)</span>：用 <span class="arithmatex">\(n\)</span> 次信道传 <span class="arithmatex">\(nR\)</span> 比特（<span class="arithmatex">\(2^{nR}\)</span> 个消息）。目标：证明 <span class="arithmatex">\(R &lt; C = \max_{p(x)}I(X;Y)\)</span> 时错误率可任意小。</p>
 <p><strong>联合典型集</strong> <span class="arithmatex">\(A_\varepsilon^{(n)}\)</span>：序列对 <span class="arithmatex">\((x^n, y^n)\)</span> 的经验熵三项（<span class="arithmatex">\(x\)</span> 的、<span class="arithmatex">\(y\)</span> 的、联合的）都 <span class="arithmatex">\(\varepsilon\)</span>-贴近真熵。三条性质【骨架，均为 it2-01 性质的二维版】：
@@ -64,7 +142,7 @@
 P\big((\tilde X^n, Y^n) \in A_\varepsilon^{(n)}\big) \leq 2^{-n(I(X;Y) - 3\varepsilon)}
 \]</div>
 <p>（<em>证</em>：逐点 <span class="arithmatex">\(p(x^n)p(y^n) \approx 2^{-n(H(X)+H(Y))}\)</span>，集合大小 ≈ <span class="arithmatex">\(2^{nH(X,Y)}\)</span>，相乘得 <span class="arithmatex">\(2^{-nI}\)</span>——<strong>互信息 = "假配对装真"的指数难度</strong>：这一行是整个定理的灵魂。）</p>
-<h2 id="2">2. 可达性（正向定理）的证明<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 可达性（正向定理）的证明<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>【证明骨架（四步，结构完整）】</strong>
 <strong>① 随机造码</strong>：按最优输入分布 <span class="arithmatex">\(p^*(x)\)</span> 独立随机生成 <span class="arithmatex">\(2^{nR}\)</span> 个码字——<strong>码本是抽签抽出来的</strong>；
 <strong>② 译码规则</strong>：收到 <span class="arithmatex">\(y^n\)</span>，找<strong>唯一</strong>与之联合典型的码字；无或不唯一则报错；
@@ -82,11 +160,11 @@ P(\text{B}) \leq 2^{nR}\cdot 2^{-n(I - 3\varepsilon)} \to 0 \quad \text{当 } R 
 <p><strong>【骨架】</strong> Fano 不等式（本科信息论 II 提名的那位）把错误率与条件熵挂钩：<span class="arithmatex">\(P_e \geq \frac{H(W\mid\hat W) - 1}{nR}\)</span>；数据处理不等式链 <span class="arithmatex">\(W \to X^n \to Y^n \to \hat W\)</span> 给 <span class="arithmatex">\(I(W;\hat W) \leq I(X^n;Y^n) \leq nC\)</span>（无记忆信道逐次使用的互信息可加性【一行】）；两者合并：<span class="arithmatex">\(R &gt; C\)</span> ⇒ <span class="arithmatex">\(P_e\)</span> 有正下界，不随 <span class="arithmatex">\(n\)</span> 消失。<span class="arithmatex">\(\blacksquare\)</span>
 ——容量之上不是"难"，是<strong>不可能</strong>（信息论的"物理定律"品格；与 slt 线 NFL、JL 下界同属"不可能定理"家族——DPI 是三者共同的引擎之一）。</p>
 <h2 id="4">4. 微分熵与高斯信道（连续世界一页速通）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>微分熵 <span class="arithmatex">\(h(X) = -\int f\ln f\)</span>（本科信息论 III 已警告可负）；高斯信道 <span class="arithmatex">\(Y = X + Z\)</span>，<span class="arithmatex">\(Z \sim N(0, N)\)</span>、功率约束 <span class="arithmatex">\(EX^2 \leq P\)</span>：</p>
+<p>微分熵 <span class="arithmatex">\(h(X)=-\int f\ln f\)</span> 以自然对数计，单位是 nat（本科信息论 III 已警告可负）；高斯信道 <span class="arithmatex">\(Y=X+Z\)</span>，<span class="arithmatex">\(Z\sim N(0,N)\)</span>、功率约束 <span class="arithmatex">\(EX^2\le P\)</span>。以下容量改用以 2 为底的对数，因此单位是 bit/次信道使用：</p>
 <div class="arithmatex">\[
-C = \frac12\log\Big(1 + \frac PN\Big)
+C = \frac12\log_2\Big(1 + \frac PN\Big)\quad\text{bit/use}.
 \]</div>
-<p><strong>【骨架】</strong> <span class="arithmatex">\(I = h(Y) - h(Z)\)</span>；给定方差高斯最大化 <span class="arithmatex">\(h(Y)\)</span>（最大熵，本科信息论 III）⇒ 输入取高斯达界。<span class="arithmatex">\(\blacksquare\)</span>——<strong>香农极限公式</strong>：通信工程的北极星（5G 的编码即在逼近它）；带宽版 <span class="arithmatex">\(C = W\log(1 + \mathrm{SNR})\)</span> 是无线容量规划的日用公式。</p>
+<p><strong>【骨架】</strong> <span class="arithmatex">\(I=h(Y)-h(Z)\)</span>；给定方差高斯最大化 <span class="arithmatex">\(h(Y)\)</span>（最大熵，本科信息论 III）⇒ 输入取高斯达界。两项若先按 nat 相减，再除以 <span class="arithmatex">\(\ln2\)</span> 即得到上面的 bit。<span class="arithmatex">\(\blacksquare\)</span>——<strong>香农极限公式</strong>：通信工程的北极星；实基带带宽为 <span class="arithmatex">\(W\)</span> Hz 时常写 <span class="arithmatex">\(C=W\log_2(1+\mathrm{SNR})\)</span> bit/s，具体前因子还取决于实/复与带宽约定。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（赛跑的数感）</strong> BSC(<span class="arithmatex">\(\varepsilon = 0.1\)</span>)：<span class="arithmatex">\(C \approx 0.531\)</span>。取 <span class="arithmatex">\(R = 0.4\)</span>：假码字 <span class="arithmatex">\(2^{0.4n}\)</span> 个、单个装真概率 <span class="arithmatex">\(2^{-0.531n}\)</span> ⇒ 错误 <span class="arithmatex">\(\lesssim 2^{-0.131n}\)</span>——<span class="arithmatex">\(n = 500\)</span> 时 <span class="arithmatex">\(\sim 10^{-20}\)</span>：<strong>块长是可靠性的燃料</strong>（实际 LDPC 码块长数千的原因）。</p>
 <p><strong>例 2（Fano 的独立价值）</strong> 用 Fano 证明：二元均匀消息、任何基于 <span class="arithmatex">\(Y\)</span> 的猜测，<span class="arithmatex">\(P_e \geq \frac{H(X\mid Y) - 1}{\log|\mathcal{X}|}\)</span> 型下界——统计学习的下界证明（slt-02 的 NFL 精细版）与多臂老虎机遗憾下界都用这套"Fano 方法"【引用】：一个不等式跨三个学科。</p>
@@ -102,5 +180,7 @@ C = \frac12\log\Big(1 + \frac PN\Big)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/channel-coding.js"></script>
 </body>
 </html>

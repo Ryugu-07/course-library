@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,62 +41,153 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1-vi">1. 价值迭代（VI）</a></li>
-<li><a href="#2-pi">2. 策略迭代（PI）</a></li>
-<li><a href="#3">3. 线性规划路线（第三条等价路）</a></li>
-<li><a href="#4-mdp-03">4. 近似的预警（通往 mdp-03）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#mdp-iteration-learning-title">学习层：三条算法路线，必须交出同一张证书</a><ul>
+<li><a href="#1">1. 具体开场：留在营地，还是去矿区</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3-bellman">3. 形式桥：从 Bellman 算子到三种证书</a></li>
+<li><a href="#4-javascript">4. 静态后备：JavaScript 失效时的可核查账本</a></li>
+<li><a href="#5">5. 边界与常见误读</a></li>
+<li><a href="#6">6. 迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#1-mdp-bellman">1. 有限折现 MDP 与 Bellman 算子</a></li>
+<li><a href="#2_1">2. 价值迭代：每步便宜，残差可审计</a></li>
+<li><a href="#3">3. 策略迭代：评估、改进、停在不动点</a></li>
+<li><a href="#4-bellman-lp">4. Bellman 不等式与 LP 证书</a></li>
+<li><a href="#5_1">5. 证据与迁移边界</a></li>
 </ul>
 </div>
 </details>
 <h1 id="mdp-ii-lp">MDP II · 价值迭代、策略迭代与 LP<a class="headerlink" href="#mdp-ii-lp" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Puterman §6.3–6.9 ｜ <strong>前置</strong>：mdp-01、本科优化 IV、数值 II（迭代法视角）
-解 MDP 的三大经典算法：<strong>价值迭代</strong>（不动点迭代的直译）、<strong>策略迭代</strong>（"评估-改进"交替，有限步精确收敛）、<strong>线性规划</strong>（把 Bellman 变成约束）。三者的收敛性证明各自动用一件前置武器——压缩、单调性、对偶。</p>
+<p><strong>对标</strong>：Puterman §6.3–6.9 ｜ <strong>前置</strong>：mdp-01、本科优化 IV、数值 II
+同一个有限折现 MDP 可以从三条路线求解：Bellman 不动点的价值迭代（VI）、评估与改进交替的策略迭代（PI），以及 Bellman 不等式的线性规划（LP）。本页先把一个 2 状态/2 动作模型算透，再把有限 toy 的证据和一般复杂度边界分开。</p>
 </blockquote>
-<h2 id="1-vi">1. 价值迭代（VI）<a class="headerlink" href="#1-vi" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="价值迭代几何收敛" src="assets/img/mdp-02-value-iteration.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>价值迭代收敛：Bellman 算子是 \(\gamma\)-压缩，误差按 \(\gamma^k\) 几何衰减——不动点定理的算法变现。</figcaption>
-</figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="mdp-iteration-learning-title" class="learning-layer">
+<h2 id="mdp-iteration-learning-title">学习层：三条算法路线，必须交出同一张证书<a class="headerlink" href="#mdp-iteration-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体开场：留在营地，还是去矿区<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>状态 0 是营地，状态 1 是矿区。营地可以“采集”得到 <span class="arithmatex">\(+1\)</span> 并留在营地，也可以“远行”先付 <span class="arithmatex">\(-2\)</span> 并到矿区。矿区可以“收获”得到 <span class="arithmatex">\(+4\)</span>，以概率 <span class="arithmatex">\(0.4\)</span> 回营地、<span class="arithmatex">\(0.6\)</span> 留在矿区；也可以“返回”得到 <span class="arithmatex">\(+2\)</span> 并回营地。</p>
+<p>短视时，立即的 <span class="arithmatex">\(+1\)</span> 很有吸引力；远视时，先付成本换取长期收获。问题不是“哪个算法看起来走得快”，而是三条路线是否给出同一个 <span class="arithmatex">\(V^*\)</span>、同一个贪心策略和可检查的残差证书。</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在交互实验中先选择 <span class="arithmatex">\(\gamma\)</span>、共同初值和 VI 步数，然后预测：</p>
+<ol>
+<li>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，<span class="arithmatex">\(r(V)=\|TV-V\|_\infty\)</span> 能否给出 <span class="arithmatex">\(\|V-V^*\|_\infty\le r(V)/(1-\gamma)\)</span>？</li>
+<li>在默认的 <span class="arithmatex">\(\gamma=0.8\)</span> 下，最终营地动作更可能是“采集”还是“远行”？</li>
+<li>LP 的每个约束应该检查 <span class="arithmatex">\(V(s)\ge Q_V(s,a)\)</span>，还是只检查当前贪心动作？</li>
+<li><span class="arithmatex">\(\gamma=1\)</span> 时，是否仍可直接沿用折现压缩与残差除法？</li>
+</ol>
+<p>揭示前不显示 VI 数值、PI 评估表或 LP 松弛量。揭示后改变参数会重算所有账本；“重置实验”会重新锁住预测门。</p>
+<h3 id="3-bellman">3. 形式桥：从 Bellman 算子到三种证书<a class="headerlink" href="#3-bellman" title="Permanent link"></a></h3>
 <div class="arithmatex">\[
-V_{k+1} = T V_k
+Q_V(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s'),
+\qquad
+(TV)(s)=\max_aQ_V(s,a).
 \]</div>
-<p><strong>收敛性</strong> = mdp-01 压缩映像的直接推论：<span class="arithmatex">\(\|V_k - V^*\| \leq \gamma^k\|V_0 - V^*\|\)</span>。<strong>停机与策略质量【证明】</strong>：若 <span class="arithmatex">\(\|V_{k+1} - V_k\| \leq \varepsilon\)</span>，则对 <span class="arithmatex">\(V_{k+1}\)</span> 贪心的策略 <span class="arithmatex">\(\pi\)</span> 满足</p>
+<p>价值迭代是 <span class="arithmatex">\(V_{k+1}=TV_k\)</span>。若奖励有界、状态动作有限且 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>，<span class="arithmatex">\(T\)</span> 是 sup 范数下的 <span class="arithmatex">\(\gamma\)</span>-压缩，因此</p>
 <div class="arithmatex">\[
-\|V^\pi - V^*\|_\infty \leq \frac{2\gamma\varepsilon}{1-\gamma}
+\|V-V^*\|_\infty\le\frac{\|TV-V\|_\infty}{1-\gamma}.
 \]</div>
-<p><em>证</em>：三角不等式拆成"<span class="arithmatex">\(V_k\)</span> 距不动点"（压缩残差估计 <span class="arithmatex">\(\leq \frac{\gamma\varepsilon}{1-\gamma}\)</span>）与"贪心损失"两段，各由压缩性与 <span class="arithmatex">\(T^\pi V_{k+1} = TV_{k+1}\)</span> 控制。<span class="arithmatex">\(\blacksquare\)</span>——<strong>"残差小 ⇒ 策略好"有明码换算</strong>（除以 <span class="arithmatex">\(1-\gamma\)</span> 的放大是 RL 误差分析的通用形态：视界越长，价值误差对策略越致命）。</p>
-<h2 id="2-pi">2. 策略迭代（PI）<a class="headerlink" href="#2-pi" title="Permanent link"></a></h2>
-<p>交替两步：<strong>评估</strong>（解 <span class="arithmatex">\(V^{\pi_k} = T^{\pi_k}V^{\pi_k}\)</span>——线性方程组 <span class="arithmatex">\((I - \gamma P^{\pi_k})V = r^{\pi_k}\)</span>，数值 II 的主场；矩阵可逆因 <span class="arithmatex">\(\rho(\gamma P) \leq \gamma &lt; 1\)</span>——谱半径判据上岗）；<strong>改进</strong>（对 <span class="arithmatex">\(V^{\pi_k}\)</span> 贪心得 <span class="arithmatex">\(\pi_{k+1}\)</span>）。</p>
-<p><strong>定理（单调改进与有限收敛）</strong> <span class="arithmatex">\(V^{\pi_{k+1}} \geq V^{\pi_k}\)</span>（逐点），且有限状态动作空间上 PI 在有限步内到达最优策略。
-<strong>【证明】</strong> 贪心定义给 <span class="arithmatex">\(T^{\pi_{k+1}}V^{\pi_k} = TV^{\pi_k} \geq T^{\pi_k}V^{\pi_k} = V^{\pi_k}\)</span>。<span class="arithmatex">\(T^{\pi_{k+1}}\)</span> <strong>单调</strong>（<span class="arithmatex">\(U \geq V \Rightarrow T^\pi U \geq T^\pi V\)</span>——期望保序）：反复作用</p>
+<p>策略迭代对固定 <span class="arithmatex">\(\pi\)</span> 解 <span class="arithmatex">\((I-\gamma P^\pi)V=r^\pi\)</span>，再用 <span class="arithmatex">\(V\)</span> 贪心改进。LP 则把所有动作的 Bellman 不等式同时列出：</p>
 <div class="arithmatex">\[
-V^{\pi_k} \leq T^{\pi_{k+1}}V^{\pi_k} \leq (T^{\pi_{k+1}})^2V^{\pi_k} \leq\cdots\to V^{\pi_{k+1}}
+\min_V c^\mathsf TV\quad\text{s.t.}\quad
+V(s)\ge r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s')\quad\forall(s,a),
 \]</div>
-<p>得单调性；严格改进直到贪心不再改变——此时 <span class="arithmatex">\(V^{\pi} = TV^{\pi}\)</span> 即最优（mdp-01）；策略只有有限个且不重复访问 ⇒ 有限步停机。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>VI vs PI 的工程性格</strong>：VI 每步便宜（一次扫描）但要 <span class="arithmatex">\(O\big(\frac{\ln(1/\varepsilon)}{1-\gamma}\big)\)</span> 步；PI 每步贵（解线性系统）但步数极少（实践常个位数；理论上也是强多项式的活跃研究点【引用】）。<strong>现代 RL 的框架读法</strong>：actor-critic = 近似的 PI（critic 做评估、actor 做改进）；DQN 的 target network = 慢速的 VI——两大经典算法是深度 RL 动物园的骨架。</p>
-<h2 id="3">3. 线性规划路线（第三条等价路）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>观察（Bellman 不等式与最小上解）</strong>：<span class="arithmatex">\(V \geq TV \Rightarrow V \geq V^*\)</span>（单调性反复作用【一行】）——<span class="arithmatex">\(V^*\)</span> 是满足"超调"约束的<strong>最小</strong>函数。故：</p>
+<p>其中 <span class="arithmatex">\(c_s&gt;0\)</span>。候选点若满足所有不等式且每个状态至少有一个约束紧，则它同时是 Bellman 不动点和 LP 最优点。</p>
+<h3 id="4-javascript">4. 静态后备：JavaScript 失效时的可核查账本<a class="headerlink" href="#4-javascript" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mdp-iteration">
+<p><strong>静态读法：</strong>动作、转移和奖励均为已知的有限 toy；VI/PI 是精确期望更新，不含采样噪声。</p>
+<table>
+<thead>
+<tr>
+<th>设置</th>
+<th>VI/PI 的可读结论</th>
+<th>证书边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\gamma=0.2\)</span></td>
+<td>最优策略为（营地采集，矿区收获）；VI 残差快速下降</td>
+<td><span class="arithmatex">\(r/(1-\gamma)\)</span> 有效；LP 约束可逐项核对</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\gamma=0.8\)</span></td>
+<td>远行的未来收益超过采集；策略为（远行，收获）</td>
+<td>PI 评估线性方程与 VI 极限、LP 顶点应一致</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\gamma=0.95\)</span></td>
+<td>同一有限 toy 的策略保持，但 VI 视界更长</td>
+<td><span class="arithmatex">\(1/(1-\gamma)\)</span> 放大更保守；不能用几步曲线代替证书</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\gamma=1\)</span></td>
+<td>可以继续做有限次算术实验</td>
+<td>折现压缩、唯一不动点和 <span class="arithmatex">\(r/(1-\gamma)\)</span> 证书均不自动成立</td>
+</tr>
+</tbody>
+</table>
+<p>LP 账本应显示每个 <span class="arithmatex">\((s,a)\)</span> 的 slack <span class="arithmatex">\(V(s)-Q_V(s,a)\ge0\)</span>，以及最优动作的零 slack。它是 Bellman 不等式证书，不是“PI 只跑了几轮”这一条经验观察。</p>
+<h3 id="5">5. 边界与常见误读<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>残差上界需要假设。</strong><span class="arithmatex">\(r/(1-\gamma)\)</span> 只在折现压缩条件 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 下使用；<span class="arithmatex">\(\gamma=1\)</span> 不能硬除。</li>
+<li><strong>有限 toy 的步数不是一般复杂度定理。</strong>本页记录这个 2×2 模型的 VI 行数和 PI 改进次数，不把“PI 很快”升级成所有 MDP 的统一复杂度结论。</li>
+<li><strong>LP 约束不能只看一个动作。</strong>最优值要压住每个动作的 <span class="arithmatex">\(Q\)</span>；紧约束标出一个可选最优动作。</li>
+<li><strong>策略迭代的线性系统与 VI 的不动点不同。</strong>PI 每轮评估的是当前策略，VI 每轮应用最优性算子；两者在最优策略处汇合。</li>
+<li><strong>模型已知。</strong>采样、函数逼近和 off-policy 更新会引入额外误差，不能把这里的精确账本直接当作 Q-learning 的收敛证明。</li>
+</ul>
+<h3 id="6">6. 迁移问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若每次 Bellman 更新有误差 <span class="arithmatex">\(\|\widetilde TV-TV\|_\infty\le\eta\)</span>，试解释为什么稳定上界会出现 <span class="arithmatex">\(\eta/(1-\gamma)\)</span>。再问：在状态数扩大后，哪部分是算术成本，哪部分才是理论迭代复杂度？</p>
+</div>
+</section>
+<h2 id="1-mdp-bellman">1. 有限折现 MDP 与 Bellman 算子<a class="headerlink" href="#1-mdp-bellman" title="Permanent link"></a></h2>
+<p>MDP 由有限状态集 <span class="arithmatex">\(\mathcal S\)</span>、有限动作集 <span class="arithmatex">\(\mathcal A(s)\)</span>、转移概率、奖励和折现因子组成。对有界价值向量，</p>
 <div class="arithmatex">\[
-\min_V\ \sum_s c(s)V(s) \quad \text{s.t.}\quad V(s) \geq r(s,a) + \gamma\sum_{s'}P(s'\mid s,a)V(s')\ \ \forall s,a
+(TV)(s)=\max_{a\in\mathcal A(s)}\left[r(s,a)+\gamma P(\cdot\mid s,a)^\mathsf TV\right].
 \]</div>
-<p>（<span class="arithmatex">\(c &gt; 0\)</span> 任意权重）的解恰是 <span class="arithmatex">\(V^*\)</span>——<strong>MDP 是一个线性规划</strong>（约束逐 <span class="arithmatex">\((s,a)\)</span> 线性）。<strong>对偶 LP</strong> 的变量 <span class="arithmatex">\(\mu(s,a)\)</span> 是<strong>折现占用测度</strong>（"策略在各状态动作上花的折现时间"），互补松弛恰对应"最优策略只用最优动作"——本科优化 IV 的 LP 对偶/影子价格在决策过程里的完整重演；占用测度视角也是现代 RL 理论（离线 RL、约束 RL）的标准语言【引用】。</p>
-<h2 id="4-mdp-03">4. 近似的预警（通往 mdp-03）<a class="headerlink" href="#4-mdp-03" title="Permanent link"></a></h2>
-<p>以上全部假设 <span class="arithmatex">\(P, r\)</span> 已知且状态可枚举。真实 RL 两座大山：<strong>模型未知</strong>（只能采样）与<strong>状态爆炸</strong>（函数逼近）。理论的分水岭【引用陈述】：<strong>带函数逼近的 Bellman 迭代可以发散</strong>（Baird 反例——投影破坏压缩性："致命三合一"：函数逼近 + bootstrap + off-policy）；线性情形的投影 Bellman 算子在加权范数下仍压缩（权重 = on-policy 分布）——TD 收敛理论的地基（下一页）。<strong>"压缩性是娇贵的"</strong>：mdp-01 的美好在近似世界要逐条重新验伪。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（PI 亲手转两轮）</strong> 2 状态 2 动作小 MDP（自设数字）：解 <span class="arithmatex">\(2\times2\)</span> 线性系统评估、贪心改进——两轮内到最优（体验"步数少"）；同题跑 VI 数迭代次数对比。</p>
-<p><strong>例 2（<span class="arithmatex">\(\frac{1}{1-\gamma}\)</span> 放大的实感）</strong> <span class="arithmatex">\(\gamma = 0.99\)</span>、价值估计误差 <span class="arithmatex">\(\varepsilon = 0.01\)</span>：策略损失界 <span class="arithmatex">\(\frac{2\gamma\varepsilon}{1-\gamma} \approx 2\)</span>——<strong>1% 的价值误差可放大成 2 单位的策略损失</strong>：长视界任务对估计精度的苛刻由此定量。</p>
-<p><strong>例 3（LP 路线验证）</strong> 把例 1 的 MDP 写成 LP 解之（任意 LP 求解器/手算顶点）：与 PI 结果对账 ✓——三条路线（不动点/迭代/LP）同一答案，这是对理解的最好测试。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，期望是 sup 范数的非扩张映射，<span class="arithmatex">\(\max\)</span> 也是非扩张映射，因此 <span class="arithmatex">\(T\)</span> 是 <span class="arithmatex">\(\gamma\)</span>-压缩。于是 <span class="arithmatex">\(V^*=TV^*\)</span> 唯一，且从任意有限初值开始的 VI 收敛。</p>
+<p>本页模型的两行候选是</p>
+<div class="arithmatex">\[
+Q(s_0,\text{采集})=1+\gamma V_0,
+\quad Q(s_0,\text{远行})=-2+\gamma V_1,
+\]</div>
+<div class="arithmatex">\[
+Q(s_1,\text{收获})=4+\gamma(0.4V_0+0.6V_1),
+\quad Q(s_1,\text{返回})=2+\gamma V_0.
+\]</div>
+<h2 id="2_1">2. 价值迭代：每步便宜，残差可审计<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<div class="arithmatex">\[V_{k+1}=TV_k\]</div>
+<p>是对最优性算子的直接不动点迭代。实验同时报告当前价值、贪心动作、<span class="arithmatex">\(r_k=\|TV_k-V_k\|_\infty\)</span> 和在 <span class="arithmatex">\(\gamma&lt;1\)</span> 假设下的 <span class="arithmatex">\(r_k/(1-\gamma)\)</span>。后者不需要先知道 <span class="arithmatex">\(V^*\)</span>；只有在这个小模型中通过精确线性求解得到的真误差，才作为额外对照显示。</p>
+<p>若用相邻迭代差作为停机信号，也要先把它换算成残差或误差上界；“曲线看起来平”不是数学证书。</p>
+<h2 id="3">3. 策略迭代：评估、改进、停在不动点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>固定确定性策略 <span class="arithmatex">\(\pi\)</span> 时，</p>
+<div class="arithmatex">\[
+V^\pi=r^\pi+\gamma P^\pi V^\pi,
+\qquad (I-\gamma P^\pi)V^\pi=r^\pi.
+\]</div>
+<p>策略迭代先解这个线性系统，再选取对 <span class="arithmatex">\(V^\pi\)</span> 贪心的策略。如果改进不再改变策略，则 <span class="arithmatex">\(T^\pi V^\pi=TV^\pi=V^\pi\)</span>，它就是最优价值。有限状态动作空间的标准确定性 PI 在有限步内到达稳定策略；这句话不等同于一个与状态数无关的复杂度上界。</p>
+<h2 id="4-bellman-lp">4. Bellman 不等式与 LP 证书<a class="headerlink" href="#4-bellman-lp" title="Permanent link"></a></h2>
+<p>由 <span class="arithmatex">\(V\ge TV\)</span> 和 <span class="arithmatex">\(T\)</span> 的单调性，反复应用 <span class="arithmatex">\(T\)</span> 得到 <span class="arithmatex">\(V\ge V^*\)</span>。因此正权目标下的 LP</p>
+<div class="arithmatex">\[
+\min_V c^\mathsf TV
+\quad\text{s.t.}\quad
+V(s)-Q_V(s,a)\ge0
+\]</div>
+<p>的最小可行点正是 <span class="arithmatex">\(V^*\)</span>。对本页 2×2 模型，直接列出四个 slack 就能验证：最优动作的 slack 为零，另一个动作的 slack 非负。这个逐项账本比只报一个“LP 已求解”更透明。</p>
+<h2 id="5_1">5. 证据与迁移边界<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>VI、PI 和 LP 在本页都使用完整模型，因此可以互相对账；这是一个有限 toy 的确定性证据。一般 MDP 的运行时间还受到状态动作规模、线性系统求解、折现因子和表示方式影响；PI 的迭代次数也不应从本页几行数据外推成普遍复杂度定理。</p>
+<p>去掉模型已知、加入采样或函数逼近后，Bellman 更新可能只近似实现，压缩性也可能被投影或 off-policy 机制破坏。那是 mdp-03 的随机逼近问题，不由本页的精确 VI/PI/LP 账本解决。</p>
 <hr />
-<p><em>下一页：去掉"模型已知"——随机逼近理论（Robbins–Monro）与 Q-learning 的收敛性：随机世界里的不动点迭代。</em></p>
+<p><em>下一页：去掉“模型已知”——随机逼近与 Q-learning 的收敛性。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mdp-01-bellman.html"><span class="pager-label">上一页</span>MDP I · Bellman 算子与压缩</a>
@@ -95,5 +197,7 @@ V^{\pi_k} \leq T^{\pi_{k+1}}V^{\pi_k} \leq (T^{\pi_{k+1}})^2V^{\pi_k} \leq\cdots
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mdp-iteration.js"></script>
 </body>
 </html>

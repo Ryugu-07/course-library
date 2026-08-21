@@ -2,6 +2,110 @@
 
 > 微分几何 = 用微积分研究弯曲的对象。第一站是空间曲线：**一条曲线的全部几何由两个函数决定——曲率（弯多快）与挠率（扭多快）**。这个"完全分类"由 Frenet 标架实现：给曲线随身携带一个正交坐标系，微积分与线性代数在此合演。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="dg-curves-learning-title">
+
+<h2 id="dg-curves-learning-title">学习层：先找定义域，再让四条曲线交出 Frenet 账本</h2>
+
+### 1. 具体开场：同一条几何曲线，换一个钟表会变什么？
+
+先比较四个精确模型，并在打开实验前写下预测：
+
+| 模型 | 参数式 | 先猜的问题 |
+|---|---|---|
+| 直线 | \(\mathbf r(u)=(u,0,0)\) | 曲线正则，但 \(\kappa=0\) 时能否仍然写 \(N=T'/\kappa\)？ |
+| 圆 | \(\mathbf r(u)=(2\cos u,2\sin u,0)\) | 把 \(u\) 换成 \(2t\) 后，speed、弧长坐标、\(\kappa\)、\(\tau\) 各怎样变？ |
+| 螺旋线 | \(\mathbf r(u)=(2\cos u,2\sin u,u)\) | \(\tau\) 是 0 还是非零？\(T,N,B\) 是否仍然正交？ |
+| 拐点曲线 | \(\mathbf r(u)=(u,u^3,0)\) | \(u=0\) 处速度不为 0，为什么主法向仍会失效？ |
+
+以螺旋线 \(u=0.8\) 为默认探针。实验的 prediction gate 会先收下四项判断，再展示向量图和逐项账本；拖动参数速度后，预测会重新锁定，避免把上一组结论误读成新模型的证据。
+
+### 2. 形式桥：从参数速度到内在量
+
+曲线 \(\mathbf r:I\to\mathbb R^3\) 的**正则性**是 \(\mathbf r'(t)\ne0\)。速度、弧长和单位切向量分别为
+
+$$
+v=|\mathbf r'(t)|,\qquad s(t)=\int_{t_0}^{t}v(u)\,du,\qquad T=\frac{\mathbf r'}{|\mathbf r'|}.
+$$
+
+若 \(\mathbf r\) 足够光滑且 \(\mathbf r'\times\mathbf r''\ne0\)，才可定义完整 Frenet 标架：
+
+$$
+\begin{aligned}
+\kappa&=\frac{|\mathbf r'\times\mathbf r''|}{|\mathbf r'|^3},
+&N&=\frac{dT/ds}{|dT/ds|},
+&B&=T\times N,\\
+\tau&=\frac{(\mathbf r',\mathbf r'',\mathbf r''')}{|\mathbf r'\times\mathbf r''|^2}.
+\end{aligned}
+$$
+
+这里有两个不同的门槛：\(\mathbf r'\ne0\) 保证 \(T\) 存在；\(\kappa>0\) 才允许除以 \(\kappa\) 得到 \(N\)。正则不等于 Frenet 标架处处存在。
+
+对正的正则重参数化 \(u=\lambda t\)，有
+
+$$
+|d\mathbf r/dt|=\lambda|d\mathbf r/du|,\qquad s_t(t)=s_u(\lambda t),\qquad \kappa_t=\kappa_u,\quad \tau_t=\tau_u.
+$$
+
+因此 speed 和“走到哪里”的弧长坐标依赖钟表，\(\kappa,\tau\) 在 Frenet 定义域内是几何量。若 \(\lambda<0\) 或参数不正则，方向与定义域要另行记账，不能把这句不加条件地延伸。
+
+四个模型的精确结果如下：
+
+- **直线**：\(v=1,\ s=u,\ \kappa=0\)。\(T=(1,0,0)\) 存在，但 \(N=T'/\kappa\) 是 \(0/0\)，所以 \(N,B,\tau\) 在 Frenet 意义下未定义；实验明确显示“拒绝除以 0”。
+- **圆**：\(v=2,\ s=2u,\ \kappa=1/2,\ \tau=0\)，
+  \(T=(-\sin u,\cos u,0)\)、\(N=(-\cos u,-\sin u,0)\)、\(B=(0,0,1)\)。
+- **螺旋线**：\(v=\sqrt5,\ s=\sqrt5u,\ \kappa=2/5,\ \tau=1/5\)，
+  \[
+  T=\frac{(-2\sin u,2\cos u,1)}{\sqrt5},\quad
+  N=(-\cos u,-\sin u,0),\quad
+  B=\frac{(\sin u,-\cos u,2)}{\sqrt5}.
+  \]
+- **拐点曲线**：\(v=\sqrt{1+9u^4}\)，
+  \[
+  s(u)=\int_0^u\sqrt{1+9q^4}\,dq,\qquad
+  \kappa=\frac{6|u|}{(1+9u^4)^{3/2}},\qquad \tau=0\quad(u\ne0).
+  \]
+  在 \(u=0\) 处速度为 1 但 \(\kappa=0\)，正是“正则而没有主法向”的反例；有符号曲率从负变正，法向在两侧的极限方向也不应被强行拼成一个 Frenet 向量。
+
+### 3. 误区与模型边界：不要让公式替定义域背锅
+
+| 容易说错的句子 | 精确修正 |
+|---|---|
+| “曲线正则，所以 Frenet 标架总存在。” | 正则只给 \(T\)。还需 \(\mathbf r'\times\mathbf r''\ne0\)，即 \(\kappa>0\)，才能给 \(N,B,\tau\)。 |
+| “拐点处只是数值不稳定，取一个附近的 \(N\) 就行。” | 拐点处 \(N\) 的定义真的失效；可讨论有符号曲率、左右极限或 Bishop 标架，但那是换模型，不是偷偷除零。 |
+| “\(\tau=0\) 就说明每一点的 Frenet \(B\) 都存在。” | 平面曲线在 \(\kappa>0\) 的区间内有 \(\tau=0\)；若曲率为零，\(\tau\) 的混合积公式也可能无定义。 |
+| “参数变快，曲线就弯得更厉害。” | 参数速度改变 \(v,s\) 和向量随参数的导数，不改变正则重参数化下的 \(\kappa,\tau\)。 |
+| “\((\kappa,\tau)\) 总能完整分类。” | 基本定理通常要求弧长参数、\(\kappa>0\) 及足够正则性；直线和拐点是边界，需要分段或换标架叙述。 |
+
+### 4. Frenet 互动实验
+
+下面的实验只使用解析导数和确定性 SVG。红点是探针，蓝、绿、金向量分别是 \(T,N,B\)；曲线绘图采样也使用同一个正参数速度 rate，避免图线与探针落在不同参数化上；当 \(\kappa=0\) 时画出红色叉号和文字边界，而不是制造一个任意法向。四个预设、参数滑杆、正参数速度滑杆和重置都共享同一纯模型。
+
+<div class="learning-lab" data-learning-lab="frenet-frame" markdown="1">
+
+**JavaScript 失效时的静态后备账本：**取螺旋线 \(\mathbf r(t)=(2\cos t,2\sin t,t)\)、\(t=0.8\)、rate \(=1\)。下表保留精确值；向量数值取三位小数。若把 rate 改为 \(2\)，speed 与弧长坐标都加倍，但 \(\kappa=2/5,\tau=1/5\) 不变。
+
+| 量 | 静态值 | 解释 |
+|---|---:|---|
+| speed \(|r'|\) | \(\sqrt5\approx2.236\) | 参数时间的速度 |
+| 弧长 \(s\) | \(0.8\sqrt5\approx1.789\) | 从 \(t=0\) 起的有向弧长 |
+| 曲率 \(\kappa\) | \(2/5=0.4\) | Frenet 法向可定义 |
+| 挠率 \(\tau\) | \(1/5=0.2\) | 非零，曲线不在固定平面内 |
+| \(T\) | \((-0.641,0.623,0.447)\) | 单位切向 |
+| \(N\) | \((-0.697,-0.717,0)\) | 指向凹侧 |
+| \(B\) | \((0.321,-0.312,0.894)\) | \(T\times N\) |
+
+边界复核：直线任一点的 \(\kappa=0\)，所以 \(N,B,\tau\) 显示“未定义”；拐点曲线 \(t=0\) 也如此，尽管 \(|r'|=1\)。这两行是定义域账，不是缺失数据。
+
+</div>
+
+### 5. 迁移问题
+
+若轨迹规划器只要求路径几何不变而改变播放速度，应保留 \(\kappa,\tau\) 作为路径诊断，同时另外记录 speed 和弧长时间表。若轨迹经过 \(\kappa=0\) 的拐点，Frenet 航向会出现结构性断点；此时应明确改用有符号曲率、分段 Frenet 或 Bishop 标架，而不是把任意平滑法向冒充原来的 \(N\)。
+
+</section>
+
 ## 1. 参数曲线与弧长
 
 **正则曲线** $\mathbf{r}(t): I \to \mathbb{R}^3$，$\mathbf{r}'(t) \neq \mathbf 0$（速度不歇——保证处处有切方向）。**弧长**

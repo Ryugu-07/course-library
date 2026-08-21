@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,101 +41,179 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:34</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 算法稳定性：泛化的第二条路线</a></li>
-<li><a href="#2">2. 在线学习：没有分布也能学</a></li>
-<li><a href="#3">3. 统计学习四页资产盘点</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#stability-online-learning-title">学习层：先把两个量词放到不同账本</a><ul>
+<li><a href="#1">1. 直觉案例：换掉一条数据，模型会不会换脸？</a></li>
+<li><a href="#2-a-erm">2. 形式推导桥 A：正则化 ERM 的稳定性证书</a></li>
+<li><a href="#3-bhedge-comparator-regret">3. 形式推导桥 B：Hedge 与 comparator regret</a></li>
+<li><a href="#4">4. 模型边界面板：两条保证不能互换</a></li>
+<li><a href="#5">5. 确定性实验：同一屏，两种量词</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 一致稳定性与泛化</a></li>
+<li><a href="#2-hedge">2. 在线专家与 Hedge</a></li>
+<li><a href="#3-ogd-online-to-batch">3. 与 OGD 和 online-to-batch 的接口</a></li>
+<li><a href="#4_1">4. 三个检查题</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iv">统计学习 IV · 稳定性、正则化与在线学习<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<h1 id="iv-regret">统计学习 IV · 稳定性、正则化与在线 regret<a class="headerlink" href="#iv-regret" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：SSBD <em>UML</em> §13–14、§21 ｜ <strong>前置</strong>：slt-01–03、优化线（本科）
-收官页两大主题：<strong>算法稳定性</strong>——泛化的第二条路线（不看假设类看算法：换一个样本输出变多少），它给正则化以定理级辩护；<strong>在线学习</strong>——把"分布假设"整个扔掉的第三种学习范式（regret 框架），感知机定理（ai 课 02）在此获得正式家族。</p>
+<p><strong>对标</strong>：SSBD <em>Understanding Machine Learning</em> §13–14、§21 ｜ <strong>前置</strong>：slt-01–03、凸优化、McDiarmid
+本页收束两条不同的路线：正则化 ERM 用“换一个训练点，算法输出改变多少”连接到统计泛化；Hedge 则允许损失序列由对手逐轮给出，用事后最佳固定专家定义 comparator regret。前者的 iid/期望量词不能偷渡到后者，后者的一次 realized regret 也不能被叫作 worst-case bound。</p>
 </blockquote>
-<h2 id="1">1. 算法稳定性：泛化的第二条路线<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义（一致稳定性）</strong> 算法 <span class="arithmatex">\(A\)</span> 是 <span class="arithmatex">\(\beta\)</span>-稳定：把训练集换掉一个样本，任意点的损失变化 <span class="arithmatex">\(\leq \beta\)</span>：<span class="arithmatex">\(\sup_z|\ell(A(S), z) - \ell(A(S^{(i)}), z)| \leq \beta\)</span>。</p>
-<p><strong>定理（稳定 ⇒ 泛化）</strong> <span class="arithmatex">\(\beta\)</span>-稳定算法满足 <span class="arithmatex">\(\big|E_S[L_{\mathcal{D}}(A(S)) - L_S(A(S))]\big| \leq \beta\)</span>。
-<strong>【证明】</strong> 双重期望换样本技巧：</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="stability-online-learning-title" class="learning-layer">
+<h2 id="stability-online-learning-title">学习层：先把两个量词放到不同账本<a class="headerlink" href="#stability-online-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 直觉案例：换掉一条数据，模型会不会换脸？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>给定样本 <span class="arithmatex">\(S=(z_1,\ldots,z_m)\)</span>，正则化 ERM 取</p>
 <div class="arithmatex">\[
-E_S L_S(A(S)) = E_{S,z_i'}\big[\ell(A(S^{(i)}), z_i')\big] \quad(\text{换名: 训练点与新点身份互换})
+A(S)=\arg\min_w\left\{\frac1m\sum_{i=1}^m\ell(w,z_i)+\frac{\lambda}{2}\|w\|^2\right\}.
 \]</div>
-<p>而 <span class="arithmatex">\(E_S L_{\mathcal{D}}(A(S)) = E_{S, z'}\ell(A(S), z')\)</span>——两式的差恰是"换一个样本对同一点的损失差"，按定义 <span class="arithmatex">\(\leq \beta\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（高概率版由 McDiarmid 补齐【骨架】。）</p>
-<p><strong>定理（正则化 ⇒ 稳定）</strong> <span class="arithmatex">\(\ell\)</span> 凸且 <span class="arithmatex">\(L\)</span>-Lipschitz，则 Tikhonov 正则化 ERM <span class="arithmatex">\(\hat h = \arg\min L_S(h) + \lambda\|h\|^2\)</span> 是 <span class="arithmatex">\(\beta\)</span>-稳定，<span class="arithmatex">\(\beta = \frac{2L^2}{\lambda m}\)</span>。
-<strong>【骨架】</strong> 目标是 <span class="arithmatex">\(2\lambda\)</span>-强凸 ⇒ 最优点对目标扰动敏感度 <span class="arithmatex">\(\|h - h'\| \leq \frac{\text{扰动幅度}}{\lambda}\)</span>（强凸的二次下界，优化 II）；换一个样本扰动经验风险至多 <span class="arithmatex">\(\frac{2L}{m}\)</span> 级 ⇒ 输出移动 <span class="arithmatex">\(\leq \frac{2L}{\lambda m}\)</span>，Lipschitz 换回损失。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>合成读法</strong>：泛化差 <span class="arithmatex">\(\lesssim \frac{L^2}{\lambda m}\)</span>——<strong>正则化强度直接购买泛化</strong>（λ 的双重身份：优化上保强凸、统计上保稳定——本科"正则化 = 偏差方差滑块 = 先验"之外的第三种严格解释）。稳定性路线<strong>不经过假设类复杂度</strong>——对"复杂度爆炸但算法温和"的场景（如 SGD 训练的深网【引用 Hardt et al.】）是比一致收敛更有希望的解释框架（部分成立、整体开放——与 slt-03 例 2 呼应的诚实边界）。</p>
-<h2 id="2">2. 在线学习：没有分布也能学<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>协议</strong>：逐轮 <span class="arithmatex">\(t = 1..T\)</span>——预测 <span class="arithmatex">\(\hat y_t\)</span>、看真值、受损失；<strong>对手可以恶意</strong>。目标不再是风险而是 <strong>regret</strong>：</p>
+<p>把一个点换成 <span class="arithmatex">\(z_i'\)</span> 得 <span class="arithmatex">\(S^{(i)}\)</span>。先预测：</p>
+<ol>
+<li>增大 <span class="arithmatex">\(m\)</span> 或 <span class="arithmatex">\(\lambda\)</span>，邻居输出的损失差通常变大还是变小？</li>
+<li><span class="arithmatex">\(\beta=2L^2/(\lambda m)\)</span> 是一个“这条测试样本已经泛化良好”的 realized 数字，还是算法稳定性的统一证书？</li>
+<li>在 Hedge 中，对手是否需要先承诺一个 iid 分布？</li>
+<li>运行完一条 12 轮序列后的 regret，是这条序列的 ledger，还是所有未来序列的最坏上界？</li>
+</ol>
+<p>直觉上，强凸正则把目标函数变成一个有“弹簧”的碗；删掉一个样本只会轻微移动碗底。Hedge 的直觉不同：它不是从样本分布估计风险，而是在每轮把权重向过去损失较小的专家移动。</p>
+<h3 id="2-a-erm">2. 形式推导桥 A：正则化 ERM 的稳定性证书<a class="headerlink" href="#2-a-erm" title="Permanent link"></a></h3>
+<p>假设 <span class="arithmatex">\(\ell(\cdot,z)\)</span> 凸且对 <span class="arithmatex">\(w\)</span> 是 <span class="arithmatex">\(L\)</span>-Lipschitz，<span class="arithmatex">\(\lambda&gt;0\)</span>。目标函数的正则项让它 <span class="arithmatex">\(\lambda\)</span>-强凸。两个邻居最优点 <span class="arithmatex">\(w=A(S)\)</span> 与 <span class="arithmatex">\(w'=A(S^{(i)})\)</span> 的强凸不等式，加上只有一项样本被替换，可得</p>
 <div class="arithmatex">\[
-\mathrm{Reg}_T = \sum_t \ell(h_t, z_t) - \min_{h\in\mathcal{H}}\sum_t \ell(h, z_t)
+\|w-w'\|\lesssim\frac{2L}{\lambda m},
+\qquad
+\sup_z|\ell(w,z)-\ell(w',z)|
+\leq \boxed{\beta=\frac{2L^2}{\lambda m}}.
 \]</div>
-<p>（"比事后最优的固定策略差多少"——<span class="arithmatex">\(o(T)\)</span> 的 regret = "平均意义上追平事后诸葛"。）</p>
-<p><strong>定理（在线梯度下降 OGD）</strong> 凸损失、次梯度范数 <span class="arithmatex">\(\leq G\)</span>、决策域直径 <span class="arithmatex">\(\leq D\)</span>，步长 <span class="arithmatex">\(\eta = \frac{D}{G\sqrt T}\)</span>：</p>
+<p>这一步的对象是<strong>算法对单点替换的最大敏感度</strong>。在 <span class="arithmatex">\(S\)</span> 是来自同一分布 <span class="arithmatex">\(\mathcal D\)</span> 的 iid 样本、损失满足上述条件时，交换训练点与独立测试点的双重期望技巧给出</p>
 <div class="arithmatex">\[
-\mathrm{Reg}_T \;\leq\; GD\sqrt{T}
+\left|E_S\left[L_{\mathcal D}(A(S))-L_S(A(S))\right]\right|\leq\beta.
 \]</div>
-<p><strong>【证明】</strong> 势函数法。记 <span class="arithmatex">\(\Phi_t = \|w_t - w^*\|^2\)</span>（<span class="arithmatex">\(w^*\)</span> = 事后最优）：</p>
+<p>这是期望泛化声明；高概率版本还需要有界差分/McDiarmid 等额外步骤。一个固定参考分布上计算出的
+<span class="arithmatex">\(L_{\mathcal D}(A(S))-L_S(A(S))\)</span> 仍是一次 realized gap，不是自动获得的概率定理。</p>
+<h3 id="3-bhedge-comparator-regret">3. 形式推导桥 B：Hedge 与 comparator regret<a class="headerlink" href="#3-bhedge-comparator-regret" title="Permanent link"></a></h3>
+<p>有 <span class="arithmatex">\(K\)</span> 个专家，每轮先选分布 <span class="arithmatex">\(p_t\)</span>，观察损失
+<span class="arithmatex">\(\ell_{t,k}\in[0,1]\)</span>，再更新</p>
 <div class="arithmatex">\[
-\Phi_{t+1} = \|w_t - \eta g_t - w^*\|^2 = \Phi_t - 2\eta\langle g_t, w_t - w^*\rangle + \eta^2\|g_t\|^2
+w_{t+1,k}=w_{t,k}e^{-\eta\ell_{t,k}},
+\qquad
+p_{t,k}=\frac{w_{t,k}}{\sum_jw_{t,j}}.
 \]</div>
-<p>凸性 <span class="arithmatex">\(\ell_t(w_t) - \ell_t(w^*) \leq \langle g_t, w_t - w^*\rangle\)</span>，代入移项对 <span class="arithmatex">\(t\)</span> 求和（<span class="arithmatex">\(\Phi\)</span> 望远镜相消）：</p>
+<p>学习者损失是 <span class="arithmatex">\(\widehat\ell_t=\sum_kp_{t,k}\ell_{t,k}\)</span>，事后最佳固定专家的 comparator 损失是
+<span class="arithmatex">\(\min_k\sum_t\ell_{t,k}\)</span>。因此账本中的 realized regret 是</p>
 <div class="arithmatex">\[
-\mathrm{Reg}_T \leq \frac{\Phi_1}{2\eta} + \frac{\eta}{2}\sum\|g_t\|^2 \leq \frac{D^2}{2\eta} + \frac{\eta G^2T}{2}
+\operatorname{Reg}_T^{\rm ledger}
+=\sum_t\widehat\ell_t-\min_k\sum_t\ell_{t,k}.
 \]</div>
-<p>代入 <span class="arithmatex">\(\eta\)</span> 平衡两项。<span class="arithmatex">\(\blacksquare\)</span>（投影步不增距离——凸集投影的非扩张性，泛函 II。）</p>
-<p><strong>读法</strong>：<strong>对抗世界里 <span class="arithmatex">\(\sqrt T\)</span> 的代价就是全部</strong>——不需要任何统计假设；每轮平均 regret <span class="arithmatex">\(\frac{GD}{\sqrt T} \to 0\)</span>。感知机定理（ai 课 02 的 Novikoff）是其可分特例（错误数 <span class="arithmatex">\(\leq R^2/\gamma^2\)</span> = 零 regret 的间隔版）；<strong>Online-to-Batch【骨架】</strong>：对 i.i.d. 数据取平均假设，regret 界直接变泛化界（期望版 Jensen 一行）——在线是比统计更强的范式（"能对抗恶意就能对抗随机"）。</p>
-<p><strong>与实践的接线</strong>：SGD 就是"随机版 OGD"，<span class="arithmatex">\(\frac{1}{\sqrt T}\)</span> 速率同源（优化 II 的表在此有了无分布出身）；专家问题/乘法权重（Hedge）是另一支主干【引用】——它与博弈论 minimax、boosting 的等价性是二十世纪末算法理论最美的三角之一（本科博弈 II 的 LP 对偶在此有算法化身）。</p>
-<h2 id="3">3. 统计学习四页资产盘点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\([0,1]\)</span> 损失使用 Hoeffding 引理和权重势函数，得到对<strong>每一条合法损失序列</strong>成立的证书</p>
+<div class="arithmatex">\[
+\operatorname{Reg}_T
+\leq\frac{\log K}{\eta}+\frac{\eta T}{8}.
+\]</div>
+<p>右边是 theorem bound；实验台的红色曲线是某一条已选序列的 realized regret。它们同量纲但不是同一对象。序列可以是自适应或对抗的，因而这里没有 iid 泛化假设；“分布无关”来自协议和损失范围，不是来自稳定性定理。</p>
+<h3 id="4">4. 模型边界面板：两条保证不能互换<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<blockquote>
+<p><strong>模型边界</strong></p>
+<ul>
+<li>稳定性：需要凸/Lipschitz、<span class="arithmatex">\(\lambda&gt;0\)</span> 和正则化 ERM 的结构；把它转成泛化时需要 iid 样本和期望（或另加集中不等式）。</li>
+<li>在线 regret：需要逐轮协议、损失范围和 comparator 定义；不需要数据分布，但只保证相对事后最佳固定专家。</li>
+<li><span class="arithmatex">\(\beta\)</span> 不是一次测试集 gap 的数值替身。</li>
+<li>一条 Hedge 序列的 realized regret 不是 worst-case bound；只有右侧显式写出的不等式才是上界证书。</li>
+<li>在线学习者若换成“每轮事后挑最小损失专家”，会产生信息泄漏；Hedge 的概率必须在看到本轮损失前确定。</li>
+</ul>
+</blockquote>
+<h3 id="5">5. 确定性实验：同一屏，两种量词<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>预测门提交后，左侧调节 <span class="arithmatex">\(m,\lambda,L\)</span> 和一个声明好的两点参考分布，右侧选择固定的对抗序列与 <span class="arithmatex">\(\eta\)</span>。左侧显示 beta certificate、一个邻居替换的实际最大损失差、以及固定参考分布上的 realized gap；右侧显示每轮概率、学习者损失、最佳固定专家和 regret。每次重置都会回到同一配置。</p>
+<div class="learning-lab" data-learning-lab="online-regret">
+<p><strong>无 JavaScript 时的静态读法：</strong> 默认取 <span class="arithmatex">\(m=48,\lambda=0.5,L=1\)</span>，则
+<span class="arithmatex">\(\beta=2/(0.5\cdot48)=1/12\approx0.08333\)</span>。这只是满足假设时的稳定性证书。</p>
 <table>
 <thead>
 <tr>
-<th>路线</th>
-<th>复杂度度量</th>
-<th>核心工具</th>
-<th>解释力所及</th>
+<th>账本</th>
+<th>计算</th>
+<th>正确读法</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>一致收敛（slt-01/02）</td>
-<td><span class="arithmatex">\(\ln\lvert\mathcal{H}\rvert\)</span> / VC 维</td>
-<td>union bound、对称化</td>
-<td>经典模型、充要刻画</td>
+<td>ERM 稳定性证书</td>
+<td><span class="arithmatex">\(\beta=2L^2/(\lambda m)\)</span></td>
+<td>iid/期望泛化路线的算法证书</td>
 </tr>
 <tr>
-<td>Rademacher/margin（slt-03）</td>
-<td>噪声亲和力 / <span class="arithmatex">\(BR/\rho\)</span></td>
-<td>McDiarmid、收缩</td>
-<td>核方法、boosting、范数控制的网络</td>
+<td>邻居检查</td>
+<td><span class="arithmatex">\(\max_{y\in\{-1,1\}}\lvert\ell(w,y)-\ell(w',y)\rvert\)</span></td>
+<td>一次有限 probe 的实测敏感度</td>
 </tr>
 <tr>
-<td>稳定性（本页）</td>
-<td>算法敏感度 <span class="arithmatex">\(\beta\)</span></td>
-<td>强凸、换样本技巧</td>
-<td>正则化、SGD 型算法</td>
+<td>固定参考 gap</td>
+<td><span class="arithmatex">\(L_{\rm ref}(A(S))-L_S(A(S))\)</span></td>
+<td>realized gap，不是自动的高概率结论</td>
 </tr>
 <tr>
-<td>在线/regret（本页）</td>
-<td>无（对抗式）</td>
-<td>势函数</td>
-<td>流式、无分布场景</td>
+<td>Hedge 更新</td>
+<td><span class="arithmatex">\(p_{t,k}=w_{t,k}/\sum_jw_{t,j}\)</span>，<span class="arithmatex">\(w_{t+1,k}=w_{t,k}e^{-\eta\ell_{t,k}}\)</span></td>
+<td>先预测后观测的在线协议</td>
+</tr>
+<tr>
+<td>comparator regret</td>
+<td><span class="arithmatex">\(\sum_t\widehat\ell_t-\min_k\sum_t\ell_{t,k}\)</span></td>
+<td>这条序列的 realized regret</td>
+</tr>
+<tr>
+<td>theorem bound</td>
+<td><span class="arithmatex">\(\log(K)/\eta+\eta T/8\)</span>，损失在 <span class="arithmatex">\([0,1]\)</span></td>
+<td>对合法序列的显式最坏情形证书</td>
 </tr>
 </tbody>
 </table>
-<p>四条路线对深度学习各有部分解释、无一完整——<strong>"过参数化网络为何泛化"仍是开放问题</strong>：本站在此诚实收针（研究前沿的入口坐标已给足）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（β 的数值感）</strong> SVM 级正则（<span class="arithmatex">\(\lambda = \frac{1}{m}\)</span> 量级常见）：<span class="arithmatex">\(\beta = O(1)\)</span>——不衰减！稳定性界要求 <span class="arithmatex">\(\lambda \gg \frac1m\)</span> 才有意义 ⇒ "λ 太小时稳定性路线也保不了你"：三条路线各有失效区，交叉引用是必需而非装饰。</p>
-<p><strong>例 2（OGD 亲手跑）</strong> 二维凸域、手造三轮对抗损失，按证明里的势函数逐轮记账——验证望远镜求和的每一步（这是把证明变成肌肉记忆的最短路径）。</p>
-<p><strong>例 3（online-to-batch 应用）</strong> 用 OGD 的 <span class="arithmatex">\(GD\sqrt T\)</span> 界导出统计设定下 <span class="arithmatex">\(E L_{\mathcal{D}}(\bar w) - L_{\mathcal{D}}(w^*) \leq \frac{GD}{\sqrt T}\)</span>：对 regret 取期望 + Jensen（<span class="arithmatex">\(\ell\)</span> 凸对 <span class="arithmatex">\(\bar w\)</span>）——两个范式的官方换算器，三行写全。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>例如默认 Hedge 设 <span class="arithmatex">\(K=3,T=12,\eta=0.55\)</span>，显示的上界为
+<span class="arithmatex">\(\log(3)/0.55+0.55\cdot12/8\approx2.82\)</span>。不要因为某条序列的红色 regret 小，就删掉右侧的损失范围、comparator 或 theorem bound 标签。</p>
+</div>
+</section>
+<h2 id="1_1">1. 一致稳定性与泛化<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>算法 <span class="arithmatex">\(A\)</span> 称为 <span class="arithmatex">\(\beta\)</span>-uniformly stable，如果任意相邻样本集和任意测试点 <span class="arithmatex">\(z\)</span> 满足</p>
+<div class="arithmatex">\[
+\sup_z|\ell(A(S),z)-\ell(A(S^{(i)}),z)|\leq\beta.
+\]</div>
+<p>它控制的是算法映射 <span class="arithmatex">\(S\mapsto A(S)\)</span> 的敏感度，而不是假设类的 VC 维或 Rademacher 复杂度。正则化 ERM 的强凸性给出稳定性，是“算法本身温和”这一事实的定量化。</p>
+<p>稳定性泛化证明把</p>
+<div class="arithmatex">\[
+E_S L_{\mathcal D}(A(S))
+\quad\text{和}\quad
+E_S L_S(A(S))
+\]</div>
+<p>写成训练点与独立点交换后的两个期望；只有在 iid 抽样与交换合法时，差值才可由 <span class="arithmatex">\(\beta\)</span> 控制。若数据有时间依赖、分布漂移或算法查看了验证集，必须重新审计这一步。</p>
+<h2 id="2-hedge">2. 在线专家与 Hedge<a class="headerlink" href="#2-hedge" title="Permanent link"></a></h2>
+<p>在线协议是</p>
+<div class="arithmatex">\[
+\text{选 }p_t\ \longrightarrow\ \text{看 }\ell_t\ \longrightarrow\ \text{付 }\langle p_t,\ell_t\rangle\ \longrightarrow\ \text{更新}.
+\]</div>
+<p>Hedge 的势函数证明把专家 <span class="arithmatex">\(k\)</span> 的权重写成
+<span class="arithmatex">\(w_{T+1,k}=K^{-1}\exp(-\eta\sum_t\ell_{t,k})\)</span>，一方面上界权重总和，另一方面下界最佳专家权重，得到前述 regret inequality。若 <span class="arithmatex">\(\eta\asymp\sqrt{\log K/T}\)</span>，上界是 <span class="arithmatex">\(O(\sqrt{T\log K})\)</span>，平均 regret 才趋于 0。</p>
+<p>注意 comparator 是“事后最好的固定专家”，不是每轮最好的专家；后者通常需要额外信息，不能直接作为可实现基准。专家数量、损失范围、<span class="arithmatex">\(\eta\)</span> 和比较对象都应写入实验账本。</p>
+<h2 id="3-ogd-online-to-batch">3. 与 OGD 和 online-to-batch 的接口<a class="headerlink" href="#3-ogd-online-to-batch" title="Permanent link"></a></h2>
+<p>在凸决策域直径 <span class="arithmatex">\(D\)</span>、次梯度范数 <span class="arithmatex">\(\leq G\)</span> 的 OGD 中，势函数同样给出</p>
+<div class="arithmatex">\[
+\operatorname{Reg}_T
+\leq\frac{D^2}{2\eta}+\frac{\eta G^2T}{2}.
+\]</div>
+<p>这是在线协议内部的分布无关结论。若再把在线样本假设为 iid，并对在线迭代平均应用 Jensen，才可导出 online-to-batch 的期望统计结论；那是额外的桥梁，不是 Hedge 账本已经完成的事情。</p>
+<h2 id="4_1">4. 三个检查题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（正则太弱）</strong> 若 <span class="arithmatex">\(\lambda=1/m\)</span>，公式给 <span class="arithmatex">\(\beta=2L^2/(\lambda m)=2L^2\)</span> 量级的常数而不会随 <span class="arithmatex">\(m\)</span> 消失；稳定性路线也有失效区。</p>
+<p><strong>例 2（对抗序列）</strong> 让一个专家前半程最好、另一个后半程最好，Hedge 会因惯性付出切换代价；这不表示算法违反 regret 定理，因为 comparator 仍是一个固定专家。</p>
+<p><strong>例 3（量词翻译）</strong> 想把稳定性变成测试风险结论时，补上 iid、损失有界/集中条件与概率量词；想把 Hedge 变成统计泛化时，另写 online-to-batch 的抽样桥。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>下一门：MDP 与强化学习的数学——把"学习"放进"决策与时间"里：Bellman 算子、收敛性、随机逼近。</em></p>
+<p><em>统计学习的两条边界在这里并列：稳定性解释“这个算法为何不太依赖某一个样本”，在线 regret 解释“没有分布时仍能追平一个固定基准”。它们都强大，但各自的量词必须留在原位。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="slt-03-rademacher.html"><span class="pager-label">上一页</span>统计学习 III · Rademacher 复杂度</a>
@@ -134,5 +223,7 @@ E_S L_S(A(S)) = E_{S,z_i'}\big[\ell(A(S^{(i)}), z_i')\big] \quad(\text{换名: �
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/online-regret.js"></script>
 </body>
 </html>

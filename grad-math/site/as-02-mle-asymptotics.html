@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +41,19 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：渐近钟形不是有限样本印章，边界也不会因样本变多而消失</a><ul>
+<li><a href="#mle-asymptotics-learning-title">1. 先预测：正则定理在哪些地方停止发证？</a></li>
+<li><a href="#2-bernoulli">2. 静态后备：Bernoulli 内点是“恰好能双重对账”的特例</a></li>
+<li><a href="#3-mle">3. 从特例回到一般 MLE</a></li>
+</ul>
+</li>
 <li><a href="#1-kl">1. 相合性：KL 的胜利</a></li>
 <li><a href="#2">2. 渐近正态性（主定理）</a></li>
 <li><a href="#3">3. 练习与要点</a></li>
@@ -48,6 +65,66 @@
 <p><strong>对标</strong>：van der Vaart <em>AS</em> §5.2–5.5 ｜ <strong>前置</strong>：as-01、本科统计 II、mt-02
 本科统计 II 承诺过"MLE 渐近正态且达 Cramér–Rao 界"——本页兑付：<strong>相合性</strong>（为什么 MLE 找得到真值）、<strong>渐近正态性</strong>（<span class="arithmatex">\(\sqrt n\)</span> 速率 + Fisher 信息的逆当方差）、<strong>渐近有效性</strong>（为什么它是"讲究人的选择"）。证明结构本身（M-估计的三段论）比结论更值得带走。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="mle-asymptotics-learning-title" class="learning-layer">
+<h2 id="_1">学习层：渐近钟形不是有限样本印章，边界也不会因样本变多而消失<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="mle-asymptotics-learning-title">1. 先预测：正则定理在哪些地方停止发证？<a class="headerlink" href="#mle-asymptotics-learning-title" title="Permanent link"></a></h3>
+<p>用 Bernoulli 模型 <span class="arithmatex">\(X_i\sim\operatorname{Bernoulli}(p)\)</span> 做一台可穷举的显微镜。MLE 为 <span class="arithmatex">\(\hat p=K/n\)</span>，<span class="arithmatex">\(K\sim\operatorname{Binomial}(n,p)\)</span>。先判断：</p>
+<ol>
+<li><span class="arithmatex">\(\sqrt n(\hat p-p)\Rightarrow N(0,p(1-p))\)</span> 是否意味着每个有限 <span class="arithmatex">\(n\)</span> 的 <span class="arithmatex">\(\hat p\)</span> 都精确正态？</li>
+<li>真值 <span class="arithmatex">\(p=0\)</span> 或 <span class="arithmatex">\(1\)</span> 时，能否直接沿用“真值为参数空间内点”的 Taylor/Fisher 证明？</li>
+<li>名义 95% 的 Wald 区间是否在所有 <span class="arithmatex">\((n,p)\)</span> 上都精确覆盖 95%？</li>
+</ol>
+<p>揭示后，实验不抽 Monte Carlo 样本，而是枚举 <span class="arithmatex">\(K=0,\ldots,n\)</span> 的全部二项质量；因此柱状图、均值、方差和区间覆盖率都是确定的，正态曲线才是近似层。</p>
+<h3 id="2-bernoulli">2. 静态后备：Bernoulli 内点是“恰好能双重对账”的特例<a class="headerlink" href="#2-bernoulli" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mle-asymptotics">
+<p>对 <span class="arithmatex">\(0&lt;p&lt;1\)</span>，</p>
+<div class="arithmatex">\[
+E(\hat p)=p,
+\qquad
+\operatorname{Var}(\hat p)=\frac{p(1-p)}n,
+\qquad
+I(p)=\frac1{p(1-p)}.
+\]</div>
+<p>所以这个特例中 <span class="arithmatex">\(\operatorname{Var}(\hat p)=1/[nI(p)]\)</span> 在有限样本就成立；这来自样本均值和一参数指数族的特殊结构，不能倒推出“一般 MLE 都在有限样本无偏并达到 CR 界”。</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>精确分布</th>
+<th>正态近似能否直接套</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(0&lt;p&lt;1\)</span>，<span class="arithmatex">\(n\)</span> 有限</td>
+<td><span class="arithmatex">\(P(\hat p=k/n)=\binom nkp^k(1-p)^{n-k}\)</span></td>
+<td>只是近似，质量仍在离散格点上</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(n\to\infty\)</span>，固定内点 <span class="arithmatex">\(p\)</span></td>
+<td>标准化后二项分布趋正态</td>
+<td>正则 CLT/Taylor 路线成立</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p=0\)</span> 或 <span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(\hat p\)</span> 退化在边界</td>
+<td>内点、非退化信息与常规正态极限失效</td>
+</tr>
+</tbody>
+</table>
+<p>实验还对所有 <span class="arithmatex">\(k\)</span> 穷举 Wald 与 Wilson 区间是否覆盖真值，并按二项概率加权。覆盖率是 <span class="arithmatex">\((n,p)\)</span> 的离散函数；“95%”是构造的名义目标或渐近校准，不是逐参数精确恒等式。</p>
+<h3 id="3-mle">3. 从特例回到一般 MLE<a class="headerlink" href="#3-mle" title="Permanent link"></a></h3>
+<ul>
+<li><strong>相合性先于局部展开。</strong>若可识别性、良分离最大点或一致大数律失败，先把 <span class="arithmatex">\(\hat\theta\)</span> 拉回 <span class="arithmatex">\(\theta_0\)</span> 邻域的步骤就不存在。</li>
+<li><strong>真值内点与信息非奇异不是装饰。</strong>边界、混合模型、不可识别参数和奇异信息阵通常产生截断、混合或非 <span class="arithmatex">\(\sqrt n\)</span> 极限。</li>
+<li><strong>渐近有效性需要局部正则比较口径。</strong>Hodges 型超有效现象说明“某一个点方差更小”不等于在邻域中普遍更好。</li>
+<li><strong>误设模型要换方差。</strong>伪真值附近通常出现 sandwich 协方差；把模型内 Fisher 逆直接当真实抽样方差可能低估不确定性。</li>
+</ul>
+</div>
+</div>
+</section>
 <h2 id="1-kl">1. 相合性：KL 的胜利<a class="headerlink" href="#1-kl" title="Permanent link"></a></h2>
 <p>MLE 是 <strong>M-估计</strong>（最大化经验准则 <span class="arithmatex">\(M_n(\theta) = \frac1n\sum\ln f(X_i;\theta)\)</span>）的特例；总体准则 <span class="arithmatex">\(M(\theta) = E_{\theta_0}\ln f(X;\theta)\)</span>。</p>
 <p><strong>引理（真值是总体冠军）【证明】</strong> <span class="arithmatex">\(M(\theta_0) - M(\theta) = E_{\theta_0}\ln\frac{f(X;\theta_0)}{f(X;\theta)} = D_{\mathrm{KL}}(f_{\theta_0}\|f_\theta) \geq 0\)</span>，可识别性（<span class="arithmatex">\(\theta \neq \theta_0 \Rightarrow f_\theta \neq f_{\theta_0}\)</span>）时严格。<span class="arithmatex">\(\blacksquare\)</span>——<strong>MLE 的靶心就是 KL 的最小点</strong>（本科信息论 II"MLE = 最小化 KL"在总体层面的重述）。</p>
@@ -84,5 +161,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mle-asymptotics.js"></script>
 </body>
 </html>

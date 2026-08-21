@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +43,22 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-21 21:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#bec">学习层：同一个能级不是同一个单粒子态，有限谱扎堆也不是 BEC 证明</a><ul>
+<li><a href="#quantum-stats-learning-title">1. 先预测：分母里的正负号到底约束什么？</a></li>
+<li><a href="#2">2. 静态后备：每态先算，再乘简并度</a></li>
+<li><a href="#3">3. 三条回到物理的边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 全同性与两种统计</a></li>
 <li><a href="#2-bec">2. 玻色世界：黑体辐射与 BEC</a></li>
-<li><a href="#3">3. 费米世界：简并电子气</a></li>
+<li><a href="#3_1">3. 费米世界：简并电子气</a></li>
 <li><a href="#4">4. 练习与要点</a></li>
 </ul>
 </div>
@@ -51,12 +68,73 @@
 <p><strong>对标</strong>：Schroeder §7 / Pathria §7–8 ｜ <strong>前置</strong>：sm-02、qm-01（可后补）
 量子世界给统计加两条新规：<strong>全同粒子不可分辨</strong> + <strong>自旋定社会性格</strong>（费米子排他 / 玻色子扎堆）。由此长出两套分布，解释了经典物理的三大悬案：黑体辐射（量子论的出生地）、金属比热、以及低温下的凝聚现象。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="quantum-stats-learning-title" class="learning-layer">
+<h2 id="bec">学习层：同一个能级不是同一个单粒子态，有限谱扎堆也不是 BEC 证明<a class="headerlink" href="#bec" title="Permanent link"></a></h2>
+<h3 id="quantum-stats-learning-title">1. 先预测：分母里的正负号到底约束什么？<a class="headerlink" href="#quantum-stats-learning-title" title="Permanent link"></a></h3>
+<p>实验固定五层能谱 <span class="arithmatex">\(\varepsilon_j=0,0.5,1,1.5,2\)</span>，每层简并度为 <span class="arithmatex">\(g_j=1,2,3,4,5\)</span>。先判断：</p>
+<ol>
+<li>Fermi–Dirac 的“每态占据不超过 <span class="arithmatex">\(1\)</span>”是否意味着一个有 <span class="arithmatex">\(g=5\)</span> 个不同单粒子态的能量层总共也只能放一粒？</li>
+<li>对粒子数守恒的理想玻色气体，化学势能否越过最低单粒子能量？</li>
+<li>在这五个能级里观察到很大的基态平均占据，是否已经证明了热力学极限的 Bose–Einstein 凝聚？</li>
+</ol>
+<p>揭示后可切换 FD/BE，移动 <span class="arithmatex">\(T\)</span> 与 <span class="arithmatex">\(\mu\)</span>，同时读取每态占据、整层粒子数与有限谱总能量。这样 Pauli 约束、能级简并和宏观凝聚不会被“低能很多粒子”一句话混掉。</p>
+<h3 id="2">2. 静态后备：每态先算，再乘简并度<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="quantum-occupancy">
+<p>令 <span class="arithmatex">\(k_B=1\)</span>，单粒子态的平均占据为</p>
+<div class="arithmatex">\[
+\bar n_{FD}(\varepsilon)=\frac1{e^{(\varepsilon-\mu)/T}+1},
+\qquad
+\bar n_{BE}(\varepsilon)=\frac1{e^{(\varepsilon-\mu)/T}-1}.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>Fermi–Dirac</th>
+<th>Bose–Einstein</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每态允许占据</td>
+<td><span class="arithmatex">\(0\le\bar n\le1\)</span></td>
+<td><span class="arithmatex">\(\bar n\ge0\)</span>，无 Pauli 上限</td>
+</tr>
+<tr>
+<td>化学势边界</td>
+<td>可穿过离散能级</td>
+<td>必须有 <span class="arithmatex">\(\mu&lt;\varepsilon_0\)</span>；极限中可逼近</td>
+</tr>
+<tr>
+<td>一层的粒子数</td>
+<td><span class="arithmatex">\(N_j=g_j\bar n_j\)</span>，可大于 <span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(N_j=g_j\bar n_j\)</span></td>
+</tr>
+<tr>
+<td>稀薄高能极限</td>
+<td><span class="arithmatex">\(e^{-(\varepsilon-\mu)/T}\)</span></td>
+<td><span class="arithmatex">\(e^{-(\varepsilon-\mu)/T}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>例如 <span class="arithmatex">\(\varepsilon=\mu\)</span> 时 FD 每态占据恰为 <span class="arithmatex">\(1/2\)</span>；若这一能层有四个不同态，整层平均粒子数是 <span class="arithmatex">\(2\)</span>，并不违反 Pauli。BE 在 <span class="arithmatex">\(\mu\uparrow\varepsilon_0\)</span> 时基态分母趋零，但有限能级账本只展示增强，不能替代固定密度、体积极限与激发态积分的凝聚判据。</p>
+<h3 id="3">3. 三条回到物理的边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li>本实验采用有限离散谱和巨正则平均。它不会显示有限系统与热力学极限之间的非解析性差别，也不处理相互作用导致的谱重整化。</li>
+<li>理想玻色气体的 <span class="arithmatex">\(\mu&lt;\varepsilon_0\)</span> 来自巨配分函数收敛；光子数不守恒时则由平衡条件固定 <span class="arithmatex">\(\mu=0\)</span>，要另外选择零点能量。</li>
+<li>FD 的“一态一粒”指完整的单粒子量子态，包括自旋标签。一个空间轨道可因自旋简并容纳多粒，但每个自旋轨道仍只有 <span class="arithmatex">\(0/1\)</span>。</li>
+<li>BE/FD 都在 <span class="arithmatex">\((\varepsilon-\mu)/T\gg1\)</span> 时趋近 Maxwell–Boltzmann；这是一项可计算的稀薄极限，不是把量子粒子重新变成可分辨粒子。</li>
+</ul>
+</div>
+</section>
 <h2 id="1">1. 全同性与两种统计<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="三种统计的占据数" src="assets/img/sm-03-quantum-stats.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>三种统计的占据数：费米-狄拉克（\(\le 1\)，泡利不相容）、玻色-爱因斯坦（低能可聚集）、经典极限下都趋于玻尔兹曼。</figcaption>
 </figure>
-<p>全同粒子交换不产生新态——多粒子波函数只许两种对称性（qm-03 详证，此处引用）：<strong>玻色子</strong>（整数自旋，波函数对称，可同态堆叠）与<strong>费米子</strong>（半整数自旋，反对称，<strong>Pauli 不相容</strong>——一态一粒）。</p>
+<p>在三维普通局域量子理论的标准粒子统计中，全同粒子交换不产生新物理态，熟悉的两类是：<strong>玻色子</strong>（整数自旋，波函数对称，可同态堆叠）与<strong>费米子</strong>（半整数自旋，反对称，<strong>Pauli 不相容</strong>——每个完整单粒子态至多一粒）。二维任意子与更一般交换统计需要另立拓扑和场论条件，不能由本页有限能级账本排除。</p>
 <p><strong>两大分布【推导】</strong>（巨正则系综下对单模求和，sm-02 §3）：单粒子态 <span class="arithmatex">\(\varepsilon\)</span> 的平均占据数——玻色：<span class="arithmatex">\(\Xi = \sum_{n=0}^\infty e^{-n(\varepsilon-\mu)\beta}\)</span> 几何级数；费米：<span class="arithmatex">\(n \in \{0, 1\}\)</span> 两项：</p>
 <div class="arithmatex">\[
 \langle n\rangle_{BE} = \frac{1}{e^{(\varepsilon - \mu)/k_BT} - 1}, \qquad
@@ -70,8 +148,12 @@ u(\omega) = \frac{\hbar\omega^3}{\pi^2c^3}\,\frac{1}{e^{\hbar\omega/k_BT} - 1} \
 \]</div>
 <p>低频退化为 Rayleigh–Jeans（<span class="arithmatex">\(\propto \omega^2T\)</span>——经典均分），高频被指数压灭——<strong>紫外灾难的解除</strong>：能量量子化 <span class="arithmatex">\(E = \hbar\omega\)</span> 让高频模式"买不起入场券"（1900 年 Planck 由此打开量子世界）。积分得 <strong>Stefan–Boltzmann</strong> <span class="arithmatex">\(u \propto T^4\)</span>、峰值 Wien 位移 <span class="arithmatex">\(\lambda_{\max}T = b\)</span>（<span class="arithmatex">\(b\)</span> 为 Wien 常数）——太阳表面 5800 K 峰在可见光、人体 310 K 峰在红外（热成像）、宇宙 2.725 K 峰在微波（CMB——cosmo-02 的主角就是一条完美 Planck 曲线）。</p>
 <p><strong>声子比热</strong>：Debye 模型把晶格振动当"声子气"同法处理——低温 <span class="arithmatex">\(C_V \propto T^3\)</span>（实验吻合，Dulong–Petit 低温失效的解答；solid-01 详展）。</p>
-<p><strong>Bose–Einstein 凝聚（BEC）【骨架】</strong>：<span class="arithmatex">\(T\)</span> 降低时 <span class="arithmatex">\(\mu \uparrow 0\)</span>，激发态容纳能力 <span class="arithmatex">\(\int\frac{g(\varepsilon)d\varepsilon}{e^{\varepsilon/k_BT}-1}\)</span> 有限饱和 ⇒ 多余粒子<strong>宏观占据基态</strong>——相变到"量子态放大到宏观"的物态（1995 年冷原子实现，诺奖；超流氦、激光的受激辐射聚束是近亲）。</p>
-<h2 id="3">3. 费米世界：简并电子气<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>Bose–Einstein 凝聚（BEC）【骨架】</strong>：对三维均匀、非相互作用、二次色散 <span class="arithmatex">\(\varepsilon=p^2/2m\)</span> 的玻色气，态密度满足 <span class="arithmatex">\(g(\varepsilon)\propto\varepsilon^{1/2}\)</span>。<span class="arithmatex">\(T\)</span> 降低时 <span class="arithmatex">\(\mu\uparrow0\)</span>，激发态容纳能力</p>
+<div class="arithmatex">\[
+N_{\rm ex}^{\max}(T)=\int_0^\infty\frac{g(\varepsilon)\,d\varepsilon}{e^{\varepsilon/k_BT}-1}
+\]</div>
+<p>在该三维热力学极限中有限饱和，于是多余粒子<strong>宏观占据基态</strong>。这不是任意维数与边界条件下的自动结论：一维、二维均匀理想气体在有限温度的热力学极限中没有同样的常规 BEC，谐振俘获又会因不同态密度得到不同判据。（1995 年冷原子实现；超流氦还需相互作用理论。）</p>
+<h2 id="3_1">3. 费米世界：简并电子气<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>金属自由电子（<span class="arithmatex">\(T \ll T_F\)</span> 时"简并"）：<strong>Fermi 能</strong> <span class="arithmatex">\(\varepsilon_F\)</span> = <span class="arithmatex">\(T = 0\)</span> 时填到的最高能级——</p>
 <div class="arithmatex">\[
 \varepsilon_F = \frac{\hbar^2}{2m}(3\pi^2 n)^{2/3}
@@ -94,5 +176,7 @@ u(\omega) = \frac{\hbar\omega^3}{\pi^2c^3}\,\frac{1}{e^{\hbar\omega/k_BT} - 1} \
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/quantum-occupancy.js"></script>
 </body>
 </html>
