@@ -8,6 +8,92 @@
 <figcaption><span class="fig-id">图 game-02.1</span>零和博弈的 minimax 博弈树 / 鞍点示意。</figcaption>
 </figure>
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="zero-sum-learning-title">
+
+<h2 id="zero-sum-learning-title">学习层：阶段值、动态值与“有限回放看起来收敛”不是一回事</h2>
+
+### 1. 具体实例：同一场对抗，先问一局还是多局
+
+行玩家在每一阶段选择动作，列玩家同时选择反制动作；行玩家的收益矩阵是
+
+$$
+A=\begin{pmatrix}1&-1\\-1&1\end{pmatrix}.
+$$
+
+这是猜硬币型零和对抗：没有纯策略鞍点，但双方各以二分之一混合时，阶段值为零。若游戏还带状态，当前动作会把系统送到下一个状态，今天的收益之外还要评价未来。于是“这一张矩阵的值”和“整个动态博弈的值函数”是两个层次。
+
+实验台提供阶段矩阵、状态转移、折扣因子和迭代次数。它会先隐藏精确 minimax、混合概率、Shapley 更新和采样误差；请先预测，再揭示。特别注意：一轮矩阵求值是精确的有限计算，有限轮 Bellman 回放不是一般收敛证明。
+
+### 2. 先预测：对手混合后，哪些结论还能保留？
+
+先回答三个问题：
+
+- 对上面的矩阵，纯策略值是否存在？若没有，混合策略如何让对手无差异？
+- 当 \(0\le\gamma<1\) 时，Shapley 算子两次应用后的差异最多会被放大、保持，还是按 \(\gamma\) 压缩？
+- 把 \(\gamma\) 调到 1，或者只做有限次迭代、有限次随机采样，能否声称对任意动态零和博弈都收敛？
+
+“看见曲线变平”只能是当前参数、当前初值和当前精度下的证据；它不能替代定理所需的折扣、有限性、界与转移条件。
+
+### 3. 正式桥：从 minimax 到 Shapley 算子
+
+对有限阶段矩阵 \(A\)，行玩家的安全值和列玩家的压制值分别为
+
+$$
+\max_{x\in\Delta}\min_{y\in\Delta}x^\top Ay,
+\qquad
+\min_{y\in\Delta}\max_{x\in\Delta}x^\top Ay.
+$$
+
+von Neumann 极小极大定理说明二者相等，记为 \(v(A)\)。混合策略 \(x,y\) 是概率分布；在一个内点解里，每个玩家都让对手所用的纯动作无差异。这个结论依赖零和收益与有限矩阵结构，不能把阶段矩阵的最大值直接当成整个动态博弈的最优值。
+
+若状态为 \(s\)，动作对 \((i,j)\) 产生阶段收益 \(r_s(i,j)\) 和下一状态分布 \(P(\cdot\mid s,i,j)\)，Shapley 算子写成
+
+$$
+(TV)(s)=\operatorname{val}_{x,y}\left[
+\sum_{i,j}x_i y_j\left(r_s(i,j)+\gamma\sum_{s'}P(s'\mid s,i,j)V(s')\right)
+\right].
+$$
+
+若收益有界、状态与动作有限且 \(0\le\gamma<1\)，则
+
+$$
+\lVert TV-TW\rVert_\infty
+\le\gamma\lVert V-W\rVert_\infty.
+$$
+
+这是折扣 Shapley 算子的压缩证书：固定点唯一，价值迭代在该范数下收敛，并可用残差除以 \(1-\gamma\) 给出误差上界。\(\gamma=1\) 时这个证书消失；有限时域仍可从终点逆向归纳，但无限时域平均收益或一般未折扣随机博弈需要额外假设。
+
+### 4. 可操作实验与静态 fallback
+
+<div class="learning-lab" data-learning-lab="zero-sum-dynamic" markdown="1">
+
+**静态 fallback（脚本不可用时）：**阶段矩阵 \(A=\left(\begin{smallmatrix}1&-1\\-1&1\end{smallmatrix}\right)\) 的纯安全值为 \(-1\)，纯压制值为 \(1\)，但混合 minimax 值为 \(0\)，双方均匀混合。动态部分取两个状态和 \(\gamma=0.8\)，每轮对当前动作收益加上 \(0.8\) 倍的下一状态价值；残差若为 \(r_k\)，压缩证书给出 \(\lVert V_k-V^*\rVert_\infty\le r_k/(1-0.8)\)。把 \(\gamma\) 调到 1 时，表格中的“误差上界”应变成“无证书”，而不是自动变成“已经收敛”。
+
+<table>
+<caption>静态核对表</caption>
+<thead><tr><th>层次</th><th>可计算对象</th><th>证书与边界</th></tr></thead>
+<tbody>
+<tr><td>阶段矩阵</td><td>minimax 值与混合策略</td><td>有限零和矩阵的极小极大定理</td></tr>
+<tr><td>折扣动态</td><td>Shapley 更新与固定点</td><td>有限模型、界收益、折扣小于一时有压缩</td></tr>
+<tr><td>有限回放</td><td>当前迭代值、残差和抽样均值</td><td>是实验账本，不是一般收敛定理</td></tr>
+<tr><td>未折扣/平均收益</td><td>需要另行分析的动态博弈</td><td>不能照搬折扣压缩证书</td></tr>
+</tbody>
+</table>
+
+</div>
+
+### 5. 定理与失败边界
+
+- 阶段 minimax 等式保留的是零和结构；一般和博弈不能只看一个玩家的矩阵值。
+- Bellman/Shapley 算子的压缩性来自 \(\gamma<1\) 与有界转移回报；\(\gamma=1\) 时有限迭代仍可画图，但不存在同一个残差上界。
+- 混合策略的抽样均值会随样本数变化；一次有限采样与一组有限迭代都不能冒充对所有状态、初值或博弈的收敛。
+- 动态转移会改变未来价值，所以“每阶段各自最优”一般不等于全局动态最优；必须把当前矩阵与下一状态的值一起送进算子。
+- 实验只覆盖有限、低维、给定参数的模型；无限动作、非零和、未折扣平均收益和对手学习动态需要额外理论。
+
+</section>
+
 ## 1. 零和博弈与极小极大定理
 
 二人零和：你得即我失，$u_2 = -u_1$，一张矩阵 $A$ 说尽（行玩家收益）。**安全策略思维**：行玩家保底 $\max_x \min_y$，列玩家压顶 $\min_y \max_x$；一般 $\max\min \leq \min\max$（先亮牌吃亏）。

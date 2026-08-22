@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,31 +45,134 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 一元线性回归</a></li>
+<li><a href="#_1">学习层：直线拟合之后，先问它漏掉了什么</a><ul>
+<li><a href="#1">1. 具体情境：练习时长和测验分数</a></li>
+<li><a href="#2">2. 先预测：先看诊断再看数字</a></li>
+<li><a href="#3">3. 正式桥：投影给出拟合，诊断检查假设</a></li>
+<li><a href="#4">4. 定理、假设与失败边界</a></li>
+<li><a href="#5">5. 动手实验与静态后备</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 一元线性回归</a></li>
 <li><a href="#2-ml">2. 推断配套（统计版回归比 ML 版多出的部分）</a></li>
-<li><a href="#3">3. 多元回归一瞥（矩阵语言，高代上岗）</a></li>
+<li><a href="#3_1">3. 多元回归一瞥（矩阵语言，高代上岗）</a></li>
 <li><a href="#4-anova">4. 单因素方差分析（ANOVA）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="v">统计 V · 线性回归与方差分析<a class="headerlink" href="#v" title="Permanent link"></a></h1>
 <blockquote>
-<p>统计线收官页，也是本站与机器学习的正式接壤处：线性回归是"第一个机器学习模型"，而它在统计里是有完整推断配套（显著性、区间、诊断）的严谨工具——这套配套恰是纯 ML 视角容易缺失的部分。方差分析则把 t 检验推广到多组比较。</p>
+<p>统计线收官页，也是本站与机器学习的正式接壤处：线性回归是“第一个机器学习模型”，而它在统计里是有完整推断配套（显著性、区间、诊断）的严谨工具——这套配套恰是纯 ML 视角容易缺失的部分。方差分析则把 t 检验推广到多组比较。</p>
 </blockquote>
-<h2 id="1">1. 一元线性回归<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="regression-learning-title" class="learning-layer">
+<h2 id="_1">学习层：直线拟合之后，先问它漏掉了什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：练习时长和测验分数<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>你收集了一组学习平台记录：<span class="arithmatex">\(x\)</span> 是每周练习时长，<span class="arithmatex">\(y\)</span> 是测验分数。最小二乘线能描述样本中的平均趋势，但团队很快提出四个不同问题：</p>
+<ol>
+<li>拟合值与观测值的差是什么，和模型中的潜在误差是不是同一个东西？</li>
+<li>一个 <span class="arithmatex">\(x\)</span> 很远的点为什么可能强烈拉动斜率，即使它没有特别大的竖直偏差？</li>
+<li>R² 很高是否就代表模型质量、外推可靠或预测可用？</li>
+<li>观测关联能否直接解释成“多练习导致分数提高”？答案取决于随机化、混杂控制与识别假设，而不由回归表单独决定。</li>
+</ol>
+<h3 id="2">2. 先预测：先看诊断再看数字<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前先判断：残差、误差、杠杆和影响度各自测什么；弯曲关系会不会在 R² 很高时仍留下结构化残差；同方差、独立性、线性关系缺一项时，斜率的标准误与 t 推断能否原样使用。</p>
+<p>实验提供三个固定数据情境：近似线性、弯曲关系和带可拖动高杠杆点的样本。提交四项预测后才显示散点、拟合线、残差图、R² 与 Cook 影响度账本。</p>
+<h3 id="3">3. 正式桥：投影给出拟合，诊断检查假设<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>一元 OLS 解为</p>
+<div class="arithmatex">\[
+\hat\beta_1=\frac{S_{xy}}{S_{xx}},
+\qquad
+\hat\beta_0=\bar y-\hat\beta_1\bar x,
+\qquad
+\hat y_i=\hat\beta_0+\hat\beta_1x_i.
+\]</div>
+<p>观测残差和潜在误差必须分栏：</p>
+<div class="arithmatex">\[
+e_i=y_i-\hat y_i
+\quad\text{是可计算的残差，}
+\qquad
+\varepsilon_i=y_i-(\beta_0+\beta_1x_i)
+\quad\text{是模型中的潜在误差。}
+\]</div>
+<p>平方和分解与样本内拟合度为</p>
+<div class="arithmatex">\[
+\mathrm{SST}=\mathrm{SSR}+\mathrm{SSE},
+\qquad
+R^2=1-\frac{\mathrm{SSE}}{\mathrm{SST}}.
+\]</div>
+<p>对第 <span class="arithmatex">\(i\)</span> 个观测，杠杆的几何量是</p>
+<div class="arithmatex">\[
+h_{ii}=\frac1n+\frac{(x_i-\bar x)^2}{S_{xx}},
+\]</div>
+<p>它只描述 <span class="arithmatex">\(x\)</span> 位置；影响度还要结合残差大小。一个常用的学生化前 Cook 量写成</p>
+<div class="arithmatex">\[
+D_i=\frac{e_i^2}{2\,\widehat{\sigma}^2}\frac{h_{ii}}{(1-h_{ii})^2},
+\qquad
+\widehat{\sigma}^2=\frac{\mathrm{SSE}}{n-2}.
+\]</div>
+<h3 id="4">4. 定理、假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>拟合不等于因果。</strong>OLS 可以描述条件均值或线性投影；因果解释还需要随机化或可辩护的识别、时间顺序与混杂控制。</li>
+<li><strong>残差不等于误差。</strong>残差是用同一批数据估计参数后的可见差，彼此有约束；误差是生成机制中的潜变量，不能从一张残差图直接观测。</li>
+<li><strong>Gauss–Markov 的账本有条件。</strong>线性关系、零条件均值、独立或不相关、同方差让 OLS 在相应线性无偏类中有 BLUE 结论；异方差、依赖或非线性会改变标准误与解释。</li>
+<li><strong>正态性不是 OLS 拟合的入场券。</strong>它主要给出小样本精确 t/F 推断；非正态时可考虑大样本稳健标准误、重抽样或设计匹配的方法。</li>
+<li><strong>杠杆与影响不同。</strong>远离 <span class="arithmatex">\(\bar x\)</span> 的点有高杠杆，但若正好落在拟合趋势上未必高影响；高杠杆加大残差才容易扭转斜率。</li>
+<li><strong>R² 不等于质量。</strong>R² 高不保证残差无结构、预测能外推、变量选择合理或因果命题成立；也不能用一个阈值替代诊断和任务损失。</li>
+</ul>
+<h3 id="5">5. 动手实验与静态后备<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>参数改变会同时更新 SVG 和表格；重置会重新隐藏所有结果。有限数据只展示某个样本的几何账本，不能证明线性、独立、同方差或因果机制。</p>
+<div class="learning-lab" data-learning-lab="regression-diagnostics">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认情境是弯曲关系。请把以下四句当作阅读顺序，而不是把 R² 当作结论：</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>应读什么</th>
+<th>失败时的信号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拟合</td>
+<td><span class="arithmatex">\(\hat y_i\)</span> 是投影/描述，斜率是样本内线性趋势</td>
+<td>外推超出观测范围，线性投影不再有相同含义</td>
+</tr>
+<tr>
+<td>残差</td>
+<td><span class="arithmatex">\(e_i=y_i-\hat y_i\)</span> 是可见的观测差</td>
+<td>残差随 x 呈弧线、漏斗或成串，提示线性/同方差/独立性问题</td>
+</tr>
+<tr>
+<td>杠杆</td>
+<td><span class="arithmatex">\(h_{ii}\)</span> 主要由 x 是否远离 <span class="arithmatex">\(\bar x\)</span> 决定</td>
+<td>极端 x 可能让斜率对单点敏感</td>
+</tr>
+<tr>
+<td>影响度</td>
+<td>Cook D 同时结合残差和杠杆</td>
+<td>高 R² 仍可能被一个点支配</td>
+</tr>
+</tbody>
+</table>
+<p>观测数据中“练习时长与分数相关”不自动等于“增加练习造成分数提升”；需要随机化或明确的因果识别假设。R² 也不等于模型质量，应该把残差结构、预测任务、外推范围和影响点一起报告。</p>
+</div>
+</section>
+<h2 id="1_1">1. 一元线性回归<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="最小二乘拟合与残差" src="assets/img/stat-05-regression.svg" /></p>
 <figcaption><span class="fig-id">图 5.1</span>最小二乘：选直线使各点到直线的竖直残差（红）平方和最小——回归的几何本质。</figcaption>
 </figure>
-<p><strong>模型</strong> <span class="arithmatex">\(Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\)</span>，<span class="arithmatex">\(\varepsilon_i\)</span> i.i.d. <span class="arithmatex">\(N(0, \sigma^2)\)</span>。（理论出身：二维正态的条件期望是线性的——概率 III 性质 2；一般总体则视为对 <span class="arithmatex">\(E[Y\mid x]\)</span> 的线性逼近——概率 IV"最佳预测"的可实现版。）</p>
+<p><strong>模型</strong> <span class="arithmatex">\(Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\)</span>，<span class="arithmatex">\(\varepsilon_i\)</span> i.i.d. <span class="arithmatex">\(N(0, \sigma^2)\)</span>。（理论出身：二维正态的条件期望是线性的——概率 III 性质 2；一般总体则视为对 <span class="arithmatex">\(E[Y\mid x]\)</span> 的线性逼近——概率 IV“最佳预测”的可实现版。）</p>
 <p><strong>最小二乘估计（OLS）</strong>：<span class="arithmatex">\(\min_{\beta_0,\beta_1}\sum(y_i - \beta_0 - \beta_1 x_i)^2\)</span>，求偏导置零（正规方程）解得</p>
 <div class="arithmatex">\[
 \hat\beta_1 = \frac{\sum(x_i - \bar x)(y_i - \bar y)}{\sum(x_i - \bar x)^2} = \frac{S_{xy}}{S_{xx}}, \qquad \hat\beta_0 = \bar y - \hat\beta_1 \bar x
@@ -67,19 +185,19 @@
 <div class="arithmatex">\[
 T = \frac{\hat\beta_1 - \beta_1}{\hat\sigma/\sqrt{S_{xx}}} \sim t(n-2)
 \]</div>
-<p><strong>回归显著性检验</strong> <span class="arithmatex">\(H_0: \beta_1 = 0\)</span>（"x 对 y 到底有没有线性作用"——回归分析第一问）即由它完成；置信区间照统计 III 的枢轴量套路。</p>
+<p><strong>回归显著性检验</strong> <span class="arithmatex">\(H_0: \beta_1 = 0\)</span> 回答“条件均值中是否存在线性斜率”；它检验的是关联结构，不自动回答 x 对 y 是否有因果作用。置信区间照统计 III 的枢轴量套路；因果解释还需要时间顺序、无混杂或随机化等识别条件。</p>
 <p><strong>拟合优度</strong>：平方和分解 <span class="arithmatex">\(\text{SST} = \text{SSR} + \text{SSE}\)</span>（总变差 = 回归解释 + 残差），</p>
 <div class="arithmatex">\[
 R^2 = \frac{\text{SSR}}{\text{SST}} \in [0, 1]
 \]</div>
 <p>（一元情形 <span class="arithmatex">\(R^2 = r^2\)</span>，相关系数的平方。）⚠️ <span class="arithmatex">\(R^2\)</span> 高 ≠ 模型对：非线性关系可以有高 <span class="arithmatex">\(R^2\)</span>，<strong>画残差图</strong>（残差应无结构地散布）是不可省略的诊断步骤——Anscombe 四组数据（相同的 <span class="arithmatex">\(R^2\)</span> 与回归线、完全不同的散点形态）是这条警告的传世插图。</p>
 <p><strong>预测的两种区间</strong>（宽度不同，语义不同）：对 <span class="arithmatex">\(E[Y\mid x_0]\)</span> 的置信区间窄；对<strong>单个新观测</strong> <span class="arithmatex">\(Y_0\)</span> 的预测区间宽（多加一份 <span class="arithmatex">\(\sigma^2\)</span> 的个体噪声——概率 IV 方差分解的实战）。两者都在 <span class="arithmatex">\(x_0\)</span> 远离 <span class="arithmatex">\(\bar x\)</span> 时变宽——<strong>外推危险的定量表达</strong>。</p>
-<h2 id="3">3. 多元回归一瞥（矩阵语言，高代上岗）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(Y = X\beta + \varepsilon\)</span>（<span class="arithmatex">\(X\)</span> 为 <span class="arithmatex">\(n \times p\)</span> 设计矩阵）：</p>
+<h2 id="3_1">3. 多元回归一瞥（矩阵语言，高代上岗）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(Y = X\beta + \varepsilon\)</span>（<span class="arithmatex">\(X\)</span> 为 <span class="arithmatex">\(n \times p\)</span> 设计矩阵）。当 <span class="arithmatex">\(\operatorname{rank}(X)=p\)</span>，即设计矩阵列满秩时，OLS 解唯一且为：</p>
 <div class="arithmatex">\[
 \hat\beta = (X^\top X)^{-1} X^\top Y
 \]</div>
-<p>——高代最小二乘/投影的原样复用：<span class="arithmatex">\(\hat Y = X\hat\beta\)</span> 是 <span class="arithmatex">\(Y\)</span> 向 <span class="arithmatex">\(X\)</span> 列空间的正交投影。共线性（<span class="arithmatex">\(X^\top X\)</span> 接近奇异）导致估计方差爆炸 ⇒ <strong>岭回归</strong> <span class="arithmatex">\((X^\top X + \lambda I)^{-1}X^\top Y\)</span>——ai 课 01 讲的公式在此认祖归宗（贝叶斯视角 = 高斯先验的 MAP，统计 II/概率 I 的对应）。</p>
+<p>——高代最小二乘/投影的原样复用：<span class="arithmatex">\(\hat Y = X\hat\beta\)</span> 是 <span class="arithmatex">\(Y\)</span> 向 <span class="arithmatex">\(X\)</span> 列空间的正交投影。若 <span class="arithmatex">\(X\)</span> 秩亏，<span class="arithmatex">\((X^\top X)^{-1}\)</span> 不存在，某些系数组合不可识别；Moore--Penrose 伪逆可选出一个最小范数解，但“得到数值解”不等于各系数唯一。近似共线性则使估计方差爆炸，岭回归 <span class="arithmatex">\((X^\top X + \lambda I)^{-1}X^\top Y\)</span> 用偏差换稳定性——ai 课 01 讲的公式在此认祖归宗（贝叶斯视角 = 高斯先验的 MAP，统计 II/概率 I 的对应）。</p>
 <p>🔗 从这里向 ML 的分岔：统计关心 <span class="arithmatex">\(\hat\beta\)</span> 的<strong>推断</strong>（哪些变量显著、区间多宽），ML 关心<strong>预测</strong>（测试集误差）；变量多起来后正则化与交叉验证接管模型选择（ai 课 01 讲）——两个学科在同一个公式上分道扬镳，又在实践中殊途同归。</p>
 <h2 id="4-anova">4. 单因素方差分析（ANOVA）<a class="headerlink" href="#4-anova" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：<span class="arithmatex">\(k\)</span> 组均值是否全相等（t 检验只能两组；多次两两 t 检验会引爆多重检验问题——统计 IV）。</p>
@@ -87,18 +205,18 @@ R^2 = \frac{\text{SSR}}{\text{SST}} \in [0, 1]
 <div class="arithmatex">\[
 \text{SST} = \underbrace{\sum_j n_j(\bar Y_{j} - \bar Y)^2}_{\text{SSA（组间）}} + \underbrace{\sum_j\sum_i (Y_{ij} - \bar Y_j)^2}_{\text{SSE（组内）}}
 \]</div>
-<p>（概率 IV 全方差公式"组间 + 组内"的样本版。）<span class="arithmatex">\(H_0\)</span>（各组均值相等）下</p>
+<p>（概率 IV 全方差公式“组间 + 组内”的样本版。）<span class="arithmatex">\(H_0\)</span>（各组均值相等）下</p>
 <div class="arithmatex">\[
 F = \frac{\text{SSA}/(k-1)}{\text{SSE}/(n-k)} \sim F(k-1,\ n-k)
 \]</div>
-<p><span class="arithmatex">\(F\)</span> 大 ⇒ 组间差异远超噪声水平 ⇒ 拒绝"全相等"。（进一步找"谁和谁不同"用多重比较法，知其名。）回归与 ANOVA 本是一家：把组别编码成哑变量，ANOVA 就是回归的特例——线性模型一统江湖。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(F\)</span> 大 ⇒ 组间差异远超噪声水平 ⇒ 拒绝“全相等”。（进一步找“谁和谁不同”用多重比较法，知其名。）回归与 ANOVA 本是一家：把组别编码成哑变量，ANOVA 就是回归的特例——线性模型一统江湖。</p>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（回归全流程）</strong> 广告费 x 与销售额 y，<span class="arithmatex">\(n = 10\)</span>：<span class="arithmatex">\(S_{xx} = 90,\ S_{xy} = 225,\ \bar x = 5, \bar y = 20\)</span>，SSE <span class="arithmatex">\(= 27\)</span>。
 <em>解</em>：<span class="arithmatex">\(\hat\beta_1 = 2.5,\ \hat\beta_0 = 7.5\)</span>；<span class="arithmatex">\(\hat\sigma^2 = 27/8 = 3.375\)</span>；检验 <span class="arithmatex">\(H_0: \beta_1 = 0\)</span>：<span class="arithmatex">\(T = \frac{2.5}{\sqrt{3.375/90}} \approx 12.9 \gg t_{0.025}(8) = 2.306\)</span>——回归极显著。每加 1 单位广告费，销售额平均增 2.5（附带整套不确定度，这就是统计版回归的完整交付）。</p>
-<p><strong>例 2（残差图的必要性）</strong> 数据真实关系 <span class="arithmatex">\(y = x^2\)</span>（<span class="arithmatex">\(x \in [0, 10]\)</span>），强行线性回归可得 <span class="arithmatex">\(R^2 \approx 0.94\)</span>——数字很漂亮，残差图却呈明显 U 形（先正后负再正）。<strong>结论：<span class="arithmatex">\(R^2\)</span> 看"解释了多少"，残差图看"漏了什么"，二者缺一不可。</strong></p>
+<p><strong>例 2（残差图的必要性）</strong> 数据真实关系 <span class="arithmatex">\(y = x^2\)</span>（<span class="arithmatex">\(x \in [0, 10]\)</span>），强行线性回归可得 <span class="arithmatex">\(R^2 \approx 0.94\)</span>——数字很漂亮，残差图却呈明显 U 形（先正后负再正）。<strong>结论：<span class="arithmatex">\(R^2\)</span> 看“解释了多少”，残差图看“漏了什么”，二者缺一不可。</strong></p>
 <p><strong>例 3（ANOVA 判型）</strong> 三种教学法各 8 人，算得 SSA <span class="arithmatex">\(= 84\)</span>，SSE <span class="arithmatex">\(= 168\)</span>。<span class="arithmatex">\(F = \frac{84/2}{168/21} = 5.25 &gt; F_{0.05}(2, 21) \approx 3.47\)</span> ⇒ 教学法之间存在显著差异（至于哪两种之间——多重比较的活）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>统计线五页完工。至此"分析+代数双主干 → 概率 → 优化 → 统计"的 AI 衔接主干道全线贯通；侧栏其余占位课程（数值分析、随机过程、实变、泛函……）按需增补——每一门的规划骨架都已写在占位页里。</em></p>
+<p><em>统计线五页完工。至此“分析+代数双主干 → 概率 → 优化 → 统计”的 AI 衔接主干道全线贯通；侧栏其余占位课程（数值分析、随机过程、实变、泛函……）按需增补——每一门的规划骨架都已写在占位页里。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stat-04-testing.html"><span class="pager-label">上一页</span>统计 IV · 假设检验</a>
@@ -108,5 +226,7 @@ F = \frac{\text{SSA}/(k-1)}{\text{SSE}/(n-k)} \sim F(k-1,\ n-k)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/regression-diagnostics.js"></script>
 </body>
 </html>

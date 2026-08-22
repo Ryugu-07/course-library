@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,24 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li class="active"><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 问题是什么：两套理论无法共存</a></li>
+<li><a href="#beyond01-learning-title">学习层：一个理论很美，实验却没有看见，科学到底学到了什么？</a><ul>
+<li><a href="#1">1. 具体情境：零结果不是“什么也没发生”</a></li>
+<li><a href="#2">2. 揭示前先预测</a></li>
+<li><a href="#3">3. 正式桥：可检验性也有量纲账本</a></li>
+<li><a href="#4">4. 定理级、模型级与经验级边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 问题是什么：两套理论无法共存</a></li>
 <li><a href="#2-15">2. 为什么这么难：15 个数量级</a></li>
-<li><a href="#3">3. 主要候选之一：弦论</a></li>
-<li><a href="#4">4. 其他路线</a></li>
+<li><a href="#3_1">3. 主要候选之一：弦论</a></li>
+<li><a href="#4_1">4. 其他路线</a></li>
 <li><a href="#5">5. 超越标准模型：另一条战线</a></li>
 <li><a href="#6">6. 实验能说什么</a></li>
 <li><a href="#7">7. 判读指南：这一页最该带走的东西</a></li>
@@ -55,11 +77,89 @@
 <p><strong>本页性质与全站其余部分不同</strong>：前面所有内容都有实验支撑，<strong>本页讨论的是目前尚无实验判决的地带</strong>。它不是一门课，而是一张<strong>地图 + 一份判读指南</strong>：告诉你问题是什么、有哪些候选答案、各自的处境，以及<strong>如何诚实地对待一个尚未被实验检验的理论</strong>。
 <strong>本页自足</strong>，不预设弦论或量子引力背景。凡属推测处一律明确标注。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="beyond01-learning-title" class="learning-layer">
+<h2 id="beyond01-learning-title">学习层：一个理论很美，实验却没有看见，科学到底学到了什么？<a class="headerlink" href="#beyond01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：零结果不是“什么也没发生”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设一个低能实验在能标 <span class="arithmatex">\(E\)</span> 工作，而某种新物理的特征尺度是 <span class="arithmatex">\(\Lambda\)</span>。若低能有效理论中领先修正来自一个维数六算符，最透明的量级账本是</p>
+<div class="arithmatex">\[
+\Delta \sim c\left(\frac{E}{\Lambda}\right)^2,
+\]</div>
+<p>其中 <span class="arithmatex">\(c\)</span> 是无量纲耦合。实验若能分辨到 <span class="arithmatex">\(10^{-p}\)</span>，就在<strong>指定算符、耦合与有效理论成立</strong>的前提下比较 <span class="arithmatex">\(\Delta\)</span> 和 <span class="arithmatex">\(10^{-p}\)</span>。直接碰撞能量没有达到 <span class="arithmatex">\(\Lambda\)</span>，不代表低能精密测量必定一无所知；但从没有看见 <span class="arithmatex">\(\Delta\)</span> 到排除某个高能理论，中间必须有这座模型桥梁。</p>
+<p>这也是读前沿新闻时最容易丢掉的一层：一个零结果通常排除的是<strong>被检验的质量、耦合和衰变通道区域</strong>，不是把一个拥有许多实现的思想家族从逻辑上全部删除。反过来，数学结构自洽、能统一既有公式或能产生有用计算工具，也不等于它已经获得了新的经验确认。</p>
+<h3 id="2">2. 揭示前先预测<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开证据分级台前，先回答四项：</p>
+<ol>
+<li>一个框架要获得区别于既有理论的新经验支持，是否需要可区分、可证伪的预言？</li>
+<li>搜索没有发现信号时，直接被排除的是整个理论家族，还是实验确实触及的参数区域？</li>
+<li>内部自洽与数学优美是理论的重要品质，但它们是否等同于经验确认？</li>
+<li>低能精密实验能否在声明算符与耦合的条件下，间接约束高于直接能量的新物理尺度？</li>
+</ol>
+<p>提交后再调节 <span class="arithmatex">\(E,\Lambda,c,p\)</span>。实验会显示直接能标、toy 的间接触及范围和有效理论适用域，并把“现象证据”“候选身份”“理论价值”分成不同账目。</p>
+<h3 id="3">3. 正式桥：可检验性也有量纲账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对上面的 toy，取十进制对数可得</p>
+<div class="arithmatex">\[
+\log_{10}\Delta=\log_{10}c+2\bigl(\log_{10}E-\log_{10}\Lambda\bigr).
+\]</div>
+<p>若 <span class="arithmatex">\(\log_{10}\Delta\ge -p\)</span>，实验在这个理想化账本中具有灵敏度。反过来解不等式，可以得到当前精度在给定 <span class="arithmatex">\(c\)</span> 下能间接触及的最大尺度</p>
+<div class="arithmatex">\[
+\log_{10}\Lambda_{\max}
+=\log_{10}E+\frac{p+\log_{10}c}{2}.
+\]</div>
+<p>这个公式同时揭示三件事：提高直接能量、提高测量精度或增大耦合都能扩大触及范围；结论依赖算符阶数与 <span class="arithmatex">\(c\)</span>；当 <span class="arithmatex">\(E\)</span> 接近或超过 <span class="arithmatex">\(\Lambda\)</span> 时，低能展开失去控制，不能继续拿这条式子作证书。<strong>越过适用域不是“发现”，而是计算模型不再有资格作答。</strong></p>
+<div class="learning-lab" data-learning-lab="frontier-evidence">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取直接实验 <span class="arithmatex">\(E=10^4\,\mathrm{GeV}\)</span>、候选尺度 <span class="arithmatex">\(\Lambda=10^{19}\,\mathrm{GeV}\)</span>、<span class="arithmatex">\(c=1\)</span>、精度 <span class="arithmatex">\(10^{-15}\)</span>。则</p>
+<div class="arithmatex">\[
+\log_{10}\Delta=2(4-19)=-30&lt;-15,
+\]</div>
+<p>所以这个 Planck 尺度 toy 的信号远低于设定灵敏度；它说明能标鸿沟，不证明任何具体量子引力候选错误。若改取 <span class="arithmatex">\(\Lambda=10^8\,\mathrm{GeV}\)</span>、<span class="arithmatex">\(c=10^{-2}\)</span>、精度 <span class="arithmatex">\(10^{-12}\)</span>，则 <span class="arithmatex">\(\log_{10}\Delta=-10\)</span>，在同一 toy 中可检验。两种计算都必须保留算符、耦合和 <span class="arithmatex">\(E/\Lambda\)</span> 足够小的条件。</p>
+<table>
+<thead>
+<tr>
+<th>判读对象</th>
+<th>已有证据</th>
+<th>尚未得到的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>暗物质现象</td>
+<td>多种天体与宇宙学引力证据相互支持</td>
+<td>任一具体粒子候选已经确认</td>
+</tr>
+<tr>
+<td>低能 SUSY 搜索</td>
+<td>零结果排除被触及的质量与耦合区域</td>
+<td>所有超对称实现都不可能</td>
+</tr>
+<tr>
+<td>全息对偶</td>
+<td>在规定模型中有强理论证据并能作计算工具</td>
+<td>真实宇宙已经被证明是该 AdS 模型</td>
+</tr>
+<tr>
+<td>量子引力 UV 完成</td>
+<td>GR、量子理论和低能 EFT 明确提出问题</td>
+<td>自然界已从候选框架中作出实验选择</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 定理级、模型级与经验级边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：在声明的有效算符 toy 中，缩放式与灵敏度不等式可精确推导；它们不自动属于弦论、LQG、SUSY 或任意真实实验。</li>
+<li><strong>模型级</strong>：把一个零结果翻译为 <span class="arithmatex">\(\Lambda\)</span> 下限，需要指定耦合、算符、背景与系统误差。换一座模型桥，排除区域也会变化。</li>
+<li><strong>经验级</strong>：新的、可区分预言被数据支持，才增加候选作为自然理论的经验证据；重现既有事实是必要条件，不是额外确认。</li>
+<li><strong>现象与身份</strong>：暗物质的引力现象可以有强证据，而微观身份仍未知；二者处在不同认识论层级。</li>
+<li><strong>负结果的价值</strong>：排除参数空间是真知识。诚实报告它既不等于“理论全死”，也不等于“实验什么都没学到”。</li>
+</ul>
+</section>
 <figure class="plot">
 <p><img alt="从已验证物理到 Planck 尺度的能标阶梯。" src="assets/img/beyond-01-scales.svg" /></p>
 <figcaption><span class="fig-id">图 beyond-01.1</span>能标阶梯（对数）：从原子物理、核物理到 LHC 已验证的约 TeV 区间，再到大统一与 <strong>Planck 能标 \(\sim10^{19}\) GeV</strong>。<strong>已达到的最高实验能标与量子引力尺度之间相差约 15 个数量级</strong>——这道鸿沟，是这个领域一切困难的根源。</figcaption>
 </figure>
-<h2 id="1">1. 问题是什么：两套理论无法共存<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 问题是什么：两套理论无法共存<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>现代物理有两根支柱，各自都极其成功：</p>
 <ul>
 <li><strong>广义相对论</strong>（gr 线）：描述引力与时空，在太阳系、脉冲星、引力波、黑洞成像中被反复验证；</li>
@@ -109,7 +209,7 @@
 </table>
 <p><strong>LHC 与 Planck 之间差约 15 个数量级。</strong> 用现有加速器技术直接探测，所需的机器尺度远超行星尺度——<strong>这条路在可预见的未来是封死的</strong>。</p>
 <p><strong>所以这个领域的处境是</strong>：<strong>理论可以自由发展，实验却几乎无法判决。</strong> 理解这一点，才能理解为什么它既产生了极深刻的数学，又长期缺乏进展的判据。</p>
-<h2 id="3">3. 主要候选之一：弦论<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 主要候选之一：弦论<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>基本想法</strong>：基本对象不是点粒子，而是<strong>一维的弦</strong>。不同的振动模式对应不同的粒子——<strong>就像小提琴弦的不同泛音</strong>。</p>
 <p><strong>它最初的吸引力</strong>：</p>
 <ul>
@@ -130,7 +230,7 @@
 <li><strong>它使"时空可能是涌现的"成为一个可以技术性讨论的命题</strong>，而非纯哲学。</li>
 </ul>
 <p><strong>现状的诚实评估</strong>：弦论<strong>没有做出任何已被实验证实的、区分于标准模型的预言</strong>。它是一个数学上极其丰富、物理上未被检验的框架。<strong>支持者视其为唯一自洽的量子引力方案；批评者指出它的不可证伪性正在使它偏离物理学的方法论。两种意见都有严肃的持有者。</strong>【争】</p>
-<h2 id="4">4. 其他路线<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 其他路线<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>圈量子引力（LQG）</strong>：不引入额外维度或新对象，而是<strong>直接对时空几何本身做量子化</strong>。结果是面积与体积算符具有<strong>离散谱</strong>——<strong>空间可能是颗粒状的</strong>，存在最小面积量子。</p>
 <ul>
 <li>优点：背景无关（不预设时空背景）、维度不必扩展；</li>
@@ -218,5 +318,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-evidence.js"></script>
 </body>
 </html>

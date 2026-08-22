@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,26 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li class="active"><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 根式可解的正式定义</a></li>
-<li><a href="#2">2. 主定理：根式塔 ⟺ 可解群</a></li>
+<li><a href="#insolvability-learning-title">学习层：一个模素数分解型，究竟能判决多少？</a><ul>
+<li><a href="#1">1. 具体实例：给五次方程收集几张“群元素证书”</a></li>
+<li><a href="#2">2. 先预测：证书、判决和数值算法不是一回事</a></li>
+<li><a href="#3">3. 正式桥：从约化分解到可解性判决</a></li>
+<li><a href="#4">4. 动手揭示：先交预测，再看有限域账本</a></li>
+<li><a href="#5">5. 定理与失败边界：每张证书都要写清量词</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 根式可解的正式定义</a></li>
+<li><a href="#2_1">2. 主定理：根式塔 ⟺ 可解群</a></li>
 <li><a href="#3-s_5">3. 判决：\(S_5\) 登场</a></li>
-<li><a href="#4">4. 收官的收官：这个证明的历史体重</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#4_1">4. 收官的收官：这个证明的历史体重</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 <li><a href="#_1">研究生讲义库 · 全站落成</a></li>
 </ul>
 </div>
@@ -51,13 +74,53 @@
 <p><strong>对标</strong>：Dummit &amp; Foote §14.7 / Artin §16.10 ｜ <strong>前置</strong>：alg2-01/02、本科抽代 I–II、高代 I
 全站最后一张欠条：高代 I 说"五次以上无求根公式"、nla-02 用它解释特征值必须迭代、本科抽代 II 山顶眺望过它——本页正式销账。论证链只有三环：<strong>根式塔 ⟹ 可解群</strong>（Galois 翻译）、<strong><span class="arithmatex">\(S_5\)</span> 不可解</strong>（alg2-01 已备）、<strong>存在 Galois 群为 <span class="arithmatex">\(S_5\)</span> 的五次方程</strong>（构造）。</p>
 </blockquote>
-<h2 id="1">1. 根式可解的正式定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="insolvability-learning-title" class="learning-layer">
+<h2 id="insolvability-learning-title">学习层：一个模素数分解型，究竟能判决多少？<a class="headerlink" href="#insolvability-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：给五次方程收集几张“群元素证书”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>从具体多项式</p>
+<div class="arithmatex">\[
+f(x)=x^5-6x+3
+\]</div>
+<p>开始。把它模一个不使约化式出现重因子的素数 <span class="arithmatex">\(p\)</span>，若约化式分解成次数 <span class="arithmatex">\(1,4\)</span>，你会把这张账理解成 Galois 群里出现了一个 <span class="arithmatex">\(1\)</span>-循环和一个 <span class="arithmatex">\(4\)</span>-循环；若分解成次数 <span class="arithmatex">\(2,3\)</span>，则对应一个 <span class="arithmatex">\(2\)</span>-循环和一个 <span class="arithmatex">\(3\)</span>-循环。它们是 Frobenius 元素的<strong>循环型证书</strong>，不是“软件已经输出整个 Galois 群”。</p>
+<h3 id="2">2. 先预测：证书、判决和数值算法不是一回事<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先猜：</p>
+<ol>
+<li>看到一个模 <span class="arithmatex">\(p\)</span> 分解型 <span class="arithmatex">\((1,4)\)</span>，是否可以单凭这一行断言 <span class="arithmatex">\(\operatorname{Gal}(f/\mathbb Q)=S_5\)</span>？</li>
+<li>收集多个不重复素数的分解型，最直接得到的是群中若干元素的循环型，还是一个自动完成的群同构证明？</li>
+<li>牛顿法把五个根都算到很多位，是否就等价于给出了有限层根式公式？</li>
+</ol>
+<h3 id="3">3. 正式桥：从约化分解到可解性判决<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(K\)</span> 是 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(\mathbb Q\)</span> 上的分裂域，<span class="arithmatex">\(G=\operatorname{Gal}(K/\mathbb Q)\)</span> 作用在五个根上。若素数 <span class="arithmatex">\(p\)</span> 是好素数，例如约化式 <span class="arithmatex">\(\bar f\)</span> 无重因子，则 Dedekind--Frobenius 字典把</p>
+<div class="arithmatex">\[
+\bar f=\bar f_1\cdots\bar f_r,
+\qquad \deg \bar f_i=d_i
+\]</div>
+<p>翻译成 <span class="arithmatex">\(G\)</span> 中一个元素的循环型 <span class="arithmatex">\((d_1,\ldots,d_r)\)</span>。实验逐项做有限域上的精确分解，所以它提供的是一组可复核的<strong>证书</strong>；要判定整个群，还需把不可约性、判别式、多个素数证书以及群论分类接起来。重复因子的素数只能提醒你“这里不是无分歧循环型证书”，不能被当成普通一行数据。</p>
+<p>在特征 <span class="arithmatex">\(0\)</span> 的语境中，多项式自动可分。对特征 <span class="arithmatex">\(0\)</span> 或满足相应可分性、单位根等假设的根式理论，分裂域的根能由根式得到，当且仅当 Galois 群是可解群。<span class="arithmatex">\(S_5\)</span> 的非交换正规列障碍来自 <span class="arithmatex">\(A_5\)</span> 的单性和非交换性，因此一个确实满足 <span class="arithmatex">\(\operatorname{Gal}(f/\mathbb Q)=S_5\)</span> 的具体五次不可由根式解出。</p>
+<p>但“<span class="arithmatex">\(S_5\)</span> 不可解”“一般五次没有统一根式公式”和“某个具体五次不可根式解”是三句话：前者是群论事实，第二句是一般性推论，第三句必须为具体多项式建立 Galois 群证书。相反，<span class="arithmatex">\(x^5-2\)</span> 的分裂域 Galois 群是可解的半直积，不能把所有五次一概说成不可解。数值根只是近似算法输出，也不承诺任何根式表达式。</p>
+<h3 id="4">4. 动手揭示：先交预测，再看有限域账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>下方可切换具体五次和素数。先完成三道预测，点击“揭示证书”后才显示模 <span class="arithmatex">\(p\)</span> 因子、分解型、平方自由检查、SVG 循环块和跨素数表格；重置会回到同一个多项式、素数和隐藏结果。</p>
+<div class="learning-lab" data-learning-lab="galois-insolvability">
+<p><strong>无 JavaScript 时的静态后备：</strong>固定 <span class="arithmatex">\(f(x)=x^5-6x+3\)</span>，实验只在小素数上做模素数多项式除法。对每个好素数，因子的次数串是一个 Frobenius 循环型证书；它说明 Galois 群含有相应循环型的元素，不单独等于群的完整判定。完整的不可解性结论还要在 <span class="arithmatex">\(\mathbb Q\)</span> 上证明不可约、确认分裂域的 Galois 群确为 <span class="arithmatex">\(S_5\)</span>，并使用“特征 <span class="arithmatex">\(0\)</span> 且可分时根式可解当且仅当群可解”的定理。数值迭代得到近似根不等于根式公式；<span class="arithmatex">\(x^5-2\)</span> 也说明具体五次可以落在可解群一侧。</p>
+</div>
+<h3 id="5">5. 定理与失败边界：每张证书都要写清量词<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>约化分解型需要好素数条件；出现重因子时，不能把次数串直接当作无分歧 Frobenius 的循环型。</li>
+<li>一组有限域证书是 Galois 群中元素的证据集合，不是自动的群识别器；还要补不可约性、判别式和必要的有限群分类论证。</li>
+<li>根式可解与 Galois 群可解的“当且仅当”依赖特征 <span class="arithmatex">\(0\)</span> 或相应的可分性和根式理论语境；在任意特征的任意域上省略假设会改变命题。</li>
+<li><span class="arithmatex">\(S_5\)</span> 不可解不等于每个五次方程都不可由根式解；“一般五次不存在统一根式公式”也不等于已为某个指定五次完成了 Galois 群判定。</li>
+<li>数值找根、符号因式分解和有限层根式公式是不同的输出类型；精度、可计算性与代数表达能力不能互换。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 根式可解的正式定义<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(f\)</span>（特征 0 域 <span class="arithmatex">\(F\)</span> 上）<strong>根式可解</strong>：其根可由系数经四则 + 逐层开方到达——即存在<strong>根式塔</strong></p>
 <div class="arithmatex">\[
 F = F_0 \subset F_1 \subset \cdots \subset F_m, \qquad F_{i+1} = F_i(\sqrt[n_i]{a_i}),\ a_i \in F_i
 \]</div>
 <p>使分裂域 <span class="arithmatex">\(K \subseteq F_m\)</span>。（二次公式的 <span class="arithmatex">\(\sqrt{b^2 - 4ac}\)</span>、Cardano 公式的嵌套立方根都是塔的实例——定义忠实于"公式"的直觉。）</p>
-<h2 id="2">2. 主定理：根式塔 ⟺ 可解群<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 主定理：根式塔 ⟺ 可解群<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理（Galois）</strong> <span class="arithmatex">\(f\)</span> 根式可解 <span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(\mathrm{Gal}(K/F)\)</span> 是<strong>可解群</strong>（alg2-01 的定义在此兑现它的名字）。</p>
 <p><strong>【证明骨架（⟸ 方向的三步机器，⟹ 同机器倒放）】</strong>
 <strong>① 单层翻译（Kummer 理论的核心格）</strong>：含 <span class="arithmatex">\(n\)</span> 次单位根的域上，<span class="arithmatex">\(F_{i+1} = F_i(\sqrt[n]{a})\)</span> 是 Galois 扩张且 <span class="arithmatex">\(\mathrm{Gal}(F_{i+1}/F_i)\)</span> <strong>循环</strong>（自同构由 <span class="arithmatex">\(\sqrt[n]a \mapsto \zeta^k\sqrt[n]a\)</span> 决定——嵌入 <span class="arithmatex">\(\mathbb{Z}_n\)</span>）【证明级】；预备层：添加单位根本身给交换（分圆）扩张（alg2-02 例 2）。
@@ -66,13 +129,13 @@ F = F_0 \subset F_1 \subset \cdots \subset F_m, \qquad F_{i+1} = F_i(\sqrt[n_i]{
 <p><strong>读法</strong>："开 <span class="arithmatex">\(n\)</span> 次方"这个分析动作与"循环群 <span class="arithmatex">\(\mathbb{Z}_n\)</span>"这个代数对象<strong>精确互译</strong>——公式的嵌套结构 = 群的正规列结构。翻译定理立好后，判决只剩群论。</p>
 <h2 id="3-s_5">3. 判决：<span class="arithmatex">\(S_5\)</span> 登场<a class="headerlink" href="#3-s_5" title="Permanent link"></a></h2>
 <p><strong>引理（构造具体的坏方程）</strong> <span class="arithmatex">\(f(x) = x^5 - 6x + 3 \in \mathbb{Q}[x]\)</span> 的 Galois 群是 <span class="arithmatex">\(S_5\)</span>。
-<strong>【证明】</strong> ① 不可约（Eisenstein 判别法，<span class="arithmatex">\(p = 3\)</span>——高代 I 的判据实战）；② 实根计数：<span class="arithmatex">\(f' = 5x^4 - 6\)</span> 两个实临界点、函数值异号 ⇒ <strong>恰三个实根、一对共轭复根</strong>（数分 II 的单调性分析干的活）；③ 于是复共轭 ∈ <span class="arithmatex">\(\mathrm{Gal}\)</span> 是一个<strong>对换</strong>（交换两复根、固定三实根）；④ 5 次不可约 ⇒ <span class="arithmatex">\(5 \mid |\mathrm{Gal}|\)</span> ⇒（Cauchy，alg2-01）含 <strong>5-循环</strong>；⑤ 群论引理：<strong><span class="arithmatex">\(S_5\)</span> 中"一个对换 + 一个 5-循环"生成全群</strong>（5 素数：5-循环的幂把对换搬遍所有相邻位置，相邻对换生成 <span class="arithmatex">\(S_5\)</span>——高代 I 置换群基本事实）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<strong>【证明】</strong> ① 不可约（Eisenstein 判别法，<span class="arithmatex">\(p = 3\)</span>——高代 I 的判据实战）；② 实根计数：<span class="arithmatex">\(f' = 5x^4 - 6\)</span> 两个实临界点、函数值异号 ⇒ <strong>恰三个实根、一对共轭复根</strong>（数分 II 的单调性分析干的活）；③ 于是复共轭 ∈ <span class="arithmatex">\(\mathrm{Gal}\)</span> 是一个<strong>对换</strong>（交换两复根、固定三实根）；④ 5 次不可约 ⇒ <span class="arithmatex">\(5 \mid \lvert\mathrm{Gal}\rvert\)</span> ⇒（Cauchy，alg2-01）含 <strong>5-循环</strong>；⑤ 群论引理：<strong><span class="arithmatex">\(S_5\)</span> 中"一个对换 + 一个 5-循环"生成全群</strong>（5 素数：5-循环的幂把对换搬遍所有相邻位置，相邻对换生成 <span class="arithmatex">\(S_5\)</span>——高代 I 置换群基本事实）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>定理（Abel–Ruffini–Galois）</strong> 该五次方程不根式可解；从而<strong>不存在一般五次求根公式</strong>。
 <strong>【证明】</strong> <span class="arithmatex">\(\mathrm{Gal} = S_5\)</span> 不可解（alg2-01：<span class="arithmatex">\(A_5\)</span> 单且非交换）⟹ 主定理判无根式塔。一般公式若存在，将对每个具体方程给出根式解——单个反例即处决。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>尾注三则</strong>：<span class="arithmatex">\(n \geq 5\)</span> 同理（<span class="arithmatex">\(S_n \supseteq A_n\)</span> 单）；<strong>二三四次公式存在的原因</strong>同框解释——<span class="arithmatex">\(S_2, S_3, S_4\)</span> 可解（alg2-01 例 2 的正规列：<span class="arithmatex">\(S_4 \trianglerighteq A_4 \trianglerighteq V_4\)</span>——Cardano/Ferrari 公式的嵌套结构逐层对应此列，公式与正规列的互译在低次是<strong>构造性</strong>的）；个别五次方程当然可解（<span class="arithmatex">\(x^5 - 2\)</span>：循环群）——不可解的是"一般"。</p>
-<h2 id="4">4. 收官的收官：这个证明的历史体重<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 收官的收官：这个证明的历史体重<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>1824–1832 年，Abel 与 Galois 用"结构"终结了三百年的公式狩猎——<strong>数学史上第一次用"对称性的语言"证明"不可能"</strong>：不是没找到，是不存在。方法的遗产远比结论重：群 → 域的翻译学（本页）→ 覆盖空间（at-02）→ 微分方程的 Galois 理论、数论的 Galois 表示【立牌】——"把问题翻译成结构、由结构宣判命运"从此成为数学的中央方法。本站两站 124 页反复出现的三大主题——<strong>不变量分类、对偶互译、结构宣判</strong>——在这最后一页会师谢幕。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（低次的正面验证）</strong> 用 §2 机器正向走一遍三次方程：<span class="arithmatex">\(S_3 \trianglerighteq A_3 \trianglerighteq \{e\}\)</span>，商 <span class="arithmatex">\(\mathbb{Z}_2, \mathbb{Z}_3\)</span> ⇒ 塔 = 先开平方（判别式 <span class="arithmatex">\(\sqrt\Delta\)</span>——<span class="arithmatex">\(\mathbb{Z}_2\)</span> 层）再开立方（Cardano 的 <span class="arithmatex">\(\sqrt[3]{\cdot}\)</span>——<span class="arithmatex">\(\mathbb{Z}_3\)</span> 层）——<strong>Cardano 公式的结构被群论完全预言</strong>：读懂这个对应，本页即毕业。</p>
 <p><strong>例 2（判 Galois 群的实战套路）</strong> <span class="arithmatex">\(x^5 - 4x + 2\)</span>：Eisenstein(<span class="arithmatex">\(p=2\)</span>) ✓、实根三个 ✓（同 §3 分析）⇒ <span class="arithmatex">\(\mathrm{Gal} = S_5\)</span> ⇒ 不可根式解——套路化的"验尸三步"（不可约 + 实根计数 + 对换与 <span class="arithmatex">\(p\)</span>-循环生成）。</p>
 <p><strong>例 3（辨析题）</strong> "计算机能数值解五次方程，与本定理矛盾吗？"——不矛盾：定理禁止的是<strong>有限层根式的封闭公式</strong>，数值迭代（nla-02 的 QR/牛顿）不受限——<strong>"不可解"针对表达式的代数结构，非计算可行性</strong>；这恰是 nla-02"特征值必须迭代"引用本定理的准确含义。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -88,5 +151,7 @@ F = F_0 \subset F_1 \subset \cdots \subset F_m, \qquad F_{i+1} = F_i(\sqrt[n_i]{
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/galois-insolvability.js"></script>
 </body>
 </html>

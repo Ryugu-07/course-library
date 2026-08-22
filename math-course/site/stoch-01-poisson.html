@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,54 +45,151 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 基本语言</a></li>
+<li><a href="#_1">学习层：同一事件流的三本账</a><ul>
+<li><a href="#1">1. 具体情境：客服队列如何描述“随机到达”？</a></li>
+<li><a href="#2">2. 先预测：先选语义，再打开路径</a></li>
+<li><a href="#3">3. 正式桥：计数过程与等待时间互相翻译</a></li>
+<li><a href="#4">4. 定理、迁移与失败边界</a></li>
+<li><a href="#5">5. 动手实验：揭示前隐藏结果，揭示后联动参数</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 基本语言</a></li>
 <li><a href="#2-poisson">2. Poisson 过程：完全随机的事件流</a></li>
-<li><a href="#3">3. 三大运算性质</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#3_1">3. 三大运算性质</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-poisson">随机过程 I · 基本概念与 Poisson 过程<a class="headerlink" href="#i-poisson" title="Permanent link"></a></h1>
 <blockquote>
-<p>概率论研究"一个随机变量"，随机过程研究"一族随时间演化的随机变量"——从静态照片到动态影像。本页立好基本语言，然后精讲第一个也是最优雅的过程：Poisson 过程（"完全随机的事件流"的唯一数学模型）。</p>
+<p>概率论研究“一个随机变量”，随机过程研究“一族随时间演化的随机变量”——从静态照片到动态影像。本页立好基本语言，然后精讲第一个也是最优雅的过程：Poisson 过程（“完全随机的事件流”的唯一数学模型）。</p>
 </blockquote>
-<h2 id="1">1. 基本语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 随机过程 = 随机变量族 <span class="arithmatex">\(\{X(t),\ t \in T\}\)</span>（<span class="arithmatex">\(T\)</span> 为指标集：离散 = 序列，连续 = 时间轴；<span class="arithmatex">\(X(t)\)</span> 的取值范围叫状态空间）。<strong>双重视角</strong>：固定 <span class="arithmatex">\(t\)</span> 看是随机变量（截面），固定样本点 <span class="arithmatex">\(\omega\)</span> 看是时间函数（<strong>轨道/样本路径</strong>）——过程 = "随机的函数"。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="poisson-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一事件流的三本账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：客服队列如何描述“随机到达”？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>某客服队列平均每小时接到 <span class="arithmatex">\(\lambda=4\)</span> 个电话。运营者想同时回答三件事：一小时的来电数如何分布；前 15 分钟和后 15 分钟的计数是否互相提供信息；已经等了很久还没有电话后，剩余等待时间是否会改变。</p>
+<p>这三问分别对应计数、增量和等待时间。把 <span class="arithmatex">\(\lambda\)</span> 读成“每小时恰好来一个的概率”，或把一条短模拟路径当成过程定理的证明，都会把模型对象读错。</p>
+<h3 id="2">2. 先预测：先选语义，再打开路径<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验固定 <span class="arithmatex">\(\lambda=2\)</span>、<span class="arithmatex">\(T=4\)</span> 的最小过程，并用固定 seed 生成一条阶梯路径与一批重复抽样。揭示前先判断：</p>
+<ol>
+<li><span class="arithmatex">\(\lambda\)</span> 首先是计数率、单次事件概率，还是每次等待时间？</li>
+<li>两个不重叠区间的计数增量应当独立、相等，还是互相排斥？</li>
+<li>指数等待时间的无记忆性如何把“已等 <span class="arithmatex">\(u\)</span>”从条件中消掉？</li>
+<li>有限模拟能否证明独立平稳增量和 Poisson 计数的过程公理？</li>
+</ol>
+<h3 id="3">3. 正式桥：计数过程与等待时间互相翻译<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>强度 <span class="arithmatex">\(\lambda\)</span> 的 Poisson 过程满足</p>
+<div class="arithmatex">\[
+N(0)=0,\qquad
+N(t+s)-N(s)\sim\operatorname{Poisson}(\lambda t),
+\]</div>
+<p>且不重叠区间的增量独立。于是</p>
+<div class="arithmatex">\[
+E[N(t)]=\operatorname{Var}(N(t))=\lambda t,
+\]</div>
+<p>这里的 <span class="arithmatex">\(\lambda\)</span> 是单位时间的平均计数率；在长度为 <span class="arithmatex">\(t\)</span> 的区间内恰好发生一次的概率是 <span class="arithmatex">\(\lambda t e^{-\lambda t}\)</span>，并不等于 <span class="arithmatex">\(\lambda\)</span>。</p>
+<p>令相邻事件间隔为 <span class="arithmatex">\(W_1,W_2,\dots\)</span>，则等价刻画是</p>
+<div class="arithmatex">\[
+W_i\stackrel{\mathrm{iid}}{\sim}\operatorname{Exp}(\lambda),
+\qquad
+P(W&gt;u+v\mid W&gt;u)=P(W&gt;v)=e^{-\lambda v}.
+\]</div>
+<p>等待时间无记忆性解释了“等了多久”不会改变剩余等待分布；第 <span class="arithmatex">\(k\)</span> 次到达时间是 <span class="arithmatex">\(S_k=W_1+\cdots+W_k\sim\operatorname{Gamma}(k,\lambda)\)</span>。这是计数语言与到达时刻语言之间的正式桥。</p>
+<h3 id="4">4. 定理、迁移与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>计数率不是概率。</strong><span class="arithmatex">\(\lambda\)</span> 有单位“每时间”，<span class="arithmatex">\(N(t)\)</span> 的均值是 <span class="arithmatex">\(\lambda t\)</span>；单个时间窗的计数概率还要由 Poisson 质量函数计算。</li>
+<li><strong>独立和平稳是两条不同性质。</strong>独立增量说不重叠区间的随机增量不互相提供信息；平稳增量说分布只看区间长度。高峰时段的非齐次过程可以保留某些结构但失去平稳增量。</li>
+<li><strong>等待时间有无记忆性是模型结论。</strong>一般分布的等待不会自动无记忆；指数分布才给出上面的条件尾概率。更新过程、聚集到达或抑制到达不能机械套用。</li>
+<li><strong>有限模拟不是过程公理证明。</strong>固定 seed 的阶梯图、经验均值、方差和协方差只是有限样本的校准材料；它们不能证明所有区间上的独立平稳增量。</li>
+<li><strong>应用迁移要重查假设。</strong>排队到达、稀疏化和叠加常用 Poisson 近似，但批量到达、容量反馈、季节性强度、事件互相触发时，应考虑复合、非齐次或自激过程。</li>
+</ul>
+<h3 id="5">5. 动手实验：揭示前隐藏结果，揭示后联动参数<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>提交四项预测前不显示路径、表格或答案。揭示后拖动 <span class="arithmatex">\(\lambda\)</span>、<span class="arithmatex">\(T\)</span> 与重复次数，SVG 与计数/等待账本同步更新；重置会再次隐藏结果。</p>
+<div class="learning-lab" data-learning-lab="poisson-process">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认 <span class="arithmatex">\(\lambda=2\)</span>、<span class="arithmatex">\(T=4\)</span>。理论账本为</p>
+<div class="arithmatex">\[
+E[N(4)]=\operatorname{Var}(N(4))=8,
+\qquad
+E[W]=\frac12,
+\qquad
+P(N(4)=0)=e^{-8}.
+\]</div>
+<p>取 <span class="arithmatex">\(u=0.2\)</span>、<span class="arithmatex">\(v=0.3\)</span> 小时，则无记忆性写成</p>
+<div class="arithmatex">\[
+P(W&gt;u+v\mid W&gt;u)=P(W&gt;v)=e^{-0.6}\approx0.5488.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>静态读法</th>
+<th>不要偷换成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\lambda\)</span></td>
+<td>单位时间平均计数率</td>
+<td>每个时间窗恰好一次的概率</td>
+</tr>
+<tr>
+<td>不重叠增量</td>
+<td>独立，分布只看各自长度</td>
+<td>两段计数必须相等</td>
+</tr>
+<tr>
+<td>等待时间</td>
+<td>指数分布，具有无记忆性</td>
+<td>任意等待分布都无记忆</td>
+</tr>
+<tr>
+<td>固定 seed 路径</td>
+<td>直觉和数值校准</td>
+<td>有限图像已经证明过程公理</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 基本语言<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>定义</strong> 随机过程 = 随机变量族 <span class="arithmatex">\(\{X(t),\ t \in T\}\)</span>（<span class="arithmatex">\(T\)</span> 为指标集：离散 = 序列，连续 = 时间轴；<span class="arithmatex">\(X(t)\)</span> 的取值范围叫状态空间）。<strong>双重视角</strong>：固定 <span class="arithmatex">\(t\)</span> 看是随机变量（截面），固定样本点 <span class="arithmatex">\(\omega\)</span> 看是时间函数（<strong>轨道/样本路径</strong>）——过程 = “随机的函数”。</p>
 <p><strong>刻画工具</strong>：有限维分布族（一切 <span class="arithmatex">\((X(t_1),\dots,X(t_n))\)</span> 的联合分布，Kolmogorov 定理保证由此定过程）；数字特征：均值函数 <span class="arithmatex">\(m(t) = E X(t)\)</span>、<strong>自相关/自协方差函数</strong> <span class="arithmatex">\(C(s, t) = \mathrm{Cov}(X(s), X(t))\)</span>（概率 IV 的协方差沿时间铺开）。</p>
-<p><strong>两类"时间不变性"</strong>：<strong>严平稳</strong>（任何有限维分布平移不变）；<strong>宽平稳</strong>（只要求 <span class="arithmatex">\(m(t)\)</span> 常数、<span class="arithmatex">\(C(s,t)\)</span> 只依赖 <span class="arithmatex">\(t - s\)</span>——时间序列分析的地基假设）。<strong>两类增量性质</strong>：独立增量（不重叠区间的增量独立）、平稳增量（增量分布只看区间长度）。</p>
+<p><strong>两类“时间不变性”</strong>：<strong>严平稳</strong>（任何有限维分布平移不变）；<strong>宽平稳</strong>（只要求 <span class="arithmatex">\(m(t)\)</span> 常数、<span class="arithmatex">\(C(s,t)\)</span> 只依赖 <span class="arithmatex">\(t - s\)</span>——时间序列分析的地基假设）。<strong>两类增量性质</strong>：独立增量（不重叠区间的增量独立）、平稳增量（增量分布只看区间长度）。</p>
 <h2 id="2-poisson">2. Poisson 过程：完全随机的事件流<a class="headerlink" href="#2-poisson" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Poisson 过程计数路径" src="assets/img/stoch-01-poisson-process.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>Poisson 过程：事件在时间轴上完全随机到达，计数 \(N(t)\) 是逐级跳 1 的阶梯，间隔服从指数分布。</figcaption>
 </figure>
 <p><strong>定义（计数过程版）</strong> <span class="arithmatex">\(N(t)\)</span> = <span class="arithmatex">\([0, t]\)</span> 内事件发生数。称 <span class="arithmatex">\(\{N(t)\}\)</span> 为强度 <span class="arithmatex">\(\lambda\)</span> 的 Poisson 过程，若：1. <span class="arithmatex">\(N(0) = 0\)</span>；2. 独立增量；3. <span class="arithmatex">\(N(t+s) - N(s) \sim P(\lambda t)\)</span>（平稳增量且服从泊松分布）。</p>
-<p>（更本源的公理化：小区间内发生一次的概率 <span class="arithmatex">\(\approx \lambda h\)</span>、两次以上 <span class="arithmatex">\(o(h)\)</span>、独立增量——由此可<strong>推出</strong>泊松分布，微分方程法；概率 II"稀有事件"直觉的严格化。）</p>
+<p>（更本源的公理化：小区间内发生一次的概率 <span class="arithmatex">\(\approx \lambda h\)</span>、两次以上 <span class="arithmatex">\(o(h)\)</span>、独立增量——由此可<strong>推出</strong>泊松分布，微分方程法；概率 II“稀有事件”直觉的严格化。）</p>
 <p><strong>定理（等价刻画：间隔时间）</strong> <span class="arithmatex">\(N(t)\)</span> 是强度 <span class="arithmatex">\(\lambda\)</span> 的 Poisson 过程 <span class="arithmatex">\(\iff\)</span> 相邻事件的间隔时间 <span class="arithmatex">\(T_1, T_2, \dots\)</span> i.i.d. <span class="arithmatex">\(\sim \mathrm{Exp}(\lambda)\)</span>。</p>
-<p><em>一半的证明（一行）</em>：<span class="arithmatex">\(P(T_1 &gt; t) = P(N(t) = 0) = e^{-\lambda t}\)</span>——指数分布现身；独立增量给出间隔的独立性。<strong>指数的无记忆性（概率 II）与泊松的"完全随机"在此互为表里</strong>：事件流无记忆 ⟺ 计数是 Poisson。第 <span class="arithmatex">\(n\)</span> 次事件的到达时刻 <span class="arithmatex">\(S_n = \sum_1^n T_i \sim \Gamma(n, \lambda)\)</span>（Gamma 分布认祖归宗）。</p>
-<h2 id="3">3. 三大运算性质<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><em>一半的证明（一行）</em>：<span class="arithmatex">\(P(T_1 &gt; t) = P(N(t) = 0) = e^{-\lambda t}\)</span>——指数分布现身；独立增量再给出不同间隔的独立性。准确的等价条件是“相邻间隔 <strong>i.i.d.</strong> 指数分布”：单个等待时间具有无记忆性，只能确定它是指数型，不能单独推出整条事件流的独立增量。第 <span class="arithmatex">\(n\)</span> 次事件的到达时刻 <span class="arithmatex">\(S_n = \sum_1^n T_i \sim \Gamma(n, \lambda)\)</span>（Gamma 分布认祖归宗）。</p>
+<h2 id="3_1">3. 三大运算性质<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>叠加</strong>：独立 Poisson 过程之和仍是 Poisson，强度相加（概率 III 泊松可加性的过程版）；</li>
 <li><strong>稀疏化</strong>：每个事件独立以概率 <span class="arithmatex">\(p\)</span> 保留 ⇒ 保留流是强度 <span class="arithmatex">\(\lambda p\)</span> 的 Poisson（概率 IV 例 2 的过程版），且保留流与丢弃流<strong>独立</strong>（反直觉但真）；</li>
-<li><strong>条件均匀性</strong>：已知 <span class="arithmatex">\(N(t) = n\)</span>，这 <span class="arithmatex">\(n\)</span> 个到达时刻的分布 = <span class="arithmatex">\([0, t]\)</span> 上 <span class="arithmatex">\(n\)</span> 个独立均匀点的次序统计量——"知道发生了几次后，发生在何时完全均匀"，Poisson 过程"无偏好"本性的最佳注脚，也是模拟它的标准方法。</li>
+<li><strong>条件均匀性</strong>：已知 <span class="arithmatex">\(N(t) = n\)</span>，这 <span class="arithmatex">\(n\)</span> 个到达时刻的分布 = <span class="arithmatex">\([0, t]\)</span> 上 <span class="arithmatex">\(n\)</span> 个独立均匀点的次序统计量——“知道发生了几次后，发生在何时完全均匀”，Poisson 过程“无偏好”本性的最佳注脚，也是模拟它的标准方法。</li>
 </ul>
 <p><strong>推广一嘴</strong>：非齐次（<span class="arithmatex">\(\lambda(t)\)</span> 随时间变，早晚高峰）、复合 Poisson（每次事件带随机大小 <span class="arithmatex">\(Y_i\)</span>，总量 <span class="arithmatex">\(\sum_{i=1}^{N(t)} Y_i\)</span>——保险总索赔模型，期望用概率 IV 的 Wald 公式）。</p>
 <p>🔗 <strong>应用衔接</strong>：排队论的到达流（<span class="arithmatex">\(M/M/1\)</span> 的 M 即 Markov=Poisson 到达）；你 Medusa 的新闻事件流本质上是非齐次 Poisson 的现实样本（突发新闻=强度尖峰）；泊松回归（统计 V 广义线性模型方向）建模计数数据。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（基本计算）</strong> 客服电话 <span class="arithmatex">\(\lambda = 4\)</span> 次/小时。求 (a) 一小时内恰 2 次；(b) 15 分钟无电话；(c) 第 3 次电话在 1 小时内到来的概率。
 <em>解</em>：(a) <span class="arithmatex">\(P(N(1) = 2) = \frac{4^2}{2!}e^{-4} \approx 0.147\)</span>；(b) <span class="arithmatex">\(P(N(0.25) = 0) = e^{-1} \approx 0.368\)</span>；(c) <span class="arithmatex">\(P(S_3 \leq 1) = P(N(1) \geq 3) = 1 - e^{-4}(1 + 4 + 8) \approx 0.762\)</span>。（<strong>到达时刻问题转成计数问题</strong>——<span class="arithmatex">\(S_n \leq t \iff N(t) \geq n\)</span>，本页最常用的翻译。）</p>
 <p><strong>例 2（稀疏化）</strong> 网站访问 <span class="arithmatex">\(\lambda = 100\)</span>/分钟，每访客独立以 3% 概率下单。下单流是什么？
 <em>解</em>：强度 <span class="arithmatex">\(3\)</span>/分钟的 Poisson 过程；一分钟无订单概率 <span class="arithmatex">\(e^{-3}\)</span>。</p>
 <p><strong>例 3（条件均匀性）</strong> 已知 <span class="arithmatex">\([0, 1]\)</span> 小时内来了 2 封邮件，求都在前 20 分钟到达的概率。
-<em>解</em>：两到达时刻 i.i.d. <span class="arithmatex">\(U(0,1)\)</span>：<span class="arithmatex">\(P = (1/3)^2 = 1/9\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<em>解</em>：可先取两个未排序位置 i.i.d. <span class="arithmatex">\(U(0,1)\)</span>，再排序得到实际到达时刻 <span class="arithmatex">\((S_1,S_2)\)</span>；排序后的两时刻本身并不独立。“都在前 20 分钟”不受排序影响，所以 <span class="arithmatex">\(P = (1/3)^2 = 1/9\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>下一页：给过程装上"状态"与"转移"——Markov 链，随机过程课的主体。</em></p>
+<p><em>下一页：给过程装上“状态”与“转移”——Markov 链，随机过程课的主体。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stat-05-regression.html"><span class="pager-label">上一页</span>统计 V · 回归与方差分析</a>
@@ -87,5 +199,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/poisson-process.js"></script>
 </body>
 </html>

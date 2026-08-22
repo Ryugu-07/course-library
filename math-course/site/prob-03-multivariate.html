@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,26 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 联合分布、边缘与条件</a></li>
-<li><a href="#2">2. 独立性</a></li>
-<li><a href="#3">3. 多维随机变量的函数</a></li>
-<li><a href="#4">4. 二维正态（多维正态的门面）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#multivariate-learning-title">学习层：看到一个点，先猜它属于哪一本概率账</a><ul>
+<li><a href="#1">1. 具体实例：两个传感器到底共享什么信息？</a></li>
+<li><a href="#2">2. 先预测：打开联合图以前，先押四个判断</a></li>
+<li><a href="#3">3. 正式桥：一张联合分布拆成三种读数</a></li>
+<li><a href="#4">4. 可操作实验：先过预测门，再揭示联合、边缘与条件</a></li>
+<li><a href="#5">5. 定理与失败边界：每次边缘化都要带条件</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 联合分布、边缘与条件</a></li>
+<li><a href="#2_1">2. 独立性</a></li>
+<li><a href="#3_1">3. 多维随机变量的函数</a></li>
+<li><a href="#4_1">4. 二维正态（多维正态的门面）</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,7 +72,90 @@
 <blockquote>
 <p>现实问题几乎总是多变量的（身高与体重、收益与风险、图像的百万像素）。本页建立联合分布的语言，重点是三件事：<strong>边缘化</strong>（积掉不关心的）、<strong>条件化</strong>（固定已知的）、<strong>独立性判据</strong>——这三个动作正是概率图模型与贝叶斯推断的全部基本功。</p>
 </blockquote>
-<h2 id="1">1. 联合分布、边缘与条件<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="multivariate-learning-title" class="learning-layer">
+<h2 id="multivariate-learning-title">学习层：看到一个点，先猜它属于哪一本概率账<a class="headerlink" href="#multivariate-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：两个传感器到底共享什么信息？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(X\)</span> 是温度偏差，<span class="arithmatex">\(Y\)</span> 是湿度偏差。一次记录给出一个点 <span class="arithmatex">\((x,y)\)</span>，但“这个点有多常见”至少有四种不同问法：联合概率描述 <span class="arithmatex">\((X,Y)\)</span> 一起落在哪里，边缘概率只看一个传感器，条件分布描述知道 <span class="arithmatex">\(X=x\)</span> 后 <span class="arithmatex">\(Y\)</span> 如何改变，协方差只量线性联动。把它们都叫“分布”会让读数器悄悄串账。</p>
+<p>下面的实验固定四个小世界：一个矩形上的独立模型、<span class="arithmatex">\(Y=X^2\)</span> 的零协方差依赖、三角形支持上的密度 <span class="arithmatex">\(8xy\)</span>，以及带可调 <span class="arithmatex">\(\rho\)</span> 的二维正态。它们让“边缘一样”“支撑不同”“条件改变”和“线性相关”分别现形。</p>
+<h3 id="2">2. 先预测：打开联合图以前，先押四个判断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不要提交实验。请写下你的预测：</p>
+<ol>
+<li>若 <span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(Y\)</span> 的联合密度能写成 <span class="arithmatex">\(g(x)h(y)\)</span>，是否无条件就能断言独立？支撑集的形状会不会改变答案？</li>
+<li><span class="arithmatex">\(X\sim U(-1,1)\)</span>、<span class="arithmatex">\(Y=X^2\)</span> 时，协方差为零是否意味着观察 <span class="arithmatex">\(X\)</span> 后 <span class="arithmatex">\(Y\)</span> 的分布不变？</li>
+<li>对二维正态，调到 <span class="arithmatex">\(\rho=0\)</span> 时，“不相关”和“独立”是否恰好重合？这个结论能否搬给任意分布？</li>
+<li>只知道 <span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(Y\)</span> 的两个边缘分布，能否唯一恢复联合分布？如果不能，缺的那一块结构通常由什么对象编码？</li>
+</ol>
+<h3 id="3">3. 正式桥：一张联合分布拆成三种读数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>连续情形的三本基础账是</p>
+<div class="arithmatex">\[
+f_X(x)=\int f(x,y)\,dy,
+\qquad
+f_{Y\mid X}(y\mid x)=\frac{f(x,y)}{f_X(x)},
+\qquad
+f(x,y)=f_X(x)f_Y(y)\ \text{（独立时）}.
+\]</div>
+<p>“可分离”还不够：独立要求等式在联合支持上成立，并且支持本身必须与两个边缘的允许取值相容。三角形 <span class="arithmatex">\(0&lt;x&lt;y&lt;1\)</span> 不是矩形，所以即使 <span class="arithmatex">\(8xy=(4x)(2y)\)</span> 看起来可分，<span class="arithmatex">\(X\)</span> 的取值仍会剪掉 <span class="arithmatex">\(Y\)</span> 的可能范围，条件分布必然知道 <span class="arithmatex">\(x\)</span>。</p>
+<p>边缘相同也不代表联合相同。把两个边缘均匀分布粘成不同的联合结构，需要一个 <strong>copula</strong>；copula 记录依赖的排列方式，边缘分布负责各自的尺度。因而“边缘 + copula”才是联合结构的完整描述，而不是只看两个直方图。</p>
+<p>协方差</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(X,Y)=E[XY]-E[X]E[Y]
+\]</div>
+<p>只检查乘积的线性投影。独立一定推出零协方差（有二阶矩时），零协方差却可能与强烈的非线性关系共存；二维正态的 <span class="arithmatex">\(\rho=0\Longleftrightarrow X\perp Y\)</span> 是特殊定理，不是通用定义。</p>
+<h3 id="4">4. 可操作实验：先过预测门，再揭示联合、边缘与条件<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认从“抛物线依赖”开始。提交四项预测后，才能看到支持/等密度 SVG、<span class="arithmatex">\(x\)</span> 探针对应的条件读数和逐行表格；揭示后可切换模型、拖动 <span class="arithmatex">\(x\)</span>，并在二维正态模型中调节 <span class="arithmatex">\(\rho\)</span>。这些控件都会重新计算同一份解析账本。</p>
+<div class="learning-lab" data-learning-lab="multivariate-dependence" markdown="1">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 默认模型为 <span class="arithmatex">\(X\sim U(-1,1),Y=X^2\)</span>，探针取 <span class="arithmatex">\(x=0.5\)</span>。其边缘为 <span class="arithmatex">\(X\sim U(-1,1)\)</span> 与 <span class="arithmatex">\(f_Y(y)=1/(2\sqrt y)\)</span>（<span class="arithmatex">\(0&lt;y&lt;1\)</span>）；<span class="arithmatex">\(\operatorname{Cov}(X,Y)=E[X^3]=0\)</span>，但 <span class="arithmatex">\(Y\)</span> 是 <span class="arithmatex">\(X\)</span> 的确定函数，所以不独立，且 <span class="arithmatex">\(Y\mid X=0.5\)</span> 集中在 <span class="arithmatex">\(0.25\)</span>。对照模型读法如下：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>联合 / 支持</th>
+<th>边缘与条件</th>
+<th>独立性与失败边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>矩形独立</td>
+<td><span class="arithmatex">\(f=1/4\)</span> 于 <span class="arithmatex">\(-1&lt;x&lt;1,-1&lt;y&lt;1\)</span></td>
+<td>两个边缘均匀；条件不随探针改变</td>
+<td>独立；矩形支持是关键</td>
+</tr>
+<tr>
+<td>抛物线依赖</td>
+<td>质量在 <span class="arithmatex">\(y=x^2\)</span> 上</td>
+<td><span class="arithmatex">\(X\)</span> 均匀；<span class="arithmatex">\(Y\)</span> 的密度为 <span class="arithmatex">\(1/(2\sqrt y)\)</span>；条件为点质量</td>
+<td>协方差为零但不独立；支持是奇异曲线</td>
+</tr>
+<tr>
+<td>三角支持</td>
+<td><span class="arithmatex">\(f(x,y)=8xy\)</span> 于 <span class="arithmatex">\(0&lt;x&lt;y&lt;1\)</span></td>
+<td><span class="arithmatex">\(f_X(x)=4x(1-x^2)\)</span>，<span class="arithmatex">\(f_Y(y)=4y^3\)</span>；<span class="arithmatex">\(Y\mid X=x\)</span> 的密度为 <span class="arithmatex">\(2y/(1-x^2)\)</span></td>
+<td>不独立；可分形式不能越过非矩形支持</td>
+</tr>
+<tr>
+<td>二维正态</td>
+<td><span class="arithmatex">\(N(0,0,1,1,\rho)\)</span> 的椭圆等密度线</td>
+<td>条件均值为 <span class="arithmatex">\(\rho x\)</span>，条件方差为 <span class="arithmatex">\(1-\rho^2\)</span></td>
+<td>仅在二维正态中 <span class="arithmatex">\(\rho=0\)</span> 等价于独立</td>
+</tr>
+</tbody>
+</table>
+<p>这里的表格是解析 fallback，不是随机样本的 Monte Carlo 估计；图形只显示固定网格或等密度轮廓，不能把一张散点图当成独立性的证明。</p>
+</div>
+<h3 id="5">5. 定理与失败边界：每次边缘化都要带条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>联合、边缘、条件不是同义词。</strong> <span class="arithmatex">\(f_X\)</span> 是对 <span class="arithmatex">\(y\)</span> 的积分，<span class="arithmatex">\(f_{Y\mid X}\)</span> 还要除以 <span class="arithmatex">\(f_X(x)\)</span>；分母为零或不在边缘支持上时，条件密度不能这样直接写。</li>
+<li><strong>独立性看整个联合结构。</strong> 需要联合分布因子化并且支持相容；非矩形支持、隐藏约束和 copula 依赖都可能让两个边缘看起来“无关”而联合并不独立。</li>
+<li><strong>零协方差只是一张线性筛子。</strong> <span class="arithmatex">\(Y=X^2\)</span> 是最短反例；高阶依赖、尾部联动和条件均值的变化都可能被协方差漏掉。</li>
+<li><strong>二维正态的特权要标注适用域。</strong> 对一般分布，不相关不能推出独立；对高维正态，协方差矩阵对角才给出联合独立。</li>
+<li><strong>条件分布是预测器。</strong> 知道 <span class="arithmatex">\(X\)</span> 后应读取 <span class="arithmatex">\(Y\mid X=x\)</span>，不能拿边缘 <span class="arithmatex">\(f_Y\)</span> 代替；在三角支持中，<span class="arithmatex">\(x\)</span> 甚至会改变 <span class="arithmatex">\(Y\)</span> 的可行区间。</li>
+</ul>
+<p>回到正文公式时，先问“我手里的是联合、边缘还是条件”，再问“支持和矩条件是否允许这一步”。这两个问题比背下一个可分离公式更可靠。</p>
+</section>
+<h2 id="1_1">1. 联合分布、边缘与条件<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>联合分布函数</strong> <span class="arithmatex">\(F(x, y) = P(X \leq x, Y \leq y)\)</span>。连续型有<strong>联合密度</strong>：<span class="arithmatex">\(F(x,y) = \int_{-\infty}^x\int_{-\infty}^y f(u,v)\,du\,dv\)</span>，<span class="arithmatex">\(P((X,Y) \in D) = \iint_D f\)</span>（二重积分上岗，数分 VI）。</p>
 <p><strong>边缘分布</strong>（"积掉不关心的变量"）：</p>
 <div class="arithmatex">\[
@@ -61,11 +167,11 @@ f_X(x) = \int_{-\infty}^{+\infty} f(x, y)\,dy
 f_{Y\mid X}(y \mid x) = \frac{f(x, y)}{f_X(x)} \qquad \Longleftrightarrow \qquad f(x,y) = f_X(x)\,f_{Y\mid X}(y\mid x)
 \]</div>
 <p>后一形式是<strong>联合分布的链式分解</strong>——先采样 <span class="arithmatex">\(X\)</span> 再按条件采样 <span class="arithmatex">\(Y\)</span>。🔗 一切生成式建模的形式骨架（ai 课 03/07 讲；扩散模型的 <span class="arithmatex">\(q(x_{1:T}\mid x_0) = \prod q(x_t \mid x_{t-1})\)</span> 也是它）。</p>
-<h2 id="2">2. 独立性<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 独立性<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(X, Y\)</span> 独立 <span class="arithmatex">\(\iff F(x,y) = F_X(x)F_Y(y) \iff f(x,y) = f_X(x)f_Y(y)\)</span>（几乎处处）。</p>
 <p><strong>实用判据</strong>：密度可分离变量 <span class="arithmatex">\(f(x,y) = g(x)h(y)\)</span> <strong>且支撑集是矩形</strong>（长方形区域）⇒ 独立。⚠️ 支撑集不是矩形（如单位圆盘上的均匀分布）时哪怕形式可分也<strong>不独立</strong>——<span class="arithmatex">\(X\)</span> 的取值限制了 <span class="arithmatex">\(Y\)</span> 的范围。</p>
 <p>独立的继承性：<span class="arithmatex">\(X \perp Y \Rightarrow g(X) \perp h(Y)\)</span>。</p>
-<h2 id="3">3. 多维随机变量的函数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 多维随机变量的函数<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>和的分布（卷积公式）</strong> <span class="arithmatex">\(Z = X + Y\)</span>，<span class="arithmatex">\(X \perp Y\)</span>：</p>
 <div class="arithmatex">\[
 f_Z(z) = \int_{-\infty}^{+\infty} f_X(x)\, f_Y(z - x)\,dx
@@ -88,8 +194,16 @@ f_Z(z) = \int_{-\infty}^{+\infty} f_X(x)\, f_Y(z - x)\,dx
 <td><span class="arithmatex">\(P(\lambda_1) + P(\lambda_2) = P(\lambda_1 + \lambda_2)\)</span></td>
 </tr>
 <tr>
-<td>二项/Gamma/χ²</td>
-<td>同理参数相加（χ² 可加性是统计页抽样定理的引擎）</td>
+<td>二项</td>
+<td>相同成功概率 <span class="arithmatex">\(p\)</span> 的独立二项变量相加，试验次数相加</td>
+</tr>
+<tr>
+<td>Gamma</td>
+<td>相同 rate（或相同 scale 约定）的独立 Gamma 变量相加，形状参数相加</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\chi^2\)</span></td>
+<td>独立 <span class="arithmatex">\(\chi^2\)</span> 变量相加，自由度相加；这是统计页抽样定理的引擎</td>
 </tr>
 </tbody>
 </table>
@@ -99,7 +213,7 @@ F_{\max}(z) = \prod_i F_i(z), \qquad F_{\min}(z) = 1 - \prod_i \big(1 - F_i(z)\b
 \]</div>
 <p>（记忆：最大值小于 z = 全都小于 z；最小值的对偶。名例：独立指数的 min 仍是指数，参数相加——"串联系统寿命"。）</p>
 <p><strong>商与积</strong>：分布函数法通吃；或二维变量替换公式（Jacobi 行列式版，数分 VI 换元的概率应用）。</p>
-<h2 id="4">4. 二维正态（多维正态的门面）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 二维正态（多维正态的门面）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="二维正态等密度椭圆" src="assets/img/prob-03-bivariate-normal.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>二维正态的等密度线是椭圆，相关系数 \(\rho\) 让椭圆倾斜——协方差矩阵的几何显形。</figcaption>
@@ -112,7 +226,7 @@ F_{\max}(z) = \prod_i F_i(z), \qquad F_{\min}(z) = 1 - \prod_i \big(1 - F_i(z)\b
 <li><strong>对二维正态：不相关 <span class="arithmatex">\(\iff\)</span> 独立</strong>（一般分布只有 ⇐！这是正态的特权，考试第一陷阱）；</li>
 <li>线性组合仍正态（正态族对线性运算封闭——这是它成为"计算最友好分布"的原因，🔗 Kalman 滤波、高斯过程、扩散模型全靠这条性质做闭式推导，comfy 课 02 讲的闭式跳跃公式即"性质 4 + 可加性"）。</li>
 </ol>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（边缘与条件全流程）</strong> <span class="arithmatex">\(f(x,y) = 8xy,\ 0 &lt; x &lt; y &lt; 1\)</span>（注意三角形支撑集）。
 <em>解</em>：<span class="arithmatex">\(f_X(x) = \int_x^1 8xy\,dy = 4x(1 - x^2)\)</span>；<span class="arithmatex">\(f_{Y\mid X}(y\mid x) = \frac{8xy}{4x(1-x^2)} = \frac{2y}{1-x^2}\ (x &lt; y &lt; 1)\)</span>。独立吗？形式 <span class="arithmatex">\(8xy\)</span> 可分离，但支撑集非矩形——<strong>不独立</strong>（也可验证 <span class="arithmatex">\(f \neq f_X f_Y\)</span>）。</p>
 <p><strong>例 2（卷积）</strong> <span class="arithmatex">\(X, Y \overset{iid}{\sim} U(0,1)\)</span>，求 <span class="arithmatex">\(Z = X + Y\)</span> 的密度。
@@ -129,5 +243,7 @@ F_{\max}(z) = \prod_i F_i(z), \qquad F_{\min}(z) = 1 - \prod_i \big(1 - F_i(z)\b
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/multivariate-dependence.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li class="active"><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先声明“数的对象”，再开始数</a><ul>
+<li><a href="#graph-counting-learning-title">1. 具身情境：为园区路线和树形网络开两本账</a></li>
+<li><a href="#2">2. 正式理论桥：四种计数各有自己的账本</a></li>
+<li><a href="#3">3. 定理级结论与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 基本武器</a></li>
-<li><a href="#2">2. 容斥原理</a></li>
-<li><a href="#3">3. 递推关系</a></li>
+<li><a href="#2_1">2. 容斥原理</a></li>
+<li><a href="#3_1">3. 递推关系</a></li>
 <li><a href="#4">4. 生成函数（计数的核武器）</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
@@ -49,6 +70,48 @@
 <blockquote>
 <p>组合数学回答"有多少种"。本页是计数的兵器谱，按火力递增排列：基本原理 → 容斥 → 递推 → <strong>生成函数</strong>（把计数问题变成幂级数代数——组合与分析的握手，数分 IV 的幂级数在此再就业）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="graph-counting-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先声明“数的对象”，再开始数<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="graph-counting-learning-title">1. 具身情境：为园区路线和树形网络开两本账<a class="headerlink" href="#graph-counting-learning-title" title="Permanent link"></a></h3>
+<p>园区有一张小图。调度员问“从入口走 <span class="arithmatex">\(k\)</span> 步有多少条路线”，网络工程师问“这张标号网络有多少棵生成树”，数据分析师又问“递推序列的第 <span class="arithmatex">\(m\)</span> 项是多少”。三个问题都在数，但对象不同：简单路径不重复顶点，游走允许重复；握手引理数的是边端点；Cayley 公式数的是完全图的标号生成树；生成函数数的是某个序列的系数。
+实验台可改变图型、顶点数、步长和生成函数系数指标。先预测：</p>
+<ol>
+<li>长度 <span class="arithmatex">\(k\)</span> 的简单路径能否重复顶点？</li>
+<li>所有顶点度数之和是 <span class="arithmatex">\(E\)</span>、<span class="arithmatex">\(2E\)</span> 还是 <span class="arithmatex">\(nE\)</span>？</li>
+<li><span class="arithmatex">\(n^{n-2}\)</span> 数的是完全图 <span class="arithmatex">\(K_n\)</span> 的什么对象？</li>
+</ol>
+<h3 id="2">2. 正式理论桥：四种计数各有自己的账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>固定起点并把顶点序列视为有序时，长度 <span class="arithmatex">\(k\)</span> 的简单路径是 <span class="arithmatex">\(v_0,\ldots,v_k\)</span>，其中顶点互异；游走只要求相邻顶点有边，可以回到已经访问过的顶点。实验用回溯逐条列举简单路径，用动态规划累计游走数，因此重复计数规则是显式的。</p>
+<p>对有限无向图，握手引理是</p>
+<div class="arithmatex">\[
+\sum_{v\in V}\deg(v)=2\lvert E\rvert.
+\]</div>
+<p>它按边的两个端点双计数，不是在数路径。树是连通无圈图；<span class="arithmatex">\(n\)</span> 个标号顶点的树有 <span class="arithmatex">\(n-1\)</span> 条边，而 Cayley 公式 <span class="arithmatex">\(n^{n-2}\)</span> 数的是 <span class="arithmatex">\(K_n\)</span> 上的标号树，不是任意图上的路线数。一般图的生成树数是 <span class="arithmatex">\(\tau(G)\)</span>，可由 Matrix–Tree 定理的行列式得到。</p>
+<p>生成函数把一个已经声明好的序列打包。例如</p>
+<div class="arithmatex">\[
+F(x)=\frac{1}{1-x-x^2}
+\]</div>
+<p>的系数满足 <span class="arithmatex">\(a_0=1\)</span>、<span class="arithmatex">\(a_1=1\)</span>、<span class="arithmatex">\(a_m=a_{m-1}+a_{m-2}\)</span>。这个系数账本与图上的路径计数可以有联系，但不能因为两者都出现递推就把它们当成同一个对象。</p>
+<div class="learning-lab" data-learning-lab="graph-counting">
+<p><strong>JavaScript 失效时的静态读法：</strong>在路径图 <span class="arithmatex">\(P_4\)</span> 中，从顶点 <span class="arithmatex">\(0\)</span> 走两步有一条简单路径 <span class="arithmatex">\(0\to1\to2\)</span>，但有两条游走 <span class="arithmatex">\(0\to1\to0\)</span> 与 <span class="arithmatex">\(0\to1\to2\)</span>。其度数和为 <span class="arithmatex">\(1+2+2+1=6=2\cdot3\)</span>，它本身是一棵树且生成树数为 <span class="arithmatex">\(1\)</span>；<span class="arithmatex">\(4^{4-2}=16\)</span> 则是 <span class="arithmatex">\(K_4\)</span> 的标号生成树数，不是 <span class="arithmatex">\(P_4\)</span> 的路线数。
+| 对象 | 当前有限证书 | 不能偷换成 |
+|---|---|---|
+| 简单路径 / 游走 | 顶点序列回溯与动态规划分别计数 | 把允许回访的游走当成无重复路径 |
+| 握手引理 | 度数和 <span class="arithmatex">\(=2E\)</span> | 路径数量或树的数量 |
+| 树 / 生成树 | <span class="arithmatex">\(P_4\)</span> 的树证书与 <span class="arithmatex">\(\tau(P_4)=1\)</span> | Cayley 公式对任意图直接套用 |
+| Cayley 公式 | <span class="arithmatex">\(K_4\)</span> 的标号树数 <span class="arithmatex">\(4^2=16\)</span> | <span class="arithmatex">\(P_4\)</span> 的路线数 |
+| 生成函数 | <span class="arithmatex">\([x^4]1/(1-x-x^2)=5\)</span> | 把系数 5 当成图上某条路径的证明 |</p>
+</div>
+<h3 id="3">3. 定理级结论与失败边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>对象先于公式：</strong>必须先说明起点是否固定、路线是否有向、顶点是否允许重复；换一个约定，答案就可能改变。</li>
+<li><strong>双计数边界：</strong>握手引理是每条无向边贡献两个端点的恒等式；度和为偶只是必要信息，不能单独证明某个度序列可实现。</li>
+<li><strong>树计数边界：</strong>Cayley 的 <span class="arithmatex">\(n^{n-2}\)</span> 只针对完全图上的标号生成树。一般图要数其生成树子图，不能把完全图公式当作通用枚举器。</li>
+<li><strong>生成函数边界：</strong>系数提取是对已定义序列的代数编码；有限项实验能核对系数，却不能把数值枚举冒充双计数或递推正确性的证明。</li>
+</ul>
+</section>
 <figure class="plot">
 <p><img alt="Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。" src="assets/img/graph-01-pascal.svg" /></p>
 <figcaption><span class="fig-id">图 graph-01.1</span>Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。</figcaption>
@@ -57,7 +120,7 @@
 <p><strong>加法/乘法原理</strong>（分类相加、分步相乘）；<strong>排列</strong> <span class="arithmatex">\(A_n^k = \frac{n!}{(n-k)!}\)</span>、<strong>组合</strong> <span class="arithmatex">\(\binom{n}{k}\)</span>；可重复组合（隔板法）<span class="arithmatex">\(\binom{n+k-1}{k}\)</span>——"<span class="arithmatex">\(k\)</span> 个球放 <span class="arithmatex">\(n\)</span> 个盒"四种变体（球盒是否可辨）是一切初等计数题的分类框架。</p>
 <p><strong>二项式定理</strong>与组合恒等式两板斧：<strong>代数法</strong>（展开对比系数）与<strong>组合双计数</strong>（同一集合两种数法）。样板：<span class="arithmatex">\(\binom{n}{k} = \binom{n-1}{k} + \binom{n-1}{k-1}\)</span>（Pascal：按"含不含第 <span class="arithmatex">\(n\)</span> 个元素"分类）；<span class="arithmatex">\(\sum_k \binom{n}{k}^2 = \binom{2n}{n}\)</span>（Vandermonde：从 <span class="arithmatex">\(2n\)</span> 人选 <span class="arithmatex">\(n\)</span>，按前半选几个分类）。</p>
 <p><strong>鸽笼原理</strong>：<span class="arithmatex">\(n+1\)</span> 物入 <span class="arithmatex">\(n\)</span> 笼必有同笼——弱得不能再弱的前提，专出漂亮结论（例：任意 <span class="arithmatex">\(n+1\)</span> 个整数中必有两个差被 <span class="arithmatex">\(n\)</span> 整除——按余数入笼，概率 I 生日问题的确定性表亲）。</p>
-<h2 id="2">2. 容斥原理<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 容斥原理<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[
 \Big|\bigcup_{i=1}^n A_i\Big| = \sum|A_i| - \sum_{i&lt;j}|A_i\cap A_j| + \cdots + (-1)^{n-1}|A_1\cap\cdots\cap A_n|
 \]</div>
@@ -67,7 +130,7 @@
 D_n = n!\sum_{k=0}^{n}\frac{(-1)^k}{k!} \approx \frac{n!}{e}
 \]</div>
 <p><strong>全装错的概率 <span class="arithmatex">\(\to \frac1e \approx 36.8\%\)</span></strong>——与 <span class="arithmatex">\(n\)</span> 几乎无关（10 封信与一万封信答案相同），组合数学第一名场面；<span class="arithmatex">\(e\)</span> 的级数（数分 IV）在纯计数问题里现身。</p>
-<h2 id="3">3. 递推关系<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 递推关系<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>把"规模 <span class="arithmatex">\(n\)</span> 的方案数"用小规模表达。<strong>线性递推的特征根法</strong>（与 ode-02 常系数方程完全同构——差分方程即离散 ODE）：Fibonacci <span class="arithmatex">\(F_n = F_{n-1} + F_{n-2}\)</span>，特征方程 <span class="arithmatex">\(x^2 = x + 1\)</span>，根 <span class="arithmatex">\(\varphi = \frac{1+\sqrt5}{2}, \psi = \frac{1-\sqrt5}{2}\)</span>：</p>
 <div class="arithmatex">\[
 F_n = \frac{\varphi^n - \psi^n}{\sqrt 5}
@@ -119,5 +182,7 @@ C_n = \frac{1}{n+1}\binom{2n}{n} \qquad (1, 1, 2, 5, 14, 42, \dots)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/graph-counting.js"></script>
 </body>
 </html>

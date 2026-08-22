@@ -9,6 +9,98 @@
 <figcaption><span class="fig-id">图 1.1</span>布朗运动的二次变差 \(\sum(\Delta W)^2\) 收敛到确定的 \(t\)（不像光滑函数趋于零）——正是这条使 Itô 引理多出 \(\frac12 f'' dt\) 一项。</figcaption>
 </figure>
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="ito-learning-title">
+
+<h2 id="ito-learning-title">学习层：同一个增量，究竟在逼近哪一种解？</h2>
+
+### 1. 具体实例：带噪声的账户与没有噪声的账户
+
+把账户余额写成 \(X_t\)。若每个小时间片只按比例增长，模型是 ODE
+
+$$
+dX_t=aX_t\,dt.
+$$
+
+若每个小时间片还受到不可预见的市场踢动，模型变成 Itô SDE
+
+$$
+dX_t=aX_t\,dt+\sigma X_t\,dB_t.
+$$
+
+两者的漂移项看起来相同，但第二式的噪声增量典型大小是 \(\sqrt{dt}\)，不是 \(dt\)。因此“把 ODE 的 Euler 步加一项随机扰动”必须精确说明扰动的标度、取值时刻与解的概念。实验台固定一份布朗增量，同时画 ODE、Itô 和 Stratonovich 的数值轨迹；结果揭示前，先不要把最接近某一条曲线的路径叫作“真解”。
+
+### 2. 先预测：你要预测的是路径、期望，还是解释方式？
+
+提交实验台的三个判断前，先写下理由：
+
+- 若 \(h\) 减半，Itô 的 Euler–Maruyama 强误差应大致按 \(h^{1/2}\) 还是 \(h\) 缩放？ODE 的确定性 Euler 误差呢？
+- 把同一个形式写成 \(\sigma(X_t)\,dB_t\) 与 \(\sigma(X_t)\circ dB_t\)，二者的漂移是否完全相同？
+- 一条路径在终点偏离解析均值，能否推出终点分布的均值也偏离？
+
+实验先隐藏误差阶、Itô/Stratonovich 的终点表和分布统计；按下“揭示结果”后才显示。这一步刻意把“看见一条漂亮曲线”与“作出关于分布的结论”分开。
+
+### 3. 正式桥：四个词各自负责哪一本账？
+
+ODE 的 Euler 步是
+
+$$
+X_{n+1}=X_n+b(X_n,t_n)h.
+$$
+
+Itô 的 Euler–Maruyama 步则是
+
+$$
+X_{n+1}=X_n+b(X_n,t_n)h+\sigma(X_n,t_n)\sqrt{h}\,Z_n,
+\qquad Z_n\sim N(0,1).
+$$
+
+左端点取值使积分适应于当前信息。若系数足够光滑，一维 Itô 与 Stratonovich 记号满足
+
+$$
+\sigma(X_t)\circ dB_t
+=\sigma(X_t)\,dB_t
++\frac12\sigma(X_t)\sigma'(X_t)\,dt.
+$$
+
+所以同样的“漂移加噪声”文字，在两种积分约定下不是同一个模型。**强解**是在给定概率空间、滤子和这一个 Brownian 运动上构造适应过程 \(X\)；**弱解**允许连概率空间、滤子和 Brownian 运动一起换，只要求某个概率模型实现该方程的分布关系。强解/弱解是解的存在性与唯一性语言，不等同于强/弱数值误差。
+
+在常见的全局 Lipschitz、线性增长条件下，EM 的路径均方根强误差通常是 \(O(h^{1/2})\)，而对足够光滑测试函数 \(\varphi\) 的弱误差
+
+$$
+\left\lvert \mathbb{E}\varphi(X_T^{(h)})-\mathbb{E}\varphi(X_T)\right\rvert
+$$
+
+通常是 \(O(h)\)。强误差要用同一份噪声逐路径比较；弱误差只比较期望，不能用一条路径替代。
+
+### 4. 可操作实验与静态 fallback
+
+<div class="learning-lab" data-learning-lab="ito-sde" markdown="1">
+
+**静态 fallback（脚本不可用时）：**取 \(T=1, X_0=1, a=0.35, \sigma=0.7\)，用同一批固定的标准正态增量聚合到不同步长。ODE 没有随机宽度；Itô 几何布朗运动的精确终点为 \(X_0\exp((a-\sigma^2/2)T+\sigma B_T)\)；Stratonovich 版本的精确终点为 \(X_0\exp(aT+\sigma B_T)\)。正确 EM 的随机项是 \(\sigma X_n\sqrt h Z_n\)，不是 \(\sigma X_n hZ_n\)。
+
+<table>
+<caption>固定参数下可先核对的静态读法</caption>
+<thead><tr><th>对象</th><th>路径账本</th><th>分布账本</th><th>边界</th></tr></thead>
+<tbody>
+<tr><td>ODE</td><td>确定性 Euler，误差通常为一阶</td><td>退化为一个点，不是随机样本</td><td>不能把 ODE 的阶数套到 SDE</td></tr>
+<tr><td>Itô</td><td>同一噪声下比较 EM 与精确解</td><td>用多条终点样本比较均值与方差</td><td>强阶与弱阶依赖系数、范数和光滑性</td></tr>
+<tr><td>Stratonovich</td><td>中点/预测校正读法与 Itô 漂移不同</td><td>统计量不由一条路径决定</td><td>有限步实验不是一般收敛定理</td></tr>
+</tbody>
+</table>
+
+</div>
+
+### 5. 定理与失败边界
+
+- \((dB)^2=dt\) 是二次变差记账规则；它不表示每条离散路径的平方增量都等于时间增量。
+- EM 的强阶 \(1/2\) 与弱阶 \(1\) 是带假设的典型结论；乘性噪声、非 Lipschitz 系数、爆破或不合适的测试函数都可能改变结论。
+- 固定一条 Brownian 路径只能支持强误差的耦合比较；它不能证明终点分布、期望或几乎处处结论。
+- 细网格曲线更平滑不等于它更接近 Itô 解；若把 \(\sqrt h\) 错写为 \(h\)，极限模型的随机宽度会塌缩。
+
+</section>
+
 **回顾**：布朗运动 $B_t$：独立增量、$B_t - B_s \sim N(0, t-s)$、路径连续但**处处不可微**（增量 $\sim\sqrt{\Delta t}$，差商 $\sim 1/\sqrt{\Delta t}$ 爆炸）。
 
 **二次变差（新公理的出处）**：把 $[0, t]$ 分成 $n$ 段，考察增量平方和：

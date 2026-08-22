@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 运算与乘法的本质</a></li>
-<li><a href="#2">2. 逆矩阵</a></li>
+<li><a href="#algebra03-learning-title">学习层：同一个矩阵既是映射，也是一张坐标照片</a><ul>
+<li><a href="#1">1. 具体情境：两段设备和两套坐标如何读成同一件事？</a></li>
+<li><a href="#2">2. 揭示前预测：先写下顺序与空间</a></li>
+<li><a href="#3-">3. 正式桥：复合、相似、左右乘与秩-零度</a></li>
+<li><a href="#4">4. 定理与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 运算与乘法的本质</a></li>
+<li><a href="#2_1">2. 逆矩阵</a></li>
 <li><a href="#3">3. 分块矩阵</a></li>
-<li><a href="#4">4. 初等矩阵与等价标准形</a></li>
+<li><a href="#4_1">4. 初等矩阵与等价标准形</a></li>
 <li><a href="#5">5. 秩的不等式体系</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
@@ -50,7 +72,94 @@
 <blockquote>
 <p>矩阵在本页完成身份升级：从"方程组的系数表"变成<strong>自带代数运算的对象</strong>。乘法为什么那样定义、逆矩阵何时存在、分块怎么用、秩的不等式体系——这些是后面一切结构理论（相似、合同、分解）的操作基础。</p>
 </blockquote>
-<h2 id="1">1. 运算与乘法的本质<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="algebra03-learning-title" class="learning-layer">
+<h2 id="algebra03-learning-title">学习层：同一个矩阵既是映射，也是一张坐标照片<a class="headerlink" href="#algebra03-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：两段设备和两套坐标如何读成同一件事？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>想象一个二维流水线：输入向量 <span class="arithmatex">\(x\)</span> 先经过设备 <span class="arithmatex">\(B\)</span>，再经过设备 <span class="arithmatex">\(A\)</span>，输出是 <span class="arithmatex">\(A(Bx)\)</span>。如果把设备顺序交换，输出变成 <span class="arithmatex">\(B(Ax)\)</span>，通常不同。另一方面，若只更换坐标基，线性映射本身没有换，变的是它的矩阵照片：</p>
+<div class="arithmatex">\[
+\begin{gathered}
+[v]_{\mathrm{old}}=T[v]_{\mathrm{new}}\\
+[A]_{\mathrm{new}}=T^{-1}AT
+\end{gathered}
+\]</div>
+<p>实验同时画出两种复合顺序、相似变换和左右初等乘法。这样“矩阵乘法”不会被误读成逐元素乘法，也不会把坐标变换误说成换了物理映射。</p>
+<h3 id="2">2. 揭示前预测：先写下顺序与空间<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前，先回答五个问题：</p>
+<ol>
+<li><span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(B\)</span> 的复合是否总能交换？</li>
+<li><span class="arithmatex">\(T^{-1}AT\)</span> 是另一个任意映射，还是同一映射在新基下的坐标表示？</li>
+<li>可逆 <span class="arithmatex">\(L\)</span> 左乘 <span class="arithmatex">\(M\)</span> 主要对应行变换还是列变换？秩会不会改变？</li>
+<li>可逆 <span class="arithmatex">\(R\)</span> 右乘 <span class="arithmatex">\(M\)</span> 主要对应行变换还是列变换？秩会不会改变？</li>
+<li>对二维定义域，核的维数与像的维数应满足什么总账？</li>
+</ol>
+<p>预测时要同时说出“它作用在哪个空间”和“它改变的是哪一组坐标”。同一个数表左乘和右乘，通常不是同一种操作。</p>
+<h3 id="3-">3. 正式桥：复合、相似、左右乘与秩-零度<a class="headerlink" href="#3-" title="Permanent link"></a></h3>
+<p>由列向量的线性组合，矩阵乘法满足</p>
+<div class="arithmatex">\[
+(AB)x=A(Bx).
+\]</div>
+<p>所以 <span class="arithmatex">\(AB\)</span> 的第 <span class="arithmatex">\(j\)</span> 列是 <span class="arithmatex">\(A\)</span> 作用在 <span class="arithmatex">\(B\)</span> 的第 <span class="arithmatex">\(j\)</span> 列上；复合顺序自然不交换。相似公式 <span class="arithmatex">\(T^{-1}AT\)</span> 则来自同一映射在两套基之间的坐标转换。左乘初等矩阵改变行，右乘初等矩阵改变列；当因子可逆时它们都保持秩，但核与像分别受到不同的推送或拉回。</p>
+<p>对线性映射 <span class="arithmatex">\(A:V\to W\)</span>，秩-零度定理是</p>
+<div class="arithmatex">\[
+\dim\ker A+\dim\operatorname{Im}A=\dim V.
+\]</div>
+<p>在二维投影中，压掉的一条方向进入核，留下的一条方向构成像；这正是方程组自由变量数的几何版本。</p>
+<div class="learning-lab" data-learning-lab="matrix-transformations">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(A\)</span> 为投影到 <span class="arithmatex">\(x\)</span> 轴，<span class="arithmatex">\(B\)</span> 为水平剪切，输入 <span class="arithmatex">\(x=(1,1)\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>路径或对象</th>
+<th>静态读数</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(Ax\)</span></td>
+<td><span class="arithmatex">\((1,0)\)</span></td>
+<td>投影压掉 y 方向</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(Bx\)</span></td>
+<td><span class="arithmatex">\((1.8,1)\)</span></td>
+<td>先剪切再读输出</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A(Bx)\)</span></td>
+<td><span class="arithmatex">\((1.8,0)\)</span></td>
+<td>对应 <span class="arithmatex">\(AB\)</span>，先 B 后 A</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(B(Ax)\)</span></td>
+<td><span class="arithmatex">\((1,0)\)</span></td>
+<td>对应 <span class="arithmatex">\(BA\)</span>，本例与 <span class="arithmatex">\(AB\)</span> 不同</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A\)</span> 的秩、核维数、像</td>
+<td><span class="arithmatex">\(1,1,\operatorname{span}\{(1,0)\}\)</span></td>
+<td>核维数加像维数等于 2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(T^{-1}AT\)</span></td>
+<td>取剪切基后矩阵改变</td>
+<td>映射不变，坐标表示改变</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>映射边界</strong>：矩阵是选定基下的坐标表示，不是脱离定义域、陪域和基的“裸对象”；<span class="arithmatex">\(AB\)</span> 与 <span class="arithmatex">\(BA\)</span> 甚至可能尺寸不同，方阵也通常不交换。</li>
+<li><strong>左右乘边界</strong>：左乘对应行组合，右乘对应列组合。可逆因子保秩不等于核和像作为具体子空间都原封不动；它们会随所在空间的变换而变化。</li>
+<li><strong>秩-零度边界</strong>：<span class="arithmatex">\(\dim\ker A+\dim\operatorname{Im}A=\dim V\)</span> 需要把像看作陪域中的子空间、把核看作定义域中的子空间；有限样例不能替代这个量词完整的定理。</li>
+<li><strong>相似边界</strong>：<span class="arithmatex">\(T^{-1}AT\)</span> 只描述可逆换基下的同一线性变换。任意两个矩阵都不因“看起来像”就相似。</li>
+<li><strong>实验边界</strong>：SVG 只画一个二维输入和有限组预设；它能暴露顺序差异，却不能由一条轨迹证明所有向量、所有维数上的矩阵恒等式。</li>
+</ul>
+</div>
+</section>
+<h2 id="1_1">1. 运算与乘法的本质<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>加法、数乘逐元素；<strong>乘法</strong> <span class="arithmatex">\((AB)_{ij} = \sum_k a_{ik}b_{kj}\)</span>。为什么这样定义？因为<strong>矩阵乘法 = 线性映射的复合</strong>（高代 IV 将正式建立；先记住这个视角，乘法的一切"怪癖"都由它解释）：</p>
 <ul>
 <li><strong>不交换</strong>：<span class="arithmatex">\(AB \neq BA\)</span>（映射复合本来就不交换）；</li>
@@ -59,7 +168,7 @@
 </ul>
 <p><strong>方阵幂与多项式</strong>：<span class="arithmatex">\(A^k\)</span>、<span class="arithmatex">\(f(A) = a_n A^n + \cdots + a_0 I\)</span>；同一矩阵的多项式彼此交换——这一小事实是高代 V 里 Cayley–Hamilton 与最小多项式理论的操作基础。</p>
 <p><strong>特殊矩阵速查</strong>：对角、数量矩阵 <span class="arithmatex">\(kI\)</span>（与一切方阵交换，且只有它们如此）、上/下三角（乘积保持三角）、对称 <span class="arithmatex">\(A^\top = A\)</span> / 反对称 <span class="arithmatex">\(A^\top = -A\)</span>（任意方阵 = 对称 + 反对称的唯一分解 <span class="arithmatex">\(A = \frac{A + A^\top}{2} + \frac{A - A^\top}{2}\)</span>）、正交矩阵（高代 VI）、幂等 <span class="arithmatex">\(A^2 = A\)</span>（投影）、幂零 <span class="arithmatex">\(A^k = 0\)</span>。</p>
-<h2 id="2">2. 逆矩阵<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 逆矩阵<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(AB = BA = I\)</span> 则 <span class="arithmatex">\(B = A^{-1}\)</span>（存在必唯一）。</p>
 <p><strong>定理（可逆判别大集合）</strong> 对 <span class="arithmatex">\(n\)</span> 阶方阵，以下等价：<span class="arithmatex">\(A\)</span> 可逆 <span class="arithmatex">\(\iff \det A \neq 0 \iff \mathrm{rank}\,A = n \iff Ax = 0\)</span> 只有零解 <span class="arithmatex">\(\iff\)</span> 行（列）向量组线性无关 <span class="arithmatex">\(\iff A\)</span> 可写成初等矩阵之积 <span class="arithmatex">\(\iff\)</span> 0 不是 <span class="arithmatex">\(A\)</span> 的特征值。<strong>这张等价清单是线性代数的"中枢神经"，各页概念在此汇合，值得整体背诵。</strong></p>
 <p><strong>求逆两法</strong>：伴随法 <span class="arithmatex">\(A^{-1} = \frac{1}{\det A}\mathrm{adj}(A)\)</span>（理论用、<span class="arithmatex">\(2\times2\)</span> 速算 <span class="arithmatex">\(\begin{pmatrix} a&amp;b\\c&amp;d\end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix} d&amp;-b\\-c&amp;a\end{pmatrix}\)</span>）；初等变换法 <span class="arithmatex">\((A \mid I) \xrightarrow{\text{行变换}} (I \mid A^{-1})\)</span>（实算用）。</p>
@@ -73,7 +182,7 @@
 <li><strong>打洞（Schur 补）</strong>：用块消元处理 <span class="arithmatex">\(\begin{pmatrix} A &amp; B \\ C &amp; D\end{pmatrix}\)</span>，<span class="arithmatex">\(A\)</span> 可逆时行列式 <span class="arithmatex">\(= \det A \cdot \det(D - CA^{-1}B)\)</span>。🔗 Schur 补在数值分析（分块消元）、统计（条件高斯分布的协方差！概率页）中反复出现。</li>
 </ul>
 <p><strong>列/行视角</strong>（比元素视角更重要的思维方式）：<span class="arithmatex">\(Ax\)</span> = A 的<strong>列的线性组合</strong>（系数是 <span class="arithmatex">\(x\)</span> 的分量）；<span class="arithmatex">\(AB\)</span> 的每列 = <span class="arithmatex">\(A\)</span> 乘 <span class="arithmatex">\(B\)</span> 的对应列。🔗 神经网络每层 <span class="arithmatex">\(Wx\)</span> 就该这样读（ai 课 04 讲）。</p>
-<h2 id="4">4. 初等矩阵与等价标准形<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 初等矩阵与等价标准形<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>初等矩阵</strong> = 单位阵做一次初等变换；左乘 = 行变换、右乘 = 列变换。初等矩阵皆可逆。</p>
 <p><strong>定理（等价标准形）</strong> 任意 <span class="arithmatex">\(m \times n\)</span> 矩阵存在可逆 <span class="arithmatex">\(P, Q\)</span>：</p>
 <div class="arithmatex">\[
@@ -129,5 +238,7 @@ PAQ = \begin{pmatrix} I_r &amp; 0 \\ 0 &amp; 0 \end{pmatrix}, \qquad r = \mathrm
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/matrix-transformations.js"></script>
 </body>
 </html>

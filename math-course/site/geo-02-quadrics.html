@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 生成曲面：柱、锥、旋转面</a></li>
-<li><a href="#2">2. 六大标准二次曲面（认脸表）</a></li>
-<li><a href="#3">3. 与高代二次型对表（分类的理论真相）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#geo02-learning-title">学习层：符号、平移、主轴与截面各回答不同问题</a><ul>
+<li><a href="#1">1. 一个具体的椭球与截面</a></li>
+<li><a href="#2">2. 先预测：全局类型还是一张截面？</a></li>
+<li><a href="#3">3. 正式桥：先配方，再旋转，最后切片</a></li>
+<li><a href="#4">4. 定理级结论与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 生成曲面：柱、锥、旋转面</a></li>
+<li><a href="#2_1">2. 六大标准二次曲面（认脸表）</a></li>
+<li><a href="#3_1">3. 与高代二次型对表（分类的理论真相）</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,13 +70,96 @@
 <blockquote>
 <p>二次方程在三维空间画出的全部图形，归结为<strong>六个标准脸谱</strong> + 若干退化情形。认脸的方法是<strong>截痕法</strong>（用坐标平面去切，看截口曲线），分类的理论则是高代 VI 二次型标准形的几何兑现——两页知识在此互为表里。</p>
 </blockquote>
-<h2 id="1">1. 生成曲面：柱、锥、旋转面<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="geo02-learning-title" class="learning-layer">
+<h2 id="geo02-learning-title">学习层：符号、平移、主轴与截面各回答不同问题<a class="headerlink" href="#geo02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个具体的椭球与截面<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先看已经在主轴坐标中的曲面</p>
+<div class="arithmatex">\[
+x^2+2y^2+3z^2=1.
+\]</div>
+<p>它的二次矩阵特征值符号是 <span class="arithmatex">\(+,+,+\)</span>，所以在右端为正且无退化的条件下是有界椭球。若加入中心 <span class="arithmatex">\(\mathbf c=(1,-1/2,1/3)\)</span>，方程写成</p>
+<div class="arithmatex">\[
+(\mathbf x-\mathbf c)^\mathsf{T}\operatorname{diag}(1,2,3)(\mathbf x-\mathbf c)=1;
+\]</div>
+<p>展开会出现一次项，配方只是把中心移回 <span class="arithmatex">\(\mathbf c\)</span>，不会改变特征值符号。再绕 <span class="arithmatex">\(z\)</span> 轴旋转主轴，截面会在屏幕上转动，但主轴方向仍由特征向量给出。</p>
+<p>在 <span class="arithmatex">\(z=s\)</span> 的实际截面中，方程变为</p>
+<div class="arithmatex">\[
+x^2+2y^2=1-3s^2.
+\]</div>
+<p>因此 <span class="arithmatex">\(|s|&lt;1/\sqrt3\)</span> 时是椭圆，等号时退化为一点，超出时没有截点；这一张二维图只回答该平面里的问题。</p>
+<h3 id="2">2. 先预测：全局类型还是一张截面？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台前，先写下三个预测：</p>
+<ol>
+<li>三个正特征值、右端为正的中心二次曲面，整体是有界还是会沿某个方向无限延伸？</li>
+<li>平移配方会不会改变二次矩阵的特征值符号；旋转主轴会不会改变曲面本身？</li>
+<li>对上式取 <span class="arithmatex">\(z=0,z=1/\sqrt3,z=1\)</span>，三张截面分别是椭圆、点、空集吗？仅凭一张 <span class="arithmatex">\(2\)</span>D 截图能否证明整个三维分类？</li>
+</ol>
+<p>提交预测后，实验台才揭示特征值符号、中心与旋转后的主轴，以及指定平面的截面 SVG 和方程表。它会把“全局分类账”和“当前截面账”分开显示。</p>
+<h3 id="3">3. 正式桥：先配方，再旋转，最后切片<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>一般二次曲面写作</p>
+<div class="arithmatex">\[
+\mathbf x^\mathsf{T}A\mathbf x+2\mathbf b^\mathsf{T}\mathbf x+c=0,\qquad A=A^\mathsf{T}.
+\]</div>
+<p>在非退化可中心化情形，解 <span class="arithmatex">\(A\mathbf c=-\mathbf b\)</span> 后有</p>
+<div class="arithmatex">\[
+(\mathbf x-\mathbf c)^\mathsf{T}A(\mathbf x-\mathbf c)=\mathbf b^\mathsf{T}A^{-1}\mathbf b-c.
+\]</div>
+<p>再取 <span class="arithmatex">\(A=Q\Lambda Q^\mathsf{T}\)</span>，令 <span class="arithmatex">\(\mathbf x-\mathbf c=Q\mathbf y\)</span>，就得到主轴方程 <span class="arithmatex">\(\sum_i\lambda_i y_i^2=\rho\)</span>。特征值符号告诉我们正、负、零方向的供给；<span class="arithmatex">\(\rho\)</span>、秩、一次项和切片位置共同决定实际是哪一种标准脸谱或退化情形。</p>
+<div class="learning-lab" data-learning-lab="quadric-sections">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>对 <span class="arithmatex">\(x^2+2y^2+3z^2=1\)</span> 取水平截面，记 <span class="arithmatex">\(r(s)=1-3s^2\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">截面 <span class="arithmatex">\(z=s\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(r(s)\)</span></th>
+<th>截面方程</th>
+<th>实际截面</th>
+<th>读取边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(x^2+2y^2=1\)</span></td>
+<td>椭圆</td>
+<td>只描述 <span class="arithmatex">\(z=0\)</span> 这一片</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1/\sqrt3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(x^2+2y^2=0\)</span></td>
+<td>一点</td>
+<td>是退化截面，不是整面</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-2\)</span></td>
+<td><span class="arithmatex">\(x^2+2y^2=-2\)</span></td>
+<td>空集</td>
+<td>不代表三维曲面为空</td>
+</tr>
+</tbody>
+</table>
+<p>平移 <span class="arithmatex">\(\mathbf c\)</span> 会把截面中心移到 <span class="arithmatex">\(\mathbf c\)</span> 的投影；绕主轴的旋转会把椭圆的长短轴转向。若出现零特征值或不能解出有限中心，就必须改用抛物面、柱面或更一般的退化分析，不能继续套用椭球表。</p>
+</div>
+<h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：实对称二次矩阵可正交对角化；在配方和主轴变换条件满足时，特征值符号、右端常数与秩共同给出曲面的全局分类。</li>
+<li><strong>层次边界</strong>：平移负责消一次项，旋转负责消交叉项并暴露主轴；两者都不是“看见一张截面图”本身。实际截面还要代入切平面方程并检查右端符号。</li>
+<li><strong>二维证据边界</strong>：一个或几个 <span class="arithmatex">\(2\)</span>D 截面不能证明三维曲面的全局连通性、是否有第二片或是否沿某轴延伸；实验图是局部证据，不是分类定理。</li>
+<li><strong>退化边界</strong>：零特征值、零右端、奇异中心方程和退化截面需要单独处理。忽略一次项、切片位置或零方向，会把抛物面/柱面误认成椭球或双曲面。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 生成曲面：柱、锥、旋转面<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>柱面</strong>：方程缺某变量即是沿该轴的柱面（<span class="arithmatex">\(x^2 + y^2 = 1\)</span> 在空间中是圆柱——"缺谁沿谁平移"）；</li>
 <li><strong>锥面</strong>：齐次方程（各项同次）过原点成锥（<span class="arithmatex">\(x^2 + y^2 = z^2\)</span> 圆锥）；</li>
 <li><strong>旋转面</strong>：平面曲线 <span class="arithmatex">\(f(y, z) = 0\)</span> 绕 <span class="arithmatex">\(z\)</span> 轴旋转：把 <span class="arithmatex">\(y\)</span> 换成 <span class="arithmatex">\(\pm\sqrt{x^2 + y^2}\)</span>（"被转的变量换成到轴的距离"）。例：<span class="arithmatex">\(z = y^2\)</span> 绕 <span class="arithmatex">\(z\)</span> 轴 → 旋转抛物面 <span class="arithmatex">\(z = x^2 + y^2\)</span>（卫星天线）。</li>
 </ul>
-<h2 id="2">2. 六大标准二次曲面（认脸表）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 六大标准二次曲面（认脸表）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="三种代表二次曲面" src="assets/img/geo-02-quadrics.svg" /></p>
 <figcaption><span class="fig-id">图 2.1</span>二次曲面代表：椭球、单叶双曲面、双曲抛物面（鞍）——都是二次型分类在三维的显形。</figcaption>
@@ -109,10 +214,10 @@
 </table>
 <p><strong>认脸口诀</strong>：平方项符号数——三正是椭球，一负单叶、两负双叶；有一次项（<span class="arithmatex">\(z\)</span>）是抛物面类，同号碗、异号鞍。</p>
 <p>两个隽永的注脚：<strong>单叶双曲面与马鞍面是直纹面</strong>（曲面上铺满整条直线——弯曲外表全由直钢梁焊成，冷却塔与网壳结构的工程秘密）；<strong>马鞍点</strong>（高数极值判别里 Hessian 不定的那个名字）的原型就是双曲抛物面的原点——优化 II"鞍点"一词的几何老家。</p>
-<h2 id="3">3. 与高代二次型对表（分类的理论真相）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 与高代二次型对表（分类的理论真相）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>一般二次曲面 <span class="arithmatex">\(\mathbf{x}^\top A\mathbf{x} + 2\mathbf{b}^\top\mathbf{x} + c = 0\)</span>（<span class="arithmatex">\(A\)</span> 对称）。<strong>主轴定理</strong>（高代 VI）：正交变换 <span class="arithmatex">\(\mathbf x = Q\mathbf y\)</span> 对角化 <span class="arithmatex">\(A\)</span>，消去交叉项；再平移消一次项——化到标准形。于是：</p>
-<p><strong>曲面类型由 <span class="arithmatex">\(A\)</span> 的特征值符号（惯性指数）决定</strong>：三正 → 椭球类；两正一负 → 双曲面类；有零特征值 → 抛物面/柱面类（退化方向）。<strong>正交变换 = 旋转</strong>保持形状与度量——"用哪个坐标系看"不改变曲面是什么，这正是"不变量分类"思想（特征值是旋转不变量）的第一次几何实战，也是 PCA"转到主轴看数据"的几何同款（高代 VI §5 呼应）。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>惯性指数是分类的第一张证书，不是整份判决书</strong>：满秩时，三同号对应椭球型，两正一负或一正两负对应双曲型；若 <span class="arithmatex">\(A\)</span> 有零特征值，则可能出现抛物面、柱面，也可能退化为点、直线、平面、直线对或空集，还要结合一次项、常数项与增广秩继续判断。<strong>正交变换 = 旋转</strong>保持形状与度量——"用哪个坐标系看"不改变曲面是什么，这正是"不变量分类"思想的几何实战，也是 PCA"转到主轴看数据"的同款思路（高代 VI §5 呼应）。</p>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（截痕认脸）</strong> <span class="arithmatex">\(\frac{x^2}{4} + y^2 - \frac{z^2}{9} = 1\)</span>：<span class="arithmatex">\(z = z_0\)</span> 截口椭圆恒存在（右端 <span class="arithmatex">\(1 + \frac{z_0^2}{9} &gt; 0\)</span>）——<strong>单叶</strong>双曲面（连成一体）；对照 <span class="arithmatex">\(\frac{x^2}{4} - y^2 - \frac{z^2}{9} = 1\)</span>：<span class="arithmatex">\(x = x_0\)</span> 需 <span class="arithmatex">\(|x_0| \geq 2\)</span> 才有截口——<strong>双叶</strong>（中间断开）。</p>
 <p><strong>例 2（旋转面生成）</strong> 双曲线 <span class="arithmatex">\(\frac{x^2}{a^2} - \frac{z^2}{c^2} = 1\)</span>（<span class="arithmatex">\(xz\)</span> 平面内）绕 <span class="arithmatex">\(z\)</span> 轴：<span class="arithmatex">\(x \to \pm\sqrt{x^2+y^2}\)</span> 得 <span class="arithmatex">\(\frac{x^2 + y^2}{a^2} - \frac{z^2}{c^2} = 1\)</span>——单叶双曲面原来是双曲线转出来的（绕另一轴则得双叶：<strong>同一条双曲线，绕不同轴，单双叶各一</strong>，一题记两脸）。</p>
 <p><strong>例 3（主轴化标准形）</strong> <span class="arithmatex">\(x^2 + y^2 + z^2 + 2xy = 1\)</span>：矩阵 <span class="arithmatex">\(A\)</span> 特征值 <span class="arithmatex">\(2, 0, 1\)</span>（交叉项 <span class="arithmatex">\(2xy\)</span> 的块特征值 <span class="arithmatex">\(2, 0\)</span>）⇒ 标准形 <span class="arithmatex">\(2u^2 + v^2 = 1\)</span>——<span class="arithmatex">\(w\)</span> 缺席：<strong>椭圆柱面</strong>（零特征值 = 沿该主轴平移不变）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -127,5 +232,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/quadric-sections.js"></script>
 </body>
 </html>

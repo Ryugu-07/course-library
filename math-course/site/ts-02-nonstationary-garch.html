@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,26 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li class="active"><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#garch-learning-title">学习层：你预测的是下一期风险，还是把波动当成因果故事？</a><ul>
+<li><a href="#1">1. 具体实例：同样的平均收益，不同的风险状态</a></li>
+<li><a href="#2">2. 先预测：三个门槛先于任何漂亮图形</a></li>
+<li><a href="#3">3. 正式桥：条件、无条件、估计、预测四个层次</a></li>
+<li><a href="#4-fallback">4. 可操作实验与静态 fallback</a></li>
+<li><a href="#5">5. 定理与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1-arima">1. 单位根与 ARIMA</a></li>
-<li><a href="#2">2. 伪回归：时序统计的头号陷阱</a></li>
+<li><a href="#2_1">2. 伪回归：时序统计的头号陷阱</a></li>
 <li><a href="#3-garch">3. GARCH：给波动率建模</a></li>
 <li><a href="#4">4. 预测纪律（本页的实务收束）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -49,10 +72,93 @@
 <blockquote>
 <p>真实数据的三大额外挑战：<strong>趋势</strong>（非平稳——先处理再建模，否则伪回归吃人）、<strong>波动聚集</strong>（金融数据的方差本身在动——GARCH 的地盘）、<strong>评估</strong>（时序预测的验证纪律与截面数据完全不同）。本页每一节都直接对着金融数据与你的预测层。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="garch-learning-title" class="learning-layer">
+<h2 id="garch-learning-title">学习层：你预测的是下一期风险，还是把波动当成因果故事？<a class="headerlink" href="#garch-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：同样的平均收益，不同的风险状态<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设一只资产的日收益为 <span class="arithmatex">\(r_t\)</span>。连续五天的大波动之后，即使下一天收益的条件均值仍接近零，下一天的风险也可能和安静期完全不同。GARCH 把这种差异放进</p>
+<div class="arithmatex">\[
+r_t=\sigma_t\varepsilon_t,
+\qquad
+\sigma_t^2=\omega+\alpha r_{t-1}^2+\beta\sigma_{t-1}^2.
+\]</div>
+<p>同一时刻，<span class="arithmatex">\(\sigma_t^2\)</span> 是给定过去信息的<strong>条件方差</strong>；无条件方差是把所有历史状态平均掉后的长期基准。实验台会让一个冲击进入固定样本，再把条件波动、终点分布与多步预测并排显示。先问“我能预测哪一个量”，再问“我能不能解释它”。</p>
+<h3 id="2">2. 先预测：三个门槛先于任何漂亮图形<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在揭示实验结果前，先作出三项判断：</p>
+<ul>
+<li>当 <span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 时，长期无条件方差是否有限？当 <span class="arithmatex">\(\alpha+\beta\ge 1\)</span> 时还能不能写出同一个长期方差？</li>
+<li>一次大冲击让下一期条件方差上升后，远期方差会回到哪里？它会无限记住冲击，还是按持久性衰减？</li>
+<li>看到冲击后的波动响应，能否直接说“这个冲击造成了后续损失”？若创新与其他信息相关，答案是否仍然成立？</li>
+</ul>
+<p>实验先隐藏平稳性证书、预测曲线、厚尾统计与冲击响应表；提交预测后才揭示。把“可预测的条件二阶矩”与“无条件分布的长期形状”分开，是本页的第一条纪律。</p>
+<h3 id="3">3. 正式桥：条件、无条件、估计、预测四个层次<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(\mathcal F_{t-1}\)</span> 表示截至 <span class="arithmatex">\(t-1\)</span> 的信息。若 <span class="arithmatex">\(\mathbb E[\varepsilon_t\mid\mathcal F_{t-1}]=0\)</span>、<span class="arithmatex">\(\mathbb E[\varepsilon_t^2\mid\mathcal F_{t-1}]=1\)</span>，则</p>
+<div class="arithmatex">\[
+\operatorname{Var}(r_t\mid\mathcal F_{t-1})=\sigma_t^2,
+\qquad
+\mathbb E[r_t^2]=\frac{\omega}{1-\alpha-\beta}
+\]</div>
+<p>的第二个等式需要 <span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 和相应的有限二阶矩。它不是把每一期的 <span class="arithmatex">\(\sigma_t^2\)</span> 都替换成同一个数字；前者随历史变化，后者是总体平均。</p>
+<p>在平稳 GARCH(1,1) 中，给定当前信息的多步方差预测满足</p>
+<div class="arithmatex">\[
+\widehat{\sigma}_{t+1\mid t}^2
+=\omega+\alpha r_t^2+\beta\sigma_t^2,
+\qquad
+\widehat{\sigma}_{t+h\mid t}^2
+=\omega+(\alpha+\beta)\widehat{\sigma}_{t+h-1\mid t}^2
+\]</div>
+<p>（<span class="arithmatex">\(h\ge2\)</span> 的递推使用未来标准化创新的条件二阶矩为 1）。因此当持久性小于 1 时，预测渐近回到长期方差。参数通常由时序上的准极大似然、厚尾分布似然或稳健估计得到；估计区间、预测区间和未来真实值必须按时间顺序分开。</p>
+<p>若 <span class="arithmatex">\(\varepsilon_t\)</span> 使用标准化 Student-t，创新可以有厚尾；这解释了极端收益比正态模型更常见，但“厚尾”不自动等于条件均值可预测，也不替代残差诊断。冲击响应是模型下的条件反事实账本，不是仅凭相关图得到的因果效应；因果解释还需要识别假设、外生性或实验设计。</p>
+<h3 id="4-fallback">4. 可操作实验与静态 fallback<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="garch-volatility">
+<p><strong>静态 fallback（脚本不可用时）：</strong>用 <span class="arithmatex">\(\omega=0.00001,\alpha=0.08,\beta=0.90\)</span> 时，持久性为 <span class="arithmatex">\(0.98\)</span>，长期方差为 <span class="arithmatex">\(0.0005\)</span>，而不是某一天的条件方差。一次 <span class="arithmatex">\(-3\%\)</span> 收益会通过 <span class="arithmatex">\(\alpha r_t^2\)</span> 抬高下一期条件方差；随后在“未来创新均值为零、方差为一”的预测账本中按 <span class="arithmatex">\(0.98\)</span> 的速度回归长期方差。若把 <span class="arithmatex">\(\beta\)</span> 调到使 <span class="arithmatex">\(\alpha+\beta\ge1\)</span>，长期方差栏应显示“无有限平稳证书”。</p>
+<table>
+<caption>静态核对表</caption>
+<thead>
+<tr>
+<th>量</th>
+<th>应该读成什么</th>
+<th>不能越界成什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>条件方差</td>
+<td>给定过去信息的下一期风险</td>
+<td>不是无条件长期方差</td>
+</tr>
+<tr>
+<td>无条件方差</td>
+<td>平稳条件下的长期基准</td>
+<td>持久性不小于一时不能硬算</td>
+</tr>
+<tr>
+<td>厚尾</td>
+<td>创新或方差混合导致极端值更常见</td>
+<td>不是收益均值可预测的证明</td>
+</tr>
+<tr>
+<td>冲击响应</td>
+<td>给定模型的条件反事实</td>
+<td>不是自动成立的因果结论</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 定理与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 是常用的有限二阶矩与协方差平稳证书；它不是所有高阶矩、所有创新分布或所有非线性 GARCH 变体的完整条件。</li>
+<li>条件方差能预测不等于收益能预测；必须和随机游走/历史均值基线、时间切分与滚动出样本评估比较。</li>
+<li>Student-t 的自由度决定尾部与矩是否存在；估计出的厚尾参数也有不确定性，有限样本直方图不能证明总体尾指数。</li>
+<li>冲击响应图展示模型内的动态相关；没有外生冲击与识别设计时，不能把它写成“冲击导致了结果”。</li>
+<li>非平稳样本、制度断点、估计误差和预测误差会让长期回归线失效；有限回放不能冒充一般平稳性定理。</li>
+</ul>
+</section>
 <h2 id="1-arima">1. 单位根与 ARIMA<a class="headerlink" href="#1-arima" title="Permanent link"></a></h2>
 <p><strong>随机游走</strong> <span class="arithmatex">\(X_t = X_{t-1} + \varepsilon_t\)</span>（AR(1) 的 <span class="arithmatex">\(\phi = 1\)</span>，"单位根"）：方差 <span class="arithmatex">\(= t\sigma^2\)</span> 线性发散、冲击<strong>永不消退</strong>（对比平稳 AR 的指数遗忘）——布朗运动的离散版（sde 线对账）。股价的对数近似随机游走（有效市场的弱式表述）；<strong>预测 <span class="arithmatex">\(\hat X_{t+h} = X_t\)</span></strong>：随机游走的最优预测就是"今天的值"——<strong>任何跑不赢这个 naive 基线的花哨模型都是负资产</strong>（预测实务第一军规）。</p>
 <p><strong>处理：差分</strong>。<span class="arithmatex">\(d\)</span> 次差分后平稳则称 <span class="arithmatex">\(I(d)\)</span>；对差分序列建 ARMA = <strong>ARIMA(p, d, q)</strong>（金融标配：对数价格 <span class="arithmatex">\(I(1)\)</span> ⇒ 收益率 <span class="arithmatex">\(\Delta\ln P\)</span> 平稳，一切建模在收益率上进行）。<strong>判别：ADF 单位根检验</strong>（<span class="arithmatex">\(H_0\)</span>: 有单位根/非平稳——注意方向：不拒绝 ≠ 证明非平稳，统计 IV 的老规矩）。趋势平稳（确定性趋势+平稳扰动，去趋势即可）与差分平稳（随机趋势，必须差分）是两种病要对症——误诊会造出人工相关。</p>
-<h2 id="2">2. 伪回归：时序统计的头号陷阱<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 伪回归：时序统计的头号陷阱<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>现象（Granger–Newbold 实验）</strong>：两个<strong>独立</strong>的随机游走互相回归，约 75% 的概率得到"显著"系数、<span class="arithmatex">\(R^2\)</span> 常高达 0.2+——<strong>全是幻觉</strong>：非平稳序列各自漫游产生的巧合趋势被回归当成了关系。</p>
 <p><strong>病理</strong>：统计 V 回归的 t 检验假设残差平稳，单位根序列违反前提——p 值失效（统计 IV"检验的前提"一课的惨案现场）。<strong>防身三则</strong>：回归前先验平稳性（ADF）；非平稳序列用差分/收益率回归；若确要在水平值上谈长期关系，走<strong>协整</strong>（两个 <span class="arithmatex">\(I(1)\)</span> 序列的某线性组合平稳——"醉汉与狗"：各自漫游但不走散；配对交易的统计学基础，知其名与含义）。</p>
 <p>🔗 <strong>研报防身术</strong>：宏观变量对资产价格的"显著相关"大多是水平值伪回归 + 多重检验（统计 IV）的合成品——看到回测/相关性结论先问三件事：平稳吗？几个假设检验里挑出来的？出样本验证了吗？</p>
@@ -76,7 +182,7 @@ r_t = \sigma_t \varepsilon_t, \qquad \sigma_t^2 = \omega + \alpha\, r_{t-1}^2 + 
 <li><strong>区间随视野膨胀</strong>：报告点预测必配区间；长视野预测收敛到无条件分布（ts-01）——"模型的信息半衰期"要如实交代；</li>
 <li><strong>制度变化（regime change）</strong>：平稳性是局部假设——结构断点（政策、危机）之后旧参数作废；滚动窗口与"模型也会过期"的自觉是最后的防线。</li>
 </ol>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（差分定 d）</strong> 序列 ACF 衰减极慢近似线性 ⇒ 单位根嫌疑；一阶差分后 ACF 一步截尾 ⇒ ARIMA(0,1,1) 候选（= 简单指数平滑的统计身份，顺带认亲）。</p>
 <p><strong>例 2（GARCH 更新手算）</strong> <span class="arithmatex">\(\omega = 0.00001, \alpha = 0.08, \beta = 0.9\)</span>，昨日 <span class="arithmatex">\(\sigma_{t-1} = 1\%\)</span>、收益 <span class="arithmatex">\(r_{t-1} = -3\%\)</span>（大跌）：<span class="arithmatex">\(\sigma_t^2 = 0.00001 + 0.08(0.0009) + 0.9(0.0001) = 0.000172\)</span> ⇒ <span class="arithmatex">\(\sigma_t \approx 1.31\%\)</span>——一次冲击把日波动率从 1% 抬到 1.31%，并将按 <span class="arithmatex">\(\alpha+\beta = 0.98\)</span> 的速率缓慢消退。</p>
 <p><strong>例 3（伪回归自检设计）</strong> 用代码各生成两条独立随机游走各 200 点，回归看 t 值——重复 100 次统计"显著"比例（预期 ~3/4）；再对差分序列重跑（显著比例回落到 ~5% = 名义水平）。<strong>十行代码看清一个百年陷阱</strong>，值得真跑一次。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -91,5 +197,7 @@ r_t = \sigma_t \varepsilon_t, \qquad \sigma_t^2 = \omega + \alpha\, r_{t-1}^2 + 
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/garch-volatility.js"></script>
 </body>
 </html>

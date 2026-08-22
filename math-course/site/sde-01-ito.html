@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,7 +45,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li class="active"><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
@@ -38,10 +53,18 @@
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 为什么需要新微积分：二次变差</a></li>
+<li><a href="#ito-learning-title">学习层：同一个增量，究竟在逼近哪一种解？</a><ul>
+<li><a href="#1_1">1. 具体实例：带噪声的账户与没有噪声的账户</a></li>
+<li><a href="#2">2. 先预测：你要预测的是路径、期望，还是解释方式？</a></li>
+<li><a href="#3">3. 正式桥：四个词各自负责哪一本账？</a></li>
+<li><a href="#4-fallback">4. 可操作实验与静态 fallback</a></li>
+<li><a href="#5">5. 定理与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#2-ito">2. Itô 积分</a></li>
 <li><a href="#3-ito">3. Itô 引理（随机世界的链式法则）</a></li>
 <li><a href="#4">4. 两个必会计算</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -54,6 +77,93 @@
 <p><img alt="布朗运动的二次变差趋于 t" src="assets/img/sde-01-quadratic-variation.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>布朗运动的二次变差 \(\sum(\Delta W)^2\) 收敛到确定的 \(t\)（不像光滑函数趋于零）——正是这条使 Itô 引理多出 \(\frac12 f'' dt\) 一项。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="ito-learning-title" class="learning-layer">
+<h2 id="ito-learning-title">学习层：同一个增量，究竟在逼近哪一种解？<a class="headerlink" href="#ito-learning-title" title="Permanent link"></a></h2>
+<h3 id="1_1">1. 具体实例：带噪声的账户与没有噪声的账户<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>把账户余额写成 <span class="arithmatex">\(X_t\)</span>。若每个小时间片只按比例增长，模型是 ODE</p>
+<div class="arithmatex">\[
+dX_t=aX_t\,dt.
+\]</div>
+<p>若每个小时间片还受到不可预见的市场踢动，模型变成 Itô SDE</p>
+<div class="arithmatex">\[
+dX_t=aX_t\,dt+\sigma X_t\,dB_t.
+\]</div>
+<p>两者的漂移项看起来相同，但第二式的噪声增量典型大小是 <span class="arithmatex">\(\sqrt{dt}\)</span>，不是 <span class="arithmatex">\(dt\)</span>。因此“把 ODE 的 Euler 步加一项随机扰动”必须精确说明扰动的标度、取值时刻与解的概念。实验台固定一份布朗增量，同时画 ODE、Itô 和 Stratonovich 的数值轨迹；结果揭示前，先不要把最接近某一条曲线的路径叫作“真解”。</p>
+<h3 id="2">2. 先预测：你要预测的是路径、期望，还是解释方式？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>提交实验台的三个判断前，先写下理由：</p>
+<ul>
+<li>若 <span class="arithmatex">\(h\)</span> 减半，Itô 的 Euler–Maruyama 强误差应大致按 <span class="arithmatex">\(h^{1/2}\)</span> 还是 <span class="arithmatex">\(h\)</span> 缩放？ODE 的确定性 Euler 误差呢？</li>
+<li>把同一个形式写成 <span class="arithmatex">\(\sigma(X_t)\,dB_t\)</span> 与 <span class="arithmatex">\(\sigma(X_t)\circ dB_t\)</span>，二者的漂移是否完全相同？</li>
+<li>一条路径在终点偏离解析均值，能否推出终点分布的均值也偏离？</li>
+</ul>
+<p>实验先隐藏误差阶、Itô/Stratonovich 的终点表和分布统计；按下“揭示结果”后才显示。这一步刻意把“看见一条漂亮曲线”与“作出关于分布的结论”分开。</p>
+<h3 id="3">3. 正式桥：四个词各自负责哪一本账？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>ODE 的 Euler 步是</p>
+<div class="arithmatex">\[
+X_{n+1}=X_n+b(X_n,t_n)h.
+\]</div>
+<p>Itô 的 Euler–Maruyama 步则是</p>
+<div class="arithmatex">\[
+X_{n+1}=X_n+b(X_n,t_n)h+\sigma(X_n,t_n)\sqrt{h}\,Z_n,
+\qquad Z_n\sim N(0,1).
+\]</div>
+<p>左端点取值使积分适应于当前信息。若系数足够光滑，一维 Itô 与 Stratonovich 记号满足</p>
+<div class="arithmatex">\[
+\sigma(X_t)\circ dB_t
+=\sigma(X_t)\,dB_t
++\frac12\sigma(X_t)\sigma'(X_t)\,dt.
+\]</div>
+<p>所以同样的“漂移加噪声”文字，在两种积分约定下不是同一个模型。<strong>强解</strong>是在给定概率空间、滤子和这一个 Brownian 运动上构造适应过程 <span class="arithmatex">\(X\)</span>；<strong>弱解</strong>允许连概率空间、滤子和 Brownian 运动一起换，只要求某个概率模型实现该方程的分布关系。强解/弱解是解的存在性与唯一性语言，不等同于强/弱数值误差。</p>
+<p>在常见的全局 Lipschitz、线性增长条件下，EM 的路径均方根强误差通常是 <span class="arithmatex">\(O(h^{1/2})\)</span>，而对足够光滑测试函数 <span class="arithmatex">\(\varphi\)</span> 的弱误差</p>
+<div class="arithmatex">\[
+\left\lvert \mathbb{E}\varphi(X_T^{(h)})-\mathbb{E}\varphi(X_T)\right\rvert
+\]</div>
+<p>通常是 <span class="arithmatex">\(O(h)\)</span>。强误差要用同一份噪声逐路径比较；弱误差只比较期望，不能用一条路径替代。</p>
+<h3 id="4-fallback">4. 可操作实验与静态 fallback<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ito-sde">
+<p><strong>静态 fallback（脚本不可用时）：</strong>取 <span class="arithmatex">\(T=1, X_0=1, a=0.35, \sigma=0.7\)</span>，用同一批固定的标准正态增量聚合到不同步长。ODE 没有随机宽度；Itô 几何布朗运动的精确终点为 <span class="arithmatex">\(X_0\exp((a-\sigma^2/2)T+\sigma B_T)\)</span>；Stratonovich 版本的精确终点为 <span class="arithmatex">\(X_0\exp(aT+\sigma B_T)\)</span>。正确 EM 的随机项是 <span class="arithmatex">\(\sigma X_n\sqrt h Z_n\)</span>，不是 <span class="arithmatex">\(\sigma X_n hZ_n\)</span>。</p>
+<table>
+<caption>固定参数下可先核对的静态读法</caption>
+<thead>
+<tr>
+<th>对象</th>
+<th>路径账本</th>
+<th>分布账本</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ODE</td>
+<td>确定性 Euler，误差通常为一阶</td>
+<td>退化为一个点，不是随机样本</td>
+<td>不能把 ODE 的阶数套到 SDE</td>
+</tr>
+<tr>
+<td>Itô</td>
+<td>同一噪声下比较 EM 与精确解</td>
+<td>用多条终点样本比较均值与方差</td>
+<td>强阶与弱阶依赖系数、范数和光滑性</td>
+</tr>
+<tr>
+<td>Stratonovich</td>
+<td>中点/预测校正读法与 Itô 漂移不同</td>
+<td>统计量不由一条路径决定</td>
+<td>有限步实验不是一般收敛定理</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 定理与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\((dB)^2=dt\)</span> 是二次变差记账规则；它不表示每条离散路径的平方增量都等于时间增量。</li>
+<li>EM 的强阶 <span class="arithmatex">\(1/2\)</span> 与弱阶 <span class="arithmatex">\(1\)</span> 是带假设的典型结论；乘性噪声、非 Lipschitz 系数、爆破或不合适的测试函数都可能改变结论。</li>
+<li>固定一条 Brownian 路径只能支持强误差的耦合比较；它不能证明终点分布、期望或几乎处处结论。</li>
+<li>细网格曲线更平滑不等于它更接近 Itô 解；若把 <span class="arithmatex">\(\sqrt h\)</span> 错写为 <span class="arithmatex">\(h\)</span>，极限模型的随机宽度会塌缩。</li>
+</ul>
+</section>
 <p><strong>回顾</strong>：布朗运动 <span class="arithmatex">\(B_t\)</span>：独立增量、<span class="arithmatex">\(B_t - B_s \sim N(0, t-s)\)</span>、路径连续但<strong>处处不可微</strong>（增量 <span class="arithmatex">\(\sim\sqrt{\Delta t}\)</span>，差商 <span class="arithmatex">\(\sim 1/\sqrt{\Delta t}\)</span> 爆炸）。</p>
 <p><strong>二次变差（新公理的出处）</strong>：把 <span class="arithmatex">\([0, t]\)</span> 分成 <span class="arithmatex">\(n\)</span> 段，考察增量平方和：</p>
 <div class="arithmatex">\[
@@ -97,7 +207,7 @@ d\ln S = \Big(\mu - \frac{\sigma^2}{2}\Big)dt + \sigma\,dB
 S_t = S_0\exp\Big[\Big(\mu - \frac{\sigma^2}{2}\Big)t + \sigma B_t\Big]
 \]</div>
 <p><strong>那个 <span class="arithmatex">\(-\frac{\sigma^2}{2}\)</span></strong>：波动率对复利增长的隐形税（Itô 修正项的镜像——<span class="arithmatex">\(\ln\)</span> 凹，抖动平均向下）。实感：年化收益 ±20% 交替的资产，算术平均 0%，实际年化 <span class="arithmatex">\(\approx -2\%\)</span>——<strong>波动本身吞噬复利</strong>，"波动率拖累"是每个投资者该会算的第一笔随机微积分账。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Itô 引理练手）</strong> 求 <span class="arithmatex">\(d(e^{B_t})\)</span>：<span class="arithmatex">\(f = e^x\)</span>，<span class="arithmatex">\(= e^{B}\big(\frac12 dt + dB\big)\)</span>——期望以 <span class="arithmatex">\(e^{t/2}\)</span> 增长（对数正态均值 <span class="arithmatex">\(e^{t/2}\)</span> 的微分版，概率 II 呼应）。</p>
 <p><strong>例 2（构造鞅）</strong> 证 <span class="arithmatex">\(M_t = B_t^3 - 3tB_t\)</span> 是鞅：Itô 给 <span class="arithmatex">\(dM = 3B^2 dB + 3B\,dt - 3B\,dt - 3t\,dB = (3B^2 - 3t)\,dB\)</span>——纯 <span class="arithmatex">\(dB\)</span> 项、无漂移 ⇒ 鞅 ✓。<strong>"用 Itô 消漂移"是构造鞅的标准手法</strong>（下一页风险中性定价的技术核心）。</p>
 <p><strong>例 3（验证乘法表）</strong> <span class="arithmatex">\(d(tB_t) = B\,dt + t\,dB + \underbrace{dt\,dB}_{=0}\)</span>——交叉项按乘法表归零，分部积分公式 <span class="arithmatex">\(\int_0^t s\,dB_s = tB_t - \int_0^t B\,ds\)</span> 成立（此例无修正项：<span class="arithmatex">\(f = tx\)</span> 对 <span class="arithmatex">\(x\)</span> 线性，<span class="arithmatex">\(f_{xx} = 0\)</span>——<strong>修正项只找弯曲的函数</strong>）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -112,5 +222,7 @@ S_t = S_0\exp\Big[\Big(\mu - \frac{\sigma^2}{2}\Big)t + \sigma B_t\Big]
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ito-sde.js"></script>
 </body>
 </html>

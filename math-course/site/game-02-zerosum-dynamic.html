@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,15 +45,23 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li class="active"><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 零和博弈与极小极大定理</a></li>
-<li><a href="#2">2. 动态博弈：时间进场</a></li>
+<li><a href="#zero-sum-learning-title">学习层：阶段值、动态值与“有限回放看起来收敛”不是一回事</a><ul>
+<li><a href="#1">1. 具体实例：同一场对抗，先问一局还是多局</a></li>
+<li><a href="#2">2. 先预测：对手混合后，哪些结论还能保留？</a></li>
+<li><a href="#3-minimax-shapley">3. 正式桥：从 minimax 到 Shapley 算子</a></li>
+<li><a href="#4-fallback">4. 可操作实验与静态 fallback</a></li>
+<li><a href="#5">5. 定理与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 零和博弈与极小极大定理</a></li>
+<li><a href="#2_1">2. 动态博弈：时间进场</a></li>
 <li><a href="#3">3. 拍卖与机制设计：反向博弈论</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 <li><a href="#_1">博弈论收束</a></li>
@@ -53,7 +76,91 @@
 <p><img alt="零和博弈的 minimax 博弈树 / 鞍点示意。" src="assets/img/game-02-minimax-tree.svg" /></p>
 <figcaption><span class="fig-id">图 game-02.1</span>零和博弈的 minimax 博弈树 / 鞍点示意。</figcaption>
 </figure>
-<h2 id="1">1. 零和博弈与极小极大定理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="zero-sum-learning-title" class="learning-layer">
+<h2 id="zero-sum-learning-title">学习层：阶段值、动态值与“有限回放看起来收敛”不是一回事<a class="headerlink" href="#zero-sum-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：同一场对抗，先问一局还是多局<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>行玩家在每一阶段选择动作，列玩家同时选择反制动作；行玩家的收益矩阵是</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix}.
+\]</div>
+<p>这是猜硬币型零和对抗：没有纯策略鞍点，但双方各以二分之一混合时，阶段值为零。若游戏还带状态，当前动作会把系统送到下一个状态，今天的收益之外还要评价未来。于是“这一张矩阵的值”和“整个动态博弈的值函数”是两个层次。</p>
+<p>实验台提供阶段矩阵、状态转移、折扣因子和迭代次数。它会先隐藏精确 minimax、混合概率、Shapley 更新和采样误差；请先预测，再揭示。特别注意：一轮矩阵求值是精确的有限计算，有限轮 Bellman 回放不是一般收敛证明。</p>
+<h3 id="2">2. 先预测：对手混合后，哪些结论还能保留？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先回答三个问题：</p>
+<ul>
+<li>对上面的矩阵，纯策略值是否存在？若没有，混合策略如何让对手无差异？</li>
+<li>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，Shapley 算子两次应用后的差异最多会被放大、保持，还是按 <span class="arithmatex">\(\gamma\)</span> 压缩？</li>
+<li>把 <span class="arithmatex">\(\gamma\)</span> 调到 1，或者只做有限次迭代、有限次随机采样，能否声称对任意动态零和博弈都收敛？</li>
+</ul>
+<p>“看见曲线变平”只能是当前参数、当前初值和当前精度下的证据；它不能替代定理所需的折扣、有限性、界与转移条件。</p>
+<h3 id="3-minimax-shapley">3. 正式桥：从 minimax 到 Shapley 算子<a class="headerlink" href="#3-minimax-shapley" title="Permanent link"></a></h3>
+<p>对有限阶段矩阵 <span class="arithmatex">\(A\)</span>，行玩家的安全值和列玩家的压制值分别为</p>
+<div class="arithmatex">\[
+\max_{x\in\Delta}\min_{y\in\Delta}x^\top Ay,
+\qquad
+\min_{y\in\Delta}\max_{x\in\Delta}x^\top Ay.
+\]</div>
+<p>von Neumann 极小极大定理说明二者相等，记为 <span class="arithmatex">\(v(A)\)</span>。混合策略 <span class="arithmatex">\(x,y\)</span> 是概率分布；在一个内点解里，每个玩家都让对手所用的纯动作无差异。这个结论依赖零和收益与有限矩阵结构，不能把阶段矩阵的最大值直接当成整个动态博弈的最优值。</p>
+<p>若状态为 <span class="arithmatex">\(s\)</span>，动作对 <span class="arithmatex">\((i,j)\)</span> 产生阶段收益 <span class="arithmatex">\(r_s(i,j)\)</span> 和下一状态分布 <span class="arithmatex">\(P(\cdot\mid s,i,j)\)</span>，Shapley 算子写成</p>
+<div class="arithmatex">\[
+(TV)(s)=\operatorname{val}_{x,y}\left[
+\sum_{i,j}x_i y_j\left(r_s(i,j)+\gamma\sum_{s'}P(s'\mid s,i,j)V(s')\right)
+\right].
+\]</div>
+<p>若收益有界、状态与动作有限且 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>，则</p>
+<div class="arithmatex">\[
+\lVert TV-TW\rVert_\infty
+\le\gamma\lVert V-W\rVert_\infty.
+\]</div>
+<p>这是折扣 Shapley 算子的压缩证书：固定点唯一，价值迭代在该范数下收敛，并可用残差除以 <span class="arithmatex">\(1-\gamma\)</span> 给出误差上界。<span class="arithmatex">\(\gamma=1\)</span> 时这个证书消失；有限时域仍可从终点逆向归纳，但无限时域平均收益或一般未折扣随机博弈需要额外假设。</p>
+<h3 id="4-fallback">4. 可操作实验与静态 fallback<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="zero-sum-dynamic">
+<p><strong>静态 fallback（脚本不可用时）：</strong>阶段矩阵 <span class="arithmatex">\(A=\left(\begin{smallmatrix}1&amp;-1\\-1&amp;1\end{smallmatrix}\right)\)</span> 的纯安全值为 <span class="arithmatex">\(-1\)</span>，纯压制值为 <span class="arithmatex">\(1\)</span>，但混合 minimax 值为 <span class="arithmatex">\(0\)</span>，双方均匀混合。动态部分取两个状态和 <span class="arithmatex">\(\gamma=0.8\)</span>，每轮对当前动作收益加上 <span class="arithmatex">\(0.8\)</span> 倍的下一状态价值；残差若为 <span class="arithmatex">\(r_k\)</span>，压缩证书给出 <span class="arithmatex">\(\lVert V_k-V^*\rVert_\infty\le r_k/(1-0.8)\)</span>。把 <span class="arithmatex">\(\gamma\)</span> 调到 1 时，表格中的“误差上界”应变成“无证书”，而不是自动变成“已经收敛”。</p>
+<table>
+<caption>静态核对表</caption>
+<thead>
+<tr>
+<th>层次</th>
+<th>可计算对象</th>
+<th>证书与边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>阶段矩阵</td>
+<td>minimax 值与混合策略</td>
+<td>有限零和矩阵的极小极大定理</td>
+</tr>
+<tr>
+<td>折扣动态</td>
+<td>Shapley 更新与固定点</td>
+<td>有限模型、界收益、折扣小于一时有压缩</td>
+</tr>
+<tr>
+<td>有限回放</td>
+<td>当前迭代值、残差和抽样均值</td>
+<td>是实验账本，不是一般收敛定理</td>
+</tr>
+<tr>
+<td>未折扣/平均收益</td>
+<td>需要另行分析的动态博弈</td>
+<td>不能照搬折扣压缩证书</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 定理与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>阶段 minimax 等式保留的是零和结构；一般和博弈不能只看一个玩家的矩阵值。</li>
+<li>Bellman/Shapley 算子的压缩性来自 <span class="arithmatex">\(\gamma&lt;1\)</span> 与有界转移回报；<span class="arithmatex">\(\gamma=1\)</span> 时有限迭代仍可画图，但不存在同一个残差上界。</li>
+<li>混合策略的抽样均值会随样本数变化；一次有限采样与一组有限迭代都不能冒充对所有状态、初值或博弈的收敛。</li>
+<li>动态转移会改变未来价值，所以“每阶段各自最优”一般不等于全局动态最优；必须把当前矩阵与下一状态的值一起送进算子。</li>
+<li>实验只覆盖有限、低维、给定参数的模型；无限动作、非零和、未折扣平均收益和对手学习动态需要额外理论。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 零和博弈与极小极大定理<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>二人零和：你得即我失，<span class="arithmatex">\(u_2 = -u_1\)</span>，一张矩阵 <span class="arithmatex">\(A\)</span> 说尽（行玩家收益）。<strong>安全策略思维</strong>：行玩家保底 <span class="arithmatex">\(\max_x \min_y\)</span>，列玩家压顶 <span class="arithmatex">\(\min_y \max_x\)</span>；一般 <span class="arithmatex">\(\max\min \leq \min\max\)</span>（先亮牌吃亏）。</p>
 <p><strong>定理（von Neumann 极小极大，1928）</strong> 允许混合策略后：</p>
 <div class="arithmatex">\[
@@ -61,7 +168,7 @@
 \]</div>
 <p><strong>证明即 LP 对偶</strong>（优化 IV 的完整兑现）：行玩家"最大化保底值"写成 LP（变量 = 混合概率 + 保底 <span class="arithmatex">\(v\)</span>），列玩家的问题<strong>恰是它的对偶 LP</strong>——强对偶给 <span class="arithmatex">\(\max\min = \min\max\)</span>。<span class="arithmatex">\(\blacksquare\)</span> 求解零和博弈 = 解一个 LP（单纯形法上岗）；Nash 的一般存在性定理在零和情形退化为线性规划——<strong>对抗的数学是凸的，这是它比一般博弈"好解"的原因</strong>。</p>
 <p>🔗 <strong>GAN 对账</strong>（ai 课/comfy 课 01 的方程认祖）：<span class="arithmatex">\(\min_G\max_D\)</span> 训练目标就是零和博弈，训练不稳定的一个根源正是"在非凸参数空间里找鞍点"——minimax 定理的凸性前提不再免费。</p>
-<h2 id="2">2. 动态博弈：时间进场<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 动态博弈：时间进场<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>扩展型（博弈树）</strong>：轮流行动、看得见历史。<strong>求解 = 逆向归纳</strong>：从叶子倒推每个节点的最优选择——<strong>就是动态规划</strong>（优化 IV Bellman 的博弈版），产物叫<strong>子博弈完美均衡</strong>（每个子博弈里都理性——排除"不可信的威胁"：空头恐吓在逆向归纳下自动瓦解）。</p>
 <p><strong>先动的价值</strong>：Stackelberg 竞争中领导者先动并<strong>承诺</strong>，跟随者最佳回应——先动者利用"对方会理性回应"获得优势；<strong>承诺的可信性是战略资产</strong>（烧船、公开立军令状的博弈论内核：自断退路改变对手对你的预期）。</p>
 <p><strong>重复博弈：合作的数学出路</strong>。一次性囚徒困境必背叛；<strong>无限重复 + 未来足够重要</strong>时合作可持续：以"冷酷触发"策略（你背叛一次，我永远背叛）支撑合作的条件——</p>
@@ -92,5 +199,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/zero-sum-dynamic.js"></script>
 </body>
 </html>

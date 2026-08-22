@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,28 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同一条曲线，先问它守住了什么</a><ul>
+<li><a href="#1">1. 具体实例：增长、传染、排队，哪个边界会先到？</a></li>
+<li><a href="#2">2. 先预测：选模型，再押注边界</a></li>
+<li><a href="#3">3. 最小模型：三种代表性骨架</a></li>
+<li><a href="#4">4. 正式桥：守恒、识别、适用域三栏同行</a></li>
+<li><a href="#5-toy">5. 误区与边界：toy 不是现实预测</a></li>
+<li><a href="#6">6. 迁移问题：增加一条机制，哪一栏必须重写？</a></li>
+</ul>
+</li>
 <li><a href="#1-malthus-logistic">1. 人口模型：从 Malthus 到 Logistic</a></li>
 <li><a href="#2-sir">2. SIR 传染病模型（本页主菜）</a></li>
 <li><a href="#3-lotkavolterra-">3. Lotka–Volterra 捕食者-猎物</a></li>
 <li><a href="#4-mm1">4. 排队模型 M/M/1（随机过程的实战合成）</a></li>
 <li><a href="#5">5. 收官：全站地图的用法</a></li>
-<li><a href="#_1">典型例题</a></li>
+<li><a href="#_2">典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -50,6 +74,43 @@
 <blockquote>
 <p>四个传世模型，每个都是"简单假设 → 深刻结论"的典范，也各自调用全站三四页的工具。读法建议：先自己按建模循环推一遍假设，再看模型——<strong>经典模型的价值不在结论而在示范"如何用最少的假设抓住机制"</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：同一条曲线，先问它守住了什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：增长、传染、排队，哪个边界会先到？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把三个问题放到同一张预测桌上：一个产品的用户数会不会超过承载量，一个封闭人群的感染比例会不会先上升后回落，一个服务台的等待时间会不会在利用率接近 1 时失控。它们都能画出曲线，却不是同一种模型：一个有承载容量，一个有总人口守恒，一个只有在稳定条件下才有稳态队列。</p>
+<h3 id="2">2. 先预测：选模型，再押注边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先选择增长、传染或排队模型，然后预测当前参数对应的行为：Logistic 会有界、SIR 会爆发还是消退、M/M/1 会稳定还是没有有限稳态。预测时同时写出你认为可观测的参数和不能由当前数据识别的参数；实验揭示后再对照守恒量、参数和适用域。</p>
+<h3 id="3">3. 最小模型：三种代表性骨架<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>增长用</p>
+<div class="arithmatex">\[
+N'=rN\left(1-\frac{N}{K}\right),
+\]</div>
+<p>传染用归一化的 SIR</p>
+<div class="arithmatex">\[
+s'=-\beta si,\qquad i'=\beta si-\gamma i,\qquad r'=\gamma i,
+\]</div>
+<p>排队用 M/M/1 的到达率 <span class="arithmatex">\(\lambda\)</span>、服务率 <span class="arithmatex">\(\mu\)</span>，利用率 <span class="arithmatex">\(\rho=\lambda/\mu\)</span>。这三个骨架分别把容量、封闭人群和流量稳定性放在结论中心。</p>
+<h3 id="4">4. 正式桥：守恒、识别、适用域三栏同行<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>守恒：</strong>Logistic 在 <span class="arithmatex">\(0\le N\le K\)</span> 内保持区间，但没有“总量守恒”；SIR 满足 <span class="arithmatex">\(s+i+r=1\)</span>；M/M/1 在稳态使用流量守恒 <span class="arithmatex">\(L=\lambda W\)</span>，并要求 <span class="arithmatex">\(\rho&lt;1\)</span>。</li>
+<li><strong>参数可识别性：</strong>增长早期的 <span class="arithmatex">\(r\)</span> 容易被看到而 <span class="arithmatex">\(K\)</span> 难以识别；SIR 的 <span class="arithmatex">\(\beta,\gamma\)</span> 需要时间分辨率和干预信息才能分开；队列的 <span class="arithmatex">\(\lambda,\mu\)</span> 通常要分别记录到达与服务时间。</li>
+<li><strong>适用域：</strong>每个方程都依赖假设。模型输出是该假设下的条件预测，不是现实自动承诺的事实。</li>
+</ul>
+<h3 id="5-toy">5. 误区与边界：toy 不是现实预测<a class="headerlink" href="#5-toy" title="Permanent link"></a></h3>
+<ul>
+<li>SIR 的充分混合、固定参数和封闭人口会被网络结构、出生死亡和干预打破。</li>
+<li>M/M/1 在 <span class="arithmatex">\(\rho\ge1\)</span> 时不能套用有限的 <span class="arithmatex">\(W=1/(\mu-\lambda)\)</span>；“满负荷更高效”在排队边界附近会反转。</li>
+<li>Logistic 的 <span class="arithmatex">\(K\)</span> 不是自然常数，早期数据可让多个 <span class="arithmatex">\(K\)</span> 都拟合得不错；外推必须报告敏感性。</li>
+<li>课堂 toy 用来暴露机制与边界，不能冒充真实预测；真实项目要重新定义数据、校准、验证和干预域。</li>
+</ul>
+<h3 id="6">6. 迁移问题：增加一条机制，哪一栏必须重写？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>给 SIR 加潜伏期、给队列加多服务台、给增长加季节 forcing，方程变长只是表面变化；守恒量、参数识别和适用域会一起变化。先重新做预测和边界检查，再决定是否值得引入更复杂模型。</p>
+<div class="learning-lab" data-learning-lab="classic-models">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认展示 Logistic 增长：<span class="arithmatex">\(N_0=80\)</span>、<span class="arithmatex">\(K=600\)</span>、<span class="arithmatex">\(r=0.35\)</span> 时轨迹趋向 <span class="arithmatex">\(K\)</span>，但这只说明该 toy 在固定容量假设下有界。脚本开启后可切换到 SIR 与 M/M/1，调整参数并在预测门后查看 SVG、守恒/稳定性账本、参数可识别性与适用域；这些输出不能代替真实数据验证。</p>
+</div>
+</section>
 <h2 id="1-malthus-logistic">1. 人口模型：从 Malthus 到 Logistic<a class="headerlink" href="#1-malthus-logistic" title="Permanent link"></a></h2>
 <p><strong>Malthus（1798）</strong>：增长率正比于人口 <span class="arithmatex">\(N' = rN \Rightarrow N = N_0 e^{rt}\)</span>——短期准、长期爆（资源无限的假设破产）。<strong>修假设</strong>（建模循环第 6 步的示范）：增长率随拥挤衰减 <span class="arithmatex">\(r(1 - N/K)\)</span>：</p>
 <div class="arithmatex">\[
@@ -63,12 +124,12 @@ S' = -\beta SI, \qquad I' = \beta SI - \gamma I, \qquad R' = \gamma I
 \]</div>
 <p><strong>不解方程读出全部大局</strong>（ODE 定性分析的展销会）：</p>
 <ul>
-<li><strong>爆发判据</strong>：<span class="arithmatex">\(I' = I(\beta S - \gamma) &gt; 0 \iff S &gt; \gamma/\beta\)</span>。定义<strong>基本再生数</strong></li>
+<li><strong>爆发判据</strong>：当 <span class="arithmatex">\(I&gt;0\)</span> 时，<span class="arithmatex">\(I'=I(\beta S-\gamma)&gt;0\iff S&gt;\gamma/\beta\)</span>；若 <span class="arithmatex">\(I=0\)</span>，则 <span class="arithmatex">\(I'=0\)</span>，无感染是一个不变状态。定义<strong>基本再生数</strong></li>
 </ul>
 <div class="arithmatex">\[
 R_0 = \frac{\beta S_0}{\gamma} \quad (\text{一个感染者在全易感人群中平均传染的人数})
 \]</div>
-<p><span class="arithmatex">\(R_0 &gt; 1\)</span> 爆发、<span class="arithmatex">\(&lt; 1\)</span> 自灭——<strong>疫情防控的中心参数</strong>（口罩降 <span class="arithmatex">\(\beta\)</span>、隔离降接触、疫苗降 <span class="arithmatex">\(S_0\)</span>，一切手段都是在把 <span class="arithmatex">\(R_0\)</span> 压到 1 以下；2020 年全世界补习的这个符号，出自这三行 ODE）；</p>
+<p>在初始感染为正且经典充分混合模型成立时，<span class="arithmatex">\(R_0&gt;1\)</span> 表示感染初期增长，<span class="arithmatex">\(R_0&lt;1\)</span> 表示初期衰减，<span class="arithmatex">\(R_0=1\)</span> 是一阶阈值边界（此时要看参数变化或更高阶行为，而不能喊“爆发”）。口罩、隔离与免疫分别通过接触率或有效易感比例改变这个阈值；它是模型内的中心参数，不是脱离假设的命运开关；</p>
 <ul>
 <li><strong>群体免疫阈值</strong>：使 <span class="arithmatex">\(R_0^{\text{eff}} &lt; 1\)</span> 需免疫比例 <span class="arithmatex">\(&gt; 1 - \frac{1}{R_0}\)</span>（<span class="arithmatex">\(R_0 = 3 \Rightarrow\)</span> 67%）——一行代数，公共卫生政策的地基；</li>
 <li><strong>疫情不会感染所有人</strong>：<span class="arithmatex">\(S\)</span> 降到 <span class="arithmatex">\(\gamma/\beta\)</span> 后疫情转衰，最终规模由超越方程定（首次积分 <span class="arithmatex">\(\frac{dI}{dS} = -1 + \frac{\gamma}{\beta S}\)</span> 给守恒量——ode-03 的手法）。</li>
@@ -80,15 +141,15 @@ x' = x(a - by), \qquad y' = y(-c + dx) \qquad (x \text{ 兔}, y \text{ 狐})
 \]</div>
 <p>结论（ode-03 已证）：闭轨道永恒振荡，且<strong>轨道平均恰为平衡点</strong> <span class="arithmatex">\((\bar x, \bar y) = (c/d,\ a/b)\)</span>。<strong>Volterra 原理</strong>（历史出发点：一战后亚得里亚海鲨鱼比例为何上升）：<strong>无差别捕捞（<span class="arithmatex">\(a \downarrow, c \uparrow\)</span>）反而提高捕食者平衡占比的猎物端</strong>——直觉难及、模型一眼：干预生态系统的后果常反直觉，先算再动手。农药悖论（喷药后害虫反弹更凶）同款机理。</p>
 <h2 id="4-mm1">4. 排队模型 M/M/1（随机过程的实战合成）<a class="headerlink" href="#4-mm1" title="Permanent link"></a></h2>
-<p><strong>假设</strong>：顾客 Poisson 到达（率 <span class="arithmatex">\(\lambda\)</span>，随机过程 I）、服务时间指数（率 <span class="arithmatex">\(\mu\)</span>）、单服务台——队长是<strong>生灭 Markov 链</strong>（随机过程 II/III）。记 <span class="arithmatex">\(\rho = \lambda/\mu\)</span>（利用率），<span class="arithmatex">\(\rho &lt; 1\)</span> 时平稳分布为几何分布 <span class="arithmatex">\(\pi_n = (1-\rho)\rho^n\)</span>，立得：</p>
+<p><strong>假设</strong>：顾客 Poisson 到达（率 <span class="arithmatex">\(\lambda\)</span>，随机过程 I）、服务时间独立同分布为指数（率 <span class="arithmatex">\(\mu\)</span>）、单服务台、先来先服务、无限等待空间且不拒绝到达——队长是<strong>生灭 Markov 链</strong>（随机过程 II/III）。在这些条件和稳态口径下，记 <span class="arithmatex">\(\rho = \lambda/\mu\)</span>（利用率）；只有 <span class="arithmatex">\(\rho &lt; 1\)</span> 时才存在几何平稳分布 <span class="arithmatex">\(\pi_n = (1-\rho)\rho^n\)</span>，并有：</p>
 <div class="arithmatex">\[
 \text{平均队长 } L = \frac{\rho}{1 - \rho}, \qquad \text{平均逗留时间 } W = \frac{L}{\lambda} = \frac{1}{\mu - \lambda}\ \text{（Little 公式）}
 \]</div>
-<p><strong>读曲线（运营直觉的数学来源）</strong>：<span class="arithmatex">\(L(\rho)\)</span> 在 <span class="arithmatex">\(\rho \to 1\)</span> 时<strong>发散</strong>——利用率 80% 时队长 4，95% 时 19：<strong>追求满负荷 = 制造无限排队</strong>，服务系统必须留余量（医院床位、客服坐席、服务器水位线的共同铁律；你 Medusa 的任务调度同理）。Little 公式 <span class="arithmatex">\(L = \lambda W\)</span> 更是普适守恒律（对几乎任何稳态排队系统成立）——库存周转、在制品管理的万能刻度尺。</p>
+<p><strong>读曲线（运营直觉的数学来源）</strong>：这个无限缓冲 M/M/1 的 <span class="arithmatex">\(L(\rho)\)</span> 在 <span class="arithmatex">\(\rho \to 1\)</span> 时<strong>发散</strong>——利用率 80% 时队长 4，95% 时 19，说明高利用率会急剧放大等待。有限缓冲、丢弃、优先级、批服务或非指数服务要换模型，不能直接套这条几何分布。Little 公式 <span class="arithmatex">\(L=\lambda W\)</span> 的适用面更广，但也要求清楚定义稳态流量、在制数和逗留时间。</p>
 <h2 id="5">5. 收官：全站地图的用法<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>四个模型的工具账单：Logistic（ode + 相线）、SIR（ODE 定性 + 守恒量 + 一行代数改变政策）、L–V（ode-03 + 首次积分）、M/M/1（Poisson + Markov 平稳分布）——<strong>建模是全站知识的"组装车间"</strong>。此外的现代谱系各有出口：优化建模（生产/调度/组合——优化线四页）、统计与数据建模（回归/时序——统计线）、模拟建模（Monte Carlo——概率 V/数值 IV）、以及机理与机器学习的混血（灰箱——两门 AI 姊妹课程的世界）。</p>
 <p><strong>本站至此全部建成。</strong>十七门课、一张互相引用的网——复习时任何一页都是入口，顺着 🔗 走，四年的数学是一个整体。</p>
-<h2 id="_1">典型例题<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">典型例题<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>例 1（SIR 政策算术）</strong> 某病 <span class="arithmatex">\(R_0 = 2.5\)</span>，疫苗有效率 90%，需接种比例？<span class="arithmatex">\(p \cdot 0.9 \geq 1 - \frac{1}{2.5} = 0.6 \Rightarrow p \geq 67\%\)</span>。（有效率折扣别忘——建模循环"解释"步的细节。）</p>
 <p><strong>例 2（M/M/1 容量决策）</strong> 客服 <span class="arithmatex">\(\lambda = 8\)</span>/时，<span class="arithmatex">\(\mu = 10\)</span>/时：<span class="arithmatex">\(\rho = 0.8,\ W = \frac{1}{10-8} = 0.5\)</span> 时（30 分钟！）。若要 <span class="arithmatex">\(W \leq 10\)</span> 分钟需 <span class="arithmatex">\(\mu \geq 14\)</span>——<strong>服务能力要按等待目标反解，不按"够用"正推</strong>。</p>
 <p><strong>例 3（Logistic 拟合预警）</strong> 用前期数据拟合 S 曲线预测市场饱和量 <span class="arithmatex">\(K\)</span>：拐点（<span class="arithmatex">\(N = K/2\)</span>）之前的数据对 <span class="arithmatex">\(K\)</span> 极不敏感（灵敏度分析！）——早期外推 <span class="arithmatex">\(K\)</span> 的置信区间宽到没用（统计 III 的区间 + model-01 的验证步合演）。<strong>知道模型何时"还不能说话"，与会解模型同样重要。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
@@ -101,5 +162,7 @@ x' = x(a - by), \qquad y' = y(-c + dx) \qquad (x \text{ 兔}, y \text{ 狐})
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/classic-models.js"></script>
 </body>
 </html>

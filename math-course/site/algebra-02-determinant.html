@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 行列式</a></li>
+<li><a href="#algebra02-learning-title">学习层：行列式是有向体积账本，不是“坏程度”单指标</a><ul>
+<li><a href="#1">1. 具体情境：坐标框架把一个小立方体送到哪里？</a></li>
+<li><a href="#2">2. 揭示前预测：先判断公理会留下什么</a></li>
+<li><a href="#3">3. 正式桥：交替多线性、换基与奇异值</a></li>
+<li><a href="#4">4. 定理与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 行列式</a></li>
 <li><a href="#2-gauss">2. Gauss 消元与矩阵的秩</a></li>
-<li><a href="#3">3. 线性方程组解的结构（本页顶点）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#3_1">3. 线性方程组解的结构（本页顶点）</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,7 +70,96 @@
 <blockquote>
 <p>一切从解方程组开始。行列式回答"方阵方程组何时唯一可解"，Gauss 消元给出通用算法，秩的概念刻画解集结构。本页的解的结构定理是整个线性代数第一个"结构级"结果。</p>
 </blockquote>
-<h2 id="1">1. 行列式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="algebra02-learning-title" class="learning-layer">
+<h2 id="algebra02-learning-title">学习层：行列式是有向体积账本，不是“坏程度”单指标<a class="headerlink" href="#algebra02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：坐标框架把一个小立方体送到哪里？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把矩阵 <span class="arithmatex">\(A\)</span> 看成一个三维坐标设备：标准基的三个箭头变成 <span class="arithmatex">\(A\)</span> 的三列，单位立方体变成一个平行六面体。实验使用</p>
+<div class="arithmatex">\[
+\begin{aligned}
+A(s,k,h)&amp;=\begin{pmatrix}
+se^k &amp; h &amp; -h/2\\
+0 &amp; s &amp; h/2\\
+0 &amp; 0 &amp; se^{-k}
+\end{pmatrix}\\
+B(b)&amp;=\begin{pmatrix}
+b &amp; 0.3 &amp; 0\\
+0 &amp; b &amp; 0.1\\
+0 &amp; 0 &amp; b
+\end{pmatrix}
+\end{aligned}
+\]</div>
+<p>其中 <span class="arithmatex">\(s\)</span> 控制整体尺度，<span class="arithmatex">\(k\)</span> 控制各向异性，<span class="arithmatex">\(h\)</span> 是列剪切，<span class="arithmatex">\(B\)</span> 的列可以读成另一套坐标基。你会看到：剪切可能改变形状却不改体积，换基会按乘法组合体积因子，交换两列会改变方向。</p>
+<h3 id="2">2. 揭示前预测：先判断公理会留下什么<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前，先回答五个问题：</p>
+<ol>
+<li>把一列加上另一列的倍数，行列式是否改变？</li>
+<li>交换两列后，有向体积的符号和绝对值分别怎样变化？</li>
+<li>经过换基矩阵 <span class="arithmatex">\(B\)</span> 后，<span class="arithmatex">\(\det(AB)\)</span> 应该是乘积、和，还是只看 <span class="arithmatex">\(A\)</span>？</li>
+<li>方阵 <span class="arithmatex">\(\det A=0\)</span> 提供的是“数值偏小”还是“不可逆与体积塌缩”的证书？</li>
+<li><span class="arithmatex">\(\det A\)</span> 的绝对值很小，是否单独就等价于坏条件数？</li>
+</ol>
+<p>先作答再拖动滑块。一个有向体积数字同时包含尺度和方向，但它没有记录每个奇异方向分别被拉伸多少。</p>
+<h3 id="3">3. 正式桥：交替多线性、换基与奇异值<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>行列式对每一列线性；两列相同则为零；交换两列变号。把一列替换为“该列加另一列的倍数”时，新增项含有重复列，因此消失，这就是消元中列剪切保持行列式的原因。三维体积满足</p>
+<div class="arithmatex">\[
+\begin{gathered}
+\det A=s^3\\
+\det B=b^3\\
+\det(AB)=\det A\det B
+\end{gathered}
+\]</div>
+<p>如果 <span class="arithmatex">\(B\)</span> 表示从新坐标到旧坐标的列基矩阵，那么 <span class="arithmatex">\(AB\)</span> 是先用基 <span class="arithmatex">\(B\)</span> 表示，再施加 <span class="arithmatex">\(A\)</span>；这不是把同一个矩阵的每个元素随意替换，而是线性映射的复合。对可逆方阵，<span class="arithmatex">\(\det A\neq0\)</span> 等价于可逆；但条件数还要看最大与最小奇异值的比。</p>
+<div class="learning-lab" data-learning-lab="determinant-volume">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>用两个对照读法检查“体积”和“条件”：</p>
+<table>
+<thead>
+<tr>
+<th>情形</th>
+<th style="text-align: right;">有向体积</th>
+<th style="text-align: right;"><span class="arithmatex">\(\kappa_2\)</span></th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(A=0.5I\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.125\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>体积小只是整体缩放，方向比例没有变坏</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A=\operatorname{diag}(0.1,1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(10\)</span></td>
+<td>同样是小体积量级，但各向异性造成敏感方向</td>
+</tr>
+<tr>
+<td>交换两列</td>
+<td style="text-align: right;">变为原值的相反数</td>
+<td style="text-align: right;">奇异值不变</td>
+<td>方向翻转，体积绝对值不翻倍</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\det A=0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">不可逆分支</td>
+<td>体积塌缩，存在非零核向量</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理桥</strong>：行列式是规范化的交替多线性函数；<span class="arithmatex">\(\det(AB)=\det A\det B\)</span> 记录复合后的有向体积因子。</li>
+<li><strong>不可逆证书</strong>：对有限维方阵，<span class="arithmatex">\(\det A=0\)</span> 等价于不可逆、秩亏和非零核；这是确定的结构证书，不只是浮点数告警。</li>
+<li><strong>小 det 边界</strong>：<span class="arithmatex">\(\det A\)</span> 还随单位和整体缩放改变。小 det 不单独等价于坏条件数；要比较奇异值比例、输入输出尺度和误差模型。</li>
+<li><strong>换基边界</strong>：有向体积的正负依赖列的定向。若只讨论无向几何体积，应读 <span class="arithmatex">\(\lvert\det A\rvert\)</span>，不能把符号当成长度。</li>
+<li><strong>实验边界</strong>：有限 SVG 只展示一个三维参数族和一组换基证据；它不能替代对所有阶数、所有矩阵的公理化证明。</li>
+</ul>
+</div>
+</section>
+<h2 id="1_1">1. 行列式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义（逆序数式）</strong> <span class="arithmatex">\(n\)</span> 阶行列式</p>
 <div class="arithmatex">\[
 \det A = \sum_{\sigma \in S_n} (-1)^{\tau(\sigma)}\, a_{1\sigma(1)} a_{2\sigma(2)} \cdots a_{n\sigma(n)}
@@ -73,7 +184,7 @@
 <p><strong>初等行变换</strong>三种：换行、某行乘非零常数、某行加另一行的倍数。任何矩阵可经行变换化为<strong>行阶梯形</strong>，进一步化为<strong>行最简形</strong>（主元为 1、主元列其余为 0）。</p>
 <p><strong>定义（秩）</strong> <span class="arithmatex">\(\mathrm{rank}(A)\)</span> = 行阶梯形的非零行数 = 最大非零子式的阶数 = 行/列向量组的极大线性无关组大小（三个定义等价——第三个是"本体"，前两个是算法）。</p>
 <p><strong>线性相关性语言</strong>（方程组理论的词汇表）：向量组 <span class="arithmatex">\(\alpha_1,\dots,\alpha_s\)</span> 线性相关 <span class="arithmatex">\(\iff\)</span> 存在不全为零的 <span class="arithmatex">\(k_i\)</span> 使 <span class="arithmatex">\(\sum k_i \alpha_i = 0\)</span> <span class="arithmatex">\(\iff\)</span> 某向量可由其余线性表出。<strong>极大线性无关组</strong>、<strong>向量组的秩</strong>、等价向量组秩相等。判定全部化归为"对拼成的矩阵消元看秩"。</p>
-<h2 id="3">3. 线性方程组解的结构（本页顶点）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 线性方程组解的结构（本页顶点）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>方程组 <span class="arithmatex">\(Ax = b\)</span>（<span class="arithmatex">\(m\)</span> 个方程 <span class="arithmatex">\(n\)</span> 个未知量），增广矩阵 <span class="arithmatex">\(\bar A = (A \mid b)\)</span>。</p>
 <p><strong>定理（有解判别）</strong></p>
 <div class="arithmatex">\[
@@ -87,7 +198,7 @@ x = x^* + c_1\xi_1 + \cdots + c_{n-r}\xi_{n-r}
 \]</div>
 <p><strong>几何图像</strong>：解集是过 <span class="arithmatex">\(x^*\)</span>、方向为齐次解空间的"平面"（仿射子空间）。<strong>"通解 = 特解 + 齐次通解"这个结构在 ODE 线性方程（ODE 页）、线性递推中原样重现——线性问题的普遍范式。</strong></p>
 <p>🔗 <strong>AI 衔接</strong>：最小二乘（<span class="arithmatex">\(A^\top A x = A^\top b\)</span>，法方程）是"无解方程组找最近解"，统计页回归的地基；秩亏损 = 特征共线性（正则化的动机之一，ai 课 01 讲岭回归）。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（带参数方程组讨论）</strong> 讨论 <span class="arithmatex">\(\begin{cases} \lambda x + y + z = 1 \\ x + \lambda y + z = \lambda \\ x + y + \lambda z = \lambda^2 \end{cases}\)</span> 的解。
 <em>解</em>：系数行列式 <span class="arithmatex">\(\det A = (\lambda - 1)^2(\lambda + 2)\)</span>。1. <span class="arithmatex">\(\lambda \neq 1, -2\)</span>：Cramer 唯一解；2. <span class="arithmatex">\(\lambda = 1\)</span>：三方程同为 <span class="arithmatex">\(x+y+z=1\)</span>，<span class="arithmatex">\(r = r(\bar A) = 1 &lt; 3\)</span>，无穷解（两个自由变量）；3. <span class="arithmatex">\(\lambda = -2\)</span>：<span class="arithmatex">\(r(A) = 2\)</span>，<span class="arithmatex">\(r(\bar A) = 3\)</span>，无解。<strong>流程：先算 <span class="arithmatex">\(\det\)</span> 分参数，退化情形逐个消元。</strong></p>
 <p><strong>例 2（Vandermonde 应用）</strong> <span class="arithmatex">\(n\)</span> 个互异点上给定值的 <span class="arithmatex">\(\leq n-1\)</span> 次插值多项式存在唯一。
@@ -105,5 +216,7 @@ x = x^* + c_1\xi_1 + \cdots + c_{n-r}\xi_{n-r}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/determinant-volume.js"></script>
 </body>
 </html>

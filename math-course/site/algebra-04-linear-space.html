@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 线性空间</a></li>
-<li><a href="#2">2. 基、维数与坐标</a></li>
-<li><a href="#3">3. 线性映射与线性变换</a></li>
-<li><a href="#4">4. 线性映射的矩阵表示（本页顶点）</a></li>
+<li><a href="#algebra04-learning-title">学习层：先认出向量，再相信坐标</a><ul>
+<li><a href="#1">1. 一个具体的生成问题</a></li>
+<li><a href="#2">2. 先预测：生成、独立、基与维数</a></li>
+<li><a href="#3">3. 正式桥：从行列式到坐标化</a></li>
+<li><a href="#4">4. 定理级结论与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 线性空间</a></li>
+<li><a href="#2_1">2. 基、维数与坐标</a></li>
+<li><a href="#3_1">3. 线性映射与线性变换</a></li>
+<li><a href="#4_1">4. 线性映射的矩阵表示（本页顶点）</a></li>
 <li><a href="#5">5. 对偶空间一瞥</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
@@ -50,11 +72,97 @@
 <blockquote>
 <p>本页是高等代数的观念顶点：把"向量"公理化（不再只是数组——多项式、函数、矩阵都是向量），把"矩阵"重新定义为<strong>线性映射在选定基下的照片</strong>。想通"换基 = 换照片角度、相似 = 同一映射的不同照片"，高代 V 的标准形理论就有了灵魂。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="algebra04-learning-title" class="learning-layer">
+<h2 id="algebra04-learning-title">学习层：先认出向量，再相信坐标<a class="headerlink" href="#algebra04-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个具体的生成问题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(\mathbb{R}^2\)</span> 中取</p>
+<div class="arithmatex">\[
+u=(1,1),\qquad v=(2,t).
+\]</div>
+<p>当 <span class="arithmatex">\(t=2\)</span> 时，<span class="arithmatex">\(v=2u\)</span>，两支箭头只走在一条直线上；当 <span class="arithmatex">\(t\ne2\)</span> 时，它们张成整个平面。这里的 <span class="arithmatex">\(u,v\)</span> 是向量对象，<span class="arithmatex">\((1,1),(2,t)\)</span> 是在标准基下的坐标记录。若把同一个抽象向量放进另一组基 <span class="arithmatex">\(B=(b_1,b_2)\)</span>，向量没有变，变的是记录它所需的两个数。</p>
+<h3 id="2">2. 先预测：生成、独立、基与维数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台前，先写下三个预测：</p>
+<ol>
+<li><span class="arithmatex">\(u=(1,1),v=(2,2)\)</span> 能否生成 <span class="arithmatex">\(\mathbb{R}^2\)</span>？它们是否线性无关？</li>
+<li>三个向量若能生成二维空间，是否必然线性无关，因而是一个基？</li>
+<li>换基以后，同一个抽象向量的几何对象会不会改变；改变的究竟是向量还是坐标列？</li>
+</ol>
+<p>提交预测后，实验台会揭示秩、零空间关系、生成空间维数和一组坐标换算。有限列表上的秩计算很有用，但它只回答“这几个向量”的命题，不能凭有限样本证明一个无限维空间中的全称命题。</p>
+<h3 id="3">3. 正式桥：从行列式到坐标化<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(A=[u\ v]\)</span>。在二维情形，</p>
+<div class="arithmatex">\[
+\det A=t-2.
+\]</div>
+<p>所以 <span class="arithmatex">\(t\ne2\)</span> 时 <span class="arithmatex">\(\operatorname{rank}A=2\)</span>，两列线性无关，且它们构成 <span class="arithmatex">\(\mathbb{R}^2\)</span> 的基；<span class="arithmatex">\(t=2\)</span> 时秩为 <span class="arithmatex">\(1\)</span>，生成空间是一条直线。一般地，</p>
+<div class="arithmatex">\[
+\operatorname{span}(\alpha_1,\ldots,\alpha_s)=\operatorname{Im}[\alpha_1\ \cdots\ \alpha_s],\qquad
+\dim\operatorname{span}=\operatorname{rank}A.
+\]</div>
+<p>若 <span class="arithmatex">\(B=[b_1\ b_2]\)</span> 可逆，同一个抽象向量 <span class="arithmatex">\(p\)</span> 的标准坐标 <span class="arithmatex">\(p_{\mathrm{std}}\)</span> 与 <span class="arithmatex">\(B\)</span>-坐标 <span class="arithmatex">\(p_B\)</span> 满足</p>
+<div class="arithmatex">\[
+p_{\mathrm{std}}=B p_B,\qquad p_B=B^{-1}p_{\mathrm{std}}.
+\]</div>
+<p>这就是“坐标是相对于基的系数”，而不是把抽象向量缩减成某一串数字。</p>
+<div class="learning-lab" data-learning-lab="linear-space-coordinates">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(u=(1,1)\)</span>、<span class="arithmatex">\(v=(2,t)\)</span>，并把 <span class="arithmatex">\(p=(3,2)\)</span> 当作标准坐标。下表只对列出的有限向量作判断：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">参数 <span class="arithmatex">\(t\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\det[u\ v]\)</span></th>
+<th style="text-align: right;">生成空间维数</th>
+<th>线性无关</th>
+<th>是否为 <span class="arithmatex">\(\mathbb{R}^2\)</span> 的基</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td style="text-align: right;">三向量 <span class="arithmatex">\(e_1,e_2,e_1+e_2\)</span></td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td>否</td>
+<td>否：生成但冗余</td>
+</tr>
+</tbody>
+</table>
+<p>当 <span class="arithmatex">\(t=0\)</span> 时，<span class="arithmatex">\(B=[(1,1),(2,0)]\)</span> 可逆，<span class="arithmatex">\(p_B=B^{-1}(3,2)^\mathsf{T}=(2,1/2)^\mathsf{T}\)</span>。这说明坐标列会变，抽象向量 <span class="arithmatex">\(p\)</span> 不变。若只抽查有限个函数或多项式的坐标，不能由此断言整个 <span class="arithmatex">\(C[a,b]\)</span> 或 <span class="arithmatex">\(P[x]\)</span> 的维数、生成性或线性无关性。</p>
+</div>
+<h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：列秩等于列空间维数；在有限维同一空间中，<span class="arithmatex">\(n\)</span> 个向量生成 <span class="arithmatex">\(n\)</span> 维空间，当且仅当它们线性无关，当且仅当它们构成一个基。基给出的坐标表示存在且唯一。</li>
+<li><strong>有限证据</strong>：实验台只计算当前 <span class="arithmatex">\(2\)</span> 维或 <span class="arithmatex">\(3\)</span> 维向量列表的矩阵；所有抽样通过，只说明这些列没有发现问题，不等于对未列出的向量作了全空间证明。</li>
+<li><strong>抽象与坐标边界</strong>：换基改变的是坐标表示和矩阵照片，不是抽象向量；把坐标等同于向量会混淆对象、基和记录方式。</li>
+<li><strong>退化边界</strong>：若列向量不足以生成目标空间，或矩阵秩下降，不能把“生成一个子空间”说成“生成整个空间”；数值计算中接近零的行列式还需要给出容差或精确论证。</li>
+</ul>
+</section>
 <figure class="plot">
 <p><img alt="线性映射把一组基/网格变成另一组（方格→平行四边形网格）。" src="assets/img/algebra-04-linear-map.svg" /></p>
 <figcaption><span class="fig-id">图 algebra-04.1</span>线性映射把一组基/网格变成另一组（方格→平行四边形网格）。</figcaption>
 </figure>
-<h2 id="1">1. 线性空间<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 线性空间<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 数域 <span class="arithmatex">\(P\)</span> 上的线性空间 <span class="arithmatex">\(V\)</span>：配备加法与数乘、满足八条公理（加法交换结合、有零元负元、数乘结合分配、<span class="arithmatex">\(1\cdot v = v\)</span>）的集合。</p>
 <p><strong>例子清单</strong>（体会公理化的威力）：<span class="arithmatex">\(P^n\)</span>；<span class="arithmatex">\(m\times n\)</span> 矩阵全体；次数 <span class="arithmatex">\(&lt; n\)</span> 的多项式 <span class="arithmatex">\(P[x]_n\)</span>；<span class="arithmatex">\([a,b]\)</span> 上连续函数 <span class="arithmatex">\(C[a,b]\)</span>（无限维）；齐次方程组解集。</p>
 <p><strong>子空间</strong>：对加法数乘封闭的非空子集。判定只需验封闭性。重要构造：生成子空间 <span class="arithmatex">\(\mathrm{span}(\alpha_1,\dots,\alpha_s)\)</span>；<strong>和</strong> <span class="arithmatex">\(V_1 + V_2 = \{v_1 + v_2\}\)</span> 与<strong>交</strong> <span class="arithmatex">\(V_1 \cap V_2\)</span>（并集一般不是子空间！）。</p>
@@ -64,14 +172,14 @@
 \]</div>
 <p><em>思路</em>：取交的基，分别扩充为 <span class="arithmatex">\(V_1\)</span>、<span class="arithmatex">\(V_2\)</span> 的基，证拼起来是和的基（容斥的线性代数版）。</p>
 <p><strong>直和</strong> <span class="arithmatex">\(V_1 \oplus V_2\)</span>：<span class="arithmatex">\(V_1 \cap V_2 = \{0\}\)</span>，等价于"分解唯一"、"维数相加"。<strong>空间按直和拆解 = 问题按分量拆解</strong>——高代 V 特征子空间分解、Jordan 理论的组织原则。</p>
-<h2 id="2">2. 基、维数与坐标<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 基、维数与坐标<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>基</strong>：线性无关的生成组；<strong>维数</strong> = 基的元素个数（与基的选取无关——需证任意两基等长，替换定理）。基选定后每个向量有唯一坐标：<span class="arithmatex">\(v = \sum x_i \varepsilon_i \mapsto x = (x_1,\dots,x_n)^\top\)</span>——<strong>任何 <span class="arithmatex">\(n\)</span> 维空间坐标化后就是 <span class="arithmatex">\(P^n\)</span></strong>（同构），抽象向量从此可以用数组计算。</p>
 <p><strong>基变换与坐标变换</strong>：新基 <span class="arithmatex">\((\eta_1,\dots,\eta_n) = (\varepsilon_1,\dots,\varepsilon_n)\,T\)</span>（<span class="arithmatex">\(T\)</span> 为过渡矩阵，可逆），则同一向量的坐标变换为</p>
 <div class="arithmatex">\[
 x_{\text{旧}} = T\, x_{\text{新}}
 \]</div>
 <p>（方向容易记反：<strong>基"正着"变，坐标"反着"变</strong>——基向量变大，坐标数值变小，协变/逆变的第一次照面。）</p>
-<h2 id="3">3. 线性映射与线性变换<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 线性映射与线性变换<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(\mathcal{A}: V \to W\)</span> 满足 <span class="arithmatex">\(\mathcal{A}(k\alpha + l\beta) = k\mathcal{A}\alpha + l\mathcal{A}\beta\)</span>。<span class="arithmatex">\(V = W\)</span> 时称线性变换。</p>
 <p><strong>核与像</strong>：<span class="arithmatex">\(\ker\mathcal{A} = \{v: \mathcal{A}v = 0\}\)</span>（子空间，衡量"压缩掉多少"）；<span class="arithmatex">\(\mathrm{Im}\,\mathcal{A} = \mathcal{A}(V)\)</span>（子空间，衡量"到达多少"）。单射 <span class="arithmatex">\(\iff \ker = \{0\}\)</span>。</p>
 <p><strong>定理（秩–零度定理）</strong></p>
@@ -79,7 +187,7 @@ x_{\text{旧}} = T\, x_{\text{新}}
 \dim \ker \mathcal{A} + \dim \mathrm{Im}\,\mathcal{A} = \dim V
 \]</div>
 <p><em>思路</em>：取 <span class="arithmatex">\(\ker\)</span> 的基扩充为 <span class="arithmatex">\(V\)</span> 的基，证扩充部分的像是 <span class="arithmatex">\(\mathrm{Im}\)</span> 的基。<strong>读法：定义域的维数守恒——压缩掉的 + 幸存的 = 全部。</strong>方程组语言的重述：<span class="arithmatex">\(n - \mathrm{rank}A\)</span> 个自由变量（高代 II 基础解系的个数）正是 <span class="arithmatex">\(\dim\ker\)</span>。有限维推论：单 <span class="arithmatex">\(\iff\)</span> 满 <span class="arithmatex">\(\iff\)</span> 逆（同维时）。</p>
-<h2 id="4">4. 线性映射的矩阵表示（本页顶点）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 线性映射的矩阵表示（本页顶点）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>取定 <span class="arithmatex">\(V\)</span> 的基 <span class="arithmatex">\(\{\varepsilon_i\}\)</span>，线性变换 <span class="arithmatex">\(\mathcal{A}\)</span> 由它在基上的作用完全决定：</p>
 <div class="arithmatex">\[
 \mathcal{A}(\varepsilon_1, \dots, \varepsilon_n) = (\varepsilon_1, \dots, \varepsilon_n)\, A
@@ -94,7 +202,7 @@ B = T^{-1} A\, T
 <p><strong>不变子空间</strong>：<span class="arithmatex">\(\mathcal{A}W \subseteq W\)</span>。若 <span class="arithmatex">\(V\)</span> 可分解为不变子空间直和，矩阵呈<strong>分块对角</strong>——"找不变子空间 = 把变换拆成小块"，标准形理论的战略。</p>
 <p>🔗 <strong>AI 衔接</strong>：神经网络的每一线性层就是一个线性映射，"表示学习"可以读作"为数据找一组好基"；嵌入空间的语义方向（ai 课 06 讲 king−man+woman）是坐标与基观念的直接应用。</p>
 <h2 id="5">5. 对偶空间一瞥<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(V\)</span> 上全体线性函数 <span class="arithmatex">\(f: V \to P\)</span> 构成<strong>对偶空间</strong> <span class="arithmatex">\(V^*\)</span>，<span class="arithmatex">\(\dim V^* = \dim V\)</span>；对偶基 <span class="arithmatex">\(f_i(\varepsilon_j) = \delta_{ij}\)</span>。（行向量之于列向量、梯度之于方向导数的严格出身；泛函分析页把它推向无限维。）</p>
+<p><span class="arithmatex">\(V\)</span> 上全体线性函数 <span class="arithmatex">\(f:V\to P\)</span> 构成<strong>代数对偶空间</strong> <span class="arithmatex">\(V^*\)</span>。当 <span class="arithmatex">\(V\)</span> <strong>有限维</strong>时，<span class="arithmatex">\(\dim V^*=\dim V\)</span>，且基 <span class="arithmatex">\(\{\varepsilon_j\}\)</span> 有对偶基 <span class="arithmatex">\(f_i(\varepsilon_j)=\delta_{ij}\)</span>。无限维时，代数对偶通常严格更大，不能照搬等维结论；泛函分析还会按拓扑筛出连续对偶。（行向量之于列向量、梯度之于方向导数的严格出身。）</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（维数公式）</strong> <span class="arithmatex">\(V_1, V_2 \subset \mathbb{R}^{10}\)</span>，<span class="arithmatex">\(\dim V_1 = 6, \dim V_2 = 7\)</span>，求 <span class="arithmatex">\(\dim(V_1 \cap V_2)\)</span> 的范围。
 <em>解</em>：<span class="arithmatex">\(\dim(V_1 + V_2) \leq 10\)</span> ⇒ 交 <span class="arithmatex">\(\geq 6 + 7 - 10 = 3\)</span>；交 <span class="arithmatex">\(\leq \min = 6\)</span>。范围 <span class="arithmatex">\([3, 6]\)</span>（各端可实现）。</p>
@@ -112,5 +220,7 @@ B = T^{-1} A\, T
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/linear-space-coordinates.js"></script>
 </body>
 </html>

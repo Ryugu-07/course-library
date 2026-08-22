@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,25 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 基本语言</a></li>
-<li><a href="#2">2. 三大抽样分布</a></li>
-<li><a href="#3">3. 正态总体抽样定理（本页顶点）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#sampling-learning-title">学习层：同一批数据，四层对象不要串名</a><ul>
+<li><a href="#1">1. 具体实例：质检员手里的数字究竟在估计什么？</a></li>
+<li><a href="#2">2. 先预测：抽样前先分清四个名词</a></li>
+<li><a href="#3">3. 正式桥：从参数到估计量的四本账</a></li>
+<li><a href="#4">4. 可操作实验：先过预测门，再打开抽样分布</a></li>
+<li><a href="#5">5. 定理与失败边界：近似必须写出条件</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 基本语言</a></li>
+<li><a href="#2_1">2. 三大抽样分布</a></li>
+<li><a href="#3_1">3. 正态总体抽样定理（本页顶点）</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,15 +71,92 @@
 <blockquote>
 <p>概率论与数理统计的分工一句话：<strong>概率论从分布推样本（演绎），统计从样本推分布（归纳）</strong>。归纳要有依据，依据就是"统计量自身的分布"——抽样分布。本页立好这套语言，核心资产是三大分布（χ²/t/F）与正态总体抽样定理，它们是后面估计与检验全部公式的发动机。</p>
 </blockquote>
-<h2 id="1">1. 基本语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="sampling-learning-title" class="learning-layer">
+<h2 id="sampling-learning-title">学习层：同一批数据，四层对象不要串名<a class="headerlink" href="#sampling-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：质检员手里的数字究竟在估计什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>工厂的总体是所有产品重量的随机变量 <span class="arithmatex">\(X\)</span>，总体均值 <span class="arithmatex">\(\mu\)</span> 和方差 <span class="arithmatex">\(\sigma^2\)</span> 是交付前就存在、但通常未知的参数。质检员抽到 <span class="arithmatex">\(n\)</span> 件，得到一组观测；把它们平均得到一个统计量 <span class="arithmatex">\(\bar X\)</span>，换一批样本又会得到另一个数。于是至少有四层：总体参数、一次样本上的统计量、统计量在重复抽样下的分布，以及把统计量当作估计量时的偏差/方差/一致性。</p>
+<p>本实验把这四层放在同一张图上。正态总体给出精确抽样分布，指数型总体展示有限样本偏斜但在条件满足时逐渐进入 CLT 近似，带共同冲击的相关样本和 Pareto 重尾则故意撞上边界。</p>
+<h3 id="2">2. 先预测：抽样前先分清四个名词<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先不要打开结果：</p>
+<ol>
+<li><span class="arithmatex">\(\mu\)</span> 是总体参数还是样本统计量？<span class="arithmatex">\(\bar X\)</span> 是否会因换一批样本而变化？</li>
+<li><span class="arithmatex">\(\bar X\)</span> 的抽样分布是在描述一条观测，还是描述重复抽样所得的许多统计量？增大 <span class="arithmatex">\(n\)</span> 会改变哪一层？</li>
+<li>为什么 <span class="arithmatex">\(S^2\)</span> 要除以 <span class="arithmatex">\(n-1\)</span> 才对一般总体无偏？“无偏”是否等于每次样本都等于 <span class="arithmatex">\(\sigma^2\)</span>？</li>
+<li>CLT 是否对任意依赖结构和任意重尾都自动成立？bootstrap 能否在没有独立性、有限方差或识别条件时无条件替代理论抽样分布？</li>
+</ol>
+<h3 id="3">3. 正式桥：从参数到估计量的四本账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>总体参数记作 <span class="arithmatex">\(\theta\)</span>，样本 <span class="arithmatex">\(X_1,\ldots,X_n\)</span> 来自总体；统计量 <span class="arithmatex">\(T(X_1,\ldots,X_n)\)</span> 不含未知参数。把统计量用来估计 <span class="arithmatex">\(\theta\)</span> 后，定义</p>
+<div class="arithmatex">\[
+\operatorname{Bias}_\theta(\hat\theta)=E_\theta[\hat\theta]-\theta,
+\qquad
+\operatorname{Var}_\theta(\hat\theta)=E_\theta[(\hat\theta-E_\theta\hat\theta)^2],
+\]</div>
+<div class="arithmatex">\[
+\operatorname{MSE}_\theta(\hat\theta)=\operatorname{Var}_\theta(\hat\theta)+\operatorname{Bias}_\theta(\hat\theta)^2,
+\qquad
+\hat\theta_n\xrightarrow{P}\theta\quad\text{（一致性）}.
+\]</div>
+<p>偏差是平均意义的差，方差是重复抽样的波动，MSE 把两者放到同一损失尺度；它们都不是“这一次样本离真值多远”的同义改写。</p>
+<p>对 i.i.d. 且 <span class="arithmatex">\(EX=\mu\)</span>、<span class="arithmatex">\(DX=\sigma^2&lt;\infty\)</span> 的样本，<span class="arithmatex">\(E\bar X=\mu\)</span>、<span class="arithmatex">\(D\bar X=\sigma^2/n\)</span>；对正态总体还可得到 <span class="arithmatex">\(\bar X\)</span> 与 <span class="arithmatex">\(S^2\)</span> 的精确联合结构。经典 CLT 是渐近结论：在独立同分布、有限非零方差等条件下，标准化均值才依分布趋向 <span class="arithmatex">\(N(0,1)\)</span>。它不把有限 <span class="arithmatex">\(n\)</span> 的近似变成等式，也不覆盖下面的相关/重尾反例。</p>
+<p>bootstrap 从观测经验分布中有放回重抽样，条件于当前数据近似估计量的抽样分布。它需要与问题匹配的正则性、独立性或块结构、足够的尾部条件；bootstrap 的一张窄图不是理论条件的豁免，也不能无条件修复偏差、依赖、无限方差或不可识别参数。</p>
+<h3 id="4">4. 可操作实验：先过预测门，再打开抽样分布<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认正态总体、<span class="arithmatex">\(n=20\)</span>、重复 <span class="arithmatex">\(R=120\)</span>、估计量为样本均值、bootstrap 重抽样 <span class="arithmatex">\(B=120\)</span>。提交四项预测后，可切换总体、估计量、<span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(R\)</span> 和 <span class="arithmatex">\(B\)</span>；直方图、CLT 参考曲线、偏差/方差/MSE 以及 bootstrap 标准误会由同一组固定种子数据重算。</p>
+<div class="learning-lab" data-learning-lab="sampling-estimators">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 默认总体为 <span class="arithmatex">\(N(10,4)\)</span>。当估计量为均值时，参数是 <span class="arithmatex">\(\mu=10\)</span>、单次统计量是某个样本的 <span class="arithmatex">\(\bar X\)</span>，抽样分布是重复抽样的 <span class="arithmatex">\(\bar X\)</span> 集合，并且精确地有 <span class="arithmatex">\(\bar X\sim N(10,4/20)\)</span>；bootstrap 只是从一份观测的经验分布近似这份抽样分布。对照模型如下：</p>
+<table>
+<thead>
+<tr>
+<th>总体预设</th>
+<th>参数与抽样结构</th>
+<th>CLT / bootstrap 边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正态 <span class="arithmatex">\(N(10,4)\)</span></td>
+<td><span class="arithmatex">\(\mu=10,\sigma^2=4\)</span>；均值抽样分布精确正态</td>
+<td>正态总体的 t、χ² 结论可用；bootstrap 是近似而非定义</td>
+</tr>
+<tr>
+<td>偏斜 <span class="arithmatex">\(\operatorname{Exp}(1)\)</span></td>
+<td><span class="arithmatex">\(\mu=1,\sigma^2=1\)</span>；小 <span class="arithmatex">\(n\)</span> 的均值仍右偏</td>
+<td>i.i.d. 且有限方差，CLT 只在渐近意义成立</td>
+</tr>
+<tr>
+<td>共同冲击</td>
+<td><span class="arithmatex">\(X_i=Z+\varepsilon_i\)</span>，样本内相关</td>
+<td>平均的波动不按 <span class="arithmatex">\(1/n\)</span> 消失；把 i.i.d. CLT 或普通 bootstrap 硬套会失效</td>
+</tr>
+<tr>
+<td>Pareto<span class="arithmatex">\((1,1.5)\)</span></td>
+<td>均值为 <span class="arithmatex">\(3\)</span>，方差不存在</td>
+<td>经典有限方差 CLT 不适用；普通 bootstrap 不能无条件替代理论</td>
+</tr>
+</tbody>
+</table>
+<p>样本方差的统计量定义使用 <span class="arithmatex">\(S^2=(n-1)^{-1}\sum(X_i-\bar X)^2\)</span>；无偏是重复抽样的期望陈述，不是每个 <span class="arithmatex">\(S^2\)</span> 都等于总体方差。图中的柱高是固定重复实验的经验抽样分布，参考曲线只有在条件允许时才显示。</p>
+</div>
+<h3 id="5">5. 定理与失败边界：近似必须写出条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>总体参数不随样本移动。</strong> <span class="arithmatex">\(\mu,\sigma^2\)</span> 是总体的固定特征；<span class="arithmatex">\(\bar X,S^2\)</span> 是样本统计量，换样本就会变化。</li>
+<li><strong>抽样分布不是原始数据分布。</strong> 它是把同一个统计量在重复样本上重算所得的分布；<span class="arithmatex">\(n\)</span> 进入的是统计量的随机性，而不是把一条观测“变正态”。</li>
+<li><strong>无偏不等于稳定。</strong> 无偏只说 <span class="arithmatex">\(E\hat\theta=\theta\)</span>；方差、MSE 和一致性还要另算。<span class="arithmatex">\(S^2\)</span> 的 <span class="arithmatex">\(n-1\)</span> 修正正是均值被估计后损失一个自由度的补偿。</li>
+<li><strong>CLT 是渐近且有条件。</strong> 独立性、同分布或适当的 Lindeberg 条件、有限非零方差等假设决定能否使用经典版本；重尾和依赖结构需要另行分析。</li>
+<li><strong>bootstrap 不是无条件替代。</strong> 它近似的是条件于数据的经验抽样分布；依赖数据常需 block/bootstrap 结构，极重尾、边界参数、非光滑统计量或模型未识别时，普通 bootstrap 可能不一致。</li>
+</ul>
+<p>看见“样本量大所以正态”时，先说清是哪一个统计量、哪一种抽样机制、哪一组条件；看见 bootstrap 标准误时，也要把它放回目标参数和理论抽样分布的语境中。</p>
+</section>
+<h2 id="1_1">1. 基本语言<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>总体</strong>：待研究的随机变量 <span class="arithmatex">\(X\)</span>（分布含未知参数 <span class="arithmatex">\(\theta\)</span>）；<strong>样本</strong> <span class="arithmatex">\(X_1, \dots, X_n\)</span>：i.i.d. 于总体（观测前是随机变量，观测后是数据——这个双重身份是统计一切"绕"的根源）；<strong>统计量</strong>：样本的函数 <span class="arithmatex">\(T(X_1,\dots,X_n)\)</span>，<strong>不含未知参数</strong>（<span class="arithmatex">\(\bar X\)</span> 是统计量，<span class="arithmatex">\(\frac{\bar X - \mu}{\sigma}\)</span> 不是）。</p>
 <p><strong>两大标配统计量</strong>：</p>
 <div class="arithmatex">\[
 \bar X = \frac1n\sum X_i, \qquad S^2 = \frac{1}{n-1}\sum (X_i - \bar X)^2
 \]</div>
 <p><strong>为什么除 <span class="arithmatex">\(n-1\)</span></strong>：<span class="arithmatex">\(E\big[\sum(X_i - \bar X)^2\big] = (n-1)\sigma^2\)</span>——用 <span class="arithmatex">\(\bar X\)</span> 代替真 <span class="arithmatex">\(\mu\)</span> 会"偷走"一个自由度（<span class="arithmatex">\(\sum(X_i - \bar X) = 0\)</span> 这条约束），除 <span class="arithmatex">\(n-1\)</span> 恰好修正成无偏（统计 II 的无偏性在此预演）。</p>
-<p>基本事实（任何总体，只要 <span class="arithmatex">\(EX = \mu, DX = \sigma^2\)</span>）：<span class="arithmatex">\(E\bar X = \mu\)</span>，<span class="arithmatex">\(D\bar X = \frac{\sigma^2}{n}\)</span>，<span class="arithmatex">\(ES^2 = \sigma^2\)</span>。</p>
-<h2 id="2">2. 三大抽样分布<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>基本事实（<span class="arithmatex">\(X_1,\ldots,X_n\)</span> 为 i.i.d. 样本且总体二阶矩有限）：<span class="arithmatex">\(E\bar X = \mu\)</span>，<span class="arithmatex">\(D\bar X = \frac{\sigma^2}{n}\)</span>，<span class="arithmatex">\(ES^2 = \sigma^2\)</span>。若样本共享共同冲击或存在其他相关结构，后两式一般都要加入协方差项，<span class="arithmatex">\(S^2\)</span> 也未必无偏估计边际方差。</p>
+<h2 id="2_1">2. 三大抽样分布<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="卡方分布与 t 分布" src="assets/img/stat-01-sampling-dists.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>三大抽样分布：卡方（正态平方和）、\(t\)（重尾，自由度增大趋正态）——正态总体推断的工具箱。</figcaption>
@@ -65,7 +165,7 @@
 <p><strong>t 分布</strong> <span class="arithmatex">\(t(n) = \dfrac{Z}{\sqrt{\chi^2(n)/n}}\)</span>（分子分母独立）。对称钟形、<strong>比正态厚尾</strong>（小样本的不确定性体现在尾巴上）；<span class="arithmatex">\(n \to \infty\)</span> 时 <span class="arithmatex">\(\to N(0,1)\)</span>（<span class="arithmatex">\(n \geq 45\)</span> 左右可用正态近似）。——"用估计的 σ 替换真 σ 之后，正态变成的样子"。</p>
 <p><strong>F 分布</strong> <span class="arithmatex">\(F(m, n) = \dfrac{\chi^2(m)/m}{\chi^2(n)/n}\)</span>（独立）。性质：<span class="arithmatex">\(\frac{1}{F} \sim F(n, m)\)</span>（查表下分位点的技巧 <span class="arithmatex">\(F_{1-\alpha}(m,n) = \frac{1}{F_\alpha(n,m)}\)</span>）；<span class="arithmatex">\(t^2(n) = F(1, n)\)</span>。——"两个方差的比"。</p>
 <p>三者的家谱：全部由正态出生，χ² 是平方和、t 是"正态 ÷ χ² 根"、F 是"χ² 比 χ²"——<strong>记家谱不记密度</strong>（密度从不直接用，用的是分位点表）。</p>
-<h2 id="3">3. 正态总体抽样定理（本页顶点）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 正态总体抽样定理（本页顶点）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理</strong> 设 <span class="arithmatex">\(X_1, \dots, X_n\)</span> i.i.d. <span class="arithmatex">\(N(\mu, \sigma^2)\)</span>，则：</p>
 <div class="arithmatex">\[
 \text{1.}\ \bar X \sim N\Big(\mu, \frac{\sigma^2}{n}\Big); \qquad
@@ -76,9 +176,9 @@
 \text{4.（由 1--3 合成）}\quad \frac{\bar X - \mu}{S/\sqrt{n}} \sim t(n-1)
 \]</div>
 <p>逐条评注：第 1 条是正态线性封闭性（概率 III 性质 4）；第 2 条的自由度 <span class="arithmatex">\(n-1\)</span> 呼应"偷走一个自由度"；第 3 条说明<strong>均值与方差独立是正态总体的特权</strong>（一般分布不成立——它是 t 分布定义中"分子分母独立"的来源）；第 4 条是<strong>实用之王</strong>——<span class="arithmatex">\(\sigma\)</span> 未知时关于 <span class="arithmatex">\(\mu\)</span> 的一切推断（区间、检验）都从它出发。</p>
-<p>两总体版本（统计 III/IV 要用）：方差比 <span class="arithmatex">\(\dfrac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2} \sim F(n_1 - 1, n_2 - 1)\)</span>；均值差在方差相等假设下走合并方差的 t 分布。</p>
-<p><strong>大样本兜底</strong>：总体不正态时，CLT（概率 V）保证 <span class="arithmatex">\(\bar X\)</span> 近似正态——正态总体公式在大样本下近似通用，这是它们统治应用统计的原因。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>两总体版本（统计 III/IV 要用）：对两组相互独立、组内 i.i.d.、方差为正的正态样本，方差比 <span class="arithmatex">\(\dfrac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2} \sim F(n_1 - 1, n_2 - 1)\)</span>；若还假设两总体方差相等，均值差可使用合并方差的 t 分布。</p>
+<p><strong>大样本兜底的边界</strong>：在 i.i.d. 与有限方差等条件下，CLT（概率 V）只保证标准化后的 <span class="arithmatex">\(\bar X\)</span> 近似正态。它不会自动让 <span class="arithmatex">\(S^2\)</span> 服从正态总体下的精确 <span class="arithmatex">\(\chi^2\)</span> 律，也不会凭空恢复 <span class="arithmatex">\(\bar X\perp S^2\)</span>、精确 t/F 分布或相关样本的 <span class="arithmatex">\(1/n\)</span> 方差缩放；这些结论各自需要额外条件。</p>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（抽样定理直接应用）</strong> <span class="arithmatex">\(X \sim N(21, 4)\)</span>，<span class="arithmatex">\(n = 25\)</span>，求 <span class="arithmatex">\(P(\bar X &gt; 21.8)\)</span>。
 <em>解</em>：<span class="arithmatex">\(\bar X \sim N(21, \frac{4}{25})\)</span>，<span class="arithmatex">\(P = 1 - \Phi\big(\frac{0.8}{0.4}\big) = 1 - \Phi(2) = 0.0228\)</span>。（注意标准差缩成 <span class="arithmatex">\(\sigma/\sqrt n\)</span>——"平均值比个体稳定"的定量表达。）</p>
 <p><strong>例 2（χ² 用法）</strong> 正态总体 <span class="arithmatex">\(\sigma^2 = 4\)</span>，<span class="arithmatex">\(n = 10\)</span>，求 <span class="arithmatex">\(P(S^2 &gt; 8.04)\)</span>。
@@ -96,5 +196,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/sampling-estimators.js"></script>
 </body>
 </html>

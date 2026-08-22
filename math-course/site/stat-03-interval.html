@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,39 +45,131 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 置信区间：定义与正确解读</a></li>
-<li><a href="#2">2. 枢轴量法（唯一的技术）</a></li>
-<li><a href="#3">3. 正态总体置信区间公式表（默写级）</a></li>
-<li><a href="#4">4. 大样本区间（非正态总体的通行证）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#_1">学习层：区间先说清“谁在随机”</a><ul>
+<li><a href="#1">1. 具体情境：工厂的装填线要报告什么？</a></li>
+<li><a href="#2">2. 先预测：再打开覆盖账本</a></li>
+<li><a href="#3">3. 正式桥：枢轴量把随机性放在区间上</a></li>
+<li><a href="#4">4. 定理、迁移与失败边界</a></li>
+<li><a href="#5">5. 动手实验：揭示前隐藏结果，揭示后联动参数</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 置信区间：定义与正确解读</a></li>
+<li><a href="#2_1">2. 枢轴量法（唯一的技术）</a></li>
+<li><a href="#3_1">3. 正态总体置信区间公式表（默写级）</a></li>
+<li><a href="#4_1">4. 大样本区间（非正态总体的通行证）</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">统计 III · 区间估计<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>点估计给"最佳猜测"，区间估计给"猜测 ± 不确定度"。技术上只有一招（枢轴量法），观念上有一个全民级误读要纠正。本页短小，但它的公式表是实验报告与论文里出镜率最高的统计工具。</p>
+<p>点估计给“最佳猜测”，区间估计给“猜测 ± 不确定度”。技术上只有一招（枢轴量法），观念上有一个全民级误读要纠正。本页短小，但它的公式表是实验报告与论文里出镜率最高的统计工具。</p>
 </blockquote>
-<h2 id="1">1. 置信区间：定义与正确解读<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="interval-learning-title" class="learning-layer">
+<h2 id="_1">学习层：区间先说清“谁在随机”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：工厂的装填线要报告什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一条饮料装填线的目标是平均装入 <span class="arithmatex">\(\mu=500\)</span> ml。工程师抽取 <span class="arithmatex">\(n\)</span> 瓶，得到样本均值与样本标准差，然后交付一个 95% 区间。管理者问：“这个已经算出来的区间，有 95% 的概率包含真实 <span class="arithmatex">\(\mu\)</span> 吗？”</p>
+<p>这里有三件事容易被压成一句口号：</p>
+<ol>
+<li>区间端点会随重复抽样改变，<span class="arithmatex">\(\mu\)</span> 是固定但未知的参数；</li>
+<li><span class="arithmatex">\(\sigma\)</span> 已知时，标准化均值用 z；<span class="arithmatex">\(\sigma\)</span> 未知且正态模型可信时，用 t，并把自由度记成 <span class="arithmatex">\(n-1\)</span>；</li>
+<li>若看完数据才在 z、t 或多个分析之间挑最有利的一项，选择规则也成为随机过程的一部分，原来的名义覆盖率不能照抄。</li>
+</ol>
+<h3 id="2">2. 先预测：再打开覆盖账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>本页的实验固定真均值 <span class="arithmatex">\(\mu=500\)</span> ml，并用固定 seed 重复抽样。揭示前先判断：</p>
+<ol>
+<li>“95% 置信”是一个已观测区间含 <span class="arithmatex">\(\mu\)</span> 的后验概率，还是重复抽样下方法的长期覆盖率？</li>
+<li>已知方差与未知方差时，z 和 t 如何对应？小样本下 t 的尾部为什么更厚？</li>
+<li>看过每个样本后再挑较窄的区间，是否仍自动拥有原来的覆盖保证？</li>
+</ol>
+<h3 id="3">3. 正式桥：枢轴量把随机性放在区间上<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(\sigma\)</span> 已知，</p>
+<div class="arithmatex">\[
+Z=\frac{\bar X-\mu}{\sigma/\sqrt n}\sim N(0,1),
+\qquad
+\mu\in\left[\bar X-z_{1-\alpha/2}\frac{\sigma}{\sqrt n},\ \bar X+z_{1-\alpha/2}\frac{\sigma}{\sqrt n}\right].
+\]</div>
+<p>若总体正态而 <span class="arithmatex">\(\sigma\)</span> 未知，</p>
+<div class="arithmatex">\[
+T=\frac{\bar X-\mu}{S/\sqrt n}\sim t_{n-1},
+\qquad
+\mu\in\left[\bar X-t_{1-\alpha/2,n-1}\frac{S}{\sqrt n},\ \bar X+t_{1-\alpha/2,n-1}\frac{S}{\sqrt n}\right].
+\]</div>
+<p>在这两个构造中，覆盖事件是“随机区间是否罩住固定参数”。把一次已经实现的区间再读成 <span class="arithmatex">\(P(\mu\in I\mid I)=0.95\)</span>，就把频率学派的构造偷换成了需要先验的可信区间。</p>
+<h3 id="4">4. 定理、迁移与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>覆盖率是规则的长期频率。</strong>重复抽样、每次按同一规则造区间，约 <span class="arithmatex">\(1-\alpha\)</span> 的区间覆盖真值；它不是给本次已观测区间分配的含参概率。</li>
+<li><strong>z 与 t 不是装饰换字母。</strong>已知 <span class="arithmatex">\(\sigma\)</span> 才有 z 枢轴；用样本 <span class="arithmatex">\(S\)</span> 替代未知 <span class="arithmatex">\(\sigma\)</span> 会引入额外随机性，正态小样本的精确枢轴是 t。大样本时 t 才逐渐接近 z。</li>
+<li><strong>选择后推断会改问题。</strong>先看数据、宽度、显著性或多个区间，再挑一个报告，会让选择事件进入抽样分布；需要预先规定规则、做选择校正或使用同时覆盖方法。</li>
+<li><strong>模型条件不能被一次漂亮图替代。</strong>t 区间的精确小样本说法依赖正态性；非正态、相关抽样、重尾或停止规则改变时，应换稳健、重抽样或设计匹配的构造。</li>
+</ul>
+<h3 id="5">5. 动手实验：揭示前隐藏结果，揭示后联动参数<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>实验只在提交三项预测后显示模拟区间、覆盖计数和表格。揭示后可切换置信水平、样本量、方差状态与分析规则；图和表同步重算。固定 seed 让同一参数下的比较可复核，但有限重复次数不会把频率定理变成一次证明。</p>
+<div class="learning-lab" data-learning-lab="confidence-intervals">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认示范取 <span class="arithmatex">\(\bar x=503\)</span>、<span class="arithmatex">\(n=16\)</span>、<span class="arithmatex">\(S=6\)</span>、置信水平 95%。若 <span class="arithmatex">\(\sigma\)</span> 已知且取 <span class="arithmatex">\(\sigma=8\)</span>，z 区间为</p>
+<div class="arithmatex">\[
+503\pm1.96\frac{8}{4}\approx[499.08,506.92].
+\]</div>
+<p>若 <span class="arithmatex">\(\sigma\)</span> 未知且正态模型可信，<span class="arithmatex">\(t_{15}\approx2.131\)</span>，t 区间为</p>
+<div class="arithmatex">\[
+503\pm2.131\frac{6}{4}\approx[499.80,506.20].
+\]</div>
+<table>
+<thead>
+<tr>
+<th>读法</th>
+<th>静态结论</th>
+<th>不要偷换成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>95% 覆盖</td>
+<td>同一规则重复造区间，长期约 95% 覆盖 <span class="arithmatex">\(\mu\)</span></td>
+<td>已观测这一个区间含 <span class="arithmatex">\(\mu\)</span> 的概率是 95%</td>
+</tr>
+<tr>
+<td>方差已知</td>
+<td>用 z，标准误是 <span class="arithmatex">\(\sigma/\sqrt n\)</span></td>
+<td>用 <span class="arithmatex">\(S\)</span> 后仍声称 z 枢轴精确</td>
+</tr>
+<tr>
+<td>方差未知</td>
+<td>正态小样本用 t，自由度 <span class="arithmatex">\(n-1\)</span></td>
+<td>任意非正态小样本都自动适用 t</td>
+</tr>
+<tr>
+<td>事后挑窄</td>
+<td>选择进入分析规则，名义覆盖率需重新校准</td>
+<td>选择只影响审美、不影响概率</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 置信区间：定义与正确解读<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="95% 置信区间的覆盖率" src="assets/img/stat-03-confidence.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>95% 置信区间的正确读法：重复抽样，约 20 次里有 1 次的区间盖不住真值 \(\mu\)（红）——"95%"说的是方法的长期覆盖率。</figcaption>
+<figcaption><span class="fig-id">图 3.1</span>95% 置信区间的正确读法：重复抽样，约 20 次里有 1 次的区间盖不住真值 \(\mu\)（红）——“95%”说的是方法的长期覆盖率。</figcaption>
 </figure>
 <p><strong>定义</strong> 置信水平 <span class="arithmatex">\(1 - \alpha\)</span> 的置信区间 <span class="arithmatex">\([\hat\theta_L, \hat\theta_U]\)</span>（端点是统计量）满足</p>
 <div class="arithmatex">\[
 P\big(\hat\theta_L \leq \theta \leq \hat\theta_U\big) = 1 - \alpha
 \]</div>
-<p><strong>⚠️ 正确解读（高频误读，值得较真）</strong>：随机的是<strong>区间</strong>，不是参数。"95% 置信"指<strong>方法的长期频率</strong>——反复抽样造区间，约 95% 的区间会罩住真值；对算出来的<strong>具体一个</strong>区间，真值要么在要么不在，没有"95% 概率在里面"这回事（那是贝叶斯可信区间的语义，需要先验——概率 I）。实用心态：报告区间宽度=报告不确定度，窄区间才有信息量。</p>
-<h2 id="2">2. 枢轴量法（唯一的技术）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>流程</strong>：1. 找<strong>枢轴量</strong> <span class="arithmatex">\(G(X_1,\dots,X_n;\theta)\)</span>——含 <span class="arithmatex">\(\theta\)</span> 但<strong>分布完全已知</strong>（不含未知参数）；2. 对已知分布取分位点 <span class="arithmatex">\(P(g_{\alpha/2} \leq G \leq g_{1-\alpha/2}) = 1-\alpha\)</span>；3. 把不等式反解成 <span class="arithmatex">\(\theta\)</span> 居中的形式。</p>
+<p><strong>⚠️ 正确解读（高频误读，值得较真）</strong>：随机的是<strong>区间</strong>，不是参数。“95% 置信”指<strong>方法的长期频率</strong>——反复抽样造区间，约 95% 的区间会罩住真值；对算出来的<strong>具体一个</strong>区间，真值要么在要么不在，没有“95% 概率在里面”这回事（那是贝叶斯可信区间的语义，需要先验——概率 I）。实用心态：报告区间宽度=报告不确定度，窄区间才有信息量。</p>
+<h2 id="2_1">2. 枢轴量法（唯一的技术）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>流程</strong>：1. 找<strong>枢轴量</strong> <span class="arithmatex">\(G(X_1,\dots,X_n;\theta)\)</span>——含 <span class="arithmatex">\(\theta\)</span> 但<strong>分布完全已知</strong>（不含未知参数）；2. 对已知分布取分位点 <span class="arithmatex">\(P(g_{\alpha/2} \leq G \leq g_{1-\alpha/2}) = 1-\alpha\)</span>；3. 把不等式反解成 <span class="arithmatex">\(\theta\)</span> 居中的形式。下文统一用<strong>下分位数</strong>：<span class="arithmatex">\(q_p(F)\)</span> 满足 <span class="arithmatex">\(P(F\le q_p)=p\)</span>，例如 <span class="arithmatex">\(z_p\)</span>、<span class="arithmatex">\(t_{p,\nu}\)</span>、<span class="arithmatex">\(\chi^2_{p,\nu}\)</span> 与 <span class="arithmatex">\(F_{p,\nu_1,\nu_2}\)</span>；不再把上尾临界值和下分位数混写。</p>
 <p>枢轴量从哪来？<strong>统计 I 的抽样定理就是枢轴量仓库</strong>——那页的 1.2.4. 正是下表的三行。</p>
-<h2 id="3">3. 正态总体置信区间公式表（默写级）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 正态总体置信区间公式表（默写级）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -77,48 +184,48 @@ P\big(\hat\theta_L \leq \theta \leq \hat\theta_U\big) = 1 - \alpha
 <td><span class="arithmatex">\(\mu\)</span></td>
 <td><span class="arithmatex">\(\sigma^2\)</span> 已知</td>
 <td><span class="arithmatex">\(\frac{\bar X - \mu}{\sigma/\sqrt n} \sim N(0,1)\)</span></td>
-<td><span class="arithmatex">\(\bar X \pm z_{\alpha/2}\dfrac{\sigma}{\sqrt n}\)</span></td>
+<td><span class="arithmatex">\(\bar X \pm z_{1-\alpha/2}\dfrac{\sigma}{\sqrt n}\)</span></td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\mu\)</span></td>
-<td><span class="arithmatex">\(\sigma^2\)</span> 未知（常态）</td>
+<td><span class="arithmatex">\(\sigma^2\)</span> 未知（正态）</td>
 <td><span class="arithmatex">\(\frac{\bar X - \mu}{S/\sqrt n} \sim t(n{-}1)\)</span></td>
-<td><span class="arithmatex">\(\bar X \pm t_{\alpha/2}(n{-}1)\dfrac{S}{\sqrt n}\)</span></td>
+<td><span class="arithmatex">\(\bar X \pm t_{1-\alpha/2,n-1}\dfrac{S}{\sqrt n}\)</span></td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\sigma^2\)</span></td>
-<td><span class="arithmatex">\(\mu\)</span> 未知</td>
-<td><span class="arithmatex">\(\frac{(n-1)S^2}{\sigma^2} \sim \chi^2(n{-}1)\)</span></td>
-<td><span class="arithmatex">\(\Big[\dfrac{(n-1)S^2}{\chi^2_{\alpha/2}},\ \dfrac{(n-1)S^2}{\chi^2_{1-\alpha/2}}\Big]\)</span></td>
+<td><span class="arithmatex">\(\mu\)</span> 未知、正态</td>
+<td><span class="arithmatex">\(\frac{(n-1)S^2}{\sigma^2} \sim \chi^2_{n-1}\)</span></td>
+<td><span class="arithmatex">\(\Big[\dfrac{(n-1)S^2}{\chi^2_{1-\alpha/2,n-1}},\ \dfrac{(n-1)S^2}{\chi^2_{\alpha/2,n-1}}\Big]\)</span></td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\mu_1 - \mu_2\)</span></td>
-<td>两总体方差相等</td>
+<td>独立正态样本、方差相等</td>
 <td>合并方差 t</td>
-<td><span class="arithmatex">\((\bar X - \bar Y) \pm t_{\alpha/2}(n_1{+}n_2{-}2)\,S_w\sqrt{\tfrac{1}{n_1}{+}\tfrac{1}{n_2}}\)</span></td>
+<td><span class="arithmatex">\((\bar X - \bar Y) \pm t_{1-\alpha/2,n_1+n_2-2}\,S_w\sqrt{\tfrac{1}{n_1}{+}\tfrac{1}{n_2}}\)</span></td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\sigma_1^2/\sigma_2^2\)</span></td>
-<td>—</td>
-<td><span class="arithmatex">\(F(n_1{-}1, n_2{-}1)\)</span></td>
-<td><span class="arithmatex">\(\Big[\dfrac{S_1^2/S_2^2}{F_{\alpha/2}},\ \dfrac{S_1^2/S_2^2}{F_{1-\alpha/2}}\Big]\)</span></td>
+<td>独立正态样本</td>
+<td><span class="arithmatex">\(F_{n_1-1,n_2-1}\)</span></td>
+<td><span class="arithmatex">\(\Big[\dfrac{S_1^2/S_2^2}{F_{1-\alpha/2,n_1-1,n_2-1}},\ \dfrac{S_1^2/S_2^2}{F_{\alpha/2,n_1-1,n_2-1}}\Big]\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>（χ² 与 F 区间<strong>不对称</strong>——这两个分布本身不对称；正态与 t 的区间是"点估计 ± 裕量"的对称形。）</p>
-<h2 id="4">4. 大样本区间（非正态总体的通行证）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>CLT（概率 V）兜底：<span class="arithmatex">\(n\)</span> 大时 <span class="arithmatex">\(\frac{\bar X - \mu}{S/\sqrt n} \overset{\cdot}{\sim} N(0,1)\)</span>，第一行公式近似通用。<strong>比例区间</strong>（民调/A-B 实验的那个公式）：<span class="arithmatex">\(\hat p \pm z_{\alpha/2}\sqrt{\dfrac{\hat p(1-\hat p)}{n}}\)</span>。</p>
-<p><strong>样本量设计</strong>（区间反着用）：要求半宽 <span class="arithmatex">\(\leq d\)</span>，解 <span class="arithmatex">\(z_{\alpha/2}\frac{\sigma}{\sqrt n} \leq d\)</span> 得</p>
+<p>（χ² 与 F 区间<strong>不对称</strong>——这两个分布本身不对称；正态与 t 的区间是“点估计 ± 裕量”的对称形。）</p>
+<h2 id="4_1">4. 大样本区间（非正态总体的通行证）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>CLT（概率 V）兜底：在 i.i.d.、有限方差等条件下，<span class="arithmatex">\(n\)</span> 大时 <span class="arithmatex">\(\frac{\bar X - \mu}{S/\sqrt n} \overset{\cdot}{\sim} N(0,1)\)</span>，均值区间可作近似。常见的比例 <strong>Wald 区间</strong>是 <span class="arithmatex">\(\hat p \pm z_{1-\alpha/2}\sqrt{\dfrac{\hat p(1-\hat p)}{n}}\)</span>，但只有 <span class="arithmatex">\(n\hat p\)</span> 与 <span class="arithmatex">\(n(1-\hat p)\)</span> 都足够大、抽样设计近似独立时才勉强可靠；小样本或极端比例应优先 Wilson、Agresti--Coull 或精确区间，Wald 端点甚至可能越过 <span class="arithmatex">\([0,1]\)</span>。</p>
+<p><strong>样本量设计</strong>（区间反着用）：要求半宽 <span class="arithmatex">\(\leq d\)</span>，解 <span class="arithmatex">\(z_{1-\alpha/2}\frac{\sigma}{\sqrt n} \leq d\)</span> 得</p>
 <div class="arithmatex">\[
-n \geq \Big(\frac{z_{\alpha/2}\,\sigma}{d}\Big)^2
+n \geq \Big(\frac{z_{1-\alpha/2}\,\sigma}{d}\Big)^2
 \]</div>
 <p>精度加一倍 ⇒ 样本量四倍（<span class="arithmatex">\(1/\sqrt n\)</span> 定律的又一次出场，概率 V Monte Carlo 同款）。</p>
-<p>🔗 <strong>AI 衔接</strong>：模型评估的误差条——测试集准确率是比例估计，<span class="arithmatex">\(n\)</span> 张测试卡片给出的准确率带着 <span class="arithmatex">\(\pm z\sqrt{\hat p(1-\hat p)/n}\)</span> 的先天噪声；两个模型准确率差 1% 而误差条 ±2% 时，"A 比 B 好"是噪声不是结论（ai 课 10 讲"自己的 10 道题"要配这个意识；正式对比走统计 IV 的检验）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>🔗 <strong>AI 衔接</strong>：模型评估的误差条——测试集准确率是比例估计，<span class="arithmatex">\(n\)</span> 张测试卡片给出的准确率带着 <span class="arithmatex">\(\pm z\sqrt{\hat p(1-\hat p)/n}\)</span> 的先天噪声；两个模型准确率差 1% 而误差条 ±2% 时，“A 比 B 好”是噪声不是结论（ai 课 10 讲“自己的 10 道题”要配这个意识；正式对比走统计 IV 的检验）。</p>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（t 区间全流程）</strong> 某工艺 <span class="arithmatex">\(n = 16\)</span> 次测得 <span class="arithmatex">\(\bar X = 503,\ S = 6\)</span>，求 <span class="arithmatex">\(\mu\)</span> 的 95% 置信区间。
-<em>解</em>：<span class="arithmatex">\(\sigma\)</span> 未知走 t：<span class="arithmatex">\(t_{0.025}(15) = 2.131\)</span>，区间 <span class="arithmatex">\(503 \pm 2.131 \times \frac{6}{4} = [499.8,\ 506.2]\)</span>。</p>
+<em>解</em>：<span class="arithmatex">\(\sigma\)</span> 未知走 t：<span class="arithmatex">\(t_{0.975,15} = 2.131\)</span>，区间 <span class="arithmatex">\(503 \pm 2.131 \times \frac{6}{4} = [499.8,\ 506.2]\)</span>。</p>
 <p><strong>例 2（方差区间）</strong> 同数据求 <span class="arithmatex">\(\sigma^2\)</span> 的 95% 区间。
-<em>解</em>：<span class="arithmatex">\(\chi^2_{0.025}(15) = 27.49,\ \chi^2_{0.975}(15) = 6.26\)</span>，区间 <span class="arithmatex">\(\big[\frac{15 \times 36}{27.49}, \frac{15 \times 36}{6.26}\big] = [19.6,\ 86.3]\)</span>。（宽得吓人——方差比均值难估得多，<span class="arithmatex">\(n=16\)</span> 对方差推断是小样本。）</p>
+<em>解</em>：按下分位约定，<span class="arithmatex">\(\chi^2_{0.975,15}=27.49\)</span>、<span class="arithmatex">\(\chi^2_{0.025,15}=6.26\)</span>，区间 <span class="arithmatex">\(\big[\frac{15 \times 36}{27.49},\ \frac{15 \times 36}{6.26}\big] = [19.6,\ 86.3]\)</span>。（宽得吓人——方差比均值难估得多，<span class="arithmatex">\(n=16\)</span> 对方差推断是小样本。）</p>
 <p><strong>例 3（样本量设计）</strong> 民调想把支持率估到 ±3%（95% 置信），最坏情形 <span class="arithmatex">\(p = 0.5\)</span>：<span class="arithmatex">\(n \geq \big(\frac{1.96 \times 0.5}{0.03}\big)^2 \approx 1068\)</span>——新闻里民调样本量约一千的出处。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：统计推断的另一半版图——假设检验：两类错误、p 值的正确姿势、正态总体检验全表。</em></p>
@@ -131,5 +238,7 @@ n \geq \Big(\frac{z_{\alpha/2}\,\sigma}{d}\Big)^2
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/confidence-intervals.js"></script>
 </body>
 </html>

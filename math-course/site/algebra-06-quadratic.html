@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 二次型与合同</a></li>
-<li><a href="#2">2. 正定性</a></li>
-<li><a href="#3">3. 内积空间与正交</a></li>
-<li><a href="#4">4. 谱定理（本页顶点）</a></li>
+<li><a href="#algebra06-learning-title">学习层：二次型换坐标，保留下来的是什么？</a><ul>
+<li><a href="#1">1. 一个具体的合同实例</a></li>
+<li><a href="#2">2. 先预测：合同、惯性与正定</a></li>
+<li><a href="#3">3. 正式桥：从替换公式到惯性定理</a></li>
+<li><a href="#4">4. 定理级结论与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 二次型与合同</a></li>
+<li><a href="#2_1">2. 正定性</a></li>
+<li><a href="#3_1">3. 内积空间与正交</a></li>
+<li><a href="#4_1">4. 谱定理（本页顶点）</a></li>
 <li><a href="#5">5. 通往机器学习的两级台阶</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
@@ -50,7 +72,86 @@
 <blockquote>
 <p>高等代数的收官页，两条线在此会师：二次型（合同标准形、正定性——多元极值判别的代数根据）与内积空间（长度、角度、正交——几何回归代数）。顶点是<strong>实对称矩阵的谱定理</strong>，以及它通往机器学习的直通车：主成分分析与奇异值分解。</p>
 </blockquote>
-<h2 id="1">1. 二次型与合同<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="algebra06-learning-title" class="learning-layer">
+<h2 id="algebra06-learning-title">学习层：二次型换坐标，保留下来的是什么？<a class="headerlink" href="#algebra06-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个具体的合同实例<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>考虑</p>
+<div class="arithmatex">\[
+q_t(x,y)=x^2+2txy+y^2,\qquad
+A_t=\begin{pmatrix}1&amp;t\\ t&amp;1\end{pmatrix}.
+\]</div>
+<p>在 <span class="arithmatex">\(t=0.5\)</span> 时，两个特征值为 <span class="arithmatex">\(1.5,0.5\)</span>，二次型正定，<span class="arithmatex">\(q_t=1\)</span> 是椭圆；在 <span class="arithmatex">\(t=1.4\)</span> 时，特征值一正一负，等值线变成双曲线。现在做可逆替换 <span class="arithmatex">\(x=Cy\)</span>，例如</p>
+<div class="arithmatex">\[
+C_s=\begin{pmatrix}1&amp;s\\0&amp;1\end{pmatrix},\qquad B=C_s^\mathsf{T}A_tC_s.
+\]</div>
+<p>这是合同变换：同一个二次型换了一套坐标。它不应被写成相似变换 <span class="arithmatex">\(C_s^{-1}A_tC_s\)</span>，因为那是线性映射换基时的矩阵照片。</p>
+<h3 id="2">2. 先预测：合同、惯性与正定<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台前，先写下三个预测：</p>
+<ol>
+<li><span class="arithmatex">\(x=Cy\)</span> 后二次型的矩阵是 <span class="arithmatex">\(C^\mathsf{T}AC\)</span> 还是 <span class="arithmatex">\(C^{-1}AC\)</span>？</li>
+<li>可逆合同变换一定保留特征值数值，还是只保留正、负、零三类的个数？</li>
+<li><span class="arithmatex">\(A=\operatorname{diag}(1,-1)\)</span> 能不能通过可逆坐标替换变成正定矩阵？</li>
+</ol>
+<p>提交后，实验台会同时列出 <span class="arithmatex">\(A\)</span>、合同矩阵 <span class="arithmatex">\(C^\mathsf{T}AC\)</span>、相似矩阵 <span class="arithmatex">\(C^{-1}AC\)</span> 的谱与惯性指数，并画出 <span class="arithmatex">\(q(x,y)=1\)</span> 的真实 SVG 截线。揭示前不会显示任何结果。</p>
+<h3 id="3">3. 正式桥：从替换公式到惯性定理<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(x=Cy\)</span> 代入 <span class="arithmatex">\(x^\mathsf{T}Ax\)</span>，得到</p>
+<div class="arithmatex">\[
+x^\mathsf{T}Ax=y^\mathsf{T}(C^\mathsf{T}AC)y.
+\]</div>
+<p>若 <span class="arithmatex">\(A\)</span> 是实对称矩阵，谱定理给出正交矩阵 <span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(Q^\mathsf{T}AQ=\operatorname{diag}(\lambda_i)\)</span>。惯性定理进一步断言：对任意可逆 <span class="arithmatex">\(C\)</span>，</p>
+<div class="arithmatex">\[
+\operatorname{Inertia}(C^\mathsf{T}AC)=\operatorname{Inertia}(A)=(p,q,r),
+\]</div>
+<p>其中 <span class="arithmatex">\(p,q,r\)</span> 分别是正、负、零特征方向的个数。合同不变量是符号计数，不是一般意义下的特征值列表；相似变换才保留全部特征值、迹和行列式。</p>
+<div class="learning-lab" data-learning-lab="quadratic-forms">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>对 <span class="arithmatex">\(A_t\)</span> 和 <span class="arithmatex">\(C_s\)</span> 只记录精确代数结论。<span class="arithmatex">\(s\)</span> 可以任意取实数，因为 <span class="arithmatex">\(C_s\)</span> 的行列式恒为 <span class="arithmatex">\(1\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(t\)</span></th>
+<th><span class="arithmatex">\(A_t\)</span> 的特征值</th>
+<th>惯性指数 <span class="arithmatex">\((p,q,r)\)</span></th>
+<th><span class="arithmatex">\(q_t=1\)</span> 的形状</th>
+<th>合同后结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td><span class="arithmatex">\(1.5,0.5\)</span></td>
+<td><span class="arithmatex">\((2,0,0)\)</span></td>
+<td>椭圆</td>
+<td>仍为正定</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(2,0\)</span></td>
+<td><span class="arithmatex">\((1,0,1)\)</span></td>
+<td>退化平行带</td>
+<td>零方向仍存在</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1.4\)</span></td>
+<td><span class="arithmatex">\(2.4,-0.4\)</span></td>
+<td><span class="arithmatex">\((1,1,0)\)</span></td>
+<td>双曲线</td>
+<td>仍是不定</td>
+</tr>
+</tbody>
+</table>
+<p>例如 <span class="arithmatex">\(t=0.5,s=1\)</span> 时，合同矩阵为 <span class="arithmatex">\(C_s^\mathsf{T}A_tC_s\)</span>，其特征值一般已经不是 <span class="arithmatex">\(1.5,0.5\)</span>，但两个方向仍为正。把 <span class="arithmatex">\(C_s^{-1}A_tC_s\)</span> 的谱拿来替代合同结论，就是把两个标准形问题混在了一起。</p>
+</div>
+<h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：实对称二次型在可逆合同下由 <span class="arithmatex">\((p,q,r)\)</span> 完全分类；正定等价于 <span class="arithmatex">\(p=n\)</span>，也等价于所有特征值为正以及 Sylvester 顺序主子式全为正。</li>
+<li><strong>相似与合同边界</strong>：<span class="arithmatex">\(T^{-1}AT\)</span> 描述同一线性映射换基后的矩阵；<span class="arithmatex">\(C^\mathsf{T}AC\)</span> 描述同一二次型换坐标后的矩阵。合同不保证一般特征值逐个不变。</li>
+<li><strong>有限证据</strong>：一张等值线或有限个 <span class="arithmatex">\(x\)</span> 的取值不能证明全空间正定；正定命题要求对所有非零 <span class="arithmatex">\(x\)</span> 成立，或给出等价的谱、主子式或合同证书。</li>
+<li><strong>退化边界</strong>：零特征值意味着半定或退化，需要把零惯性指数保留下来；接近零的浮点特征值不能自动当作精确零，必须说明容差或回到精确计算。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 二次型与合同<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(n\)</span> 元二次型 <span class="arithmatex">\(f(x) = x^\top A x\)</span>（约定 <span class="arithmatex">\(A\)</span> 对称——任何二次型的矩阵可对称化）。可逆线性替换 <span class="arithmatex">\(x = Cy\)</span> 后矩阵变为</p>
 <div class="arithmatex">\[
 B = C^\top A\, C
@@ -58,7 +159,7 @@ B = C^\top A\, C
 <p><strong>定义（合同）</strong> <span class="arithmatex">\(B \simeq A \iff \exists\)</span> 可逆 <span class="arithmatex">\(C:\ B = C^\top A C\)</span>。（对照：相似是 <span class="arithmatex">\(T^{-1}AT\)</span>——<strong>相似 = 换基看变换，合同 = 换坐标看二次型</strong>，第三种标准形理论开张。）</p>
 <p><strong>化标准形三法</strong>：配方法（万能）；初等变换法（对 <span class="arithmatex">\(A\)</span> 做成对的行列变换）；正交替换法（见 §3，能同时保持几何）。</p>
 <p><strong>定理（惯性定理）</strong> 实二次型的标准形 <span class="arithmatex">\(\sum_{i=1}^{p} y_i^2 - \sum_{i=p+1}^{p+q} y_i^2\)</span> 中正项数 <span class="arithmatex">\(p\)</span>（正惯性指数）与负项数 <span class="arithmatex">\(q\)</span> 唯一确定。——<strong>合同关系下的完全不变量是 <span class="arithmatex">\((p, q, n - p - q)\)</span></strong>（复数域上只剩秩）。</p>
-<h2 id="2">2. 正定性<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 正定性<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="二次型等值线由定性决定" src="assets/img/algebra-06-quadratic-forms.svg" /></p>
 <figcaption><span class="fig-id">图 6.1</span>二次型 \(\mathbf{x}^\top A\mathbf{x}\) 的等值线由 \(A\) 的定性决定：正定→椭圆（碗）、不定→双曲（鞍）、半定→退化。</figcaption>
@@ -67,7 +168,7 @@ B = C^\top A\, C
 <p><strong>定理（正定判据大集合）</strong> 实对称 <span class="arithmatex">\(A\)</span> 正定 <span class="arithmatex">\(\iff\)</span> 正惯性指数 <span class="arithmatex">\(= n\)</span> <span class="arithmatex">\(\iff\)</span> 一切特征值 <span class="arithmatex">\(&gt; 0\)</span> <span class="arithmatex">\(\iff\)</span> <strong>顺序主子式全 <span class="arithmatex">\(&gt; 0\)</span></strong>（Sylvester 准则）<span class="arithmatex">\(\iff \exists\)</span> 可逆 <span class="arithmatex">\(C:\ A = C^\top C\)</span>（"正定 = 某个满秩矩阵的 Gram 矩阵"）。</p>
 <p>半正定的对应版本：特征值 <span class="arithmatex">\(\geq 0\)</span>；<span class="arithmatex">\(A = C^\top C\)</span>（<span class="arithmatex">\(C\)</span> 不必满秩）；<strong>注意顺序主子式 <span class="arithmatex">\(\geq 0\)</span> 不是半正定的充分条件</strong>（需全体主子式 <span class="arithmatex">\(\geq 0\)</span>）——高频陷阱。</p>
 <p>🔗 <strong>AI 衔接</strong>：Hessian 正定 ⇒ 严格极小（数分 V 会师点）；凸函数 <span class="arithmatex">\(\iff\)</span> Hessian 半正定；核函数合法性 <span class="arithmatex">\(\iff\)</span> Gram 矩阵半正定（ai 课 02 讲 Mercer 定理的判据正是本节语言）；协方差矩阵天生半正定（概率页）。</p>
-<h2 id="3">3. 内积空间与正交<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 内积空间与正交<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定义（Euclid 空间）</strong> 实线性空间 + 内积 <span class="arithmatex">\(\langle\cdot,\cdot\rangle\)</span>（对称、双线性、正定）。标准例 <span class="arithmatex">\(\langle x, y\rangle = x^\top y\)</span>；函数空间例 <span class="arithmatex">\(\langle f, g\rangle = \int_a^b fg\,dx\)</span>（Fourier 级数的舞台，数分 IV）。</p>
 <p>长度 <span class="arithmatex">\(\|x\| = \sqrt{\langle x,x\rangle}\)</span>；<strong>Cauchy–Schwarz</strong> <span class="arithmatex">\(|\langle x, y\rangle| \leq \|x\|\|y\|\)</span>（<em>证明一行</em>：<span class="arithmatex">\(\|x + ty\|^2 \geq 0\)</span> 的判别式 <span class="arithmatex">\(\leq 0\)</span>）；夹角、三角不等式随之成立。</p>
 <p><strong>正交基与 Gram–Schmidt 正交化</strong>：任意基可逐个"减去在前面各向量上的投影"化为正交基：</p>
@@ -77,7 +178,7 @@ B = C^\top A\, C
 <p>（🔗 QR 分解的手工版，数值页。）标准正交基下坐标 = 内积投影 <span class="arithmatex">\(x_i = \langle v, e_i\rangle\)</span>——Fourier 系数公式的有限维原型。</p>
 <p><strong>正交矩阵</strong> <span class="arithmatex">\(Q^\top Q = I\)</span>：列为标准正交基；保内积保长度（等距变换）；<span class="arithmatex">\(\det Q = \pm 1\)</span>（旋转/反射）；逆 = 转置（数值上零成本求逆——正交矩阵是数值计算的宠儿）。</p>
 <p><strong>正交补与投影</strong>：<span class="arithmatex">\(V = W \oplus W^\perp\)</span>；向 <span class="arithmatex">\(W\)</span> 的正交投影是"<span class="arithmatex">\(W\)</span> 中离 <span class="arithmatex">\(v\)</span> 最近的点"。🔗 <strong>最小二乘的几何本相</strong>：<span class="arithmatex">\(Ax = b\)</span> 无解时求 <span class="arithmatex">\(\min\|Ax - b\|\)</span>，即把 <span class="arithmatex">\(b\)</span> 投影到列空间——法方程 <span class="arithmatex">\(A^\top A\hat x = A^\top b\)</span> 就是"残差 ⊥ 列空间"的代数写法（统计页回归的地基）。</p>
-<h2 id="4">4. 谱定理（本页顶点）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 谱定理（本页顶点）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>定理（实对称矩阵的谱定理）</strong> 实对称 <span class="arithmatex">\(A\)</span> 必可<strong>正交对角化</strong>：存在正交矩阵 <span class="arithmatex">\(Q\)</span>，</p>
 <div class="arithmatex">\[
 Q^\top A\, Q = \mathrm{diag}(\lambda_1, \dots, \lambda_n), \qquad \lambda_i \in \mathbb{R}
@@ -98,7 +199,7 @@ A = U \Sigma V^\top
 <em>解</em>：特征多项式 <span class="arithmatex">\((\lambda - 1)^2(\lambda - 4)\)</span>。<span class="arithmatex">\(\lambda = 4\)</span>：<span class="arithmatex">\(\xi = (1,1,1)^\top\)</span>；<span class="arithmatex">\(\lambda = 1\)</span>：解出二维特征子空间，取基后 <strong>Gram–Schmidt 正交化</strong>（同特征值内部不自动正交！），三向量单位化拼成 <span class="arithmatex">\(Q\)</span>。<span class="arithmatex">\(Q^\top AQ = \mathrm{diag}(4,1,1)\)</span>。</p>
 <p><strong>例 2（带参数正定判别）</strong> <span class="arithmatex">\(f = x_1^2 + x_2^2 + 5x_3^2 + 2tx_1x_2 - 2x_1x_3 + 4x_2x_3\)</span> 正定，求 <span class="arithmatex">\(t\)</span>。
 <em>解</em>：顺序主子式：<span class="arithmatex">\(\Delta_1 = 1 &gt; 0\)</span>；<span class="arithmatex">\(\Delta_2 = 1 - t^2 &gt; 0\)</span>；<span class="arithmatex">\(\Delta_3 = \det A = -5t^2 - 4t &gt; 0\)</span>。联立得 <span class="arithmatex">\(-\frac45 &lt; t &lt; 0\)</span>。</p>
-<p><strong>例 3（谱分解速算矩阵函数）</strong> 例 1 的 <span class="arithmatex">\(A\)</span> 求 <span class="arithmatex">\(A^{100}\)</span> 的表达：<span class="arithmatex">\(A = 4\,\frac{J}{3}\cdot\frac{}{}\)</span>…用谱分解 <span class="arithmatex">\(A = 4 P_1 + 1\cdot P_2\)</span>（<span class="arithmatex">\(P_1 = \frac13\mathbf{1}\mathbf{1}^\top\)</span> 为到 <span class="arithmatex">\((1,1,1)\)</span> 方向的投影，<span class="arithmatex">\(P_2 = I - P_1\)</span>），投影幂等正交 ⇒ <span class="arithmatex">\(A^{100} = 4^{100}P_1 + P_2\)</span>。<strong>谱分解把矩阵函数变成特征值函数。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（谱分解速算矩阵函数）</strong> 对例 1 的 <span class="arithmatex">\(A\)</span> 求 <span class="arithmatex">\(A^{100}\)</span>：令 <span class="arithmatex">\(P_1=\frac13\mathbf 1\mathbf 1^\top=\frac13J\)</span> 为到 <span class="arithmatex">\((1,1,1)\)</span> 方向的正交投影，<span class="arithmatex">\(P_2=I-P_1\)</span>，则 <span class="arithmatex">\(A=4P_1+P_2\)</span>。由 <span class="arithmatex">\(P_i^2=P_i\)</span> 与 <span class="arithmatex">\(P_1P_2=0\)</span>，立即得到 <span class="arithmatex">\(A^{100}=4^{100}P_1+P_2\)</span>。<strong>谱分解把矩阵函数变成特征值函数。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>双主干至此完工。侧栏其余课程的占位页已备好规划骨架——下一门想建哪门，随时把占位页当 spec 开工。</em></p>
 </article>
@@ -110,5 +211,7 @@ A = U \Sigma V^\top
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/quadratic-forms.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 一元多项式与整除</a></li>
-<li><a href="#2">2. 最大公因式与互素</a></li>
-<li><a href="#3">3. 因式分解定理</a></li>
-<li><a href="#4">4. 根与三大数域上的分解</a></li>
+<li><a href="#algebra01-learning-title">学习层：根、重数与数值敏感性是三本账</a><ul>
+<li><a href="#1">1. 具体情境：校准方程为什么会“碰到”而不是“穿过”零点？</a></li>
+<li><a href="#2">2. 揭示前预测：先把三种问题分开</a></li>
+<li><a href="#3">3. 正式桥：从因式到系数，再回到根</a></li>
+<li><a href="#4">4. 定理与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 一元多项式与整除</a></li>
+<li><a href="#2_1">2. 最大公因式与互素</a></li>
+<li><a href="#3_1">3. 因式分解定理</a></li>
+<li><a href="#4_1">4. 根与三大数域上的分解</a></li>
 <li><a href="#5">5. 对称多项式一瞥</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
@@ -50,14 +72,76 @@
 <blockquote>
 <p>高等代数的开篇为什么是多项式？两个理由：它是"带算术结构的代数系统"最好的第一个样本（整除、辗转相除、唯一分解——与整数惊人平行，抽象代数"环论"的预演）；特征多项式、最小多项式（高代 V）的一切性质都在这里预铺。</p>
 </blockquote>
-<h2 id="1">1. 一元多项式与整除<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="algebra01-learning-title" class="learning-layer">
+<h2 id="algebra01-learning-title">学习层：根、重数与数值敏感性是三本账<a class="headerlink" href="#algebra01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：校准方程为什么会“碰到”而不是“穿过”零点？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一个简化的校准误差写成</p>
+<div class="arithmatex">\[
+p_{c,d,g}(x)=((x-c)^2-g^2)(x-d).
+\]</div>
+<p>这里 <span class="arithmatex">\(x\)</span> 是待调参数，<span class="arithmatex">\(p(x)=0\)</span> 是“误差刚好抵消”。当 <span class="arithmatex">\(g=0\)</span> 时，中心 <span class="arithmatex">\(c\)</span> 是重根；当 <span class="arithmatex">\(g&gt;0\)</span> 时，它裂成 <span class="arithmatex">\(c-g\)</span> 与 <span class="arithmatex">\(c+g\)</span> 两个相近的根。第三个根 <span class="arithmatex">\(d\)</span> 保留为一个远处的对照。实验把这三个角色画在同一张图上，但它不会用图形代替因式分解或重数判定。</p>
+<h3 id="2">2. 揭示前预测：先把三种问题分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前，先回答四个问题：</p>
+<ol>
+<li><span class="arithmatex">\(g=0\)</span> 时，中心根的重数和穿越行为是什么？</li>
+<li>从 <span class="arithmatex">\(g=0\)</span> 增加到正数时，中心附近会留下一个根，还是分成两个单根？</li>
+<li>在这个具体多项式族里，系数 <span class="arithmatex">\(a_1\)</span> 相对重根基准的变化是一次尺度还是二次尺度？</li>
+<li>有限区间上的数值曲线全都正确，能否单独证明代数基本定理？</li>
+</ol>
+<p>预测的对象不是“这张图长什么样”，而是根的代数身份。尤其要把“根的个数”“根的重数”和“根对系数扰动的移动量”写成不同的判断。</p>
+<h3 id="3">3. 正式桥：从因式到系数，再回到根<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>展开得到</p>
+<div class="arithmatex">\[
+p_{c,d,g}(x)=x^3-(d+2c)x^2+(2cd+c^2-g^2)x-d(c^2-g^2).
+\]</div>
+<p>因此根的和为 <span class="arithmatex">\(d+2c\)</span>，根的积为 <span class="arithmatex">\(d(c^2-g^2)\)</span>，这是 Vieta 关系的一个可审计样本。<span class="arithmatex">\(g=0\)</span> 时，<span class="arithmatex">\((x-c)^2\)</span> 直接给出二重根；等价地，根 <span class="arithmatex">\(r\)</span> 同时满足 <span class="arithmatex">\(p(r)=0\)</span> 与 <span class="arithmatex">\(p'(r)=0\)</span>。当 <span class="arithmatex">\(g&gt;0\)</span> 时，两个中心根的位移尺度是 <span class="arithmatex">\(g\)</span>，而 <span class="arithmatex">\(a_1\)</span> 的变化量是 <span class="arithmatex">\(-g^2\)</span>。这说明重根附近的根位置可能比系数变化更敏感，但具体条件数仍要指定尺度、范数和算法。</p>
+<div class="learning-lab" data-learning-lab="polynomial-roots">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(c=1\)</span>、<span class="arithmatex">\(d=-2\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>参数状态</th>
+<th>根账本</th>
+<th>系数或图形读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(g=0\)</span></td>
+<td><span class="arithmatex">\(x=1\)</span> 为二重根，<span class="arithmatex">\(x=-2\)</span> 为单根</td>
+<td>中心处通常相切；<span class="arithmatex">\(p(1)=p'(1)=0\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(g=0.2\)</span></td>
+<td><span class="arithmatex">\(x=0.8,1.2,-2\)</span> 都是单根</td>
+<td><span class="arithmatex">\(a_1\)</span> 相对重根基准变化 <span class="arithmatex">\(-0.04\)</span>，中心根分离 <span class="arithmatex">\(0.4\)</span></td>
+</tr>
+<tr>
+<td>任意有限窗口</td>
+<td>只能看到采样点和窗口内的交点</td>
+<td>不能由有限图形推出代数基本定理</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理桥</strong>：余数定理给出 <span class="arithmatex">\(p(a)=0\iff x-a\)</span> 整除 <span class="arithmatex">\(p\)</span>；因式中的指数才是重数。Vieta 只描述根的对称组合，不等于已经数值求出了每个根。</li>
+<li><strong>重数边界</strong>：图像相切是实根的可视线索，不是任意高次多项式的重数证明；正式判别要使用 <span class="arithmatex">\(p\)</span> 与 <span class="arithmatex">\(p'\)</span> 的最大公因式。</li>
+<li><strong>数值边界</strong>：重根分裂的 <span class="arithmatex">\(g\)</span> 对应本模型的系数变化 <span class="arithmatex">\(g^2\)</span>，不等于所有多项式或所有求根算法的统一条件数结论。</li>
+<li><strong>存在性边界</strong>：有限数值图只能检查有限窗口和有限采样。代数基本定理是在复数域上计重数的存在性定理，不能由一次实验图替代。</li>
+</ul>
+</div>
+</section>
+<h2 id="1_1">1. 一元多项式与整除<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(f(x) = a_n x^n + \cdots + a_1 x + a_0\)</span>（<span class="arithmatex">\(a_n \neq 0\)</span> 时 <span class="arithmatex">\(\deg f = n\)</span>）。系数取自数域 <span class="arithmatex">\(P\)</span>（对四则封闭的数集，如 <span class="arithmatex">\(\mathbb{Q}, \mathbb{R}, \mathbb{C}\)</span>）——<strong>"在哪个数域上"贯穿全页</strong>，同一多项式在不同域上可约性完全不同。</p>
 <p><strong>带余除法</strong> 对 <span class="arithmatex">\(f, g\ (g \neq 0)\)</span>，存在唯一的 <span class="arithmatex">\(q, r\)</span>：</p>
 <div class="arithmatex">\[
 f = qg + r, \qquad \deg r &lt; \deg g \ \text{或}\ r = 0
 \]</div>
 <p><strong>整除</strong> <span class="arithmatex">\(g \mid f \iff r = 0\)</span>。性质：传递性；<span class="arithmatex">\(g \mid f_i \Rightarrow g \mid (u_1 f_1 + u_2 f_2)\)</span>（整除组合）。整除关系不随数域扩大而改变（带余除法的商余不依赖域）。</p>
-<h2 id="2">2. 最大公因式与互素<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 最大公因式与互素<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(d = (f, g)\)</span>：公因式中被所有公因式整除者（首一约定唯一）。</p>
 <p><strong>辗转相除法（Euclid）</strong>：反复带余除法，最后一个非零余式即 <span class="arithmatex">\((f,g)\)</span>；回代得 <strong>Bézout 等式</strong>：</p>
 <div class="arithmatex">\[
@@ -69,7 +153,7 @@ f = qg + r, \qquad \deg r &lt; \deg g \ \text{或}\ r = 0
 <li><span class="arithmatex">\(f_1 \mid g,\ f_2 \mid g,\ (f_1, f_2) = 1 \Rightarrow f_1 f_2 \mid g\)</span>；</li>
 <li><span class="arithmatex">\((f, g) = (f, h) = 1 \Rightarrow (f, gh) = 1\)</span>。</li>
 </ul>
-<h2 id="3">3. 因式分解定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 因式分解定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>不可约多项式</strong>：在数域 <span class="arithmatex">\(P\)</span> 上不能分解为两个更低次多项式之积。类比素数；性质：<span class="arithmatex">\(p\)</span> 不可约，则 <span class="arithmatex">\(p \mid fg \Rightarrow p\mid f\)</span> 或 <span class="arithmatex">\(p \mid g\)</span>。</p>
 <p><strong>定理（唯一分解）</strong> 数域上任一次数 <span class="arithmatex">\(\geq 1\)</span> 的多项式可分解为不可约多项式之积，且分解在<strong>不计次序与常数因子</strong>意义下唯一。（标准分解式 <span class="arithmatex">\(f = c\,p_1^{r_1}\cdots p_s^{r_s}\)</span>。）</p>
 <p><strong>重因式</strong>：<span class="arithmatex">\(p^k \mid f\)</span> 但 <span class="arithmatex">\(p^{k+1} \nmid f\)</span> 称 <span class="arithmatex">\(k\)</span> 重。<strong>判别工具</strong>：</p>
@@ -77,7 +161,7 @@ f = qg + r, \qquad \deg r &lt; \deg g \ \text{或}\ r = 0
 f\ \text{无重因式} \iff (f, f') = 1
 \]</div>
 <p>（<span class="arithmatex">\(p\)</span> 是 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(k\)</span> 重因式 ⇒ 是 <span class="arithmatex">\(f'\)</span> 的 <span class="arithmatex">\(k-1\)</span> 重因式。）<strong>去重技巧</strong>：<span class="arithmatex">\(\dfrac{f}{(f, f')}\)</span> 与 <span class="arithmatex">\(f\)</span> 有完全相同的不可约因子且全为单重——不用求根就能"洗掉"重数。</p>
-<h2 id="4">4. 根与三大数域上的分解<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 根与三大数域上的分解<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>余数定理</strong>：<span class="arithmatex">\(f(x) = (x - a) q(x) + f(a)\)</span>；<span class="arithmatex">\(a\)</span> 为根 <span class="arithmatex">\(\iff (x-a) \mid f\)</span>。<span class="arithmatex">\(n\)</span> 次多项式在任何数域上至多 <span class="arithmatex">\(n\)</span> 个根。</p>
 <p><strong>Vieta 公式</strong>：根与系数的关系 <span class="arithmatex">\(\sum x_i = -\frac{a_{n-1}}{a_n}\)</span>，<span class="arithmatex">\(\prod x_i = (-1)^n\frac{a_0}{a_n}\)</span> 等。</p>
 <table>
@@ -130,5 +214,7 @@ f\ \text{无重因式} \iff (f, f') = 1
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/polynomial-roots.js"></script>
 </body>
 </html>

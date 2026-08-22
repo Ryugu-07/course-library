@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,26 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 数学期望</a></li>
-<li><a href="#2">2. 方差与矩</a></li>
-<li><a href="#3">3. 协方差与相关系数</a></li>
+<li><a href="#moments-learning-title">学习层：一个数字能看见多长的尾巴？</a><ul>
+<li><a href="#1">1. 具体实例：同样的平均成绩，风险账能一样吗？</a></li>
+<li><a href="#2">2. 先预测：先猜账本，再看曲线</a></li>
+<li><a href="#3">3. 正式桥：三种矩与两条上界各管什么</a></li>
+<li><a href="#4-mgf">4. 可操作实验：揭示后同时审计矩、MGF 与尾部</a></li>
+<li><a href="#5">5. 定理与失败边界：摘要不是完整档案</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 数学期望</a></li>
+<li><a href="#2_1">2. 方差与矩</a></li>
+<li><a href="#3_1">3. 协方差与相关系数</a></li>
 <li><a href="#4">4. 条件期望（本页顶点）</a></li>
-<li><a href="#5">5. 母函数与特征函数</a></li>
+<li><a href="#5_1">5. 母函数与特征函数</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
 </div>
@@ -50,7 +73,103 @@
 <blockquote>
 <p>分布是完整档案，数字特征是"体检报告摘要"：期望定位、方差定散度、协方差定联动。本页的顶点是<strong>条件期望</strong>——它不只是一个数，而是一个随机变量，并且是"最佳预测"的数学化身：机器学习整个回归问题的理论答案在此写就。</p>
 </blockquote>
-<h2 id="1">1. 数学期望<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="moments-learning-title" class="learning-layer">
+<h2 id="moments-learning-title">学习层：一个数字能看见多长的尾巴？<a class="headerlink" href="#moments-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体实例：同样的平均成绩，风险账能一样吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>两家供应商交付时间的均值都为 <span class="arithmatex">\(1\)</span> 天，方差也可能相同，但一家把波动均匀摊开，另一家大多数时候准时、偶尔极慢。只报均值和方差，能不能决定一次极端延迟的概率？再问得细一点：<span class="arithmatex">\(E[X^k]\)</span>、<span class="arithmatex">\(E[(X-EX)^k]\)</span> 和 <span class="arithmatex">\(M_X(t)=E[e^{tX}]\)</span> 是三本什么不同的账？</p>
+<p>下面的实验用均匀、指数、Pareto 和一对同均值同方差的离散分布来回答。它把当前阶数 <span class="arithmatex">\(k\)</span>、MGF 探针 <span class="arithmatex">\(t\)</span> 和尾阈值 <span class="arithmatex">\(a\)</span> 同时放在台面上；图画的是事件概率与不等式上界，表格则记录矩的类型和存在域。</p>
+<h3 id="2">2. 先预测：先猜账本，再看曲线<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>提交实验前，先判断：</p>
+<ol>
+<li>原点矩 <span class="arithmatex">\(E[X^k]\)</span> 与中心矩 <span class="arithmatex">\(E[(X-EX)^k]\)</span> 在均值不为零时会不会相同？二阶中心矩和方差是什么关系？</li>
+<li>Pareto 分布可以有有限均值和方差，是否因此自动拥有某个正邻域上的 MGF？</li>
+<li>两个分布的均值和方差都相同，能否据此推出它们的分布或尾概率相同？</li>
+<li>Markov/Chebyshev 公式给出的数是精确概率，还是只在满足条件时保证“不超过”的上界？</li>
+</ol>
+<h3 id="3">3. 正式桥：三种矩与两条上界各管什么<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(\mu=EX\)</span>。原点矩和中心矩分别是</p>
+<div class="arithmatex">\[
+m_k=E[X^k],
+\qquad
+\mu_k=E[(X-\mu)^k],
+\qquad
+\operatorname{Var}(X)=\mu_2.
+\]</div>
+<p>中心化会改变数值但没有丢掉关系；例如</p>
+<div class="arithmatex">\[
+\mu_2=m_2-m_1^2,
+\qquad
+\mu_3=m_3-3m_1m_2+2m_1^3.
+\]</div>
+<p>MGF 是</p>
+<div class="arithmatex">\[
+M_X(t)=E[e^{tX}],
+\]</div>
+<p>只在期望有限的 <span class="arithmatex">\(t\)</span> 集合上定义。若 <span class="arithmatex">\(0\)</span> 附近存在开区间且可以逐阶求导，才可用 <span class="arithmatex">\(M_X^{(k)}(0)=E[X^k]\)</span> 生成矩；“某几阶矩有限”不等于 MGF 在 <span class="arithmatex">\(0\)</span> 附近存在。特征函数 <span class="arithmatex">\(E[e^{itX}]\)</span> 则始终存在，是另一种更稳健的分布编码。</p>
+<p>对非负 <span class="arithmatex">\(W\)</span> 和 <span class="arithmatex">\(a&gt;0\)</span>，Markov 给出</p>
+<div class="arithmatex">\[
+P(W\ge a)\le\frac{EW}{a}.
+\]</div>
+<p>对有有限方差的 <span class="arithmatex">\(X\)</span>，Chebyshev 给出</p>
+<div class="arithmatex">\[
+P(|X-\mu|\ge a)\le\frac{\operatorname{Var}(X)}{a^2}.
+\]</div>
+<p>它们都是上界而不是自动的等号；实验会把精确事件概率与上界画在一起，专门防止把“保证不超过”读成“实际就是”。</p>
+<h3 id="4-mgf">4. 可操作实验：揭示后同时审计矩、MGF 与尾部<a class="headerlink" href="#4-mgf" title="Permanent link"></a></h3>
+<p>默认使用 <span class="arithmatex">\(U(0,2)\)</span>、<span class="arithmatex">\(k=2\)</span>、<span class="arithmatex">\(t=0.5\)</span>、<span class="arithmatex">\(a=1.5\)</span>。先完成预测门；提交后可切换分布、同矩离散变体、矩阶数、MGF 探针和尾阈值。结果图的两块分别对应 Markov 事件和 Chebyshev 事件，表格会随每个控件同步重算。</p>
+<div class="learning-lab" data-learning-lab="moments-tail">
+<p><strong>JavaScript 失效时的静态 fallback：</strong> 对默认 <span class="arithmatex">\(X\sim U(0,2)\)</span>，<span class="arithmatex">\(EX=1\)</span>、<span class="arithmatex">\(DX=1/3\)</span>，原点二阶矩为 <span class="arithmatex">\(4/3\)</span>，中心二阶矩为 <span class="arithmatex">\(1/3\)</span>，MGF 对所有实数 <span class="arithmatex">\(t\)</span> 存在；在 <span class="arithmatex">\(a=1.5\)</span> 时，<span class="arithmatex">\(P(X\ge a)=0.25\)</span>，Markov 上界为 <span class="arithmatex">\(1/1.5\)</span>，而 <span class="arithmatex">\(P(|X-1|\ge1.5)=0\)</span>，Chebyshev 上界为 <span class="arithmatex">\((1/3)/(1.5)^2\)</span>。其他预设的边界如下：</p>
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>均值与方差</th>
+<th>矩 / MGF 存在域</th>
+<th>尾部提醒</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(U(0,2)\)</span></td>
+<td><span class="arithmatex">\(1, 1/3\)</span></td>
+<td>所有阶原点矩有限；MGF 对所有实数 <span class="arithmatex">\(t\)</span> 存在</td>
+<td>有界尾部最终为 0</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\operatorname{Exp}(1)\)</span></td>
+<td><span class="arithmatex">\(1, 1\)</span></td>
+<td><span class="arithmatex">\(m_k=k!\)</span>；MGF 仅在 <span class="arithmatex">\(t&lt;1\)</span> 有限</td>
+<td><span class="arithmatex">\(P(X\ge a)=e^{-a}\)</span></td>
+</tr>
+<tr>
+<td>Pareto<span class="arithmatex">\((1,2.5)\)</span></td>
+<td><span class="arithmatex">\(5/3, 20/9\)</span></td>
+<td><span class="arithmatex">\(k&lt;2.5\)</span> 时原点矩有限；MGF 没有包含 0 的正邻域</td>
+<td>右尾多项式衰减，Markov/Chebyshev 仍只是上界</td>
+</tr>
+<tr>
+<td>Rademacher 与稀疏尖峰</td>
+<td>都是 <span class="arithmatex">\(0, 1\)</span></td>
+<td>两者各阶矩都有限，但四阶矩分别为 <span class="arithmatex">\(1\)</span> 与 <span class="arithmatex">\(5\)</span></td>
+<td>同均值同方差仍可有不同尾部</td>
+</tr>
+</tbody>
+</table>
+<p>Pareto 行中的“MGF 没有正邻域”不表示 <span class="arithmatex">\(M(0)\)</span> 不存在；它表示任意 <span class="arithmatex">\(t&gt;0\)</span> 都会被重尾拖成无穷，不能把有限均值/方差当成 MGF 条件。两种同矩分布也不是同一个分布的两种写法，而是有限低阶摘要相同、完整法律不同的反例。</p>
+</div>
+<h3 id="5">5. 定理与失败边界：摘要不是完整档案<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>原点矩和中心矩不能混写。</strong> 均值不为零时 <span class="arithmatex">\(E[X^2]\)</span> 不是方差；中心矩先减去总体均值，偏度和峰度也要注明采用哪种标准化约定。</li>
+<li><strong>MGF 有存在域。</strong> 只有在包含 <span class="arithmatex">\(0\)</span> 的邻域内有限时，MGF 才能作为稳定的矩生成器；重尾分布可能有若干有限矩，却没有这样的 MGF。特征函数的存在不能反推 MGF 的存在。</li>
+<li><strong>有限矩不唯一决定分布。</strong> 即便所有矩都有限，是否能由矩唯一决定分布还需要额外条件；在本页最直接的层面，均值和方差更不可能决定尾形状。</li>
+<li><strong>Markov 与 Chebyshev 是保证。</strong> Markov 需要非负变量，Chebyshev 需要有限方差；二者给的是上界，松是正常代价，不能拿来当精确尾概率。</li>
+<li><strong>尾部读数依赖事件。</strong> <span class="arithmatex">\(P(X\ge a)\)</span> 与 <span class="arithmatex">\(P(|X-\mu|\ge a)\)</span> 不是同一个事件；实验把 Markov 的非负变量事件和 Chebyshev 的中心化事件分栏显示。</li>
+</ul>
+<p>因此，看到一个“均值 ± 两倍标准差”的说法时，先查它是在报告矩、给出不等式保证，还是声称某个具体分布的精确概率。三者的逻辑强度不同。</p>
+</section>
+<h2 id="1_1">1. 数学期望<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 离散 <span class="arithmatex">\(E X = \sum x_k p_k\)</span>（要求绝对收敛——否则重排改变"平均"，数分 IV 条件收敛的警钟）；连续 <span class="arithmatex">\(EX = \int x f(x)\,dx\)</span>。</p>
 <p><strong>LOTUS（函数期望，"无意识统计学家定律"）</strong>：求 <span class="arithmatex">\(E[g(X)]\)</span> <strong>不必先求 <span class="arithmatex">\(g(X)\)</span> 的分布</strong>：</p>
 <div class="arithmatex">\[
@@ -58,14 +177,14 @@ E[g(X)] = \int g(x) f_X(x)\,dx, \qquad E[g(X,Y)] = \iint g\, f(x,y)\,dx\,dy
 \]</div>
 <p><strong>性质</strong>：线性 <span class="arithmatex">\(E[aX + bY] = aEX + bEY\)</span>（<strong>不需要独立</strong>——期望的线性是无条件的，这是它最强的性质）；<span class="arithmatex">\(X \perp Y \Rightarrow E[XY] = EX \cdot EY\)</span>（反之不真）。</p>
 <p>⚠️ <span class="arithmatex">\(E[g(X)] \neq g(EX)\)</span>（除非 <span class="arithmatex">\(g\)</span> 线性）；凸 <span class="arithmatex">\(g\)</span> 的方向由 <strong>Jensen 不等式</strong>给出：<span class="arithmatex">\(E[g(X)] \geq g(EX)\)</span>（数分 II 的 Jensen 在概率语言下的形态——🔗 KL 散度非负、ELBO 推导（comfy 课 02 讲）的那一步 <span class="arithmatex">\(\log E \geq E \log\)</span> 正是它）。</p>
-<h2 id="2">2. 方差与矩<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 方差与矩<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(DX = E[(X - EX)^2]\)</span>；<strong>计算公式</strong> <span class="arithmatex">\(DX = E X^2 - (EX)^2\)</span>（展开即得，实算首选）。标准差 <span class="arithmatex">\(\sigma = \sqrt{DX}\)</span>。</p>
 <p><strong>性质</strong>：<span class="arithmatex">\(D(aX + b) = a^2 DX\)</span>（平移不变、缩放平方）；</p>
 <div class="arithmatex">\[
 D(X \pm Y) = DX + DY \pm 2\,\mathrm{Cov}(X, Y) \qquad (X \perp Y \text{ 时 } D(X\pm Y) = DX + DY)
 \]</div>
 <p><strong>标准化</strong> <span class="arithmatex">\(X^* = \frac{X - EX}{\sigma}\)</span>：零均值单位方差（🔗 特征标准化、BatchNorm/LayerNorm 的原型操作）。<strong>矩</strong>：<span class="arithmatex">\(k\)</span> 阶原点矩 <span class="arithmatex">\(E X^k\)</span>、中心矩 <span class="arithmatex">\(E(X - EX)^k\)</span>（三阶定偏度、四阶定峰度）。</p>
-<h2 id="3">3. 协方差与相关系数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 协方差与相关系数<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(\mathrm{Cov}(X, Y) = E[(X - EX)(Y - EY)] = E[XY] - EX\,EY\)</span>；<strong>相关系数</strong> <span class="arithmatex">\(\rho = \dfrac{\mathrm{Cov}(X,Y)}{\sigma_X \sigma_Y}\)</span>。</p>
 <p><strong>性质</strong>：<span class="arithmatex">\(|\rho| \leq 1\)</span>（对随机变量内积 <span class="arithmatex">\(\langle X, Y\rangle = E[XY]\)</span> 用 Cauchy–Schwarz——高代 VI 的不等式换个舞台重演）；<span class="arithmatex">\(|\rho| = 1 \iff Y = aX + b\)</span>（<strong><span class="arithmatex">\(\rho\)</span> 只度量线性关系的强度</strong>）。</p>
 <p>⚠️ <strong>不相关（<span class="arithmatex">\(\rho = 0\)</span>）≠ 独立</strong>：<span class="arithmatex">\(X \sim U(-1,1),\ Y = X^2\)</span>——完全函数依赖却不相关（对称抵消）。独立 ⇒ 不相关；逆命题仅对二维正态成立（概率 III 性质 3）。</p>
@@ -83,7 +202,7 @@ E[Y \mid X] = \arg\min_{g}\; E\big[(Y - g(X))^2\big]
 \]</div>
 <p><em>证明思路</em>：对任意 <span class="arithmatex">\(g\)</span>，把 <span class="arithmatex">\(Y - g(X) = (Y - E[Y|X]) + (E[Y|X] - g(X))\)</span> 展开，交叉项用塔性质归零（第一项对给定 <span class="arithmatex">\(X\)</span> 均值为零），剩下 <span class="arithmatex">\(\text{MSE}(g) = E[(Y - E[Y|X])^2] + E[(E[Y|X] - g(X))^2]\)</span>，第二项取 <span class="arithmatex">\(g = E[Y|X]\)</span> 时消失。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p>🔗 <strong>这就是 ai 课 01 讲"平方损失下贝叶斯最优预测是条件期望"的完整证明</strong>——回归问题的理论天花板；整个监督学习是在有限数据下逼近 <span class="arithmatex">\(E[Y\mid X]\)</span>。<strong>方差分解</strong>（全方差公式）：<span class="arithmatex">\(DY = E[D(Y|X)] + D(E[Y|X])\)</span>——"组内方差 + 组间方差"，方差分析（统计页）与 bias-variance 直觉的源头。</p>
-<h2 id="5">5. 母函数与特征函数<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 母函数与特征函数<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>矩母函数</strong> <span class="arithmatex">\(M_X(t) = E[e^{tX}]\)</span>；<strong>特征函数</strong> <span class="arithmatex">\(\varphi_X(t) = E[e^{itX}]\)</span>（恒存在，模 <span class="arithmatex">\(\leq 1\)</span>）。三大功能：</p>
 <ol>
 <li><strong>生成矩</strong>：<span class="arithmatex">\(\varphi^{(k)}(0) = i^k E X^k\)</span>（逐阶求导取零点）；</li>
@@ -108,5 +227,7 @@ E[Y \mid X] = \arg\min_{g}\; E\big[(Y - g(X))^2\big]
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/moments-tail.js"></script>
 </body>
 </html>

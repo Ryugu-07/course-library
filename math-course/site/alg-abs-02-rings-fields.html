@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：先在有限算术里找出“能不能除”</a><ul>
+<li><a href="#alg-abs-rings-learning-title">1. 具身情境：模运算收银台与扩张工坊</a></li>
+<li><a href="#2">2. 正式理论桥：四张有限证书各自守住一条边界</a></li>
+<li><a href="#3">3. 定理级结论与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 环与理想</a></li>
-<li><a href="#2">2. 域：能除的世界</a></li>
-<li><a href="#3">3. 域扩张与两大古典问题（山顶眺望）</a></li>
+<li><a href="#2_1">2. 域：能除的世界</a></li>
+<li><a href="#3_1">3. 域扩张与两大古典问题（山顶眺望）</a></li>
 <li><a href="#4">4. 典型例题</a></li>
 </ul>
 </div>
@@ -48,6 +69,64 @@
 <blockquote>
 <p>群管一个运算，<strong>环</strong>管两个（加与乘）、<strong>域</strong>是能除的环。本页把这两层结构立起来，让高代 I 的多项式与"数域"认祖归宗，用有限域接通密码学，最后登顶眺望 Galois 理论——高代 I 那句"五次方程无求根公式"的证明蓝图。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="alg-abs-rings-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先在有限算术里找出“能不能除”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="alg-abs-rings-learning-title">1. 具身情境：模运算收银台与扩张工坊<a class="headerlink" href="#alg-abs-rings-learning-title" title="Permanent link"></a></h3>
+<p>把账本的余数限制在 <span class="arithmatex">\(\mathbb Z_n\)</span>：每次加、乘后都折回 <span class="arithmatex">\(0,1,\ldots,n-1\)</span>。收银台要判断两件事：一个余数能不能当除数，以及哪些余数相乘会把账本清成零。旁边的扩张工坊把 <span class="arithmatex">\(\mathbb F_p[x]\)</span> 中的多项式设为零，观察商环里是否仍有“坏掉的除法”。</p>
+<p>下面的实验可改变 <span class="arithmatex">\(n\)</span>，并切换三个二次商环。先预测，不要把有限列表当成一般证明：</p>
+<ol>
+<li>在 <span class="arithmatex">\(\mathbb Z_n\)</span> 中，余数 <span class="arithmatex">\(2\)</span> 什么时候是单位？</li>
+<li>非零零因子与 <span class="arithmatex">\(\gcd(a,n)\)</span> 的关系是哪一种？</li>
+<li>把多项式模掉以后，当前商环还是域吗？</li>
+</ol>
+<h3 id="2">2. 正式理论桥：四张有限证书各自守住一条边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(\mathbb Z_n\)</span> 中，<span class="arithmatex">\(a\)</span> 是单位当且仅当 <span class="arithmatex">\(\gcd(a,n)=1\)</span>。若 <span class="arithmatex">\(a\ne0\)</span> 且 <span class="arithmatex">\(\gcd(a,n)&gt;1\)</span>，则它是零因子；有限枚举可以给出一个见证元 <span class="arithmatex">\(b\)</span>，使 <span class="arithmatex">\(ab=0\)</span>（模 <span class="arithmatex">\(n\)</span>）。因此 <span class="arithmatex">\(\mathbb Z_n\)</span> 是域当且仅当 <span class="arithmatex">\(n\)</span> 为素数。</p>
+<p>若 <span class="arithmatex">\(d\mid n\)</span>，则 <span class="arithmatex">\((d)\)</span> 是 <span class="arithmatex">\(\mathbb Z_n\)</span> 的理想，并且 <span class="arithmatex">\(\mathbb Z_n/(d)\cong\mathbb Z_d\)</span>。这是一个由具体生成元得到的商环证书，不意味着每个环的理想都长成这种形式。</p>
+<p>对 <span class="arithmatex">\(f(x)\in\mathbb F_p[x]\)</span>，商环 <span class="arithmatex">\(\mathbb F_p[x]/(f)\)</span> 在 <span class="arithmatex">\(f\)</span> 不可约时才是域；二次不可约例子给出扩张 <span class="arithmatex">\(\mathbb F_{p^2}\)</span>，阶为 <span class="arithmatex">\(p^2\)</span>。可约多项式会留下非零零因子。实验把每个元素逐项乘一遍，是有限模型的审计，不是“枚举证明所有环都如此”。</p>
+<div class="learning-lab" data-learning-lab="rings-fields">
+<p><strong>JavaScript 失效时的静态读法：</strong>取 <span class="arithmatex">\(\mathbb Z_{12}\)</span>，单位为 <span class="arithmatex">\(\{1,5,7,11\}\)</span>，非零零因子为 <span class="arithmatex">\(\{2,3,4,6,8,9,10\}\)</span>；其理想 <span class="arithmatex">\((3)\)</span> 是 <span class="arithmatex">\(\{0,3,6,9\}\)</span>，商环同构于 <span class="arithmatex">\(\mathbb Z_3\)</span>。在扩张工坊中，<span class="arithmatex">\(\mathbb F_2[x]/(x^2+x+1)\)</span> 是四元域，而 <span class="arithmatex">\(\mathbb F_2[x]/(x^2+1)\)</span> 有非零零因子 <span class="arithmatex">\(x+1\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>有限对象</th>
+<th>逐项证书</th>
+<th>结论的逻辑角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\mathbb Z_{12}\)</span></td>
+<td>单位 <span class="arithmatex">\(\{1,5,7,11\}\)</span>，零因子 <span class="arithmatex">\(\{2,3,4,6,8,9,10\}\)</span></td>
+<td>例子与反例，不替代一般判据</td>
+</tr>
+<tr>
+<td>理想 <span class="arithmatex">\((3)\subseteq\mathbb Z_{12}\)</span></td>
+<td><span class="arithmatex">\(\{0,3,6,9\}\)</span>，商的阶为 <span class="arithmatex">\(3\)</span></td>
+<td>一个商环的有限证书</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_2[x]/(x^2+x+1)\)</span></td>
+<td>四个元素中三个非零元都有逆</td>
+<td>不可约二次式给出 <span class="arithmatex">\(\mathbb F_4\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_2[x]/(x^2+1)\)</span></td>
+<td><span class="arithmatex">\((x+1)^2=0\)</span>，但 <span class="arithmatex">\(x+1\ne0\)</span></td>
+<td>可约多项式的失败边界</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="3">3. 定理级结论与失败边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级结论：</strong>有限群的乘法表、有限域的元素表或有限商环的乘法表，可以逐项核对单位、零因子、理想和良定义；一般结论仍由 Bézout、不可约性和理想吸收性证明。</li>
+<li><strong>不要偷换对象：</strong><span class="arithmatex">\(\mathbb Z_n\)</span> 的理想分类依赖这个特定主理想商结构；不能从几个模环的列表推出任意交换环的理想都由整数生成。</li>
+<li><strong>扩张的边界：</strong>“每个阶为 <span class="arithmatex">\(p^k\)</span> 的有限域在同构意义下唯一”是一般定理；实验只展示二次扩张，且只在不可约多项式时把商环称作域。</li>
+<li><strong>除法的边界：</strong>单位是有乘法逆元的元素；零因子不是“数值很小”，而是乘上另一个非零元素后得到零。</li>
+</ul>
+</section>
 <figure class="diagram">
 <p><img alt="域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。" src="assets/img/alg-abs-02-galois-lattice.svg" /></p>
 <figcaption><span class="fig-id">图 alg-abs.1</span>域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。</figcaption>
@@ -57,12 +136,12 @@
 <p><strong>零因子</strong>：<span class="arithmatex">\(ab = 0\)</span> 而 <span class="arithmatex">\(a, b \neq 0\)</span>（<span class="arithmatex">\(\mathbb{Z}_6\)</span> 中 <span class="arithmatex">\(2\times3 = 0\)</span>；矩阵环遍地都是——高代 III"<span class="arithmatex">\(AB=O\)</span> 推不出 <span class="arithmatex">\(A\)</span> 或 <span class="arithmatex">\(B\)</span> 为零"的病根在此定性）。无零因子的交换环 = <strong>整环</strong>（消去律成立的地界：<span class="arithmatex">\(\mathbb{Z}\)</span>、<span class="arithmatex">\(F[x]\)</span>）。</p>
 <p><strong>理想</strong>（环论的"正规子群"）：<span class="arithmatex">\(I \subseteq R\)</span> 对加法成群且<strong>吸收</strong>乘法（<span class="arithmatex">\(r \in R, a \in I \Rightarrow ra \in I\)</span>）。商环 <span class="arithmatex">\(R/I\)</span>、环同态基本定理 <span class="arithmatex">\(R/\ker\varphi \cong \mathrm{im}\,\varphi\)</span>——上一页的语法逐字重演（例：<span class="arithmatex">\(\mathbb{Z}/n\mathbb{Z} \cong \mathbb{Z}_n\)</span>）。</p>
 <p><strong>主理想整环的双星</strong>：<span class="arithmatex">\(\mathbb{Z}\)</span> 与 <span class="arithmatex">\(F[x]\)</span> 的一切理想都是单生成的 <span class="arithmatex">\((a)\)</span>——<strong>因为都有带余除法</strong>（辗转相除、唯一分解全线成立：高代 I 的多项式理论与初等数论原来是同一个抽象定理的两个实例——抽象代数"一次证明、处处收租"的招牌案例）。</p>
-<h2 id="2">2. 域：能除的世界<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 域：能除的世界<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 域 = 非零元全体对乘法成 Abel 群的交换环（<span class="arithmatex">\(\mathbb{Q}, \mathbb{R}, \mathbb{C}\)</span>、以及——）</p>
-<p><strong>定理</strong> <span class="arithmatex">\(\mathbb{Z}_p\)</span> 是域 <span class="arithmatex">\(\iff p\)</span> 素。（<em>证</em>：<span class="arithmatex">\(p\)</span> 素时 <span class="arithmatex">\(\gcd(a, p) = 1\)</span>，Bézout 给逆元；合数时有零因子。）<strong>有限域 <span class="arithmatex">\(\mathbb{F}_p\)</span></strong> 由此诞生；一般有限域阶必为素数幂 <span class="arithmatex">\(p^k\)</span>，且每阶恰一个（<span class="arithmatex">\(\mathbb{F}_{p^k}\)</span>，用 <span class="arithmatex">\(\mathbb{F}_p[x]\)</span> 模不可约多项式构造——多项式环再立一功）。</p>
+<p><strong>定理</strong> <span class="arithmatex">\(\mathbb{Z}_p\)</span> 是域 <span class="arithmatex">\(\iff p\)</span> 素。（<em>证</em>：<span class="arithmatex">\(p\)</span> 素时 <span class="arithmatex">\(\gcd(a, p) = 1\)</span>，Bézout 给逆元；合数时有零因子。）<strong>有限域 <span class="arithmatex">\(\mathbb{F}_p\)</span></strong> 由此诞生；一般有限域阶必为素数幂 <span class="arithmatex">\(p^k\)</span>，且在同构意义下每阶恰一个（<span class="arithmatex">\(\mathbb{F}_{p^k}\)</span>，用 <span class="arithmatex">\(\mathbb{F}_p[x]\)</span> 模不可约多项式构造——多项式环再立一功）。</p>
 <p><strong>特征</strong>：<span class="arithmatex">\(1\)</span> 自加多少次归零（素数或 0）。</p>
 <p>🔗 <strong>密码学出口（有限域的用武之地）</strong>：RSA 的舞台是 <span class="arithmatex">\(\mathbb{Z}_n^*\)</span>（Euler 定理 = Lagrange 定理的应用，上一页 Fermat 小定理的推广）；Diffie–Hellman/ElGamal 靠 <span class="arithmatex">\(\mathbb{F}_p^*\)</span> 中离散对数难解；椭圆曲线密码在"曲线点群"上重演同一剧本（更短密钥同等强度——你钱包里的比特币签名就是它）；AES 的字节运算在 <span class="arithmatex">\(\mathbb{F}_{2^8}\)</span> 中进行。<strong>"抽象代数无用"是二十世纪最快过期的判断。</strong></p>
-<h2 id="3">3. 域扩张与两大古典问题（山顶眺望）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 域扩张与两大古典问题（山顶眺望）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>扩张与次数</strong>：<span class="arithmatex">\(F \subseteq E\)</span>，<span class="arithmatex">\(E\)</span> 是 <span class="arithmatex">\(F\)</span>-线性空间（高代 IV 上岗），维数记 <span class="arithmatex">\([E : F]\)</span>；<strong>望远镜公式</strong> <span class="arithmatex">\([E:F] = [E:K][K:F]\)</span>。单代数扩张 <span class="arithmatex">\(F(\alpha) \cong F[x]/(m_\alpha(x))\)</span>（模极小多项式——商环构造的实战），<span class="arithmatex">\([F(\alpha):F] = \deg m_\alpha\)</span>。</p>
 <p><strong>尺规作图三大难题的判决</strong>（次数论证，一段讲完）：尺规可作的数生活在一串二次扩张的塔中 ⇒ 其扩张次数必为 <span class="arithmatex">\(2^k\)</span>。而三等分 <span class="arithmatex">\(60^\circ\)</span> 角需要 <span class="arithmatex">\(\cos 20^\circ\)</span>，其极小多项式 <span class="arithmatex">\(8x^3 - 6x - 1\)</span> 三次 ⇒ <span class="arithmatex">\([\,\cdot\,] = 3 \neq 2^k\)</span>——<strong>不可作</strong>。倍立方（<span class="arithmatex">\(\sqrt[3]{2}\)</span>，三次）同判。两千年悬案，一个"数维数"的论证终审——线性代数当判官。</p>
 <p><strong>Galois 理论（一段话的山顶导览）</strong>：给每个多项式配一个群（根的对称群=Galois 群）；<strong>方程可用根式求解 <span class="arithmatex">\(\iff\)</span> 其 Galois 群"可解"</strong>（可逐层拆成 Abel 商的群）。<span class="arithmatex">\(n \leq 4\)</span> 时 <span class="arithmatex">\(S_n\)</span> 可解——二三四次有求根公式；<span class="arithmatex">\(n \geq 5\)</span> 时 <span class="arithmatex">\(S_5\)</span> 含不可解的 <span class="arithmatex">\(A_5\)</span> ⇒ <strong>一般五次方程无根式解</strong>（Abel–Galois，高代 I 的欠条在此销账）。深层寓意：<strong>"解方程"的可能性被"对称性结构"判定</strong>——把问题翻译成结构、由结构宣判命运，这正是抽象代数（乃至现代数学）的方法论本体。</p>
@@ -81,5 +160,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/rings-fields.js"></script>
 </body>
 </html>

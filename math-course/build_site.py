@@ -23,6 +23,10 @@ SHARED = ROOT.parent / "course-shared"
 LEARNING_LAB_RE = re.compile(r'data-learning-lab="([a-z0-9-]+)"')
 LEARNING_HEAD = """<link rel="stylesheet" href="assets/learning/learning.css">
 <script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
 try {
   document.documentElement.setAttribute(
     'data-reading-mode',

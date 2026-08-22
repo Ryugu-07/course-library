@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：有限子覆盖、收敛子列与一条路不是一回事</a><ul>
+<li><a href="#top-compact-learning-title">1. 具身情境：给不同地图做“有限化”审计</a></li>
+<li><a href="#2">2. 正式理论桥：先声明空间类别，再读证书</a></li>
+<li><a href="#3">3. 定理级结论与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 紧致性</a></li>
-<li><a href="#2">2. 连通性</a></li>
-<li><a href="#3">3. 分离性（空间的分辨率）</a></li>
+<li><a href="#2_1">2. 连通性</a></li>
+<li><a href="#3_1">3. 分离性（空间的分辨率）</a></li>
 <li><a href="#4">4. 收官视野：不变量的阶梯</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
@@ -49,13 +70,88 @@
 <blockquote>
 <p>同胚不变量是拓扑的"指纹"。本页三枚最重要的指纹：<strong>紧致</strong>（"有限性"的拓扑化身——最值定理的真身）、<strong>连通</strong>（"一整块"——介值定理的真身）、<strong>分离性</strong>（空间的"分辨率"）。数分 I 的三大守护定理在此完成从 <span class="arithmatex">\(\mathbb{R}\)</span> 到任意空间的加冕。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="top-compact-learning-title" class="learning-layer">
+<h2 id="_1">学习层：有限子覆盖、收敛子列与一条路不是一回事<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="top-compact-learning-title">1. 具身情境：给不同地图做“有限化”审计<a class="headerlink" href="#top-compact-learning-title" title="Permanent link"></a></h3>
+<p>想象五张地图：闭区间、开区间、拓扑学家正弦曲线的闭包、有理数子空间，以及序数空间 <span class="arithmatex">\([0,\omega_1)\)</span>。审计员有三本不同的账：任意开覆盖能否抽出有限子覆盖？任意序列能否抽出在空间内收敛的子列？任意两点能否用一条连续路径接起来？同一张图上的“看起来有限”不能替代对应定义。</p>
+<p>先预测当前实验模型的三个状态：</p>
+<ol>
+<li>开覆盖紧致吗？</li>
+<li>序列紧致吗？</li>
+<li>连通是否已经足以推出路径连通？</li>
+</ol>
+<h3 id="2">2. 正式理论桥：先声明空间类别，再读证书<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>紧致的定义是<strong>任意开覆盖都有有限子覆盖</strong>；序列紧致的定义是<strong>每个序列都有在空间内收敛的子列</strong>。在度量空间中二者等价，但在一般拓扑空间中不能互换。闭区间的等价来自度量空间理论；<span class="arithmatex">\([0,\omega_1)\)</span> 则是序列紧致而非开覆盖紧致的非度量边界例子。</p>
+<p>连续像定理只需要源空间紧致：若 <span class="arithmatex">\(f:X\to Y\)</span> 连续且 <span class="arithmatex">\(X\)</span> 紧致，则 <span class="arithmatex">\(f(X)\)</span> 紧致。它不要求 <span class="arithmatex">\(Y\)</span> Hausdorff；若还要把紧子集说成闭集，则需要 <span class="arithmatex">\(Y\)</span> Hausdorff。非紧源空间也可能有紧的连续像，但不能把这个偶然结果倒过来当定理。</p>
+<p>连通只说不能拆成两个非空不交开集；路径连通要求每两点之间存在连续映射 <span class="arithmatex">\([0,1]\to X\)</span>。路径连通推出连通，反向一般失败。闭正弦曲线是紧且连通却非路径连通；在 <span class="arithmatex">\(\mathbb R^n\)</span> 的开连通子集上，连通与路径连通才重新等价。</p>
+<div class="learning-lab" data-learning-lab="compact-connected">
+<p><strong>JavaScript 失效时的静态读法：</strong><span class="arithmatex">\([0,1]\)</span> 与闭正弦曲线的闭包都是度量紧致，所以序列紧致也成立；<span class="arithmatex">\((0,1)\)</span> 的开覆盖 <span class="arithmatex">\(U_n=(1/n,1)\)</span> 没有有限子覆盖；<span class="arithmatex">\(\mathbb Q\cap[0,1]\)</span> 不是紧致；<span class="arithmatex">\([0,\omega_1)\)</span> 序列紧致但不是开覆盖紧致。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>开覆盖紧致</th>
+<th>序列紧致</th>
+<th>连通 / 路径连通</th>
+<th>证书读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\([0,1]\)</span></td>
+<td>是</td>
+<td>是</td>
+<td>是 / 是</td>
+<td>Heine–Borel 与度量空间等价</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((0,1)\)</span></td>
+<td>否</td>
+<td>否</td>
+<td>是 / 是</td>
+<td><span class="arithmatex">\(U_n=(1/n,1)\)</span> 是无有限子覆盖的开覆盖</td>
+</tr>
+<tr>
+<td>闭正弦曲线</td>
+<td>是</td>
+<td>是</td>
+<td>是 / 否</td>
+<td>连通不推出路径连通</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb Q\cap[0,1]\)</span></td>
+<td>否</td>
+<td>否</td>
+<td>否 / 否</td>
+<td>度量但不完备，序列可逼近空间外的无理数</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\([0,\omega_1)\)</span></td>
+<td>否</td>
+<td>是</td>
+<td>否 / 否</td>
+<td>非度量空间中两种紧致性分离</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="3">3. 定理级结论与失败边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>紧致性边界：</strong>“闭且有界”是 <span class="arithmatex">\(\mathbb R^n\)</span> 中的 Heine–Borel 判据，不是任意拓扑空间或任意度量空间的口号。</li>
+<li><strong>序列边界：</strong>在度量空间中可用序列刻画紧致；一般空间可能需要网或滤子，序列紧致不保证开覆盖紧致。</li>
+<li><strong>连续像边界：</strong>连续像保持紧致和连通；保持路径连通需要源空间路径连通，且不能把“像紧致”逆推成“源紧致”。</li>
+<li><strong>连通边界：</strong>路径连通是更强条件。正弦曲线的闭包提供连通而非路径连通的具体反例；“每点局部看起来像一块”也不能自动补上全局路径。</li>
+</ul>
+</section>
 <figure class="diagram">
 <p><img alt="紧致性：开覆盖 → 有限子覆盖（一堆开集盖住区间、圈出有限几个）。" src="assets/img/top-02-compact-cover.svg" /></p>
 <figcaption><span class="fig-id">图 top-02.1</span>紧致性：开覆盖 → 有限子覆盖（一堆开集盖住区间、圈出有限几个）。</figcaption>
 </figure>
 <h2 id="1">1. 紧致性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(X\)</span> 紧致：任意开覆盖必有<strong>有限</strong>子覆盖。（把"无限"驯成"有限"的许可证——证明里的用法永远是：每点给一个局部性质的开邻域，紧致性抽出有限个，取 min/max 完成全局化。）</p>
-<p><strong>判据与例</strong>：<strong>Heine–Borel</strong>（<span class="arithmatex">\(\mathbb{R}^n\)</span> 专属）：紧 <span class="arithmatex">\(\iff\)</span> 有界闭（数分 I 有限覆盖定理的正名；⚠️ 无穷维失效——泛函 I 单位球的教训）；度量空间中紧 <span class="arithmatex">\(\iff\)</span> 列紧（有界列有收敛子列——Bolzano–Weierstrass 的谱系）。</p>
+<p><strong>判据与例</strong>：<strong>Heine–Borel</strong>（<span class="arithmatex">\(\mathbb{R}^n\)</span> 专属）：紧 <span class="arithmatex">\(\iff\)</span> 有界闭（数分 I 有限覆盖定理的正名；⚠️ 无穷维失效——泛函 I 单位球的教训）；度量空间中紧 <span class="arithmatex">\(\iff\)</span> 序列紧（每个序列都有在空间内收敛的子列）。Bolzano–Weierstrass 的“有界列有收敛子列”是 <span class="arithmatex">\(\mathbb{R}^n\)</span> 的完备性与有限维性结论，不能脱离空间类别使用。</p>
 <p><strong>三条工作定理</strong>：</p>
 <ol>
 <li><strong>紧集的连续像紧</strong>（<em>一行证</em>：像的开覆盖拉回、抽有限、推回去）⇒ <strong>最值定理</strong>：紧集上的连续实函数有界且取到最值——数分 I 版本的抽象真身，优化存在性的通用许可证；</li>
@@ -63,19 +159,19 @@
 <li><strong>免检同胚条款</strong>：紧空间到 Hausdorff 空间的连续双射<strong>自动是同胚</strong>（逆的连续性白送——上一页 <span class="arithmatex">\([0,2\pi) \to S^1\)</span> 反例的病因就在 <span class="arithmatex">\([0, 2\pi)\)</span> 不紧）。</li>
 </ol>
 <p>Tychonoff 定理一嘴：任意多紧空间之积仍紧（泛函分析弱拓扑的幕后金主，知其名）。</p>
-<h2 id="2">2. 连通性<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 连通性<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(X\)</span> 连通：不能拆成两个非空不交开集之并。等价：既开又闭的子集只有 <span class="arithmatex">\(\varnothing\)</span> 与 <span class="arithmatex">\(X\)</span>。</p>
 <p><strong>基本盘</strong>：<span class="arithmatex">\(\mathbb{R}\)</span> 的连通子集恰是<strong>区间</strong>（实数完备性的又一投影）；<strong>连通集的连续像连通</strong> ⇒ <strong>介值定理</strong>真身（连续函数把"一整块"映成"一整块"，<span class="arithmatex">\(\mathbb{R}\)</span> 中的一整块是区间——介值不过是"区间没有洞"）。</p>
 <p><strong>道路连通</strong>：任两点有连续道路相连。道路连通 ⇒ 连通（反向一般不真——拓扑学家正弦曲线 <span class="arithmatex">\(\{(x, \sin\frac1x)\} \cup \{0\}\times[-1,1]\)</span>：连通却无路可走的名反例）；<span class="arithmatex">\(\mathbb{R}^n\)</span> 开集中两者等价。</p>
 <p><strong>用法一（区分空间的指纹）</strong>：<span class="arithmatex">\([0,1) \not\cong (0,1)\)</span>——挖掉一点：前者可以剩连通（挖 0），后者必断两截；<span class="arithmatex">\(\mathbb{R} \not\cong \mathbb{R}^2\)</span>——挖一点后前者断、后者仍连通。<strong>"挖点数连通片"是拓扑判非同胚的第一板斧</strong>。</p>
 <p><strong>用法二（连通性传播论证）</strong>："既开又闭 ⇒ 全局"——性质的成立点集若既开又闭且非空，则在连通空间上处处成立（数分 V 隐函数延拓、ODE 解的延拓背后的标准逻辑）。</p>
-<h2 id="3">3. 分离性（空间的分辨率）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 分离性（空间的分辨率）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>递进的公理阶梯（认识 <span class="arithmatex">\(T_2\)</span> 即可）：<strong>Hausdorff（<span class="arithmatex">\(T_2\)</span>）</strong>：任两点可用不交开集分居。红利：极限唯一、紧集闭、对角线闭。度量空间全是 Hausdorff；商空间可能丢失（粘合粘过头）——这是商拓扑操作要当心的地方。更高层（正规空间）住着两条名定理：Urysohn 引理（不交闭集间存在连续分离函数——"拓扑空间上也能造光滑过渡"）与 Tietze 延拓定理（闭集上的连续函数可延拓到全空间）——知其名与用途。</p>
 <p><strong>度量化定理一嘴</strong>（Urysohn）：正则 + 第二可数 ⇒ 可度量化——"哪些拓扑空间其实偷偷是度量空间"的判据；流形都合格，所以微分几何不必操心这层。</p>
 <h2 id="4">4. 收官视野：不变量的阶梯<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>点集拓扑给出的同胚不变量（紧、连通、分离性、可数性）分辨率有限——球面与环面它区分不了（都紧、连通、Hausdorff）。下一层楼是<strong>代数拓扑</strong>：给空间配代数对象（基本群 <span class="arithmatex">\(\pi_1\)</span> 数"洞"：球面平凡、环面 <span class="arithmatex">\(\mathbb{Z}^2\)</span>；同调群——TDA 持续同调的理论引擎），用群的不同判空间不同（抽代 I 的群在此成为几何的度量衡）。本科到此了望即可；但"<strong>造不变量来分类</strong>"这一方法论——高代的秩与特征值、解几的惯性指数、拓扑的连通片与洞——已是你在本站第四次见到，它就是现代数学的中央战略。</p>
 <h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（紧致性论证模板）</strong> 证明紧度量空间上连续函数一致连续（数分 I Cantor 定理的拓扑版）：每点按 <span class="arithmatex">\(\frac\varepsilon2\)</span> 取 <span class="arithmatex">\(\delta_x\)</span>-球覆盖，紧致抽有限，取 Lebesgue 数（有限个 <span class="arithmatex">\(\delta\)</span> 的 min）——"局部 ⇒ 全局"的标准三步。</p>
+<p><strong>例 1（紧致性论证模板）</strong> 证明紧度量空间上连续函数一致连续（数分 I Cantor 定理的拓扑版）：由连续性为每点选取控制函数振荡的邻域，这些邻域构成开覆盖；紧致性给出有限子覆盖，再由 Lebesgue 数引理取得一个统一的 <span class="arithmatex">\(\lambda&gt;0\)</span>——"局部 ⇒ 全局"的标准三步。这里不能只取各点半径的最小值，因为靠近某个球边界的两点未必同时落在那只球里。</p>
 <p><strong>例 2（连通性判非同胚）</strong> <span class="arithmatex">\(S^1 \not\cong [0,1]\)</span>：挖一点，圆仍连通、区间（挖内点）断——不同胚。（顺带：圆也不同胚于任何区间——闭区间挖端点仍连通？那就挖两点：圆断两截、<span class="arithmatex">\([0,1]\)</span> 挖两内点断三截。指纹要挑对下手处。）</p>
 <p><strong>例 3（Hausdorff 失守的商）</strong> 把 <span class="arithmatex">\(\mathbb{R}\)</span> 中"<span class="arithmatex">\(x \sim y \iff x - y \in \mathbb{Q}\)</span>"作商：商空间只有平庸拓扑（任何非空开集的原像稠密）——连 <span class="arithmatex">\(T_1\)</span> 都不是。<strong>商拓扑是强力机床，出品需质检分离性。</strong>（这个商集正是实变 I Vitali 集的选点舞台——两页在此暗通。）<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
@@ -89,5 +185,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/compact-connected.js"></script>
 </body>
 </html>

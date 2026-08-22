@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +45,23 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 14:24</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 三种乘积：一表定乾坤</a></li>
-<li><a href="#2">2. 平面与直线：方程的四副面孔</a></li>
-<li><a href="#3">3. 典型例题</a></li>
+<li><a href="#geo01-learning-title">学习层：点、自由向量与位置关系要分层判断</a><ul>
+<li><a href="#1">1. 一个具体的直线—平面实例</a></li>
+<li><a href="#2">2. 先预测：法向、方向、平行与退化</a></li>
+<li><a href="#3">3. 正式桥：两个标量决定直线—平面关系</a></li>
+<li><a href="#4">4. 定理级结论与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 三种乘积：一表定乾坤</a></li>
+<li><a href="#2_1">2. 平面与直线：方程的四副面孔</a></li>
+<li><a href="#3_1">3. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -47,7 +69,93 @@
 <blockquote>
 <p>解析几何是"用代数算几何"的第一门课，实用核心两块：<strong>三种向量乘积</strong>（每种对应一类几何量）与<strong>平面/直线的方程与位置关系</strong>。它同时是高代的几何素材库与多元微积分的舞台布景——复习定位是把"公式—几何含义"的对照表擦亮。</p>
 </blockquote>
-<h2 id="1">1. 三种乘积：一表定乾坤<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="geo01-learning-title" class="learning-layer">
+<h2 id="geo01-learning-title">学习层：点、自由向量与位置关系要分层判断<a class="headerlink" href="#geo01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个具体的直线—平面实例<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>令</p>
+<div class="arithmatex">\[
+P:\ \mathbf n\cdot(\mathbf x-\mathbf p)=0,\qquad
+\mathbf n=(0,0,1),\quad \mathbf p=(0,0,0),
+\]</div>
+<p>以及</p>
+<div class="arithmatex">\[
+L:\ \mathbf x=\mathbf q+\tau\mathbf d,\qquad
+\mathbf q=(1,1,h),\quad \mathbf d=(1,0,k).
+\]</div>
+<p>这里 <span class="arithmatex">\(\mathbf q\)</span> 是一个点的位置，<span class="arithmatex">\(\mathbf d\)</span> 是可以平移到任意起点的自由方向向量；它们不是同一种对象。当 <span class="arithmatex">\(k\ne0\)</span> 时直线穿过平面，参数为 <span class="arithmatex">\(\tau=-h/k\)</span>；当 <span class="arithmatex">\(k=0,h\ne0\)</span> 时平行而不相交；当 <span class="arithmatex">\(k=0,h=0\)</span> 时整条直线落在平面内。</p>
+<h3 id="2">2. 先预测：法向、方向、平行与退化<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台前，先写下三个预测：</p>
+<ol>
+<li>把点 <span class="arithmatex">\(\mathbf q\)</span> 换成 <span class="arithmatex">\(\mathbf q+\mathbf d\)</span> 会改变自由向量 <span class="arithmatex">\(\mathbf d\)</span> 吗？点与向量能否直接相加后仍叫同一个几何对象？</li>
+<li>若 <span class="arithmatex">\(\mathbf n\cdot\mathbf d=0\)</span>，直线是否必然在平面内？还需要检查哪一个点条件？</li>
+<li>两个平面法向量平行时，它们一定相交吗；什么额外条件会让它们重合？零法向量或零方向向量又表示什么？</li>
+</ol>
+<p>提交后，实验台会揭示点法式、参数式、点积证书、交点参数或重合/平行判定，并用 SVG 显示当前几何截面。结果表在预测完成前保持隐藏。</p>
+<h3 id="3">3. 正式桥：两个标量决定直线—平面关系<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把直线代入平面方程：</p>
+<div class="arithmatex">\[
+\mathbf n\cdot(\mathbf q+\tau\mathbf d-\mathbf p)=0
+\Longleftrightarrow
+(\mathbf n\cdot\mathbf d)\tau=-\mathbf n\cdot(\mathbf q-\mathbf p).
+\]</div>
+<p>若 <span class="arithmatex">\(\mathbf n\cdot\mathbf d\ne0\)</span>，有唯一交点；若 <span class="arithmatex">\(\mathbf n\cdot\mathbf d=0\)</span>，则还必须看 <span class="arithmatex">\(\mathbf n\cdot(\mathbf q-\mathbf p)\)</span>：为零表示直线包含于平面，否则表示平行不相交。</p>
+<p>两个平面 <span class="arithmatex">\(P_i:\mathbf n_i\cdot\mathbf x=c_i\)</span> 则先看 <span class="arithmatex">\(\mathbf n_1\times\mathbf n_2\)</span>：非零给出相交直线方向；平行时比较归一化后的常数 <span class="arithmatex">\(c_i\)</span>，相容为重合，不相容为平行。所有这些结论都默认法向量和方向向量是非零的。</p>
+<div class="learning-lab" data-learning-lab="vectors-planes">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>固定 <span class="arithmatex">\(P:z=0\)</span>，取 <span class="arithmatex">\(L:\mathbf x=(1,1,h)+\tau(1,0,k)\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(h\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathbf n\cdot\mathbf d\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathbf n\cdot(\mathbf q-\mathbf p)\)</span></th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>相交，<span class="arithmatex">\(\tau=-1\)</span>，交点 <span class="arithmatex">\((0,1,0)\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>平行且不相交</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>直线包含于平面</td>
+</tr>
+<tr>
+<td style="text-align: right;">任意</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span>，且 <span class="arithmatex">\(\mathbf n=\mathbf0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">不可判</td>
+<td>退化：不是一个合法平面</td>
+</tr>
+</tbody>
+</table>
+<p>若改做两个平面，平行法向量加上相同比例的常数才是重合；仅凭法向量平行不能跳过常数项检查。</p>
+</div>
+<h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：非零法向量定义一个平面，非零方向向量定义一条直线；代入后一次方程的系数与常数同时决定相交、平行、重合或包含。</li>
+<li><strong>对象边界</strong>：点是位置，向量是位移/方向；法向量垂直于平面，直线方向向量沿直线。把法向量当作平面上的点，或把点的坐标直接当作自由向量，会破坏方程的几何意义。</li>
+<li><strong>退化边界</strong>：零法向量使 <span class="arithmatex">\(0=0\)</span> 或 <span class="arithmatex">\(0=c\)</span> 失去唯一平面；零方向向量不定义一条有方向的直线。数值实现中的“零”还必须附带容差。</li>
+<li><strong>位置关系边界</strong>：点积为零只给出平行/垂直的一部分信息；平行法向量不自动推出重合，必须继续核对常数项和点是否满足方程。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 三种乘积：一表定乾坤<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -84,7 +192,7 @@
 </table>
 <p>坐标算法：内积=对应分量乘加；外积=形式行列式 <span class="arithmatex">\(\begin{vmatrix}\mathbf i &amp; \mathbf j &amp; \mathbf k \\ a_1 &amp; a_2 &amp; a_3 \\ b_1 &amp; b_2 &amp; b_3\end{vmatrix}\)</span>；混合积=三行行列式（行列式的几何意义=体积——高代 II 那句话的出生地）。</p>
 <p>反交换 <span class="arithmatex">\(\mathbf a\times\mathbf b = -\mathbf b\times\mathbf a\)</span>、不满足结合律；双重外积公式 <span class="arithmatex">\(\mathbf a\times(\mathbf b\times\mathbf c) = \mathbf b(\mathbf a\cdot\mathbf c) - \mathbf c(\mathbf a\cdot\mathbf b)\)</span>（"BAC-CAB"）。</p>
-<h2 id="2">2. 平面与直线：方程的四副面孔<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 平面与直线：方程的四副面孔<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>平面</strong>（本质数据：一点 + 法向量 <span class="arithmatex">\(\mathbf n = (A,B,C)\)</span>）：</p>
 <div class="arithmatex">\[
 \text{点法式 } A(x - x_0) + B(y - y_0) + C(z - z_0) = 0 \quad\Longleftrightarrow\quad \text{一般式 } Ax + By + Cz + D = 0
@@ -92,7 +200,7 @@
 <p><strong>读方程先读法向量</strong>——平面题的第一反射。三点定平面：两条边向量的外积给 <span class="arithmatex">\(\mathbf n\)</span>。</p>
 <p><strong>直线</strong>（本质数据：一点 + 方向向量 <span class="arithmatex">\(\mathbf s = (m, n, p)\)</span>）：</p>
 <div class="arithmatex">\[
-\text{点向式 } \frac{x - x_0}{m} = \frac{y - y_0}{n} = \frac{z - z_0}{p}, \qquad \text{参数式 } \mathbf r = \mathbf r_0 + t\mathbf s
+\text{对称式（仅 }mnp\ne0\text{） } \frac{x - x_0}{m} = \frac{y - y_0}{n} = \frac{z - z_0}{p}, \qquad \text{参数式 } \mathbf r = \mathbf r_0 + t\mathbf s
 \]</div>
 <p>一般式（两平面之交）化点向式：<span class="arithmatex">\(\mathbf s = \mathbf n_1 \times \mathbf n_2\)</span>。</p>
 <p><strong>距离公式全家</strong>（结构统一：投影长）：</p>
@@ -102,9 +210,9 @@
 <li><strong>异面直线距离</strong>：<span class="arithmatex">\(d = \dfrac{|(\overrightarrow{M_1M_2},\ \mathbf s_1,\ \mathbf s_2)|}{|\mathbf s_1\times\mathbf s_2|}\)</span>（体积÷底面积——混合积的招牌应用）。</li>
 </ul>
 <p><strong>位置关系与夹角</strong>：线线/线面/面面的平行垂直全部翻译成 <span class="arithmatex">\(\mathbf s, \mathbf n\)</span> 的平行垂直（乘积表检验）；夹角用内积算余弦（线面角与法向量算的是余角——常错点）。</p>
-<h2 id="3">3. 典型例题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 典型例题<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>例 1（外积定平面）</strong> 过 <span class="arithmatex">\(A(1,0,0), B(0,2,0), C(0,0,3)\)</span> 的平面：<span class="arithmatex">\(\mathbf n = \overrightarrow{AB}\times\overrightarrow{AC} = (6, 3, 2)\)</span> ⇒ <span class="arithmatex">\(6x + 3y + 2z = 6\)</span>（也可直接写截距式 <span class="arithmatex">\(\frac x1 + \frac y2 + \frac z3 = 1\)</span> 对账）。</p>
-<p><strong>例 2（异面距离全流程）</strong> <span class="arithmatex">\(l_1: \frac{x}{1} = \frac{y}{0} = \frac{z}{0}\)</span>（<span class="arithmatex">\(x\)</span> 轴），<span class="arithmatex">\(l_2\)</span> 过 <span class="arithmatex">\((0,1,0)\)</span> 方向 <span class="arithmatex">\((0,0,1)\)</span>：<span class="arithmatex">\(\mathbf s_1\times\mathbf s_2 = (0,-1,0)\)</span>，<span class="arithmatex">\(\overrightarrow{M_1M_2} = (0,1,0)\)</span>，混合积 <span class="arithmatex">\(= -1\)</span> ⇒ <span class="arithmatex">\(d = 1\)</span>。</p>
+<p><strong>例 2（异面距离全流程）</strong> <span class="arithmatex">\(l_1:(x,y,z)=(t,0,0)\)</span>（等价于 <span class="arithmatex">\(y=0,z=0\)</span> 的 <span class="arithmatex">\(x\)</span> 轴），<span class="arithmatex">\(l_2\)</span> 过 <span class="arithmatex">\((0,1,0)\)</span>、方向 <span class="arithmatex">\((0,0,1)\)</span>：<span class="arithmatex">\(\mathbf s_1\times\mathbf s_2 = (0,-1,0)\)</span>，<span class="arithmatex">\(\overrightarrow{M_1M_2} = (0,1,0)\)</span>，混合积 <span class="arithmatex">\(= -1\)</span> ⇒ <span class="arithmatex">\(d = 1\)</span>。方向分量为零时应使用参数式或直接写恒定坐标，不能制造 <span class="arithmatex">\(y/0\)</span>、<span class="arithmatex">\(z/0\)</span>。</p>
 <p><strong>例 3（投影点）</strong> 求 <span class="arithmatex">\(P(2,1,3)\)</span> 在平面 <span class="arithmatex">\(x + y + z = 3\)</span> 上的投影：过 <span class="arithmatex">\(P\)</span> 沿 <span class="arithmatex">\(\mathbf n = (1,1,1)\)</span> 的参数线 <span class="arithmatex">\((2+t, 1+t, 3+t)\)</span> 代入平面解 <span class="arithmatex">\(t = -1\)</span> ⇒ 投影 <span class="arithmatex">\((1, 0, 2)\)</span>。（"沿法向走到平面"——最小二乘投影的三维具象，高代 VI/泛函 II 的远亲。）<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：二次曲面——六个标准脸谱与"截痕法"，并与高代 VI 的二次型分类正式对表。</em></p>
@@ -117,5 +225,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/vectors-planes.js"></script>
 </body>
 </html>
