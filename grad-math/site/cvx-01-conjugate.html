@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一条支撑线何时把不等式压成等号？</a><ul>
+<li><a href="#1-y">1. 具体情境：斜率 \(y\) 在向函数“报价”</a></li>
+<li><a href="#2">2. 先预测：定义域也是答案的一部分</a></li>
+<li><a href="#3">3. 三个模型：光滑、折角与未取到的上确界</a></li>
+<li><a href="#4">4. 从一个间隙到原始–对偶间隙</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 共轭函数</a></li>
 <li><a href="#2-fenchel">2. Fenchel 对偶</a></li>
-<li><a href="#3">3. 次梯度演算（研究生版补全）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#3_1">3. 次梯度演算（研究生版补全）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +67,76 @@
 <p><strong>对标</strong>：Boyd &amp; Vandenberghe §3.3、§5 / Rockafellar 入门 ｜ <strong>前置</strong>：本科优化 I–III、泛函 II
 研究生凸优化的第一件新武器是<strong>共轭函数</strong>（Legendre–Fenchel 变换）：它把"函数"编码成"支撑超平面族"，是对偶理论的原子操作——本科的 Lagrange 对偶、后两页的近端算法与 ADMM，全部由它统一生成。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="fenchel-duality-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一条支撑线何时把不等式压成等号？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-y">1. 具体情境：斜率 <span class="arithmatex">\(y\)</span> 在向函数“报价”<a class="headerlink" href="#1-y" title="Permanent link"></a></h3>
+<p>Fenchel 共轭</p>
+<div class="arithmatex">\[
+f^*(y)=\sup_x\{\langle y,x\rangle-f(x)\}
+\]</div>
+<p>问的是：固定斜率 <span class="arithmatex">\(y\)</span> 后，仿射函数 <span class="arithmatex">\(\langle y,x\rangle-f^*(y)\)</span> 能在多高的位置仍不穿过 <span class="arithmatex">\(f\)</span> 的图像。于是</p>
+<div class="arithmatex">\[
+f(x)+f^*(y)-\langle x,y\rangle\geq0
+\]</div>
+<p>不是一个抽象口号，而是一张可核对的“支撑间隙”账单；间隙为零恰好表示 <span class="arithmatex">\(y\in\partial f(x)\)</span>。</p>
+<h3 id="2">2. 先预测：定义域也是答案的一部分<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>对 <span class="arithmatex">\(f(x)=x^2/2\)</span>，给定 <span class="arithmatex">\(x\)</span> 后哪一个 <span class="arithmatex">\(y\)</span> 会让 Fenchel–Young 间隙为零？</li>
+<li>对 <span class="arithmatex">\(f(x)=|x|\)</span>，当 <span class="arithmatex">\(|y|&gt;1\)</span> 时，共轭应是一个很大的有限数，还是 <span class="arithmatex">\(+\infty\)</span>？</li>
+<li>“负熵的共轭是 log-sum-exp”是否无需说明 <span class="arithmatex">\(p_i\geq0\)</span> 与 <span class="arithmatex">\(\sum_i p_i=1\)</span>？</li>
+</ol>
+<h3 id="3">3. 三个模型：光滑、折角与未取到的上确界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="fenchel-duality">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(f\)</span></th>
+<th><span class="arithmatex">\(f^*\)</span></th>
+<th>取等条件</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(x^2/2\)</span></td>
+<td><span class="arithmatex">\(y^2/2\)</span></td>
+<td><span class="arithmatex">\(y=x\)</span></td>
+<td>处处有限且光滑</td>
+</tr>
+<tr>
+<td>(</td>
+<td>x</td>
+<td>)</td>
+<td><span class="arithmatex">\(\iota_{[-1,1]}(y)\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(e^x\)</span></td>
+<td><span class="arithmatex">\(y\ln y-y\)</span>（<span class="arithmatex">\(y&gt;0\)</span>），<span class="arithmatex">\(0\)</span>（<span class="arithmatex">\(y=0\)</span>）</td>
+<td><span class="arithmatex">\(y=e^x&gt;0\)</span></td>
+<td><span class="arithmatex">\(y=0\)</span> 的上确界在 <span class="arithmatex">\(x\to-\infty\)</span> 时逼近但不取到；<span class="arithmatex">\(y&lt;0\)</span> 时为 <span class="arithmatex">\(+\infty\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>实验揭示后可切换函数并移动 <span class="arithmatex">\(x,y\)</span>，SVG 同时画函数、候选支撑线和接触点；账本分开显示共轭值、Fenchel–Young 间隙、次梯度证书与定义域状态。离散画布只负责可视化，精确共轭由上表的解析式计算。</p>
+</div>
+<h3 id="4">4. 从一个间隙到原始–对偶间隙<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>Fenchel–Rockafellar 对偶把两个这样的上确界拼起来。弱对偶不需要约束品性；零原始–对偶间隙与对偶解取得则需要闭凸性和相对内部相交等条件。有限实验出现“数值间隙接近零”不能替代强对偶定理，也不能证明最优解一定取得。</p>
+<p>熵例尤其要写全定义域：</p>
+<div class="arithmatex">\[
+\left(\sum_i x_i\ln x_i+\iota_{\mathbb R_+^n}(x)\right)^*
+=\sum_i e^{y_i-1},
+\]</div>
+<p>而</p>
+<div class="arithmatex">\[
+\left(\sum_i p_i\ln p_i+\iota_{\Delta}(p)\right)^*
+=\log\sum_i e^{y_i},\qquad
+\Delta=\{p\geq0:\sum_i p_i=1\}.
+\]</div>
+<p>少写一个单纯形约束，就会把两个不同的共轭混成一条。</p>
+</section>
 <h2 id="1">1. 共轭函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Fenchel 共轭的支撑线几何" src="assets/img/cvx-01-conjugate.svg" /></p>
@@ -78,11 +166,15 @@ f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
 </tr>
 <tr>
 <td><span class="arithmatex">\(e^x\)</span></td>
-<td><span class="arithmatex">\(y\ln y - y\)</span>（负熵）</td>
+<td><span class="arithmatex">\(y\ln y-y\)</span>（<span class="arithmatex">\(y&gt;0\)</span>），<span class="arithmatex">\(0\)</span>（<span class="arithmatex">\(y=0\)</span>），<span class="arithmatex">\(+\infty\)</span>（<span class="arithmatex">\(y&lt;0\)</span>）</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\sum x_i\ln x_i\)</span>（熵）</td>
-<td><span class="arithmatex">\(\ln\sum e^{y_i}\)</span>（log-sum-exp——<strong>熵与 softmax 互为共轭</strong>）</td>
+<td><span class="arithmatex">\(\sum x_i\ln x_i+\iota_{\mathbb R_+^n}(x)\)</span></td>
+<td><span class="arithmatex">\(\sum_i e^{y_i-1}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sum p_i\ln p_i+\iota_\Delta(p)\)</span>，<span class="arithmatex">\(\Delta=\{p\geq0:\sum p_i=1\}\)</span></td>
+<td><span class="arithmatex">\(\ln\sum e^{y_i}\)</span>（单纯形负熵与 log-sum-exp 互为共轭）</td>
 </tr>
 <tr>
 <td>示性函数 <span class="arithmatex">\(\iota_C\)</span></td>
@@ -95,9 +187,9 @@ f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
 </tbody>
 </table>
 <p><strong>Fenchel–Young 不等式</strong>（定义的直接重排）：<span class="arithmatex">\(f(x) + f^*(y) \geq \langle x, y\rangle\)</span>，取等 <span class="arithmatex">\(\iff y \in \partial f(x)\)</span>——<strong>"共轭对 = 次梯度关系"</strong>：<span class="arithmatex">\((x, y)\)</span> 配对当且仅当 <span class="arithmatex">\(y\)</span> 是 <span class="arithmatex">\(x\)</span> 处的支撑斜率。</p>
-<p><strong>定理（双共轭）</strong> <span class="arithmatex">\(f\)</span> 闭凸（下半连续 + 凸）<span class="arithmatex">\(\Rightarrow f^{**} = f\)</span>。
+<p><strong>定理（双共轭）</strong> <span class="arithmatex">\(f\)</span> 真（proper）、闭且凸（下半连续 + 凸）<span class="arithmatex">\(\Rightarrow f^{**} = f\)</span>。
 <strong>【骨架】</strong> <span class="arithmatex">\(f^{**} \leq f\)</span> 由定义两次展开；反向：闭凸函数是其全部支撑超平面的上确界（分离超平面定理应用于上镜图 epigraph——凸分析的中心构造），而 <span class="arithmatex">\(f^{**}\)</span> 恰好就是这个上确界。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：<strong>闭凸函数与其支撑面族信息等价</strong>——"点描述"与"斜率描述"可以无损互换（一般 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(f^{**}\)</span> = 凸包络：非凸问题的"凸松弛"由此定义）。</p>
+<strong>读法</strong>：<strong>真闭凸函数与其支撑面族信息等价</strong>——"点描述"与"斜率描述"可以无损互换。对具有仿射下界、且双共轭不退化的一般扩展实值函数，<span class="arithmatex">\(f^{**}\)</span> 是不超过 <span class="arithmatex">\(f\)</span> 的最大下半连续凸函数（常称闭凸包络）；只说“凸包络”会漏掉闭性，忽略 properness 则会把恒为 <span class="arithmatex">\(+\infty\)</span> 等退化对象也错误纳入同一句话。</p>
 <h2 id="2-fenchel">2. Fenchel 对偶<a class="headerlink" href="#2-fenchel" title="Permanent link"></a></h2>
 <p><strong>定理（Fenchel–Rockafellar）</strong> 原问题 <span class="arithmatex">\(\min_x f(x) + g(Ax)\)</span> 的对偶为</p>
 <div class="arithmatex">\[
@@ -106,12 +198,12 @@ f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
 <p>弱对偶恒成立；<span class="arithmatex">\(f, g\)</span> 闭凸 + 约束品性（如 <span class="arithmatex">\(A\,\mathrm{dom}f\)</span> 与 <span class="arithmatex">\(\mathrm{dom}g\)</span> 相对内部相交——Slater 的共轭版）下强对偶。
 <strong>【骨架】</strong> 引入拆分变量 <span class="arithmatex">\(z = Ax\)</span> 与拉格朗日乘子 <span class="arithmatex">\(y\)</span>，对 <span class="arithmatex">\(x, z\)</span> 分别取 inf——两个 inf 各自产出一个共轭函数（<span class="arithmatex">\(\inf_x [f(x) - \langle A^\top y, x\rangle] = -f^*(A^\top y)\)</span> 正是定义）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>统一性检阅</strong>：LP 对偶（<span class="arithmatex">\(f, g\)</span> 取线性 + 示性）、Lagrange 对偶（一般约束的示性化）、SVM 对偶（hinge 与范数各自共轭——本科 ai 课 02 的推导本质是查上面那张表）、<strong>熵与 log-sum-exp 的对偶 = 最大熵与指数族的对偶</strong>（信息论 III 的拉格朗日推导的抽象真身）——<strong>一张变换表统一四门课的对偶</strong>，这就是共轭语言的购买力。</p>
-<h2 id="3">3. 次梯度演算（研究生版补全）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 次梯度演算（研究生版补全）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>本科优化 I 定义了次梯度；共轭语言配齐运算律：<span class="arithmatex">\(\partial(f + g) = \partial f + \partial g\)</span>（Moreau–Rockafellar，需约束品性【引用】）；<span class="arithmatex">\(\partial(g\circ A) = A^\top\partial g(Ax)\)</span>；<strong>最优性条件的对偶形式</strong>：<span class="arithmatex">\(0 \in \partial f(x^*) \iff x^* \in \partial f^*(0)\)</span>——原始解与对偶解通过次微分互为反函数（Fenchel–Young 取等的两读）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（共轭亲算）</strong> 推 <span class="arithmatex">\(f = \max(0, 1-x)\)</span>（hinge）：分段讨论 sup 得 <span class="arithmatex">\(f^*(y) = y\)</span> 于 <span class="arithmatex">\(y \in [-1, 0]\)</span>、否则 <span class="arithmatex">\(+\infty\)</span>——SVM 对偶变量的盒约束 <span class="arithmatex">\(0 \leq \alpha \leq C\)</span> 的出处（对照本科 ai 课 02 的结果——那里的"神奇盒约束"原来是 hinge 的共轭定义域）。</p>
 <p><strong>例 2（不等式一行造）</strong> Fenchel–Young 用于 <span class="arithmatex">\(\frac1p|x|^p\)</span> 对：得 Young 不等式 <span class="arithmatex">\(xy \leq \frac{x^p}{p} + \frac{y^q}{q}\)</span>——实变 III Hölder 证明的那块砖，出厂车间在此。</p>
-<p><strong>例 3（松弛的语义）</strong> <span class="arithmatex">\(f\)</span> = 0-1 损失（非凸）：<span class="arithmatex">\(f^{**}\)</span> = 其凸包络 = 线性下界段——"用 hinge 替代 0-1"（本科 ai 02）在共轭语言里是"取双共轭的可行近似"：<strong>凸松弛不是权宜是原理</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（松弛的语义）</strong> 对一个明确给定定义域的非凸函数，<span class="arithmatex">\(f^{**}\)</span> 给出它的闭凸包络，因此提供系统的凸下松弛；定义域改变，包络也会改变。分类里的 hinge 损失是常用的凸上界替代，但它<strong>不是未经说明定义域的 0-1 损失的双共轭</strong>。二者都体现凸化思想，却不能画等号。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：一阶方法的收敛性证明——梯度下降、Nesterov 加速与近端梯度：本科"收敛速率表"逐行兑付。</em></p>
 </article>
@@ -123,5 +215,7 @@ f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/fenchel-duality.js"></script>
 </body>
 </html>

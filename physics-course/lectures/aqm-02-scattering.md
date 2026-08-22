@@ -32,8 +32,8 @@
 取自然单位 $R=1$、$2\mu/\hbar^2=1$，吸引球方井为 $V(r)=-V_0$（$r<R$）且井外为零。对 $\ell=0$ 的约化径向函数 $u=r\psi$，令
 
 $$
-q=\sqrt{k^2+V_0},qquad
-u_{\mathrm{in}}(r)=A\sin(qr),qquad
+q=\sqrt{k^2+V_0},\qquad
+u_{\mathrm{in}}(r)=A\sin(qr),\qquad
 u_{\mathrm{out}}(r)=\sin(kr+\delta_0).
 $$
 

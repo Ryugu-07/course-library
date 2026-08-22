@@ -1,7 +1,80 @@
 # 测度概率 I · 测度论语言与期望
 
 > **对标**：Durrett *PTE* §1.1–1.6 ｜ **前置**：本科实变 I–III、概率 I–IV
-> 本页把本科概率的语言全面升级为测度论版本，并配齐三件研究生日常武器：π–λ 定理（"在生成元上验证就够了"的执照）、一致可积（$L^1$ 收敛的正确条件）、Borel–Cantelli（一切 a.s. 论证的起点）。
+> 本页把本科概率的语言全面升级为测度论版本，并配齐三件研究生日常武器：π–λ 定理（"在生成元上验证就够了"的执照）、一致可积（在 $X_n\in L^1$、$X_n\to X$ 依概率时推出极限可积并给出 $L^1$ 收敛的条件）、Borel–Cantelli（一切 a.s. 论证的起点）。
+
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="expectation-learning-title">
+
+<h2 id="expectation-learning-title">学习层：同一个期望，为什么有三种合法账本？</h2>
+
+### 1. 先预测：把“取平均”拆成可审计的步骤
+
+先不打开实验。考虑一个非负随机变量 $X$，以及一个可能变号的随机变量 $Y$，对下面三个判断各写下答案：
+
+1. $X$ 用离散原子、密度或尾概率表示时，$\mathbb E X$ 是否只是同一个 Lebesgue 积分的三种坐标表达？
+2. 若 $X_K=X\wedge K\uparrow X$，即使 $\mathbb E X=+\infty$，$\mathbb E X_K$ 能否单调上升到 $+\infty$？把极限与非负求和/积分交换是否需要先假设期望有限？
+3. 若 $Y^+$ 与 $Y^-$ 的期望都为 $+\infty$，能否把“正负两边看起来对称”写成 $\mathbb E Y=0$？若只有正部分发散而负部分有限，结论应是未定义还是 $+\infty$？
+
+这些问题把三个层次分开：表示法是建模选择，Tonelli/MCT 是非负极限的合法性证书，而 signed expectation 还要通过正负部的边界检查。
+
+### 2. 最小模型：原子、密度、尾部三本账
+
+对 $X\ge0$，三种表示分别是
+
+$$
+\mathbb E X=\sum_k x_kp_k,\qquad
+\mathbb E X=\int_0^\infty x f_X(x)\,dx,\qquad
+\mathbb E X=\int_0^\infty \mathbb P(X>t)\,dt.
+$$
+
+第一式要求 $\sum_kp_k=1$；第二式要求 $f_X$ 是相对于 Lebesgue 测度的密度；第三式是 layer-cake 公式，只对非负变量直接使用。实验用有限原子分布和 $\operatorname{Exp}(1)$ 密度作可复核样板：原子样本直接累加，密度样本做有限区间的确定性求积，尾部样本画 $\int_0^T\mathbb P(X>t)\,dt$，并把遗漏的尾部单独列出。
+
+非负近似的核心账本是
+
+$$
+X_K=X\wedge K\uparrow X,\qquad
+\mathbb E X_K\uparrow\mathbb E X.
+$$
+
+这是单调收敛定理；把非负函数写成 $\sum_n f_n$ 或把积分写成 $\int\int g$ 时，Tonelli 允许交换次序，即使两边的共同值是 $+\infty$。所以“每个有限截断都算出了一个数”与“极限是有限实数”必须分列记录。
+
+### 3. 动手：把正负部也放进同一张总账
+
+实验揭示后可切换原子、指数密度、尾积分、正的重尾和变号重尾；固定截断级别 $K$ 或尾部上限 $T$。图只展示有限截断的增长，表格则同时报告 $\mathbb E Y^+$、$\mathbb E Y^-$、$\mathbb E|Y|$ 与结论级别。
+
+<div class="learning-lab" data-learning-lab="measure-expectation" markdown="1">
+
+**无 JavaScript 时的静态读法：**原子样本取
+$\mathbb P(X=0,1,2,4)=(1/2,1/4,1/8,1/8)$，所以
+$\mathbb E X=1$。密度样本取 $f(x)=e^{-x}\mathbf1_{x\ge0}$，则
+$\int_0^\infty xf(x)\,dx=1$，尾积分也给
+$\int_0^\infty e^{-t}\,dt=1$；在有限上限 $T$ 时，尾账是 $1-e^{-T}$，不是已经完成的无限积分。
+
+对 $p_k=c/k^2$、$c=6/\pi^2$：若 $X=k^2>0$，则
+$\mathbb E X=+\infty$；若 $Y=(-1)^k k$，则
+$\mathbb E Y^+=\mathbb E Y^-=+\infty$，所以 $\mathbb E Y$ 是未定义的 $\infty-\infty$，绝不能借对称性写成 $0$。
+
+| 模型/账本 | 有限计算 | 定理级读法 | 边界 |
+|---|---|---|---|
+| 原子 $X$ | $\sum x_kp_k=1$ | 离散 LOTUS / Lebesgue 积分 | 要核对概率和为 $1$ |
+| 指数密度 | $\int_0^T xe^{-x}\,dx$ | $T\to\infty$ 后为 $1$ | 有限 $T$ 还有尾部 |
+| 尾积分 | $\int_0^T e^{-t}\,dt=1-e^{-T}$ | layer-cake 给 $\mathbb EX=1$ | 只对 $X\ge0$ 直接成立 |
+| 正重尾 $k^2$ | $\mathbb E(X\wedge K)\uparrow+\infty$ | MCT/Tonelli 允许值为 $+\infty$ | 不属于 $L^1$ |
+| 变号重尾 $(-1)^kk$ | 正负部截断都上升 | 两部都无限，signed 期望未定义 | “正负抵消”非法 |
+
+</div>
+
+### 4. 定理假设与失败边界
+
+- **Tonelli** 只要求被积函数可测且非负；它保证交换后的共同值（允许为 $+\infty$）。对变号函数要用 Fubini，通常须先验证 $\int|f|<\infty$。不能把“正项级数可逐项相加”推广成任意交错项都能换序。
+- **MCT** 要求 $X_K$ 可测、非负并且几乎处处单调上升到 $X$；它不保证极限期望有限。Fatou 只给下界不等式，不能无条件补成等式。
+- 一般可积变量写成 $X=X^+-X^-$，其中 $\mathbb EX$ 作为有限实数至少要求 $\mathbb E|X|<\infty$；若仅有 $\mathbb EX^+<\infty$、$\mathbb EX^-=\infty$，扩展期望是 $-\infty$，反向类似为 $+\infty$；两部都无限则未定义。
+- **Vitali/UI 的精确条件**：若每个 $X_n\in L^1$、$X_n\to X$ 依概率且 $\{X_n\}$ 一致可积，则 $X\in L^1$ 自动成立并且 $\mathbb E|X_n-X|\to0$，即 $L^1$ 收敛。反过来，若 $X\in L^1$ 且 $X_n\to X$ 在 $L^1$ 中，则 $\{X_n\}$ 一致可积。只写“依概率 + UI ⇒ $L^1$”而不说明这些可积性/极限条件，会把定理的适用域写宽。
+- 计算器、有限截断和有限 Monte Carlo 只产生数值证据；它们不能决定 $K\to\infty$ 或 $T\to\infty$ 的量词，也不能把未定义的 $\infty-\infty$ 变成一个“稳定近零”的数。
+
+</section>
 
 ## 1. 概率空间与分布
 
@@ -17,7 +90,13 @@
 
 **定义（一致可积，UI）** 族 $\{X_i\}$ 一致可积：$\sup_i E\big[|X_i|\,\mathbb{1}_{|X_i| > M}\big] \to 0\ (M \to \infty)$——"尾部质量被一致地压住"。（充分条件：被同一可积变量控制；或 $\sup E|X_i|^{1+\varepsilon} < \infty$——后者是实战最常用的验证法。）
 
-**定理（Vitali：$L^1$ 收敛的充要刻画）** $X_n \xrightarrow{P} X$ 时：$E|X_n - X| \to 0 \iff \{X_n\}$ 一致可积。
+**定理（Vitali：$L^1$ 收敛的充要刻画）** 若每个 $X_n\in L^1$ 且 $X_n \xrightarrow{P} X$，则
+
+$$
+X_n\xrightarrow{L^1}X \quad\Longleftrightarrow\quad \{X_n\}\text{ 一致可积}.
+$$
+
+右推左时 $X\in L^1$ 是结论，不必预先假设；左推右时 $L^1$ 收敛本身已包含 $X\in L^1$。
 **【骨架】** （⇐）截断 $X_n$ 于 $M$：截断误差由 UI 一致控制，截断后的部分依概率收敛 + 有界 ⇒ DCT 收尾；（⇒）$L^1$ 收敛族的尾部由单个 $X$ 的尾部 + 收敛差控制。$\blacksquare$
 **地位**：DCT 要"控制函数"，UI 只要"尾部一致小"——**取期望换极限的最弱实用条件**，鞅论（mt-04）与渐近统计到处是它。
 
@@ -43,7 +122,7 @@ $$
 
 - a.s. 与 $L^p$ 互不蕴含（反例：滑动的高瘦块 $n\mathbb{1}_{(0,1/n)}$ 是 a.s.→0 但 $L^1$ 不收敛；"打字机序列"$\mathbb{1}$ 块扫过 $[0,1]$ 是 $L^1$→0 但处处不 a.s. 收敛——**两个反例是本页必背**）；
 - 依概率 ⇒ 有 a.s. 收敛子列（实变 III 已证）；
-- 依概率 + UI ⇒ $L^1$（§2 Vitali）——补上图中缺的那条边。
+- 若每个 $X_n\in L^1$、$X_n\to X$ 依概率且族一致可积，则由 §2 Vitali 得 $X\in L^1$ 且 $X_n\to X$ 于 $L^1$——补上图中缺的那条边。
 
 ## 5. 练习与要点
 

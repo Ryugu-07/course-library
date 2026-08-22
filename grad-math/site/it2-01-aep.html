@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：最可能的序列，为什么常常不“典型”？</a><ul>
+<li><a href="#1">1. 具体情境：一枚偏置硬币的全部类型</a></li>
+<li><a href="#2">2. 先预测：单条概率、条数和总质量分账</a></li>
+<li><a href="#3">3. 有限类型账本</a></li>
+<li><a href="#4">4. 渐近结论的条件与逆向证明的尾项</a></li>
+</ul>
+</li>
 <li><a href="#1-aep">1. AEP：大数定律的信息论化身</a></li>
-<li><a href="#2">2. 信源编码定理（典型集版证明）</a></li>
-<li><a href="#3">3. 熵率：有记忆信源</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#2_1">2. 信源编码定理（典型集版证明）</a></li>
+<li><a href="#3_1">3. 熵率：有记忆信源</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,12 +67,46 @@
 <p><strong>对标</strong>：Cover &amp; Thomas <em>EIT</em> §3、§4.1–4.3 ｜ <strong>前置</strong>：本科信息论 I–III、mt-02
 研究生信息论的第一件武器是 <strong>AEP（渐近均分性）</strong>：长序列的概率世界"塌缩"成一个几乎均匀的<strong>典型集</strong>。它是信息论一切编码定理的证明引擎——本科"熵 = 压缩极限"的口头支票，本页用典型集正式兑付，并推广到熵率（有记忆信源）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="aep-typicality-learning-title" class="learning-layer">
+<h2 id="_1">学习层：最可能的序列，为什么常常不“典型”？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：一枚偏置硬币的全部类型<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(X_i\sim\operatorname{Bernoulli}(p)\)</span> 独立同分布。一条长度 <span class="arithmatex">\(n\)</span>、含 <span class="arithmatex">\(k\)</span> 个 1 的具体序列，其每符号自信息是</p>
+<div class="arithmatex">\[
+-\frac1n\log_2p(x^n)
+=-\frac{k}{n}\log_2p-\left(1-\frac{k}{n}\right)\log_2(1-p).
+\]</div>
+<p>同一 <span class="arithmatex">\(k\)</span> 有 <span class="arithmatex">\(\binom nk\)</span> 条序列。AEP 说概率质量最终集中到自信息接近 <span class="arithmatex">\(H_2(p)\)</span> 的序列集合；它没有说冠军序列最典型。若 <span class="arithmatex">\(p=0.9\)</span>，全 1 序列单条概率最大，却因经验频率没有保留典型波动，在常用 <span class="arithmatex">\(\varepsilon\)</span> 下可能落在典型集外。</p>
+<h3 id="2">2. 先预测：单条概率、条数和总质量分账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>增大 <span class="arithmatex">\(n\)</span> 时，典型集占全部 <span class="arithmatex">\(2^n\)</span> 序列的比例会趋近 1，还是可能指数变小？</li>
+<li>典型集的<strong>概率质量</strong>趋近 1，是否意味着其中每条序列的概率完全相等？</li>
+<li>用 <span class="arithmatex">\(2^{nR}\)</span> 个码字覆盖信源时，逆向证明只估计“与典型集相交”的质量是否已经完整？</li>
+</ol>
+<h3 id="3">3. 有限类型账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="aep-typicality">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(p=0.9,n=100,\varepsilon=0.1\)</span>，有 <span class="arithmatex">\(H_2(p)\approx0.469\)</span>。渐近中心尺度是 <span class="arithmatex">\(2^{nH}\approx2^{46.9}\)</span>，但当前有限典型带精确包含 <span class="arithmatex">\(k=87,\ldots,93\)</span> 的类型，故 <span class="arithmatex">\(\log_2|A_\varepsilon^{(100)}|\approx52.886\)</span>，概率质量约为 <span class="arithmatex">\(0.75897\)</span>。它远小于全部 <span class="arithmatex">\(2^{100}\)</span>，且随 (n) 增大质量才在定理条件下趋近 1；全 1 序列的每符号自信息约 <span class="arithmatex">\(0.152\)</span>，单条最可能却未必落在窄典型带中。</p>
+<p>实验揭示后可调 <span class="arithmatex">\(p,n,\varepsilon\)</span>，按二项类型精确汇总典型质量与序列条数，并单列冠军序列。组合数和概率在对数域计算，避免大 <span class="arithmatex">\(n\)</span> 溢出；结果是有限 <span class="arithmatex">\(n\)</span> 的精确 Bernoulli 类型账本，不是一般信源的 SMB 定理证明。</p>
+</div>
+<h3 id="4">4. 渐近结论的条件与逆向证明的尾项<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>i.i.d. AEP 可由大数定律推出；有限字母表自动满足有限熵条件。对一般平稳遍历信源需 Shannon–McMillan–Breiman 定理。</li>
+<li>典型集内概率只在指数尺度上近似均匀，不是逐条严格相等。</li>
+<li>编码逆向若令 <span class="arithmatex">\(B_n\)</span> 为至多 <span class="arithmatex">\(2^{nR}\)</span> 条可编码序列，则</li>
+</ul>
+<div class="arithmatex">\[
+P(B_n)\leq P(A_\varepsilon^{(n)c})
++2^{nR}2^{-n(H-\varepsilon)}.
+\]</div>
+<p>第一项是非典型尾部，第二项才是典型交集；漏掉第一项，证明不完整。</p>
+</section>
 <h2 id="1-aep">1. AEP：大数定律的信息论化身<a class="headerlink" href="#1-aep" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="典型集大小 2^nH" src="assets/img/it2-01-aep.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>渐近均分性（AEP）：长序列的概率几乎全压在 \(2^{nH}\) 个"典型序列"上（远少于全部 \(2^n\) 个）——信源编码的根。</figcaption>
 </figure>
-<p><strong>定理（AEP）</strong> <span class="arithmatex">\(X_1, \dots, X_n\)</span> i.i.d. <span class="arithmatex">\(\sim p\)</span>：</p>
+<p><strong>定理（AEP）</strong> <span class="arithmatex">\(X_1, \dots, X_n\)</span> i.i.d. <span class="arithmatex">\(\sim p\)</span>，并假设自信息可积（有限字母表且有限熵时自动满足）：</p>
 <div class="arithmatex">\[
 -\frac{1}{n}\log p(X_1, \dots, X_n) \;\xrightarrow{P}\; H(X)
 \]</div>
@@ -63,20 +115,20 @@
 <p><strong>典型集</strong> <span class="arithmatex">\(A_\varepsilon^{(n)} = \big\{x^n: 2^{-n(H+\varepsilon)} \leq p(x^n) \leq 2^{-n(H-\varepsilon)}\big\}\)</span>。</p>
 <p><strong>性质三条【证明】</strong>：① <span class="arithmatex">\(P(A_\varepsilon^{(n)}) \to 1\)</span>（AEP 的直译）；② <span class="arithmatex">\(|A_\varepsilon^{(n)}| \leq 2^{n(H+\varepsilon)}\)</span>（每个成员概率 <span class="arithmatex">\(\geq 2^{-n(H+\varepsilon)}\)</span>、总概率 <span class="arithmatex">\(\leq 1\)</span>——计数即除法）；③ <span class="arithmatex">\(|A_\varepsilon^{(n)}| \geq (1-\varepsilon)2^{n(H-\varepsilon)}\)</span>（大 <span class="arithmatex">\(n\)</span>；同法反向）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>世界观</strong>：<span class="arithmatex">\(|\mathcal{X}|^n\)</span> 个可能序列中，<strong>只有 <span class="arithmatex">\(2^{nH}\)</span> 个"实际会发生"</strong>（占比 <span class="arithmatex">\(2^{-n(\log|\mathcal{X}| - H)}\)</span>——指数级稀疏），且它们近似等概率。"高维概率集中在薄壳上"（hdp-01 §3）的信息论平行版：<strong>大数世界的多样性由熵精确计价</strong>。</p>
-<h2 id="2">2. 信源编码定理（典型集版证明）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 信源编码定理（典型集版证明）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理</strong> i.i.d. 信源可以 <span class="arithmatex">\(n(H + \varepsilon)\)</span> 比特/块无损编码（错误率 <span class="arithmatex">\(\to 0\)</span>）；低于 <span class="arithmatex">\(H\)</span> 则不可。
-<strong>【证明】</strong> （正向）只给典型集编号：性质②说 <span class="arithmatex">\(n(H+\varepsilon) + 1\)</span> 比特够用；非典型序列任意处理——出错概率 <span class="arithmatex">\(\leq P((A_\varepsilon^{(n)})^c) \to 0\)</span>（性质①）。（逆向）任何 <span class="arithmatex">\(2^{nR}\)</span>（<span class="arithmatex">\(R &lt; H\)</span>）个码字的集合，与典型集的交集至多 <span class="arithmatex">\(2^{nR}\)</span> 个成员、总概率 <span class="arithmatex">\(\leq 2^{nR}\cdot2^{-n(H-\varepsilon)} \to 0\)</span>——<strong>可靠编码覆盖不住典型集</strong>。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>【证明】</strong> （正向）只给典型集编号：性质②说 <span class="arithmatex">\(n(H+\varepsilon) + 1\)</span> 比特够用；非典型序列任意处理——出错概率 <span class="arithmatex">\(\leq P((A_\varepsilon^{(n)})^c) \to 0\)</span>（性质①）。（逆向）对固定的 <span class="arithmatex">\(R&lt;H\)</span>，先选定 <span class="arithmatex">\(0&lt;\varepsilon&lt;H-R\)</span>。任何至多覆盖 <span class="arithmatex">\(2^{nR}\)</span> 条序列的码本 <span class="arithmatex">\(B_n\)</span>，满足 <span class="arithmatex">\(P(B_n)\leq P(A_\varepsilon^{(n)c})+2^{nR}2^{-n(H-\varepsilon)}\)</span>；再令 <span class="arithmatex">\(n\to\infty\)</span>，非典型尾与指数项才都趋零——<strong>可靠编码覆盖不住典型集</strong>。<span class="arithmatex">\(\blacksquare\)</span>
 （对比本科信息论 I 的 Kraft/Shannon 码证明：那是<strong>逐符号</strong>的构造性路线（多付最多 1 比特/符号），本页是<strong>分块渐近</strong>路线——精确到 <span class="arithmatex">\(H\)</span>、但只是存在性：两条路线互补，后者的"随机分块 + 典型性"手法是下一页信道定理的预演。）</p>
-<h2 id="3">3. 熵率：有记忆信源<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>真实信源（语言！）不独立。<strong>熵率</strong>：</p>
+<h2 id="3_1">3. 熵率：有记忆信源<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>真实信源（语言！）不独立。对<strong>平稳离散信源</strong>，熵率可写成：</p>
 <div class="arithmatex">\[
 H(\mathcal{X}) = \lim_{n\to\infty}\frac{1}{n}H(X_1, \dots, X_n) = \lim_{n\to\infty} H(X_n \mid X_{n-1}, \dots, X_1)
 \]</div>
-<p><strong>【证明（两定义等价）】</strong> 条件熵序列 <span class="arithmatex">\(H(X_n\mid X^{n-1})\)</span> 单调不增（信息不增，本科 I）且非负 ⇒ 有极限；链式法则把 <span class="arithmatex">\(\frac1nH(X^n)\)</span> 写成其 Cesàro 平均——收敛列的 Cesàro 平均同极限（数分 I 的老引理）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>【证明（两定义等价）】</strong> 平稳性使条件熵序列 <span class="arithmatex">\(H(X_n\mid X^{n-1})\)</span> 可在平移后比较，并随可用过去增长而单调不增，且非负 ⇒ 有极限；链式法则把 <span class="arithmatex">\(\frac1nH(X^n)\)</span> 写成其 Cesàro 平均——收敛列的 Cesàro 平均同极限。没有平稳性时，这两个极限未必存在或相等，不能照搬这段论证。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>平稳遍历信源的 AEP（Shannon–McMillan–Breiman）【引用】</strong>：<span class="arithmatex">\(-\frac1n\log p(X^n) \to H(\mathcal{X})\)</span> a.s.——AEP 推广到有记忆世界（证明需遍历定理，Durrett §7）。<strong>压缩极限 = 熵率</strong>照旧成立。</p>
 <p><strong>Markov 信源的熵率【证明】</strong>：平稳 Markov 链：<span class="arithmatex">\(H(\mathcal{X}) = H(X_2\mid X_1) = -\sum_i \pi_i\sum_j P_{ij}\log P_{ij}\)</span>（条件熵定义式在平稳分布下取平均——随机过程线的 <span class="arithmatex">\(\pi\)</span> 在此就业）。</p>
 <p>🔗 <strong>LLM 对账</strong>：语言的熵率 ≈ 每字符 1 比特级（Shannon 的著名实验【引用】）；<strong>语言模型的交叉熵/困惑度就是对熵率的上界估计</strong>（本科信息论 III"压缩即智能"的研究生版语言）——模型越强、估计越贴近真实熵率；"LLM 压缩互联网"的理论天花板就是 SMB 定理里的那个 <span class="arithmatex">\(H(\mathcal{X})\)</span>。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（典型集数感）</strong> 有偏硬币 <span class="arithmatex">\(p = 0.9\)</span>，<span class="arithmatex">\(n = 100\)</span>：<span class="arithmatex">\(H \approx 0.469\)</span> ⇒ 典型集约 <span class="arithmatex">\(2^{47}\)</span> 个序列——占全部 <span class="arithmatex">\(2^{100}\)</span> 的 <span class="arithmatex">\(2^{-53}\)</span>（十万亿亿分之一），却占概率的几乎全部；<strong>且最可能的单个序列（全 1）不在典型集里</strong>（<span class="arithmatex">\(-\frac1n\log p = 0.152 \neq H\)</span>）——"最典型 ≠ 最可能"：典型集是"大数的众生相"，不是"冠军"。这个反直觉是 AEP 理解的试金石。</p>
 <p><strong>例 2（熵率计算）</strong> 二状态 Markov 链 <span class="arithmatex">\(P = \begin{pmatrix}0.9 &amp; 0.1\\ 0.5 &amp; 0.5\end{pmatrix}\)</span>：<span class="arithmatex">\(\pi = (\frac56, \frac16)\)</span>，<span class="arithmatex">\(H(\mathcal{X}) = \frac56 h(0.1) + \frac16 h(0.5) \approx 0.558\)</span> 比特/步——对比独立同边缘的 <span class="arithmatex">\(H(\pi) \approx 0.65\)</span>：<strong>记忆压低熵率</strong>（可预测性 = 可压缩性）。</p>
 <p><strong>例 3（SMB 的实践影子）</strong> 用 gzip 压缩自己一年的日报文本估计熵率：压缩比 ≈ 熵率/8 比特——粗糙但方向正确的"个人语言熵"测量；换用 LLM 的困惑度会得到更紧的上界（两代压缩器的代差可测）。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -91,5 +143,7 @@ H(\mathcal{X}) = \lim_{n\to\infty}\frac{1}{n}H(X_1, \dots, X_n) = \lim_{n\to\inf
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/aep-typicality.js"></script>
 </body>
 </html>

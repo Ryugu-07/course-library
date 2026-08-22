@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +43,26 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 三定律的逻辑结构</a></li>
-<li><a href="#2">2. 三大守恒律（各配两行推导）</a></li>
+<li><a href="#mech01-learning-title">学习层：同一段运动，换系统边界和参考系后还守恒吗？</a><ul>
+<li><a href="#1">1. 先把自由体图的边界画出来</a></li>
+<li><a href="#2">2. 先预测：三条容易混淆的账</a></li>
+<li><a href="#3">3. 参考系与外冲量：方程先于图像</a></li>
+<li><a href="#4">4. 角动量的原点条件</a></li>
+<li><a href="#5">5. 动手与静态后备：精确律不等于有限步算法</a></li>
+<li><a href="#6">6. 定理级结论与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 三定律的逻辑结构</a></li>
+<li><a href="#2_1">2. 三大守恒律（各配两行推导）</a></li>
 <li><a href="#3-kepler">3. 中心力场与 Kepler 问题（本页的完整战役）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,16 +71,122 @@
 <p><strong>对标</strong>：任何理论力学教材开篇 / Kleppner–Kolenkow ｜ <strong>前置</strong>：数分 II/V、ode 线
 牛顿力学是全部物理的原型：<strong>给定力，运动由二阶 ODE 决定</strong>。本页把框架立严（三定律的真实逻辑地位）、把三大守恒律从方程中推出来，并给出"守恒律 = 求解捷径"的方法论——它是下一页变分力学的铺垫，也是 Noether 定理的直觉预演。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="mech01-learning-title" class="learning-layer">
+<h2 id="mech01-learning-title">学习层：同一段运动，换系统边界和参考系后还守恒吗？<a class="headerlink" href="#mech01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先把自由体图的边界画出来<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取一维两物体碰撞作为最小模型：</p>
+<div class="arithmatex">\[
+m_1=1,\quad m_2=2,\quad v_1=2,\quad v_2=-\frac12.
+\]</div>
+<p>若把两个物体一起作为系统，碰撞力是内部力；若只画物体 1 的自由体图，同一个接触力又是作用在它身上的外力。这个“内/外”不是力的名字，而是由<strong>系统边界</strong>决定的。惯性系中</p>
+<div class="arithmatex">\[
+\frac{d\mathbf P}{dt}=\mathbf F_{\mathrm{ext}},\qquad
+\mathbf J_{\mathrm{ext}}=\Delta\mathbf P.
+\]</div>
+<p>所以孤立碰撞的总动量守恒来自内部冲量成对抵消，而不是来自“每个物体的动量都不变”。弹性碰撞还要额外假设动能守恒；仅有第三定律并不足以保证弹性。</p>
+<h3 id="2">2. 先预测：三条容易混淆的账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台前，先回答三个问题：</p>
+<ol>
+<li>对上面的孤立碰撞，内部冲量一正一负时，单个物体的动量是否各自守恒，还是只有总动量守恒？</li>
+<li>把一个恒力粒子放进加速参考系后，若仍写成 <span class="arithmatex">\(m\mathbf a'=\mathbf F\)</span> 而不加惯性力，方程残差会消失还是留下 <span class="arithmatex">\(-m\mathbf A_{\mathrm{frame}}\)</span>？</li>
+<li>中心力只保证关于哪个原点的角动量不变；把原点平移、让原点移动，力矩式是否仍能原封不动地写成 <span class="arithmatex">\(\dot{\mathbf L}=\boldsymbol\tau\)</span>？</li>
+</ol>
+<p>揭示后，实验把自由体/冲量、参考系、角动量原点和轨迹离散化分成四栏。每栏的数值都标出其假设，不把一条有限时间步轨迹伪装成守恒定理。</p>
+<h3 id="3">3. 参考系与外冲量：方程先于图像<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在惯性系中，单粒子方程是</p>
+<div class="arithmatex">\[
+m\mathbf a=\mathbf F_{\mathrm{real}}.
+\]</div>
+<p>若参考系相对惯性系有平动加速度 <span class="arithmatex">\(\mathbf A_F\)</span>，相对加速度满足 <span class="arithmatex">\(\mathbf a'=\mathbf a-\mathbf A_F\)</span>，因此</p>
+<div class="arithmatex">\[
+m\mathbf a'=\mathbf F_{\mathrm{real}}-m\mathbf A_F.
+\]</div>
+<p>右侧第二项是该非惯性系中的惯性力。旋转系还会增加离心、Coriolis 和 Euler 项；不能看到一张相对轨迹就直接套惯性系方程。</p>
+<p>对多粒子系统，把每个粒子的方程相加：</p>
+<div class="arithmatex">\[
+\frac{d}{dt}\sum_i m_i\mathbf v_i
+=\sum_i\mathbf F_i^{\mathrm{ext}}+
+\underbrace{\sum_i\mathbf F_i^{\mathrm{int}}}_{0\ \text{（成对相消的条件下）}}.
+\]</div>
+<p>这里要求内部力按第三定律成对、作用在同一时刻且方向相反；电磁延迟、连续介质应力和约束的建模若不满足这个简化，必须回到更完整的动量通量账本。外冲量不为零时，总动量的变化正好等于它，不能把“系统内部很强”误读成“总动量仍守恒”。</p>
+<h3 id="4">4. 角动量的原点条件<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>关于固定原点 <span class="arithmatex">\(O\)</span>，多粒子系统的一般式先写成</p>
+<div class="arithmatex">\[
+\mathbf L_O=\sum_i(\mathbf r_i-\mathbf r_O)\times m_i\mathbf v_i,\qquad
+\frac{d\mathbf L_O}{dt}
+=\boldsymbol\tau_O^{\mathrm{ext}}+\boldsymbol\tau_O^{\mathrm{int}}.
+\]</div>
+<p>成对内部力反向只保证线动量账相消；要让内部总力矩也相消，还需它们沿两粒子连线（中心内力），或更一般地证明内部净力矩/应力通量为零。对单粒子中心力，<span class="arithmatex">\(\mathbf F\parallel(\mathbf r-\mathbf r_O)\)</span> 只保证关于这个同一个 <span class="arithmatex">\(O\)</span> 的力矩为零。平移原点后，力的作用线未必仍通过新原点，角动量就可能变化。若原点以速度 <span class="arithmatex">\(\mathbf V_O\)</span> 移动，而仍采用绝对动量 <span class="arithmatex">\(\mathbf P\)</span> 定义 <span class="arithmatex">\(\mathbf L_O=(\mathbf r-\mathbf r_O)\times\mathbf P\)</span>，则</p>
+<div class="arithmatex">\[
+\frac{d\mathbf L_O}{dt}
+=\boldsymbol\tau_O-\mathbf V_O\times\mathbf P.
+\]</div>
+<p>因此“零力矩所以角动量守恒”至少要写清楚原点固定、力矩关于哪个点计算，以及是否存在外力矩。对刚体还需把质心平动和绕质心转动的两笔账分开。</p>
+<h3 id="5">5. 动手与静态后备：精确律不等于有限步算法<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>实验的恒加速度轨迹用闭式定律</p>
+<div class="arithmatex">\[
+\mathbf r(t)=\mathbf r_0+\mathbf v_0t+\frac12\mathbf at^2
+\]</div>
+<p>作为“精确”参考，再用显式 Euler 的有限步
+<span class="arithmatex">\(\mathbf r_{k+1}=\mathbf r_k+h\mathbf v_k\)</span>、
+<span class="arithmatex">\(\mathbf v_{k+1}=\mathbf v_k+h\mathbf a\)</span> 画离散路径。Euler 路径随着 <span class="arithmatex">\(h\to0\)</span> 可收敛到闭式解，但单个有限步不必精确保持能量、角动量或轨道几何。实验显示的是误差证据；守恒结论仍来自连续方程及其边界假设。</p>
+<div class="learning-lab" data-learning-lab="newton-invariants">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取孤立一维弹性碰撞 <span class="arithmatex">\((m_1,m_2)=(1,2)\)</span>、<span class="arithmatex">\((v_1,v_2)=(2,-1/2)\)</span>。解析碰撞后
+[
+(v_1',v_2')=(-4/3,7/6),
+]
+所以 <span class="arithmatex">\(P_{\mathrm{before}}=P_{\mathrm{after}}=1\)</span>；两物体受到的内部冲量分别为 <span class="arithmatex">\(-10/3\)</span>、<span class="arithmatex">\(+10/3\)</span>，总内部冲量为 0。以下三行是不同条件的最小账本：</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>解析关系</th>
+<th style="text-align: right;">默认读数</th>
+<th>不能推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>惯性系恒力</td>
+<td><span class="arithmatex">\(m a=F\)</span>；加速系为 <span class="arithmatex">\(m a'=F-mA_F\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(F=1.2,\ A_F=0.5\)</span> 时 <span class="arithmatex">\(a'=0.7\)</span></td>
+<td>不能在非惯性系省略惯性力</td>
+</tr>
+<tr>
+<td>角动量原点</td>
+<td><span class="arithmatex">\(\dot L_O=\tau_O\)</span>（固定 <span class="arithmatex">\(O\)</span>）</td>
+<td style="text-align: right;"><span class="arithmatex">\(\mathbf r=(2,1),\mathbf F=(-1,-1/2)\)</span> 关于 <span class="arithmatex">\(O=(0,0)\)</span> 时 <span class="arithmatex">\(\tau=0\)</span></td>
+<td>平移到 <span class="arithmatex">\(O=(0,1/2)\)</span> 后 <span class="arithmatex">\(\tau=-1/2\)</span></td>
+</tr>
+<tr>
+<td>有限步轨迹</td>
+<td>闭式 <span class="arithmatex">\(\mathbf r(t)\)</span> 对比 Euler</td>
+<td style="text-align: right;"><span class="arithmatex">\(\mathbf r_0=(0,0),\mathbf v_0=(1,2),\mathbf a=(0,-1),T=4,N=8\)</span> 时精确 <span class="arithmatex">\(y=0\)</span>、Euler <span class="arithmatex">\(y=1\)</span></td>
+<td>有限步误差不是连续守恒律的反例</td>
+</tr>
+</tbody>
+</table>
+<p>“无外冲量”只对选定的封闭系统成立；一条看似平滑的轨迹也不能替代自由体图、参考系和原点条件。曲线和冲量表是固定参数的有限计算，定理级结论必须回到 Newton 方程及其假设。</p>
+</div>
+<h3 id="6">6. 定理级结论与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：惯性系中 <span class="arithmatex">\(m\mathbf a=\mathbf F\)</span>；封闭系统的内部冲量在成对相消条件下不改总动量；固定原点的角动量方程还要保留内部力矩，只有中心成对内力或零内部净力矩时才约成 <span class="arithmatex">\(\dot{\mathbf L}_O=\boldsymbol\tau_O^{\mathrm{ext}}\)</span>。</li>
+<li><strong>有限证据</strong>：实验只显示一个碰撞参数、一种参考系加速度、有限个时间步和有限个原点选择；通过一次账本不等于对所有外力和初值的证明。</li>
+<li><strong>失败边界</strong>：改变系统边界会改变内外力分类；非惯性系要加惯性力；移动原点要保留 <span class="arithmatex">\(\!-\mathbf V_O\times\mathbf P\)</span> 修正；把 Euler 轨迹的漂移叫作精确动力学违反，是把数值离散误差混进定理层。</li>
+</ul>
+</section>
 <figure class="diagram">
 <p><img alt="三大守恒（能量/动量/角动量）与对称性（时间/空间平移/转动）的 Noether 对应表。" src="assets/img/mech-01-conservation.svg" /></p>
 <figcaption><span class="fig-id">图 mech-01.1</span>三大守恒（能量/动量/角动量）与对称性（时间/空间平移/转动）的 Noether 对应表。</figcaption>
 </figure>
-<h2 id="1">1. 三定律的逻辑结构<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>第二定律</strong> <span class="arithmatex">\(\mathbf F = m\ddot{\mathbf r}\)</span> 是核心：给定力场，轨迹是二阶 ODE 的解——初位置 + 初速度定全程（ode-01 存在唯一性定理的物理化身：<strong>经典力学的决定论就是 Picard 定理</strong>）。第一定律定义惯性系（第二定律成立的参考系——不是第二定律的特例而是它的适用声明）；第三定律 <span class="arithmatex">\(\mathbf F_{12} = -\mathbf F_{21}\)</span> 是守恒律的来源（见 §2）。</p>
-<p>非惯性系的代价：加惯性力（离心力 <span class="arithmatex">\(-m\boldsymbol\omega\times(\boldsymbol\omega\times\mathbf r)\)</span>、Coriolis 力 <span class="arithmatex">\(-2m\boldsymbol\omega\times\mathbf v\)</span>——<strong>【推导】</strong>对旋转系求两次导，<span class="arithmatex">\(\frac{d}{dt}\big|_{\text{惯性}} = \frac{d}{dt}\big|_{\text{旋转}} + \boldsymbol\omega\times\)</span> 用两遍即得）。台风旋向、傅科摆是 Coriolis 的名场面。</p>
-<h2 id="2">2. 三大守恒律（各配两行推导）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 三定律的逻辑结构<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>第二定律</strong> <span class="arithmatex">\(\mathbf F = m\ddot{\mathbf r}\)</span> 是核心：给定力场，轨迹是二阶 ODE 的解。只有当力对状态满足 Picard–Lindelöf 所需的局部 Lipschitz 等条件、且解未离开模型定义域时，初位置与初速度才局部唯一决定轨迹；奇异碰撞势或非光滑接触需要另行处理。第一定律定义惯性系；第三定律 <span class="arithmatex">\(\mathbf F_{12}=-\mathbf F_{21}\)</span> 使成对内力在线动量账中相消，但角动量还需中心性，机械能则需保守性，不能把三种守恒都只归给第三定律。</p>
+<p>非惯性系的代价：加惯性力。匀角速度旋转系含离心力 <span class="arithmatex">\(-m\boldsymbol\omega\times(\boldsymbol\omega\times\mathbf r)\)</span> 与 Coriolis 力 <span class="arithmatex">\(-2m\boldsymbol\omega\times\mathbf v\)</span>；若原点平动加速或 <span class="arithmatex">\(\boldsymbol\omega\)</span> 随时间变，还要加入平动与 Euler 惯性力。对旋转系求导关系用两遍即可系统导出这些项。</p>
+<h2 id="2_1">2. 三大守恒律（各配两行推导）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>动量</strong>：<span class="arithmatex">\(\dot{\mathbf P} = \sum\mathbf F_{\text{ext}}\)</span>（内力按第三定律成对相消）——外力为零则 <span class="arithmatex">\(\mathbf P\)</span> 守恒。质心定理：<span class="arithmatex">\(M\ddot{\mathbf R}_{cm} = \mathbf F_{\text{ext}}\)</span>——<strong>复杂系统的质心走简单轨迹</strong>（烟花在空中炸开，质心仍走抛物线）。</p>
-<p><strong>角动量</strong>：<span class="arithmatex">\(\dot{\mathbf L} = \boldsymbol\tau = \sum\mathbf r\times\mathbf F\)</span>（<strong>【推导】</strong><span class="arithmatex">\(\dot{\mathbf L} = \dot{\mathbf r}\times m\dot{\mathbf r} + \mathbf r\times m\ddot{\mathbf r}\)</span>，第一项自叉积为零）——中心力场（<span class="arithmatex">\(\mathbf F \parallel \mathbf r\)</span>）角动量守恒 ⇒ 轨道在平面内 + Kepler 第二定律（扫面速度 <span class="arithmatex">\(= \frac{L}{2m}\)</span> 恒定）。</p>
+<p><strong>角动量</strong>：对单粒子或已把内部净力矩正确计入的系统，<span class="arithmatex">\(\dot{\mathbf L}=\boldsymbol\tau=\sum\mathbf r\times\mathbf F\)</span>。中心外力与成对中心内力使相应力矩为零，才得到角动量守恒；第三定律仅给“等大反向”时还不足以消去内部力矩。单粒子中心力场进一步给出轨道共面与 Kepler 第二定律。</p>
 <p><strong>能量</strong>：<span class="arithmatex">\(W = \int\mathbf F\cdot d\mathbf r = \Delta T\)</span>（动能定理，<strong>【推导】</strong><span class="arithmatex">\(\mathbf F\cdot\dot{\mathbf r} = m\ddot{\mathbf r}\cdot\dot{\mathbf r} = \frac{d}{dt}\frac12 m\dot r^2\)</span>）；<strong>保守力</strong> = 做功与路径无关 ⟺ <span class="arithmatex">\(\mathbf F = -\nabla V\)</span> ⟺ <span class="arithmatex">\(\nabla\times\mathbf F = 0\)</span>（单连通域——数分 VI 的三个等价在物理的原产地）⇒ <span class="arithmatex">\(E = T + V\)</span> 守恒。</p>
 <p><strong>方法论读法</strong>：守恒律把二阶 ODE <strong>降阶为一阶甚至代数问题</strong>——能量守恒的一维运动直接分离变量 <span class="arithmatex">\(t = \int\frac{dr}{\sqrt{2(E - V)/m}}\)</span>，根本不解牛顿方程。"找守恒量优先于解方程"是整个物理的工作习惯；<strong>守恒律从哪来</strong>（为什么恰好这三个）——下一页 Noether 定理给出惊人的回答：对称性。</p>
 <h2 id="3-kepler">3. 中心力场与 Kepler 问题（本页的完整战役）<a class="headerlink" href="#3-kepler" title="Permanent link"></a></h2>
@@ -74,7 +200,7 @@ E = \frac12 m\dot r^2 + \underbrace{\frac{L^2}{2mr^2} + V(r)}_{V_{\text{eff}}(r)
 r = \frac{p}{1 + e\cos\theta}
 \]</div>
 <p><span class="arithmatex">\(e &lt; 1\)</span> 椭圆（Kepler 第一定律）、<span class="arithmatex">\(e = 1\)</span> 抛物线、<span class="arithmatex">\(e &gt; 1\)</span> 双曲线（解几 II 的圆锥曲线获得天体力学户口）。第三定律 <span class="arithmatex">\(T^2 \propto a^3\)</span> 由第二定律积分全椭圆面积得出。（隐藏彩蛋【引用】：Kepler 问题有额外守恒量 Runge–Lenz 矢量——轨道不进动的深层原因，也是氢原子能级简并的经典先声。）</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（有效势速判）</strong> <span class="arithmatex">\(V = -\frac{k}{r}\)</span> 加小扰动 <span class="arithmatex">\(+\frac{\epsilon}{r^3}\)</span>：<span class="arithmatex">\(V_{\text{eff}}\)</span> 极小点仍存在但圆轨道频率 ≠ 角向频率 ⇒ <strong>椭圆进动</strong>——水星近日点进动问题的牛顿框架版（真实答案要等广相 II）。</p>
 <p><strong>例 2（Coriolis 数量级）</strong> 北纬 45° 自由落体 100 m：东偏 <span class="arithmatex">\(\approx \frac13\omega g t^3\cos\lambda \sim 1.5\)</span> cm——小但可测；炮弹弹道、气旋方向的日常证据。</p>
 <p><strong>例 3（守恒律解题示范）</strong> 卫星椭圆轨道近地点 <span class="arithmatex">\(r_1\)</span> 速度 <span class="arithmatex">\(v_1\)</span>，求远地点速度：<span class="arithmatex">\(L\)</span> 守恒给 <span class="arithmatex">\(v_2 = v_1 r_1/r_2\)</span>，<span class="arithmatex">\(E\)</span> 守恒定 <span class="arithmatex">\(r_2\)</span>——两个代数式替代整条 ODE：守恒律方法论的最小完整案例。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -89,5 +215,7 @@ r = \frac{p}{1 + e\cos\theta}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/newton-invariants.js"></script>
 </body>
 </html>

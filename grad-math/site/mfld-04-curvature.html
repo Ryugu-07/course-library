@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,106 +41,154 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li class="active"><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 黎曼曲率张量</a></li>
-<li><a href="#2">2. 三个凝练</a></li>
-<li><a href="#3">3. 曲率控制拓扑（本线的思想高峰）</a></li>
-<li><a href="#4">4. 流形几何四页收官盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#_1">学习层：同一个小罗盘，为什么绕圈会留下不同的方向误差？</a><ul>
+<li><a href="#1">1. 具体情境：在球面、平面和双曲模型上巡检</a></li>
+<li><a href="#2">2. 揭示前先预测</a></li>
+<li><a href="#3-r">3. 正式桥：从 \(R\) 到三个缩并</a></li>
+<li><a href="#4">4. 动手揭示：把两个尺度一起画出</a></li>
+<li><a href="#5">5. 定理边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 黎曼曲率张量</a></li>
+<li><a href="#2-ricci">2. 截面、Ricci 与数量曲率</a></li>
+<li><a href="#3">3. 曲率与拓扑的第一批定理</a></li>
+<li><a href="#4_1">4. 三个模型读数</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">流形几何 IV · 曲率<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Lee <em>Riemannian Manifolds</em> §7、§11–12 ｜ <strong>前置</strong>：mfld-03、微分几何 II（Gauss 曲率）
-曲率 = "平行移动绕圈回来转了多少"的精确账本。本页从黎曼曲率张量出发，走到三个凝练（截面/Ricci/数量曲率），验收两张支票：<strong>绝妙定理的内在化身</strong>（Gauss 曲率 = 截面曲率）与<strong>曲率控制拓扑</strong>的第一批定理。流形几何四页至此收官。</p>
+<p>曲率是“平行移动绕圈回来转了多少”的张量化账本。本页固定一个符号约定，依次看黎曼张量、截面/Ricci/数量曲率，以及测地线偏离和小圈和乐；有限实验只负责把缩并和尺度算清。</p>
 </blockquote>
-<h2 id="1">1. 黎曼曲率张量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong>（"二阶导数不交换的账本"）：</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="riemann-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一个小罗盘，为什么绕圈会留下不同的方向误差？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：在球面、平面和双曲模型上巡检<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>巡检员从同一点出发，携带三个向量 <span class="arithmatex">\(X,Y,Z\)</span>。他先用 <span class="arithmatex">\(X,Y\)</span> 张成一个小平行四边形，把 <span class="arithmatex">\(Z\)</span> 沿四条边平行移动；再让两条相邻测地线从同一点以很小夹角出发，观察它们的间距；最后把一个小方圈的面积逐渐放大。平面模型应当“绕圈不留痕”，正曲率模型的正交测地线束会聚，负曲率模型则发散。</p>
+<p>但三个读数不是同一件事：<span class="arithmatex">\(R(X,Y)Z\)</span> 依赖三个向量，截面曲率先除以 <span class="arithmatex">\(\lvert X\wedge Y\rvert^2\)</span>，Ricci 是对一个指标做迹，数量曲率再取一次迹。实验把每个缩并的分母、单位和有限范围写出来。</p>
+<h3 id="2">2. 揭示前先预测<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>选择球面 <span class="arithmatex">\(K=+1/4\)</span>、欧氏 <span class="arithmatex">\(K=0\)</span> 或双曲 <span class="arithmatex">\(K=-1/4\)</span>，再预测：</p>
+<ol>
+<li>当前 <span class="arithmatex">\(X,Y\)</span> 张成的非退化截面曲率符号是什么？若 <span class="arithmatex">\(X\parallel Y\)</span>，是否仍有截面？</li>
+<li>在 <span class="arithmatex">\(n\)</span> 维常曲率模型中，<span class="arithmatex">\(\operatorname{Ric}^{\sharp}(X)\)</span> 是 <span class="arithmatex">\(KX\)</span>、<span class="arithmatex">\((n-1)KX\)</span>，还是不能由迹得到？</li>
+<li>初始速度为零的正交分离 <span class="arithmatex">\(j\)</span> 满足哪种行为：正曲率振荡、平直保持，还是负曲率按 <span class="arithmatex">\(\cosh\)</span> 增长？</li>
+<li>一个小圈的首阶和乐角按 <span class="arithmatex">\(K\times\)</span> 面积、<span class="arithmatex">\(K/\)</span>面积，还是面积/<span class="arithmatex">\(K\)</span> 缩放？</li>
+</ol>
+<p>完成四项预测后才会揭示图和表。这里的有限常曲率算例是概念校验，不是对一般流形的全局证明。</p>
+<h3 id="3-r">3. 正式桥：从 <span class="arithmatex">\(R\)</span> 到三个缩并<a class="headerlink" href="#3-r" title="Permanent link"></a></h3>
+<p>本页采用</p>
 <div class="arithmatex">\[
-R(X, Y)Z = \nabla_X\nabla_YZ - \nabla_Y\nabla_XZ - \nabla_{[X,Y]}Z
+R(X,Y)Z=
+\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z.
 \]</div>
-<p><strong>读法三则</strong>：平直空间 <span class="arithmatex">\(R \equiv 0\)</span>（偏导可换，<span class="arithmatex">\(\Gamma = 0\)</span> 坐标存在 ⟺ <span class="arithmatex">\(R = 0\)</span>【引用】——<strong>曲率是"能否摊平"的完全障碍</strong>）；<span class="arithmatex">\(R\)</span> 是张量（换坐标齐次变换——对比 <span class="arithmatex">\(\Gamma\)</span> 的"假力"身份：<strong>曲率是真力</strong>）；几何语义 = <strong>和乐的无穷小版</strong>：绕边长 <span class="arithmatex">\(\varepsilon\)</span> 的小平行四边形平移一圈，向量转动 <span class="arithmatex">\(\approx \varepsilon^2 R(X,Y)\)</span>（mfld-03 和乐征兆的定量化）。</p>
-<p><strong>对称性套装【引用验证】</strong>：<span class="arithmatex">\(R_{ijkl} = -R_{jikl} = -R_{ijlk} = R_{klij}\)</span> + 第一 Bianchi 恒等式——独立分量从 <span class="arithmatex">\(n^4\)</span> 压到 <span class="arithmatex">\(\frac{n^2(n^2-1)}{12}\)</span>（<span class="arithmatex">\(n=2\)</span> 时恰 1 个：曲面只有一个曲率——微分几何 II 的世界为何简单）。</p>
-<h2 id="2">2. 三个凝练<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>常曲率 <span class="arithmatex">\(K\)</span> 的模型用</p>
+<div class="arithmatex">\[
+R(X,Y)Z=K\bigl(\langle Y,Z\rangle X-\langle X,Z\rangle Y\bigr),\qquad
+K(\sigma)=\frac{\langle R(X,Y)Y,X\rangle}{\lvert X\wedge Y\rvert^2}.
+\]</div>
+<p>这个写法明确保证正模型的截面曲率为正；换一套 <span class="arithmatex">\(R\)</span> 符号约定，后续 <span class="arithmatex">\(K\)</span> 的符号也要一并换，不能只改公式标题。</p>
+<p>Ricci 是二阶张量</p>
+<div class="arithmatex">\[
+\operatorname{Ric}(X,Y)=\operatorname{tr}\bigl[Z\mapsto R(Z,X)Y\bigr],\qquad
+\operatorname{Ric}^{\sharp}(X)=(n-1)KX,\qquad
+S=\operatorname{tr}_g\operatorname{Ric}=n(n-1)K
+\]</div>
+<p>在常曲率 <span class="arithmatex">\(n\)</span> 维模型中的结果。文献里写 <span class="arithmatex">\(\operatorname{Ric}(X)\)</span> 时，可能指一形式 <span class="arithmatex">\(Y\mapsto\operatorname{Ric}(X,Y)\)</span>；只有用度量升指标后，才把它当作向量 <span class="arithmatex">\(\operatorname{Ric}^{\sharp}(X)\)</span>。</p>
+<h3 id="4">4. 动手揭示：把两个尺度一起画出<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验显示 <span class="arithmatex">\(R(X,Y)Z\)</span>、非退化截面分母、Ricci/标量缩并，并画出</p>
+<div class="arithmatex">\[
+\frac{D^2J}{ds^2}+R(J,T)T=0,\qquad J\perp T\Longrightarrow j''+Kj=0
+\]</div>
+<p>的有限解，以及边长 <span class="arithmatex">\(\ell\)</span> 小方圈的 <span class="arithmatex">\(\theta\approx K\ell^2\)</span> 首阶账。小圈反向绕行时角度反号，高阶项和全局拓扑没有被隐藏进这个近似。</p>
+<div class="learning-lab" data-learning-lab="riemann-curvature">
+<p><strong>无 JavaScript 时的静态后备：</strong>默认取球面模型 <span class="arithmatex">\(K=1/4\)</span>、<span class="arithmatex">\(n=3\)</span>、<span class="arithmatex">\(X=e_1,Y=Z=e_2\)</span>、<span class="arithmatex">\(\ell=0.6\)</span>、<span class="arithmatex">\(s=5\)</span>。于是</p>
 <table>
 <thead>
 <tr>
-<th>凝练</th>
-<th>定义</th>
-<th>语义</th>
+<th>项目</th>
+<th style="text-align: right;">静态值</th>
+<th>读法</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>截面曲率</strong> <span class="arithmatex">\(K(\sigma)\)</span></td>
-<td>二维截面 <span class="arithmatex">\(\sigma\)</span> 上 <span class="arithmatex">\(\frac{\langle R(X,Y)Y, X\rangle}{\lvert X\wedge Y\rvert^2}\)</span></td>
-<td>该截面方向的"弯曲程度"——完整信息</td>
+<td><span class="arithmatex">\(R(X,Y)Z\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1/4,0,0)\)</span></td>
+<td>采用本页 <span class="arithmatex">\(R=\nabla_X\nabla_Y-\nabla_Y\nabla_X-\nabla_{[X,Y]}\)</span></td>
 </tr>
 <tr>
-<td><strong>Ricci 曲率</strong> <span class="arithmatex">\(\mathrm{Ric}(X)\)</span></td>
-<td>截面曲率对含 <span class="arithmatex">\(X\)</span> 的截面取迹/平均</td>
-<td>"沿 <span class="arithmatex">\(X\)</span> 的测地线束的体积收缩率"</td>
+<td><span class="arithmatex">\(\lvert X\wedge Y\rvert^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>非退化二维截面</td>
 </tr>
 <tr>
-<td><strong>数量曲率</strong> <span class="arithmatex">\(S\)</span></td>
-<td>Ricci 再取迹</td>
-<td>一点处小球体积 vs 欧氏的偏差系数</td>
+<td><span class="arithmatex">\(K(\sigma)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
+<td><span class="arithmatex">\(\langle R(X,Y)Y,X\rangle/\lvert X\wedge Y\rvert^2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\operatorname{Ric}^{\sharp}(X)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((1/2,0,0)\)</span></td>
+<td><span class="arithmatex">\((n-1)KX\)</span>，不是把 Ricci 误写成 <span class="arithmatex">\(KX\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3/2\)</span></td>
+<td><span class="arithmatex">\(n(n-1)K\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(j(5)/j(0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\cos(5/2)\approx-0.8011\)</span></td>
+<td>正曲率的有限振荡；越过首个共轭点后符号反映 Jacobi 场方向</td>
+</tr>
+<tr>
+<td>小圈 <span class="arithmatex">\(\theta\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(K\ell^2=0.09\)</span> rad</td>
+<td><span class="arithmatex">\(K\)</span> 的 <span class="arithmatex">\(L^{-2}\)</span> 与面积的 <span class="arithmatex">\(L^2\)</span> 抵消</td>
 </tr>
 </tbody>
 </table>
-<p><strong>绝妙定理的支票兑付</strong>：曲面（<span class="arithmatex">\(n = 2\)</span>）的截面曲率 <strong>恰等于</strong> Gauss 曲率 <span class="arithmatex">\(K\)</span>（微分几何 II 用第一二基本形式定义的那个）——而本页的 <span class="arithmatex">\(K\)</span> 由度量与联络（纯内在量，mfld-03）构造：<strong>"<span class="arithmatex">\(K\)</span> 内在"不再需要 Gauss 的奇迹计算，它在正确的语言里是显然的</strong>——好定义让定理变自明的教科书案例。</p>
-<p><strong>三大常曲率模型</strong>：球面（<span class="arithmatex">\(K \equiv +1\)</span>）、欧氏（<span class="arithmatex">\(0\)</span>）、双曲（<span class="arithmatex">\(-1\)</span>）——单连通完备常曲率流形仅此三家【引用】：几何的"三种气候"；测地三角形内角和 <span class="arithmatex">\(\gtrless \pi\)</span> 按 <span class="arithmatex">\(K\)</span> 的符号分派（Gauss–Bonnet 局部版）。</p>
-<h2 id="3">3. 曲率控制拓扑（本线的思想高峰）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（Bonnet–Myers）</strong> 完备 + <span class="arithmatex">\(\mathrm{Ric} \geq (n-1)k &gt; 0\)</span> ⇒ 直径 <span class="arithmatex">\(\leq \frac{\pi}{\sqrt k}\)</span>（从而紧致、基本群有限）。
-<strong>【骨架】</strong> 若有过长测地线，第二变分公式（能量的"二阶导"）配正 Ricci 造出让能量下降的变分 ⇒ 与最短性矛盾——<strong>正曲率把空间"箍拢"</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理（Cartan–Hadamard）【引用】</strong> 完备单连通 + <span class="arithmatex">\(K \leq 0\)</span> ⇒ 微分同胚于 <span class="arithmatex">\(\mathbb{R}^n\)</span>（<span class="arithmatex">\(\exp_p\)</span> 是全局微分同胚）——<strong>非正曲率的世界没有洞、测地线唯一</strong>（凸优化在其上照常工作——Hadamard 流形上的优化是 cvx 线的几何推广【引用】）。</p>
-<p><strong>Gauss–Bonnet 的高维遗产</strong>：<span class="arithmatex">\(\int_M K\,dA = 2\pi\chi\)</span>（微分几何 II）推广为 Chern–Gauss–Bonnet（曲率多项式的积分 = 示性数【引用】）——"局部几何的总账 = 全局拓扑"纲领的正式版本；进一步的儿孙（示性类、指标定理）是研究生二年级的风景。<strong>曲率流一嘴</strong>：让度量沿 <span class="arithmatex">\(\partial_t g = -2\mathrm{Ric}\)</span> 演化（Ricci 流——热方程的几何版，pde 线的直觉平移），Perelman 借此证庞加莱猜想——本线遥望的最高峰，此处立牌即可。</p>
-<h2 id="4">4. 流形几何四页收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<table>
-<thead>
-<tr>
-<th>页</th>
-<th>资产</th>
-<th>一句话</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>I</td>
-<td>图册、切空间、正则值</td>
-<td>无坐标世界的微积分地基</td>
-</tr>
-<tr>
-<td>II</td>
-<td>形式、<span class="arithmatex">\(d\)</span>、Stokes</td>
-<td>三大积分公式统一；<span class="arithmatex">\(d^2 = 0\)</span> 通向上同调</td>
-</tr>
-<tr>
-<td>III</td>
-<td>度量、联络、测地线</td>
-<td>长度定运动；"直线"重新定义</td>
-</tr>
-<tr>
-<td>IV</td>
-<td>曲率张量与三凝练</td>
-<td>弯曲的完全账本；曲率箍拓扑</td>
-</tr>
-</tbody>
-</table>
-<p>🔗 <strong>AI 出口备忘</strong>：数据流形（mfld-01）、自然梯度/信息几何（mfld-03）、<span class="arithmatex">\(W_2\)</span> 空间的 Otto 几何（ot-02）、等变网络的群作用（抽代线）——现代 ML 理论的几何方言表在此配齐。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（球面全套对账）</strong> 半径 <span class="arithmatex">\(r\)</span> 球面：截面曲率 <span class="arithmatex">\(\frac{1}{r^2}\)</span>、<span class="arithmatex">\(\mathrm{Ric} = \frac{n-1}{r^2}g\)</span>、Bonnet–Myers 直径界 <span class="arithmatex">\(\pi r\)</span>——恰是对径距离：<strong>定理在球面上取等</strong>（模型空间的职责就是让不等式绷紧）。</p>
-<p><strong>例 2（和乐亲手算）</strong> 球面上沿"赤道 90° → 经线到北极 → 另一经线回赤道"的三角形平移向量：回来转了 <span class="arithmatex">\(90°\)</span> = 三角形的球面角盈余 = <span class="arithmatex">\(\int K\,dA\)</span>——<strong>Gauss–Bonnet 在一个三角形上的手工验证</strong>（曲率、和乐、角盈余三位一体的最好体感）。</p>
-<p><strong>例 3（负曲率的体感）</strong> 双曲平面测地三角形内角和 <span class="arithmatex">\(&lt; \pi\)</span>、圆周长 <span class="arithmatex">\(&gt; 2\pi r\)</span>（指数增长）——"负曲率空间比想象的大得多"：嵌入 embedding 到双曲空间对树状/层级数据更省维度（hyperbolic embedding 的几何依据【引用】）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>若选 <span class="arithmatex">\(X\parallel Y\)</span>，R 仍可计算但分母为零，不能把退化平面叫作一个截面。有限图表不证明 Bonnet–Myers 或 Cartan–Hadamard，也不替代一般流形上的完备性、连通性和曲率界假设。</p>
+</div>
+<h3 id="5">5. 定理边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>“<span class="arithmatex">\(\Gamma=0\)</span> 坐标存在当且仅当 <span class="arithmatex">\(R=0\)</span>”必须读成<strong>邻域内平坦坐标</strong>：在一个足够小的邻域上，若 <span class="arithmatex">\(R\)</span> 在该邻域恒为零，才可找坐标使全部 <span class="arithmatex">\(\Gamma^k_{ij}\)</span> 在该邻域恒为零，反之亦然。单点总能取法坐标使 <span class="arithmatex">\(\Gamma(p)=0\)</span>，这不推出 <span class="arithmatex">\(R(p)=0\)</span>。</li>
+<li><strong>Bonnet–Myers</strong>：完备 <span class="arithmatex">\(n\)</span> 维流形若 <span class="arithmatex">\(\operatorname{Ric}\ge(n-1)k\,g\)</span>、<span class="arithmatex">\(k&gt;0\)</span>，则直径不超过 <span class="arithmatex">\(\pi/\sqrt{k}\)</span>，并推出紧致与基本群有限。实验没有检查完备性，也没有证明该定理。</li>
+<li><strong>Cartan–Hadamard</strong>：完备、单连通且所有截面曲率 <span class="arithmatex">\(K\le0\)</span> 时，<span class="arithmatex">\(\exp_p\)</span> 是到流形的全局微分同胚。把三条有限曲线或一张 toy 图当成该全局结论是不合法的。</li>
+<li>常曲率的完备、单连通模型按 <span class="arithmatex">\(K&gt;0,=0,&lt;0\)</span> 分别对应球面型、欧氏型、双曲型，尺度由 <span class="arithmatex">\(\lvert K\rvert\)</span> 决定；“三种模型”不是任意不完备或非单连通空间的分类。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 黎曼曲率张量<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>曲率是联络二阶不交换的张量账本：</p>
+<div class="arithmatex">\[
+R(X,Y)Z=\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z.
+\]</div>
+<p>它对 <span class="arithmatex">\(X,Y,Z\)</span> 张量化，而 Christoffel 符号本身不是张量。曲率的反对称性、交换对称性和第一 Bianchi 恒等式把独立分量从 <span class="arithmatex">\(n^4\)</span> 压到 <span class="arithmatex">\(n^2(n^2-1)/12\)</span>；<span class="arithmatex">\(n=2\)</span> 时只有一个独立曲率分量，正是曲面只有一个 Gauss 曲率的高维对应。</p>
+<p>单点法坐标只能让 <span class="arithmatex">\(\Gamma(p)=0\)</span>，不能让曲率消失。只有邻域内平坦，才有邻域内全为零的 Christoffel 坐标。</p>
+<h2 id="2-ricci">2. 截面、Ricci 与数量曲率<a class="headerlink" href="#2-ricci" title="Permanent link"></a></h2>
+<p>对于非退化二维平面 <span class="arithmatex">\(\sigma=\operatorname{span}\{X,Y\}\)</span>，</p>
+<div class="arithmatex">\[
+K(\sigma)=\frac{\langle R(X,Y)Y,X\rangle}{\lvert X\wedge Y\rvert^2},\qquad
+\lvert X\wedge Y\rvert^2=\lvert X\rvert^2\lvert Y\rvert^2-\langle X,Y\rangle^2.
+\]</div>
+<p>Ricci 记录沿一个方向的截面曲率迹，数量曲率是 Ricci 再取迹。对常曲率模型，<span class="arithmatex">\(\operatorname{Ric}=(n-1)K g\)</span>、<span class="arithmatex">\(S=n(n-1)K\)</span>；对一般度量不能把这两个等式当作无条件恒等式。</p>
+<h2 id="3">3. 曲率与拓扑的第一批定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>Bonnet–Myers 和 Cartan–Hadamard 都是“曲率 + 完备性 + 全局拓扑假设”的定理，不能只凭局部 <span class="arithmatex">\(R\)</span> 数值调用。正 Ricci 通过第二变分控制过长最短测地线；非正截面曲率与完备单连通性共同保证指数映射的全局性质。缺掉任何一组条件，结论都可能失效。</p>
+<p>曲面的 Gauss–Bonnet 在高维通向 Chern–Gauss–Bonnet；Ricci 流 <span class="arithmatex">\(\partial_tg=-2\operatorname{Ric}\)</span> 则把曲率变成演化方程。这里先把语言和边界立稳，不把后续深定理压缩成一张有限图。</p>
+<h2 id="4_1">4. 三个模型读数<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>球面</strong>：半径 <span class="arithmatex">\(r\)</span> 时 <span class="arithmatex">\(K=1/r^2\)</span>，<span class="arithmatex">\(\operatorname{Ric}=(n-1)g/r^2\)</span>，<span class="arithmatex">\(S=n(n-1)/r^2\)</span>。</p>
+<p><strong>欧氏空间</strong>：<span class="arithmatex">\(R=0\)</span>，存在全局平直坐标，测地线偏离保持初始线性读数，所有小圈和乐为零。</p>
+<p><strong>双曲空间</strong>：<span class="arithmatex">\(K=-1/r^2\)</span>，正交 Jacobi 场的模型解含 <span class="arithmatex">\(\cosh(s/r)\)</span>，但“指数增长”仍是常曲率模型的解式，不等于对任意负曲率数据的一次 benchmark。</p>
 <hr />
-<p><em>下一门：代数拓扑——把"洞"做成代数：基本群、覆盖空间与同调，mfld-02 的 de Rham 预告在此接洽。</em></p>
+<p><em>下一门：代数拓扑把“洞”做成基本群、覆盖空间与同调；本页的和乐与指数映射会在那里继续留下全局痕迹。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mfld-03-riemannian.html"><span class="pager-label">上一页</span>流形几何 III · 黎曼度量与测地线</a>
@@ -139,5 +198,7 @@ R(X, Y)Z = \nabla_X\nabla_YZ - \nabla_Y\nabla_XZ - \nabla_{[X,Y]}Z
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/riemann-curvature.js"></script>
 </body>
 </html>

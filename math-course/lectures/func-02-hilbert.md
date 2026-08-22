@@ -13,7 +13,7 @@
 把 $H=mathbb R^3$ 配上标准内积，取
 
 $$
-x=(2,-1,3),qquad M=\operatorname{span}\{u_1=(1,1,0),u_2=(0,1,1)\}.
+x=(2,-1,3),\qquad M=\operatorname{span}\{u_1=(1,1,0),u_2=(0,1,1)\}.
 $$
 
 这里的两个生成向量并不正交，所以“把坐标各自截掉”不是投影算法。先猜三件事：
@@ -27,14 +27,14 @@ $$
 在有限维空间里，任意线性子空间都是闭的；因此这里确实有唯一的最近点。对生成元逐项正交化，得到 $q_1,q_2$ 后：
 
 $$
-q_j=\frac{u_j-\sum_{i<j}\langle u_j,q_i\rangle q_i}{\left\|u_j-\sum_{i<j}\langle u_j,q_i\rangle q_i\right\|},qquad
+q_j=\frac{u_j-\sum_{i<j}\langle u_j,q_i\rangle q_i}{\left\|u_j-\sum_{i<j}\langle u_j,q_i\rangle q_i\right\|},\qquad
 P_Mx=\sum_j\langle x,q_j\rangle q_j.
 $$
 
 本例中
 
 $$
-q_1=\frac{(1,1,0)}{\sqrt2},qquad q_2=\frac{(-1,1,2)}{\sqrt6},qquad P_Mx=(0,1,1),qquad r=x-P_Mx=(2,-2,2).
+q_1=\frac{(1,1,0)}{\sqrt2},\qquad q_2=\frac{(-1,1,2)}{\sqrt6},\qquad P_Mx=(0,1,1),\qquad r=x-P_Mx=(2,-2,2).
 $$
 
 于是 $langle r,u_1\rangle=langle r,u_2\rangle=0$，并且

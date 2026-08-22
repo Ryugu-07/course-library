@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:50</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同一组空间模态，为什么会讲出三种时间故事？</a><ul>
+<li><a href="#pde-separation-learning-title">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3">3. 正式模型：分离、投影与三种因子</a></li>
+<li><a href="#4">4. 定理与边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 三大方程与分类</a></li>
-<li><a href="#2">2. 分离变量法（完整流程，一遍走通）</a></li>
-<li><a href="#3">3. 非齐次问题的两板斧</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#2_1">2. 分离变量法（完整流程，一遍走通）</a></li>
+<li><a href="#3_1">3. 非齐次问题的两板斧</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,6 +66,84 @@
 <blockquote>
 <p>数学物理方程 = 三个方程的故事：<strong>波动</strong>（双曲）、<strong>热传导</strong>（抛物）、<strong>Laplace/位势</strong>（椭圆）——物理世界的三种基本行为（振动、扩散、平衡）各由一型代言。本页立好分类与定解问题的框架，然后完整走一遍本科 PDE 的主打算法：<strong>分离变量法</strong>——数分 IV 的 Fourier 级数在此成为解方程的引擎。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="pde-separation-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一组空间模态，为什么会讲出三种时间故事？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="pde-separation-learning-title">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板<a class="headerlink" href="#pde-separation-learning-title" title="Permanent link"></a></h3>
+<p>把区间取为 <span class="arithmatex">\(0&lt;x&lt;\pi\)</span>。一根两端固定的弦被拨成</p>
+<div class="arithmatex">\[
+\varphi(x)=x(\pi-x),
+\]</div>
+<p>或者一根细棒带着同样的温度初值。另一个实验室则把矩形 <span class="arithmatex">\(0&lt;x&lt;\pi,\ 0&lt;y&lt;\pi\)</span> 的三条边接地，只在上边施加 <span class="arithmatex">\(f(x)=\sin x\)</span>。三种装置都允许我们使用空间函数 <span class="arithmatex">\(\sin(nx)\)</span>，但它们对同一个 <span class="arithmatex">\(n\)</span> 的时间/纵向因子不同：热方程把高频迅速抹掉，波方程保留振荡，Laplace 方程把边界数据从 <span class="arithmatex">\(y=\pi\)</span> 渗入内部。</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验账本前，先写下理由：</p>
+<ol>
+<li>对热方程 <span class="arithmatex">\(u_t=u_{xx}\)</span>，<span class="arithmatex">\(n=7\)</span> 与 <span class="arithmatex">\(n=1\)</span> 哪个更快衰减？若时间加倍，答案会反转吗？</li>
+<li>对波方程 <span class="arithmatex">\(u_{tt}=u_{xx}\)</span> 且初速为零，模态系数会不会像热方程一样单调趋零？应当看 <span class="arithmatex">\(\cos(nt)\)</span> 还是指数？</li>
+<li>对 Laplace 方程，顶边的 <span class="arithmatex">\(\sin x\)</span> 在中线 <span class="arithmatex">\(y=\pi/2\)</span> 还剩下多少？它是“时间衰减”，还是从边界向内部的空间渗透？</li>
+<li>对初值 <span class="arithmatex">\(x(\pi-x)\)</span>，偶数 Fourier 正弦系数是否存在？取 <span class="arithmatex">\(N=7\)</span> 个模态能否自动等于无穷级数解？</li>
+</ol>
+<p>实验先隐藏数值；提交预测后才揭示有限模态、空间曲线与误差账。预测错了也保留，方便把“高频快衰减”“振荡不衰减”“边界渗透”逐一对照。</p>
+<h3 id="3">3. 正式模型：分离、投影与三种因子<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>两端固定的空间特征值问题是</p>
+<div class="arithmatex">\[
+X_n''+n^2X_n=0,\qquad X_n(0)=X_n(\pi)=0,\qquad X_n(x)=\sin(nx).
+\]</div>
+<p>对 <span class="arithmatex">\(\varphi(x)=x(\pi-x)\)</span>，正交投影给出</p>
+<div class="arithmatex">\[
+b_n=\frac{2}{\pi}\int_0^\pi x(\pi-x)\sin(nx)\,dx
+    =\frac{4(1-(-1)^n)}{\pi n^3}.
+\]</div>
+<p>所以 <strong>奇数 <span class="arithmatex">\(n\)</span></strong> 的系数是 <span class="arithmatex">\(8/(\pi n^3)\)</span>，偶数系数恰为零。相同的空间模态在三类模型中分别乘上</p>
+<div class="arithmatex">\[
+\text{热： }e^{-n^2t},\qquad
+\text{波： }\cos(nt)\ (u_t(x,0)=0),\qquad
+\text{Laplace： }\frac{\sinh(ny)}{\sinh(n\pi)}.
+\]</div>
+<p>实验把 <span class="arithmatex">\(N\)</span> 限在一个小整数，计算的是正交投影/截断：</p>
+<div class="arithmatex">\[
+u_N(x,t)=\sum_{n=1}^{N}b_nT_n(t)\sin(nx),
+\]</div>
+<p>而不是声称有限和已经是完整解。截断误差可以用 Parseval 型的 <span class="arithmatex">\(L^2\)</span> 尾项对账；对零初速波方程，实验另计算 <span class="arithmatex">\(E=\frac12\int_0^\pi(u_t^2+u_x^2)\,dx\)</span>，并显示 <span class="arithmatex">\(\sqrt{2E_{&gt;N}}\)</span> 的能量范数尾。图上的曲线只是这些有限量的可视证据。</p>
+<div class="learning-lab" data-learning-lab="pde-separation">
+<p><strong>JavaScript 失效时的静态读法：</strong>默认取 <span class="arithmatex">\(N=7,\ t=0.45,\ y=\pi/2\)</span>。下表的“有限证据”只描述当前投影；它不代替完整级数、边界正则性或极限交换的证明。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>默认有限因子</th>
+<th>应读出的现象</th>
+<th>证据边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>热 <span class="arithmatex">\(u_t=u_{xx}\)</span></td>
+<td><span class="arithmatex">\(T_n=e^{-n^2(0.45)}\)</span></td>
+<td><span class="arithmatex">\(n=7\)</span> 比 <span class="arithmatex">\(n=1\)</span> 衰减快得多</td>
+<td>有限 <span class="arithmatex">\(N\)</span> 的数值，不是“所有初值都这样”的单独证明</td>
+</tr>
+<tr>
+<td>波 <span class="arithmatex">\(u_{tt}=u_{xx}\)</span></td>
+<td><span class="arithmatex">\(T_n=\cos(0.45n)\)</span></td>
+<td>模态振幅可变号但不产生指数衰减</td>
+<td>理想无阻尼、固定端模型；物理能量要连同 <span class="arithmatex">\(u_t\)</span> 计入</td>
+</tr>
+<tr>
+<td>Laplace</td>
+<td><span class="arithmatex">\(T_n=\sinh(n\pi/2)/\sinh(n\pi)\)</span></td>
+<td>顶边数据向内减弱，且高频渗透更浅</td>
+<td>这是矩形与指定三边 Dirichlet 边界的边界值解</td>
+</tr>
+</tbody>
+</table>
+<p>系数核对：<span class="arithmatex">\(b_1=8/\pi,\ b_2=0,\ b_3=8/(27\pi)\)</span>。因此原页例 2 的
+<span class="arithmatex">\(b_n=4(1-(-1)^n)/(\pi n^3)\)</span> 与后面的奇数项 <span class="arithmatex">\(8/(\pi n^3)\)</span> 是一致的；不能把前者误读成所有 <span class="arithmatex">\(n\)</span> 都有 <span class="arithmatex">\(8/(\pi n^3)\)</span>。</p>
+<h3 id="4">4. 定理与边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>在指定的自伴 Sturm--Liouville 边界条件下，特征函数在相应 <span class="arithmatex">\(L^2\)</span> 空间中完备，正交投影才有通往无穷级数解的理论依据。<strong>完备性来自这个理论和边界条件，不来自把 <span class="arithmatex">\(N\)</span> 调大几次。</strong>热方程的高频衰减、波方程的模态不衰减和 Laplace 的边界渗透也不是同一个“指数曲线”的三种画法：它们来自不同的演化/边界算子。实验能验证本例的系数、有限和与误差账；它不能证明 Sturm--Liouville 完备性，也不能把无阻尼波、光滑矩形边界的结论外推到阻尼、变系数、非矩形域或非齐次边界。</p>
+</div>
+</section>
 <h2 id="1">1. 三大方程与分类<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -85,7 +181,7 @@
 </table>
 <p>（二阶方程 <span class="arithmatex">\(Au_{xx} + 2Bu_{xy} + Cu_{yy} + \cdots\)</span> 按判别式 <span class="arithmatex">\(B^2 - AC\)</span> 的正零负分双曲/抛物/椭圆——与圆锥曲线同名同源，高代 VI 二次型分类的 PDE 版。）</p>
 <p><strong>定解问题</strong> = 方程 + 定解条件：初始条件（波动要 <span class="arithmatex">\(u, u_t\)</span> 两个——二阶时间导；热传导要一个）+ 边界条件三型（Dirichlet 给值 / Neumann 给法向导数 / Robin 混合）。<strong>适定性</strong>（Hadamard）：存在、唯一、<strong>连续依赖数据</strong>——第三条在数值 I（条件数）与泛函 III（开映射定理）都打过照面，PDE 是它的原产地。</p>
-<h2 id="2">2. 分离变量法（完整流程，一遍走通）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 分离变量法（完整流程，一遍走通）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="热方程解的高频模式先衰减" src="assets/img/pde-01-heat-decay.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>分离变量把解写成本征模式叠加，第 \(n\) 个模式按 \(e^{-n^2 t}\) 衰减——高频先被抹平，热方程天然"磨光"。</figcaption>
@@ -110,12 +206,12 @@ u(x, t) = \sum_{n=1}^{\infty} b_n\, e^{-a^2(n\pi/L)^2 t}\, \sin\frac{n\pi x}{L},
 \]</div>
 <p>系数由初值的 <strong>Fourier 正弦展开</strong>给出（正交性 + <span class="arithmatex">\(L^2\)</span> 投影——数分 IV/泛函 II 在此上岗执勤）。</p>
 <p><strong>方法总纲</strong>：分离 → 特征值问题（空间）→ 时间模态 → 正交展开配初值。换方程只换第三步（波动方程给 <span class="arithmatex">\(T_n = \cos/\sin(a\sqrt{\lambda_n}\,t)\)</span>——<strong>振荡不衰减</strong>，模态是驻波、音乐里的泛音列；Laplace 方程给指数/双曲函数）。换边界条件只换第二步的特征函数系（Neumann 给余弦系）。</p>
-<h2 id="3">3. 非齐次问题的两板斧<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 非齐次问题的两板斧<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>非齐次方程</strong>（有源项）：特征函数展开法——把源与解都按 <span class="arithmatex">\(\{X_n\}\)</span> 展开，逐模态解 ODE（"无穷多个一维问题"）；</li>
 <li><strong>非齐次边界</strong>：先减去一个满足边界的简单函数（常取线性/稳态解），化归齐次——"平移标准化"套路。</li>
 </ul>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（波动方程分离变量）</strong> 两端固定弦，初位移 <span class="arithmatex">\(\varphi(x) = \sin\frac{\pi x}{L}\)</span>、初速为零：只激发 <span class="arithmatex">\(n = 1\)</span> 模态，<span class="arithmatex">\(u = \sin\frac{\pi x}{L}\cos\frac{a\pi t}{L}\)</span>——纯基音驻波，节点不动、整体呼吸。</p>
 <p><strong>例 2（热方程完整流程）</strong> <span class="arithmatex">\(L = \pi, a = 1\)</span>，<span class="arithmatex">\(\varphi(x) = x(\pi - x)\)</span>：<span class="arithmatex">\(b_n = \frac{2}{\pi}\int_0^\pi x(\pi - x)\sin nx\,dx = \frac{4(1 - (-1)^n)}{\pi n^3}\)</span>（奇数 <span class="arithmatex">\(n\)</span> 存活），<span class="arithmatex">\(u = \sum_{n \text{ 奇}}\frac{8}{\pi n^3}e^{-n^2 t}\sin nx\)</span>。<span class="arithmatex">\(t\)</span> 稍大后 <span class="arithmatex">\(n = 1\)</span> 一家独大——<strong>扩散的长期行为由最小特征值统治</strong>（与 Markov 链的谱隙、幂法收敛同一句话，随机过程 III/数值 II 呼应）。</p>
 <p><strong>例 3（Laplace 方程矩形域）</strong> <span class="arithmatex">\(u_{xx} + u_{yy} = 0\)</span> 于 <span class="arithmatex">\([0,a]\times[0,b]\)</span>，三边为零、<span class="arithmatex">\(u(x, b) = f(x)\)</span>：分离变量给 <span class="arithmatex">\(u = \sum c_n \sin\frac{n\pi x}{a}\sinh\frac{n\pi y}{a}\)</span>，<span class="arithmatex">\(c_n\)</span> 由顶边的正弦展开定——椭圆方程"边界数据渗透内部"的解析样本。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -130,5 +226,7 @@ u(x, t) = \sum_{n=1}^{\infty} b_n\, e^{-a^2(n\pi/L)^2 t}\, \sin\frac{n\pi x}{L},
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/pde-separation.js"></script>
 </body>
 </html>

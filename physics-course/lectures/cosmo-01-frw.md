@@ -55,7 +55,7 @@ $$
 第一式只是把 $1/(a'^2E(a'))$ 展开；第二式用 $u=1/a'$ 把**精确的未来无穷端点** $a'=\infty$ 变成 $u=0$。所以
 
 $$
-\frac{D_p}{c/H_0}=aI_p(a),qquad \frac{D_e}{c/H_0}=aI_e(a).
+\frac{D_p}{c/H_0}=aI_p(a),\qquad \frac{D_e}{c/H_0}=aI_e(a).
 $$
 
 实验不会把 $a'=\infty$ 偷换成某个有限上限：若 $I_e$ 发散，读数明确写“发散 / 不存在”。

@@ -3,6 +3,73 @@
 > **对标**：Boyd & Vandenberghe §3.3、§5 / Rockafellar 入门 ｜ **前置**：本科优化 I–III、泛函 II
 > 研究生凸优化的第一件新武器是**共轭函数**（Legendre–Fenchel 变换）：它把"函数"编码成"支撑超平面族"，是对偶理论的原子操作——本科的 Lagrange 对偶、后两页的近端算法与 ADMM，全部由它统一生成。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="fenchel-duality-learning-title">
+
+## 学习层：一条支撑线何时把不等式压成等号？
+
+### 1. 具体情境：斜率 \(y\) 在向函数“报价”
+
+Fenchel 共轭
+
+$$
+f^*(y)=\sup_x\{\langle y,x\rangle-f(x)\}
+$$
+
+问的是：固定斜率 \(y\) 后，仿射函数 \(\langle y,x\rangle-f^*(y)\) 能在多高的位置仍不穿过 \(f\) 的图像。于是
+
+$$
+f(x)+f^*(y)-\langle x,y\rangle\geq0
+$$
+
+不是一个抽象口号，而是一张可核对的“支撑间隙”账单；间隙为零恰好表示 \(y\in\partial f(x)\)。
+
+### 2. 先预测：定义域也是答案的一部分
+
+1. 对 \(f(x)=x^2/2\)，给定 \(x\) 后哪一个 \(y\) 会让 Fenchel–Young 间隙为零？
+2. 对 \(f(x)=|x|\)，当 \(|y|>1\) 时，共轭应是一个很大的有限数，还是 \(+\infty\)？
+3. “负熵的共轭是 log-sum-exp”是否无需说明 \(p_i\geq0\) 与 \(\sum_i p_i=1\)？
+
+### 3. 三个模型：光滑、折角与未取到的上确界
+
+<div class="learning-lab" data-learning-lab="fenchel-duality" markdown="1">
+
+**无 JavaScript 时的静态读法：**
+
+| \(f\) | \(f^*\) | 取等条件 | 边界 |
+|---|---|---|---|
+| \(x^2/2\) | \(y^2/2\) | \(y=x\) | 处处有限且光滑 |
+| \(|x|\) | \(\iota_{[-1,1]}(y)\) | \(y=\operatorname{sgn}x\)；\(x=0\) 时 \(y\in[-1,1]\) | \(|y|>1\) 时为 \(+\infty\) |
+| \(e^x\) | \(y\ln y-y\)（\(y>0\)），\(0\)（\(y=0\)） | \(y=e^x>0\) | \(y=0\) 的上确界在 \(x\to-\infty\) 时逼近但不取到；\(y<0\) 时为 \(+\infty\) |
+
+实验揭示后可切换函数并移动 \(x,y\)，SVG 同时画函数、候选支撑线和接触点；账本分开显示共轭值、Fenchel–Young 间隙、次梯度证书与定义域状态。离散画布只负责可视化，精确共轭由上表的解析式计算。
+
+</div>
+
+### 4. 从一个间隙到原始–对偶间隙
+
+Fenchel–Rockafellar 对偶把两个这样的上确界拼起来。弱对偶不需要约束品性；零原始–对偶间隙与对偶解取得则需要闭凸性和相对内部相交等条件。有限实验出现“数值间隙接近零”不能替代强对偶定理，也不能证明最优解一定取得。
+
+熵例尤其要写全定义域：
+
+$$
+\left(\sum_i x_i\ln x_i+\iota_{\mathbb R_+^n}(x)\right)^*
+=\sum_i e^{y_i-1},
+$$
+
+而
+
+$$
+\left(\sum_i p_i\ln p_i+\iota_{\Delta}(p)\right)^*
+=\log\sum_i e^{y_i},\qquad
+\Delta=\{p\geq0:\sum_i p_i=1\}.
+$$
+
+少写一个单纯形约束，就会把两个不同的共轭混成一条。
+
+</section>
+
 ## 1. 共轭函数
 
 <figure class="plot" markdown="1">
@@ -24,16 +91,17 @@ $$
 |---|---|
 | $\frac12\|x\|_2^2$ | $\frac12\|y\|_2^2$（自共轭，唯一） |
 | $\frac1p\lvert x\rvert^p$ | $\frac1q\lvert y\rvert^q$（$\frac1p + \frac1q = 1$——Hölder 共轭指数的出处！） |
-| $e^x$ | $y\ln y - y$（负熵） |
-| $\sum x_i\ln x_i$（熵） | $\ln\sum e^{y_i}$（log-sum-exp——**熵与 softmax 互为共轭**） |
+| $e^x$ | $y\ln y-y$（$y>0$），$0$（$y=0$），$+\infty$（$y<0$） |
+| $\sum x_i\ln x_i+\iota_{\mathbb R_+^n}(x)$ | $\sum_i e^{y_i-1}$ |
+| $\sum p_i\ln p_i+\iota_\Delta(p)$，$\Delta=\{p\geq0:\sum p_i=1\}$ | $\ln\sum e^{y_i}$（单纯形负熵与 log-sum-exp 互为共轭） |
 | 示性函数 $\iota_C$ | 支撑函数 $\sigma_C(y) = \sup_{x\in C}\langle y,x\rangle$ |
 | 范数 $\lVert x\rVert$ | 对偶范数单位球的示性函数 |
 
 **Fenchel–Young 不等式**（定义的直接重排）：$f(x) + f^*(y) \geq \langle x, y\rangle$，取等 $\iff y \in \partial f(x)$——**"共轭对 = 次梯度关系"**：$(x, y)$ 配对当且仅当 $y$ 是 $x$ 处的支撑斜率。
 
-**定理（双共轭）** $f$ 闭凸（下半连续 + 凸）$\Rightarrow f^{**} = f$。
+**定理（双共轭）** $f$ 真（proper）、闭且凸（下半连续 + 凸）$\Rightarrow f^{**} = f$。
 **【骨架】** $f^{**} \leq f$ 由定义两次展开；反向：闭凸函数是其全部支撑超平面的上确界（分离超平面定理应用于上镜图 epigraph——凸分析的中心构造），而 $f^{**}$ 恰好就是这个上确界。$\blacksquare$
-**读法**：**闭凸函数与其支撑面族信息等价**——"点描述"与"斜率描述"可以无损互换（一般 $f$ 的 $f^{**}$ = 凸包络：非凸问题的"凸松弛"由此定义）。
+**读法**：**真闭凸函数与其支撑面族信息等价**——"点描述"与"斜率描述"可以无损互换。对具有仿射下界、且双共轭不退化的一般扩展实值函数，$f^{**}$ 是不超过 $f$ 的最大下半连续凸函数（常称闭凸包络）；只说“凸包络”会漏掉闭性，忽略 properness 则会把恒为 $+\infty$ 等退化对象也错误纳入同一句话。
 
 ## 2. Fenchel 对偶
 
@@ -58,7 +126,7 @@ $$
 
 **例 2（不等式一行造）** Fenchel–Young 用于 $\frac1p|x|^p$ 对：得 Young 不等式 $xy \leq \frac{x^p}{p} + \frac{y^q}{q}$——实变 III Hölder 证明的那块砖，出厂车间在此。
 
-**例 3（松弛的语义）** $f$ = 0-1 损失（非凸）：$f^{**}$ = 其凸包络 = 线性下界段——"用 hinge 替代 0-1"（本科 ai 02）在共轭语言里是"取双共轭的可行近似"：**凸松弛不是权宜是原理**。$\blacksquare$
+**例 3（松弛的语义）** 对一个明确给定定义域的非凸函数，$f^{**}$ 给出它的闭凸包络，因此提供系统的凸下松弛；定义域改变，包络也会改变。分类里的 hinge 损失是常用的凸上界替代，但它**不是未经说明定义域的 0-1 损失的双共轭**。二者都体现凸化思想，却不能画等号。$\blacksquare$
 
 ---
 

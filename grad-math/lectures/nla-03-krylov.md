@@ -88,7 +88,7 @@ $$
 
 $$
 \alpha_1=\frac{r_1^\top r_1}{p_1^\top Ap_1}=\frac{65}{68},
-\qquad r_2=0,qquad x_2=x_*.
+\qquad r_2=0,\qquad x_2=x_*.
 $$
 
 所以 $\kappa=4$ 的这个 2×2 例子在两步内精确结束。逐步读数为
@@ -167,7 +167,7 @@ $$
 并把标准公式中的 $r_k^\top r_k$ 换成 $r_k^\top z_k$。有效谱是
 
 $$
-\mu_i=\frac{\lambda_i}{m_i},qquad
+\mu_i=\frac{\lambda_i}{m_i},\qquad
 \kappa_{\rm eff}=\frac{\max_i\mu_i}{\min_i\mu_i}.
 $$
 

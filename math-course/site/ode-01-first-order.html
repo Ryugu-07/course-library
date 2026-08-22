@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 求解工具箱（识别类型是全部功夫）</a></li>
-<li><a href="#2">2. 存在唯一性定理（理论基石）</a></li>
-<li><a href="#3">3. 定性预览：不解方程看解</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#_1">学习层：同一个初态，未来一定只有一条吗？</a><ul>
+<li><a href="#1">1. 具体情境：一辆可以“等一会儿再出发”的车</a></li>
+<li><a href="#2">2. 先预测：存在、唯一与延拓分三张票</a></li>
+<li><a href="#3">3. 最小模型：三个问题需要三种证书</a></li>
+<li><a href="#4">4. 模型边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 求解工具箱（识别类型是全部功夫）</a></li>
+<li><a href="#2_1">2. 存在唯一性定理（理论基石）</a></li>
+<li><a href="#3_1">3. 定性预览：不解方程看解</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -48,7 +66,78 @@
 <blockquote>
 <p>ODE 是"用变化率描述世界"的语言。本页两部分：一阶方程的<strong>求解工具箱</strong>（五大类型，按识别→套路走），以及理论基石<strong>存在唯一性定理</strong>——它顺手兑现了数值 III 承诺过的压缩映像思想。</p>
 </blockquote>
-<h2 id="1">1. 求解工具箱（识别类型是全部功夫）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="ode-existence-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一个初态，未来一定只有一条吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：一辆可以“等一会儿再出发”的车<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>考虑初值问题</p>
+<div class="arithmatex">\[
+y'=\sqrt{|y|},\qquad y(0)=0.
+\]</div>
+<p>常值解 <span class="arithmatex">\(y\equiv0\)</span> 合法；但对任意等待时间 <span class="arithmatex">\(a\geq0\)</span>，分段函数</p>
+<div class="arithmatex">\[
+y_a(t)=
+\begin{cases}
+0,&amp;t\leq a,\\
+(t-a)^2/4,&amp;t\geq a
+\end{cases}
+\]</div>
+<p>也满足方程与初值。函数右端连续，所以存在性并不意外；它在 <span class="arithmatex">\(y=0\)</span> 附近却不对 <span class="arithmatex">\(y\)</span> 局部 Lipschitz，因此 Picard–Lindelöf 的唯一性证书失效。注意“定理条件不满足”只表示定理不再担保，不能单凭这一点断言每个问题都不唯一；这里的不唯一由明确的多条解曲线作证。</p>
+<h3 id="2">2. 先预测：存在、唯一与延拓分三张票<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li><span class="arithmatex">\(y'=y,\ y(0)=1\)</span> 的右端既连续又局部 Lipschitz；穿过初值的两条不同解曲线能否相交？</li>
+<li>对上面的平方根方程，等待 <span class="arithmatex">\(a=0,1,2\)</span> 会得到几条不同的解？拼接点处左右导数是否一致？</li>
+<li><span class="arithmatex">\(y'=y^2,\ y(0)=1\)</span> 的右端十分光滑；这是否足以保证解对所有 <span class="arithmatex">\(t&gt;0\)</span> 都存在？</li>
+</ol>
+<h3 id="3">3. 最小模型：三个问题需要三种证书<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>局部存在</strong>：连续右端可由 Peano 定理给出局部解，但不保证唯一；Picard–Lindelöf 以对状态变量的局部 Lipschitz 条件同时给出局部存在与唯一。</li>
+<li><strong>唯一</strong>：比较的是同一初值附近的全部解，不是某个数值算法只画出一条轨迹。平方根例中的 <span class="arithmatex">\(y_a\)</span> 是解析反证。</li>
+<li><strong>最大延拓</strong>：即使局部唯一，解仍可能在有限时刻爆破或跑出方程定义域。<span class="arithmatex">\(y'=y^2,\ y(0)=1\)</span> 的最大向前区间是 <span class="arithmatex">\((-\infty,1)\)</span>。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="ode-existence-uniqueness">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>方程</th>
+<th>连续</th>
+<th>对 <span class="arithmatex">\(y\)</span> 局部 Lipschitz</th>
+<th>本例结论</th>
+<th>不能越界声称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(y'=y,\ y(0)=1\)</span></td>
+<td>是</td>
+<td>是</td>
+<td>局部唯一，且显式解 <span class="arithmatex">\(e^t\)</span> 全局存在</td>
+<td>一次 Euler 轨迹不是定理证明</td>
+</tr>
+<tr>
+<td>(y'=\sqrt{</td>
+<td>y</td>
+<td>}, y(0)=0)</td>
+<td>是</td>
+<td>否（在 0 附近）</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(y'=y^2,\ y(0)=1\)</span></td>
+<td>是</td>
+<td>是</td>
+<td>局部唯一，但 <span class="arithmatex">\(y=1/(1-t)\)</span> 于 <span class="arithmatex">\(t=1\)</span> 爆破</td>
+<td>局部唯一不等于全局存在</td>
+</tr>
+</tbody>
+</table>
+<p>实验揭示后可切换三类方程、改变观察窗与 Euler 步数；平方根模型会并排展示等待时间 (a=0,1,2) 的三个解析分支。有限步数值轨迹只诊断当前离散化；存在唯一性与最大延拓仍由定理假设和解析解负责。</p>
+</div>
+<h3 id="4">4. 模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>本实验只处理三个一维自治方程；Peano 与 Picard–Lindelöf 的一般陈述需要在初值附近选定矩形，并分别检查连续性、对状态变量的一致局部 Lipschitz 条件。刚性、多值微分包含、随机微分方程和数值稳定性不由这三个 toy 覆盖。</p>
+</section>
+<h2 id="1_1">1. 求解工具箱（识别类型是全部功夫）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -90,12 +179,12 @@
 y = e^{-\int p\,dx}\Big(\int q\, e^{\int p\,dx}\,dx + C\Big)
 \]</div>
 <p>结构读法：<strong>通解 = 齐次通解 + 非齐次特解</strong>——线性方程的普适结构（下一页高阶版、高代线性方程组同构）。恰当方程不恰当时找积分因子（只依赖 <span class="arithmatex">\(x\)</span> 或 <span class="arithmatex">\(y\)</span> 的两个判别式，查表级知识）。</p>
-<h2 id="2">2. 存在唯一性定理（理论基石）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定理（Picard–Lindelöf）</strong> 初值问题 <span class="arithmatex">\(y' = f(x, y),\ y(x_0) = y_0\)</span>：若 <span class="arithmatex">\(f\)</span> 连续且关于 <span class="arithmatex">\(y\)</span> 满足 <strong>Lipschitz 条件</strong>（<span class="arithmatex">\(|f(x, y_1) - f(x, y_2)| \leq L|y_1 - y_2|\)</span>），则局部存在唯一解。</p>
+<h2 id="2_1">2. 存在唯一性定理（理论基石）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>定理（Picard–Lindelöf）</strong> 初值问题 <span class="arithmatex">\(y' = f(x, y),\ y(x_0) = y_0\)</span>：若 <span class="arithmatex">\(f\)</span> 在初值附近的矩形内连续，且在该矩形内关于 <span class="arithmatex">\(y\)</span> 一致满足 <strong>Lipschitz 条件</strong>（<span class="arithmatex">\(|f(x, y_1) - f(x, y_2)| \leq L|y_1 - y_2|\)</span>），则在某个较小区间上存在唯一解。</p>
 <p><em>证明思路（三步，泛函 I 将正式收编）</em>：1. 初值问题 ⟺ 积分方程 <span class="arithmatex">\(y(x) = y_0 + \int_{x_0}^x f(t, y(t))dt\)</span>；2. 右端定义算子 <span class="arithmatex">\(T\)</span>，在小区间上 <span class="arithmatex">\(T\)</span> 是压缩映射（Lipschitz 常数 × 区间长 &lt; 1）；3. 压缩映像原理给唯一不动点——<strong>Picard 迭代</strong> <span class="arithmatex">\(y_{n+1} = T y_n\)</span> 收敛到解（还是可计算的构造性证明，数值 III 不动点迭代的老家）。</p>
-<p><strong>唯一性失效的名例</strong>：<span class="arithmatex">\(y' = \sqrt{|y|},\ y(0) = 0\)</span>——<span class="arithmatex">\(y \equiv 0\)</span> 与 <span class="arithmatex">\(y = x^2/4\)</span> 都是解（<span class="arithmatex">\(\sqrt{|y|}\)</span> 在 0 处不满足 Lipschitz：导数无界）。<strong>物理读法</strong>：不满足 Lipschitz 的系统"同一初态可有多种未来"——决定论失效的数学刻画。</p>
+<p><strong>唯一性失效的名例</strong>：<span class="arithmatex">\(y' = \sqrt{|y|},\ y(0) = 0\)</span>——除 <span class="arithmatex">\(y \equiv 0\)</span> 外，对任意 <span class="arithmatex">\(a\geq0\)</span>，令 <span class="arithmatex">\(y=0\)</span>（<span class="arithmatex">\(x\leq a\)</span>）、<span class="arithmatex">\(y=(x-a)^2/4\)</span>（<span class="arithmatex">\(x\geq a\)</span>）都给出一条解；不能把 <span class="arithmatex">\(x^2/4\)</span> 不分区间地写到负半轴上，因为那里导数符号不对。<span class="arithmatex">\(\sqrt{|y|}\)</span> 在 0 处不满足 Lipschitz。<strong>物理读法</strong>：这个具体系统允许"同一初态有多种未来"；非 Lipschitz 本身只是唯一性定理失去担保，不自动证明每个系统都不唯一。</p>
 <p><strong>解的延拓</strong>：局部解可延拓到"跑出定义域或爆破"为止；<span class="arithmatex">\(y' = y^2\)</span> 的解 <span class="arithmatex">\(y = \frac{1}{C - x}\)</span> 在有限时间爆破——非线性方程解的寿命可以有限（与线性方程全局存在对照）。</p>
-<h2 id="3">3. 定性预览：不解方程看解<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 定性预览：不解方程看解<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="方向场与解曲线" src="assets/img/ode-01-slope-field.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>方向场把每点的斜率 \(y'=f(x,y)\) 画成小箭头，解曲线处处与箭头相切——不解方程也能看出解的走向。</figcaption>
@@ -106,7 +195,7 @@ y' = ry\Big(1 - \frac{y}{K}\Big)
 \]</div>
 <p>平衡点 <span class="arithmatex">\(0\)</span>（不稳）与 <span class="arithmatex">\(K\)</span>（稳，环境容量）——不用解方程就知道"任何正初值都趋于 <span class="arithmatex">\(K\)</span>"；可分离法也能显式解出 S 形曲线，两条路互相印证。</p>
 <p>🔗 <strong>衔接</strong>：梯度流 <span class="arithmatex">\(x' = -\nabla f(x)\)</span> 是"连续时间的梯度下降"（优化 II——学习率 <span class="arithmatex">\(\to 0\)</span> 的极限），平衡点=驻点、稳定性=极小性；数值解法（Euler/RK4）在数值 IV；概率版（加噪声的 ODE = SDE）在随机过程 IV 与扩散模型（comfy 课 02）。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（一阶线性全流程）</strong> <span class="arithmatex">\(y' + \frac{y}{x} = \frac{\sin x}{x}\)</span>：<span class="arithmatex">\(\mu = e^{\int dx/x} = x\)</span>，<span class="arithmatex">\((xy)' = \sin x\)</span> ⇒ <span class="arithmatex">\(y = \frac{C - \cos x}{x}\)</span>。</p>
 <p><strong>例 2（换元识别）</strong> <span class="arithmatex">\(y' = \frac{y}{x} + \tan\frac{y}{x}\)</span>：齐次型，<span class="arithmatex">\(u = y/x\)</span> 得 <span class="arithmatex">\(x u' = \tan u\)</span>，分离得 <span class="arithmatex">\(\sin u = Cx\)</span>，即 <span class="arithmatex">\(\sin\frac{y}{x} = Cx\)</span>。</p>
 <p><strong>例 3（Picard 迭代亲手转两圈）</strong> <span class="arithmatex">\(y' = y,\ y(0) = 1\)</span>：<span class="arithmatex">\(y_0 = 1\)</span>，<span class="arithmatex">\(y_1 = 1 + \int_0^x 1\,dt = 1 + x\)</span>，<span class="arithmatex">\(y_2 = 1 + x + \frac{x^2}{2}\)</span>，……——迭代逐项长出 <span class="arithmatex">\(e^x\)</span> 的 Taylor 级数。存在性证明与幂级数解法在此握手。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -121,5 +210,7 @@ y' = ry\Big(1 - \frac{y}{K}\Big)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ode-existence-uniqueness.js"></script>
 </body>
 </html>

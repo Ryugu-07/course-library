@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:45</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 概率空间与分布</a></li>
+<li><a href="#expectation-learning-title">学习层：同一个期望，为什么有三种合法账本？</a><ul>
+<li><a href="#1">1. 先预测：把“取平均”拆成可审计的步骤</a></li>
+<li><a href="#2">2. 最小模型：原子、密度、尾部三本账</a></li>
+<li><a href="#3">3. 动手：把正负部也放进同一张总账</a></li>
+<li><a href="#4">4. 定理假设与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 概率空间与分布</a></li>
 <li><a href="#2-lebesgue">2. 期望 = Lebesgue 积分</a></li>
 <li><a href="#3-borelcantelli">3. Borel–Cantelli 引理</a></li>
-<li><a href="#4">4. 收敛方式全图（研究生版）</a></li>
+<li><a href="#4_1">4. 收敛方式全图（研究生版）</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -48,9 +66,98 @@
 <h1 id="i">测度概率 I · 测度论语言与期望<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Durrett <em>PTE</em> §1.1–1.6 ｜ <strong>前置</strong>：本科实变 I–III、概率 I–IV
-本页把本科概率的语言全面升级为测度论版本，并配齐三件研究生日常武器：π–λ 定理（"在生成元上验证就够了"的执照）、一致可积（<span class="arithmatex">\(L^1\)</span> 收敛的正确条件）、Borel–Cantelli（一切 a.s. 论证的起点）。</p>
+本页把本科概率的语言全面升级为测度论版本，并配齐三件研究生日常武器：π–λ 定理（"在生成元上验证就够了"的执照）、一致可积（在 <span class="arithmatex">\(X_n\in L^1\)</span>、<span class="arithmatex">\(X_n\to X\)</span> 依概率时推出极限可积并给出 <span class="arithmatex">\(L^1\)</span> 收敛的条件）、Borel–Cantelli（一切 a.s. 论证的起点）。</p>
 </blockquote>
-<h2 id="1">1. 概率空间与分布<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="expectation-learning-title" class="learning-layer">
+<h2 id="expectation-learning-title">学习层：同一个期望，为什么有三种合法账本？<a class="headerlink" href="#expectation-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：把“取平均”拆成可审计的步骤<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先不打开实验。考虑一个非负随机变量 <span class="arithmatex">\(X\)</span>，以及一个可能变号的随机变量 <span class="arithmatex">\(Y\)</span>，对下面三个判断各写下答案：</p>
+<ol>
+<li><span class="arithmatex">\(X\)</span> 用离散原子、密度或尾概率表示时，<span class="arithmatex">\(\mathbb E X\)</span> 是否只是同一个 Lebesgue 积分的三种坐标表达？</li>
+<li>若 <span class="arithmatex">\(X_K=X\wedge K\uparrow X\)</span>，即使 <span class="arithmatex">\(\mathbb E X=+\infty\)</span>，<span class="arithmatex">\(\mathbb E X_K\)</span> 能否单调上升到 <span class="arithmatex">\(+\infty\)</span>？把极限与非负求和/积分交换是否需要先假设期望有限？</li>
+<li>若 <span class="arithmatex">\(Y^+\)</span> 与 <span class="arithmatex">\(Y^-\)</span> 的期望都为 <span class="arithmatex">\(+\infty\)</span>，能否把“正负两边看起来对称”写成 <span class="arithmatex">\(\mathbb E Y=0\)</span>？若只有正部分发散而负部分有限，结论应是未定义还是 <span class="arithmatex">\(+\infty\)</span>？</li>
+</ol>
+<p>这些问题把三个层次分开：表示法是建模选择，Tonelli/MCT 是非负极限的合法性证书，而 signed expectation 还要通过正负部的边界检查。</p>
+<h3 id="2">2. 最小模型：原子、密度、尾部三本账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(X\ge0\)</span>，三种表示分别是</p>
+<div class="arithmatex">\[
+\mathbb E X=\sum_k x_kp_k,\qquad
+\mathbb E X=\int_0^\infty x f_X(x)\,dx,\qquad
+\mathbb E X=\int_0^\infty \mathbb P(X&gt;t)\,dt.
+\]</div>
+<p>第一式要求 <span class="arithmatex">\(\sum_kp_k=1\)</span>；第二式要求 <span class="arithmatex">\(f_X\)</span> 是相对于 Lebesgue 测度的密度；第三式是 layer-cake 公式，只对非负变量直接使用。实验用有限原子分布和 <span class="arithmatex">\(\operatorname{Exp}(1)\)</span> 密度作可复核样板：原子样本直接累加，密度样本做有限区间的确定性求积，尾部样本画 <span class="arithmatex">\(\int_0^T\mathbb P(X&gt;t)\,dt\)</span>，并把遗漏的尾部单独列出。</p>
+<p>非负近似的核心账本是</p>
+<div class="arithmatex">\[
+X_K=X\wedge K\uparrow X,\qquad
+\mathbb E X_K\uparrow\mathbb E X.
+\]</div>
+<p>这是单调收敛定理；把非负函数写成 <span class="arithmatex">\(\sum_n f_n\)</span> 或把积分写成 <span class="arithmatex">\(\int\int g\)</span> 时，Tonelli 允许交换次序，即使两边的共同值是 <span class="arithmatex">\(+\infty\)</span>。所以“每个有限截断都算出了一个数”与“极限是有限实数”必须分列记录。</p>
+<h3 id="3">3. 动手：把正负部也放进同一张总账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验揭示后可切换原子、指数密度、尾积分、正的重尾和变号重尾；固定截断级别 <span class="arithmatex">\(K\)</span> 或尾部上限 <span class="arithmatex">\(T\)</span>。图只展示有限截断的增长，表格则同时报告 <span class="arithmatex">\(\mathbb E Y^+\)</span>、<span class="arithmatex">\(\mathbb E Y^-\)</span>、<span class="arithmatex">\(\mathbb E|Y|\)</span> 与结论级别。</p>
+<div class="learning-lab" data-learning-lab="measure-expectation">
+<p><strong>无 JavaScript 时的静态读法：</strong>原子样本取
+<span class="arithmatex">\(\mathbb P(X=0,1,2,4)=(1/2,1/4,1/8,1/8)\)</span>，所以
+<span class="arithmatex">\(\mathbb E X=1\)</span>。密度样本取 <span class="arithmatex">\(f(x)=e^{-x}\mathbf1_{x\ge0}\)</span>，则
+<span class="arithmatex">\(\int_0^\infty xf(x)\,dx=1\)</span>，尾积分也给
+<span class="arithmatex">\(\int_0^\infty e^{-t}\,dt=1\)</span>；在有限上限 <span class="arithmatex">\(T\)</span> 时，尾账是 <span class="arithmatex">\(1-e^{-T}\)</span>，不是已经完成的无限积分。</p>
+<p>对 <span class="arithmatex">\(p_k=c/k^2\)</span>、<span class="arithmatex">\(c=6/\pi^2\)</span>：若 <span class="arithmatex">\(X=k^2&gt;0\)</span>，则
+<span class="arithmatex">\(\mathbb E X=+\infty\)</span>；若 <span class="arithmatex">\(Y=(-1)^k k\)</span>，则
+<span class="arithmatex">\(\mathbb E Y^+=\mathbb E Y^-=+\infty\)</span>，所以 <span class="arithmatex">\(\mathbb E Y\)</span> 是未定义的 <span class="arithmatex">\(\infty-\infty\)</span>，绝不能借对称性写成 <span class="arithmatex">\(0\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>模型/账本</th>
+<th>有限计算</th>
+<th>定理级读法</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>原子 <span class="arithmatex">\(X\)</span></td>
+<td><span class="arithmatex">\(\sum x_kp_k=1\)</span></td>
+<td>离散 LOTUS / Lebesgue 积分</td>
+<td>要核对概率和为 <span class="arithmatex">\(1\)</span></td>
+</tr>
+<tr>
+<td>指数密度</td>
+<td><span class="arithmatex">\(\int_0^T xe^{-x}\,dx\)</span></td>
+<td><span class="arithmatex">\(T\to\infty\)</span> 后为 <span class="arithmatex">\(1\)</span></td>
+<td>有限 <span class="arithmatex">\(T\)</span> 还有尾部</td>
+</tr>
+<tr>
+<td>尾积分</td>
+<td><span class="arithmatex">\(\int_0^T e^{-t}\,dt=1-e^{-T}\)</span></td>
+<td>layer-cake 给 <span class="arithmatex">\(\mathbb EX=1\)</span></td>
+<td>只对 <span class="arithmatex">\(X\ge0\)</span> 直接成立</td>
+</tr>
+<tr>
+<td>正重尾 <span class="arithmatex">\(k^2\)</span></td>
+<td><span class="arithmatex">\(\mathbb E(X\wedge K)\uparrow+\infty\)</span></td>
+<td>MCT/Tonelli 允许值为 <span class="arithmatex">\(+\infty\)</span></td>
+<td>不属于 <span class="arithmatex">\(L^1\)</span></td>
+</tr>
+<tr>
+<td>变号重尾 <span class="arithmatex">\((-1)^kk\)</span></td>
+<td>正负部截断都上升</td>
+<td>两部都无限，signed 期望未定义</td>
+<td>“正负抵消”非法</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 定理假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Tonelli</strong> 只要求被积函数可测且非负；它保证交换后的共同值（允许为 <span class="arithmatex">\(+\infty\)</span>）。对变号函数要用 Fubini，通常须先验证 <span class="arithmatex">\(\int|f|&lt;\infty\)</span>。不能把“正项级数可逐项相加”推广成任意交错项都能换序。</li>
+<li><strong>MCT</strong> 要求 <span class="arithmatex">\(X_K\)</span> 可测、非负并且几乎处处单调上升到 <span class="arithmatex">\(X\)</span>；它不保证极限期望有限。Fatou 只给下界不等式，不能无条件补成等式。</li>
+<li>一般可积变量写成 <span class="arithmatex">\(X=X^+-X^-\)</span>，其中 <span class="arithmatex">\(\mathbb EX\)</span> 作为有限实数至少要求 <span class="arithmatex">\(\mathbb E|X|&lt;\infty\)</span>；若仅有 <span class="arithmatex">\(\mathbb EX^+&lt;\infty\)</span>、<span class="arithmatex">\(\mathbb EX^-=\infty\)</span>，扩展期望是 <span class="arithmatex">\(-\infty\)</span>，反向类似为 <span class="arithmatex">\(+\infty\)</span>；两部都无限则未定义。</li>
+<li><strong>Vitali/UI 的精确条件</strong>：若每个 <span class="arithmatex">\(X_n\in L^1\)</span>、<span class="arithmatex">\(X_n\to X\)</span> 依概率且 <span class="arithmatex">\(\{X_n\}\)</span> 一致可积，则 <span class="arithmatex">\(X\in L^1\)</span> 自动成立并且 <span class="arithmatex">\(\mathbb E|X_n-X|\to0\)</span>，即 <span class="arithmatex">\(L^1\)</span> 收敛。反过来，若 <span class="arithmatex">\(X\in L^1\)</span> 且 <span class="arithmatex">\(X_n\to X\)</span> 在 <span class="arithmatex">\(L^1\)</span> 中，则 <span class="arithmatex">\(\{X_n\}\)</span> 一致可积。只写“依概率 + UI ⇒ <span class="arithmatex">\(L^1\)</span>”而不说明这些可积性/极限条件，会把定理的适用域写宽。</li>
+<li>计算器、有限截断和有限 Monte Carlo 只产生数值证据；它们不能决定 <span class="arithmatex">\(K\to\infty\)</span> 或 <span class="arithmatex">\(T\to\infty\)</span> 的量词，也不能把未定义的 <span class="arithmatex">\(\infty-\infty\)</span> 变成一个“稳定近零”的数。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 概率空间与分布<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>概率空间 <span class="arithmatex">\((\Omega, \mathcal{F}, P)\)</span> = 全测度为 1 的测度空间（实变 I 的理论整体继承）。随机变量 <span class="arithmatex">\(X\)</span> = 可测函数；其<strong>分布</strong> <span class="arithmatex">\(\mu = P \circ X^{-1}\)</span> 是 <span class="arithmatex">\((\mathbb{R}, \mathcal{B})\)</span> 上的推前测度——"把概率从抽象空间搬到实数轴"，此后一切只与 <span class="arithmatex">\(\mu\)</span> 有关的问题都可以忘掉 <span class="arithmatex">\(\Omega\)</span>（换元定理：<span class="arithmatex">\(E[g(X)] = \int g\,d\mu\)</span>——本科 LOTUS 的正式版）。</p>
 <p><strong>定理（π–λ / Dynkin）</strong> π-系（对交封闭）<span class="arithmatex">\(\mathcal{P}\)</span> 生成的 σ-代数上，两个概率测度只要在 <span class="arithmatex">\(\mathcal{P}\)</span> 上相等就处处相等。
 <strong>【骨架】</strong> 定义 λ-系（含 <span class="arithmatex">\(\Omega\)</span>、对真差与单调升极限封闭）；验证"与固定 <span class="arithmatex">\(A\)</span> 相等的集合族"是 λ-系；引理"含 π-系的最小 λ-系 = 生成的 σ-代数"（对交封闭性逐层传递，两步交换论证）完成。<span class="arithmatex">\(\blacksquare\)</span>
@@ -58,7 +165,11 @@
 <h2 id="2-lebesgue">2. 期望 = Lebesgue 积分<a class="headerlink" href="#2-lebesgue" title="Permanent link"></a></h2>
 <p>三级构造（简单函数 → 非负取 sup → 拆正负部）与三大收敛定理（MCT / Fatou / DCT）整体<strong>【引用】</strong>实变 II——概率语言下逐字成立。研究生新增的关键概念是：</p>
 <p><strong>定义（一致可积，UI）</strong> 族 <span class="arithmatex">\(\{X_i\}\)</span> 一致可积：<span class="arithmatex">\(\sup_i E\big[|X_i|\,\mathbb{1}_{|X_i| &gt; M}\big] \to 0\ (M \to \infty)\)</span>——"尾部质量被一致地压住"。（充分条件：被同一可积变量控制；或 <span class="arithmatex">\(\sup E|X_i|^{1+\varepsilon} &lt; \infty\)</span>——后者是实战最常用的验证法。）</p>
-<p><strong>定理（Vitali：<span class="arithmatex">\(L^1\)</span> 收敛的充要刻画）</strong> <span class="arithmatex">\(X_n \xrightarrow{P} X\)</span> 时：<span class="arithmatex">\(E|X_n - X| \to 0 \iff \{X_n\}\)</span> 一致可积。
+<p><strong>定理（Vitali：<span class="arithmatex">\(L^1\)</span> 收敛的充要刻画）</strong> 若每个 <span class="arithmatex">\(X_n\in L^1\)</span> 且 <span class="arithmatex">\(X_n \xrightarrow{P} X\)</span>，则</p>
+<div class="arithmatex">\[
+X_n\xrightarrow{L^1}X \quad\Longleftrightarrow\quad \{X_n\}\text{ 一致可积}.
+\]</div>
+<p>右推左时 <span class="arithmatex">\(X\in L^1\)</span> 是结论，不必预先假设；左推右时 <span class="arithmatex">\(L^1\)</span> 收敛本身已包含 <span class="arithmatex">\(X\in L^1\)</span>。
 <strong>【骨架】</strong> （⇐）截断 <span class="arithmatex">\(X_n\)</span> 于 <span class="arithmatex">\(M\)</span>：截断误差由 UI 一致控制，截断后的部分依概率收敛 + 有界 ⇒ DCT 收尾；（⇒）<span class="arithmatex">\(L^1\)</span> 收敛族的尾部由单个 <span class="arithmatex">\(X\)</span> 的尾部 + 收敛差控制。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>地位</strong>：DCT 要"控制函数"，UI 只要"尾部一致小"——<strong>取期望换极限的最弱实用条件</strong>，鞅论（mt-04）与渐近统计到处是它。</p>
 <h2 id="3-borelcantelli">3. Borel–Cantelli 引理<a class="headerlink" href="#3-borelcantelli" title="Permanent link"></a></h2>
@@ -68,7 +179,7 @@
 <p><strong>定理（BC-II）</strong> <span class="arithmatex">\(\{A_n\}\)</span> <strong>独立</strong>且 <span class="arithmatex">\(\sum P(A_n) = \infty \Rightarrow P(A_n \text{ i.o.}) = 1\)</span>。
 <strong>【证明】</strong> 对固定 <span class="arithmatex">\(N\)</span>：<span class="arithmatex">\(P\big(\bigcap_{n=N}^{M} A_n^c\big) = \prod (1 - P(A_n)) \leq \exp\big(-\sum_N^M P(A_n)\big) \to 0\)</span>（用 <span class="arithmatex">\(1 - x \leq e^{-x}\)</span> 与级数发散）。故 <span class="arithmatex">\(P\big(\bigcup_{n \geq N} A_n\big) = 1\)</span> 对每个 <span class="arithmatex">\(N\)</span>，取交即得。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>读法</strong>：概率的可加性 + 一个级数判敛 = "无穷多次发生"的 0-1 判决（独立时是精确二分法）。<strong>a.s. 结论的工业标准起手式</strong>：想证 <span class="arithmatex">\(X_n \to X\)</span> a.s.，验证 <span class="arithmatex">\(\sum P(|X_n - X| &gt; \varepsilon) &lt; \infty\)</span>（"完全收敛"）即可。</p>
-<h2 id="4">4. 收敛方式全图（研究生版）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 收敛方式全图（研究生版）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>本科概率 V 的收敛图升级版，关系与反例配齐：</p>
 <div class="arithmatex">\[
 \text{a.s.} \;\Rightarrow\; \text{依概率} \;\Rightarrow\; \text{依分布}; \qquad L^p \Rightarrow \text{依概率}
@@ -76,7 +187,7 @@
 <ul>
 <li>a.s. 与 <span class="arithmatex">\(L^p\)</span> 互不蕴含（反例：滑动的高瘦块 <span class="arithmatex">\(n\mathbb{1}_{(0,1/n)}\)</span> 是 a.s.→0 但 <span class="arithmatex">\(L^1\)</span> 不收敛；"打字机序列"<span class="arithmatex">\(\mathbb{1}\)</span> 块扫过 <span class="arithmatex">\([0,1]\)</span> 是 <span class="arithmatex">\(L^1\)</span>→0 但处处不 a.s. 收敛——<strong>两个反例是本页必背</strong>）；</li>
 <li>依概率 ⇒ 有 a.s. 收敛子列（实变 III 已证）；</li>
-<li>依概率 + UI ⇒ <span class="arithmatex">\(L^1\)</span>（§2 Vitali）——补上图中缺的那条边。</li>
+<li>若每个 <span class="arithmatex">\(X_n\in L^1\)</span>、<span class="arithmatex">\(X_n\to X\)</span> 依概率且族一致可积，则由 §2 Vitali 得 <span class="arithmatex">\(X\in L^1\)</span> 且 <span class="arithmatex">\(X_n\to X\)</span> 于 <span class="arithmatex">\(L^1\)</span>——补上图中缺的那条边。</li>
 </ul>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（BC-I 应用）</strong> <span class="arithmatex">\(X_n\)</span> i.i.d. 标准正态，证 <span class="arithmatex">\(\limsup \frac{X_n}{\sqrt{2\ln n}} \leq 1\)</span> a.s.：尾界 <span class="arithmatex">\(P(X_n &gt; (1+\varepsilon)\sqrt{2\ln n}) \leq e^{-(1+\varepsilon)^2\ln n} = n^{-(1+\varepsilon)^2}\)</span> 可和 ⇒ BC-I。（配合 BC-II 反向可证 <span class="arithmatex">\(=1\)</span>——i.i.d. 正态的极值以 <span class="arithmatex">\(\sqrt{2\ln n}\)</span> 速度生长，极值理论第一课。）</p>
@@ -93,5 +204,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/measure-expectation.js"></script>
 </body>
 </html>

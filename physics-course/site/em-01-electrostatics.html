@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +43,24 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#gauss">学习层：Gauss 面到底能证明什么？</a><ul>
+<li><a href="#1">1. 先分开四种证书</a></li>
+<li><a href="#2">2. 三项预测：通量、场恢复与边界</a></li>
+<li><a href="#3-fallback">3. 静态 fallback：一张证书账本</a></li>
+<li><a href="#4">4. 定理假设与失效边界</a></li>
+</ul>
+</li>
 <li><a href="#1-coulomb-gauss">1. 静电：从 Coulomb 到 Gauss</a></li>
 <li><a href="#2-biotsavart-ampere">2. 静磁：从 Biot–Savart 到 Ampère</a></li>
 <li><a href="#3">3. 介质一瞥（宏观场论的雏形）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,6 +69,77 @@
 <p><strong>对标</strong>：Griffiths <em>EM</em> §2–5 ｜ <strong>前置</strong>：数分 VI（三大公式）、pde-01（Laplace）
 电磁学前半是"矢量微积分的物理正身"：Gauss 定律 = 散度定理的物理、环路定律 = Stokes 定理的物理。本页把静电静磁的骨架立起来：两对方程、势的语言、以及解题的三板斧（对称性 Gauss、镜像法、分离变量）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="em-01-learning-title" class="learning-layer">
+<h2 id="gauss">学习层：Gauss 面到底能证明什么？<a class="headerlink" href="#gauss" title="Permanent link"></a></h2>
+<h3 id="1">1. 先分开四种证书<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设真空中 <span class="arithmatex">\(\mathbf E=-\nabla V\)</span>、<span class="arithmatex">\(\nabla\cdot\mathbf E=\rho/\varepsilon\)</span>。Gauss 定律给的是</p>
+<div class="arithmatex">\[
+\Phi_S=\oint_S\mathbf E\cdot d\mathbf A
+=\frac{Q_{\rm enc}}{\varepsilon}.
+\]</div>
+<p>这是<strong>总通量的真值</strong>：任意闭合面都成立，不需要球对称。可是从一个数 <span class="arithmatex">\(\Phi_S\)</span> 反推出面上每一点的 <span class="arithmatex">\(\mathbf E\)</span>，还需要额外结构：球对称时 <span class="arithmatex">\(\mathbf E=E(r)\hat{\mathbf r}\)</span> 且 <span class="arithmatex">\(E\)</span> 在球面上恒定，平面对称时上下 pillbox 面的法向场大小相等。没有对称性的点电荷组仍有正确通量，但不能把 <span class="arithmatex">\(\Phi_S\)</span> 除以面积就当成局部场。</p>
+<p>标势的另一张证书是 Poisson 方程</p>
+<div class="arithmatex">\[
+\nabla^2V=-\frac{\rho}{\varepsilon}.
+\]</div>
+<p>它既可以在光滑源区逐点读，也可以在界面/点源处按分布读：无限电荷片两侧 <span class="arithmatex">\(\nabla^2V=0\)</span>，但法向场跳跃 <span class="arithmatex">\(E_n(0+)-E_n(0-)=\sigma/\varepsilon\)</span>；点电荷的源项是 <span class="arithmatex">\(\delta\)</span>，避开点源的有限差分只能检查“那里近似调和”。</p>
+<p>最后，<span class="arithmatex">\(V\)</span> 只有规范自由 <span class="arithmatex">\(V\mapsto V+C\)</span>：<span class="arithmatex">\(\mathbf E\)</span> 不变。给定 Dirichlet 边界电势会固定 <span class="arithmatex">\(C\)</span>；只给 Neumann 法向导数时，解通常只确定到一个加法常数，这和“场已唯一”不是同一句话。</p>
+<h3 id="2">2. 三项预测：通量、场恢复与边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>非对称电荷分布的闭合面总通量，是否仍等于 <span class="arithmatex">\(Q_{\rm enc}/\varepsilon\)</span>？</li>
+<li>已知非对称球面的总通量，能否直接得到球面每一点的电场？</li>
+<li>把电势加上常数会不会改变电场？只给 Neumann 数据能否固定电势零点？</li>
+</ol>
+<p>实验固定三种可审计模型：均匀带电球、无限电荷片、两个非对称点电荷。揭示后可切换 <span class="arithmatex">\(V\)</span> 的规范常数和 Dirichlet/Neumann 解释，并同时看到通量真值、对称性场恢复误差、等势采样 spread 与 Poisson 证书。</p>
+<h3 id="3-fallback">3. 静态 fallback：一张证书账本<a class="headerlink" href="#3-fallback" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>源数据</th>
+<th>Gauss 通量真值</th>
+<th>能否由通量恢复场</th>
+<th>等势结构</th>
+<th>Poisson / 边界读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>均匀带电球</td>
+<td><span class="arithmatex">\(Q_{\rm enc}/\varepsilon\)</span></td>
+<td>能；球面上 <span class="arithmatex">\(E\)</span> 恒定</td>
+<td>同心球面</td>
+<td>球内 <span class="arithmatex">\(\nabla\cdot\mathbf E=\rho/\varepsilon\)</span>，球外为 <span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>无限电荷片</td>
+<td><span class="arithmatex">\(\sigma A/\varepsilon\)</span></td>
+<td>能；上下两面由平面对称配对</td>
+<td>平行于电荷片的平面</td>
+<td>两侧 Laplace，界面法向跳跃为 <span class="arithmatex">\(\sigma/\varepsilon\)</span></td>
+</tr>
+<tr>
+<td>非对称点电荷</td>
+<td><span class="arithmatex">\((\sum q_i)/\varepsilon\)</span></td>
+<td>不能；球面上 <span class="arithmatex">\(E\)</span> 一般不恒定</td>
+<td>一般不是所选球面</td>
+<td>避开点源处可数值看到 <span class="arithmatex">\(\nabla^2V\approx0\)</span>，点源的 <span class="arithmatex">\(\delta\)</span> 需分布理论</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读图原则：</strong>红色箭头只表示所选模型的代表性 <span class="arithmatex">\(\mathbf E\)</span>，金色虚线只表示有限采样的等势检查；通量数值逼近趋近理论值，不会替代散度定理、对称性假设或边界唯一性证明。</p>
+<div class="learning-lab" data-learning-lab="electrostatic-certificates">
+<p><strong>无 JavaScript 时的静态读法：</strong>先用上表判断证书等级。球/平面行可以把场从通量提出积分号，因为对称性使法向场恒定或成对相等；非对称行只能相信闭合面通量，不能相信“平均场 = 每点场”。规范常数只平移 <span class="arithmatex">\(V\)</span>，而 Dirichlet 固定零点、Neumann 留一个常数自由度。</p>
+<h3 id="4">4. 定理假设与失效边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Gauss 的适用边界</strong>：闭合面足够分段光滑、<span class="arithmatex">\(\mathbf E\)</span> 与电荷满足 Maxwell 方程；通量结论本身不要求选面具有对称性，但“由通量恢复场”要求球、平面等对称性确实保持源与边界。</li>
+<li><strong>Poisson 的源项边界</strong>：光滑 <span class="arithmatex">\(\rho\)</span> 时可逐点使用 <span class="arithmatex">\(\nabla^2V=-\rho/\varepsilon\)</span>；界面电荷和点电荷要加入跳跃项或 <span class="arithmatex">\(\delta\)</span> 分布，不能把奇异源当成普通有限函数。</li>
+<li><strong>等势与唯一性</strong>：等势面只说明切向场为零，不能由一条有限采样曲线证明整个曲面等势。Dirichlet 问题在合适区域给出唯一 <span class="arithmatex">\(V\)</span>；Neumann 问题还需相容条件，并且 <span class="arithmatex">\(V+C\)</span> 的加法常数不可由法向导数消除。</li>
+<li><strong>证据等级</strong>：脚本的通量求积、等势 spread 和点源附近有限差分只针对固定模型、采样面与步长；它们是数值证据。Gauss/Poisson/唯一性结论是带上述假设的定理级陈述。</li>
+</ul>
+</div>
+</section>
 <h2 id="1-coulomb-gauss">1. 静电：从 Coulomb 到 Gauss<a class="headerlink" href="#1-coulomb-gauss" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="高斯面/安培环路：用一个对称面/环把 Gauss、Ampère 定律的&quot;通量=电荷、环量=电流&quot;画清。" src="assets/img/em-01-gauss-ampere.svg" /></p>
@@ -116,8 +205,8 @@
 </table>
 <p><strong>受力</strong>：Lorentz 力 <span class="arithmatex">\(\mathbf F = q(\mathbf E + \mathbf v\times\mathbf B)\)</span>——磁力不做功（<span class="arithmatex">\(\perp \mathbf v\)</span>）；回旋运动 <span class="arithmatex">\(\omega_c = \frac{qB}{m}\)</span>（质谱仪、回旋加速器、极光的一条公式）。</p>
 <h2 id="3">3. 介质一瞥（宏观场论的雏形）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>极化 <span class="arithmatex">\(\mathbf P\)</span>、磁化 <span class="arithmatex">\(\mathbf M\)</span> 把束缚电荷/电流打包：<span class="arithmatex">\(\mathbf D = \varepsilon_0\mathbf E + \mathbf P\)</span>、<span class="arithmatex">\(\mathbf H = \frac{\mathbf B}{\mu_0} - \mathbf M\)</span>——宏观 Maxwell 方程用自由源写（"平均掉微观自由度换有效理论"——粗粒化思想的第一次出场，重整化群（asm-03）哲学的远祖）。线性介质 <span class="arithmatex">\(\varepsilon, \mu\)</span>；边界条件（法向 <span class="arithmatex">\(D\)</span>、切向 <span class="arithmatex">\(E\)</span> 连续等）由积分定律跨界面收缩得到【骨架】。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>极化 <span class="arithmatex">\(\mathbf P\)</span>、磁化 <span class="arithmatex">\(\mathbf M\)</span> 把束缚电荷/电流打包：<span class="arithmatex">\(\mathbf D = \varepsilon_0\mathbf E + \mathbf P\)</span>、<span class="arithmatex">\(\mathbf H = \frac{\mathbf B}{\mu_0} - \mathbf M\)</span>——宏观 Maxwell 方程用自由源写（"平均掉微观自由度换有效理论"——粗粒化思想的第一次出场，重整化群（asm-03）哲学的远祖）。线性介质 <span class="arithmatex">\(\varepsilon, \mu\)</span>；静电边界条件由积分定律跨界面收缩得到：<span class="arithmatex">\(\mathbf n\cdot(\mathbf D_2-\mathbf D_1)=\sigma_{\rm free}\)</span>，只有没有自由面电荷时法向 <span class="arithmatex">\(D\)</span> 才连续；切向 <span class="arithmatex">\(E\)</span> 则连续【骨架】。</p>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Gauss 三板斧样板）</strong> 均匀带电球体：外部 <span class="arithmatex">\(E = \frac{Q}{4\pi\varepsilon_0 r^2}\)</span>（如点电荷）、内部 <span class="arithmatex">\(E = \frac{Qr}{4\pi\varepsilon_0R^3}\)</span>（线性）——"内部只看包住的电荷"；同法立得无限长线（<span class="arithmatex">\(\propto 1/r\)</span>）与无限大面（常数）——三种衰减律一次记齐。</p>
 <p><strong>例 2（镜像法经典）</strong> 接地无限平面上方 <span class="arithmatex">\(d\)</span> 处点电荷 <span class="arithmatex">\(q\)</span>：镜像 <span class="arithmatex">\(-q\)</span> 于 <span class="arithmatex">\(-d\)</span>，表面感应电荷密度 <span class="arithmatex">\(\sigma(r) = \frac{-qd}{2\pi(r^2 + d^2)^{3/2}}\)</span>（对 <span class="arithmatex">\(V\)</span> 求法向导数），总感应电荷 <span class="arithmatex">\(= -q\)</span>（积分验证）——一套流程三个结论。</p>
 <p><strong>例 3（Ampère 环样板）</strong> 无限螺线管：环路取跨壁矩形 ⇒ 内部 <span class="arithmatex">\(B = \mu_0 nI\)</span> 均匀、外部为零——MRI 磁体、电感器的第一公式；能量密度 <span class="arithmatex">\(\frac{B^2}{2\mu_0}\)</span>（em-03）由此可算电感储能。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -132,5 +221,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/electrostatic-certificates.js"></script>
 </body>
 </html>

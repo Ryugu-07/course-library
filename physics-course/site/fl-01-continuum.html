@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +43,26 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 连续介质假设：什么时候可以忘掉分子</a></li>
-<li><a href="#2">2. 三条守恒律</a></li>
-<li><a href="#3">3. 无量纲化：雷诺数的诞生</a></li>
-<li><a href="#4">4. 理想流体极限与涡量</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#_1">学习层：跟着流体走，还是守住一个控制体积？</a><ul>
+<li><a href="#1">1. 具体情境：一段变截面喷管的两种记账法</a></li>
+<li><a href="#2">2. 先预测：打开喷管账本前回答三个问题</a></li>
+<li><a href="#3">3. 最小模型：连续性与动量分成两张账</a></li>
+<li><a href="#4">4. 静态后备：一维喷管的有限账本</a></li>
+<li><a href="#5">5. 定理/模型假设与失效边界：三种“不可压”不能混为一谈</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 连续介质假设：什么时候可以忘掉分子</a></li>
+<li><a href="#2_1">2. 三条守恒律</a></li>
+<li><a href="#3_1">3. 无量纲化：雷诺数的诞生</a></li>
+<li><a href="#4_1">4. 理想流体极限与涡量</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,36 +71,117 @@
 <p><strong>对标</strong>：Landau &amp; Lifshitz《流体力学》§1–2 / Batchelor ch.1–3 / Kundu ch.4 ｜ <strong>前置</strong>：mech-01（守恒律）、mp-01（矢量分析）
 从"一堆分子"跳到"一片连续的场"——这一步换来了偏微分方程的全部威力，也埋下了物理学最著名的未解问题（fl-03）。Navier–Stokes 是本站少数<strong>方程完全已知、解却至今不懂</strong>的对象：它的光滑性问题是千禧年七问之一。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="continuum-conservation-learning-title" class="learning-layer">
+<h2 id="_1">学习层：跟着流体走，还是守住一个控制体积？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：一段变截面喷管的两种记账法<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取一段固定的一维喷管控制体积 <span class="arithmatex">\([x_0,x_1]\)</span>，截面积为 <span class="arithmatex">\(A(x)\)</span>。守住空间盒子时，质量账是“盒内积累 + 流出 − 流入”；跟着一小团流体走时，质量账是物质导数。两种写法必须给出同一条连续性方程：</p>
+<div class="arithmatex">\[
+\partial_t\rho+\nabla\cdot(\rho\mathbf u)=0
+\quad\Longleftrightarrow\quad
+\frac{D\rho}{Dt}+\rho\,\nabla\cdot\mathbf u=0,
+\qquad
+\frac D{Dt}=\partial_t+\mathbf u\cdot\nabla.
+\]</div>
+<p>在准一维喷管里，散度的对应量是 <span class="arithmatex">\(A^{-1}\partial_x(Au)\)</span>。若 <span class="arithmatex">\(\rho\)</span> 恒定且无积累，窄处必须加速；若密度沿流向变化，也可能由密度变化承担一部分质量通量变化。动量则不能只看局部的 <span class="arithmatex">\(\rho D\mathbf u/Dt\)</span>：固定控制体积还要把 <span class="arithmatex">\(\rho u^2A\)</span> 的流入/流出通量和压力、壁面、体力一起列入账本。</p>
+<h3 id="2">2. 先预测：打开喷管账本前回答三个问题<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>稳态、恒密度、质量流率不变时，喷管变窄处的速度应变大、变小，还是不由连续性决定？</li>
+<li><span class="arithmatex">\(D\rho/Dt=0\)</span> 是否在不加额外条件时就等价于 <span class="arithmatex">\(\nabla\cdot\mathbf u=0\)</span>？</li>
+<li>对固定控制体积写动量守恒时，是否只需比较入口和出口的压力，而可以忽略 <span class="arithmatex">\(\rho u^2A\)</span> 的动量通量差？</li>
+</ol>
+<h3 id="3">3. 最小模型：连续性与动量分成两张账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验使用平滑的喉部面积和固定质量流率 <span class="arithmatex">\(\dot m\)</span>，令</p>
+<div class="arithmatex">\[
+u(x)=\frac{\dot m}{\rho(x)A(x)}.
+\]</div>
+<p>于是稳态质量通量 <span class="arithmatex">\(\rho Au\)</span> 在每个采样点都相同，而</p>
+<div class="arithmatex">\[
+\frac{D\rho}{Dt}+\rho\frac1A\frac{d(Au)}{dx}=0
+\]</div>
+<p>是连续性残差的物质导数版本。恒密度模式给出 <span class="arithmatex">\(D\rho/Dt=0\)</span> 且准一维散度为零；变密度模式仍可严格守恒质量，但 <span class="arithmatex">\(D\rho/Dt\ne0\)</span>，所以不能把“质量流率不变”误说成“不可压”。</p>
+<p>固定控制体积的动量账写成</p>
+<div class="arithmatex">\[
+\underbrace{\frac d{dt}\int_{CV}\rho uA\,dx}_{\text{积累}}
+ +\underbrace{(\rho u^2A)_{out}-(\rho u^2A)_{in}}_{\text{动量净流出}}
+ =\underbrace{F_{p}+F_{wall}+F_{body}}_{\text{外力}}.
+\]</div>
+<p>实验把压力端力先列出，再把“动量通量差 − 已知压力/体力”作为所需壁面力，保证每一项的符号都能追溯；这不是 Navier–Stokes 解，而是一个可审计的控制体积账本。</p>
+<h3 id="4">4. 静态后备：一维喷管的有限账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="continuum-conservation">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(A(x)=1-0.45\exp[-((x-0.5)/0.22)^2]\)</span>、<span class="arithmatex">\(\dot m=1\)</span>。恒密度模式用 <span class="arithmatex">\(\rho=1\)</span>，因此 <span class="arithmatex">\(u=1/A\)</span>，喉部速度最大；变密度模式用 <span class="arithmatex">\(\rho(x)=1+0.2x\)</span>，仍有 <span class="arithmatex">\(\rho Au=1\)</span>，但 <span class="arithmatex">\(D\rho/Dt=u\,d\rho/dx&gt;0\)</span>，由连续性抵消准一维散度项。</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th style="text-align: right;"><span class="arithmatex">\(\rho Au\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(D\rho/Dt\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(A^{-1}d(Au)/dx\)</span></th>
+<th style="text-align: right;">连续性残差</th>
+<th>理论标签</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>恒密度、稳态</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>不可压的这一模型</td>
+</tr>
+<tr>
+<td>变密度、稳态</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;">通常 <span class="arithmatex">\(&gt;0\)</span></td>
+<td style="text-align: right;">通常 <span class="arithmatex">\(&lt;0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>可压缩质量守恒，不是不可压</td>
+</tr>
+</tbody>
+</table>
+<p>对任意固定 <span class="arithmatex">\([x_0,x_1]\)</span>，动量表还应显示 <span class="arithmatex">\((\rho u^2A)_{out}-(\rho u^2A)_{in}\)</span>、压力端力以及补足平衡所需的壁面力。脚本的曲线与表格只是在有限网格上检查这个构造；控制体积守恒律本身来自积分方程，而不是来自某一组采样点“看起来相等”。</p>
+<h3 id="5">5. 定理/模型假设与失效边界：三种“不可压”不能混为一谈<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>连续介质假设</strong>：本页要求 <span class="arithmatex">\(\mathrm{Kn}\ll1\)</span>，场量足够光滑，控制体积边界和通量有意义；稀薄气体、激波内部和微纳尺度需要 Boltzmann/DSMC 或其他非连续模型。</li>
+<li><strong>物质导数不是控制体积通量</strong>：<span class="arithmatex">\(D/Dt\)</span> 描述随体局部变化；Reynolds 输运定理才把它与固定区域的积累和边界通量接起来。少写一项就会破坏守恒账。</li>
+<li><strong>不可压与恒密度</strong>：连续性只给 <span class="arithmatex">\(D\rho/Dt=-\rho\nabla\cdot u\)</span>。<span class="arithmatex">\(D\rho/Dt=0\)</span> 在正密度下推出散度为零；而“整个空间处处取同一常数密度”是更强的模型设定。变密度但沿流线恒定的特殊流动也不能被一句口号替代。</li>
+<li><strong>一维模型边界</strong>：喷管账本假定准一维、平滑截面、稳态且没有激波/泄漏；壁面剪切、压力分布和体力若未给出，只能把剩余项记为壁面力，不能宣称已经解出完整动量方程。</li>
+<li><strong>证据等级</strong>：SVG、有限差分残差和一组入口/出口数值是有限数值证据；积分守恒、连续性微分形式和 Navier–Stokes 的适用范围仍须由上述假设和方程承担。</li>
+</ul>
+</div>
+</section>
 <figure class="plot">
 <p><img alt="不同雷诺数下圆柱绕流的形态演变。" src="assets/img/fl-01-continuum-re.svg" /></p>
 <figcaption><span class="fig-id">图 fl-01.1</span>雷诺数控制绕流形态：\(Re\ll1\) 爬流对称可逆；\(Re\sim10^2\) 卡门涡街；\(Re\gtrsim10^5\) 湍流尾迹。</figcaption>
 </figure>
-<h2 id="1">1. 连续介质假设：什么时候可以忘掉分子<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 连续介质假设：什么时候可以忘掉分子<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>判据是 Knudsen 数</strong> <span class="arithmatex">\(\mathrm{Kn} = \ell_{\text{mfp}}/L\)</span>（平均自由程 / 特征尺度）。<span class="arithmatex">\(\mathrm{Kn}\ll1\)</span> 时，任一"流体微元"内已有海量分子，涨落被平均掉（sm-02 的大数定律），可定义处处可微的 <span class="arithmatex">\(\rho(\mathbf x,t),\ \mathbf u(\mathbf x,t),\ p(\mathbf x,t)\)</span>。</p>
 <p><strong>失效边界【诚实标注】</strong>：稀薄气体（高空、真空系统）、微纳流动（MEMS）、激波内部（厚度仅几个自由程）——需回到 Boltzmann 方程或 DSMC。<strong>本页全部建立在 <span class="arithmatex">\(\mathrm{Kn}\ll1\)</span> 之上。</strong></p>
 <p><strong>物质导数</strong>：跟着流体微元走的时间变化率</p>
 <div class="arithmatex">\[\frac{D}{Dt} = \partial_t + (\mathbf u\cdot\nabla)\]</div>
-<p><strong>非线性就藏在 <span class="arithmatex">\((\mathbf u\cdot\nabla)\mathbf u\)</span> 这一项里</strong>——湍流、激波、不稳定性全部源于它（fl-03、fl-04）。</p>
-<h2 id="2">2. 三条守恒律<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>动量方程最醒目的非线性是 <span class="arithmatex">\((\mathbf u\cdot\nabla)\mathbf u\)</span>；它是湍流尺度耦合和许多流动不稳定性的核心来源之一。可压缩激波还涉及状态方程与守恒律的非线性通量，不能把所有机制都归给这一项。</p>
+<h2 id="2_1">2. 三条守恒律<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>质量</strong>（连续性）：<span class="arithmatex">\(\partial_t\rho + \nabla\cdot(\rho\mathbf u)=0\)</span>；不可压时退化为 <span class="arithmatex">\(\nabla\cdot\mathbf u = 0\)</span>。</p>
 <p><strong>动量</strong>（Cauchy）：<span class="arithmatex">\(\rho\dfrac{D\mathbf u}{Dt} = \nabla\cdot\boldsymbol\sigma + \rho\mathbf g\)</span>。</p>
-<p><strong>本构关系【牛顿流体假设】</strong>：应力线性正比于应变率</p>
+<p><strong>本构关系【牛顿流体 + Stokes 假设】</strong>：对常剪切黏度、忽略独立体黏度的写法，应力线性正比于应变率</p>
 <div class="arithmatex">\[\sigma_{ij} = -p\delta_{ij} + \mu\left(\partial_i u_j + \partial_j u_i - \tfrac{2}{3}\delta_{ij}\nabla\cdot\mathbf u\right)\]</div>
 <p>代入即得 <strong>Navier–Stokes 方程</strong>（不可压）：</p>
 <div class="arithmatex">\[\boxed{\ \rho\left(\partial_t\mathbf u + (\mathbf u\cdot\nabla)\mathbf u\right) = -\nabla p + \mu\nabla^2\mathbf u + \rho\mathbf g\ }\]</div>
 <p><strong>非牛顿流体【引用】</strong>：血液、聚合物熔体、泥浆——剪切变稀/变稠、粘弹性（Weissenberg 爬杆效应）。工业上极重要，物理上是另一门课。</p>
-<h2 id="3">3. 无量纲化：雷诺数的诞生<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>取特征尺度 <span class="arithmatex">\(L,U\)</span> 无量纲化，N–S 只剩<strong>一个</strong>参数：</p>
+<h2 id="3_1">3. 无量纲化：雷诺数的诞生<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>对不可压、等温、无额外体力且几何/边界条件已无量纲固定的简单问题，取特征尺度 <span class="arithmatex">\(L,U\)</span> 后 N–S 的方程主体只剩一个参数：</p>
 <div class="arithmatex">\[\mathrm{Re} = \frac{\rho U L}{\mu} = \frac{\text{惯性项}}{\text{粘性项}}\]</div>
 <p><strong>这是流体力学最重要的数</strong>。<span class="arithmatex">\(\mathrm{Re}\ll1\)</span> 粘性主导（Stokes 流，fl-02）；<span class="arithmatex">\(\mathrm{Re}\gg1\)</span> 惯性主导（边界层 + 湍流）。</p>
-<p><strong>动力相似</strong>：<span class="arithmatex">\(\mathrm{Re}\)</span> 相同则流场无量纲解相同——<strong>这就是风洞实验的理论依据</strong>（缩尺模型 + 提高流速或换介质）。其他重要无量纲数：Mach（可压缩性）、Froude（重力波）、Prandtl（热扩散比，fl-04）、Rayleigh（对流，fl-04）。</p>
-<h2 id="4">4. 理想流体极限与涡量<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>动力相似</strong>：只有控制方程、无量纲几何/边界条件以及所有相关无量纲数都匹配时，模型与原型才动力相似。若问题确实只由 <span class="arithmatex">\(\mathrm{Re}\)</span> 控制，匹配它便足够；风洞还常需同时考虑 Mach、表面粗糙度等。其他重要无量纲数：Froude（重力波）、Prandtl（热扩散比，fl-04）、Rayleigh（对流，fl-04）。</p>
+<h2 id="4_1">4. 理想流体极限与涡量<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(\mu\to0\)</span> 给 <strong>Euler 方程</strong>。沿流线积分得 <strong>Bernoulli</strong>：<span class="arithmatex">\(\tfrac12 u^2 + p/\rho + gz = \text{const}\)</span>。</p>
 <p><strong>涡量</strong> <span class="arithmatex">\(\boldsymbol\omega = \nabla\times\mathbf u\)</span> 满足（不可压、无粘）</p>
 <div class="arithmatex">\[\frac{D\boldsymbol\omega}{Dt} = (\boldsymbol\omega\cdot\nabla)\mathbf u\]</div>
 <p><strong>Kelvin 环量定理【推导】</strong>：理想正压流体中，随流体运动的闭合回路环量守恒 → <strong>涡不能无中生有</strong>。二维时右端消失，涡量随流体守恒。</p>
 <p><strong>d'Alembert 佯谬</strong>：理想流体中定常绕流的阻力为零——<strong>与经验尖锐矛盾</strong>。解决它需要粘性，且粘性的作用<strong>不会随 <span class="arithmatex">\(\mu\to0\)</span> 而消失</strong>（边界层，fl-02）。<strong>这是"奇异摄动"最著名的物理实例：<span class="arithmatex">\(\mu\)</span> 乘在最高阶导数上，<span class="arithmatex">\(\mu\to0\)</span> 不是正则极限。</strong></p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Re 的手感）</strong> 水中 <span class="arithmatex">\(L=1\)</span> m、<span class="arithmatex">\(U=1\)</span> m/s：<span class="arithmatex">\(\mathrm{Re}\sim10^6\)</span>（湍流）；细菌 <span class="arithmatex">\(L=1\ \mu\)</span>m、<span class="arithmatex">\(U=10\ \mu\)</span>m/s：<span class="arithmatex">\(\mathrm{Re}\sim10^{-5}\)</span>——<strong>细菌生活在粘性完全主导的世界里，惯性对它毫无意义</strong>（fl-02 扇贝定理）。</p>
 <p><strong>例 2（涡量守恒的日常）</strong> 拔掉浴缸塞子形成漩涡：初始微小涡量被向心收缩放大（<span class="arithmatex">\((\boldsymbol\omega\cdot\nabla)\mathbf u\)</span> 的涡管拉伸项）——<strong>与花样滑冰收臂加速是同一个角动量守恒</strong>。</p>
 <p><strong>例 3（为什么 N–S 难）</strong> 非线性项使能量在尺度间传递，且三维涡管拉伸可能使涡量无界增长。<strong>三维光滑解是否永远存在，至今未知</strong>（千禧年问题）——<strong>这是本站唯一一个"方程写在这里、人类却不会解"的对象</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -96,5 +196,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/continuum-conservation.js"></script>
 </body>
 </html>

@@ -37,7 +37,7 @@ $$
 
 $$
 \lambda_i(t)=\frac{1}{t s_i},\qquad
-c+A^T\lambda=0,qquad
+c+A^T\lambda=0,\qquad
 s_i\lambda_i=\frac1t.
 $$
 

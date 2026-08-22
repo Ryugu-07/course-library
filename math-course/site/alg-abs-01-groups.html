@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,7 +41,7 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
@@ -38,9 +49,16 @@
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 群：定义与例子库</a></li>
+<li><a href="#_1">学习层：陪集真的能“压缩”成一个群吗？</a><ul>
+<li><a href="#alg-abs-groups-learning-title">1. 具体谜题：把对称操作按“同一类”打包</a></li>
+<li><a href="#2">2. 正式桥：四个有限证书各自回答什么</a></li>
+<li><a href="#3">3. 动手核对：有限枚举与定理陈述分栏</a></li>
+<li><a href="#4">4. 假设、失败边界与常见偷换</a></li>
+</ul>
+</li>
 <li><a href="#2-lagrange">2. 子群、陪集与 Lagrange 定理</a></li>
-<li><a href="#3">3. 正规子群、商群与同态基本定理</a></li>
-<li><a href="#4">4. 群作用一瞥（对称性的用法）</a></li>
+<li><a href="#3_1">3. 正规子群、商群与同态基本定理</a></li>
+<li><a href="#4_1">4. 群作用一瞥（对称性的用法）</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
 </div>
@@ -54,6 +72,54 @@
 <p><img alt="循环群 \mathbb{Z}_n 画成时钟/正 n 边形旋转 + 一张 Cayley 表。" src="assets/img/alg-abs-01-cyclic-group.svg" /></p>
 <figcaption><span class="fig-id">图 alg-abs.1</span>循环群 \(\mathbb{Z}_n\) 画成时钟/正 n 边形旋转 + 一张 Cayley 表。</figcaption>
 </figure>
+<div data-learning-page></div>
+
+<section aria-labelledby="alg-abs-groups-learning-title" class="learning-layer">
+<h2 id="_1">学习层：陪集真的能“压缩”成一个群吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="alg-abs-groups-learning-title">1. 具体谜题：把对称操作按“同一类”打包<a class="headerlink" href="#alg-abs-groups-learning-title" title="Permanent link"></a></h3>
+<p>把正方形的旋转记作 <span class="arithmatex">\(0,1,2,3\)</span>，运算是模 4 加法；再把“转半圈”组成子群 <span class="arithmatex">\(H=\{0,2\}\)</span>。如果把相差一个 <span class="arithmatex">\(H\)</span> 元素的操作视为同一类，那么原来的四个操作会被压成几块？这些块能不能再相乘？</p>
+<p>下面的实验台还会切换到 <span class="arithmatex">\(V_4\)</span> 与 <span class="arithmatex">\(S_3\)</span>。先不揭晓证书，逐题写下预测：</p>
+<ol>
+<li>在 <span class="arithmatex">\(C_4\)</span> 中，<span class="arithmatex">\(H=\{0,2\}\)</span> 的陪集有几个？每个陪集大小是否相同？</li>
+<li>在 <span class="arithmatex">\(S_3\)</span> 中取 <span class="arithmatex">\(H=\langle(12)\rangle\)</span>，你猜左陪集 <span class="arithmatex">\((123)H\)</span> 与右陪集 <span class="arithmatex">\(H(123)\)</span> 会相等吗？</li>
+<li>哪一个条件真正决定 <span class="arithmatex">\(G/H\)</span> 能否成为群：<span class="arithmatex">\(|H|\mid |G|\)</span>、陪集大小相等，还是 <span class="arithmatex">\(gHg^{-1}=H\)</span>？</li>
+</ol>
+<p>不要把“有限枚举通过”当成 Lagrange 定理的证明。实验台只给出几个小群的证书；定理的普遍性仍来自陪集分划的双射论证。</p>
+<h3 id="2">2. 正式桥：四个有限证书各自回答什么<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对有限群 <span class="arithmatex">\(G\)</span> 与子群 <span class="arithmatex">\(H\)</span>，左陪集是 <span class="arithmatex">\(aH=\{ah:h\in H\}\)</span>，右陪集是 <span class="arithmatex">\(Ha=\{ha:h\in H\}\)</span>。左乘映射 <span class="arithmatex">\(h\mapsto ah\)</span> 是双射，所以每个左陪集都有 <span class="arithmatex">\(|H|\)</span> 个元素；不同左陪集不交，并且覆盖 <span class="arithmatex">\(G\)</span>。因此</p>
+<div class="arithmatex">\[
+|G|=|H|[G:H],\qquad |H|\mid |G|.
+\]</div>
+<p>这是<strong>定理级结论</strong>：假设是 <span class="arithmatex">\(G\)</span> 有限、<span class="arithmatex">\(H\leq G\)</span>，不依赖某一张 Cayley 表。实验台的“Lagrange 证书”只是把每个元素归入左陪集后逐项核对这个乘法关系。</p>
+<p>正规性是另一道门槛。若对所有 <span class="arithmatex">\(g\in G\)</span> 有 <span class="arithmatex">\(gHg^{-1}=H\)</span>，则 <span class="arithmatex">\(gH=Hg\)</span>，并且</p>
+<div class="arithmatex">\[
+(aH)(bH)=abH
+\]</div>
+<p>与陪集代表元的选择无关；这时才有商群 <span class="arithmatex">\(G/H\)</span>。若某个 <span class="arithmatex">\(g\)</span> 让 <span class="arithmatex">\(gH\neq Hg\)</span>，实验台会给出一对不同的左、右陪集作为<strong>失败证书</strong>，不能把陪集集合强行称作群。</p>
+<p>核是最稳定的正规性来源：群同态 <span class="arithmatex">\(\varphi:G\to K\)</span> 的核 <span class="arithmatex">\(\ker\varphi\trianglelefteq G\)</span>，并且</p>
+<div class="arithmatex">\[
+G/\ker\varphi\cong\operatorname{im}\varphi.
+\]</div>
+<p>例如 <span class="arithmatex">\(C_4/\{0,2\}\cong C_2\)</span>，证书可以写成“余类相加对应模 2 相加”。这正是“商掉核，再保留像”的群论版本。</p>
+<h3 id="3">3. 动手核对：有限枚举与定理陈述分栏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验台会先隐藏左/右陪集、正规性和商群标签；点击预测核对后才揭示 SVG 与账本。所有运算都是整数、二进制对或置换的精确离散运算，不抽样，也不使用外部代数库。</p>
+<div class="learning-lab" data-learning-lab="group-actions">
+<p><strong>JavaScript 失效时的静态读法：</strong>下表是三个有限模型的完整证书。记 <span class="arithmatex">\(r=(123)\)</span>，<span class="arithmatex">\(s=(12)\)</span>。</p>
+<p>| 有限模型 | 子群 <span class="arithmatex">\(H\)</span> | 左陪集代表与分块 | <span class="arithmatex">\(|G|=|H|[G:H]\)</span> | 正规性 / 商群证书 |
+|---|---|---|---|---|
+| <span class="arithmatex">\(C_4=\{0,1,2,3\}\)</span> | <span class="arithmatex">\(\{0,2\}\)</span> | <span class="arithmatex">\(\{0,2\},\{1,3\}\)</span> | <span class="arithmatex">\(4=2\cdot2\)</span> | 正规；<span class="arithmatex">\(C_4/H\cong C_2\)</span>，余类加法良定义 |
+| <span class="arithmatex">\(V_4=\{e,a,b,c\}\)</span> | <span class="arithmatex">\(\{e,a\}\)</span> | <span class="arithmatex">\(\{e,a\},\{b,c\}\)</span> | <span class="arithmatex">\(4=2\cdot2\)</span> | 交换群中所有子群正规；商群 <span class="arithmatex">\(C_2\)</span> |
+| <span class="arithmatex">\(S_3\)</span> | <span class="arithmatex">\(\langle s\rangle=\{e,s\}\)</span> | <span class="arithmatex">\(H, rH, r^2H\)</span> | <span class="arithmatex">\(6=2\cdot3\)</span> | 不正规；例如 <span class="arithmatex">\(rH\neq Hr\)</span>，不存在群商 |</p>
+<p>表中的每一行是<strong>有限数值证据</strong>，不是对所有群的证明；“商群存在”还需要逐项检查乘法良定义，或者给出一个以 <span class="arithmatex">\(H\)</span> 为核的满同态。</p>
+</div>
+<h3 id="4">4. 假设、失败边界与常见偷换<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>模型假设</strong>：实验只接受有限、封闭、结合的精确群表；子群必须包含单位元并对乘法和逆封闭。这里的“大小”是基数，不是度量空间长度。</li>
+<li><strong>定理边界</strong>：Lagrange 需要有限群；对无限群，陪集仍可分划，但不能把基数写成有限整数乘法。商群需要正规子群，任意子群都能形成陪集集合，却不一定能形成群。</li>
+<li><strong>证书边界</strong>：枚举所有元素能反驳一个错误候选，却不能替代一般证明；一个小群里观察到的正规性也不能外推到所有非交换群。</li>
+<li><strong>概念边界</strong>：<span class="arithmatex">\(G/H\)</span> 的元素是陪集，不是把每个代表元单独删掉；不同代表元代表同一个余类，良定义正是要证明这一点。</li>
+</ul>
+</section>
 <p><strong>定义</strong> <span class="arithmatex">\((G, \cdot)\)</span>：封闭、结合律、单位元 <span class="arithmatex">\(e\)</span>、每元有逆。交换者称 <strong>Abel 群</strong>。阶 <span class="arithmatex">\(|G|\)</span> = 元素个数。</p>
 <p><strong>例子库（比定义重要）</strong>：<span class="arithmatex">\((\mathbb{Z}, +)\)</span>；<span class="arithmatex">\((\mathbb{Z}_n, +)\)</span> 模 <span class="arithmatex">\(n\)</span> 加法；<span class="arithmatex">\((\mathbb{Z}_p^*, \times)\)</span>（<span class="arithmatex">\(p\)</span> 素）；<strong>对称群 <span class="arithmatex">\(S_n\)</span></strong>（<span class="arithmatex">\(n\)</span> 元全体置换，<span class="arithmatex">\(|S_n| = n!\)</span>，<span class="arithmatex">\(n \geq 3\)</span> 非交换——置换是群论的"原型物种"：Cayley 定理说任何群都同构于某置换群的子群）；二面体群 <span class="arithmatex">\(D_n\)</span>（正 <span class="arithmatex">\(n\)</span> 边形的旋转+翻折，<span class="arithmatex">\(2n\)</span> 个对称）；<span class="arithmatex">\(GL_n(\mathbb{R})\)</span>（可逆矩阵，高代的老朋友以群身份再就业）。</p>
 <p><strong>幂与阶</strong>：元素 <span class="arithmatex">\(a\)</span> 的阶 = 使 <span class="arithmatex">\(a^k = e\)</span> 的最小正整数 <span class="arithmatex">\(k\)</span>。</p>
@@ -63,7 +129,7 @@
 <p><strong>定理（Lagrange）</strong> 有限群的子群阶数整除群的阶：<span class="arithmatex">\(|H| \,\big|\, |G|\)</span>。
 <em>证明（两行）</em>：陪集分划 <span class="arithmatex">\(G\)</span>，每块 <span class="arithmatex">\(|H|\)</span> 个元素（<span class="arithmatex">\(h \mapsto ah\)</span> 是双射），故 <span class="arithmatex">\(|G| = |H| \times\)</span> 块数。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>立收三个推论</strong>：元素的阶整除 <span class="arithmatex">\(|G|\)</span>；素数阶群必循环（且无非平凡子群）；<strong>Fermat 小定理</strong> <span class="arithmatex">\(a^{p-1} \equiv 1 \pmod p\)</span>——在 <span class="arithmatex">\(\mathbb{Z}_p^*\)</span>（阶 <span class="arithmatex">\(p-1\)</span>）中用"元素阶整除群阶"，一行拿下（数论定理被群论一句话收编的名场面）。</p>
-<h2 id="3">3. 正规子群、商群与同态基本定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 正规子群、商群与同态基本定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>群同态</strong>：<span class="arithmatex">\(\varphi(ab) = \varphi(a)\varphi(b)\)</span>；核 <span class="arithmatex">\(\ker\varphi = \varphi^{-1}(e)\)</span>。</p>
 <p><strong>正规子群</strong> <span class="arithmatex">\(N \trianglelefteq G\)</span>：<span class="arithmatex">\(gNg^{-1} = N\)</span>（左右陪集相同）。<strong>为什么需要它</strong>：想让陪集全体 <span class="arithmatex">\(\{gN\}\)</span> 继承乘法 <span class="arithmatex">\((aN)(bN) = abN\)</span>，良定义恰好等价于正规性——<strong>正规性不是装饰，是商结构的存在条件</strong>（Abel 群一切子群正规，故高代 IV 的商空间不用操这份心）。得<strong>商群</strong> <span class="arithmatex">\(G/N\)</span>。</p>
 <p><strong>定理（同态基本定理）</strong></p>
@@ -71,7 +137,7 @@
 G/\ker\varphi \;\cong\; \mathrm{im}\,\varphi
 \]</div>
 <p>——"同态 = 商掉核 + 嵌入像"。与高代 IV 的 <span class="arithmatex">\(V/\ker \cong \mathrm{im}\)</span>（线性映射版）逐字同构；环论、模论还有同款。<strong>读法</strong>：核度量"压缩了多少"，商群就是"压缩后的世界"；找商群 <span class="arithmatex">\(G/N\)</span> 长什么样的标准方法——<strong>造一个以 <span class="arithmatex">\(N\)</span> 为核的满同态</strong>，像是什么商群就是什么（例 2 演示）。</p>
-<h2 id="4">4. 群作用一瞥（对称性的用法）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 群作用一瞥（对称性的用法）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>群 <span class="arithmatex">\(G\)</span> 作用于集合 <span class="arithmatex">\(X\)</span>：<span class="arithmatex">\(g\cdot x\)</span> 满足结合与单位。<strong>轨道-稳定子定理</strong>：<span class="arithmatex">\(|G| = |\mathrm{orbit}(x)| \times |\mathrm{stab}(x)|\)</span>（Lagrange 的作用版）。<strong>Burnside 引理</strong>：轨道数 = <span class="arithmatex">\(\frac{1}{|G|}\sum_{g}|\mathrm{Fix}(g)|\)</span>（"平均不动点数"）——数"本质不同的着色/项链"的组合神器（例 3）。</p>
 <p>🔗 <strong>衔接</strong>：对称性 → 守恒律（Noether 定理的物理纲领）；CNN 的平移等变性（ai 课 05 讲）是"网络与平移群作用可交换"——等变网络（群卷积）把本页思想工程化；密码学的舞台设在 <span class="arithmatex">\(\mathbb{Z}_p^*\)</span> 与椭圆曲线群（下一页 RSA）。</p>
 <h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
@@ -89,5 +155,7 @@ G/\ker\varphi \;\cong\; \mathrm{im}\,\varphi
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/group-actions.js"></script>
 </body>
 </html>

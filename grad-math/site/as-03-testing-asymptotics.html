@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +41,27 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：三把渐近尺在小样本和边界处为什么不再同票？</a><ul>
+<li><a href="#asymptotic-tests-learning-title">1. 具体谜题：p 值、alpha 和“长期拒绝率”不是同一个数</a></li>
+<li><a href="#2">2. 先预测：三道判断先锁住</a></li>
+<li><a href="#3">3. 二项模型：先把四本账分栏</a></li>
+<li><a href="#4-1sqrt-n">4. 局部功效：把备择放到 \(1/\sqrt n\) 显微镜下</a></li>
+<li><a href="#5">5. 边界和稀有事件：假设不是调参建议</a></li>
+<li><a href="#6">6. 定理假设与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1-neymanpearson">1. Neyman–Pearson 引理（检验最优性的原点）</a></li>
-<li><a href="#2">2. 三大检验</a></li>
-<li><a href="#3">3. 功效的渐近视角（一段话版）</a></li>
+<li><a href="#2_1">2. 三大检验</a></li>
+<li><a href="#3_1">3. 功效的渐近视角（一段话版）</a></li>
 <li><a href="#4">4. 渐近统计三页资产盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#5_1">5. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -50,11 +70,106 @@
 <p><strong>对标</strong>：van der Vaart <em>AS</em> §15–16 ｜ <strong>前置</strong>：as-01/02、本科统计 IV
 本科的检验都要精确分布（正态总体专属）；渐近理论把检验解放到任意正则模型：<strong>似然比、Wald、得分（Rao）三大检验</strong>渐近等价、极限都是 χ²——这就是几乎所有统计软件输出里 χ² 与 p 值的来历。收官附 Neyman–Pearson 引理（最优性的地基）与局部功效视角。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="asymptotic-tests-learning-title" class="learning-layer">
+<h2 id="_1">学习层：三把渐近尺在小样本和边界处为什么不再同票？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="asymptotic-tests-learning-title">1. 具体谜题：p 值、alpha 和“长期拒绝率”不是同一个数<a class="headerlink" href="#asymptotic-tests-learning-title" title="Permanent link"></a></h3>
+<p>从最小的二项模型开始：观察 <span class="arithmatex">\(K\sim\operatorname{Bin}(n,p)\)</span>，检验 <span class="arithmatex">\(H_0:p=p_0\)</span>。给定数据 <span class="arithmatex">\(K=k\)</span> 后，<strong>p 值</strong>是在 <span class="arithmatex">\(H_0\)</span> 及完整检验规则成立时，得到不弱于当前证据的尾概率；给定数据之前，研究者先选的 <strong>alpha</strong> 是规则的第一类错误容许水平。若真值是某个备择 <span class="arithmatex">\(p_1\)</span>，<strong>功效</strong>则是重复抽样下拒绝规则的概率。三者的量词不同，不能互换成“原假设为真的概率”。</p>
+<h3 id="2">2. 先预测：三道判断先锁住<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>小 <span class="arithmatex">\(n\)</span> 的二项比例检验中，哪一种方法可以直接用有限二项分布校准，而不必把离散分布假装成正态？</li>
+<li>若当前数据给出 <span class="arithmatex">\(p\text{-value}=0.03\)</span>、预先规定 <span class="arithmatex">\(\alpha=0.05\)</span>，这是否表示拒绝 <span class="arithmatex">\(H_0\)</span>，并且还表示 <span class="arithmatex">\(P(H_0\mid\text{data})=0.03\)</span>？</li>
+<li>当 <span class="arithmatex">\(p_0=0\)</span> 或事件极稀有时，增加 <span class="arithmatex">\(n\)</span> 是否足以让内点 Wald/Score/Wilks 结论自动恢复？</li>
+</ol>
+<p>揭示后的表格会把 exact finite-binomial 作为有限模型内的参照，把 Wald、Score、LR 的正态/χ²尾概率标为渐近近似。当前 <span class="arithmatex">\(n,k\)</span> 的计算是<strong>有限数值证据</strong>；“<span class="arithmatex">\(n\to\infty\)</span> 下收敛到某分布”才是定理层陈述。</p>
+<h3 id="3">3. 二项模型：先把四本账分栏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>记 <span class="arithmatex">\(\hat p=k/n\)</span>。在 <span class="arithmatex">\(0&lt;p_0&lt;1\)</span> 的内点，三把渐近尺可写成</p>
+<div class="arithmatex">\[
+Z_{\mathrm W}=\frac{\hat p-p_0}{\sqrt{\hat p(1-\hat p)/n}},\qquad
+Z_{\mathrm S}=\frac{\hat p-p_0}{\sqrt{p_0(1-p_0)/n}},
+\]</div>
+<p>以及带符号的似然比根</p>
+<div class="arithmatex">\[
+Z_{\mathrm{LR}}=\operatorname{sgn}(\hat p-p_0)\sqrt{2\left[k\log\frac{\hat p}{p_0}+(n-k)\log\frac{1-\hat p}{1-p_0}\right]}.
+\]</div>
+<p>在常规正则条件下，<span class="arithmatex">\(H_0\)</span> 为真且 <span class="arithmatex">\(n\to\infty\)</span> 时，三者的平方都趋于 <span class="arithmatex">\(\chi^2_1\)</span>，或者说它们的带符号根趋近标准正态。这里的“常规”不是装饰：参数在开集内、似然可微到需要的阶、Fisher 信息有限且非奇异、MLE 局部良定，且模型没有把观测推到参数空间的边界。有限 <span class="arithmatex">\(n\)</span> 时，三把尺可以给出不同 p 值；渐近等价不等于逐点相等。</p>
+<p>exact 二项检验则可以在给定的有限 <span class="arithmatex">\(n,p_0\)</span> 下直接枚举</p>
+<div class="arithmatex">\[
+p_{\mathrm{exact}}(k)=\sum_{j:\,\Pr_{p_0}(K=j)\leq\Pr_{p_0}(K=k)}\Pr_{p_0}(K=j),
+\]</div>
+<p>这里采用按零假设概率从小到大纳入的 <strong>probability ordering</strong>；它不同于简单的等尾 central 构造。离散模型的“两侧”并非唯一，换一种 ordering 可能得到另一个精确构造。它是对当前有限模型的校准，不是说所有更复杂的模型都存在同样简单的精确尾概率。</p>
+<h3 id="4-1sqrt-n">4. 局部功效：把备择放到 <span class="arithmatex">\(1/\sqrt n\)</span> 显微镜下<a class="headerlink" href="#4-1sqrt-n" title="Permanent link"></a></h3>
+<p>固定备择 <span class="arithmatex">\(p_1\ne p_0\)</span> 时，正则检验的功效往往趋于 <span class="arithmatex">\(1\)</span>，因此比较方法要看</p>
+<div class="arithmatex">\[
+p_n=p_0+\frac{h}{\sqrt n}.
+\]</div>
+<p>在内点，Score 根的局部极限是均值为</p>
+<div class="arithmatex">\[
+\frac{h}{\sqrt{p_0(1-p_0)}}
+\]</div>
+<p>的正态变量；双侧水平 <span class="arithmatex">\(\alpha\)</span> 的局部功效因此由两个正态尾部决定。LR、Wald、Score 在同一正则模型下共享这个一阶局部功效。实验下方同时列出 exact rejection region 在当前有限 <span class="arithmatex">\(n\)</span> 的枚举功效，以及上式给出的渐近局部功效：两者接近是有限证据，不能倒过来证明定理。</p>
+<h3 id="5">5. 边界和稀有事件：假设不是调参建议<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(p_0=0\)</span> 或 <span class="arithmatex">\(1\)</span> 时，<span class="arithmatex">\(p_0(1-p_0)=0\)</span>，Score 的内点标准误直接退化；Wald 在 <span class="arithmatex">\(k=0\)</span> 或 <span class="arithmatex">\(n\)</span> 时还会把估计方差置零；LR 的常规 Wilks <span class="arithmatex">\(\chi^2_1\)</span> 也不能无条件沿用。若 <span class="arithmatex">\(p_0\)</span> 随 <span class="arithmatex">\(n\)</span> 靠近边界，或者 <span class="arithmatex">\(np_0\)</span> 只有常数级，稀有事件的泊松/边界渐近标度可能替代固定内点的正态标度。增加样本量只能改善一个<strong>正确指定的</strong>近似，不能把边界参数变成内点。</p>
+<div class="learning-lab" data-learning-lab="asymptotic-tests" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认内点设置为 <span class="arithmatex">\(n=40,p_0=0.5,k=25,\alpha=0.05\)</span>。先按上式分别计算 exact、Wald、Score、LR；exact 用二项概率排序，三种渐近方法用正态尾概率。切换到 <span class="arithmatex">\(p_0=0.02,k=0\)</span> 可看到 Wald 的端点退化与 exact 的离散保守性；切换到 <span class="arithmatex">\(p_0=0\)</span> 时，Score/Wilks 的内点证书应标为未定义/不适用，而不是用一个漂亮的 χ² 数字填空。局部功效列比较 <span class="arithmatex">\(p_n=p_0+h/\sqrt n\)</span> 下的有限枚举与渐近公式。</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>它回答什么</th>
+<th>模型内证据</th>
+<th>不能越界成什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exact finite-binomial</td>
+<td>给定 <span class="arithmatex">\(n,p_0\)</span>，当前 <span class="arithmatex">\(k\)</span> 在零分布下多极端</td>
+<td>枚举 <span class="arithmatex">\(k=0,\ldots,n\)</span> 的质量</td>
+<td>不能自动替代任意模型的精确检验</td>
+</tr>
+<tr>
+<td>Wald / Score / LR</td>
+<td>用渐近标尺近似当前数据的尾概率</td>
+<td>当前样本的有限统计量与 p 值</td>
+<td>不能把有限相等宣称为渐近定理</td>
+</tr>
+<tr>
+<td>alpha</td>
+<td>看数据前规定的拒绝阈值</td>
+<td>当前规则是否满足 <span class="arithmatex">\(p\le\alpha\)</span></td>
+<td>不是 <span class="arithmatex">\(H_0\)</span> 为真的概率</td>
+</tr>
+<tr>
+<td>p-value</td>
+<td>在 <span class="arithmatex">\(H_0\)</span> 下至少同样极端的尾概率</td>
+<td>当前数据对应的一个数</td>
+<td>不是 <span class="arithmatex">\(P(H_0\mid\text{data})\)</span></td>
+</tr>
+<tr>
+<td>local power</td>
+<td>真值为 <span class="arithmatex">\(p_0+h/\sqrt n\)</span> 时长期拒绝率</td>
+<td>有限枚举与渐近曲线的比较</td>
+<td>不是本次发现为真的概率</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="6">6. 定理假设与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Wilks / 三剑客等价</strong>：需要内点正则参数、可识别且可微的似然、非奇异信息以及合适的 MLE/局部二次展开。边界、不可识别参数、稀有事件、非光滑模型、强依赖和高维 <span class="arithmatex">\(p\)</span> 与 <span class="arithmatex">\(n\)</span> 同阶时必须另建理论。</li>
+<li><strong>exact 不是魔法</strong>：它依赖二项分布和已知的 <span class="arithmatex">\(p_0\)</span>；若有 nuisance 参数、过度离散、抽样设计改变或停止规则改变，枚举对象也要改变。离散检验常保守，exact 并不意味着功效最大。</li>
+<li><strong>alpha 与 p 值</strong>：alpha 是设计层的拒绝规则，p 值是数据层的尾概率。只有先固定同一统计量、侧别和模型，才可用 <span class="arithmatex">\(p\le\alpha\)</span> 做该规则下的决定。</li>
+<li><strong>局部功效</strong>：<span class="arithmatex">\(h/\sqrt n\)</span> 是固定内点 LAN 标度；它不是稀有事件边界的通用缩放。图上的有限差异是诊断与比较，不是收敛速度的证明。</li>
+<li><strong>有限探针</strong>：调节 <span class="arithmatex">\(n,k,p_0,h\)</span> 只展示有限个算例；任何“渐近成立/失败”的结论都仍需回到量词、正则条件和对应证明。</li>
+</ul>
+</section>
 <h2 id="1-neymanpearson">1. Neyman–Pearson 引理（检验最优性的原点）<a class="headerlink" href="#1-neymanpearson" title="Permanent link"></a></h2>
 <p><strong>定理（N–P）</strong> 简单假设 <span class="arithmatex">\(H_0: f_0\)</span> vs <span class="arithmatex">\(H_1: f_1\)</span>：给定水平 <span class="arithmatex">\(\alpha\)</span> 下功效最大的检验是<strong>似然比检验</strong>——拒绝当 <span class="arithmatex">\(\frac{f_1(x)}{f_0(x)} &gt; k\)</span>（<span class="arithmatex">\(k\)</span> 由 <span class="arithmatex">\(\alpha\)</span> 定）。
 <strong>【证明】</strong> 设 <span class="arithmatex">\(\varphi^*\)</span> 为 LR 检验、<span class="arithmatex">\(\varphi\)</span> 任意水平 <span class="arithmatex">\(\leq\alpha\)</span> 检验（取值 <span class="arithmatex">\([0,1]\)</span> 的拒绝概率函数）。逐点非负性：<span class="arithmatex">\((\varphi^*(x) - \varphi(x))(f_1(x) - kf_0(x)) \geq 0\)</span>（LR <span class="arithmatex">\(&gt; k\)</span> 处 <span class="arithmatex">\(\varphi^* = 1 \geq \varphi\)</span>；<span class="arithmatex">\(&lt; k\)</span> 处 <span class="arithmatex">\(\varphi^* = 0 \leq \varphi\)</span>）。积分展开：<span class="arithmatex">\(\int(\varphi^* - \varphi)f_1 \geq k\int(\varphi^* - \varphi)f_0 \geq 0\)</span>（后者由水平条件）。即功效 <span class="arithmatex">\(\varphi^* \geq \varphi\)</span>。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>读法</strong>：<strong>证据的正确排序方式是似然比</strong>——三行证明立起整个检验理论的北极星；本科统计 IV 各检验的"合理性"都溯源于此（复合假设下推广为单调似然比/UMP 理论【引用】）。</p>
-<h2 id="2">2. 三大检验<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 三大检验<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>检验 <span class="arithmatex">\(H_0: \theta = \theta_0\)</span>（或约束 <span class="arithmatex">\(r(\theta) = 0\)</span>，自由度 <span class="arithmatex">\(q\)</span> = 约束数），三种度量"数据离 <span class="arithmatex">\(H_0\)</span> 多远"的方式：</p>
 <table>
 <thead>
@@ -92,13 +207,13 @@
 2[\ell(\hat\theta) - \ell(\theta_0)] \approx n\,I(\theta_0)\,(\hat\theta - \theta_0)^2
 \]</div>
 <p>代入 as-02 主定理 <span class="arithmatex">\(\sqrt{nI}(\hat\theta - \theta_0) \xrightarrow{d} N(0,1)\)</span> ⇒ 右端 <span class="arithmatex">\(\xrightarrow{d} \chi^2(1)\)</span>——LR 与 Wald 在此展开中显式相等到 <span class="arithmatex">\(o_P(1)\)</span>；Score 用 <span class="arithmatex">\(\psi(\theta_0) \approx -\psi'(\cdot)(\hat\theta - \theta_0)\)</span> 换算归队。多维/约束版沿约束流形分块投影，自由度 = 被约束的维数。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>Wilks 的魔法</strong>：极限 <span class="arithmatex">\(\chi^2(q)\)</span> <strong>不依赖模型细节与冗余参数</strong>——logistic 回归删三个变量的检验和生存模型删三个变量的检验查同一张 χ² 表：<strong>"自由度是唯一要问的问题"</strong>，统计软件输出的通用性由此而来。</p>
+<p><strong>Wilks 的魔法与边界</strong>：在可识别、内点、信息非奇异等正则条件成立且 nuisance 参数处理满足相应理论时，极限 <span class="arithmatex">\(\chi^2(q)\)</span> 的形状不依赖许多模型细节——logistic 回归删三个变量与正则生存模型删三个变量都可查 <span class="arithmatex">\(\chi^2(3)\)</span>。自由度是关键输入，但绝不是唯一要核对的问题；边界、不可识别或奇异 nuisance 参数会改变极限分布。</p>
 <p><strong>实务分野</strong>（渐近等价 ≠ 有限样本等价）：Wald 最方便（只拟合一次、回归系数表的 z 值即其开方）但对参数化不变性差、小样本最糙；LR 最稳（参数化不变），推荐默认；Score 在"约束模型好算、全模型难算"时独占（诊断检验/拉格朗日乘子检验——计量的 LM 检验即它）。</p>
-<h2 id="3">3. 功效的渐近视角（一段话版）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 功效的渐近视角（一段话版）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>固定备择下三大检验功效都 <span class="arithmatex">\(\to 1\)</span>（相合性）——比较功效必须让备择随 <span class="arithmatex">\(n\)</span> 靠近：<strong>局部备择</strong> <span class="arithmatex">\(\theta_n = \theta_0 + h/\sqrt n\)</span> 下统计量 <span class="arithmatex">\(\xrightarrow{d}\)</span> <strong>非中心 χ²</strong>（非中心参数 <span class="arithmatex">\(h^\top I h\)</span>）——功效由 <span class="arithmatex">\(I\)</span> 度量的"距离"决定，三大检验局部功效也等价；这套"<span class="arithmatex">\(1/\sqrt n\)</span> 邻域内看清一切"的显微镜（Le Cam 局部渐近正态理论 LAN【引用】）是渐近统计的深水区门牌——其核心对象（对数似然比过程）与 sc-04 Girsanov 的似然比是同一族。</p>
 <h2 id="4">4. 渐近统计三页资产盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>CMT/Slutsky/Delta（语法）→ M-估计三段论 + "曲率之逆 × 得分噪声"（MLE 主定理）→ N–P 排序原理 + 三剑客 χ²（检验）。<strong>一切光滑参数模型的大样本推断到此闭环</strong>；界外（高维 <span class="arithmatex">\(p \sim n\)</span>、非光滑、误设）各有下游学科接管（hdp 线、稳健统计、slt 线）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（三剑客亲算）</strong> 泊松 <span class="arithmatex">\(H_0: \lambda = 1\)</span>，观测 <span class="arithmatex">\(\bar X = 1.2, n = 100\)</span>：Wald <span class="arithmatex">\(= n(\bar X - 1)^2/\bar X = 3.33\)</span>；Score <span class="arithmatex">\(= n(\bar X - 1)^2/1 = 4.0\)</span>；LR <span class="arithmatex">\(= 2n[\bar X\ln\bar X - \bar X + 1] = 3.65\)</span>——三者相近（等价的体现）但不等（有限样本的分野），都对照 <span class="arithmatex">\(\chi^2(1)_{0.05} = 3.84\)</span>：<strong>Score 拒绝、其余不拒绝</strong>——边缘案例三剑客可以投出不同票，报告时说明用了哪把剑是学术诚实的一部分。</p>
 <p><strong>例 2（Wilks 实战：嵌套模型比较）</strong> 回归模型删 3 个变量：<span class="arithmatex">\(2(\ell_{\text{全}} - \ell_{\text{删}})\)</span> 对照 <span class="arithmatex">\(\chi^2(3)\)</span>——变量选择的 LR 检验流水线（AIC = 此量 <span class="arithmatex">\(- 2\times\)</span>参数差的改装，本科时序页信息准则认亲）。</p>
 <p><strong>例 3（Wald 的参数化陷阱）</strong> 检验 <span class="arithmatex">\(\theta = 1\)</span> 与检验 <span class="arithmatex">\(\ln\theta = 0\)</span> 的 Wald 统计量<strong>不同</strong>（Delta 缩放不抵消），LR 则完全相同——"换个参数化结论翻转"是 Wald 的原罪；重要结论用 LR 复核。<span class="arithmatex">\(\blacksquare\)</span></p>
@@ -113,5 +228,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/asymptotic-tests.js"></script>
 </body>
 </html>

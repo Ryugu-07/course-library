@@ -20,7 +20,7 @@ $$
 放到归一化正弦基
 
 $$
-\phi_k(x)=\sqrt2\sin(k\pi x),qquad \lambda_k=(k\pi)^2,qquad
+\phi_k(x)=\sqrt2\sin(k\pi x),\qquad \lambda_k=(k\pi)^2,\qquad
 a(\phi_k,\phi_k)=d_k=\lambda_k+c
 $$
 

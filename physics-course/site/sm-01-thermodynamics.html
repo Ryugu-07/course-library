@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +43,24 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#thermodynamic-paths-learning-title">学习层：同一对端点，为什么热和功会换账？</a><ul>
+<li><a href="#1-pv">1. 先预测：PV 图上哪些量是状态函数？</a></li>
+<li><a href="#2">2. 最小模型：先把四本账的角色写在标签上</a></li>
+<li><a href="#3-pv">3. 动手：一个 PV 图，四种物理地位</a></li>
+<li><a href="#4">4. 定理假设与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 第零与第一定律</a></li>
-<li><a href="#2">2. 第二定律与熵（本页心脏）</a></li>
+<li><a href="#2_1">2. 第二定律与熵（本页心脏）</a></li>
 <li><a href="#3-legendre">3. 热力学势与 Legendre 变换（方法论核心）</a></li>
-<li><a href="#4">4. 第三定律一嘴</a></li>
+<li><a href="#4_1">4. 第三定律一嘴</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -52,11 +70,110 @@
 <p><strong>对标</strong>：Schroeder <em>Thermal Physics</em> §1–5 / Callen 精神 ｜ <strong>前置</strong>：数分 V（多元微分——热力学是它的重度用户）
 热力学是"不问微观、只靠几条定律"的唯象理论——<strong>在不知道原子存在的年代就已正确</strong>，且将在任何未来理论中存活（Einstein 语）。本页立起三定律与熵，重点是热力学的方法论：<strong>态函数 + 全微分 + Legendre 变换</strong>——数学工具你已全部备齐。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="thermodynamic-paths-learning-title" class="learning-layer">
+<h2 id="thermodynamic-paths-learning-title">学习层：同一对端点，为什么热和功会换账？<a class="headerlink" href="#thermodynamic-paths-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-pv">1. 先预测：PV 图上哪些量是状态函数？<a class="headerlink" href="#1-pv" title="Permanent link"></a></h3>
+<p>把一摩尔理想单原子气体无量纲化为 <span class="arithmatex">\(nR=1\)</span>、初态 <span class="arithmatex">\((V_1,T_1)=(1,1)\)</span>，比较终态 <span class="arithmatex">\((V_2,T_2)=(2,1)\)</span> 的几条过程。全页采用</p>
+<div class="arithmatex">\[
+dU=\delta Q+\delta W,\qquad \delta W=-p_{\mathrm{ext}}\,dV,
+\]</div>
+<p>也就是膨胀时系统对外做功、系统的功账 <span class="arithmatex">\(\Delta W\)</span> 为负。先回答：</p>
+<ol>
+<li>改变中间路径但保持端点不变时，<span class="arithmatex">\(\Delta U\)</span>、<span class="arithmatex">\(\Delta S\)</span>、<span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(\Delta W\)</span> 中哪些必须相同，哪些可以改变？</li>
+<li>可逆等温膨胀到 <span class="arithmatex">\(V_2=2\)</span> 时，按本页符号约定 <span class="arithmatex">\(\Delta W\)</span>、<span class="arithmatex">\(\Delta Q\)</span>、<span class="arithmatex">\(\Delta U\)</span> 的符号和数值关系是什么？</li>
+<li>理想气体向真空自由膨胀到相同终态时，若 <span class="arithmatex">\(Q=\Delta W=0\)</span>，熵变是否也必须为 <span class="arithmatex">\(0\)</span>？这一步是否仍有一条平衡态 PV 曲线可供积分？</li>
+</ol>
+<p>预测门故意把“曲线下的面积”与“过程可逆性”分开：平衡态路径可以用 <span class="arithmatex">\(p\,dV\)</span> 积分，自由膨胀的非平衡阶段却不能把任意压力曲线当作状态方程。</p>
+<h3 id="2">2. 最小模型：先把四本账的角色写在标签上<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在本实验的归一化单位中，<span class="arithmatex">\(pV=T\)</span>，<span class="arithmatex">\(\gamma=5/3\)</span>，<span class="arithmatex">\(C_V=1/(\gamma-1)=3/2\)</span>。状态函数只看端点：</p>
+<div class="arithmatex">\[
+\Delta U=C_V(T_2-T_1),\qquad
+\Delta S=\ln\frac{V_2}{V_1}+C_V\ln\frac{T_2}{T_1}.
+\]</div>
+<p>过程量沿路径累计：</p>
+<div class="arithmatex">\[
+\Delta W=-\int p_{\mathrm{ext}}\,dV,\qquad
+\Delta Q=\Delta U-\Delta W.
+\]</div>
+<p>后一个式子只是第一定律的重排，不是新的经验定律。对可逆路径，<span class="arithmatex">\(p_{\mathrm{ext}}=p\)</span> 且
+<span class="arithmatex">\(dS=\delta Q_{\mathrm{rev}}/T\)</span>；对不可逆路径，系统熵仍是端点函数，但不能把实际 <span class="arithmatex">\(\delta Q/T\)</span> 当作 <span class="arithmatex">\(dS\)</span>。实验并排画等温、直线、两段可逆过程、绝热过程和自由膨胀边界，防止把“在 PV 平面上画出线”误读为“每一点都有平衡态”。</p>
+<h3 id="3-pv">3. 动手：一个 PV 图，四种物理地位<a class="headerlink" href="#3-pv" title="Permanent link"></a></h3>
+<p>揭示后可切换过程并拖动终体积。表格列出 <span class="arithmatex">\(\Delta W\)</span>（系统功）、<span class="arithmatex">\(\Delta Q\)</span>、<span class="arithmatex">\(\Delta U\)</span>、<span class="arithmatex">\(\Delta S\)</span>、环境熵和总熵产生；其中 <span class="arithmatex">\(\Delta U,\Delta S\)</span> 标成 state，<span class="arithmatex">\(\Delta W,\Delta Q\)</span> 标成 path。自由膨胀的虚线只表示初末平衡态之间的不可逆边界，不用于计算 <span class="arithmatex">\(\int p\,dV\)</span>。</p>
+<div class="learning-lab" data-learning-lab="thermodynamic-paths">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(V_2=2\)</span>、<span class="arithmatex">\(\gamma=5/3\)</span>，并坚持
+<span class="arithmatex">\(dU=\delta Q+\delta W\)</span>、<span class="arithmatex">\(\delta W=-p\,dV\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>过程</th>
+<th style="text-align: right;"><span class="arithmatex">\(\Delta W\)</span>（系统功）</th>
+<th style="text-align: right;"><span class="arithmatex">\(\Delta Q\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\Delta U\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\Delta S\)</span></th>
+<th style="text-align: right;">总熵产生</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可逆等温</td>
+<td style="text-align: right;"><span class="arithmatex">\(-\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>可逆两段（先等容冷却，再等压膨胀）</td>
+<td style="text-align: right;"><span class="arithmatex">\(-1/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+1/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>可逆直线路径</td>
+<td style="text-align: right;"><span class="arithmatex">\(-3/4\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+3/4\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>真空自由膨胀</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(+\ln2\)</span></td>
+</tr>
+<tr>
+<td>可逆绝热（终温 <span class="arithmatex">\(2^{-2/3}\)</span>）</td>
+<td style="text-align: right;"><span class="arithmatex">\(\frac32(2^{-2/3}-1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\frac32(2^{-2/3}-1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>等温、两段和直线过程共享端点，故 <span class="arithmatex">\(\Delta U,\Delta S\)</span> 相同，而功和热不同；自由膨胀的 <span class="arithmatex">\(Q\)</span> 与系统功为零，却有 <span class="arithmatex">\(\Delta S=\ln2\)</span>。绝热行的热量为零来自可逆绝热条件 <span class="arithmatex">\(pV^\gamma=\text{const}\)</span>，不是所有“无热交换”的不可逆过程都自动满足同一条平衡曲线。</p>
+</div>
+<h3 id="4">4. 定理假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>第一律的符号在本页固定为 <span class="arithmatex">\(dU=\delta Q+\delta W\)</span>、<span class="arithmatex">\(\delta W=-p_{\mathrm{ext}}dV\)</span>。若改用“气体对外做功”为正的教材记号，应把功整体取负后再换算；不能在同一张表里混用两套约定。</li>
+<li><span class="arithmatex">\(U(S,V,N)\)</span>、<span class="arithmatex">\(H(S,p,N)=U+pV\)</span>、<span class="arithmatex">\(F(T,V,N)=U-TS\)</span>、<span class="arithmatex">\(G(T,p,N)=U-TS+pV\)</span> 的极小判据各自绑定环境约束：在固定 <span class="arithmatex">\((S,V,N)\)</span> 时 <span class="arithmatex">\(U\)</span> 极小；在固定 <span class="arithmatex">\((S,p,N)\)</span> 时 <span class="arithmatex">\(H\)</span> 极小；在固定 <span class="arithmatex">\((T,V,N)\)</span> 时 <span class="arithmatex">\(F\)</span> 极小；在固定 <span class="arithmatex">\((T,p,N)\)</span> 时 <span class="arithmatex">\(G\)</span> 极小。对孤立系固定 <span class="arithmatex">\((U,V,N)\)</span> 的等价表述是熵 <span class="arithmatex">\(S\)</span> 极大，而不是把 <span class="arithmatex">\(U\)</span> 在固定 <span class="arithmatex">\(U\)</span> 下再说成“极小”。这些说法还默认稳定平衡、简单可压缩封闭系统和允许的约束没有遗漏。</li>
+<li>可逆熵公式 <span class="arithmatex">\(dS=\delta Q_{\mathrm{rev}}/T\)</span> 是用一条连接端点的可逆路径计算状态熵差；不可逆过程中应使用 Clausius 不等式和环境熵账，不能令 <span class="arithmatex">\(\delta Q_{\mathrm{actual}}/T=dS\)</span>。自由膨胀的中间态非平衡，PV 虚线不是可积分的状态方程。</li>
+<li>第三定律的 <span class="arithmatex">\(S\to0\)</span> 需要唯一基态（或每粒子基态简并在热力学极限中不产生残余熵）。若基态有有限简并度 <span class="arithmatex">\(g_0&gt;1\)</span> 且低温仍能遍历这些基态，则 <span class="arithmatex">\(S(T\to0)\to k_B\ln g_0\)</span>（宏观简并可按粒子数累加），这是残余熵边界；玻璃态、动力学冻结和未取极限的简并不能直接套用“可取零”的强表述。绝对零度不可由有限步骤达到与此低温极限是两条不同的陈述。</li>
+<li>PV 图和有限步长数值积分只给一个模型的有限证据；状态函数恒等式、可逆极限和熵增方向依赖上述方程状态、准静态/平衡和热库假设。</li>
+</ul>
+</section>
 <h2 id="1">1. 第零与第一定律<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>第零定律</strong>：热平衡的传递性 ⇒ 存在温度函数（"可以定义温度计"的公理化表述）。</p>
 <p><strong>第一定律</strong>：<span class="arithmatex">\(dU = \delta Q + \delta W\)</span>——能量守恒收编热现象。<strong>记号的深意</strong>：<span class="arithmatex">\(dU\)</span> 是全微分（<strong>态函数</strong>：只看状态不看路径），<span class="arithmatex">\(\delta Q, \delta W\)</span> 不是（过程量：路径依赖——数分 VI"什么样的微分式可积"的物理主场）。准静态 <span class="arithmatex">\(\delta W = -p\,dV\)</span>。</p>
-<p><strong>理想气体的两条实验定律</strong>：<span class="arithmatex">\(pV = nRT\)</span>；<span class="arithmatex">\(U = U(T)\)</span>（Joule 自由膨胀）。配合第一定律立得 <span class="arithmatex">\(C_p - C_V = nR\)</span>【推导一行】与绝热过程 <span class="arithmatex">\(pV^\gamma = \text{const}\)</span>【推导：<span class="arithmatex">\(dU = -pdV\)</span> 与 <span class="arithmatex">\(dU = C_VdT\)</span> 联立分离变量】。</p>
-<h2 id="2">2. 第二定律与熵（本页心脏）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>理想气体的两条实验定律</strong>：<span class="arithmatex">\(pV = nRT\)</span>；<span class="arithmatex">\(U = U(T)\)</span>（Joule 自由膨胀）。配合第一定律立得 <span class="arithmatex">\(C_p - C_V = nR\)</span>【推导一行】与绝热过程 <span class="arithmatex">\(pV^\gamma = \text{const}\)</span>【推导：<span class="arithmatex">\(dU=\delta Q+\delta W=-p\,dV\)</span>（<span class="arithmatex">\(Q=0\)</span>）与 <span class="arithmatex">\(dU = C_VdT\)</span> 联立分离变量】。</p>
+<h2 id="2_1">2. 第二定律与熵（本页心脏）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Carnot 循环 PV 图" src="assets/img/sm-01-carnot.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>Carnot 循环：两条等温线 + 两条绝热线围成的可逆循环，是效率上限 \(1-T_c/T_h\) 的理想热机。</figcaption>
@@ -67,7 +184,7 @@
 <div class="arithmatex">\[
 dS = \frac{\delta Q_{\text{rev}}}{T}, \qquad \text{孤立系统 } \Delta S \geq 0
 \]</div>
-<p>（熵增原理：不可逆过程的判据与"时间之箭"的热力学表述。）<strong>基本方程</strong>：<span class="arithmatex">\(dU = T\,dS - p\,dV\)</span>——一切热力学关系的母式。</p>
+<p>（熵增原理：不可逆过程的判据与"时间之箭"的热力学表述。）<strong>基本方程（可逆平衡微分）</strong>：由本页约定 <span class="arithmatex">\(dU=\delta Q_{\mathrm{rev}}+\delta W_{\mathrm{rev}}=T\,dS-p\,dV\)</span>——一切热力学关系的母式。</p>
 <p><strong>熵是什么，本页只说唯象半句</strong>："能量中不可用部分的度量 / 不可逆性的记账货币"；微观真相（<span class="arithmatex">\(S = k\ln\Omega\)</span>——状态计数）留给 sm-02 揭晓——<strong>信息论的熵（你的信息论线）与这里的熵将在那页正式合体</strong>。</p>
 <h2 id="3-legendre">3. 热力学势与 Legendre 变换（方法论核心）<a class="headerlink" href="#3-legendre" title="Permanent link"></a></h2>
 <p>不同实验条件"顺手"的变量不同——用 <strong>Legendre 变换</strong>（cvx-01 / mech-03 后第三次上岗）换自然变量：</p>
@@ -77,7 +194,7 @@ dS = \frac{\delta Q_{\text{rev}}}{T}, \qquad \text{孤立系统 } \Delta S \geq 
 <th>势</th>
 <th>定义</th>
 <th>自然变量</th>
-<th>平衡判据（该变量固定时极小）</th>
+<th>正确的平衡判据（固定环境约束）</th>
 </tr>
 </thead>
 <tbody>
@@ -85,34 +202,34 @@ dS = \frac{\delta Q_{\text{rev}}}{T}, \qquad \text{孤立系统 } \Delta S \geq 
 <td>内能 <span class="arithmatex">\(U\)</span></td>
 <td>—</td>
 <td><span class="arithmatex">\(S, V\)</span></td>
-<td>孤立系 <span class="arithmatex">\(S\)</span> 极大</td>
+<td>固定 <span class="arithmatex">\((S,V,N)\)</span> 时 <span class="arithmatex">\(U\)</span> 极小；等价地固定 <span class="arithmatex">\((U,V,N)\)</span> 时 <span class="arithmatex">\(S\)</span> 极大</td>
 </tr>
 <tr>
 <td>焓 <span class="arithmatex">\(H\)</span></td>
 <td><span class="arithmatex">\(U + pV\)</span></td>
 <td><span class="arithmatex">\(S, p\)</span></td>
-<td>等压绝热</td>
+<td>固定 <span class="arithmatex">\((S,p,N)\)</span> 时 <span class="arithmatex">\(H\)</span> 极小</td>
 </tr>
 <tr>
 <td><strong>Helmholtz</strong> <span class="arithmatex">\(F\)</span></td>
 <td><span class="arithmatex">\(U - TS\)</span></td>
 <td><span class="arithmatex">\(T, V\)</span></td>
-<td>等温等容 <span class="arithmatex">\(F\)</span> 极小</td>
+<td>固定 <span class="arithmatex">\((T,V,N)\)</span> 时 <span class="arithmatex">\(F\)</span> 极小</td>
 </tr>
 <tr>
 <td><strong>Gibbs</strong> <span class="arithmatex">\(G\)</span></td>
 <td><span class="arithmatex">\(U - TS + pV\)</span></td>
 <td><span class="arithmatex">\(T, p\)</span></td>
-<td>等温等压 <span class="arithmatex">\(G\)</span> 极小（化学的主场）</td>
+<td>固定 <span class="arithmatex">\((T,p,N)\)</span> 时 <span class="arithmatex">\(G\)</span> 极小</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Maxwell 关系</strong>：四个势的混合偏导相等（数分 V Clairaut 的第 N 次收租）给四条关系，如 <span class="arithmatex">\(\big(\frac{\partial S}{\partial V}\big)_T = \big(\frac{\partial p}{\partial T}\big)_V\)</span>——<strong>把"难测量"（熵的导数）换成"易测量"（状态方程的导数）</strong>：热力学演算的日常主粮。</p>
 <p><strong><span class="arithmatex">\(F\)</span> 的深意（给 sm-02 铺路）</strong>："<span class="arithmatex">\(T\)</span> 固定时 <span class="arithmatex">\(F = U - TS\)</span> 极小" = 能量与熵的博弈——低温能量赢（有序）、高温熵赢（无序）：<strong>相变的总剧本</strong>（asm-01 的 Landau 理论就是给 <span class="arithmatex">\(F\)</span> 建模）；ML 对账：变分自由能/ELBO 的命名正源于此（"energy - T×entropy"结构与 <span class="arithmatex">\(\log p \geq E_q[\log p] + H(q)\)</span> 同构——comfy 课 02/信息论线的老朋友）。</p>
-<h2 id="4">4. 第三定律一嘴<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(T \to 0\)</span> 时 <span class="arithmatex">\(S \to S_0\)</span>（常数，可取零）——绝对零度不可通过有限步骤达到；低温比热必须趋零（经典均分定理在低温必然失败——qm/sm-03 量子统计的预告）。</p>
+<h2 id="4_1">4. 第三定律一嘴<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(T \to 0\)</span> 时 <span class="arithmatex">\(S \to S_0\)</span>；唯一基态时可取 <span class="arithmatex">\(S_0=0\)</span>，基态简并度为 <span class="arithmatex">\(g_0&gt;1\)</span> 且可遍历时则有残余熵 <span class="arithmatex">\(S_0=k_B\ln g_0\)</span>（宏观简并需按系统规模计数）。绝对零度不可通过有限步骤达到；对没有低温相变积聚、且热力学函数足够正则的稳定平衡体系，固定外参量的比热趋于零（经典均分定理在低温必然失败——qm/sm-03 量子统计的预告）。玻璃态的动力学冻结不等于已达到平衡基态，不能用它无条件推出同一结论。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（Carnot 数字）</strong> 电厂 <span class="arithmatex">\(T_1 = 800\)</span> K、<span class="arithmatex">\(T_2 = 300\)</span> K：<span class="arithmatex">\(\eta_{\max} = 1 - \frac{300}{800} = 62.5\%\)</span>——实际 ~40%（不可逆损耗）；热泵反着用：COP <span class="arithmatex">\(= \frac{T_2}{T_1 - T_2}\)</span> 可远大于 1——"搬热比造热便宜"的定量原因。</p>
+<p><strong>例 1（Carnot 数字）</strong> 电厂 <span class="arithmatex">\(T_1 = 800\)</span> K、<span class="arithmatex">\(T_2 = 300\)</span> K：<span class="arithmatex">\(\eta_{\max} = 1 - \frac{300}{800} = 62.5\%\)</span>——实际 ~40%（不可逆损耗）。反向循环若作制冷机，<span class="arithmatex">\(\mathrm{COP}_{\rm ref}=\frac{T_2}{T_1-T_2}=0.6\)</span>；若作热泵，<span class="arithmatex">\(\mathrm{COP}_{\rm hp}=\frac{T_1}{T_1-T_2}=1.6\)</span>。两者只差输入功也最终进入热端这一份热量；温差较小时热泵 COP 可以远大于 1，这正是“搬热比直接造热便宜”的定量原因。</p>
 <p><strong>例 2（熵增计算）</strong> 1 kg 20°C 水与 1 kg 80°C 水混合：终温 50°C，<span class="arithmatex">\(\Delta S = mc\big[\ln\frac{323}{293} + \ln\frac{323}{353}\big] &gt; 0\)</span>（取 <span class="arithmatex">\(c\approx4.18\ \mathrm{kJ/(kg\,K)}\)</span>，算出 <span class="arithmatex">\(\approx +36\)</span> J/K）——温差消失的代价以熵记账；反向自发分离的概率在 sm-02 将量化为 <span class="arithmatex">\(e^{-\Delta S/k}\)</span> 级的天文小数。</p>
 <p><strong>例 3（Maxwell 关系实战）</strong> 证明理想气体等温膨胀 <span class="arithmatex">\(\Delta S = nR\ln\frac{V_2}{V_1}\)</span>：用 <span class="arithmatex">\(\big(\frac{\partial S}{\partial V}\big)_T = \big(\frac{\partial p}{\partial T}\big)_V = \frac{nR}{V}\)</span> 积分——不测任何热量、纯状态方程推熵变：方法论的样板。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
@@ -126,5 +243,7 @@ dS = \frac{\delta Q_{\text{rev}}}{T}, \qquad \text{孤立系统 } \Delta S \geq 
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/thermodynamic-paths.js"></script>
 </body>
 </html>

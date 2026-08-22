@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,23 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 解的结构（高代观点）</a></li>
-<li><a href="#2">2. 常系数齐次：特征方程算法</a></li>
-<li><a href="#3">3. 非齐次特解：两把武器</a></li>
+<li><a href="#t">学习层：频率“撞根”时，振幅为什么长出一个 \(t\)？</a><ul>
+<li><a href="#1">1. 具体情境：同一只无阻尼振子接受不同频率的推力</a></li>
+<li><a href="#2">2. 先预测：根、基与受迫响应</a></li>
+<li><a href="#3">3. 最小实验：把代数重根与时间轨迹对齐</a></li>
+<li><a href="#4-wronskian">4. 两条不能混用的 Wronskian 结论</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 解的结构（高代观点）</a></li>
+<li><a href="#2_1">2. 常系数齐次：特征方程算法</a></li>
+<li><a href="#3_1">3. 非齐次特解：两把武器</a></li>
 <li><a href="#4">4. 振动：本章的物理灵魂</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
@@ -49,12 +67,75 @@
 <blockquote>
 <p>高阶线性方程是 ODE 课的主体，也是线性代数照进分析的样板间：<strong>解集是线性空间，解方程 = 找一组基</strong>。常系数情形有完整算法（特征方程），物理上对应一切振动现象——阻尼、共振都在本页。</p>
 </blockquote>
-<h2 id="1">1. 解的结构（高代观点）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="linear-ode-resonance-learning-title" class="learning-layer">
+<h2 id="t">学习层：频率“撞根”时，振幅为什么长出一个 <span class="arithmatex">\(t\)</span>？<a class="headerlink" href="#t" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：同一只无阻尼振子接受不同频率的推力<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>对零初值问题</p>
+<div class="arithmatex">\[
+y''+\omega_0^2y=F\cos(\omega t),\qquad y(0)=y'(0)=0,
+\]</div>
+<p>当 <span class="arithmatex">\(\omega\neq\omega_0\)</span> 时</p>
+<div class="arithmatex">\[
+y(t)=\frac{F}{\omega_0^2-\omega^2}
+\left(\cos\omega t-\cos\omega_0t\right).
+\]</div>
+<p>两个相近频率会形成拍频；当 <span class="arithmatex">\(\omega\to\omega_0\)</span> 时，分母和括号同时趋零，极限不是无穷常数，而是</p>
+<div class="arithmatex">\[
+y(t)=\frac{F}{2\omega_0}\,t\sin(\omega_0t).
+\]</div>
+<p>这个 <span class="arithmatex">\(t\)</span> 正是待定系数法里“试探频率撞上特征根就乘 <span class="arithmatex">\(t\)</span>”的解析来源。</p>
+<h3 id="2">2. 先预测：根、基与受迫响应<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>特征根为 <span class="arithmatex">\(-1\pm2i\)</span> 时，实基本解组应包含指数包络、三角振荡，还是两者兼有？</li>
+<li>forcing 频率逐渐靠近 <span class="arithmatex">\(\omega_0\)</span> 时，有限观察窗里先看到无限振幅，还是越来越慢的拍频包络？</li>
+<li>无阻尼共振的线性增长能否直接外推到有阻尼、非线性或会损坏的真实结构？</li>
+</ol>
+<h3 id="3">3. 最小实验：把代数重根与时间轨迹对齐<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="linear-ode-resonance">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">forcing 比 <span class="arithmatex">\(\omega/\omega_0\)</span></th>
+<th>解析结构</th>
+<th>有界性</th>
+<th>证据边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0.7\)</span></td>
+<td>两个不同频率之差</td>
+<td>理想模型内有界</td>
+<td>包络由频差决定</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0.98\)</span></td>
+<td>慢拍频</td>
+<td>仍有界，但有限窗可很大</td>
+<td>不能把近共振误称精确共振</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(t\sin(\omega_0t)\)</span></td>
+<td>无阻尼线性模型内无界增长</td>
+<td>任意正阻尼会改变长期响应</td>
+</tr>
+</tbody>
+</table>
+<p>实验揭示后可移动 forcing 比与观察终点，SVG 同时显示位移与包络，账本给出特征根类型、Wronskian 证书、最大振幅和“精确/近似共振”身份。有限采样只画当前解析解，不能替代一般线性 ODE 的存在唯一性与基本解理论。</p>
+</div>
+<h3 id="4-wronskian">4. 两条不能混用的 Wronskian 结论<a class="headerlink" href="#4-wronskian" title="Permanent link"></a></h3>
+<p>对同一个 <span class="arithmatex">\(n\)</span> 阶齐次线性方程、且系数在区间上连续的一组解，Wronskian 在某点非零等价于它们线性无关；Abel–Liouville 公式还说明它要么处处非零，要么处处为零。对任意可微函数，某一点 <span class="arithmatex">\(W=0\)</span> 并不能推出线性相关。实验只对解析基本解组出证书。</p>
+</section>
+<h2 id="1_1">1. 解的结构（高代观点）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(n\)</span> 阶线性方程 <span class="arithmatex">\(y^{(n)} + a_1(x)y^{(n-1)} + \cdots + a_n(x)y = f(x)\)</span>。</p>
-<p><strong>定理（齐次解空间）</strong> 齐次方程（<span class="arithmatex">\(f = 0\)</span>）的解集是 <strong><span class="arithmatex">\(n\)</span> 维线性空间</strong>（叠加原理给"是线性空间"；存在唯一性定理给"维数恰为 <span class="arithmatex">\(n\)</span>"——初值 <span class="arithmatex">\((y, y', \dots, y^{(n-1)})(x_0)\)</span> 与解一一对应，<span class="arithmatex">\(\mathbb{R}^n\)</span> 的坐标）。通解 = <span class="arithmatex">\(C_1 y_1 + \cdots + C_n y_n\)</span>（<span class="arithmatex">\(y_i\)</span> 为<strong>基本解组</strong>）。</p>
-<p><strong>线性无关的判器（Wronskian）</strong>：<span class="arithmatex">\(W(x) = \det[y_j^{(i-1)}]\)</span>。解组线性无关 <span class="arithmatex">\(\iff W \neq 0\)</span>（解的场合某点非零即处处非零——Liouville 公式）。</p>
+<p><strong>定理（齐次解空间）</strong> 在最高阶系数不为零且标准化后各系数在区间上连续时，齐次方程（<span class="arithmatex">\(f = 0\)</span>）的解集是 <strong><span class="arithmatex">\(n\)</span> 维线性空间</strong>（叠加原理给"是线性空间"；存在唯一性定理给"维数恰为 <span class="arithmatex">\(n\)</span>"——初值 <span class="arithmatex">\((y, y', \dots, y^{(n-1)})(x_0)\)</span> 与解一一对应，<span class="arithmatex">\(\mathbb{R}^n\)</span> 的坐标）。通解 = <span class="arithmatex">\(C_1 y_1 + \cdots + C_n y_n\)</span>（<span class="arithmatex">\(y_i\)</span> 为<strong>基本解组</strong>）。</p>
+<p><strong>线性无关的判器（Wronskian）</strong>：<span class="arithmatex">\(W(x) = \det[y_j^{(i-1)}]\)</span>。对同一齐次线性方程的一组解，线性无关 <span class="arithmatex">\(\iff W\)</span> 在某点非零（随后由 Liouville 公式知处处非零）；对任意可微函数，单点 <span class="arithmatex">\(W=0\)</span> 不能反推相关。</p>
 <p><strong>非齐次结构</strong>：通解 = 齐次通解 + 任一特解（与高代 II 线性方程组 <span class="arithmatex">\(x = x_0 + \ker A\)</span> 逐字同构——线性问题的普适语法第三次出现）。</p>
-<h2 id="2">2. 常系数齐次：特征方程算法<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 常系数齐次：特征方程算法<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>代入试探解 <span class="arithmatex">\(y = e^{\lambda x}\)</span>（求导=乘 <span class="arithmatex">\(\lambda\)</span>，指数函数是微分算子的特征向量——"特征"二字与高代 V 同源非巧合），得<strong>特征方程</strong> <span class="arithmatex">\(\lambda^n + a_1\lambda^{n-1} + \cdots + a_n = 0\)</span>。按根的三种形态拼基：</p>
 <table>
 <thead>
@@ -79,7 +160,7 @@
 </tbody>
 </table>
 <p>（重根多出的 <span class="arithmatex">\(x^k\)</span> 因子：极限视角是两个相邻单根解 <span class="arithmatex">\(\frac{e^{\lambda_2 x} - e^{\lambda_1 x}}{\lambda_2 - \lambda_1} \to x e^{\lambda x}\)</span>——导数的定义现身。）</p>
-<h2 id="3">3. 非齐次特解：两把武器<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 非齐次特解：两把武器<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>待定系数法</strong>（<span class="arithmatex">\(f\)</span> 是"多项式 × 指数 × 三角"型专用）：按 <span class="arithmatex">\(f\)</span> 的形态设同型特解；<strong>若试探的指数/频率撞上特征根，乘 <span class="arithmatex">\(x\)</span></strong>（撞几重乘几次）——"共振修正"，遗漏它是本章头号错因。</p>
 <p><strong>常数变易法</strong>（万能，<span class="arithmatex">\(f\)</span> 任意）：设特解 <span class="arithmatex">\(y^* = C_1(x)y_1 + C_2(x)y_2\)</span>，解线性方程组（系数矩阵恰是 Wronskian 矩阵）得 <span class="arithmatex">\(C_i'\)</span>，积分即可。二阶情形的结果值得记：<span class="arithmatex">\(C_1' = \frac{-y_2 f}{W},\ C_2' = \frac{y_1 f}{W}\)</span>。</p>
 <p><strong>Euler 方程</strong>一嘴：<span class="arithmatex">\(x^2 y'' + axy' + by = 0\)</span> 换元 <span class="arithmatex">\(x = e^t\)</span> 化常系数（或试 <span class="arithmatex">\(y = x^k\)</span>）。</p>
@@ -92,10 +173,10 @@
 <p><strong>自由振动（<span class="arithmatex">\(F = 0\)</span>）三态</strong>（特征根判别式定性）：</p>
 <ul>
 <li>欠阻尼（<span class="arithmatex">\(c\)</span> 小，复根）：<span class="arithmatex">\(e^{-\alpha t}\)</span> 包络下的衰减振荡；</li>
-<li>临界阻尼（重根）：最快无振荡回零（车门缓冲器的设计点）;</li>
+<li>临界阻尼（重根）：在固定线性二阶模型与常见初值比较中给出最快的无振荡回归（车门缓冲器的理想化设计点）;</li>
 <li>过阻尼（两负实根）：缓慢爬回。</li>
 </ul>
-<p><strong>受迫振动与共振</strong>：<span class="arithmatex">\(F = F_0\cos\omega t\)</span>，稳态响应幅值在 <span class="arithmatex">\(\omega\)</span> 接近固有频率 <span class="arithmatex">\(\omega_0 = \sqrt{k/m}\)</span> 时急剧放大；<strong>无阻尼且 <span class="arithmatex">\(\omega = \omega_0\)</span> 时</strong>特解带 <span class="arithmatex">\(t\cos\omega t\)</span> 因子（待定系数的"乘 <span class="arithmatex">\(x\)</span>"规则！）——振幅随时间线性增长，<strong>共振</strong>。数学（特征根重合）与物理（塌桥、秋千）在此互为注脚。</p>
+<p><strong>受迫振动与共振</strong>：<span class="arithmatex">\(F = F_0\cos\omega t\)</span>，稳态响应幅值在 <span class="arithmatex">\(\omega\)</span> 接近固有频率 <span class="arithmatex">\(\omega_0 = \sqrt{k/m}\)</span> 时急剧放大；<strong>无阻尼且 <span class="arithmatex">\(\omega = \omega_0\)</span> 时</strong>特解带 <span class="arithmatex">\(t\sin(\omega_0 t)\)</span> 因子（待定系数的"乘 <span class="arithmatex">\(x\)</span>"规则！）——振幅随时间线性增长，<strong>共振</strong>。数学（特征根重合）与物理（塌桥、秋千）在此互为注脚。</p>
 <p>🔗 <strong>衔接</strong>：线性系统的矩阵版在下一页（特征方程 = 特征多项式将正式合体）；离散版（差分方程）已在随机过程 II 赌徒破产中用过同款特征根法；深度学习中 RNN 梯度的指数增衰（ai 课 06 讲）本质是同一套"特征值决定长期行为"。</p>
 <h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（三型混合）</strong> <span class="arithmatex">\(y''' - y'' + y' - y = 0\)</span>：特征 <span class="arithmatex">\(\lambda^3 - \lambda^2 + \lambda - 1 = (\lambda - 1)(\lambda^2 + 1) = 0\)</span>，根 <span class="arithmatex">\(1, \pm i\)</span> ⇒ <span class="arithmatex">\(y = C_1 e^x + C_2\cos x + C_3 \sin x\)</span>。</p>
@@ -112,5 +193,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/linear-ode-resonance.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free structural audit for the generated course library."""
+"""Audit generated pages, local references, and lecture-source hygiene."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ SKIP_SCHEMES = {"data", "http", "https", "javascript", "mailto", "tel"}
 SKIP_TEXT_TAGS = {"code", "pre", "script", "style"}
 PARAGRAPH_RE = re.compile(r"<p(?:\s[^>]*)?>(.*?)</p>", re.IGNORECASE | re.DOTALL)
 RAW_LIST_RE = re.compile(r"(?m)^[ \t]*(?:[-+*]|\d+[.)])[ \t]+")
+ALLOWED_SOURCE_CONTROLS = {"\n", "\r"}
 
 
 class PageParser(HTMLParser):
@@ -82,6 +83,50 @@ def site_html_files(root: Path) -> list[Path]:
     for site in sorted(root.glob("*/site")):
         pages.extend(site.rglob("*.html"))
     return sorted(set(pages))
+
+
+def lecture_source_files(root: Path) -> list[Path]:
+    files: list[Path] = []
+    for lecture_dir in sorted(root.glob("*/lectures")):
+        files.extend(lecture_dir.rglob("*.md"))
+    return sorted(set(files))
+
+
+def audit_source_text(root: Path, details: list[str], counts: Counter[str]) -> None:
+    """Reject C0 controls that commonly come from accidentally escaped LaTeX."""
+    for path in lecture_source_files(root):
+        counts["source_docs"] += 1
+        text = path.read_text(encoding="utf-8")
+        for index, character in enumerate(text):
+            codepoint = ord(character)
+            if (codepoint >= 32 and codepoint != 127) or character in ALLOWED_SOURCE_CONTROLS:
+                continue
+            counts["source_control_character"] += 1
+            line = text.count("\n", 0, index) + 1
+            details.append(
+                f"Source control character: {path.relative_to(root)}:{line} "
+                f"(U+{codepoint:04X})"
+            )
+        for line_number, source_line in enumerate(text.splitlines(), 1):
+            for command_name in ("qquad", "quad"):
+                start = 0
+                while True:
+                    command = source_line.find(command_name, start)
+                    if command < 0:
+                        break
+                    before = source_line[command - 1] if command else ""
+                    after_index = command + len(command_name)
+                    after = source_line[after_index] if after_index < len(source_line) else ""
+                    has_word_boundaries = not (before.isalnum() or before == "_") and not (
+                        after.isalnum() or after == "_"
+                    )
+                    if has_word_boundaries and before != "\\":
+                        counts["source_bare_latex_command"] += 1
+                        details.append(
+                            f"Bare LaTeX command: {path.relative_to(root)}:{line_number} "
+                            f"({command_name} is missing its backslash)"
+                        )
+                    start = after_index
 
 
 def is_local_ref(value: str) -> bool:
@@ -223,6 +268,7 @@ def main() -> int:
     root = args.root.resolve()
     counts: Counter[str] = Counter()
     details: list[str] = []
+    audit_source_text(root, details, counts)
     audit_html(root, details, counts)
     audit_svg(root, details, counts)
     audit_workflows(root, details, counts)
@@ -240,13 +286,16 @@ def main() -> int:
             "bad_workflow_json",
             "bad_workflow_shape",
             "learning_contract",
+            "source_control_character",
+            "source_bare_latex_command",
         )
         if counts[name]
     }
 
     print(
         "Audit summary: "
-        f"html={counts['html']} refs={counts['refs']} svg={counts['svg']} "
+        f"sources={counts['source_docs']} html={counts['html']} "
+        f"refs={counts['refs']} svg={counts['svg']} "
         f"workflows={counts['workflow_json']} "
         f"learning_pages={counts['learning_pages']} "
         f"learning_labs={counts['learning_labs']} "

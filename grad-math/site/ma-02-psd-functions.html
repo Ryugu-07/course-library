@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：哪一些“像数一样”的操作，实际上换了方向？</a><ul>
+<li><a href="#matrix-order-functions-learning-title">1. 具体情境：协方差、鲁棒约束与一个看似无害的平方</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3-schur">3. 正式模型：二次型、共轭与 Schur 补</a></li>
+<li><a href="#4">4. 定理、证据与模型边界</a></li>
+</ul>
+</li>
 <li><a href="#1-lowner">1. Löwner 偏序</a></li>
 <li><a href="#2-schur">2. Schur 补（分块世界的主定理）</a></li>
 <li><a href="#3">3. 矩阵函数</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -49,6 +67,89 @@
 <p><strong>对标</strong>：Horn &amp; Johnson §7.1–7.7、Zhang <em>Schur Complement</em> ｜ <strong>前置</strong>：本科高代 VI、ma-01
 本页回答"矩阵能不能当数用"：<strong>Löwner 偏序</strong>（<span class="arithmatex">\(A \succeq B\)</span> 的运算法则与陷阱）、<strong>Schur 补</strong>（分块矩阵的正定判据——统计与优化的瑞士军刀）、<strong>矩阵函数</strong>（<span class="arithmatex">\(e^A, A^{1/2}, \ln A\)</span> 的正确定义与单调性的惊人失效）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="matrix-order-functions-learning-title" class="learning-layer">
+<h2 id="_1">学习层：哪一些“像数一样”的操作，实际上换了方向？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="matrix-order-functions-learning-title">1. 具体情境：协方差、鲁棒约束与一个看似无害的平方<a class="headerlink" href="#matrix-order-functions-learning-title" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(A\succeq B\)</span> 想成“对每个方向 <span class="arithmatex">\(v\)</span>，<span class="arithmatex">\(v^T(A-B)v\ge0\)</span>”。在统计里，这表示一个协方差差异是半正定；在优化里，分块矩阵则可能是一个 LMI 约束。现在给出</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}2&amp;1\\1&amp;1\end{pmatrix},\qquad
+B=\begin{pmatrix}1&amp;0\\0&amp;0\end{pmatrix}.
+\]</div>
+<p>它们满足 <span class="arithmatex">\(A-B=\begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix}\succeq0\)</span>。如果只凭标量直觉，可能会顺手写成 <span class="arithmatex">\(A^2\succeq B^2\)</span>，但这一步正是本页的陷阱。</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验先藏住特征值、行列式和 Schur 补证书。请预测：</p>
+<ol>
+<li><span class="arithmatex">\(A\succeq B\)</span> 是否必然推出 <span class="arithmatex">\(A^2\succeq B^2\)</span>？若不然，哪一个 <span class="arithmatex">\(2\times2\)</span> 证据会击穿它？</li>
+<li>对任意实矩阵 <span class="arithmatex">\(X\)</span>，<span class="arithmatex">\(X^TAX-X^TBX\)</span> 的方向关系会不会改变？</li>
+<li>若 <span class="arithmatex">\(A\succeq B\succ0\)</span>，求逆后应保持方向还是反序？</li>
+<li>对分块矩阵 <span class="arithmatex">\(\begin{pmatrix}A&amp;B\\B^T&amp;C\end{pmatrix}\)</span>，把 <span class="arithmatex">\(A^{-1}\)</span> 写进 Schur 补时，为什么必须单独声明 <span class="arithmatex">\(A&gt;0\)</span>？</li>
+</ol>
+<p>点“揭示账本”后，实验会给出平方反例的负特征值、共轭保序、求逆反序、条件方差 <span class="arithmatex">\(3-2\cdot(1/4)\cdot2=2\)</span> 和 LMI 证书。固定 <span class="arithmatex">\(2\times2\)</span> 数值是证据，不是对所有矩阵函数的定理证明。</p>
+<h3 id="3-schur">3. 正式模型：二次型、共轭与 Schur 补<a class="headerlink" href="#3-schur" title="Permanent link"></a></h3>
+<p>对称矩阵的 Löwner 序定义为</p>
+<div class="arithmatex">\[
+A\succeq B\iff A-B\succeq0\iff v^T(A-B)v\ge0\quad(\forall v).
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+A\succeq B\Longrightarrow X^TAX\succeq X^TBX
+\]</div>
+<p>只是把测试向量换成 <span class="arithmatex">\(Xv\)</span>，不需要 <span class="arithmatex">\(X\)</span> 可逆。若 <span class="arithmatex">\(A\succeq B\succ0\)</span>，则</p>
+<div class="arithmatex">\[
+B^{-1}\succeq A^{-1};
+\]</div>
+<p>它是反序，不是保序。对称 <span class="arithmatex">\(A=Q\Lambda Q^T\)</span> 的矩阵函数按谱演算定义为 <span class="arithmatex">\(f(A)=Qf(\Lambda)Q^T\)</span>。在<strong>正定域</strong>上，<span class="arithmatex">\(\sqrt t,\ \log t,\ -1/t\)</span> 是常用的算子单调函数；标量函数单调并不自动推出算子单调。特别是 <span class="arithmatex">\(t^2\)</span> 在正数上标量单调，却不是算子单调函数。</p>
+<p>对 <span class="arithmatex">\(A&gt;0\)</span> 的分块矩阵，Schur 补是</p>
+<div class="arithmatex">\[
+S=C-B^TA^{-1}B,\qquad
+\begin{pmatrix}A&amp;B\\B^T&amp;C\end{pmatrix}\succeq0
+\iff S\succeq0.
+\]</div>
+<p>这里的等价式明确使用 <span class="arithmatex">\(A&gt;0\)</span>；若只知道 <span class="arithmatex">\(A\succeq0\)</span>，还要加入范围条件并使用广义逆，不能把同一行公式无条件延伸过去。</p>
+<div class="learning-lab" data-learning-lab="matrix-order-functions">
+<p><strong>JavaScript 失效时的静态读法：</strong>以下四张证书对应默认的确定性 <span class="arithmatex">\(2\times2\)</span> 例子。表格只做二次型/特征值的有限核对；“算子单调”仍是定理层面的全维度、全矩阵量词。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>静态证据</th>
+<th>结论</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平方</td>
+<td><span class="arithmatex">\(A-B=\begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix}\succeq0\)</span>，但 <span class="arithmatex">\(A^2-B^2=\begin{pmatrix}4&amp;3\\3&amp;2\end{pmatrix}\)</span>，行列式 <span class="arithmatex">\(-1\)</span></td>
+<td>平方不保 Löwner 序</td>
+<td>一个反例可否定普遍命题，但不能替代算子函数定理</td>
+</tr>
+<tr>
+<td>共轭</td>
+<td><span class="arithmatex">\(X^T(A-B)X\succeq0\)</span> 对固定 <span class="arithmatex">\(X\)</span> 仍成立</td>
+<td>共轭保序</td>
+<td><span class="arithmatex">\(X\)</span> 不要求可逆；这不是普通乘法保序</td>
+</tr>
+<tr>
+<td>求逆</td>
+<td><span class="arithmatex">\(A\succeq B\succ0\Rightarrow B^{-1}-A^{-1}\succeq0\)</span></td>
+<td>求逆反序</td>
+<td>必须在正定域内求逆</td>
+</tr>
+<tr>
+<td>Schur/统计</td>
+<td><span class="arithmatex">\(3-2\cdot(1/4)\cdot2=2\)</span></td>
+<td>条件方差等于 Schur 补</td>
+<td>LMI 等价使用 <span class="arithmatex">\(A&gt;0\)</span>；数值不替代正定假设</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 定理、证据与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验中的“PSD”“正定”“负行列式”是可复核的有限证据：对 <span class="arithmatex">\(2\times2\)</span> 对称阵，特征值或主子式足以核对当前对象。它不能把标量单调性升级成算子单调性，也不能把 <span class="arithmatex">\(2\times2\)</span> 的平方反例误读成“所有矩阵函数都不保序”。Löwner 单调性要对所有维度的自伴矩阵比较；<span class="arithmatex">\(\sqrt{\cdot},\log,\ -1/t\)</span> 本页只在正定域陈述，靠近零或离开实对称正定框架时需要另行讨论。Schur 补证书同样依赖对称分块结构和 <span class="arithmatex">\(A&gt;0\)</span>。</p>
+</div>
+</section>
 <h2 id="1-lowner">1. Löwner 偏序<a class="headerlink" href="#1-lowner" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(A \succeq B \iff A - B\)</span> 半正定（对称阵上的偏序——不是全序：<span class="arithmatex">\(\mathrm{diag}(2,0)\)</span> 与 <span class="arithmatex">\(\mathrm{diag}(0,2)\)</span> 不可比）。</p>
 <p><strong>安全运算</strong>：加法保序；共轭保序（<span class="arithmatex">\(A \succeq B \Rightarrow X^\top AX \succeq X^\top BX\)</span>——定义一行）；<strong>求逆反序</strong>（<span class="arithmatex">\(A \succeq B \succ 0 \Rightarrow B^{-1} \succeq A^{-1}\)</span>【骨架：先证 <span class="arithmatex">\(A \succeq I \Rightarrow I \succeq A^{-1}\)</span>（谱分解逐特征值），一般情形用 <span class="arithmatex">\(B^{-1/2}\)</span> 共轭归约】）；特征值逐个保序（Weyl 的推论，ma-01）。</p>
@@ -65,13 +166,14 @@
 </ul>
 <h2 id="3">3. 矩阵函数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>定义（谱演算）</strong> 对称 <span class="arithmatex">\(A = Q\Lambda Q^\top\)</span>：<span class="arithmatex">\(f(A) = Q\,f(\Lambda)\,Q^\top\)</span>（对角逐元素作用）——与幂级数定义（收敛域内）一致【引用】；非对称走 Jordan/围道积分定义（复变 II 的 Cauchy 公式变身 <span class="arithmatex">\(f(A) = \frac{1}{2\pi i}\oint f(z)(zI - A)^{-1}dz\)</span>——解析函数论在矩阵上复活）。</p>
-<p><strong>三大常客</strong>：<span class="arithmatex">\(e^{A}\)</span>（ode-03 的矩阵指数：<span class="arithmatex">\(e^{A+B} = e^Ae^B\)</span> <strong>仅当交换</strong>——Lie 理论的门缝）；<span class="arithmatex">\(A^{1/2}\)</span>（PSD 唯一平方根——白化、协方差的"标准差"）；<span class="arithmatex">\(\ln A\)</span>（信息几何与矩阵优化的坐标）。</p>
-<p><strong>定理（Löwner 单调性，陈述 + 名单）</strong> <span class="arithmatex">\(f\)</span> 称算子单调若 <span class="arithmatex">\(A \succeq B \Rightarrow f(A) \succeq f(B)\)</span>。<strong>名单</strong>：<span class="arithmatex">\(t^{1/2}, \ln t, -1/t\)</span> 算子单调；<strong><span class="arithmatex">\(t^2, e^t\)</span> 不是</strong>（例 1）。完整刻画（Löwner 定理：算子单调 ⟺ 可解析延拓到上半平面且保上半平面）【引用】。
+<p><strong>三大常客</strong>：<span class="arithmatex">\(e^{A}\)</span>（ode-03 的矩阵指数：<span class="arithmatex">\(e^{A+B} = e^Ae^B\)</span> <strong>仅当交换</strong>——Lie 理论的门缝）；<span class="arithmatex">\(A^{1/2}\)</span>（正定矩阵的唯一正定平方根——白化、协方差的"标准差"）；<span class="arithmatex">\(\ln A\)</span>（正定矩阵上的信息几何与矩阵优化坐标）。</p>
+<p><strong>定理（Löwner 单调性，陈述 + 名单）</strong> 在正定域 <span class="arithmatex">\(t&gt;0\)</span> 上，<span class="arithmatex">\(f\)</span> 称算子单调若 <span class="arithmatex">\(A \succeq B \succ0 \Rightarrow f(A) \succeq f(B)\)</span>。<strong>名单</strong>：<span class="arithmatex">\(t^{1/2}, \ln t, -1/t\)</span> 在此正定域上算子单调；<strong><span class="arithmatex">\(t^2, e^t\)</span> 不是</strong>（例 1）。完整刻画（Löwner 定理：算子单调 ⟺ 可解析延拓到上半平面且保上半平面）【引用】。
 <strong>实用读法</strong>：<strong>开方与取对数可以放心比大小，平方与指数不行</strong>——矩阵不等式推导的红绿灯（量子信息与信息几何里这张名单是日用品）。</p>
 <p><strong>迹不等式一嘴</strong>：von Neumann 迹不等式 <span class="arithmatex">\(\mathrm{tr}(AB) \leq \sum\sigma_i(A)\sigma_i(B)\)</span>、<span class="arithmatex">\(\mathrm{tr}\)</span> 与凸性（<span class="arithmatex">\(A \mapsto \mathrm{tr}f(A)\)</span> 对凸 <span class="arithmatex">\(f\)</span> 凸【引用】）——SDP 目标函数合法性的背书。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（平方不保序的反例）</strong> <span class="arithmatex">\(A = \begin{pmatrix}2 &amp; 1\\ 1&amp; 1\end{pmatrix},\ B = \begin{pmatrix}1 &amp; 0\\ 0 &amp; 0\end{pmatrix}\)</span>：<span class="arithmatex">\(A - B = \begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix} \succeq 0\)</span> ✓；但 <span class="arithmatex">\(A^2 - B^2 = \begin{pmatrix}4 &amp; 3\\ 3 &amp; 2\end{pmatrix}\)</span> 行列式 <span class="arithmatex">\(= -1 &lt; 0\)</span> ✗——两分钟亲手验证，"矩阵不是大号的数"从口号变体感。</p>
-<p><strong>例 2（Schur 补三用合一）</strong> <span class="arithmatex">\(\Sigma = \begin{pmatrix}4 &amp; 2\\ 2 &amp; 3\end{pmatrix}\)</span>：条件方差 <span class="arithmatex">\(3 - \frac{4}{4}\cdot 1 \cdot\cdots = 3 - 1 = 2\)</span>（回归掉 <span class="arithmatex">\(X_1\)</span> 后 <span class="arithmatex">\(X_2\)</span> 剩的方差）；同数字即"消 <span class="arithmatex">\(x_1\)</span> 后的二次型"与"<span class="arithmatex">\(M \succ 0\)</span> 判据的第二块"——一个数三张面孔。</p>
+<p><strong>例 2（Schur 补三用合一）</strong> <span class="arithmatex">\(\Sigma = \begin{pmatrix}4 &amp; 2\\ 2 &amp; 3\end{pmatrix}\)</span>：条件方差
+<span class="arithmatex">\(3 - 2\cdot(1/4)\cdot2 = 2\)</span>（回归掉 <span class="arithmatex">\(X_1\)</span> 后 <span class="arithmatex">\(X_2\)</span> 剩的方差）；同数字即"消 <span class="arithmatex">\(x_1\)</span> 后的二次型"与"<span class="arithmatex">\(M \succ 0\)</span> 判据的第二块"——一个数三张面孔。</p>
 <p><strong>例 3（矩阵函数计算）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}\)</span>：谱 <span class="arithmatex">\(\pm1\)</span>、<span class="arithmatex">\(e^A = \cosh(1)I + \sinh(1)A\)</span>（谱演算两行）——"矩阵函数 = 特征值上的标量函数 + 特征向量搬运"的最小演示。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：非负矩阵的世界——Perron–Frobenius 定理：正矩阵必有正主特征对，Markov 链、PageRank、人口模型的总后台，矩阵分析收官。</em></p>
@@ -84,5 +186,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/matrix-order-functions.js"></script>
 </body>
 </html>

@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:45</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#hdp01-learning-title">学习层：同一个尾界，究竟凭什么成立？</a><ul>
+<li><a href="#1">1. 从一个居中的随机量开始</a></li>
+<li><a href="#2">2. 先预测：常数、重尾与多事件账本</a></li>
+<li><a href="#3">3. 四类模型与常数的来源</a></li>
+<li><a href="#4-mgf-union-bound">4. 动手：先锁定 MGF，再做 union-bound 乘法</a></li>
+<li><a href="#5">5. 定理级结论与失败边界</a></li>
+</ul>
+</li>
 <li><a href="#1-chernoff">1. Chernoff 方法：一个模板统治所有</a></li>
-<li><a href="#2">2. 亚高斯分布：组织语言</a></li>
-<li><a href="#3">3. 第一个高维定理：范数集中</a></li>
+<li><a href="#2_1">2. 亚高斯分布：组织语言</a></li>
+<li><a href="#3_1">3. 第一个高维定理：范数集中</a></li>
 <li><a href="#4">4. 练习与要点</a></li>
 </ul>
 </div>
@@ -49,6 +68,104 @@
 <p><strong>对标</strong>：Vershynin <em>HDP</em> §2.1–2.8 ｜ <strong>前置</strong>：mt-01/02/04、本科概率 V
 高维概率的第一性原理：<strong>独立随机量的和以指数速率集中于均值</strong>。本页把本科的 Chebyshev（多项式尾）升级为 Chernoff 系（指数尾），并引入组织这一切的现代语言——亚高斯/亚指数范数。这是理解"为什么高维统计和机器学习在有限样本下就能工作"的数学地基。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="hdp01-learning-title" class="learning-layer">
+<h2 id="hdp01-learning-title">学习层：同一个尾界，究竟凭什么成立？<a class="headerlink" href="#hdp01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 从一个居中的随机量开始<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把均值先拿掉：<span class="arithmatex">\(X_c=X-EX\)</span>。亚高斯的 MGF 证书是存在 <span class="arithmatex">\(K&lt;\infty\)</span>，使对<strong>所有</strong> <span class="arithmatex">\(\lambda\in\mathbb R\)</span>，</p>
+<div class="arithmatex">\[
+E e^{\lambda X_c}\le \exp\left(\frac{\lambda^2K^2}{2}\right).
+\]</div>
+<p>对 <span class="arithmatex">\(\lambda&gt;0\)</span> 用 Markov，</p>
+<div class="arithmatex">\[
+P(X_c\ge t)\le e^{-\lambda t}Ee^{\lambda X_c}
+\le \exp\left(-\lambda t+\frac{\lambda^2K^2}{2}\right).
+\]</div>
+<p>优化 <span class="arithmatex">\(\lambda=t/K^2\)</span>，再对 <span class="arithmatex">\(-X_c\)</span> 做同样的事，得到</p>
+<div class="arithmatex">\[
+P(|X_c|\ge t)\le2\exp\left(-\frac{t^2}{2K^2}\right).
+\]</div>
+<p>这里有三层不同强度的陈述：MGF 是对所有 <span class="arithmatex">\(\lambda\)</span> 的函数不等式，尾界是由它推出的定理，图表里的某个 <span class="arithmatex">\(t\)</span> 只是一个数值读数。把最后一层倒过来当成第一层，是集中实验最容易犯的量词错误。</p>
+<h3 id="2">2. 先预测：常数、重尾与多事件账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示实验前先回答三个问题：</p>
+<ol>
+<li>单位尺度下，标准 Gaussian 与 Rademacher <span class="arithmatex">\(\{\!-1,+1\!\}\)</span> 都可用 <span class="arithmatex">\(K=1\)</span> 的 MGF 证书；它们在有限 <span class="arithmatex">\(t\)</span> 上的真实尾概率是否必须相同？</li>
+<li>对称 Pareto 型重尾即使有均值、甚至有有限方差，能否仍满足“对所有 <span class="arithmatex">\(\lambda\)</span> 的 Gaussian 型 MGF 上界”？</li>
+<li>若每个事件的失败概率上界为 <span class="arithmatex">\(p\)</span>，要同时控制 <span class="arithmatex">\(m\)</span> 个事件，union bound 会把账本写成 <span class="arithmatex">\(p\)</span>、<span class="arithmatex">\(mp\)</span>，还是 <span class="arithmatex">\(p^m\)</span>？当 <span class="arithmatex">\(mp&gt;1\)</span> 时应如何读这个证书？</li>
+</ol>
+<p>实验先收下预测，再让四类模型共享同一张 MGF/尾界图：Gaussian、Rademacher、<span class="arithmatex">\([-1,1]\)</span> 上的有界均匀量，以及尾部 <span class="arithmatex">\((1+t)^{-3}\)</span> 的对称重尾量。有限曲线比较的是给定模型的解析值和上界；它不替代“对所有 <span class="arithmatex">\(\lambda\)</span>”或“对所有 <span class="arithmatex">\(t\)</span>”的定理假设。</p>
+<h3 id="3">3. 四类模型与常数的来源<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>模型（均已居中）</th>
+<th>MGF / 尾部事实</th>
+<th>可用的 <span class="arithmatex">\(K\)</span> 或结论</th>
+<th>关键边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(G\sim N(0,1)\)</span></td>
+<td><span class="arithmatex">\(Ee^{\lambda G}=e^{\lambda^2/2}\)</span></td>
+<td><span class="arithmatex">\(K=1\)</span>，MGF 证书精确</td>
+<td>真尾部还含 Gaussian 的多项式因子，Chernoff 只比较指数尺度</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(R\in\{\!-1,+1\}\)</span></td>
+<td><span class="arithmatex">\(Ee^{\lambda R}=\cosh\lambda\le e^{\lambda^2/2}\)</span></td>
+<td><span class="arithmatex">\(K=1\)</span></td>
+<td>离散尾在 <span class="arithmatex">\(t&gt;1\)</span> 直接为 0，MGF 上界仍只是统一上界</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(U\sim\mathrm{Unif}[-1,1]\)</span></td>
+<td><span class="arithmatex">\(Ee^{\lambda U}=\sinh\lambda/\lambda\)</span></td>
+<td>Hoeffding 引理给 <span class="arithmatex">\(K=1\)</span></td>
+<td><span class="arithmatex">\(K=1\)</span> 是范围证书，不是方差 <span class="arithmatex">\(1/3\)</span> 的最优常数</td>
+</tr>
+<tr>
+<td>对称重尾 <span class="arithmatex">\(P(\lvert H\rvert\ge t)=(1+t)^{-3}\)</span></td>
+<td><span class="arithmatex">\(\lambda\ne0\)</span> 时 MGF 发散</td>
+<td>无有限亚高斯 <span class="arithmatex">\(K\)</span></td>
+<td>有有限二阶矩不等于有指数矩；只能用多项式尾工具</td>
+</tr>
+</tbody>
+</table>
+<p>对独立 <span class="arithmatex">\(X_i\)</span>，MGF 才能相乘：若每个 <span class="arithmatex">\(X_i\)</span> 居中且有参数 <span class="arithmatex">\(K_i\)</span>，则</p>
+<div class="arithmatex">\[
+E e^{\lambda\sum_iX_i}\le\exp\left(\frac{\lambda^2}{2}\sum_iK_i^2\right),\qquad
+P\left(\left|\sum_iX_i\right|\ge t\right)\le2\exp\left(-\frac{t^2}{2\sum_iK_i^2}\right).
+\]</div>
+<p>若 <span class="arithmatex">\(X_i\in[a_i,b_i]\)</span> 且独立，Hoeffding 引理给 <span class="arithmatex">\(K_i=(b_i-a_i)/2\)</span> 的一个范围级证书，于是</p>
+<div class="arithmatex">\[
+P\left(\left|\sum_i(X_i-EX_i)\right|\ge t\right)\le2\exp\left(-\frac{2t^2}{\sum_i(b_i-a_i)^2}\right).
+\]</div>
+<h3 id="4-mgf-union-bound">4. 动手：先锁定 MGF，再做 union-bound 乘法<a class="headerlink" href="#4-mgf-union-bound" title="Permanent link"></a></h3>
+<p>实验默认 Rademacher、<span class="arithmatex">\(n=32\)</span>、和的阈值 <span class="arithmatex">\(t=12\)</span>、同时要保护 <span class="arithmatex">\(m=5\)</span> 个事件。揭示后可以切换分布、<span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(t\)</span> 与 <span class="arithmatex">\(m\)</span>，但每个数字都保留三种标签：解析模型值、单个事件的定理上界、union bound 后的同时失败上界。这样不会把“抽到一批样本看起来很集中”误写成“概率已经被证明很小”。</p>
+<div class="learning-lab" data-learning-lab="subgaussian-concentration">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>固定居中 Rademacher、<span class="arithmatex">\(K=1\)</span>、<span class="arithmatex">\(n=32\)</span>、<span class="arithmatex">\(t=12\)</span>、<span class="arithmatex">\(m=5\)</span>。独立和的亚高斯证书为</p>
+<div class="arithmatex">\[
+P(|S_{32}|\ge12)\le2e^{-12^2/(2\cdot32)}=2e^{-2.25}\approx0.2108,\qquad
+P\left(\bigcup_{j=1}^{5}E_j\right)\le\min(1,5\times0.2108)=1.
+\]</div>
+<p>这里的 <span class="arithmatex">\(1\)</span> 是 union bound 的截断上界，不是说失败必然发生。单变量 <span class="arithmatex">\(t=1.5\)</span> 的解析读数可用来对账：</p>
+<p>| 模型 | <span class="arithmatex">\(K\)</span> 证书 | <span class="arithmatex">\(P(|X|\ge1.5)\)</span> 的模型值 | <span class="arithmatex">\(2e^{-1.5^2/(2K^2)}\)</span> | 证书层级 |
+|---|---:|---:|---:|---|
+| Gaussian <span class="arithmatex">\(N(0,1)\)</span> | <span class="arithmatex">\(1\)</span> | 约 <span class="arithmatex">\(0.1336\)</span> | 约 <span class="arithmatex">\(0.6493\)</span> | MGF/尾定理 |
+| Rademacher | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(0\)</span> | 约 <span class="arithmatex">\(0.6493\)</span> | MGF/尾定理 |
+| Uniform <span class="arithmatex">\([-1,1]\)</span> | <span class="arithmatex">\(1\)</span>（范围级） | <span class="arithmatex">\(0\)</span> | 约 <span class="arithmatex">\(0.6493\)</span> | Hoeffding 引理 |
+| 对称重尾 | 不存在有限 <span class="arithmatex">\(K\)</span> | <span class="arithmatex">\((1+1.5)^{-3}=0.064\)</span> | 不适用 | 多项式尾模型 |</p>
+<p>模型值是该解析分布在一个阈值上的读数；尾界需要居中和 MGF 假设；和的公式还需要独立性。union bound 本身不需要事件独立，但只会把单事件上界相加，不能凭“事件很多”改写成乘法独立模型。</p>
+</div>
+<h3 id="5">5. 定理级结论与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>定理级</strong>：居中、全 <span class="arithmatex">\(\lambda\)</span> 的 MGF 上界推出 Gaussian 型尾；独立性把 MGF 的指数相加；对 <span class="arithmatex">\(m\)</span> 个事件，<span class="arithmatex">\(\Pr(\cup_jE_j)\le\sum_j\Pr(E_j)\)</span>，这一步不要求事件独立。</li>
+<li><strong>有限证据</strong>：图只画有限的 <span class="arithmatex">\(\lambda,t\)</span> 网格，表只显示选定参数；重尾在有限窗口里也可能“看起来很像”亚高斯，不能据此补上不存在的指数矩。</li>
+<li><strong>常数纪律</strong>：<span class="arithmatex">\(K\)</span> 是 MGF 的代理尺度，不自动等于标准差；Hoeffding 的 <span class="arithmatex">\(K=(b-a)/2\)</span> 是范围级安全常数，Bernstein 或方差感知界可能更紧。</li>
+<li><strong>失败边界</strong>：未居中时应先减均值；变量相关时不能直接把 MGF 拆成乘积；<span class="arithmatex">\(m\)</span> 很大时 union bound 可能松到 1；重尾模型应改用多项式尾、截断或稳健估计，而不是强行套亚高斯结论。</li>
+</ul>
+</section>
 <h2 id="1-chernoff">1. Chernoff 方法：一个模板统治所有<a class="headerlink" href="#1-chernoff" title="Permanent link"></a></h2>
 <p><strong>模板</strong>【证明】：对任意 <span class="arithmatex">\(\theta &gt; 0\)</span>，</p>
 <div class="arithmatex">\[
@@ -65,16 +182,16 @@ P\Big(\Big|\sum (X_i - EX_i)\Big| \geq t\Big) \leq 2\exp\Big(-\frac{2t^2}{\sum (
 P\Big(\Big|\sum X_i\Big| \geq t\Big) \leq 2\exp\Big(-\frac{t^2/2}{\sigma^2 + Mt/3}\Big)
 \]</div>
 <p><strong>读法（两段尾巴）</strong>：<span class="arithmatex">\(t\)</span> 小（<span class="arithmatex">\(t \lesssim \sigma^2/M\)</span>）时是高斯尾 <span class="arithmatex">\(e^{-t^2/2\sigma^2}\)</span>——<strong>用真实方差</strong>而非最坏区间宽（方差小时比 Hoeffding 强得多）；<span class="arithmatex">\(t\)</span> 大时退化为指数尾 <span class="arithmatex">\(e^{-3t/2M}\)</span>——单个有界变量的极限速度。"<strong>小偏差像高斯、大偏差像指数</strong>"是本课程反复出现的地貌。</p>
-<h2 id="2">2. 亚高斯分布：组织语言<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 亚高斯分布：组织语言<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="尾概率三档衰减" src="assets/img/hdp-01-subgaussian-tail.svg" /></p>
 <figcaption><span class="fig-id">图 1.1</span>尾概率衰减的三档：亚高斯 \(2e^{-t^2/2}\)（最快）、亚指数、重尾——集中不等式的整个理论就是给随机量归这三类。</figcaption>
 </figure>
-<p><strong>定义</strong> <span class="arithmatex">\(X\)</span> <strong>亚高斯</strong>：尾部 <span class="arithmatex">\(P(|X| \geq t) \leq 2e^{-t^2/K^2}\)</span>。等价刻画（互推常数因子级等价,【骨架】——矩与尾部的 Fubini 换算 + Stirling）：矩增长 <span class="arithmatex">\(\|X\|_{L^p} \leq CK\sqrt{p}\)</span>；矩母函数 <span class="arithmatex">\(Ee^{X^2/K'^2} \leq 2\)</span>。由最后者定义<strong>亚高斯范数</strong> <span class="arithmatex">\(\|X\|_{\psi_2}\)</span>（Orlicz 范数，是真范数）。</p>
-<p>成员：有界（Hoeffding 引理）、高斯、Rademacher。<strong>性质</strong>：独立和 <span class="arithmatex">\(\|\sum X_i\|_{\psi_2}^2 \leq C\sum\|X_i\|_{\psi_2}^2\)</span>（"方差式相加"——独立亚高斯的和仍亚高斯，Hoeffding 型不等式的抽象重述）。</p>
+<p><strong>定义</strong> <span class="arithmatex">\(X\)</span> <strong>亚高斯</strong>：尾部 <span class="arithmatex">\(P(|X| \geq t) \leq 2e^{-t^2/K^2}\)</span>。这里的尾参数与学习层 MGF 约定中的 <span class="arithmatex">\(K\)</span> 可相差绝对常数；亚高斯理论通常只在常数因子意义下比较这些等价刻画。矩增长 <span class="arithmatex">\(\|X\|_{L^p} \leq CK\sqrt{p}\)</span>；矩母函数 <span class="arithmatex">\(Ee^{X^2/K'^2} \leq 2\)</span>。由最后者定义<strong>亚高斯范数</strong> <span class="arithmatex">\(\|X\|_{\psi_2}\)</span>（Orlicz 范数，是真范数）。</p>
+<p>成员：有界变量在中心化后（Hoeffding 引理）、中心高斯、Rademacher。<strong>性质</strong>：独立且中心化的亚高斯变量满足 <span class="arithmatex">\(\|\sum X_i\|_{\psi_2}^2 \leq C\sum\|X_i\|_{\psi_2}^2\)</span>（"方差式相加"）。若不中心化，确定性均值还要单独记账，不能把和直接套进关于 0 的尾界。</p>
 <p><strong>亚指数</strong>：尾 <span class="arithmatex">\(e^{-t/K}\)</span> 级（<span class="arithmatex">\(\|\cdot\|_{\psi_1}\)</span>）。<strong>关键事实</strong>：亚高斯的平方是亚指数（<span class="arithmatex">\(\|X^2\|_{\psi_1} = \|X\|_{\psi_2}^2\)</span>，代定义即得）——<strong>范数、二次型这类"平方量"天然生活在亚指数世界</strong>，这就是 Bernstein 型双段尾巴无处不在的原因。</p>
 <p><strong>定理（Bernstein，亚指数版）【引用】</strong> 独立零均值亚指数和：<span class="arithmatex">\(P(|\sum X_i| \geq t) \leq 2\exp\big(-c\min\big(\frac{t^2}{\sum K_i^2}, \frac{t}{\max K_i}\big)\big)\)</span>。</p>
-<h2 id="3">3. 第一个高维定理：范数集中<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 第一个高维定理：范数集中<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理</strong> <span class="arithmatex">\(X \in \mathbb{R}^n\)</span> 各分量独立、零均值、单位方差、<span class="arithmatex">\(\|X_i\|_{\psi_2} \leq K\)</span>：</p>
 <div class="arithmatex">\[
 \big\|\, \|X\|_2 - \sqrt{n}\, \big\|_{\psi_2} \leq CK^2
@@ -97,5 +214,7 @@ P\Big(\Big|\sum X_i\Big| \geq t\Big) \leq 2\exp\Big(-\frac{t^2/2}{\sigma^2 + Mt/
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/subgaussian-concentration.js"></script>
 </body>
 </html>

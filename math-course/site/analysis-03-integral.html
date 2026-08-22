@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 不定积分</a></li>
-<li><a href="#2">2. 定积分：理论</a></li>
-<li><a href="#3">3. 微积分基本定理</a></li>
-<li><a href="#4">4. 反常积分</a></li>
+<li><a href="#riemann-learning-title">学习层：同一张分割表，怎样识别可积与不可积？</a><ul>
+<li><a href="#1">1. 先预测：上和、下和与取点会不会达成共识？</a></li>
+<li><a href="#2">2. 最小模型：三本账先分开</a></li>
+<li><a href="#3">3. 动手：把“有限证据”与“无限定理”分栏</a></li>
+<li><a href="#4">4. 定理假设与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 不定积分</a></li>
+<li><a href="#2_1">2. 定积分：理论</a></li>
+<li><a href="#3_1">3. 微积分基本定理</a></li>
+<li><a href="#4_1">4. 反常积分</a></li>
 <li><a href="#5">5. 定积分应用公式表</a></li>
 <li><a href="#6">6. 典型例题</a></li>
 </ul>
@@ -50,7 +68,121 @@
 <blockquote>
 <p>两个出身完全不同的概念——求原函数（微分的逆）与求面积（分割求和取极限）——被微积分基本定理焊在一起，这是整门课最漂亮的会师。本页四块：不定积分技巧、定积分理论（可积性）、基本定理、反常积分。</p>
 </blockquote>
-<h2 id="1">1. 不定积分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="riemann-learning-title" class="learning-layer">
+<h2 id="riemann-learning-title">学习层：同一张分割表，怎样识别可积与不可积？<a class="headerlink" href="#riemann-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：上和、下和与取点会不会达成共识？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把区间固定为 <span class="arithmatex">\([0,1]\)</span>，先不看实验输出。对下面三个判断各写下一个答案：</p>
+<ol>
+<li>对连续函数 <span class="arithmatex">\(f(x)=x^2\)</span>，均匀分割的上和与下和之差是否会随网格变细趋于 <span class="arithmatex">\(0\)</span>？任意合法取点的 tagged Riemann 和是否被夹在两者之间？</li>
+<li>Thomae 型函数 <span class="arithmatex">\(t(x)=1/q\)</span>（<span class="arithmatex">\(x=p/q\)</span> 为既约有理数，<span class="arithmatex">\(t(x)=0\)</span> 对无理数）处处在有理点不连续；它的下和恒为 <span class="arithmatex">\(0\)</span>，上和会不会也趋于 <span class="arithmatex">\(0\)</span>？</li>
+<li>Dirichlet 型函数 <span class="arithmatex">\(d=\mathbf 1_{\mathbb Q}\)</span> 在每个小区间都同时遇到有理数和无理数；若所有 tag 取有理数与所有 tag 取无理数，两列 tagged sums 会不会趋向同一个数？</li>
+</ol>
+<p>预测的对象不是“图像像不像”：上、下和检验的是一个分割上的振幅，tagged sum 检验的是取点稳定性；只有把网格范数送到 <span class="arithmatex">\(0\)</span>，才有资格谈 Riemann 积分。</p>
+<h3 id="2">2. 最小模型：三本账先分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对分割 <span class="arithmatex">\(P:0=x_0&lt;\cdots&lt;x_n=1\)</span>，记 <span class="arithmatex">\(\Delta x_i=x_i-x_{i-1}\)</span>、<span class="arithmatex">\(m_i=\inf_{I_i}f\)</span>、<span class="arithmatex">\(M_i=\sup_{I_i}f\)</span>。三本有限账是</p>
+<div class="arithmatex">\[
+L(f,P)=\sum_i m_i\Delta x_i,\qquad
+U(f,P)=\sum_i M_i\Delta x_i,\qquad
+R(f,P,\xi)=\sum_i f(\xi_i)\Delta x_i.
+\]</div>
+<p>只要 <span class="arithmatex">\(f\)</span> 有界且 <span class="arithmatex">\(\xi_i\in I_i\)</span>，就有 <span class="arithmatex">\(L(f,P)\le R(f,P,\xi)\le U(f,P)\)</span>。连续函数的统一连续性给出</p>
+<div class="arithmatex">\[
+U(f,P)-L(f,P)\le (b-a)\,\omega_f(\|P\|)\longrightarrow0,
+\]</div>
+<p>所以连续函数的所有 tagged sums 都收敛到同一个值。这个估计把“矩形越来越窄”的图像直觉翻译成了定理。</p>
+<p>四个样本分别暴露四种边界：</p>
+<table>
+<thead>
+<tr>
+<th>样本</th>
+<th>上/下和的有限诊断</th>
+<th>tagged sum 的读法</th>
+<th>定理级结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(x^2\)</span></td>
+<td><span class="arithmatex">\(U_n-L_n=1/n\)</span>（均匀 <span class="arithmatex">\(n\)</span> 分割）</td>
+<td>任意 tag 都被同一夹逼</td>
+<td>Riemann 可积，积分 <span class="arithmatex">\(1/3\)</span></td>
+</tr>
+<tr>
+<td>阶梯 <span class="arithmatex">\(1_{x&lt;1/2}+2_{x\ge1/2}\)</span></td>
+<td>只有含跳点的格子贡献振幅，差距随网格消失</td>
+<td>tag 取法的差异被一个小格子吸收</td>
+<td>有界且只有一个间断点，故可积</td>
+</tr>
+<tr>
+<td>Thomae 型 <span class="arithmatex">\(t\)</span></td>
+<td><span class="arithmatex">\(L_n=0\)</span>；上和由每格最小分母控制，并在网格范数趋零时趋 <span class="arithmatex">\(0\)</span></td>
+<td>有理 tag 的值由分母变小，无理 tag 值为 <span class="arithmatex">\(0\)</span></td>
+<td>有界，间断点为可数集；可积且积分 <span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>Dirichlet 型 <span class="arithmatex">\(d\)</span></td>
+<td>每个非退化格子 <span class="arithmatex">\(m_i=0,M_i=1\)</span>，故 <span class="arithmatex">\(L=0,U=1\)</span></td>
+<td>全取有理 tag 得 <span class="arithmatex">\(1\)</span>，全取无理 tag 得 <span class="arithmatex">\(0\)</span></td>
+<td>上下和永不合拢，不可积</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3">3. 动手：把“有限证据”与“无限定理”分栏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>实验揭示后可切换四个样本、均匀分割数 <span class="arithmatex">\(n\)</span> 和 tag 规则。矩形图显示当前分割与 tagged sum，表格同时列出 <span class="arithmatex">\(L,U,R,U-L\)</span>。Thomae 型函数的上和总体趋向 <span class="arithmatex">\(0\)</span>，但相邻的均匀 <span class="arithmatex">\(n\)</span> 分割并不互为细分，读数可以小幅回升；脚本只计算有限分母/有限分割下的可复核诊断。Dirichlet 型函数则用两种 tag 直接展示不稳定。</p>
+<div class="learning-lab" data-learning-lab="riemann-integrability" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>对 <span class="arithmatex">\(f(x)=x^2\)</span> 和均匀 <span class="arithmatex">\(n\)</span> 分割，</p>
+<div class="arithmatex">\[
+L_n=\frac1n\sum_{i=0}^{n-1}\left(\frac{i}{n}\right)^2,
+\quad U_n=\frac1n\sum_{i=1}^{n}\left(\frac{i}{n}\right)^2,
+\quad U_n-L_n=\frac1n,
+\]</div>
+<p>因而 <span class="arithmatex">\(L_n,U_n\to1/3\)</span>；中点和也趋于 <span class="arithmatex">\(1/3\)</span>。对阶梯函数，除跳点所在格外各格振幅为 <span class="arithmatex">\(0\)</span>，而跳点格的宽度趋于 <span class="arithmatex">\(0\)</span>。Thomae 型函数在每个非退化格的下确界为 <span class="arithmatex">\(0\)</span>，上确界由该格中最小的既约分母给出；沿真正的嵌套细分，上和单调下降并趋于 <span class="arithmatex">\(0\)</span>。实验的均匀 <span class="arithmatex">\(n\)</span> 分割序列一般不嵌套，因此只应读作 <span class="arithmatex">\(U_n\to0\)</span>，不能把每一步都画成下降箭头。这支持其积分为 <span class="arithmatex">\(0\)</span>，但一张有限表本身不是证明。Dirichlet 型函数对任何分割都有 <span class="arithmatex">\(L=0,U=1\)</span>，全有理 tag 的和为 <span class="arithmatex">\(1\)</span>、全无理 tag 的和为 <span class="arithmatex">\(0\)</span>，所以没有唯一的 Riemann 极限。</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th style="text-align: right;">连续 <span class="arithmatex">\(x^2\)</span></th>
+<th style="text-align: right;">阶梯函数</th>
+<th style="text-align: right;">Thomae 型</th>
+<th style="text-align: right;">Dirichlet 型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>下和 <span class="arithmatex">\(L\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\nearrow1/3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\to3/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>上和 <span class="arithmatex">\(U\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\searrow1/3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\to3/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\to0\)</span>（非嵌套均匀分割可局部回升）</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+</tr>
+<tr>
+<td>tagged 和</td>
+<td style="text-align: right;">所有 tag 同极限</td>
+<td style="text-align: right;">细分后稳定</td>
+<td style="text-align: right;">有理/无理 tag 都趋 <span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">有理 <span class="arithmatex">\(1\)</span>、无理 <span class="arithmatex">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 定理假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>Darboux 判据讨论的是<strong>有界函数在紧区间上的有限分割</strong>：<span class="arithmatex">\(f\)</span> Riemann 可积当且仅当对任意 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 存在 <span class="arithmatex">\(P\)</span> 使 <span class="arithmatex">\(U(f,P)-L(f,P)&lt;\varepsilon\)</span>。无界函数不能直接套用这条有界区间判据；反常积分要另作极限。</li>
+<li>“有限个间断点可积”与“间断点为零测集”都带有有界性语境。Thomae 型函数虽然在每个有理点不连续，但其间断点集可数、测度为零；Dirichlet 型函数的有理与无理点都稠密，使每个格子的振幅保持 <span class="arithmatex">\(1\)</span>。</li>
+<li>有限分割只给诊断，不给 <span class="arithmatex">\(\|P\|\to0\)</span> 的结论；一张看起来已经合拢的表不能证明可积。反过来，某个粗分割上下和差距大，也不能推出不可积。</li>
+<li>tagged sum 的 tag 必须落在对应子区间；若函数不是有界 Riemann 可积，改换 tag 可能改变极限，甚至使极限不存在。把一次数值求积结果当作积分定义，是把有限数值证据越权成了定理。</li>
+</ul>
+</section>
+<h2 id="1_1">1. 不定积分<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(F' = f\)</span> 则称 <span class="arithmatex">\(F\)</span> 为 <span class="arithmatex">\(f\)</span> 的原函数，<span class="arithmatex">\(\int f\,dx = F(x) + C\)</span>。连续函数必有原函数（由基本定理保证）；含第一类间断点的函数无原函数（导函数只能有第二类间断——Darboux 定理：导函数具介值性）。</p>
 <p><strong>基本积分表</strong>（默写级）：幂、指、对、三角、<span class="arithmatex">\(\int \frac{dx}{1+x^2} = \arctan x\)</span>，<span class="arithmatex">\(\int \frac{dx}{\sqrt{1-x^2}} = \arcsin x\)</span>，<span class="arithmatex">\(\int \sec x\,dx = \ln|\sec x + \tan x|\)</span>，<span class="arithmatex">\(\int \frac{dx}{x^2 - a^2} = \frac{1}{2a}\ln\left|\frac{x-a}{x+a}\right|\)</span>。</p>
 <p><strong>三大技巧</strong>：</p>
@@ -60,7 +192,7 @@
 <li><strong>分部积分</strong> <span class="arithmatex">\(\int u\,dv = uv - \int v\,du\)</span>：选 <span class="arithmatex">\(u\)</span> 的优先级"反对幂指三"（反三角/对数当 <span class="arithmatex">\(u\)</span>，指数/三角进 <span class="arithmatex">\(dv\)</span>）；循环型（<span class="arithmatex">\(e^x\sin x\)</span>）两次分部解方程。</li>
 </ol>
 <p><strong>有理函数积分</strong>：多项式除法降次 → 部分分式分解（真分式按 <span class="arithmatex">\(\frac{A}{(x-a)^k}\)</span> 与 <span class="arithmatex">\(\frac{Bx+C}{(x^2+px+q)^k}\)</span> 拆）→ 逐项积分。<strong>理论意义：有理函数的原函数必是初等函数</strong>；而 <span class="arithmatex">\(\int e^{-x^2}dx,\ \int \frac{\sin x}{x}dx\)</span> 等不是初等函数——"积不出来"是定理不是无能。</p>
-<h2 id="2">2. 定积分：理论<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 定积分：理论<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="黎曼和逼近曲线下面积" src="assets/img/analysis-03-riemann-sum.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>定积分是黎曼和的极限：矩形越细，其面积和越逼近曲线下的真实面积 \(\int_a^b f\,dx\)。</figcaption>
@@ -72,7 +204,7 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 \]</div>
 <p><strong>可积函数类</strong>：连续函数；只有有限个间断点的有界函数；单调函数。<strong>不可积代表</strong>：Dirichlet 函数（处处振幅为 1）。🔗 实变页的 Lebesgue 准则给出终极刻画：可积 <span class="arithmatex">\(\iff\)</span> 有界且间断点集为零测集。</p>
 <p><strong>性质</strong>：线性、区间可加、保序、绝对值不等式 <span class="arithmatex">\(\left|\int f\right| \leq \int |f|\)</span>、<strong>积分第一中值定理</strong>（<span class="arithmatex">\(f\)</span> 连续：<span class="arithmatex">\(\int_a^b f g\,dx = f(\xi)\int_a^b g\,dx\)</span>，<span class="arithmatex">\(g\)</span> 不变号）。</p>
-<h2 id="3">3. 微积分基本定理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 微积分基本定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理（变上限积分）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，则 <span class="arithmatex">\(\Phi(x) = \int_a^x f(t)\,dt\)</span> 可导且 <span class="arithmatex">\(\Phi'(x) = f(x)\)</span>。
 <em>证明关键步</em>：<span class="arithmatex">\(\dfrac{\Phi(x+h) - \Phi(x)}{h} = \dfrac1h\int_x^{x+h} f(t)\,dt = f(\xi_h)\)</span>（积分中值定理），<span class="arithmatex">\(h \to 0\)</span> 时 <span class="arithmatex">\(\xi_h \to x\)</span>，连续性收尾。——<strong>连续函数的原函数被明确造了出来</strong>。</p>
 <p><strong>定理（Newton–Leibniz）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，<span class="arithmatex">\(F\)</span> 是其任一原函数：</p>
@@ -81,7 +213,7 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 \]</div>
 <p><em>思路</em>：<span class="arithmatex">\(F\)</span> 与 <span class="arithmatex">\(\Phi\)</span> 差常数，代端点。<strong>求导链式扩展</strong>（考试高频）：<span class="arithmatex">\(\dfrac{d}{dx}\int_{u(x)}^{v(x)} f(t)\,dt = f(v)v' - f(u)u'\)</span>。</p>
 <p><strong>定积分技巧补充</strong>：换元要同步换限；对称性（奇函数对称区间为零）；<span class="arithmatex">\(\int_0^{\pi/2} f(\sin x)dx = \int_0^{\pi/2} f(\cos x)dx\)</span> 类的区间再现代换 <span class="arithmatex">\(x \to a+b-x\)</span>；Wallis 公式 <span class="arithmatex">\(\int_0^{\pi/2}\sin^n x\,dx\)</span> 递推。</p>
-<h2 id="4">4. 反常积分<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 反常积分<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>两类：<strong>无穷区间</strong> <span class="arithmatex">\(\int_a^{+\infty}\)</span> 与<strong>瑕积分</strong>（被积函数在瑕点无界），都定义为常义积分的极限。</p>
 <p><strong>判敛工具箱</strong>（以 <span class="arithmatex">\(\int_a^{+\infty} f\,dx\)</span>，<span class="arithmatex">\(f \geq 0\)</span> 为例）：</p>
 <ul>
@@ -135,5 +267,7 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/riemann-integrability.js"></script>
 </body>
 </html>

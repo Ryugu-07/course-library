@@ -24,7 +24,7 @@
 **无 JavaScript 时的完整静态读法：**考虑边容量全为 1 的网络
 
 $$
-s\to a,quad s\to b,quad a\to b,quad a\to t,quad b\to t.
+s\to a,\quad s\to b,\quad a\to b,\quad a\to t,\quad b\to t.
 $$
 
 若第一次沿 $s\to a\to b\to t$ 增广 1，当前流值是 1，且 $a\to b$、$b\to t$ 已饱和。残量网络会加入 $b\to a$，容量等于已经走过 $a\to b$ 的流量 1。第二条增广路是
@@ -36,7 +36,7 @@ $$
 其中 $b\to a$ 是残量反向边。沿它增广会把原边 $a\to b$ 的流从 1 减回 0，同时把 $s\to b$ 与 $a\to t$ 各加 1。最终
 
 $$
-f(s,a)=f(a,t)=1,qquad f(s,b)=f(b,t)=1,qquad f(a,b)=0,
+f(s,a)=f(a,t)=1,\qquad f(s,b)=f(b,t)=1,\qquad f(a,b)=0,
 $$
 
 所以流值为 2。此时残量网络中从 $s$ 出发已无可走的正余量边；可达集是 $S=\{s\}$，割边 $s\to a,s\to b$ 的容量和也是 2。可行流给下界，割给上界；二者相等才构成最优证书。

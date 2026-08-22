@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,24 @@
 <div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:45</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 导数与微分</a></li>
-<li><a href="#2">2. 中值定理链（本页主梁）</a></li>
+<li><a href="#_1">学习层：切线到底承诺了多少精度？</a><ul>
+<li><a href="#1">1. 先把导数看成一个可审计的局部模型</a></li>
+<li><a href="#2">2. 三项预测：先写下阶数与边界</a></li>
+<li><a href="#3-fallback">3. 静态 fallback：默认模型的两本误差账</a></li>
+<li><a href="#4">4. 定理假设与失效边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 导数与微分</a></li>
+<li><a href="#2_1">2. 中值定理链（本页主梁）</a></li>
 <li><a href="#3-taylor">3. Taylor 公式</a></li>
-<li><a href="#4">4. 导数的应用</a></li>
+<li><a href="#4_1">4. 导数的应用</a></li>
 <li><a href="#5">5. 典型例题</a></li>
 </ul>
 </div>
@@ -49,7 +67,89 @@
 <blockquote>
 <p>主线一句话：导数是局部线性近似的斜率；<strong>中值定理链</strong>把"导数的局部信息"转化为"函数的整体性质"；Taylor 公式把线性近似升级为多项式近似。本页的主梁是 Fermat → Rolle → Lagrange → Cauchy 这条链，几乎所有应用（单调性、极值、凸性、洛必达）都挂在它上面。</p>
 </blockquote>
-<h2 id="1">1. 导数与微分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="analysis-02-learning-title" class="learning-layer">
+<h2 id="_1">学习层：切线到底承诺了多少精度？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 先把导数看成一个可审计的局部模型<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在点 <span class="arithmatex">\(a\)</span> 附近，导数不是“把曲线画直”的装饰，而是线性主部</p>
+<div class="arithmatex">\[
+L_a(a+h)=f(a)+f'(a)h,\qquad
+f(a+h)=L_a(a+h)+o(h).
+\]</div>
+<p>若 <span class="arithmatex">\(f\)</span> 在邻域内二阶可导且 <span class="arithmatex">\(|f''|\)</span> 有界，Taylor--Lagrange 余项进一步给出</p>
+<div class="arithmatex">\[
+|f(a+h)-L_a(a+h)|\leq \frac{M}{2}h^2,\qquad
+\left|\frac{f(a+h)-f(a)}h-f'(a)\right|\leq \frac{M}{2}|h|.
+\]</div>
+<p>前一条是<strong>函数值的线性化误差</strong>，后一条是<strong>割线斜率对导数的误差</strong>；不要把“差商趋于导数”误读成任意有限 <span class="arithmatex">\(h\)</span> 已经等于导数。</p>
+<h3 id="2">2. 三项预测：先写下阶数与边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>当 <span class="arithmatex">\(f''\)</span> 在 <span class="arithmatex">\(a\)</span> 附近有界时，割线斜率与 <span class="arithmatex">\(f'(a)\)</span> 的误差是 <span class="arithmatex">\(O(|h|)\)</span> 还是 <span class="arithmatex">\(O(h^2)\)</span>？</li>
+<li>同一条件下，<span class="arithmatex">\(f(a+h)\)</span> 与切线 <span class="arithmatex">\(L_a(a+h)\)</span> 的误差是 <span class="arithmatex">\(O(|h|)\)</span> 还是 <span class="arithmatex">\(O(h^2)\)</span>？</li>
+<li>对 <span class="arithmatex">\(|x|\)</span> 在 <span class="arithmatex">\(0\)</span> 与 <span class="arithmatex">\(x^2\)</span> 在 <span class="arithmatex">\(0\)</span>，能否不加条件地使用“导数”和“反函数导数为 <span class="arithmatex">\(1/f'\)</span>”的口诀？</li>
+</ol>
+<p>交互实验固定 <span class="arithmatex">\(f(x)=x^2\)</span>、<span class="arithmatex">\(x^3\)</span> 的光滑模型，再把 <span class="arithmatex">\(|x|\)</span> 的尖角与 <span class="arithmatex">\(x^2\)</span> 的零导数反例放进同一本账。先作答，才会揭示曲线、切线、割线和 <span class="arithmatex">\(h\)</span> 减半时的观测阶。</p>
+<h3 id="3-fallback">3. 静态 fallback：默认模型的两本误差账<a class="headerlink" href="#3-fallback" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(f(x)=x^2\)</span>、<span class="arithmatex">\(a=1\)</span> 时，<span class="arithmatex">\(f'(1)=2\)</span>、<span class="arithmatex">\(L_1(1+h)=1+2h\)</span>，并且</p>
+<div class="arithmatex">\[
+\frac{f(1+h)-f(1)}h=2+h,\qquad
+f(1+h)-L_1(1+h)=h^2.
+\]</div>
+<p>因此 <span class="arithmatex">\(h=0.1,0.05,0.025\)</span> 时，割线误差分别为 <span class="arithmatex">\(0.1,0.05,0.025\)</span>，线性化误差分别为 <span class="arithmatex">\(0.01,0.0025,0.000625\)</span>。误差比在 <span class="arithmatex">\(h\)</span> 减半时分别约为 <span class="arithmatex">\(1/2\)</span> 与 <span class="arithmatex">\(1/4\)</span>，这是当前解析模型的有限账本，不是对任意函数的无条件阶数证明。</p>
+<div class="learning-lab" data-learning-lab="derivative-local-linearity">
+<p><strong>无 JavaScript 时的静态读法：</strong>表中“割线误差”比较差商与真实导数；“线性化误差”比较函数值与切线；<span class="arithmatex">\(|x|\)</span> 的导数栏应写“不存在”，<span class="arithmatex">\(x^2\)</span> 在 <span class="arithmatex">\(0\)</span> 的反函数差商则随 <span class="arithmatex">\(y\downarrow0\)</span> 像 <span class="arithmatex">\(1/\sqrt y\)</span> 发散。脚本揭示后可切换模型和步长，但每一行仍只对应所选解析模型。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th style="text-align: right;"><span class="arithmatex">\(f'(a)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(h=0.1\)</span> 的割线读数</th>
+<th style="text-align: right;"><span class="arithmatex">\(h=0.1\)</span> 的线性化误差</th>
+<th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(x^2\)</span> at <span class="arithmatex">\(a=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.1\)</span>，误差 <span class="arithmatex">\(0.1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.01\)</span></td>
+<td>一阶 / 二阶缩放</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x^3\)</span> at <span class="arithmatex">\(a=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.31\)</span>，误差 <span class="arithmatex">\(0.31\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.031\)</span></td>
+<td>仍需 <span class="arithmatex">\(C^2\)</span> 邻域控制</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lvert x\rvert\)</span> at <span class="arithmatex">\(a=0\)</span></td>
+<td style="text-align: right;">不存在</td>
+<td style="text-align: right;">左 <span class="arithmatex">\(-1\)</span>、右 <span class="arithmatex">\(+1\)</span></td>
+<td style="text-align: right;">无单一切线</td>
+<td>不可导，不能补一个导数</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x^2\)</span> at <span class="arithmatex">\(a=0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1\)</span>，误差 <span class="arithmatex">\(0.1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.01\)</span></td>
+<td>取 <span class="arithmatex">\(y=h^2\)</span> 时，反函数差商 <span class="arithmatex">\(1/\sqrt y=1/\lvert h\rvert\)</span> 发散</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4">4. 定理假设与失效边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>均值定理/Taylor 的条件</strong>：上述误差阶需要在包含 <span class="arithmatex">\(a\)</span> 与 <span class="arithmatex">\(a+h\)</span> 的邻域内有相应的连续性、可导性或二阶导数有界；单个网格上看到斜率并不提供这些条件。</li>
+<li><strong>尖角不是“数值噪声”</strong>：<span class="arithmatex">\(|x|\)</span> 的左右导数不相等，任何有限差分方案都只能报告方向依赖，不能制造经典导数。</li>
+<li><strong>逆函数定理的非退化条件</strong>：一元公式 <span class="arithmatex">\((f^{-1})'(f(a))=1/f'(a)\)</span> 要求局部一一对应并且 <span class="arithmatex">\(f'(a)\ne0\)</span>。<span class="arithmatex">\(x^2\)</span> 在 <span class="arithmatex">\(0\)</span> 的右侧有逆分支 <span class="arithmatex">\(\sqrt y\)</span>，但其导数发散；在整个邻域还不是一一映射。</li>
+<li><strong>数值与定理分层</strong>：误差表和 SVG 是固定函数、固定步长的有限数值证据；“<span class="arithmatex">\(O(|h|)\)</span> / <span class="arithmatex">\(O(h^2)\)</span>”是带假设的定理级陈述，不能由一张表外推到不可导或更差正则性的函数。</li>
+</ul>
+</div>
+</section>
+<h2 id="1_1">1. 导数与微分<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(f'(x_0) = \lim\limits_{\Delta x \to 0} \dfrac{f(x_0 + \Delta x) - f(x_0)}{\Delta x}\)</span>。等价说法（微分）：<span class="arithmatex">\(f(x_0 + \Delta x) = f(x_0) + A\,\Delta x + o(\Delta x)\)</span>，<span class="arithmatex">\(A = f'(x_0)\)</span>——<strong>可微 = 可用线性函数局部逼近</strong>，这个视角推广到多元时才是本体（数分 V）。</p>
 <figure class="plot">
 <p><img alt="割线随 h 趋于 0 转成切线" src="assets/img/analysis-02-derivative-tangent.svg" /></p>
@@ -62,7 +162,7 @@
 <p><strong>求导法则</strong>：四则、复合（链式法则 <span class="arithmatex">\(\frac{dy}{dx} = \frac{dy}{du}\frac{du}{dx}\)</span>）、反函数（<span class="arithmatex">\([f^{-1}]{}' = 1/f'\)</span>）、参数方程 <span class="arithmatex">\(\frac{dy}{dx} = \frac{y'_t}{x'_t}\)</span>、隐函数（两边求导）、对数求导法（幂指函数 <span class="arithmatex">\(u^v\)</span>）。</p>
 <p><strong>基本导数表</strong>（默写级）：<span class="arithmatex">\((x^\alpha)' = \alpha x^{\alpha-1}\)</span>，<span class="arithmatex">\((e^x)' = e^x\)</span>，<span class="arithmatex">\((\ln x)' = \frac1x\)</span>，<span class="arithmatex">\((\sin x)' = \cos x\)</span>，<span class="arithmatex">\((\cos x)' = -\sin x\)</span>，<span class="arithmatex">\((\tan x)' = \sec^2 x\)</span>，<span class="arithmatex">\((\arcsin x)' = \frac{1}{\sqrt{1-x^2}}\)</span>，<span class="arithmatex">\((\arctan x)' = \frac{1}{1+x^2}\)</span>。</p>
 <p><strong>高阶导数</strong>：Leibniz 公式 <span class="arithmatex">\((uv)^{(n)} = \sum_{k=0}^n \binom{n}{k} u^{(k)} v^{(n-k)}\)</span>（形如二项式）。</p>
-<h2 id="2">2. 中值定理链（本页主梁）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 中值定理链（本页主梁）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="中值定理：存在 c 使切线平行于割线" src="assets/img/analysis-02-mvt.svg" /></p>
 <figcaption><span class="fig-id">图 2.2</span>Lagrange 中值定理：割线 \(a\to b\) 的斜率，必在某个内点 \(c\) 处被切线复现——\(f'(c)=\frac{f(b)-f(a)}{b-a}\)。</figcaption>
@@ -98,7 +198,7 @@ e^x = 1 + x + \frac{x^2}{2!} + \cdots + \frac{x^n}{n!} + o(x^n), \qquad
 (1+x)^\alpha = 1 + \alpha x + \frac{\alpha(\alpha-1)}{2!}x^2 + \cdots
 \]</div>
 <p>🔗 <strong>AI 衔接</strong>：一阶 Taylor 是梯度下降的全部理论依据（ai 课 04 讲）；二阶 Taylor + Hessian 是 Newton 法与凸优化的语言（数分 V、运筹页）。</p>
-<h2 id="4">4. 导数的应用<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 导数的应用<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>单调性</strong>：<span class="arithmatex">\(f' &gt; 0\)</span> 于区间 ⇒ 严格递增（Lagrange 直接得）。<strong>极值判别</strong>：一阶（<span class="arithmatex">\(f'\)</span> 变号）；二阶（<span class="arithmatex">\(f'(x_0)=0, f''(x_0)&gt;0\)</span> ⇒ 极小）。</p>
 <p><strong>凸性</strong>：<span class="arithmatex">\(f\)</span> 凸 <span class="arithmatex">\(\iff \forall \lambda \in [0,1]:\ f(\lambda x + (1-\lambda)y) \leq \lambda f(x) + (1-\lambda)f(y)\)</span> <span class="arithmatex">\(\iff f'' \geq 0\)</span>（若二阶可导）<span class="arithmatex">\(\iff\)</span> 图像在任意切线上方。<strong>拐点</strong>：凸性改变的点。</p>
 <p><strong>定理（Jensen 不等式）</strong> <span class="arithmatex">\(f\)</span> 凸，<span class="arithmatex">\(\lambda_i \geq 0, \sum \lambda_i = 1\)</span>：</p>
@@ -125,5 +225,7 @@ f\Big(\sum_i \lambda_i x_i\Big) \leq \sum_i \lambda_i f(x_i)
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/derivative-local-linearity.js"></script>
 </body>
 </html>

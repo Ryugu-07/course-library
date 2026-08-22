@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +41,25 @@
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一条回放曲线，离定理还差哪些条件？</a><ul>
+<li><a href="#1">1. 具体情境：用带噪报价追一个隐藏均值</a></li>
+<li><a href="#2">2. 先预测：打开回放前写下三个判断</a></li>
+<li><a href="#3">3. 最小模型：四本账分别回答什么</a></li>
+<li><a href="#4">4. 静态后备：把有限证据和定理前提并排列出</a></li>
+<li><a href="#5-off-policy">5. 定理假设与失败边界：off-policy 这三个字没有魔法</a></li>
+</ul>
+</li>
 <li><a href="#1-robbinsmonro">1. Robbins–Monro：带噪解方程</a></li>
 <li><a href="#2-td">2. TD 学习：采样版策略评估</a></li>
 <li><a href="#3-q-learning">3. Q-learning：采样版价值迭代</a></li>
-<li><a href="#4">4. 统计与学习线收官盘点</a></li>
+<li><a href="#4_1">4. 统计与学习线收官盘点</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -50,6 +69,85 @@
 <p><strong>对标</strong>：Szepesvári §3 / Borkar（随机逼近）｜ <strong>前置</strong>：mdp-01/02、mt-03/04（鞅）、优化 II
 模型未知时，Bellman 迭代的期望算不了——只能用<strong>采样代替期望</strong>。这正是 <strong>Robbins–Monro 随机逼近</strong>（1951）的问题形态：用带噪观测解方程。本页给随机逼近的框架与鞅证明思路，然后把 TD 与 Q-learning 安放进去——"RL 算法为何收敛"的正式答案，统计与学习线收官。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="stochastic-approximation-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一条回放曲线，离定理还差哪些条件？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：用带噪报价追一个隐藏均值<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先看最小 Robbins–Monro 问题：目标是 <span class="arithmatex">\(\theta^*=2\)</span>，第 <span class="arithmatex">\(t\)</span> 次只能观察</p>
+<div class="arithmatex">\[
+Y_t=\theta^*-\theta_t+\xi_{t+1},\qquad
+\theta_{t+1}=\theta_t+\alpha_tY_t.
+\]</div>
+<p>若 <span class="arithmatex">\(\xi_{t+1}\)</span> 在过去信息 <span class="arithmatex">\(\mathcal F_t\)</span> 条件下均值为零，它是鞅差噪声；算法会把漂移 <span class="arithmatex">\(\theta^*-\theta_t\)</span> 累积起来，同时让平方可和的噪声总方差有限。Q-learning 只是把标量 <span class="arithmatex">\(\theta\)</span> 换成表格中的某一个 <span class="arithmatex">\((s,a)\)</span> 分量，并把漂移换成 Bellman 最优性残差。</p>
+<p>下面的实验使用<strong>固定回放序列</strong>，所以每次刷新都能复现；这正是一个有限数值审计，不是从一条噪声序列推出几乎处处收敛的证据。</p>
+<h3 id="2">2. 先预测：打开回放前写下三个判断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li><span class="arithmatex">\(\alpha_t=1/(t+1)\)</span>、<span class="arithmatex">\(1/\sqrt{t+1}\)</span> 和常数步长中，哪些同时满足 <span class="arithmatex">\(\sum\alpha_t=\infty\)</span> 与 <span class="arithmatex">\(\sum\alpha_t^2&lt;\infty\)</span>？</li>
+<li>一条固定的有限回放轨迹看起来靠近 <span class="arithmatex">\(\theta^*\)</span>，能否单独证明 Robbins–Monro 或 Q-learning 的几乎处处收敛？</li>
+<li>Q-learning 使用别的行为策略产生的数据时，表格目标仍可 off-policy；这是否意味着可以不再无穷多次访问每个 <span class="arithmatex">\((s,a)\)</span>，或可以无条件推广到函数逼近？</li>
+</ol>
+<h3 id="3">3. 最小模型：四本账分别回答什么<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>随机逼近的骨架是</p>
+<div class="arithmatex">\[
+\theta_{t+1}=\theta_t+\alpha_t\big(h(\theta_t)+M_{t+1}\big),
+\qquad E[M_{t+1}\mid\mathcal F_t]=0.
+\]</div>
+<p>经典收敛定理至少要把四件事写清楚：</p>
+<ol>
+<li><strong>步长账</strong>：<span class="arithmatex">\(\sum_t\alpha_t=\infty\)</span> 让确定性漂移有足够总路程，<span class="arithmatex">\(\sum_t\alpha_t^2&lt;\infty\)</span> 让有界条件二阶矩噪声的累积方差受控；常数步长只给稳态邻域内的跟踪/震荡。</li>
+<li><strong>噪声账</strong>：<span class="arithmatex">\(M_{t+1}\)</span> 必须是相对于当前过滤的鞅差，且通常要求条件二阶矩有界或满足适当增长界。固定交替数组可以作可复现的教学输入，却没有自动生成“鞅差过程”的资格。</li>
+<li><strong>访问账</strong>：异步 Q-learning 对每个 <span class="arithmatex">\((s,a)\)</span> 使用自己的访问计数和步长；表格收敛定理要求每一对被访问无穷次。有限回放中“访问过一次”只是一条覆盖记录。</li>
+<li><strong>逼近账</strong>：表格 Bellman 最优性算子在 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 下是压缩映射；off-policy 只说明目标中的 <span class="arithmatex">\(\max\)</span> 不依赖行为策略，不会替函数逼近、投影或分布偏移提供压缩性。</li>
+</ol>
+<h3 id="4">4. 静态后备：把有限证据和定理前提并排列出<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="stochastic-approximation">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定回放以 <span class="arithmatex">\(\xi=(0.8,-0.6,0.4,-0.2,-0.8,0.6,-0.4,0.2)\)</span> 周期重复，目标为 <span class="arithmatex">\(\theta^*=2\)</span>。它只用于比较同一条有限序列下的更新，不代表独立噪声或鞅差假设。步长的理论分类如下：</p>
+<table>
+<thead>
+<tr>
+<th>步长</th>
+<th><span class="arithmatex">\(\sum\alpha_t\)</span></th>
+<th><span class="arithmatex">\(\sum\alpha_t^2\)</span></th>
+<th>定理级读法</th>
+<th>有限回放能说什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(1/(t+1)\)</span></td>
+<td>发散</td>
+<td>收敛</td>
+<td>满足经典 RM 步长条件</td>
+<td>轨迹通常逐渐稳住，但仍只是有限证据</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(1/\sqrt{t+1}\)</span></td>
+<td>发散</td>
+<td>发散</td>
+<td>平方不可和，不能直接套经典噪声收敛定理</td>
+<td>可画出仍在平均噪声的曲线</td>
+</tr>
+<tr>
+<td>常数 <span class="arithmatex">\(0.15\)</span></td>
+<td>发散</td>
+<td>发散</td>
+<td>适合跟踪漂移，不给精确 a.s. 收敛</td>
+<td>可能快速接近后保持残余震荡</td>
+</tr>
+</tbody>
+</table>
+<p>Q-learning 账本还要显示每个 <span class="arithmatex">\((s,a)\)</span> 的访问次数。完整固定回放覆盖四个表格分量；稀疏回放只访问两个分量，即使最后两条曲线接近，也不能把缺失分量的值写成 <span class="arithmatex">\(Q^*\)</span>。实验揭示后会同时显示 RM 轨迹、Q 更新表、步长部分和访问覆盖；“模型已知的 Bellman 参考值”只是当前有限 toy 的对照。</p>
+<h3 id="5-off-policy">5. 定理假设与失败边界：off-policy 这三个字没有魔法<a class="headerlink" href="#5-off-policy" title="Permanent link"></a></h3>
+<ul>
+<li><strong>表格 Watkins–Dayan 型结论</strong>需要有限状态动作空间、有界奖励、<span class="arithmatex">\(0\le\gamma&lt;1\)</span>，每个 <span class="arithmatex">\((s,a)\)</span> 无穷访问，以及按该分量计数的步长满足两条级数条件；还需把转移/奖励噪声放进合适的条件均值和矩界中。</li>
+<li><strong>TD 评估</strong>的无偏采样与压缩性依赖 on-policy 表格设定；线性逼近通常只能谈投影不动点，off-policy 加 bootstrapping 加函数逼近可能破坏稳定性。</li>
+<li><strong>目标策略与行为策略可分离</strong>是 Q-learning 的结构优势：<span class="arithmatex">\(\max_{a'}Q(s',a')\)</span> 不要求行为策略本身贪心。但行为分布仍必须提供定理所需的覆盖；否则“off-policy”不等于“无访问条件”。</li>
+<li><strong>有限数值不是概率论结论</strong>：固定回放、单条轨迹和有限步误差可以揭示更新方向、覆盖缺口和残余震荡，不能证明对所有样本路径 a.s. 收敛，也不能给出未声明的速率。</li>
+</ul>
+<p>因此，实验中的“接近参考值”是<strong>有限数值证据</strong>；带有步长、鞅差、稳定平衡点和访问条件的收敛陈述才是<strong>定理级断言</strong>。</p>
+</div>
+</section>
 <h2 id="1-robbinsmonro">1. Robbins–Monro：带噪解方程<a class="headerlink" href="#1-robbinsmonro" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：解 <span class="arithmatex">\(h(\theta) = 0\)</span>，但只能观测 <span class="arithmatex">\(h(\theta_t) + \xi_t\)</span>（噪声）。<strong>RM 迭代</strong>：</p>
 <div class="arithmatex">\[
@@ -59,9 +157,9 @@
 <div class="arithmatex">\[
 \sum_t \alpha_t = \infty, \qquad \sum_t \alpha_t^2 &lt; \infty
 \]</div>
-<p>② 噪声是鞅差（<span class="arithmatex">\(E[\xi_t\mid\mathcal{F}_t] = 0\)</span>、二阶矩有界）；③ <span class="arithmatex">\(h\)</span> 有全局渐近稳定平衡点 <span class="arithmatex">\(\theta^*\)</span>（如 <span class="arithmatex">\(h = -\nabla f\)</span>，<span class="arithmatex">\(f\)</span> 强凸），则 <span class="arithmatex">\(\theta_t \to \theta^*\)</span> a.s.</p>
+<p>② 噪声是鞅差（<span class="arithmatex">\(E[\xi_t\mid\mathcal{F}_t] = 0\)</span>、条件二阶矩受控）；③ <span class="arithmatex">\(h\)</span> 有全局渐近稳定平衡点 <span class="arithmatex">\(\theta^*\)</span>（如 <span class="arithmatex">\(h = -\nabla f\)</span>，<span class="arithmatex">\(f\)</span> 强凸）；④ 迭代保持有界或另有稳定性论证，则在相应技术条件下 <span class="arithmatex">\(\theta_t \to \theta^*\)</span> a.s.</p>
 <p><strong>【骨架（鞅方法的结构）】</strong> 分解更新 = 确定性漂移 + 鞅增量：累积噪声 <span class="arithmatex">\(M_T = \sum\alpha_t\xi_t\)</span> 是鞅且 <span class="arithmatex">\(\sum E[(\alpha_t\xi_t)^2] \leq C\sum\alpha_t^2 &lt; \infty\)</span> ⇒ <strong>鞅收敛定理</strong>（mt-04：<span class="arithmatex">\(L^2\)</span> 有界鞅 a.s. 收敛）说噪声的累积效应有限；剩余的确定性部分靠 <span class="arithmatex">\(\sum\alpha_t = \infty\)</span> 走完到 <span class="arithmatex">\(\theta^*\)</span> 的路程（Lyapunov 函数 <span class="arithmatex">\(\|\theta_t - \theta^*\|^2\)</span> 的超鞅论证：Robbins–Siegmund 引理【引用】收尾）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>步长条件的读法（RL 每个从业者该会背的一对级数）</strong>：<span class="arithmatex">\(\sum\alpha = \infty\)</span>——"总步长要够走到任何地方"（走得完）；<span class="arithmatex">\(\sum\alpha^2 &lt; \infty\)</span>——"噪声的累积方差有限"（噪声被平均掉）。<span class="arithmatex">\(\alpha_t = 1/t\)</span> 恰好双满足；常数步长则收敛到 <span class="arithmatex">\(\theta^*\)</span> 的邻域内震荡（工程常态：换稳态精度买适应性）。<strong>SGD 正是 <span class="arithmatex">\(h = -\nabla f\)</span> 的 RM</strong>——优化 II 的收敛速率表与本页 a.s. 收敛是同一算法的两面（速率 vs 必达）。（ODE 方法一嘴【引用 Borkar】：<span class="arithmatex">\(\theta_t\)</span> 的插值轨迹逼近 ODE <span class="arithmatex">\(\dot\theta = h(\theta)\)</span>——"随机算法的极限行为 = 常微分方程"，本科 ode-03 的相图分析由此接管 RL 算法的定性分析。）</p>
+<p><strong>步长条件的读法（RL 每个从业者该会背的一对级数）</strong>：<span class="arithmatex">\(\sum\alpha = \infty\)</span>——"总步长要够走到任何地方"（走得完）；<span class="arithmatex">\(\sum\alpha^2 &lt; \infty\)</span>——"噪声的累积方差有限"（噪声被平均掉）。<span class="arithmatex">\(\alpha_t = 1/t\)</span> 恰好双满足；常数步长在稳定漂移与适当噪声条件下通常形成稳态误差邻域，而不提供精确 a.s. 收敛（工程上以稳态精度换适应性）。<strong>SGD 正是 <span class="arithmatex">\(h = -\nabla f\)</span> 的 RM</strong>——优化 II 的收敛速率表与本页 a.s. 收敛是同一算法的两面（速率 vs 必达）。（ODE 方法一嘴【引用 Borkar】：<span class="arithmatex">\(\theta_t\)</span> 的插值轨迹逼近 ODE <span class="arithmatex">\(\dot\theta = h(\theta)\)</span>——"随机算法的极限行为 = 常微分方程"，本科 ode-03 的相图分析由此接管 RL 算法的定性分析。）</p>
 <h2 id="2-td">2. TD 学习：采样版策略评估<a class="headerlink" href="#2-td" title="Permanent link"></a></h2>
 <p>评估 <span class="arithmatex">\(V^\pi\)</span> 的 Bellman 方程 <span class="arithmatex">\(V = T^\pi V\)</span>，模型未知时用转移采样 <span class="arithmatex">\((s_t, r_t, s_{t+1})\)</span>：</p>
 <div class="arithmatex">\[
@@ -75,7 +173,7 @@ Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha_t\big[r_t + \gamma\max_{a'}Q(s_{t+1}
 <p><strong>定理（Watkins–Dayan）</strong> 表格情形，若每个 <span class="arithmatex">\((s,a)\)</span> 被访问无穷次且步长满足 RM 条件（逐状态动作），则 <span class="arithmatex">\(Q_t \to Q^*\)</span> a.s.
 <strong>【骨架】</strong> <span class="arithmatex">\(h(Q) = TQ - Q\)</span>（<span class="arithmatex">\(T\)</span> = 最优性算子）：期望方向正确（<span class="arithmatex">\(\max\)</span> 的采样版无偏于……注意 <span class="arithmatex">\(\max\)</span> 在<strong>下一状态</strong>的 <span class="arithmatex">\(Q\)</span> 上、采样在转移上——仍无偏）；<span class="arithmatex">\(T\)</span> 的 <span class="arithmatex">\(\gamma\)</span>-压缩性（mdp-01）+ RM 框架的异步版本（各分量以不同频率更新——"异步随机逼近"【引用 Tsitsiklis】）收口。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>三个实践对应</strong>：<strong>探索条件</strong>（"每个 (s,a) 无穷次"）= ε-greedy 存在的数学理由——不探索则收敛定理前提破产；<strong>off-policy 合法性</strong>：<span class="arithmatex">\(Q\)</span>-learning 的目标算子不依赖行为策略（max 内生）——可以边看别人的数据边学最优，但也正因此与函数逼近相性差（三合一的成员）；<strong>maximization bias</strong>：<span class="arithmatex">\(E\max \geq \max E\)</span>（Jensen）使 <span class="arithmatex">\(\max_{a'}Q\)</span> 系统性高估——Double Q-learning 的动机（把"选择"与"评估"分开解耦偏差【引用】）。</p>
-<h2 id="4">4. 统计与学习线收官盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 统计与学习线收官盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -104,7 +202,7 @@ Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha_t\big[r_t + \gamma\max_{a'}Q(s_{t+1}
 </table>
 <p>三门课共用的底座正是概率与分析线（CLT/鞅/压缩映像/集中不等式）——研究生数学"先立地基再盖楼"的结构在此完整呈现。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（步长实验设计）</strong> 表格 Q-learning 跑 GridWorld：对比 <span class="arithmatex">\(\alpha_t = 1/t\)</span>（满足 RM，慢但必达）、<span class="arithmatex">\(\alpha = 0.1\)</span> 常数（快但震荡）、<span class="arithmatex">\(\alpha_t = 1/\sqrt t\)</span>（违反 <span class="arithmatex">\(\sum\alpha^2 &lt; \infty\)</span>？——不违反：<span class="arithmatex">\(\sum 1/t\)</span> 发散但 <span class="arithmatex">\(\sum 1/t^{}\)</span>…注意 <span class="arithmatex">\(\sum t^{-1}\)</span> 发散、<span class="arithmatex">\(\sum t^{-1/2\cdot2} = \sum t^{-1}\)</span> 发散——<strong><span class="arithmatex">\(1/\sqrt t\)</span> 不满足平方可和</strong>，理论上噪声不灭：实验观察其残余震荡）——把一对级数条件变成三条学习曲线。</p>
+<p><strong>例 1（步长实验设计）</strong> 表格 Q-learning 跑 GridWorld：对比 <span class="arithmatex">\(\alpha_t = 1/t\)</span>（满足两条 RM 级数条件）、<span class="arithmatex">\(\alpha = 0.1\)</span> 常数（两级数都发散）与 <span class="arithmatex">\(\alpha_t = 1/\sqrt t\)</span>。最后一项虽有 <span class="arithmatex">\(\sum_t\alpha_t=\infty\)</span>，但 <span class="arithmatex">\(\sum_t\alpha_t^2=\sum_t1/t=\infty\)</span>，故<strong>不满足平方可和</strong>；有限实验可比较三条学习曲线，却不能仅凭“看起来震荡/收敛”证明其 a.s. 极限。</p>
 <p><strong>例 2（maximization bias 亲手造）</strong> 两动作、真值全零、奖励噪声 <span class="arithmatex">\(N(0,1)\)</span>：<span class="arithmatex">\(E[\max_a \hat Q] \approx 0.56\)</span>（两个标准正态的最大值期望 <span class="arithmatex">\(= 1/\sqrt\pi\)</span>）——偏差凭空出现；Double 版消偏验证。</p>
 <p><strong>例 3（无穷访问的反例）</strong> 纯贪心（无探索）Q-learning：构造两臂问题使其以正概率永远锁死劣臂——收敛定理"每个 (s,a) 无穷次"条件的验尸；探索不是工程装饰而是定理前提。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
@@ -118,5 +216,7 @@ Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha_t\big[r_t + \gamma\max_{a'}Q(s_{t+1}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/stochastic-approximation.js"></script>
 </body>
 </html>

@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +43,24 @@
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-22 11:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：同一个微分方程，为什么边界一换谱就变？</a><ul>
+<li><a href="#1-bessel">1. 具体情境：圆膜半径把 Bessel 零点变成频率</a></li>
+<li><a href="#2">2. 先预测：函数值、边界残差与点源跳跃</a></li>
+<li><a href="#3">3. 三个可审计边界问题</a></li>
+<li><a href="#4">4. 失效边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 特殊函数：一个来源，一张表</a></li>
 <li><a href="#2-green">2. Green 函数：物理人的逆算子</a></li>
-<li><a href="#3">3. 渐近与量纲（物理人的两件防身器）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#3_1">3. 渐近与量纲（物理人的两件防身器）</a></li>
+<li><a href="#4_1">4. 练习与要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,6 +69,64 @@
 <p><strong>对标</strong>：Arfken 主干 / 梁昆淼下册 ｜ <strong>前置</strong>：数学站 pde/复变/泛函线（大部头已在彼处）
 数学物理方法的主体（复变、PDE、变分）你的数学站已建成——本页只补物理特有的两块：<strong>特殊函数全家福</strong>（它们不是杂技，全是"对称坐标系分离变量的必然产物"）与 <strong>Green 函数方法</strong>（物理人的"逆算子"语言）。定位：速查 + 认亲。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="special-function-boundaries-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一个微分方程，为什么边界一换谱就变？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-bessel">1. 具体情境：圆膜半径把 Bessel 零点变成频率<a class="headerlink" href="#1-bessel" title="Permanent link"></a></h3>
+<p>柱坐标分离 Helmholtz 方程后，径向方程出现 <span class="arithmatex">\(J_m(kr)\)</span>。但 <span class="arithmatex">\(J_m\)</span> 本身还不是频谱；固定圆膜边缘要求</p>
+<div class="arithmatex">\[
+J_m(kR)=0,
+\]</div>
+<p>于是 <span class="arithmatex">\(kR\)</span> 只能取 Bessel 零点。方程决定候选函数族，定义域、权重和边界条件共同决定自伴算子、正交关系与离散谱。只背“柱坐标用 Bessel”会漏掉真正完成量子化的那道边界证书。</p>
+<h3 id="2">2. 先预测：函数值、边界残差与点源跳跃<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li><span class="arithmatex">\(J_0(0)=1\)</span>，固定边缘条件 <span class="arithmatex">\(J_0(kR)=0\)</span> 的第一根是否会在 <span class="arithmatex">\(kR=0\)</span>？</li>
+<li>Legendre 多项式的正交性是否无需说明区间 <span class="arithmatex">\([-1,1]\)</span> 与权重？</li>
+<li>对 <span class="arithmatex">\(-u''=\delta(x-\xi)\)</span>，Green 函数的一阶导数应满足 <span class="arithmatex">\(G'_+-G'_-=+1\)</span> 还是 <span class="arithmatex">\(-1\)</span>？</li>
+</ol>
+<h3 id="3">3. 三个可审计边界问题<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="special-function-boundaries">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>方程/函数族</th>
+<th>边界证书</th>
+<th>可核对结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定圆膜轴对称模</td>
+<td><span class="arithmatex">\(J_0(kr)\)</span></td>
+<td><span class="arithmatex">\(J_0(kR)=0\)</span></td>
+<td>第一根 <span class="arithmatex">\(kR\approx2.4048\)</span></td>
+</tr>
+<tr>
+<td>球面轴对称角模</td>
+<td><span class="arithmatex">\(P_\ell(\cos\theta)\)</span></td>
+<td><span class="arithmatex">\([-1,1]\)</span> 上正则、权重 1</td>
+<td>不同 <span class="arithmatex">\(\ell\)</span> 正交</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(-u''=f,\ u(0)=u(L)=0\)</span></td>
+<td>分段线性 <span class="arithmatex">\(G(x,\xi)\)</span></td>
+<td>两端为零、连续</td>
+<td><span class="arithmatex">\(G'_+-G'_-=-1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>实验揭示后可切换三种模型：Bessel 页扫描并二分零点，Legendre 页用递推显示节点，Green 页移动点源并直接列左右导数。数值零点只验证当前低阶问题；完备性来自相应自伴 Sturm–Liouville 定理，而不是曲线看起来“够多”。</p>
+</div>
+<h3 id="4">4. 失效边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>实谱、正交与完备需要指定自伴域和边界条件；任意二阶方程不会自动继承整套结论。</li>
+<li>Green 函数依赖边界/初始或辐射条件。若算子有零模，普通逆不存在，需加规范、投影或广义逆。</li>
+<li><span class="arithmatex">\(J_m(x)\)</span> 的余弦渐近式是固定阶 <span class="arithmatex">\(m\)</span>、<span class="arithmatex">\(x\to+\infty\)</span> 的结论；阶与自变量同时变大要用一致渐近。</li>
+</ul>
+</section>
 <h2 id="1">1. 特殊函数：一个来源，一张表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Bessel 与 Legendre 函数" src="assets/img/mp-01-special-functions.svg" /></p>
@@ -105,13 +181,13 @@
 </tr>
 </tbody>
 </table>
-<p><strong>方法论读法</strong>：全家都是某个 <strong>Sturm–Liouville 问题</strong>的本征函数（pde-01 §2 / 泛函 III 紧自伴谱定理的实例）——因此自动继承三件套：<strong>实谱、正交性、完备展开</strong>。"用什么函数展开"从此不用记：<strong>看坐标系与势的形状</strong>，S–L 理论保证展开合法。物理人的实用三招：递推关系（升降指标）、母函数（一式生全家——概率 IV 母函数同名同宗）、渐近形式（大宗量 <span class="arithmatex">\(J_n \sim \sqrt{\frac{2}{\pi x}}\cos(\cdots)\)</span>——远场必成球面/柱面波的数学）。</p>
+<p><strong>方法论读法</strong>：这些函数族可安放进相应的 <strong>Sturm–Liouville 问题</strong>（pde-01 §2 / 泛函 III 自伴谱理论的实例）；在给定区间、权重与自伴边界条件后，才继承<strong>实谱、正交性、完备展开</strong>。"用什么函数展开"要同时看坐标系、势和边界。物理人的实用三招：递推关系、母函数、渐近形式；例如固定阶 <span class="arithmatex">\(n\)</span> 且 <span class="arithmatex">\(x\to+\infty\)</span> 时 <span class="arithmatex">\(J_n(x)\sim\sqrt{\frac{2}{\pi x}}\cos(\cdots)\)</span>，阶与自变量同时变大则需另一套一致渐近。</p>
 <h2 id="2-green">2. Green 函数：物理人的逆算子<a class="headerlink" href="#2-green" title="Permanent link"></a></h2>
 <p><strong>定义</strong>：线性算子 <span class="arithmatex">\(\hat L\)</span> 的点源响应</p>
 <div class="arithmatex">\[
 \hat L\,G(\mathbf r, \mathbf r') = \delta(\mathbf r - \mathbf r') \quad\Longrightarrow\quad u(\mathbf r) = \int G(\mathbf r, \mathbf r')\,f(\mathbf r')\,d\mathbf r'
 \]</div>
-<p>——<strong>"任意源 = 点源的叠加，解 = 点源响应的叠加"</strong>（线性性的全部利用；pde2-01 基本解的物理名字）。<span class="arithmatex">\(G = \hat L^{-1}\)</span> 的积分核——"逆算子"的具象。</p>
+<p>——<strong>"任意源 = 点源的叠加，解 = 点源响应的叠加"</strong>（线性性的全部利用；pde2-01 基本解的物理名字）。在边界/初始/辐射条件已固定且逆存在时，<span class="arithmatex">\(G\)</span> 是 <span class="arithmatex">\(\hat L^{-1}\)</span> 的积分核；有零模时需先投影或另加规范，不能直接逐谱除以零。</p>
 <p><strong>三大常客【推导/引用】</strong>：</p>
 <ul>
 <li><strong>静电</strong>：<span class="arithmatex">\(\hat L = -\nabla^2\)</span>，<span class="arithmatex">\(G = \frac{1}{4\pi|\mathbf r - \mathbf r'|}\)</span>——<strong>Coulomb 势本人</strong>（em-01 的叠加积分原来就是 Green 函数方法）；带边界的 <span class="arithmatex">\(G\)</span> = 镜像法的正式身份（镜像电荷 = 构造满足边界条件的 Green 函数）；</li>
@@ -120,12 +196,12 @@
 </ul>
 <p><strong>本征函数展开【推导】</strong>：<span class="arithmatex">\(G = \sum_n\frac{\varphi_n(\mathbf r)\varphi_n^*(\mathbf r')}{\lambda_n}\)</span>（把 <span class="arithmatex">\(\delta\)</span> 按完备基展开、逐项除本征值——"逆算子 = 谱的倒数"：泛函 III 谱定理的直接应用）。<strong>量子力学的传播子</strong>、场论的 Feynman 传播子（qft-02 的中心对象）都是这个结构——<strong>Green 函数是贯穿本站研究生板块的第一记号</strong>。</p>
 <p>🔗 对账：ML 里核回归的 kernel、GP 的协方差核在数学上同宗（正定核 = 某算子的 Green 函数/谱展开——Mercer 定理，数学站 ai 线）；"卷积响应"的世界观（信号系统/扩散模型的去噪核）同源。</p>
-<h2 id="3">3. 渐近与量纲（物理人的两件防身器）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 渐近与量纲（物理人的两件防身器）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>量纲分析</strong>：数学站建模页已立（Buckingham π）；物理补一句——<strong>自然单位制</strong>（<span class="arithmatex">\(\hbar = c = 1\)</span>：长度=时间=1/能量）是研究生板块的默认货币（qft/pp 线），换算锚点：<span class="arithmatex">\(\hbar c \approx 197\)</span> MeV·fm。</p>
 <p><strong>渐近展开一嘴</strong>：驻相法/最速下降（复变 III 围道思想的延伸【引用】）——大参数积分的物理直觉来源（短波极限 = 几何光学、经典极限 <span class="arithmatex">\(\hbar \to 0\)</span> = 驻相在经典路径——aqm-03 路径积分的预告）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（多极展开亲算）</strong> <span class="arithmatex">\(\frac{1}{|\mathbf r - \mathbf r'|} = \sum_\ell \frac{r'^\ell}{r^{\ell+1}}P_\ell(\cos\theta)\)</span>（母函数定义本身）——远场电势 = 单极 + 偶极 + 四极…（ced-01 的主粮）；"远看任何电荷分布都像点电荷 + 修正"的数学。</p>
-<p><strong>例 2（Green 函数用法演示）</strong> 一维弦 <span class="arithmatex">\(-u'' = f\)</span>、两端固定：<span class="arithmatex">\(G(x, x') = \frac{x_&lt;(L - x_&gt;)}{L}\)</span>（分段线性、在 <span class="arithmatex">\(x'\)</span> 处导数跳 1——验证两条件即得）；任意载荷的挠度一个积分完事——工程与物理共用的"影响函数"。</p>
+<p><strong>例 2（Green 函数用法演示）</strong> 一维弦 <span class="arithmatex">\(-u'' = f\)</span>、两端固定：<span class="arithmatex">\(G(x, x') = \frac{x_&lt;(L - x_&gt;)}{L}\)</span>（分段线性、在 <span class="arithmatex">\(x'\)</span> 处满足 <span class="arithmatex">\(G'_+-G'_-=-1\)</span>，因此 <span class="arithmatex">\(-G''=\delta\)</span>）；任意载荷的挠度一个积分完事——工程与物理共用的"影响函数"。</p>
 <p><strong>例 3（自然单位换算）</strong> 质子质量 938 MeV ⇒ 康普顿波长 <span class="arithmatex">\(\frac{\hbar c}{mc^2} = \frac{197}{938} \approx 0.21\)</span> fm——核物理尺度一秒读出：自然单位制的日常红利。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>本科板块 20 页全部完卷。研究生板块开幕：高等量子力学——对称性接管量子理论。</em></p>
@@ -138,5 +214,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/special-function-boundaries.js"></script>
 </body>
 </html>
