@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,14 +47,23 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 形核：新相的出生门槛</a></li>
+<li><a href="#materials-transformation-learning-title">学习层：给共析钢等温保温，先预测转变量再读 TTT 边界</a><ul>
+<li><a href="#1">1. 具体工程情境：同一根齿轮钢的等温转变窗口</a></li>
+<li><a href="#2-incubation-tttcct">2. 必须作答的预测门：incubation、半时间和 TTT/CCT</a></li>
+<li><a href="#3-jmak">3. 正式公式桥：JMAK 的转变分数、半时间和瞬时速率</a></li>
+<li><a href="#4-ttt">4. 动手实验：让等温账本与 TTT 风格曲线联动</a></li>
+<li><a href="#5-">5. 形核-长大解释与模型边界</a></li>
+<li><a href="#6">6. 正式映射与工程后果</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 形核：新相的出生门槛</a></li>
 <li><a href="#2-ttt">2. TTT 图：动力学的时刻表</a></li>
 <li><a href="#3">3. 马氏体：不扩散的政变</a></li>
 <li><a href="#4">4. 相变工具箱的通用性</a></li>
@@ -49,20 +73,116 @@
 </details>
 <h1 id="iii">热力 III · 相变与热处理：组织的操纵术<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>同一根共析钢，慢冷是软的珠光体、快冷是硬三倍的马氏体——<strong>成分没变一个原子，性能天差地别</strong>：这就是"工艺→结构→性能"主线最戏剧化的舞台。本页装配两台机器（形核-长大、TTT 图），然后走完钢铁热处理的标准剧目：退火、淬火、回火。</p>
+<p>同一根共析钢，慢冷常得到较软的珠光体，足够快的冷却则可能得到显著更硬的马氏体——<strong>成分没变一个原子，性能仍可天差地别</strong>：这就是"工艺→结构→性能"主线最戏剧化的舞台。本页装配两台机器（形核-长大、TTT 图），然后走完钢铁热处理的标准剧目：退火、淬火、回火。</p>
 </blockquote>
-<h2 id="1">1. 形核：新相的出生门槛<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-transformation-learning-title" class="learning-layer">
+<h2 id="materials-transformation-learning-title">学习层：给共析钢等温保温，先预测转变量再读 TTT 边界<a class="headerlink" href="#materials-transformation-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：同一根齿轮钢的等温转变窗口<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把奥氏体化后的钢件快速送到某个恒定温度并保持。工艺工程师想回答：保温 <span class="arithmatex">\(90\ \mathrm s\)</span> 后有多少相变？何时达到一半？当前转变速率是否已越过峰值？这是一条<strong>等温</strong>问题；若实际炉子连续降温，就必须换用 CCT 或经过校准的非等温方法。</p>
+<h3 id="2-incubation-tttcct">2. 必须作答的预测门：incubation、半时间和 TTT/CCT<a class="headerlink" href="#2-incubation-tttcct" title="Permanent link"></a></h3>
+<p>先判断三项：<span class="arithmatex">\(t\le t_i\)</span> 时转变分数是否已经增长？<span class="arithmatex">\(f=0.5\)</span> 的时间是否由 <span class="arithmatex">\(t_i+(\ln2/k)^{1/n}\)</span> 给出？TTT 曲线能否直接当作任意连续冷却的 CCT 曲线？互动实验会在提交后揭示答案。</p>
+<h3 id="3-jmak">3. 正式公式桥：JMAK 的转变分数、半时间和瞬时速率<a class="headerlink" href="#3-jmak" title="Permanent link"></a></h3>
+<p>对固定温度、固定参数的等温保持，取</p>
+<div class="arithmatex">\[
+f(t)=
+\begin{cases}
+0,&amp;t\le t_i,\\
+1-\exp[-k(T)(t-t_i)^n],&amp;t&gt;t_i.
+\end{cases}
+\]</div>
+<p>其中 <span class="arithmatex">\(k\)</span> 的单位是 <span class="arithmatex">\(\mathrm{s^{-n}}\)</span>，<span class="arithmatex">\(n\)</span> 无量纲。于是</p>
+<div class="arithmatex">\[
+t_{50}=t_i+\left(\frac{\ln2}{k}\right)^{1/n},
+\qquad
+\frac{df}{dt}=nk(t-t_i)^{n-1}\exp[-k(t-t_i)^n].
+\]</div>
+<p>实验用一个可见的 TTT 风格温度代理：过冷驱动力随温度降低而增强，迁移率随温度升高而增强，两者乘积在中间温度形成“鼻尖”。在鼻尖把 <span class="arithmatex">\(k=\ln2/t_{50,\mathrm{nose}}^n\)</span> 归一化，所以零 incubation 时特征半时间确实读作 <span class="arithmatex">\(t_{50,\mathrm{nose}}\)</span>。</p>
+<h3 id="4-ttt">4. 动手实验：让等温账本与 TTT 风格曲线联动<a class="headerlink" href="#4-ttt" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-transformation-jmak">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(T=600\ ^\circ\mathrm C\)</span>、<span class="arithmatex">\(n=2.0\)</span>、<span class="arithmatex">\(t_i=10\ \mathrm s\)</span>、当前 <span class="arithmatex">\(t=90\ \mathrm s\)</span>、鼻尖特征半时间 <span class="arithmatex">\(60\ \mathrm s\)</span>。静态答案应至少保留以下可审计关系：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>公式 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>转变分数</td>
+<td><span class="arithmatex">\(f=0\)</span>（<span class="arithmatex">\(t\le t_i\)</span>）；否则 <span class="arithmatex">\(1-e^{-k(t-t_i)^n}\)</span></td>
+</tr>
+<tr>
+<td>默认温度速率形状 <span class="arithmatex">\(S(600\ ^\circ\mathrm C)\)</span></td>
+<td><span class="arithmatex">\(0.5729\)</span>；教学代理的中间温度速率</td>
+</tr>
+<tr>
+<td>速率常数</td>
+<td><span class="arithmatex">\(k(T)=\ln2\,S(T)/t_{50,\mathrm{nose}}^n\)</span>，单位 s<span class="arithmatex">\(^{-n}\)</span></td>
+</tr>
+<tr>
+<td>默认 <span class="arithmatex">\(k(600\ ^\circ\mathrm C)\)</span></td>
+<td><span class="arithmatex">\(1.103\times10^{-4}\)</span></td>
+</tr>
+<tr>
+<td>默认 <span class="arithmatex">\(f(90\ \mathrm s)\)</span></td>
+<td><span class="arithmatex">\(0.5063\)</span></td>
+</tr>
+<tr>
+<td>默认 <span class="arithmatex">\(df/dt\)</span></td>
+<td><span class="arithmatex">\(8.71\times10^{-3}\)</span></td>
+</tr>
+<tr>
+<td>半时间</td>
+<td><span class="arithmatex">\(t_{50}=t_i+(\ln2/k)^{1/n}\)</span></td>
+</tr>
+<tr>
+<td>默认 <span class="arithmatex">\(t_{50}\)</span> / <span class="arithmatex">\(t_{99}\)</span></td>
+<td><span class="arithmatex">\(89.27\)</span> / <span class="arithmatex">\(214.33\)</span></td>
+</tr>
+<tr>
+<td>TTT 鼻尖代理</td>
+<td><span class="arithmatex">\(667\)</span></td>
+</tr>
+<tr>
+<td>99% 时间</td>
+<td><span class="arithmatex">\(t_{99}=t_i+[-\ln(0.01)/k]^{1/n}\)</span></td>
+</tr>
+<tr>
+<td>温度图</td>
+<td>蓝/金/绿曲线分别是 1%/50%/99% 的<strong>等温</strong>时间；红点是当前保持</td>
+</tr>
+</tbody>
+</table>
+<p>TTT 鼻尖是中间温度的最快窗口，不是把曲线当成连续冷却路径的时刻表。</p>
+</div>
+<h3 id="5-">5. 形核-长大解释与模型边界<a class="headerlink" href="#5-" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(n\)</span> 是一段固定条件下的时间幂律摘要，可能同时吸收形核是否持续、有效长大维数、位点饱和、碰撞/阻塞和速率变化；<strong>拟合到同一个 <span class="arithmatex">\(n\)</span> 不等于看到了唯一显微机制</strong>。</li>
+<li>JMAK 的参数假定等温、均匀或可等效的形核-长大过程；温度连续变化时，<span class="arithmatex">\(k(T)\)</span> 和 <span class="arithmatex">\(n\)</span> 都可能变化，不能把一个等温拟合无条件外推。</li>
+<li>TTT 是等温转变图；CCT 是连续冷却转变图。把 TTT 直接沿冷却曲线读成 CCT 会漏掉温度历史、同时发生的转变与传热路径。additivity 规则或分步积分只有在经过校准、并满足相应独立性假设时才是近似。</li>
+<li>马氏体方面，对许多钢常用的<strong>无热激活（athermal）近似</strong>是：<span class="arithmatex">\(M_s\)</span> 以下的转变量主要由欠冷温度决定，在相关时间窗内对等温等待不敏感；这不是所有钢种、所有时间尺度和所有转变条件的普遍定律。</li>
+</ul>
+<h3 id="6">6. 正式映射与工程后果<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>JMAK 把保温时间映射为组织分数，TTT/CCT 把工艺路径映射为可达组织，最终还要通过珠光体片层、贝氏体/马氏体比例、回火状态和缺陷结构映射到硬度、强韧性与尺寸稳定性。工程决策不是“把 <span class="arithmatex">\(n\)</span> 调到某个机制”，而是用独立显微、硬度和热分析证据检验这套等温模型是否适用。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果连续冷却曲线在鼻尖附近只停留很短时间，你会直接读 TTT 的 50% 线，还是寻找 CCT/做分步热历史计算？若同样的 <span class="arithmatex">\(n\)</span> 出现在两种不同组织中，你还需要哪两类独立证据来区分它们？</p>
+</div>
+</section>
+<h2 id="1_1">1. 形核：新相的出生门槛<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>新相核心：体积上赚自由能（<span class="arithmatex">\(\Delta G_v &lt; 0\)</span>）、界面上赔（<span class="arithmatex">\(\gamma\)</span>）——半径 <span class="arithmatex">\(r\)</span> 的核账本 <span class="arithmatex">\(\Delta G = \frac43\pi r^3\Delta G_v + 4\pi r^2\gamma\)</span> 先升后降，<strong>临界半径</strong> <span class="arithmatex">\(r^* = -2\gamma/\Delta G_v\)</span>：小于它的胚胎会解散、翻过山头才能长大（【推】<span class="arithmatex">\(d\Delta G/dr = 0\)</span> 一步）。</p>
 <p><strong>两条推论定全局</strong>：① 过冷度 <span class="arithmatex">\(\Delta T\)</span> 越大 ⇒ <span class="arithmatex">\(|\Delta G_v| \propto \Delta T\)</span> 越大 ⇒ 门槛越低、形核越快——<strong>过冷是形核的燃料</strong>；② <strong>非均匀形核</strong>几乎总是主角：在容器壁/夹杂/晶界上借现成界面，门槛打折——纯净过冷水能到 -40 °C 不结冰、云要靠凝结核、铸造要加孕育剂细化晶粒，一条原理三个现场。</p>
 <h2 id="2-ttt">2. TTT 图：动力学的时刻表<a class="headerlink" href="#2-ttt" title="Permanent link"></a></h2>
 <p>形核率（要过冷）× 长大率（要扩散、要温度）两个相反的温度依赖相乘 ⇒ 转变速率在中间温度最快——<strong>C 曲线</strong>：</p>
 <figure class="plot">
 <p><img alt="TTT diagram with cooling paths" src="assets/img/mat-07-ttt.svg" /></p>
-<figcaption><span class="fig-id">图 7.1</span>共析钢 TTT 图（示意）：C 曲线鼻尖处转变最快（高温缺过冷、低温缺扩散）；绿色慢冷路径穿过 C 曲线得珠光体，红色淬火路径抢在鼻尖前冲到 \(M_s\) 线以下得马氏体——热处理就是在这张时刻表上"抢时间"。</figcaption>
+<figcaption><span class="fig-id">图 7.1</span>共析钢 TTT 图（机制示意）：C 曲线鼻尖处等温转变最快（高温缺过冷、低温缺扩散）。绿色慢冷与红色淬火线只帮助理解“是否绕过鼻尖”，不能从 TTT 图定量读取连续冷却组织；连续冷却必须查 CCT 图或经验证的热历史模型。</figcaption>
 </figure>
-<p><strong>读法</strong>：热处理设计 = 在这张图上画冷却曲线。避开鼻尖需要的冷速叫<strong>临界冷速</strong>；合金元素（Cr、Mo、Ni…）把 C 曲线右推 ⇒ 临界冷速下降 ⇒ <strong>淬透性</strong>提高——合金钢"好淬"的全部秘密（大件心部冷不快，淬透性决定能淬多厚）。【研：实际生产用连续冷却的 CCT 图，形状同源右移。】</p>
+<p><strong>读法</strong>：等温热处理设计 = 在这张图上标出快速到达的保持温度和保持时间；连续冷却设计应查<strong>CCT 图</strong>或使用经过验证的热历史模型。避开鼻尖所需的冷速只是特定合金、尺寸和起始组织下的临界量；合金元素（Cr、Mo、Ni…）常把转变窗口推向更长时间 ⇒ 临界冷速下降 ⇒ <strong>淬透性</strong>提高——合金钢"好淬"的一个关键原因（大件心部冷不快，淬透性决定能淬多厚）。</p>
 <h2 id="3">3. 马氏体：不扩散的政变<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>冷速快到原子来不及扩散重排时，FCC 奥氏体以<strong>切变</strong>方式瞬间集体倾倒成过饱和体心正方（BCT）结构——<strong>马氏体转变</strong>：无扩散（成分原封）、声速级、只看温度不看时间（<span class="arithmatex">\(M_s\)</span> 线是水平的）。过饱和碳把晶格撑歪 + 相变自带高密度位错/孪晶 ⇒ <strong>极硬极脆</strong>（结构 III"障碍物"的极端堆料）。</p>
+<p>冷速快到原子来不及扩散重排时，FCC 奥氏体可经<strong>切变</strong>形成过饱和体心正方（BCT）马氏体——<strong>马氏体转变</strong>：在许多钢的工程计算中，常用“低于 <span class="arithmatex">\(M_s\)</span> 后分数主要由欠冷温度决定、相关时间影响较小”的<strong>无热激活近似</strong>；这不是所有钢、所有温度路径和所有时间尺度的普适描述。过饱和碳把晶格撑歪 + 相变自带高密度位错/孪晶 ⇒ <strong>常表现为高硬度和较低韧性</strong>（结构 III"障碍物"的极端堆料）。</p>
 <p><strong>回火（与马氏体成对使用）</strong>：淬火后中温回炉，让碳部分析出成细碳化物——牺牲一点硬度换回韧性。<strong>淬火 + 回火 = 钢铁工业的标准组合拳</strong>："先把强化元素锁进晶格、再控制释放"——一句话讲完刀具、轴承、弹簧、齿轮的热处理哲学。</p>
 <p><strong>热处理剧目表</strong>（同一根钢的四种命运）：</p>
 <table>
@@ -103,7 +223,7 @@
 </table>
 <p>（等温剧目：奥氏体等温淬火得贝氏体——强韧介于两者之间【研：贝氏体机理至今仍有学术争论——扩散派 vs 切变派，一个本科页承载不下的百年公案，立牌】。）</p>
 <h2 id="4">4. 相变工具箱的通用性<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>这台"形核-长大 + 过冷驱动 + 扩散限速"的机器远不止炼钢：铝合金<strong>时效析出</strong>（下一站性能 I 的析出强化——汽车铝板与航空 7075 的强化引擎）、玻璃陶瓷的受控晶化（结构 IV 的微晶玻璃）、聚合物结晶（性能 III）、云滴与冰雹（大气物理）、<strong>蛋白质结晶与病理性聚集</strong>——一套语言通吃。JMAK 方程 <span class="arithmatex">\(f = 1 - \exp(-kt^n)\)</span> 描述转变分数的 S 曲线【研：Avrami 指数读机制】——又一条 S 形曲线（🔗 数学站建模页 Logistic 家族的远亲）。</p>
+<p>这台"形核-长大 + 过冷驱动 + 扩散限速"的机器远不止炼钢：铝合金<strong>时效析出</strong>（下一站性能 I 的析出强化——汽车铝板与航空 7075 的强化引擎）、玻璃陶瓷的受控晶化（结构 IV 的微晶玻璃）、聚合物结晶（性能 III）、云滴与冰雹（大气物理）、<strong>蛋白质结晶与病理性聚集</strong>——一套语言通吃。JMAK 方程 <span class="arithmatex">\(f = 1 - \exp(-kt^n)\)</span> 描述转变分数的 S 曲线；<span class="arithmatex">\(n\)</span> 是固定条件下的时间幂律摘要，不能单凭它唯一“读出机制”【研：需要独立显微和动力学证据】——又一条 S 形曲线（🔗 数学站建模页 Logistic 家族的远亲）。</p>
 <h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <ul>
 <li>共析钢临界冷速 ~10²–10³ °C/s（水淬边缘可达）；高合金工具钢可低至 &lt;1 °C/s（空冷即淬——"风硬钢"）；</li>
@@ -122,5 +242,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-transformation-jmak.js"></script>
 </body>
 </html>

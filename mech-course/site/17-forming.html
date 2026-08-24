@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、铸造：一次成形复杂形状</a></li>
-<li><a href="#_2">二、锻造：改善内部组织</a></li>
-<li><a href="#_3">三、板料成形</a></li>
-<li><a href="#_4">四、焊接：连接与它的代价</a></li>
+<li><a href="#forming-learning-title">学习层：把板料成形的形状、厚度和回弹放进同一账本</a><ul>
+<li><a href="#_1">具体工程情境：一块板料拉伸后的厚度与卸载方向</a></li>
+<li><a href="#_2">必须提交的三项预测</a></li>
+<li><a href="#_3">最小模型与假设：真应变、体积一致性与力代理</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">正式返回：从成形结果回到工艺验证</a></li>
+<li><a href="#_6">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、铸造：一次成形复杂形状</a></li>
+<li><a href="#_8">二、锻造：改善内部组织</a></li>
+<li><a href="#_9">三、板料成形</a></li>
+<li><a href="#_10">四、焊接：连接与它的代价</a></li>
 <li><a href="#dfm">五、面向制造的设计（DFM）</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +78,99 @@
 <p><strong>层次</strong>：本科核心 + 业界基础 ｜ <strong>本页讲原理与设计影响，不讲具体工艺参数</strong>（那些依赖设备、材料牌号与现场经验，须查标准与工艺手册）。
 机械设计的一条铁律：<strong>你只能设计出能被造出来的东西</strong>。而"能被造出来"取决于工艺。本页讲三类成形工艺——它们决定了零件的形状自由度、内部质量与成本结构。</p>
 </blockquote>
-<h2 id="_1">一、铸造：一次成形复杂形状<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="forming-learning-title" class="learning-layer">
+<h2 id="forming-learning-title">学习层：把板料成形的形状、厚度和回弹放进同一账本<a class="headerlink" href="#forming-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：一块板料拉伸后的厚度与卸载方向<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把一块初始为 <span class="arithmatex">\(100\times50\times2\,\mathrm{mm}\)</span> 的板料简化成均匀塑性流动的局部区域。成形后长度取 <span class="arithmatex">\(125\,\mathrm{mm}\)</span>、宽度取 <span class="arithmatex">\(48\,\mathrm{mm}\)</span>。工程师要先检查真应变是否满足体积近似守恒，再用一个明确标注为<strong>成形力代理</strong>的量筛查设备负荷，最后判断 <span class="arithmatex">\(90^\circ\)</span> 弯曲转角卸载后应朝哪个方向回弹。这个小模型不替代 FLD、材料本构或模具试验；它只把“变薄、受力、回弹”拆开对账。</p>
+<h3 id="_2">必须提交的三项预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在本例长度从 100 mm 拉长到 125 mm、宽度从 50 mm 变为 48 mm 且体积近似不变时，厚度会增大、减小，还是保持不变？</li>
+<li>对“弯曲转角”这个定义，卸载后的弹性回弹会让转角变大、变小，还是方向不确定？</li>
+<li>仅凭一个固定的成形极限数字，能否对所有材料、厚度、应变路径和工艺宣称普适安全？</li>
+</ol>
+<h3 id="_3">最小模型与假设：真应变、体积一致性与力代理<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>长度、宽度和厚度方向的真应变分别为</p>
+<div class="arithmatex">\[
+\varepsilon_L=\ln(L_1/L_0),\qquad
+\varepsilon_W=\ln(W_1/W_0),\qquad
+\varepsilon_t=\ln(t_1/t_0).
+\]</div>
+<p>塑性不可压缩的局部近似给出</p>
+<div class="arithmatex">\[
+\varepsilon_L+\varepsilon_W+\varepsilon_t\approx0,\qquad
+t_1=t_0\frac{L_0W_0}{L_1W_1}.
+\]</div>
+<p>为了给实验一个可核对的设备量级，定义</p>
+<div class="arithmatex">\[
+F_{\rm proxy}=\sigma_{\rm flow}\,W_1t_1\,\max(\varepsilon_L,0),
+\]</div>
+<p>其中 <span class="arithmatex">\(\sigma_{\rm flow}\)</span> 以 MPa、尺寸以 mm，故结果以 N 计。它是小应变、均匀流动、没有摩擦/圆角/压边力和应变硬化的<strong>成形力代理</strong>，只能用于比较参数趋势。实验还用一个默认 <span class="arithmatex">\(\varepsilon_{L,\rm screen}=0.25\)</span> 的过程筛查线；它是示例阈值，不是普适 FLC。</p>
+<p>若 <span class="arithmatex">\(\theta_f\)</span> 表示弯曲转角（越大代表越弯），用一个显式的弹性恢复比例 <span class="arithmatex">\(s\)</span> 做教学估计：</p>
+<div class="arithmatex">\[
+\theta_{\rm after}=\theta_f(1-s)&lt;\theta_f.
+\]</div>
+<p>因此“转角变小”与“内角打开”是同一方向的两种说法。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>真应变体积账只检查几何一致性；它没有告诉你局部是否颈缩、材料是否各向异性，也没有处理板厚方向的应力状态。</li>
+<li>FLD/成形极限曲线随材料牌号、板厚、润滑、模具圆角、应变路径和测量方法变化。lab 的筛查线必须叫 proxy，不能写成普适极限。</li>
+<li>回弹方向由卸载前的弯曲曲率、硬化、本构和模具接触决定；本页只对“正弯曲转角”给出减小的方向判断，不承诺所有复杂多道工序同样简单。</li>
+<li>真实成形力还包含压边力、摩擦、模具刚度和速度效应；试模与材料数据是工艺窗口的必要证据。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-forming-strain-limit">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(L_0=100\,\mathrm{mm}\)</span>、<span class="arithmatex">\(W_0=50\,\mathrm{mm}\)</span>、<span class="arithmatex">\(t_0=2.00\,\mathrm{mm}\)</span>，成形后 <span class="arithmatex">\(L_1=125\,\mathrm{mm}\)</span>、<span class="arithmatex">\(W_1=48\,\mathrm{mm}\)</span>，<span class="arithmatex">\(\sigma_{\rm flow}=320\,\mathrm{MPa}\)</span>，回弹比例 <span class="arithmatex">\(s=0.12\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>几何/成形账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\varepsilon_L\)</span> / <span class="arithmatex">\(\varepsilon_W\)</span></td>
+<td style="text-align: right;">0.2231 / −0.0408</td>
+<td>无量纲真应变</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_1\)</span></td>
+<td style="text-align: right;">1.667</td>
+<td>mm；体积近似守恒</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\varepsilon_t\)</span></td>
+<td style="text-align: right;">−0.1823</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>体积比 <span class="arithmatex">\(L_1W_1t_1/(L_0W_0t_0)\)</span></td>
+<td style="text-align: right;">1.000</td>
+<td>几何一致性检查</td>
+</tr>
+<tr>
+<td>成形力 proxy</td>
+<td style="text-align: right;">约 <span class="arithmatex">\(5.71\times10^3\)</span></td>
+<td>N；均匀流动近似</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\theta_f\to\theta_{\rm after}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(90^\circ\to79.2^\circ\)</span></td>
+<td>转角减小；内角打开</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验会显示真应变路径、厚度/体积表、力 proxy 和回弹几何；超过示例筛查线时只报告“proxy 超界”，不把它写成必然开裂。</p>
+</div>
+<h3 id="_5">正式返回：从成形结果回到工艺验证<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>本页的正式返回是：先用体积一致性检查几何账，再把成形力代理与设备能力比较，最后把回弹方向交给本构/模具修正与试验标定。任何“可成形”结论都必须带材料、厚度、应变路径、润滑和模具条件；lab 只负责让这些条件不能被一句经验话掩盖。</p>
+<h3 id="_6">迁移问题<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>若同一零件经过拉深、翻边和校形三道工序，你会怎样保留每一道的应变路径与中间厚度，而不是只比较最终长度？哪些测量或有限元结果能把这个力 proxy 升级成可用于模具验收的证据？</p>
+</section>
+<h2 id="_7">一、铸造：一次成形复杂形状<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>原理</strong>：熔融金属注入型腔，凝固成形。</p>
 <p><strong>优势</strong>：</p>
 <ul>
@@ -61,44 +178,44 @@
 <li><strong>材料利用率高</strong>，适合大批量；</li>
 <li>可铸造<strong>难以切削的材料</strong>（铸铁）。</li>
 </ul>
-<p><strong>固有问题（全部源于"凝固"这一物理过程）</strong>：</p>
-<p><strong>① 收缩与缩孔</strong>：金属凝固时体积收缩（钢约 3–5%）。<strong>最后凝固的部位若得不到补充，就形成缩孔</strong>。
+<p><strong>常见问题（主要与"凝固"这一物理过程有关）</strong>：</p>
+<p><strong>① 收缩与缩孔</strong>：许多金属在凝固时会收缩，收缩量随合金牌号、温度区间和凝固路径变化（钢的体积收缩可作约 3–5% 的量级示例，但不是所有铸造合金的常数）。<strong>最后凝固的部位若得不到补充，就可能形成缩孔</strong>。
 <strong>对策</strong>：<strong>冒口</strong>（额外的金属储备，让缩孔转移到冒口里，事后切除）、<strong>冷铁</strong>（局部加速冷却，控制凝固顺序）。<strong>核心思想是"顺序凝固"——让凝固从远端向冒口推进。</strong></p>
 <p><strong>② 壁厚要均匀</strong>：厚薄悬殊处，厚壁部位凝固慢、易缩孔，且冷却不均产生<strong>残余应力与变形</strong>。
 <strong>设计准则</strong>：<strong>避免局部厚大（热节）</strong>，用<strong>加强筋代替加厚</strong>——这与第三页"把材料移到外围"的结构原则不谋而合，两条准则在此互相支持。</p>
 <p><strong>③ 气孔、夹渣、偏析</strong>：需要合理的浇注系统与排气。</p>
-<p><strong>④ 铸造圆角</strong>：尖角处易产生<strong>热裂</strong>与应力集中。<strong>所有铸件转角都必须有圆角</strong>——这是铸造设计的第一条规则。</p>
-<p><strong>⑤ 拔模斜度</strong>：砂型/压铸都需要脱模，<strong>垂直于分型面的表面必须有斜度</strong>（通常 1–3°）。</p>
+<p><strong>④ 铸造圆角</strong>：尖角处容易增加<strong>热裂</strong>与应力集中风险。铸件转角通常需要合适圆角，但半径要结合合金、壁厚、型腔和后续加工确定，不能把一个圆角数值当成所有铸件的规则。</p>
+<p><strong>⑤ 拔模斜度</strong>：砂型/压铸通常需要脱模，<strong>垂直于分型面的表面通常要留适当斜度</strong>（1–3°可作教学量级示例，实际取值取决于合金、模具、表面和工艺）。</p>
 <p><strong>材料特性</strong>：<strong>铸铁的石墨形态决定性能</strong>——片状石墨（灰铸铁）割裂基体故脆但<strong>减振性极好</strong>（机床床身用它正是为此）；球状石墨（球墨铸铁）韧性大幅提高，可替代部分铸钢件。</p>
-<h2 id="_2">二、锻造：改善内部组织<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_8">二、锻造：改善内部组织<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>原理</strong>：在塑性状态下施加压力使金属流动成形。</p>
 <p><strong>关键优势不在形状，而在组织</strong>：</p>
 <ul>
 <li><strong>压合内部孔隙</strong>、细化晶粒；</li>
-<li><strong>形成连续的锻造流线（纤维组织）</strong>——沿流线方向的力学性能显著优于横向。</li>
+<li><strong>可能形成连续的锻造流线（纤维组织）</strong>——在组织、缺陷和载荷方向合适时，沿流线与横向的性能会不同，差异必须用相应材料和热处理数据确认。</li>
 </ul>
-<p><strong>设计要点：让流线沿受力方向连续，且不被后续加工切断。</strong></p>
-<p><strong>这个原理有直接的工程后果</strong>：曲轴、连杆、齿轮坯、起重吊钩这类关键受力件必须锻造而非铸造或直接切削。<strong>从一整块钢料上切削出的吊钩，流线被切断，强度远低于锻造件</strong>——这不是理论推测，而是失效分析中反复验证的事实。</p>
+<p><strong>设计要点：通常希望流线沿受力方向连续，且避免被后续加工不必要地切断。</strong></p>
+<p><strong>这个原理有直接的工程后果</strong>：曲轴、连杆、齿轮坯、起重吊钩这类关键受力件常优先评估锻造路线，但最终工艺仍要比较缺陷、流线方向、热处理、尺寸和验证数据。<strong>从一整块钢料上切削出的吊钩会改变原始流线连续性</strong>，性能差异不能脱离材料状态、几何和载荷方向直接写成“必然更弱”。</p>
 <p><strong>分类</strong>：自由锻（灵活、单件小批）、模锻（精度高、批量大、需模具）、辊锻、精锻（近净成形）。</p>
 <p><strong>冷加工与热加工的区别</strong>：</p>
 <ul>
 <li><strong>冷加工</strong>（低于再结晶温度）：<strong>加工硬化</strong>（强度升、塑性降）、表面质量好、精度高，但变形抗力大；</li>
 <li><strong>热加工</strong>（高于再结晶温度）：变形抗力小、塑性好，可大变形，但表面氧化、精度低。</li>
 </ul>
-<p><strong>加工硬化本身是一种强化手段</strong>：冷拔钢丝、冷轧板材的强度显著高于原始材料。<strong>这也是为什么反复弯折金属丝会先变硬、然后断裂</strong>（加工硬化 + 疲劳）。</p>
-<h2 id="_3">三、板料成形<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><strong>加工硬化本身可以是一种强化手段</strong>：冷拔钢丝、冷轧板材的强度可能高于同牌号退火状态，但增益依赖变形量、温度和组织。<strong>反复弯折金属丝可能先变硬、再因疲劳损伤断裂</strong>，具体顺序仍取决于材料与载荷。</p>
+<h2 id="_9">三、板料成形<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>冲压、拉深、弯曲、旋压——汽车覆盖件、家电外壳的主力工艺。</p>
 <p><strong>三个必须知道的现象</strong>：</p>
-<p><strong>① 回弹</strong>：弹性变形在卸载后恢复，<strong>导致实际角度小于模具角度</strong>。<strong>回弹补偿是冲压模具设计的核心难题</strong>，高强钢的回弹更严重（弹性应变更大）。现代做法是用有限元预测回弹并<strong>反向修正模具型面</strong>（承第十一页齿轮修形的同一思想：故意做不准，以便成形后正好准）。</p>
+<p><strong>① 回弹</strong>：弹性变形在卸载后恢复。若用“弯曲转角”表示弯了多少，回弹后转角减小；若用板件内夹角表示开口，回弹后内角增大。回弹幅度取决于强度/模量比、厚度、弯曲半径、路径和约束，高强钢往往更显著但不能只由“高强”一项决定。工程上常用试验或有限元标定后反向修正模具型面。</p>
 <p><strong>② 起皱与拉裂</strong>：拉深时法兰区受压易起皱（用压边圈抑制），底部受拉易拉裂。<strong>成形极限图（FLD）</strong>给出主次应变的安全边界，是板料成形分析的标准工具。</p>
 <p><strong>③ 各向异性</strong>：轧制板材的性能随方向变化（<span class="arithmatex">\(r\)</span> 值），影响成形性与制耳。</p>
-<h2 id="_4">四、焊接：连接与它的代价<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、焊接：连接与它的代价<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>原理</strong>：局部熔化（或压力/扩散）使材料连成一体。</p>
-<p><strong>焊接的三个固有问题——它们全部源于"局部快速加热冷却"</strong>：</p>
-<p><strong>① 残余应力与变形</strong>：焊缝冷却收缩受周围约束 → <strong>产生接近屈服强度的残余拉应力</strong>，并使结构变形。
+<p><strong>焊接的三个常见问题——它们多与"局部快速加热冷却"有关</strong>：</p>
+<p><strong>① 残余应力与变形</strong>：焊缝冷却收缩受周围约束，可能产生较高残余应力和变形；大小与热输入、约束、焊接顺序、材料和焊后处理有关，不能把残余拉应力固定写成接近屈服强度。
 <strong>对策</strong>：合理的焊接顺序、对称焊、反变形预置、焊后热处理（退火）、振动时效。</p>
-<p><strong>② 热影响区（HAZ）</strong>：焊缝旁未熔化但组织已改变的区域。<strong>它常常是接头最薄弱的部位</strong>——可能硬化变脆（淬硬倾向）或软化（调质钢回火）。<strong>碳当量</strong>用于评估钢材的焊接性与预热需求。</p>
-<p><strong>③ 缺陷与疲劳</strong>：气孔、夹渣、未熔合、裂纹；<strong>焊趾的几何突变 + 残余拉应力 → 疲劳性能显著低于母材</strong>（承第十四页）。</p>
+<p><strong>② 热影响区（HAZ）</strong>：焊缝旁未熔化但组织已改变的区域。<strong>它可能成为接头的薄弱部位</strong>——可能硬化变脆（淬硬倾向）或软化（调质钢回火）。<strong>碳当量</strong>用于评估钢材的焊接性与预热需求。</p>
+<p><strong>③ 缺陷与疲劳</strong>：气孔、夹渣、未熔合、裂纹；<strong>焊趾的几何突变与残余应力可能降低疲劳性能</strong>（承第十四页），降低幅度要按接头类别、焊缝质量、载荷谱和后处理数据评估。</p>
 <p><strong>这三点合起来给出一条重要的设计准则</strong>：<strong>焊缝应尽量布置在低应力区，且避开疲劳关键部位</strong>；不可避免时，通过<strong>打磨焊趾、TIG 重熔、锤击</strong>改善。</p>
 <p><strong>其他连接方式的定位</strong>：</p>
 <ul>
@@ -119,10 +236,10 @@
 <li><strong>考虑批量</strong>：单件宜切削/增材，大批量宜铸锻冲压（模具成本被摊薄）。</li>
 </ul>
 <p><strong>一个成本判断</strong>：<strong>模具费用是固定成本，切削是可变成本</strong>。<strong>批量决定了工艺选择的经济性</strong>——这与 🔗 微电子站"ASIC 的 NRE vs 出货量"、自动化站"机械凸轮 vs 伺服"是完全同构的判断。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
-<li><strong>铸造形状自由但受凝固物理约束</strong>：壁厚均匀、必有圆角、需冒口与拔模斜度；</li>
-<li><strong>锻造的价值在组织与流线</strong>——关键受力件必须锻造，流线不可被切断；</li>
+<li><strong>铸造形状自由但受凝固物理约束</strong>：通常要控制壁厚、圆角、补缩和拔模斜度，具体取决于合金与工艺；</li>
+<li><strong>锻造的价值在组织与流线</strong>——关键受力件常需评估流线连续性，但工艺结论要由材料、缺陷和载荷验证；</li>
 <li><strong>加工硬化既是问题也是强化手段</strong>；</li>
 <li><strong>板料成形的核心难题是回弹</strong>，用仿真反向修模；</li>
 <li><strong>焊接的三大问题源于局部加热</strong>：残余应力、热影响区、疲劳性能下降；</li>
@@ -139,5 +256,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-forming-strain-limit.js"></script>
 </body>
 </html>

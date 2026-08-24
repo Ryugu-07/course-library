@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、基本方程</a></li>
-<li><a href="#_2">二、管路阻力：为什么是平方关系</a></li>
-<li><a href="#_3">三、泵与风机的选型</a></li>
-<li><a href="#_4">四、液压传动</a></li>
-<li><a href="#_5">五、流致振动与噪声</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#pump-learning-title">学习层：把泵曲线、系统曲线和汽蚀余量放在同一工作点</a><ul>
+<li><a href="#_1">具体机械情境：给冷却水回路找可运行的泵点</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式模型：解析交点 + 透明效率/汽蚀代理</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、基本方程</a></li>
+<li><a href="#_7">二、管路阻力：为什么是平方关系</a></li>
+<li><a href="#_8">三、泵与风机的选型</a></li>
+<li><a href="#_9">四、液压传动</a></li>
+<li><a href="#_10">五、流致振动与噪声</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,22 +77,114 @@
 <p><strong>层次</strong>：本科核心的实用部分 ｜ <strong>范围声明</strong>：本页只给<strong>机械工程师日常需要的工程流体要点</strong>（管路、泵、风机、液压）。完整的流体力学（N-S 方程、边界层理论、湍流模型、CFD）属于能源动力/流体力学方向，不在本站范围；物理站的流体与非线性线已覆盖连续介质、边界层、湍流和不稳定性，本页侧重泵、风机与管路选型。
 机械系统中几乎总有流体：润滑油、冷却水、液压油、压缩空气、燃气。<strong>不必成为流体力学家，但必须会算阻力、选对泵、并理解几个反直觉的规律。</strong></p>
 </blockquote>
-<h2 id="_1">一、基本方程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="pump-learning-title" class="learning-layer">
+<h2 id="pump-learning-title">学习层：把泵曲线、系统曲线和汽蚀余量放在同一工作点<a class="headerlink" href="#pump-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体机械情境：给冷却水回路找可运行的泵点<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>冷却水回路有 <span class="arithmatex">\(H_{\mathrm{static}}=10\,\mathrm{m}\)</span> 的静扬程，管路阻力随流量平方增加。泵在额定转速下的关阀扬程约为 <span class="arithmatex">\(50\,\mathrm{m}\)</span>。选型工程师要找泵与系统的工作点，估计轴功率，并确认吸入口不会越过汽蚀边界；若系统阻力加大到没有正交点，实验必须把“无工作点”显示成可恢复的阻断，而不是偷偷给出负流量。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>变频比 <span class="arithmatex">\(n=0.8\)</span> 时，按相似定律轴功率比约为 <span class="arithmatex">\(0.8^3=0.512\)</span>，还是 <span class="arithmatex">\(0.8^2=0.64\)</span>？</li>
+<li>系统稳定工作点应由泵曲线和系统曲线的交点决定，还是由泵的最高扬程单独决定？</li>
+<li>当 <span class="arithmatex">\(\mathrm{NPSH}_a&lt;\mathrm{NPSH}_r\)</span> 时，泵应标为汽蚀风险还是安全运行？</li>
+</ol>
+<h3 id="_3">正式模型：解析交点 + 透明效率/汽蚀代理<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>统一用 <span class="arithmatex">\(Q\)</span> 的单位 <span class="arithmatex">\(\mathrm{m^3/h}\)</span>、扬程 <span class="arithmatex">\(H\)</span> 的单位 m。把 <span class="arithmatex">\(n\)</span> 定义为相对于额定转速的无量纲转速比，泵曲线和系统曲线取</p>
+<div class="arithmatex">\[
+H_p(Q)=H_0n^2-kQ^2,\qquad H_s(Q)=H_{\mathrm{static}}+rQ^2.
+\]</div>
+<p>因此只要 <span class="arithmatex">\(H_0n^2&gt;H_{\mathrm{static}}\)</span>，正流量交点可解析求得</p>
+<div class="arithmatex">\[
+Q_* = \sqrt{\frac{H_0n^2-H_{\mathrm{static}}}{k+r}},\qquad H_*=H_s(Q_*).
+\]</div>
+<p>若分子不为正，就没有正的工作流量；实验将其显示为“无正交点，需降低静扬程/阻力或提高转速”的阻断。效率用一个明确的额定附近教学代理表示，例如 <span class="arithmatex">\(\eta=\operatorname{clip}(\eta_{\max}-c(Q_*-nQ_{\mathrm{BEP}})^2,0.35,0.90)\)</span>，轴功率为</p>
+<div class="arithmatex">\[
+P_{\mathrm{shaft}}=\frac{\rho g(Q_*/3600)H_*}{\eta}.
+\]</div>
+<p>相似定律账本为 <span class="arithmatex">\(Q\propto n\)</span>、<span class="arithmatex">\(H\propto n^2\)</span>、<span class="arithmatex">\(P\propto n^3\)</span>，这里只比较同一泵、同一介质、同源且近似同效率的额定附近对应点；含静扬程系统的实际交点功率不必按 <span class="arithmatex">\(n^3\)</span> 变化。吸入侧用绝对压力计算</p>
+<div class="arithmatex">\[
+\mathrm{NPSH}_a=\frac{p_{\mathrm{surface,abs}}-p_v}{\rho g}+z_{\mathrm{suction}}-h_{\mathrm{suction}},
+\]</div>
+<p>并用透明的教学需求代理 <span class="arithmatex">\(\mathrm{NPSH}_r=\mathrm{NPSH}_{r0}n^2[1+0.15\{Q_*/(nQ_{\mathrm{ref}})\}^2]\)</span>；效率代理的 BEP 也随速度移到 <span class="arithmatex">\(nQ_{\mathrm{BEP}}\)</span>。<span class="arithmatex">\(\mathrm{NPSH}_a-\mathrm{NPSH}_r\le0\)</span> 就标为汽蚀边界/风险。默认值 <span class="arithmatex">\(H_0=50\,\mathrm{m}\)</span>、<span class="arithmatex">\(k=0.008\)</span>、<span class="arithmatex">\(H_{\mathrm{static}}=10\,\mathrm{m}\)</span>、<span class="arithmatex">\(r=0.004\)</span>、<span class="arithmatex">\(n=1\)</span> 给出 <span class="arithmatex">\(Q_*=57.74\,\mathrm{m^3/h}\)</span>、<span class="arithmatex">\(H_*=23.33\,\mathrm{m}\)</span>。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>泵曲线与系统曲线的交点是给定阀位和转速下的工作点；关小阀门会改系统曲线，变频会改泵曲线，二者能耗不能混为一谈。</li>
+<li><span class="arithmatex">\(Q,H\)</span> 的单位在本实验中固定为 <span class="arithmatex">\(\mathrm{m^3/h}\)</span> 和 m；把 L/s 或压力 kPa 直接代入 <span class="arithmatex">\(kQ^2\)</span> 会破坏量纲。</li>
+<li>效率曲线、<span class="arithmatex">\(\mathrm{NPSH}_r\)</span> 和阻力系数是透明教学代理，不是厂商泵图、全流场 CFD 或瞬态吸入系统的替代。</li>
+<li>无正交点不是“流量取负”的许可证；它是一个可恢复阻断，必须调回 <span class="arithmatex">\(H_0n^2&gt;H_{\mathrm{static}}\)</span> 或改变 <span class="arithmatex">\(k+r\)</span>。</li>
+<li>相似定律的 <span class="arithmatex">\(Q\propto n\)</span>、<span class="arithmatex">\(H\propto n^2\)</span>、<span class="arithmatex">\(P\propto n^3\)</span> 只比较同一泵、同一介质、同源且近似同效率的对应点；含静扬程的实际系统交点会移动，实际轴功率不必按 <span class="arithmatex">\(n^3\)</span> 变化。汽蚀还受温度、溶解气体、吸入管瞬态和安装高度影响。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-pump-system">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(H_0=50.0\,\mathrm{m}\)</span>、<span class="arithmatex">\(k=0.008\,\mathrm{m/(m^3/h)^2}\)</span>、<span class="arithmatex">\(H_{\mathrm{static}}=10.0\,\mathrm{m}\)</span>、<span class="arithmatex">\(r=0.004\,\mathrm{m/(m^3/h)^2}\)</span>、<span class="arithmatex">\(n=1.00\)</span>、<span class="arithmatex">\(\rho=1000\,\mathrm{kg/m^3}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>泵系统账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>解析工作流量 <span class="arithmatex">\(Q_*\)</span></td>
+<td style="text-align: right;">57.74</td>
+<td><span class="arithmatex">\(\mathrm{m^3/h}\)</span></td>
+</tr>
+<tr>
+<td>工作扬程 <span class="arithmatex">\(H_*\)</span></td>
+<td style="text-align: right;">23.33</td>
+<td>m</td>
+</tr>
+<tr>
+<td>教学效率代理 <span class="arithmatex">\(\eta\)</span></td>
+<td style="text-align: right;">0.811</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>液压功率 / 轴功率</td>
+<td style="text-align: right;">3.67 / 4.53</td>
+<td>kW；轴功率含效率代理</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathrm{NPSH}_a\)</span></td>
+<td style="text-align: right;">11.79</td>
+<td>m；绝对压力基准</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathrm{NPSH}_r\)</span> / 裕量</td>
+<td style="text-align: right;">3.60 / 8.19</td>
+<td>m；汽蚀筛查通过</td>
+</tr>
+<tr>
+<td>相似定律 <span class="arithmatex">\(Q:H:P\)</span>（<span class="arithmatex">\(n=0.8\)</span>）</td>
+<td style="text-align: right;">0.800 : 0.640 : 0.512</td>
+<td>相对额定值</td>
+</tr>
+</tbody>
+</table>
+<p>脚本可用时，把 <span class="arithmatex">\(H_{\mathrm{static}}\)</span> 调到高于 <span class="arithmatex">\(H_0n^2\)</span> 会出现红色“无正交点”状态；再降低静扬程或提高转速即可恢复。揭示后调参不会重新锁回预测门。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果冷却回路有两个并联支路、阀门正在缓慢关闭且液面温度上升，你会如何重新画系统曲线、更新瞬时 <span class="arithmatex">\(\mathrm{NPSH}_a\)</span> 和检查水锤？请说明为什么静态交点不能单独保证过渡过程中的安全。</p>
+</section>
+<h2 id="_6">一、基本方程<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>连续性</strong>（不可压）：<span class="arithmatex">\(A_1v_1 = A_2v_2\)</span> —— 管径缩小则流速升高。</p>
 <p><strong>伯努利方程</strong>（理想流体、沿流线）：</p>
 <div class="arithmatex">\[p + \frac{1}{2}\rho v^2 + \rho g h = \text{常数}\]</div>
 <p><strong>工程形式</strong>（加上损失与泵功）：</p>
 <div class="arithmatex">\[\frac{p_1}{\rho g}+\frac{v_1^2}{2g}+z_1 + H_{\text{泵}} = \frac{p_2}{\rho g}+\frac{v_2^2}{2g}+z_2 + h_f\]</div>
 <p><strong>各项都以"米"为单位</strong>（称为压头/扬程），这是工程上最方便的记法——<strong>泵的性能直接用"扬程多少米"表示</strong>。</p>
-<h2 id="_2">二、管路阻力：为什么是平方关系<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、管路阻力：为什么是平方关系<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>沿程损失（Darcy–Weisbach）</strong>：</p>
 <div class="arithmatex">\[h_f = \lambda\frac{L}{d}\cdot\frac{v^2}{2g}\]</div>
 <p><strong>局部损失</strong>：<span class="arithmatex">\(h_j = \zeta\dfrac{v^2}{2g}\)</span>（弯头、阀门、变径、进出口）。</p>
 <p><strong>核心结论：阻力与流速的平方成正比。</strong></p>
 <p><strong>这个平方关系的工程后果极大</strong>：</p>
 <ul>
-<li><strong>流量加倍 → 阻力增大 4 倍 → 泵功率增大 8 倍</strong>（功率 = 流量 × 压头）；</li>
-<li><strong>管径的影响更剧烈</strong>：<span class="arithmatex">\(v \propto 1/d^2\)</span>，代入得 <span class="arithmatex">\(h_f \propto 1/d^5\)</span>。<strong>管径增大 15%，阻力降低一半</strong>；</li>
+<li><strong>在静扬程可忽略、阻力近似平方且效率近似不变时，流量加倍 → 动态阻力增大 4 倍 → 动态损失功率约增大 8 倍</strong>（功率 = 流量 × 压头）；含静扬程的系统要用完整系统曲线重新算轴功率；</li>
+<li><strong>管径的影响更剧烈</strong>：在固定 <span class="arithmatex">\(Q\)</span>、且 Darcy 因子 <span class="arithmatex">\(\lambda\)</span> 近似不变的粗略尺度下，<span class="arithmatex">\(v \propto 1/d^2\)</span>，代入可得 <span class="arithmatex">\(h_f \propto d^{-5}\)</span>。<strong>因此管径增大 15% 时，按这个近似阻力约降到一半</strong>；实际 <span class="arithmatex">\(\lambda\)</span> 会随 Reynolds 数和粗糙度变化，不能把 <span class="arithmatex">\(d^{-5}\)</span> 当成普适精确律；</li>
 <li><strong>所以"管子粗一号"往往比"泵大一号"更经济</strong>——这是管路设计的第一原则。初投资增加，但长期能耗大幅下降。</li>
 </ul>
 <p><strong>沿程阻力系数 <span class="arithmatex">\(\lambda\)</span></strong>：</p>
@@ -77,7 +193,7 @@
 <li><strong>湍流</strong>：由 Moody 图或 Colebrook 公式给出，取决于 <span class="arithmatex">\(Re\)</span> 与<strong>相对粗糙度</strong>；<strong>完全湍流区 <span class="arithmatex">\(\lambda\)</span> 只取决于粗糙度</strong>。</li>
 </ul>
 <p><strong>局部损失常被低估</strong>：<strong>一个全开闸阀的阻力可能相当于几十倍管径的直管</strong>，而一个半开的阀门可达数百倍。<strong>弯头多的系统，局部损失往往超过沿程损失。</strong></p>
-<h2 id="_3">三、泵与风机的选型<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、泵与风机的选型<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>核心工具：管路特性曲线 + 泵特性曲线</strong></p>
 <figure>
 <p><img alt="泵与管路的工作点" class="fig-img" src="assets/img/mec_pump.svg" /></p>
@@ -86,13 +202,13 @@
 <p><strong>调节流量的两种方式，能耗差别巨大</strong>：</p>
 <ul>
 <li><strong>节流调节</strong>（关小阀门）：简单，但<strong>能量白白消耗在阀门上</strong>；</li>
-<li><strong>变频调速</strong>：按<strong>相似定律</strong>，<span class="arithmatex">\(Q\propto n\)</span>、<span class="arithmatex">\(H\propto n^2\)</span>、<strong><span class="arithmatex">\(P\propto n^3\)</span></strong>。</li>
+<li><strong>变频调速</strong>：对同一台相似泵、同一介质、相似工况且比较同效率附近的对应点，按<strong>相似定律</strong>有 <span class="arithmatex">\(Q\propto n\)</span>、<span class="arithmatex">\(H\propto n^2\)</span>、<strong><span class="arithmatex">\(P\propto n^3\)</span></strong>。</li>
 </ul>
-<p><strong><span class="arithmatex">\(P \propto n^3\)</span> 是本页最有价值的数字</strong>：<strong>转速降到 80%，流量降到 80%，而功率降到 51%</strong>。这就是为什么风机水泵的变频改造是工业节能中回报最快的项目之一（🔗 自动化站第十一、十二页：变频器与电机控制正是为此）。</p>
+<p><strong><span class="arithmatex">\(P \propto n^3\)</span> 是相似泵对应点的尺度关系</strong>：在上述条件下转速降到 80%，对应点的流量降到 80%、泵轴功率约降到 51%。含静扬程的实际系统工作点会同时移动，效率、阀位、管路损失和电机/变频器损失也会变化，不能把 51% 直接当成所有系统的实际节能律；现场节能应由系统曲线和实测功率核算（🔗 自动化站第十一、十二页：变频器与电机控制正是为此）。</p>
 <p><strong>气蚀（汽蚀）</strong>：泵入口压力低于液体饱和蒸气压时产生气泡，气泡在高压区溃灭产生冲击 → <strong>叶轮点蚀、噪声、振动、性能下降</strong>。</p>
-<p><strong>判据</strong>：装置汽蚀余量必须大于泵的必需汽蚀余量（<span class="arithmatex">\(\mathrm{NPSH}_a &gt; \mathrm{NPSH}_r\)</span>，通常留 0.5 m 以上裕量）。</p>
+<p><strong>判据</strong>：装置汽蚀余量应大于泵的必需汽蚀余量（<span class="arithmatex">\(\mathrm{NPSH}_a &gt; \mathrm{NPSH}_r\)</span>）；所需裕量不能通用写死为 0.5 m，应按泵厂商曲线、适用的 HI 标准、液体温度、流量、安装和风险等级确定。</p>
 <p><strong>对策</strong>：降低吸入管阻力、抬高液位、降低液温、泵尽量靠近液源。<strong>"泵装得太高"是气蚀最常见的原因。</strong></p>
-<h2 id="_4">四、液压传动<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、液压传动<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>核心优势</strong>：<strong>功率密度极高</strong>——同样功率下，液压马达/缸的体积重量远小于电机。这就是挖掘机、压力机、飞机舵面用液压的原因。</p>
 <p><strong>帕斯卡原理</strong>：<span class="arithmatex">\(p = F/A\)</span>，压力全系统传递。液压系统压力通常 10–35 MPa，故小缸径即可产生巨大推力。</p>
 <p><strong>关键特性与问题</strong>：</p>
@@ -103,17 +219,17 @@
 <li><strong>发热</strong>：节流调速的能量全部变热，需要冷却器。<strong>负载敏感与变量泵系统</strong>是为节能而生。</li>
 </ul>
 <p><strong>气动</strong>：介质可压缩 → <strong>刚度低、难以精确定位</strong>，但<strong>便宜、清洁、防爆、可过载</strong>。适合"到位即可"的动作（夹紧、推送），不适合精密位置控制。</p>
-<h2 id="_5">五、流致振动与噪声<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、流致振动与噪声<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong>涡激振动</strong>：流体绕过钝体产生周期性涡脱落（斯特劳哈尔数 <span class="arithmatex">\(St = fd/v \approx 0.2\)</span>）。当涡脱落频率接近结构固有频率时发生共振——<strong>换热器管束、烟囱、输电线的典型问题</strong>。对策是加扰流条、改变间距、增加阻尼；</li>
 <li><strong>水锤</strong>：阀门快速关闭时，流体动量突变产生压力冲击波，压力峰值可达工作压力的数倍，足以<strong>爆管</strong>。<strong>对策：延长阀门关闭时间、设置缓冲罐或安全阀</strong>；</li>
 <li><strong>管道脉动</strong>：往复泵/压缩机的脉动激励与管系声学模态耦合（承第九页）。</li>
 </ul>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
-<li><strong>阻力 <span class="arithmatex">\(\propto v^2\)</span>，且 <span class="arithmatex">\(\propto 1/d^5\)</span></strong>——<strong>加大管径往往比加大泵更经济</strong>；</li>
+<li><strong>阻力 <span class="arithmatex">\(\propto v^2\)</span>；在固定 <span class="arithmatex">\(Q\)</span>、Darcy 因子近似不变时才可粗略写成 <span class="arithmatex">\(h_f\propto d^{-5}\)</span></strong>——<strong>加大管径往往比加大泵更经济</strong>；</li>
 <li><strong>局部损失常被低估</strong>，阀门弯头多的系统它可能占主导；</li>
-<li><strong>工作点 = 泵曲线与管路曲线的交点</strong>；<strong>变频调速 <span class="arithmatex">\(P\propto n^3\)</span></strong>，是节能改造回报最高的手段之一；</li>
+<li><strong>工作点 = 泵曲线与管路曲线的交点</strong>；<strong>相似泵同效率对应点可用 <span class="arithmatex">\(P\propto n^3\)</span> 做尺度估计，但含静扬程系统的实际节能需另算</strong>；</li>
 <li><strong>气蚀由入口压力不足引起</strong>，"泵装太高"是最常见原因；</li>
 <li><strong>液压中压力由负载决定、流量由泵决定</strong>；<strong>污染是头号杀手</strong>；</li>
 <li><strong>涡激振动与水锤</strong>是流体引起的典型机械事故。</li>
@@ -129,5 +245,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-pump-system.js"></script>
 </body>
 </html>

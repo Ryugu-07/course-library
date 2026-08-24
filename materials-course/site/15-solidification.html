@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,25 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 凝固组织的形成</a></li>
+<li><a href="#materials-solidification-learning-title">学习层：给一块 Al–Cu 铸锭画平衡与 Scheil 路径，先预测液体富集</a><ul>
+<li><a href="#1">1. 具体材料工程情境：铸态枝晶间偏析的快速预算</a></li>
+<li><a href="#2-k-1-fs-1">2. 必须作答的预测门：富集、k = 1 与 fs → 1</a></li>
+<li><a href="#3">3. 正式模型桥：局部平衡 + 质量守恒</a></li>
+<li><a href="#4">4. 动手实验：沿两条路径追踪液相、瞬时固相与平均固相</a></li>
+<li><a href="#5">5. 误区与模型边界：凝固路径不是实测相图的替身</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 凝固组织的形成</a></li>
 <li><a href="#2">2. 塑性成形：用变形改造组织</a></li>
-<li><a href="#3">3. 焊接：局部熔化与它的代价</a></li>
-<li><a href="#4">4. 数字感与反直觉</a></li>
+<li><a href="#3_1">3. 焊接：局部熔化与它的代价</a></li>
+<li><a href="#4_1">4. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
@@ -50,8 +73,91 @@
 <blockquote>
 <p>几乎所有金属制品的第一步都是从液体开始——<strong>凝固决定了原始组织，而原始组织是后续一切工艺的起点</strong>（"铸造缺陷带进服役"是行业常识）。本页把凝固组织的三大控制点（形核、枝晶、偏析）讲清楚，然后接上塑性成形（轧锻挤拉）与焊接的材料学。</p>
 </blockquote>
-<h2 id="1">1. 凝固组织的形成<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>三步</strong>：形核（热力 III 的机器：过冷 + 非均匀形核为主）→ 长大（枝晶——因为界面前沿的成分过冷使凸起加速，形成树枝状；这是<strong>界面不稳定性</strong>的经典案例）→ 相互碰撞形成晶粒。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-solidification-learning-title" class="learning-layer">
+<h2 id="materials-solidification-learning-title">学习层：给一块 Al–Cu 铸锭画平衡与 Scheil 路径，先预测液体富集<a class="headerlink" href="#materials-solidification-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：铸态枝晶间偏析的快速预算<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一块标称 <span class="arithmatex">\(C_0=4\ \mathrm{wt\%}\)</span> Cu 的铝合金铸锭在凝固。工艺工程师想估算固相分数 <span class="arithmatex">\(f_s=0.65\)</span> 时枝晶间液体是否已经富 Cu，以及均匀化退火前应把“完全固相扩散的平衡路径”和“固相不扩散的 Scheil 路径”分开。这里用常数分配系数 <span class="arithmatex">\(k=C_s/C_L\)</span> 的二元教学模型，不替代真实 Al–Cu 相图或 CALPHAD。</p>
+<h3 id="2-k-1-fs-1">2. 必须作答的预测门：富集、k = 1 与 fs → 1<a class="headerlink" href="#2-k-1-fs-1" title="Permanent link"></a></h3>
+<p>揭示前回答三题：当 <span class="arithmatex">\(k&lt;1\)</span> 且 <span class="arithmatex">\(f_s\)</span> 增大时，液体成分如何变化？若 <span class="arithmatex">\(k=1\)</span>，两条路径是否还会产生分配偏析？把 <span class="arithmatex">\(f_s\)</span> 推向 1 时，<span class="arithmatex">\(k&lt;1\)</span> 的理想 Scheil 式应被读成有限答案还是模型边界？三题完成后才显示曲线和质量守恒账本。</p>
+<h3 id="3">3. 正式模型桥：局部平衡 + 质量守恒<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在完全固相扩散的常数 <span class="arithmatex">\(k\)</span> 代理下，当前液体和固体成分满足</p>
+<div class="arithmatex">\[
+C_L^{eq}=\frac{C_0}{1-f_s(1-k)},\qquad C_s^{eq}=kC_L^{eq},\qquad
+C_0=f_sC_s^{eq}+(1-f_s)C_L^{eq}.
+\]</div>
+<p>在液体完全混合、固相无扩散、界面局部平衡的 Scheil 代理下，</p>
+<div class="arithmatex">\[
+C_L^{Sch}=C_0(1-f_s)^{k-1},\qquad C_{s,inst}^{Sch}=kC_L^{Sch},
+\]</div>
+<div class="arithmatex">\[
+C_{s,avg}^{Sch}=\frac{C_0-(1-f_s)C_L^{Sch}}{f_s},\qquad
+C_0=f_sC_{s,avg}^{Sch}+(1-f_s)C_L^{Sch}.
+\]</div>
+<p><span class="arithmatex">\(C_0,C_L,C_s\)</span> 都用 wt% Cu，<span class="arithmatex">\(f_s,k\)</span> 无量纲。<span class="arithmatex">\(k=1\)</span> 时两条路径退化为 <span class="arithmatex">\(C_0\)</span>；<span class="arithmatex">\(k&lt;1\)</span> 且 <span class="arithmatex">\(f_s\to1\)</span> 时理想 Scheil 的 <span class="arithmatex">\(C_L\)</span> 形式发散，实际会先遇到固溶度、共晶反应、对流或传质边界。</p>
+<h3 id="4">4. 动手实验：沿两条路径追踪液相、瞬时固相与平均固相<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-solidification-path">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(C_0=4\ \mathrm{wt\%}\)</span> Cu、<span class="arithmatex">\(k=0.25\)</span>、<span class="arithmatex">\(f_s=0.65\)</span>。平衡代理为 <span class="arithmatex">\(C_L=7.805\)</span> wt%、<span class="arithmatex">\(C_s=1.951\)</span> wt%；Scheil 代理为 <span class="arithmatex">\(C_L=8.790\)</span> wt%、瞬时 <span class="arithmatex">\(C_s=2.198\)</span> wt%、平均固相 <span class="arithmatex">\(C_{s,avg}=1.421\)</span> wt%，质量闭合误差为 0 wt%。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始成分 <span class="arithmatex">\(C_0\)</span></td>
+<td style="text-align: right;">4.000</td>
+<td>wt% Cu</td>
+</tr>
+<tr>
+<td>分配系数 <span class="arithmatex">\(k\)</span></td>
+<td style="text-align: right;">0.250</td>
+<td><span class="arithmatex">\(C_s/C_L\)</span>；常数代理</td>
+</tr>
+<tr>
+<td>当前固相分数 <span class="arithmatex">\(f_s\)</span></td>
+<td style="text-align: right;">0.650</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>平衡 <span class="arithmatex">\(C_L/C_s\)</span></td>
+<td style="text-align: right;">7.805 / 1.951</td>
+<td>wt%；完全固相扩散代理</td>
+</tr>
+<tr>
+<td>Scheil <span class="arithmatex">\(C_L/C_{s,inst}\)</span></td>
+<td style="text-align: right;">8.790 / 2.198</td>
+<td>wt%；液体混合、固相无扩散</td>
+</tr>
+<tr>
+<td>Scheil 平均固相</td>
+<td style="text-align: right;">1.421</td>
+<td>wt%；由守恒反算</td>
+</tr>
+<tr>
+<td>质量闭合误差</td>
+<td style="text-align: right;">0.000000</td>
+<td>wt%；<span class="arithmatex">\(f_sC_{s,avg}+(1-f_s)C_L-C_0\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：凝固路径不是实测相图的替身<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>平衡路径把固相扩散理想化为充分快，把 <span class="arithmatex">\(k\)</span> 理想化为常数；Scheil 路径把液体混合和固相无扩散理想化。枝晶间距、液体对流、固相扩散、界面动力学和温度梯度会让真实路径落在两者之间或改用别的模型。</li>
+<li><span class="arithmatex">\(f_s\to1\)</span> 的 Scheil 发散不是“铸锭最后一滴液体真的无限富集”；它是在固溶度、共晶/金属间化合物、传质和热力学边界被忽略时发出的警报。要继续算，应切换相图和多相守恒模型。</li>
+<li>形核剂、冷速和搅拌对晶粒与偏析的作用依合金、模具和工艺窗口而变；“三区”是典型铸锭的组织示意，不是每个截面都严格分成三层。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果把铸锭枝晶间距减半，你会先修改 <span class="arithmatex">\(k\)</span>、Scheil 公式，还是均匀化扩散的长度尺度 <span class="arithmatex">\(L\)</span>？若观察到液相没有按 Scheil 富集，哪些温度场、对流或固相扩散证据能帮助你区分原因？</p>
+</div>
+</section>
+<h2 id="1_1">1. 凝固组织的形成<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>三步近似</strong>：形核（热力 III 的机器：过冷 + 非均匀形核常占主导）→ 长大（枝晶——界面前沿的成分过冷可能使凸起加速，形成树枝状；这是<strong>界面不稳定性</strong>的典型案例）→ 相互碰撞形成晶粒。</p>
 <p><strong>铸锭三区</strong>：模壁激冷区（细等轴晶）→ 柱状晶区（沿热流方向长）→ 中心等轴晶区。<strong>控制手段</strong>：</p>
 <figure class="diagram">
 <p><img alt="Ingot zones and dendrite growth" src="assets/img/mat-15-ingot-dendrite.svg" /></p>
@@ -72,41 +178,41 @@
 <td>增加形核点（Hall–Petch 强化 + 减少偏析，性能 I）</td>
 </tr>
 <tr>
-<td>消除气孔</td>
+<td>减少气孔</td>
 <td>除气、真空熔炼、加压凝固</td>
-<td>氢在液态铝中的溶解度是固态的 20 倍——凝固时析出成孔</td>
+<td>对某些铝合金和氢含量范围，液态溶解度可显著高于固态，凝固时析出会促成气孔；倍数依温度、压力和成分而变</td>
 </tr>
 <tr>
 <td>定向组织</td>
 <td><strong>定向凝固/单晶生长</strong>（Bridgman）</td>
-<td>消灭横向晶界（涡轮叶片：单晶抗蠕变，性能 I 的伏笔在此实现）</td>
+<td>减少或消除横向晶界（涡轮叶片可用单晶降低部分高温晶界问题，性能 I 的伏笔在此实现）</td>
 </tr>
 <tr>
 <td>减少缩孔</td>
 <td>冒口、顺序凝固设计</td>
-<td>液态到固态体积收缩 3–7% 必须补缩</td>
+<td>液态到固态常有几个百分点量级的体积变化；具体收缩需按合金和补缩设计核对</td>
 </tr>
 </tbody>
 </table>
 <p><strong>偏析</strong>：宏观偏析（大尺度成分不均，铸锭中心/顶部）与<strong>枝晶偏析</strong>（微观，热力 I 的欠账）——后者靠均匀化退火抹平（热力 II 的 <span class="arithmatex">\(t \sim L^2/D\)</span> 计时）。</p>
-<p><strong>快速凝固</strong>：冷速 <span class="arithmatex">\(10^4\)</span>–<span class="arithmatex">\(10^7\)</span> K/s ⇒ 极细组织、扩展固溶度、甚至非晶（结构 IV）——甩带、雾化制粉（下一页增材制造的原料就来自这里）。</p>
+<p><strong>快速凝固</strong>：在一些甩带、雾化和增材制造条件下，冷速可达到 <span class="arithmatex">\(10^4\)</span>–<span class="arithmatex">\(10^7\)</span> K/s 的量级，从而得到极细组织、扩展固溶度或非晶；具体冷速和结果依设备、合金、尺寸与热传递而变（结构 IV）。</p>
 <h2 id="2">2. 塑性成形：用变形改造组织<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>热加工 vs 冷加工的分界不是温度数字，是再结晶温度</strong>（约 <span class="arithmatex">\(0.4T_m\)</span>）：</p>
+<p><strong>热加工 vs 冷加工的分界不是一个普适温度数字，而是材料、变形量和时间相关的再结晶窗口</strong>（工程初筛有时用约 <span class="arithmatex">\(0.3\)</span>–<span class="arithmatex">\(0.5T_m\)</span>，其中 <span class="arithmatex">\(T_m\)</span> 用 K，但必须按材料和工艺校准）：</p>
 <ul>
-<li><strong>热加工</strong>（&gt;再结晶温度）：变形与再结晶同时发生 ⇒ 组织细化、消除铸造缺陷、变形抗力小、不加工硬化——但表面氧化、精度差；</li>
+<li><strong>热加工</strong>（高于该材料在给定时间尺度下的再结晶窗口）：变形与再结晶可能同时发生 ⇒ 组织细化、消除部分铸造缺陷、变形抗力小、不易累积加工硬化——但表面氧化、精度差；</li>
 <li><strong>冷加工</strong>（&lt;）：加工硬化（性能 I）、精度与表面质量好、可提高强度——但需中间退火恢复塑性。</li>
 </ul>
-<p><strong>退火三阶段</strong>（冷变形后加热）：<strong>回复</strong>（位错重排、内应力降，性能变化小）→ <strong>再结晶</strong>（无畸变新晶粒形核长大，强度骤降、塑性回升——这是软化的主事件）→ <strong>晶粒长大</strong>（过火：晶粒粗化、性能下降）。<strong>工业上"控制轧制 + 控制冷却"就是在这条曲线上精确停车</strong>（现代高强钢板的核心工艺）。</p>
+<p><strong>退火三阶段的常见图景</strong>（冷变形后加热）：<strong>回复</strong>（位错重排、内应力降，性能变化通常较小）→ <strong>再结晶</strong>（无畸变新晶粒形核长大，强度可显著下降、塑性回升）→ <strong>晶粒长大</strong>（过火：晶粒粗化、性能可能下降）。<strong>工业上"控制轧制 + 控制冷却"会利用这类窗口调节组织</strong>（现代高强钢板的核心工艺之一）。</p>
 <p><strong>成形工艺谱</strong>：轧制（板带，产量之王）、锻造（承力件，纤维流线沿受力方向 = 天然增强）、挤压（型材）、拉拔（丝材）、冲压（板成形——回弹与成形极限图 FLD 是难点）、深冲（各向异性/织构影响制耳，结构 II）。</p>
-<h2 id="3">3. 焊接：局部熔化与它的代价<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 焊接：局部熔化与它的代价<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>焊缝 = 一次微型铸造 + 母材的热影响区（<strong>HAZ</strong>）。<strong>HAZ 才是焊接的真正难题</strong>：经历不同峰值温度 ⇒ 组织各异（粗晶区脆化、回火软化带），常是失效起点。</p>
-<p><strong>四大焊接病与对策</strong>：热裂（凝固末期液膜 + 拉应力 ⇒ 控成分、降杂质 S/P）、冷裂（氢 + 马氏体 + 拘束应力 ⇒ 预热、低氢焊材、后热）、残余应力与变形（⇒ 焊后热处理 PWHT、顺序设计）、不锈钢<strong>敏化</strong>（450–850 °C 析出 Cr₂₃C₆ 使晶界贫铬 ⇒ 晶间腐蚀；对策：低碳级 304L/316L 或稳定化 321/347——🔗 工艺 IV 详述）。</p>
-<p><strong>碳当量 CE</strong>：<span class="arithmatex">\(\mathrm{CE} = C + \frac{Mn}{6} + \frac{Cr+Mo+V}{5} + \frac{Ni+Cu}{15}\)</span> ——&gt;0.45 需预热：<strong>一条把成分翻译成工艺规程的经验公式</strong>，现场最常用的材料学计算。</p>
+<p><strong>四类常见焊接风险与对策</strong>：热裂（凝固末期液膜 + 拉应力 ⇒ 控成分、降杂质 S/P）、冷裂（氢 + 马氏体 + 拘束应力 ⇒ 预热、低氢焊材、后热）、残余应力与变形（⇒ 焊后热处理 PWHT、顺序设计）、不锈钢<strong>敏化</strong>（在某些 450–850 °C 热历史中析出 Cr₂₃C₆ 使晶界贫铬 ⇒ 晶间腐蚀；对策：低碳级 304L/316L 或稳定化 321/347——🔗 工艺 IV 详述）。</p>
+<p><strong>碳当量 CE</strong>：<span class="arithmatex">\(\mathrm{CE} = C + \frac{Mn}{6} + \frac{Cr+Mo+V}{5} + \frac{Ni+Cu}{15}\)</span> ——有些规范把约 0.45 作为需要重点评估预热的提醒线，但临界值随钢种、厚度、扩散氢、拘束度、热输入和采用的规范而变：<strong>它是把成分翻译成工艺规程的经验筛查式，不是普适开关</strong>。</p>
 <p><strong>固相连接</strong>：摩擦焊、<strong>搅拌摩擦焊 FSW</strong>（不熔化 ⇒ 无凝固缺陷，铝合金船舶/航天贮箱/电动车电池托盘的主力）、扩散焊、钎焊——异种材料连接的答案通常在这里（前沿 I 的多材料结构）。</p>
-<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感与反直觉<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
-<li>凝固收缩：铝 6.5%、铸铁近零（石墨析出膨胀抵消——铸铁"好铸"的物理原因）；</li>
-<li>再结晶温度 ≈ <span class="arithmatex">\(0.4T_m\)</span>（K）：铅、锡的再结晶温度低于室温 ⇒ <strong>它们在室温下"热加工"，永远不会加工硬化</strong>；</li>
+<li>凝固收缩：铝合金常见几个百分点、铸铁可因石墨析出膨胀而显著不同；具体收缩量依成分、形核、压力和补缩条件而变；</li>
+<li>对部分铅、锡合金，再结晶窗口可能低于室温 ⇒ 室温加工硬化会被回复/再结晶部分抵消；“热加工”和“永远不会加工硬化”都不是脱离时间尺度的普适标签；</li>
 <li><strong>反直觉</strong>：焊接最弱处常不是焊缝而是 HAZ；铸铁比钢好铸不是因为熔点低（相近），而是<strong>共晶成分流动性好 + 凝固收缩小</strong>（热力 I 的共晶价值）；快速凝固能把固溶度扩展到相图之外——<strong>相图是平衡的地图，工艺可以短暂违章</strong>。</li>
 </ul>
 <p>【研】对标 Kurz &amp; Fisher《Fundamentals of Solidification》、Kou《Welding Metallurgy》；成分过冷判据、枝晶间距标度律（<span class="arithmatex">\(\lambda \propto \dot T^{-n}\)</span>）、凝固数值模拟是研究生主干。🔗 机器的力学站制造线讲设备与工艺参数，本页讲材料学后果。</p>
@@ -121,5 +227,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-solidification-path.js"></script>
 </body>
 </html>

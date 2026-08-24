@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,24 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 断裂力学：为什么强度不够用</a></li>
-<li><a href="#2">2. 韧脆转变：温度的陷阱</a></li>
-<li><a href="#3">3. 疲劳：时间的陷阱</a></li>
-<li><a href="#4">4. 数字感与反直觉</a></li>
+<li><a href="#materials-fracture-learning-title">学习层：一条 2 mm 裂纹，何时只是疲劳，何时已经失稳？</a><ul>
+<li><a href="#1">1. 具体材料情境：带缺口的齿轮轴</a></li>
+<li><a href="#2">2. 必须作答的预测门：当前属于哪一段？</a></li>
+<li><a href="#3">3. 正式公式桥：最大载荷、循环范围与裂纹寿命</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 断裂力学：为什么强度不够用</a></li>
+<li><a href="#2_1">2. 韧脆转变：温度的陷阱</a></li>
+<li><a href="#3_1">3. 疲劳：时间的陷阱</a></li>
+<li><a href="#4_1">4. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
@@ -50,7 +72,79 @@
 <blockquote>
 <p>工程结构的灾难性事故几乎从不是"应力超过屈服强度"，而是<strong>裂纹</strong>：从看不见的缺陷长起来，某一刻突然贯穿。本页给三件真正决定安全的知识——断裂力学（裂纹的判据）、韧脆转变（温度的陷阱）、疲劳（时间的陷阱）。这也是本站与机器的力学站（:8091 失效线）分工最清楚的一页：那边讲怎么算，这边讲<strong>为什么材料是这个韧性</strong>。</p>
 </blockquote>
-<h2 id="1">1. 断裂力学：为什么强度不够用<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-fracture-learning-title" class="learning-layer">
+<h2 id="materials-fracture-learning-title">学习层：一条 2 mm 裂纹，何时只是疲劳，何时已经失稳？<a class="headerlink" href="#materials-fracture-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料情境：带缺口的齿轮轴<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一根齿轮轴有可检测的半裂纹长度 <strong>a = 2 mm</strong>，几何因子 <span class="arithmatex">\(Y=1.12\)</span>，循环载荷的最大应力为 <strong>180 MPa</strong>、应力比 <span class="arithmatex">\(R=\sigma_{min}/\sigma_{max}=0.1\)</span>，材料 <span class="arithmatex">\(K_{IC}=50\)</span> MPa√m。设计者既要问最大载荷会不会立即断，也要问循环中的 <span class="arithmatex">\(\Delta K\)</span> 是否越过疲劳阈值；这不是同一个问题。</p>
+<h3 id="2">2. 必须作答的预测门：当前属于哪一段？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先选一个：<strong><span class="arithmatex">\(\Delta K\le\Delta K_{th}\)</span> 阈值区</strong>、<strong><span class="arithmatex">\(\Delta K_{th}&lt;\Delta K&lt;K_{IC}\)</span> 的 Paris 稳定扩展区</strong>、或 <strong><span class="arithmatex">\(K_{max}\ge K_{IC}\)</span> 的失稳区</strong>。请先比较 <span class="arithmatex">\(K_{max}\)</span> 与 <span class="arithmatex">\(K_{IC}\)</span>，再比较 <span class="arithmatex">\(\Delta K\)</span> 与 <span class="arithmatex">\(\Delta K_{th}\)</span>；揭示后才显示裂纹长度扫描图、临界尺寸与循环账本。</p>
+<h3 id="3">3. 正式公式桥：最大载荷、循环范围与裂纹寿命<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>线弹性断裂力学把裂尖强度写成</p>
+<div class="arithmatex">\[
+K_I=Y\sigma\sqrt{\pi a},\qquad K_{max}&lt;K_{IC},\qquad
+a_c=\frac{1}{\pi}\left(\frac{K_{IC}}{Y\sigma_{max}}\right)^2.
+\]</div>
+<p>疲劳循环另有</p>
+<div class="arithmatex">\[
+\Delta K=Y(\sigma_{max}-\sigma_{min})\sqrt{\pi a},\qquad
+\frac{da}{dN}=C(\Delta K)^m\quad\text{仅在 }\Delta K_{th}&lt;\Delta K&lt;K_{IC}\text{ 的稳定区适用}.
+\]</div>
+<p>因此安全因子可记为 <span class="arithmatex">\(n_K=K_{IC}/K_{max}\)</span>；<span class="arithmatex">\(K_{IC}\)</span> 是断裂韧性，<span class="arithmatex">\(\Delta K_{th}\)</span> 是疲劳增长阈值，不能把“低于一个”推成“低于另一个”。</p>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>应力低于屈服并不等于裂纹安全；<span class="arithmatex">\(K_I\)</span> 还随 <span class="arithmatex">\(\sqrt a\)</span> 增长，几何因子 <span class="arithmatex">\(Y\)</span> 由试样/结构决定。</li>
+<li>Paris 定律不是所有裂纹长度的通用寿命公式：阈值下近似不增长，接近 <span class="arithmatex">\(K_{IC}\)</span> 时进入快速失稳；短裂纹、过载迟滞、平均应力和环境会改变它。</li>
+<li><span class="arithmatex">\(K_{IC}\)</span> 的平面应变材料常数需要合格试样与小范围屈服条件；用一个教学数值不能替代标准断裂试验或损伤容限验证。</li>
+<li>Paris 积分给的是模型内的循环数估计，不是免检承诺；检测能力、载荷谱和裂纹形状必须另行纳入安全决策。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="materials-fracture-ledger" markdown="1">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认值给出 <span class="arithmatex">\(K_{max}\approx15.98\)</span> MPa√m、<span class="arithmatex">\(K_{min}\approx1.60\)</span> MPa√m、<span class="arithmatex">\(\Delta K\approx14.38\)</span> MPa√m。于是安全因子 <span class="arithmatex">\(K_{IC}/K_{max}\approx3.13\)</span>，临界裂纹约 <span class="arithmatex">\(a_c=19.58\)</span> mm；若取 <span class="arithmatex">\(C=3\times10^{-11}\)</span>、<span class="arithmatex">\(m=3\)</span>，当前点落在 Paris 区，<span class="arithmatex">\(da/dN\approx8.92\times10^{-8}\)</span> m/cycle，模型积分到 <span class="arithmatex">\(a_c\)</span> 约 30,495 cycles。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(K_{max}\)</span></td>
+<td style="text-align: right;">15.98 MPa√m</td>
+<td>与 <span class="arithmatex">\(K_{IC}=50\)</span> 比较</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\Delta K\)</span></td>
+<td style="text-align: right;">14.38 MPa√m</td>
+<td>与 <span class="arithmatex">\(\Delta K_{th}=4\)</span> 比较</td>
+</tr>
+<tr>
+<td>安全因子</td>
+<td style="text-align: right;">3.13</td>
+<td><span class="arithmatex">\(K_{IC}/K_{max}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(a_c\)</span></td>
+<td style="text-align: right;">19.58 mm</td>
+<td>单调最大应力下的临界尺寸</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(da/dN\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(8.92\times10^{-8}\)</span> m/cycle</td>
+<td>仅 Paris 稳定区</td>
+</tr>
+<tr>
+<td>判定</td>
+<td style="text-align: right;">Paris 稳定扩展区</td>
+<td>阈值与失稳分开记账</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 断裂力学：为什么强度不够用<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>Griffith 的洞察（1920）</strong>：脆性材料的实际强度远低于理论值，因为存在裂纹——裂尖应力集中放大到局部断键。能量判据：裂纹扩展当"释放的弹性能 ≥ 新建表面的能量"：</p>
 <div class="arithmatex">\[
 \sigma_f = \sqrt{\frac{2E\gamma_s}{\pi a}} \quad\Longrightarrow\quad \boxed{\sigma_f \propto 1/\sqrt{a}}
@@ -63,10 +157,10 @@
 </figure>
 <p><strong>容许缺陷尺寸</strong>（设计的真正问题）：<span class="arithmatex">\(a_c = \frac{1}{\pi}\big(\frac{K_{IC}}{Y\sigma}\big)^2\)</span>——<strong>它把无损检测的能力与设计应力绑在一起</strong>：能测出 2 mm 的裂纹，就得保证 <span class="arithmatex">\(a_c &gt; 2\)</span> mm。"损伤容限设计"（航空标准做法）的全部数学在这一行。</p>
 <p><strong>强度-韧性的反相关</strong>：高强钢的 <span class="arithmatex">\(K_{IC}\)</span> 通常更低（强度靠限制位错、韧性靠位错耗能——<strong>同一个机制的两面</strong>）。这是材料界最顽固的权衡之一，Ashby 图上表现为一条压制线；突破它是先进材料研究的永恒主题（前沿 I）。</p>
-<h2 id="2">2. 韧脆转变：温度的陷阱<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 韧脆转变：温度的陷阱<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>BCC 金属（碳钢！）与部分 HCP 存在<strong>韧脆转变温度 DBTT</strong>：低于它，冲击功断崖式下跌——因为 BCC 位错运动的 Peierls 应力强烈温度敏感（结构 II 的伏笔），低温下位错动不了，裂尖无法产生塑性区 ⇒ 韧性归零。</p>
 <p><strong>历史现场</strong>：二战期间数百艘 Liberty 轮在冷水中船体脆断（部分断成两截）——低温 + 焊接残余应力 + 高硫钢的三重叠加；泰坦尼克号钢板的低温冲击韧性同样是事后分析的焦点。<strong>FCC 金属（奥氏体不锈钢、铝、铜）没有 DBTT</strong>——所以 LNG 储罐（-162 °C）与低温设备一律用奥氏体不锈钢或铝合金：<strong>这是"晶体结构直接决定选材"最硬的一条工程规则</strong>。</p>
-<h2 id="3">3. 疲劳：时间的陷阱<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 疲劳：时间的陷阱<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>80–90% 的机械失效来自疲劳</strong>：远低于屈服强度的<strong>交变</strong>应力，循环足够多次后断裂。三阶段：裂纹萌生（表面滑移带、缺口、夹杂）→ 稳定扩展（每循环推进一点，断口留下<strong>疲劳辉纹</strong>）→ 瞬断。</p>
 <figure class="diagram">
 <p><img alt="Three zones in a fatigue fracture surface" src="assets/img/mat-09-fatigue-fracture.svg" /></p>
@@ -79,7 +173,7 @@
 <p><strong>Paris 定律</strong>（裂纹扩展速率）：<span class="arithmatex">\(\dfrac{da}{dN} = C(\Delta K)^m\)</span>（<span class="arithmatex">\(m \approx 3\)</span>）——寿命预测的工作马；结合 <span class="arithmatex">\(a_c\)</span> 与检测间隔即得<strong>检修周期</strong>。</p>
 <p><strong>疲劳的工程铁律</strong>（每条都可救命）：① 表面是战场——抛光、喷丸（引入残余压应力）、渗氮可提升寿命数倍；② <strong>应力集中是元凶</strong>——尖角、螺纹根、焊趾；圆角半径加大是最便宜的改进；③ 平均拉应力有害（Goodman 图修正）；④ 腐蚀环境下疲劳极限消失（腐蚀疲劳——工艺 IV 再会）。</p>
 <p><strong>彗星号客机（1954）</strong>：方形舷窗角的应力集中 + 增压循环疲劳导致空中解体——现代客机所有舱窗都是圆角，这是用生命换来的一条设计规则。</p>
-<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感与反直觉<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
 <li><span class="arithmatex">\(K_{IC}\)</span>（MPa·√m）：玻璃 ~0.7 ｜ 氧化铝 ~4 ｜ 铸铁 ~20 ｜ 中碳钢 ~50 ｜ 韧性压力容器钢 ~100+ ｜ 韧性铝 ~30；</li>
 <li>由此算容许裂纹：<span class="arithmatex">\(\sigma = 500\)</span> MPa 的高强钢（<span class="arithmatex">\(K_{IC} = 50\)</span>）<span class="arithmatex">\(a_c \approx 3\)</span> mm；同应力下 <span class="arithmatex">\(K_{IC} = 100\)</span> 的钢 <span class="arithmatex">\(a_c \approx 13\)</span> mm——<strong>韧性翻倍，容许缺陷四倍</strong>（平方关系）；</li>
@@ -97,5 +191,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-fracture-ledger.js"></script>
 </body>
 </html>

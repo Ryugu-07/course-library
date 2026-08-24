@@ -2,6 +2,62 @@
 
 > 工程结构的灾难性事故几乎从不是"应力超过屈服强度"，而是**裂纹**：从看不见的缺陷长起来，某一刻突然贯穿。本页给三件真正决定安全的知识——断裂力学（裂纹的判据）、韧脆转变（温度的陷阱）、疲劳（时间的陷阱）。这也是本站与机器的力学站（:8091 失效线）分工最清楚的一页：那边讲怎么算，这边讲**为什么材料是这个韧性**。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="materials-fracture-learning-title">
+
+<h2 id="materials-fracture-learning-title">学习层：一条 2 mm 裂纹，何时只是疲劳，何时已经失稳？</h2>
+
+### 1. 具体材料情境：带缺口的齿轮轴
+
+一根齿轮轴有可检测的半裂纹长度 **a = 2 mm**，几何因子 $Y=1.12$，循环载荷的最大应力为 **180 MPa**、应力比 $R=\sigma_{min}/\sigma_{max}=0.1$，材料 $K_{IC}=50$ MPa√m。设计者既要问最大载荷会不会立即断，也要问循环中的 $\Delta K$ 是否越过疲劳阈值；这不是同一个问题。
+
+### 2. 必须作答的预测门：当前属于哪一段？
+
+先选一个：**$\Delta K\le\Delta K_{th}$ 阈值区**、**$\Delta K_{th}<\Delta K<K_{IC}$ 的 Paris 稳定扩展区**、或 **$K_{max}\ge K_{IC}$ 的失稳区**。请先比较 $K_{max}$ 与 $K_{IC}$，再比较 $\Delta K$ 与 $\Delta K_{th}$；揭示后才显示裂纹长度扫描图、临界尺寸与循环账本。
+
+### 3. 正式公式桥：最大载荷、循环范围与裂纹寿命
+
+线弹性断裂力学把裂尖强度写成
+
+$$
+K_I=Y\sigma\sqrt{\pi a},\qquad K_{max}<K_{IC},\qquad
+a_c=\frac{1}{\pi}\left(\frac{K_{IC}}{Y\sigma_{max}}\right)^2.
+$$
+
+疲劳循环另有
+
+$$
+\Delta K=Y(\sigma_{max}-\sigma_{min})\sqrt{\pi a},\qquad
+\frac{da}{dN}=C(\Delta K)^m\quad\text{仅在 }\Delta K_{th}<\Delta K<K_{IC}\text{ 的稳定区适用}.
+$$
+
+因此安全因子可记为 $n_K=K_{IC}/K_{max}$；$K_{IC}$ 是断裂韧性，$\Delta K_{th}$ 是疲劳增长阈值，不能把“低于一个”推成“低于另一个”。
+
+### 4. 误区与模型边界
+
+- 应力低于屈服并不等于裂纹安全；$K_I$ 还随 $\sqrt a$ 增长，几何因子 $Y$ 由试样/结构决定。
+- Paris 定律不是所有裂纹长度的通用寿命公式：阈值下近似不增长，接近 $K_{IC}$ 时进入快速失稳；短裂纹、过载迟滞、平均应力和环境会改变它。
+- $K_{IC}$ 的平面应变材料常数需要合格试样与小范围屈服条件；用一个教学数值不能替代标准断裂试验或损伤容限验证。
+- Paris 积分给的是模型内的循环数估计，不是免检承诺；检测能力、载荷谱和裂纹形状必须另行纳入安全决策。
+
+<div class="learning-lab" data-learning-lab="materials-fracture-ledger" markdown="1">
+
+**无 JavaScript 时的静态 fallback：**默认值给出 $K_{max}\approx15.98$ MPa√m、$K_{min}\approx1.60$ MPa√m、$\Delta K\approx14.38$ MPa√m。于是安全因子 $K_{IC}/K_{max}\approx3.13$，临界裂纹约 $a_c=19.58$ mm；若取 $C=3\times10^{-11}$、$m=3$，当前点落在 Paris 区，$da/dN\approx8.92\times10^{-8}$ m/cycle，模型积分到 $a_c$ 约 30,495 cycles。
+
+| 账本量 | 静态结果 | 解释 |
+|---|---:|---|
+| $K_{max}$ | 15.98 MPa√m | 与 $K_{IC}=50$ 比较 |
+| $\Delta K$ | 14.38 MPa√m | 与 $\Delta K_{th}=4$ 比较 |
+| 安全因子 | 3.13 | $K_{IC}/K_{max}$ |
+| $a_c$ | 19.58 mm | 单调最大应力下的临界尺寸 |
+| $da/dN$ | $8.92\times10^{-8}$ m/cycle | 仅 Paris 稳定区 |
+| 判定 | Paris 稳定扩展区 | 阈值与失稳分开记账 |
+
+</div>
+
+</section>
+
 ## 1. 断裂力学：为什么强度不够用
 
 **Griffith 的洞察（1920）**：脆性材料的实际强度远低于理论值，因为存在裂纹——裂尖应力集中放大到局部断键。能量判据：裂纹扩展当"释放的弹性能 ≥ 新建表面的能量"：

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,27 +47,125 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:47</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#materials-electronic-learning-title">学习层：给一只硅二极管做 pn 结耗尽预算，先核对单位与偏压边界</a><ul>
+<li><a href="#1-pn">1. 具体材料工程情境：室温硅 pn 结的空间电荷剖面</a></li>
+<li><a href="#2-cm">2. 必须作答的预测门：反偏、掺杂与 cm 单位换算</a></li>
+<li><a href="#3">3. 正式模型桥：内建电势 → 耗尽几何 → 电场峰值</a></li>
+<li><a href="#5">5. 误区与模型边界：耗尽近似不是完整器件模型</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 能带：为什么有导体、半导体与绝缘体</a></li>
-<li><a href="#2">2. 掺杂：十亿分之一的杠杆</a></li>
-<li><a href="#3">3. 结与界面：功能诞生的地方</a></li>
+<li><a href="#2">2. 掺杂：可核算浓度的杠杆</a></li>
+<li><a href="#3_1">3. 结与界面：功能诞生的地方</a></li>
 <li><a href="#4">4. 导体与互连材料</a></li>
-<li><a href="#5">5. 数字感与反直觉</a></li>
+<li><a href="#5_1">5. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">功能 I · 电子材料<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>从这里开始，材料不再只是"扛力的东西"，而是<strong>功能的载体</strong>。电子材料是其中最成功的一支：一块提纯到 99.999999999% 的硅，掺进十亿分之一的杂质，就能计算——<strong>结构 III 的"缺陷决定命运"在此达到极致</strong>。本页讲材料侧的机理（能带、掺杂、载流子），器件与制程流程见芯片站（:8089）。</p>
+<p>从这里开始，材料不再只是"扛力的东西"，而是<strong>功能的载体</strong>。电子材料是其中最成功的一支：一块提纯到 99.999999999% 的硅，在 <span class="arithmatex">\(10^{15}\)</span>–<span class="arithmatex">\(10^{20}\ \mathrm{cm^{-3}}\)</span> 的掺杂范围内就能把电导调出巨大跨度——相对 <span class="arithmatex">\(5\times10^{22}\ \mathrm{cm^{-3}}\)</span> 的硅原子密度，约为 <span class="arithmatex">\(2\times10^{-8}\)</span>–<span class="arithmatex">\(2\times10^{-3}\)</span>（每五千万到五百个硅原子中约一个掺杂原子），<strong>结构 III 的"缺陷决定命运"在此达到极致</strong>。本页讲材料侧的机理（能带、掺杂、载流子），器件与制程流程见芯片站（:8089）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-electronic-learning-title" class="learning-layer">
+<h2 id="materials-electronic-learning-title">学习层：给一只硅二极管做 pn 结耗尽预算，先核对单位与偏压边界<a class="headerlink" href="#materials-electronic-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-pn">1. 具体材料工程情境：室温硅 pn 结的空间电荷剖面<a class="headerlink" href="#1-pn" title="Permanent link"></a></h3>
+<p>一只硅二极管的 p 区与 n 区在接触后形成耗尽层。器件工程师要在不先求解完整漂移—扩散方程的情况下，估算耗尽宽度、两侧分配和电场峰值，用来检查结深、结电容和击穿风险是否在量级上合理。这里采用<strong>突变 pn 结、耗尽近似、非简并材料</strong>的第一版预算，并把浓度单位、介电常数单位和输出单位逐项列账。</p>
+<h3 id="2-cm">2. 必须作答的预测门：反偏、掺杂与 cm 单位换算<a class="headerlink" href="#2-cm" title="Permanent link"></a></h3>
+<p>揭示前回答三题：<span class="arithmatex">\(V_a\)</span> 调得更负时，<span class="arithmatex">\(W\)</span> 与 <span class="arithmatex">\(|E_{\max}|\)</span> 的方向是什么？固定 <span class="arithmatex">\(N_D,T,V_a\)</span> 提高 <span class="arithmatex">\(N_A\)</span> 后，突变结的 <span class="arithmatex">\(W\)</span> 通常变宽还是变窄？浓度从 <span class="arithmatex">\(\mathrm{cm^{-3}}\)</span> 换成 <span class="arithmatex">\(\mathrm{m^{-3}}\)</span> 时数值应乘 <span class="arithmatex">\(10^2\)</span>、<span class="arithmatex">\(10^6\)</span> 还是 <span class="arithmatex">\(10^9\)</span>？三题完成后才显示空间电荷、电场、势分布与单位账本。</p>
+<h3 id="3">3. 正式模型桥：内建电势 → 耗尽几何 → 电场峰值<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>本实验把 <span class="arithmatex">\(N_A,N_D,n_i\)</span> 全部写成 <span class="arithmatex">\(\mathrm{cm^{-3}}\)</span>，把 <span class="arithmatex">\(\varepsilon_s=\varepsilon_r\varepsilon_0\)</span> 写成 F/cm，取 <span class="arithmatex">\(\varepsilon_0=8.8541878128\times10^{-14}\ \mathrm{F/cm}\)</span>。于是</p>
+<div class="arithmatex">\[
+V_{bi}=\frac{kT}{q}\ln\frac{N_A N_D}{n_i(T)^2},
+\]</div>
+<div class="arithmatex">\[
+W=\sqrt{\frac{2\varepsilon_s}{q}\left(\frac1{N_A}+\frac1{N_D}\right)(V_{bi}-V_a)},\quad
+x_p=W\frac{N_D}{N_A+N_D},\quad x_n=W\frac{N_A}{N_A+N_D},
+\]</div>
+<div class="arithmatex">\[
+|E_{\max}|=\frac{qN_Ax_p}{\varepsilon_s}=\frac{qN_Dx_n}{\varepsilon_s}.
+\]</div>
+<p>式中的 <span class="arithmatex">\(W,x_p,x_n\)</span> 先得到 cm，页面再换成 <span class="arithmatex">\(\mu\mathrm m\)</span>（乘 <span class="arithmatex">\(10^4\)</span>）；电场直接以 V/cm 报告。温度滑杆不把 <span class="arithmatex">\(n_i\)</span> 锁死在 300 K：采用以 <span class="arithmatex">\(n_i(300\ \mathrm K)\)</span> 归一化的教学简化式</p>
+<div class="arithmatex">\[
+n_i(T)=n_i(300)\left(\frac{T}{300}\right)^{3/2}
+\exp\left[-\frac{E_g}{2k}\left(\frac1T-\frac1{300}\right)\right],\qquad E_g=1.12\ \mathrm{eV}.
+\]</div>
+<p>要求 <span class="arithmatex">\(N_A N_D&gt;n_i(T)^2\)</span> 且 <span class="arithmatex">\(V_a&lt;V_{bi}\)</span>；正向偏压接近 <span class="arithmatex">\(V_{bi}\)</span> 时耗尽近似已经失去可靠性。</p>
+<p><h3>4. 动手实验：把温度、掺杂和外加偏压联动</h3></p>
+<div class="learning-lab" data-learning-lab="materials-pn-junction">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(T=300\ \mathrm K\)</span>、<span class="arithmatex">\(N_A=10^{16}\ \mathrm{cm^{-3}}\)</span>、<span class="arithmatex">\(N_D=10^{17}\ \mathrm{cm^{-3}}\)</span>、<span class="arithmatex">\(n_i(300)=10^{10}\ \mathrm{cm^{-3}}\)</span>、<span class="arithmatex">\(\varepsilon_r=11.7\)</span>、<span class="arithmatex">\(V_a=0.20\ \mathrm V\)</span>。使用 <span class="arithmatex">\(\varepsilon_s=1.03594\times10^{-12}\ \mathrm{F/cm}\)</span>，得到 <span class="arithmatex">\(V_{bi}=0.773844\ \mathrm V\)</span>、<span class="arithmatex">\(V_{bi}-V_a=0.573844\ \mathrm V\)</span>、<span class="arithmatex">\(W=0.285707\ \mu\mathrm m\)</span>、<span class="arithmatex">\(x_p=0.259733\ \mu\mathrm m\)</span>、<span class="arithmatex">\(x_n=0.0259733\ \mu\mathrm m\)</span>、<span class="arithmatex">\(|E_{\max}|=4.01701\times10^4\ \mathrm{V/cm}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(N_A/N_D\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(10^{16}/10^{17}\)</span></td>
+<td><span class="arithmatex">\(\mathrm{cm^{-3}}\)</span>；公式也在 cm 制中计算</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(n_i(300)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(10^{10}\)</span></td>
+<td><span class="arithmatex">\(\mathrm{cm^{-3}}\)</span>；升温时按简化式更新</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\varepsilon_s\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.03594\times10^{-12}\)</span></td>
+<td>F/cm</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(V_{bi}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.773844\)</span></td>
+<td>V</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(W\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.285707\)</span></td>
+<td><span class="arithmatex">\(\mu\mathrm m\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x_p/x_n\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.259733/0.0259733\)</span></td>
+<td><span class="arithmatex">\(\mu\mathrm m\)</span>；<span class="arithmatex">\(N_Ax_p=N_Dx_n\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lvert E_{\max}\rvert\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4.01701\times10^4\)</span></td>
+<td>V/cm</td>
+</tr>
+<tr>
+<td>电荷面密度</td>
+<td style="text-align: right;"><span class="arithmatex">\(4.16139\times10^{-8}\)</span></td>
+<td>C/cm²；两侧绝对值相等</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：耗尽近似不是完整器件模型<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>本近似要求突变掺杂、非简并统计、耗尽区内自由载流子可忽略，并把 <span class="arithmatex">\(N_A,N_D\)</span> 当作均匀常数；渐变结、超浅结、强补偿和量子限域需要改模型。</li>
+<li><span class="arithmatex">\(V_a&lt;V_{bi}\)</span> 是本实验的硬边界；强正偏、高注入、复合、串联电阻、接触势垒和温度梯度会改变电流与电荷分布。反向偏压继续增大时还会进入雪崩或齐纳击穿，不能拿本式外推击穿电压。</li>
+<li>这里的 <span class="arithmatex">\(n_i(T)\)</span> 是带隙固定的量级简化式；真实硅还受带隙随温度变化、简并、带隙变窄、补偿和有效态密度影响。浓度单位换算必须保持一致：<span class="arithmatex">\(1\ \mathrm{cm^{-3}}=10^6\ \mathrm{m^{-3}}\)</span>。</li>
+</ul>
+<div class="cl-transfer" markdown="1">
+<p><strong>迁移问题：</strong>若把同一结换成高掺杂、接近简并的 p+–n 结构，你会先修正统计、介电常数还是耗尽近似？若实测结电容随反偏压变化与预算不符，哪些结深、掺杂剖面、界面态和击穿前漏电证据能区分原因？</p>
+</div>
+</section>
 <h2 id="1">1. 能带：为什么有导体、半导体与绝缘体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>孤立原子的能级，在晶体中因周期势场展宽成<strong>能带</strong>（🔗 物理站固体物理给 Bloch 定理的严格推导）。价带与导带之间是<strong>带隙 <span class="arithmatex">\(E_g\)</span></strong>——三分类的唯一标准：</p>
+<p>孤立原子的能级，在晶体中因周期势场展宽成<strong>能带</strong>（🔗 物理站固体物理给 Bloch 定理的严格推导）。在最基本的独立电子能带图景里，费米能级附近是否有可用能态以及带隙 <span class="arithmatex">\(E_g\)</span> 的大小，是区分金属、半导体与绝缘体的第一张地图；半金属、强关联绝缘体、无序与温度效应还需要超出这张入门图景：</p>
 <table>
 <thead>
 <tr>
@@ -88,15 +201,15 @@
 <p><img alt="Band structures of conductor semiconductor and insulator" src="assets/img/mat-12-band-classes.svg" /></p>
 <figcaption><span class="fig-id">图 12.1</span>导体没有有效带隙，半导体有适中的带隙且可由施主/受主能级调节，绝缘体带隙很大；能带间距与掺杂能级共同决定导电能力。</figcaption>
 </figure>
-<h2 id="2">2. 掺杂：十亿分之一的杠杆<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>n 型</strong>：Si（4 价）掺 P（5 价），多一个电子进导带；<strong>p 型</strong>：掺 B（3 价），留一个空穴。掺杂浓度 <span class="arithmatex">\(10^{15}\)</span>–<span class="arithmatex">\(10^{20}\)</span> cm⁻³ 对比硅原子密度 <span class="arithmatex">\(5\times10^{22}\)</span> cm⁻³——<strong>百万分之一到十亿分之一的杂质，把电阻率改变六个数量级</strong>。</p>
+<h2 id="2">2. 掺杂：可核算浓度的杠杆<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>n 型</strong>：Si（4 价）掺 P（5 价），多一个电子进导带；<strong>p 型</strong>：掺 B（3 价），留一个空穴。掺杂浓度 <span class="arithmatex">\(10^{15}\)</span>–<span class="arithmatex">\(10^{20}\)</span> cm⁻³ 对比硅原子密度 <span class="arithmatex">\(5\times10^{22}\)</span> cm⁻³，对应约 <span class="arithmatex">\(2\times10^{-8}\)</span>–<span class="arithmatex">\(2\times10^{-3}\)</span> 的原子位比例——约每五千万到每五百个硅晶格位一个掺杂原子，却足以把电阻率改变六个数量级。</p>
 <figure class="plot">
 <p><img alt="Carrier concentration vs inverse temperature" src="assets/img/mat-12-carriers.svg" /></p>
-<figcaption><span class="fig-id">图 12.2</span>掺杂半导体的载流子浓度三段：低温冻结（杂质未电离）、中温**外延平台**（\(n \approx N_d\)，器件工作区——性能稳定的原因）、高温本征段（\(n_i\) 指数暴涨、器件失效）。这张图解释了为什么芯片有工作温度上限，也解释了宽带隙半导体（GaN、SiC）为何能耐高温：\(E_g\) 大 ⇒ \(n_i\) 起飞得晚。</figcaption>
+<figcaption><span class="fig-id">图 12.2</span>掺杂半导体的载流子浓度三段：低温冻结（杂质未电离）、中温**非本征区/杂质电离区（外因区）**（\(n \approx N_d\)，器件工作区——性能稳定的原因）、高温本征段（\(n_i\) 指数暴涨、器件失效）。这张图解释了为什么芯片有工作温度上限，也解释了宽带隙半导体（GaN、SiC）为何能耐高温：\(E_g\) 大 ⇒ \(n_i\) 起飞得晚。</figcaption>
 </figure>
 <p><strong>本征载流子</strong> <span class="arithmatex">\(n_i \propto \exp(-E_g/2k_BT)\)</span>——这一条不等式统治功率电子的技术路线：Si 器件结温上限约 150–175 °C，SiC/GaN 可上到 200 °C 以上并支持更高电压更小体积，这就是电动车与快充电源全面转向宽禁带的材料学原因（🔗 芯片站前沿页）。</p>
-<p><strong>材料纯度与晶体完美度</strong>：电子级硅需 11N 纯度（区熔提纯）+ <strong>单晶</strong>（Czochralski 提拉）——晶界会散射载流子、缺陷会成为复合中心。<strong>这是全课唯一"完美晶体是目标"的场合</strong>（其余场合都在设计缺陷）——例外本身就是主线的注脚：<strong>要什么性能，就设计什么缺陷（包括不要缺陷）</strong>。</p>
-<h2 id="3">3. 结与界面：功能诞生的地方<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>材料纯度与晶体质量</strong>：电子级多晶硅通常先经化学提纯获得极高纯度，再用 <strong>Czochralski（CZ）提拉</strong>或<strong>浮区（FZ）法</strong>制成单晶；FZ 兼具区熔提纯和无坩埚生长的特点，CZ 则是大尺寸晶圆的主流路线。晶界、位错、氧/碳和金属杂质各有不同后果，器件工艺追求的是<strong>可测、可控且与用途匹配的缺陷预算</strong>，而不是抽象的“绝对完美”。</p>
+<h2 id="3_1">3. 结与界面：功能诞生的地方<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>pn 结</strong>：n 与 p 接触 ⇒ 载流子扩散 ⇒ 耗尽区内建电场 ⇒ 单向导电。<strong>几乎所有电子器件都是界面的产物</strong>：二极管（一个结）、双极晶体管（两个结）、MOSFET（金属-氧化物-半导体三层，靠栅压调控沟道——SiO₂ 是天赐的完美介质，硅的历史性优势有一半来自它的氧化物）、LED/激光（直接带隙半导体的复合发光——GaN 蓝光 LED 的 2014 诺奖是材料学胜利：难在 p 型 GaN 掺杂与衬底失配）、太阳能电池（前沿 II）。</p>
 <figure class="diagram">
 <p><img alt="pn junction depletion region and band bending" src="assets/img/mat-12-pn-junction.svg" /></p>
@@ -106,10 +219,10 @@
 <h2 id="4">4. 导体与互连材料<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>铜取代铝做芯片互连（1997 IBM）：电阻率低 40%、抗电迁移更好——但铜会毒化硅，需<strong>扩散阻挡层</strong>（TaN）。<strong>电迁移</strong>（高电流密度下电子风推动原子迁移 ⇒ 断路）是互连的头号寿命杀手，本质是<strong>扩散</strong>（热力 II 的老朋友在电场下的变形）。</p>
 <p><strong>超导一瞥</strong>：零电阻 + 迈斯纳效应；低温超导 NbTi（MRI 磁体的主力）、高温超导 YBCO/BSCCO（液氮温区，带材化艰难）；室温超导是长期悬案，历次宣称多未经复现——<strong>读到相关新闻时先等复现</strong>（本站前沿页纪律）。</p>
-<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 数字感与反直觉<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <ul>
 <li>电阻率跨度：Cu <span class="arithmatex">\(1.7\times10^{-8}\)</span> Ω·m → 本征 Si ~<span class="arithmatex">\(2\times10^3\)</span> → 石英 <span class="arithmatex">\(&gt;10^{16}\)</span>——<strong>24 个数量级</strong>，人类可控物理量中跨度最大者之一；</li>
-<li>掺杂浓度 <span class="arithmatex">\(10^{16}\)</span> cm⁻³ ≈ 每 500 万个硅原子里一个杂质；</li>
+<li>掺杂浓度 <span class="arithmatex">\(10^{16}\)</span> cm⁻³ ≈ 每 <span class="arithmatex">\(5\times10^6\)</span> 个硅晶格位一个杂质；若取 <span class="arithmatex">\(10^{20}\)</span> cm⁻³，则约每 500 个晶格位一个，必须按浓度范围核算；</li>
 <li><strong>反直觉</strong>：半导体的电导率随温度<strong>升高</strong>（更多载流子被激发）而金属相反（声子散射加剧）——测温度系数就能判断材料类型；最纯净的硅几乎不导电，"半导体导电"全靠人为掺入的缺陷。</li>
 </ul>
 <p>【研】对标 Kittel《固体物理》、Sze《Physics of Semiconductor Devices》；有效质量、费米-狄拉克统计、载流子输运与复合模型是研究生地基。🔗 与芯片站分工：本页讲材料机理，那边讲器件结构与制程流程。</p>
@@ -124,5 +237,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-pn-junction.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,13 +46,20 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#nominal-cbf">学习层：把自适应巡航的 nominal 动作投影到 CBF 可行集</a><ul>
+<li><a href="#1">1. 具体工程谜题：前车固定制动时，怎样尽量保留巡航性能又不穿过安全边界？</a></li>
+<li><a href="#2-1-cbf">2. 正式模型：相对阶 1 的 CBF 上界和投影</a></li>
+<li><a href="#3-gapspeedh-ledger">3. 动手实验：把 gap、speed、h 和动作修正放进同一张 ledger</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、把"安全"形式化</a></li>
 <li><a href="#cbf">二、控制屏障函数（CBF）</a></li>
 <li><a href="#_2">三、可达性分析</a></li>
@@ -53,25 +75,176 @@
 <p><strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：理论框架【实】（有严格证明）；<strong>在复杂真实系统上的可扩展性【争】</strong>。
 上一页留下一个问题：学习型控制灵活但无保证，传统控制有保证但不够灵活。<strong>能否两者兼得？</strong> 这正是近十年控制理论最活跃的方向——<strong>在保留性能的同时，给出可证明的安全保证</strong>。它也是控制学科对当前 AI 浪潮最独特的贡献。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="nominal-cbf">学习层：把自适应巡航的 nominal 动作投影到 CBF 可行集<a class="headerlink" href="#nominal-cbf" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程谜题：前车固定制动时，怎样尽量保留巡航性能又不穿过安全边界？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>用纵向 toy 模型表示本车与前车的间距 <span class="arithmatex">\(d\)</span>、本车速度 <span class="arithmatex">\(v\)</span>、前车速度 <span class="arithmatex">\(v_{lead}\)</span>。设静态安全距离为 <span class="arithmatex">\(d_0\)</span>、时间车头时距为 <span class="arithmatex">\(T\)</span>，定义</p>
+<div class="arithmatex">\[
+h=d-d_0-Tv.
+\]</div>
+<p>前车以固定制动加速度逐步减速，nominal 控制器仍想根据间距和相对速度加速或减速。过滤器需要回答：CBF 不等式对本车加速度是上界还是下界；执行器界与 CBF 约束是否有交集；以及一个离散、可能失配的 toy 仿真能承诺到什么程度。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li><span class="arithmatex">\(\dot h=(v_{lead}-v)-Ta\)</span> 与 <span class="arithmatex">\(\dot h+\alpha h\ge0\)</span> 对 <span class="arithmatex">\(a\)</span> 给出什么方向的界？</li>
+<li>安全过滤器应选择离 nominal 最近的可行动作，还是固定输出 0？</li>
+<li>离散 toy 中观察到 <span class="arithmatex">\(h\ge0\)</span>，能否对任意模型失配直接宣称绝对安全？</li>
+</ol>
+</div>
+<h3 id="2-1-cbf">2. 正式模型：相对阶 1 的 CBF 上界和投影<a class="headerlink" href="#2-1-cbf" title="Permanent link"></a></h3>
+<p>由</p>
+<div class="arithmatex">\[
+\dot h=(v_{lead}-v)-Ta,
+\]</div>
+<p>得到</p>
+<div class="arithmatex">\[
+\dot h+\alpha h\ge0
+\quad\Longleftrightarrow\quad
+a\le a_{CBF}^{max}:=\frac{v_{lead}-v+\alpha h}{T},
+\]</div>
+<p>其中 <span class="arithmatex">\(T&gt;0,\alpha&gt;0\)</span>。本实验的执行器集合为 <span class="arithmatex">\(a\in[-4,2]\ \mathrm{m/s^2}\)</span>；先把 nominal 动作截到执行器界，再求</p>
+<div class="arithmatex">\[
+a_{safe}=\operatorname{proj}_{[-4,\,\min(2,a_{CBF}^{max})]}(a_{nom}).
+\]</div>
+<p>因此 <span class="arithmatex">\(a_{CBF}^{max}\ge-4\)</span> 才有非空可行集。加速度直接出现在 <span class="arithmatex">\(\dot h\)</span>，所以这个 toy barrier 的相对阶为 1，不需要二阶 CBF 的额外动态扩张。</p>
+<h3 id="3-gapspeedh-ledger">3. 动手实验：把 gap、speed、h 和动作修正放进同一张 ledger<a class="headerlink" href="#3-gapspeedh-ledger" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调初始间距/速度、<span class="arithmatex">\(d_0,T,\alpha\)</span>、前车固定制动、nominal 增益、仿真时长和步长。图上画间距与安全间距、本车/前车速度、<span class="arithmatex">\(h\)</span> 以及 nominal/CBF 上界/safe 加速度；ledger 逐步列 <span class="arithmatex">\(d,v,h,a_{nom},a_{CBF}^{max},a_{safe}\)</span> 和可行性。观察 safe action 开始偏离 nominal 的时刻，以及步长变大、初始 <span class="arithmatex">\(h\)</span> 变小或制动变强时可行性如何消失。</p>
+<div class="learning-lab" data-learning-lab="auto-safe-control-cbf">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取</p>
+<div class="arithmatex">\[
+d_0=8\ \mathrm m,\quad T=1.5\ \mathrm s,\quad \alpha=0.6,
+\quad d(0)=45\ \mathrm m,\quad v(0)=18\ \mathrm{m/s},\quad v_{lead}(0)=20\ \mathrm{m/s},
+\]</div>
+<p>前车固定制动为 <span class="arithmatex">\(2\ \mathrm{m/s^2}\)</span>，执行器为 <span class="arithmatex">\([-4,2]\ \mathrm{m/s^2}\)</span>，<span class="arithmatex">\(\Delta t=0.1\ \mathrm s\)</span>，仿真 10 s。初始 <span class="arithmatex">\(h=10.000\ \mathrm m\)</span>，末端 <span class="arithmatex">\(h=0.050\ \mathrm m\)</span>，最小 gap 为 <span class="arithmatex">\(12.741\ \mathrm m\)</span>；不可行步数和违反 CBF 步数均为 0，safe action 与截断 nominal 不同的步数为 72。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(t\)</span> (s)</th>
+<th style="text-align: right;">gap (m)</th>
+<th style="text-align: right;"><span class="arithmatex">\(v\)</span> (m/s)</th>
+<th style="text-align: right;"><span class="arithmatex">\(h\)</span> (m)</th>
+<th style="text-align: right;">nominal (m/s²)</th>
+<th style="text-align: right;"><span class="arithmatex">\(a_{CBF}^{max}\)</span> (m/s²)</th>
+<th style="text-align: right;">safe (m/s²)</th>
+<th>feasible</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">45.000</td>
+<td style="text-align: right;">18.000</td>
+<td style="text-align: right;">10.000</td>
+<td style="text-align: right;">2.000</td>
+<td style="text-align: right;">5.333</td>
+<td style="text-align: right;">2.000</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">45.200</td>
+<td style="text-align: right;">18.200</td>
+<td style="text-align: right;">9.900</td>
+<td style="text-align: right;">1.828</td>
+<td style="text-align: right;">5.027</td>
+<td style="text-align: right;">1.828</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">45.360</td>
+<td style="text-align: right;">18.383</td>
+<td style="text-align: right;">9.786</td>
+<td style="text-align: right;">1.661</td>
+<td style="text-align: right;">4.726</td>
+<td style="text-align: right;">1.661</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">4.0</td>
+<td style="text-align: right;">34.802</td>
+<td style="text-align: right;">16.517</td>
+<td style="text-align: right;">2.028</td>
+<td style="text-align: right;">-1.563</td>
+<td style="text-align: right;">-2.200</td>
+<td style="text-align: right;">-2.200</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">6.0</td>
+<td style="text-align: right;">26.363</td>
+<td style="text-align: right;">11.850</td>
+<td style="text-align: right;">0.588</td>
+<td style="text-align: right;">-1.469</td>
+<td style="text-align: right;">-2.331</td>
+<td style="text-align: right;">-2.331</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">8.0</td>
+<td style="text-align: right;">19.195</td>
+<td style="text-align: right;">7.350</td>
+<td style="text-align: right;">0.171</td>
+<td style="text-align: right;">-1.319</td>
+<td style="text-align: right;">-2.165</td>
+<td style="text-align: right;">-2.165</td>
+<td>yes</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">10.0</td>
+<td style="text-align: right;">12.741</td>
+<td style="text-align: right;">3.127</td>
+<td style="text-align: right;">0.050</td>
+<td style="text-align: right;">-1.245</td>
+<td style="text-align: right;">-2.065</td>
+<td style="text-align: right;">-2.065</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p>该表是固定前车制动、前向 Euler、无延迟测量的确定性 toy 账本；它不是对真实交通参与者或执行器失配的安全证明。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>CBF 上界方向不能凭直觉改写</strong>：因为 <span class="arithmatex">\(-Ta\)</span> 出现在 <span class="arithmatex">\(\dot h\)</span>，<span class="arithmatex">\(T&gt;0\)</span> 时更大的加速度会降低 <span class="arithmatex">\(h\)</span>，所以条件给出上界。</li>
+<li><strong>可行性是单独的证据</strong>：若 <span class="arithmatex">\(\min(a_{max},a_{CBF}^{max})&lt;a_{min}\)</span>，当前模型下没有同时满足执行器和 CBF 的动作；投影器不能凭空创造可行性。</li>
+<li><strong>离散时间不是连续时间的自动拷贝</strong>：前向 Euler 的步长、采样/执行延迟、量化和制动变化会改变实际 <span class="arithmatex">\(h\)</span>；需要离散 CBF 裕度或采样间验证。</li>
+<li><strong>模型失配会穿透形式保证</strong>：真实加速度响应、坡度、轮胎附着、传感器偏差和前车非合作行为都可能破坏 <span class="arithmatex">\(\dot h\)</span> 模型；应加入扰动边界、鲁棒约束、紧急制动和人工接管。</li>
+<li><strong>相对阶依赖建模</strong>：本 toy 直接把加速度当输入，故相对阶为 1；若输入是 jerk、执行器有一阶动态，必须重建 barrier 条件。</li>
+</ul>
+<div class="cl-transfer" markdown="1">
+<p><strong>迁移问题：</strong>如果实车只能控制 jerk，且雷达距离有 ±0.5 m 偏差、执行器有 150 ms 延迟，你会如何重写 barrier、可行域和离散裕度？请把 nominal 性能、形式安全证据、失配边界和失效时的最小风险动作分开报告。</p>
+</div>
+</section>
 <h2 id="_1">一、把"安全"形式化<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>第十四页讲的功能安全是<strong>工程流程</strong>层面的；本页讲的是<strong>数学</strong>层面的：<strong>把"安全"写成状态空间中的一个条件，并证明系统永远不会违反它。</strong></p>
+<p>第十四页讲的功能安全是<strong>工程流程</strong>层面的；本页讲的是<strong>数学</strong>层面的：<strong>把"安全"写成状态空间中的一个条件，并在模型、输入可行性和状态测量等假设下证明系统不会违反它。</strong></p>
 <p><strong>安全集</strong>：定义一个允许的状态集合 <span class="arithmatex">\(\mathcal{C}\)</span>（如"温度低于 80°C"、"机械臂不进入人所在区域"、"电池 SOC 在 10%–90% 之间"）。</p>
 <p><strong>安全 = 前向不变性（forward invariance）</strong>：</p>
 <blockquote>
 <p>若初始状态在 <span class="arithmatex">\(\mathcal{C}\)</span> 内，则<strong>在所有未来时刻都保持在 <span class="arithmatex">\(\mathcal{C}\)</span> 内</strong>。</p>
 </blockquote>
-<p><strong>注意这比"稳定性"更强也更实用</strong>：稳定性说的是"最终会收敛"，安全说的是"<strong>任何时刻都不越界</strong>"。<strong>工程上后者往往更重要</strong>——一个最终会收敛但中途超温烧毁的系统毫无价值。</p>
+<p><strong>安全与稳定性关注不同性质，不能一般地排序</strong>：安全约束关注从允许集合出发的全程前向不变性；稳定性关注平衡点附近的有界、收敛或渐近行为。一个系统可以稳定但暂时越过安全边界，也可以保持在安全集合内却不收敛到某个平衡点；工程上必须分别写清两类证据。</p>
 <h2 id="cbf">二、控制屏障函数（CBF）<a class="headerlink" href="#cbf" title="Permanent link"></a></h2>
-<p><strong>核心思想</strong>（与 Lyapunov 函数对偶，很漂亮）：</p>
+<p><strong>核心思想</strong>（与 Lyapunov 函数形成教学上的镜像/类比，而非严格数学对偶）：</p>
 <ul>
 <li><strong>Lyapunov 函数</strong> <span class="arithmatex">\(V\)</span>：证明系统<strong>趋向</strong>某点（稳定性）——要求 <span class="arithmatex">\(\dot V \le 0\)</span>；</li>
 <li><strong>屏障函数</strong> <span class="arithmatex">\(h\)</span>：证明系统<strong>不离开</strong>某集合（安全性）——要求在边界上"向内推"。</li>
 </ul>
 <p>定义 <span class="arithmatex">\(\mathcal{C} = \{x : h(x)\ge0\}\)</span>，<strong>CBF 条件</strong>为：</p>
-<div class="arithmatex">\[\sup_u \left[\dot{h}(x,u)\right] \ge -\alpha\big(h(x)\big)\]</div>
+<div class="arithmatex">\[\sup_{u\in\mathcal U} \left[\dot{h}(x,u)\right] \ge -\alpha\big(h(x)\big)\]</div>
 <p><span class="arithmatex">\(\alpha\)</span> 是一个 K 类函数。<strong>直觉</strong>：当状态接近边界（<span class="arithmatex">\(h\to0\)</span>）时，允许的"下降速度"必须趋于零——<strong>越靠近边界，越必须减速</strong>。就像开车接近悬崖时必须减速一样。</p>
 <p><strong>关键的工程价值：CBF 可以作为一个"安全过滤器"</strong>。设任意标称控制器（PID、MPC、甚至神经网络策略）给出 <span class="arithmatex">\(u_{nom}\)</span>，求解一个小的二次规划：</p>
-<div class="arithmatex">\[u^* = \arg\min_u \|u - u_{nom}\|^2 \quad \text{s.t.}\quad \dot{h}(x,u) \ge -\alpha(h(x))\]</div>
+<div class="arithmatex">\[u^* = \arg\min_{u\in\mathcal U} \|u - u_{nom}\|^2 \quad \text{s.t.}\quad \dot{h}(x,u) \ge -\alpha(h(x))\]</div>
 <p><strong>含义</strong>：<strong>尽可能执行标称控制器想做的事，只在必要时做最小修正以保证安全。</strong></p>
 <p><strong>这个结构极具吸引力</strong>：</p>
 <ul>
@@ -113,9 +286,9 @@
 <p><strong>这也回应了本课反复出现的主题</strong>：成熟工程学科的标志之一，是<strong>知道自己保证了什么、没保证什么</strong>（第五页水床效应、第十四页量化风险、第十六页鲁棒边界）。<strong>在一个"演示驱动"的时代，能诚实地陈述保证的边界，是一种稀缺的专业素养。</strong></p>
 <h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
-<li><strong>安全 = 前向不变性</strong>，比稳定性更强也更贴近工程需求；</li>
-<li><strong>CBF 与 Lyapunov 对偶</strong>：一个证明"趋向"，一个证明"不离开"；</li>
-<li><strong>CBF 安全过滤器</strong>可以给任意标称控制器（含学习策略）加上保证，且实时可解——这是当前最有工程吸引力的构造；</li>
+<li><strong>安全关注前向不变性，稳定性关注平衡点附近/渐近行为</strong>，两者是不同性质，不能一般排序；</li>
+<li><strong>CBF 与 Lyapunov 是教学上的镜像类比</strong>：一个约束“不离开”，一个分析“趋向”，并非严格对偶；</li>
+<li><strong>CBF 安全过滤器</strong>可以在模型、输入可行性和状态测量假设成立时给任意标称控制器（含学习策略）加上形式保证，且常可实时求解——这是当前最有工程吸引力的构造；</li>
 <li><strong>HJ 可达性最严格但受维数灾难限制</strong>；</li>
 <li><strong>所有方法都依赖模型，且假设状态已知</strong>——感知不确定性是最大的现实缺口；</li>
 <li><strong>"AI 提供能力，控制提供保证"</strong>是这条线的核心判断。</li>
@@ -131,5 +304,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-safe-control-cbf.js"></script>
 </body>
 </html>

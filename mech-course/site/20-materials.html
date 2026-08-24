@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、选材的系统方法</a></li>
-<li><a href="#_2">二、主要材料家族的定位</a></li>
-<li><a href="#_3">三、钢的热处理：机械工程师的核心工具</a></li>
-<li><a href="#_4">四、表面强化：兼得硬与韧</a></li>
-<li><a href="#_5">五、腐蚀与环境</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#materials-learning-title">学习层：让机械设计要求先流到载荷工况，再流到材料过滤器</a><ul>
+<li><a href="#_1">具体工程情境：同一根轻量拉杆与短梁是否应选同一种材料</a></li>
+<li><a href="#_2">必须提交的三项预测</a></li>
+<li><a href="#_3">最小模型与假设：四个指数加四道硬过滤</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">正式返回：材料选择是需求流向，不是家族投票</a></li>
+<li><a href="#_6">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、选材的系统方法</a></li>
+<li><a href="#_8">二、主要材料家族的定位</a></li>
+<li><a href="#_9">三、钢的热处理：机械工程师的核心工具</a></li>
+<li><a href="#_10">四、表面强化：兼得硬与韧</a></li>
+<li><a href="#_11">五、腐蚀与环境</a></li>
+<li><a href="#_12">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +78,138 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>具体牌号的许用值必须查现行标准与供应商数据</strong>，本页只给方法与量级。
 同一个形状，用什么材料、做什么处理，性能可以相差数倍。<strong>材料选择是机械设计中影响最大、却常常被草率对待的决策之一</strong>。本页给出选材的系统方法，以及钢铁热处理的核心逻辑——因为它是机械工程师最常打交道的强化手段。</p>
 </blockquote>
-<h2 id="_1">一、选材的系统方法<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-learning-title" class="learning-layer">
+<h2 id="materials-learning-title">学习层：让机械设计要求先流到载荷工况，再流到材料过滤器<a class="headerlink" href="#materials-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：同一根轻量拉杆与短梁是否应选同一种材料<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>设计输入不是“选钢还是铝”，而是：拉杆或梁的载荷、刚度/强度下限、质量目标、最高服役温度和可用工艺。实验用一组带明确单位的教学属性，先比较 tie 与 beam 两种显式工况，再用最小模量、最小强度、最高温度和制造过程过滤。材料属性是代表性筛查值，不是牌号许用值；最终选择仍要回到供应商数据、环境、连接和验证试验。</p>
+<h3 id="_2">必须提交的三项预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>对弯曲刚度受限的等质量设计，<span class="arithmatex">\(E\)</span> 较低但密度也低的铝合金相对钢的 <span class="arithmatex">\(E^{1/3}/\rho\)</span> 指数会更差、更好，还是必然相同？</li>
+<li>把最高服役温度要求从 <span class="arithmatex">\(120^\circ\mathrm{C}\)</span> 提高到 <span class="arithmatex">\(220^\circ\mathrm{C}\)</span>，可通过过滤的材料数会增多、减少，还是只改变排序不改变集合？</li>
+<li>能否先凭材料家族声誉选一个“最好材料”，再回头补载荷、温度和制造要求？</li>
+</ol>
+<h3 id="_3">最小模型与假设：四个指数加四道硬过滤<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>在同一载荷类型和几何缩放假设下，教学指数取</p>
+<div class="arithmatex">\[
+M_{\rm tie,stiff}=\frac{E}{\rho},\qquad
+M_{\rm tie,strength}=\frac{\sigma_f}{\rho},
+\]</div>
+<div class="arithmatex">\[
+M_{\rm beam,stiff}=\frac{E^{1/3}}{\rho},\qquad
+M_{\rm beam,strength}=\frac{\sigma_f^{2/3}}{\rho}.
+\]</div>
+<p>这里 <span class="arithmatex">\(E\)</span> 用 GPa、<span class="arithmatex">\(\sigma_f\)</span> 用 MPa、<span class="arithmatex">\(\rho\)</span> 用 kg/m<span class="arithmatex">\(^3\)</span>；指数只作同一数据表内的相对比较，单位改变会整体缩放。硬过滤是</p>
+<div class="arithmatex">\[
+E\ge E_{\min},\quad \sigma_f\ge\sigma_{\min},\quad
+T_{\max}\ge T_{\rm service},\quad
+\text{process}\in\text{allowed processes}.
+\]</div>
+<p>工艺可用性和成本在实验中都叫 <strong>manufacturing/cost proxy</strong>，因为它们依赖设备、批量、供应链、后处理和连接方案；它们不能把机械要求替换成一张排名表。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>Ashby 指数只在指定约束、几何缩放和失效模式下成立；拉压刚度、弯曲刚度、强度、屈曲、疲劳和接头设计会给出不同排序。</li>
+<li><span class="arithmatex">\(E\)</span>、强度、密度和耐温不能互相替代。塑料的蠕变、复材的层间强度、陶瓷缺陷敏感性和热处理状态需要另外的模型与数据。</li>
+<li>温度过滤只检查名义上限，不包含热循环、蠕变、氧化、热膨胀失配和温度下强度退化；它是必要条件，不是充分条件。</li>
+<li>制造过滤通过也不代表能加工、能检测、能连接或能按批量经济交付；这些条件必须成为需求流向的下一行证据。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-material-selection">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认工况为 beam stiffness，要求 <span class="arithmatex">\(E_{\min}=60\,\mathrm{GPa}\)</span>、<span class="arithmatex">\(\sigma_{\min}=250\,\mathrm{MPa}\)</span>、<span class="arithmatex">\(T_{\rm service}=120^\circ\mathrm{C}\)</span>、工艺为 machining。下表属性是教学筛查值。</p>
+<table>
+<thead>
+<tr>
+<th>材料候选</th>
+<th style="text-align: right;"><span class="arithmatex">\(\rho\)</span> (kg/m<span class="arithmatex">\(^3\)</span>)</th>
+<th style="text-align: right;"><span class="arithmatex">\(E\)</span> (GPa)</th>
+<th style="text-align: right;"><span class="arithmatex">\(\sigma_f\)</span> (MPa)</th>
+<th style="text-align: right;"><span class="arithmatex">\(T_{\max}\)</span> (°C)</th>
+<th>machining</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>钢</td>
+<td style="text-align: right;">7850</td>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">600</td>
+<td style="text-align: right;">300</td>
+<td>可用</td>
+</tr>
+<tr>
+<td>铝合金</td>
+<td style="text-align: right;">2700</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">120</td>
+<td>可用</td>
+</tr>
+<tr>
+<td>钛合金</td>
+<td style="text-align: right;">4500</td>
+<td style="text-align: right;">110</td>
+<td style="text-align: right;">800</td>
+<td style="text-align: right;">300</td>
+<td>可用</td>
+</tr>
+<tr>
+<td>玻纤复材</td>
+<td style="text-align: right;">1900</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">250</td>
+<td style="text-align: right;">100</td>
+<td>不可用</td>
+</tr>
+<tr>
+<td>PEEK</td>
+<td style="text-align: right;">1400</td>
+<td style="text-align: right;">3.5</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">150</td>
+<td>不可用</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>设计流向账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>通过硬过滤的候选</td>
+<td style="text-align: right;">钢、铝合金、钛合金</td>
+<td>仅教学属性表</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(M_{\rm beam,stiff}\)</span> 最大候选</td>
+<td style="text-align: right;">铝合金</td>
+<td>同表相对指数</td>
+</tr>
+<tr>
+<td>钢 / 铝的 beam stiffness proxy</td>
+<td style="text-align: right;">0.49 / 1.00</td>
+<td>归一化到铝；无量纲 proxy</td>
+</tr>
+<tr>
+<td>铝的 <span class="arithmatex">\(M_{\rm tie,stiff}\)</span> 相对钢</td>
+<td style="text-align: right;">1.02 倍</td>
+<td>同表相对指数，不是结构性能保证</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验会画出当前工况的指数柱状图、过滤原因和“要求 → 候选 → 验证”的证据账；改变工况会重新筛选，不会保留一个脱离需求的材料排名。</p>
+</div>
+<h3 id="_5">正式返回：材料选择是需求流向，不是家族投票<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>正式返回应能从机械需求追到每个过滤条件：哪种载荷导致哪个指数、哪项温度/制造约束淘汰了谁、哪一个连接或疲劳问题还没有证据。指数适合早期缩小搜索空间，不能替代牌号数据、热处理状态、环境试验、连接设计和全尺寸验证。</p>
+<h3 id="_6">迁移问题<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>如果短梁还受一阶屈曲、螺栓孔承压和 180°C 热循环约束，你会怎样把几何尺寸、连接细节和温度下材料数据接回需求流？哪一项新约束会让现有四个指数失去代表性？</p>
+</section>
+<h2 id="_7">一、选材的系统方法<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>核心思想（Ashby 方法）</strong>：把设计要求翻译成一个<strong>材料指数</strong>，然后在材料属性图上找最优。</p>
 <p><strong>推导示例——轻质刚性梁</strong>：要求刚度 <span class="arithmatex">\(S\)</span> 给定，最小化质量 <span class="arithmatex">\(m\)</span>。</p>
 <p>对矩形截面梁，<span class="arithmatex">\(S \propto EI/L^3 \propto Eb h^3/L^3\)</span>，而 <span class="arithmatex">\(m = \rho b h L\)</span>。消去自由变量 <span class="arithmatex">\(h\)</span>，得</p>
@@ -103,8 +259,8 @@
 </tr>
 </tbody>
 </table>
-<p><strong>注意"弹簧储能 <span class="arithmatex">\(\sigma_f^2/E\)</span>"</strong>：<strong>弹簧需要的是高强度 + 低模量</strong>——这就是为什么弹簧钢要淬火高强度、而钛合金与复合材料做弹簧特别优秀（模量低）。</p>
-<h2 id="_2">二、主要材料家族的定位<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>注意弹性储能指数 <span class="arithmatex">\(\sigma_f^2/E\)</span> 的边界</strong>：它提示高许用应力与较低模量可能有利，但真实弹簧还受疲劳、松弛、尺寸、制造、环境和成本约束。弹簧钢、钛合金与复合材料各自在不同载荷和环境下成立，不能只按一个指数排总名次。</p>
+<h2 id="_8">二、主要材料家族的定位<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -162,7 +318,7 @@
 </tbody>
 </table>
 <p><strong>复合材料的关键认知</strong>：它的优势不只是轻，而是<strong>可以按受力方向铺设纤维</strong>——<strong>把材料的各向异性变成设计变量</strong>。代价是设计与制造复杂度大幅上升，且<strong>连接部位</strong>（螺栓孔处纤维被切断）往往成为薄弱环节。</p>
-<h2 id="_3">三、钢的热处理：机械工程师的核心工具<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">三、钢的热处理：机械工程师的核心工具<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>同一块钢，热处理不同，强度可以相差数倍。</strong></p>
 <p><strong>基础是铁碳相图与冷却速度</strong>：</p>
 <table>
@@ -207,15 +363,15 @@
 </tr>
 </tbody>
 </table>
-<p><strong>核心逻辑</strong>：<strong>淬火得到硬度，回火换回韧性</strong>。<strong>淬火后不回火的零件几乎必然开裂</strong>——马氏体又硬又脆且含有巨大内应力。</p>
+<p><strong>核心逻辑</strong>：许多钢通过淬火获得马氏体硬度，再用回火降低残余应力并调节强韧性。未回火马氏体往往脆且残余应力高，开裂风险显著，但是否开裂取决于钢种、截面、淬火介质和几何，不能写成必然。</p>
 <p><strong>"调质"是机械设计中最常见的技术要求</strong>：调质后的钢兼具较高强度与良好韧性，适合承受交变载荷的轴、连杆、螺栓。</p>
 <p><strong>淬透性</strong>是选材的关键概念：不是"能淬多硬"，而是<strong>"能淬透多深"</strong>。</p>
 <ul>
 <li><strong>碳钢淬透性差</strong>——大截面零件表面硬、心部仍软；</li>
 <li><strong>合金元素（Cr、Mn、Ni、Mo）主要作用就是提高淬透性</strong>；</li>
-<li><strong>所以大截面零件必须用合金钢</strong>，不是因为它本身更强，而是因为它能被淬透。<strong>这是初学者常见的误解。</strong></li>
+<li>对要求截面获得较均匀淬硬层/组织的零件，合金钢提高淬透性，常比普通碳钢更容易满足；但材料路线还可通过截面设计、感应/表面淬火、正火调质或不同强度要求改变，不能写成所有大截面都必须用合金钢。</li>
 </ul>
-<h2 id="_4">四、表面强化：兼得硬与韧<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、表面强化：兼得硬与韧<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>许多零件需要<strong>表面硬（耐磨、抗接触疲劳）+ 心部韧（抗冲击）</strong>——这是一个矛盾要求。<strong>表面处理是解法</strong>：</p>
 <table>
 <thead>
@@ -255,7 +411,7 @@
 </table>
 <p><strong>共同逻辑</strong>（承第十二页）：<strong>表面决定摩擦、磨损与疲劳，芯部决定强度与韧性</strong>——<strong>用不同的处理分别优化两者</strong>。</p>
 <p><strong>注意变形问题</strong>：淬火与渗碳会引起变形，<strong>精密件通常在热处理后还要磨削</strong>。氮化变形小，所以精密件常选它。<strong>热处理与加工顺序的安排是工艺设计的重要内容。</strong></p>
-<h2 id="_5">五、腐蚀与环境<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">五、腐蚀与环境<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>常被设计忽略、却在现场高频出现：</p>
 <ul>
 <li><strong>电偶腐蚀</strong>：不同金属接触 + 电解质 → 活泼金属加速腐蚀。<strong>铝件与不锈钢螺栓直接接触是经典错误</strong>——需绝缘垫或选相容材料；</li>
@@ -264,12 +420,12 @@
 <li><strong>氢脆</strong>：高强度钢（尤其电镀过程中渗氢）在拉应力下延迟断裂。<strong>高强螺栓电镀后必须及时去氢处理</strong>——这是一条有血的教训支撑的工艺规定。</li>
 </ul>
 <p><strong>设计对策</strong>：材料相容性、涂层、阴极保护、避免积液的结构（排水孔）、控制残余拉应力。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_12">六、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>材料指数把"选材"变成可计算的优化</strong>；<strong>约束不同则最优材料不同</strong>（拉压 <span class="arithmatex">\(E/\rho\)</span> vs 弯曲 <span class="arithmatex">\(E^{1/3}/\rho\)</span>）；</li>
 <li><strong>弹簧要的是 <span class="arithmatex">\(\sigma_f^2/E\)</span></strong>——高强度低模量；</li>
 <li><strong>淬火得硬度、回火换韧性</strong>；<strong>调质是轴类零件的标准处理</strong>；</li>
-<li><strong>合金元素的主要作用是提高淬透性</strong>，所以大截面必须用合金钢；</li>
+<li>合金元素可改变淬透性、回火稳定性、耐蚀、热强性等多种性能；大截面选材要按所需截面组织与热处理能力判断；</li>
 <li><strong>表面处理让"表硬心韧"成为可能</strong>；喷丸是最经济的疲劳强化手段；</li>
 <li><strong>电偶腐蚀、应力腐蚀、氢脆</strong>是设计中最易被忽略的失效模式。</li>
 </ul>
@@ -284,5 +440,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-material-selection.js"></script>
 </body>
 </html>

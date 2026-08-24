@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,19 +46,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、稳定性的定义与判据</a></li>
-<li><a href="#_2">二、根轨迹：看增益如何搬动极点</a></li>
-<li><a href="#_3">三、用零极点塑形：补偿器设计</a></li>
-<li><a href="#_4">四、一个必须警惕的陷阱：零极点对消</a></li>
+<li><a href="#_1">学习层：给仓储机器人舵机调增益，先证明它不会发散</a><ul>
+<li><a href="#1-k183042">1. 具体工程情境：同一台舵机，K=18、30、42 会发生什么？</a></li>
+<li><a href="#2-routh">2. 正式公式桥：Routh 第一列是一个可审计的稳定证书</a></li>
+<li><a href="#3">3. 动手实验：让极点和证书联动</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、稳定性的定义与判据</a></li>
+<li><a href="#_3">二、根轨迹：看增益如何搬动极点</a></li>
+<li><a href="#_4">三、用零极点塑形：补偿器设计</a></li>
+<li><a href="#_5">四、一个必须警惕的陷阱：零极点对消</a></li>
 <li><a href="#nyquist">五、Nyquist 判据预告</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +74,115 @@
 <p><strong>层次</strong>：本科核心。
 稳定性是控制系统的<strong>第一要求</strong>——一个不稳定的系统，其他所有指标都没有意义。本页讲两件事：<strong>如何在不解高阶方程的情况下判断稳定性</strong>（Routh 判据），以及<strong>如何直观地看到参数变化如何搬动极点</strong>（根轨迹）——后者是经典控制最具几何美感的工具。</p>
 </blockquote>
-<h2 id="_1">一、稳定性的定义与判据<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给仓储机器人舵机调增益，先证明它不会发散<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-k183042">1. 具体工程情境：同一台舵机，K=18、30、42 会发生什么？<a class="headerlink" href="#1-k183042" title="Permanent link"></a></h3>
+<p>把一台仓储机器人转向舵机的机械、电机和功放在工作点附近线性化。工程师可以调的只有环路增益 <span class="arithmatex">\(K\)</span>，而开环模型被辨识为</p>
+<div class="arithmatex">\[
+L(s)=\frac{K}{s(s+1)(s+5)}.
+\]</div>
+<p>这不是“画一张漂亮的图”这么简单：如果增益过大，方向误差会先振荡，再把机械限位和功放一起撞坏。先把闭环特征方程写成</p>
+<div class="arithmatex">\[
+1+L(s)=0
+ \quad\Longleftrightarrow\quad
+p(s)=s^3+6s^2+5s+K=0.
+\]</div>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong>在打开极点图前写下三项判断：</p>
+<ol>
+<li><span class="arithmatex">\(0&lt;K&lt;30\)</span> 是否给出渐近稳定？</li>
+<li><span class="arithmatex">\(K=30\)</span> 是稳定裕度仍为正，还是临界穿越？</li>
+<li>当 <span class="arithmatex">\(K=42\)</span> 时，Routh 第一列 <span class="arithmatex">\([1,6,(30-K)/6,K]\)</span> 有几次符号变化？</li>
+</ol>
+</div>
+<h3 id="2-routh">2. 正式公式桥：Routh 第一列是一个可审计的稳定证书<a class="headerlink" href="#2-routh" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(p(s)=s^3+6s^2+5s+K\)</span>，劳斯表的前两列为</p>
+<table>
+<thead>
+<tr>
+<th>幂次</th>
+<th style="text-align: right;">第一列</th>
+<th style="text-align: right;">第二列</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(s^3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(s^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(K\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(s^1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((30-K)/6\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(s^0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(K\)</span></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+<p>因此 <span class="arithmatex">\(0&lt;K&lt;30\)</span> 时第一列全正，右半平面极点数为 0；<span class="arithmatex">\(K&gt;30\)</span> 时符号为 <span class="arithmatex">\(+,+,-,+\)</span>，有 2 个右半平面极点。<span class="arithmatex">\(K=30\)</span> 不是“勉强稳定”：<span class="arithmatex">\(s^1\)</span> 行出现零，辅助多项式 <span class="arithmatex">\(6s^2+30=0\)</span> 给出 <span class="arithmatex">\(s=\pm j\sqrt5\)</span>，所以闭环处于临界边界。</p>
+<p>根轨迹则把同一件事变成几何运动：<span class="arithmatex">\(K=0\)</span> 的起点是 <span class="arithmatex">\(0,-1,-5\)</span>，当前 <span class="arithmatex">\(K\)</span> 的三根是闭环极点；当其中一对从左半平面穿过虚轴时，Routh 的边界与图上的穿越必须一致。</p>
+<h3 id="3">3. 动手实验：让极点和证书联动<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>提交三项预测后，拖动当前 <span class="arithmatex">\(K\)</span> 和扫描上限。图中三条分支是数值求得的闭环极点根轨迹，红色虚线是虚轴，红点是当前极点；右侧账本逐行显示每个 Routh 系数、第一列和符号。把 <span class="arithmatex">\(K\)</span> 依次设为 18、30、42，检查“稳定、临界、不稳定”是否由同一套公式同时解释。</p>
+<div class="learning-lab" data-learning-lab="auto-stability-root-locus">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(K=18\)</span>，扫描到 <span class="arithmatex">\(K=60\)</span>。此时</p>
+<div class="arithmatex">\[
+p(s)=s^3+6s^2+5s+18,\qquad
+\text{Routh 第一列}=[1,6,2,18],
+\]</div>
+<p>三根约为 <span class="arithmatex">\(-5.678\)</span>、<span class="arithmatex">\(-0.161\pm1.773j\)</span>，所以是渐近稳定。边界检查为</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">K</th>
+<th>第一列符号</th>
+<th>极点/证书读法</th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(18\)</span></td>
+<td><span class="arithmatex">\(+,+,+,+\)</span></td>
+<td>三根均在左半平面</td>
+<td>渐近稳定</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(30\)</span></td>
+<td><span class="arithmatex">\(+,+,0,+\)</span></td>
+<td><span class="arithmatex">\(-6,\ \pm j\sqrt5\)</span>；需读辅助多项式</td>
+<td>临界</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(42\)</span></td>
+<td><span class="arithmatex">\(+,+,-,+\)</span></td>
+<td>2 次符号变化，即 2 个右半平面根</td>
+<td>不稳定</td>
+</tr>
+</tbody>
+</table>
+<p>脚本只对这个已给定的三阶有理模型计算极点；它不会把未建模的时滞、饱和、非线性或参数漂移自动纳入 Routh 证书。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“系数全正所以永远稳定”是错的</strong>：这里 <span class="arithmatex">\(K\)</span> 改变了 <span class="arithmatex">\(s^0\)</span> 与 <span class="arithmatex">\(s^1\)</span> 行，必须看整列，不能只扫一眼多项式系数。</li>
+<li><strong>临界不等于可长期运行</strong>：虚轴上的模态没有衰减，量化误差、摩擦和未建模动态都可能把实际系统推过边界。</li>
+<li><strong>根轨迹不是时域波形</strong>：它回答的是极点随参数的几何位置；超调、带宽和执行器限幅还需要另一层仿真。</li>
+<li><strong>对消不能替代稳定性证明</strong>：模型中的零极点对消不代表内部不稳定模态消失，尤其不能用来掩盖右半平面极点。</li>
+</ul>
+</div>
+</section>
+<h2 id="_2">一、稳定性的定义与判据<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>BIBO 稳定</strong>：有界输入产生有界输出。对 LTI 系统，等价于：</p>
 <blockquote>
 <p><strong>闭环所有极点位于左半平面（实部严格为负）。</strong></p>
@@ -61,7 +191,7 @@
 <p><strong>Routh–Hurwitz 判据</strong>：把多项式系数排成劳斯表，<strong>第一列符号变化的次数 = 右半平面极点的个数</strong>。全部同号则稳定。</p>
 <p><strong>它的真正价值不在判断具体系统，而在给出参数范围</strong>。例如对 <span class="arithmatex">\(1 + \dfrac{K}{s(s+1)(s+5)} = 0\)</span>，劳斯判据直接给出稳定条件 <span class="arithmatex">\(0 &lt; K &lt; 30\)</span>——<strong>这是一个可以直接用于设计的结论</strong>：告诉你增益能推到多大。</p>
 <p><strong>必要条件（快速筛查）</strong>：所有系数同号且非零。不满足则必不稳定，可立即排除。</p>
-<h2 id="_2">二、根轨迹：看增益如何搬动极点<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、根轨迹：看增益如何搬动极点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>根轨迹</strong>回答一个设计者最关心的问题：<strong>当我调大增益 <span class="arithmatex">\(K\)</span>，闭环极点往哪里走？</strong></p>
 <p>闭环特征方程 <span class="arithmatex">\(1 + K G(s) = 0\)</span>，即 <span class="arithmatex">\(G(s) = -1/K\)</span>。当 <span class="arithmatex">\(K\)</span> 从 0 变到 ∞，满足该式的 <span class="arithmatex">\(s\)</span> 的轨迹就是根轨迹。</p>
 <p><strong>几条作图规则</strong>（不必死记，但要理解其含义）：</p>
@@ -83,7 +213,7 @@
 <li><strong>看出可达的阻尼比</strong>（从原点画等 <span class="arithmatex">\(\zeta\)</span> 射线，与轨迹的交点即为可达设计点）；</li>
 <li><strong>看出补偿器该往哪加</strong>：加零点会<strong>把轨迹往左拉</strong>（改善稳定性与速度），加极点会<strong>往右推</strong>（恶化）。<strong>这直接指导了超前/滞后补偿器的设计。</strong></li>
 </ul>
-<h2 id="_3">三、用零极点塑形：补偿器设计<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、用零极点塑形：补偿器设计<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>根轨迹给了一个直观的设计法：<strong>通过增加零极点，把根轨迹拉到期望的位置</strong>。</p>
 <p><strong>超前补偿器（lead）</strong>：</p>
 <div class="arithmatex">\[C(s) = K\frac{s+z}{s+p}, \qquad z &lt; p\]</div>
@@ -91,7 +221,7 @@
 <p><strong>滞后补偿器（lag）</strong>：<span class="arithmatex">\(z &gt; p\)</span>，两者都靠近原点。主要<strong>提高低频增益以减小稳态误差</strong>，对动态影响小。<strong>代价是引入相位滞后，需放在远离穿越频率处。</strong></p>
 <p><strong>超前-滞后</strong>：兼顾两者，工业上常见。</p>
 <p><strong>注意一个概念联系</strong>：超前补偿本质上就是<strong>比例 + 微分</strong>的实用形式（微分被加了高频极点做滤波），滞后补偿近似<strong>比例 + 积分</strong>。<strong>所以 PID 与超前滞后补偿是同一件事的两种表述</strong>（第六页）。</p>
-<h2 id="_4">四、一个必须警惕的陷阱：零极点对消<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、一个必须警惕的陷阱：零极点对消<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>设计时容易想到：对象有个讨厌的极点，我就在控制器里放个零点把它<strong>对消</strong>掉。</p>
 <p><strong>这在数学上成立，在工程上危险</strong>：</p>
 <ul>
@@ -103,7 +233,7 @@
 <h2 id="nyquist">五、Nyquist 判据预告<a class="headerlink" href="#nyquist" title="Permanent link"></a></h2>
 <p>Routh 判据要求有多项式模型，但<strong>实际中我们常常只有频率响应的实测数据</strong>（扫频得到的 Bode 图），没有解析模型。<strong>Nyquist 判据</strong>允许<strong>直接从频率响应判断闭环稳定性</strong>，且能处理时滞（时滞在频域只是相位滞后，在多项式方法里却是超越函数，无法用 Routh 处理）。</p>
 <p><strong>这就是频域方法在工程上占主导地位的原因</strong>——它<strong>不需要模型，只需要测量</strong>。第五页展开。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>稳定 = 所有闭环极点在左半平面</strong>；</li>
 <li><strong>Routh 判据</strong>给出无需解方程的稳定条件，其价值在于<strong>给出参数范围</strong>；</li>
@@ -123,5 +253,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-stability-root-locus.js"></script>
 </body>
 </html>

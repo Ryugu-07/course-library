@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、应变能</a></li>
-<li><a href="#_2">二、卡氏定理：求变形的利器</a></li>
-<li><a href="#_3">三、超静定问题的统一解法</a></li>
-<li><a href="#_4">四、冲击与动载</a></li>
-<li><a href="#_5">五、弹性力学入门</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#energy-elasticity-learning-title">学习层：让一座小桁架同时通过能量、单位载荷和平衡三本账</a><ul>
+<li><a href="#v_1">具体工程情境：检查起吊夹具的 V 形小桁架</a></li>
+<li><a href="#_1">必须提交的预测</a></li>
+<li><a href="#_2">正式公式桥：应变能、单位载荷与平衡复算</a></li>
+<li><a href="#_3">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_4">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_5">一、应变能</a></li>
+<li><a href="#_6">二、卡氏定理：求变形的利器</a></li>
+<li><a href="#_7">三、超静定问题的统一解法</a></li>
+<li><a href="#_8">四、冲击与动载</a></li>
+<li><a href="#_9">五、弹性力学入门</a></li>
+<li><a href="#_10">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,13 +77,124 @@
 <p><strong>层次</strong>：本科核心 + 研究生入口 ｜ <strong>这一页把前四页统一起来，并搭起通往有限元的桥</strong>。
 前面用的是"针对每种载荷推一个公式"的方法。能量法换一个视角：<strong>从系统的应变能出发</strong>，一举得到变形、超静定解、以及冲击响应。更重要的是——<strong>它是有限元法的理论基础</strong>（第二十一页）。</p>
 </blockquote>
-<h2 id="_1">一、应变能<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>弹性体变形时储存的能量。对线弹性材料，单位体积应变能：</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="energy-elasticity-learning-title" class="learning-layer">
+<h2 id="energy-elasticity-learning-title">学习层：让一座小桁架同时通过能量、单位载荷和平衡三本账<a class="headerlink" href="#energy-elasticity-learning-title" title="Permanent link"></a></h2>
+<h3 id="v_1">具体工程情境：检查起吊夹具的 V 形小桁架<a class="headerlink" href="#v_1" title="Permanent link"></a></h3>
+<p>把一个起吊夹具的两根斜撑简化为平面 V 形桁架：左右支点相距 <span class="arithmatex">\(b=0.80\,\mathrm{m}\)</span>，顶点高 <span class="arithmatex">\(h=0.60\,\mathrm{m}\)</span>，两根杆的面积均为 <span class="arithmatex">\(A=300\,\mathrm{mm^2}\)</span>，材料为 <span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>。顶点承受向下 <span class="arithmatex">\(P=12.0\,\mathrm{kN}\)</span> 和小的水平侧载 <span class="arithmatex">\(H=0.80\,\mathrm{kN}\)</span>。工程师要给出顶点位移、杆力和储能，还要证明算出来的刚度确实是一个可逆、稳定的线弹性模型。</p>
+<h3 id="_1">必须提交的预测<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<ol>
+<li>在几何和材料不变时，<span class="arithmatex">\(P\)</span> 加倍，应变能 <span class="arithmatex">\(U\)</span> 会变为约 2 倍、4 倍，还是不变？</li>
+<li>顶点向下的位移，用 Castigliano 对 <span class="arithmatex">\(P\)</span> 求导和用顶点向下的单位载荷法计算，结果应相等还是互为相反数？</li>
+<li>对称 V 桁架的 <span class="arithmatex">\(2\times2\)</span> 自由节点刚度矩阵，哪一组条件能给出正定证书：只看 <span class="arithmatex">\(K_{12}=0\)</span>，还是 <span class="arithmatex">\(K_{11}&gt;0\)</span> 且 <span class="arithmatex">\(\det K&gt;0\)</span>？</li>
+</ol>
+<h3 id="_2">正式公式桥：应变能、单位载荷与平衡复算<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>取顶点自由位移 <span class="arithmatex">\(\mathbf u=[u_x,u_y]^T\)</span>，外载向量为 <span class="arithmatex">\(\mathbf f=[H,-P]^T\)</span>。对每一根从支点指向顶点的杆，单位方向为 <span class="arithmatex">\(\mathbf n_e\)</span>、长度为 <span class="arithmatex">\(L_e\)</span>，则</p>
+<div class="arithmatex">\[
+k_e=\frac{EA}{L_e},\qquad
+\mathbf K=\sum_e k_e\mathbf n_e\mathbf n_e^T,\qquad
+\mathbf K\mathbf u=\mathbf f.
+\]</div>
+<p>杆伸长、轴力和应变能分别是</p>
+<div class="arithmatex">\[
+\delta_e=\mathbf n_e^T\mathbf u,\qquad
+N_e=k_e\delta_e,\qquad
+U=\sum_e\frac{N_e^2L_e}{2EA}=\frac12\mathbf f^T\mathbf u.
+\]</div>
+<p>把 <span class="arithmatex">\(P\)</span> 视为“向下的正载荷”，Castigliano 给出</p>
+<div class="arithmatex">\[
+\frac{\partial U}{\partial P}=\mathbf u^T[0,-1]^T=-u_y.
+\]</div>
+<p>若 <span class="arithmatex">\(\bar{\mathbf u}\)</span> 由顶点向下的单位力 <span class="arithmatex">\(\bar{\mathbf f}=[0,-1]^T\)</span> 产生，单位载荷法给出同一个向下位移</p>
+<div class="arithmatex">\[
+\delta_P=\sum_e\frac{N_e\bar N_eL_e}{EA}=\mathbf f^T\mathbf K^{-1}\bar{\mathbf f}.
+\]</div>
+<p>实验台还把每根杆的力投影回顶点，检查 <span class="arithmatex">\(\mathbf r_f=\mathbf f-\sum_eN_e\mathbf n_e\)</span>；再把反力总和与外载相加，验证整体平衡。对于对称的 <span class="arithmatex">\(2\times2\)</span> 矩阵，Sylvester 判据 <span class="arithmatex">\(K_{11}&gt;0\)</span> 且 <span class="arithmatex">\(\det K&gt;0\)</span> 是正定证书；它比“求出了一个数值位移”更强，因为它保证 <span class="arithmatex">\(U=\tfrac12\mathbf u^T\mathbf K\mathbf u&gt;0\)</span>（除零位移外）。</p>
+<h3 id="_3">误区与模型边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(U\)</span> 对载荷是二次函数，所以载荷加倍时能量加四倍、位移只加两倍；不能把能量账当成力账。</li>
+<li>单位载荷法的虚载荷必须沿要找的位移方向；若把向下的 <span class="arithmatex">\(P\)</span> 改成向上的广义力，导数符号也会随约定改变。</li>
+<li>正定只证明当前支撑和几何下的线弹性自由度没有机构模态；它不证明杆件不屈曲、不屈服，也不覆盖铰接间隙、接触脱开和大变形。</li>
+<li>这里的桁架杆只承受轴力，节点是理想铰；真实夹具若有刚性节点、偏心连接或弯曲刚度，必须把梁/框架自由度加入模型。</li>
+<li>平衡残差为零是必要条件，不是材料、边界和几何都正确的充分条件；正定证书、量纲检查和独立的单位载荷复算要一起看。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-energy-elasticity">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(b=0.80\,\mathrm{m}\)</span>、<span class="arithmatex">\(h=0.60\,\mathrm{m}\)</span>、<span class="arithmatex">\(A=300\,\mathrm{mm^2}\)</span>、<span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>、<span class="arithmatex">\(P=12.0\,\mathrm{kN}\)</span>（向下）、<span class="arithmatex">\(H=0.80\,\mathrm{kN}\)</span>（向右）。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>斜杆长度 <span class="arithmatex">\(L_e\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{(b/2)^2+h^2}=0.721110\)</span></td>
+<td>m</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(K_{11},K_{12},K_{22}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.3763\times10^7,\ 0,\ 1.2097\times10^8\)</span></td>
+<td>N/m（对称几何下 <span class="arithmatex">\(K_{12}=0\)</span>）</td>
+</tr>
+<tr>
+<td>顶点位移 <span class="arithmatex">\((u_x,u_y)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((0.01488,-0.09920)\)</span></td>
+<td>mm</td>
+</tr>
+<tr>
+<td>杆轴力 <span class="arithmatex">\((N_L,N_R)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((-7.932,-6.490)\)</span></td>
+<td>kN；压缩为负</td>
+</tr>
+<tr>
+<td>应变能 <span class="arithmatex">\(U\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.6012\)</span></td>
+<td>J</td>
+</tr>
+<tr>
+<td>Castigliano / 单位载荷</td>
+<td style="text-align: right;"><span class="arithmatex">\(-u_y=0.09920\)</span></td>
+<td>mm；对应向下 <span class="arithmatex">\(P\)</span> 的位移</td>
+</tr>
+<tr>
+<td>顶点平衡残差</td>
+<td style="text-align: right;"><span class="arithmatex">\(\|\mathbf r_f\|\approx0\)</span></td>
+<td>N，浮点容差内</td>
+</tr>
+<tr>
+<td>左 / 右支座反力</td>
+<td style="text-align: right;"><span class="arithmatex">\((-4.400,6.600)/(3.600,5.400)\)</span></td>
+<td>kN；由两根杆轴力回算，<span class="arithmatex">\(x\)</span> 右、<span class="arithmatex">\(y\)</span> 上</td>
+</tr>
+<tr>
+<td>整体平衡残差</td>
+<td style="text-align: right;"><span class="arithmatex">\(\mathbf f+\mathbf R_L+\mathbf R_R\approx\mathbf0\)</span></td>
+<td>N，浮点容差内</td>
+</tr>
+<tr>
+<td>正定证书</td>
+<td style="text-align: right;"><span class="arithmatex">\(K_{11}&gt;0,\ \det K&gt;0\)</span></td>
+<td>通过</td>
+</tr>
+</tbody>
+</table>
+<p>脚本可用时，移动水平载荷会让两根杆力不再相等；改变高度会同时改变杆长、刚度和正定矩阵的特征值。结果揭示后调参不会重新锁回预测门。</p>
+</div>
+<h3 id="_4">迁移问题<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>如果右支点改成一根柔性拉杆，顶点多出一个水平约束未知量，你会如何选择冗余力并写出协调条件？请说明怎样用 <span class="arithmatex">\(\partial U/\partial X=0\)</span> 和一个独立的反力平衡检查避免把“能量极小”误当成“边界画对了”。</p>
+</section>
+<h2 id="_5">一、应变能<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>弹性体在<strong>均匀、小变形、线弹性本构</strong>下变形时储存的能量，单位体积应变能可写为：</p>
 <div class="arithmatex">\[u = \frac{1}{2}\sigma\varepsilon = \frac{\sigma^2}{2E}\]</div>
 <p>各种基本变形的总应变能：</p>
 <div class="arithmatex">\[U_{\text{拉压}} = \frac{N^2 L}{2EA}, \qquad U_{\text{弯曲}} = \int\frac{M^2}{2EI}dx, \qquad U_{\text{扭转}} = \int\frac{T^2}{2GI_p}dx\]</div>
-<p><strong>共同形式</strong>：<span class="arithmatex">\(U = \dfrac{(\text{内力})^2 \times \text{长度}}{2 \times \text{刚度}}\)</span>。<strong>记住这个模式，各种情形都能类推。</strong></p>
-<h2 id="_2">二、卡氏定理：求变形的利器<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>共同形式</strong>：在均匀、线弹性杆件或截面内力模型成立时，<span class="arithmatex">\(U = \dfrac{(\text{内力})^2 \times \text{长度}}{2 \times \text{刚度}}\)</span>；变截面、塑性、接触和大变形需要回到积分或非线性本构。</p>
+<h2 id="_6">二、卡氏定理：求变形的利器<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>Castigliano 第二定理</strong>：</p>
 <div class="arithmatex">\[\delta_i = \frac{\partial U}{\partial F_i}\]</div>
 <p><strong>应变能对某个力求偏导，等于该力作用点沿该力方向的位移。</strong></p>
@@ -72,7 +207,7 @@
 <p><strong>单位载荷法</strong>（莫尔积分）是它的等价形式，土木与机械都常用：</p>
 <div class="arithmatex">\[\delta = \int \frac{M \bar{M}}{EI}dx\]</div>
 <p><span class="arithmatex">\(\bar{M}\)</span> 是单位虚载荷引起的弯矩。</p>
-<h2 id="_3">三、超静定问题的统一解法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_7">三、超静定问题的统一解法<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>第一页说超静定需要"平衡 + 变形协调 + 本构"三条腿。能量法把它变成一个<strong>标准流程</strong>：</p>
 <p><strong>力法（柔度法）</strong>：</p>
 <ol>
@@ -85,43 +220,43 @@
 <li>解出 <span class="arithmatex">\(X_i\)</span>。</li>
 </ol>
 <p><strong>这是一个漂亮的转化</strong>：把"几何协调"变成了"能量对多余未知力取极值"。</p>
-<p><strong>最小势能原理</strong>是它的一般化：<strong>真实的位移场使系统总势能取最小值</strong>。</p>
+<p><strong>最小势能原理</strong>是它的一般化：对满足边界条件的可容许位移，<strong>稳定平衡态使总势能在该状态附近取局部最小值</strong>；一般平衡首先给出驻值，非稳定平衡不满足这个“最小”表述。</p>
 <div class="arithmatex">\[\Pi = U - W_{\text{外力功}} \to \min\]</div>
 <p><strong>这就是有限元法的出发点</strong>（第二十一页）：把位移场用有限个节点参数近似，让总势能对这些参数取极小，就得到刚度方程 <span class="arithmatex">\(\mathbf{K}\mathbf{u}=\mathbf{F}\)</span>。<strong>从这个意义上说，有限元法是能量法的数值化。</strong></p>
-<h2 id="_4">四、冲击与动载<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p>能量法处理冲击特别方便：<strong>假设冲击过程中动能全部转为应变能</strong>（保守估计）。</p>
+<h2 id="_8">四、冲击与动载<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p>在<strong>无耗散、线弹性、单自由度等效且接触过程明确</strong>的理想化下，能量法处理冲击特别方便：假设冲击过程中动能全部转为应变能。</p>
 <p>对重物 <span class="arithmatex">\(W\)</span> 从高度 <span class="arithmatex">\(h\)</span> 落下冲击弹性体：</p>
 <div class="arithmatex">\[K_d = 1 + \sqrt{1 + \frac{2h}{\delta_{st}}}\]</div>
 <p><span class="arithmatex">\(K_d\)</span> 是<strong>动荷系数</strong>，<span class="arithmatex">\(\delta_{st}\)</span> 是静态挠度。动应力 <span class="arithmatex">\(= K_d \times\)</span> 静应力。</p>
 <p><strong>两个极其重要的推论</strong>：</p>
 <p><strong>① 突加载荷（<span class="arithmatex">\(h=0\)</span>）时 <span class="arithmatex">\(K_d = 2\)</span></strong>——<strong>突然放上的载荷产生的应力，是缓慢放置的两倍</strong>。这个"2 倍"必须记住。</p>
 <p><strong>② 结构越"软"（<span class="arithmatex">\(\delta_{st}\)</span> 越大），动荷系数越小。</strong></p>
-<p><strong>第二条反直觉但极其重要</strong>：<strong>要抵抗冲击，应该让结构更柔而非更刚</strong>。因为柔性结构变形大、能吸收更多能量、峰值力更低。</p>
+<p>在上述落体—线性弹簧模型里，增加柔度会增大可储存的变形能、降低理想峰值力；这不是“越软越安全”的普遍结论，真实设计还要满足强度、行程、稳定、碰撞和疲劳约束。</p>
 <p><strong>工程上到处是这个原理的应用</strong>：</p>
 <ul>
 <li>汽车的<strong>溃缩吸能区</strong>（故意做软）；</li>
 <li>弹簧垫圈、缓冲器、橡胶减震块；</li>
 <li>登山绳必须有弹性（静力绳用于冲坠会伤人）；</li>
-<li><strong>长螺栓比短螺栓更耐冲击</strong>（同样变形量下应变能更大）——这是高强度螺栓连接设计中的一个要点。</li>
+<li>在材料、截面、连接边界和允许行程相近的比较中，<strong>长螺栓往往比短螺栓更能容纳冲击变形</strong>（同样变形量下可储存的应变能更大）；仍需校核预紧、屈服、疲劳和连接滑移。</li>
 </ul>
 <p><strong>"刚"未必安全</strong>——这是与"强度越高越好"同类的直觉误区。</p>
-<h2 id="_5">五、弹性力学入门<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_9">五、弹性力学入门<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>材料力学靠<strong>假设</strong>（平截面假定、单向应力等）简化问题；<strong>弹性力学</strong>则从一般的三维方程出发：</p>
 <p><strong>三组方程</strong>（正是第一页"三条腿"的严格形式）：</p>
 <div class="arithmatex">\[\underbrace{\sigma_{ij,j} + f_i = 0}_{\text{平衡}}, \qquad \underbrace{\varepsilon_{ij}=\tfrac{1}{2}(u_{i,j}+u_{j,i})}_{\text{几何}}, \qquad \underbrace{\sigma_{ij}=\lambda\varepsilon_{kk}\delta_{ij}+2\mu\varepsilon_{ij}}_{\text{本构}}\]</div>
 <p><strong>15 个未知量（6 应力 + 6 应变 + 3 位移）、15 个方程</strong>，加上边界条件构成完整的边值问题。</p>
-<p><strong>解析解极少</strong>（只有少数经典问题有：厚壁筒、圣维南扭转、孔边应力集中、赫兹接触），<strong>所以工程上主要靠数值解</strong>——这正是有限元存在的理由。</p>
+<p><strong>可直接写出的解析解有限</strong>（例如厚壁筒、圣维南扭转、孔边应力集中、赫兹接触等经典边界），复杂几何因而常需要数值解——这正是有限元存在的理由。</p>
 <p><strong>两个必须知道的经典结果</strong>：</p>
-<p><strong>① 圣维南原理</strong>：<strong>远离载荷作用区，应力分布与载荷的具体分布方式无关，只与其合力合力矩有关</strong>。</p>
-<p><strong>这个原理的实用价值极大</strong>：它使我们能用简化的载荷模型分析远场，也告诉我们<strong>局部细节只影响局部</strong>。<strong>"离作用点约一个特征尺寸之外，细节就不重要了"</strong> 是极有用的工程判断。</p>
-<p><strong>② 赫兹接触</strong>：两个弹性体接触时，接触区应力分布与压力、曲率、弹性常数的关系。<strong>最大切应力出现在表面以下约 0.5 倍接触半宽处</strong>——<strong>这解释了滚动轴承的疲劳剥落为什么起源于次表面</strong>（第十二页），而非表面。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p><strong>① 圣维南原理</strong>：在<strong>线弹性、小变形、边界条件兼容且远离载荷施加区和几何不连续处</strong>，应力的远场分布对载荷的局部施加方式不敏感，主要由合力和合力矩决定。</p>
+<p><strong>这个原理的实用价值极大</strong>：它使我们能用简化的载荷模型分析远场，但“约一个特征尺寸”只是与几何和载荷分布相关的数量级经验，不是普适常数；尖角、孔、接触和边界层附近仍必须保留局部模型。</p>
+<p><strong>② 赫兹接触</strong>：在经典、无摩擦、光滑弹性体和局部椭圆/圆形接触近似下，接触区应力分布由压力、曲率和弹性常数决定；某一常用切应力分量的最大值可在表面以下约 <span class="arithmatex">\(0.5a\)</span>（<span class="arithmatex">\(a\)</span> 为接触半宽）的量级出现。这个位置随摩擦、椭圆率、材料和接触边界改变，不能当成所有轴承的固定深度；它只提供滚动接触次表面疲劳的理想解释。</p>
+<h2 id="_10">六、要点<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong>应变能的统一形式</strong>：<span class="arithmatex">\((\text{内力})^2 L/(2\times\text{刚度})\)</span>；</li>
 <li><strong>卡氏定理</strong>用求导代替解方程，虚设力技巧可求任意点位移；</li>
-<li><strong>能量法把超静定的几何协调转为能量极值</strong>；<strong>最小势能原理是有限元的出发点</strong>；</li>
-<li><strong>突加载荷动荷系数 = 2</strong>；<strong>结构越柔越耐冲击</strong>——溃缩吸能、长螺栓、弹性绳都基于此；</li>
-<li><strong>圣维南原理</strong>：局部细节只影响局部；<strong>赫兹接触</strong>的最大切应力在次表面，解释轴承的疲劳起源。</li>
+<li><strong>能量法把超静定的几何协调转为能量极值</strong>；对稳定平衡，最小势能原理是有限元的出发点；</li>
+<li><strong>在线性弹簧的突加载荷模型中动荷系数 = 2</strong>；柔度增加有时能降低理想峰值，但必须同时检查强度、行程、稳定和接触；</li>
+<li><strong>圣维南原理</strong>在合适的远场条件下弱化局部载荷细节；经典赫兹接触可解释次表面剪应力，但不替代真实轴承接触分析。</li>
 </ul>
 <hr />
 <p><em>线一结束：从力到应力、到变形、到失稳、到能量。下一线让结构动起来——动力学与振动，机械工程中最常见的现场问题来源。</em></p>
@@ -134,5 +269,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-energy-elasticity.js"></script>
 </body>
 </html>

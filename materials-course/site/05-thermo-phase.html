@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +47,23 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#materials-phase-learning-title">学习层：冷却一块 Cu–Ni 型合金，先猜相区再算比例</a><ul>
+<li><a href="#1-45-wt-ni">1. 具体材料情境：45 wt% Ni 的铸锭截面</a></li>
+<li><a href="#2">2. 必须作答的预测门：当前点属于哪里？</a></li>
+<li><a href="#3">3. 正式公式桥：从相界到质量分数</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 热力学三分钟：为什么会有相图</a></li>
-<li><a href="#2">2. 匀晶相图与杠杆定则（读图基本功）</a></li>
-<li><a href="#3">3. 共晶与中间相（组装复杂相图的零件）</a></li>
+<li><a href="#2_1">2. 匀晶相图与杠杆定则（读图基本功）</a></li>
+<li><a href="#3_1">3. 共晶与中间相（组装复杂相图的零件）</a></li>
 <li><a href="#4-fec">4. Fe–C 相图（工业之王，值得单独背）</a></li>
 <li><a href="#5">5. 数字感与反直觉</a></li>
 </ul>
@@ -51,13 +73,82 @@
 <blockquote>
 <p>把一堆铜和镍熔在一起冷下来，会得到什么？什么温度下是液体、什么成分下分成两种固体？<strong>相图</strong>一张纸回答全部——它是热力学替材料人算好的"平衡态地图"，读图能力是材料工程师的第一识字课。本页从 Gibbs 自由能出发建立读图法，主角是两张图：匀晶（教学价值）与 <strong>Fe–C</strong>（工业价值之王）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-phase-learning-title" class="learning-layer">
+<h2 id="materials-phase-learning-title">学习层：冷却一块 Cu–Ni 型合金，先猜相区再算比例<a class="headerlink" href="#materials-phase-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-45-wt-ni">1. 具体材料情境：45 wt% Ni 的铸锭截面<a class="headerlink" href="#1-45-wt-ni" title="Permanent link"></a></h3>
+<p>把一块标称 <strong>C₀ = 45 wt% Ni</strong> 的铜镍型合金从液态冷到 <strong>T = 1350 °C</strong>。这里用一条便于读图的匀晶示意模型：两条线在纯组元端点相接，中间夹出 L + α 两相区。问题不是“总成分变没变”，而是液体和固溶体各自拿走了多少 Ni，以及两相各有多少。</p>
+<h3 id="2">2. 必须作答的预测门：当前点属于哪里？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在下方实验中先选择一个答案：<strong>单相液体 L、单相固溶体 α、L + α 两相区、恰在相界</strong>。请同时写下你的理由：比较 <span class="arithmatex">\(T\)</span> 与当前成分处的液相线、固相线；若是两相区，水平连接线的两端成分是否会等于 45 wt%？揭示后才显示连接线、端点与杠杆定则账本。</p>
+<h3 id="3">3. 正式公式桥：从相界到质量分数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(c=C/100\)</span>，本实验的教学示意线为</p>
+<div class="arithmatex">\[
+T_L(c)=1480-300c+180c(1-c),\qquad
+T_S(c)=1480-300c-180c(1-c).
+\]</div>
+<p>若 <span class="arithmatex">\(T_S(C_0)&lt;T&lt;T_L(C_0)\)</span>，水平 tie line 与两条边界交于 <span class="arithmatex">\(C_\alpha\)</span>、<span class="arithmatex">\(C_L\)</span>。溶质守恒把图上的几何桥成数量公式：</p>
+<div class="arithmatex">\[
+C_0=f_\alpha C_\alpha+f_LC_L,\qquad f_\alpha+f_L=1,
+\]</div>
+<div class="arithmatex">\[
+f_\alpha=\frac{C_L-C_0}{C_L-C_\alpha},\qquad
+f_L=\frac{C_0-C_\alpha}{C_L-C_\alpha}.
+\]</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>两相区里，<strong>相的成分</strong>由温度和边界决定，<span class="arithmatex">\(C_0\)</span> 主要决定两相的比例；不能把配料点直接当成两相成分。</li>
+<li>在液相线/固相线边界，某一相的分数是零的极限；单相区没有合法的两相杠杆臂，纯组元端点还要单独处理。</li>
+<li>这里的液相线、固相线只是说明 tie line 读法的示意线，<strong>不是实测 Cu–Ni 数据</strong>，也不替代 CALPHAD、压力修正或实验相鉴定。</li>
+<li>相图是平衡态地图，不是凝固时刻表；快速冷却、枝晶偏析和有限扩散会让实际组织偏离这个平衡账本。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="materials-phase-map" markdown="1">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>取 <span class="arithmatex">\(C_0=45\)</span> wt% Ni、<span class="arithmatex">\(T=1350\)</span> °C。示意线给出 <span class="arithmatex">\(T_L(C_0)\approx1389.6\)</span> °C、<span class="arithmatex">\(T_S(C_0)\approx1300.5\)</span> °C，所以点在 L + α 两相区；水平连接线约交于 <span class="arithmatex">\(C_\alpha=30.6\)</span> wt%、<span class="arithmatex">\(C_L=58.0\)</span> wt%。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(C_0\)</span></td>
+<td style="text-align: right;">45.0 wt% Ni</td>
+<td>合金总成分</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(C_\alpha, C_L\)</span></td>
+<td style="text-align: right;">30.6, 58.0 wt% Ni</td>
+<td>tie line 两端</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(f_\alpha\)</span></td>
+<td style="text-align: right;">0.473</td>
+<td><span class="arithmatex">\((C_L-C_0)/(C_L-C_\alpha)\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(f_L\)</span></td>
+<td style="text-align: right;">0.527</td>
+<td><span class="arithmatex">\((C_0-C_\alpha)/(C_L-C_\alpha)\)</span></td>
+</tr>
+<tr>
+<td>质量守恒</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.473+0.527=1\)</span></td>
+<td>两相分数闭合</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 热力学三分钟：为什么会有相图<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>相 = 结构与成分均匀的区域。平衡由 <strong>Gibbs 自由能 <span class="arithmatex">\(G = H - TS\)</span> 最小</strong>裁决（🔗 数学站信息论 III 的最大熵、物理站热统——同一位裁判）：低温焓主导（有序晶体赢）、高温熵主导（无序液体赢）——<strong>熔化就是熵的胜利</strong>。混合两组元时混合熵总是奖励互溶、混合焓看"异类原子相处愉快否"——两者的拉锯画出相界。<strong>Gibbs 相律</strong>：</p>
 <div class="arithmatex">\[
 F = C - P + 1 \quad (\text{恒压})
 \]</div>
 <p>（<span class="arithmatex">\(F\)</span> 自由度、<span class="arithmatex">\(C\)</span> 组元数、<span class="arithmatex">\(P\)</span> 相数。）读图前先用它对账：单相区可自由动温度与成分（<span class="arithmatex">\(F=2\)</span>）；两相区温度定则两相成分定（<span class="arithmatex">\(F=1\)</span>——所以有连接线）；三相共存只在孤点/水平线上（<span class="arithmatex">\(F=0\)</span>——共晶线为什么是水平的，相律一行回答）。</p>
-<h2 id="2">2. 匀晶相图与杠杆定则（读图基本功）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 匀晶相图与杠杆定则（读图基本功）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>两组元无限互溶（Cu–Ni：同为 FCC、原子尺寸相近——Hume-Rothery 规则【研】）给出最简单的"透镜"：</p>
 <figure class="plot">
 <p><img alt="Isomorphous phase diagram with tie line" src="assets/img/mat-05-lens.svg" /></p>
@@ -69,7 +160,7 @@ f_\alpha = \frac{C_0 - C_L}{C_\alpha - C_L}
 \]</div>
 <p>（【推】溶质守恒一行：<span class="arithmatex">\(C_0 = f_\alpha C_\alpha + (1-f_\alpha)C_L\)</span>。名字的由来：<span class="arithmatex">\(C_0\)</span> 是支点，哪端"杠杆臂"长，<strong>对面</strong>那相多。）</p>
 <p><strong>凝固的成分再分配</strong>：先结晶的固体富高熔点组元 ⇒ 实际铸造（冷速快、扩散来不及）产生<strong>枝晶偏析</strong>——铸锭为何要均匀化退火（热力 II 的扩散来收拾），"平衡图 + 动力学修正"是相图使用的完整姿势【研：Scheil 方程】。</p>
-<h2 id="3">3. 共晶与中间相（组装复杂相图的零件）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 共晶与中间相（组装复杂相图的零件）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>共晶反应</strong> <span class="arithmatex">\(L \to \alpha + \beta\)</span>：两固相互溶有限时，液相线从两端下压、交于<strong>共晶点</strong>——该成分熔点最低、凝固直接长出两相交替的<strong>层片组织</strong>。焊锡（Sn–Pb/Sn–Ag–Cu）、铸铁、Al–Si 铸造合金全靠共晶的低熔点与好流动性。同族亲戚（共析：固→固+固；包晶）反应式记形状即可。<strong>中间相/金属间化合物</strong>：相图中部的窄竖线（如 Fe₃C）——成分固定、通常硬而脆，既是强化的筹码也是脆化的隐患。</p>
 <h2 id="4-fec">4. Fe–C 相图（工业之王，值得单独背）<a class="headerlink" href="#4-fec" title="Permanent link"></a></h2>
 <figure class="diagram">
@@ -98,5 +189,7 @@ f_\alpha = \frac{C_0 - C_L}{C_\alpha - C_L}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-phase-map.js"></script>
 </body>
 </html>

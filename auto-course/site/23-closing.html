@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_2">一、一条主线：性能与鲁棒性的权衡</a></li>
-<li><a href="#_3">二、三条不可逾越的边界</a></li>
-<li><a href="#_4">三、这门学科教的思维方式</a></li>
-<li><a href="#_5">四、"预测—比较—修正"：一个反复出现的结构</a></li>
-<li><a href="#_6">五、保质期</a></li>
-<li><a href="#_7">六、若要继续</a></li>
-<li><a href="#_8">七、最后</a></li>
+<li><a href="#_2">学习层：用一张证据账本审计小型热回路，而不是给它发“万能证书”</a><ul>
+<li><a href="#1-nominal">1. 具体工程谜题：一个 nominal 阶跃漂亮的热回路，能否直接交付？</a></li>
+<li><a href="#2">2. 正式模型：一个有单位、有边界的热回路</a></li>
+<li><a href="#3">3. 动手实验：让四栏证据在同一条时间线上对齐</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+<li><a href="#5">5. 正式回到全课：反馈的成熟返回值是“知道证据够到哪里”</a></li>
+</ul>
+</li>
+<li><a href="#_3">一、一条主线：性能与鲁棒性的权衡</a></li>
+<li><a href="#_4">二、三条不可逾越的边界</a></li>
+<li><a href="#_5">三、这门学科教的思维方式</a></li>
+<li><a href="#_6">四、"预测—比较—修正"：一个反复出现的结构</a></li>
+<li><a href="#_7">五、保质期</a></li>
+<li><a href="#_8">六、若要继续</a></li>
+<li><a href="#_9">七、最后</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +75,77 @@
 <blockquote>
 <p>二十三页走完。这一页把它们收拢：这门学科教会人什么，哪些内容会过期、哪些不会，以及为什么"反馈"值得被当作一种看世界的方式。</p>
 </blockquote>
-<h2 id="_2">一、一条主线：性能与鲁棒性的权衡<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_2">学习层：用一张证据账本审计小型热回路，而不是给它发“万能证书”<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h3 id="1-nominal">1. 具体工程谜题：一个 nominal 阶跃漂亮的热回路，能否直接交付？<a class="headerlink" href="#1-nominal" title="Permanent link"></a></h3>
+<p>你要把一个小型温控回路调到 <span class="arithmatex">\(50\ ^\circ\mathrm C\)</span>。仿真中的标称时间常数和增益都很顺，实际设备却有参数失配、热扰动、执行器饱和和安全上限 <span class="arithmatex">\(62\ ^\circ\mathrm C\)</span>。收官练习要求把四种证据放在一起：性能（误差/到达时间）、鲁棒性（失配/扰动下的变化）、饱和（控制器有多久撞限）和安全（最高温度/边界裕量）。它是一个可复核的综合练习，不是对任意闭环的普适证明。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>只看标称 settling time，能否推出失配设备仍满足安全上限？</li>
+<li>提高比例增益后，性能、饱和和安全证据会不会必然一起变好？</li>
+<li>一张包含四类指标的 ledger 能否单独构成认证或全局稳定证明？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：一个有单位、有边界的热回路<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验使用离散 Euler 推进的热模型</p>
+<div class="arithmatex">\[
+T_{k+1}=T_k+\Delta t\left[-\frac{T_k-T_{amb}}{\tau_{true}}+g_{true}u_k+d_k\right],
+\]</div>
+<p>其中 <span class="arithmatex">\(T\)</span> 为 °C，<span class="arithmatex">\(u\in[0,u_{max}]\)</span> 为归一化执行器指令，<span class="arithmatex">\(d_k\)</span> 为 °C/s 的确定扰动。PI 控制器用测量误差计算 <span class="arithmatex">\(u_{raw}\)</span>，再经过饱和；实验明确记录饱和时刻，避免把限幅后的动作误读为原控制律。标称轨迹使用 <span class="arithmatex">\(\tau_{nom},g_{nom}\)</span>，压力轨迹使用可调失配和扰动；安全证据是 <span class="arithmatex">\(T_{max}\le T_{safe}\)</span> 的当前仿真判断，鲁棒性证据是压力与标称曲线的偏离，不是无限不确定性集合上的定理。</p>
+<h3 id="3">3. 动手实验：让四栏证据在同一条时间线上对齐<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调 <span class="arithmatex">\(K_p,K_i\)</span>、执行器上限、真实时间常数/增益比例、扰动幅值和安全上限。SVG 同时画标称/压力温度、目标线、安全边界和控制输入；ledger 列时间（s）、两条温度（°C）、误差、原始/饱和输入、饱和标记和安全裕量（°C）。结果区将 performance、robustness、saturation、safety 四栏分开，并对任何失败给出下一项要复核的证据。</p>
+<div class="learning-lab" data-learning-lab="auto-capstone-ledger">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认目标为 <span class="arithmatex">\(50\ ^\circ\mathrm C\)</span>、环境 <span class="arithmatex">\(25\ ^\circ\mathrm C\)</span>、<span class="arithmatex">\(\tau_{nom}=12\ \mathrm s\)</span>、<span class="arithmatex">\(g_{nom}=4\ ^\circ\mathrm C/\mathrm s\)</span>（当 <span class="arithmatex">\(u=1\)</span> 的加热贡献），步长 <span class="arithmatex">\(0.2\ \mathrm s\)</span>，执行器 <span class="arithmatex">\(0\le u\le1\)</span>，安全上限 <span class="arithmatex">\(62\ ^\circ\mathrm C\)</span>。压力轨迹把真实时间常数设为标称的 <span class="arithmatex">\(1.2\)</span> 倍、增益为标称的 <span class="arithmatex">\(0.85\)</span> 倍，并在中段加入确定的正热扰动。所有温度和裕量使用 °C，输入是无量纲执行器指令；settling time 只按本实验的误差带和连续保持规则定义。</p>
+<table>
+<thead>
+<tr>
+<th>证据栏</th>
+<th>读取什么</th>
+<th>不能推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>performance</td>
+<td>压力轨迹的末端误差、settling time、超调</td>
+<td>不能推出所有负载下性能</td>
+</tr>
+<tr>
+<td>robustness</td>
+<td>标称/压力偏离、扰动后的恢复</td>
+<td>不是无界不确定性证明</td>
+</tr>
+<tr>
+<td>saturation</td>
+<td><span class="arithmatex">\(u=u_{max}\)</span> 的样本比例和连续时长</td>
+<td>不是执行器热额定证明</td>
+</tr>
+<tr>
+<td>safety</td>
+<td><span class="arithmatex">\(T_{safe}-T_{max}\)</span> 的最小裕量</td>
+<td>不是认证或全局安全证书</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>标称快不等于压力安全</strong>：时间常数、增益、传感器偏差、热惯性和扰动会改变到达时间与峰值。</li>
+<li><strong>饱和后的轨迹不是原控制器的线性响应</strong>：积分抗饱和、执行器速率限制、断热和故障动作都可能改变结论。</li>
+<li><strong>四栏 ledger 是证据组织方式，不是统一评分</strong>：不能用一个加权总分掩盖安全失败或把性能换算成风险。</li>
+<li><strong>有限时间和有限参数扫描不是鲁棒定理</strong>：要声明压力样本、时间窗、步长和未覆盖的边界，并用实测/形式分析补强。</li>
+<li><strong>安全上限是模型输入</strong>：真实热保护、传感器冗余、故障检测和紧急断能路径仍需独立设计和验证。</li>
+</ul>
+<h3 id="5">5. 正式回到全课：反馈的成熟返回值是“知道证据够到哪里”<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>收官不是宣布控制理论已经替系统担保，而是把模型、参数、控制动作、限制条件和验证结果逐项返回。性能回答“做得多好”，鲁棒性回答“换工况会怎样”，饱和回答“执行器是否有余量”，安全回答“边界是否保持”；四者缺一不可，也不能互相冒充。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>请把这张账本迁移到一个带电流限幅的伺服位置环：性能改用位置误差/整定时间，鲁棒性改用负载和摩擦变化，饱和改用电流占用，安全改用行程边界与急停。你会为每一栏保留哪一条可重复的测试证据？</p>
+</div>
+</section>
+<h2 id="_3">一、一条主线：性能与鲁棒性的权衡<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>回看全课，几乎所有内容都挂在同一条张力上：</p>
 <div class="arithmatex">\[\text{想要快、准、稳} \Rightarrow \text{提高增益} \Rightarrow \text{但模型是错的} \Rightarrow \text{高增益放大误差与噪声} \Rightarrow \text{失稳}\]</div>
 <p>整个控制理论，可以看作是在不断<strong>精确化</strong>这个权衡：</p>
@@ -87,21 +180,21 @@
 </tbody>
 </table>
 <p><strong>每一层都在回答同一个问题——"我能推多狠而不翻车"——只是答案越来越精确。</strong></p>
-<h2 id="_3">二、三条不可逾越的边界<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">二、三条不可逾越的边界<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>成熟工程学科的标志，是它知道什么<strong>做不到</strong>。本课给出了三条：</p>
 <ol>
 <li><strong>水床效应</strong>（第五页）：<span class="arithmatex">\(\int_0^\infty \ln|S|\,d\omega = 0\)</span>。<strong>干扰抑制的总量守恒</strong>，你只能选择把代价放到哪个频段，不能消除它；</li>
-<li><strong>右半平面零点与时滞</strong>（第二页）：给可达带宽设定<strong>硬上限</strong>。这不是设计水平问题，是数学定理；</li>
+<li><strong>右半平面零点与时滞</strong>（第二页）：在给定模型、裕度和性能指标下约束可达带宽，并制造不可消除的权衡；具体上限仍要由零点/时滞位置、闭环结构与鲁棒性要求共同计算；</li>
 <li><strong>最优不蕴含鲁棒</strong>（第八页 Doyle 反例）：对标称模型优化到极致的设计，可能对模型误差异常脆弱。</li>
 </ol>
 <p><strong>这三条与其他学科的"不可能性结果"同属一类</strong>——🔗 微电子站的 60 mV/decade、信息论的香农极限、热力学第二定律。<strong>知道边界在哪，正是专业性的体现。</strong></p>
-<h2 id="_4">三、这门学科教的思维方式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">三、这门学科教的思维方式<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>① 反馈能把不精确的东西变得精确。</strong> 这是本学科最深刻的洞见（第一页）。它解释了为什么廉价的执行器套上反馈就能做精密运动、为什么运放的开环增益不准却能做出精确的放大器、为什么生物体用不可靠的细胞维持了精确的内环境。</p>
 <p><strong>② 但反馈也会制造振荡。</strong> 同一个机制，加得不好就失稳。<strong>这个二重性值得推广到工程之外</strong>：任何"根据结果调整行为"的系统——组织管理、经济政策、学习过程——都同时具备自我纠正与自我振荡的潜力，且<strong>延迟越大越容易振荡</strong>。</p>
 <p><strong>③ 分层与时间尺度分离。</strong> 本课反复出现同一个结构：内环快、外环慢（电流—速度—位置，第十二页；MPC 下达设定值、PID 执行，第十七页；安全过滤器包住性能控制器，第二十一页）。<strong>把快慢分开，让每层解决自己尺度上的问题</strong>——这是复杂系统设计的通用智慧。</p>
 <p><strong>④ 可验证性常胜过最优性。</strong> 工业偏好增益调度胜过在线自适应（第十八页）、偏好梯形图胜过更强的语言（第十三页）、偏好 PID 胜过 <span class="arithmatex">\(H_\infty\)</span>（第六、十六页）。<strong>理由不是保守，而是：一个能被理解、被验证、被现场维护的次优方案，长期价值高于一个无人能维护的最优方案。</strong></p>
 <p><strong>⑤ 量化风险而非追求绝对安全</strong>（第十四页）。绝对安全不存在，工程的任务是把风险降到与后果相称的水平，并<strong>能论证它</strong>。</p>
-<h2 id="_5">四、"预测—比较—修正"：一个反复出现的结构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">四、"预测—比较—修正"：一个反复出现的结构<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>本课中，同一个循环出现了三次：</p>
 <ul>
 <li><strong>反馈控制</strong>（第一页）：比较输出与目标，用误差修正；</li>
@@ -110,7 +203,7 @@
 </ul>
 <p><strong>而它还出现在本讲义库的其他站</strong>：🔗 生物站的预测脑与稳态调节、AI 站的梯度下降与时序差分学习。</p>
 <p><strong>这可能是工程与自然界中最普适的结构</strong>——<strong>任何要在不确定环境中维持目标的系统，都会演化出某种形式的"预测—比较—修正"。</strong> 学会它，你就获得了一副能看穿许多系统的眼镜。</p>
-<h2 id="_6">五、保质期<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">五、保质期<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -145,14 +238,14 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_7">六、若要继续<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">六、若要继续<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong>教材</strong>：Åström &amp; Murray《Feedback Systems》（<strong>免费在线，最推荐的入门</strong>，视角现代且横跨多领域）、Franklin《Feedback Control of Dynamic Systems》（经典本科教材）、Khalil《Nonlinear Systems》（非线性圣经）、Rawlings &amp; Mayne《Model Predictive Control》（MPC 权威）、Åström &amp; Hägglund《Advanced PID Control》（PID 的深度处理）；</li>
 <li><strong>动手</strong>（这门课最值得动手）：用 Python 的 <code>python-control</code> 或 MATLAB/Simulink，把本课每张图都亲手重跑一遍——<strong>改参数、看曲线怎么动，是理解反馈最快的路径</strong>。本站所有图的代码在 <code>figs/</code> 下；</li>
 <li><strong>实物</strong>：一块开发板 + 一个直流电机 + 编码器，做一个速度环与位置环。<strong>亲手调一次 PID，胜过读十页理论</strong>；平衡小车（倒立摆）是经典的进阶项目；</li>
 <li><strong>跨站互链</strong>：🔗 数学站（Laplace、线性代数、ODE）、grad-math（优化、随机过程）、微电子站（PLL、Sigma-Delta、片上自适应调压都是控制回路）、AI 站（强化学习）、<strong>生物站</strong>（稳态、预测脑——同一套数学的生物版本）。</li>
 </ul>
-<h2 id="_8">七、最后<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<h2 id="_9">七、最后<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>控制工程有一个特点：<strong>它的成功是隐形的</strong>。</p>
 <p>一个工作良好的控制系统，表现就是"什么都没发生"——温度稳定、机器平顺、电网频率恒定、飞机平稳。<strong>没有人会注意到它。</strong> 只有当它失效时，人们才发现它一直在那里。</p>
 <p>这或许也是这门学科最好的隐喻：<strong>反馈的价值不在于做出惊人的动作，而在于让系统在扰动、误差、老化与意外之中，持续地保持在它应该在的地方。</strong></p>
@@ -168,5 +261,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-capstone-ledger.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:01</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、平衡方程</a></li>
-<li><a href="#_2">二、约束与反力：一一对应</a></li>
-<li><a href="#_3">三、静定与超静定</a></li>
-<li><a href="#_4">四、桁架与力流</a></li>
-<li><a href="#_5">五、摩擦</a></li>
-<li><a href="#_6">六、应力集中的伏笔</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#statics-learning-title">学习层：先签名，再让反力通过三本账</a><ul>
+<li><a href="#_1">具体工程情境：仓储车的简支叉臂</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：一个自由体、三条可审计的平衡式</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、平衡方程</a></li>
+<li><a href="#_7">二、约束与反力：一一对应</a></li>
+<li><a href="#_8">三、静定与超静定</a></li>
+<li><a href="#_9">四、桁架与力流</a></li>
+<li><a href="#_10">五、摩擦</a></li>
+<li><a href="#_11">六、应力集中的伏笔</a></li>
+<li><a href="#_12">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +78,90 @@
 <p><strong>层次</strong>：本科核心——这是机械工程师的第一副眼镜。
 静力学的方程只有两条（力平衡、力矩平衡），初看简单到不值一讲。但<strong>真正的技能不在解方程，而在正确地画出受力图</strong>——判断哪些力存在、约束提供什么、力从哪里流向哪里。<strong>这一步错了，后面所有精确计算都是精确的错误。</strong></p>
 </blockquote>
-<h2 id="_1">一、平衡方程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="statics-learning-title" class="learning-layer">
+<h2 id="statics-learning-title">学习层：先签名，再让反力通过三本账<a class="headerlink" href="#statics-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：仓储车的简支叉臂<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把一根 <span class="arithmatex">\(L=4.0\,\mathrm{m}\)</span> 的叉臂看成平面内的简支梁：左端销轴 A 能提供 <span class="arithmatex">\(A_x,A_y\)</span>，右端滚轮 B 只提供竖直接触力 <span class="arithmatex">\(B_y\)</span>。叉臂上的货物给出向下的 <span class="arithmatex">\(P\)</span>，侧向导向件给出向右的 <span class="arithmatex">\(H\)</span>；载荷作用点距 A 为 <span class="arithmatex">\(a\)</span>。这不是“把一个力平均分给两个支座”的问题：<strong>载荷位置决定力矩账，滚轮接触还带有只能推、不能拉的物理不等式。</strong></p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>在打开实验台前，先判断：</p>
+<ol>
+<li><span class="arithmatex">\(P&gt;0\)</span> 向下时，把货物从 A 向 B 移动，<span class="arithmatex">\(B_y\)</span> 会增大还是减小？</li>
+<li>如果计算得到 <span class="arithmatex">\(B_y&lt;0\)</span>，能否仍把它当成滚轮的“负反力”？</li>
+<li>用 <span class="arithmatex">\(+x\)</span> 向右、<span class="arithmatex">\(+y\)</span> 向上、逆时针为 <span class="arithmatex">\(+M_A\)</span> 时，哪个残差应等于 <span class="arithmatex">\(B_yL-Pa\)</span>？</li>
+</ol>
+<h3 id="_3">正式公式桥：一个自由体、三条可审计的平衡式<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>约定 <span class="arithmatex">\(P&gt;0\)</span> 表示向下、<span class="arithmatex">\(H&gt;0\)</span> 表示向右，支座反力的正方向为右和上。把整根叉臂隔离出来：</p>
+<div class="arithmatex">\[
+\sum F_x=A_x+H=0,\qquad
+\sum F_y=A_y+B_y-P=0,
+\]</div>
+<div class="arithmatex">\[
+\sum M_A=B_yL-Pa=0.
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+B_y=\frac{Pa}{L},\qquad A_y=P-B_y=P\left(1-\frac{a}{L}\right),\qquad A_x=-H.
+\]</div>
+<p>实验台同时把三本账显示出来：力残差 <span class="arithmatex">\(R_x=A_x+H\)</span>、<span class="arithmatex">\(R_y=A_y+B_y-P\)</span> 与 A 点矩残差 <span class="arithmatex">\(R_M=B_yL-Pa\)</span>。精确解的残差在浮点数容差内为零；<strong>残差为零不等于支撑假设物理有效</strong>，还要检查 <span class="arithmatex">\(0\le a/L\le1\)</span> 与单侧滚轮的接触条件 <span class="arithmatex">\(B_y\ge0\)</span>。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(B_y&lt;0\)</span> 意味着滚轮要“拉住”叉臂；普通滚轮不能提供这种力，实际会失去接触，必须重新画接触状态的 FBD，或加入压板/拉杆等能受拉构件。代数解仍可能有零残差，但不再是原支撑模型的物理解。</li>
+<li><span class="arithmatex">\(a/L\)</span> 超出 <span class="arithmatex">\([0,1]\)</span> 时，公式只是把点载荷外推到简支跨外；若真有悬臂或外伸段，载荷边界和未知反力都要重新建模。</li>
+<li>销轴不提供纯力矩，滚轮不提供切向力；把它们画成固定端会凭空增加未知量。</li>
+<li>圆孔的 <span class="arithmatex">\(K_t\approx3\)</span> 是<strong>无限宽板、远离边界的圆孔、线弹性名义应力</strong>这一理想化结果；有限宽度、孔边距、载荷方式和圆角都会改变它。尖锐内角的“趋于无穷”是<strong>线弹性连续体模型的应力奇异性</strong>，真实材料的塑性、有限圆角和制造尺度会截断它，不能把无穷值直接当作实测应力。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-statics-reactions">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认取 <span class="arithmatex">\(L=4.0\,\mathrm{m}\)</span>、<span class="arithmatex">\(a/L=0.35\)</span>、<span class="arithmatex">\(P=12.0\,\mathrm{kN}\)</span>（向下）、<span class="arithmatex">\(H=2.0\,\mathrm{kN}\)</span>（向右）。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>载荷位置 <span class="arithmatex">\(a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.35L=1.40\)</span></td>
+<td>m</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A_x\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-H=-2.00\)</span></td>
+<td>kN，向左</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A_y\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(P(1-a/L)=7.80\)</span></td>
+<td>kN，向上</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(B_y\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(Pa/L=4.20\)</span></td>
+<td>kN，向上</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(R_x,R_y,R_M\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0,\ 0,\ 0\)</span></td>
+<td>kN、kN、kN·m</td>
+</tr>
+<tr>
+<td>接触检查</td>
+<td style="text-align: right;"><span class="arithmatex">\(B_y=4.20\ge0\)</span></td>
+<td>滚轮仍接触</td>
+</tr>
+</tbody>
+</table>
+<p>图中的箭头遵守同一符号约定；把 <span class="arithmatex">\(P\)</span> 改成负值可观察“向上载荷导致滚轮抬离”的边界，把 <span class="arithmatex">\(a/L\)</span> 移出 <span class="arithmatex">\([0,1]\)</span> 可观察模型失效提示。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>一台带压板的夹具允许 B 点提供拉力。此时 <span class="arithmatex">\(B_y&lt;0\)</span> 是否仍然意味着“方程错了”？请说明支撑类型改变后，哪一个不等式约束被移除了，以及为什么残差账本仍然必须保留。</p>
+</section>
+<h2 id="_6">一、平衡方程<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>刚体静力平衡：</p>
 <div class="arithmatex">\[\sum \vec{F} = 0, \qquad \sum \vec{M} = 0\]</div>
 <p>三维给出 6 个方程，二维给出 3 个（<span class="arithmatex">\(\sum F_x\)</span>、<span class="arithmatex">\(\sum F_y\)</span>、<span class="arithmatex">\(\sum M_z\)</span>）。</p>
@@ -66,7 +173,7 @@
 <li><strong>约束提供什么力，取决于它限制什么运动</strong>——这是判断反力的唯一依据；</li>
 <li>不要漏掉、也不要凭空添加。</li>
 </ol>
-<h2 id="_2">二、约束与反力：一一对应<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、约束与反力：一一对应<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>约束限制什么方向的运动，就在那个方向提供反力</strong>。这个对应关系必须成为条件反射：</p>
 <table>
 <thead>
@@ -105,7 +212,7 @@
 </tbody>
 </table>
 <p><strong>铰链不传力矩、固定端传力矩</strong>——这个区别决定了整个结构的内力分布，也是后面梁分析的起点。</p>
-<h2 id="_3">三、静定与超静定<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、静定与超静定<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>静定</strong>：未知反力数 = 独立平衡方程数 → <strong>仅凭平衡方程即可求解</strong>。</p>
 <p><strong>超静定（静不定）</strong>：未知数多于方程 → <strong>平衡方程不够用</strong>。</p>
 <p><strong>这是一个关键的概念分水岭</strong>：超静定结构的内力分布<strong>取决于各部分的刚度</strong>——刚的地方分担更多载荷。要解它，必须补充<strong>变形协调条件</strong>（几何上各部分变形必须相容）与<strong>材料本构关系</strong>（应力应变关系）。</p>
@@ -117,28 +224,28 @@
 <li>但超静定结构对<strong>装配误差与温度变化敏感</strong>：强行装配会产生装配应力，温升受阻会产生热应力。<strong>静定结构则不会</strong>——它可以自由变形。</li>
 <li><strong>所以"要不要超静定"是设计决策</strong>：要冗余还是要免于附加应力。</li>
 </ul>
-<h2 id="_4">四、桁架与力流<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、桁架与力流<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>桁架分析</strong>（节点法、截面法）是训练"看力流"的最好练习。理想桁架的杆件<strong>只受拉压、不受弯</strong>——因为节点是铰接的（不传力矩）。</p>
 <p><strong>为什么这重要</strong>：<strong>受拉压的杆件，材料全截面均匀受力，效率最高</strong>；而受弯的梁，中性轴附近的材料几乎不出力（第三页会看到）。<strong>所以在同等重量下，桁架比实心梁能跨越更大跨度</strong>——桥梁、起重机臂、屋架都用桁架，正是这个道理。</p>
 <p><strong>"让材料受拉压而非受弯"是结构效率的第一原则。</strong></p>
-<h2 id="_5">五、摩擦<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、摩擦<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>摩擦是机械中无处不在的非线性（🔗 自动化站第十五页把它当作控制的敌人；这里它常常是朋友）。</p>
 <p><strong>库仑摩擦模型</strong>：</p>
 <div class="arithmatex">\[F_{\text{摩擦}} \le \mu_s N \ (\text{静止}), \qquad F = \mu_k N \ (\text{滑动}), \qquad \mu_k &lt; \mu_s\]</div>
 <p><strong>注意静摩擦是不等式</strong>——它的值由平衡条件决定，只有上限，不是定值。<strong>这是初学者最常犯的错误</strong>：把静摩擦直接当作 <span class="arithmatex">\(\mu_s N\)</span> 来算。</p>
 <p><strong>自锁</strong>：当驱动角小于摩擦角时，无论施加多大的驱动力，机构都不会反向滑动。<strong>螺纹、蜗轮蜗杆、楔块夹具全靠这个原理</strong>——螺栓不会自己松开、蜗轮减速器不能被负载倒拖。<strong>自锁是"用摩擦换安全"的经典设计</strong>，代价是效率低（自锁蜗杆效率常低于 50%）。</p>
-<h2 id="_6">六、应力集中的伏笔<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、应力集中的伏笔<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>平衡方程告诉你<strong>总的</strong>力有多大，但不告诉你力在截面内<strong>怎么分布</strong>。</p>
 <p><strong>力流的直观图景</strong>：想象力像水流一样从加载点流向支撑点。<strong>当截面突变（孔、槽、台阶、尖角）时，力流被迫绕行并挤在一起 → 局部应力远高于平均值</strong>——这就是<strong>应力集中</strong>。</p>
 <div class="arithmatex">\[\sigma_{\max} = K_t \cdot \sigma_{\text{名义}}\]</div>
-<p><span class="arithmatex">\(K_t\)</span> 是应力集中系数，圆孔约 3、尖角可以趋于无穷。</p>
+<p><span class="arithmatex">\(K_t\)</span> 是应力集中系数；圆孔的 <span class="arithmatex">\(K_t\approx3\)</span> 只是在无限宽板、圆孔远离边界且采用线弹性名义应力的理想化下成立，有限宽度、孔边距、载荷方式和圆角都会改变它。尖锐内角的“趋于无穷”是线弹性连续体的应力奇异性；真实材料会受有限圆角、塑性和制造尺度限制。</p>
 <p><strong>这个概念极其重要</strong>，因为：</p>
 <ul>
 <li><strong>静强度上，塑性材料可以靠局部屈服"钝化"应力集中</strong>（应力重分布），所以静载下常不致命；</li>
 <li><strong>但疲劳几乎完全由应力集中主导</strong>（第十四页）——<strong>绝大多数疲劳裂纹起源于应力集中处</strong>；</li>
 <li><strong>对策</strong>：加大过渡圆角、避免尖角、卸载槽、把开孔放在低应力区。<strong>"设计圆角"这件看似琐碎的事，是机械设计中最有价值的习惯之一。</strong></li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_12">七、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>画对受力图比解对方程重要</strong>；约束限制什么，就提供什么反力；</li>
 <li><strong>静定 vs 超静定</strong>：后者需要"平衡 + 变形协调 + 本构"三条腿，且带来冗余与附加应力的权衡；</li>
@@ -157,5 +264,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-statics-reactions.js"></script>
 </body>
 </html>

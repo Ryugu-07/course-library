@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,41 +47,147 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 锂离子电池：三个部件的材料学</a></li>
-<li><a href="#2-2026">2. 三条正在落地的路线（2026 快照）</a></li>
+<li><a href="#materials-battery-learning-title">学习层：把一只电池的可逆电压、带载电压和老化账本拆开</a><ul>
+<li><a href="#1">1. 具体材料工程情境：同一颗电芯为何既有能量又有功率折损</a></li>
+<li><a href="#2-nernst-fade-proxy">2. 必须作答的预测门：电流、Nernst 与 fade proxy</a></li>
+<li><a href="#3-nernst">3. 最小模型与假设：Nernst + 欧姆极化 + 容量代理</a></li>
+<li><a href="#4">4. 动手实验：调电流、温度、内阻、容量和循环数</a></li>
+<li><a href="#5">5. 误区与模型边界：端电压不是材料常数</a></li>
+<li><a href="#6">6. 正式回扣：从电化学势到系统账本</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 锂离子电池：三个部件的材料学</a></li>
+<li><a href="#2">2. 三条路线与状态读取方法（状态需查证）</a></li>
 <li><a href="#3">3. 光伏与氢</a></li>
-<li><a href="#4">4. 核能与聚变材料（长周期战场）</a></li>
-<li><a href="#5">5. 判断框架</a></li>
+<li><a href="#4_1">4. 核能与聚变材料（长周期战场）</a></li>
+<li><a href="#5_1">5. 判断框架</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">前沿 II · 能源材料<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>⚠️ 保质期声明</strong>：核对于 <strong>2026-07</strong>，电池与光伏的产业化时间表以季度变动，读时务必核最新。</p>
+<p><strong>状态提示</strong>：电池、光伏和氢能的产业化状态会随季度、地区和统计口径变化。本文的判断框架可迁移，具体时间表与装车/量产说法应回到带日期的原始记录核对。</p>
 <p>能源转型本质上是<strong>材料问题</strong>：电池的能量密度、光伏的效率与成本、电解槽的催化剂与膜、核聚变的第一壁——每一条路线的天花板都写在某一类材料上。本页给四个战场的材料学要点与当前状态。</p>
 </blockquote>
-<h2 id="1">1. 锂离子电池：三个部件的材料学<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>正极（决定能量与成本）</strong>：<strong>LFP</strong>（磷酸铁锂：便宜、安全、循环长、无钴，能量密度较低——凭 CTP/刀片等结构创新弥补，目前是全球装机主力）vs <strong>高镍三元 NCM/NCA</strong>（能量密度高、成本与热稳定性压力大）。<strong>负极</strong>：石墨（成熟）→ <strong>硅碳</strong>（容量约十倍于石墨，但充放电体积膨胀 ~300% 导致粉化与 SEI 反复重建——<strong>这是纯粹的力学-化学耦合问题</strong>，工程上以硅氧/硅碳复合与包覆缓解，掺硅比例逐步提升）。<strong>电解液与隔膜</strong>：安全与快充的瓶颈，热失控的第一现场。</p>
-<p><strong>核心矛盾一句话</strong>：能量密度 ↑ 常意味着热稳定性 ↓、寿命 ↓、成本 ↑——<strong>四角权衡（能量/功率/寿命/安全/成本）没有全胜方案</strong>，产品定义就是选择在哪个角上妥协。</p>
-<h2 id="2-2026">2. 三条正在落地的路线（2026 快照）<a class="headerlink" href="#2-2026" title="Permanent link"></a></h2>
-<p><strong>固态电池</strong>：用固态电解质（氧化物/硫化物/聚合物）替代液态——目标是安全 + 锂金属负极带来的能量跃升。<strong>难点</strong>是界面：固-固接触阻抗、循环中的体积变化、锂枝晶沿晶界穿透（🔗 结构 III：晶界又一次成为主角）。<strong>状态</strong>：2026 年被多家企业称为<strong>半固态</strong>规模装车的元年，全固态多处于小批量/工程样件阶段（如 CATL 的凝聚态/半固态路线与国轩宣称的全固态电芯小批量目标）——<strong>"半固态"与"全固态"是两个不同的技术代际，读新闻时务必区分</strong>。</p>
-<p><strong>钠离子电池</strong>：钠资源丰富、低温性能与安全性好、成本潜力约低 30%，代价是能量密度与循环寿命较低。<strong>状态</strong>：CATL 等宣布 2026 年进入规模量产，已有车型采用约 45 kWh 钠电包（续航约 400 km 级）；定位是<strong>储能与入门级车</strong>，不是取代锂电——"合适场景用合适化学体系"是电池行业的成熟共识。正极材料以层状氧化物与普鲁士蓝类为主要竞争路线。</p>
-<p><strong>结构创新与回收</strong>：CTP/CTC（去模组、电芯直接成包/成车身）用<strong>结构效率</strong>换能量密度，是这几年最实在的进步；退役电池的梯次利用与湿法/直接回收，随着首批大规模装车电池退役而进入放量期——<strong>回收的材料学问题（分选、除杂、正极再生）正在成为独立研究领域</strong>。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-battery-learning-title" class="learning-layer">
+<h2 id="materials-battery-learning-title">学习层：把一只电池的可逆电压、带载电压和老化账本拆开<a class="headerlink" href="#materials-battery-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：同一颗电芯为何既有能量又有功率折损<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>用一个透明的电池包代理：标准电压 <span class="arithmatex">\(E^0=3.7 \mathrm V\)</span>，温度 <span class="arithmatex">\(T=298.15 \mathrm K\)</span>，反应商 <span class="arithmatex">\(Q_{\rm rxn}=1\)</span>，电流 <span class="arithmatex">\(I=60 \mathrm A\)</span>，内阻 <span class="arithmatex">\(R_{\rm int}=8 \mathrm{m\Omega}\)</span>，名义容量 <span class="arithmatex">\(C_{\rm nom}=50 \mathrm{Ah}\)</span>，质量 <span class="arithmatex">\(m=1 \mathrm{kg}\)</span>。工程师要回答的不是“电池电压是多少”，而是可逆反应给出的电压、欧姆极化后的端电压、可用容量和质量归一化的能量/功率分别是多少。</p>
+<h3 id="2-nernst-fade-proxy">2. 必须作答的预测门：电流、Nernst 与 fade proxy<a class="headerlink" href="#2-nernst-fade-proxy" title="Permanent link"></a></h3>
+<p>揭示前回答三题：提高电流时，带载电压会因 <span class="arithmatex">\(I R_{\rm int}\)</span> 压降下降、因功率增加上升，还是保持 <span class="arithmatex">\(E_{\rm rev}\)</span>？在这个分离模型中改变电流首先改变可逆电压、带载电压还是把 <span class="arithmatex">\(C_{\rm nom}\)</span> 立即变成零？提高循环数时，脚本中明确标注的 fade proxy 主要进入可逆电压、有效容量还是完全不影响账本？三题完成后才显示电压曲线和 Ragone 账本。</p>
+<h3 id="3-nernst">3. 最小模型与假设：Nernst + 欧姆极化 + 容量代理<a class="headerlink" href="#3-nernst" title="Permanent link"></a></h3>
+<p>给定电子数 <span class="arithmatex">\(n\)</span>、反应商 <span class="arithmatex">\(Q_{\rm rxn}\)</span>，可逆电压用</p>
+<div class="arithmatex">\[
+E_{\rm rev}=E^0-\frac{R_gT}{nF}\ln Q_{\rm rxn}
+\]</div>
+<p>表示；<span class="arithmatex">\(R_g\)</span> 是气体常数、<span class="arithmatex">\(F\)</span> 是 Faraday 常数，<span class="arithmatex">\(T\)</span> 必须用 K。最小带载模型为</p>
+<div class="arithmatex">\[
+V_{\rm load}=E_{\rm rev}-I R_{\rm int},
+\]</div>
+<p>其中 <span class="arithmatex">\(I\)</span> 用 A、<span class="arithmatex">\(R_{\rm int}\)</span> 用 <span class="arithmatex">\(\Omega\)</span>、电压用 V。它只保留欧姆极化，忽略电荷转移、扩散、温升、截止电压与倍率相关容量。</p>
+<p>为把循环数的影响单独放入账本，定义一个明确的教学代理</p>
+<div class="arithmatex">\[
+f_{\rm fade}=\min\{0.95,c\sqrt N\},\qquad
+C_{\rm eff}=C_{\rm nom}(1-f_{\rm fade}),
+\]</div>
+<p>其中 <span class="arithmatex">\(f_{\rm fade}\)</span> 是无量纲 proxy，不是电化学寿命定律。于是本实验的简化能量和功率为</p>
+<div class="arithmatex">\[
+E_{\rm pack}=V_{\rm load}C_{\rm eff}\ [\mathrm{Wh}],\qquad
+P_{\rm pack}=V_{\rm load}I\ [\mathrm W],
+\]</div>
+<p>再分别除以质量得到 <span class="arithmatex">\(\mathrm{Wh/kg}\)</span> 与 <span class="arithmatex">\(\mathrm{W/kg}\)</span>。这里是一个<strong>矩形恒压工作点 proxy</strong>：对每个选定工作点，把 <span class="arithmatex">\(V_{\rm load}\)</span> 在 <span class="arithmatex">\(C_{\rm eff}\)</span> 上视作不变，因此它不是完整的放电瞬态、SOC 曲线或热模型。正是这些分开的量构成了简化 Ragone 权衡。</p>
+<h3 id="4">4. 动手实验：调电流、温度、内阻、容量和循环数<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-battery-ragone-ledger">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(E^0=3.7 \mathrm V\)</span>、<span class="arithmatex">\(T=298.15 \mathrm K\)</span>、<span class="arithmatex">\(n=1\)</span>、<span class="arithmatex">\(Q_{\rm rxn}=1\)</span>、<span class="arithmatex">\(I=60 \mathrm A\)</span>、<span class="arithmatex">\(R_{\rm int}=8 \mathrm{m\Omega}\)</span>、<span class="arithmatex">\(C_{\rm nom}=50 \mathrm{Ah}\)</span>、<span class="arithmatex">\(m=1 \mathrm{kg}\)</span>、<span class="arithmatex">\(N=400\)</span>、<span class="arithmatex">\(c=0.005/\sqrt{\mathrm{cycle}}\)</span>。结果为 <span class="arithmatex">\(E_{\rm rev}=3.70000 \mathrm V\)</span>、<span class="arithmatex">\(I R_{\rm int}=0.48000 \mathrm V\)</span>、<span class="arithmatex">\(V_{\rm load}=3.22000 \mathrm V\)</span>、<span class="arithmatex">\(f_{\rm fade}=0.10000\)</span>、<span class="arithmatex">\(C_{\rm eff}=45.0000 \mathrm{Ah}\)</span>、比能量 <span class="arithmatex">\(144.9000 \mathrm{Wh/kg}\)</span>、比功率 <span class="arithmatex">\(193.2000 \mathrm{W/kg}\)</span>。这两个比值是矩形恒压工作点 proxy。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>可逆电压 <span class="arithmatex">\(E_{\rm rev}\)</span></td>
+<td style="text-align: right;">3.70000</td>
+<td>V；Nernst 项</td>
+</tr>
+<tr>
+<td>欧姆压降 <span class="arithmatex">\(I R_{\rm int}\)</span></td>
+<td style="text-align: right;">0.48000</td>
+<td>V；<span class="arithmatex">\(I\)</span> 用 A、<span class="arithmatex">\(R_{\rm int}\)</span> 用 Ω</td>
+</tr>
+<tr>
+<td>带载电压 <span class="arithmatex">\(V_{\rm load}\)</span></td>
+<td style="text-align: right;">3.22000</td>
+<td>V；<span class="arithmatex">\(E_{\rm rev}-I R_{\rm int}\)</span></td>
+</tr>
+<tr>
+<td>名义 / 有效容量 <span class="arithmatex">\(C_{\rm nom}/C_{\rm eff}\)</span></td>
+<td style="text-align: right;">50.0000 / 45.0000</td>
+<td>Ah；后者受 fade proxy 影响</td>
+</tr>
+<tr>
+<td>fade proxy <span class="arithmatex">\(f_{\rm fade}\)</span></td>
+<td style="text-align: right;">0.10000</td>
+<td>无量纲；不是实测寿命</td>
+</tr>
+<tr>
+<td>比能量</td>
+<td style="text-align: right;">144.9000</td>
+<td>Wh/kg；<span class="arithmatex">\(V_{\rm load}C_{\rm eff}/m\)</span></td>
+</tr>
+<tr>
+<td>比功率</td>
+<td style="text-align: right;">193.2000</td>
+<td>W/kg；<span class="arithmatex">\(V_{\rm load}I/m\)</span></td>
+</tr>
+<tr>
+<td>工作点代理</td>
+<td style="text-align: right;">矩形恒压</td>
+<td><span class="arithmatex">\(V_{\rm load}\)</span> 在 <span class="arithmatex">\(C_{\rm eff}\)</span> 上保持不变；不是完整放电瞬态</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：端电压不是材料常数<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(E_{\rm rev}\)</span> 是给定温度、反应商和化学计量下的可逆量；它不是任何 SOC、倍率、温度和老化状态下都能直接测到的端电压。</li>
+<li><span class="arithmatex">\(V_{\rm load}\)</span> 的下降由本模型的 <span class="arithmatex">\(I R_{\rm int}\)</span> 项给出，但真实电芯还有电荷转移、浓差极化、集流体/接触电阻、热耦合和截止电压。高倍率下容量也可能随时间尺度变化。</li>
+<li>fade proxy 只为了练习“容量和电压分账”。真实容量衰减受 SEI、活性锂、颗粒开裂、温度、SOC 窗口和充放电协议影响；不能把 <span class="arithmatex">\(c\sqrt N\)</span> 解释成寿命普遍规律。</li>
+<li>Ragone 图的比能量和比功率会因质量边界不同而改变：是活性物质、单体、模组还是整包？热管理、壳体、BMS 与安全余量都必须标明。</li>
+</ul>
+<h3 id="6">6. 正式回扣：从电化学势到系统账本<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>先由 Nernst 得到可逆电压，再减去工作点相关的极化，最后将有效容量和质量边界带入能量/功率账本。这个顺序让材料化学、导电网络、界面膜、热管理和结构封装各自有位置，避免用一条峰值能量密度宣传语覆盖整个系统。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若两种正极材料有相同 <span class="arithmatex">\(E_{\rm rev}\)</span> 但内阻和循环 fade 不同，你会先比较倍率曲线、热量、有效容量还是原位结构证据？若把电芯质量换成整包质量，哪些结构和安全部件会让 Ragone 点移动？</p>
+</div>
+</section>
+<h2 id="1_1">1. 锂离子电池：三个部件的材料学<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>正极（决定能量与成本）</strong>：<strong>LFP</strong>（磷酸铁锂：便宜、安全、循环长、无钴，能量密度较低——凭 CTP/刀片等结构创新弥补，在若干市场和应用中占重要份额，但份额随地区与统计口径变化）vs <strong>高镍三元 NCM/NCA</strong>（能量密度高、成本与热稳定性压力大）。<strong>负极</strong>：石墨（成熟）→ <strong>硅碳</strong>（理论容量可达石墨的更高数量级，但体积变化会导致粉化与 SEI 反复重建；公开的膨胀比例取决于硅含量、颗粒和电极结构——<strong>这是力学-化学耦合问题</strong>，工程上以硅氧/硅碳复合与包覆缓解）。<strong>电解液与隔膜</strong>：安全与快充的瓶颈，热失控的第一现场。</p>
+<p><strong>核心矛盾一句话</strong>：能量密度 ↑ 常伴随热稳定性、寿命或成本压力——<strong>能量/功率/寿命/安全/成本很难同时最优</strong>，产品定义就是选择在哪个角上妥协。</p>
+<h2 id="2">2. 三条路线与状态读取方法（状态需查证）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>固态电池</strong>：用固态电解质（氧化物/硫化物/聚合物）替代液态——目标是安全 + 锂金属负极带来的能量跃升。<strong>难点</strong>是界面：固-固接触阻抗、循环中的体积变化、锂枝晶沿晶界穿透（🔗 结构 III：晶界又一次成为主角）。<strong>状态读取</strong>：半固态与全固态不是同一技术标签；应分别核对公开样品、循环协议、产线规模和独立验证，不能从企业路线图单独推出成熟度。</p>
+<p><strong>钠离子电池</strong>：钠资源丰富，部分体系在低温、材料供应和安全设计上有吸引力，代价通常是能量密度与循环表现的权衡。<strong>状态读取</strong>：应用与量产状态依地区、化学体系和产线而异，不能由公司公告单独推断成熟度；应分开核对电芯能量、循环、车辆/储能系统数据和独立测试。正极材料以层状氧化物与普鲁士蓝类为主要竞争路线。</p>
+<p><strong>结构创新与回收</strong>：CTP/CTC（去模组、电芯直接成包/成车身）用<strong>结构效率</strong>换能量密度，是近年重要的系统工程方向；退役电池的梯次利用与湿法/直接回收会随装车规模和退役批次变化而扩展，<strong>回收的材料学问题（分选、除杂、正极再生）已形成独立研究领域</strong>。</p>
 <h2 id="3">3. 光伏与氢<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>光伏</strong>：晶硅（PERC → TOPCon/HJT）占据绝对主流，产业竞争已进入极致降本阶段；<strong>钙钛矿</strong>实验室效率进展迅猛、可与硅做<strong>叠层</strong>（tandem，实验室效率已越过 30%），但<strong>稳定性（湿热、紫外、离子迁移）与铅的环境问题</strong>仍是产业化门槛——典型的"效率跑赢寿命"型技术，判断时看<strong>认证的稳定性数据</strong>而非峰值效率。</p>
+<p><strong>光伏</strong>：晶硅（PERC → TOPCon/HJT）在当前产业中占重要位置，竞争已进入持续降本阶段；<strong>钙钛矿</strong>实验室效率进展迅猛、可与硅做<strong>叠层</strong>（tandem，公开实验室记录已达到较高效率水平，但具体认证、面积和稳定性口径需核对），<strong>稳定性（湿热、紫外、离子迁移）与铅的环境问题</strong>仍是产业化门槛——典型的"效率跑赢寿命"型技术，判断时看<strong>认证的稳定性数据</strong>而非峰值效率。</p>
 <p><strong>氢</strong>：电解槽（碱性成熟廉价、PEM 动态响应好但依赖铱/铂、AEM 与 SOEC 在追）——<strong>贵金属替代</strong>是催化材料研究的主线；储氢（高压罐的碳纤维成本、固态储氢材料的容量与释放温度）与<strong>氢脆</strong>（🔗 工艺 IV：管道与储罐的材料适配是氢能基础设施的隐形关卡）。</p>
-<h2 id="4">4. 核能与聚变材料（长周期战场）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 核能与聚变材料（长周期战场）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>裂变：耐事故燃料（ATF：SiC 包壳、涂层锆合金）——福岛之后的主线；聚变：<strong>第一壁与偏滤器</strong>面对中子辐照肿胀/脆化、氚滞留、极高热流（钨是主流候选，低活化钢 RAFM 做结构）——<strong>材料是聚变工程最硬的约束之一</strong>，且辐照数据的获取本身受限于试验装置（这是"材料拖慢技术"的典型现场）。</p>
-<h2 id="5">5. 判断框架<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>看能源材料新闻的四问：① <strong>是实验室小样还是量产电芯/组件的数据</strong>（面积、容量、循环数差着数量级）；② <strong>循环/寿命数据是否与能量密度同时给出</strong>（只报能量密度基本无信息量）；③ <strong>供应链风险</strong>（钴、镍、锂、铱、稀土）；④ <strong>系统层面收益</strong>（电芯提升 10% 到整车续航可能只剩 5%——结构、热管理、回收都在分账）。</p>
-<p><strong>一句话总纲</strong>：能源材料的进步很少来自单点突破，多来自<strong>体系工程 + 渐进改良的复利</strong>——这也是为什么"十年一代"的规律在这里同样成立。</p>
+<h2 id="5_1">5. 判断框架<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>看能源材料新闻的四问：① <strong>是实验室小样还是量产电芯/组件的数据</strong>（面积、容量、循环数可能差着数量级）；② <strong>循环/寿命数据是否与能量密度同时给出</strong>（只报能量密度通常不足以判断路线）；③ <strong>供应链风险</strong>（钴、镍、锂、铱、稀土）；④ <strong>系统层面收益</strong>（电芯提升 10% 到整车续航可能只剩 5%——结构、热管理、回收都在分账）。</p>
+<p><strong>一句话总纲</strong>：能源材料的进步往往不只来自单点突破，也来自<strong>体系工程 + 渐进改良的复利</strong>；路线成熟度应按实际数据和系统边界判断，而不是套用固定的“十年一代”节奏。</p>
 <hr />
 <p><em>最后一页：正在改变这门学科方法论本身的力量——计算材料学与 AI。</em></p>
 </article>
@@ -78,5 +199,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-battery-ragone-ledger.js"></script>
 </body>
 </html>

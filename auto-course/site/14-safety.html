@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,13 +46,21 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#toy-model-proof-test">学习层：用低需求安全 toy model 把潜伏危险失效记进 proof-test 账本</a><ul>
+<li><a href="#1-proof-test">1. 具体工程谜题：一年一次 proof test，潜伏失效的平均暴露概率是多少？</a></li>
+<li><a href="#2">2. 正式模型：先定义危险未检测失效率，再写近似适用条件</a></li>
+<li><a href="#3-proof-test">3. 动手实验：调 proof-test、诊断覆盖和需求模式，保留每一项假设</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+<li><a href="#5">5. 正式回到安全工程：用指标定位下一份证据，而不是替代它</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、核心区分：安全 ≠ 可靠</a></li>
 <li><a href="#_2">二、风险与完整性等级</a></li>
 <li><a href="#_3">三、达成安全的技术手段</a></li>
@@ -53,6 +76,84 @@
 <p><strong>层次</strong>：业界核心、学校极少讲 ｜ <strong>本页只讲概念框架</strong>。真实项目的安全设计与认证必须依据现行标准、由有资质人员执行，本课不构成任何工程或认证指导。
 当控制系统失效会导致人员伤亡、环境破坏或重大财产损失时，"性能好"就不再是首要问题。<strong>功能安全</strong>是一套系统化的方法，用来回答：<strong>这个系统失效的可能性有多大？可以接受吗？如何证明？</strong> 它的方法论价值远超自动化领域。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="toy-model-proof-test">学习层：用低需求安全 toy model 把潜伏危险失效记进 proof-test 账本<a class="headerlink" href="#toy-model-proof-test" title="Permanent link"></a></h2>
+<h3 id="1-proof-test">1. 具体工程谜题：一年一次 proof test，潜伏失效的平均暴露概率是多少？<a class="headerlink" href="#1-proof-test" title="Permanent link"></a></h3>
+<p>一个低需求模式的保护功能有危险失效率 <span class="arithmatex">\(\lambda_D=2\times10^{-6}\ \mathrm h^{-1}\)</span>，诊断覆盖率 <span class="arithmatex">\(DC=90\%\)</span>，proof-test 间隔为一年。未被诊断发现的危险部分会在两次测试之间潜伏；工程师要估计它在随机需求到来时的平均不可用程度，并区分这个 toy 数字、SIL/PFD 指标和真正的系统认证。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>在固定 <span class="arithmatex">\(\lambda_{DU}\)</span>、完美周期 proof test 和均匀失效时刻的假设下，<span class="arithmatex">\(T\)</span> 加倍会怎样影响 PFDavg 近似？</li>
+<li>若总危险失效率固定，<span class="arithmatex">\(DC=90\%\)</span> 的直接作用是什么？</li>
+<li>一个 <span class="arithmatex">\(PFD_{avg}\)</span> 数字能否单独宣布某个系统已获得 SIL 认证或“风险分数”为零？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：先定义危险未检测失效率，再写近似适用条件<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(\lambda_D\)</span> 是总危险失效率，诊断覆盖率 <span class="arithmatex">\(DC\)</span> 只作为本 toy model 中的比例假设，则</p>
+<div class="arithmatex">\[
+\lambda_{DU}\approx(1-DC)\lambda_D.
+\]</div>
+<p>在低需求模式、恒定独立失效率、失效时刻在 proof-test 周期内均匀分布、proof test 能发现并修复潜伏危险失效、忽略修复时间、共因失效、测试覆盖缺陷和需求期间动态的条件下，</p>
+<div class="arithmatex">\[
+PFD_{avg}\approx\frac{\lambda_{DU}T}{2}.
+\]</div>
+<p><span class="arithmatex">\(PFD_{avg}\)</span> 是无量纲的平均按需失效概率近似；<span class="arithmatex">\(\lambda_{DU}\)</span> 的单位是 <span class="arithmatex">\(\mathrm h^{-1}\)</span>，<span class="arithmatex">\(T\)</span> 用小时。它不是一个自创的总风险分数，也不是只凭一条公式就能推出 SIL、PFH、架构约束或认证结论。</p>
+<h3 id="3-proof-test">3. 动手实验：调 proof-test、诊断覆盖和需求模式，保留每一项假设<a class="headerlink" href="#3-proof-test" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调 <span class="arithmatex">\(\lambda_D\)</span>、<span class="arithmatex">\(DC\)</span>、proof-test 间隔和一个<strong>外部给定的示例目标</strong>。图中画危险失效率分解与 <span class="arithmatex">\(PFD_{avg}\)</span> 随测试间隔的直线；ledger 列总危险率、<span class="arithmatex">\(\lambda_{DU}\)</span>（<span class="arithmatex">\(\mathrm h^{-1}\)</span>）、测试间隔（h）、<span class="arithmatex">\(PFD_{avg}\)</span> 以及当前是否超过该示例目标。结果明确显示“指标计算”和“安全论证/认证”是两栏。</p>
+<div class="learning-lab" data-learning-lab="auto-safety-proof-test">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(\lambda_D=2\times10^{-6}\ \mathrm h^{-1}\)</span>、<span class="arithmatex">\(DC=0.90\)</span>、<span class="arithmatex">\(T=8760\ \mathrm h\)</span>。则</p>
+<div class="arithmatex">\[
+\lambda_{DU}=2\times10^{-7}\ \mathrm h^{-1},\qquad
+PFD_{avg}\approx8.76\times10^{-4}.
+\]</div>
+<p>如果把测试间隔改为 <span class="arithmatex">\(4380\ \mathrm h\)</span>，在同一组假设下近似值减半；这只说明 toy 公式的比例关系。它没有纳入 1oo2/2oo3 架构、共因失效、修复时间、系统性软件失效、需求频率或标准所需的完整生命周期证据。</p>
+<table>
+<thead>
+<tr>
+<th>证据</th>
+<th style="text-align: right;">数值</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总危险失效率 <span class="arithmatex">\(\lambda_D\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\times10^{-6}\ \mathrm h^{-1}\)</span></td>
+<td>输入假设</td>
+</tr>
+<tr>
+<td>未诊断危险失效率 <span class="arithmatex">\(\lambda_{DU}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\times10^{-7}\ \mathrm h^{-1}\)</span></td>
+<td>比例模型</td>
+</tr>
+<tr>
+<td>proof-test 间隔 <span class="arithmatex">\(T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(8760\ \mathrm h\)</span></td>
+<td>运行参数</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(PFD_{avg}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(8.76\times10^{-4}\)</span></td>
+<td>toy 近似，无量纲</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>PFDavg 不是“风险分数”</strong>：风险还需要需求频率、后果、暴露、独立保护层和系统边界；不能把多个不同量纲压成一个自创分数。</li>
+<li><strong>PFDavg 也不是认证</strong>：SIL 评估还涉及架构、HFT、共因失效、系统性能力、验证、测试覆盖和现行标准；本实验不声称 SIL 等级或合规。</li>
+<li><strong>诊断覆盖率不是完美检测率</strong>：诊断本身可能漏检、误报或延迟；<span class="arithmatex">\(\lambda_{DU}=(1-DC)\lambda_D\)</span> 是明确标注的比例近似。</li>
+<li><strong><span class="arithmatex">\(\lambda T/2\)</span> 需要低需求和小概率条件</strong>：高需求/连续模式、非恒定失效率、修复时间、测试不完全或共因失效都需要更完整模型。</li>
+</ul>
+<h3 id="5">5. 正式回到安全工程：用指标定位下一份证据，而不是替代它<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>这张账本的正确返回值是：给定假设下的 <span class="arithmatex">\(\lambda_{DU}\)</span> 与 <span class="arithmatex">\(PFD_{avg}\)</span> 近似、敏感参数以及尚未覆盖的失效机制。真正的安全论证还必须把需求定义、安全状态、独立性、测试程序、故障反应和变更管理接起来；“数字很小”只能告诉我们下一步该审哪一项。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果 proof test 只能发现 80% 的潜伏故障、修复平均需要 12 h，且两条冗余通道共享电源，你会怎样修改 <span class="arithmatex">\(PFD_{avg}\)</span> 估计并把共因/修复证据放入报告？哪些结论不能再由 <span class="arithmatex">\(\lambda_{DU}T/2\)</span> 单独支持？</p>
+</div>
+</section>
 <h2 id="_1">一、核心区分：安全 ≠ 可靠<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p>这是本页最重要的概念区分：</p>
 <ul>
@@ -106,10 +207,10 @@
 <p><strong>这三个结构清晰地展示了安全与可用性的权衡</strong>——没有免费的午餐。</p>
 <p><strong>② 诊断覆盖率（DC）</strong>：系统能自动检测出多大比例的危险失效。<strong>未被检测到的危险失效最可怕</strong>——它潜伏着，直到需要保护时才暴露。因此有<strong>周期性检验测试</strong>来发现潜伏失效。</p>
 <p><strong>③ 避免共因失效</strong>：冗余通道若因<strong>同一原因</strong>同时失效，冗余就失去意义（共用电源、共用软件缺陷、同一批次元件、同一环境应力）。<strong>解法是多样性（diversity）</strong>：不同硬件、不同软件实现、不同供应商。<strong>共因失效是冗余系统最主要的残余风险</strong>，<span class="arithmatex">\(\beta\)</span> 因子模型用来量化它。</p>
-<p><strong>④ 独立的保护层</strong>：<strong>安全仪表系统（SIS）应独立于基本过程控制系统（BPCS）</strong>——不能让同一个控制器既做控制又做保护，否则它自己失效时两者一起失效。<strong>"保护层分析（LOPA)"</strong>就是评估各层独立保护的有效性。</p>
+<p><strong>④ 独立的保护层</strong>：SIS 与 BPCS 是否需要独立、独立到什么程度，应由危害分析、适用标准和架构要求决定；对需要独立保护的边界，不能共用同一失效路径而不论证。<strong>"保护层分析（LOPA)"</strong>就是评估各层独立保护的有效性。</p>
 <h2 id="_4">四、软件的特殊性<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p>硬件失效多是<strong>随机的</strong>（可用概率描述、可用冗余对抗）；<strong>软件失效是系统性的</strong>——同样的输入必然重现同样的错误。<strong>复制一份相同的软件做冗余，对系统性失效毫无帮助。</strong></p>
-<p>因此安全相关软件依靠<strong>过程与验证</strong>而非概率：</p>
+<p>硬件失效多是<strong>随机的</strong>（可用概率描述、可用冗余对抗）；<strong>软件失效是系统性的</strong>——同样的输入可能重现同样的错误。<strong>复制一份相同的软件不能消除同一个系统性缺陷</strong>，但这不等于硬件冗余对随机硬件失效完全无效；通道独立性、共因失效和系统性证据仍需按危害分析/标准验证。</p>
+<p>因此安全相关软件依靠<strong>过程与验证</strong>，而不是把系统性错误当作随机概率：</p>
 <ul>
 <li>严格的开发流程与文档、需求可追溯；</li>
 <li>编码规范（如汽车行业的 MISRA C），<strong>禁用动态内存分配、递归、无界循环</strong>等不确定构造；</li>
@@ -117,7 +218,7 @@
 <li><strong>形式化方法</strong>（在最高等级中被推荐）；</li>
 <li>工具链本身也需要资质认证。</li>
 </ul>
-<p><strong>这就是为什么安全关键软件的开发效率远低于普通软件</strong>——大量工作在于证明它是对的，而非让它工作。</p>
+<p>安全关键软件的额外成本主要来自过程、验证和可追溯证据，而不是只来自让代码运行起来。</p>
 <h2 id="_5">五、可靠性工程的基本量<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>
 <li><strong>失效率 <span class="arithmatex">\(\lambda\)</span></strong> 与 <strong>MTBF</strong> <span class="arithmatex">\(= 1/\lambda\)</span>（恒定失效率假设下）；</li>
@@ -155,5 +256,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-safety-proof-test.js"></script>
 </body>
 </html>

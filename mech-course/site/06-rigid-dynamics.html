@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、转动惯量：机械动力学的中心量</a></li>
-<li><a href="#_2">二、刚体动力学方程</a></li>
-<li><a href="#_3">三、平衡：不平衡的代价</a></li>
-<li><a href="#_4">四、功率、扭矩与转速</a></li>
-<li><a href="#_5">五、转动的能量与冲击</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#rigid-dynamics-learning-title">学习层：一只斜坡滚轮的 Newton–Euler 与能量双账</a><ul>
+<li><a href="#_1">具体工程情境：让输送小车的实心轮无滑滚下检修坡道</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：平动、转动、能量与摩擦不等式</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、转动惯量：机械动力学的中心量</a></li>
+<li><a href="#_7">二、刚体动力学方程</a></li>
+<li><a href="#_8">三、平衡：不平衡的代价</a></li>
+<li><a href="#_9">四、功率、扭矩与转速</a></li>
+<li><a href="#_10">五、转动的能量与冲击</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +77,109 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>与物理站的分工</strong>：🔗 物理站从<strong>拉格朗日/哈密顿</strong>的角度讲力学（变分原理、相空间、守恒律）；本课讲<strong>工程动力学</strong>——机器的惯量分配、平衡、动反力，以及它们如何决定机器能转多快。
 物理关心"运动的规律"，机械关心"这台机器转起来会不会抖、轴承受多大力、要多大电机"。</p>
 </blockquote>
-<h2 id="_1">一、转动惯量：机械动力学的中心量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="rigid-dynamics-learning-title" class="learning-layer">
+<h2 id="rigid-dynamics-learning-title">学习层：一只斜坡滚轮的 Newton–Euler 与能量双账<a class="headerlink" href="#rigid-dynamics-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：让输送小车的实心轮无滑滚下检修坡道<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把检修坡道上的一个实心轮简化为质量 <span class="arithmatex">\(m=18\,\mathrm{kg}\)</span>、半径 <span class="arithmatex">\(R=0.12\,\mathrm{m}\)</span> 的刚体，坡角 <span class="arithmatex">\(\theta=18^\circ\)</span>，从静止滚过 <span class="arithmatex">\(s=1.50\,\mathrm{m}\)</span>。实心圆柱的转动惯量写成 <span class="arithmatex">\(I=\beta mR^2\)</span>，这里 <span class="arithmatex">\(\beta=1/2\)</span>；地面和轮胎之间的静摩擦系数估计为 <span class="arithmatex">\(\mu_s=0.35\)</span>。设计问题不是只求一个加速度，而是要同时回答：平动和转动如何分配重力功、静摩擦是否足够、以及 Newton–Euler 与能量两本账是否闭合。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\(m,R,\theta\)</span> 不变时，把 <span class="arithmatex">\(\beta\)</span> 从实心圆柱提高到薄壁圆环，加速度会变大、变小，还是不变？</li>
+<li>轮子无滑向下滚时，接触处静摩擦方向是沿坡向上还是向下？它是否必然消耗机械能？</li>
+<li>无滑滚动的可行性应检查 <span class="arithmatex">\(\mu_s\ge\beta\tan\theta/(1+\beta)\)</span>，还是只检查 <span class="arithmatex">\(\mu_s\ge\tan\theta\)</span>？</li>
+</ol>
+<h3 id="_3">正式公式桥：平动、转动、能量与摩擦不等式<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>取沿坡向下为正。滚动约束为 <span class="arithmatex">\(v=R\omega\)</span>、<span class="arithmatex">\(a=R\alpha\)</span>，惯量写成 <span class="arithmatex">\(I=\beta mR^2\)</span>。沿坡方向的平动和绕质心的转动方程为</p>
+<div class="arithmatex">\[
+m a=mg\sin\theta-f,\qquad
+I\alpha=fR.
+\]</div>
+<p>消去 <span class="arithmatex">\(f\)</span> 得</p>
+<div class="arithmatex">\[
+a=\frac{g\sin\theta}{1+\beta},\qquad
+f=\frac{\beta}{1+\beta}mg\sin\theta,\qquad
+N=mg\cos\theta.
+\]</div>
+<p>静摩擦是可行性不等式，不是先验等式，因此还要检查</p>
+<div class="arithmatex">\[
+\mu_sN\ge f
+\quad\Longleftrightarrow\quad
+\mu_s\ge\mu_{\rm req}=\frac{\beta\tan\theta}{1+\beta}.
+\]</div>
+<p>从静止滚过距离 <span class="arithmatex">\(s\)</span> 时，<span class="arithmatex">\(v^2=2as\)</span>、<span class="arithmatex">\(\omega=v/R\)</span>。重力势能账和动能账为</p>
+<div class="arithmatex">\[
+mg s\sin\theta=\frac12mv^2+\frac12I\omega^2.
+\]</div>
+<p>实验台逐项显示 <span class="arithmatex">\(R_t=ma-(mg\sin\theta-f)\)</span>、<span class="arithmatex">\(R_r=I\alpha-fR\)</span>、滚动约束残差 <span class="arithmatex">\(R_c=v-R\omega\)</span>，再显示势能减去平动与转动动能的 <span class="arithmatex">\(R_E\)</span>。四个残差同时接近零，才算两本账真正互相核对；若 <span class="arithmatex">\(\mu_s&lt;\mu_{\rm req}\)</span>，这些是“无滑候选解”，实际应转入滑动接触模型。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>静摩擦的实际值由 Newton–Euler 平衡决定，只有 <span class="arithmatex">\(f\le\mu_sN\)</span>；把静摩擦直接写成 <span class="arithmatex">\(\mu_sN\)</span> 会把一个不等式误当成定值。</li>
+<li>理想无滑滚动时接触点瞬时速度为零，静摩擦不做净功；摩擦仍然改变力矩分配，使一部分重力功进入转动动能。</li>
+<li>这里假定刚体、圆形轮、刚性固定坡面、纯滚动、无滚动阻力和无空气阻力；轮胎变形、轴承摩擦、坡面不平和冲击都会改变能量账。</li>
+<li><span class="arithmatex">\(\mu_s\)</span> 不足时不能继续相信无滑加速度；滑动后应使用动摩擦、接触热和可能的自旋/滑移运动方程。</li>
+<li><span class="arithmatex">\(I=\beta mR^2\)</span> 只描述绕质心轴的转动惯量；轮轴偏心、轮毂柔性和悬架运动会增加自由度，不能靠改一个 <span class="arithmatex">\(\beta\)</span> 全部吸收。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-rigid-body-dynamics">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(m=18\,\mathrm{kg}\)</span>、<span class="arithmatex">\(R=0.12\,\mathrm{m}\)</span>、<span class="arithmatex">\(\beta=0.5\)</span>、<span class="arithmatex">\(\theta=18^\circ\)</span>、<span class="arithmatex">\(s=1.50\,\mathrm{m}\)</span>、<span class="arithmatex">\(\mu_s=0.35\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>转动惯量 <span class="arithmatex">\(I\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\beta mR^2=0.1296\)</span></td>
+<td>kg·m<span class="arithmatex">\(^2\)</span></td>
+</tr>
+<tr>
+<td>加速度 <span class="arithmatex">\(a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(g\sin\theta/(1+\beta)=2.021\)</span></td>
+<td>m/s<span class="arithmatex">\(^2\)</span>，沿坡向下</td>
+</tr>
+<tr>
+<td>静摩擦 <span class="arithmatex">\(f\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\beta mg\sin\theta/(1+\beta)=18.19\)</span></td>
+<td>N，沿坡向上</td>
+</tr>
+<tr>
+<td>法向力 <span class="arithmatex">\(N\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(mg\cos\theta=167.94\)</span></td>
+<td>N</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mu_{\rm req}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\beta\tan\theta/(1+\beta)=0.1083\)</span></td>
+<td>无量纲；<span class="arithmatex">\(0.35\)</span> 可行</td>
+</tr>
+<tr>
+<td>末速度 <span class="arithmatex">\((v,\omega)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((2.462,20.52)\)</span></td>
+<td>m/s，rad/s</td>
+</tr>
+<tr>
+<td>势能 / 平动 / 转动</td>
+<td style="text-align: right;"><span class="arithmatex">\((81.85,54.57,27.28)\)</span></td>
+<td>J；能量账闭合</td>
+</tr>
+<tr>
+<td>Newton–Euler / 能量残差</td>
+<td style="text-align: right;"><span class="arithmatex">\(R_t,R_r,R_c,R_E\approx0\)</span></td>
+<td>N、N·m、m/s、J</td>
+</tr>
+</tbody>
+</table>
+<p>把 <span class="arithmatex">\(\mu_s\)</span> 降到低于 <span class="arithmatex">\(0.1084\)</span> 时，实验台会保留无滑候选数值但标红“静摩擦不可行”，提醒读者切换模型。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果同一轮子改为带驱动扭矩的电动车轮，驱动扭矩增加时首先会改变哪一条方程、哪一个摩擦不等式？请说明如何把电机功、重力势能和转动/平动动能放进同一能量账，并指出何时会从静摩擦约束转为滑移。</p>
+</section>
+<h2 id="_6">一、转动惯量：机械动力学的中心量<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <div class="arithmatex">\[I = \int r^2\,dm\]</div>
 <p><strong>平行轴定理</strong>：<span class="arithmatex">\(I = I_c + md^2\)</span>（<span class="arithmatex">\(d\)</span> 是到质心轴的距离）。</p>
 <p><strong>常用值</strong>（要有直觉）：</p>
@@ -89,45 +215,45 @@
 <li><strong>想要储能与平稳</strong>（飞轮、发动机曲轴飞轮、储能飞轮）→ <strong>把质量放外缘</strong>，最大化 <span class="arithmatex">\(I\)</span>；</li>
 <li><strong>想要快速响应</strong>（伺服电机转子、机器人关节、机床主轴）→ <strong>把质量集中在中心</strong>，最小化 <span class="arithmatex">\(I\)</span>。</li>
 </ul>
-<p><strong>伺服系统的关键指标是惯量比</strong>（负载惯量 / 电机惯量）。<strong>惯量比过大，系统响应迟钝、易振荡、难以整定</strong>——🔗 这直接连到自动化站第十二页的伺服调试。<strong>一个机械设计的选择（把质量放哪里），会变成控制工程师的噩梦或福音。</strong></p>
-<h2 id="_2">二、刚体动力学方程<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><strong>伺服系统常用惯量比</strong>（负载惯量 / 电机惯量）作为匹配指标。惯量比过大可能使响应变慢、带宽受限或整定更敏感，但实际结果还取决于减速比、传动刚度、摩擦、反馈带宽和控制器；<strong>把质量放在哪里是机械与控制共同的设计变量</strong>。</p>
+<h2 id="_7">二、刚体动力学方程<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>平面运动</strong>：</p>
 <div class="arithmatex">\[\sum \vec{F} = m\vec{a}_c, \qquad \sum M_c = I_c \alpha\]</div>
 <p><strong>三维一般运动</strong>（欧拉方程，绕主轴）：</p>
 <div class="arithmatex">\[M_1 = I_1\dot\omega_1 + (I_3-I_2)\omega_2\omega_3, \quad \text{（及其轮换）}\]</div>
 <p><strong>耦合项 <span class="arithmatex">\((I_3-I_2)\omega_2\omega_3\)</span> 是三维转动一切怪异现象的来源</strong>：陀螺进动、网球拍定理（绕中间主轴旋转不稳定）、以及高速转子的陀螺效应（第九页会用到）。</p>
 <p><strong>达朗贝尔原理</strong>（工程上极实用）：引入惯性力 <span class="arithmatex">\(-m\vec a\)</span> 后，动力学问题变成<strong>形式上的静力学问题</strong>——可以直接画受力图、写平衡方程。<strong>这是分析加速运动构件（连杆、活塞、离心机）时的标准手法。</strong></p>
-<h2 id="_3">三、平衡：不平衡的代价<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>旋转机械的不平衡是最常见的振动源。</strong> 一个偏心质量 <span class="arithmatex">\(m\)</span> 在半径 <span class="arithmatex">\(e\)</span> 处以 <span class="arithmatex">\(\omega\)</span> 旋转，产生离心力：</p>
+<h2 id="_8">三、平衡：不平衡的代价<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p><strong>旋转机械的不平衡是常见的振动源之一。</strong> 在单一偏心质量近似下，一个质量 <span class="arithmatex">\(m\)</span> 在半径 <span class="arithmatex">\(e\)</span> 处以 <span class="arithmatex">\(\omega\)</span> 旋转，产生离心力：</p>
 <div class="arithmatex">\[F = m e \omega^2\]</div>
-<p><strong>关键在 <span class="arithmatex">\(\omega^2\)</span></strong>：<strong>转速加倍，不平衡力增大四倍</strong>。这就是为什么低速时毫无问题的转子，升速后会剧烈振动——<strong>高速旋转机械对平衡的要求呈平方级严苛化</strong>。</p>
+<p><strong>在该近似下关键在 <span class="arithmatex">\(\omega^2\)</span></strong>：转速加倍时不平衡力增大四倍。这解释了为什么低速时尚可接受的转子，升速后可能出现剧烈振动；高速旋转机械的残余不平衡限值还要结合支承、转子模态、载荷谱和验收等级确定。</p>
 <p><strong>两类平衡</strong>：</p>
 <ul>
-<li><strong>静平衡</strong>：质心在旋转轴上（消除合力）。<strong>对薄盘状零件（砂轮、风扇、皮带轮）足够</strong>；</li>
-<li><strong>动平衡</strong>：还要消除<strong>惯性力偶</strong>（消除合力矩）。<strong>对长转子（曲轴、电机转子、涡轮轴）必须做</strong>——因为两个大小相等方向相反、但不在同一平面的偏心，静态下能平衡，转动时却形成摇摆力偶。</li>
+<li><strong>静平衡</strong>：质心在旋转轴上，可消除一阶合力；对足够薄、轴向分布可忽略且工况单一的盘状件可能已经足够，但仍要看支承和精度要求；</li>
+<li><strong>动平衡</strong>：还要控制惯性力偶和轴向分布。对长转子（曲轴、电机转子、涡轮轴）通常需要多平面校正，但具体平衡等级、转速范围和支承柔度决定所需校正量。</li>
 </ul>
-<p><strong>工程实践</strong>：动平衡在<strong>两个校正平面</strong>上加/减配重完成，用动平衡机测量。<strong>平衡等级（如 ISO 的 G 级）按"许用偏心 × 转速"分级</strong>——转速越高，允许的残余不平衡越小。</p>
-<p><strong>往复机械的平衡更难</strong>：活塞的往复惯性力含<strong>一阶（<span class="arithmatex">\(\omega\)</span>）与二阶（<span class="arithmatex">\(2\omega\)</span>）</strong>分量。二阶力无法用简单配重完全平衡，需要<strong>平衡轴</strong>（以 <span class="arithmatex">\(2\omega\)</span> 反向旋转）。<strong>这就是四缸发动机常配平衡轴、而直列六缸天生平衡性好的原因</strong>——后者的一、二阶惯性力与力偶因气缸排列而自然抵消。<strong>发动机的"平顺性"很大程度上是刚体动力学的直接结果。</strong></p>
-<h2 id="_4">四、功率、扭矩与转速<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>工程实践</strong>：长转子动平衡常在<strong>两个或更多校正平面</strong>上加/减配重，并用动平衡机测量；薄盘或单一工况也可能采用单平面方案。<strong>平衡等级（如 ISO 的 G 级）按"许用偏心 × 转速"分级</strong>——转速越高，允许的残余不平衡通常越小。</p>
+<p><strong>往复机械的平衡更难</strong>：活塞的往复惯性力含<strong>一阶（<span class="arithmatex">\(\omega\)</span>）与二阶（<span class="arithmatex">\(2\omega\)</span>）</strong>分量。二阶力不能由单一的静态配重普遍消除；某些四缸布局会采用以 <span class="arithmatex">\(2\omega\)</span> 运行的平衡轴，而直列六缸在理想几何和点火相位下能较好抵消部分一、二阶力/力矩，但附件、曲轴柔性和制造误差仍会留下振动。发动机平顺性因此是布局、配重、结构和控制共同的结果。</p>
+<h2 id="_9">四、功率、扭矩与转速<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <div class="arithmatex">\[P = T\omega\]</div>
 <p><strong>这个简单公式支配了整个传动系统的设计逻辑</strong>：</p>
 <ul>
 <li>同样的功率，<strong>转速越低，扭矩越大</strong>；</li>
-<li><strong>扭矩决定尺寸</strong>（轴径、齿轮模数、键的尺寸都由扭矩定），<strong>功率不直接决定尺寸</strong>；</li>
-<li><strong>所以减速器的输出级总是最大最重的</strong>——它承受最大扭矩。</li>
+<li><strong>扭矩常是轴径、齿轮模数和键连接的主要载荷来源之一</strong>，但疲劳、弯曲、刚度、热、转速、冲击和制造约束也会共同决定尺寸；功率通过 <span class="arithmatex">\(P=T\omega\)</span> 与转速一起进入设计；</li>
+<li>减速器低速级通常扭矩较大，但不代表输出级在所有结构、材料和布置下都“总是”最大最重。</li>
 </ul>
-<p><strong>推论</strong>：<strong>电机应尽量高速小扭矩，再用减速器换取扭矩</strong>。这样电机可以做得小而轻。<strong>这正是机器人关节、电动车驱动系统普遍采用高速电机 + 减速器的原因</strong>（直驱方案需要巨大的电机）。</p>
+<p>在电机效率、体积和成本占优且能接受回差与柔性的场合，常见方案是<strong>较高速电机 + 减速器</strong>来换取输出扭矩；但直驱、低速大扭矩电机或无齿轮传动在密封、回差、噪声、效率和可靠性要求下也可能更合适。</p>
 <p><strong>代价</strong>：减速器带来<strong>回差（间隙）、摩擦、效率损失、以及额外的惯量与柔性</strong>——🔗 又一次成为自动化站的控制难题（第十九页的机器人关节柔性）。</p>
-<h2 id="_5">五、转动的能量与冲击<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、转动的能量与冲击<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>动能</strong>：<span class="arithmatex">\(T = \frac{1}{2}mv_c^2 + \frac{1}{2}I_c\omega^2\)</span>（平动 + 转动）。</p>
-<p><strong>飞轮储能</strong>：<span class="arithmatex">\(E = \frac{1}{2}I\omega^2\)</span>。<strong>注意 <span class="arithmatex">\(\omega^2\)</span></strong>——<strong>提高转速比增加惯量有效得多</strong>。现代储能飞轮因此采用高强度复合材料转子在真空中高速旋转，其极限由<strong>材料的比强度（<span class="arithmatex">\(\sigma/\rho\)</span>）</strong>决定，而非尺寸。</p>
+<p><strong>飞轮储能</strong>：<span class="arithmatex">\(E = \frac{1}{2}I\omega^2\)</span>。<strong>注意 <span class="arithmatex">\(\omega^2\)</span></strong>——在给定质量和安全约束下，提高转速可能比增加惯量更有效。储能飞轮常采用高强度复合材料转子并在真空中高速旋转；其转速和尺寸上限还取决于材料比强度（<span class="arithmatex">\(\sigma/\rho\)</span>）、缺陷、包容结构、转子动力学和制造质量。</p>
 <p><strong>转动惯量对冲击的影响</strong>：大惯量意味着<strong>转速变化慢</strong>——发动机飞轮正是靠这个把断续的做功冲程"抹平"成近似连续的输出。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
-<li><strong>转动惯量的分布决定机器性格</strong>：外缘质量利于储能与平稳，中心质量利于快速响应；<strong>惯量比直接决定伺服系统好不好调</strong>；</li>
-<li><strong>不平衡力 <span class="arithmatex">\(\propto \omega^2\)</span></strong>，高速机械对平衡的要求呈平方级严苛；<strong>长转子必须做动平衡</strong>；</li>
-<li><strong>往复机械的二阶惯性力需要平衡轴</strong>——发动机平顺性是刚体动力学的直接结果；</li>
-<li><strong>扭矩决定尺寸</strong>，所以"高速电机 + 减速器"是主流方案，代价是回差与柔性；</li>
+<li><strong>转动惯量的分布影响机器性格</strong>：外缘质量利于储能与平稳，中心质量利于快速响应；惯量比是伺服匹配的重要指标之一，但不是唯一决定因素；</li>
+<li><strong>不平衡力 <span class="arithmatex">\(\propto \omega^2\)</span></strong>，高速机械对平衡的要求通常会快速收紧；长转子通常需要按工况做动平衡；</li>
+<li><strong>往复机械的二阶惯性力在某些布局下可用平衡轴降低</strong>——是否采用取决于气缸排列、成本、振动目标和结构方案；</li>
+<li><strong>扭矩、弯曲、疲劳、刚度和热共同影响尺寸</strong>；"高速电机 + 减速器"是常见方案之一，代价是回差与柔性；</li>
 <li><strong>飞轮储能 <span class="arithmatex">\(\propto \omega^2\)</span></strong>，极限由材料比强度决定。</li>
 </ul>
 <hr />
@@ -141,5 +267,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-rigid-body-dynamics.js"></script>
 </body>
 </html>

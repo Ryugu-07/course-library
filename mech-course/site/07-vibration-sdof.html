@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、自由振动</a></li>
-<li><a href="#_2">二、受迫振动与共振</a></li>
-<li><a href="#_3">三、隔振：把振动挡在外面</a></li>
-<li><a href="#_4">四、动力吸振器</a></li>
-<li><a href="#_5">五、几种常见的激励源</a></li>
-<li><a href="#_6">六、自激振动：一类不同的危险</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#sdof-learning-title">学习层：同一个频率比，既能解释共振也能解释隔振</a><ul>
+<li><a href="#_1">具体工程情境：压缩机底座的启停与稳态</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：先定义无量纲频率比</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+</ul>
+</li>
+<li><a href="#_5">一、自由振动</a></li>
+<li><a href="#_6">二、受迫振动与共振</a></li>
+<li><a href="#_7">三、隔振：把振动挡在外面</a></li>
+<li><a href="#_8">四、动力吸振器</a></li>
+<li><a href="#_9">五、几种常见的激励源</a></li>
+<li><a href="#_10">六、自激振动：一类不同的危险</a></li>
+<li><a href="#_11">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +77,94 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>机械现场问题的第一来源</strong>。
 一个质量、一个弹簧、一个阻尼器——最简单的振动模型，却包含了共振、隔振、减振的全部核心思想。<strong>机械工程师遇到的"抖动、噪声、断裂"问题，多数可以先用这个模型定性判断。</strong> 本页也与 🔗 自动化站第三页（二阶系统响应）是同一套数学的两种工程语言。</p>
 </blockquote>
-<h2 id="_1">一、自由振动<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="sdof-learning-title" class="learning-layer">
+<h2 id="sdof-learning-title">学习层：同一个频率比，既能解释共振也能解释隔振<a class="headerlink" href="#sdof-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：压缩机底座的启停与稳态<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把一台 <span class="arithmatex">\(m=50\,\mathrm{kg}\)</span> 的压缩机安装在 <span class="arithmatex">\(k=200000\,\mathrm{N/m}\)</span> 的弹簧隔振器上，激振力幅值 <span class="arithmatex">\(F_0=1000\,\mathrm{N}\)</span>，运行角频率 <span class="arithmatex">\(\omega=100\,\mathrm{rad/s}\)</span>，黏性阻尼比 <span class="arithmatex">\(\zeta=0.08\)</span>。启停时会扫过共振，稳态运行时又希望把力传给地基的比例降下来。这正是“共振抑制”和“高频隔振”不能只用一个指标判断的现场问题。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先在不看曲线的情况下提交三项：</p>
+<ol>
+<li>默认工况的 <span class="arithmatex">\(r=\omega/\omega_n\)</span> 在 <span class="arithmatex">\(\sqrt{2}\)</span> 的左边、边界上，还是右边？</li>
+<li>在 <span class="arithmatex">\(r=1\)</span> 共振处提高 <span class="arithmatex">\(\zeta\)</span>，放大因子 <span class="arithmatex">\(D\)</span> 会下降、上升，还是不变？</li>
+<li>在 <span class="arithmatex">\(r=3\)</span> 的隔振区提高 <span class="arithmatex">\(\zeta\)</span>，传递率 <span class="arithmatex">\(TR\)</span> 会怎样变化？这一次要注意阻尼的稳态权衡。</li>
+</ol>
+<h3 id="_3">正式公式桥：先定义无量纲频率比<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>线性受迫 SDOF 的方程是</p>
+<div class="arithmatex">\[
+m\ddot x+c\dot x+kx=F_0\sin(\omega t),\qquad
+\omega_n=\sqrt{\frac{k}{m}},\qquad
+\zeta=\frac{c}{2\sqrt{mk}},\qquad
+r=\frac{\omega}{\omega_n}.
+\]</div>
+<p>相对于静位移 <span class="arithmatex">\(F_0/k\)</span> 的放大因子与传到基础的力传递率分别是</p>
+<div class="arithmatex">\[
+D(r,\zeta)=\frac{1}{\sqrt{(1-r^2)^2+(2\zeta r)^2}},
+\]</div>
+<div class="arithmatex">\[
+TR(r,\zeta)=\frac{\sqrt{1+(2\zeta r)^2}}{\sqrt{(1-r^2)^2+(2\zeta r)^2}}.
+\]</div>
+<p>注意 <span class="arithmatex">\(X=(F_0/k)D\)</span> 与 <span class="arithmatex">\(TR\)</span> 不是同一件事：前者回答“机器动多大”，后者回答“基础收到多少力”。令 <span class="arithmatex">\(TR=1\)</span> 并平方，阻尼项在等式两侧抵消，得到 <span class="arithmatex">\((1-r^2)^2=1\)</span>；除去 <span class="arithmatex">\(r=0\)</span> 的静态退化点后，隔振边界严格为</p>
+<div class="arithmatex">\[
+r=\sqrt{2}.
+\]</div>
+<p>因此 <span class="arithmatex">\(r&gt;\sqrt{2}\)</span> 才有 <span class="arithmatex">\(TR&lt;1\)</span>。提高阻尼会压低 <span class="arithmatex">\(r\approx1\)</span> 的共振峰，却可能抬高 <span class="arithmatex">\(r&gt;\sqrt{2}\)</span> 后的稳态传递率；工程上常用中等阻尼来兼顾扫频过程与工作频段。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(\omega_n=\sqrt{k/m}\)</span> 不含 <span class="arithmatex">\(\zeta\)</span>：改阻尼不能直接移动固有频率，只能改变峰值和相位。</li>
+<li><span class="arithmatex">\(r&gt;1\)</span> 不等于已经隔振；<span class="arithmatex">\(1&lt;r&lt;\sqrt{2}\)</span> 仍可能 <span class="arithmatex">\(TR&gt;1\)</span>，必须检查 <span class="arithmatex">\(\sqrt{2}\)</span> 判据。</li>
+<li><span class="arithmatex">\(D\)</span> 是位移相对静位移的放大，<span class="arithmatex">\(TR\)</span> 是基础力相对激振力的比值；把一张曲线的纵轴当成另一张会得到错误设计。</li>
+<li>这里是线性、单自由度、定常简谐外力与黏性阻尼模型。摩擦、间隙、非线性刚度、基座运动、扫频瞬态和多自由度模态都可能使单一 <span class="arithmatex">\(r\)</span> 读法失效。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-sdof-vibration">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(m=50\,\mathrm{kg}\)</span>、<span class="arithmatex">\(k=200000\,\mathrm{N/m}\)</span>、<span class="arithmatex">\(\omega=100\,\mathrm{rad/s}\)</span>、<span class="arithmatex">\(\zeta=0.08\)</span>、<span class="arithmatex">\(F_0=1000\,\mathrm{N}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位或结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固有角频率 <span class="arithmatex">\(\omega_n\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{k/m}=63.246\)</span></td>
+<td>rad/s</td>
+</tr>
+<tr>
+<td>固有频率 <span class="arithmatex">\(f_n\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\omega_n/(2\pi)=10.066\)</span></td>
+<td>Hz</td>
+</tr>
+<tr>
+<td>频率比 <span class="arithmatex">\(r\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\omega/\omega_n=1.581\)</span></td>
+<td><span class="arithmatex">\(&gt;\sqrt{2}\)</span>，进入隔振区</td>
+</tr>
+<tr>
+<td>放大因子 <span class="arithmatex">\(D\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.6574\)</span></td>
+<td><span class="arithmatex">\(X/(F_0/k)\)</span></td>
+</tr>
+<tr>
+<td>传递率 <span class="arithmatex">\(TR\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.6781\)</span></td>
+<td><span class="arithmatex">\(TR&lt;1\)</span>，稳态隔振</td>
+</tr>
+<tr>
+<td>位移幅值 <span class="arithmatex">\(X\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\((F_0/k)D=3.287\)</span></td>
+<td>mm</td>
+</tr>
+</tbody>
+</table>
+<p>边界核对：无论取何种正阻尼，<span class="arithmatex">\(r=\sqrt{2}\)</span> 时 <span class="arithmatex">\(TR=1\)</span>；例如在 <span class="arithmatex">\(r=3\)</span> 时增大 <span class="arithmatex">\(\zeta\)</span>，分子中的阻尼项会使稳态 <span class="arithmatex">\(TR\)</span> 上升。</p>
+</div>
+</section>
+<h2 id="_5">一、自由振动<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <div class="arithmatex">\[m\ddot{x} + c\dot{x} + kx = 0\]</div>
 <p>定义<strong>固有频率</strong>与<strong>阻尼比</strong>：</p>
 <div class="arithmatex">\[\omega_n = \sqrt{\frac{k}{m}}, \qquad \zeta = \frac{c}{2\sqrt{mk}}\]</div>
@@ -63,7 +173,7 @@
 <p><strong>实用的阻尼测量法——对数衰减率</strong>：</p>
 <div class="arithmatex">\[\delta = \ln\frac{x_i}{x_{i+1}} \approx 2\pi\zeta\]</div>
 <p><strong>敲一下、测衰减，就能估出阻尼比</strong>。这是现场最快的诊断手段之一。</p>
-<h2 id="_2">二、受迫振动与共振<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_6">二、受迫振动与共振<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>简谐激励 <span class="arithmatex">\(F_0\sin\omega t\)</span> 下的稳态响应幅值：</p>
 <div class="arithmatex">\[X = \frac{F_0/k}{\sqrt{(1-r^2)^2 + (2\zeta r)^2}}, \qquad r = \frac{\omega}{\omega_n}\]</div>
 <figure>
@@ -99,7 +209,7 @@
 </tbody>
 </table>
 <p><strong>"共振时只有阻尼管用"</strong> 是一条必须记住的判据。很多现场"加固反而更抖"的案例，正是因为加刚度把固有频率推到了激励频率上。</p>
-<h2 id="_3">三、隔振：把振动挡在外面<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_7">三、隔振：把振动挡在外面<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>传递率</strong>（传到基础的力 / 激振力）：</p>
 <div class="arithmatex">\[TR = \frac{\sqrt{1+(2\zeta r)^2}}{\sqrt{(1-r^2)^2+(2\zeta r)^2}}\]</div>
 <p><strong>核心结论</strong>：<strong>只有 <span class="arithmatex">\(r &gt; \sqrt{2}\)</span> 时 <span class="arithmatex">\(TR&lt;1\)</span>，才真正起到隔振作用。</strong></p>
@@ -113,7 +223,7 @@
 <li><strong>但过共振时需要阻尼</strong>（启停机过程要扫过共振点）。
 <strong>工程折中是取中等阻尼（<span class="arithmatex">\(\zeta \approx 0.05\)</span>–<span class="arithmatex">\(0.15\)</span>）</strong>，或使用变阻尼装置。</li>
 </ul>
-<h2 id="_4">四、动力吸振器<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_8">四、动力吸振器<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>一个精妙的装置：给主系统附加一个小的质量-弹簧系统，<strong>调谐到激励频率</strong>，可使主系统在该频率上的振动<strong>降为零</strong>。</p>
 <p><strong>原理</strong>：吸振器以恰好反相的方式运动，其弹簧力抵消激励力。<strong>代价</strong>：</p>
 <ul>
@@ -121,7 +231,7 @@
 <li><strong>原来的一个共振峰变成两个</strong>（分列于原频率两侧）——<strong>若激励频率漂移，可能落到新峰上而更糟</strong>。</li>
 </ul>
 <p><strong>应用</strong>：高层建筑的调谐质量阻尼器（TMD）、机床防颤振、发动机曲轴的扭振减振器、输电线的防舞动锤。<strong>它是"用一个精心设计的次系统吸走能量"的典范。</strong></p>
-<h2 id="_5">五、几种常见的激励源<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_9">五、几种常见的激励源<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>工程中的振动来源，按频率特征识别（<strong>这是现场诊断的核心技能</strong>）：</p>
 <table>
 <thead>
@@ -158,7 +268,7 @@
 </tbody>
 </table>
 <p><strong>振动频谱分析因此成为设备状态监测的主要手段</strong>——<strong>看频谱就能定位故障源</strong>，这是预测性维护的技术基础（🔗 自动化站第二十二页）。</p>
-<h2 id="_6">六、自激振动：一类不同的危险<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_10">六、自激振动：一类不同的危险<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>上面都是<strong>外部激励</strong>引起的受迫振动。还有一类<strong>自激振动</strong>：<strong>系统自己从恒定的能量源中汲取能量，维持振动</strong>。</p>
 <ul>
 <li><strong>切削颤振</strong>（第十八页）：切削力与振动耦合，形成正反馈；</li>
@@ -166,7 +276,7 @@
 <li><strong>流体诱发振动</strong>（涡激振动、颤振）。</li>
 </ul>
 <p><strong>自激振动的特点</strong>：<strong>频率接近系统固有频率，但激励来自系统自身</strong>；<strong>加大切削量或速度到某个阈值就突然发生</strong>（本质是稳定性问题，🔗 自动化站第四页的失稳）。<strong>对策与受迫振动不同</strong>——不是躲开激励频率，而是<strong>改变系统的稳定性边界</strong>（改变刚度、加阻尼、改变切削参数、使用变螺旋角刀具）。</p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_11">七、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong><span class="arithmatex">\(\omega_n=\sqrt{k/m}\)</span> 只由刚度与质量决定</strong>；机械结构阻尼极小（<span class="arithmatex">\(\zeta\sim0.01\)</span>），共振放大可达数十倍；</li>
 <li><strong>三个频段三种对策</strong>——<strong>共振区只有阻尼有效</strong>；</li>
@@ -186,5 +296,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-sdof-vibration.js"></script>
 </body>
 </html>

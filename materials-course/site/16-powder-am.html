@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,16 +47,25 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 烧结：用扩散把粉变成体</a></li>
-<li><a href="#2">2. 增材制造：逐层堆积的材料学</a></li>
-<li><a href="#3">3. 数字感与反直觉</a></li>
+<li><a href="#materials-lpbf-learning-title">学习层：给 L-PBF 熔池做一个有单位的粗筛，但不把它冒充工艺窗口</a><ul>
+<li><a href="#1">1. 具体材料工程情境：同一台设备为何会有未熔合和匙孔两种缺陷</a></li>
+<li><a href="#2">2. 必须作答的预测门：缩放、身份与高能量边界</a></li>
+<li><a href="#3">3. 最小模型与假设：名义体积能量密度 + 明确的代理项</a></li>
+<li><a href="#4-pvht">4. 动手实验：调 P、v、h、t 和堆积率</a></li>
+<li><a href="#5">5. 误区与模型边界：能量密度不是工艺身份证</a></li>
+<li><a href="#6">6. 正式回扣：从工艺参数回到可审计的量纲</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 烧结：用扩散把粉变成体</a></li>
+<li><a href="#2_1">2. 增材制造：逐层堆积的材料学</a></li>
+<li><a href="#3_1">3. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
@@ -49,12 +73,97 @@
 <blockquote>
 <p>有一整类材料无法靠"熔化-浇铸"制造：陶瓷熔点太高、硬质合金必须保持硬相不熔、难熔金属加工困难——它们走<strong>粉末路线</strong>：把粉压成形，再靠<strong>扩散</strong>把颗粒长在一起（烧结）。增材制造（3D 打印）是这条路线在当代的爆发。</p>
 </blockquote>
-<h2 id="1">1. 烧结：用扩散把粉变成体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-lpbf-learning-title" class="learning-layer">
+<h2 id="materials-lpbf-learning-title">学习层：给 L-PBF 熔池做一个有单位的粗筛，但不把它冒充工艺窗口<a class="headerlink" href="#materials-lpbf-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：同一台设备为何会有未熔合和匙孔两种缺陷<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一台 L-PBF 设备用 <span class="arithmatex">\(P=200 \mathrm W\)</span> 激光，以 <span class="arithmatex">\(v=800 \mathrm{mm/s}\)</span> 扫描，名义道间距 <span class="arithmatex">\(h=0.10 \mathrm{mm}\)</span>、层厚 <span class="arithmatex">\(t=0.03 \mathrm{mm}\)</span>。工程师想先用一个透明量估计激光能量被分到多大的扫描体积，再把粉末堆积率和缺陷风险作为额外证据。这个粗筛有用，但它没有知道粉末反射率、吸收率、预热温度、熔池对流或具体扫描策略，因此不能单独预测致密度或工艺窗口。</p>
+<h3 id="2">2. 必须作答的预测门：缩放、身份与高能量边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前回答三题：在 <span class="arithmatex">\(P,h,t\)</span> 固定时把扫描速度 <span class="arithmatex">\(v\)</span> 加倍，<span class="arithmatex">\(E_v\)</span> 会加倍、减半还是不变？对不同粉末和热历史，<span class="arithmatex">\(E_v\)</span> 应被理解为通用致密度定律、与参数无关，还是有单位的粗筛指标？若 <span class="arithmatex">\(E_v\)</span> 远高于本实验的上参考值，哪一类代理风险会升高？三题完成后才显示参数扫频与缺陷账本。</p>
+<h3 id="3">3. 最小模型与假设：名义体积能量密度 + 明确的代理项<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>以 <span class="arithmatex">\(P\)</span> 用 W（即 <span class="arithmatex">\(\mathrm{J/s}\)</span>）、<span class="arithmatex">\(v\)</span> 用 <span class="arithmatex">\(\mathrm{mm/s}\)</span>、<span class="arithmatex">\(h,t\)</span> 用 mm，名义体积能量密度为</p>
+<div class="arithmatex">\[
+E_v=\frac{P}{vht}\quad [\mathrm{J/mm^3}].
+\]</div>
+<p>它隐含“功率均匀落在名义扫描体积中”的强简化。为让实验能暴露边界，再定义粉末堆积率 <span class="arithmatex">\(\phi\)</span>（无量纲）和三个只用于教学的代理：</p>
+<div class="arithmatex">\[
+r_{\rm LOF}=\operatorname{clamp}\left(1-\phi\left[1-e^{-E_v/45}\right],0,1\right),
+\]</div>
+<div class="arithmatex">\[
+r_{\rm KH}=\frac{1}{1+e^{-(E_v-110)/15}},\qquad
+r_{\rm cons}=(1-r_{\rm LOF})(1-r_{\rm KH}).
+\]</div>
+<p>其中 45、110 和 15 的数值单位是 <span class="arithmatex">\(\mathrm{J/mm^3}\)</span>，是脚本内的 regime-specific 参考，不是材料常数或工业标准。<span class="arithmatex">\(r\)</span> 都是无量纲 proxy；低能量代理偏向未熔合，高能量代理偏向匙孔/蒸发反冲，二者之间并不存在由本式保证的“可用窗口”。按这个定义，<span class="arithmatex">\(E_v=0\)</span> 时 <span class="arithmatex">\(r_{\rm LOF}=1\)</span>、<span class="arithmatex">\(r_{\rm cons}=0\)</span>；这只是边界一致性，不是零能量下真实熔池的完整描述。</p>
+<h3 id="4-pvht">4. 动手实验：调 P、v、h、t 和堆积率<a class="headerlink" href="#4-pvht" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-lpbf-energy-window">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认参数为 <span class="arithmatex">\(P=200 \mathrm W\)</span>、<span class="arithmatex">\(v=800 \mathrm{mm/s}\)</span>、<span class="arithmatex">\(h=0.10 \mathrm{mm}\)</span>、<span class="arithmatex">\(t=0.03 \mathrm{mm}\)</span>、<span class="arithmatex">\(\phi=0.60\)</span>。因此 <span class="arithmatex">\(E_v=83.3333 \mathrm{J/mm^3}\)</span>。按本脚本的透明代理，<span class="arithmatex">\(r_{\rm LOF}=0.494168\)</span>、<span class="arithmatex">\(r_{\rm KH}=0.144578\)</span>、<span class="arithmatex">\(r_{\rm cons}=0.432700\)</span>，均为无量纲；45–110 <span class="arithmatex">\(\mathrm{J/mm^3}\)</span> 只是本教学例的参考带。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>激光功率 <span class="arithmatex">\(P\)</span></td>
+<td style="text-align: right;">200</td>
+<td>W = J/s</td>
+</tr>
+<tr>
+<td>扫描速度 <span class="arithmatex">\(v\)</span></td>
+<td style="text-align: right;">800</td>
+<td>mm/s</td>
+</tr>
+<tr>
+<td>道间距 <span class="arithmatex">\(h\)</span> / 层厚 <span class="arithmatex">\(t\)</span></td>
+<td style="text-align: right;">0.10 / 0.03</td>
+<td>mm</td>
+</tr>
+<tr>
+<td>粉末堆积率 <span class="arithmatex">\(\phi\)</span></td>
+<td style="text-align: right;">0.60</td>
+<td>无量纲；粉末床几何代理</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(E_v=P/(vht)\)</span></td>
+<td style="text-align: right;">83.3333</td>
+<td>J/mm³；粗体积能量密度</td>
+</tr>
+<tr>
+<td>未熔合 / 匙孔 proxy</td>
+<td style="text-align: right;">0.494168 / 0.144578</td>
+<td>无量纲；经验形式只在本例内有教学意义</td>
+</tr>
+<tr>
+<td>固结 proxy</td>
+<td style="text-align: right;">0.432700</td>
+<td>无量纲；<span class="arithmatex">\((1-r_{\rm LOF})(1-r_{\rm KH})\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：能量密度不是工艺身份证<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(E_v\)</span> 的单位来自 mm 体系；把速度换成 m/s 却仍把结果写成 J/mm³，会造成量级换算错误。先固定单位，再比较数值。</li>
+<li>相同 <span class="arithmatex">\(E_v\)</span> 可能来自不同的 <span class="arithmatex">\(P,v,h,t\)</span> 组合，而熔池尺寸、峰值温度、重熔搭接和冷却历史并不相同；所以等能量密度不等于等组织、等孔隙率或等强度。</li>
+<li>粉末粒度、球形度、氧化膜、堆积率、激光波长与吸收率、保护气、基板预热和扫描旋转都可能移动某一设备/粉末组合经标定后的窗口。这里的 <span class="arithmatex">\(r_{\rm LOF}\)</span>、<span class="arithmatex">\(r_{\rm KH}\)</span> 只是可解释的 proxy，不是校准后的缺陷概率。</li>
+<li>“能量更高所以一定更致密”与“能量密度落在某个区间所以任何机器都能打印”都是越过模型边界的结论；必须用熔道截面、CT、密度、表面和热历史数据验证。</li>
+</ul>
+<h3 id="6">6. 正式回扣：从工艺参数回到可审计的量纲<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>先用 <span class="arithmatex">\(P/(vht)\)</span> 检查功率怎样被名义体积稀释，再用堆积率与缺陷 proxy 记录“为什么这个粗筛不够”。这条链把工艺 II 的参数、粉末形貌和性能 I/II 的孔隙与疲劳联系起来，但不会替代熔池物理、热传导或工艺标定。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若两组参数拥有相同 <span class="arithmatex">\(E_v\)</span>，一组高功率低速、另一组低功率高速，你会优先比较熔池宽深、热影响区、粉末吸收率还是 X/XY 扫描搭接？若 CT 显示未熔合与匙孔同时出现，哪些截面和热历史证据能判断是双峰窗口、粉末堆积不均还是代理阈值失效？</p>
+</div>
+</section>
+<h2 id="1_1">1. 烧结：用扩散把粉变成体<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>驱动力</strong>：颗粒表面积巨大 ⇒ 表面能是可观的能量储备，系统靠减少表面积降能——<strong>烧结是"表面能驱动的扩散过程"</strong>（热力 II 的扩散在此当主角）。</p>
-<p><strong>三阶段</strong>：颈部形成（颗粒接触点长出连接颈）→ 致密化（孔隙连通网络收缩，收缩率 10–20%）→ 孔隙孤立球化与晶粒长大（<strong>收益递减区</strong>：继续烧只长晶粒不再致密——性能 I 的 Hall–Petch 提醒我们晶粒长大是坏事）。</p>
-<p><strong>关键控制量</strong>：温度（<span class="arithmatex">\(0.7\)</span>–<span class="arithmatex">\(0.9\,T_m\)</span>）、粉末粒度（越细比表面积越大、驱动力越强、温度可越低——纳米粉可显著降低烧结温度）、压力（<strong>热压/热等静压 HIP</strong> 直接把孔压掉，用于高可靠性件与增材件后处理）、添加剂（<strong>液相烧结</strong>：少量低熔点相润湿颗粒、毛细力拉紧——硬质合金 WC–Co 与多数工业陶瓷的方案）。</p>
+<p><strong>三阶段的概念图</strong>：颈部形成（颗粒接触点长出连接颈）→ 主要致密化（孔隙网络收缩）→ 孔隙孤立与晶粒长大。后期致密化通常变慢并与晶粒长大竞争，但并非一进入末期就“只长晶粒”；收缩量与动力学取决于粉末、绿体密度、气氛和烧结机制。</p>
+<p><strong>关键控制量</strong>：同系温度（许多固相烧结会落在约 <span class="arithmatex">\(0.7\)</span>–<span class="arithmatex">\(0.9\,T_m\)</span> 的量级，但不是通用窗口）、粉末粒度与团聚、绿体密度、气氛、时间和压力。热压/HIP 通过高温与外压促进孔隙收缩或闭合；液相烧结则依赖液相形成、润湿与溶解析出，WC–Co 是经典例子，工业陶瓷还广泛使用固相、反应、玻璃相辅助等不同路线。</p>
 <p><strong>工业主力</strong>：硬质合金刀具（WC 硬相 + Co 韧相——<strong>硬与韧的机械混合</strong>，"复合"思想的经典）、陶瓷件、粉末冶金齿轮/轴承（净成形省加工）、氧化物弥散强化合金 ODS（弥散相太稳定无法靠析出获得，只能粉末混入——性能 I 的第四种强化在此才有制造途径）。</p>
-<h2 id="2">2. 增材制造：逐层堆积的材料学<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 增材制造：逐层堆积的材料学<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>主流工艺谱</strong>（按能量与原料分）：</p>
 <table>
 <thead>
@@ -70,7 +179,7 @@
 <td><strong>L-PBF</strong>（激光粉末床熔融，即 SLM）</td>
 <td>铺粉 + 激光逐点熔化</td>
 <td>钛、镍基、铝、不锈钢</td>
-<td>精度高、最主流的金属 AM</td>
+<td>精度高、常见的金属 AM 路线之一</td>
 </tr>
 <tr>
 <td>EBM（电子束粉末床）</td>
@@ -104,22 +213,22 @@
 </figure>
 <p><strong>AM 特有的材料学问题（这是本页最值钱的一段）</strong>：</p>
 <ol>
-<li><strong>极端热历史</strong>：熔池冷速 <span class="arithmatex">\(10^5\)</span>–<span class="arithmatex">\(10^7\)</span> K/s ⇒ 极细组织、非平衡相、<strong>外延生长的柱状晶 + 沿建造方向的强织构</strong> ⇒ <strong>各向异性</strong>（Z 向性能常低 10–20%）；</li>
+<li><strong>极端热历史</strong>：报道的熔池冷速可达 <span class="arithmatex">\(10^5\)</span>–<span class="arithmatex">\(10^7\)</span> K/s，但具体数值取决于设备、合金和热历史；它可能带来细组织、非平衡相、<strong>外延生长的柱状晶 + 沿建造方向的强织构</strong> ⇒ <strong>各向异性</strong>（一些体系的 Z 向性能低于面内，幅度需按牌号和试样核对）；</li>
 <li><strong>残余应力</strong>：逐层急冷急热 ⇒ 高残余拉应力，薄壁翘曲、开裂 ⇒ 基板预热、扫描策略（岛状/旋转）、去应力退火；</li>
-<li><strong>缺陷</strong>：未熔合（能量不足）、<strong>匙孔孔隙</strong>（能量过高蒸发反冲）、球化——工艺窗口在"能量密度"图上是一块<strong>有限区域</strong>，两侧都是缺陷（这是 AM 参数优化的中心图，也是机器学习最早落地的材料工艺问题之一，前沿 III 呼应）；</li>
-<li><strong>后处理几乎必需</strong>：HIP 消孔隙、热处理调组织、表面加工——<strong>"打印完就能用"在承力件上基本不成立</strong>；</li>
-<li><strong>可打印材料的筛选</strong>：AlSi10Mg 好打（近共晶、流动性好）、7075 高强铝难打（凝固裂纹倾向大——需加成核剂改性）——<strong>"为增材设计的合金"是当前活跃研究方向</strong>。</li>
+<li><strong>缺陷</strong>：未熔合（能量不足）、<strong>匙孔孔隙</strong>（能量过高蒸发反冲）、球化——对某一设备、粉末和扫描策略完成标定后，工艺窗口常可在"能量密度"图上表现为一块<strong>有限区域</strong>，两侧可能出现不同缺陷；它不是跨设备通用的区域（也是 AM 参数优化的重要图景，前沿 III 呼应）；</li>
+<li><strong>后处理由功能与工艺资格决定</strong>：承力件常需要去应力/热处理、表面加工，某些高完整性应用还使用 HIP；具体组合取决于合金、缺陷、尺寸、公差和认证路线，不能把 HIP 或机加工写成所有零件的必选项；</li>
+<li><strong>可打印材料的筛选</strong>：AlSi10Mg 常被用作相对易加工的教学示例，7075 则常被用作凝固裂纹挑战较大的示例；实际难度仍取决于粉末、设备、热管理和改性方案——<strong>"为增材设计的合金"是当前活跃研究方向</strong>。</li>
 </ol>
 <figure class="diagram">
 <p><img alt="Laser power and scan speed process window" src="assets/img/mat-16-process-window.svg" /></p>
 <figcaption><span class="fig-id">图 16.2</span>激光功率与扫描速度共同决定熔道状态：中间是稳定可用窗口，功率过高进入匙孔/蒸发区，功率不足或速度过高则进入未熔合区。</figcaption>
 </figure>
-<p><strong>AM 真正的价值主张</strong>（不是"什么都能打"）：拓扑优化的复杂几何（🔗 机器的力学站结构优化）、随形冷却流道（模具寿命与周期显著改善）、零件整合（几十个零件合成一个、消除连接与泄漏点）、小批量与备件、梯度/多材料。<strong>判据</strong>：单件价值高、几何复杂、批量小——三条同时满足才是 AM 的甜区。</p>
-<h2 id="3">3. 数字感与反直觉<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>AM 的常见价值主张</strong>（不是"什么都能打"）：拓扑优化几何、随形冷却、零件整合、小批量/备件，以及部分工艺中的梯度或多材料。高单件价值、复杂几何与较小批量常提高经济性，但不必三条同时满足；供应链、交期、质量保证和后处理也可能主导决策。</p>
+<h2 id="3_1">3. 数字感与反直觉<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <ul>
 <li>烧结收缩 10–20%（模具设计必须预留——尺寸精度的第一难点）；</li>
-<li>L-PBF 层厚 20–60 μm、光斑 ~80 μm、构建速率约 5–40 cm³/h（<strong>产能是 AM 的主要瓶颈</strong>，多激光机型是产业化方向）；</li>
-<li>硬质合金：WC 硬度 ~2000 HV，加 6–12% Co 后韧性大增而硬度仍 ~1500 HV——<strong>十分之一的软相买来数倍韧性</strong>；</li>
+<li>某些 L-PBF 设备/合金会采用几十微米层厚与相近量级光斑；构建速率跨设备、层厚、扫描策略与质量要求差异很大，任何数值都应带机型和材料版本；</li>
+<li>硬质合金：WC–Co 通过硬相、粘结相、晶粒度与孔隙共同调节硬度和断裂韧性；不能仅按 Co 体积分数推出固定的“数倍韧性”。</li>
 <li><strong>反直觉</strong>：烧结不需要熔化（低于熔点靠扩散）；AM 的"设计自由"其实受工艺约束严格（悬垂角、支撑、粉末排出孔——<strong>面向增材的设计 DfAM 是一门独立手艺</strong>）；打印金属件的疲劳性能常由<strong>表面粗糙度与内部孔隙</strong>主导，而非基体强度（性能 II 的裂纹逻辑）。</li>
 </ul>
 <p>【研】对标 German《Sintering》、DebRoy et al. 的 AM 综述（<em>Prog. Mater. Sci.</em> 2018）；烧结动力学模型、熔池多物理场模拟、AM 组织-性能定量关系是研究生与产业界共同的前沿。</p>
@@ -134,5 +243,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-lpbf-energy-window.js"></script>
 </body>
 </html>

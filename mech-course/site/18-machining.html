@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,39 +47,139 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、切削的物理</a></li>
-<li><a href="#_2">二、精度从哪来</a></li>
-<li><a href="#_3">三、颤振：机床工程的经典难题</a></li>
-<li><a href="#_4">四、精密与超精密加工</a></li>
-<li><a href="#_5">五、数控与工艺系统</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#machining-learning-title">学习层：用正交切削几何和刀具寿命账审计一次参数选择</a><ul>
+<li><a href="#_1">具体工程情境：车削一条窄切宽的钢屑</a></li>
+<li><a href="#_2">必须提交的三项预测</a></li>
+<li><a href="#merchant">最小模型与假设：Merchant 力账与拟合区间</a></li>
+<li><a href="#_3">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_4">正式返回：把参数选择还原为可复核的生产账</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、切削的物理</a></li>
+<li><a href="#_7">二、精度从哪来</a></li>
+<li><a href="#_8">三、颤振：机床工程的经典难题</a></li>
+<li><a href="#_9">四、精密与超精密加工</a></li>
+<li><a href="#_10">五、数控与工艺系统</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">制造 II · 切削与精密加工<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>层次</strong>：本科核心 + 业界主力 ｜ <strong>本页讲原理与限制，不给具体切削参数</strong>（须查刀具厂商推荐值与现场试切）。
-切削是机械制造的主力工艺：<strong>它决定了零件精度的上限</strong>。本页讲切削的物理、机床精度的来源，以及机床工程中最经典的稳定性问题——<strong>颤振</strong>。</p>
+切削是机械制造的主力工艺之一；零件精度由机床、刀具、夹具、工件、热状态、测量与控制共同决定。本页讲切削物理、误差来源，以及机床工程中经典的稳定性问题——颤振。</p>
 </blockquote>
-<h2 id="_1">一、切削的物理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="machining-learning-title" class="learning-layer">
+<h2 id="machining-learning-title">学习层：用正交切削几何和刀具寿命账审计一次参数选择<a class="headerlink" href="#machining-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：车削一条窄切宽的钢屑<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>先把复杂三维刀具简化为正交切削：未变形切屑厚度 <span class="arithmatex">\(t_1=0.20\,\mathrm{mm}\)</span>、切削宽度 <span class="arithmatex">\(b=4.0\,\mathrm{mm}\)</span>、前角 <span class="arithmatex">\(\alpha=10^\circ\)</span>、摩擦系数 <span class="arithmatex">\(\mu=0.60\)</span>、剪切流动应力代理 <span class="arithmatex">\(\tau_s=500\,\mathrm{MPa}\)</span>。当前线速度是 <span class="arithmatex">\(v=80\,\mathrm{m/min}\)</span>。工程师要从 Merchant 几何得到剪切角、切屑厚度和切向/进给力，再用一条只在拟合区间内有效的 Taylor 寿命式估算换刀时间。</p>
+<h3 id="_2">必须提交的三项预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在摩擦条件不变的正交切削近似下，前角增大时 Merchant 剪切角会增大、减小，还是没有确定方向？</li>
+<li>对同一组已拟合的 Taylor 参数，切削速度增大时刀具寿命会增大、减小，还是保持不变？</li>
+<li>主切削功率应由哪个量与线速度相乘得到：主切削力、进给力，还是两者的平均值？</li>
+</ol>
+<h3 id="merchant">最小模型与假设：Merchant 力账与拟合区间<a class="headerlink" href="#merchant" title="Permanent link"></a></h3>
+<p>先定义摩擦角 <span class="arithmatex">\(\beta=\arctan\mu\)</span>，采用常见的 Merchant 平衡近似</p>
+<div class="arithmatex">\[
+\phi=45^\circ+\frac{\alpha}{2}-\frac{\beta}{2},\qquad
+r=\frac{t_1}{t_2}=\frac{\sin\phi}{\cos(\phi-\alpha)}.
+\]</div>
+<p>剪切面积和剪切力为</p>
+<div class="arithmatex">\[
+A_s=\frac{bt_1}{\sin\phi},\qquad F_s=\tau_sA_s,
+\]</div>
+<p>其中 MPa·mm<span class="arithmatex">\(^2\)</span> 正好给 N。按正交切削分解，主切削力与推力可写成</p>
+<div class="arithmatex">\[
+F_c=\frac{F_s\cos(\beta-\alpha)}{\cos(\phi+\beta-\alpha)},\qquad
+F_t=\frac{F_s\sin(\beta-\alpha)}{\cos(\phi+\beta-\alpha)}.
+\]</div>
+<p>主切削功率用 <span class="arithmatex">\(P=F_cv/60\)</span>，因为 <span class="arithmatex">\(v\)</span> 是 m/min，结果是 W。刀具寿命采用</p>
+<div class="arithmatex">\[
+vT^n=C,\qquad T=\left(\frac{C}{v}\right)^{1/n},
+\]</div>
+<p>其中 <span class="arithmatex">\(T\)</span> 用 min、<span class="arithmatex">\(v\)</span> 用 m/min，<span class="arithmatex">\(C\)</span> 的单位是 <span class="arithmatex">\((\mathrm{m/min})\,\mathrm{min}^{n}\)</span>。<span class="arithmatex">\(n\)</span> 与 <span class="arithmatex">\(C\)</span> 只代表指定刀具、工件、冷却和磨损判据下的拟合区间；它们不是材料常数，也不能跨速度区间外推。</p>
+<h3 id="_3">误区与模型边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li>Merchant 关系是稳态、正交、单一剪切面和简化摩擦的几何/力学近似；实际切削有三维刃口、刀尖圆弧、应变率、温升、积屑瘤和刀具磨损。</li>
+<li><span class="arithmatex">\(\tau_s\)</span> 是流动应力 proxy，不是由一个牌号名自动决定的常数；需要温度、应变和应变率相关本构或试切标定。</li>
+<li>Taylor 式在拟合范围内可用于比较趋势；接近断续切削、崩刃、不同磨损机制或换刀判据时，<span class="arithmatex">\(vT^n=C\)</span> 不再是充分模型。</li>
+<li>功率账只计主切削分量，机床主轴输入还要除以效率并加速、冷却和辅助功率；它不能直接变成电费或生产节拍保证。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-machining-cutting-ledger">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(v=80\,\mathrm{m/min}\)</span>、<span class="arithmatex">\(\alpha=10^\circ\)</span>、<span class="arithmatex">\(\mu=0.60\)</span>、<span class="arithmatex">\(t_1=0.20\,\mathrm{mm}\)</span>、<span class="arithmatex">\(b=4.0\,\mathrm{mm}\)</span>、<span class="arithmatex">\(\tau_s=500\,\mathrm{MPa}\)</span>，Taylor 参数 <span class="arithmatex">\(C=180\,(\mathrm{m/min})\,\mathrm{min}^{0.25}\)</span>、<span class="arithmatex">\(n=0.25\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>正交切削账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>摩擦角 <span class="arithmatex">\(\beta\)</span> / 剪切角 <span class="arithmatex">\(\phi\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(30.964^\circ\)</span> / <span class="arithmatex">\(34.518^\circ\)</span></td>
+<td>Merchant 近似</td>
+</tr>
+<tr>
+<td>切屑比 <span class="arithmatex">\(r\)</span> / <span class="arithmatex">\(t_2\)</span></td>
+<td style="text-align: right;">0.6228 / 0.3211</td>
+<td><span class="arithmatex">\(t_2\)</span> 为 mm</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A_s\)</span> / <span class="arithmatex">\(F_s\)</span></td>
+<td style="text-align: right;">1.4118 / 705.9</td>
+<td>mm<span class="arithmatex">\(^2\)</span> / N</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(F_c\)</span> / <span class="arithmatex">\(F_t\)</span></td>
+<td style="text-align: right;">1163.2 / 445.7</td>
+<td>N</td>
+</tr>
+<tr>
+<td>主切削功率 <span class="arithmatex">\(P\)</span></td>
+<td style="text-align: right;">1.551</td>
+<td>kW；<span class="arithmatex">\(F_cv/60\)</span></td>
+</tr>
+<tr>
+<td>Taylor 寿命 <span class="arithmatex">\(T\)</span></td>
+<td style="text-align: right;">25.629</td>
+<td>min；只在拟合区间内</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验才揭示切屑几何 SVG、力三角与速度—寿命曲线；越过几何分母或参数范围时会报“模型不可用”，不会用无限力或无限寿命填表。</p>
+</div>
+<h3 id="_4">正式返回：把参数选择还原为可复核的生产账<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>正式返回由三条闭合关系组成：几何给出 <span class="arithmatex">\(r\)</span> 与 <span class="arithmatex">\(\phi\)</span>，力账给出 <span class="arithmatex">\(F_c,F_t,P\)</span>，磨损拟合给出指定范围内的 <span class="arithmatex">\(T\)</span>。当现场要换刀具、材料、冷却或速度区间时，必须重新标定 <span class="arithmatex">\(\tau_s\)</span>、<span class="arithmatex">\(C\)</span>、<span class="arithmatex">\(n\)</span> 和磨损判据；实验的数字只负责展示公式、单位和边界如何一起工作。</p>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>若现场出现颤振且主轴功率没有明显增加，你会先测哪些模态/表面波纹证据，再决定调整转速、刀具悬伸还是切深？为什么不能仅凭 Taylor 寿命曲线解释一个带时滞的稳定性问题？</p>
+</section>
+<h2 id="_6">一、切削的物理<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>切屑形成</strong>：刀具挤压工件材料，使其在<strong>剪切面</strong>上发生剧烈塑性剪切而分离。</p>
 <p><strong>三个关键认识</strong>：</p>
 <p><strong>① 切削本质上是"受控的剪切破坏"</strong>，不是"切开"。剪切区的应变率极高（可达 <span class="arithmatex">\(10^3\)</span>–<span class="arithmatex">\(10^5\)</span> s⁻¹），应变极大。</p>
-<p><strong>② 能量几乎全部变成热。</strong> 三个热源：剪切区（主要）、刀-屑摩擦、刀-工件摩擦。<strong>大部分热被切屑带走</strong>（这是好事），但传入刀具的部分决定刀具寿命，传入工件的部分造成<strong>热变形与尺寸误差</strong>。</p>
+<p><strong>② 连续切削中相当一部分机械功会转化为热</strong>，但比例随材料、速度、刀具几何和冷却变化。三个热源：剪切区（主要）、刀-屑摩擦、刀-工件摩擦。<strong>切屑常带走较大热份额，但不是固定比例</strong>；传入刀具的部分会影响刀具寿命，传入工件的部分可能造成<strong>热变形与尺寸误差</strong>。</p>
 <p><strong>③ 切削力的三个分量</strong>：主切削力（决定功率）、进给力、背向力（<strong>决定工件与刀具的弹性变形，从而影响精度</strong>）。</p>
 <p><strong>刀具寿命——Taylor 公式</strong>：</p>
 <div class="arithmatex">\[v T^n = C\]</div>
-<p><strong><span class="arithmatex">\(n\)</span> 通常在 0.1–0.3 之间</strong>，意味着<strong>切削速度对刀具寿命的影响极其敏感</strong>：速度提高 20%，寿命可能降低一半以上。<strong>这就是切削参数优化的核心矛盾——效率与刀具成本的权衡。</strong></p>
+<p><strong>对某些刀具—工件组合和磨损判据的拟合，<span class="arithmatex">\(n\)</span> 可能落在 0.1–0.3 量级，但它不是材料常数或普适范围。</strong> 对本例拟合式，速度提高 20% 会带来寿命下降的示例；下降幅度必须由同一拟合区间计算，不能跨工况套用。<strong>这体现了切削参数中效率与刀具成本的权衡。</strong></p>
 <p><strong>刀具磨损形式</strong>：后刀面磨损（正常，用 VB 值判定寿命）、月牙洼磨损（高温扩散）、崩刃、积屑瘤（中低速时的粘着，<strong>影响表面质量</strong>）。</p>
-<h2 id="_2">二、精度从哪来<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>机床的精度直接决定零件的精度</strong>。误差来源：</p>
+<h2 id="_7">二、精度从哪来<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>机床几何与运动精度是零件误差预算的重要部分，但工艺系统的总误差还要加入刀具、夹具、工件变形、热漂移、振动、控制和测量。常见来源包括：</p>
 <table>
 <thead>
 <tr>
@@ -81,7 +196,7 @@
 </tr>
 <tr>
 <td><strong>热变形</strong></td>
-<td><strong>常是精密加工的首要误差源</strong></td>
+<td>在长时间、高精度或米级工件上可能成为重要误差源</td>
 <td>恒温、热对称设计、冷却、热补偿</td>
 </tr>
 <tr>
@@ -101,10 +216,10 @@
 </tr>
 </tbody>
 </table>
-<p><strong>"热变形常是首要误差源"</strong> 值得强调：一台精密机床开机后需要<strong>预热数小时</strong>才能稳定；车间温度波动 1 °C 就可能让米级尺寸变化十几微米（承第十五页）。<strong>这就是精密加工必须在恒温车间进行的原因。</strong></p>
+<p>在长时间、高精度、米级钢件等工况中，<strong>热变形可能成为重要甚至主导误差源</strong>：预热数小时、1 °C 造成十几微米变化都只是与机床结构、长度、材料和热状态有关的量级示例，不是每台机床的固定能力。是否需要恒温、热补偿或在线测温，应由热稳定性测量确认。</p>
 <p><strong>误差复映</strong>：工艺系统刚度有限时，毛坯的误差会<strong>部分复制</strong>到成品上（毛坯凸起处切削力大、让刀多、留下凸起）。<strong>多次走刀能逐步减小误差</strong>——这就是"粗加工—半精加工—精加工"分阶段的力学理由，而不只是习惯。</p>
-<h2 id="_3">三、颤振：机床工程的经典难题<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>颤振是限制材料去除率的首要因素</strong>，也是第七页"自激振动"最重要的工程实例。</p>
+<h2 id="_8">三、颤振：机床工程的经典难题<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p><strong>颤振是许多切削系统提高材料去除率时的重要限制因素之一</strong>，也是第七页"自激振动"的典型工程实例；其主导程度取决于机床、刀具、工件、夹持和参数。</p>
 <p><strong>再生颤振的机理</strong>（这是一个漂亮的反馈失稳）：</p>
 <ol>
 <li>刀具振动在工件表面留下<strong>波纹</strong>；</li>
@@ -115,17 +230,17 @@
 <p><strong>关键在"再生"二字</strong>：<strong>激励来自上一转留下的表面</strong>——这是一个<strong>带时滞的反馈回路</strong>（时滞 = 一转的时间）。🔗 自动化站第一、二页说过：<strong>时滞是反馈失稳的头号原因</strong>。<strong>颤振正是机械领域最典型的时滞失稳。</strong></p>
 <figure>
 <p><img alt="切削稳定性叶瓣图" class="fig-img" src="assets/img/mec_chatter.svg" /></p>
-<figcaption><span class="fig-id">图 18-1</span> 切削稳定性叶瓣图（stability lobe diagram）：横轴主轴转速、纵轴极限切深。曲线以下为稳定切削，以上发生颤振。<strong>注意曲线呈"叶瓣"状而非单调</strong>——在特定的转速"口袋"处，极限切深可比最保守值高出数倍。<strong>这意味着提高转速有时反而能加大切深</strong>，是高速加工提高效率的理论依据。叶瓣位置由系统的固有频率与切削时滞的相位关系决定。</figcaption>
+<figcaption><span class="fig-id">图 18-1</span> 切削稳定性叶瓣图（stability lobe diagram）：横轴主轴转速、纵轴极限切深。曲线以下可视为该固定模型下的稳定区，以上有颤振风险。<strong>注意曲线呈"叶瓣"状而非单调</strong>——某些转速窗口的预测极限切深可能高于保守区。<strong>提高转速有时可能打开稳定窗口</strong>，但叶瓣位置依赖实测模态、刀具和时滞，必须用模态测试与试切确认，不能直接当成所有机床的效率保证。</figcaption>
 </figure>
 <p><strong>工程对策</strong>：</p>
 <ul>
-<li><strong>选择稳定叶瓣内的转速</strong>（需知道系统的模态参数——用第八页的实验模态分析测出来）；</li>
+<li><strong>在经过模态测试与试切确认的稳定窗口内选择转速</strong>（需知道系统的模态参数——用第八页的实验模态分析测出来）；</li>
 <li><strong>提高系统刚度与阻尼</strong>（短而粗的刀具、减小悬伸、阻尼刀杆）；</li>
 <li><strong>变螺旋角/不等齿距刀具</strong>：打乱再生效应的相位关系；</li>
 <li><strong>主轴转速调制</strong>：连续微调转速，破坏相干性。</li>
 </ul>
 <p><strong>"叶瓣图"是机械与控制的交汇点</strong>——它本质上是一张<strong>稳定性边界图</strong>，与自动化站的稳定裕度是同一类东西。</p>
-<h2 id="_4">四、精密与超精密加工<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、精密与超精密加工<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>精度的量级阶梯</strong>（要有数量级感）：</p>
 <ul>
 <li><strong>普通加工</strong>：IT7–IT9，<span class="arithmatex">\(Ra\)</span> 1.6–6.3 μm；</li>
@@ -134,19 +249,19 @@
 </ul>
 <p><strong>超精密加工的关键技术</strong>：</p>
 <ul>
-<li><strong>单点金刚石车削（SPDT）</strong>：可直接车出光学级表面，<strong>用于红外光学、非球面透镜</strong>（🔗 光电站的光学元件制造）。但<strong>金刚石与铁族元素有化学亲和性</strong>，故不能直接车钢；</li>
+<li><strong>单点金刚石车削（SPDT）</strong>：适用于许多有色金属、晶体和聚合物的光学表面。常规条件下金刚石加工铁族材料会发生严重化学磨损，因此钢通常改用磨削、特殊气氛/辅助工艺或其他刀具；“不能”应理解为常规 SPDT 的工艺边界；</li>
 <li><strong>精密磨削与研磨抛光</strong>：适用于硬脆材料；</li>
 <li><strong>静压导轨与静压主轴</strong>（承第十二页）、<strong>空气轴承</strong>：无摩擦、无爬行、极高的运动精度；</li>
 <li><strong>环境控制</strong>：恒温、隔振（承第七页：低频隔振极难）、洁净。</li>
 </ul>
 <p><strong>特种加工</strong>（切削无能为力时）：</p>
 <ul>
-<li><strong>电火花（EDM）</strong>：靠放电蚀除，<strong>与材料硬度无关</strong>——可加工淬火钢、硬质合金；线切割可切复杂轮廓；</li>
-<li><strong>激光加工</strong>：非接触、热影响区小（🔗 光电站）；</li>
+<li><strong>电火花（EDM）</strong>：靠介质中的脉冲放电蚀除，必须加工导电工件；去除机理不依赖传统切削硬度，因此可加工淬火钢、硬质合金，线切割可形成复杂轮廓；</li>
+<li><strong>激光加工</strong>：非接触，热影响区相对某些热加工可较小，但宽度取决于脉宽、波长、材料、能量密度与辅助气体，不能视为零；</li>
 <li><strong>电解、超声、水射流加工</strong>。</li>
 </ul>
 <p><strong>这些工艺的共同价值</strong>：<strong>突破了"刀具必须比工件硬"这一根本限制</strong>。</p>
-<h2 id="_5">五、数控与工艺系统<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、数控与工艺系统<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>数控（CNC）</strong>把运动轨迹变成程序：</p>
 <ul>
 <li><strong>CAM 生成刀路 → 后处理 → G 代码 → 机床执行</strong>；</li>
@@ -154,9 +269,9 @@
 <li><strong>伺服系统的性能直接决定轮廓精度</strong>——🔗 自动化站第十二页：跟随误差、多轴同步、加加速度限制都在此体现。</li>
 </ul>
 <p><strong>"机床是一台被控机械"</strong>——它把本课的力学（刚度、振动、热变形）与自动化站的控制（伺服、插补、前馈）合在一起。<strong>这是两站最直接的交汇点。</strong></p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
-<li><strong>切削是受控的剪切破坏</strong>，能量几乎全变热；<strong>Taylor 公式中 <span class="arithmatex">\(n\)</span> 很小 → 速度对刀具寿命极敏感</strong>；</li>
+<li><strong>切削是受控的剪切破坏</strong>，相当一部分机械功转化为热并在切屑、刀具与工件之间分配；Taylor 参数只在对应刀具—材料—磨损判据和拟合速度区间内有效；</li>
 <li><strong>热变形常是精密加工的首要误差源</strong>；误差复映解释了分阶段加工的必要性；</li>
 <li><strong>再生颤振是带时滞的反馈失稳</strong>——与控制理论同源；<strong>叶瓣图说明提高转速有时反而能加大切深</strong>；</li>
 <li><strong>超精密加工靠静压/空气轴承 + 环境控制</strong>；金刚石车削不能直接加工钢；</li>
@@ -174,5 +289,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-machining-cutting-ledger.js"></script>
 </body>
 </html>

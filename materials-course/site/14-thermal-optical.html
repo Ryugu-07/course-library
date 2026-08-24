@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,30 +47,120 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 导热：两种载体</a></li>
-<li><a href="#2">2. 热膨胀与失配（工程事故的常客）</a></li>
+<li><a href="#materials-thermal-optical-learning-title">学习层：给双层涂层做两本账，别把温升和透过率混成一个指标</a><ul>
+<li><a href="#1">1. 具体材料工程情境：隔热涂层同时要控温又要控光</a></li>
+<li><a href="#2">2. 必须作答的预测门：串联、指数衰减与边界</a></li>
+<li><a href="#3-beerlambert">3. 最小模型与假设：热阻网络和 Beer–Lambert</a></li>
+<li><a href="#4">4. 动手实验：调节两层、界面和衰减系数</a></li>
+<li><a href="#5">5. 误区与模型边界：两本账各自有边界</a></li>
+<li><a href="#6">6. 正式回扣：从微观散射回到可检查的预算</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 导热：两种载体</a></li>
+<li><a href="#2_1">2. 热膨胀与失配（工程事故的常客）</a></li>
 <li><a href="#3">3. 热电：温差发电与固态制冷</a></li>
-<li><a href="#4">4. 光学：透明的条件与发光</a></li>
-<li><a href="#5">5. 反直觉清单</a></li>
+<li><a href="#4_1">4. 光学：透明的条件与发光</a></li>
+<li><a href="#5_1">5. 反直觉清单</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">功能 III · 热与光<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>功能线收官页，两个"看不见的性能"：<strong>热</strong>（导热、膨胀、隔热、热电）与<strong>光</strong>（透明、折射、发光、激光）。它们的共同点是——<strong>性能几乎完全由微观载体的散射决定</strong>：声子被什么挡住，光子被什么散射，答案就是材料的热学与光学性格。</p>
+<p>功能线收官页，两个"看不见的性能"：<strong>热</strong>（导热、膨胀、隔热、热电）与<strong>光</strong>（透明、折射、发光、激光）。它们有一个重要共同点——许多宏观表现会受到微观载体散射的强烈影响：声子被什么挡住，光子被什么散射，是理解材料热学与光学性格的一条主线，但不是所有边界条件下的完整答案。</p>
 </blockquote>
-<h2 id="1">1. 导热：两种载体<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-thermal-optical-learning-title" class="learning-layer">
+<h2 id="materials-thermal-optical-learning-title">学习层：给双层涂层做两本账，别把温升和透过率混成一个指标<a class="headerlink" href="#materials-thermal-optical-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：隔热涂层同时要控温又要控光<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一块面积 <span class="arithmatex">\(A=0.01 \mathrm{m^2}\)</span> 的双层涂层承受 <span class="arithmatex">\(Q=100 \mathrm W\)</span> 的稳态热流。工程师还要估算一束光穿过同样两层材料后的透过率。问题看似都在问“穿过材料损失了多少”，但热传导的预算是 <span class="arithmatex">\(\mathrm K/\mathrm W\)</span>，光学衰减的预算是无量纲光学深度；把吸收分数直接当成温升或把透过率当成热阻，会丢掉单位和边界条件。</p>
+<h3 id="2">2. 必须作答的预测门：串联、指数衰减与边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前回答三题：两层串联传热时，层热阻和界面热阻应相加、取平均，还是只看最大一项？在 Beer–Lambert 近似中，厚度增加时 <span class="arithmatex">\(I/I_0\)</span> 按什么趋势变化？若接触、散射或表面对流/辐射明显，应该把它们忽略、把光学量并入热阻，还是分开加入并标明边界？三题完成后才显示曲线和账本。</p>
+<h3 id="3-beerlambert">3. 最小模型与假设：热阻网络和 Beer–Lambert<a class="headerlink" href="#3-beerlambert" title="Permanent link"></a></h3>
+<p>对均匀截面、稳态、一维串联导热，层 <span class="arithmatex">\(i\)</span> 的热阻为</p>
+<div class="arithmatex">\[
+R_i=\frac{L_i}{k_iA},\qquad R''_{\rm int}\text{ 的等效热阻}=\frac{R''_{\rm int}}{A},
+\]</div>
+<p>所以</p>
+<div class="arithmatex">\[
+R_\theta=\sum_i\frac{L_i}{k_iA}+\frac{R''_{\rm int}}A,\qquad \Delta T=Q R_\theta.
+\]</div>
+<p><span class="arithmatex">\(L\)</span> 用 m，<span class="arithmatex">\(k\)</span> 用 <span class="arithmatex">\(\mathrm{W\,m^{-1}K^{-1}}\)</span>，<span class="arithmatex">\(A\)</span> 用 <span class="arithmatex">\(\mathrm{m^2}\)</span>，<span class="arithmatex">\(Q\)</span> 用 W，因此 <span class="arithmatex">\(R_\theta\)</span> 是 <span class="arithmatex">\(\mathrm{K/W}\)</span>、<span class="arithmatex">\(\Delta T\)</span> 是 K。这个表达式是稳态一维近似；侧向热扩散、温度依赖 <span class="arithmatex">\(k\)</span>、接触压力和表面对流/辐射需要另加边界或换模型。</p>
+<p>光学侧把每层吸收系数 <span class="arithmatex">\(\alpha_i\)</span>（<span class="arithmatex">\(\mathrm{m^{-1}}\)</span>）和厚度相乘，得到无量纲光学深度：</p>
+<div class="arithmatex">\[
+\tau_{\rm opt}=\sum_i\alpha_iL_i,\qquad \frac{I}{I_0}=e^{-\tau_{\rm opt}}.
+\]</div>
+<p>这是均匀、无相干干涉、只考虑吸收的 Beer–Lambert 近似。散射、表面反射、波长依赖、发光和多次反射会使 <span class="arithmatex">\(I/I_0\)</span> 不再由这一个指数完全决定；它们也不能悄悄塞进热阻式。</p>
+<h3 id="4">4. 动手实验：调节两层、界面和衰减系数<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-thermal-optical-budgets">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(A=0.01 \mathrm{m^2}\)</span>、<span class="arithmatex">\(Q=100 \mathrm W\)</span>、<span class="arithmatex">\((L_1,k_1)=(2 \mathrm{mm},2 \mathrm{W\,m^{-1}K^{-1}})\)</span>、<span class="arithmatex">\((L_2,k_2)=(1 \mathrm{mm},15 \mathrm{W\,m^{-1}K^{-1}})\)</span>、<span class="arithmatex">\(R''_{\rm int}=2.0\times10^{-4} \mathrm{m^2K/W}\)</span>、<span class="arithmatex">\((\alpha_1,\alpha_2)=(120,50) \mathrm{m^{-1}}\)</span>。热预算给出 <span class="arithmatex">\(R_1=0.100000 \mathrm{K/W}\)</span>、<span class="arithmatex">\(R_{\rm int}=0.020000 \mathrm{K/W}\)</span>、<span class="arithmatex">\(R_2=0.006667 \mathrm{K/W}\)</span>，<span class="arithmatex">\(R_\theta=0.126667 \mathrm{K/W}\)</span>、<span class="arithmatex">\(\Delta T=12.6667 \mathrm K\)</span>；光预算给出 <span class="arithmatex">\(\tau_{\rm opt}=0.290000\)</span>、<span class="arithmatex">\(I/I_0=0.748264\)</span>、吸收分数 <span class="arithmatex">\(0.251736\)</span>（无量纲）。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>层 1 / 界面 / 层 2 热阻</td>
+<td style="text-align: right;">0.100000 / 0.020000 / 0.006667</td>
+<td>K/W；界面按 <span class="arithmatex">\(R''_{\rm int}/A\)</span> 单独记账</td>
+</tr>
+<tr>
+<td>总热阻 <span class="arithmatex">\(R_\theta\)</span></td>
+<td style="text-align: right;">0.126667</td>
+<td>K/W</td>
+</tr>
+<tr>
+<td>温升 <span class="arithmatex">\(\Delta T\)</span></td>
+<td style="text-align: right;">12.6667</td>
+<td>K；<span class="arithmatex">\(Q R_\theta\)</span></td>
+</tr>
+<tr>
+<td>光学深度 <span class="arithmatex">\(\tau_{\rm opt}\)</span></td>
+<td style="text-align: right;">0.290000</td>
+<td>无量纲；<span class="arithmatex">\(\sum\alpha_iL_i\)</span></td>
+</tr>
+<tr>
+<td>透过率 <span class="arithmatex">\(I/I_0\)</span></td>
+<td style="text-align: right;">0.748264</td>
+<td>无量纲；Beer–Lambert 代理</td>
+</tr>
+<tr>
+<td>吸收分数</td>
+<td style="text-align: right;">0.251736</td>
+<td>无量纲；不等于热预算中的 <span class="arithmatex">\(Q\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：两本账各自有边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>热阻串联不是“材料导热率的平均值”。横截面、热流和接触状态改变时，串联网络要重画；并联热路、辐射换热和温度相关参数不能由本实验自动补出。</li>
+<li><span class="arithmatex">\(1-I/I_0\)</span> 只是本模型的吸收分数。真实透过率还受反射、体散射、界面粗糙度和波长影响；散射损失不等于吸收热，也不应无证据地换算成 <span class="arithmatex">\(Q\)</span>。</li>
+<li><span class="arithmatex">\(\Delta T\)</span> 的单位是 K，温差的数值也可用 °C 表示；绝对温度却不能这样替换。辐射边界应使用绝对温度的 <span class="arithmatex">\(T^4\)</span> 关系，并单独列出发射率和视因子。</li>
+<li>这里的两层材料、恒定 <span class="arithmatex">\(k\)</span> 和恒定 <span class="arithmatex">\(\alpha\)</span> 是可审计的教学代理，不是某种涂层牌号的通用性能预测。</li>
+</ul>
+<h3 id="6">6. 正式回扣：从微观散射回到可检查的预算<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>声子散射会改变 <span class="arithmatex">\(k\)</span>，光子吸收/散射会改变 <span class="arithmatex">\(\alpha\)</span> 或透过率，但工程判断先从守恒与单位开始：热侧追踪 <span class="arithmatex">\(Q\rightarrow R_\theta\rightarrow\Delta T\)</span>，光侧追踪 <span class="arithmatex">\(\alpha L\rightarrow\tau_{\rm opt}\rightarrow I/I_0\)</span>。只有在额外建立吸收功率、边界换热和辐射的耦合模型后，才可以讨论光照造成的温升。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若一片透明陶瓷的透过率随厚度下降得比 Beer–Lambert 更快，你会先检查散射、反射还是吸收系数的波长依赖？若热障涂层的实测温降比串联热阻预估小，哪些接触、侧向热路或辐射证据能定位欠账？</p>
+</div>
+</section>
+<h2 id="1_1">1. 导热：两种载体<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <div class="arithmatex">\[
 k = k_{\text{电子}} + k_{\text{声子}}
 \]</div>
-<p><strong>金属靠电子</strong>（故导电好者导热必好——<strong>Wiedemann–Franz 定律</strong>：<span class="arithmatex">\(k/\sigma T\)</span> 近似常数；反过来，一块材料"摸着凉"通常意味着它导电）；<strong>陶瓷与聚合物靠声子</strong>（晶格振动波包）：声子被缺陷、晶界、非简谐散射 ⇒ <strong>越无序越隔热</strong>。</p>
+<p>金属中的热传导常由电子贡献主导；在自由电子近似和适用温区内，<strong>Wiedemann–Franz 定律</strong>给出电子热导与电导的相关性，但总热导还包含声子、杂质与非弹性散射，不能写成“导电好就必然导热好”。手摸材料时的冷热感更接近热逸散率 <span class="arithmatex">\(\sqrt{k\rho c}\)</span> 与接触边界，而不是电导率。陶瓷与聚合物多由声子传热，缺陷、晶界和非简谐散射通常会缩短声子平均自由程，但无序程度也不是热导率的唯一变量。</p>
 <table>
 <thead>
 <tr>
@@ -96,9 +201,9 @@ k = k_{\text{电子}} + k_{\text{声子}}
 <td><strong>故意制造缺陷</strong>散射声子</td>
 </tr>
 <tr>
-<td>聚合物 / 空气</td>
+<td>聚合物 / 静止空气</td>
 <td>0.2 / 0.026</td>
-<td>无序 / 无介质</td>
+<td>声子主导 / 稀薄气体分子输运</td>
 </tr>
 <tr>
 <td>气凝胶</td>
@@ -108,8 +213,8 @@ k = k_{\text{电子}} + k_{\text{声子}}
 </tbody>
 </table>
 <p><strong>热障涂层（TBC）</strong>：涡轮叶片表面喷 ~200 μm 的 YSZ + 内部气膜冷却，可让金属基体在<strong>高于合金熔点的燃气温度</strong>下工作——现代航空发动机推重比的关键材料技术（前沿 I 再会）。<strong>其失效模式是热膨胀失配导致的剥落</strong>——引出下一节。</p>
-<h2 id="2">2. 热膨胀与失配（工程事故的常客）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(\alpha\)</span> 的微观根源是势阱不对称（结构 I 图 1.1）：<strong>键强 ⇒ 深而对称的阱 ⇒ 小 <span class="arithmatex">\(\alpha\)</span></strong>。数字感（<span class="arithmatex">\(10^{-6}\)</span>/K）：聚合物 50–200 ｜ Al 23 ｜ 钢 12 ｜ 硅 2.6 ｜ 石英玻璃 0.5 ｜ 殷钢（Invar）<strong>~1</strong>（磁致伸缩恰好抵消热膨胀的巧合，量具与精密仪器的救星）。</p>
+<h2 id="2_1">2. 热膨胀与失配（工程事故的常客）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\alpha\)</span> 的微观根源与非简谐势能有关；键强、晶体结构、相变与磁性都会参与。数字感（<span class="arithmatex">\(10^{-6}\)</span>/K）：聚合物 50–200 ｜ Al 23 ｜ 钢 12 ｜ 硅 2.6 ｜ 石英玻璃 0.5 ｜ 殷钢（Invar）约 1。Invar 的低膨胀通常解释为铁磁有序相关的磁体积效应补偿普通晶格热膨胀，并非一个可泛化为“磁致伸缩恰好抵消”的简单公式。</p>
 <p><strong>失配是设计的第一雷区</strong>：芯片（Si, 2.6）焊到基板（有机 ~17）上，温度循环下焊点疲劳——封装可靠性的核心问题；牙齿补料、玻璃-金属封接、TBC 剥落、双金属片（<strong>主动利用</strong>失配做温控开关）——同一物理量，一半是敌一半是友。</p>
 <h2 id="3">3. 热电：温差发电与固态制冷<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>Seebeck 效应（温差 ⇒ 电压）与 Peltier（电流 ⇒ 温差）。性能由无量纲优值决定：</p>
@@ -117,14 +222,14 @@ k = k_{\text{电子}} + k_{\text{声子}}
 ZT = \frac{S^2\sigma T}{k}
 \]</div>
 <p><strong>设计的死结</strong>：要高 <span class="arithmatex">\(S\)</span>（半导体）、高 <span class="arithmatex">\(\sigma\)</span>（金属）、低 <span class="arithmatex">\(k\)</span>（绝缘体）——<strong>三个要求指向三种不同的材料</strong>。破局思路是"电子晶体、声子玻璃"：保持电子通道畅通，同时用纳米结构/重原子/复杂晶胞散射声子。商用 Bi₂Te₃ 的 <span class="arithmatex">\(ZT \approx 1\)</span>（车载冰箱、CPU 小型制冷、芯片控温），实验室体系可到 2 以上但难以规模化。<strong>热电是"性能权衡"最赤裸的教学案例</strong>——三个目标互相打架，进展只能靠解耦机制。</p>
-<h2 id="4">4. 光学：透明的条件与发光<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>透明需要同时满足三条</strong>：① 带隙 &gt; 可见光子能量（1.8–3.1 eV）——否则电子吸收（这就是半导体不透明、绝缘体常透明的原因）；② <strong>无散射源</strong>：晶界、气孔、第二相都散射光（所以多晶陶瓷常不透明，但<strong>消除气孔 + 纳米晶或立方结构</strong>可做出透明陶瓷——透明氧化铝灯管、蓝宝石窗、透明装甲）；③ 无杂质吸收（光纤要求 ppb 级铁含量——工艺 III 的提纯极致）。</p>
-<p><strong>光纤的 0.2 dB/km</strong>：本征散射（瑞利，<span class="arithmatex">\(\propto\lambda^{-4}\)</span>）与红外吸收在 1.55 μm 处形成最低窗口——<strong>通信波长不是选出来的，是材料的物理性质定出来的</strong>（🔗 光电站光纤页给完整推导）。</p>
+<h2 id="4_1">4. 光学：透明的条件与发光<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>材料在目标波段透明，实际要求的是吸收系数和散射系数都足够低。大带隙可抑制一部分带间吸收，但缺陷态、声子、自由载流子与杂质仍可能吸收；气孔、第二相和折射率不连续会散射，晶界本身则要看两侧折射率与结构差异。透明陶瓷依靠高致密度、受控晶粒/相结构与高纯度共同实现，不能压缩成三条充分条件。</p>
+<p><strong>光纤的低损耗窗口</strong>：瑞利散射（约随 <span class="arithmatex">\(\lambda^{-4}\)</span> 下降）与红外吸收共同塑造石英的衰减谱；1.55 μm 附近还与掺铒放大、色散管理和器件生态协同。通信波段既受材料物理约束，也包含系统工程选择。</p>
 <p><strong>发光机制谱</strong>：光致（荧光粉：蓝光 LED + YAG:Ce 黄粉 = 白光——照明革命的材料方案）、电致（LED/OLED）、阴极射线（老 CRT）、激光（受激辐射 + 谐振腔；Nd:YAG、光纤激光、半导体激光）。<strong>量子点</strong>：尺寸决定发光波长（量子限域——同一化学成分，改直径就改颜色），已在显示（QLED 背光/自发光）大规模商用，2023 年诺贝尔化学奖授予量子点的发现与合成。</p>
-<h2 id="5">5. 反直觉清单<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 反直觉清单<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <ul>
 <li>金刚石导热是铜的 5 倍却绝缘——<strong>"导热靠电子"只是金属的故事</strong>；</li>
-<li>气凝胶比空气更隔热（纳米孔抑制气体分子对流与平均自由程）；</li>
+<li>某些气凝胶的有效热导可低于静止空气：纳米孔进入 Knudsen 尺度后会压低气体导热，同时还要分别核算固体骨架导热与辐射；</li>
 <li>玻璃透明、砂子不透明——<strong>同种成分，散射界面的有无决定一切</strong>；透明陶瓷的全部工艺就是把气孔干掉；</li>
 <li>白光 LED 里没有白光源——是蓝光 + 荧光粉的合成（也是显色指数与色温工程的由来）。</li>
 </ul>
@@ -140,5 +245,7 @@ ZT = \frac{S^2\sigma T}{k}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-thermal-optical-budgets.js"></script>
 </body>
 </html>

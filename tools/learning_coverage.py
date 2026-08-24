@@ -12,12 +12,18 @@ import re
 import sys
 
 
-COURSES = {
+FOCUS_COURSES = {
     "math-course": "Undergraduate mathematics",
     "grad-math": "Graduate mathematics",
     "physics-course": "Physics",
     "ai-course": "AI",
 }
+ENGINEERING_COURSES = {
+    "auto-course": "Automation and control",
+    "materials-course": "Materials science",
+    "mech-course": "Mechanical engineering",
+}
+COURSES = FOCUS_COURSES | ENGINEERING_COURSES
 EXCLUDED_LECTURES = {"00-intro.md", "labs.md"}
 LAB_RE = re.compile(r'data-learning-lab=["\']([^"\']+)["\']')
 LEARNING_LAYER_RE = re.compile(
@@ -169,8 +175,17 @@ def main() -> int:
         "Mathematics combined",
         [item for item in measured if item.course in {"math-course", "grad-math"}],
     )
-    focus = combined("focus-total", "Math + physics + AI", measured)
-    report = measured + [mathematics, focus]
+    focus = combined(
+        "focus-total",
+        "Math + physics + AI",
+        [item for item in measured if item.course in FOCUS_COURSES],
+    )
+    engineering = combined(
+        "engineering-total",
+        "Control + materials + mechanical engineering",
+        [item for item in measured if item.course in ENGINEERING_COURSES],
+    )
+    report = measured + [mathematics, focus, engineering]
 
     if args.json:
         print(json.dumps({"coverage": [asdict(item) for item in report], "partial": partial}, ensure_ascii=False, indent=2))

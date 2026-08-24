@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,32 +47,124 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#materials-strengthening-learning-title">学习层：给一根铝合金拉杆做强化预算，先预测四项障碍如何相加</a><ul>
+<li><a href="#1">1. 具体材料工程情境：热处理态铝合金的屈服强度预算</a></li>
+<li><a href="#2">2. 必须作答的预测门：尺度标度与叠加规则</a></li>
+<li><a href="#3-mpa">3. 正式模型桥：四种障碍 → 有量纲的 MPa</a></li>
+<li><a href="#4">4. 动手实验：把晶粒、位错、溶质和析出物联动</a></li>
+<li><a href="#5">5. 误区与模型边界：标度式有适用区间</a></li>
+</ul>
+</li>
 <li><a href="#1-">1. 先读懂一条应力-应变曲线</a></li>
-<li><a href="#2">2. 强化四法（位错的四种障碍物）</a></li>
+<li><a href="#2_1">2. 强化四法（位错的四种障碍物）</a></li>
 <li><a href="#3">3. 高温：另一套规则（蠕变）</a></li>
-<li><a href="#4">4. 数字感与反直觉</a></li>
+<li><a href="#4_1">4. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">性能 I · 强度的微观起源与强化四法<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>线一说"缺陷决定命运"，线二给了操纵组织的手段——本页收获：<strong>强度到底是什么、怎么把它调上去</strong>。核心只有一句话：<strong>塑性变形 = 位错运动，所以强化 = 给位错设障碍</strong>。四种障碍物对应工业上全部四类强化手段，每种都有一个可算的定量关系。</p>
+<p>线一说"缺陷决定命运"，线二给了操纵组织的手段——本页收获：<strong>强度到底是什么、怎么把它调上去</strong>。对晶态金属的常温塑性近似而言，<strong>塑性变形常可看作位错运动，所以强化常从给位错设障碍入手</strong>。四种障碍物对应工业上常见的四类强化手段，每类都有可校准的定量关系。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-strengthening-learning-title" class="learning-layer">
+<h2 id="materials-strengthening-learning-title">学习层：给一根铝合金拉杆做强化预算，先预测四项障碍如何相加<a class="headerlink" href="#materials-strengthening-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：热处理态铝合金的屈服强度预算<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一根铝合金拉杆需要在不改变几何的情况下提高屈服强度。显微组织给出晶粒尺寸 <span class="arithmatex">\(d\)</span>、位错密度 <span class="arithmatex">\(\rho\)</span>、固溶元素浓度 <span class="arithmatex">\(c\)</span> 和硬质析出物间距 <span class="arithmatex">\(\lambda\)</span>。材料工程师要先做一张可审计的教学账本，再决定细晶、加工、固溶或时效哪一个旋钮值得继续试验；这张账本不等同于标准牌号的完整本构模型。</p>
+<h3 id="2">2. 必须作答的预测门：尺度标度与叠加规则<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前回答三题：晶粒尺寸减半时 Hall-Petch 项向哪边变化？位错密度增加 4 倍时 Taylor 项增加几倍？析出物间距减小时，在仍由 Orowan 绕过控制的区间内，强化项如何变化？三题完成后才显示 MPa 贡献柱图和闭合账本。</p>
+<h3 id="3-mpa">3. 正式模型桥：四种障碍 → 有量纲的 MPa<a class="headerlink" href="#3-mpa" title="Permanent link"></a></h3>
+<p>本实验把 <span class="arithmatex">\(d\)</span>、<span class="arithmatex">\(b\)</span>、<span class="arithmatex">\(\lambda\)</span> 用 m，<span class="arithmatex">\(G\)</span> 用 Pa，<span class="arithmatex">\(\rho\)</span> 用 <span class="arithmatex">\(\mathrm{m^{-2}}\)</span>，最后统一除以 <span class="arithmatex">\(10^6\)</span> 转成 MPa：</p>
+<div class="arithmatex">\[
+\Delta\sigma_{HP}=k_y d^{-1/2},\qquad
+\Delta\sigma_T=M\alpha Gb\sqrt{\rho},
+\]</div>
+<div class="arithmatex">\[
+\Delta\sigma_{SS}=K_{SS}\sqrt{c},\qquad
+\Delta\sigma_O=0.40\,\frac{MGb}{\lambda}.
+\]</div>
+<p>默认 <span class="arithmatex">\(\sigma_0=70\ \mathrm{MPa}\)</span>、<span class="arithmatex">\(k_y=0.70\ \mathrm{MPa\sqrt m}\)</span>、<span class="arithmatex">\(M=3\)</span>、<span class="arithmatex">\(\alpha=0.25\)</span>、<span class="arithmatex">\(G=26\ \mathrm{GPa}\)</span>、<span class="arithmatex">\(b=0.286\ \mathrm{nm}\)</span>、<span class="arithmatex">\(K_{SS}=120\ \mathrm{MPa}/\sqrt{\mathrm{wt\%}}\)</span>；<span class="arithmatex">\(c\)</span> 只是 wt% 教学代理。叠加规则明确取<strong>线性相加</strong>：</p>
+<div class="arithmatex">\[
+\sigma_y^*=\sigma_0+\Delta\sigma_{HP}+\Delta\sigma_T+\Delta\sigma_{SS}+\Delta\sigma_O.
+\]</div>
+<p>线性相加是为了让每一项可追账，不是说真实障碍彼此独立，也不是说四项可以在所有温度、应变率和组织尺度下同时适用。</p>
+<h3 id="4">4. 动手实验：把晶粒、位错、溶质和析出物联动<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-strengthening-ledger">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(d=20\ \mu\mathrm m\)</span>、<span class="arithmatex">\(\rho=10^{14}\ \mathrm{m^{-2}}\)</span>、<span class="arithmatex">\(c=1.5\ \mathrm{wt\%}\)</span>（代理）、<span class="arithmatex">\(\lambda=100\ \mathrm{nm}\)</span>。线性教学账本给出 <span class="arithmatex">\(\Delta\sigma_{HP}=156.52\)</span> MPa、<span class="arithmatex">\(\Delta\sigma_T=55.77\)</span> MPa、<span class="arithmatex">\(\Delta\sigma_{SS}=146.97\)</span> MPa、<span class="arithmatex">\(\Delta\sigma_O=89.23\)</span> MPa，合计 <span class="arithmatex">\(\sigma_y^*=518.50\)</span> MPa。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 公式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基体 <span class="arithmatex">\(\sigma_0\)</span></td>
+<td style="text-align: right;">70.00</td>
+<td>MPa</td>
+</tr>
+<tr>
+<td>Hall-Petch <span class="arithmatex">\(\Delta\sigma_{HP}\)</span></td>
+<td style="text-align: right;">156.52</td>
+<td>MPa；<span class="arithmatex">\(0.70/\sqrt{d(\mathrm m)}\)</span></td>
+</tr>
+<tr>
+<td>Taylor <span class="arithmatex">\(\Delta\sigma_T\)</span></td>
+<td style="text-align: right;">55.77</td>
+<td>MPa；<span class="arithmatex">\(M\alpha Gb\sqrt\rho\)</span></td>
+</tr>
+<tr>
+<td>固溶 <span class="arithmatex">\(\Delta\sigma_{SS}\)</span></td>
+<td style="text-align: right;">146.97</td>
+<td>MPa；<span class="arithmatex">\(120\sqrt{c(\mathrm{wt\%})}\)</span> 代理</td>
+</tr>
+<tr>
+<td>Orowan <span class="arithmatex">\(\Delta\sigma_O\)</span></td>
+<td style="text-align: right;">89.23</td>
+<td>MPa；<span class="arithmatex">\(0.40MGb/\lambda\)</span></td>
+</tr>
+<tr>
+<td>线性教学总账</td>
+<td style="text-align: right;">518.50</td>
+<td>MPa；各项相加</td>
+</tr>
+<tr>
+<td>闭合残差</td>
+<td style="text-align: right;">0</td>
+<td>MPa</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：标度式有适用区间<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>Hall-Petch 常在特定晶粒范围、温度和变形机制下近似线性；极细晶、晶界滑移、晶界偏聚和孔隙会改变甚至反转趋势，不能把一个 <span class="arithmatex">\(k_y\)</span> 迁移到所有材料。</li>
+<li>Taylor 关系把位错障碍平均成 <span class="arithmatex">\(\sqrt\rho\)</span> 的统计代理；位错排列、动态回复、织构、应变路径和应变率会改变系数。固溶 <span class="arithmatex">\(\sqrt c\)</span> 也依赖溶质尺寸失配、弹性模量失配、浓度范围和相互作用。</li>
+<li>Orowan 项只对应硬质粒子、绕过机制和可定义的间距；小而软的粒子可能被切过，过时效会粗化并使间距增大，高温还会发生溶解或回复。</li>
+<li>线性叠加不是物理守恒定律；不同障碍可能共享同一位错群、屏蔽彼此的应力场，真实屈服强度需要显微、拉伸和温度/应变率校准。<span class="arithmatex">\(E\)</span> 通常比屈服强度对热处理更不敏感，但成分、相变、织构、孔隙、温度和测量方向仍可能改变它。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若你把晶粒细化到纳米级却发现强度不再按 Hall-Petch 上升，会先检查晶界滑移、偏聚还是测量应变率？若析出物从“切过”转为“Orowan 绕过”，应把账本中的哪一项和哪一个结构尺度换掉？</p>
+</div>
+</section>
 <h2 id="1-">1. 先读懂一条应力-应变曲线<a class="headerlink" href="#1-" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Stress-strain curves of three material families" src="assets/img/mat-08-stressstrain.svg" /></p>
-<figcaption><span class="fig-id">图 8.1</span>三大家族的拉伸曲线（示意）：陶瓷弹性段陡而短、直接断（×）；金属屈服后加工硬化再颈缩；高分子模量低但应变可达百分之几十——键合（结构 I）的性格在宏观曲线上原样显形。</figcaption>
+<figcaption><span class="fig-id">图 8.1</span>三大家族的拉伸曲线（示意）：许多工程陶瓷弹性段陡而短、塑性很小；金属常见屈服后加工硬化再颈缩；许多高分子模量较低但可有较大应变——键合（结构 I）的性格在宏观曲线上显形，具体曲线依材料和测试温度而变。</figcaption>
 </figure>
-<p><strong>五个必读量</strong>：弹性模量 <span class="arithmatex">\(E\)</span>（斜率——键的事，热处理改不动，结构 I）；<strong>屈服强度 <span class="arithmatex">\(\sigma_y\)</span></strong>（位错开始大规模运动——本页主角，可调三倍以上）；抗拉强度 <span class="arithmatex">\(\sigma_{UTS}\)</span>（颈缩起点）；延伸率（韧性的粗指标）；曲线下面积（断裂功 ≈ 韧性）。</p>
-<p><strong>工程应力应变 vs 真应力应变</strong>：前者用原始截面（工程用、有"下降段"假象），后者用瞬时截面（材料本构、单调上升）——颈缩后的下降是几何效应不是材料变软【研：Considère 判据 <span class="arithmatex">\(d\sigma/d\varepsilon = \sigma\)</span> 给颈缩起点】。</p>
-<h2 id="2">2. 强化四法（位错的四种障碍物）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>五个必读量</strong>：弹性模量 <span class="arithmatex">\(E\)</span>（斜率——主要受键合、晶格和温度控制，热处理通常影响较小但并非绝对不变，结构 I）；<strong>屈服强度 <span class="arithmatex">\(\sigma_y\)</span></strong>（位错开始大规模运动——本页主角，可调三倍以上）；抗拉强度 <span class="arithmatex">\(\sigma_{UTS}\)</span>（颈缩起点）；延伸率（韧性的粗指标）；曲线下面积（断裂功 ≈ 韧性）。</p>
+<p><strong>工程应力应变 vs 真应力应变</strong>：前者用原始截面（工程用、有"下降段"假象），均匀变形阶段的真应力可用瞬时截面定义；进入颈缩后截面和应变场已局部化，不能靠均匀截面换算得到可靠的真应力—真应变本构曲线，需要颈部几何、数字图像相关或本构反演。工程应力的下降不自动等于材料本构变软【研：Considère 判据 <span class="arithmatex">\(d\sigma/d\varepsilon = \sigma\)</span> 给颈缩起点】。</p>
+<h2 id="2_1">2. 强化四法（位错的四种障碍物）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -71,32 +178,32 @@
 <tr>
 <td><strong>加工硬化</strong></td>
 <td>位错互相缠结</td>
-<td><span class="arithmatex">\(\sigma \propto \sqrt{\rho}\)</span>（Taylor）</td>
+<td>特定应变区间可用 <span class="arithmatex">\(\sigma \propto \sqrt{\rho}\)</span>（Taylor 代理）</td>
 <td>塑性耗尽、需退火恢复</td>
 </tr>
 <tr>
 <td><strong>固溶强化</strong></td>
 <td>溶质原子的应力场</td>
-<td><span class="arithmatex">\(\Delta\sigma \propto \sqrt{c}\)</span>（间隙式更凶）</td>
-<td>导电导热下降</td>
+<td>某些稀释范围可用 <span class="arithmatex">\(\Delta\sigma \propto \sqrt{c}\)</span></td>
+<td>导电导热可能下降，系数依溶质而变</td>
 </tr>
 <tr>
 <td><strong>细晶强化</strong></td>
 <td>晶界</td>
-<td><strong>Hall–Petch</strong> <span class="arithmatex">\(\sigma_y = \sigma_0 + kd^{-1/2}\)</span></td>
-<td>几乎无代价（唯一"强韧双赢"）</td>
+<td>在适用晶粒范围近似 <strong>Hall–Petch</strong> <span class="arithmatex">\(\sigma_y = \sigma_0 + kd^{-1/2}\)</span></td>
+<td>常能兼顾强韧，但晶界稳定性、加工难度和极细晶机制要另算</td>
 </tr>
 <tr>
 <td><strong>析出/弥散强化</strong></td>
 <td>第二相粒子</td>
-<td>切过 or 绕过（Orowan <span class="arithmatex">\(\Delta\sigma \propto 1/\lambda\)</span>）</td>
-<td>过时效退化、高温不稳</td>
+<td>切过 or 绕过（特定 Orowan 区间 <span class="arithmatex">\(\Delta\sigma \propto 1/\lambda\)</span>）</td>
+<td>过时效、溶解和高温粗化风险</td>
 </tr>
 </tbody>
 </table>
 <figure class="plot">
 <p><img alt="Hall-Petch relation" src="assets/img/mat-08-hallpetch.svg" /></p>
-<figcaption><span class="fig-id">图 8.2</span>Hall–Petch 关系：屈服强度对 \(d^{-1/2}\) 呈直线——晶粒从 250 μm 细化到 4 μm，强度可翻倍以上；细晶是唯一**同时**提高强度与韧性的手段。</figcaption>
+<figcaption><span class="fig-id">图 8.2</span>Hall–Petch 关系：在这组示意材料与晶粒范围内，屈服强度对 \(d^{-1/2}\) 近似呈直线；细晶常有机会同时改善强度与韧性，但并非所有材料、尺度和温度下都如此。</figcaption>
 </figure>
 <figure class="diagram">
 <p><img alt="Four obstacle families for strengthening" src="assets/img/mat-08-strengthening.svg" /></p>
@@ -107,19 +214,19 @@
 <p><img alt="Precipitation strengthening: cutting versus bypass" src="assets/img/mat-08-precipitation.svg" /></p>
 <figcaption><span class="fig-id">图 8.4</span>析出强化的两条竞争路径：小而软的粒子被位错切过，大而硬的粒子迫使位错绕过并留下 Orowan 环；两条强度曲线的交点对应峰值时效，继续长大则进入过时效。</figcaption>
 </figure>
-<p><strong>Hall–Petch 的边界</strong>：晶粒细到 ~10–20 nm 以下出现<strong>反 Hall–Petch</strong>（晶界体积占比过大、变形机制切换为晶界滑动）——纳米材料的著名转折【研】。</p>
+<p><strong>Hall–Petch 的边界</strong>：在一些材料和试验条件下，晶粒进入纳米尺度后可能出现<strong>反 Hall–Petch</strong>（晶界体积占比增大、晶界滑移或扩散参与变强）；转折尺度不是普适的 10–20 nm 常数，需按材料、纯度、温度和应变率标定【研】。</p>
 <h2 id="3">3. 高温：另一套规则（蠕变）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>温度超过 <span class="arithmatex">\(0.4T_m\)</span> 后，"强度"这个概念要换成<strong>蠕变抗力</strong>：恒应力下应变随时间缓慢增长（一次/稳态/三次三段）。稳态蠕变率</p>
+<p>当温度进入某材料的高温扩散/蠕变显著区（工程初筛有时以约 <span class="arithmatex">\(0.4T_m\)</span>，<span class="arithmatex">\(T_m\)</span> 用 K 表示，但这不是普适阈值）后，"强度"这个概念要换成<strong>蠕变抗力</strong>：恒应力下应变随时间缓慢增长（一次/稳态/三次三段）。稳态蠕变率</p>
 <div class="arithmatex">\[
 \dot\varepsilon = A\,\sigma^n \exp\Big(-\frac{Q_c}{RT}\Big)
 \]</div>
-<p>——又是 Arrhenius（热力 II 的老朋友）。抗蠕变设计的三条铁律：<strong>提高熔点</strong>（钨、铌基）；<strong>消灭晶界</strong>（涡轮叶片做成单晶！结构 III 埋的伏笔在此兑现——晶界高温是软肋）；<strong>堆稳定的析出相</strong>（镍基高温合金的 γ′ 相占体积 60%+，且高温下不粗化）。</p>
+<p>——又是 Arrhenius（热力 II 的老朋友）。抗蠕变设计的三类思路：提高熔点并控制扩散（钨、铌基等候选）；减少高温晶界滑移（某些涡轮叶片采用单晶，但制造、取向和环境有代价）；设计在服役温度下粗化较慢的析出相（镍基高温合金的 γ′ 体积分数和稳定性依成分、热处理和温度而变，仍会粗化或溶解）。</p>
 <p><strong>主线回响</strong>：室温怕位错动、高温怕晶界动——<strong>"什么在动"决定"设计什么"</strong>，服役温度是选材的第一分水岭。</p>
-<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感与反直觉<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
 <li>强度谱（MPa）：退火纯铝 ~35 ｜ 6061-T6 ~276 ｜ 低碳钢 ~250 ｜ 4340 淬火回火 ~1500 ｜ 马氏体时效钢 ~2000 ｜ 碳纤维束 ~4000；</li>
 <li>比强度（强度/密度）才是航空的货币：钛合金与高强钢强度相近但密度只有 57%；</li>
-<li><strong>反直觉三连</strong>：加工硬化让金属变强却<strong>变脆</strong>（塑性储备被提前消耗）；最强的钢不是最硬的钢（硬度高≠承载能力强，还要看韧性——下一页）；<strong>细晶是唯一的免费午餐</strong>——其余三法都在拿塑性/导电/热稳定性换强度。</li>
+<li><strong>反直觉三连</strong>：加工硬化让金属变强却<strong>可能变脆</strong>（塑性储备被提前消耗）；最强的钢不是最硬的钢（硬度高≠承载能力强，还要看韧性——下一页）；细晶在许多工程窗口里能同时改善强度与韧性，但也有晶界稳定、成本、织构和纳米机制边界，并非无条件的强韧双赢。</li>
 </ul>
 <p>【研】对标 Courtney《Mechanical Behavior of Materials》与 Dieter；Taylor 关系推导、Orowan 应力、蠕变机制图（Ashby map）、Larson–Miller 参数外推是研究生标准装备。</p>
 <hr />
@@ -133,5 +240,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-strengthening-ledger.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,123 +46,202 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、状态反馈与极点配置</a></li>
-<li><a href="#lqr">二、LQR：把设计变成优化</a></li>
-<li><a href="#lqr_1">三、LQR 的保证与它的破灭</a></li>
-<li><a href="#_2">四、跟踪与积分作用</a></li>
-<li><a href="#lqr_2">五、LQR 与经典方法的关系</a></li>
-<li><a href="#lqr_3">六、LQR 的局限</a></li>
-<li><a href="#_3">七、要点</a></li>
+<li><a href="#_1">学习层：给航向稳定器选一个有限时域反馈</a><ul>
+<li><a href="#1">1. 具体工程情境：无人车横摆误差要压下去，但执行器能量有限</a></li>
+<li><a href="#2-riccati">2. 正式模型：后向 Riccati 证书接上前向成本账</a></li>
+<li><a href="#3-riccati">3. 动手实验：看 Riccati 递推如何把权衡传到每一个时刻</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、从极点配置到代价设计</a></li>
+<li><a href="#lqr">二、离散与连续 LQR</a></li>
+<li><a href="#lqr_1">三、LQR 稳定性与裕度：条件化的结论</a></li>
+<li><a href="#_3">四、跟踪、积分与前馈</a></li>
+<li><a href="#lqr-mpc">五、LQR 与 MPC、观测器的关系</a></li>
+<li><a href="#_4">六、要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii-lqr">现代 II · 极点配置与 LQR<a class="headerlink" href="#ii-lqr" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>层次</strong>：本科核心 ｜ 🔗 前置：线性代数、二次型（数学站）。
-上一页说"能控就能任意配置极点"。但<strong>该把极点放在哪里？</strong> 任意配置给了自由，却没给判据——放得太左响应快但控制量巨大、易饱和。<strong>LQR（线性二次型调节器）</strong>用一个优化问题回答了这个问题，并附赠一个漂亮的鲁棒性保证。</p>
+<p><strong>层次</strong>：本科核心｜🔗 前置：状态空间、线性代数、二次型（数学站）。
+极点配置告诉我们“能把动态搬到哪里”，但没有告诉我们响应速度、控制能量和执行器负担如何取舍。LQR 把这个取舍写进二次代价，再由 Riccati 方程给出反馈；它很系统，但它的稳定性和裕度结论都有明确的模型、时域、权重与回路条件。</p>
 </blockquote>
-<h2 id="_1">一、状态反馈与极点配置<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p><strong>状态反馈</strong>：<span class="arithmatex">\(u = -Kx\)</span>，闭环变为</p>
-<div class="arithmatex">\[\dot{x} = (A - BK)x\]</div>
-<p><strong>定理</strong>：若 <span class="arithmatex">\((A,B)\)</span> 能控，则通过选择 <span class="arithmatex">\(K\)</span> 可以把 <span class="arithmatex">\(A-BK\)</span> 的特征值配置到<strong>任意期望位置</strong>（复数需共轭成对）。</p>
-<p><strong>这是一个很强的结论</strong>——它说明能控性一旦满足，动态特性完全可以重塑。单输入情形可用 Ackermann 公式直接算出 <span class="arithmatex">\(K\)</span>。</p>
-<p><strong>但问题随之而来</strong>：期望极点该选在哪？</p>
-<ul>
-<li>放得太靠左 → 响应快，但<strong>所需控制量巨大</strong>（第三页：执行器会饱和），且<strong>高带宽会激发未建模的高频动态</strong>（第二页）；</li>
-<li>放得太靠右 → 慢；</li>
-<li>多输入系统的 <span class="arithmatex">\(K\)</span> <strong>不唯一</strong>，还有额外自由度不知如何使用。</li>
-</ul>
-<p><strong>极点配置给了工具，没给判据。这正是 LQR 要解决的。</strong></p>
-<h2 id="lqr">二、LQR：把设计变成优化<a class="headerlink" href="#lqr" title="Permanent link"></a></h2>
-<p>不再直接指定极点，而是<strong>指定我们在意什么</strong>，让数学去找极点。定义二次型代价：</p>
-<div class="arithmatex">\[J = \int_0^\infty \left( x^T Q x + u^T R u \right) dt\]</div>
-<ul>
-<li><span class="arithmatex">\(Q \succeq 0\)</span>：<strong>惩罚状态偏离</strong>（性能）；</li>
-<li><span class="arithmatex">\(R \succ 0\)</span>：<strong>惩罚控制量</strong>（能耗、执行器负担）。</li>
-</ul>
-<p><strong>最优解</strong>：<span class="arithmatex">\(u = -Kx\)</span>，其中</p>
-<div class="arithmatex">\[K = R^{-1}B^T P\]</div>
-<p><span class="arithmatex">\(P\)</span> 是<strong>代数 Riccati 方程</strong>的正定解：</p>
-<div class="arithmatex">\[A^TP + PA - PBR^{-1}B^TP + Q = 0\]</div>
-<p><strong>这个结果的意义</strong>：设计者不再直接猜极点，而是<strong>回答一个更有物理意义的问题——"我更在乎状态偏差还是控制代价？"</strong> 权衡通过 <span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span> 的相对大小表达。</p>
-<p><strong>实用的整定直觉</strong>：</p>
-<ul>
-<li><strong><span class="arithmatex">\(Q\)</span> 变大 / <span class="arithmatex">\(R\)</span> 变小</strong> → 更激进，极点更靠左，控制量更大；</li>
-<li><strong><span class="arithmatex">\(R\)</span> 变大</strong> → 更保守、更省力；</li>
-<li><strong>Bryson 准则</strong>（好用的起点）：把 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 的对角元取为各变量最大可接受值平方的倒数——<strong>这使不同物理量纲的状态被公平地归一化</strong>，是实践中最常用的初始选择。</li>
-</ul>
-<figure>
-<p><img alt="LQR 权重权衡" class="fig-img" src="assets/img/aut_lqr.svg" /></p>
-<figcaption><span class="fig-id">图 8-1</span> 双积分器（质量块位置控制）在不同 \(R\)（控制惩罚）下的 LQR 响应。\(R\) 小（蓝）时控制器激进：状态快速收敛，但<strong>控制量峰值大</strong>（右图），实际中可能超出执行器能力；\(R\) 大（绿）时控制平缓省力，但收敛明显变慢。此例中 \(R\) 从 0.05 增到 20，反馈增益由 \(K\approx[4.5,\,5.4]\) 降到 \([0.16,\,0.37]\)。<strong>LQR 的本质，是让设计者在这条性能—能耗权衡曲线上选点，而非盲目猜极点位置。</strong></figcaption>
-</figure>
-<h2 id="lqr_1">三、LQR 的保证与它的破灭<a class="headerlink" href="#lqr_1" title="Permanent link"></a></h2>
-<p><strong>好消息</strong>：LQR 闭环有极好的鲁棒性质（单输入情形）——<strong>增益裕度为 <span class="arithmatex">\([1/2, \infty)\)</span>，相位裕度至少 60°</strong>。<strong>无论怎么选 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span>，这些裕度都成立。</strong> 这是一个了不起的保证：优化设计自动带来了良好的稳定裕度。</p>
-<p><strong>坏消息，也是控制史上重要的一课</strong>：LQR 需要<strong>全部状态可测</strong>。实际中状态往往测不全，于是用观测器/卡尔曼滤波器估计（下一页），组合成 <strong>LQG（线性二次高斯）</strong>控制器。</p>
-<p><strong>Doyle 在 1978 年给出了一个著名的反例</strong>：<strong>LQG 的鲁棒裕度可以任意小</strong>——即使 LQR 部分与卡尔曼部分各自都很鲁棒，<strong>组合起来可以完全没有保证</strong>。</p>
-<p><strong>这个结果的冲击力</strong>：它说明"分别设计最优的部分，组合起来未必好"，直接动摇了当时对现代控制的乐观预期，并<strong>直接催生了 <span class="arithmatex">\(H_\infty\)</span> 与鲁棒控制理论</strong>（第十六页）。</p>
-<p><strong>教训（超出控制学科的普适性）</strong>：<strong>最优性不蕴含鲁棒性。</strong> 一个针对标称模型优化到极致的设计，可能对模型误差异常脆弱——因为优化会把所有余量榨干。<strong>这与机器学习中"过拟合"的直觉是同构的。</strong></p>
-<h2 id="_2">四、跟踪与积分作用<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>LQR 是<strong>调节器</strong>（把状态推向零）。要<strong>跟踪</strong>非零设定值，需要扩展：</p>
-<ul>
-<li><strong>前馈 + 状态反馈</strong>：<span class="arithmatex">\(u = -Kx + K_r r\)</span>，计算稳态所需的前馈量。<strong>依赖模型精度</strong>，有静差；</li>
-<li><strong>积分增广</strong>：把积分状态 <span class="arithmatex">\(x_i = \int (r-y)dt\)</span> 加入状态向量，对增广系统做 LQR。<strong>这样得到的控制器天然包含积分作用，可消除静差</strong>——即所谓 LQI。<strong>这是工程上的标准做法</strong>，也再次印证第一页的内模原理。</li>
-</ul>
-<h2 id="lqr_2">五、LQR 与经典方法的关系<a class="headerlink" href="#lqr_2" title="Permanent link"></a></h2>
-<p><strong>它们不是对立的</strong>：</p>
-<ul>
-<li>LQR 的闭环极点位置可以画出来，与根轨迹的直觉一致；</li>
-<li>LQR 的回路传递函数满足<strong>Kalman 等式</strong>，由此可导出上面的裕度保证——<strong>这是频域与最优控制的接口</strong>；</li>
-<li>对单输入单输出系统，<strong>精心整定的 PID 与 LQR 的性能往往相差不大</strong>——LQR 的优势主要在 <strong>MIMO</strong> 与<strong>系统化的权衡表达</strong>。</li>
-</ul>
-<p><strong>工业现实</strong>：LQR 在航空航天、机器人、精密运动控制中确有应用（这些领域有好模型、多变量、且值得投入建模成本）。<strong>但在过程工业，PID 仍占主导，高级方法的位置主要由 MPC 占据</strong>（第十七页）——因为 MPC 能处理<strong>约束</strong>，而 LQR 不能。</p>
-<h2 id="lqr_3">六、LQR 的局限<a class="headerlink" href="#lqr_3" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给航向稳定器选一个有限时域反馈<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：无人车横摆误差要压下去，但执行器能量有限<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把采样周期为 <span class="arithmatex">\(0.1\ \mathrm s\)</span> 的航向稳定器写成二状态离散模型：<span class="arithmatex">\(x_1\)</span> 是航向误差，<span class="arithmatex">\(x_2\)</span> 是横摆角速度。</p>
+<div class="arithmatex">\[
+x_{k+1}=Ax_k+Bu_k,\qquad
+A=\begin{bmatrix}1&amp;0.1\\0&amp;0.92\end{bmatrix},\quad
+B=\begin{bmatrix}0\\0.1\end{bmatrix}.
+\]</div>
+<p>本次只做有限时域调节：从 <span class="arithmatex">\(x_0=[1,0]^\mathsf T\)</span> 出发，把状态压向零，同时不把控制输入当成免费的。实验的 <span class="arithmatex">\(N\)</span>、<span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 都是明确的设计选择，且本页暂不把执行器饱和伪装成 LQR 的约束处理。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>有限时域 Riccati 递推应以 <span class="arithmatex">\(P_N=Q_f\)</span>、<span class="arithmatex">\(P_N=0\)</span>，还是某个 <span class="arithmatex">\(K_N\)</span> 开始？</li>
+<li>固定状态权重时，把 <span class="arithmatex">\(R\)</span> 调大，反馈增益和控制能量通常怎样变化？</li>
+<li>“LQR 有 60° 相位裕度”能否无条件套在本页的离散、有限时域、MIMO 实验上？</li>
+</ol>
+</div>
+<h3 id="2-riccati">2. 正式模型：后向 Riccati 证书接上前向成本账<a class="headerlink" href="#2-riccati" title="Permanent link"></a></h3>
+<p>令</p>
+<div class="arithmatex">\[
+Q=\operatorname{diag}(q_1,q_2),\quad R&gt;0,\quad Q_f\succeq0,
+\]</div>
+<p>有限时域代价为</p>
+<div class="arithmatex">\[
+J_N=x_N^\mathsf TQ_fx_N+
+\sum_{k=0}^{N-1}\left(x_k^\mathsf TQx_k+u_k^\mathsf TRu_k\right).
+\]</div>
+<p>从终端权重向前递推：</p>
+<div class="arithmatex">\[
+P_N=Q_f,\qquad S_k=R+B^\mathsf TP_{k+1}B,
+\]</div>
+<div class="arithmatex">\[
+K_k=S_k^{-1}B^\mathsf TP_{k+1}A,\qquad
+P_k=Q+A^\mathsf TP_{k+1}A
+-A^\mathsf TP_{k+1}BK_k.
+\]</div>
+<p>前向执行时</p>
+<div class="arithmatex">\[
+u_k=-K_kx_k,\qquad x_{k+1}=Ax_k+Bu_k.
+\]</div>
+<p>因此每一步的账本应同时列出 <span class="arithmatex">\(x_k,u_k,x_k^\mathsf TQx_k,Ru_k^2\)</span>，末端再加 <span class="arithmatex">\(x_N^\mathsf TQ_fx_N\)</span>。<span class="arithmatex">\(\sum u_k^2\)</span> 可以另作为控制能量指标，但它不等于已经加权进 <span class="arithmatex">\(J_N\)</span> 的 <span class="arithmatex">\(\sum u_k^\mathsf TRu_k\)</span>。</p>
+<h3 id="3-riccati">3. 动手实验：看 Riccati 递推如何把权衡传到每一个时刻<a class="headerlink" href="#3-riccati" title="Permanent link"></a></h3>
+<p>提交三项预测后，拖动 <span class="arithmatex">\(N,q_1,q_2,R\)</span> 和初始误差。图上层画 <span class="arithmatex">\(x_1,x_2\)</span>，下层画 <span class="arithmatex">\(u_k\)</span>；第一张 ledger 是前向成本与控制能量，第二张 ledger 是每个 <span class="arithmatex">\(P_k,K_k,S_k\)</span>。调大 <span class="arithmatex">\(R\)</span> 后不要只看轨迹快慢：要同时核对 <span class="arithmatex">\(\sum x^\mathsf TQx\)</span>、<span class="arithmatex">\(\sum Ru^2\)</span>、<span class="arithmatex">\(\sum u^2\)</span> 与 <span class="arithmatex">\(\min S_k\)</span>。</p>
+<div class="learning-lab" data-learning-lab="auto-lqr-riccati">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取</p>
+<div class="arithmatex">\[
+N=12,\quad Q=\operatorname{diag}(6,1),\quad R=0.7,\quad
+Q_f=\operatorname{diag}(10,2),\quad x_0=[1,0]^\mathsf T.
+\]</div>
+<p>后向第一行给出</p>
 <table>
 <thead>
 <tr>
-<th>局限</th>
-<th>说明</th>
+<th>项目</th>
+<th style="text-align: right;">默认读数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>无法处理约束</strong></td>
-<td>执行器饱和、状态限制无法显式表达。<strong>这是它输给 MPC 的关键</strong>（第十七页）</td>
+<td><span class="arithmatex">\(P_0(1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(60.460\)</span></td>
 </tr>
 <tr>
-<td><strong>需要全状态</strong></td>
-<td>实际需配观测器，进而可能失去鲁棒保证（§3）</td>
+<td><span class="arithmatex">\(K_0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([2.384,1.737]\)</span></td>
 </tr>
 <tr>
-<td><strong>需要模型</strong></td>
-<td>模型误差直接影响性能</td>
+<td><span class="arithmatex">\(S_0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.836\)</span></td>
 </tr>
 <tr>
-<td><strong>二次型代价未必贴合真实目标</strong></td>
-<td>真实目标可能是"不超过某个温度"而非"平方误差最小"</td>
-</tr>
-<tr>
-<td><strong>只对线性系统严格</strong></td>
-<td>非线性需线性化或用 iLQR/DDP 等扩展</td>
+<td><span class="arithmatex">\(\min_k S_k\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.720\)</span></td>
 </tr>
 </tbody>
 </table>
-<h2 id="_3">七、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>前三个前向时刻的账本为：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x_1\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x_2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(u_k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x^\mathsf TQx\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(Ru^2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">−2.384</td>
+<td style="text-align: right;">6.000</td>
+<td style="text-align: right;">3.977</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">−0.238</td>
+<td style="text-align: right;">−1.875</td>
+<td style="text-align: right;">6.057</td>
+<td style="text-align: right;">2.462</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.976</td>
+<td style="text-align: right;">−0.407</td>
+<td style="text-align: right;">−1.440</td>
+<td style="text-align: right;">5.883</td>
+<td style="text-align: right;">1.452</td>
+</tr>
+</tbody>
+</table>
+<p>默认前向汇总为：状态代价 <span class="arithmatex">\(48.814\)</span>、加权控制代价 <span class="arithmatex">\(9.383\)</span>、终端代价 <span class="arithmatex">\(2.263\)</span>、总成本 <span class="arithmatex">\(J=60.460\)</span>、未加权控制能量 <span class="arithmatex">\(\sum u_k^2=13.404\)</span>。若只把 <span class="arithmatex">\(R\)</span> 调到 <span class="arithmatex">\(8\)</span>，第一增益约降为 <span class="arithmatex">\([0.381,0.297]\)</span>，控制能量约为 <span class="arithmatex">\(0.446\)</span>；这不是“响应一定更好”，而是把代价偏好向省力移动。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
-<li><strong>能控 ⟹ 极点可任意配置</strong>，但"放哪里"需要判据；</li>
-<li><strong>LQR 把设计转化为权衡的表达</strong>（<span class="arithmatex">\(Q\)</span> 与 <span class="arithmatex">\(R\)</span>），由 Riccati 方程给出最优增益；</li>
-<li><strong>LQR 有优良的裕度保证，但 LQG 可能完全没有</strong>（Doyle 反例）——<strong>最优性不蕴含鲁棒性</strong>；</li>
-<li><strong>积分增广（LQI）</strong>是消除静差的标准做法；</li>
-<li><strong>LQR 的致命短板是不能处理约束</strong>——这一条把我们推向 MPC。</li>
+<li><strong><span class="arithmatex">\(P_N\)</span> 不是随手置零的常数</strong>：有限时域的终端目标由 <span class="arithmatex">\(Q_f\)</span> 表达；换了终端代价，前面所有 <span class="arithmatex">\(K_k\)</span> 都会改变。</li>
+<li><strong>“<span class="arithmatex">\(Q\)</span> 大所以所有增益都更大”不是逐元素定理</strong>：<span class="arithmatex">\(Q,R\)</span> 是矩阵，MIMO 方向会耦合；可靠的说法是代价权衡改变，需看完整 Riccati 解、闭环极点和控制能量。</li>
+<li><strong>经典 LQR 裕度不是本实验的无条件附赠</strong>：常见的单输入 <span class="arithmatex">\(GM\ge1/2\)</span>、<span class="arithmatex">\(PM\ge60^\circ\)</span> 结论属于标准连续时间、无限时域、全状态反馈 LQR 的特定输入回路语境，并需 <span class="arithmatex">\((A,B)\)</span> 可稳定化、<span class="arithmatex">\((Q^{1/2},A)\)</span> 可检测、<span class="arithmatex">\(Q\succeq0,R\succ0\)</span> 等条件。离散/有限时域、输入饱和、时延或 LQG 组合不能直接继承这句话。</li>
+<li><strong>MIMO 没有唯一的单通道相位裕度</strong>：应明确断开哪个输入回路、保持哪些回路闭合，并用 return-difference <span class="arithmatex">\(I+L(s)\)</span>、最小奇异值或 disk margin 描述多变量余量；不能把 SISO 的每通道数字无条件复制。</li>
+<li><strong>最优不等于现实安全</strong>：LQR 代价不表达硬输入/状态约束；模型误差、量化、采样和观测器误差需另行验证，必要时使用抗饱和、MPC 或鲁棒设计。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果横摆执行器有严格的峰值电流上限，你会先增大 <span class="arithmatex">\(R\)</span>、缩短/延长 <span class="arithmatex">\(N\)</span>，还是改用带约束的 MPC？请把“成本权衡”和“硬约束可行性”区分开，并说明你会检查哪一张 ledger。</p>
+</div>
+</section>
+<h2 id="_2">一、从极点配置到代价设计<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>状态反馈 <span class="arithmatex">\(u=-Kx\)</span> 使闭环矩阵变为 <span class="arithmatex">\(A-BK\)</span>。在 <span class="arithmatex">\((A,B)\)</span> 能控时，理想线性模型允许配置闭环极点；在只要求稳定化时，重点是把所有可控不稳定模态移到稳定区域。极点配置的自由度很大，却没有告诉我们每一步控制要花多少能量，也没有天然处理输入限制。</p>
+<p>LQR 换一个问题问法：在给定模型、初始状态和权重下，哪条轨迹使状态偏差与控制代价的总和最小？这让“快一点还是省力一点”成为可以审计的 <span class="arithmatex">\(Q/R\)</span> 选择，而不是一句模糊的“把极点放左边”。</p>
+<h2 id="lqr">二、离散与连续 LQR<a class="headerlink" href="#lqr" title="Permanent link"></a></h2>
+<p>连续时间无限时域问题为</p>
+<div class="arithmatex">\[
+J=\int_0^\infty(x^\mathsf TQx+u^\mathsf TRu)\,dt,
+\]</div>
+<p>在标准条件下，代数 Riccati 方程</p>
+<div class="arithmatex">\[
+A^\mathsf TP+PA-PBR^{-1}B^\mathsf TP+Q=0
+\]</div>
+<p>给出 <span class="arithmatex">\(K=R^{-1}B^\mathsf TP\)</span>。离散时间有限时域问题则用本页的递推；当系统、权重和时域满足适当条件时，<span class="arithmatex">\(P_k\)</span> 可趋近离散代数 Riccati 解，但有限 <span class="arithmatex">\(N\)</span> 的前端增益仍会受终端权重影响。</p>
+<p>权重应先处理量纲。Bryson 形式的起点是用允许的状态/输入尺度归一化，再选择相对权重；这只是整定起点，不是对非线性、饱和或噪声的保证。</p>
+<h2 id="lqr_1">三、LQR 稳定性与裕度：条件化的结论<a class="headerlink" href="#lqr_1" title="Permanent link"></a></h2>
+<p>标准连续时间无限时域全状态反馈 LQR 在 <span class="arithmatex">\((A,B)\)</span> 可稳定化、<span class="arithmatex">\((Q^{1/2},A)\)</span> 可检测、<span class="arithmatex">\(Q\succeq0\)</span>、<span class="arithmatex">\(R\succ0\)</span> 等条件下，Riccati 稳定化解产生稳定的标称闭环。这个稳定性结论与“某个具体频率裕度”不是同一句话。</p>
+<p>对单输入或明确的 SISO 输入回路，经典 return-difference 推导给出常见的增益/相位裕度下界；教科书常压缩成增益可降至 <span class="arithmatex">\(1/2\)</span>、相位至少 <span class="arithmatex">\(60^\circ\)</span>。使用这些数字时必须写清楚：连续还是离散、无限还是有限时域、全状态还是估计状态、正负反馈约定，以及在哪个输入端断环。</p>
+<p>对 MIMO，令输入回路传递矩阵为 <span class="arithmatex">\(L(s)\)</span>，应考察</p>
+<div class="arithmatex">\[
+R(s)=I+L(s)
+\]</div>
+<p>及其频率上的最小奇异值/结构化裕度。不同输入方向可能有不同脆弱性，单一“相位裕度”无法完整描述矩阵回路。LQG 还会把观测器动力学放进回路，不能把全状态 LQR 的保证直接搬过去。</p>
+<h2 id="_3">四、跟踪、积分与前馈<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>LQR 原生解决的是把状态调到零。非零参考可以用稳态前馈、参考预滤波或积分增广 LQI；积分增广要重新检查增广系统的可稳定化/可检测性和执行器饱和。前馈减小模型已知部分的误差，反馈负责修正不确定部分，两者的稳定性仍需按实际结构分析。</p>
+<h2 id="lqr-mpc">五、LQR 与 MPC、观测器的关系<a class="headerlink" href="#lqr-mpc" title="Permanent link"></a></h2>
+<p>LQR 没有硬约束，MPC 在每个采样时刻显式优化约束；LQR 假设状态可用，实际常与观测器或 Kalman 滤波器结合。分离设计在标称线性条件下很方便，但“控制器最优 + 估计器最优”不等于组合鲁棒性自动成立。若安全边界、测量噪声和延迟重要，就要把它们带回闭环验证。</p>
+<h2 id="_4">六、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<ul>
+<li>有限时域 LQR 的核心是 <span class="arithmatex">\(P_N=Q_f\)</span>、后向 Riccati、前向 <span class="arithmatex">\(u_k=-K_kx_k\)</span>；</li>
+<li><span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(R\)</span> 表达性能—控制代价权衡，前向 ledger 必须把状态、加权控制、终端代价分开；</li>
+<li>标准连续时间无限时域 LQR 的稳定/裕度结论有稳定化、可检测、权重和特定回路条件；</li>
+<li>MIMO 应用 return-difference 与奇异值/结构化裕度，而不是套用一个 SISO 相位数字；</li>
+<li>LQR 不处理硬约束，LQG、采样、饱和和模型误差都需要额外验证。</li>
 </ul>
 <hr />
-<p><em>下一页：LQR 需要全部状态，而实际只能测到一部分。观测器与卡尔曼滤波——如何从含噪的、不完整的测量中重建系统的内部状态。</em></p>
+<p><em>下一页：LQR 需要状态，而真实系统往往只测到带噪输出。观测器与卡尔曼滤波会把“状态不可见”变成可计算的不确定度账。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="07-statespace.html"><span class="pager-label">上一页</span>现代 I · 状态空间与能控能观</a>
@@ -157,5 +251,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-lqr-riccati.js"></script>
 </body>
 </html>

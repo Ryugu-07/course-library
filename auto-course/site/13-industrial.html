@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,15 +46,23 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#plc">学习层：把一次 PLC 扫描拆成输入映像、逻辑、输出映像和总线延迟</a><ul>
+<li><a href="#1-5-ms">1. 具体工程谜题：一个 5 ms 的传感器脉冲为什么可能没有触发输出？</a></li>
+<li><a href="#2">2. 正式模型：四个时间戳比一句“扫描很快”更有用</a></li>
+<li><a href="#3-ledger">3. 动手实验：用时间线和扫描 ledger 检查“看见”和“动作”不是同一时刻</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+<li><a href="#5">5. 正式回到工业控制：把动作链写成可审计的时间契约</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、工业控制系统的层级</a></li>
-<li><a href="#plc">二、PLC 为什么长这样</a></li>
+<li><a href="#plc_1">二、PLC 为什么长这样</a></li>
 <li><a href="#_2">三、现场总线与工业以太网</a></li>
 <li><a href="#_3">四、可靠性与工程实践</a></li>
 <li><a href="#ot">五、工业信息安全（OT 安全）</a></li>
@@ -53,6 +76,74 @@
 <p><strong>层次</strong>：本科接触 + <strong>业界日常</strong> ｜ 这是自动化毕业生最可能真正从事的工作。
 前面十二页讲的是"控制回路"。但一座工厂有<strong>成千上万个回路</strong>，还有联锁、报警、操作界面、数据记录、批次管理。本页讲工业自动化的<strong>实际形态</strong>——它与实验室里的传递函数相距甚远，却是这个专业最大的就业出口。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="plc">学习层：把一次 PLC 扫描拆成输入映像、逻辑、输出映像和总线延迟<a class="headerlink" href="#plc" title="Permanent link"></a></h2>
+<h3 id="1-5-ms">1. 具体工程谜题：一个 5 ms 的传感器脉冲为什么可能没有触发输出？<a class="headerlink" href="#1-5-ms" title="Permanent link"></a></h3>
+<p>假设 PLC 名义扫描周期为 <span class="arithmatex">\(20\ \mathrm{ms}\)</span>，输入总线耗时 <span class="arithmatex">\(1\ \mathrm{ms}\)</span>，逻辑执行耗时 <span class="arithmatex">\(5\ \mathrm{ms}\)</span>，输出总线耗时 <span class="arithmatex">\(1\ \mathrm{ms}\)</span>。现场传感器只在某个时刻保持高电平 <span class="arithmatex">\(5\ \mathrm{ms}\)</span>，而扫描时钟还有确定的抖动。工程师需要回答：输入何时进入 image table，逻辑何时能看到它，输出何时真正刷新，以及短事件会不会落在两次采样之间。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>输入在一次扫描中途变化，正在执行的逻辑会立即看到它吗？</li>
+<li>宽度小于扫描周期的脉冲是否一定能被 PLC 捕获？</li>
+<li>现场总线延迟和抖动应放进平均延迟，还是最坏情况账本？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：四个时间戳比一句“扫描很快”更有用<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>本实验采用周期扫描的最小时序模型。第 <span class="arithmatex">\(k\)</span> 次扫描有开始时刻 <span class="arithmatex">\(t_k\)</span>，输入映像在</p>
+<div class="arithmatex">\[
+t_{in,k}=t_k+\tau_{in,k}
+\]</div>
+<p>冻结；逻辑读到的是这一时刻的快照，逻辑完成于 <span class="arithmatex">\(t_{in,k}+\tau_{logic,k}\)</span>，输出映像在</p>
+<div class="arithmatex">\[
+t_{out,k}=t_{in,k}+\tau_{logic,k}+\tau_{out,k}
+\]</div>
+<p>送到现场。名义周期和总线抖动决定下一次 <span class="arithmatex">\(t_{k+1}\)</span>；平均延迟可以描述典型响应，但输入事件捕获、 watchdog 和安全联锁必须看最坏情况。若事件只在 <span class="arithmatex">\([t_a,t_b)\)</span> 内为高，只有某个 <span class="arithmatex">\(t_{in,k}\)</span> 落在这个区间内时，普通周期输入才会把它记入 image table；高速计数器、硬件锁存或异步 I/O 是另一种架构，不能套用这个结论。</p>
+<h3 id="3-ledger">3. 动手实验：用时间线和扫描 ledger 检查“看见”和“动作”不是同一时刻<a class="headerlink" href="#3-ledger" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调扫描周期、输入/逻辑/输出耗时、总线抖动和事件脉冲的起止时间。SVG 画输入事件、输入映像、逻辑完成和输出更新的时间线；ledger 逐行列 <span class="arithmatex">\(t_k,t_{in,k},t_{out,k}\)</span>（ms）、输入是否被采样、输出是否置位，以及相邻扫描的实际周期。结果区把周期范围/平均值、首次输出响应、保守最坏响应界、脉冲 miss 和 jitter 分开，避免把一个持续高电平的重复采样误当成多次独立事件延迟。</p>
+<div class="learning-lab" data-learning-lab="auto-plc-scan">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取名义扫描周期 <span class="arithmatex">\(20\ \mathrm{ms}\)</span>、输入/逻辑/输出耗时分别为 <span class="arithmatex">\(1/5/1\ \mathrm{ms}\)</span>，总线抖动幅值 <span class="arithmatex">\(2\ \mathrm{ms}\)</span>，事件区间为 <span class="arithmatex">\([8,13)\ \mathrm{ms}\)</span>。输入映像采样只发生在离散的输入时间戳，事件宽度虽为 <span class="arithmatex">\(5\ \mathrm{ms}\)</span>，也不能从“宽度小于扫描周期”直接推出一定捕获；输出更新还要在逻辑和输出总线完成后才发生。数值都是时间单位 ms，不是归一化分数。</p>
+<table>
+<thead>
+<tr>
+<th>账本栏</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input image</code></td>
+<td>输入总线完成时冻结的快照</td>
+</tr>
+<tr>
+<td><code>logic result</code></td>
+<td>只使用该快照计算出的输出映像</td>
+</tr>
+<tr>
+<td><code>output update</code></td>
+<td>输出总线完成后现场才看到的动作</td>
+</tr>
+<tr>
+<td><code>miss</code></td>
+<td>事件没有覆盖任何输入采样时间</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“PLC 是实时的”需要限定为可证明的时间界</strong>：平均扫描时间不能替代最坏逻辑执行时间、通信重传、任务抢占和 watchdog 分析。</li>
+<li><strong>普通周期输入不是事件捕获器</strong>：短脉冲可能 miss；要用硬件锁存、高速计数器、输入中断或改变传感器协议，并重新核对异步竞态。</li>
+<li><strong>输入映像消除了一类竞态，不会消除全部时序风险</strong>：异步总线、跨任务共享、输出刷新顺序和故障安全状态仍需单独定义。</li>
+<li><strong>工业以太网的“微秒级”是配置和负载相关的</strong>：拓扑、同步机制、排队、重传和设备实现会改变延迟/抖动，不能从协议名称直接推导。</li>
+</ul>
+<h3 id="5">5. 正式回到工业控制：把动作链写成可审计的时间契约<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>一条联锁或闭环至少要给出输入采样、逻辑完成、输出更新和故障反应四个时间点，并同时报告平均值、最大值、抖动范围和事件 miss 机制。只有这样，扫描周期才可以进入第十页的延迟/相位预算，也才能判断某个传感器应留在周期扫描中，还是需要异步硬件路径。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>一条高速包装线的光电传感器脉冲宽度只有 <span class="arithmatex">\(2\ \mathrm{ms}\)</span>，普通 PLC 扫描最坏为 <span class="arithmatex">\(18\ \mathrm{ms}\)</span>。你会选择硬件锁存、输入中断、缩短扫描还是改变工艺节拍？请写出捕获率、最坏输出延迟、总线抖动和断电安全状态各自需要的证据。</p>
+</div>
+</section>
 <h2 id="_1">一、工业控制系统的层级<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p>经典的自动化金字塔（今天正在被扁平化，但仍是有用的框架）：</p>
 <table>
@@ -97,24 +188,24 @@
 <li><strong>DCS</strong>：源于流程工业（化工、电力），擅长<strong>大量模拟回路的稳定运行与整体组态</strong>；</li>
 <li><strong>两者的界限今天已相当模糊</strong>。</li>
 </ul>
-<h2 id="plc">二、PLC 为什么长这样<a class="headerlink" href="#plc" title="Permanent link"></a></h2>
+<h2 id="plc_1">二、PLC 为什么长这样<a class="headerlink" href="#plc_1" title="Permanent link"></a></h2>
 <p>PLC 的设计哲学与通用计算机完全不同，理解这一点很重要：</p>
 <p><strong>扫描循环（scan cycle）</strong>——PLC 的核心执行模型：</p>
 <div class="arithmatex">\[\text{读输入映像} \to \text{执行全部程序} \to \text{写输出映像} \to \text{通信与自检} \to \text{循环}\]</div>
 <p><strong>关键特性</strong>：</p>
 <ul>
-<li><strong>输入在扫描开始时一次性冻结</strong>，程序全程使用这份快照；<strong>输出在扫描结束时一次性刷新</strong>。<strong>这消除了程序执行过程中输入变化带来的竞态</strong>——是一个用"批量同步"换取确定性的经典设计；</li>
-<li><strong>扫描周期恒定且有上限保证</strong>（典型 1–50 ms），<strong>这就是实时性</strong>；</li>
+<li><strong>输入映像按具体实现的采样点一次性冻结</strong>，程序全程使用这份快照；<strong>输出映像在规定的刷新点更新</strong>。这消除了程序执行过程中一类输入竞态，但总线、任务和异步 I/O 仍需单独计时；</li>
+<li><strong>名义扫描周期不天然恒定，也不自动拥有可证明的最坏上界</strong>。上界取决于程序 WCET、通信/诊断、任务调度、设备配置和 watchdog 规则；只有把这些纳入测量或分析，才能称为实时约束。</li>
 <li>看门狗监控超时，程序结构上禁止不确定的长循环。</li>
 </ul>
-<p><strong>为什么不用普通电脑跑控制</strong>：通用操作系统的调度不保证最坏情况延迟，一次垃圾回收或页面换出就可能造成几十毫秒的抖动——<strong>而第十页说过，抖动直接吃掉稳定裕度</strong>。工业环境还要求抗电磁干扰、宽温、免维护运行数年。</p>
-<p><strong>编程语言（IEC 61131-3 标准五种）</strong>：</p>
+<p><strong>为什么不能把未做实时配置的普通桌面系统直接当硬实时控制器</strong>：通用操作系统通常不承诺所需的最坏调度延迟，垃圾回收、换页或后台任务都可能制造长尾抖动。工业 PC、实时 Linux 与专用运行时可以承担控制，但仍要给出 WCET、调度、I/O 与环境适应性证据。</p>
+<p><strong>编程语言（IEC 61131-3:2025 的核心语言表述）</strong>：</p>
 <ul>
-<li><strong>梯形图（LD）</strong>：模仿继电器电路，<strong>电气工程师最熟悉</strong>，至今是最普及的语言；</li>
+<li><strong>梯形图（LD）</strong>：模仿继电器电路，<strong>电气工程师最熟悉</strong>；</li>
 <li><strong>功能块图（FBD）</strong>：适合表达信号流与 PID 等模块；</li>
 <li><strong>结构化文本（ST）</strong>：类 Pascal，适合复杂算法；</li>
-<li><strong>顺序功能图（SFC）</strong>：状态机，适合批次与流程步骤；</li>
-<li><strong>指令表（IL）</strong>：已逐步淘汰。</li>
+<li><strong>顺序功能图（SFC）</strong>：作为组织顺序控制的结构元素，适合批次与流程步骤；</li>
+<li><strong>指令表（IL）</strong>：属于历史遗留表示，不再作为当前核心语言依赖。</li>
 </ul>
 <p><strong>一个文化观察</strong>：梯形图在计算机专业者看来相当"落后"，但它让<strong>熟悉继电器逻辑的电气技术人员能够直接读懂与维护</strong>——<strong>在一个必须由现场人员长期维护的系统里，这个可读性优先于表达能力</strong>。这与第六页 PID 的胜出逻辑同源：<strong>生态与人的因素，常比技术先进性更决定成败。</strong></p>
 <h2 id="_2">三、现场总线与工业以太网<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
@@ -150,7 +241,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>4–20 mA 为什么能活这么久</strong>：电流环在长距离上不受线阻影响、抗电磁干扰强，且<strong>"活零点"设计使断线（0 mA）可与真实的零值（4 mA）区分</strong>——<strong>这是一个把故障检测内建进信号编码的漂亮设计</strong>，安全性上至今难以替代。</p>
+<p><strong>4–20 mA 为什么能活这么久</strong>：在发射器/接收器满足规定的供电和负载电压合规范围时，电流环对线阻变化不敏感、抗电磁干扰较强，且<strong>"活零点"设计使断线（0 mA）可与真实的零值（4 mA）区分</strong>。若线阻使设备掉出合规电压范围，信号会失真或无法维持，不能笼统说成不受线阻影响。</p>
 <p><strong>EtherCAT 等运动控制总线</strong>能做到微秒级同步与百微秒级的循环周期，<strong>使多轴协同（数控机床、机器人）成为可能</strong>——这直接支撑了第十九页的机器人应用。</p>
 <h2 id="_3">四、可靠性与工程实践<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>工业系统的评价标准与实验室不同——<strong>正确性与可用性远高于性能</strong>：</p>
@@ -181,8 +272,8 @@
 </tr>
 <tr>
 <td>打补丁</td>
-<td>尽快</td>
-<td><strong>需停机窗口，常延后数年</strong></td>
+<td>按风险尽快处置</td>
+<td><strong>要经过兼容性验证，并安排维护/停机窗口</strong></td>
 </tr>
 <tr>
 <td>设备寿命</td>
@@ -198,7 +289,7 @@
 </table>
 <p><strong>结构性困难</strong>：大量在役设备的协议<strong>设计之初没有认证与加密</strong>（那个年代假定网络是可信的），且<strong>不能随意升级</strong>——停机代价极高，且改动需重新验证安全功能。</p>
 <p><strong>主流防护思路</strong>是<strong>纵深防御与分区隔离</strong>（如按 IEC 62443 的区域与管道模型划分安全区），配合单向网关、白名单、异常流量监测。<strong>本课只讲防护架构的思路，不涉及任何攻击技术细节。</strong></p>
-<p><strong>这是自动化行业近年增长最快的方向之一</strong>，也是一个真实的社会责任问题——<strong>工业控制系统的失效后果是物理的</strong>。</p>
+<p>OT 安全的重要性会随联网范围、威胁模型与法规要求变化；无论市场增速如何，它都是一个真实的社会责任问题，因为工业控制系统的失效后果可能直接进入物理世界。</p>
 <h2 id="_4">六、这一页与理论的关系<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>一个诚实的观察：<strong>很多工业自动化岗位的日常工作，与前面十二页的理论关系不大</strong>——更多是逻辑编程、设备选型、接线调试、故障排查、系统集成。</p>
 <p><strong>但理论并非无用，而是分布不均</strong>：</p>
@@ -215,7 +306,7 @@
 <li><strong>梯形图的胜出源于可维护性</strong>——生态与人的因素常胜过技术先进性；</li>
 <li><strong>4–20 mA 的活零点</strong>是把故障检测内建进信号的经典设计；</li>
 <li><strong>工业系统以可用性与安全为第一指标</strong>，冗余、诊断、报警管理、变更管理是日常；</li>
-<li><strong>OT 安全的优先级与 IT 相反</strong>，且受制于长寿命设备与停机代价；</li>
+<li><strong>OT 与 IT 的风险排序不同但并非简单相反</strong>：机密性、完整性、可用性和 safety 都要按场景权衡，长寿命设备与停机代价会改变处置顺序；</li>
 <li><strong>理论在困难场合才显价值</strong>，但那正是区分工程师水平的地方。</li>
 </ul>
 <hr />
@@ -229,5 +320,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-plc-scan.js"></script>
 </body>
 </html>

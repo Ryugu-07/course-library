@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,46 +47,134 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 高熵合金：从"一主多辅"到"多主元"</a></li>
+<li><a href="#materials-structural-indices-learning-title">学习层：同一批材料换一个受力几何，谁还配叫“最优”？</a><ul>
+<li><a href="#1">1. 具体材料工程情境：轻质结构的第一轮筛选</a></li>
+<li><a href="#2">2. 必须作答的预测门：几何指数、硬约束与各向异性</a></li>
+<li><a href="#3">3. 最小模型与假设：先声明几何，再定义指数</a></li>
+<li><a href="#4">4. 动手实验：切换工况并施加温度/制造边界</a></li>
+<li><a href="#5">5. 误区与模型边界：指数不能替代设计验证</a></li>
+<li><a href="#6">6. 正式回扣：从“新材料”回到约束集</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 高熵合金：从"一主多辅"到"多主元"</a></li>
 <li><a href="#2-">2. 超越"强度-韧性"权衡的几条路</a></li>
-<li><a href="#3">3. 高温材料：叶片的军备竞赛</a></li>
-<li><a href="#4">4. 轻量化与多材料结构</a></li>
-<li><a href="#5">5. 判断框架（比记住名字更重要）</a></li>
+<li><a href="#3_1">3. 高温材料：叶片的军备竞赛</a></li>
+<li><a href="#4_1">4. 轻量化与多材料结构</a></li>
+<li><a href="#5_1">5. 判断框架（比记住名字更重要）</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">前沿 I · 先进结构材料<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>⚠️ 保质期声明</strong>：本线三页为第三档"前沿了望"，内容核对于 <strong>2026-07</strong>，技术与产业化状态以年为单位变动，读时请自行核对最新进展。判断框架长期有效，具体数字与时间表请当快照看。</p>
+<p><strong>状态提示</strong>：本线三页讨论会随论文、标准和产业验证更新。判断框架可迁移，但具体数字、时间表和“已进入应用”的说法都应回到带日期的原始证据核对。</p>
 <p>结构材料的永恒诉求：<strong>更强、更轻、更耐温、更便宜</strong>——而性能 II 说过强度与韧性天生对立、性能 I 说过高温靠熔点与晶界。本页看当代研究如何绕开这些老约束。</p>
 </blockquote>
-<h2 id="1">1. 高熵合金：从"一主多辅"到"多主元"<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>传统合金 = 一种主元 + 少量添加（钢 = Fe + …）。<strong>高熵合金（HEA）</strong>改用 4–5 种以上元素近等摩尔混合——混合熵大 ⇒ 倾向形成<strong>单相固溶体</strong>而非一堆脆性金属间化合物（🔗 热力 I 的熵项在此当主角）。</p>
-<p><strong>四个"效应"</strong>（社区常用叙事，注意各自的证据强度不同）：高熵稳定单相、晶格畸变强化、迟滞扩散（高温稳定）、鸡尾酒效应（性能非线性组合）。</p>
-<p><strong>已验证的亮点</strong>：CrCoNi 系中熵合金在<strong>低温下强度与韧性同时上升</strong>（<span class="arithmatex">\(K_{JIc}\)</span> 突破 200 MPa·√m 量级，冷得越狠越韧——与碳钢的韧脆转变完全相反，性能 II 的对照组）；难熔高熵合金（Nb-Mo-Ta-W 系）目标是超越镍基的服役温度上限。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-structural-indices-learning-title" class="learning-layer">
+<h2 id="materials-structural-indices-learning-title">学习层：同一批材料换一个受力几何，谁还配叫“最优”？<a class="headerlink" href="#materials-structural-indices-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：轻质结构的第一轮筛选<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设计一个承受明确载荷的支撑件。候选是 Al 6061、Ti-6Al-4V、准各向同性 CFRP、316L 和 AZ91。你可以把它近似成拉杆刚度问题，也可以近似成梁的弯曲刚度或强度受限梁；同时必须满足服役温度和最低制造可行性。这个情境故意把“材料名字很先进”和“在当前约束下可用”拆开。</p>
+<h3 id="2">2. 必须作答的预测门：几何指数、硬约束与各向异性<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前回答三题：为什么同一批材料换成梁弯曲工况后指数可能改变？一个归一化指数最高但达不到温度上限的候选，是继续排序还是先淘汰？降低取向质量时，方向敏感的 CFRP 在本教学模型中会变好、保持不变，还是因有效 <span class="arithmatex">\(E\)</span> 与 <span class="arithmatex">\(\sigma\)</span> 受惩罚而下降？三题完成后才显示候选柱图和边界账本。</p>
+<h3 id="3">3. 最小模型与假设：先声明几何，再定义指数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对拉杆刚度、梁弯曲刚度和强度受限梁，分别使用</p>
+<div class="arithmatex">\[
+M_{\rm tie}=\frac{E}{\rho},\qquad
+M_{\rm beam}=\frac{\sqrt E}{\rho},\qquad
+M_{\rm strength\ beam}=\frac{\sigma_y^{2/3}}{\rho}.
+\]</div>
+<p>指数的形式来自不同的几何自由度和约束推导，不是材料的固有“总分”。脚本把 <span class="arithmatex">\(E\)</span> 用 Pa、<span class="arithmatex">\(\sigma_y\)</span> 用 Pa、<span class="arithmatex">\(\rho\)</span> 用 <span class="arithmatex">\(\mathrm{kg/m^3}\)</span>，再把 raw index 相对于当前候选最高值归一化为无量纲柱高。若取向质量用 <span class="arithmatex">\(q\in(0,1]\)</span> 表示，本实验只用一个透明惩罚</p>
+<div class="arithmatex">\[
+E_{\rm eff}=E[1-a(1-q)],\qquad \sigma_{\rm eff}=\sigma_y[1-a(1-q)],
+\]</div>
+<p>其中 <span class="arithmatex">\(a\)</span> 是候选的各向异性敏感度；它是教学代理，不是层合板刚度或织构本构。</p>
+<h3 id="4">4. 动手实验：切换工况并施加温度/制造边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-structural-indices">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认工况为“梁弯曲刚度” <span class="arithmatex">\(M=\sqrt E/\rho\)</span>，要求温度 <span class="arithmatex">\(100\ ^\circ\mathrm C\)</span>、制造可行下限 0.50、取向质量 <span class="arithmatex">\(q=0.90\)</span>。当前所有五个候选通过硬约束；CFRP 的归一化指数为 1.000，是当前候选中的最高者。Al 6061、Ti-6Al-4V、CFRP、316L、AZ91 的归一化指数依次约为 0.601、0.470、1.000、0.339、0.724（无量纲）。</p>
+<table>
+<thead>
+<tr>
+<th>候选</th>
+<th style="text-align: right;"><span class="arithmatex">\(E_{\rm eff}\)</span> / <span class="arithmatex">\(\sigma_{\rm eff}\)</span></th>
+<th style="text-align: right;">归一化指数</th>
+<th>约束状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Al 6061</td>
+<td style="text-align: right;">68.862 GPa / 275.448 MPa</td>
+<td style="text-align: right;">0.601</td>
+<td>可行</td>
+</tr>
+<tr>
+<td>Ti-6Al-4V</td>
+<td style="text-align: right;">113.088 GPa / 872.960 MPa</td>
+<td style="text-align: right;">0.470</td>
+<td>可行</td>
+</tr>
+<tr>
+<td>准各向同性 CFRP</td>
+<td style="text-align: right;">66.850 GPa / 573.000 MPa</td>
+<td style="text-align: right;">1.000</td>
+<td>可行 / 当前最高</td>
+</tr>
+<tr>
+<td>316L</td>
+<td style="text-align: right;">192.421 GPa / 289.130 MPa</td>
+<td style="text-align: right;">0.339</td>
+<td>可行</td>
+</tr>
+<tr>
+<td>AZ91 镁合金</td>
+<td style="text-align: right;">44.325 GPa / 157.600 MPa</td>
+<td style="text-align: right;">0.724</td>
+<td>可行</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：指数不能替代设计验证<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(E^{1/2}/\rho\)</span> 只回答声明过的梁刚度目标。若是拉杆、板、屈曲、疲劳、断裂或连接控制，约束和指数会改变；“比强度高”不自动推出抗疲劳或抗冲击更好。</li>
+<li>温度上限、制造分数和取向质量不是装饰项。硬约束失败的候选不能因为 raw index 高而保留；温度还会改变 <span class="arithmatex">\(E\)</span>、<span class="arithmatex">\(\sigma_y\)</span>、蠕变和氧化，不能只看室温数据。</li>
+<li>CFRP 的方向惩罚只是一个可审计 proxy。真实层合板要看铺层、孔隙、界面、开孔、冲击损伤和失效准则；金属的织构、焊接热影响区和增材各向异性也不能由单个 <span class="arithmatex">\(a\)</span> 概括。</li>
+<li>归一化只表示“在这一批候选、这一种模式和这一套边界下的位置”，不表示跨数据源、跨温度或跨制造路线的绝对性能。</li>
+</ul>
+<h3 id="6">6. 正式回扣：从“新材料”回到约束集<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>材料指数把功能、几何和目标压缩成可排序的表达式；工程落地再用温度、各向异性、制造、连接、成本和失效证据筛选。先进材料的价值不是脱离约束地赢一张排行榜，而是在指定的载荷路径和可制造边界内保留可验证的优势。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果 CFRP 在梁刚度指数上领先，但必须打孔连接且服役温度升到 <span class="arithmatex">\(140\ ^\circ\mathrm C\)</span>，你会把连接、层间断裂、温度软化还是检验成本先升级为硬约束？若改成屈曲或疲劳目标，原来的 <span class="arithmatex">\(\sqrt E/\rho\)</span> 还成立吗？</p>
+</div>
+</section>
+<h2 id="1_1">1. 高熵合金：从"一主多辅"到"多主元"<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>传统合金 = 一种主元 + 少量添加（钢 = Fe + …）。<strong>高熵合金（HEA）</strong>改用 4–5 种以上元素近等摩尔混合——混合熵可能影响相稳定性，但成分、混合焓、加工历史和动力学共同决定是否形成单相固溶体或多相/金属间化合物（🔗 热力 I 的熵项在此当主角）。</p>
+<p><strong>四个"效应"</strong>（社区常用叙事，注意各自的证据强度不同）：高熵可能参与相稳定、晶格畸变可能贡献强化、有人提出迟滞扩散有利于高温稳定、鸡尾酒效应用于描述非线性组合；它们都需要按具体体系和温度验证，不能当作自动成立的定律。</p>
+<p><strong>已有研究亮点</strong>：一些 CrCoNi 系中熵合金研究报告了低温下强度与韧性同时上升（<span class="arithmatex">\(K_{JIc}\)</span> 达到 200 MPa·√m 量级的报道需结合试样、取向和测试方法核对；不能据此概括所有中熵合金）；难熔高熵合金（Nb-Mo-Ta-W 系）被用作探索高温强度的候选体系。</p>
 <p><strong>现实状态</strong>：成本高（含大量 Co、Ni、Ta）、加工与焊接工艺不成熟、大规模数据积累不足——<strong>目前主要在实验室与小批量特种件，尚未大规模替代传统合金</strong>。它更大的意义或许是<strong>打开了成分空间的思维方式</strong>：从"一个主元的周边"扩展到"多主元的中心区"，这也是前沿 III 计算与 AI 大显身手的地方。</p>
 <h2 id="2-">2. 超越"强度-韧性"权衡的几条路<a class="headerlink" href="#2-" title="Permanent link"></a></h2>
 <ul>
 <li><strong>异质结构/梯度纳米晶</strong>：硬区与软区的搭配产生<strong>应变梯度硬化</strong>，兼得强度与延性（梯度纳米晶铜、异构层状钢是十余年来的代表性方向）；</li>
-<li><strong>TRIP/TWIP 钢</strong>：变形诱发相变（马氏体）或孪生持续提供加工硬化 ⇒ 延性不早夭——<strong>汽车用高强钢的第三代主力</strong>（🔗 热力 III 的马氏体在此变成"按需产生"的强化机制）；</li>
-<li><strong>仿生层状结构</strong>：贝壳珍珠层用 95% 脆性文石 + 5% 有机质做到韧性数千倍于纯文石——<strong>界面设计打败成分设计</strong>的经典（增材制造终于给了人类复制这类结构的手段，工艺 II）。</li>
+<li><strong>TRIP/TWIP 钢</strong>：变形诱发相变（马氏体）或孪生持续提供加工硬化 ⇒ 延性不早夭——在部分先进高强钢体系和研究/应用中占有位置，具体“代际”归类随牌号、法规和厂商口径变化（🔗 热力 III 的马氏体在此变成"按需产生"的强化机制）；</li>
+<li><strong>仿生层状结构</strong>：贝壳珍珠层以脆性文石片层和少量有机相构成，通过片层滑移、裂纹偏转、桥联等机制获得远高于单一脆性组分的损伤容限。提升倍数强烈依赖比较指标、尺度和试样，不能用一个“数千倍”替代断裂能或韧性数据。</li>
 </ul>
-<h2 id="3">3. 高温材料：叶片的军备竞赛<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>镍基单晶高温合金</strong>：γ′ 相（Ni₃Al）体积分数 ~60–70%、无晶界（性能 I 蠕变三律的全套实现）、加铼/钌提高稳定性——服役温度已逼近合金熔点的 0.85–0.9（配合气膜冷却 + 热障涂层，燃气温度可高于金属熔点，功能 III）。<strong>瓶颈</strong>：铼稀缺昂贵、进一步提温空间有限。</p>
-<p><strong>下一代候选</strong>：<strong>CMC（陶瓷基复合材料，SiC/SiC）</strong>——密度约为镍基的 1/3、耐温高 150–200 °C，已在民航发动机热端部件（如燃烧室衬套、涡轮罩环）进入服役，扩大到转动件仍是难题；<strong>难熔高熵/Mo-Si-B 系</strong>——高温强度诱人但抗氧化是死穴（工艺 IV 的 PBR 判据：需要靠涂层解决）；<strong>环境障涂层 EBC</strong>——CMC 在燃气水蒸气中会退化，EBC 是其能否扩大应用的关键配套。</p>
-<h2 id="4">4. 轻量化与多材料结构<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 高温材料：叶片的军备竞赛<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>镍基单晶高温合金</strong>：许多牌号用较高体积分数的 <span class="arithmatex">\(\gamma'\)</span> 析出相并消除横向晶界，再配合合金化、定向凝固、气膜冷却与热障涂层。金属实际温度、局部同系温度和燃气温度必须分开报告；燃气温度可高于合金熔点不等于金属本体在该温度服役。铼等元素的成本、密度与相稳定性是进一步提升的约束。</p>
+<p><strong>下一代候选</strong>：<strong>CMC（陶瓷基复合材料，SiC/SiC）</strong>——密度约为镍基的 1/3、耐温潜力高 150–200 °C，已在部分示范或有限部件路线中出现，但具体服役范围、认证状态和部件清单需按供应商与适航记录核对，扩大到转动件仍是难题；<strong>难熔高熵/Mo-Si-B 系</strong>——高温强度诱人但抗氧化是关键挑战（工艺 IV 的 PBR 判据：需要靠涂层解决）；<strong>环境障涂层 EBC</strong>——CMC 在燃气水蒸气中会退化，EBC 是其能否扩大应用的关键配套。</p>
+<h2 id="4_1">4. 轻量化与多材料结构<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>铝-镁-钛的分工</strong>：铝（成熟、便宜、可回收，一体压铸把几十个零件合成一个）、镁（最轻的结构金属，但 HCP 室温成形难 + 耐蚀差，结构 II/工艺 IV 双重限制）、钛（比强度与耐蚀优异、成本与加工性受限）。</p>
-<p><strong>复合材料</strong>：CFRP 已是大飞机主结构材料（787/A350 复材占比约一半），当前焦点转向<strong>降本、快速固化与回收</strong>（热固性树脂回收难是产业痛点，热塑性复材与化学解聚是方向）。</p>
+<p><strong>复合材料</strong>：CFRP 已在若干宽体飞机项目中用于主要结构，公开的复材占比会随型号和统计口径变化；当前焦点转向<strong>降本、快速固化与回收</strong>（热固性树脂回收难是产业痛点，热塑性复材与化学解聚是方向）。</p>
 <p><strong>多材料连接</strong>——"按位置选材"的必然代价：铝-钢、金属-复材连接面临电偶腐蚀（工艺 IV）与热膨胀失配（功能 III）双重夹击 ⇒ 机械连接 + 结构胶 + FSW（工艺 I）的组合方案，<strong>连接技术往往是多材料设计的真正瓶颈</strong>。</p>
-<h2 id="5">5. 判断框架（比记住名字更重要）<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>看到任何"新材料突破"报道，按四问打分：① <strong>性能提升多少 vs 现役材料</strong>（10% 还是 2 倍）；② <strong>能否规模制造</strong>（实验室克级 vs 吨级）；③ <strong>成本与供应链</strong>（含钴/铼/重稀土？）；④ <strong>配套是否齐备</strong>（连接、涂层、检测、标准、数据库）。<strong>材料从实验室到批产的典型周期是 10–20 年</strong>——这条经验规律是所有前沿新闻的最好去魅剂。</p>
+<h2 id="5_1">5. 判断框架（比记住名字更重要）<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>看到任何"新材料突破"报道，按四问打分：① <strong>性能提升多少 vs 现役材料</strong>（10% 还是 2 倍）；② <strong>能否规模制造</strong>（实验室克级 vs 吨级）；③ <strong>成本与供应链</strong>（含钴/铼/重稀土？）；④ <strong>配套是否齐备</strong>（连接、涂层、检测、标准、数据库）。材料从实验室到批产常需多年甚至十年以上，但周期会因工艺、认证和应用场景而变，不能把单一时间范围当规律。</p>
 <hr />
 <p><em>下一页：能源材料——当代材料学投入最密集、也最直接影响你日常账单的战场。</em></p>
 </article>
@@ -83,5 +186,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-structural-indices.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,25 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 链的语言</a></li>
+<li><a href="#materials-polymer-learning-title">学习层：给一只高分子密封圈做时温等效预测，先判断观察窗里的松弛状态</a><ul>
+<li><a href="#1">1. 具体材料工程情境：弹性体密封圈的温度—寿命窗口</a></li>
+<li><a href="#2-deborah">2. 必须作答的预测门：温度、Deborah 数与一个松弛时间</a></li>
+<li><a href="#3-wlf-deborah">3. 正式模型桥：WLF 位移 → Deborah 数 → 应力松弛模量</a></li>
+<li><a href="#4">4. 动手实验：把温度、参考时间和观察窗联动</a></li>
+<li><a href="#5-wlf">5. 误区与模型边界：WLF 是经验位移，不是事故的单因果解释</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 链的语言</a></li>
 <li><a href="#2">2. 玻璃化转变：高分子的中心温度</a></li>
 <li><a href="#3">3. 黏弹性：时间与温度可以互换</a></li>
-<li><a href="#4">4. 增韧、共混与复合</a></li>
+<li><a href="#4_1">4. 增韧、共混与复合</a></li>
 <li><a href="#5">5. 数字感与反直觉</a></li>
 </ul>
 </div>
@@ -51,7 +74,92 @@
 <blockquote>
 <p>塑料、橡胶、纤维、涂料、生物组织——高分子占人类使用材料体积的一半以上，却遵守一套与金属陶瓷完全不同的规则：<strong>性能由"链"的构象、缠结与运动决定</strong>，且<strong>时间与温度可以互换</strong>。本页给这套规则的最小完整版。</p>
 </blockquote>
-<h2 id="1">1. 链的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-polymer-learning-title" class="learning-layer">
+<h2 id="materials-polymer-learning-title">学习层：给一只高分子密封圈做时温等效预测，先判断观察窗里的松弛状态<a class="headerlink" href="#materials-polymer-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：弹性体密封圈的温度—寿命窗口<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一只线性聚合物密封圈看作标准线性固体的<strong>小应变教学代理</strong>。工程师在室温短时试验之外，还要估计较高温度下的应力松弛：同一只密封圈在装配预应变保持不变时，观察窗结束的模量是否已经降到橡胶平台，还是仍处在玻璃态高模量段。这里的 WLF 参数是某一材料/温区的经验标定，不是所有聚合物的常数。</p>
+<h3 id="2-deborah">2. 必须作答的预测门：温度、Deborah 数与一个松弛时间<a class="headerlink" href="#2-deborah" title="Permanent link"></a></h3>
+<p>揭示前先回答三题：在 WLF 经验温区内升温到高于 <span class="arithmatex">\(T_{\rm ref}\)</span>，<span class="arithmatex">\(\tau(T)\)</span> 变快还是变慢？若 <span class="arithmatex">\(\mathrm{De}=\tau/t_{\rm obs}\ll1\)</span>，观察窗结束时模量更接近高平台还是低平台？在 <span class="arithmatex">\(t=\tau\)</span> 时，指数项 <span class="arithmatex">\(\exp(-t/\tau)\)</span> 是 <span class="arithmatex">\(1\)</span>、<span class="arithmatex">\(1/e\)</span> 还是 <span class="arithmatex">\(0\)</span>？三题完成后才显示时间—温度位移、模量曲线和账本。</p>
+<h3 id="3-wlf-deborah">3. 正式模型桥：WLF 位移 → Deborah 数 → 应力松弛模量<a class="headerlink" href="#3-wlf-deborah" title="Permanent link"></a></h3>
+<p>标准线性固体的松弛模量取</p>
+<div class="arithmatex">\[
+E(t,T)=E_{\infty}+E_1\exp[-t/\tau(T)],\qquad
+\tau(T)=\tau_{\rm ref}a_T,
+\]</div>
+<div class="arithmatex">\[
+\log_{10}a_T=-\frac{C_1(T-T_{\rm ref})}{C_2+T-T_{\rm ref}},\qquad
+\mathrm{De}=\frac{\tau(T)}{t_{\rm obs}}.
+\]</div>
+<p><span class="arithmatex">\(T\)</span> 与 <span class="arithmatex">\(T_{\rm ref}\)</span> 的温差用 K 或 °C 都相同；温度本身在热力学表达中用 K。按这个符号约定，<span class="arithmatex">\(T&gt;T_{\rm ref}\)</span> 且 <span class="arithmatex">\(C_1,C_2&gt;0\)</span> 时 <span class="arithmatex">\(a_T&lt;1\)</span>，所以当前温度的松弛时间变短；同一条参考主曲线上的约化时间是 <span class="arithmatex">\(t_{\rm red}=t/a_T\)</span>，升温等价于在参考温度观察更久。<span class="arithmatex">\(E_{\infty}\)</span>、<span class="arithmatex">\(E_1\)</span> 用 GPa，时间用 s，<span class="arithmatex">\(\mathrm{De}\)</span> 与 <span class="arithmatex">\(a_T\)</span> 无量纲。</p>
+<h3 id="4">4. 动手实验：把温度、参考时间和观察窗联动<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-polymer-viscoelasticity">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(E_{\infty}=0.020\ \mathrm{GPa}\)</span>、<span class="arithmatex">\(E_1=2.980\ \mathrm{GPa}\)</span>、<span class="arithmatex">\(\tau_{\rm ref}=1000\ \mathrm s\)</span>、<span class="arithmatex">\(T_{\rm ref}=20\ ^\circ\mathrm C\)</span>、<span class="arithmatex">\(T=30\ ^\circ\mathrm C\)</span>、<span class="arithmatex">\(C_1=17.44\)</span>、<span class="arithmatex">\(C_2=51.6\ \mathrm K\)</span>、<span class="arithmatex">\(t_{\rm obs}=100\ \mathrm s\)</span>。计算得 <span class="arithmatex">\(\log_{10}a_T=-2.83117\)</span>、<span class="arithmatex">\(a_T=0.00147513\)</span>、<span class="arithmatex">\(\tau(T)=1.47513\ \mathrm s\)</span>、<span class="arithmatex">\(\mathrm{De}=0.0147513\)</span>、<span class="arithmatex">\(t_{\rm red}=67790.5\ \mathrm s\)</span>；<span class="arithmatex">\(E(t_{\rm obs})\approx0.0200\ \mathrm{GPa}\)</span>，<span class="arithmatex">\(E(\tau)=1.11628\ \mathrm{GPa}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(E_{\infty}\)</span> / <span class="arithmatex">\(E_1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.020\)</span> / <span class="arithmatex">\(2.980\)</span></td>
+<td>GPa</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(a_T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.00147513\)</span></td>
+<td>无量纲；WLF 时间位移因子</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\tau(T)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.47513\)</span></td>
+<td>s</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_{\rm obs}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(100\)</span></td>
+<td>s</td>
+</tr>
+<tr>
+<td>Deborah 数 <span class="arithmatex">\(\mathrm{De}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0147513\)</span></td>
+<td><span class="arithmatex">\(\tau/t_{\rm obs}\)</span>；观察窗远长于松弛时间</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_{\rm red}=t_{\rm obs}/a_T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(67790.5\)</span></td>
+<td>s；参考温度上的等效观察时间</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(E(t_{\rm obs})\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0200\)</span></td>
+<td>GPa；接近 <span class="arithmatex">\(E_{\infty}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(E(\tau)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.11628\)</span></td>
+<td>GPa；<span class="arithmatex">\(E_{\infty}+E_1/e\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-wlf">5. 误区与模型边界：WLF 是经验位移，不是事故的单因果解释<a class="headerlink" href="#5-wlf" title="Permanent link"></a></h3>
+<ul>
+<li>WLF 只应在已标定的经验温区、指定热历史和时间窗内使用；这里还假定线性小应变、热流变简单材料和单一松弛时间。交联、结晶、多相、含水、化学老化、非线性大应变或多弛豫谱都可能破坏单一 <span class="arithmatex">\(a_T\)</span> 的平移。</li>
+<li>在本符号约定下，升温使 <span class="arithmatex">\(a_T\)</span> 与 <span class="arithmatex">\(\tau(T)\)</span> 变小，增加观察时间使 <span class="arithmatex">\(t/\tau\)</span> 变大；两者都把曲线推进到更松弛的一侧，但不能把“升温 = 永远只改一个时间轴”迁移到所有聚合物。</li>
+<li>低温密封失效常同时受 <span class="arithmatex">\(T_g\)</span> 相对工作温度的位置、加载速率、预压缩、密封间隙/摩擦、几何、材料配方和环境影响。挑战者号 O 形圈事故的工程因果链很复杂；低温与快速加载是重要背景，但不能压缩成单一 <span class="arithmatex">\(T_g\)</span> 机制，也不能用本页代理替代事故重建与合格鉴定。</li>
+<li>这条 <span class="arithmatex">\(E(t)\)</span> 曲线只描述应力松弛的教学模型；真实寿命还需要松弛谱、温度循环、疲劳、氧化/水解和界面接触证据。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若同一密封圈在更高温度下短时测试显示已经松弛，而长期室温仍保持较高密封力，你会先检查 <span class="arithmatex">\(a_T\)</span> 的温区、加载历史还是松弛谱？若材料是半结晶聚合物并跨过 <span class="arithmatex">\(T_g\)</span> 与 <span class="arithmatex">\(T_m\)</span> 之间的组织变化，哪一项边界会先使简单 TTS 失效？</p>
+</div>
+</section>
+<h2 id="1_1">1. 链的语言<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>结构层级</strong>：单体 → 链（分子量 <span class="arithmatex">\(M\)</span>，注意是<strong>分布</strong>不是单值：<span class="arithmatex">\(M_n\)</span> 数均、<span class="arithmatex">\(M_w\)</span> 重均、<span class="arithmatex">\(M_w/M_n\)</span> 多分散度）→ 链的构象（无规线团，均方末端距 <span class="arithmatex">\(\langle R^2\rangle \propto N\)</span>——🔗 随机游走！数学站的布朗运动就是高分子链的构象统计）→ 凝聚态（非晶/半结晶/交联网络）。</p>
 <figure class="diagram">
 <p><img alt="Polymer chain topology spectrum" src="assets/img/mat-10-chain-structures.svg" /></p>
@@ -98,13 +206,13 @@
 <p><strong>半结晶聚合物有两个温度</strong>：<span class="arithmatex">\(T_g\)</span>（非晶区解冻）与 <span class="arithmatex">\(T_m\)</span>（晶区熔化）——PET 瓶身在两者之间被吹塑取向；结晶度决定透明度（球晶散射光 ⇒ 结晶 PE 乳白、非晶 PS 透明）与强度。</p>
 <h2 id="3">3. 黏弹性：时间与温度可以互换<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>高分子既非纯弹性也非纯黏性——<strong>应力响应依赖时间尺度</strong>：蠕变（恒应力下持续变形——塑料椅子坐久了塌）、应力松弛（恒应变下应力衰减——密封圈失效）、滞后（循环加载生热——轮胎滚动阻力）。</p>
-<p><strong>时温等效原理（WLF）</strong>：<strong>升高温度 ≡ 延长观察时间</strong>。<span class="arithmatex">\(10^{-3}\)</span> s 的冲击下橡胶像玻璃（所以低温橡胶密封在快速加载下脆断——挑战者号 O 形圈事故的核心机理：低温使 <span class="arithmatex">\(T_g\)</span> 相对上移 + 快速加载，材料从橡胶态跌进玻璃态）；反之慢加载下塑料像流体。<strong>主曲线法</strong>：短时高温实验外推长时室温寿命——高分子寿命预测的标准工具，也是本页最有工程价值的一招。</p>
+<p><strong>时温等效原理（WLF）</strong>：在已标定的经验温区、线性小应变和热流变简单材料前提下，<strong>升高温度会使松弛时间变短，等价于在参考温度延长观察时间</strong>；用本文约定即 <span class="arithmatex">\(a_T&lt;1\)</span>、<span class="arithmatex">\(t_{\rm red}=t/a_T\)</span> 变大。它不是所有聚合物、所有温区和所有加载历史都成立的普适换轴。<span class="arithmatex">\(10^{-3}\)</span> s 的快速加载下橡胶的表观响应可能更偏高模量；低温密封风险还可能来自弹性恢复变慢、接头转动或间隙变化使密封压力建立不足，以及磨损/侵蚀、材料状态和环境等。挑战者号 O 形圈事故涉及这条多因素链，不能声称试样一定跨过 <span class="arithmatex">\(T_g\)</span>，也不能把事故压缩成单一 <span class="arithmatex">\(T_g\)</span> 机理。<strong>主曲线法</strong>：短时高温实验外推长时室温寿命——必须先验证 TTS 和热历史，再把它作为高分子寿命预测工具。</p>
 <p><strong>橡胶弹性的熵起源</strong>（反直觉之最）：拉伸橡胶时链从无规线团被拉直 ⇒ <strong>构象熵下降</strong>，回复力来自熵而非键的伸长：</p>
 <div class="arithmatex">\[
 f \approx \frac{3k_BT}{Nb^2}\,R
 \]</div>
 <p>——<strong>弹性模量正比于温度</strong>：加热橡胶带它会<strong>收缩</strong>（金属受热膨胀，橡胶受热"变强"）；快速拉伸橡皮筋贴嘴唇会觉得热（熵减放热）。这是热力学第二定律在你手里的实物演示。</p>
-<h2 id="4">4. 增韧、共混与复合<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 增韧、共混与复合<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>增韧机制</strong>：橡胶粒子增韧（HIPS、ABS——粒子引发大量银纹/剪切带耗能）；纤维增强（玻纤/碳纤 + 环氧 = 结构复合材料，🔗 机器的力学站材料页）；共混与相容剂（多数聚合物互不相容——界面工程是配方核心）。</p>
 <p><strong>降解与老化</strong>：紫外（光氧化，加炭黑/受阻胺）、热氧、水解（PET、尼龙）、应力开裂（ESC——洗涤剂 + 应力使 PE 开裂）。<strong>塑料没有"疲劳极限"意义上的永久安全区，寿命是配方 + 环境的函数</strong>。</p>
 <p><strong>可持续性一瞥</strong>：机械回收（分选与降级）、化学回收（解聚回单体，PET 与聚酯路线最成熟）、生物基/可降解（PLA、PHA——注意"可降解"通常需工业堆肥条件，非自然环境速降）。这条线的技术与政策变动快，前沿页保持更新。</p>
@@ -126,5 +234,7 @@ f \approx \frac{3k_BT}{Nb^2}\,R
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-polymer-viscoelasticity.js"></script>
 </body>
 </html>

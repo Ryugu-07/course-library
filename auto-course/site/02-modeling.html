@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,19 +46,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:59</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、从物理定律到微分方程</a></li>
-<li><a href="#_2">二、线性化：控制理论的第一个大近似</a></li>
-<li><a href="#_3">三、传递函数</a></li>
-<li><a href="#_4">四、两个必须警惕的结构</a></li>
-<li><a href="#_5">五、模型误差：工程的真正主题</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#_1">学习层：给线性滑台建一个可审计的质量—弹簧—阻尼模型</a><ul>
+<li><a href="#1">1. 具体工程情境：一记推力，怎样变成位移证据？</a></li>
+<li><a href="#2">2. 正式公式桥：力平衡 → 状态模型 → 传递函数</a></li>
+<li><a href="#3">3. 动手实验：让真实滑台、偏差模型和测量证据同屏</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、从物理定律到微分方程</a></li>
+<li><a href="#_3">二、线性化：控制理论的第一个大近似</a></li>
+<li><a href="#_4">三、传递函数</a></li>
+<li><a href="#_5">四、两个必须警惕的结构</a></li>
+<li><a href="#_6">五、模型误差：工程的真正主题</a></li>
+<li><a href="#_7">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +74,105 @@
 <p><strong>层次</strong>：本科核心 ｜ 🔗 前置：Laplace 变换（数学站）。
 要定量地设计控制器，先得把物理装置写成数学。本页讲建模的基本手法与<strong>传递函数</strong>这个核心工具，并强调一件学校常常一带而过、而工程上决定成败的事：<strong>模型永远是错的，关键是知道它错在哪、错多少。</strong></p>
 </blockquote>
-<h2 id="_1">一、从物理定律到微分方程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给线性滑台建一个可审计的质量—弹簧—阻尼模型<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：一记推力，怎样变成位移证据？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一条带回程弹簧的电动滑台在小位移工作点附近简化为质量 <span class="arithmatex">\(m\)</span>、粘性阻尼 <span class="arithmatex">\(b\)</span>、弹簧刚度 <span class="arithmatex">\(k\)</span>。执行器施加力 <span class="arithmatex">\(F(t)\)</span>，编码器测到位移 <span class="arithmatex">\(x(t)\)</span>。先不要急着套传递函数，写出力平衡：</p>
+<div class="arithmatex">\[
+F(t)-b\dot{x}(t)-kx(t)=m\ddot{x}(t).
+\]</div>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong>对默认的 <span class="arithmatex">\(m=2\ \mathrm{kg}\)</span>、<span class="arithmatex">\(b=1\ \mathrm{N\,s/m}\)</span>、<span class="arithmatex">\(k=18\ \mathrm{N/m}\)</span>、<span class="arithmatex">\(F=1\ \mathrm N\)</span>：</p>
+<ol>
+<li>恒定力最终主要由哪一项平衡？<span class="arithmatex">\(m\ddot x\)</span>、<span class="arithmatex">\(b\dot x\)</span> 还是 <span class="arithmatex">\(kx\)</span>？</li>
+<li>只看最终位移，能否分别识别 <span class="arithmatex">\(m\)</span> 与 <span class="arithmatex">\(b\)</span>？</li>
+<li>若位移已经远超小振幅工作点，线性模型的预测应当被当作事实，还是当作待验证的局部近似？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式公式桥：力平衡 → 状态模型 → 传递函数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(x_1=x\)</span>、<span class="arithmatex">\(x_2=\dot{x}\)</span>，则</p>
+<div class="arithmatex">\[
+\dot{x}_1=x_2,
+\qquad
+\dot{x}_2=\frac{1}{m}(F-bx_2-kx_1),
+\qquad
+y=x_1.
+\]</div>
+<p>在零初始条件下，Laplace 变换给出</p>
+<div class="arithmatex">\[
+G(s)=\frac{X(s)}{F(s)}=\frac{1}{ms^2+bs+k}.
+\]</div>
+<p>对于恒定力 <span class="arithmatex">\(F_0\)</span>，若系统稳定，静态证据是 <span class="arithmatex">\(x_\infty=F_0/k\)</span>；但 <span class="arithmatex">\(m\)</span> 和 <span class="arithmatex">\(b\)</span> 藏在过渡段的固有频率与衰减里。用</p>
+<div class="arithmatex">\[
+\omega_n=\sqrt{\frac{k}{m}},
+\qquad
+\zeta=\frac{b}{2\sqrt{mk}}
+\]</div>
+<p>可以把“振得多快、衰得多快”与参数对应起来。</p>
+<h3 id="3">3. 动手实验：让真实滑台、偏差模型和测量证据同屏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>拖动 <span class="arithmatex">\(m,b,k\)</span> 和阶跃力 <span class="arithmatex">\(F\)</span> 改变真实对象；再拖动模型偏差与测量噪声，观察模型预测与确定性测量序列如何分开。脚本用固定步长的半隐式 Euler 更新</p>
+<div class="arithmatex">\[
+a_k=\frac{F_k-bv_k-kx_k}{m},
+\qquad v_{k+1}=v_k+\Delta t\,a_k,
+\qquad x_{k+1}=x_k+\Delta t\,v_{k+1},
+\]</div>
+<p>并用同一输入、偏差参数生成模型轨迹。右侧 ledger 逐行保留 <span class="arithmatex">\(F,a,x,v,y_{meas},\hat{x}\)</span>；“噪声”不是随机数，而是固定的正弦测量偏差，因此每次拖回同一参数都会得到同一证据。</p>
+<div class="learning-lab" data-learning-lab="auto-modeling-msd">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认真实对象取
+<span class="arithmatex">\(m=2\)</span>、<span class="arithmatex">\(b=1\)</span>、<span class="arithmatex">\(k=18\)</span>，施加 <span class="arithmatex">\(F=1\ \mathrm N\)</span> 的阶跃；若模型偏差为 <span class="arithmatex">\(+20\%\)</span>，脚本使用
+<span class="arithmatex">\(\hat m=2.4\)</span>、<span class="arithmatex">\(\hat b=0.88\)</span>、<span class="arithmatex">\(\hat k=20.88\)</span>，并加入幅值 <span class="arithmatex">\(0.02\ \mathrm m\)</span> 的确定性测量偏差。可先审计：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th style="text-align: right;">真实/观测账</th>
+<th style="text-align: right;">偏差模型账</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初始加速度 <span class="arithmatex">\(a_0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(F/m=0.500\ \mathrm{m/s^2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(F/\hat m\approx0.417\)</span></td>
+<td><span class="arithmatex">\(m\)</span> 主要由起步惯性证据影响</td>
+</tr>
+<tr>
+<td>静态位移</td>
+<td style="text-align: right;"><span class="arithmatex">\(F/k\approx0.0556\ \mathrm m\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(F/\hat k\approx0.0479\ \mathrm m\)</span></td>
+<td>长时间阶跃首先暴露 <span class="arithmatex">\(k\)</span></td>
+</tr>
+<tr>
+<td>固有频率</td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{k/m}=3.00\ \mathrm{rad/s}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\sqrt{\hat k/\hat m}\approx2.95\)</span></td>
+<td>峰值/相位提供动态证据</td>
+</tr>
+<tr>
+<td>测量值</td>
+<td style="text-align: right;"><span class="arithmatex">\(y_{meas}=x+0.02\sin(0.83t+0.4)\)</span></td>
+<td style="text-align: right;">无随机抽样</td>
+<td>观测证据带噪，不等于真状态</td>
+</tr>
+</tbody>
+</table>
+<p>单一小阶跃能给出有用的灰箱检查，却不保证参数唯一：若没有足够的过渡激励，<span class="arithmatex">\(m\)</span> 与 <span class="arithmatex">\(b\)</span> 可能在观测窗口内互相补偿；若摩擦、间隙或弹簧非线性显著，误差不是“再调一个常数”就能消掉。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>稳态位移不是完整模型</strong>：它主要识别 <span class="arithmatex">\(k\)</span> 的静态比值，不能单独把 <span class="arithmatex">\(m\)</span>、<span class="arithmatex">\(b\)</span> 拆开。</li>
+<li><strong>参数可辨识取决于证据</strong>：输入要激发相关动态，采样要足够快，测量噪声要相对小；“有一条曲线”不等于参数唯一。</li>
+<li><strong>线性化是工作点附近的切线</strong>：大位移、库仑摩擦、死区、饱和、间隙和时变刚度都会破坏 <span class="arithmatex">\(m\ddot x+b\dot x+kx=F\)</span> 的适用性。</li>
+<li><strong>模型偏差不是测量噪声</strong>：噪声会让同一模型的观测抖动，参数偏差会让整段轨迹的结构性形状不对，二者诊断方式不同。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果你只能再做一次实验来区分“阻尼变大”和“质量变大”，会选择更长的恒力阶跃、一个短脉冲，还是扫频输入？请说明你希望从哪一段 <span class="arithmatex">\(x(t)\)</span>、<span class="arithmatex">\(v(t)\)</span> 或相位证据中分离这两个参数。</p>
+</div>
+</section>
+<h2 id="_2">一、从物理定律到微分方程<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>三个典型对象，注意它们的<strong>数学形式惊人地相似</strong>：</p>
 <p><strong>① 机械（质量-弹簧-阻尼）</strong>：由牛顿第二定律</p>
 <div class="arithmatex">\[m\ddot{x} + b\dot{x} + kx = F\]</div>
@@ -67,7 +187,7 @@
 <li><strong>数据建模（黑箱）</strong>：从输入输出数据辨识（第十八页）。快速有效，但外推能力差。</li>
 <li><strong>实际常用灰箱</strong>：结构由物理给定，参数由数据拟合。<strong>这是工业上最常见的做法。</strong></li>
 </ul>
-<h2 id="_2">二、线性化：控制理论的第一个大近似<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、线性化：控制理论的第一个大近似<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>真实系统几乎都是非线性的。但线性系统理论极其完备（叠加原理、频域方法、解析解），所以标准做法是<strong>在工作点附近线性化</strong>：</p>
 <div class="arithmatex">\[\dot{x} = f(x,u) \ \Longrightarrow\ \delta\dot{x} \approx \underbrace{\frac{\partial f}{\partial x}}_{A}\delta x + \underbrace{\frac{\partial f}{\partial u}}_{B}\delta u\]</div>
 <p><strong>这个近似的有效性是有条件的</strong>：</p>
@@ -77,7 +197,7 @@
 <li>有些系统在不同工作点的线性化模型差异巨大（如机械臂随姿态变化的惯量）→ 需<strong>增益调度</strong>或非线性方法（第十五页）。</li>
 </ul>
 <p><strong>诚实的说法</strong>：经典控制的整座大厦建立在线性化之上，而<strong>实际系统总有非线性</strong>。这不是理论的失败——<strong>线性设计 + 足够的鲁棒裕度，在绝大多数工业场合工作得很好</strong>。知道近似在哪里会崩，才是关键。</p>
-<h2 id="_3">三、传递函数<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、传递函数<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>对线性时不变（LTI）系统做 Laplace 变换，零初始条件下：</p>
 <div class="arithmatex">\[G(s) = \frac{Y(s)}{U(s)}\]</div>
 <p><strong>它把微分方程变成了代数</strong>——串联即相乘、并联即相加、反馈即 <span class="arithmatex">\(\dfrac{L}{1+L}\)</span>。<strong>这个代数化是经典控制威力的来源。</strong></p>
@@ -90,7 +210,7 @@
 <p><strong>几个标准形式</strong>（务必熟悉，后面反复用）：</p>
 <div class="arithmatex">\[\text{一阶：}\ \frac{K}{\tau s+1}, \qquad \text{二阶：}\ \frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}\]</div>
 <p><span class="arithmatex">\(\tau\)</span> 是时间常数，<span class="arithmatex">\(\zeta\)</span> 是阻尼比，<span class="arithmatex">\(\omega_n\)</span> 是自然频率。<strong>几乎所有实际系统的主导行为，都可以用这两个形式近似</strong>——这是工程上极其有用的简化。</p>
-<h2 id="_4">四、两个必须警惕的结构<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、两个必须警惕的结构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>① 右半平面零点（非最小相位）</strong>：零点在右半平面时，系统的阶跃响应会<strong>先朝相反方向走</strong>再回来。</p>
 <p><strong>物理例子</strong>（都很直观）：</p>
 <ul>
@@ -101,7 +221,7 @@
 <p><strong>为什么它致命</strong>：右半平面零点对可达带宽施加<strong>硬性上限</strong>——你不能把带宽推过它，否则闭环必然不稳定。<strong>这不是设计水平问题，是数学定理</strong>（导论 §3 提到的"不可逾越的守恒律"之一）。<strong>遇到非最小相位系统，第一件事是接受"我的性能有天花板"。</strong></p>
 <p><strong>② 时滞</strong>：<span class="arithmatex">\(e^{-\tau s}\)</span>。幅值不变，相位随频率线性滞后且无上限。同样施加带宽上限，且<strong>是反馈最常见的性能杀手</strong>。</p>
 <p><strong>处理手段</strong>：Smith 预估器（用模型把延迟"移出"回路），但<strong>它对模型误差极其敏感</strong>，工业上使用需谨慎。</p>
-<h2 id="_5">五、模型误差：工程的真正主题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、模型误差：工程的真正主题<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>"所有模型都是错的，有些是有用的"</strong>——这句箴言在控制工程中有具体含义。典型的误差来源：</p>
 <ul>
 <li><strong>未建模的高频动态</strong>：机械共振、执行器动态、传感器滤波。<strong>它们通常在高频，而反馈在高频最容易失稳</strong>——这就是为什么不能无限提高增益；</li>
@@ -116,7 +236,7 @@
 <li>现代层面：<strong><span class="arithmatex">\(H_\infty\)</span> 与结构奇异值</strong>（第十六页）；</li>
 <li>前沿层面：<strong>形式化安全保证</strong>（第二十一页）。</li>
 </ul>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>不同物理领域的模型形式同构</strong>——这是控制工程师能跨行业的原因；</li>
 <li><strong>线性化是整个经典理论的地基</strong>，但饱和、摩擦、间隙等本质非线性总在那里；</li>
@@ -135,5 +255,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-modeling-msd.js"></script>
 </body>
 </html>

@@ -3,6 +3,99 @@
 > **层次**：本科核心。
 > 客户不会说"我要相位裕度 60 度"，他们会说"**要快、别超调、别抖**"。时域指标是控制性能最直观的语言，也是与非专业人士沟通的接口。本页讲清阶跃响应的形状如何由极点决定，以及那些指标之间的**相互冲突**。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+
+## 学习层：给定位平台选阻尼，别把一条经验线当成实测性能
+
+<h3>1. 具体工程情境：同一套执行器，欠阻尼、临界阻尼和过阻尼的代价是什么？</h3>
+
+定位平台在工作点附近可近似为标准二阶闭环
+
+$$
+G(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2},
+\qquad Y(s)=G(s)R(s).
+$$
+
+把单位阶跃命令送入同一平台，调节的是阻尼比 $\zeta$ 和自然频率 $\omega_n$。这里的“2% 调节时间”既可以是工程经验公式，也可以是从真实曲线最后一次离开带宽后的测量；两者不是同一个量。
+
+<div class="cl-prompt" markdown="1">
+
+**预测门，必须先作答：**默认先想象 $\omega_n=4\ \mathrm{rad/s}$：
+
+1. $\zeta=0.5$、$1$、$1.8$ 中哪些会有有限的超调？
+2. 把 $\omega_n$ 加倍会主要改变超调，还是改变时间尺度？
+3. $t_s\approx4/(\zeta\omega_n)$ 是每个阻尼比下的精确最后越界时刻吗？
+
+</div>
+
+<h3>2. 正式公式桥：先求极点，再按阻尼区间写精确响应</h3>
+
+单位阶跃响应按区间为
+
+$$
+y(t)=
+\begin{cases}
+1-e^{-\zeta\omega_n t}\left[\cos(\omega_d t)+
+\dfrac{\zeta}{\sqrt{1-\zeta^2}}\sin(\omega_d t)\right],
+&0\le\zeta<1,\\[6pt]
+1-e^{-\omega_n t}(1+\omega_n t),&\zeta=1,\\[6pt]
+1-\dfrac{p_2e^{p_1t}-p_1e^{p_2t}}{p_2-p_1},&\zeta>1,
+\end{cases}
+$$
+
+其中 $\omega_d=\omega_n\sqrt{1-\zeta^2}$，$p_{1,2}=-\omega_n(\zeta\mp\sqrt{\zeta^2-1})$。欠阻尼时
+
+$$
+M_p=e^{-\pi\zeta/\sqrt{1-\zeta^2}},
+\qquad t_p=\frac{\pi}{\omega_d};
+$$
+
+临界和过阻尼没有有限的峰值超调，曲线从下方单调趋近 1。常用
+$t_{s,2\%}^{heur}\approx4/(\zeta\omega_n)$ 是包络线启发式；实验另用固定时间网格寻找最后一次离开 $[0.98,1.02]$ 的 crossing，并在相邻采样点之间线性插值。
+
+<h3>3. 动手实验：把启发式与测量 crossing 放在同一张账上</h3>
+
+拖动 $\zeta$、$\omega_n$ 和观察窗口。图中给出精确解析曲线、目标值和 2% 带；极点表、超调、峰值时间、启发式 $t_s$、实测 crossing 及“窗口内未找到”边界同时更新。尤其试 $\zeta=0$、$1$ 和大于 $1$：前者无衰减、没有有限 settling，后两者没有有限超调峰值，窗口太短也不能被误报为“已经稳定”。
+
+<div class="learning-lab" data-learning-lab="auto-time-response" markdown="1">
+
+**JavaScript 失效时的静态 fallback：**取 $\zeta=0.5$、$\omega_n=4\ \mathrm{rad/s}$。则
+
+$$
+p=-2\pm j3.464,
+\quad M_p=e^{-\pi(0.5)/\sqrt{0.75}}\approx16.3\%,
+\quad t_p=\frac{\pi}{3.464}\approx0.907\ \mathrm s,
+\quad t_{s,2\%}^{heur}=\frac{4}{2}=2.000\ \mathrm s.
+$$
+
+| 账本项目 | 默认读数 | 边界解释 |
+|---|---:|---|
+| 极点 | $-2\pm j3.464$ | 实部给衰减，虚部给振荡 |
+| 峰值 | $1+M_p\approx1.163$ | 只对 $0<\zeta<1$ 有有限峰值 |
+| 启发式 settling | $2.000\ \mathrm s$ | 包络估计，不保证等于最后 crossing |
+| 实测 settling | 由曲线逐点查找 | 窗口不够或 $\zeta=0$ 时记为未定义 |
+
+脚本用解析公式算每个采样点，不用数值积分；“实测”只指在离散观察窗内从这条精确曲线读 crossing，因此仍受采样间隔和窗口长度影响。
+
+</div>
+
+<h3>4. 误区与模型边界</h3>
+
+- **$t_s=4/(\zeta\omega_n)$ 不是定理**：它来自衰减包络的工程近似，过阻尼时可能明显偏离慢极点控制的真实 crossing。
+- **临界阻尼不是“最快”在所有约束下都成立**：对这个无零点、标准二阶、单位阶跃模型，它无超调且快速；执行器限幅、零点和更高阶模态会改变比较。
+- **$\zeta=0$ 是边界，不是普通欠阻尼**：响应 $1-\cos(\omega_n t)$ 永不衰减，2% settling 没有有限值。
+- **峰值与稳态极限要分开**：单调趋近的临界/过阻尼曲线有上确界 1，但不在有限时间取得“峰值”。
+
+<div class="cl-transfer" markdown="1">
+
+**迁移问题：**仓储机械臂要求超调小于 5%，但又要求 0.4 s 内进入 2% 带。你会先改 $\zeta$ 还是 $\omega_n$？请用 $M_p$ 与极点实部说明为什么只调一个旋钮可能不够，并指出哪个假设要用实测数据重新验证。
+
+</div>
+
+</section>
+
 ## 一、一阶系统：只有一个时间常数
 
 $$G(s) = \frac{K}{\tau s + 1} \quad\Longrightarrow\quad y(t) = K\left(1 - e^{-t/\tau}\right)$$

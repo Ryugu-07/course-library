@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:08</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、频率响应</a></li>
+<li><a href="#_1">学习层：给拾放轴做一次带时滞的开环设计审计</a><ul>
+<li><a href="#1">1. 具体工程情境：速度、相位余量和通信延迟谁先吃掉预算？</a></li>
+<li><a href="#2-bode">2. 正式公式桥：从 Bode 账本读出交叉与裕度</a></li>
+<li><a href="#3-bodenyquist">3. 动手实验：Bode、Nyquist 与逐频率设计账</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、频率响应</a></li>
 <li><a href="#nyquist">二、Nyquist 判据</a></li>
-<li><a href="#_2">三、稳定裕度：离灾难有多远</a></li>
-<li><a href="#_3">四、回路整形：频域设计的思路</a></li>
-<li><a href="#_4">五、水床效应：一条不可逾越的定理</a></li>
-<li><a href="#_5">六、从实测数据出发</a></li>
-<li><a href="#_6">七、要点</a></li>
+<li><a href="#_3">三、稳定裕度：离灾难有多远</a></li>
+<li><a href="#_4">四、回路整形：频域设计的思路</a></li>
+<li><a href="#_5">五、水床效应：一条不可逾越的定理</a></li>
+<li><a href="#_6">六、从实测数据出发</a></li>
+<li><a href="#_7">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +75,106 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>这是工业界最常用的分析语言</strong>。
 频域方法之所以在工程上占主导，有一个极实际的理由：<strong>它可以直接从实测数据出发</strong>——给系统扫频，测出幅值与相位，就能设计控制器，<strong>不需要解析模型</strong>。本页讲 Bode 图、Nyquist 判据、稳定裕度，并揭示控制论最深刻的一条限制：<strong>水床效应</strong>。</p>
 </blockquote>
-<h2 id="_1">一、频率响应<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给拾放轴做一次带时滞的开环设计审计<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：速度、相位余量和通信延迟谁先吃掉预算？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>用一个稳定、可直接计算的对象和超前控制器族：</p>
+<div class="arithmatex">\[
+P(s)=\frac{1}{(1+s/1.2)(1+s/5)},
+\qquad
+C(s)=K\frac{1+s/z}{1+s/p},
+\qquad 0&lt;z&lt;p,
+\]</div>
+<p>再把纯延迟 <span class="arithmatex">\(e^{-\tau s}\)</span> 放进回路，因此</p>
+<div class="arithmatex">\[
+L(s)=C(s)P(s)e^{-\tau s},
+\qquad 1+L(s)=0
+\]</div>
+<p>是标准负反馈的闭环特征方程。<span class="arithmatex">\(P\)</span> 和 <span class="arithmatex">\(C\)</span> 的有限极点都在左半平面；延迟不改幅值，却按 <span class="arithmatex">\(-\omega\tau\)</span> 弧度侵蚀相位。</p>
+<div class="cl-prompt" markdown="1">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>固定 <span class="arithmatex">\(K,z,p\)</span>，增加纯延迟会改变增益交叉频率，还是首先改变交叉处相位？</li>
+<li>若 <span class="arithmatex">\(|L(j\omega)|\)</span> 从未达到 1，按本页的定义相位裕度应写成多少？</li>
+<li>“Nyquist 曲线不包围 <span class="arithmatex">\(-1\)</span>”能否脱离开环右半平面极点数 <span class="arithmatex">\(P\)</span> 单独使用？</li>
+</ol>
+</div>
+<h3 id="2-bode">2. 正式公式桥：从 Bode 账本读出交叉与裕度<a class="headerlink" href="#2-bode" title="Permanent link"></a></h3>
+<p>在相位从低频连续展开、采用负反馈约定时，定义</p>
+<div class="arithmatex">\[
+\omega_{gc}:|L(j\omega_{gc})|=1,
+\qquad
+\mathrm{PM}=180^\circ+\angle L(j\omega_{gc}),
+\]</div>
+<p>以及相位交叉</p>
+<div class="arithmatex">\[
+\omega_{pc}:\angle L(j\omega_{pc})=-180^\circ,
+\qquad
+\mathrm{GM}=\frac{1}{|L(j\omega_{pc})|},
+\qquad
+\mathrm{GM}_{dB}=-20\log_{10}|L(j\omega_{pc})|.
+\]</div>
+<p>如果扫描区间没有相应交叉，margin 就是<strong>未定义</strong>，不是 0。若 <span class="arithmatex">\(\tau=0\)</span> 且相位只在无穷远渐近 <span class="arithmatex">\(-180^\circ\)</span>，有限频率的 GM 也可未定义。对纯延迟，<span class="arithmatex">\(|e^{-j\omega\tau}|=1\)</span>，所以幅值曲线不动，交叉处相位变为
+<span class="arithmatex">\(\angle C(j\omega)+\angle P(j\omega)-\omega\tau\)</span>。</p>
+<h3 id="3-bodenyquist">3. 动手实验：Bode、Nyquist 与逐频率设计账<a class="headerlink" href="#3-bodenyquist" title="Permanent link"></a></h3>
+<p>拖动 <span class="arithmatex">\(K\)</span>、超前零点 <span class="arithmatex">\(z\)</span>、超前极点 <span class="arithmatex">\(p\)</span> 和延迟 <span class="arithmatex">\(\tau\)</span>。图上同时显示幅值 dB、连续展开相位和 Nyquist 正频支；竖线标出 <span class="arithmatex">\(\omega_{gc}\)</span>，水平线标出 <span class="arithmatex">\(-180^\circ\)</span>，<span class="arithmatex">\(-1\)</span> 点旁给出当前曲线距离。右侧 ledger 明列 <span class="arithmatex">\(|P|,|C|,|L|\)</span>、各段相位、延迟相位与总相位，避免把“控制器相位裕度”误读成“闭环极点保证”。</p>
+<div class="learning-lab" data-learning-lab="auto-frequency-margins">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>实验族固定为
+<span class="arithmatex">\(P(s)=1/[(1+s/1.2)(1+s/5)]\)</span>、<span class="arithmatex">\(C(s)=K(1+s/z)/(1+s/p)\)</span>、<span class="arithmatex">\(0&lt;z&lt;p\)</span>，默认 <span class="arithmatex">\(K=1,z=0.5,p=4,\tau=0.08\ \mathrm s\)</span>。读账顺序是：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>计算</th>
+<th>应检查的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><span class="arithmatex">\(\lvert L\rvert=\lvert P\rvert\lvert C\rvert\)</span></td>
+<td>延迟不改变这一列</td>
+</tr>
+<tr>
+<td>2</td>
+<td><span class="arithmatex">\(\phi=\tan^{-1}(\omega/z)-\tan^{-1}(\omega/p)-\tan^{-1}(\omega/1.2)-\tan^{-1}(\omega/5)-\omega\tau\)</span></td>
+<td>延迟项单位是弧度，显示时转成度</td>
+</tr>
+<tr>
+<td>3</td>
+<td>找 <span class="arithmatex">\(\lvert L\rvert=1\)</span> 的最低正频率</td>
+<td>没有交叉则 PM 未定义</td>
+</tr>
+<tr>
+<td>4</td>
+<td>找连续相位 <span class="arithmatex">\(-180^\circ\)</span> 的最低交叉</td>
+<td>没有有限交叉则 GM 未定义</td>
+</tr>
+<tr>
+<td>5</td>
+<td>代回 PM、GM，并看 Nyquist 到 <span class="arithmatex">\(-1\)</span> 的距离</td>
+<td>裕度只抽查交叉点，不替代完整稳定性分析</td>
+</tr>
+</tbody>
+</table>
+<p>这里的 Nyquist 结论遵守 <span class="arithmatex">\(Z=N+P\)</span>：只有在开环极点数、绕行方向和虚轴边界按通常假设处理清楚时，才可把“不包围 <span class="arithmatex">\(-1\)</span>”作为开环稳定情形的简化判据。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>PM/GM 是开环频率量</strong>：它们是闭环设计的诊断指标，不是把开环曲线直接当成闭环响应。</li>
+<li><strong>没有交叉不是零裕度</strong>：它表示当前扫描定义下该裕度未定义；要说明频率范围、相位展开和交叉选择。</li>
+<li><strong>延迟不改幅值不等于没有代价</strong>：它会在高频持续吃相位，可能让 Nyquist 曲线靠近或穿过 <span class="arithmatex">\(-1\)</span>。</li>
+<li><strong>Nyquist 简化判据有前提</strong>：开环有右半平面极点时必须计入 <span class="arithmatex">\(P\)</span>；虚轴极点、重复交叉和非最小相位结构也需要单独处理。</li>
+<li><strong>稳定对象族只是实验边界</strong>：真实设备的采样保持、饱和、未建模共振和时变延迟可能超出这里的解析族。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>远程视觉伺服的延迟从 <span class="arithmatex">\(20\)</span> ms 漂到 <span class="arithmatex">\(80\)</span> ms。你会优先降低 <span class="arithmatex">\(K\)</span>、降低交叉频率，还是调整超前零极点？请同时说明哪一项改变幅值交叉，哪一项改变交叉处相位，并给出一个你会重新测量的闭环指标。</p>
+</div>
+</div>
+</section>
+<h2 id="_2">一、频率响应<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>对 LTI 系统输入正弦 <span class="arithmatex">\(\sin(\omega t)\)</span>，稳态输出仍是同频正弦，只是<strong>幅值被放大 <span class="arithmatex">\(|G(j\omega)|\)</span> 倍、相位滞后 <span class="arithmatex">\(\angle G(j\omega)\)</span></strong>。把这两个量对频率作图，就是 <strong>Bode 图</strong>（幅值用 dB、频率用对数）。</p>
 <p><strong>为什么用对数</strong>：串联系统的传递函数相乘，取对数后变成<strong>相加</strong>——于是复杂系统的 Bode 图可以由各环节<strong>叠加</strong>得到，手工作图成为可能。这是 Bode 在 1930 年代的关键设计。</p>
 <p><strong>基本环节的渐近线</strong>（务必熟悉）：</p>
@@ -90,12 +211,12 @@
 </table>
 <p><strong>注意最后一行</strong>：<strong>时滞不衰减幅值，却无限累积相位</strong>——这就是第一页说它是"反馈头号敌人"的定量表述。</p>
 <h2 id="nyquist">二、Nyquist 判据<a class="headerlink" href="#nyquist" title="Permanent link"></a></h2>
-<p>把 <span class="arithmatex">\(G(j\omega)\)</span> 在复平面上画成一条曲线（<span class="arithmatex">\(\omega\)</span> 从 <span class="arithmatex">\(-\infty\)</span> 到 <span class="arithmatex">\(+\infty\)</span>），<strong>Nyquist 判据</strong>给出闭环稳定的条件：</p>
+<p>把 <span class="arithmatex">\(G(j\omega)\)</span> 在复平面上画成一条曲线（<span class="arithmatex">\(\omega\)</span> 从 <span class="arithmatex">\(-\infty\)</span> 到 <span class="arithmatex">\(+\infty\)</span>），在开环极点没有落在积分路径上、绕行方向和相位展开按通常 Nyquist 约定处理时，<strong>Nyquist 判据</strong>给出闭环稳定的条件：</p>
 <div class="arithmatex">\[Z = N + P\]</div>
-<p><span class="arithmatex">\(Z\)</span> 是闭环右半平面极点数（要求为 0），<span class="arithmatex">\(P\)</span> 是开环右半平面极点数，<span class="arithmatex">\(N\)</span> 是曲线<strong>顺时针包围 <span class="arithmatex">\(-1\)</span> 点的次数</strong>。</p>
-<p><strong>对开环稳定的系统（<span class="arithmatex">\(P=0\)</span>）</strong>，条件简化为：<strong>Nyquist 曲线不包围 <span class="arithmatex">\(-1\)</span> 点</strong>。</p>
+<p><span class="arithmatex">\(Z\)</span> 是闭环右半平面极点数（要求为 0），<span class="arithmatex">\(P\)</span> 是开环右半平面极点数，<span class="arithmatex">\(N\)</span> 是曲线<strong>顺时针包围 <span class="arithmatex">\(-1\)</span> 点的次数</strong>。这里的计数依赖上述开环极点与绕行假设，不能把公式脱离约定机械套用。</p>
+<p><strong>只有对开环右半平面极点数 <span class="arithmatex">\(P=0\)</span>、且没有虚轴极点等特殊边界的通常情形</strong>，条件才简化为：<strong>Nyquist 曲线不包围 <span class="arithmatex">\(-1\)</span> 点</strong>。若 <span class="arithmatex">\(P\ne0\)</span>，必须按 <span class="arithmatex">\(Z=N+P\)</span> 计数；不包围 <span class="arithmatex">\(-1\)</span> 本身不能证明闭环稳定。</p>
 <p><strong>为什么是 <span class="arithmatex">\(-1\)</span></strong>：闭环特征方程是 <span class="arithmatex">\(1+L(s)=0\)</span>，即 <span class="arithmatex">\(L(s) = -1\)</span>。<strong><span class="arithmatex">\(-1\)</span> 点就是"回路增益为 1 且相位为 180°"的那个临界状态</strong>——正是第一页说的"负反馈变成正反馈且增益足够"的条件。<strong>几何直观与物理直觉在此完全吻合。</strong></p>
-<h2 id="_2">三、稳定裕度：离灾难有多远<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">三、稳定裕度：离灾难有多远<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>"不包围 <span class="arithmatex">\(-1\)</span>"是二元的，工程需要<strong>定量的余量</strong>：</p>
 <ul>
 <li><strong>增益裕度 GM</strong>：相位为 −180° 时，增益还能放大多少倍才到 1。典型要求 <strong>&gt; 6 dB（2 倍）</strong>；</li>
@@ -109,13 +230,13 @@
 <div class="arithmatex">\[\zeta \approx \frac{\mathrm{PM}}{100}\quad(\mathrm{PM} &lt; 70°), \qquad \omega_c \approx \omega_n\]</div>
 <p><strong>这条经验把频域设计与时域指标连了起来</strong>：客户要"超调小于 10%"，你就知道要设计 PM ≈ 60°；客户要"调节时间 0.5 秒"，你就知道穿越频率大致该放在哪里。<strong>这是经典控制最实用的一条转换。</strong></p>
 <p><strong>为什么不能只看裕度</strong>：GM 与 PM 都只看曲线上的<strong>一个点</strong>。曲线可能在别处很靠近 <span class="arithmatex">\(-1\)</span>（虽然两个裕度都合格）。更严格的指标是<strong>向量裕度</strong>（曲线到 <span class="arithmatex">\(-1\)</span> 的最短距离），它等价于 <span class="arithmatex">\(1/\|S\|_\infty\)</span>——<strong>这就通向了第十六页的 <span class="arithmatex">\(H_\infty\)</span> 理论</strong>。</p>
-<h2 id="_3">四、回路整形：频域设计的思路<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、回路整形：频域设计的思路<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>回路整形（loop shaping）</strong>是频域设计的核心思想：<strong>按频段给回路增益 <span class="arithmatex">\(|L(j\omega)|\)</span> 规定形状</strong>。</p>
 <div class="arithmatex">\[\text{低频：}|L|\ \text{大} \quad\Longrightarrow\quad |S| = \frac{1}{|1+L|}\ \text{小} \quad\Longrightarrow\quad \text{跟踪准、抗扰强}\]</div>
 <div class="arithmatex">\[\text{高频：}|L|\ \text{小} \quad\Longrightarrow\quad |T|\ \text{小} \quad\Longrightarrow\quad \text{抑制噪声、避开未建模动态}\]</div>
 <div class="arithmatex">\[\text{穿越处：斜率约 -20 dB/dec} \quad\Longrightarrow\quad \text{足够的相位裕度}\]</div>
 <p><strong>这是一个清晰、可操作的设计配方</strong>：低频抬高（加积分/滞后）、高频压低（加滤波）、穿越区调整斜率与相位（加超前）。<strong>工业上大量控制器就是这样设计出来的。</strong></p>
-<h2 id="_4">五、水床效应：一条不可逾越的定理<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、水床效应：一条不可逾越的定理<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>现在讲控制论最深刻、也最少被外行知道的结果。</p>
 <p><strong>Bode 灵敏度积分定理</strong>：对开环稳定、相对阶 ≥ 2 的系统，</p>
 <div class="arithmatex">\[\int_0^\infty \ln|S(j\omega)|\,d\omega = 0\]</div>
@@ -128,19 +249,19 @@
 <li><strong>若系统有右半平面极点或零点，情况更糟</strong>：积分等式右边变成正数，意味着"必须付出的代价"更大——<strong>这是第二页说的"非最小相位系统性能有天花板"的严格版本</strong>。</li>
 </ul>
 <p><strong>这个定理与其他学科的"不可能性结果"同属一类</strong>：🔗 微电子站的 60 mV/dec 玻尔兹曼极限、信息论的香农极限、热力学第二定律。<strong>成熟的工程学科都有这样一条告诉你"什么做不到"的定律，而知道边界在哪，正是专业性的体现。</strong></p>
-<h2 id="_5">六、从实测数据出发<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、从实测数据出发<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>最后强调频域方法在工业上的决定性优势：</p>
 <ol>
 <li><strong>扫频实验</strong>（或用伪随机信号、阶跃辨识）直接得到 <span class="arithmatex">\(|G(j\omega)|\)</span> 与 <span class="arithmatex">\(\angle G(j\omega)\)</span>，<strong>无需知道物理模型</strong>；</li>
 <li>在实测 Bode 图上直接做回路整形；</li>
-<li><strong>时滞、柔性模态、非线性的一阶效应都自然包含在实测数据里</strong>——不必单独建模。</li>
+<li><strong>时滞、柔性模态和选定工作点/激励幅值下的局部小信号效应会反映在实测频响里</strong>；强非线性、滞回、饱和及幅值依赖不会被一条 FRF 自动概括，仍需分幅值或时域验证。</li>
 </ol>
 <p><strong>这就是为什么现场工程师更常用频域方法</strong>：它容忍"我不知道这台设备的精确模型"这个常态。（🔗 第十八页系统辨识会给出更系统的做法。）</p>
-<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>Bode 图的对数坐标使串联变叠加</strong>，是手工设计的基础；</li>
 <li><strong>Nyquist 的 <span class="arithmatex">\(-1\)</span> 点就是"增益 1、相位 180°"的临界条件</strong>；</li>
-<li><strong>PM ≈ 60° ↔ <span class="arithmatex">\(\zeta\)</span> ≈ 0.6 ↔ 超调约 10%</strong>——频域与时域的实用换算；</li>
+<li><strong>在低阶、二阶主导且没有强零点等附加动态时</strong>，PM ≈ 60°、<span class="arithmatex">\(\zeta\)</span> ≈ 0.6 与约 10% 超调可作经验换算；</li>
 <li><strong>回路整形</strong>给出清晰配方：低频高、高频低、穿越处 −20 dB/dec；</li>
 <li><strong>水床效应是定理</strong>：干扰抑制的总量守恒，你只能选择把代价放在哪个频段；</li>
 <li><strong>频域方法可直接用实测数据</strong>，这是它在工业上占主导的根本原因。</li>
@@ -156,5 +277,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-frequency-margins.js"></script>
 </body>
 </html>

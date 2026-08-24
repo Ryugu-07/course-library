@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +47,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 电化学机理：腐蚀是个电池</a></li>
-<li><a href="#2">2. 八种形态（按危险性递增排列，认形态就能倒推原因）</a></li>
+<li><a href="#materials-corrosion-learning-title">学习层：给一对钢—氧电极做混合电位预算，先预测面积比与边界</a><ul>
+<li><a href="#1">1. 具体材料工程情境：海水薄膜下的小阳极—大阴极电偶</a></li>
+<li><a href="#2-tafel">2. 必须作答的预测门：面积比、电子守恒与 Tafel 边界</a></li>
+<li><a href="#3-tafel">3. 正式模型桥：Tafel 交点 + 面积比 + 边界平台</a></li>
+<li><a href="#4">4. 动手实验：拖动面积比、钝化和传质上限</a></li>
+<li><a href="#5">5. 误区与模型边界：交点不是所有腐蚀现场的完整答案</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 电化学机理：腐蚀是个电池</a></li>
+<li><a href="#2">2. 八种形态（按损伤形貌与机制分类，不作普适危险性排序）</a></li>
 <li><a href="#3">3. 四类防护（对应四要素）</a></li>
-<li><a href="#4">4. 高温氧化（干腐蚀，一段）</a></li>
-<li><a href="#5">5. 数字感与反直觉</a></li>
+<li><a href="#4_1">4. 高温氧化（干腐蚀，一段）</a></li>
+<li><a href="#5_1">5. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
@@ -51,19 +74,102 @@
 <blockquote>
 <p>腐蚀每年造成的损失约占全球 GDP 的 <strong>3–4%</strong>（NACE/IMPACT 研究的量级），其中相当一部分可通过既有知识避免。腐蚀是<strong>材料回归热力学基态的过程</strong>——冶金把矿石还原成金属是逆天而行，腐蚀只是自然在讨债。本页讲清机理、八种形态、以及四类防护手段。</p>
 </blockquote>
-<h2 id="1">1. 电化学机理：腐蚀是个电池<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-corrosion-learning-title" class="learning-layer">
+<h2 id="materials-corrosion-learning-title">学习层：给一对钢—氧电极做混合电位预算，先预测面积比与边界<a class="headerlink" href="#materials-corrosion-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：海水薄膜下的小阳极—大阴极电偶<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一块有局部裸露阳极的低碳钢件放在含氧电解质薄膜中，设阳极面积 <span class="arithmatex">\(A_a=1\ \mathrm{cm^2}\)</span>，阴极面积为 <span class="arithmatex">\(A_c\)</span>。工程师要判断：阴极面积变大是否会放大小阳极的腐蚀电流密度，阳极和阴极的极化曲线在哪里相交，以及钝化膜或氧传质上限何时让纯 Tafel 外推失效。这里的电流以 mA、面积以 <span class="arithmatex">\(\mathrm{cm^2}\)</span>、电位以 V 记账。</p>
+<h3 id="2-tafel">2. 必须作答的预测门：面积比、电子守恒与 Tafel 边界<a class="headerlink" href="#2-tafel" title="Permanent link"></a></h3>
+<p>揭示前回答三题：在活化 Tafel 区增大 <span class="arithmatex">\(A_c/A_a\)</span>，小阳极的腐蚀电流密度向哪边变化？混合电位交点处阳极和阴极总电流如何相等？一旦进入钝化或阴极传质限制，单纯 Tafel 直线还能否无限外推？三题完成后才显示极化图和电流账本。</p>
+<h3 id="3-tafel">3. 正式模型桥：Tafel 交点 + 面积比 + 边界平台<a class="headerlink" href="#3-tafel" title="Permanent link"></a></h3>
+<p>活化区的部分电流密度取</p>
+<div class="arithmatex">\[
+i_a=i_{0,a}10^{(E-E_a)/b_a},\qquad
+i_c=i_{0,c}10^{(E_c-E)/b_c},
+\]</div>
+<p>其中 <span class="arithmatex">\(i_a,i_c\)</span> 的单位为 <span class="arithmatex">\(\mathrm{mA\,cm^{-2}}\)</span>，<span class="arithmatex">\(b_a,b_c\)</span> 的单位为 <span class="arithmatex">\(\mathrm{V/decade}\)</span>。混合电位由总电流守恒给出</p>
+<div class="arithmatex">\[
+A_ai_a(E_{mix})=A_ci_c(E_{mix}),
+\]</div>
+<div class="arithmatex">\[
+E_{mix}=\frac{\log_{10}(i_{0,c}/i_{0,a})+E_c/b_c+E_a/b_a+\log_{10}(A_c/A_a)}{1/b_a+1/b_c}.
+\]</div>
+<p>实验默认 <span class="arithmatex">\(E_a=-0.50\ \mathrm V\)</span>、<span class="arithmatex">\(E_c=0\ \mathrm V\)</span>、<span class="arithmatex">\(b_a=0.12\ \mathrm{V/decade}\)</span>、<span class="arithmatex">\(b_c=0.18\ \mathrm{V/decade}\)</span>、<span class="arithmatex">\(i_{0,a}=0.001\)</span>、<span class="arithmatex">\(i_{0,c}=0.002\ \mathrm{mA\,cm^{-2}}\)</span>、<span class="arithmatex">\(A_c/A_a=10\)</span>。边界分支用 <span class="arithmatex">\(i_a^{eff}=i_{pass}\)</span>（钝化平台）和 <span class="arithmatex">\(i_c^{eff}=\min(i_c,i_{lim})\)</span>（传质上限）作教学代理；混合电位仍按 <span class="arithmatex">\(A_ai_a^{eff}=A_ci_c^{eff}\)</span> 求根。由电流换算 Fe²⁺ 均匀穿透率时，采用 <span class="arithmatex">\(CR=3.27\,i_{corr}EW/\rho\)</span>，其中 <span class="arithmatex">\(i_{corr}\)</span> 用 <span class="arithmatex">\(\mathrm{mA\,cm^{-2}}\)</span>、<span class="arithmatex">\(EW=27.925\ \mathrm{g/equiv}\)</span>、<span class="arithmatex">\(\rho=7.87\ \mathrm{g\,cm^{-3}}\)</span>，结果为 <span class="arithmatex">\(\mathrm{mm/year}\)</span>；这还隐含 Fe → Fe²⁺ 和 100% 法拉第效率，不能把电流密度直接当成长度速率。</p>
+<h3 id="4">4. 动手实验：拖动面积比、钝化和传质上限<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-corrosion-mixed-potential">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(A_a=1\ \mathrm{cm^2}\)</span>、<span class="arithmatex">\(A_c/A_a=10\)</span>、<span class="arithmatex">\(i_{0,a}=0.001\)</span>、<span class="arithmatex">\(i_{0,c}=0.002\ \mathrm{mA\,cm^{-2}}\)</span>，关闭钝化，<span class="arithmatex">\(i_{lim}=10\ \mathrm{mA\,cm^{-2}}\)</span>。纯 Tafel 交点与有效交点都是 <span class="arithmatex">\(E_{mix}=-0.2063\ \mathrm V\)</span>；<span class="arithmatex">\(i_a=0.2801\)</span>、<span class="arithmatex">\(i_c=0.0280\ \mathrm{mA\,cm^{-2}}\)</span>，所以 <span class="arithmatex">\(I_a=I_c=0.2801\ \mathrm{mA}\)</span>，Fe²⁺ 均匀穿透率代理约 <span class="arithmatex">\(3.2498\ \mathrm{mm/year}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(E_{mix}\)</span></td>
+<td style="text-align: right;">-0.2063</td>
+<td>V；阳极/阴极总电流相等</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(i_a/i_c\)</span></td>
+<td style="text-align: right;">0.2801 / 0.0280</td>
+<td>mA/cm²；面积比为 10</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A_a/A_c\)</span></td>
+<td style="text-align: right;">1 / 10</td>
+<td>cm²；<span class="arithmatex">\(A_c/A_a=10\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(I_a/I_c\)</span></td>
+<td style="text-align: right;">0.2801 / 0.2801</td>
+<td>mA；电子守恒</td>
+</tr>
+<tr>
+<td>净电流残差</td>
+<td style="text-align: right;">约 0</td>
+<td>mA</td>
+</tr>
+<tr>
+<td>Fe²⁺ 穿透率代理</td>
+<td style="text-align: right;">3.2498</td>
+<td>mm/year；含 Fe²⁺、100% 法拉第效率、当量重与密度假设</td>
+</tr>
+<tr>
+<td>边界状态</td>
+<td style="text-align: right;">Tafel 区</td>
+<td>钝化关闭，传质上限未触发</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：交点不是所有腐蚀现场的完整答案<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>Tafel 直线只在相应极化区间、稳态和近似均匀表面上有用；溶液电阻、氧浓度、流速、多步反应和局部化学会改变曲线。</li>
+<li>钝化不是一个普适常数平台；膜的形成、破裂、再钝化、氯离子点蚀和跨钝化区可能造成多个分支，本实验只用一个平台作可解释的边界代理。数值扫描只返回电位从低到高遇到的第一个平衡根，不描述多稳态、路径依赖或迟滞。</li>
+<li>阴极传质上限依溶解氧、扩散层厚度、搅拌和几何而变；<span class="arithmatex">\(i_{lim}\)</span> 不是材料固定参数。面积比放大小阳极风险的结论也要求电解质和电子通路确实连通，且阳极/阴极反应没有被其他限制步骤截断。</li>
+<li>由电流到质量损失还要指定反应价态、法拉第效率、当量重和密度；混合电位本身不等于点蚀深度、SCC 寿命或局部腐蚀速率。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果同一钢件换成有稳定钝化膜的不锈钢，你会先改阳极极化曲线、氧传质上限还是面积比？若总失重很小但出现深点蚀，你还需要哪些局部电流、膜状态和形貌证据？</p>
+</div>
+</section>
+<h2 id="1_1">1. 电化学机理：腐蚀是个电池<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>湿腐蚀 = 阳极溶解 + 阴极还原，两者电子守恒：</p>
 <div class="arithmatex">\[
 \text{阳极}: \mathrm{Fe} \to \mathrm{Fe^{2+}} + 2e^-, \qquad
 \text{阴极}: \mathrm{O_2} + 2\mathrm{H_2O} + 4e^- \to 4\mathrm{OH^-}
 \]</div>
-<p><strong>四要素缺一不可</strong>：阳极、阴极、电解质、电子通路——<strong>断掉任意一个就能防腐</strong>（这是全部防护技术的总纲）。</p>
+<p>在这个湿腐蚀电池的简化模型中，四要素通常都要有：阳极、阴极、电解质、电子通路——<strong>断掉其中一个常可切断该电池回路</strong>，但实际构件还要检查缝隙、局部膜和旁路电流。</p>
 <figure class="diagram">
 <p><img alt="Electrochemical corrosion cell" src="assets/img/mat-18-corrosion-cell.svg" /></p>
-<figcaption><span class="fig-id">图 18.1</span>腐蚀电池四要素：阳极发生金属溶解，阴极完成还原，电解质传递离子，电子经金属通路从阳极流向阴极。防护的总纲就是断掉其中任意一个环节。</figcaption>
+<figcaption><span class="fig-id">图 18.1</span>腐蚀电池四要素：阳极发生金属溶解，阴极完成还原，电解质传递离子，电子经金属通路从阳极流向阴极。在这个简化回路中，防护常从切断其中一个环节入手。</figcaption>
 </figure>
-<p><strong>电位序与钝化</strong>：金属活泼性由电极电位排序（Mg &lt; Al &lt; Zn &lt; Fe &lt; Sn &lt; Cu &lt; Ag &lt; Au）——但<strong>实际耐蚀性看钝化膜而非电位</strong>：铝比铁活泼得多，却因为致密的 Al₂O₃ 钝化膜而耐候；不锈钢靠 <strong>Cr ≥ 12%</strong> 形成 Cr₂O₃ 钝化膜——<strong>"不锈"是一层几纳米的氧化物在守卫，破了要能自愈</strong>（🔗 Pourbaix 图给出"电位-pH"平面上的免蚀/钝化/腐蚀三区，是腐蚀工程师的相图）。</p>
-<h2 id="2">2. 八种形态（按危险性递增排列，认形态就能倒推原因）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p><strong>电位序与钝化</strong>：在指定温度、溶液和参比电极下，标准/形式电位可给出类似 Mg &lt; Al &lt; Zn &lt; Fe &lt; Sn &lt; Cu &lt; Ag &lt; Au 的排序；它不是脱离环境的耐蚀性排名。<strong>实际耐蚀性还要看钝化膜、pH、氯离子、流速和缺陷</strong>：铝在许多大气条件下可因致密 Al₂O₃ 膜而比电位直觉更耐蚀；对许多 Cr-Ni 不锈钢，约 <strong>12 wt% Cr</strong> 常被视为形成连续钝化设计的经验起点，但不是所有合金/环境的硬阈值——<strong>"不锈"是膜的条件性保护，破坏后还要看能否再钝化</strong>（🔗 Pourbaix 图给出"电位-pH"平面上的免蚀/钝化/腐蚀区域，是腐蚀工程师的相图）。</p>
+<h2 id="2">2. 八种形态（按损伤形貌与机制分类，不作普适危险性排序）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -76,12 +182,12 @@
 <tr>
 <td>均匀腐蚀</td>
 <td>全表面均匀减薄</td>
-<td>碳钢大气锈蚀——<strong>最不危险</strong>（可预测、可加腐蚀裕量）</td>
+<td>碳钢大气锈蚀——通常较易用平均速率估算，但仍需检查局部化</td>
 </tr>
 <tr>
 <td>电偶腐蚀</td>
 <td>异种金属接触 + 电解质</td>
-<td>铝件用不锈钢螺栓（铝被牺牲）——<strong>小阳极/大阴极最凶险</strong></td>
+<td>铝件用不锈钢螺栓（铝可能被牺牲）——小阳极/大阴极会放大阳极电流密度</td>
 </tr>
 <tr>
 <td>点蚀</td>
@@ -111,7 +217,7 @@
 <tr>
 <td><strong>应力腐蚀开裂 SCC</strong></td>
 <td>拉应力 + 特定介质 + 敏感材料</td>
-<td>奥氏体不锈钢 + 氯离子 + 60 °C 以上；黄铜 + 氨——<strong>几乎无预兆的脆性断裂，最危险</strong></td>
+<td>某些奥氏体不锈钢在含氯、升温和拉应力组合下，或黄铜在含氨环境下可能发生；阈值依材料、应力和环境而变</td>
 </tr>
 </tbody>
 </table>
@@ -119,21 +225,21 @@
 <p><img alt="Eight corrosion forms" src="assets/img/mat-18-corrosion-forms.svg" /></p>
 <figcaption><span class="fig-id">图 18.2</span>八种腐蚀形态缩略图：均匀、电偶、点蚀、缝隙、晶间、选择性、磨蚀/空蚀与 SCC。图中红色表示局部损伤或裂纹；形态比总失重更能提示危险位置与失效方式。</figcaption>
 </figure>
-<p><strong>加上两种"环境助攻"</strong>：<strong>氢脆</strong>（高强钢最敏感：电镀、酸洗、阴极保护过度都会引入氢——<strong>强度越高越怕氢</strong>，这是高强螺栓延迟断裂的元凶）、<strong>腐蚀疲劳</strong>（性能 II：腐蚀环境下疲劳极限消失）。</p>
-<p><strong>记忆钥匙</strong>：<strong>局部腐蚀比均匀腐蚀危险得多</strong>——因为面积小、速率高、难检测，而且工程师容易被"总失重很小"骗过。</p>
+<p><strong>加上两种"环境助攻"</strong>：<strong>氢脆</strong>（许多高强钢对氢更敏感：电镀、酸洗、阴极保护过度都可能引入氢——强度、显微组织、应力和氢逸出共同决定风险，这是高强螺栓延迟断裂的常见原因）、<strong>腐蚀疲劳</strong>（性能 II：腐蚀环境可能显著降低疲劳寿命，是否存在清晰疲劳极限依材料和环境而变）。</p>
+<p><strong>记忆钥匙</strong>：局部腐蚀常比均匀腐蚀更难检测和评估——因为面积小、局部速率可能高，而且工程师容易被"总失重很小"骗过；具体危险度仍由几何、载荷、检测和失效后果决定。</p>
 <h2 id="3">3. 四类防护（对应四要素）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <ol>
-<li><strong>材料选择/改性</strong>：耐蚀合金（不锈钢牌号按 PREN = Cr + 3.3Mo + 16N 排耐点蚀能力——<strong>一个可算的选材公式</strong>）、双相钢、钛（海水之王）、耐候钢（形成致密锈层）；</li>
+<li><strong>材料选择/改性</strong>：耐蚀合金（对某些不锈钢家族可用 PREN = Cr + 3.3Mo + 16N 作耐点蚀的筛查指标——<strong>一个可算但不能单独定案的选材公式</strong>）、双相钢、钛（在许多海水工况表现出色，但仍需核对缝隙和流速）、耐候钢（在合适的大气暴露中形成较致密锈层）；</li>
 <li><strong>涂层与表面</strong>：有机涂层（油漆——最大量的防腐方式）、金属镀层（<strong>镀锌是牺牲阳极型：破损处仍受保护</strong>；镀锡是阻挡型，破损后反而加速铁腐蚀——两种镀层哲学的对比是本节最值得记的一课）、阳极氧化、渗铝/搪瓷；</li>
 <li><strong>电化学保护</strong>：<strong>牺牲阳极</strong>（船体挂锌/铝块、埋地管道）与<strong>外加电流阴极保护</strong>（大型储罐、管网）——把被保护件强制变成阴极；</li>
-<li><strong>环境与设计控制</strong>：除氧、缓蚀剂、降湿；<strong>设计防腐</strong>（避免异种金属直接接触、避免积液死角与缝隙、圆滑过渡、留排水口、留检修通道）——<strong>最便宜的防腐发生在图纸阶段</strong>。</li>
+<li><strong>环境与设计控制</strong>：除氧、缓蚀剂、降湿；<strong>设计防腐</strong>（避免异种金属直接接触、避免积液死角与缝隙、圆滑过渡、留排水口、留检修通道）——很多项目中，图纸阶段的几何和材料选择往往是成本最低的防腐机会。</li>
 </ol>
-<h2 id="4">4. 高温氧化（干腐蚀，一段）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>高温下靠氧化膜保护：<strong>Pilling–Bedworth 比</strong> <span class="arithmatex">\(PBR = V_{\text{氧化物}}/V_{\text{金属}}\)</span>——<span class="arithmatex">\(PBR &lt; 1\)</span> 膜太薄开裂（Mg），<span class="arithmatex">\(1 &lt; PBR &lt; 2\)</span> 致密保护（Al、Cr、Si——<strong>高温合金必加 Al/Cr 形成保护膜</strong>），<span class="arithmatex">\(PBR \gg 2\)</span> 膜受压剥落（W、Mo，故难熔金属高温反而不耐氧化，需涂层）。膜增厚遵循抛物线规律 <span class="arithmatex">\(x^2 = kt\)</span>（扩散控制——热力 II 的 <span class="arithmatex">\(\sqrt{t}\)</span> 第三次登场）。</p>
-<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 高温氧化（干腐蚀，一段）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>高温下靠氧化膜保护：<strong>Pilling–Bedworth 比</strong> <span class="arithmatex">\(PBR = V_{\text{氧化物}}/V_{\text{金属}}\)</span> 是初步筛查膜覆盖和应力的几何指标——<span class="arithmatex">\(PBR &lt; 1\)</span> 往往难以连续覆盖，过大的 <span class="arithmatex">\(PBR\)</span> 可能引入压应力和剥落风险；约 1–2 的范围有时更有利于致密膜，但不能单凭区间保证保护性。具体行为还取决于扩散、热循环、膜附着和挥发；<span class="arithmatex">\(x^2 = kt\)</span> 也只在扩散控制的特定时间窗成立。</p>
+<h2 id="5_1">5. 数字感与反直觉<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <ul>
-<li>碳钢大气腐蚀速率 ~0.02–0.2 mm/年（工业/海洋环境上限）——设计寿命 30 年就要留 3–6 mm 腐蚀裕量；</li>
-<li>不锈钢耐点蚀：304（PREN <sub>18）不适合海水，316（</sub>24）好些，双相 2205（~35）与超级奥氏体（&gt;40）才是海洋级；</li>
+<li>碳钢大气腐蚀速率常以约 0.02–0.2 mm/年作某些环境的数量级示例，但湿度、盐分、污染、温度、表面状态和排水设计会让实际值偏离；腐蚀裕量必须按暴露试验或规范确定；</li>
+<li>对典型成分可把 304（PREN 约 18）、316（约 24）和 2205（约 35）作为筛查量级；它们在具体海水、缝隙、温度和焊接状态下的点蚀表现不能只由 PREN 或“海水级”标签保证；</li>
 <li><strong>反直觉四连</strong>：不锈钢会生锈（钝化膜被氯离子击穿或缺氧时）；<strong>铝比铁活泼但更耐蚀</strong>（膜的胜利）；<strong>用不锈钢螺栓固定铝件是常见的电偶腐蚀事故</strong>（面积比放大了破坏）；高强钢在防腐镀层工序中被氢脆断裂——<strong>防腐动作本身成为失效原因</strong>。</li>
 </ul>
 <p>【研】对标 Jones《Principles and Prevention of Corrosion》、Fontana；混合电位理论、Tafel 极化曲线与电化学阻抗谱 EIS、SCC 机理（阳极溶解 vs 氢致）是研究生纵深。</p>
@@ -148,5 +254,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-corrosion-mixed-potential.js"></script>
 </body>
 </html>

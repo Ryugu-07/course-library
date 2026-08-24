@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、梁的内力：剪力与弯矩</a></li>
-<li><a href="#_2">二、弯曲应力：中性轴与截面效率</a></li>
-<li><a href="#_3">三、扭转</a></li>
-<li><a href="#_4">四、剪切与挤压</a></li>
-<li><a href="#_5">五、组合变形与危险点</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#beam-torsion-learning-title">学习层：一根悬臂梁，两个不能混用的模型</a><ul>
+<li><a href="#_1">具体工程情境：机架臂与传动轴同时验算</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：从平衡到两套读数</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+</ul>
+</li>
+<li><a href="#_5">一、梁的内力：剪力与弯矩</a></li>
+<li><a href="#_6">二、弯曲应力：中性轴与截面效率</a></li>
+<li><a href="#_7">三、扭转</a></li>
+<li><a href="#_8">四、剪切与挤压</a></li>
+<li><a href="#_9">五、组合变形与危险点</a></li>
+<li><a href="#_10">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +76,101 @@
 <p><strong>层次</strong>：本科核心——<strong>材料力学最实用的两章</strong>。
 机械零件的受载，绝大多数可归结为拉压、弯曲、扭转三种基本形式（及其组合）。拉压已在上页讲完。本页处理弯曲与扭转，并揭示一个贯穿机械设计的主题：<strong>材料放在哪里，比用多少材料更重要。</strong></p>
 </blockquote>
-<h2 id="_1">一、梁的内力：剪力与弯矩<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="beam-torsion-learning-title" class="learning-layer">
+<h2 id="beam-torsion-learning-title">学习层：一根悬臂梁，两个不能混用的模型<a class="headerlink" href="#beam-torsion-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：机架臂与传动轴同时验算<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把一台小型减速机想成两个相邻零件：机架上伸出一根矩形悬臂臂，承受末端的 <strong>1.2 kN</strong>；旁边的圆轴传递 <strong>180 N·m</strong> 扭矩。梁和轴的计算长度均取 <span class="arithmatex">\(L=1.2\,\mathrm{m}\)</span>；梁截面 <span class="arithmatex">\(b=40\,\mathrm{mm},h=80\,\mathrm{mm}\)</span>，<span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>；圆轴直径 <span class="arithmatex">\(d=40\,\mathrm{mm}\)</span>，<span class="arithmatex">\(G=80\,\mathrm{GPa}\)</span>。这两个零件都“弯/转了”，但它们的未知量、截面性质和单位并不相同。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>在打开实验台前，先写下三句可检验的判断：</p>
+<ol>
+<li>悬臂自由端集中力下，剪力 <span class="arithmatex">\(V(x)\)</span> 是沿梁常值，还是随 <span class="arithmatex">\(x\)</span> 线性变化？弯矩 <span class="arithmatex">\(M(x)\)</span> 又是什么形状？</li>
+<li>矩形梁高 <span class="arithmatex">\(h\)</span> 加倍而其他量不变时，端部挠度变成 <span class="arithmatex">\(1/8\)</span>、<span class="arithmatex">\(1/4\)</span>，还是不变？</li>
+<li>圆轴的 <span class="arithmatex">\(\tau=Tr/J\)</span> 与 <span class="arithmatex">\(\theta=TL/(GJ)\)</span> 哪一个给出 Pa，哪一个给出 rad？</li>
+</ol>
+<p>这里的“提交”不是猜一个数量级：要把预测和随后账本中的公式、单位、数值逐项对上。</p>
+<h3 id="_3">正式公式桥：从平衡到两套读数<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对横向分布载荷 <span class="arithmatex">\(q(x)\)</span>，截面平衡给出</p>
+<div class="arithmatex">\[
+\frac{dV}{dx}=-q(x),\qquad \frac{dM}{dx}=V(x).
+\]</div>
+<p>默认工况只有自由端集中力 <span class="arithmatex">\(P\)</span>，所以在 <span class="arithmatex">\(0\le x\le L\)</span> 内（取大小而暂不讨论符号约定）</p>
+<div class="arithmatex">\[
+V(x)=P,\qquad M(x)=P(L-x).
+\]</div>
+<p>Euler--Bernoulli 小挠度梁把弯矩接到位移：</p>
+<div class="arithmatex">\[
+EI\,w''(x)=M(x),\qquad I=\frac{bh^3}{12},\qquad
+w(x)=\frac{P x^2(3L-x)}{6EI},\qquad w(L)=\frac{PL^3}{3EI}.
+\]</div>
+<p>圆轴扭转走的是 Saint-Venant 模型，半径坐标为 <span class="arithmatex">\(\rho\)</span>，不是梁的高度坐标 <span class="arithmatex">\(y\)</span>：</p>
+<div class="arithmatex">\[
+\tau(\rho)=\frac{T\rho}{J},\qquad
+J=\frac{\pi d^4}{32},\qquad
+\theta=\frac{TL}{GJ}.
+\]</div>
+<p><span class="arithmatex">\(\tau\)</span> 的量纲是 <span class="arithmatex">\(\mathrm{N/m^2}=\mathrm{Pa}\)</span>，而 <span class="arithmatex">\(\theta\)</span> 是弧度（弧度在量纲上无量纲，但工程上必须标明它是转角）。所以梁账本里的 <span class="arithmatex">\(V,M,w\)</span> 与扭转账本里的 <span class="arithmatex">\(\tau,\theta\)</span> 是两套模型；<span class="arithmatex">\(I\)</span> 是面积二阶矩，<span class="arithmatex">\(J\)</span> 是极惯性矩，不能互换。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>把 <span class="arithmatex">\(\tau=Tr/J\)</span> 套在矩形梁的弯曲正应力上，会同时错掉载荷类型和截面性质；弯曲正应力应回到 <span class="arithmatex">\(\sigma=My/I\)</span>。</li>
+<li>“剪力为零处弯矩最大”是微分关系下的判据，不是说任何边界条件下最大弯矩都在几何中点；集中力还会让剪力图突跳。</li>
+<li><span class="arithmatex">\(w(L)=PL^3/(3EI)\)</span> 假定细长梁、小变形、线弹性、均匀截面，并忽略剪切挠度、局部屈曲、连接柔度和应力集中；厚短梁或开孔附近需换模型。</li>
+<li><span class="arithmatex">\(\tau=Tr/J\)</span> 适用于圆轴的弹性纯扭转。键槽、台阶、非圆开口薄壁截面和塑性扭转会改变剪应力分布；<span class="arithmatex">\(\theta\)</span> 也不是整台机器的刚体转角。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-beam-torsion">
+<p><strong>无 JavaScript 时仍可核对：</strong>按上面的默认值 <span class="arithmatex">\(P=1200\,\mathrm{N}\)</span>、<span class="arithmatex">\(L=1.2\,\mathrm{m}\)</span>、<span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>、<span class="arithmatex">\(b=0.04\,\mathrm{m}\)</span>、<span class="arithmatex">\(h=0.08\,\mathrm{m}\)</span>、<span class="arithmatex">\(T=180\,\mathrm{N\,m}\)</span>、<span class="arithmatex">\(d=0.04\,\mathrm{m}\)</span>、<span class="arithmatex">\(G=80\,\mathrm{GPa}\)</span> 计算。梁取自由端集中力，轴取实心圆截面。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(I=bh^3/12\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.7067\times10^{-6}\)</span></td>
+<td><span class="arithmatex">\(\mathrm{m^4}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(J=\pi d^4/32\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.5133\times10^{-7}\)</span></td>
+<td><span class="arithmatex">\(\mathrm{m^4}\)</span></td>
+</tr>
+<tr>
+<td>支座剪力 <span class="arithmatex">\(V(0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(P=1200\)</span></td>
+<td>N</td>
+</tr>
+<tr>
+<td>支座弯矩 <span class="arithmatex">\(M(0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(PL=1440\)</span></td>
+<td>N·m</td>
+</tr>
+<tr>
+<td>端部挠度 <span class="arithmatex">\(w(L)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(PL^3/(3EI)=1.9286\)</span></td>
+<td>mm</td>
+</tr>
+<tr>
+<td>最大扭转剪应力 <span class="arithmatex">\(\tau_{\max}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(T(d/2)/J=14.324\)</span></td>
+<td>MPa</td>
+</tr>
+<tr>
+<td>扭转角 <span class="arithmatex">\(\theta\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(TL/(GJ)=0.010743\)</span></td>
+<td>rad（约 <span class="arithmatex">\(10.743\)</span> mrad）</td>
+</tr>
+</tbody>
+</table>
+<p>读表时先问“这是梁的 <span class="arithmatex">\(I\)</span> 还是轴的 <span class="arithmatex">\(J\)</span>”，再问“这是应力还是转角”。脚本可用时，图形与同一账本会随输入重算。</p>
+</div>
+</section>
+<h2 id="_5">一、梁的内力：剪力与弯矩<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>梁受横向载荷时，任一截面上有<strong>剪力 <span class="arithmatex">\(Q\)</span></strong> 与<strong>弯矩 <span class="arithmatex">\(M\)</span></strong>。它们与分布载荷 <span class="arithmatex">\(q\)</span> 的微分关系：</p>
 <div class="arithmatex">\[\frac{dQ}{dx} = -q, \qquad \frac{dM}{dx} = Q\]</div>
 <p><strong>实用推论</strong>（画内力图的诀窍）：</p>
@@ -63,7 +180,7 @@
 <li>均布载荷段，剪力图线性、弯矩图抛物线。</li>
 </ul>
 <p><strong>画剪力弯矩图是机械/土木工程师的基本功</strong>——它一眼指出"哪个截面最危险"。</p>
-<h2 id="_2">二、弯曲应力：中性轴与截面效率<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_6">二、弯曲应力：中性轴与截面效率<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>平面弯曲的正应力公式：</p>
 <div class="arithmatex">\[\sigma = \frac{M y}{I}, \qquad \sigma_{\max} = \frac{M}{W}, \quad W = \frac{I}{y_{\max}}\]</div>
 <ul>
@@ -86,7 +203,7 @@
 <div class="arithmatex">\[EI\frac{d^2 w}{dx^2} = M(x)\]</div>
 <p>常见结果（务必记住量级）：悬臂梁端部集中力 <span class="arithmatex">\(w = \dfrac{FL^3}{3EI}\)</span>；简支梁中点集中力 <span class="arithmatex">\(w=\dfrac{FL^3}{48EI}\)</span>。</p>
 <p><strong>注意 <span class="arithmatex">\(L^3\)</span></strong>：<strong>跨度是刚度的绝对主宰</strong>。跨度加倍，挠度增大 8 倍。<strong>"缩短跨度"往往比"加大截面"更有效</strong>——这是结构布置优先于尺寸设计的原因。</p>
-<h2 id="_3">三、扭转<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_7">三、扭转<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>圆轴扭转的切应力：</p>
 <div class="arithmatex">\[\tau = \frac{T\rho}{I_p}, \qquad \tau_{\max} = \frac{T}{W_p}, \qquad \varphi = \frac{TL}{GI_p}\]</div>
 <p><span class="arithmatex">\(I_p\)</span> 是极惯性矩，实心圆轴 <span class="arithmatex">\(I_p = \pi d^4/32\)</span>。</p>
@@ -94,7 +211,7 @@
 <p><strong>一个可以直接算的对比</strong>：把实心轴挖成内外径比 0.6 的空心轴，<strong>重量减少 36%，而抗扭截面模量只减少约 13%</strong>。传动轴、自行车中轴、飞机操纵轴普遍做成空心，正是这个原因。</p>
 <p><strong>开口薄壁截面的致命弱点</strong>（这是一个必须知道的工程陷阱）：<strong>开口薄壁截面（如 C 型槽钢、开缝管）的抗扭刚度极低</strong>——比同样尺寸的闭口截面低<strong>几个数量级</strong>。</p>
 <p><strong>直观理解</strong>：闭口截面中，切应力可以沿封闭路径环流（形成"剪力流"）；一旦开口，这个环流被切断，只能靠薄壁自身的弯曲抵抗扭转。<strong>所以汽车车身、飞机机身、机床立柱都强调"闭口箱形结构"</strong>，而设计中开的每一个工艺孔、检修口都要评估其对扭转刚度的削弱。</p>
-<h2 id="_4">四、剪切与挤压<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_8">四、剪切与挤压<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>除了弯扭，连接件还要校核：</p>
 <ul>
 <li><strong>剪切</strong>：销、键、铆钉被剪断（<span class="arithmatex">\(\tau = F/A\)</span>）；</li>
@@ -102,7 +219,7 @@
 <li><strong>拉脱/剪脱</strong>：边距不足时材料被撕开。</li>
 </ul>
 <p><strong>这些是连接设计的常规校核项</strong>。<strong>实际失效常发生在连接处而非零件本体</strong>——因为那里有应力集中、有装配误差、有多种失效模式叠加。<strong>"结构的强度取决于它最弱的连接"</strong> 是可靠的经验。</p>
-<h2 id="_5">五、组合变形与危险点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_9">五、组合变形与危险点<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>真实零件常同时承受多种载荷。例如<strong>传动轴</strong>同时受<strong>弯矩</strong>（齿轮径向力、皮带张力）与<strong>扭矩</strong>（传递功率）——这是机械设计中最常见的组合。</p>
 <p><strong>分析步骤</strong>：</p>
 <ol>
@@ -113,7 +230,7 @@
 </ol>
 <div class="arithmatex">\[\sigma_{eq} = \sqrt{\sigma^2 + 3\tau^2} \quad (\text{von Mises，弯扭组合})\]</div>
 <p><strong>注意 <span class="arithmatex">\(3\tau^2\)</span> 中的系数 3</strong>——它来自 von Mises 准则，意味着<strong>切应力比正应力更"危险"</strong>（纯剪切时的屈服切应力约为 <span class="arithmatex">\(\sigma_s/\sqrt{3} \approx 0.577\sigma_s\)</span>）。这个系数是弯扭组合校核的关键，记错会低估危险。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_10">六、要点<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong>画剪力弯矩图</strong>是找危险截面的第一步；剪力过零处弯矩极值；</li>
 <li><strong>弯曲与扭转的应力都在中性轴/轴心处为零</strong> → <strong>把材料移到外围最有效</strong>（工字梁、空心轴）；</li>
@@ -132,5 +249,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-beam-torsion.js"></script>
 </body>
 </html>

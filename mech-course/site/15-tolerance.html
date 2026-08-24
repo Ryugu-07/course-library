@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、为什么必须有公差</a></li>
-<li><a href="#_2">二、尺寸公差与配合</a></li>
-<li><a href="#_3">三、几何公差（形位公差）</a></li>
-<li><a href="#_4">四、尺寸链</a></li>
-<li><a href="#_5">五、测量与计量</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#tolerance-learning-title">学习层：先把一条轴向间隙的尺寸链对账</a><ul>
+<li><a href="#_1">具体工程情境：泵壳与轴肩之间的装配间隙</a></li>
+<li><a href="#_2">必须提交的三项预测</a></li>
+<li><a href="#rss">最小模型与假设：符号尺寸、极值、RSS 与正态良率</a></li>
+<li><a href="#_3">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_4">正式返回：从尺寸链回到图纸决策</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、为什么必须有公差</a></li>
+<li><a href="#_7">二、尺寸公差与配合</a></li>
+<li><a href="#_8">三、几何公差（形位公差）</a></li>
+<li><a href="#_9">四、尺寸链</a></li>
+<li><a href="#_10">五、测量与计量</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +78,130 @@
 <p><strong>层次</strong>：本科核心 + <strong>业界日常</strong> ｜ <strong>这是设计与制造之间的正式契约</strong>。
 没有零件能被造得"完全准确"。公差就是<strong>规定允许的不准确程度</strong>——它把"我需要多准"翻译成"你要花多少钱"。<strong>这一页的内容看似琐碎，却是机械图纸上信息量最大、也最容易出错的部分。</strong></p>
 </blockquote>
-<h2 id="_1">一、为什么必须有公差<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="tolerance-learning-title" class="learning-layer">
+<h2 id="tolerance-learning-title">学习层：先把一条轴向间隙的尺寸链对账<a class="headerlink" href="#tolerance-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：泵壳与轴肩之间的装配间隙<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>某泵的转子需要在壳体内保留 <span class="arithmatex">\(0.9\)</span>–<span class="arithmatex">\(1.5\,\mathrm{mm}\)</span> 的轴向间隙。图纸给出四个带符号尺寸：壳体基准到端面的 <span class="arithmatex">\(+40.0\,\mathrm{mm}\)</span>、隔圈 <span class="arithmatex">\(+5.0\,\mathrm{mm}\)</span>、轴肩 <span class="arithmatex">\(-42.6\,\mathrm{mm}\)</span> 和止推垫 <span class="arithmatex">\(-1.2\,\mathrm{mm}\)</span>。每个“±值”先按一个<strong>制造能力的 3σ 估计</strong>解释，而不是把标准公差天然当成正态分布。工程师要回答：最坏情况是否越界、独立近似下 RSS/正态良率是多少，以及一个共同基准或 GD&amp;T 约束是否会让独立假设失效。</p>
+<h3 id="_2">必须提交的三项预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>把所有尺寸的半公差同时放大，最坏情况间隙区间会变窄、变宽，还是只改变中心值？</li>
+<li>在各尺寸偏差相互独立、近似正态且“±值”都是 3σ 的前提下，RSS 的 3σ 带宽相对极值法会更小、更大，还是必然相等？</li>
+<li>如果两个尺寸共享同一装夹基准或位置度误差明显相关，能否仍把独立正态 RSS 的良率直接当成最终装配保证？</li>
+</ol>
+<h3 id="rss">最小模型与假设：符号尺寸、极值、RSS 与正态良率<a class="headerlink" href="#rss" title="Permanent link"></a></h3>
+<p>设第 <span class="arithmatex">\(i\)</span> 个尺寸为 <span class="arithmatex">\(x_i\)</span>，方向符号为 <span class="arithmatex">\(s_i\in\{+1,-1\}\)</span>，名义值为 <span class="arithmatex">\(\bar x_i\)</span>，半公差为 <span class="arithmatex">\(t_i\)</span>。封闭环名义间隙为</p>
+<div class="arithmatex">\[
+C_0=\sum_i s_i\bar x_i,
+\]</div>
+<p>最坏情况只传播边界：</p>
+<div class="arithmatex">\[
+C_{\min}=C_0-\sum_i t_i,\qquad C_{\max}=C_0+\sum_i t_i.
+\]</div>
+<p>为了把统计法的假设说清楚，本实验把 <span class="arithmatex">\(t_i\)</span> 暂时解释成各尺寸偏差的 <span class="arithmatex">\(3\sigma_i\)</span>，并假设偏差独立、近似正态：</p>
+<div class="arithmatex">\[
+\sigma_C=\sqrt{\sum_i(t_i/3)^2},\qquad
+P(L\le C\le U)=\Phi\!\left(\frac{U-C_0}{\sigma_C}\right)-\Phi\!\left(\frac{L-C_0}{\sigma_C}\right).
+\]</div>
+<p>RSS 的“3σ 带宽”是 <span class="arithmatex">\(3\sigma_C=\sqrt{\sum_i t_i^2}\)</span>，它不是 100% 保证；正态良率还依赖分布尾部是否可信。实验中的基准偏置滑块只展示一个系统性均值移动，不会伪装成随机散布。</p>
+<p>若尺寸偏差存在相关性，统计叠加要写成</p>
+<div class="arithmatex">\[
+\operatorname{Var}(C)=\sum_i\sigma_i^2+2\sum_{i&lt;j}s_is_j\operatorname{Cov}(x_i,x_j),
+\]</div>
+<p>而不是继续把协方差项删掉。共同温度、同一装夹、同一批次和测量基准都可能造成系统项或相关项；它们必须从数据或过程模型确认。</p>
+<h3 id="_3">误区与模型边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li>极值法给出的是在每个尺寸都能同时落到边界时的包络；它保守但不等于真实生产分布，更不说明测量系统足够好。</li>
+<li>RSS/正态良率必须明确独立性、近似正态性、尺寸定义和过程能力。共享夹具、热漂移、批次偏移或同一基准会引入协方差，不能继续用简单平方和。</li>
+<li>形状公差（直线度、平面度、圆度、圆柱度）通常不需要 datum；方向公差（平行度、垂直度、倾斜度）、位置公差（位置度、同轴度、对称度）和跳动通常要在功能基准体系下解释。它们不是普通轴向尺寸，必须按实体要求和装配边界建模；本 lab 的一维线性 stack 只作筛查。</li>
+<li>热装/冷装的间隙变化取决于材料的热膨胀系数、温差、接触压力、温度场和装配时序；铝-钢组合可能在某些升温条件下松脱，也可能因几何与约束得到相反结果，不能把“热装一定更松”当成通用结论。</li>
+<li>“良率 99.9%”是给定分布与规格窗口下的概率估计，不是每一件零件的保证，也不替代 GD&amp;T 公差域、测量不确定度和装配试验。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-tolerance-stackup" markdown="1">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认尺寸偏差按独立正态、每个“±值”为 3σ 解释；规格为 <span class="arithmatex">\(0.90\)</span>–<span class="arithmatex">\(1.50\,\mathrm{mm}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>尺寸环</th>
+<th style="text-align: right;">符号</th>
+<th style="text-align: right;">名义值 (mm)</th>
+<th style="text-align: right;">半公差 <span class="arithmatex">\(t_i\)</span> (=3σ_i) (mm)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>壳体基准到端面</td>
+<td style="text-align: right;">+</td>
+<td style="text-align: right;">40.00</td>
+<td style="text-align: right;">0.20</td>
+</tr>
+<tr>
+<td>隔圈</td>
+<td style="text-align: right;">+</td>
+<td style="text-align: right;">5.00</td>
+<td style="text-align: right;">0.10</td>
+</tr>
+<tr>
+<td>轴肩</td>
+<td style="text-align: right;">−</td>
+<td style="text-align: right;">42.60</td>
+<td style="text-align: right;">0.15</td>
+</tr>
+<tr>
+<td>止推垫</td>
+<td style="text-align: right;">−</td>
+<td style="text-align: right;">1.20</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+<tr>
+<td><strong>封闭环名义间隙</strong></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"><strong>1.20</strong></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>公差账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>极值 <span class="arithmatex">\([C_{\min},C_{\max}]\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0.70,1.70]\)</span></td>
+<td>mm；越过规格窗口</td>
+</tr>
+<tr>
+<td>RSS 3σ 带宽</td>
+<td style="text-align: right;">0.274</td>
+<td>mm；统计估计</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma_C\)</span></td>
+<td style="text-align: right;">0.0913</td>
+<td>mm</td>
+</tr>
+<tr>
+<td>正态窗口良率</td>
+<td style="text-align: right;">约 99.90%</td>
+<td>独立/正态/无系统相关</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验才揭示 SVG 间隙区间、尺寸贡献表和证据账；调节公差尺度或基准偏置后，结果会明确标出极值越界、统计估计和模型边界。</p>
+</div>
+<h3 id="_4">正式返回：从尺寸链回到图纸决策<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>这个筛查的正式输出不是一个孤立的“公差值”，而是四项可追溯证据：名义封闭环 <span class="arithmatex">\(C_0\)</span>、极值包络、带假设标签的统计估计，以及未建模的 datum/GD&amp;T 风险。若功能要求是 100% 互换，先看极值包络；若允许经验证的少量超差，再用独立性、过程能力和实测分布支撑 RSS，而不是先用统计法替制造能力兜底。</p>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果轴肩和止推垫由同一装夹基准加工，且 CMM 数据显示它们存在正相关，你会怎样把协方差项加入 <span class="arithmatex">\(\operatorname{Var}(C)\)</span>？再把位置度和端面垂直度纳入装配功能时，哪个基准关系必须先由装配状态定义？</p>
+</section>
+<h2 id="_6">一、为什么必须有公差<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>任何加工都有误差</strong>：机床精度、刀具磨损、热变形、材料弹性回复、测量误差。</p>
 <p><strong>公差的作用是双向的</strong>：</p>
 <ul>
@@ -62,7 +210,7 @@
 </ul>
 <p><strong>成本与公差的关系是强非线性的</strong>——公差每收紧一档，加工成本可能上升几十个百分点乃至成倍：因为它可能意味着<strong>换更精密的机床、增加工序（粗车→精车→磨削→研磨）、更严格的温控、更慢的进给、更高的废品率</strong>。</p>
 <p><strong>所以"能松则松"是机械设计的职业素养</strong>：<strong>只在功能真正需要的地方收紧公差</strong>。新手的通病是全图纸标注高精度，结果零件贵得离谱且交期漫长。</p>
-<h2 id="_2">二、尺寸公差与配合<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、尺寸公差与配合<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>基本概念</strong>：基本尺寸、上下偏差、公差带。</p>
 <p><strong>标准化体系</strong>（ISO 与国标一致）：</p>
 <ul>
@@ -106,9 +254,9 @@
 <ul>
 <li>靠<strong>弹性变形产生的接触压力</strong>传递扭矩，装配需压入或<strong>热装/冷装</strong>（加热孔件或冷却轴件）；</li>
 <li><strong>配合边缘是严重的应力集中与微动磨损区</strong>——<strong>这是疲劳裂纹的常见起源</strong>（承第十二、十四页）；</li>
-<li><strong>过盈量对温度敏感</strong>：铝件热膨胀系数约为钢的两倍，<strong>铝-钢过盈配合在温升时会松脱</strong>。</li>
+<li><strong>过盈量对温度敏感</strong>：铝件的线膨胀系数通常高于钢，但是否松脱还取决于配合件温差、约束、接触压力、装配时序与温度梯度；铝-钢组合在某些温升工况下可能减小过盈，必须按实际热边界计算。</li>
 </ul>
-<h2 id="_3">三、几何公差（形位公差）<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、几何公差（形位公差）<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>尺寸合格 ≠ 零件可用。</strong> 一根轴每个截面直径都合格，但整体可能是弯的、椭圆的、或两段不同心。<strong>几何公差控制形状、方向、位置与跳动</strong>：</p>
 <table>
 <thead>
@@ -136,11 +284,11 @@
 </tr>
 </tbody>
 </table>
-<p><strong>基准（datum）是几何公差的核心</strong>：几何公差几乎总是相对于<strong>基准</strong>定义的。<strong>基准的选择应与零件的功能状态一致</strong>——比如以实际安装面为基准，而不是以加工方便的面为基准。<strong>基准选错是几何公差标注中最常见、后果最严重的错误。</strong></p>
+<p><strong>基准（datum）是部分几何公差的核心</strong>：形状公差通常独立控制自身形状，不必强行添加 datum；方向、位置和跳动公差才通常要在基准体系中解释。<strong>基准的选择应与零件的功能状态一致</strong>——比如以实际安装面为基准，而不是以加工方便的面为基准；基准选错会让功能检验与图纸意图不一致。</p>
 <p><strong>最大实体要求（MMC）</strong>：一个巧妙的机制——当零件尺寸偏离最大实体状态时，<strong>可以获得额外的位置度公差</strong>。</p>
 <p><strong>直观理解</strong>：孔越大，螺栓越容易穿过，<strong>位置就可以偏得多一些</strong>。<strong>所以对"只要能装进去"的场合（螺栓通孔），用 MMC 可以在保证装配的前提下放宽公差，直接降低成本</strong>。这是 GD&amp;T 中最有实用价值的工具之一。</p>
 <p><strong>GD&amp;T 的哲学</strong>：<strong>标注功能需求，而非标注加工方法</strong>。它让设计意图（"这两个面必须平行到什么程度才能正常工作"）被精确表达，而不是隐含在一堆尺寸链里。</p>
-<h2 id="_4">四、尺寸链<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、尺寸链<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>多个零件装配后，某个关键间隙由一串尺寸累积决定。</p>
 <p><strong>极值法（最坏情况）</strong>：</p>
 <div class="arithmatex">\[T_{\text{封闭环}} = \sum T_i\]</div>
@@ -148,14 +296,14 @@
 <p><strong>统计法（概率法）</strong>：各环误差近似独立正态分布，</p>
 <div class="arithmatex">\[T_{\text{封闭环}} \approx \sqrt{\sum T_i^2}\]</div>
 <p><strong>这个平方和大幅放宽了要求</strong>：5 个等公差环，极值法需要每环 <span class="arithmatex">\(T/5\)</span>，统计法只需约 <span class="arithmatex">\(T/2.24\)</span>。<strong>代价是允许极小比例的装配超差</strong>（需要选配或返工）。</p>
-<p><strong>大批量生产普遍用统计法</strong>——这是"用可接受的少量不合格换取显著的成本下降"的典型工程决策，与 🔗 自动化站第十四页"量化风险而非追求绝对"是同一种成熟态度。</p>
+<p>在过程稳定、分布与相关性已用数据验证，并允许规定的不合格率或后续筛选时，大批量生产常采用统计公差；安全关键、100% 互换或小样本过程仍可能需要极值边界、能力研究与逐件检验。统计法不是用数学替代制造能力，而是把可接受风险写进质量计划。</p>
 <p><strong>工程对策</strong>：</p>
 <ul>
 <li><strong>减少环数</strong>（结构上一次装夹加工出多个面）——<strong>这比收紧公差有效得多</strong>；</li>
 <li><strong>设置可调环</strong>（垫片、调整螺钉）；</li>
 <li><strong>选配</strong>（分组装配）。</li>
 </ul>
-<h2 id="_5">五、测量与计量<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、测量与计量<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>"没有测量就没有公差"</strong>——公差必须可验证。</p>
 <ul>
 <li><strong>常用器具</strong>：卡尺（0.02 mm）、千分尺（0.01/0.001 mm）、量块（基准）、三坐标测量机（CMM）、圆度仪、粗糙度仪、光学与激光测量；</li>
@@ -163,7 +311,7 @@
 <li><strong>温度</strong>：标准计量温度为 20 °C。<strong>钢的线膨胀约 <span class="arithmatex">\(11.7\times10^{-6}/\mathrm{K}\)</span></strong>——1 米长的零件温差 1 K 就变化约 12 μm。<strong>精密测量必须控温</strong>，这也是精密机床要恒温车间的原因；</li>
 <li><strong>表面粗糙度</strong>：<span class="arithmatex">\(Ra\)</span> 是最常用参数。<strong>它影响疲劳强度（第十四页）、密封、摩擦与配合的实际过盈量</strong>——粗糙表面在压入时峰顶被压平，实际过盈小于名义值。</li>
 </ul>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>公差是设计与制造的契约</strong>，成本随公差收紧强非线性上升——<strong>"能松则松"是职业素养</strong>；</li>
 <li><strong>优先基孔制</strong>，因为孔难加工且刀具规格离散；</li>
@@ -184,5 +332,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-tolerance-stackup.js"></script>
 </body>
 </html>

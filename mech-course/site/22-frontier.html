@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:12</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、产业分布</a></li>
-<li><a href="#_2">二、当前技术前沿</a></li>
-<li><a href="#_3">三、本硕博的实际去向</a></li>
-<li><a href="#_4">四、这个学科的处境</a></li>
-<li><a href="#_5">五、要点</a></li>
+<li><a href="#frontier-learning-title">学习层：用一个可复现的频谱小实验练习“监测证据不是诊断保证”</a><ul>
+<li><a href="#1-24">具体工程情境：电机升速试验中的 1× 与 2.4× 线</a></li>
+<li><a href="#_1">必须提交的三项预测</a></li>
+<li><a href="#_2">最小模型与假设：采样、窗函数和阶次坐标</a></li>
+<li><a href="#_3">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_4">正式返回：把监测结果写成边界清楚的证据</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、产业分布</a></li>
+<li><a href="#_7">二、当前技术前沿</a></li>
+<li><a href="#_8">三、本硕博的实际去向</a></li>
+<li><a href="#_9">四、这个学科的处境</a></li>
+<li><a href="#_10">五、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +77,79 @@
 <p><strong>核对于 2026-07</strong> ｜ 本页讲<strong>行业形态</strong>与<strong>人在其中的位置</strong>。
 机械是工科中<strong>覆盖面最广、也最"分散"</strong>的专业：它没有微电子那样的集中产业链，而是渗透进几乎所有制造业。这个特点决定了它的职业形态——<strong>机械工程师的岗位极多，但"纯机械"的高端岗位相对集中在少数领域。</strong></p>
 </blockquote>
-<h2 id="_1">一、产业分布<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="frontier-learning-title" class="learning-layer">
+<h2 id="frontier-learning-title">学习层：用一个可复现的频谱小实验练习“监测证据不是诊断保证”<a class="headerlink" href="#frontier-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-24">具体工程情境：电机升速试验中的 1× 与 2.4× 线<a class="headerlink" href="#1-24" title="Permanent link"></a></h3>
+<p>一台转速约 <span class="arithmatex">\(1800\,\mathrm{r/min}\)</span> 的电机记录到一个确定性的振动玩具信号：1× 阶次幅值为 1.0 个<strong>归一化信号单位</strong>，2.4× 阶次幅值为 0.45 个归一化信号单位。工程师需要选择采样率、窗口和记录时长，检查 Nyquist 边界、频谱泄漏和阶次随转速移动的规律。实验的输出只能回答“这个确定性信号在此采样设置下如何被测量”；它不能保证识别真实机器的故障，更不能替代相位、载荷、传感器安装和历史基线。</p>
+<h3 id="_1">必须提交的三项预测<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<ol>
+<li>若采样率低于最高信号频率的两倍，频谱会出现混叠，还是仍能无条件保留真实频率？</li>
+<li>对不落在 DFT 整数频点的正弦信号，矩形窗会只留下一个频点、产生泄漏，还是自动把泄漏消除？</li>
+<li>在阶次成分保持不变时，转速提高会让它的频率保持固定、按转速比例移动，还是随机移动？</li>
+</ol>
+<h3 id="_2">最小模型与假设：采样、窗函数和阶次坐标<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>令转速为 <span class="arithmatex">\(n\)</span>、转频为 <span class="arithmatex">\(f_r=n/60\)</span>，确定性信号写成</p>
+<div class="arithmatex">\[
+x(t)=\sum_k A_k\sin\left(2\pi kf_rt+\varphi_k\right).
+\]</div>
+<p>采样率为 <span class="arithmatex">\(f_s\)</span>、记录时长为 <span class="arithmatex">\(T\)</span> 时，样本数 <span class="arithmatex">\(N\approx f_sT\)</span>，Nyquist 频率为 <span class="arithmatex">\(f_s/2\)</span>，频率栅格为 <span class="arithmatex">\(\Delta f=f_s/N\approx1/T\)</span>。矩形窗与 Hann 窗分别给出不同的主瓣/旁瓣和幅值校正；当成分不落在整数频点时，能量会扩散到邻近频点。阶次坐标用 <span class="arithmatex">\(o=f/f_r\)</span> 把转速变化归一化。</p>
+<p>如果 <span class="arithmatex">\(f_k\ge f_s/2\)</span>，实验会把它标成 alias boundary，并计算采样后折返的频率；如果没有越过 Nyquist，也只报告“在当前信号与窗口下可见”，不把一个峰写成故障诊断。</p>
+<h3 id="_3">误区与模型边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li>Nyquist 条件是对带限采样与抗混叠滤波假设的必要边界；真实传感器、前端滤波和非平稳转速还会改变可观测内容。</li>
+<li>窗函数可以改变泄漏与分辨率的权衡，不能凭空增加信息；短记录也会让近邻阶次难以分开。</li>
+<li>阶次跟踪需要转速参考、同步或可靠的转速估计；把频率轴除以一个错误的 rpm 不会得到可信阶次。</li>
+<li>确定性 toy signal 上的峰值可重复，不等于真实设备中的单一故障指纹。诊断需要基线、工况分层、多个传感器和拆检/试验验证。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-frontier-order-tracking">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(n=1800\,\mathrm{r/min}\)</span>、<span class="arithmatex">\(f_s=512\,\mathrm{Hz}\)</span>、<span class="arithmatex">\(T=1.00\,\mathrm{s}\)</span>、矩形窗，成分为 1.0×/2.4×，幅值为 1.00/0.45 个归一化信号单位。</p>
+<table>
+<thead>
+<tr>
+<th>监测账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>转频 / Nyquist</td>
+<td style="text-align: right;">30.0 / 256.0</td>
+<td>Hz</td>
+</tr>
+<tr>
+<td>样本数 / 频率栅格</td>
+<td style="text-align: right;">512 / 1.00</td>
+<td>samples / Hz</td>
+</tr>
+<tr>
+<td>目标线</td>
+<td style="text-align: right;">30.0 Hz (1×), 72.0 Hz (2.4×)</td>
+<td>归一化阶次</td>
+</tr>
+<tr>
+<td>alias 状态</td>
+<td style="text-align: right;">未越界</td>
+<td>仅对当前 toy 信号</td>
+</tr>
+<tr>
+<td>1× 泄漏 proxy</td>
+<td style="text-align: right;">近似 0</td>
+<td>矩形窗、整频点；归一化谱能量</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验会显示时域片段、频谱、阶次标线、窗口/采样/混叠证据表；改变记录时长或转速时，状态会明确区分“泄漏/混叠/阶次移动”，不输出诊断结论。</p>
+</div>
+<h3 id="_4">正式返回：把监测结果写成边界清楚的证据<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>正式返回不是“检测到故障”，而是：采样率和 Nyquist 是否覆盖目标频带、窗口和记录长度造成多少泄漏、峰值在 Hz 与阶次坐标下是否一致、以及哪些传感器/工况/基线证据尚未加入。只有在这些账本和验证数据闭合后，频谱峰才值得进入状态判断流程。</p>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果转速在一段记录内持续升高且目标阶次经过 Nyquist 边界，你会怎样改用转速同步重采样、抗混叠滤波和分段窗口？还需要什么现场证据，才能把“可见阶次变化”与“某个具体故障”区分开？</p>
+</section>
+<h2 id="_6">一、产业分布<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -100,7 +197,7 @@
 </tbody>
 </table>
 <p><strong>一个判断</strong>：<strong>机械技术水平的"天花板"集中在机床、半导体设备、航空发动机、精密仪器</strong>——这些领域对精度、可靠性、材料的要求逼近物理极限，且<strong>know-how 积累深、难以速成</strong>。</p>
-<h2 id="_2">二、当前技术前沿<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、当前技术前沿<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>① 轻量化与新材料</strong></p>
 <ul>
 <li>复合材料的规模化应用（成本与检测仍是障碍）；</li>
@@ -132,7 +229,7 @@
 <ul>
 <li>半导体设备驱动的纳米级运动控制、隔振、热稳定——<strong>这是机械与控制、光学最紧密结合的地方</strong>（🔗 微电子站光刻机、光电站）。</li>
 </ul>
-<h2 id="_3">三、本硕博的实际去向<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、本硕博的实际去向<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>本科</strong>：掌握四大力学 + 机械设计 + 制图 + 工艺基础 + CAD。</p>
 <ul>
 <li>去向：<strong>结构设计工程师、工艺工程师、设备工程师、项目/质量工程师、技术销售</strong>；</li>
@@ -155,7 +252,7 @@
 <li><strong>动手经验被高度重视</strong>：亲手装过、调过、拆过设备的人，判断力明显不同；</li>
 <li><strong>薪资与软件/芯片行业的差距</strong>是真实存在的行业现象，也是人才流向的原因之一。</li>
 </ul>
-<h2 id="_4">四、这个学科的处境<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、这个学科的处境<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>优势</strong>：</p>
 <ul>
 <li><strong>不可替代</strong>：只要有物理实体存在，就需要机械工程师；</li>
@@ -169,7 +266,7 @@
 <li><strong>know-how 密集</strong>：很多关键能力（工艺参数、材料配方、装配经验）掌握在少数企业手里，<strong>不在公开文献中</strong>——这也是本课诚实标注"具体参数须查手册"的原因。</li>
 </ul>
 <p><strong>一个判断</strong>：<strong>机械不会消失，但"只懂机械"的空间在收窄。</strong> 未来的机械工程师更像是<strong>系统集成者</strong>——理解力学，同时懂控制、材料、热、和一点软件。</p>
-<h2 id="_5">五、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、要点<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong>机械覆盖面最广、产业最分散</strong>；技术天花板集中在机床、半导体设备、航发、精密仪器；</li>
 <li><strong>前沿在轻量化、增材产业化、仿真驱动、精密制造与摩擦学能效</strong>；</li>
@@ -188,5 +285,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-frontier-order-tracking.js"></script>
 </body>
 </html>

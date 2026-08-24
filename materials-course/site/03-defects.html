@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,30 +47,115 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:08</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 缺陷动物园（按维度点名）</a></li>
-<li><a href="#2">2. 位错的三条工作性质</a></li>
-<li><a href="#3">3. 晶界：第二主角</a></li>
-<li><a href="#4">4. 数字感与反直觉清单</a></li>
+<li><a href="#materials-defects-learning-title">学习层：给一块淬火钢算空位数，再判断哪些缺陷不能套这条指数式</a><ul>
+<li><a href="#1">1. 具体工程情境：退火、淬火与后续时效</a></li>
+<li><a href="#2">2. 必须作答的预测门：单位、温度趋势、淬火边界</a></li>
+<li><a href="#3">3. 正式公式桥：无量纲分数 → 期望计数</a></li>
+<li><a href="#4">4. 动手实验：把热历史和位点规模联动</a></li>
+<li><a href="#5">5. 误区与模型边界：不是所有缺陷都服从同一条热激活指数式</a></li>
+<li><a href="#6">6. 正式映射与工程后果</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 缺陷动物园（按维度点名）</a></li>
+<li><a href="#2_1">2. 位错的三条工作性质</a></li>
+<li><a href="#3_1">3. 晶界：第二主角</a></li>
+<li><a href="#4_1">4. 数字感与反直觉清单</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">结构 III · 缺陷：不完美的统治<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>本课主线的核心页。完美晶体的理论剪切强度约 <span class="arithmatex">\(G/30\)</span>——按此，普通钢应能扛 ~7 GPa，实测退火钢屈服只有 ~0.2 GPa，<strong>差了近两个数量级</strong>。1934 年 Taylor、Orowan、Polanyi 各自悟出同一个答案：晶体里有<strong>位错</strong>，变形不是整层原子一起滑，而是缺陷一个一个"蠕"过去。从此材料科学的世界观定型：<strong>性能不由完美部分决定，由缺陷决定；工程 = 设计缺陷</strong>。</p>
+<p>本课主线的核心页。完美晶体的理想剪切强度常用 <span class="arithmatex">\(G/30\)</span> 作数量级估计——按此，普通钢应能扛数 GPa，而实测退火钢屈服只有约 0.2 GPa，<strong>说明理想晶格与工程材料之间存在巨大缺口</strong>。1934 年 Taylor、Orowan、Polanyi 各自悟出同一个答案：晶体里有<strong>位错</strong>，变形不是整层原子一起滑，而是缺陷一个一个"蠕"过去。从此材料科学的世界观定型：性能不只由完美部分决定，工程可以设计缺陷的种类、数量和可动性。</p>
 </blockquote>
-<h2 id="1">1. 缺陷动物园（按维度点名）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>0 维 · 点缺陷</strong>：空位、间隙原子、置换/间隙杂质。空位是热力学的<strong>必然</strong>——形成耗能 <span class="arithmatex">\(E_v\)</span> 但赚熵，平衡浓度</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-defects-learning-title" class="learning-layer">
+<h2 id="materials-defects-learning-title">学习层：给一块淬火钢算空位数，再判断哪些缺陷不能套这条指数式<a class="headerlink" href="#materials-defects-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：退火、淬火与后续时效<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一块合金在 1200 K 退火后快速淬到 300 K。工程师要估算高温时有多少空位可作为扩散载体，也要判断淬火后是否会瞬间回到室温平衡。这个问题只对<strong>点缺陷中的空位</strong>先做平衡近似；位错和晶界另有自己的动力学。</p>
+<h3 id="2">2. 必须作答的预测门：单位、温度趋势、淬火边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先预测三件事：若 <span class="arithmatex">\(Q_v\)</span> 用 eV，<span class="arithmatex">\(k_B\)</span> 应用什么单位？升高温度会让空位分数如何变化？从高温快速淬火后，短时间内的空位数应接近高温平衡、低温平衡，还是全部为零？揭示后才显示原子位点图和期望计数。</p>
+<h3 id="3">3. 正式公式桥：无量纲分数 → 期望计数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对给定晶格位点数 <span class="arithmatex">\(N_s\)</span>，最小平衡模型写成</p>
 <div class="arithmatex">\[
-\frac{n_v}{N} = \exp\Big(-\frac{E_v}{k_BT}\Big)
+x_v\equiv\frac{n_v}{N_s}
+\simeq \exp\left(-\frac{Q_v}{k_BT}\right),
+\qquad
+\mathbb E[n_v]=N_sx_v.
 \]</div>
-<p>（【推】混合熵 + 最小化自由能一步；<span class="arithmatex">\(E_v \sim 1\)</span> eV ⇒ 室温 ~<span class="arithmatex">\(10^{-17}\)</span>、熔点附近 ~<span class="arithmatex">\(10^{-4}\)</span>——<strong>指数的巨大跨度</strong>）。点缺陷是扩散的载体（热力 II：没有空位就没有扩散、就没有热处理）与半导体掺杂的本体（功能 I：十亿分之一的磷原子改变硅的电导十个数量级——<strong>缺陷工程最惊人的杠杆</strong>）。</p>
+<p>这里的指数式是<strong>稀释、单位前因子 <span class="arithmatex">\(A_v=1\)</span> 的教学形式</strong>。若把形成熵、简并度或局部振动自由能纳入完整平衡浓度，应写成 <span class="arithmatex">\(x_v\simeq A_v\exp[-Q_v/(k_BT)]\)</span>；<span class="arithmatex">\(A_v\)</span> 不一定为 1。若 <span class="arithmatex">\(Q_v\)</span> 用 eV，就取 <span class="arithmatex">\(k_B=8.617333262\times10^{-5}\ \mathrm{eV\,K^{-1}}\)</span>；指数和 <span class="arithmatex">\(x_v\)</span> 都是无量纲，<span class="arithmatex">\(\mathbb E[n_v]\)</span> 是期望的位点数。</p>
+<p>以 <span class="arithmatex">\(Q_v=1.00\ \mathrm{eV}\)</span>、<span class="arithmatex">\(N_s=10^{12}\)</span> 为例，1200 K 时 <span class="arithmatex">\(x_v\)</span> 约为 <span class="arithmatex">\(6.3\times10^{-5}\)</span>，期望约 <span class="arithmatex">\(6.3\times10^7\)</span> 个；300 K 时 <span class="arithmatex">\(x_v\)</span> 约为 <span class="arithmatex">\(1.6\times10^{-17}\)</span>，期望约 <span class="arithmatex">\(1.6\times10^{-5}\)</span> 个。<strong>分数极小不等于宏观样品中绝对没有空位</strong>，要乘上位点数才知道计数。</p>
+<h3 id="4">4. 动手实验：把热历史和位点规模联动<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-defect-vacancy">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(Q_v=1.00\ \mathrm{eV}\)</span>、<span class="arithmatex">\(T_{\mathrm{anneal}}=1200\ \mathrm K\)</span>、<span class="arithmatex">\(T_{\mathrm{service}}=300\ \mathrm K\)</span>、<span class="arithmatex">\(N_s=10^{12}\)</span>，并选择“理想瞬时冻结上界：保留退火态”。应至少得到下表的数量级：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">约值</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(k_BT\)</span>（1200 K）</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1034\)</span></td>
+<td>eV</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x_{v,eq}(1200\ \mathrm K)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.3\times10^{-5}\)</span></td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>高温平衡期望数</td>
+<td style="text-align: right;"><span class="arithmatex">\(6.3\times10^7\)</span></td>
+<td>个位点</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x_{v,eq}(300\ \mathrm K)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.6\times10^{-17}\)</span></td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>300 K 平衡期望数</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.6\times10^{-5}\)</span></td>
+<td>个位点</td>
+</tr>
+<tr>
+<td>理想瞬时冻结上界</td>
+<td style="text-align: right;">约 <span class="arithmatex">\(6.3\times10^7\)</span></td>
+<td>真实淬火会受冷却中扩散到汇的影响，未必达到此上界</td>
+</tr>
+</tbody>
+</table>
+<p>原子位点图是 96 个位点的确定性放大示意；真正的空位数量以透明账本为准。</p>
+</div>
+<h3 id="5">5. 误区与模型边界：不是所有缺陷都服从同一条热激活指数式<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>空位公式是稀释平衡点缺陷近似</strong>：<span class="arithmatex">\(Q_v\)</span> 是材料、相和化学势相关的形成能；形成熵、简并度、空位-空位相互作用和溶质-空位结合会改变前因子或有效关系。</li>
+<li><strong>“淬火保留高温态”是理想瞬时冻结上界</strong>：真实保留量取决于冷却过程中空位迁移到位错、晶界、表面等汇的时间；若随后充分退火，才可能逐步向服务温度平衡靠近。</li>
+<li><strong>位错不是“更多空位”</strong>：位错是线缺陷，受应力、Peach–Koehler 力、钉扎和回复控制；晶界是界面，数量和迁移由晶粒长大、偏析和加工历史控制。不能对它们直接套空位的单点指数式。</li>
+</ul>
+<h3 id="6">6. 正式映射与工程后果<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>点缺陷提供扩散通道；位错提供塑性滑移通道；晶界既可阻挡位错，又可能成为快速扩散和腐蚀路径。淬火保留的空位过饱和会加速时效、析出或回复，但具体结果取决于迁移率、陷阱和时间，不是只看一个平衡分数。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果位点数 <span class="arithmatex">\(N_s\)</span> 增加 <span class="arithmatex">\(10^6\)</span> 倍而 <span class="arithmatex">\(Q_v,T\)</span> 不变，空位分数会变吗，期望计数会变吗？如果显微组织主要由晶界密度改变，你会选择空位形成能、位错密度还是晶界面积作为下一项输入？</p>
+</div>
+</section>
+<h2 id="1_1">1. 缺陷动物园（按维度点名）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>0 维 · 点缺陷</strong>：空位、间隙原子、置换/间隙杂质。只要温度高于绝对零度，理想晶格通常会有热平衡空位；形成耗能但赚熵，最小模型的平衡浓度</p>
+<div class="arithmatex">\[
+\frac{n_v}{N} \simeq \exp\Big(-\frac{Q_v}{k_BT}\Big)
+\]</div>
+<p>（【推】混合熵 + 最小化自由能一步；<span class="arithmatex">\(Q_v \sim 1\)</span> eV 时室温可低至 <span class="arithmatex">\(10^{-17}\)</span>，高温则指数增加，具体数量级随材料、形成熵和温度而变——<strong>指数的巨大跨度</strong>）。点缺陷是扩散的载体（热力 II：没有可迁移的点缺陷就很难发生常规晶格扩散）与半导体掺杂的本体（功能 I：极低浓度的磷原子也能显著改变硅的电导——<strong>缺陷工程惊人的杠杆</strong>）。</p>
 <figure class="plot">
 <p><img alt="Equilibrium vacancy concentration vs temperature" src="assets/img/mat-03-vacancy.svg" /></p>
 <figcaption><span class="fig-id">图 3.1</span>空位平衡浓度随温度指数攀升（\(E_v = 1\,\mathrm{eV}\)）：室温到熔点跨越十几个数量级——高温工艺（退火、烧结、扩散）的一切动力学都骑在这条指数曲线上。</figcaption>
@@ -71,13 +171,13 @@
 <figcaption><span class="fig-id">图 3.3</span>地毯类比：整层滑动要求所有键同时移动，而位错像褶皱逐列推进，只在局部跨越势垒，所以实际塑性所需应力远低于理想晶体强度。</figcaption>
 </figure>
 <p><strong>2 维 · 界面</strong>：晶界（取向差界面——原子错排带，既是位错的墙、又是扩散的高速路和腐蚀的起点）；孪晶界；相界；表面。<strong>3 维</strong>：析出相、孔隙、夹杂——性能 I/II 的强化与失效之源。</p>
-<h2 id="2">2. 位错的三条工作性质<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 位错的三条工作性质<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>应力场与相互作用</strong>：位错周围有弹性应力场（能量 <span class="arithmatex">\(\sim Gb^2\)</span> 每单位长度）——同号相斥异号相吸；<strong>缠结</strong>使继续变形越来越难 ⇒ <strong>加工硬化</strong>（冷拔铁丝越弯越硬的微观真相）；</li>
 <li><strong>增殖</strong>：Frank–Read 源在应力下像吹泡泡一样批量造位错（退火金属 <span class="arithmatex">\(10^6\)</span>、重变形金属 <span class="arithmatex">\(10^{15}\ \mathrm{m}^{-2}\)</span>——位错密度九个数量级的可调范围，是"缺陷工程"的主操纵杆）；</li>
 <li><strong>受阻</strong>：任何破坏晶格周期性的东西都挡位错——溶质原子、晶界、析出粒子、别的位错。<strong>性能 I 的"强化四法"就是这四种障碍物的目录</strong>（本页埋种，那页收割）。</li>
 </ul>
-<h2 id="3">3. 晶界：第二主角<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 晶界：第二主角<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>晶界的双面性格一张表：</p>
 <table>
 <thead>
@@ -115,7 +215,7 @@
 <figcaption><span class="fig-id">图 3.4</span>晶界的三重身份：取向错配带阻挡位错、为原子提供快速扩散通道，同时也是偏析与晶间腐蚀的薄弱带。</figcaption>
 </figure>
 <p><strong>同一个缺陷，低温是英雄高温是叛徒</strong>——"缺陷好坏取决于服役条件"是选材判断力的核心一课。</p>
-<h2 id="4">4. 数字感与反直觉清单<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感与反直觉清单<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
 <li>理论强度 <span class="arithmatex">\(\sim G/30 \approx\)</span> 钢 7 GPa；实际退火纯铁 ~0.1 GPa；最强钢丝（琴钢丝，位错被操纵到极致）~4 GPa——<strong>从"被缺陷拖累"到"用缺陷武装"，工程在两个数量级间穿行</strong>；</li>
 <li>位错密度 <span class="arithmatex">\(10^6 \to 10^{15}\ \mathrm{m}^{-2}\)</span>：重变形金属每立方厘米的位错总长可达<strong>上千万公里</strong>（绕地球数百圈）；</li>
@@ -133,5 +233,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-defect-vacancy.js"></script>
 </body>
 </html>

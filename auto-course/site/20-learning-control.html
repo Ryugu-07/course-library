@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,13 +46,21 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#ood">学习层：让学习残差在训练区内工作，在 OOD 边界外交回保守控制器</a><ul>
+<li><a href="#1">1. 具体工程谜题：模型优化器找到的“好动作”，出了训练区还能信吗？</a></li>
+<li><a href="#2">2. 正式模型：残差、置信边界、动作门控分开记账</a></li>
+<li><a href="#3-gatedungated">3. 动手实验：比较 gated、ungated 和真实一步误差</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+<li><a href="#5">5. 正式回到学习型控制：把“学到了什么”和“允许它做什么”分开</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、强化学习与控制：同一个问题的两种语言</a></li>
 <li><a href="#_2">二、主要路线</a></li>
 <li><a href="#sim2real">三、sim2real：核心工程难题</a></li>
@@ -53,6 +76,72 @@
 🔗 与 AI 站强化学习线直接对接。
 前面十九页的方法都需要<strong>模型</strong>（或至少需要能整定的结构）。当对象难以建模（柔性材料、接触丰富的操作、复杂流体）、或任务难以用二次型代价表达（"把衣服叠好"）时，能否让系统<strong>从数据中学会控制</strong>？这是当前投入最大、也最容易被夸大的方向。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="ood">学习层：让学习残差在训练区内工作，在 OOD 边界外交回保守控制器<a class="headerlink" href="#ood" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程谜题：模型优化器找到的“好动作”，出了训练区还能信吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>考虑一个一维离散对象。标称模型知道线性项，但学习器只在 <span class="arithmatex">\(|x|\le r_{train}\)</span> 的数据上拟合残差。控制器在模型中搜索动作，可能利用残差预测的错误，把状态推向一个模型里看似便宜、真实对象却不安全的区域。工程设计要决定：什么时候使用学习控制器，什么时候用固定 fallback；不确定性升高时，门控应该牺牲多少性能换取可解释性。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>当 <span class="arithmatex">\(|x|\)</span> 超过训练半径时，不确定性应继续沿用训练区内的数值，还是增大并触发门控？</li>
+<li>优化器能否通过钻模型漏洞，在预测中得到低代价、在真实对象上却偏离的动作？</li>
+<li>交回 fallback 后，能否仅凭一次仿真就宣布整个系统稳定？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：残差、置信边界、动作门控分开记账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>本实验使用</p>
+<div class="arithmatex">\[
+x_{k+1}=a x_k+b u_k+r_{true}(x_k),\qquad
+\hat x_{k+1}=a x_k+b u_k+\hat r(x_k),
+\]</div>
+<p>其中 <span class="arithmatex">\(a=0.92,b=0.18\)</span>，学习残差在 <span class="arithmatex">\(|x|\le r_{train}\)</span> 内接近真值；离开训练区后，<span class="arithmatex">\(\hat r\)</span> 采用外推，误差和不确定性 <span class="arithmatex">\(\sigma(x)\)</span> 随距离增长。学习动作由模型优化或残差补偿产生，fallback 为 <span class="arithmatex">\(u_{safe}=\operatorname{sat}(-K_{safe}x)\)</span>。本页的门控规则是示例：仅当 <span class="arithmatex">\(|x|\le r_{train}\)</span> 且 <span class="arithmatex">\(\sigma(x)\le\sigma_{max}\)</span> 时采用学习动作，否则交回 fallback。它是运行时风险控制结构，不是 Lyapunov 或认证证明。</p>
+<h3 id="3-gatedungated">3. 动手实验：比较 gated、ungated 和真实一步误差<a class="headerlink" href="#3-gatedungated" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调初始状态、训练半径、不确定性阈值、学习增益、fallback 增益和真实残差失配。SVG 画训练区边界、状态轨迹、学习/安全动作；ledger 逐行列 <span class="arithmatex">\(x_k\)</span>、<span class="arithmatex">\(\hat r\)</span>、<span class="arithmatex">\(r_{true}\)</span>、<span class="arithmatex">\(\sigma\)</span>、门控结果、预测下一状态和真实下一状态。证据区额外显示“优化器模型收益”和“真实一步残差”，把 OOD exploitation 和控制器输出是否越界分开。</p>
+<div class="learning-lab" data-learning-lab="auto-learning-gate">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认从 <span class="arithmatex">\(x_0=1.25\)</span> 开始，训练半径 <span class="arithmatex">\(r_{train}=1.0\)</span>，<span class="arithmatex">\(a=0.92,b=0.18\)</span>。初始状态在训练区外，所以门控先交回 <span class="arithmatex">\(u_{safe}\)</span>；轨迹进入 <span class="arithmatex">\(\lvert x\rvert\le1.0\)</span> 且不确定性未越阈值后，才允许学习动作。若关闭门控，优化器会继续使用外推残差，账本会显示预测下一状态与真实下一状态的差值；该差值是状态单位的模型误差，不是概率或准确率分数。</p>
+<table>
+<thead>
+<tr>
+<th>证据</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in-distribution</code></td>
+<td><span class="arithmatex">\(\lvert x\rvert\le r_{train}\)</span> 且不确定性未越阈值</td>
+</tr>
+<tr>
+<td><code>OOD-gated</code></td>
+<td>超出训练区/置信阈值，采用 fallback</td>
+</tr>
+<tr>
+<td><code>model exploit</code></td>
+<td>优化器预测改善，但真实一步误差增大</td>
+</tr>
+<tr>
+<td><code>safety action</code></td>
+<td>被限幅的保守动作，不代表全局稳定</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>训练集内表现不等于泛化保证</strong>：训练分布、传感器延迟、动作饱和和真实扰动都要在验证数据中明确覆盖。</li>
+<li><strong>不确定性分数不是概率校准</strong>：本实验的 <span class="arithmatex">\(\sigma\)</span> 是随 OOD 距离增长的 proxy，除非另有校准数据，不能解释成“失效概率”。</li>
+<li><strong>门控不自动证明 fallback 安全</strong>：fallback 也需要输入范围、执行器约束、对象模型和扰动边界的独立分析。</li>
+<li><strong>优化器会利用模型错误</strong>：模型中便宜的轨迹可能是现实中的漏洞；要用真实数据、保守约束、集成不确定性或安全过滤器阻止这种捷径。</li>
+<li><strong>一次短仿真不等于部署证据</strong>：还要测试训练边界、传感器异常、延迟、饱和、故障恢复和版本变更。</li>
+</ul>
+<h3 id="5">5. 正式回到学习型控制：把“学到了什么”和“允许它做什么”分开<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>可交付的返回值不是一个总分，而是一张范围表：训练支持的状态集合、残差误差、门控规则、fallback 行为、动作/状态限制，以及 OOD 时的降级证据。学习器可以扩大模型能力，但安全边界必须由独立、可检查的结构定义；这正是混合控制比直接放行策略更容易工程化的原因。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果视觉伺服只在白色零件和低速下训练，而现场出现反光零件、遮挡和高速运动，你会怎样设计 OOD 指标、fallback、动作限幅和再训练验收？请分别写出训练内性能、边界外拒绝率和真实设备安全证据。</p>
+</div>
+</section>
 <h2 id="_1">一、强化学习与控制：同一个问题的两种语言<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p><strong>它们研究的是同一件事</strong>，只是传统不同：</p>
 <table>
@@ -85,33 +174,33 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Bellman 方程与 HJB 方程本质相同</strong>（第十七页）。<strong>差别在传统与假设</strong>：控制假定有模型、要求稳定性证明、面向物理系统；RL 假定模型未知、靠试错、最初面向游戏与仿真。</p>
+<p><strong>Bellman 方程与 HJB 方程是相关但不相同的动态规划方程</strong>（第十七页）：Bellman 常写离散时间递推，HJB 是连续时间极限/连续时间最优控制的偏微分方程；在相应正则性、动力学和代价假设下可以互相对应。控制与 RL 也不是“有模型/无模型”的二分：控制可以做数据驱动设计，RL 也可以使用模型；真正要比较的是信息来源、目标、约束和可验证保证。</p>
 <p><strong>一个常被忽略的历史事实</strong>：动态规划（Bellman，1950 年代）同时是两个领域的源头。<strong>"强化学习是新东西"是一种错觉</strong>——新的是深度网络作为函数逼近器，以及由此带来的规模。</p>
 <h2 id="_2">二、主要路线<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>① 无模型 RL（model-free）</strong>：直接从交互中学策略（PPO、SAC 等）。</p>
 <ul>
 <li><strong>优点</strong>：不需要模型；</li>
-<li><strong>致命弱点</strong>：<strong>样本效率极低</strong>——常需百万到十亿次交互。<strong>在仿真中可行，在真实设备上通常不可行</strong>（一台真实机器人跑不了一百万次尝试，而且会先坏掉）。</li>
+<li><strong>关键代价</strong>：许多深度无模型方法需要大量交互，数量级随任务、初始化、离线数据和算法而变。仿真可以承受的探索，在昂贵或会损伤设备的真实系统上往往不可直接照搬，因此需要离线数据、仿真、约束探索或其他先验。</li>
 </ul>
 <p><strong>② 基于模型的 RL / 学习型 MPC</strong>：先从数据学一个动态模型，再用规划或 MPC 求解。</p>
 <ul>
-<li><strong>样本效率高得多</strong>（这是它对真实系统更实用的原因）；</li>
+<li><strong>在模型可辨识、预测误差可界定且规划器计算可承受时，样本效率可能高于无模型路线</strong>；长时域误差和计算开销仍需实测；</li>
 <li>与第十七、十八页直接接续：<strong>这本质上就是"辨识 + MPC"，只是模型可以是神经网络</strong>；</li>
 <li>难点：模型误差在长时域预测中累积；优化器会<strong>利用模型的错误</strong>（找到模型里存在、现实中不存在的"漏洞"）——<strong>这是基于模型 RL 的典型失效模式</strong>。</li>
 </ul>
 <p><strong>③ 模仿学习 / 从演示学习</strong>：从人类示范中学策略。避开了奖励设计，但存在<strong>分布偏移</strong>问题（一旦偏离演示轨迹就进入没见过的状态），需 DAgger 等方法缓解。</p>
-<p><strong>④ 学习 + 传统控制的混合</strong>：<strong>这是工程上最现实的路线</strong>——</p>
+<p><strong>④ 学习 + 传统控制的混合</strong>：在底层控制器、门控和约束已有独立证据的条件下，这通常是较易审计的一条路线——</p>
 <ul>
 <li>用学习<strong>补偿模型残差</strong>（在物理模型基础上学一个修正项）；</li>
 <li>用学习做<strong>高层决策</strong>，底层仍用可验证的控制器执行；</li>
 <li>用学习<strong>整定</strong>传统控制器的参数。
-<strong>保留了传统方法的稳定性保证，同时获得数据的灵活性。</strong></li>
+<strong>可能保留部分传统方法的稳定性/约束证据，同时获得数据的灵活性</strong>；学习残差、切换逻辑和模型失配仍需单独证明，不能自动继承稳定性。</li>
 </ul>
 <h2 id="sim2real">三、sim2real：核心工程难题<a class="headerlink" href="#sim2real" title="Permanent link"></a></h2>
 <p>真实交互昂贵，于是先在仿真中训练，再迁移到实物。<strong>但仿真与现实总有差距（reality gap）</strong>：接触与摩擦模型不准、传感器噪声与延迟、执行器动态、材料参数。</p>
 <p><strong>主流缓解手段</strong>：</p>
 <ul>
-<li><strong>域随机化</strong>：训练时随机化物理参数、纹理、延迟，<strong>迫使策略对参数不敏感</strong>——本质上是<strong>在追求鲁棒性</strong>（🔗 第十六页：这与 <span class="arithmatex">\(H_\infty\)</span> 的"为一族模型设计"精神相通，只是用采样代替了范数界）；</li>
+<li><strong>域随机化</strong>：训练时随机化物理参数、纹理、延迟，可能改善对所覆盖变化的鲁棒性——本质上是在用采样近似一族模型；它不等价于 <span class="arithmatex">\(H_\infty\)</span> 范数界，也不保证未覆盖分布的行为；</li>
 <li><strong>系统辨识 + 仿真校准</strong>（第十八页）；</li>
 <li><strong>真实数据微调</strong>；</li>
 <li><strong>保守的动作空间</strong>（限制策略输出范围）。</li>
@@ -121,7 +210,7 @@
 <p>这是本页最需要诚实的部分。学习型控制在论文与演示中成果惊人，但<strong>在工业控制中的实际部署仍然有限</strong>，原因具体：</p>
 <p><strong>① 无稳定性与安全保证</strong>：神经网络策略难以给出第十五页那样的 Lyapunov 证明。<strong>在会伤人或损失巨大的系统上，"通常有效"不足以投运</strong>（承第十四页功能安全：需要的是可论证的保证）。</p>
 <p><strong>② 分布外行为不可预测</strong>：遇到训练中未出现的工况，行为可能任意。而<strong>工业系统的价值恰恰体现在异常工况下仍然安全</strong>。</p>
-<p><strong>③ 可验证性与认证</strong>：第十四页说过，安全相关软件依赖流程与验证。<strong>一个百万参数的策略如何验证、如何认证、如何做变更管理</strong>，目前没有成熟答案。</p>
+<p><strong>③ 可验证性与认证</strong>：第十四页说过，安全相关软件依赖流程与验证。针对特定行业已有运行时监控、受限功能、仿真/试验覆盖和保证案例等路线，但对高维学习策略还没有一套跨行业、一次适用的通用认证答案；模型更新与变更管理尤其需要单独论证。</p>
 <p><strong>④ 数据获取昂贵</strong>：工业设备不允许大量试错，且故障数据天然稀缺。</p>
 <p><strong>⑤ 可维护性</strong>：现场工程师能调 PID，但无法调一个神经网络（承第十三、十六页反复出现的同一约束）。</p>
 <p><strong>⑥ 与现有方法的比较常不公平</strong>：许多论文把学习方法与<strong>未经认真整定的 PID</strong> 比较。<strong>精心整定的传统控制器往往比宣传的更强</strong>——这是判读此类工作时最该警惕的一点。</p>
@@ -140,15 +229,15 @@
 <li><strong>高维感知输入</strong>：直接从视觉到动作（传统控制难以处理图像输入）；</li>
 <li><strong>多任务与泛化</strong>：一个策略适应多种工况，减少逐一调试的工程量；</li>
 <li><strong>参数自整定</strong>：用学习自动完成过去靠人的整定工作——<strong>这可能是最快落地的一类</strong>，因为它保留了传统控制器结构（可验证），只把整定自动化；</li>
-<li><strong>异常检测与预测性维护</strong>：不直接闭环控制，<strong>风险低、价值明确</strong>，是当前落地最广的一类。</li>
+<li><strong>异常检测与预测性维护</strong>：不直接接管闭环时通常更易隔离风险；截至本页核对于 2026-07，它们在公开案例中较常见，但部署收益仍取决于误报、漏报、数据质量和处置流程。</li>
 </ul>
 <p><strong>注意最后两条的共同特征</strong>：<strong>把学习放在闭环之外或结构之内，而非让它直接接管闭环。</strong> 这与第十八页"工业偏好增益调度胜过在线自适应"是同一个逻辑——<strong>可验证性优先</strong>。</p>
 <h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>
-<li><strong>RL 与最优控制同源</strong>（Bellman/HJB），新的是深度函数逼近与规模；</li>
-<li><strong>无模型 RL 样本效率低，真实设备上通常不可行</strong>；基于模型的方法更实用；</li>
-<li><strong>混合路线（学习补偿 + 传统控制执行）是工程最现实的选择</strong>；</li>
-<li><strong>sim2real 靠域随机化等手段追求鲁棒性</strong>，在运动控制上成功，在精细接触上仍难；</li>
+<li><strong>RL 与最优控制共享动态规划思想</strong>（离散 Bellman 与连续 HJB 有条件地对应），新方法的差异还在数据、函数逼近与验证接口；</li>
+<li><strong>无模型 RL 往往需要大量交互，真实设备上是否可行取决于样本、损坏代价和安全探索机制</strong>；基于模型的方法在模型质量和计算预算足够时可能更省样本；</li>
+<li><strong>混合路线（学习补偿 + 传统控制执行）便于分层审计，但稳定性不能自动继承</strong>；</li>
+<li><strong>sim2real 可用域随机化等手段覆盖指定变化，不能替代真实设备边界测试</strong>；</li>
 <li><strong>工业采用受限于安全保证、可验证性与可维护性</strong>，而非性能；</li>
 <li><strong>最快落地的是"闭环之外"的应用</strong>（自整定、异常检测）。</li>
 </ul>
@@ -163,5 +252,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-learning-gate.js"></script>
 </body>
 </html>

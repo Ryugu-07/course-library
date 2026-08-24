@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +47,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 脆性的根源与统计后果</a></li>
+<li><a href="#materials-ceramic-learning-title">学习层：给一根氧化铝承力件做 Weibull 风险账本，先预测尺寸与 proof test</a><ul>
+<li><a href="#1">1. 具体材料工程情境：氧化铝绝缘支柱的可靠性筛选</a></li>
+<li><a href="#2-proof">2. 必须作答的预测门：有效体积、模数与 proof 后存活</a></li>
+<li><a href="#3-cdf-proof">3. 正式模型桥：有效体积 → CDF → proof 条件概率</a></li>
+<li><a href="#4">4. 动手实验：把体积、缺陷离散度和筛选应力联动</a></li>
+<li><a href="#5">5. 误区与模型边界：筛选缺陷不等于改变材料本性</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 脆性的根源与统计后果</a></li>
 <li><a href="#2">2. 增韧四法（与脆性共处的技术）</a></li>
 <li><a href="#3">3. 热冲击：陶瓷的第二杀手</a></li>
-<li><a href="#4">4. 传统与先进陶瓷的分工</a></li>
-<li><a href="#5">5. 数字感与反直觉</a></li>
+<li><a href="#4_1">4. 传统与先进陶瓷的分工</a></li>
+<li><a href="#5_1">5. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
@@ -51,16 +74,104 @@
 <blockquote>
 <p>陶瓷抗压强度可达钢的数倍、硬度与耐温冠绝群雄，却因为<strong>脆</strong>而长期只能做碗和砖。现代陶瓷工程的全部智慧就是回答一个问题：<strong>如何与脆性共处</strong>——统计设计（Weibull）、增韧机制、以及"扬长避短"的应用哲学。</p>
 </blockquote>
-<h2 id="1">1. 脆性的根源与统计后果<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-ceramic-learning-title" class="learning-layer">
+<h2 id="materials-ceramic-learning-title">学习层：给一根氧化铝承力件做 Weibull 风险账本，先预测尺寸与 proof test<a class="headerlink" href="#materials-ceramic-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：氧化铝绝缘支柱的可靠性筛选<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一批氧化铝绝缘支柱要装进高压设备。每根试件的表面加工与内部孔隙都可能留下不同尺寸的裂纹，设计者不能只抄一个平均弯曲强度，而要把<strong>有效承载体积、应力分位数和 proof test 后的条件风险</strong>放进同一张可追账的账本。这里用静态 weakest-link 代理讲清尺寸效应，不替代真实缺陷检测和结构应力积分。</p>
+<h3 id="2-proof">2. 必须作答的预测门：有效体积、模数与 proof 后存活<a class="headerlink" href="#2-proof" title="Permanent link"></a></h3>
+<p>揭示前回答三题：在同一应力、<span class="arithmatex">\(\sigma_0\)</span> 和 <span class="arithmatex">\(m\)</span> 下，<span class="arithmatex">\(V/V_0\)</span> 增大会让 <span class="arithmatex">\(P_f\)</span> 升高还是降低？在固定 <span class="arithmatex">\(\sigma/\sigma_0=1.1&gt;1\)</span> 时，增大 Weibull 模数 <span class="arithmatex">\(m\)</span> 会让该应力处的 <span class="arithmatex">\(P_f\)</span> 怎样变化？理想静态模型中若 proof stress 高于 service stress 且试件通过 proof test，service 的条件存活率是多少？三题完成后才显示 CDF、分位强度与风险账本。</p>
+<h3 id="3-cdf-proof">3. 正式模型桥：有效体积 → CDF → proof 条件概率<a class="headerlink" href="#3-cdf-proof" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(V_0\)</span> 作为参考体积，使用无量纲有效体积比：</p>
+<div class="arithmatex">\[
+P_f(\sigma,V)=1-\exp\left[-\frac{V}{V_0}\left(\frac{\sigma}{\sigma_0}\right)^m\right],\qquad
+S(\sigma,V)=1-P_f.
+\]</div>
+<p>失效概率为 <span class="arithmatex">\(p\)</span> 的分位强度为</p>
+<div class="arithmatex">\[
+\sigma_p=\sigma_0\left[\frac{-\ln(1-p)}{V/V_0}\right]^{1/m}.
+\]</div>
+<p>在同一试件、同一有效体积的静态模型中，proof stress 为 <span class="arithmatex">\(\sigma_{\rm proof}\)</span> 后观察 service stress <span class="arithmatex">\(\sigma_{\rm svc}\)</span>：</p>
+<div class="arithmatex">\[
+P(\mathrm{survive\ svc}\mid\mathrm{survive\ proof})=
+\begin{cases}
+1,&amp;\sigma_{\rm svc}\le\sigma_{\rm proof},\\
+\exp\{-\frac{V}{V_0}[({\sigma_{\rm svc}}/{\sigma_0})^m-({\sigma_{\rm proof}}/{\sigma_0})^m]\},&amp;\sigma_{\rm svc}&gt;\sigma_{\rm proof}.
+\end{cases}
+\]</div>
+<p>应力与 <span class="arithmatex">\(\sigma_0\)</span> 用 MPa，<span class="arithmatex">\(V/V_0\)</span> 和 <span class="arithmatex">\(m\)</span> 无量纲；<span class="arithmatex">\(V\)</span> 不能脱离 <span class="arithmatex">\(V_0\)</span> 裸带量纲进入指数。</p>
+<h3 id="4">4. 动手实验：把体积、缺陷离散度和筛选应力联动<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-ceramic-weibull">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(V/V_0=0.25\)</span>、<span class="arithmatex">\(m=8\)</span>、<span class="arithmatex">\(\sigma_0=300\ \mathrm{MPa}\)</span>、<span class="arithmatex">\(\sigma_{\rm svc}=240\ \mathrm{MPa}\)</span>、<span class="arithmatex">\(\sigma_{\rm proof}=300\ \mathrm{MPa}\)</span>。原始 service 失效概率 <span class="arithmatex">\(P_f=0.0410756\)</span>，proof 通过概率为 <span class="arithmatex">\(0.778801\)</span>，因为 proof 高于 service，静态模型给出的 proof 后 service 条件存活率为 <span class="arithmatex">\(1.00000\)</span>；分位强度 <span class="arithmatex">\(\sigma_{10}=269.286\ \mathrm{MPa}\)</span>、<span class="arithmatex">\(\sigma_{50}=340.786\ \mathrm{MPa}\)</span>、<span class="arithmatex">\(\sigma_{90}=395.964\ \mathrm{MPa}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有效体积比 <span class="arithmatex">\(V/V_0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.25\)</span></td>
+<td>无量纲；指数中的尺寸尺度</td>
+</tr>
+<tr>
+<td>Weibull 模数 <span class="arithmatex">\(m\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(8\)</span></td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma_0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(300\)</span></td>
+<td>MPa</td>
+</tr>
+<tr>
+<td>service 原始 <span class="arithmatex">\(P_f\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0410756\)</span></td>
+<td>未经过 proof test</td>
+</tr>
+<tr>
+<td>proof 通过概率</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.778801\)</span></td>
+<td><span class="arithmatex">\(P(\mathrm{survive\ proof})\)</span></td>
+</tr>
+<tr>
+<td>proof 后 service 条件存活</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.00000\)</span></td>
+<td>因 <span class="arithmatex">\(\sigma_{\rm svc}&lt;\sigma_{\rm proof}\)</span> 的静态结果</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma_{10}/\sigma_{50}/\sigma_{90}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(269.286/340.786/395.964\)</span></td>
+<td>MPa；CDF 分位强度</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：筛选缺陷不等于改变材料本性<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>weakest-link 的独立同分布缺陷假设把不同位置的失效风险相乘；真实缺陷可能成簇、与表面/加工方向相关，且应力场常不均匀。均匀体缺陷控制时把体积写成 <span class="arithmatex">\(V/V_0\)</span> 是有效体积积分的简化；若失效由表面加工缺陷主导，应改用相应的有效面积/表面应力积分与配套标定参数。</li>
+<li><span class="arithmatex">\(m\)</span>、<span class="arithmatex">\(\sigma_0\)</span> 和 <span class="arithmatex">\(V_0\)</span> 必须在相同材料、表面状态、加载模式和有效体积定义下标定；弯曲、拉伸、热应力与接触应力不能随意共用一组参数。</li>
+<li>proof test 会淘汰超过 proof 应力阈值的较大缺陷，使剩余批次的条件风险降低；它不提高剩余材料的本征断裂韧性，也不自动消除亚临界裂纹增长、疲劳、热冲击和后续损伤。</li>
+<li>CDF 是统计设计输入，不是对某一根零件的确定性寿命预言；还需要缺陷检测、应力场、环境和失效形貌证据。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若支柱从小试样放大到十倍有效体积，你会先重算 <span class="arithmatex">\(V/V_0\)</span>、重新标定 <span class="arithmatex">\(m\)</span>，还是直接沿用平均强度？若 proof test 后仍出现热循环断裂，哪些证据能区分 Weibull 静态缺陷筛选、亚临界裂纹增长与安装应力？</p>
+</div>
+</section>
+<h2 id="1_1">1. 脆性的根源与统计后果<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>根源</strong>（结构 I 的账）：离子/共价键的方向性与静电约束 ⇒ 位错难动 ⇒ 裂尖无塑性区 ⇒ <span class="arithmatex">\(K_{IC}\)</span> 只有金属的几十分之一（性能 II）。<strong>后果</strong>：强度由<strong>最大缺陷</strong>决定，而缺陷是随机分布的 ⇒ <strong>强度本身是随机变量</strong>。</p>
 <figure class="plot">
 <p><img alt="Weibull failure probability curves" src="assets/img/mat-11-weibull.svg" /></p>
 <figcaption><span class="fig-id">图 11.1</span>Weibull 分布：模数 \(m\) 越大强度越集中（工艺越稳定）。陶瓷典型 \(m = 5\text{–}20\)，金属可达 50+——设计陶瓷件时给出的不是"强度"而是"在某失效概率下的许用应力"。</figcaption>
 </figure>
 <div class="arithmatex">\[
-P_f = 1 - \exp\Big[-V\Big(\frac{\sigma}{\sigma_0}\Big)^m\Big]
+P_f = 1 - \exp\Big[-\frac{V}{V_0}\Big(\frac{\sigma}{\sigma_0}\Big)^m\Big]
 \]</div>
-<p><strong>两个工程推论</strong>：① <strong>尺寸效应</strong>——体积越大越弱（大件包含大缺陷的概率高，<span class="arithmatex">\(V\)</span> 在指数里）：小试样测的强度不能直接用于大件；② 设计输入是"<span class="arithmatex">\(10^{-6}\)</span> 失效概率下的应力"而非平均强度——<strong>陶瓷设计天然是概率设计</strong>（🔗 数学站统计 III/Weibull，随机过程的极值思想）。<strong>证明试验（proof test）</strong>：预先加载到设定应力，淘汰含大缺陷者——用破坏一部分换取剩余件的可靠性保证。</p>
+<p><strong>两个工程推论</strong>：① <strong>尺寸效应</strong>——体积越大越弱（大件包含大缺陷的概率高，<span class="arithmatex">\(V/V_0\)</span> 在指数里）：小试样测的强度不能直接用于大件；更一般地应从有效体积中的缺陷风险积分得到该无量纲尺度项；② 设计输入是"<span class="arithmatex">\(10^{-6}\)</span> 失效概率下的应力"而非平均强度——<strong>陶瓷设计天然是概率设计</strong>（🔗 数学站统计 III/Weibull，随机过程的极值思想）。<strong>证明试验（proof test）</strong>：预先加载到设定应力，淘汰含大缺陷者——用破坏一部分换取剩余件的可靠性保证。</p>
 <h2 id="2">2. 增韧四法（与脆性共处的技术）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -104,10 +215,10 @@ P_f = 1 - \exp\Big[-V\Big(\frac{\sigma}{\sigma_0}\Big)^m\Big]
 R = \frac{\sigma_f(1-\nu)}{E\alpha}
 \]</div>
 <p><strong>读法</strong>：要抗热冲击就要<strong>低膨胀 + 低模量 + 高强度</strong>。石英玻璃（<span class="arithmatex">\(\alpha \approx 0.5\times10^{-6}\)</span>/K）可以烧红后扔进冷水而不裂；普通钠钙玻璃（<span class="arithmatex">\(\alpha \approx 9\times10^{-6}\)</span>）几十度温差就炸。Pyrex/硼硅玻璃（<span class="arithmatex">\(\alpha \approx 3.3\)</span>）做实验器皿正是这条公式的产品；堇青石（近零膨胀）做汽车尾气催化载体同理。<strong>这是"性能靠成分设计"最干净的一个案例</strong>。</p>
-<h2 id="4">4. 传统与先进陶瓷的分工<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 传统与先进陶瓷的分工<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>传统</strong>（黏土基：砖、瓷、水泥）：便宜、量大、抗压——水泥是人类用量最大的人造材料（也是 ~7–8% 的全球 CO₂ 排放源，低碳水泥是前沿 II 的议题）。</p>
 <p><strong>先进/工程陶瓷</strong>：Al₂O₃（绝缘、耐磨、生物相容）、ZrO₂（增韧之王）、SiC/Si₃N₄（高温结构、轴承球）、AlN（高导热绝缘基板——🔗 芯片站封装页）、BN、碳化硼（装甲）。<strong>选材逻辑</strong>：<strong>扬长（硬度、耐温、耐蚀、绝缘、低密度）避短（禁止拉伸受力、禁止缺口、禁止热冲击）</strong>——把陶瓷放在压缩与摩擦的岗位上，是工程师最基本的自觉。</p>
-<h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 数字感与反直觉<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <ul>
 <li>抗压/抗拉比：金属 ~1，陶瓷可达 <strong>10:1 以上</strong>（氧化铝抗压 ~3000 MPa、抗弯 ~350）——<strong>陶瓷不弱，只是不能拉</strong>；</li>
 <li>硬度（HV）：淬火钢 ~800 ｜ Al₂O₃ ~1800 ｜ SiC ~2500 ｜ B₄C ~3000 ｜ 金刚石 ~10000；</li>
@@ -125,5 +236,7 @@ R = \frac{\sigma_f(1-\nu)}{E\alpha}
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-ceramic-weibull.js"></script>
 </body>
 </html>

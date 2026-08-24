@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:02</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、应力：为什么需要它</a></li>
+<li><a href="#stress-strain-learning-title">学习层：把一次拉伸试验拆成可追溯的应变账本</a><ul>
+<li><a href="#_1">具体工程情境：校准一根拉杆的材料窗口</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：单位、转换与两个判据</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、应力：为什么需要它</a></li>
 <li><a href="#mohr">二、主应力与 Mohr 圆</a></li>
-<li><a href="#_2">三、应变与本构关系</a></li>
-<li><a href="#_3">四、拉伸曲线：材料的身份证</a></li>
-<li><a href="#_4">五、屈服准则：什么时候开始塑性变形</a></li>
-<li><a href="#_5">六、其他材料行为</a></li>
-<li><a href="#_6">七、要点</a></li>
+<li><a href="#_7">三、应变与本构关系</a></li>
+<li><a href="#_8">四、拉伸曲线：材料的身份证</a></li>
+<li><a href="#_9">五、屈服准则：什么时候开始塑性变形</a></li>
+<li><a href="#_10">六、其他材料行为</a></li>
+<li><a href="#_11">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +78,101 @@
 <p><strong>层次</strong>：本科核心。
 上一页算的是"力有多大"，本页问"材料受得住吗"。答案需要两步：把力转成<strong>应力</strong>（单位面积上的力），把变形转成<strong>应变</strong>（单位长度的变形），再用<strong>材料的本构关系</strong>把两者连起来。这三个概念是全部固体力学的语言。</p>
 </blockquote>
-<h2 id="_1">一、应力：为什么需要它<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="stress-strain-learning-title" class="learning-layer">
+<h2 id="stress-strain-learning-title">学习层：把一次拉伸试验拆成可追溯的应变账本<a class="headerlink" href="#stress-strain-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：校准一根拉杆的材料窗口<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>质量部门拿到一根初始标距 <span class="arithmatex">\(L_0=50\,\mathrm{mm}\)</span>、初始面积 <span class="arithmatex">\(A_0=25\,\mathrm{mm^2}\)</span> 的钢制拉伸试样。试验机记录力 <span class="arithmatex">\(F\)</span> 和标距伸长；设计工程师要从同一组数据给出初始弹性模量 <span class="arithmatex">\(E\)</span>、0.2% 条件屈服强度，以及均匀颈缩开始前的材料窗口。这个任务最容易被一句不加限定的“工程应力换真应力”带偏：<strong>均匀变形时可以换算，扩散颈缩之后截面已经不再处处相同。</strong></p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\(e=10\%\)</span> 的均匀拉伸段，真应变 <span class="arithmatex">\(\varepsilon=\ln(1+e)\)</span> 与工程应变谁更大？</li>
+<li>0.2% 偏移线应写成 <span class="arithmatex">\(\sigma=E(e-0.002)\)</span>，还是 <span class="arithmatex">\(\sigma=Ee+0.002\)</span>？</li>
+<li>均匀拉伸何时到达 Considere 条件 <span class="arithmatex">\(d\sigma/d\varepsilon=\sigma\)</span>？到达后还能把整根试样当作同一瞬时截面积吗？</li>
+</ol>
+<h3 id="_3">正式公式桥：单位、转换与两个判据<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>工程量以初始几何量归一化：</p>
+<div class="arithmatex">\[
+e=\frac{L-L_0}{L_0},\qquad s=\frac{F}{A_0}.
+\]</div>
+<p>若标距段仍是均匀变形，并近似塑性不可压缩，则 <span class="arithmatex">\(AL\approx A_0L_0\)</span>，从而</p>
+<div class="arithmatex">\[
+\varepsilon=\ln(1+e),\qquad
+\frac{A}{A_0}=\frac{1}{1+e},\qquad
+\sigma=s(1+e).
+\]</div>
+<p><span class="arithmatex">\(E\)</span> 是弹性段的斜率（<span class="arithmatex">\(\sigma\)</span> 用 Pa 或 MPa 时，<span class="arithmatex">\(E\)</span> 必须用同一应力单位）；0.2% 条件屈服点由试验曲线与</p>
+<div class="arithmatex">\[
+\sigma_{0.2}=E(e-0.002),\qquad e\ge0.002
+\]</div>
+<p>的交点定义。实验台用一个<strong>有界的分段真应力玩具本构</strong>展示这套映射：弹性段取 <span class="arithmatex">\(\sigma=E\varepsilon\)</span>，屈服后取 <span class="arithmatex">\(\sigma=\sigma_y+H(\varepsilon-\varepsilon_y)^n\)</span>。在均匀段，Considere 条件 <span class="arithmatex">\(d\sigma/d\varepsilon=\sigma\)</span> 给出扩散颈缩的起点；它是“最大工程应力”与几何失稳相遇的判据，不是材料在颈缩后突然没有承载力。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(s(1+e)\)</span> 不是颈缩后任意一点的精确真应力。它依赖均匀截面与体积近似，最多把全局工程曲线可靠地映射到<strong>扩散颈缩开始</strong>；之后应使用颈部局部面积测量、数字图像相关或带几何更新的有限元。</li>
+<li>“颈缩后真应力仍上升”只能在知道颈部瞬时局部面积并给出测量/本构条件时成立；不能用均匀公式把断裂前整段曲线直接当作精确真曲线。</li>
+<li>0.2% 是条件定义，不等于材料发生一个尖锐、唯一的物理相变；加载速率、温度、试样几何和数据平滑都会影响读数。</li>
+<li>本实验的 <span class="arithmatex">\(H,n\)</span> 只是有界玩具本构，用来练习账本与 Considere 判据；它不是某个牌号的材料认证，也不描述损伤、剪切唇和断裂。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-stress-strain">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认玩具参数为 <span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>、<span class="arithmatex">\(\sigma_y=250\,\mathrm{MPa}\)</span>、<span class="arithmatex">\(H=900\,\mathrm{MPa}\)</span>、<span class="arithmatex">\(n=0.35\)</span>，所选工程应变 <span class="arithmatex">\(e=0.080\)</span>。单位换算使用 <span class="arithmatex">\(1\,\mathrm{MPa}=1\,\mathrm{N/mm^2}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th>含义</th>
+<th style="text-align: right;">默认读数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\varepsilon=\ln(1+e)\)</span></td>
+<td>均匀段真应变</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.076961\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(A/A_0=1/(1+e)\)</span></td>
+<td>均匀体积假设下的面积比</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.925926\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(s\)</span></td>
+<td>工程应力</td>
+<td style="text-align: right;"><span class="arithmatex">\(569.27\,\mathrm{MPa}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma=s(1+e)\)</span></td>
+<td>均匀段玩具真应力</td>
+<td style="text-align: right;"><span class="arithmatex">\(614.81\,\mathrm{MPa}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(E\)</span></td>
+<td>初始斜率</td>
+<td style="text-align: right;"><span class="arithmatex">\(210\,\mathrm{GPa}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma_{0.2}\)</span></td>
+<td><span class="arithmatex">\(e=0.003712\)</span> 的偏移交点</td>
+<td style="text-align: right;"><span class="arithmatex">\(359.43\,\mathrm{MPa}\)</span></td>
+</tr>
+<tr>
+<td>Considere</td>
+<td><span class="arithmatex">\(d\sigma/d\varepsilon=\sigma\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(e\approx0.272902\)</span> 开始扩散颈缩</td>
+</tr>
+<tr>
+<td>选定状态</td>
+<td><span class="arithmatex">\(e=0.080\)</span> 是否仍均匀</td>
+<td style="text-align: right;">是，均匀换算有效</td>
+</tr>
+</tbody>
+</table>
+<p>页面会明确标出扩散颈缩之后的虚线段只是有界玩具外推；它不把均匀面积换算冒充断裂前的精确局部真应力。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果试样中段已经颈缩，而你只能拿到载荷与夹具位移，怎样设计额外测量才能把“名义曲线”变成可用于断裂分析的局部真应力曲线？请列出至少一个几何测量和一个模型假设，并说明各自的失效边界。</p>
+</section>
+<h2 id="_6">一、应力：为什么需要它<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>同样 1000 N 的拉力，作用在 <span class="arithmatex">\(\phi\)</span>1 mm 的丝上会拉断，作用在 <span class="arithmatex">\(\phi\)</span>50 mm 的杆上毫无影响。<strong>决定材料命运的不是力，是应力</strong>：</p>
 <div class="arithmatex">\[\sigma = \frac{F}{A} \quad (\text{正应力}), \qquad \tau = \frac{F}{A} \quad (\text{切应力})\]</div>
 <p><strong>单位</strong>：Pa = N/m²，工程上常用 <strong>MPa = N/mm²</strong>（这个换算很方便：牛顿除以平方毫米直接得 MPa）。</p>
@@ -68,7 +186,7 @@
 <div class="arithmatex">\[\tau_{\max} = \frac{\sigma_1 - \sigma_3}{2}\]</div>
 <p><strong>Mohr 圆</strong>把这一切画成一个圆——它是应力状态变换的几何表示，至今是工程师快速判断的利器。</p>
 <p><strong>一个直接的实验印证</strong>：拉伸低碳钢试样时，<strong>滑移带（吕德斯带）出现在与轴线成 45° 的方向</strong>，正是最大切应力面。<strong>这说明塑性变形由切应力驱动</strong>——这个观察直接引出下面的屈服准则。</p>
-<h2 id="_2">三、应变与本构关系<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">三、应变与本构关系<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>应变</strong>度量变形：</p>
 <div class="arithmatex">\[\varepsilon = \frac{\Delta L}{L} \quad(\text{正应变}), \qquad \gamma = \text{角度改变} \quad(\text{切应变})\]</div>
 <p><strong>胡克定律</strong>（线弹性、各向同性）：</p>
@@ -126,7 +244,7 @@
 </table>
 <p><strong>一个极重要的工程事实</strong>：<strong>钢与铝的比刚度（<span class="arithmatex">\(E/\rho\)</span>）几乎相同</strong>（约 27 vs 26 GPa·cm³/g）。所以<strong>用铝替代钢并不能在同等重量下获得更高刚度</strong>——铝的优势在于同等<strong>强度</strong>下更轻、以及成形与耐蚀性。<strong>"换轻材料就能减重"是一个需要具体分析的直觉</strong>，取决于设计受强度控制还是受刚度控制。</p>
 <p><strong>泊松比的含义</strong>：拉伸时横向收缩。<span class="arithmatex">\(\nu=0.5\)</span> 意味着体积不变（橡胶接近）；金属约 0.3。<strong>存在 <span class="arithmatex">\(\nu&lt;0\)</span> 的超构材料</strong>（拉伸时横向也膨胀），是第二十二页的话题。</p>
-<h2 id="_3">四、拉伸曲线：材料的身份证<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">四、拉伸曲线：材料的身份证<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <figure>
 <p><img alt="典型金属的应力-应变曲线" class="fig-img" src="assets/img/mec_stress_strain.svg" /></p>
 <figcaption><span class="fig-id">图 2-1</span> 典型工程应力—应变曲线。<strong>延性金属</strong>（如低碳钢，蓝）经历弹性段 → 屈服 → 强化 → 颈缩 → 断裂，断后延伸率大；<strong>脆性材料</strong>（如铸铁，红）几乎无塑性段即断裂。<strong>曲线下的面积代表韧性</strong>（单位体积吸收的能量）——延性材料远高于脆性材料，这正是它在冲击与超载下更安全的原因。虚线为 0.2% 残余应变法确定的<strong>条件屈服强度</strong> \(\sigma_{0.2}\)。</figcaption>
@@ -135,11 +253,11 @@
 <ul>
 <li><strong>比例极限 / 弹性极限</strong>：卸载后能完全恢复；</li>
 <li><strong>屈服强度 <span class="arithmatex">\(\sigma_s\)</span>（或 <span class="arithmatex">\(\sigma_{0.2}\)</span>）</strong>：开始明显塑性变形。<strong>这是多数静强度设计的判据</strong>；</li>
-<li><strong>抗拉强度 <span class="arithmatex">\(\sigma_b\)</span></strong>：工程应力的最大值。注意<strong>它对应颈缩开始</strong>，而非真正的材料强度上限；</li>
+<li><strong>抗拉强度 <span class="arithmatex">\(\sigma_b\)</span></strong>：标准拉伸试验中工程应力的最大值，通常标志均匀段的扩散颈缩开始；它不是局部真应力的材料上限；</li>
 <li><strong>延伸率与断面收缩率</strong>：延性指标。</li>
 </ul>
-<p><strong>工程应力 vs 真应力</strong>：工程应力用<strong>原始</strong>截面积，真应力用<strong>瞬时</strong>截面积。颈缩后工程应力下降，但<strong>真应力仍在上升</strong>——材料并没有变弱，只是截面变小了。<strong>这个区别在成形工艺分析中至关重要</strong>（第十七页）。</p>
-<h2 id="_4">五、屈服准则：什么时候开始塑性变形<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>工程应力 vs 真应力</strong>：工程应力用<strong>原始</strong>截面积，真应力用<strong>瞬时</strong>局部截面积。在扩散颈缩前，可用均匀变形/体积近似由 <span class="arithmatex">\(\sigma=s(1+e)\)</span> 换算；颈缩后截面不均匀，这个全局公式不再是精确真曲线。若要说颈部真应力仍上升，必须有局部面积测量或几何更新模型支撑。<strong>这个区别在成形工艺分析中至关重要</strong>（第十七页）。</p>
+<h2 id="_9">五、屈服准则：什么时候开始塑性变形<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>单向拉伸时判据很简单（<span class="arithmatex">\(\sigma &gt; \sigma_s\)</span>）。但<strong>复杂应力状态下呢？</strong> 需要把多维应力状态折算成一个等效值。</p>
 <p><strong>von Mises 准则（畸变能理论）</strong>——延性金属的标准判据：</p>
 <div class="arithmatex">\[\sigma_{eq} = \sqrt{\tfrac{1}{2}\left[(\sigma_1-\sigma_2)^2 + (\sigma_2-\sigma_3)^2 + (\sigma_3-\sigma_1)^2\right]} &lt; \sigma_s\]</div>
@@ -148,14 +266,14 @@
 <p><strong>Tresca 准则（最大切应力）</strong>：<span class="arithmatex">\(\tau_{\max} = (\sigma_1-\sigma_3)/2 &lt; \sigma_s/2\)</span>。比 von Mises 略保守，形式简单，某些规范采用。</p>
 <p><strong>脆性材料用不同准则</strong>：铸铁、陶瓷、玻璃的失效由<strong>最大拉应力</strong>主导，因为它们的破坏机制是裂纹扩展而非滑移。<strong>所以脆性材料抗压远强于抗拉</strong>（铸铁抗压强度可达抗拉的 3–4 倍）——这就是为什么它常用于受压件（机床床身、发动机缸体）。</p>
 <p><strong>"先判断材料是延性还是脆性，再选准则"——用错准则的后果可能是灾难性的。</strong></p>
-<h2 id="_5">六、其他材料行为<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">六、其他材料行为<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong>蠕变</strong>：高温下长期恒定载荷造成缓慢变形。<strong>汽轮机叶片、发动机部件的寿命常由蠕变控制</strong>，判据是时间-温度参数；</li>
 <li><strong>应力松弛</strong>：恒定变形下应力随时间下降——<strong>这就是螺栓预紧力会衰减、需要定期复紧的原因</strong>；</li>
 <li><strong>各向异性</strong>：轧制金属、复合材料、增材制造件（第十九页）的性能随方向变化。<strong>复合材料设计的核心正是利用这一点</strong>——在受力方向铺纤维；</li>
 <li><strong>温度影响</strong>：多数金属高温下强度下降、延性上升；<strong>某些钢在低温下发生韧脆转变</strong>——历史上多起低温脆断事故与此有关，这也是低温结构必须做冲击韧性试验的原因。</li>
 </ul>
-<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">七、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>应力是张量</strong>，主应力是它的特征值，Mohr 圆是几何表示；</li>
 <li><strong><span class="arithmatex">\(E/\rho\)</span> 在钢与铝中几乎相同</strong>——换材料减重必须看设计受什么控制；</li>
@@ -174,5 +292,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-stress-strain.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_2">一、一条主线：从力到寿命</a></li>
-<li><a href="#_3">二、这门学科教的思维方式</a></li>
-<li><a href="#_4">三、与其他站的呼应</a></li>
-<li><a href="#_5">四、保质期</a></li>
-<li><a href="#_6">五、若要继续</a></li>
-<li><a href="#_7">六、最后</a></li>
+<li><a href="#closing-learning-title">学习层：给一根泵轴做最后一次系统级证据审计</a><ul>
+<li><a href="#_2">具体工程情境：从扭矩到检修决策的泵轴草案</a></li>
+<li><a href="#_3">必须提交的三项预测</a></li>
+<li><a href="#_4">最小模型与假设：五本账加一条证据状态</a></li>
+<li><a href="#_5">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_6">正式返回：让系统设计结论可追溯、可复查、可否证</a></li>
+<li><a href="#_7">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_8">一、一条主线：从力到寿命</a></li>
+<li><a href="#_9">二、这门学科教的思维方式</a></li>
+<li><a href="#_10">三、与其他站的呼应</a></li>
+<li><a href="#_11">四、保质期</a></li>
+<li><a href="#_12">五、若要继续</a></li>
+<li><a href="#_13">六、最后</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +77,94 @@
 <blockquote>
 <p>二十三页走完。这一页把它们收拢：这门学科教会人什么，以及为什么"力如何传递"值得成为一种看世界的方式。</p>
 </blockquote>
-<h2 id="_2">一、一条主线：从力到寿命<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="closing-learning-title" class="learning-layer">
+<h2 id="closing-learning-title">学习层：给一根泵轴做最后一次系统级证据审计<a class="headerlink" href="#closing-learning-title" title="Permanent link"></a></h2>
+<h3 id="_2">具体工程情境：从扭矩到检修决策的泵轴草案<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>把前面各页的判断合并到一个透明教学估算：实心钢轴长 <span class="arithmatex">\(0.55\,\mathrm{m}\)</span>、直径 <span class="arithmatex">\(28\,\mathrm{mm}\)</span>，承受扭矩、横向载荷并以指定转速运行。设计员不能只报一个静态 von Mises 应力，而要同时检查应力、挠度、疲劳筛查、第一临界转速分离度、正态应力—强度可靠度 proxy 和材料成本 proxy。每一行证据都必须保留单位、阈值和未建模因素。</p>
+<h3 id="_3">必须提交的三项预测<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ol>
+<li>在载荷和材料不变时，增大实心轴直径对弯曲/扭转应力的影响是近似 <span class="arithmatex">\(d^{-3}\)</span>，还是只按 <span class="arithmatex">\(d^{-1}\)</span> 下降，或完全不变？</li>
+<li>静态应力很低但工作转速靠近第一临界转速时，系统证据能否仍判为“整体安全”？</li>
+<li>可靠度 proxy 是否只由平均安全系数决定，而与强度/载荷散布和共因失效无关？</li>
+</ol>
+<h3 id="_4">最小模型与假设：五本账加一条证据状态<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>圆实心截面的弯曲惯性矩和极惯性矩为</p>
+<div class="arithmatex">\[
+I=\frac{\pi d^4}{64},\qquad J=\frac{\pi d^4}{32}.
+\]</div>
+<p>若中部横向集中力 <span class="arithmatex">\(F\)</span> 作用在简支轴上，取 <span class="arithmatex">\(M=FL/4\)</span> 作筛查，弯曲应力和扭转剪应力为</p>
+<div class="arithmatex">\[
+\sigma_b=\frac{32M}{\pi d^3},\qquad
+\tau=\frac{16T}{\pi d^3},\qquad
+\sigma_{\rm vm}=\sqrt{\sigma_b^2+3\tau^2}.
+\]</div>
+<p>中央挠度用 <span class="arithmatex">\(\delta=FL^3/(48EI)\)</span>。为让动力模型与同一简支边界一致，实验取中点静刚度 <span class="arithmatex">\(k=48EI/L^3\)</span>，并用第一正弦模态的轴等效质量 <span class="arithmatex">\(0.5m_{shaft}\)</span> 加一个 <span class="arithmatex">\(0.8\,\mathrm{kg}\)</span> 中置盘，估算 <span class="arithmatex">\(f_1=(2\pi)^{-1}\sqrt{k/m_{eq}}\)</span>。疲劳行把弯曲与扭转幅值合成后同 <span class="arithmatex">\(S_e\)</span> 比较，可靠度行把强度与应力的均值和散布放进独立正态干涉式。所有阈值都是教学筛查线，不是规范许用值。</p>
+<h3 id="_5">误区与模型边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(d^{-3}\)</span> 的应力缩放只针对同一载荷、圆实心截面、线弹性名义应力；键槽、台阶、配合、表面、残余应力和塑性会改变局部应力。</li>
+<li>临界转速分离度不是静态强度余量。支承刚度、阻尼、盘质量、陀螺效应和不平衡会改变真实响应，不能用一个低应力值替代转子动力学。</li>
+<li>疲劳和可靠度 proxy 需要载荷谱、材料散布、环境和检测策略；“通过”只表示本页模型在给定阈值下未越界。</li>
+<li>成本 proxy 不包含刀具、热处理、供应链、报废、维护和失效后果；它只能把成本列入权衡，不能优化真实报价。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-system-shaft-ledger">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(d=28\,\mathrm{mm}\)</span>、<span class="arithmatex">\(L=0.55\,\mathrm{m}\)</span>、<span class="arithmatex">\(T=420\,\mathrm{N\cdot m}\)</span>、<span class="arithmatex">\(F=2500\,\mathrm{N}\)</span>、<span class="arithmatex">\(n=1200\,\mathrm{r/min}\)</span>，钢的 <span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>、屈服强度教学值 <span class="arithmatex">\(700\,\mathrm{MPa}\)</span>、疲劳筛查强度 <span class="arithmatex">\(S_e=300\,\mathrm{MPa}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>系统证据账</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\sigma_b\)</span> / <span class="arithmatex">\(\tau\)</span></td>
+<td style="text-align: right;">159.5 / 97.4</td>
+<td>MPa；名义筛查</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma_{\rm vm}\)</span></td>
+<td style="text-align: right;">232.2</td>
+<td>MPa</td>
+</tr>
+<tr>
+<td>中央挠度 <span class="arithmatex">\(\delta\)</span></td>
+<td style="text-align: right;">约 1.37</td>
+<td>mm；简支近似</td>
+</tr>
+<tr>
+<td>疲劳幅值 / <span class="arithmatex">\(S_e\)</span></td>
+<td style="text-align: right;">约 232 / 300</td>
+<td>MPa；幅值比为教学筛查</td>
+</tr>
+<tr>
+<td>第一临界转速</td>
+<td style="text-align: right;">约 <span class="arithmatex">\(8.9\times10^3\)</span></td>
+<td>r/min；简支中点等效转子 proxy</td>
+</tr>
+<tr>
+<td>可靠度 proxy</td>
+<td style="text-align: right;">接近 1</td>
+<td>独立正态 stress-strength 估计，不是保证</td>
+</tr>
+<tr>
+<td>质量 / 成本 proxy</td>
+<td style="text-align: right;">约 2.66 kg / 2.66</td>
+<td>kg / 归一化成本 proxy</td>
+</tr>
+</tbody>
+</table>
+<p>提交三项预测后，实验会显示轴系 SVG、五行证据 ledger、阈值状态和成本/可靠度说明；调整直径或转速时，任何一行变成 WARN 都不会被总分掩盖。</p>
+</div>
+<h3 id="_6">正式返回：让系统设计结论可追溯、可复查、可否证<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>最终返回不是“安全”两个字，而是一张证据表：载荷与截面假设、应力/变形单位、疲劳与可靠度数据来源、临界速度模型、阈值选择、成本 proxy 以及下一步验证。只要其中一行仍是 proxy，就必须把它写成待验证事项，而不能借总分把不确定性隐藏起来。</p>
+<h3 id="_7">迁移问题<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>如果泵轴还要经历启动停机循环、轴承刚度随温度变化、键槽引入应力集中并要求 20,000 小时检修间隔，你会怎样把载荷谱、转子模型、疲劳裂纹和维修策略接入这张 ledger？哪些结果必须由试验或现行规范取代本页的教学估算？</p>
+</section>
+<h2 id="_8">一、一条主线：从力到寿命<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>回看全课，所有内容挂在同一条链上：</p>
 <div class="arithmatex">\[\text{力} \to \text{应力} \to \text{变形与损伤} \to \text{累积} \to \text{失效} \to \text{寿命}\]</div>
 <ul>
@@ -64,7 +176,7 @@
 <li><strong>最终由概率决定寿命</strong>（第十六页）。</li>
 </ul>
 <p><strong>机械设计的本质，是管理这条链上的每一环。</strong></p>
-<h2 id="_3">二、这门学科教的思维方式<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">二、这门学科教的思维方式<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>① 先问"它会怎么坏"，再问"应力多大"。</strong> 屈服、断裂、疲劳、屈曲、磨损、蠕变、共振——<strong>判据完全不同</strong>。用错失效模式时，多精确的计算都无意义（第十六页）。<strong>这是本课最重要的一条职业习惯。</strong></p>
 <p><strong>② 材料放在哪里，比用多少更重要。</strong> 弯曲与扭转应力都在中性轴处为零 → 工字梁、空心轴、加强筋（第三页）；拓扑优化把这条原则自动化（第二十一页）；骨骼早已用演化算出了同样的答案。</p>
 <p><strong>③ 几何细节的影响是量级性的。</strong> 一个圆角能把疲劳寿命提高数倍；一处尖角能让整个设计报废。<strong>"画圆角"不是美化，是工程。</strong></p>
@@ -80,7 +192,7 @@
 <p><strong>这些都不是记忆题，而是"先分析主导机制再下判断"的产物。</strong></p>
 <p><strong>⑤ 可制造性先于优雅。</strong> 造不出来、装不进去、修不了的设计等于不存在（第十七页 DFM）。<strong>这是工科与理科最根本的分野</strong>，也是 🔗 微电子站说过的同一句话。</p>
 <p><strong>⑥ 减少零件数是最有力的可靠性手段。</strong> <span class="arithmatex">\(0.99^{100}\approx0.37\)</span>（第十六页）——<strong>复杂性本身就是敌人。</strong></p>
-<h2 id="_4">三、与其他站的呼应<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">三、与其他站的呼应<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>这门课与讲义库其他站的连接密度很高：</p>
 <table>
 <thead>
@@ -112,7 +224,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="_5">四、保质期<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">四、保质期<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -148,7 +260,7 @@
 </tbody>
 </table>
 <p><strong>具体的材料许用值、工艺参数、标准条文</strong>——<strong>任何时候都必须查现行标准与供应商数据</strong>，不可依赖讲义中的量级值。</p>
-<h2 id="_6">五、若要继续<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_12">五、若要继续<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>教材</strong>：Hibbeler《Mechanics of Materials》（材料力学，图解清晰）、Shigley《Mechanical Engineering Design》（机械设计的行业标准参考书）、Rao《Mechanical Vibrations》（振动）、Norton《Design of Machinery》（机构）、Ashby《Materials Selection in Mechanical Design》（选材方法论，<strong>极推荐</strong>）、Kalpakjian《Manufacturing Engineering and Technology》（制造）；</li>
 <li><strong>动手</strong>（这门课最该动手）：</li>
@@ -158,7 +270,7 @@
 <li>有条件就用 3D 打印做点结构件，亲手体会支撑、变形与各向异性；</li>
 <li><strong>跨站</strong>：🔗 自动化站（伺服与控制）、微电子站（精密设备）、数学站（振动与有限元的数学）。</li>
 </ul>
-<h2 id="_7">六、最后<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_13">六、最后<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
 <p>机械工程处理的是<strong>看得见、摸得着、会坏的东西</strong>。</p>
 <p>它的美感与理科不同：不在于发现自然规律，而在于<strong>在材料会疲劳、加工有误差、成本有上限、时间有节点的重重约束下，让一台机器可靠地运转十年</strong>。</p>
 <p>这门学科最深的一课，或许是<strong>对约束的尊重</strong>。物理定律、材料极限、制造能力、成本、以及人手能不能伸进去拧那颗螺栓——每一项都在收窄可能性的空间。<strong>而工程师的价值，恰恰体现在这个不断收窄的空间里，仍能找到一个足够好、造得出、且用得久的解。</strong></p>
@@ -173,5 +285,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-system-shaft-ledger.js"></script>
 </body>
 </html>

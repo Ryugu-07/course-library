@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,27 +47,110 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 多尺度计算谱系（选工具的地图）</a></li>
+<li><a href="#materials-ai-learning-title">学习层：一个小数据代理模型，先问“哪里能内插”</a><ul>
+<li><a href="#1">1. 具体材料工程情境：用有限实验点挑下一次测量</a></li>
+<li><a href="#2">2. 必须作答的预测门：不确定性、验证与主动学习</a></li>
+<li><a href="#3-proxy">3. 最小模型与假设：局部内插、不确定性 proxy 与验证</a></li>
+<li><a href="#4">4. 动手实验：移动查询点并加入下一测量</a></li>
+<li><a href="#5">5. 误区与模型边界：一个预测数不等于发现</a></li>
+<li><a href="#6-ai">6. 正式回扣：从“AI 加速”回到可复现证据</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 多尺度计算谱系（选工具的地图）</a></li>
 <li><a href="#2-ai">2. AI 的三种用法（按成熟度排序）</a></li>
 <li><a href="#3">3. 一次值得记住的教训（本页最重要的一段）</a></li>
-<li><a href="#4">4. 数据基础设施（低调但决定上限）</a></li>
+<li><a href="#4_1">4. 数据基础设施（低调但决定上限）</a></li>
 <li><a href="#5-ai-for-materials">5. 判断框架（读 AI-for-materials 新闻的五问）</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii-ai">前沿 III · 计算材料学与 AI<a class="headerlink" href="#iii-ai" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>⚠️ 保质期声明</strong>：核对于 <strong>2026-07</strong>，本页是全站更新最快的一页（AI 方向以季度计）。判断框架长期有效。</p>
-<p>材料研发的传统节奏是"试错 + 经验 + 运气"，一代材料从发现到应用十到二十年。计算与 AI 正在改写这个节奏——但<strong>改写到什么程度，是当前学界与产业界最值得较真的问题</strong>。本页给方法谱系、真实进展、以及一次值得记住的教训。</p>
+<p><strong>状态提示</strong>：AI-for-materials 的模型、数据集、论文和产业状态变化很快；下文把可复现的方法框架与需要查原始证据的新闻性主张分开。具体模型版本、数据规模、验证结果和商业化状态都不应从这张讲义快照外推。</p>
+<p>材料研发的传统节奏是"试错 + 经验 + 运气"，从发现到应用常需多年。计算与 AI 可能改写其中的筛选环节——但<strong>改写到什么程度，是当前学界与产业界最值得较真的问题</strong>。本页给方法谱系、真实进展、以及一次值得记住的教训。</p>
 </blockquote>
-<h2 id="1">1. 多尺度计算谱系（选工具的地图）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-ai-learning-title" class="learning-layer">
+<h2 id="materials-ai-learning-title">学习层：一个小数据代理模型，先问“哪里能内插”<a class="headerlink" href="#materials-ai-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：用有限实验点挑下一次测量<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>假设 <span class="arithmatex">\(x\)</span> 是归一化成分、<span class="arithmatex">\(y\)</span> 是归一化工艺条件，手里只有六个带测量值的点。你要给一个新点预测无量纲性能 proxy，并决定下一次实验测哪里。真正的风险不是不会算一个数，而是把凸包外的外推当成和数据覆盖内的内插一样可靠。</p>
+<h3 id="2">2. 必须作答的预测门：不确定性、验证与主动学习<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示前回答三题：凸包外的点应该被视为新颖高置信、与凸包内相同，还是必须提示 OOD/外推？为什么要做留一法验证？主动学习下一次测量应优先补哪里？三题完成后才显示训练点、凸包、验证误差和候选测量点。</p>
+<h3 id="3-proxy">3. 最小模型与假设：局部内插、不确定性 proxy 与验证<a class="headerlink" href="#3-proxy" title="Permanent link"></a></h3>
+<p>脚本对查询点取距离最近的最多三个观测，用逆距离加权估计</p>
+<div class="arithmatex">\[
+\hat z(x,y)=\frac{\sum_{j\in N_3}w_jz_j}{\sum_{j\in N_3}w_j},\qquad
+w_j=\frac{1}{d_j+10^{-6}}.
+\]</div>
+<p>局部观测值的加权离散度和最近邻距离合成 <span class="arithmatex">\(u\in[0,1]\)</span> 的不确定性 proxy；查询点若不在训练点凸包内，脚本强制把 <span class="arithmatex">\(u\)</span> 提高并标记 OOD。这里的“凸包内”只表示几何覆盖，不代表化学空间、温度空间或测量机制真的可内插。</p>
+<p>验证用留一法：每次拿掉一个观测点，用其余点预测它，报告无量纲 proxy 的 RMSE。主动学习从固定的候选池中选择当前不确定性最高的位置，再用一个确定性的 toy ground truth 加入观测，方便检查闭环；这不是实验自动化或材料发现保证。</p>
+<h3 id="4">4. 动手实验：移动查询点并加入下一测量<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-ai-surrogate-validation">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>训练点的 <span class="arithmatex">\((x,y,z)\)</span> 为 <span class="arithmatex">\((0.15,0.15,0.55)\)</span>、<span class="arithmatex">\((0.50,0.15,0.72)\)</span>、<span class="arithmatex">\((0.85,0.15,0.82)\)</span>、<span class="arithmatex">\((0.20,0.65,0.40)\)</span>、<span class="arithmatex">\((0.55,0.65,0.63)\)</span>、<span class="arithmatex">\((0.80,0.65,0.72)\)</span>，其中 <span class="arithmatex">\(z\)</span> 是无量纲性能 proxy。默认查询 <span class="arithmatex">\((x,y)=(0.50,0.40)\)</span> 位于凸包内；逆距离三邻居代理预测为 <span class="arithmatex">\(z=0.608158\)</span>，不确定性为 <span class="arithmatex">\(u=0.472156\)</span>（无量纲）。留一法 RMSE 为 <span class="arithmatex">\(0.110473\)</span>，当前候选池中不确定性最高的下一测量点为 <span class="arithmatex">\((0.50,0.80)\)</span>，它位于凸包外并应标为 OOD。</p>
+<table>
+<thead>
+<tr>
+<th>证据</th>
+<th style="text-align: right;">静态读法</th>
+<th>单位 / 边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查询坐标</td>
+<td style="text-align: right;"><span class="arithmatex">\((0.50,0.40)\)</span></td>
+<td>无量纲归一化坐标</td>
+</tr>
+<tr>
+<td>代理预测 <span class="arithmatex">\(\hat z\)</span></td>
+<td style="text-align: right;">0.608158</td>
+<td>无量纲性能 proxy，不是实测单位</td>
+</tr>
+<tr>
+<td>不确定性 <span class="arithmatex">\(u\)</span></td>
+<td style="text-align: right;">0.472156</td>
+<td>无量纲教学 proxy</td>
+</tr>
+<tr>
+<td>凸包状态</td>
+<td style="text-align: right;">内插区域</td>
+<td>仅表示训练坐标几何覆盖</td>
+</tr>
+<tr>
+<td>验证</td>
+<td style="text-align: right;">RMSE = 0.110473</td>
+<td>无量纲；不是普遍泛化保证</td>
+</tr>
+<tr>
+<td>下一测量</td>
+<td style="text-align: right;"><span class="arithmatex">\((0.50,0.80)\)</span></td>
+<td>凸包外 OOD 候选；需独立验证</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：一个预测数不等于发现<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>训练误差小、图表平滑或模型名字新，都不能替代独立验证、负结果、重复合成和原始表征。留一法也只是小数据集上的有限证据。</li>
+<li>凸包内不保证化学可行、相稳定或工艺可制造；凸包外并非一定错误，但必须把它读作外推并提高验证优先级。高不确定性是测量计划信号，不是“新材料”的证据。</li>
+<li>这里的逆距离加权、距离 proxy 和固定候选池是为审计因果链而选的最小模型，不代表神经网络、DFT、CALPHAD 或任何真实材料数据库的误差结构。</li>
+<li>生成式模型、高通量预测和自主实验室可以缩短部分候选筛选环节，但合成、相纯度、结构解析、性能测试、放大和认证仍是独立关卡；不能把候选数或预测数直接叫作发现数。</li>
+</ul>
+<h3 id="6-ai">6. 正式回扣：从“AI 加速”回到可复现证据<a class="headerlink" href="#6-ai" title="Permanent link"></a></h3>
+<p>一个可信的计算材料结论至少要能回答：训练数据覆盖哪里、查询点是内插还是外推、验证怎样做、预测量是什么单位、下一步如何用独立实验纠错。模型复杂度可以改变表达能力，但不会删除数据边界和合成鸿沟。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果模型在凸包内 RMSE 很小，却在一个新元素组合上给出极高性能，你会先补训练点、做 DFT 交叉检查、做相稳定性/可制造性筛选，还是直接合成？你需要哪些独立证据才能把“候选”升级成“材料结果”？</p>
+</div>
+</section>
+<h2 id="1_1">1. 多尺度计算谱系（选工具的地图）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -90,30 +188,30 @@
 </tbody>
 </table>
 <p><strong>ICME（集成计算材料工程）</strong>：把各尺度串成"成分-工艺-组织-性能-服役"的链条——这是计算材料学的工业形态，也是航空与汽车企业真正落地的部分（合金设计、工艺窗口、寿命预测）。</p>
-<p><strong>机器学习势（MLIP）</strong>：用 DFT 数据训练势函数，做到"DFT 的精度、MD 的速度"——<strong>这是近年最扎实的进展之一</strong>，把可模拟的时空尺度提升数个数量级；通用原子间势（如 M3GNet/MACE/GNoME 衍生模型一类）已能覆盖大部分元素组合，成为高通量筛选与 MD 的新基础设施。</p>
+<p><strong>机器学习势（MLIP）</strong>：用 DFT 数据训练势函数，目标是在受验证的成分和构型范围内接近参考势，同时获得比直接 DFT 更低的计算成本。它可能把可模拟的时空尺度扩大很多，但精度、稳定性和元素覆盖取决于训练集与验证集；“DFT 的精度、MD 的速度”只能当作目标性短语，不能当作无条件保证。</p>
 <h2 id="2-ai">2. AI 的三种用法（按成熟度排序）<a class="headerlink" href="#2-ai" title="Permanent link"></a></h2>
 <ol>
-<li><strong>代理模型/性能预测</strong>（最成熟）：用已有数据训练"成分工艺 → 性能"的回归器，替代昂贵计算或实验；关键不在模型复杂度而在<strong>数据质量与外推边界</strong>（🔗 数学站统计 V 的"外推危险"、SLT 线的泛化理论——<strong>材料数据集小、偏、缺负样本</strong>，这是本领域 ML 的根本约束）；</li>
-<li><strong>高通量筛选</strong>：DFT + ML 在百万级候选中筛出稳定相——<strong>DeepMind 的 GNoME 预测了约 220 万个晶体、其中约 38 万被判定为潜在稳定</strong>，是这条路线迄今规模最大的一次演示；</li>
-<li><strong>生成式/逆向设计</strong>（最新）：给定目标性能直接生成候选结构——<strong>微软 MatterGen</strong> 用扩散模型做晶体结构生成（🔗 你的 comfy 站第 02 讲的扩散数学，在材料空间的同构应用：从噪声去噪出一个晶体，而不是一张图）。</li>
+<li><strong>代理模型/性能预测</strong>：用已有数据训练"成分工艺 → 性能"的回归器，替代部分昂贵计算或实验；关键不在模型复杂度而在<strong>数据质量、独立验证与外推边界</strong>（🔗 数学站统计 V 的"外推危险"、SLT 线的泛化理论——<strong>材料数据集小、偏、缺负样本</strong>，这是本领域 ML 的根本约束）；</li>
+<li><strong>高通量筛选</strong>：DFT + ML 可以在候选空间中排序稳定性或性能。GNoME 的公开记录应拆开读为约 <strong>2.2M predicted stable</strong> candidates，以及更新后的约 <strong>381k updated convex hull</strong> structures；这些是模型预测/数据库筛选与 hull 更新记录，不是 2.2M 个已经实验验证的材料，也不能直接读成已合成、已表征或已商业化的数量；定义和计数仍应回到原始论文/项目记录核对；</li>
+<li><strong>生成式/逆向设计</strong>：给定目标性能生成候选结构。MatterGen 等工作展示了研究原型路线（🔗 你的 comfy 站第 02 讲的扩散数学），但候选结构仍需稳定性、合成路径、表征和性能实验验证。</li>
 </ol>
-<p><strong>自主实验室（self-driving lab）</strong>：把"生成假设 → 合成 → 表征 → 更新模型"闭环自动化（伯克利、NC State、MIT 及多家中国机构均在运行），产出速率从"每年几个"提到"每周几十个候选"。</p>
+<p><strong>自主实验室（self-driving lab）</strong>：把"生成假设 → 合成 → 表征 → 更新模型"闭环自动化。不同平台的设备、目标函数、失败率和吞吐量差别很大，不能用一个机构的候选数或周期替代跨平台证据。</p>
 <h2 id="3">3. 一次值得记住的教训（本页最重要的一段）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>2023 年伯克利 <strong>A-Lab</strong> 宣称 17 天自主合成 41 种新无机化合物，是"AI + 自动化改变材料发现"最广为引用的证据之一。随后有同行批评指出其中多数产物<strong>实为已知化合物或表征归属存在问题</strong>；<strong>2026 年 1 月，《自然》对该论文发布了更正</strong>。</p>
+<p>2023 年伯克利 <strong>A-Lab</strong> 论文评估了 57 个目标材料。2026 年作者更正后的记录为 <strong>36 个成功、4 个仅凭 XRD 仍属 inconclusive、17 个未获得</strong>；那 4 个原先被计入 40 个成功条目，不能继续写成已确认。成功也不等于高纯、全新结构原型或独立复现，仍要回到精修谱图、相含量与后续验证。</p>
 <p><strong>这件事的三条启示</strong>（不是要否定方向，而是校准判断）：</p>
 <ul>
 <li><strong>"新材料"的判定标准很硬</strong>：结构解析、相纯度、可重复合成——<strong>自动化容易放大表征环节的薄弱</strong>；</li>
-<li><strong>合成鸿沟（synthesis gap）是当前真正的瓶颈</strong>：计算能给"热力学上可能稳定"，但<strong>能不能做出来、以什么路径做出来、做出来是否具备预测性能</strong>是另一个量级的问题——截至 2026 年初，<strong>尚无一种由 AI 首次发现的材料进入商业化生产</strong>；</li>
-<li>学科的自我纠错机制（复现、批评、更正）<strong>照常运转</strong>——这本身是好消息，也是读任何 AI-for-Science 报道时该有的默认姿态（🔗 与你 AI 站第 14 讲的 verify 文化、数学站统计 IV 的多重检验/可复现性危机是同一堂课）。</li>
+<li><strong>合成鸿沟（synthesis gap）是不可跳过的关卡</strong>：计算能给"热力学上可能稳定"，但<strong>能不能做出来、以什么路径做出来、做出来是否具备预测性能</strong>是另一个量级的问题。任何关于商业化的结论都应给出产品、批量、标准和独立来源，而不能由预测数量推出；</li>
+<li>学科的自我纠错机制（复现、批评、更正）是证据链的一部分，也是读任何 AI-for-Science 报道时该有的默认姿态（🔗 与你 AI 站第 14 讲的 verify 文化、数学站统计 IV 的多重检验/可复现性危机是同一堂课）。</li>
 </ul>
-<h2 id="4">4. 数据基础设施（低调但决定上限）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数据基础设施（低调但决定上限）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>Materials Project、AFLOW、OQMD、NOMAD 等开放数据库是这一切的地基；<strong>FAIR 数据原则</strong>与统一的元数据标准正在成为共识。真正的稀缺资源不是算力也不是模型，而是：<strong>高质量的实验数据（尤其是失败与负结果）、标准化的工艺记录、以及表征原始数据的可获取性</strong>。谁把这三样做扎实，谁的 AI 才有真东西可学——<strong>这是给任何想入行者的最实用建议</strong>。</p>
 <h2 id="5-ai-for-materials">5. 判断框架（读 AI-for-materials 新闻的五问）<a class="headerlink" href="#5-ai-for-materials" title="Permanent link"></a></h2>
-<p>① 是<strong>预测</strong>还是<strong>合成验证</strong>？（差一个数量级的可信度）② 数据从哪来、覆盖什么成分空间、<strong>外推还是内插</strong>？③ 有无<strong>独立复现</strong>？④ 性能是<strong>计算值</strong>还是<strong>实测值</strong>、测的是什么尺寸的样品？⑤ 距离可制造有多远（克级？公斤级？工艺窗口有多宽）？</p>
-<p><strong>总纲</strong>：AI 正在把材料科学的<strong>筛选</strong>环节加速一个数量级，但<strong>合成、表征、放大、认证</strong>这四关仍是人类与设备的战场——<strong>加速的是漏斗的上半段，不是全程</strong>。这是 2026 年这个时点上最诚实的表述。</p>
+<p>① 是<strong>预测</strong>还是<strong>合成验证</strong>？两者证据等级不同；② 数据从哪来、覆盖什么成分空间、<strong>外推还是内插</strong>？③ 有无<strong>独立复现</strong>？④ 性能是<strong>计算值</strong>还是<strong>实测值</strong>、测的是什么尺寸的样品？⑤ 距离可制造有多远（克级？公斤级？工艺窗口有多宽）？</p>
+<p><strong>总纲</strong>：AI 可能加速某些材料科学的<strong>筛选</strong>工作，但加速幅度依数据、工具和验证协议而变；<strong>合成、表征、放大、认证</strong>仍是独立关卡。更稳妥的说法是：模型可以缩短候选排序的部分时间，不能替代全程证据。</p>
 <hr />
 <p><em>前沿了望结束。最后一页收官：把全站的知识收成一件可用的工具——材料选择的方法论。</em></p>
-<p><strong>Sources</strong>：<a href="https://deepmind.google/blog/millions-of-new-materials-discovered-with-deep-learning/">DeepMind GNoME</a> · <a href="https://nextwavesinsight.com/ai-materials-discovery-gnome-mattergen-2026/">AI materials discovery 2026 综述</a> · <a href="https://www.cypris.ai/insights/ai-accelerated-materials-discovery-in-2025-how-generative-models-graph-neural-networks-and-autonomous-labs-are-transforming-r-d">AI-accelerated discovery 现状</a></p>
+<p><strong>Primary sources（访问快照：2026-08-25）</strong>：<a href="https://www.nature.com/articles/s41586-023-06735-9">GNoME 论文</a> · <a href="https://www.nature.com/articles/s41586-023-06734-w">A-Lab 论文与 2026 correction 入口</a> · <a href="https://doi.org/10.1038/s41586-025-09992-y">A-Lab Author Correction</a></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="20-energy-materials.html"><span class="pager-label">上一页</span>前沿 II · 能源材料</a>
@@ -123,5 +221,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-ai-surrogate-validation.js"></script>
 </body>
 </html>

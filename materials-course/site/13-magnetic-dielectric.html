@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,25 +47,122 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 磁性的来源与五种类型</a></li>
+<li><a href="#materials-magnetic-dielectric-learning-title">学习层：给一只 MLCC 与一颗软磁磁芯做双面损耗预算</a><ul>
+<li><a href="#1">1. 具体材料工程情境：高频电容与变压器磁芯的两种发热</a></li>
+<li><a href="#2-debye">2. 必须作答的预测门：Debye 峰、高频尾部与磁滞面积</a></li>
+<li><a href="#3-debye-tanh">3. 正式模型桥：相量约定 → Debye 线性损耗 → tanh 磁滞代理</a></li>
+<li><a href="#4">4. 动手实验：分别调频率—弛豫与磁滞分支</a></li>
+<li><a href="#5">5. 误区与模型边界：两类损耗不能互换</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 磁性的来源与五种类型</a></li>
 <li><a href="#2-vs">2. 软磁 vs 硬磁：同一条曲线的两端</a></li>
 <li><a href="#3">3. 介电材料：从存电到发力</a></li>
-<li><a href="#4">4. 数字感与反直觉</a></li>
+<li><a href="#4_1">4. 数字感与反直觉</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">功能 II · 磁性与介电材料<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>电动机、变压器、硬盘、扬声器靠磁；电容、传感器、压电驱动、超声探头靠介电。两类材料的共同语言是<strong>畴</strong>——磁畴与电畴的翻转与钉扎，决定了"软"（易翻转、低损耗）与"硬"（难翻转、能记忆）两种截然相反的工程性格。</p>
+<p>电动机、变压器、硬盘、扬声器靠磁；电容、传感器、压电驱动、超声探头靠介电。磁性材料与<strong>铁电材料</strong>都可用“畴、翻转与钉扎”来理解软硬和记忆；普通线性介质则主要靠电子、离子或取向极化响应，并不都有可翻转电畴。先分清材料类别，才不会把两种损耗语言混在一起。</p>
 </blockquote>
-<h2 id="1">1. 磁性的来源与五种类型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-magnetic-dielectric-learning-title" class="learning-layer">
+<h2 id="materials-magnetic-dielectric-learning-title">学习层：给一只 MLCC 与一颗软磁磁芯做双面损耗预算<a class="headerlink" href="#materials-magnetic-dielectric-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料工程情境：高频电容与变压器磁芯的两种发热<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一部电源模块同时需要 MLCC 限制电压纹波、软磁磁芯传递能量。工程师必须分清：介电材料在线性小信号下因极化弛豫产生的频率损耗，和磁芯在往复磁化中因磁滞回线面积产生的能量损耗。两者都能发热，却不应合并成一个“损耗角”或把一条代理回线当成真实牌号拟合。</p>
+<h3 id="2-debye">2. 必须作答的预测门：Debye 峰、高频尾部与磁滞面积<a class="headerlink" href="#2-debye" title="Permanent link"></a></h3>
+<p>揭示前回答三题：单一 Debye 弛豫的 <span class="arithmatex">\(\varepsilon''\)</span> 峰位在 <span class="arithmatex">\(\omega\tau=0\)</span>、<span class="arithmatex">\(1\)</span> 还是无穷大？频率远高于该峰后，<span class="arithmatex">\(\varepsilon''\)</span> 与 <span class="arithmatex">\(\tan\delta\)</span> 会继续升高、保持峰值还是下降？在 <span class="arithmatex">\(M_s,H_{\max}\)</span> 和分支宽度固定、回线仍闭合的条件下，增大 <span class="arithmatex">\(H_c\)</span> 会让教学回线面积变大还是变小？三题完成后才显示两类响应的曲线和双面账本。</p>
+<h3 id="3-debye-tanh">3. 正式模型桥：相量约定 → Debye 线性损耗 → tanh 磁滞代理<a class="headerlink" href="#3-debye-tanh" title="Permanent link"></a></h3>
+<p>介电部分采用 <span class="arithmatex">\(e^{+i\omega t}\)</span> 相量约定，并写成</p>
+<div class="arithmatex">\[
+\varepsilon^*=\varepsilon'-i\varepsilon''
+=\varepsilon_{\infty}+\frac{\varepsilon_s-\varepsilon_{\infty}}{1+i\omega\tau}.
+\]</div>
+<p>因此 <span class="arithmatex">\(1/(1+i\omega\tau)\)</span> 的虚部是负的；本实验把正的损耗量定义为 <span class="arithmatex">\(\varepsilon''=-\operatorname{Im}(\varepsilon^*)\)</span>。令 <span class="arithmatex">\(x=\omega\tau\)</span>、<span class="arithmatex">\(\Delta\varepsilon=\varepsilon_s-\varepsilon_{\infty}\)</span>，则</p>
+<div class="arithmatex">\[
+\varepsilon'=\varepsilon_{\infty}+\frac{\Delta\varepsilon}{1+x^2},\qquad
+\varepsilon''=\frac{\Delta\varepsilon x}{1+x^2},\qquad
+\tan\delta=\frac{\varepsilon''}{\varepsilon'}.
+\]</div>
+<p><span class="arithmatex">\(\varepsilon''\)</span> 的峰在 <span class="arithmatex">\(x=1\)</span>。磁性部分只使用明确命名的双分支教学代理：</p>
+<div class="arithmatex">\[
+M_{\uparrow}(H)=M_s\tanh\frac{H-H_c}{h},\qquad
+M_{\downarrow}(H)=M_s\tanh\frac{H+H_c}{h},
+\]</div>
+<p>沿 <span class="arithmatex">\(-H_{\max}\to+H_{\max}\to-H_{\max}\)</span> 采样并用梯形法积分</p>
+<div class="arithmatex">\[
+A_{\rm loop}=\left|\mu_0\oint H\,dM\right|
+=\mu_0\left|\int_{-H_{\max}}^{H_{\max}}(M_{\downarrow}-M_{\uparrow})\,dH\right|
+\quad [\mathrm{J\,m^{-3}\ per\ cycle}].
+\]</div>
+<p>数值积分显式把下降支终点连回上升支起点，或等价地使用两支之差积分，因此即使 <span class="arithmatex">\(H_{\max}\)</span> 未完全饱和、<span class="arithmatex">\(h\)</span> 较大，代理回线仍是闭合路径。它是现象学教学代理，不可反演真实动态磁滞。</p>
+<p>这不是 Jiles–Atherton 模型，也不是任何真实材料的拟合。</p>
+<h3 id="4">4. 动手实验：分别调频率—弛豫与磁滞分支<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-magnetic-dielectric-loss">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(\varepsilon_{\infty}=2.5\)</span>、<span class="arithmatex">\(\varepsilon_s=12\)</span>、<span class="arithmatex">\(\tau=0.001\ \mathrm s\)</span>、<span class="arithmatex">\(f=159.154943\ \mathrm{Hz}\)</span>，所以 <span class="arithmatex">\(\omega\tau=1\)</span>；得到 <span class="arithmatex">\(\varepsilon'=7.25\)</span>、正损耗定义下 <span class="arithmatex">\(\varepsilon''=4.75\)</span>、<span class="arithmatex">\(\tan\delta=0.655172\)</span>。磁性教学代理取 <span class="arithmatex">\(M_s=100000\ \mathrm{A/m}\)</span>、<span class="arithmatex">\(H_c=2000\ \mathrm{A/m}\)</span>、<span class="arithmatex">\(h=500\ \mathrm{A/m}\)</span>、<span class="arithmatex">\(H_{\max}=10000\ \mathrm{A/m}\)</span>，在同一递增 <span class="arithmatex">\(H\)</span> 网格配对升/降支并闭合端点后，数值回线面积 <span class="arithmatex">\(A_{\rm loop}=1005.30965\ \mathrm{J/m^3/cycle}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本量</th>
+<th style="text-align: right;">静态结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\omega\tau\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>Debye <span class="arithmatex">\(\varepsilon''\)</span> 峰位</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\varepsilon'\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(7.25\)</span></td>
+<td>无量纲；储能响应</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\varepsilon''\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4.75\)</span></td>
+<td>正损耗；<span class="arithmatex">\(\varepsilon^*=\varepsilon'-i\varepsilon''\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\tan\delta\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.655172\)</span></td>
+<td>线性介电损耗因子</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(M_s/H_c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(100000/2000\)</span></td>
+<td>A/m；tanh branch 参数</td>
+</tr>
+<tr>
+<td>回线面积</td>
+<td style="text-align: right;"><span class="arithmatex">\(1005.30965\)</span></td>
+<td>J/m³/cycle；同一 <span class="arithmatex">\(H\)</span> 网格的 <span class="arithmatex">\(\mu_0\int(M_{\downarrow}-M_{\uparrow})\,dH\)</span>，并闭合 <span class="arithmatex">\(\oint H\,dM\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 误区与模型边界：两类损耗不能互换<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(\varepsilon''\)</span> 与 <span class="arithmatex">\(\tan\delta\)</span> 是线性介电响应的损耗记账；磁滞面积是磁化路径依赖的能量记账。介电损耗不能用磁滞面积替代，磁滞损耗也不能从一个 Debye 峰外推。</li>
+<li>单一 Debye 只表示一个弛豫时间；真实介电材料常有多弛豫、界面极化、温度激活、非线性幅值效应和电导损耗。频率与温度可能共同移动或展宽峰，需用测量相量约定和样品几何校准。</li>
+<li>这里的 tanh 双分支是教学代理，面积对 <span class="arithmatex">\(M_s,H_c,h,H_{\max}\)</span> 敏感，绝不冒充 Jiles–Atherton、畴壁动力学或真实材料拟合。真实磁芯还受频率、温度、应力、各向异性、涡流和磁粘滞影响。</li>
+<li>变压器铁损通常要分离磁滞、经典涡流和异常损耗；叠片、粉芯电阻率和厚度会改变涡流回路，不能把本实验的准静态面积直接当成任意频率下的总功率。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>若 MLCC 的 <span class="arithmatex">\(\varepsilon''\)</span> 峰随温度展宽，你会先增加多弛豫谱、温度激活项还是修正电极/界面模型？若磁芯回线面积随频率上升而增加，哪些独立测量能把磁滞、涡流和介电/电导损耗分开？</p>
+</div>
+</section>
+<h2 id="1_1">1. 磁性的来源与五种类型<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>磁矩来自电子自旋与轨道角动量。五分类（记前两条与铁磁三兄弟即可）：抗磁（所有物质都有的弱负响应）、顺磁（无序磁矩被外场轻微对齐）、<strong>铁磁</strong>（Fe、Co、Ni——交换作用使相邻自旋平行，自发磁化）、反铁磁（相邻反平行、净磁化为零）、<strong>亚铁磁</strong>（反平行但大小不等 ⇒ 有净磁化——铁氧体的家族）。</p>
 <p><strong>居里温度 <span class="arithmatex">\(T_C\)</span></strong>：热扰动战胜交换作用 ⇒ 铁磁消失（Fe 770 °C、Co 1121 °C、Ni 358 °C）——🔗 物理站相变章的经典二级相变范例。</p>
 <p><strong>磁畴</strong>：为降低退磁场能，自发磁化分成方向各异的畴（畴壁厚度 ~10–100 nm）；宏观磁化过程 = <strong>畴壁移动 + 畴转动</strong>——这就是磁滞的舞台。</p>
@@ -94,24 +206,24 @@
 </tr>
 </tbody>
 </table>
-<p><strong>主线回响</strong>：软磁要"没有缺陷"、硬磁要"全是缺陷"——<strong>同一个学科语言，两个相反的工程目标</strong>，这是"缺陷决定命运"最对称的一次演出。</p>
+<p><strong>主线回响</strong>：软磁通常要降低阻碍可逆磁化的钉扎与损耗，硬磁则要利用各向异性、微结构和受控钉扎抵抗退磁。目标不是笼统的“没有缺陷”或“全是缺陷”，而是让晶粒、第二相、织构与应力服务于指定的磁化路径。</p>
 <p><strong>产业现实</strong>：Nd–Fe–B 的高温性能靠添加<strong>镝/铽</strong>（重稀土，供应高度集中）——"少镝/无重稀土磁体"是长期研发热点；电机设计与材料选择在电动车上直接耦合（转子温度上限 ↔ 磁体牌号 ↔ 成本）。</p>
 <p><strong>磁记录一瞥</strong>：硬盘用垂直记录 + 高各向异性介质（记录密度 ↑ 需颗粒更小，但小到一定程度热扰动会擦除数据——<strong>超顺磁极限</strong>；HAMR 热辅助磁记录用局部加热临时降低矫顽力来突破它，是近年产业化的路线）。</p>
 <h2 id="3">3. 介电材料：从存电到发力<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>基础</strong>：极化机制（电子/离子/取向/界面）随频率依次"退场"——<strong>介电常数是频率的函数</strong>（高频用材料与工频完全不同）；损耗因子 <span class="arithmatex">\(\tan\delta\)</span> 决定发热（微波炉正是利用水的取向极化在 2.45 GHz 的损耗）。</p>
+<p><strong>基础</strong>：极化机制（电子/离子/取向/界面）随频率依次"退场"——<strong>介电常数是频率的函数</strong>（高频用材料与工频完全不同）。采用 <span class="arithmatex">\(e^{+i\omega t}\)</span> 相量约定时写 <span class="arithmatex">\(\varepsilon^*=\varepsilon'-i\varepsilon''\)</span>，所以由 <span class="arithmatex">\(1/(1+i\omega\tau)\)</span> 产生的虚部为负，正的损耗量定义为 <span class="arithmatex">\(\varepsilon''=-\operatorname{Im}(\varepsilon^*)\)</span>；损耗因子 <span class="arithmatex">\(\tan\delta=\varepsilon''/\varepsilon'\)</span> 决定发热（微波炉正是利用水的取向极化在 2.45 GHz 的损耗）。</p>
 <p><strong>电容器材料</strong>：<span class="arithmatex">\(C = \varepsilon_0\varepsilon_r A/d\)</span>——三条提升路径全部被工业用尽：高 <span class="arithmatex">\(\varepsilon_r\)</span>（BaTiO₃ 系铁电陶瓷 <span class="arithmatex">\(\varepsilon_r\)</span> 可达数千）、薄介质层、大面积（<strong>MLCC 多层陶瓷电容</strong>把上百层叠起来：一部手机上千颗，是电子工业用量最大的元件之一；材料上的挑战是层厚已进入亚微米、且需去 Pb 与稳定温度特性）。</p>
 <p><strong>铁电与压电（本页最有工程趣味的一段）</strong>：</p>
 <ul>
 <li><strong>铁电</strong>：自发极化且可被电场翻转（电畴——磁滞的电学镜像：<span class="arithmatex">\(P\)</span>-<span class="arithmatex">\(E\)</span> 回线）——FeRAM、可调介质；</li>
-<li><strong>压电</strong>：应力 ⇄ 电荷双向转换（PZT 是主力，<span class="arithmatex">\(d_{33}\)</span> 高；石英稳定用于振荡器）——超声探头、喷墨打印头、压电马达、爆震传感器、声呐、<strong>手机里的振动马达与麦克风</strong>；</li>
+<li><strong>压电</strong>：应力 ⇄ 电荷双向转换（PZT 是主力，<span class="arithmatex">\(d_{33}\)</span> 高；石英稳定用于振荡器）——超声探头、喷墨打印头、压电马达、爆震传感器、声呐，以及部分压电 MEMS 麦克风与触觉执行器；多数手机线性振动马达仍是电磁式，MEMS 麦克风也常采用电容式，不能只凭器件名称判断换能机理；</li>
 <li><strong>热释电</strong>：温度变化 ⇒ 电荷 ⇒ 红外热释电传感器（走廊里的人体感应灯就是它）。</li>
 </ul>
 <p>三者是同一层级的对称性阶梯（压电 ⊃ 热释电 ⊃ 铁电）——<strong>晶体对称性直接决定能不能压电</strong>（无对称中心才可以）：结构 II 的几何在此第三次决定功能。<strong>无铅压电</strong>（PZT 含铅）是持续多年的研发方向，目前尚无全面替代者。</p>
-<h2 id="4">4. 数字感与反直觉<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感与反直觉<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
 <li><span class="arithmatex">\(\varepsilon_r\)</span>：真空 1 ｜ 聚乙烯 2.3 ｜ SiO₂ 3.9 ｜ Al₂O₃ 9 ｜ BaTiO₃ 1000–5000；</li>
 <li><span class="arithmatex">\((BH)_{max}\)</span> (kJ/m³)：铁氧体 ~30 ｜ AlNiCo ~50 ｜ SmCo ~200 ｜ Nd–Fe–B ~400——<strong>四十年间永磁性能提升一个数量级</strong>，直接使电动车驱动电机小型化成为可能；</li>
-<li><strong>反直觉</strong>：变压器铁芯要<strong>叠片</strong>不是为了机械，是为了切断涡流回路（损耗 ∝ 片厚²）；最好的软磁材料是<strong>非晶</strong>（无晶界钉扎——结构 IV 的性能兑现）；压电材料把"不对称"卖成了功能——<strong>对称性缺失本身就是一种可用的缺陷</strong>。</li>
+<li><strong>反直觉</strong>：变压器铁芯要<strong>叠片</strong>不是为了机械，而是为了缩短涡流回路；在相同近似条件下，经典涡流损耗随片厚平方增长。非晶、纳米晶、取向硅钢、铁氧体和 Fe–Co 等软磁体系各自在频率、磁通密度、温度、成本与加工上占优，不存在脱离工况的单一“最好材料”；压电功能则来自允许极化—应变耦合的非中心对称结构。</li>
 </ul>
 <p>【研】对标 Coey《Magnetism and Magnetic Materials》、Jaffe《Piezoelectric Ceramics》；交换作用的量子起源、磁各向异性能、Landau 铁电理论（🔗 物理站相变）是研究生纵深。</p>
 <hr />
@@ -125,5 +237,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-magnetic-dielectric-loss.js"></script>
 </body>
 </html>

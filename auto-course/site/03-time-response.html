@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:59</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、一阶系统：只有一个时间常数</a></li>
-<li><a href="#_2">二、二阶系统：阻尼比决定一切</a></li>
-<li><a href="#_3">三、主导极点近似</a></li>
-<li><a href="#_4">四、稳态误差与系统型别</a></li>
-<li><a href="#_5">五、指标之间的冲突</a></li>
-<li><a href="#_6">六、执行器的现实约束</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：给定位平台选阻尼，别把一条经验线当成实测性能</a><ul>
+<li><a href="#1">1. 具体工程情境：同一套执行器，欠阻尼、临界阻尼和过阻尼的代价是什么？</a></li>
+<li><a href="#2">2. 正式公式桥：先求极点，再按阻尼区间写精确响应</a></li>
+<li><a href="#3-crossing">3. 动手实验：把启发式与测量 crossing 放在同一张账上</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、一阶系统：只有一个时间常数</a></li>
+<li><a href="#_3">二、二阶系统：阻尼比决定一切</a></li>
+<li><a href="#_4">三、主导极点近似</a></li>
+<li><a href="#_5">四、稳态误差与系统型别</a></li>
+<li><a href="#_6">五、指标之间的冲突</a></li>
+<li><a href="#_7">六、执行器的现实约束</a></li>
+<li><a href="#_8">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +75,99 @@
 <p><strong>层次</strong>：本科核心。
 客户不会说"我要相位裕度 60 度"，他们会说"<strong>要快、别超调、别抖</strong>"。时域指标是控制性能最直观的语言，也是与非专业人士沟通的接口。本页讲清阶跃响应的形状如何由极点决定，以及那些指标之间的<strong>相互冲突</strong>。</p>
 </blockquote>
-<h2 id="_1">一、一阶系统：只有一个时间常数<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给定位平台选阻尼，别把一条经验线当成实测性能<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：同一套执行器，欠阻尼、临界阻尼和过阻尼的代价是什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>定位平台在工作点附近可近似为标准二阶闭环</p>
+<div class="arithmatex">\[
+G(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2},
+\qquad Y(s)=G(s)R(s).
+\]</div>
+<p>把单位阶跃命令送入同一平台，调节的是阻尼比 <span class="arithmatex">\(\zeta\)</span> 和自然频率 <span class="arithmatex">\(\omega_n\)</span>。这里的“2% 调节时间”既可以是工程经验公式，也可以是从真实曲线最后一次离开带宽后的测量；两者不是同一个量。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong>默认先想象 <span class="arithmatex">\(\omega_n=4\ \mathrm{rad/s}\)</span>：</p>
+<ol>
+<li><span class="arithmatex">\(\zeta=0.5\)</span>、<span class="arithmatex">\(1\)</span>、<span class="arithmatex">\(1.8\)</span> 中哪些会有有限的超调？</li>
+<li>把 <span class="arithmatex">\(\omega_n\)</span> 加倍会主要改变超调，还是改变时间尺度？</li>
+<li><span class="arithmatex">\(t_s\approx4/(\zeta\omega_n)\)</span> 是每个阻尼比下的精确最后越界时刻吗？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式公式桥：先求极点，再按阻尼区间写精确响应<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>单位阶跃响应按区间为</p>
+<div class="arithmatex">\[
+y(t)=
+\begin{cases}
+1-e^{-\zeta\omega_n t}\left[\cos(\omega_d t)+
+\dfrac{\zeta}{\sqrt{1-\zeta^2}}\sin(\omega_d t)\right],
+&amp;0\le\zeta&lt;1,\\[6pt]
+1-e^{-\omega_n t}(1+\omega_n t),&amp;\zeta=1,\\[6pt]
+1-\dfrac{p_2e^{p_1t}-p_1e^{p_2t}}{p_2-p_1},&amp;\zeta&gt;1,
+\end{cases}
+\]</div>
+<p>其中 <span class="arithmatex">\(\omega_d=\omega_n\sqrt{1-\zeta^2}\)</span>，<span class="arithmatex">\(p_{1,2}=-\omega_n(\zeta\mp\sqrt{\zeta^2-1})\)</span>。欠阻尼时</p>
+<div class="arithmatex">\[
+M_p=e^{-\pi\zeta/\sqrt{1-\zeta^2}},
+\qquad t_p=\frac{\pi}{\omega_d};
+\]</div>
+<p>临界和过阻尼没有有限的峰值超调，曲线从下方单调趋近 1。常用
+<span class="arithmatex">\(t_{s,2\%}^{heur}\approx4/(\zeta\omega_n)\)</span> 是包络线启发式；实验另用固定时间网格寻找最后一次离开 <span class="arithmatex">\([0.98,1.02]\)</span> 的 crossing，并在相邻采样点之间线性插值。</p>
+<h3 id="3-crossing">3. 动手实验：把启发式与测量 crossing 放在同一张账上<a class="headerlink" href="#3-crossing" title="Permanent link"></a></h3>
+<p>拖动 <span class="arithmatex">\(\zeta\)</span>、<span class="arithmatex">\(\omega_n\)</span> 和观察窗口。图中给出精确解析曲线、目标值和 2% 带；极点表、超调、峰值时间、启发式 <span class="arithmatex">\(t_s\)</span>、实测 crossing 及“窗口内未找到”边界同时更新。尤其试 <span class="arithmatex">\(\zeta=0\)</span>、<span class="arithmatex">\(1\)</span> 和大于 <span class="arithmatex">\(1\)</span>：前者无衰减、没有有限 settling，后两者没有有限超调峰值，窗口太短也不能被误报为“已经稳定”。</p>
+<div class="learning-lab" data-learning-lab="auto-time-response">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(\zeta=0.5\)</span>、<span class="arithmatex">\(\omega_n=4\ \mathrm{rad/s}\)</span>。则</p>
+<div class="arithmatex">\[
+p=-2\pm j3.464,
+\quad M_p=e^{-\pi(0.5)/\sqrt{0.75}}\approx16.3\%,
+\quad t_p=\frac{\pi}{3.464}\approx0.907\ \mathrm s,
+\quad t_{s,2\%}^{heur}=\frac{4}{2}=2.000\ \mathrm s.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>账本项目</th>
+<th style="text-align: right;">默认读数</th>
+<th>边界解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>极点</td>
+<td style="text-align: right;"><span class="arithmatex">\(-2\pm j3.464\)</span></td>
+<td>实部给衰减，虚部给振荡</td>
+</tr>
+<tr>
+<td>峰值</td>
+<td style="text-align: right;"><span class="arithmatex">\(1+M_p\approx1.163\)</span></td>
+<td>只对 <span class="arithmatex">\(0&lt;\zeta&lt;1\)</span> 有有限峰值</td>
+</tr>
+<tr>
+<td>启发式 settling</td>
+<td style="text-align: right;"><span class="arithmatex">\(2.000\ \mathrm s\)</span></td>
+<td>包络估计，不保证等于最后 crossing</td>
+</tr>
+<tr>
+<td>实测 settling</td>
+<td style="text-align: right;">由曲线逐点查找</td>
+<td>窗口不够或 <span class="arithmatex">\(\zeta=0\)</span> 时记为未定义</td>
+</tr>
+</tbody>
+</table>
+<p>脚本用解析公式算每个采样点，不用数值积分；“实测”只指在离散观察窗内从这条精确曲线读 crossing，因此仍受采样间隔和窗口长度影响。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong><span class="arithmatex">\(t_s=4/(\zeta\omega_n)\)</span> 不是定理</strong>：它来自衰减包络的工程近似，过阻尼时可能明显偏离慢极点控制的真实 crossing。</li>
+<li><strong>临界阻尼不是“最快”在所有约束下都成立</strong>：对这个无零点、标准二阶、单位阶跃模型，它无超调且快速；执行器限幅、零点和更高阶模态会改变比较。</li>
+<li><strong><span class="arithmatex">\(\zeta=0\)</span> 是边界，不是普通欠阻尼</strong>：响应 <span class="arithmatex">\(1-\cos(\omega_n t)\)</span> 永不衰减，2% settling 没有有限值。</li>
+<li><strong>峰值与稳态极限要分开</strong>：单调趋近的临界/过阻尼曲线有上确界 1，但不在有限时间取得“峰值”。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>仓储机械臂要求超调小于 5%，但又要求 0.4 s 内进入 2% 带。你会先改 <span class="arithmatex">\(\zeta\)</span> 还是 <span class="arithmatex">\(\omega_n\)</span>？请用 <span class="arithmatex">\(M_p\)</span> 与极点实部说明为什么只调一个旋钮可能不够，并指出哪个假设要用实测数据重新验证。</p>
+</div>
+</section>
+<h2 id="_2">一、一阶系统：只有一个时间常数<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <div class="arithmatex">\[G(s) = \frac{K}{\tau s + 1} \quad\Longrightarrow\quad y(t) = K\left(1 - e^{-t/\tau}\right)\]</div>
 <ul>
 <li><span class="arithmatex">\(\tau\)</span> 后达到 63%，<span class="arithmatex">\(3\tau\)</span> 达 95%，<span class="arithmatex">\(4\tau\)</span> 达 98%；</li>
@@ -61,7 +175,7 @@
 <li>极点在 <span class="arithmatex">\(s = -1/\tau\)</span>：<strong>极点越靠左（负得越多），响应越快</strong>。</li>
 </ul>
 <p><strong>"极点位置 = 响应速度"这个对应，是经典控制全部直觉的基础。</strong></p>
-<h2 id="_2">二、二阶系统：阻尼比决定一切<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、二阶系统：阻尼比决定一切<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <div class="arithmatex">\[G(s) = \frac{\omega_n^2}{s^2 + 2\zeta\omega_n s + \omega_n^2}\]</div>
 <p>极点为 <span class="arithmatex">\(s = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}\)</span>。行为完全由 <span class="arithmatex">\(\zeta\)</span> 分类：</p>
 <table>
@@ -108,11 +222,11 @@
 <li>极点的<strong>实部</strong>决定衰减速度，<strong>虚部</strong>决定振荡频率；</li>
 <li><strong>想更快就把极点往左推，想更稳就让它们更靠近实轴。</strong> 第四页的根轨迹就是在做这件事。</li>
 </ul>
-<h2 id="_3">三、主导极点近似<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、主导极点近似<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>高阶系统看似复杂，但<strong>离虚轴最近的那对极点主导响应</strong>（其余极点衰减快得多）。</p>
 <p><strong>工程做法</strong>：若某对极点比其余极点靠右 5 倍以上距离，就可以用它们做<strong>二阶近似</strong>，直接套用上面的公式。<strong>这使得二阶系统的直觉可以覆盖大部分实际系统</strong>——这是经典控制得以实用的关键简化。</p>
 <p><strong>注意零点的干扰</strong>：靠近主导极点的零点会显著改变超调（右半平面零点还会造成反向初始响应，第二页）。<strong>主导极点近似在有零点时要小心使用。</strong></p>
-<h2 id="_4">四、稳态误差与系统型别<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、稳态误差与系统型别<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>用终值定理算稳态误差。定义<strong>系统型别</strong>为开环传递函数在原点的极点数（即积分器个数）：</p>
 <div class="arithmatex">\[L(s) = \frac{K\prod(s+z_i)}{s^N\prod(s+p_j)}\]</div>
 <table>
@@ -151,7 +265,7 @@
 <li>定位系统要无静差跟踪阶跃 → 至少 1 型（<strong>这就是位置环里必须有积分的原因</strong>）；</li>
 <li>要无静差跟踪匀速运动（如跟踪转台、数控进给）→ 需要 2 型，或用<strong>前馈</strong>补偿（第一页：前馈不引入稳定性问题，工程上常优先选它）。</li>
 </ul>
-<h2 id="_5">五、指标之间的冲突<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、指标之间的冲突<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>这是本页最该带走的东西。常用指标：</p>
 <ul>
 <li><strong>上升时间 <span class="arithmatex">\(t_r\)</span></strong>、<strong>峰值时间 <span class="arithmatex">\(t_p\)</span></strong>、<strong>超调 <span class="arithmatex">\(M_p\)</span></strong>、<strong>调节时间 <span class="arithmatex">\(t_s\)</span></strong>、<strong>稳态误差 <span class="arithmatex">\(e_{ss}\)</span></strong>。</li>
@@ -189,7 +303,7 @@
 </tbody>
 </table>
 <p><strong>注意最后两行</strong>：几乎所有"改善某项"的手段都会<strong>引入相位滞后</strong>，而相位滞后正是不稳定的根源（第一页）。<strong>这就是控制设计的中心难题</strong>——第五页的频域方法之所以强大，正因为它把这些冲突统一到了同一张图上。</p>
-<h2 id="_6">六、执行器的现实约束<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、执行器的现实约束<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>教科书公式假设执行器能输出任意大的控制量。<strong>现实中不能</strong>：</p>
 <ul>
 <li><strong>饱和</strong>：电机有最大电流/电压，阀门开度在 0–100% 之间；</li>
@@ -202,7 +316,7 @@
 <li>饱和期间反馈回路<strong>实际上断开</strong>了（输出不再随误差变化），若此时积分器继续累加 → <strong>积分饱和（windup）</strong>，导致巨大超调（第六页给解法）；</li>
 <li><strong>执行器能力应当是设计的起点而非事后检查</strong>：先算清楚"要达到这个响应速度，需要多大的力/电流/流量"，再看设备是否提供得起。<strong>这是学校常忽略、工程上极重要的一步。</strong></li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">七、要点<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong>极点位置 ↔ 时域响应</strong>：实部定衰减、虚部定振荡，<span class="arithmatex">\(\zeta\)</span> 定超调、<span class="arithmatex">\(\omega_n\)</span> 定速度；</li>
 <li><strong>主导极点近似</strong>让二阶直觉覆盖大多数系统；</li>
@@ -221,5 +335,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-time-response.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、自由度：机构能不能动</a></li>
-<li><a href="#_2">二、四杆机构：机构学的原子</a></li>
-<li><a href="#_3">三、三个关键的工程概念</a></li>
-<li><a href="#_4">四、凸轮机构</a></li>
-<li><a href="#_5">五、其他常用机构</a></li>
-<li><a href="#_6">六、从机构到机器人：一个历史转折</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#fourbar-learning-title">学习层：四杆不是动画，而是一个必须闭合的几何约束</a><ul>
+<li><a href="#_1">具体工程情境：电机连续转动，输出究竟是摇摆还是整周转动</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：从长度不等式到位置闭环</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+</ul>
+</li>
+<li><a href="#_5">一、自由度：机构能不能动</a></li>
+<li><a href="#_6">二、四杆机构：机构学的原子</a></li>
+<li><a href="#_7">三、三个关键的工程概念</a></li>
+<li><a href="#_8">四、凸轮机构</a></li>
+<li><a href="#_9">五、其他常用机构</a></li>
+<li><a href="#_10">六、从机构到机器人：一个历史转折</a></li>
+<li><a href="#_11">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +77,110 @@
 <p><strong>层次</strong>：本科核心。
 机构学研究<strong>如何用刚性构件的连接产生想要的运动</strong>：把旋转变成往复、把连续变成间歇、让一点沿指定轨迹移动。它是机械工程最古老的分支之一，也是<strong>机器人学的直接前身</strong>（🔗 自动化站第十九页的运动学与本页是同一套数学，只是自由度更多）。</p>
 </blockquote>
-<h2 id="_1">一、自由度：机构能不能动<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="fourbar-learning-title" class="learning-layer">
+<h2 id="fourbar-learning-title">学习层：四杆不是动画，而是一个必须闭合的几何约束<a class="headerlink" href="#fourbar-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：电机连续转动，输出究竟是摇摆还是整周转动<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>设一台分度机构用电机驱动输入曲柄 <span class="arithmatex">\(a\)</span>，机架长度 <span class="arithmatex">\(d\)</span>，连杆 <span class="arithmatex">\(b\)</span>，输出杆 <span class="arithmatex">\(c\)</span>。试点默认尺寸为 <span class="arithmatex">\(a=40\)</span>、<span class="arithmatex">\(b=90\)</span>、<span class="arithmatex">\(c=40\)</span>、<span class="arithmatex">\(d=90\,\mathrm{mm}\)</span>，输入角为 <span class="arithmatex">\(60^\circ\)</span>。先不要把输出杆预先叫成“摇杆”：设计者真正要判断的是这个角度能否装配、闭环残差是否为零、传动角是否接近死点，以及输入和输出能否整周转动。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>用 <span class="arithmatex">\(s,l,p,q\)</span> 排序后，默认尺寸满足还是不满足 <span class="arithmatex">\(s+l\le p+q\)</span>？等号意味着什么？</li>
+<li>在 <span class="arithmatex">\(\theta=60^\circ\)</span> 时，以 B、D 为圆心、<span class="arithmatex">\(b,c\)</span> 为半径的两圆能否交出 C？</li>
+<li>当连杆与摇杆共线，传动角 <span class="arithmatex">\(\gamma\)</span> 会趋近 <span class="arithmatex">\(0^\circ\)</span>、<span class="arithmatex">\(90^\circ\)</span> 还是 <span class="arithmatex">\(180^\circ\)</span>？</li>
+</ol>
+<p>提交后再切换 open/crossed 分支和长度，观察“同一输入角可以有两种装配”与“有些输入角根本没有装配”的区别。</p>
+<h3 id="_3">正式公式桥：从长度不等式到位置闭环<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>平面四杆的 Grashof 判据先只看长度：</p>
+<div class="arithmatex">\[
+s+l\le p+q.
+\]</div>
+<p>它说明最短杆有机会整周转动，但运动类型还取决于哪根杆固定，以及是否出现等长特例。本页默认值同时满足 <span class="arithmatex">\(a=c\)</span>、<span class="arithmatex">\(b=d\)</span>，是平行四边形换点机构：open 分支的输入杆与输出杆都能整周转动，不能把它误标为普通曲柄摇杆。当前位置的几何构造取 <span class="arithmatex">\(A=(0,0)\)</span>、<span class="arithmatex">\(D=(d,0)\)</span>，给定输入角 <span class="arithmatex">\(\theta\)</span> 后</p>
+<div class="arithmatex">\[
+B=(a\cos\theta,a\sin\theta),\qquad
+|C-B|=b,\qquad |C-D|=c.
+\]</div>
+<p>令 <span class="arithmatex">\(R=|D-B|\)</span>，两圆相交的装配条件是</p>
+<div class="arithmatex">\[
+|b-c|\le R\le b+c.
+\]</div>
+<p>沿 <span class="arithmatex">\(D-B\)</span> 的单位向量取</p>
+<div class="arithmatex">\[
+u=\frac{D-B}{R},\qquad
+x=\frac{b^2-c^2+R^2}{2R},\qquad
+y=\sqrt{b^2-x^2},
+\]</div>
+<p>则 <span class="arithmatex">\(C=B+xu\pm y u_\perp\)</span> 给出 open/crossed 两个装配分支。计算出的 C 还必须回代检查 <span class="arithmatex">\(|C-B|-b\)</span> 与 <span class="arithmatex">\(|C-D|-c\)</span> 的闭环残差。</p>
+<p>传动角取连杆与摇杆夹角的锐角部分：</p>
+<div class="arithmatex">\[
+\gamma=\min\bigl(\angle(\overrightarrow{CB},\overrightarrow{CD}),\ 180°-\angle(\overrightarrow{CB},\overrightarrow{CD})\bigr).
+\]</div>
+<p>当两向量共线时，<span class="arithmatex">\(R=b+c\)</span>（伸直）或 <span class="arithmatex">\(R=|b-c|\)</span>（折叠），<span class="arithmatex">\(\gamma\to0^\circ\)</span>，这就是死点/传力恶化的几何证书。默认 <span class="arithmatex">\(s+l=p+q=130\,\mathrm{mm}\)</span>，因此是换点边界，正好能在 <span class="arithmatex">\(\theta=0^\circ\)</span> 和 <span class="arithmatex">\(180^\circ\)</span> 看到两个候选死点。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>Grashof 判据只告诉长度关系与可能的整周转动，不替代某个具体 <span class="arithmatex">\(\theta\)</span> 的圆交点装配，也不告诉你 open/crossed 应选哪一支；有重复最短杆或平行四边形时，还必须单独识别特例。</li>
+<li>自由度公式 <span class="arithmatex">\(F=3(n-1)-2p_L-p_H\)</span> 判断“理论上有几个自由度”，不提供 C 点的位置、速度或加速度；虚约束会让机械实际表现偏离公式。</li>
+<li>传动角接近 <span class="arithmatex">\(0^\circ\)</span> 是传力方向恶化，不是“角度越大越好”的单调指标；工程上通常约束最小传动角，而不是只看某一个漂亮位置。</li>
+<li>本实验是平面刚性杆、理想转动副、无间隙无摩擦的静态位置模型；柔性杆、销轴变形、碰撞、速度/加速度峰值和制造误差需要进一步动力学或公差模型。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-fourbar-kinematics">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(a=40,b=90,c=40,d=90\,\mathrm{mm}\)</span>，<span class="arithmatex">\(\theta=60^\circ\)</span>，先读 open 分支。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>判读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(s+l\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(40+90=130\,\mathrm{mm}\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p+q\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(90+40=130\,\mathrm{mm}\)</span></td>
+<td>Grashof 等号，换点边界</td>
+</tr>
+<tr>
+<td>运动类型</td>
+<td style="text-align: right;">平行四边形双曲柄</td>
+<td><span class="arithmatex">\(a=c\)</span>、<span class="arithmatex">\(b=d\)</span> 的换点特例</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(BD\)</span>（<span class="arithmatex">\(\theta=60^\circ\)</span>）</td>
+<td style="text-align: right;"><span class="arithmatex">\(78.1025\,\mathrm{mm}\)</span></td>
+<td><span class="arithmatex">\(50\le BD\le130\)</span>，可装配</td>
+</tr>
+<tr>
+<td>闭环残差</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\,\mathrm{mm}\)</span>（数值误差内）</td>
+<td>两个圆交点构造闭合</td>
+</tr>
+<tr>
+<td>传动角 <span class="arithmatex">\(\gamma\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(60.000^\circ\)</span></td>
+<td>当前不在死点</td>
+</tr>
+<tr>
+<td>死点候选</td>
+<td style="text-align: right;"><span class="arithmatex">\(\theta=0^\circ\)</span> 折叠；<span class="arithmatex">\(\theta=180^\circ\)</span> 伸直</td>
+<td><span class="arithmatex">\(\gamma\to0^\circ\)</span></td>
+</tr>
+<tr>
+<td>0--360° 离散可行率</td>
+<td style="text-align: right;"><span class="arithmatex">\(100\%\)</span>（默认采样）</td>
+<td>仍需检查分支与局部传动角</td>
+</tr>
+</tbody>
+</table>
+<p>换成 crossed 分支会得到另一侧的 C；若调整长度使 <span class="arithmatex">\(BD\)</span> 超出 <span class="arithmatex">\([|b-c|,b+c]\)</span>，应诚实显示“不可装配”，而不是让动画穿过不存在的几何位置。</p>
+</div>
+</section>
+<h2 id="_5">一、自由度：机构能不能动<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>Grübler–Kutzbach 公式</strong>（平面机构）：</p>
 <div class="arithmatex">\[F = 3(n-1) - 2p_L - p_H\]</div>
 <p><span class="arithmatex">\(n\)</span> 为构件数（含机架），<span class="arithmatex">\(p_L\)</span> 为低副（转动副、移动副，各约束 2 个自由度），<span class="arithmatex">\(p_H\)</span> 为高副（凸轮、齿轮接触，约束 1 个）。</p>
@@ -67,7 +193,7 @@
 </ul>
 <p><strong>一个重要的工程细节：公式会"算错"某些机构。</strong> 存在<strong>虚约束</strong>（重复的、不减少自由度的约束）与<strong>局部自由度</strong>（如滚子绕自身轴的转动）。典型例子是平行四边形机构加一根平行的辅助杆——公式算出 <span class="arithmatex">\(F=0\)</span>，实际仍能动。</p>
 <p><strong>这不是公式的缺陷，而是提醒</strong>：<strong>虚约束在实际中要求极高的制造精度</strong>（几根平行杆必须严格等长），否则会卡死或产生巨大内力。<strong>设计中要么保证精度，要么消除虚约束</strong>（如把一端改为球铰）。</p>
-<h2 id="_2">二、四杆机构：机构学的原子<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_6">二、四杆机构：机构学的原子<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>平面四杆机构</strong>是最基本也最重要的机构。按各杆长度关系，可实现不同运动。</p>
 <p><strong>Grashof 准则</strong>：设最短杆 <span class="arithmatex">\(s\)</span>、最长杆 <span class="arithmatex">\(l\)</span>、其余两杆 <span class="arithmatex">\(p,q\)</span>。若</p>
 <div class="arithmatex">\[s + l \le p + q\]</div>
@@ -79,7 +205,7 @@
 </ul>
 <p><strong>若 <span class="arithmatex">\(s+l &gt; p+q\)</span></strong>，则任何杆都不能整周回转——只能得到双摇杆。</p>
 <p><strong>这个简单的不等式决定了机构的全部运动类型</strong>，是机构设计的第一判据。</p>
-<h2 id="_3">三、三个关键的工程概念<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_7">三、三个关键的工程概念<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>① 死点（死位）</strong>：从动件的传力方向与其运动方向垂直时，<strong>无论多大的驱动力都无法推动</strong>。</p>
 <p><strong>两面性</strong>（这是机构学最有趣的一点）：</p>
 <ul>
@@ -90,7 +216,7 @@
 <p><strong>② 传动角 <span class="arithmatex">\(\gamma\)</span></strong>：连杆与从动件之间的夹角。<span class="arithmatex">\(\gamma\)</span> 越接近 90°，传力越有效；<span class="arithmatex">\(\gamma\to0\)</span> 即接近死点。<strong>设计规范通常要求最小传动角 <span class="arithmatex">\(\gamma_{\min} \ge 40°\)</span></strong>——这是四杆机构尺寸设计的主要约束。</p>
 <p><strong>③ 急回特性</strong>：曲柄等速旋转时，摇杆往复行程的时间不等。用<strong>行程速比系数 <span class="arithmatex">\(K\)</span></strong> 度量。</p>
 <p><strong>这个特性被主动利用</strong>：牛头刨床、往复输送机构让<strong>工作行程慢（切削）、空回行程快（省时间）</strong>——<strong>用机构本身实现了"变速"，无需额外控制</strong>。这是纯机械时代的智慧，至今在高速自动机械中仍有价值（比伺服控制更可靠、更快、成本更低）。</p>
-<h2 id="_4">四、凸轮机构<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_8">四、凸轮机构<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>凸轮能实现<strong>任意指定的从动件运动规律</strong>——这是它相对连杆的最大优势。</p>
 <p><strong>设计的核心是选择运动规律</strong>，判据不是位移曲线，而是它的导数：</p>
 <table>
@@ -131,20 +257,20 @@
 </table>
 <p><strong>核心原则</strong>：<strong>加速度不连续 → 冲击力不连续 → 振动与噪声</strong>。更严格的高速设计还要求<strong>跃度（jerk，加速度的导数）连续</strong>——<strong>这与机器人轨迹规划的要求完全一致</strong>（🔗 自动化站第十九页：限制 jerk 以减少振动）。<strong>机械凸轮设计与现代运动控制，遵循同一条原理。</strong></p>
 <p><strong>压力角</strong>是凸轮的另一关键约束：过大会导致侧向力过大、从动件卡死，通常限制在 30° 以内（移动从动件）。</p>
-<h2 id="_5">五、其他常用机构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_9">五、其他常用机构<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <ul>
 <li><strong>间歇机构</strong>：槽轮（马耳他十字）、棘轮、不完全齿轮——把连续转动变成间歇转动（自动机械的分度）；</li>
 <li><strong>螺旋机构</strong>：旋转 → 直线，且<strong>可自锁</strong>（承第一页）。丝杠是精密进给的主力；</li>
 <li><strong>行星轮系</strong>：紧凑、大速比、可实现差速与功率分流（第十一页）；</li>
 <li><strong>并联机构</strong>：Stewart 平台、Delta 机器人。<strong>刚度高、惯量小、精度好，但工作空间小、正运动学难解</strong>（与串联机器人正好相反——🔗 自动化站第十九页）。</li>
 </ul>
-<h2 id="_6">六、从机构到机器人：一个历史转折<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_10">六、从机构到机器人：一个历史转折<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>传统机构用<strong>纯机械的方式</strong>"编码"运动规律：凸轮的轮廓、连杆的长度、齿轮的齿数<strong>一旦制造出来就固定了</strong>。</p>
 <p><strong>优点</strong>：极其可靠、速度极快、成本低、无需控制系统。<strong>至今在高速自动包装、印刷、纺织机械中大量使用</strong>——每分钟上千次动作，伺服系统难以企及。</p>
 <p><strong>缺点</strong>：<strong>不可编程</strong>。换一个产品规格就要换凸轮、改连杆。</p>
 <p><strong>现代趋势是"机械凸轮 → 电子凸轮"</strong>：用伺服电机 + 控制器实现同样的运动规律，<strong>运动曲线变成软件里的一张表</strong>。柔性大幅提升，代价是成本、复杂度与可靠性。</p>
 <p><strong>这是一次典型的"用可编程性换取硬件简洁"的转移</strong>——与 🔗 微电子站"专用电路 vs 通用处理器"、自动化站"机械凸轮 vs 运动控制"是同一种权衡。<strong>而选择的依据同样是：产量与柔性需求。</strong></p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_11">七、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>自由度公式判断机构能否运动</strong>；虚约束要求高精度，需谨慎；</li>
 <li><strong>Grashof 准则</strong>（<span class="arithmatex">\(s+l\le p+q\)</span>）决定四杆机构的运动类型；</li>
@@ -163,5 +289,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-fourbar-kinematics.js"></script>
 </body>
 </html>

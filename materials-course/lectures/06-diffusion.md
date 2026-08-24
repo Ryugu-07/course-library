@@ -2,6 +2,61 @@
 
 > 相图指出的平衡要靠原子**走过去**才能实现——扩散是固态世界唯一的搬运方式，也是一切热处理、渗碳、烧结、半导体掺杂的时钟。本页三件事：Fick 定律（宏观唯象）、机制与 Arrhenius（微观定价）、以及工程上最好用的一根尺子——$\sqrt{Dt}$。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="materials-diffusion-learning-title">
+
+<h2 id="materials-diffusion-learning-title">学习层：给齿轮渗碳，温度到底怎样拨动扩散时钟？</h2>
+
+### 1. 具体材料情境：930 °C 渗碳 6 h
+
+把低碳齿轮放在富碳气氛中，近似表面浓度固定为 $C_s=1$、深处初始浓度 $C_0=0$。问题是 **x = 0.5 mm** 处经过 **6 h** 后有多大浓度，以及把温度升高而保持时间不变时，渗层是否只按温差线性变化。这个问题必须同时对账温标、秒、米和 $D$ 的单位。
+
+### 2. 必须作答的预测门：温度还是时间掌握方向？
+
+先选：把温度升高 50 °C、时间不变，非表面处的剖面会**按 Arrhenius 显著推进**、**只线性增加**，还是**基本不变**？请先用“$\sqrt{Dt}$ 是尺度、$D$ 含指数温度因子”写一句理由；揭示后才显示 erfc 剖面和逐项单位账本。
+
+### 3. 正式公式桥：Fick II → erfc → Arrhenius
+
+半无限固体、恒定表面浓度和常数 $D$ 下，Fick 第二定律的边界解为
+
+$$
+\frac{\partial C}{\partial t}=D\frac{\partial^2C}{\partial x^2},\qquad
+\frac{C(x,t)-C_0}{C_s-C_0}=\operatorname{erfc}\left(\frac{x}{2\sqrt{Dt}}\right).
+$$
+
+迁移率再由热激活桥接：
+
+$$
+D(T)=D_0\exp\left(-\frac{Q}{RT_K}\right),\qquad T_K=T_{^\circ\mathrm{C}}+273.15,
+$$
+
+所以扩散深度是 $\sqrt{Dt}$，不是 $Dt$；目标点的浓度先算 $z=x/(2\sqrt{Dt})$，再查 $\operatorname{erfc}(z)$。
+
+### 4. 误区与模型边界
+
+- $D$ 的单位是 m²/s，小时要乘 3600、毫米要乘 $10^{-3}$ m；把 $x=Dt$ 当距离会直接量纲错误。
+- Arrhenius 的温度必须用 K；温度升高通过指数改变 $D$，不是在浓度结果上简单加一个线性百分比。
+- erfc 解假设恒定表面浓度、半无限材料和常数扩散系数；有限厚度、相变、浓度依赖的 $D$、应力、晶界/表面短路扩散都需要换模型。
+- 图上的平滑剖面是确定性平均场，不是某一颗原子的轨迹；有限时间的拟合也不能单独证明机制一定是间隙扩散。
+
+<div class="learning-lab" data-learning-lab="materials-diffusion-clock" markdown="1">
+
+**无 JavaScript 时的静态 fallback：**默认取 $D_0=1.2\times10^{-5}$ m²/s、$Q=140$ kJ/mol、930 °C、6 h、0.5 mm。先把 $T=1203.15$ K、$t=21600$ s、$x=5.0\times10^{-4}$ m 代入：$D\approx1.00\times10^{-11}$ m²/s，$\sqrt{Dt}\approx0.465$ mm，$z\approx0.537$，$C\approx\operatorname{erfc}(z)=0.447$。
+
+| 账本量 | 静态结果 | 单位 |
+|---|---:|---|
+| 温度 $T$ | 930 °C = 1203.15 | K |
+| 时间 $t$ | 6 h = 21600 | s |
+| $D(T)$ | $1.00\times10^{-11}$ | m²/s |
+| $\sqrt{Dt}$ | 0.465 | mm |
+| $z=x/(2\sqrt{Dt})$ | 0.537 | 无量纲 |
+| $C(0.5\text{ mm},6\text{ h})$ | 0.447 | $C_s=1,C_0=0$ 归一化 |
+
+</div>
+
+</section>
+
 ## 1. Fick 定律（宏观语言）
 
 **第一定律**（稳态）：$J = -D\,\dfrac{\partial C}{\partial x}$——顺浓度梯度搬运，$D$（m²/s）是搬运效率。**第二定律**（非稳态，守恒 + 一式即得）：

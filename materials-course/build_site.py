@@ -4,7 +4,7 @@
 用法: ~/ai-course/.venv/bin/python build_site.py
 COURSE 注册全部规划页；缺失文件构建时跳过并标 ⏳（进度清单）。
 """
-import html, shutil, time
+import html, re, shutil, time
 from pathlib import Path
 import markdown
 from pygments.formatters import HtmlFormatter
@@ -12,6 +12,24 @@ from pygments.formatters import HtmlFormatter
 ROOT = Path(__file__).parent
 LECTURES = ROOT / "lectures"
 SITE = ROOT / "site"
+SHARED = ROOT.parent / "course-shared"
+
+LEARNING_LAB_RE = re.compile(r'data-learning-lab="([a-z0-9-]+)"')
+LEARNING_HEAD = """<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>"""
 
 SITE_TITLE = "材料的秩序"
 SITE_SUBTITLE = "结构 · 缺陷 · 性能 · 材料科学与工程讲义"
@@ -75,7 +93,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 <title>{title} · {site_title}</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/pygments.css">{learning_head}
 <script>
 (function() {{
   var t = localStorage.getItem('theme');
@@ -109,10 +127,53 @@ PAGE_TMPL = """<!DOCTYPE html>
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
-<script defer src="assets/site.js"></script>
+<script defer src="assets/site.js"></script>{learning_scripts}
 </body>
 </html>
 """
+
+
+def learning_assets(src):
+    names = list(dict.fromkeys(LEARNING_LAB_RE.findall(src)))
+    if not names:
+        return "", ""
+    missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
+    scripts = ['<script defer src="assets/learning/learning.js"></script>']
+    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
+
+
+def sync_learning_assets(existing):
+    destination = SITE / "assets" / "learning"
+    if destination.exists():
+        shutil.rmtree(destination)
+    names = []
+    for md_name in existing:
+        src = (LECTURES / md_name).read_text(encoding="utf-8")
+        names.extend(LEARNING_LAB_RE.findall(src))
+    names = list(dict.fromkeys(names))
+    if not names:
+        return
+    (destination / "labs").mkdir(parents=True)
+    for asset in ["learning.css", "learning.js"]:
+        shutil.copy(SHARED / asset, destination / asset)
+    for name in names:
+        source = SHARED / "labs" / f"{name}.js"
+        if not source.exists():
+            raise FileNotFoundError(f"Missing learning lab script: {source}")
+        shutil.copy(source, destination / "labs" / source.name)
+
+
+def previous_build_time(out, fallback):
+    if not out.exists():
+        return fallback
+    match = re.search(
+        r'<div class="build-time">构建于 ([^<]+)</div>',
+        out.read_text(encoding="utf-8"),
+    )
+    return match.group(1) if match else fallback
 
 
 def html_name(md_name):
@@ -143,6 +204,7 @@ def flat_lectures():
 
 def render_page(md_name, nav_title, prev_item, next_item, build_time, existing):
     src = (LECTURES / md_name).read_text(encoding="utf-8")
+    learning_head, learning_scripts = learning_assets(src)
     md = markdown.Markdown(extensions=MD_EXTENSIONS, extension_configs=MD_CONFIG)
     body = md.convert(src)
     toc = getattr(md, "toc", "")
@@ -161,7 +223,7 @@ def render_page(md_name, nav_title, prev_item, next_item, build_time, existing):
         title=html.escape(title), site_title=SITE_TITLE, site_subtitle=SITE_SUBTITLE,
         nav=build_nav(html_name(md_name), existing), toc_block=toc_block, body=body,
         prev_link=pager(prev_item, "上一页", "prev"), next_link=pager(next_item, "下一页", "next"),
-        build_time=build_time)
+        build_time=build_time, learning_head=learning_head, learning_scripts=learning_scripts)
 
 
 def write_pygments_css():
@@ -190,14 +252,23 @@ def main():
     build_time = time.strftime("%Y-%m-%d %H:%M")
     all_items = flat_lectures()
     existing = {m for m, _ in all_items if (LECTURES / m).exists()}
+    sync_learning_assets(existing)
     missing = [m for m, _ in all_items if m not in existing]
     items = [it for it in all_items if it[0] in existing]
     for i, (md_name, nav_title) in enumerate(items):
         out = SITE / html_name(md_name)
-        out.write_text(render_page(md_name, nav_title,
-                                   items[i - 1] if i > 0 else None,
-                                   items[i + 1] if i < len(items) - 1 else None,
-                                   build_time, existing), encoding="utf-8")
+        previous = out.read_text(encoding="utf-8") if out.exists() else None
+        page_time = previous_build_time(out, build_time)
+        page = render_page(md_name, nav_title,
+                           items[i - 1] if i > 0 else None,
+                           items[i + 1] if i < len(items) - 1 else None,
+                           page_time, existing)
+        if page != previous:
+            page = render_page(md_name, nav_title,
+                               items[i - 1] if i > 0 else None,
+                               items[i + 1] if i < len(items) - 1 else None,
+                               build_time, existing)
+            out.write_text(page, encoding="utf-8")
         print(f"✓ {out.name}")
     print(f"\n完成: {len(items)} 页已建 / {len(missing)} 页待写 → {SITE}/")
     if missing:

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:08</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：给输送线伺服选回路增益，先看清谁被压下、谁被抬起</a><ul>
+<li><a href="#1">1. 具体工程情境：同一条伺服回路，参考、负载和编码器噪声走哪条路？</a></li>
+<li><a href="#2">2. 正式公式桥：同一个灵敏度函数解释鲁棒性，也解释三种注入位置</a></li>
+<li><a href="#3">3. 动手实验：逐频率核对灵敏度恒等式与路径账本</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
 <li><a href="#vs">一、开环 vs 闭环</a></li>
-<li><a href="#_1">二、反馈买到的四样东西</a></li>
-<li><a href="#_2">三、代价：反馈会制造不稳定</a></li>
-<li><a href="#_3">四、稳态误差与积分作用</a></li>
-<li><a href="#_4">五、反馈之外：前馈</a></li>
-<li><a href="#_5">六、反馈无处不在</a></li>
-<li><a href="#_6">七、要点</a></li>
+<li><a href="#_2">二、反馈买到的四样东西</a></li>
+<li><a href="#_3">三、代价：反馈会制造不稳定</a></li>
+<li><a href="#_4">四、稳态误差与积分作用</a></li>
+<li><a href="#_5">五、反馈之外：前馈</a></li>
+<li><a href="#_6">六、反馈无处不在</a></li>
+<li><a href="#_7">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,28 +75,136 @@
 <p><strong>层次</strong>：本科核心——这是整门课的思想原点。
 反馈的定义只有一句话：<strong>测量输出，与目标比较，用误差驱动修正</strong>。但它带来的性质如此之多、如此深刻，以至于整个学科都建立在这一句话上。本页说明反馈<strong>买到了什么</strong>、以及<strong>代价是什么</strong>——后者正是全课其余部分要处理的问题。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给输送线伺服选回路增益，先看清谁被压下、谁被抬起<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：同一条伺服回路，参考、负载和编码器噪声走哪条路？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一台输送线定位伺服在工作点附近简化为</p>
+<div class="arithmatex">\[
+P(s)=\frac{1}{1+1.2s},\qquad C(s)=K,
+\qquad L(s)=P(s)C(s)=\frac{K}{1+1.2s}.
+\]</div>
+<p>设负反馈误差为 <span class="arithmatex">\(e=r-y_m\)</span>，测量值为 <span class="arithmatex">\(y_m=y+n\)</span>。为了区分工程上经常混在一起的“扰动”，记 <span class="arithmatex">\(d_i\)</span> 为<strong>对象输入端</strong>的负载扰动，记 <span class="arithmatex">\(d_o\)</span> 为<strong>对象输出端</strong>的外力/偏置，<span class="arithmatex">\(n\)</span> 为<strong>传感器输出端</strong>加上的噪声。最小模型是</p>
+<div class="arithmatex">\[
+y=P(u+d_i)+d_o,
+\qquad u=C(r-y-n).
+\]</div>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong>在打开实验前写下三项预测：</p>
+<ol>
+<li>当 <span class="arithmatex">\(|L|\gg1\)</span> 时，参考输入到输出的通道更接近 <span class="arithmatex">\(0\)</span> 还是 <span class="arithmatex">\(1\)</span>？</li>
+<li>低频的对象输入扰动 <span class="arithmatex">\(d_i\)</span> 与高频传感器噪声 <span class="arithmatex">\(n\)</span>，谁更容易被当前回路压制？</li>
+<li>若把负反馈改成正反馈，分母仍是 <span class="arithmatex">\(1+L\)</span> 吗？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式公式桥：同一个灵敏度函数解释鲁棒性，也解释三种注入位置<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在<strong>标准负反馈</strong>约定下，闭环特征分母是 <span class="arithmatex">\(1+L\)</span>，所以</p>
+<div class="arithmatex">\[
+S=\frac{1}{1+L},\qquad T=\frac{L}{1+L},
+\qquad S+T=1.
+\]</div>
+<p>把上面的三个注入位置代入最小模型，可审计地得到</p>
+<div class="arithmatex">\[
+y=T r+P S d_i+S d_o-T n,
+\]</div>
+<p>以及</p>
+<div class="arithmatex">\[
+e=S r-P S d_i-S d_o-S n.
+\]</div>
+<p>所以：参考跟踪是 <span class="arithmatex">\(T\)</span>；对象输入端扰动先经过 <span class="arithmatex">\(P\)</span>，再经过 <span class="arithmatex">\(S\)</span>；输出端扰动直接经过 <span class="arithmatex">\(S\)</span>；传感器噪声对物理输出的路径是 <span class="arithmatex">\(-T\)</span>。如果把扰动放到别的节点，路径公式也必须跟着变，不能只背“扰动都乘 <span class="arithmatex">\(S\)</span>”。</p>
+<p>若对象发生小的乘性变化 <span class="arithmatex">\(P\mapsto P+\Delta P\)</span>，在固定 <span class="arithmatex">\(C\)</span> 且 <span class="arithmatex">\(|\Delta P/P|\)</span> 足够小时，才可以写成<strong>一阶/微分灵敏度近似</strong></p>
+<div class="arithmatex">\[
+\frac{\mathrm d T}{T}
+\approx S\frac{\mathrm d P}{P},
+\qquad
+\frac{\Delta T}{T}
+\approx S\frac{\Delta P}{P}
+\quad\text{（一阶近似，不是任意大变化的恒等式）}.
+\]</div>
+<h3 id="3">3. 动手实验：逐频率核对灵敏度恒等式与路径账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先提交预测，再拖动 <span class="arithmatex">\(K\)</span> 与频率，选择一个注入位置。实验画出 <span class="arithmatex">\(|S|\)</span> 与 <span class="arithmatex">\(|T|\)</span> 的频率曲线，并在游标频率逐行列出 <span class="arithmatex">\(P,L,1+L,S,T\)</span> 以及被选路径的输出幅值。按默认 <span class="arithmatex">\(K=8,\omega=0.5\ \mathrm{rad/s}\)</span> 读一遍账本，再把频率提高到 <span class="arithmatex">\(8\ \mathrm{rad/s}\)</span>：低频的“压扰动”与高频的“不过度传感器噪声”不会由同一个大数字同时保证。</p>
+<div class="learning-lab" data-learning-lab="auto-feedback-sensitivity">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(K=8\)</span>、<span class="arithmatex">\(\omega=0.5\ \mathrm{rad/s}\)</span>、<span class="arithmatex">\(P(j\omega)=1/(1+j1.2\omega)\)</span>。此时</p>
+<div class="arithmatex">\[
+L\approx 5.88-j3.53,\quad |L|\approx6.86,
+\quad S\approx0.115+j0.059,
+\quad T\approx0.885-j0.059,
+\]</div>
+<p>并且 <span class="arithmatex">\(S+T=1\)</span>（数值舍入误差约 <span class="arithmatex">\(10^{-3}\)</span>）。各路径的幅值因子为</p>
+<table>
+<thead>
+<tr>
+<th>注入位置</th>
+<th>到物理输出 <span class="arithmatex">\(y\)</span> 的路径</th>
+<th style="text-align: right;">幅值因子（约）</th>
+<th>工程读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>参考 <span class="arithmatex">\(r\)</span></td>
+<td><span class="arithmatex">\(T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.887\)</span></td>
+<td>当前频率仍能跟随</td>
+</tr>
+<tr>
+<td>对象输入 <span class="arithmatex">\(d_i\)</span></td>
+<td><span class="arithmatex">\(PS\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.111\)</span></td>
+<td>先经对象，再被灵敏度压低</td>
+</tr>
+<tr>
+<td>对象输出 <span class="arithmatex">\(d_o\)</span></td>
+<td><span class="arithmatex">\(S\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.129\)</span></td>
+<td>直接进入输出，但仍被反馈纠正</td>
+</tr>
+<tr>
+<td>传感器噪声 <span class="arithmatex">\(n\)</span></td>
+<td><span class="arithmatex">\(-T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.887\)</span></td>
+<td>物理输出路径与参考通道同幅，符号相反</td>
+</tr>
+</tbody>
+</table>
+<p>这里的“鲁棒”只表示在这个 LTI 工作点、这个注入定义和这个频率上的灵敏度结论；饱和、采样、时滞和未建模共振仍需单独检查。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>“反馈把所有东西都乘成 <span class="arithmatex">\(S\)</span>”是错的</strong>：对象输入端、对象输出端和传感器端的路径不同；先画注入位置，再推公式。</li>
+<li><strong><span class="arithmatex">\(S+T=1\)</span> 是复数恒等式，不是两个幅值相加</strong>：一般不能把 <span class="arithmatex">\(|S|+|T|\)</span> 当成 1。</li>
+<li><strong>高环路增益不是无条件的鲁棒性</strong>：未建模动态、时滞和执行器饱和可能让 <span class="arithmatex">\(L\)</span> 的相位/幅值离开这套最小模型。</li>
+<li><strong>符号约定是边界</strong>：这里采用 <span class="arithmatex">\(e=r-y_m\)</span> 的负反馈；若实际结构是正反馈或把负号并入 <span class="arithmatex">\(C\)</span>，特征分母变为 <span class="arithmatex">\(1-L\)</span>，<span class="arithmatex">\(S,T\)</span> 的定义必须重新推导。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>一条温控回路的低频开门扰动很大，同时编码器/温度传感器在高频有噪声。你会把主要设计努力放在提高低频 <span class="arithmatex">\(|L|\)</span>、降低高频 <span class="arithmatex">\(|T|\)</span>，还是两者都无限提高？请用 <span class="arithmatex">\(S+T=1\)</span> 和至少一个注入路径说明你的取舍。</p>
+</div>
+</section>
 <h2 id="vs">一、开环 vs 闭环<a class="headerlink" href="#vs" title="Permanent link"></a></h2>
 <p><strong>开环控制</strong>：按预定规律施加输入，不看结果。烤箱定时器、按固定开度供气、机器人按预编程轨迹运动。</p>
 <p><strong>闭环控制</strong>：测量实际输出，与设定值比较，按误差修正。</p>
-<p><strong>开环并非一无是处</strong>——它简单、便宜、绝不会失稳，且在<strong>对象特性已知且干扰很小</strong>时完全够用。工业上大量场合就用开环（步进电机开环定位、许多加热控制）。</p>
+<p><strong>开环并非一无是处</strong>——它简单、便宜，而且没有由反馈回路产生的闭环特征方程，因此不会出现“调环路增益把闭环推过稳定边界”这一类失稳机制。在<strong>对象特性已知且干扰很小</strong>时完全够用。可是这不等于开环输出绝不会发散：不稳定的对象、执行器内部动态、错误的固定输入或饱和后的非理想行为仍可能让系统不稳定。工业上大量场合就用开环（步进电机开环定位、许多加热控制）。</p>
 <p><strong>但开环有三个致命弱点</strong>：</p>
 <ol>
 <li><strong>无法抵抗干扰</strong>：外界扰动（负载变化、风、环境温度）没有任何机制被察觉与补偿；</li>
 <li><strong>依赖模型精度</strong>：控制律基于对象模型，模型错了输出就错；</li>
 <li><strong>无法应对变化</strong>：对象参数随温度、老化、磨损漂移，开环控制器毫无办法。</li>
 </ol>
-<h2 id="_1">二、反馈买到的四样东西<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>考虑标准结构：控制器 <span class="arithmatex">\(C(s)\)</span>、被控对象 <span class="arithmatex">\(P(s)\)</span>，回路增益 <span class="arithmatex">\(L = PC\)</span>。闭环传递函数：</p>
+<h2 id="_2">二、反馈买到的四样东西<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>考虑标准负反馈结构：控制器 <span class="arithmatex">\(C(s)\)</span>、被控对象 <span class="arithmatex">\(P(s)\)</span>，回路增益 <span class="arithmatex">\(L = PC\)</span>。闭环传递函数：</p>
 <div class="arithmatex">\[T = \frac{L}{1+L}\ (\text{跟踪}), \qquad S = \frac{1}{1+L}\ (\text{灵敏度})\]</div>
 <p><strong>注意一个恒等式，它将贯穿全课</strong>：</p>
 <div class="arithmatex">\[S + T = 1\]</div>
-<p><strong>① 降低对模型误差的敏感性。</strong> 对象增益变化 <span class="arithmatex">\(\Delta P/P\)</span> 引起的闭环变化：</p>
-<div class="arithmatex">\[\frac{\Delta T}{T} = S \cdot \frac{\Delta P}{P}\]</div>
-<p><strong><span class="arithmatex">\(|S| \ll 1\)</span> 的频段，对象误差被压缩了 <span class="arithmatex">\(|S|\)</span> 倍。</strong> 这就是导论说的"用增益换精度"——<strong>一个特性糟糕、会漂移的执行机构，套上高增益反馈后，闭环行为主要由控制器与反馈网络决定</strong>。</p>
-<p><strong>② 抑制干扰。</strong> 输出端干扰 <span class="arithmatex">\(d\)</span> 对输出的影响也被乘上 <span class="arithmatex">\(S\)</span>。<span class="arithmatex">\(|S|\)</span> 小的频段，干扰被压制。</p>
+<p><strong>① 降低对模型误差的敏感性。</strong> 对象发生足够小的乘性变化时，闭环变化的一阶/微分近似为：</p>
+<div class="arithmatex">\[\frac{\mathrm d T}{T} \approx S \cdot \frac{\mathrm d P}{P},
+\qquad
+\frac{\Delta T}{T} \approx S \cdot \frac{\Delta P}{P}\quad\text{（一阶近似）}\]</div>
+<p><strong><span class="arithmatex">\(|S| \ll 1\)</span> 的频段，对象误差的一阶影响被压缩了约 <span class="arithmatex">\(|S|\)</span> 倍。</strong> 这就是导论说的"用增益换精度"——<strong>一个特性糟糕、会漂移的执行机构，套上高增益反馈后，闭环行为主要由控制器与反馈网络决定</strong>，但只在小扰动、模型适用的频段内成立。</p>
+<p><strong>② 抑制干扰。</strong> 先标清注入点：若 <span class="arithmatex">\(d_i\)</span> 加在对象输入端，<span class="arithmatex">\(y/d_i=PS\)</span>；若 <span class="arithmatex">\(d_o\)</span> 加在对象输出端，<span class="arithmatex">\(y/d_o=S\)</span>；若噪声 <span class="arithmatex">\(n\)</span> 加在传感器输出端，<span class="arithmatex">\(y/n=-T\)</span>。因此不能不加说明地说“干扰都被乘上 <span class="arithmatex">\(S\)</span>”。</p>
 <p><strong>③ 改变动态特性。</strong> 反馈可以改变系统的极点位置——把慢的变快、把振荡的变稳（第四页根轨迹讲这件事怎么做）。</p>
 <p><strong>④ 镇定不稳定对象。</strong> 有些对象本身就不稳定（倒立摆、某些飞行器、磁悬浮），<strong>只有反馈能让它们工作</strong>。这是反馈不可替代的场合。</p>
-<h2 id="_2">三、代价：反馈会制造不稳定<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">三、代价：反馈会制造不稳定<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>这是全课的中心张力。</strong> 反馈回路里，误差驱动修正、修正改变输出、输出又改变误差——<strong>如果这个循环的相位延迟足够大，修正就会变成"火上浇油"</strong>。</p>
 <p>直觉：假设某频率下回路的相移达到 180°，那么"负反馈"在该频率上实际变成了<strong>正反馈</strong>。若此时回路增益还大于 1，扰动就会被不断放大 → <strong>振荡或发散</strong>。</p>
 <p><strong>这直接给出了稳定性判据的雏形</strong>：要稳定，需要在增益降到 1 之前，相位还没转到 −180°。<strong>相位裕度</strong>正是这个余量的度量（第五页正式处理）。</p>
@@ -83,21 +213,21 @@
 <p><img alt="开环与闭环对干扰的响应" class="fig-img" src="assets/img/aut_openloop_vs_closed.svg" /></p>
 <figcaption><span class="fig-id">图 1-1</span> 同一对象受到阶跃扰动时的响应。<strong>开环</strong>（灰）无法察觉扰动，输出永久偏离目标；<strong>低增益闭环</strong>（绿）缓慢纠正，残余误差较大；<strong>适中增益</strong>（品红）快速回到设定值；<strong>高增益 + 时滞</strong>（红）则过冲并持续振荡。<strong>这四条曲线概括了整门课的全部张力</strong>：反馈能纠错，但推得太狠就会失稳。</figcaption>
 </figure>
-<h2 id="_3">四、稳态误差与积分作用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、稳态误差与积分作用<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>只用比例控制（<span class="arithmatex">\(C = K\)</span>）时，闭环稳态误差为</p>
 <div class="arithmatex">\[e_{ss} = \frac{1}{1+K P(0)}\]</div>
 <p><strong>除非 <span class="arithmatex">\(K \to \infty\)</span>，否则误差永不为零。</strong> 这在很多应用中不可接受（温度必须精确到设定值、位置必须准确到位）。</p>
 <p><strong>解法是积分作用</strong>：<span class="arithmatex">\(C(s) = K_i/s\)</span>。积分器在直流（<span class="arithmatex">\(s\to 0\)</span>）有无穷大增益，于是 <span class="arithmatex">\(S(0) = 0\)</span>——<strong>只要还有误差，积分就持续累加修正，直到误差归零</strong>。</p>
 <p><strong>这就是 PID 里的 I</strong>（第六页详述），也是<strong>内模原理</strong>的最简单情形：<strong>要无静差地跟踪某类信号，控制回路内部必须包含该信号的模型</strong>（跟踪阶跃需要积分器、跟踪正弦需要该频率的谐振器）。<strong>这是一个漂亮而普适的结论。</strong></p>
 <p><strong>代价</strong>：积分器引入 −90° 相移，<strong>恶化稳定裕度</strong>；且带来<strong>积分饱和（windup）</strong>问题（第六页）。<strong>又是同一个权衡：性能与稳定性。</strong></p>
-<h2 id="_4">五、反馈之外：前馈<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、反馈之外：前馈<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>反馈是"事后纠错"——<strong>必须先有误差才能修正</strong>，因此永远滞后。若干扰<strong>可测</strong>或参考轨迹<strong>已知</strong>，可以用<strong>前馈</strong>主动补偿，不必等误差出现。</p>
 <ul>
-<li><strong>前馈的优点</strong>：不引入稳定性问题（不构成回路）、响应快；</li>
+<li><strong>前馈的优点</strong>：在不改变标称反馈特征方程的理想线性模型里，它不构成额外反馈回路，响应快；但执行器饱和、前馈模型误差、未建模动态和信号延迟仍可能造成实际问题；</li>
 <li><strong>前馈的缺点</strong>：完全依赖模型精度，无法处理未测量的干扰。</li>
 </ul>
 <p><strong>工程上的标准做法是二者结合</strong>：前馈负责快速、已知的部分，反馈负责纠正剩余误差与未知干扰。<strong>这是实际工业控制系统的常见架构</strong>（也是🔗 生物站"应变稳态"那一节的对应物：身体在运动前就提前升高心率，这是前馈；再靠反馈修正）。</p>
-<h2 id="_5">六、反馈无处不在<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、反馈无处不在<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>值得一提的是这个思想的普适性——<strong>同一套数学出现在极不相同的领域</strong>：</p>
 <table>
 <thead>
@@ -130,7 +260,7 @@
 </tbody>
 </table>
 <p><strong>这不是牵强类比</strong>：它们服从同样的稳定性条件、同样的增益—时滞权衡、同样的振荡机制。<strong>学会反馈，就获得了一副能看穿许多系统的眼镜</strong>——这是本学科给人最耐久的东西。</p>
-<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>反馈买到</strong>：降低模型敏感性、抑制干扰、重塑动态、镇定不稳定对象；</li>
 <li><strong>代价是可能失稳</strong>，根源在于回路的相位滞后；<strong>时滞是头号敌人</strong>；</li>
@@ -149,5 +279,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-feedback-sensitivity.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、安全系数：它在保护什么</a></li>
-<li><a href="#_2">二、从确定性到概率：干涉模型</a></li>
-<li><a href="#_3">三、可靠性的基本量</a></li>
-<li><a href="#_4">四、系统可靠性</a></li>
-<li><a href="#_5">五、设计哲学：三种思路</a></li>
-<li><a href="#_6">六、几条实用判断</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#reliability-learning-title">学习层：让安全系数、干涉概率和系统拓扑分别对账</a><ul>
+<li><a href="#_1">具体机械情境：给四个承力件的冗余方案做初筛</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式模型：正态应力—强度干涉与系统账</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、安全系数：它在保护什么</a></li>
+<li><a href="#_7">二、从确定性到概率：干涉模型</a></li>
+<li><a href="#_8">三、可靠性的基本量</a></li>
+<li><a href="#_9">四、系统可靠性</a></li>
+<li><a href="#_10">五、设计哲学：三种思路</a></li>
+<li><a href="#_11">六、几条实用判断</a></li>
+<li><a href="#_12">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +78,89 @@
 <p><strong>层次</strong>：本科核心 + 业界判断力 ｜ 🔗 与自动化站第十四页（功能安全）互补：那里讲<strong>系统</strong>的安全论证，这里讲<strong>零件</strong>的余量从哪来。
 每个机械设计者都要回答一个问题：<strong>留多大余量？</strong> 传统答案是"安全系数取 1.5"，但这个数字从哪来、它到底保护了什么、在什么情况下不够用——这些才是真正的内容。</p>
 </blockquote>
-<h2 id="_1">一、安全系数：它在保护什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="reliability-learning-title" class="learning-layer">
+<h2 id="reliability-learning-title">学习层：让安全系数、干涉概率和系统拓扑分别对账<a class="headerlink" href="#reliability-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体机械情境：给四个承力件的冗余方案做初筛<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>某承力件的强度 <span class="arithmatex">\(R\)</span> 和工作应力 <span class="arithmatex">\(S\)</span> 用 MPa 表示。抽样得到 <span class="arithmatex">\(\mu_R=240\)</span>、<span class="arithmatex">\(\sigma_R=25\)</span>，载荷谱得到 <span class="arithmatex">\(\mu_S=180\)</span>、<span class="arithmatex">\(\sigma_S=30\)</span>。设计团队在“4 个关键件串联”与“4 个独立主动并联承力件”之间比较早期筛查结果，同时提醒自己：均值安全系数大于 1 并不能自动等于高可靠度。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在均值不变时，把 <span class="arithmatex">\(\sigma_R\)</span> 或 <span class="arithmatex">\(\sigma_S\)</span> 增大，干涉区会变宽，可靠度 <span class="arithmatex">\(R\)</span> 通常上升还是下降？</li>
+<li>对独立同分量，4 个串联件的系统可靠度会低于单件，还是高于单件？主动并联又会怎样？</li>
+<li><span class="arithmatex">\(\mu_R/\mu_S&gt;1\)</span> 是否单独就能保证高可靠度？请选择“不能保证”。</li>
+</ol>
+<h3 id="_3">正式模型：正态应力—强度干涉与系统账<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>假设 <span class="arithmatex">\(R\)</span>、<span class="arithmatex">\(S\)</span> 独立且分别服从正态分布，则</p>
+<div class="arithmatex">\[
+R_{\mathrm{part}}=P(R&gt;S)=\Phi\left(\frac{\mu_R-\mu_S}{\sqrt{\sigma_R^2+\sigma_S^2}}\right),
+\qquad
+\beta=\frac{\mu_R-\mu_S}{\sqrt{\sigma_R^2+\sigma_S^2}},
+\]</div>
+<p>其中 <span class="arithmatex">\(P_f=1-R_{\mathrm{part}}=\Phi(-\beta)\)</span>。本页把均值安全系数单独记为 <span class="arithmatex">\(n_\mu=\mu_R/\mu_S\)</span>，把由均值差和分散度共同决定的 <span class="arithmatex">\(\beta\)</span> 单独记账；二者回答的问题不同。若有 <span class="arithmatex">\(N\)</span> 个独立同分量，理想串联系统和主动并联系统分别为</p>
+<div class="arithmatex">\[
+R_{\mathrm{series}}=R_{\mathrm{part}}^N,\qquad
+R_{\mathrm{parallel}}=1-(1-R_{\mathrm{part}})^N.
+\]</div>
+<p>默认值给出 <span class="arithmatex">\(n_\mu=1.333\)</span>、<span class="arithmatex">\(\beta\approx1.536\)</span>、单件 <span class="arithmatex">\(R\approx0.938\)</span>；4 件串联约 <span class="arithmatex">\(0.772\)</span>，4 件主动并联约 <span class="arithmatex">\(0.999985\)</span>。实验会画出强度与应力两条正态密度曲线及其重叠，并把拓扑、<span class="arithmatex">\(R\)</span>、<span class="arithmatex">\(\beta\)</span> 和失效概率放进同一账本。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>安全系数 <span class="arithmatex">\(n_\mu\)</span> 只比较两个均值；分散度决定尾部干涉，不能用 <span class="arithmatex">\(n_\mu&gt;1\)</span> 代替 <span class="arithmatex">\(\beta\)</span> 或失效概率。</li>
+<li>系统公式要求分量<strong>独立同分布</strong>、共同原因可忽略、可靠度不随时间变化；共因载荷、同一润滑失效、安装批次相关性会使并联收益大打折扣。</li>
+<li>正态尾部在极低失效概率处可能不可信；真实强度、载荷、疲劳寿命常有偏态、截尾或时变分布，应由数据和合适分布验证。</li>
+<li>这里的 <span class="arithmatex">\(R\)</span> 是给定工况下的时间不变应力—强度筛查，不是威布尔寿命曲线、维修过程或检测覆盖率模型。</li>
+<li>“并联”必须是实际可承担载荷的主动冗余；两个零件画在一起但共用同一失效源，不满足公式条件。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-reliability-interference">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\((\mu_R,\sigma_R)=(240,25)\,\mathrm{MPa}\)</span>、<span class="arithmatex">\((\mu_S,\sigma_S)=(180,30)\,\mathrm{MPa}\)</span>、分量数 <span class="arithmatex">\(N=4\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>可靠性账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>均值安全系数 <span class="arithmatex">\(n_\mu\)</span></td>
+<td style="text-align: right;">1.333</td>
+<td>无量纲；不是概率保证</td>
+</tr>
+<tr>
+<td>合成标准差 <span class="arithmatex">\(\sigma_D\)</span></td>
+<td style="text-align: right;">39.05</td>
+<td>MPa</td>
+</tr>
+<tr>
+<td>可靠性指标 <span class="arithmatex">\(\beta\)</span></td>
+<td style="text-align: right;">约 1.536</td>
+<td>正态尾部指标</td>
+</tr>
+<tr>
+<td>单件可靠度 / 失效概率</td>
+<td style="text-align: right;">约 0.9377 / 0.0623</td>
+<td><span class="arithmatex">\(R=P(R&gt;S)\)</span></td>
+</tr>
+<tr>
+<td>4 件串联 <span class="arithmatex">\(R_{\mathrm{series}}\)</span></td>
+<td style="text-align: right;">约 0.773</td>
+<td>独立同分量</td>
+</tr>
+<tr>
+<td>4 件主动并联 <span class="arithmatex">\(R_{\mathrm{parallel}}\)</span></td>
+<td style="text-align: right;">约 0.999985</td>
+<td>独立同分量；无共因</td>
+</tr>
+</tbody>
+</table>
+<p>脚本可用时，拖动均值和标准差会改变两条分布的重叠；切换串联/并联只改变系统账，不会篡改单件干涉模型。结果揭示后调参不会重新锁回预测门。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果四个承力件共享同一温度、同一冲击载荷和同一装配工序，你会怎样给并联模型加入共因失效或相关性？请说明需要哪些现场数据，才能把“理想并联接近 1”改成可审计的系统可靠度。</p>
+</section>
+<h2 id="_6">一、安全系数：它在保护什么<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <div class="arithmatex">\[n = \frac{\text{极限应力}}{\text{工作应力}}, \qquad [\sigma]=\frac{\sigma_{\lim}}{n}\]</div>
 <p><strong>关键问题：分母的"工作应力"与分子的"极限应力"都不确定。安全系数其实在覆盖这些不确定性：</strong></p>
 <table>
@@ -101,7 +207,7 @@
 <li><strong>失效危及生命</strong>：由行业规范强制规定，且辅以强制检验。</li>
 </ul>
 <p><strong>一个重要认识</strong>：<strong>安全系数大不等于安全</strong>。它掩盖无知，但掩盖不了<strong>用错了失效模式</strong>（比如按静强度设计却发生疲劳）或<strong>忽略了某个工况</strong>。<strong>"用 3 倍安全系数按错误的准则计算"仍然会失效</strong>——这是机械事故中反复出现的模式。</p>
-<h2 id="_2">二、从确定性到概率：干涉模型<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、从确定性到概率：干涉模型<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>安全系数是<strong>确定性</strong>方法。<strong>概率方法</strong>承认载荷与强度都是分布：</p>
 <p><strong>应力—强度干涉模型</strong>：设应力分布 <span class="arithmatex">\(f_S(x)\)</span>、强度分布 <span class="arithmatex">\(f_R(x)\)</span>，<strong>失效概率就是两个分布的"重叠"</strong>：</p>
 <div class="arithmatex">\[P_f = P(R &lt; S)\]</div>
@@ -110,12 +216,12 @@
 <p><strong>这个模型给出了两个深刻的洞察</strong>：</p>
 <p><strong>① 平均值的差距不是全部——分散度同样重要。</strong> 两个平均强度相同的设计，<strong>分散度小的那个可靠得多</strong>。这解释了为什么<strong>质量控制（减小 <span class="arithmatex">\(\sigma_R\)</span>）有时比提高平均强度更有效</strong>。</p>
 <p><strong>② 尾部决定一切。</strong> 失效发生在<strong>强度分布的下尾与应力分布的上尾</strong>相遇处。<strong>而尾部恰恰是数据最少、分布假设最不可靠的地方</strong>——所以概率方法对分布假设敏感，需谨慎使用。</p>
-<h2 id="_3">三、可靠性的基本量<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、可靠性的基本量<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>（与 🔗 自动化站第十四页共享框架，此处侧重机械零件）</p>
 <ul>
 <li><strong>可靠度</strong> <span class="arithmatex">\(R(t)\)</span>：到 <span class="arithmatex">\(t\)</span> 时刻仍未失效的概率；</li>
 <li><strong>失效率</strong> <span class="arithmatex">\(\lambda(t)\)</span>：<strong>浴盆曲线</strong>——早期失效（制造缺陷，靠磨合/老化筛选剔除）、随机失效期、<strong>耗损期</strong>（磨损、疲劳、腐蚀）；</li>
-<li><strong>机械零件与电子元件的关键差别</strong>：电子元件在随机失效期近似恒定失效率（指数分布）；<strong>机械零件以耗损失效为主</strong>，寿命分布常用<strong>威布尔分布</strong>：</li>
+<li><strong>机械零件与电子元件的关键差别</strong>：电子元件在随机失效期可近似恒定失效率（指数分布）；在磨损、疲劳或腐蚀等<strong>耗损机理主导且有相应寿命数据的场景</strong>，机械零件常用<strong>威布尔分布</strong>拟合，但具体分布必须由失效机理、数据和检验窗口确认：</li>
 </ul>
 <div class="arithmatex">\[R(t)=\exp\left[-\left(\frac{t}{\eta}\right)^{\beta}\right]\]</div>
 <p><strong>形状参数 <span class="arithmatex">\(\beta\)</span> 直接指示失效机理</strong>（这是威布尔分析最有用的地方）：</p>
@@ -142,14 +248,14 @@
 </tbody>
 </table>
 <p><strong>从现场失效数据拟合威布尔分布，看 <span class="arithmatex">\(\beta\)</span> 落在哪个区间，就能推断问题出在制造还是设计寿命</strong>——这是可靠性工程最实用的诊断手段之一。</p>
-<p><strong>滚动轴承的 <span class="arithmatex">\(L_{10}\)</span></strong>（第十二页）正是这个框架的应用：它是 90% 可靠度对应的寿命，<span class="arithmatex">\(\beta \approx 1.1\)</span>–1.5。</p>
-<h2 id="_4">四、系统可靠性<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p><strong>滚动轴承的 <span class="arithmatex">\(L_{10}\)</span></strong>（第十二页）是 90% 可靠度对应的寿命；只有在相应轴承寿命数据采用 Weibull 拟合、且拟合区间和失效机理适用时，才可以讨论一个具体的 <span class="arithmatex">\(\beta\)</span>（某些数据集的拟合值可能落在约 1.1–1.5），不能由 <span class="arithmatex">\(L_{10}\)</span> 单独推出形状参数。</p>
+<h2 id="_9">四、系统可靠性<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <ul>
-<li><strong>串联系统</strong>：<span class="arithmatex">\(R_s = \prod R_i\)</span>——<strong>任一环失效则系统失效</strong>。<strong>这是机械系统的常态</strong>（一台机器上任何一个关键零件坏了都停机）；</li>
-<li><strong>并联/冗余</strong>：<span class="arithmatex">\(R_s = 1-\prod(1-R_i)\)</span>——需要冗余传力路径；</li>
+<li><strong>独立分量的串联系统</strong>：在各分量失效事件相互独立、同一时间窗口和同一系统定义下，<span class="arithmatex">\(R_s = \prod R_i\)</span>——<strong>任一环失效则系统失效</strong>。真实机械系统若有共因载荷、共享润滑或共同环境，不能直接套用这个乘积；</li>
+<li><strong>独立并联/冗余</strong>：在分量独立且并联支路确实能接替承载、没有共因失效时，<span class="arithmatex">\(R_s = 1-\prod(1-R_i)\)</span>；共同电源、同一轴承座、同一制造缺陷等会削弱这个理想收益；</li>
 <li><strong>k-out-of-n</strong>：多重冗余表决。</li>
 </ul>
-<p><strong>一个必须直面的数字</strong>：<strong>100 个零件的串联系统，每个可靠度 0.99，系统可靠度只有 <span class="arithmatex">\(0.99^{100}\approx 0.366\)</span>。</strong></p>
+<p><strong>一个必须直面的数字</strong>：<strong>若 100 个零件的失效事件相互独立、每个可靠度为 0.99，串联系统可靠度才是 <span class="arithmatex">\(0.99^{100}\approx 0.366\)</span>。</strong> 共因失效或相关载荷需要另外建模。</p>
 <p><strong>这解释了为什么复杂机器的可靠性如此难做</strong>：<strong>零件数量本身就是敌人</strong>。</p>
 <p><strong>由此得到机械设计中最有力的可靠性手段——减少零件数</strong>：</p>
 <ul>
@@ -158,7 +264,7 @@
 <li>减少连接（<strong>每个螺栓、每个焊缝都是一个潜在失效点</strong>）。</li>
 </ul>
 <p><strong>"最可靠的零件是不存在的零件"</strong> 是设计中的一句老话，但它有严格的数学依据。</p>
-<h2 id="_5">五、设计哲学：三种思路<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、设计哲学：三种思路<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -185,8 +291,8 @@
 </tr>
 </tbody>
 </table>
-<p><strong>损伤容限是现代的主流</strong>，但它有一个前提：<strong>关键部位必须可检测</strong>。<strong>"可检查性"因而成为一项设计要求</strong>——这与 🔗 自动化站第十四页"可诊断性是可用性的一半"完全同源。</p>
-<h2 id="_6">六、几条实用判断<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p><strong>在航空结构、压力容器等关键部位且检查能力足够的场景，损伤容限是重要的设计路线之一</strong>，但它有一个前提：<strong>关键部位必须可检测</strong>。<strong>"可检查性"因而成为一项设计要求</strong>——这与 🔗 自动化站第十四页"可诊断性是可用性的一半"完全同源；对不可检查、载荷谱不明或失效后果不同的部件，应按适用规范选择安全寿命、失效安全或其他路线。</p>
+<h2 id="_11">六、几条实用判断<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>先确认失效模式再选安全系数</strong>——用错准则时，多大的系数都无用；</li>
 <li><strong>减小分散比提高均值更划算</strong>（尤其在已有较大余量时）；</li>
@@ -195,13 +301,13 @@
 <li><strong>注意"隐性失效"</strong>：不会立刻表现出来的失效（如冗余支路已损坏但主路仍工作），<strong>需要定期检验才能发现</strong>——这与自动化站的"潜伏失效"是同一概念；</li>
 <li><strong>超载工况必须显式考虑</strong>：起吊冲击、误操作、堵转、地震——<strong>很多失效发生在"不该发生的工况"，而它们其实是可预见的</strong>。</li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_12">七、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>安全系数覆盖的是多种不确定性</strong>，取值取决于你对它们知道多少；<strong>它掩盖不了失效模式判断错误</strong>；</li>
 <li><strong>应力—强度干涉模型</strong>表明：分散度与均值同等重要，且失效由分布尾部决定；</li>
-<li><strong>机械件以耗损失效为主，用威布尔分布</strong>；<strong>形状参数 <span class="arithmatex">\(\beta\)</span> 指示失效机理</strong>；</li>
-<li><strong>串联系统可靠度随零件数急剧下降</strong> → <strong>减少零件数是最有力的手段</strong>；</li>
-<li><strong>损伤容限是现代主流，但要求可检测性</strong>。</li>
+<li><strong>在耗损机理主导且数据支持的场景可用威布尔分布</strong>；形状参数 <span class="arithmatex">\(\beta\)</span> 可帮助区分失效阶段，但不能脱离数据解释；</li>
+<li><strong>独立串联系统可靠度随零件数急剧下降</strong> → <strong>减少零件数是有力的手段</strong>，共因失效仍须另行建模；</li>
+<li><strong>损伤容限适用于可检查的关键结构等场景，并要求可检测性</strong>。</li>
 </ul>
 <hr />
 <p><em>线四结束。下一线转向制造：设计画在纸上，最终要变成金属。铸、锻、焊、切削、增材——每种工艺都决定了什么形状可行、什么成本合理。</em></p>
@@ -214,5 +320,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-reliability-interference.js"></script>
 </body>
 </html>

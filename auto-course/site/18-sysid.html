@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,125 +46,166 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、辨识的基本流程</a></li>
-<li><a href="#_2">二、模型结构与参数估计</a></li>
-<li><a href="#_3">三、验证：最重要也最常被省略的一步</a></li>
-<li><a href="#_4">四、自适应控制</a></li>
-<li><a href="#_5">五、与机器学习的关系</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#arx">学习层：给温控过程做一次可复核的 ARX 辨识</a><ul>
+<li><a href="#1">1. 具体工程情境：一条短实验数据，真的能分出对象增益和记忆吗？</a></li>
+<li><a href="#2">2. 正式模型：最小二乘、条件数与训练/验证要各自记账</a></li>
+<li><a href="#3">3. 动手实验：看激励、噪声和外推残差怎样分开</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_1">一、辨识流程与实验设计</a></li>
+<li><a href="#arx_1">二、ARX 与最小二乘</a></li>
+<li><a href="#_2">三、验证：残差不是一句“白噪声”</a></li>
+<li><a href="#pe">四、PE、跟踪与有界性不是同一个目标</a></li>
+<li><a href="#_3">五、自适应控制路线</a></li>
+<li><a href="#_4">六、与机器学习的关系</a></li>
+<li><a href="#_5">七、要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">进阶 IV · 系统辨识与自适应<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>层次</strong>：研究生核心 + 业界实用 ｜ 🔗 与 AI 站的监督学习共享大量数学。
-上一页说 MPC 项目的主要工作量在建模。<strong>系统辨识</strong>就是从输入输出数据中获得模型的学科；<strong>自适应控制</strong>则更进一步——在运行过程中持续修正模型或控制器。两者都在回答同一个问题：<strong>当我们不知道对象是什么时，怎么办？</strong></p>
+<p><strong>层次</strong>：研究生核心 + 业界实用｜🔗 与 AI 站的监督学习共享大量数学。
+系统辨识不是“把曲线拟合得越像越好”，而是在一个可说明的激励、噪声、模型结构和验证协议下，得到足够支持控制设计的模型。自适应控制再把这个模型或控制器放进运行回路，但参数收敛、闭环跟踪和安全有界性是不同的证明目标。</p>
 </blockquote>
-<h2 id="_1">一、辨识的基本流程<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<div class="arithmatex">\[\text{实验设计} \to \text{采集数据} \to \text{选模型结构} \to \text{参数估计} \to \textbf{模型验证}\]</div>
-<p><strong>每一步都有可能毁掉整个结果</strong>，而最常被忽视的是第一步与最后一步。</p>
-<p><strong>实验设计（最容易被低估）</strong>：</p>
-<ul>
-<li><strong>激励信号必须"充分丰富"</strong>：若只用阶跃激励，只能激发有限频段，得到的模型在其他频段不可信。常用<strong>PRBS（伪随机二进制序列）</strong>或<strong>多正弦（chirp）</strong>，覆盖关心的频段；</li>
-<li><strong>持续激励条件</strong>：辨识 <span class="arithmatex">\(n\)</span> 个参数，输入至少需含 <span class="arithmatex">\(n/2\)</span> 个不同频率成分。<strong>这是一个可以严格陈述的条件</strong>，不是经验之谈；</li>
-<li><strong>幅度权衡</strong>：太小则信噪比差，太大则激发非线性、扰动生产。<strong>工业现场往往只允许很小的激励</strong>，这是真实约束；</li>
-<li><strong>闭环辨识的陷阱</strong>：若在闭环下采集数据，输入与噪声通过反馈相关，<strong>直接用开环方法会得到有偏的模型</strong>——甚至可能辨识出控制器的逆而非对象本身。需专门的闭环辨识方法。<strong>这是实践中极常见的错误。</strong></li>
-</ul>
-<h2 id="_2">二、模型结构与参数估计<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>常用结构</strong>（差别在于噪声怎么进入模型）：</p>
-<div class="arithmatex">\[\text{ARX：}\ A(q)y = B(q)u + e, \qquad \text{ARMAX：}\ A(q)y = B(q)u + C(q)e, \qquad \text{OE：}\ y = \frac{B(q)}{F(q)}u + e\]</div>
-<p><strong>ARX 的优点是参数估计为线性最小二乘</strong>（有闭式解），缺点是噪声模型受限、会产生偏差。OE（输出误差）模型的噪声假设更贴近实际，但需非线性优化。</p>
-<p><strong>参数估计的核心是预测误差方法（PEM）</strong>：</p>
-<div class="arithmatex">\[\hat{\theta} = \arg\min_\theta \sum_{t} \left(y(t) - \hat{y}(t|\theta)\right)^2\]</div>
-<p><strong>这与机器学习的经验风险最小化是同一个东西</strong>（🔗 AI 站）。事实上：</p>
-<ul>
-<li>ARX 辨识 = 线性回归；</li>
-<li>正则化（岭回归）在辨识中同样用于抑制过拟合；</li>
-<li>模型阶次选择 = 模型复杂度选择，用 <strong>AIC/BIC</strong> 或交叉验证——<strong>与机器学习的模型选择完全同构</strong>。</li>
-</ul>
-<p><strong>子空间方法（N4SID 等）</strong>：直接从数据的 Hankel 矩阵通过 SVD 估计状态空间模型，<strong>特别适合 MIMO</strong>，且不需要事先指定复杂的参数化。是工业辨识软件的主力算法之一。</p>
-<h2 id="_3">三、验证：最重要也最常被省略的一步<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>用拟合优度评价模型是危险的</strong>——提高阶次总能让拟合更好，但那可能只是在拟合噪声。</p>
-<p><strong>必须做的验证</strong>：</p>
-<ul>
-<li><strong>交叉验证</strong>：用<strong>未参与辨识的数据</strong>检验预测能力。这是最基本的一条；</li>
-<li><strong>残差分析</strong>：残差应接近白噪声，且<strong>与输入不相关</strong>。若残差与输入仍相关，说明<strong>模型漏掉了动态</strong>——这是一个非常有力的诊断；</li>
-<li><strong>多步预测</strong>：一步预测好不代表多步预测好，而<strong>MPC 需要的恰恰是多步预测能力</strong>（第十七页）；</li>
-<li><strong>物理合理性</strong>：增益的符号与量级、时滞、稳态是否符合工艺常识。<strong>这一条能拦下大部分荒谬的模型。</strong></li>
-</ul>
-<p><strong>"所有模型都是错的，有些是有用的"</strong>（第二页）在这里有具体含义：<strong>辨识的目标不是最精确的模型，而是"对控制设计够用"的模型</strong>。控制关注的频段主要在<strong>穿越频率附近</strong>——低频与高频的精度不那么重要。<strong>为控制而辨识（identification for control）</strong>这一思想主张：辨识的加权应与控制目标一致。</p>
-<h2 id="_4">四、自适应控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p><strong>自适应控制</strong>在运行中在线调整，应对参数缓慢变化（磨损、温度、负载、批次）。</p>
-<p><strong>两条经典路线</strong>：</p>
-<p><strong>① 间接自适应（自校正调节器 STR）</strong>：在线辨识参数 → 按辨识结果重新设计控制器。模块清晰，但辨识与控制的交互可能出问题。</p>
-<p><strong>② 直接自适应（如 MRAC，模型参考自适应）</strong>：不显式辨识对象，而是<strong>直接调整控制器参数</strong>，使闭环行为跟随一个参考模型。用 Lyapunov 方法（第十五页）设计自适应律并证明稳定性。</p>
-<p><strong>关键的理论要求与实践陷阱</strong>：</p>
-<ul>
-<li><strong>持续激励是收敛的必要条件</strong>：<strong>若信号不够丰富，参数估计可能漂移</strong>——系统在稳态时（信号平淡）尤其危险。这是自适应控制最著名的失效模式；</li>
-<li><strong>鲁棒性问题</strong>：经典自适应律对未建模动态与扰动<strong>可能不鲁棒</strong>（1980 年代 Rohrs 等人的反例曾引发广泛反思——<strong>这与第八页 LQG 的 Doyle 反例是同一时期、同一性质的"理论翻车"</strong>）。补救手段包括 <span class="arithmatex">\(\sigma\)</span> 修正、死区、投影（把参数限制在合理范围内）；</li>
-<li><strong>工业上的谨慎</strong>：<strong>在安全关键系统中，在线自适应通常被严格限制或禁止</strong>——因为它使系统行为随时间变化，<strong>难以验证与认证</strong>（承第十四页功能安全：系统性可预测比性能更重要）。</li>
-</ul>
-<p><strong>实际更常见的折中</strong>：</p>
-<ul>
-<li><strong>增益调度</strong>（第十五页）：离线设计多组参数，按可测工况切换——<strong>行为可预测、可验证</strong>；</li>
-<li><strong>自整定</strong>：不连续自适应，而是在需要时（如换批次、维护后）执行一次整定；</li>
-<li><strong>参数在线估计但不自动闭环</strong>：估计结果提示操作员，由人决定是否更新。</li>
-</ul>
-<p><strong>这个"离线设计、在线切换"胜过"完全在线自适应"的模式，与第二十页学习型控制面对的困境完全一致。</strong></p>
-<h2 id="_5">五、与机器学习的关系<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
-<p>系统辨识与监督学习共享数学，但<strong>关注点不同</strong>，这个对照很有启发：</p>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="arx">学习层：给温控过程做一次可复核的 ARX 辨识<a class="headerlink" href="#arx" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：一条短实验数据，真的能分出对象增益和记忆吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把一台小型温控箱在一个工作点附近简化为一阶离散对象：</p>
+<div class="arithmatex">\[
+y_{k+1}=a y_k+b u_k+e_{k+1},\qquad
+\phi_k=\begin{bmatrix}y_k\\u_k\end{bmatrix},\quad
+\theta=\begin{bmatrix}a\\b\end{bmatrix}.
+\]</div>
+<p>工程师可以选择激励：丰富交替输入能覆盖更多动态方向，单次阶跃的频谱和回归向量更受限，无激励则只是在记录自然衰减。实验用固定公式生成 <span class="arithmatex">\(e_k\)</span>，而不是每次拖动都抽一批随机数；这样能把“参数改变”与“数据换了”分开。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>对两个 ARX 参数，丰富的动态激励与全程零输入，哪一个更可能让 <span class="arithmatex">\(\Phi^\mathsf T\Phi\)</span> 可逆且条件较好？</li>
+<li>用训练段拟合后，验证残差主要检验什么？</li>
+<li>在激励固定时增大输出噪声，残差和参数不确定性会变小、变大，还是完全不变？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：最小二乘、条件数与训练/验证要各自记账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>把训练样本排成</p>
+<div class="arithmatex">\[
+y_{k+1}=\phi_k^\mathsf T\theta+e_{k+1},\qquad
+\hat\theta=(\Phi^\mathsf T\Phi)^{-1}\Phi^\mathsf Ty,
+\]</div>
+<p>其中 <span class="arithmatex">\(\Phi\)</span> 的每一行是 <span class="arithmatex">\([y_k,u_k]\)</span>。只有当训练 Gram 矩阵 <span class="arithmatex">\(G=\Phi^\mathsf T\Phi\)</span> 非奇异且条件可接受时，这个闭式解才有可辨识意义；近奇异时，参数小扰动就可能引起很大的估计变化。</p>
+<p>本页把数据按时间切成训练段和验证段。训练段用于计算 <span class="arithmatex">\(\hat a,\hat b\)</span>；验证段只计算一步预测</p>
+<div class="arithmatex">\[
+\hat y_{k+1|k}=\hat a y_k+\hat b u_k,\qquad
+e_k^{val}=y_{k+1}-\hat y_{k+1|k}.
+\]</div>
+<p>训练 RMSE、验证 RMSE、输入—残差相关、残差 lag-1 相关和 <span class="arithmatex">\(\operatorname{cond}_2(G)\)</span> 互相补充：没有一个单独的数字能替代完整验证。</p>
+<h3 id="3">3. 动手实验：看激励、噪声和外推残差怎样分开<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先提交三项预测，再选择“丰富交替激励”“单次阶跃激励”或“无激励边界”，调激励幅值、确定性噪声幅值和样本数。上图画实测输出与训练得到的一步预测，下图分色画训练/验证残差；ledger 逐行保留 <span class="arithmatex">\(u_{k-1},y_{k-1},y_k,\hat y_k,e_k\)</span> 和 split。证书区列出 <span class="arithmatex">\(G\)</span> 的三个元素、行列式与条件数；无激励时显示不可辨识，而不是把奇异矩阵硬算成一个参数。</p>
+<div class="learning-lab" data-learning-lab="auto-system-identification">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认对象为</p>
+<div class="arithmatex">\[
+y_{k+1}=0.82y_k+0.28u_k+e_{k+1},
+\]</div>
+<p>取 80 个样本、前约 65% 为训练段、丰富交替激励幅值 1、确定性噪声幅值 0.04。最小二乘账本的关键读数为：</p>
 <table>
 <thead>
 <tr>
-<th></th>
-<th>系统辨识</th>
-<th>典型机器学习</th>
+<th>项目</th>
+<th style="text-align: right;">读数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>数据</td>
-<td><strong>有时序、有动态、可主动设计实验</strong></td>
-<td>常假设独立同分布</td>
+<td><span class="arithmatex">\(\hat a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.8270\)</span></td>
 </tr>
 <tr>
-<td>目标</td>
-<td>用于<strong>闭环控制</strong>，需保证稳定</td>
-<td>预测精度</td>
+<td><span class="arithmatex">\(\hat b\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.2803\)</span></td>
 </tr>
 <tr>
-<td>模型</td>
-<td>常要求<strong>可解释、低阶、有物理意义</strong></td>
-<td>可为黑箱</td>
+<td><span class="arithmatex">\(G_{11}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.582\)</span></td>
 </tr>
 <tr>
-<td>数据量</td>
-<td>常<strong>很少</strong>（工业实验昂贵）</td>
-<td>常很大</td>
+<td><span class="arithmatex">\(G_{12}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-0.655\)</span></td>
 </tr>
 <tr>
-<td>关键难点</td>
-<td><strong>闭环相关性、激励设计、外推</strong></td>
-<td>泛化、过拟合</td>
+<td><span class="arithmatex">\(G_{22}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(18.167\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\det G\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(64.648\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\operatorname{cond}_2(G)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.122\)</span></td>
 </tr>
 </tbody>
 </table>
-<p><strong>"能主动设计实验"是辨识相对于被动学习的巨大优势</strong>——它可以选择激励什么频段。<strong>这个思想在机器学习中对应主动学习与实验设计</strong>，两个领域近年正在重新交汇（🔗 第二十页）。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>残差账为：训练 RMSE <span class="arithmatex">\(0.0205\)</span>、验证 RMSE <span class="arithmatex">\(0.0176\)</span>；训练段输入—残差相关约 <span class="arithmatex">\(0.000\)</span>，验证段约 <span class="arithmatex">\(0.125\)</span>。固定的确定性噪声并非白噪声，故训练/验证 residual 的 lag-1 相关仍约为 <span class="arithmatex">\(0.933/0.902\)</span>；这正是“残差看起来小”不等于“创新已经白”的提醒。若选择无激励且噪声为 0，<span class="arithmatex">\(G\)</span> 奇异，<span class="arithmatex">\(a,b\)</span> 不可由这批数据唯一确定。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
-<li><strong>辨识的成败很大程度取决于实验设计</strong>：激励必须充分丰富，闭环数据需专门方法；</li>
-<li><strong>PEM = 经验风险最小化</strong>，辨识与监督学习数学同源；</li>
-<li><strong>验证靠交叉验证与残差白性，而非拟合优度</strong>；残差与输入相关意味着漏掉动态；</li>
-<li><strong>为控制而辨识</strong>：目标是"够用"而非"最准"，重点在穿越频率附近；</li>
-<li><strong>自适应控制的经典陷阱是激励不足导致参数漂移，以及对未建模动态不鲁棒</strong>；</li>
-<li><strong>工业上更偏好增益调度与自整定</strong>——因为可验证性优先于最优性。</li>
+<li><strong>PE 不是万能安全证书</strong>：持续激励/足够丰富的回归向量主要服务于参数可辨识和参数收敛；闭环跟踪、有界性和安全还需要稳定化控制器、参考/扰动假设、约束处理以及相应 Lyapunov 或鲁棒分析。为了识别而注入的激励甚至可能暂时损害跟踪。</li>
+<li><strong>残差白性与输入不相关是有条件的诊断</strong>：在正确阶次、噪声是白创新且开环输入外生等条件下，它们可提示漏掉的动态；闭环反馈会让输入与噪声相关，直接套开环最小二乘或把“不相关”当定理会产生偏差，需闭环辨识、工具变量或专门噪声模型。</li>
+<li><strong>训练拟合好不代表控制外推好</strong>：验证段应覆盖未来工作范围；一步预测好也不自动意味着多步预测、约束预测或闭环稳定好。</li>
+<li><strong>条件数是数值警报，不是完整统计结论</strong>：量纲、正则化、样本相关性和噪声分布都会影响参数方差；必要时应做尺度归一化、置信区间和重复实验。</li>
+<li><strong>确定性 fallback 不是随机统计证明</strong>：本实验固定噪声是为了可复现，不能据此估计现实噪声的完整概率分布。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果温控箱必须在闭环运行中辨识，而且温度不能离开安全带，你会如何安排小幅多正弦/伪随机激励、验证窗口和备用控制器？请分别写出参数收敛证据、跟踪/有界性证据和残差诊断的前提。</p>
+</div>
+</section>
+<h2 id="_1">一、辨识流程与实验设计<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>一个可审计的流程是</p>
+<div class="arithmatex">\[
+\text{实验设计}\to\text{采集与时间对齐}\to\text{模型结构}\to\text{参数估计}\to\text{训练/验证}\to\text{控制验证}.
+\]</div>
+<p>实验设计决定了数据里有没有想辨识的方向。阶跃、PRBS、多正弦和扫频各有频带、幅值与安全代价；“持续激励”不是一句固定的频率数量口诀，而是关于输入/回归矩阵在指定阶次和窗口内的秩、最小特征值或 Gram 条件的条件。输入幅值太小会被噪声淹没，太大又可能激发非线性、饱和或不允许的工况。</p>
+<p>辨识目的也要先说清：预测、控制设计、故障诊断和数字孪生需要的频段与验证方式不一样。为控制而辨识通常优先保证穿越频率、延迟、增益和约束附近的模型可信，而不是追求全频段的最高拟合分数。</p>
+<h2 id="arx_1">二、ARX 与最小二乘<a class="headerlink" href="#arx_1" title="Permanent link"></a></h2>
+<p>ARX 可写成</p>
+<div class="arithmatex">\[
+A(q)y_k=B(q)u_k+e_k,
+\]</div>
+<p>其中延迟算子 <span class="arithmatex">\(q^{-1}\)</span> 把过去的输入输出组成回归向量。它的优点是线性参数化、最小二乘可解、易于在线递推；缺点是噪声进入输出回归时，过去的 <span class="arithmatex">\(y\)</span> 也带噪，可能造成偏差，且固定阶次、延迟和噪声结构会限制表达能力。</p>
+<p>ARMAX 在 ARX 上增加噪声模型，OE 把误差放在输出端；PEM 通过预测误差最小化选择参数。更复杂的结构不自动更可靠：阶次越高越容易改善训练拟合，也越需要独立验证、正则化和物理约束。</p>
+<h2 id="_2">三、验证：残差不是一句“白噪声”<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>残差分析至少包含：训练与验证误差、残差均值和方差、残差自相关、残差与输入/参考的相关，以及多步预测或闭环仿真。若模型阶次正确、噪声是白创新、数据采集满足外生性，残差接近白且与输入不相关是有力诊断；若条件不满足，这些统计形状只能作为线索。</p>
+<p>尤其在闭环辨识中，控制器把输出噪声反馈到输入，<span class="arithmatex">\(u\)</span> 与扰动不再独立。此时一个看似合理的一步 ARX 拟合可能把控制器和对象的相关性混在参数里。可以使用工具变量、预测误差法的闭环版本、已知参考/扰动结构或专门的闭环实验，并把开环/闭环协议写在报告里。</p>
+<h2 id="pe">四、PE、跟踪与有界性不是同一个目标<a class="headerlink" href="#pe" title="Permanent link"></a></h2>
+<p>在适当的线性模型、噪声和算法假设下，持续激励能让参数误差持续受到信息约束，支持参数收敛或渐近辨识。它不单独证明：</p>
+<ul>
+<li>输出会跟踪参考；</li>
+<li>状态、输入和参数估计误差有界；</li>
+<li>约束、饱和和故障下系统安全；</li>
+<li>用估计模型更新的控制器仍然稳定。</li>
+</ul>
+<p>闭环控制还要处理探索—利用冲突：稳态调节会减少激励，主动激励又会制造跟踪误差。常见补救是安全激励、投影/死区/遗忘因子、鲁棒备用控制器、离线批量辨识或只在换批次时自整定。每一种方法都要说明参数收敛与闭环安全分别由什么条件支持。</p>
+<h2 id="_3">五、自适应控制路线<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>间接自适应（如自校正调节器）先在线估计对象，再按估计结果更新控制器；直接自适应（如 MRAC）直接调整控制器参数，使闭环接近参考模型。两者都不能把“估计误差变小”自动等同于“闭环稳定”。未建模高频动态、延迟、噪声、饱和和激励切换可能破坏理论前提。</p>
+<p>工业上常见的折中是增益调度、自整定、参数监视而不自动切换，或在安全包络内做有限的在线更新。投运系统还需记录每次参数变化、回退条件和人工接管路径。</p>
+<h2 id="_4">六、与机器学习的关系<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>系统辨识与监督学习都使用回归、损失函数、正则化和验证，但辨识面对时序相关、主动实验、闭环相关性和稳定约束；预测误差的下降并不自动给出可部署的控制器。子空间方法从 Hankel 矩阵和奇异值构造状态空间模型，适合 MIMO；深度模型可表达复杂非线性，却更需要安全包络、可解释诊断和闭环验证。</p>
+<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<ul>
+<li>辨识的第一证据来自激励和时间对齐，PE 是参数信息条件，不是闭环安全保证；</li>
+<li>ARX 最小二乘要同时看参数、Gram 条件数、训练残差和独立验证残差；</li>
+<li>残差白性/与输入不相关依赖模型阶次、噪声和开闭环采集条件，不能机械套用；</li>
+<li>训练拟合、参数收敛、跟踪性能和有界性是四个不同问题；</li>
+<li>自适应部署必须有约束、回退和可复核的参数更新路径。</li>
 </ul>
 <hr />
 <p><em>下一页：把前面所有工具用到一个具体而完整的对象上——机器人。运动学、动力学、轨迹规划与状态估计，是控制理论最集中的应用场。</em></p>
@@ -162,5 +218,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-system-identification.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,25 +47,163 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#materials-bonding-learning-title">学习层：给热配合件先算一口势阱，再判断它够不够像真实键合</a><ul>
+<li><a href="#1-sic">1. 具体工程情境：SiC 片与金属支架的热配合</a></li>
+<li><a href="#2">2. 必须作答的预测门：哪个量会跟着哪个参数走？</a></li>
+<li><a href="#3">3. 正式公式桥：间距、井深、曲率和热膨胀代理</a></li>
+<li><a href="#4">4. 动手实验：把工程参数与账本联动</a></li>
+<li><a href="#5">5. 误区与模型边界：一维成对势不是多体固体</a></li>
+<li><a href="#6">6. 正式映射与工程后果</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 四种键，先看一张总表</a></li>
-<li><a href="#2">2. 键的物理：一口势阱</a></li>
-<li><a href="#3">3. 键型 → 家族性格（本页核心逻辑链）</a></li>
-<li><a href="#4">4. 数字感（材料人的常识刻度）</a></li>
-<li><a href="#5">5. 反直觉清单</a></li>
+<li><a href="#2_1">2. 键的物理：一口势阱</a></li>
+<li><a href="#3_1">3. 键型 → 家族性格（本页核心逻辑链）</a></li>
+<li><a href="#4_1">4. 数字感（材料人的常识刻度）</a></li>
+<li><a href="#5_1">5. 反直觉清单</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">结构 I · 键合与材料四大家族<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>材料的"家族性格"在原子拉手的那一刻就定了：金属键给了金属延展与导电，共价/离子键给了陶瓷高硬与脆性，范德华力与共价链的混搭给了高分子又软又韧。本页把键型 → 家族性格的对应讲透——这是全课一切"为什么"的第一层地基。</p>
+<p>材料的"家族性格"在原子拉手的那一刻就埋下了重要约束：金属键常与延展和导电相伴，共价/离子键常与高硬度和脆性相伴，范德华力与共价链的混搭常让高分子又软又韧。本页把键型 → 性能倾向的对应讲透——这是全课一切"为什么"的第一层地基，但不是脱离结构、缺陷和工艺的单因果定律。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-bonding-learning-title" class="learning-layer">
+<h2 id="materials-bonding-learning-title">学习层：给热配合件先算一口势阱，再判断它够不够像真实键合<a class="headerlink" href="#materials-bonding-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-sic">1. 具体工程情境：SiC 片与金属支架的热配合<a class="headerlink" href="#1-sic" title="Permanent link"></a></h3>
+<p>把一片脆性陶瓷装进金属支架，温度从 300 K 升到 600 K。装配工程师首先需要知道：原子间的参考间距会不会变、径向键刚度的量级怎样随参数变化、热膨胀代理是否为正。这里先用一个<strong>有量纲的 Morse 成对势</strong>做最小账本，再明确它没有替代真实固体的资格。</p>
+<h3 id="2">2. 必须作答的预测门：哪个量会跟着哪个参数走？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验前，先写下三项预测：固定 <span class="arithmatex">\(r_0,a\)</span> 时 <span class="arithmatex">\(D_e\)</span> 加倍，<span class="arithmatex">\(U''(r_0)\)</span> 如何变？<span class="arithmatex">\(T&gt;0\)</span> 时非对称势阱的平均间距向左还是向右偏？下面的径向势究竟是完整的键合理论，还是一个可审计的玩具模型？互动实验会在提交后揭示答案。</p>
+<h3 id="3">3. 正式公式桥：间距、井深、曲率和热膨胀代理<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(r\)</span>、<span class="arithmatex">\(r_0\)</span> 用 nm，井深 <span class="arithmatex">\(D_e\)</span> 用 eV，形状参数 <span class="arithmatex">\(a\)</span> 用 nm<span class="arithmatex">\(^{-1}\)</span>：</p>
+<div class="arithmatex">\[
+U(r)=D_e\left[(1-e^{-a(r-r_0)})^2-1\right].
+\]</div>
+<p>因此 <span class="arithmatex">\(U(r_0)=-D_e\)</span>、远处 <span class="arithmatex">\(U(\infty)\to0\)</span>，并且</p>
+<div class="arithmatex">\[
+K_r=U''(r_0)=2D_ea^2\quad[\mathrm{eV\,nm^{-2}}].
+\]</div>
+<p><span class="arithmatex">\(1\ \mathrm{eV\,nm^{-2}}=0.1602177\ \mathrm{N\,m^{-1}}\)</span>，所以实验还把 <span class="arithmatex">\(K_r\)</span> 换成径向弹簧刚度的 SI 数值。它是<strong>成对径向刚度</strong>，不是直接等于杨氏模量。</p>
+<p>在经典、小振幅近似下，<span class="arithmatex">\(\langle x^2\rangle\simeq k_BT/K_r\)</span>。Morse 势的三阶导数为 <span class="arithmatex">\(U'''(r_0)=-6D_ea^3\)</span>，力平衡的最低阶修正给出</p>
+<div class="arithmatex">\[
+\langle x\rangle\simeq-\frac{U'''(r_0)}{2K_r}\langle x^2\rangle
+ =1.5a\langle x^2\rangle,
+\qquad
+\alpha^*\equiv\frac{\langle x\rangle}{r_0T}.
+\]</div>
+<p>这解释了为什么右侧较缓的势阱产生正的热膨胀代理，也把每一个数字的单位留在账本里。</p>
+<h3 id="4">4. 动手实验：把工程参数与账本联动<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="materials-bonding-ledger">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认金属型参数示意为 <span class="arithmatex">\(r_0=0.286\ \mathrm{nm}\)</span>、<span class="arithmatex">\(D_e=0.35\ \mathrm{eV}\)</span>、<span class="arithmatex">\(a=18\ \mathrm{nm^{-1}}\)</span>、<span class="arithmatex">\(T=300\ \mathrm K\)</span>。透明账本为</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(U(r_0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-0.350\)</span></td>
+<td>eV</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(U''(r_0)=2D_ea^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(226.8\)</span></td>
+<td>eV·nm<span class="arithmatex">\(^{-2}\)</span></td>
+</tr>
+<tr>
+<td>径向刚度代理</td>
+<td style="text-align: right;"><span class="arithmatex">\(36.4\)</span></td>
+<td>N·m<span class="arithmatex">\(^{-1}\)</span>，不是杨氏模量</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(k_BT\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.02585\)</span></td>
+<td>eV</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\langle(r-r_0)^2\rangle\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.14\times10^{-4}\)</span></td>
+<td>nm<span class="arithmatex">\(^2\)</span>，经典谐振近似</td>
+</tr>
+<tr>
+<td>平均偏移代理</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.00308\)</span></td>
+<td>nm，向右</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha^*\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.59\times10^{-5}\)</span></td>
+<td>K<span class="arithmatex">\(^{-1}\)</span>，仅为非对称性代理</td>
+</tr>
+</tbody>
+</table>
+<p>蓝色势阱、数值账本和控件应相互一致；这张表就是没有 JavaScript 时仍可检查的最小答案。</p>
+</div>
+<h3 id="5">5. 误区与模型边界：一维成对势不是多体固体<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>径向刚度不等于宏观模量</strong>：真实晶体的弹性常数还要加总多个邻居、晶格几何、取向和体积归一化；共价键还需要角度项，金属键需要电子密度与多体嵌入效应。</li>
+<li><strong>势阱参数不是键型标签</strong>：离子键的长程库仑项、共价键的方向性与成键/反键电子态、金属键的离域电子和范德华力的色散/诱导偶极，都不能由一条 Morse 曲线唯一识别。</li>
+<li><strong>热膨胀代理不是实测线膨胀系数</strong>：量子振动、声子谱、晶体各向异性、相变和缺陷都可能改变真实结果；小振幅经典近似在低温或大振幅处会失效。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>关键物理</th>
+<th>工程倾向（不是保证）</th>
+<th>成对势遗漏的部分</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>离子</td>
+<td>电荷转移与长程静电</td>
+<td>高熔点、硬、常较脆</td>
+<td>库仑尾项、离子电荷与极化</td>
+</tr>
+<tr>
+<td>共价</td>
+<td>方向性电子共享</td>
+<td>高刚度、方向性强、可能脆</td>
+<td>键角、杂化和键级变化</td>
+</tr>
+<tr>
+<td>金属</td>
+<td>离域电子与离子实</td>
+<td>导电、可滑移、常有延展性</td>
+<td>电子密度、多体屏蔽</td>
+</tr>
+<tr>
+<td>范德华</td>
+<td>色散、永久/诱导偶极</td>
+<td>弱层间结合、易剪切</td>
+<td>长程色散、分子取向</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6">6. 正式映射与工程后果<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>从成对势到晶体能量至少要经过</p>
+<div class="arithmatex">\[
+E_{\text{toy lattice}}=\frac12\sum_i\sum_{j\ne i}U_{ij}(r_{ij}),
+\]</div>
+<p>再经过晶格几何、取向和体积的归一化，才可能接近弹性常数。于是工程结论应写成：更深的井通常提高局部结合和径向曲率，但<strong>支架与陶瓷的热失配不能只拿 <span class="arithmatex">\(D_e\)</span> 或 <span class="arithmatex">\(K_r\)</span> 判定</strong>，还要用真实 <span class="arithmatex">\(\alpha(T)\)</span>、边界约束和界面设计核算。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果两个候选材料有相同的 <span class="arithmatex">\(r_0\)</span> 和 <span class="arithmatex">\(a\)</span>，但 <span class="arithmatex">\(D_e\)</span> 相差四倍，哪个量随 <span class="arithmatex">\(D_e\)</span> 线性增加，哪个热涨落量按 <span class="arithmatex">\(1/D_e\)</span> 减小？如果随后发现材料是强方向性的共价晶体，你会在账本里补哪一个多体项？</p>
+</div>
+</section>
 <h2 id="1">1. 四种键，先看一张总表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -94,24 +247,24 @@
 </tbody>
 </table>
 <p><strong>读法</strong>：键能定熔点与模量的量级（钨 3422 °C vs 聚乙烯约 130 °C 软化——两个数量级的键能差直接写在温度计上）；<strong>方向性定变形方式</strong>——这是下一节的主戏。</p>
-<h2 id="2">2. 键的物理：一口势阱<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>两原子间势能 <span class="arithmatex">\(U(r)\)</span> = 长程吸引 + 短程排斥（Lennard-Jones 形式 <span class="arithmatex">\(U = 4\varepsilon[(\sigma/r)^{12} - (\sigma/r)^6]\)</span> 是通用漫画）。三个性能直接从这口阱里读出：</p>
+<h2 id="2_1">2. 键的物理：一口势阱<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>两原子间势能 <span class="arithmatex">\(U(r)\)</span> = 长程吸引 + 短程排斥（Lennard-Jones 形式 <span class="arithmatex">\(U = 4\varepsilon[(\sigma/r)^{12} - (\sigma/r)^6]\)</span> 是便于入门的通用漫画，不是所有键合的本构式）。三个局部倾向可以从这口阱里读出：</p>
 <ul>
 <li><strong>平衡键长</strong> <span class="arithmatex">\(r_0\)</span>：阱底位置——晶格常数的来源；</li>
-<li><strong>弹性模量 ∝ 阱底曲率</strong> <span class="arithmatex">\(U''(r_0)\)</span>：模量是"键的弹簧刚度"的宏观和（性能 I 展开）——<strong>模量是本征性能，几乎不能靠热处理改变</strong>（阱形状是键决定的），这是选材时的第一条铁律；</li>
-<li><strong>热膨胀 ∝ 阱的不对称</strong>：温度升高原子在阱里振幅加大，阱右缓左陡 ⇒ 平均位置右移——受热膨胀的微观真相（功能 III 再会）；键越强阱越深越对称 ⇒ 陶瓷热膨胀小于金属小于聚合物。</li>
+<li><strong>弹性常数受阱底曲率控制</strong> <span class="arithmatex">\(U''(r_0)\)</span>：它是"键的弹簧刚度"的局部来源，但宏观模量还要经过配位、几何、取向、缺陷和温度归一化；同一相内通常比强度更不易被热处理大幅改变，却不是绝对不变；</li>
+<li><strong>热膨胀受阱的不对称影响</strong>：温度升高原子在阱里振幅加大，阱右缓左陡 ⇒ 平均位置常向右移——这是微观来源之一，真实材料还受声子、各向异性、相变和缺陷影响，不能按"陶瓷 &lt; 金属 &lt; 聚合物"作普遍排序。</li>
 </ul>
 <figure class="plot">
 <p><img alt="Interatomic potential well and bond stiffness" src="assets/img/mat-01-potential.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>原子间势阱（L-J 形式）：阱底位置定键长 \(r_0\)，阱底曲率定模量，阱形不对称定热膨胀——三个宏观性能在一口势阱里各有座位。</figcaption>
+<figcaption><span class="fig-id">图 1.1</span>原子间势阱（L-J 形式）：阱底位置给出平衡键长 \(r_0\)，局部曲率和非对称性分别提供弹性与热膨胀的微观来源；宏观模量和膨胀系数还需晶格几何、多体作用与声子谱。</figcaption>
 </figure>
-<h2 id="3">3. 键型 → 家族性格（本页核心逻辑链）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>金属</strong>：电子气无方向性 ⇒ 原子层可以滑移而键不断（滑过去照样泡在电子海里）⇒ <strong>延展性</strong>；自由电子 ⇒ 导电导热、金属光泽。"能弯"与"导电"是同一句话的两个后果。</p>
+<h2 id="3_1">3. 键型 → 家族性格（本页核心逻辑链）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>金属</strong>：离域电子常使键的方向性较弱，若位错和晶体结构允许滑移，原子层可以移动而不必同时断开整面键 ⇒ <strong>延展性倾向</strong>；自由电子 ⇒ 导电导热、金属光泽。"能弯"与"导电"相关，但不是同一句充分条件。</p>
 <p><strong>陶瓷（离子/共价）</strong>：离子键滑移半格就同号相斥、共价键方向性锁死角度 ⇒ 位错难动 ⇒ <strong>硬而脆</strong>（碎给你看也不弯给你看——性能 IV 的全部剧情在此埋种）；电子被锁定 ⇒ 绝缘/半导体。</p>
 <p><strong>高分子</strong>：链内共价（强）+ 链间范德华（弱）的<strong>双重键合</strong> ⇒ 受力时链间滑动、链本身不断 ⇒ 又软又韧；加热先松开弱键 ⇒ 热塑性可反复成形。"强弱键混搭"是理解高分子一切脾气的钥匙（性能 III）。</p>
 <p><strong>复合材料</strong>：不新增键型，用界面把两家性格拼起来（碳纤维的强 + 树脂的韧）——设计发生在"家族之间"。</p>
 <p><strong>半导体的位置</strong>：共价为主、带隙适中的边缘户（Si、GaAs）——功能 I 专章。</p>
-<h2 id="4">4. 数字感（材料人的常识刻度）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 数字感（材料人的常识刻度）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -143,7 +296,7 @@
 </tr>
 </tbody>
 </table>
-<h2 id="5">5. 反直觉清单<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 反直觉清单<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>强键 ≠ 好材料</strong>：金刚石键最强却一敲就裂——强度与韧性是两回事（性能 II 的主题）；</li>
 <li><strong>模量改不了、强度改得了</strong>：热处理能把同一根钢的强度调三倍，模量纹丝不动——前者是缺陷的事（结构 III），后者是键的事（本页）；</li>
@@ -160,5 +313,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-bonding-ledger.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,19 +46,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:47</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、非线性系统特有的现象</a></li>
-<li><a href="#_2">二、工程中最常见的非线性</a></li>
+<li><a href="#_1">学习层：用一个阻尼单摆分开“能量证书”和“实际翻转”</a><ul>
+<li><a href="#1">1. 具体工程谜题：能量低于倒立势垒，是否足以保证摆不翻？</a></li>
+<li><a href="#2-v2-separatrix">2. 正式模型：V=2 阈值、保守 separatrix 与实际翻转不是同一栏</a></li>
+<li><a href="#3-rk4">3. 动手实验：用 RK4、能量表和未包裹角度交叉核对</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、非线性系统特有的现象</a></li>
+<li><a href="#_3">二、工程中最常见的非线性</a></li>
 <li><a href="#lyapunov">三、Lyapunov 方法：不解方程判断稳定性</a></li>
-<li><a href="#_3">四、几种主要的设计方法</a></li>
-<li><a href="#_4">五、实用判断：什么时候真的需要非线性控制</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_4">四、几种主要的设计方法</a></li>
+<li><a href="#_5">五、实用判断：什么时候真的需要非线性控制</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +74,109 @@
 <p><strong>层次</strong>：研究生核心 ｜ 🔗 前置：动力系统与相图（数学站）。
 第二页说过：经典控制的整座大厦建立在<strong>线性化</strong>之上。但真实系统总是非线性的，而且有些非线性<strong>本质上无法线性化</strong>——饱和、摩擦、间隙，以及那些只在非线性系统中才存在的现象。本页讲非线性系统特有的行为，以及处理它们的主要工具。</p>
 </blockquote>
-<h2 id="_1">一、非线性系统特有的现象<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：用一个阻尼单摆分开“能量证书”和“实际翻转”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程谜题：能量低于倒立势垒，是否足以保证摆不翻？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把摆的长度、重力和质量归一化为 1，角度 <span class="arithmatex">\(\theta\)</span> 按 <span class="arithmatex">\(2\pi\)</span> 周期解释，角速度为 <span class="arithmatex">\(\omega\)</span>。无外力时</p>
+<div class="arithmatex">\[
+\dot\theta=\omega,\qquad
+\dot\omega=-\sin\theta-c\omega,\qquad c\ge0.
+\]</div>
+<p>工程师要审计的不是一条好看的轨迹，而是三件不同的事：Lyapunov 能量能否给出不越过 <span class="arithmatex">\(V=2\)</span> 的证书；有阻尼时初始能量高于 2 是否真的翻转；以及数值积分是否确实让未包裹角度穿过奇数个 <span class="arithmatex">\(\pi\)</span>。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li><span class="arithmatex">\(\dot V=-c\omega^2\)</span> 对 <span class="arithmatex">\(c&gt;0\)</span> 说明能量怎样变化？</li>
+<li>初始 <span class="arithmatex">\(V&lt;2\)</span> 的能量子水平集能否在无外力阻尼下越过 <span class="arithmatex">\(V=2\)</span>？</li>
+<li>初始 <span class="arithmatex">\(V&gt;2\)</span> 是否单凭能量就能断言一定翻转？</li>
+</ol>
+</div>
+<h3 id="2-v2-separatrix">2. 正式模型：V=2 阈值、保守 separatrix 与实际翻转不是同一栏<a class="headerlink" href="#2-v2-separatrix" title="Permanent link"></a></h3>
+<p>取</p>
+<div class="arithmatex">\[
+V(\theta,\omega)=\frac12\omega^2+1-\cos\theta,
+\qquad
+\dot V=\omega\dot\omega+\sin\theta\dot\theta=-c\omega^2.
+\]</div>
+<p>对 <span class="arithmatex">\(c&gt;0\)</span>，初始 <span class="arithmatex">\(V&lt;2\)</span> 是一个<strong>不越过 <span class="arithmatex">\(V=2\)</span> 的充分能量子水平集证书</strong>；这只说明不会从该集合穿出，不等于每个 <span class="arithmatex">\(V&gt;2\)</span> 初值都一定翻转，因为途中会耗散能量。<span class="arithmatex">\(V=2\)</span> 在 <span class="arithmatex">\(c=0\)</span> 的保守系统中才是相平面 separatrix 的能级；<span class="arithmatex">\(c&gt;0\)</span> 时实验把它命名为“V=2 能量阈值”，不把阈值穿越冒充 separatrix 穿越。</p>
+<p>实际翻转另用未包裹的 <span class="arithmatex">\(\theta\)</span> 记账：轨迹穿过奇数个 <span class="arithmatex">\(\pi\)</span> 的事件才计为一次翻转，净转数用 <span class="arithmatex">\((\theta_f-\theta_0)/(2\pi)\)</span> 报告。相平面应理解为圆柱 <span class="arithmatex">\(\theta\bmod 2\pi\)</span>；下垂平衡在该圆柱上对除倒立平衡及其稳定流形外的初值几乎全局吸引，不能说成 <span class="arithmatex">\(\mathbb R^2\)</span> 上唯一的全局平衡。</p>
+<h3 id="3-rk4">3. 动手实验：用 RK4、能量表和未包裹角度交叉核对<a class="headerlink" href="#3-rk4" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调初始角度、初始角速度、阻尼、仿真时长和 RK4 步长。相轨使用周期化角度，能量图单独标出 <span class="arithmatex">\(V=2\)</span> 阈值；ledger 同时列 <span class="arithmatex">\(V\)</span>、解析 <span class="arithmatex">\(\dot V\)</span>、能量证书和未包裹角度。结果区把“V=2 阈值穿越”和“实际翻转（奇数 <span class="arithmatex">\(\pi\)</span> 穿越）”分开，避免把 <span class="arithmatex">\(V&gt;2\)</span> 的初始条件误读成翻转保证。</p>
+<div class="learning-lab" data-learning-lab="auto-nonlinear-lyapunov">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取</p>
+<div class="arithmatex">\[
+\theta_0=1.15\ \mathrm{rad},\quad \omega_0=0.35\ \mathrm{rad/s},\quad c=0.2,\quad
+t_f=12\ \mathrm s,\quad \Delta t=0.04\ \mathrm s.
+\]</div>
+<p>初始能量为 <span class="arithmatex">\(V_0=0.652763\)</span>，末端能量为 <span class="arithmatex">\(V_f=0.065700\)</span>，最大逐步能量上升为 <span class="arithmatex">\(0\)</span>（显示精度内）；初始/末端能量证书都是 <code>inside-safe-sublevel</code>，没有 V=2 阈值穿越，也没有实际翻转。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">step</th>
+<th style="text-align: right;"><span class="arithmatex">\(t\)</span> (s)</th>
+<th style="text-align: right;"><span class="arithmatex">\(\theta\bmod 2\pi\)</span> (rad)</th>
+<th style="text-align: right;"><span class="arithmatex">\(\omega\)</span> (rad/s)</th>
+<th style="text-align: right;"><span class="arithmatex">\(V\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\dot V\)</span></th>
+<th>energy certificate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">1.150</td>
+<td style="text-align: right;">0.350</td>
+<td style="text-align: right;">0.6528</td>
+<td style="text-align: right;">-0.0245</td>
+<td>inside-safe-sublevel</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">1.163</td>
+<td style="text-align: right;">0.311</td>
+<td style="text-align: right;">0.6519</td>
+<td style="text-align: right;">-0.0193</td>
+<td>inside-safe-sublevel</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">1.175</td>
+<td style="text-align: right;">0.272</td>
+<td style="text-align: right;">0.6512</td>
+<td style="text-align: right;">-0.0148</td>
+<td>inside-safe-sublevel</td>
+</tr>
+<tr>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">12.00</td>
+<td style="text-align: right;">0.018</td>
+<td style="text-align: right;">0.362</td>
+<td style="text-align: right;">0.0657</td>
+<td style="text-align: right;">-0.0262</td>
+<td>inside-safe-sublevel</td>
+</tr>
+</tbody>
+</table>
+<p>这些读数是单位重力/长度/质量、无外力、确定性 RK4 的一条轨迹，不是对受控或受扰摆的普适翻转概率。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong><span class="arithmatex">\(V&lt;2\)</span> 是充分证书，不是“数值看起来没翻”的事后判断</strong>：对无外力阻尼模型，能量不增使该子水平集保持；数值步长过大时仍需检查积分误差。</li>
+<li><strong><span class="arithmatex">\(V&gt;2\)</span> 不是翻转定理</strong>：它只表示初始能量高于保守势垒；有阻尼时可能在到达奇数 <span class="arithmatex">\(\pi\)</span> 前耗散掉，实际翻转必须看未包裹角度事件。</li>
+<li><strong>separatrix 的用词有条件</strong>：<span class="arithmatex">\(c=0\)</span> 时 <span class="arithmatex">\(V=2\)</span> 是保守相平面的 separatrix；<span class="arithmatex">\(c&gt;0\)</span> 时实验只显示同一能量阈值和 c=0 参考曲线。</li>
+<li><strong>LaSalle 不能把 <span class="arithmatex">\(\omega=0\)</span> 整条线当平衡集</strong>：<span class="arithmatex">\(\dot V=0\)</span> 的最大不变子集还要满足 <span class="arithmatex">\(\dot\omega=0\)</span>，因此留下下垂与倒立等平衡结构。</li>
+<li><strong>模型边界</strong>：外力矩、控制输入、库仑/粘性摩擦、参数失配和离散控制器会改变能量账；这里的 <span class="arithmatex">\(V\)</span> 证书不能自动覆盖受控/受扰系统。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>你要给一个带制动器的倒立摆做安全包络。请分别写出：用 <span class="arithmatex">\(V&lt;2\)</span> 能证明的集合性质、需要由实际轨迹/可达性分析补的翻转证据，以及加入控制力矩和外部扰动后应如何重写 <span class="arithmatex">\(\dot V\)</span> 与边界条件。</p>
+</div>
+</section>
+<h2 id="_2">一、非线性系统特有的现象<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>线性系统的性质极其"温和"：叠加成立、稳定性与初值无关、唯一平衡点、响应形状不随幅度变化。<strong>非线性系统全都不满足</strong>：</p>
 <p><strong>① 多个平衡点</strong>：单摆有稳定（下垂）与不稳定（倒立）两个平衡点。<strong>"系统是否稳定"这个问题本身必须改成"在哪个平衡点附近、多大范围内稳定"</strong>——引出<strong>吸引域（region of attraction）</strong>概念。</p>
 <p><strong>② 极限环</strong>：孤立的周期轨道，<strong>不依赖初始条件</strong>（线性系统的振荡幅度由初值决定，非线性极限环则收敛到固定幅度）。范德波尔振荡器是标准例子；实际中，带间隙或摩擦的伺服系统常出现极限环——<strong>表现为"稳不下来的小幅抖动"，这是伺服调试中的常见故障</strong>。</p>
@@ -61,9 +185,9 @@
 <p><strong>⑤ 混沌</strong>：确定性系统产生对初值极度敏感的不可预测行为。</p>
 <figure>
 <p><img alt="非线性系统的相平面" class="fig-img" src="assets/img/aut_phase_portrait.svg" /></p>
-<figcaption><span class="fig-id">图 15-1</span> 单摆的相平面（角度—角速度）。图中同时存在<strong>稳定平衡点</strong>（中心，下垂位置）与<strong>鞍点</strong>（倒立位置）。红色曲线是<strong>分界线（separatrix）</strong>，它把"摆动"轨道与"翻转"轨道分开——<strong>初始条件落在分界线内外，系统行为定性不同</strong>。这种"由初值决定定性行为"的现象在线性系统中不存在。</figcaption>
+<figcaption><span class="fig-id">图 15-1</span> 这是<strong>\(c=0\) 保守单摆</strong>的相平面（角度—角速度）：下垂位置是中性稳定的<strong>中心（center）</strong>，不是阻尼系统意义下的渐近稳定点；倒立位置是<strong>鞍点</strong>。红色曲线是<strong>分界线（separatrix）</strong>，它把"摆动"轨道与"翻转"轨道分开——<strong>初始条件落在分界线内外，系统行为定性不同</strong>。加入阻尼后，能量下降和吸引性质改变，不能把这条保守 separatrix 图注当作有阻尼轨迹的同一结论。</figcaption>
 </figure>
-<h2 id="_2">二、工程中最常见的非线性<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、工程中最常见的非线性<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>理论上的奇异现象固然有趣，但工程师日常遇到的主要是这几种：</p>
 <table>
 <thead>
@@ -114,7 +238,7 @@
 <p><strong>它的困难在于找 <span class="arithmatex">\(V\)</span></strong>：没有通用构造法。常用套路——物理能量（机械系统的动能+势能是天然候选）、二次型 <span class="arithmatex">\(V=x^TPx\)</span>（对线性系统，<span class="arithmatex">\(P\)</span> 由 Lyapunov 方程给出）、以及<strong>平方和（SOS）规划</strong>等数值方法（近年可用凸优化自动搜索多项式 Lyapunov 函数，🔗 grad-math 优化线）。</p>
 <p><strong>LaSalle 不变集原理</strong>：当 <span class="arithmatex">\(\dot{V}\le0\)</span> 但不严格负定时，可通过分析 <span class="arithmatex">\(\dot V = 0\)</span> 的集合来判断收敛性——<strong>这在实际中极常用</strong>，因为严格负定往往难以达到。</p>
 <p><strong>Lyapunov 不只是分析工具，更是设计工具</strong>：<strong>反步法（backstepping）</strong>通过递归地构造 Lyapunov 函数来设计控制律，是非线性控制设计的主流方法之一。</p>
-<h2 id="_3">四、几种主要的设计方法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、几种主要的设计方法<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>① 反馈线性化</strong>：通过坐标变换与非线性反馈，<strong>精确抵消</strong>系统的非线性，使闭环成为线性系统。</p>
 <ul>
 <li><strong>优点</strong>：设计后可用全部线性工具；</li>
@@ -133,7 +257,7 @@
 <li><strong>注意事项</strong>：切换过程本身可能不稳定（即使每个局部控制器都稳定！），需保证慢变化或使用有稳定性保证的构造（如 LPV 方法）。</li>
 </ul>
 <p><strong>④ 无源性与能量成形</strong>：利用系统的物理结构（能量守恒、无源性）设计控制器，如机器人的 PD + 重力补偿。<strong>这类方法有很好的鲁棒性与物理直观</strong>，在机器人学中广泛使用（第十九页）。</p>
-<h2 id="_4">五、实用判断：什么时候真的需要非线性控制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、实用判断：什么时候真的需要非线性控制<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>诚实的工程判断</strong>（承导论的理论—实践落差）：</p>
 <p><strong>大多数情况下不需要</strong>——线性控制 + 足够裕度 + 抗饱和 + 增益调度，已能覆盖绝大部分工业需求。</p>
 <p><strong>确实需要的场合</strong>：</p>
@@ -144,7 +268,7 @@
 <li>系统本身不稳定且非线性强（倒立摆类、某些飞行器）。</li>
 </ul>
 <p><strong>滑模与反馈线性化在论文中的出现频率，远高于它们在工业现场的部署频率</strong>——这不是说它们没用，而是说<strong>引入它们需要有明确的理由</strong>：额外的复杂度、调试难度与维护成本，必须被换来的性能所证明。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>非线性系统有线性系统不存在的现象</strong>：多平衡点、极限环、有限逃逸、幅值依赖、混沌；</li>
 <li><strong>工程中最常见的是饱和、死区、摩擦、间隙、迟滞</strong>——它们才是日常敌人；</li>
@@ -164,5 +288,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-nonlinear-lyapunov.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,28 +47,121 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:02</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、欧拉临界载荷</a></li>
-<li><a href="#_2">二、柔度与失效模式的边界</a></li>
-<li><a href="#_3">三、为什么屈曲这么危险</a></li>
-<li><a href="#_4">四、其他失稳形式</a></li>
-<li><a href="#_5">五、组合变形的一般方法</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#buckling-learning-title">学习层：临界载荷是一条分界线，不是一张承载保证书</a><ul>
+<li><a href="#_1">具体工程情境：检查一根可调支撑柱</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：四个层次的校核</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、欧拉临界载荷</a></li>
+<li><a href="#_7">二、柔度与失效模式的边界</a></li>
+<li><a href="#_8">三、为什么屈曲这么危险</a></li>
+<li><a href="#_9">四、其他失稳形式</a></li>
+<li><a href="#_10">五、组合变形的一般方法</a></li>
+<li><a href="#_11">六、要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">力学 IV · 组合变形与屈曲<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>层次</strong>：本科核心 ｜ <strong>这一页讲一种与强度无关的失效</strong>。
+<p><strong>层次</strong>：本科核心 ｜ <strong>这一页讲一种在理想细长弹性模型中可先于屈服发生的失效</strong>。
 前三页的逻辑都是"应力超过许用值就失效"。<strong>屈曲不遵守这个逻辑</strong>——细长压杆可能在应力远低于屈服强度时<strong>突然失稳</strong>，且失稳后承载力急剧下降。<strong>它是结构失效中最危险的一类，因为它没有预兆、发展极快。</strong></p>
 </blockquote>
-<h2 id="_1">一、欧拉临界载荷<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="buckling-learning-title" class="learning-layer">
+<h2 id="buckling-learning-title">学习层：临界载荷是一条分界线，不是一张承载保证书<a class="headerlink" href="#buckling-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：检查一根可调支撑柱<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>机架上的压杆长 <span class="arithmatex">\(L=2.4\,\mathrm{m}\)</span>，截面为直径 <span class="arithmatex">\(d=40\,\mathrm{mm}\)</span> 的实心圆杆。工程师可以把端部从铰接改成夹持，也必须考虑初始弯曲 <span class="arithmatex">\(e_0\)</span>、材料屈服和薄壁构件的局部板件失稳。问题不是只按一个公式报出数字，而是要回答：<strong>哪一个极限先到、真实杆在接近极限前已经偏了多少、以及理想杆的分岔载荷是否被缺陷放大效应掩盖。</strong></p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\(E,I,L\)</span> 不变时，把两端铰支改为两端固支，<span class="arithmatex">\(P_{cr}\)</span> 会约变为几倍？</li>
+<li>对有初始弯曲的柱，<span class="arithmatex">\(P/P_{cr}=0.8\)</span> 时侧移放大因子是约 <span class="arithmatex">\(1.25\)</span>、<span class="arithmatex">\(5\)</span>，还是仍为 <span class="arithmatex">\(1\)</span>？</li>
+<li>高强钢与普通钢只有在<strong>相近 <span class="arithmatex">\(E\)</span>、完全弹性、无缺陷的 Euler 理想模型</strong>中才会给出近似相同的 <span class="arithmatex">\(P_{cr}\)</span>；实际设计还要检查什么？</li>
+</ol>
+<h3 id="_3">正式公式桥：四个层次的校核<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>理想弹性细长柱的分岔载荷为</p>
+<div class="arithmatex">\[
+P_{cr}=\frac{\pi^2EI}{(KL)^2},\qquad
+\lambda=\frac{KL}{r},\qquad r=\sqrt{\frac IA}.
+\]</div>
+<p><span class="arithmatex">\(K\)</span> 是有效长度系数。对一个小的第一模态初弯曲 <span class="arithmatex">\(e_0\sin(\pi x/L)\)</span>，在 <span class="arithmatex">\(P&lt;P_{cr}\)</span> 的线弹性一阶近似下，中点侧移可写成</p>
+<div class="arithmatex">\[
+e_{mid}\approx\frac{e_0}{1-P/P_{cr}}.
+\]</div>
+<p>实验台同时显示：Euler 应力 <span class="arithmatex">\(\pi^2E/\lambda^2\)</span>、材料屈服上限 <span class="arithmatex">\(P_y=A\sigma_y\)</span>，以及一个独立的局部板件 <span class="arithmatex">\(b/t\)</span> 筛查。这里 <span class="arithmatex">\(\min(P_{cr},P_y)\)</span> 只是“理想弹性/屈服的先后”筛选，不是中等柔度柱的完整规范曲线；中间区要用残余应力、切线模量和规范的非弹性屈曲模型。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>Euler 的 <span class="arithmatex">\(P_{cr}\)</span> 是完美直杆的<strong>分岔载荷</strong>；有偏心、残余应力和初弯曲的柱从一开始就弯，实际极限可能显著低于它。接近或超过 <span class="arithmatex">\(P_{cr}\)</span> 时，上面的放大式本身也失效，不能把无穷大当成位移预测。</li>
+<li>高强钢与普通钢的“相同屈曲载荷”只是相近弹性模量下的理想弹性结果；屈服、残余应力、初始缺陷、连接刚度和材料非弹性会让实际承载不同。</li>
+<li>小柔度压杆可能先屈服，中柔度压杆处于非弹性屈曲；薄壁杆还可能在整体 Euler 屈曲之前发生局部屈曲。整体与局部校核不能相互替代。</li>
+<li>本实验的 <span class="arithmatex">\(b/t\)</span> 只是局部板件的预警阈值，不代替板件边界条件、宽厚比规范和局部屈曲特征值计算。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-buckling" markdown="1">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(L=2.4\,\mathrm{m}\)</span>、<span class="arithmatex">\(d=40\,\mathrm{mm}\)</span>、<span class="arithmatex">\(E=210\,\mathrm{GPa}\)</span>、<span class="arithmatex">\(\sigma_y=250\,\mathrm{MPa}\)</span>、铰—铰 <span class="arithmatex">\(K=1\)</span>，初弯曲 <span class="arithmatex">\(e_0=2\,\mathrm{mm}\)</span>，<span class="arithmatex">\(P/P_{cr}=0.55\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">公式/默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(I=\pi d^4/64\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.25664\times10^{-7}\)</span></td>
+<td>m<span class="arithmatex">\(^4\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P_{cr}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi^2EI/(KL)^2=45.217\)</span></td>
+<td>kN，理想分岔</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P_y=A\sigma_y\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(314.159\)</span></td>
+<td>kN，屈服筛选上限</td>
+</tr>
+<tr>
+<td>长细比 <span class="arithmatex">\(\lambda\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(KL/r=240.0\)</span>（转折约 <span class="arithmatex">\(91.05\)</span>）</td>
+<td>Euler 候选适用</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P/P_{cr}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.55\)</span></td>
+<td>未越过理想分岔</td>
+</tr>
+<tr>
+<td>放大因子</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/(1-P/P_{cr})\)</span></td>
+<td>约 <span class="arithmatex">\(2.22\)</span></td>
+</tr>
+<tr>
+<td>中点侧移</td>
+<td style="text-align: right;"><span class="arithmatex">\(e_0/(1-P/P_{cr})\)</span></td>
+<td>约 <span class="arithmatex">\(4.44\,\mathrm{mm}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>改端部条件会改变 <span class="arithmatex">\(K\)</span>；把载荷比推近 1 会让柱的偏转箭头急剧放大。红色提示出现时，读者应回到“缺陷柱/非弹性/局部屈曲”的模型，而不是继续外推 Euler 数字。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>一根薄壁工字柱的整体长细比很大，但翼缘宽厚比也超限。你会如何组织校核顺序，避免先得到一个漂亮的整体 <span class="arithmatex">\(P_{cr}\)</span> 就忽略局部板件失稳？请说明至少一个需要补充的几何或边界条件。</p>
+</section>
+<h2 id="_6">一、欧拉临界载荷<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>理想细长压杆的临界载荷：</p>
 <div class="arithmatex">\[P_{cr} = \frac{\pi^2 EI}{(\mu L)^2}\]</div>
 <p><span class="arithmatex">\(\mu\)</span> 是<strong>长度系数</strong>，取决于两端约束：</p>
@@ -91,11 +199,11 @@
 <p><strong>这张表的工程价值极高</strong>：<strong>仅仅改变端部约束，承载力就能相差 16 倍</strong>（<span class="arithmatex">\(\mu\)</span> 从 2.0 到 0.5）。<strong>加强端部约束往往比加粗杆件便宜得多</strong>——这是压杆设计的第一手段。</p>
 <p><strong>注意公式里的三件事</strong>：</p>
 <ul>
-<li><strong>只含 <span class="arithmatex">\(E\)</span>，不含强度</strong>！<strong>高强度钢与普通钢的屈曲载荷完全相同</strong>（因为 <span class="arithmatex">\(E\)</span> 几乎一样）。<strong>用更贵的高强钢来防屈曲是纯粹的浪费</strong>——这是初学者最常见的误解之一；</li>
+<li><strong>理想弹性 Euler 式只含 <span class="arithmatex">\(E\)</span>，不含屈服强度</strong>。所以在相近 <span class="arithmatex">\(E\)</span>、完全弹性、完美直杆的假设下，高强度钢与普通钢的理论 <span class="arithmatex">\(P_{cr}\)</span> 可能近似相同；但残余应力、初始缺陷、非弹性屈曲、连接和局部屈曲都会改变实际极限，不能把这句话当成普遍结论。</li>
 <li><strong><span class="arithmatex">\(I\)</span> 取最小值</strong>：杆件总是绕<strong>最小惯性矩轴</strong>屈曲。所以矩形截面压杆会朝"薄"的方向弯曲；</li>
 <li><strong><span class="arithmatex">\(L^2\)</span> 在分母</strong>：长度是决定性因素，<strong>加支撑（缩短计算长度）效果立竿见影</strong>。</li>
 </ul>
-<h2 id="_2">二、柔度与失效模式的边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、柔度与失效模式的边界<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>定义<strong>柔度（长细比）</strong>：</p>
 <div class="arithmatex">\[\lambda = \frac{\mu L}{i}, \qquad i = \sqrt{\frac{I}{A}}\ (\text{惯性半径})\]</div>
 <figure>
@@ -109,7 +217,7 @@
 <li><strong>小柔度杆</strong>（粗短）：<strong>强度控制</strong>，按屈服校核。</li>
 </ul>
 <p><strong>必须先判断在哪个区，再选公式</strong>——直接套欧拉公式给粗短杆算，会得到荒谬的高值。</p>
-<h2 id="_3">三、为什么屈曲这么危险<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、为什么屈曲这么危险<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>① 它是不稳定的分岔，不是渐进的。</strong> 载荷达到临界值前，杆件几乎不弯；一旦越过，变形急剧增长。<strong>没有"快要坏了"的征兆。</strong></p>
 <p><strong>② 缺陷敏感性。</strong> 理想直杆的理论是漂亮的，<strong>但真实杆件总有初始弯曲、加载偏心、材料不均</strong>。这些微小缺陷会：</p>
 <ul>
@@ -118,14 +226,14 @@
 </ul>
 <p><strong>最极端的是壳体屈曲</strong>：薄壁圆柱壳受轴压时，<strong>实测承载力可能只有理论值的 20–30%</strong>，且分散度极大。<strong>这是固体力学中理论与实验差距最大的问题之一</strong>，工程上只能靠大量试验数据与很大的安全系数。<strong>这个"缺陷敏感"的现象值得记住——它是"理想化模型可能严重高估"的经典案例。</strong></p>
 <p><strong>③ 后屈曲行为可能是灾难性的</strong>：某些结构（如壳体）屈曲后承载力<strong>下降</strong>，导致连锁垮塌。</p>
-<h2 id="_4">四、其他失稳形式<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、其他失稳形式<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>屈曲不只是"压杆变弯"：</p>
 <ul>
 <li><strong>局部屈曲</strong>：薄壁截面的翼缘或腹板局部起皱。<strong>这限制了第三页"把材料移到外围"的策略</strong>——板太薄就会局部失稳。<strong>所以工字梁的翼缘宽厚比、管壁的径厚比都有限制</strong>，需要加劲肋。<strong>效率与稳定的权衡在此再次出现</strong>；</li>
 <li><strong>侧向扭转屈曲</strong>：细长梁受弯时，可能侧向弯曲并扭转失稳。<strong>这就是为什么深而窄的梁需要侧向支撑</strong>；</li>
 <li><strong>热屈曲</strong>：受热膨胀但被约束时产生压应力，可能屈曲（铁轨的"胀轨跑道"是典型事故）。</li>
 </ul>
-<h2 id="_5">五、组合变形的一般方法<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、组合变形的一般方法<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>回到综合分析。真实零件常同时承受多种载荷，标准流程：</p>
 <ol>
 <li><strong>分解载荷</strong>：把复杂受载分解为拉压、弯曲（两个方向）、扭转；</li>
@@ -142,9 +250,9 @@
 <li><strong>稳定性</strong>：会不会失稳。</li>
 </ul>
 <p><strong>工程实践中，机床、精密设备的设计常由刚度控制而非强度控制</strong>——它们的应力水平往往很低，但对变形极敏感。<strong>"强度够了"不等于"设计合格"。</strong></p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、要点<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
-<li><strong>屈曲与材料强度无关，只取决于 <span class="arithmatex">\(E\)</span> 与几何</strong>——用高强钢防屈曲是浪费；</li>
+<li><strong>理想弹性 Euler 屈曲只取决于 <span class="arithmatex">\(E\)</span> 与几何</strong>；实际柱还要检查屈服、非弹性、残余应力、缺陷和局部屈曲，不能笼统地说“与材料强度无关”；</li>
 <li><strong>端部约束的影响可达 16 倍</strong>，加支撑缩短计算长度是最有效手段；</li>
 <li><strong>必须先按柔度判断是屈曲控制还是强度控制</strong>；</li>
 <li><strong>屈曲危险在于无预兆 + 缺陷敏感</strong>，壳体屈曲实测值可能仅为理论值的 20–30%；</li>
@@ -162,5 +270,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-buckling.js"></script>
 </body>
 </html>

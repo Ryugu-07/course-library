@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、最优控制的两条经典路线</a></li>
+<li><a href="#_1">学习层：电池热管理的下一次动作，取决于未来五步能不能安全到达</a><ul>
+<li><a href="#1">1. 具体工程情境：升温目标、输入上限和终端可行性</a></li>
+<li><a href="#2">2. 正式公式桥：这是真正带约束的有限时域问题</a></li>
+<li><a href="#3">3. 动手实验：调时域，观察可行性如何先于“最优”</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、最优控制的两条经典路线</a></li>
 <li><a href="#mpc">二、MPC 的思想：在线滚动优化</a></li>
 <li><a href="#mpc_1">三、为什么 MPC 赢了</a></li>
-<li><a href="#_2">四、代价与工程现实</a></li>
-<li><a href="#_3">五、应用版图</a></li>
+<li><a href="#_3">四、代价与工程现实</a></li>
+<li><a href="#_4">五、应用版图</a></li>
 <li><a href="#mpc-mpc">六、非线性 MPC 与鲁棒 MPC</a></li>
-<li><a href="#_4">七、要点</a></li>
+<li><a href="#_5">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +75,108 @@
 <p><strong>层次</strong>：研究生核心 + <strong>唯一大规模工业落地的"高级"方法</strong> ｜ 🔗 前置：凸优化（grad-math）。
 前面反复出现同一个短板：<strong>PID 无法处理约束</strong>（第六页）、<strong>LQR 无法处理约束</strong>（第八页）、<strong>鲁棒控制保守且难维护</strong>（第十六页）。而真实工程中约束无处不在——阀门开度 0–100%、温度不得超限、电流不得过载。<strong>MPC（模型预测控制）</strong>的全部成功，几乎都来自它对这一件事的正面回答。</p>
 </blockquote>
-<h2 id="_1">一、最优控制的两条经典路线<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：电池热管理的下一次动作，取决于未来五步能不能安全到达<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程情境：升温目标、输入上限和终端可行性<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把电池包的归一化温度状态写成一个离散标量模型：</p>
+<div class="arithmatex">\[
+x_{k+1}=0.9x_k+0.4u_k,\qquad x_0=0,\qquad x_{\mathrm{target}}=1.
+\]</div>
+<p>加热输入和状态都有硬约束：</p>
+<div class="arithmatex">\[
+|u_k|\le0.6,\qquad |x_k|\le1.2.
+\]</div>
+<p>如果控制器只看当前误差，它可能选择一个“现在最激进、未来却到不了安全带”的动作。MPC 要在当前时刻预测 <span class="arithmatex">\(N\)</span> 步，计算代价，并且在候选序列生成时就拒绝越界轨迹。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>默认约束下，为什么 <span class="arithmatex">\(N=3\)</span> 可能不可行而 <span class="arithmatex">\(N=5\)</span> 可行？</li>
+<li>候选最优动作超过 <span class="arithmatex">\(u_{\max}\)</span> 时，应该事后限幅，还是在优化中保留输入约束？</li>
+<li>滚动时域解出 <span class="arithmatex">\(u_0,\ldots,u_{N-1}\)</span> 后，实际执行整段还是只执行第一步？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式公式桥：这是真正带约束的有限时域问题<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验的目标函数是</p>
+<div class="arithmatex">\[
+J=\sum_{k=0}^{N-1}\left[(x_k-1)^2+R u_k^2\right]
+ +2(x_N-1)^2,
+\]</div>
+<p>约束包括动力学、输入、状态和终端可行性：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+x_{k+1}&amp;=0.9x_k+0.4u_k,\\
+|u_k|&amp;\le u_{\max},\qquad |x_k|\le x_{\max},\\
+x_N&amp;\ge 1-0.02.
+\end{aligned}
+\]</div>
+<p>实验用 17 个等间距输入候选和状态分箱做确定性的可解释近似，然后在每一个滚动时刻重新求解。它不是把无约束 LQR 的 <span class="arithmatex">\(u=-Kx\)</span> 结果拿来再 clip：在本页的可行性证书中，越界候选从一开始就不进入比较。</p>
+<h3 id="3">3. 动手实验：调时域，观察可行性如何先于“最优”<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>提交三项预测后，拖动 <span class="arithmatex">\(N\)</span>、<span class="arithmatex">\(u_{\max}\)</span>、<span class="arithmatex">\(x_{\max}\)</span> 和输入代价 <span class="arithmatex">\(R\)</span>。上图显示实际状态、目标、状态边界和初始时刻的预测计划；下图显示每个滚动时刻真正执行的第一步输入及其边界。时域扫描和滚动账本分开列出：前者回答“有没有满足终端约束的序列”，后者回答“反馈运行时每一步究竟执行了什么”。</p>
+<div class="learning-lab" data-learning-lab="auto-mpc-horizon">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取 <span class="arithmatex">\(N=5,\ u_{\max}=0.6,\ x_{\max}=1.2,\ R=0.12\)</span>。由全力输入可达的状态上界
+<span class="arithmatex">\(x_N=0.4(0.6)\sum_{i=0}^{N-1}0.9^i\)</span>，所以 <span class="arithmatex">\(N=3\)</span> 只能到 <span class="arithmatex">\(0.650\)</span>，<span class="arithmatex">\(N=4\)</span> 到 <span class="arithmatex">\(0.825\)</span>，而 <span class="arithmatex">\(N=5\)</span> 到 <span class="arithmatex">\(0.983\)</span>，刚好进入 <span class="arithmatex">\(x_N\ge0.98\)</span> 的终端带。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(N\)</span></th>
+<th>终端可行性</th>
+<th style="text-align: right;"><span class="arithmatex">\(x_N\)</span> 或可达上界</th>
+<th style="text-align: right;"><span class="arithmatex">\(J\)</span></th>
+<th style="text-align: right;">第一输入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">2</td>
+<td>不可行</td>
+<td style="text-align: right;">max <span class="arithmatex">\(0.456\)</span></td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>不可行</td>
+<td style="text-align: right;">max <span class="arithmatex">\(0.650\)</span></td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>不可行</td>
+<td style="text-align: right;">max <span class="arithmatex">\(0.825\)</span></td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>可行</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.983\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.243\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.600\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>可行</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.008\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.251\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.600\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>默认 <span class="arithmatex">\(N=5\)</span> 的第一段计划是
+<span class="arithmatex">\(x:0\to0.240\to0.456\to0.650\to0.825\to0.983\)</span>，每次 <span class="arithmatex">\(u=0.6\)</span>；滚动执行时只落实第一个 <span class="arithmatex">\(0.6\)</span>，下一采样再以新状态重解。若调到不可行时域，实验明确显示不可行并采用安全零输入回退，不能把“没有解”伪装成一个无约束 LQR 动作。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>时域长不自动稳定</strong>：这里有硬终端带和有限状态约束，实际 MPC 还需终端集合、终端代价或鲁棒性论证。</li>
+<li><strong>可行不等于现实一定安全</strong>：模型误差、扰动和执行器故障可能把真实状态推出预测可行域；工程实现常需要软约束、备用控制器和故障策略。</li>
+<li><strong>离散控制网格不是通用 QP 求解器</strong>：本实验的 17 点网格便于逐项展示，但不能替代高维连续优化器的数值误差和性能分析。</li>
+<li><strong>不能把 LQR 冒充 MPC</strong>：无约束解析反馈没有预测时域扫描、输入/状态约束或本页的可行性证书。</li>
+</ul>
+</section>
+<h2 id="_2">一、最优控制的两条经典路线<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>在讲 MPC 之前，先给出它的理论背景。最优控制求解：</p>
 <div class="arithmatex">\[\min_u \int_0^T L(x,u)\,dt + \Phi(x(T)) \quad \text{s.t.}\ \dot{x}=f(x,u)\]</div>
 <p><strong>① Pontryagin 极大值原理（PMP）</strong>：引入伴随变量（协态）<span class="arithmatex">\(\lambda\)</span>，把最优性条件写成两点边值问题。给出<strong>开环最优轨迹</strong>，是间接法的基础，在航天轨道优化中有经典应用（如燃料最省的 bang-bang 控制）。</p>
@@ -81,13 +204,13 @@
 <p><strong>③ 可处理时滞与非最小相位</strong>：预测模型自然包含它们（对比第一页：时滞是经典反馈的头号敌人）。</p>
 <p><strong>④ 目标可直接表达经济指标</strong>：经济 MPC 直接优化利润而非跟踪误差。</p>
 <p><strong>⑤ 前馈自然融入</strong>：已知的未来设定值变化或可测扰动可直接放进预测。</p>
-<h2 id="_2">四、代价与工程现实<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">四、代价与工程现实<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>① 计算量</strong>：每个周期要解一个 QP。这曾把 MPC 限制在慢过程（采样周期以分钟计的化工装置），但情况已大变——<strong>显式 MPC</strong>（离线把解算成分段仿射函数，在线查表）、<strong>快速 QP 求解器</strong>、以及算力提升，使 MPC 已能用于毫秒级的电力电子与运动控制。</p>
 <p><strong>② 需要模型</strong>：模型质量直接决定性能。<strong>实践中，MPC 项目的大部分工作量在建模与辨识</strong>（第十八页），而非控制器本身。</p>
 <p><strong>③ 稳定性不自动</strong>：有限时域优化<strong>不天然保证闭环稳定</strong>。理论解法是加<strong>终端代价 <span class="arithmatex">\(P\)</span> 与终端约束集</strong>（构造 Lyapunov 函数论证，第十五页），工业实践中则常靠足够长的时域与充分测试。</p>
 <p><strong>④ 可行性</strong>：约束可能无解（扰动把状态推出可行域）。<strong>必须用软约束（松弛变量 + 惩罚）保证优化器总有解</strong>——<strong>硬约束在工程实现中是危险的</strong>，一次不可行就会让控制器失效。这是实现 MPC 时最重要的实务细节之一。</p>
 <p><strong>⑤ 维护门槛</strong>：现场人员难以像调 PID 那样直觉地调整。<strong>"谁来维护"是工业上采用高级控制的真实约束</strong>（承第十三、十六页）。</p>
-<h2 id="_3">五、应用版图<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">五、应用版图<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -130,7 +253,7 @@
 <li><strong>随机 MPC</strong>：用概率约束（"越限概率小于 5%"）代替硬约束，<strong>减少保守性</strong>，适合风电、需求预测等本质随机的场合；</li>
 <li><strong>学习型 MPC</strong>：用数据改进预测模型或代价函数——<strong>这是通往下一线的桥</strong>（第二十页）。</li>
 </ul>
-<h2 id="_4">七、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <ul>
 <li><strong>PMP 给开环轨迹、DP/HJB 给闭环策略但受维数灾难</strong>；LQR 是无约束线性情形的解析解；</li>
 <li><strong>MPC = 在线滚动优化 + 只执行第一步</strong>，后者是反馈的来源；</li>
@@ -150,5 +273,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-mpc-horizon.js"></script>
 </body>
 </html>

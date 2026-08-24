@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 08:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、多自由度系统与特征值问题</a></li>
-<li><a href="#_2">二、模态的正交性：为什么可以解耦</a></li>
-<li><a href="#_3">三、模态的工程意义</a></li>
-<li><a href="#_4">四、实验模态分析：业界的标准手段</a></li>
-<li><a href="#_5">五、连续体的振动</a></li>
-<li><a href="#_6">六、模态在设计中的用法</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#mdof-learning-title">学习层：两块质量、三根弹簧与一组可核对的模态</a><ul>
+<li><a href="#_1">具体工程情境：输送机框架上的双质量振动</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式公式桥：广义特征值、参与系数与时间响应</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、多自由度系统与特征值问题</a></li>
+<li><a href="#_7">二、模态的正交性：为什么可以解耦</a></li>
+<li><a href="#_8">三、模态的工程意义</a></li>
+<li><a href="#_9">四、实验模态分析：业界的标准手段</a></li>
+<li><a href="#_10">五、连续体的振动</a></li>
+<li><a href="#_11">六、模态在设计中的用法</a></li>
+<li><a href="#_12">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +78,101 @@
 <p><strong>层次</strong>：本科核心 + 业界日常工具 ｜ 🔗 前置：线性代数特征值问题（数学站）。
 真实结构有无穷多自由度。<strong>模态分析</strong>的思想极其漂亮：把复杂的耦合振动<strong>分解成一组互不干扰的单自由度振动</strong>——于是上一页的全部直觉都能直接复用。这是振动分析的核心工具，也是有限元动力学计算的标准输出。</p>
 </blockquote>
-<h2 id="_1">一、多自由度系统与特征值问题<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="mdof-learning-title" class="learning-layer">
+<h2 id="mdof-learning-title">学习层：两块质量、三根弹簧与一组可核对的模态<a class="headerlink" href="#mdof-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体工程情境：输送机框架上的双质量振动<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把电机转子和传送带附件先约化成两个平动质量 <span class="arithmatex">\(m_1,m_2\)</span>，三根等效弹簧分别连接地面—质量 1、质量 1—质量 2、质量 2—地面。启动时质量 1 被初始位移，工程师想知道哪一阶模态被激起、地基的统一基座加速度能参与哪些模态，以及两个接近的频率是否会产生拍振。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>对称质量和对称端弹簧下，统一基座加速度会不会激起反对称模态？</li>
+<li>若两阶频率很接近，初始位移同时投影到两阶时，响应包络会变慢还是变快？</li>
+<li>把未经质量归一化的特征向量直接当成模态坐标，能否保证 <span class="arithmatex">\(\phi_i^T M\phi_j=\delta_{ij}\)</span>？</li>
+</ol>
+<h3 id="_3">正式公式桥：广义特征值、参与系数与时间响应<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<div class="arithmatex">\[
+M=\begin{bmatrix}m_1&amp;0\\0&amp;m_2\end{bmatrix},\qquad
+K=\begin{bmatrix}k_1+k_2&amp;-k_2\\-k_2&amp;k_2+k_3\end{bmatrix},\qquad
+K\phi_i=\omega_i^2M\phi_i.
+\]</div>
+<p>实验台先对 <span class="arithmatex">\(M^{-1/2}KM^{-1/2}\)</span> 做精确的 <span class="arithmatex">\(2\times2\)</span> 对称特征分解，再变回物理坐标并施加 <span class="arithmatex">\(\phi_i^TM\phi_j=\delta_{ij}\)</span>。对统一基座加速度影响向量 <span class="arithmatex">\(r=[1,1]^T\)</span>，质量归一化后的参与系数和有效质量为</p>
+<div class="arithmatex">\[
+\Gamma_i=\phi_i^TMr,\qquad m_{eff,i}=\Gamma_i^2.
+\]</div>
+<p>无阻尼、无外力且给定 <span class="arithmatex">\(x_0,v_0\)</span> 时</p>
+<div class="arithmatex">\[
+q_i(0)=\phi_i^TMx_0,\quad \dot q_i(0)=\phi_i^TMv_0,\quad
+x(t)=\sum_i\phi_i\left[q_i(0)\cos\omega_it+\frac{\dot q_i(0)}{\omega_i}\sin\omega_it\right].
+\]</div>
+<p>这里的“精确”指二自由度、线性、无阻尼自由响应的矩阵解。若两阶简并或近简并，单个振型的方向可能随数值扰动旋转，<strong>简并子空间</strong>和投影响应才是稳定对象；实验台会标出频率间隔并用确定性正交基处理退化边界。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>模态叠加需要线性 <span class="arithmatex">\(M,K\)</span>、固定边界和可解耦的阻尼假设。局部摩擦、间隙、强非线性或非比例阻尼会破坏“两个独立 SDOF”的简单说法。</li>
+<li>对称系统的统一基座激励可能让反对称模态的 <span class="arithmatex">\(\Gamma_i=0\)</span>，但一个只作用在质量 1 的点力或不对称初始条件仍可激起它；“看不见”不等于“模态不存在”。</li>
+<li>模态向量的符号任意，质量归一化的尺度不任意；参与系数、初始投影和有效质量都必须与同一个归一化约定配套。</li>
+<li>近简并时不要只比较某个特征向量的分量；应比较频率簇的投影、子空间残差或响应重构误差。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-mdof-vibration">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认 <span class="arithmatex">\(m_1=m_2=1.5\,\mathrm{kg}\)</span>、<span class="arithmatex">\(k_1=k_3=1800\,\mathrm{N/m}\)</span>、<span class="arithmatex">\(k_2=400\,\mathrm{N/m}\)</span>，初始位移 <span class="arithmatex">\(x_0=[12,0]\,\mathrm{mm}\)</span>，统一基座影响向量 <span class="arithmatex">\(r=[1,1]^T\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\omega_1^2,\omega_2^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1200,\ 1733.33\)</span></td>
+<td>s<span class="arithmatex">\(^{-2}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\omega_1,\omega_2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(34.641,\ 41.633\)</span></td>
+<td>rad/s</td>
+</tr>
+<tr>
+<td>质量归一化 <span class="arithmatex">\(\phi_1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0.5774,\ 0.5774]^T\)</span></td>
+<td>对称模态</td>
+</tr>
+<tr>
+<td>质量归一化 <span class="arithmatex">\(\phi_2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\([0.5774,-0.5774]^T\)</span></td>
+<td>反对称模态</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\Gamma_1,\Gamma_2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.732,\ 0\)</span></td>
+<td>统一基座加速度</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\phi_i^TM\phi_j\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(I_2\)</span></td>
+<td>质量正交</td>
+</tr>
+<tr>
+<td>当前时间</td>
+<td style="text-align: right;"><span class="arithmatex">\(t=0.100\)</span></td>
+<td>s</td>
+</tr>
+<tr>
+<td>时间响应</td>
+<td style="text-align: right;"><span class="arithmatex">\(x(0.100)=[-8.822,-2.559]\)</span></td>
+<td>mm；<span class="arithmatex">\(x(t)=\Phi q(t)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>两块质量的位移图、两阶模态箭头和时间响应同时更新；把 <span class="arithmatex">\(k_2\)</span> 调小可把频率间隔压窄，观察拍振与近简并提示。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果实测连接摩擦使阻尼矩阵明显非比例，你会保留这组无阻尼实模态作初筛，还是直接使用复模态/状态空间模型？请说明选择依据，以及如何用残差或 FRF 验证模态截断没有漏掉工作频段。</p>
+</section>
+<h2 id="_6">一、多自由度系统与特征值问题<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <div class="arithmatex">\[\mathbf{M}\ddot{\mathbf{x}} + \mathbf{C}\dot{\mathbf{x}} + \mathbf{K}\mathbf{x} = \mathbf{F}(t)\]</div>
 <p>无阻尼自由振动 <span class="arithmatex">\(\mathbf{x} = \boldsymbol{\phi}e^{i\omega t}\)</span> 代入，得<strong>广义特征值问题</strong>：</p>
 <div class="arithmatex">\[\left(\mathbf{K} - \omega^2\mathbf{M}\right)\boldsymbol{\phi} = 0\]</div>
@@ -63,23 +181,23 @@
 <li><strong>特征向量</strong> <span class="arithmatex">\(\boldsymbol{\phi}_i\)</span> → <strong>振型（模态）</strong>：系统按该频率振动时各点的相对位移形状。</li>
 </ul>
 <p><strong><span class="arithmatex">\(n\)</span> 个自由度给出 <span class="arithmatex">\(n\)</span> 阶模态。</strong></p>
-<h2 id="_2">二、模态的正交性：为什么可以解耦<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、模态的正交性：为什么可以解耦<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>关键性质</strong>：不同模态关于质量矩阵与刚度矩阵<strong>正交</strong>：</p>
 <div class="arithmatex">\[\boldsymbol{\phi}_i^T\mathbf{M}\boldsymbol{\phi}_j = 0, \qquad \boldsymbol{\phi}_i^T\mathbf{K}\boldsymbol{\phi}_j = 0 \quad (i\neq j)\]</div>
 <p><strong>后果（这是模态分析的全部威力所在）</strong>：用模态坐标 <span class="arithmatex">\(\mathbf{x} = \sum q_i\boldsymbol{\phi}_i\)</span> 展开，方程组解耦为 <span class="arithmatex">\(n\)</span> 个<strong>独立的单自由度方程</strong>：</p>
 <div class="arithmatex">\[\ddot{q}_i + 2\zeta_i\omega_i\dot{q}_i + \omega_i^2 q_i = f_i(t)\]</div>
 <p><strong>于是上一页关于共振、阻尼、频段的一切直觉，逐模态适用。</strong> 复杂系统的振动被理解为"若干个独立单自由度系统的叠加"。</p>
 <p><strong>注意阻尼的前提</strong>：只有<strong>比例阻尼</strong>（<span class="arithmatex">\(\mathbf{C}=\alpha\mathbf{M}+\beta\mathbf{K}\)</span>，即瑞利阻尼）才能被同一组模态解耦。<strong>真实结构的阻尼往往不是比例的</strong>（局部阻尼器、连接摩擦），此时需要复模态分析。<strong>工程上常直接假设比例阻尼并给各阶模态指定实测阻尼比</strong>——这是一个务实但需要意识到的近似。</p>
-<h2 id="_3">三、模态的工程意义<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>① 只有少数几阶模态重要。</strong> 高阶模态频率高、且通常被激励不到。<strong>工程上常只保留前若干阶</strong>（模态截断），把上万自由度的模型降到几十个模态——<strong>这使得动力学仿真可行</strong>，也是 🔗 自动化站第七页"平衡截断降阶"的力学版本。</p>
+<h2 id="_8">三、模态的工程意义<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
+<p><strong>① 在给定激励、测点与工作频段内，常只有少数模态重要。</strong> 高频模态可能因输入频谱和参与系数很小而贡献有限，但局部冲击、宽带激励或靠近高阶共振时不能默认忽略。<strong>工程上常在验证截断误差后只保留前若干相关模态</strong>（模态截断），把上万自由度的模型降到几十个模态——<strong>这使得动力学仿真可行</strong>，也是 🔗 自动化站第七页"平衡截断降阶"的力学版本。</p>
 <p><strong>② 振型决定"哪里该加固"。</strong> 若某阶模态的振型在某处位移大，则：</p>
 <ul>
 <li>在<strong>位移大处加质量</strong> → 降低该阶频率；</li>
 <li>在<strong>变形大（应变能高）处加刚度</strong> → 提高该阶频率。</li>
 </ul>
-<p><strong>在振型的节点处加固几乎无效</strong>——这是很多"加了筋却没用"的原因。<strong>必须先看振型，再决定加哪里。</strong></p>
+<p>若增加的是对地平动弹簧，把它放在该阶的<strong>位移节点</strong>附近通常一阶效果很小；但一般结构加筋取决于<strong>模态应变能</strong>，位移为零处仍可能有很大曲率或转角，不能把“节点”泛化成“任何加固都无效”。<strong>必须同时看位移振型与应变能，再决定加哪里。</strong></p>
 <p><strong>③ 振型决定"哪里该测量"。</strong> 传感器放在节点上会测不到该阶模态。<strong>这与 🔗 自动化站第七页的"能观性"是同一个概念</strong>——传感器位置决定了哪些模态可观测。</p>
-<h2 id="_4">四、实验模态分析：业界的标准手段<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、实验模态分析：业界的标准手段<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>理论计算需要模型，<strong>实验模态分析（EMA）直接从实测得到模态参数</strong>：</p>
 <p><strong>流程</strong>：</p>
 <ol>
@@ -95,13 +213,13 @@
 <li><strong>模型修正</strong>：用实测数据反调有限元模型参数。</li>
 </ul>
 <p><strong>一个实践要点</strong>：<strong>有限元算出的固有频率往往偏高</strong>，因为模型中的连接（螺栓、焊缝、导轨）通常被建得过于刚硬，而真实连接有柔性与间隙。<strong>"计算频率比实测高 10–30%"是常见现象</strong>，模型修正的主要工作就是调这些连接刚度。</p>
-<h2 id="_5">五、连续体的振动<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、连续体的振动<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>杆、梁、板、壳有无穷多自由度。经典解给出解析的频率与振型。</p>
 <p><strong>梁的横向振动</strong>（欧拉-伯努利）：</p>
 <div class="arithmatex">\[EI\frac{\partial^4 w}{\partial x^4} + \rho A\frac{\partial^2 w}{\partial t^2}=0 \quad\Longrightarrow\quad \omega_n = \beta_n^2\sqrt{\frac{EI}{\rho A}}\]</div>
 <p><strong>注意频率与刚度的平方根、与长度的平方成反比</strong>（<span class="arithmatex">\(\beta_n \propto 1/L\)</span>，故 <span class="arithmatex">\(\omega \propto 1/L^2\)</span>）。<strong>长度加倍，固有频率降为 1/4</strong>——细长件极易低频共振，这是长轴、悬臂刀具、机械臂的通病。</p>
 <p><strong>振动的"频率上限"直觉</strong>：结构越轻越刚，固有频率越高。<strong>这就是为什么高速机床追求"轻质高刚"</strong>——它要把结构的第一阶固有频率推到工作转速的谐波之上（第九页、第十八页）。</p>
-<h2 id="_6">六、模态在设计中的用法<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、模态在设计中的用法<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p><strong>避开共振是首要目标</strong>。标准做法：</p>
 <ol>
 <li>计算/实测结构的<strong>前几阶固有频率</strong>；</li>
@@ -110,11 +228,11 @@
 <li>通过改刚度/质量，<strong>把共振点移出工作转速范围</strong>；移不出去的，要么快速通过（不长时间停留），要么加阻尼。</li>
 </ol>
 <p><strong>坎贝尔图是旋转机械设计的核心工具</strong>（下一页的转子动力学会正式用到）。</p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_12">七、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>模态分析把耦合振动解耦成独立的单自由度问题</strong>——上一页的全部直觉可逐模态复用；</li>
 <li><strong>正交性是解耦的数学基础</strong>；真实阻尼常非比例，需注意近似；</li>
-<li><strong>振型决定加固位置与测点位置</strong>——节点处加固无效、测量无感；</li>
+<li><strong>振型与模态应变能共同决定加固位置</strong>；理想位移节点会让对应位移测量不敏感，但不自动意味着所有加筋都无效；</li>
 <li><strong>实验模态分析是验证有限元模型的标准手段</strong>；计算频率常因连接过刚而偏高；</li>
 <li><strong>梁的固有频率 <span class="arithmatex">\(\propto 1/L^2\)</span></strong>，细长件极易低频共振；</li>
 <li><strong>坎贝尔图</strong>用于系统地避开共振转速。</li>
@@ -130,5 +248,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-mdof-vibration.js"></script>
 </body>
 </html>

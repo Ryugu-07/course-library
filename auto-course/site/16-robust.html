@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,20 +46,27 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、把不确定性形式化</a></li>
-<li><a href="#_2">二、鲁棒稳定性条件</a></li>
-<li><a href="#_3">三、混合灵敏度设计</a></li>
-<li><a href="#_4">四、结构奇异值与 μ 综合</a></li>
-<li><a href="#_5">五、鲁棒控制的实际处境（诚实评估）</a></li>
-<li><a href="#_6">六、与其他方法的关系</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：给乘法不确定性画出一条可复核的小增益账</a><ul>
+<li><a href="#1">1. 具体工程谜题：带积分器的环路，在哪些频段该“少用力”？</a></li>
+<li><a href="#2">2. 正式模型：先写清不确定性集合，再解释“证书”</a></li>
+<li><a href="#3">3. 动手实验：扫频、找峰值，逐项核对复数恒等式</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、把不确定性形式化</a></li>
+<li><a href="#_3">二、鲁棒稳定性条件</a></li>
+<li><a href="#_4">三、混合灵敏度设计</a></li>
+<li><a href="#_5">四、结构奇异值与 μ 综合</a></li>
+<li><a href="#_6">五、鲁棒控制的实际处境（诚实评估）</a></li>
+<li><a href="#_7">六、与其他方法的关系</a></li>
+<li><a href="#_8">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +75,71 @@
 <p><strong>层次</strong>：研究生核心 ｜ 承第八页的 Doyle 反例。
 第二页说"模型永远是错的"，第八页展示了"最优控制可能完全没有鲁棒裕度"。<strong>鲁棒控制</strong>的回答是：<strong>既然模型有误差，就把误差本身写进设计问题</strong>——不再为一个标称模型优化，而是为<strong>一族模型</strong>保证性能。本页讲这套理论的思想、工具与它在工业中的真实位置。</p>
 </blockquote>
-<h2 id="_1">一、把不确定性形式化<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给乘法不确定性画出一条可复核的小增益账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体工程谜题：带积分器的环路，在哪些频段该“少用力”？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>考虑标称环路</p>
+<div class="arithmatex">\[
+L(s)=\frac{K}{s(\tau s+1)},\qquad
+S=\frac{1}{1+L},\qquad T=\frac{L}{1+L},
+\]</div>
+<p>以及乘法不确定性 <span class="arithmatex">\(P=P_0(1+\Delta W_m)\)</span>，其中 <span class="arithmatex">\(\|\Delta\|_\infty\le1\)</span>。工程师要把低频模型可信度、高频未建模动态和闭环补灵敏度放在同一张频率账上，并区分不确定性集合到底是完整无结构复数球，还是有实参数/块结构/有限阶约束的物理包络。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li><span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(T\)</span> 的复数恒等式是什么？</li>
+<li>对标称/内部稳定、稳定权重、完整无结构复数乘法球，严格 <span class="arithmatex">\(\|W_mT\|_\infty&lt;1\)</span> 的地位是什么？</li>
+<li>换成结构化、实参数或有限阶物理不确定性包络后，同一个范数条件通常怎样解释？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：先写清不确定性集合，再解释“证书”<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验使用稳定权重</p>
+<div class="arithmatex">\[
+W_m(s)=\frac{s/\omega_b+w_\ell}{s/\omega_b+1},
+\qquad 0\le w_\ell\le1,
+\]</div>
+<p>它在低频约为 <span class="arithmatex">\(w_\ell\)</span>，高频趋近 1。频率扫频计算 <span class="arithmatex">\(S(j\omega)\)</span>、<span class="arithmatex">\(T(j\omega)\)</span>、<span class="arithmatex">\(W_m(j\omega)T(j\omega)\)</span> 和复数误差 <span class="arithmatex">\(|S+T-1|\)</span>。</p>
+<p>对于<strong>完整无结构复数</strong> <span class="arithmatex">\(\Delta\in H_\infty\)</span>、<span class="arithmatex">\(\|\Delta\|_\infty\le1\)</span> 的乘法不确定性球，在标称/内部稳定、权重稳定并满足常见技术条件时，</p>
+<div class="arithmatex">\[
+\|W_mT\|_\infty&lt;1
+\]</div>
+<p>是标准鲁棒稳定判据；在这组理想集合和前提下可表述为必要充分。只有当真实对象的误差被限制为结构化块、实参数、有限阶动态或其他物理子集时，完整复数球的同一判据通常才是保守的充分证书：它可能拒绝某些实际结构下仍稳定的对象，不能笼统说成“永远只是充分、非必要”。</p>
+<h3 id="3">3. 动手实验：扫频、找峰值，逐项核对复数恒等式<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调 <span class="arithmatex">\(K,\tau,w_\ell,\omega_b\)</span> 和扫频点数。上图画 <span class="arithmatex">\(|S|,|T|,|W_mT|\)</span> 与阈值 1，下图画复数 <span class="arithmatex">\(|S+T-1|\)</span>；ledger 保留 <span class="arithmatex">\(S,T\)</span> 的实部/虚部、复数误差和有限对数网格上的 <span class="arithmatex">\(|W_mT|\)</span> 采样值。证书区同时显示标称稳定性、sampled/grid 峰值和不确定性集合的适用层次。</p>
+<div class="learning-lab" data-learning-lab="auto-robust-small-gain">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认取</p>
+<div class="arithmatex">\[
+K=2,\quad \tau=0.4\ \mathrm s,\quad w_\ell=0.08,\quad \omega_b=4\ \mathrm{rad/s},
+\]</div>
+<p>并在 <span class="arithmatex">\(0.01\)</span> 到 <span class="arithmatex">\(100\ \mathrm{rad/s}\)</span> 的有限对数频率窗上取 180 点。标称闭环稳定；网格采样峰值为</p>
+<div class="arithmatex">\[
+\max_{\mathrm{grid}}|W_mT|=0.444921\quad\text{at}\quad \omega=2.108737\ \mathrm{rad/s},
+\]</div>
+<p>所以 sampled/grid 差值 <span class="arithmatex">\(1-\max_{\mathrm{grid}}|W_mT|=0.555079\)</span>，复数恒等式在这 180 个点上的最大误差为 <span class="arithmatex">\(2.5\times10^{-16}\)</span>。这不是连续 <span class="arithmatex">\((0,\infty)\)</span> 上的 <span class="arithmatex">\(\|W_mT\|_\infty\)</span> 精确值，可能漏掉网格之间或频窗之外的峰。</p>
+<p>| <span class="arithmatex">\(i\)</span> | <span class="arithmatex">\(\omega\)</span> (rad/s) | <span class="arithmatex">\(S(j\omega)\)</span> | <span class="arithmatex">\(T(j\omega)\)</span> | <span class="arithmatex">\(|S+T-1|\)</span> | <span class="arithmatex">\(|W_mT|\)</span> (grid sample) |
+|---:|---:|---|---|---:|---:|
+| 0 | 0.010 | <span class="arithmatex">\(0.000005+j0.005000\)</span> | <span class="arithmatex">\(0.999995-j0.005000\)</span> | 0 | 0.080039 |
+| 45 | 0.101 | <span class="arithmatex">\(0.000518+j0.050725\)</span> | <span class="arithmatex">\(0.999482-j0.050725\)</span> | 0 | 0.083950 |
+| 90 | 1.026 | <span class="arithmatex">\(0.109402+j0.578770\)</span> | <span class="arithmatex">\(0.890598-j0.578770\)</span> | 0 | 0.276447 |
+| 135 | 10.393 | <span class="arithmatex">\(1.045630+j0.011508\)</span> | <span class="arithmatex">\(-0.045630-j0.011508\)</span> | <span class="arithmatex">\(2.2\times10^{-16}\)</span> | 0.043939 |
+| 179 | 100.000 | <span class="arithmatex">\(1.000500+j0.000013\)</span> | <span class="arithmatex">\(-0.000500-j0.000013\)</span> | 0 | 0.000500 |</p>
+<p>理论判据本身仍针对完整无结构复数乘法球；但这张表只是有限网格/有限频窗的数值估计，不能单独宣称连续 <span class="arithmatex">\(H_\infty\)</span> 判据已被精确验证，也不能把它当作精确的 <span class="arithmatex">\(\mu\)</span> 结果。若把真实误差改成结构化或实参数物理模型，仍需做对应的结构化鲁棒性分析。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>判据的必要充分性依赖不确定性集合</strong>：完整无结构复数球与标称/内部稳定前提下，<span class="arithmatex">\(\|W_mT\|_\infty&lt;1\)</span> 是标准判据；物理结构子集上它通常是保守充分证书。</li>
+<li><strong>扫频不是连续 <span class="arithmatex">\(H_\infty\)</span> 范数的自动证明</strong>：有限频率网格可能漏掉窄峰；真实实现还要检查权重稳定性、内部稳定、采样/时延和未建模通道。</li>
+<li><strong><span class="arithmatex">\(S+T=1\)</span> 是复数恒等式</strong>：只比较 <span class="arithmatex">\(|S|+|T|\)</span> 或只看幅值会丢掉相位信息，所以 ledger 保留实部与虚部。</li>
+<li><strong>标称稳定不等于鲁棒稳定</strong>：<span class="arithmatex">\(K&gt;0,\tau&gt;0\)</span> 只给出本 toy 闭环的标称二阶稳定；不确定性、传感器动态和执行器饱和需另行纳入。</li>
+<li><strong>权重是建模假设</strong>：低频小、高频趋 1 的 <span class="arithmatex">\(W_m\)</span> 只描述本页假设的相对误差形状，不能替代实验辨识或物理边界。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果台架数据只支持“质量和刚度各在一个实区间内变化”，而不是任意复数动态扰动，你会怎样把频率权重、结构信息和内部稳定性证据接到同一份鲁棒性报告？哪些结论可以沿用，哪些必须换成结构化分析？</p>
+</div>
+</section>
+<h2 id="_2">一、把不确定性形式化<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>第一步是把"模型不准"写成数学。两类描述：</p>
 <p><strong>① 参数不确定性</strong>：参数在已知区间内变化（质量 <span class="arithmatex">\(m \in [0.9, 1.1]m_0\)</span>）。<strong>物理意义清楚，但分析可能保守或困难。</strong></p>
 <p><strong>② 未建模动态</strong>：用<strong>范数有界的扰动</strong>描述。最常用的是乘性不确定性：</p>
@@ -65,13 +151,13 @@
 <li><strong>高频 <span class="arithmatex">\(|W|\)</span> 大且趋于 1 甚至更大</strong>：<strong>高频完全不可信</strong>（未建模的共振、执行器动态、时滞的高频行为）。</li>
 </ul>
 <p><strong>这正式化了第二页与第五页反复出现的直觉</strong>——为什么不能无限提高带宽：<strong>因为高频处模型不可信，而反馈会把模型误差变成不稳定。</strong></p>
-<h2 id="_2">二、鲁棒稳定性条件<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>对乘性不确定性，闭环对所有 <span class="arithmatex">\(\|\Delta\|_\infty\le1\)</span> 都稳定的充要条件是：</p>
+<h2 id="_3">二、鲁棒稳定性条件<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>对标称/内部稳定、稳定权重以及<strong>完整无结构复数</strong>乘法不确定性球 <span class="arithmatex">\(\|\Delta\|_\infty\le1\)</span>，闭环对该球内所有扰动都稳定的标准判据是：在常见技术条件下，<span class="arithmatex">\(\|WT\|_\infty&lt;1\)</span> 可表述为必要充分条件。若真实不确定性是结构化块、实参数或有限阶物理子集，同一范数条件通常退化为保守的充分证书，而不是该物理集合的必要条件：</p>
 <div class="arithmatex">\[\|W T\|_\infty &lt; 1 \qquad\Longleftrightarrow\qquad |T(j\omega)| &lt; \frac{1}{|W(j\omega)|}\ \ \forall\omega\]</div>
 <p><span class="arithmatex">\(T\)</span> 是补灵敏度函数（第一页：<span class="arithmatex">\(S+T=1\)</span>）。</p>
 <p><strong>读法极其直观</strong>：<strong>模型越不准的频段（<span class="arithmatex">\(|W|\)</span> 大），闭环增益 <span class="arithmatex">\(|T|\)</span> 就必须越小。</strong> 也就是——<strong>在你不了解系统的地方，不要用力推。</strong> 这句话是全部鲁棒控制的直觉核心，也是一条很好的工程箴言。</p>
 <p><strong>与经典裕度的关系</strong>：向量裕度（第五页提到的、到 <span class="arithmatex">\(-1\)</span> 点的最短距离）就等于 <span class="arithmatex">\(1/\|S\|_\infty\)</span>。<strong>所以 <span class="arithmatex">\(H_\infty\)</span> 理论是经典稳定裕度的严格推广</strong>——它把"离危险有多远"从看一个点变成看整条曲线。</p>
-<h2 id="_3">三、混合灵敏度设计<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、混合灵敏度设计<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>实际设计要同时管性能与鲁棒性，标准做法是<strong>混合灵敏度</strong>：</p>
 <div class="arithmatex">\[\left\|\begin{matrix} W_1 S \\ W_2 KS \\ W_3 T\end{matrix}\right\|_\infty &lt; 1\]</div>
 <p>三项各有明确含义：</p>
@@ -103,12 +189,12 @@
 </table>
 <p><strong>注意 <span class="arithmatex">\(S+T=1\)</span> 的约束在此发挥作用</strong>：<span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(T\)</span> 不能同时小。<strong>这就是水床效应（第五页）在设计问题中的直接体现</strong>——权重函数的选择实际上是在<strong>分配频段</strong>：低频归性能、高频归鲁棒性、穿越区做过渡。</p>
 <p><strong>求解</strong>：通过 Riccati 方程或<strong>线性矩阵不等式（LMI）</strong>求解，有成熟的数值工具。<strong>设计的艺术不在求解，而在选权重函数</strong>——这一步依然需要工程经验与迭代。</p>
-<h2 id="_4">四、结构奇异值与 μ 综合<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、结构奇异值与 μ 综合<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(H_\infty\)</span> 把所有不确定性当作一个"满块"<span class="arithmatex">\(\Delta\)</span> 处理，这对<strong>多个独立的不确定源</strong>（如三个参数各自变化）是<strong>保守的</strong>——它把物理上不可能同时发生的最坏组合也算了进去。</p>
 <p><strong>结构奇异值 <span class="arithmatex">\(\mu\)</span></strong> 考虑 <span class="arithmatex">\(\Delta\)</span> 的<strong>块对角结构</strong>，给出更精确（更不保守）的判据：</p>
 <div class="arithmatex">\[\text{鲁棒稳定} \iff \sup_\omega \mu_\Delta\big(M(j\omega)\big) &lt; 1\]</div>
 <p><strong>代价</strong>：<span class="arithmatex">\(\mu\)</span> 的精确计算是 NP 难的，实际用上下界近似；<strong>μ 综合</strong>（D-K 迭代）不保证收敛到全局最优，且得到的控制器阶数很高。</p>
-<h2 id="_5">五、鲁棒控制的实际处境（诚实评估）<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、鲁棒控制的实际处境（诚实评估）<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>理论上的成就毋庸置疑</strong>：<span class="arithmatex">\(H_\infty\)</span> 与 μ 理论是控制学科在 1980–90 年代的重大成果，把"鲁棒性"从经验概念变成了可计算、可保证的设计目标。</p>
 <p><strong>但工业部署远少于论文数量</strong>，原因具体而现实：</p>
 <ol>
@@ -120,13 +206,13 @@
 </ol>
 <p><strong>它真正被使用的场合</strong>：航空航天（飞控、柔性结构）、高端伺服与精密运动（光刻机工件台等）、硬盘磁头、汽车某些底盘控制——<strong>共同特征是：性能要求逼近极限、模型不确定性显著、且值得投入建模与设计成本。</strong></p>
 <p><strong>一个更常见的实用折中</strong>：用 <span class="arithmatex">\(H_\infty\)</span> 的<strong>思想</strong>（频段分配、权重塑形）指导经典设计，而不必真的求解 <span class="arithmatex">\(H_\infty\)</span> 问题。<strong>很多资深工程师是这样用这套理论的</strong>——把它当作思维框架而非计算工具。</p>
-<h2 id="_6">六、与其他方法的关系<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、与其他方法的关系<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>与 LQG</strong>：LQG 是 <span class="arithmatex">\(H_2\)</span> 最优（最小化随机扰动下的均方响应），<span class="arithmatex">\(H_\infty\)</span> 最小化最坏情况增益。<strong><span class="arithmatex">\(H_2\)</span> 关心"平均表现"，<span class="arithmatex">\(H_\infty\)</span> 关心"最坏表现"</strong>——这个区分在统计学、优化、机器学习中同样存在（期望风险 vs 最坏情况风险）；</li>
 <li><strong>与 MPC</strong>（下一页）：MPC 处理<strong>约束</strong>极强但标称鲁棒性需额外保证；有<strong>鲁棒 MPC / 管道 MPC（tube MPC）</strong>把二者结合；</li>
 <li><strong>与自适应控制</strong>（第十八页）：鲁棒控制<strong>假定不确定性有界且固定</strong>地设计一个控制器；自适应控制则<strong>在线估计并调整</strong>。二者哲学不同：<strong>一个"以不变应万变"，一个"随机应变"</strong>，也各有失效模式。</li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">七、要点<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong>鲁棒控制把模型误差写进设计问题</strong>，用权重函数 <span class="arithmatex">\(W(j\omega)\)</span> 描述"哪个频段有多不准"；</li>
 <li><strong>核心条件 <span class="arithmatex">\(\|WT\|_\infty&lt;1\)</span> 的直觉</strong>：<strong>在你不了解系统的地方，不要用力推</strong>；</li>
@@ -146,5 +232,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-robust-small-gain.js"></script>
 </body>
 </html>

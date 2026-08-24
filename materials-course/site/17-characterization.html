@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,24 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-24 07:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 选型地图（先记这张表）</a></li>
-<li><a href="#2">2. 三大主力</a></li>
+<li><a href="#materials-characterization-learning-title">学习层：从一个 XRD 峰，哪些结论真的站得住？</a><ul>
+<li><a href="#1">1. 具体材料情境：未知粉末的一条强峰</a></li>
+<li><a href="#2">2. 必须作答的预测门：单峰能否定相？</a></li>
+<li><a href="#3-bragg-scherrer">3. 正式公式桥：Bragg → Scherrer → 证据组合</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 选型地图（先记这张表）</a></li>
+<li><a href="#2_1">2. 三大主力</a></li>
 <li><a href="#3">3. 力学与热分析（日常最高频）</a></li>
-<li><a href="#4">4. 表面与成分深水区（知其名与用途）</a></li>
+<li><a href="#4_1">4. 表面与成分深水区（知其名与用途）</a></li>
 <li><a href="#5">5. 数字感与反直觉</a></li>
 </ul>
 </div>
@@ -51,7 +73,78 @@
 <blockquote>
 <p>材料科学的每一个结论都要有"看见"的证据。表征技术的选择逻辑只有一条：<strong>你想知道什么尺度上的什么信息——形貌、结构、成分，还是化学状态？</strong> 本页给一张选型地图与每种手段的"能看到什么、看不到什么"。</p>
 </blockquote>
-<h2 id="1">1. 选型地图（先记这张表）<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="materials-characterization-learning-title" class="learning-layer">
+<h2 id="materials-characterization-learning-title">学习层：从一个 XRD 峰，哪些结论真的站得住？<a class="headerlink" href="#materials-characterization-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体材料情境：未知粉末的一条强峰<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>实验室拿到一份未知粉末：Cu Kα 波长 <span class="arithmatex">\(\lambda=0.15406\)</span> nm，某强峰的半高宽（FWHM）为 <strong>0.35°</strong>，仪器本身贡献 <strong>0.12°</strong>。你可以用峰位算晶面间距，用峰宽估算相干衍射域尺寸，但“这是什么相”还需要整张指纹和交叉证据。实验允许勾选 SEM 形貌与 EDS 元素组成，观察它们怎样补上证据链。</p>
+<h3 id="2">2. 必须作答的预测门：单峰能否定相？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先选：<strong>不能，需多峰与交叉证据</strong>、<strong>能，峰位足够精确就唯一</strong>、或 <strong>能，峰宽直接给物相</strong>。请把“几何反演”“尺寸估计”“物相身份”分成三个问题；揭示后才显示峰形 SVG、仪器展宽校正和 SEM/EDS 证据账本。</p>
+<h3 id="3-bragg-scherrer">3. 正式公式桥：Bragg → Scherrer → 证据组合<a class="headerlink" href="#3-bragg-scherrer" title="Permanent link"></a></h3>
+<p>峰位由 Bragg 定律给出：</p>
+<div class="arithmatex">\[
+n\lambda=2d\sin\theta,\qquad 2\theta=2\arcsin\left(\frac{n\lambda}{2d}\right).
+\]</div>
+<p>把观测 FWHM 与仪器展宽作近似平方差校正（角度先转弧度）：</p>
+<div class="arithmatex">\[
+\beta_{sample}=\sqrt{\beta_{obs}^2-\beta_{inst}^2},\qquad
+D=\frac{K\lambda}{\beta_{sample}\cos\theta}.
+\]</div>
+<p>这里 <span class="arithmatex">\(D\)</span> 是 Scherrer 意义下的<strong>相干衍射域尺寸</strong>，不能不加验证地等同于金相晶粒尺寸，更不是自动得到的“物相名”。物相身份要把多峰与标准卡片比对，并用 SEM 的形貌和 EDS 的元素组成做证据账本。</p>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>单峰不能充分定相</strong>：不同相可能有重叠峰或相近峰位；“XRD 没看到”也不等于低含量相不存在。</li>
+<li>Scherrer 尺寸受形状因子、峰拟合、微应变、缺陷和仪器展宽影响；仪器峰宽不先扣除会把尺寸系统性算小。</li>
+<li>EDS 给元素组成而非唯一晶体结构，SEM 给局部形貌而非体平均相分数；SEM/EDS 是补充证据，不是把单峰变成定理的按钮。</li>
+<li>Bragg 与 Scherrer 都是理想化/近似桥：织构、非晶弥散峰、重叠峰、有限统计和样品制备伪像都需要更完整的谱学或显微方案。</li>
+</ul>
+<div class="learning-lab" data-learning-lab="materials-characterization">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>取 Cu Kα、<span class="arithmatex">\(d=0.2088\)</span> nm、<span class="arithmatex">\(n=1\)</span>。Bragg 给 <span class="arithmatex">\(\theta\approx21.649°\)</span>、<span class="arithmatex">\(2\theta\approx43.298°\)</span>；用 <span class="arithmatex">\(\beta_{obs}=0.35°\)</span>、<span class="arithmatex">\(\beta_{inst}=0.12°\)</span> 转弧度后，<span class="arithmatex">\(\beta_{sample}\approx0.005738\)</span>，取 <span class="arithmatex">\(K=0.9\)</span> 得 Scherrer 尺寸约 26.0 nm。证据账本仍写明：只有一个峰，不能充分定相。</p>
+<table>
+<thead>
+<tr>
+<th>方法/量</th>
+<th style="text-align: right;">静态结果</th>
+<th>能支持什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bragg <span class="arithmatex">\(2\theta\)</span></td>
+<td style="text-align: right;">43.298°</td>
+<td>由 <span class="arithmatex">\(d\)</span> 预测峰位</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\beta_{obs},\beta_{inst}\)</span></td>
+<td style="text-align: right;">0.35°, 0.12°</td>
+<td>观测与仪器宽度</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\beta_{sample}\)</span></td>
+<td style="text-align: right;">0.005738 rad</td>
+<td>平方差校正后的宽度</td>
+</tr>
+<tr>
+<td>Scherrer <span class="arithmatex">\(D\)</span></td>
+<td style="text-align: right;">26.0 nm</td>
+<td>相干衍射域估计，不直接等同晶粒尺寸</td>
+</tr>
+<tr>
+<td>XRD</td>
+<td style="text-align: right;">1 个峰</td>
+<td>单峰不能充分定相</td>
+</tr>
+<tr>
+<td>SEM / EDS</td>
+<td style="text-align: right;">可加入</td>
+<td>形貌 / 元素的交叉证据，仍需多峰指纹</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 选型地图（先记这张表）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -93,7 +186,7 @@
 <figcaption><span class="fig-id">图 17.1</span>表征技术尺度地图（示意）：横轴从原子细节到体平均，纵轴分成形貌、结构、成分/化学态。方块给出常用技术的典型定位；注意“分辨率高”不等于“统计代表性强”，局部细节与体平均要分开问。</figcaption>
 </figure>
 <p><strong>四问定选型</strong>：看多小？（尺度）看什么？（形貌/结构/成分）破坏样品可以吗？（XRD 无损、TEM 要减薄到 &lt;100 nm）要统计代表性还是局部细节？（XRD 是体平均，TEM 是"管中窥豹"——<strong>这条最容易被忽视，也最容易导致错误结论</strong>）。</p>
-<h2 id="2">2. 三大主力<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 三大主力<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>XRD（X 射线衍射）——结构的身份证</strong>：Bragg 定律</p>
 <div class="arithmatex">\[
 n\lambda = 2d\sin\theta
@@ -105,7 +198,7 @@ n\lambda = 2d\sin\theta
 <p><strong>硬度</strong>：布氏/洛氏/维氏/纳米压痕——快、近无损、可换算强度（<span class="arithmatex">\(\sigma_{UTS} \approx 3.3\,HV\)</span> 对钢的经验式）；<strong>纳米压痕</strong>能测薄膜与单个相的模量硬度。</p>
 <p><strong>拉伸/冲击/断裂韧性</strong>：性能 I/II 的数据来源；标准（ASTM/ISO）规定试样与速率——<strong>报告力学数据必须报标准与试样方向</strong>（AM 件与轧材的各向异性使这条尤其重要）。</p>
 <p><strong>热分析三件套</strong>：DSC（相变、<span class="arithmatex">\(T_g\)</span>、<span class="arithmatex">\(T_m\)</span>、结晶度、反应焓——高分子与合金研发的日用工具）、TGA（失重：分解、氧化、水分）、<strong>膨胀仪</strong>（<span class="arithmatex">\(\alpha\)</span>、相变点）。<strong>DMA</strong>：高分子黏弹性与 <span class="arithmatex">\(T_g\)</span> 的动态测量（性能 III 的时温等效主曲线就靠它做）。</p>
-<h2 id="4">4. 表面与成分深水区（知其名与用途）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 表面与成分深水区（知其名与用途）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>XPS</strong>：表面 ~5 nm 的元素与<strong>化学态</strong>（能区分 Fe、FeO、Fe₂O₃——腐蚀与催化研究的必需，工艺 IV 呼应）；<strong>SIMS/ToF-SIMS</strong>：极高灵敏度的深度剖析（半导体掺杂剖面、痕量污染）；<strong>AFM</strong>：纳米形貌与力学/电学模式，无需真空；<strong>原子探针 APT</strong>：逐个原子的三维成分图——析出相成分与晶界偏析的终极证据（性能 I/结构 III 的微观论断如今多由它拍板）。</p>
 <p><strong>大科学装置一瞥</strong>：同步辐射（高亮度 X 射线：原位、微区、吸收谱 XAS）与中子衍射（轻元素敏感、穿透深——测大件残余应力与氢/锂位置，电池研究的利器）。<strong>"原位/operando 表征"</strong>（边加载/边加热/边充放电边看）是近十年表征学的主旋律：<strong>从看"尸检"到看"过程"</strong>。</p>
 <h2 id="5">5. 数字感与反直觉<a class="headerlink" href="#5" title="Permanent link"></a></h2>
@@ -126,5 +219,7 @@ n\lambda = 2d\sin\theta
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/materials-characterization.js"></script>
 </body>
 </html>

@@ -2,6 +2,61 @@
 
 > 材料科学的每一个结论都要有"看见"的证据。表征技术的选择逻辑只有一条：**你想知道什么尺度上的什么信息——形貌、结构、成分，还是化学状态？** 本页给一张选型地图与每种手段的"能看到什么、看不到什么"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="materials-characterization-learning-title">
+
+<h2 id="materials-characterization-learning-title">学习层：从一个 XRD 峰，哪些结论真的站得住？</h2>
+
+### 1. 具体材料情境：未知粉末的一条强峰
+
+实验室拿到一份未知粉末：Cu Kα 波长 $\lambda=0.15406$ nm，某强峰的半高宽（FWHM）为 **0.35°**，仪器本身贡献 **0.12°**。你可以用峰位算晶面间距，用峰宽估算相干衍射域尺寸，但“这是什么相”还需要整张指纹和交叉证据。实验允许勾选 SEM 形貌与 EDS 元素组成，观察它们怎样补上证据链。
+
+### 2. 必须作答的预测门：单峰能否定相？
+
+先选：**不能，需多峰与交叉证据**、**能，峰位足够精确就唯一**、或 **能，峰宽直接给物相**。请把“几何反演”“尺寸估计”“物相身份”分成三个问题；揭示后才显示峰形 SVG、仪器展宽校正和 SEM/EDS 证据账本。
+
+### 3. 正式公式桥：Bragg → Scherrer → 证据组合
+
+峰位由 Bragg 定律给出：
+
+$$
+n\lambda=2d\sin\theta,\qquad 2\theta=2\arcsin\left(\frac{n\lambda}{2d}\right).
+$$
+
+把观测 FWHM 与仪器展宽作近似平方差校正（角度先转弧度）：
+
+$$
+\beta_{sample}=\sqrt{\beta_{obs}^2-\beta_{inst}^2},\qquad
+D=\frac{K\lambda}{\beta_{sample}\cos\theta}.
+$$
+
+这里 $D$ 是 Scherrer 意义下的**相干衍射域尺寸**，不能不加验证地等同于金相晶粒尺寸，更不是自动得到的“物相名”。物相身份要把多峰与标准卡片比对，并用 SEM 的形貌和 EDS 的元素组成做证据账本。
+
+### 4. 误区与模型边界
+
+- **单峰不能充分定相**：不同相可能有重叠峰或相近峰位；“XRD 没看到”也不等于低含量相不存在。
+- Scherrer 尺寸受形状因子、峰拟合、微应变、缺陷和仪器展宽影响；仪器峰宽不先扣除会把尺寸系统性算小。
+- EDS 给元素组成而非唯一晶体结构，SEM 给局部形貌而非体平均相分数；SEM/EDS 是补充证据，不是把单峰变成定理的按钮。
+- Bragg 与 Scherrer 都是理想化/近似桥：织构、非晶弥散峰、重叠峰、有限统计和样品制备伪像都需要更完整的谱学或显微方案。
+
+<div class="learning-lab" data-learning-lab="materials-characterization" markdown="1">
+
+**无 JavaScript 时的静态 fallback：**取 Cu Kα、$d=0.2088$ nm、$n=1$。Bragg 给 $\theta\approx21.649°$、$2\theta\approx43.298°$；用 $\beta_{obs}=0.35°$、$\beta_{inst}=0.12°$ 转弧度后，$\beta_{sample}\approx0.005738$，取 $K=0.9$ 得 Scherrer 尺寸约 26.0 nm。证据账本仍写明：只有一个峰，不能充分定相。
+
+| 方法/量 | 静态结果 | 能支持什么 |
+|---|---:|---|
+| Bragg $2\theta$ | 43.298° | 由 $d$ 预测峰位 |
+| $\beta_{obs},\beta_{inst}$ | 0.35°, 0.12° | 观测与仪器宽度 |
+| $\beta_{sample}$ | 0.005738 rad | 平方差校正后的宽度 |
+| Scherrer $D$ | 26.0 nm | 相干衍射域估计，不直接等同晶粒尺寸 |
+| XRD | 1 个峰 | 单峰不能充分定相 |
+| SEM / EDS | 可加入 | 形貌 / 元素的交叉证据，仍需多峰指纹 |
+
+</div>
+
+</section>
+
 ## 1. 选型地图（先记这张表）
 
 | 尺度 | 形貌 | 结构（原子排列） | 成分/化学态 |

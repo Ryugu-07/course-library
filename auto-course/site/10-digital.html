@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,117 +46,189 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 01:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、采样与混叠</a></li>
-<li><a href="#_2">二、采样引入的延迟：最重要的实践认识</a></li>
-<li><a href="#_3">三、离散化方法</a></li>
-<li><a href="#z">四、z 域中的稳定性</a></li>
-<li><a href="#_4">五、数字实现的其他现实问题</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_1">学习层：给温控控制器选采样周期，先分清精确离散和近似离散</a><ul>
+<li><a href="#1-zoh-euler">1. 具体工程情境：同一个一阶温控对象，ZOH 和 Euler 会不会给出同一台“数字对象”？</a></li>
+<li><a href="#2-euler">2. 正式模型：极点映射、Euler 稳定域和混叠属于三条不同证据链</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、采样、保持与混叠</a></li>
+<li><a href="#_3">二、有效延迟与相位预算</a></li>
+<li><a href="#s-z">三、从 \(s\) 到 \(z\) 的映射</a></li>
+<li><a href="#_4">四、实时任务与数值实现</a></li>
+<li><a href="#_5">五、数字控制的完整验证链</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">现代 IV · 数字控制与采样<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>层次</strong>：本科核心 + <strong>业界必备</strong> ｜ 🔗 与微电子站数据转换器（第九页）直接衔接。
-前面九页的理论全是连续时间的，而<strong>今天几乎所有控制器都跑在计算机上</strong>：定时采样、计算、输出。这个"离散化"带来一批新问题，其中有些相当反直觉——最重要的一条是：<strong>采样本身会引入相位滞后，从而吃掉你辛苦挣来的稳定裕度。</strong></p>
+<p><strong>层次</strong>：本科核心 + <strong>业界必备</strong>｜🔗 与微电子站数据转换器（第九页）直接衔接。
+控制器跑在计算机上以后，连续时间对象要经过采样、保持、计算和输出。真正需要审计的不是一句“数字化会变差”，而是离散模型、频率折叠、有效延迟、数值映射和实时调度分别带来什么影响。</p>
 </blockquote>
-<h2 id="_1">一、采样与混叠<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p><strong>采样定理</strong>：要无失真重建带宽为 <span class="arithmatex">\(f_{max}\)</span> 的信号，采样率须满足 <span class="arithmatex">\(f_s &gt; 2f_{max}\)</span>。</p>
-<p><strong>违反的后果是混叠</strong>：高频成分被"折叠"成低频假信号，且<strong>一旦混叠就无法在数字域分离</strong>。</p>
-<figure>
-<p><img alt="采样与混叠" class="fig-img" src="assets/img/aut_aliasing.svg" /></p>
-<figcaption><span class="fig-id">图 10-1</span> 混叠现象：一个高频正弦（灰）以过低的采样率采样后，采样点（品红）恰好落在一条<strong>低频正弦</strong>（红虚线）上——数字系统无法区分二者。在控制回路中，这意味着<strong>高频噪声或振动会伪装成低频信号进入回路</strong>，而控制器会"认真地"去纠正一个根本不存在的低频扰动。<strong>必须在 ADC 之前用模拟抗混叠滤波器</strong>——数字滤波无法补救。</figcaption>
-</figure>
-<p><strong>控制系统中的实际危害</strong>：机械共振、电源纹波、变频器开关噪声等高频成分若被混叠成低频，控制器会去"纠正"一个虚假的扰动，造成实际振荡。</p>
-<p><strong>必须的措施</strong>：<strong>在 ADC 之前加模拟抗混叠低通滤波器</strong>。这一点无法用数字手段替代——<strong>信息在采样瞬间就已经丢失了</strong>。（🔗 微电子站第九页：ADC 前端设计的同一问题。）</p>
-<p><strong>代价</strong>：抗混叠滤波器本身引入相位滞后 → 又一次侵蚀稳定裕度。<strong>这是本页反复出现的主题。</strong></p>
-<h2 id="_2">二、采样引入的延迟：最重要的实践认识<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>零阶保持（ZOH）</strong>：DAC 在两次采样之间保持输出不变，形成阶梯波形。它对回路的影响可近似为<strong>半个采样周期的纯延迟</strong>：</p>
-<div class="arithmatex">\[\text{ZOH} \approx e^{-sT/2}\]</div>
-<p>加上计算延迟（读取采样、算完再输出，通常算作一个周期），<strong>总延迟约 <span class="arithmatex">\(0.5T\)</span> 到 <span class="arithmatex">\(1.5T\)</span></strong>。</p>
-<p><strong>由第五页，延迟在穿越频率处引入相位滞后</strong>：</p>
-<div class="arithmatex">\[\Delta\phi \approx -\omega_c T \times \frac{180°}{\pi}\ \text{（每 } T \text{ 的延迟）}\]</div>
-<p><strong>这是数字控制最关键的工程结论</strong>：<strong>采样周期直接消耗相位裕度</strong>。</p>
-<p><strong>经验准则</strong>：</p>
-<ul>
-<li>采样率取闭环带宽的 <strong>10–30 倍</strong>（远高于奈奎斯特的 2 倍！）；</li>
-<li>奈奎斯特只保证<strong>信号重建</strong>，而控制需要保证<strong>稳定裕度</strong>——后者要求严格得多；</li>
-<li>若采样率只有带宽的 5 倍，相位损失可达 20°–30°，<strong>足以把一个设计良好的控制器推向振荡边缘</strong>。</li>
-</ul>
-<p><strong>这条经验是新手最常忽略、也最容易被现场教训的一条。</strong></p>
-<h2 id="_3">三、离散化方法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p>把连续控制器 <span class="arithmatex">\(C(s)\)</span> 变成数字实现 <span class="arithmatex">\(C(z)\)</span>：</p>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：给温控控制器选采样周期，先分清精确离散和近似离散<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-zoh-euler">1. 具体工程情境：同一个一阶温控对象，ZOH 和 Euler 会不会给出同一台“数字对象”？<a class="headerlink" href="#1-zoh-euler" title="Permanent link"></a></h3>
+<p>把工作点附近的一阶温控对象写成</p>
+<div class="arithmatex">\[
+\dot{x}(t)=-a x(t)+b u(t),\qquad y(t)=x(t),\qquad a&gt;0,
+\]</div>
+<p>ADC 每 <span class="arithmatex">\(T\)</span> 秒采样一次，DAC 在两个采样点之间保持 <span class="arithmatex">\(u_k\)</span>。工程师要同时关心三个问题：保持后的精确离散极点是什么；前向 Euler 在多大的 <span class="arithmatex">\(aT\)</span> 下会失稳；采样后一个高频振动还能不能和低频振动区分。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>稳定连续极点 <span class="arithmatex">\(s=-a\)</span> 的 ZOH 精确离散极点是 <span class="arithmatex">\(e^{-aT}\)</span>、<span class="arithmatex">\(1-aT\)</span>，还是总在 0？</li>
+<li>当 <span class="arithmatex">\(aT&gt;2\)</span> 时，前向 Euler 的离散极点是否仍在单位圆内？</li>
+<li>两个频率相差 <span class="arithmatex">\(2\pi/T\)</span> 时，采样序列会不同，还是会完全相同？</li>
+</ol>
+</div>
+<h3 id="2-euler">2. 正式模型：极点映射、Euler 稳定域和混叠属于三条不同证据链<a class="headerlink" href="#2-euler" title="Permanent link"></a></h3>
+<p>在一个采样区间内 <span class="arithmatex">\(u(t)=u_k\)</span> 保持不变，ZOH 给出精确推进</p>
+<div class="arithmatex">\[
+x_{k+1}=\alpha x_k+\beta u_k,\qquad
+\alpha=e^{-aT}=e^{sT},\qquad
+\beta=\frac{b}{a}(1-e^{-aT}).
+\]</div>
+<p>前向 Euler 只是近似：</p>
+<div class="arithmatex">\[
+x_{k+1}^{E}=(1-aT)x_k^{E}+bT u_k.
+\]</div>
+<p>对于这个稳定一阶极点，Euler 的稳定条件是 <span class="arithmatex">\(|1-aT|&lt;1\)</span>，也就是 <span class="arithmatex">\(0&lt;aT&lt;2\)</span>；它不是 ZOH 的精确映射。</p>
+<p>连续正弦采样满足</p>
+<div class="arithmatex">\[
+\sin(\omega kT)=\sin\left((\omega+2\pi m/T)kT\right),\qquad m\in\mathbb Z.
+\]</div>
+<p>所以从采样序列只能识别折叠到 <span class="arithmatex">\([-\pi/T,\pi/T]\)</span> 的代表频率。Nyquist 条件是信号重建的必要起点，不是闭环稳定裕度的完整证明；抗混叠滤波器必须在 ADC 之前处理不可逆的信息丢失。</p>
+<p><h3>3. 动手实验：把阶跃误差、单位圆位置和混叠频率放在同一张账上</h3></p>
+<p>先提交三项预测，再调 <span class="arithmatex">\(a,b,T\)</span>、观察步数和正弦频率 <span class="arithmatex">\(\omega\)</span>。上图比较单位阶跃下的 ZOH 精确轨迹与 Euler 轨迹，下图把 <span class="arithmatex">\(\sin(\omega kT)\)</span> 与 <span class="arithmatex">\(\sin(\omega_{alias}kT)\)</span> 画在同一组采样点上；逐行 ledger 同时列 <span class="arithmatex">\(x_{ZOH},x_E\)</span>、差值和两条采样正弦。调 <span class="arithmatex">\(T\)</span> 使 <span class="arithmatex">\(aT\)</span> 越过 2，再观察“数值近似失稳”与“连续对象本身稳定”并不矛盾。</p>
+<div class="learning-lab" data-learning-lab="auto-digital-sampling">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(a=1.4,b=1,T=0.2,\omega=18\)</span>。则</p>
+<div class="arithmatex">\[
+\alpha_{ZOH}=e^{-0.28}\approx0.7558,\quad
+\beta_{ZOH}\approx0.1744,\quad
+\alpha_E=1-0.28=0.72,\quad
+\beta_E=0.2.
+\]</div>
+<p>前四行阶跃账本为：</p>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>映射</th>
-<th>特点</th>
+<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x_{ZOH}\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x_E\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(x_E-x_{ZOH}\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>前向欧拉</strong></td>
-<td><span class="arithmatex">\(s \approx \dfrac{z-1}{T}\)</span></td>
-<td>最简单，<strong>可能把稳定系统变不稳定</strong></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
 </tr>
 <tr>
-<td><strong>后向欧拉</strong></td>
-<td><span class="arithmatex">\(s \approx \dfrac{z-1}{Tz}\)</span></td>
-<td>总是稳定，精度一般</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.174</td>
+<td style="text-align: right;">0.200</td>
+<td style="text-align: right;">0.026</td>
 </tr>
 <tr>
-<td><strong>双线性（Tustin）</strong></td>
-<td><span class="arithmatex">\(s \approx \dfrac{2}{T}\dfrac{z-1}{z+1}\)</span></td>
-<td><strong>最常用</strong>：保稳定性、精度好</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.306</td>
+<td style="text-align: right;">0.344</td>
+<td style="text-align: right;">0.038</td>
 </tr>
 <tr>
-<td><strong>零阶保持等价</strong></td>
-<td>精确匹配阶跃响应</td>
-<td>对象离散化的标准方法</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.406</td>
+<td style="text-align: right;">0.448</td>
+<td style="text-align: right;">0.042</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Tustin 的注意点</strong>：它会造成<strong>频率畸变</strong>（连续频率与离散频率非线性对应），在接近奈奎斯特频率处明显。若关心某个特定频率（如陷波器的中心频率），需用<strong>预畸变（pre-warping）</strong>校正。</p>
-<p><strong>一个实用建议</strong>：<strong>采样率足够高时，各种离散化方法差别不大</strong>；采样率偏低时才需要仔细选择。<strong>所以第一优先级是把采样率提上去</strong>，而非纠结离散化方法。</p>
-<h2 id="z">四、z 域中的稳定性<a class="headerlink" href="#z" title="Permanent link"></a></h2>
-<p>连续系统稳定 ⟺ 极点在左半平面；<strong>离散系统稳定 ⟺ 极点在单位圆内</strong>（<span class="arithmatex">\(|z|&lt;1\)</span>）。</p>
-<p>映射关系 <span class="arithmatex">\(z = e^{sT}\)</span>：</p>
+<p>此时 <span class="arithmatex">\(\omega_N=\pi/T\approx15.708\)</span>，<span class="arithmatex">\(18\ \mathrm{rad/s}\)</span> 折叠为带符号 <span class="arithmatex">\(-13.416\ \mathrm{rad/s}\)</span>，显示的混叠频率幅值为 <span class="arithmatex">\(13.416\)</span>；两条正弦在采样点的累计差只有数值舍入量。末端第 14 个采样点约为 <span class="arithmatex">\(x_{ZOH}=0.696,x_E=0.704\)</span>，当前窗口内最大差约 <span class="arithmatex">\(0.042\)</span>。这些数字不代表任意对象的误差界，只审计这一阶、固定保持、固定步长的模型。</p>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
-<li>左半平面 → 单位圆内；</li>
-<li>虚轴 → 单位圆；</li>
-<li><strong>实部越负（衰减越快）→ 越靠近原点</strong>；</li>
-<li>采样频率的一半对应 <span class="arithmatex">\(z=-1\)</span>（负实轴）。</li>
+<li><strong>“后向欧拉总是稳定”需要限定语境</strong>：后向 Euler 的映射 <span class="arithmatex">\(z=1/(1-sT)\)</span> 对左半平面的连续极点是 A-stable 的；这不等于对不稳定连续极点、非线性离散算法、量化溢出或错误实现都保证稳定。</li>
+<li><strong>采样本身不等于固定的半周期延迟</strong>：有效延迟来自 ZOH、ADC/DAC 时序、计算完成时间和任务调度；<span class="arithmatex">\(0.5T\)</span> 或 <span class="arithmatex">\(1.5T\)</span> 只能是特定结构下的近似，必须以实际时间戳和最坏情况延迟复核。</li>
+<li><strong>输出与计算没有普适唯一顺序</strong>：先输出后计算、先采样后计算、双缓冲或 DMA 都可能合理，取决于控制时序、WCET、输出保持、最坏延迟和抖动；设计目标是可界定的延迟与抖动，而不是背一个顺序。</li>
+<li><strong>Nyquist 不是闭环稳定证明</strong>：采样率满足重建条件仍可能因延迟、相位裕度、执行器限幅、任务抢占或量化而失稳。</li>
+<li><strong>离散化方法不是万能替代</strong>：Tustin 的频率对应有畸变，ZOH 是对象输入保持下的精确方法；选方法要说明对象/控制器结构、采样周期和关注频段。</li>
 </ul>
-<p><strong>一个容易误解的点</strong>：极点靠近原点意味着响应快（几拍就衰减完），但<strong>这也意味着控制器非常激进</strong>——每个采样周期都要产生大的控制作用。<strong>"死拍控制"（把所有极点配到原点）理论上有限拍收敛，实际上因控制量巨大且对模型误差极敏感而很少使用。</strong></p>
-<h2 id="_4">五、数字实现的其他现实问题<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p><strong>① 量化</strong>：</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>一条远程视觉伺服的计算时间从 0.2T 漂到 0.8T。你会先提高采样率、降低闭环带宽、改变任务调度，还是三者联合？请分别说明你要重测的最坏延迟、混叠风险和相位裕度。</p>
+</div>
+</section>
+<h2 id="_2">一、采样、保持与混叠<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>理想采样把连续信号只保留在 <span class="arithmatex">\(t=kT\)</span> 的点上；若输入带宽严格受限于 <span class="arithmatex">\(|\omega|&lt;\pi/T\)</span>，并且采样时钟、重建滤波和噪声条件满足，才有无失真重建的可能。超过 Nyquist 区域的成分会折叠到低频，数字域无法从采样点中恢复其原来的频率。</p>
+<p>工程上要在 ADC 前使用模拟抗混叠滤波器；数字滤波只能处理已经采样后的序列，不能把丢失的连续时间信息找回来。滤波器自身的相位滞后又要放进闭环时序审计。</p>
+<p>零阶保持把 <span class="arithmatex">\(u_k\)</span> 保持到下一个输出更新。对一阶对象，ZOH 公式直接给出 <span class="arithmatex">\(A_d=e^{AT}\)</span> 和 <span class="arithmatex">\(B_d=\int_0^T e^{A\tau}B\,d\tau\)</span>；对更高阶线性模型也可用矩阵指数计算。它描述的是保持后的精确对象，不等于把所有控制器离散化都做成精确。</p>
+<h2 id="_3">二、有效延迟与相位预算<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>数字回路的有效延迟由采样相位、ADC 转换、计算完成、缓存交换、DAC 更新、ZOH 和通信共同组成。若在穿越频率附近近似为 <span class="arithmatex">\(\tau_d\)</span>，相位损失约为 <span class="arithmatex">\(-\omega_c\tau_d\)</span>；但当延迟随负载、调度或网络变化时，应看最坏情况和抖动范围，而非只取平均值。</p>
+<p>“采样率取闭环带宽的 10–30 倍”可以作为某些工业系统的经验起点，不能替代对象频响、抗混叠滤波器、执行器动态和实时调度分析。带宽越高、延迟越长，离散实现越接近稳定裕度边界。</p>
+<h2 id="s-z">三、从 <span class="arithmatex">\(s\)</span> 到 <span class="arithmatex">\(z\)</span> 的映射<a class="headerlink" href="#s-z" title="Permanent link"></a></h2>
+<p>稳定性区域从连续的左半平面变成离散的单位圆内部 <span class="arithmatex">\(|z|&lt;1\)</span>。精确采样映射为</p>
+<div class="arithmatex">\[
+z=e^{sT}.
+\]</div>
+<p>常用近似包括</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>代换</th>
+<th>主要边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前向 Euler</td>
+<td><span class="arithmatex">\(s\approx(z-1)/T\)</span></td>
+<td>稳定域有限，可能把稳定连续极点推到单位圆外</td>
+</tr>
+<tr>
+<td>后向 Euler</td>
+<td><span class="arithmatex">\(s\approx(z-1)/(Tz)\)</span></td>
+<td>对左半平面连续极点 A-stable，但精度与相位需检查</td>
+</tr>
+<tr>
+<td>Tustin</td>
+<td><span class="arithmatex">\(s\approx\frac{2}{T}\frac{z-1}{z+1}\)</span></td>
+<td>保持半平面/单位圆对应，但有频率畸变，可预畸变</td>
+</tr>
+<tr>
+<td>ZOH</td>
+<td>对象保持下的矩阵指数</td>
+<td>对保持输入精确，未自动包含量化/调度/噪声</td>
+</tr>
+</tbody>
+</table>
+<p>“稳定保持”是映射区域的性质，不是对闭环部署的全面承诺。采样周期过长时，近似误差、延迟和未建模模态仍可能主导结果。</p>
+<h2 id="_4">四、实时任务与数值实现<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>控制任务应先定义时间戳、采样窗口、输出更新点、计算预算和最坏情况延迟，再选择单缓冲、双缓冲、DMA 或任务优先级。输出和下一次采样的先后没有脱离硬件时序的唯一答案；关键是每条路径的延迟可测、可界定，抖动不会悄悄改变闭环模型。</p>
+<p>量化会产生死区、极限环和系数量化；积分器需要溢出保护与抗饱和。高阶离散滤波器常用二阶节级联减少系数敏感性；定点实现要审计字长、舍入、饱和和异常分支。</p>
+<h2 id="_5">五、数字控制的完整验证链<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>一个可投运的数字控制器至少要把以下证据串起来：连续对象和传感器频响、ZOH/离散模型、抗混叠滤波器、采样与输出时间戳、最坏计算延迟和抖动、量化/饱和行为，以及实际闭环阶跃和频响。只在离线浮点仿真里看到稳定，不足以替代这条链。</p>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
-<li><strong>ADC 量化</strong>：分辨率不足时形成"极限环"——系统在最小分辨率附近来回振荡，无法稳定在设定点；</li>
-<li><strong>控制器内部字长</strong>：定点实现中，系数量化会移动极点位置。<strong>高阶滤波器用直接型实现对系数误差极其敏感</strong>，工业上普遍改用<strong>二阶节级联（SOS）</strong>——这是数字信号处理与控制共享的实践智慧；</li>
-<li><strong>积分器的量化</strong>：小误差可能因量化而永远无法累积，导致静差消不掉。</li>
-</ul>
-<p><strong>② 抖动（jitter）</strong>：采样时刻不准。实时性差的系统（在通用操作系统上跑控制）会有明显抖动，<strong>等效于随机的时变延迟，直接伤害稳定裕度</strong>。<strong>这就是工业上使用实时操作系统或专用硬件（PLC、DSP、FPGA）的原因</strong>（第十三页）。</p>
-<p><strong>③ 任务调度与执行顺序</strong>：应当<strong>先输出、后计算</strong>（把上周期算好的结果在周期开始时立即输出），以减小延迟的抖动——<strong>输出延迟固定，比平均延迟更小但抖动大要好</strong>。这是嵌入式控制的标准实践。</p>
-<p><strong>④ 数值问题</strong>：定点 vs 浮点、溢出保护、积分器的饱和限幅（第六页的抗饱和在数字实现中同样必需）。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
-<ul>
-<li><strong>混叠不可逆</strong>，必须在 ADC 前用模拟抗混叠滤波器；</li>
-<li><strong>采样引入约 <span class="arithmatex">\(0.5T\sim1.5T\)</span> 的延迟，直接消耗相位裕度</strong>——这是数字控制第一要务；</li>
-<li><strong>采样率取带宽的 10–30 倍</strong>，远高于奈奎斯特要求；</li>
-<li><strong>Tustin 是默认的离散化选择</strong>，必要时做频率预畸变；</li>
-<li><strong>稳定域从左半平面变为单位圆内</strong>；</li>
-<li><strong>量化、抖动、调度顺序</strong>是实现层面的真实问题，实时性保障是工业选用专用硬件的原因。</li>
+<li>ZOH 给出保持输入下的精确离散模型，稳定连续极点映射为 <span class="arithmatex">\(z=e^{sT}\)</span>；</li>
+<li>前向 Euler 有明确的稳定域，后向 Euler 的“稳定”应理解为左半平面上的 A-stable 映射；</li>
+<li>混叠由 <span class="arithmatex">\(\omega\)</span> 与 <span class="arithmatex">\(\omega+2\pi m/T\)</span> 的采样等价性造成，必须在 ADC 前抗混叠；</li>
+<li>有效延迟来自完整时序，输出/计算顺序没有脱离硬件约束的普适答案；</li>
+<li>采样率、离散化、量化、抖动和闭环裕度必须作为一个系统共同验证。</li>
 </ul>
 <hr />
-<p><em>线二结束。下一线离开纯理论，走向硬件：控制器的输出最终要变成电流、力矩、流量。电力电子与电机——自动化的"肌肉"。</em></p>
+<p><em>线二结束。下一线离开纯理论，走向硬件：控制器的输出最终要变成电流、力矩、流量。电力电子与电机——自动化的“肌肉”。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="09-kalman.html"><span class="pager-label">上一页</span>现代 III · 观测器与卡尔曼滤波</a>
@@ -151,5 +238,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-digital-sampling.js"></script>
 </body>
 </html>

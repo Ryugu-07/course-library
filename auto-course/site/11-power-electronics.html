@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -31,13 +46,21 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 反馈作为一种世界观</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 04:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#buck-96-v">学习层：给 Buck 选参数，先判断 9.6 V 输出的纹波和连续导通边界</a><ul>
+<li><a href="#1-buck-96-v">1. 具体工程谜题：Buck 输出 9.6 V 时，电感电流还会连续吗？</a></li>
+<li><a href="#2">2. 正式模型：平均值、纹波与边界要分栏</a></li>
+<li><a href="#3-pwm-ccm">3. 动手实验：把 PWM、三角纹波和 CCM 证据放在一张账上</a></li>
+<li><a href="#4">4. 误区与模型边界</a></li>
+<li><a href="#5">5. 正式回到控制问题：先把工作区间写进证据</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、核心思想：为什么必须用开关</a></li>
 <li><a href="#_2">二、三种基本拓扑</a></li>
 <li><a href="#_3">三、中心权衡：开关频率</a></li>
@@ -52,28 +75,108 @@
 <p><strong>层次</strong>：本科核心（自动化/电气必修）+ 业界主要就业方向 ｜ 🔗 与微电子站功率器件、生物站能量代谢遥相呼应。
 控制器算出的"控制量"最终必须变成真实的电流与电压。<strong>电力电子</strong>就是这个转换环节：它以极高的效率<strong>调节电能的形态</strong>。本页讲清它的核心思想——<strong>用开关而非线性调节</strong>——以及由此带来的一切优点与麻烦。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="buck-96-v">学习层：给 Buck 选参数，先判断 9.6 V 输出的纹波和连续导通边界<a class="headerlink" href="#buck-96-v" title="Permanent link"></a></h2>
+<h3 id="1-buck-96-v">1. 具体工程谜题：Buck 输出 9.6 V 时，电感电流还会连续吗？<a class="headerlink" href="#1-buck-96-v" title="Permanent link"></a></h3>
+<p>一台理想 Buck 由 <span class="arithmatex">\(V_{in}=24\ \mathrm V\)</span> 降到目标占空比 <span class="arithmatex">\(D=0.4\)</span>，电感 <span class="arithmatex">\(L=100\ \mu\mathrm H\)</span>、开关频率 <span class="arithmatex">\(f_s=100\ \mathrm{kHz}\)</span>，输出电容 <span class="arithmatex">\(C=220\ \mu\mathrm F\)</span>。负载可能从 <span class="arithmatex">\(0.8\ \mathrm A\)</span> 轻载到 <span class="arithmatex">\(0.1\ \mathrm A\)</span>。工程师不能只报一个 <span class="arithmatex">\(V_{out}\)</span>：还要知道电感峰峰纹波、近似电容纹波，以及负载是否仍满足连续导通模式（CCM）。</p>
+<div class="cl-prompt">
+<p><strong>预测门，必须先作答：</strong></p>
+<ol>
+<li>在理想 CCM 假设下，<span class="arithmatex">\(D=0.4\)</span> 时的输出电压最接近哪一个？</li>
+<li>若负载电流低于电感纹波峰峰值的一半，最应怀疑什么？</li>
+<li>在这个小信号纹波模型里，提高 <span class="arithmatex">\(f_s\)</span> 一倍会怎样？</li>
+</ol>
+</div>
+<h3 id="2">2. 正式模型：平均值、纹波与边界要分栏<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验只使用理想 Buck 的<strong>稳态 CCM 近似</strong>：开关导通/关断损耗、二极管压降、MOSFET 导通电阻、ESR、控制器延迟和 DCM 波形都不在这个最小模型内。伏秒平衡给出</p>
+<div class="arithmatex">\[
+V_{out}\approx D V_{in},\qquad
+\Delta I_L=\frac{(V_{in}-V_{out})D}{L f_s},\qquad
+\Delta V_C\approx\frac{\Delta I_L}{8 C f_s}.
+\]</div>
+<p>这里的 <span class="arithmatex">\(\Delta I_L\)</span> 是电感电流峰峰值（单位 A），<span class="arithmatex">\(\Delta V_C\)</span> 是忽略 ESR 的三角波电容纹波近似（单位 V）。CCM 的边界按谷值刚好为零估计为</p>
+<div class="arithmatex">\[
+I_{out,\,boundary}\approx\frac{\Delta I_L}{2}.
+\]</div>
+<p>低于这个边界会进入 DCM，平均电压增益不再只由 <span class="arithmatex">\(D\)</span> 决定；因此“<span class="arithmatex">\(V_{out}=DV_{in}\)</span>”是有工作区间的表达式，不是所有负载和占空比的普适定律。</p>
+<h3 id="3-pwm-ccm">3. 动手实验：把 PWM、三角纹波和 CCM 证据放在一张账上<a class="headerlink" href="#3-pwm-ccm" title="Permanent link"></a></h3>
+<p>先提交三项预测，再调 <span class="arithmatex">\(V_{in},D,L,f_s,C,I_{out}\)</span>。图中上方画一个固定视窗的 PWM 与电感电流示意，下方画输出平均值和纹波带；逐行 ledger 列出 <span class="arithmatex">\(V_{out}\)</span>、<span class="arithmatex">\(\Delta I_L\)</span>、<span class="arithmatex">\(I_{out,\,boundary}\)</span>、CCM/接近边界标记和 <span class="arithmatex">\(\Delta V_C\)</span>。结果区同时指出：电压、电流、频率都保留 SI 单位，但纹波公式只在 CCM、稳态和小纹波假设下成立。</p>
+<div class="learning-lab" data-learning-lab="auto-power-converter-ripple">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(V_{in}=24\ \mathrm V,D=0.4,L=100\ \mu\mathrm H,f_s=100\ \mathrm{kHz},C=220\ \mu\mathrm F,I_{out}=0.8\ \mathrm A\)</span>。则</p>
+<div class="arithmatex">\[
+V_{out}\approx9.6\ \mathrm V,\quad \Delta I_L\approx0.576\ \mathrm A_{pp},\quad
+I_{out,\,boundary}\approx0.288\ \mathrm A,\quad \Delta V_C\approx3.27\ \mathrm{mV}_{pp}.
+\]</div>
+<p>当前负载高于边界，故在此理想 CCM 账本中标为 <code>CCM</code>。这些数字不包含 ESR 纹波、开关损耗或 DCM 的重新分段方程。</p>
+<table>
+<thead>
+<tr>
+<th>证据</th>
+<th style="text-align: right;">数值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平均输出 <span class="arithmatex">\(V_{out}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(9.600\ \mathrm V\)</span></td>
+<td><span class="arithmatex">\(DV_{in}\)</span> 的 CCM 近似</td>
+</tr>
+<tr>
+<td>电感纹波 <span class="arithmatex">\(\Delta I_L\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.576\ \mathrm A_{pp}\)</span></td>
+<td>由 <span class="arithmatex">\(L,f_s\)</span> 决定</td>
+</tr>
+<tr>
+<td>CCM 边界负载</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.288\ \mathrm A\)</span></td>
+<td>约为纹波的一半</td>
+</tr>
+<tr>
+<td>电容纹波 <span class="arithmatex">\(\Delta V_C\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.27\ \mathrm{mV}_{pp}\)</span></td>
+<td>忽略 ESR 的近似</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4">4. 误区与模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong><span class="arithmatex">\(V_{out}=DV_{in}\)</span> 不是实机电压承诺</strong>：二极管压降、导通电阻、死区、输入纹波和控制误差会改变平均值；需要用器件参数和示波器复核。</li>
+<li><strong>“纹波小”不等于“永远 CCM”</strong>：CCM 还取决于负载电流；轻载可能 DCM，甚至进入脉冲跳跃或控制器的特殊模式。</li>
+<li><strong><span class="arithmatex">\(\Delta V_C\approx\Delta I_L/(8Cf_s)\)</span> 是特定波形的近似</strong>：ESR 造成的额外项约为 <span class="arithmatex">\(\Delta I_L\,ESR\)</span>，高频寄生和布局可能主导实测纹波。</li>
+<li><strong>提高频率不是免费午餐</strong>：上式给出纹波下降趋势，但开关/驱动/磁芯损耗与 EMI 可能上升，热设计不能由这张表替代。</li>
+</ul>
+<h3 id="5">5. 正式回到控制问题：先把工作区间写进证据<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>控制器可以把 <span class="arithmatex">\(D\)</span> 当作调节量，但在每个工作点都应同时报告 CCM/DCM、器件额定电流、电压应力、采样延迟和热裕度。只有在写清这些前提后，线性化的电压环模型才知道自己覆盖哪一段，而不是把理想平均模型当成变换器的完整证明。</p>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>如果一个电池 Buck 在 <span class="arithmatex">\(0.05\ \mathrm A\)</span> 到 <span class="arithmatex">\(5\ \mathrm A\)</span> 之间工作，你会如何安排 CCM/DCM 分段模型、轻载控制策略、器件损耗测量和输出纹波验收？请指出哪一项证据不能由 <span class="arithmatex">\(V_{out}=DV_{in}\)</span> 推出。</p>
+</div>
+</section>
 <h2 id="_1">一、核心思想：为什么必须用开关<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>要把 12 V 降到 5 V，最简单的办法是串一个电阻分压（<strong>线性调节</strong>）。问题在于效率：</p>
-<div class="arithmatex">\[\eta = \frac{V_{out}}{V_{in}} = \frac{5}{12} \approx 42\%\]</div>
-<p><strong>多余的能量全部变成热</strong>。要输出 10 A，就要烧掉 70 W——不可接受。</p>
+<p>要把 12 V 降到 5 V，可以使用串联线性稳压器（包括 LDO）；它用串联调整管承担压差，而不是用电阻分压来稳压。在稳态、<span class="arithmatex">\(I_{in}\approx I_{out}\)</span> 且忽略静态电流时，效率近似为：</p>
+<div class="arithmatex">\[\eta=\frac{P_{out}}{P_{in}}\approx\frac{V_{out}I_{out}}{V_{in}I_{in}}\approx\frac{V_{out}}{V_{in}}=\frac{5}{12}\approx42\%\]</div>
+<p><strong>忽略静态电流时，多余的输入功率主要在调整管上变成热</strong>。输出 10 A 时约有 <span class="arithmatex">\((12-5)\times10=70\ \mathrm W\)</span> 需要散掉；能否接受取决于封装、散热和热保护。</p>
 <p><strong>开关调节的思想</strong>：用一个<strong>理想开关</strong>以高频通断，再用<strong>电感电容滤波</strong>得到平均值。</p>
-<p><strong>关键在于：理想开关不耗散功率</strong>——导通时电压为零、断开时电流为零，<strong>两种状态下 <span class="arithmatex">\(P = VI = 0\)</span></strong>。<strong>因此开关变换器的效率原理上可达 100%</strong>，实际可达 90–98%。</p>
+<p><strong>在理想开关近似中，开关的两个稳态状态不耗散功率</strong>——导通时电压为零、断开时电流为零，<strong>两种状态下 <span class="arithmatex">\(P=VI=0\)</span></strong>。这只是无导通、开关、磁性、驱动和静态损耗时的上限；实机效率需由器件、负载、频率和热测试得到。</p>
 <p><strong>这是电力电子的全部出发点</strong>：<strong>用"通断的占空比"替代"连续的阻值"来调节能量</strong>——<strong>用时间换效率</strong>。</p>
 <h2 id="_2">二、三种基本拓扑<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>Buck（降压）</strong>：</p>
-<div class="arithmatex">\[V_{out} = D \cdot V_{in}, \qquad D = \text{占空比} \in [0,1]\]</div>
-<p>开关导通时电感储能并向负载供电，关断时电感通过续流二极管释放能量。<strong>输出恒低于输入。</strong></p>
-<p><strong>Boost（升压）</strong>：</p>
-<div class="arithmatex">\[V_{out} = \frac{V_{in}}{1-D}\]</div>
-<p>利用电感"电流不能突变"的性质：开关导通时给电感充能，关断瞬间电感两端产生高压叠加到输入上。<strong>输出恒高于输入。</strong></p>
-<p><strong>Buck-Boost</strong>：可升可降（输出极性反转）。</p>
+<p><strong>Buck（降压）</strong>（理想稳态 CCM、忽略损耗的平均关系）：</p>
+<div class="arithmatex">\[V_{out}\approx D\cdot V_{in},\qquad D=\text{占空比}\in[0,1]\]</div>
+<p>开关导通时电感储能并向负载供电，关断时电感通过续流二极管释放能量；DCM、压降和控制限制需要另行计算。</p>
+<p><strong>Boost（升压）</strong>（理想稳态 CCM、连续电感电流、忽略损耗的平均关系）：</p>
+<div class="arithmatex">\[V_{out}\approx\frac{V_{in}}{1-D}\]</div>
+<p>利用电感"电流不能突变"的性质：开关导通时给电感充能，关断阶段电感电压与输入共同向负载供能。在上述理想 CCM 平均模型里，<span class="arithmatex">\(D=0\)</span> 时输出等于输入，<span class="arithmatex">\(0&lt;D&lt;1\)</span> 时输出高于输入；启动、限流、压降与 DCM 不能从这条比例式推出。</p>
+<p><strong>基本反相 Buck-Boost</strong>：可升可降且输出极性反转；非反相 Buck-Boost、SEPIC 等拓扑有不同的器件连接与平均关系。</p>
 <p><strong>其他重要拓扑</strong>：反激（Flyback，隔离、小功率）、正激、半桥/全桥（大功率、隔离）、LLC 谐振（软开关、高效率）。</p>
-<figure>
-<p><img alt="Buck 变换器的 PWM 与电感电流" class="fig-img" src="assets/img/aut_buck.svg" /></p>
+<p><figure markdown="1">
+<img alt="Buck 变换器的 PWM 与电感电流" class="fig-img" src="assets/img/aut_buck.svg" /></p>
 <figcaption><span class="fig-id">图 11-1</span> Buck 变换器波形。上：<strong>PWM 开关信号</strong>，占空比 \(D\) 决定输出电压 \(V_{out}=DV_{in}\)。中：<strong>电感电流</strong>呈三角波纹，围绕平均负载电流上下摆动，纹波幅度由电感值与开关频率决定。下：<strong>输出电压</strong>被电容滤波后接近直流，残余纹波即为控制精度的底噪。<strong>提高开关频率可减小纹波与体积，但增加开关损耗</strong>——这是电力电子的中心权衡。</figcaption>
 </figure>
 <h2 id="_3">三、中心权衡：开关频率<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
-<p><strong>提高开关频率的好处</strong>：电感电容体积变小（磁性元件与电容的储能需求 <span class="arithmatex">\(\propto 1/f_{sw}\)</span>）、动态响应更快、纹波更小。</p>
+<p><strong>在给定功率、允许纹波和器件技术条件下，提高开关频率通常允许较小的电感/电容储能规格，并降低纹波、改善可实现的动态响应</strong>；实际储能、体积和热裕量还受磁芯、损耗与控制延迟约束。</p>
 <p><strong>代价</strong>：</p>
 <ul>
 <li><strong>开关损耗</strong> <span class="arithmatex">\(\propto f_{sw}\)</span>：每次通断的过渡过程中电压电流同时非零，产生损耗；</li>
@@ -92,12 +195,12 @@
 <ul>
 <li><strong>内环电流环</strong>：快速，限制电感电流（保护器件），改善动态；</li>
 <li><strong>外环电压环</strong>：慢速，调节输出电压。</li>
-<li><strong>内环带宽通常是外环的 5–10 倍</strong>——<strong>级联控制的通用原则：内环必须比外环快得多，否则两环会相互干扰</strong>（这个原则在电机、机器人、过程控制中同样适用）。</li>
+<li><strong>在内外环可分离且采样、延迟和噪声允许的级联设计中，内环带宽常选为外环的数倍</strong>；5–10 倍只是一些实现的起点，不是脱离对象的保证。</li>
 </ul>
 <p><strong>建模的特殊性</strong>：变换器是<strong>开关（非线性、时变）系统</strong>，不能直接用线性理论。标准做法是<strong>状态空间平均法</strong>：在一个开关周期内对状态方程取平均，得到连续的等效模型，再线性化。</p>
-<p><strong>一个著名的坑</strong>：<strong>Boost 与 Buck-Boost 变换器在连续导通模式下，其控制到输出的传递函数含右半平面零点</strong>（第二页！）。</p>
+<p><strong>一个有条件的著名坑</strong>：对特定理想平均 CCM Boost/Buck-Boost 控制到输出的小信号模型，传递函数会出现右半平面零点；位置和是否保留取决于拓扑、工作点、寄生、负载和变量定义。</p>
 <p><strong>物理直觉</strong>：要提高输出电压，需要增大占空比；但增大占空比意味着<strong>更长时间把电感与负载断开</strong>，于是<strong>输出电压瞬间先下降</strong>，之后电感储能增加才使输出升高。<strong>这就是非最小相位的物理来源。</strong></p>
-<p><strong>后果</strong>：Boost 电压环的带宽<strong>被硬性限制</strong>（第五页：右半平面零点是性能天花板，不是设计水平问题）。<strong>这解释了为什么升压电路的动态响应普遍慢于降压电路</strong>——这是一个可以从物理直觉、传递函数、频域限制三个角度互相印证的漂亮例子。</p>
+<p><strong>在上述小信号模型和稳定裕度要求下</strong>，电压环交越频率通常要与该右半平面零点保持足够间隔；它限制这一工作点的可实现带宽，但不是所有 Boost 实现或控制结构的绝对性能上限，也不能推出升压动态必然慢于降压。</p>
 <h2 id="_5">五、应用版图<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>电力电子的应用范围极广，也是自动化专业的主要就业方向之一：</p>
 <table>
@@ -134,15 +237,15 @@
 </tr>
 </tbody>
 </table>
-<p><strong>MPPT（最大功率点跟踪）</strong>值得一提：光伏板的输出功率随工作点变化有单峰特性，需<strong>实时搜索最大功率点</strong>。常用扰动观察法（P&amp;O）——<strong>这是一个纯粹的在线优化问题</strong>，也是控制与优化在能源领域最普及的应用之一。</p>
+<p><strong>MPPT（最大功率点跟踪）</strong>值得一提：在均匀光照、固定温度和选定静态模型的局部条件下，光伏功率曲线常可近似为单峰；局部阴影、旁路二极管和串联不匹配可能造成多峰，普通扰动观察法（P&amp;O）可能停在局部峰值。因此它是带测量噪声、动态和约束的在线搜索问题。</p>
 <p><strong>一个宏观判断</strong>：随着电气化与可再生能源推进，<strong>电网中经由电力电子变换的能量比例正在快速上升</strong>。这带来新的系统级问题——传统电网靠同步发电机的<strong>转动惯量</strong>维持频率稳定，而电力电子接口没有惯量。<strong>"低惯量电网"的稳定控制是当前电力系统的重大课题</strong>（第二十二页会再提）。</p>
 <h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
-<li><strong>开关而非线性调节</strong>：理想开关不耗散功率，这是全部效率的来源；</li>
-<li><strong>Buck <span class="arithmatex">\(D\)</span>、Boost <span class="arithmatex">\(1/(1-D)\)</span></strong> 是两个必须记住的关系；</li>
-<li><strong>开关频率是中心权衡</strong>：体积/响应 vs 损耗/EMI；软开关与 SiC/GaN 是突破口；</li>
-<li><strong>级联控制中内环须远快于外环</strong>——普适原则；</li>
-<li><strong>Boost 的右半平面零点</strong>给出了本课理论在硬件中最漂亮的一次印证；</li>
+<li><strong>开关而非线性调节</strong>：理想稳态模型给出低损耗上限，实机效率仍需测量；</li>
+<li><strong>理想稳态 CCM 平均模型中 Buck 约为 <span class="arithmatex">\(D\)</span>、Boost 约为 <span class="arithmatex">\(1/(1-D)\)</span></strong>，DCM 和非理想项要另算；</li>
+<li><strong>开关频率是中心权衡</strong>：纹波/储能规格与损耗/EMI 的取舍需按器件和热设计核对；</li>
+<li><strong>级联控制中内环通常要比外环快</strong>，倍数取决于对象、延迟和噪声；</li>
+<li><strong>特定 CCM Boost/Buck-Boost 小信号模型的右半平面零点</strong>是一个重要边界；</li>
 <li><strong>低惯量电网</strong>是电力电子普及带来的系统级新问题。</li>
 </ul>
 <hr />
@@ -156,5 +259,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/auto-power-converter-ripple.js"></script>
 </body>
 </html>

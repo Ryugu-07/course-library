@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="23-closing.html">收官 · 力的传递</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-25 02:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、轴的设计</a></li>
-<li><a href="#_2">二、滑动轴承与流体润滑</a></li>
-<li><a href="#_3">三、滚动轴承</a></li>
-<li><a href="#_4">四、轴系的支承方案</a></li>
-<li><a href="#_5">五、摩擦学：磨损与润滑</a></li>
-<li><a href="#_6">六、密封</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#bearing-learning-title">学习层：让轴承的寿命、油膜和损失各自记账</a><ul>
+<li><a href="#_1">具体机械情境：评估一台连续运转的输送机支承</a></li>
+<li><a href="#_2">必须提交的预测</a></li>
+<li><a href="#_3">正式模型：标准寿命 + 明示的教学润滑代理</a></li>
+<li><a href="#_4">误区与模型边界</a></li>
+<li><a href="#lab-fallback">对应 lab 的静态 fallback</a></li>
+<li><a href="#_5">迁移问题</a></li>
+</ul>
+</li>
+<li><a href="#_6">一、轴的设计</a></li>
+<li><a href="#_7">二、滑动轴承与流体润滑</a></li>
+<li><a href="#_8">三、滚动轴承</a></li>
+<li><a href="#_9">四、轴系的支承方案</a></li>
+<li><a href="#_10">五、摩擦学：磨损与润滑</a></li>
+<li><a href="#_11">六、密封</a></li>
+<li><a href="#_12">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,7 +78,102 @@
 <p><strong>层次</strong>：本科核心 + 业界日常 ｜ <strong>摩擦学是机械中最被低估的学科</strong>。
 机器的能量损失与失效，很大一部分发生在<strong>两个表面接触的地方</strong>。据广泛引用的估计，摩擦与磨损消耗了全球相当可观比例的一次能源。本页讲轴系设计、两类轴承的原理，以及支撑它们的摩擦学。</p>
 </blockquote>
-<h2 id="_1">一、轴的设计<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="bearing-learning-title" class="learning-layer">
+<h2 id="bearing-learning-title">学习层：让轴承的寿命、油膜和损失各自记账<a class="headerlink" href="#bearing-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">具体机械情境：评估一台连续运转的输送机支承<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>输送机轴承承受当量载荷 <span class="arithmatex">\(P=5.0\,\mathrm{kN}\)</span>，轴承额定动载荷 <span class="arithmatex">\(C=20.0\,\mathrm{kN}\)</span>，转速 <span class="arithmatex">\(1500\,\mathrm{r/min}\)</span>。工程师同时拿到两条表面粗糙度 <span class="arithmatex">\(Rq_1=0.20\,\mu\mathrm{m}\)</span>、<span class="arithmatex">\(Rq_2=0.30\,\mu\mathrm{m}\)</span> 和一项润滑油黏度估计 <span class="arithmatex">\(\eta=30\,\mathrm{mPa\cdot s}\)</span>。只报一个 <span class="arithmatex">\(L_{10}\)</span> 会漏掉润滑边界，只报一个摩擦系数又会漏掉载荷寿命敏感性，所以实验把寿命、膜厚比和摩擦/功率拆成三本账。</p>
+<h3 id="_2">必须提交的预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>球轴承的 <span class="arithmatex">\(P\)</span> 加倍时，<span class="arithmatex">\(L_{10}\)</span> 约变成原来的 <span class="arithmatex">\(1/2\)</span>、<span class="arithmatex">\(1/4\)</span> 还是 <span class="arithmatex">\(1/8\)</span>？</li>
+<li>其余条件不变而两表面更粗糙时，<span class="arithmatex">\(\sigma=\sqrt{Rq_1^2+Rq_2^2}\)</span> 和膜厚比 <span class="arithmatex">\(\lambda\)</span> 会怎样变化？</li>
+<li>黏度增大是否<strong>保证</strong>总摩擦功率单调下降？请先在“保证 / 不保证”中选择。</li>
+</ol>
+<h3 id="_3">正式模型：标准寿命 + 明示的教学润滑代理<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>滚动轴承的额定寿命用百万转计</p>
+<div class="arithmatex">\[
+L_{10}=\left(\frac{C}{P}\right)^p10^6\ \mathrm{rev},\qquad
+L_{10,h}=\frac{L_{10}}{60n}.
+\]</div>
+<p>其中 <span class="arithmatex">\(p=3\)</span> 对球轴承，<span class="arithmatex">\(p=10/3\)</span> 对滚子轴承；<span class="arithmatex">\(L_{10}\)</span> 是 90% 可靠度寿命，不是保证每一只轴承达到的寿命。表面合并粗糙度为</p>
+<div class="arithmatex">\[
+\sigma=\sqrt{Rq_1^2+Rq_2^2}.
+\]</div>
+<p>为了让变量关系可追踪，实验明示采用一个<strong>教学代理</strong>（输入单位为 mPa·s、r/min、kN，输出为 <span class="arithmatex">\(\mu\mathrm{m}\)</span>）：</p>
+<div class="arithmatex">\[
+h_{\min}=0.020\sqrt{\frac{\eta n}{P}},\qquad \lambda=\frac{h_{\min}}{\sigma}.
+\]</div>
+<p>这里的 <span class="arithmatex">\(h_{\min}\)</span> 不是轴承 EHL 的标准解；实验只用 <span class="arithmatex">\(\lambda&lt;1\)</span>、<span class="arithmatex">\(1\le\lambda&lt;3\)</span>、<span class="arithmatex">\(\lambda\ge3\)</span> 标出边界、混合和全膜润滑的教学分区。摩擦账采用透明的 Stribeck 型代理，令 <span class="arithmatex">\(G=\eta n/P\)</span>：</p>
+<div class="arithmatex">\[
+\mu=0.006+\frac{0.080}{1+G/500}+0.0000025G,
+\quad T_f=\mu\tilde P\frac{\tilde d_m}{2},
+\quad W_f=2\pi\frac{n}{60}T_f.
+\]</div>
+<p>在转矩式中先把页面输入换成 SI：<span class="arithmatex">\(\tilde P=1000P\,\mathrm{N}\)</span>（把 <span class="arithmatex">\(P\)</span> 的 kN 换成 N），<span class="arithmatex">\(\tilde d_m=10^{-3}d_m\,\mathrm{m}\)</span>（把 <span class="arithmatex">\(d_m\)</span> 的 mm 换成 m）。分式项 <span class="arithmatex">\(0.080/(1+G/500)\)</span> 随 <span class="arithmatex">\(G\)</span> 增大而下降，黏性项 <span class="arithmatex">\(0.0000025G\)</span> 随 <span class="arithmatex">\(G\)</span> 增大而上升；因此黏度提高可以增大教学膜厚，却<strong>不保证总损失单调下降</strong>。默认值给出 <span class="arithmatex">\(L_{10}=64.0\times10^6\,\mathrm{rev}\)</span>、约 <span class="arithmatex">\(711.1\,\mathrm{h}\)</span>，<span class="arithmatex">\(\sigma=0.361\,\mu\mathrm{m}\)</span>、<span class="arithmatex">\(h_{\min}\approx1.897\,\mu\mathrm{m}\)</span>、<span class="arithmatex">\(\lambda\approx5.26\)</span>；摩擦与功率是上述代理的账，不是轴承目录的精确损失。</p>
+<h3 id="_4">误区与模型边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(L_{10}\)</span> 只描述额定载荷下的统计寿命；安装偏差、污染、电蚀、静载压痕、温度和实际载荷谱可能成为主导失效机制。</li>
+<li><span class="arithmatex">\(h_{\min}\)</span> 与 <span class="arithmatex">\(\mu\)</span> 都明确标为教学代理，不可冒充 Hamrock–Dowson、完整滚动接触 EHL 或厂商摩擦力矩模型。</li>
+<li><span class="arithmatex">\(\lambda\)</span> 只比较膜厚和合并粗糙度，不说明膜内温升、添加剂化学、表面纹理、滚动体滑移或局部接触应力。</li>
+<li>Stribeck 型代理用于展示“边界接触项”和“黏性损失项”的权衡；黏度、转速或载荷变化后的真实摩擦必须用试验、厂商数据或更高阶模型复核。</li>
+<li>热膨胀、固定–游动布置和预紧会改变 <span class="arithmatex">\(P\)</span> 与润滑状态；不能把一个静态 <span class="arithmatex">\(L_{10}\)</span> 小时数直接当成检修周期。</li>
+</ul>
+<h3 id="lab-fallback">对应 lab 的静态 fallback<a class="headerlink" href="#lab-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="mech-bearing-tribology">
+<p><strong>无 JavaScript 时仍可核对：</strong>默认球轴承 <span class="arithmatex">\(C=20.0\,\mathrm{kN}\)</span>、<span class="arithmatex">\(P=5.0\,\mathrm{kN}\)</span>、<span class="arithmatex">\(p=3\)</span>、<span class="arithmatex">\(n=1500\,\mathrm{r/min}\)</span>、<span class="arithmatex">\(d_m=50\,\mathrm{mm}\)</span>、<span class="arithmatex">\(\eta=30\,\mathrm{mPa\cdot s}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>轴承账本</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位或判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(L_{10}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(64.0\times10^6\)</span></td>
+<td>rev</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(L_{10,h}\)</span></td>
+<td style="text-align: right;">711.1</td>
+<td>h</td>
+</tr>
+<tr>
+<td>合并粗糙度 <span class="arithmatex">\(\sigma\)</span></td>
+<td style="text-align: right;">0.361</td>
+<td><span class="arithmatex">\(\mu\mathrm{m}\)</span></td>
+</tr>
+<tr>
+<td>教学代理 <span class="arithmatex">\(h_{\min}\)</span></td>
+<td style="text-align: right;">1.897</td>
+<td><span class="arithmatex">\(\mu\mathrm{m}\)</span></td>
+</tr>
+<tr>
+<td>膜厚比 <span class="arithmatex">\(\lambda\)</span> / 润滑区</td>
+<td style="text-align: right;">5.26 / 全膜</td>
+<td><span class="arithmatex">\(\lambda\ge3\)</span> 的教学分区</td>
+</tr>
+<tr>
+<td>代理摩擦系数 <span class="arithmatex">\(\mu\)</span></td>
+<td style="text-align: right;">约 0.0327</td>
+<td>无量纲；Stribeck 代理</td>
+</tr>
+<tr>
+<td>摩擦转矩 / 功率 <span class="arithmatex">\(T_f,W_f\)</span></td>
+<td style="text-align: right;">约 4.09 / 0.643</td>
+<td>N·m / kW；代理账</td>
+</tr>
+</tbody>
+</table>
+<p>脚本可用时，改变 <span class="arithmatex">\(P\)</span>、粗糙度和黏度会分别更新寿命、<span class="arithmatex">\(\lambda\)</span> 与摩擦功率；结果揭示后调参不会重新锁回预测门。把黏度调高后若功率先降后升，是代理明确展示的权衡，不是绘图动画。</p>
+</div>
+<h3 id="_5">迁移问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>如果一台高温电机把油温升高、黏度降低，同时轴承预紧力提高，你会如何拆分“载荷寿命”“膜厚比”“摩擦发热”三项证据？请指出至少一个需要温度相关黏度、接触应力或厂商数据才能补上的量。</p>
+</section>
+<h2 id="_6">一、轴的设计<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>轴同时承受<strong>弯矩</strong>（齿轮径向力、带的张力、自重）与<strong>扭矩</strong>（传递功率），是典型的组合变形（承第三页）。</p>
 <p><strong>设计流程</strong>：</p>
 <ol>
@@ -72,7 +191,7 @@
 <li>结构设计要保证<strong>零件能装进去、能拆出来、能定位、能拧紧</strong>。</li>
 </ul>
 <p><strong>"轴的疲劳裂纹几乎总起源于应力集中处"</strong>——这就是为什么机械设计中"画圆角"是一项严肃的工作，而非美化。</p>
-<h2 id="_2">二、滑动轴承与流体润滑<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_7">二、滑动轴承与流体润滑<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>核心思想：让两个表面被一层流体膜完全隔开，从而不发生固体接触。</strong></p>
 <p><strong>流体动压润滑</strong>：轴颈旋转把润滑油带入<strong>收敛的楔形间隙</strong>，产生压力把轴"托"起来。</p>
 <div class="arithmatex">\[\text{承载能力} \sim \frac{\eta N}{p}\ (\text{索末菲数})\]</div>
@@ -111,7 +230,7 @@
 </tbody>
 </table>
 <p><strong>设计目标是进入流体润滑区</strong>；但启停必然经过边界区，故需要抗磨添加剂与合适的轴瓦材料（巴氏合金等软材料，能"埋入"磨粒、保护轴颈）。</p>
-<h2 id="_3">三、滚动轴承<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_8">三、滚动轴承<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>用滚动代替滑动</strong>，摩擦系数低（0.001–0.005）、启动摩擦小、标准化程度极高。</p>
 <p><strong>寿命计算</strong>（业界标准做法）：</p>
 <div class="arithmatex">\[L_{10} = \left(\frac{C}{P}\right)^{\epsilon} \quad (\text{百万转}), \qquad \epsilon = 3\ (\text{球}),\ 10/3\ (\text{滚子})\]</div>
@@ -125,7 +244,7 @@
 <li><strong>润滑失效</strong>（占实际失效的很大比例）。</li>
 </ul>
 <p><strong>轴承故障诊断</strong>：滚动体经过缺陷时产生周期性冲击，其<strong>特征频率</strong>（外圈 BPFO、内圈 BPFI、滚动体 BSF、保持架 FTF）由几何与转速决定，且<strong>不是转速的整数倍</strong>——这正是频谱诊断能识别它的原因（承第七、九页的诊断表）。<strong>早期故障常先在高频包络谱中出现</strong>。</p>
-<h2 id="_4">四、轴系的支承方案<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_9">四、轴系的支承方案<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>必须解决三个问题</strong>：承受径向力、承受轴向力、<strong>允许热膨胀</strong>。</p>
 <p><strong>两种经典方案</strong>：</p>
 <ul>
@@ -134,7 +253,7 @@
 </ul>
 <p><strong>"必须给热膨胀留一条出路"</strong> 是轴系设计的铁律。<strong>忽略它会导致轴承过载、异常发热、迅速失效</strong>——这是现场常见的设计错误。</p>
 <p><strong>预紧</strong>：对角接触轴承施加预紧力，可<strong>消除游隙、提高刚度与旋转精度</strong>（机床主轴必需）。代价是<strong>摩擦发热增加、寿命下降</strong>——又一次权衡。</p>
-<h2 id="_5">五、摩擦学：磨损与润滑<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_10">五、摩擦学：磨损与润滑<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>磨损的主要机制</strong>：</p>
 <ul>
 <li><strong>粘着磨损</strong>：微凸体焊合又被撕开（Archard 定律：磨损量正比于载荷与滑动距离、反比于硬度）；</li>
@@ -144,14 +263,14 @@
 </ul>
 <p><strong>润滑的作用远不止减摩</strong>：<strong>散热、冲走磨粒、防锈、密封</strong>。<strong>很多"润滑失效"实际是散热或清洁功能失效</strong>，而非油膜承载不足。</p>
 <p><strong>表面工程</strong>是重要手段：渗碳、氮化、镀层、DLC 涂层、织构化表面——<strong>用极薄的表层改变摩擦磨损行为，而基体保持韧性</strong>。<strong>"表面决定摩擦与磨损，芯部决定强度与韧性"</strong>是表面工程的基本逻辑。</p>
-<h2 id="_6">六、密封<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_11">六、密封<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>常被忽视却是现场故障的高发点：</p>
 <ul>
 <li><strong>接触式</strong>（唇形密封、O 圈、机械密封）：密封好、有磨损与摩擦；</li>
 <li><strong>非接触式</strong>（迷宫、气封）：无磨损、允许微量泄漏，用于高速。</li>
 </ul>
 <p><strong>密封失效往往不是密封件本身的问题</strong>，而是轴的跳动、表面粗糙度不当、温度超限、或介质不相容。<strong>诊断时应先怀疑工况而非零件。</strong></p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_12">七、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>轴的失效绝大多数是疲劳，起源于应力集中处</strong>——圆角与过渡设计至关重要；</li>
 <li><strong>流体动压靠旋转"泵"出油膜</strong>，故磨损集中在启停；静压轴承刚度极高但成本高；</li>
@@ -171,5 +290,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/mech-bearing-tribology.js"></script>
 </body>
 </html>
