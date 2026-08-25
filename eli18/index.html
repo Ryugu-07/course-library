@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="面向高中毕业生的数学与人工智能可视化课程：保留直觉，也保留推导。">
+  <title>ELI18版 · 数学与 AI</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("eli18-theme");
+        if (saved === "dark" || saved === "light") {
+          document.documentElement.setAttribute("data-theme", saved);
+        }
+      } catch (error) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#lesson-content">跳到正文</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="back-link" href="../index.html"><span aria-hidden="true">←</span><span>课程总览</span></a>
+      <div class="brand" aria-label="ELI18 数学与人工智能实验课">
+        <strong>ELI18</strong>
+        <span>数学 × AI 实验课</span>
+      </div>
+      <div class="top-actions">
+        <span class="progress-label" id="course-progress">理解检查 0 / 6</span>
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="切换深浅色" title="切换深浅色">◐</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="track-bar" aria-label="选择专题">
+    <div class="track-switch" role="tablist" aria-label="课程专题">
+      <button class="is-active" id="math-tab" type="button" role="tab" aria-selected="true" aria-controls="math-lesson" data-track="math">数学：导数与优化</button>
+      <button id="ai-tab" type="button" role="tab" aria-selected="false" aria-controls="ai-lesson" data-track="ai">AI：注意力与 Transformer</button>
+    </div>
+  </nav>
+
+  <main id="lesson-content">
+    <article class="lesson-panel is-active" id="math-lesson" role="tabpanel" aria-labelledby="math-tab" data-panel="math">
+      <header class="lesson-header page-width">
+        <p class="chapter-kicker">数学专题 01</p>
+        <h1>从瞬时变化到梯度下降</h1>
+        <p class="lesson-dek">我们能算一段时间里的平均速度。但“这一瞬间有多快”看起来需要把时间段缩成零，而除以零又没有意义。导数就是对这个矛盾的精确回答。</p>
+        <dl class="prerequisites">
+          <div><dt>你需要</dt><dd>函数图像、平方公式、斜率</dd></div>
+          <div><dt>你将得到</dt><dd>极限、导数、不可导与梯度下降</dd></div>
+          <div><dt>核心问题</dt><dd>“无限接近”怎样变成可靠计算？</dd></div>
+        </dl>
+      </header>
+
+      <nav class="chapter-nav page-width" aria-label="数学专题目录">
+        <a href="#math-need"><span>01</span>为什么需要</a>
+        <a href="#math-limit"><span>02</span>差商极限</a>
+        <a href="#math-corner"><span>03</span>失败边界</a>
+        <a href="#math-gradient"><span>04</span>梯度下降</a>
+        <a href="#math-check"><span>05</span>理解检查</a>
+      </nav>
+
+      <section class="content-band" id="math-need">
+        <div class="page-width reading-grid">
+          <div class="section-heading">
+            <p class="section-number">01 · 问题从哪里来</p>
+            <h2>平均速度回答不了“此刻”</h2>
+          </div>
+          <div class="prose">
+            <p>假设一辆实验车从起点出发，经过 <strong>t</strong> 秒后走过 <strong>s(t)=t²</strong> 米。它在 2 秒时位于 4 米处，在 3 秒时位于 9 米处，所以这 1 秒里的平均速度是 5 米/秒。</p>
+            <p>但仪表盘显示的是 2 秒<strong>那一刻</strong>的速度。若只观察从 2 秒到 2.1 秒，平均速度变成 4.1 米/秒；观察到 2.01 秒，又变成 4.01 米/秒。时间窗越窄，一个稳定数字逐渐显露出来。</p>
+          </div>
+          <aside class="definition-note">
+            <strong>先区分两个问题</strong>
+            <p><b>平均变化率</b>描述一个区间；<b>瞬时变化率</b>描述一个点附近的极限行为。它们不是同一个量，只是在时间窗缩小时发生联系。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="experiment-band" id="math-limit">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number">02 · 可动实验</p>
+            <h2>让割线逼近切线</h2>
+            <p>先作判断，再移动滑块。预测是实验的一部分。</p>
+          </div>
+
+          <div class="prediction-row" role="group" aria-label="时间窗缩小时平均速度怎样变化">
+            <span>当 Δt 从 2.0 缩小到 0.1，平均速度会：</span>
+            <button type="button" data-prediction="secant" data-answer="increase">增大</button>
+            <button type="button" data-prediction="secant" data-answer="decrease">减小</button>
+            <button type="button" data-prediction="secant" data-answer="same">不变</button>
+            <output id="secant-prediction-feedback" aria-live="polite">先选一个判断。</output>
+          </div>
+
+          <div class="experiment secant-experiment">
+            <div class="plot-panel">
+              <svg class="plot" id="secant-plot" viewBox="0 0 760 450" role="img" aria-labelledby="secant-title secant-desc">
+                <title id="secant-title">位置函数的割线与切线</title>
+                <desc id="secant-desc">横轴为时间，纵轴为位置。可以缩小时间窗，观察割线斜率趋近瞬时速度。</desc>
+                <rect class="plot-background" x="52" y="30" width="668" height="360" rx="6"></rect>
+                <g class="grid-lines" aria-hidden="true"></g>
+                <line class="axis" x1="82" y1="360" x2="690" y2="360"></line>
+                <line class="axis" x1="82" y1="360" x2="82" y2="55"></line>
+                <text class="axis-label" x="686" y="390" text-anchor="end">时间 t（秒）</text>
+                <text class="axis-label" x="92" y="74">位置 s（米）</text>
+                <path id="position-curve" class="function-curve" d=""></path>
+                <line id="tangent-line" class="tangent" x1="0" y1="0" x2="0" y2="0"></line>
+                <line id="secant-line" class="secant" x1="0" y1="0" x2="0" y2="0"></line>
+                <line id="delta-bracket" class="delta-bracket" x1="0" y1="0" x2="0" y2="0"></line>
+                <circle id="fixed-point" class="point fixed-point" cx="0" cy="0" r="8"></circle>
+                <circle id="moving-point" class="point moving-point" cx="0" cy="0" r="8"></circle>
+                <text id="fixed-label" class="point-label" x="0" y="0">t=2</text>
+                <text id="moving-label" class="point-label" x="0" y="0"></text>
+                <text id="delta-label" class="delta-label" x="0" y="0"></text>
+              </svg>
+            </div>
+
+            <div class="experiment-console">
+              <label for="delta-time">时间窗 Δt <output id="delta-time-output">1.00 秒</output></label>
+              <input id="delta-time" type="range" min="0.05" max="2" step="0.05" value="1">
+              <dl class="live-values">
+                <div><dt>起点</dt><dd>（2.00 s，4.00 m）</dd></div>
+                <div><dt>终点</dt><dd id="moving-coordinate">（3.00 s，9.00 m）</dd></div>
+                <div><dt>割线斜率</dt><dd id="secant-slope">5.00 m/s</dd></div>
+                <div><dt>目标值</dt><dd>4.00 m/s</dd></div>
+              </dl>
+              <p class="console-reading" id="secant-reading">这条割线跨越 1 秒，还不能只代表 2 秒这一刻。</p>
+            </div>
+          </div>
+
+          <div class="derivation-layout">
+            <div class="derivation-intro">
+              <h3>图上发生的事，怎样写成式子？</h3>
+              <p>割线斜率就是位置增量除以时间增量。为了观察 2 秒附近，我们把终点写成 <b>2+h</b>。这里的 h 是一段真实存在但可以任意缩小的时间。</p>
+            </div>
+            <div class="derivation" aria-label="导数推导">
+              <div><span>差商</span><code>[s(2+h)−s(2)] / h</code></div>
+              <div><span>代入 s(t)=t²</span><code>[(2+h)²−2²] / h</code></div>
+              <div><span>展开</span><code>[4+4h+h²−4] / h</code></div>
+              <div><span>约去 h</span><code>4+h　（前提：h≠0）</code></div>
+              <div class="result-step"><span>取极限</span><code>lim<sub>h→0</sub>(4+h)=4 m/s</code></div>
+            </div>
+          </div>
+
+          <div class="reasoning-callout">
+            <strong>关键不是“把 h 设成 0”</strong>
+            <p>在约分之前，h 不能是 0，否则差商没有定义。我们研究的是一串非零 h 对应的结果：0.5、0.1、0.01……它们的斜率越来越接近 4。极限描述的是这个趋近过程。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-band alternate-band" id="math-corner">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number">03 · 失败边界</p>
+            <h2>每条曲线都能求导吗？</h2>
+            <p>极限必须从两边给出同一个答案。尖点会让这个条件失败。</p>
+          </div>
+
+          <div class="corner-layout">
+            <div class="corner-plot-wrap">
+              <svg class="plot corner-plot" viewBox="0 0 620 330" role="img" aria-labelledby="corner-title corner-desc">
+                <title id="corner-title">绝对值函数在零点的尖角</title>
+                <desc id="corner-desc">绝对值函数从左接近零时斜率为负一，从右接近时斜率为正一，因此零点不可导。</desc>
+                <line class="axis" x1="58" y1="258" x2="574" y2="258"></line>
+                <line class="axis" x1="316" y1="286" x2="316" y2="44"></line>
+                <path class="absolute-curve" d="M 82 58 L 316 258 L 550 58"></path>
+                <line id="corner-tangent" class="secant" x1="120" y1="92" x2="290" y2="237"></line>
+                <circle class="point fixed-point" cx="316" cy="258" r="8"></circle>
+                <text class="axis-label" x="548" y="286">x</text>
+                <text class="axis-label" x="330" y="58">f(x)=|x|</text>
+              </svg>
+            </div>
+            <div class="corner-explanation">
+              <div class="side-switch" role="group" aria-label="选择接近方向">
+                <button class="is-active" type="button" data-corner-side="left" aria-pressed="true">从左边接近</button>
+                <button type="button" data-corner-side="right" aria-pressed="false">从右边接近</button>
+              </div>
+              <p class="large-result" id="corner-result">左导数 = −1</p>
+              <p id="corner-copy">从负数一侧走向 0，图像一直向右下方倾斜，所以斜率是 −1。</p>
+              <div class="equation-strip">f′<sub>−</sub>(0)=−1　≠　f′<sub>+</sub>(0)=+1</div>
+              <p>左右极限不同，就不存在唯一切线斜率。函数在 0 连续，却仍然不可导，所以“连续”不自动保证“光滑”。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="experiment-band" id="math-gradient">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number">04 · 专业连接</p>
+            <h2>导数怎样训练一个模型？</h2>
+            <p>把误差写成函数，导数就告诉我们参数往哪边改、改多少。</p>
+          </div>
+
+          <div class="prose-columns">
+            <p>假设模型只有一个参数 w，理想值是 3。我们用损失函数 <b>L(w)=(w−3)²</b> 衡量错误。它的导数是 <b>L′(w)=2(w−3)</b>：在目标左边导数为负，减去负数会让 w 向右移动；在目标右边导数为正，更新会让 w 向左移动。</p>
+            <p>学习率 α 控制步长。小步通常稳定但慢；过大的步长会跨过谷底，甚至一次比一次离得更远。导数给方向，学习率决定你是否能安全地沿这个方向走。</p>
+          </div>
+
+          <div class="prediction-row" role="group" aria-label="预测梯度下降运动">
+            <span>按当前学习率更新，参数会：</span>
+            <button type="button" data-prediction="gradient" data-answer="monotonic">平滑靠近</button>
+            <button type="button" data-prediction="gradient" data-answer="oscillate">来回摆动</button>
+            <button type="button" data-prediction="gradient" data-answer="diverge">越走越远</button>
+            <output id="gradient-prediction-feedback" aria-live="polite">先看学习率，再作判断。</output>
+          </div>
+
+          <div class="experiment gradient-experiment">
+            <div class="plot-panel">
+              <svg class="plot" id="gradient-plot" viewBox="0 0 760 450" role="img" aria-labelledby="gradient-title gradient-desc">
+                <title id="gradient-title">二次损失函数上的梯度下降</title>
+                <desc id="gradient-desc">可以调整学习率并逐步更新参数，观察它平滑收敛、震荡收敛或发散。</desc>
+                <rect class="plot-background" x="52" y="30" width="668" height="360" rx="6"></rect>
+                <line class="axis" x1="82" y1="360" x2="690" y2="360"></line>
+                <line class="axis" x1="82" y1="360" x2="82" y2="55"></line>
+                <text class="axis-label" x="680" y="390" text-anchor="end">参数 w</text>
+                <text class="axis-label" x="92" y="74">损失 L(w)</text>
+                <path id="loss-curve" class="loss-curve" d=""></path>
+                <line id="gradient-tangent" class="tangent" x1="0" y1="0" x2="0" y2="0"></line>
+                <g id="gradient-trail" class="gradient-trail"></g>
+                <circle id="parameter-point" class="point parameter-point" cx="0" cy="0" r="10"></circle>
+                <line class="target-line" x1="0" y1="0" x2="0" y2="0"></line>
+                <text id="parameter-label" class="point-label" x="0" y="0"></text>
+                <text class="target-label" id="target-label" x="0" y="0">最小值 w=3</text>
+              </svg>
+            </div>
+
+            <div class="experiment-console">
+              <label for="learning-rate">学习率 α <output id="learning-rate-output">0.20</output></label>
+              <input id="learning-rate" type="range" min="0.05" max="1.20" step="0.05" value="0.20">
+              <div class="command-row">
+                <button class="primary-command" id="gradient-step" type="button">更新一步</button>
+                <button id="gradient-five" type="button">连续 5 步</button>
+                <button id="gradient-reset" type="button">重置</button>
+              </div>
+              <dl class="live-values">
+                <div><dt>当前参数 w</dt><dd id="parameter-value">−2.000</dd></div>
+                <div><dt>导数 L′(w)</dt><dd id="gradient-value">−10.000</dd></div>
+                <div><dt>损失 L(w)</dt><dd id="loss-value">25.000</dd></div>
+                <div><dt>运动状态</dt><dd id="gradient-status">单调靠近</dd></div>
+              </dl>
+              <div class="equation-strip">w<sub>新</sub> = w − α · 2(w−3)</div>
+            </div>
+          </div>
+
+          <div class="boundary-list" aria-label="梯度下降的边界">
+            <div><strong>导数不是答案</strong><p>它只给局部方向。复杂损失面可能有平台、鞍点、噪声和许多低谷。</p></div>
+            <div><strong>一步有效不代表一直有效</strong><p>固定学习率在陡峭方向上可能太大，在平坦方向上又可能太小。</p></div>
+            <div><strong>模型训练不只一个参数</strong><p>真实网络同时更新数百万至数十亿个参数，梯度是一个高维向量。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="check-band" id="math-check">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number">05 · 理解检查</p>
+            <h2>不要背结论，检查因果链</h2>
+          </div>
+          <div class="quiz-grid">
+            <fieldset class="quiz" data-quiz="math-1" data-correct="zero-denominator">
+              <legend>为什么差商里的 h 不能直接设成 0？</legend>
+              <button type="button" data-choice="too-small">因为 0 太小，计算机会忽略它</button>
+              <button type="button" data-choice="zero-denominator">因为分母会变成 0，差商没有定义</button>
+              <button type="button" data-choice="curve-breaks">因为曲线会在这一点断开</button>
+              <output aria-live="polite">选择一个解释。</output>
+            </fieldset>
+            <fieldset class="quiz" data-quiz="math-2" data-correct="two-sides">
+              <legend>|x| 在 0 连续，为什么仍然不可导？</legend>
+              <button type="button" data-choice="value-zero">因为函数值等于 0</button>
+              <button type="button" data-choice="two-sides">因为左右斜率极限不相同</button>
+              <button type="button" data-choice="negative-x">因为左边出现了负数</button>
+              <output aria-live="polite">选择一个解释。</output>
+            </fieldset>
+            <fieldset class="quiz" data-quiz="math-3" data-correct="overshoot">
+              <legend>学习率过大时，损失为什么可能上升？</legend>
+              <button type="button" data-choice="wrong-derivative">因为导数公式突然失效</button>
+              <button type="button" data-choice="overshoot">因为更新跨过谷底，而且越跨越远</button>
+              <button type="button" data-choice="target-moves">因为目标参数自己移动了</button>
+              <output aria-live="polite">选择一个解释。</output>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+    </article>
+
+    <article class="lesson-panel" id="ai-lesson" role="tabpanel" aria-labelledby="ai-tab" data-panel="ai" hidden>
+      <header class="lesson-header page-width">
+        <p class="chapter-kicker ai-kicker">AI 专题 01</p>
+        <h1>从词语关联到 Transformer</h1>
+        <p class="lesson-dek">注意力不是“模型像人一样集中精神”。它是一套可计算的信息检索规则：提出查询、计算匹配分数、归一化权重，再混合需要传递的内容。</p>
+        <dl class="prerequisites">
+          <div><dt>你需要</dt><dd>向量点积、指数函数、加权平均</dd></div>
+          <div><dt>你将得到</dt><dd>Q/K/V、softmax、掩码与 Transformer 块</dd></div>
+          <div><dt>核心问题</dt><dd>一个词怎样有选择地读取上下文？</dd></div>
+        </dl>
+      </header>
+
+      <nav class="chapter-nav page-width" aria-label="AI 专题目录">
+        <a href="#ai-need"><span>01</span>为什么需要</a>
+        <a href="#ai-qkv"><span>02</span>Q / K / V</a>
+        <a href="#ai-mask"><span>03</span>因果掩码</a>
+        <a href="#ai-block"><span>04</span>完整模块</a>
+        <a href="#ai-check"><span>05</span>理解检查</a>
+      </nav>
+
+      <section class="content-band" id="ai-need">
+        <div class="page-width reading-grid">
+          <div class="section-heading">
+            <p class="section-number ai-number">01 · 问题从哪里来</p>
+            <h2>同一个词，需要从不同地方取信息</h2>
+          </div>
+          <div class="prose">
+            <p>读到“它”时，我们可能需要寻找前面的指代对象；读到动词时，我们可能要确认是谁执行动作。固定地平均所有词会冲淡关键信息，永远只看相邻词又会漏掉远距离关系。</p>
+            <p>注意力允许当前位置根据当前任务，给上下文里的每个位置分配不同权重。它并不先天理解语法或指代，这些检索模式来自训练后的参数。</p>
+          </div>
+          <aside class="definition-note ai-note">
+            <strong>不要把术语拟人化</strong>
+            <p>“关注”只是方便的说法。实际计算是向量变换、点积、softmax 和加权求和。高权重也不自动等于人类意义上的解释或因果。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="experiment-band" id="ai-qkv">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number ai-number">02 · 可动实验</p>
+            <h2>把注意力拆成查询、索引和内容</h2>
+            <p>先理解三个角色，再看公式。类比只负责引路，右侧明确给出真实运算。</p>
+          </div>
+
+          <div class="qkv-map" aria-label="Q K V 对照表">
+            <div><span class="q-badge">Q</span><strong>Query · 查询</strong><p>“我现在需要找什么？”由当前词的表示经过线性变换得到。</p></div>
+            <div><span class="k-badge">K</span><strong>Key · 索引</strong><p>“我能用什么特征被找到？”每个上下文词都有自己的键向量。</p></div>
+            <div><span class="v-badge">V</span><strong>Value · 内容</strong><p>“找到我以后传递什么？”最终混合的是值向量，不是键本身。</p></div>
+          </div>
+
+          <div class="prediction-row" role="group" aria-label="预测缩放点积效果">
+            <span>去掉 ÷√d 后，分数绝对值变大，softmax 通常会：</span>
+            <button type="button" data-prediction="attention" data-answer="flatter">更平均</button>
+            <button type="button" data-prediction="attention" data-answer="sharper">更尖锐</button>
+            <button type="button" data-prediction="attention" data-answer="unchanged">完全不变</button>
+            <output id="attention-prediction-feedback" aria-live="polite">先选一个判断。</output>
+          </div>
+
+          <div class="experiment attention-experiment">
+            <div class="attention-workbench">
+              <div class="query-switch" role="group" aria-label="选择查询任务">
+                <button class="is-active" type="button" data-attention-query="reference" aria-pressed="true">“它”指什么？</button>
+                <button type="button" data-attention-query="agent" aria-pressed="false">谁在“趴着”？</button>
+              </div>
+              <p class="sentence-line" aria-label="小猫趴在毯子上，因为它很暖">
+                <span>小猫</span><span>趴在</span><span>毯子</span><span>上</span><span>因为</span><span>它</span><span>很暖</span>
+              </p>
+              <div class="attention-bars" id="attention-bars" aria-label="注意力权重"></div>
+            </div>
+
+            <div class="experiment-console">
+              <button class="toggle-command is-active" id="scale-toggle" type="button" aria-pressed="true">使用缩放 ÷√d</button>
+              <dl class="live-values">
+                <div><dt>查询位置</dt><dd id="query-position">“它”</dd></div>
+                <div><dt>最高权重</dt><dd id="top-attention">毯子 · 52%</dd></div>
+                <div><dt>分布熵</dt><dd id="attention-entropy">1.51</dd></div>
+                <div><dt>向量维度 d</dt><dd>4，√d=2</dd></div>
+              </dl>
+              <div class="formula-stack">
+                <code>sᵢ = q·kᵢ / √d</code>
+                <code>αᵢ = exp(sᵢ) / Σⱼ exp(sⱼ)</code>
+                <code>输出 = Σᵢ αᵢvᵢ</code>
+              </div>
+              <p class="console-reading">为了单独观察缩放和 softmax，本实验固定了一组“训练后的”q·k 分数；它没有模拟 W<sub>Q</sub>、W<sub>K</sub> 的训练过程。</p>
+            </div>
+          </div>
+
+          <div class="derivation-layout attention-derivation">
+            <div class="derivation-intro">
+              <h3>为什么点积能做匹配？</h3>
+              <p>训练会把查询和键投影到同一个向量空间。方向越一致，点积通常越大。softmax 再把任意实数分数变成和为 1 的非负权重。</p>
+            </div>
+            <div class="derivation compact-derivation">
+              <div><span>原始表示</span><code>x ∈ R<sup>d模型</sup></code></div>
+              <div><span>三次投影</span><code>q=xW<sub>Q</sub>，k=xW<sub>K</sub>，v=xW<sub>V</sub></code></div>
+              <div><span>两两匹配</span><code>S=QKᵀ/√d<sub>k</sub></code></div>
+              <div class="result-step"><span>信息聚合</span><code>O=softmax(S)V</code></div>
+            </div>
+          </div>
+
+          <div class="reasoning-callout ai-callout">
+            <strong>÷√d 不是装饰</strong>
+            <p>当向量维度增大时，点积的典型幅度也会增大。过大的分数让 softmax 很快饱和成接近 one-hot 的分布，梯度随之变弱。缩放把数值保持在更可训练的范围。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-band alternate-band" id="ai-mask">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number ai-number">03 · 生成模型的边界</p>
+            <h2>预测下一个词时，不能偷看答案</h2>
+            <p>训练时整句话同时放进计算机。因果掩码必须主动遮住右侧未来，否则模型会从答案本身取信息。</p>
+          </div>
+
+          <div class="mask-layout">
+            <div class="mask-tool">
+              <div class="sequence-picker" role="group" aria-label="选择当前查询位置">
+                <button type="button" data-sequence-index="0">今天</button>
+                <button type="button" data-sequence-index="1">下雨</button>
+                <button type="button" data-sequence-index="2">所以</button>
+                <button class="is-active" type="button" data-sequence-index="3">带</button>
+                <button type="button" data-sequence-index="4">雨伞</button>
+              </div>
+              <div class="matrix-wrap">
+                <table class="mask-matrix" id="mask-matrix">
+                  <caption>每一行是查询位置，每一列是它试图读取的位置</caption>
+                </table>
+              </div>
+            </div>
+            <div class="mask-console">
+              <button class="toggle-command is-active" id="causal-toggle" type="button" aria-pressed="true">因果掩码：开启</button>
+              <p class="large-result" id="mask-result">“带”只能读取自己和左侧</p>
+              <p id="mask-copy">右侧的“雨伞”被写入 −∞，经过 softmax 后权重变成 0。模型必须根据“今天下雨所以带”预测后续内容。</p>
+              <div class="equation-strip">S<sub>ij</sub>=−∞　当 j&gt;i</div>
+              <p class="warning-copy" id="leak-warning">关闭掩码可以看到信息泄漏，但那不是合法的生成模型训练方式。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="experiment-band" id="ai-block">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number ai-number">04 · 专业连接</p>
+            <h2>注意力只是 Transformer 的一个部件</h2>
+            <p>点击数据流中的模块，查看它接收什么、改变什么，以及为什么需要残差连接。</p>
+          </div>
+
+          <div class="transformer-tool">
+            <div class="block-flow" role="group" aria-label="Transformer 模块数据流">
+              <button type="button" data-block="embedding">词元 + 位置</button><span aria-hidden="true">→</span>
+              <button class="is-active" type="button" data-block="attention">多头注意力</button><span aria-hidden="true">→</span>
+              <button type="button" data-block="residual1">残差 + 归一化</button><span aria-hidden="true">→</span>
+              <button type="button" data-block="mlp">前馈网络</button><span aria-hidden="true">→</span>
+              <button type="button" data-block="residual2">残差 + 归一化</button>
+            </div>
+            <div class="block-detail" id="block-detail" aria-live="polite">
+              <p class="detail-label">多头注意力</p>
+              <h3>并行学习多组检索规则</h3>
+              <p>每个头拥有不同的 W<sub>Q</sub>、W<sub>K</sub>、W<sub>V</sub>，产生不同的信息混合结果；这些结果拼接后再投影回模型维度。</p>
+              <code>MultiHead(Q,K,V)=Concat(head₁,…,headₕ)W<sub>O</sub></code>
+            </div>
+          </div>
+
+          <div class="boundary-list ai-boundaries" aria-label="注意力机制的边界">
+            <div><strong>权重不等于因果解释</strong><p>改变权重未必按直觉改变输出，多个层和残差路径还会继续加工信息。</p></div>
+            <div><strong>上下文不等于事实库</strong><p>模型混合的是表示，流畅输出仍可能建立在错误模式或缺失证据上。</p></div>
+            <div><strong>全连接注意力有代价</strong><p>长度为 n 的序列产生 n×n 分数矩阵，时间与显存通常随 n² 增长。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="check-band" id="ai-check">
+        <div class="page-width">
+          <div class="section-heading wide-heading">
+            <p class="section-number ai-number">05 · 理解检查</p>
+            <h2>从类比回到真实计算</h2>
+          </div>
+          <div class="quiz-grid">
+            <fieldset class="quiz" data-quiz="ai-1" data-correct="values">
+              <legend>注意力最后按权重混合的是什么？</legend>
+              <button type="button" data-choice="queries">查询向量 Q</button>
+              <button type="button" data-choice="keys">键向量 K</button>
+              <button type="button" data-choice="values">值向量 V</button>
+              <output aria-live="polite">选择一个答案。</output>
+            </fieldset>
+            <fieldset class="quiz" data-quiz="ai-2" data-correct="saturation">
+              <legend>缩放点积为什么除以 √d<sub>k</sub>？</legend>
+              <button type="button" data-choice="probability">让所有分数自动成为概率</button>
+              <button type="button" data-choice="saturation">抑制分数幅度，避免 softmax 过早饱和</button>
+              <button type="button" data-choice="remove-negative">消除所有负数</button>
+              <output aria-live="polite">选择一个解释。</output>
+            </fieldset>
+            <fieldset class="quiz" data-quiz="ai-3" data-correct="future-leak">
+              <legend>自回归训练为什么需要因果掩码？</legend>
+              <button type="button" data-choice="shorter">让句子在视觉上更短</button>
+              <button type="button" data-choice="future-leak">阻止当前位置读取未来答案</button>
+              <button type="button" data-choice="one-head">保证模型只有一个注意力头</button>
+              <output aria-live="polite">选择一个解释。</output>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="page-width footer-inner">
+      <p><strong>ELI18 原则：</strong>降低前置知识，不删除使结论成立的推理。</p>
+      <div>
+        <a href="../math-course/site/index.html">完整数学课程</a>
+        <a href="../ai-course/site/index.html">完整 AI 课程</a>
+        <a href="../eli5/index.html">对比 ELI5版</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

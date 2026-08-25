@@ -31,6 +31,7 @@ COURSES = (
 
 INTERACTIVE_EDITIONS = (
     "eli5",
+    "eli18",
 )
 
 MAX_FILES = 20_000
@@ -102,9 +103,10 @@ def main() -> int:
         )
         return 1
 
+    edition_word = "edition" if len(INTERACTIVE_EDITIONS) == 1 else "editions"
     print(
         f"PASS: assembled {len(COURSES)} course sites and "
-        f"{len(INTERACTIVE_EDITIONS)} interactive edition in {output}"
+        f"{len(INTERACTIVE_EDITIONS)} interactive {edition_word} in {output}"
     )
     print(f"Files: {len(files):,}; total: {format_mib(total_size)}")
     print(
