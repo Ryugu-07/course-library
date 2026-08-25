@@ -29,6 +29,10 @@ COURSES = (
     "wxb-course",
 )
 
+INTERACTIVE_EDITIONS = (
+    "eli5",
+)
+
 MAX_FILES = 20_000
 MAX_FILE_BYTES = 25 * 1024 * 1024
 
@@ -55,6 +59,14 @@ def main() -> int:
         print(f"ERROR: missing generated site(s): {', '.join(missing)}", file=sys.stderr)
         return 1
 
+    missing_editions = [name for name in INTERACTIVE_EDITIONS if not (root / name).is_dir()]
+    if missing_editions:
+        print(
+            f"ERROR: missing interactive edition(s): {', '.join(missing_editions)}",
+            file=sys.stderr,
+        )
+        return 1
+
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir()
     shutil.copy2(root / "index.html", output / "index.html")
@@ -63,6 +75,9 @@ def main() -> int:
         destination = output / name / "site"
         destination.parent.mkdir(parents=True)
         shutil.copytree(root / name / "site", destination)
+
+    for name in INTERACTIVE_EDITIONS:
+        shutil.copytree(root / name, output / name)
 
     shutil.copy2(
         root / "agent-lab" / "minimal_swe_agent.py",
@@ -87,7 +102,10 @@ def main() -> int:
         )
         return 1
 
-    print(f"PASS: assembled {len(COURSES)} course sites in {output}")
+    print(
+        f"PASS: assembled {len(COURSES)} course sites and "
+        f"{len(INTERACTIVE_EDITIONS)} interactive edition in {output}"
+    )
     print(f"Files: {len(files):,}; total: {format_mib(total_size)}")
     print(
         f"Largest: {largest.relative_to(output)} "

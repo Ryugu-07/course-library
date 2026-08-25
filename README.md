@@ -87,6 +87,6 @@ Build command: python tools/build_public_site.py
 Build output directory: public
 ```
 
-构建器会把 18 个已生成课程站点汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送时重建、审查并验证这份发布产物。
+构建器会把 18 个已生成课程站点和 ELI5 交互试验版汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送时重建、审查并验证这份发布产物。
 
 推荐把自定义域名设为 `course.hhzi.eu.cc`，以免影响现有的 `medusa.hhzi.eu.cc`。课程完全是静态内容，阅读进度仍保存在每台设备各自的浏览器中，不会跨设备同步。
