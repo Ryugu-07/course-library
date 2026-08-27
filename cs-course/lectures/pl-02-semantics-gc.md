@@ -3,6 +3,41 @@
 > **对标**：TAPL / Harper *PFPL* / GC 手册（Jones）｜ **前置**：pl-01（λ 演算、类型）、comp-02（解释器）
 > pl-01 讲了语言的类型骨架，这一页补三块：**形式语义**（怎么严格定义"程序是什么意思"，而非靠直觉）、**函数式编程范式**（不可变、纯函数、高阶抽象的威力，以及它为什么在并发和 ML 时代复兴）、**垃圾回收**（内存自动管理的机制——你写 Python/JS 不用 free，底下发生了什么）。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：对象互相引用，却为什么仍然可能是垃圾？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：一个两节点环应不应该被回收？</h3>
+<p>根集合只有 <code>main</code>，它曾指向对象 A；A 指向 B，B 又指向 A。随后 <code>main</code> 被改为 <code>null</code>。A、B 之间仍有两条引用。追踪式 GC 和纯引用计数会分别判断什么？如果一个程序的循环不变量是“队列长度等于入队减出队”，语义规则如何帮助我们证明优化没有改变它？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测可达集与回收时机</h3>
+<p>预测：<strong>①</strong> 根不可达后 A、B 都应被追踪式 GC 回收，尽管每个引用计数仍为 1；<strong>②</strong> 纯函数的相同输入可安全替换为相同输出，副作用则不能；<strong>③</strong> 分代 GC 会优先扫描年轻代，但跨代引用必须由 remembered set 等机制保留。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：语义关系 + 可达图</h3>
+<p>形式语义给程序定义状态如何一步步变化或映射到数学对象；内存管理把堆看成有向图，从 roots 出发的可达闭包是活对象。函数式风格减少可变边，GC 则在不再可达时回收节点，两者解决的是不同层面的推理与资源问题。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>小步操作语义写成 \(\langle e,\sigma\rangle\to\langle e',\sigma'\rangle\)，大步语义写成 \(\langle e,\sigma\rangle\Downarrow v,\sigma'\)；Hoare 三元组 \(\{P\}\ C\ \{Q\}\) 要求从满足 \(P\) 的状态执行 \(C\) 后得到满足 \(Q\) 的状态。GC 的活集是 \(\mathrm{Reach}(R)=\mu X.\ R\cup\mathrm{children}(X)\)，mark-sweep 回收 \(H\setminus\mathrm{Reach}(R)\)。引用计数只维护局部方程 \(\mathrm{rc}(o)=\#\{\text{incoming references}\}\)，因此无法识别无根环。</p>
+<p>语义保持的不变量是编译器变换前后对观察上下文产生相同结果；GC 的安全不变量是永不回收仍可从根访问的对象。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>追踪式 GC 能处理环，但不保证低延迟；暂停、并发标记、碎片和写屏障仍是工程权衡。</li><li>引用计数及时，却可能因环泄漏，并且每次增减计数在多线程下需要同步；弱引用只改变图中的保持关系。</li><li>纯函数易推理不代表整个程序无副作用；I/O、时间、随机数和资源释放必须在语义或效果系统中显式建模。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把堆图接到 Python 与 Rust</h3>
+<p>画出 Python 小对象图，分别标根、强引用、环和可回收集；再比较 Rust 所有权释放与 tracing GC 的时间点。对 comp-02 的解释器写一条 Hoare 规格，说明一个环境/堆优化保持了什么观察行为，并把真实 GC 实验与这张图对照。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-pl-02-semantics-gc" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>根 <code>main</code> 指向 A，A→B，B→A；当 <code>main=null</code> 后，\(\mathrm{Reach}(R)=\varnothing\)，追踪式 GC 回收 A、B。纯引用计数看到 A、B 各有 1 条环内引用，计数不归零，因而泄漏。交互版可切换根、边和 GC 策略，显示 mark/sweep、copying 与 ref-count 的状态变化。</p>
+<table><thead><tr><th>对象</th><th>入引用（根失效后）</th><th>追踪式 GC</th><th>引用计数</th></tr></thead><tbody><tr><td>A</td><td>来自 B：1</td><td>回收</td><td>保留</td></tr><tr><td>B</td><td>来自 A：1</td><td>回收</td><td>保留</td></tr><tr><td>根</td><td>0</td><td>不在堆</td><td>不在堆</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 形式语义：程序"意义"的严格定义
 
 编译器/解释器要正确，先得说清"程序该做什么"——这就是**语义**。三种风格：

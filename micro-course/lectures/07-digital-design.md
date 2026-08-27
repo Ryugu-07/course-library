@@ -3,6 +3,81 @@
 > **层次**：本科核心 + 业界日常 ｜ **这一页是数字后端工程师的主业**。
 > 有了逻辑门还不够——必须让它们在**时间**上协同。本页讲同步设计的基本契约（建立/保持时间）、时钟网络的现实困难，以及决定"这颗芯片能跑多少 GHz"的那个分析：**静态时序分析（STA）**。这是学校里常被轻描淡写、而在工业界占据大量工时的内容。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+
+## 学习层：同一条路径，为什么降频能救 setup 却救不了 hold？
+
+### 1. 具体谜题：数据到底是太晚还是太早？
+
+考虑一条寄存器到寄存器路径：\(t_{cq}=0.10\ \mathrm{ns}\)、组合逻辑最大延迟 \(0.75\ \mathrm{ns}\)、最小延迟 \(0.04\ \mathrm{ns}\)、\(t_{su}=0.10\ \mathrm{ns}\)、\(t_h=0.08\ \mathrm{ns}\)，时钟偏斜 \(+0.02\ \mathrm{ns}\)，抖动预算 \(0.03\ \mathrm{ns}\)，周期 \(T=1.0\ \mathrm{ns}\)。这条路径的风险来自慢路径还是快路径？若把周期改成 \(0.8\ \mathrm{ns}\) 或 \(1.2\ \mathrm{ns}\)，哪一个裕量会变化？
+
+先预测：慢工艺角更容易 setup 违例，快工艺角更容易 hold 违例；降低频率能增加 setup slack，但对 hold slack 是否完全无效。
+
+### 2. 先预测：在打开波形前写下修复动作
+
+交互台先让你选择三项：
+
+1. 当前是 setup fail、hold fail、双 fail 还是通过？
+2. 若只允许改周期，哪一种违例可能被修复？
+3. 若 hold 违例，应该减少数据延迟还是插入最小延迟单元？
+
+提交预测后，实验才显示 launch/capture 边沿、数据到达窗口、setup/hold slack 和 slow/fast PVT 角。注意，时序判断的对象是“到达时间相对于禁止窗口”，不是某一次随机输入波形。
+
+### 3. 最小心智模型：一条路径的两个时间边界
+
+发射触发器在时钟边沿后经过 \(t_{cq}\) 才把数据送入组合逻辑；捕获触发器在下一条边沿前需要 setup、边沿后仍要 hold。最大延迟决定数据能否及时到达，最小延迟决定数据会不会过早闯入当前捕获窗口。
+
+STA 把每条路径压缩成一张最坏情况账本，不靠激励覆盖率。它的边界是约束必须正确：假路径、多周期路径、generated clock、CDC 和相关抖动若描述错误，穷举只会稳定地给出错误答案。
+
+### 4. 形式机制与不变量：setup、hold 和 PVT
+
+按本页符号，建立与保持裕量为
+
+$$
+S_{\mathrm{setup}}
+=T+t_{\mathrm{skew}}-t_{\mathrm{jitter}}
+-t_{cq}-t_{\mathrm{logic,max}}-t_{su},
+$$
+
+$$
+S_{\mathrm{hold}}
+=t_{cq}+t_{\mathrm{logic,min}}
+-t_h-t_{\mathrm{skew}}-t_{\mathrm{jitter}}.
+$$
+
+通过条件是两者都不小于 0。所需最小周期为
+\(T_{\min}=t_{cq}+t_{\mathrm{logic,max}}+t_{su}+t_{\mathrm{jitter}}-t_{\mathrm{skew}}\)，最高频率近似 \(1/T_{\min}\)。改变 \(T\) 只改变 setup 方程，不出现在 hold 方程；这是最重要的不变量。慢角应放大最大延迟，快角应缩小最小延迟，抖动则同时消耗两类预算。
+
+### 5. 交互实验：把 STA 变成可定位的时间线
+
+<div class="learning-lab" data-learning-lab="micro-timing">
+<p><strong>无 JavaScript 时的静态读法：</strong>先取 \(T=1.00\ \mathrm{ns}\)、\(t_{cq}=0.10\ \mathrm{ns}\)、\(t_{\mathrm{logic,max}}=0.75\ \mathrm{ns}\)、\(t_{\mathrm{logic,min}}=0.04\ \mathrm{ns}\)、\(t_{su}=0.10\ \mathrm{ns}\)、\(t_h=0.08\ \mathrm{ns}\)、\(t_{\mathrm{skew}}=0.02\ \mathrm{ns}\)、\(t_{\mathrm{jitter}}=0.03\ \mathrm{ns}\)。默认账本如下。</p>
+<table>
+<thead><tr><th>角/动作</th><th>setup slack</th><th>hold slack</th><th>结论</th></tr></thead>
+<tbody>
+<tr><th>名义角</th><td>\(1+.02-.03-.10-.75-.10=+0.04\ \mathrm{ns}\)</td><td>\(.10+.04-.08-.02-.03=+0.01\ \mathrm{ns}\)</td><td>通过但余量很薄</td></tr>
+<tr><th>周期改为 \(0.80\ \mathrm{ns}\)</th><td>\(-0.16\ \mathrm{ns}\)</td><td>\(+0.01\ \mathrm{ns}\)</td><td>只制造 setup 违例</td></tr>
+<tr><th>最小延迟降到 \(0\)</th><td>\(+0.04\ \mathrm{ns}\)</td><td>\(-0.03\ \mathrm{ns}\)</td><td>hold 违例，降频无效</td></tr>
+</tbody>
+</table>
+<p>脚本提供 setup danger、hold danger、clean 三个确定性预设，并可调周期、最大/最小逻辑延迟、偏斜和抖动。时间线、各 PVT 角的最小 slack、修复建议与最高频率会同步更新；所有输入都有单位和可键盘操作的滑块。</p>
+</div>
+
+### 6. 反例与失效边界：STA 的“穷举”不等于无条件正确
+
+- “把时钟频率降下来就安全”只对 setup 违例成立；hold 是同一捕获边沿附近的最小延迟问题。
+- “快角总是最好”忽略快角对 hold 和最小脉宽更危险；慢角也可能使 setup、功耗和 IR drop 恶化。
+- “slack 为正就一定可靠”忽略时钟相关性、随机抖动、OCV/AOCV/POCV、串扰和约束覆盖；signoff 需要多模式多角。
+- “仿真没遇到错误所以通过”不能覆盖未激励路径；但 STA 也会被错误的 false path 或 multicycle 约束欺骗。
+
+### 7. 迁移题：用代价选择修复手段
+
+若一条路径 setup slack 为 \(-80\ \mathrm{ps}\)，另一条路径 hold slack 为 \(-25\ \mathrm{ps}\)，请分别选择降频/逻辑优化/加大驱动与插入延迟单元，并说明它们对面积、功耗和相邻路径的副作用。再问：流水线切分为什么能改善最长组合路径，却会增加 \(t_{cq}+t_{su}\)、latency 与分支失败代价？
+
+</section>
+
 ## 一、同步设计的契约
 
 绝大多数数字芯片采用**同步设计**：所有状态元件（触发器）由同一个时钟边沿更新。这带来一个简单而强大的约定——**只要每条组合路径能在一个时钟周期内稳定下来，整个系统的行为就是可预测的**。

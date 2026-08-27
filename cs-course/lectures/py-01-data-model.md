@@ -3,6 +3,40 @@
 > **对标**：*Fluent Python*（Ramalho）/ CPython 官方数据模型 ｜ **前置**：CS61A（抽象、高阶函数）、pl-02（动态类型、鸭子类型的理论）
 > 你天天用 Python 写 Medusa——但"会用"和"懂它的设计"是两回事。这一页讲 Python 之所以是 Python 的那套核心机制：**一切皆对象的数据模型**、**特殊方法（dunder）如何让你的类无缝接入语言**、**鸭子类型的哲学**、以及迭代器/生成器这套让 Python 代码"Pythonic"的惯用法。理解它，你会从"照着写"升级到"按语言的意图写"，Medusa 的数据处理代码会更干净。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一个运算符，为什么会调用完全不同的代码？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：<code>+=</code> 是改对象还是换绑定？</h3>
+<p>执行 <code>a=[1,2]; b=a; b += [3]</code> 后，<code>a</code> 与 <code>b</code> 是否仍指向同一个列表？把相同形状换成元组 <code>t=(1,2); u=t; u += (3,)</code>，结果又是什么？随后对一个迭代器连续调用三次 <code>next</code>，它必须保持什么不变量？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测身份、协议和耗尽状态</h3>
+<p>预测：<strong>①</strong> 列表通常通过 <code>__iadd__</code> 原地扩展，<code>a is b</code> 仍为真且两者看到 3；<strong>②</strong> 元组不可变，<code>__iadd__</code> 回退为新元组绑定，<code>t is u</code> 为假；<strong>③</strong> 迭代器每次成功 <code>next</code> 都推进内部游标，耗尽后稳定抛出 <code>StopIteration</code>。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：名字、对象、协议</h3>
+<p>Python 名字绑定对象，语言操作通过数据模型协议分派到特殊方法；“鸭子类型”检查的是所需行为而非名义继承。迭代器是带状态的对象，生成器把状态机写成可暂停的控制流；理解身份与可变性比背诵语法更能预测程序行为。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对表达式 \(x+y\)，可抽象为查找 \(type(x).__add__(x,y)\)，若返回 <code>NotImplemented</code> 再尝试反向协议；<code>len(x)</code> 对应 \(x.__len__()\)。赋值只改变环境映射 \(\rho(name)=object\)，不复制对象。迭代器满足 \(\mathrm{iter}(it)=it\)，并维护游标 \(k\)：成功调用返回 \(S[k]\) 后令 \(k\leftarrow k+1\)，\(k=|S|\) 后所有后续调用都保持“已耗尽”。</p>
+<p>协议实现的正确性不变量是返回值与异常符合调用方约定；可变对象的别名操作必须明确是否改变共享对象。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>“看起来像鸭子”不是任意错误都能推迟到运行时；协议缺失、错误返回类型和副作用仍需测试或静态工具发现。</li><li><code>+=</code> 的具体行为取决于类型是否实现原地协议；不可变对象的回退会产生新对象，但容器中的别名可能让观察结果更复杂。</li><li>生成器不是免费并行：它只交错执行一个线程中的暂停点，I/O、异常传播和资源关闭仍要设计。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把协议账本用于真实数据管线</h3>
+<p>为一个 Medusa 数据对象写出 <code>__iter__</code>、<code>__next__</code>、<code>__len__</code> 和 <code>__getitem__</code> 的契约，记录别名与耗尽状态。再把列表推导改成生成器，测量峰值内存，并说明这和 pl-02 的纯函数/惰性求值、L01 的数据布局有什么联系。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-py-01-data-model" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong><code>a=[1,2]; b=a; b += [3]</code> 通常调用列表的原地扩展，所以 <code>a is b</code> 为真，内容都是 <code>[1,2,3]</code>；元组没有可变原地扩展，<code>u += (3,)</code> 绑定新元组，<code>t is u</code> 为假。一个三元素迭代器的游标依次为 0、1、2、3，再次 <code>next</code> 都抛 <code>StopIteration</code>。交互版切换协议实现，显示名字绑定、dunder 分派和迭代 trace。</p>\n+<table><thead><tr><th>操作</th><th>协议</th><th>状态变化</th><th>可观察结果</th></tr></thead><tbody><tr><td><code>len(x)</code></td><td><code>__len__</code></td><td>无</td><td>整数长度</td></tr><tr><td><code>list += y</code></td><td><code>__iadd__</code></td><td>原对象扩展</td><td>别名同时改变</td></tr><tr><td><code>next(it)</code></td><td><code>__next__</code></td><td>游标 +1</td><td>耗尽后稳定异常</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 一切皆对象：Python 的世界观
 
 

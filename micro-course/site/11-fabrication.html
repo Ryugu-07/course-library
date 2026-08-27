@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,20 +45,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、基本思路：平面工艺</a></li>
-<li><a href="#_2">二、从沙子到晶圆</a></li>
-<li><a href="#_3">三、光刻：图形化的核心</a></li>
-<li><a href="#_4">四、其他核心工序</a></li>
-<li><a href="#_5">五、前道与后道</a></li>
-<li><a href="#_6">六、洁净室与工业现实</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：制造是一个受热预算与缺陷概率约束的状态机</a><ul>
+<li><a href="#_2">具体谜题：为什么把晶圆做大还不够？</a></li>
+<li><a href="#_3">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：整片晶圆同步推进的状态机</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">交互实验：把晶圆账本跑一遍</a></li>
+<li><a href="#_7">迁移任务：为一个新器件排工艺顺序</a></li>
+</ul>
+</li>
+<li><a href="#_8">一、基本思路：平面工艺</a></li>
+<li><a href="#_9">二、从沙子到晶圆</a></li>
+<li><a href="#_10">三、光刻：图形化的核心</a></li>
+<li><a href="#_11">四、其他核心工序</a></li>
+<li><a href="#_12">五、前道与后道</a></li>
+<li><a href="#_13">六、洁净室与工业现实</a></li>
+<li><a href="#_14">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +77,80 @@
 <p><strong>层次</strong>：本科核心 + 硕博工艺方向入口。
 前面十页讲的都是"设计什么"，本页开始讲"怎么造出来"。集成电路制造是人类工业史上最精密的流程：在直径 300 mm 的晶圆上，用数百道工序，造出数百亿个特征尺寸只有几十个原子宽的结构，且<strong>良率必须够高才有商业价值</strong>。<strong>理解制造，才能理解为什么设计必须遵守那些看似武断的规则。</strong></p>
 </blockquote>
-<h2 id="_1">一、基本思路：平面工艺<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：制造是一个受热预算与缺陷概率约束的状态机<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：为什么把晶圆做大还不够？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>假设一片 300 mm 晶圆的可用面积取 90%，每颗裸片为 100 mm<sup>2</sup>，每一道关键工序独立产生 5% 的致命缺陷，关键工序共有 8 道。你预计一片晶圆能切出多少颗<strong>好</strong>裸片？如果把晶圆换成 200 mm，单位裸片的成本会按面积比例下降吗？再假设金属互连已经完成，下一步仍需要 800 °C 的热处理，这个流程是“多一道工序”还是已经违反了材料的状态约束？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先做预测<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下三条判断：<strong>①</strong> 300 mm 的几何面积是 200 mm 的 2.25 倍，但好裸片数不会必然恰好增加 2.25 倍；<strong>②</strong> 8 道各 5% 的缺陷风险不会相加成 40%，而要乘成一个存活概率；<strong>③</strong> BEOL 之后的高温步骤即使局部器件本身能承受，也可能让低 κ 介质或金属互连越过热预算。实验会把这三条分别变成面积、良率与工艺状态的读数。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：整片晶圆同步推进的状态机<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>一片晶圆不是逐颗加工的流水线，而是所有已暴露区域共同经过沉积、图形化、刻蚀、掺杂、清洗、热处理和 CMP。对第 <em>k</em> 道工序，可以把晶圆状态写成 <code>S<sub>k+1</sub> = f<sub>k</sub>(S<sub>k</sub>, recipe<sub>k</sub>)</code>；状态中同时包含材料层、几何形状、缺陷账本与累计热历史。并行制造解释了“器件数增加而工序成本不按器件数增加”，但也意味着一个污染或套刻事件可以同时影响许多裸片。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>用晶圆直径 <code>D</code>、可用面积比例 <code>u</code>、裸片面积 <code>a</code> 表示几何产出：</p>
+<div class="cl-formula">A<sub>wafer</sub> = pi(D/2)<sup>2</sup>, &nbsp; A<sub>usable</sub> = u A<sub>wafer</sub>, &nbsp; N<sub>gross</sub> = floor(A<sub>usable</sub> / a)</div>
+<p>若关键工序的独立致命缺陷率为 <code>p<sub>k</sub></code>，一个透明的第一模型是 <code>Y = product<sub>k</sub>(1 - p<sub>k</sub>)</code>，于是单颗好裸片成本近似为 <code>C<sub>wafer</sub> / (N<sub>gross</sub> Y)</code>。热预算则是一个硬不变量：对已经完成的材料集合，任何后续 recipe 都必须满足 <code>T<sub>after</sub> &lt;= T<sub>allowed</sub></code>；否则流程不是“效率较低”，而是状态不可逆地被破坏。</p>
+<p>实验还显示两个尺度：晶圆直径改变几何项，关键工序数或缺陷率改变概率项。把两者混成“晶圆越大越便宜”会掩盖真正的约束。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>独立缺陷乘积不是完整良率模型：颗粒聚集、晶圆边缘效应和系统性套刻误差会使缺陷相关，需用空间统计或负二项模型修正。</li>
+<li>几何面积不能直接等同于裸片数：街道区、边缘残片、测试结构和不同矩形排布都会改变 <code>N<sub>gross</sub></code>。</li>
+<li>“热预算不超标”也不保证良品：清洗残留、掺杂活化、膜应力和 CMP 碟形会改变后续工序的输入状态。</li>
+<li>平面工艺的并行性有设备瓶颈；一次只处理一片晶圆的机台、等待批次或返工会让 cycle time 不能由工序时间简单相加。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_6">交互实验：把晶圆账本跑一遍<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-fab-flow">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>u=0.90</code>、裸片面积 <code>100 mm<sup>2</sup></code>、每关键工序缺陷率 <code>5%</code>、关键工序数 <code>8</code>。200 mm 晶圆的全圆面积约 31,416 mm<sup>2</sup>、按 90% 计的可用面积约 28,274 mm<sup>2</sup>，可用区可排约 282 颗；300 mm 的对应数字约为 70,686、63,617 mm<sup>2</sup> 与 636 颗。良率为 <code>0.95<sup>8</sup> = 0.663</code>，所以两种直径的好裸片数约为 187 与 422。若晶圆成本分别取 4,500 与 8,000，单颗好裸片成本约为 24.1 与 19.0；这只是透明玩具账本。若 BEOL 后再加入 800 °C 步骤，而允许热预算为 400 °C，状态检查必须失败。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">直径</th>
+<th scope="col">全圆面积</th>
+<th scope="col">可用面积（90%）</th>
+<th scope="col">可用区几何裸片</th>
+<th scope="col">好裸片估计</th>
+<th scope="col">热检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200 mm</td>
+<td>31,416 mm<sup>2</sup></td>
+<td>28,274 mm<sup>2</sup></td>
+<td>282</td>
+<td>187</td>
+<td>通过（若后续低温）</td>
+</tr>
+<tr>
+<td>300 mm</td>
+<td>70,686 mm<sup>2</sup></td>
+<td>63,617 mm<sup>2</sup></td>
+<td>636</td>
+<td>422</td>
+<td>800 °C 步骤失败</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移任务：为一个新器件排工艺顺序<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>你要在现有低 κ 金属互连上增加一层传感器。给出它需要 350 °C、600 °C 两种候选退火的理由，并用上面的状态机写出至少四个状态变量：材料完整性、缺陷密度、接触电阻与累计热预算。若 600 °C 能把接触电阻降低 20% 但会损伤低 κ 层，而 350 °C 只降低 8%，请说明你会如何把“性能收益”和“整片良率”放入同一个签核决策。</p>
+</div>
+</section>
+<h2 id="_8">一、基本思路：平面工艺<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>现代 IC 制造的核心思想（<strong>平面工艺</strong>，Noyce 与 Hoerni 等人奠定）是：</p>
 <blockquote>
 <p><strong>不去逐个制造器件，而是在整片晶圆上一层一层地做加减法，用图形化决定每层材料出现在哪里。</strong></p>
@@ -86,7 +184,7 @@
 </tbody>
 </table>
 <p>外加<strong>平坦化</strong>与<strong>清洗/热处理</strong>作为支撑。</p>
-<h2 id="_2">二、从沙子到晶圆<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_9">二、从沙子到晶圆<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <ol>
 <li><strong>提纯</strong>：石英砂 → 冶金级硅 → 经西门子法等提纯到<strong>电子级硅（9N–11N 纯度）</strong>——杂质需低于十亿分之一量级；</li>
 <li><strong>单晶生长</strong>：<strong>Czochralski 法</strong>——籽晶浸入熔融硅中边旋转边缓慢提拉，长成单晶硅锭（直径 300 mm，重达百公斤）。<strong>整根硅锭是一个连续的晶体</strong>；</li>
@@ -94,7 +192,7 @@
 <li><strong>外延</strong>（可选）：在表面生长一层高质量单晶层。</li>
 </ol>
 <p><strong>晶圆尺寸的经济学</strong>：从 200 mm 到 300 mm，单片面积增加约 2.25 倍，<strong>边缘浪费比例下降</strong>，摊薄了单位面积的处理成本。<strong>450 mm 曾被规划但因成本与技术难度被搁置</strong>——这是一个"缩放经济学失效"的早期案例。</p>
-<h2 id="_3">三、光刻：图形化的核心<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_10">三、光刻：图形化的核心<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>光刻决定了能做多小，因而是整个流程的<strong>节奏控制者</strong>，也是最贵的一步（下一页专讲物理极限）。基本步骤：</p>
 <p><strong>涂胶 → 曝光 → 显影 → 刻蚀 → 去胶</strong></p>
 <p>关键概念：</p>
@@ -103,7 +201,7 @@
 <li><strong>步进扫描光刻机</strong>：一次曝光一个"场"（约 26×33 mm），逐场步进覆盖整片晶圆。<strong>这个最大场尺寸叫"掩模版极限"，它给单颗芯片的面积设了上限</strong>——超过它就必须拆成多颗再封装（第十五页 Chiplet 的又一动机）；</li>
 <li><strong>套刻精度（overlay）</strong>：每一层必须与前面各层精确对准，误差需控制在纳米级。<strong>几十层的累积对准误差是良率的关键来源。</strong></li>
 </ul>
-<h2 id="_4">四、其他核心工序<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_11">四、其他核心工序<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p><strong>刻蚀</strong>：</p>
 <ul>
 <li><strong>湿法</strong>（化学溶液）：各向同性，选择比好，用于清洗与非关键层；</li>
@@ -122,21 +220,21 @@
 </ul>
 <p><strong>平坦化（CMP，化学机械抛光）</strong>：用化学腐蚀 + 机械研磨把表面磨平。
 <strong>为什么必需</strong>：光刻的<strong>焦深极浅</strong>（下一页），表面若不平整就无法在整个场内同时清晰成像。多层互连若不逐层平坦化，起伏会不断累积。<strong>CMP 的发明是多层金属互连得以实现的关键前提之一。</strong></p>
-<h2 id="_5">五、前道与后道<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_12">五、前道与后道<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>前道（FEOL）</strong>：制造晶体管本身（阱、隔离、栅、源漏）；</li>
 <li><strong>中道（MEOL）</strong>：接触孔，把器件引出；</li>
 <li><strong>后道（BEOL）</strong>：<strong>多层金属互连</strong>——现代芯片可达十几层金属，用铜（大马士革工艺，因为铜难以刻蚀，改用先挖沟槽再填充再 CMP 的思路）与低κ介质降低 <span class="arithmatex">\(RC\)</span> 延迟（承第六页）。</li>
 </ul>
 <p><strong>热预算约束</strong>：后道的金属与低κ材料<strong>不耐高温</strong>，所以所有高温工序必须在前道完成。<strong>这个约束深刻影响了 3D 集成的技术路线</strong>——想在已有电路上层再造晶体管，就必须发展低温器件工艺（第十九页）。</p>
-<h2 id="_6">六、洁净室与工业现实<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_13">六、洁净室与工业现实<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
 <ul>
 <li><strong>洁净度</strong>：Class 1 级洁净室，每立方英尺 0.1 μm 以上颗粒少于 1 个。<strong>一颗微米级尘埃落在关键层上就是一个坏芯片</strong>；</li>
 <li><strong>工序数量</strong>：先进逻辑节点总工序数可达上千步，<strong>制造周期（cycle time）数月</strong>；</li>
 <li><strong>投资规模</strong>：一座先进晶圆厂投资达百亿到两百亿美元量级，<strong>其中光刻设备占很大比重</strong>。<strong>这个资本门槛，是半导体产业高度集中的根本原因</strong>（第二十页）；</li>
 <li><strong>一次流片（tape-out）的掩模版成本</strong>在先进节点可达数百万美元量级——<strong>这意味着设计错误的代价极其高昂，也解释了为什么验证与签核流程如此严苛</strong>（第七、十四页）。</li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_14">七、要点<a class="headerlink" href="#_14" title="Permanent link"></a></h2>
 <ul>
 <li><strong>平面工艺 = 逐层加减 + 图形化</strong>，成本与器件数无关——这是集成电路经济性的根源；</li>
 <li><strong>光刻是节奏控制者</strong>，掩模版场尺寸给单芯片面积设了上限；</li>
@@ -155,5 +253,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-fab-flow.js"></script>
 </body>
 </html>

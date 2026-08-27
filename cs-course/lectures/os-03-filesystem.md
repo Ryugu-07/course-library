@@ -3,6 +3,45 @@
 > **对标**：MIT 6.S081 / OSTEP 持久化篇 ｜ **前置**：os-01/02、csapp-02（磁盘在存储金字塔底层）
 > OSTEP 三大主题的最后一个——持久化。内存断电即失，**文件系统负责把数据可靠地存进磁盘、并在崩溃后不损坏**。这一页讲文件系统怎么把"文件与目录"这个抽象铺在裸盘的扇区上（inode、目录、分配），以及最难的部分——**断电发生在写一半时，怎么保证不变成一团乱麻**（崩溃一致性：日志与 fsck）。这也直接是 db 线事务恢复的前身。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：断电发生在第几个块，文件系统还能自洽吗？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：追加一个数据块为何要改三处？</h3>
+<p>文件当前为空，要把数据写入块 42。系统必须写数据块、数据位图和 inode 指针/大小；若恰好完成其中 1 或 2 次写入就断电，重启后是“文件丢了”、块泄漏，还是两个文件共享同一块？先按写入顺序做出判断。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择“直接写盘”或“预写日志”，并预测每一个崩溃点恢复后的文件大小、块 42 的位图状态，以及是否存在孤儿块。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：名字、inode、位图不是同一个对象</h3>
+<p>目录把名字映射到 inode；inode 再把文件映射到数据块；位图记录块的分配状态。一次更新是一个小型状态转换，而不是一条不可分割的“保存文件”指令。日志把这些修改先写入稳定存储，再以提交记录声明它们属于同一事务。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>对每个被 inode 指向的块 <span class="arithmatex">\(b\)</span>，一致性要求 <span class="arithmatex">\(\mathrm{pointed}(b)\Rightarrow\mathrm{allocated}(b)\land\mathrm{data}(b)\)</span>；反向的 allocated 但未被引用是空间泄漏。WAL 要求日志记录的持久化序号先于数据页落盘：<span class="arithmatex">\(\mathrm{LSN}_{log}\le\mathrm{LSN}_{page}\)</span>。恢复时，已提交事务 redo，未提交事务不应用（或 undo），从而把多块修改呈现为原子状态。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>fsck 可以在事后推测并修补，却需要扫描全盘，且无法恢复用户原本想写的内容；只记录元数据的日志不等于数据日志，仍可能暴露旧数据；<code>fsync</code> 只在正确的文件描述符、目录项和存储设备持久化语义下提供承诺，不能把任意缓存都变成原子写。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：从块分配到数据库恢复</h3>
+<p>先在 L03 malloc 实验中把“已分配但不可达”的块类比为内存泄漏，再在 P01-C 画出 xv6 创建文件的 inode、位图和目录写集合。最后把同一不变量带到 db-03 的 WAL；数据库恢复会复用这里的持久化顺序，但还要增加事务提交与并发控制。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-os-03-filesystem">
+<h3>交互实验：逐个崩溃点检查文件系统状态</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>追加块 42 的直接写入顺序固定为“数据→位图→inode”。崩溃在 0 次写入时旧文件仍一致；在第 1 次后出现“数据已写但不可达”；在第 2 次后出现“位图已占用但 inode 未指向”的孤儿块；在第 3 次后才一致。WAL 版本先写三条日志记录，再写 commit：commit 前恢复旧状态，commit 后 redo 三项，所有崩溃点都不会暴露半个事务。</p>
+<table><thead><tr><th>恢复策略</th><th>崩溃点</th><th>inode 指针</th><th>位图</th><th>结果</th></tr></thead><tbody><tr><td>直接写盘</td><td>1/3</td><td>空</td><td>空</td><td>数据不可达</td></tr><tr><td>直接写盘</td><td>2/3</td><td>空</td><td>42 已用</td><td>块泄漏</td></tr><tr><td>直接写盘</td><td>3/3</td><td>42</td><td>42 已用</td><td>一致</td></tr><tr><td>WAL</td><td>commit 前</td><td>空</td><td>空</td><td>丢弃未提交日志</td></tr><tr><td>WAL</td><td>commit 后</td><td>42</td><td>42 已用</td><td>redo 后一致</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 从裸盘到文件抽象
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：谱隙和“看不见未来”各自测量什么？</a><ul>
+<li><a href="#_2">具体谜题：哪张图更容易被切开？</a></li>
+<li><a href="#_3">先预测两个量</a></li>
+<li><a href="#_4">最小心智模型：能量与遗憾</a></li>
+<li><a href="#rayleigh">形式机制：Rayleigh 商与竞争比</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">迁移题：识别证据的类型</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 图拉普拉斯：图的线性代数化身</a></li>
 <li><a href="#2">2. 随机游走与混合时间</a></li>
 <li><a href="#3">3. 在线算法：不知未来如何决策</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：MIT 6.854 / Spielman <em>Spectral Graph Theory</em> / 竞争分析经典 ｜ <strong>前置</strong>：adv-01、数学站线代（特征值、Rayleigh 商）、概率线
 两个高级主题，各自展示一种"数学直接变算法"的美：<strong>谱图论</strong>把图的组合性质编码进拉普拉斯矩阵的特征值（你在线代里学的 Rayleigh 商直接上岗）；<strong>在线算法</strong>处理"必须在看到未来前决策"的问题，用竞争比量化"不知未来的代价"。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：谱隙和“看不见未来”各自测量什么？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：哪张图更容易被切开？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>比较四点路径 <span class="arithmatex">\(0-1-2-3\)</span> 与两条紧密小团之间只有一条弱桥的图。把每个点标成一个实数，要求相邻点差别不要太大：哪张图的非平凡最光滑标注代价更小？再想 ski rental：每天租 1 元、买断价 <span class="arithmatex">\(B=5\)</span>，只知道今天，不知道还会滑几天，什么时候买才不至于被最坏未来击穿？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测两个量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 两个不连通分量的 <span class="arithmatex">\(\lambda_2\)</span> 应为 0，弱桥图的 <span class="arithmatex">\(\lambda_2\)</span> 小于路径图；<strong>②</strong> 租到累计 5 元再买的确定性策略最坏接近 2 倍离线最优；<strong>③</strong> 谱量给的是结构证据，竞争比给的是对手证据，二者都不是“平均表现”。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：能量与遗憾<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>拉普拉斯二次型把图标注的粗糙度加总；在去掉常数向量后，最小 Rayleigh 商就是最平滑的非平凡方向。在线算法则保存一个当前策略和它付出的成本，拿它与事后知道整个序列的离线最优比较。一个是空间结构的证书，一个是信息不足的代价。</p>
+</div>
+<div class="learning-formal">
+<h3 id="rayleigh">形式机制：Rayleigh 商与竞争比<a class="headerlink" href="#rayleigh" title="Permanent link"></a></h3>
+<p>对无向图 <span class="arithmatex">\(L=D-A\)</span>，有 <span class="arithmatex">\(x^TLx=\sum_{(u,v)\in E}(x_u-x_v)^2\ge0\)</span>，且 <span class="arithmatex">\(\lambda_2=\min_{x\perp\mathbf1}x^TLx/(x^Tx)\)</span>。Cheeger 不等式把它与稀疏割 <span class="arithmatex">\(\phi\)</span> 夹住。在线成本用 <span class="arithmatex">\(\sup_\sigma C_{\mathrm{on}}(\sigma)/C_{\mathrm{off}}(\sigma)\)</span> 定义；ski rental 在阈值 <span class="arithmatex">\(B\)</span> 处购买，成本至多 <span class="arithmatex">\(2\min(H,B)\)</span>。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(\lambda_2=0\)</span> 只说明不连通；Fiedler 向量的符号切分是有理论支持的启发式，不等于所有图上的最小割。</li>
+<li>谱值会依赖加权/归一化约定；把组合拉普拉斯与随机游走矩阵的特征值直接互换会错一个模型。</li>
+<li>竞争比是最坏序列比值，不等于平均延迟；一个在线策略可以平均很好，却被一个精心安排的未来击中。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移题：识别证据的类型<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>对社交图聚类、PageRank、缓存淘汰和云资源租赁，分别写出你要观察的谱量或势函数、离线基准和失败边界。说明何时应选特征向量来发现结构，何时应选竞争分析来保证不知道未来时仍有上界。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-adv-02-spectral-online">
+<p><strong>无 JavaScript 时的静态版本：</strong>四点路径的已知第二特征值约为 <span class="arithmatex">\(\lambda_2=2-\sqrt2\approx0.586\)</span>；两条分离的边有两个连通分量，故 <span class="arithmatex">\(\lambda_2=0\)</span>。Ski rental 若 <span class="arithmatex">\(B=5\)</span> 且恰好滑 5 天，在线策略租满 5 天、总成本 5，离线最优成本 5，比值 1；若滑 6 天，在线策略再买入、总成本 10，离线最优成本 5，比值 2；滑 3 天时在线成本 3、离线成本 3。页面脚本会切换图谱和未来长度，显示 Rayleigh 能量与竞争比。</p>
+</div>
+</section>
 <h2 id="1">1. 图拉普拉斯：图的线性代数化身<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>图 <span class="arithmatex">\(G\)</span> 的<strong>拉普拉斯矩阵</strong> <span class="arithmatex">\(L = D - A\)</span>（<span class="arithmatex">\(D\)</span> 度对角阵、<span class="arithmatex">\(A\)</span> 邻接阵）。它是本段主角，性质全从二次型来：</p>
 <div class="arithmatex">\[
@@ -108,5 +168,7 @@ x^T L x = \sum_{(u,v)\in E}(x_u - x_v)^2 \ge 0
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-adv-02-spectral-online.js"></script>
 </body>
 </html>

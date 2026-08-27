@@ -3,6 +3,43 @@
 > **对标**：CS:APP 第 7–8 章 ｜ **前置**：csapp-01/02
 > 两个常被跳过、却是"程序如何真正运行起来"的关键机制：**链接**（多个源文件、库怎么拼成一个可执行文件，为什么会有那些诡异的 "undefined reference" 和 "multiple definition"）与**异常控制流**（程序的执行怎么被硬件中断、系统调用、信号打断和切换——一切并发与操作系统的物理起点）。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：错误发生在拼装哪一步？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：同一个 <code>foo</code>，为什么三种结果？</h3>
+<p><code>main.o</code> 引用了 <code>foo</code>；若 <code>a.o</code> 定义一次，链接应成功；若没有任何定义，得到 <code>undefined reference</code>；若 <code>a.o</code> 与 <code>b.o</code> 都给出强定义，得到 <code>multiple definition</code>。与此同时，<code>fork(); fork();</code> 为什么会留下 4 个执行流？它们又是怎样被时钟中断切换的？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测解析与复制</h3>
+<p>先写下：<strong>①</strong> 链接器先匹配符号名，再修正地址，找不到/重复是解析错误；<strong>②</strong> 每次 <code>fork</code> 都让当前执行状态复制一份，所以连续两次得到 <span class="arithmatex">\(2^2=4\)</span> 个进程；<strong>③</strong> 系统调用是程序主动触发的 trap，缺页是可恢复的 fault，不是普通函数调用。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：名字绑定与控制流转移</h3>
+<p>链接把各目标文件中的“谁定义、谁引用”统一到一个地址空间，重定位把占位地址改成真实地址。异常控制流则在顺序执行上增加受控入口：硬件中断、trap、fault 或 abort 保存现场，进入处理路径，可能返回原指令或终止当前流。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：符号表、重定位与 ECF</h3>
+<p>对每个引用 <span class="arithmatex">\(r\)</span>，链接器要找到唯一可见定义 <span class="arithmatex">\(d\)</span>，并把重定位表达式写成 <span class="arithmatex">\(\mathrm{addr}(r)\leftarrow \mathrm{base}(d)+\mathrm{offset}\)</span>。<code>fork</code> 的进程数满足 <span class="arithmatex">\(P_{k+1}=2P_k\)</span>，而上下文切换保存寄存器、栈指针和返回位置。系统调用通过特权边界进入内核，再以返回值回到用户态。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>声明不等于定义；头文件把非 <code>extern</code> 全局变量写成定义，可能制造多个强符号或依赖弱符号的隐蔽行为。</li>
+<li>动态链接把解析延后到装载/首次调用，因而新增版本、搜索路径和 ABI 风险；“编译成功”不代表运行时能装载。</li>
+<li>信号处理器是异步重入环境，不能把普通业务代码当作安全 handler；故障是否能重试取决于异常类型与内核状态。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：按阶段定位系统问题</h3>
+<p>拿一个真实报错，先判断它属于预处理、编译、汇编、链接、装载还是运行时 ECF。再用 <code>nm</code>、<code>objdump</code>、<code>strace</code> 或调试器提出一个可证伪的符号/控制流假设，并记录“谁保存现场、谁负责恢复”。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-03-linking-ecf" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong><code>main.o → foo</code> 配上 <code>a.o:foo</code> 能解析；没有定义是 undefined reference；<code>a.o:foo</code> 与 <code>b.o:foo</code> 两个强定义是 multiple definition。独立地，<code>fork();fork();</code> 产生 4 个进程，<code>exec</code> 替换其中一个地址空间，<code>wait</code> 回收子进程。页面脚本会切换符号情境并显示 fork 树与异常入口。</p>
+</div>
+</section>
+
 ## 1. 链接：符号的解析与重定位
 
 

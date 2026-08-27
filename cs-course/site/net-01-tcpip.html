@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一个丢包，为什么不会让字节流失序？</a><ul>
+<li><a href="#2-ack">具体谜题：序号 2 消失之后，ACK 应该说什么？</a></li>
+<li><a href="#_2">最小心智模型：四个边界和一个滑动窗口</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#trace">迁移任务：从 trace 到可验收的传输实现</a></li>
+<li><a href="#ack">交互实验：滑动窗口与累计 ACK 重放</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 为什么分层：对抗复杂度的经典范式</a></li>
 <li><a href="#2-ip">2. IP 与路由：尽力而为的底座</a></li>
 <li><a href="#3-tcp">3. TCP：在不可靠之上造可靠</a></li>
@@ -54,6 +78,72 @@
 <p><strong>对标</strong>：Stanford CS144 / Kurose–Ross 自顶向下 ｜ <strong>前置</strong>：408 网络的概念框架、os 线（socket 是系统调用）
 网络是"让全世界的机器可靠通信"的工程奇迹，而它的核心设计哲学只有一个词——<strong>分层</strong>。这一页讲清 TCP/IP 四层各干什么、为什么这样切，然后深入 TCP 的两大发明：<strong>在不可靠的网络上造出可靠传输</strong>（确认 + 重传 + 滑动窗口）与<strong>拥塞控制</strong>（几十亿设备共享带宽却不崩溃的分布式算法）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：一个丢包，为什么不会让字节流失序？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="2-ack">具体谜题：序号 2 消失之后，ACK 应该说什么？<a class="headerlink" href="#2-ack" title="Permanent link"></a></h3>
+<p>发送端一次允许发送序号 0–5，接收端按序交付。若数据包 2 丢失，而 3、4、5 先到达，接收端是确认“我收到了 5”、重复确认 2，还是立刻交付 3–5？三种回答对应三种不同的可靠性设计；先写出你认为 TCP 应该做什么。</p>
+</div>
+<div class="cl-prompt"><strong>先预测，再展开：</strong>预测累计 ACK 的值、发送端下一次重传的序号，并判断三个重复 ACK 对拥塞窗口的影响。不要把“收到包”与“交付字节流”混为一谈。</div>
+<div class="learning-model">
+<h3 id="_2">最小心智模型：四个边界和一个滑动窗口<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>IP 只负责尽力转发；TCP 在其上维护发送序号、接收序号、确认、重传计时器和窗口。对接收端而言，序号是字节流的位置，不是数据包的身份；乱序段可以暂存，但只有连续前缀能推进交付边界。</p>
+</div>
+<div class="learning-mechanism">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(ACK=k\)</span>，累计确认表示所有序号小于 <span class="arithmatex">\(k\)</span> 的字节已按序收到。发送边界满足 <span class="arithmatex">\(\mathrm{snd.una}\le\mathrm{snd.nxt}\le\mathrm{snd.una}+\min(\mathrm{rwnd},\mathrm{cwnd})\)</span>；只有右边界仍有空间时（<span class="arithmatex">\(\mathrm{snd.nxt}&lt;\mathrm{snd.una}+\min(\mathrm{rwnd},\mathrm{cwnd})\)</span>）才能继续发送。接收端的交付不变量是不会跳过缺口。Reno 的典型规则是无拥塞时 <span class="arithmatex">\(cwnd\leftarrow cwnd+1/cwnd\)</span>，检测到丢包时降低窗口，体现 AIMD 而不是“网络越快越无限发送”。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>累计 ACK 不是全局顺序的证明：接收端可能已缓存乱序段；三个重复 ACK 的快速重传依赖具体实现与时序，超时重传仍是另一条路径。TCP 的可靠性也不保证应用语义上的幂等；UDP 没有这些机制，拥塞控制更可能由应用自行承担。</p>
+</div>
+<div class="learning-transfer">
+<h3 id="trace">迁移任务：从 trace 到可验收的传输实现<a class="headerlink" href="#trace" title="Permanent link"></a></h3>
+<p>在 P05 迷你 TCP 中为每个状态写出 <code>snd.una</code>、<code>snd.nxt</code>、重传队列和 ACK 处理的不变量，再把丢包 trace 改成乱序加重复包。L12 HTTP 服务器建立在可靠字节流之上，但它不能替 TCP 隐藏超时、拥塞和连接生命周期；两者的分层接口要分别验收。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-net-01-tcpip">
+<h3 id="ack">交互实验：滑动窗口与累计 ACK 重放<a class="headerlink" href="#ack" title="Permanent link"></a></h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认窗口含序号 0–5，序号 2 丢失。接收 0 后发送 ACK=1，接收 1 后 ACK=2；3、4、5 虽到达却只能各产生重复 ACK=2，不能越过缺口交付。三个重复 ACK 触发快速重传 2，随后 ACK=6，发送端才继续推进；若改成超时模型，拥塞窗口会更激烈地下降。状态中的窗口边界是字节/序号账本，不是带宽测量。</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>接收端动作</th>
+<th>ACK</th>
+<th>发送端结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>收到 0</td>
+<td>交付 0</td>
+<td>1</td>
+<td>确认前缀 [0]</td>
+</tr>
+<tr>
+<td>收到 1</td>
+<td>交付 1</td>
+<td>2</td>
+<td>缺口为 2</td>
+</tr>
+<tr>
+<td>收到 3/4/5</td>
+<td>缓存乱序</td>
+<td>2、2、2</td>
+<td>三次重复 ACK</td>
+</tr>
+<tr>
+<td>重传 2</td>
+<td>交付 2–5</td>
+<td>6</td>
+<td>窗口前沿推进</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 为什么分层：对抗复杂度的经典范式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="TCP/IP 四层 + 封装：[以太网[IP[TCP[HTTP]]]] 套信封。" src="assets/img/net-01-layers-encap.svg" /></p>
@@ -161,5 +251,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-net-01-tcpip.js"></script>
 </body>
 </html>

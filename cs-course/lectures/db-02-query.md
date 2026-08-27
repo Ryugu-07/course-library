@@ -3,6 +3,45 @@
 > **对标**：CMU 15-445 中段 / *Database Internals* ｜ **前置**：db-01、algo 线（连接算法就是排序/哈希）
 > 你写一句 `SELECT ... JOIN ... WHERE ... ORDER BY`，数据库怎么把这段**声明式**的意图（说"要什么"而非"怎么做"）变成一个高效的**执行计划**？这一页揭开这层魔法：SQL → 关系代数 → 物理算子 → 优化器选路。理解它，你就能读懂 `EXPLAIN`、写出快 SQL，也就懂了为什么同样结果的两句 SQL 能差几百倍。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一条 JOIN，为什么会差几个数量级？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：先过滤还是先连接？</h3>
+<p>表 R 有 1,000 行，表 S 有 10,000 行；谓词只命中 R 的 10%。如果先做嵌套循环再过滤，要面对约 10,000,000 对候选；若先把 R 缩成 100 行，再用哈希连接，候选规模约为 10,100。两条计划结果相同吗？优化器凭什么选择其中一条？</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>在没有索引的情况下，预测过滤选择率从 100% 降到 10% 是否一定让哈希连接胜出；再判断当 S 只有 20 行时，嵌套循环是否可能重新成为合理选择。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：关系代数到物理算子</h3>
+<p>SQL 先被改写为选择、投影、连接、排序等关系代数表达式，再由扫描、过滤、哈希表、排序和迭代器执行。逻辑等价只说明输出关系相同；物理计划还要估计基数、内存、页 I/O 和 CPU 工作。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>当谓词只引用 R 的列时，选择可以下推：<span class="arithmatex">\(\sigma_p(R\Join S)\equiv(\sigma_pR)\Join S\)</span>。若选择率为 <span class="arithmatex">\(s\)</span>，估计基数为 <span class="arithmatex">\(|R'|=s|R|\)</span>；朴素嵌套循环约为 <span class="arithmatex">\(|R'||S|\)</span> 次比较，哈希连接约为 <span class="arithmatex">\(|R'|+|S|\)</span>（忽略溢出与 I/O）。优化器必须保持关系结果不变，同时最小化估计代价。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>选择率估计会被数据偏斜、列相关性和过期统计信息欺骗；哈希连接主要服务等值谓词，排序归并可能在已有有序输入时更优；哈希表放不进内存会 spill 到磁盘，理论上的线性成本不再是实际成本。一个“看起来更少行”的计划不等于在真实设备上更快。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把 EXPLAIN 读成证据链</h3>
+<p>在 P02-B 的 SQL 子集中实现过滤下推与至少一种连接算子，并把估计基数、实际基数和页访问写入报告。对 Medusa 查询先看 `EXPLAIN` 再看 `EXPLAIN ANALYZE`，区分优化器的预测与运行时事实；L05 提供索引页结构，不能被本页的算子模型替代。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-db-02-query">
+<h3>交互实验：选择率、连接算法与计划代价</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 R=1,000、S=10,000、选择率 10%。不下推时，嵌套循环约需 10,000,000 次比较；下推后 R'=100，哈希连接的教学代价约为 10,100，排序归并还要付排序项。把选择率拖到 100%，哈希仍可能胜出；把内表改成 20 行或打开索引后，嵌套循环的随机访问代价会下降，但在 R'=100 时哈希仍可能更便宜。只有更低选择率、较大的内表等边界组合才会让索引嵌套循环真正胜出。实验显示的是相对 cost unit，不是某台数据库的毫秒。</p>
+<table><thead><tr><th>计划</th><th>默认估计规模</th><th>近似代价</th><th>依赖</th></tr></thead><tbody><tr><td>NLJ（不下推）</td><td>1000×10000</td><td>10,000,000</td><td>比较/内表扫描</td></tr><tr><td>NLJ（先过滤）</td><td>100×10000</td><td>1,000,000</td><td>索引可再降</td></tr><tr><td>Hash Join（先过滤）</td><td>建 100，探测 10000</td><td>10,100</td><td>内存可容纳哈希表</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 声明式的威力与代价
 
 

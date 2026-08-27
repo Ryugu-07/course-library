@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一次随机切分，凭什么能给出下界？</a><ul>
+<li><a href="#_2">具体谜题：九条边该跨哪边？</a></li>
+<li><a href="#_3">先预测概率账</a></li>
+<li><a href="#_4">最小心智模型：随机试探 + 可证下界</a></li>
+<li><a href="#_5">形式机制：期望、集中与归约</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移题：在放弃精确前留下证书</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 随机化：用掷硬币换简洁与速度</a></li>
 <li><a href="#2">2. 集中不等式：随机算法为什么"几乎总对"</a></li>
 <li><a href="#3-np">3. NP 与归约：把"我不会"变成"没人会"</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：CS170 / CLRS 第 34–35 章 / Motwani–Raghavan <em>Randomized Algorithms</em> ｜ <strong>前置</strong>：algo-01/02、数学站概率线（期望、集中不等式）
 算法理论的成年礼：<strong>承认有些问题（很可能）没有高效精确解，然后优雅地退让</strong>——用随机换简单、用近似换可行、用归约把"我不会"精确地转化为"没人会"。这一页对你概率底子的调用最直接：随机算法的分析就是期望与集中不等式的应用题。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：一次随机切分，凭什么能给出下界？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：九条边该跨哪边？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>有 6 个点和 9 条边：<span class="arithmatex">\(01,03,04,12,14,23,25,34,45\)</span>。把每个点独立抛硬币放进左右两组，切割边数是跨组边的数量。一次切分得到 2 条并不奇怪；但为什么重复后，至少有一次达到 5 或更高并非“纯运气故事”？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测概率账<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 每条边独立地以概率 <span class="arithmatex">\(1/2\)</span> 被切开，因此期望切边数是 <span class="arithmatex">\(9/2=4.5\)</span>；<strong>②</strong> 一次样本可以低于期望，期望不是逐次保证；<strong>③</strong> 重复 <span class="arithmatex">\(r\)</span> 次并取最好时，失败概率会按指数下降，但样本之间若被人为相关，独立性假设就不成立。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：随机试探 + 可证下界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>随机算法不承诺每次找到最优解，而是让每条局部结构有可计算的成功概率。近似算法再把输出与一个下界或上界夹住：例如顶点覆盖取匹配两端，得到大小 <span class="arithmatex">\(2|M|\)</span>，而任意覆盖至少 <span class="arithmatex">\(|M|\)</span>。随机性负责找候选，证书负责解释质量。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制：期望、集中与归约<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(I_e\)</span> 表示边 <span class="arithmatex">\(e\)</span> 是否跨割，则 <span class="arithmatex">\(\mathbb E[I_e]=1/2\)</span>，所以 <span class="arithmatex">\(\mathbb E[\mathrm{cut}]=m/2\)</span>。重复独立试验后，若单次失败概率为 <span class="arithmatex">\(q\)</span>，全失败概率是 <span class="arithmatex">\(q^r\)</span>；Chernoff–Hoeffding 则把样本均值偏离期望的概率压成指数尾界。归约的方向必须保持：<span class="arithmatex">\(A\le_pB\)</span> 意味着 B 易会让 A 易，而不是反过来。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>期望保证“平均账”而非每次输出；若要求确定性质量，需要把随机算法与验证/重试结合。</li>
+<li>随机切分的边缘独立不等于所有事件独立；错误套用集中不等式会得到虚假的置信度。</li>
+<li>近似比必须说明目标是最小化还是最大化、比较对象是最优值还是某个下界；“看起来接近”不是证明。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移题：在放弃精确前留下证书<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>给一个无法存下的覆盖或排程问题，先问能否归约到已知 NP 难问题；若不能精确求解，选择随机采样、LP 松弛或贪心，并写出一个可检查的质量下界。再说明你会用多少次重复把失败概率降到 <span class="arithmatex">\(10^{-6}\)</span>，以及独立性从哪里来。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-algo-03-random-approx">
+<p><strong>无 JavaScript 时的静态版本：</strong>上面 9 条边随机切分的期望是 <span class="arithmatex">\(4.5\)</span>；固定切分 <span class="arithmatex">\(\{0,1,2\}\mid\{3,4,5\}\)</span> 切开 <span class="arithmatex">03,04,14,23,25\)</span> 共 5 条。若某一次达到目标的概率为 <span class="arithmatex">\(1/2\)</span>，重复 10 次仍全失败的概率是 <span class="arithmatex">\(2^{-10}\approx0.00098\)</span>。页面脚本使用固定种子逐次展示切分、边计数和重复后的最好值。</p>
+</div>
+</section>
 <h2 id="1">1. 随机化：用掷硬币换简洁与速度<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>两类随机算法：<strong>Las Vegas</strong>（结果永远对，时间是随机变量——如随机快排）；<strong>Monte Carlo</strong>（时间固定，结果以概率对——如素性测试）。</p>
 <p><strong>样板一：随机快排</strong> 随机选 pivot，期望比较次数 <span class="arithmatex">\(O(n\log n)\)</span>。<strong>分析【推导】</strong>：设 <span class="arithmatex">\(X_{ij}\)</span> = 元素 <span class="arithmatex">\(i,j\)</span> 是否被比较（0/1）。它们被比较当且仅当在 <span class="arithmatex">\(\{i,\dots,j\}\)</span> 中 <span class="arithmatex">\(i\)</span> 或 <span class="arithmatex">\(j\)</span> 最先被选为 pivot，概率 <span class="arithmatex">\(\frac{2}{j-i+1}\)</span>。期望总比较数</p>
@@ -106,5 +166,7 @@ E[X] = \sum_{i&lt;j}\frac{2}{j-i+1} = \sum_i O(\log n) = O(n\log n).
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-algo-03-random-approx.js"></script>
 </body>
 </html>

@@ -3,6 +3,62 @@
 > **对标**：Docker 文档 / *Container Security*（Rice）/ 云原生课程 ｜ **前置**：os 线（进程、虚拟内存、文件系统）、csapp-03（动态链接）
 > 你的 `medusa-postgres` 跑在 Docker 里，但**容器底下到底是什么**？它不是虚拟机，却能隔离；不装完整操作系统，却能跑起来。这一页拆穿容器的魔法——它其实是 **Linux 内核的几个隔离原语（namespace + cgroup）+ 分层文件系统**拼出来的"轻量隔离进程"。理解它，你就懂了为什么容器又轻又快、以及它和虚拟机的本质区别。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="cloud-01-learning-title">
+
+<h2 id="cloud-01-learning-title">学习层：删除容器以后，什么还存在？</h2>
+
+### 1. 具体谜题：PID 1、内存上限和数据库数据各听谁的？
+
+一个 `medusa-postgres` 容器使用独立 PID/mount/network namespace，内存上限 512 MiB，并把 `/var/lib/postgresql/data` 挂到 volume。进程写入一份 volume 数据、另一份容器可写层，然后容器被删除重建。先预测：
+
+1. 哪一份数据会随容器删除消失？
+2. 容器内看到的 PID 1 是否就是宿主机的 PID 1？
+3. 请求 768 MiB 时，namespace 能否阻止 cgroup 的内存限制生效？
+
+实验台把“看得见什么”“能用多少”“写入哪一层”分开；提交预测后再切换 namespace、资源请求和写入目标。容器不是一台缩小的虚拟机，隔离强度和数据持久性也不是同一个属性。
+
+### 2. 最小模型：隔离向量加写时复制层
+
+对容器 `C` 记录三类状态：
+
+$$
+C=(V_{pid},V_{mount},V_{net};\;L_{cpu},L_{mem},L_{io};\;I_{ro}\oplus W_{cow}\oplus V_{volume}).
+$$
+
+namespace 改变资源的可见性；cgroup 限制资源预算；镜像层是只读输入，运行时写入进入 COW 层，volume 则是独立的持久存储。删除容器通常删除 `W_cow`，不自动删除显式管理的 volume。
+
+### 3. 正式机制与不变量：共享内核就是边界条件
+
+- **PID/mount/network 不变量**：容器内视图可以隐藏宿主进程、根文件系统和网络设备，但系统调用仍由共享宿主内核执行。
+- **资源不变量**：实际内存/CPU 使用超过 cgroup 配额时，由内核施加节流或 OOM 处置；namespace 不提供资源预算。
+- **镜像不变量**：同一只读层可被多个容器复用；容器写入不应改变底层镜像；需要持久化的数据库路径必须明确挂载 volume。
+- **安全边界**：root、特权模式、宿主目录 bind mount、危险 capability 和内核漏洞都可能扩大边界；容器隔离不是虚拟机级安全承诺。
+
+所以“能看到宿主 PID”与“能耗尽宿主内存”是两个独立问题；“容器重建后数据还在”只说明写入了正确的持久层。
+
+### 4. 失败边界与迁移任务
+
+实验不模拟具体 Linux 内核版本、Docker Desktop 的虚拟机层、overlayfs 细节、SELinux/AppArmor 或真实容器逃逸；共享内核和最小权限仍需按部署平台验证。镜像可复现也不能证明其中依赖无漏洞。
+
+迁移任务：为 Medusa 的 app、Postgres 和离线 worker 列出 namespace、cgroup、volume、capability 与健康检查配置；特别说明删容器、重建镜像、恢复 volume 三个操作分别保证什么。把 secrets 留在运行时注入，而不是当作镜像层的一部分。
+
+<div class="learning-lab" data-learning-lab="cs-cloud-01-containers" markdown="1">
+
+**JavaScript 失效时的静态读法：**沿三条问题线分别判断：namespace 是可见性，cgroup 是配额，写入目标决定持久性；不要用其中一条替代另外两条。
+
+| 情景 | 可见性 | 资源结果 | 删除并重建后 |
+|---|---|---|---|
+| 写入 named volume | PID/mount/network 隔离 | 配额内运行 | 数据保留 |
+| 写入容器可写层 | PID/mount/network 隔离 | 配额内运行 | 写层消失 |
+| 请求超过 512 MiB | namespace 仍隔离 | cgroup 节流/OOM | 进程可能被杀 |
+| 容器 PID 1 | 容器内局部编号 | 共享宿主内核 | 不等于宿主 PID 1 |
+
+</div>
+
+</section>
+
 ## 1. 容器解决的问题:"在我机器上是好的"
 
 软件部署的经典噩梦：开发环境能跑、生产环境挂——因为依赖版本、系统库、配置不同（🔗 csapp-03 动态链接的 `.so` 找不到、Python 环境地狱）。**容器把"应用 + 它的所有依赖 + 运行环境"打包成一个可移植的单元**——一次构建、到处一样地跑。**"消除环境差异"是容器的核心价值**，也是 se-02 CD"可复现部署"的基石。

@@ -3,7 +3,36 @@
 > **对标**：*Effective Modern C++*（Meyers）/ *A Tour of C++* / cppreference ｜ **前置**：cpp-01（RAII、值/移动语义）、par 线（并发）
 > cpp-01 讲 C++ 的内存与生命周期模型，这一页讲你实际写 C++ 时用的东西：**STL（标准模板库）**的容器与算法、**模板**如何实现零成本泛型（以及它的代价）、**现代 C++（C++11 起）**让语言好用得多的特性、以及 C++ 的**并发**工具与深水陷阱。读完你对 C++ 从"能看懂"到"知道怎么写得现代、安全"。
 
-## 1. STL:容器 + 算法 + 迭代器的正交设计
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：选对容器，是在选算法还是在选内存访问？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：遍历与插入同时发生</h3>
+<p>需要顺序扫描 1000 个整数并偶尔在尾部追加。<code>std::vector</code>、<code>std::list</code>、<code>std::unordered_map</code> 哪个更可能拥有连续访问？如果 vector 已有容量 8，保存了 8 个元素后执行 <code>push_back</code>，之前的迭代器还能安全解引用吗？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测复杂度和失效</h3>
+<p>预测：<strong>①</strong> 顺序扫描通常 vector 更快，因为连续内存和预取胜过 list 的 O(1) 节点跳转；<strong>②</strong> vector 扩容可能搬迁元素，使旧迭代器全部失效；<strong>③</strong> STL 算法通过迭代器解耦容器，算法复杂度仍受迭代器类别和容器布局约束。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：接口正交，成本不正交</h3>
+<p>STL 将容器、迭代器、算法拆开组合；模板在编译期生成特化代码，现代语言特性让所有权、范围和并发更可表达。但同一抽象接口背后的缓存局部性、分配次数、迭代器失效和复杂度完全不同，必须把语义与成本一起读。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对 \(n\) 个元素，vector 尾插的摊还复杂度为 \(O(1)\)，扩容一次搬迁 \(O(n)\)；list 顺序访问仍为 \(O(n)\) 但每步可能一次指针追踪。摊还不变量是总搬迁量在几何扩容下为 \(O(n)\)，故 \(m\) 次尾插总成本 \(O(m)\)。迭代器安全不变量是：只有容器规范保证仍指向活动元素时才能解引用；reallocation 后旧地址不再属于该容器。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>vector 不是所有场景都优越：频繁中部插入、超大不可移动对象和稳定地址需求会改变选择。</li><li>unordered_map 平均 \(O(1)\) 不等于确定的常数或最坏界；哈希碰撞、rehash、分配和攻击输入都重要。</li><li>模板“零运行时开销”可能换来代码膨胀、编译时间、ABI 复杂度和错误信息；并发算法还要另看数据竞争与内存序。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：用 workload 而不是容器名做选择</h3>
+<p>为 L01 的缓存敏感扫描、一个需要稳定引用的对象表和一个 key-value 计数器各选容器。记录操作分布、元素大小、cache miss、分配数和迭代器失效点，再把 C++ 版本与 Rust 迭代器/所有权约束和 Python 数据模型对照。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-cpp-02-modern-stl" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>顺序扫描 1000 个整数时，vector 的地址连续，硬件可预取；list 的每个节点可能分散，尽管两者都是 \(O(n)\)，实际访存事件不同。容量 8 的 vector 在第 9 次 <code>push_back</code> 可能重新分配，旧迭代器不能继续解引用；预留容量或重新取得迭代器才安全。交互版切换容器、操作比例与容量，显示复杂度、近似 cache line 和迭代器状态。</p>\n+<table><thead><tr><th>容器</th><th>顺序扫描</th><th>尾插</th><th>扩容/地址风险</th></tr></thead><tbody><tr><td>vector</td><td>连续，预取友好</td><td>摊还 \(O(1)\)</td><td>reallocation 使迭代器失效</td></tr><tr><td>list</td><td>指针跳转</td><td>稳定 \(O(1)\)</td><td>节点地址稳定，局部性差</td></tr><tr><td>unordered_map</td><td>按 bucket 跳转</td><td>平均 \(O(1)\)</td><td>rehash 使迭代器失效</td></tr></tbody></table>\n+</div>\n+</section>\n+\n+## 1. STL:容器 + 算法 + 迭代器的正交设计
 
 
 <figure class="diagram" markdown="1">

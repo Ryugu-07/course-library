@@ -3,6 +3,45 @@
 > **对标**：Stanford CS144 应用层 / High Performance Browser Networking（Grigorik）｜ **前置**：net-01、crypto-02（TLS）
 > 从传输层往上，到你每天打交道的应用层。这一页讲 **HTTP 的演进**（0.9 到 HTTP/3 每一代解决的具体瓶颈）、**DNS**（域名怎么变成 IP）、**TLS 握手**（浏览器的锁图标背后），以及让全球网页秒开的**现代网络基础设施**（CDN、缓存、QUIC）。这也是 web 全栈线（web-01/02/03）的网络地基——Medusa 经 cloudflared 暴露到公网，走的正是这一整套。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：网页变快，究竟少了哪一个等待？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：同一组资源，HTTP/1.1、HTTP/2、HTTP/3 谁先可用？</h3>
+<p>一个页面需要 HTML、CSS、脚本和两个图片资源；DNS 需要 1 个 RTT，连接与加密还要握手。若一张图片在传输中丢包，HTTP/2 的其他流会不会一起停住？HTTP/3 为什么可能只让受影响的流变慢？先按 RTT 预算画一条 waterfall。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>在 RTT=80 ms 的教学模型中，预测无丢包时三种协议的首屏完成顺序；再预测“图片丢一个包”后，HTTP/2 与 HTTP/3 的关键路径分别增加多少。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：解析、握手、请求与复用</h3>
+<p>一次资源加载由 DNS 解析、传输连接、TLS/QUIC 握手、应用请求和缓存命中共同组成。HTTP/1.1 把请求排在连接上；HTTP/2 在一条 TCP 连接上复用多个 stream；HTTP/3 把可靠性下沉为 QUIC 的独立流，避免 TCP 层的跨流队头阻塞。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>首屏关键路径可粗略写成 <span class="arithmatex">\(T\approx T_{DNS}+T_{handshake}+T_{critical\ path}\)</span>。HTTP/2 的 stream 帧仍共享 TCP 的有序字节流，因此一个丢失的 TCP 段会阻塞尚未重组的后续字节；QUIC 为每个 stream 维护独立的偏移与确认。缓存则以 <code>Cache-Control</code>、验证器和资源版本构成另一种时间不变量：客户端不能把过期对象误当成当前版本。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>HTTP/3 不会消除 DNS、服务器排队或应用层串行依赖；TLS 证明端点身份和机密性，不替应用鉴权；0-RTT 可能带来重放风险。缓存命中只有在版本与失效策略正确时才是收益，错误的长缓存会让“更快”变成陈旧数据。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为真实接口写出协议预算</h3>
+<p>为 L12 极简 HTTP 服务器补一份请求 trace：标注 DNS、连接、请求头、响应体和 keep-alive 边界；再为 web-03 的 JS bundle、API 响应和头像分别给出缓存策略。L12 的真实 socket/HTTP/1.1 实现仍是动手入口，本层 waterfall 只用来验证瓶颈假设。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-net-02-application">
+<h3>交互实验：协议 waterfall 与队头阻塞</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>教学账本固定 RTT=80 ms、DNS=1 RTT、资源数为 5。无丢包时，HTTP/1.1 约为 640 ms（串行资源），HTTP/2 约为 320 ms（并行 stream），HTTP/3 约为 240 ms（1-RTT QUIC + 并行 stream）。若图片 stream 丢一个包，HTTP/2 的共享 TCP 关键路径示意为 480 ms，HTTP/3 只把该图片延后到约 400 ms，其他资源仍可在约 240 ms 附近完成；这些是可推演的 toy RTT，不是浏览器 benchmark。</p>
+<table><thead><tr><th>协议</th><th>无丢包首屏</th><th>图片丢包后的关键路径</th><th>受影响范围</th></tr></thead><tbody><tr><td>HTTP/1.1</td><td>640 ms</td><td>800 ms</td><td>连接上的后续请求</td></tr><tr><td>HTTP/2</td><td>320 ms</td><td>480 ms</td><td>同一 TCP 字节流</td></tr><tr><td>HTTP/3/QUIC</td><td>240 ms</td><td>400 ms（图片）</td><td>图片 stream</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. HTTP：一个不断打补丁的协议
 
 

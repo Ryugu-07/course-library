@@ -3,6 +3,43 @@
 > **对标**：CS:APP 第 2–3 章（CMU 15-213）/ 《深入理解计算机系统》 ｜ **前置**：408 组成原理的概念框架
 > 系统线的第一课，也是 408「组成原理」的真身。408 让你**背** CPU 有哪些部件，CSAPP 让你**看见**一行 C 代码变成机器眼里的什么。核心心法一句话：**程序员的抽象（变量、类型、函数）在机器层全是字节与地址**——理解这层"翻译"，段错误、溢出、性能诡异全部不再神秘。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一串比特，为什么会有两个答案？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：127 加 1 到底发生了什么？</h3>
+<p>在 8 位机器字里，<code>01111111</code> 既可解释为无符号 127，也可解释为有符号 127。加 1 后得到 <code>10000000</code>：无符号值是 128，有符号补码值却是 -128。再看 <code>struct { char a; int b; char c; }</code> 为什么常占 12 字节而重排后只占 8 字节？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测位模式与布局</h3>
+<p>先写下：<strong>①</strong> 补码最高位的权重是 <span class="arithmatex">\(-2^7\)</span>，所以 <code>10000000</code> 表示 -128；<strong>②</strong> 8 位无符号加法按模 <span class="arithmatex">\(256\)</span> 回绕；<strong>③</strong> 结构体的地址不仅受成员大小影响，还受对齐与尾部填充影响。实验会把数值解释和字节布局放在同一张账上。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：位模式 + 解释协议</h3>
+<p>硬件保存的是固定宽度的比特，类型决定如何解释、比较、扩展和运算。整数是环上的编码；浮点是带指数的有损网格；指针是带类型步长的地址；结构体是满足对齐约束的连续字节块。C 的抽象并没有消失，只是被编译成这些协议。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：补码、转换与对齐</h3>
+<p><span class="arithmatex">\(w\)</span> 位补码的值为 <span class="arithmatex">\(-b_{w-1}2^{w-1}+\sum_{i=0}^{w-2}b_i2^i\)</span>；无符号值为 <span class="arithmatex">\(\sum_{i=0}^{w-1}b_i2^i\)</span>。无符号加法保持 <span class="arithmatex">\((x+y)\bmod2^w\)</span>；C 有符号溢出则可能触发未定义行为。成员偏移必须满足 <span class="arithmatex">\(\mathrm{offset}(m)\equiv0\pmod{\mathrm{align}(m)}\)</span>，结构体大小还要是最大对齐量的倍数。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li><code>int</code> 溢出不能当作可靠的模运算；编译器可利用“不会溢出”的语言前提重排代码。</li>
+<li>有符号/无符号混合比较会先转换类型，<code>0u - 1</code> 不是 -1；长度检查因此可能被绕过。</li>
+<li>浮点的舍入、NaN 和非结合加法使“位模式看懂了”不等于数值算法稳定；端序也会改变多字节对象的内存阅读顺序。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：从源码追到地址</h3>
+<p>选一段包含数组索引、结构体成员和条件判断的 C 代码，写出每一步的字节宽度、偏移、转换和条件跳转。再用 <code>sizeof</code>、<code>offsetof</code> 与调试器内存窗口核对，指出哪个假设属于语言标准、哪个只属于当前 ABI。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-01-representation" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>8 位下 <code>127 + 1</code> 的位模式为 <code>10000000</code>，按无符号读是 128，按补码读是 -128；<code>250u + 10u</code> 是 <span class="arithmatex">\(260\bmod256=4\)</span>。在常见 4 字节对齐 ABI 下，<code>{char,int,char}</code> 的偏移为 0、4、8、总大小 12，重排为 <code>{int,char,char}</code> 时总大小 8。页面脚本会逐位显示加法、解释和布局空洞。</p>
+</div>
+</section>
+
 ## 1. 信息即比特：数的表示与它的陷阱
 
 

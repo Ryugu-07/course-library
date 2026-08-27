@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、探测的基本机制</a></li>
-<li><a href="#_2">二、噪声：本页的核心</a></li>
-<li><a href="#_3">三、性能指标</a></li>
+<li><a href="#_1">学习层：当噪声来自光子本身，继续拧电路旋钮有用吗？</a><ul>
+<li><a href="#1-snr">1. 具体谜题：为什么十倍 SNR 要一百倍光子？</a></li>
+<li><a href="#2">2. 先预测：增益是不是越大越灵敏？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：计数的均值与方差同源</a></li>
+<li><a href="#4-apd">4. 正式机制：响应度、散粒极限与 APD 过剩噪声</a></li>
+<li><a href="#5">5. 静态实验：从光子数读到噪声预算</a></li>
+<li><a href="#6">6. 反例与边界：灵敏度、增益和极限不是同一个词</a></li>
+<li><a href="#7">7. 迁移题：为弱光测量写一张噪声预算</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、探测的基本机制</a></li>
+<li><a href="#_3">二、噪声：本页的核心</a></li>
+<li><a href="#_4">三、性能指标</a></li>
 <li><a href="#apd">四、APD 与增益的代价</a></li>
-<li><a href="#_4">五、弱光探测的策略</a></li>
-<li><a href="#_5">六、相干探测</a></li>
-<li><a href="#_6">七、要点</a></li>
+<li><a href="#_5">五、弱光探测的策略</a></li>
+<li><a href="#_6">六、相干探测</a></li>
+<li><a href="#_7">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,11 +79,45 @@
 <p><strong>层次</strong>：本科核心 + 业界关键 ｜ <strong>这一页给出本课最根本的物理极限</strong>。
 探测的极限不是"电路做得不够好"，而是<strong>光子到达本身的随机性</strong>。理解这一点，才能判断一个光学系统"还有多少提升空间"——<strong>这是光电工程师最重要的判断力之一</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：当噪声来自光子本身，继续拧电路旋钮有用吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-snr">1. 具体谜题：为什么十倍 SNR 要一百倍光子？<a class="headerlink" href="#1-snr" title="Permanent link"></a></h3>
+<p>一次曝光收集 <span class="arithmatex">\(N=10{,}000\)</span> 个光子。先预测散粒噪声的 RMS 是 <span class="arithmatex">\(100\)</span> 还是 <span class="arithmatex">\(10{,}000\)</span>，以及把目标 SNR 从 100 提到 1000 时需要把光子数加到多少。再取一个 PIN 探测器：<span class="arithmatex">\(I_{ph}=1\,\mu\mathrm A\)</span>、带宽 <span class="arithmatex">\(\Delta f=100\,\mathrm{kHz}\)</span>，计算 <span class="arithmatex">\(\sqrt{2qI_{ph}\Delta f}\)</span>；这项噪声能否靠换一个更安静的电阻彻底消失？</p>
+<h3 id="2">2. 先预测：增益是不是越大越灵敏？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先写下四项预测：<strong>①</strong> <span class="arithmatex">\(N\)</span> 增加 4 倍时散粒受限 SNR 增加几倍；<strong>②</strong> 同样光功率下，<span class="arithmatex">\(\lambda\)</span> 从 <span class="arithmatex">\(0.8\)</span> μm 变为 <span class="arithmatex">\(1.6\)</span> μm，响应度 <span class="arithmatex">\(R=\eta\lambda/1.24\)</span> 如何变化；<strong>③</strong> APD 的倍增 <span class="arithmatex">\(M=10\)</span> 是否把 SNR 无条件提高 10 倍；<strong>④</strong> 无光时暗电流翻倍会不会改变光子散粒噪声本身。实验先区分光子、暗电流、热和读出四条噪声链。</p>
+<h3 id="3-mental-model">3. 最小 mental model：计数的均值与方差同源<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>把入射光子看成泊松计数：单位时间的平均计数决定信号，方差等于均值。光电转换把计数映射为电荷/电流，电子学再加入热噪声、暗电流和读出噪声。APD 先放大信号，但雪崩路径也有随机性；放大只有在它发生于主要噪声注入之前才可能改善系统 SNR。</p>
+<h3 id="4-apd">4. 正式机制：响应度、散粒极限与 APD 过剩噪声<a class="headerlink" href="#4-apd" title="Permanent link"></a></h3>
+<p>量子效率为 <span class="arithmatex">\(\eta\)</span> 时</p>
+<div class="arithmatex">\[R=\frac{I_{ph}}{P_{opt}}=\frac{\eta q}{h\nu}\approx\frac{\eta\lambda[\mu\mathrm m]}{1.24}\ [\mathrm{A/W}],\]</div>
+<p>散粒噪声电流方差为</p>
+<div class="arithmatex">\[i_{shot}^2=2qI\Delta f,\]</div>
+<p>若只剩 <span class="arithmatex">\(N\)</span> 个光子的泊松涨落，<span class="arithmatex">\(\mathrm{SNR}_{max}=N/\sqrt N=\sqrt N\)</span>。APD 的简化账本为</p>
+<div class="arithmatex">\[i_{shot}^2=2qI M^2F(M)\Delta f,\]</div>
+<p>其中 <span class="arithmatex">\(F(M)\ge1\)</span> 描述倍增随机性；总方差要把独立来源相加。NEP、<span class="arithmatex">\(D^*\)</span>、响应时间和动态范围是不同维度，不能只用一个“增益”排序。</p>
+<h3 id="5">5. 静态实验：从光子数读到噪声预算<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-detector-noise">
+<p><strong>无 JavaScript 时的静态读法：</strong>散粒受限时，<span class="arithmatex">\(N=10{,}000\)</span> 给 <span class="arithmatex">\(\sigma_N=\sqrt N=100\)</span>、SNR=100；要 SNR=1000 必须有 <span class="arithmatex">\(N=10^6\)</span>。对 <span class="arithmatex">\(q=1.602\times10^{-19}\,\mathrm C\)</span>、<span class="arithmatex">\(I=1\,\mu\mathrm A\)</span>、<span class="arithmatex">\(\Delta f=100\,\mathrm{kHz}\)</span>，</p>
+<div class="arithmatex">\[i_{shot}=\sqrt{2qI\Delta f}\approx1.79\times10^{-10}\,\mathrm A_{rms}.\]</div>
+<p>若 <span class="arithmatex">\(\eta=0.80\)</span>、<span class="arithmatex">\(\lambda=1.55\,\mu\mathrm m\)</span>，响应度约 <span class="arithmatex">\(R=1.00\,\mathrm{A/W}\)</span>；若加入 <span class="arithmatex">\(M=10\)</span>、<span class="arithmatex">\(F=3\)</span>，信号幅度乘 10，但 shot-noise RMS 乘 <span class="arithmatex">\(10\sqrt3\)</span>，并非无代价的十倍 SNR。脚本的计数账本默认曝光时间 <span class="arithmatex">\(t_{\rm exp}=1\,\mathrm{ms}\)</span>，并把 APD 的简化 <span class="arithmatex">\(F(M)\)</span> 从 <span class="arithmatex">\(F(1)=1\)</span> 线性延到 <span class="arithmatex">\(F(10)=3\)</span>；改变曝光时间只影响计数换算出的电流域 shot-noise 指标，不能把它与固定光子数的泊松 SNR 混为一谈。脚本可切换光子数、波长、量子效率、带宽、PIN/APD/SPAD，显示泊松散点、噪声分量柱和 SNR 账本；先预测哪一项主导，再揭示。</p>
+</div>
+<h3 id="6">6. 反例与边界：灵敏度、增益和极限不是同一个词<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>散粒噪声不能由电子学“修掉”。</strong>当它已占主导，增加曝光、孔径或量子效率比换更低读出噪声更有效；暗光下则要先处理暗电流与读出噪声。</li>
+<li><strong>APD 增益会带来过剩噪声和高压温漂。</strong>它可能把信号抬过后端热噪声，也可能在过高 <span class="arithmatex">\(M\)</span> 时失去收益，最佳点取决于完整预算。</li>
+<li><strong>响应度随波长增加不等于探测更好。</strong>截止波长、带宽、暗电流、饱和与 NEP 仍受材料和结构限制；1550 nm 要用 InGaAs/Ge 一类合适材料。</li>
+<li><strong>光子计数也有边界。</strong>死时间、后脉冲、暗计数和时间门控会破坏简单泊松模型；相干探测虽然恢复相位，却增加本振、匹配和稳定性要求。</li>
+</ul>
+<h3 id="7">7. 迁移题：为弱光测量写一张噪声预算<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>为天文长曝光、1550 nm 光通信接收和远距 LiDAR 各选 PIN、APD、PMT 或 SPAD 中的一种。列出信号定义、带宽、暗电流、读出噪声和可接受的 SNR，并说明在散粒受限、热噪声受限、还是计数死时间受限时，下一笔工程预算应该投向哪里。</p>
+</section>
 <figure>
 <p><img alt="Photon detection, avalanche gain, and shot-noise limit" class="fig-img" src="assets/img/pho-09-detectors.svg" /></p>
 <figcaption><span class="fig-id">图 9-1</span> PIN 探测器在耗尽区用内建电场把光生电子—空穴对分离并变成电流；APD 通过碰撞电离获得增益 \(M\)，但倍增的随机性引入过剩噪声。光子到达服从泊松统计，涨落为 \(\sqrt N\)，所以散粒噪声受限时 \(\mathrm{SNR}_{\max}=\sqrt N\)，信噪比提高 10 倍需要 100 倍光子。</figcaption>
 </figure>
-<h2 id="_1">一、探测的基本机制<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、探测的基本机制<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>光子 → 电子</strong>。主要器件：</p>
 <table>
 <thead>
@@ -106,7 +165,7 @@
 <li><strong>Ge / InGaAs</strong>：1.0–1.7 μm（<strong>光通信波段必须用它们，因为硅在 1550 nm 透明</strong>——🔗 微电子站第十八页说过这是硅光必须集成锗的原因）；</li>
 <li><strong>InSb / HgCdTe / 微测辐射热计</strong>：中远红外（热成像）。</li>
 </ul>
-<h2 id="_2">二、噪声：本页的核心<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、噪声：本页的核心<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>四种主要噪声源</strong>：</p>
 <p><strong>① 散粒噪声（shot noise）</strong>——<strong>最根本的一种</strong>：</p>
 <div class="arithmatex">\[i_{shot}^2 = 2q I \Delta f\]</div>
@@ -124,7 +183,7 @@
 <p><strong>③ 暗电流</strong>：无光时的电流，随温度指数上升（约每升高 6–8 °C 翻倍）。<strong>这就是科学相机与红外探测器必须制冷的原因</strong>。</p>
 <p><strong>④ 读出噪声</strong>：放大与量化引入。</p>
 <p><strong>总噪声</strong>：各项方差相加。<strong>设计的目标是让散粒噪声占主导（"散粒噪声受限"）——因为那意味着已经逼近物理极限，其他工程噪声都已被压下去了。</strong></p>
-<h2 id="_3">三、性能指标<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、性能指标<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <ul>
 <li><strong>NEP（噪声等效功率）</strong>：SNR=1 所需的输入光功率，单位 W/√Hz。<strong>越小越灵敏</strong>；</li>
 <li><strong>探测率 <span class="arithmatex">\(D^* = \sqrt{A\Delta f}/\mathrm{NEP}\)</span></strong>：归一化后可跨器件比较（红外探测器的标准指标）；</li>
@@ -141,7 +200,7 @@
 <strong>中间某处 SNR 最高。</strong></li>
 </ul>
 <p><strong>这是一个典型的"放大不是免费的"案例</strong>——与 🔗 微电子站第九页 ADC 的架构权衡、自动化站的增益权衡同构：<strong>任何放大都会同时放大噪声，关键在于放大发生在噪声注入之前还是之后。</strong></p>
-<h2 id="_4">五、弱光探测的策略<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、弱光探测的策略<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>当光子极少时（天文、荧光、量子光学、LiDAR 远距回波）：</p>
 <ul>
 <li><strong>光子计数</strong>：用 SPAD 或 PMT 直接数光子。<strong>此时"噪声"变成计数统计问题</strong>；</li>
@@ -151,7 +210,7 @@
 <li><strong>门控</strong>：只在信号到达的时间窗内开启探测器。</li>
 </ul>
 <p><strong>一个重要的判断</strong>：<strong>当系统已经"散粒噪声受限"时，再改进电子学是徒劳的</strong>——<strong>只能增加光子数或提高量子效率</strong>。<strong>能识别系统处在哪个噪声区，是判断"还值不值得优化"的关键。</strong></p>
-<h2 id="_5">六、相干探测<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、相干探测<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>直接探测</strong>只测强度，<strong>丢失相位</strong>（承第三页：探测器只能测强度）。</p>
 <p><strong>相干探测</strong>：把信号光与<strong>本振光</strong>混频后探测，输出中含有 <span class="arithmatex">\(\sqrt{P_s P_{LO}}\cos(\Delta\varphi)\)</span> 项。</p>
 <p><strong>三个巨大优势</strong>：</p>
@@ -162,7 +221,7 @@
 </ul>
 <p><strong>代价</strong>：需要频率与偏振匹配、需要稳定的本振、复杂度大幅上升。</p>
 <p><strong>这正是现代长距光通信的标准方案</strong>（第十三页），也是激光雷达中 FMCW 方案的基础（第十七页）——<strong>它同时给出距离与速度，且抗环境光干扰</strong>。</p>
-<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>散粒噪声是根本极限</strong>：<span class="arithmatex">\(\mathrm{SNR}\le\sqrt{N}\)</span>，<strong>提高 10 倍信噪比需要 100 倍光子</strong>；</li>
 <li><strong>响应度 <span class="arithmatex">\(R=\eta\lambda/1.24\)</span></strong>；截止波长由带隙决定，<strong>1550 nm 必须用 InGaAs/Ge</strong>；</li>
@@ -182,5 +241,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-detector-noise.js"></script>
 </body>
 </html>

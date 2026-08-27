@@ -3,6 +3,34 @@
 > **对标**：CMU 15-418 / Berkeley CS267 ｜ **前置**：perf-01（Amdahl）、os-02（并发）、csapp-02（缓存）
 > perf 线在单核上榨性能，到了极限就得用**多核**。但并行不是"加核就快"——它有自己的定律（Amdahl/Gustafson）、自己的硬件现实（缓存一致性）、自己的编程模型。这一页建立并行的世界观：并行的加速上限在哪、多核共享内存底下的缓存一致性怎么运作、以及数据并行 vs 任务并行的划分。这是走向 GPU（gpu 线）和 MLSys（mlsys 线）的地基。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：8 个核为什么可能只换来 4.7 倍？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：并行循环与共享计数器</h3>
+<p>一个程序 90% 的工作可并行，10% 必须串行；8 核下 Amdahl 上限是多少？现在让四个线程各自更新相邻数组槽位：逻辑上没有共享变量，为什么仍可能在 MESI 总线上互相失效？先分别预测“算法上限”和“缓存一致性代价”。</p>\n+</div>\n+<div class="learning-prediction">
+<h3>先下注，再看时间线</h3>\n+<p>预测：<strong>①</strong> \(S_8=1/(0.1+0.9/8)\approx4.71\)，加核不会突破串行尾巴；<strong>②</strong> 相邻计数器落在同一缓存行时，写入会产生乒乓，padding 到独立缓存行可减少失效；<strong>③</strong> 数据并行适合独立像素，任务并行适合不同阶段，二者不能只按线程数比较。</p>\n+</div>\n+<div class="learning-model">
+<h3>最小心智模型：工作分解 + 共享协议</h3>
+<p>并行性能同时受两个系统约束：任务图中不可切开的关键路径，以及多个核心对同一缓存行的所有权竞争。线程数只是资源请求；真正的可扩展性来自减少关键路径、分离写集合并保持工作均衡。</p>\n+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>固定问题规模的 Amdahl 定律为 \(S(N)=1/(s+(1-s)/N)\)，其中 \(s\) 是串行比例；若问题规模随核数扩展，可用 Gustafson 近似 \(S_G(N)=N-s(N-1)\)。MESI 不变量是：同一缓存行在某一时刻至多有一个 Modified 所有者；另一个核心写入该行必须使旧副本失效。于是不同字段若共享一行，也会付出一致性通信。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>Amdahl 假设比例稳定；输入规模、I/O、调度和同步随 \(N\) 变化时，曲线只是基线。</li><li>padding 能缓解伪共享，却会增加内存占用、降低局部性；只读共享和真正共享写入的代价不同。</li><li>缓存一致性不等于语言内存模型的同步正确性；看见最新值、原子性和 happens-before 是不同命题。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：为一个循环选择并行模型</h3>
+<p>把 L07 的向量循环、图像 gamma 校正和一个网页请求管线分别标为数据并行或任务并行，画出关键路径和写集合。再用 Amdahl 估算收益，用伪共享 trace 找出需要私有累加器或对齐的位置，并说明什么时候应改用工作窃取或 MPI。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-par-01-models" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>串行比例 \(s=0.1\) 时，1、2、4、8 核 Amdahl 加速约为 1、1.82、3.08、4.71。若四个线程写入同一条 64-byte 缓存行，虽然槽位不同，MESI 仍需在每次写时转移行的 Modified 所有权；把每个槽位隔 64 bytes 后，逻辑结果不变但失效事件显著减少。交互版先预测，再切换核心数、串行比例与 packed/padded 布局查看加速和一致性事件。</p>
+<table><thead><tr><th>核心数</th><th>Amdahl \(s=.1\)</th><th>写布局</th><th>一致性风险</th></tr></thead><tbody><tr><td>1</td><td>1.00×</td><td>packed</td><td>无跨核写</td></tr><tr><td>4</td><td>3.08×</td><td>packed</td><td>高，缓存行乒乓</td></tr><tr><td>8</td><td>4.71×</td><td>padded</td><td>低，仍受串行段限制</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 并行的加速上限：Amdahl vs Gustafson
 
 

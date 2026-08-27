@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#join">学习层：同一条 JOIN，为什么会差几个数量级？</a><ul>
+<li><a href="#_1">具体谜题：先过滤还是先连接？</a></li>
+<li><a href="#_2">最小心智模型：关系代数到物理算子</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#explain">迁移任务：把 EXPLAIN 读成证据链</a></li>
+<li><a href="#_5">交互实验：选择率、连接算法与计划代价</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 声明式的威力与代价</a></li>
 <li><a href="#2">2. 物理算子：意图怎么落地</a></li>
 <li><a href="#3">3. 执行模型：数据怎么在算子间流动</a></li>
@@ -54,6 +78,66 @@
 <p><strong>对标</strong>：CMU 15-445 中段 / <em>Database Internals</em> ｜ <strong>前置</strong>：db-01、algo 线（连接算法就是排序/哈希）
 你写一句 <code>SELECT ... JOIN ... WHERE ... ORDER BY</code>，数据库怎么把这段<strong>声明式</strong>的意图（说"要什么"而非"怎么做"）变成一个高效的<strong>执行计划</strong>？这一页揭开这层魔法：SQL → 关系代数 → 物理算子 → 优化器选路。理解它，你就能读懂 <code>EXPLAIN</code>、写出快 SQL，也就懂了为什么同样结果的两句 SQL 能差几百倍。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="join">学习层：同一条 JOIN，为什么会差几个数量级？<a class="headerlink" href="#join" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_1">具体谜题：先过滤还是先连接？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>表 R 有 1,000 行，表 S 有 10,000 行；谓词只命中 R 的 10%。如果先做嵌套循环再过滤，要面对约 10,000,000 对候选；若先把 R 缩成 100 行，再用哈希连接，候选规模约为 10,100。两条计划结果相同吗？优化器凭什么选择其中一条？</p>
+</div>
+<div class="cl-prompt"><strong>先预测，再展开：</strong>在没有索引的情况下，预测过滤选择率从 100% 降到 10% 是否一定让哈希连接胜出；再判断当 S 只有 20 行时，嵌套循环是否可能重新成为合理选择。</div>
+<div class="learning-model">
+<h3 id="_2">最小心智模型：关系代数到物理算子<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>SQL 先被改写为选择、投影、连接、排序等关系代数表达式，再由扫描、过滤、哈希表、排序和迭代器执行。逻辑等价只说明输出关系相同；物理计划还要估计基数、内存、页 I/O 和 CPU 工作。</p>
+</div>
+<div class="learning-mechanism">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>当谓词只引用 R 的列时，选择可以下推：<span class="arithmatex">\(\sigma_p(R\Join S)\equiv(\sigma_pR)\Join S\)</span>。若选择率为 <span class="arithmatex">\(s\)</span>，估计基数为 <span class="arithmatex">\(|R'|=s|R|\)</span>；朴素嵌套循环约为 <span class="arithmatex">\(|R'||S|\)</span> 次比较，哈希连接约为 <span class="arithmatex">\(|R'|+|S|\)</span>（忽略溢出与 I/O）。优化器必须保持关系结果不变，同时最小化估计代价。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>选择率估计会被数据偏斜、列相关性和过期统计信息欺骗；哈希连接主要服务等值谓词，排序归并可能在已有有序输入时更优；哈希表放不进内存会 spill 到磁盘，理论上的线性成本不再是实际成本。一个“看起来更少行”的计划不等于在真实设备上更快。</p>
+</div>
+<div class="learning-transfer">
+<h3 id="explain">迁移任务：把 EXPLAIN 读成证据链<a class="headerlink" href="#explain" title="Permanent link"></a></h3>
+<p>在 P02-B 的 SQL 子集中实现过滤下推与至少一种连接算子，并把估计基数、实际基数和页访问写入报告。对 Medusa 查询先看 `EXPLAIN` 再看 `EXPLAIN ANALYZE`，区分优化器的预测与运行时事实；L05 提供索引页结构，不能被本页的算子模型替代。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-db-02-query">
+<h3 id="_5">交互实验：选择率、连接算法与计划代价<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 R=1,000、S=10,000、选择率 10%。不下推时，嵌套循环约需 10,000,000 次比较；下推后 R'=100，哈希连接的教学代价约为 10,100，排序归并还要付排序项。把选择率拖到 100%，哈希仍可能胜出；把内表改成 20 行或打开索引后，嵌套循环的随机访问代价会下降，但在 R'=100 时哈希仍可能更便宜。只有更低选择率、较大的内表等边界组合才会让索引嵌套循环真正胜出。实验显示的是相对 cost unit，不是某台数据库的毫秒。</p>
+<table>
+<thead>
+<tr>
+<th>计划</th>
+<th>默认估计规模</th>
+<th>近似代价</th>
+<th>依赖</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NLJ（不下推）</td>
+<td>1000×10000</td>
+<td>10,000,000</td>
+<td>比较/内表扫描</td>
+</tr>
+<tr>
+<td>NLJ（先过滤）</td>
+<td>100×10000</td>
+<td>1,000,000</td>
+<td>索引可再降</td>
+</tr>
+<tr>
+<td>Hash Join（先过滤）</td>
+<td>建 100，探测 10000</td>
+<td>10,100</td>
+<td>内存可容纳哈希表</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 声明式的威力与代价<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="一条 SQL → 关系代数 → 算子树（Scan/Filter/Join/Sort）执行计划。" src="assets/img/db-02-plan-tree.svg" /></p>
@@ -154,5 +238,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-db-02-query.js"></script>
 </body>
 </html>

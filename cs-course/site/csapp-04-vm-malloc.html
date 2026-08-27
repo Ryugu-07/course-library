@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：地址连续，物理页也连续吗？</a><ul>
+<li><a href="#_2">具体谜题：一层翻译和一块空洞</a></li>
+<li><a href="#_3">先预测偏移与碎片</a></li>
+<li><a href="#_4">最小心智模型：两本映射账</a></li>
+<li><a href="#first-fit">形式机制：翻译、缺页与 first-fit</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">迁移题：把故障变成延迟的可见账本</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 虚拟内存：地址的一层间接</a></li>
 <li><a href="#2">2. 分页与页表：翻译怎么做</a></li>
 <li><a href="#3-malloc">3. 动态内存：malloc 底下是什么</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：CS:APP 第 9 章 ｜ <strong>前置</strong>：csapp-02（缓存）、csapp-03（缺页故障）
 系统里最精巧的幻觉：<strong>每个进程都以为自己独占一整块从 0 开始的连续内存</strong>——而物理内存只有几十 GB 且被所有进程瓜分。这个幻觉叫<strong>虚拟内存</strong>，它同时解决了隔离、共享、超额分配三件事，是现代操作系统的支柱。下半页讲 <code>malloc</code> 底下的真相——堆是怎么管理的，为什么会内存碎片和泄漏。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：地址连续，物理页也连续吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：一层翻译和一块空洞<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>页大小为 <code>0x1000</code> 时，虚拟地址 <code>0x1234</code> 的页号和页内偏移是什么？若页表把虚拟页 1 映到物理帧 5，物理地址是多少？另一边，堆上有空闲块 <span class="arithmatex">\([0,16]\)</span>、已用块 <span class="arithmatex">\([16,40]\)</span>、空闲块 <span class="arithmatex">\([40,64]\)</span>，申请 28 字节时为什么总空闲量 40 仍会失败？释放中间块后又会怎样？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测偏移与碎片<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 地址翻译改变页号但保留页内偏移 <span class="arithmatex">\(0x234\)</span>；<strong>②</strong> 页表只需把页号映到帧号，不要求物理页连续；<strong>③</strong> 分配器若不合并相邻空闲块，会出现“总空闲 40 字节、最大连续块只有 24 字节”的外部碎片。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：两本映射账<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>虚拟内存维护虚拟页到物理帧的映射与权限；TLB 缓存最近的映射，缺页 fault 把“不在内存”的状态交给内核处理。malloc 维护堆块的边界、大小和空闲状态，用首次适配切分，用边界标记在 free 后合并。两者都用间接层把稀缺资源复用给多个抽象对象。</p>
+</div>
+<div class="learning-formal">
+<h3 id="first-fit">形式机制：翻译、缺页与 first-fit<a class="headerlink" href="#first-fit" title="Permanent link"></a></h3>
+<p>设页大小 <span class="arithmatex">\(P=2^k\)</span>，虚拟地址 <span class="arithmatex">\(v\)</span> 分解为 <span class="arithmatex">\(q=\lfloor v/P\rfloor\)</span> 与 <span class="arithmatex">\(r=v\bmod P\)</span>；若页表给出帧 <span class="arithmatex">\(F(q)\)</span>，则 <span class="arithmatex">\(\mathrm{PA}=F(q)P+r\)</span>。空闲块 <span class="arithmatex">\(B\)</span> 满足 <span class="arithmatex">\(|B|\ge n+\mathrm{header}\)</span> 时可切分；相邻空闲块合并保持空闲区间的不重叠与完整覆盖不变量。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>TLB 命中不等于数据缓存命中；页权限、脏位和多级页表仍可能触发不同成本的路径。</li>
+<li>写时复制让 <code>fork</code> 初始便宜，但第一次写共享页会 fault 并复制；共享不等于永远共用同一物理页。</li>
+<li>first-fit、best-fit 和 segregated fit 只能在给定工作负载下权衡碎片与吞吐；没有一种策略消除所有外部/内部碎片。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移题：把故障变成延迟的可见账本<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>对一个大数组、一个 <code>fork</code> 后写入的快照和一个长时间服务堆，分别追踪页表权限、TLB/页 fault、块切分/合并和回收责任。说明哪一层负责隔离，哪一层负责复用，哪一种监控能区分泄漏、碎片和换页抖动。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-04-vm-malloc">
+<p><strong>无 JavaScript 时的静态版本：</strong><code>0x1234</code> 在 4 KiB 页中分解为虚拟页 <code>0x1</code> 与偏移 <code>0x234</code>；若页 1→帧 5，物理地址为 <code>0x5234</code>。堆块 <span class="arithmatex">\([0,16]\)</span>、<span class="arithmatex">\([16,40]\)</span>、<span class="arithmatex">\([40,64]\)</span> 的空闲总量为 40、最大连续块为 24，所以申请 28 字节失败；释放中间块后相邻三段合并成 64 字节。页面脚本会逐步翻译地址，并演示 first-fit、切分、free 和 coalesce。</p>
+</div>
+</section>
 <h2 id="1">1. 虚拟内存：地址的一层间接<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="虚拟地址空间→页表→物理内存映射，两进程同虚拟地址映到不同物理页（隔离）。" src="assets/img/csapp-04-vm-mapping.svg" /></p>
@@ -114,5 +174,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-csapp-04-vm-malloc.js"></script>
 </body>
 </html>

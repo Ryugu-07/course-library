@@ -4,6 +4,58 @@
 > **证据地位**：已量产技术【实】；路线图上的下一步【前沿，多数已有明确工程路径】；更远的候选【未定/争】。
 > 第五页把器件演进讲到 GAA。本页问：**之后呢？** 并诚实区分"已经在做的"、"确定要做的"、与"仅仅是希望的"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：下一代器件不是单项竞赛，而是约束集合中的可行解</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：密度目标达到了，为什么路线仍然不能量产？</h3>
+<p>假设产品要求相对 GAA 的密度至少达到 1.5 倍，热路径放大不能超过 1.25 倍。一个教学评分表给出：背面供电密度 1.12、热 1.12；CFET 密度 1.80、热 1.45；二维沟道密度 1.40、热 1.20，但二维材料集成风险为 0.95。你预计哪条路线同时满足目标？如果把密度目标放宽到 1.1、热预算放宽到 1.2，结论如何变化？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先按约束而不是按宣传词判断：<strong>①</strong> 背面供电的收益主要来自 IR 压降和正面布线释放，不是把晶体管几何尺寸立刻减半；<strong>②</strong> CFET 有高密度潜力，但上下器件、接触和热路径同时变难；<strong>③</strong> 二维材料的原子厚度不等于可量产，接触电阻、晶圆级生长和 CMOS 集成仍是约束；<strong>④</strong> 路线图状态、研发演示和大规模良率是三个不同证据等级。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：候选技术的约束向量</h3>
+<p>把每条路线表示成向量 <code>(density, IR, thermal, integration-risk, maturity)</code>。设计目标不是让某一列最大，而是满足密度、热、可靠性和成本边界后，再比较可迁移的收益。背面供电、Forksheet、CFET、二维材料和 High-NA EUV 属于不同层级的改进，不能把它们的“节点数字”直接相加。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">Feasible(x) = [density(x) >= D<sub>target</sub>] and [thermal(x) <= T<sub>budget</sub>] and [risk(x) <= R<sub>max</sub>]</div>
+<p>对候选路线 <code>x</code>，只有全部硬约束成立才进入成本和性能排序；任何一个失败项都不能被另一项“平均”掉。系统级缩放的指标可写成 <code>capability / (power * cost)</code>，但具体分子分母必须保持同一产品、同一工作负载和同一证据等级。</p>
+<p>实验把 maturity 留作离散标签，把 density、thermal 和 risk 作为可检查的教学量。它的作用是训练路线图判读：先做约束筛选，再谈潜力，不把未量产方案当作已兑现性能。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>厂商路线图、首批样片、风险量产和稳定大规模量产不是同一个状态；公开时间表会改变，必须记录时间戳与证据来源。</li>
+<li>归一化评分不是器件 TCAD、可靠性实验或成本报价；它只能帮助识别约束冲突，不能替代签核。</li>
+<li>背面供电可能改善 IR 与拥塞，却增加晶圆减薄、双面加工、对准和散热难度；收益不应只看布线面积。</li>
+<li>CFET 或 2D 沟道的密度潜力若无法达到可接受的接触电阻、热预算和良率，仍不能成为产品路线。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：用硬约束筛选下一步路线</h3>
+<div class="learning-lab" data-learning-lab="micro-frontier">
+<p><strong>无 JavaScript 时的静态读法：</strong>以 GAA 为基线，设置密度目标 <code>1.5</code>、热预算 <code>1.25</code>、最大风险 <code>0.80</code>。背面供电 <code>(1.12,1.12,0.45)</code> 密度不足；CFET <code>(1.80,1.45,0.85)</code> 热和风险超限；二维沟道 <code>(1.40,1.20,0.95)</code> 密度与风险不合格，因此没有候选通过。若目标为 1.1、热预算 1.2、风险上限 0.6，背面供电通过，CFET 仍被热/风险拒绝。数值是路线判读的 toy score，不是厂商 benchmark。</p>
+<table><thead><tr><th scope="col">路线</th><th scope="col">密度倍数</th><th scope="col">IR 相对值</th><th scope="col">热相对值</th><th scope="col">集成风险</th><th scope="col">状态</th></tr></thead>
+<tbody><tr><td>GAA 基线</td><td>1.00</td><td>1.00</td><td>1.00</td><td>0.20</td><td>已量产基线</td></tr><tr><td>背面供电</td><td>1.12</td><td>0.55</td><td>1.12</td><td>0.45</td><td>近期开启</td></tr><tr><td>CFET</td><td>1.80</td><td>0.75</td><td>1.45</td><td>0.85</td><td>研发路线</td></tr><tr><td>二维沟道</td><td>1.40</td><td>0.90</td><td>1.20</td><td>0.95</td><td>未定</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把一项前沿声明变成证据表</h3>
+<p>选一项 CFET、背面供电、High-NA EUV 或二维材料声明，建立五列证据表：几何/器件收益、工艺新增步骤、热与可靠性边界、良率/成本证据、证据等级与日期。再给出一个“若目标变化则结论翻转”的参数，并说明哪些数字必须等到量产数据才能确认。</p>
+</div>
+</section>
+
 ## 一、已经发生：GAA 世代
 
 **环栅纳米片（GAA）已成为 2nm 级世代的主流结构**，主要厂商（台积电、三星、英特尔）均已转向或正在转向该架构。它带来的是第五页说过的东西：更强的栅控、更陡的亚阈值摆幅、以及**恢复的宽度可调性**。

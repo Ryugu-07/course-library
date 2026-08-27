@@ -3,6 +3,58 @@
 > **核对于 2026-07** ｜ 本页讲**产业如何组织**与**人在其中做什么**——这是技术课程通常不讲、但对理解这个领域至关重要的一层。
 > 半导体是现代工业中结构最特殊的产业之一：**资本极度密集、分工极度专业、地理极度集中**。本页解释这些特征从何而来（答案全部在前面的技术页里），并给出本硕博的实际去向。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：产业分工是固定成本、学习曲线与产能风险的联合结果</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：什么时候值得自己建厂？</h3>
+<p>假设一颗 100 mm<sup>2</sup> 裸片在 300 mm 晶圆上，90% 面积可用，每片晶圆成本 8,000，良率 0.70，另有每颗 3 的封装成本。设计公司还要摊销 20 million 货币单位的 NRE；代工厂则把同一制造成本作为可变成本。若自己建厂需要 15 billion 货币单位的资本投入、五年摊销，并且年产量只有 1 million 颗，你预计 fabless 和 IDM 的单位成本谁更低？当年产量提高到 50 million 颗时，固定成本的答案会不会翻转？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先写下四条：<strong>①</strong> Fabless 把建厂固定成本换成代工价格与供应链依赖，低到中等量时更灵活；<strong>②</strong> IDM 只有在足够高的稳定利用率下才能摊薄巨额 capex；<strong>③</strong> 先进工艺并非所有产品的最优节点，成熟节点的折旧、良率和长生命周期也有价值；<strong>④</strong> EDA、设备、材料与封测的瓶颈会让“拥有设计”不等于“拥有可交付芯片”。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：价值链上的固定项与瓶颈项</h3>
+<p>把产业看成多个阶段的约束网络：IP/EDA 产生设计能力，fabless 产生需求与产品定义，foundry 提供晶圆产能，OSAT 完成封装测试，设备材料供应商决定工艺可用性。每个阶段既有固定成本，也有学习曲线、交付周期和替代难度；最终成本不是某一个环节的报价，而是整条链的可用产出和风险。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">N<sub>good</sub> = floor(u A<sub>wafer</sub> / A<sub>die</sub>) Y, &nbsp; C<sub>fabless</sub> = p C<sub>variable</sub> + NRE / V, &nbsp; C<sub>IDM</sub> = C<sub>variable</sub> + CapEx<sub>annual</sub> / V</div>
+<p>这里 <code>V</code> 是年出货量，教学模型取代工溢价 <code>p=1.25</code>；<code>CapEx<sub>annual</sub></code> 是把建厂资本按年限摊销后的固定项。产能约束还要求 <code>V <= V<sub>capacity</sub> * utilization</code>；若需求超过可用产能，单位成本公式不能掩盖未交付订单。分工的经济学不变量是：固定项被更多稳定产出摊薄时，单位成本下降；但低利用率、良率爬坡和需求周期会把曲线重新抬高。</p>
+<p>实验只使用教学数字，目的在于把“垂直分工”变成可算的 break-even 与 bottleneck 问题，而不是给任何厂商做财务预测。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>简单固定成本模型忽略价格折扣、产品组合、折旧税务、现金流、库存和设备折旧结束后的成熟节点优势。</li>
+<li>高出货量不保证 IDM 划算：需求波动、节点切换、良率爬坡和单一客户集中可能让利用率掉下去。</li>
+<li>成熟节点和先进节点服务不同的产品约束；用先进逻辑的集中度去推断全部半导体市场会产生选择偏差。</li>
+<li>岗位数量和价值不能只按“设计师/制造师”二分；验证、后端、工艺整合、设备、测试和良率岗位都处在交付瓶颈上。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：画出 fabless / IDM 的 break-even</h3>
+<div class="learning-lab" data-learning-lab="micro-industry">
+<p><strong>无 JavaScript 时的静态读法：</strong>300 mm 晶圆的全圆面积是 <code>pi*150<sup>2</sup>=70,686 mm<sup>2</sup></code>，可用面积取 90% 后是约 <code>63,617 mm<sup>2</sup></code>；100 mm<sup>2</sup> 裸片时可用区约有 <code>floor(0.9*pi*150<sup>2</sup>/100)=636</code> 个几何裸片，良率 0.70 后是 445.2 个好裸片。晶圆制造成本约 <code>8000/445.2=17.97</code>，加封装 3 得可变成本约 20.97。把 NRE 写成 20 million、代工溢价写成 <code>p=1.25</code>：出货 1 million 颗时，fabless 约 <code>1.25*20.97+20=46.21</code>/颗，IDM 的五年摊销固定项为 <code>15B/5=3B</code>，约 <code>20.97+3000=3020.97</code>/颗；出货 50 million 颗时，fabless 约 26.61/颗，IDM 仍约 80.97/颗。两条曲线的教学交叉量约 568.4 million 颗，已经高于本实验 100 million 的控制范围；代工模式的价值正是把这类固定风险分散给多个客户。</p>
+<table><thead><tr><th scope="col">量</th><th scope="col">数值</th><th scope="col">计算</th></tr></thead>
+<tbody><tr><td>全圆面积</td><td>70,686 mm<sup>2</sup></td><td>pi*150<sup>2</sup></td></tr><tr><td>可用面积</td><td>63,617 mm<sup>2</sup></td><td>0.9*pi*150<sup>2</sup></td></tr><tr><td>可用区几何裸片</td><td>636</td><td>floor(63,617/100)</td></tr><tr><td>好裸片</td><td>445.2</td><td>636*0.70</td></tr><tr><td>可变成本</td><td>20.97</td><td>8000/445.2 + 3</td></tr><tr><td>代工溢价</td><td>1.25x</td><td>p</td></tr><tr><td>Fabless / unit（1M）</td><td>46.21</td><td>1.25*20.97 + 20/1</td></tr><tr><td>IDM / unit（1M）</td><td>3,020.97</td><td>20.97 + 3,000/1</td></tr><tr><td>Fabless / unit（50M）</td><td>26.61</td><td>1.25*20.97 + 20/50</td></tr><tr><td>IDM / unit（50M）</td><td>80.97</td><td>20.97 + 3,000/50</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为一个新创芯片公司设计进入路径</h3>
+<p>给出“成熟节点 + 代工 + OSAT”和“先进节点 + 自有制造能力”两条路径。对每条路径列出 NRE、产能、良率爬坡、IP/EDA、测试、现金流、交付周期和供应链替代项；再为本科、硕士、博士岗位分别匹配一个可交付成果，说明为什么流片经验、验证能力和工艺数据会改变组织中的议价权。</p>
+</div>
+</section>
+
 ## 一、垂直分工：一个被成本逼出来的结构
 
 早期半导体公司是 **IDM（整合元件制造商）**——自己设计、自己制造、自己封测。今天的主流是**垂直分工**：

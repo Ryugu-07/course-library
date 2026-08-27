@@ -3,6 +3,58 @@
 > **层次**：硕博研究方向 ｜ **核对于 2026-07** ｜ **证据地位**：新型存储器件物理【实】；**存内计算的实用化程度【争】**——这是本页需要谨慎的地方。
 > 第十页留下了存储墙：**搬运数据比计算本身贵得多**。本页讲两条应对路线——用**新的存储器件**填补层次断档，以及更激进的**存内计算**：直接在存储阵列里做运算，从根上消除搬运。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：交叉阵列用物理求和，但端到端收益受 ADC 与误差约束</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：一次“免费”的矩阵乘法到底免费吗？</h3>
+<p>对一个 4 x 4 电导阵列，输入电压向量为 <code>V=[1, 0.5, 0.25, 0.75]</code>，第一行电导为 <code>[2,1,0,3]</code>。你能否在不逐项相乘的情况下预测第一行输出电流？答案应为 <code>2*1+1*0.5+0*0.25+3*0.75=4.75</code>。但如果每列还要经过 DAC、ADC，器件有 5% 的固定失配，且写一次电导比读一次更贵，那么“一个时钟完成”是否仍等价于端到端更省电？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先预测三个结果：<strong>①</strong> 理想阵列输出严格满足欧姆定律和基尔霍夫电流定律的线性求和；<strong>②</strong> 把 ADC/DAC 计入后，阵列规模越大，外围能耗越可能主导；<strong>③</strong> 器件噪声和量化位数会让输出偏离理想值，但不一定在每个任务上同样有害；<strong>④</strong> 读路径的能效优势不能直接外推到训练，因为权重更新有不同的写入成本。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：电导矩阵、输入电压与读出链</h3>
+<p>把权重编码为非负电导 <code>G<sub>ij</sub></code>，把输入编码为行电压 <code>V<sub>j</sub></code>。每个交叉点产生一股电流，列线利用 KCL 在模拟域累加；外围再把电压/电流送入 ADC，交给数字逻辑完成激活、归一化和下一层。差分阵列可以表达有符号权重，但会复制阵列与读出开销。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">I<sub>i</sub> = sum<sub>j</sub> G<sub>ij</sub> V<sub>j</sub>, &nbsp; E<sub>total</sub> = E<sub>array</sub> + N(E<sub>DAC</sub> + E<sub>ADC</sub>)</div>
+<p>理想计算的核心不变量是线性叠加：如果把输入缩放为 <code>cV</code>，输出应缩放为 <code>cI</code>；如果把两组输入相加，输出应为两次输出之和。实验用固定模式的器件失配与 ADC 量化构造可复现误差，再分别显示“只算阵列”和“算阵列 + 外围”的能耗。</p>
+<p>端到端评估至少要同时记录任务误差、有效位数、外围面积/功耗、写入次数和阵列利用率。只报一个宏单元峰值不等于系统级能效。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>器件电导并非理想常数：器件间失配、循环间涨落、温度依赖、保持性和电阻漂移会破坏同一个权重的稳定表示。</li>
+<li>ADC/DAC 不是“免费接口”；高分辨率读出可能占据阵列宏单元的主要面积与能耗，外围省略会夸大收益。</li>
+<li>阵列尺寸、稀疏权重、非矩阵算子和片间通信会降低利用率；单个 MVM 的理论吞吐不等于完整网络吞吐。</li>
+<li>模拟加速适合特定低精度推理窗口；在高精度科学计算或频繁更新权重的训练中，误差与写入成本可能反转结论。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：打开外围，观察“阵列优势”如何收缩</h3>
+<div class="learning-lab" data-learning-lab="micro-memory-frontier">
+<p><strong>无 JavaScript 时的静态读法：</strong>用下列 4 x 4 阵列和输入向量。理想输出为 <code>[4.75, 2.25, 2.00, 3.75]</code>。若加入固定 5% 交替失配，输出会按行产生确定偏差；若 ADC 只有 4 bit，则还会出现量化台阶。以 <code>N=128</code>、阵列单元每次 0.02 pJ、DAC 每行 0.4 pJ、ADC 每列 0.8 pJ 为教学常数，阵列项约 327.7 pJ，外围项为 153.6 pJ；若数字基线为每次乘加 0.12 pJ，则约为 1,966.1 pJ。这个优势只有在外围、转换精度与非矩阵操作没有被漏算时才有意义。</p>
+<table><thead><tr><th scope="col">行</th><th scope="col">G<sub>i1</sub></th><th scope="col">G<sub>i2</sub></th><th scope="col">G<sub>i3</sub></th><th scope="col">G<sub>i4</sub></th><th scope="col">I<sub>i</sub></th></tr></thead>
+<tbody><tr><td>1</td><td>2</td><td>1</td><td>0</td><td>3</td><td>4.75</td></tr><tr><td>2</td><td>1</td><td>0</td><td>2</td><td>1</td><td>2.25</td></tr><tr><td>3</td><td>0</td><td>2</td><td>1</td><td>1</td><td>2.00</td></tr><tr><td>4</td><td>3</td><td>1</td><td>1</td><td>0</td><td>3.75</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：审查一张存内计算能效表</h3>
+<p>某论文报告阵列能效 1 TOPS/W、ADC 4 bit、分类精度下降 1.8%，但没有报告 DAC、片上 buffer、写入校准和端到端吞吐。请列出至少五个追问，并设计一个小实验：固定同一网络、同一量化位数和同一批输入，分别报告阵列级、宏单元级和系统级的能效与精度。</p>
+</div>
+</section>
+
 ## 一、为什么需要新型存储
 
 现有三种主流存储各有死角（第十页）：

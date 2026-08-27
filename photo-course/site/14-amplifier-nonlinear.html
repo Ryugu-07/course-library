@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,14 +47,23 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#edfa">一、EDFA：一项改变行业的发明</a></li>
+<li><a href="#edfa">学习层：EDFA 的最佳功率在两种噪声之间</a><ul>
+<li><a href="#1-snr">1. 具体谜题：把入纤功率调大，为什么 SNR 先升后降？</a></li>
+<li><a href="#2">2. 先预测：先看曲线形状，不急着找最大瓦数</a></li>
+<li><a href="#3">3. 最小模型：材料非线性把强度写进相位</a></li>
+<li><a href="#4">4. 实验：拖动入纤功率，观察两种噪声交接</a></li>
+<li><a href="#5">5. 失败边界：模型能揭示方向，不能替代链路标定</a></li>
+<li><a href="#6">6. 迁移任务：把非线性当作限制也当作器件资源</a></li>
+</ul>
+</li>
+<li><a href="#edfa_1">一、EDFA：一项改变行业的发明</a></li>
 <li><a href="#_1">二、光纤中的非线性</a></li>
 <li><a href="#_2">三、非线性作为工具</a></li>
 <li><a href="#_3">四、光信号处理的其他器件</a></li>
@@ -52,10 +76,90 @@
 <p><strong>层次</strong>：本科核心 + 研究生方向。
 两项物理支撑着现代光通信：<strong>光放大</strong>让信号能传数千公里而无需光电转换；<strong>非线性效应</strong>既是容量的限制（第十三页的非线性香农极限），也是一批重要器件的工作原理。本页把这两件事讲清楚。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="edfa">学习层：EDFA 的最佳功率在两种噪声之间<a class="headerlink" href="#edfa" title="Permanent link"></a></h2>
+<h3 id="1-snr">1. 具体谜题：把入纤功率调大，为什么 SNR 先升后降？<a class="headerlink" href="#1-snr" title="Permanent link"></a></h3>
+<p>考虑 <span class="arithmatex">\(N=8\)</span> 级放大。低功率时 ASE 是主要噪声；高功率时克尔效应产生的非线性噪声随功率急剧增加。对一个可复算的教学模型，令信号功率为 <span class="arithmatex">\(P\)</span>（mW），</p>
+<div class="arithmatex">\[
+P_{ASE}=0.03N,\qquad P_{NL}=0.015NP^3.
+\]</div>
+<p>当 <span class="arithmatex">\(P=0.25\,\mathrm{mW}\)</span>（约 <span class="arithmatex">\(-6\,\mathrm{dBm}\)</span>）时几乎被 ASE 限制；当 <span class="arithmatex">\(P=1\,\mathrm{mW}\)</span>（<span class="arithmatex">\(0\,\mathrm{dBm}\)</span>）时两者仍可平衡；当 <span class="arithmatex">\(P=4\,\mathrm{mW}\)</span>（约 <span class="arithmatex">\(+6\,\mathrm{dBm}\)</span>）时非线性项会突然占主导。你先预测最佳点在哪一侧。</p>
+<h3 id="2">2. 先预测：先看曲线形状，不急着找最大瓦数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>把功率从 <span class="arithmatex">\(-6\)</span> dBm 提到 0 dBm，ASE 相对信号的影响会怎样？</li>
+<li>再从 0 dBm 提到 <span class="arithmatex">\(+6\)</span> dBm，<span class="arithmatex">\(P^3\)</span> 项会放大多少倍？</li>
+<li>若放大器数增加，最佳功率向高功率移动、低功率移动，还是主要由两项噪声的比例决定？</li>
+</ol>
+<h3 id="3">3. 最小模型：材料非线性把强度写进相位<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>克尔效应从</p>
+<div class="arithmatex">\[
+n=n_0+n_2I
+\]</div>
+<p>开始；传播长度 <span class="arithmatex">\(L\)</span> 后的非线性相移可写成 <span class="arithmatex">\(\phi_{NL}=\gamma P L\)</span>。在 WDM 中，SPM、XPM 和 FWM 把相位扰动转成频谱展宽与通道串扰。与此同时，EDFA 的受激辐射伴随 ASE；多级放大使 OSNR 近似按 <span class="arithmatex">\(10\log_{10}N\)</span> 下降。</p>
+<p>实验用上面的固定模型计算</p>
+<div class="arithmatex">\[
+\mathrm{SNR}(P)=\frac{P}{P_{ASE}+P_{NL}},
+\]</div>
+<p>它不是某一台 EDFA 的规格，而是把“低端噪声”和“高端非线性”同时显形的可审计状态方程。最优点满足两项噪声的增长率开始抵消信号增益，而不是“功率越大越好”。</p>
+<h3 id="4">4. 实验：拖动入纤功率，观察两种噪声交接<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先判断低功率、工作点和高功率三个区间，核对后再调整放大级数与功率。SVG 显示 ASE、非线性噪声和 SNR 曲线；表格逐项给出功率、总噪声与非线性相移代理量。</p>
+<div class="learning-lab" data-learning-lab="photo-nonlinearity">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(N=8\)</span>，使用 <span class="arithmatex">\(P_{ASE}=0.03N\)</span>、<span class="arithmatex">\(P_{NL}=0.015NP^3\)</span> 的教学模型。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">入纤功率</th>
+<th style="text-align: right;"><span class="arithmatex">\(P\)</span>（mW）</th>
+<th style="text-align: right;">ASE（mW）</th>
+<th style="text-align: right;">非线性噪声（mW）</th>
+<th style="text-align: right;"><span class="arithmatex">\(P/(P_{ASE}+P_{NL})\)</span></th>
+<th>主导项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(-6\)</span> dBm</td>
+<td style="text-align: right;">0.251</td>
+<td style="text-align: right;">0.24</td>
+<td style="text-align: right;">0.00190</td>
+<td style="text-align: right;">1.04</td>
+<td>ASE</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span> dBm</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.24</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">2.78</td>
+<td>平衡区</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(+6\)</span> dBm</td>
+<td style="text-align: right;">3.981</td>
+<td style="text-align: right;">0.24</td>
+<td style="text-align: right;">7.57</td>
+<td style="text-align: right;">0.51</td>
+<td>克尔非线性</td>
+</tr>
+</tbody>
+</table>
+<p>这里把一项噪声至少达到另一项的 3 倍定义为“主导”；因此默认点的 ASE/非线性比约为 2，归入平衡区，而不是把接近的两项硬判成单一瓶颈。</p>
+</div>
+<h3 id="5">5. 失败边界：模型能揭示方向，不能替代链路标定<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>ASE 系数、<span class="arithmatex">\(\gamma\)</span>、有效面积、色散和放大器增益平坦度都依赖器件与波段；上表不是商用 EDFA 的数据表。</li>
+<li>零色散附近 FWM 相位匹配更强；“色散小”不是无条件的优点，NZ-DSF 的设计正是在两种风险之间取舍。</li>
+<li>二阶电光效应还受晶体中心对称性约束；硅和石英没有普通的二阶非线性，不能把铌酸锂调制器的机制直接移植过去。</li>
+</ul>
+<h3 id="6">6. 迁移任务：把非线性当作限制也当作器件资源<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>为一条 WDM 链路选择入纤功率时，分别列出 ASE、SPM/XPM/FWM、SBS 和接收灵敏度的观测量。然后改写目标：如果任务变成超连续谱或孤子传播，你会故意把哪一项“噪声”调成有用的频谱变换？</p>
+</section>
 <p><img alt="光放大与非线性工作点" class="fig-img" src="assets/img/pho-14-amplifier-nonlinear.svg" /></p>
 <figcaption><span class="fig-id">图 14-1</span> 左：980/1480 nm 泵浦在掺铒光纤中建立粒子数反转，信号被受激辐射放大，同时带来 ASE 噪声；右：入纤功率过低时 ASE 主导，过高时克尔非线性噪声主导，<strong>两者共同夹出一个最优工作点 \(P_{opt}\)</strong>。因此 EDFA 既是 WDM 的使能器，也是非线性香农极限链路中的一部分。</figcaption>
 
-<h2 id="edfa">一、EDFA：一项改变行业的发明<a class="headerlink" href="#edfa" title="Permanent link"></a></h2>
+<h2 id="edfa_1">一、EDFA：一项改变行业的发明<a class="headerlink" href="#edfa_1" title="Permanent link"></a></h2>
 <p><strong>掺铒光纤放大器（EDFA）</strong>：在光纤中掺入铒离子，用 980 nm 或 1480 nm 泵浦形成粒子数反转（第六页），信号光经过时被<strong>受激辐射放大</strong>。</p>
 <p><strong>它的三个决定性优点</strong>：</p>
 <p><strong>① 直接放大光信号，无需光电光转换。</strong> 此前的中继器必须把光转成电、再生、再转回光——<strong>每个波长都要一套</strong>，且速率一旦升级就要全部更换。</p>
@@ -148,5 +252,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-nonlinearity.js"></script>
 </body>
 </html>

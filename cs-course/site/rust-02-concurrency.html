@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,14 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 无畏并发：数据竞争的编译期终结</a></li>
+<li><a href="#_1">学习层：把引用送进线程，就自动变成线程安全了吗？</a><ul>
+<li><a href="#_2">具体谜题：计数器、通道与锁</a></li>
+<li><a href="#_3">先预测编译期边界</a></li>
+<li><a href="#sendsync">最小心智模型：Send、Sync 与同步协议</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#l10-bug-rust-api">迁移任务：从 L10 的 bug 到 Rust API</a></li>
+</ul>
+</li>
 <li><a href="#2-traitrust">2. Trait：Rust 的抽象引擎</a></li>
 <li><a href="#3-unsafe">3. unsafe：安全网的边界</a></li>
 <li><a href="#4-rust">4. Rust 的定位:什么时候用它</a></li>
@@ -50,7 +73,46 @@
 <p><strong>对标</strong>：<em>The Rust Programming Language</em> / <em>Rust for Rustaceans</em>（Gjengset）｜ <strong>前置</strong>：rust-01（所有权）、par-02（无锁、数据竞争）、os-02（并发）
 这一页把 Rust 的三块高级能力讲透：<strong>无畏并发</strong>（所有权如何在编译期消灭数据竞争——par 线所有噩梦的解药）、<strong>trait</strong>（Rust 的抽象与多态机制，接口 + 泛型的统一）、以及 <strong>unsafe</strong>（什么时候必须跳出安全网、以及安全抽象的边界哲学）。读完，你会明白 Rust 为什么能同时用于操作系统内核和 Web 后端。</p>
 </blockquote>
-<h2 id="1">1. 无畏并发：数据竞争的编译期终结<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：把引用送进线程，就自动变成线程安全了吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：计数器、通道与锁<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>两个线程各执行 100 次 <code>counter += 1</code>。若共享的是裸可变引用，最终值为何可能小于 200？把数据改为每线程局部计数后通过 channel 汇总，或放进 <code>Arc&lt;Mutex&lt;u64&gt;&gt;</code>，Rust 分别凭什么允许或拒绝这些写法？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测编译期边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> 裸共享可变引用不能安全跨线程，编译器拒绝；<strong>②</strong> channel 转移消息所有权，接收端获得唯一 owner，能避免共享写；<strong>③</strong> <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> 通过原子引用计数 + 互斥锁提供共享同步，但仍可能死锁或造成争用。</p>
+</div>
+<div class="learning-model">
+<h3 id="sendsync">最小心智模型：Send、Sync 与同步协议<a class="headerlink" href="#sendsync" title="Permanent link"></a></h3>
+<p><code>Send</code> 约束值能否转移到另一线程，<code>Sync</code> 约束共享引用能否跨线程；它们是由内部字段递归决定的 trait 边界。类型系统阻止无同步的别名写入，运行时原语仍负责排队、互斥、唤醒和内存顺序。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>数据竞争要求两个并发访问同一位置、至少一个写、且没有 happens-before；Rust safe code 通过所有权/借用与 <code>Send</code>/<code>Sync</code> 边界拒绝这类别名。互斥不变量是同一时刻至多一个 guard 持有锁；channel 不变量是消息只能被符合类型的接收端消费一次。若原子 flag 用 release 写、acquire 读，则发布前的写入对读取方可见。</p>
+<p>无锁算法还要保持 par-02 的线性化与回收不变量；trait 通过并不等于具体算法证明完成。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li><code>Arc</code> 只安全管理共享所有权，不会让内部数据自动可变；<code>Arc&lt;RefCell&lt;T&gt;&gt;</code> 通常不能跨线程，因为 <code>RefCell</code> 没有线程同步。</li>
+<li><code>Mutex</code> 可避免数据竞争，却不能避免锁顺序造成的死锁、持锁 I/O 或饥饿。</li>
+<li><code>unsafe</code> 可以绕过检查器，但必须由作者恢复别名、生命周期、同步和 FFI 契约，否则“编译通过”没有安全含义。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="l10-bug-rust-api">迁移任务：从 L10 的 bug 到 Rust API<a class="headerlink" href="#l10-bug-rust-api" title="Permanent link"></a></h3>
+<p>把 L10 的无锁栈、生产者消费者和共享计数器各画出所有权/同步图，分别选择 channel、<code>Mutex</code>、<code>AtomicUsize</code> 或安全封装。记录它们的线性化点、阻塞行为、内存序和错误路径，比较与 par-02 手写 CAS 的边界。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-rust-02-concurrency">
+<p><strong>无 JavaScript 时的静态读法：</strong>两个线程各加 100 次，裸共享可变引用存在 data race，不能假设最终为 200；channel 让每个线程发送局部计数，主线程串行求和得到 200；<code>Arc&lt;Mutex&lt;u64&gt;&gt;</code> 每次加法需先锁定 guard，正确结果为 200，但会有锁争用。交互版切换裸引用、channel、Arc/Mutex 和原子计数，显示 Send/Sync gate、临界区时间线与结果不变量。</p>
+<p>\n+<table><thead><tr><th>方案</th><th>跨线程权限</th><th>同步点</th><th>预期结果</th></tr></thead><tbody><tr><td>裸 <code>&amp;mut</code></td><td>拒绝</td><td>无</td><td>不能构造</td></tr><tr><td>channel</td><td>转移 owner</td><td>send/recv</td><td>200</td></tr><tr><td>Arc/Mutex</td><td>共享 + 独占 guard</td><td>lock/unlock</td><td>200</td></tr><tr><td>AtomicUsize</td><td>原子读改写</td><td>原子操作</td><td>200</td></tr></tbody></table>\n+</p>
+</div>
+<p>\n+</p>
+</section>
+<p>\n+\n+## 1. 无畏并发：数据竞争的编译期终结</p>
 <p>par-02/os-02 里，数据竞争是最难调的 bug（间歇性、不可复现）。<strong>Rust 的洞见</strong>：数据竞争的定义是"≥2 线程访问同一数据、≥1 个写、无同步"——而 rust-01 的<strong>借用铁律（共享不可变 XOR 可变不共享）恰好禁止了"可变 + 共享"</strong>。把它扩展到线程间，数据竞争就在编译期不可能。靠两个 trait：</p>
 <ul>
 <li><strong><code>Send</code></strong>：类型的所有权可以安全<strong>转移</strong>到另一线程。</li>
@@ -106,5 +168,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-rust-02-concurrency.js"></script>
 </body>
 </html>

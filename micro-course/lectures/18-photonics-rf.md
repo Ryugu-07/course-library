@@ -3,6 +3,58 @@
 > **层次**：硕博专门方向 ｜ **核对于 2026-07**。
 > 芯片不只处理数字信号，它还必须**与外界通信**——通过电缆、光纤、或空中的电磁波。本页讲两个把"非数字物理"集成进硅的方向：**硅光子学**（用光传数据）与**射频/毫米波**（无线）。两者都是硕博的独立方向，也都在当前系统瓶颈上处于关键位置。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：通信介质的选择由距离、转换开销与链路预算共同决定</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：光为什么在长距离赢，却不一定在芯片边上赢？</h3>
+<p>比较同一条 800 Gb/s 链路。教学模型中，铜互连每比特能耗为 <code>0.8+0.12d</code> pJ，硅光为 <code>2.5+0.015d+0.4</code> pJ，其中 <code>d</code> 以米计。10 m 时铜约 2.0 pJ/bit、硅光约 3.05 pJ/bit；50 m 时铜约 6.8 pJ/bit、硅光约 3.65 pJ/bit。你预测交叉点在哪里？如果把链路换成 60 GHz、10 m 的毫米波无线，接收功率还要满足怎样的自由空间路径损耗与波束增益条件？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先写下判断：<strong>①</strong> 光纤的介质传输损耗很低，但电光/光电转换是固定成本，所以距离越短越不一定划算；<strong>②</strong> WDM 提高的是同一波导的带宽密度，不会消除激光器、调制器、探测器与热调谐；<strong>③</strong> 射频频率越高，波长越短、天线越易集成，但自由空间损耗和遮挡敏感性更强；<strong>④</strong> 线性度、噪声系数、相位噪声和功放效率不能用一个“带宽”数字替代。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：链路两端的能量账与信道预算</h3>
+<p>有线/光链路先算每比特固定转换能耗，再算随距离增长的传输能耗；总功率是数据率乘以每比特能耗。RF 链路则把发射功率、天线增益、路径损耗、遮挡余量与接收灵敏度放在同一条 dB 账本中。硅光、RFIC、CPO 和 AiP 都是在不同距离和频率区间重新安排这些固定项与斜率。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">P = R<sub>bit</sub> e<sub>bit</sub>, &nbsp; L<sub>FS</sub>(dB) = 20 log<sub>10</sub>(4 pi d / lambda), &nbsp; P<sub>r</sub>(dBm) = P<sub>t</sub> + G<sub>t</sub> + G<sub>r</sub> - L<sub>FS</sub> - L<sub>other</sub></div>
+<p>光/铜比较中，链路总能量按 <code>R<sub>bit</sub>(e<sub>fixed</sub>+e<sub>distance</sub>(d))</code> 计；提高 WDM 通道数可以增加总带宽，但每个通道仍有调制、探测、驱动和热控制预算。RF 链路在目标 BER 下还要满足 <code>P<sub>r</sub> >= P<sub>sensitivity</sub> + margin</code>。</p>
+<p>实验的可审计不变量是：在同一数据率下，功率比等于每比特能耗比；自由空间损耗随距离的对数增加，并随频率升高而增加。换算单位时不能把 m、km、Hz 和 GHz 混在同一个公式里。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>“光几乎不随距离耗能”只描述介质传播的一部分；收发器、激光器、DSP、热调谐和封装仍可能主导。</li>
+<li>铜线模型在很短距离、低速率时有用，但高频趋肤效应、介质损耗、串扰和均衡器会改变斜率。</li>
+<li>自由空间 Friis 预算不是毫米波系统的全部：波束跟踪、遮挡、相噪、功放线性度和天线失配可能决定可用性。</li>
+<li>硅光的透明波导不等于硅能高效发光；光源、锗探测器与异质集成仍是结构性约束。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：比较铜、硅光与毫米波的链路账本</h3>
+<div class="learning-lab" data-learning-lab="micro-photonics-rf">
+<p><strong>无 JavaScript 时的静态读法：</strong>在 800 Gb/s 下，10 m 铜链路为 2.0 pJ/bit，功率约 1.6 W；10 m 硅光链路为 3.05 pJ/bit，功率约 2.44 W；50 m 时铜为 6.8 pJ/bit、5.44 W，硅光为 3.65 pJ/bit、2.92 W。二者教学交叉距离由 <code>0.8+0.12d=2.5+0.015d+0.4</code> 得 <code>d≈20 m</code>。RF 例子取 60 GHz、10 m，自由空间损耗约 88 dB；若发射 20 dBm、收发天线各 20 dBi、其他损耗 4 dB，则接收约 -32 dBm，是否可用取决于灵敏度和余量。</p>
+<table><thead><tr><th scope="col">介质</th><th scope="col">10 m 能耗</th><th scope="col">10 m 功率</th><th scope="col">主要固定项</th></tr></thead>
+<tbody><tr><td>铜</td><td>2.00 pJ/bit</td><td>1.60 W</td><td>驱动、均衡、损耗</td></tr><tr><td>硅光</td><td>3.05 pJ/bit</td><td>2.44 W</td><td>激光、E/O、O/E、热调谐</td></tr><tr><td>60 GHz RF</td><td>需 dB budget</td><td>取决于 PA 与占空比</td><td>路径损耗、波束、噪声</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为机架互连和无线前端各写一份预算</h3>
+<p>为 3 m 板级互连、30 m 机架互连和 10 m 60 GHz 无线 backhaul 各列出数据率、每比特能耗或链路 dB、热预算、可维修性、BER/SNR 与冗余要求。然后说明 CPO 为什么可能在机架级先落地，而不是直接把光源和所有光学元件搬到晶体管旁边。</p>
+</div>
+</section>
+
 ## 一、为什么需要光
 
 **电互连的困境**（承第六、十五页）：

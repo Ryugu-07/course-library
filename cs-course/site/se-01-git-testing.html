@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,16 +45,23 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li class="active"><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#se-01-learning-title">学习层：一次绿色测试，究竟证明了哪一段历史？</a><ul>
+<li><a href="#1">1. 具体谜题：回归在提交图的哪一条边上？</a></li>
+<li><a href="#2-dag">2. 最小模型：内容寻址 DAG 加行为证据账本</a></li>
+<li><a href="#3">3. 正式机制与不变量：可追溯不等于可证明</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
 <li><a href="#1-git">1. Git 的心脏:内容寻址的对象数据库</a></li>
 <li><a href="#2">2. 分支模型与协作</a></li>
-<li><a href="#3">3. 测试:软件可靠性的支柱</a></li>
+<li><a href="#3_1">3. 测试:软件可靠性的支柱</a></li>
 <li><a href="#4-tdd">4. TDD 与测试的哲学</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
@@ -50,6 +72,69 @@
 <p><strong>对标</strong>：<em>Pro Git</em>（Chacon）/ MIT Missing Semester / Berkeley CS169 ｜ <strong>前置</strong>：crypto-01（哈希）、os-03（内容寻址的伏笔）
 软件工程线讲"把代码写好、协作好、可靠交付"的工程实践。这一页两块：<strong>Git 的内部原理</strong>（你天天用它，但它底下是一个优雅的内容寻址数据结构，看懂它 git 就再也不会"背命令"）和<strong>测试</strong>（软件可靠性的支柱——测试的层级、什么值得测、TDD 的思想）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="se-01-learning-title" class="learning-layer">
+<h2 id="se-01-learning-title">学习层：一次绿色测试，究竟证明了哪一段历史？<a class="headerlink" href="#se-01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：回归在提交图的哪一条边上？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>某个 feature 分支把 topic 解析器改成了缓存读取；单元测试全绿，但部署后的数据库适配器在真实 schema 上失败。另一个提交修复了输入边界，却没有改变业务输出。先预测：</p>
+<ol>
+<li>哪一种测试最早能提供针对该回归的证据？</li>
+<li>改动一个 blob 的一个字节，旧 commit 的对象 id 能保持不变吗？</li>
+<li>“覆盖率很高”能否替代对关键边界和集成接缝的测试？</li>
+</ol>
+<p>实验台展示一个固定 commit DAG、对象哈希和三层测试证据；提交预测前隐藏诊断结果。目标是把“代码变了”“历史可追溯”和“行为被验证”分成三件事，而不是把绿色勾号当成系统证明。</p>
+<h3 id="2-dag">2. 最小模型：内容寻址 DAG 加行为证据账本<a class="headerlink" href="#2-dag" title="Permanent link"></a></h3>
+<p>Git 对象账本可写为 <code>commit → tree → blob</code>，commit 还包含父指针；分支只是指向某个 commit 的名字。测试账本写成</p>
+<div class="arithmatex">\[
+E=(\mathrm{commit\ id},\mathrm{changed\ paths},\mathrm{test\ layer},\mathrm{trace},\mathrm{result}).
+\]</div>
+<p>哈希把内容和历史的变化传播到对象 id；测试则把一个行为契约与输入、环境和断言绑定。两者都提供证据，但哈希完整性不等于行为正确，测试通过也不等于历史没有被篡改。</p>
+<h3 id="3">3. 正式机制与不变量：可追溯不等于可证明<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>内容寻址不变量</strong>：相同对象内容得到同一 id；内容、父 commit 或 tree 改变，依赖它们的 id 应变化。commit 的父闭包构成可追溯 DAG。</li>
+<li><strong>测试证据不变量</strong>：回归测试必须在能复现旧错误的输入上断言行为；集成测试必须真正穿过接缝；E2E 证据要记录外部依赖和环境。</li>
+<li><strong>层级分工</strong>：单元测试提供快速局部证据，集成测试验证模块契约，E2E 验证关键用户路径。测试选择由故障边界决定，不由金字塔图形机械决定。</li>
+<li><strong>审查连接</strong>：PR diff、对象历史、测试命令和失败日志应能互相指向；“本地通过”若没有固定命令和 commit id，就不是可复核的交付证据。</li>
+</ul>
+<p>测试的形式是对行为集合的采样，不是穷尽所有输入；Git 的形式是完整性链，不是语义审查器。成熟报告要同时给出改了什么、测了什么、没测什么。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>哈希碰撞、错误的测试夹具、未覆盖的环境差异、非确定性测试和 flaky E2E 都会削弱证据；100% 覆盖率仍可能漏掉错误断言。实验中的 toy object id 只展示传播关系，不是密码学安全实现，也不替代真实 <code>git cat-file</code>、<code>bisect</code> 和 CI 日志。</p>
+<p>迁移任务：为 Medusa 的一个已修复 bug 写出 <code>(commit, input, expected behavior, test layer, command)</code> 五元组；再用 <code>git show</code> 和一次回归测试把它交给另一位协作者复核。若测试只证明 mock，不要把它升级为生产数据库证据。</p>
+<div class="learning-lab" data-learning-lab="cs-se-01-git-testing">
+<p><strong>JavaScript 失效时的静态读法：</strong>先按故障边界选择最早且足够的测试层，再看对象 id 是否随内容传播；覆盖率不是行为证书。</p>
+<table>
+<thead>
+<tr>
+<th>固定变更</th>
+<th>首要证据</th>
+<th>可见历史事实</th>
+<th>仍需声明的边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>解析器拒绝空 topic</td>
+<td>单元/回归</td>
+<td><code>parser.js</code> blob 改变，commit id 传播</td>
+<td>未证明真实数据库</td>
+</tr>
+<tr>
+<td>ORM 字段与 schema 不一致</td>
+<td>集成</td>
+<td>feature commit 指向新 tree</td>
+<td>单元 mock 不能代替接缝</td>
+</tr>
+<tr>
+<td>登录后页面跳转错误</td>
+<td>E2E</td>
+<td>merge commit 有两个父节点</td>
+<td>需要固定浏览器/环境</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-git">1. Git 的心脏:内容寻址的对象数据库<a class="headerlink" href="#1-git" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="重点图。Git 对象模型：commit→tree→blob 的内容寻址 DAG + 分支只是指针。" src="assets/img/se-01-git-objects.svg" /></p>
@@ -86,7 +171,7 @@
 <li><strong>合并冲突</strong>：两个分支改了同一处——git 无法自动决定，要人解决。理解"三方合并"（共同祖先 + 两个分支版本）就知道冲突为什么发生、怎么解。</li>
 </ul>
 <p><strong>你的实践</strong>（memory 里的教训）：Medusa 有"生产 ahead origin/main""dev 声明完成后 arch 必 git verify""单 commit 用 git show"这些纪律——<strong>它们全建立在'git 历史是可信、可追溯的 DAG'这个本页原理上</strong>。</p>
-<h2 id="3">3. 测试:软件可靠性的支柱<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 测试:软件可靠性的支柱<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="测试金字塔：单元(多快)→集成→E2E(少慢脆)。" src="assets/img/se-01-test-pyramid.svg" /></p>
 <figcaption><span class="fig-id">图 se-01.1</span>测试金字塔：单元(多快)→集成→E2E(少慢脆)。</figcaption>
@@ -144,5 +229,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-se-01-git-testing.js"></script>
 </body>
 </html>

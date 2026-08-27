@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#gpu">学习层：同一块 GPU，为什么吞吐上升却让短请求更慢？</a><ul>
+<li><a href="#_1">具体谜题：长请求挡在门口</a></li>
+<li><a href="#_2">先预测四个指标</a></li>
+<li><a href="#prefilldecodekv">最小心智模型：prefill、decode、KV 三本账</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#toy-ledger-slo">迁移任务：从 toy ledger 到服务 SLO</a></li>
+</ul>
+</li>
 <li><a href="#1-llm">1. LLM 推理为什么特殊：自回归与两个阶段</a></li>
 <li><a href="#2-kv-cache">2. KV Cache：推理的核心数据结构</a></li>
 <li><a href="#3">3. 算子优化：把计算榨干</a></li>
@@ -54,6 +78,82 @@
 <p><strong>对标</strong>：vLLM / TensorRT-LLM 文档 / MLSys 推理论文 ｜ <strong>前置</strong>：mlsys-01、gpu-02（attention kernel）、comfy-course（你用的生成栈）
 模型训好只是一半——<strong>推理系统</strong>负责让它高效服务：低延迟、高吞吐、省显存、稳定。这是你每天用 Claude/DeepSeek/本地 ComfyUI 时背后运转的引擎（Medusa 的 DeepSeek 调用、comfy 课的扩散推理都在此）。这一页讲 LLM 推理的独特挑战（自回归 + KV cache）、让它快起来的系统技术（连续批处理、PagedAttention）、以及压缩模型的量化与蒸馏。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="gpu">学习层：同一块 GPU，为什么吞吐上升却让短请求更慢？<a class="headerlink" href="#gpu" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_1">具体谜题：长请求挡在门口<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>固定 toy 服务每 tick 能处理 24 个 prefill token，并同时推进 3 个 decode slot。R01 在 \(t=0\) 到达，prompt=18、output=12；R02 在 0.1 到达，prompt=6、output=2。若策略是来一个做完一个，R02 何时看到首 token？若静态 batch 等 R01，continuous batching 如何改变短请求的等待？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先预测四个指标<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> TTFT 包含排队和 prefill，不能用 TPOT 代替；<strong>②</strong> static batch 的 head-of-line 约束会让短请求等长请求，continuous batching 能在迭代边界重新填 decode slot；<strong>③</strong> 增大到达率首先推高 queue delay 和 p95/p99；<strong>④</strong> KV-cache 预算按 active token 增长，batch size 不是并发上限的同义词。</p>
+</div>
+<div class="learning-model">
+<h3 id="prefilldecodekv">最小心智模型：prefill、decode、KV 三本账<a class="headerlink" href="#prefilldecodekv" title="Permanent link"></a></h3>
+<p>Prefill 一次处理输入，决定首 token；decode 自回归逐 token 处理，每个 active sequence 都消耗服务机会和 KV-cache。scheduler 只改变工作何时进入这两阶段，不会删除 prompt/output token。比较策略时固定请求 trace、容量、观察窗和 SLO。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对请求 \(i\)，令到达、prefill 开始、首 token、完成分别为 \(a_i,s_i,f_i,c_i\)：\(\mathrm{TTFT}_i=f_i-a_i\)，\(\mathrm{TPOT}_i=(c_i-f_i)/(n_i-1)\)，\(\mathrm{E2E}_i=c_i-a_i\)。若每 token KV 占 \(k\) bytes，则峰值 KV 为 \(k\cdot\max_t(\text{active prompt+output tokens at }t)\)。稳定系统的长期平均还满足 Little 定律 \(L=\lambda W\)，但有限 trace 或过载队列不能机械套用。</p>\n+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>真实 batch 可能摊薄 kernel 开销，也可能因长度混合、prefill/decode 争用而伤害 TTFT；本 toy 不附送厂商吞吐红利。</li>
+<li>完成样本的 p99 不能代表窗口内未完成请求；观察窗、删失标记和 SLO 分母必须写清楚。</li>
+<li>PagedAttention 解决 KV 的碎片与分配问题，不会自动解决调度公平、取消、网络或模型质量。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="toy-ledger-slo">迁移任务：从 toy ledger 到服务 SLO<a class="headerlink" href="#toy-ledger-slo" title="Permanent link"></a></h3>
+<p>为一个短请求占 80%、长请求占 20% 的摘要服务设计 admission、batch/wait、最大 active sequence 和 KV reserve。先用 \(L=\lambda W\) 做数量级检查，再列出至少三项必须由真实压测测量的变量，并与 L09 的 attention kernel 和 L01 的缓存/分块联系起来。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-mlsys-02-inference">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 prefill 容量 24 token/tick、decode 3 slot。R01 的 18-token prompt 可在一个 prefill tick 完成，R02 的 6-token prompt 还要遵守策略的排队规则；static batch 会等整批的最长 decode，continuous batching 在每个 tick 重新选择 ready sequence。若 \(k=0.25\) MB/token，R01 完成前至少占用 \((18+12)\times0.25=7.5\) MB 的 toy KV reserve。交互版先让你预测，再比较 immediate/static/continuous 的 TTFT、TPOT、E2E、p95、goodput、backlog 和 KV 峰值。</p>
+<table>
+<thead>
+<tr>
+<th>请求</th>
+<th>到达</th>
+<th>prompt</th>
+<th>output</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R01</td>
+<td>0.00</td>
+<td>18</td>
+<td>12</td>
+<td>长</td>
+</tr>
+<tr>
+<td>R02</td>
+<td>0.10</td>
+<td>6</td>
+<td>2</td>
+<td>短</td>
+</tr>
+<tr>
+<td>R03</td>
+<td>0.22</td>
+<td>5</td>
+<td>3</td>
+<td>短</td>
+</tr>
+<tr>
+<td>R04</td>
+<td>0.38</td>
+<td>7</td>
+<td>2</td>
+<td>短</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-llm">1. LLM 推理为什么特殊：自回归与两个阶段<a class="headerlink" href="#1-llm" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。" src="assets/img/mlsys-02-prefill-decode.svg" /></p>
@@ -133,5 +233,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-mlsys-02-inference.js"></script>
 </body>
 </html>

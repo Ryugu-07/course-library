@@ -3,7 +3,37 @@
 > **对标**：*The Rust Programming Language*（官方书）/ Stanford CS110L ｜ **前置**：csapp-04（内存之痛）、pl-02（三条内存管理路线）
 > Rust 是过去十年最重要的系统语言创新——它做到了看似矛盾的事：**没有垃圾回收、也不手动管理内存，却在编译期消灭了内存 bug 和数据竞争**。秘密是**所有权（ownership）**——把"谁拥有内存、何时释放"编码进类型系统。这一页把 csapp-04 的所有内存灾难和 pl 线的类型纪律汇到一起：你会看到 C 的痛如何被编译器一条条提前拦下。本站系统线与语言线在此交汇。
 
-## 1. 问题回顾：内存管理的三难
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：把一个值交给别人后，原变量为什么不能继续用？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：move、shared borrow 与 mutable borrow</h3>
+<p>有 <code>let s=String::from("hi"); let t=s; println!("{}", s);</code>。如果允许最后一次读取，谁会在析构时释放同一个 buffer？改成 <code>let t=&s</code>，再在借用期间执行 <code>s.push('!')</code>，又是哪条不变量被破坏？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测编译器的三种回应</h3>
+<p>预测：<strong>①</strong> move 后 <code>s</code> 被标记为不可用，避免 double free/use-after-move；<strong>②</strong> 共享借用期间允许多个读者但不允许写者；<strong>③</strong> 可变借用期间必须独占，借用结束后所有权才恢复可用。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：资源有唯一主人，引用有时间区间</h3>
+<p>Rust 将堆资源绑定到拥有它的值，作用域结束时自动 drop；借用是带生命周期的临时权限，不转移所有权。核心不是“禁止指针”，而是让别名、可变性和释放时机在编译期有可检查的账本。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>所有权不变量是每个资源恰有一个 owner，且 owner drop 后不存在可用引用。借用规则可写成：在任一生命周期区间内，要么存在任意多个 \(&T\)，要么存在一个 \(&mut T\)，二者不能同时存在；引用必须满足 \(\mathrm{lifetime}(&T)\subseteq\mathrm{lifetime}(T)\)。move 转移 owner，copy 类型按值复制，clone 则显式执行可能昂贵的复制。</p>
+<p>编译器的 soundness 目标是：通过借用检查的 safe Rust 不会产生 dangling reference、double free 或 data race；这不是对 unsafe 块内部任意代码的自动证明。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>借用检查器不保证逻辑正确、无死锁、无资源饥饿或所有 unsafe 抽象安全；它只证明其模型覆盖的性质。</li><li>内部可变性、引用计数、异步 self-reference 和 FFI 会引入额外约束；<code>Rc&lt;RefCell&lt;T&gt;&gt;</code> 的运行时借用检查不是编译期万能替代。</li><li>为了通过编译而滥用 clone 会隐藏所有权设计问题并产生真实内存/性能成本。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把 C 的内存图交给 borrow checker</h3>
+<p>从 csapp-04 选一个 use-after-free 或双重释放案例，先画 owner/borrow 时间线，再用 Rust 表达。把 L11 的真实所有权实验与本页模型对应，说明编译器拒绝了哪条边、运行时仍需测试什么，并连接 pl-02 的 GC 与 cpp-01 的 RAII。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-rust-01-ownership" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong><code>s=String("hi")</code> 拥有一个 buffer；执行 <code>t=s</code> 后 owner 转移到 t，s 变为 moved，最后只能由 t drop 一次。若 <code>t=&s</code>，可存在多个只读借用；但在借用区间内执行 <code>s.push('!')</code> 需要可变独占，编译器拒绝。交互版切换 move、shared borrow、mutable borrow 和作用域，显示所有权图与生命周期区间。</p>\n+<table><thead><tr><th>操作</th><th>owner</th><th>活跃引用</th><th>结果</th></tr></thead><tbody><tr><td>初始化 s</td><td>s</td><td>无</td><td>通过</td></tr><tr><td>move s→t</td><td>t</td><td>无</td><td>s 不可用</td></tr><tr><td>borrow &s</td><td>s</td><td>多个 \(&T\)</td><td>只能读</td></tr><tr><td>borrow &mut s</td><td>s</td><td>一个 \(&mut T\)</td><td>独占读写</td></tr></tbody></table>\n+</div>\n+</section>\n+\n+## 1. 问题回顾：内存管理的三难
 
 pl-02 讲过三条路线，各有硬伤：
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、干涉的条件</a></li>
-<li><a href="#_2">二、相干性：一个工程量</a></li>
-<li><a href="#_3">三、干涉仪：光学计量的核心</a></li>
-<li><a href="#_4">四、薄膜光学：无处不在的干涉</a></li>
-<li><a href="#_5">五、全息与干涉的信息记录</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#_1">学习层：相位只有在可见度账本里才变成测量</a><ul>
+<li><a href="#1">1. 具体谜题：为什么两束一样亮的光也可能没有条纹？</a></li>
+<li><a href="#2">2. 先预测：哪一个旋钮改变条纹，哪一个只改变底座？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：振幅叠加，探测器读平方</a></li>
+<li><a href="#4">4. 正式机制：可见度、相干长度与条纹计数</a></li>
+<li><a href="#5">5. 静态实验：把相位翻译成强度</a></li>
+<li><a href="#6">6. 反例与边界：有相位公式不等于有可测条纹</a></li>
+<li><a href="#7">7. 迁移题：为测量目标选择相干性</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、干涉的条件</a></li>
+<li><a href="#_3">二、相干性：一个工程量</a></li>
+<li><a href="#_4">三、干涉仪：光学计量的核心</a></li>
+<li><a href="#_5">四、薄膜光学：无处不在的干涉</a></li>
+<li><a href="#_6">五、全息与干涉的信息记录</a></li>
+<li><a href="#_7">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,18 +78,51 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>与物理站的分工</strong>：🔗 物理站 <code>opt-01</code> 给出干涉衍射的<strong>物理推导</strong>；本页讲<strong>工程用途</strong>——干涉如何成为最精密的测量手段，以及"相干性"这个常被一笔带过、却处处决定设计的概念。
 把光当作波，立刻得到几何光学永远给不出的东西：<strong>用光的波长作尺子</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：相位只有在可见度账本里才变成测量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：为什么两束一样亮的光也可能没有条纹？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>迈克尔逊干涉仪在探测器处合并两束光，各自强度 <span class="arithmatex">\(I_1=I_2=1\)</span>。若相位差为 <span class="arithmatex">\(\Delta\varphi=0\)</span>，你会预测探测器读到 0、1 还是 4？若把其中一束旋转成与另一束正交的偏振，强度总和仍是 2，但条纹会不会保留？再把白光的谱宽从 <span class="arithmatex">\(10\,\mathrm{nm}\)</span> 换成单频激光的 <span class="arithmatex">\(0.001\,\mathrm{nm}\)</span>，允许的光程差会扩大还是缩小？</p>
+<h3 id="2">2. 先预测：哪一个旋钮改变条纹，哪一个只改变底座？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先写下四项预测：<strong>①</strong> 在 <span class="arithmatex">\(|\gamma|=0.6\)</span>、两束等强时，最大/最小强度与可见度是多少；<strong>②</strong> 两臂强度变成 <span class="arithmatex">\(I_1=4,I_2=1\)</span> 后，完美相位稳定能否恢复 <span class="arithmatex">\(V=1\)</span>；<strong>③</strong> 若移动一臂 <span class="arithmatex">\(0.25\,\mu\mathrm m\)</span>、波长为 <span class="arithmatex">\(0.5\,\mu\mathrm m\)</span>，相位周期走过几分之一；<strong>④</strong> 相干长度只有 <span class="arithmatex">\(5\,\mu\mathrm m\)</span> 时，光程差 <span class="arithmatex">\(20\,\mu\mathrm m\)</span> 还能否给出稳定包络。实验先收下预测，再显示相位、可见度与包络。</p>
+<h3 id="3-mental-model">3. 最小 mental model：振幅叠加，探测器读平方<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>把每一路看成复振幅 <span class="arithmatex">\(E_k=\sqrt{I_k}e^{i\varphi_k}\)</span>。在探测器处先相加，再取模平方；因此相位差只会通过交叉项进入强度。相干性 <span class="arithmatex">\(\gamma\)</span> 是对有限带宽、时间漂移和空间不一致的压缩描述：它把“相位能不能被共同预测”变成 0 到 1 的可设计量。</p>
+<h3 id="4">4. 正式机制：可见度、相干长度与条纹计数<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="arithmatex">\[
+ I=I_1+I_2+2\sqrt{I_1I_2}|\gamma|\cos\Delta\varphi,
+ \qquad V=\frac{I_{\max}-I_{\min}}{I_{\max}+I_{\min}}
+ =\frac{2\sqrt{I_1I_2}}{I_1+I_2}|\gamma|.
+\]</div>
+<p>时间相干长度近似为 <span class="arithmatex">\(L_c=c/\Delta\nu\approx\lambda^2/\Delta\lambda\)</span>。迈克尔逊中反射镜移动 <span class="arithmatex">\(\Delta x\)</span> 造成往返光程变化 <span class="arithmatex">\(2\Delta x\)</span>，每当 <span class="arithmatex">\(2\Delta x=\lambda\)</span> 就走过一个条纹周期。<span class="arithmatex">\(V\)</span> 是相位信息可被强度读出的幅度证书；它不是“亮度高低”的同义词。</p>
+<h3 id="5">5. 静态实验：把相位翻译成强度<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-coherence">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 <span class="arithmatex">\(I_1=I_2=1\)</span>、<span class="arithmatex">\(|\gamma|=0.6\)</span>，于是</p>
+<div class="arithmatex">\[I_{\max}=2+2(1)(0.6)=3.2,\qquad I_{\min}=2-1.2=0.8,\qquad V=0.6.\]</div>
+<p>若改为 <span class="arithmatex">\(I_1=4,I_2=1\)</span>，则 <span class="arithmatex">\(I_{\max}=7.4\)</span>、<span class="arithmatex">\(I_{\min}=2.6\)</span>、<span class="arithmatex">\(V=0.8\times0.6=0.48\)</span>；相位仍稳定，但光束不平衡损失可见度。对于 <span class="arithmatex">\(\lambda=0.5\,\mu\mathrm m\)</span>、<span class="arithmatex">\(\Delta\lambda=0.05\,\mathrm{nm}\)</span>，<span class="arithmatex">\(L_c\approx5\,\mathrm{mm}\)</span>；移动反射镜 <span class="arithmatex">\(0.125\,\mu\mathrm m\)</span> 产生半个相位周期。脚本可切换光强、相干度、相位和光谱宽度，逐帧显示两路振幅、探测器强度与白光相干包络，并数出条纹；它不会模拟真实激光器。</p>
+</div>
+<h3 id="6">6. 反例与边界：有相位公式不等于有可测条纹<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>两个独立激光器不自动相干。</strong>即使中心频率相同，随机相位漂移也会令时间平均的交叉项趋近零；分束同一光源是共模相位稳定的工程选择。</li>
+<li><strong>强度平衡只影响上限。</strong><span class="arithmatex">\(I_1\neq I_2\)</span> 时最大可见度已经小于 1；增加总功率不能绕过不平衡、偏振正交或光程超出 <span class="arithmatex">\(L_c\)</span>。</li>
+<li><strong>低相干不是失败。</strong>白光条纹只在光程匹配的窄包络内出现，正因为包络短才给出绝对位置；激光长相干长度适合相对位移，但可能有周期歧义。</li>
+<li><strong>条纹计数仍需标定。</strong>振动、空气折射率、偏振泄漏和相位展开错误都可能把条纹数变成错误距离；干涉仪的灵敏度不替代实验控制。</li>
+</ul>
+<h3 id="7">7. 迁移题：为测量目标选择相干性<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若要测量透明薄膜的绝对厚度、长行程台的相对位移和 OCT 的深度反射，分别选白光、稳频激光还是低相干 SLD？请为每种选择写出所需的 <span class="arithmatex">\(L_c\)</span>、条纹歧义处理和探测器读出，并指出何时应牺牲可见度换取绝对定位。</p>
+</section>
 <figure>
 <p><img alt="Michelson interferometer and coherence envelope" class="fig-img" src="assets/img/pho-03-interference.svg" /></p>
 <figcaption><span class="fig-id">图 3-1</span> 迈克尔逊干涉仪把一束光分成参考臂与样品臂，再在探测器处合束；光程差改变相位，探测器便把相位差读成强度条纹。长相干长度的激光在较大光程差下仍有条纹，而白光的短相干长度只在光程近似相等时出现条纹包络，这就是低相干测绝对位置的物理基础。</figcaption>
 </figure>
-<h2 id="_1">一、干涉的条件<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、干涉的条件<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>两束光叠加：</p>
 <div class="arithmatex">\[I = I_1 + I_2 + 2\sqrt{I_1I_2}\,|\gamma|\cos\Delta\varphi\]</div>
 <p><strong>关键在第三项</strong>——它携带相位信息，也决定条纹的可见度：</p>
 <div class="arithmatex">\[V = \frac{I_{\max}-I_{\min}}{I_{\max}+I_{\min}}\]</div>
 <p><strong>产生稳定干涉需要</strong>：频率相同、<strong>相位差稳定</strong>、偏振不正交、<strong>光程差在相干长度内</strong>。</p>
 <p><strong>注意"相位差稳定"</strong>：两个独立的激光器难以稳定干涉，因为它们的相位各自随机漂移。<strong>所以干涉仪几乎总是把一束光分成两束</strong>——这样相位噪声共模抵消。</p>
-<h2 id="_2">二、相干性：一个工程量<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、相干性：一个工程量<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>这是本页最重要的概念。</strong> 相干性不是"有或没有"，而是一个<strong>可以量化、可以设计</strong>的量。</p>
 <p><strong>时间相干性</strong>（决定能承受多大光程差）：</p>
 <div class="arithmatex">\[L_c = \frac{c}{\Delta\nu} \approx \frac{\lambda^2}{\Delta\lambda}\]</div>
@@ -106,7 +164,7 @@
 <li><strong>OCT</strong>：低相干使得只有特定深度的反射回波才能干涉 → <strong>实现深度分辨</strong>，这就是眼科断层扫描的原理。</li>
 </ul>
 <p><strong>"选择合适的相干长度"是光学系统设计的一项主动决策</strong>，而非被动接受。</p>
-<h2 id="_3">三、干涉仪：光学计量的核心<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、干涉仪：光学计量的核心<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>迈克尔逊/泰曼-格林</strong>：分束、两臂、合束。移动一臂，每移动 <span class="arithmatex">\(\lambda/2\)</span> 产生一个条纹周期。</p>
 <p><strong>这就是"用波长做尺子"</strong>：可见光 <span class="arithmatex">\(\lambda\approx0.5\)</span> μm → <strong>条纹计数的分辨率就是亚微米，配合细分可达纳米级</strong>。</p>
 <p><strong>主要应用</strong>：</p>
@@ -122,7 +180,7 @@
 <li><strong>法布里-珀罗（F-P）</strong>：多光束干涉，<strong>精细度 <span class="arithmatex">\(\mathcal{F}\)</span> 越高，透射峰越窄</strong> → <strong>激光谐振腔、光谱分析仪、窄带滤波片</strong>（第七页）；</li>
 <li><strong>萨格纳克</strong>：环路，对旋转敏感 → <strong>光纤陀螺仪</strong>（惯性导航，🔗 自动化站）。</li>
 </ul>
-<h2 id="_4">四、薄膜光学：无处不在的干涉<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、薄膜光学：无处不在的干涉<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>多层介质膜</strong>利用干涉控制反射与透射，是现代光学的隐形基础设施：</p>
 <ul>
 <li>
@@ -136,7 +194,7 @@
 <li><strong>陷波与带通滤波</strong>：拉曼光谱必需。</li>
 </ul>
 <p><strong>设计方法</strong>：特征矩阵法（每层一个 <span class="arithmatex">\(2\times2\)</span> 矩阵连乘——<strong>与第一页的光线矩阵、机械站的传递矩阵是同一种数学结构</strong>），再用优化算法确定各层厚度。</p>
-<h2 id="_5">五、全息与干涉的信息记录<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、全息与干涉的信息记录<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p><strong>全息术</strong>（Gabor，诺奖）：用参考光与物光干涉，<strong>把相位信息编码为强度条纹</strong>记录下来；再照明时衍射重建波前。</p>
 <p><strong>核心思想极其重要</strong>：<strong>探测器只能测强度，不能测相位</strong>（第九页会再强调）。<strong>干涉是把相位"翻译"成强度的通用手段</strong>——<strong>全息、干涉测量、相位恢复、光学相干层析、相干光通信（第十三页），全都建立在这一个思想上。</strong></p>
 <p><strong>现代形式</strong>：</p>
@@ -144,7 +202,7 @@
 <li><strong>数字全息</strong>：用图像传感器记录、计算机重建；</li>
 <li><strong>计算全息（CGH）</strong>：计算出所需干涉图并制成器件，用于<strong>非球面检测</strong>（给出任意参考波前）与全息显示。</li>
 </ul>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>相干性是可量化、可设计的工程量</strong>；<strong>低相干不是缺点而是资源</strong>（白光干涉的绝对零点、OCT 的深度分辨）；</li>
 <li><strong>干涉仪用波长做尺子</strong>，是精密计量与光学面形检测的基础；</li>
@@ -163,5 +221,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-coherence.js"></script>
 </body>
 </html>

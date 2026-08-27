@@ -3,6 +3,45 @@
 > **对标**：CMU 15-445 后半 / *Database Internals* 事务篇 ｜ **前置**：db-01/02、os-02（并发）、os-03（崩溃一致性/日志）
 > 数据库最深刻的部分——**事务**。它给你一个惊人的承诺：**一组操作要么全成功要么全不发生（原子），并发执行像串行一样正确（隔离），一旦提交断电也不丢（持久）**。这一页讲清 ACID 怎么实现：并发控制（锁 vs MVCC，Postgres 用的后者）与崩溃恢复（WAL——你会看到它就是 os-03 文件系统日志的直系后代）。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：两个事务都“看见 5”，库存为什么不一定变成 3？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：并发扣库存的最终值是什么？</h3>
+<p>库存初值为 5。在无控制或 MVCC 的固定交错中，T1 与 T2 都读到 5，各自执行“减 1 并写回”；无控制时最后写入者可能把库存写成 4，MVCC 则可能让后提交者因写写冲突回滚。严格两阶段锁必须先按锁顺序让一个事务完成，后者再读到 4。三种路径都需要给出最终状态和是否有事务中止。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择无控制、2PL 或 MVCC，预测一次固定交错的最终库存、提交者和冲突图是否有环；再预测在 T1 提交后断电时 WAL 恢复应保留哪一条写入。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：版本、冲突与提交边界</h3>
+<p>事务读到的是某个一致视图，写入的是候选版本；并发控制决定哪些读写可以共同提交，恢复系统决定提交记录在崩溃后如何重建。ACID 不是一个开关，而是原子性、隔离性、持久性和约束维护的多条不变量。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>冲突可串行化要求优先图无环；2PL 在释放锁前不得获取新锁，严格 2PL 还把写锁持有到提交。MVCC 为读者固定快照，并用提交时的写写检测阻止两个版本同时覆盖同一对象。WAL 的持久化不变量是数据页的日志序号不超过已持久化日志：<span class="arithmatex">\(LSN_{page}\ge LSN_{log}\)</span>；已提交事务 redo，未提交事务 undo 或丢弃。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>快照隔离可以避免许多读写冲突，却不自动消除跨行的 write skew；读已提交、可重复读和串行化的保证不同，不能只看“用了 MVCC”就宣布串行化。提交返回也只有在 WAL 与存储设备的持久化边界成立时才是 durable，内存中的 dirty page 不足以构成承诺。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把一次 SQL 画成全链路</h3>
+<p>在 P02-C 中用同一条库存更新画出锁/MVCC 决策、版本可见性、WAL LSN 和崩溃后的 redo/undo；再把它与 os-02 的交错、os-03 的日志写集相互核对。P02 的真实恢复测试与 L05 的索引实现仍是验收入口，本层只提供可检验的状态账本。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-db-03-transactions">
+<h3>交互实验：固定交错下的 2PL、MVCC 与 WAL</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>库存 <span class="arithmatex">\(5\)</span>。无控制或 MVCC trace 中，T1/T2 都先读 5，再各写回 4；无控制时两者都提交但最终为 4，违反两个成功扣减应减少 2 的业务不变量；严格 2PL 的有效执行由锁顺序串行化：T1 写 4 并提交后，T2 才读 4、写 3；MVCC 让先提交者写入 4，后提交者检测到写写冲突并 abort，最终为 4。若在 T1 commit 后断电，WAL 只 redo T1，未提交版本不会出现。</p>
+<table><thead><tr><th>模式</th><th>T1</th><th>T2</th><th>最终库存</th><th>结论</th></tr></thead><tbody><tr><td>无控制</td><td>commit 4</td><td>commit 4</td><td>4</td><td>丢失更新</td></tr><tr><td>严格 2PL</td><td>commit 4</td><td>重读后 commit 3</td><td>3</td><td>串行等价</td></tr><tr><td>MVCC</td><td>commit 4</td><td>写写冲突 abort</td><td>4</td><td>需重试 T2</td></tr><tr><td>WAL 崩溃</td><td>commit 已落日志</td><td>未提交</td><td>4</td><td>redo/丢弃</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. ACID 与并发的威胁
 
 **ACID**：**原子性**（Atomicity，全做或全不做）、**一致性**（Consistency，不破坏约束）、**隔离性**（Isolation，并发如串行）、**持久性**（Durability，提交不丢）。前三个防并发与故障，最后一个防断电。

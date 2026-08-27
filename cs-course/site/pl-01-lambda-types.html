@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一次代换为什么可能改变程序的类型？</a><ul>
+<li><a href="#_2">具体谜题：先算结果，还是先看推导树？</a></li>
+<li><a href="#_3">先预测三件事</a></li>
+<li><a href="#_4">最小心智模型：项、替换、约束</a></li>
+<li><a href="#_5">形式机制与不变量</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移任务：把解释器与证明助手接起来</a></li>
+</ul>
+</li>
 <li><a href="#1">1. λ 演算：最小的计算模型</a></li>
 <li><a href="#2">2. 类型系统：给程序上保险</a></li>
 <li><a href="#3">3. 多态与类型推断：既安全又不啰嗦</a></li>
@@ -50,6 +74,73 @@
 <p><strong>对标</strong>：<em>Types and Programming Languages</em>（TAPL, Pierce）/ Stanford CS242 ｜ <strong>前置</strong>：toc-01（可计算性）、comp-02（类型检查初步）、数学站逻辑
 编程语言不只是语法糖——它有一个数学内核。这一页讲两样地基：<strong>λ 演算</strong>（与图灵机等价的计算模型、函数式编程的根、"计算即代换"）和<strong>类型系统</strong>（把"程序不会出某类错"变成可证明的定理）。终点是 <strong>Curry–Howard 同构</strong>——"程序即证明、类型即命题"，这正是你 Lean4 计划（🔗 grad-math 后续）的理论心脏。对数学出身的你，这一页是"编程语言原来是一门逻辑学"。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：一次代换为什么可能改变程序的类型？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：先算结果，还是先看推导树？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>考虑 \((\lambda x.\lambda y.x)\,(\lambda z.z)\,3\)。它的 β 归约结果是什么？若把 \(\lambda z.z\) 当成整数传给期望函数的地方，类型检查器应该在运行前拒绝哪一步？再看 \(\lambda f.\lambda x.f(fx)\)，它最一般的函数类型是什么？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测三件事<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> 结果是 \(\lambda z.z\)，因为外层函数选择第一个参数；<strong>②</strong> 良类型项的归约不会改变类型，类型系统会在应用边界拒绝参数类型不匹配；<strong>③</strong> 两次应用要求 \(f:\alpha\to\alpha\)，所以整体类型为 \((\alpha\to\alpha)\to\alpha\to\alpha\)。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：项、替换、约束<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>λ 演算把程序表示为语法树；β 归约是把函数参数替换进函数体；类型推断则把每次应用转化成类型约束。前者说明“程序怎么计算”，后者说明“哪些计算组合是合法的”，Curry–Howard 把这两套结构与证明系统对应起来。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制与不变量<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>语法为 \(e::=x\mid\lambda x.e\mid e_1e_2\)，β 规则为 \((\lambda x.e)\,v\to e[x:=v]\)。应用的类型规则是 \(\Gamma\vdash e_1:\tau\to\sigma,\ \Gamma\vdash e_2:\tau\Rightarrow\Gamma\vdash e_1e_2:\sigma\)。类型安全由 preservation（\(e:\tau\land e\to e'\Rightarrow e':\tau\)）与 progress（良类型项要么是值、要么可继续归约）共同给出。</p>
+<p>替换必须避免变量捕获：若实参的自由变量会被函数体中的同名绑定捕获，先做 α-renaming。类型推断的不变量是每次约束替换保持统一解；若约束出现 \(\alpha=\alpha\to\beta\)，则触发 occurs check，拒绝无限类型。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>无类型 λ 演算允许 \(\Omega=(\lambda x.xx)(\lambda x.xx)\) 无限归约；类型系统的 progress 结论不能被外推成“所有程序都会终止”。</li>
+<li>把 capture-avoiding substitution 简化成字符串替换会把自由变量错误变成绑定变量；α-equivalence 是语义的一部分。</li>
+<li>“有类型”只保证该类型系统声明的错误类别；效果、资源、终止性和并发安全需要更丰富的类型或额外证明。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移任务：把解释器与证明助手接起来<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>在 comp-02 的解释器中记录每个 AST 节点的环境和类型约束，在真实实验中分别运行捕获规避的替换与错误替换。再用 Curry–Howard 写出 \(A\land B\Rightarrow A\) 的 <code>fst</code>，说明 Lean/类型检查器实际验证的是哪棵推导树。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-pl-01-lambda-types">
+<p><strong>无 JavaScript 时的静态读法：</strong>\((\lambda x.\lambda y.x)(\lambda z.z)3\to(\lambda y.\lambda z.z)3\to\lambda z.z\)。对 \(f(fx)\)，内层要求 \(f:\alpha\to\beta\)、\(x:\alpha\)，外层再次把 \(f\) 应用于 \(\beta\)，因此必须 \(\beta=\alpha\)，得到 \((\alpha\to\alpha)\to\alpha\to\alpha\)。交互版先让你预测，再显示逐步 β trace、α-renaming 和约束统一结果。</p>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>下一步</th>
+<th>类型约束</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>\((\lambda x.\lambda y.x)u\)</td>
+<td>代入 \(u\)</td>
+<td>\(x:\tau_u\)</td>
+<td>\(\lambda y.u\)</td>
+</tr>
+<tr>
+<td>\((\lambda y.u)v\)</td>
+<td>代入 \(v\)</td>
+<td>若 \(y\) 不在 \(u\) 自由出现</td>
+<td>\(u\)</td>
+</tr>
+<tr>
+<td>\(\lambda f.\lambda x.f(fx)\)</td>
+<td>统一参数</td>
+<td>\(f:\alpha\to\alpha\)</td>
+<td>\((\alpha\to\alpha)\to\alpha\to\alpha\)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. λ 演算：最小的计算模型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="β 归约代换步骤：(λx.λy.x) a b → a。" src="assets/img/pl-01-beta-reduction.svg" /></p>
@@ -142,5 +233,7 @@ e ::= x \mid \lambda x.e \mid e_1\,e_2
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-pl-01-lambda-types.js"></script>
 </body>
 </html>

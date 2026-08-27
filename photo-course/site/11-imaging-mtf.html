@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：清晰度不是一个旋钮，而是一条频率账</a><ul>
+<li><a href="#1">1. 具体谜题：更密的像素一定让细节更清楚吗？</a></li>
+<li><a href="#2">2. 先预测：先写下三个判断</a></li>
+<li><a href="#3">3. 最小模型：卷积把每一环变成乘法</a></li>
+<li><a href="#4">4. 实验：在乘法账本上先押注，再看曲线</a></li>
+<li><a href="#5-mtf">5. 失败边界：MTF 高不等于信息可恢复</a></li>
+<li><a href="#6">6. 迁移任务：为一条真实规格写出验收条件</a></li>
+</ul>
+</li>
 <li><a href="#mtf">一、MTF：成像系统的频率响应</a></li>
-<li><a href="#_1">二、其他评价指标</a></li>
-<li><a href="#_2">三、计算成像：重新划分光学与算法的边界</a></li>
-<li><a href="#_3">四、诚实的边界：算法能做什么、不能做什么</a></li>
-<li><a href="#_4">五、系统工程视角</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_2">二、其他评价指标</a></li>
+<li><a href="#_3">三、计算成像：重新划分光学与算法的边界</a></li>
+<li><a href="#_4">四、诚实的边界：算法能做什么、不能做什么</a></li>
+<li><a href="#_5">五、系统工程视角</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,6 +77,79 @@
 <p><strong>层次</strong>：本科核心 + 业界标准语言 + 前沿方向。
 "这个镜头好不好"需要一个客观答案。<strong>MTF</strong> 提供了它——把成像系统当作空间频率的滤波器（承第四页 4f 系统）。本页先讲清 MTF 这套语言，再讲计算成像如何模糊了"光学"与"算法"的边界，以及它的真实边界在哪。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：清晰度不是一个旋钮，而是一条频率账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：更密的像素一定让细节更清楚吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一枚像素间距 <span class="arithmatex">\(p=5\,\mu\mathrm{m}\)</span> 的传感器观察 <span class="arithmatex">\(80\,\mathrm{lp/mm}\)</span> 的黑白条纹。镜头 MTF 约为 <span class="arithmatex">\(0.67\)</span>，像素孔径 MTF 约为 <span class="arithmatex">\(0.76\)</span>。如果把镜头换成 MTF 更高的版本，系统一定还能分辨更细的条纹吗？再把频率提高到 <span class="arithmatex">\(120\,\mathrm{lp/mm}\)</span>，你看到的是“更弱的真实细节”，还是已经进入混叠区的伪纹理？</p>
+<h3 id="2">2. 先预测：先写下三个判断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验结果前，先判断：</p>
+<ol>
+<li><span class="arithmatex">\(p=5\,\mu\mathrm{m}\)</span> 时奈奎斯特频率是多少？<span class="arithmatex">\(80\,\mathrm{lp/mm}\)</span> 是否已经混叠？</li>
+<li>若镜头、像素、离焦三个 MTF 分别为 <span class="arithmatex">\(0.67,0.76,0.87\)</span>，系统 MTF 会不会高于其中任何一个？</li>
+<li>把 <span class="arithmatex">\(120\,\mathrm{lp/mm}\)</span> 的输入换成一个低频条纹，是否就能“恢复”原来没有采到的高频相位？</li>
+</ol>
+<h3 id="3">3. 最小模型：卷积把每一环变成乘法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>点扩散函数的傅里叶变换是 OTF，线性、平移不变的级联系统满足</p>
+<div class="arithmatex">\[
+\mathrm{OTF}_{sys}(f)=\mathrm{OTF}_{lens}(f)\,\mathrm{OTF}_{pixel}(f)\,\mathrm{OTF}_{blur}(f),\qquad \mathrm{MTF}=|\mathrm{OTF}|.
+\]</div>
+<p>这里的 OTF/MTF 级联采用<strong>非相干照明下的线性强度成像模型</strong>。若讨论相干成像，线性传递的是复振幅，瞳函数的场频谱支持上限是 <span class="arithmatex">\(\mathrm{NA}/\lambda\)</span>；探测到的强度还要取 <span class="arithmatex">\(|E|^2\)</span>，不能把它直接当成同一个线性强度 OTF。还要分清三条不同的界线：非相干强度 OTF 的衍射截止 <span class="arithmatex">\(f_c=2\mathrm{NA}/\lambda\)</span>、有限像素孔径的首个零点 <span class="arithmatex">\(1/p\)</span>，以及采样奈奎斯特频率 <span class="arithmatex">\(f_N=1/(2p)\)</span>。</p>
+<p>有限宽度像素在这个强度模型中对光强做空间积分，因此</p>
+<div class="arithmatex">\[
+\mathrm{MTF}_{pixel}(f)=\left|\operatorname{sinc}(\pi f p)\right|,\qquad f_N=\frac1{2p}.
+\]</div>
+<p>这给出两个不变量：级联的 MTF 不会凭空超过每一环；<span class="arithmatex">\(f&gt;f_N\)</span> 时采样会把频率折回低频，而不是把原始波形无损搬进数字图像。实验中的 <code>lensQuality</code> 和离焦尺度是高斯预采样 MTF 代理，不输入 <span class="arithmatex">\(\mathrm{NA}\)</span> 与 <span class="arithmatex">\(\lambda\)</span>，所以它不模拟硬的衍射截止；超过奈奎斯特的 120 lp/mm 例子只是在说明采样混叠，不是在声称高于光学截止仍有可靠信息。</p>
+<h3 id="4">4. 实验：在乘法账本上先押注，再看曲线<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先选择你对当前条纹频率的判断，核对后再拖动像素间距、镜头质量和频率。SVG 同时显示镜头、像素孔径、离焦和系统 MTF，并把奈奎斯特线与混叠频率标出来。</p>
+<div class="learning-lab" data-learning-lab="photo-mtf-budget">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 <span class="arithmatex">\(p=5\,\mu\mathrm{m}\)</span>、<span class="arithmatex">\(f=80\,\mathrm{lp/mm}\)</span>；示例模型给出镜头 MTF <span class="arithmatex">\(0.67\)</span>、像素 MTF <span class="arithmatex">\(0.76\)</span>、离焦 MTF <span class="arithmatex">\(0.87\)</span>，所以系统<strong>预采样</strong> MTF 约为 <span class="arithmatex">\(0.44\)</span>，奈奎斯特频率为 <span class="arithmatex">\(100\,\mathrm{lp/mm}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">输入频率</th>
+<th style="text-align: right;">镜头 MTF</th>
+<th style="text-align: right;">像素 MTF</th>
+<th style="text-align: right;">系统预采样 MTF</th>
+<th>采样判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(40\,\mathrm{lp/mm}\)</span></td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">0.94</td>
+<td style="text-align: right;">0.82</td>
+<td>低于奈奎斯特，尚未混叠</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(80\,\mathrm{lp/mm}\)</span></td>
+<td style="text-align: right;">0.67</td>
+<td style="text-align: right;">0.76</td>
+<td style="text-align: right;">0.44</td>
+<td>低于奈奎斯特，但已被级联衰减</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(120\,\mathrm{lp/mm}\)</span></td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.15</td>
+<td>超过奈奎斯特，会折叠成伪低频</td>
+</tr>
+</tbody>
+</table>
+<p>表中 120 lp/mm 的非零值是预采样响应，不代表采样后能可靠恢复该频率；若要计算具体光学截止，还必须给出与波长同单位的 NA 和 <span class="arithmatex">\(\lambda\)</span>。</p>
+</div>
+<h3 id="5-mtf">5. 失败边界：MTF 高不等于信息可恢复<a class="headerlink" href="#5-mtf" title="Permanent link"></a></h3>
+<ul>
+<li>MTF 只记录幅度传递；PTF 的相位反转仍可能把条纹位置和形状改掉。</li>
+<li>反卷积只能放大已经进入系统且有足够 SNR 的频率；超过截止频率或被噪声淹没的成分没有可逆账本。</li>
+<li>AI 超分辨可用先验生成“像真的”高频，但不能把生成细节冒充为测量证据。医学、司法和科学测量必须区分测得的频率与猜出的纹理。</li>
+</ul>
+<h3 id="6">6. 迁移任务：为一条真实规格写出验收条件<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>给定镜头 MTF 曲线、像素间距、曝光抖动和目标条纹频率，写出一份三行验收表：系统 MTF、奈奎斯特频率、以及是否需要 OLPF 或更高光子数。然后说明在“检测缺陷”与“生成好看照片”两种任务中，为什么同一个 MTF 结论不能直接替代 SNR 和误报率。</p>
+</section>
 <h2 id="mtf">一、MTF：成像系统的频率响应<a class="headerlink" href="#mtf" title="Permanent link"></a></h2>
 <p>承第四页：成像是线性滤波，<span class="arithmatex">\(\tilde{I} = \tilde{O}\cdot\mathrm{OTF}\)</span>。</p>
 <ul>
@@ -64,7 +161,7 @@
 <ul>
 <li>横轴：空间频率（lp/mm 或 cycles/mm）；纵轴：对比度传递（0–1）；</li>
 <li><strong>低频 MTF 高 → 反差好、通透</strong>；<strong>高频 MTF 高 → 细节锐利</strong>；</li>
-<li><strong>截止频率</strong>：<span class="arithmatex">\(f_c = \frac{2\mathrm{NA}}{\lambda}\)</span>（非相干成像），<strong>超过它的信息完全不进入系统</strong>（第四页）；</li>
+<li><strong>截止频率</strong>：<span class="arithmatex">\(f_c = \frac{2\mathrm{NA}}{\lambda}\)</span>（非相干强度成像），<strong>超过它的信息完全不进入这个线性强度模型</strong>（第四页）；相干成像的线性场传递由瞳函数给出，场频率支持上限为 <span class="arithmatex">\(\mathrm{NA}/\lambda\)</span>，不能把两种截止约定混用；</li>
 <li><strong>衍射极限 MTF</strong> 是理论上限，实际系统因像差而低于它。</li>
 </ul>
 <figure>
@@ -77,14 +174,14 @@
 <p><strong>探测器的 MTF</strong>：像素是有限大小的方形，对光强做<strong>空间积分</strong> → 相当于一个 sinc 型低通，<strong>首个零点在 <span class="arithmatex">\(1/p\)</span>（<span class="arithmatex">\(p\)</span> 为像素间距）</strong>。</p>
 <p><strong>混叠</strong>：<strong>奈奎斯特频率 <span class="arithmatex">\(f_N = 1/(2p)\)</span></strong>。高于它的空间频率会折叠成低频伪信号（<strong>摩尔纹、伪色</strong>）。
 <strong>对策</strong>：光学低通滤波器（OLPF，故意轻微模糊）——<strong>但现代高像素传感器多已取消它</strong>，因为像素已足够密，且宁可保留锐度、用算法处理偶发摩尔纹。<strong>这是一个典型的"从光学解决转向算法解决"的迁移。</strong></p>
-<h2 id="_1">二、其他评价指标<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">二、其他评价指标<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <ul>
 <li><strong>点列图与波前误差</strong>：设计阶段常用。<strong>瑞利判据</strong>：波前 RMS 误差 <span class="arithmatex">\(&lt;\lambda/14\)</span>（或 PV <span class="arithmatex">\(&lt;\lambda/4\)</span>）视为"衍射受限"；</li>
 <li><strong>斯特列尔比（Strehl ratio）</strong>：实际 PSF 峰值 / 理想 PSF 峰值，<strong>&gt; 0.8 通常认为接近衍射受限</strong>；</li>
 <li><strong>对比度、杂散光与鬼像</strong>：镀膜与遮光设计的责任（第三页）；</li>
 <li><strong>畸变与色差</strong>：可部分由算法校正（第二页）。</li>
 </ul>
-<h2 id="_2">三、计算成像：重新划分光学与算法的边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">三、计算成像：重新划分光学与算法的边界<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>传统思路</strong>：光学系统尽力做到完美 → 探测器忠实记录 → 图像即最终产品。</p>
 <p><strong>计算成像的思路</strong>：<strong>光学与算法联合设计</strong>——光学系统<strong>不必</strong>产生"好看"的图像，只需<strong>编码足够的信息</strong>，由算法解码出所需结果。</p>
 <p><strong>代表性技术</strong>：</p>
@@ -124,7 +221,7 @@
 </table>
 <p><strong>成功的关键在于"联合设计"</strong>：单独看，编码光学产生的原始图像往往很糟；但<strong>光学 + 算法作为整体</strong>，性能可超越任何一方单独优化的结果。</p>
 <p><strong>这与 🔗 微电子站第九页"把模拟难题转成数字问题"、第二页"畸变交给软件"是同一条主线</strong>——<strong>把约束从难的域转移到便宜的域。</strong></p>
-<h2 id="_3">四、诚实的边界：算法能做什么、不能做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、诚实的边界：算法能做什么、不能做什么<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>这是本页最需要清醒的部分</strong>（承第四页）：</p>
 <p><strong>能做</strong>：</p>
 <ul>
@@ -146,7 +243,7 @@
 <li><strong>在医学影像、司法取证、科学测量中，这是不可接受的</strong>——<strong>推测出的细节可能构成误诊或错误证据</strong>。</li>
 </ul>
 <p><strong>判读此类工作的标准问题</strong>：<strong>这些高频信息来自测量还是来自先验？有没有在"真值已知"的独立数据上验证过？</strong> 这与 🔗 生物站、语言站反复强调的判读纪律完全一致。</p>
-<h2 id="_4">五、系统工程视角<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、系统工程视角<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>设计一个成像系统时，需要联合考虑：</p>
 <div class="arithmatex">\[\text{光源/照明} \to \text{光学} \to \text{探测器} \to \text{读出电子学} \to \text{算法}\]</div>
 <p><strong>常见的失衡</strong>（都是实际项目中反复出现的）：</p>
@@ -156,7 +253,7 @@
 <li>只优化 MTF 而忽略噪声：<strong>MTF 高但 SNR 低的系统，实际观感很差</strong>。</li>
 </ul>
 <p><strong>综合指标</strong>：单看 MTF 或单看 SNR 都不够，可用<strong>噪声等效调制（NEM）</strong>或<strong>可探测量子效率（DQE）</strong>等把两者结合（医学影像领域尤其常用 DQE）。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>MTF 是成像系统的频率响应</strong>，系统 MTF 是各环节相乘 → <strong>匹配比单项优秀更重要</strong>；</li>
 <li><strong>像素带来 sinc 型 MTF 与奈奎斯特混叠</strong>；OLPF 的取消是"光学问题交给算法"的迁移；</li>
@@ -176,5 +273,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-mtf-budget.js"></script>
 </body>
 </html>

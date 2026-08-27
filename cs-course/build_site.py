@@ -20,6 +20,24 @@ LECTURES = ROOT / "lectures"
 LABS = ROOT / "labs"
 PROJECTS = ROOT / "projects"
 SITE = ROOT / "site"
+SHARED = ROOT.parent / "course-shared"
+
+LEARNING_LAB_RE = re.compile(r'\bdata-learning-lab\s*=\s*["\']([a-z0-9-]+)["\']')
+LEARNING_HEAD = """<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>"""
 
 SITE_TITLE = "计算机讲义库"
 SITE_SUBTITLE = "原理 · 亲手实现 · 对标课程"
@@ -112,7 +130,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 <title>{title} · {site_title}</title>
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
-<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/pygments.css">{learning_head}
 <script>
 (function() {{
   var t = localStorage.getItem('theme');
@@ -146,7 +164,7 @@ PAGE_TMPL = """<!DOCTYPE html>
 </main>
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
-<script defer src="assets/site.js"></script>
+<script defer src="assets/site.js"></script>{learning_scripts}
 </body>
 </html>
 """
@@ -183,8 +201,42 @@ def flat_lectures():
     return out
 
 
+def learning_assets(src: str):
+    names = list(dict.fromkeys(LEARNING_LAB_RE.findall(src)))
+    if not names:
+        return "", ""
+    missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").is_file()]
+    if missing:
+        raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
+    scripts = ['<script defer src="assets/learning/learning.js"></script>']
+    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
+
+
+def sync_learning_assets(md_names):
+    destination = SITE / "assets" / "learning"
+    if destination.exists():
+        shutil.rmtree(destination)
+    names = []
+    for md_name in md_names:
+        src = (LECTURES / md_name).read_text(encoding="utf-8")
+        names.extend(LEARNING_LAB_RE.findall(src))
+    names = list(dict.fromkeys(names))
+    if not names:
+        return
+    (destination / "labs").mkdir(parents=True)
+    for asset in ("learning.css", "learning.js"):
+        shutil.copy(SHARED / asset, destination / asset)
+    for name in names:
+        source = SHARED / "labs" / f"{name}.js"
+        if not source.is_file():
+            raise FileNotFoundError(f"Missing learning lab script: {source}")
+        shutil.copy(source, destination / "labs" / source.name)
+
+
 def render_page(md_name, nav_title, prev_item, next_item, build_time, existing):
     src = (LECTURES / md_name).read_text(encoding="utf-8")
+    learning_head, learning_scripts = learning_assets(src)
     md = markdown.Markdown(extensions=MD_EXTENSIONS, extension_configs=MD_CONFIG)
     body = md.convert(src)
     toc = getattr(md, "toc", "")
@@ -207,6 +259,8 @@ def render_page(md_name, nav_title, prev_item, next_item, build_time, existing):
         prev_link=pager(prev_item, "上一页", "prev"),
         next_link=pager(next_item, "下一页", "next"),
         build_time=build_time,
+        learning_head=learning_head,
+        learning_scripts=learning_scripts,
     )
 
 
@@ -270,6 +324,8 @@ def render_project_doc(src_path: Path, build_time: str) -> str:
         prev_link='<span class="pager-slot prev"></span>',
         next_link='<span class="pager-slot next"></span>',
         build_time=build_time,
+        learning_head="",
+        learning_scripts="",
     )
     page = page.replace('href="assets/', f'href="{asset_prefix}assets/')
     page = page.replace('src="assets/', f'src="{asset_prefix}assets/')
@@ -347,6 +403,7 @@ def main():
     existing = {m for m, _ in all_items if (LECTURES / m).exists()}
     missing = [m for m, _ in all_items if m not in existing]
     items = [it for it in all_items if it[0] in existing]
+    sync_learning_assets(md_name for md_name, _ in items)
     for i, (md_name, nav_title) in enumerate(items):
         out = SITE / html_name(md_name)
         out.write_text(render_page(md_name, nav_title,

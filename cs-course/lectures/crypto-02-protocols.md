@@ -3,6 +3,43 @@
 > **对标**：Boneh–Shoup 后半 / Katz–Lindell 协议章 / NIST PQC ｜ **前置**：crypto-01、toc-02（IP=PSPACE）、physics 站 qi 线（Shor）
 > 单次加密只是起点。真实世界要的是**协议**——互不信任的多方在敌意网络上达成可信结果。这一页走三段：日常协议（TLS/签名/证书如何拼出你浏览器的锁图标）、零知识证明（证明"我知道"却不泄露）、后量子密码（Shor 算法把 RSA/ECC 判了死缓，怎么办）。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：证明者怎样让人相信，却不把秘密交出去？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：六次随机喊话够吗？</h3>
+<p>在阿里巴巴洞穴协议里，证明者从左/右入口进入，门在中间；验证者每轮随机喊“从左边出来”或“从右边出来”。知道密码的人每次都能响应，不知道的人最多猜中一半。六轮都成功时，冒充者的成功概率是多少？观察完整的左右出入记录，验证者能否从记录中读出密码？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测可靠性与泄露量</h3>
+<p>先写下：<strong>①</strong> 六轮猜测全中的概率是 <span class="arithmatex">\(2^{-6}=1/64\)</span>；<strong>②</strong> 重复只压低 soundness error，不会把错误证明变成真证明；<strong>③</strong> 若协议设计正确， transcript 应该能由模拟器在不知道秘密时生成，因而不泄露秘密本身。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：挑战—响应—重复</h3>
+<p>零知识协议把“我知道见证”拆成承诺、随机挑战和响应。完备性要求诚实证明者能过，可靠性要求没有见证者难以持续过，零知识要求验证者看到的分布不比模拟器多出关于秘密的信息。TLS 则把身份认证、密钥交换和对称数据面按同样的职责分层拼装。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：三性质与概率放大</h3>
+<p>若单轮作弊成功率至多 <span class="arithmatex">\(1/2\)</span>，独立重复 <span class="arithmatex">\(r\)</span> 轮后 soundness error 至多 <span class="arithmatex">\(2^{-r}\)</span>。完备性是诚实策略的接受概率接近 1；可靠性是任意无见证策略的接受概率受界；零知识要求存在模拟器，使验证者视图在计算上或统计上不可区分。数字签名则把“只有私钥能产生”与“任何人能验”绑定到证书信任链。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>挑战若可被证明者预先知道，重复不再放大可靠性；随机性、承诺顺序和独立性是协议的一部分。</li>
+<li>零知识不等于身份认证，也不等于协议整体安全；重放、恶意验证者、证书错误和实现侧信道仍要单独处理。</li>
+<li>RSA/ECC 的安全假设不抵抗 Shor；后量子迁移必须同时考虑密钥封装、签名、证书链和历史密文的保密寿命。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把交互协议拆成可检验性质</h3>
+<p>为一个“我拥有某数据但不想透露数据”的服务设计挑战—响应草图。分别写完备性、可靠性误差、零知识模拟器和身份绑定在哪里；再给 TLS/PQC 迁移列出需要替换的地基与不能替换的业务不变量。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-crypto-02-protocols" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>六轮洞穴挑战若每轮独立且冒充者只能猜一边，全中概率是 <span class="arithmatex">\(1/64\approx1.56\%\)</span>；二十轮则是 <span class="arithmatex">\(1/1,048,576\)</span>。记录只包含入口、挑战和出口，不应包含门的密码；若挑战在承诺前就泄露，指数放大论证失效。页面脚本用固定挑战序列逐轮显示诚实者与猜测者的 transcript。</p>
+</div>
+</section>
+
 ## 1. 数字签名与 PKI：信任怎么落地
 
 **数字签名**：私钥签、公钥验——**只有私钥持有者能产生、任何人能验证**（与加密的公私钥用法相反）。RSA 签名 = 对消息哈希做私钥运算；ECDSA/EdDSA 是椭圆曲线版。签名给出**认证 + 不可否认性**。

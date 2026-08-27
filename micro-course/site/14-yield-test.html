@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、良率：半导体经济学的中心</a></li>
-<li><a href="#_2">二、变异：没有两个晶体管是一样的</a></li>
-<li><a href="#_3">三、测试：怎么知道它是好的</a></li>
-<li><a href="#_4">四、可靠性：它能用多久</a></li>
-<li><a href="#_5">五、这一页与全课的连接</a></li>
+<li><a href="#_1">学习层：良率是缺陷统计、面积与测试决策的乘积</a><ul>
+<li><a href="#_2">具体谜题：一颗大芯片拆成四颗一定更划算吗？</a></li>
+<li><a href="#_3">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：从缺陷场到产品判定</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">交互实验：画出面积、缺陷和冗余的账</a></li>
+<li><a href="#sram">迁移任务：为 SRAM 写良率与测试计划</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、良率：半导体经济学的中心</a></li>
+<li><a href="#_8">二、变异：没有两个晶体管是一样的</a></li>
+<li><a href="#_9">三、测试：怎么知道它是好的</a></li>
+<li><a href="#_10">四、可靠性：它能用多久</a></li>
+<li><a href="#_11">五、这一页与全课的连接</a></li>
 </ul>
 </div>
 </details>
@@ -50,7 +75,76 @@
 <p><strong>层次</strong>：本科少讲、<strong>业界核心</strong> ｜ 这是学校与工业界之间落差最大的一页。
 前面讲的都是"能不能做出来"。本页讲三件同样要命的事：<strong>做出来的有多少是好的（良率）</strong>、<strong>每一颗都不完全一样（变异）</strong>、以及<strong>它能用多久（可靠性）</strong>。<strong>在工业界，一个良率工程师对公司利润的影响，可能超过一个电路设计师。</strong></p>
 </blockquote>
-<h2 id="_1">一、良率：半导体经济学的中心<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：良率是缺陷统计、面积与测试决策的乘积<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：一颗大芯片拆成四颗一定更划算吗？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>用负二项模型比较一颗 800 mm<sup>2</sup> 的单片芯片和四颗各 200 mm<sup>2</sup> 的 chiplet。取缺陷密度 <code>D<sub>0</sub>=0.1/cm<sup>2</sup></code>、聚集因子 <code>alpha=2</code>。单片面积是 8 cm<sup>2</sup>，四颗小片各是 2 cm<sup>2</sup>。你预计单片良率、四颗都良好的系统概率分别是多少？如果封装本身还有 3% 失败率，结论会不会翻转？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先做预测<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先估算再开实验：<strong>①</strong> 面积变为四分之一会显著抬高单颗裸片良率，但系统良率要把四颗同时合格相乘；<strong>②</strong> 只看 wafer yield 而忽略封装与 KGD，可能把“拆小”收益高估；<strong>③</strong> 随机变异会随器件面积缩小而增大，故良率与参数分布不能只用一个二元好/坏标签概括；<strong>④</strong> 冗余行列能修复一部分存储缺陷，却要付出面积和测试时间。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：从缺陷场到产品判定<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>制造先产生带有空间相关性的缺陷场与参数分布；测试再用故障模型、扫描链、BIST 和规格窗口把连续世界压成 bin、pass 或 fail。面积提高了暴露在缺陷场中的机会，器件缩小提高了随机参数波动，而可靠性筛选还会把早期失效从出货队列中移除。良率工程因此同时连接几何、统计、测试和商业成本。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<div class="cl-formula">Y(A) = (1 + A D<sub>0</sub> / alpha)<sup>-alpha</sup>, &nbsp; C<sub>good</sub> ~= C<sub>wafer</sub> / (N<sub>gross</sub> Y)</div>
+<p>若一个系统由 <code>n</code> 颗相同面积的 chiplet 组成，并把封装良率写成 <code>Y<sub>pkg</sub></code>，一个透明近似是 <code>Y<sub>system</sub> = Y(A/n)<sup>n</sup> Y<sub>pkg</sub></code>。它不是所有产品的完整成本模型，却明确揭示了“局部良率变好”和“全部同时合格”之间的乘法关系。</p>
+<p>变异的另一条不变量是 Pelgrom 型尺度：<code>sigma(Delta V<sub>th</sub>) proportional to 1/sqrt(WL)</code>。所以面积缩小同时可能提高密度、降低单颗缺陷暴露面积，却恶化匹配和最小工作电压；测试与 guard band 必须把这两类风险分开记录。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>负二项公式假设了一类缺陷统计；若缺陷聚集、系统性 wafer map 或工艺漂移主导，单一 <code>D<sub>0</sub></code> 不足以预测 yield。</li>
+<li>四颗 chiplet 的系统良率不是四颗良率的平均值；KGD 筛选、键合、互连测试和热失效会再乘上额外项。</li>
+<li>“通过测试”不等于零缺陷：故障模型覆盖有限，扫描链和 ATPG 有测试逃逸，规格边界也可能漏掉长期老化。</li>
+<li>冗余修复适用于可定位、可替换的结构；它不能消除所有模拟失配、互连电迁移或封装热循环问题。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_6">交互实验：画出面积、缺陷和冗余的账<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-yield">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>D<sub>0</sub>=0.1/cm<sup>2</sup></code>、<code>alpha=2</code>。800 mm<sup>2</sup> 单片对应 8 cm<sup>2</sup>，<code>Y=(1+0.8*0.1/2)<sup>-2</sup>=0.510</code>；四颗 200 mm<sup>2</sup> 小片各为 2 cm<sup>2</sup>，单颗 <code>Y=0.826</code>，四颗同时良好的概率为 <code>0.826<sup>4</sup>=0.466</code>。若封装良率 0.97，系统约为 0.452；若有 20% 的失效裸片可由冗余恢复，恢复后的单颗概率可按 <code>Y + 0.2(1-Y)</code> 记账，但不能恢复所有故障。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">方案</th>
+<th scope="col">面积</th>
+<th scope="col">单颗 Y</th>
+<th scope="col">系统/封装后 Y</th>
+<th scope="col">主要边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单片</td>
+<td>800 mm<sup>2</sup></td>
+<td>0.510</td>
+<td>0.510</td>
+<td>大面积缺陷暴露</td>
+</tr>
+<tr>
+<td>4 chiplet</td>
+<td>4 x 200 mm<sup>2</sup></td>
+<td>0.826</td>
+<td>0.466 / 0.452</td>
+<td>乘法 + 封装失败</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="sram">迁移任务：为 SRAM 写良率与测试计划<a class="headerlink" href="#sram" title="Permanent link"></a></h3>
+<p>给一个含 1,024 行、每行 256 bit 的 SRAM 宏，假设每片存在随机坏行、系统性列缺陷和 <code>V<sub>min</sub></code> 参数分布。请设计一份报告：哪些缺陷用冗余行列修复，哪些必须在 binning 中降级，哪些需要 burn-in 或老化模型；再说明你会如何把测试覆盖率、修复面积、测试时间和出货良率放进同一项成本函数。</p>
+</div>
+</section>
+<h2 id="_7">一、良率：半导体经济学的中心<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>良率（yield）= 合格芯片数 / 理论芯片总数</strong>。它直接决定成本：</p>
 <div class="arithmatex">\[\text{单颗成本} \approx \frac{\text{晶圆成本}}{\text{每片芯片数} \times \text{良率}}\]</div>
 <p><strong>经典的负二项良率模型</strong>：</p>
@@ -67,7 +161,7 @@
 <li><strong>Chiplet 的经济动机</strong>：把 800 mm² 拆成 4 颗 200 mm²，总良率显著提升（第十五页）；</li>
 <li><strong>冗余设计</strong>：存储器普遍内置<strong>冗余行列</strong>，测试后用熔丝替换坏行——<strong>这使存储器良率远高于同面积的逻辑</strong>；处理器则用<strong>屏蔽坏核</strong>的方式分级出售（同一批晶圆切出不同规格的产品，即 binning）。<strong>"次品"不被扔掉，而是降级销售</strong>，这是半导体商业模式的重要一环。</li>
 </ul>
-<h2 id="_2">二、变异：没有两个晶体管是一样的<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_8">二、变异：没有两个晶体管是一样的<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>即使没有致命缺陷，器件参数也天然分散。</p>
 <p><strong>分类</strong>：</p>
 <ul>
@@ -86,7 +180,7 @@
 <li><strong>自适应技术</strong>：片上监测器 + 动态调压，按实际硅片性能调整工作点（<strong>芯片内部的闭环控制</strong>，🔗 自动化站）。</li>
 </ul>
 <p><strong>SRAM 最先出问题</strong>：它用最小尺寸器件、且要求六个管子彼此匹配（第十页），因而<strong>是变异的第一受害者，也常是决定芯片 <span class="arithmatex">\(V_{min}\)</span> 的模块</strong>。</p>
-<h2 id="_3">三、测试：怎么知道它是好的<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">三、测试：怎么知道它是好的<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>不可能穷举测试</strong>：一个有 <span class="arithmatex">\(n\)</span> 个输入、<span class="arithmatex">\(m\)</span> 个触发器的电路，状态空间是 <span class="arithmatex">\(2^{n+m}\)</span>。所以测试必须<strong>结构化</strong>。</p>
 <ul>
 <li><strong>故障模型</strong>：把物理缺陷抽象成可处理的模型，最经典的是<strong>固定型故障（stuck-at 0/1）</strong>，还有跳变延迟故障、桥接故障。<strong>这是又一次"用抽象换可处理性"</strong>；</li>
@@ -98,7 +192,7 @@
 </ul>
 <p><strong>代价</strong>：DFT 会占用面积、增加时序负担、且<strong>扫描链是一个安全隐患</strong>（可用于提取芯片内部状态）。<strong>又一处权衡。</strong></p>
 <p><strong>测试成本不容忽视</strong>：高端芯片的测试时间可达数分钟，测试设备（ATE）极贵，<strong>测试成本在总成本中占比可观</strong>。</p>
-<h2 id="_4">四、可靠性：它能用多久<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、可靠性：它能用多久<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>芯片在使用中会<strong>老化</strong>。主要机制：</p>
 <table>
 <thead>
@@ -139,7 +233,7 @@
 <p><strong>电迁移</strong>尤其塑造了设计规则：<strong>导线能承载的电流密度有上限</strong>（Black 方程给出寿命与电流密度、温度的关系），所以电源网络必须足够宽——<strong>这占用了大量布线资源</strong>，是先进节点布线拥塞的重要来源。</p>
 <p><strong>浴盆曲线与老化筛选</strong>：失效率随时间呈浴盆形——早期失效（制造缺陷）、随机失效期、耗损失效期。<strong>老化筛选（burn-in）</strong>用高温高压加速早期失效，把"早夭"的芯片在出厂前剔除。<strong>汽车与航天级芯片的筛选标准远严于消费级</strong>，这是同一颗芯片能卖出不同价格的原因之一。</p>
 <p><strong>设计中的应对</strong>：老化感知设计、留出退化裕量、<strong>片上传感器 + 自适应调压</strong>（补偿老化引起的变慢）。</p>
-<h2 id="_5">五、这一页与全课的连接<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">五、这一页与全课的连接<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>良率与变异不是"制造部门的事"，它们<strong>反向决定了设计</strong>：</p>
 <ul>
 <li><strong>设计规则（DRC）</strong>本质上是"把制造能力翻译成几何约束"（承导论 §3）；</li>
@@ -159,5 +253,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-yield.js"></script>
 </body>
 </html>

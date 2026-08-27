@@ -23,9 +23,18 @@ ENGINEERING_COURSES = {
     "materials-course": "Materials science",
     "mech-course": "Mechanical engineering",
 }
-COURSES = FOCUS_COURSES | ENGINEERING_COURSES
+EXPANSION_COURSES = {
+    "photo-course": "Photonics and optoelectronics",
+    "micro-course": "Microelectronics",
+    "cs-course": "Computer science",
+}
+COURSES = FOCUS_COURSES | ENGINEERING_COURSES | EXPANSION_COURSES
 EXCLUDED_LECTURES = {"00-intro.md", "labs.md"}
-LAB_RE = re.compile(r'data-learning-lab=["\']([^"\']+)["\']')
+COURSE_EXCLUSIONS = {
+    "photo-course": {"21-closing.md"},
+    "micro-course": {"21-closing.md"},
+}
+LAB_RE = re.compile(r'\bdata-learning-lab\s*=\s*["\']([a-z0-9-]+)["\']')
 LEARNING_LAYER_RE = re.compile(
     r'class=["\'][^"\']*\blearning-layer\b[^"\']*["\']'
 )
@@ -54,11 +63,12 @@ def lecture_files(root: Path, course: str) -> list[Path]:
         if not any(isinstance(target, ast.Name) and target.id == "COURSE" for target in node.targets):
             continue
         course_spec = ast.literal_eval(node.value)
+        excluded = EXCLUDED_LECTURES | COURSE_EXCLUSIONS.get(course, set())
         registered = [
             lecture[0]
             for _, section in course_spec
             for lecture in section
-            if lecture[0] not in EXCLUDED_LECTURES
+            if lecture[0] not in excluded
         ]
         break
     if registered is None:
@@ -89,10 +99,17 @@ def measure(root: Path, course: str) -> tuple[Coverage, list[str]]:
     labs: list[str] = []
     partial: list[str] = []
     files = lecture_files(root, course)
+    labs_dir = root / "course-shared" / "labs"
 
     for path in files:
         text = path.read_text(encoding="utf-8")
         complete, page_labs, missing = page_contract(text)
+        missing_lab_scripts = [
+            name for name in page_labs if not (labs_dir / f"{name}.js").is_file()
+        ]
+        if missing_lab_scripts:
+            complete = False
+            missing.extend(f"lab-script:{name}" for name in missing_lab_scripts)
         if complete:
             enriched_pages.append(path.name)
             labs.extend(page_labs)
@@ -185,12 +202,17 @@ def main() -> int:
         "Control + materials + mechanical engineering",
         [item for item in measured if item.course in ENGINEERING_COURSES],
     )
-    report = measured + [mathematics, focus, engineering]
+    expansion = combined(
+        "expansion-total",
+        "Photonics + microelectronics + computer science",
+        [item for item in measured if item.course in EXPANSION_COURSES],
+    )
+    report = measured + [mathematics, focus, engineering, expansion]
 
     if args.json:
         print(json.dumps({"coverage": [asdict(item) for item in report], "partial": partial}, ensure_ascii=False, indent=2))
     else:
-        print("Learning-layer coverage (intro and lab-index pages excluded)")
+        print("Learning-layer coverage (course-specific non-core pages excluded)")
         for item in report:
             print(
                 f"{item.course:16} {item.enriched:3}/{item.total:<3} "

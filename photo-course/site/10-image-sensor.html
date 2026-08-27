@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：像素变小，分辨率和暗光画质会一起变好吗？</a><ul>
+<li><a href="#1">1. 具体谜题：同一块硅面积，切得更细真的得到更多细节吗？</a></li>
+<li><a href="#2-isp">2. 先预测：架构、采样和 ISP 各自负责什么？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：每个像素是一只带容量的计数桶</a></li>
+<li><a href="#4">4. 正式机制：光子统计、动态范围与快门时序</a></li>
+<li><a href="#5">5. 静态实验：像素、满阱和读出路径的账本</a></li>
+<li><a href="#6">6. 反例与边界：像素数量不是单一质量指标</a></li>
+<li><a href="#7">7. 迁移题：为相机任务选择像素与读出架构</a></li>
+</ul>
+</li>
 <li><a href="#ccd-cmos">一、CCD 与 CMOS：一场已经分出胜负的竞争</a></li>
-<li><a href="#_1">二、关键指标与权衡</a></li>
-<li><a href="#_2">三、彩色与滤光</a></li>
-<li><a href="#_3">四、几种重要的传感器类型</a></li>
+<li><a href="#_2">二、关键指标与权衡</a></li>
+<li><a href="#_3">三、彩色与滤光</a></li>
+<li><a href="#_4">四、几种重要的传感器类型</a></li>
 <li><a href="#isp">五、ISP：图像信号处理</a></li>
-<li><a href="#_4">六、与微电子站的接续</a></li>
-<li><a href="#_5">七、要点</a></li>
+<li><a href="#_5">六、与微电子站的接续</a></li>
+<li><a href="#_6">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,6 +79,70 @@
 <p><strong>层次</strong>：本科接触 + 业界巨大产业 ｜ 🔗 与微电子站的工艺与封装直接相关。
 图像传感器是<strong>产量最大的光电器件</strong>——每年数十亿颗。它把上一页的单点探测扩展成阵列，其设计是<strong>噪声、速度、面积、成本、功耗</strong>多重约束下的精密权衡。本页讲清它的结构演进与关键指标。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：像素变小，分辨率和暗光画质会一起变好吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：同一块硅面积，切得更细真的得到更多细节吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>假设同一片 <span class="arithmatex">\(24\times24\,\mu\mathrm m^2\)</span> 感光面积在一次曝光中收到 3600 个有效光子。它可以做成 <span class="arithmatex">\(4\)</span> 个 <span class="arithmatex">\(12\,\mu\mathrm m\)</span> 像素，也可以做成 <span class="arithmatex">\(64\)</span> 个 <span class="arithmatex">\(3\,\mu\mathrm m\)</span> 像素。先预测两种方案的每像素光子数和散粒受限 SNR；再把可见光 F/2.8 的 Airy 斑直径约 <span class="arithmatex">\(3.8\,\mu\mathrm m\)</span> 放进比较：<span class="arithmatex">\(3\,\mu\mathrm m\)</span> 像素继续增加会不会持续创造光学细节？</p>
+<h3 id="2-isp">2. 先预测：架构、采样和 ISP 各自负责什么？<a class="headerlink" href="#2-isp" title="Permanent link"></a></h3>
+<p>先写下四项预测：<strong>①</strong> CCD 只有一个输出放大器时，读出是并行还是串行；<strong>②</strong> 卷帘快门逐行曝光时，快速横向移动的直线会向哪一侧倾斜；<strong>③</strong> 四个小像素合并后，若读出噪声独立，SNR 会提高约 2 倍还是保持不变；<strong>④</strong> Bayer 的绿色像素占一半，是否意味着每个输出 RGB 像素都真的测到了三种颜色。实验先显示像素账本，再打开读出时序和重建代价。</p>
+<h3 id="3-mental-model">3. 最小 mental model：每个像素是一只带容量的计数桶<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>曝光把光子转成电子，电子在满阱容量内积累，再经像素放大器、列 ADC 和 ISP 读出。像素面积决定收集光子与采样间距，满阱和读噪决定可用动态范围；阵列架构决定数据搬运、时序和功耗。增加采样点只有在光学传递函数仍含有相应空间频率时才有意义。</p>
+<h3 id="4">4. 正式机制：光子统计、动态范围与快门时序<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>对每像素平均信号 <span class="arithmatex">\(S=\eta N_\gamma\)</span>、读出噪声 <span class="arithmatex">\(\sigma_r\)</span>、暗电流电子数 <span class="arithmatex">\(D\)</span>，可用</p>
+<div class="arithmatex">\[\mathrm{SNR}=\frac{S}{\sqrt{S+D+\sigma_r^2}},\qquad
+\mathrm{DR}\approx20\log_{10}\frac{N_{FW}}{\sigma_r}.\]</div>
+<p>若同一总面积切成 <span class="arithmatex">\(k^2\)</span> 倍像素数，理想均匀照明下单像素光子数降为 <span class="arithmatex">\(1/k^2\)</span>，shot-noise SNR 降为 <span class="arithmatex">\(1/k\)</span>；四像素合并可在信号相加后恢复光子预算，但实际还受读出位置、串扰和 ADC 方式影响。卷帘快门的第 <span class="arithmatex">\(r\)</span> 行在不同时间 <span class="arithmatex">\(t_r\)</span> 取样，运动造成空间位置与时间错位；全局快门用存储节点换同步。</p>
+<h3 id="5">5. 静态实验：像素、满阱和读出路径的账本<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-image-sensor">
+<p><strong>无 JavaScript 时的静态读法：</strong>下面的对照表采用<strong>单色通道、量子效率 <span class="arithmatex">\(\eta=1\)</span>、暗电子为 0、读出噪声为 0</strong> 的理想基线；3600 是落在这个单色通道的总有效光子数，不是 Bayer RGB 原始总光子数：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th style="text-align: right;">像素数</th>
+<th style="text-align: right;">每像素光子</th>
+<th style="text-align: right;">shot-noise SNR</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(12\,\mu\mathrm m\)</span></td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">900</td>
+<td style="text-align: right;">30</td>
+<td>大像素，暗光裕度高</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(3\,\mu\mathrm m\)</span></td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">56.25</td>
+<td style="text-align: right;">7.5</td>
+<td>采样密，但单像素更吵</td>
+</tr>
+<tr>
+<td>4 合 1</td>
+<td style="text-align: right;">16 个输出</td>
+<td style="text-align: right;">225（每输出）</td>
+<td style="text-align: right;">15</td>
+<td>面积/读出方式仍需核对</td>
+</tr>
+</tbody>
+</table>
+<p>若满阱 <span class="arithmatex">\(N_{FW}=30{,}000\)</span> e<span class="arithmatex">\(^-\)</span>、读噪 <span class="arithmatex">\(\sigma_r=3\)</span> e<span class="arithmatex">\(^-\)</span>，满阱到读噪的理想动态范围约为 <span class="arithmatex">\(10{,}000\)</span>（80 dB）。F/2.8 的约 <span class="arithmatex">\(3.8\,\mu\mathrm m\)</span> Airy 斑说明 <span class="arithmatex">\(3\,\mu\mathrm m\)</span> 采样已接近光学瓶颈。脚本可切换像素尺寸、光子数、满阱、读噪、CCD/CMOS、卷帘/全局快门，显示 SNR、动态范围、阵列读出路径和一帧运动几何；先预测再解锁。</p>
+</div>
+<h3 id="6">6. 反例与边界：像素数量不是单一质量指标<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>更多像素不自动提高真实分辨率。</strong>当镜头 MTF、衍射或噪声已成为瓶颈，新增像素只会过采样或放大后处理的负担。</li>
+<li><strong>binning 不是无损魔法。</strong>模拟合并、数字合并和读出后求和的噪声传播不同；彩色 Bayer 合并还要面对滤光片与色彩采样。</li>
+<li><strong>CMOS/CCD 的优劣依工作负载而变。</strong>CCD 的单放大器一致性、CMOS 的并行度与集成逻辑分别对应不同系统约束；“胜出”不等于每个科学应用都替代。</li>
+<li><strong>ISP 不能恢复没有进入传感器的频率。</strong>去噪、去马赛克、HDR 和 AI 放大都带有模型或先验；运动错位、饱和和坏点也需要独立的校正账本。</li>
+</ul>
+<h3 id="7">7. 迁移题：为相机任务选择像素与读出架构<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>给高速机器视觉、手机暗光和天文长曝光各写一份传感器规格：像素尺寸、满阱、读噪、量子效率、快门类型、ADC 并行度和是否需要背照/堆叠。若要用多帧合成提高 SNR，先算总光子预算，再说明对齐、运动和满阱饱和会在哪一步破坏理想的 <span class="arithmatex">\(\sqrt N\)</span> 收益。</p>
+</section>
 <figure>
 <p><img alt="CCD and CMOS image sensor readout" class="fig-img" src="assets/img/pho-10-image-sensor.svg" /></p>
 <figcaption><span class="fig-id">图 10-1</span> CCD 把像素电荷逐级转移到唯一的输出放大器，读出是串行的；CMOS APS 在每个像素内放置放大器，通过列并行 ADC 实现快速、可随机寻址的读出。背照式结构让光从背面进入，避开正面的金属布线，从而提高填充因子与量子效率。</figcaption>
@@ -77,7 +166,7 @@
 <li><strong>堆叠式（stacked）</strong>：<strong>传感器层与逻辑层分开制造再键合</strong>（🔗 微电子站第十五页的混合键合），各自用最优工艺 → 高速读出 + 复杂片上处理。</li>
 </ul>
 <p><strong>结论</strong>：<strong>CMOS 已在绝大多数领域取代 CCD</strong>。CCD 仅在少数极高一致性要求的科学与天文场合保留。<strong>这是"可集成性最终战胜单项性能"的经典案例</strong>——与 🔗 微电子站反复出现的主题一致。</p>
-<h2 id="_1">二、关键指标与权衡<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">二、关键指标与权衡<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -125,7 +214,7 @@
 <li>当像素尺寸小到接近<strong>艾里斑</strong>（第四页，可见光下 F/2.8 时约 3.8 μm 量级），<strong>再增加像素数不再带来真实分辨率</strong>——光学已经成为瓶颈；</li>
 <li><strong>所以手机厂商用"像素合并（binning）"</strong>：高像素模式用于强光，暗光下把 4 个或 9 个像素合并当一个大像素用，<strong>换取 SNR</strong>。<strong>这本质上是在承认"像素数与信噪比不可兼得"。</strong></li>
 </ul>
-<h2 id="_2">三、彩色与滤光<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">三、彩色与滤光<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>Bayer 阵列</strong>：RGGB 排列（绿色像素占一半，因人眼对绿最敏感），再由<strong>去马赛克（demosaicing）</strong>算法插值出全彩图像。</p>
 <p><strong>代价</strong>：</p>
 <ul>
@@ -139,7 +228,7 @@
 <li><strong>量子点/有机滤光</strong>、<strong>堆叠式垂直分光</strong>（不同深度吸收不同波长）。</li>
 </ul>
 <p><strong>红外截止滤光片</strong>：硅对近红外敏感而人眼不敏感 → <strong>必须滤除</strong>，否则色彩失真。<strong>而这正是为什么改装去掉该滤片的相机可以拍红外</strong>。</p>
-<h2 id="_3">四、几种重要的传感器类型<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、几种重要的传感器类型<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <ul>
 <li><strong>全局快门 vs 卷帘快门</strong>：</li>
 <li><strong>卷帘（rolling）</strong>：逐行曝光读出，<strong>高速运动物体会变形</strong>（果冻效应）、闪光灯同步受限。但像素结构简单、成本低；</li>
@@ -159,7 +248,7 @@
 <li><strong>算法能做的与不能做的</strong>：能降噪、能扩展动态范围、能校正畸变与色差（第二页）；<strong>但不能创造根本没有进入系统的高频信息</strong>（第四页）。<strong>"AI 放大补细节"是在按先验猜测，而非恢复</strong>——判读这类宣称时要清楚区别。</li>
 </ul>
 <p><strong>这也是"计算摄影"的分界线</strong>（第十一页展开）。</p>
-<h2 id="_4">六、与微电子站的接续<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">六、与微电子站的接续<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>图像传感器是光电与微电子结合最紧密的产品之一：</p>
 <ul>
 <li><strong>像素电路是模拟设计</strong>（🔗 微电子站第八页：噪声、失配、<span class="arithmatex">\(g_m/I_D\)</span> 全部适用）；</li>
@@ -167,7 +256,7 @@
 <li><strong>BSI 与堆叠依赖先进封装与混合键合</strong>（第十五页）；</li>
 <li><strong>片上 AI 加速器</strong>（第十七页）正在进入传感器，实现"近传感器计算"——<strong>减少数据搬运</strong>（存储墙的同一逻辑）。</li>
 </ul>
-<h2 id="_5">七、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>CMOS 靠可集成性战胜 CCD</strong>，BSI 与堆叠是关键突破；</li>
 <li><strong>像素小到接近艾里斑后，增加像素数不再提升真实分辨率</strong>；binning 是承认 SNR 与像素数的权衡；</li>
@@ -187,5 +276,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-image-sensor.js"></script>
 </body>
 </html>

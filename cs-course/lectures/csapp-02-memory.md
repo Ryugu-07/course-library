@@ -3,6 +3,43 @@
 > **对标**：CS:APP 第 6 章 ｜ **前置**：csapp-01、perf 线（本页是性能工程的物理基础）
 > 这一页解释计算机系统里最反直觉、又最能立刻变现的事实：**内存不是一块均匀的平地，是一座速度差 100 倍的金字塔**。同一个算法，只因访问内存的顺序不同，就能快 10 倍——不是玄学，是缓存。理解存储层级，是你从"代码能跑"到"代码跑得快"的第一道门。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：数学等价的循环，为什么不等价地快？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：4×4 矩阵的两条访问路径</h3>
+<p>把 4×4 整数矩阵按行连续存放，缓存行一次带入 2 个整数，缓存只能保留 2 行。按行访问的索引是 <code>0,1,2,3,...,15</code>；按列访问是 <code>0,4,8,12,1,5,...</code>。两者都访问 16 个元素，哪一种会产生更多 miss？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测命中率</h3>
+<p>先写下：<strong>①</strong> 连续索引第一次碰到每个块才 miss，同一行的相邻元素共享一次搬运；<strong>②</strong> 按列会在 4 个块之间来回跳，而缓存只有 2 行，旧块会被挤出；<strong>③</strong> 访问次数相同不能推出内存成本相同。实验会逐步揭示每一次 hit/miss 和当前缓存内容。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：地址先映射成块</h3>
+<p>CPU 不按变量粒度搬运，而按缓存行、组和标签组织数据。程序的运行时间近似由“算术工作 + 等待 miss 的代价”构成；局部性是让一次搬运服务多个未来访问的机会。循环重排和 blocking 都是在改变块访问序列，而不是改变矩阵乘的数学结果。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：块、命中与复用</h3>
+<p>若元素索引为 <span class="arithmatex">\(i\)</span>、每行含 <span class="arithmatex">\(B\)</span> 个元素，则块号 <span class="arithmatex">\(\lfloor i/B\rfloor\)</span>；命中还需该块仍在映射组的有效路中。总成本可粗略写成 <span class="arithmatex">\(T=T_{\mathrm{compute}}+N_{\mathrm{miss}}L_{\mathrm{miss}}\)</span>。3C 账本把 miss 分成强制、容量和冲突，blocking 的目标是让工作集小于局部缓存并提高块复用次数。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>命中率高不一定最快：预取、带宽、TLB、分支和向量化也会改变总时间；缓存模型是可检验的近似而非完整 CPU 模拟器。</li>
+<li>工作集总量小仍可能冲突 miss；映射到同一组的地址会互相驱逐，不能只比较字节总数。</li>
+<li>多线程中不同变量共享一条缓存行会产生伪共享；“每线程没有读同一变量”并不等于没有一致性流量。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把数据布局当作算法变量</h3>
+<p>对矩阵乘、图遍历和列式日志扫描，分别画出前 20 次块号序列，估计强制/容量/冲突 miss 的来源。再提出一种循环重排、分块或 SoA/AoS 改造，并说明它改变的是局部性、带宽还是并行一致性。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-02-memory" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>4×4 矩阵、每缓存行 2 个整数、缓存容量 2 行时，按行扫描 16 个元素通常是 8 次 miss、8 次 hit；按列扫描在 4 个块间轮换，可能达到 16 次 miss。块号由 <span class="arithmatex">\(\lfloor\mathrm{index}/2\rfloor\)</span> 给出，连续的 0、1 共享块 0。页面脚本会按访问步数显示矩阵、缓存槽和命中类型。</p>
+</div>
+</section>
+
 ## 1. 存储金字塔：为什么快慢差 100 倍
 
 存储器有一个残酷的物理三难：**快、大、便宜只能取其二**。于是系统把它们**堆成层级**，每层给下层当缓存：

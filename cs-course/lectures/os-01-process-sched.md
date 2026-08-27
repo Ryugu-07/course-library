@@ -3,6 +3,45 @@
 > **对标**：MIT 6.S081 / OSTEP（*Operating Systems: Three Easy Pieces*）虚拟化篇 ｜ **前置**：csapp-03/04（ECF、虚拟内存）
 > 操作系统是"管理硬件、给程序造幻觉"的软件。OSTEP 把 OS 的全部内容归纳成三个主题——**虚拟化、并发、持久化**。本页开虚拟化中的 CPU 虚拟化：**一个（或几个）CPU 怎么让几百个进程都以为自己在独占运行**。这是调度、上下文切换、以及"你的电脑同时开一堆程序不卡死"的原理。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：调度器到底优化哪一个时间？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：短任务为什么会被长任务拖住？</h3>
+<p>四个 CPU-bound 任务同时到达：A 需要 8 个时间单位，B 需要 2，C 需要 1，D 需要 2。若采用 FIFO、SJF 或时间片为 2 的 RR，哪一个策略让交互任务更快得到第一次运行？哪个策略让平均周转时间更小？这里没有“最快”这一种单一指标：先分别写下你的预测。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>在这组数据上，选择平均响应时间最小的策略，并说明你是否愿意为它支付更多次上下文切换的成本。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：就绪队列与一条 CPU 轨迹</h3>
+<p>把任务表示为 <span class="arithmatex">\(J_i=(a_i,b_i)\)</span>：到达时刻 <span class="arithmatex">\(a_i\)</span>，所需 CPU 工作量 <span class="arithmatex">\(b_i\)</span>。调度器只决定“下一个时间片给谁”；任务在 running、ready、blocked 之间转移，I/O 会把它暂时移出就绪队列。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>响应时间 <span class="arithmatex">\(R_i=s_i-a_i\)</span>，周转时间 <span class="arithmatex">\(T_i=f_i-a_i\)</span>，其中 <span class="arithmatex">\(s_i\)</span> 是首次运行、<span class="arithmatex">\(f_i\)</span> 是完成。FIFO 维护到达顺序；非抢占 SJF 在每次选择时取最小剩余工作量；RR 维护循环队列并在 <span class="arithmatex">\(q\)</span> 个单位后抢占。任何合法轨迹都满足工作守恒 <span class="arithmatex">\(\sum_i b_i=\)</span> 已执行工作 + 剩余工作；若每次切换耗时 <span class="arithmatex">\(c\)</span>，有效利用率近似为 <span class="arithmatex">\(U=\frac{\text{work}}{\text{work}+c\cdot\text{switches}}\)</span>。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>SJF 需要知道或估计 burst，且长任务可能饥饿；RR 的 <span class="arithmatex">\(q\to\infty\)</span> 退化为 FIFO，而 <span class="arithmatex">\(q\)</span> 过小会让切换和缓存/TLB 污染吞掉并发收益。CFS 的公平是虚拟运行时间的目标，不等于每个任务响应时间相同。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：从玩具轨迹到系统决策</h3>
+<p>把 workload 换成一个持续计算的请求和三个频繁等待输入的请求：为 P01-A 选择 RR、优先级调度或 MLFQ，并写出你要观测的两个指标。再把同一决策映射到 L02 shell 的前台/后台作业；L02 的真实 shell 实验仍是实现入口，本层实验只帮助你先读懂调度账本。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-os-01-process-sched">
+<h3>交互实验：同一批任务，不同调度证据</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认任务均在 <span class="arithmatex">\(t=0\)</span> 到达，工作量为 A=8、B=2、C=1、D=2。FIFO 轨迹为 A(0–8)、B(8–10)、C(10–11)、D(11–13)，平均响应时间为 7.25、平均周转时间为 10.50；SJF 轨迹为 C(0–1)、B(1–3)、D(3–5)、A(5–13)，对应 2.25 与 5.50；RR(<span class="arithmatex">\(q=2\)</span>) 的平均响应时间为 2.75、平均周转时间为 7.25，但切换次数更多。选择策略、改变时间片并先预测，实验会展开甘特轨迹与逐任务账本。</p>
+<table><thead><tr><th>策略</th><th>轨迹摘要</th><th>平均响应</th><th>平均周转</th></tr></thead><tbody><tr><td>FIFO</td><td>A→B→C→D</td><td>7.25</td><td>10.50</td></tr><tr><td>SJF</td><td>C→B→D→A</td><td>2.25</td><td>5.50</td></tr><tr><td>RR(q=2)</td><td>A→B→C→D→A…</td><td>2.75</td><td>7.25</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 进程抽象与状态机
 
 

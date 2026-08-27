@@ -3,6 +3,43 @@
 > **对标**：MIT 6.854 / CMU 15-859 / Amazon–Cormode 综述 ｜ **前置**：algo-03（随机化）、数学站概率线（矩、集中）、信息论线
 > 现代数据的现实：**数据流过一次就没了，且大到存不下**（网络包、日志、点击流）。流算法的约束是苛刻的——**一遍扫描、亚线性空间（远小于 $n$）**——却仍能给出可证明精度的近似。这条线是"用随机性和信息论换空间"的极致，也是 Medusa 这类持续摄入数据系统的底层直觉。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：一张小表，为什么敢回答没存过的键？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：重击手会被谁“借名”？</h3>
+<p>流是 <code>a,b,a,c,d,b,a,e,c,b,f,a,d,c,b,a</code>，精确频率为 <span class="arithmatex">\(f_a=5,f_b=4,f_c=3,f_d=2,f_e=f_f=1\)</span>。如果只有 3 行、4 列的 Count-Min Sketch，查询 <code>b</code> 时某些行会混入别的键。取最小值是否可能低估？两台机器各处理半段后逐格相加，是否等于合并后重放？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测单边误差</h3>
+<p>先写下：<strong>①</strong> 每个计数格只加不减，所以估计值不低于真实频率；<strong>②</strong> 取多行最小值是在寻找碰撞较少的证据，不是平均所有噪声；<strong>③</strong> 固定哈希函数时，分片草图逐格相加与整流一次扫描应相同。实验会让你先选出最可能被高估的键，再打开矩阵。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：频率向量的压缩投影</h3>
+<p>把海量键的频率向量 <span class="arithmatex">\(f\in\mathbb R^n\)</span> 投影到一个小矩阵。更新只触碰每行一个格子；查询一个键时读取它在各行的格子并取最小。Sketch 不记住“这个格子属于谁”，它只依赖碰撞噪声的方向性和可重复的哈希。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：上界与空间账</h3>
+<p>更新规则是 <span class="arithmatex">\(C[i,h_i(x)]\leftarrow C[i,h_i(x)]+1\)</span>，查询是 <span class="arithmatex">\(\hat f_x=\min_i C[i,h_i(x)]\)</span>。因此 <span class="arithmatex">\(\hat f_x\ge f_x\)</span>；在均匀独立碰撞假设下，宽度取 <span class="arithmatex">\(w=\lceil e/\epsilon\rceil\)</span>、深度取 <span class="arithmatex">\(d=\lceil\ln(1/\delta)\rceil\)</span>，以概率至少 <span class="arithmatex">\(1-\delta\)</span> 有误差不超过 <span class="arithmatex">\(\epsilon m\)</span>。线性更新还给出可合并不变量：<span class="arithmatex">\(\mathrm{sketch}(A\mathbin\Vert B)=\mathrm{sketch}(A)+\mathrm{sketch}(B)\)</span>。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>窄表或哈希相关会让碰撞偏大；“高概率”针对哈希/随机设定，不是对所有恶意输入无条件保证。</li>
+<li>Count-Min 的单边保证依赖非负更新；有删除时要改用带符号的草图或其他频率结构。</li>
+<li>一次查询的误差界不自动覆盖百万次查询；要用 union bound 调整 <span class="arithmatex">\(\delta\)</span>，或明确服务的查询预算。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：先决定可接受的误差方向</h3>
+<p>为日志热度、去重计数和滑动窗口分别选择 Count-Min、HLL 或指数直方图。对每个选择写出：允许高估还是低估、更新是否可合并、窗口过期是否破坏线性不变量，以及在 <span class="arithmatex">\(10^9\)</span> 条事件下为什么不把全量键表当作默认方案。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-adv-01-streaming" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>16 个事件的精确计数为 <code>a:5,b:4,c:3,d:2,e:1,f:1</code>。用宽度 4、深度 3 的表时，每行查询 <code>b</code> 都读一个格子，最终取三者最小；碰撞只会把 4 推高，不会推低。把前 8 个和后 8 个事件分别建表再逐格相加，所有格子应与整流建表完全一致。页面脚本会显示矩阵、查询值和合并检查。</p>
+</div>
+</section>
+
 ## 1. 模型与不可能性
 
 **数据流模型**：元素 $a_1,a_2,\dots,a_m$ 依次到达（可能是 $[n]$ 上的更新），算法只有 $O(\text{polylog})$ 空间、每元素 $O(1)$~$O(\text{polylog})$ 处理时间，**不能回看**。目标：估计流的某个统计量。

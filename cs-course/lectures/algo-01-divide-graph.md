@@ -3,6 +3,43 @@
 > **对标**：CS170（UC Berkeley）/ CLRS 第 2–4、22–24 章 ｜ **前置**：数学站离散/图论线、概率线（期望分析）
 > 算法课的第一课不是"背模板"，是**把问题结构翻译成复杂度**。对你——应用数学出身——这条线更像换记号复习：递归树是求和、分治是主定理、图算法是线性代数与序理论的离散化。本页立三样地基：分治的复杂度会计（主定理）、图的两种遍历骨架（DFS/BFS 及其代数结构）、最短路的松弛统一视角。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：什么时候“最近”可以定稿？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：先看哪一个点？</h3>
+<p>图上有边 <span class="arithmatex">\(s\to a=2,\ s\to b=5,\ a\to b=1,\ a\to c=6,\ b\to c=2,\ c\to t=3\)</span>。从 <span class="arithmatex">\(s\)</span> 出发，第一次取出 <span class="arithmatex">\(a\)</span> 后，<span class="arithmatex">\(b\)</span> 的暂定距离变成 3。此时应不应该把 <span class="arithmatex">\(b\)</span> 定稿？再换成 <span class="arithmatex">\(s\to c=5,\ a\to b=2,\ b\to t=2,\ c\to a=-6\)</span>，原来的理由还成立吗？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测，再让松弛运行</h3>
+<p>先写下三笔：<strong>①</strong> 非负权时下一枚定稿点是当前最小暂定距离；<strong>②</strong> 松弛只会让上界变小，不会凭空证明最优；<strong>③</strong> 出现负边时，即使某点已经定稿，也可能被一条晚到的路径改小。实验中的金色 frontier 会把这三笔逐步揭开。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：上界与 frontier</h3>
+<p>为每个点保存 <span class="arithmatex">\(d[v]\)</span> 和前驱；<span class="arithmatex">\(d[v]\)</span> 是目前找到的路径长度上界。每次从未定稿点中取最小的一个，扫描其出边，像账房一样尝试改善邻居。BFS、Dijkstra、Bellman–Ford 的差别主要是 frontier 的调度，不是“有没有松弛”这个核心动作。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：松弛与不变量</h3>
+<p>每条边执行 <span class="arithmatex">\(\mathrm{relax}(u,v):\ d[v]\leftarrow\min(d[v],d[u]+w(u,v))\)</span>。始终保持：<span class="arithmatex">\(d[v]\)</span> 不小于真实最短路，且每个有限值都对应一条已知路径。Dijkstra 的定稿不变量是：若所有边权非负，取出的 <span class="arithmatex">\(u\)</span> 满足 <span class="arithmatex">\(d[u]=\delta(s,u)\)</span>；递归树一侧则把每层代价相加为 <span class="arithmatex">\(T(n)=aT(n/b)+f(n)\)</span>，两者都是“维护局部账本直到全局证书”的方法。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>负边会破坏“最近即可定稿”：晚到的路径可能绕过一个已经定稿的点；此时用 Bellman–Ford 的多轮松弛，并检查第 <span class="arithmatex">\(n\)</span> 轮是否仍可下降。</li>
+<li>无权图用 BFS 的层数作距离；若偷偷加入不同权重，队列顺序就不再代表距离顺序。</li>
+<li>最短路的局部选择与 MST 的切割贪心不能互换；一个传播单源距离，一个选择全局连通边。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把调度和证明分开</h3>
+<p>面对一个新图问题，先写清楚状态量、合法更新和“何时能定稿”的不变量，再选栈、队列、优先队列或全边轮次。请把课程依赖图、带延迟的服务路由和矩阵幂的可达性分别对应到 DFS、Dijkstra/Bellman–Ford 与布尔半环传播，并指出每个模型的第一条失效假设。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-algo-01-divide-graph" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>在非负图上，<span class="arithmatex">\(d[s]=0\)</span>；取出 <span class="arithmatex">\(a\)</span> 后得到 <span class="arithmatex">\(d[b]=3\)</span>，取出 <span class="arithmatex">\(b\)</span> 后得到 <span class="arithmatex">\(d[c]=5\)</span>，最后 <span class="arithmatex">\(d[t]=8\)</span>。若切换到边集 <span class="arithmatex">\(s\to a=2,s\to c=5,a\to b=2,b\to t=2,c\to a=-6\)</span>，Bellman–Ford 得 <span class="arithmatex">\(d[t]=3\)</span>，而 Dijkstra 可能留下 <span class="arithmatex">\(d[t]=6\)</span>；此时 <span class="arithmatex">\(a\)</span> 会被晚到路径改到 -1，说明定稿理由已失效。页面脚本会让你先预测 frontier，再逐步查看松弛账本。</p>
+</div>
+</section>
+
 ## 1. 分治与主定理：把递归读成求和
 
 分治三步：**分**（子问题）、**治**（递归）、**合**（合并）。代价满足递归式

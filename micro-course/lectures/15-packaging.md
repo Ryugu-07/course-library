@@ -3,6 +3,58 @@
 > **层次**：硕博方向 + **当前业界最热的领域之一** ｜ **核对于 2026-07**。
 > 封装曾经是芯片制造中最不起眼的后段工序——把裸片装进塑料壳、引出管脚。**过去十年它变成了行业最重要的创新战场之一。** 原因在前面几页已经埋好：缩放变贵（第四页）、大芯片良率低（第十四页）、模拟不缩放（第八页）、存储墙（第十页）。**封装是这四个问题的共同出口。**
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：Chiplet 把良率收益换成互连、封装与热的系统账</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：拆成四块后，系统一定更便宜更快吗？</h3>
+<p>一颗 600 mm<sup>2</sup> 的逻辑系统可以做成单片，也可以拆成 4 颗各 150 mm<sup>2</sup> 的 chiplet。假设缺陷模型给出单片良率 0.59、小片良率 0.86，每个跨裸片比特的互连能耗为 2 pJ，工作负载每次需要跨裸片搬运 8 Gbit。若四颗同时合格后还要乘 0.96 的封装良率，四芯粒的“良率收益”能否抵消 16 mJ 的通信能耗与 KGD 测试？不要只看裸片面积，先列系统边界。</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先判断三种情况：<strong>①</strong> 通信密集的模块应尽量留在同一裸片，哪怕小片良率略低；<strong>②</strong> 四颗小片的系统良率必须乘起来，不能直接拿 0.86 当整机良率；<strong>③</strong> 2.5D 并排和 3D 堆叠的互连距离相近，但 3D 的热边界不同；<strong>④</strong> 如果跨裸片流量从 8 Gbit 降到 0.8 Gbit，Chiplet 的系统权衡可能翻转。实验会让你调通信流量而不是只看封装层数。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：功能划分 + 连接图 + 热路径</h3>
+<p>把系统表示为带权图：节点是裸片，边权是跨裸片通信量，节点权是面积、功耗和工艺需求。切分降低每个节点的面积与工艺耦合，却把被切断的边变成昂贵的物理互连；堆叠还改变热阻网络。Chiplet 的好坏不是由“芯粒数”单独决定，而是由切分后的图割、KGD、封装良率和散热共同决定。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">Y<sub>system</sub> = [Y(A/n)]<sup>n</sup> Y<sub>pkg</sub>, &nbsp; E<sub>link</sub> = B<sub>cross</sub> e<sub>bit</sub>, &nbsp; A<sub>total</sub> = sum<sub>i</sub> A<sub>i</sub></div>
+<p>在固定总面积 <code>A<sub>total</sub></code> 下，切成 <code>n</code> 颗的面积不变量是各裸片面积之和仍等于总面积；系统良率却是每颗合格事件的乘积。跨裸片通信能耗与切割边上的比特数 <code>B<sub>cross</sub></code> 线性增长，互连能效 <code>e<sub>bit</sub></code> 可以用 pJ/bit 记账。单片的这个玩具模型没有跨裸片通信项，拆分后的系统才需要把封装良率和通信能耗一并加入。3D 还要把局部功率密度和热阻放进约束，不能只沿用平面良率模型。</p>
+<p>实验的决策规则是“在给定封装良率、通信量和温度预算下，选择系统良率与互连能耗都可接受的切分”。它刻意不把任何厂商协议或实测 benchmark 当成常数。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>chiplet 并不自动降低总成本：封装基板、中介层、测试、已知良好裸片筛选和供应链管理会增加固定项。</li>
+<li>系统良率的独立乘法假设会被共享工艺缺陷、同批次相关性和封装热点打破。</li>
+<li>互连带宽不是只有线长；协议、SerDes、时钟域、缓存一致性和软件映射也会增加 latency 与能耗。</li>
+<li>3D 堆叠可以缩短距离，却可能把高功耗裸片埋在热路径中；热失效会使“密度提升”没有可用频率。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：在 yield、通信与热之间找可行点</h3>
+<div class="learning-lab" data-learning-lab="micro-chiplet">
+<p><strong>无 JavaScript 时的静态读法：</strong>取总面积 <code>600 mm<sup>2</sup></code>、单片良率约 <code>0.5917</code>、4 chiplet 每颗良率约 <code>0.8653</code>、封装良率 <code>0.96</code>。单片系统良率约 0.592；四芯粒约 <code>0.8653<sup>4</sup>*0.96=0.538</code>。单片没有跨裸片通信项；四芯粒跨裸片通信 <code>8 Gbit</code>、互连能耗 <code>2 pJ/bit</code> 时，额外通信能耗是 16 mJ；如果流量只有 0.8 Gbit，则为 1.6 mJ。这个玩具例子说明：拆分的收益必须与系统良率和通信图一起看。</p>
+<table><thead><tr><th scope="col">切分</th><th scope="col">裸片面积</th><th scope="col">裸片合格概率</th><th scope="col">封装后系统 Y</th><th scope="col">跨裸片能耗（8 Gbit）</th></tr></thead>
+<tbody><tr><td>单片</td><td>600 mm<sup>2</sup></td><td>0.592</td><td>0.592</td><td>0</td></tr><tr><td>4 chiplet</td><td>4 x 150 mm<sup>2</sup></td><td>0.865 each</td><td>0.538</td><td>16 mJ</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为 AI 封装做一次图切分</h3>
+<p>把一个计算裸片、两个 HBM 堆栈、一个 I/O 裸片和一个模拟传感裸片画成带权图。给每条边标注带宽需求、可接受 latency 与 pJ/bit；给每个节点标注工艺、功耗、热路径和 KGD 风险。提出一个 2.5D 方案和一个 3D 方案，再写出你会用来否决其中一个方案的最小证据集合。</p>
+</div>
+</section>
+
 ## 一、为什么封装突然重要
 
 四条因果链在此汇合：

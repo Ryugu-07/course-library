@@ -3,6 +3,40 @@
 > **对标**：CMU 15-418 / *The Art of Multiprocessor Programming*（Herlihy–Shavit）｜ **前置**：par-01（缓存一致性、内存序）、os-02（锁）
 > 并发的深水区。os-02 用锁保证正确，但锁有代价（争用、阻塞、死锁）。这一页讲**无锁（lock-free）编程**——用原子操作直接在共享数据上正确协作、不加锁。它是高性能并发（数据库、操作系统内核、并发容器）的核心，也是最容易写错的地方。理解它，你会真正明白 Rust（rust-02）"无畏并发"消灭的到底是什么。这对应 [实验 L10]。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：CAS 看到的 A，真的是同一个 A 吗？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：无锁栈的一次“成功”</h3>
+<p>栈顶初始为 \(A\)，其后是 \(B\)。线程 T1 读到 <code>top=A</code> 后暂停；T2 弹出 A、弹出 B、再把 A 压回去。T1 醒来时 CAS(<code>A</code>, <code>C</code>) 返回成功。它是否安全？如果指针旁边带一个版本号，序列 \(A_0\to B_1\to A_2\) 会发生什么？</p>
+</div>
+<div class="learning-prediction">
+<h3>先写出两条预测</h3>
+<p>预测：<strong>①</strong> 未标记指针会把“值仍为 A”误判成“状态未变”，可能读取已脱链或已回收的 next；<strong>②</strong> 带版本的 CAS 会因 \(A_2\ne A_0\) 失败并重试；<strong>③</strong> relaxed 只保证原子性，不会自动把生产者写入的数据发布给消费者。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：线性化点 + 可见性 + 回收</h3>
+<p>一个无锁操作必须回答三个问题：哪个原子事件是它“瞬间生效”的线性化点？其他线程何时能看到此前写入？节点在什么条件下仍可被安全解引用？CAS 只直接回答第一个问题，acquire/release 和 hazard pointer/epoch reclamation 分别回答后两个。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>CAS 定义为 \(\mathrm{CAS}(x,e,n)\)：原子地检查 \(x=e\)，成立才写 \(n\)。正确的栈 push 要保持 \(new.next=old\_top\)，并让成功 CAS 成为线性化点。发布协议要求生产者先写 payload，再以 release 写 flag；消费者以 acquire 读到 flag 后才可读取 payload，这建立 happens-before。无锁只保证系统整体持续前进，不能保证每个线程在有限步内完成。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>版本号会溢出；宽度不足或回收复用过快时仍需更严谨的 reclamation。</li><li>把所有原子改成 seq_cst 可能隐藏模型错误，但不能修复悬垂指针、错误的生命周期或 ABA 语义。</li><li>无锁不是无等待：一个线程可能饥饿，竞争激烈时 CAS 重试也可能比锁慢；能用成熟并发容器就不要手写。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把时间线交给 L10 与 Rust</h3>
+<p>先在纸上给 L10 的无锁栈画出 ABA 交错，再分别标出版本 CAS、hazard pointer 和 epoch 的保护点。把同一接口改写成 Rust 的 <code>Arc</code>、通道或受保护共享状态，指出 rust-02 的 <code>Send</code>/<code>Sync</code> 能消灭哪类错误，不能替你证明哪类算法不变量。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-par-02-lockfree" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>初态为 <code>top=A0</code>。T1 读 A0；T2 执行 pop A、pop B、push A，得到 <code>top=A2</code>。未标记 CAS 只比较地址 A，会错误成功；标记 CAS 比较“地址+版本”，A0 与 A2 不同，失败后重读。发布例中若数据写入先于 release flag=1，消费者 acquire 读到 1 后才能安全读取；改成 relaxed 后原子计数仍正确，但可见性没有同样保证。</p>
+<table><thead><tr><th>步骤</th><th>未标记 top</th><th>版本化 top</th><th>结论</th></tr></thead><tbody><tr><td>T1 读取</td><td>A</td><td>A0</td><td>暂停</td></tr><tr><td>T2 改三次</td><td>A</td><td>A2</td><td>ABA</td></tr><tr><td>T1 CAS</td><td>成功但不安全</td><td>失败并重试</td><td>版本揭示变化</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 原子操作：无锁的基石
 
 

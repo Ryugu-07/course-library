@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：闭包捕获的是哪一个环境？</a><ul>
+<li><a href="#2-3">具体谜题：同名变量修改后，函数返回 2 还是 3？</a></li>
+<li><a href="#evalnode-env">最小心智模型：eval(node, env)</a></li>
+<li><a href="#_2">形式机制与不变量</a></li>
+<li><a href="#_3">反例与失效边界</a></li>
+<li><a href="#l04-oracle">迁移任务：让 L04 同时成为语义 oracle</a></li>
+<li><a href="#_4">交互实验：环境链、闭包与类型检查</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 语义分析：名字与作用域</a></li>
 <li><a href="#2">2. 类型检查：在运行前抓错</a></li>
 <li><a href="#3">3. 树遍历解释器：让语言活起来</a></li>
@@ -50,6 +74,67 @@
 <p><strong>对标</strong>：Stanford CS143 中段 / <em>Crafting Interpreters</em> / TAPL（类型）｜ <strong>前置</strong>：comp-01（AST）、pl 线（类型系统正式版在 pl-01）
 有了 AST（comp-01），编译器要开始<strong>理解程序的意义</strong>：名字指向什么（作用域）、类型对不对（类型检查）、然后要么直接执行（解释器）、要么继续编译（comp-03）。这一页讲语义分析与类型检查，并把 [实验 L04] 的解释器完整跑起来——<strong>你将拥有一门自己实现的、能跑的小语言</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：闭包捕获的是哪一个环境？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="2-3">具体谜题：同名变量修改后，函数返回 2 还是 3？<a class="headerlink" href="#2-3" title="Permanent link"></a></h3>
+<p>程序先在全局令 <code>x=1</code>，调用 <code>make</code>；<code>make</code> 内部创建局部 <code>x=2</code> 和函数 <code>get(){ return x; }</code>，返回 <code>get</code>。随后全局 <code>x</code> 改为 3，再调用 <code>get()</code>。词法作用域、动态作用域和“捕获值/捕获位置”会给出不同答案。请先预测。</p>
+</div>
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择闭包调用的结果，并指出查找 <code>x</code> 时应先检查哪一个环境；再预测 <code>1 + "text"</code> 在动态求值器和静态类型检查器中分别何时失败。</div>
+<div class="learning-model">
+<h3 id="evalnode-env">最小心智模型：<code>eval(node, env)</code><a class="headerlink" href="#evalnode-env" title="Permanent link"></a></h3>
+<p>AST 节点由求值函数递归解释；环境是从名字到值的链，进入块或调用时压入新 frame，离开时恢复。函数值不仅包含代码，还包含定义时的环境引用，因此闭包可以在外层调用返回后继续解析自由变量。</p>
+</div>
+<div class="learning-mechanism">
+<h3 id="_2">形式机制与不变量<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>闭包可写成 <span class="arithmatex">\(\langle\lambda x.e,\rho_{def}\rangle\)</span>；调用时在 <span class="arithmatex">\(\rho_{def}\)</span> 上扩展参数 frame，再求 <span class="arithmatex">\(e\)</span>，而不是用调用点环境。名字解析的最近绑定不变量是沿环境链向外查找的第一个同名声明。类型规则例如 <span class="arithmatex">\(\frac{\Gamma\vdash e_1:Int\quad\Gamma\vdash e_2:Int}{\Gamma\vdash e_1+e_2:Int}\)</span> 把合法性判断放在求值之前。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_3">反例与失效边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>若语言允许可变捕获变量，闭包通常捕获的是位置而不是冻结值；循环变量捕获因此可能暴露共享存储的时序问题。动态类型把检查推迟到运行时，静态类型也只保证其模型覆盖的错误；递归函数还需要先把自身绑定放入环境，不能把所有函数简单当作纯值。</p>
+</div>
+<div class="learning-transfer">
+<h3 id="l04-oracle">迁移任务：让 L04 同时成为语义 oracle<a class="headerlink" href="#l04-oracle" title="Permanent link"></a></h3>
+<p>在 L04 中加入词法作用域、闭包和类型错误的 golden tests，记录 AST、环境链和最终值；再让 comp-03 的优化后代码与解释器结果逐例相同。pl-01 提供形式类型规则，但本页实验保留 L04 的真实 tree-walk 实现，不用玩具结果替代运行。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-comp-02-interpreter">
+<h3 id="_4">交互实验：环境链、闭包与类型检查<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>闭包程序在定义 <code>get</code> 时捕获 <code>make</code> 的环境，其中最近的 <code>x=2</code> 位于全局 <code>x=3</code> 之前，所以词法作用域结果为 2；动态作用域会沿调用栈查到 3。环境账本可写为 <code>global{x=3} → make{x=2} → get</code>，查找从 get 的定义环境开始。对 <code>1 + "text"</code>，静态规则在编译/检查阶段拒绝，动态解释器在执行加法节点时报告类型错误。</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>环境/规则</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>定义 get</td>
+<td>捕获 make frame：x=2</td>
+<td>闭包形成</td>
+</tr>
+<tr>
+<td>全局赋值</td>
+<td>global x 从 1 改为 3</td>
+<td>不改捕获 frame</td>
+</tr>
+<tr>
+<td>调用 get</td>
+<td>沿定义环境找最近 x</td>
+<td>词法结果 2</td>
+</tr>
+<tr>
+<td>检查 1+"text"</td>
+<td>Int 与 String 不满足加法规则</td>
+<td>拒绝/运行时报错</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 语义分析：名字与作用域<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="词法作用域栈：进块压入、离块弹出、内层查不到往外找。" src="assets/img/comp-02-scope-stack.svg" /></p>
@@ -113,5 +198,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-comp-02-interpreter.js"></script>
 </body>
 </html>

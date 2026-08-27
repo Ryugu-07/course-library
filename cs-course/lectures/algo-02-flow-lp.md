@@ -3,6 +3,43 @@
 > **对标**：CS170 / CLRS 第 24–26 章 / Vazirani *Approximation Algorithms* ｜ **前置**：algo-01、数学站优化线（LP 对偶你已证过）
 > 这一页对你是全站互链最密的一处：**最大流–最小割定理就是 LP 强对偶在图上的具体化身**。你在优化课上证过 $\max c^Tx = \min b^Ty$，这里我们看它如何变成"水管网络里能流多少水 = 切断网络的最便宜方式"，再看图论一大批问题（匹配、覆盖、调度）如何全归约到流。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：第一条增广路走错了，还能追回吗？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：流量账本怎样回滚？</h3>
+<p>考虑容量均为 1 的网络：<span class="arithmatex">\(s\to a,\ a\to b,\ b\to t,\ s\to b,\ a\to t\)</span>。若第一步沿 <span class="arithmatex">\(s\to a\to b\to t\)</span> 推 1 单位，<span class="arithmatex">\(s\to b\)</span> 仍有余量，但 <span class="arithmatex">\(b\to t\)</span> 已满。第二步怎样到达 <span class="arithmatex">\(t\)</span>？关键是否允许走残量反向边 <span class="arithmatex">\(b\to a\)</span>？</p>
+</div>
+<div class="learning-prediction">
+<h3>先做三个预测</h3>
+<p>先下注：<strong>①</strong> 反向残量表示可以撤回已送出的流，不是凭空新增一条原管道；<strong>②</strong> 该网络的最大流是 2；<strong>③</strong> 找到流值 2 后，还要用无增广路或同值割完成最优性证明。实验会逐步显示“决定”和“后悔”的两种余量。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：原始流与残量网络</h3>
+<p>原始网络记录每条边已经送了多少；残量网络记录每个局部决定还能增加多少、还能撤回多少。增广路只是残量图中的一条 <span class="arithmatex">\(s\)-\(t\)</span> 路，瓶颈是路上最小余量。反复增广直到没有路，残量图从 <span class="arithmatex">\(s\)</span> 可达的点集就是割的一侧。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：守恒、对偶与证书</h3>
+<p>流满足 <span class="arithmatex">\(0\le f_e\le c_e\)</span>，且中间点 <span class="arithmatex">\(\sum_{\mathrm{in}}f=\sum_{\mathrm{out}}f\)</span>。任意割都给出 <span class="arithmatex">\(|f|\le\mathrm{cap}(S,T)\)</span>；若残量图中没有 <span class="arithmatex">\(s\to t\)</span> 路，令 <span class="arithmatex">\(S\)</span> 为从 <span class="arithmatex">\(s\)</span> 可达集合，则 <span class="arithmatex">\(S\to T\)</span> 原边饱和、<span class="arithmatex">\(T\to S\)</span> 流为 0，于是 <span class="arithmatex">\(|f|=\mathrm{cap}(S,T)\)</span>。这正是 LP 原始可行解与对偶可行解的同值证书。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>只看当前正向剩余容量会错过重排；没有反向边时，第一条路径可能把共享瓶颈占死。</li>
+<li>最大流最小割不等于“任意停止都最优”：必须确认没有增广路，或给出容量相同的割。</li>
+<li>整数容量带来整数流是网络矩阵全幺模的结果；一般整数规划的 LP 松弛可能出现分数顶点，不能照搬这个幸运性质。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：先找守恒，再找对偶</h3>
+<p>把二分图匹配、项目依赖选择和图像分割各写成“节点守恒 + 边容量”的流模型，并为一个目标值构造反向证书：是同值割、对偶变量，还是一个显式的覆盖？说明证书为什么比“跑出来一个答案”更强。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-algo-02-flow-lp" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>第一条路 <span class="arithmatex">\(s\to a\to b\to t\)</span> 推出 1；随后走 <span class="arithmatex">\(s\to b\to a\to t\)</span>，其中 <span class="arithmatex">\(b\to a\)</span> 是撤回 <span class="arithmatex">\(a\to b\)</span> 的残量边，最终流值为 2。此时从 <span class="arithmatex">\(s\)</span> 在残量图不可达 <span class="arithmatex">\(t\)</span>，割边 <span class="arithmatex">\(s\to a,s\to b\)</span> 的容量也是 2。页面脚本会让你逐步增广并对照守恒、割容量和 LP 对偶账本。</p>
+</div>
+</section>
+
 ## 1. 网络流：定义与最大流最小割
 
 流网络：有向图 + 源 $s$、汇 $t$、每边容量 $c(u,v)\ge 0$。**流** $f$ 满足容量约束 $0\le f\le c$ 与守恒（除 $s,t$ 外流入=流出）。流值 $|f|$ = 净流出 $s$ 的量。**割** $(S,T)$：把点分成含 $s$ 的 $S$ 与含 $t$ 的 $T$，割容量 = 从 $S$ 到 $T$ 的边容量之和。

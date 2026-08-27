@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#1024-1024">学习层：1024 个线程真的等于 1024 个并行结果吗？</a><ul>
+<li><a href="#warp">具体谜题：一个 warp 读哪几条内存事务？</a></li>
+<li><a href="#_1">先预测索引、事务与发散</a></li>
+<li><a href="#simt">最小心智模型：线程坐标映射到 SIMT 资源</a></li>
+<li><a href="#_2">形式机制与不变量</a></li>
+<li><a href="#_3">反例与失效边界</a></li>
+<li><a href="#l08">迁移任务：把索引公式带到 L08</a></li>
+</ul>
+</li>
 <li><a href="#1-gpu-vs">1. 为什么 GPU 长这样：吞吐 vs 延迟</a></li>
 <li><a href="#2-simt">2. SIMT 与线程层级</a></li>
 <li><a href="#3-gpu">3. 内存层级：GPU 性能的生死线</a></li>
@@ -50,6 +74,73 @@
 <p><strong>对标</strong>：CMU 15-418 GPU 篇 / <em>Programming Massively Parallel Processors</em>（PMPP, Hwu–Kirk）/ NVIDIA CUDA C++ 指南 ｜ <strong>前置</strong>：par-01（数据并行）、csapp-02（存储层级）
 CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"数千弱核"（成千上万个简单核心）。这个架构差异逼出一种全新的编程思维——<strong>大规模数据并行（SIMT）</strong>。这一页讲清 GPU 的硬件模型、CUDA 的线程层级、以及那条决定 GPU 性能生死的内存层级。你天天用的扩散模型（comfy 课）、大模型推理（mlsys 线）全跑在这套模型上。<strong>本页起 CUDA 实验在你的 Win 4060 Ti 上跑。</strong></p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="1024-1024">学习层：1024 个线程真的等于 1024 个并行结果吗？<a class="headerlink" href="#1024-1024" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="warp">具体谜题：一个 warp 读哪几条内存事务？<a class="headerlink" href="#warp" title="Permanent link"></a></h3>
+<p>启动 <code>&lt;&lt;&lt;4,256&gt;&gt;&gt;</code> 处理 \(N=1000\) 个 float。第 3 个 block 的第 10 个线程负责哪个索引？若一个 warp 的 32 个线程读取连续地址，和它们读取 stride=32 的地址，哪一种更接近一次合并事务？最后让 warp 内偶数线程走 if、奇数线程走 else，会不会仍是一条指令同时完成？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_1">先预测索引、事务与发散<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> 全局索引为 \(2\times256+9=521\)；<strong>②</strong> 连续 float 访问约覆盖 2 条 128-byte 事务，而 stride=32 可能接近 32 条；<strong>③</strong> 一半线程走每个分支时，warp 必须串行化两条路径，吞吐不会保持 32 倍。</p>
+</div>
+<div class="learning-model">
+<h3 id="simt">最小心智模型：线程坐标映射到 SIMT 资源<a class="headerlink" href="#simt" title="Permanent link"></a></h3>
+<p>一个 kernel 描述单线程程序，grid/block 决定线程集合，warp 是硬件锁步调度单位。每个线程用坐标得到数据索引；性能取决于 warp 内控制流是否一致、地址是否合并，以及足够多的 ready warp 能否掩盖全局内存延迟。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_2">形式机制与不变量<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>一维 kernel 的索引不变量是 \(i=blockIdx.x\cdot blockDim.x+threadIdx.x\)，且只有 \(i<N\) 的线程可以写结果。若 warp 地址为 \(a_t=a_0+t\cdot stride\)，内存事务数近似为被访问 cache segment 的不同数量；stride=1 时相邻线程共享段，stride 大时事务数增加。SIMT 的正确性还要求同步点两侧满足参与线程的控制流约束。</p>
+</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_3">反例与失效边界<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<ul>
+<li>“线程多就快”忽略寄存器、共享内存和 occupancy 限制；过多线程也可能降低每个 SM 的可驻留 block 数。</li>
+<li>合并访问只是全局内存的一层模型；L1/L2 命中、对齐、数据类型和读写方向会改变事务细节。</li>
+<li>分支发散不是 CPU 分支预测失败的同义词；GPU 可能顺序执行路径，CPU 则可能错误投机后清空流水线。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="l08">迁移任务：把索引公式带到 L08<a class="headerlink" href="#l08" title="Permanent link"></a></h3>
+<p>在 L08 reduction 中标出每一阶段的线程负责元素、全局访问 stride、共享内存同步和越界保护。再为一个图像 kernel 选择让相邻线程访问相邻像素的布局，说明何时需要 shared-memory tile，而不是只增大 block。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-gpu-01-cuda-model">
+<p><strong>无 JavaScript 时的静态读法：</strong>对 \(4\times256\) 启动，第 3 block（从 0 计）第 10 thread（从 0 计）得到索引 521。若 float 为 4 bytes、一个 128-byte segment 可放 32 个 float，warp 连续读 32 个 float 约需 1 个 segment；stride=32 时每个线程落在不同 segment，约需 32 个。warp 内 16/16 分支会执行两个路径。交互版可改 block、stride、分支比例并查看索引与事务表。</p>
+<table>
+<thead>
+<tr>
+<th>访问模式</th>
+<th>warp 地址步长</th>
+<th>估计事务</th>
+<th>SIMT 状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>合并</td>
+<td>1 float</td>
+<td>1 segment</td>
+<td>单路径时满并行</td>
+</tr>
+<tr>
+<td>跨步</td>
+<td>32 float</td>
+<td>约 32 segments</td>
+<td>单路径但带宽浪费</td>
+</tr>
+<tr>
+<td>分支发散</td>
+<td>可连续</td>
+<td>取决于地址</td>
+<td>两路径串行</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-gpu-vs">1. 为什么 GPU 长这样：吞吐 vs 延迟<a class="headerlink" href="#1-gpu-vs" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="CPU(少数强核,大控制/缓存) vs GPU(数千弱核,几乎全是算术单元) 芯片示意。" src="assets/img/gpu-01-cpu-vs-gpu.svg" /></p>
@@ -152,5 +243,7 @@ CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-gpu-01-cuda-model.js"></script>
 </body>
 </html>

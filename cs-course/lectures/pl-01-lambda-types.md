@@ -3,6 +3,41 @@
 > **对标**：*Types and Programming Languages*（TAPL, Pierce）/ Stanford CS242 ｜ **前置**：toc-01（可计算性）、comp-02（类型检查初步）、数学站逻辑
 > 编程语言不只是语法糖——它有一个数学内核。这一页讲两样地基：**λ 演算**（与图灵机等价的计算模型、函数式编程的根、"计算即代换"）和**类型系统**（把"程序不会出某类错"变成可证明的定理）。终点是 **Curry–Howard 同构**——"程序即证明、类型即命题"，这正是你 Lean4 计划（🔗 grad-math 后续）的理论心脏。对数学出身的你，这一页是"编程语言原来是一门逻辑学"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：一次代换为什么可能改变程序的类型？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：先算结果，还是先看推导树？</h3>
+<p>考虑 \((\lambda x.\lambda y.x)\,(\lambda z.z)\,3\)。它的 β 归约结果是什么？若把 \(\lambda z.z\) 当成整数传给期望函数的地方，类型检查器应该在运行前拒绝哪一步？再看 \(\lambda f.\lambda x.f(fx)\)，它最一般的函数类型是什么？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测三件事</h3>
+<p>预测：<strong>①</strong> 结果是 \(\lambda z.z\)，因为外层函数选择第一个参数；<strong>②</strong> 良类型项的归约不会改变类型，类型系统会在应用边界拒绝参数类型不匹配；<strong>③</strong> 两次应用要求 \(f:\alpha\to\alpha\)，所以整体类型为 \((\alpha\to\alpha)\to\alpha\to\alpha\)。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：项、替换、约束</h3>
+<p>λ 演算把程序表示为语法树；β 归约是把函数参数替换进函数体；类型推断则把每次应用转化成类型约束。前者说明“程序怎么计算”，后者说明“哪些计算组合是合法的”，Curry–Howard 把这两套结构与证明系统对应起来。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>语法为 \(e::=x\mid\lambda x.e\mid e_1e_2\)，β 规则为 \((\lambda x.e)\,v\to e[x:=v]\)。应用的类型规则是 \(\Gamma\vdash e_1:\tau\to\sigma,\ \Gamma\vdash e_2:\tau\Rightarrow\Gamma\vdash e_1e_2:\sigma\)。类型安全由 preservation（\(e:\tau\land e\to e'\Rightarrow e':\tau\)）与 progress（良类型项要么是值、要么可继续归约）共同给出。</p>
+<p>替换必须避免变量捕获：若实参的自由变量会被函数体中的同名绑定捕获，先做 α-renaming。类型推断的不变量是每次约束替换保持统一解；若约束出现 \(\alpha=\alpha\to\beta\)，则触发 occurs check，拒绝无限类型。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>无类型 λ 演算允许 \(\Omega=(\lambda x.xx)(\lambda x.xx)\) 无限归约；类型系统的 progress 结论不能被外推成“所有程序都会终止”。</li><li>把 capture-avoiding substitution 简化成字符串替换会把自由变量错误变成绑定变量；α-equivalence 是语义的一部分。</li><li>“有类型”只保证该类型系统声明的错误类别；效果、资源、终止性和并发安全需要更丰富的类型或额外证明。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把解释器与证明助手接起来</h3>
+<p>在 comp-02 的解释器中记录每个 AST 节点的环境和类型约束，在真实实验中分别运行捕获规避的替换与错误替换。再用 Curry–Howard 写出 \(A\land B\Rightarrow A\) 的 <code>fst</code>，说明 Lean/类型检查器实际验证的是哪棵推导树。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-pl-01-lambda-types" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>\((\lambda x.\lambda y.x)(\lambda z.z)3\to(\lambda y.\lambda z.z)3\to\lambda z.z\)。对 \(f(fx)\)，内层要求 \(f:\alpha\to\beta\)、\(x:\alpha\)，外层再次把 \(f\) 应用于 \(\beta\)，因此必须 \(\beta=\alpha\)，得到 \((\alpha\to\alpha)\to\alpha\to\alpha\)。交互版先让你预测，再显示逐步 β trace、α-renaming 和约束统一结果。</p>
+<table><thead><tr><th>项</th><th>下一步</th><th>类型约束</th><th>结果</th></tr></thead><tbody><tr><td>\((\lambda x.\lambda y.x)u\)</td><td>代入 \(u\)</td><td>\(x:\tau_u\)</td><td>\(\lambda y.u\)</td></tr><tr><td>\((\lambda y.u)v\)</td><td>代入 \(v\)</td><td>若 \(y\) 不在 \(u\) 自由出现</td><td>\(u\)</td></tr><tr><td>\(\lambda f.\lambda x.f(fx)\)</td><td>统一参数</td><td>\(f:\alpha\to\alpha\)</td><td>\((\alpha\to\alpha)\to\alpha\to\alpha\)</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. λ 演算：最小的计算模型
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,15 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li class="active"><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 安全的思维方式</a></li>
-<li><a href="#2">2. 内存安全漏洞（系统层）</a></li>
+<li><a href="#sec-01-learning-title">学习层：哪一个信任边界让数据变成了代码？</a><ul>
+<li><a href="#1">1. 具体谜题：四条输入路径，四种不同的防线</a></li>
+<li><a href="#2">2. 最小模型：不可信数据穿越解释器或授权检查</a></li>
+<li><a href="#3">3. 正式机制与不变量：防御要对应实际边界</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 安全的思维方式</a></li>
+<li><a href="#2_1">2. 内存安全漏洞（系统层）</a></li>
 <li><a href="#3-web">3. 注入攻击（Web 层最经典）</a></li>
 <li><a href="#4-xss-csrf">4. 浏览器端攻击:XSS 与 CSRF</a></li>
 <li><a href="#5">5. 认证与访问控制缺陷</a></li>
@@ -51,14 +73,83 @@
 <p><strong>对标</strong>：Stanford CS155 / MIT 6.858 / OWASP Top 10 ｜ <strong>前置</strong>：csapp-01/04（内存）、web 线、db 线、crypto 线
 安全课的教学立场很明确——<strong>理解攻击是为了构建防御</strong>。这一页按"漏洞类别 + 其防御"的方式，讲清最常见、最重要的几类安全问题（内存安全、注入、XSS、CSRF、认证缺陷），每类都是"机理 → 为什么危险 → 怎么防"。这是防御性的知识：一个不懂这些攻击面的开发者，会无意中写出满是漏洞的代码。核心心法一句话：<strong>永远不要信任来自外部的输入</strong>。</p>
 </blockquote>
-<h2 id="1">1. 安全的思维方式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="sec-01-learning-title" class="learning-layer">
+<h2 id="sec-01-learning-title">学习层：哪一个信任边界让数据变成了代码？<a class="headerlink" href="#sec-01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：四条输入路径，四种不同的防线<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>系统收到四种输入：搜索框的查询值、评论正文、跨站表单和 URL 中的资源 id。每条输入都来自不可信主体，但它们穿越的解释器和授权边界不同。先预测：</p>
+<ol>
+<li>哪一条路径需要参数化查询，哪一条需要输出编码？</li>
+<li>仅有 <code>HttpOnly</code> cookie 能否阻止 CSRF？仅隐藏前端按钮能否阻止越权？</li>
+<li>哪一条防线失效时，数据会跨入 SQL、浏览器脚本或对象授权的可信区域？</li>
+</ol>
+<p>实验台只使用安全的标签化输入，不执行任何攻击载荷；它展示输入源、解释器、信任边界、阻断控制和最终 sink。先按边界预测漏洞类别与防御，再观察去掉一层防御后影响如何传播。</p>
+<h3 id="2">2. 最小模型：不可信数据穿越解释器或授权检查<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>把一条数据流写为</p>
+<div class="arithmatex">\[
+U\xrightarrow{\text{validation/encoding/parameterization}}T\xrightarrow{\text{interpreter or policy}}S,
+\]</div>
+<p>其中 <code>U</code> 是不可信输入，<code>T</code> 是被约束的数据表示，<code>S</code> 是 SQL、DOM、状态变更或资源对象。若输入在没有控制的情况下被解释器重新解析，代码/数据边界就被跨越；若资源 id 在没有服务端授权检查的情况下触达对象，身份/权限边界就被跨越。</p>
+<h3 id="3">3. 正式机制与不变量：防御要对应实际边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>代码/数据不变量</strong>：参数化 API 保持查询结构与值分离；输出编码让评论保持文本；模板/命令 API 不能靠黑名单猜完所有语法。</li>
+<li><strong>浏览器会话不变量</strong>：XSS 关注恶意代码在目标 origin 执行；CSRF 关注浏览器自动携带登录态发出非本意状态变更。<code>HttpOnly</code>、CSP、SameSite 和 CSRF token 作用不同，不能互换。</li>
+<li><strong>授权不变量</strong>：每次服务端读取或写入资源都要依据当前身份和资源所有权/角色检查；前端隐藏控件不是安全边界。</li>
+<li><strong>纵深不变量</strong>：输入校验、最小权限、内存安全、日志告警和隔离控制应叠加；单个框架默认值不能覆盖所有 sink。</li>
+</ul>
+<p>攻击分类的价值在于定位边界，不在于背 OWASP 名称。一个系统可能同时存在 XSS、CSRF 和授权缺陷，修复一个并不会自动修复另两个。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验不执行真实攻击、不代表具体框架版本的全部安全保证，也不覆盖旁路缓存、SSRF、竞态、供应链或物理侧信道。编码只保护它所覆盖的输出上下文；参数化只保护对应的查询接口；服务器授权检查还需要正确的租户和资源模型。</p>
+<p>迁移任务：给 Medusa 的一个公网 endpoint 画数据流图，标出浏览器、边缘、FastAPI、数据库和日志的信任边界；为每个跨界点写输入校验、输出编码、参数化、认证、授权、CSRF/CSP 或隔离控制，并注明哪一个控制失效时仍有哪些保护。</p>
+<div class="learning-lab" data-learning-lab="cs-sec-01-attacks">
+<p><strong>JavaScript 失效时的静态读法：</strong>先定位输入跨入的解释器/授权对象，再选控制；四个场景不是同一道“安全常识题”。</p>
+<table>
+<thead>
+<tr>
+<th>输入场景</th>
+<th>关键边界</th>
+<th>首要控制</th>
+<th>控制缺失时的 sink</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>搜索值进入 SQL 条件</td>
+<td>数据 → SQL 结构</td>
+<td>参数化查询</td>
+<td>查询语义被改变</td>
+</tr>
+<tr>
+<td>评论显示到页面</td>
+<td>文本 → DOM/脚本上下文</td>
+<td>输出编码/CSP</td>
+<td>浏览器执行不可信代码</td>
+</tr>
+<tr>
+<td>跨站状态变更表单</td>
+<td>外部 origin → 登录态操作</td>
+<td>CSRF token/SameSite</td>
+<td>非本意状态变更</td>
+</tr>
+<tr>
+<td>URL 资源 id</td>
+<td>身份 → 资源授权</td>
+<td>服务端对象级授权</td>
+<td>越权读取/修改</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 安全的思维方式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>普通开发问"怎么让它工作"，安全思维问"<strong>怎么让它出错、边界在哪、攻击者能控制什么</strong>"。三条基本原则贯穿全页：</p>
 <ul>
 <li><strong>不信任输入</strong>：一切来自外部（用户、网络、文件）的数据都可能是恶意的——<strong>必须校验、净化、限制</strong>（web-02 边界校验的安全动机）。</li>
 <li><strong>最小权限</strong>：每个组件只给完成任务所需的最小权限——出事时爆炸半径小。</li>
 <li><strong>纵深防御</strong>：不指望单一防线，多层叠加（一层被破还有下一层）。</li>
 </ul>
-<h2 id="2">2. 内存安全漏洞（系统层）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 内存安全漏洞（系统层）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="缓冲区溢出：写越界覆盖栈上返回地址的示意（教学用，讲防御：canary/ASLR/DEP）。" src="assets/img/sec-01-buffer-overflow.svg" /></p>
 <figcaption><span class="fig-id">图 sec-01.3</span>缓冲区溢出：写越界覆盖栈上返回地址的示意（教学用，讲防御：canary/ASLR/DEP）。</figcaption>
@@ -124,5 +215,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-sec-01-attacks.js"></script>
 </body>
 </html>

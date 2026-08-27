@@ -3,6 +3,40 @@
 > **对标**：CMU 15-418 GPU 篇 / *Programming Massively Parallel Processors*（PMPP, Hwu–Kirk）/ NVIDIA CUDA C++ 指南 ｜ **前置**：par-01（数据并行）、csapp-02（存储层级）
 > CPU 是"少数强核"（几个超快、乱序、大缓存的核心），GPU 是"数千弱核"（成千上万个简单核心）。这个架构差异逼出一种全新的编程思维——**大规模数据并行（SIMT）**。这一页讲清 GPU 的硬件模型、CUDA 的线程层级、以及那条决定 GPU 性能生死的内存层级。你天天用的扩散模型（comfy 课）、大模型推理（mlsys 线）全跑在这套模型上。**本页起 CUDA 实验在你的 Win 4060 Ti 上跑。**
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：1024 个线程真的等于 1024 个并行结果吗？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：一个 warp 读哪几条内存事务？</h3>
+<p>启动 <code>&lt;&lt;&lt;4,256&gt;&gt;&gt;</code> 处理 \(N=1000\) 个 float。第 3 个 block 的第 10 个线程负责哪个索引？若一个 warp 的 32 个线程读取连续地址，和它们读取 stride=32 的地址，哪一种更接近一次合并事务？最后让 warp 内偶数线程走 if、奇数线程走 else，会不会仍是一条指令同时完成？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测索引、事务与发散</h3>
+<p>预测：<strong>①</strong> 全局索引为 \(2\times256+9=521\)；<strong>②</strong> 连续 float 访问约覆盖 2 条 128-byte 事务，而 stride=32 可能接近 32 条；<strong>③</strong> 一半线程走每个分支时，warp 必须串行化两条路径，吞吐不会保持 32 倍。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：线程坐标映射到 SIMT 资源</h3>
+<p>一个 kernel 描述单线程程序，grid/block 决定线程集合，warp 是硬件锁步调度单位。每个线程用坐标得到数据索引；性能取决于 warp 内控制流是否一致、地址是否合并，以及足够多的 ready warp 能否掩盖全局内存延迟。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>一维 kernel 的索引不变量是 \(i=blockIdx.x\cdot blockDim.x+threadIdx.x\)，且只有 \(i<N\) 的线程可以写结果。若 warp 地址为 \(a_t=a_0+t\cdot stride\)，内存事务数近似为被访问 cache segment 的不同数量；stride=1 时相邻线程共享段，stride 大时事务数增加。SIMT 的正确性还要求同步点两侧满足参与线程的控制流约束。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>“线程多就快”忽略寄存器、共享内存和 occupancy 限制；过多线程也可能降低每个 SM 的可驻留 block 数。</li><li>合并访问只是全局内存的一层模型；L1/L2 命中、对齐、数据类型和读写方向会改变事务细节。</li><li>分支发散不是 CPU 分支预测失败的同义词；GPU 可能顺序执行路径，CPU 则可能错误投机后清空流水线。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：把索引公式带到 L08</h3>
+<p>在 L08 reduction 中标出每一阶段的线程负责元素、全局访问 stride、共享内存同步和越界保护。再为一个图像 kernel 选择让相邻线程访问相邻像素的布局，说明何时需要 shared-memory tile，而不是只增大 block。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-gpu-01-cuda-model" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>对 \(4\times256\) 启动，第 3 block（从 0 计）第 10 thread（从 0 计）得到索引 521。若 float 为 4 bytes、一个 128-byte segment 可放 32 个 float，warp 连续读 32 个 float 约需 1 个 segment；stride=32 时每个线程落在不同 segment，约需 32 个。warp 内 16/16 分支会执行两个路径。交互版可改 block、stride、分支比例并查看索引与事务表。</p>
+<table><thead><tr><th>访问模式</th><th>warp 地址步长</th><th>估计事务</th><th>SIMT 状态</th></tr></thead><tbody><tr><td>合并</td><td>1 float</td><td>1 segment</td><td>单路径时满并行</td></tr><tr><td>跨步</td><td>32 float</td><td>约 32 segments</td><td>单路径但带宽浪费</td></tr><tr><td>分支发散</td><td>可连续</td><td>取决于地址</td><td>两路径串行</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 为什么 GPU 长这样：吞吐 vs 延迟
 
 

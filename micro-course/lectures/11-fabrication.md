@@ -3,6 +3,62 @@
 > **层次**：本科核心 + 硕博工艺方向入口。
 > 前面十页讲的都是"设计什么"，本页开始讲"怎么造出来"。集成电路制造是人类工业史上最精密的流程：在直径 300 mm 的晶圆上，用数百道工序，造出数百亿个特征尺寸只有几十个原子宽的结构，且**良率必须够高才有商业价值**。**理解制造，才能理解为什么设计必须遵守那些看似武断的规则。**
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：制造是一个受热预算与缺陷概率约束的状态机</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：为什么把晶圆做大还不够？</h3>
+<p>假设一片 300 mm 晶圆的可用面积取 90%，每颗裸片为 100 mm<sup>2</sup>，每一道关键工序独立产生 5% 的致命缺陷，关键工序共有 8 道。你预计一片晶圆能切出多少颗<strong>好</strong>裸片？如果把晶圆换成 200 mm，单位裸片的成本会按面积比例下降吗？再假设金属互连已经完成，下一步仍需要 800 °C 的热处理，这个流程是“多一道工序”还是已经违反了材料的状态约束？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先写下三条判断：<strong>①</strong> 300 mm 的几何面积是 200 mm 的 2.25 倍，但好裸片数不会必然恰好增加 2.25 倍；<strong>②</strong> 8 道各 5% 的缺陷风险不会相加成 40%，而要乘成一个存活概率；<strong>③</strong> BEOL 之后的高温步骤即使局部器件本身能承受，也可能让低 κ 介质或金属互连越过热预算。实验会把这三条分别变成面积、良率与工艺状态的读数。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：整片晶圆同步推进的状态机</h3>
+<p>一片晶圆不是逐颗加工的流水线，而是所有已暴露区域共同经过沉积、图形化、刻蚀、掺杂、清洗、热处理和 CMP。对第 <em>k</em> 道工序，可以把晶圆状态写成 <code>S<sub>k+1</sub> = f<sub>k</sub>(S<sub>k</sub>, recipe<sub>k</sub>)</code>；状态中同时包含材料层、几何形状、缺陷账本与累计热历史。并行制造解释了“器件数增加而工序成本不按器件数增加”，但也意味着一个污染或套刻事件可以同时影响许多裸片。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>用晶圆直径 <code>D</code>、可用面积比例 <code>u</code>、裸片面积 <code>a</code> 表示几何产出：</p>
+<div class="cl-formula">A<sub>wafer</sub> = pi(D/2)<sup>2</sup>, &nbsp; A<sub>usable</sub> = u A<sub>wafer</sub>, &nbsp; N<sub>gross</sub> = floor(A<sub>usable</sub> / a)</div>
+<p>若关键工序的独立致命缺陷率为 <code>p<sub>k</sub></code>，一个透明的第一模型是 <code>Y = product<sub>k</sub>(1 - p<sub>k</sub>)</code>，于是单颗好裸片成本近似为 <code>C<sub>wafer</sub> / (N<sub>gross</sub> Y)</code>。热预算则是一个硬不变量：对已经完成的材料集合，任何后续 recipe 都必须满足 <code>T<sub>after</sub> <= T<sub>allowed</sub></code>；否则流程不是“效率较低”，而是状态不可逆地被破坏。</p>
+<p>实验还显示两个尺度：晶圆直径改变几何项，关键工序数或缺陷率改变概率项。把两者混成“晶圆越大越便宜”会掩盖真正的约束。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>独立缺陷乘积不是完整良率模型：颗粒聚集、晶圆边缘效应和系统性套刻误差会使缺陷相关，需用空间统计或负二项模型修正。</li>
+<li>几何面积不能直接等同于裸片数：街道区、边缘残片、测试结构和不同矩形排布都会改变 <code>N<sub>gross</sub></code>。</li>
+<li>“热预算不超标”也不保证良品：清洗残留、掺杂活化、膜应力和 CMP 碟形会改变后续工序的输入状态。</li>
+<li>平面工艺的并行性有设备瓶颈；一次只处理一片晶圆的机台、等待批次或返工会让 cycle time 不能由工序时间简单相加。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：把晶圆账本跑一遍</h3>
+<div class="learning-lab" data-learning-lab="micro-fab-flow">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>u=0.90</code>、裸片面积 <code>100 mm<sup>2</sup></code>、每关键工序缺陷率 <code>5%</code>、关键工序数 <code>8</code>。200 mm 晶圆的全圆面积约 31,416 mm<sup>2</sup>、按 90% 计的可用面积约 28,274 mm<sup>2</sup>，可用区可排约 282 颗；300 mm 的对应数字约为 70,686、63,617 mm<sup>2</sup> 与 636 颗。良率为 <code>0.95<sup>8</sup> = 0.663</code>，所以两种直径的好裸片数约为 187 与 422。若晶圆成本分别取 4,500 与 8,000，单颗好裸片成本约为 24.1 与 19.0；这只是透明玩具账本。若 BEOL 后再加入 800 °C 步骤，而允许热预算为 400 °C，状态检查必须失败。</p>
+<table>
+<thead><tr><th scope="col">直径</th><th scope="col">全圆面积</th><th scope="col">可用面积（90%）</th><th scope="col">可用区几何裸片</th><th scope="col">好裸片估计</th><th scope="col">热检查</th></tr></thead>
+<tbody><tr><td>200 mm</td><td>31,416 mm<sup>2</sup></td><td>28,274 mm<sup>2</sup></td><td>282</td><td>187</td><td>通过（若后续低温）</td></tr>
+<tr><td>300 mm</td><td>70,686 mm<sup>2</sup></td><td>63,617 mm<sup>2</sup></td><td>636</td><td>422</td><td>800 °C 步骤失败</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为一个新器件排工艺顺序</h3>
+<p>你要在现有低 κ 金属互连上增加一层传感器。给出它需要 350 °C、600 °C 两种候选退火的理由，并用上面的状态机写出至少四个状态变量：材料完整性、缺陷密度、接触电阻与累计热预算。若 600 °C 能把接触电阻降低 20% 但会损伤低 κ 层，而 350 °C 只降低 8%，请说明你会如何把“性能收益”和“整片良率”放入同一个签核决策。</p>
+</div>
+</section>
+
 ## 一、基本思路：平面工艺
 
 现代 IC 制造的核心思想（**平面工艺**，Noyce 与 Hoerni 等人奠定）是：

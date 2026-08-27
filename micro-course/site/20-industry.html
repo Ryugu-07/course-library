@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、垂直分工：一个被成本逼出来的结构</a></li>
-<li><a href="#_2">二、集中度与脆弱性</a></li>
-<li><a href="#_3">三、岗位地图：这些人具体在做什么</a></li>
-<li><a href="#_4">四、本硕博的实际分工</a></li>
-<li><a href="#_5">五、这个行业的几个特殊经济学</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#_1">学习层：产业分工是固定成本、学习曲线与产能风险的联合结果</a><ul>
+<li><a href="#_2">具体谜题：什么时候值得自己建厂？</a></li>
+<li><a href="#_3">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：价值链上的固定项与瓶颈项</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#fabless-idm-break-even">交互实验：画出 fabless / IDM 的 break-even</a></li>
+<li><a href="#_6">迁移任务：为一个新创芯片公司设计进入路径</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、垂直分工：一个被成本逼出来的结构</a></li>
+<li><a href="#_8">二、集中度与脆弱性</a></li>
+<li><a href="#_9">三、岗位地图：这些人具体在做什么</a></li>
+<li><a href="#_10">四、本硕博的实际分工</a></li>
+<li><a href="#_11">五、这个行业的几个特殊经济学</a></li>
+<li><a href="#_12">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,110 @@
 <p><strong>核对于 2026-07</strong> ｜ 本页讲<strong>产业如何组织</strong>与<strong>人在其中做什么</strong>——这是技术课程通常不讲、但对理解这个领域至关重要的一层。
 半导体是现代工业中结构最特殊的产业之一：<strong>资本极度密集、分工极度专业、地理极度集中</strong>。本页解释这些特征从何而来（答案全部在前面的技术页里），并给出本硕博的实际去向。</p>
 </blockquote>
-<h2 id="_1">一、垂直分工：一个被成本逼出来的结构<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：产业分工是固定成本、学习曲线与产能风险的联合结果<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：什么时候值得自己建厂？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>假设一颗 100 mm<sup>2</sup> 裸片在 300 mm 晶圆上，90% 面积可用，每片晶圆成本 8,000，良率 0.70，另有每颗 3 的封装成本。设计公司还要摊销 20 million 货币单位的 NRE；代工厂则把同一制造成本作为可变成本。若自己建厂需要 15 billion 货币单位的资本投入、五年摊销，并且年产量只有 1 million 颗，你预计 fabless 和 IDM 的单位成本谁更低？当年产量提高到 50 million 颗时，固定成本的答案会不会翻转？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先做预测<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下四条：<strong>①</strong> Fabless 把建厂固定成本换成代工价格与供应链依赖，低到中等量时更灵活；<strong>②</strong> IDM 只有在足够高的稳定利用率下才能摊薄巨额 capex；<strong>③</strong> 先进工艺并非所有产品的最优节点，成熟节点的折旧、良率和长生命周期也有价值；<strong>④</strong> EDA、设备、材料与封测的瓶颈会让“拥有设计”不等于“拥有可交付芯片”。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：价值链上的固定项与瓶颈项<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>把产业看成多个阶段的约束网络：IP/EDA 产生设计能力，fabless 产生需求与产品定义，foundry 提供晶圆产能，OSAT 完成封装测试，设备材料供应商决定工艺可用性。每个阶段既有固定成本，也有学习曲线、交付周期和替代难度；最终成本不是某一个环节的报价，而是整条链的可用产出和风险。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<div class="cl-formula">N<sub>good</sub> = floor(u A<sub>wafer</sub> / A<sub>die</sub>) Y, &nbsp; C<sub>fabless</sub> = p C<sub>variable</sub> + NRE / V, &nbsp; C<sub>IDM</sub> = C<sub>variable</sub> + CapEx<sub>annual</sub> / V</div>
+<p>这里 <code>V</code> 是年出货量，教学模型取代工溢价 <code>p=1.25</code>；<code>CapEx<sub>annual</sub></code> 是把建厂资本按年限摊销后的固定项。产能约束还要求 <code>V &lt;= V<sub>capacity</sub> * utilization</code>；若需求超过可用产能，单位成本公式不能掩盖未交付订单。分工的经济学不变量是：固定项被更多稳定产出摊薄时，单位成本下降；但低利用率、良率爬坡和需求周期会把曲线重新抬高。</p>
+<p>实验只使用教学数字，目的在于把“垂直分工”变成可算的 break-even 与 bottleneck 问题，而不是给任何厂商做财务预测。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>简单固定成本模型忽略价格折扣、产品组合、折旧税务、现金流、库存和设备折旧结束后的成熟节点优势。</li>
+<li>高出货量不保证 IDM 划算：需求波动、节点切换、良率爬坡和单一客户集中可能让利用率掉下去。</li>
+<li>成熟节点和先进节点服务不同的产品约束；用先进逻辑的集中度去推断全部半导体市场会产生选择偏差。</li>
+<li>岗位数量和价值不能只按“设计师/制造师”二分；验证、后端、工艺整合、设备、测试和良率岗位都处在交付瓶颈上。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="fabless-idm-break-even">交互实验：画出 fabless / IDM 的 break-even<a class="headerlink" href="#fabless-idm-break-even" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-industry">
+<p><strong>无 JavaScript 时的静态读法：</strong>300 mm 晶圆的全圆面积是 <code>pi*150<sup>2</sup>=70,686 mm<sup>2</sup></code>，可用面积取 90% 后是约 <code>63,617 mm<sup>2</sup></code>；100 mm<sup>2</sup> 裸片时可用区约有 <code>floor(0.9*pi*150<sup>2</sup>/100)=636</code> 个几何裸片，良率 0.70 后是 445.2 个好裸片。晶圆制造成本约 <code>8000/445.2=17.97</code>，加封装 3 得可变成本约 20.97。把 NRE 写成 20 million、代工溢价写成 <code>p=1.25</code>：出货 1 million 颗时，fabless 约 <code>1.25*20.97+20=46.21</code>/颗，IDM 的五年摊销固定项为 <code>15B/5=3B</code>，约 <code>20.97+3000=3020.97</code>/颗；出货 50 million 颗时，fabless 约 26.61/颗，IDM 仍约 80.97/颗。两条曲线的教学交叉量约 568.4 million 颗，已经高于本实验 100 million 的控制范围；代工模式的价值正是把这类固定风险分散给多个客户。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">量</th>
+<th scope="col">数值</th>
+<th scope="col">计算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全圆面积</td>
+<td>70,686 mm<sup>2</sup></td>
+<td>pi*150<sup>2</sup></td>
+</tr>
+<tr>
+<td>可用面积</td>
+<td>63,617 mm<sup>2</sup></td>
+<td>0.9*pi*150<sup>2</sup></td>
+</tr>
+<tr>
+<td>可用区几何裸片</td>
+<td>636</td>
+<td>floor(63,617/100)</td>
+</tr>
+<tr>
+<td>好裸片</td>
+<td>445.2</td>
+<td>636*0.70</td>
+</tr>
+<tr>
+<td>可变成本</td>
+<td>20.97</td>
+<td>8000/445.2 + 3</td>
+</tr>
+<tr>
+<td>代工溢价</td>
+<td>1.25x</td>
+<td>p</td>
+</tr>
+<tr>
+<td>Fabless / unit（1M）</td>
+<td>46.21</td>
+<td>1.25*20.97 + 20/1</td>
+</tr>
+<tr>
+<td>IDM / unit（1M）</td>
+<td>3,020.97</td>
+<td>20.97 + 3,000/1</td>
+</tr>
+<tr>
+<td>Fabless / unit（50M）</td>
+<td>26.61</td>
+<td>1.25*20.97 + 20/50</td>
+</tr>
+<tr>
+<td>IDM / unit（50M）</td>
+<td>80.97</td>
+<td>20.97 + 3,000/50</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移任务：为一个新创芯片公司设计进入路径<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>给出“成熟节点 + 代工 + OSAT”和“先进节点 + 自有制造能力”两条路径。对每条路径列出 NRE、产能、良率爬坡、IP/EDA、测试、现金流、交付周期和供应链替代项；再为本科、硕士、博士岗位分别匹配一个可交付成果，说明为什么流片经验、验证能力和工艺数据会改变组织中的议价权。</p>
+</div>
+</section>
+<h2 id="_7">一、垂直分工：一个被成本逼出来的结构<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>早期半导体公司是 <strong>IDM（整合元件制造商）</strong>——自己设计、自己制造、自己封测。今天的主流是<strong>垂直分工</strong>：</p>
 <table>
 <thead>
@@ -112,7 +240,7 @@
 <li><strong>代工模式</strong>（张忠谋的关键创新）<strong>降低了创业门槛</strong>——没有工厂也能做芯片，这直接催生了整个 fabless 产业与今天绝大多数芯片公司。</li>
 </ol>
 <p><strong>这是一次由成本结构驱动的产业重组</strong>，与许多行业的"专业化分工"是同一个经济学逻辑，只是被半导体的极端资本强度放大了。</p>
-<h2 id="_2">二、集中度与脆弱性<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_8">二、集中度与脆弱性<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>几个结构性事实：</p>
 <ul>
 <li><strong>先进逻辑制造</strong>高度集中在少数厂商与少数地区；</li>
@@ -122,7 +250,7 @@
 </ul>
 <p><strong>后果</strong>：这条供应链<strong>又长又细，且每个环节都难以替代</strong>。任何一个节点的中断都会波及全球——这一点在近年的供应短缺与地缘博弈中反复显现。<strong>理解这条链的形状，是理解当前半导体地缘政治的技术前提。</strong></p>
 <p><strong>同时要避免一个误读</strong>：<strong>成熟制程（28nm 及以上）的产能分布远比先进制程分散</strong>，且汽车、工业、模拟、功率器件的绝大部分需求在成熟节点上。<strong>"半导体"不等于"最先进逻辑"</strong>——后者只是价值链顶端的一小部分，却吸引了绝大部分注意力。</p>
-<h2 id="_3">三、岗位地图：这些人具体在做什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">三、岗位地图：这些人具体在做什么<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>按前面各线索对应到实际职位：</p>
 <p><strong>设计侧</strong></p>
 <table>
@@ -205,7 +333,7 @@
 <li><strong>良率工程师在代工厂地位极高</strong>，因为良率直接是利润；</li>
 <li><strong>"有没有流片经验"是硬门槛</strong>（第十一页：流片昂贵，所以有经验的人值钱）。</li>
 </ul>
-<h2 id="_4">四、本硕博的实际分工<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、本硕博的实际分工<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>承导论的三层结构，具体到这个行业：</p>
 <ul>
 <li><strong>本科</strong>：掌握器件 + 电路 + 数字设计基础，能做仿真与小规模设计。<strong>直接就业多进入验证、后端、测试、设备、工艺等岗位</strong>；</li>
@@ -213,14 +341,14 @@
 <li><strong>博士</strong>：极窄的研究方向 + 深度。去向包括研发部门（先进器件、新架构）、代工厂的技术开发、EDA 算法研发、以及学界。<strong>博士的价值在于"能解决没有现成方法的问题"</strong>。</li>
 </ul>
 <p><strong>一个现实提醒</strong>：这个行业的<strong>学习曲线长、反馈周期慢</strong>（一次流片数月），与软件行业的快速迭代文化差别很大。<strong>耐心与严谨的性格权重很高</strong>——因为错误的代价是数百万美元与数月时间（第十一页）。</p>
-<h2 id="_5">五、这个行业的几个特殊经济学<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">五、这个行业的几个特殊经济学<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>产能周期性</strong>：半导体是强周期行业，扩产决策提前数年做出，常与需求错配，形成"缺货—扩产—过剩"的循环；</li>
 <li><strong>学习曲线</strong>：良率随时间爬坡，<strong>早期成本极高、后期极低</strong>，这使得"抢先量产"具有巨大价值；</li>
 <li><strong>NRE 与摊薄</strong>：先进节点的设计与掩模成本极高，<strong>必须靠巨大出货量摊薄</strong>——这解释了为什么先进节点只有少数超大规模产品用得起，也解释了 Chiplet 复用的吸引力（第十五页）；</li>
 <li><strong>成熟节点的长尾价值</strong>：老节点的设备已折旧完毕、良率成熟，<strong>利润率往往很好</strong>，且需求稳定。<strong>"不是所有芯片都需要最先进"</strong>（第八、十五页反复出现的主题）。</li>
 </ul>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_12">六、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li><strong>产业的垂直分工是被资本强度与良率积累逼出来的</strong>，代工模式是关键创新；</li>
 <li><strong>供应链又长又细</strong>，集中度高，这是技术特性（尤其光刻）的直接后果；</li>
@@ -239,5 +367,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-industry.js"></script>
 </body>
 </html>

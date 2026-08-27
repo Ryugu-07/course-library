@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、为什么需要光</a></li>
-<li><a href="#_2">二、硅光的元件与集成</a></li>
-<li><a href="#_3">三、共封装光学：当前的主战场</a></li>
-<li><a href="#_4">四、射频与毫米波</a></li>
-<li><a href="#_5">五、这两条线的共同主题</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#_1">学习层：通信介质的选择由距离、转换开销与链路预算共同决定</a><ul>
+<li><a href="#_2">具体谜题：光为什么在长距离赢，却不一定在芯片边上赢？</a></li>
+<li><a href="#_3">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：链路两端的能量账与信道预算</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">交互实验：比较铜、硅光与毫米波的链路账本</a></li>
+<li><a href="#_7">迁移任务：为机架互连和无线前端各写一份预算</a></li>
+</ul>
+</li>
+<li><a href="#_8">一、为什么需要光</a></li>
+<li><a href="#_9">二、硅光的元件与集成</a></li>
+<li><a href="#_10">三、共封装光学：当前的主战场</a></li>
+<li><a href="#_11">四、射频与毫米波</a></li>
+<li><a href="#_12">五、这两条线的共同主题</a></li>
+<li><a href="#_13">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,79 @@
 <p><strong>层次</strong>：硕博专门方向 ｜ <strong>核对于 2026-07</strong>。
 芯片不只处理数字信号，它还必须<strong>与外界通信</strong>——通过电缆、光纤、或空中的电磁波。本页讲两个把"非数字物理"集成进硅的方向：<strong>硅光子学</strong>（用光传数据）与<strong>射频/毫米波</strong>（无线）。两者都是硕博的独立方向，也都在当前系统瓶颈上处于关键位置。</p>
 </blockquote>
-<h2 id="_1">一、为什么需要光<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：通信介质的选择由距离、转换开销与链路预算共同决定<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：光为什么在长距离赢，却不一定在芯片边上赢？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>比较同一条 800 Gb/s 链路。教学模型中，铜互连每比特能耗为 <code>0.8+0.12d</code> pJ，硅光为 <code>2.5+0.015d+0.4</code> pJ，其中 <code>d</code> 以米计。10 m 时铜约 2.0 pJ/bit、硅光约 3.05 pJ/bit；50 m 时铜约 6.8 pJ/bit、硅光约 3.65 pJ/bit。你预测交叉点在哪里？如果把链路换成 60 GHz、10 m 的毫米波无线，接收功率还要满足怎样的自由空间路径损耗与波束增益条件？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先做预测<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下判断：<strong>①</strong> 光纤的介质传输损耗很低，但电光/光电转换是固定成本，所以距离越短越不一定划算；<strong>②</strong> WDM 提高的是同一波导的带宽密度，不会消除激光器、调制器、探测器与热调谐；<strong>③</strong> 射频频率越高，波长越短、天线越易集成，但自由空间损耗和遮挡敏感性更强；<strong>④</strong> 线性度、噪声系数、相位噪声和功放效率不能用一个“带宽”数字替代。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：链路两端的能量账与信道预算<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>有线/光链路先算每比特固定转换能耗，再算随距离增长的传输能耗；总功率是数据率乘以每比特能耗。RF 链路则把发射功率、天线增益、路径损耗、遮挡余量与接收灵敏度放在同一条 dB 账本中。硅光、RFIC、CPO 和 AiP 都是在不同距离和频率区间重新安排这些固定项与斜率。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<div class="cl-formula">P = R<sub>bit</sub> e<sub>bit</sub>, &nbsp; L<sub>FS</sub>(dB) = 20 log<sub>10</sub>(4 pi d / lambda), &nbsp; P<sub>r</sub>(dBm) = P<sub>t</sub> + G<sub>t</sub> + G<sub>r</sub> - L<sub>FS</sub> - L<sub>other</sub></div>
+<p>光/铜比较中，链路总能量按 <code>R<sub>bit</sub>(e<sub>fixed</sub>+e<sub>distance</sub>(d))</code> 计；提高 WDM 通道数可以增加总带宽，但每个通道仍有调制、探测、驱动和热控制预算。RF 链路在目标 BER 下还要满足 <code>P<sub>r</sub> &gt;= P<sub>sensitivity</sub> + margin</code>。</p>
+<p>实验的可审计不变量是：在同一数据率下，功率比等于每比特能耗比；自由空间损耗随距离的对数增加，并随频率升高而增加。换算单位时不能把 m、km、Hz 和 GHz 混在同一个公式里。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>“光几乎不随距离耗能”只描述介质传播的一部分；收发器、激光器、DSP、热调谐和封装仍可能主导。</li>
+<li>铜线模型在很短距离、低速率时有用，但高频趋肤效应、介质损耗、串扰和均衡器会改变斜率。</li>
+<li>自由空间 Friis 预算不是毫米波系统的全部：波束跟踪、遮挡、相噪、功放线性度和天线失配可能决定可用性。</li>
+<li>硅光的透明波导不等于硅能高效发光；光源、锗探测器与异质集成仍是结构性约束。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_6">交互实验：比较铜、硅光与毫米波的链路账本<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-photonics-rf">
+<p><strong>无 JavaScript 时的静态读法：</strong>在 800 Gb/s 下，10 m 铜链路为 2.0 pJ/bit，功率约 1.6 W；10 m 硅光链路为 3.05 pJ/bit，功率约 2.44 W；50 m 时铜为 6.8 pJ/bit、5.44 W，硅光为 3.65 pJ/bit、2.92 W。二者教学交叉距离由 <code>0.8+0.12d=2.5+0.015d+0.4</code> 得 <code>d≈20 m</code>。RF 例子取 60 GHz、10 m，自由空间损耗约 88 dB；若发射 20 dBm、收发天线各 20 dBi、其他损耗 4 dB，则接收约 -32 dBm，是否可用取决于灵敏度和余量。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">介质</th>
+<th scope="col">10 m 能耗</th>
+<th scope="col">10 m 功率</th>
+<th scope="col">主要固定项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>铜</td>
+<td>2.00 pJ/bit</td>
+<td>1.60 W</td>
+<td>驱动、均衡、损耗</td>
+</tr>
+<tr>
+<td>硅光</td>
+<td>3.05 pJ/bit</td>
+<td>2.44 W</td>
+<td>激光、E/O、O/E、热调谐</td>
+</tr>
+<tr>
+<td>60 GHz RF</td>
+<td>需 dB budget</td>
+<td>取决于 PA 与占空比</td>
+<td>路径损耗、波束、噪声</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移任务：为机架互连和无线前端各写一份预算<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>为 3 m 板级互连、30 m 机架互连和 10 m 60 GHz 无线 backhaul 各列出数据率、每比特能耗或链路 dB、热预算、可维修性、BER/SNR 与冗余要求。然后说明 CPO 为什么可能在机架级先落地，而不是直接把光源和所有光学元件搬到晶体管旁边。</p>
+</div>
+</section>
+<h2 id="_8">一、为什么需要光<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p><strong>电互连的困境</strong>（承第六、十五页）：</p>
 <ul>
 <li>铜导线的 <span class="arithmatex">\(RC\)</span> 延迟随缩放<strong>恶化</strong>，且高频下有趋肤效应与介质损耗；</li>
@@ -65,7 +162,7 @@
 <li>无电磁串扰。</li>
 </ul>
 <p><strong>代价</strong>：需要电-光与光-电<strong>转换</strong>，而转换器件本身耗能、占面积、且对温度敏感。<strong>所以"光是否划算"取决于距离与带宽——短距离电互连仍然更便宜。</strong> 光的性价比拐点正在随带宽需求增长而不断向短距离推移。</p>
-<h2 id="_2">二、硅光的元件与集成<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_9">二、硅光的元件与集成<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>硅光子学</strong>的核心思想：<strong>用 CMOS 工艺制造光学元件</strong>，从而借用整个半导体产业的制造能力与成本曲线。</p>
 <p>硅在通信波长（1310/1550 nm）<strong>透明</strong>，且与 SiO₂ 的折射率差极大，可以做成<strong>高约束波导</strong>——光被牢牢限制在很细的硅条中，使元件可以做得很小、集成度很高。</p>
 <p><strong>基本元件</strong>：</p>
@@ -75,7 +172,7 @@
 <li><strong>光电探测器</strong>：硅在通信波长不吸收（第一页：带隙太大），故需<strong>集成锗</strong>探测器——<strong>这是硅光工艺的关键增项</strong>；</li>
 <li><strong>光源</strong>：<strong>这是硅光最根本的困难</strong>。硅是<strong>间接带隙</strong>（第一页），发光效率极低，<strong>无法做出实用的硅激光器</strong>。解决办法是外接激光器或<strong>异质集成 III-V 材料</strong>（键合或直接生长）。<strong>"硅不发光"这个第一页提到的物理事实，至今是整个硅光路线最大的结构性障碍。</strong></li>
 </ul>
-<h2 id="_3">三、共封装光学：当前的主战场<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_10">三、共封装光学：当前的主战场<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p><strong>光互连的位置正在向芯片靠近</strong>，路径大致是：</p>
 <div class="arithmatex">\[\text{机架间光纤} \to \text{可插拔光模块} \to \text{板载光学} \to \textbf{共封装光学（CPO）} \to \text{片上光互连}\]</div>
 <p><strong>CPO（co-packaged optics）</strong>：把光引擎与交换/计算芯片<strong>封装在一起</strong>，大幅缩短电走线。</p>
@@ -86,7 +183,7 @@
 </ul>
 <p><strong>尚存的困难</strong>：<strong>温度敏感性</strong>（微环谐振波长随温度漂移，需要闭环控温或波长锁定——<strong>又一个片上控制回路</strong>，🔗 自动化站）、<strong>激光器可靠性与冗余</strong>、<strong>可维修性</strong>（封装在一起后，坏一个光引擎怎么办）、以及测试。</p>
 <p><strong>判断</strong>：CPO 是当前最被看好的方向之一，因为它<strong>不需要解决"硅激光器"这个最难的问题</strong>（激光可以外置），却能拿到大部分功耗收益。<strong>这又是一次"选择较易解决的困难"</strong>（承第十二页浸没式的教训）。</p>
-<h2 id="_4">四、射频与毫米波<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_11">四、射频与毫米波<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>另一条"非数字"路线是无线。<strong>射频集成电路（RFIC）</strong>面对的核心挑战与基带数字完全不同：</p>
 <ul>
 <li><strong>噪声系数</strong>：接收链路的第一级低噪声放大器（LNA）几乎决定整个系统灵敏度（Friis 公式：后级噪声被前级增益压制）；</li>
@@ -101,7 +198,7 @@
 <li>硅工艺的高频性能（<span class="arithmatex">\(f_T/f_{max}\)</span>）随缩放提升，使 CMOS 能进入毫米波领域——<strong>这是缩放给模拟/射频带来的少数正面红利之一</strong>（对照第八页）。</li>
 </ul>
 <p><strong>工艺选择</strong>：射频前端常用 <strong>SOI、SiGe BiCMOS、GaAs、GaN</strong> 等专门工艺，而非最先进的逻辑节点——<strong>再次印证第八页"不是所有电路都想去 2nm"</strong>，也是 Chiplet 异质集成的又一动机。</p>
-<h2 id="_5">五、这两条线的共同主题<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_12">五、这两条线的共同主题<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <p>硅光与射频看似无关，但共享同一组工程逻辑：</p>
 <ol>
 <li><strong>它们都是"模拟世界"，因而不享受数字缩放红利</strong>（承第八页）；</li>
@@ -109,7 +206,7 @@
 <li><strong>它们都需要异质集成</strong>：III-V 激光器、锗探测器、GaN 功放——<strong>没有一种材料能干所有事</strong>，这正是先进封装（第十五页）成为关键使能技术的原因；</li>
 <li><strong>它们的性能最终都受噪声与物理定律封顶</strong>——香农极限之于通信，量子效率之于探测。</li>
 </ol>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_13">六、要点<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
 <ul>
 <li><strong>光的优势在长距离与带宽密度，代价在电光转换</strong>；拐点随带宽需求向短距离移动；</li>
 <li><strong>"硅不发光"（间接带隙）是硅光最根本的结构性障碍</strong>，当前方案是绕开而非解决；</li>
@@ -128,5 +225,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-photonics-rf.js"></script>
 </body>
 </html>

@@ -3,6 +3,45 @@
 > **对标**：MIT 6.824 / DDIA 第 7、9、10 章 ｜ **前置**：dist-01/02、db-03（单机事务）
 > 分布式的收官页，两部分：**分布式事务**（跨多台机器的操作怎么保持原子——比单机事务难得多）与**大系统模式集**（MapReduce、一致性哈希、分片、复制的经典设计，把前两页的原理拼成真实的大规模系统）。读完这条线，你就有了看懂任何"大厂系统设计"的骨架。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：扩一台机器，为什么不必搬走全部数据？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：取模分片与一致性哈希谁更适合在线扩容？</h3>
+<p>有 4 台机器和一批固定 key。朴素取模使用 <code>hash(key) % N</code>；新增第 5 台后，大多数 key 的余数都会变化。若把机器与 key 放到环上，key 归属于顺时针遇到的第一台机器，新增节点只截取它前方的一段。请预测两种方案的搬迁量，并同时判断副本读写 quorum 是否仍然安全。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择 N=4→5，预测一致性哈希中需要迁移的 key 比例；再给三副本设置 W=2、R=2，判断一次读写是否必然与某个最新副本相交。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：路由、复制与协调</h3>
+<p>分片先回答“哪个节点负责 key”，复制再回答“几个副本必须确认”，事务协议则回答“跨节点的多步操作何时对外可见”。一致性哈希把路由变化局部化；quorum 把副本可见性变成交集条件；2PC 用 prepare/commit 把原子决定集中到协调者。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>环上的归属为 <span class="arithmatex">\(owner(k)=\min\{n:\ n\text{ 在 }k\text{ 顺时针方向}\}\)</span>；新增一个均匀节点时，期望搬迁量约为原数据的 <span class="arithmatex">\(1/(N+1)\)</span>，而非全量重哈希。N 副本的 quorum 条件 <span class="arithmatex">\(W+R>N\)</span> 保证读集合与写集合相交。2PC 的安全性来自所有参与者只在收到 commit 决定后提交，但协调者失联会使 prepare 状态阻塞。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>quorum 交集只说明读到共同副本，不自动解决版本冲突、时钟回拨或副本永久失联；热点 key 会让环上的均匀节点仍然负载失衡，需要虚拟节点和重平衡。2PC 的原子性不能消除协调者单点和跨地域延迟，MapReduce 的并行骨架也不能替代数据倾斜治理。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为大规模服务写设计账本</h3>
+<p>以 Medusa 文章量达到 10 亿为假设，写出 key 选择、虚拟节点、复制因子、W/R、热点处理和迁移回滚策略，并标明哪一项依赖 L06 的 Raft 日志来达成线性一致。P03-B 的真实分片迁移与 KV 验收仍是实现路径，本页实验只让路由与 quorum 数字先可核对。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-dist-03-transactions-cases">
+<h3>交互实验：环路由、迁移量与副本 quorum</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 4 台机器新增到 5 台。对均匀 key，环模型的期望迁移比例约为 <span class="arithmatex">\(1/5=20\%\)</span>；朴素取模的教学上界接近 4/5=80%。三副本下 W=2、R=2，因为 2+2&gt;3，读集合与写集合至少共享一份副本；W=1、R=1 时 2≤3，不具有同样保证。实验会用固定节点位置和 key 哈希重放实际迁移清单，而不是用随机动画代替证据。</p>
+<table><thead><tr><th>方案</th><th>N=4→5 迁移估计</th><th>N=3 的 W/R</th><th>交集保证</th></tr></thead><tbody><tr><td>一致性哈希</td><td>约 20%</td><td>W=2,R=2</td><td>是，4&gt;3</td></tr><tr><td>朴素取模</td><td>约 80%</td><td>W=1,R=1</td><td>否，2≤3</td></tr><tr><td>热点/失联边界</td><td>可能偏离均匀估计</td><td>W=3,R=3</td><td>可用性下降</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 分布式事务：跨机器的原子性
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：有限状态何时一定会忘记？</a><ul>
+<li><a href="#_2">具体谜题：三种余数够不够记住整串？</a></li>
+<li><a href="#_3">先预测状态与泵法</a></li>
+<li><a href="#_4">最小心智模型：状态是压缩记忆</a></li>
+<li><a href="#_5">形式机制：转移、鸽笼与对角线</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移题：先问记忆边界，再问答案边界</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 自动机层级：机器的算力阶梯</a></li>
 <li><a href="#2">2. 图灵机：计算的终极定义</a></li>
 <li><a href="#3">3. 不可判定性：造不出的答案</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：Sipser <em>Introduction to the Theory of Computation</em> 第 1–5 章 ｜ <strong>前置</strong>：数学站集合论/离散、逻辑
 计算理论问的是最根本的问题：<strong>什么是"计算"？有没有机器造不出的答案？</strong> 这一页从最弱的机器（有限自动机）拾级而上到图灵机，最后证明<strong>有些问题任何计算机都解不了</strong>（停机问题）——不是"现在解不了"，是逻辑上不可能。对数学出身的你，这一页是"可计算性 = 一种新的对角线论证"。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：有限状态何时一定会忘记？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：三种余数够不够记住整串？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>用 3 个状态记录二进制前缀除以 3 的余数。读入 <code>110</code> 时，状态序列是 <span class="arithmatex">\(0\to1\to0\to0\)</span>，最后接受；但若要识别 <span class="arithmatex">\(\{a^n b^n:n\ge0\}\)</span>，只有有限状态的机器怎样记住前面有多少个 <code>a</code>？当串足够长时，重复状态会逼出什么矛盾？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测状态与泵法<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先下注：<strong>①</strong> DFA 读每个新位时只需更新 <span class="arithmatex">\(r'=(2r+b)\bmod3\)</span>；<strong>②</strong> 机器状态数固定而输入可无限长，所以某段非空的 <code>a</code> 必能被泵；<strong>③</strong> 停机问题不是“状态太少”，而是对任意程序语义作全域判定会被自指取反击穿。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：状态是压缩记忆<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>自动机把历史压缩成一个状态；未来行为只依赖当前状态和下一个符号。有限自动机能记余数、模式和局部协议，却不能精确保存任意大的计数。图灵机再加入可读写的无限纸带，获得可编程的外部记忆，但仍受可计算性边界约束。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制：转移、鸽笼与对角线<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>DFA 的转移函数是 <span class="arithmatex">\(\delta:Q\times\Sigma\to Q\)</span>；接受当且仅当最终状态在 <span class="arithmatex">\(F\)</span>。若正则语言的泵长度为 <span class="arithmatex">\(p\)</span>，任意长度至少 <span class="arithmatex">\(p\)</span> 的串可写成 <span class="arithmatex">\(xyz\)</span>，且 <span class="arithmatex">\(xy^iz\)</span> 对所有 <span class="arithmatex">\(i\ge0\)</span> 仍在语言中。停机判定器 <span class="arithmatex">\(H\)</span> 若存在，构造 <span class="arithmatex">\(D(P)\)</span> 在 <span class="arithmatex">\(H(P,P)\)</span> 说停机时死循环、否则停机，考察 <span class="arithmatex">\(D(D)\)</span> 即得矛盾。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>NFA 的“不确定”不会超出 DFA 的算力，但子集构造可能把状态数从 <span class="arithmatex">\(n\)</span> 膨胀到 <span class="arithmatex">\(2^n\)</span>；等价不代表代价相同。</li>
+<li>Pumping lemma 能证明某些语言非正则，但不能把“满足泵条件”反过来当作正则性的充分条件。</li>
+<li>可枚举不等于可判定：能在正例上最终确认，不代表能在负例上保证停机。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移题：先问记忆边界，再问答案边界<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>为一个日志过滤器、括号解析器和“程序是否一定终止”的静态检查器分别选择 DFA、PDA 或图灵机视角。指出你需要保存的状态/栈/纸带信息，并写出一个不能由该模型保证的性质；把归约方向写成“若新问题可解，则原问题也可解”。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-toc-01-computability">
+<p><strong>无 JavaScript 时的静态版本：</strong>模 3 DFA 读 <code>110</code> 时按 <span class="arithmatex">\(0\xrightarrow1 1\xrightarrow1 0\xrightarrow0 0\)</span> 转移并接受；对 <span class="arithmatex">\(a^3b^3\)</span>，若泵出一段 <code>a</code> 得 <span class="arithmatex">\(a^4b^3\)</span>，就离开语言。有限状态的重复与停机证明中的自指取反，分别展示“记忆有限”和“判定逻辑有限”的两条边界。页面脚本会逐符号跑 DFA，并让你改变泵长观察反例。</p>
+</div>
+</section>
 <h2 id="1">1. 自动机层级：机器的算力阶梯<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>计算模型按"记忆能力"分层，每层对应一类语言（Chomsky 层级）：</p>
 <table>
@@ -135,5 +195,7 @@ D(P):\quad \text{若 } H(P,P)=\text{“停机”则死循环，否则停机}.
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-toc-01-computability.js"></script>
 </body>
 </html>

@@ -3,6 +3,62 @@
 > **对标**：Stanford CS155 / OWASP / *Building Secure and Reliable Systems*（Google）｜ **前置**：sec-01、crypto 线、cloud 线、se 线
 > sec-01 讲具体漏洞类别，这一页把安全提升到**系统性的工程实践**——不是"事后修漏洞"，而是"从设计和流程上让系统更难被攻破"。三块：**密钥与秘密管理**（你 memory 里"明文密钥"的教训直接相关）、**软件供应链安全**（依赖是最大攻击面之一）、**安全工程文化**（威胁建模、安全左移、纵深防御）。核心是把安全从个人英雄主义变成可持续的工程纪律。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="sec-02-learning-title">
+
+<h2 id="sec-02-learning-title">学习层：一个秘密或依赖，怎样沿交付链传播？</h2>
+
+### 1. 具体谜题：删除文件，风险真的删除了吗？
+
+一个 API key 曾经写进 Git，后来从工作树删除；另一个项目锁文件缺失，构建时解析到了一个被投毒的传递依赖；第三个服务运行时拿到一把可写数据库 key。先预测：
+
+1. 哪个控制能发现历史中的秘密，哪个控制只能盘点依赖？
+2. 轮换 key 能否让旧 commit 里的字符串失去泄露价值？
+3. SBOM、lockfile、签名 artifact、最小权限和运行时 secret manager 分别阻断哪一条传播边？
+
+实验台把 source、Git history、build、artifact、deploy 和 runtime 画成固定图；提交预测后再切换控制，观察风险是否在某个边界被阻断，还是已经抵达运行时。重点是安全控制的**传播位置和剩余爆炸半径**。
+
+### 2. 最小模型：信任图上的风险传播
+
+令有向图的节点为
+
+$$
+\mathrm{source}\to\mathrm{history}\to\mathrm{build}\to\mathrm{artifact}\to\mathrm{deploy}\to\mathrm{runtime}.
+$$
+
+每条边带有控制谓词：历史扫描发现秘密，lockfile/哈希约束依赖，签名和 provenance 约束 artifact，secret manager 限制注入，最小权限限制 sink。若一条边未被控制覆盖，风险可以继续传播；`rotate` 改变运行时秘密的有效性，但不改写历史对象。
+
+### 3. 正式机制与不变量：安全左移仍要覆盖运行时
+
+- **秘密不变量**：源码、镜像和 artifact 不含有效秘密；提交前/全史扫描能发现误提交；轮换有失效确认和审计记录。
+- **供应链不变量**：lockfile 固定解析结果，扫描提供已知漏洞证据，SBOM 说明组成，签名/provenance 说明“由哪个源构建”；这些职责互补。
+- **权限不变量**：构建、部署和运行时凭据按阶段、服务和资源最小化；只读任务不能继承写权限，CI token 不能自动成为生产管理员。
+- **响应不变量**：检测到泄露时能定位受影响 commit/artifact/runtime，撤销或轮换，再验证旧路径不可用；“删掉当前文件”不是完整响应。
+
+成熟安全工程不是堆工具，而是让每个工具在信任图上有明确的覆盖边，并记录未覆盖的假设。
+
+### 4. 失败边界与迁移任务
+
+锁文件不会消灭依赖漏洞，SBOM 不会自动阻断恶意代码，secret manager 也不能阻止已经获权的运行时进程读取秘密；签名只证明来源，不证明代码无 bug。实验忽略具体云 IAM、构建隔离、密钥 KMS 和供应商响应时间，不能把 toy 图升级为合规证明。
+
+迁移任务：为 Medusa 写一张从 `.env`、Git 历史、Docker image、CI、Cloudflare/Windows 部署到 FastAPI/Postgres 的安全传播图；每条边写检测、阻断、轮换和审计证据，并给出一个只读 key 和一个构建 key 的权限差异。对“公开开源前”的清理，分别处理当前文件、历史对象和已发布 artifact。
+
+<div class="learning-lab" data-learning-lab="cs-sec-02-engineering" markdown="1">
+
+**JavaScript 失效时的静态读法：**沿箭头从 source 走到 runtime；控制只在它覆盖的边上起作用。删除当前文件不等于清理 Git 历史，SBOM 不等于防火墙。
+
+| 固定事件 | 第一风险边 | 关键控制 | 运行时结论 |
+|---|---|---|---|
+| key 曾进 Git 历史 | history → build | 全史扫描 + 立即轮换 | 旧历史仍需视为泄露 |
+| 未锁定传递依赖 | build → artifact | lockfile + 依赖扫描 + SBOM | 可追溯不等于无漏洞 |
+| CI token 可写生产 | deploy → runtime | 短期凭据 + 最小 IAM + 审计 | 爆炸半径过大 |
+| 运行时只读 key | runtime → data sink | secret manager + 只读权限 | 影响面受限但仍需检测 |
+
+</div>
+
+</section>
+
 ## 1. 密钥与秘密管理：最常见的低级灾难
 
 

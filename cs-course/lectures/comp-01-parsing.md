@@ -3,6 +3,45 @@
 > **对标**：Stanford CS143 前半 / *Crafting Interpreters*（Nystrom）/ 龙书前几章 ｜ **前置**：toc-01（自动机、CFG）
 > 编译器/解释器是"把一种语言翻译成另一种"的程序——它看起来神秘，其实是**一条清晰的流水线**，每一段都有成熟理论支撑。这一页讲前端的头两段：**词法分析**（字符流 → 单词流，正则/DFA 上岗）和**语法分析**（单词流 → 语法树，上下文无关文法上岗）。你会看到 toc-01 学的自动机理论**直接变成能跑的代码**。这也是 [实验 L04 解释器] 的前两步。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一串字符，怎样被迫长成唯一一棵树？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：<code>2 + 3 * 4</code> 的根节点是什么？</h3>
+<p>扫描器面对 <code>&gt;=</code> 时，若先匹配单字符 <code>&gt;</code>，就会把一个合法 token 拆坏；解析器面对加法和乘法时，若没有优先级，AST 可以有多个形状。请先预测 token 数量、AST 根运算符，以及 Pratt parser 下一步会不会吞掉乘法。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>从候选答案中选择“最长匹配 + 根为 <code>+</code> + <code>*</code> 是右子树”的组合；再对 <code>a &gt;= b + 1</code> 检查 <code>&gt;=</code> 是否保持为单个比较 token。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：字符流、token 流和 AST</h3>
+<p>lexer 只负责把字符分成有类型的 token，parser 只负责依据文法组织 token。正则/DFA 适合局部模式；CFG 与栈适合嵌套；AST 删除多余括号和词法细节，但保留运算结合结构，供语义分析继续使用。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>lexer 在当前位置选择最长可接受前缀；因此 <code>&gt;=</code> 必须先于 <code>&gt;</code> 尝试。Pratt 解析以绑定力 <span class="arithmatex">\(bp(op)\)</span> 控制循环：解析左项后，仅当下一个运算符的左绑定力高于当前阈值才吸收它；同优先级左结合可通过右阈值加一实现。AST 不变量是每个 token 恰被消费一次、每个内部节点满足文法产生式，解析成功后输入游标到达 EOF。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>正则语言不能表达任意深度括号匹配，必须升级到带栈的 CFG 解析；歧义文法会让同一 token 流产生多棵树；左递归直接交给朴素递归下降会无限递归，需要改写文法或使用 Pratt/左递归消除。错误恢复若跳过太多 token，还可能掩盖真正的语法位置。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把自动机证据交给 L04</h3>
+<p>在 L04 解释器中增加一个最长 token 与一个错误恢复测试，打印 token span、AST 和消费位置；再把 <code>2 + 3 * 4 - 5</code> 的树交给 comp-02。L04 的真实 scanner/Pratt parser 仍是可运行实现，本层实验不替代它。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-comp-01-parsing">
+<h3>交互实验：最长匹配与 Pratt AST</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong><code>2 + 3 * 4</code> 被切成 5 个 token：NUMBER(2)、PLUS、NUMBER(3)、STAR、NUMBER(4)，AST 根是 PLUS，右子树是 STAR(3,4)，所以结果结构是 <code>2+(3*4)</code>。<code>a &gt;= b + 1</code> 的 <code>&gt;=</code> 是一个 token，不是 GREATER 后接 EQUAL。实验提供表达式选择、绑定力逐步账本和树形输出。</p>
+<table><thead><tr><th>输入</th><th>token 数</th><th>根</th><th>关键边界</th></tr></thead><tbody><tr><td>2 + 3 * 4</td><td>5</td><td>+</td><td>* 优先级更高</td></tr><tr><td>a &gt;= b + 1</td><td>5</td><td>&gt;=</td><td>最长匹配</td></tr><tr><td>(1 + 2) * 3</td><td>7</td><td>*</td><td>括号强制分组</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 编译器流水线全景
 
 

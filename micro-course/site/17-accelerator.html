@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,20 +45,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、通用处理器的开销在哪</a></li>
-<li><a href="#_2">二、专用化的收益来源</a></li>
-<li><a href="#_3">三、谱系：从通用到专用</a></li>
-<li><a href="#_4">四、设计的中心问题：数据流</a></li>
-<li><a href="#_5">五、超越数字：几条更激进的路线【前沿/未定】</a></li>
-<li><a href="#_6">六、系统视角：加速器不是孤岛</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：加速器的第一问不是峰值算力，而是工作负载受哪一面屋顶限制</a><ul>
+<li><a href="#100-gops-50-gops">具体谜题：100 GOPS 的芯片为什么只跑出 50 GOPS？</a></li>
+<li><a href="#_2">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：算力屋顶、带宽斜坡和数据流</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#_5">交互实验：拖动算子，找出真正的瓶颈</a></li>
+<li><a href="#_6">迁移任务：为一个新模型选加速器</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、通用处理器的开销在哪</a></li>
+<li><a href="#_8">二、专用化的收益来源</a></li>
+<li><a href="#_9">三、谱系：从通用到专用</a></li>
+<li><a href="#_10">四、设计的中心问题：数据流</a></li>
+<li><a href="#_11">五、超越数字：几条更激进的路线【前沿/未定】</a></li>
+<li><a href="#_12">六、系统视角：加速器不是孤岛</a></li>
+<li><a href="#_13">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,18 +77,94 @@
 <p><strong>层次</strong>：硕博 + 业界主战场 ｜ 🔗 与 cs 站 GPU/MLSys 线、AI 站直接对接。
 第四页给出了因果链：功耗墙 → 暗硅 → 专用化。本页把"专用化"这件事拆开算：<strong>一个专用电路凭什么比通用处理器快一到两个数量级？收益具体来自哪里？以及它的代价是什么？</strong></p>
 </blockquote>
-<h2 id="_1">一、通用处理器的开销在哪<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：加速器的第一问不是峰值算力，而是工作负载受哪一面屋顶限制<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="100-gops-50-gops">具体谜题：100 GOPS 的芯片为什么只跑出 50 GOPS？<a class="headerlink" href="#100-gops-50-gops" title="Permanent link"></a></h3>
+<p>某加速器峰值算力为 100 GOPS，外部带宽为 100 GB/s。一个算子每字节只做 0.5 次运算。你预计实际性能是 100 GOPS，还是由带宽限制的 50 GOPS？如果通过权重驻留把搬运量减半，计算强度从 0.5 提到 1.0 op/byte，系统是否立刻超过 100 GOPS？再把 90% 的任务加速 20 倍，端到端是否能达到 20 倍？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先做预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先标记算子所在区域：<strong>①</strong> Roofline 给出的上限是 <code>min(P<sub>peak</sub>, B I)</code>，不是峰值算力本身；<strong>②</strong> 低计算强度算子先受带宽限制，提高乘法器数量没有帮助；<strong>③</strong> 数据流改变的是复用率与字节数，因而改变计算强度，而不一定增加峰值算力；<strong>④</strong> Amdahl 的未加速部分会给整体加速比设上限。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：算力屋顶、带宽斜坡和数据流<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>把每个工作负载压成两个量：单位时间可完成的峰值运算 <code>P<sub>peak</sub></code>，以及从存储层搬运数据的带宽 <code>B</code>。算子计算强度 <code>I=ops/byte</code> 越高，越能复用已读入的数据；权重驻留、输出驻留和行驻留只是把不同数据留在更近的存储层。真正的加速器是数据流、存储层级、数制和软件映射的共同设计。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<div class="cl-formula">P<sub>attainable</sub> &lt;= min(P<sub>peak</sub>, B I), &nbsp; I = ops / bytes, &nbsp; S = 1 / [(1-f) + f/s]</div>
+<p>Roofline 的转折点为 <code>I<sub>ridge</sub>=P<sub>peak</sub>/B</code>。当 <code>I &lt; I<sub>ridge</sub></code> 时，性能上限沿带宽斜坡增长；当 <code>I &gt;= I<sub>ridge</sub></code> 时，峰值算力成为屋顶。实验把 <code>P<sub>peak</sub></code> 与 <code>B I</code> 的结果都写成 GOPS；例如 <code>100 GB/s * 0.5 op/byte = 50 Gop/s = 50 GOPS</code>，不能把它误写成 50 TOPS。Amdahl 式中的 <code>f</code> 是可加速工作比例，<code>s</code> 是该部分加速倍数；它是端到端不变量，不会因为芯片宣传的 TOPS 增加而消失。</p>
+<p>实验会让不同数据流改变有效字节数，并把相同算子放在同一张 Roofline 图上。这样能区分“硬件峰值提高”和“工作负载实际跨过转折点”两种完全不同的改进。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>Roofline 是上界模型，不包含 bank conflict、同步、稀疏索引、控制流、片间通信、编译器未映射算子和低利用率。</li>
+<li>低位宽通常降低存储与乘法成本，却可能引入量化误差、重排开销和额外校准；位宽并非越低越好。</li>
+<li>专用 ASIC 若算法或模型形状变化，固定数据流可能失效；FPGA/GPU 的灵活性是有价值的保险，而不是纯粹浪费。</li>
+<li>峰值 GOPS/TOPS 与实际吞吐、能效和任务质量不等价；必须写清 batch、精度、利用率、运算单位和端到端分母。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_5">交互实验：拖动算子，找出真正的瓶颈<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-accelerator">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验以 GOPS 记峰值和可达性能：峰值 100 GOPS、带宽 100 GB/s 时，ridge point 为 <code>1 op/byte</code>。计算强度 <code>0.5</code> 的算子上限是 <code>min(100,100*0.5)=50 GOPS</code>；计算强度 <code>2</code> 的算子上限是 100 GOPS。若权重驻留把 bytes 从 200 GB 降到 100 GB、ops 仍为 100 G operations，强度由 0.5 变为 1.0，带宽上限从 50 提高到 100 GOPS。最后用 Amdahl：<code>f=0.9,s=20</code> 时整体加速只有 <code>1/(0.1+0.9/20)=6.9x</code>。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">数据流</th>
+<th scope="col">ops</th>
+<th scope="col">bytes</th>
+<th scope="col">计算强度</th>
+<th scope="col">性能上限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通缓存</td>
+<td>100 G</td>
+<td>200 G</td>
+<td>0.5</td>
+<td>50 GOPS</td>
+</tr>
+<tr>
+<td>权重驻留</td>
+<td>100 G</td>
+<td>100 G</td>
+<td>1.0</td>
+<td>100 GOPS</td>
+</tr>
+<tr>
+<td>输出驻留</td>
+<td>100 G</td>
+<td>125 G</td>
+<td>0.8</td>
+<td>80 GOPS</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移任务：为一个新模型选加速器<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>给定一个包含大矩阵乘、稀疏检索、归一化和分支控制的模型，请分别估算每个算子的 ops、bytes、计算强度和质量约束。选择 CPU、GPU、FPGA 或 ASIC 的组合，写出数据流与存储层级，并用 Roofline 和 Amdahl 说明为什么你的方案是端到端决策，而不是“买峰值 TOPS 最大的芯片”。</p>
+</div>
+</section>
+<h2 id="_7">一、通用处理器的开销在哪<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>执行一条加法指令，CPU 实际做了多少事？</p>
 <p>取指、译码、寄存器重命名、乱序调度、分支预测、访存地址计算、缓存查找、写回、提交……<strong>真正的加法只占其中很小一部分能量</strong>。研究普遍表明，<strong>通用处理器执行一次运算的能量中，绝大部分花在"指令的管理"而非"数据的计算"上</strong>。</p>
 <p><strong>这些开销是通用性的代价</strong>：CPU 不知道下一条指令是什么，必须准备好应对任何情况。<strong>专用加速器知道自己要算什么，于是可以把这些开销几乎全部省掉。</strong></p>
-<h2 id="_2">二、专用化的收益来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_8">二、专用化的收益来源<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>拆成四项，每一项都可以独立评估：</p>
 <p><strong>① 消除指令开销。</strong> 固定功能单元不需要取指译码，控制逻辑是硬连线的。</p>
 <p><strong>② 定制数据通路与并行度。</strong> 直接摆放大量乘加单元，按算法的数据流连接。<strong>脉动阵列（systolic array）</strong>是经典结构：数据像脉搏一样在阵列中流动，<strong>每个数据被取出一次后在阵列内被复用多次</strong>——这直接攻击了第十页的核心问题（搬运比计算贵）。</p>
 <p><strong>③ 定制数制。</strong> 通用处理器要支持 FP64/FP32；而神经网络推理在 INT8、FP8 甚至更低精度下往往够用。<strong>能量大致随位宽的平方级下降</strong>（乘法器面积与能耗），<strong>这是深度学习加速器最大的单项收益</strong>。训练则需要更宽的动态范围，于是有 BF16、FP8 等格式的设计权衡（🔗 AI 站）。</p>
 <p><strong>④ 定制存储层次。</strong> 用软件可控的便签存储器（scratchpad）替代硬件管理的缓存，<strong>数据搬运在编译期就被规划好</strong>，避免了缓存的猜测与冲突开销。</p>
 <p><strong>综合起来</strong>，同一算法在专用电路上的能效可比通用 CPU 高一到两个数量级——<strong>这些收益是可以逐项估算的，不是玄学</strong>。</p>
-<h2 id="_3">三、谱系：从通用到专用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">三、谱系：从通用到专用<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -108,7 +209,7 @@
 <li><strong>FPGA 的位置</strong>：介于两者之间，适合中等批量与需要现场更新的场合。</li>
 </ul>
 <p><strong>一个关键风险</strong>：<strong>算法演进可能让 ASIC 变废铁</strong>。为特定网络结构做的极致优化，可能因模型架构变化而失效——<strong>所以现代 AI 加速器的设计要在"专用"与"留有余地"之间取平衡</strong>，通常保留可编程的向量单元来处理未预见的算子。</p>
-<h2 id="_4">四、设计的中心问题：数据流<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、设计的中心问题：数据流<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>加速器设计的核心不是"堆多少个乘法器"，而是<strong>如何组织数据移动</strong>（承第十页）。</p>
 <p>对一个卷积或矩阵乘，同一个数据可以在不同层级被复用。按"什么保持不动"分类：</p>
 <ul>
@@ -118,7 +219,7 @@
 </ul>
 <p><strong>没有普适最优</strong>——最优数据流取决于层的形状（批大小、通道数、卷积核大小）与存储层次结构。<strong>所以加速器设计与编译器/映射器必须协同设计</strong>，这也是 MLSys 这个领域存在的原因（🔗 cs 站 mlsys 线）。</p>
 <p><strong>Roofline 模型</strong>是分析工具：把性能上限画成计算强度（每字节数据完成多少次运算）的函数——<strong>低计算强度的算子受带宽限制，高计算强度的受算力限制</strong>。<strong>优化的第一步永远是判断自己在屋顶线的哪一侧</strong>（🔗 cs 站 perf 线有完整推导）。</p>
-<h2 id="_5">五、超越数字：几条更激进的路线【前沿/未定】<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">五、超越数字：几条更激进的路线【前沿/未定】<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <ul>
 <li><strong>模拟计算与存内计算</strong>（第十六页）：能效潜力大，精度与外围开销是障碍；</li>
 <li><strong>光计算</strong>：用光学元件做矩阵乘（干涉、衍射）。<strong>光的传播本身不耗能</strong>，但电光/光电转换、以及权重可编程性是瓶颈（第十八页）；</li>
@@ -126,7 +227,7 @@
 <li><strong>随机/近似计算</strong>：以精度换能效，用于容错应用。</li>
 </ul>
 <p><strong>共同的模式（值得记住）</strong>：这些路线在<strong>特定窄场景</strong>中确有优势，但要取代主流数字加速器，必须同时打败它的<strong>能效、精度、工具链生态与制造成熟度</strong>——<strong>最后一项往往才是致命的</strong>。这与第五页新器件、第十六页存内计算的处境完全一致。</p>
-<h2 id="_6">六、系统视角：加速器不是孤岛<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_12">六、系统视角：加速器不是孤岛<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <p>一个常被忽略的现实：<strong>加速器的实际收益往往被系统因素吃掉</strong>。</p>
 <ul>
 <li><strong>Amdahl 定律</strong>：加速了 90% 的工作量，整体加速比也不会超过 10 倍——<strong>未被加速的部分成为新瓶颈</strong>；</li>
@@ -134,7 +235,7 @@
 <li><strong>软件栈</strong>：编译器、算子库、框架支持。<strong>"性能达标但没人会用"是加速器项目最常见的死法</strong>——生态往往比硅片本身更难建立；</li>
 <li><strong>利用率</strong>：峰值算力（TOPS）与实际达成的算力常有巨大差距。<strong>"TOPS 数字"与第九页的"标称位数"、第四页的"节点名称"是同一类营销指标</strong>，看到就要追问实际利用率。</li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_13">七、要点<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
 <ul>
 <li><strong>专用化的收益可以逐项拆解</strong>：省指令开销、定制数据通路、降低数制位宽、定制存储层次；</li>
 <li><strong>灵活性与能效是一条权衡曲线</strong>，选择位置由出货量与算法稳定性决定；</li>
@@ -153,5 +254,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-accelerator.js"></script>
 </body>
 </html>

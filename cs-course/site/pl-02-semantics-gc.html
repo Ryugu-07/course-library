@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：对象互相引用，却为什么仍然可能是垃圾？</a><ul>
+<li><a href="#_2">具体谜题：一个两节点环应不应该被回收？</a></li>
+<li><a href="#_3">先预测可达集与回收时机</a></li>
+<li><a href="#_4">最小心智模型：语义关系 + 可达图</a></li>
+<li><a href="#_5">形式机制与不变量</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#python-rust">迁移任务：把堆图接到 Python 与 Rust</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 形式语义：程序"意义"的严格定义</a></li>
 <li><a href="#2">2. 函数式编程：不可变的威力</a></li>
 <li><a href="#3">3. 代数数据类型与模式匹配</a></li>
@@ -50,6 +74,73 @@
 <p><strong>对标</strong>：TAPL / Harper <em>PFPL</em> / GC 手册（Jones）｜ <strong>前置</strong>：pl-01（λ 演算、类型）、comp-02（解释器）
 pl-01 讲了语言的类型骨架，这一页补三块：<strong>形式语义</strong>（怎么严格定义"程序是什么意思"，而非靠直觉）、<strong>函数式编程范式</strong>（不可变、纯函数、高阶抽象的威力，以及它为什么在并发和 ML 时代复兴）、<strong>垃圾回收</strong>（内存自动管理的机制——你写 Python/JS 不用 free，底下发生了什么）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：对象互相引用，却为什么仍然可能是垃圾？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：一个两节点环应不应该被回收？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>根集合只有 <code>main</code>，它曾指向对象 A；A 指向 B，B 又指向 A。随后 <code>main</code> 被改为 <code>null</code>。A、B 之间仍有两条引用。追踪式 GC 和纯引用计数会分别判断什么？如果一个程序的循环不变量是“队列长度等于入队减出队”，语义规则如何帮助我们证明优化没有改变它？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测可达集与回收时机<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> 根不可达后 A、B 都应被追踪式 GC 回收，尽管每个引用计数仍为 1；<strong>②</strong> 纯函数的相同输入可安全替换为相同输出，副作用则不能；<strong>③</strong> 分代 GC 会优先扫描年轻代，但跨代引用必须由 remembered set 等机制保留。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：语义关系 + 可达图<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>形式语义给程序定义状态如何一步步变化或映射到数学对象；内存管理把堆看成有向图，从 roots 出发的可达闭包是活对象。函数式风格减少可变边，GC 则在不再可达时回收节点，两者解决的是不同层面的推理与资源问题。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制与不变量<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>小步操作语义写成 \(\langle e,\sigma\rangle\to\langle e',\sigma'\rangle\)，大步语义写成 \(\langle e,\sigma\rangle\Downarrow v,\sigma'\)；Hoare 三元组 \(\{P\}\ C\ \{Q\}\) 要求从满足 \(P\) 的状态执行 \(C\) 后得到满足 \(Q\) 的状态。GC 的活集是 \(\mathrm{Reach}(R)=\mu X.\ R\cup\mathrm{children}(X)\)，mark-sweep 回收 \(H\setminus\mathrm{Reach}(R)\)。引用计数只维护局部方程 \(\mathrm{rc}(o)=\#\{\text{incoming references}\}\)，因此无法识别无根环。</p>
+<p>语义保持的不变量是编译器变换前后对观察上下文产生相同结果；GC 的安全不变量是永不回收仍可从根访问的对象。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>追踪式 GC 能处理环，但不保证低延迟；暂停、并发标记、碎片和写屏障仍是工程权衡。</li>
+<li>引用计数及时，却可能因环泄漏，并且每次增减计数在多线程下需要同步；弱引用只改变图中的保持关系。</li>
+<li>纯函数易推理不代表整个程序无副作用；I/O、时间、随机数和资源释放必须在语义或效果系统中显式建模。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="python-rust">迁移任务：把堆图接到 Python 与 Rust<a class="headerlink" href="#python-rust" title="Permanent link"></a></h3>
+<p>画出 Python 小对象图，分别标根、强引用、环和可回收集；再比较 Rust 所有权释放与 tracing GC 的时间点。对 comp-02 的解释器写一条 Hoare 规格，说明一个环境/堆优化保持了什么观察行为，并把真实 GC 实验与这张图对照。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-pl-02-semantics-gc">
+<p><strong>无 JavaScript 时的静态读法：</strong>根 <code>main</code> 指向 A，A→B，B→A；当 <code>main=null</code> 后，\(\mathrm{Reach}(R)=\varnothing\)，追踪式 GC 回收 A、B。纯引用计数看到 A、B 各有 1 条环内引用，计数不归零，因而泄漏。交互版可切换根、边和 GC 策略，显示 mark/sweep、copying 与 ref-count 的状态变化。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>入引用（根失效后）</th>
+<th>追踪式 GC</th>
+<th>引用计数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>来自 B：1</td>
+<td>回收</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>B</td>
+<td>来自 A：1</td>
+<td>回收</td>
+<td>保留</td>
+</tr>
+<tr>
+<td>根</td>
+<td>0</td>
+<td>不在堆</td>
+<td>不在堆</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 形式语义：程序"意义"的严格定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>编译器/解释器要正确，先得说清"程序该做什么"——这就是<strong>语义</strong>。三种风格：</p>
 <ul>
@@ -114,5 +205,7 @@ pl-01 讲了语言的类型骨架，这一页补三块：<strong>形式语义</s
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-pl-02-semantics-gc.js"></script>
 </body>
 </html>

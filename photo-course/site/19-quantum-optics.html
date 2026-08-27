@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、光计算：诱惑与障碍</a></li>
-<li><a href="#_2">二、量子光学的基本资源</a></li>
-<li><a href="#_3">三、量子通信</a></li>
-<li><a href="#_4">四、光量子计算</a></li>
-<li><a href="#_5">五、一个贯穿的判读模式</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#_1">学习层：理想量子标度，经过损耗才是工程问题</a><ul>
+<li><a href="#1-1sqrt-n-1n">1. 具体谜题：纠缠把 \(1/\sqrt N\) 变成 \(1/N\)，那还需要在乎损耗吗？</a></li>
+<li><a href="#2">2. 先预测：把资源、损耗和可验证性分开</a></li>
+<li><a href="#3">3. 最小模型：光子统计先给极限，损耗再改写资源</a></li>
+<li><a href="#4">4. 实验：先预测标度，再改变光子数与探测效率</a></li>
+<li><a href="#5">5. 失败边界：量子资源不跳过系统工程</a></li>
+<li><a href="#6">6. 迁移任务：把“优势”改写成可审计规格</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、光计算：诱惑与障碍</a></li>
+<li><a href="#_3">二、量子光学的基本资源</a></li>
+<li><a href="#_4">三、量子通信</a></li>
+<li><a href="#_5">四、光量子计算</a></li>
+<li><a href="#_6">五、一个贯穿的判读模式</a></li>
+<li><a href="#_7">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,10 +77,86 @@
 <p><strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：物理原理【实】；<strong>光计算的实用前景【争】</strong>；<strong>量子优势的解释【争】</strong>。🔗 与物理站量子信息线、cs 站、AI 站互链。
 两个极具诱惑的方向。第四页说过"一枚透镜以光速零功耗完成傅里叶变换"——那么为什么不用光来计算？而量子光学则把光的量子性质变成资源。本页讲清它们的原理、真实进展，以及为什么它们至今没有取代电子计算。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：理想量子标度，经过损耗才是工程问题<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-1sqrt-n-1n">1. 具体谜题：纠缠把 <span class="arithmatex">\(1/\sqrt N\)</span> 变成 <span class="arithmatex">\(1/N\)</span>，那还需要在乎损耗吗？<a class="headerlink" href="#1-1sqrt-n-1n" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(N=10{,}000\)</span> 个光子、探测效率 <span class="arithmatex">\(\eta=0.8\)</span>。经典相干探测的标准量子极限约为</p>
+<div class="arithmatex">\[
+\Delta\varphi_{SQL}=\frac1{\sqrt N}\approx0.01\,\mathrm{rad},
+\]</div>
+<p>理想无损纠缠标度是 <span class="arithmatex">\(1/N=0.0001\,\mathrm{rad}\)</span>。但若用一个用于教学的损耗底代理</p>
+<div class="arithmatex">\[
+\Delta\varphi_{loss}=\sqrt{\frac{1-\eta}{\eta N}},
+\]</div>
+<p>它约为 <span class="arithmatex">\(0.005\,\mathrm{rad}\)</span>，已经远高于理想海森堡值。你先判断：在这个参数下，纠缠的理想优势是否仍然等于可交付的系统优势？</p>
+<h3 id="2">2. 先预测：把资源、损耗和可验证性分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>泊松光子数 <span class="arithmatex">\(N\)</span> 的标准差是多少？因此 SNR 随 <span class="arithmatex">\(N\)</span> 按什么幂次增长？</li>
+<li>增大 <span class="arithmatex">\(N\)</span> 时，SQL 与理想 <span class="arithmatex">\(1/N\)</span> 哪一个下降更快？</li>
+<li>当 <span class="arithmatex">\(\eta\)</span> 从 <span class="arithmatex">\(0.8\)</span> 降到 <span class="arithmatex">\(0.5\)</span> 时，损耗底对“纠缠优势”的影响是线性、平方根还是完全没有影响？</li>
+</ol>
+<h3 id="3">3. 最小模型：光子统计先给极限，损耗再改写资源<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>相干态近似泊松统计，满足 <span class="arithmatex">\(\operatorname{Var}(N)=N\)</span>。若 <span class="arithmatex">\(N\)</span> 是入射资源、探测效率为 <span class="arithmatex">\(\eta\)</span>，期望探测数为 <span class="arithmatex">\(N_{det}=\eta N\)</span>，所以理想入射计数的标度与探测后的计数 SNR 应分别写成</p>
+<div class="arithmatex">\[
+\mathrm{SNR}_{det}=\frac{N_{det}}{\sqrt{N_{det}}}=\sqrt{\eta N},\qquad \Delta\varphi_{SQL}\sim N^{-1/2}.
+\]</div>
+<p>这里的 SQL 仍是以入射资源 <span class="arithmatex">\(N\)</span> 写出的理想基线；把探测损耗的影响单独放入显式代理，才能看出两者不是同一项。理想纠缠协议可以给出 <span class="arithmatex">\(N^{-1}\)</span> 的海森堡标度，但那是资源和测量模型的理想上界，不是所有实验的自动结果。实验把</p>
+<div class="arithmatex">\[
+\Delta\varphi_{teach}=\max\left(\frac1N,\sqrt{\frac{1-\eta}{\eta N}}\right)
+\]</div>
+<p>作为明确标注的教学代理：它用来显示损耗把理想曲线抬高，并不替代具体量子 Fisher 信息、纠错或探测器模型。QKD 还要另外付出距离损耗与不可克隆中继的代价。</p>
+<h3 id="4">4. 实验：先预测标度，再改变光子数与探测效率<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>选择相干、理想纠缠或损耗后的可用资源，先回答三道预测题。核对后可调 <span class="arithmatex">\(N\)</span> 与 <span class="arithmatex">\(\eta\)</span>；SVG 画 SQL、理想纠缠线和损耗底，旁边的统计账本显示“增加光子”和“提高探测效率”分别改变什么。</p>
+<div class="learning-lab" data-learning-lab="photo-quantum-optics">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 <span class="arithmatex">\(N=10{,}000\)</span>、<span class="arithmatex">\(\eta=0.8\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>资源/边界</th>
+<th>公式或假设</th>
+<th style="text-align: right;">默认相位不确定度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>相干态 SQL</td>
+<td><span class="arithmatex">\(1/\sqrt N\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0100\,\mathrm{rad}\)</span></td>
+</tr>
+<tr>
+<td>理想无损纠缠</td>
+<td><span class="arithmatex">\(1/N\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0001\,\mathrm{rad}\)</span></td>
+</tr>
+<tr>
+<td>损耗底代理</td>
+<td><span class="arithmatex">\(\sqrt{(1-\eta)/(\eta N)}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0050\,\mathrm{rad}\)</span></td>
+</tr>
+<tr>
+<td>光子计数 SNR（探测后）</td>
+<td><span class="arithmatex">\(\sqrt{\eta N}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(89.4\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>静态表的关键不是宣称“纠缠无用”，而是指出：默认 <span class="arithmatex">\(N_{det}=0.8\times10{,}000=8{,}000\)</span>，所以探测后的计数 SNR 是 <span class="arithmatex">\(\sqrt{8{,}000}\approx89.4\)</span>；只要损耗、探测效率和验证开销没有进入预算，理想标度就不能直接当作产品指标。</p>
+</div>
+<h3 id="5">5. 失败边界：量子资源不跳过系统工程<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>压缩态可以把某一正交分量的噪声压低，但反向分量、损耗和锁定稳定性仍要计入；引力波探测的成功来自完整系统而非一句“量子增强”。</li>
+<li>QKD 只分发密钥，实际载荷仍需对称加密；光子损耗使速率随距离下降，经典放大器不能复制未知量子态。</li>
+<li>光子几乎不相互作用，线性光学量子计算要靠测量诱导非线性、辅助光子和高效率探测器；采样优势也不等于通用容错计算。</li>
+</ul>
+<h3 id="6">6. 迁移任务：把“优势”改写成可审计规格<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>为一个量子测量或 QKD 原型列出 <span class="arithmatex">\(N\)</span>、源效率、耦合效率、探测效率、暗计数、重复率和验证基准。然后回答：哪一项提高会真正增加有效光子数，哪一项只是把理想曲线画得更漂亮？</p>
+</section>
 <p><img alt="量子光学资源与测量标度" class="fig-img" src="assets/img/pho-19-quantum-optics.svg" /></p>
 <figcaption><span class="fig-id">图 19-1</span> 左：经典标准量子极限（SQL）给出 \(\Delta\varphi\sim N^{-1/2}\)，理想纠缠可达到海森堡标度 \(N^{-1}\)，但损耗会抬出实际的噪声底；右：单光子、压缩态与纠缠态经过干涉仪进入探测器，分别服务于量子通信、精密测量与采样。<strong>量子资源带来的理想增益，最终必须经过损耗、探测效率与系统实现的检验</strong>。</figcaption>
 
-<h2 id="_1">一、光计算：诱惑与障碍<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、光计算：诱惑与障碍<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>诱惑非常真实</strong>（承第四页）：</p>
 <ul>
 <li><strong>并行性</strong>：整个二维波前同时传播；</li>
@@ -79,7 +179,7 @@
 <li><strong>通用光学 AI 加速器仍处早期</strong>【争】。</li>
 </ul>
 <p><strong>判读此类工作的问题</strong>：<strong>算不算电光转换的能耗？是端到端还是仅光学部分？精度损失多少？与同期数字加速器的公平对比如何？</strong> ——<strong>与微电子站第十六页那份清单完全一致。</strong></p>
-<h2 id="_2">二、量子光学的基本资源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、量子光学的基本资源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>光的量子性质提供了经典物理没有的资源：</p>
 <p><strong>① 单光子与光子统计</strong>：</p>
 <ul>
@@ -98,7 +198,7 @@
 <li><strong>标准量子极限（SQL）</strong>：<span class="arithmatex">\(\Delta\phi \sim 1/\sqrt{N}\)</span>（经典）；</li>
 <li><strong>海森堡极限</strong>：<span class="arithmatex">\(\Delta\phi\sim 1/N\)</span>（利用纠缠）。<strong>理论上可显著提升精密测量灵敏度</strong>，但对损耗极其敏感——<strong>这是量子计量的核心困难</strong>。</li>
 </ul>
-<h2 id="_3">三、量子通信<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、量子通信<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>量子密钥分发（QKD）</strong>：利用量子态不可克隆，<strong>窃听必然引入可检测的扰动</strong>。</p>
 <ul>
 <li><strong>BB84 等协议已有商用系统与城域网、卫星实验</strong>；</li>
@@ -110,7 +210,7 @@
 <li><strong>实际系统的安全性取决于器件的实现</strong>——已有多起针对探测器等侧信道的攻击演示。<strong>"理论上无条件安全"不等于"实际系统安全"</strong>；</li>
 <li><strong>与后量子密码（PQC）的竞争</strong>：PQC 是纯软件方案、可直接部署、成本低。<strong>多数密码学界人士认为 PQC 是应对量子威胁的主要路径</strong>，QKD 适用于特定高价值场景【争】。</li>
 </ul>
-<h2 id="_4">四、光量子计算<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、光量子计算<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>优势</strong>：光子退相干弱、可室温工作、可用成熟光子集成工艺（第十五页）。</p>
 <p><strong>困难</strong>：光子之间<strong>几乎不相互作用</strong> → 难以实现两比特门。</p>
 <p><strong>主要路线</strong>：</p>
@@ -127,7 +227,7 @@
 <li><strong>距离容错的通用量子计算仍很遥远</strong>（需要纠错，而光子的纠错开销巨大）。</li>
 </ul>
 <p><strong>本课立场</strong>：<strong>物理与工程成就是真实的；"量子计算即将改变一切"的叙事则远超证据。</strong> 标【争】。</p>
-<h2 id="_5">五、一个贯穿的判读模式<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、一个贯穿的判读模式<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>本页两个主题与本讲义库其他站的前沿页共享同一个模式：</p>
 <table>
 <thead>
@@ -171,7 +271,7 @@
 </tbody>
 </table>
 <p><strong>共同教训</strong>：<strong>一项新技术要取代成熟方案，必须同时打败它的性能、成本、生态与可制造性——而最后两项通常才是决定性的。</strong> 这是本讲义库工科各站反复出现、也最值得带走的判断框架。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li><strong>光计算的诱惑真实（并行、光速、无源矩阵乘），但转换开销、精度、非线性是硬障碍</strong>；<strong>光互连才是已落地的部分</strong>；</li>
 <li><strong>压缩态已在引力波探测中实用化</strong>，是量子光学最扎实的工程应用；</li>
@@ -191,5 +291,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-quantum-optics.js"></script>
 </body>
 </html>

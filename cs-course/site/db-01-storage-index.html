@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一亿行数据，为什么只需要几次页访问？</a><ul>
+<li><a href="#_2">具体谜题：索引的“快”到底从哪里来？</a></li>
+<li><a href="#_3">最小心智模型：页、扇出与叶链</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">迁移任务：把页账本交给真实系统</a></li>
+<li><a href="#b">交互实验：B+ 树路径、范围扫描与页预算</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 面向磁盘的设计：一切从"页"开始</a></li>
 <li><a href="#2">2. 索引：为什么快，代价是什么</a></li>
 <li><a href="#3-b">3. B+ 树：数据库索引之王【机理级】</a></li>
@@ -53,6 +77,66 @@
 <p><strong>对标</strong>：CMU 15-445 前半 / <em>Database Internals</em>（Petrov）｜ <strong>前置</strong>：csapp-02（存储层级）、os-03（磁盘、页缓存）
 数据库是"把数据可靠、高效地存取"这件事做到极致的系统。你已是它的<strong>用户</strong>（Medusa 的 <code>medusa-postgres</code>、pgvector），这条线让你成为懂它内部的人。第一页讲最底层两件事：<strong>数据怎么在磁盘上按页组织</strong>，以及<strong>索引——为什么加一个索引能让查询从几秒变几毫秒，它底下的 B+ 树凭什么统治了数据库半个世纪</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：一亿行数据，为什么只需要几次页访问？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：索引的“快”到底从哪里来？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>页大小为 8 KB，每个键和子指针占 16 字节；一张表有一亿行。顺序扫描需要碰到大量数据页，而 B+ 树的一个内部页大约能容纳 512 个分支。三层索引能否把定位成本压到根页、内部页、叶页三次 I/O？范围查询和等值查询是否应该用同一种索引？</p>
+</div>
+<div class="cl-prompt"><strong>先预测，再展开：</strong>预测键 73 的 B+ 树路径，以及键区间 [35,75] 是否只访问一片连续叶子。再判断哈希索引能否保留这段范围的排序性质。</div>
+<div class="learning-model">
+<h3 id="_3">最小心智模型：页、扇出与叶链<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>数据库把磁盘读写组织成页；B+ 树内部节点只存分隔键和子指针，所有记录入口集中在叶节点，叶节点按键排序并用兄弟指针相连。一次查找先沿分隔键下降，范围扫描到左端叶后沿链顺序读取。</p>
+</div>
+<div class="learning-mechanism">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>若有效扇出为 <span class="arithmatex">\(f\)</span>，树高为 <span class="arithmatex">\(h\)</span>，点查成本约为 <span class="arithmatex">\(O(h)=O(\log_f N)\)</span> 页；范围查询还要加上结果覆盖的叶页。B+ 树的关键不变量是每个分隔键准确界定左右子树、叶链全局有序、除根外节点保持最小填充率。页式设计让 I/O 成本按页而非按行计量。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>哈希索引的等值查找可近似常数时间，却不能提供范围与排序；低选择性谓词、严重偏斜或过期统计信息可能让顺序扫描比索引回表更便宜。B+ 树的分裂、合并和随机写入也有维护成本，不能把“有索引”直接等同于“必然更快”。</p>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移任务：把页账本交给真实系统<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>在 L05 B+ 树实验中记录每次插入导致的分裂页与叶链变化，再用 `EXPLAIN ANALYZE` 对 Medusa 的一个过滤查询核对估算行数和实际页访问。P02-A 会继续把页式存储、索引和持久化约束组合起来；本层实验不替代 L05 的真实实现。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-db-01-storage-index">
+<h3 id="b">交互实验：B+ 树路径、范围扫描与页预算<a class="headerlink" href="#b" title="Permanent link"></a></h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>教学树的根分隔键为 30、60，三片叶子分别为 [10,20,30]、[40,50,60]、[70,80,90]。查找 73 的路径是“根→第三叶”，访问 2 页；范围 [35,75] 从第二叶的 40、50、60 扫到第三叶的 70，访问 2 片叶页并返回 4 个键。若页为 8192 B、每个键/指针 16 B，扇出约 512，三层容量约为 <span class="arithmatex">\(512^3\approx1.34\times10^8\)</span> 个入口。</p>
+<table>
+<thead>
+<tr>
+<th>查询</th>
+<th>B+ 树路径</th>
+<th>叶键</th>
+<th>叶页数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>等值 73</td>
+<td>根→第三叶</td>
+<td>70,80,90（候选 70–90）</td>
+<td>1</td>
+</tr>
+<tr>
+<td>范围 [35,75]</td>
+<td>根→第二叶→叶链</td>
+<td>40,50,60,70</td>
+<td>2</td>
+</tr>
+<tr>
+<td>顺序扫描</td>
+<td>无索引路径</td>
+<td>全表</td>
+<td>所有数据页</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 面向磁盘的设计：一切从"页"开始<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="堆文件页 + 槽目录（变长行、删除空洞）。" src="assets/img/db-01-page-slot.svg" /></p>
@@ -125,5 +209,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-db-01-storage-index.js"></script>
 </body>
 </html>

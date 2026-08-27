@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,20 +45,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、短沟道效应：栅极失去控制</a></li>
-<li><a href="#_2">二、第一条路：更薄的栅介质与高 κ 金属栅</a></li>
-<li><a href="#_3">三、第二条路与第三条路：把栅极包起来</a></li>
-<li><a href="#_4">四、还有别的旋钮：应变与工艺协同</a></li>
-<li><a href="#_5">五、短沟道下的电流：告别平方律</a></li>
+<li><a href="#_1">学习层：沟道越来越短，为什么栅极反而越来越要“包住”它？</a><ul>
+<li><a href="#1-l20-mathrmnm">1. 具体谜题：同样 \(L=20\ \mathrm{nm}\)，三面和四面控制差多少？</a></li>
+<li><a href="#2">2. 先预测：缩短、减薄和包裹分别买到什么？</a></li>
+<li><a href="#3">3. 最小心智模型：比较两个电场的“控制距离”</a></li>
+<li><a href="#4-dibl">4. 形式机制与不变量：特征长度、DIBL 与摆幅</a></li>
+<li><a href="#5">5. 交互实验：沿着器件演进史调一条控制旋钮</a></li>
+<li><a href="#6">6. 反例与失效边界：更强栅控不等于所有指标都更好</a></li>
+<li><a href="#7">7. 迁移题：从特征长度回到版图与模型</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、短沟道效应：栅极失去控制</a></li>
+<li><a href="#_3">二、第一条路：更薄的栅介质与高 κ 金属栅</a></li>
+<li><a href="#_4">三、第二条路与第三条路：把栅极包起来</a></li>
+<li><a href="#_5">四、还有别的旋钮：应变与工艺协同</a></li>
+<li><a href="#_6">五、短沟道下的电流：告别平方律</a></li>
 <li><a href="#60-mvdec">六、下一步：超越 60 mV/dec？</a></li>
-<li><a href="#_6">七、要点</a></li>
+<li><a href="#_7">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +77,95 @@
 <p><strong>层次</strong>：本科核心 + 研究生器件方向入口 ｜ <strong>核对于 2026-07</strong>（GAA 量产状态部分属前沿）。
 上一页说缩放遇到了功耗墙。本页讲另一半困难：<strong>把沟道做短本身就会让晶体管失控</strong>。整条器件演进史——平面 → FinFET → 环栅纳米片——可以用<strong>一个概念</strong>串起来：<strong>栅控能力</strong>，即栅极对沟道势垒的控制力，相对于漏极对它的干扰。</p>
 </blockquote>
-<h2 id="_1">一、短沟道效应：栅极失去控制<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：沟道越来越短，为什么栅极反而越来越要“包住”它？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-l20-mathrmnm">1. 具体谜题：同样 <span class="arithmatex">\(L=20\ \mathrm{nm}\)</span>，三面和四面控制差多少？<a class="headerlink" href="#1-l20-mathrmnm" title="Permanent link"></a></h3>
+<p>把沟道长度从 <span class="arithmatex">\(40\ \mathrm{nm}\)</span> 缩到 <span class="arithmatex">\(8\ \mathrm{nm}\)</span>，栅氧厚度与耗尽体厚度暂时不变。漏极耗尽区会侵入沟道，导致 <span class="arithmatex">\(V_{th}\)</span> 滚降、DIBL 和亚阈值摆幅恶化。若把平面 MOSFET 换成三面包裹的 FinFET，再换成四面包裹的 GAA，究竟改善了哪个物理量？</p>
+<p>先预测：在 <span class="arithmatex">\(L=20\ \mathrm{nm}\)</span>、<span class="arithmatex">\(t_{ox}=2\ \mathrm{nm}\)</span>、<span class="arithmatex">\(t_{dep}=8\ \mathrm{nm}\)</span> 时，三种结构的特征长度 <span class="arithmatex">\(\lambda\)</span> 谁最小；在 <span class="arithmatex">\(L=8\ \mathrm{nm}\)</span> 时，哪一种结构仍能保留较好的 <span class="arithmatex">\(L/\lambda\)</span> 比值。注意这里比较的是栅控的相对尺度，不是背诵某一代工艺的节点名称。</p>
+<h3 id="2">2. 先预测：缩短、减薄和包裹分别买到什么？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验先只显示结构选择与参数。请判断：</p>
+<ol>
+<li>只缩短 <span class="arithmatex">\(L\)</span>，<span class="arithmatex">\(L/\lambda\)</span> 是增大还是减小，DIBL 是升高还是降低？</li>
+<li>减小 <span class="arithmatex">\(t_{ox}\)</span> 或 <span class="arithmatex">\(t_{dep}\)</span> 会不会同时改善栅控？</li>
+<li>在相同 <span class="arithmatex">\(L,t_{ox},t_{dep}\)</span> 下，平面、FinFET、GAA 的栅控排序是什么？</li>
+<li>FinFET 的鳍宽整数化与 GAA 纳米片的连续宽度，分别牺牲或恢复了什么设计自由度？</li>
+</ol>
+<h3 id="3">3. 最小心智模型：比较两个电场的“控制距离”<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(\lambda\)</span> 是一个把材料介电常数、栅介质厚度和沟道体厚度压缩成一项的特征长度。若 <span class="arithmatex">\(L\gg\lambda\)</span>，势垒主要由栅极决定；若 <span class="arithmatex">\(L\)</span> 只比 <span class="arithmatex">\(\lambda\)</span> 大几倍，漏极电势可以从源端“看见”沟道，短沟道效应就会出现。</p>
+<p>从平面到 FinFET 再到 GAA，核心不是三张漂亮的剖面图，而是把有效沟道体变薄、把栅极包裹面数增加，使同一个 <span class="arithmatex">\(L\)</span> 获得更大的 <span class="arithmatex">\(L/\lambda\)</span>。这能改善控制，却会增加刻蚀、释放、应力、接触和变异的工艺成本。</p>
+<h3 id="4-dibl">4. 形式机制与不变量：特征长度、DIBL 与摆幅<a class="headerlink" href="#4-dibl" title="Permanent link"></a></h3>
+<p>用相对介电常数写一个教学尺度模型：</p>
+<div class="arithmatex">\[
+\lambda_0\sim
+\sqrt{\frac{\varepsilon_s}{\varepsilon_{ox}}t_{ox}t_{dep}},
+\qquad
+\lambda=g_{\mathrm{geom}}\lambda_0,
+\]</div>
+<p>其中 <span class="arithmatex">\(g_{\mathrm{geom}}\)</span> 取平面 <span class="arithmatex">\(1\)</span>、FinFET <span class="arithmatex">\(0.65\)</span>、GAA <span class="arithmatex">\(0.45\)</span> 只用于比较包裹几何，不是工艺数据表。实验用</p>
+<div class="arithmatex">\[
+\mathrm{DIBL}_{\mathrm{proxy}}
+=\frac{120}{1+\left(L/(2\lambda)\right)^2}\ \mathrm{mV/V},
+\qquad
+SS_{\mathrm{proxy}}
+=60+\frac{35}{1+L/(3\lambda)}\ \mathrm{mV/dec}.
+\]</div>
+<p>这两个 proxy 不是量产模型，真正的不变量是：在其适用范围内，<span class="arithmatex">\(L/\lambda\)</span> 增大意味着漏极对势垒的相对干扰减小；<span class="arithmatex">\(SS\)</span> 的下限仍由热统计给出约 <span class="arithmatex">\(60\ \mathrm{mV/dec}\)</span>，结构只能把退化压回这个下限附近。高 <span class="arithmatex">\(\kappa\)</span> 材料降低 EOT 与隧穿的权衡，另需回到 <span class="arithmatex">\(C_{ox}=\varepsilon_{ox}/t_{ox}\)</span> 判断。</p>
+<h3 id="5">5. 交互实验：沿着器件演进史调一条控制旋钮<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-gate-control">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 \(t_{ox}=2\ \mathrm{nm}\)、\(t_{dep}=8\ \mathrm{nm}\)、\(\varepsilon_s/\varepsilon_{ox}=11.7/3.9=3\)、\(L=20\ \mathrm{nm}\)。先用同一材料参数比较几何包裹因子，再看 \(L\) 缩短时的趋势。</p>
+<table>
+<thead>
+<tr>
+<th>结构</th>
+<th>\(g_{\mathrm{geom}}\)</th>
+<th>\(\lambda\) (nm)</th>
+<th>\(L/\lambda\)</th>
+<th>DIBL proxy (mV/V)</th>
+<th>SS proxy (mV/dec)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>平面</th>
+<td>1.00</td>
+<td>6.93</td>
+<td>2.89</td>
+<td>38.9</td>
+<td>77.8</td>
+</tr>
+<tr>
+<th>FinFET</th>
+<td>0.65</td>
+<td>4.50</td>
+<td>4.44</td>
+<td>20.3</td>
+<td>74.1</td>
+</tr>
+<tr>
+<th>GAA 纳米片</th>
+<td>0.45</td>
+<td>3.12</td>
+<td>6.42</td>
+<td>10.6</td>
+<td>71.2</td>
+</tr>
+</tbody>
+</table>
+<p>脚本允许在平面、FinFET、GAA 之间切换，并调节 \(L,t_{ox},t_{dep}\)。SVG 剖面会同步显示有效包裹面，结果面板列出 \(\lambda,L/\lambda\)、DIBL/SS proxy、等效控制等级和边界提示；它不会把 proxy 冒充为某家工艺的实测规格。</p>
+</div>
+<h3 id="6">6. 反例与失效边界：更强栅控不等于所有指标都更好<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>“GAA 解决了短沟道问题”过度外推；它减小漏极干扰，但接触电阻、量子限制、迁移率、热阻和工艺变异仍存在。</li>
+<li>“把 <span class="arithmatex">\(t_{ox}\)</span> 做到零就最好”忽略栅隧穿和界面态；高 <span class="arithmatex">\(\kappa\)</span> 只改变电学厚度，不会消除材料界面问题。</li>
+<li>“节点写成 2 nm 就代表 <span class="arithmatex">\(L=2\ \mathrm{nm}\)</span>”把市场命名当物理长度；应回到 CPP、MMP、沟道长度和实际 <span class="arithmatex">\(\lambda\)</span>。</li>
+<li>“更短沟道一定更强驱动”忽略速度饱和与寄生电阻；先进器件的饱和电流对 <span class="arithmatex">\(L\)</span> 可能已很弱。</li>
+</ul>
+<h3 id="7">7. 迁移题：从特征长度回到版图与模型<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若一个 SRAM 单元同时需要低漏电、高读稳定性和紧凑面积，平面、FinFET、GAA 各自把哪一项推向边界？请用 <span class="arithmatex">\(L/\lambda\)</span>、<span class="arithmatex">\(V_{th}\)</span> 失配和有效沟道宽度说明，而不要只回答“包裹面越多越先进”。这会把器件级栅控连接到 CMOS 门和 SRAM 的系统权衡。</p>
+</section>
+<h2 id="_2">一、短沟道效应：栅极失去控制<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>长沟道模型假设沟道势垒<strong>只由栅极控制</strong>。沟道变短后，<strong>漏极的电场开始侵入沟道</strong>（回忆第二页：反偏 pn 结的耗尽区会扩张），于是出现一系列失效：</p>
 <p><strong>① DIBL（漏致势垒降低）</strong>：漏电压帮着栅极把势垒拉低 → <strong><span class="arithmatex">\(V_{th}\)</span> 随 <span class="arithmatex">\(V_{DS}\)</span> 下降</strong>。后果是关不断、输出电导变差（模拟增益下降）。</p>
 <p><strong>② 亚阈值摆幅退化</strong>：<span class="arithmatex">\(SS\)</span> 从理想的 60 mV/dec 恶化到 80–100 mV/dec 以上 → <strong>关态漏电急剧上升</strong>（承第四页的功耗链条）。</p>
@@ -60,13 +173,13 @@
 <p><strong>④ 穿通</strong>：源漏耗尽区连通，栅极彻底失控。</p>
 <p><strong>⑤ 热载流子效应</strong>：高电场加速的载流子撞入栅氧，造成长期退化（可靠性问题，第十四页）。</p>
 <p><strong>统一的判据</strong>：定义<strong>特征长度</strong> <span class="arithmatex">\(\lambda \sim \sqrt{\varepsilon_s t_{ox} t_{dep}/\varepsilon_{ox}}\)</span>，只要沟道长度 <span class="arithmatex">\(L\)</span> 不能远大于 <span class="arithmatex">\(\lambda\)</span>，短沟道效应就会显现。<strong>要继续缩短 <span class="arithmatex">\(L\)</span>，就必须缩小 <span class="arithmatex">\(\lambda\)</span></strong>——办法只有三条：更薄的氧化层、更薄的沟道体、或者<strong>更多面的栅极包裹</strong>。<strong>这三条路，就是接下来三十年的器件演进史。</strong></p>
-<h2 id="_2">二、第一条路：更薄的栅介质与高 κ 金属栅<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、第一条路：更薄的栅介质与高 κ 金属栅<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>减薄 SiO₂ 提高 <span class="arithmatex">\(C_{ox}\)</span>、增强栅控——但薄到约 1–1.2 nm（几个原子层）时，<strong>栅隧穿漏电</strong>呈指数上升，功耗无法接受。</p>
 <p><strong>解法（约 45 nm 节点引入）</strong>：改用<strong>高介电常数（high-κ）材料</strong>（如铪基氧化物）。因为</p>
 <div class="arithmatex">\[C_{ox} = \frac{\varepsilon_{ox}}{t_{ox}}\]</div>
 <p>用高 <span class="arithmatex">\(\varepsilon\)</span> 材料，可以在<strong>物理厚度更厚</strong>（抑制隧穿）的同时获得<strong>等效更薄</strong>的电学厚度（EOT）。<strong>这是一个漂亮的"用材料换几何"的工程胜利。</strong></p>
 <p><strong>配套问题</strong>：高 κ 材料与多晶硅栅不兼容（费米钉扎、声子散射降低迁移率），于是必须同时改用<strong>金属栅</strong>——并且 NMOS/PMOS 需要<strong>不同功函数的金属</strong>来分别设定阈值电压（回忆第三页 <span class="arithmatex">\(V_{th}\)</span> 公式里的 <span class="arithmatex">\(V_{FB}\)</span>）。<strong>"高κ/金属栅（HKMG)"作为一个整体方案被引入，是材料、器件、工艺协同的典型案例。</strong></p>
-<h2 id="_3">三、第二条路与第三条路：把栅极包起来<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、第二条路与第三条路：把栅极包起来<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>既然要减小 <span class="arithmatex">\(\lambda\)</span>，最有效的办法是<strong>让栅极从多个方向控制沟道</strong>，同时把沟道做薄，使漏极电场无处可侵。</p>
 <p><strong>FinFET（约 22 nm 起量产）</strong>：把沟道立起来做成"鳍"，栅极从<strong>三面</strong>包裹。</p>
 <ul>
@@ -84,7 +197,7 @@
 <p><img alt="器件结构演进与栅控能力" class="fig-img" src="assets/img/mic_device_evolution.svg" /></p>
 <figcaption><span class="fig-id">图 5-1</span> 器件结构演进（示意剖面）与栅控效果。<strong>平面器件</strong>栅极只从一面控制，漏极电场易侵入；<strong>FinFET</strong> 三面包裹；<strong>GAA 纳米片</strong>四面全包。右侧曲线为对应的转移特性：栅控越强，<strong>亚阈值摆幅越陡（越接近 60 mV/dec 极限）、关态漏电越低</strong>——这正是每一代结构革新所买到的东西。</figcaption>
 </figure>
-<h2 id="_4">四、还有别的旋钮：应变与工艺协同<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、还有别的旋钮：应变与工艺协同<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>除了结构，工程师还有一批"物理"手段：</p>
 <ul>
 <li><strong>应变硅</strong>：在沟道中引入应变（PMOS 用 SiGe 源漏施加压应变，NMOS 用张应变），<strong>改变能带结构、提高迁移率</strong>。这在 90 nm 前后成为标准手段，是"用力学改善电学"的例子；</li>
@@ -92,7 +205,7 @@
 <li><strong>阱工程</strong>：Halo/Pocket 注入抑制穿通；</li>
 <li><strong>设计–工艺协同优化（DTCO）</strong>：<strong>这是现代节点的关键做法</strong>——不再是"工艺做好后交给设计"，而是让标准单元结构、金属层布局、器件参数<strong>共同</strong>优化。近年的"缩放"很大一部分来自 DTCO 而非纯粹的尺寸缩小（例如单元高度从多轨降到更少的金属轨）。</li>
 </ul>
-<h2 id="_5">五、短沟道下的电流：告别平方律<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、短沟道下的电流：告别平方律<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>第三页的平方律来自长沟道假设。短沟道器件中载流子普遍处于<strong>速度饱和</strong>（第一页），电流近似为：</p>
 <div class="arithmatex">\[I_{D,\text{sat}} \approx W\, C_{ox}\, v_{sat}\,(V_{GS}-V_{th})\]</div>
 <p><strong>关键差别</strong>：</p>
@@ -111,7 +224,7 @@
 <li><strong>CFET（互补 FET）</strong>：把 NMOS 与 PMOS <strong>垂直堆叠</strong>，直接砍掉单元面积。被视为 GAA 之后的主要候选（第十九页）。</li>
 </ul>
 <p><strong>诚实的判断</strong>：<strong>这些方案没有一个已经确定接班</strong>。行业目前的实际路径更偏向"结构堆叠（CFET、3D）+ 封装集成（Chiplet）+ 专用化"，而非寻找新的开关物理。</p>
-<h2 id="_6">七、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <ul>
 <li>一条主线：<strong>栅控能力 vs 漏极干扰</strong>。平面 → FinFET → GAA 就是不断增强前者；</li>
 <li><strong>高κ/金属栅</strong>是"用材料换几何"，<strong>FinFET/GAA</strong> 是"用维度换控制"；</li>
@@ -129,5 +242,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-gate-control.js"></script>
 </body>
 </html>

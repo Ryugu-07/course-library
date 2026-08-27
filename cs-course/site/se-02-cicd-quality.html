@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li class="active"><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#se-02-learning-title">学习层：流水线的绿灯，能把哪个产物送到生产？</a><ul>
+<li><a href="#1-pr">1. 具体谜题：一个 PR 到底卡在哪里？</a></li>
+<li><a href="#2">2. 最小模型：失败即停止，产物带着提交身份前进</a></li>
+<li><a href="#3-ci-cd">3. 正式机制与不变量：CI 是门，CD 是受控传播</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
 <li><a href="#1-ci">1. CI:持续集成——让"合并"不再可怕</a></li>
 <li><a href="#2-cd">2. CD:持续交付/部署——让"上线"变常规</a></li>
 <li><a href="#3">3. 代码质量:让代码能被人（和未来的你）读懂</a></li>
-<li><a href="#4">4. 技术债:工程的核心权衡</a></li>
+<li><a href="#4_1">4. 技术债:工程的核心权衡</a></li>
 <li><a href="#5">5. 把全线串起来：一个改动的完整旅程</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -51,6 +73,80 @@
 <p><strong>对标</strong>：<em>Continuous Delivery</em>（Humble–Farley）/ Google <em>SWE at Google</em> ｜ <strong>前置</strong>：se-01（Git、测试）、cloud 线（部署目标）
 从"写好代码"到"可靠地、反复地交付代码"。这一页讲 <strong>CI/CD</strong>（持续集成/持续交付——把构建、测试、部署自动化成流水线，现代软件交付的标配）和<strong>代码质量的工程实践</strong>（审查、静态分析、技术债管理）。这些是让软件项目<strong>可持续</strong>的纪律——尤其对你的 Medusa 这种要长期演进 + 多方（你/GPT/OPS）协作的系统。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="se-02-learning-title" class="learning-layer">
+<h2 id="se-02-learning-title">学习层：流水线的绿灯，能把哪个产物送到生产？<a class="headerlink" href="#se-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-pr">1. 具体谜题：一个 PR 到底卡在哪里？<a class="headerlink" href="#1-pr" title="Permanent link"></a></h3>
+<p>有四个候选发布：一个单元测试失败，一个密钥扫描失败，一个 review 尚未批准，一个金丝雀错误率升高。它们的构建都生成了文件。先预测：</p>
+<ol>
+<li>哪一个最早的红灯足以阻止合并？</li>
+<li>CI 通过后，为什么还不能把任意本地目录直接部署？</li>
+<li>金丝雀阶段发现回归时，应优先扩大全量、回滚，还是继续让流量进入？</li>
+</ol>
+<p>实验台固定 <code>build → test → lint → security → review → canary → deploy</code> 的门，并隐藏每个候选的第一失败点。提交预测后，再看 gate ledger、artifact provenance 和回滚路径。重点是理解<strong>门的组合语义</strong>，不是把 CI 当作一串漂亮的状态徽章。</p>
+<h3 id="2">2. 最小模型：失败即停止，产物带着提交身份前进<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>把每一关表示为谓词 <code>g_i(commit, artifact, evidence)</code>。一个候选能合并的条件是</p>
+<div class="arithmatex">\[
+G=\bigwedge_i g_i=\mathrm{true},
+\]</div>
+<p>部署的对象不是“当前工作目录”，而是由某个已验证 commit 产生、可追溯、可复现的 artifact。金丝雀再增加运行时观测谓词 <code>health(artifact, traffic_slice)</code>；它通过不代表全量用户永远无故障。</p>
+<h3 id="3-ci-cd">3. 正式机制与不变量：CI 是门，CD 是受控传播<a class="headerlink" href="#3-ci-cd" title="Permanent link"></a></h3>
+<ul>
+<li><strong>fail-closed</strong>：构建、测试、静态检查、安全扫描和必要审批任一失败，默认不合并、不发布；手工 override 必须留下理由、身份和审计记录。</li>
+<li><strong>来源不变量</strong>：生产 artifact 的 commit、依赖锁文件、构建日志和签名/摘要可回溯；不能用另一份“本地等价文件”替换它。</li>
+<li><strong>门的分工</strong>：单测抓局部行为，集成测接缝，静态分析做保守筛选，密钥/依赖扫描检查供应链风险，canary 检查运行时信号。它们互补，不是重复投票。</li>
+<li><strong>恢复不变量</strong>：每次渐进发布都有可执行的回滚版本；监控信号的时间窗口、阈值和错误预算要先定义。</li>
+</ul>
+<p>因此“全部绿色”只意味着声明的谓词在声明的环境中通过。它不能证明没有未知 bug，也不能替代生产可观测性和事故响应。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>测试 flaky、扫描误报、环境漂移、未覆盖的迁移脚本、错误的健康检查和过宽的 override 都会让门失真；持续交付也不等于持续部署。实验使用固定候选和离散阶段，不模拟真实 GitHub Actions 的并发、缓存、权限和秘密注入。</p>
+<p>迁移任务：给 Medusa 的 <code>predict.py</code> 设计最小 CI gate contract：依赖安装、pytest、静态检查、密钥扫描、artifact 摘要、人工批准和回滚版本各自留下什么证据。对一次故障写清“哪一关本应挡住它、为什么没挡住、如何补门”，不要只增加一个泛化的“再跑一次测试”。</p>
+<div class="learning-lab" data-learning-lab="cs-se-02-cicd-quality">
+<p><strong>JavaScript 失效时的静态读法：</strong>按流水线从左到右找第一处失败；第一处红灯就足以阻止后续传播。artifact 必须绑定已验证 commit，canary 回归应触发回滚。</p>
+<table>
+<thead>
+<tr>
+<th>候选</th>
+<th>第一失败门</th>
+<th style="text-align: right;">能合并</th>
+<th style="text-align: right;">能部署</th>
+<th>证据结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>clean-release</td>
+<td>无</td>
+<td style="text-align: right;">是</td>
+<td style="text-align: right;">是</td>
+<td>artifact 与 commit 可追溯</td>
+</tr>
+<tr>
+<td>unit-regression</td>
+<td>test</td>
+<td style="text-align: right;">否</td>
+<td style="text-align: right;">否</td>
+<td>先修局部行为</td>
+</tr>
+<tr>
+<td>secret-found</td>
+<td>security</td>
+<td style="text-align: right;">否</td>
+<td style="text-align: right;">否</td>
+<td>轮换秘密并清理历史</td>
+</tr>
+<tr>
+<td>canary-regression</td>
+<td>canary</td>
+<td style="text-align: right;">是</td>
+<td style="text-align: right;">否</td>
+<td>回滚，不扩大全量流量</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-ci">1. CI:持续集成——让"合并"不再可怕<a class="headerlink" href="#1-ci" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：多人（或你 + GPT）各自改代码，攒很久才合并 → 冲突地狱 + "在我机器上是好的"。<strong>持续集成（CI）</strong>：<strong>频繁地把改动合并到主干，每次合并自动运行构建 + 测试</strong>——尽早发现集成问题。</p>
 <p><strong>CI 流水线</strong>（每次 push / PR 触发，GitHub Actions 等跑）：</p>
@@ -78,7 +174,7 @@
 <li><strong>格式化自动化</strong>：用工具（black/prettier/rustfmt）统一格式——<strong>别在 PR 里争缩进</strong>，机器搞定。</li>
 <li><strong>代码异味与重构</strong>：重复代码、超长函数、过深嵌套、命名糟糕——是"技术债"的信号。<strong>重构（在测试保护下改善结构而不改行为，se-01）是持续偿还技术债</strong>。</li>
 </ul>
-<h2 id="4">4. 技术债:工程的核心权衡<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 技术债:工程的核心权衡<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="技术债：短期加速借款、长期付利息的曲线/隐喻。" src="assets/img/se-02-tech-debt.svg" /></p>
 <figcaption><span class="fig-id">图 se-02.2</span>技术债：短期加速借款、长期付利息的曲线/隐喻。</figcaption>
@@ -121,5 +217,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-se-02-cicd-quality.js"></script>
 </body>
 </html>

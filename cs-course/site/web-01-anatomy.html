@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li class="active"><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#web-01-learning-title">学习层：一条请求究竟在哪个边界停住？</a><ul>
+<li><a href="#1">1. 具体谜题：同一个域名，为什么一条请求不回源？</a></li>
+<li><a href="#2">2. 最小模型：路径是阶段的串接，缓存是有条件的截断</a></li>
+<li><a href="#3">3. 正式机制与不变量：读写分离要留下可追溯证据</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
 <li><a href="#1-medusa">1. 全栈的分层地图（Medusa 实体对照）</a></li>
-<li><a href="#2">2. 请求的一生：一步步追踪</a></li>
+<li><a href="#2_1">2. 请求的一生：一步步追踪</a></li>
 <li><a href="#3-api">3. 前后端的契约：API</a></li>
-<li><a href="#4">4. 无状态与状态放哪</a></li>
+<li><a href="#4_1">4. 无状态与状态放哪</a></li>
 <li><a href="#5">5. 练习与要点</a></li>
 </ul>
 </div>
@@ -50,6 +72,79 @@
 <p><strong>对标</strong>：Berkeley CS169 / MDN Web 全景 / 你自己的 Medusa 系统 ｜ <strong>前置</strong>：net 线（HTTP/TLS/DNS）、db 线、os 线
 全栈线不从玩具讲起——<strong>你已经在运营一个真实全栈系统</strong>（Medusa：FastAPI + React SPA + Postgres + Docker + cloudflared + schtasks）。所以这条线拿它当解剖标本，每讲一层就回看你系统里对应那块。这一页是全景总纲：<strong>追踪一个请求从你敲下 medusa.hhzi.eu.cc 到页面显示的完整旅程</strong>，把 net/db/os 学的东西串成一条你每天都在跑的链路。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="web-01-learning-title" class="learning-layer">
+<h2 id="web-01-learning-title">学习层：一条请求究竟在哪个边界停住？<a class="headerlink" href="#web-01-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：同一个域名，为什么一条请求不回源？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>假设用户第一次打开 Medusa：浏览器需要 <code>app.a3f2.js</code>，随后请求 <code>GET /api/v1/articles?topic=systems</code>。此时 CDN 中已有 JS，但 API 缓存刚过期；离线任务刚把一批文章写进 Postgres。先预测，不要读下方链路：</p>
+<ol>
+<li>哪一个请求会经过 cloudflared、FastAPI 和 Postgres？</li>
+<li>若 API 缓存命中，哪几个阶段可以被边缘直接截断？</li>
+<li>把“最慢的一步”误报成数据库，最可能漏掉哪一种证据？</li>
+</ol>
+<p>实验台会把同一请求拆成在线读、边缘命中、缓存未命中和离线写入四条固定轨迹；先押路径，再查看每个阶段的耗时与证据。这里的目标不是背“浏览器到服务器”，而是能从日志、缓存头和 trace 判断<strong>哪一条边界真的被穿过</strong>。</p>
+<h3 id="2">2. 最小模型：路径是阶段的串接，缓存是有条件的截断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>把一次请求写成有向路径</p>
+<div class="arithmatex">\[
+P=(\mathrm{DNS},\mathrm{TLS},\mathrm{edge},\mathrm{tunnel},\mathrm{app},\mathrm{db},\mathrm{response},\mathrm{render}).
+\]</div>
+<p>静态 bundle 的边缘命中只走到 <code>edge</code>；动态 API 的冷缓存走完整路径；离线生产则是另一条 <code>scheduler → fetch → analyze → db write</code> 路径，不能把它误记成用户请求的同步子步骤。一个够用的时间账本是</p>
+<div class="arithmatex">\[
+T(P)=\sum_{s\in P}T_s+T_{queue}+T_{render},
+\]</div>
+<p>而不是把某一层的名词当作延迟解释。下面的实验固定每个阶段的数值，故障注入只改变路径，不改变测量口径。</p>
+<h3 id="3">3. 正式机制与不变量：读写分离要留下可追溯证据<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>缓存命中不等于“没有请求”</strong>：DNS、TLS 和浏览器仍可能发生；命中只表示在声明的 cache key、TTL 和认证条件下不必回源。</li>
+<li><strong>在线读写分离</strong>：用户读应只消费离线任务发布的版本 <code>v</code>；重分析、抓取和写库不应阻塞读请求。若返回 <code>v</code>，日志必须能关联到该版本和请求 id。</li>
+<li><strong>API 契约</strong>：<code>GET</code> 的幂等/可缓存语义、状态码和分页约束属于路径的一部分；把 <code>POST</code> 当可随意缓存的 <code>GET</code> 会破坏副作用边界。</li>
+<li><strong>瓶颈证据</strong>：阶段耗时、队列等待、命中率和响应大小必须分账。只有“DB 查询耗时高且 trace 穿过 DB”时，数据库才是这条请求的已证瓶颈。</li>
+</ul>
+<p>因此可检查三个不变量：缓存命中不穿越被跳过的源站；在线读不执行离线写入；响应中的数据版本能回溯到一个已发布的生产批次。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>本模型不证明 CDN 一定新鲜，也不覆盖 DNS 传播、TLS 证书轮换、连接复用、浏览器缓存策略或真实多租户认证。带用户身份的响应不能只按 URL 缓存；离线批处理成功也不等于用户看到最新数据；端到端时间还会受到排队、重试和浏览器渲染影响。</p>
+<p>迁移任务：为“按 topic 取分析卡片”画一张带请求 id、版本号、cache hit/miss 和阶段耗时的时序图，再决定哪些证据足以把瓶颈归因给 CDN、隧道、FastAPI、Postgres 或浏览器。把同一方法迁移到 web-02 的 N+1 查询和 web-03 的首屏渲染，不要只写“后端慢”。</p>
+<div class="learning-lab" data-learning-lab="cs-web-01-anatomy">
+<p><strong>JavaScript 失效时的静态读法：</strong>先按“经过的阶段”判断是否回源，再把表中阶段耗时相加；缓存命中只截断源站路径，不抹掉 DNS/TLS 或浏览器渲染。</p>
+<table>
+<thead>
+<tr>
+<th>固定轨迹</th>
+<th>经过的阶段</th>
+<th style="text-align: right;">是否触达 Postgres</th>
+<th>证据重点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JS 边缘命中</td>
+<td>DNS → TLS → edge → render</td>
+<td style="text-align: right;">否</td>
+<td><code>Age</code>/cache header、浏览器资源计时</td>
+</tr>
+<tr>
+<td>API 冷缓存</td>
+<td>DNS → TLS → edge → tunnel → app → db → response → render</td>
+<td style="text-align: right;">是</td>
+<td>trace 中的 DB span 与版本号</td>
+</tr>
+<tr>
+<td>API 边缘命中</td>
+<td>DNS → TLS → edge → response → render</td>
+<td style="text-align: right;">否</td>
+<td>cache key、TTL 与响应版本</td>
+</tr>
+<tr>
+<td>离线生产</td>
+<td>scheduler → fetch → analyze → db write</td>
+<td style="text-align: right;">写入</td>
+<td>批次 id、写入行数、发布版本</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-medusa">1. 全栈的分层地图（Medusa 实体对照）<a class="headerlink" href="#1-medusa" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="在线(用户读)vs离线(schtasks 抓取→聚类→分析→写库) 双路径，读写分离。" src="assets/img/web-01-online-offline.svg" /></p>
@@ -97,7 +192,7 @@
 </tbody>
 </table>
 <p><strong>关键区分——在线 vs 离线</strong>：Medusa 有两条路径。<strong>在线</strong>（用户访问）：浏览器 → FastAPI → 查 Postgres → 返回。<strong>离线</strong>（数据生产）：schtasks 定时跑 RSS 抓取 → 聚类 → 分析 → 写 Postgres。<strong>用户请求只读那些离线预算好的结果</strong>——这是"<strong>读写分离、把重活挪到离线</strong>"的经典架构（🔗 与 dist-03 系统设计、MLSys 训练/推理分离同构）。理解这个分工，Medusa 的整体设计就清晰了。</p>
-<h2 id="2">2. 请求的一生：一步步追踪<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 请求的一生：一步步追踪<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="重点图。Medusa 请求全链路：浏览器→DNS→Cloudflare 边缘→cloudflared 隧道→FastAPI→Postgres→响应→React 渲染，8 步标注。" src="assets/img/web-01-request-life.svg" /></p>
 <figcaption><span class="fig-id">图 web-01.1</span>重点图。Medusa 请求全链路：浏览器→DNS→Cloudflare 边缘→cloudflared 隧道→FastAPI→Postgres→响应→React 渲染，8 步标注。</figcaption>
@@ -122,7 +217,7 @@
 <li><strong>JSON 数据格式</strong> + 版本化（<code>/api/v1/</code>）+ 分页（大列表别一次全返，🔗 db-02 keyset 分页）。</li>
 </ul>
 <p><strong>替代方案</strong>：<strong>GraphQL</strong>（客户端声明要哪些字段，避免 over/under-fetching）、<strong>gRPC</strong>（二进制、高性能、微服务间）、<strong>WebSocket/SSE</strong>（实时推送，net-02）。<strong>REST 是默认，其余按需</strong>——Medusa 这种读多写少的分析展示，REST 足够。</p>
-<h2 id="4">4. 无状态与状态放哪<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 无状态与状态放哪<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>HTTP 无状态（net-02），但应用需要状态（谁登录了、购物车）——<strong>状态放哪是架构核心决策</strong>：</p>
 <ul>
 <li><strong>会话状态</strong>：认证信息放哪？服务端 session（存 Redis/DB）vs 客户端 token（JWT，自包含）——各有取舍（🔗 sec-02 会讲认证安全）。</li>
@@ -144,5 +239,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-web-01-anatomy.js"></script>
 </body>
 </html>

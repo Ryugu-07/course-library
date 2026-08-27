@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、基本定律与费马原理</a></li>
-<li><a href="#_2">二、成像方程与放大率</a></li>
-<li><a href="#_3">三、光阑、光瞳与渐晕</a></li>
-<li><a href="#_4">四、矩阵光学：把系统变成乘法</a></li>
-<li><a href="#_5">五、典型系统</a></li>
-<li><a href="#_6">六、几何光学在哪里失效</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：先追一条光线，再决定系统是否成像</a><ul>
+<li><a href="#1">1. 具体谜题：三片元件后，光线会落在哪里？</a></li>
+<li><a href="#2-na">2. 先预测：大 NA 是不是只带来好处？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：高度—角度账本</a></li>
+<li><a href="#4">4. 正式机制：矩阵连乘与成像不变量</a></li>
+<li><a href="#5-abcd">5. 静态实验：逐步走完 ABCD 乘积</a></li>
+<li><a href="#6">6. 反例与边界：矩阵很强，但它不是完整光学</a></li>
+<li><a href="#7">7. 迁移题：从一张镜头图到可验收的设计</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、基本定律与费马原理</a></li>
+<li><a href="#_3">二、成像方程与放大率</a></li>
+<li><a href="#_4">三、光阑、光瞳与渐晕</a></li>
+<li><a href="#_5">四、矩阵光学：把系统变成乘法</a></li>
+<li><a href="#_6">五、典型系统</a></li>
+<li><a href="#_7">六、几何光学在哪里失效</a></li>
+<li><a href="#_8">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,18 +79,52 @@
 <p><strong>层次</strong>：本科核心。
 几何光学把光当作直线传播的<strong>射线</strong>，完全不涉及光的本质。<strong>这个粗糙的模型，却足以设计出人类几乎全部的光学系统</strong>——从眼镜到显微镜到光刻机物镜。本页讲清它的规则、它的强大之处，以及它在哪里必然失效。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：先追一条光线，再决定系统是否成像<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：三片元件后，光线会落在哪里？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一束近轴光线从 <span class="arithmatex">\(y=4\,\mathrm{mm}\)</span>、<span class="arithmatex">\(\theta=0\)</span> 出发，先传播 <span class="arithmatex">\(d=20\,\mathrm{mm}\)</span>，通过焦距 <span class="arithmatex">\(f=50\,\mathrm{mm}\)</span> 的薄透镜，再传播 <span class="arithmatex">\(d=50\,\mathrm{mm}\)</span>。请先不要套“看起来应该在焦点”的直觉：它最后的高度与角度是多少？把 <span class="arithmatex">\(y=4\)</span> 的光线换成 <span class="arithmatex">\(y=2\)</span>，它们是否在同一个位置相交？这就是“理想成像”能否成立的最小检验。</p>
+<h3 id="2-na">2. 先预测：大 NA 是不是只带来好处？<a class="headerlink" href="#2-na" title="Permanent link"></a></h3>
+<p>打开实验前写下三项预测：<strong>①</strong> 上述系统的矩阵乘积会把哪一个输入量改成零；<strong>②</strong> 把孔径直径 <span class="arithmatex">\(D\)</span> 加倍而焦距不变，<span class="arithmatex">\(F/\#\)</span> 与近轴 <span class="arithmatex">\(\mathrm{NA}\)</span> 如何变，进光量约变为几倍；<strong>③</strong> 显微镜把总放大率从 <span class="arithmatex">\(100\times\)</span> 提到 <span class="arithmatex">\(400\times\)</span> 时，若物镜 NA 不变，分辨率会不会同步改善。改变间隔和焦距后，再检查你预测的是“像的位置”还是“像的清晰度”。</p>
+<h3 id="3-mental-model">3. 最小 mental model：高度—角度账本<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>只保留光线状态 <span class="arithmatex">\(\mathbf r=(y,\theta)^T\)</span>。自由传播把角度保持不变、把高度增加 <span class="arithmatex">\(d\theta\)</span>；薄透镜把高度保持不变、把角度减去 <span class="arithmatex">\(y/f\)</span>。每个元件都是一个线性算子，系统按光的先后顺序右乘：后发生的元件写在左边。这个模型不追踪波的相位，却足以给出近轴焦距、主平面和像的位置。</p>
+<h3 id="4">4. 正式机制：矩阵连乘与成像不变量<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="arithmatex">\[
+ P(d)=\begin{bmatrix}1&amp;d\\0&amp;1\end{bmatrix},\qquad
+ L(f)=\begin{bmatrix}1&amp;0\\-1/f&amp;1\end{bmatrix},\qquad
+ \mathbf r_{\rm out}=M\mathbf r_{\rm in}.
+\]</div>
+<p>若 <span class="arithmatex">\(M=\begin{bmatrix}A&amp;B\\C&amp;D\end{bmatrix}\)</span>，平行入射光束在传播到输出面后是否汇聚，取决于 <span class="arithmatex">\(A\)</span>：<span class="arithmatex">\(A=0\)</span> 时输出高度不再依赖输入高度，所有近轴平行光线在该面交于一点。物面与像面是否共轭则取决于 <span class="arithmatex">\(B\)</span>：<span class="arithmatex">\(B=0\)</span> 时输出高度不依赖物点发射角。矩阵的行列式满足 <span class="arithmatex">\(\det P=\det L=1\)</span>，因此理想一阶系统的 <span class="arithmatex">\(\det M=AD-BC=1\)</span>；它保留了光学相空间的面积账本，而不是任意地压缩高度和角度。</p>
+<p>系统指标也要分账：<span class="arithmatex">\(F/\#=f/D\)</span> 控制通光与衍射权衡，<span class="arithmatex">\(\mathrm{NA}=n\sin\theta\)</span> 控制收集角与分辨率。增大 NA 可能增加光子并改善分辨率，却同时缩小景深、放大像差压力；放大率本身不是新的信息。</p>
+<h3 id="5-abcd">5. 静态实验：逐步走完 ABCD 乘积<a class="headerlink" href="#5-abcd" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-ray-matrix">
+<p><strong>无 JavaScript 时的静态读法：</strong>用 <span class="arithmatex">\(f=50\,\mathrm{mm}\)</span>、<span class="arithmatex">\(d_1=20\,\mathrm{mm}\)</span>、<span class="arithmatex">\(d_2=50\,\mathrm{mm}\)</span>，按“传播 → 透镜 → 传播”计算</p>
+<div class="arithmatex">\[M=P(d_2)L(f)P(d_1)=\begin{bmatrix}0&amp;50\\-0.02&amp;0.6\end{bmatrix},\qquad (y,\theta)=(4,0)\mapsto(0,-0.08).\]</div>
+<p>因此 <span class="arithmatex">\((4,0)\)</span> 与 <span class="arithmatex">\((2,0)\)</span> 分别给出 <span class="arithmatex">\((0,-0.08)\)</span> 与 <span class="arithmatex">\((0,-0.04)\)</span>；不同高度的平行光线在输出面相交。脚本可先让你预测 <span class="arithmatex">\(A\)</span> 是否为零，再逐元件推进光线、切换焦距/间隔，并显示 <span class="arithmatex">\(\det M\)</span>、<span class="arithmatex">\(F/\#\)</span> 与近轴轨迹；所有数值都是固定模型，不调用网络。</p>
+</div>
+<h3 id="6">6. 反例与边界：矩阵很强，但它不是完整光学<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>近轴假设是前提。</strong> 当角度大到 <span class="arithmatex">\(\sin\theta\approx\theta\)</span> 不再成立，球差和彗差让同一物点不再映成一个点；<span class="arithmatex">\(\det M=1\)</span> 也不能证明真实像面无像差。</li>
+<li><strong><span class="arithmatex">\(A=0\)</span> 或 <span class="arithmatex">\(B=0\)</span> 都不是分辨率证书。</strong> 它们只说明一阶几何的聚焦或共轭关系；有限孔径会产生艾里斑，波动光学才给出 <span class="arithmatex">\(0.61\lambda/\mathrm{NA}\)</span> 的分辨率界。</li>
+<li><strong>放大率不是信息。</strong> 物镜 NA 不变时，额外目镜放大只会放大已有的模糊；光阑、渐晕和未采集的角度仍在限制系统。</li>
+<li><strong>状态约定不能混用。</strong> 若用 <span class="arithmatex">\(n\theta\)</span>、弧度或不同的符号约定，矩阵元素会改变；必须在整个连乘中保持同一坐标定义。</li>
+</ul>
+<h3 id="7">7. 迁移题：从一张镜头图到可验收的设计<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>给定相机镜头的焦距、孔径和传感器位置，先用 ABCD 找一阶焦面，再列出哪些指标必须交给波动模型：衍射斑、MTF、偏振与相干性。若显微镜的总放大率翻倍但物镜 NA 不变，你会保留哪一项作为验收指标，如何用一组不同高度的光线和一个点扩散函数分别验证它？</p>
+</section>
 <figure>
 <p><img alt="Ray transfer matrix for an optical system" class="fig-img" src="assets/img/pho-01-ray-matrix.svg" /></p>
 <figcaption><span class="fig-id">图 1-1</span> 近轴光线按元件顺序传播：传播矩阵 \(P(d)\) 改变光线高度 \(y\)，薄透镜矩阵 \(L(f)\) 改变角度 \(\theta\)，因此整个系统就是 \(L(f)P(d)\) 的矩阵乘积。图中不同高度的光线经过同一套规则汇聚到像点；增加镜片只需继续连乘矩阵，这正是 ABCD 光学的工程价值。</figcaption>
 </figure>
-<h2 id="_1">一、基本定律与费马原理<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、基本定律与费马原理<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>反射</strong>：<span class="arithmatex">\(\theta_i = \theta_r\)</span>。<strong>折射（Snell 定律）</strong>：</p>
 <div class="arithmatex">\[n_1\sin\theta_1 = n_2\sin\theta_2\]</div>
 <p><strong>全内反射</strong>：从光密到光疏介质，入射角超过临界角 <span class="arithmatex">\(\theta_c = \arcsin(n_2/n_1)\)</span> 时全部反射。<strong>这是光纤（第十二页）与许多棱镜器件的物理基础。</strong></p>
 <p><strong>费马原理</strong>（更深刻的表述）：<strong>光沿光程取极值（通常是极小）的路径传播</strong>。</p>
 <div class="arithmatex">\[\delta\int n\,ds = 0\]</div>
 <p><strong>它的价值在于统一性</strong>：反射、折射、以及<strong>折射率渐变介质中的弯曲光线</strong>（梯度折射率透镜、大气蜃景、光纤的渐变折射率芯）全都由它导出。<strong>而且它与力学的最小作用量原理形式相同</strong>——🔗 物理站讲过这个类比，它不是巧合，而是波动方程短波长极限的普遍结构。</p>
-<h2 id="_2">二、成像方程与放大率<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、成像方程与放大率<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>理想成像</strong>：物点发出的所有光线，经系统后交于同一像点。</p>
 <p><strong>薄透镜公式</strong>（牛顿形式与高斯形式）：</p>
 <div class="arithmatex">\[\frac{1}{s'} - \frac{1}{s} = \frac{1}{f}, \qquad m = \frac{s'}{s}\]</div>
@@ -101,18 +160,18 @@
 </table>
 <p><strong>F 数与 NA 的关系</strong>（近轴）：<span class="arithmatex">\(F/\# \approx 1/(2\mathrm{NA})\)</span>。</p>
 <p><strong>这两个量是光学系统的核心指标</strong>：<strong>大 NA = 高分辨率 + 大进光量，但同时 = 小景深 + 大像差 + 难加工</strong>。<strong>这是光学设计的第一权衡</strong>，贯穿显微镜、光刻机（🔗 微电子站第十二页：浸没式提高 NA）、相机镜头。</p>
-<h2 id="_3">三、光阑、光瞳与渐晕<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、光阑、光瞳与渐晕<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>孔径光阑</strong>决定进光量与 NA；<strong>视场光阑</strong>决定视场范围。</p>
 <p><strong>入瞳/出瞳</strong>是孔径光阑经前后系统所成的像——<strong>它们是系统间对接的接口</strong>。<strong>目视仪器的出瞳必须与人眼瞳孔匹配</strong>（望远镜出瞳大于眼瞳则浪费光，小则视场变暗）；<strong>光刻与显微系统的光瞳面是做照明整形与相位调控的关键位置</strong>（🔗 微电子站的离轴照明、光瞳整形）。</p>
 <p><strong>渐晕（vignetting）</strong>：边缘视场的光束被镜筒或后续镜片部分遮挡 → <strong>边缘变暗</strong>。相机镜头的边缘失光大多源于此，收小光圈可改善。</p>
-<h2 id="_4">四、矩阵光学：把系统变成乘法<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、矩阵光学：把系统变成乘法<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>近轴条件下，光线用 <span class="arithmatex">\((y, \theta)\)</span> 表示，每个元件是一个 <span class="arithmatex">\(2\times2\)</span> 矩阵：</p>
 <div class="arithmatex">\[\begin{bmatrix} y' \\ \theta'\end{bmatrix} = \mathbf{M}\begin{bmatrix} y \\ \theta\end{bmatrix}, \qquad
 \mathbf{M}_{\text{传播}}=\begin{bmatrix}1 &amp; d\\ 0 &amp; 1\end{bmatrix},\quad
 \mathbf{M}_{\text{透镜}}=\begin{bmatrix}1 &amp; 0\\ -1/f &amp; 1\end{bmatrix}\]</div>
 <p><strong>整个系统 = 矩阵连乘</strong>。这使复杂系统的近轴性质（焦距、主平面、成像位置）可以机械地算出。</p>
 <p><strong>它还有一个重要的延伸</strong>：<strong>同一套 ABCD 矩阵可以用于高斯光束的传播</strong>（第七页）——只需把实的光线参数换成复的光束参数 <span class="arithmatex">\(q\)</span>。<strong>这是几何光学与波动光学之间一座意外优雅的桥。</strong></p>
-<h2 id="_5">五、典型系统<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、典型系统<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>放大镜/目镜</strong>：物在焦点内，成虚像；</li>
 <li><strong>显微镜</strong>：物镜成放大实像，目镜再放大。<strong>总放大率 = 物镜 × 目镜</strong>，但<strong>分辨率由物镜 NA 决定</strong>（第四页）——<strong>"空放大"（放大倍数超过分辨率所能支持的）没有意义</strong>，这是显微镜使用中最常见的误解；</li>
@@ -120,7 +179,7 @@
 <li><strong>摄影镜头</strong>：多组多片，为在大视场、大孔径下同时校正多种像差（第二页）；</li>
 <li><strong>投影与照明系统</strong>：科勒照明——<strong>把光源成像到光瞳面而非物面</strong>，从而获得均匀照明。<strong>这个思想在显微镜、光刻机中都是标准配置</strong>。</li>
 </ul>
-<h2 id="_6">六、几何光学在哪里失效<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、几何光学在哪里失效<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p><strong>必须清楚它的边界</strong>：</p>
 <ol>
 <li><strong>无法给出分辨率极限</strong>。几何光学预言理想系统可以把点成为点——<strong>实际上衍射使它成为一个有限大小的斑</strong>（第四页艾里斑）。<strong>任何"分辨率"的讨论都必须用波动光学</strong>；</li>
@@ -129,7 +188,7 @@
 <li><strong>对相干光的传播描述不准</strong>——激光束需要高斯光束理论（第七页）。</li>
 </ol>
 <p><strong>恰当的工作方式</strong>：<strong>用几何光学做系统布局与像差设计，用波动光学评估最终性能（分辨率、MTF、衍射效率）。</strong> 现代光学设计软件正是这样：光线追迹为主，衍射计算为辅。</p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">七、要点<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong>费马原理统一了反射、折射与渐变介质中的传播</strong>，并与力学最小作用量同构；</li>
 <li><strong>NA 与 F 数是核心指标</strong>：大 NA 带来高分辨率与大进光量，代价是小景深、大像差、难加工；</li>
@@ -149,5 +208,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-ray-matrix.js"></script>
 </body>
 </html>

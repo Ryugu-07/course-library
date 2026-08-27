@@ -3,6 +3,68 @@
 > **对标**：Berkeley CS169 / MDN Web 全景 / 你自己的 Medusa 系统 ｜ **前置**：net 线（HTTP/TLS/DNS）、db 线、os 线
 > 全栈线不从玩具讲起——**你已经在运营一个真实全栈系统**（Medusa：FastAPI + React SPA + Postgres + Docker + cloudflared + schtasks）。所以这条线拿它当解剖标本，每讲一层就回看你系统里对应那块。这一页是全景总纲：**追踪一个请求从你敲下 medusa.hhzi.eu.cc 到页面显示的完整旅程**，把 net/db/os 学的东西串成一条你每天都在跑的链路。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="web-01-learning-title">
+
+<h2 id="web-01-learning-title">学习层：一条请求究竟在哪个边界停住？</h2>
+
+### 1. 具体谜题：同一个域名，为什么一条请求不回源？
+
+假设用户第一次打开 Medusa：浏览器需要 `app.a3f2.js`，随后请求 `GET /api/v1/articles?topic=systems`。此时 CDN 中已有 JS，但 API 缓存刚过期；离线任务刚把一批文章写进 Postgres。先预测，不要读下方链路：
+
+1. 哪一个请求会经过 cloudflared、FastAPI 和 Postgres？
+2. 若 API 缓存命中，哪几个阶段可以被边缘直接截断？
+3. 把“最慢的一步”误报成数据库，最可能漏掉哪一种证据？
+
+实验台会把同一请求拆成在线读、边缘命中、缓存未命中和离线写入四条固定轨迹；先押路径，再查看每个阶段的耗时与证据。这里的目标不是背“浏览器到服务器”，而是能从日志、缓存头和 trace 判断**哪一条边界真的被穿过**。
+
+### 2. 最小模型：路径是阶段的串接，缓存是有条件的截断
+
+把一次请求写成有向路径
+
+$$
+P=(\mathrm{DNS},\mathrm{TLS},\mathrm{edge},\mathrm{tunnel},\mathrm{app},\mathrm{db},\mathrm{response},\mathrm{render}).
+$$
+
+静态 bundle 的边缘命中只走到 `edge`；动态 API 的冷缓存走完整路径；离线生产则是另一条 `scheduler → fetch → analyze → db write` 路径，不能把它误记成用户请求的同步子步骤。一个够用的时间账本是
+
+$$
+T(P)=\sum_{s\in P}T_s+T_{queue}+T_{render},
+$$
+
+而不是把某一层的名词当作延迟解释。下面的实验固定每个阶段的数值，故障注入只改变路径，不改变测量口径。
+
+### 3. 正式机制与不变量：读写分离要留下可追溯证据
+
+- **缓存命中不等于“没有请求”**：DNS、TLS 和浏览器仍可能发生；命中只表示在声明的 cache key、TTL 和认证条件下不必回源。
+- **在线读写分离**：用户读应只消费离线任务发布的版本 `v`；重分析、抓取和写库不应阻塞读请求。若返回 `v`，日志必须能关联到该版本和请求 id。
+- **API 契约**：`GET` 的幂等/可缓存语义、状态码和分页约束属于路径的一部分；把 `POST` 当可随意缓存的 `GET` 会破坏副作用边界。
+- **瓶颈证据**：阶段耗时、队列等待、命中率和响应大小必须分账。只有“DB 查询耗时高且 trace 穿过 DB”时，数据库才是这条请求的已证瓶颈。
+
+因此可检查三个不变量：缓存命中不穿越被跳过的源站；在线读不执行离线写入；响应中的数据版本能回溯到一个已发布的生产批次。
+
+### 4. 失败边界与迁移任务
+
+本模型不证明 CDN 一定新鲜，也不覆盖 DNS 传播、TLS 证书轮换、连接复用、浏览器缓存策略或真实多租户认证。带用户身份的响应不能只按 URL 缓存；离线批处理成功也不等于用户看到最新数据；端到端时间还会受到排队、重试和浏览器渲染影响。
+
+迁移任务：为“按 topic 取分析卡片”画一张带请求 id、版本号、cache hit/miss 和阶段耗时的时序图，再决定哪些证据足以把瓶颈归因给 CDN、隧道、FastAPI、Postgres 或浏览器。把同一方法迁移到 web-02 的 N+1 查询和 web-03 的首屏渲染，不要只写“后端慢”。
+
+<div class="learning-lab" data-learning-lab="cs-web-01-anatomy" markdown="1">
+
+**JavaScript 失效时的静态读法：**先按“经过的阶段”判断是否回源，再把表中阶段耗时相加；缓存命中只截断源站路径，不抹掉 DNS/TLS 或浏览器渲染。
+
+| 固定轨迹 | 经过的阶段 | 是否触达 Postgres | 证据重点 |
+|---|---|---:|---|
+| JS 边缘命中 | DNS → TLS → edge → render | 否 | `Age`/cache header、浏览器资源计时 |
+| API 冷缓存 | DNS → TLS → edge → tunnel → app → db → response → render | 是 | trace 中的 DB span 与版本号 |
+| API 边缘命中 | DNS → TLS → edge → response → render | 否 | cache key、TTL 与响应版本 |
+| 离线生产 | scheduler → fetch → analyze → db write | 写入 | 批次 id、写入行数、发布版本 |
+
+</div>
+
+</section>
+
 ## 1. 全栈的分层地图（Medusa 实体对照）
 
 

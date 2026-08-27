@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:51</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、衍射与分辨率极限</a></li>
-<li><a href="#_2">二、标量衍射理论</a></li>
-<li><a href="#_3">三、透镜做傅里叶变换</a></li>
+<li><a href="#_1">学习层：孔径不是黑框，而是一只频率选择器</a><ul>
+<li><a href="#1">1. 具体谜题：缩小孔径后，为什么条纹变宽？</a></li>
+<li><a href="#2">2. 先预测：滤波器放在什么面才真正按频率工作？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：物体频谱乘以孔径</a></li>
+<li><a href="#4">4. 正式机制：傅里叶面、截止频率与分辨率</a></li>
+<li><a href="#5">5. 静态实验：从孔径到频谱再到像</a></li>
+<li><a href="#6">6. 反例与边界：漂亮的重建不等于超越衍射</a></li>
+<li><a href="#7">7. 迁移题：给一个成像任务写频域规格</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、衍射与分辨率极限</a></li>
+<li><a href="#_3">二、标量衍射理论</a></li>
+<li><a href="#_4">三、透镜做傅里叶变换</a></li>
 <li><a href="#4f">四、4f 系统：成像即滤波</a></li>
-<li><a href="#_4">五、超越衍射极限？</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_5">五、超越衍射极限？</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,7 +78,41 @@
 <p><strong>层次</strong>：本科核心 + 研究生工具 ｜ <strong>这是全课最美的一页</strong>。
 衍射给出几何光学永远给不出的东西——<strong>分辨率的物理极限</strong>。而傅里叶光学揭示了一个惊人的事实：<strong>一枚透镜在做傅里叶变换</strong>。这个视角让"成像"变成"滤波"，把整个光学系统纳入了信号处理的语言（🔗 数学站傅里叶分析、cs 站信号处理）。</p>
 </blockquote>
-<h2 id="_1">一、衍射与分辨率极限<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：孔径不是黑框，而是一只频率选择器<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：缩小孔径后，为什么条纹变宽？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在夫琅禾费区域，把一维孔径看成宽度 <span class="arithmatex">\(a\)</span> 的矩形。远场振幅与 <span class="arithmatex">\(\operatorname{sinc}(\pi a f_x)\)</span> 成正比。先预测：若孔径宽度从 <span class="arithmatex">\(a=1\)</span> 缩为 <span class="arithmatex">\(a=0.5\)</span>，第一零点的空间频率会向内还是向外移动，远场图样会变窄还是变宽？再把一个低频大方块和一条高频细线放进同一物面，圆形光阑收掉外围频谱时，哪一个细节先消失？</p>
+<h3 id="2">2. 先预测：滤波器放在什么面才真正按频率工作？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先写下三项预测：<strong>①</strong> 透镜前焦面上的物体到后焦面会变成什么；<strong>②</strong> 在后焦面挡住中心低频，输出会更平滑还是更突出边缘；<strong>③</strong> 两点间距从 <span class="arithmatex">\(0.8\,d_{\min}\)</span> 变成 <span class="arithmatex">\(1.2\,d_{\min}\)</span> 时，Rayleigh 凹陷会更明显还是被孔径挡掉。拖动 NA 和遮挡半径后，再区分“新增了信息”和“重排了已有频率”。</p>
+<h3 id="3-mental-model">3. 最小 mental model：物体频谱乘以孔径<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>把透明物体简化为透射函数 <span class="arithmatex">\(t(x,y)\)</span>，把透镜后焦面看成空间频率平面。理想透镜把 <span class="arithmatex">\(t\)</span> 的傅里叶分量按坐标分开；有限孔径只允许通带内的频率通过；第二枚透镜把保留下来的频谱反变换回像面。于是“成像”可以先在频域做乘法，再回到空间域观察。</p>
+<h3 id="4">4. 正式机制：傅里叶面、截止频率与分辨率<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>远场与前焦面关系为</p>
+<div class="arithmatex">\[U_f(x,y)\propto\mathcal F\{t(\xi,\eta)\}\bigg|_{f_x=x/(\lambda f),\;f_y=y/(\lambda f)}.\]</div>
+<p>若孔径函数是 <span class="arithmatex">\(P(f_x,f_y)\)</span>，相干 4f 系统的输出<strong>场</strong>频谱为</p>
+<div class="arithmatex">\[\widetilde U_{\rm out}=\widetilde U_{\rm in}\,P\,H,\]</div>
+<p>其中 <span class="arithmatex">\(H\)</span> 是额外滤波器，相干照明的圆孔近似截止频率为 <span class="arithmatex">\(f_{c,\mathrm{coh}}=\mathrm{NA}/\lambda\)</span>。若探测的是非相干照明下的强度，则应写成</p>
+<div class="arithmatex">\[\widetilde I_{\rm out}=\widetilde I_{\rm in}\,\mathrm{OTF}\,H,\]</div>
+<p>其圆孔强度传递函数的支持截止为 <span class="arithmatex">\(f_{c,\mathrm{inc}}=2\mathrm{NA}/\lambda\)</span>；此时 <span class="arithmatex">\(\lvert\mathcal F\{\mathrm{PSF}\}\rvert\)</span> 才是对应的 MTF。下文的静态频谱账本和脚本采用非相干强度/MTF 的教学代理，不能把两个 cutoff 混为一个。圆孔的 Airy 尺度与 <span class="arithmatex">\(d_{\min}=0.61\lambda/\mathrm{NA}\)</span> 相连：截止频率之外没有被探测的相位与幅度，后续算法没有观测方程可以唯一恢复它。</p>
+<h3 id="5">5. 静态实验：从孔径到频谱再到像<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-fourier-aperture">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(\lambda=0.5\,\mu\mathrm m\)</span>、<span class="arithmatex">\(\mathrm{NA}=0.50\)</span>，则</p>
+<div class="arithmatex">\[d_{\min}=0.61\times0.5/0.50=0.61\,\mu\mathrm m,\qquad f_{c,\mathrm{inc}}=2\times0.50/0.5=2\ \mathrm{cycles}/\mu\mathrm m.\]</div>
+<p>对矩形孔径 <span class="arithmatex">\(a=1\,\mu\mathrm m\)</span>，<strong>场幅度</strong>第一零点在 <span class="arithmatex">\(f_x=1/a=1\)</span> cycles/<span class="arithmatex">\(\mu\)</span>m；<span class="arithmatex">\(a=0.5\)</span> 时第一零点移到 2，频谱展宽。一个采用非相干强度 cutoff 的静态频谱账本可以这样读：输入频率 <span class="arithmatex">\([0.4,1.2,2.4]\)</span>，<span class="arithmatex">\(f_{c,\mathrm{inc}}=2\)</span> 时通带支持前两项、丢掉 2.4；矩形孔径的 <span class="arithmatex">\(\operatorname{sinc}^2\)</span> 包络还会把 1.2 显著衰减，但它仍未被硬截掉，脚本因此把正的包络值计为“通过”并显示较低的柱。若改用相干场 cutoff <span class="arithmatex">\(f_{c,\mathrm{coh}}=1\)</span>，则 1.2 和 2.4 都在通带外。中心挡块去掉 0.4 后，低频底座减弱而边缘项相对突出。脚本可切换单缝/圆孔、NA、中心挡块与双点间距，显示孔径、频谱通带、PSF 横截面和被保留的离散频率；先预测哪一项消失，再揭示。</p>
+</div>
+<h3 id="6">6. 反例与边界：漂亮的重建不等于超越衍射<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>孔径越小，频谱通带越窄、空间图样越宽。</strong>用几何光线只画出“能到达”的路径，不能得到 Airy 斑和两个点的可分辨条件。</li>
+<li><strong>4f 滤波位置很关键。</strong>把遮挡片放在像面不是同一个频率选择器；频谱面需要正确的焦距、共轭关系和对准。</li>
+<li><strong>反卷积不能补回未采样频率。</strong>当传递函数接近零时，噪声被反卷积一并放大；若高频来自强先验或新照明，那是另一个测量模型，不是凭空恢复。</li>
+<li><strong>Rayleigh 判据是约定的可分辨标准。</strong>改变判据、信噪比或点源强度，会改变实际检测概率；<span class="arithmatex">\(0.61\)</span> 不是所有任务的唯一“清晰度”。</li>
+</ul>
+<h3 id="7">7. 迁移题：给一个成像任务写频域规格<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>为显微镜检测一组已知周期的线栅，选择 <span class="arithmatex">\(\lambda\)</span>、NA 与频谱滤波器，使目标频率进入通带并保留足够的 SNR。若只能做算法增强，请列出它实际依赖的先验；若要把原本截止外的频率搬回通带，你会改用结构光、近场探测还是多角度照明，新增的物理观测是什么？</p>
+</section>
+<h2 id="_2">一、衍射与分辨率极限<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>为什么有极限</strong>：任何光学系统的孔径都是有限的，<strong>它截断了波前</strong> → 即使没有像差，点光源的像也不是点，而是<strong>艾里斑</strong>。</p>
 <p><strong>圆孔的艾里斑角半径</strong>：</p>
 <div class="arithmatex">\[\theta = 1.22\frac{\lambda}{D}\]</div>
@@ -67,7 +126,7 @@
 <p><strong>① 提高分辨率只有两条路：减小 <span class="arithmatex">\(\lambda\)</span> 或增大 NA。</strong> 这正是 🔗 微电子站第十二页光刻演进的全部逻辑（193 nm → 浸没提高 NA → EUV 减小 <span class="arithmatex">\(\lambda\)</span> → High-NA）。<strong>两个学科在这里用的是同一个公式。</strong></p>
 <p><strong>② 增大 NA 有物理上限</strong>：<span class="arithmatex">\(\mathrm{NA}=n\sin\theta &lt; n\)</span>。空气中 NA &lt; 1；<strong>浸没（提高 <span class="arithmatex">\(n\)</span>）是唯一出路</strong>——显微镜的油浸物镜（NA 可达 1.4）与光刻的水浸（NA 1.35）是同一个思想。</p>
 <p><strong>③ 相机的最佳光圈</strong>：收小光圈减小像差（第二页），但<strong>衍射斑随 F 数线性增大</strong>（<span class="arithmatex">\(d\approx 1.22\lambda F/\#\)</span>）。两条曲线相交处即最佳光圈——<strong>这解释了为什么每支镜头都有一个"最锐光圈"</strong>。</p>
-<h2 id="_2">二、标量衍射理论<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、标量衍射理论<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>惠更斯-菲涅耳原理</strong>的数学化。两个重要区域：</p>
 <ul>
 <li><strong>菲涅耳衍射（近场）</strong>：菲涅耳数 <span class="arithmatex">\(N_F = a^2/(\lambda z) \gtrsim 1\)</span>；</li>
@@ -81,7 +140,7 @@
 <li><strong>光栅 → 一系列衍射级次</strong>，方程 <span class="arithmatex">\(d\sin\theta = m\lambda\)</span>。<strong>这是所有光谱仪的核心</strong>（第十七页）；</li>
 <li><strong>孔径越小，衍射越发散</strong>——这是"缩小光斑"与"保持准直"之间的根本矛盾。</li>
 </ul>
-<h2 id="_3">三、透镜做傅里叶变换<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、透镜做傅里叶变换<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>核心结论</strong>：把物体放在透镜前焦面，<strong>后焦面上的场分布正是物体的傅里叶变换</strong>（相位因子在严格前焦面时消失）。</p>
 <div class="arithmatex">\[U_f(x,y) \propto \mathcal{F}\{t(\xi,\eta)\}\Big|_{f_x = x/\lambda f}\]</div>
 <p><strong>这个事实的分量</strong>：<strong>一枚玻璃透镜，以光速、并行、零功耗地完成了二维傅里叶变换。</strong> 电子计算机做同样大小的 2D FFT 需要可观的时间与能量。<strong>这正是"光计算"长期的诱惑所在</strong>（第十九页会诚实讨论它为何仍未普及）。</p>
@@ -104,7 +163,7 @@
 <li><strong>相位对比（Zernike，诺奖）</strong>：给零级光加 <span class="arithmatex">\(\lambda/4\)</span> 相移，<strong>把透明样品的相位差转成强度差</strong>——<strong>这是活细胞无需染色即可观察的原理</strong>，也是"相位翻译成强度"（第三页）的又一实例；</li>
 <li><strong>匹配滤波</strong>：光学模式识别。</li>
 </ul>
-<h2 id="_4">五、超越衍射极限？<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、超越衍射极限？<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>必须分清两类"超越"</strong>：</p>
 <p><strong>① 真正获取了本已丢失的高频信息</strong>——需要<strong>新的物理途径</strong>：</p>
 <ul>
@@ -113,7 +172,7 @@
 <li><strong>单分子定位（PALM/STORM）</strong>与 <strong>STED</strong>（诺奖）：利用荧光分子的开关或受激辐射抑制，<strong>逐个定位分子中心</strong>——分辨率可达纳米级。<strong>注意它们并未突破衍射，而是绕过了它</strong>（对单个可分离的发光点，其中心位置可以定得远比艾里斑小）；</li>
 </ul>
 <p><strong>② 只是让已有信息更好看</strong>——<strong>反卷积</strong>。它能补偿传递函数的衰减，<strong>但对截止频率之外的信息无能为力</strong>，且会放大噪声。<strong>声称"用 AI 超越光学极限"的工作，多数属于这一类或依赖强先验</strong>——判读时要问：<strong>这些高频信息是从哪里来的？</strong></p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>分辨率极限 <span class="arithmatex">\(0.61\lambda/\mathrm{NA}\)</span> 只取决于波长与孔径</strong>，与加工水平无关；提高只有减小 <span class="arithmatex">\(\lambda\)</span> 或增大 NA 两条路（与光刻同理）；</li>
 <li><strong>远场衍射 = 傅里叶变换</strong>；<strong>透镜后焦面就是频谱面</strong>；</li>
@@ -133,5 +192,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-fourier-aperture.js"></script>
 </body>
 </html>

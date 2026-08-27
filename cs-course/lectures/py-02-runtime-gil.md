@@ -3,7 +3,37 @@
 > **对标**：CPython 内部 / *Fluent Python* 并发章 / High Performance Python ｜ **前置**：py-01、comp-02（字节码/解释器）、par 线（并发）、mlsys 线
 > py-01 讲 Python 的抽象，这一页讲它的**运行时真相**：CPython 怎么执行你的代码、为什么 Python"慢"、**GIL 如何限制多线程并行**（每个 Python 程序员迟早撞上的墙）、以及生态怎么补救（numpy 把热点降到 C、async 处理 I/O 并发、多进程绕开 GIL）。这决定了你在 Medusa 里该怎么选并发模型、什么时候 Python 够用、什么时候要下沉到 C/换语言。
 
-## 1. CPython 怎么跑你的代码
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：两个 Python 线程为什么没有把 CPU 密集循环做成两倍快？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：同一段工作，线程、进程还是异步？</h3>
+<p>有 2 个 CPU 密集任务，各需 100 个时间单位；有 2 个网络等待任务，各只用 5 个 CPU 单位但等待 95。CPython 的 GIL 在字节码执行期间允许哪个粒度的并发？线程、进程、<code>asyncio</code> 分别会怎样影响完成时间与开销？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测三条曲线</h3>
+<p>预测：<strong>①</strong> 纯 Python CPU 循环用两个线程不会接近 2 倍加速，可能因切换和锁竞争更慢；<strong>②</strong> I/O 线程可在一个任务等待时运行另一个，吞吐改善不等于 CPU 并行；<strong>③</strong> 多进程能利用多个核心，但要付进程启动、序列化和内存复制代价，NumPy/C 扩展下沉后则可能绕开 Python 字节码瓶颈。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：字节码解释、GIL 时间片、外部并发</h3>
+<p>CPython 以解释器循环执行字节码，Python 对象操作还包含引用计数和动态分派。GIL 把同一解释器内的 Python 字节码执行串成可切换的片段；I/O 或释放 GIL 的原生代码能让其他线程前进，进程则拥有独立解释器和地址空间。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>把单个任务分成 CPU 时间 \(C\) 与等待时间 \(W\)。单线程两个独立任务的工作量是 \(\sum(C_i+W_i)\)；理想 I/O 交错的墙钟时间接近 \(\max C\) 加等待的覆盖部分，而 CPU 密集 Python 线程受共享解释器约束，\(T_{threads}\gtrsim\sum C_i\) 加调度开销。进程池的理想计算项约为 \(\max_i C_i/N\)，但还要加序列化、启动、通信和内存成本。</p>
+<p>运行时不变量是引用计数/对象状态的内部一致性；应用层的正确性不变量仍需显式锁、队列或不可变消息，GIL 不是业务数据的事务协议。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>“GIL 让所有 Python 并发都无用”是错误的：I/O、原生扩展、异步任务和多进程的瓶颈不同。</li><li>进程并行不保证线性加速；小任务、频繁 IPC、共享大数组和 NUMA 可能抵消收益。</li><li>异步只在等待可挂起、库遵守非阻塞协议时有效；把阻塞调用塞进 event loop 会让所有协程停住。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：给 Medusa 任务选运行时</h3>
+<p>把一个 CPU 预处理、HTTP 批量请求和 NumPy 矩阵运算分别标注为线程/进程/async/原生扩展候选。记录 wall time、CPU 利用率、上下文切换、序列化字节数和结果顺序，连接 par-01 的任务并行与 perf-01 的测量闭环。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-py-02-runtime-gil" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>两个 CPU 密集 Python 任务各需 100 CPU 单位时，单解释器线程的 Python 字节码总 CPU 工作仍是 200，第二线程主要交错而非同时执行；两个 I/O 任务各用 5 CPU、等待 95 时，线程可把等待重叠，墙钟时间接近一次等待窗口而非简单相加。交互版可切换 CPU/I/O 比例、线程/进程/async，并显示计算、等待、调度和通信账本。</p>\n+<table><thead><tr><th>工作类型</th><th>首选模型</th><th>可重叠部分</th><th>主要成本</th></tr></thead><tbody><tr><td>纯 Python CPU</td><td>进程/原生扩展</td><td>不同进程的 CPU</td><td>启动与 IPC</td></tr><tr><td>网络 I/O</td><td>线程/async</td><td>等待时间</td><td>阻塞库/切换</td></tr><tr><td>NumPy 热点</td><td>向量化/扩展</td><td>C 内核与 Python</td><td>数据搬运</td></tr></tbody></table>\n+</div>\n+</section>\n+\n+## 1. CPython 怎么跑你的代码
 
 
 <figure class="diagram" markdown="1">

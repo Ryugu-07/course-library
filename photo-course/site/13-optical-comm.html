@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、系统构成</a></li>
-<li><a href="#_2">二、容量增长靠什么</a></li>
+<li><a href="#_1">学习层：加放大器能补回功率，却不一定补回容量</a><ul>
+<li><a href="#1-200-km-64qam">1. 具体谜题：200 km 链路到底能不能承载 64QAM？</a></li>
+<li><a href="#2-osnr">2. 先预测：把功率、OSNR 与比特数分开</a></li>
+<li><a href="#3">3. 最小模型：链路预算是守恒账，调制阶数是噪声账</a></li>
+<li><a href="#4">4. 实验：先选调制格式，再展开链路状态</a></li>
+<li><a href="#5">5. 失败边界：线性预算不能替代非线性信道模型</a></li>
+<li><a href="#6-dci">6. 迁移任务：为一条 DCI 链路选格式</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、系统构成</a></li>
+<li><a href="#_3">二、容量增长靠什么</a></li>
 <li><a href="#dsp">三、DSP：现代光通信的核心</a></li>
-<li><a href="#_3">四、极限：非线性香农极限</a></li>
-<li><a href="#_4">五、网络与应用形态</a></li>
-<li><a href="#_5">六、要点</a></li>
+<li><a href="#_4">四、极限：非线性香农极限</a></li>
+<li><a href="#_5">五、网络与应用形态</a></li>
+<li><a href="#_6">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,10 +77,81 @@
 <p><strong>层次</strong>：本科核心 + 业界主战场 ｜ 🔗 与语言站线二（信息论）、微电子站第十八页（CPO）互链。
 光通信在三十余年里把单纤容量提升了约六个数量级。本页讲清这个增长靠什么实现、系统由哪些部分构成、以及它现在逼近的极限——<strong>香农极限在光纤中的具体形态</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：加放大器能补回功率，却不一定补回容量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-200-km-64qam">1. 具体谜题：200 km 链路到底能不能承载 64QAM？<a class="headerlink" href="#1-200-km-64qam" title="Permanent link"></a></h3>
+<p>设发射功率为 <span class="arithmatex">\(0\,\mathrm{dBm}\)</span>，光纤损耗 <span class="arithmatex">\(0.2\,\mathrm{dB/km}\)</span>，两个连接器共损失 <span class="arithmatex">\(2\,\mathrm{dB}\)</span>。200 km 产生 <span class="arithmatex">\(40\,\mathrm{dB}\)</span> 损耗；若中间三个 EDFA 各提供 <span class="arithmatex">\(10\,\mathrm{dB}\)</span>，接收功率约为 <span class="arithmatex">\(-12\,\mathrm{dBm}\)</span>。接收灵敏度是 <span class="arithmatex">\(-18\,\mathrm{dBm}\)</span>，功率裕量看起来有 <span class="arithmatex">\(6\,\mathrm{dB}\)</span>。你先猜：QPSK 和 64QAM 都能跑吗？</p>
+<h3 id="2-osnr">2. 先预测：把功率、OSNR 与比特数分开<a class="headerlink" href="#2-osnr" title="Permanent link"></a></h3>
+<ol>
+<li>EDFA 的增益是否自动恢复已经被 ASE 噪声消耗掉的 OSNR？</li>
+<li>在同一条链路上，把 QPSK 换成 64QAM，频谱效率提高还是可达距离提高？</li>
+<li>把 WDM 通道数从 80 加到 100，容量按什么量增长？它会不会消除单通道的 OSNR 门槛？</li>
+</ol>
+<h3 id="3">3. 最小模型：链路预算是守恒账，调制阶数是噪声账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>功率预算先写成</p>
+<div class="arithmatex">\[
+P_{rx}=P_{tx}-\alpha L-\sum L_c+\sum G_i,
+\]</div>
+<p>本实验把三个 EDFA 加上输入/末段基线，作为 <span class="arithmatex">\(N_{noise}=N_{amp}+1\)</span> 个噪声贡献，因此 OSNR 代理近似下降 <span class="arithmatex">\(10\log_{10}N_{noise}\)</span>。每个符号携带的比特数为 <span class="arithmatex">\(\log_2 M\)</span>；采用双偏振和 <span class="arithmatex">\(W\)</span> 个波分通道时，理想线性容量比例可写为</p>
+<div class="arithmatex">\[
+C\propto W\times 2\times R_s\times\log_2M.
+\]</div>
+<p>这两本账不能合并：高阶 QAM 提高每符号比特数，却把星座点间距离压小，因而需要更高 OSNR。FEC 可以把误码率推低，但不能让物理信号在接收端拥有不存在的 SNR。</p>
+<h3 id="4">4. 实验：先选调制格式，再展开链路状态<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认按 50 km 分段画出每一跨的功率与 OSNR。先预测“通过 / OSNR 不足 / 功率不足”，再拖动距离、放大器增益、通道数和调制阶数。SVG 中的阶梯线让“放大补功率”和“噪声逐级累积”同时可见。</p>
+<div class="learning-lab" data-learning-lab="photo-link-budget">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 <span class="arithmatex">\(L=200\,\mathrm{km}\)</span>、<span class="arithmatex">\(P_{tx}=0\,\mathrm{dBm}\)</span>、<span class="arithmatex">\(\alpha=0.2\,\mathrm{dB/km}\)</span>、连接器损耗 <span class="arithmatex">\(2\,\mathrm{dB}\)</span>、三个放大器各 <span class="arithmatex">\(10\,\mathrm{dB}\)</span>，故 <span class="arithmatex">\(P_{rx}=-12\,\mathrm{dBm}\)</span>、功率裕量为 <span class="arithmatex">\(6\,\mathrm{dB}\)</span>；四个噪声贡献的 OSNR 代理约为 <span class="arithmatex">\(17.98\,\mathrm{dB}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>格式</th>
+<th style="text-align: right;">每符号比特</th>
+<th style="text-align: right;">80 通道、100 GBd、双偏振的理想总速率</th>
+<th style="text-align: right;">教学 OSNR 门槛</th>
+<th>默认链路判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QPSK</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">32 Tb/s</td>
+<td style="text-align: right;">11 dB</td>
+<td>通过</td>
+</tr>
+<tr>
+<td>16QAM</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">64 Tb/s</td>
+<td style="text-align: right;">18 dB</td>
+<td>边界（略低于门槛）</td>
+</tr>
+<tr>
+<td>64QAM</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">96 Tb/s</td>
+<td style="text-align: right;">23 dB</td>
+<td>OSNR 不足</td>
+</tr>
+</tbody>
+</table>
+<p>四个噪声贡献相同的放大段会使示例 OSNR 约比单段低 <span class="arithmatex">\(10\log_{10}4\approx6\,\mathrm{dB}\)</span>；这正是“容量高”与“能跑多远”必须分开的原因。</p>
+</div>
+<h3 id="5">5. 失败边界：线性预算不能替代非线性信道模型<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>功率裕量为正只说明接收功率高于灵敏度，不保证相位恢复、FEC 或 OSNR 合格。</li>
+<li>提高发射功率会降低 ASE 相对影响，却会提高克尔非线性噪声；非线性香农极限因此存在最佳工作点。</li>
+<li>理想容量比例忽略了频谱保护带、滤波器、DSP 复杂度和实现损耗；通道数增加也不能突破总带宽与非线性约束。</li>
+</ul>
+<h3 id="6-dci">6. 迁移任务：为一条 DCI 链路选格式<a class="headerlink" href="#6-dci" title="Permanent link"></a></h3>
+<p>给定 80 km、400G 目标、可用 16QAM 与 QPSK 两种方案，列出你需要测量的功率、OSNR、FEC 后 BER 和每比特能耗，再说明为什么“换更高阶调制”不是免费的容量升级。把答案迁移到 CPO 时，补上电走线与光电转换的能耗项。</p>
+</section>
 <p><img alt="光通信链路预算" class="fig-img" src="assets/img/pho-13-link-budget.svg" /></p>
 <figcaption><span class="fig-id">图 13-1</span> 上：从数据、DSP、激光器/调制器到接收机的相干光链路；下：每 50 km 光纤产生约 10 dB 损耗，再由 EDFA 补回增益。链路预算 \(P_{rx}=P_{tx}-\alpha L-\sum L_c+\sum G\) 把<strong>损耗、连接器、放大器和接收灵敏度</strong>放到同一张账上；这也是 WDM 系统可以模块化扩展的工程骨架。</figcaption>
 
-<h2 id="_1">一、系统构成<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、系统构成<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <div class="arithmatex">\[\text{数据} \to \text{编码/调制} \to \text{激光器 + 调制器} \to \text{光纤 + 放大器} \to \text{接收机} \to \text{DSP} \to \text{数据}\]</div>
 <p><strong>关键部件</strong>：</p>
 <ul>
@@ -65,7 +160,7 @@
 <li><strong>放大器</strong>：EDFA（第十四页）；</li>
 <li><strong>接收机</strong>：PIN/APD（直接探测）或<strong>相干接收</strong>（第九页）。</li>
 </ul>
-<h2 id="_2">二、容量增长靠什么<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、容量增长靠什么<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>四个维度，逐个被用尽</strong>：</p>
 <p><strong>① 波长复用（WDM/DWDM）</strong>——<strong>最大的一次跃升</strong>。
 在一根光纤中同时传输几十到上百个波长通道，间隔可低至 50 GHz 甚至更密（灵活栅格）。<strong>C 带内可容纳约 80–100 个通道</strong>。</p>
@@ -88,7 +183,7 @@
 </ul>
 <p><strong>FEC 的地位值得强调</strong>：现代系统的原始误码率高到无法直接使用（可达 <span class="arithmatex">\(10^{-2}\)</span> 量级），<strong>全靠 FEC 纠正到 <span class="arithmatex">\(10^{-15}\)</span> 以下</strong>。<strong>"用编码换功率"是信息论最直接的工程兑现</strong>（🔗 语言站线二：信道编码定理）。</p>
 <p><strong>一个判断</strong>：<strong>光通信的进步，近年主要来自 DSP 与 CMOS 工艺的进步，而非光学器件本身</strong>。DSP 芯片的算力随摩尔定律增长（🔗 微电子站），使得越来越复杂的补偿算法变得可行。<strong>这是两个学科耦合的典型例子。</strong></p>
-<h2 id="_3">四、极限：非线性香农极限<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">四、极限：非线性香农极限<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>光纤不是线性信道。</strong> 功率提高时，<strong>克尔非线性</strong>（第十四页）引起自相位调制、交叉相位调制、四波混频，使不同通道互相干扰。</p>
 <p><strong>于是出现一个特有的现象</strong>：</p>
 <ul>
@@ -104,7 +199,7 @@
 <li><strong>拓展波段</strong>：从 C 带扩展到 L、S 带（需要新的放大器）；</li>
 <li><strong>空芯光纤</strong>：非线性极低，可提高功率上限。</li>
 </ul>
-<h2 id="_4">五、网络与应用形态<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">五、网络与应用形态<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -148,7 +243,7 @@
 </table>
 <p><strong>当前最大的驱动力是 AI 数据中心</strong>：GPU 集群之间需要巨大的互连带宽，<strong>且功耗成为首要约束</strong>。</p>
 <p><strong>这催生了共封装光学（CPO）</strong>（🔗 微电子站第十八页）：把光引擎与交换芯片封装在一起，<strong>省掉长电走线的驱动与均衡功耗</strong>。<strong>"每比特焦耳"取代"每秒比特"成为核心指标</strong>——这是光互连领域近年最重要的观念转变。</p>
-<h2 id="_5">六、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>容量增长靠四个维度</strong>：WDM、单通道速率、高阶调制、偏振复用；<strong>EDFA 是 WDM 的使能技术</strong>；</li>
 <li><strong>高阶调制需要相干探测</strong>，且频谱效率与传输距离根本冲突；</li>
@@ -168,5 +263,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-link-budget.js"></script>
 </body>
 </html>

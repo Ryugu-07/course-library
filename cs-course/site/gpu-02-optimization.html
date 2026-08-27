@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：为什么少写一次全局内存，往往比多买算力更有效？</a><ul>
+<li><a href="#1616-tile-softmax">具体谜题：16×16 tile 与在线 softmax</a></li>
+<li><a href="#_2">先预测访存与数值</a></li>
+<li><a href="#warp">最小心智模型：片上复用、warp 协作、稳定累积</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#l09-kernel">迁移任务：把 L09 的 kernel 画成两张账</a></li>
+</ul>
+</li>
 <li><a href="#1-gpu">1. 占用率：先让 GPU 忙起来</a></li>
 <li><a href="#2-tiling">2. 内存优化：合并 + 共享内存 tiling</a></li>
 <li><a href="#3-warp">3. Warp 级原语：更细的协作</a></li>
@@ -51,6 +75,74 @@
 <p><strong>对标</strong>：PMPP 优化章 / NVIDIA 性能指南 / FlashAttention 论文 ｜ <strong>前置</strong>：gpu-01（CUDA 模型、内存层级）、perf 线（Roofline）
 gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清晰的阶梯——从"占用率够不够"到"内存合并"到"用共享内存 tiling"到"warp 级原语"，每一级榨出更多性能。收官是一个玩具 attention kernel，让你摸到 FlashAttention 这类现代推理引擎（mlsys-02）核心内核的最小直觉。<strong>实验在 Win 4060 Ti 上跑。</strong></p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：为什么少写一次全局内存，往往比多买算力更有效？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="1616-tile-softmax">具体谜题：16×16 tile 与在线 softmax<a class="headerlink" href="#1616-tile-softmax" title="Permanent link"></a></h3>
+<p>计算 \(C=AB\)，每个矩阵为 64×64。朴素 kernel 让每个输出元素反复从全局内存读 A 行和 B 列；16×16 tiling 后，一个 tile 内的数据可以被多少个线程复用？再对 logits \([2,1,0]\) 分块计算 softmax，先处理 \([2,1]\) 再加入 0，如何不保存完整 \(N\times N\) 矩阵仍得到同一归一化结果？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先预测访存与数值<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>预测：<strong>①</strong> 16×16 tile 中的每个 A/B 元素最多被 16 个线程复用，global load 相对朴素路径显著下降；<strong>②</strong> 在线 softmax 要在新最大值出现时重缩放旧和，否则结果不再归一；<strong>③</strong> occupancy 不是越高越好，若寄存器不足导致 spill，理论 occupancy 上升也可能变慢。</p>
+</div>
+<div class="learning-model">
+<h3 id="warp">最小心智模型：片上复用、warp 协作、稳定累积<a class="headerlink" href="#warp" title="Permanent link"></a></h3>
+<p>GPU 优化的阶梯是把慢的全局访问变成合并访问，再把可复用数据放入 shared memory，最后用 warp shuffle 减少同步。attention 则把“算出全部分数并落盘”改成 tile 内流式累积；算法不变，内存交通改变。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>矩阵乘每个输出需 \(K\) 次乘加。无 tiling 时全局读取量近似为 \(2MNK\)；理想 \(T\times T\) tile 时，读入量近似为 \(2MNK/T\)，复用因子约为 \(T\)。在线 softmax 对已处理块维护 \(m=\max x_i\)、\(l=\sum_i e^{x_i-m}\)、\(o=\sum_i e^{x_i-m}v_i\)。加入新块最大值 \(m'\) 时：</p>
+<p class="arithmatex">\(l'=e^{m-m'}l+\sum_j e^{x_j-m'},\qquad o'=e^{m-m'}o+\sum_j e^{x_j-m'}v_j,\qquad y=o'/l'.\)</p>
+<p>不变量是 \(y\) 与一次性 stable softmax 的结果相同，而中间 \(N\times N\) 分数不必写入 global memory。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>tile 过大可能耗尽 shared memory/寄存器并降低 occupancy；tile 过小则复用不足，必须以 Nsight 和真实 shape 校准。</li>
+<li>在线 softmax 只解决数值稳定与中间存储，不会消除 \(QK^T\) 的算术工作，也不自动解决 causal mask、变长序列和 dropout。</li>
+<li>共享内存 bank conflict、未合并加载、同步错误和边界 tile 会让“理论复用率”无法兑现。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="l09-kernel">迁移任务：把 L09 的 kernel 画成两张账<a class="headerlink" href="#l09-kernel" title="Permanent link"></a></h3>
+<p>用同一组 \(Q,K,V\) 为 L09 记录 global read/write bytes、shared-memory tile size、寄存器压力和输出误差。先画朴素 attention 的 \(N\times N\) 中间矩阵，再画 FlashAttention 风格的 online state，说明 Roofline 位置如何因减少内存流量而移动。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-gpu-02-optimization">
+<p><strong>无 JavaScript 时的静态读法：</strong>64×64 矩阵用 16×16 tile 时，理想情况下每个 A/B tile 元素被 16 个线程复用；全局读取近似从朴素的 \(2\times64^3=524{,}288\) 个元素级读取降到 \(2\times64^3/16=32{,}768\)。对 logits \([2,1,0]\)，先得 \(m=2,l=1+e^{-1}\)；加入 0 后 \(m'=2,l'=1+e^{-1}+e^{-2}\)，归一化不变。交互版可调 tile、寄存器预算、序列长度并观察 global traffic、occupancy 估计和在线 softmax trace。</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>全局读取（元素级近似）</th>
+<th>中间矩阵</th>
+<th>关键风险</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>朴素 matmul</td>
+<td>524,288</td>
+<td>可能写回</td>
+<td>重复慢访问</td>
+</tr>
+<tr>
+<td>16×16 tiling</td>
+<td>32,768</td>
+<td>不必落盘</td>
+<td>shared/register 预算</td>
+</tr>
+<tr>
+<td>online softmax</td>
+<td>随 tile 流式</td>
+<td>只保留 \(m,l,o\)</td>
+<td>重缩放必须正确</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-gpu">1. 占用率：先让 GPU 忙起来<a class="headerlink" href="#1-gpu" title="Permanent link"></a></h2>
 <p>GPU 靠"线程多到掩盖延迟"工作（gpu-01）。<strong>占用率（occupancy）</strong> = 一个 SM 上实际活跃的 warp 数 / 硬件上限。占用率太低 → 没足够 warp 切换 → 内存延迟藏不住 → 性能差。</p>
 <p>限制占用率的资源：<strong>每线程用的寄存器数</strong>、<strong>每 block 用的共享内存</strong>、block 大小。用太多寄存器/共享内存 → 一个 SM 装不下几个 block → 占用率降。<strong>优化第一步：调 block 大小 + 控制寄存器/共享内存用量，把占用率提上去</strong>（NVIDIA 有占用率计算器）。但注意——<strong>占用率不是越高越好</strong>：够掩盖延迟即可，过度追求会牺牲每线程资源。这是第一个要测量而非猜的旋钮（perf-01 的科学方法在 GPU 上同样适用）。</p>
@@ -108,5 +200,7 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-gpu-02-optimization.js"></script>
 </body>
 </html>

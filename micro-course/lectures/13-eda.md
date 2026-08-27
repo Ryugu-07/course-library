@@ -3,6 +3,58 @@
 > **层次**：本科接触 + 硕博第三条路（EDA 算法方向）+ 业界日常。
 > 一颗现代芯片有数百亿个晶体管。**没有任何人能手工设计它们**——芯片是被**软件**造出来的。EDA（电子设计自动化）是一个规模不大但极其关键的产业：它把设计意图逐层翻译成可制造的几何图形，而这条流水线上的每一步几乎都是 **NP 难问题的启发式求解**。**对计算机背景的读者，这是本课最亲切的一页**（🔗 cs 站算法线、编译线）。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：时序签核把一个巨大图问题压缩成可证明的最长路径</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：优化了很多门，为什么时钟仍然不收敛？</h3>
+<p>考虑三个从 launch 到 capture 的时序路径：P1 的组合延迟为 <code>1.1+2.0+1.3=4.4 ns</code>，P2 为 <code>1.8+2.4+1.2=5.4 ns</code>，P3 为 <code>2.0+1.7+1.5=5.2 ns</code>。时钟周期为 5.5 ns、setup 预算为 0.2 ns。你预计哪个节点决定签核？如果工具把 P1 缩短 0.6 ns，而没有碰 P2，最坏 slack 会变好吗？这就是“局部优化”和“全局约束”之间的差别。</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先选出临界路径并判断周期 5.5 ns 是否通过。再预测：<strong>①</strong> STA 不需要枚举指数多条完整路径，只需在 DAG 上传播每个节点的最大到达时间；<strong>②</strong> 优化非临界路径不会改变最坏 slack；<strong>③</strong> 把时钟周期从 5.5 ns 放宽到 6.0 ns 会使 slack 增加 0.5 ns，但不会减少真实组合延迟；<strong>④</strong> 一旦加入反馈环，简单的 DAG 最长路递推就失去适用条件。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：约束图上的最长路径</h3>
+<p>把寄存器、组合逻辑和时钟边界抽象为有向图。每条边有延迟，节点的 arrival time 是所有前驱到达时间加边延迟的最大值；后端布局、布线和寄生提取只是不断改变这些边权。EDA 的翻译链要保持功能等价，但物理实现还必须让所有时序、功耗、拥塞和设计规则约束同时成立。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">AT(v) = max<sub>u -> v</sub> [AT(u) + d(u,v)], &nbsp; slack(p) = T<sub>clk</sub> - t<sub>setup</sub> - delay(p)</div>
+<p>在拓扑序上计算 <code>AT(v)</code>，终点的最大 arrival 就是最坏路径延迟 <code>D<sub>max</sub></code>。setup 签核的必要条件是 <code>T<sub>clk</sub> - t<sub>setup</sub> - D<sub>max</sub> >= 0</code>。这个递推的不变量是：处理节点时所有前驱已经完成，且当前值等于从源点到该节点的最大路径长度；因此不需要把所有路径显式存下来。</p>
+<p>实验把一个“修复动作”建模为对选定路径减去固定延迟并增加面积/功耗代价。它不会伪装成真实综合器，却能验证一个核心事实：签核目标是最坏约束，不是平均门延迟。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>真实 STA 不只看 setup：hold、clock skew、OCV、串扰、IR drop 和多时钟域会增加约束边界。</li>
+<li>图中若存在组合环，或时钟关系没有被正确声明，DAG 递推不能直接给出可信签核；约束文件写错会让“通过”没有意义。</li>
+<li>把一条路径变快可能增加拥塞、寄生或功耗，导致另一条路径变慢；物理设计是耦合的多目标迭代。</li>
+<li>形式等价只证明功能关系，不证明布局后的时序、可靠性和可制造性。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：沿着 DAG 做一次 timing closure</h3>
+<div class="learning-lab" data-learning-lab="micro-eda">
+<p><strong>无 JavaScript 时的静态读法：</strong>固定三条路径 P1=4.4 ns、P2=5.4 ns、P3=5.2 ns，setup=0.2 ns。当周期为 5.5 ns 时，最坏 slack 为 <code>5.5-0.2-5.4=-0.1 ns</code>，由 P2 决定。把 P1 缩短 0.6 ns 后，P1=3.8 ns，但最坏 slack 仍为 -0.1 ns；把 P2 缩短 0.6 ns 后，P2=4.8 ns，但 P3 的 5.2 ns 变成新的临界路径，最坏 slack 仅变为 <code>5.5-0.2-5.2=+0.1 ns</code>。拓扑递推的结果必须等于三条路径总和的最大值。</p>
+<table><thead><tr><th scope="col">路径</th><th scope="col">边延迟</th><th scope="col">总延迟</th><th scope="col">周期 5.5 ns 下 slack</th></tr></thead>
+<tbody><tr><td>P1</td><td>1.1 + 2.0 + 1.3</td><td>4.4 ns</td><td>0.9 ns</td></tr><tr><td>P2</td><td>1.8 + 2.4 + 1.2</td><td>5.4 ns</td><td>-0.1 ns</td></tr><tr><td>P3</td><td>2.0 + 1.7 + 1.5</td><td>5.2 ns</td><td>0.1 ns</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把一个 RTL 约束写成可审计问题</h3>
+<p>为一个两级流水线加速器列出 launch/capture 时钟、setup/hold、最大组合延迟、输入输出延迟和允许的 clock skew。然后设计两种修复：一是对临界路径插入缓冲或换大单元，二是重定时移动寄存器。对每种修复分别预测面积、功耗、拥塞和 hold 风险，说明你会用哪些报告确认“修复真的跨过了签核边界”。</p>
+</div>
+</section>
+
 ## 一、抽象层次：一条翻译链
 
 EDA 的本质是**一系列保持等价性的翻译**，这与编译器高度同构：

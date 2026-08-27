@@ -3,6 +3,58 @@
 > **层次**：硕博 + 业界主战场 ｜ 🔗 与 cs 站 GPU/MLSys 线、AI 站直接对接。
 > 第四页给出了因果链：功耗墙 → 暗硅 → 专用化。本页把"专用化"这件事拆开算：**一个专用电路凭什么比通用处理器快一到两个数量级？收益具体来自哪里？以及它的代价是什么？**
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：加速器的第一问不是峰值算力，而是工作负载受哪一面屋顶限制</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：100 GOPS 的芯片为什么只跑出 50 GOPS？</h3>
+<p>某加速器峰值算力为 100 GOPS，外部带宽为 100 GB/s。一个算子每字节只做 0.5 次运算。你预计实际性能是 100 GOPS，还是由带宽限制的 50 GOPS？如果通过权重驻留把搬运量减半，计算强度从 0.5 提到 1.0 op/byte，系统是否立刻超过 100 GOPS？再把 90% 的任务加速 20 倍，端到端是否能达到 20 倍？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先标记算子所在区域：<strong>①</strong> Roofline 给出的上限是 <code>min(P<sub>peak</sub>, B I)</code>，不是峰值算力本身；<strong>②</strong> 低计算强度算子先受带宽限制，提高乘法器数量没有帮助；<strong>③</strong> 数据流改变的是复用率与字节数，因而改变计算强度，而不一定增加峰值算力；<strong>④</strong> Amdahl 的未加速部分会给整体加速比设上限。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：算力屋顶、带宽斜坡和数据流</h3>
+<p>把每个工作负载压成两个量：单位时间可完成的峰值运算 <code>P<sub>peak</sub></code>，以及从存储层搬运数据的带宽 <code>B</code>。算子计算强度 <code>I=ops/byte</code> 越高，越能复用已读入的数据；权重驻留、输出驻留和行驻留只是把不同数据留在更近的存储层。真正的加速器是数据流、存储层级、数制和软件映射的共同设计。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">P<sub>attainable</sub> <= min(P<sub>peak</sub>, B I), &nbsp; I = ops / bytes, &nbsp; S = 1 / [(1-f) + f/s]</div>
+<p>Roofline 的转折点为 <code>I<sub>ridge</sub>=P<sub>peak</sub>/B</code>。当 <code>I &lt; I<sub>ridge</sub></code> 时，性能上限沿带宽斜坡增长；当 <code>I >= I<sub>ridge</sub></code> 时，峰值算力成为屋顶。实验把 <code>P<sub>peak</sub></code> 与 <code>B I</code> 的结果都写成 GOPS；例如 <code>100 GB/s * 0.5 op/byte = 50 Gop/s = 50 GOPS</code>，不能把它误写成 50 TOPS。Amdahl 式中的 <code>f</code> 是可加速工作比例，<code>s</code> 是该部分加速倍数；它是端到端不变量，不会因为芯片宣传的 TOPS 增加而消失。</p>
+<p>实验会让不同数据流改变有效字节数，并把相同算子放在同一张 Roofline 图上。这样能区分“硬件峰值提高”和“工作负载实际跨过转折点”两种完全不同的改进。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>Roofline 是上界模型，不包含 bank conflict、同步、稀疏索引、控制流、片间通信、编译器未映射算子和低利用率。</li>
+<li>低位宽通常降低存储与乘法成本，却可能引入量化误差、重排开销和额外校准；位宽并非越低越好。</li>
+<li>专用 ASIC 若算法或模型形状变化，固定数据流可能失效；FPGA/GPU 的灵活性是有价值的保险，而不是纯粹浪费。</li>
+<li>峰值 GOPS/TOPS 与实际吞吐、能效和任务质量不等价；必须写清 batch、精度、利用率、运算单位和端到端分母。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：拖动算子，找出真正的瓶颈</h3>
+<div class="learning-lab" data-learning-lab="micro-accelerator">
+<p><strong>无 JavaScript 时的静态读法：</strong>本实验以 GOPS 记峰值和可达性能：峰值 100 GOPS、带宽 100 GB/s 时，ridge point 为 <code>1 op/byte</code>。计算强度 <code>0.5</code> 的算子上限是 <code>min(100,100*0.5)=50 GOPS</code>；计算强度 <code>2</code> 的算子上限是 100 GOPS。若权重驻留把 bytes 从 200 GB 降到 100 GB、ops 仍为 100 G operations，强度由 0.5 变为 1.0，带宽上限从 50 提高到 100 GOPS。最后用 Amdahl：<code>f=0.9,s=20</code> 时整体加速只有 <code>1/(0.1+0.9/20)=6.9x</code>。</p>
+<table><thead><tr><th scope="col">数据流</th><th scope="col">ops</th><th scope="col">bytes</th><th scope="col">计算强度</th><th scope="col">性能上限</th></tr></thead>
+<tbody><tr><td>普通缓存</td><td>100 G</td><td>200 G</td><td>0.5</td><td>50 GOPS</td></tr><tr><td>权重驻留</td><td>100 G</td><td>100 G</td><td>1.0</td><td>100 GOPS</td></tr><tr><td>输出驻留</td><td>100 G</td><td>125 G</td><td>0.8</td><td>80 GOPS</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为一个新模型选加速器</h3>
+<p>给定一个包含大矩阵乘、稀疏检索、归一化和分支控制的模型，请分别估算每个算子的 ops、bytes、计算强度和质量约束。选择 CPU、GPU、FPGA 或 ASIC 的组合，写出数据流与存储层级，并用 Roofline 和 Amdahl 说明为什么你的方案是端到端决策，而不是“买峰值 TOPS 最大的芯片”。</p>
+</div>
+</section>
+
 ## 一、通用处理器的开销在哪
 
 执行一条加法指令，CPU 实际做了多少事？

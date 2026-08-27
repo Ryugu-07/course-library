@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li class="active"><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#web-03-learning-title">学习层：状态已经更新，为什么这一帧仍然没有送达？</a><ul>
+<li><a href="#1">1. 具体谜题：同一个状态变更，哪一个能赶上下一帧？</a></li>
+<li><a href="#2">2. 最小模型：声明树到像素的两条账本</a></li>
+<li><a href="#3-ui">3. 正式机制与不变量：UI 可预测，交付也要有预算</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
 <li><a href="#1-html">1. 浏览器渲染管线:HTML 怎么变成像素</a></li>
 <li><a href="#2-react-ui-dom">2. React：声明式 UI 与虚拟 DOM</a></li>
 <li><a href="#3">3. 前端工程化:为什么需要构建工具</a></li>
-<li><a href="#4">4. 前端性能:用户感知的速度</a></li>
+<li><a href="#4_1">4. 前端性能:用户感知的速度</a></li>
 <li><a href="#5-spa-vs">5. SPA vs 其他渲染模式</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -51,6 +73,84 @@
 <p><strong>对标</strong>：MDN / <em>High Performance Browser Networking</em> / React 文档 ｜ <strong>前置</strong>：web-01/02、net-02（HTTP 缓存）
 请求链的另一端——浏览器与前端。以你的 React SPA（Medusa，Vite 构建）为标本，讲清浏览器怎么把 HTML/CSS/JS 变成你看到的界面（渲染管线）、React 的核心思想（声明式 + 虚拟 DOM）、前端工程化（打包、为什么要 Vite）、以及前端性能。这一页也回收 comfy/math 那些站点（你的博客站）背后的前端原理。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="web-03-learning-title" class="learning-layer">
+<h2 id="web-03-learning-title">学习层：状态已经更新，为什么这一帧仍然没有送达？<a class="headerlink" href="#web-03-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：同一个状态变更，哪一个能赶上下一帧？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>仪表盘每 16.7 ms 需要交付一帧。一次状态更新可以是移动一个已经合成的面板、给 1000 行列表重新计算布局、或执行 24 ms 的同步 JavaScript。先预测：</p>
+<ol>
+<li>哪种更新可以只走 composite，最可能不触发 layout？</li>
+<li>哪种更新即使 React diff 很小，也可能错过 60 Hz 的 frame deadline？</li>
+<li>CSS、同步 script 和数据请求分别在哪个时点阻塞首屏或交互？</li>
+</ol>
+<p>实验台把 React 状态变化、主线程任务和浏览器阶段放进同一条 frame timeline；先选“会送达/会丢帧”，再查看 layout、paint、composite 的证据。这里测的是交付机制，不是凭肉眼把“快”归因给 React。</p>
+<h3 id="2">2. 最小模型：声明树到像素的两条账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>浏览器账本是</p>
+<div class="arithmatex">\[
+\mathrm{DOM}+\mathrm{CSSOM}\to\mathrm{render\ tree}\to\mathrm{layout}\to\mathrm{paint}\to\mathrm{composite},
+\]</div>
+<p>React 账本则是 <code>state → virtual tree → diff → DOM patch</code>。前者决定主线程和渲染器的工作，后者决定需要提交哪些 DOM 变化；两者不是同一层的性能证明。若一帧预算为 <code>B</code>，主线程工作为 <code>J</code>，布局/绘制/合成成本为 <code>R</code>，粗略送达条件是</p>
+<div class="arithmatex">\[
+J+R\le B.
+\]</div>
+<p><code>transform</code>/<code>opacity</code> 在满足合成层条件时可令布局与绘制成本下降，但这不是对所有 CSS 属性的普遍承诺。</p>
+<h3 id="3-ui">3. 正式机制与不变量：UI 可预测，交付也要有预算<a class="headerlink" href="#3-ui" title="Permanent link"></a></h3>
+<ul>
+<li><strong>声明式不变量</strong>：给定同一 state、props 和稳定 key，<code>UI=f(state)</code> 的逻辑结果应一致；副作用在 <code>useEffect</code> 等边界处可追踪。</li>
+<li><strong>布局读写分离</strong>：先批量读取尺寸，再批量写样式，避免交替读写触发强制同步布局；长任务应切片或移出首屏关键路径。</li>
+<li><strong>资源交付证据</strong>：CSSOM 形成、脚本是否 <code>defer</code>、字体/图片/JS 是否命中缓存，会改变首屏可用时间；bundle 哈希只解决缓存失效，不替代加载预算。</li>
+<li><strong>帧级不变量</strong>：在声明的 frame budget 内完成关键交互，不能用平均 FPS 掩盖 p95/p99 的长任务和 INP。</li>
+</ul>
+<p>因此虚拟 DOM 不是“无需关心浏览器成本”的许可证。应把 state diff、实际 DOM 变化、布局/绘制成本和 frame deadline 分开测量。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>不同浏览器、设备 GPU、字体、图片解码和后台节流会改变常数；<code>transform</code> 也可能因图层内存或合成条件失效；React 的重渲染优化不能修复同步第三方脚本或过大的首屏 bundle。实验只使用固定成本，不能替代 Performance panel、Long Tasks、LCP/INP/CLS 的真实采样。</p>
+<p>迁移任务：从 Medusa 的一个列表交互取一段 performance trace，分别标出网络、脚本、React commit、layout、paint 和 composite；再给“内容型博客、SEO 产品页、交互仪表盘”选择 SSG/SSR/SPA，并写出首屏与更新交付的证据标准。</p>
+<div class="learning-lab" data-learning-lab="cs-web-03-frontend">
+<p><strong>JavaScript 失效时的静态读法：</strong>60 Hz 的预算取 16.7 ms；先比较主线程总成本，再看是否包含 layout/paint。React diff 的大小不能单独推出是否按时送达。</p>
+<table>
+<thead>
+<tr>
+<th>更新轨迹</th>
+<th style="text-align: right;">主线程成本</th>
+<th>layout/paint</th>
+<th>结果（16.7 ms）</th>
+<th>关键机制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>合成面板 <code>transform</code></td>
+<td style="text-align: right;">3 ms</td>
+<td>否/低</td>
+<td>送达</td>
+<td>compositor 可直接移动图层</td>
+</tr>
+<tr>
+<td>单次 class 更新</td>
+<td style="text-align: right;">13 ms</td>
+<td>是</td>
+<td>送达但有余量</td>
+<td>样式变化需要重新计算几何</td>
+</tr>
+<tr>
+<td>1000 行列表</td>
+<td style="text-align: right;">24 ms</td>
+<td>是</td>
+<td>错过一帧</td>
+<td>DOM/布局成本超过预算</td>
+</tr>
+<tr>
+<td>同步脚本</td>
+<td style="text-align: right;">31 ms</td>
+<td>阻塞渲染</td>
+<td>错过一帧</td>
+<td>主线程未到达绘制阶段</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1-html">1. 浏览器渲染管线:HTML 怎么变成像素<a class="headerlink" href="#1-html" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="浏览器渲染管线：HTML→DOM + CSS→CSSOM→渲染树→布局→绘制→合成，标 reflow 昂贵。" src="assets/img/web-03-render-pipeline.svg" /></p>
@@ -85,7 +185,7 @@
 <li><strong>优化</strong>：<strong>tree-shaking</strong>（删没用到的代码）、代码分割（按路由懒加载）、压缩、<strong>内容哈希文件名</strong>（<code>app.a3f2.js</code>——内容变才变名，配合 net-02 的长缓存：<strong>文件不变就永久缓存，变了自动失效</strong>）。</li>
 </ul>
 <p><strong>你的 Medusa 前端为什么用 Vite</strong>（memory 记录的"Vite 构建化根治 unpkg CDN 白屏"）：早期用浏览器内编译 + CDN 依赖（unpkg），CDN 被墙就白屏、且开发版慢。<strong>Vite 构建成静态资源本地托管</strong>——快、稳、无外部依赖（🔗 和你所有博客站"零 CDN、KaTeX 本地打包"是同一个教训的两次应用：<strong>外部 CDN 是可用性风险，能本地就本地</strong>）。Vite 的开发时用原生 ESM + esbuild 极快热更新（HMR），生产时 Rollup 打包优化。</p>
-<h2 id="4">4. 前端性能:用户感知的速度<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 前端性能:用户感知的速度<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>前端性能是<strong>用户直接感受</strong>的（后端快 10ms 用户无感，首屏慢 1s 用户流失）。核心指标与手段（🔗 net-02 的"减往返 × 减字节 × 减距离"在前端落地）：</p>
 <ul>
 <li><strong>首屏加载</strong>：减小 bundle（代码分割、懒加载）、CDN 分发静态资源、关键 CSS 内联、图片懒加载 + 现代格式。</li>
@@ -120,5 +220,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-web-03-frontend.js"></script>
 </body>
 </html>

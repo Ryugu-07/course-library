@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li class="active"><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 密钥与秘密管理：最常见的低级灾难</a></li>
-<li><a href="#2">2. 软件供应链安全:你依赖的一切都是攻击面</a></li>
-<li><a href="#3">3. 威胁建模:在设计时想清楚攻击面</a></li>
-<li><a href="#4">4. 安全工程文化:让安全可持续</a></li>
+<li><a href="#sec-02-learning-title">学习层：一个秘密或依赖，怎样沿交付链传播？</a><ul>
+<li><a href="#1">1. 具体谜题：删除文件，风险真的删除了吗？</a></li>
+<li><a href="#2">2. 最小模型：信任图上的风险传播</a></li>
+<li><a href="#3">3. 正式机制与不变量：安全左移仍要覆盖运行时</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 密钥与秘密管理：最常见的低级灾难</a></li>
+<li><a href="#2_1">2. 软件供应链安全:你依赖的一切都是攻击面</a></li>
+<li><a href="#3_1">3. 威胁建模:在设计时想清楚攻击面</a></li>
+<li><a href="#4_1">4. 安全工程文化:让安全可持续</a></li>
 <li><a href="#5">5. 全站收束:安全是所有层的横切关注</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -51,7 +73,76 @@
 <p><strong>对标</strong>：Stanford CS155 / OWASP / <em>Building Secure and Reliable Systems</em>（Google）｜ <strong>前置</strong>：sec-01、crypto 线、cloud 线、se 线
 sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的工程实践</strong>——不是"事后修漏洞"，而是"从设计和流程上让系统更难被攻破"。三块：<strong>密钥与秘密管理</strong>（你 memory 里"明文密钥"的教训直接相关）、<strong>软件供应链安全</strong>（依赖是最大攻击面之一）、<strong>安全工程文化</strong>（威胁建模、安全左移、纵深防御）。核心是把安全从个人英雄主义变成可持续的工程纪律。</p>
 </blockquote>
-<h2 id="1">1. 密钥与秘密管理：最常见的低级灾难<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="sec-02-learning-title" class="learning-layer">
+<h2 id="sec-02-learning-title">学习层：一个秘密或依赖，怎样沿交付链传播？<a class="headerlink" href="#sec-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：删除文件，风险真的删除了吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一个 API key 曾经写进 Git，后来从工作树删除；另一个项目锁文件缺失，构建时解析到了一个被投毒的传递依赖；第三个服务运行时拿到一把可写数据库 key。先预测：</p>
+<ol>
+<li>哪个控制能发现历史中的秘密，哪个控制只能盘点依赖？</li>
+<li>轮换 key 能否让旧 commit 里的字符串失去泄露价值？</li>
+<li>SBOM、lockfile、签名 artifact、最小权限和运行时 secret manager 分别阻断哪一条传播边？</li>
+</ol>
+<p>实验台把 source、Git history、build、artifact、deploy 和 runtime 画成固定图；提交预测后再切换控制，观察风险是否在某个边界被阻断，还是已经抵达运行时。重点是安全控制的<strong>传播位置和剩余爆炸半径</strong>。</p>
+<h3 id="2">2. 最小模型：信任图上的风险传播<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>令有向图的节点为</p>
+<div class="arithmatex">\[
+\mathrm{source}\to\mathrm{history}\to\mathrm{build}\to\mathrm{artifact}\to\mathrm{deploy}\to\mathrm{runtime}.
+\]</div>
+<p>每条边带有控制谓词：历史扫描发现秘密，lockfile/哈希约束依赖，签名和 provenance 约束 artifact，secret manager 限制注入，最小权限限制 sink。若一条边未被控制覆盖，风险可以继续传播；<code>rotate</code> 改变运行时秘密的有效性，但不改写历史对象。</p>
+<h3 id="3">3. 正式机制与不变量：安全左移仍要覆盖运行时<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>秘密不变量</strong>：源码、镜像和 artifact 不含有效秘密；提交前/全史扫描能发现误提交；轮换有失效确认和审计记录。</li>
+<li><strong>供应链不变量</strong>：lockfile 固定解析结果，扫描提供已知漏洞证据，SBOM 说明组成，签名/provenance 说明“由哪个源构建”；这些职责互补。</li>
+<li><strong>权限不变量</strong>：构建、部署和运行时凭据按阶段、服务和资源最小化；只读任务不能继承写权限，CI token 不能自动成为生产管理员。</li>
+<li><strong>响应不变量</strong>：检测到泄露时能定位受影响 commit/artifact/runtime，撤销或轮换，再验证旧路径不可用；“删掉当前文件”不是完整响应。</li>
+</ul>
+<p>成熟安全工程不是堆工具，而是让每个工具在信任图上有明确的覆盖边，并记录未覆盖的假设。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>锁文件不会消灭依赖漏洞，SBOM 不会自动阻断恶意代码，secret manager 也不能阻止已经获权的运行时进程读取秘密；签名只证明来源，不证明代码无 bug。实验忽略具体云 IAM、构建隔离、密钥 KMS 和供应商响应时间，不能把 toy 图升级为合规证明。</p>
+<p>迁移任务：为 Medusa 写一张从 <code>.env</code>、Git 历史、Docker image、CI、Cloudflare/Windows 部署到 FastAPI/Postgres 的安全传播图；每条边写检测、阻断、轮换和审计证据，并给出一个只读 key 和一个构建 key 的权限差异。对“公开开源前”的清理，分别处理当前文件、历史对象和已发布 artifact。</p>
+<div class="learning-lab" data-learning-lab="cs-sec-02-engineering">
+<p><strong>JavaScript 失效时的静态读法：</strong>沿箭头从 source 走到 runtime；控制只在它覆盖的边上起作用。删除当前文件不等于清理 Git 历史，SBOM 不等于防火墙。</p>
+<table>
+<thead>
+<tr>
+<th>固定事件</th>
+<th>第一风险边</th>
+<th>关键控制</th>
+<th>运行时结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key 曾进 Git 历史</td>
+<td>history → build</td>
+<td>全史扫描 + 立即轮换</td>
+<td>旧历史仍需视为泄露</td>
+</tr>
+<tr>
+<td>未锁定传递依赖</td>
+<td>build → artifact</td>
+<td>lockfile + 依赖扫描 + SBOM</td>
+<td>可追溯不等于无漏洞</td>
+</tr>
+<tr>
+<td>CI token 可写生产</td>
+<td>deploy → runtime</td>
+<td>短期凭据 + 最小 IAM + 审计</td>
+<td>爆炸半径过大</td>
+</tr>
+<tr>
+<td>运行时只读 key</td>
+<td>runtime → data sink</td>
+<td>secret manager + 只读权限</td>
+<td>影响面受限但仍需检测</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 密钥与秘密管理：最常见的低级灾难<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="密钥管理：硬编码进 git（永久泄露）vs .env+gitignore+密钥管理器+轮换。" src="assets/img/sec-02-secrets.svg" /></p>
 <figcaption><span class="fig-id">图 sec-02.3</span>密钥管理：硬编码进 git（永久泄露）vs .env+gitignore+密钥管理器+轮换。</figcaption>
@@ -67,7 +158,7 @@ sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的�
 <li><strong>最小权限的密钥</strong>：只读的用只读 key（你的 tailscale <code>codex_readonly</code> 只读直连——<strong>教科书级的最小权限实践</strong>）。</li>
 </ul>
 <p><strong>扫描防线</strong>：用 <strong>gitleaks / git-secrets</strong>（你 memory 的开源计划里正提到"gitleaks 全史扫"）在提交前/CI（se-02）扫描，防止密钥意外进库。<strong>"提交前自动扫密钥"应该是每个项目的默认关卡</strong>。</p>
-<h2 id="2">2. 软件供应链安全:你依赖的一切都是攻击面<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<h2 id="2_1">2. 软件供应链安全:你依赖的一切都是攻击面<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>现代软件是<strong>站在依赖的肩膀上</strong>——一个项目可能间接依赖上千个第三方包（npm/pip）。<strong>每个依赖都是信任 + 攻击面</strong>：</p>
 <ul>
 <li><strong>依赖漏洞</strong>：你的代码没 bug，但用的库有已知漏洞（如著名的 Log4Shell）→ 你也受影响。</li>
@@ -82,7 +173,7 @@ sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的�
 <li><strong>SBOM（软件物料清单）</strong>：记录你用了什么依赖——出漏洞时能快速排查"我受影响吗"。</li>
 </ul>
 <p><strong>对你的开源计划</strong>（memory）：把 Medusa 开源时，"gitleaks 全史扫 + 剥离数据 + 依赖审查"正是供应链 + 密钥卫生的实践——<strong>开源前的安全清理，本页给了完整清单</strong>。</p>
-<h2 id="3">3. 威胁建模:在设计时想清楚攻击面<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h2 id="3_1">3. 威胁建模:在设计时想清楚攻击面<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="STRIDE 威胁建模 + 数据流信任边界。" src="assets/img/sec-02-stride.svg" /></p>
 <figcaption><span class="fig-id">图 sec-02.2</span>STRIDE 威胁建模 + 数据流信任边界。</figcaption>
@@ -94,7 +185,7 @@ sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的�
 <li><strong>对每个威胁定对策</strong>：认证防伪造、完整性校验防篡改、日志防抵赖、加密防泄露……</li>
 </ul>
 <p><strong>方法论</strong>：<strong>威胁建模不用很正式——哪怕设计时花十分钟问"这里的输入可信吗？这个密钥怎么保护？出错会泄露什么？"就能挡下大量问题</strong>。</p>
-<h2 id="4">4. 安全工程文化:让安全可持续<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 安全工程文化:让安全可持续<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>安全不是一个人的英雄主义或一次性审计，是<strong>融入流程的持续实践</strong>：</p>
 <ul>
 <li><strong>安全左移（shift left）</strong>：把安全检查提前到开发早期——IDE 里的安全 lint、CI 里的密钥扫描 + 依赖扫描 + SAST（静态应用安全测试，🔗 se-02、toc-01 Rice 定理的保守近似）。<strong>越早发现越便宜</strong>。</li>
@@ -133,5 +224,7 @@ sec-01 讲具体漏洞类别，这一页把安全提升到<strong>系统性的�
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-sec-02-engineering.js"></script>
 </body>
 </html>

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,18 +45,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、能带：三行版本</a></li>
-<li><a href="#_2">二、载流子浓度与费米能级</a></li>
-<li><a href="#_3">三、载流子输运：两种机制</a></li>
-<li><a href="#_4">四、产生与复合</a></li>
-<li><a href="#_5">五、这一页在全课的位置</a></li>
+<li><a href="#_1">学习层：掺杂把什么量变成了可控旋钮？</a><ul>
+<li><a href="#1">1. 具体谜题：为什么只换一个杂质，电导率就能跨越许多数量级？</a></li>
+<li><a href="#2">2. 先预测：质量作用定律会如何收支？</a></li>
+<li><a href="#3">3. 最小心智模型：两种载流子、一个水位、两条通道</a></li>
+<li><a href="#4">4. 形式机制与不变量：浓度、输运和热电压接上</a></li>
+<li><a href="#5">5. 交互实验：把质量作用定律变成可查的账本</a></li>
+<li><a href="#6">6. 反例与失效边界：哪些“直觉”不能外推？</a></li>
+<li><a href="#7">7. 迁移题：从材料参数走到器件电流</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、能带：三行版本</a></li>
+<li><a href="#_3">二、载流子浓度与费米能级</a></li>
+<li><a href="#_4">三、载流子输运：两种机制</a></li>
+<li><a href="#_5">四、产生与复合</a></li>
+<li><a href="#_6">五、这一页在全课的位置</a></li>
 </ul>
 </div>
 </details>
@@ -50,7 +75,94 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>与物理站的分工</strong>：🔗 物理站讲能带<strong>为什么</strong>存在（周期势场、Bloch 定理、晶格）；本页只取<strong>器件工程需要的部分</strong>，目标是能算出器件里流过多少电流。
 一个提醒：微电子里的半导体物理是<strong>工具化</strong>的——它不追求第一性原理的完备，而追求一套能预测器件行为、且能塞进 SPICE 模型的近似。学会在什么时候用哪个近似，比背下推导更重要。</p>
 </blockquote>
-<h2 id="_1">一、能带：三行版本<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：掺杂把什么量变成了可控旋钮？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：为什么只换一个杂质，电导率就能跨越许多数量级？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设一块 300 K 的硅，原本只有 <span class="arithmatex">\(n_i=p_i=10^{10}\ \mathrm{cm^{-3}}\)</span> 的本征载流子。现在分别做两块样品：一块掺入 <span class="arithmatex">\(N_D=10^{16}\ \mathrm{cm^{-3}}\)</span> 的磷，另一块掺入 <span class="arithmatex">\(N_A=10^{16}\ \mathrm{cm^{-3}}\)</span> 的硼。两块样品的杂质都只占硅原子的百万分之一量级，但它们的主要载流子浓度、少子浓度和电流方向会怎样变化？</p>
+<p>这个问题迫使我们区分“有多少可动载流子”和“每个载流子移动得多快”。先不要读实验结果：预测 n 型与 p 型各自的多数载流子、少数载流子，并判断把掺杂从 <span class="arithmatex">\(10^{15}\)</span> 提高到 <span class="arithmatex">\(10^{17}\ \mathrm{cm^{-3}}\)</span> 时，少子浓度会升高还是降低。</p>
+<h3 id="2">2. 先预测：质量作用定律会如何收支？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在交互台中先选择 n 型或 p 型，再改变掺杂与温度。提交前写下三项判断：</p>
+<ol>
+<li>n 型中 <span class="arithmatex">\(n\)</span> 和 <span class="arithmatex">\(p\)</span> 哪一个跟着 <span class="arithmatex">\(N_D\)</span> 增长，哪一个按反比下降？</li>
+<li>温度升高时，热电压 <span class="arithmatex">\(V_T\)</span> 增大，但 <span class="arithmatex">\(n_i\)</span> 会不会仍保持 <span class="arithmatex">\(10^{10}\ \mathrm{cm^{-3}}\)</span>？</li>
+<li>若电场固定，电流密度主要由载流子浓度控制，还是由迁移率控制？</li>
+</ol>
+<p>实验揭示的是一个守恒账本，而不是“掺杂原子变成自由电子”的口号：电荷中性与 <span class="arithmatex">\(np=n_i^2\)</span> 必须同时成立。</p>
+<h3 id="3">3. 最小心智模型：两种载流子、一个水位、两条通道<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把导带电子和价带空穴看作两类独立的可动载流子。掺杂先改变平衡时的“水位” <span class="arithmatex">\(E_F\)</span>，再通过质量作用定律把另一类的浓度压低。电场提供漂移通道，浓度梯度提供扩散通道；器件计算的第一步是先判断哪一条通道占主导。</p>
+<p>这个模型的边界也要同时记住：下面的指数浓度公式假设非简并、热平衡和均匀材料；重掺杂、强注入、量子限制或远离平衡时，费米–狄拉克统计和输运模型需要升级。</p>
+<h3 id="4">4. 形式机制与不变量：浓度、输运和热电压接上<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>热平衡下的三个核心关系是</p>
+<div class="arithmatex">\[
+n=N_C e^{-(E_C-E_F)/(kT)},\qquad
+p=N_V e^{-(E_F-E_V)/(kT)},\qquad
+np=n_i^2.
+\]</div>
+<p>对完全电离的 n 型材料，电荷中性给出 <span class="arithmatex">\(n\approx N_D\)</span>，于是 <span class="arithmatex">\(p\approx n_i^2/N_D\)</span>；p 型则交换 <span class="arithmatex">\(n,p\)</span> 与 <span class="arithmatex">\(N_D,N_A\)</span>。更稳妥的教学计算用</p>
+<div class="arithmatex">\[
+n=\frac{N_D+\sqrt{N_D^2+4n_i^2}}{2}
+\]</div>
+<p>以及 <span class="arithmatex">\(p=n_i^2/n\)</span>，在本征极限也不会把少子直接舍掉。电导率与漂移电流是</p>
+<div class="arithmatex">\[
+\sigma=q(n\mu_n+p\mu_p),\qquad J_{\mathrm{drift}}=\sigma E.
+\]</div>
+<p>扩散系数不能任意填写；爱因斯坦关系给出 <span class="arithmatex">\(D_n/\mu_n=D_p/\mu_p=V_T\)</span>，其中 <span class="arithmatex">\(V_T=kT/q\)</span>。因此本实验的可审计不变量是 <span class="arithmatex">\(np/n_i^2=1\)</span> 与 <span class="arithmatex">\(D/\mu=V_T\)</span>，而不是某个固定的“电子数”。</p>
+<h3 id="5">5. 交互实验：把质量作用定律变成可查的账本<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-carrier-balance">
+<p><strong>无 JavaScript 时的静态读法：</strong>以下是 300 K、硅、\(E=100\ \mathrm{V/cm}\) 的三个算例。取 \(\mu_n=1400\)、\(\mu_p=450\ \mathrm{cm^2/(V\cdot s)}\)、\(V_T=25.85\ \mathrm{mV}\)。电导率用 \(\sigma=q(n\mu_n+p\mu_p)\)，电流密度用 \(J=\sigma E\)。</p>
+<table>
+<thead>
+<tr>
+<th>样品</th>
+<th>多数载流子浓度</th>
+<th>少数载流子浓度</th>
+<th>\(np/n_i^2\)</th>
+<th>\(\sigma\) (S/cm)</th>
+<th>\(J\) (A/cm²)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>本征</th>
+<td>\(n=p=10^{10}\)</td>
+<td>无区分</td>
+<td>1</td>
+<td>\(3.12\times10^{-6}\)</td>
+<td>\(3.12\times10^{-4}\)</td>
+</tr>
+<tr>
+<th>n 型，\(N_D=10^{15}\)</th>
+<td>\(n\approx10^{15}\)</td>
+<td>\(p\approx10^5\)</td>
+<td>1</td>
+<td>0.224</td>
+<td>22.4</td>
+</tr>
+<tr>
+<th>p 型，\(N_A=10^{16}\)</th>
+<td>\(p\approx10^{16}\)</td>
+<td>\(n\approx10^4\)</td>
+<td>1</td>
+<td>0.721</td>
+<td>72.1</td>
+</tr>
+</tbody>
+</table>
+<p>从 \(N_D=10^{15}\) 增到 \(10^{17}\ \mathrm{cm^{-3}}\) 时，n 型少子从约 \(10^5\) 降到 \(10^3\ \mathrm{cm^{-3}}\)，而不是一起增长；同时 \(D_n=\mu_nV_T\approx36.2\ \mathrm{cm^2/s}\)、\(D_p\approx11.6\ \mathrm{cm^2/s}\)。脚本允许在 n/p 型、\(10^{14}\)–\(10^{19}\ \mathrm{cm^{-3}}\) 和 250–400 K 之间切换，并把 \(n,p,\sigma,J,V_T\) 与两条不变量同时列出。</p>
+</div>
+<h3 id="6">6. 反例与失效边界：哪些“直觉”不能外推？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>“掺杂越多，电子和空穴都越多”违反 <span class="arithmatex">\(np=n_i^2\)</span>；在平衡、非简并近似下，多子增加会压低少子。</li>
+<li>“半导体温度升高一定更导电”只适用于本征载流子增长占主导的区间；重掺杂区迁移率下降、离化程度和复合机制会改变趋势。</li>
+<li>“<span class="arithmatex">\(n\approx N_D\)</span> 永远成立”忽略了补偿掺杂、未完全电离和简并效应；实验把它作为默认近似，并明确显示精确二次解。</li>
+<li>漂移与扩散各自的公式不能在非均匀、强场、热平衡被破坏时无条件相加；需要连续性方程、复合模型或速度饱和模型。</li>
+</ul>
+<h3 id="7">7. 迁移题：从材料参数走到器件电流<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若下一步要估算一个 pn 结或 MOSFET 的漏电，先写出局部的 <span class="arithmatex">\(n,p,E,\nabla n,\nabla p\)</span>，再判断漂移、扩散和复合哪一个主导。最后回答：为什么同样的 <span class="arithmatex">\(N_D\)</span> 在低温“冻结”时不能直接代入 <span class="arithmatex">\(n\approx N_D\)</span>？这个问题会把本页的平衡账本连接到下一页的结区势垒。</p>
+</section>
+<h2 id="_2">一、能带：三行版本<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>固体中原子紧密排列，电子能级展宽成<strong>能带</strong>。器件工程只需要三件事：</p>
 <ol>
 <li><strong>价带</strong>（基本填满）与<strong>导带</strong>（基本空）之间隔着<strong>带隙 <span class="arithmatex">\(E_g\)</span></strong>；</li>
@@ -89,7 +201,7 @@
 </tbody>
 </table>
 <p><strong>为什么是硅</strong>：迁移率不如 GaAs、带隙不如 SiC，但硅有一样别的材料都没有的东西——<strong>SiO₂</strong>。硅的天然氧化层稳定、绝缘性好、与硅界面缺陷极少，可以直接用作栅介质和隔离。<strong>整个 CMOS 工业建立在这个化学上的幸运之上。</strong> 加上硅储量丰富、晶圆可以做得很大很纯，性价比无可匹敌。<strong>这是本课第一个"工程不是选最优，而是选最可行"的例子。</strong></p>
-<h2 id="_2">二、载流子浓度与费米能级<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、载流子浓度与费米能级<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>本征半导体</strong>（纯净）中电子空穴成对产生：<span class="arithmatex">\(n = p = n_i\)</span>。硅在室温下 <span class="arithmatex">\(n_i \approx 10^{10}\ \mathrm{cm^{-3}}\)</span>——对比硅原子密度 <span class="arithmatex">\(5\times10^{22}\ \mathrm{cm^{-3}}\)</span>，<strong>本征载流子少了十二个数量级</strong>，所以纯硅几乎不导电。</p>
 <p><strong>掺杂</strong>改变这一切：</p>
 <ul>
@@ -107,7 +219,7 @@
 <li><strong>热平衡时，整个系统的 <span class="arithmatex">\(E_F\)</span> 必须处处相同</strong>——这一条是分析 pn 结、MOS 结构、异质结的万能钥匙（下一页立刻用到）。</li>
 </ul>
 <p><strong>一个必须记住的数</strong>：室温下 <span class="arithmatex">\(kT/q \approx 26\ \mathrm{mV}\)</span>（热电压 <span class="arithmatex">\(V_T\)</span>）。它会出现在几乎每个器件公式里，也是后面"亚阈值摆幅 60 mV/decade 极限"的来源。</p>
-<h2 id="_3">三、载流子输运：两种机制<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、载流子输运：两种机制<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>① 漂移（drift）</strong>——电场驱动：</p>
 <div class="arithmatex">\[J_{\text{drift}} = q(n\mu_n + p\mu_p)E\]</div>
 <p><span class="arithmatex">\(\mu\)</span> 是<strong>迁移率</strong>。硅中 <span class="arithmatex">\(\mu_n \approx 1400\)</span>、<span class="arithmatex">\(\mu_p \approx 450\ \mathrm{cm^2/(V\cdot s)}\)</span>——<strong>电子迁移率约为空穴的三倍</strong>。这个不对称有直接的电路后果：<strong>PMOS 要做得比 NMOS 宽约 2–3 倍才能获得相同驱动能力</strong>（第六页会用到）。</p>
@@ -119,7 +231,7 @@
 <div class="arithmatex">\[\frac{D}{\mu} = \frac{kT}{q} = V_T\]</div>
 <p><strong>这不是巧合</strong>：漂移和扩散都源于同一个载流子的随机热运动，所以两个系数必然相关。这个关系在整个器件物理中反复出现。</p>
 <p><strong>pn 结、双极晶体管、MOSFET 的亚阈值区，都是扩散主导的</strong>；MOSFET 的强反型区则是漂移主导。<strong>知道某个工作区由哪种机制主导，就知道该用哪个公式。</strong></p>
-<h2 id="_4">四、产生与复合<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、产生与复合<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p>载流子不断产生（热激发、光照）与复合（电子填回空穴）。三种主要机制：</p>
 <ul>
 <li><strong>SRH（缺陷辅助）复合</strong>：通过带隙中的缺陷能级，是硅（间接带隙）中的主导机制。<strong>缺陷密度直接决定漏电与器件寿命</strong>——所以工艺洁净度是命根子；</li>
@@ -127,7 +239,7 @@
 <li><strong>俄歇复合</strong>：高浓度下显著，限制重掺杂器件性能。</li>
 </ul>
 <p><strong>少子寿命 <span class="arithmatex">\(\tau\)</span> 与扩散长度 <span class="arithmatex">\(L = \sqrt{D\tau}\)</span></strong> 是描述这一切的两个参数——它们决定了 pn 结的漏电流与双极器件的增益。</p>
-<h2 id="_5">五、这一页在全课的位置<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、这一页在全课的位置<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>后面所有内容都建立在本页的五个概念上：</p>
 <table>
 <thead>
@@ -175,5 +287,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-carrier-balance.js"></script>
 </body>
 </html>

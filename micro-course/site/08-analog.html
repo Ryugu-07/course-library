@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,20 +45,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、模拟设计的中心量</a></li>
-<li><a href="#_2">二、失配：模拟电路的独有敌人</a></li>
-<li><a href="#_3">三、模拟不缩放：一个产业级的事实</a></li>
-<li><a href="#_4">四、几个基石结构</a></li>
-<li><a href="#_5">五、反馈：与自动化站的直接接口</a></li>
-<li><a href="#_6">六、噪声</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：精度、速度和功耗，为什么不能同时免费得到？</a><ul>
+<li><a href="#1-100-mumathrm-a">1. 具体谜题：同一个 \(100\ \mu\mathrm A\)，该换成增益、带宽还是匹配？</a></li>
+<li><a href="#2">2. 先预测：用预算而不是单一指标做选择</a></li>
+<li><a href="#3">3. 最小心智模型：四个旋钮围绕一个工作点互相收费</a></li>
+<li><a href="#4-g_mi_d-pelgrom">4. 形式机制与不变量：\(g_m/I_D\) 和 Pelgrom 同桌出现</a></li>
+<li><a href="#5">5. 交互实验：把模拟设计变成多目标账本</a></li>
+<li><a href="#6">6. 反例与失效边界：教学比例不是工艺承诺</a></li>
+<li><a href="#7">7. 迁移题：为一个传感器前端写规格分解</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、模拟设计的中心量</a></li>
+<li><a href="#_3">二、失配：模拟电路的独有敌人</a></li>
+<li><a href="#_4">三、模拟不缩放：一个产业级的事实</a></li>
+<li><a href="#_5">四、几个基石结构</a></li>
+<li><a href="#_6">五、反馈：与自动化站的直接接口</a></li>
+<li><a href="#_7">六、噪声</a></li>
+<li><a href="#_8">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,7 +77,99 @@
 <p><strong>层次</strong>：本科核心 + 硕博主要方向之一。
 模拟设计在业内有个说法：<strong>它是一门手艺</strong>。这话半对——它有扎实的理论，但也确实高度依赖经验，且<strong>几乎无法自动化</strong>（数字有综合工具，模拟至今主要靠人手工设计与仿真迭代）。本页讲清模拟设计的核心量、核心结构，以及一个重要的产业现实：<strong>模拟电路享受不到工艺缩放的红利，反而被它伤害。</strong></p>
 </blockquote>
-<h2 id="_1">一、模拟设计的中心量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：精度、速度和功耗，为什么不能同时免费得到？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-100-mumathrm-a">1. 具体谜题：同一个 <span class="arithmatex">\(100\ \mu\mathrm A\)</span>，该换成增益、带宽还是匹配？<a class="headerlink" href="#1-100-mumathrm-a" title="Permanent link"></a></h3>
+<p>设计一只输入晶体管，电流预算固定为 <span class="arithmatex">\(100\ \mu\mathrm A\)</span>，负载 <span class="arithmatex">\(C_L=1\ \mathrm{pF}\)</span>。若选择 <span class="arithmatex">\(g_m/I_D=8\)</span>、15 或 <span class="arithmatex">\(20\ \mathrm{V^{-1}}\)</span>，跨导、带宽和小信号增益怎样变化？若两只匹配晶体管的面积从 <span class="arithmatex">\(100\)</span> 增到 <span class="arithmatex">\(400\ \mu\mathrm m^2\)</span>，Pelgrom 失配标准差会变成原来的几分之一？</p>
+<p>先预测：增大 <span class="arithmatex">\(g_m/I_D\)</span> 在固定电流下会让 <span class="arithmatex">\(g_m\)</span> 上升，但弱反型是否就自动同时获得更高速度、更小面积和更好匹配；把面积扩大四倍能否把阈值失配减半。</p>
+<h3 id="2">2. 先预测：用预算而不是单一指标做选择<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>交互台会先要求你选一个工作区，再预测：</p>
+<ol>
+<li><span class="arithmatex">\(g_m/I_D\)</span> 从 8 提到 16 时，<span class="arithmatex">\(g_m\)</span>、<span class="arithmatex">\(g_m/I_D\)</span> 与本征增益的方向是什么？</li>
+<li>电流加倍时，热噪声等效输入电压与带宽会怎样变化？</li>
+<li>面积加倍是把随机失配减半，还是只减小一半？</li>
+<li>低压下再叠一只 cascode，增益增加的代价是什么？</li>
+</ol>
+<p>提交后才显示 <span class="arithmatex">\(g_m\)</span>、<span class="arithmatex">\(r_o\)</span>、增益、带宽、功耗、失配和“所需面积 proxy”的完整账本。</p>
+<h3 id="3">3. 最小心智模型：四个旋钮围绕一个工作点互相收费<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(I_D\)</span> 看成速度和功耗的货币，把 <span class="arithmatex">\(g_m/I_D\)</span> 看成单位电流换来的控制效率，把面积看成随机精度的货币，把 <span class="arithmatex">\(C_L\)</span> 看成必须充放电的惯性。设计不是寻找一个最大值，而是在给定电源、噪声、线性度、摆幅和带宽约束下选一个可行工作点。</p>
+<p>实验的 <span class="arithmatex">\(r_o=V_A/I_D\)</span> 和弱反型面积 proxy 只用于把权衡显式化；真实器件要用工艺的 <span class="arithmatex">\(g_m/I_D\)</span>–<span class="arithmatex">\(I_D/W\)</span> 曲线、噪声模型、版图寄生和 PVT 仿真校准。</p>
+<h3 id="4-g_mi_d-pelgrom">4. 形式机制与不变量：<span class="arithmatex">\(g_m/I_D\)</span> 和 Pelgrom 同桌出现<a class="headerlink" href="#4-g_mi_d-pelgrom" title="Permanent link"></a></h3>
+<p>小信号中心关系是</p>
+<div class="arithmatex">\[
+g_m=\left(\frac{g_m}{I_D}\right)I_D,\qquad
+f_{-3\mathrm{dB}}\approx\frac{g_m}{2\pi C_L},\qquad
+A_v\approx g_mr_o.
+\]</div>
+<p>用 <span class="arithmatex">\(r_o\approx V_A/I_D\)</span> 的一阶模型，则 <span class="arithmatex">\(A_v\approx V_A(g_m/I_D)\)</span>，说明提高效率能换增益，但不代表电路的摆幅、稳定性和失真自动改善。匹配的 Pelgrom 关系为</p>
+<div class="arithmatex">\[
+\sigma_{\Delta V_{th}}=\frac{A_{V_{th}}}{\sqrt{WL}}.
+\]</div>
+<p>面积乘四，<span class="arithmatex">\(\sigma_{\Delta V_{th}}\)</span> 才除以二；电流乘二且 <span class="arithmatex">\(g_m/I_D\)</span> 固定，<span class="arithmatex">\(g_m\)</span> 与一阶带宽乘二，而功耗 <span class="arithmatex">\(P\approx V_{DD}I_D\)</span> 也乘二。可审计的不变量是这些比例关系，而不是某个跨工艺的绝对增益。</p>
+<h3 id="5">5. 交互实验：把模拟设计变成多目标账本<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-analog">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 \(V_{DD}=1\ \mathrm V\)、\(V_A=8\ \mathrm V\)、\(C_L=1\ \mathrm{pF}\)、\(A_{V_{th}}=3\ \mathrm{mV\cdot\mu m}\)。表中的 \(r_o=V_A/I_D\)，带宽是 \(g_m/(2\pi C_L)\)，失配只读 \(\sigma_{\Delta V_{th}}=A_{V_{th}}/\sqrt{A}\)。</p>
+<table>
+<thead>
+<tr>
+<th>工作区</th>
+<th>\(I_D\)</th>
+<th>\(g_m/I_D\)</th>
+<th>\(g_m\)</th>
+<th>带宽</th>
+<th>\(A_v\) proxy</th>
+<th>面积 \(A\)</th>
+<th>\(\sigma_{\Delta V_{th}}\)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>强反型</th>
+<td>\(250\ \mu\mathrm A\)</td>
+<td>8</td>
+<td>2.0 mS</td>
+<td>318 MHz</td>
+<td>64</td>
+<td>\(25\ \mu\mathrm m^2\)</td>
+<td>0.60 mV</td>
+</tr>
+<tr>
+<th>中等反型</th>
+<td>\(100\ \mu\mathrm A\)</td>
+<td>15</td>
+<td>1.5 mS</td>
+<td>239 MHz</td>
+<td>120</td>
+<td>\(100\ \mu\mathrm m^2\)</td>
+<td>0.30 mV</td>
+</tr>
+<tr>
+<th>弱反型</th>
+<td>\(25\ \mu\mathrm A\)</td>
+<td>20</td>
+<td>0.50 mS</td>
+<td>79.6 MHz</td>
+<td>160</td>
+<td>\(400\ \mu\mathrm m^2\)</td>
+<td>0.15 mV</td>
+</tr>
+</tbody>
+</table>
+<p>脚本可调 \(I_D\)、\(g_m/I_D\)、负载电容和面积，实时显示增益–带宽–功耗–失配四项结果，并把强/中/弱反型预设放在同一张 SVG 权衡图上。面积不足以满足一个指定失配目标时，结果会明确标出“需要加面积”，而不是悄悄替换设计。</p>
+</div>
+<h3 id="6">6. 反例与失效边界：教学比例不是工艺承诺<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>“<span class="arithmatex">\(g_m/I_D\)</span> 越大，设计一定越好”忽略速度、线性度、噪声带宽、漏电和面积；弱反型还可能受 <span class="arithmatex">\(1/f\)</span> 噪声与寄生支配。</li>
+<li>“面积扩大四倍，所有误差都减半”只对应独立随机失配的平方根项；系统性梯度、布局不对称、接触电阻不会按同一规律消失。</li>
+<li>“本征增益 <span class="arithmatex">\(A_v=g_mr_o\)</span> 给出运放增益”忽略多级拓扑、负载、频率补偿、相位裕度和输出摆幅。</li>
+<li>“低电压只需把电流加大”会把功耗和热噪声预算推高，且不能恢复被电源轨截断的摆幅。</li>
+</ul>
+<h3 id="7">7. 迁移题：为一个传感器前端写规格分解<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若传感器需要 <span class="arithmatex">\(100\ \mathrm{MHz}\)</span> 带宽、<span class="arithmatex">\(0.2\ \mathrm{mV}\)</span> 的随机阈值失配、总电流不超过 <span class="arithmatex">\(150\ \mu\mathrm A\)</span>，请先由 <span class="arithmatex">\(g_m\ge2\pi fC_L\)</span> 和 Pelgrom 关系求出跨导与最小面积，再判断 <span class="arithmatex">\(g_m/I_D\)</span> 是否有可行区间。最后指出还需加入哪一个噪声、摆幅或稳定性约束，才能把 proxy 变成真正的电路规格。</p>
+</section>
+<h2 id="_2">一、模拟设计的中心量<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>承第三页的小信号模型。模拟设计者脑中反复权衡的是这几个量：</p>
 <table>
 <thead>
@@ -101,7 +218,7 @@
 <li><strong><span class="arithmatex">\(V_{ov}\)</span> 大</strong>（强反型）：速度快、面积小，但<strong>费电</strong>。</li>
 </ul>
 <p><strong>这是模拟设计的第一权衡，几乎每个设计决策都要回到它。</strong></p>
-<h2 id="_2">二、失配：模拟电路的独有敌人<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、失配：模拟电路的独有敌人<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>数字电路只关心"够快够省电"，模拟电路还必须面对<strong>器件之间的随机差异</strong>。两个版图完全相同的晶体管，其 <span class="arithmatex">\(V_{th}\)</span> 也会有随机偏差，服从 <strong>Pelgrom 定律</strong>：</p>
 <div class="arithmatex">\[\sigma_{\Delta V_{th}} = \frac{A_{V_{th}}}{\sqrt{WL}}\]</div>
 <p><strong>失配反比于面积的平方根</strong>。含义极其重要：</p>
@@ -110,7 +227,7 @@
 <li><strong>精度是用面积买来的</strong>，而面积就是成本。</li>
 </ul>
 <p><strong>这一条直接解释了为什么模拟电路不随工艺缩放</strong>：数字电路可以享受尺寸变小带来的一切好处，模拟电路却<strong>必须为了精度而保持较大面积</strong>。结果是：在同一颗 SoC 上，数字部分随节点推进不断缩小，<strong>模拟部分几乎原地不动，占比越来越高</strong>。</p>
-<h2 id="_3">三、模拟不缩放：一个产业级的事实<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、模拟不缩放：一个产业级的事实<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>除了失配，还有几条使模拟设计在先进节点<strong>变难而非变易</strong>：</p>
 <ul>
 <li><strong>本征增益 <span class="arithmatex">\(g_m r_o\)</span> 随缩放下降</strong>（短沟道效应使 <span class="arithmatex">\(r_o\)</span> 变小），单级增益不足，被迫用更多级或增益提升技术；</li>
@@ -123,7 +240,7 @@
 <li>许多模拟/射频芯片<strong>故意停留在成熟节点</strong>（如 28nm、40nm、甚至 180nm BCD），因为先进节点对它们并无好处却极其昂贵；</li>
 <li><strong>这正是 Chiplet 的强动机之一</strong>——把数字逻辑做在最先进节点、模拟与 I/O 做在成熟节点，然后封装在一起（第十五页）。<strong>"不是所有电路都想去 2nm"是理解现代芯片架构的关键一句。</strong></li>
 </ol>
-<h2 id="_4">四、几个基石结构<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、几个基石结构<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>电流镜</strong>：模拟电路的"电源分配网络"。利用两管 <span class="arithmatex">\(V_{GS}\)</span> 相同则电流成 <span class="arithmatex">\(W/L\)</span> 比例，把一个基准电流复制到各处。<strong>精度受失配与沟道长度调制限制</strong>，故有共源共栅（cascode）等改进版本——<strong>用摆幅换精度</strong>的典型权衡。</p>
 <p><strong>差分对</strong>：模拟设计的核心结构。两管共享尾电流源，放大两输入之差。</p>
 <ul>
@@ -135,20 +252,20 @@
 <p><strong>带隙基准（bandgap reference）</strong>：产生与温度无关的电压基准。原理漂亮——把<strong>负温度系数</strong>的 <span class="arithmatex">\(V_{BE}\)</span> 与<strong>正温度系数</strong>的热电压 <span class="arithmatex">\(V_T\)</span> 按比例相加，一阶温度系数相消：</p>
 <div class="arithmatex">\[V_{REF} = V_{BE} + K\cdot V_T \approx 1.2\ \mathrm{V}\]</div>
 <p>结果约等于硅的带隙电压（故得名，回忆第一页 <span class="arithmatex">\(E_g = 1.12\)</span> eV）。<strong>几乎每颗芯片里都有一个带隙基准</strong>——它是模数转换、电源管理、传感器的精度之源。</p>
-<h2 id="_5">五、反馈：与自动化站的直接接口<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、反馈：与自动化站的直接接口<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <p>模拟电路大量使用<strong>负反馈</strong>来换取精度与线性度：</p>
 <div class="arithmatex">\[A_{\text{closed}} = \frac{A}{1+A\beta} \approx \frac{1}{\beta}\quad (A\beta \gg 1)\]</div>
 <p><strong>闭环增益由反馈网络（通常是电阻或电容比值）决定，而非由不精确的开环增益决定</strong>——用增益换精度。</p>
 <p><strong>但反馈会引入稳定性问题</strong>：环路中的多个极点带来相移，若在增益仍大于 1 时相移达到 180°，系统振荡。于是要看<strong>相位裕度</strong>（通常要求 45°–60°），并用<strong>密勒补偿</strong>等手段做<strong>极点分裂</strong>。</p>
 <p><strong>这与 🔗 自动化站的经典控制是同一套数学</strong>（Bode 图、增益裕度、相位裕度、根轨迹）。<strong>区别在语境</strong>：控制工程师面对的是机械、化工、飞行器等慢系统；模拟设计者面对的是 GHz 级的电路，且反馈网络本身就是被设计的电路元件。<strong>两站在这里可以互相参照阅读——同一个 Bode 图，两种工程直觉。</strong></p>
-<h2 id="_6">六、噪声<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、噪声<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>模拟电路的性能下限由噪声决定：</p>
 <ul>
 <li><strong>热噪声</strong>：电阻 <span class="arithmatex">\(\overline{v^2}=4kTR\Delta f\)</span>，MOS 沟道 <span class="arithmatex">\(\overline{i^2}=4kT\gamma g_m \Delta f\)</span>。<strong>与绝对温度成正比，不可消除</strong>；</li>
 <li><strong>闪烁（1/f）噪声</strong>：低频占主导，源自界面陷阱。<strong>PMOS 通常优于 NMOS</strong>，大面积器件更好。对付它的手段是<strong>斩波（chopping）</strong>与相关双采样——把信号搬到高频躲开 1/f 区；</li>
 <li><strong>噪声与功耗的基本权衡</strong>：要降低噪声（提高 SNR），通常要增大 <span class="arithmatex">\(g_m\)</span> 或电容 → 更多电流或面积。<strong>在给定 SNR 下，功耗有热力学意义上的下限</strong>——这是模拟设计无法逃避的物理约束。</li>
 </ul>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">七、要点<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong><span class="arithmatex">\(g_m/I_D\)</span> 与 Pelgrom 失配定律是模拟设计的两个中心公式</strong>；</li>
 <li><strong>精度用面积买，速度用电流买，两者都不打折</strong>；</li>
@@ -166,5 +283,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-analog.js"></script>
 </body>
 </html>

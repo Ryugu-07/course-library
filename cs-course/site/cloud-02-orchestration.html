@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li class="active"><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#cloud-02-learning-title">学习层：控制器看到偏差后，下一步应该做什么？</a><ul>
+<li><a href="#1-3-service-2">1. 具体谜题：期望 3 个副本，为什么 Service 只应该送流量给 2 个？</a></li>
+<li><a href="#2">2. 最小模型：期望、观测、动作、下一次观测</a></li>
+<li><a href="#3">3. 正式机制与不变量：自愈是反馈，不是魔法</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 为什么需要编排</a></li>
 <li><a href="#2-k8s">2. K8s 的核心思想:声明式 + 控制循环</a></li>
 <li><a href="#3-k8s">3. K8s 提供的能力</a></li>
-<li><a href="#4">4. 可观测性:看见庞大系统的健康</a></li>
+<li><a href="#4_1">4. 可观测性:看见庞大系统的健康</a></li>
 <li><a href="#5-sre">5. SRE:可靠性的工程化</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -51,6 +73,76 @@
 <p><strong>对标</strong>：Kubernetes 文档 / <em>Kubernetes Up &amp; Running</em> / Google SRE 书 ｜ <strong>前置</strong>：cloud-01（容器）、dist 线（分布式）、web-02（可观测性初步）
 几个容器用 docker-compose 够了；但当你有成百上千个容器跨几十台机器、要自愈、要按负载扩缩容——就需要<strong>编排（orchestration）</strong>。这一页讲 Kubernetes 的核心思想（声明式 + 控制循环，一个优雅的分布式系统）、以及<strong>可观测性</strong>（怎么看见一个庞大系统的健康——监控、日志、追踪、告警）。这条线的落点是"让大系统可靠运行"的运维工程，也回收 Medusa"静默失败"的教训。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="cloud-02-learning-title" class="learning-layer">
+<h2 id="cloud-02-learning-title">学习层：控制器看到偏差后，下一步应该做什么？<a class="headerlink" href="#cloud-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-3-service-2">1. 具体谜题：期望 3 个副本，为什么 Service 只应该送流量给 2 个？<a class="headerlink" href="#1-3-service-2" title="Permanent link"></a></h3>
+<p>Deployment 声明 <code>replicas: 3</code>。当前有一个 Pod 崩溃、一个 Pod 尚未通过 readiness probe，节点仍有容量；另一时刻 CPU 负载升高，HPA 的目标上限为 5。先预测：</p>
+<ol>
+<li>第一次 reconcile 应创建、重启还是删除 Pod？</li>
+<li>未 ready 的 Pod 是否应进入 Service endpoint？</li>
+<li>负载升高时，控制循环应改变 desired replicas，还是只把流量强行发给现有 Pod？</li>
+</ol>
+<p>实验台固定期望状态、观测状态、容量和健康信号；提交预测后再观察一个控制周期的动作、endpoint 集合和可观测指标。重点是把“控制器纠偏”和“Service 路由资格”分开。</p>
+<h3 id="2">2. 最小模型：期望、观测、动作、下一次观测<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>用状态向量表示</p>
+<div class="arithmatex">\[
+S_t=(D_t,O_t,H_t,C_t),
+\]</div>
+<p>其中 <code>D</code> 是期望副本/版本，<code>O</code> 是实际对象，<code>H</code> 是 readiness/health，<code>C</code> 是节点容量。控制器计算偏差 <code>D_t - O_t</code>，产生动作 <code>A_t</code>，系统在下一次观测得到 <code>S_{t+1}</code>。Service 只把 <code>H_t=ready</code> 且符合 selector 的端点加入流量集合。</p>
+<p>这不是瞬时函数：创建 Pod、拉镜像、探针通过、节点调度和网络传播都需要时间。一个健康的循环应在容量、权限和依赖可用时使偏差逐步缩小，但不承诺单次循环立即收敛。</p>
+<h3 id="3">3. 正式机制与不变量：自愈是反馈，不是魔法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><strong>副本不变量</strong>：在资源足够且控制面可用时，期望副本数是长期目标；短暂的 <code>observed &lt; desired</code> 是收敛过程中的状态，不必伪装成即时一致。</li>
+<li><strong>路由不变量</strong>：未 ready、错误版本或 selector 不匹配的 Pod 不应接收 Service 流量；否则控制面“修好副本”仍可能把错误暴露给用户。</li>
+<li><strong>滚动更新不变量</strong>：新版本要先达到 readiness，再按策略替换旧版本；错误率和可用性信号触发暂停或回滚。</li>
+<li><strong>观测边界</strong>：metrics、logs、traces 是对内部状态的投影；没有 trace 不能把跨服务延迟归因给某个 Pod，没有告警也不能把“暂无事件”当作健康。</li>
+</ul>
+<p>控制循环、etcd 状态、scheduler 放置、Service 发现和 HPA 指标彼此耦合；把某一个 YAML 字段当成整个系统的保证，是把机制范围说过头。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>网络分区、控制面不可达、镜像仓库故障、资源不足、错误 readiness、指标延迟和有状态存储都会让自愈停在边界；扩容也可能把下游数据库压垮。实验固定单一控制器、即时观测和简化容量，不替代生产的 rollout、PDB、HPA 和 SLO 设计。</p>
+<p>迁移任务：为 Medusa 的 webapp、worker 和 Postgres 分别写出期望状态、ready 条件、可观测信号、扩缩容边界和回滚动作；再说明为什么单机、稳定流量的小系统不应仅凭“能自愈”就引入 K8s。</p>
+<div class="learning-lab" data-learning-lab="cs-cloud-02-orchestration">
+<p><strong>JavaScript 失效时的静态读法：</strong>先比较 desired 与 observed，再检查 readiness；控制器补副本不等于新 Pod 已能接流量。负载变化影响 desired，健康变化影响 endpoint。</p>
+<table>
+<thead>
+<tr>
+<th>情景</th>
+<th>desired/observed</th>
+<th style="text-align: right;">ready endpoints</th>
+<th>下一动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pod 崩溃</td>
+<td>3 / 2</td>
+<td style="text-align: right;">2</td>
+<td>创建替代 Pod</td>
+</tr>
+<tr>
+<td>Pod 未 ready</td>
+<td>3 / 3</td>
+<td style="text-align: right;">2</td>
+<td>不路由给未 ready，等待探针</td>
+</tr>
+<tr>
+<td>CPU 高负载</td>
+<td>3 / 3，目标上限 5</td>
+<td style="text-align: right;">3</td>
+<td>HPA 增加 desired</td>
+</tr>
+<tr>
+<td>新版本金丝雀异常</td>
+<td>3 / 3</td>
+<td style="text-align: right;">3，但错误率升高</td>
+<td>暂停 rollout 或回滚</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 为什么需要编排<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>单机几个容器你手动管（cloud-01）。但规模上去后，一堆事没法手动：机器挂了容器要迁走、流量涨了要加实例、更新要滚动不能停服、几百个容器要相互发现和通信。<strong>编排系统自动化这些</strong>——你声明"我要 3 个这个服务的副本"，它负责让现实<strong>始终符合</strong>这个声明。<strong>Kubernetes（K8s）是事实标准。</strong></p>
 <h2 id="2-k8s">2. K8s 的核心思想:声明式 + 控制循环<a class="headerlink" href="#2-k8s" title="Permanent link"></a></h2>
@@ -81,7 +173,7 @@
 <li><strong>存储编排</strong>：持久卷（PV）给有状态应用（数据库）挂持久存储（🔗 cloud-01 volume 的集群版）。</li>
 </ul>
 <p><strong>代价与判断</strong>：<strong>K8s 强大但复杂</strong>——运维一个 K8s 集群本身是重活。<strong>不是所有系统都需要它</strong>：小项目、单机、流量稳定的，docker-compose 或干脆一台机器 + 进程管理就够（<strong>你的 Medusa 现在就是这样，完全合理</strong>）。<strong>"何时该上 K8s"是工程判断</strong>：多机、要自愈、要弹性扩缩、团队够大时才值。<strong>过早上 K8s 是一种技术债（se-02 的过度工程）</strong>。</p>
-<h2 id="4">4. 可观测性:看见庞大系统的健康<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 可观测性:看见庞大系统的健康<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="可观测性三支柱：指标/日志/追踪 + 告警（回收 Medusa 静默失败教训）。" src="assets/img/cloud-02-observability.svg" /></p>
 <figcaption><span class="fig-id">图 cloud-02.1</span>可观测性三支柱：指标/日志/追踪 + 告警（回收 Medusa 静默失败教训）。</figcaption>
@@ -117,5 +209,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-cloud-02-orchestration.js"></script>
 </body>
 </html>

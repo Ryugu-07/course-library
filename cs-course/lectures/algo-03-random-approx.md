@@ -3,6 +3,43 @@
 > **对标**：CS170 / CLRS 第 34–35 章 / Motwani–Raghavan *Randomized Algorithms* ｜ **前置**：algo-01/02、数学站概率线（期望、集中不等式）
 > 算法理论的成年礼：**承认有些问题（很可能）没有高效精确解，然后优雅地退让**——用随机换简单、用近似换可行、用归约把"我不会"精确地转化为"没人会"。这一页对你概率底子的调用最直接：随机算法的分析就是期望与集中不等式的应用题。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：一次随机切分，凭什么能给出下界？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：九条边该跨哪边？</h3>
+<p>有 6 个点和 9 条边：<span class="arithmatex">\(01,03,04,12,14,23,25,34,45\)</span>。把每个点独立抛硬币放进左右两组，切割边数是跨组边的数量。一次切分得到 2 条并不奇怪；但为什么重复后，至少有一次达到 5 或更高并非“纯运气故事”？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测概率账</h3>
+<p>先写下：<strong>①</strong> 每条边独立地以概率 <span class="arithmatex">\(1/2\)</span> 被切开，因此期望切边数是 <span class="arithmatex">\(9/2=4.5\)</span>；<strong>②</strong> 一次样本可以低于期望，期望不是逐次保证；<strong>③</strong> 重复 <span class="arithmatex">\(r\)</span> 次并取最好时，失败概率会按指数下降，但样本之间若被人为相关，独立性假设就不成立。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：随机试探 + 可证下界</h3>
+<p>随机算法不承诺每次找到最优解，而是让每条局部结构有可计算的成功概率。近似算法再把输出与一个下界或上界夹住：例如顶点覆盖取匹配两端，得到大小 <span class="arithmatex">\(2|M|\)</span>，而任意覆盖至少 <span class="arithmatex">\(|M|\)</span>。随机性负责找候选，证书负责解释质量。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：期望、集中与归约</h3>
+<p>令 <span class="arithmatex">\(I_e\)</span> 表示边 <span class="arithmatex">\(e\)</span> 是否跨割，则 <span class="arithmatex">\(\mathbb E[I_e]=1/2\)</span>，所以 <span class="arithmatex">\(\mathbb E[\mathrm{cut}]=m/2\)</span>。重复独立试验后，若单次失败概率为 <span class="arithmatex">\(q\)</span>，全失败概率是 <span class="arithmatex">\(q^r\)</span>；Chernoff–Hoeffding 则把样本均值偏离期望的概率压成指数尾界。归约的方向必须保持：<span class="arithmatex">\(A\le_pB\)</span> 意味着 B 易会让 A 易，而不是反过来。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>期望保证“平均账”而非每次输出；若要求确定性质量，需要把随机算法与验证/重试结合。</li>
+<li>随机切分的边缘独立不等于所有事件独立；错误套用集中不等式会得到虚假的置信度。</li>
+<li>近似比必须说明目标是最小化还是最大化、比较对象是最优值还是某个下界；“看起来接近”不是证明。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：在放弃精确前留下证书</h3>
+<p>给一个无法存下的覆盖或排程问题，先问能否归约到已知 NP 难问题；若不能精确求解，选择随机采样、LP 松弛或贪心，并写出一个可检查的质量下界。再说明你会用多少次重复把失败概率降到 <span class="arithmatex">\(10^{-6}\)</span>，以及独立性从哪里来。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-algo-03-random-approx" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>上面 9 条边随机切分的期望是 <span class="arithmatex">\(4.5\)</span>；固定切分 <span class="arithmatex">\(\{0,1,2\}\mid\{3,4,5\}\)</span> 切开 <span class="arithmatex">03,04,14,23,25\)</span> 共 5 条。若某一次达到目标的概率为 <span class="arithmatex">\(1/2\)</span>，重复 10 次仍全失败的概率是 <span class="arithmatex">\(2^{-10}\approx0.00098\)</span>。页面脚本使用固定种子逐次展示切分、边计数和重复后的最好值。</p>
+</div>
+</section>
+
 ## 1. 随机化：用掷硬币换简洁与速度
 
 两类随机算法：**Las Vegas**（结果永远对，时间是随机变量——如随机快排）；**Monte Carlo**（时间固定，结果以概率对——如素性测试）。

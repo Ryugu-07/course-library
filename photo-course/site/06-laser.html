@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,20 +47,30 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、三个过程与粒子数反转</a></li>
-<li><a href="#_2">二、谐振腔与阈值</a></li>
-<li><a href="#_3">三、纵模与横模</a></li>
-<li><a href="#_4">四、脉冲技术</a></li>
-<li><a href="#_5">五、主要激光器类型</a></li>
-<li><a href="#_6">六、激光的四个特性与它们的用途</a></li>
-<li><a href="#_7">七、要点</a></li>
+<li><a href="#_1">学习层：激光不是“更亮”，而是先过一条阈值账本</a><ul>
+<li><a href="#1">1. 具体谜题：镜子和增益何时让光自己接管腔？</a></li>
+<li><a href="#2">2. 先预测：哪一条性质来自哪一个机制？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：光子、反转、反馈的三节点</a></li>
+<li><a href="#4">4. 正式机制：往返增益、反转与模式间隔</a></li>
+<li><a href="#5">5. 静态实验：把阈值拐点和纵模间隔分开</a></li>
+<li><a href="#6">6. 反例与边界：过阈值不保证每个激光指标都好</a></li>
+<li><a href="#7">7. 迁移题：从指标倒推光源架构</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、三个过程与粒子数反转</a></li>
+<li><a href="#_3">二、谐振腔与阈值</a></li>
+<li><a href="#_4">三、纵模与横模</a></li>
+<li><a href="#_5">四、脉冲技术</a></li>
+<li><a href="#_6">五、主要激光器类型</a></li>
+<li><a href="#_7">六、激光的四个特性与它们的用途</a></li>
+<li><a href="#_8">七、要点</a></li>
 </ul>
 </div>
 </details>
@@ -54,11 +79,45 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>安全提醒</strong>：本页只讲原理。真实激光器可造成永久性眼损伤与灼伤，<strong>必须依据现行安全标准、经培训、佩戴对应波段防护镜后在合规环境中使用</strong>。本课不提供任何操作规程。
 激光与普通光源的差别不是"更亮"，而是<strong>性质上的不同</strong>：极高的相干性、方向性与光谱纯度。本页讲清这些性质从哪来，以及它们各自被用在什么地方。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：激光不是“更亮”，而是先过一条阈值账本<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：镜子和增益何时让光自己接管腔？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一段长度 <span class="arithmatex">\(L=10\,\mathrm{cm}\)</span> 的增益介质放在腔内，内损耗为 <span class="arithmatex">\(\alpha=0.010\,\mathrm{cm}^{-1}\)</span>，两面镜子的反射率为 <span class="arithmatex">\(R_1=0.99\)</span>、<span class="arithmatex">\(R_2=0.95\)</span>。单次往返后，光强会衰减还是增长？若增益系数 <span class="arithmatex">\(g\)</span> 从 <span class="arithmatex">\(0.010\)</span> 调到 <span class="arithmatex">\(0.014\,\mathrm{cm}^{-1}\)</span>，你预测输出仍是随机自发辐射，还是出现受激输出的拐点？先用对数算出阈值，不要用“镜子很亮”代替乘法。</p>
+<h3 id="2">2. 先预测：哪一条性质来自哪一个机制？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前写下四项预测：<strong>①</strong> 上述腔的阈值增益大约是 <span class="arithmatex">\(0.013\,\mathrm{cm}^{-1}\)</span> 的上方还是下方；<strong>②</strong> 把腔长从 <span class="arithmatex">\(10\)</span> cm 加倍，纵模间隔 <span class="arithmatex">\(\Delta\nu\)</span> 变大还是变小；<strong>③</strong> 二能级系统只靠泵浦能否得到稳定的 <span class="arithmatex">\(N_2&gt;N_1\)</span>；<strong>④</strong> 锁模时增益带宽加倍，傅里叶限制的脉宽上限会怎样变化。实验先收下判断，再显示往返增益、反转和纵模账本。</p>
+<h3 id="3-mental-model">3. 最小 mental model：光子、反转、反馈的三节点<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>把激光器压缩成三个量：泵浦建立粒子数反转，受激辐射把反转转成同相光子，谐振腔把光子送回增益介质。低于阈值，损耗每一圈都吃掉场；达到阈值，反馈让场建立并反过来耗尽反转。方向性、窄线宽和高亮度是“受激复制 + 模式筛选”的结果，不是总功率的别名。</p>
+<h3 id="4">4. 正式机制：往返增益、反转与模式间隔<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>阈值由单次往返因子等于 1 给出：</p>
+<div class="arithmatex">\[R_1R_2\exp\{2(g-\alpha)L\}=1,
+\qquad g_{\rm th}=\alpha-\frac{\ln(R_1R_2)}{2L}.\]</div>
+<p>粒子数反转的必要方向是 <span class="arithmatex">\(N_2&gt;N_1\)</span>；二能级系统的吸收与受激辐射系数相同，泵浦不能把基态持续“抽空”到反转以上，因此实际器件采用三能级或更有利的四能级结构。纵模满足</p>
+<div class="arithmatex">\[\nu_q=q\frac{c}{2nL},\qquad \Delta\nu=\frac{c}{2nL},\]</div>
+<p>而稳定腔还需 <span class="arithmatex">\(0\le g_1g_2\le1\)</span>。这些是不同证书：有反转不等于腔稳定，有阈值不等于得到单纵模。</p>
+<h3 id="5">5. 静态实验：把阈值拐点和纵模间隔分开<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-laser-threshold">
+<p><strong>无 JavaScript 时的静态读法：</strong>对 <span class="arithmatex">\(R_1=0.99\)</span>、<span class="arithmatex">\(R_2=0.95\)</span>、<span class="arithmatex">\(\alpha=0.010\,\mathrm{cm}^{-1}\)</span>、<span class="arithmatex">\(L=10\,\mathrm{cm}\)</span>，</p>
+<div class="arithmatex">\[g_{\rm th}=0.010-\frac{\ln(0.9405)}{20}\approx0.01307\,\mathrm{cm}^{-1}.\]</div>
+<p>这里的 <span class="arithmatex">\(g\)</span> 与 <span class="arithmatex">\(\alpha\)</span> 都是以逆长度计的<strong>强度（功率）增益/损耗系数</strong>，本例单位为 <span class="arithmatex">\(\mathrm{cm}^{-1}\)</span>，而 <span class="arithmatex">\(R_1,R_2\)</span> 是功率反射率；若改用场振幅系数，必须同步改写往返因子，不能再任意补一个 2。</p>
+<p>取 <span class="arithmatex">\(n=1.5\)</span>、<span class="arithmatex">\(L=0.10\,\mathrm m\)</span>，纵模间隔为 <span class="arithmatex">\(\Delta\nu=3.0\times10^8/(2\times1.5\times0.10)=1.0\,\mathrm{GHz}\)</span>。若把泵浦归一化为 <span class="arithmatex">\(p=0.8,1.0,1.2\)</span>、阈值 <span class="arithmatex">\(p_{\rm th}=1\)</span>，教学输出可写成 <span class="arithmatex">\(P_{\rm out}=0,0,0.2\)</span>（未建模斜率效率）。脚本可调反射率、损耗、腔长、折射率和泵浦，逐圈显示 <span class="arithmatex">\(R_1R_2e^{2(g-\alpha)L}\)</span>、输出拐点、纵模线和稳定腔区间；先预测“增长/衰减”，再揭示。</p>
+</div>
+<h3 id="6">6. 反例与边界：过阈值不保证每个激光指标都好<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>达到阈值只是净增益条件。</strong>热透镜、空间烧孔、增益饱和、腔失稳和损伤都可能让真实输出偏离玩具的线性超阈值曲线。</li>
+<li><strong>反转不是二能级的免费状态。</strong>把泵浦功率加大不能绕过受激吸收的平衡；三/四能级的下能级寿命和弛豫通道才是可用反转的结构基础。</li>
+<li><strong>多纵模不是低功率的同义词。</strong>增益带宽内的纵模数由腔长和选择元件共同决定；长相干长度还需要稳定频率与相位噪声控制。</li>
+<li><strong>激光安全不能从额定总功率判断。</strong>方向性和可聚焦性把功率集中到视网膜，真实装置必须依现行标准和受训流程管理，实验只做理论计算。</li>
+</ul>
+<h3 id="7">7. 迁移题：从指标倒推光源架构<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>为长距相干通信、材料打标和飞秒光谱各选一种腔与调制方式。请写出需要优先约束的 <span class="arithmatex">\(\Delta\nu\)</span>、<span class="arithmatex">\(M^2\)</span>、脉宽或峰值功率指标，判断该用单纵模、调 Q、锁模还是 CPA，并指出哪一项限制来自增益介质、哪一项来自腔和输出耦合。</p>
+</section>
 <figure>
 <p><img alt="Laser cavity, threshold, and longitudinal modes" class="fig-img" src="assets/img/pho-06-laser-cavity.svg" /></p>
 <figcaption><span class="fig-id">图 6-1</span> 泵浦在增益介质中建立粒子数反转，两面镜子的反馈让同一批光子往返并被受激放大；当单次往返增益恰好补偿损耗时达到阈值，输出功率出现拐点。部分反射的输出耦合镜取出相干光，腔长则决定纵模间隔 \(\Delta\nu=c/(2nL)\)。</figcaption>
 </figure>
-<h2 id="_1">一、三个过程与粒子数反转<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、三个过程与粒子数反转<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>爱因斯坦给出光与物质相互作用的三个过程：</p>
 <table>
 <thead>
@@ -92,7 +151,7 @@
 <p><strong>这是一个非平衡态</strong>，必须靠外界<strong>泵浦</strong>（光泵、电泵、化学、放电）维持。</p>
 <p><strong>二能级系统无法实现反转</strong>（受激吸收与受激辐射系数相同，最好只能做到相等）→ <strong>必须用三能级或四能级系统</strong>。</p>
 <p><strong>四能级系统优于三能级</strong>：其下能级在热平衡下几乎是空的 → <strong>所需泵浦阈值低得多</strong>。Nd:YAG 是典型四能级系统，红宝石是三能级（故需要极强泵浦）——<strong>这解释了为什么红宝石激光器只能脉冲运转，而 Nd:YAG 可以连续输出</strong>。</p>
-<h2 id="_2">二、谐振腔与阈值<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、谐振腔与阈值<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>增益介质 + 反馈</strong>（两面反射镜）= 激光器。光在腔内往返，每次经过增益介质被放大。</p>
 <p><strong>阈值条件</strong>：单次往返的增益 = 损耗</p>
 <div class="arithmatex">\[R_1R_2\,e^{2(g-\alpha)L} = 1\]</div>
@@ -100,7 +159,7 @@
 <p><strong>腔的稳定性条件</strong>（用 <span class="arithmatex">\(g_i = 1 - L/R_i\)</span>）：</p>
 <div class="arithmatex">\[0 \le g_1g_2 \le 1\]</div>
 <p>不满足则光束逐次往返后逸出腔外。<strong>平凹腔、共焦腔是常用的稳定结构</strong>。</p>
-<h2 id="_3">三、纵模与横模<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、纵模与横模<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>纵模</strong>：腔长决定的驻波条件</p>
 <div class="arithmatex">\[\nu_q = q\frac{c}{2nL} \quad\Longrightarrow\quad \Delta\nu = \frac{c}{2nL}\ (\text{纵模间隔})\]</div>
 <p><strong>增益带宽内可能容纳许多纵模</strong> → 多纵模输出，相干长度短。</p>
@@ -110,7 +169,7 @@
 </ul>
 <p><strong>横模</strong>：光束的横向分布。<strong>TEM₀₀（基模）是高斯光束</strong>（第七页），<strong>光束质量最好、可聚焦到最小</strong>。高阶模有节线、发散角大。</p>
 <p><strong>光束质量因子 <span class="arithmatex">\(M^2\)</span></strong>：实际光束发散与理想高斯的比值，<span class="arithmatex">\(M^2=1\)</span> 为理想。<strong>这是激光器最重要的性能指标之一</strong>——加工用激光的可聚焦功率密度直接由它决定。</p>
-<h2 id="_4">四、脉冲技术<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、脉冲技术<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>调 Q（Q-switching）</strong>：先阻断腔内反馈、让粒子数反转积累到很高，再突然恢复 → <strong>能量在极短时间内释放</strong>。</p>
 <ul>
 <li>脉宽：纳秒量级；峰值功率：兆瓦级；</li>
@@ -124,7 +183,7 @@
 <li><strong>应用</strong>：超快光谱、双光子显微、精密加工（<strong>"冷加工"——脉冲短到热量来不及扩散</strong>）、<strong>光频梳</strong>（诺奖工作，用于光钟与精密光谱）。</li>
 </ul>
 <p><strong>啁啾脉冲放大（CPA，诺奖）</strong>：把超短脉冲先展宽 → 放大 → 再压缩。<strong>避免了放大过程中的峰值功率损坏光学元件</strong>——<strong>这是超强激光得以实现的关键技术</strong>，也是一个漂亮的"绕开限制"的工程思路。</p>
-<h2 id="_5">五、主要激光器类型<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、主要激光器类型<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -162,7 +221,7 @@
 </tbody>
 </table>
 <p><strong>产业格局的一个判断</strong>：<strong>光纤激光凭借效率、可靠性与成本，已在工业加工领域大量取代传统气体与固体激光器</strong>；而<strong>半导体激光在数量上占绝对主导</strong>（每部手机、每个数据中心、每台激光打印机里都有）。</p>
-<h2 id="_6">六、激光的四个特性与它们的用途<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_7">六、激光的四个特性与它们的用途<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -195,7 +254,7 @@
 </tbody>
 </table>
 <p><strong>"高亮度"值得澄清</strong>：激光的总功率可能不大（一支激光笔仅几毫瓦），但<strong>因为方向性极好、可聚焦到接近波长的尺度</strong>，其<strong>功率密度</strong>可以极高。<strong>这正是它危险的原因</strong>——毫瓦级的可见光激光进入眼睛后被晶状体聚焦到视网膜上，功率密度足以造成永久损伤。</p>
-<h2 id="_7">七、要点<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<h2 id="_8">七、要点<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <ul>
 <li><strong>受激辐射产生"精确复制"的光子</strong>，是相干放大的根源；</li>
 <li><strong>必须粒子数反转（非平衡态）</strong>；二能级不行，<strong>四能级阈值远低于三能级</strong>；</li>
@@ -215,5 +274,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-laser-threshold.js"></script>
 </body>
 </html>

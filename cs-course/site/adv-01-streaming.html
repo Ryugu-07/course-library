@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：一张小表，为什么敢回答没存过的键？</a><ul>
+<li><a href="#_2">具体谜题：重击手会被谁“借名”？</a></li>
+<li><a href="#_3">先预测单边误差</a></li>
+<li><a href="#_4">最小心智模型：频率向量的压缩投影</a></li>
+<li><a href="#_5">形式机制：上界与空间账</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移题：先决定可接受的误差方向</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 模型与不可能性</a></li>
 <li><a href="#2">2. 三个基石草图</a></li>
 <li><a href="#3">3. 统一视角：草图 = 线性投影 + 集中</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：MIT 6.854 / CMU 15-859 / Amazon–Cormode 综述 ｜ <strong>前置</strong>：algo-03（随机化）、数学站概率线（矩、集中）、信息论线
 现代数据的现实：<strong>数据流过一次就没了，且大到存不下</strong>（网络包、日志、点击流）。流算法的约束是苛刻的——<strong>一遍扫描、亚线性空间（远小于 <span class="arithmatex">\(n\)</span>）</strong>——却仍能给出可证明精度的近似。这条线是"用随机性和信息论换空间"的极致，也是 Medusa 这类持续摄入数据系统的底层直觉。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：一张小表，为什么敢回答没存过的键？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：重击手会被谁“借名”？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>流是 <code>a,b,a,c,d,b,a,e,c,b,f,a,d,c,b,a</code>，精确频率为 <span class="arithmatex">\(f_a=5,f_b=4,f_c=3,f_d=2,f_e=f_f=1\)</span>。如果只有 3 行、4 列的 Count-Min Sketch，查询 <code>b</code> 时某些行会混入别的键。取最小值是否可能低估？两台机器各处理半段后逐格相加，是否等于合并后重放？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测单边误差<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 每个计数格只加不减，所以估计值不低于真实频率；<strong>②</strong> 取多行最小值是在寻找碰撞较少的证据，不是平均所有噪声；<strong>③</strong> 固定哈希函数时，分片草图逐格相加与整流一次扫描应相同。实验会让你先选出最可能被高估的键，再打开矩阵。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：频率向量的压缩投影<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>把海量键的频率向量 <span class="arithmatex">\(f\in\mathbb R^n\)</span> 投影到一个小矩阵。更新只触碰每行一个格子；查询一个键时读取它在各行的格子并取最小。Sketch 不记住“这个格子属于谁”，它只依赖碰撞噪声的方向性和可重复的哈希。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制：上界与空间账<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>更新规则是 <span class="arithmatex">\(C[i,h_i(x)]\leftarrow C[i,h_i(x)]+1\)</span>，查询是 <span class="arithmatex">\(\hat f_x=\min_i C[i,h_i(x)]\)</span>。因此 <span class="arithmatex">\(\hat f_x\ge f_x\)</span>；在均匀独立碰撞假设下，宽度取 <span class="arithmatex">\(w=\lceil e/\epsilon\rceil\)</span>、深度取 <span class="arithmatex">\(d=\lceil\ln(1/\delta)\rceil\)</span>，以概率至少 <span class="arithmatex">\(1-\delta\)</span> 有误差不超过 <span class="arithmatex">\(\epsilon m\)</span>。线性更新还给出可合并不变量：<span class="arithmatex">\(\mathrm{sketch}(A\mathbin\Vert B)=\mathrm{sketch}(A)+\mathrm{sketch}(B)\)</span>。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>窄表或哈希相关会让碰撞偏大；“高概率”针对哈希/随机设定，不是对所有恶意输入无条件保证。</li>
+<li>Count-Min 的单边保证依赖非负更新；有删除时要改用带符号的草图或其他频率结构。</li>
+<li>一次查询的误差界不自动覆盖百万次查询；要用 union bound 调整 <span class="arithmatex">\(\delta\)</span>，或明确服务的查询预算。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移题：先决定可接受的误差方向<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>为日志热度、去重计数和滑动窗口分别选择 Count-Min、HLL 或指数直方图。对每个选择写出：允许高估还是低估、更新是否可合并、窗口过期是否破坏线性不变量，以及在 <span class="arithmatex">\(10^9\)</span> 条事件下为什么不把全量键表当作默认方案。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-adv-01-streaming">
+<p><strong>无 JavaScript 时的静态版本：</strong>16 个事件的精确计数为 <code>a:5,b:4,c:3,d:2,e:1,f:1</code>。用宽度 4、深度 3 的表时，每行查询 <code>b</code> 都读一个格子，最终取三者最小；碰撞只会把 4 推高，不会推低。把前 8 个和后 8 个事件分别建表再逐格相加，所有格子应与整流建表完全一致。页面脚本会显示矩阵、查询值和合并检查。</p>
+</div>
+</section>
 <h2 id="1">1. 模型与不可能性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>数据流模型</strong>：元素 <span class="arithmatex">\(a_1,a_2,\dots,a_m\)</span> 依次到达（可能是 <span class="arithmatex">\([n]\)</span> 上的更新），算法只有 <span class="arithmatex">\(O(\text{polylog})\)</span> 空间、每元素 <span class="arithmatex">\(O(1)\)</span>~<span class="arithmatex">\(O(\text{polylog})\)</span> 处理时间，<strong>不能回看</strong>。目标：估计流的某个统计量。</p>
 <p><strong>先立不可能性</strong>（信息论下界，🔗 信息论线）：精确求"出现次数最多的元素"（众数）在一遍 + 亚线性空间下<strong>不可能</strong>——用通信复杂度归约（Index 问题）可证。<strong>所以流算法的一切成就都是"近似 + 高概率"</strong>，这不是偷懒，是被信息论逼出来的最优。</p>
@@ -96,5 +156,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-adv-01-streaming.js"></script>
 </body>
 </html>

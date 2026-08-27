@@ -3,7 +3,36 @@
 > **对标**：*A Tour of C++*（Stroustrup）/ *Effective Modern C++*（Meyers）｜ **前置**：csapp-01/04（内存、指针）、pl-02（三条内存路线）
 > C++ 是一门矛盾又强大的语言：**贴近硬件到能写操作系统和游戏引擎，又提供高级抽象且承诺"零成本"**。它是理解"如何在不牺牲性能的前提下抽象"的最佳教材，也是通往 Rust（rust 线）的桥——Rust 的所有权正是把 C++ 的 RAII 和移动语义变成编译器强制。这一页讲 C++ 的世界观：值语义、RAII（资源管理的核心创见）、移动语义、以及"零成本抽象"到底什么意思。
 
-## 1. C++ 的设计哲学:零成本抽象
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：异常路径上，谁负责把资源还回去？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：拷贝、移动与提前返回</h3>
+<p>一个函数获得文件句柄 <code>fd=7</code>，构造临时缓冲区后抛出异常；如果资源包裹在 RAII 对象里，句柄何时关闭？再把 <code>std::vector&lt;int&gt;</code> 从对象 <code>a</code> 移到 <code>b</code>，移动后 <code>a</code> 能否继续析构、能否继续被赋值？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测生命周期</h3>
+<p>预测：<strong>①</strong> 栈展开会按构造逆序调用析构，句柄只关闭一次；<strong>②</strong> 移动应转移资源所有权而非复制元素，源对象仍处于有效但未指定的状态；<strong>③</strong> 原始指针本身没有析构协议，异常路径和所有权必须由类型或约定补上。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：值、资源、生命周期</h3>
+<p>C++ 把对象看成有构造、拷贝/移动和析构语义的值；RAII 把资源获得绑定到对象生存期。零成本抽象的关键不是“没有抽象成本”，而是可在编译期消除不需要的动态机制，同时让资源不变量由作用域结构承载。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对资源句柄 \(r\)，RAII 不变量可写为：对象存活 \(\Leftrightarrow\) 它拥有的有效资源集合非空；析构后资源集合为空，且释放操作至多一次。若所有权从 \(a\) 移到 \(b\)，则 \(R_b'=R_a\)、\(R_a'=\varnothing\)，移动构造不改变资源总量。异常安全的 basic guarantee 保证不变量保持，strong guarantee 还要求失败时观察状态不变，no-throw move 让容器扩容可优先移动。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>析构函数不应抛异常；跨 C API 的裸句柄、循环引用和自定义 deleter 仍可能破坏 RAII 设计。</li><li>“移动后对象为空”不是所有类型的统一语义；只能依赖类型契约规定的有效状态，不能读取未指定内容。</li><li>共享所有权会引入引用计数、周期和同步开销；零成本抽象不承诺所有抽象都零成本。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：审计一个系统资源接口</h3>
+<p>选一个 socket、文件、GPU buffer 或锁，写出获取、转移、复制、失败和析构状态图。用 cpp-01 的 RAII 改写，再与 rust-01 的所有权释放和 pl-02 的 GC 路线比较；用 L01/L07 的 benchmark 确认封装是否真的保持了目标性能。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-cpp-01-abstraction-raii" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>资源 <code>fd=7</code> 依次被对象 A 获得、对象 B 移动接管；异常发生时栈展开按“最后构造者先析构”的顺序释放，fd=7 只应关闭一次。移动后 A 仍可析构和重新赋值，但不能假设其中仍有原 buffer。交互版切换正常返回、异常和 move 路径，显示构造/移动/析构时间线与资源计数。</p>\n+<table><thead><tr><th>事件</th><th>A 所有资源</th><th>B 所有资源</th><th>资源总量</th></tr></thead><tbody><tr><td>构造 A</td><td>fd=7</td><td>无</td><td>1</td></tr><tr><td>move A→B</td><td>空</td><td>fd=7</td><td>1</td></tr><tr><td>析构 A/B</td><td>空</td><td>释放 fd=7</td><td>0</td></tr></tbody></table>\n+</div>\n+</section>\n+\n+## 1. C++ 的设计哲学:零成本抽象
 
 C++ 的核心承诺——**零成本抽象（zero-overhead abstraction）**："你不用的东西不付代价，你用的东西手写也不会更快"。你能用高级抽象（类、模板、STL），编译后**和手写底层 C 一样快**（🔗 rust 也继承这个承诺）。这和 Python（py 线，抽象有解释开销）截然相反——**C++ 的抽象在编译期展开、运行期不留痕迹**。
 

@@ -3,6 +3,45 @@
 > **对标**：Stanford CS143 后半 / 龙书优化篇 / LLVM 文档 ｜ **前置**：comp-01/02、csapp-01（汇编）、perf 线
 > 编译器后端——把与源语言无关的中间表示（IR）变成**又快又正确**的机器码。这是编译器"施展魔法"的地方：你写的朴素代码为什么能被 `-O2` 变快好几倍。这一页讲 IR 的设计（SSA 为什么优雅）、经典优化、寄存器分配（图着色的漂亮应用），落到 [大 Project P04 编译器后端]。理解这些，你会写出对编译器友好的代码，也会懂 `-O2` 到底做了什么。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：一个变量两次赋值，如何在 SSA 中保持来路？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：if 汇合后，<code>y=x+3</code> 的 x 是哪个版本？</h3>
+<p>控制流为：若条件成立则 <code>x=1</code>，否则 <code>x=2</code>；两条边在汇合块执行 <code>y=x+3</code>。源代码只有一个名字 x，IR 却需要说明两个定义和一次选择。若只有 2 个物理寄存器，所有中间值能否同时驻留？先预测 phi 和 spill。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择汇合点的 SSA 形式，并判断给定冲突图使用 2 个还是 3 个寄存器时是否必须 spill；再说明删去死代码为何不改变可观察结果。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：CFG、值流与有限寄存器</h3>
+<p>基本块是无内部跳转的指令序列，CFG 描述控制流；SSA 为每次赋值分配唯一名字，phi 在控制流汇合处按实际前驱选择值。优化在 IR 上保持语义等价，寄存器分配则把无限虚拟寄存器映射到有限物理资源，放不下的值需要 spill。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>本题的 SSA 可写为 <code>x1=1</code>、<code>x2=2</code>、<code>x3=phi(x1,x2)</code>、<code>y=x3+3</code>。每个非 phi 名字只有一个定义；在每个使用点，恰有一条支配它的定义到达。冲突图中相邻变量不能共色，<span class="arithmatex">\(k\)</span> 个寄存器要求一个合法的 k-coloring；若无法着色，spill 到内存并插入 load/store，且优化前后可观察输出必须一致。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>phi 是 SSA 的抽象选择，不是可以直接发射的机器指令，后端要在前驱块插入拷贝并处理并行拷贝冲突；图着色启发式失败时的 spill 不证明程序不可编译，只说明当前分配策略需要重写生命期。指针别名、volatile、异常和未定义行为边界也可能禁止看似安全的重排。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：用解释器结果验收后端</h3>
+<p>在 P04 中把 L04 的 AST 编译成带 CFG/SSA dump 的 IR，对每个优化 pass 保存解释器输出作为 oracle；再为 2、3 个寄存器分别报告冲突图、spill 和代码性能。L04 的真实前端仍是输入来源，不能用本实验的固定 CFG 代替端到端验收。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-comp-03-codegen">
+<h3>交互实验：SSA phi 与寄存器冲突图</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>条件分支的四条 SSA 指令为 <code>x1=1</code>、<code>x2=2</code>、<code>x3=phi(x1,x2)</code>、<code>y=x3+3</code>；无论走哪条边，<code>y</code> 都读取正确版本。教学冲突图固定为三角形 <code>x1--x2</code>、<code>x2--x3</code>、<code>x1--x3</code>，再加 <code>x3--y</code>：2 个寄存器时至少一个节点 spill，3 个寄存器时可以着色。常量表达式 <code>3*4</code> 可折叠成 12，但带 volatile 或未知别名的加载不能任意删除。</p>
+<table><thead><tr><th>资源</th><th>SSA/分配结果</th><th>不变量</th></tr></thead><tbody><tr><td>汇合点</td><td>x3=phi(x1,x2)</td><td>按实际前驱选值</td></tr><tr><td>k=2</td><td>三角冲突无法 2-着色，至少 1 个 spill</td><td>相邻值不同寄存器</td></tr><tr><td>k=3</td><td>三色可行，x1/x2/x3 分配不同色</td><td>使用点值仍可达</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 中间表示（IR）：优化的舞台
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,23 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:51</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#mosfet">学习层：同一只 MOSFET，为什么既像电阻又像恒流源？</a><ul>
+<li><a href="#1-v_ds">1. 具体谜题：\(V_{DS}\) 增大后，电流为什么不再按比例增加？</a></li>
+<li><a href="#2">2. 先预测：先判区域，再代公式</a></li>
+<li><a href="#3">3. 最小心智模型：一条被栅极塑形的局部电导</a></li>
+<li><a href="#4">4. 形式机制与不变量：区域边界、跨导和体效应</a></li>
+<li><a href="#5">5. 交互实验：用一张输出曲线读懂三个区域</a></li>
+<li><a href="#6">6. 反例与失效边界：平方律不是器件身份证</a></li>
+<li><a href="#7">7. 迁移题：从分段电流到电路级尺寸</a></li>
+</ul>
+</li>
 <li><a href="#mos">一、MOS 电容：三种状态</a></li>
 <li><a href="#_1">二、电流公式：长沟道模型</a></li>
 <li><a href="#_2">三、亚阈值区：被低估的关键</a></li>
@@ -52,6 +77,93 @@
 <p><strong>层次</strong>：本科核心——这是整个微电子最重要的一页。
 MOSFET 的思想极简洁：<strong>隔着一层绝缘体，用栅电压在半导体表面感应出一条可控的导电沟道</strong>。栅极不导通电流（被氧化层隔断），只提供电场——因此控制几乎不耗静态功率。<strong>这一点正是 CMOS 能做到极低静态功耗、进而统治数字世界的根本原因。</strong></p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="mosfet">学习层：同一只 MOSFET，为什么既像电阻又像恒流源？<a class="headerlink" href="#mosfet" title="Permanent link"></a></h2>
+<h3 id="1-v_ds">1. 具体谜题：<span class="arithmatex">\(V_{DS}\)</span> 增大后，电流为什么不再按比例增加？<a class="headerlink" href="#1-v_ds" title="Permanent link"></a></h3>
+<p>取一只长沟道 NMOS，<span class="arithmatex">\(V_{th}=0.40\ \mathrm V\)</span>，<span class="arithmatex">\(K=\mu_nC_{ox}W/L=200\ \mu\mathrm{A/V^2}\)</span>，并固定 <span class="arithmatex">\(V_{GS}=0.80\ \mathrm V\)</span>。当 <span class="arithmatex">\(V_{DS}=0.20\ \mathrm V\)</span> 时，沟道似乎应该像电阻；当 <span class="arithmatex">\(V_{DS}=0.80\ \mathrm V\)</span> 时，漏端发生了什么，为什么电流接近一个平台？</p>
+<p>再考虑 <span class="arithmatex">\(V_{GS}=0.35\ \mathrm V\)</span>：如果“低于阈值就是关断”，电流是否应当严格为零？先预测这两个工作点的区域、<span class="arithmatex">\(I_D\)</span> 的数量级，以及把 <span class="arithmatex">\(V_{SB}\)</span> 从 0 提高到 <span class="arithmatex">\(0.4\ \mathrm V\)</span> 时阈值会如何移动。</p>
+<h3 id="2">2. 先预测：先判区域，再代公式<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验会先隐藏输出曲线和数字结果。请先写下：</p>
+<ol>
+<li>过驱动 <span class="arithmatex">\(V_{ov}=V_{GS}-V_{th}\)</span> 是正还是负？</li>
+<li>若 <span class="arithmatex">\(0&lt;V_{DS}&lt;V_{ov}\)</span>，电流随 <span class="arithmatex">\(V_{DS}\)</span> 是近似线性、饱和还是指数？</li>
+<li>若 <span class="arithmatex">\(V_{DS}\ge V_{ov}\)</span>，继续升高 <span class="arithmatex">\(V_{DS}\)</span> 会不会按平方继续增加 <span class="arithmatex">\(I_D\)</span>？</li>
+<li>亚阈值电流为什么不能被“区域判定为关断”抹掉？</li>
+</ol>
+<h3 id="3">3. 最小心智模型：一条被栅极塑形的局部电导<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>栅压先决定表面是否反型，再由源到漏的局部有效过驱动 <span class="arithmatex">\(V_{GS}-V_{th}-V(x)\)</span> 决定每个位置的电荷。低 <span class="arithmatex">\(V_{DS}\)</span> 时整个沟道都存在，器件像一个受栅压控制的电阻；漏端电势升到过驱动后，末端沟道夹断，电流主要由注入端的电荷与速度决定，表现为近似恒流源。</p>
+<p>这只是长沟道、渐变沟道、漂移主导的第一阶模型。亚阈值区改由扩散主导，短沟道区进入速度饱和，体效应还会移动 <span class="arithmatex">\(V_{th}\)</span>；同一组公式不能覆盖全部电流范围。</p>
+<h3 id="4">4. 形式机制与不变量：区域边界、跨导和体效应<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(K=\mu_nC_{ox}W/L\)</span>，<span class="arithmatex">\(V_{ov}=V_{GS}-V_{th}\)</span>。长沟道模型给出</p>
+<div class="arithmatex">\[
+I_D=
+\begin{cases}
+0,&amp;V_{GS}\le V_{th}\quad\text{（强反型模型）},\\
+K\left(V_{ov}V_{DS}-\frac{V_{DS}^2}{2}\right),&amp;
+0&lt;V_{DS}&lt;V_{ov},\\
+\frac12KV_{ov}^2,&amp;V_{DS}\ge V_{ov}.
+\end{cases}
+\]</div>
+<p>实际的亚阈值尾巴可写成 <span class="arithmatex">\(I_D\propto e^{V_{GS}/(nV_T)}\)</span>，其摆幅 <span class="arithmatex">\(SS=nV_T\ln10\)</span>。体效应把阈值改为</p>
+<div class="arithmatex">\[
+V_{th}=V_{th0}+\gamma\left(\sqrt{2\phi_F+V_{SB}}-\sqrt{2\phi_F}\right),
+\]</div>
+<p>而强反型<strong>饱和区</strong>的跨导为 <span class="arithmatex">\(g_m=\partial I_D/\partial V_{GS}=KV_{ov}=2I_D/V_{ov}\)</span>；在线性区则为 <span class="arithmatex">\(g_m=KV_{DS}\)</span>。可审计的不变量包括区域边界 <span class="arithmatex">\(V_{DS,\mathrm{sat}}=V_{ov}\)</span>、<span class="arithmatex">\(I_D\)</span> 在理想饱和区对 <span class="arithmatex">\(V_{DS}\)</span> 的一阶不敏感，以及 <span class="arithmatex">\(g_mV_{ov}=2I_D\)</span>；若这些关系在短沟道或沟道长度调制下失效，要明确注明近似边界。</p>
+<h3 id="5">5. 交互实验：用一张输出曲线读懂三个区域<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-mosfet">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 \(V_{th}=0.40\ \mathrm V\)、\(K=200\ \mu\mathrm{A/V^2}\)、\(V_{SB}=0\)，先忽略沟道长度调制。强反型时用上面的分段式；亚阈值行用 \(I_0=2\ \mathrm{nA}\)、\(n=1.5\)、\(V_T=25.85\ \mathrm{mV}\) 的教学尾巴。</p>
+<table>
+<thead>
+<tr>
+<th>\(V_{GS}\)</th>
+<th>\(V_{DS}\)</th>
+<th>区域</th>
+<th>\(V_{DS,\mathrm{sat}}\)</th>
+<th>\(I_D\)</th>
+<th>\(g_m\)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>0.35 V</th>
+<td>0.80 V</td>
+<td>亚阈值</td>
+<td>不适用</td>
+<td>约 \(0.55\ \mathrm{nA}\)</td>
+<td>约 \(14.2\ \mathrm{nS}\)</td>
+</tr>
+<tr>
+<th>0.80 V</th>
+<td>0.20 V</td>
+<td>线性区</td>
+<td>0.40 V</td>
+<td>\(12\ \mu\mathrm A\)</td>
+<td>\(40\ \mu\mathrm S\)</td>
+</tr>
+<tr>
+<th>0.80 V</th>
+<td>0.80 V</td>
+<td>饱和区</td>
+<td>0.40 V</td>
+<td>\(16\ \mu\mathrm A\)</td>
+<td>\(80\ \mu\mathrm S\)</td>
+</tr>
+</tbody>
+</table>
+<p>脚本提供 \(V_{GS},V_{DS},V_{th},V_{SB}\) 与 \(W/L\) 控制，绘制多条 \(I_D-V_{DS}\) 曲线，并用垂直线标出当前的夹断边界。结果面板同时显示 \(I_D,g_m,V_{ov}\)、体效应后的 \(V_{th}\) 和亚阈值/强反型的判定。</p>
+</div>
+<h3 id="6">6. 反例与失效边界：平方律不是器件身份证<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>“<span class="arithmatex">\(V_{GS}&lt;V_{th}\)</span> 就没有电流”只是在强反型简化模型中把指数小量舍去；低功耗、漏电和亚阈值逻辑恰恰依赖这部分。</li>
+<li>“进入饱和就是电流完全不变”忽略沟道长度调制、DIBL、速度饱和和串联电阻；真实 <span class="arithmatex">\(I_D\)</span>–<span class="arithmatex">\(V_{DS}\)</span> 仍有斜率。</li>
+<li>“<span class="arithmatex">\(V_{th}\)</span> 是器件常数”忽略体效应、温度、工艺变异和漏端电压；四端器件的源体偏置会改变堆叠门的速度。</li>
+<li>“<span class="arithmatex">\(g_m\)</span> 越大一定越好”忽略 <span class="arithmatex">\(g_m/I_D\)</span>、噪声、带宽、摆幅和功耗之间的约束；模拟设计要以工作点而非单个参数选型。</li>
+</ul>
+<h3 id="7">7. 迁移题：从分段电流到电路级尺寸<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>给一个需要相同 <span class="arithmatex">\(I_D\)</span> 的 NMOS 电流镜和 PMOS 电流镜，先用 <span class="arithmatex">\(\mu_n\approx3\mu_p\)</span> 估算宽度比例，再判断两只管处在何种区域、是否有足够的 <span class="arithmatex">\(V_{DS}\)</span> 余量。若沟道长度缩短，哪一个不变量最先失效，为什么下一页的缩放问题会从这里开始？</p>
+</section>
 <h2 id="mos">一、MOS 电容：三种状态<a class="headerlink" href="#mos" title="Permanent link"></a></h2>
 <p>先看没有源漏的 MOS 结构（金属–氧化物–p 型半导体）。加不同栅压 <span class="arithmatex">\(V_G\)</span>，半导体表面出现三种状态：</p>
 <table>
@@ -170,6 +282,7 @@ MOSFET 的思想极简洁：<strong>隔着一层绝缘体，用栅电压在半�
 </table>
 <hr />
 <p><em>下一页：缩放定律。把晶体管做小，会发生什么？Dennard 给出了一套漂亮的缩放规则，让行业狂奔了三十年；然后它在 2005 年前后失效了——原因就是本页的 60 mV/decade。</em></p>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="02-junction.html"><span class="pager-label">上一页</span>器件 II · pn 结与二极管</a>
@@ -179,5 +292,7 @@ MOSFET 的思想极简洁：<strong>隔着一层绝缘体，用栅电压在半�
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-mosfet.js"></script>
 </body>
 </html>

@@ -3,6 +3,43 @@
 > **对标**：MIT 6.854 / Spielman *Spectral Graph Theory* / 竞争分析经典 ｜ **前置**：adv-01、数学站线代（特征值、Rayleigh 商）、概率线
 > 两个高级主题，各自展示一种"数学直接变算法"的美：**谱图论**把图的组合性质编码进拉普拉斯矩阵的特征值（你在线代里学的 Rayleigh 商直接上岗）；**在线算法**处理"必须在看到未来前决策"的问题，用竞争比量化"不知未来的代价"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：谱隙和“看不见未来”各自测量什么？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：哪张图更容易被切开？</h3>
+<p>比较四点路径 <span class="arithmatex">\(0-1-2-3\)</span> 与两条紧密小团之间只有一条弱桥的图。把每个点标成一个实数，要求相邻点差别不要太大：哪张图的非平凡最光滑标注代价更小？再想 ski rental：每天租 1 元、买断价 <span class="arithmatex">\(B=5\)</span>，只知道今天，不知道还会滑几天，什么时候买才不至于被最坏未来击穿？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测两个量</h3>
+<p>先写下：<strong>①</strong> 两个不连通分量的 <span class="arithmatex">\(\lambda_2\)</span> 应为 0，弱桥图的 <span class="arithmatex">\(\lambda_2\)</span> 小于路径图；<strong>②</strong> 租到累计 5 元再买的确定性策略最坏接近 2 倍离线最优；<strong>③</strong> 谱量给的是结构证据，竞争比给的是对手证据，二者都不是“平均表现”。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：能量与遗憾</h3>
+<p>拉普拉斯二次型把图标注的粗糙度加总；在去掉常数向量后，最小 Rayleigh 商就是最平滑的非平凡方向。在线算法则保存一个当前策略和它付出的成本，拿它与事后知道整个序列的离线最优比较。一个是空间结构的证书，一个是信息不足的代价。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：Rayleigh 商与竞争比</h3>
+<p>对无向图 <span class="arithmatex">\(L=D-A\)</span>，有 <span class="arithmatex">\(x^TLx=\sum_{(u,v)\in E}(x_u-x_v)^2\ge0\)</span>，且 <span class="arithmatex">\(\lambda_2=\min_{x\perp\mathbf1}x^TLx/(x^Tx)\)</span>。Cheeger 不等式把它与稀疏割 <span class="arithmatex">\(\phi\)</span> 夹住。在线成本用 <span class="arithmatex">\(\sup_\sigma C_{\mathrm{on}}(\sigma)/C_{\mathrm{off}}(\sigma)\)</span> 定义；ski rental 在阈值 <span class="arithmatex">\(B\)</span> 处购买，成本至多 <span class="arithmatex">\(2\min(H,B)\)</span>。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li><span class="arithmatex">\(\lambda_2=0\)</span> 只说明不连通；Fiedler 向量的符号切分是有理论支持的启发式，不等于所有图上的最小割。</li>
+<li>谱值会依赖加权/归一化约定；把组合拉普拉斯与随机游走矩阵的特征值直接互换会错一个模型。</li>
+<li>竞争比是最坏序列比值，不等于平均延迟；一个在线策略可以平均很好，却被一个精心安排的未来击中。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：识别证据的类型</h3>
+<p>对社交图聚类、PageRank、缓存淘汰和云资源租赁，分别写出你要观察的谱量或势函数、离线基准和失败边界。说明何时应选特征向量来发现结构，何时应选竞争分析来保证不知道未来时仍有上界。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-adv-02-spectral-online" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>四点路径的已知第二特征值约为 <span class="arithmatex">\(\lambda_2=2-\sqrt2\approx0.586\)</span>；两条分离的边有两个连通分量，故 <span class="arithmatex">\(\lambda_2=0\)</span>。Ski rental 若 <span class="arithmatex">\(B=5\)</span> 且恰好滑 5 天，在线策略租满 5 天、总成本 5，离线最优成本 5，比值 1；若滑 6 天，在线策略再买入、总成本 10，离线最优成本 5，比值 2；滑 3 天时在线成本 3、离线成本 3。页面脚本会切换图谱和未来长度，显示 Rayleigh 能量与竞争比。</p>
+</div>
+</section>
+
 ## 1. 图拉普拉斯：图的线性代数化身
 
 图 $G$ 的**拉普拉斯矩阵** $L = D - A$（$D$ 度对角阵、$A$ 邻接阵）。它是本段主角，性质全从二次型来：

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：应该把优化预算花在算术还是搬数据？</a><ul>
+<li><a href="#_2">具体谜题：一个点积到底能跑多快？</a></li>
+<li><a href="#_3">先预测，再打开实验</a></li>
+<li><a href="#_4">最小心智模型：两个屋顶和一个时间账</a></li>
+<li><a href="#_5">形式机制与不变量</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移任务：写一张瓶颈诊断卡</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 性能工程的第一铁律：测量，不要猜</a></li>
 <li><a href="#2-roofline">2. Roofline 模型：该优化什么</a></li>
 <li><a href="#3-cpu">3. 现代 CPU 的两大加速武器</a></li>
@@ -50,6 +74,68 @@
 <p><strong>对标</strong>：MIT 6.172（性能工程）/ Agner Fog 优化手册 ｜ <strong>前置</strong>：csapp-01/02（机器表示、缓存）
 性能工程是把"能跑"变成"跑得快"的学问，也是你（数学 + 系统底子）最能出成果的方向之一。它的第一原则反直觉却至关重要：<strong>先测量，别猜</strong>。这一页建立性能的科学方法——怎么找瓶颈、Roofline 模型怎么告诉你"该优化什么"、以及现代 CPU 的两大加速武器（流水线与 SIMD 向量化）怎么用。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：应该把优化预算花在算术还是搬数据？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：一个点积到底能跑多快？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>某 CPU 的峰值算力是 <span class="arithmatex">\(64\ \mathrm{GFLOP/s}\)</span>，可持续内存带宽是 <span class="arithmatex">\(16\ \mathrm{GB/s}\)</span>。一个点积每个元素做 2 次浮点运算并读写 12 bytes。若循环的算术强度只有 <span class="arithmatex">\(2/12\ \mathrm{FLOP/Byte}\)</span>，把乘加指令再优化 4 倍会改变屋顶吗？先算出带宽屋顶，再决定要看 SIMD 还是数据布局。</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测，再打开实验<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>写下三条可检验的预测：<strong>①</strong> 点积的带宽屋顶为 <span class="arithmatex">\(16\times2/12\approx2.67\ \mathrm{GFLOP/s}\)</span>，因此它先是 memory-bound；<strong>②</strong> 把只占 5% 时间的函数加速到无穷，总程序最多只快 <span class="arithmatex">\(1/0.95\approx1.05\times\)</span>；<strong>③</strong> 当算术强度超过 <span class="arithmatex">\(I^\*=P_{\max}/B=4\ \mathrm{FLOP/Byte}\)</span> 后，Roofline 才换成算力屋顶。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：两个屋顶和一个时间账<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>把程序看成“搬数据 + 做计算”的组合：Roofline 给出由硬件带宽与峰值算力共同形成的上界，Amdahl 给出局部优化对端到端时间的上界。性能工程不是寻找最漂亮的内核，而是先找当前点受哪一项约束，再测量优化是否把点推向另一面。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制与不变量<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>设算术强度为 <span class="arithmatex">\(I=W/Q\)</span>（FLOP/Byte），带宽为 <span class="arithmatex">\(B\)</span>，峰值算力为 <span class="arithmatex">\(P_{\max}\)</span>，则可达性能满足：</p>
+<p class="arithmatex">\(P\le \min(P_{\max},\,B I),\qquad I^\*=P_{\max}/B.\)</p>
+<p>若总时间比例为 <span class="arithmatex">\(p\)</span> 的部分加速 <span class="arithmatex">\(s\)</span> 倍，端到端加速为 <span class="arithmatex">\(S=1/((1-p)+p/s)\)</span>。实验的核心不变量是：同一输入、编译选项、计时窗口和正确性阈值固定，before/after 的差异才可以归因于优化。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>Roofline 是上界模型，不会告诉你分支、同步、NUMA、缓存容量或实现效率；落在屋顶下不等于存在一个简单的优化。</li>
+<li>峰值带宽和峰值 FLOP 若来自宣传规格而非同一 workload 的实测，结论只能是数量级判断。</li>
+<li>把计时器、I/O 或首次分配混入热循环，会把测量对象改成 harness，而不是算法本身；SIMD 也不能修复错误的复杂度。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移任务：写一张瓶颈诊断卡<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>给你的图像卷积、点积或 N 体代码记录 <span class="arithmatex">\(W,Q,p\)</span>、实测带宽/算力和正确性误差，画出优化前后 Roofline 位置。先用 L01 的分块、L07 的 SIMD 和 perf 工具各提出一个假设，再说明哪条硬件计数器会证伪它；不要把“GPU 更快”当作瓶颈诊断。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-perf-01-engineering">
+<p><strong>无 JavaScript 时的静态读法：</strong>在 \(B=16\ \mathrm{GB/s}\)、\(P_{\max}=64\ \mathrm{GFLOP/s}\) 时，转折强度是 \(4\ \mathrm{FLOP/Byte}\)。点积 \(I=2/12\) 的 Roofline 上限为 \(2.67\ \mathrm{GFLOP/s}\)，属于带宽受限；若只优化一个占 60% 时间的函数到 5 倍，Amdahl 加速为 \(1/(0.4+0.6/5)=1.92\times\)。交互版先让你预测 bound 与加速，再调整 \(p,s,I\) 查看两条上界和诊断账本。</p>
+<table>
+<thead>
+<tr>
+<th>工作负载</th>
+<th>算术强度</th>
+<th>Roofline 上限</th>
+<th>首先检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>点积</td>
+<td>0.167</td>
+<td>2.67 GFLOP/s</td>
+<td>连续访问、L01 分块</td>
+</tr>
+<tr>
+<td>高复用矩阵块</td>
+<td>8</td>
+<td>64 GFLOP/s</td>
+<td>L07 SIMD、指令吞吐</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <h2 id="1">1. 性能工程的第一铁律：测量，不要猜<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Amdahl 定律曲线：不同串行占比下加速比随核数饱和。" src="assets/img/perf-01-amdahl.svg" /></p>
@@ -123,5 +209,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-perf-01-engineering.js"></script>
 </body>
 </html>

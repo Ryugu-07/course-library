@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,18 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、偏振态与描述</a></li>
-<li><a href="#_2">二、产生与操控偏振</a></li>
-<li><a href="#_3">三、几个重要应用</a></li>
-<li><a href="#_4">四、偏振在光纤中的麻烦</a></li>
-<li><a href="#_5">五、要点</a></li>
+<li><a href="#_1">学习层：同样的总功率，偏振器为什么能把它变暗？</a><ul>
+<li><a href="#1">1. 具体谜题：一块波片让“透明”变成“黑”</a></li>
+<li><a href="#2-jones-stokes">2. 先预测：Jones 够不够，还是必须 Stokes？</a></li>
+<li><a href="#3-mental-model">3. 最小 mental model：二维复电场经过矩阵</a></li>
+<li><a href="#4">4. 正式机制：投影、延迟与可测不变量</a></li>
+<li><a href="#5">5. 静态实验：按复振幅追踪一列器件</a></li>
+<li><a href="#6">6. 反例与边界：矩阵级联不替代适用条件</a></li>
+<li><a href="#7">7. 迁移题：为一个偏振测量选账本</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、偏振态与描述</a></li>
+<li><a href="#_3">二、产生与操控偏振</a></li>
+<li><a href="#_4">三、几个重要应用</a></li>
+<li><a href="#_5">四、偏振在光纤中的麻烦</a></li>
+<li><a href="#_6">五、要点</a></li>
 </ul>
 </div>
 </details>
@@ -52,11 +77,43 @@
 <p><strong>层次</strong>：本科核心 + 多个应用方向的基础。
 光是横波，<strong>电场的振动方向</strong>就是偏振。几何光学完全忽略它，但它在显示、测量、通信、量子信息中都是核心变量。本页讲清偏振的描述方法、产生与操控手段，以及它在工程中的主要用途。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：同样的总功率，偏振器为什么能把它变暗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：一块波片让“透明”变成“黑”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一束完全水平线偏振光强度为 <span class="arithmatex">\(I_0=1\)</span>，后面放一个与水平成 <span class="arithmatex">\(45^\circ\)</span> 的理想分析器。没有其他元件时，探测器读数是多少？若在两者之间插入快轴水平、延迟 <span class="arithmatex">\(\delta=\pi/2\)</span> 的四分之一波片，输出会不会仍由马吕斯定律直接给出？最后把波片快轴转到 <span class="arithmatex">\(22.5^\circ\)</span>，你预测输出变亮、变暗还是不变？</p>
+<h3 id="2-jones-stokes">2. 先预测：Jones 够不够，还是必须 Stokes？<a class="headerlink" href="#2-jones-stokes" title="Permanent link"></a></h3>
+<p>先写下四项预测：<strong>①</strong> 水平偏振通过 <span class="arithmatex">\(45^\circ\)</span> 分析器的强度比例；<strong>②</strong> 半波片快轴转过 <span class="arithmatex">\(20^\circ\)</span> 后，线偏振方向转过几度；<strong>③</strong> 四分之一波片的相位延迟偏离 <span class="arithmatex">\(\pi/2\)</span> 时，圆偏振是否仍是圆；<strong>④</strong> 一束完全非偏振光能否用一个 Jones 矢量表示。实验会把复振幅、Stokes 分量和分析器读数同时展开，避免把“方向”和“相位”混为一谈。</p>
+<h3 id="3-mental-model">3. 最小 mental model：二维复电场经过矩阵<a class="headerlink" href="#3-mental-model" title="Permanent link"></a></h3>
+<p>偏振只保留横向电场的两个复分量，写成 <span class="arithmatex">\(\mathbf E=(E_x,E_y)^T\)</span>。偏振片投影到透光轴，波片在自己的本征轴上给两个分量加不同相位；器件串联就是矩阵按顺序相乘。完全偏振光的相对相位可被 Jones 账本保留；部分偏振光需要强度组合的 Stokes/Mueller 账本。</p>
+<h3 id="4">4. 正式机制：投影、延迟与可测不变量<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>线偏振分析器轴向量 <span class="arithmatex">\(\mathbf a=(\cos\alpha,\sin\alpha)^T\)</span> 的 Jones 投影可写为 <span class="arithmatex">\(P_\alpha=\mathbf a\mathbf a^T\)</span>。理想线偏振输入经过分析器的强度为</p>
+<div class="arithmatex">\[I=I_0\cos^2(\alpha-\alpha_0).\]</div>
+<p>快轴为 <span class="arithmatex">\(x'\)</span>、慢轴为 <span class="arithmatex">\(y'\)</span> 的波片在本征轴上可写作 <span class="arithmatex">\(J_0=\operatorname{diag}(1,e^{i\delta})\)</span>。本页采用主动旋转</p>
+<div class="arithmatex">\[R(\theta)=\begin{pmatrix}\cos\theta&amp;-\sin\theta\\ \sin\theta&amp;\cos\theta\end{pmatrix},\qquad J(\theta)=R(\theta)J_0R(-\theta).\]</div>
+<p>Stokes 不变量为</p>
+<div class="arithmatex">\[\mathrm{DOP}=\frac{\sqrt{S_1^2+S_2^2+S_3^2}}{S_0}\le1,\]</div>
+<p>本页采用 <span class="arithmatex">\(S_3=2\operatorname{Im}(E_x^*E_y)\)</span>，所以 <span class="arithmatex">\((1,i)^T/\sqrt2\)</span> 的 <span class="arithmatex">\(S_3=+1\)</span>；若采用相反符号约定，只会翻转左右旋标签，不会改变强度。等号只对应完全偏振；Mueller 矩阵才能在同一账本中处理自然光和部分偏振。</p>
+<h3 id="5">5. 静态实验：按复振幅追踪一列器件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="photo-polarization">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认输入 <span class="arithmatex">\(\mathbf E=(1,0)^T\)</span>，分析器轴为 <span class="arithmatex">\(45^\circ\)</span>。不插波片时，<span class="arithmatex">\(I=|\mathbf a^T\mathbf E|^2=\cos^2 45^\circ=0.5\)</span>。插入快轴水平的 <span class="arithmatex">\(\lambda/4\)</span> 波片后，输入沿快轴，仍为 <span class="arithmatex">\((1,0)^T\)</span>，所以读数仍为 <span class="arithmatex">\(0.5\)</span>；若先把半波片轴放在 <span class="arithmatex">\(22.5^\circ\)</span>，线偏振转为 <span class="arithmatex">\(45^\circ\)</span>，同一分析器读数变为 1。对完全非偏振输入 <span class="arithmatex">\(S=(1,0,0,0)\)</span>，任意理想线偏振分析器平均只透过 <span class="arithmatex">\(0.5\)</span>，但它没有一个可用于保相位的唯一 Jones 矢量。脚本可切换偏振片、半波片、四分之一波片和法拉第旋转器，逐级显示复电场、Stokes 分量、DOP 与探测强度；先预测读数再解锁矩阵。</p>
+</div>
+<h3 id="6">6. 反例与边界：矩阵级联不替代适用条件<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Jones 只适用于完全偏振的相干场。</strong>对非偏振或部分偏振光强行挑一个 Jones 相位会制造虚假的干涉预测；应使用 Stokes/Mueller 或统计混合。</li>
+<li><strong>马吕斯定律不是所有偏振器件的总规律。</strong>波片不主要吸收，而是改变相对相位；它是否改变强度取决于后面的分析器和轴角。</li>
+<li><strong>法拉第旋转不是普通旋转片。</strong>法拉第效应非互易，反向传播时旋转不简单抵消；忽略传播方向会错误判断隔离器是否阻断回光。</li>
+<li><strong>理想 DOP=1 不代表系统无损。</strong>真实偏振片有消光比，波片有波长依赖、温漂和应力双折射；测量矩阵需要标定而不是只看名义角度。</li>
+</ul>
+<h3 id="7">7. 迁移题：为一个偏振测量选账本<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若要做 LCD 像素调制、测量塑料件残余应力、或在相干通信接收端跟踪随机偏振，分别需要哪类器件和哪套状态变量？请给出一条最小光路，写出一个可测的 Stokes 量或 Jones 级联，并指出哪个误差会由偏振控制器补偿、哪个必须从材料或封装中消除。</p>
+</section>
 <figure>
 <p><img alt="Polarization control with waveplates and an isolator" class="fig-img" src="assets/img/pho-05-polarization.svg" /></p>
 <figcaption><span class="fig-id">图 5-1</span> 偏振器先选出电场方向，半波片把线偏振旋转 \(2\theta\)，分析器再按马吕斯定律 \(I=I_0\cos^2\phi\) 把方向差变成强度；四分之一波片将相位差调成 \(\pi/2\) 而产生圆偏振。右侧的法拉第旋转是非互易的，所以正向通过、反向回光被阻断，用来保护激光腔。</figcaption>
 </figure>
-<h2 id="_1">一、偏振态与描述<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、偏振态与描述<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>基本类型</strong>：线偏振、圆偏振（左/右旋）、椭圆偏振、以及<strong>非偏振（自然光）</strong>与部分偏振。</p>
 <p><strong>两套数学工具</strong>（用途不同，都要会）：</p>
 <p><strong>① Jones 矢量与 Jones 矩阵</strong>（仅适用于<strong>完全偏振</strong>光）：</p>
@@ -67,7 +124,7 @@
 <p>四个分量都是<strong>强度的组合</strong>，因而<strong>可直接测量</strong>（Jones 矢量的绝对相位不可直接测）。<strong>偏振度</strong>：</p>
 <div class="arithmatex">\[\mathrm{DOP} = \frac{\sqrt{S_1^2+S_2^2+S_3^2}}{S_0}\]</div>
 <p><strong>庞加莱球</strong>把偏振态映射到球面：赤道是线偏振、两极是圆偏振。<strong>波片的作用就是绕球上某轴旋转</strong>——这个几何图像在设计偏振控制系统时极其直观。</p>
-<h2 id="_2">二、产生与操控偏振<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">二、产生与操控偏振<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>① 二向色性（吸收型）</strong>：偏振片吸收一个方向的分量。便宜、宽带，<strong>但至少损失一半的自然光</strong>。</p>
 <p><strong>马吕斯定律</strong>：<span class="arithmatex">\(I = I_0\cos^2\theta\)</span>。</p>
 <p><strong>② 反射（布儒斯特角）</strong>：</p>
@@ -86,7 +143,7 @@
 <li><strong>这个非互易性是光隔离器的物理基础</strong>：<span class="arithmatex">\(45°\)</span> 法拉第旋转 + 两个成 <span class="arithmatex">\(45°\)</span> 的偏振片 → 正向通过、反向阻断。</li>
 <li><strong>为什么必需</strong>：<strong>激光器对回光极其敏感</strong>，反射回腔内会造成功率与频率不稳定甚至损坏。<strong>几乎所有精密激光系统与光纤通信发射端都必须配隔离器</strong>（第十三页）。</li>
 </ul>
-<h2 id="_3">三、几个重要应用<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">三、几个重要应用<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p><strong>① 液晶显示（LCD）</strong>——<strong>这是偏振最大规模的工业应用</strong>（第十六页详述）：</p>
 <p>结构是"起偏器 + 液晶层 + 检偏器"。<strong>液晶分子在电场下改变取向 → 改变对偏振的旋转 → 与检偏器配合实现亮暗</strong>。</p>
 <p><strong>代价</strong>：<strong>起偏器至少吞掉一半光</strong>，这是 LCD 效率天然低于 OLED（自发光、无需偏振片）的根本原因之一。</p>
@@ -99,7 +156,7 @@
 <li><strong>偏振复用</strong>：光纤中用两个正交偏振各传一路 → <strong>容量翻倍</strong>（第十三页）；</li>
 <li><strong>量子密钥分发</strong>：偏振态编码量子比特（第十九页）。</li>
 </ul>
-<h2 id="_4">四、偏振在光纤中的麻烦<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">四、偏振在光纤中的麻烦<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>理想的圆对称光纤中，两个偏振模式简并</strong>。但<strong>真实光纤有微小的椭圆度与应力</strong> → <strong>双折射</strong> → 两偏振模速度不同。</p>
 <p><strong>后果</strong>：</p>
 <ul>
@@ -108,7 +165,7 @@
 <li>保偏光纤（PMF）通过<strong>故意引入强双折射</strong>把偏振锁定在一个轴上——<strong>用"更大的确定性缺陷"压制"随机的小缺陷"</strong>，这是一个漂亮的工程思路。</li>
 </ul>
 <p><strong>现代相干光通信系统的做法</strong>：<strong>不去对抗偏振漂移，而是用数字信号处理在接收端实时解偏振</strong>（第十三页）——<strong>"把光学难题转成数字问题"</strong>，与 🔗 微电子站第九页的主旋律完全一致。</p>
-<h2 id="_5">五、要点<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_6">五、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><strong>Jones 处理完全偏振（保相位），Stokes/Mueller 处理部分偏振（可测量）</strong>；庞加莱球给出直观几何；</li>
 <li><strong>布儒斯特角反射光全是 s 偏振</strong>——偏光镜消除眩光的原理；</li>
@@ -128,5 +185,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-polarization.js"></script>
 </body>
 </html>

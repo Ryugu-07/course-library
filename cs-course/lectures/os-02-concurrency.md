@@ -3,6 +3,45 @@
 > **对标**：MIT 6.S081 / OSTEP 并发篇 ｜ **前置**：os-01（线程共享地址空间）、csapp-02（缓存一致性伏笔）
 > OSTEP 三大主题的第二个——并发。这是操作系统（以及一切多线程程序）**最容易出微妙 bug 的地方**：多个线程共享内存、交错执行，结果依赖于你无法控制的调度顺序。本页建立完整的同步工具箱（锁、条件变量、信号量）和它们要对付的敌人（竞态、死锁），并说清"为什么并发这么反直觉"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一个 counter，哪一个交错才算“正确”？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：两个加一为什么可能只加了一次？</h3>
+<p>共享变量初值为 5。线程 A 和 B 各执行一次 <code>counter++</code>；硬件把它暴露成读、加一、写回三个阶段。对于 <code>A-read, B-read, A-write, B-write</code>，最终值是 6 还是 7？换成互不重叠的临界区又会怎样？</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>从六种保持每个线程内部顺序的交错中，选出会丢失更新的类型；再预测加 mutex 后是否还存在最终值为 6 的轨迹。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：事件、临界区与等待条件</h3>
+<p>把共享状态更新拆成事件序列，并保留每个线程的程序顺序。互斥锁把临界区串成一个全序；条件变量不是“事件记忆”，而是让线程释放锁、睡眠、被唤醒后重新检查谓词；信号量则把可用资源数量作为状态的一部分。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>若两个线程都读到旧值 <span class="arithmatex">\(v\)</span>，两次写回都可能是 <span class="arithmatex">\(v+1\)</span>，这违反了“每次成功调用都贡献一个增量”的线性化要求。临界区的安全不变量是任意时刻持有者至多一个；条件等待必须写成 <code>while (!predicate) wait(cv, mutex)</code>；死锁则要求互斥、持有并等待、不可抢占、循环等待四条件同时成立。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>锁住写入却不锁读取仍可能得到数据竞态；用 <code>if</code> 代替 <code>while</code> 会在虚假唤醒或其他消费者先取走资源后继续执行错误路径；两把锁即使每次单独都正确，反序获取仍可形成等待环。原子操作解决单个线性化点，不自动解决复合不变量或内存可见性。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：把交错证据带进 xv6</h3>
+<p>在 P01-B 中先为每个共享链表写出“由哪把锁保护”的表格，再故意交换两把锁的获取顺序，画等待图并提出全局顺序。L10 无锁栈实验仍是实际实现与 ABA 验收入口；本页的交互只训练你在代码前先枚举安全性与活性边界。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-os-02-concurrency">
+<h3>交互实验：逐步重放共享计数器的交错</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>保持 A 的 read&lt;write、B 的 read&lt;write，共有 6 种交错，其中 4 种会丢失更新。<code>A-read,B-read,A-write,B-write</code> 的写回为 6；<code>A-read,A-write,B-read,B-write</code> 的结果为 7。开启 mutex 后，所有 6 种调度都等价于两个临界区的某个串行顺序，最终值固定为 7。条件变量的另一个账本是：唤醒只表示“可能有资源”，所以必须再次检查谓词。</p>
+<table><thead><tr><th>交错</th><th>无锁结果</th><th>mutex 结果</th><th>诊断</th></tr></thead><tbody><tr><td>A读 B读 A写 B写</td><td>6</td><td>7</td><td>丢失更新</td></tr><tr><td>A读 A写 B读 B写</td><td>7</td><td>7</td><td>串行等价</td></tr><tr><td>B读 A读 B写 A写</td><td>6</td><td>7</td><td>丢失更新</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 竞态条件：并发 bug 的本质
 
 

@@ -3,6 +3,39 @@
 > **对标**：CMU 15-849 / Stanford CS229S / MLSys 会议论文 ｜ **前置**：gpu 线、par-01（并行模型、Amdahl/Gustafson）、ai-course（反向传播）
 > 机器学习的算法你在 ai-course 学过，MLSys 讲的是**让它在真实硬件上跑得起、跑得快**——大模型训练是当今 HPC 最烧钱的战场。这一页讲训练系统的核心：计算图与自动微分怎么落地、显存为什么总不够（以及怎么省）、以及当一张卡装不下时的多卡并行策略（数据/张量/流水线并行）。这是理解"为什么训练 GPT 要几千张卡几个月"的系统视角。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：7B 模型为什么不是“参数 × 2 bytes”这么简单？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：16 GB 卡能不能训练 7B？</h3>
+<p>7B 参数用 fp16 存一份需要约 14 GB。训练还需要梯度、fp32 master weight、Adam 的动量与方差，以及反向所需激活。若经验账本是 16 bytes/parameter，单卡需要多少 GB？若模型装得下但 batch 想扩大，应该优先用数据并行、张量并行还是 checkpointing？</p>
+</div>
+<div class="learning-prediction">
+<h3>先写资源预测</h3>
+<p>预测：<strong>①</strong> 7B×16 bytes≈112 GB，还未计激活，因此 16 GB 卡不够；<strong>②</strong> checkpointing 用额外前向换激活显存，不会减少参数、梯度或 optimizer state；<strong>③</strong> 完整模型能放下且数据独立时，数据并行的通信主要是每步 all-reduce，单层放不下才需要张量并行。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：计算图、内存账本、通信拓扑</h3>
+<p>训练系统每步做三件事：前向产生 loss 与需要保存的中间值，反向沿图累积梯度，优化器更新状态。扩展时再把样本、层内矩阵或层段切开；每种切法都把省下的显存换成某种通信或流水线气泡。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对参数量 \(P\)，混合精度 Adam 的静态状态可近似为 \(M=16P\) bytes；若数据并行度为 \(D\)，纯分片前每卡静态状态约 \(M\)，ZeRO 风格分片后约 \(M/D\)（通信与临时 buffer 另计）。反向模式自动微分遵守链式累积 \(\bar v=\sum_{u\to v}\bar u\,\partial u/\partial v\)。梯度同步的不变量是各副本在更新前得到同一平均梯度；checkpointing 的不变量是重算出的激活与原前向一致。</p>\n+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>16 bytes/parameter 是规划用估算，不含激活峰值、碎片、通信 buffer、临时 workspace 和具体 optimizer 实现。</li><li>数据并行不能解决单层或单个 optimizer 状态放不下；张量并行会引入层内同步，流水线并行会引入 bubble 和调度约束。</li><li>梯度累积、混合精度和 checkpointing 可能改变数值误差、吞吐和收敛行为，不能只看显存占用。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：为一次训练作业写容量表</h3>
+<p>给一个 \(P=13\)B、序列长度 4K、8 张卡的训练作业列出参数/梯度/optimizer/activation/通信 buffer。分别提出 ZeRO、checkpointing、数据并行和流水线并行方案，注明每项省下的字节、增加的通信或重算，并用 mlsys-01 与 L08/L09 的 kernel 观测验证瓶颈。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-mlsys-01-training" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>7B 参数、16 bytes/parameter 的 toy 账本为 \(7\times10^9\times16=112\) GB；其中 fp16 参数/梯度各 2 bytes，fp32 master、动量、方差各 4 bytes。8 卡数据并行若只做静态状态分片，理想分片账约为 14 GB/卡，仍需激活与通信 buffer。交互版可调整参数量、卡数、精度和 checkpointing，显示显存账本、all-reduce 通信量与流水线 bubble 估计。</p>
+<table><thead><tr><th>项</th><th>bytes/parameter</th><th>7B 估算</th><th>checkpointing 是否减少</th></tr></thead><tbody><tr><td>参数</td><td>2</td><td>14 GB</td><td>否</td></tr><tr><td>梯度</td><td>2</td><td>14 GB</td><td>否</td></tr><tr><td>master + Adam</td><td>12</td><td>84 GB</td><td>否</td></tr><tr><td>激活</td><td>随 batch/seq</td><td>另计</td><td>是，换重算</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 计算图与自动微分：框架底下是什么
 
 

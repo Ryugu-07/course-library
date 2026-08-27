@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、存储层次：一个被物理逼出来的结构</a></li>
+<li><a href="#_1">学习层：为什么一次缓存未命中，会抵消很多次算术？</a><ul>
+<li><a href="#1-95">1. 具体谜题：95% 命中率够不够？</a></li>
+<li><a href="#2">2. 先预测：快、大、便宜、非易失只能取舍</a></li>
+<li><a href="#3">3. 最小心智模型：每一层都是物理约束的折中</a></li>
+<li><a href="#4">4. 形式机制与不变量：期望代价与可靠性账本</a></li>
+<li><a href="#5">5. 交互实验：让一百万次访问把存储墙显形</a></li>
+<li><a href="#6">6. 反例与失效边界：平均值也可能掩盖灾难</a></li>
+<li><a href="#7-miss">7. 迁移题：从一次 miss 设计数据流</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、存储层次：一个被物理逼出来的结构</a></li>
 <li><a href="#sram">二、SRAM：快，但不再变小</a></li>
 <li><a href="#dram">三、DRAM：一个电容和它的漏电</a></li>
 <li><a href="#nand">四、NAND 闪存：用可靠性换密度</a></li>
-<li><a href="#_2">五、存储墙</a></li>
-<li><a href="#_3">六、要点</a></li>
+<li><a href="#_3">五、存储墙</a></li>
+<li><a href="#_4">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,90 @@
 <p><strong>层次</strong>：本科核心 + 业界核心产业 ｜ 部分内容【前沿，核对于 2026-07】。
 逻辑再快，取不到数据也没用。存储器占据现代芯片的大部分面积（处理器中缓存常占一半以上），也是半导体产业规模最大的单一品类之一。本页讲三种主流存储的原理与各自的缩放困境，最后讲那堵越来越高的墙：<strong>存储墙</strong>。</p>
 </blockquote>
-<h2 id="_1">一、存储层次：一个被物理逼出来的结构<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：为什么一次缓存未命中，会抵消很多次算术？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-95">1. 具体谜题：95% 命中率够不够？<a class="headerlink" href="#1-95" title="Permanent link"></a></h3>
+<p>考虑 <span class="arithmatex">\(10^6\)</span> 次随机字访问：SRAM 缓存命中延迟 4 cycles，落到 DRAM 需要 250 cycles，片外 NAND 访问则是 <span class="arithmatex">\(10^5\)</span> cycles 量级。若命中率从 95% 降到 90%，平均访问代价会增加多少？把算术单元性能翻倍，能不能补回这部分等待？</p>
+<p>先预测：在两层 SRAM/DRAM 模型中，命中率提高 5 个百分点的收益；把所有访问直接送到 DRAM 的代价；为什么 NAND 的非易失性不能直接换成处理器缓存。</p>
+<h3 id="2">2. 先预测：快、大、便宜、非易失只能取舍<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>交互台会先让你选择工作负载和命中率。提交前判断：</p>
+<ol>
+<li>SRAM、DRAM、NAND 的访问延迟是否按层级单调增加？</li>
+<li>DRAM 单元为什么需要刷新，刷新与破坏性读是否会进入能量账本？</li>
+<li>NAND 每个单元从 SLC 变成 QLC 后，电平数与噪声裕量如何变化？</li>
+<li>对一个固定算术量，减少一次片外搬运是否可能比增加一次乘法更重要？</li>
+</ol>
+<h3 id="3">3. 最小心智模型：每一层都是物理约束的折中<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>SRAM 用交叉耦合反相器保持双稳态，快但需要 6T 面积；DRAM 用 1T1C 保存电荷，密度高但漏电、刷新且读后回写；NAND 用绝缘层中的电荷移动阈值，非易失但只能块擦除、耐久有限。体系结构把它们串成层次，用近层命中率掩盖远层延迟。</p>
+<p>因此“缓存优化”本质是把数据移动变少、变近、变宽或变可预测。实验不把单一延迟当成完整系统性能，还显示每次访问的能量和写入放大 proxy，让容量、延迟、能量和寿命同时进入决策。</p>
+<h3 id="4">4. 形式机制与不变量：期望代价与可靠性账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>两层缓存的平均访问时间是</p>
+<div class="arithmatex">\[
+E[T]=hT_{\mathrm{SRAM}}+(1-h)T_{\mathrm{DRAM}},
+\]</div>
+<p>其中 <span class="arithmatex">\(h\)</span> 是命中率；平均搬运能量同理为 <span class="arithmatex">\(E[E]=he_{\mathrm{SRAM}}+(1-h)e_{\mathrm{DRAM}}\)</span>。若有 <span class="arithmatex">\(M\)</span> 次访问，总等待 cycles 为 <span class="arithmatex">\(ME[T]\)</span>，在时钟频率 <span class="arithmatex">\(f\)</span> 下时间为 <span class="arithmatex">\(ME[T]/f\)</span>。</p>
+<p>存储单元的物理不变量也不能删掉：SRAM 必须同时满足读稳定性与写能力；DRAM 的电荷会随时间衰减，需要刷新且读后回写；NAND 的 P/E 循环有限，多比特电平数从 <span class="arithmatex">\(2\)</span> 增到 <span class="arithmatex">\(2^b\)</span> 后电压裕量缩小，必须由 ECC、磨损均衡和 FTL 承担系统可靠性。</p>
+<h3 id="5">5. 交互实验：让一百万次访问把存储墙显形<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-memory">
+<p><strong>无 JavaScript 时的静态读法：</strong>以 \(M=10^6\) 次访问、3 GHz 时钟为例。SRAM/DRAM 两层账本取 \(T_S=4\) cycles、\(T_D=250\) cycles、\(e_S=0.2\ \mathrm{pJ}\)、\(e_D=20\ \mathrm{pJ}\)。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>SRAM 命中率</th>
+<th>平均延迟</th>
+<th>总 cycles</th>
+<th>总时间</th>
+<th>平均能量/访问</th>
+<th>总能量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>良好局部性</th>
+<td>95%</td>
+<td>\(.95\times4+.05\times250=16.3\)</td>
+<td>\(1.63\times10^7\)</td>
+<td>5.43 ms</td>
+<td>1.19 pJ</td>
+<td>1.19 \(\mu\mathrm J\)</td>
+</tr>
+<tr>
+<th>局部性变差</th>
+<td>90%</td>
+<td>28.6</td>
+<td>\(2.86\times10^7\)</td>
+<td>9.53 ms</td>
+<td>2.18 pJ</td>
+<td>2.18 \(\mu\mathrm J\)</td>
+</tr>
+<tr>
+<th>全 DRAM</th>
+<td>0%</td>
+<td>250</td>
+<td>\(2.50\times10^8\)</td>
+<td>83.3 ms</td>
+<td>20 pJ</td>
+<td>20 \(\mu\mathrm J\)</td>
+</tr>
+</tbody>
+</table>
+<p>脚本提供访问次数、SRAM 命中率、读写比例和目标层级控制，画出各层的延迟/能量柱形和当前工作负载的期望账本。写入 NAND 时会附加块擦除、写入放大与有限 P/E 循环的提示；它是用于架构比较的 proxy，不把 SSD 随机访问当作 DRAM 的等价替代。</p>
+</div>
+<h3 id="6">6. 反例与失效边界：平均值也可能掩盖灾难<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li>“平均访问 16 cycles 就是每次 16 cycles”忽略长尾、并发、排队、bank conflict、预取错误和一致性协议。</li>
+<li>“缓存越大越好”忽略面积、漏电、访问端口、线长和 SRAM 的 <span class="arithmatex">\(V_{\min}\)</span>；容量增加可能拉长命中路径。</li>
+<li>“DRAM 只是慢 SRAM”忽略电容刷新、破坏性读、灵敏放大器和独立工艺；它们的故障与能耗机制不同。</li>
+<li>“QLC 只是每格多存几位”忽略电平间隔、误码率、P/E 寿命、ECC 计算和写放大，密度收益必须由系统可靠性支付。</li>
+<li>“算力翻倍就能掩盖存储墙”在算术强度低、数据集超出缓存或片外带宽饱和时不成立；瓶颈是数据移动而非乘法吞吐。</li>
+</ul>
+<h3 id="7-miss">7. 迁移题：从一次 miss 设计数据流<a class="headerlink" href="#7-miss" title="Permanent link"></a></h3>
+<p>对一个矩阵乘或向量搜索任务，先估算每个元素的重用次数、SRAM 容量、DRAM 带宽和片外搬运能量，再选择分块、预取、HBM、算子融合或近存计算。请明确指出：哪一项减少了访问次数，哪一项只增加了带宽，哪一项改变了存储物理本身。</p>
+</section>
+<h2 id="_2">一、存储层次：一个被物理逼出来的结构<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>没有一种存储能同时做到快、大、便宜、非易失，所以只能分层：</p>
 <table>
 <thead>
@@ -130,7 +238,7 @@
 </ul>
 <p><strong>3D NAND 是一次范式转移</strong>：平面缩放走到尽头后，改为<strong>垂直堆叠</strong>（现已达数百层），用一次刻蚀打通所有层。<strong>"不再缩小，而是堆高"——这个思路后来蔓延到了整个行业</strong>（3D 集成、Chiplet，第十五页）。<strong>NAND 是第一个成功转向三维的大宗半导体产品</strong>，具有示范意义。</p>
 <p><strong>纠错是必需品而非可选项</strong>：现代 NAND 的原始误码率高到无法直接使用，必须依赖强大的 ECC（LDPC 等）。<strong>存储系统的可靠性是"用编码换来的"</strong>（🔗 cs 站/数学站信息论）。</p>
-<h2 id="_2">五、存储墙<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">五、存储墙<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>处理器性能的增长长期快于存储带宽与延迟的改善</strong>，两者差距持续扩大——这就是<strong>存储墙（memory wall）</strong>。</p>
 <p><strong>今天的具体表现</strong>：</p>
 <ul>
@@ -145,7 +253,7 @@
 <li><strong>更聪明</strong>：数据流架构、算子融合、近存计算；</li>
 <li><strong>更激进</strong>：<strong>存内计算</strong>——直接在存储阵列里做运算，彻底避免搬运（第十六页）。</li>
 </ul>
-<h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">六、要点<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <ul>
 <li><strong>存储层次是被物理逼出来的</strong>，不是设计偏好；</li>
 <li><strong>SRAM 面积缩放放缓</strong>，成为先进节点成本与 <span class="arithmatex">\(V_{min}\)</span> 的关键制约；</li>
@@ -164,5 +272,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-memory.js"></script>
 </body>
 </html>

@@ -3,6 +3,43 @@
 > **对标**：Sipser *Introduction to the Theory of Computation* 第 1–5 章 ｜ **前置**：数学站集合论/离散、逻辑
 > 计算理论问的是最根本的问题：**什么是"计算"？有没有机器造不出的答案？** 这一页从最弱的机器（有限自动机）拾级而上到图灵机，最后证明**有些问题任何计算机都解不了**（停机问题）——不是"现在解不了"，是逻辑上不可能。对数学出身的你，这一页是"可计算性 = 一种新的对角线论证"。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：有限状态何时一定会忘记？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：三种余数够不够记住整串？</h3>
+<p>用 3 个状态记录二进制前缀除以 3 的余数。读入 <code>110</code> 时，状态序列是 <span class="arithmatex">\(0\to1\to0\to0\)</span>，最后接受；但若要识别 <span class="arithmatex">\(\{a^n b^n:n\ge0\}\)</span>，只有有限状态的机器怎样记住前面有多少个 <code>a</code>？当串足够长时，重复状态会逼出什么矛盾？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测状态与泵法</h3>
+<p>先下注：<strong>①</strong> DFA 读每个新位时只需更新 <span class="arithmatex">\(r'=(2r+b)\bmod3\)</span>；<strong>②</strong> 机器状态数固定而输入可无限长，所以某段非空的 <code>a</code> 必能被泵；<strong>③</strong> 停机问题不是“状态太少”，而是对任意程序语义作全域判定会被自指取反击穿。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：状态是压缩记忆</h3>
+<p>自动机把历史压缩成一个状态；未来行为只依赖当前状态和下一个符号。有限自动机能记余数、模式和局部协议，却不能精确保存任意大的计数。图灵机再加入可读写的无限纸带，获得可编程的外部记忆，但仍受可计算性边界约束。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：转移、鸽笼与对角线</h3>
+<p>DFA 的转移函数是 <span class="arithmatex">\(\delta:Q\times\Sigma\to Q\)</span>；接受当且仅当最终状态在 <span class="arithmatex">\(F\)</span>。若正则语言的泵长度为 <span class="arithmatex">\(p\)</span>，任意长度至少 <span class="arithmatex">\(p\)</span> 的串可写成 <span class="arithmatex">\(xyz\)</span>，且 <span class="arithmatex">\(xy^iz\)</span> 对所有 <span class="arithmatex">\(i\ge0\)</span> 仍在语言中。停机判定器 <span class="arithmatex">\(H\)</span> 若存在，构造 <span class="arithmatex">\(D(P)\)</span> 在 <span class="arithmatex">\(H(P,P)\)</span> 说停机时死循环、否则停机，考察 <span class="arithmatex">\(D(D)\)</span> 即得矛盾。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>NFA 的“不确定”不会超出 DFA 的算力，但子集构造可能把状态数从 <span class="arithmatex">\(n\)</span> 膨胀到 <span class="arithmatex">\(2^n\)</span>；等价不代表代价相同。</li>
+<li>Pumping lemma 能证明某些语言非正则，但不能把“满足泵条件”反过来当作正则性的充分条件。</li>
+<li>可枚举不等于可判定：能在正例上最终确认，不代表能在负例上保证停机。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：先问记忆边界，再问答案边界</h3>
+<p>为一个日志过滤器、括号解析器和“程序是否一定终止”的静态检查器分别选择 DFA、PDA 或图灵机视角。指出你需要保存的状态/栈/纸带信息，并写出一个不能由该模型保证的性质；把归约方向写成“若新问题可解，则原问题也可解”。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-toc-01-computability" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>模 3 DFA 读 <code>110</code> 时按 <span class="arithmatex">\(0\xrightarrow1 1\xrightarrow1 0\xrightarrow0 0\)</span> 转移并接受；对 <span class="arithmatex">\(a^3b^3\)</span>，若泵出一段 <code>a</code> 得 <span class="arithmatex">\(a^4b^3\)</span>，就离开语言。有限状态的重复与停机证明中的自指取反，分别展示“记忆有限”和“判定逻辑有限”的两条边界。页面脚本会逐符号跑 DFA，并让你改变泵长观察反例。</p>
+</div>
+</section>
+
 ## 1. 自动机层级：机器的算力阶梯
 
 计算模型按"记忆能力"分层，每层对应一类语言（Chomsky 层级）：

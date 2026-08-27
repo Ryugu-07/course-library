@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：错误发生在拼装哪一步？</a><ul>
+<li><a href="#foo">具体谜题：同一个 foo，为什么三种结果？</a></li>
+<li><a href="#_2">先预测解析与复制</a></li>
+<li><a href="#_3">最小心智模型：名字绑定与控制流转移</a></li>
+<li><a href="#ecf">形式机制：符号表、重定位与 ECF</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#_5">迁移题：按阶段定位系统问题</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 链接：符号的解析与重定位</a></li>
 <li><a href="#2-vs">2. 静态库 vs 动态库：链接的时机</a></li>
 <li><a href="#3">3. 异常控制流：程序执行被打断的四种方式</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：CS:APP 第 7–8 章 ｜ <strong>前置</strong>：csapp-01/02
 两个常被跳过、却是"程序如何真正运行起来"的关键机制：<strong>链接</strong>（多个源文件、库怎么拼成一个可执行文件，为什么会有那些诡异的 "undefined reference" 和 "multiple definition"）与<strong>异常控制流</strong>（程序的执行怎么被硬件中断、系统调用、信号打断和切换——一切并发与操作系统的物理起点）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：错误发生在拼装哪一步？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="foo">具体谜题：同一个 <code>foo</code>，为什么三种结果？<a class="headerlink" href="#foo" title="Permanent link"></a></h3>
+<p><code>main.o</code> 引用了 <code>foo</code>；若 <code>a.o</code> 定义一次，链接应成功；若没有任何定义，得到 <code>undefined reference</code>；若 <code>a.o</code> 与 <code>b.o</code> 都给出强定义，得到 <code>multiple definition</code>。与此同时，<code>fork(); fork();</code> 为什么会留下 4 个执行流？它们又是怎样被时钟中断切换的？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先预测解析与复制<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 链接器先匹配符号名，再修正地址，找不到/重复是解析错误；<strong>②</strong> 每次 <code>fork</code> 都让当前执行状态复制一份，所以连续两次得到 <span class="arithmatex">\(2^2=4\)</span> 个进程；<strong>③</strong> 系统调用是程序主动触发的 trap，缺页是可恢复的 fault，不是普通函数调用。</p>
+</div>
+<div class="learning-model">
+<h3 id="_3">最小心智模型：名字绑定与控制流转移<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>链接把各目标文件中的“谁定义、谁引用”统一到一个地址空间，重定位把占位地址改成真实地址。异常控制流则在顺序执行上增加受控入口：硬件中断、trap、fault 或 abort 保存现场，进入处理路径，可能返回原指令或终止当前流。</p>
+</div>
+<div class="learning-formal">
+<h3 id="ecf">形式机制：符号表、重定位与 ECF<a class="headerlink" href="#ecf" title="Permanent link"></a></h3>
+<p>对每个引用 <span class="arithmatex">\(r\)</span>，链接器要找到唯一可见定义 <span class="arithmatex">\(d\)</span>，并把重定位表达式写成 <span class="arithmatex">\(\mathrm{addr}(r)\leftarrow \mathrm{base}(d)+\mathrm{offset}\)</span>。<code>fork</code> 的进程数满足 <span class="arithmatex">\(P_{k+1}=2P_k\)</span>，而上下文切换保存寄存器、栈指针和返回位置。系统调用通过特权边界进入内核，再以返回值回到用户态。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>声明不等于定义；头文件把非 <code>extern</code> 全局变量写成定义，可能制造多个强符号或依赖弱符号的隐蔽行为。</li>
+<li>动态链接把解析延后到装载/首次调用，因而新增版本、搜索路径和 ABI 风险；“编译成功”不代表运行时能装载。</li>
+<li>信号处理器是异步重入环境，不能把普通业务代码当作安全 handler；故障是否能重试取决于异常类型与内核状态。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_5">迁移题：按阶段定位系统问题<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>拿一个真实报错，先判断它属于预处理、编译、汇编、链接、装载还是运行时 ECF。再用 <code>nm</code>、<code>objdump</code>、<code>strace</code> 或调试器提出一个可证伪的符号/控制流假设，并记录“谁保存现场、谁负责恢复”。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-03-linking-ecf">
+<p><strong>无 JavaScript 时的静态版本：</strong><code>main.o → foo</code> 配上 <code>a.o:foo</code> 能解析；没有定义是 undefined reference；<code>a.o:foo</code> 与 <code>b.o:foo</code> 两个强定义是 multiple definition。独立地，<code>fork();fork();</code> 产生 4 个进程，<code>exec</code> 替换其中一个地址空间，<code>wait</code> 回收子进程。页面脚本会切换符号情境并显示 fork 树与异常入口。</p>
+</div>
+</section>
 <h2 id="1">1. 链接：符号的解析与重定位<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="多个 .o → 符号解析 + 重定位 → 可执行文件的拼装。" src="assets/img/csapp-03-linking.svg" /></p>
@@ -140,5 +200,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-csapp-03-linking-ecf.js"></script>
 </body>
 </html>

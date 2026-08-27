@@ -3,6 +3,31 @@
 > **对标**：MIT 6.172 / What Every Programmer Should Know About Memory（Drepper）｜ **前置**：csapp-02（缓存原理）、perf-01（测量、Roofline）
 > perf-01 建立了性能的科学方法，这一页把最大的性能杠杆——**缓存**——从理论（csapp-02）变成一套可操作的优化手法，并收束到 [大 Project P06] "把一个基线程序优化 100×"的终极挑战。核心信念不变：**现代程序的性能主要由内存访问模式决定**，谁能把数据喂进缓存，谁就赢。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同样是 \(O(n^2)\)，为什么访问顺序能差一个数量级？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：8×8 矩阵，行优先还是列优先？</h3>
+<p>假设元素是 4 bytes，缓存行装 4 个元素，只有 4 条缓存行可用。遍历一个 8×8 行存矩阵：行优先读相邻元素，列优先每次跨过 8 个元素。两种循环做的乘加次数相同；哪一种会让已经取入的缓存行被复用？若把矩阵切成 2×2 tile，miss 会不会自动消失？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测三个计数</h3>
+<p>在实验前写下：<strong>①</strong> 理想 LRU 下行优先首轮约 16 次冷 miss，列优先会因容量与跨步反复驱逐而显著更多；<strong>②</strong> 2×2 tiling 让一个小块的 4 个元素在离开缓存前被复用；<strong>③</strong> 若数据结构从数组换成链表，渐进复杂度不变，但地址依赖会破坏预取，不能只看 big-O。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：缓存是按行搬运的有限工作集</h3>
+<p>CPU 不按元素从内存取数据，而是按 cache line 取一组相邻 bytes。局部性分为空间局部性（下一个地址靠近）和时间局部性（很快再次使用）；tiling 的目标是让正在复用的工作集同时落在容量内，并让访问顺序匹配布局。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对行存矩阵 \(A[i,j]\)，地址为 \(base+(iN+j)\cdot4\)。令行大小为 \(L=4\) 个元素，则缓存行号为 \(\lfloor(iN+j)/L\rfloor\)。一次 trace 的 miss 数等于第一次访问某行或该行已被驱逐的次数；分块 \(T\) 的工作集近似为 \(T^2\) 个元素，必须满足 \(T^2\cdot4\) 不超过可用缓存预算的一部分。正确性不变量是：重排只改变访问次序，不改变每个输出元素的数学值。</p>\n+</div>\n+<div class="learning-boundary">
+<h3>反例与失效边界</h3>\n+<ul><li>“行优先总是快”依赖行存布局；列存数据库或转置后的数组应反过来判断。</li><li>tile 太大时工作集超过缓存，tile 太小时循环边界与调度开销占比上升；最优块大小要在目标机器上测。</li><li>硬件预取、TLB、写分配、多级缓存和多线程伪共享会改变绝对 miss 数；玩具 LRU 只能验证局部性因果。</li></ul>\n+</div>\n+<div class="learning-transfer">
+<h3>迁移任务：从 trace 到工程改动</h3>\n+<p>选择 L01 的矩阵乘或自己的图像卷积，先画一段地址 trace，再提出“换布局、融合循环、分块、填充对齐”中的一个改动。报告 cache-misses、wall time 和输出误差；如果 miss 降了但时间没降，说明还有哪个屋顶或开销在主导？</p>\n+</div>\n+<div class="learning-lab" data-learning-lab="cs-perf-02-cache-practice" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>8×8 行存矩阵、4 元素缓存行、4 行容量下，行优先按每行连续读取，冷 miss 基线是 \(8\times2=16\)；列优先的步长为 8 个元素，工作集在跨列时反复驱逐，miss 高于 16。用 2×2 tile 时，每个 tile 的 4 个元素在换出前完成局部访问。交互版可切换行/列/分块、缓存行大小与容量，并显示逐访问 hit/miss trace。</p>\n+<table><thead><tr><th>策略</th><th>步长</th><th>可见局部性</th><th>诊断</th></tr></thead><tbody><tr><td>行优先</td><td>1 元素</td><td>空间局部性强</td><td>预取友好</td></tr><tr><td>列优先</td><td>8 元素</td><td>跨行跳跃</td><td>容量/预取不利</td></tr><tr><td>2×2 tiling</td><td>块内 1–8</td><td>时间局部性增强</td><td>工作集受控</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 缓存优化的四把手术刀
 
 把 csapp-02 的原理落成四类可执行的手法：

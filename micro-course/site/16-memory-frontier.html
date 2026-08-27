@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、为什么需要新型存储</a></li>
-<li><a href="#_2">二、几类主要候选</a></li>
-<li><a href="#_3">三、存内计算：把运算搬进阵列</a></li>
-<li><a href="#_4">四、为什么它还没有普及【争】</a></li>
-<li><a href="#_5">五、更现实的路线：把存储搬近</a></li>
-<li><a href="#_6">六、要点</a></li>
+<li><a href="#adc">学习层：交叉阵列用物理求和，但端到端收益受 ADC 与误差约束</a><ul>
+<li><a href="#_1">具体谜题：一次“免费”的矩阵乘法到底免费吗？</a></li>
+<li><a href="#_2">先做预测</a></li>
+<li><a href="#mental-model">最小 mental model：电导矩阵、输入电压与读出链</a></li>
+<li><a href="#_3">形式机制与不变量</a></li>
+<li><a href="#_4">反例与失效边界</a></li>
+<li><a href="#_5">交互实验：打开外围，观察“阵列优势”如何收缩</a></li>
+<li><a href="#_6">迁移任务：审查一张存内计算能效表</a></li>
+</ul>
+</li>
+<li><a href="#_7">一、为什么需要新型存储</a></li>
+<li><a href="#_8">二、几类主要候选</a></li>
+<li><a href="#_9">三、存内计算：把运算搬进阵列</a></li>
+<li><a href="#_10">四、为什么它还没有普及【争】</a></li>
+<li><a href="#_11">五、更现实的路线：把存储搬近</a></li>
+<li><a href="#_12">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,95 @@
 <p><strong>层次</strong>：硕博研究方向 ｜ <strong>核对于 2026-07</strong> ｜ <strong>证据地位</strong>：新型存储器件物理【实】；<strong>存内计算的实用化程度【争】</strong>——这是本页需要谨慎的地方。
 第十页留下了存储墙：<strong>搬运数据比计算本身贵得多</strong>。本页讲两条应对路线——用<strong>新的存储器件</strong>填补层次断档，以及更激进的<strong>存内计算</strong>：直接在存储阵列里做运算，从根上消除搬运。</p>
 </blockquote>
-<h2 id="_1">一、为什么需要新型存储<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="adc">学习层：交叉阵列用物理求和，但端到端收益受 ADC 与误差约束<a class="headerlink" href="#adc" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_1">具体谜题：一次“免费”的矩阵乘法到底免费吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>对一个 4 x 4 电导阵列，输入电压向量为 <code>V=[1, 0.5, 0.25, 0.75]</code>，第一行电导为 <code>[2,1,0,3]</code>。你能否在不逐项相乘的情况下预测第一行输出电流？答案应为 <code>2*1+1*0.5+0*0.25+3*0.75=4.75</code>。但如果每列还要经过 DAC、ADC，器件有 5% 的固定失配，且写一次电导比读一次更贵，那么“一个时钟完成”是否仍等价于端到端更省电？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先做预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先预测三个结果：<strong>①</strong> 理想阵列输出严格满足欧姆定律和基尔霍夫电流定律的线性求和；<strong>②</strong> 把 ADC/DAC 计入后，阵列规模越大，外围能耗越可能主导；<strong>③</strong> 器件噪声和量化位数会让输出偏离理想值，但不一定在每个任务上同样有害；<strong>④</strong> 读路径的能效优势不能直接外推到训练，因为权重更新有不同的写入成本。</p>
+</div>
+<div class="learning-model">
+<h3 id="mental-model">最小 mental model：电导矩阵、输入电压与读出链<a class="headerlink" href="#mental-model" title="Permanent link"></a></h3>
+<p>把权重编码为非负电导 <code>G<sub>ij</sub></code>，把输入编码为行电压 <code>V<sub>j</sub></code>。每个交叉点产生一股电流，列线利用 KCL 在模拟域累加；外围再把电压/电流送入 ADC，交给数字逻辑完成激活、归一化和下一层。差分阵列可以表达有符号权重，但会复制阵列与读出开销。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<div class="cl-formula">I<sub>i</sub> = sum<sub>j</sub> G<sub>ij</sub> V<sub>j</sub>, &nbsp; E<sub>total</sub> = E<sub>array</sub> + N(E<sub>DAC</sub> + E<sub>ADC</sub>)</div>
+<p>理想计算的核心不变量是线性叠加：如果把输入缩放为 <code>cV</code>，输出应缩放为 <code>cI</code>；如果把两组输入相加，输出应为两次输出之和。实验用固定模式的器件失配与 ADC 量化构造可复现误差，再分别显示“只算阵列”和“算阵列 + 外围”的能耗。</p>
+<p>端到端评估至少要同时记录任务误差、有效位数、外围面积/功耗、写入次数和阵列利用率。只报一个宏单元峰值不等于系统级能效。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_4">反例与失效边界<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<ul>
+<li>器件电导并非理想常数：器件间失配、循环间涨落、温度依赖、保持性和电阻漂移会破坏同一个权重的稳定表示。</li>
+<li>ADC/DAC 不是“免费接口”；高分辨率读出可能占据阵列宏单元的主要面积与能耗，外围省略会夸大收益。</li>
+<li>阵列尺寸、稀疏权重、非矩阵算子和片间通信会降低利用率；单个 MVM 的理论吞吐不等于完整网络吞吐。</li>
+<li>模拟加速适合特定低精度推理窗口；在高精度科学计算或频繁更新权重的训练中，误差与写入成本可能反转结论。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_5">交互实验：打开外围，观察“阵列优势”如何收缩<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-memory-frontier">
+<p><strong>无 JavaScript 时的静态读法：</strong>用下列 4 x 4 阵列和输入向量。理想输出为 <code>[4.75, 2.25, 2.00, 3.75]</code>。若加入固定 5% 交替失配，输出会按行产生确定偏差；若 ADC 只有 4 bit，则还会出现量化台阶。以 <code>N=128</code>、阵列单元每次 0.02 pJ、DAC 每行 0.4 pJ、ADC 每列 0.8 pJ 为教学常数，阵列项约 327.7 pJ，外围项为 153.6 pJ；若数字基线为每次乘加 0.12 pJ，则约为 1,966.1 pJ。这个优势只有在外围、转换精度与非矩阵操作没有被漏算时才有意义。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">行</th>
+<th scope="col">G<sub>i1</sub></th>
+<th scope="col">G<sub>i2</sub></th>
+<th scope="col">G<sub>i3</sub></th>
+<th scope="col">G<sub>i4</sub></th>
+<th scope="col">I<sub>i</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>3</td>
+<td>4.75</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+<td>2.25</td>
+</tr>
+<tr>
+<td>3</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td>2.00</td>
+</tr>
+<tr>
+<td>4</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>3.75</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_6">迁移任务：审查一张存内计算能效表<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>某论文报告阵列能效 1 TOPS/W、ADC 4 bit、分类精度下降 1.8%，但没有报告 DAC、片上 buffer、写入校准和端到端吞吐。请列出至少五个追问，并设计一个小实验：固定同一网络、同一量化位数和同一批输入，分别报告阵列级、宏单元级和系统级的能效与精度。</p>
+</div>
+</section>
+<h2 id="_7">一、为什么需要新型存储<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
 <p>现有三种主流存储各有死角（第十页）：</p>
 <ul>
 <li><strong>SRAM</strong> 快但极不密集，且面积缩放已放缓；</li>
@@ -59,7 +172,7 @@
 <li><strong>NAND</strong> 便宜非易失，但慢、按块擦除、寿命有限。</li>
 </ul>
 <p><strong>DRAM 与 NAND 之间有一个巨大的性能鸿沟</strong>（延迟差约两三个数量级）。<strong>理想的新型存储</strong>应当：非易失、可按位改写、接近 DRAM 的速度、优于 NAND 的寿命、且能与 CMOS 后道工艺集成。<strong>几十年来无数候选者冲击这个位置，至今没有全面成功者。</strong></p>
-<h2 id="_2">二、几类主要候选<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_8">二、几类主要候选<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -98,7 +211,7 @@
 </table>
 <p><strong>已落地的部分</strong>【实】：<strong>嵌入式 MRAM 已在成熟节点量产</strong>，作为微控制器中嵌入式闪存的替代（先进节点难以集成传统浮栅闪存）。PCM 曾以独立产品形态商用。<strong>这些是真实的商业产物，不是实验室演示。</strong></p>
 <p><strong>未落地的部分</strong>：<strong>没有一种成为"通用 DRAM 替代品"</strong>。原因通常不是原理不成立，而是<strong>一致性、良率、成本、以及与已高度优化的 DRAM/NAND 竞争</strong>——后两者经过数十年迭代，成本曲线极其陡峭。<strong>"新技术必须在成本上打败一个已经优化了四十年的对手"，这是新型存储反复受挫的根本原因。</strong></p>
-<h2 id="_3">三、存内计算：把运算搬进阵列<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_9">三、存内计算：把运算搬进阵列<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p><strong>动机</strong>（承第十页）：从 DRAM 取一个数的能量，可比一次乘加高<strong>两个数量级以上</strong>。既然如此——<strong>为什么不在数据所在的地方计算？</strong></p>
 <p><strong>模拟式存内计算的核心思想</strong>极其漂亮：把<strong>矩阵-向量乘法</strong>直接映射到交叉阵列的物理定律上。</p>
 <ul>
@@ -109,7 +222,7 @@
 </ul>
 <div class="arithmatex">\[I_i = \sum_j G_{ij} V_j\]</div>
 <p><strong>一次矩阵-向量乘法在一个时钟内、由物理定律直接完成</strong>，无需逐个取数与累加。理论能效提升可达数个数量级——<strong>对以矩阵乘法为主的神经网络推理，这是极具吸引力的</strong>（🔗 AI 站）。</p>
-<h2 id="_4">四、为什么它还没有普及【争】<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_10">四、为什么它还没有普及【争】<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <p>本页最需要诚实的部分。存内计算的论文极多，产品极少，原因是一串工程现实：</p>
 <p><strong>① 模拟精度受限</strong>：器件电导有<strong>器件间失配、循环间涨落、随时间漂移、温度依赖</strong>。实际可靠位数通常只有 4–8 位量级，且需要复杂校准。<strong>这与第八页 Pelgrom 定律是同一个问题的再现：模拟精度昂贵。</strong></p>
 <p><strong>② 外围电路吃掉收益</strong>：阵列本身省电，但<strong>需要 DAC 把输入变成电压、ADC 把电流读回数字</strong>。<strong>ADC 的功耗与面积常常主导整个宏单元</strong>（承第九页：ADC 不便宜）。<strong>很多"能效提升 1000 倍"的宣称，只算了阵列不算外围。</strong></p>
@@ -125,7 +238,7 @@
 <li>与同期<strong>数字加速器</strong>的公平对比如何？</li>
 </ol>
 <p><strong>当前较可信的定位</strong>：<strong>数字式近存计算</strong>（把计算单元放到存储旁边，仍用数字电路）已有真实产品与明确收益；<strong>模拟式存内计算</strong>在特定低精度、边缘推理场景有前景，<strong>但通用化仍未实现</strong>。</p>
-<h2 id="_5">五、更现实的路线：把存储搬近<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<h2 id="_11">五、更现实的路线：把存储搬近<a class="headerlink" href="#_11" title="Permanent link"></a></h2>
 <p>工业界当前的主力方案不是"存内"，而是"<strong>近存</strong>"——沿着第十五页的封装路线：</p>
 <ul>
 <li><strong>HBM</strong>：3D 堆叠 DRAM + 极宽总线。<strong>HBM4 已进入量产</strong>，单堆栈带宽超过 1.6 TB/s，且相比上一代显著降低单位比特功耗——<strong>这是当前 AI 系统最实际的存储墙解法</strong>；</li>
@@ -134,7 +247,7 @@
 <li><strong>CXL 等新互连</strong>：让内存池化与分层扩展。</li>
 </ul>
 <p><strong>一个诚实的对照</strong>：<strong>HBM 是工程上的胜利（渐进、可制造、立刻可用），存内计算是研究上的美（原理优雅、潜力大、但难量产）。</strong> 半导体史上，<strong>前者往往先赢</strong>——这与第五页 TFET/NC-FET 的处境是同一个模式。</p>
-<h2 id="_6">六、要点<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<h2 id="_12">六、要点<a class="headerlink" href="#_12" title="Permanent link"></a></h2>
 <ul>
 <li>新型存储的<strong>器件物理已经成立</strong>，但<strong>成本与一致性</strong>使其难以撼动 DRAM/NAND；</li>
 <li><strong>嵌入式 MRAM 是真实的商业成功</strong>，说明新器件的出路常在"填补特定缝隙"而非"全面替代"；</li>
@@ -153,5 +266,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-memory-frontier.js"></script>
 </body>
 </html>

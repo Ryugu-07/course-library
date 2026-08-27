@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,13 +45,22 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：证明者怎样让人相信，却不把秘密交出去？</a><ul>
+<li><a href="#_2">具体谜题：六次随机喊话够吗？</a></li>
+<li><a href="#_3">先预测可靠性与泄露量</a></li>
+<li><a href="#_4">最小心智模型：挑战—响应—重复</a></li>
+<li><a href="#_5">形式机制：三性质与概率放大</a></li>
+<li><a href="#_6">反例与失效边界</a></li>
+<li><a href="#_7">迁移题：把交互协议拆成可检验性质</a></li>
+</ul>
+</li>
 <li><a href="#1-pki">1. 数字签名与 PKI：信任怎么落地</a></li>
 <li><a href="#2">2. 零知识证明：证明"我知道"而不说出来</a></li>
 <li><a href="#3">3. 安全多方计算与同态加密（一瞥）</a></li>
@@ -50,6 +74,42 @@
 <p><strong>对标</strong>：Boneh–Shoup 后半 / Katz–Lindell 协议章 / NIST PQC ｜ <strong>前置</strong>：crypto-01、toc-02（IP=PSPACE）、physics 站 qi 线（Shor）
 单次加密只是起点。真实世界要的是<strong>协议</strong>——互不信任的多方在敌意网络上达成可信结果。这一页走三段：日常协议（TLS/签名/证书如何拼出你浏览器的锁图标）、零知识证明（证明"我知道"却不泄露）、后量子密码（Shor 算法把 RSA/ECC 判了死缓，怎么办）。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：证明者怎样让人相信，却不把秘密交出去？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">具体谜题：六次随机喊话够吗？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>在阿里巴巴洞穴协议里，证明者从左/右入口进入，门在中间；验证者每轮随机喊“从左边出来”或“从右边出来”。知道密码的人每次都能响应，不知道的人最多猜中一半。六轮都成功时，冒充者的成功概率是多少？观察完整的左右出入记录，验证者能否从记录中读出密码？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_3">先预测可靠性与泄露量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>先写下：<strong>①</strong> 六轮猜测全中的概率是 <span class="arithmatex">\(2^{-6}=1/64\)</span>；<strong>②</strong> 重复只压低 soundness error，不会把错误证明变成真证明；<strong>③</strong> 若协议设计正确， transcript 应该能由模拟器在不知道秘密时生成，因而不泄露秘密本身。</p>
+</div>
+<div class="learning-model">
+<h3 id="_4">最小心智模型：挑战—响应—重复<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>零知识协议把“我知道见证”拆成承诺、随机挑战和响应。完备性要求诚实证明者能过，可靠性要求没有见证者难以持续过，零知识要求验证者看到的分布不比模拟器多出关于秘密的信息。TLS 则把身份认证、密钥交换和对称数据面按同样的职责分层拼装。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_5">形式机制：三性质与概率放大<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>若单轮作弊成功率至多 <span class="arithmatex">\(1/2\)</span>，独立重复 <span class="arithmatex">\(r\)</span> 轮后 soundness error 至多 <span class="arithmatex">\(2^{-r}\)</span>。完备性是诚实策略的接受概率接近 1；可靠性是任意无见证策略的接受概率受界；零知识要求存在模拟器，使验证者视图在计算上或统计上不可区分。数字签名则把“只有私钥能产生”与“任何人能验”绑定到证书信任链。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_6">反例与失效边界<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ul>
+<li>挑战若可被证明者预先知道，重复不再放大可靠性；随机性、承诺顺序和独立性是协议的一部分。</li>
+<li>零知识不等于身份认证，也不等于协议整体安全；重放、恶意验证者、证书错误和实现侧信道仍要单独处理。</li>
+<li>RSA/ECC 的安全假设不抵抗 Shor；后量子迁移必须同时考虑密钥封装、签名、证书链和历史密文的保密寿命。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移题：把交互协议拆成可检验性质<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>为一个“我拥有某数据但不想透露数据”的服务设计挑战—响应草图。分别写完备性、可靠性误差、零知识模拟器和身份绑定在哪里；再给 TLS/PQC 迁移列出需要替换的地基与不能替换的业务不变量。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-crypto-02-protocols">
+<p><strong>无 JavaScript 时的静态版本：</strong>六轮洞穴挑战若每轮独立且冒充者只能猜一边，全中概率是 <span class="arithmatex">\(1/64\approx1.56\%\)</span>；二十轮则是 <span class="arithmatex">\(1/1,048,576\)</span>。记录只包含入口、挑战和出口，不应包含门的密码；若挑战在承诺前就泄露，指数放大论证失效。页面脚本用固定挑战序列逐轮显示诚实者与猜测者的 transcript。</p>
+</div>
+</section>
 <h2 id="1-pki">1. 数字签名与 PKI：信任怎么落地<a class="headerlink" href="#1-pki" title="Permanent link"></a></h2>
 <p><strong>数字签名</strong>：私钥签、公钥验——<strong>只有私钥持有者能产生、任何人能验证</strong>（与加密的公私钥用法相反）。RSA 签名 = 对消息哈希做私钥运算；ECDSA/EdDSA 是椭圆曲线版。签名给出<strong>认证 + 不可否认性</strong>。</p>
 <p><strong>但公钥怎么信？</strong> ——<strong>公钥基础设施 PKI</strong>：<strong>证书</strong>是"CA（证书颁发机构）用自己私钥签名的'这个公钥属于 example.com'的声明"。你的浏览器内置一批根 CA 公钥，靠<strong>信任链</strong>（根 CA 签中间 CA 签网站）验证。<strong>这是"信任的委托"：你不认识网站，但你信 CA，CA 担保网站</strong>。Web 信任的软肋也在此——任一 CA 被攻破就能伪造证书（故有 Certificate Transparency 公开日志监督）。</p>
@@ -98,5 +158,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-crypto-02-protocols.js"></script>
 </body>
 </html>

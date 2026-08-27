@@ -3,6 +3,45 @@
 > **对标**：MIT 6.824 / *Designing Data-Intensive Applications*（DDIA）｜ **前置**：net 线、db-03（事务、隔离）
 > 分布式系统是"用多台机器协作，对外装成一台可靠机器"的艺术——为了扩展性（一台不够）和容错（一台会挂）。但它引入了单机世界没有的三个恶魔：**没有全局时钟、消息会丢会延迟、机器会独立崩溃**。这一页建立分布式的世界观：时间为什么不可靠、"一致"到底有几种含义、以及 CAP 定理逼你做的那个残酷取舍。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：两个事件同一时刻发生，系统能证明谁先吗？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：标量时钟为什么会漏掉并发？</h3>
+<p>节点 A 向 B 发送 m；B 在收到 m 前做本地事件 b1；节点 C 独立做 c1 后向 A 发送 n。A、B、C 的本地时钟都从 0 开始。请预测 b1 与 c1 是否有因果关系，并比较只看 Lamport 标量与使用向量时钟时，系统能否识别这两个事件并发。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择一对事件并预测“先于 / 后于 / 并发”；再判断为什么 Lamport 值相等或不相等都不能单独证明并发，而向量时钟可以给出双向不可比的证据。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：偏序而非全序</h3>
+<p>分布式事件由本地程序顺序和消息发送—接收边构成有向无环图。系统拥有因果偏序，却没有免费的全局实时钟；复制状态的一致性模型是在这个偏序上规定读写必须满足的可见性约束。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>Lamport 关系 <span class="arithmatex">\(a\to b\)</span> 是本地顺序、消息边及其传递闭包；标量时钟保证 <span class="arithmatex">\(a\to b\Rightarrow L(a)&lt;L(b)\)</span>，但逆命题不成立。向量时钟 <span class="arithmatex">\(V_i\)</span> 在本地事件递增，接收消息取逐分量最大值后再递增；<span class="arithmatex">\(V(a)&lt;V(b)\)</span> 当且仅当已知 <span class="arithmatex">\(a\to b\)</span>。线性一致性还要求每个操作看起来落在一个满足实时顺序的单一全序中。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>向量时钟记录因果，不提供物理时间，也不能让网络消息变快；节点数变大时向量长度与元数据成本上升。最终一致允许暂时读到旧副本，CAP 的“不可同时满足”还依赖分区容错与可用性的定义，不能把所有延迟都直接叫作网络分区。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为复制服务选择承诺</h3>
+<p>为 Medusa 的分析卡片和预测状态分别写出允许的陈旧窗口、读修复和冲突策略；再将 db-03 的事务提交事件标为因果边，说明它如何影响 dist-02 的日志顺序。这里的时钟实验不替代 L06 Raft 的真实网络模拟，而是先让你能检查 trace 是否违反因果。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-dist-01-time-consistency">
+<h3>交互实验：Lamport 与向量时钟的因果账本</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>固定事件为 A:a1、A:send(m)、B:b1、C:c1、B:recv(m)、C:send(n)、A:recv(n)、B:b2。典型向量分别为 a1=[1,0,0]、send(m)=[2,0,0]、b1=[0,1,0]、c1=[0,0,1]、recv(m)=[2,2,0]、send(n)=[0,0,2]、recv(n)=[3,0,2]、b2=[2,3,0]。b1 与 c1 双向不可比，故并发；send(m)→recv(m)，故有因果。Lamport 标量可能把 recv(m) 与 recv(n) 都记为 3，却无法据此判断其关系。</p>
+<table><thead><tr><th>事件</th><th>Lamport</th><th>向量 [A,B,C]</th><th>说明</th></tr></thead><tbody><tr><td>A:send(m)</td><td>2</td><td>[2,0,0]</td><td>消息边起点</td></tr><tr><td>B:b1</td><td>1</td><td>[0,1,0]</td><td>与 C:c1 并发</td></tr><tr><td>B:recv(m)</td><td>3</td><td>[2,2,0]</td><td>因果接收</td></tr><tr><td>A:recv(n)</td><td>3</td><td>[3,0,2]</td><td>与 recv(m) 不可比</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 分布式的三个残酷现实
 
 单机的确定性在分布式里全部失效——**"分布式计算的八大谬误"** 的核心三条：

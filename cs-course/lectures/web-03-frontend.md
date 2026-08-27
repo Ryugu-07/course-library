@@ -3,6 +3,68 @@
 > **对标**：MDN / *High Performance Browser Networking* / React 文档 ｜ **前置**：web-01/02、net-02（HTTP 缓存）
 > 请求链的另一端——浏览器与前端。以你的 React SPA（Medusa，Vite 构建）为标本，讲清浏览器怎么把 HTML/CSS/JS 变成你看到的界面（渲染管线）、React 的核心思想（声明式 + 虚拟 DOM）、前端工程化（打包、为什么要 Vite）、以及前端性能。这一页也回收 comfy/math 那些站点（你的博客站）背后的前端原理。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="web-03-learning-title">
+
+<h2 id="web-03-learning-title">学习层：状态已经更新，为什么这一帧仍然没有送达？</h2>
+
+### 1. 具体谜题：同一个状态变更，哪一个能赶上下一帧？
+
+仪表盘每 16.7 ms 需要交付一帧。一次状态更新可以是移动一个已经合成的面板、给 1000 行列表重新计算布局、或执行 24 ms 的同步 JavaScript。先预测：
+
+1. 哪种更新可以只走 composite，最可能不触发 layout？
+2. 哪种更新即使 React diff 很小，也可能错过 60 Hz 的 frame deadline？
+3. CSS、同步 script 和数据请求分别在哪个时点阻塞首屏或交互？
+
+实验台把 React 状态变化、主线程任务和浏览器阶段放进同一条 frame timeline；先选“会送达/会丢帧”，再查看 layout、paint、composite 的证据。这里测的是交付机制，不是凭肉眼把“快”归因给 React。
+
+### 2. 最小模型：声明树到像素的两条账本
+
+浏览器账本是
+
+$$
+\mathrm{DOM}+\mathrm{CSSOM}\to\mathrm{render\ tree}\to\mathrm{layout}\to\mathrm{paint}\to\mathrm{composite},
+$$
+
+React 账本则是 `state → virtual tree → diff → DOM patch`。前者决定主线程和渲染器的工作，后者决定需要提交哪些 DOM 变化；两者不是同一层的性能证明。若一帧预算为 `B`，主线程工作为 `J`，布局/绘制/合成成本为 `R`，粗略送达条件是
+
+$$
+J+R\le B.
+$$
+
+`transform`/`opacity` 在满足合成层条件时可令布局与绘制成本下降，但这不是对所有 CSS 属性的普遍承诺。
+
+### 3. 正式机制与不变量：UI 可预测，交付也要有预算
+
+- **声明式不变量**：给定同一 state、props 和稳定 key，`UI=f(state)` 的逻辑结果应一致；副作用在 `useEffect` 等边界处可追踪。
+- **布局读写分离**：先批量读取尺寸，再批量写样式，避免交替读写触发强制同步布局；长任务应切片或移出首屏关键路径。
+- **资源交付证据**：CSSOM 形成、脚本是否 `defer`、字体/图片/JS 是否命中缓存，会改变首屏可用时间；bundle 哈希只解决缓存失效，不替代加载预算。
+- **帧级不变量**：在声明的 frame budget 内完成关键交互，不能用平均 FPS 掩盖 p95/p99 的长任务和 INP。
+
+因此虚拟 DOM 不是“无需关心浏览器成本”的许可证。应把 state diff、实际 DOM 变化、布局/绘制成本和 frame deadline 分开测量。
+
+### 4. 失败边界与迁移任务
+
+不同浏览器、设备 GPU、字体、图片解码和后台节流会改变常数；`transform` 也可能因图层内存或合成条件失效；React 的重渲染优化不能修复同步第三方脚本或过大的首屏 bundle。实验只使用固定成本，不能替代 Performance panel、Long Tasks、LCP/INP/CLS 的真实采样。
+
+迁移任务：从 Medusa 的一个列表交互取一段 performance trace，分别标出网络、脚本、React commit、layout、paint 和 composite；再给“内容型博客、SEO 产品页、交互仪表盘”选择 SSG/SSR/SPA，并写出首屏与更新交付的证据标准。
+
+<div class="learning-lab" data-learning-lab="cs-web-03-frontend" markdown="1">
+
+**JavaScript 失效时的静态读法：**60 Hz 的预算取 16.7 ms；先比较主线程总成本，再看是否包含 layout/paint。React diff 的大小不能单独推出是否按时送达。
+
+| 更新轨迹 | 主线程成本 | layout/paint | 结果（16.7 ms） | 关键机制 |
+|---|---:|---|---|---|
+| 合成面板 `transform` | 3 ms | 否/低 | 送达 | compositor 可直接移动图层 |
+| 单次 class 更新 | 13 ms | 是 | 送达但有余量 | 样式变化需要重新计算几何 |
+| 1000 行列表 | 24 ms | 是 | 错过一帧 | DOM/布局成本超过预算 |
+| 同步脚本 | 31 ms | 阻塞渲染 | 错过一帧 | 主线程未到达绘制阶段 |
+
+</div>
+
+</section>
+
 ## 1. 浏览器渲染管线:HTML 怎么变成像素
 
 

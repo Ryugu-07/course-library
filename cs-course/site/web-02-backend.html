@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css?v=20260802">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,17 +45,24 @@
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li class="active"><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 后端的骨架：路由 → 处理 → 响应</a></li>
+<li><a href="#web-02-learning-title">学习层：事件循环何时救你，何时被你自己堵死？</a><ul>
+<li><a href="#1">1. 具体谜题：六个请求同时到达，谁在队列里等待？</a></li>
+<li><a href="#2">2. 最小模型：任务状态、等待资源与有界队列</a></li>
+<li><a href="#3">3. 正式机制与不变量：吞吐不是无界并发</a></li>
+<li><a href="#4">4. 失败边界与迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 后端的骨架：路由 → 处理 → 响应</a></li>
 <li><a href="#2-orm">2. ORM 与数据库交互:方便背后的陷阱</a></li>
 <li><a href="#3-async">3. 异步与并发：现代后端为什么爱 async</a></li>
-<li><a href="#4">4. 认证、授权与会话</a></li>
+<li><a href="#4_1">4. 认证、授权与会话</a></li>
 <li><a href="#5">5. 错误处理、日志与可观测性</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -51,7 +73,75 @@
 <p><strong>对标</strong>：Berkeley CS169 / FastAPI 文档 / DDIA（数据视角）｜ <strong>前置</strong>：web-01、db 线、os-02（并发）、net-02（HTTP）
 深入 web-01 那条链里的应用服务器层——后端。以你的 FastAPI（Medusa）为标本，讲清后端的核心构件：路由与请求处理、ORM 与数据库交互（及其经典陷阱）、异步/并发模型（为什么现代后端爱 async）、认证授权、错误处理与日志。这是把"能跑的后端"写成"可靠的后端"的工程知识。</p>
 </blockquote>
-<h2 id="1">1. 后端的骨架：路由 → 处理 → 响应<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section aria-labelledby="web-02-learning-title" class="learning-layer">
+<h2 id="web-02-learning-title">学习层：事件循环何时救你，何时被你自己堵死？<a class="headerlink" href="#web-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：六个请求同时到达，谁在队列里等待？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>一个 FastAPI worker 同时收到两个数据库读、一个远端 LLM 请求、一个本地 embedding 计算和两个健康检查。连接池只有两个槽，入口队列容量为四。先预测：</p>
+<ol>
+<li><code>await</code> 挂起数据库读时，事件循环能否推进另一个请求？</li>
+<li>本地 CPU 计算若直接写在 <code>async def</code> 中，会让健康检查怎样？</li>
+<li>入口已经满载时，继续接收请求与立即返回 429，哪一个更能保护已有请求的尾延迟？</li>
+</ol>
+<p>实验台固定任务顺序、I/O 时长、CPU 时长和队列容量；提交预测后再切换 async/线程池模型，观察完成时间、队列拒绝和连接池占用。先写下“会并行什么、会阻塞什么”，再看事件时间线。</p>
+<h3 id="2">2. 最小模型：任务状态、等待资源与有界队列<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>每个请求在 <code>accepted → running → waiting(I/O) → resumed → finished</code> 之间移动。事件循环只在当前回调主动让出控制权时切换；<code>await</code> 代表等待资源，不代表 CPU 工作自动并行。把入口看成容量为 <code>Q</code> 的队列，把数据库连接池看成容量为 <code>C</code> 的第二个队列，过载时必须选择排队、超时或拒绝。</p>
+<p>对 I/O 密集请求，多个等待区间可以重叠；对 CPU 密集请求，单 worker 的执行时间仍近似相加。一个可核对的粗粒度账本是</p>
+<div class="arithmatex">\[
+L_i=L_{queue}+L_{pool}+L_{io}+L_{cpu}+L_{serialize},
+\]</div>
+<p>其中只有等待 I/O 的部分能由事件循环把执行权交给别的请求。实验不模拟真实操作系统调度，只用确定性事件序列揭示这个分工。</p>
+<h3 id="3">3. 正式机制与不变量：吞吐不是无界并发<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<ul>
+<li><code>async</code> 的机制是协作式让出，不是把同步 CPU 代码变成并行代码；任何长时间不让出的回调都会阻塞同一 worker 的所有连接。</li>
+<li><strong>背压</strong>是把下游容量向上游传播：当连接池、外部 API 或队列到达上限，入口应限流、超时、取消或返回明确的 429/503，而不是无限积压。</li>
+<li><strong>资源不变量</strong>：同时持有的数据库连接不超过池容量；被取消的请求释放连接；队列长度有上界；重试必须有预算，否则故障会被放大成重试风暴。</li>
+<li><strong>边界校验仍在最前面</strong>：Pydantic 的 422 不是性能机制，但能让非法请求在占用数据库和 CPU 前退出。</li>
+</ul>
+<p>所以“每个请求一个协程”不是“无限并发”的承诺。可靠后端的证据应同时记录活动请求、队列等待、池等待、超时和拒绝，而不只看平均响应时间。</p>
+<h3 id="4">4. 失败边界与迁移任务<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>真实服务还涉及线程池大小、数据库锁、网络重试、取消传播、GIL、优先级和 p99 尾延迟；本实验把这些折叠为固定成本，不能据此挑选生产参数。async 也不会修复 N+1 查询、慢 SQL 或不受控的外部依赖。</p>
+<p>迁移任务：给 Medusa 的一个读端点定义队列上限、数据库池上限、超时、重试预算和 429/503 语义，并在结构化日志中区分 <code>queue_ms</code>、<code>pool_ms</code>、<code>io_ms</code> 与 <code>cpu_ms</code>。然后说明本地 embedding 应如何移出事件循环，以及这一选择如何影响 web-01 的请求账本。</p>
+<div class="learning-lab" data-learning-lab="cs-web-02-backend">
+<p><strong>JavaScript 失效时的静态读法：</strong>固定五个任务的总工作量不变；async 只重叠等待，CPU 段仍占住单 worker。队列容量不足时，拒绝是背压证据，不是“请求消失无需记录”。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th style="text-align: right;">队列容量</th>
+<th>I/O 等待</th>
+<th>CPU 段</th>
+<th>过载时的正确观察</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>async worker</td>
+<td style="text-align: right;">4</td>
+<td>可交错推进</td>
+<td>阻塞事件循环</td>
+<td>第 5 个入口请求应被拒绝或限流</td>
+</tr>
+<tr>
+<td>线程池（2）</td>
+<td style="text-align: right;">4</td>
+<td>线程等待</td>
+<td>可由另一线程推进</td>
+<td>线程/连接池仍是有限资源</td>
+</tr>
+<tr>
+<td>async + 无限队列</td>
+<td style="text-align: right;">∞</td>
+<td>表面吞吐平稳</td>
+<td>尾延迟持续增长</td>
+<td>没有背压，故障会积压放大</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<h2 id="1_1">1. 后端的骨架：路由 → 处理 → 响应<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="后端骨架：路由→中间件→校验→处理→数据库→响应。" src="assets/img/web-02-request-flow.svg" /></p>
 <figcaption><span class="fig-id">图 web-02.3</span>后端骨架：路由→中间件→校验→处理→数据库→响应。</figcaption>
@@ -85,7 +175,7 @@
 <li><strong>异步事件循环（async/await，现代）</strong>：<strong>单线程 + 事件循环</strong>——遇到 I/O 就挂起当前任务（<code>await</code>）、去处理别的任务，I/O 完成再回来。<strong>一个线程高效处理成千上万个并发连接</strong>（因为大部分时间在等，不占 CPU）。FastAPI/Node.js/Nginx 都是这个模型。</li>
 </ul>
 <p><strong>关键认知</strong>：<strong>async 擅长 I/O 密集（大量等待），不加速 CPU 密集</strong>（CPU 满载时事件循环也堵）。Medusa 后端查数据库、调 LLM API 都是 I/O 密集——<strong>async 是对的选择</strong>；但若有重计算（如本地跑 embedding）要丢给线程池/进程池，别堵住事件循环。<strong>"async 处理等待、多进程处理计算"是后端并发的分工原则</strong>。</p>
-<h2 id="4">4. 认证、授权与会话<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 认证、授权与会话<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <ul>
 <li><strong>认证（Authentication）</strong>：你是谁？——密码（存<strong>加盐哈希</strong> bcrypt/argon2，绝不明文，🔗 crypto-01/sec-02）、OAuth（第三方登录）、API key。</li>
 <li><strong>授权（Authorization）</strong>：你能做什么？——基于角色（RBAC）/ 资源所有权检查。<strong>认证和授权是两件事，别混</strong>（登录了 ≠ 有权访问这条数据）。</li>
@@ -116,5 +206,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/cs-web-02-backend.js"></script>
 </body>
 </html>

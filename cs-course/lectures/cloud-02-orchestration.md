@@ -3,6 +3,64 @@
 > **对标**：Kubernetes 文档 / *Kubernetes Up & Running* / Google SRE 书 ｜ **前置**：cloud-01（容器）、dist 线（分布式）、web-02（可观测性初步）
 > 几个容器用 docker-compose 够了；但当你有成百上千个容器跨几十台机器、要自愈、要按负载扩缩容——就需要**编排（orchestration）**。这一页讲 Kubernetes 的核心思想（声明式 + 控制循环，一个优雅的分布式系统）、以及**可观测性**（怎么看见一个庞大系统的健康——监控、日志、追踪、告警）。这条线的落点是"让大系统可靠运行"的运维工程，也回收 Medusa"静默失败"的教训。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1" aria-labelledby="cloud-02-learning-title">
+
+<h2 id="cloud-02-learning-title">学习层：控制器看到偏差后，下一步应该做什么？</h2>
+
+### 1. 具体谜题：期望 3 个副本，为什么 Service 只应该送流量给 2 个？
+
+Deployment 声明 `replicas: 3`。当前有一个 Pod 崩溃、一个 Pod 尚未通过 readiness probe，节点仍有容量；另一时刻 CPU 负载升高，HPA 的目标上限为 5。先预测：
+
+1. 第一次 reconcile 应创建、重启还是删除 Pod？
+2. 未 ready 的 Pod 是否应进入 Service endpoint？
+3. 负载升高时，控制循环应改变 desired replicas，还是只把流量强行发给现有 Pod？
+
+实验台固定期望状态、观测状态、容量和健康信号；提交预测后再观察一个控制周期的动作、endpoint 集合和可观测指标。重点是把“控制器纠偏”和“Service 路由资格”分开。
+
+### 2. 最小模型：期望、观测、动作、下一次观测
+
+用状态向量表示
+
+$$
+S_t=(D_t,O_t,H_t,C_t),
+$$
+
+其中 `D` 是期望副本/版本，`O` 是实际对象，`H` 是 readiness/health，`C` 是节点容量。控制器计算偏差 `D_t - O_t`，产生动作 `A_t`，系统在下一次观测得到 `S_{t+1}`。Service 只把 `H_t=ready` 且符合 selector 的端点加入流量集合。
+
+这不是瞬时函数：创建 Pod、拉镜像、探针通过、节点调度和网络传播都需要时间。一个健康的循环应在容量、权限和依赖可用时使偏差逐步缩小，但不承诺单次循环立即收敛。
+
+### 3. 正式机制与不变量：自愈是反馈，不是魔法
+
+- **副本不变量**：在资源足够且控制面可用时，期望副本数是长期目标；短暂的 `observed < desired` 是收敛过程中的状态，不必伪装成即时一致。
+- **路由不变量**：未 ready、错误版本或 selector 不匹配的 Pod 不应接收 Service 流量；否则控制面“修好副本”仍可能把错误暴露给用户。
+- **滚动更新不变量**：新版本要先达到 readiness，再按策略替换旧版本；错误率和可用性信号触发暂停或回滚。
+- **观测边界**：metrics、logs、traces 是对内部状态的投影；没有 trace 不能把跨服务延迟归因给某个 Pod，没有告警也不能把“暂无事件”当作健康。
+
+控制循环、etcd 状态、scheduler 放置、Service 发现和 HPA 指标彼此耦合；把某一个 YAML 字段当成整个系统的保证，是把机制范围说过头。
+
+### 4. 失败边界与迁移任务
+
+网络分区、控制面不可达、镜像仓库故障、资源不足、错误 readiness、指标延迟和有状态存储都会让自愈停在边界；扩容也可能把下游数据库压垮。实验固定单一控制器、即时观测和简化容量，不替代生产的 rollout、PDB、HPA 和 SLO 设计。
+
+迁移任务：为 Medusa 的 webapp、worker 和 Postgres 分别写出期望状态、ready 条件、可观测信号、扩缩容边界和回滚动作；再说明为什么单机、稳定流量的小系统不应仅凭“能自愈”就引入 K8s。
+
+<div class="learning-lab" data-learning-lab="cs-cloud-02-orchestration" markdown="1">
+
+**JavaScript 失效时的静态读法：**先比较 desired 与 observed，再检查 readiness；控制器补副本不等于新 Pod 已能接流量。负载变化影响 desired，健康变化影响 endpoint。
+
+| 情景 | desired/observed | ready endpoints | 下一动作 |
+|---|---|---:|---|
+| Pod 崩溃 | 3 / 2 | 2 | 创建替代 Pod |
+| Pod 未 ready | 3 / 3 | 2 | 不路由给未 ready，等待探针 |
+| CPU 高负载 | 3 / 3，目标上限 5 | 3 | HPA 增加 desired |
+| 新版本金丝雀异常 | 3 / 3 | 3，但错误率升高 | 暂停 rollout 或回滚 |
+
+</div>
+
+</section>
+
 ## 1. 为什么需要编排
 
 单机几个容器你手动管（cloud-01）。但规模上去后，一堆事没法手动：机器挂了容器要迁走、流量涨了要加实例、更新要滚动不能停服、几百个容器要相互发现和通信。**编排系统自动化这些**——你声明"我要 3 个这个服务的副本"，它负责让现实**始终符合**这个声明。**Kubernetes（K8s）是事实标准。**

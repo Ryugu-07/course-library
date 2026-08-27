@@ -3,6 +3,43 @@
 > **对标**：Boneh–Shoup *A Graduate Course in Applied Cryptography* / Katz–Lindell ｜ **前置**：toc-02（难度即安全）、数学站数论/代数（群、模运算）
 > 密码学是**把复杂度理论的"难"锻造成"安全"**的工程。这一页从"安全到底指什么"（可证明安全的定义哲学）讲起，过对称加密、走到公钥革命，落到 RSA/ECC 依赖的数论难题。对有代数底子的你，这一页大半是"群论 + 数论的应用题"，但**安全定义那部分是全新的思维方式**，值得慢读。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：公开信道上，秘密为何能两边相同？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：窃听者看到了什么？</h3>
+<p>取 <span class="arithmatex">\(p=23,g=5\)</span>。Alice 选 <span class="arithmatex">\(a=6\)</span>，公开 <span class="arithmatex">\(A=5^6\bmod23=8\)</span>；Bob 选 <span class="arithmatex">\(b=15\)</span>，公开 <span class="arithmatex">\(B=5^{15}\bmod23=19\)</span>。双方算出的 <span class="arithmatex">\(2\)</span> 为什么相同？只看到 <span class="arithmatex">\(5,23,8,19\)</span> 的旁观者，是否也能在这个小群里找出秘密？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测安全游戏</h3>
+<p>先写下：<strong>①</strong> Alice 计算 <span class="arithmatex">\(B^a\bmod p\)</span>、Bob 计算 <span class="arithmatex">\(A^b\bmod p\)</span> 必相同；<strong>②</strong> 小素数下可以枚举离散对数，所以玩具 DH 没有真实安全性；<strong>③</strong> 只加密不认证时，攻击者可以改动密文对应的明文比特而不被发现。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：公开值 + 私密指数</h3>
+<p>协议公开一个群和生成元，每方只保留自己的指数。公开值是单向计算的结果，共享密钥是交换公开值后再做一次同态运算。现代密码学再用安全游戏描述攻击者能看到、能选择和能输出什么，把“看起来随机”变成可归约的不可区分性。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：群运算与不可区分</h3>
+<p>DH 的交换律来自 <span class="arithmatex">\((g^b)^a=g^{ab}=(g^a)^b\pmod p\)</span>。若攻击者不能从 <span class="arithmatex">\((g,g^a,g^b)\)</span> 有效得到 <span class="arithmatex">\(g^{ab}\)</span>，便可将共享值作为会话密钥输入 AEAD；IND-CPA 则要求攻击者区分两条挑战明文的优势 <span class="arithmatex">\(\mathrm{Adv}\)</span> 对安全参数可忽略。OTP 的完美保密更强，但要求等长真随机密钥且不可复用。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>小群、坏生成元或复用私密指数会让枚举、子群攻击或关联分析变得可行；“模幂算不动”不是完整安全论证。</li>
+<li>裸 DH 不认证通信双方，主动中间人可以分别与两边建立密钥；实际协议需要签名/证书或预共享认证。</li>
+<li>教科书 RSA 的确定性和可乘性破坏 IND-CPA；算法正确不代表模式、填充和 nonce 使用正确。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把威胁模型写进设计</h3>
+<p>为一个 API 会话选择密钥交换、认证和数据保护三层机制。分别列出公开量、秘密量、攻击者能力、正确性不变量和安全归约；再解释为何高速数据面用 AEAD，而不是让公钥算法直接加密整段日志。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-crypto-01-foundations" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong>在 <span class="arithmatex">\(p=23,g=5,a=6,b=15\)</span> 下，公开值为 <span class="arithmatex">\(A=8,B=19\)</span>，Alice 算 <span class="arithmatex">\(19^6\bmod23=2\)</span>，Bob 算 <span class="arithmatex">\(8^{15}\bmod23=2\)</span>。但攻击者在 <span class="arithmatex">\(p=23\)</span> 中只需试 1 到 22 的指数即可反推，真实系统必须使用足够大的群并认证握手。页面脚本会逐步显示模幂、共享值与小群离散对数搜索。</p>
+</div>
+</section>
+
 ## 1. 安全的定义：从"看起来乱"到可证明
 
 业余者问"这密码强吗"，密码学家问"**在什么攻击模型下、归约到什么难题、优势有多小**"。核心范式：

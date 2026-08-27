@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、摩尔定律说的是什么</a></li>
+<li><a href="#_1">学习层：晶体管缩小，为什么曾经能免费换来速度？</a><ul>
+<li><a href="#1-07">1. 具体谜题：\(0.7\) 倍缩放后，功率密度到底变不变？</a></li>
+<li><a href="#2">2. 先预测：三种缩放量谁在帮助，谁在收费？</a></li>
+<li><a href="#3">3. 最小心智模型：一张密度、速度、热预算的账单</a></li>
+<li><a href="#4-dennard">4. 形式机制与不变量：Dennard 的闭合条件</a></li>
+<li><a href="#5">5. 交互实验：用两种电压策略重放功耗墙</a></li>
+<li><a href="#6-dennard">6. 反例与失效边界：摩尔定律、Dennard 与性能不是同一个命题</a></li>
+<li><a href="#7">7. 迁移题：把器件约束翻译成计算机结构</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、摩尔定律说的是什么</a></li>
 <li><a href="#dennard">二、Dennard 缩放：真正的引擎</a></li>
 <li><a href="#60-mvdecade">三、为什么它死了：60 mV/decade</a></li>
-<li><a href="#_2">四、功耗墙与它的直接后果</a></li>
-<li><a href="#_3">五、功耗的三个来源</a></li>
-<li><a href="#_4">六、缩放今天的处境</a></li>
+<li><a href="#_3">四、功耗墙与它的直接后果</a></li>
+<li><a href="#_4">五、功耗的三个来源</a></li>
+<li><a href="#_5">六、缩放今天的处境</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,91 @@
 <p><strong>层次</strong>：本科核心 ｜ <strong>这是全课的枢纽页</strong>，也是与 🔗 cs 站严丝合缝对接的地方。
 摩尔定律常被当作一句预言口号。它其实是一套<strong>具体的物理与经济逻辑</strong>：为什么把晶体管做小会同时变快、变省电、变便宜；以及为什么这套逻辑在 2005 年前后<strong>部分失效</strong>了——而那次失效，直接造成了你在 cs 站学到的一切（多核、加速器、异构计算）。</p>
 </blockquote>
-<h2 id="_1">一、摩尔定律说的是什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：晶体管缩小，为什么曾经能免费换来速度？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-07">1. 具体谜题：<span class="arithmatex">\(0.7\)</span> 倍缩放后，功率密度到底变不变？<a class="headerlink" href="#1-07" title="Permanent link"></a></h3>
+<p>把一个满足 Dennard 假设的逻辑单元的所有线性尺寸缩成 <span class="arithmatex">\(s=0.7\)</span>。如果供电电压也缩成 <span class="arithmatex">\(0.7V_{DD}\)</span>，频率提高到 <span class="arithmatex">\(1/0.7\)</span> 倍，单管功耗与每平方毫米的功率密度会怎样？现在做同样的几何缩放，但把 <span class="arithmatex">\(V_{DD}\)</span> 固定不降，哪一个账本先爆掉？</p>
+<p>这不是在背“摩尔定律”的年份，而是在检查一组量是否同时闭合。先预测面积密度、单管动态功耗、功率密度和允许同时点亮的晶体管比例，再思考亚阈值摆幅为什么让“电压跟着尺寸缩”变得困难。</p>
+<h3 id="2">2. 先预测：三种缩放量谁在帮助，谁在收费？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验先隐藏结果。请对 <span class="arithmatex">\(s=0.7\)</span> 做四个判断：</p>
+<ol>
+<li>面积是原来的 <span class="arithmatex">\(0.7\)</span> 还是 <span class="arithmatex">\(0.49\)</span>？</li>
+<li>Dennard 电压缩放时，单管动态功耗是否降到约 <span class="arithmatex">\(0.49\)</span>？</li>
+<li>电压不降时，功率密度是否仍保持不变？</li>
+<li>若低阈值导致关态电流每下降 <span class="arithmatex">\(60\ \mathrm{mV}\)</span> 增加十倍，静态功耗应当被当作小修正还是独立约束？</li>
+</ol>
+<h3 id="3">3. 最小心智模型：一张密度、速度、热预算的账单<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>用 <span class="arithmatex">\(s\)</span> 表示线性尺寸缩放因子。一个简化单元拥有面积、等效电容 <span class="arithmatex">\(C\)</span>、供电电压 <span class="arithmatex">\(V\)</span> 和频率 <span class="arithmatex">\(f\)</span>。动态功耗不是一个孤立的器件数，而是“单管功耗”乘以“单位面积可放多少管”；热设计则还要乘以同时活动的比例。</p>
+<p>这个模型只描述同构、稠密、动态功耗主导的趋势。真实节点还受互连 RC、漏电、器件结构、良率、封装和成本约束；因此实验把 Dennard 结果标为“在假设成立时的归一化推导”，不把它当作今天的行业预测。</p>
+<h3 id="4-dennard">4. 形式机制与不变量：Dennard 的闭合条件<a class="headerlink" href="#4-dennard" title="Permanent link"></a></h3>
+<p>在一阶比例模型中</p>
+<div class="arithmatex">\[
+L,W,t_{ox}\mapsto s,\quad C\mapsto s,\quad V\mapsto s,\quad f\mapsto \frac1s.
+\]</div>
+<p>于是单管动态功耗 <span class="arithmatex">\(P_{\mathrm{gate}}\sim CV^2f\mapsto s^2P_{\mathrm{gate}}\)</span>，面积密度 <span class="arithmatex">\(D_A\mapsto D_A/s^2\)</span>，两者相乘得到</p>
+<div class="arithmatex">\[
+P_{\mathrm{density}}\sim\frac{CV^2f}{\mathrm{area}}
+\mapsto P_{\mathrm{density}}.
+\]</div>
+<p>若 <span class="arithmatex">\(V\)</span> 固定，单管动态功耗约为原值，功率密度则按 <span class="arithmatex">\(1/s^2\)</span> 增长；若只能让部分单元活动，热约束给出 <span class="arithmatex">\(a_{\max}\le P_{\mathrm{budget}}/P_{\mathrm{density}}\)</span>。另一方面，亚阈值电流近似满足</p>
+<div class="arithmatex">\[
+SS=\frac{dV_{GS}}{d\log_{10}I_D}\ge60\ \mathrm{mV/decade},
+\]</div>
+<p>所以阈值、电源电压和关态漏电不能独立选择。真正可审计的不变量是缩放假设下的功率密度相等，而不是“晶体管总数增加就能同时工作”。</p>
+<h3 id="5">5. 交互实验：用两种电压策略重放功耗墙<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-scaling-budget">
+<p><strong>无 JavaScript 时的静态读法：</strong>以未缩放单元 \(C=V=f=\mathrm{area}=1\) 为基准，\(s=0.7\) 时面积、密度和频率按上面的比例计算。先忽略短路功耗，把活动因子设为 1。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>面积</th>
+<th>密度</th>
+<th>\(V\)</th>
+<th>\(f\)</th>
+<th>单管 \(CV^2f\)</th>
+<th>功率密度</th>
+<th>热预算内活动比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>Dennard</th>
+<td>0.49</td>
+<td>2.04</td>
+<td>0.70</td>
+<td>1.43</td>
+<td>0.49</td>
+<td>1.00</td>
+<td>1.00</td>
+</tr>
+<tr>
+<th>电压固定</th>
+<td>0.49</td>
+<td>2.04</td>
+<td>1.00</td>
+<td>1.43</td>
+<td>1.00</td>
+<td>2.04</td>
+<td>0.49</td>
+</tr>
+</tbody>
+</table>
+<p>脚本允许改变 \(s\in[0.5,1]\)、活动因子和亚阈值摆幅 \(SS\)，同步画出密度、频率、动态功率密度和“暗硅”比例。默认热预算归一化为 1；当固定电压使功率密度达到 2.04 时，最多只能让约 49% 的缩放后单元同时活动。漏电倍率用 \(10^{\Delta V_{th}/SS}\) 显示，并明确标为 Boltzmann 近似的教学账本。</p>
+</div>
+<h3 id="6-dennard">6. 反例与失效边界：摩尔定律、Dennard 与性能不是同一个命题<a class="headerlink" href="#6-dennard" title="Permanent link"></a></h3>
+<ul>
+<li>摩尔定律描述晶体管数量的经验趋势，不保证单线程性能、频率或每晶体管成本。</li>
+<li>Dennard 缩放依赖电压、尺寸和电场同步变化；当 <span class="arithmatex">\(V_{DD}\)</span> 停滞、互连 RC 或漏电主导时，功率密度不再保持。</li>
+<li>“把频率降下来就能解决所有功耗”忽略静态漏电和热反馈；动态项随 <span class="arithmatex">\(f\)</span> 下降，漏电项不一定下降。</li>
+<li>功率密度归一化不等于芯片可无限扩展；封装散热、IR 压降、电迁移、存储墙和设计成本都可能先成为瓶颈。</li>
+</ul>
+<h3 id="7">7. 迁移题：把器件约束翻译成计算机结构<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>当只有一半晶体管能同时点亮时，应该选择多核、专用加速器、时钟门控还是更大的缓存？请用 <span class="arithmatex">\(\alpha CV_{DD}^2f+I_{\mathrm{leak}}V_{DD}\)</span> 逐项说明决策，并指出哪一项来自器件的 <span class="arithmatex">\(60\ \mathrm{mV/decade}\)</span> 极限。你的回答应把“频率封顶”与 cs 站的并行化、异构化联系起来。</p>
+</section>
+<h2 id="_2">一、摩尔定律说的是什么<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p><strong>摩尔定律</strong>（1965，1975 修订）：<strong>集成电路上的晶体管数量约每两年翻一番</strong>。</p>
 <p>必须澄清三点：</p>
 <ol>
@@ -130,7 +239,7 @@
 <p><img alt="缩放趋势与 Dennard 缩放的终结" class="fig-img" src="assets/img/mic_scaling.svg" /></p>
 <figcaption><span class="fig-id">图 4-1</span> 微处理器四十年趋势（示意，纵轴对数）。<strong>晶体管数量</strong>持续指数增长（摩尔定律延续）；但<strong>时钟频率</strong>与<strong>单线程性能</strong>在 2005 年前后<strong>同时拐平</strong>，<strong>供电电压</strong>也停在约 1 V。行业的应对是<strong>核心数</strong>从此开始增长——这就是多核时代的起点。<strong>频率的停滞不是工艺做不到，而是功率密度不允许。</strong></figcaption>
 </figure>
-<h2 id="_2">四、功耗墙与它的直接后果<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">四、功耗墙与它的直接后果<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p><strong>功率墙（power wall）</strong>：芯片能耗散的热量有上限（约 100 W/cm² 量级，受封装与散热限制）。一旦触顶，就不能再靠提频率换性能。</p>
 <p><strong>行业的三个应对，全部写在 cs 站的课程表里</strong>：</p>
 <p><strong>① 多核</strong>：既然单核不能更快，就并行。<strong>"免费午餐结束了"</strong>——软件必须显式并行化才能享受新硬件（🔗 cs 站并行线、<code>par-01</code>）。<strong>这是一次由器件物理引发的软件范式转变。</strong></p>
@@ -139,7 +248,7 @@
 <p><strong>这一条因果链值得完整记住</strong>：</p>
 <div class="arithmatex">\[\text{60 mV/dec 玻尔兹曼极限} \Rightarrow V_{DD}\ \text{停滞} \Rightarrow \text{功率密度上升} \Rightarrow \text{频率封顶} \Rightarrow \text{多核 + 专用化}\]</div>
 <p><strong>热力学的一个常数，重塑了整个计算机产业。</strong></p>
-<h2 id="_3">五、功耗的三个来源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_4">五、功耗的三个来源<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>设计者面对的功耗预算由三部分组成：</p>
 <div class="arithmatex">\[P = \underbrace{\alpha C V_{DD}^2 f}_{\text{动态（开关）}} + \underbrace{I_{SC}V_{DD}}_{\text{短路}} + \underbrace{I_{leak}V_{DD}}_{\text{静态（漏电）}}\]</div>
 <ul>
@@ -148,7 +257,7 @@
 <li><strong>静态漏电</strong>：亚阈值漏电 + <strong>栅隧穿漏电</strong> + 结漏电。<strong>在先进节点，漏电可占总功耗的相当大比例</strong>，且随温度指数上升——形成"越热越漏、越漏越热"的正反馈（热失控风险）。</li>
 </ul>
 <p><strong>对抗手段</strong>（都是权衡）：多阈值电压器件（关键路径用低 <span class="arithmatex">\(V_{th}\)</span> 快管、非关键路径用高 <span class="arithmatex">\(V_{th}\)</span> 省电管）、电源门控（power gating，整块关断）、时钟门控、DVFS、以及第五页的器件结构革新。</p>
-<h2 id="_4">六、缩放今天的处境<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_5">六、缩放今天的处境<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <p><strong>仍在进行的</strong>：晶体管密度依然提升（靠 FinFET → GAA、以及设计–工艺协同优化）。</p>
 <p><strong>已经停止的</strong>：</p>
 <ul>
@@ -174,5 +283,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-scaling-budget.js"></script>
 </body>
 </html>

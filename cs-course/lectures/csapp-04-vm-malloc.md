@@ -3,6 +3,43 @@
 > **对标**：CS:APP 第 9 章 ｜ **前置**：csapp-02（缓存）、csapp-03（缺页故障）
 > 系统里最精巧的幻觉：**每个进程都以为自己独占一整块从 0 开始的连续内存**——而物理内存只有几十 GB 且被所有进程瓜分。这个幻觉叫**虚拟内存**，它同时解决了隔离、共享、超额分配三件事，是现代操作系统的支柱。下半页讲 `malloc` 底下的真相——堆是怎么管理的，为什么会内存碎片和泄漏。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：地址连续，物理页也连续吗？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：一层翻译和一块空洞</h3>
+<p>页大小为 <code>0x1000</code> 时，虚拟地址 <code>0x1234</code> 的页号和页内偏移是什么？若页表把虚拟页 1 映到物理帧 5，物理地址是多少？另一边，堆上有空闲块 <span class="arithmatex">\([0,16]\)</span>、已用块 <span class="arithmatex">\([16,40]\)</span>、空闲块 <span class="arithmatex">\([40,64]\)</span>，申请 28 字节时为什么总空闲量 40 仍会失败？释放中间块后又会怎样？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测偏移与碎片</h3>
+<p>先写下：<strong>①</strong> 地址翻译改变页号但保留页内偏移 <span class="arithmatex">\(0x234\)</span>；<strong>②</strong> 页表只需把页号映到帧号，不要求物理页连续；<strong>③</strong> 分配器若不合并相邻空闲块，会出现“总空闲 40 字节、最大连续块只有 24 字节”的外部碎片。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：两本映射账</h3>
+<p>虚拟内存维护虚拟页到物理帧的映射与权限；TLB 缓存最近的映射，缺页 fault 把“不在内存”的状态交给内核处理。malloc 维护堆块的边界、大小和空闲状态，用首次适配切分，用边界标记在 free 后合并。两者都用间接层把稀缺资源复用给多个抽象对象。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制：翻译、缺页与 first-fit</h3>
+<p>设页大小 <span class="arithmatex">\(P=2^k\)</span>，虚拟地址 <span class="arithmatex">\(v\)</span> 分解为 <span class="arithmatex">\(q=\lfloor v/P\rfloor\)</span> 与 <span class="arithmatex">\(r=v\bmod P\)</span>；若页表给出帧 <span class="arithmatex">\(F(q)\)</span>，则 <span class="arithmatex">\(\mathrm{PA}=F(q)P+r\)</span>。空闲块 <span class="arithmatex">\(B\)</span> 满足 <span class="arithmatex">\(|B|\ge n+\mathrm{header}\)</span> 时可切分；相邻空闲块合并保持空闲区间的不重叠与完整覆盖不变量。</p>
+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>TLB 命中不等于数据缓存命中；页权限、脏位和多级页表仍可能触发不同成本的路径。</li>
+<li>写时复制让 <code>fork</code> 初始便宜，但第一次写共享页会 fault 并复制；共享不等于永远共用同一物理页。</li>
+<li>first-fit、best-fit 和 segregated fit 只能在给定工作负载下权衡碎片与吞吐；没有一种策略消除所有外部/内部碎片。</li>
+</ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移题：把故障变成延迟的可见账本</h3>
+<p>对一个大数组、一个 <code>fork</code> 后写入的快照和一个长时间服务堆，分别追踪页表权限、TLB/页 fault、块切分/合并和回收责任。说明哪一层负责隔离，哪一层负责复用，哪一种监控能区分泄漏、碎片和换页抖动。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-csapp-04-vm-malloc" markdown="1">
+<p><strong>无 JavaScript 时的静态版本：</strong><code>0x1234</code> 在 4 KiB 页中分解为虚拟页 <code>0x1</code> 与偏移 <code>0x234</code>；若页 1→帧 5，物理地址为 <code>0x5234</code>。堆块 <span class="arithmatex">\([0,16]\)</span>、<span class="arithmatex">\([16,40]\)</span>、<span class="arithmatex">\([40,64]\)</span> 的空闲总量为 40、最大连续块为 24，所以申请 28 字节失败；释放中间块后相邻三段合并成 64 字节。页面脚本会逐步翻译地址，并演示 first-fit、切分、free 和 coalesce。</p>
+</div>
+</section>
+
 ## 1. 虚拟内存：地址的一层间接
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,19 +47,28 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、评价显示的物理量</a></li>
+<li><a href="#_1">学习层：显示技术是在不同“损失”之间换指标</a><ul>
+<li><a href="#1">1. 具体谜题：为什么一块屏既要黑、亮、耐久，还要便宜？</a></li>
+<li><a href="#2">2. 先预测：把亮度、黑电平、色域和良率分开</a></li>
+<li><a href="#3">3. 最小模型：结构决定能量流，统计决定制造难度</a></li>
+<li><a href="#4">4. 实验：选择路线，再观察它把问题推向哪里</a></li>
+<li><a href="#5">5. 失败边界：理想材料属性不等于可量产产品</a></li>
+<li><a href="#6">6. 迁移任务：为产品需求选路线并写出代价</a></li>
+</ul>
+</li>
+<li><a href="#_2">一、评价显示的物理量</a></li>
 <li><a href="#lcd">二、LCD：调制而非发光</a></li>
 <li><a href="#oled">三、OLED：自发光</a></li>
 <li><a href="#microled">四、microLED 与其他路线</a></li>
 <li><a href="#arvr">五、近眼显示：AR/VR 的特殊挑战</a></li>
-<li><a href="#_2">六、要点</a></li>
+<li><a href="#_3">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -53,10 +77,76 @@
 <p><strong>层次</strong>：本科接触 + 巨大产业 ｜ <strong>核对于 2026-07</strong>。
 显示是光电技术<strong>面向消费者最直接的应用</strong>，也是一个技术迭代极快、且每一代都在解决上一代根本短板的领域。本页梳理主要技术路线的物理原理与各自的固有限制。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：显示技术是在不同“损失”之间换指标<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体谜题：为什么一块屏既要黑、亮、耐久，还要便宜？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>对 LCD 的简化光路，起偏器保留 <span class="arithmatex">\(50\%\)</span>，RGB 彩色滤光片再保留约 <span class="arithmatex">\(1/3\)</span>，若开口率为 <span class="arithmatex">\(80\%\)</span>，背光到眼睛的上限已约为</p>
+<div class="arithmatex">\[
+0.50\times\frac13\times0.80\approx13.3\%.
+\]</div>
+<p>另一边，4K 屏约有 <span class="arithmatex">\(2.5\times10^7\)</span> 个 microLED。即使每颗转移良率为 <span class="arithmatex">\(99.99\%\)</span>，期望坏点仍是 <span class="arithmatex">\(2500\)</span> 个。你先预测：OLED 的“关像素即黑”能否同时解决效率、寿命和大尺寸成本？</p>
+<h3 id="2">2. 先预测：把亮度、黑电平、色域和良率分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>LCD 增加分区背光后，黑电平一定变成零吗？亮物体旁的暗区会发生什么？</li>
+<li>将 microLED 单颗良率从 <span class="arithmatex">\(99.9\%\)</span> 提到 <span class="arithmatex">\(99.99\%\)</span>，坏点期望值下降几倍？</li>
+<li>荧光 OLED 只利用单重态时，为什么内量子效率上限约 <span class="arithmatex">\(25\%\)</span>；磷光能利用三重态后，蓝色寿命问题是否自动消失？</li>
+</ol>
+<h3 id="3">3. 最小模型：结构决定能量流，统计决定制造难度<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>LCD 是“背光 × 偏振调制 × 滤色”的级联；OLED 是每个像素直接产生光，关闭电流即可把理想黑电平压到零；microLED 的制造质量首先受独立转移缺陷控制。若每颗失效概率为 <span class="arithmatex">\(q=1-y\)</span>，则</p>
+<div class="arithmatex">\[
+E[\text{坏点}]=Nq,\qquad P(\text{零坏点})=(1-q)^N.
+\]</div>
+<p>显示比较不能只看一个效率数：亮度、对比度、色域、响应、寿命、功耗和修复成本是不同轴。实验的 microLED 数字采用独立缺陷的教学假设，并明确显示这是期望值而非一块具体面板的检测结果。</p>
+<h3 id="4">4. 实验：选择路线，再观察它把问题推向哪里<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先选择 LCD、OLED 或 microLED，并预测当前瓶颈；核对后再调开口率、分区数、蓝色寿命系数、像素数量和转移良率。SVG 显示光路能量链、黑电平/光晕代理量或 microLED 的转移缺陷账本。</p>
+<div class="learning-lab" data-learning-lab="photo-display">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认按 4K 的 <span class="arithmatex">\(N=25{,}000{,}000\)</span> 颗 microLED、转移良率 <span class="arithmatex">\(y=99.99\%\)</span>、LCD 开口率 <span class="arithmatex">\(80\%\)</span>、1000 个分区比较。</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>静态机制</th>
+<th style="text-align: right;">默认数字</th>
+<th>主要边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LCD</td>
+<td><span class="arithmatex">\(0.5\times1/3\times0.8\)</span> 的透过链</td>
+<td style="text-align: right;">约 <span class="arithmatex">\(13.3\%\)</span>，黑电平非零</td>
+<td>分区越少越有光晕</td>
+</tr>
+<tr>
+<td>OLED</td>
+<td>像素直接发光，关断即无光</td>
+<td style="text-align: right;">理想黑电平 <span class="arithmatex">\(0\)</span></td>
+<td>蓝色退化、亮度与寿命冲突</td>
+</tr>
+<tr>
+<td>microLED</td>
+<td>独立无机发光像素</td>
+<td style="text-align: right;"><span class="arithmatex">\(N(1-y)=2500\)</span> 个期望坏点</td>
+<td>检测、修复与巨量转移</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 失败边界：理想材料属性不等于可量产产品<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>LCD 的局部调光改善黑电平，但一个分区不能同时服务亮物体和邻近暗背景，因此会产生 halo。</li>
+<li>OLED 的自发光优势不消除有机材料退化；提高亮度往往加速蓝色寿命损失与烧屏。</li>
+<li><span class="arithmatex">\(E[\text{坏点}]\)</span> 假设缺陷独立且修复成本相同；真实面板还受聚簇缺陷、检测时间、转移速度和微缩效率下降影响。</li>
+</ul>
+<h3 id="6">6. 迁移任务：为产品需求选路线并写出代价<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>分别为户外车载屏、手机折叠屏和静态阅读器选 LCD、OLED、microLED 或电子纸。每次必须写出一个主指标、一个物理失效边界和一个制造/寿命代价，不能只用“画质更好”作结论。</p>
+</section>
 <p><img alt="显示架构与巨量转移" class="fig-img" src="assets/img/pho-16-display.svg" /></p>
 <figcaption><span class="fig-id">图 16-1</span> 左：LCD 是“背光经过多个吸收/调制层”，起偏器与 RGB 滤光片形成 \(50\%\times1/3\) 的效率链；OLED 则由像素直接发光，关闭像素即可得到真正的黑。右：4K 屏约有 2500 万颗 microLED，<strong>即使单颗转移良率达到 99.99%，仍约有 2500 个坏点</strong>，因此检测与修复是产业化核心。</figcaption>
 
-<h2 id="_1">一、评价显示的物理量<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">一、评价显示的物理量<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>先建立判据，否则无法比较技术路线：</p>
 <table>
 <thead>
@@ -168,7 +258,7 @@
 <li><strong>超表面波导</strong>（第十八页）是前沿方向。</li>
 </ul>
 <p><strong>AR 光学是"每一项指标都在互相打架"的典型</strong>——这也是它至今未出现公认成熟方案的原因。</p>
-<h2 id="_2">六、要点<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <ul>
 <li><strong>色域取决于原色的光谱纯度</strong> → 量子点与激光色域大；</li>
 <li><strong>LCD 的根本短板是效率链</strong>（偏振片 50% + 滤光片 2/3）<strong>与黑电平</strong>；分区背光改善对比但带来光晕；</li>
@@ -187,5 +277,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-display.js"></script>
 </body>
 </html>

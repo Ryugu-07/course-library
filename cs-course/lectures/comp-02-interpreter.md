@@ -3,6 +3,45 @@
 > **对标**：Stanford CS143 中段 / *Crafting Interpreters* / TAPL（类型）｜ **前置**：comp-01（AST）、pl 线（类型系统正式版在 pl-01）
 > 有了 AST（comp-01），编译器要开始**理解程序的意义**：名字指向什么（作用域）、类型对不对（类型检查）、然后要么直接执行（解释器）、要么继续编译（comp-03）。这一页讲语义分析与类型检查，并把 [实验 L04] 的解释器完整跑起来——**你将拥有一门自己实现的、能跑的小语言**。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：闭包捕获的是哪一个环境？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：同名变量修改后，函数返回 2 还是 3？</h3>
+<p>程序先在全局令 <code>x=1</code>，调用 <code>make</code>；<code>make</code> 内部创建局部 <code>x=2</code> 和函数 <code>get(){ return x; }</code>，返回 <code>get</code>。随后全局 <code>x</code> 改为 3，再调用 <code>get()</code>。词法作用域、动态作用域和“捕获值/捕获位置”会给出不同答案。请先预测。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择闭包调用的结果，并指出查找 <code>x</code> 时应先检查哪一个环境；再预测 <code>1 + "text"</code> 在动态求值器和静态类型检查器中分别何时失败。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：<code>eval(node, env)</code></h3>
+<p>AST 节点由求值函数递归解释；环境是从名字到值的链，进入块或调用时压入新 frame，离开时恢复。函数值不仅包含代码，还包含定义时的环境引用，因此闭包可以在外层调用返回后继续解析自由变量。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>闭包可写成 <span class="arithmatex">\(\langle\lambda x.e,\rho_{def}\rangle\)</span>；调用时在 <span class="arithmatex">\(\rho_{def}\)</span> 上扩展参数 frame，再求 <span class="arithmatex">\(e\)</span>，而不是用调用点环境。名字解析的最近绑定不变量是沿环境链向外查找的第一个同名声明。类型规则例如 <span class="arithmatex">\(\frac{\Gamma\vdash e_1:Int\quad\Gamma\vdash e_2:Int}{\Gamma\vdash e_1+e_2:Int}\)</span> 把合法性判断放在求值之前。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>若语言允许可变捕获变量，闭包通常捕获的是位置而不是冻结值；循环变量捕获因此可能暴露共享存储的时序问题。动态类型把检查推迟到运行时，静态类型也只保证其模型覆盖的错误；递归函数还需要先把自身绑定放入环境，不能把所有函数简单当作纯值。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：让 L04 同时成为语义 oracle</h3>
+<p>在 L04 中加入词法作用域、闭包和类型错误的 golden tests，记录 AST、环境链和最终值；再让 comp-03 的优化后代码与解释器结果逐例相同。pl-01 提供形式类型规则，但本页实验保留 L04 的真实 tree-walk 实现，不用玩具结果替代运行。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-comp-02-interpreter">
+<h3>交互实验：环境链、闭包与类型检查</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>闭包程序在定义 <code>get</code> 时捕获 <code>make</code> 的环境，其中最近的 <code>x=2</code> 位于全局 <code>x=3</code> 之前，所以词法作用域结果为 2；动态作用域会沿调用栈查到 3。环境账本可写为 <code>global{x=3} → make{x=2} → get</code>，查找从 get 的定义环境开始。对 <code>1 + "text"</code>，静态规则在编译/检查阶段拒绝，动态解释器在执行加法节点时报告类型错误。</p>
+<table><thead><tr><th>步骤</th><th>环境/规则</th><th>结果</th></tr></thead><tbody><tr><td>定义 get</td><td>捕获 make frame：x=2</td><td>闭包形成</td></tr><tr><td>全局赋值</td><td>global x 从 1 改为 3</td><td>不改捕获 frame</td></tr><tr><td>调用 get</td><td>沿定义环境找最近 x</td><td>词法结果 2</td></tr><tr><td>检查 1+"text"</td><td>Int 与 String 不满足加法规则</td><td>拒绝/运行时报错</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 语义分析：名字与作用域
 
 

@@ -3,6 +3,58 @@
 > **层次**：本科少讲、**业界核心** ｜ 这是学校与工业界之间落差最大的一页。
 > 前面讲的都是"能不能做出来"。本页讲三件同样要命的事：**做出来的有多少是好的（良率）**、**每一颗都不完全一样（变异）**、以及**它能用多久（可靠性）**。**在工业界，一个良率工程师对公司利润的影响，可能超过一个电路设计师。**
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：良率是缺陷统计、面积与测试决策的乘积</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：一颗大芯片拆成四颗一定更划算吗？</h3>
+<p>用负二项模型比较一颗 800 mm<sup>2</sup> 的单片芯片和四颗各 200 mm<sup>2</sup> 的 chiplet。取缺陷密度 <code>D<sub>0</sub>=0.1/cm<sup>2</sup></code>、聚集因子 <code>alpha=2</code>。单片面积是 8 cm<sup>2</sup>，四颗小片各是 2 cm<sup>2</sup>。你预计单片良率、四颗都良好的系统概率分别是多少？如果封装本身还有 3% 失败率，结论会不会翻转？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先估算再开实验：<strong>①</strong> 面积变为四分之一会显著抬高单颗裸片良率，但系统良率要把四颗同时合格相乘；<strong>②</strong> 只看 wafer yield 而忽略封装与 KGD，可能把“拆小”收益高估；<strong>③</strong> 随机变异会随器件面积缩小而增大，故良率与参数分布不能只用一个二元好/坏标签概括；<strong>④</strong> 冗余行列能修复一部分存储缺陷，却要付出面积和测试时间。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小 mental model：从缺陷场到产品判定</h3>
+<p>制造先产生带有空间相关性的缺陷场与参数分布；测试再用故障模型、扫描链、BIST 和规格窗口把连续世界压成 bin、pass 或 fail。面积提高了暴露在缺陷场中的机会，器件缩小提高了随机参数波动，而可靠性筛选还会把早期失效从出货队列中移除。良率工程因此同时连接几何、统计、测试和商业成本。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">Y(A) = (1 + A D<sub>0</sub> / alpha)<sup>-alpha</sup>, &nbsp; C<sub>good</sub> ~= C<sub>wafer</sub> / (N<sub>gross</sub> Y)</div>
+<p>若一个系统由 <code>n</code> 颗相同面积的 chiplet 组成，并把封装良率写成 <code>Y<sub>pkg</sub></code>，一个透明近似是 <code>Y<sub>system</sub> = Y(A/n)<sup>n</sup> Y<sub>pkg</sub></code>。它不是所有产品的完整成本模型，却明确揭示了“局部良率变好”和“全部同时合格”之间的乘法关系。</p>
+<p>变异的另一条不变量是 Pelgrom 型尺度：<code>sigma(Delta V<sub>th</sub>) proportional to 1/sqrt(WL)</code>。所以面积缩小同时可能提高密度、降低单颗缺陷暴露面积，却恶化匹配和最小工作电压；测试与 guard band 必须把这两类风险分开记录。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>负二项公式假设了一类缺陷统计；若缺陷聚集、系统性 wafer map 或工艺漂移主导，单一 <code>D<sub>0</sub></code> 不足以预测 yield。</li>
+<li>四颗 chiplet 的系统良率不是四颗良率的平均值；KGD 筛选、键合、互连测试和热失效会再乘上额外项。</li>
+<li>“通过测试”不等于零缺陷：故障模型覆盖有限，扫描链和 ATPG 有测试逃逸，规格边界也可能漏掉长期老化。</li>
+<li>冗余修复适用于可定位、可替换的结构；它不能消除所有模拟失配、互连电迁移或封装热循环问题。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：画出面积、缺陷和冗余的账</h3>
+<div class="learning-lab" data-learning-lab="micro-yield">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>D<sub>0</sub>=0.1/cm<sup>2</sup></code>、<code>alpha=2</code>。800 mm<sup>2</sup> 单片对应 8 cm<sup>2</sup>，<code>Y=(1+0.8*0.1/2)<sup>-2</sup>=0.510</code>；四颗 200 mm<sup>2</sup> 小片各为 2 cm<sup>2</sup>，单颗 <code>Y=0.826</code>，四颗同时良好的概率为 <code>0.826<sup>4</sup>=0.466</code>。若封装良率 0.97，系统约为 0.452；若有 20% 的失效裸片可由冗余恢复，恢复后的单颗概率可按 <code>Y + 0.2(1-Y)</code> 记账，但不能恢复所有故障。</p>
+<table><thead><tr><th scope="col">方案</th><th scope="col">面积</th><th scope="col">单颗 Y</th><th scope="col">系统/封装后 Y</th><th scope="col">主要边界</th></tr></thead>
+<tbody><tr><td>单片</td><td>800 mm<sup>2</sup></td><td>0.510</td><td>0.510</td><td>大面积缺陷暴露</td></tr><tr><td>4 chiplet</td><td>4 x 200 mm<sup>2</sup></td><td>0.826</td><td>0.466 / 0.452</td><td>乘法 + 封装失败</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：为 SRAM 写良率与测试计划</h3>
+<p>给一个含 1,024 行、每行 256 bit 的 SRAM 宏，假设每片存在随机坏行、系统性列缺陷和 <code>V<sub>min</sub></code> 参数分布。请设计一份报告：哪些缺陷用冗余行列修复，哪些必须在 binning 中降级，哪些需要 burn-in 或老化模型；再说明你会如何把测试覆盖率、修复面积、测试时间和出货良率放进同一项成本函数。</p>
+</div>
+</section>
+
 ## 一、良率：半导体经济学的中心
 
 **良率（yield）= 合格芯片数 / 理论芯片总数**。它直接决定成本：

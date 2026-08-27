@@ -3,6 +3,58 @@
 > **层次**：本科核心 + 业界最关键的技术瓶颈 ｜ **核对于 2026-07**（High-NA 部分属前沿）。
 > 一个看似矛盾的事实：主流光刻长期使用**波长 193 nm** 的光，却能画出**十几纳米**的结构。这怎么可能？本页把分辨率这件事算清楚——从瑞利公式出发，看行业如何用尽一切手段压榨每一个因子，以及为什么 EUV 需要一个国家级的工程努力才做得出来。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：光刻是在分辨率与焦深之间做受约束优化</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：193 nm 的光怎样留下 20 nm 级图形？</h3>
+<p>把 193 nm 光源放进公式，取浸没式 <code>NA=1.35</code>、理论上很激进的 <code>k<sub>1</sub>=0.25</code>，单次曝光的瑞利分辨率约为 35.7 nm；换成 13.5 nm EUV、<code>NA=0.33</code>，约为 10.2 nm。为什么行业仍能从 193i 推进到更小的关键尺寸？如果把 NA 从 0.33 提到 0.55，分辨率改善约 40%，焦深却会按平方项明显缩小。请先判断：多重图形化是在改变波长，还是在用更多工序重构图形？</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先做预测</h3>
+<p>先选择你的预测：<strong>①</strong> 在相同波长和 <code>k<sub>1</sub></code> 下，NA 加倍会使 <code>R</code> 约减半、DOF 约变为四分之一；<strong>②</strong> 浸没水膜主要改变 NA，不是把曝光波长真的变成 134 nm；<strong>③</strong> 多重图形化可减小最终图形间距，却会增加套刻、掩模和 cycle time 风险；<strong>④</strong> EUV 的短波长不自动消除随机光子噪声与光刻胶的 RLS trade-off。调节实验旋钮后，再检查哪一条预测最先失效。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小模型：三个旋钮，一条工艺容差</h3>
+<p>把投影光刻先压缩成三个可调量：波长 <code>lambda</code> 决定衍射尺度，数值孔径 <code>NA=n sin(theta)</code> 决定能收集的空间频率，工艺因子 <code>k<sub>1</sub></code> 代表照明、掩模、光刻胶与计算修正共同留下的余量。分辨率并不是“机器的节点名称”，而是一个需要与焦深、套刻、缺陷率同时满足的可制造解。</p>
+</div>
+
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<div class="cl-formula">R = k<sub>1</sub> lambda / NA, &nbsp; DOF = k<sub>2</sub> lambda / NA<sup>2</sup>, &nbsp; NA = n sin(theta)</div>
+<p>在一次曝光中，<code>R</code> 越小越好，但 <code>DOF</code> 必须覆盖晶圆表面起伏、膜厚变化与焦点漂移。若把同一层拆成 <code>m</code> 个自对准图形化步骤，可以把目标节距分摊给多个掩模；这不是把瑞利公式改写成 <code>R/m</code>，而是用额外的状态、套刻和成本换取最终几何图形。实验中的“有效间距”只作教学记账，单次曝光的 <code>R</code> 仍按上式计算。</p>
+<p>一个有用的不变量是：固定 <code>lambda</code>、<code>k<sub>1</sub></code> 时，<code>R * NA</code> 不变；固定 <code>lambda</code>、<code>k<sub>2</sub></code> 时，<code>DOF * NA<sup>2</sup></code> 不变。任何声称同时免费改善分辨率和焦深的方案，都需要指出新增的物理或工艺自由度。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul>
+<li>节点名不是线宽测量值；实际可制造窗口还受线边缘粗糙度、掩模误差、随机光子和刻蚀偏差支配。</li>
+<li>多重图形化若依赖非自对准的 overlay，几何收益可能被层间误差吃掉；增加 <code>m</code> 不保证良率提高。</li>
+<li>NA 提高会压低 DOF；当表面起伏、膜厚或 CMP 误差超过焦深时，理论分辨率无法落地。</li>
+<li>EUV 反射镜、真空、锡等离子体、掩模缺陷和光刻胶灵敏度构成系统级瓶颈，不能只比较一个波长数字。</li>
+</ul>
+</div>
+
+<div class="learning-experiment">
+<h3>交互实验：在瑞利公式上做一次工程选择</h3>
+<div class="learning-lab" data-learning-lab="micro-lithography">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>k<sub>2</sub>=0.50</code>、<code>k<sub>1</sub>=0.25</code>。193 nm dry、NA=0.93 给出 <code>R=51.9 nm</code>、<code>DOF=111.6 nm</code>；193i、NA=1.35 给出 <code>R=35.7 nm</code>、<code>DOF=53.0 nm</code>；EUV、NA=0.33 给出 <code>R=10.2 nm</code>、<code>DOF=62.0 nm</code>；High-NA EUV、NA=0.55 给出 <code>R=6.1 nm</code>、<code>DOF=22.3 nm</code>。把多重图形化因子设为 4 时，只在教学账本里把目标节距除以 4，单次曝光 R 不变。</p>
+<table><thead><tr><th scope="col">平台</th><th scope="col">lambda</th><th scope="col">NA</th><th scope="col">R</th><th scope="col">DOF</th></tr></thead>
+<tbody><tr><td>193 dry</td><td>193 nm</td><td>0.93</td><td>51.9 nm</td><td>111.6 nm</td></tr><tr><td>193i</td><td>193 nm</td><td>1.35</td><td>35.7 nm</td><td>53.0 nm</td></tr><tr><td>EUV</td><td>13.5 nm</td><td>0.33</td><td>10.2 nm</td><td>62.0 nm</td></tr><tr><td>High-NA EUV</td><td>13.5 nm</td><td>0.55</td><td>6.1 nm</td><td>22.3 nm</td></tr></tbody></table>
+</div>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：给关键层写曝光策略</h3>
+<p>某关键金属层目标半间距 18 nm，晶圆表面起伏预算 30 nm，允许的额外光刻步骤最多为 3 次。请在 193i 多重图形化、0.33 NA EUV、0.55 NA EUV 中做选择，列出你需要的 <code>R</code>、DOF、overlay 与光刻胶随机误差证据，并说明为什么“理论 R 最小”的路线未必是成本或良率最优路线。</p>
+</div>
+</section>
+
 ## 一、瑞利公式：三个可用的旋钮
 
 投影光刻的分辨率与焦深由**瑞利判据**给出：

@@ -3,6 +3,39 @@
 > **对标**：vLLM / TensorRT-LLM 文档 / MLSys 推理论文 ｜ **前置**：mlsys-01、gpu-02（attention kernel）、comfy-course（你用的生成栈）
 > 模型训好只是一半——**推理系统**负责让它高效服务：低延迟、高吞吐、省显存、稳定。这是你每天用 Claude/DeepSeek/本地 ComfyUI 时背后运转的引擎（Medusa 的 DeepSeek 调用、comfy 课的扩散推理都在此）。这一页讲 LLM 推理的独特挑战（自回归 + KV cache）、让它快起来的系统技术（连续批处理、PagedAttention）、以及压缩模型的量化与蒸馏。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：同一块 GPU，为什么吞吐上升却让短请求更慢？</h2>
+<div class="learning-puzzle">
+<h3>具体谜题：长请求挡在门口</h3>
+<p>固定 toy 服务每 tick 能处理 24 个 prefill token，并同时推进 3 个 decode slot。R01 在 \(t=0\) 到达，prompt=18、output=12；R02 在 0.1 到达，prompt=6、output=2。若策略是来一个做完一个，R02 何时看到首 token？若静态 batch 等 R01，continuous batching 如何改变短请求的等待？</p>
+</div>
+<div class="learning-prediction">
+<h3>先预测四个指标</h3>
+<p>预测：<strong>①</strong> TTFT 包含排队和 prefill，不能用 TPOT 代替；<strong>②</strong> static batch 的 head-of-line 约束会让短请求等长请求，continuous batching 能在迭代边界重新填 decode slot；<strong>③</strong> 增大到达率首先推高 queue delay 和 p95/p99；<strong>④</strong> KV-cache 预算按 active token 增长，batch size 不是并发上限的同义词。</p>
+</div>
+<div class="learning-model">
+<h3>最小心智模型：prefill、decode、KV 三本账</h3>
+<p>Prefill 一次处理输入，决定首 token；decode 自回归逐 token 处理，每个 active sequence 都消耗服务机会和 KV-cache。scheduler 只改变工作何时进入这两阶段，不会删除 prompt/output token。比较策略时固定请求 trace、容量、观察窗和 SLO。</p>
+</div>
+<div class="learning-formal">
+<h3>形式机制与不变量</h3>
+<p>对请求 \(i\)，令到达、prefill 开始、首 token、完成分别为 \(a_i,s_i,f_i,c_i\)：\(\mathrm{TTFT}_i=f_i-a_i\)，\(\mathrm{TPOT}_i=(c_i-f_i)/(n_i-1)\)，\(\mathrm{E2E}_i=c_i-a_i\)。若每 token KV 占 \(k\) bytes，则峰值 KV 为 \(k\cdot\max_t(\text{active prompt+output tokens at }t)\)。稳定系统的长期平均还满足 Little 定律 \(L=\lambda W\)，但有限 trace 或过载队列不能机械套用。</p>\n+</div>
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<ul><li>真实 batch 可能摊薄 kernel 开销，也可能因长度混合、prefill/decode 争用而伤害 TTFT；本 toy 不附送厂商吞吐红利。</li><li>完成样本的 p99 不能代表窗口内未完成请求；观察窗、删失标记和 SLO 分母必须写清楚。</li><li>PagedAttention 解决 KV 的碎片与分配问题，不会自动解决调度公平、取消、网络或模型质量。</li></ul>
+</div>
+<div class="learning-transfer">
+<h3>迁移任务：从 toy ledger 到服务 SLO</h3>
+<p>为一个短请求占 80%、长请求占 20% 的摘要服务设计 admission、batch/wait、最大 active sequence 和 KV reserve。先用 \(L=\lambda W\) 做数量级检查，再列出至少三项必须由真实压测测量的变量，并与 L09 的 attention kernel 和 L01 的缓存/分块联系起来。</p>
+</div>
+<div class="learning-lab" data-learning-lab="cs-mlsys-02-inference" markdown="1">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 prefill 容量 24 token/tick、decode 3 slot。R01 的 18-token prompt 可在一个 prefill tick 完成，R02 的 6-token prompt 还要遵守策略的排队规则；static batch 会等整批的最长 decode，continuous batching 在每个 tick 重新选择 ready sequence。若 \(k=0.25\) MB/token，R01 完成前至少占用 \((18+12)\times0.25=7.5\) MB 的 toy KV reserve。交互版先让你预测，再比较 immediate/static/continuous 的 TTFT、TPOT、E2E、p95、goodput、backlog 和 KV 峰值。</p>
+<table><thead><tr><th>请求</th><th>到达</th><th>prompt</th><th>output</th><th>角色</th></tr></thead><tbody><tr><td>R01</td><td>0.00</td><td>18</td><td>12</td><td>长</td></tr><tr><td>R02</td><td>0.10</td><td>6</td><td>2</td><td>短</td></tr><tr><td>R03</td><td>0.22</td><td>5</td><td>3</td><td>短</td></tr><tr><td>R04</td><td>0.38</td><td>7</td><td>2</td><td>短</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. LLM 推理为什么特殊：自回归与两个阶段
 
 

@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -30,19 +45,29 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">一、瑞利公式：三个可用的旋钮</a></li>
-<li><a href="#_2">二、减小波长：一条走到尽头的路</a></li>
+<li><a href="#_1">学习层：光刻是在分辨率与焦深之间做受约束优化</a><ul>
+<li><a href="#193-nm-20-nm">具体谜题：193 nm 的光怎样留下 20 nm 级图形？</a></li>
+<li><a href="#_2">先做预测</a></li>
+<li><a href="#_3">最小模型：三个旋钮，一条工艺容差</a></li>
+<li><a href="#_4">形式机制与不变量</a></li>
+<li><a href="#_5">反例与失效边界</a></li>
+<li><a href="#_6">交互实验：在瑞利公式上做一次工程选择</a></li>
+<li><a href="#_7">迁移任务：给关键层写曝光策略</a></li>
+</ul>
+</li>
+<li><a href="#_8">一、瑞利公式：三个可用的旋钮</a></li>
+<li><a href="#_9">二、减小波长：一条走到尽头的路</a></li>
 <li><a href="#na">三、增大 NA：浸没式光刻</a></li>
 <li><a href="#k_1">四、减小 \(k_1\)：多重曝光与计算光刻</a></li>
 <li><a href="#euv">五、EUV：为什么它这么难</a></li>
-<li><a href="#_3">六、要点</a></li>
+<li><a href="#_10">六、要点</a></li>
 </ul>
 </div>
 </details>
@@ -51,7 +76,90 @@
 <p><strong>层次</strong>：本科核心 + 业界最关键的技术瓶颈 ｜ <strong>核对于 2026-07</strong>（High-NA 部分属前沿）。
 一个看似矛盾的事实：主流光刻长期使用<strong>波长 193 nm</strong> 的光，却能画出<strong>十几纳米</strong>的结构。这怎么可能？本页把分辨率这件事算清楚——从瑞利公式出发，看行业如何用尽一切手段压榨每一个因子，以及为什么 EUV 需要一个国家级的工程努力才做得出来。</p>
 </blockquote>
-<h2 id="_1">一、瑞利公式：三个可用的旋钮<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">学习层：光刻是在分辨率与焦深之间做受约束优化<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="193-nm-20-nm">具体谜题：193 nm 的光怎样留下 20 nm 级图形？<a class="headerlink" href="#193-nm-20-nm" title="Permanent link"></a></h3>
+<p>把 193 nm 光源放进公式，取浸没式 <code>NA=1.35</code>、理论上很激进的 <code>k<sub>1</sub>=0.25</code>，单次曝光的瑞利分辨率约为 35.7 nm；换成 13.5 nm EUV、<code>NA=0.33</code>，约为 10.2 nm。为什么行业仍能从 193i 推进到更小的关键尺寸？如果把 NA 从 0.33 提到 0.55，分辨率改善约 40%，焦深却会按平方项明显缩小。请先判断：多重图形化是在改变波长，还是在用更多工序重构图形？</p>
+</div>
+<div class="learning-prediction">
+<h3 id="_2">先做预测<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先选择你的预测：<strong>①</strong> 在相同波长和 <code>k<sub>1</sub></code> 下，NA 加倍会使 <code>R</code> 约减半、DOF 约变为四分之一；<strong>②</strong> 浸没水膜主要改变 NA，不是把曝光波长真的变成 134 nm；<strong>③</strong> 多重图形化可减小最终图形间距，却会增加套刻、掩模和 cycle time 风险；<strong>④</strong> EUV 的短波长不自动消除随机光子噪声与光刻胶的 RLS trade-off。调节实验旋钮后，再检查哪一条预测最先失效。</p>
+</div>
+<div class="learning-model">
+<h3 id="_3">最小模型：三个旋钮，一条工艺容差<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>把投影光刻先压缩成三个可调量：波长 <code>lambda</code> 决定衍射尺度，数值孔径 <code>NA=n sin(theta)</code> 决定能收集的空间频率，工艺因子 <code>k<sub>1</sub></code> 代表照明、掩模、光刻胶与计算修正共同留下的余量。分辨率并不是“机器的节点名称”，而是一个需要与焦深、套刻、缺陷率同时满足的可制造解。</p>
+</div>
+<div class="learning-formal">
+<h3 id="_4">形式机制与不变量<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<div class="cl-formula">R = k<sub>1</sub> lambda / NA, &nbsp; DOF = k<sub>2</sub> lambda / NA<sup>2</sup>, &nbsp; NA = n sin(theta)</div>
+<p>在一次曝光中，<code>R</code> 越小越好，但 <code>DOF</code> 必须覆盖晶圆表面起伏、膜厚变化与焦点漂移。若把同一层拆成 <code>m</code> 个自对准图形化步骤，可以把目标节距分摊给多个掩模；这不是把瑞利公式改写成 <code>R/m</code>，而是用额外的状态、套刻和成本换取最终几何图形。实验中的“有效间距”只作教学记账，单次曝光的 <code>R</code> 仍按上式计算。</p>
+<p>一个有用的不变量是：固定 <code>lambda</code>、<code>k<sub>1</sub></code> 时，<code>R * NA</code> 不变；固定 <code>lambda</code>、<code>k<sub>2</sub></code> 时，<code>DOF * NA<sup>2</sup></code> 不变。任何声称同时免费改善分辨率和焦深的方案，都需要指出新增的物理或工艺自由度。</p>
+</div>
+<div class="learning-boundary">
+<h3 id="_5">反例与失效边界<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ul>
+<li>节点名不是线宽测量值；实际可制造窗口还受线边缘粗糙度、掩模误差、随机光子和刻蚀偏差支配。</li>
+<li>多重图形化若依赖非自对准的 overlay，几何收益可能被层间误差吃掉；增加 <code>m</code> 不保证良率提高。</li>
+<li>NA 提高会压低 DOF；当表面起伏、膜厚或 CMP 误差超过焦深时，理论分辨率无法落地。</li>
+<li>EUV 反射镜、真空、锡等离子体、掩模缺陷和光刻胶灵敏度构成系统级瓶颈，不能只比较一个波长数字。</li>
+</ul>
+</div>
+<div class="learning-experiment">
+<h3 id="_6">交互实验：在瑞利公式上做一次工程选择<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="micro-lithography">
+<p><strong>无 JavaScript 时的静态读法：</strong>取 <code>k<sub>2</sub>=0.50</code>、<code>k<sub>1</sub>=0.25</code>。193 nm dry、NA=0.93 给出 <code>R=51.9 nm</code>、<code>DOF=111.6 nm</code>；193i、NA=1.35 给出 <code>R=35.7 nm</code>、<code>DOF=53.0 nm</code>；EUV、NA=0.33 给出 <code>R=10.2 nm</code>、<code>DOF=62.0 nm</code>；High-NA EUV、NA=0.55 给出 <code>R=6.1 nm</code>、<code>DOF=22.3 nm</code>。把多重图形化因子设为 4 时，只在教学账本里把目标节距除以 4，单次曝光 R 不变。</p>
+<table>
+<thead>
+<tr>
+<th scope="col">平台</th>
+<th scope="col">lambda</th>
+<th scope="col">NA</th>
+<th scope="col">R</th>
+<th scope="col">DOF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>193 dry</td>
+<td>193 nm</td>
+<td>0.93</td>
+<td>51.9 nm</td>
+<td>111.6 nm</td>
+</tr>
+<tr>
+<td>193i</td>
+<td>193 nm</td>
+<td>1.35</td>
+<td>35.7 nm</td>
+<td>53.0 nm</td>
+</tr>
+<tr>
+<td>EUV</td>
+<td>13.5 nm</td>
+<td>0.33</td>
+<td>10.2 nm</td>
+<td>62.0 nm</td>
+</tr>
+<tr>
+<td>High-NA EUV</td>
+<td>13.5 nm</td>
+<td>0.55</td>
+<td>6.1 nm</td>
+<td>22.3 nm</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="learning-transfer">
+<h3 id="_7">迁移任务：给关键层写曝光策略<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>某关键金属层目标半间距 18 nm，晶圆表面起伏预算 30 nm，允许的额外光刻步骤最多为 3 次。请在 193i 多重图形化、0.33 NA EUV、0.55 NA EUV 中做选择，列出你需要的 <code>R</code>、DOF、overlay 与光刻胶随机误差证据，并说明为什么“理论 R 最小”的路线未必是成本或良率最优路线。</p>
+</div>
+</section>
+<h2 id="_8">一、瑞利公式：三个可用的旋钮<a class="headerlink" href="#_8" title="Permanent link"></a></h2>
 <p>投影光刻的分辨率与焦深由<strong>瑞利判据</strong>给出：</p>
 <div class="arithmatex">\[R = k_1\frac{\lambda}{\mathrm{NA}}, \qquad \mathrm{DOF} = k_2\frac{\lambda}{\mathrm{NA}^2}\]</div>
 <ul>
@@ -61,7 +169,7 @@
 </ul>
 <p><strong>要提高分辨率（<span class="arithmatex">\(R\)</span> 变小），只有三条路：减小 <span class="arithmatex">\(\lambda\)</span>、增大 NA、减小 <span class="arithmatex">\(k_1\)</span>。行业把这三条全部用尽了。</strong></p>
 <p><strong>注意第二个公式的残酷</strong>：<strong>焦深随 <span class="arithmatex">\(\mathrm{NA}^2\)</span> 反比下降</strong>。提高 NA 的代价是焦深急剧变浅——先进节点的焦深只有几十纳米量级。<strong>这就是上一页 CMP 平坦化必不可少的原因</strong>：表面起伏若超过焦深，图形就模糊了。<strong>分辨率与工艺容差是一对根本矛盾。</strong></p>
-<h2 id="_2">二、减小波长：一条走到尽头的路<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_9">二、减小波长：一条走到尽头的路<a class="headerlink" href="#_9" title="Permanent link"></a></h2>
 <p>历史路径：436 nm（g 线）→ 365 nm（i 线）→ 248 nm（KrF）→ <strong>193 nm（ArF）</strong> → 停滞。</p>
 <p><strong>为什么停在 193 nm</strong>：下一步本应是 157 nm（F₂ 激光），但<strong>没有合适的透镜材料</strong>（普通石英在该波长强烈吸收，CaF₂ 又有双折射问题），加上光刻胶与掩模材料的困难，<strong>157 nm 路线在 2000 年代初被整个行业放弃</strong>。</p>
 <p><strong>这是一个教科书级的技术路线失败案例</strong>：不是因为原理不通，而是<strong>材料与工程配套跟不上</strong>。行业转而去压榨另外两个因子——于是有了浸没式与多重曝光。</p>
@@ -102,7 +210,7 @@
 </ol>
 <p><strong>结果</strong>：EUV 光刻机成为人类制造过程中最复杂的商用设备之一，单台价格上亿美元，且<strong>全球仅有一家供应商（ASML）能够制造</strong>——这个事实塑造了整个半导体地缘格局（第二十页）。</p>
 <p><strong>High-NA EUV</strong>：把 NA 从 0.33 提高到 0.55，进一步提升分辨率。代价是<strong>焦深进一步变浅</strong>、<strong>成像场尺寸减半</strong>（需要把大芯片拆开曝光再拼接），以及更昂贵的设备。<strong>它是延续缩放的关键，但也再次体现了"每一步都要付更大的代价"。</strong></p>
-<h2 id="_3">六、要点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_10">六、要点<a class="headerlink" href="#_10" title="Permanent link"></a></h2>
 <ul>
 <li><strong><span class="arithmatex">\(R = k_1\lambda/\mathrm{NA}\)</span> 是理解整个光刻史的公式</strong>——三个因子被逐一压榨到极限；</li>
 <li><strong>焦深随 <span class="arithmatex">\(\mathrm{NA}^2\)</span> 反比恶化</strong>，分辨率与工艺容差是根本矛盾；</li>
@@ -122,5 +230,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/micro-lithography.js"></script>
 </body>
 </html>

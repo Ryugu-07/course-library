@@ -3,6 +3,45 @@
 > **对标**：MIT 6.824 / Raft 论文（Ongaro & Ousterhout）/ DDIA 第 9 章 ｜ **前置**：dist-01（故障、一致性）、db-03（复制日志）
 > 分布式系统的皇冠问题：**一群会各自宕机、消息会丢的机器，如何对"发生了什么、按什么顺序"达成一致？** 这叫**共识（consensus）**。它是分布式数据库、配置中心（etcd/ZooKeeper）、区块链的共同内核。这一页从共识为什么难（FLP 不可能）讲到 Raft——一个被刻意设计得"可理解"的共识算法，也是 [大 Project P03] 的核心。
 
+<div data-learning-page></div>
+
+<section class="learning-layer" markdown="1">
+<h2>学习层：分区之后，哪一边还能提交一条命令？</h2>
+
+<div class="learning-puzzle">
+<h3>具体谜题：5 个节点被切成 3+2，少数派能不能继续写？</h3>
+<p>一个 5 节点 Raft 集群原本有 leader，网络分区把节点切成 3 个和 2 个。客户端请求 <code>set x=7</code> 时，哪一边可以选出新 leader、收集足够复制确认并推进 commitIndex？如果 leader 恰好在 2 节点一侧，答案会改变吗？先按多数派规则预测。</p>
+</div>
+
+<div class="cl-prompt"><strong>先预测，再展开：</strong>选择 3+2、2+2+1 或无分区，预测可提交命令的节点数、所需 ACK 数，以及分区恢复后旧 leader 的日志如何处理。</div>
+
+<div class="learning-model">
+<h3>最小心智模型：任期、日志和多数派</h3>
+<p>Raft 把复制状态机拆成选主、日志复制和安全性。leader 为客户端命令分配任期与日志索引，follower 按前一条日志的任期/索引匹配后追加；只有被多数节点复制的前缀才可提交并应用到状态机。</p>
+</div>
+
+<div class="learning-mechanism">
+<h3>形式机制与不变量</h3>
+<p>规模为 <span class="arithmatex">\(N\)</span> 时多数派为 <span class="arithmatex">\(q=\lfloor N/2\rfloor+1\)</span>；任何两个多数派相交，因此两个不同已提交值不能各自被安全地提交。日志匹配不变量是：若两个日志在同一索引和任期相同，则此前缀也相同；leader completeness 要求已提交条目出现在后续任期 leader 的日志中。Raft 牺牲分区少数派可用性换取线性一致提交。</p>
+</div>
+
+<div class="learning-boundary">
+<h3>反例与失效边界</h3>
+<p>没有多数派时，节点可以继续接收本地请求，却不能安全地宣布提交；异步网络下无法从“消息很慢”确定“节点已崩溃”，FLP 说明确定性终止保证需要额外时序假设。选主安全也不等于客户端请求执行恰好一次，重试仍需请求 ID 或幂等设计。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>迁移任务：从 quorum 推进到真实实现</h3>
+<p>在 L06 Raft 实验里注入 3+2 分区、延迟和丢包，逐条记录 term、nextIndex、matchIndex 与 commitIndex；再把 trace 接到 P03-A 的复制日志接口。dist-01 的因果和 CAP 分析提供解释框架，但不替代 L06 的真实选举与日志复制。</p>
+</div>
+
+<div class="learning-lab" data-learning-lab="cs-dist-02-consensus">
+<h3>交互实验：Raft 多数派、选主与提交</h3>
+<p><strong>无 JavaScript 时的静态读法：</strong>默认 N=5，所以 quorum=3。3+2 分区时，3 节点侧可以选 leader 并取得 3 份日志（leader+2 followers）提交 <code>set x=7</code>；2 节点侧最多得到 2 份，必须停在未提交状态。2+2+1 时没有任何分区块达到 3，全部不能提交。若旧 leader 在少数派，恢复后会以更高任期的多数派日志为准，冲突后缀被回退而非双重提交。</p>
+<table><thead><tr><th>分区</th><th>最大活动组</th><th>quorum</th><th>能提交？</th><th>日志动作</th></tr></thead><tbody><tr><td>无</td><td>5</td><td>3</td><td>可以</td><td>复制并推进 commit</td></tr><tr><td>3+2</td><td>3</td><td>3</td><td>3 节点侧可以</td><td>少数侧停摆</td></tr><tr><td>2+2+1</td><td>2</td><td>3</td><td>不可以</td><td>等待重连</td></tr></tbody></table>
+</div>
+</section>
+
 ## 1. 共识问题与它的不可能性
 
 **共识**：多个节点各有一个提议值，要达成一致——选出一个值，满足：**一致**（所有正常节点选同一个）、**有效**（选的是某人提议的）、**可终止**（最终能选出）。看似简单，却是分布式最难的问题。

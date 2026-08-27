@@ -7,6 +7,21 @@
 <link rel="stylesheet" href="assets/katex/katex.min.css">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
 <script>
 (function() {
   var t = localStorage.getItem('theme');
@@ -32,17 +47,26 @@
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 光作为工具</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-03 01:09</div>
+    <div class="build-time">构建于 2026-08-27 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
+<li><a href="#lidar">学习层：LiDAR 不是“测到回波”这么简单</a><ul>
+<li><a href="#1-1-cm">1. 具体谜题：1 cm 的距离分辨率需要多快的时钟？</a></li>
+<li><a href="#2">2. 先预测：先认观测量，再选择算法</a></li>
+<li><a href="#3">3. 最小模型：时间门与相干拍频是两种不同的证据</a></li>
+<li><a href="#4">4. 实验：先押注测距误差，再看时间线或频谱</a></li>
+<li><a href="#5">5. 失败边界：相干不等于自动正确</a></li>
+<li><a href="#6">6. 迁移任务：为一项感知任务写测量链</a></li>
+</ul>
+</li>
 <li><a href="#_1">一、光谱：用颜色识别物质</a></li>
 <li><a href="#_2">二、光纤传感</a></li>
 <li><a href="#_3">三、三维形貌测量</a></li>
-<li><a href="#lidar">四、LiDAR：测距与测速</a></li>
+<li><a href="#lidar_1">四、LiDAR：测距与测速</a></li>
 <li><a href="#_4">五、其他重要传感</a></li>
 <li><a href="#_5">六、要点</a></li>
 </ul>
@@ -53,6 +77,82 @@
 <p><strong>层次</strong>：本科接触 + 业界快速增长 ｜ <strong>核对于 2026-07</strong> ｜ 🔗 与自动化站（机器人感知）、生物站（医学成像）互链。
 光是最通用的<strong>非接触测量工具</strong>：不碰到样品就能知道它的成分、形状、距离、速度、温度。本页讲三类主要用途——<strong>光谱（测成分）、干涉与结构光（测形状）、LiDAR（测距离与速度）</strong>。</p>
 </blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="lidar">学习层：LiDAR 不是“测到回波”这么简单<a class="headerlink" href="#lidar" title="Permanent link"></a></h2>
+<h3 id="1-1-cm">1. 具体谜题：1 cm 的距离分辨率需要多快的时钟？<a class="headerlink" href="#1-1-cm" title="Permanent link"></a></h3>
+<p>dToF 的基本关系是</p>
+<div class="arithmatex">\[
+R=\frac{c\Delta t}{2}.
+\]</div>
+<p>因此 1 cm 的距离变化对应约 <span class="arithmatex">\(67\,\mathrm{ps}\)</span> 的往返时间变化。对 100 m 目标，回波往返时间却约为 <span class="arithmatex">\(0.667\,\mu\mathrm{s}\)</span>。另一条 FMCW 链路若调频斜率 <span class="arithmatex">\(S=10^{14}\,\mathrm{Hz/s}\)</span>，100 m 回波拍频约为 <span class="arithmatex">\(66.7\,\mathrm{MHz}\)</span>；若目标速度为 10 m/s，1550 nm 处多普勒频移约为 <span class="arithmatex">\(12.9\,\mathrm{MHz}\)</span>。你先猜：哪一种更依赖皮秒计时，哪一种更依赖线性调频和频谱分离？</p>
+<h3 id="2">2. 先预测：先认观测量，再选择算法<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>dToF 的时间抖动 <span class="arithmatex">\(67\,\mathrm{ps}\)</span> 会对应多少厘米级距离噪声？</li>
+<li>FMCW 把距离变成 <span class="arithmatex">\(f_b=S\tau\)</span> 后，增大斜率会让拍频如何变化？</li>
+<li>非相干太阳光为什么不能像本振那样稳定地产生 FMCW 拍频？多径和两个相近目标又会破坏哪一个假设？</li>
+</ol>
+<h3 id="3">3. 最小模型：时间门与相干拍频是两种不同的证据<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>dToF 使用脉冲与回波的时间差，距离不确定度近似为</p>
+<div class="arithmatex">\[
+\sigma_R=\frac{c\,\sigma_t}{2}.
+\]</div>
+<p>FMCW 的延迟 <span class="arithmatex">\(\tau=2R/c\)</span> 与线性扫频斜率结合为</p>
+<div class="arithmatex">\[
+f_b=S\tau=\frac{2SR}{c},\qquad f_D=\frac{2v}{\lambda}.
+\]</div>
+<p>频谱中同时存在距离拍频与多普勒偏移；相干接收只保留与本振相关的分量，因此能抑制大量非相干背景。这个优势以高相干、低非线性调频、采样带宽和信号处理复杂度为代价。</p>
+<h3 id="4">4. 实验：先押注测距误差，再看时间线或频谱<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>选择 dToF 或 FMCW，先回答对应的三道预测题；核对后再拖动目标距离、计时抖动、调频斜率和速度。SVG 在 dToF 模式画脉冲—回波时间线，在 FMCW 模式画距离拍频与多普勒位置，并给出厘米误差换算。</p>
+<div class="learning-lab" data-learning-lab="photo-lidar">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认目标距离 <span class="arithmatex">\(R=100\,\mathrm m\)</span>。dToF 取时间抖动 <span class="arithmatex">\(\sigma_t=67\,\mathrm{ps}\)</span>；FMCW 取 <span class="arithmatex">\(S=10^{14}\,\mathrm{Hz/s}\)</span>、<span class="arithmatex">\(v=10\,\mathrm{m/s}\)</span>、<span class="arithmatex">\(\lambda=1550\,\mathrm{nm}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>路线</th>
+<th>观测量</th>
+<th style="text-align: right;">默认结果</th>
+<th>直接边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dToF</td>
+<td><span class="arithmatex">\(\sigma_R=c\sigma_t/2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.0\,\mathrm{cm}\)</span></td>
+<td>脉冲宽度、多径、背景光与 TDC 抖动</td>
+</tr>
+<tr>
+<td>dToF</td>
+<td><span class="arithmatex">\(2R/c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.667\,\mu\mathrm{s}\)</span></td>
+<td>近目标需时间门与分辨率足够</td>
+</tr>
+<tr>
+<td>FMCW</td>
+<td><span class="arithmatex">\(f_b=2SR/c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(66.7\,\mathrm{MHz}\)</span></td>
+<td>调频线性、带宽与混叠</td>
+</tr>
+<tr>
+<td>FMCW</td>
+<td><span class="arithmatex">\(f_D=2v/\lambda\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(12.9\,\mathrm{MHz}\)</span></td>
+<td>需将距离与速度频率分离</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="5">5. 失败边界：相干不等于自动正确<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>dToF 的时间峰可能来自多径、多个目标或其他 LiDAR；时间门只能抑制部分背景，不能替代场景建模。</li>
+<li>FMCW 的拍频依赖扫频线性和本振稳定性；有限带宽、速度范围和距离—速度耦合会带来歧义。</li>
+<li>结构光、OCT、FBG 与 LiDAR 的“分辨率”对应不同观测量，不能把厘米级时间测距的数字直接迁移到纳米级干涉形貌。</li>
+</ul>
+<h3 id="6">6. 迁移任务：为一项感知任务写测量链<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>为车载远距测距、室内机器人避障和桥梁光纤监测各选一种主传感机制，列出光源、探测器、关键观测量、主要干扰与校准方法。特别说明什么时候应选 FMCW 的速度信息，什么时候 dToF 的简单与成熟更重要。</p>
+</section>
 <p><img alt="LiDAR 的时间延迟与拍频" class="fig-img" src="assets/img/pho-17-lidar.svg" /></p>
 <figcaption><span class="fig-id">图 17-1</span> 左：dToF 由脉冲与回波的时间差测距，\(R=c\Delta t/2\)，所以厘米级精度需要皮秒级计时；右：FMCW 把回波延迟变成拍频 \(f_b=S\tau\)，再由 \(f_b=2SR/c\) 解出距离。<strong>相干拍频同时携带多普勒信息，并天然抑制非相干环境光</strong>，但对激光线性调频与信号处理要求更高。</figcaption>
 
@@ -154,7 +254,7 @@
 </tbody>
 </table>
 <p><strong>OCT 值得强调</strong>：它是"低相干是资源"这一思想最成功的商业化——<strong>只有当参考臂与样品某深度的光程严格匹配时才产生干涉</strong>，从而实现微米级深度分辨。<strong>已成为眼科检查的标准设备</strong>，并扩展到心血管内窥与皮肤科。</p>
-<h2 id="lidar">四、LiDAR：测距与测速<a class="headerlink" href="#lidar" title="Permanent link"></a></h2>
+<h2 id="lidar_1">四、LiDAR：测距与测速<a class="headerlink" href="#lidar_1" title="Permanent link"></a></h2>
 <p><strong>两条技术路线，物理与性能完全不同</strong>：</p>
 <p><strong>① dToF（直接飞行时间）</strong>：发射短脉冲，测回波时间。</p>
 <div class="arithmatex">\[d = \frac{c\,t}{2}\]</div>
@@ -205,5 +305,7 @@
 <script defer src="assets/katex/katex.min.js"></script>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/photo-lidar.js"></script>
 </body>
 </html>
