@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>偏微分方程与有限元 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li class="active"><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先看能量账，再看温度曲线</a><ul>
+<li><a href="#pde-fem-learning-title">1. 具体谜题：网格变密时，解为什么应该变好？</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3">3. 静态后备：一个可手算的有限元账本</a></li>
+<li><a href="#4">4. 证据等级</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 从稳态传热到弱形式</a></li>
+<li><a href="#2_1">2. 有限元空间与刚度矩阵</a></li>
+<li><a href="#3_1">3. 稳定性来自强制性，而不只是矩阵可逆</a></li>
+<li><a href="#4_1">4. 收敛：误差究竟在什么意义下变小</a></li>
+<li><a href="#5">5. 稳定性、条件数与边界条件</a></li>
+<li><a href="#6">6. 可复现验证清单与失败边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">计算物理 III · 偏微分方程与有限元<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Strang &amp; Fix <em>An Analysis of the Finite Element Method</em> / Brenner–Scott <em>The Mathematical Theory of Finite Element Methods</em> ｜ <strong>前置</strong>：fl-01（连续介质与守恒律）、数学站 Sobolev/弱导数线
+<strong>本页问题</strong>：一根有热源的细杆，为什么把微分方程“在每一点强行满足”改成积分形式，反而更容易得到稳定、可收敛、能核对能量的数值解？有限元的关键不是画出一条平滑曲线，而是把物理边界、弱形式和离散功率账放进同一个线性系统。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="pde-fem-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先看能量账，再看温度曲线<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="pde-fem-learning-title">1. 具体谜题：网格变密时，解为什么应该变好？<a class="headerlink" href="#pde-fem-learning-title" title="Permanent link"></a></h3>
+<p>取长度为 <span class="arithmatex">\(1\)</span> 的稳态细杆，温度为 <span class="arithmatex">\(u(x)\)</span>，导热系数为 <span class="arithmatex">\(\kappa&gt;0\)</span>，两端固定为零温度，并在杆内加入源项：</p>
+<div class="arithmatex">\[
+-(\kappa u')'=A\pi^2\sin(\pi x),\qquad u(0)=u(1)=0.
+\]</div>
+<p>当 <span class="arithmatex">\(\kappa=A=1\)</span> 时，精确解是 <span class="arithmatex">\(u(x)=\sin(\pi x)\)</span>，所以 <span class="arithmatex">\(u(1/2)=1\)</span>。计算机不直接表示连续函数，而是选择网格节点和一组局部线性基函数。问题变成：这些有限个系数能否同时满足边界、源项做功和导热耗散的关系？</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台以前，先回答四个问题：</p>
+<ol>
+<li>有限元的核心方程是逐点强形式、测试函数下的弱形式，还是随机游走？</li>
+<li>对光滑解、正的 <span class="arithmatex">\(\kappa\)</span> 和正确装配，加密网格后最大节点误差通常上升、下降，还是完全不变？</li>
+<li>什么条件使热传导刚度矩阵具有正定性：<span class="arithmatex">\(\kappa&gt;0\)</span>、<span class="arithmatex">\(\kappa=0\)</span>，还是 <span class="arithmatex">\(\kappa&lt;0\)</span>？</li>
+<li>离散解满足线性方程时，离散能量 <span class="arithmatex">\(u_h^TKu_h\)</span> 与载荷功 <span class="arithmatex">\(f^Tu_h\)</span> 应该相等，还是互为相反数？</li>
+</ol>
+<h3 id="3">3. 静态后备：一个可手算的有限元账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="physics-pde-fem">
+<p><strong>无 JavaScript 时的静态读法。</strong>默认实验取 <span class="arithmatex">\(A=1\)</span>、<span class="arithmatex">\(\kappa=1\)</span>、<span class="arithmatex">\(N=16\)</span> 个等长单元，使用 <span class="arithmatex">\(P1\)</span> 线性单元，并对每个单元的载荷积分使用中点规则。精确解仍是 <span class="arithmatex">\(u=\sin(\pi x)\)</span>。在最粗的 <span class="arithmatex">\(N=4\)</span> 网格上，节点 <span class="arithmatex">\(x=1/2\)</span> 的解析值是 <span class="arithmatex">\(1\)</span>，有限元值约为 <span class="arithmatex">\(0.972872\)</span>；更细网格时这个差异继续下降。</p>
+<p>局部刚度矩阵是</p>
+<div class="arithmatex">\[
+K^{(e)}=\frac{\kappa}{h}\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix},
+\]</div>
+<p>中点载荷向量为 <span class="arithmatex">\(f^{(e)}\approx h\,s(x_e)(1/2,1/2)^T\)</span>，其中 <span class="arithmatex">\(s(x)=A\pi^2\sin(\pi x)\)</span>。<span class="arithmatex">\(N=4\)</span>、<span class="arithmatex">\(h=1/4\)</span> 时，内部三行组成一个对称正定三对角系统；解出后中心节点接近 <span class="arithmatex">\(1\)</span>。对于默认 <span class="arithmatex">\(N=16\)</span>，实验表格还会显示最大误差约 <span class="arithmatex">\(1.61\times10^{-3}\)</span>、离散 <span class="arithmatex">\(L^2\)</span> 误差约 <span class="arithmatex">\(1.14\times10^{-3}\)</span>，误差随 <span class="arithmatex">\(N\)</span> 以接近二阶的速率下降。具体末位会随浏览器浮点舍入改变，但能量账应满足</p>
+<div class="arithmatex">\[
+u_h^TKu_h=f^Tu_h
+\]</div>
+<p>到机器精度；这条等式比一张“看起来像正弦”的曲线更有诊断力。</p>
+<table>
+<thead>
+<tr>
+<th>检查</th>
+<th style="text-align: right;">默认模型的预期读数</th>
+<th>它证明不了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>解析中心温度</td>
+<td style="text-align: right;"><span class="arithmatex">\(u(0.5)=1\)</span></td>
+<td>只属于这个源项与边界</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\kappa\)</span> 的符号</td>
+<td style="text-align: right;"><span class="arithmatex">\(\kappa=1&gt;0\)</span>，刚度正定</td>
+<td>负导热系数不是普通热方程</td>
+</tr>
+<tr>
+<td>离散能量账</td>
+<td style="text-align: right;"><span class="arithmatex">\(u_h^TKu_h-f^Tu_h\approx0\)</span></td>
+<td>不能代替连续模型推导</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N=4\to8\to16\)</span></td>
+<td style="text-align: right;">最大误差按约 <span class="arithmatex">\(1/4\)</span> 下降</td>
+<td>只在光滑、渐近、同一模型下</td>
+</tr>
+<tr>
+<td>线性单元形状</td>
+<td style="text-align: right;">单元内是折线，节点处贴近 exact</td>
+<td>不能把 <span class="arithmatex">\(P1\)</span> 折线称为处处精确</td>
+</tr>
+</tbody>
+</table>
+<p>实验把温度曲线、双对数收敛图、残差和能量平衡一起显示。若只看当前网格的拟合，可能漏掉积分规则、边界处理或矩阵装配的错误；若只看误差，也可能漏掉一个稳定地解错了物理方程的程序。</p>
+</div>
+<h3 id="4">4. 证据等级<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>线性系统残差接近零，说明“代码解出了它装配的离散系统”。</li>
+<li>网格收敛说明离散系统在当前正则性和积分精度下逼近连续问题。</li>
+<li>能量恒等式说明离散解尊重弱形式的功率结构。</li>
+<li>这些都是有限数值证据；要把它外推到尖角、激波、材料界面或三维复杂网格，必须重新检查正则性、稳定性和误差估计。</li>
+</ul>
+</section>
+<h2 id="1">1. 从稳态传热到弱形式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先把物理写成守恒律。Fourier 定律给热流 <span class="arithmatex">\(q=-\kappa u'\)</span>；稳态时“流入的热量 + 内部发热 = 流出的热量”，于是</p>
+<div class="arithmatex">\[
+-(\kappa u')'=s(x).
+\]</div>
+<p>假定 <span class="arithmatex">\(u\)</span> 足够光滑，把方程乘以在边界为零的测试函数 <span class="arithmatex">\(v\)</span>，在 <span class="arithmatex">\([0,1]\)</span> 上积分：</p>
+<div class="arithmatex">\[
+\int_0^1 -(\kappa u')'v\,dx=\int_0^1s v\,dx.
+\]</div>
+<p>分部积分得到</p>
+<div class="arithmatex">\[
+\underbrace{\int_0^1\kappa u'v'\,dx}_{a(u,v)}
+  =\underbrace{\int_0^1s v\,dx}_{\ell(v)}
+  +\underbrace{[\kappa u'v]_0^1}_{0}.
+\]</div>
+<p>边界上 <span class="arithmatex">\(v=0\)</span>，所以 Dirichlet 边界项消失。若边界给的是热流而不是温度，边界项不会消失，它就会成为自然边界载荷；这正是弱形式把边界物理放进方程的地方。</p>
+<p>连续问题的能量泛函是</p>
+<div class="arithmatex">\[
+\mathcal E(u)=\frac12\int_0^1\kappa(u')^2dx-\int_0^1s u\,dx.
+\]</div>
+<p>对允许的扰动 <span class="arithmatex">\(v\)</span> 求一阶变分，正好得到 <span class="arithmatex">\(a(u,v)=\ell(v)\)</span>。因此稳态温度是“导热耗散和源项做功之间的平衡”，不是一条由绘图软件猜出来的曲线。</p>
+<h2 id="2_1">2. 有限元空间与刚度矩阵<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>把区间切成 <span class="arithmatex">\(N\)</span> 个单元，节点为 <span class="arithmatex">\(x_i=ih\)</span>、<span class="arithmatex">\(h=1/N\)</span>。<span class="arithmatex">\(P1\)</span> 有限元空间由连续的分段线性函数组成，标准帽函数 <span class="arithmatex">\(\phi_i\)</span> 满足 <span class="arithmatex">\(\phi_i(x_j)=\delta_{ij}\)</span>。近似解写成</p>
+<div class="arithmatex">\[
+u_h(x)=\sum_{j=1}^{N-1}U_j\phi_j(x),
+\]</div>
+<p>两端的系数因 Dirichlet 条件固定为零。令测试函数依次取 <span class="arithmatex">\(\phi_i\)</span>，得到矩阵方程</p>
+<div class="arithmatex">\[
+KU=f,\qquad K_{ij}=a(\phi_j,\phi_i),\qquad f_i=\ell(\phi_i).
+\]</div>
+<p>在一个长度为 <span class="arithmatex">\(h\)</span>、常导热系数为 <span class="arithmatex">\(\kappa\)</span> 的单元上，局部矩阵为</p>
+<div class="arithmatex">\[
+K^{(e)}_{\mathrm{local}}=\frac{\kappa}{h}\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix}.
+\]</div>
+<p>它的两个行和为零，反映“只整体平移温度，不产生梯度耗散”的事实。把相邻单元按共享节点装配后，内部矩阵是稀疏三对角：对角项来自两侧单元，邻对角项来自共享边。局部到全局的索引映射是程序最容易写错的地方，因此一个好的验证先检查对称性、正定性和已知边界解，而不是先增加网格数量。</p>
+<p>对源项 <span class="arithmatex">\(s=A\pi^2\sin(\pi x)\)</span>，精确积分可以通过高阶求积完成；本页实验选用中点规则，令</p>
+<div class="arithmatex">\[
+f_i\approx\sum_e h\,s(x_e)\phi_i(x_e).
+\]</div>
+<p>中点规则很透明：它明确展示了“积分误差也是离散误差的一部分”。如果把精确解换成尖峰源、把 <span class="arithmatex">\(\kappa\)</span> 换成单元间跳变或把网格改成不均匀，就需要重新评估求积阶数，不能把这一张表的二阶数字当成普遍承诺。</p>
+<h2 id="3_1">3. 稳定性来自强制性，而不只是矩阵可逆<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>对任意非零的离散函数 <span class="arithmatex">\(v_h\)</span>，</p>
+<div class="arithmatex">\[
+a(v_h,v_h)=\int_0^1\kappa(v_h')^2dx.
+\]</div>
+<p>当 <span class="arithmatex">\(\kappa(x)\ge\kappa_0&gt;0\)</span> 时，除零边界函数外，<span class="arithmatex">\(v_h'\)</span> 不可能处处为零，于是 <span class="arithmatex">\(a(v_h,v_h)&gt;0\)</span>。这就是 coercivity（强制性）在本例中的物理含义：任何非平凡温度梯度都消耗正的导热能量。有限维里它对应刚度矩阵对称正定，保证解唯一，并让共轭梯度等方法有良好的基础。</p>
+<p>若 <span class="arithmatex">\(\kappa=0\)</span>，方程不再是传热扩散问题；若 <span class="arithmatex">\(\kappa&lt;0\)</span>，矩阵可能失去正定性，得到的“温度”不再代表普通材料的稳定导热。若常系数只被整体缩放为 <span class="arithmatex">\(\varepsilon\kappa\)</span>，则 <span class="arithmatex">\(K=\varepsilon K_0\)</span>，相对条件数并不会因此改变，虽然解的量级与绝对敏感度会按 <span class="arithmatex">\(1/\varepsilon\)</span> 放大。真正恶化相对条件数的典型来源是网格加密、<span class="arithmatex">\(\kappa(x)\)</span> 的大空间反差或系数逼近退化；这不是通过把残差打印得更小就能消除的。</p>
+<p>离散能量账来自矩阵方程本身：左乘 <span class="arithmatex">\(U^T\)</span> 得</p>
+<div class="arithmatex">\[
+U^TKU=U^Tf.
+\]</div>
+<p>左边是每个单元 <span class="arithmatex">\(\kappa(U_{i+1}-U_i)^2/h\)</span> 的和，右边是源项对离散温度做的功。实验把两者的差作为独立证据；若曲线看似合理但这个差很大，通常意味着边界载荷、局部矩阵符号、右端装配或求积实现有问题。</p>
+<h2 id="4_1">4. 收敛：误差究竟在什么意义下变小<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>设连续解足够光滑。对 <span class="arithmatex">\(P1\)</span> 元，典型有限元估计在一维写成</p>
+<div class="arithmatex">\[
+\|u-u_h\|_{H^1}\le C h\,\|u\|_{H^2},
+\qquad
+\|u-u_h\|_{L^2}\le C h^2\,\|u\|_{H^2}.
+\]</div>
+<p>节点最大误差在本页的规则网格与光滑正弦例子上也呈现接近二阶的趋势，但“最大节点误差二阶”不是所有网格和所有解的自动定理。若解只有 <span class="arithmatex">\(H^{1+s}\)</span> 正则性，阶数会下降；若源项是 delta 分布、几何有尖角，或者系数发生不受处理的跳变，经典估计需要局部网格加密和更精细的界面条件。</p>
+<p>做收敛实验时必须固定物理问题，只改变 <span class="arithmatex">\(h\)</span>。记录</p>
+<div class="arithmatex">\[
+e_N=\max_i|U_i-u(x_i)|,
+\qquad
+\|e_N\|_{L^2,h}=\left(h\sum_i|U_i-u(x_i)|^2\right)^{1/2},
+\]</div>
+<p>并用相邻网格估计阶数</p>
+<div class="arithmatex">\[
+p_N=\log_2\frac{e_N}{e_{2N}}.
+\]</div>
+<p>如果 <span class="arithmatex">\(p_N\)</span> 只有在最粗网格很大、细网格突然降到零，优先怀疑精确解评估、边界节点或浮点抵消；如果残差很小而误差不随网格下降，说明“解离散问题”与“离散问题逼近目标问题”被混淆了。</p>
+<h2 id="5">5. 稳定性、条件数与边界条件<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>本页是椭圆问题，没有像显式热方程那样的时间步长 CFL 条件；但仍有三类稳定性要核对。</p>
+<p>第一是<strong>物理强制性</strong>：<span class="arithmatex">\(\kappa\)</span> 必须保持正，边界条件要排除常数零模。若两端都改成纯 Neumann，刚度矩阵会有常数零空间，解只在总热流兼容且加一个平均温度规范后唯一。</p>
+<p>第二是<strong>离散稳定性</strong>：网格不能有退化单元，映射后的 Jacobian 不能变号；二维三角形的极小角会恶化条件数，即便矩阵仍然正定。</p>
+<p>第三是<strong>线性代数稳定性</strong>：直接消元要有主元策略，共轭梯度要配合预条件；“残差 <span class="arithmatex">\(10^{-14}\)</span>”只是在当前浮点系统中满足方程，不是误差一定同样小。实验输出 Thomas 消元的最小正主元，作为一维正定性的数值哨兵。</p>
+<p>Dirichlet 边界不能简单把边界行删掉就忘记右端修正。一般的分块系统是</p>
+<div class="arithmatex">\[
+\begin{pmatrix}K_{II}&amp;K_{IB}\\K_{BI}&amp;K_{BB}\end{pmatrix}
+\begin{pmatrix}U_I\\U_B\end{pmatrix}
+=\begin{pmatrix}f_I\\f_B\end{pmatrix},
+\]</div>
+<p>给定 <span class="arithmatex">\(U_B\)</span> 后内部右端应使用 <span class="arithmatex">\(f_I-K_{IB}U_B\)</span>。本页 <span class="arithmatex">\(U_B=0\)</span>，这笔修正恰好消失；换成非零端温度时不能照抄零边界代码。</p>
+<h2 id="6">6. 可复现验证清单与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>一个可审计的有限元算例至少留下以下记录：方程和单位、材料系数、源项、网格节点、单元类型、求积规则、边界处理、线性求解器容差、残差、物理能量账和网格收敛表。固定这些信息以后，另一个实现才有机会区分“浮点末位不同”和“装配逻辑不同”。</p>
+<p><strong>常见误区：</strong></p>
+<ul>
+<li>“网格越细越准确。”只有在网格质量、求积、边界和线性求解误差没有成为新瓶颈时才成立；过细网格也会放大条件数和舍入影响。</li>
+<li>“残差为零就是误差为零。”残差衡量当前离散方程，误差还包含离散、求积、模型和边界误差。</li>
+<li>“有限元就是把曲线连起来。”曲线只是结果的可视化，真正决定它的是弱形式和刚度/载荷矩阵。</li>
+<li>“稳定正定意味着材料模型正确。”正定只说明当前数学问题有好的能量结构；各向异性、温度依赖、辐射边界和相变源项仍需物理建模。</li>
+</ul>
+<p><strong>迁移任务：</strong>把本页的一维杆换成二维薄板，在左边施加热源、上下边界绝热、右边固定温度。先预测自然边界项如何进入弱形式，再设计三组网格：均匀、靠近热源加密、故意有瘦长单元。比较温度峰值、能量平衡和收敛阶，解释为什么“局部加密”可能比把所有单元一律加倍更节省，同时指出薄板出现材料界面时要怎样改写通量连续条件。</p>
+<hr />
+<p><em>下一页：把连续场换成有限个自旋后，蒙特卡洛的难题不再是解线性系统，而是判断一串相关构型到底提供了多少独立的统计证据。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-02-dynamics-symplectic.html"><span class="pager-label">上一页</span>计算 II · 动力系统与辛积分</a>
+  <a class="pager-slot next" href="comp-04-monte-carlo-lattice.html"><span class="pager-label">下一页</span>计算 IV · 格点模型与蒙特卡洛</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-pde-fem.js"></script>
+</body>
+</html>

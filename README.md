@@ -35,7 +35,7 @@ start-courses.bat
 - `comfyUI-course`：ComfyUI、扩散模型与 AIGC 工作流课程
 - `math-course`：本科数学课程资料库
 - `grad-math`：研究生数学与资格考试课程资料库
-- `physics-course`：本科、研究生理论物理与前沿基础课程
+- `physics-course`：本科与研究生物理、实验测量、计算物理及前沿基础课程
 - `cs-course`：计算机科学全栈核心课程资料库
 - `auto-course`：自动控制、状态估计、执行系统与控制前沿
 - `bio-course`：生命科学、遗传演化、神经科学与生物技术
@@ -87,6 +87,6 @@ Build command: python tools/build_public_site.py
 Build output directory: public
 ```
 
-构建器会把 18 个已生成课程站点和 ELI5/ELI18 交互试验版汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送时重建、审查并验证这份发布产物。
+构建器会把 18 个已生成课程站点汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送时重建、审查并验证这份发布产物。
 
 推荐把自定义域名设为 `course.hhzi.eu.cc`，以免影响现有的 `medusa.hhzi.eu.cc`。课程完全是静态内容，阅读进度仍保存在每台设备各自的浏览器中，不会跨设备同步。

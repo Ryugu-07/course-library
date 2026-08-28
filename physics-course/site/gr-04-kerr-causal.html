@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kerr 黑洞与因果结构 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li class="active"><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#kerr-causal-learning-title">学习层：视界、能层与共转不是同一条线</a><ul>
+<li><a href="#1">1. 先预测：哪些因果说法真的成立？</a></li>
+<li><a href="#2-kerr-delta-g_tt">2. Kerr 的两个半径：\(\Delta\) 和 \(g_{tt}\) 各自回答什么？</a></li>
+<li><a href="#3">3. 因果锥给出允许角速度</a></li>
+<li><a href="#4-fallbacka08">4. 静态 fallback：\(a=0.8\) 的外部数值</a></li>
+<li><a href="#5">5. 边界检查与迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1-kerr">1. Kerr 解的几何骨架</a></li>
+<li><a href="#2">2. 视界为什么不能等同于坐标发散</a></li>
+<li><a href="#3-frame-dragging">3. 能层和 frame dragging</a></li>
+<li><a href="#4">4. 能量提取的因果账</a></li>
+<li><a href="#5_1">5. 内部边界：我们知道什么、没有算什么</a></li>
+<li><a href="#6">6. 三个检查题</a></li>
+<li><a href="#7">7. 小结：因果锥比口号更精确</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv-kerr">广义相对论 IV · Kerr 时空、能层与因果结构<a class="headerlink" href="#iv-kerr" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Carroll §6–7 / Wald §12 / Misner–Thorne–Wheeler §33 ｜ <strong>前置</strong>：gr-01、gr-02、gr-03、流形几何
+自转黑洞最容易被一句口号带偏：“视界把一切挡住，能层就是另一个视界。”本页用 Kerr 解的几个几何不变量和外部因果锥来拆开它们：<span class="arithmatex">\(\Delta=0\)</span> 给出视界位置，<span class="arithmatex">\(g_{tt}=0\)</span> 给出静止极限面，二者之间的能层迫使未来指向的世界线共转。Boyer–Lindquist 坐标在视界处的病态不是曲率奇点；而一旦越过外视界，本页的固定 <span class="arithmatex">\(r\)</span> 外部账本就不再足以描述全球因果演化。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="kerr-causal-learning-title" class="learning-layer">
+<h2 id="kerr-causal-learning-title">学习层：视界、能层与共转不是同一条线<a class="headerlink" href="#kerr-causal-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：哪些因果说法真的成立？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>使用几何单位 <span class="arithmatex">\(G=c=M=1\)</span>，自旋参数为 <span class="arithmatex">\(|a|&lt;1\)</span>。在打开实验前判断：</p>
+<ol>
+<li>赤道面外视界半径 <span class="arithmatex">\(r_+=1+\sqrt{1-a^2}\)</span> 与静止极限面的半径 <span class="arithmatex">\(r_{\rm ergo}=2\)</span> 是否总相同？</li>
+<li>在 <span class="arithmatex">\(r_+&lt;r&lt;2\)</span> 的能层里，固定 <span class="arithmatex">\(r,\theta,\phi\)</span> 的观察者能否保持静止？</li>
+<li>对正自旋 <span class="arithmatex">\(a&gt;0\)</span>，能层内所有未来指向的固定半径世界线是否必须有正的 <span class="arithmatex">\(d\phi/dt\)</span>？</li>
+<li>把 Boyer–Lindquist 坐标在 <span class="arithmatex">\(r=r_+\)</span> 的发散说成“那里有无限曲率”，是否正确？</li>
+<li>这个实验能否根据外部的 <span class="arithmatex">\(\Omega\)</span> 区间，直接讲完粒子穿过视界后的全球命运？</li>
+</ol>
+<p>实验揭示后可调 <span class="arithmatex">\(a\)</span> 和外视界外的距离 <span class="arithmatex">\(r-r_+\)</span>。左图显示外视界、静止极限面和选定半径；右图显示该半径允许的因果角速度区间 <span class="arithmatex">\(\Omega_-&lt;d\phi/dt&lt;\Omega_+\)</span>。它计算的是赤道面外部的坐标账本，不能替代穿越视界的正则坐标分析。</p>
+<h3 id="2-kerr-delta-g_tt">2. Kerr 的两个半径：<span class="arithmatex">\(\Delta\)</span> 和 <span class="arithmatex">\(g_{tt}\)</span> 各自回答什么？<a class="headerlink" href="#2-kerr-delta-g_tt" title="Permanent link"></a></h3>
+<p>Kerr Boyer–Lindquist 坐标中的关键函数为</p>
+<div class="arithmatex">\[
+\Delta=r^2-2r+a^2,
+\qquad
+\Sigma=r^2+a^2\cos^2\theta.
+\]</div>
+<p><span class="arithmatex">\(\Delta=0\)</span> 的两个根是</p>
+<div class="arithmatex">\[
+r_\pm=1\pm\sqrt{1-a^2}.
+\]</div>
+<p>外根 <span class="arithmatex">\(r_+\)</span> 是事件视界在这套坐标描述中的位置。赤道面 <span class="arithmatex">\(\theta=\pi/2\)</span> 上，<span class="arithmatex">\(g_{tt}=-(1-2/r)\)</span>，所以 <span class="arithmatex">\(g_{tt}=0\)</span> 的外静止极限面为 <span class="arithmatex">\(r_{\rm ergo}=2\)</span>，与 <span class="arithmatex">\(a\)</span> 无关；一般纬度则为</p>
+<div class="arithmatex">\[
+r_{\rm ergo}(\theta)=1+\sqrt{1-a^2\cos^2\theta}.
+\]</div>
+<p>两者只有 <span class="arithmatex">\(a=0\)</span> 时在赤道面重合。<span class="arithmatex">\(r_+&lt;r&lt;2\)</span> 是能层，不是视界内部：它在外视界之外，但静止 Killing 矢量 <span class="arithmatex">\(\partial_t\)</span> 已经变成类空，不能代表一条固定空间位置的物质世界线。</p>
+<h3 id="3">3. 因果锥给出允许角速度<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在赤道面固定 <span class="arithmatex">\(r\)</span> 的轨迹写成 <span class="arithmatex">\(d\phi=\Omega dt\)</span>。Kerr 度规的 <span class="arithmatex">\(t,\phi\)</span> 二维块要求世界线类时或类光：</p>
+<div class="arithmatex">\[
+g_{tt}+2g_{t\phi}\Omega+g_{\phi\phi}\Omega^2\le0.
+\]</div>
+<p>代入</p>
+<div class="arithmatex">\[
+g_{tt}=\frac2r-1,\qquad g_{t\phi}=-\frac{2a}{r},
+\qquad g_{\phi\phi}=r^2+a^2+\frac{2a^2}{r},
+\]</div>
+<p>得到两个光锥边界</p>
+<div class="arithmatex">\[
+\Omega_\pm=\frac{-g_{t\phi}\pm\sqrt{g_{t\phi}^2-g_{tt}g_{\phi\phi}}}{g_{\phi\phi}}.
+\]</div>
+<p>允许的未来指向固定半径世界线必须落在 <span class="arithmatex">\(\Omega_-\le\Omega\le\Omega_+\)</span> 内；严格类时取内部，等号是类光边界。在能层内，<span class="arithmatex">\(\Omega_-\)</span> 也会变成正数（对 <span class="arithmatex">\(a&gt;0\)</span>），所以任何观察者都被迫共转。区间的中点</p>
+<div class="arithmatex">\[
+\Omega_{\rm ZAMO}=-\frac{g_{t\phi}}{g_{\phi\phi}}
+\]</div>
+<p>是零角动量观察者（ZAMO）的坐标角速度：它是局部惯性系被拖曳的一个可计算标尺，但 <span class="arithmatex">\(d\phi/dt\)</span> 本身仍是坐标量，不等于远方观测者测得的局部速度。</p>
+<h3 id="4-fallbacka08">4. 静态 fallback：<span class="arithmatex">\(a=0.8\)</span> 的外部数值<a class="headerlink" href="#4-fallbacka08" title="Permanent link"></a></h3>
+<p>以下默认读数取 <span class="arithmatex">\(a=0.8\)</span>、<span class="arithmatex">\(r=r_++0.2=1.8\)</span>，仍在赤道面外视界之外。实验只在 <span class="arithmatex">\(r&gt;r_+\)</span> 上计算，不把 <span class="arithmatex">\(r\le r_+\)</span> 的点塞进外部角速度公式。</p>
+<div class="learning-lab" data-learning-lab="physics-kerr-causality">
+<p><strong>无 JavaScript 时的静态读法：</strong>在 <span class="arithmatex">\(a=0.8\)</span> 时</p>
+<div class="arithmatex">\[
+r_+=1+\sqrt{1-0.8^2}=1.6,
+\qquad r_{\rm ergo}=2,
+\qquad \Omega_H=\frac{a}{2r_+}=0.25.
+\]</div>
+<p>在选定半径 <span class="arithmatex">\(r=1.8\)</span>，赤道面度规分量约为 <span class="arithmatex">\(g_{tt}=0.11111\)</span>、<span class="arithmatex">\(g_{t\phi}=-0.88889\)</span>、<span class="arithmatex">\(g_{\phi\phi}=4.59111\)</span>。代入因果锥边界：</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>公式</th>
+<th style="text-align: right;">默认结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>外视界</td>
+<td><span class="arithmatex">\(r_+\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.6\)</span></td>
+</tr>
+<tr>
+<td>赤道面静止极限面</td>
+<td><span class="arithmatex">\(r_{\rm ergo}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+</tr>
+<tr>
+<td>选定位置</td>
+<td><span class="arithmatex">\(r_++0.2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.8\)</span></td>
+</tr>
+<tr>
+<td>允许角速度下界</td>
+<td><span class="arithmatex">\(\Omega_-\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0784\)</span></td>
+</tr>
+<tr>
+<td>允许角速度上界</td>
+<td><span class="arithmatex">\(\Omega_+\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.3088\)</span></td>
+</tr>
+<tr>
+<td>ZAMO 中心</td>
+<td><span class="arithmatex">\(\Omega_{\rm ZAMO}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1936\)</span></td>
+</tr>
+<tr>
+<td>两边都为正</td>
+<td><span class="arithmatex">\(\Omega_-&gt;0\)</span></td>
+<td style="text-align: right;">能层内必须共转</td>
+</tr>
+</tbody>
+</table>
+<p>把选定半径移到 <span class="arithmatex">\(r=3\)</span>（仍在能层外），同一公式给出约 <span class="arithmatex">\(\Omega_-=-0.1366\)</span>、<span class="arithmatex">\(\Omega_+=0.2425\)</span>：反向角速度重新进入允许区。恰在 <span class="arithmatex">\(r=2\)</span> 的静止极限面，<span class="arithmatex">\(\Omega_-=0\)</span>，固定角位置的 Killing 轨道是零测线；所以实验把它单列为“边界”，不硬塞进能层内或能层外。把 <span class="arithmatex">\(r\)</span> 推近 <span class="arithmatex">\(r_+\)</span> 时，两个边界合并到视界角速度 <span class="arithmatex">\(\Omega_H=a/(2r_+)\)</span>；这是外部坐标账本的极限行为，不是把视界当成有摩擦的实体表面。</p>
+<p><strong>反例与迁移：</strong><span class="arithmatex">\(g_{tt}=0\)</span> 不是曲率发散，<span class="arithmatex">\(\Delta=0\)</span> 也不能仅凭 Boyer–Lindquist 分母叫作物理奇点。真正的 Kerr 环奇点由 <span class="arithmatex">\(\Sigma=0\)</span>，即 <span class="arithmatex">\(r=0,\theta=\pi/2\)</span> 的全局结构标出；外视界处的曲率不变量对非极端黑洞是有限的。更重要的是，本实验没有计算外视界内的完整测地线、因果延拓或奇点可达性，不能从图上过度推断“里面发生了什么”。</p>
+</div>
+<h3 id="5">5. 边界检查与迁移任务<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(a=0\)</span> 时 Kerr 退回 Schwarzschild：<span class="arithmatex">\(r_+=r_{\rm ergo}=2\)</span>，能层宽度消失，允许角速度区间关于零对称。</li>
+<li><span class="arithmatex">\(|a|=1\)</span> 是极端极限，根结构和近视界标度需要单独小心；实验用 <span class="arithmatex">\(|a|&lt;1\)</span> 留出非极端外部区域。</li>
+<li>图上的 <span class="arithmatex">\(\Omega\)</span> 是 Boyer–Lindquist 坐标角速度。要报告局部测量的速度，必须给出观察者四速度和正交标架；不能把坐标斜率直接当速度计读数。</li>
+<li>外视界是全局定义的因果边界；局部的 <span class="arithmatex">\(g_{tt}=0\)</span> 只说明某个 Killing 向量的性质改变，不等于“光在这里停住”。</li>
+</ul>
+<p>迁移题：若远方观测者看到一个正自旋黑洞外的盘面物质向同一方向转动，先用 <span class="arithmatex">\(\Omega_\pm\)</span> 判断哪些角速度在能层内允许，再说明真实吸积盘还需要压力、磁场、粘滞和测地线/流体动力学；不能只由 frame dragging 的角锥图推出盘的完整亮度或效率。</p>
+</section>
+<h2 id="1-kerr">1. Kerr 解的几何骨架<a class="headerlink" href="#1-kerr" title="Permanent link"></a></h2>
+<p>在 Boyer–Lindquist 坐标 <span class="arithmatex">\((t,r,\theta,\phi)\)</span> 中，Kerr 度规可压缩写成</p>
+<div class="arithmatex">\[
+\begin{aligned}
+ds^2={}&amp;-\left(1-\frac{2r}{\Sigma}\right)dt^2
+-\frac{4ar\sin^2\theta}{\Sigma}dt\,d\phi
++\frac{\Sigma}{\Delta}dr^2+\Sigma d\theta^2\\
+&amp;+\left(r^2+a^2+\frac{2a^2r\sin^2\theta}{\Sigma}\right)\sin^2\theta\,d\phi^2.
+\end{aligned}
+\]</div>
+<p>这里 <span class="arithmatex">\(M=1\)</span>，一般单位恢复时 <span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(a\)</span> 以 <span class="arithmatex">\(GM/c^2\)</span> 归一，时间以 <span class="arithmatex">\(GM/c^3\)</span> 归一。<span class="arithmatex">\(a=J/M\)</span> 在几何单位中有长度量纲；本页用无量纲化后的 <span class="arithmatex">\(a/M\)</span> 并仍记作 <span class="arithmatex">\(a\)</span>。这项声明很重要，否则 <span class="arithmatex">\(a=0.8\)</span> 同时可能被误读成带单位的角动量或长度。</p>
+<p>Kerr 是真空 Einstein 方程的平稳、轴对称解。它不是任意自转物体的内部模型：要描述恒星或吸积盘的物质、磁场和时变扰动，必须另加应力能量张量、边界和演化方程。孤立黑洞外部在适当正则性和渐近平坦假设下由质量和角动量标记，是有条件的黑洞唯一性结论，不是“宇宙里所有旋转物体都只有两个数字”。</p>
+<h2 id="2">2. 视界为什么不能等同于坐标发散<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在这套坐标中 <span class="arithmatex">\(g_{rr}=\Sigma/\Delta\)</span>，因此 <span class="arithmatex">\(\Delta=0\)</span> 使某些分量发散。这个现象类似球坐标在极点的坏表现：要判断物理奇点，应检查曲率不变量，或换到穿越视界正则的坐标。对非极端 Kerr，外视界处的多项曲率不变量是有限的；<span class="arithmatex">\(\Sigma=0\)</span> 的环才是曲率真正发散的位置。</p>
+<p>事件视界的定义是：从该全局边界内发出的未来指向光线不能到达无穷远。这个定义不能被一句“逃逸速度超过 <span class="arithmatex">\(c\)</span>”替代，因为 Kerr 中时空有交叉项，且逃逸/捕获是全局因果问题。外部实验用 <span class="arithmatex">\(r&gt;r_+\)</span> 的坐标，只是在可控域内读因果锥；它没有证明或否定任何需要内部延拓的命题。</p>
+<p>在合适的 ingoing Kerr 坐标中，穿越外视界的自由落体可以是光滑的；“冻结在视界”的图像属于特定远方时间坐标和信号接收过程，不是局部不变量。局部自由落体的仪器记录与远方接收到的红移稀疏信号是不同观测问题。</p>
+<h2 id="3-frame-dragging">3. 能层和 frame dragging<a class="headerlink" href="#3-frame-dragging" title="Permanent link"></a></h2>
+<p>静止 Killing 向量 <span class="arithmatex">\(\xi=\partial_t\)</span> 的范数在赤道面为 <span class="arithmatex">\(g_{tt}=2/r-1\)</span>。在 <span class="arithmatex">\(r&gt;2\)</span> 它是类时，固定 <span class="arithmatex">\(r,\theta,\phi\)</span> 的理想静止世界线可以存在；在 <span class="arithmatex">\(r&lt;2\)</span> 它是类空，固定坐标角位置不再是类时运动。这个外静止极限面与视界之间的区域就是能层。</p>
+<p>“被迫共转”应按因果锥公式理解，而不是说黑洞表面拖着附近物质。对于 <span class="arithmatex">\(a&gt;0\)</span>，<span class="arithmatex">\(g_{t\phi}&lt;0\)</span> 把允许的 <span class="arithmatex">\(\Omega\)</span> 区间向正方向移动；能层内下界也为正。对于 <span class="arithmatex">\(a&lt;0\)</span>，整个图的方向反转。<span class="arithmatex">\(\Omega_{\rm ZAMO}\)</span> 是一个常用局部参考系角速度，但不同观察者有不同局部测量结果；共转是未来因果世界线的约束，不是一条有形的旋转边界。</p>
+<p>在视界上，生成视界的 Killing 组合为</p>
+<div class="arithmatex">\[
+\chi=\partial_t+\Omega_H\partial_\phi,
+\qquad
+\Omega_H=\frac{a}{2r_+}
+\]</div>
+<p>（几何单位）。这是视界的角速度标尺；它来自视界生成元的几何性质，不应解释为某个材料表面的角速度。对远方观测者而言，坐标时间和局部固有时的关系还要经过红移和标架处理。</p>
+<h2 id="4">4. 能量提取的因果账<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Kerr 的轴对称 Killing 向量给出能量 <span class="arithmatex">\(E=-p_\mu\xi^\mu\)</span>，但在能层内 <span class="arithmatex">\(\xi\)</span> 变成类空，<span class="arithmatex">\(E\)</span> 不再像远方静止区域那样必为正。于是 Penrose 过程允许一个分支带负的 Killing 能量穿过视界，另一分支带走超过初始投入的远方能量，黑洞的质量和角动量随之下降。这个叙述需要满足特定分裂、轨道和捕获条件，不能说“能层自动产生免费能量”。</p>
+<p>真实天体物理中，更高效和更连续的抽取常通过电磁磁层、Blandford–Znajek 机制等描述；那需要磁流体和电磁场，不是本页的真空因果锥实验。实验页的任务是识别允许角速度、视界与能层的边界，不计算喷流功率。</p>
+<h2 id="5_1">5. 内部边界：我们知道什么、没有算什么<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(r_+\)</span> 以内，<span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(t\)</span> 的坐标性质、因果锥倾斜和全局延拓都需要重新分析；内视界在理想 Kerr 解中还引出蓝移不稳定与扰动敏感性等问题。真实坍缩和吸积物质会破坏完美平稳、轴对称的理想化。故本页不把“外部固定 <span class="arithmatex">\(r\)</span> 世界线的 <span class="arithmatex">\(\Omega\)</span> 区间”延伸成内部导航图，也不声称每个理想 Kerr 内部结论都直接描述天体黑洞。</p>
+<p>这不是回避问题，而是区分数学对象：外部观测量、坐标图的延拓、局部曲率和全局事件视界各有自己的定义。若要研究穿越视界的观察者，应使用正则坐标、四速度归一化和测地线/流体方程；若要研究稳定性，应加入扰动与边界条件。</p>
+<h2 id="6">6. 三个检查题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（自旋为零）</strong> <span class="arithmatex">\(a=0\)</span> 时 <span class="arithmatex">\(r_+=2\)</span>、<span class="arithmatex">\(r_{\rm ergo}=2\)</span>，<span class="arithmatex">\(g_{t\phi}=0\)</span>，所以能层消失且 <span class="arithmatex">\(\Omega_\pm\)</span> 关于零对称。这是 Kerr 公式回收 Schwarzschild 的内部一致性检查。</p>
+<p><strong>例 2（接近视界）</strong> <span class="arithmatex">\(a=0.8\)</span>、<span class="arithmatex">\(r=1.8\)</span> 时允许区约为 <span class="arithmatex">\([0.0784,0.3088]\)</span>，并不包含 <span class="arithmatex">\(\Omega=0\)</span>；移到 <span class="arithmatex">\(r=3\)</span> 后约为 <span class="arithmatex">\([-0.1366,0.2425]\)</span>，反向角速度可以存在。变化来自 <span class="arithmatex">\(g_{tt}\)</span> 和交叉项共同改变因果锥，不是视界表面突然施加摩擦。</p>
+<p><strong>例 3（极端边界）</strong> 当 <span class="arithmatex">\(|a|\to1\)</span>，<span class="arithmatex">\(r_+\to1\)</span>，外视界和静止极限面在赤道面仍有有限间隔，但极区的几何结构和近视界极限更微妙。不能拿一个 <span class="arithmatex">\(a=0.8\)</span> 的图把极端 Kerr 或内部结构全部代表掉。</p>
+<h2 id="7">7. 小结：因果锥比口号更精确<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\Delta=0\)</span> 定位 Kerr 视界，<span class="arithmatex">\(g_{tt}=0\)</span> 定位静止极限面，<span class="arithmatex">\(g_{t\phi}\)</span> 让外部因果锥发生 frame dragging。能层内的未来指向世界线被迫共转，但这里的 <span class="arithmatex">\(\Omega\)</span> 是坐标角速度；外视界处的 Boyer–Lindquist 发散是坐标问题，真正曲率奇点由 <span class="arithmatex">\(\Sigma=0\)</span> 的环给出。外部交互图能说明这些可检验的关系，却不能越过自己的坐标和模型边界替内部全球因果结构下结论。</p>
+<hr />
+<p><em>核心句：Kerr 的旋转效应不是“视界在转”，而是度规交叉项改变了外部未来因果锥；视界、能层和曲率奇点必须分开定义。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="gr-03-blackholes-waves.html"><span class="pager-label">上一页</span>广相 III · 黑洞、引力波与宇宙学度规</a>
+  <a class="pager-slot next" href="qi-01-qubits.html"><span class="pager-label">下一页</span>量子信息 I · Qubit、纠缠与 Bell 不等式</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-kerr-causality.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Green 函数与准粒子 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li class="active"><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#greens-quasiparticle-learning-title">学习层：一条谱峰究竟告诉你什么？</a><ul>
+<li><a href="#1">1. 先预测：窄峰、宽峰与“粒子寿命”</a></li>
+<li><a href="#2-retarded-pole">2. 最小可算模型：一个带自能的 retarded pole</a></li>
+<li><a href="#3-gamma">3. 时间域桥：同一个 \(\Gamma\) 如何变成寿命？</a></li>
+<li><a href="#4">4. 静态数值与交互实验</a></li>
+<li><a href="#5">5. 边界检查：峰宽不是万能的测量误差</a></li>
+<li><a href="#6">6. 迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#1-green-function">1. 为什么要从 Green function 开始？</a></li>
+<li><a href="#2">2. 自能：实部改位置，虚部改可活多久</a></li>
+<li><a href="#3">3. 谱函数与测量的字典</a></li>
+<li><a href="#4_1">4. 准粒子何时成立？</a></li>
+<li><a href="#5_1">5. 三个算术检查</a></li>
+<li><a href="#6_1">6. 小结：把“看见一个峰”升级成机制判断</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iii">凝聚态 III · 格林函数、谱函数与准粒子寿命<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Mahan《Many-Particle Physics》/ Altland &amp; Simons §4 / Fetter &amp; Walecka ｜ <strong>前置</strong>：cm-01、cm-02、qm-04
+实验上看到的是一条有宽度的能谱峰，而不是“某个粒子正在这里”。本页用 retarded Green function 把三件事接起来：因果传播、谱函数的峰形、以及准粒子的有限寿命。峰的位置是能量，峰的宽度是衰减尺度；二者不能混成同一个“能量不确定度”口号。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="greens-quasiparticle-learning-title" class="learning-layer">
+<h2 id="greens-quasiparticle-learning-title">学习层：一条谱峰究竟告诉你什么？<a class="headerlink" href="#greens-quasiparticle-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：窄峰、宽峰与“粒子寿命”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>光电子谱、隧穿谱或中子散射常把信号画成能量 <span class="arithmatex">\(E\)</span> 的函数。请在打开实验前判断：</p>
+<ol>
+<li>把半宽 <span class="arithmatex">\(\Gamma\)</span> 加倍，谱峰的全宽半高（FWHM）怎样变？峰顶高度怎样变？</li>
+<li>如果谱函数来自一个单一 pole，它在整个能量轴上的面积会不会随 <span class="arithmatex">\(\Gamma\)</span> 改变？</li>
+<li>在本页约定下，振幅包络 <span class="arithmatex">\(e^{-\Gamma t/\hbar}\)</span> 与概率包络 <span class="arithmatex">\(e^{-2\Gamma t/\hbar}\)</span> 的时间尺度哪个更短？</li>
+<li>retarded propagator 在 <span class="arithmatex">\(t&lt;0\)</span> 是否可以响应一个尚未施加的扰动？</li>
+</ol>
+<p>这里的 <span class="arithmatex">\(\Gamma\)</span> 是<strong>能量单位的半宽</strong>，不是频率。先把“峰宽”和“寿命”放进同一套单位账，才能判断一条峰是长寿命准粒子、短寿命激发，还是根本没有清晰 pole。</p>
+<h3 id="2-retarded-pole">2. 最小可算模型：一个带自能的 retarded pole<a class="headerlink" href="#2-retarded-pole" title="Permanent link"></a></h3>
+<p>固定某个动量 <span class="arithmatex">\(k\)</span>，把准粒子的重整化能量记为 <span class="arithmatex">\(\varepsilon_k\)</span>。在忽略能量依赖自能的窄峰近似中，写</p>
+<div class="arithmatex">\[
+G^R(k,E)=\frac{1}{E-\varepsilon_k-\Sigma^R(k,E)}
+\simeq \frac{1}{E-\varepsilon_k+i\Gamma}.
+\]</div>
+<p>谱函数定义为</p>
+<div class="arithmatex">\[
+A(k,E)=-\frac{1}{\pi}\operatorname{Im}G^R(k,E)
+=\frac{1}{\pi}\frac{\Gamma}{(E-\varepsilon_k)^2+\Gamma^2}.
+\]</div>
+<p>它不是“粒子在能量上的概率密度”的无条件替代，而是单粒子添加/移除谱的响应权重；在本单 pole 模型中它满足严格的谱权重和规则</p>
+<div class="arithmatex">\[
+\int_{-\infty}^{\infty}A(k,E)\,dE=1.
+\]</div>
+<p>峰顶为 <span class="arithmatex">\(A(k,\varepsilon_k)=1/(\pi\Gamma)\)</span>，半高点在 <span class="arithmatex">\(|E-\varepsilon_k|=\Gamma\)</span>，所以</p>
+<div class="arithmatex">\[
+\mathrm{FWHM}=2\Gamma.
+\]</div>
+<h3 id="3-gamma">3. 时间域桥：同一个 <span class="arithmatex">\(\Gamma\)</span> 如何变成寿命？<a class="headerlink" href="#3-gamma" title="Permanent link"></a></h3>
+<p>采用能量 Fourier 约定 <span class="arithmatex">\(G^R(E)=\int_{-\infty}^{\infty}dt\,e^{iEt/\hbar}G^R(t)\)</span>；对逆变换的 <span class="arithmatex">\(E\)</span> 积分，在 <span class="arithmatex">\(t&gt;0\)</span> 时闭合到 retarded 的下半平面，pole <span class="arithmatex">\(E=\varepsilon_k-i\Gamma\)</span> 给出</p>
+<div class="arithmatex">\[
+G^R(k,t)=-\frac{i}{\hbar}\,\theta(t)\exp\left(-\frac{i\varepsilon_k t}{\hbar}\right)
+\exp\left(-\frac{\Gamma t}{\hbar}\right).
+\]</div>
+<p>因此本页明确采用两种时间标度：</p>
+<div class="arithmatex">\[
+\tau_{\rm amp}=\frac{\hbar}{\Gamma},
+\qquad
+\tau_{\rm pop}=\frac{\hbar}{2\Gamma}.
+\]</div>
+<p>第一项是传播振幅衰减到 <span class="arithmatex">\(e^{-1}\)</span> 的时间，第二项是 <span class="arithmatex">\(|G^R|^2\)</span> 这种概率权重衰减到 <span class="arithmatex">\(e^{-1}\)</span> 的时间。文献若把“寿命”直接写成 <span class="arithmatex">\(\hbar/\Gamma\)</span> 或 <span class="arithmatex">\(\hbar/(2\Gamma)\)</span>，必须先查它把 <span class="arithmatex">\(\Gamma\)</span> 定义成半宽还是全宽，以及讨论的是振幅还是占据。</p>
+<h3 id="4">4. 静态数值与交互实验<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>实验默认取 <span class="arithmatex">\(\varepsilon_k=1\ \mathrm{meV}\)</span>、<span class="arithmatex">\(\Gamma=2\ \mathrm{meV}\)</span>、探测偏移 <span class="arithmatex">\(\delta E=4\ \mathrm{meV}\)</span>，并用 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>。打开后可以拖动中心能量、半宽和偏移，左图画 <span class="arithmatex">\(A(E)\)</span>，右图画 retarded 振幅与概率包络；图中的面积、FWHM 和时间单位同步更新。</p>
+<div class="learning-lab" data-learning-lab="physics-greens-quasiparticle">
+<p><strong>无 JavaScript 时的静态读法：</strong>在单 pole 模型</p>
+<div class="arithmatex">\[
+A(E)=\frac{1}{\pi}\frac{\Gamma}{(E-\varepsilon)^2+\Gamma^2}
+\]</div>
+<p>中代入 <span class="arithmatex">\(\varepsilon=1\ \mathrm{meV}\)</span>、<span class="arithmatex">\(\Gamma=2\ \mathrm{meV}\)</span>。由于 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>，以下数字是实验的默认核对值：</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th>公式</th>
+<th style="text-align: right;">默认结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>峰顶</td>
+<td><span class="arithmatex">\(1/(\pi\Gamma)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.15915\ \mathrm{meV}^{-1}\)</span></td>
+</tr>
+<tr>
+<td>FWHM</td>
+<td><span class="arithmatex">\(2\Gamma\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4\ \mathrm{meV}\)</span></td>
+</tr>
+<tr>
+<td>振幅时间</td>
+<td><span class="arithmatex">\(\hbar/\Gamma\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.3291\ \mathrm{ps}\)</span></td>
+</tr>
+<tr>
+<td>概率时间</td>
+<td><span class="arithmatex">\(\hbar/(2\Gamma)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.1646\ \mathrm{ps}\)</span></td>
+</tr>
+<tr>
+<td>偏移 <span class="arithmatex">\(\delta E=4\ \mathrm{meV}\)</span> 处</td>
+<td><span class="arithmatex">\(A(\varepsilon+\delta E)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.03183\ \mathrm{meV}^{-1}\)</span></td>
+</tr>
+<tr>
+<td>相对峰顶</td>
+<td><span class="arithmatex">\(A(\varepsilon+4)/A(\varepsilon)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.2000\)</span></td>
+</tr>
+<tr>
+<td>谱权重</td>
+<td><span class="arithmatex">\(\int A(E)dE\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>所以把 <span class="arithmatex">\(\Gamma\)</span> 加倍会使 FWHM 从 <span class="arithmatex">\(4\)</span> 变成 <span class="arithmatex">\(8\ \mathrm{meV}\)</span>，峰顶减半，谱权重仍为 <span class="arithmatex">\(1\)</span>；概率寿命从 <span class="arithmatex">\(0.1646\)</span> 变成 <span class="arithmatex">\(0.0823\ \mathrm{ps}\)</span>。retarded 时间图在 <span class="arithmatex">\(t&lt;0\)</span> 保持为零，这个因果边界不是画图约定，而是 <span class="arithmatex">\(\theta(t)\)</span> 的定义。</p>
+<p><strong>反例与迁移：</strong>真实系统可以有多个 pole、连续谱、能量依赖的 <span class="arithmatex">\(\Sigma^R\)</span> 或非 Lorentzian 尾巴。此时“FWHM = <span class="arithmatex">\(2\Gamma\)</span>”只属于窄峰近似；谱权重总和规则仍需把所有峰和连续部分一起积分，不能只对可见的局部峰归一化。</p>
+</div>
+<h3 id="5">5. 边界检查：峰宽不是万能的测量误差<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><span class="arithmatex">\(\Gamma\)</span> 描述相互作用、自能虚部与不可逆散射在该模型中的合成效果；仪器分辨率、温度卷积和杂质展宽也会拓宽实验曲线，但不自动等同于内禀寿命。</li>
+<li>一个峰变宽可能是单粒子寿命变短，也可能是多个未分辨分支叠加。只有拟合的自能、动量依赖和独立的分辨率模型都支持时，才可把宽度解释为内禀散射。</li>
+<li><span class="arithmatex">\(A(k,E)\)</span> 的正性和积分规则是强检查；“峰顶越高所以粒子越多”是错误读法，面积才是本单 pole 模型中固定的谱权重。</li>
+<li>retarded 的 <span class="arithmatex">\(t&lt;0\)</span> 为零只表达因果边界；它不等于系统没有量子涨落。涨落要由相关函数或 Keldysh/greater-lesser Green functions 另行记录。</li>
+</ul>
+<h3 id="6">6. 迁移任务<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>若 ARPES 在同一 <span class="arithmatex">\(k\)</span> 点观察到峰顶下降一半、FWHM 增加一倍，先判断是 <span class="arithmatex">\(\Gamma\)</span> 加倍还是谱权重减少，再说明需要什么额外数据来区分：至少要检查背景、仪器卷积、峰面积、动量依赖和温度依赖。这个任务把“读峰”迁移成实验建模，而不是只套 <span class="arithmatex">\(\tau=\hbar/\Gamma\)</span>。</p>
+</section>
+<h2 id="1-green-function">1. 为什么要从 Green function 开始？<a class="headerlink" href="#1-green-function" title="Permanent link"></a></h2>
+<p>直接追踪一个受相互作用的电子，必须同时处理所有其他电子的扰动；单粒子波函数通常不再是稳定的本征态。Green function 换了一个问题：在 <span class="arithmatex">\(t=0\)</span> 加入一个具有动量 <span class="arithmatex">\(k\)</span> 的粒子，系统在之后的时间和位置上留下多大的传播振幅？这个“从源到响应”的对象既能编码传播，也能接到实验的谱强度。</p>
+<p>对费米子，retarded Green function 可写成</p>
+<div class="arithmatex">\[
+G^R(k,t)=-\frac{i}{\hbar}\theta(t)
+\left\langle\{c_k(t),c_k^\dagger(0)\}\right\rangle.
+\]</div>
+<p>反对易子让添加粒子和移除粒子都进入同一对象；<span class="arithmatex">\(\theta(t)\)</span> 则把响应限制在源之后。对玻色子把反对易子换成对易子，因果结构仍在。</p>
+<p>在平移不变的系统里做时间傅里叶变换，非相互作用电子给</p>
+<div class="arithmatex">\[
+G_0^R(k,E)=\frac{1}{E-\varepsilon_k+i0^+},
+\qquad
+A_0(k,E)=\delta(E-\varepsilon_k).
+\]</div>
+<p>无相互作用时谱是一条理想的 delta 峰；相互作用把 <span class="arithmatex">\(i0^+\)</span> 替换成由自能产生的有限虚部，同时也会移动峰的位置。</p>
+<h2 id="2">2. 自能：实部改位置，虚部改可活多久<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>Dyson 方程把所有相互作用修正打包进自能：</p>
+<div class="arithmatex">\[
+G^R=G_0^R+G_0^R\Sigma^R G^R,
+\qquad
+G^R(k,E)=\frac{1}{E-\varepsilon_k-\Sigma^R(k,E)}.
+\]</div>
+<p>写 <span class="arithmatex">\(\Sigma^R=\operatorname{Re}\Sigma^R+i\operatorname{Im}\Sigma^R\)</span>。retarded 函数的耗散约定使稳定的谱峰满足 <span class="arithmatex">\(\operatorname{Im}\Sigma^R\le0\)</span>。峰位置近似由</p>
+<div class="arithmatex">\[
+E_k-\varepsilon_k-\operatorname{Re}\Sigma^R(k,E_k)=0
+\]</div>
+<p>决定；若在峰附近忽略自能的能量导数，也就是取 <span class="arithmatex">\(Z_k\simeq1\)</span>，再把 <span class="arithmatex">\(-\operatorname{Im}\Sigma^R\)</span> 近似为常数 <span class="arithmatex">\(\Gamma\)</span>，就得到学习层的 Lorentzian。</p>
+<p>更精细地，若自能随能量变化，准粒子 residue 为</p>
+<div class="arithmatex">\[
+Z_k=\left[1-\left.\frac{\partial\operatorname{Re}\Sigma^R(k,E)}{\partial E}\right|_{E_k}\right]^{-1}.
+\]</div>
+<p>把分母在 <span class="arithmatex">\(E_k\)</span> 附近展开后，物理半高半宽应定义为</p>
+<div class="arithmatex">\[
+\Gamma_k=-Z_k\operatorname{Im}\Sigma^R(k,E_k)&gt;0.
+\]</div>
+<p>于是窄峰近似变成 <span class="arithmatex">\(A\simeq Z_k\Gamma_k/[\pi((E-E_k)^2+\Gamma_k^2)]\)</span>。这里的 <span class="arithmatex">\(Z_k\)</span> 同时重标度色散斜率与 pole 宽度，不能沿用 <span class="arithmatex">\(Z_k=1\)</span> 时的 <span class="arithmatex">\(-\operatorname{Im}\Sigma^R\)</span> 而漏掉它；剩余谱权重进入非相干连续部分。residue 小也不等于寿命短：一个激发可能有清晰但权重很小的 pole，也可能有很宽而难以称为准粒子的峰。</p>
+<h2 id="3">3. 谱函数与测量的字典<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>谱函数的 Lehmann 表示把它写成真实跃迁的加权和。对费米系统，在给定温度下实验强度还会乘上 Fermi 分布和矩阵元；所以 ARPES 的原始亮度不是裸的 <span class="arithmatex">\(A(k,E)\)</span>。隧穿谱还会卷积探针态密度、温度和电压转换。学习层画的是最小模型的 intrinsic spectral function，目的是先锁住 pole、宽度和面积三者的关系。</p>
+<p>三条检查可以跨实验复用：</p>
+<ol>
+<li><strong>正性</strong>：物理谱权重不能在可测区间凭空变成负数。</li>
+<li><strong>和规则</strong>：对规范归一化的单粒子谱，<span class="arithmatex">\(\int dE\,A(k,E)=1\)</span>；如果局部拟合的峰面积变化，需问权重是否转移到了背景或另一支。</li>
+<li><strong>因果解析性</strong>：retarded 函数在复能量上解析于上半平面，实部与虚部由 Kramers–Kronig 关系相连。随意独立调节峰位和损耗，可能构造出不对应任何因果响应的曲线。</li>
+</ol>
+<p>这些检查比“看起来像一条峰”更强：一个数值拟合若破坏和规则或解析性，即便残差漂亮，也不能自动叫作物理自能。</p>
+<h2 id="4_1">4. 准粒子何时成立？<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>准粒子不是额外添加的一种粒子，而是 Green function 在复能量平面上的长寿命 pole。若</p>
+<div class="arithmatex">\[
+\Gamma_k\ll E_{\rm scale}
+\]</div>
+<p>并且在峰宽内自能变化不大，时间上才有许多振荡周期，能量上才有可分辨的峰。Fermi 液体在费米面附近常见 <span class="arithmatex">\(\Gamma\to0\)</span> 的长寿命趋势；高温、强无序、接近量子临界区或低维强涨落时，<span class="arithmatex">\(\Gamma\)</span> 可能与能量尺度同阶，准粒子语言便需要谨慎。</p>
+<p>“寿命有限所以违反能量守恒”也是误解。完整平移不变系统仍有时间平移对称与总能量守恒；有限宽度描述的是一个添加粒子态向许多多体末态散射，单粒子子空间的能量分布变宽。把整个系统的守恒量和某个投影态的衰减混为一谈，会得到错误的悖论。</p>
+<h2 id="5_1">5. 三个算术检查<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1（半高点）</strong> 若 <span class="arithmatex">\(\Gamma=0.50\ \mathrm{meV}\)</span>，则 <span class="arithmatex">\(A(\varepsilon+0.50)/A(\varepsilon)=1/2\)</span>，FWHM 为 <span class="arithmatex">\(1.00\ \mathrm{meV}\)</span>；不能把 <span class="arithmatex">\(\Gamma\)</span> 本身叫全宽。</p>
+<p><strong>例 2（时标）</strong> 若峰的能量半宽为 <span class="arithmatex">\(0.10\ \mathrm{meV}\)</span>，且 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>，则 <span class="arithmatex">\(\tau_{\rm amp}=6.582\ \mathrm{ps}\)</span>、<span class="arithmatex">\(\tau_{\rm pop}=3.291\ \mathrm{ps}\)</span>。振幅的指数率与概率的指数率相差一倍，这正是单位和二次方都要写出来的原因。</p>
+<p><strong>例 3（面积）</strong> 两个峰各自面积为 <span class="arithmatex">\(0.6\)</span> 与 <span class="arithmatex">\(0.4\)</span>，即便第二个峰很宽，合计单粒子谱权重仍可为 <span class="arithmatex">\(1\)</span>；不能用峰高比较权重。</p>
+<h2 id="6_1">6. 小结：把“看见一个峰”升级成机制判断<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<p>Green function 给传播，retarded 条件给因果，谱函数给实验可见的能量权重，自能的实部和虚部分别控制重整化位置与衰减。窄 Lorentzian 只是一个可检验的局部模型；和规则、解析性、独立卷积模型以及动量/温度依赖共同决定它能否被称为准粒子。</p>
+<p>下一页的相关输运会把“谱峰如何衰减”换成“空间密度模式如何扩散”：那里的相关长度与扩散时间是另一套账，不应把单粒子 lifetime 当作宏观输运系数。</p>
+<hr />
+<p><em>核心句：准粒子是一个 pole 的近似语言；谱峰位置、谱权重与谱宽分别回答不同问题。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cm-02-bcs.html"><span class="pager-label">上一页</span>凝聚态 II · 超导 BCS</a>
+  <a class="pager-slot next" href="cm-04-transport-correlations.html"><span class="pager-label">下一页</span>凝聚态 IV · 强关联与量子输运</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-greens-quasiparticle.js"></script>
+</body>
+</html>

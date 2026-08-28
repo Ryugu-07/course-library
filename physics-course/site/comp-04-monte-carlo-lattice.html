@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>格点模型与蒙特卡洛 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li class="active"><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先问一串样本到底有多少信息</a><ul>
+<li><a href="#lattice-mc-learning-title">1. 具体谜题：500 个读数，真的是 500 个独立样本吗？</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3">3. 静态后备：一条可审计的随机链</a></li>
+<li><a href="#4">4. 读数的证据等级</a></li>
+</ul>
+</li>
+<li><a href="#1-hamilton">1. 从统计系综到格点 Hamilton 量</a></li>
+<li><a href="#2-metropolis-boltzmann">2. Metropolis 规则为什么给出 Boltzmann 平稳分布</a></li>
+<li><a href="#3_1">3. 热化、自相关与真正的标准误</a></li>
+<li><a href="#4_1">4. 临界慢化与有限尺寸</a></li>
+<li><a href="#5">5. 边界、更新和物理量的选择</a></li>
+<li><a href="#6">6. 可复现工作流与失败边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">计算物理 IV · 格点模型与蒙特卡洛<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Newman <em>Computational Physics</em> / Landau &amp; Binder <em>A Guide to Monte Carlo Simulations in Statistical Physics</em> ｜ <strong>前置</strong>：sm-02（系综）、asm-02（Ising 模型）、概率与随机过程线
+<strong>本页问题</strong>：一个 <span class="arithmatex">\(10\times10\)</span> 的自旋格点有 <span class="arithmatex">\(2^{100}\)</span> 个构型，怎么从中得到磁化、能量和临界行为？关键不是“随机抽一些状态”，而是构造目标 Boltzmann 分布为平稳分布的 Markov 链，并诚实计算热化、自相关和有限尺寸误差。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="lattice-mc-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先问一串样本到底有多少信息<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="lattice-mc-learning-title">1. 具体谜题：500 个读数，真的是 500 个独立样本吗？<a class="headerlink" href="#lattice-mc-learning-title" title="Permanent link"></a></h3>
+<p>二维方格上的 Ising 自旋 <span class="arithmatex">\(s_i\in\{-1,+1\}\)</span>，Hamilton 量为</p>
+<div class="arithmatex">\[
+E(s)=-J\sum_{\langle i,j\rangle}s_is_j,
+\qquad
+\pi(s)=Z^{-1}e^{-\beta E(s)}.
+\]</div>
+<p>Metropolis 每次尝试翻转一个自旋。新构型可能被接受，也可能被拒绝；所以链上连续两个测量通常有记忆。特别在临界温度附近，大片自旋一起改变需要很久，原始样本数会严重高估统计信息量。</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台以前，先回答四个问题：</p>
+<ol>
+<li>在固定单点翻转提议下，升高温度通常会让接受率上升、下降，还是严格不变？</li>
+<li>满足细致平衡是否自动意味着相邻构型相互独立？</li>
+<li>靠近二维 Ising 临界温度 <span class="arithmatex">\(T_c/J\approx2.269\)</span> 时，最需要警惕的是磁化严格为零，还是临界慢化与长自相关？</li>
+<li>固定随机种子最直接保证的是样本独立、消除有限尺寸误差，还是同一实现可以重放？</li>
+</ol>
+<h3 id="3">3. 静态后备：一条可审计的随机链<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="physics-lattice-monte-carlo">
+<p><strong>无 JavaScript 时的静态读法。</strong>默认实验取 <span class="arithmatex">\(L=10\)</span>、<span class="arithmatex">\(T/J=2.3\)</span>、热化 <span class="arithmatex">\(250\)</span> sweep、测量 <span class="arithmatex">\(1000\)</span> sweep、每隔 <span class="arithmatex">\(2\)</span> sweep 记一次，故磁化序列有 <span class="arithmatex">\(N=500\)</span> 个读数，固定种子为 <span class="arithmatex">\(20260827\)</span>。程序的单点翻转规则是</p>
+<div class="arithmatex">\[
+\Delta E=2Js_i\sum_{j\sim i}s_j,
+\qquad
+P_{\mathrm{acc}}=\min\{1,e^{-\Delta E/(k_BT)}\}.
+\]</div>
+<p>全体自旋为 <span class="arithmatex">\(+1\)</span> 时，翻转任何一个自旋有 <span class="arithmatex">\(\Delta E=8J\)</span>；在默认温度下接受概率是 <span class="arithmatex">\(e^{-8/2.3}\approx0.0309\)</span>。这只是局部转移概率，不是整条链的独立性证书。</p>
+<p>固定种子的一次默认运行给出以下可重放读数（末位是有限伪随机实现的结果）：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认读数</th>
+<th>正确解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>能量/自旋 <span class="arithmatex">\(\langle e\rangle\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1.47672\)</span></td>
+<td>取样后的热力学观测量</td>
+</tr>
+<tr>
+<td>绝对磁化 <span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.76344\)</span></td>
+<td>有限 <span class="arithmatex">\(L\)</span> 下用绝对值避免对称翻转抵消</td>
+</tr>
+<tr>
+<td>接受率</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.186448\)</span></td>
+<td>提议尺度与温度共同决定</td>
+</tr>
+<tr>
+<td>绝对磁化 <span class="arithmatex">\(\tau_{\mathrm{int}}(\lvert m\rvert)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(4.5924\)</span></td>
+<td>对当前记录量 <span class="arithmatex">\(\lvert m\rvert\)</span> 的相关时间</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N_{\mathrm{eff}}(\lvert m\rvert)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(54.44\)</span></td>
+<td>远少于原始 <span class="arithmatex">\(N=500\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>有效样本的透明估计使用</p>
+<div class="arithmatex">\[
+\tau_{\mathrm{int}}\approx\frac12+\sum_{k\ge1}\rho_m(k),
+\qquad
+N_{\mathrm{eff}}\approx\frac{N}{2\tau_{\mathrm{int}}}.
+\]</div>
+<p>默认链的 <span class="arithmatex">\(500\)</span> 个测量因此不能按 <span class="arithmatex">\(1/\sqrt{500}\)</span> 直接报误差。有限尺寸研究每个 <span class="arithmatex">\(L\)</span> 重新热化，在同一 <span class="arithmatex">\(T/J=2.3\)</span> 下得到一组诊断值：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(L\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span></th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;"><span class="arithmatex">\(\tau_{\mathrm{int}}(\lvert m\rvert)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(N_{\mathrm{eff}}(\lvert m\rvert)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.823</td>
+<td style="text-align: right;">0.0191</td>
+<td style="text-align: right;">1.60</td>
+<td style="text-align: right;">156.1</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.769</td>
+<td style="text-align: right;">0.0386</td>
+<td style="text-align: right;">7.02</td>
+<td style="text-align: right;">35.6</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.790</td>
+<td style="text-align: right;">0.0182</td>
+<td style="text-align: right;">2.50</td>
+<td style="text-align: right;">100.0</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.749</td>
+<td style="text-align: right;">0.0302</td>
+<td style="text-align: right;">5.96</td>
+<td style="text-align: right;">41.9</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0.653</td>
+<td style="text-align: right;">0.0593</td>
+<td style="text-align: right;">13.11</td>
+<td style="text-align: right;">19.1</td>
+</tr>
+</tbody>
+</table>
+<p>这张表同时展示了两个事实：增大 <span class="arithmatex">\(L\)</span> 可以减小有限尺寸偏差，却可能显著增加自相关；有限伪随机样本中的各行也不必随 <span class="arithmatex">\(L\)</span> 单调。这里每个尺寸都真正使用上方声明的 250/1000 sweep 预算，没有暗中截短；一次短链上的趋势仍不能直接冒充热力学极限。实验把能量/磁化轨迹、自相关函数、<span class="arithmatex">\(L\)</span> 收敛和最终周期格点一起画出，避免把“随机点很多”错当作“证据很多”。</p>
+</div>
+<h3 id="4">4. 读数的证据等级<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>接受率只告诉我们提议有多常被收下；它不检验目标分布、热化时间或混合速度。</li>
+<li>固定 seed 能重放同一条伪随机路径；它不会增加独立样本，也不会修正边界条件。</li>
+<li>自相关修正后的标准误只处理抽样相关性；模型、有限尺寸和临界拟合还有别的误差。</li>
+<li>一次链满足详细平衡的代码结构，不等于已经用有限长度充分采样了平稳分布。</li>
+</ul>
+</section>
+<h2 id="1-hamilton">1. 从统计系综到格点 Hamilton 量<a class="headerlink" href="#1-hamilton" title="Permanent link"></a></h2>
+<p>正则系综给出观测量的期望</p>
+<div class="arithmatex">\[
+\langle A\rangle_\beta=\frac{\sum_sA(s)e^{-\beta E(s)}}{\sum_se^{-\beta E(s)}},
+\qquad \beta=\frac1{k_BT}.
+\]</div>
+<p>当格点数为 <span class="arithmatex">\(L^2\)</span> 时，构型数 <span class="arithmatex">\(2^{L^2}\)</span> 很快超过直接枚举能力。以二维 Ising 为例，局部相互作用让能量本身容易计算，但配分函数 <span class="arithmatex">\(Z\)</span> 仍然难以求和。蒙特卡洛的目标是生成构型 <span class="arithmatex">\(s^{(0)},s^{(1)},\ldots\)</span>，使长期时间平均逼近上式，而不是宣称每一个样本都“代表平均状态”。</p>
+<p>在周期边界的方格上，每个格点有四个邻居。每条键只计一次时，能量/自旋的范围是 <span class="arithmatex">\([-2J,2J]\)</span>。磁化</p>
+<div class="arithmatex">\[
+m(s)=\frac1{L^2}\sum_i s_i
+\]</div>
+<p>在零外场下具有 <span class="arithmatex">\(m\leftrightarrow-m\)</span> 对称；有限链可能在两个相之间来回，也可能在测量时间内只停留在一个相。于是报告 <span class="arithmatex">\(\langle m\rangle\)</span>、<span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span> 还是分支条件磁化，必须先说明问题的对称性和采样时间。</p>
+<h2 id="2-metropolis-boltzmann">2. Metropolis 规则为什么给出 Boltzmann 平稳分布<a class="headerlink" href="#2-metropolis-boltzmann" title="Permanent link"></a></h2>
+<p>从当前构型 <span class="arithmatex">\(s\)</span> 选择提议 <span class="arithmatex">\(s'\)</span>。单点翻转的提议概率在周期格点上对称，即 <span class="arithmatex">\(q(s\to s')=q(s'\to s)\)</span>。接受概率取</p>
+<div class="arithmatex">\[
+a(s\to s')=\min\left(1,\frac{\pi(s')}{\pi(s)}\right)
+  =\min\{1,e^{-\beta[E(s')-E(s)]}\}.
+\]</div>
+<p>设 <span class="arithmatex">\(\Delta E=E(s')-E(s)&gt;0\)</span>，则</p>
+<div class="arithmatex">\[
+\pi(s)q(s\to s')a(s\to s')
+ =\pi(s)q e^{-\beta\Delta E}
+ =\pi(s')q
+ =\pi(s')q(s'\to s)a(s'\to s).
+\]</div>
+<p>若 <span class="arithmatex">\(\Delta E\le0\)</span>，正向接受率为 1，交换 <span class="arithmatex">\(s,s'\)</span> 后同样得到相等关系。这就是 detailed balance，因而 <span class="arithmatex">\(\pi\)</span> 是转移矩阵的平稳分布。有限温度下单点翻转通常还满足不可约性和非周期性，使平稳分布在适当条件下唯一并且链可收敛到它。</p>
+<p>这个证明有清楚的边界：如果提议不对称，就不能删掉 <span class="arithmatex">\(q\)</span> 的 Hastings 比例；如果只允许保持某个子区域的翻转，链可能不再不可约；如果权重含符号而非非负概率，普通 Metropolis 不能直接采样。证明“平稳”也没有给出达到平稳所需的时间。</p>
+<h2 id="3_1">3. 热化、自相关与真正的标准误<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>从全随机、全正或某个实验构型开始，前一段轨迹含有初值记忆。热化长度 <span class="arithmatex">\(N_{\mathrm{burn}}\)</span> 应通过多初值链、可观测量轨迹和分块稳定性估计，而不是凭一个漂亮的起点数字决定。</p>
+<p>热化后，对观测量 <span class="arithmatex">\(A_t\)</span> 先估计均值和方差，再定义中心化自相关</p>
+<div class="arithmatex">\[
+\rho_A(k)=\frac{\langle(A_t-\bar A)(A_{t+k}-\bar A)\rangle}{\langle(A_t-\bar A)^2\rangle}.
+\]</div>
+<p>若样本独立，<span class="arithmatex">\(\rho(k&gt;0)=0\)</span>，均值方差约为 <span class="arithmatex">\(\sigma_A^2/N\)</span>。相关链中</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar A)\approx\frac{\sigma_A^2}{N}
+\left(1+2\sum_{k\ge1}\rho_A(k)\right)
+ =\frac{2\tau_{\mathrm{int}}\sigma_A^2}{N}.
+\]</div>
+<p>实验的 <span class="arithmatex">\(N_{\mathrm{eff}}=N/(2\tau_{\mathrm{int}})\)</span> 是一阶透明估计：它让读者看见为什么 <span class="arithmatex">\(500\)</span> 个 raw readings 可能只相当于几十个独立读数。长滞后处的样本自相关本身也有噪声，不能无限制地把正负小波动相加；实际工作会用自洽窗口、batch means、多个独立链或 cluster algorithm 做稳健比较。</p>
+<h2 id="4_1">4. 临界慢化与有限尺寸<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>二维零场 Ising 的无限系统在 <span class="arithmatex">\(T_c/J\approx2.269\)</span> 处发生相变。临界附近关联长度 <span class="arithmatex">\(\xi\)</span> 变大，局部翻转一次只能改变一小块边界；链的混合时间通常按</p>
+<div class="arithmatex">\[
+\tau\sim\xi^z
+\]</div>
+<p>增长，这就是 critical slowing down。Metropolis 的单点更新在临界处可能很慢；Wolff 或 Swendsen--Wang 的集团更新以一簇自旋为单位改变状态，能降低动态临界指数，但每一种算法仍需检查平稳分布、接受/构造规则和统计误差。</p>
+<p>有限 <span class="arithmatex">\(L\)</span> 没有严格的热力学相变：自由能对有限构型和有限分区仍是解析的。不同 <span class="arithmatex">\(L\)</span> 的磁化、比热峰和 Binder cumulant 交点只能构成有限尺寸标度证据。要估计临界指数，应记录 <span class="arithmatex">\(L\)</span>、热化长度、测量间隔、<span class="arithmatex">\(\tau\)</span>、误差条和拟合区间；不能从一条 <span class="arithmatex">\(L=10\)</span> 的 S 形曲线宣布无限系统的指数。</p>
+<p>本实验的 <span class="arithmatex">\(L=4,6,8,10,12\)</span> 表格并不追求高精度临界指数，它演示验证顺序：先看每个 <span class="arithmatex">\(L\)</span> 的有效样本是否足够，再谈趋势；如果 <span class="arithmatex">\(L=12\)</span> 的 <span class="arithmatex">\(\tau_{\mathrm{int}}\)</span> 已经让 <span class="arithmatex">\(N_{\mathrm{eff}}\)</span> 很小，就应增加计算或换算法，而不是把标准误写成 raw count 的结果。</p>
+<h2 id="5">5. 边界、更新和物理量的选择<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>周期边界减少边缘效应，但它不是唯一物理选择。开放边界、固定边界、自旋玻璃耦合和外场都改变 Hamilton 量以及临界行为。单点翻转的 <span class="arithmatex">\(\Delta E\)</span> 必须使用与能量定义完全相同的邻居集合；漏掉一个周期邻居，程序仍可能稳定、可重复，却在采样错误模型。</p>
+<p>接受率也有两种常见误读。接受率接近 1 可能意味着温度很高或提议很小，链每一步都动但探索慢；接受率很低可能意味着提议过大或系统被冻结。它应和自相关、观测量方差及跨初值一致性一起看。对于绝对磁化，<span class="arithmatex">\(m\)</span> 与 <span class="arithmatex">\(-m\)</span> 的对称翻转被折叠，结果和 <span class="arithmatex">\(m\)</span> 的自相关并不是同一个统计对象；报告时要保留观测量定义。</p>
+<h2 id="6">6. 可复现工作流与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>一次可审计的格点模拟至少记录：<span class="arithmatex">\(L\)</span>、边界、<span class="arithmatex">\(J\)</span>、<span class="arithmatex">\(T\)</span>、外场、初始化、更新规则、热化 sweep、测量间隔、总测量数、随机数算法与 seed。固定 seed 允许回放、定位回归错误和比较代码版本；真正的统计可信度还需要多个 seed、热化敏感性和自相关诊断。</p>
+<p><strong>失败边界：</strong></p>
+<ul>
+<li>把满足 detailed balance 写成“每一步已经来自 Boltzmann”，忽略 burn-in 和 mixing。</li>
+<li>看到磁化曲线平滑，就把相关读数当成独立样本。</li>
+<li>只调大 <span class="arithmatex">\(L\)</span> 而不增加有效测量，误差条可能变差而不是变好。</li>
+<li>只看单个温度的结果，无法区分错误的邻居、错误的 <span class="arithmatex">\(\beta\)</span> 和真实的相变趋势。</li>
+<li>用确定性伪随机重放替代独立链；重放是软件测试工具，不是额外数据。</li>
+</ul>
+<p><strong>迁移任务：</strong>加入外场 <span class="arithmatex">\(h\)</span>，Hamilton 量改为</p>
+<div class="arithmatex">\[
+E=-J\sum_{\langle i,j\rangle}s_is_j-h\sum_i s_i.
+\]</div>
+<p>先推导单点翻转新的 <span class="arithmatex">\(\Delta E\)</span>，再预测 <span class="arithmatex">\(h&gt;0\)</span> 如何改变 <span class="arithmatex">\(m\)</span> 的对称性和自相关。运行多组 <span class="arithmatex">\(L\)</span> 与 <span class="arithmatex">\(T\)</span>，比较 Metropolis 和集团更新的 <span class="arithmatex">\(\tau_{\mathrm{int}}\)</span>，最后说明：要把磁化曲线用作临界证据，还缺哪一项有限尺寸或误差分析？</p>
+<hr />
+<p><em>下一页：如果测到的是被噪声和扩散模糊过的场，问题会反过来——从观测推回源项，并量化哪些部分其实不可辨识。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-03-pde-fem.html"><span class="pager-label">上一页</span>计算 III · 偏微分方程与有限元</a>
+  <a class="pager-slot next" href="comp-05-inverse-uncertainty.html"><span class="pager-label">下一页</span>计算 V · 逆问题与不确定度量化</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-lattice-monte-carlo.js"></script>
+</body>
+</html>

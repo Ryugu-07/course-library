@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>测量、不确定度与模型检验 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li class="active"><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 09:56</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：读数变成结论，中间漏掉了什么？</a><ul>
+<li><a href="#uncertainty-fit-learning-title">1. 具体谜题：为什么“误差更小”可能是算错了？</a></li>
+<li><a href="#2">2. 先预测：在揭示数值以前写下因果方向</a></li>
+<li><a href="#3">3. 从局部线性化开始：不确定度是函数的导数在搬运波动</a></li>
+<li><a href="#5">5. 模型检查：把残差当作证据，而不是装饰</a></li>
+<li><a href="#6">6. 误区与失败边界：一个数字不能替代测量模型</a></li>
+<li><a href="#7">7. 迁移任务：从实验台写出可审计结论</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 测量学的对象：被测量、指示值与模型</a></li>
+<li><a href="#2_1">2. 线性化、雅可比与协方差传播</a></li>
+<li><a href="#3_1">3. 最小二乘不是“画一条最顺眼的线”</a></li>
+<li><a href="#4">4. 残差诊断的四个方向</a></li>
+<li><a href="#5_1">5. 从数字到可重复的结论</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">实验 I · 测量、不确定度与模型检验<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：实验数据处理、误差分析、最小二乘与统计推断 ｜ <strong>前置</strong>：cal-01（微积分）、prob-01（概率基础）
+一次测量从来不是“读到一个数字”就结束了。仪器读数经过校准、组合、拟合，最后才变成一个带有证据边界的物理结论。本页用一个摆的测量与一组带轻微曲率的数据，练习两件容易被分开的事：输入量的协方差怎样进入输出不确定度，以及残差怎样告诉我们模型是否少写了物理。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="uncertainty-fit-learning-title" class="learning-layer">
+<h2 id="_1">学习层：读数变成结论，中间漏掉了什么？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="uncertainty-fit-learning-title">1. 具体谜题：为什么“误差更小”可能是算错了？<a class="headerlink" href="#uncertainty-fit-learning-title" title="Permanent link"></a></h3>
+<p>用摆测重力加速度时，常用关系是</p>
+<div class="arithmatex">\[
+g=\frac{4\pi^2L}{T^2}.
+\]</div>
+<p>假设摆长 <span class="arithmatex">\(L=1.000\ \mathrm m\)</span>，周期 <span class="arithmatex">\(T=2.006\ \mathrm s\)</span>。长度和周期各自有不确定度，但它们可能共享尺读数、触发时钟、操作者或环境漂移，所以不一定独立。与此同时，另一组数据看起来大致是一条直线，却在中间残差系统性偏低：这时“斜率很漂亮”是不是足够的证据？</p>
+<p>实验要回答四个相连的问题：</p>
+<ol>
+<li>输出量是非线性函数时，为什么不能只把百分比误差机械相加？</li>
+<li>协方差的符号为什么可能让最终不确定度变小，而不是变大？</li>
+<li>约化卡方大于 1 是“数据坏了”，还是在提醒模型、噪声尺度或独立性假设需要检查？</li>
+<li>给模型多加一个参数后残差变小，怎样判断那是新物理还是过拟合？</li>
+</ol>
+<h3 id="2">2. 先预测：在揭示数值以前写下因果方向<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>学习层默认采用 <span class="arithmatex">\(L=1.000\ \mathrm m\)</span>、<span class="arithmatex">\(T=2.006\ \mathrm s\)</span>、<span class="arithmatex">\(\sigma_L=0.005\ \mathrm m\)</span>、<span class="arithmatex">\(\sigma_T=0.010\ \mathrm s\)</span>、相关系数 <span class="arithmatex">\(\rho=0.60\)</span>。拟合数据为</p>
+<div class="arithmatex">\[
+x=(0,1,2,3,4,5),\qquad
+y=(1.02,2.44,4.07,5.70,7.59,9.46),
+\]</div>
+<p>每个 <span class="arithmatex">\(y_i\)</span> 使用 <span class="arithmatex">\(\sigma_y=0.12\)</span>。先选择预测：</p>
+<ol>
+<li>因为 <span class="arithmatex">\(\partial g/\partial L&gt;0\)</span>、<span class="arithmatex">\(\partial g/\partial T&lt;0\)</span>，正相关的 <span class="arithmatex">\(L,T\)</span> 会让交叉项为正还是为负？</li>
+<li>对摆的默认值，保留 <span class="arithmatex">\(\rho=0.60\)</span> 与把协方差设为零相比，<span class="arithmatex">\(u_g\)</span> 会约为 <span class="arithmatex">\(0.079\)</span> 还是 <span class="arithmatex">\(0.109\ \mathrm{m/s^2}\)</span>？</li>
+<li>若线性模型得到 <span class="arithmatex">\(\chi^2/\nu\approx2.32\)</span>，它更像“残差与误差尺度相容”还是“残差有结构/误差模型偏紧”？</li>
+<li>增加二次项后 <span class="arithmatex">\(\chi^2/\nu\approx0.12\)</span>，这是否自动证明真实规律一定是二次的？</li>
+</ol>
+<p>先完成预测再揭示图表。交互实验分为“传播”与“拟合”两种模式；滑块每次只改变一个输入，帮助你把数值变化归因到公式中的某一项。</p>
+<h3 id="3">3. 从局部线性化开始：不确定度是函数的导数在搬运波动<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>设测量输入组成向量 <span class="arithmatex">\(\boldsymbol{x}\)</span>，输出为 <span class="arithmatex">\(q=f(\boldsymbol{x})\)</span>。在均值附近作一阶展开：</p>
+<div class="arithmatex">\[
+\delta q\approx \sum_i\frac{\partial f}{\partial x_i}\delta x_i
+=\nabla f^\mathsf{T}\delta\boldsymbol{x}.
+\]</div>
+<p>于是输出方差是</p>
+<div class="arithmatex">\[
+\boxed{u_q^2=\nabla f^\mathsf{T}\Sigma\,\nabla f
+=\sum_i\left(\frac{\partial f}{\partial x_i}\right)^2u_i^2
++2\sum_{i&lt;j}\frac{\partial f}{\partial x_i}
+\frac{\partial f}{\partial x_j}\operatorname{Cov}(x_i,x_j).}
+\]</div>
+<p><span class="arithmatex">\(\Sigma\)</span> 是输入的协方差矩阵，<span class="arithmatex">\(\operatorname{Cov}(x_i,x_j)=\rho_{ij}u_i u_j\)</span>。这条公式的机制很具体：每个输入波动先乘以敏感度，再与别的输入波动按相关性相加。独立只意味着非对角项为零，不是“不确定度没有关系”。</p>
+<p>如果函数变化不小、分布强烈偏斜或存在硬边界，一阶近似可能不够。此时可以用二阶展开、Monte Carlo 传播或直接对完整测量模型采样；但 Monte Carlo 也不会替你发现单位错误、相关性遗漏或系统偏差。</p>
+<p><h3>4. 摆的例子：符号比“加减误差”更重要</h3></p>
+<p>对</p>
+<div class="arithmatex">\[
+g(L,T)=4\pi^2LT^{-2},
+\qquad
+\frac{\partial g}{\partial L}=\frac gL,\qquad
+\frac{\partial g}{\partial T}=-\frac{2g}{T}.
+\]</div>
+<p>默认输入给出</p>
+<div class="arithmatex">\[
+g=9.810652\ \mathrm{m/s^2},\quad
+\frac{\partial g}{\partial L}=9.810652,\quad
+\frac{\partial g}{\partial T}=-9.781308.
+\]</div>
+<p><span class="arithmatex">\(\rho=0.60\)</span> 时</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(L,T)=0.60(0.005)(0.010)=3.0\times10^{-5}\ \mathrm{m\,s},
+\]</div>
+<p>而交叉项是</p>
+<div class="arithmatex">\[
+2\frac{\partial g}{\partial L}\frac{\partial g}{\partial T}
+\operatorname{Cov}(L,T)=-0.00575766\ (\mathrm{m/s^2})^2.
+\]</div>
+<p>它为负，是因为 <span class="arithmatex">\(L\)</span> 增大推高 <span class="arithmatex">\(g\)</span>，<span class="arithmatex">\(T\)</span> 增大却压低 <span class="arithmatex">\(g\)</span>，而正相关让两种效应部分抵消。两项独立方差分别为 <span class="arithmatex">\(0.00240622\)</span> 与 <span class="arithmatex">\(0.00956740\)</span>，所以</p>
+<div class="arithmatex">\[
+u_g=\sqrt{0.00240622+0.00956740-0.00575766}
+=0.078841\ \mathrm{m/s^2}.
+\]</div>
+<p>若错误地删掉协方差，得到</p>
+<div class="arithmatex">\[
+u_{g,\rho=0}=\sqrt{0.00240622+0.00956740}
+=0.109424\ \mathrm{m/s^2}.
+\]</div>
+<p>“不确定度变小”不等于“人为把误差压小”：前提是相关系数来自可辩护的校准或重复测量。若相关性只是猜的，应该把 <span class="arithmatex">\(\rho\)</span> 扫描成敏感性分析，而不是挑一个最有利的值。</p>
+<h3 id="5">5. 模型检查：把残差当作证据，而不是装饰<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>对模型 <span class="arithmatex">\(y_i=f(x_i;\boldsymbol{\theta})\)</span>，拟合后定义</p>
+<div class="arithmatex">\[
+r_i=y_i-f(x_i;\hat{\boldsymbol{\theta}}),\qquad
+z_i=\frac{r_i}{\sigma_i}.
+\]</div>
+<p>若误差近似独立、零均值、高斯且 <span class="arithmatex">\(\sigma_i\)</span> 已知，常用统计量是</p>
+<div class="arithmatex">\[
+\chi^2=\sum_{i=1}^{N}\left(\frac{r_i}{\sigma_i}\right)^2,\qquad
+\nu=N-p,\qquad
+\chi^2_\nu=\frac{\chi^2}{\nu},
+\]</div>
+<p>其中 <span class="arithmatex">\(p\)</span> 是拟合参数数目。若数据有相关性，应写成</p>
+<div class="arithmatex">\[
+\chi^2=\boldsymbol r^\mathsf{T}\Sigma_y^{-1}\boldsymbol r,
+\]</div>
+<p>而不是把每个点假装独立。</p>
+<p>本实验的线性拟合为</p>
+<div class="arithmatex">\[
+\hat y_{\rm lin}=0.8124+1.6937x,\qquad
+\chi^2=9.2946,\quad\nu=4,\quad\chi^2_\nu=2.3236.
+\]</div>
+<p>其残差从两端偏正、中间偏负，说明问题不只是某一个点偶然偏离：直线的形状没有跟上数据的曲率。加入二次项得到</p>
+<div class="arithmatex">\[
+\hat y_2=1.0082+1.4000x+0.05875x^2,
+\]</div>
+<div class="arithmatex">\[
+\chi^2=0.3461,\quad\nu=3,\quad\chi^2_\nu=0.1154.
+\]</div>
+<p>二次模型确实消除了残差结构，但 <span class="arithmatex">\(\chi^2_\nu\ll1\)</span> 也提醒我们：这里是教学数据，<span class="arithmatex">\(\sigma_y=0.12\)</span> 可能被设得偏大，或点并非真实独立的随机抽样。卡方不是一枚自动盖章的“真模型”印章；它需要和残差图、独立校验、参数可解释性一起读。</p>
+<div class="learning-lab" data-learning-lab="physics-uncertainty-fit">
+<p><strong>无 JavaScript 时的静态读法：</strong>实验默认传播 <span class="arithmatex">\(g=4\pi^2L/T^2\)</span>，其中 <span class="arithmatex">\(L=1.000\ \mathrm m\)</span>、<span class="arithmatex">\(T=2.006\ \mathrm s\)</span>、<span class="arithmatex">\(\sigma_L=0.005\ \mathrm m\)</span>、<span class="arithmatex">\(\sigma_T=0.010\ \mathrm s\)</span>、<span class="arithmatex">\(\rho=0.60\)</span>。拟合数据为 <span class="arithmatex">\((0,1.02),(1,2.44),(2,4.07),(3,5.70),(4,7.59),(5,9.46)\)</span>，每点 <span class="arithmatex">\(\sigma_y=0.12\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th style="text-align: right;">默认结果</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>输出值</td>
+<td style="text-align: right;"><span class="arithmatex">\(g=9.810652\ \mathrm{m/s^2}\)</span></td>
+<td><span class="arithmatex">\(L,T\)</span> 的非线性函数</td>
+</tr>
+<tr>
+<td>长度方差项</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.00240622\)</span></td>
+<td><span class="arithmatex">\((\partial g/\partial L)^2\sigma_L^2\)</span></td>
+</tr>
+<tr>
+<td>周期方差项</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.00956740\)</span></td>
+<td><span class="arithmatex">\((\partial g/\partial T)^2\sigma_T^2\)</span></td>
+</tr>
+<tr>
+<td>协方差交叉项</td>
+<td style="text-align: right;"><span class="arithmatex">\(-0.00575766\)</span></td>
+<td>正相关乘以相反敏感度，抵消部分波动</td>
+</tr>
+<tr>
+<td>含协方差不确定度</td>
+<td style="text-align: right;"><span class="arithmatex">\(u_g=0.078841\ \mathrm{m/s^2}\)</span></td>
+<td>相对不确定度 <span class="arithmatex">\(0.8036\%\)</span></td>
+</tr>
+<tr>
+<td>去掉协方差</td>
+<td style="text-align: right;"><span class="arithmatex">\(u_g=0.109424\ \mathrm{m/s^2}\)</span></td>
+<td>只可作为“若独立”的对照</td>
+</tr>
+<tr>
+<td>线性拟合</td>
+<td style="text-align: right;"><span class="arithmatex">\(\chi^2/\nu=2.3236\)</span></td>
+<td>残差有结构，线性模型偏紧</td>
+</tr>
+<tr>
+<td>二次拟合</td>
+<td style="text-align: right;"><span class="arithmatex">\(\chi^2/\nu=0.1154\)</span></td>
+<td>曲率被吸收，但误差尺度也要复核</td>
+</tr>
+</tbody>
+</table>
+<p>传播模式的柱形图把两个独立方差项和交叉项分开，拟合模式把观测点、模型曲线和残差放在同一张图中。改变 <span class="arithmatex">\(\rho\)</span> 时，<span class="arithmatex">\(g\)</span> 的中心值不应移动；改变 <span class="arithmatex">\(\sigma_L,\sigma_T\)</span> 时，中心值也不应移动。这两个不变量是检查“误差传播改变了置信程度，而不是偷偷改了被测量”的快速办法。</p>
+</div>
+<h3 id="6">6. 误区与失败边界：一个数字不能替代测量模型<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>把标准差、标准不确定度和系统偏差混为一谈。</strong>重复测量的散布描述随机项；零点偏移、刻度因子、反应时间等可能是系统项。系统项若有共同来源，通常会产生协方差。</li>
+<li><strong>把 <span class="arithmatex">\(\rho\)</span> 当作随手调的“好看参数”。</strong>协方差必须来自共同校准、同步漂移、重复数据或明确的误差模型。未知相关性可以扫描，但不能只报告扫描中最小的结果。</li>
+<li><strong>把一阶传播用于远离均值的非线性尾部。</strong>当输入分布接近零边界、输出是倒数或平方根，线性化可能给出错误的对称区间。应传播完整分布并报告偏斜或上下界。</li>
+<li><strong>看到 <span class="arithmatex">\(\chi^2_\nu\)</span> 接近 1 就宣布模型正确。</strong>卡方只是在指定噪声模型下检查相容性；少量数据、参数边界、相关残差和选择效应都会改变解释。</li>
+<li><strong>用更多参数治疗所有残差。</strong>高阶多项式可以在样本点之间摆动，外推却失控。新参数应有物理动机，并用留出数据、重复实验或独立预测验证。</li>
+<li><strong>把拟合不确定度当作仪器校准的全部不确定度。</strong>最小二乘输出通常只传播了给定的 <span class="arithmatex">\(\sigma_i\)</span> 和模型内噪声；背景、单位、响应线性和模型选择都要在结论中说明。</li>
+</ul>
+<h3 id="7">7. 迁移任务：从实验台写出可审计结论<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>请设计一个“由摆测 <span class="arithmatex">\(g\)</span>”的记录页：列出 <span class="arithmatex">\(L,T\)</span> 的原始重复读数、共同参考时钟造成的相关项、<span class="arithmatex">\(g\)</span> 的传播矩阵，以及一个不依赖同一批数据的模型检查。然后把默认拟合数据改写成“有相关噪声”的情形：说明为什么应从逐点 <span class="arithmatex">\(1/\sigma_i^2\)</span> 加权改为 <span class="arithmatex">\(\Sigma_y^{-1}\)</span> 加权，并预测忽略正相关会怎样改变 <span class="arithmatex">\(\chi^2\)</span> 与参数区间。最后给出一句可证伪结论，例如“在指定的独立高斯噪声和线性响应假设下，二次模型比线性模型更相容”，而不是“数据证明了二次规律”。</p>
+</section>
+<h2 id="1">1. 测量学的对象：被测量、指示值与模型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>实验报告里的 <span class="arithmatex">\(x=3.2\)</span> 不是物理世界本身，而是一个由被测量、仪器、环境、采样窗口和分析算法共同产生的指示值。把这件事写成图模型会更清楚：</p>
+<div class="arithmatex">\[
+\text{物理状态}\longrightarrow
+\text{传感器响应}\longrightarrow
+\text{电子读数}\longrightarrow
+\text{校准/拟合}\longrightarrow
+\text{报告量}.
+\]</div>
+<p>每个箭头都可能引入随机波动或系统偏差。比如温度计的电阻变化要经过激励电流、引线电阻、标定曲线才能变成温度；摆的周期要经过触发阈值、反应时间和有限振幅修正才能变成 <span class="arithmatex">\(g\)</span>。不确定度不是给结果贴上的模糊标签，而是这个正演链对输入未知量的敏感度记录。</p>
+<p>报告一个结果时至少要说清楚被测量定义、单位、参考条件、时间窗口、校准来源和覆盖因子。标准不确定度通常对应约一倍标准差，但最终写成区间时可能使用 <span class="arithmatex">\(k=2\)</span> 的扩展不确定度。没有这些约定，两个都写成“<span class="arithmatex">\(10.0\pm0.2\)</span>”的结果未必能比较。</p>
+<h2 id="2_1">2. 线性化、雅可比与协方差传播<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>多输入传播的核心是雅可比矩阵。若输出向量 <span class="arithmatex">\(\boldsymbol q=\boldsymbol f(\boldsymbol x)\)</span>，在均值附近</p>
+<div class="arithmatex">\[
+\delta\boldsymbol q\approx J\delta\boldsymbol x,\qquad
+J_{ai}=\frac{\partial f_a}{\partial x_i},
+\]</div>
+<p>则</p>
+<div class="arithmatex">\[
+\Sigma_q\approx J\Sigma_xJ^\mathsf{T}.
+\]</div>
+<p>这条关系同时适用于单位换算、组合常数和多个相关输出。它还告诉我们一个重要不变量：若只改变输入的误差大小或相关性，中心值 <span class="arithmatex">\(f(\bar{\boldsymbol x})\)</span> 在一阶传播中不应被改动。若程序改变了中心值，往往是把误差采样误当成重新拟合数据，或在单位转换时重复乘了比例因子。</p>
+<p>相关系数的物理来源可以是同一个标准、同一个时钟、同一块温漂基板或同一批背景扣除。正相关不固定意味着输出方差变大；符号还要看两个偏导数。更一般地，<span class="arithmatex">\(\Sigma\)</span> 必须是半正定矩阵，否则会出现负方差，这通常是相关系数或单位输入不自洽的信号。</p>
+<p>当非线性显著时，Monte Carlo 的正确用法是从完整的联合输入分布抽样，逐次计算完整正演模型，再从输出样本报告分位数。独立抽样 <span class="arithmatex">\(L,T\)</span> 会故意抹掉协方差；只把每个输入的边缘分布写对，并不等于联合分布写对。</p>
+<h2 id="3_1">3. 最小二乘不是“画一条最顺眼的线”<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>给定观测向量 <span class="arithmatex">\(\boldsymbol y\)</span>、模型 <span class="arithmatex">\(\boldsymbol f(\boldsymbol\theta)\)</span> 和协方差 <span class="arithmatex">\(\Sigma_y\)</span>，高斯噪声下的加权最小二乘目标是</p>
+<div class="arithmatex">\[
+\chi^2(\boldsymbol\theta)=
+[\boldsymbol y-\boldsymbol f(\boldsymbol\theta)]^\mathsf{T}
+\Sigma_y^{-1}
+[\boldsymbol y-\boldsymbol f(\boldsymbol\theta)].
+\]</div>
+<p>线性模型 <span class="arithmatex">\(f(x)=a+bx\)</span> 的参数在给定权重后可由正规方程求出；非线性模型则通常要迭代线性化。正规方程只是优化工具，不能保证模型的物理假设正确。数据点数量、参数数量和误差结构决定 <span class="arithmatex">\(\nu=N-p\)</span>，所以“残差平方和变小”本身没有意义，必须考虑自由度与预测任务。</p>
+<p>默认数据的二次曲率并不意味着世界到处都是二次函数。它只是构造了一个能测试“残差有结构吗”的最小例子。若要比较线性与二次模型，可以报告 <span class="arithmatex">\(\Delta\chi^2\)</span>、留出误差、参数稳定性和模型先验；若模型是嵌套的，还要说明额外参数的检验条件。不要在同一数据上不断尝试十种函数，只挑 <span class="arithmatex">\(\chi^2\)</span> 最小者然后忘掉选择过程。</p>
+<h2 id="4">4. 残差诊断的四个方向<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>残差图至少应检查四种结构：</p>
+<ol>
+<li><strong>均值偏移</strong>：所有残差同号，可能是零点或背景问题；</li>
+<li><strong>趋势或曲率</strong>：残差随 <span class="arithmatex">\(x\)</span> 系统变化，可能是模型函数形状错误；</li>
+<li><strong>异方差</strong>：大信号处残差变宽，固定 <span class="arithmatex">\(\sigma\)</span> 可能不合适；</li>
+<li><strong>相关性</strong>：相邻残差成串同号，独立点假设可能失效。</li>
+</ol>
+<p>标准化残差 <span class="arithmatex">\(z_i=r_i/\sigma_i\)</span> 便于跨点比较，但若 <span class="arithmatex">\(\sigma_i\)</span> 本身由数据估计，或者拟合参数与残差共享信息，<span class="arithmatex">\(z_i\)</span> 不是完全独立的标准正态变量。低计数、截断、饱和和背景扣除还会使高斯近似失效，应换用 Poisson、二项或更完整的似然。</p>
+<p>一个有用的反事实检查是改变误差大小而保持数据值不变：参数的中心估计在简单的同方差线性拟合中常常不变，但 <span class="arithmatex">\(\chi^2\)</span> 与参数区间会改变。这说明“最佳拟合位置”和“证据强度”是不同对象。实验者既要问曲线在哪里，也要问噪声尺度是否支持那样的精确程度。</p>
+<h2 id="5_1">5. 从数字到可重复的结论<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>一个可审计的结论应能被别人沿着相同账本重算：数据是什么，哪些值是测量，哪些值是校准，协方差从何而来，模型在什么范围内有效，统计量使用了哪些自由度，系统项有没有与统计项重复计算。最终语句要包含条件：</p>
+<div class="arithmatex">\[
+\text{在假设 }H\text{ 下，数据与模型 }M\text{ 的相容性为 }...
+\]</div>
+<p>这不是语言上的谨慎，而是让结论可被新数据推翻或更新。测量科学最强的地方不在于给出很多小数，而在于让下一位实验者知道哪一个新观测会改变哪一项不确定度，哪一个残差会迫使我们换模型。</p>
+<hr />
+<p><em>下一页：噪声不是“看起来乱”——功率谱、滤波带宽与锁相检测决定小信号是否能被辨认。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mp-01-special-functions.html"><span class="pager-label">上一页</span>数理方法 · 特殊函数与 Green 函数</a>
+  <a class="pager-slot next" href="exp-02-noise-lockin.html"><span class="pager-label">下一页</span>实验 II · 噪声、频谱与锁相检测</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-uncertainty-fit.js"></script>
+</body>
+</html>

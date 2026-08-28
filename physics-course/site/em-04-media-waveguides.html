@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>介质、色散与波导 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li class="active"><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 09:37</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：同一根金属管，为什么有时传不了波？</a><ul>
+<li><a href="#waveguide-dispersion-learning-title">1. 具体谜题：微波炉里的波究竟在传播什么？</a></li>
+<li><a href="#2">2. 最小模型：先算横向本征值，再算纵向波数</a></li>
+<li><a href="#5">5. 迁移题：先改尺寸，再改介质</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 介质中的平面波与色散</a></li>
+<li><a href="#2-pec-tetm">2. PEC 边界如何产生 TE/TM 模式</a></li>
+<li><a href="#3-te_10">3. TE\(_{10}\) 的截止与导波波长</a></li>
+<li><a href="#4">4. 相速与群速：一条色散关系的两种切线</a></li>
+<li><a href="#5_1">5. 倏逝场、接头与能量边界</a></li>
+<li><a href="#6">6. 例子与专业迁移</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">电磁学 IV · 介质与波导：截止、色散、相速与群速<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Jackson §8（导波初步）/ Griffiths《电动力学》§9 ｜ <strong>前置</strong>：em-02（Maxwell 方程）、em-03（能量流）、opt-01（Fourier 与波包）
+在自由空间里，平面波可以选择任意横向波矢；放进金属管后，横截面的边界条件会筛掉大多数场形状。结果不是“光变慢了”这么简单，而是一条精确的色散关系：低于截止频率，纵向波数变成虚数；高于截止频率，相速大于介质光速而群速小于它，两者的乘积仍被守恒结构锁定。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="waveguide-dispersion-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一根金属管，为什么有时传不了波？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="waveguide-dispersion-learning-title">1. 具体谜题：微波炉里的波究竟在传播什么？<a class="headerlink" href="#waveguide-dispersion-learning-title" title="Permanent link"></a></h3>
+<p>考虑理想矩形波导，宽边 <span class="arithmatex">\(a=22.86\ \mathrm{mm}\)</span>，窄边 <span class="arithmatex">\(b=10.16\ \mathrm{mm}\)</span>，里面是空气，选择最低的 TE<span class="arithmatex">\(_{10}\)</span> 模式。实验台默认频率为 <span class="arithmatex">\(f=12.0\ \mathrm{GHz}\)</span>。先不打开它，预测：</p>
+<ol>
+<li>若频率低于截止频率，场会完全消失，还是沿波导指数衰减？</li>
+<li>在传播区，<span class="arithmatex">\(v_p\)</span> 和 <span class="arithmatex">\(v_g\)</span> 哪一个大于介质中的 <span class="arithmatex">\(c_m\)</span>？</li>
+<li>频率远离截止并继续升高时，<span class="arithmatex">\(v_g\)</span> 会趋向零，还是趋向 <span class="arithmatex">\(c_m\)</span>？</li>
+</ol>
+<p>这里的“模式”不是给波贴的标签，而是横截面边界值问题的本征函数。纵向传播能否发生，要由横向本征值和总频率共同决定。</p>
+<h3 id="2">2. 最小模型：先算横向本征值，再算纵向波数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>均匀、无耗散、相对介电常数为 <span class="arithmatex">\(\varepsilon_r\)</span> 的填充物中</p>
+<div class="arithmatex">\[
+c_m=\frac{c_0}{\sqrt{\varepsilon_r}},\qquad
+k^2=\left(\frac{\omega}{c_m}\right)^2.
+\]</div>
+<p>矩形 PEC 管的横向本征值为</p>
+<div class="arithmatex">\[
+k_c^2=\pi^2\left[\left(\frac{m}{a}\right)^2+\left(\frac{n}{b}\right)^2\right],
+\qquad
+\beta^2=k^2-k_c^2.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+f_c=\frac{c_m}{2}
+\sqrt{\left(\frac{m}{a}\right)^2+\left(\frac{n}{b}\right)^2}.
+\]</div>
+<p>当 <span class="arithmatex">\(f&gt;f_c\)</span>，<span class="arithmatex">\(\beta\)</span> 是实数，场因子沿 <span class="arithmatex">\(z\)</span> 方向为 <span class="arithmatex">\(e^{i\beta z}\)</span>；当 <span class="arithmatex">\(f&lt;f_c\)</span>，
+<span class="arithmatex">\(\beta=i\alpha\)</span>，其中</p>
+<div class="arithmatex">\[
+\alpha=\frac{2\pi}{c_m}\sqrt{f_c^2-f^2},
+\]</div>
+<p>场是 <span class="arithmatex">\(e^{-\alpha z}\)</span> 型的倏逝波。截止以下仍可在有限短节、隧穿耦合和近场中出现电磁场，但它不是无限均匀波导中的传播功率波。</p>
+<p><h3>3. 动手实验：把截止、模式和速度放到同一图上</h3></p>
+<p>先完成三个预测，再打开实验台。预设包括 X 波段 TE<span class="arithmatex">\(_{10}\)</span>、靠近截止、截止以下以及介质填充。改变 <span class="arithmatex">\(a,b,\varepsilon_r\)</span> 或 <span class="arithmatex">\(f\)</span> 时，左侧横截面波瓣随模式变，右侧色散曲线上的当前点跨过截止线；读数同时给出 <span class="arithmatex">\(\beta\)</span> 或 <span class="arithmatex">\(\alpha\)</span>、导波波长、相速和群速。</p>
+<div class="learning-lab" data-learning-lab="physics-waveguide-dispersion">
+<p><strong>无 JavaScript 时的静态读法：</strong>使用理想 PEC 矩形波导、均匀无耗散填充物和 TE<span class="arithmatex">\(_{10}\)</span> 模式。默认
+<span class="arithmatex">\(a=22.86\ \mathrm{mm}\)</span>、<span class="arithmatex">\(b=10.16\ \mathrm{mm}\)</span>、<span class="arithmatex">\(\varepsilon_r=1\)</span>、<span class="arithmatex">\(f=12.0\ \mathrm{GHz}\)</span>。介质波速
+<span class="arithmatex">\(c_m=c_0/\sqrt{\varepsilon_r}\)</span>，截止与传播读数为</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认值</th>
+<th>关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>截止频率 <span class="arithmatex">\(f_c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.557\ \mathrm{GHz}\)</span></td>
+<td><span class="arithmatex">\(c_m/(2a)\)</span></td>
+</tr>
+<tr>
+<td>频率比 <span class="arithmatex">\(f/f_c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.830\)</span></td>
+<td>高于截止</td>
+</tr>
+<tr>
+<td>纵向波数 <span class="arithmatex">\(\beta\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(210.63\ \mathrm{rad/m}\)</span></td>
+<td><span class="arithmatex">\((\omega/c_m)\sqrt{1-(f_c/f)^2}\)</span></td>
+</tr>
+<tr>
+<td>相速 <span class="arithmatex">\(v_p\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(357.959\ \mathrm{Mm/s}\)</span></td>
+<td><span class="arithmatex">\(c_m/\sqrt{1-(f_c/f)^2}\)</span></td>
+</tr>
+<tr>
+<td>群速 <span class="arithmatex">\(v_g\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(251.078\ \mathrm{Mm/s}\)</span></td>
+<td><span class="arithmatex">\(c_m\sqrt{1-(f_c/f)^2}\)</span></td>
+</tr>
+<tr>
+<td>导波波长 <span class="arithmatex">\(\lambda_g\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(29.830\ \mathrm{mm}\)</span></td>
+<td><span class="arithmatex">\(2\pi/\beta\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(v_pv_g/c_m^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.000000\)</span></td>
+<td>传播区的色散恒等式</td>
+</tr>
+</tbody>
+</table>
+<p>因此默认状态满足 <span class="arithmatex">\(v_p&gt;c_m\)</span>、<span class="arithmatex">\(v_g&lt;c_m\)</span>。把频率降到 <span class="arithmatex">\(5.0\ \mathrm{GHz}\)</span> 后，<span class="arithmatex">\(f&lt;f_c\)</span>，读数改为
+<span class="arithmatex">\(\beta=i\alpha\)</span>，场沿 <span class="arithmatex">\(z\)</span> 指数衰减；不能继续给它一个实的相速或群速。</p>
+<p><h3>4. 误区、反例与适用边界</h3></p>
+<ul>
+<li><strong><span class="arithmatex">\(v_p&gt;c_m\)</span> 不是超光速通信。</strong>相位峰可以移动得比介质光速快；调制包络、能量和因果前沿要由完整色散与材料响应判断。</li>
+<li><strong>截止以下不是“没有电场”。</strong>横向本征函数仍存在，<span class="arithmatex">\(\beta\)</span> 只是虚数；有限长度中仍可能有倏逝耦合。</li>
+<li><strong>波导色散和材料色散要分开。</strong>这里的 <span class="arithmatex">\(c_m\)</span> 假定与频率无关；若 <span class="arithmatex">\(\varepsilon_r(\omega)\)</span> 变化，<span class="arithmatex">\(f_c\)</span>、<span class="arithmatex">\(v_g\)</span> 和能量速度都要重新求导。</li>
+<li><strong>PEC、无损、直波导是强假设。</strong>有限导电率产生衰减，粗糙度、弯曲、接头和模式转换会引入额外损耗，且高阶模式可能同时传播。</li>
+<li><strong>TE<span class="arithmatex">\(_{00}\)</span> 不是矩形空心管里的 TEM 基模。</strong>单一导体边界没有支持非零 TEM 的两个独立电势导体；矩形管的最低常用模式是 TE<span class="arithmatex">\(_{10}\)</span>。</li>
+</ul>
+<h3 id="5">5. 迁移题：先改尺寸，再改介质<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>固定空气与 TE<span class="arithmatex">\(_{10}\)</span>，把宽边从 <span class="arithmatex">\(22.86\)</span> mm 改为 <span class="arithmatex">\(11.43\)</span> mm。因为
+<span class="arithmatex">\(f_c=c_m/(2a)\)</span>，截止频率应加倍到约 <span class="arithmatex">\(13.114\ \mathrm{GHz}\)</span>，原来的 <span class="arithmatex">\(12\)</span> GHz 就落入倏逝区。再恢复尺寸、取 <span class="arithmatex">\(\varepsilon_r=2\)</span>，截止频率会降为
+<span class="arithmatex">\(6.557/\sqrt2\approx4.636\ \mathrm{GHz}\)</span>，但介质中的参考光速也降为 <span class="arithmatex">\(c_0/\sqrt2\)</span>。用实验台核对，并解释：为什么“截止下降”不等于“波在介质中一定跑得更快”？</p>
+</div>
+</section>
+<h2 id="1">1. 介质中的平面波与色散<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>在均匀、线性、各向同性介质中，若本构关系为</p>
+<div class="arithmatex">\[
+\mathbf D=\varepsilon\mathbf E,\qquad
+\mathbf B=\mu\mathbf H,
+\]</div>
+<p>无源 Maxwell 方程给出</p>
+<div class="arithmatex">\[
+\nabla^2\mathbf E-\mu\varepsilon\frac{\partial^2\mathbf E}{\partial t^2}=0,
+\qquad
+c_m=\frac1{\sqrt{\mu\varepsilon}}.
+\]</div>
+<p>若 <span class="arithmatex">\(\varepsilon,\mu\)</span> 与频率无关，<span class="arithmatex">\(\omega=c_m k\)</span> 是线性色散关系，<span class="arithmatex">\(v_p=v_g=c_m\)</span>。真实材料常有 <span class="arithmatex">\(\varepsilon(\omega)\)</span>，于是相速度
+<span class="arithmatex">\(v_p=\omega/k\)</span> 与群速度
+<span class="arithmatex">\(v_g=d\omega/dk\)</span> 分开；吸收还使 <span class="arithmatex">\(k\)</span> 变成复数，单纯的无损波包图像会失效。</p>
+<p>波导的关键改变是横向边界。波矢不再能任意取向，而是分解成固定的横向部分和可变的纵向部分：</p>
+<div class="arithmatex">\[
+k^2=k_c^2+\beta^2.
+\]</div>
+<p>总频率提供的 <span class="arithmatex">\(k\)</span> 不够大时，不能支付横向本征结构所需的 <span class="arithmatex">\(k_c\)</span>，剩下的 <span class="arithmatex">\(\beta^2\)</span> 就变成负数。</p>
+<h2 id="2-pec-tetm">2. PEC 边界如何产生 TE/TM 模式<a class="headerlink" href="#2-pec-tetm" title="Permanent link"></a></h2>
+<p>取波导轴为 <span class="arithmatex">\(z\)</span>，横截面坐标为 <span class="arithmatex">\((x,y)\)</span>。理想导体表面要求切向电场为零。把场设为
+<span class="arithmatex">\(e^{i\beta z-i\omega t}\)</span>，Maxwell 方程可以把纵向分量 <span class="arithmatex">\(E_z\)</span> 或 <span class="arithmatex">\(H_z\)</span> 作为标量本征函数：</p>
+<div class="arithmatex">\[
+\nabla_t^2\psi+k_c^2\psi=0.
+\]</div>
+<p>TE 模式满足 <span class="arithmatex">\(E_z=0\)</span>、<span class="arithmatex">\(H_z\ne0\)</span>；TM 模式满足 <span class="arithmatex">\(H_z=0\)</span>、<span class="arithmatex">\(E_z\ne0\)</span>。矩形截面分离变量后，横向波数为</p>
+<div class="arithmatex">\[
+k_c^2=\left(\frac{m\pi}{a}\right)^2
++\left(\frac{n\pi}{b}\right)^2,
+\qquad m,n=0,1,2,\ldots
+\]</div>
+<p>具体零值限制由 TE/TM 的边界条件区分：TE<span class="arithmatex">\(_{10}\)</span> 允许，TE<span class="arithmatex">\(_{00}\)</span> 的非平凡场不作为空心矩形管的传播 TEM 模式。每个 <span class="arithmatex">\((m,n)\)</span> 不是抽象编号，而是横截面上有多少个半波变化与节点。</p>
+<h2 id="3-te_10">3. TE<span class="arithmatex">\(_{10}\)</span> 的截止与导波波长<a class="headerlink" href="#3-te_10" title="Permanent link"></a></h2>
+<p>TE<span class="arithmatex">\(_{10}\)</span> 只有宽边方向的一次半波变化：</p>
+<div class="arithmatex">\[
+k_c=\frac{\pi}{a},\qquad
+f_c=\frac{c_m}{2a}.
+\]</div>
+<p>所以增大 <span class="arithmatex">\(a\)</span> 会降低截止频率；改变窄边 <span class="arithmatex">\(b\)</span> 对 TE<span class="arithmatex">\(_{10}\)</span> 的截止没有直接影响，却会改变高阶 TE<span class="arithmatex">\(_{01}\)</span>、TE<span class="arithmatex">\(_{11}\)</span> 的排序。TE<span class="arithmatex">\(_{20}\)</span> 的截止为
+<span class="arithmatex">\(c_m/a\)</span>，是 TE<span class="arithmatex">\(_{10}\)</span> 的两倍。</p>
+<p>传播区内</p>
+<div class="arithmatex">\[
+\beta=\frac{\omega}{c_m}
+\sqrt{1-\left(\frac{f_c}{f}\right)^2},
+\qquad
+\lambda_g=\frac{2\pi}{\beta}
+=\frac{\lambda_m}{\sqrt{1-(f_c/f)^2}}.
+\]</div>
+<p><span class="arithmatex">\(\lambda_g\)</span> 大于介质中的自由空间波长 <span class="arithmatex">\(\lambda_m=c_m/f\)</span>；靠近截止时分母很小，导波波长变长，场的轴向相位变化变慢。</p>
+<h2 id="4">4. 相速与群速：一条色散关系的两种切线<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>由</p>
+<div class="arithmatex">\[
+\omega^2=c_m^2(\beta^2+k_c^2)
+\]</div>
+<p>解出相速：</p>
+<div class="arithmatex">\[
+v_p=\frac{\omega}{\beta}
+=\frac{c_m}{\sqrt{1-(f_c/f)^2}}.
+\]</div>
+<p>对 <span class="arithmatex">\(\omega(\beta)\)</span> 求导：</p>
+<div class="arithmatex">\[
+v_g=\frac{d\omega}{d\beta}
+=c_m\sqrt{1-\left(\frac{f_c}{f}\right)^2}.
+\]</div>
+<p>相乘得到波导色散的恒等式</p>
+<div class="arithmatex">\[
+v_pv_g=c_m^2.
+\]</div>
+<p>靠近截止时 <span class="arithmatex">\(v_g\to0\)</span>、<span class="arithmatex">\(v_p\to\infty\)</span> 的极限来自理想无损模型；有限带宽、导体损耗和材料色散会限制可观测的峰值。<span class="arithmatex">\(v_g\)</span> 常是窄带包络和能量速度的有用近似，但在强吸收、强反常色散或脉冲严重变形时不能不加检查地等同。</p>
+<h2 id="5_1">5. 倏逝场、接头与能量边界<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(f&lt;f_c\)</span>，令 <span class="arithmatex">\(\beta=i\alpha\)</span>，则</p>
+<div class="arithmatex">\[
+\alpha=\sqrt{k_c^2-k^2}
+=\frac{2\pi}{c_m}\sqrt{f_c^2-f^2}.
+\]</div>
+<p>场沿轴线按 <span class="arithmatex">\(e^{-\alpha z}\)</span> 衰减。它可以把能量短距离耦合到另一个传播区，也可以在波导滤波器的截止节中实现选择；但在无限长、均匀、无源的单一截止区内，平均纵向功率流不等于传播模式的稳定输运。</p>
+<p>在实际波导中，导体电阻使表面有非零切向电场，介质损耗使 <span class="arithmatex">\(\varepsilon\)</span> 有虚部，因而
+<span class="arithmatex">\(\beta\)</span> 同时有实部和衰减虚部。弯曲、台阶和接头还会把入射模式投影到多个本征模式。设计微波链路时，先用理想截止图筛选工作区，再用损耗与散射模型修正。</p>
+<h2 id="6">6. 例子与专业迁移<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1：X 波段波导。</strong>默认 TE<span class="arithmatex">\(_{10}\)</span> 在 <span class="arithmatex">\(12\)</span> GHz 工作，频率超过 <span class="arithmatex">\(6.557\)</span> GHz 截止，因此能传播；但导波波长约 <span class="arithmatex">\(29.83\)</span> mm，而空气波长只有约 <span class="arithmatex">\(24.98\)</span> mm。延迟、相位长度和腔体尺寸必须使用 <span class="arithmatex">\(\lambda_g\)</span>。</p>
+<p><strong>例 2：高阶模式窗口。</strong>若频率继续升高，TE<span class="arithmatex">\(_{20}\)</span>、TE<span class="arithmatex">\(_{01}\)</span> 等模式也可能越过截止；单模工作区必须位于最低模截止与下一高阶截止之间，而不只是满足“高于 TE<span class="arithmatex">\(_{10}\)</span>”。</p>
+<p><strong>例 3：光纤的相似结构。</strong>介质波导没有 PEC 金属壁，横向约束由折射率分布和全反射/泄漏边界提供；模态方程、截止和色散仍有相似骨架，但允许模式、偏振简并和辐射损耗不同。把矩形金属管的公式直接套到光纤，正是边界条件没有迁移的错误。</p>
+<hr />
+<p><em>电磁波进入边界后，传播问题变成了本征值与色散问题。下一页转向统计物理中的另一种“传播”：分子碰撞怎样在宏观尺度上制造扩散、黏性和热导。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="em-03-energy-radiation.html"><span class="pager-label">上一页</span>电磁 III · 能量、动量与辐射入门</a>
+  <a class="pager-slot next" href="sr-01-relativity.html"><span class="pager-label">下一页</span>狭义相对论 · 洛伦兹变换与四矢量</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-waveguide-dispersion.js"></script>
+</body>
+</html>

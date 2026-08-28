@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>轨道、散射与截面 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li class="active"><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先猜一条轨道，再看它怎样变成角分布</a><ul>
+<li><a href="#central-scattering-learning-title">1. 具体谜题：没有接触，粒子为什么会转弯？</a></li>
+<li><a href="#2">2. 最小模型：两项势能，两个几何后果</a></li>
+<li><a href="#3">3. 动手实验：让有效势与屏幕读数同步</a></li>
+<li><a href="#4">4. 误区、反例与适用边界</a></li>
+<li><a href="#5">5. 迁移题：从一组数字反推整个链条</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 从实验坐标到相对坐标</a></li>
+<li><a href="#2_1">2. 有效势：把二维轨道变成一维预算</a></li>
+<li><a href="#3-coulomb">3. Coulomb 轨道：为什么是双曲线</a></li>
+<li><a href="#4-rutherford">4. 从冲量参数到 Rutherford 微分截面</a></li>
+<li><a href="#5_1">5. 数量级例子与实验边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v-rutherford">力学 V · 中心势散射：有效势、冲量参数与 Rutherford 角分布<a class="headerlink" href="#v-rutherford" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Taylor <em>Classical Mechanics</em> ch. scattering / Goldstein §3、§5 ｜ <strong>前置</strong>：mech-01（守恒量）、mech-02（变分与对称性）、mech-03（相空间）
+把一束粒子射向一个看不见的中心，屏幕上为什么会出现一条有规律的角分布？中心势散射把“轨道长什么样”和“实验会数到多少粒子”接成一条链：角动量给出有效势，双曲线给出偏折角，冲量参数的面积元素给出微分截面。Rutherford 散射不是一条孤零零的公式，而是这三本账的合账。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="central-scattering-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先猜一条轨道，再看它怎样变成角分布<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="central-scattering-learning-title">1. 具体谜题：没有接触，粒子为什么会转弯？<a class="headerlink" href="#central-scattering-learning-title" title="Permanent link"></a></h3>
+<p>设一个带正电的入射粒子在远处有动能 <span class="arithmatex">\(E\)</span>，与散射中心的初始侧向错开量为冲量参数 <span class="arithmatex">\(b\)</span>。中心势取排斥的</p>
+<div class="arithmatex">\[
+V(r)=\frac{\kappa}{r},\qquad \kappa&gt;0.
+\]</div>
+<p>这里的 <span class="arithmatex">\(r\)</span> 是相对坐标，<span class="arithmatex">\(\kappa\)</span> 的单位是 MeV fm；实验台用的是 <span class="arithmatex">\(\mu\)</span> 已吸收到轨道尺度后的 MeV、fm 记账。以默认值 <span class="arithmatex">\(E=2\ \mathrm{MeV}\)</span>、<span class="arithmatex">\(b=3\ \mathrm{fm}\)</span>、<span class="arithmatex">\(\kappa=2\ \mathrm{MeV\,fm}\)</span> 为例，先不要看答案，预测：</p>
+<ol>
+<li>把 <span class="arithmatex">\(b\)</span> 变小，散射角 <span class="arithmatex">\(\chi\)</span> 会变大还是变小？</li>
+<li>固定 <span class="arithmatex">\(b\)</span> 和 <span class="arithmatex">\(\kappa\)</span>，把入射能量提高，偏折会变强还是变弱？</li>
+<li>有角动量时，最近接点由 <span class="arithmatex">\(V(r)=E\)</span>，还是由包含离心项的 <span class="arithmatex">\(V_{\mathrm{eff}}(r)=E\)</span> 决定？</li>
+</ol>
+<p>“离中心越近，力越强”只是方向提示，还没有给出角度。可判决的量是角动量和径向能量预算。</p>
+<h3 id="2">2. 最小模型：两项势能，两个几何后果<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>远处速度为 <span class="arithmatex">\(v_\infty\)</span> 时</p>
+<div class="arithmatex">\[
+E=\frac12\mu v_\infty^2,\qquad
+L=\mu v_\infty b,\qquad
+\frac{L^2}{2\mu}=E b^2.
+\]</div>
+<p>把平面运动的动能写成径向和切向两项：</p>
+<div class="arithmatex">\[
+E=\frac12\mu\dot r^2+
+\underbrace{\frac{L^2}{2\mu r^2}+\frac{\kappa}{r}}_{V_{\mathrm{eff}}(r)}.
+\]</div>
+<p>因此本实验的转向条件不是只看 Coulomb 势，而是
+<span class="arithmatex">\(E=V_{\mathrm{eff}}(r_{\min})\)</span>。令
+<span class="arithmatex">\(a=\kappa/(2E)\)</span>，解二次方程得到</p>
+<div class="arithmatex">\[
+r_{\min}=a+\sqrt{a^2+b^2},\qquad
+\chi=2\arctan\frac{a}{b}.
+\]</div>
+<p>在默认值下 <span class="arithmatex">\(a=0.500\ \mathrm{fm}\)</span>，所以
+<span class="arithmatex">\(r_{\min}=3.541\ \mathrm{fm}\)</span>，<span class="arithmatex">\(\chi=18.925^\circ\)</span>。最近接并不发生在 <span class="arithmatex">\(r=b\)</span>；<span class="arithmatex">\(b\)</span> 是无相互作用时的直线偏移量，不是实际轨道的最短半径。</p>
+<h3 id="3">3. 动手实验：让有效势与屏幕读数同步<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先完成三个预测，再打开实验台。四个预设分别强调基线、小 <span class="arithmatex">\(b\)</span>、高能和强排斥。拖动 <span class="arithmatex">\(E,b,\kappa\)</span> 时，左图给出双曲线轨道的几何支线，右图画出总能量线与有效势的交点；下方把最近接距离、偏心率和微分截面分开显示。</p>
+<div class="learning-lab" data-learning-lab="physics-scattering-orbit">
+<p><strong>无 JavaScript 时的静态读法：</strong>本页只讨论排斥 Coulomb 散射，<span class="arithmatex">\(E\)</span> 用 MeV，<span class="arithmatex">\(b,r\)</span> 用 fm，<span class="arithmatex">\(\kappa\)</span> 用 MeV fm。实验台的默认输入为
+<span class="arithmatex">\(E=2\)</span>、<span class="arithmatex">\(b=3\)</span>、<span class="arithmatex">\(\kappa=2\)</span>。定义</p>
+<div class="arithmatex">\[
+a=\frac{\kappa}{2E}=0.500\ \mathrm{fm},\quad
+r_{\min}=a+\sqrt{a^2+b^2},\quad
+\chi=2\arctan(a/b).
+\]</div>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认数值</th>
+<th>由什么得到</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>能量尺度 <span class="arithmatex">\(E\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.000\ \mathrm{MeV}\)</span></td>
+<td>远处相对动能</td>
+</tr>
+<tr>
+<td>冲量参数 <span class="arithmatex">\(b\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.000\ \mathrm{fm}\)</span></td>
+<td>无相互作用入射直线的偏移</td>
+</tr>
+<tr>
+<td>Coulomb 长度 <span class="arithmatex">\(a=\kappa/(2E)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.500\ \mathrm{fm}\)</span></td>
+<td>势强与能量之比</td>
+</tr>
+<tr>
+<td>最近接距离 <span class="arithmatex">\(r_{\min}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.541\ \mathrm{fm}\)</span></td>
+<td><span class="arithmatex">\(E=V_{\mathrm{eff}}(r_{\min})\)</span></td>
+</tr>
+<tr>
+<td>偏折角 <span class="arithmatex">\(\chi\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(18.925^\circ\)</span></td>
+<td><span class="arithmatex">\(\chi=2\arctan(a/b)\)</span></td>
+</tr>
+<tr>
+<td>双曲线偏心率 <span class="arithmatex">\(\varepsilon\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.083\)</span></td>
+<td><span class="arithmatex">\(\sqrt{1+(b/a)^2}\)</span></td>
+</tr>
+<tr>
+<td>微分截面 <span class="arithmatex">\(d\sigma/d\Omega\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(85.563\ \mathrm{fm^2/sr}\)</span></td>
+<td><span class="arithmatex">\((\kappa/4E)^2\csc^4(\chi/2)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>在这个默认点，<span class="arithmatex">\(V_{\mathrm{eff}}(r_{\min})=2.000\ \mathrm{MeV}\)</span>。若把 <span class="arithmatex">\(b\)</span> 从 <span class="arithmatex">\(3\)</span> 减小到 <span class="arithmatex">\(1\ \mathrm{fm}\)</span>，同样的公式给出更大的 <span class="arithmatex">\(\chi\)</span>；若把 <span class="arithmatex">\(E\)</span> 从 <span class="arithmatex">\(2\)</span> 提高到 <span class="arithmatex">\(8\ \mathrm{MeV}\)</span>，<span class="arithmatex">\(a\)</span> 变成 <span class="arithmatex">\(0.125\ \mathrm{fm}\)</span>，偏折减弱。</p>
+<h3 id="4">4. 误区、反例与适用边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong><span class="arithmatex">\(b\)</span> 不是最近接距离。</strong>它是无穷远入射线的几何参数；只有没有力时轨道才是一条与中心保持 <span class="arithmatex">\(b\)</span> 的直线。</li>
+<li><strong>有效势不是额外的物理力。</strong><span class="arithmatex">\(L^2/(2\mu r^2)\)</span> 是把切向动能用 <span class="arithmatex">\(r\)</span> 表示后出现的径向势垒；它编码了角动量守恒。</li>
+<li><strong>微分截面不是某一个粒子的概率。</strong><span class="arithmatex">\(d\sigma/d\Omega\)</span> 把一圈冲量参数环带映到一个立体角环带；真正的计数还要乘入射通量、靶数和探测器立体角。</li>
+<li><strong>单条经典轨道不是 Rutherford 公式成立的必要条件。</strong>当 de Broglie 波长与 <span class="arithmatex">\(b\)</span> 可比时，确定轨道的图像失效；但对理想、未屏蔽、非相对论 Coulomb 势，精确量子散射仍给出 Rutherford 角分布。真正会改动分布的因素包括电子屏蔽、有限核半径、自旋与全同性、相对论修正和多重散射。</li>
+<li><strong>正碰是极限而不是普通双曲线。</strong><span class="arithmatex">\(b=0\)</span> 时 <span class="arithmatex">\(L=0\)</span>，轨道退化为径向反弹；实验台仍给 <span class="arithmatex">\(\chi=180^\circ\)</span> 与 <span class="arithmatex">\(r_{\min}=\kappa/E\)</span>，但不能再用含 <span class="arithmatex">\(b/a\)</span> 的非退化轨道图像。</li>
+</ul>
+<h3 id="5">5. 迁移题：从一组数字反推整个链条<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(E=4\ \mathrm{MeV}\)</span>、<span class="arithmatex">\(b=2\ \mathrm{fm}\)</span>、<span class="arithmatex">\(\kappa=2\ \mathrm{MeV\,fm}\)</span>。先手算
+<span class="arithmatex">\(a\)</span>、<span class="arithmatex">\(r_{\min}\)</span> 和 <span class="arithmatex">\(\chi\)</span>，再用</p>
+<div class="arithmatex">\[
+\frac{d\sigma}{d\Omega}
+=\left(\frac{\kappa}{4E}\right)^2
+\frac{1}{\sin^4(\chi/2)}
+\]</div>
+<p>估计角分布。你应得到 <span class="arithmatex">\(a=0.250\ \mathrm{fm}\)</span>、<span class="arithmatex">\(r_{\min}\approx2.266\ \mathrm{fm}\)</span>、<span class="arithmatex">\(\chi\approx14.251^\circ\)</span>，以及约 <span class="arithmatex">\(66.016\ \mathrm{fm^2/sr}\)</span>。最后说明：为什么同一个 <span class="arithmatex">\(a/b\)</span> 同时出现在轨道偏折和截面公式中？这一步要求你把“轨道问题”和“统计多少条轨道”接回同一几何参数。</p>
+</div>
+</section>
+<h2 id="1">1. 从实验坐标到相对坐标<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>两粒子质量为 <span class="arithmatex">\(m_1,m_2\)</span>，位置为 <span class="arithmatex">\(\mathbf r_1,\mathbf r_2\)</span>。用质心坐标</p>
+<div class="arithmatex">\[
+\mathbf R=\frac{m_1\mathbf r_1+m_2\mathbf r_2}{m_1+m_2},
+\qquad
+\mathbf r=\mathbf r_1-\mathbf r_2
+\]</div>
+<p>分离平动与相对运动。动能成为</p>
+<div class="arithmatex">\[
+T=\frac12 M\dot{\mathbf R}^{\,2}
++\frac12\mu\dot{\mathbf r}^{\,2},
+\qquad
+M=m_1+m_2,\quad
+\mu=\frac{m_1m_2}{m_1+m_2}.
+\]</div>
+<p>若势能只依赖 <span class="arithmatex">\(r=|\mathbf r|\)</span>，质心匀速，真正的散射动力学只需研究约化质量 <span class="arithmatex">\(\mu\)</span> 在平面内的中心势运动。这一步给出的 <span class="arithmatex">\(\chi\)</span> 是相对运动、也就是质心系中的散射角。实验室实际看到的是各粒子的实验室系角度；只有在散射中心固定或靶质量 <span class="arithmatex">\(m_2\gg m_1\)</span> 时，入射粒子的实验室角才近似等于 <span class="arithmatex">\(\chi\)</span>。质量可比时必须再做参考系变换。</p>
+<p>中心力 <span class="arithmatex">\(\mathbf F(r)=F(r)\hat{\mathbf r}\)</span> 的力矩为零：</p>
+<div class="arithmatex">\[
+\boldsymbol\tau=\mathbf r\times\mathbf F=0
+\quad\Longrightarrow\quad
+\mathbf L=\mu\mathbf r\times\dot{\mathbf r}
+\ \text{守恒}.
+\]</div>
+<p>因此轨道被限制在垂直于 <span class="arithmatex">\(\mathbf L\)</span> 的平面。用极坐标，</p>
+<div class="arithmatex">\[
+T=\frac12\mu\left(\dot r^2+r^2\dot\phi^2\right),
+\qquad
+L=\mu r^2\dot\phi.
+\]</div>
+<p>角向运动的速度不是独立自由度：<span class="arithmatex">\(\dot\phi=L/(\mu r^2)\)</span>。这就是离心项的来源。</p>
+<h2 id="2_1">2. 有效势：把二维轨道变成一维预算<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>能量守恒写成</p>
+<div class="arithmatex">\[
+E=\frac12\mu\dot r^2+V_{\mathrm{eff}}(r),\qquad
+V_{\mathrm{eff}}(r)=V(r)+\frac{L^2}{2\mu r^2}.
+\]</div>
+<p>径向运动允许出现的区域必须满足 <span class="arithmatex">\(E\ge V_{\mathrm{eff}}(r)\)</span>。当 <span class="arithmatex">\(\dot r=0\)</span> 时到达转向点；在排斥 Coulomb 势中，入射粒子先靠近、在 <span class="arithmatex">\(r_{\min}\)</span> 停止径向靠近，再离开。把</p>
+<div class="arithmatex">\[
+L=\mu v_\infty b,\qquad E=\frac12\mu v_\infty^2
+\]</div>
+<p>代入，有 <span class="arithmatex">\(L^2/(2\mu)=Eb^2\)</span>，于是</p>
+<div class="arithmatex">\[
+E r_{\min}^2-\kappa r_{\min}-Eb^2=0.
+\]</div>
+<p>取正根正好得到学习层的
+<span class="arithmatex">\(r_{\min}=a+\sqrt{a^2+b^2}\)</span>。另一个根为负，不代表一个额外的物理半径。</p>
+<p>对吸引势，<span class="arithmatex">\(V=-\kappa/r\)</span>，有效势可能没有同样的排斥转向结构；若再加入有限尺寸、耗散或捕获半径，<span class="arithmatex">\(E=V_{\mathrm{eff}}\)</span> 的根和轨道分类都要重新检查。有效势法的普遍性在于它依赖中心对称与守恒量，不依赖 Coulomb 这一特殊形式。</p>
+<h2 id="3-coulomb">3. Coulomb 轨道：为什么是双曲线<a class="headerlink" href="#3-coulomb" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(u=1/r\)</span>，用</p>
+<div class="arithmatex">\[
+\frac{d\phi}{dt}=\frac{L}{\mu r^2}
+\]</div>
+<p>把时间导数改成角度导数。中心势轨道方程为</p>
+<div class="arithmatex">\[
+\frac{d^2u}{d\phi^2}+u
+=-\frac{\mu}{L^2u^2}F(1/u).
+\]</div>
+<p>排斥 Coulomb 力为 <span class="arithmatex">\(F(r)=\kappa/r^2\)</span>，带方向的径向力写入后得到常系数方程</p>
+<div class="arithmatex">\[
+\frac{d^2u}{d\phi^2}+u
+=-\frac{\mu\kappa}{L^2}.
+\]</div>
+<p>选取最近接方向为 <span class="arithmatex">\(\phi=0\)</span>，解可写成</p>
+<div class="arithmatex">\[
+u(\phi)=\frac{\mu\kappa}{L^2}
+\left(\varepsilon\cos\phi-1\right),
+\qquad
+\varepsilon=\sqrt{1+\frac{2EL^2}{\mu\kappa^2}}
+=\sqrt{1+\left(\frac{b}{a}\right)^2}.
+\]</div>
+<p>当 <span class="arithmatex">\(b&gt;0\)</span> 时 <span class="arithmatex">\(\varepsilon&gt;1\)</span>，这是双曲线；当 <span class="arithmatex">\(b=0\)</span> 时 <span class="arithmatex">\(\varepsilon=1\)</span>，退化为正碰。无穷远处 <span class="arithmatex">\(u\to0\)</span>，所以</p>
+<div class="arithmatex">\[
+\cos\phi_\infty=\frac1\varepsilon.
+\]</div>
+<p>两条无穷远渐近线关于最近接方向对称，几何角度整理为</p>
+<div class="arithmatex">\[
+\chi=2\arctan\frac{a}{b}.
+\]</div>
+<p>这说明偏折角不是通过逐点积分“猜”出来的；在 <span class="arithmatex">\(1/r\)</span> 势中，守恒量和圆锥曲线已经把积分压缩成代数关系。</p>
+<h2 id="4-rutherford">4. 从冲量参数到 Rutherford 微分截面<a class="headerlink" href="#4-rutherford" title="Permanent link"></a></h2>
+<p>一圈入射轨道的冲量参数在 <span class="arithmatex">\(b\)</span> 与 <span class="arithmatex">\(b+db\)</span> 之间，远处横截面积为</p>
+<div class="arithmatex">\[
+d\sigma=2\pi b\,db.
+\]</div>
+<p>中心对称使出射方向只由极角 <span class="arithmatex">\(\chi\)</span> 决定，对应立体角环带</p>
+<div class="arithmatex">\[
+d\Omega=2\pi\sin\chi\,d\chi.
+\]</div>
+<p>由</p>
+<div class="arithmatex">\[
+b=a\cot\frac{\chi}{2},
+\qquad
+\left|\frac{db}{d\chi}\right|
+=\frac a2\csc^2\frac{\chi}{2}
+\]</div>
+<p>得到</p>
+<div class="arithmatex">\[
+\frac{d\sigma}{d\Omega}
+=\frac{b}{\sin\chi}\left|\frac{db}{d\chi}\right|
+=\frac{a^2}{4}\csc^4\frac{\chi}{2}
+=\left(\frac{\kappa}{4E}\right)^2
+\frac1{\sin^4(\chi/2)}.
+\]</div>
+<p>四次方反比来自两次几何放大：小角度对应大的 <span class="arithmatex">\(b\)</span> 环带，而角度环带本身的面积又含 <span class="arithmatex">\(\sin\chi\)</span>。当 <span class="arithmatex">\(\chi\to0\)</span>，理想无限范围的 Coulomb 截面发散；真实束流、屏蔽和有限探测器会提供截止，不能把数学发散直接当作无限计数。</p>
+<p>这里的 <span class="arithmatex">\(d\Omega\)</span> 与 <span class="arithmatex">\(\chi\)</span> 属于质心系；固定靶极限下可直接作为实验室系结果。若两粒子质量可比，把截面换到实验室系时还要变换角度并乘相应的立体角 Jacobian，不能只把 <span class="arithmatex">\(\chi\)</span> 改名为实验室角。</p>
+<h2 id="5_1">5. 数量级例子与实验边界<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1：正碰。</strong><span class="arithmatex">\(b=0\)</span> 时 <span class="arithmatex">\(L=0\)</span>，<span class="arithmatex">\(E=\kappa/r_{\min}\)</span>，所以默认 <span class="arithmatex">\(E=2,\kappa=2\)</span> 给 <span class="arithmatex">\(r_{\min}=1\ \mathrm{fm}\)</span>。粒子沿径向接近后反向，<span class="arithmatex">\(\chi=180^\circ\)</span>。这不是“撞到一个硬球”；转向来自势能把动能暂时全部换掉。</p>
+<p><strong>例 2：远掠。</strong>当 <span class="arithmatex">\(b\gg a\)</span>，<span class="arithmatex">\(\arctan(a/b)\approx a/b\)</span>，所以</p>
+<div class="arithmatex">\[
+\chi\approx\frac{2a}{b}=\frac{\kappa}{Eb}.
+\]</div>
+<p>偏折对能量是反比，对冲量参数也是反比。高能束流更容易穿过同一中心的近似直线方向。</p>
+<p><strong>例 3：何时经典近似会坏。</strong>若 de Broglie 波长 <span class="arithmatex">\(\lambda=h/p\)</span> 与 <span class="arithmatex">\(b\)</span>、核半径或势变化尺度同量级，单条轨道不再是可分辨的基本对象，要用散射振幅与部分波；在量子但弱势极限，Born 近似会从势的 Fourier 变换给出角分布。若靶厚到一次粒子会多次碰撞，独立中心散射的微分截面也不能直接相加。</p>
+<p>中心势散射的迁移价值正在这里：有效势用于黑洞和行星轨道，冲量参数与截面用于核物理、等离子体和粒子探测，而“守恒量先减维、几何再计数”的工作流也会在量子散射中保留下来。</p>
+<hr />
+<p><em>力学的五个镜头至此闭环：局部受力、作用量、相空间、稳定模态，以及中心势中的轨道与截面。下一步若把“轨道”换成“连续介质中的扰动”，就会进入弹性波。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mech-04-oscillation-rigid.html"><span class="pager-label">上一页</span>力学 IV · 振动与刚体</a>
+  <a class="pager-slot next" href="cont-01-elastic-waves.html"><span class="pager-label">下一页</span>连续介质 · 弹性、应力与声波</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-scattering-orbit.js"></script>
+</body>
+</html>

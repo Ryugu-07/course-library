@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>真空、低温与数据采集 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li class="active"><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 09:37</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：一个读数异常，先查哪一本账？</a><ul>
+<li><a href="#vacuum-cryogenic-daq-learning-title">1. 具体谜题：为什么泵很大，压力仍然降不下去？</a></li>
+<li><a href="#2">2. 先预测：打开预算前先写下三个数</a></li>
+<li><a href="#3">3. 真空：抽速不是泵的铭牌数字</a></li>
+<li><a href="#4">4. 低温：先加热负载，再谈最低温</a></li>
+<li><a href="#6">6. 误区与安全边界：公式通过不等于装置可以直接操作</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 真空的三种流动区域</a></li>
+<li><a href="#2_1">2. 低温台的热阻网络</a></li>
+<li><a href="#3_1">3. 数据采集的完整链路</a></li>
+<li><a href="#4_1">4. 数量级例子</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv">实验 IV · 真空、低温与数据采集<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：真空技术基础、低温实验方法、数据采集与信号处理 ｜ <strong>前置</strong>：fl-01（稀薄气体边界）、sm-01（热力学）、opt-01（频域）、exp-01/02（测量与噪声）
+低温物理、表面科学和量子器件常被说成“把设备做得更冷、更空、更快地采样”。真正决定实验能否工作的，是三本相互耦合的账：气体负载与有效抽速、热漏与制冷余量、采样率与可辨识频率。每一本账都有硬边界；把它们混成一个“仪器参数”会在最不该出错的地方出错。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="vacuum-cryogenic-daq-learning-title" class="learning-layer">
+<h2 id="_1">学习层：一个读数异常，先查哪一本账？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="vacuum-cryogenic-daq-learning-title">1. 具体谜题：为什么泵很大，压力仍然降不下去？<a class="headerlink" href="#vacuum-cryogenic-daq-learning-title" title="Permanent link"></a></h3>
+<p>设想一个低温真空腔：泵的铭牌抽速是 <span class="arithmatex">\(100\ \mathrm{L/s}\)</span>，连接腔体的细导管电导只有 <span class="arithmatex">\(25\ \mathrm{L/s}\)</span>。冷台上又有辐射、支撑、引线和测量信号带来的热漏；最后，传感器输出还要经过 ADC。实验失败时，三个现象可能同时出现：</p>
+<ul>
+<li>压力比泵的广告数字高，残余气体碰撞使表面实验变差；</li>
+<li>冷台温度不再下降，甚至在加一个小电阻后缓慢升温；</li>
+<li>时域波形“看起来合理”，但改变采样率后频率却跳到另一个值。</li>
+</ul>
+<p>它们不是三个互不相干的故障。流量守恒、能量守恒和采样定理分别给出三条预算；工程上要在各自的边界上留余量，再看接口是否把一个预算的代价转移给另一个预算。</p>
+<h3 id="2">2. 先预测：打开预算前先写下三个数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>交互实验的默认输入是：气负载 <span class="arithmatex">\(Q=0.012\ \mathrm{Pa\,L/s}\)</span>、泵速 <span class="arithmatex">\(S=100\ \mathrm{L/s}\)</span>、导管电导 <span class="arithmatex">\(C=25\ \mathrm{L/s}\)</span>；热漏为 <span class="arithmatex">\(18+22+7+3=50\ \mathrm{mW}\)</span>，制冷能力 <span class="arithmatex">\(80\ \mathrm{mW}\)</span>；采样率 <span class="arithmatex">\(f_s=12\ \mathrm{kHz}\)</span>，输入 <span class="arithmatex">\(f=2.4\ \mathrm{kHz}\)</span>，4 通道、16 bit、满量程 <span class="arithmatex">\(\pm1\ \mathrm V\)</span>。先预测：</p>
+<ol>
+<li>泵与导管串联后，有效抽速是 <span class="arithmatex">\(100\)</span>、<span class="arithmatex">\(25\)</span> 还是 <span class="arithmatex">\(20\ \mathrm{L/s}\)</span>？</li>
+<li>低温预算用 <span class="arithmatex">\(80\%\)</span> 制冷能力作为运行线时，<span class="arithmatex">\(50\ \mathrm{mW}\)</span> 是有余量、刚好，还是已经超载？</li>
+<li><span class="arithmatex">\(12\ \mathrm{kHz}\)</span> 采样一个 <span class="arithmatex">\(2.4\ \mathrm{kHz}\)</span> 正弦，会折叠成另一个频率吗？如果把输入换成 <span class="arithmatex">\(9\ \mathrm{kHz}\)</span> 呢？</li>
+</ol>
+<p>先在实验台中选择答案；揭示后再一次只改变一个参数。预算表会告诉你，哪个边界被触碰，而不是只给一个“好/坏”标签。</p>
+<h3 id="3">3. 真空：抽速不是泵的铭牌数字<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在稳态、气体负载由 <span class="arithmatex">\(Q\)</span> 表示且泵口有效抽速为 <span class="arithmatex">\(S\)</span> 时，基本关系为</p>
+<div class="arithmatex">\[
+Q=PS,\qquad P=\frac{Q}{S}.
+\]</div>
+<p>若泵通过电导为 <span class="arithmatex">\(C\)</span> 的导管接到腔体，串联系统中的气体流量相同，压力降分别由泵和导管承担。于是</p>
+<div class="arithmatex">\[
+\frac1{S_{\mathrm{eff}}}=\frac1S+\frac1C,\qquad P=\frac Q{S_{\mathrm{eff}}}.
+\]</div>
+<p>默认值给出</p>
+<div class="arithmatex">\[
+S_{\mathrm{eff}}=\left(\frac1{100}+\frac1{25}\right)^{-1}=20\ \mathrm{L/s},\qquad P=\frac{0.012}{20}=6.0\times10^{-4}\ \mathrm{Pa}.
+\]</div>
+<p>若错误地直接使用泵速，会写成 <span class="arithmatex">\(1.2\times10^{-4}\ \mathrm{Pa}\)</span>，低估了五倍。这个差异不是小数舍入，而是连接几何把系统瓶颈改写进了有效参数。真实真空还要把放气、漏率、蒸汽压、泵返流、吸附/解吸和时间常数写进 <span class="arithmatex">\(Q\)</span>。</p>
+<h3 id="4">4. 低温：先加热负载，再谈最低温<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>稳态冷台的能量账本是</p>
+<div class="arithmatex">\[
+Q_{\mathrm{in}}=Q_{\mathrm{rad}}+Q_{\mathrm{cond}}+Q_{\mathrm{wires}}+Q_{\mathrm{signal}}+\cdots,\qquad Q_{\mathrm{in}}&lt;Q_{\mathrm{cool}}(T).
+\]</div>
+<p>辐射热漏在简单灰体近似下满足</p>
+<div class="arithmatex">\[
+Q_{\mathrm{rad}}=\varepsilon\sigma A(T_h^4-T_c^4),
+\]</div>
+<p>支撑和线缆的传导热漏则是 <span class="arithmatex">\(Q_{\mathrm{cond}}=\int_{T_c}^{T_h}G(T)\,dT\)</span>；在 <span class="arithmatex">\(G\)</span> 近似常数时才可简写成 <span class="arithmatex">\(G\Delta T\)</span>。每条线既可能是电信号通道，也是一根热桥；滤波器、衰减器会改变信号噪声，同时耗散功率并增加 <span class="arithmatex">\(Q_{\mathrm{signal}}\)</span>。</p>
+<p>实验用更保守的运行线 <span class="arithmatex">\(Q_{\mathrm{safe}}=0.8Q_{\mathrm{cool}}\)</span>。默认 <span class="arithmatex">\(Q_{\mathrm{in}}=50\ \mathrm{mW}\)</span>、<span class="arithmatex">\(Q_{\mathrm{cool}}=80\ \mathrm{mW}\)</span>，所以额定余量是 <span class="arithmatex">\(30\ \mathrm{mW}\)</span>，安全线为 <span class="arithmatex">\(64\ \mathrm{mW}\)</span>，距离安全线还有 <span class="arithmatex">\(14\ \mathrm{mW}\)</span>。这里“安全”只表示通过这个教学预算；它不替代制冷机额定曲线、瞬态热容、温度控制器和厂商规程。</p>
+<p><h3>5. DAQ：采样以后，频率可能已经不可逆</h3></p>
+<p>以采样周期 <span class="arithmatex">\(T_s=1/f_s\)</span> 取样，理想采样信号可以写成</p>
+<div class="arithmatex">\[
+x_s(t)=x(t)\sum_{n=-\infty}^{\infty}\delta(t-nT_s).
+\]</div>
+<p>频域中它变成以 <span class="arithmatex">\(f_s\)</span> 为间隔的谱副本：</p>
+<div class="arithmatex">\[
+X_s(f)=\frac1{T_s}\sum_{k=-\infty}^{\infty}X(f-kf_s).
+\]</div>
+<p>当输入最高频率低于 <span class="arithmatex">\(f_s/2\)</span> 且前端有合适的抗混叠低通时，副本不重叠。否则不同的模拟频率会产生相同的采样序列。单频 <span class="arithmatex">\(f\)</span> 的折叠频率可写成</p>
+<div class="arithmatex">\[
+f_{\mathrm{alias}}=\left|f-f_s\operatorname{round}\left(\frac f{f_s}\right)\right|,\qquad 0\le f_{\mathrm{alias}}\le\frac{f_s}{2}.
+\]</div>
+<p>默认 <span class="arithmatex">\(f_s/2=6\ \mathrm{kHz}\)</span>，所以 <span class="arithmatex">\(2.4\ \mathrm{kHz}\)</span> 不混叠；改成 <span class="arithmatex">\(9\ \mathrm{kHz}\)</span> 时，<span class="arithmatex">\(f_{\mathrm{alias}}=|9-12|=3\ \mathrm{kHz}\)</span>。这不是软件“识别错了”，而是 ADC 已经把两个模拟世界映射成同一个离散世界。</p>
+<p>16 bit、<span class="arithmatex">\(\pm1\ \mathrm V\)</span> 的理想量化步长为</p>
+<div class="arithmatex">\[
+\mathrm{LSB}=\frac{2\times1}{2^{16}}\ \mathrm V=30.52\ \mu\mathrm V.
+\]</div>
+<p>默认输入幅度 <span class="arithmatex">\(0.72\ \mathrm V\)</span>，还有 <span class="arithmatex">\(0.28\ \mathrm V\)</span> 的峰值余量；幅度超过满量程时发生削顶，后面的 Fourier 分析不能恢复被截去的波峰。</p>
+<div class="learning-lab" data-learning-lab="physics-vacuum-cryogenic-daq">
+<p><strong>无 JavaScript 时的静态读法：</strong>实验把三个预算拆成页签，但使用同一组默认数值。真空侧取 <span class="arithmatex">\(Q=0.012\ \mathrm{Pa\,L/s}\)</span>、<span class="arithmatex">\(S=100\ \mathrm{L/s}\)</span>、<span class="arithmatex">\(C=25\ \mathrm{L/s}\)</span>；低温侧取 <span class="arithmatex">\(Q_{\mathrm{rad}}=18\)</span>、<span class="arithmatex">\(Q_{\mathrm{cond}}=22\)</span>、<span class="arithmatex">\(Q_{\mathrm{wires}}=7\)</span>、<span class="arithmatex">\(Q_{\mathrm{signal}}=3\ \mathrm{mW}\)</span> 和 <span class="arithmatex">\(Q_{\mathrm{cool}}=80\ \mathrm{mW}\)</span>；DAQ 侧取 <span class="arithmatex">\(f_s=12\)</span>、<span class="arithmatex">\(f=2.4\ \mathrm{kHz}\)</span>、4 通道、16 bit、<span class="arithmatex">\(\pm1\ \mathrm V\)</span>、幅度 <span class="arithmatex">\(0.72\ \mathrm V\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>预算</th>
+<th>公式与默认数值</th>
+<th>判读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>真空</td>
+<td><span class="arithmatex">\(S_{\mathrm{eff}}=(1/100+1/25)^{-1}=20\ \mathrm{L/s}\)</span>；<span class="arithmatex">\(P=0.012/20=6.0\times10^{-4}\ \mathrm{Pa}\)</span></td>
+<td>相比 <span class="arithmatex">\(0.001\ \mathrm{Pa}\)</span> 教学目标有 <span class="arithmatex">\(1.67\)</span> 倍余量；不能直接用泵铭牌抽速</td>
+</tr>
+<tr>
+<td>低温</td>
+<td><span class="arithmatex">\(Q_{\mathrm{in}}=18+22+7+3=50\ \mathrm{mW}\)</span>；<span class="arithmatex">\(0.8Q_{\mathrm{cool}}=64\ \mathrm{mW}\)</span></td>
+<td>额定余量 <span class="arithmatex">\(30\ \mathrm{mW}\)</span>，安全线余量 <span class="arithmatex">\(14\ \mathrm{mW}\)</span></td>
+</tr>
+<tr>
+<td>DAQ 频率</td>
+<td><span class="arithmatex">\(f_N=f_s/2=6\ \mathrm{kHz}\)</span>；<span class="arithmatex">\(f_{\mathrm{alias}}=2.4\ \mathrm{kHz}\)</span></td>
+<td>默认输入低于 Nyquist；换成 <span class="arithmatex">\(9\ \mathrm{kHz}\)</span> 会折到 <span class="arithmatex">\(3\ \mathrm{kHz}\)</span></td>
+</tr>
+<tr>
+<td>DAQ 量化</td>
+<td>数据率 <span class="arithmatex">\(12,000\times4\times16=768\ \mathrm{kbit/s}\)</span>；LSB <span class="arithmatex">\(=30.52\ \mu\mathrm V\)</span></td>
+<td>位数、通道和采样率共同占用带宽；幅度 <span class="arithmatex">\(0.72\ \mathrm V\)</span> 尚未削顶</td>
+</tr>
+</tbody>
+</table>
+<p>图中的导管和泵是串联抽气链，热负载条形图以 80% 制冷能力画安全线，DAQ 波形把连续正弦、采样点和 alias 曲线放在同一坐标上。预设“导管瓶颈”“热负载过大”“混叠演示”“输入削顶”分别触碰不同边界。</p>
+</div>
+<h3 id="6">6. 误区与安全边界：公式通过不等于装置可以直接操作<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>真空边界。</strong><span class="arithmatex">\(P=Q/S\)</span> 是稳态 lumped 模型；泵的额定速度会随气体种类、入口压力和管路改变。开阀或拆卸前必须确认压差、法兰和视窗额定值，使用受控 vent 与联锁；不能把“目标压力达到了”当作可以承受外压的证明。放气、漏气和氧缺失风险还需要独立的设备与场所评估。</li>
+<li><strong>低温边界。</strong><span class="arithmatex">\(Q_{\mathrm{in}}&lt;Q_{\mathrm{cool}}\)</span> 只保证一个简化的稳态不等式。冷冻剂可能造成冻伤和窒息，封闭体积受热会升压，冷台和样品会因热冲击破裂；泄压、氧浓度监测、屏蔽、接地和材料兼容性必须按实际制冷剂和设备执行。不能用软件阈值替代机械泄压保护。</li>
+<li><strong>DAQ 边界。</strong>Nyquist 不是“采样率高一点就万事大吉”；抗混叠滤波必须位于 ADC 之前，滤波器本身有过渡带。满量程外的输入会削顶，地环路和共模电压可能先损坏前端。改变采样率后，必须重新检查模拟滤波、触发、时间戳和数据率。</li>
+<li><strong>预算边界。</strong>三本账并不独立：加一只低温放大器可能降低电噪声，却增加发热；减小导管可能改善隔离，却降低电导；提高采样率可能减少时间混叠，却增大存储和传输压力。每次只改一个变量，并记录对其他账的副作用。</li>
+</ul>
+<p><h3>7. 迁移任务：从“能工作”升级为“有证明”</h3></p>
+<p>为一个假想的 4 K 表面谱实验写一页 commissioning 表：</p>
+<ol>
+<li>先用已知漏率或已知气负载标定 <span class="arithmatex">\(Q\)</span>，用导管几何和压力阶跃测 <span class="arithmatex">\(C\)</span>，而不是只抄泵的 <span class="arithmatex">\(S\)</span>；</li>
+<li>对每条支撑和线缆估计温度积分，列出辐射屏、滤波器和放大器的静态与瞬态热负载，并把可用余量写成数值；</li>
+<li>从目标信号最高频率反推模拟抗混叠滤波器和 <span class="arithmatex">\(f_s\)</span>，再用一个高于 Nyquist 的已知正弦验证 alias 账本；</li>
+<li>在“超压、热超载、削顶、通信中断”各处定义硬件或人工停止条件。</li>
+</ol>
+<p>最后回答：如果压力、温度和波形都在软件显示的绿色区间，仍可能有哪些<strong>未被这三个教学预算覆盖</strong>的风险？答案应包含校准不确定度、瞬态、传感器失效和人身/机械防护，而不是再加一个绿色指示灯。</p>
+</section>
+<h2 id="1">1. 真空的三种流动区域<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>真空工程先按平均自由程 <span class="arithmatex">\(\ell\)</span> 与特征尺寸 <span class="arithmatex">\(D\)</span> 的比值判断流动区域。Knudsen 数 <span class="arithmatex">\(\mathrm{Kn}=\ell/D\)</span> 很小时是连续流，适合用流体近似；很大时是分子流，分子与壁碰撞比彼此碰撞更频繁；中间是过渡流。泵型、导管电导和压力计的物理含义会随区域改变，因此“抽速”没有脱离压力和气体种类的绝对含义。</p>
+<p>在分子流区域，长而窄的圆管电导对气体种类还带有近似比例；几何变窄通常会显著降低 <span class="arithmatex">\(C\)</span>。串联公式与电路电阻相似，但只是守恒方程的结果，不意味着真空系统真的有一个欧姆定律。并联支路则近似满足电导相加；阀门、弯头、冷阱和污染表面会让这一 lumped 近似失效。</p>
+<p>气负载的来源包括外漏、材料放气、表面解吸、渗透和样品挥发。烘烤可以减小部分放气，冷阱可以吸附特定蒸汽，但它们也会改变热预算与可维护性。压力随时间的抽空曲线能区分泄漏主导、放气主导和泵速限制：斜率不是一个可以脱离体积、温度和气体组分的通用常数。</p>
+<h2 id="2_1">2. 低温台的热阻网络<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>把各级冷台视为节点，稳态热流由热阻、辐射和主动制冷共同决定。对一条近似常导热系数的支撑，<span class="arithmatex">\(Q=K(T_h-T_c)\)</span>；对金属线在宽温区，<span class="arithmatex">\(K(T)\)</span> 可能变化很大，须积分。多级屏蔽的作用不是“把温度标签写低”，而是让高温到低温的辐射视角因子和导热路径分级下降。</p>
+<p>冷台的制冷能力是 <span class="arithmatex">\(Q_{\mathrm{cool}}(T)\)</span> 的曲线，而不是固定常数。实验点升温后，制冷能力和传感器响应可能同时变化，形成热失稳。控制器的目标温度、加热器范围和测温计自热还要另列预算。一个稳态点通过不证明启动、样品交换、磁场扫描或失电后的安全性。</p>
+<p>噪声与热也相连。低温线上的串联电阻、滤波器和衰减器可能降低 Johnson 噪声带宽，却把耗散功率留在冷台；热电偶、二极管和电阻温度计的激励也会自热。正确做法是同时列 signal integrity、耗散和校准漂移，不能只追求一个更低的噪声谱。</p>
+<h2 id="3_1">3. 数据采集的完整链路<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>ADC 前至少要检查传感器输出阻抗、增益、共模范围、保护、抗混叠滤波、触发和参考时钟。ADC 后要检查量化、数字滤波、缓存、时间戳、丢包和单位。理想量化噪声常用 <span class="arithmatex">\(\mathrm{LSB}/\sqrt{12}\)</span> 估计，但这需要近似均匀误差、无相关失真和未削顶；实际 ENOB、时钟抖动、前端噪声和非线性会更差。</p>
+<p>若输入是带宽有限的随机过程，采样率应依据最高有意义频率和滤波器过渡带留出工程余量，而不是把最高频率恰好放在 <span class="arithmatex">\(f_s/2\)</span>。时钟抖动对高频正弦的相位误差约为 <span class="arithmatex">\(2\pi f\sigma_t\)</span>；信号频率越高，时间基准越容易成为噪声源。多通道系统还要说明同步采样、复用延迟和各通道增益。</p>
+<h2 id="4_1">4. 数量级例子<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>例 1（管路瓶颈）</strong> 若 <span class="arithmatex">\(Q=0.02\ \mathrm{Pa\,L/s}\)</span>、<span class="arithmatex">\(S=200\ \mathrm{L/s}\)</span>、<span class="arithmatex">\(C=10\ \mathrm{L/s}\)</span>，则 <span class="arithmatex">\(S_{\mathrm{eff}}=1/(0.005+0.1)=9.52\ \mathrm{L/s}\)</span>，压力约 <span class="arithmatex">\(2.1\times10^{-3}\ \mathrm{Pa}\)</span>。提高泵速到 <span class="arithmatex">\(400\ \mathrm{L/s}\)</span> 只把有效速度变成 <span class="arithmatex">\(9.76\ \mathrm{L/s}\)</span>，导管才是主要改进点。</p>
+<p><strong>例 2（热余量）</strong> 若四项热漏为 <span class="arithmatex">\(30+20+12+8=70\ \mathrm{mW}\)</span>，制冷能力为 <span class="arithmatex">\(100\ \mathrm{mW}\)</span>，额定余量仍有 <span class="arithmatex">\(30\ \mathrm{mW}\)</span>，但 <span class="arithmatex">\(80\%\)</span> 运行线只有 <span class="arithmatex">\(80\ \mathrm{mW}\)</span>，安全余量仅 <span class="arithmatex">\(10\ \mathrm{mW}\)</span>。一个额外的 12 mW 线缆热漏就足以跨过教学用安全线。</p>
+<p><strong>例 3（采样与数据率）</strong> 8 通道、24 bit、<span class="arithmatex">\(50\ \mathrm{kS/s}\)</span> 的原始数据率是 <span class="arithmatex">\(8\times24\times50,000=9.6\ \mathrm{Mbit/s}\)</span>，还没有计算封包、元数据和冗余。若目标频率最高为 15 kHz，<span class="arithmatex">\(f_s=50\)</span> kHz 给出 25 kHz Nyquist，仍要根据模拟滤波器过渡带判断是否足够。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>物理实验的共同结论：先定义边界、单位和余量，再让曲线告诉你哪个机制在主导。下一次遇到漂亮的“实时读数”，先问它背后的正演链是否仍然可逆。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="exp-03-spectroscopy-imaging.html"><span class="pager-label">上一页</span>实验 III · 光谱、成像与分辨率</a>
+  <a class="pager-slot next" href="aqm-01-symmetry.html"><span class="pager-label">下一页</span>高量 I · 对称性与角动量理论</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-vacuum-cryogenic-daq.js"></script>
+</body>
+</html>

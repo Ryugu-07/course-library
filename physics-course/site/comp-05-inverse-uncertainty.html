@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>逆问题与不确定度量化 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li class="active"><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先问数据能辨识什么</a><ul>
+<li><a href="#inverse-uncertainty-learning-title">1. 具体谜题：观测拟合很好，源项却可以完全不同</a></li>
+<li><a href="#2">2. 先预测，再揭示</a></li>
+<li><a href="#3">3. 静态后备：同一数据的正则化账本</a></li>
+<li><a href="#4">4. 证据等级</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 正问题容易，逆问题为什么病态</a></li>
+<li><a href="#2-tikhonov">2. Tikhonov 正则化：把选择写出来</a></li>
+<li><a href="#3-map">3. 从 MAP 到后验协方差</a></li>
+<li><a href="#4-lambda">4. 如何选择 \(\lambda\) 而不假装它是自然常数</a></li>
+<li><a href="#5-posterior-predictive-check">5. Posterior predictive check：模型会不会生成这样的数据</a></li>
+<li><a href="#6">6. 失败边界与可复现审计</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">计算物理 V · 逆问题与不确定度量化<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Tarantola <em>Inverse Problem Theory</em> / Kaipio &amp; Somersalo <em>Statistical and Computational Inverse Problems</em> ｜ <strong>前置</strong>：exp-01（测量与不确定度）、线性代数（SVD/二次型）、概率与 Bayes 线
+<strong>本页问题</strong>：传感器看到的是被扩散核抹平的信号，为什么“把矩阵反过来乘”会制造尖峰和负温度？正则化不是偷偷替数据做决定，而是把不可辨识方向、物理先验和预测检验明确写进证据链。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="inverse-uncertainty-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先问数据能辨识什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="inverse-uncertainty-learning-title">1. 具体谜题：观测拟合很好，源项却可以完全不同<a class="headerlink" href="#inverse-uncertainty-learning-title" title="Permanent link"></a></h3>
+<p>考虑一排测量扩散后的温度/浓度源。离散后，隐藏源项 <span class="arithmatex">\(x\in\mathbb R^{16}\)</span> 经过宽度为 <span class="arithmatex">\(0.14\)</span> 的归一化 Gaussian 核 <span class="arithmatex">\(K\)</span>，产生 16 个传感器读数：</p>
+<div class="arithmatex">\[
+y=Kx+\varepsilon,\qquad \varepsilon\sim\mathcal N(0,\sigma^2I).
+\]</div>
+<p>相邻源格点的差异会被扩散抹平，高频方向对应很小的奇异值。直接求逆会把观测噪声除以这些小数，输出剧烈振荡；加大平滑惩罚会抑制振荡，却可能把两个真实峰合成一个宽峰。问题不是寻找一条“最漂亮”的曲线，而是区分数据支持的部分和先验选择的部分。</p>
+<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验台以前，先回答四个问题：</p>
+<ol>
+<li>直接求逆为什么会放大噪声：大奇异值方向消失，还是小奇异值方向被放大？</li>
+<li>增大 Tikhonov 强度 <span class="arithmatex">\(\lambda\)</span> 的代价是什么：解更平滑但可能有偏，还是拟合和粗糙度都不变？</li>
+<li>后验预测区间主要检查模型能否生成类似传感器观测，还是直接证明隐藏源项的真值？</li>
+<li>观测残差很小是否足以证明源项重建正确？</li>
+</ol>
+<h3 id="3">3. 静态后备：同一数据的正则化账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="physics-inverse-uncertainty">
+<p><strong>无 JavaScript 时的静态读法。</strong>默认数据用 16 个源格点、16 个传感器、Gaussian 扩散核宽度 <span class="arithmatex">\(0.14\)</span>，固定噪声尺度 <span class="arithmatex">\(\sigma=0.05\)</span>。推断使用</p>
+<div class="arithmatex">\[
+\hat x_\lambda=\arg\min_x\left\{
+\frac{\|Kx-y\|_2^2}{\sigma^2}
+ +\lambda\left(\|Dx\|_2^2+10^{-3}\|x\|_2^2\right)\right\},
+\]</div>
+<p>其中 <span class="arithmatex">\(D\)</span> 是一阶差分矩阵。默认 <span class="arithmatex">\(\lambda=0.03\)</span>、固定种子 <span class="arithmatex">\(20260827\)</span>，实验的后验均值给出：数据残差 RMS <span class="arithmatex">\(0.02315\)</span>，源项 RMSE <span class="arithmatex">\(0.35010\)</span>，相邻源差的 RMS <span class="arithmatex">\(0.58371\)</span>。95% 后验预测带覆盖 16/16 个观测；用<strong>成对的后验样本</strong>分别计算观测与复制数据的噪声标准化平方偏差，得到 <span class="arithmatex">\(p_{\rm PPC}=P(T_{\rm rep}\ge T_{\rm obs}\mid y)\approx0.675\)</span>。这不是拒绝模型的尾部信号，但覆盖率好看仍不等于隐藏源项已被证实。</p>
+<p>同一噪声尺度下改变 <span class="arithmatex">\(\lambda\)</span>，折衷表为：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(\lambda\)</span></th>
+<th style="text-align: right;">观测残差 RMS</th>
+<th style="text-align: right;">源粗糙度 RMS</th>
+<th>读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(10^{-4}\)</span></td>
+<td style="text-align: right;">0.01927</td>
+<td style="text-align: right;">13.6656</td>
+<td>几乎追噪声，尖峰很多</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(10^{-3}\)</span></td>
+<td style="text-align: right;">0.02168</td>
+<td style="text-align: right;">3.3308</td>
+<td>开始压制高频</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(10^{-2}\)</span></td>
+<td style="text-align: right;">0.02289</td>
+<td style="text-align: right;">0.8100</td>
+<td>拟合/平滑的过渡区</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(3\times10^{-2}\)</span></td>
+<td style="text-align: right;">0.02315</td>
+<td style="text-align: right;">0.5837</td>
+<td>默认演示点</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(10^{-1}\)</span></td>
+<td style="text-align: right;">0.02354</td>
+<td style="text-align: right;">0.4480</td>
+<td>更强平滑，偏差增加</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(10^{2}\)</span></td>
+<td style="text-align: right;">0.05280</td>
+<td style="text-align: right;">0.0704</td>
+<td>近似过度平滑</td>
+</tr>
+</tbody>
+</table>
+<p>后验协方差来自同一个正规矩阵：</p>
+<div class="arithmatex">\[
+\Sigma_\lambda=\sigma^2\left(K^TK+\lambda\sigma^2R\right)^{-1},
+\qquad R=D^TD+10^{-3}I.
+\]</div>
+<p>对新的传感器读数，预测方差为</p>
+<div class="arithmatex">\[
+\operatorname{Var}(y_{\mathrm{new},i}\mid y)
+ =\sigma^2+K_i\Sigma_\lambda K_i^T.
+\]</div>
+<p>实验的源项图带出后验均值和区间，观测图带出 <span class="arithmatex">\(y\)</span>、<span class="arithmatex">\(K\hat x\)</span> 与 95% 预测带，底部 L 曲线显示残差和粗糙度怎样交换。没有 JavaScript 时，这些公式和表格仍然给出可复核的物理、统计和数值关系。</p>
+</div>
+<h3 id="4">4. 证据等级<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li>正规方程残差小，说明线性代数求解器完成了当前正则化问题。</li>
+<li>L 曲线和源项区间说明不同 <span class="arithmatex">\(\lambda\)</span> 对解的影响；它们不凭空创造分辨率。</li>
+<li>后验预测检查的是模型生成观测的能力；源项真值仍需要独立实验、物理约束或模拟基准。</li>
+<li>固定种子让后验抽样可重放，但不会减少模型误设、先验敏感性或测量系统误差。</li>
+</ul>
+</section>
+<h2 id="1">1. 正问题容易，逆问题为什么病态<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>正问题从源项 <span class="arithmatex">\(x\)</span> 和物理规律预测观测 <span class="arithmatex">\(y\)</span>；逆问题从 <span class="arithmatex">\(y\)</span> 反推 <span class="arithmatex">\(x\)</span>。扩散、积分、辐射转移和有限孔径成像都具有平滑作用：不同的高频源项经过前向算子后变得相似。离散后写成 <span class="arithmatex">\(y=Kx+\varepsilon\)</span>，矩阵 <span class="arithmatex">\(K\)</span> 的小奇异值就是“数据几乎看不见”的方向。</p>
+<p>令</p>
+<div class="arithmatex">\[
+K=U\,\operatorname{diag}(s_1,\ldots,s_r)V^T,
+\]</div>
+<p>并把噪声投影到左奇异向量上。形式上的最小二乘解含有</p>
+<div class="arithmatex">\[
+\hat x_{\mathrm{LS}}=\sum_j\frac{u_j^Ty}{s_j}v_j.
+\]</div>
+<p>当 <span class="arithmatex">\(s_j\)</span> 很小时，即使 <span class="arithmatex">\(u_j^T\varepsilon\)</span> 只有测量噪声量级，除以 <span class="arithmatex">\(s_j\)</span> 也会变成巨大振荡。这个放大是物理前向过程丢失可辨识度的结果，不是线性求解器“精度不够”。增加浮点位数只能延迟问题，不能恢复已经被扩散抹掉的信息。</p>
+<p>本页实验使用归一化 Gaussian 核：每个传感器看到附近源格点的加权平均。它是扩散/空间分辨率的最小模型，不等同于某一台具体仪器。真实热传导还会有时间尺度、边界、材料参数和系统误差；这些被省略的因素正是模型验证要追踪的边界。</p>
+<h2 id="2-tikhonov">2. Tikhonov 正则化：把选择写出来<a class="headerlink" href="#2-tikhonov" title="Permanent link"></a></h2>
+<p>如果只最小化 <span class="arithmatex">\(\|Kx-y\|_2^2\)</span>，病态方向会被自由地用来追噪声。一个最小而明确的修正是</p>
+<div class="arithmatex">\[
+J_\lambda(x)=\frac{1}{\sigma^2}\|Kx-y\|_2^2+\lambda x^TRx,
+\qquad R=D^TD+\eta I,\quad \eta&gt;0.
+\]</div>
+<p>一阶条件给出</p>
+<div class="arithmatex">\[
+\left(\frac{K^TK}{\sigma^2}+\lambda R\right)\hat x
+ =\frac{K^Ty}{\sigma^2}.
+\]</div>
+<p>乘上 <span class="arithmatex">\(\sigma^2\)</span> 后，程序实际解的是</p>
+<div class="arithmatex">\[
+\left(K^TK+\lambda\sigma^2R\right)\hat x=K^Ty.
+\]</div>
+<p>一阶差分 <span class="arithmatex">\(D\)</span> 惩罚相邻源格点的大跳变；小的 <span class="arithmatex">\(\eta I\)</span> 让 <span class="arithmatex">\(R\)</span> 严格正定，避免常数方向造成不适定。它并没有宣称物理源项必然平滑，而是把“我们愿意优先相信平滑解”量化为 <span class="arithmatex">\(\lambda\)</span>。</p>
+<p>若使用零阶 <span class="arithmatex">\(R=I\)</span>，会抑制幅度但不直接惩罚锯齿；若使用二阶差分，会偏好曲率小的解；若源项必须非负，普通 Gaussian Tikhonov 允许负值，应该改成非负最小二乘、截断正态先验或对数参数化。不同正则器代表不同的物理先验，不能只比较一张输出图的好看程度。</p>
+<h2 id="3-map">3. 从 MAP 到后验协方差<a class="headerlink" href="#3-map" title="Permanent link"></a></h2>
+<p>把测量噪声设为 Gaussian likelihood，把源项的先验写成</p>
+<div class="arithmatex">\[
+p(x)\propto\exp\left(-\frac12\lambda x^TRx\right).
+\]</div>
+<p>那么后验的负对数（忽略常数）是</p>
+<div class="arithmatex">\[
+\frac{1}{2\sigma^2}\|Kx-y\|_2^2+\frac12\lambda x^TRx.
+\]</div>
+<p>它的最大后验估计正是 Tikhonov 解。在线性 Gaussian 情形，后验也仍然是 Gaussian，均值为 <span class="arithmatex">\(\hat x\)</span>，协方差为</p>
+<div class="arithmatex">\[
+\Sigma_\lambda=\left(\frac{K^TK}{\sigma^2}+\lambda R\right)^{-1}
+ =\sigma^2\left(K^TK+\lambda\sigma^2R\right)^{-1}.
+\]</div>
+<p>这个 <span class="arithmatex">\(\sigma^2\)</span> 因子很容易漏掉：正规矩阵可以乘上常数而不改变均值，却会改变协方差的物理单位。后验标准差是参数不确定度的一部分，不是把残差除以自由度后随手贴上的误差棒。</p>
+<p>对于新的噪声传感器读数，先把源项不确定度传播过前向矩阵，再加新的测量噪声：</p>
+<div class="arithmatex">\[
+Kx\mid y\sim\mathcal N(K\hat x,K\Sigma K^T),
+\qquad y_{\mathrm{new}}\mid y\sim\mathcal N(K\hat x,K\Sigma K^T+\sigma^2I).
+\]</div>
+<p>因此带噪声的观测预测区间比同一传感器处的无噪声 <span class="arithmatex">\(Kx\)</span> 区间更宽，因为多了 <span class="arithmatex">\(\sigma^2I\)</span>。它回答的是“重复测量会落在哪里”，不能和源空间中 <span class="arithmatex">\(x\)</span> 的区间直接比较宽窄：二者单位、维度和前向算子都不同。若把后验参数区间误叫成观测预测区间，便会少算一次测量噪声。</p>
+<h2 id="4-lambda">4. 如何选择 <span class="arithmatex">\(\lambda\)</span> 而不假装它是自然常数<a class="headerlink" href="#4-lambda" title="Permanent link"></a></h2>
+<p>实验的 L 曲线把 <span class="arithmatex">\(\log\)</span> 残差与 <span class="arithmatex">\(\log\)</span> 粗糙度放在同一张表中。小 <span class="arithmatex">\(\lambda\)</span> 的解更努力贴合数据，也更容易利用病态方向追噪声；大 <span class="arithmatex">\(\lambda\)</span> 的解更平滑，却可能抹掉真实峰。拐角是启发式诊断，不是普遍最优定理。</p>
+<p>其他选择方式各有条件：</p>
+<ul>
+<li><strong>差异原则</strong>：若 <span class="arithmatex">\(\sigma\)</span> 已知，选择使 <span class="arithmatex">\(\|K\hat x-y\|^2\)</span> 与预期噪声量级相称的 <span class="arithmatex">\(\lambda\)</span>。系统误差存在时，单一白噪声尺度不够。</li>
+<li><strong>交叉验证/留出传感器</strong>：用没有参与拟合的观测评估预测，而不是只看训练残差。</li>
+<li><strong>广义交叉验证</strong>：在不显式留出的情况下估计线性平滑器的预测风险，但仍假定数据行可比较。</li>
+<li><strong>全 Bayesian 模型比较</strong>：把 <span class="arithmatex">\(\lambda\)</span> 也放入层次先验，用边际似然或后验预测比较；先验敏感性仍要报告。</li>
+</ul>
+<p>本页固定 <span class="arithmatex">\(\lambda\)</span> 画折衷表，目的是让选择的代价可见，而不是替读者做一个通用的自动选择器。真实工作应在物理可解释的验证集上决定：源项峰位、总热量、边界通量、未来测量预测和残差结构哪个更重要。</p>
+<h2 id="5-posterior-predictive-check">5. Posterior predictive check：模型会不会生成这样的数据<a class="headerlink" href="#5-posterior-predictive-check" title="Permanent link"></a></h2>
+<p>后验预测检查的步骤是：从 <span class="arithmatex">\(x^{(b)}\sim p(x\mid y)\)</span> 抽样，生成</p>
+<div class="arithmatex">\[
+y^{\mathrm{rep},(b)}=Kx^{(b)}+\varepsilon^{(b)},
+\qquad \varepsilon^{(b)}\sim\mathcal N(0,\sigma^2I),
+\]</div>
+<p>再比较真实 <span class="arithmatex">\(y\)</span> 与重复数据的统计量，例如均方残差、峰间距、总信号、边界传感器偏差或残差的空间相关。若观测总在预测带外，前向核、噪声尺度或先验可能不对；若观测比重复数据异常平滑，可能是噪声被高估，或者同一批数据被用于过度调参。PPC 是模型检验，不是“抽样带覆盖真值”的证明。</p>
+<p>实验用固定 seed 生成 80 对后验样本与复制数据，报告观测落在 95% 预测带中的个数，以及 <span class="arithmatex">\(T_{\rm rep}\ge T_{\rm obs}\)</span> 的经验比例。默认覆盖为 16/16、<span class="arithmatex">\(p_{\rm PPC}\approx0.675\)</span>；前者可能因预测带偏宽而显得完美，后者也只是针对所选 discrepancy 的检查，两者都不能结束审计。重复抽样的 Monte Carlo 误差还必须随 draw 数改变而检查；80 次足够做课堂诊断，不是精细尾部概率的高精度估计。</p>
+<h2 id="6">6. 失败边界与可复现审计<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>模型边界：</strong></p>
+<ul>
+<li>线性前向关系失效时，Gaussian 后验通常只是局部近似；需要线性化误差、粒子方法或 MCMC。</li>
+<li>噪声有相关性、重尾或漂移时，<span class="arithmatex">\(\sigma^2I\)</span> 会给出过窄或错误形状的不确定度；应使用协方差矩阵、Student-<span class="arithmatex">\(t\)</span> likelihood 或显式系统误差。</li>
+<li>非负、守恒、单调性和 PDE 约束若是硬物理事实，不能只靠平滑惩罚暗示；要把它们放入可行域或参数化。</li>
+<li>传感器位置、核宽度和边界条件的不确定性也会传播到 <span class="arithmatex">\(x\)</span>；只对测量噪声做 Bayesian 处理会低估总误差。</li>
+</ul>
+<p><strong>审计清单：</strong>固定数据版本、单位、网格、前向核、噪声估计、先验/正则器、<span class="arithmatex">\(\lambda\)</span> 扫描范围、线性求解器、seed 和 posterior draw 数；同时保存正问题残差、参数区间、留出预测和 posterior predictive discrepancy。固定 seed 能复现一条随机路径，多个 seed 与独立观测才能检验稳定性。</p>
+<p><strong>迁移任务：</strong>把 Gaussian 扩散核换成一维热方程在时间 <span class="arithmatex">\(t\)</span> 的 Green 函数，未知量改成初始温度场。先从 Fourier 模式说明为什么高频因子 <span class="arithmatex">\(e^{-\kappa k^2t}\)</span> 会造成小奇异值，再比较一阶差分和二阶差分正则器。最后设计一个留出时刻的 posterior predictive check：如果训练时刻拟合很好而未来时刻预测偏离，应该优先怀疑正则化强度、边界条件、噪声协方差还是热传导模型？给出判断顺序，而不是只报一个更小的残差。</p>
+<hr />
+<p><em>计算物理五页的共同结论：离散化、采样、正则化和不确定度都只是证据链的一环；可信结果来自物理不变量、收敛/稳定性、统计相关性和独立预测检验同时通过。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="comp-04-monte-carlo-lattice.html"><span class="pager-label">上一页</span>计算 IV · 格点模型与蒙特卡洛</a>
+  <a class="pager-slot next" href="fl-01-continuum.html"><span class="pager-label">下一页</span>流体 I · 连续介质与 Navier–Stokes</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-inverse-uncertainty.js"></script>
+</body>
+</html>

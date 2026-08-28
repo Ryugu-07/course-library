@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>扰动与结构形成 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li class="active"><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先分清尺度记忆与时间增长</a></li>
+<li><a href="#cosmo-growth-learning-title">1. 预测门：T(k) 和 D(a) 谁在做什么？</a><ul>
+<li><a href="#2-ode">2. 线性增长方程：从守恒到 ODE</a></li>
+<li><a href="#3">3. 转移函数：早期历史的尺度过滤器</a></li>
+<li><a href="#4-javascript">4. 无 JavaScript 时的静态读法</a></li>
+<li><a href="#5">5. 观测、推断与失败边界</a></li>
+<li><a href="#6">6. 迁移任务</a></li>
+</ul>
+</li>
+<li><a href="#_2">正式讲义：从初始场到宇宙网</a><ul>
+<li><a href="#1">1. 一个小起伏怎样获得可见的结构？</a></li>
+<li><a href="#2-ode_1">2. 从三个守恒方程推出增长 ODE</a></li>
+<li><a href="#3-eds">3. EdS 是检查方程的标尺</a></li>
+<li><a href="#4">4. 视界进入为何会产生尺度依赖？</a></li>
+<li><a href="#5_1">5. 从可观测量到模型参数：中间不能跳步</a></li>
+<li><a href="#6_1">6. 失效边界与迁移练习</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<h1 id="iii">宇宙学 III · 涨落、转移函数与结构增长<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Dodelson <em>Modern Cosmology</em> / Mukhanov / Ryden §15–16 ｜ <strong>前置</strong>：cosmo-01（FRW）、cosmo-02（CMB 初始条件）、gr-03（引力场）、fl-01（连续介质）
+CMB 的温度起伏只有约 <span class="arithmatex">\(10^{-5}\)</span> 的量级，今天却有星系、星系团和宇宙网。问题不是“微小是否能变大”这么一句，而是：<strong>哪些尺度先被早期宇宙处理，哪些尺度后来增长；我们如何把这两段历史从数据中分离出来？</strong></p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="cosmo-growth-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先分清尺度记忆与时间增长<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="cosmo-growth-learning-title">1. 预测门：T(k) 和 D(a) 谁在做什么？<a class="headerlink" href="#cosmo-growth-learning-title" title="Permanent link"></a></h2>
+<p>设密度扰动为</p>
+<div class="arithmatex">\[
+\delta(\mathbf x,a)=\frac{\rho(\mathbf x,a)-\bar\rho(a)}{\bar\rho(a)}.
+\]</div>
+<p>傅里叶模 <span class="arithmatex">\(\delta_{\mathbf k}\)</span> 把空间尺度标成波数 <span class="arithmatex">\(k\)</span>。在打开实验前先判断：</p>
+<ol>
+<li><span class="arithmatex">\(k\ll k_{\rm eq}\)</span> 的大尺度模，转移函数 <span class="arithmatex">\(T(k)\)</span> 是接近 1 还是被强烈压低？</li>
+<li>在纯物质 Einstein–de Sitter toy 中，增长模是 <span class="arithmatex">\(D\propto a\)</span>、<span class="arithmatex">\(D\propto\sqrt a\)</span>，还是常数？</li>
+<li>加入晚期 <span class="arithmatex">\(\Lambda\)</span> 后，给定 <span class="arithmatex">\(a\)</span> 的增长相对于 EdS 会更快还是更慢？</li>
+</ol>
+<p>实验将同一模型拆成上下两幅图：上图是早期历史留下的 <span class="arithmatex">\(T(k)\)</span>，下图是晚期线性方程给出的 <span class="arithmatex">\(D(a)\)</span>。红点是当前选择的 <span class="arithmatex">\(k\)</span> 和 <span class="arithmatex">\(a\)</span>；它们不是同一个物理量，也不能把“转移函数变小”误读成“扰动随时间衰减”。</p>
+<h3 id="2-ode">2. 线性增长方程：从守恒到 ODE<a class="headerlink" href="#2-ode" title="Permanent link"></a></h3>
+<p>在次视界、压强可忽略、暗能量只通过背景膨胀影响的近似下，连续性、Euler 和 Poisson 方程合起来给</p>
+<div class="arithmatex">\[
+\ddot\delta+2H\dot\delta-4\pi G\bar\rho_m\delta=0.
+\]</div>
+<p>令 <span class="arithmatex">\(x=\ln a\)</span>，撇号表示对 <span class="arithmatex">\(x\)</span> 求导；因为 <span class="arithmatex">\(d/dt=H\,d/dx\)</span>，得到</p>
+<div class="arithmatex">\[
+\delta''+\left(2+\frac{d\ln H}{d\ln a}\right)\delta'
+-\frac32\Omega_m(a)\delta=0,
+\]</div>
+<p>其中</p>
+<div class="arithmatex">\[
+E^2(a)=\frac{H^2(a)}{H_0^2}=\Omega_m a^{-3}+\Omega_\Lambda,\qquad
+\Omega_m(a)=\frac{\Omega_m a^{-3}}{E^2(a)}.
+\]</div>
+<p>两项的物理分工很清楚：<span class="arithmatex">\(2H\dot\delta\)</span> 是膨胀摩擦，<span class="arithmatex">\(4\pi G\bar\rho_m\delta\)</span> 是过密区的引力放大。纯物质宇宙有增长模 <span class="arithmatex">\(D\propto a\)</span> 和衰减模 <span class="arithmatex">\(D\propto a^{-3/2}\)</span>；<span class="arithmatex">\(\Lambda\)</span> 让 <span class="arithmatex">\(H\)</span> 的背景项更重要，增长模仍可增加但逐渐“冻结”。</p>
+<h3 id="3">3. 转移函数：早期历史的尺度过滤器<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把原初谱归一化在某个早期时刻，线性密度场常写成</p>
+<div class="arithmatex">\[
+\delta(k,a)=D(a)\,T(k)\,\delta_{\rm prim}(k),
+\]</div>
+<p>这是一种分工记号：<span class="arithmatex">\(T(k)\)</span> 记住模式如何在辐射/物质交接、视界进入和声学过程后到达晚期；<span class="arithmatex">\(D(a)\)</span> 记住晚期背景下所有仍在线性范围内的共同增长。于是功率谱在最简单的线性写法中有 <span class="arithmatex">\(P_\delta(k,a)\propto D^2(a)T^2(k)P_{\rm prim}(k)\)</span>。</p>
+<p>为了让实验可算，我们用一个 BBKS-style、无重子无中微子修正的教学形状。若把滑块中的 <span class="arithmatex">\(k_{\rm eq}\)</span> 解释为物质-辐射相等尺度的物理波数，则这个拟合式的无量纲变量为</p>
+<div class="arithmatex">\[
+q=\frac{k}{13.41\,k_{\rm eq}},
+\]</div>
+<p>而不是简单的 <span class="arithmatex">\(k/k_{\rm eq}\)</span>：</p>
+<div class="arithmatex">\[
+T(q)=\frac{\ln(1+2.34q)}{2.34q}
+\left[1+3.89q+(16.1q)^2+(5.46q)^3+(6.71q)^4\right]^{-1/4}.
+\]</div>
+<p>它满足 <span class="arithmatex">\(q\ll1\)</span> 时 <span class="arithmatex">\(T\to1\)</span>，<span class="arithmatex">\(q\gg1\)</span> 时被压低。这里保留的 <span class="arithmatex">\(13.41\)</span> 来自 BBKS 变量与物理 equality scale 的换算；精密宇宙学还会把重子声学振荡、辐射、质量中微子、曲率和参数约定一致地纳入 transfer，而不是把这个教学拟合当作 Boltzmann 求解器。</p>
+<h3 id="4-javascript">4. 无 JavaScript 时的静态读法<a class="headerlink" href="#4-javascript" title="Permanent link"></a></h3>
+<p>默认取平直 toy 的 <span class="arithmatex">\(\Omega_m=0.3,\Omega_\Lambda=0.7\)</span>，<span class="arithmatex">\(a=0.5\)</span>，<span class="arithmatex">\(k=0.1\)</span>，<span class="arithmatex">\(k_{\rm eq}=0.01\)</span>。此时 <span class="arithmatex">\(k/k_{\rm eq}=10\)</span>，但 BBKS 变量 <span class="arithmatex">\(q=10/13.41\approx0.746\)</span>。同一实验的计算账本会给出</p>
+<div class="arithmatex">\[
+E(0.5)=\sqrt{0.3(0.5)^{-3}+0.7}\approx1.761,
+\]</div>
+<p>并数值积分增长方程，从 <span class="arithmatex">\(a_{\rm start}=0.01\)</span> 的增长初值 <span class="arithmatex">\(D=D'=a_{\rm start}\)</span> 演化到 <span class="arithmatex">\(a=1\)</span> 后归一化。该 toy 的 <span class="arithmatex">\(D(0.5)/D(1)\)</span> 约为 <span class="arithmatex">\(0.612\)</span>；对应的 <span class="arithmatex">\(T(k)\)</span> 在 <span class="arithmatex">\(q\approx0.746\)</span> 时约为 <span class="arithmatex">\(0.1074\)</span>（具体显示保留位数由 lab 决定）。这两个小数分别来自时间积分和尺度函数，不能互相替代。</p>
+<p>对照纯物质边界 <span class="arithmatex">\(\Omega_m=1,\Omega_\Lambda=0\)</span>，方程的解析增长给 <span class="arithmatex">\(D(0.5)/D(1)=0.5\)</span>、增长率 <span class="arithmatex">\(f=d\ln D/d\ln a=1\)</span>。加入 <span class="arithmatex">\(\Lambda\)</span> 后默认 toy 在 <span class="arithmatex">\(a=0.5\)</span> 的归一化增长较大，是因为后来从 <span class="arithmatex">\(a=0.5\)</span> 到 <span class="arithmatex">\(1\)</span> 的增长已被晚期加速压慢；“<span class="arithmatex">\(D\)</span> 更大”必须说明归一化时刻。</p>
+<div class="learning-lab" data-learning-lab="physics-structure-growth">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认输入 <span class="arithmatex">\(\Omega_m=0.3,\Omega_\Lambda=0.7,a=0.5,k=0.1,k_{\rm eq}=0.01\)</span>。上图的 <span class="arithmatex">\(k/k_{\rm eq}=10\)</span>，对应 BBKS 变量 <span class="arithmatex">\(q\approx0.746\)</span>，toy 给 <span class="arithmatex">\(T(k)\approx0.1074\)</span>；下图用 <span class="arithmatex">\(\ln a\)</span> 上的增长 ODE 数值积分给 <span class="arithmatex">\(D(0.5)/D(1)\approx0.6118\)</span>、<span class="arithmatex">\(f\approx0.8693\)</span>。切换到 Einstein–de Sitter，<span class="arithmatex">\(D(0.5)/D(1)=0.5\)</span>、<span class="arithmatex">\(f=1\)</span>；切换到大尺度预设 <span class="arithmatex">\(k=0.0001\)</span> 时 <span class="arithmatex">\(k/k_{\rm eq}=0.01\)</span>、<span class="arithmatex">\(q\approx7.46\times10^{-4}\)</span>，<span class="arithmatex">\(T(k)\approx0.9984\)</span>，而不是把“大尺度”误写成严格等于 1。</p>
+<p>账本的可核对关系是：<span class="arithmatex">\(T(k)\)</span> 只随尺度比 <span class="arithmatex">\(k/k_{\rm eq}\)</span>（在拟合式中换算成 <span class="arithmatex">\(q\)</span>）变，<span class="arithmatex">\(D(a)\)</span> 只由背景 ODE 和时间 <span class="arithmatex">\(a\)</span> 变；线性功率谱才把它们以 <span class="arithmatex">\(D^2T^2\)</span> 乘在一起。这里不含非线性、偏差、重子声学振荡、质量中微子自由流和完整广义相对论 gauge 处理。</p>
+</div>
+<h3 id="5">5. 观测、推断与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>观测：</strong>CMB 的角功率谱、星系三维聚类、弱引力透镜、红移空间畸变和星系团计数。它们记录温度/偏振、角位置、红移和形状等数据，不直接把一条 <span class="arithmatex">\(T(k)\)</span> 或 <span class="arithmatex">\(D(a)\)</span> 交给我们。</li>
+<li><strong>模型推断：</strong>在给定原初谱、背景参数、偏差 <span class="arithmatex">\(b(k,z)\)</span>、选择函数和非线性处方后，才把这些观测映射到 <span class="arithmatex">\(T,D\)</span> 与参数。不同探针交叉约束，能检验“同一结构史”的一致性。</li>
+<li><strong>线性边界：</strong>当 <span class="arithmatex">\(|\delta|\)</span> 接近 1，模态耦合和塌缩不可忽略，线性 ODE 只能当早期近似。大尺度超视界模还要保持 gauge-invariant 的曲率扰动变量，不能把 Newtonian <span class="arithmatex">\(\delta\)</span> 的数值无条件延伸到所有尺度。</li>
+<li><strong>参数退化：</strong>星系偏差、初始振幅、增长率、光度距离和测量选择可能互相补偿；“看到星系更多”不单独等于“引力更强”。</li>
+</ul>
+<h3 id="6">6. 迁移任务<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>从连续性、Euler、Poisson 三式消去速度散度，逐步恢复 <span class="arithmatex">\(\ddot\delta+2H\dot\delta-4\pi G\bar\rho_m\delta=0\)</span>，并指出每一步用了“压强可忽略”和“次视界”哪一个假设。</li>
+<li>若一条新模型给出相同的 <span class="arithmatex">\(T(k)\)</span> 却不同的 <span class="arithmatex">\(D(a)\)</span>，哪类观测更能区分它？反过来，若 <span class="arithmatex">\(D\)</span> 相同而小尺度 <span class="arithmatex">\(T\)</span> 因中微子自由流改变，为什么需要 CMB + 透镜/聚类的尺度依赖联合数据？</li>
+<li>证明 EdS 的两个增长解，再说明为什么把归一化从 <span class="arithmatex">\(a=1\)</span> 换到初始时刻会改变“<span class="arithmatex">\(D\)</span> 的数值”但不改变可观测的相对增长。</li>
+</ol>
+</section>
+<h2 id="_2">正式讲义：从初始场到宇宙网<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个小起伏怎样获得可见的结构？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把今天的星系团倒放，问题会变成：在早期宇宙中，一个只有千分之几、甚至更小的密度差，为什么没有被膨胀冲淡，反而形成了跨越数十亿光年的丝状结构？答案不是“引力会放大一切”这么简单。要追踪的至少有两本账：</p>
+<ul>
+<li><strong>尺度账</strong>：一个 Fourier 模式何时进入视界、当时宇宙由辐射还是物质主导，以及这段历史怎样留下 <span class="arithmatex">\(T(k)\)</span>；</li>
+<li><strong>时间账</strong>：模式进入适用的线性近似后，背景膨胀怎样改变它的共同增长，形成 <span class="arithmatex">\(D(a)\)</span>。</li>
+</ul>
+<p>最简线性分解写成</p>
+<div class="arithmatex">\[
+\delta(k,a)=D(a)\,T(k)\,\delta_{\rm prim}(k).
+\]</div>
+<p>这里的等号是一种模型化的因子分解，不是说自然界真的把一个模式先乘一次、再乘一次。它在“线性、同一物质成分、尺度依赖可以放进 <span class="arithmatex">\(T\)</span>、时间依赖主要由共同的 <span class="arithmatex">\(D\)</span> 描述”时很有用；加入重子声学振荡、质量中微子、压力、相对论尺度或非线性后，两个因子可能不再如此干净地分离。</p>
+<h3 id="2-ode_1">2. 从三个守恒方程推出增长 ODE<a class="headerlink" href="#2-ode_1" title="Permanent link"></a></h3>
+<p>先在共动坐标 <span class="arithmatex">\(\mathbf x\)</span> 中写一个冷、无压强物质流体。物理位置是 <span class="arithmatex">\(\mathbf r=a(t)\mathbf x\)</span>，<span class="arithmatex">\(\mathbf v\)</span> 表示相对于 Hubble 流的 peculiar velocity。质量守恒给</p>
+<div class="arithmatex">\[
+\dot\delta+\frac{1}{a}\boldsymbol\nabla\cdot[(1+\delta)\mathbf v]=0.
+\]</div>
+<p>在 <span class="arithmatex">\(\lvert\delta\rvert\ll1\)</span> 的线性阶，定义速度散度 <span class="arithmatex">\(\theta=\boldsymbol\nabla\cdot\mathbf v\)</span>，便有</p>
+<div class="arithmatex">\[
+\dot\delta+\frac{\theta}{a}=0. \tag{1}
+\]</div>
+<p>无压强 Euler 方程为</p>
+<div class="arithmatex">\[
+\dot{\mathbf v}+H\mathbf v=-\frac{1}{a}\boldsymbol\nabla\Phi, \tag{2}
+\]</div>
+<p>而共动 Poisson 方程为</p>
+<div class="arithmatex">\[
+\nabla^2\Phi=4\pi G a^2\bar\rho_m\delta. \tag{3}
+\]</div>
+<p>对 (1) 求时间导数，用 (2) 的散度消去 <span class="arithmatex">\(\dot\theta\)</span>，再用 (3) 消去 <span class="arithmatex">\(\Phi\)</span>，得到</p>
+<div class="arithmatex">\[
+\ddot\delta+2H\dot\delta-4\pi G\bar\rho_m\delta=0. \tag{4}
+\]</div>
+<p>这一步展示了两个竞争者：<span class="arithmatex">\(2H\dot\delta\)</span> 像膨胀造成的阻尼；过密区域的自引力则给出正的放大项。注意它依赖了无压强、次视界 Newtonian 近似，以及物质成分可以视为一个流体。若有重要压强，Euler 方程会增加声速项；若讨论超视界尺度，应改用规范不变量，而不能机械地把 Newtonian <span class="arithmatex">\(\delta\)</span> 搬过去。</p>
+<p>用 <span class="arithmatex">\(x=\ln a\)</span> 作自变量，因为 <span class="arithmatex">\(d/dt=H\,d/dx\)</span>，并写 <span class="arithmatex">\(\delta(k,a)=D(a)\delta(k,a_{\rm ref})\)</span>，方程变为</p>
+<div class="arithmatex">\[
+D''+\left(2+\frac{d\ln H}{d\ln a}\right)D'
+-\frac{3}{2}\Omega_m(a)D=0. \tag{5}
+\]</div>
+<p>撇号现在表示 <span class="arithmatex">\(d/d\ln a\)</span>。在平直的物质加 <span class="arithmatex">\(\Lambda\)</span> toy 中，</p>
+<div class="arithmatex">\[
+E^2(a)=\frac{H^2(a)}{H_0^2}
+=\Omega_m a^{-3}+\Omega_\Lambda,\qquad
+\Omega_m(a)=\frac{\Omega_m a^{-3}}{E^2(a)}.
+\]</div>
+<p>实验室以 <span class="arithmatex">\(a_{\rm start}=0.01\)</span> 起步，给增长模近似初值 <span class="arithmatex">\(D=D'=a_{\rm start}\)</span>，再把 <span class="arithmatex">\(D(a)\)</span> 除以 <span class="arithmatex">\(D(1)\)</span>。这不是唯一归一化；它只是把“今天的增长因子”固定为 1，让不同 <span class="arithmatex">\(a\)</span> 的读数容易比较。</p>
+<h3 id="3-eds">3. EdS 是检查方程的标尺<a class="headerlink" href="#3-eds" title="Permanent link"></a></h3>
+<p>在 Einstein–de Sitter 宇宙中，<span class="arithmatex">\(\Omega_m=1\)</span>、<span class="arithmatex">\(\Omega_\Lambda=0\)</span>，而 <span class="arithmatex">\(H\propto a^{-3/2}\)</span>，所以</p>
+<div class="arithmatex">\[
+D''+\frac12D'-\frac32D=0.
+\]</div>
+<p>设 <span class="arithmatex">\(D\propto a^p\)</span>，代入就得到</p>
+<div class="arithmatex">\[
+p^2+\frac12p-\frac32=0
+\quad\Longrightarrow\quad p=1,\ -\frac32.
+\]</div>
+<p>因此增长模是 <span class="arithmatex">\(D_+\propto a\)</span>，衰减模是 <span class="arithmatex">\(D_-\propto a^{-3/2}\)</span>。若把今天归一化为 <span class="arithmatex">\(D(1)=1\)</span>，则 EdS 在 <span class="arithmatex">\(a=0.5\)</span> 的读数就是 <span class="arithmatex">\(0.5\)</span>，增长率</p>
+<div class="arithmatex">\[
+f(a)\equiv\frac{d\ln D}{d\ln a}=1.
+\]</div>
+<p>这也是一个很好的单元测试：如果代码在 EdS 中不能回到 <span class="arithmatex">\(D\propto a\)</span>，问题多半不在宇宙学解释，而在导数、归一化或积分步长。</p>
+<p>在 <span class="arithmatex">\(\Lambda\)</span>CDM toy 中，<span class="arithmatex">\(D\)</span> 仍通常增加，但不再严格正比于 <span class="arithmatex">\(a\)</span>。实验室默认值在 <span class="arithmatex">\(a=0.5\)</span> 给 <span class="arithmatex">\(D/D(1)=0.611806\)</span>、<span class="arithmatex">\(f=0.869285\)</span>。这个 <span class="arithmatex">\(D\)</span> 比 <span class="arithmatex">\(0.5\)</span> 大，并不表示当时引力比 EdS 强；因为从 <span class="arithmatex">\(a=0.5\)</span> 走到今天，<span class="arithmatex">\(\Lambda\)</span> 已经压慢了后半段增长，所以“除以今天的值”时分母相对更小。比较增长时，必须先说清楚归一化时刻。</p>
+<p>对平直物质加 <span class="arithmatex">\(\Lambda\)</span> 背景，另一个有用的增长模表达式是</p>
+<div class="arithmatex">\[
+D_+(a)\propto E(a)\int_0^a
+\frac{da'}{a'^3E^3(a')}.
+\]</div>
+<p>它将背景膨胀直接写进积分。实验室用 <span class="arithmatex">\(\ln a\)</span> 上的数值积分，是为了把方程本身暴露出来并允许切换 <span class="arithmatex">\(\Omega_m,\Omega_\Lambda\)</span>；这两个做法在同一近似下应给出相同的物理趋势，而不必把积分表达式误当成精确适用于所有暗能量或修正引力模型。</p>
+<h3 id="4">4. 视界进入为何会产生尺度依赖？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>对 Fourier 模式，波数 <span class="arithmatex">\(k\)</span> 越大代表空间尺度越短。共动 Hubble 半径的倒数大致是 <span class="arithmatex">\(aH\)</span>；模式与视界的比较可写成 <span class="arithmatex">\(k\sim aH\)</span>。在辐射主导期，辐射的压强与快速膨胀改变了引力势的演化。一个后来成为小尺度结构的模式若更早进入视界，就会经历与大尺度模式不同的历史；因此初始近似平滑的谱在晚期不会仍然是“每个 <span class="arithmatex">\(k\)</span> 完全一样”。</p>
+<p>我们把这段历史压缩为转移函数：</p>
+<div class="arithmatex">\[
+\delta(k,a)=D(a)T(k)\delta_{\rm prim}(k),\qquad
+P_\delta(k,a)\propto D^2(a)T^2(k)P_{\rm prim}(k).
+\]</div>
+<p>学习实验使用</p>
+<div class="arithmatex">\[
+T(q)=\frac{\ln(1+2.34q)}{2.34q}
+\left[1+3.89q+(16.1q)^2+(5.46q)^3+(6.71q)^4\right]^{-1/4},
+\qquad q=\frac{k}{k_{\rm eq}}.
+\]</div>
+<p>这是 BBKS-style 的无重子、无质量中微子教学形状。它的价值是让尺度过滤可计算，不是替代 Boltzmann 求解器。<span class="arithmatex">\(q\ll1\)</span> 时，<span class="arithmatex">\(T\to1\)</span>；<span class="arithmatex">\(q\gg1\)</span> 时，转移被压低，且大致带有对数乘幂律的尾巴。真正的数据分析还需要辐射成分、重子声学振荡、光子阻尼、质量中微子自由流、曲率和规范处理。</p>
+<p>把默认数值逐项代入可得：</p>
+<div class="arithmatex">\[
+q=\frac{0.1}{0.01}=10,\qquad
+T(10)=0.0020298767\ldots,
+\]</div>
+<p>而在大尺度预设 <span class="arithmatex">\(k=0.0001\)</span> 时，<span class="arithmatex">\(q=0.01\)</span>，同一公式给</p>
+<div class="arithmatex">\[
+T(0.01)=0.97303799\ldots.
+\]</div>
+<p>后一个数“接近 1”但不等于 1，正好提醒我们：渐近说法有适用范围，有限的 <span class="arithmatex">\(q\)</span> 仍有修正。实验室把红点放在上图曲线上，是在问“这个尺度的早期记忆是多少”；下图红点则问“这个时间的增长是多少”。</p>
+<h3 id="5_1">5. 从可观测量到模型参数：中间不能跳步<a class="headerlink" href="#5_1" title="Permanent link"></a></h3>
+<p>实际观测不会直接给出一张标着 <span class="arithmatex">\(T(k)\)</span> 的原始照片。CMB 给出天空上的温度和偏振角功率谱；星系巡天给出角位置与红移；弱透镜给出形变相关统计量；红移空间畸变对速度和增长率敏感。把这些数据转成三维波数、距离或增长因子，需要选择函数、距离模型、星系偏差和噪声模型。</p>
+<p>因此应区分：</p>
+<ul>
+<li><strong>观察</strong>：某个角尺度上的温度方差、某个红移区间的聚类、透镜椭圆率或超出随机的相关；</li>
+<li><strong>模型推断</strong>：在原初谱、背景参数和扰动方程给定后，认为某组 <span class="arithmatex">\(T(k)\)</span>、<span class="arithmatex">\(D(a)\)</span>、偏差 <span class="arithmatex">\(b(k,z)\)</span> 能共同解释这些数据；</li>
+<li><strong>机制解释</strong>：进一步声称差异来自某种暗物质性质、暗能量性质或引力定律。</li>
+</ul>
+<p>从第一步到第三步不是自动的。比如星系功率增强可能来自更大的物质扰动、不同的星系偏差、选择函数变化或非线性；只用一类对象很难把它们分开。CMB、聚类、透镜和红移空间信息的交叉检验，才让“同一个结构史”成为可受检验的假设。</p>
+<h3 id="6_1">6. 失效边界与迁移练习<a class="headerlink" href="#6_1" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(|\delta|\sim1\)</span>，不同 Fourier 模式会耦合，塌缩与晕形成开始主导；线性方程不再负责给出准确的星系尺度数值。通常做法是用数值 N-body、流体模拟或经过校准的非线性处方，但那是额外模型，不是把 (5) 多积分几步就能得到的答案。另一方面，<span class="arithmatex">\(k\)</span> 很小、模式在视界之外时，密度对比度会随规范选择改变；此时应追踪曲率扰动等规范不变量。</p>
+<p>迁移到新模型时，可以按以下顺序工作：</p>
+<ol>
+<li>先固定原初谱和归一化，问新模型是否改变 <span class="arithmatex">\(T(k)\)</span> 的尺度形状；</li>
+<li>再固定同一 <span class="arithmatex">\(T\)</span>，比较增长方程、<span class="arithmatex">\(D(a)\)</span> 和 <span class="arithmatex">\(f(a)\)</span>；</li>
+<li>最后将观测的距离、偏差、透镜核和非线性响应一起加入，检查参数退化是否仍存在。</li>
+</ol>
+<p>一个具体练习是：若某模型只在 <span class="arithmatex">\(k&gt;k_{\rm eq}\)</span> 改变 <span class="arithmatex">\(T\)</span>，它应在尺度依赖的聚类和透镜中留下与“所有尺度共同改变 <span class="arithmatex">\(D\)</span>”不同的指纹。另一个练习是推导 (4) 时标出每一步：线性化用到 <span class="arithmatex">\(\lvert\delta\rvert\ll1\)</span>，无声速项用到压强可忽略，Poisson/Newtonian 用到尺度与视界的适用条件。能指出假设，才算真正知道公式何时可靠。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="cosmo-02-thermal.html"><span class="pager-label">上一页</span>宇宙学 II · 热历史与 CMB</a>
+  <a class="pager-slot next" href="cosmo-04-inflation-darkenergy.html"><span class="pager-label">下一页</span>宇宙学 IV · 暴胀与暗能量</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-structure-growth.js"></script>
+</body>
+</html>

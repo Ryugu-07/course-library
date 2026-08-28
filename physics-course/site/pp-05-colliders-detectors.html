@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>对撞机、探测器与事件重建 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li class="active"><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先问“这个峰由什么组成”</a></li>
+<li><a href="#pp-collider-learning-title">1. 预测门：四动量、分辨率和计数各自负责什么？</a><ul>
+<li><a href="#2">2. 从四动量到一个可复核的质量</a></li>
+<li><a href="#3-javascript">3. 无 JavaScript 时的静态读法</a></li>
+<li><a href="#4">4. 分辨率、选择与不变量</a></li>
+<li><a href="#5-poisson">5. 事件计数是 Poisson 问题，不是“数到峰就结束”</a></li>
+<li><a href="#6">6. 观测层、模型层与失败边界</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 对撞机观测的层次结构</a></li>
+<li><a href="#2_1">2. 为什么质量峰会出现</a></li>
+<li><a href="#3">3. 从直方图到似然</a></li>
+<li><a href="#4_1">4. 统计显著性与物理显著性</a></li>
+<li><a href="#5">5. 练习与小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="v">粒子 V · 对撞机、探测器与事件重建<a class="headerlink" href="#v" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Griffiths / Cowan <em>Statistical Data Analysis</em> / LHC detector primers ｜ <strong>前置</strong>：pp-03（QCD 喷注）、pp-04（味与振荡）、sr-01（四动量）、comp-01（数值与误差）
+对撞机并不把“新粒子”直接递给我们。它把束流的能量变成许多带电轨迹、沉积能量和缺失横动量；研究者再从这些末态记录中重建质量、分类背景、建立似然。<strong>事件重建是从观测到模型推断的桥，而不是一张漂亮峰图本身。</strong></p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="pp-collider-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先问“这个峰由什么组成”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="pp-collider-learning-title">1. 预测门：四动量、分辨率和计数各自负责什么？<a class="headerlink" href="#pp-collider-learning-title" title="Permanent link"></a></h2>
+<p>先看一个最小的两体事件。两个近似无质量的可见对象从碰撞点向相反方向飞出，探测器记录它们的横动量 <span class="arithmatex">\(p_T\)</span>、赝快度 <span class="arithmatex">\(\eta\)</span> 和方位角 <span class="arithmatex">\(\phi\)</span>。在打开合成样本前，先回答：</p>
+<ol>
+<li>若 <span class="arithmatex">\(p_{T1}=p_{T2}=62.5\)</span> GeV、<span class="arithmatex">\(\Delta\eta=0\)</span>、<span class="arithmatex">\(\Delta\phi=\pi\)</span>，重建不变质量是 <span class="arithmatex">\(125\)</span> GeV、<span class="arithmatex">\(62.5\)</span> GeV，还是 <span class="arithmatex">\(250\)</span> GeV？</li>
+<li>把相对质量分辨率从 <span class="arithmatex">\(4\%\)</span> 调到 <span class="arithmatex">\(11\%\)</span>，窄峰会变尖、变宽，还是位置必然移动？</li>
+<li>在系统误差忽略且信号/背景都加倍时，快速摘要 <span class="arithmatex">\(S/\sqrt B\)</span> 会乘 <span class="arithmatex">\(2\)</span> 还是乘 <span class="arithmatex">\(\sqrt2\)</span>？</li>
+</ol>
+<p>实验用确定性伪随机数生成信号与背景；蓝色是信号标签，金色是背景标签，绿阴影是窗口。标签是教学中可见的“真值”，而真实实验只给出观测量，背景/信号分类本身就是推断的一部分。</p>
+<h3 id="2">2. 从四动量到一个可复核的质量<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对无质量近似，四动量可用</p>
+<div class="arithmatex">\[
+p^\mu=(E,p_x,p_y,p_z)=(p_T\cosh\eta,\ p_T\cos\phi,\ p_T\sin\phi,\ p_T\sinh\eta)
+\]</div>
+<p>表示，因为 <span class="arithmatex">\(E=p_T\cosh\eta\)</span>、<span class="arithmatex">\(p_z=p_T\sinh\eta\)</span>。把两个四动量相加，再用 <span class="arithmatex">\(m^2=(p_1+p_2)^2\)</span>，得到</p>
+<div class="arithmatex">\[
+m_{12}^2=2p_{T1}p_{T2}\left[\cosh(\eta_1-\eta_2)-\cos(\phi_1-\phi_2)\right].
+\]</div>
+<p>每一项都有实验含义：<span class="arithmatex">\(p_T\)</span> 由轨迹弯曲或量热器响应给出，<span class="arithmatex">\(\eta\)</span> 描述相对于束轴的方向，<span class="arithmatex">\(\phi\)</span> 描述横向平面方向。式子的相对论不变量性质使质量峰不依赖你把坐标轴在横向平面转了多少角度。</p>
+<h3 id="3-javascript">3. 无 JavaScript 时的静态读法<a class="headerlink" href="#3-javascript" title="Permanent link"></a></h3>
+<p>理想事件取 <span class="arithmatex">\(p_{T1}=p_{T2}=62.5\)</span> GeV、<span class="arithmatex">\(\eta_1=\eta_2=0\)</span>、<span class="arithmatex">\(\phi_1=0,\phi_2=\pi\)</span>：</p>
+<div class="arithmatex">\[
+m_{12}^2=2(62.5)^2[\cosh0-\cos\pi]
+=4(62.5)^2,
+\qquad m_{12}=125\ \mathrm{GeV}.
+\]</div>
+<p>实验默认合成样本取真值 <span class="arithmatex">\(M=125\)</span> GeV、相对分辨率 <span class="arithmatex">\(\sigma_m/M=0.04\)</span>、信号数 <span class="arithmatex">\(S_{\rm all}=240\)</span>、背景数 <span class="arithmatex">\(B_{\rm all}=720\)</span>，窗口为 <span class="arithmatex">\(125\pm10\)</span> GeV。总样本的两个快速统计量是</p>
+<div class="arithmatex">\[
+\frac{S_{\rm all}}{\sqrt{B_{\rm all}}}=\frac{240}{\sqrt{720}}\approx8.944,
+\]</div>
+<p>以及</p>
+<div class="arithmatex">\[
+Z_A=\sqrt{2[(S+B)\ln(1+S/B)-S]}\approx8.506.
+\]</div>
+<p>实验表格会对<strong>窗口内</strong>的 <span class="arithmatex">\(S,B\)</span> 重新计数，所以窗口显著性不必等于总样本的 <span class="arithmatex">\(8.944\)</span>；这正是切窗口、接受度和分辨率会改变结论的原因。改变分辨率或窗口后，必须重新读账本。</p>
+<div class="learning-lab" data-learning-lab="physics-collider-detector">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>质量公式为
+<span class="arithmatex">\(m^2=2p_{T1}p_{T2}[\cosh(\Delta\eta)-\cos(\Delta\phi)]\)</span>。默认理想输入 <span class="arithmatex">\((62.5,62.5,0,\pi)\)</span> 给 <span class="arithmatex">\(m=125\)</span> GeV；默认合成总样本 <span class="arithmatex">\(S=240,B=720\)</span> 给 <span class="arithmatex">\(S/\sqrt B\approx8.944\)</span>，总样本 Asimov 近似约 <span class="arithmatex">\(8.506\)</span>。固定 seed=17 的默认合成样本把 <span class="arithmatex">\(\sigma_m/M=4\%\)</span> 直接用作质量响应宽度，在 <span class="arithmatex">\(125\pm10\)</span> GeV 窗口中给 <span class="arithmatex">\(S_{\rm win}=228,B_{\rm win}=28\)</span>，因此窗口 <span class="arithmatex">\(S/\sqrt B\approx43.088\)</span>、<span class="arithmatex">\(Z_A\approx26.020\)</span>；改变分辨率、窗口或 seed 后应重新读取账本。</p>
+<p>读直方图时先分清：峰的位置是重建量，峰宽含探测器响应和物理宽度，金色底是背景模型，<span class="arithmatex">\(Z_A\)</span> 是给定窗口/模型下的统计摘要。它们都不是单独一项“发现事实”。</p>
+</div>
+<h3 id="4">4. 分辨率、选择与不变量<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>理想的共振质量是一个参数 <span class="arithmatex">\(M\)</span>，而重建值是响应函数卷积后的随机变量：<span class="arithmatex">\(m_{\rm rec}\sim R(m_{\rm rec}|M,\text{detector})\)</span>。若用高斯作为教学近似，增大 <span class="arithmatex">\(\sigma_m/M\)</span> 会把峰分散到更多 bin；峰中心在无偏校准下仍围绕 <span class="arithmatex">\(M\)</span>，但有限样本的最高 bin 可以上下跳动。一个看似“峰位移动”可能来自校准偏差、能标非线性、选择切割或统计涨落。</p>
+<p>不变质量对整体纵向 boost 不变，这是为什么束流 parton 的未知纵向动量不妨碍我们重建两个可见对象的质量。但如果有中微子或其他不可见粒子，不能把缺失的纵向动量随便补上；通常使用缺失横动量 <span class="arithmatex">\(\vec p_T^{\rm miss}\)</span>、横质量或约束拟合，具体量取决于过程。</p>
+<h3 id="5-poisson">5. 事件计数是 Poisson 问题，不是“数到峰就结束”<a class="headerlink" href="#5-poisson" title="Permanent link"></a></h3>
+<p>在一个固定选择区间内，计数常用</p>
+<div class="arithmatex">\[
+N\sim\operatorname{Poisson}(\mu),\qquad \mu=L\,\sigma\,A\,\varepsilon+B,
+\]</div>
+<p>其中 <span class="arithmatex">\(L\)</span> 是积分亮度，<span class="arithmatex">\(\sigma\)</span> 是截面，<span class="arithmatex">\(A\)</span> 是接受度，<span class="arithmatex">\(\varepsilon\)</span> 是效率，<span class="arithmatex">\(B\)</span> 是背景期望。若 <span class="arithmatex">\(B\)</span> 已知且足够大，<span class="arithmatex">\(S/\sqrt B\)</span> 是直觉上好用的近似；更稳健的计数近似是</p>
+<div class="arithmatex">\[
+Z_A=\sqrt{2[(S+B)\ln(1+S/B)-S]}.
+\]</div>
+<p>它仍然是假设条件下的预期显著性，不含背景归一化不确定度、能标、建模、选择相关性、试验次数等 nuisance。严格分析需要 profile likelihood 或贝叶斯后验、控制区、盲分析规则和系统误差协方差。</p>
+<p>这条 <span class="arithmatex">\(Z_A\)</span> 写法还要求窗口内的背景期望 <span class="arithmatex">\(B&gt;0\)</span>。在“背景被精确知道为零”的理想化极限中，它并没有一个有限的 <span class="arithmatex">\(B\to0\)</span> 极限；真实分析也几乎不会拥有零不确定度的零背景。遇到稀有计数时，应显式写出背景先验或控制区约束并计算 Poisson/profile-likelihood 结果，不能把 <span class="arithmatex">\(B=0\)</span> 偷换成一个看似确定的有限显著性。</p>
+<h3 id="6">6. 观测层、模型层与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>观测层：</strong>触发器记录的事件、轨迹参数、量热器能量、缪子命中、缺失横动量和最终直方图。校准后这些是可重复的数据对象。</li>
+<li><strong>模型层：</strong>过程的矩阵元、PDF、parton shower、强子化、探测器响应、信号/背景模板和统计模型。对数据的峰、尾部和计数的解释由这些输入共同决定。</li>
+<li><strong>失败边界：</strong><span class="arithmatex">\(S/\sqrt B\)</span> 在 <span class="arithmatex">\(B\)</span> 很小、背景不确定或选择后事件彼此相关时不可靠；“五个标准差”还要说明局部/全局显著性和试验空间；再漂亮的 bump 也可能是未建模背景或看了太多分布后的偶然。</li>
+</ul>
+<p>常见误区是把“重建质量 = 粒子真实质量”当成同一句话。更谨慎的表达是：在一个过程假设和响应模型下，若数据的质量分布与一个质量参数为 <span class="arithmatex">\(M\)</span> 的信号模板共同拟合得更好，才得到对 <span class="arithmatex">\(M\)</span> 的推断；参数估计带有统计和系统不确定度。</p>
+<p><strong>迁移题：</strong>把默认两体事件改成一个可见粒子加一个不可见粒子。指出为什么不能用同一不变质量公式直接还原父粒子质量；再设计一个控制区，使背景归一化 nuisance 由数据而不是信号区峰高约束。最后说明若把所有事件数加倍，为什么统计误差大致下降为 <span class="arithmatex">\(1/\sqrt2\)</span>，但一个 5% 的能标系统误差不会按这个规律消失。</p>
+</section>
+<h2 id="1">1. 对撞机观测的层次结构<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>加速器提供碰撞四动量，但质子内部的 parton 只携带未知的纵向动量分数；碰撞过程还会有初态辐射、底层事件、强子化和 pile-up。探测器的任务不是“看见理论粒子”，而是把可测信号变成一组带校准和协方差的重建对象。</p>
+<p>典型通用探测器从里到外包含硅径迹系统、电磁量热器、强子量热器和缪子系统。带电粒子在磁场中的弯曲给 <span class="arithmatex">\(p_T\)</span>，量热器把粒子簇的能量分格记录，缪子穿透前层后在外层留下命中。触发器先用有限带宽选事件，离线重建再组合轨迹、簇和命中。每一层既提供信息，也提供效率、非线性和失效模式。</p>
+<h2 id="2_1">2. 为什么质量峰会出现<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>若短寿命共振 <span class="arithmatex">\(X\)</span> 产生并衰变为两个可见对象，真实四动量满足 <span class="arithmatex">\((p_1+p_2)^2=M_X^2\)</span>。大量相同过程事件因此在 <span class="arithmatex">\(m_{12}\)</span> 附近聚集，而连续背景从相空间和矩阵元产生平滑分布。这个“峰 + 平滑背景”的图像是工作假设，不是所有新物理的唯一签名：宽共振、干涉、阈值、cascade 衰变和不可见末态都会改形。</p>
+<p>从 detector-level 到 physics-level 的转换包含校准：轨迹材料、磁场、量热器能标、簇合并、喷注能量校正和 pile-up 修正。控制样本可以检验响应，例如已知质量的共振或平衡事件。校准不确定度会同时移动许多 bin，所以不能把每个 bin 当成互不相关的独立抽签。</p>
+<h2 id="3">3. 从直方图到似然<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设第 <span class="arithmatex">\(i\)</span> 个质量 bin 的期望为 <span class="arithmatex">\(\mu_i(\theta,\nu)=L\sigma(\theta)\varepsilon_i(\nu)+B_i(\nu)\)</span>，其中 <span class="arithmatex">\(\theta\)</span> 是兴趣参数，<span class="arithmatex">\(\nu\)</span> 是系统 nuisance。Poisson 似然写作</p>
+<div class="arithmatex">\[
+\mathcal L(\theta,\nu)=\prod_i\frac{\mu_i^{n_i}e^{-\mu_i}}{n_i!}\,\pi(\nu),
+\]</div>
+<p>或在频率学 profile likelihood 中把约束项以辅助测量的形式纳入。峰的位置、宽度、尾部、控制区与信号区的联合关系，都会进入参数估计。一个 bin 的高计数没有“独立发现意义”；全分布才是证据对象。</p>
+<h2 id="4_1">4. 统计显著性与物理显著性<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>统计显著性回答的是：在给定背景假设与分析规则下，背景涨落得到至少同样极端数据的概率有多小。物理解释还要问信号模板是否合理、不同频道是否相容、替代背景是否被排除、系统误差是否覆盖了差异、是否有独立数据复现。探索很多质量点、切割和变量会引入 look-elsewhere effect，局部峰的 <span class="arithmatex">\(p\)</span> 值不能直接当全局结论。</p>
+<p>因此严肃报告会同时给拟合参数、置信区间或后验、预期/观测显著性、背景建模、系统误差、控制区检验和交叉验证。实验与理论的接口是一个完整 pipeline，而不是从图上读一个峰高。</p>
+<h2 id="5">5. 练习与小结<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1（重建）</strong> 两个对象的 <span class="arithmatex">\((p_T,\eta,\phi)\)</span> 为 <span class="arithmatex">\((62.5,0,0)\)</span> 和 <span class="arithmatex">\((62.5,0,\pi)\)</span> GeV 时，<span class="arithmatex">\(m=125\)</span> GeV。若把二者整体沿束轴 boost，<span class="arithmatex">\(\eta\)</span> 会改变但 <span class="arithmatex">\(m\)</span> 不变；这检验了四动量不变量。</p>
+<p><strong>例 2（计数）</strong> <span class="arithmatex">\(S=240,B=720\)</span> 时，<span class="arithmatex">\(S/\sqrt B\approx8.944\)</span>，但窗口筛选、背景不确定度和试验次数会改变实际推断。快速公式用于估算，不替代 likelihood。</p>
+<p><strong>例 3（效率）</strong> 若产生 <span class="arithmatex">\(N=L\sigma\)</span> 个过程，选择后只保留 <span class="arithmatex">\(A\varepsilon=0.25\)</span>，观测期望是 <span class="arithmatex">\(0.25L\sigma\)</span>。把选择效率提高并不等于把新粒子的产生截面提高；它们在模型账本中是不同的因子。</p>
+<p>下一页回到宇宙尺度：微小初始密度起伏如何在膨胀背景中增长，转移函数又如何记住早期声学与视界信息。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="pp-04-flavor-neutrinos.html"><span class="pager-label">上一页</span>粒子 IV · 味、混合与中微子</a>
+  <a class="pager-slot next" href="neq-01-fluctuation.html"><span class="pager-label">下一页</span>非平衡 I · Langevin、线性响应与涨落定理</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-collider-detector.js"></script>
+</body>
+</html>

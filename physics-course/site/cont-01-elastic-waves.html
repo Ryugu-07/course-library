@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弹性、应力与声波 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li class="active"><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：同一界面上，振幅为什么会反相而能量仍为正？</a><ul>
+<li><a href="#elastic-wave-learning-title">1. 具体谜题：超声波进入另一种材料后发生什么？</a></li>
+<li><a href="#2">2. 最小模型：从应变到两种波速</a></li>
+<li><a href="#3">3. 动手实验：模式、材料和界面一次只改一个</a></li>
+<li><a href="#4">4. 误区、反例与适用边界</a></li>
+<li><a href="#5">5. 迁移题：把模式切换也纳入预测</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 小形变的几何与本构</a></li>
+<li><a href="#2-helmholtz-ps">2. Helmholtz 分解与 P、S 波</a></li>
+<li><a href="#3_1">3. 能量流与波阻抗</a></li>
+<li><a href="#4_1">4. 界面条件如何推出反射系数</a></li>
+<li><a href="#5_1">5. 例子、驻波与模型升级</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">连续介质 I · 弹性波：纵横模式、阻抗与界面反射<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Achenbach <em>Wave Propagation in Elastic Solids</em> ch.1–2 / Landau《弹性理论》§7 ｜ <strong>前置</strong>：fl-01（连续介质守恒）、solid-01（晶格与声子）、qm-02（波包）
+固体不是“不会流动的空气”：受到扰动时，局部形变会通过应力把信息传给邻近区域。弹性波的速度由“恢复力有多硬”和“惯性有多大”共同决定；遇到材料界面时，波的振幅、相位和能量又由波阻抗共同约束。本页把纵波、剪切横波与界面反射放进同一份账本。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="elastic-wave-learning-title" class="learning-layer">
+<h2 id="_1">学习层：同一界面上，振幅为什么会反相而能量仍为正？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="elastic-wave-learning-title">1. 具体谜题：超声波进入另一种材料后发生什么？<a class="headerlink" href="#elastic-wave-learning-title" title="Permanent link"></a></h3>
+<p>医学超声、地震波和金属探伤都要回答同一个问题：一列波从材料 1 进入材料 2，多少能量被反射，多少继续前进？先取一个法向入射的简化界面：铝在左，钢在右；频率 <span class="arithmatex">\(f=1.00\ \mathrm{MHz}\)</span>。我们会在后面算出铝的纵波速度约 <span class="arithmatex">\(6.402\ \mathrm{km/s}\)</span>，钢中约 <span class="arithmatex">\(5.818\ \mathrm{km/s}\)</span>。</p>
+<p>打开实验台以前，先预测：</p>
+<ol>
+<li>若材料的弹性模量相同而密度变大，波速会变快、变慢，还是不变？</li>
+<li>波从低阻抗材料进入高阻抗材料时，位移反射波是否反相？</li>
+<li>无耗散界面上，必须相加为 <span class="arithmatex">\(1\)</span> 的是振幅系数，还是能量系数？</li>
+</ol>
+<p>“波很硬所以反射多”还不是计算。需要先从本构关系得到波速，再用位移与应力的边界条件得到阻抗匹配。</p>
+<h3 id="2">2. 最小模型：从应变到两种波速<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>位移场记作 <span class="arithmatex">\(\mathbf u(\mathbf x,t)\)</span>，小应变张量为</p>
+<div class="arithmatex">\[
+\varepsilon_{ij}=\frac12(\partial_i u_j+\partial_j u_i).
+\]</div>
+<p>各向同性线性材料的 Hooke 定律是</p>
+<div class="arithmatex">\[
+\sigma_{ij}=\lambda_{\mathrm L}\delta_{ij}\,\nabla\cdot\mathbf u+2G\varepsilon_{ij},
+\]</div>
+<p>其中 <span class="arithmatex">\(G\)</span> 是剪切模量，<span class="arithmatex">\(\lambda_{\mathrm L}\)</span> 是 Lamé 第一参数。动量守恒
+<span class="arithmatex">\(\rho\,\partial_t^2u_i=\partial_j\sigma_{ij}\)</span> 给出 Navier 方程：</p>
+<div class="arithmatex">\[
+\rho\,\ddot{\mathbf u}
+=(\lambda_{\mathrm L}+G)\nabla(\nabla\cdot\mathbf u)+G\nabla^2\mathbf u.
+\]</div>
+<p>把位移分解成无旋的纵向部分与无散的横向部分：</p>
+<div class="arithmatex">\[
+\mathbf u=\mathbf u_{\mathrm L}+\mathbf u_{\mathrm T},\qquad
+\nabla\times\mathbf u_{\mathrm L}=0,\qquad
+\nabla\cdot\mathbf u_{\mathrm T}=0.
+\]</div>
+<p>两类部分各自满足波动方程。用体积模量
+<span class="arithmatex">\(K=\lambda_{\mathrm L}+2G/3\)</span> 表示，速度是</p>
+<div class="arithmatex">\[
+c_{\mathrm L}=\sqrt{\frac{K+4G/3}{\rho}},
+\qquad
+c_{\mathrm T}=\sqrt{\frac{G}{\rho}}.
+\]</div>
+<p>纵波的位移方向平行于传播方向，横波的位移方向垂直于传播方向。这里的横波是法向入射的 SH 剪切模式；斜入射时会出现 P-SV 模式转换，不能把一个标量反射系数直接搬过去。</p>
+<h3 id="3">3. 动手实验：模式、材料和界面一次只改一个<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先完成三个预测，再打开实验台。预设包括铝到钢、反向传播、铝的剪切横波以及软材料界面。改变模式或材料后，波形图会同步改变速度与波长；能量柱显示反射率 <span class="arithmatex">\(R\)</span> 和透射率 <span class="arithmatex">\(T\)</span>，因此可以检查“位移反相”与“能量守恒”不是同一个符号。</p>
+<div class="learning-lab" data-learning-lab="physics-elastic-wave">
+<p><strong>无 JavaScript 时的静态读法：</strong>模型是各向同性、线性、无耗散材料的法向入射标量波。默认值为铝 <span class="arithmatex">\(\to\)</span> 钢、纵波、<span class="arithmatex">\(f=1.00\ \mathrm{MHz}\)</span>。使用材料参数
+<span class="arithmatex">\(\rho_{\mathrm{Al}}=2700\ \mathrm{kg/m^3}\)</span>、<span class="arithmatex">\(K_{\mathrm{Al}}=76\ \mathrm{GPa}\)</span>、<span class="arithmatex">\(G_{\mathrm{Al}}=26\ \mathrm{GPa}\)</span>，
+<span class="arithmatex">\(\rho_{\mathrm{steel}}=7850\ \mathrm{kg/m^3}\)</span>、<span class="arithmatex">\(K_{\mathrm{steel}}=160\ \mathrm{GPa}\)</span>、<span class="arithmatex">\(G_{\mathrm{steel}}=79.3\ \mathrm{GPa}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">铝（介质 1）</th>
+<th style="text-align: right;">钢（介质 2）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纵波速 <span class="arithmatex">\(c_{\mathrm L}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.402\ \mathrm{km/s}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.818\ \mathrm{km/s}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(1\ \mathrm{MHz}\)</span> 波长 <span class="arithmatex">\(\lambda=c/f\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.402\ \mathrm{mm}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.818\ \mathrm{mm}\)</span></td>
+</tr>
+<tr>
+<td>纵波阻抗 <span class="arithmatex">\(Z=\rho c\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(17.286\ \mathrm{MRayl}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(45.673\ \mathrm{MRayl}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>把位移（或速度）振幅的反射、透射系数定义为</p>
+<div class="arithmatex">\[
+r_u=\frac{Z_1-Z_2}{Z_1+Z_2}=-0.451,\qquad
+t_u=\frac{2Z_1}{Z_1+Z_2}=0.549.
+\]</div>
+<p>所以默认界面有</p>
+<table>
+<thead>
+<tr>
+<th>能量项</th>
+<th style="text-align: right;">数值</th>
+<th>检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>反射率 <span class="arithmatex">\(R=\lvert r_u\rvert^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.203\)</span></td>
+<td>约 <span class="arithmatex">\(20.3\%\)</span></td>
+</tr>
+<tr>
+<td>透射率 <span class="arithmatex">\(T=4Z_1Z_2/(Z_1+Z_2)^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.797\)</span></td>
+<td>约 <span class="arithmatex">\(79.7\%\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(R+T\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.000\)</span></td>
+<td>无耗散界面</td>
+</tr>
+</tbody>
+</table>
+<p>负的 <span class="arithmatex">\(r_u\)</span> 表示铝侧的反射位移反相，不表示负能量。若换成钢 <span class="arithmatex">\(\to\)</span> 铝，<span class="arithmatex">\(r_u\)</span> 会变成正值，而 <span class="arithmatex">\(R\)</span> 与 <span class="arithmatex">\(T\)</span> 保持相同的交换对称结构。</p>
+<h3 id="4">4. 误区、反例与适用边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<ul>
+<li><strong>速度不是只由密度决定。</strong><span class="arithmatex">\(c\)</span> 同时含模量与密度；软而轻的聚合物和硬而重的钢不能用“密度越大越慢”单独判断。</li>
+<li><strong>负振幅不是负功率。</strong>能量流与阻抗、速度振幅的平方有关；反相说明波形翻转。</li>
+<li><strong><span class="arithmatex">\(R+T=1\)</span> 需要无耗散和正确的能量归一化。</strong>有黏弹性、吸收、粗糙界面或模式转换时，反射与透射之外还要记吸收和其他模式。</li>
+<li><strong>这是法向入射的标量界面。</strong>斜入射的固体界面一般会发生纵横波转换，边界条件是位移与牵引力的向量连续，不能只保留一个 <span class="arithmatex">\(Z\)</span>。</li>
+<li><strong>连续介质会失效。</strong>当波长接近晶格常数，原子离散性带来色散和带隙；材料非线性显著时，波形会产生谐波甚至冲击。</li>
+</ul>
+<h3 id="5">5. 迁移题：把模式切换也纳入预测<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>保持铝 <span class="arithmatex">\(\to\)</span> 钢与 <span class="arithmatex">\(f=1\ \mathrm{MHz}\)</span>，切换到剪切横波。铝的
+<span class="arithmatex">\(c_{\mathrm T}=\sqrt{G/\rho}\approx3.103\ \mathrm{km/s}\)</span>，因此波长约 <span class="arithmatex">\(3.103\ \mathrm{mm}\)</span>；钢侧的剪切阻抗与纵波阻抗不同，反射相位和比例都要重新计算。先在纸上写出</p>
+<div class="arithmatex">\[
+Z_{\mathrm T}=\rho c_{\mathrm T},\qquad
+r_u=\frac{Z_1-Z_2}{Z_1+Z_2},\qquad
+R=|r_u|^2.
+\]</div>
+<p>再用实验台核对。最后回答：如果只看到“钢更硬”，为什么仍不能直接猜出横波反射率？你必须指出速度公式里的 <span class="arithmatex">\(G\)</span> 和界面条件里的 <span class="arithmatex">\(Z\)</span> 分别承担了什么角色。</p>
+</div>
+</section>
+<h2 id="1">1. 小形变的几何与本构<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>连续介质近似把材料中足够大的局部区域视为平滑位移场。位移 <span class="arithmatex">\(\mathbf u\)</span> 的梯度描述邻近点相对移动；其对称部分是应变，反对称部分是刚体小转动。线性弹性只保留一阶应变，因而</p>
+<div class="arithmatex">\[
+\varepsilon_{ij}=\frac12(\partial_i u_j+\partial_j u_i).
+\]</div>
+<p>应力 <span class="arithmatex">\(\boldsymbol\sigma\)</span> 是单位面积上的内力，线性各向同性本构写成</p>
+<div class="arithmatex">\[
+\boldsymbol\sigma
+=\lambda_{\mathrm L}(\nabla\cdot\mathbf u)\mathbf I+2G\boldsymbol\varepsilon.
+\]</div>
+<p>体积模量 <span class="arithmatex">\(K\)</span> 与 Lamé 参数的关系是
+<span class="arithmatex">\(K=\lambda_{\mathrm L}+2G/3\)</span>。正定的弹性能要求合适的模量约束；物理材料的压缩与剪切变形都要付出能量。</p>
+<p>没有体力时，动量守恒是</p>
+<div class="arithmatex">\[
+\rho\ddot{\mathbf u}=\nabla\cdot\boldsymbol\sigma.
+\]</div>
+<p>把本构代入，并利用 <span class="arithmatex">\(\nabla\cdot\boldsymbol\varepsilon
+=\frac12[\nabla(\nabla\cdot\mathbf u)+\nabla^2\mathbf u]\)</span>，得到</p>
+<div class="arithmatex">\[
+\rho\ddot{\mathbf u}
+=(\lambda_{\mathrm L}+G)\nabla(\nabla\cdot\mathbf u)+G\nabla^2\mathbf u.
+\]</div>
+<p>这里没有凭空假设“波速”；波速正是本构的恢复力系数除以质量密度后开平方的结果。</p>
+<h2 id="2-helmholtz-ps">2. Helmholtz 分解与 P、S 波<a class="headerlink" href="#2-helmholtz-ps" title="Permanent link"></a></h2>
+<p>对平面波 <span class="arithmatex">\(\mathbf u=\mathbf u_0e^{i(\mathbf k\cdot\mathbf x-\omega t)}\)</span>，把振幅分成与 <span class="arithmatex">\(\mathbf k\)</span> 平行和垂直的部分。纵向部分满足
+<span class="arithmatex">\(\mathbf k\times\mathbf u_{\mathrm L}=0\)</span>，横向部分满足
+<span class="arithmatex">\(\mathbf k\cdot\mathbf u_{\mathrm T}=0\)</span>。代回 Navier 方程：</p>
+<div class="arithmatex">\[
+\omega_{\mathrm L}^2=c_{\mathrm L}^2k^2,\qquad
+\omega_{\mathrm T}^2=c_{\mathrm T}^2k^2,
+\]</div>
+<p>其中</p>
+<div class="arithmatex">\[
+c_{\mathrm L}^2=\frac{\lambda_{\mathrm L}+2G}{\rho}
+=\frac{K+4G/3}{\rho},
+\qquad
+c_{\mathrm T}^2=\frac{G}{\rho}.
+\]</div>
+<p>由于同一稳定材料满足 <span class="arithmatex">\(\lambda_{\mathrm L}+G&gt;0\)</span>，通常 <span class="arithmatex">\(c_{\mathrm L}&gt;c_{\mathrm T}\)</span>。纵波压缩/膨胀改变密度，地震学常称 P 波；剪切横波不改变一阶体积，常称 S 波。液体在静态剪切模量近似为零，所以不能支持同样的体积内横波，这个差异正是地震波探测地球内部的线索之一。</p>
+<p>无耗散均匀介质的色散关系是线性的 <span class="arithmatex">\(\omega=ck\)</span>，因此相速和群速都等于 <span class="arithmatex">\(c\)</span>。这只是长波连续模型的结论；晶格离散性、黏弹性和频率依赖本构都会让 <span class="arithmatex">\(\omega(k)\)</span> 弯曲。</p>
+<h2 id="3_1">3. 能量流与波阻抗<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>弹性波的瞬时功率流可以写成应力对速度的作用：</p>
+<div class="arithmatex">\[
+P_i=-\sigma_{ij}\dot u_j.
+\]</div>
+<p>负号取决于牵引力和外法线的约定，但能量守恒的结构不变：应力做功把能量从一层材料传给下一层。对一维简谐波，位移振幅 <span class="arithmatex">\(U\)</span>、速度振幅 <span class="arithmatex">\(\omega U\)</span> 与应力振幅相乘，平均强度满足</p>
+<div class="arithmatex">\[
+\langle I\rangle\propto Z\,|\dot U|^2,\qquad Z=\rho c.
+\]</div>
+<p><span class="arithmatex">\(Z\)</span> 的单位为 <span class="arithmatex">\(\mathrm{kg/(m^2s)}\)</span>，常称 MRayl。它衡量介质对运动的“惯性负担”；两种材料的 <span class="arithmatex">\(c\)</span> 可能接近，但若 <span class="arithmatex">\(\rho\)</span> 差异大，阻抗仍会明显不匹配。</p>
+<h2 id="4_1">4. 界面条件如何推出反射系数<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>设界面在 <span class="arithmatex">\(x=0\)</span>，左侧入射波、反射波，右侧透射波。法向入射且没有界面质量时，界面处的位移连续：</p>
+<div class="arithmatex">\[
+U_i+U_r=U_t.
+\]</div>
+<p>牵引应力连续；对向右传播和向左传播的平面波，速度方向与应力方向在反射波上相反，因此</p>
+<div class="arithmatex">\[
+Z_1(U_i-U_r)=Z_2U_t
+\]</div>
+<p>（共同的 <span class="arithmatex">\(-i\omega\)</span> 因子已约去）。联立两式：</p>
+<div class="arithmatex">\[
+\frac{U_r}{U_i}=\frac{Z_1-Z_2}{Z_1+Z_2},
+\qquad
+\frac{U_t}{U_i}=\frac{2Z_1}{Z_1+Z_2}.
+\]</div>
+<p>强度不是简单的振幅平方，因为左右介质的阻抗不同。用 <span class="arithmatex">\(\langle I\rangle\propto Z|\dot U|^2\)</span>：</p>
+<div class="arithmatex">\[
+R=\left|\frac{U_r}{U_i}\right|^2,\qquad
+T=\frac{Z_2}{Z_1}\left|\frac{U_t}{U_i}\right|^2
+=\frac{4Z_1Z_2}{(Z_1+Z_2)^2},
+\]</div>
+<p>于是 <span class="arithmatex">\(R+T=1\)</span>。阻抗匹配 <span class="arithmatex">\(Z_1=Z_2\)</span> 时 <span class="arithmatex">\(r_u=0\)</span>；完全反射的极限来自强失配，而不是材料“把波吞回去”。</p>
+<h2 id="5_1">5. 例子、驻波与模型升级<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>例 1：自由端与固定端。</strong>把第二介质阻抗趋近零，<span class="arithmatex">\(r_u\to+1\)</span>，位移在界面同相反射；把阻抗趋近无穷大，<span class="arithmatex">\(r_u\to-1\)</span>，位移反相。这是绳端反射两种极限的连续介质版本。</p>
+<p><strong>例 2：有限棒的共振。</strong>长度为 <span class="arithmatex">\(L\)</span> 的两端边界会把向前和反射波叠加成驻波。理想自由-自由或固定-固定棒的纵向本征频率近似为</p>
+<div class="arithmatex">\[
+f_n=\frac{n c_{\mathrm L}}{2L},\qquad n=1,2,\ldots
+\]</div>
+<p>边界条件改变的是允许的节点结构，不是把材料内部的波速重新定义。</p>
+<p><strong>例 3：从声子到宏观波。</strong>设一维链相邻原子间的键力常数为 <span class="arithmatex">\(k_s\)</span>（单位 <span class="arithmatex">\(\mathrm{N/m}\)</span>）、原子质量为 <span class="arithmatex">\(m\)</span>、晶格间距为 <span class="arithmatex">\(a\)</span>。长波极限给出 <span class="arithmatex">\(\omega\approx c k\)</span>；当 <span class="arithmatex">\(ka\)</span> 不再很小时，离散方程给出
+<span class="arithmatex">\(\omega=2\sqrt{k_s/m}\,\lvert\sin(ka/2)\rvert\)</span>。这里的 <span class="arithmatex">\(k_s\)</span> 不是前文单位为 Pa 的体积模量 <span class="arithmatex">\(K\)</span>。此时群速可小于相速，甚至在带边为零；“固体里波速恒定”只属于连续、线性、低频近似。</p>
+<p>工程上还要加入黏弹性损耗、界面粗糙度、晶粒散射和非线性。学习层的 <span class="arithmatex">\(R,T\)</span> 仍是第一层证书：它告诉我们边界条件如何工作，但不是对复杂材料的完整超声反演。</p>
+<hr />
+<p><em>弹性波把“局部应力”变成了携带能量和信息的传播解。下一章转向电磁场：介质中的色散会让相速与群速分开，金属边界还会把横向边界条件变成波导截止。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="mech-05-central-scattering.html"><span class="pager-label">上一页</span>力学 V · 轨道、散射与截面</a>
+  <a class="pager-slot next" href="em-01-electrostatics.html"><span class="pager-label">下一页</span>电磁 I · 静电与静磁</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-elastic-wave.js"></script>
+</body>
+</html>

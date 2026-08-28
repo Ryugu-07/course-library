@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>噪声、频谱与锁相检测 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li class="active"><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：噪声变小了，信号真的变清楚了吗？</a><ul>
+<li><a href="#lockin-noise-learning-title">1. 具体谜题：一个 1 mV 信号为什么值得做频率选择？</a></li>
+<li><a href="#2">2. 先预测：先写答案，再打开频谱账本</a></li>
+<li><a href="#3-psd-rms">3. PSD 到 RMS：带宽是噪声积分的上下限</a></li>
+<li><a href="#4-enbw">4. 单极点滤波器：截止频率不是 ENBW</a></li>
+<li><a href="#5">5. 混频与相位：锁相改变的是坐标和带宽</a></li>
+<li><a href="#6">6. 误区与失败边界：窄带检测不是万能滤镜</a></li>
+<li><a href="#7-snr">7. 迁移任务：把 SNR 提升写成可审计的实验选择</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 噪声的对象：随机过程、方差与频率分布</a></li>
+<li><a href="#2_1">2. 滤波器的两种带宽</a></li>
+<li><a href="#3">3. 同步检测的频域图像</a></li>
+<li><a href="#4-snr">4. SNR 的定义必须指明比较对象</a></li>
+<li><a href="#5_1">5. 实验流程与残余风险</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">实验 II · 噪声、功率谱与锁相检测<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：随机过程、频谱分析、滤波器与锁相放大器 ｜ <strong>前置</strong>：exp-01（不确定度与协方差）、em-02（交流信号）
+一个小信号难测，通常不是因为“噪声很大”这一句就结束了。噪声有频率分布，滤波器有等效噪声带宽，锁相放大器还把相位信息投影到同相与正交通道。本页固定一个可审计的 PSD 约定，让你先预测带宽如何改变 RMS 噪声，再判断锁相究竟保留了什么、丢掉了什么。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="lockin-noise-learning-title" class="learning-layer">
+<h2 id="_1">学习层：噪声变小了，信号真的变清楚了吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="lockin-noise-learning-title">1. 具体谜题：一个 1 mV 信号为什么值得做频率选择？<a class="headerlink" href="#lockin-noise-learning-title" title="Permanent link"></a></h3>
+<p>设传感器输出</p>
+<div class="arithmatex">\[
+v(t)=A\cos(2\pi f_0t+\phi)+n(t),
+\]</div>
+<p>其中 <span class="arithmatex">\(A=1.000\ \mathrm{mV}\)</span> 是峰值振幅，<span class="arithmatex">\(f_0=137\ \mathrm{Hz}\)</span>，噪声是平稳白噪声。直接测量如果放过 <span class="arithmatex">\(B=1000\ \mathrm{Hz}\)</span> 的带宽，会把这一整段频率的噪声都积分进读数。锁相放大器则用同频参考作乘法，再用低通保留慢变化的 <span class="arithmatex">\(I,Q\)</span> 输出。</p>
+<p>看起来“锁相后噪声变小”很诱人，但有三个容易互相打架的问题：</p>
+<ol>
+<li>PSD 是每 Hz 的功率，还是已经积分过的 RMS？把两者混用会差很多；</li>
+<li>单极点滤波器的截止频率 <span class="arithmatex">\(f_c\)</span> 是不是它真正的噪声带宽？</li>
+<li>参考相位错 <span class="arithmatex">\(90^\circ\)</span> 时，信号是消失了，还是只从 <span class="arithmatex">\(I\)</span> 通道转移到了 <span class="arithmatex">\(Q\)</span> 通道？</li>
+</ol>
+<h3 id="2">2. 先预测：先写答案，再打开频谱账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>本实验默认 <span class="arithmatex">\(S_n=1.0\times10^{-8}\ \mathrm{V^2/Hz}\)</span>、直接带宽 <span class="arithmatex">\(B=1000\ \mathrm{Hz}\)</span>、锁相时间常数 <span class="arithmatex">\(\tau=0.010\ \mathrm s\)</span>、参考相位 <span class="arithmatex">\(\phi=0^\circ\)</span>。这里 <span class="arithmatex">\(S_n\)</span> 明确采用<strong>单边</strong>电压 PSD，单位为 <span class="arithmatex">\(\mathrm{V^2/Hz}\)</span>。先预测：</p>
+<ol>
+<li>白噪声带宽扩大 4 倍时，RMS 噪声会变为原来的 2 倍、4 倍，还是不变？</li>
+<li><span class="arithmatex">\(\tau\)</span> 加倍时，单极点的等效噪声带宽 <span class="arithmatex">\(B_{\rm ENBW}\)</span> 会加倍还是减半？</li>
+<li>默认参数下，直接 SNR 更接近 <span class="arithmatex">\(0.224\)</span>，还是锁相 SNR 更接近 <span class="arithmatex">\(0.224\)</span>？</li>
+<li><span class="arithmatex">\(\phi=90^\circ\)</span> 时，锁相的 <span class="arithmatex">\(I\)</span> 会为零；这是否意味着 <span class="arithmatex">\(Q\)</span> 也为零？</li>
+</ol>
+<p>先选择预测再揭示图。实验把白噪声底、参考频率附近的窄带信号、滤波通带和两个 SNR 画在同一个账本里；拖动相位时，<span class="arithmatex">\(I\)</span> 与 <span class="arithmatex">\(Q\)</span> 的分工会直接可见。</p>
+<h3 id="3-psd-rms">3. PSD 到 RMS：带宽是噪声积分的上下限<a class="headerlink" href="#3-psd-rms" title="Permanent link"></a></h3>
+<p>本页使用单边 PSD 定义：对实值噪声，只在 <span class="arithmatex">\(f\ge0\)</span> 记谱密度 <span class="arithmatex">\(S_n(f)\)</span>，并令</p>
+<div class="arithmatex">\[
+\sigma_n^2=\int_0^\infty S_n(f)\,df.
+\]</div>
+<p>白噪声在测量带宽 <span class="arithmatex">\(B\)</span> 内近似为常数 <span class="arithmatex">\(S_n\)</span>，所以</p>
+<div class="arithmatex">\[
+\boxed{\sigma_{\rm direct}=\sqrt{S_nB}.}
+\]</div>
+<p>默认值给出</p>
+<div class="arithmatex">\[
+\sigma_{\rm direct}
+=\sqrt{(1.0\times10^{-8})(1000)}
+=3.16228\ \mathrm{mV}.
+\]</div>
+<p>信号的 <span class="arithmatex">\(A\)</span> 是峰值振幅，而正弦的 RMS 是 <span class="arithmatex">\(A/\sqrt2=0.707107\ \mathrm{mV}\)</span>，所以直接 SNR 为</p>
+<div class="arithmatex">\[
+\mathrm{SNR}_{\rm direct}
+=\frac{A/\sqrt2}{\sqrt{S_nB}}
+=\frac{A}{\sqrt{2S_nB}}
+=0.223607.
+\]</div>
+<p>这一步的关键不是记住 <span class="arithmatex">\(\sqrt B\)</span>，而是知道 RMS 平方是功率，PSD 乘带宽才是功率。若把 <span class="arithmatex">\(S_n\)</span> 当成 <span class="arithmatex">\(\mathrm{V/\sqrt{Hz}}\)</span> 的幅度谱密度，公式和单位都会错一层。</p>
+<h3 id="4-enbw">4. 单极点滤波器：截止频率不是 ENBW<a class="headerlink" href="#4-enbw" title="Permanent link"></a></h3>
+<p>锁相低通的一个教学模型是</p>
+<div class="arithmatex">\[
+H(f)=\frac{1}{1+i2\pi f\tau},
+\qquad
+|H(f)|^2=\frac{1}{1+(2\pi f\tau)^2}.
+\]</div>
+<p>幅度下降到 <span class="arithmatex">\(1/\sqrt2\)</span> 的 <span class="arithmatex">\(-3\ \mathrm{dB}\)</span> 截止频率为</p>
+<div class="arithmatex">\[
+f_c=\frac{1}{2\pi\tau}.
+\]</div>
+<p>但白噪声通过滤波器后的功率要积分 <span class="arithmatex">\(|H|^2\)</span>，所以等效噪声带宽是</p>
+<div class="arithmatex">\[
+B_{\rm ENBW}
+=\int_0^\infty |H(f)|^2\,df
+=\frac{1}{4\tau}
+=\frac{\pi}{2}f_c.
+\]</div>
+<p>默认 <span class="arithmatex">\(\tau=0.010\ \mathrm s\)</span> 时，<span class="arithmatex">\(f_c=15.9155\ \mathrm{Hz}\)</span>，而 <span class="arithmatex">\(B_{\rm ENBW}=25.00\ \mathrm{Hz}\)</span>。把 <span class="arithmatex">\(f_c\)</span> 直接当 ENBW 会低估经过滤波器的白噪声功率；把两者都叫“带宽”却不说明定义，是实验记录中很常见的隐患。</p>
+<h3 id="5">5. 混频与相位：锁相改变的是坐标和带宽<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>用参考 <span class="arithmatex">\(\cos(2\pi f_0t)\)</span> 与信号相乘，三角恒等式给出</p>
+<div class="arithmatex">\[
+\cos(2\pi f_0t+\phi)\cos(2\pi f_0t)
+=\frac12\cos\phi
++\frac12\cos(4\pi f_0t+\phi).
+\]</div>
+<p>低通去掉 <span class="arithmatex">\(2f_0\)</span> 附近的快速项后，信号落到直流。实验采用幅度校准，使同相和正交输出写作</p>
+<div class="arithmatex">\[
+I=A\cos\phi,\qquad Q=A\sin\phi.
+\]</div>
+<p>因此 <span class="arithmatex">\(I^2+Q^2=A^2\)</span>，这是理想相位旋转下的一个不变量；只看 <span class="arithmatex">\(I\)</span> 时，<span class="arithmatex">\(\phi=90^\circ\)</span> 会让信号暂时看起来消失，但 <span class="arithmatex">\(Q\)</span> 仍为 <span class="arithmatex">\(A\)</span>。参考频率偏离 <span class="arithmatex">\(f_0\)</span> 时，低通输出会出现随时间旋转的拍频，不能再把它当成稳定的 DC 读数。</p>
+<p>对 PSD 的因子也要跟校准一起声明。本实验把输入 <span class="arithmatex">\(S_n\)</span> 定义为单边 PSD，并把混频后 <span class="arithmatex">\(I/Q\)</span> 通道的增益校准为上式，于是白噪声输出方差采用</p>
+<div class="arithmatex">\[
+\boxed{\sigma_{\rm LI}^2=2S_nB_{\rm ENBW},\qquad
+\sigma_{\rm LI}=\sqrt{2S_nB_{\rm ENBW}}.}
+\]</div>
+<p>这个 <span class="arithmatex">\(2\)</span> 是“单边输入 PSD + 本实验混频/输出校准”的约定结果。若改用双边 PSD <span class="arithmatex">\(S_n^{(2)}=S_n/2\)</span>，或者把混频器增益归一化到另一种定义，公式中的因子会随之重写；不能只换一个因子而保留其余数字。</p>
+<p>默认锁相噪声为</p>
+<div class="arithmatex">\[
+\sigma_{\rm LI}
+=\sqrt{2(1.0\times10^{-8})(25)}
+=0.707107\ \mathrm{mV}.
+\]</div>
+<p>相位对齐时 <span class="arithmatex">\(I=A\)</span>，所以</p>
+<div class="arithmatex">\[
+\mathrm{SNR}_{\rm LI}
+=\frac{A\cos\phi}{\sqrt{2S_nB_{\rm ENBW}}}
+=1.41421.
+\]</div>
+<p>和直接 SNR 的比值是</p>
+<div class="arithmatex">\[
+\frac{\mathrm{SNR}_{\rm LI}}{\mathrm{SNR}_{\rm direct}}
+=\cos\phi\sqrt{\frac{B}{B_{\rm ENBW}}}.
+\]</div>
+<p>默认 <span class="arithmatex">\(\phi=0^\circ\)</span>，故提升为 <span class="arithmatex">\(\sqrt{1000/25}=6.32456\)</span>。它来自把噪声积分窗口缩窄，不是锁相放大器把白噪声“消灭”了。</p>
+<div class="learning-lab" data-learning-lab="physics-lockin-noise">
+<p><strong>无 JavaScript 时的静态读法：</strong>采用单边输入电压 PSD <span class="arithmatex">\(S_n=1.0\times10^{-8}\ \mathrm{V^2/Hz}\)</span>，信号峰值 <span class="arithmatex">\(A=1.000\ \mathrm{mV}\)</span>，参考频率 <span class="arithmatex">\(f_0=137\ \mathrm{Hz}\)</span>，直接通道带宽 <span class="arithmatex">\(B=1000\ \mathrm{Hz}\)</span>，单极点时间常数 <span class="arithmatex">\(\tau=0.010\ \mathrm s\)</span>，相位 <span class="arithmatex">\(\phi=0^\circ\)</span>。白噪声假设平稳且在相关频段近似平坦，参考频率与信号对齐。</p>
+<table>
+<thead>
+<tr>
+<th>账本</th>
+<th style="text-align: right;">默认数值</th>
+<th>公式与解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直接噪声 RMS</td>
+<td style="text-align: right;"><span class="arithmatex">\(3.16228\ \mathrm{mV}\)</span></td>
+<td><span class="arithmatex">\(\sqrt{S_nB}\)</span></td>
+</tr>
+<tr>
+<td>正弦信号 RMS</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.707107\ \mathrm{mV}\)</span></td>
+<td><span class="arithmatex">\(A/\sqrt2\)</span>，因为 <span class="arithmatex">\(A\)</span> 是峰值</td>
+</tr>
+<tr>
+<td>直接 SNR</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.223607\)</span></td>
+<td><span class="arithmatex">\((A/\sqrt2)/\sqrt{S_nB}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(-3\ \mathrm{dB}\)</span> 截止频率</td>
+<td style="text-align: right;"><span class="arithmatex">\(15.9155\ \mathrm{Hz}\)</span></td>
+<td><span class="arithmatex">\(1/(2\pi\tau)\)</span></td>
+</tr>
+<tr>
+<td>锁相 ENBW</td>
+<td style="text-align: right;"><span class="arithmatex">\(25.00\ \mathrm{Hz}\)</span></td>
+<td><span class="arithmatex">\(1/(4\tau)\)</span>，不是 <span class="arithmatex">\(f_c\)</span></td>
+</tr>
+<tr>
+<td>锁相噪声 RMS</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.707107\ \mathrm{mV}\)</span></td>
+<td><span class="arithmatex">\(\sqrt{2S_nB_{\rm ENBW}}\)</span></td>
+</tr>
+<tr>
+<td>锁相 <span class="arithmatex">\(I\)</span> SNR</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.41421\)</span></td>
+<td><span class="arithmatex">\(A\cos\phi/\sigma_{\rm LI}\)</span></td>
+</tr>
+<tr>
+<td>SNR 提升</td>
+<td style="text-align: right;"><span class="arithmatex">\(6.32456\)</span> 倍</td>
+<td><span class="arithmatex">\(\sqrt{B/B_{\rm ENBW}}\)</span>，相位对齐</td>
+</tr>
+</tbody>
+</table>
+<p>左图的平坦蓝线表示白噪声 PSD，红色标记表示 <span class="arithmatex">\(f_0\)</span>，阴影表示参考附近的低通选择；右图先比较直接/锁相噪声，再比较对应 SNR。改变 <span class="arithmatex">\(\phi\)</span> 时，<span class="arithmatex">\(I\)</span> 下降、<span class="arithmatex">\(Q\)</span> 上升，但若同时读取两通道，理想的 <span class="arithmatex">\(\sqrt{I^2+Q^2}\)</span> 不应因相位旋转而改变。</p>
+</div>
+<h3 id="6">6. 误区与失败边界：窄带检测不是万能滤镜<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ul>
+<li><strong>混用单边与双边 PSD。</strong>实值信号的单边 PSD 把正负频率功率合并到 <span class="arithmatex">\(f\ge0\)</span>；双边 PSD 则在整个频轴积分。换约定时，数值密度和混频增益必须一起换，不能把 <span class="arithmatex">\(2\)</span> 当成可随意调的校正因子。</li>
+<li><strong>把 <span class="arithmatex">\(\mathrm{V^2/Hz}\)</span> 与 <span class="arithmatex">\(\mathrm{V/\sqrt{Hz}}\)</span> 混写。</strong>前者乘带宽后得到方差，后者乘 <span class="arithmatex">\(\sqrt{\text{带宽}}\)</span> 才得到 RMS。单位检查通常比肉眼看波形更快发现错误。</li>
+<li><strong>把截止频率当 ENBW。</strong><span class="arithmatex">\(-3\ \mathrm{dB}\)</span> 是幅度/功率响应的一个点，ENBW 是整个 <span class="arithmatex">\(|H|^2\)</span> 曲线的面积。不同滤波器阶数、形状因子和数字窗会给不同 ENBW。</li>
+<li><strong>认为锁相能救回频率漂移。</strong>参考与信号不相干、频率漂移超过低通带宽、相位随时间转动时，<span class="arithmatex">\(I\)</span> 会衰减或振荡。应先测参考稳定性和时间常数，再解释低读数。</li>
+<li><strong>忽略 <span class="arithmatex">\(1/f\)</span> 噪声与漂移。</strong>缩窄 ENBW 只按白噪声模型给出平方根收益；低频闪烁噪声、温漂、机械漂移和背景变化可能在更窄带宽下仍占主导。</li>
+<li><strong>把同步检测当作“只看信号”。</strong>谐波、参考串扰、地环路、调制副产物和与参考同频的背景也会进入 <span class="arithmatex">\(I/Q\)</span>。锁相选择的是相干性，不是“真实信号”的标签。</li>
+<li><strong>忽略滤波器瞬态。</strong>时间常数越长，稳态噪声越小但建立时间越长；在刚改变频率或相位时立即读数，会把瞬态当作物理响应。</li>
+</ul>
+<h3 id="7-snr">7. 迁移任务：把 SNR 提升写成可审计的实验选择<a class="headerlink" href="#7-snr" title="Permanent link"></a></h3>
+<p>设目标信号变成 <span class="arithmatex">\(A=0.2\ \mathrm{mV}\)</span>，但低频漂移使 <span class="arithmatex">\(S_n(f)\)</span> 在 <span class="arithmatex">\(1\ \mathrm{Hz}\)</span> 附近不再平坦。请先用白噪声公式预测默认带宽下的两个 SNR，再说明为什么不能把这个预测外推到任意大的 <span class="arithmatex">\(\tau\)</span>。然后设计一组测量：扫描 <span class="arithmatex">\(\tau\)</span>，记录 <span class="arithmatex">\(I,Q\)</span>、稳定时间、参考频率漂移和输出 PSD；用 <span class="arithmatex">\(I^2+Q^2\)</span> 检查相位旋转，用独立的噪声窗估计 <span class="arithmatex">\(S_n(f)\)</span>，最后报告“白噪声收益在哪个带宽停止”以及停止的物理原因。</p>
+</section>
+<h2 id="1">1. 噪声的对象：随机过程、方差与频率分布<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>噪声不是一个固定的电压值，而是许多不可预测成分的统计集合。对零均值平稳过程 <span class="arithmatex">\(n(t)\)</span>，方差</p>
+<div class="arithmatex">\[
+\sigma_n^2=\langle n^2(t)\rangle
+\]</div>
+<p>描述总平均功率；功率谱密度 <span class="arithmatex">\(S_n(f)\)</span> 描述这些功率按频率怎样分配。滤波器把输入变成输出 <span class="arithmatex">\(y(t)\)</span>，若传递函数为 <span class="arithmatex">\(H(f)\)</span>，则</p>
+<div class="arithmatex">\[
+S_y(f)=|H(f)|^2S_n(f),
+\qquad
+\sigma_y^2=\int S_y(f)\,df.
+\]</div>
+<p>对实值信号，最重要的是先说明积分范围。双边约定在 <span class="arithmatex">\(-\infty&lt; f&lt;\infty\)</span> 积分；单边约定把负频率的功率折到 <span class="arithmatex">\(f\ge0\)</span>。两套约定都正确，但单位数值相差一倍。实验记录应像记录电阻单位一样记录 PSD 约定。</p>
+<p>白噪声只是某一频段的近似：<span class="arithmatex">\(S_n(f)\approx S_0\)</span>。热噪声、电阻噪声在一定频率范围内可能接近白噪声；闪烁噪声常近似 <span class="arithmatex">\(1/f^\alpha\)</span>；机械共振和电源纹波则会产生窄峰。把一切都叫“白噪声”会让带宽预测失去适用边界。</p>
+<h2 id="2_1">2. 滤波器的两种带宽<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>幅频图上的 <span class="arithmatex">\(-3\ \mathrm{dB}\)</span> 点适合描述一个确定频率分量衰减了多少，但随机噪声需要对功率响应积分。若以 DC 增益归一化，等效噪声带宽定义为</p>
+<div class="arithmatex">\[
+B_{\rm ENBW}=\int_0^\infty
+\left|\frac{H(f)}{H(0)}\right|^2df.
+\]</div>
+<p>更一般地，如果频率响应不平坦，输出白噪声方差仍是 <span class="arithmatex">\(S_0|H(0)|^2B_{\rm ENBW}\)</span>。数字滤波器的窗函数、采样率和归一化方式都进入 <span class="arithmatex">\(H\)</span>，所以“采样率是 1 kHz”不能直接当成噪声带宽。</p>
+<p>单极点低通的一阶微分方程是</p>
+<div class="arithmatex">\[
+\tau\frac{dy}{dt}+y=x(t).
+\]</div>
+<p>它的频率响应就是学习层中的 <span class="arithmatex">\(H(f)\)</span>。阶数更高的滤波器通常在过渡带衰减更快，但 ENBW 与建立时间、过冲、相位延迟之间仍有取舍。锁相放大器的 time constant 不是一个独立的“精度旋钮”，而是测量等待时间与噪声带宽的共同参数。</p>
+<h2 id="3">3. 同步检测的频域图像<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>乘以参考信号会把频谱平移。以余弦参考为例，乘法在时域对应频域卷积：</p>
+<div class="arithmatex">\[
+\mathcal F\{x(t)\cos(2\pi f_0t)\}
+=\frac12[X(f-f_0)+X(f+f_0)].
+\]</div>
+<p>因此在 <span class="arithmatex">\(f_0\)</span> 附近的窄带信号被搬到 DC，原本在 DC 附近的低频漂移则被搬到 <span class="arithmatex">\(\pm f_0\)</span> 附近，随后可由低通选择。实际锁相系统还要考虑参考相位、乘法器增益、前置滤波、谐波检测和输出低通。</p>
+<p>使用正交参考 <span class="arithmatex">\(-2\sin(2\pi f_0t)\)</span> 得到 Q 通道。这个负号与输入约定 <span class="arithmatex">\(A\cos(2\pi f_0t+\phi)\)</span> 配套，使低通后 <span class="arithmatex">\(Q=A\sin\phi\)</span>。对一个稳定单频信号，<span class="arithmatex">\(I,Q\)</span> 是复平面上的坐标：</p>
+<div class="arithmatex">\[
+Z=I+iQ=Ae^{i\phi},\qquad
+A=\sqrt{I^2+Q^2},\qquad
+\phi=\operatorname{atan2}(Q,I).
+\]</div>
+<p>这解释了锁相读数的相位依赖：改变参考相位只是在 <span class="arithmatex">\(I,Q\)</span> 平面旋转向量。若硬件增益、正交度或通道噪声不匹配，<span class="arithmatex">\(I^2+Q^2\)</span> 也会出现系统性变化，因而需要用已知幅度和相位的校准信号检查。</p>
+<h2 id="4-snr">4. SNR 的定义必须指明比较对象<a class="headerlink" href="#4-snr" title="Permanent link"></a></h2>
+<p>直接通道的正弦信号通常用 RMS 幅度比较噪声 RMS；锁相输出则常用同相峰值或复幅度比较输出噪声。两者都可以，但分子必须是同一种物理量。学习层的直接 SNR 用 <span class="arithmatex">\(A/\sqrt2\)</span>，锁相 <span class="arithmatex">\(I\)</span> SNR 用 <span class="arithmatex">\(A\cos\phi\)</span>，所以在相位对齐且同一校准约定下提升为</p>
+<div class="arithmatex">\[
+\sqrt{\frac{B}{B_{\rm ENBW}}}.
+\]</div>
+<p>若只读 <span class="arithmatex">\(I\)</span>，相位失配还会带来 <span class="arithmatex">\(|\cos\phi|\)</span> 因子；若同时使用 <span class="arithmatex">\(I,Q\)</span> 求幅度，理想相位因子消失，但两个通道的噪声协方差和幅度偏差要进入误差预算。不要把“锁相 SNR”这个短语当成唯一标准量。</p>
+<p>SNR 也不是检测概率。给定阈值、观测时间、先验频率范围和误报容忍度后，才可以把 SNR 映射到检测性能。扫描很多频率再挑最高峰会产生 look-elsewhere 效应；单次读数的 SNR 不能直接代表整个搜索的显著性。</p>
+<h2 id="5_1">5. 实验流程与残余风险<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>一个可重复的锁相实验可以按以下逻辑组织：先用输入端接 <span class="arithmatex">\(50\ \Omega\)</span> 或明确的噪声源测 PSD；再以已知频率和幅度的参考信号校准 <span class="arithmatex">\(I/Q\)</span> 增益与相位；然后在信号关闭时扫描时间常数，验证白噪声区间的 <span class="arithmatex">\(1/\sqrt{B_{\rm ENBW}}\)</span> 标度；最后打开信号并报告稳态等待时间、直接带宽、ENBW、参考相位和背景。</p>
+<p>若实测曲线不服从 <span class="arithmatex">\(1/\sqrt{\tau}\)</span>，这不是必须“修正拟合”的坏消息，可能正是新机制：<span class="arithmatex">\(1/f\)</span> 噪声在低频占主导、参考抖动把信号移出通带、输出放大器有自身噪声、滤波器存在数字截断，或者测量尚未进入稳态。保留这些失败边界，实验结论才有迁移能力。</p>
+<hr />
+<p><em>下一页：光谱与成像会把同一套“响应函数、带宽与反演”带到空间和波长域。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="exp-01-measurement-uncertainty.html"><span class="pager-label">上一页</span>实验 I · 测量、不确定度与模型检验</a>
+  <a class="pager-slot next" href="exp-03-spectroscopy-imaging.html"><span class="pager-label">下一页</span>实验 III · 光谱、成像与分辨率</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-lockin-noise.js"></script>
+</body>
+</html>

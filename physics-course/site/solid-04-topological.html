@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berry 相位与拓扑物态 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li class="active"><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-08-27 11:16</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：边缘态为什么不能替代拓扑不变量？</a><ul>
+<li><a href="#topological-band-learning-title">1. 具体谜题：同一条边界色散，究竟证明了什么？</a></li>
+<li><a href="#2">2. 先预测：让相变先发生在你的脑中</a></li>
+<li><a href="#3-hamiltonian">3. 最小机制：两带 Hamiltonian 把几何变成向量</a></li>
+<li><a href="#4-berry-phase">4. Berry phase：一条闭合路径的相位账本</a></li>
+<li><a href="#5-berry-curvature-chern-invariant">5. Berry curvature 与 Chern invariant：局部弯曲怎样累积成整数？</a></li>
+<li><a href="#6-bulk-boundary-correspondence">6. 边界谱：bulk-boundary correspondence 的一条可检验切片</a></li>
+<li><a href="#7-javascript">7. 无 JavaScript 时的静态读法：把数值和公式对账</a></li>
+<li><a href="#8">8. 误区与失败边界</a></li>
+<li><a href="#9">9. 迁移任务：把“边界证据”升级成完整判据</a></li>
+</ul>
+</li>
+<li><a href="#1-bloch">1. Bloch 态的相位为什么会留下几何</a></li>
+<li><a href="#2-gap">2. 两带球面映射与 gap 边界</a></li>
+<li><a href="#3-berry-phase-chern">3. 从 Berry phase 到 Chern 数的连续关系</a></li>
+<li><a href="#4">4. 边界、局域化与输运</a></li>
+<li><a href="#5">5. 如何报告一次可信的拓扑计算</a></li>
+<li><a href="#6">6. 三个数量级例子</a></li>
+</ul>
+</div>
+</details>
+<h1 id="iv-berry">固体 IV · Berry 相位与拓扑能带<a class="headerlink" href="#iv-berry" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>对标</strong>：Berry 相位、Chern 绝缘体与二维两带模型 ｜ <strong>前置</strong>：solid-01/02（Bloch 能带与倒空间）、solid-03（交换与序参量）、qm-03（两能级系统与本征态）
+“有边缘态”是一个醒目的实验信号，却不是拓扑的定义。本讲用一个能算到底的两带模型，把 bulk gap、Berry phase、Berry curvature、Chern invariant 和边界谱放进同一套账本；你会看到边缘态怎样支持 bulk-boundary correspondence，也会看到为什么一条漂亮的边界色散不能独自证明 Chern 数。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="topological-band-learning-title" class="learning-layer">
+<h2 id="_1">学习层：边缘态为什么不能替代拓扑不变量？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="topological-band-learning-title">1. 具体谜题：同一条边界色散，究竟证明了什么？<a class="headerlink" href="#topological-band-learning-title" title="Permanent link"></a></h3>
+<p>二维晶体的 Bloch 波函数不仅有能量，还有随着 <span class="arithmatex">\(\mathbf k\)</span> 改变的相位结构。相位可以局部改写，却可能在整个 Brillouin zone 上留下不能连续抹掉的整数。实验上，边缘输运或扫描谱常先看到一条穿过 bulk gap 的支，于是很容易把“有 edge state”直接等同于“有拓扑”。</p>
+<p>先把问题说尖锐：</p>
+<ol>
+<li>改变质量参数 <span class="arithmatex">\(m\)</span> 时，bulk gap 在哪里必须闭合，系统才能从 <span class="arithmatex">\(C_-= -1\)</span> 变成 <span class="arithmatex">\(C_-=+1\)</span>？</li>
+<li>固定 <span class="arithmatex">\(k_y=0\)</span> 绕一圈 <span class="arithmatex">\(k_x\)</span>，Berry phase 是整张二维 BZ 的 Chern 数吗？</li>
+<li>若某个 <span class="arithmatex">\(k_y\)</span> 切片没有边缘态，它能否推翻整个二维系统的拓扑？</li>
+</ol>
+<p>本实验采用 QWZ 两带模型。你先预测，再打开曲率热图、gap、Berry phase、Chern 数和 <span class="arithmatex">\(x\)</span>-open 边界谱；所有数值都来自同一个 Hamiltonian。</p>
+<h3 id="2">2. 先预测：让相变先发生在你的脑中<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验默认 <span class="arithmatex">\(m=-1,\ k_y=0\)</span>。这里的 <span class="arithmatex">\(k_x,k_y\)</span> 都以晶格常数为 1 的无量纲倒空间坐标表示。</p>
+<ol>
+<li>把 <span class="arithmatex">\(m\)</span> 从 <span class="arithmatex">\(-1\)</span> 连续调到 <span class="arithmatex">\(+1\)</span>，若下带 Chern 数从 <span class="arithmatex">\(-1\)</span> 变为 <span class="arithmatex">\(+1\)</span>，中途的 bulk gap 能否始终大于零？</li>
+<li>在默认切片 <span class="arithmatex">\(k_y=0\)</span> 上，Berry phase 更像 <span class="arithmatex">\(0\)</span> 还是 <span class="arithmatex">\(\pi\)</span>？注意它是这条一维闭合回路的量。</li>
+<li>默认切片满足边缘条件吗？把 <span class="arithmatex">\(k_y\)</span> 改变到 <span class="arithmatex">\(\pi\)</span>，整个二维相的拓扑会不会因此消失？</li>
+</ol>
+<p>选择预测后再揭示结果。读图顺序建议固定为：先看 <span class="arithmatex">\(\Delta\)</span> 是否闭合，再看整张曲率积分得到的 <span class="arithmatex">\(C_-\)</span>，最后用边界谱检查哪些 <span class="arithmatex">\(k_y\)</span> 切片承载边缘支。</p>
+<h3 id="3-hamiltonian">3. 最小机制：两带 Hamiltonian 把几何变成向量<a class="headerlink" href="#3-hamiltonian" title="Permanent link"></a></h3>
+<p>模型写成</p>
+<div class="arithmatex">\[
+H(\mathbf k)=\mathbf d(\mathbf k)\cdot\boldsymbol{\sigma},
+\qquad
+\mathbf d=(\sin k_x,\ \sin k_y,\ m+\cos k_x+\cos k_y).
+\]</div>
+<p>这里 <span class="arithmatex">\(\boldsymbol{\sigma}=(\sigma_x,\sigma_y,\sigma_z)\)</span> 是轨道或赝自旋空间中的 Pauli 矩阵；它不必等同于真实电子自旋。两条能带为</p>
+<div class="arithmatex">\[
+E_\pm(\mathbf k)=\pm|\mathbf d(\mathbf k)|.
+\]</div>
+<p>因此 bulk direct gap 是</p>
+<div class="arithmatex">\[
+\Delta_{\mathrm{bulk}}=2\min_{(k_x,k_y)\in\mathrm{BZ}}|\mathbf d(\mathbf k)|.
+\]</div>
+<p>gap 什么时候可能为零？必须同时满足 <span class="arithmatex">\(\sin k_x=0,\ \sin k_y=0\)</span>，所以只需检查四个高对称点：</p>
+<table>
+<thead>
+<tr>
+<th>点</th>
+<th><span class="arithmatex">\((k_x,k_y)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(d_z\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\Gamma\)</span></td>
+<td><span class="arithmatex">\((0,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(m+2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(X\)</span></td>
+<td><span class="arithmatex">\((\pi,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(m\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(Y\)</span></td>
+<td><span class="arithmatex">\((0,\pi)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(m\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(M\)</span></td>
+<td><span class="arithmatex">\((\pi,\pi)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(m-2\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>相变边界是 <span class="arithmatex">\(m=-2,0,2\)</span>。这也是实验计算 bulk gap 时必须显式纳入这些点的原因：只取一个不包含端点的均匀采样格，可能把真正的零误判为一个很小但非零的数。</p>
+<h3 id="4-berry-phase">4. Berry phase：一条闭合路径的相位账本<a class="headerlink" href="#4-berry-phase" title="Permanent link"></a></h3>
+<p>设下带归一化本征态为 <span class="arithmatex">\(|u_-(\mathbf k)\rangle\)</span>。局部 Berry connection 可写为</p>
+<div class="arithmatex">\[
+\mathbf A_-(\mathbf k)=i\langle u_-(\mathbf k)|\boldsymbol{\nabla}_{\mathbf k}u_-(\mathbf k)\rangle.
+\]</div>
+<p>沿固定 <span class="arithmatex">\(k_y\)</span> 的闭合 <span class="arithmatex">\(k_x\)</span> 回路，Berry phase 为</p>
+<div class="arithmatex">\[
+\gamma(k_y)=\oint A_{-,x}\,dk_x\quad(\bmod\ 2\pi).
+\]</div>
+<p>数值上更稳健的离散写法是相邻本征态重叠的乘积：</p>
+<div class="arithmatex">\[
+\gamma=-\arg\prod_j
+\langle u_-(k_{x,j},k_y)\mid u_-(k_{x,j+1},k_y)\rangle.
+\]</div>
+<p>负号来自这里选取的 <span class="arithmatex">\(\mathbf A=i\langle u|\nabla u\rangle\)</span> 约定；换约定可能让所有相位与 Chern 数同时变号，但物理预测不变。<span class="arithmatex">\(\gamma\)</span> 只回答“一条回路绕了多少相位”，并不是自动等于二维 BZ 上的整数。</p>
+<h3 id="5-berry-curvature-chern-invariant">5. Berry curvature 与 Chern invariant：局部弯曲怎样累积成整数？<a class="headerlink" href="#5-berry-curvature-chern-invariant" title="Permanent link"></a></h3>
+<p>对于 <span class="arithmatex">\(H=\mathbf d\cdot\boldsymbol{\sigma}\)</span>，下带的 Berry curvature 在本实验约定下为</p>
+<div class="arithmatex">\[
+\Omega_-(\mathbf k)=
+-\frac12
+\frac{\mathbf d\cdot
+(\partial_{k_x}\mathbf d\times\partial_{k_y}\mathbf d)}
+{|\mathbf d|^3}.
+\]</div>
+<p>二维 Chern invariant 是整个 BZ 的积分：</p>
+<div class="arithmatex">\[
+C_-=\frac1{2\pi}\int_{\mathrm{BZ}}\Omega_-(\mathbf k)\,d^2k.
+\]</div>
+<p>当 <span class="arithmatex">\(\Delta_{\mathrm{bulk}}&gt;0\)</span> 时，<span class="arithmatex">\(C_-\)</span> 只能取整数，并且在连续改变参数时不能改变，除非 gap 闭合。对当前方向、下带和曲率符号约定，四个区间是</p>
+<div class="arithmatex">\[
+C_-=
+\begin{cases}
+0,&amp;m&lt;-2,\\
+-1,&amp;-2&lt;m&lt;0,\\
++1,&amp;0&lt;m&lt;2,\\
+0,&amp;m&gt;2.
+\end{cases}
+\]</div>
+<p>在 <span class="arithmatex">\(m=0\)</span> 等边界，下带与上带在 <span class="arithmatex">\(X,Y\)</span> 接触；此时“下带的 Chern 数”没有绝缘体意义。有限网格可能吐出 <span class="arithmatex">\(-0.024\)</span> 一类接近零的浮点结果，但不要把临界点的数值残差当成定义。</p>
+<h3 id="6-bulk-boundary-correspondence">6. 边界谱：bulk-boundary correspondence 的一条可检验切片<a class="headerlink" href="#6-bulk-boundary-correspondence" title="Permanent link"></a></h3>
+<p>沿 <span class="arithmatex">\(x\)</span> 方向截断、保留 <span class="arithmatex">\(k_y\)</span> 为好量子数，固定 <span class="arithmatex">\(k_y\)</span> 后模型可视作一维链。实验采用的理想边界条件给出有效质量</p>
+<div class="arithmatex">\[
+m_{\mathrm{eff}}(k_y)=m+\cos k_y,
+\qquad
+|m_{\mathrm{eff}}(k_y)|&lt;1.
+\]</div>
+<p>满足条件时有理想边界支，其能量为</p>
+<div class="arithmatex">\[
+E_{\mathrm{edge},\pm}(k_y)=\pm\sin k_y,
+\]</div>
+<p>衰减因子为 <span class="arithmatex">\(|\lambda|=|m_{\mathrm{eff}}|\)</span>。所以 <span class="arithmatex">\(|m_{\mathrm{eff}}|\)</span> 越小，状态越集中在边界；到 <span class="arithmatex">\(m_{\mathrm{eff}}=0\)</span> 时，这个代理模型给出零长度的极限化定位。这个公式描述的是干净、平移不变、理想边界的教学模型，不是任意真实表面的完整谱。</p>
+<p>默认 <span class="arithmatex">\(m=-1\)</span>、<span class="arithmatex">\(k_y=0\)</span> 时 <span class="arithmatex">\(m_{\mathrm{eff}}=0\)</span>，故有 <span class="arithmatex">\(E_{\mathrm{edge}}=0\)</span> 的边缘切片。可是同一个质量参数在 <span class="arithmatex">\(k_y=\pi\)</span> 时 <span class="arithmatex">\(m_{\mathrm{eff}}=-2\)</span>，该切片没有理想边界支。这不是矛盾，而是“边界支只存在于一段动量区间”的直接体现。</p>
+<div class="learning-lab" data-learning-lab="physics-topological-band">
+<h3 id="7-javascript">7. 无 JavaScript 时的静态读法：把数值和公式对账<a class="headerlink" href="#7-javascript" title="Permanent link"></a></h3>
+<p>默认值是 <span class="arithmatex">\(m=-1,\ k_y=0\)</span>。静态代入得到</p>
+<div class="arithmatex">\[
+\Delta_{\mathrm{bulk}}=2,\qquad
+C_-\approx-1,\qquad
+\gamma(0)=\pi,\qquad
+m_{\mathrm{eff}}(0)=0.
+\]</div>
+<p>因此默认实验应显示 gap 为 2、下带 Chern 数约为 <span class="arithmatex">\(-1\)</span>、Berry phase 约为 <span class="arithmatex">\(3.142\ \mathrm{rad}\)</span>，并报告当前切片存在零能边缘支。数值积分和离散重叠会有约 <span class="arithmatex">\(10^{-15}\)</span> 量级的浮点误差。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align: right;">bulk gap <span class="arithmatex">\(\Delta\)</span></th>
+<th style="text-align: right;">下带 <span class="arithmatex">\(C_-\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(k_y=0\)</span> Berry phase</th>
+<th><span class="arithmatex">\(k_y=0\)</span> 边缘支</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(m=-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi\)</span></td>
+<td>有，<span class="arithmatex">\(E=0\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(m=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2.0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx+1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>无；其他 <span class="arithmatex">\(k_y\)</span> 可有</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(m=2.6\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\approx0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>无</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(m=0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">不定义</td>
+<td style="text-align: right;">若回路穿过简并点则不定义</td>
+<td>不可用绝缘体语言判断</td>
+</tr>
+</tbody>
+</table>
+<p>特别留意第二行：<span class="arithmatex">\(m=1\)</span> 仍在非平庸区间，但默认的 <span class="arithmatex">\(k_y=0\)</span> 切片不满足 <span class="arithmatex">\(|1+\cos0|&lt;1\)</span>。所以“我没在一个动量切片看到 edge”不能推出 <span class="arithmatex">\(C_-=0\)</span>。</p>
+</div>
+<h3 id="8">8. 误区与失败边界<a class="headerlink" href="#8" title="Permanent link"></a></h3>
+<ul>
+<li><strong>Berry phase 不是 Chern invariant。</strong>前者依赖选定的闭合路径，后者积分整个二维 BZ；只有在额外条件下，随 <span class="arithmatex">\(k_y\)</span> 的 Berry phase 变化才与 Chern 数联系起来。</li>
+<li><strong>边缘态不是拓扑的定义。</strong>边界势、有限宽度、无序和表面重构会移动或混合局部谱；Chern 数是在 bulk gap 打开的前提下定义的 bulk 量。</li>
+<li><strong>gap 不能只看一个点，也不能只看粗网格。</strong>本模型的候选闭合点由 <span class="arithmatex">\(\sin k_x=\sin k_y=0\)</span> 给出；数值网格必须覆盖它们，或单独做高对称点检查。</li>
+<li><strong>临界点不拥有可靠的绝缘体 Chern 数。</strong>gap 闭合时下带与上带不能在整个 BZ 上保持分离，有限采样得到的近似整数没有拓扑保护。</li>
+<li><strong>符号依赖约定。</strong>交换 <span class="arithmatex">\(k_x,k_y\)</span> 的方向、改用上带或改变 Berry connection 定义，可能让报告的符号改变；先写清楚坐标取向、能带和公式。</li>
+<li><strong>两带 QWZ 模型不是所有材料的身份证。</strong>真实系统还会有自旋简并、多个轨道、相互作用、非理想边界和 disorder；拓扑账本必须在相应有效 Hamiltonian 上重新建立。</li>
+</ul>
+<h3 id="9">9. 迁移任务：把“边界证据”升级成完整判据<a class="headerlink" href="#9" title="Permanent link"></a></h3>
+<p>设你在样品的一条边看到穿越费米能的色散支，但 bulk 光谱还有一个未确认的小 gap。请写一份最小验证清单：先如何测 bulk gap，如何在整个 BZ 或等价的参数空间上计算 Berry curvature，再如何判断边缘支是否在同一个 gap 中连接价带与导带？最后说明为什么在 gap 尚未确认打开时，不能把边缘输运直接命名为量子反常霍尔拓扑。</p>
+</div>
+<h2 id="1-bloch">1. Bloch 态的相位为什么会留下几何<a class="headerlink" href="#1-bloch" title="Permanent link"></a></h2>
+<p>晶体平移对称性把波函数写成 Bloch 形式</p>
+<div class="arithmatex">\[
+\psi_{n\mathbf k}(\mathbf r)=e^{i\mathbf k\cdot\mathbf r}u_{n\mathbf k}(\mathbf r),
+\]</div>
+<p>其中 <span class="arithmatex">\(u_{n\mathbf k}\)</span> 具有晶格周期。对每一个 <span class="arithmatex">\(\mathbf k\)</span>，<span class="arithmatex">\(|u_{n\mathbf k}\rangle\)</span> 只确定到一个相位：<span class="arithmatex">\(|u\rangle\to e^{i\chi(\mathbf k)}|u\rangle\)</span>。因此单点的相位不是可观测量，但沿路径累积的几何相位可以通过干涉、极化、轨道磁矩或输运响应体现出来。</p>
+<p>这个“可局部改写、整体可能有障碍”的结构，和电磁学中的规范势很像。Berry connection 在规范变换下改变为</p>
+<div class="arithmatex">\[
+\mathbf A\to\mathbf A-\boldsymbol{\nabla}_{\mathbf k}\chi
+\]</div>
+<p>（采用本讲的 <span class="arithmatex">\(\mathbf A=i\langle u|\nabla_{\mathbf k}u\rangle\)</span> 约定），所以闭合回路的 <span class="arithmatex">\(\gamma\)</span> 只在 <span class="arithmatex">\(2\pi\)</span> 意义下不变。曲率</p>
+<div class="arithmatex">\[
+\Omega_{n,xy}=\partial_{k_x}A_{n,y}-\partial_{k_y}A_{n,x}
+\]</div>
+<p>则直接消除了局部规范选择。Chern 数把曲率在闭合 BZ 上积分，得到一个不依赖平滑规范的整数。</p>
+<h2 id="2-gap">2. 两带球面映射与 gap 边界<a class="headerlink" href="#2-gap" title="Permanent link"></a></h2>
+<p>把 <span class="arithmatex">\(\hat{\mathbf d}=\mathbf d/|\mathbf d|\)</span> 看作从动量环面到单位球面的映射。只要 <span class="arithmatex">\(\mathbf d\)</span> 不为零，<span class="arithmatex">\(\hat{\mathbf d}\)</span> 在整个 BZ 上连续；改变 <span class="arithmatex">\(m\)</span> 只能连续变形这张图，不能改变它包裹球面的整数次数。若 <span class="arithmatex">\(\mathbf d=0\)</span>，归一化失效，正是 band gap closure。</p>
+<p>本模型的三个分量各承担一个角色：<span class="arithmatex">\(\sin k_x\)</span> 与 <span class="arithmatex">\(\sin k_y\)</span> 在高对称点为零，决定可能的 Dirac 接触；<span class="arithmatex">\(m+\cos k_x+\cos k_y\)</span> 是质量项，决定这些接触点映到球面的北极还是南极。四个点的质量符号随 <span class="arithmatex">\(m\)</span> 改变，导致不同 Dirac 点的半整数曲率贡献重新组合为 <span class="arithmatex">\(0,\pm1\)</span>。</p>
+<p>可以直接算导数</p>
+<div class="arithmatex">\[
+\partial_{k_x}\mathbf d=(\cos k_x,0,-\sin k_x),\qquad
+\partial_{k_y}\mathbf d=(0,\cos k_y,-\sin k_y).
+\]</div>
+<p>它们的叉积为</p>
+<div class="arithmatex">\[
+\partial_{k_x}\mathbf d\times\partial_{k_y}\mathbf d
+=(\sin k_x\cos k_y,\ \cos k_x\sin k_y,\ \cos k_x\cos k_y).
+\]</div>
+<p>把它与 <span class="arithmatex">\(\mathbf d\)</span> 做点积，再除以 <span class="arithmatex">\(|\mathbf d|^3\)</span>，就得到曲率热图中红蓝斑块的数值。靠近小质量的 Dirac 点时分母变小，曲率集中；远离相变时曲率更平缓。曲率“集中得很高”不等于 Chern 数已经很大，必须再乘面积元并在全 BZ 累积。</p>
+<h2 id="3-berry-phase-chern">3. 从 Berry phase 到 Chern 数的连续关系<a class="headerlink" href="#3-berry-phase-chern" title="Permanent link"></a></h2>
+<p>对每一个固定 <span class="arithmatex">\(k_y\)</span>，沿 <span class="arithmatex">\(k_x\)</span> 定义 <span class="arithmatex">\(\gamma(k_y)\)</span>。只要这条回路上的能带不闭合，<span class="arithmatex">\(\gamma\)</span> 随 <span class="arithmatex">\(k_y\)</span> 连续变化，允许在 <span class="arithmatex">\(2\pi\)</span> 意义下展开。由 Stokes 定理，在没有规范奇点的局部区域内</p>
+<div class="arithmatex">\[
+\frac{\partial\gamma}{\partial k_y}
+=-\int_{-\pi}^{\pi}\Omega_{-,xy}(k_x,k_y)\,dk_x.
+\]</div>
+<p>因此当 <span class="arithmatex">\(k_y\)</span> 从 <span class="arithmatex">\(-\pi\)</span> 走到 <span class="arithmatex">\(\pi\)</span>，Berry phase 的总绕行数与 Chern 数相关：</p>
+<div class="arithmatex">\[
+C_-=-\frac{\gamma(\pi)-\gamma(-\pi)}{2\pi}
+\]</div>
+<p>这里需要选择连续的 phase branch，并处理 BZ 边界的规范拼接；直接把每个切片都压回 <span class="arithmatex">\([-\pi,\pi]\)</span> 后相减，可能把一次真实的 <span class="arithmatex">\(2\pi\)</span> 绕行藏掉。这正是实验台同时画曲率、显示单切片 Berry phase、再给出整区间数值 Chern 的理由。</p>
+<p>在默认 <span class="arithmatex">\(m=-1\)</span>、<span class="arithmatex">\(k_y=0\)</span>，一维回路包围的是一个有效质量为 <span class="arithmatex">\(m+1=0\)</span> 的平面 Dirac 结构，离散重叠乘积给出 <span class="arithmatex">\(\pi\)</span>。这是一条很好的预测线索，却仍需结合二维积分才能回答整个系统的拓扑类别。</p>
+<h2 id="4">4. 边界、局域化与输运<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>把 <span class="arithmatex">\(x\)</span> 方向变成有限链后，<span class="arithmatex">\(k_y\)</span> 仍然是守恒量。边界态的波函数沿 <span class="arithmatex">\(x\)</span> 方向近似按 <span class="arithmatex">\(\lambda^x\)</span> 衰减；教学模型的 <span class="arithmatex">\(|\lambda|=|m+\cos k_y|\)</span> 说明边缘态存在需要 <span class="arithmatex">\(|\lambda|&lt;1\)</span>。当条件变成等号，定位长度发散，边缘态与 bulk 连续谱接合；超过等号，解不再是可归一化的边界态。</p>
+<p>能量 <span class="arithmatex">\(E=\pm\sin k_y\)</span> 在 <span class="arithmatex">\(k_y=0\)</span> 和 <span class="arithmatex">\(\pi\)</span> 过零，但是否真的属于 edge branch 要先检查存在条件。对于 <span class="arithmatex">\(m=-1\)</span>，<span class="arithmatex">\(|{-1+\cos k_y}|&lt;1\)</span> 给出一段围绕 <span class="arithmatex">\(k_y=0\)</span> 的边界区间；对于 <span class="arithmatex">\(m=1\)</span>，存在区间转移到靠近 <span class="arithmatex">\(\pi\)</span> 的位置。质量跨过 <span class="arithmatex">\(m=0\)</span> 时，边界支的动量位置和传播方向发生重排，同时 bulk 在 <span class="arithmatex">\(X,Y\)</span> 点关闭并重新打开。</p>
+<p>真实边界可以加入势 <span class="arithmatex">\(V_{\mathrm{edge}}\)</span>、改变 hopping 或破坏 <span class="arithmatex">\(k_y\)</span> 平移对称性。这样色散形状不必仍是正弦，局域化长度也会改变，但只要 bulk gap 和相关对称条件保持，跨 gap 的净手性不能被任意小扰动消去。相反，一对相反传播的普通边界态可以互相散射并开 gap；所以“看到一条局部峰”与“存在受 Chern 差保护的净手性支”是不同强度的证据。</p>
+<p>量子反常霍尔响应的理想化关系是</p>
+<div class="arithmatex">\[
+\sigma_{xy}=C_-\frac{e^2}{h},
+\]</div>
+<p>但材料实验还要处理费米能位置、体漏电、接触电阻、温度和磁畴。公式给出拓扑能带对输运的贡献，不会替实验自动解决样品是否真的处于绝缘 bulk。</p>
+<h2 id="5">5. 如何报告一次可信的拓扑计算<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>一份可复现报告至少应包含四层信息。第一，写出 Hamiltonian、坐标方向、下带还是上带以及 Berry curvature 的符号。第二，给出 bulk gap 的最小值与搜索方法，说明是否显式检查高对称点。第三，说明曲率积分的网格、收敛性和 gap 接近零时的数值不稳定。第四，把边界条件、边界势和有限尺寸写清楚，不要只贴一条未标注坐标的谱线。</p>
+<p>例如本实验在 <span class="arithmatex">\(m=-1\)</span> 使用中点网格近似曲率积分，得到 <span class="arithmatex">\(C_-=-0.9999999999999981\)</span> 一类的浮点数；应报告为 <span class="arithmatex">\(-1\)</span>，同时保留“数值近似”的说明。<span class="arithmatex">\(m=2.6\)</span> 得到约 <span class="arithmatex">\(5.7\times10^{-13}\)</span>，可报告为 <span class="arithmatex">\(0\)</span>。在 <span class="arithmatex">\(m=0\)</span>，高对称点检查给出 <span class="arithmatex">\(\Delta=2.45\times10^{-16}\)</span>，物理上按零处理；此时不应把有限网格的 Chern 输出当作绝缘相标签。</p>
+<h2 id="6">6. 三个数量级例子<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1（默认相）</strong> 取 <span class="arithmatex">\(m=-1\)</span>。<span class="arithmatex">\(\Gamma\)</span>、<span class="arithmatex">\(X/Y\)</span>、<span class="arithmatex">\(M\)</span> 的质量分别为 <span class="arithmatex">\(1,-1,-3\)</span>，最小的 <span class="arithmatex">\(|\mathbf d|\)</span> 为 1，故 <span class="arithmatex">\(\Delta=2\)</span>；下带积分为 <span class="arithmatex">\(C_-=-1\)</span>。在 <span class="arithmatex">\(k_y=0\)</span>，<span class="arithmatex">\(m_{\mathrm{eff}}=0\)</span>，边缘能量为 0。</p>
+<p><strong>例 2（穿过相变）</strong> 从 <span class="arithmatex">\(m=-0.4\)</span> 调到 <span class="arithmatex">\(m=+0.4\)</span>。在 <span class="arithmatex">\(m=0\)</span>，<span class="arithmatex">\(X\)</span> 与 <span class="arithmatex">\(Y\)</span> 的质量同时为零；gap 先降到零，再重新打开。前后两个绝缘区的 Chern 数分别为 <span class="arithmatex">\(-1\)</span> 与 <span class="arithmatex">\(+1\)</span>，差值 2 对应两个相关的 Dirac 接触点贡献。若只在 <span class="arithmatex">\(m=-0.4\)</span> 和 <span class="arithmatex">\(+0.4\)</span> 测量而跳过临界点，很容易错过拓扑改变必须经过 gap closure 这一机制。</p>
+<p><strong>例 3（拓扑与切片）</strong> 取 <span class="arithmatex">\(m=1\)</span>。它在 <span class="arithmatex">\(0&lt;m&lt;2\)</span>，所以 <span class="arithmatex">\(C_-=+1\)</span>；但 <span class="arithmatex">\(k_y=0\)</span> 时 <span class="arithmatex">\(m_{\mathrm{eff}}=2\)</span>，没有该切片的理想 edge。改看靠近 <span class="arithmatex">\(k_y=\pi\)</span> 的区间，<span class="arithmatex">\(m+\cos k_y\)</span> 才可能落入 <span class="arithmatex">\((-1,1)\)</span>。这一个例子足以拆掉“一个切片无 edge，所以 bulk 平庸”的错误推理。<span class="arithmatex">\(\blacksquare\)</span></p>
+<hr />
+<p><em>下一页：从拓扑能带的几何不变量继续走向真实材料中的对称性保护、无序与测量误差。</em></p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="solid-03-magnetism.html"><span class="pager-label">上一页</span>固体 III · 磁性与集体有序</a>
+  <a class="pager-slot next" href="mp-01-special-functions.html"><span class="pager-label">下一页</span>数理方法 · 特殊函数与 Green 函数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/physics-topological-band.js"></script>
+</body>
+</html>

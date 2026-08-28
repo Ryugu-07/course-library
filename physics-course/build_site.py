@@ -20,7 +20,7 @@ LECTURES = ROOT / "lectures"
 SITE = ROOT / "site"
 SHARED = ROOT.parent / "course-shared"
 
-LEARNING_LAB_RE = re.compile(r'data-learning-lab="([a-z0-9-]+)"')
+LEARNING_LAB_RE = re.compile(r'\bdata-learning-lab\s*=\s*["\']([a-z0-9-]+)["\']')
 LEARNING_HEAD = """<link rel="stylesheet" href="assets/learning/learning.css">
 <script>
 document.documentElement.classList.add('cl-js');
@@ -49,9 +49,12 @@ COURSE = [
         ("mech-02-lagrange.md", "力学 II · 拉格朗日力学与变分原理"),
         ("mech-03-hamilton.md", "力学 III · 哈密顿力学与相空间"),
         ("mech-04-oscillation-rigid.md", "力学 IV · 振动与刚体"),
+        ("mech-05-central-scattering.md", "力学 V · 轨道、散射与截面"),
+        ("cont-01-elastic-waves.md", "连续介质 · 弹性、应力与声波"),
         ("em-01-electrostatics.md", "电磁 I · 静电与静磁"),
         ("em-02-maxwell.md", "电磁 II · Maxwell 方程与电磁波"),
         ("em-03-energy-radiation.md", "电磁 III · 能量、动量与辐射入门"),
+        ("em-04-media-waveguides.md", "电磁 IV · 介质、色散与波导"),
         ("sr-01-relativity.md", "狭义相对论 · 洛伦兹变换与四矢量"),
         ("opt-01-waves.md", "光学 · 干涉、衍射与傅里叶光学"),
     ]),
@@ -59,14 +62,27 @@ COURSE = [
         ("sm-01-thermodynamics.md", "统计物理 I · 热力学定律与熵"),
         ("sm-02-ensembles.md", "统计物理 II · 系综与配分函数"),
         ("sm-03-quantum-stats.md", "统计物理 III · 量子统计"),
+        ("sm-04-kinetic-transport.md", "统计物理 IV · 动理学与输运"),
         ("qm-01-framework.md", "量子 I · 波函数与基本框架"),
         ("qm-02-1d-oscillator.md", "量子 II · 一维问题与谐振子"),
         ("qm-03-angular-hydrogen.md", "量子 III · 角动量、氢原子与自旋"),
         ("qm-04-perturbation.md", "量子 IV · 微扰论与近似方法"),
+        ("qm-05-identical-particles.md", "量子 V · 全同粒子与交换统计"),
+        ("qm-06-wkb-variational-adiabatic.md", "量子 VI · WKB、变分与绝热近似"),
         ("atom-01-modern.md", "近代物理 · 原子、光谱与核"),
+        ("nuc-01-structure-decay.md", "核物理 I · 核结构与衰变"),
+        ("nuc-02-reactions-detectors.md", "核物理 II · 核反应与探测"),
         ("solid-01-lattice.md", "固体 I · 晶格与声子"),
         ("solid-02-bands.md", "固体 II · 能带与半导体"),
+        ("solid-03-magnetism.md", "固体 III · 磁性与集体有序"),
+        ("solid-04-topological.md", "固体 IV · Berry 相位与拓扑物态"),
         ("mp-01-special-functions.md", "数理方法 · 特殊函数与 Green 函数"),
+    ]),
+    ("实验物理与测量", [
+        ("exp-01-measurement-uncertainty.md", "实验 I · 测量、不确定度与模型检验"),
+        ("exp-02-noise-lockin.md", "实验 II · 噪声、频谱与锁相检测"),
+        ("exp-03-spectroscopy-imaging.md", "实验 III · 光谱、成像与分辨率"),
+        ("exp-04-vacuum-cryogenic-daq.md", "实验 IV · 真空、低温与数据采集"),
     ]),
     ("研究生 · 理论核心", [
         ("aqm-01-symmetry.md", "高量 I · 对称性与角动量理论"),
@@ -81,13 +97,22 @@ COURSE = [
         ("gr-01-equivalence.md", "广相 I · 等效原理与测地线"),
         ("gr-02-einstein-schwarzschild.md", "广相 II · Einstein 方程与 Schwarzschild"),
         ("gr-03-blackholes-waves.md", "广相 III · 黑洞、引力波与宇宙学度规"),
+        ("gr-04-kerr-causal.md", "广相 IV · Kerr 黑洞与因果结构"),
         ("qi-01-qubits.md", "量子信息 I · Qubit、纠缠与 Bell 不等式"),
         ("qi-02-algorithms.md", "量子信息 II · 量子算法"),
         ("qi-03-error-correction.md", "量子信息 III · 量子纠错与 NISQ"),
         ("amo-01-cold-atoms.md", "原子分子光物理 · 激光冷却与量子气体"),
         ("cosmo-01-frw.md", "宇宙学 I · FRW 与 Friedmann 方程"),
         ("cosmo-02-thermal.md", "宇宙学 II · 热历史与 CMB"),
-        ("comp-01-methods.md", "计算物理 · 蒙卡与分子动力学"),
+        ("cosmo-03-perturbations-structure.md", "宇宙学 III · 扰动与结构形成"),
+        ("cosmo-04-inflation-darkenergy.md", "宇宙学 IV · 暴胀与暗能量"),
+    ]),
+    ("计算物理", [
+        ("comp-01-methods.md", "计算 I · 蒙卡与分子动力学"),
+        ("comp-02-dynamics-symplectic.md", "计算 II · 动力系统与辛积分"),
+        ("comp-03-pde-fem.md", "计算 III · 偏微分方程与有限元"),
+        ("comp-04-monte-carlo-lattice.md", "计算 IV · 格点模型与蒙特卡洛"),
+        ("comp-05-inverse-uncertainty.md", "计算 V · 逆问题与不确定度量化"),
     ]),
     ("流体与非线性", [
         ("fl-01-continuum.md", "流体 I · 连续介质与 Navier–Stokes"),
@@ -111,9 +136,16 @@ COURSE = [
         ("qft-03-path-renorm.md", "场论 III · 路径积分与重整化"),
         ("cm-01-second-quant.md", "凝聚态 I · 二次量子化与电子气"),
         ("cm-02-bcs.md", "凝聚态 II · 超导 BCS"),
+        ("cm-03-greens-quasiparticles.md", "凝聚态 III · Green 函数与准粒子"),
+        ("cm-04-transport-correlations.md", "凝聚态 IV · 强关联与量子输运"),
         ("pp-01-gauge.md", "粒子 I · 规范原理与粒子谱"),
         ("pp-02-electroweak.md", "粒子 II · 电弱统一与 Higgs"),
-        ("neq-01-fluctuation.md", "非平衡 · Langevin、线性响应与涨落定理"),
+        ("pp-03-qcd-hadrons.md", "粒子 III · QCD、强子与禁闭"),
+        ("pp-04-flavor-neutrinos.md", "粒子 IV · 味、混合与中微子"),
+        ("pp-05-colliders-detectors.md", "粒子 V · 对撞机、探测器与事件重建"),
+        ("neq-01-fluctuation.md", "非平衡 I · Langevin、线性响应与涨落定理"),
+        ("neq-02-kubo-transport.md", "非平衡 II · Kubo 响应与输运"),
+        ("neq-03-active-matter.md", "非平衡 III · 活性物质与自组织"),
         ("mb-01-tensor-networks.md", "量子多体 · 张量网络与变分方法"),
     ]),
     ("了望塔（第三档）", [
@@ -184,12 +216,33 @@ def learning_assets(src: str):
     names = list(dict.fromkeys(LEARNING_LAB_RE.findall(src)))
     if not names:
         return "", ""
-    missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").exists()]
+    missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").is_file()]
     if missing:
         raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
     scripts = ['<script defer src="assets/learning/learning.js"></script>']
     scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
     return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
+
+
+def sync_learning_assets(md_names):
+    destination = SITE / "assets" / "learning"
+    if destination.exists():
+        shutil.rmtree(destination)
+    names = []
+    for md_name in md_names:
+        src = (LECTURES / md_name).read_text(encoding="utf-8")
+        names.extend(LEARNING_LAB_RE.findall(src))
+    names = list(dict.fromkeys(names))
+    if not names:
+        return
+    (destination / "labs").mkdir(parents=True)
+    for asset in ("learning.css", "learning.js"):
+        shutil.copy(SHARED / asset, destination / asset)
+    for name in names:
+        source = SHARED / "labs" / f"{name}.js"
+        if not source.is_file():
+            raise FileNotFoundError(f"Missing learning lab script: {source}")
+        shutil.copy(source, destination / "labs" / source.name)
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
@@ -278,11 +331,6 @@ def main():
         src = ROOT / "tools" / asset
         if src.exists():
             shutil.copy(src, SITE / "assets" / asset)
-    learning_dst = SITE / "assets" / "learning"
-    if learning_dst.exists():
-        shutil.rmtree(learning_dst)
-    if SHARED.exists():
-        shutil.copytree(SHARED, learning_dst)
     # 图片：把 images/ 源目录整体拷进 site/assets/img/（GPT/matplotlib 生成的插图放这里）
     img_src = ROOT / "images"
     if img_src.exists():
@@ -297,6 +345,7 @@ def main():
     existing = {m for m, _ in all_items if (LECTURES / m).exists()}
     missing = [m for m, _ in all_items if m not in existing]
     items = [it for it in all_items if it[0] in existing]
+    sync_learning_assets(md_name for md_name, _ in items)
     for i, (md_name, nav_title) in enumerate(items):
         out = SITE / html_name(md_name)
         previous = out.read_text(encoding="utf-8") if out.exists() else None
