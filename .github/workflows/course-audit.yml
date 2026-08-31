@@ -24,6 +24,12 @@ jobs:
         run: python tools/course_audit.py
       - name: Audit learning-layer coverage contracts
         run: python tools/learning_coverage.py
+      - name: Test Earth-system learning labs
+        run: |
+          for file in course-shared/labs/earth-*.js; do
+            node --check "$file"
+            node "$file"
+          done
       - name: Report fast-moving ecosystem freshness
         run: python tools/ecosystem_freshness.py --strict
       - name: Assemble public hosting output

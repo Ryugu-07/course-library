@@ -28,7 +28,15 @@ EXPANSION_COURSES = {
     "micro-course": "Microelectronics",
     "cs-course": "Computer science",
 }
-COURSES = FOCUS_COURSES | ENGINEERING_COURSES | EXPANSION_COURSES
+SCIENCE_EXPANSION_COURSES = {
+    "earth-course": "Earth system and climate science",
+}
+COURSES = (
+    FOCUS_COURSES
+    | ENGINEERING_COURSES
+    | EXPANSION_COURSES
+    | SCIENCE_EXPANSION_COURSES
+)
 EXCLUDED_LECTURES = {"00-intro.md", "labs.md"}
 COURSE_EXCLUSIONS = {
     "photo-course": {"21-closing.md"},

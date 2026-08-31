@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>检测、归因与极端事件 · 地球系统与气候科学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">地球系统与气候科学</a>
+    <div class="site-subtitle">岩石圈 · 水圈 · 大气圈 · 冰冻圈 · 生物圈</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 行星的骨架与时间</div><ul><li><a href="01-system-ledger.html">系统 I · 储库、通量与驻留时间</a></li><li><a href="02-deep-time.html">系统 II · 深时、地层与地质年代学</a></li><li><a href="03-seismic-earth.html">深部 I · 用地震波看见地球内部</a></li><li><a href="04-plate-tectonics.html">深部 II · 板块构造与地幔对流</a></li><li><a href="05-rock-geochemical-cycle.html">深部 III · 岩石循环与地球化学分异</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 被水重写的地表</div><ul><li><a href="06-weathering-soil.html">地表 I · 风化、土壤与临界带</a></li><li><a href="07-rivers-groundwater.html">地表 II · 河流、流域与地下水</a></li><li><a href="08-cryosphere.html">地表 III · 冰川、冰盖与海冰</a></li><li><a href="09-coasts-sediments.html">地表 IV · 海岸、沉积与海平面</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 大气与海洋的热机</div><ul><li><a href="10-radiation-balance.html">气候 I · 辐射平衡与行星温度</a></li><li><a href="11-atmospheric-motion.html">大气 I · 环流、天气与旋转流体</a></li><li><a href="12-clouds-precipitation.html">大气 II · 水汽、云与降水</a></li><li><a href="13-ocean-circulation.html">海洋 I · 风生环流与翻转环流</a></li><li><a href="14-coupled-variability.html">海气耦合 · ENSO、季风与年代际变率</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 气候为什么会变</div><ul><li><a href="15-carbon-cycle.html">碳 I · 快慢碳循环与海洋吸收</a></li><li><a href="16-biosphere-cycles.html">碳 II · 生物圈与生物地球化学循环</a></li><li><a href="17-paleoclimate.html">气候档案 · 代理记录与古气候</a></li><li><a href="18-forcing-aerosols.html">气候动力 · 温室气体、气溶胶与辐射强迫</a></li><li><a href="19-feedback-sensitivity.html">气候响应 · 反馈、敏感度与时滞</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 从方程到证据</div><ul><li><a href="20-climate-models.html">模型 I · 从能量平衡到地球系统模型</a></li><li><a href="21-observation-remote-sensing.html">观测 I · 卫星、现场网与再分析</a></li><li><a href="22-inverse-assimilation.html">观测 II · 反演、数据同化与不确定性</a></li><li class="active"><a href="23-detection-attribution.html">证据 · 检测、归因与极端事件</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 风险、选择与行星比较</div><ul><li><a href="24-geohazards.html">风险 I · 地震、火山与海啸</a></li><li><a href="25-hydroclimate-risk.html">风险 II · 热、旱、洪与复合极端</a></li><li><a href="26-mitigation-adaptation.html">选择 · 碳预算、减缓与适应</a></li><li><a href="27-planetary-climates.html">比较行星学 · 金星、火星与宜居性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone.html">收官 · 一个流域的地球系统数字孪生</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 05:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#earth-detection-learning-title">学习层：一条异常曲线能走多远的证据链</a><ul>
+<li><a href="#1">1. 具体情境：给观测变化寻找“指纹”</a></li>
+<li><a href="#2">2. 揭示前预测：检测成功是否等于归因完成？</a></li>
+<li><a href="#3">3. 公式桥：指纹回归把假设写出来</a></li>
+<li><a href="#4">4. 互动实验：拆开信号、变率和指纹一致度</a></li>
+<li><a href="#5">5. 边界：统计显著不是因果充分条件</a></li>
+<li><a href="#6">6. 迁移：从平均变化到极端事件</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 检测、归因和预测的三分法</a><ul>
+<li><a href="#11">1.1 零假设必须可读</a></li>
+<li><a href="#12">1.2 指纹不是照片</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 从单变量回归到协方差加权</a><ul>
+<li><a href="#21">2.1 数量级与有效信息</a></li>
+<li><a href="#22">2.2 区间与阈值</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 极端事件的证据账本</a></li>
+<li><a href="#4_1">4. 常见误区与可复现做法</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">证据 · 检测、归因与极端事件<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<p>一条温度、降水或海平面曲线变了，并不自动回答“为什么变”。</p>
+<p><strong>检测</strong>先问：信号是否超出给定零假设下的内部变率与测量噪声？</p>
+<p><strong>归因</strong>再问：在明确的指纹、对照实验和模型假设下，哪些外部强迫与这个信号相容？</p>
+<p>两者都需要证据账本；相关性、时间先后和一张醒目的图都不能单独完成因果归因。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="earth-detection-learning-title" class="learning-layer">
+<h2 id="earth-detection-learning-title">学习层：一条异常曲线能走多远的证据链<a class="headerlink" href="#earth-detection-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：给观测变化寻找“指纹”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>假设研究小组得到一组按季节排列的合成异常值，并拥有一个由物理模型产生的外部强迫指纹。</p>
+<p>内部变率可以让没有外部强迫的控制模拟也出现上升或下降，因此研究者要把观测向量投影到指纹方向，再比较零假设。</p>
+<p>这只是一个教学情境，不对应某个真实年份、站点或极端事件；实验里的数字也不是观测预报。</p>
+<h3 id="2">2. 揭示前预测：检测成功是否等于归因完成？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先回答：</p>
+<ol>
+<li>若观测信号很大但与指纹方向不一致，能否直接说该强迫造成了变化？</li>
+<li>若内部变率标准差加倍而其他输入不变，标准化证据量会变大还是变小？</li>
+</ol>
+<p>预测门提交后，实验才显示检测与归因的两本账。</p>
+<h3 id="3">3. 公式桥：指纹回归把假设写出来<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>将观测异常写成</p>
+<div class="arithmatex">\[
+\mathbf y=\beta\mathbf x+\boldsymbol\epsilon,
+\qquad \boldsymbol\epsilon\sim\mathcal N(0,\mathbf\Sigma).
+\]</div>
+<p>当误差近似独立且方差为 <span class="arithmatex">\(\sigma^2\)</span> 时，最小二乘估计为</p>
+<div class="arithmatex">\[
+\hat\beta=\frac{\mathbf x^\mathsf T\mathbf y}{\mathbf x^\mathsf T\mathbf x},
+\qquad
+\operatorname{SE}(\hat\beta)=\frac{\sigma}{\sqrt{\mathbf x^\mathsf T\mathbf x}}.
+\]</div>
+<p>检测可以用信号与内部变率的比值表示；归因则还需要指纹投影和替代强迫的比较。</p>
+<p>例如以 <span class="arithmatex">\(n\)</span> 个标准化样本作玩具核算：</p>
+<div class="arithmatex">\[
+z_{\rm det}=\frac{s\sqrt n}{\sigma},
+\qquad
+z_{\rm attr}=\frac{s\rho\sqrt n}{\sigma},
+\]</div>
+<p>其中 <span class="arithmatex">\(s\)</span> 是合成信号幅度，<span class="arithmatex">\(\rho\)</span> 是与指纹的一致度。这里的 <span class="arithmatex">\(z\)</span> 不是普适阈值，也不是自动生成的因果证明。</p>
+<h3 id="4">4. 互动实验：拆开信号、变率和指纹一致度<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="earth-detection-attribution">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认输入是 <span class="arithmatex">\(n=12\)</span> 个无日期的合成样本：信号幅度 <span class="arithmatex">\(s=1.2\)</span>、内部变率标准差 <span class="arithmatex">\(\sigma=0.6\)</span>、指纹一致度 <span class="arithmatex">\(\rho=0.8\)</span>、指纹尺度 <span class="arithmatex">\(a=1.0\)</span>。它们是无量纲教学参数，不是实测时间序列。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>检测 <span class="arithmatex">\(z_{\rm det}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.93\)</span></td>
+<td>给定零假设下的标准化证据</td>
+</tr>
+<tr>
+<td>归因系数 <span class="arithmatex">\(\hat\beta=s\rho/a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.96\)</span></td>
+<td>仅在玩具指纹模型中定义</td>
+</tr>
+<tr>
+<td>归因标准误</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.173\)</span></td>
+<td>由 <span class="arithmatex">\(\sigma/(a\sqrt n)\)</span> 得到</td>
+</tr>
+<tr>
+<td>归因 <span class="arithmatex">\(z_{\rm attr}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.54\)</span></td>
+<td>还依赖指纹一致度</td>
+</tr>
+<tr>
+<td>近似 95% 区间</td>
+<td style="text-align: right;"><span class="arithmatex">\([0.62,1.30]\)</span></td>
+<td>线性高斯近似，不是完整归因结论</td>
+</tr>
+</tbody>
+</table>
+<p>提交预测后可以改变信号、内部变率、指纹一致度和指纹尺度；图中会同时画出观测投影、自然变率带与归因区间。</p>
+</div>
+<h3 id="5">5. 边界：统计显著不是因果充分条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>归因结果依赖零假设、模型集合、指纹选择、时间窗、空间权重和误差协方差；改变其中一项可能改变结论。</li>
+<li>有效样本数常小于时间点数。自相关会让 <span class="arithmatex">\(\sqrt n\)</span> 过于乐观，极端事件的尾部还可能偏离高斯分布。</li>
+<li>同一个外部强迫可能通过多个指纹出现；多个强迫的指纹也可能近似共线，导致不可辨识。</li>
+<li>“检测到异常”只是在某个统计框架内拒绝一个零假设，不等于已经排除了仪器漂移、土地利用或内部变率解释。</li>
+</ul>
+<h3 id="6">6. 迁移：从平均变化到极端事件<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>极端事件归因还要定义事件阈值、基准期、重现概念、暴露条件和事件样本；“一次事件变得更可能”与“事件全部由某因素造成”是不同命题。</p>
+<p><strong>迁移问题：</strong>如果极端降水样本有明显季节自相关，你会如何修改有效样本量和协方差？如果两个候选强迫指纹高度相似，应该增加哪类观测或对照实验，而不是只把回归系数打印得更多位？</p>
+</section>
+<h2 id="1_1">1. 检测、归因和预测的三分法<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>检测关注观测序列相对于控制分布的位置；归因关注强迫指纹和反事实对照；预测则是在给定初值、强迫和模型下向未来推进。</p>
+<p>三者可以共享数据，却不能互换名词。</p>
+<p>一个模型在历史期能拟合曲线，不意味着它已经识别了因果机制；一个归因分析支持某一强迫，也不提供下一场天气的确定时间。</p>
+<h3 id="11">1.1 零假设必须可读<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>“没有变化”不是唯一零假设。它可能是无外部强迫的控制模拟、保持土地利用不变的反事实、或带有自相关的稳定随机过程。</p>
+<p>报告中应写清零假设生成方式、模拟长度、初始化策略、筛选规则和事后选择是否存在。</p>
+<p>如果事件定义看过数据后才修改，名义显著性就不再等于原先的错误率。</p>
+<h3 id="12">1.2 指纹不是照片<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>指纹是某个强迫在模型中经过时空传播后的响应模式。</p>
+<p>它受到辐射、环流、海洋吸热、冰冻圈和生物地球化学反馈的共同影响，因此不是“把全球均值放大一倍”的照片。</p>
+<p>真实分析通常需要多变量、多尺度和协方差加权，而非只用一条时间趋势。</p>
+<h2 id="2_1">2. 从单变量回归到协方差加权<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>一般线性指纹模型写为</p>
+<div class="arithmatex">\[
+\hat{\boldsymbol\beta}=
+(\mathbf X^\mathsf T\mathbf\Sigma^{-1}\mathbf X)^{-1}
+\mathbf X^\mathsf T\mathbf\Sigma^{-1}\mathbf y.
+\]</div>
+<p>矩阵 <span class="arithmatex">\(\mathbf X\)</span> 的列可以代表不同强迫，<span class="arithmatex">\(\mathbf\Sigma\)</span> 描述内部变率及其相关结构。</p>
+<p>当列向量近线性相关时，矩阵条件数变大，系数对噪声和先验更敏感。</p>
+<p>这不是“算法不够聪明”，而是当前观测在这些方向上缺乏可分辨信息。</p>
+<h3 id="21">2.1 数量级与有效信息<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>在一个有 12 个样本点的教学序列里，独立且同分布的假设会让标准误缩放为 <span class="arithmatex">\(1/\sqrt{12}\)</span>。</p>
+<p>若相邻样本高度相关，有效样本量可能只相当于少数独立模式；因此不能把 12 行表格机械地当成 12 个证据单元。</p>
+<p>变化的单位也必须一致：温度趋势、降水百分比、事件概率和风险损失不能在同一列中混写。</p>
+<h3 id="22">2.2 区间与阈值<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>近似区间常写成 <span class="arithmatex">\(\hat\beta\pm1.96\operatorname{SE}\)</span>，但这个常数只属于特定的正态、大样本近似。</p>
+<p>小样本、非高斯尾部、模型集合差异和多重比较都需要额外处理。</p>
+<p>把 1.96 当成自然常数，是把模型条件藏起来的常见错误。</p>
+<h2 id="3_1">3. 极端事件的证据账本<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>极端事件的归因至少应记录事件定义、空间范围、持续时间、阈值基准、观测质量控制和反事实集合。</p>
+<p>还要区分概率比、风险比、强度变化和受影响损失；它们的分母不同，不能凭名称互换。</p>
+<p>社会损失更不能只从气候变量回归出来，因为暴露和脆弱性会随时间变化。</p>
+<p>本页用合成无量纲量演示统计骨架，不给某个城市、年份或灾害事件作结论。</p>
+<h2 id="4_1">4. 常见误区与可复现做法<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>把相关当归因：</strong>先写反事实和替代机制，再谈相关系数。</p>
+<p><strong>把单次异常当趋势：</strong>先固定事件窗口和基准期，检查内部变率分布。</p>
+<p><strong>把模型集合当更多独立样本：</strong>不同模型可能共享参数化和结构偏差。</p>
+<p><strong>只报告显著性：</strong>同时报告效应量、区间、样本定义和不确定性来源。</p>
+<p><strong>隐藏不利结果：</strong>保留预注册阈值、数据版本、失败的敏感性试验和代码版本。</p>
+<p>可核验的物理基础可从 <a href="https://www.ipcc.ch/report/ar6/wg1/">IPCC AR6 WGI</a> 及其检测归因章节开始；极端事件与影响边界可参考 <a href="https://www.ipcc.ch/report/ar6/wg2/">IPCC AR6 WGII</a>。本课程动态观测资料基线为 2026-09-01；若以后加入观测数字，必须标明指标年、基准时段、不确定度和核验日期。</p>
+<p>下一页把证据链放回物理事件本身：地震、火山和海啸的 hazard 先于社会风险，但它们不是同一个量。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-inverse-assimilation.html"><span class="pager-label">上一页</span>观测 II · 反演、数据同化与不确定性</a>
+  <a class="pager-slot next" href="24-geohazards.html"><span class="pager-label">下一页</span>风险 I · 地震、火山与海啸</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/earth-detection-attribution.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>反演、数据同化与不确定性 · 地球系统与气候科学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">地球系统与气候科学</a>
+    <div class="site-subtitle">岩石圈 · 水圈 · 大气圈 · 冰冻圈 · 生物圈</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 行星的骨架与时间</div><ul><li><a href="01-system-ledger.html">系统 I · 储库、通量与驻留时间</a></li><li><a href="02-deep-time.html">系统 II · 深时、地层与地质年代学</a></li><li><a href="03-seismic-earth.html">深部 I · 用地震波看见地球内部</a></li><li><a href="04-plate-tectonics.html">深部 II · 板块构造与地幔对流</a></li><li><a href="05-rock-geochemical-cycle.html">深部 III · 岩石循环与地球化学分异</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 被水重写的地表</div><ul><li><a href="06-weathering-soil.html">地表 I · 风化、土壤与临界带</a></li><li><a href="07-rivers-groundwater.html">地表 II · 河流、流域与地下水</a></li><li><a href="08-cryosphere.html">地表 III · 冰川、冰盖与海冰</a></li><li><a href="09-coasts-sediments.html">地表 IV · 海岸、沉积与海平面</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 大气与海洋的热机</div><ul><li><a href="10-radiation-balance.html">气候 I · 辐射平衡与行星温度</a></li><li><a href="11-atmospheric-motion.html">大气 I · 环流、天气与旋转流体</a></li><li><a href="12-clouds-precipitation.html">大气 II · 水汽、云与降水</a></li><li><a href="13-ocean-circulation.html">海洋 I · 风生环流与翻转环流</a></li><li><a href="14-coupled-variability.html">海气耦合 · ENSO、季风与年代际变率</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 气候为什么会变</div><ul><li><a href="15-carbon-cycle.html">碳 I · 快慢碳循环与海洋吸收</a></li><li><a href="16-biosphere-cycles.html">碳 II · 生物圈与生物地球化学循环</a></li><li><a href="17-paleoclimate.html">气候档案 · 代理记录与古气候</a></li><li><a href="18-forcing-aerosols.html">气候动力 · 温室气体、气溶胶与辐射强迫</a></li><li><a href="19-feedback-sensitivity.html">气候响应 · 反馈、敏感度与时滞</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 从方程到证据</div><ul><li><a href="20-climate-models.html">模型 I · 从能量平衡到地球系统模型</a></li><li><a href="21-observation-remote-sensing.html">观测 I · 卫星、现场网与再分析</a></li><li class="active"><a href="22-inverse-assimilation.html">观测 II · 反演、数据同化与不确定性</a></li><li><a href="23-detection-attribution.html">证据 · 检测、归因与极端事件</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 风险、选择与行星比较</div><ul><li><a href="24-geohazards.html">风险 I · 地震、火山与海啸</a></li><li><a href="25-hydroclimate-risk.html">风险 II · 热、旱、洪与复合极端</a></li><li><a href="26-mitigation-adaptation.html">选择 · 碳预算、减缓与适应</a></li><li><a href="27-planetary-climates.html">比较行星学 · 金星、火星与宜居性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone.html">收官 · 一个流域的地球系统数字孪生</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 05:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#earth-inverse-learning-title">学习层：给流域水储量做一次可审计的更新</a><ul>
+<li><a href="#1">1. 具体情境：看得见的河流，藏起来的水</a></li>
+<li><a href="#2">2. 揭示前预测：谁应该更靠近更新结果？</a></li>
+<li><a href="#3">3. 公式桥：先验、似然与后验是同一条信息链</a></li>
+<li><a href="#4">4. 互动实验：把过程噪声和观测噪声分开</a></li>
+<li><a href="#5">5. 边界：一次漂亮更新不等于状态被“测真”</a></li>
+<li><a href="#6">6. 迁移：从标量账本到地球系统网格</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 反演与正问题：箭头反过来，困难增加</a><ul>
+<li><a href="#11">1.1 一个数量级直觉：信息维数不能凭空增加</a></li>
+<li><a href="#12">1.2 正则化把“偏好”写在公式里</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 数据同化的时间循环</a><ul>
+<li><a href="#21">2.1 创新是一个诊断，不只是一个差</a></li>
+<li><a href="#22">2.2 数值稳定性与可追溯性</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 常见误区清单</a></li>
+<li><a href="#4_1">4. 量级、单位与证据边界</a></li>
+<li><a href="#5_1">5. 从反演走向归因</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">观测 II · 反演、数据同化与不确定性<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<p>地球系统里，真正想知道的量常常不能直接拿尺子量到。</p>
+<p>地下含水量藏在土层中，云滴半径藏在辐射信号后面，海洋内部温度也只在少数剖面上被采样。</p>
+<p><strong>反演</strong>从观测结果倒推隐藏状态或参数；<strong>数据同化</strong>则把观测和一个随时间推进的模型放进同一个更新循环。</p>
+<p>本页的重点不是把任何一个算法称为“真相机器”，而是学会问：先验从哪里来，观测误差有多大，更新后还剩多少不确定性。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="earth-inverse-learning-title" class="learning-layer">
+<h2 id="earth-inverse-learning-title">学习层：给流域水储量做一次可审计的更新<a class="headerlink" href="#earth-inverse-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：看得见的河流，藏起来的水<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>某个教学流域每天有一个水储量状态，单位取为“等效毫米”这一教学单位。</p>
+<p>模型根据前一天的状态和降水、蒸散等通量，给出今天的预测；卫星或现场仪器给出一个带误差的观测。</p>
+<p>这里的场景是<strong>问题设置</strong>，不是对某个真实流域的预测，也不代表某个观测站的实际记录。</p>
+<p>我们先假设隐藏状态和误差近似为一维高斯量，只为了把每一步的证据写进账本。</p>
+<h3 id="2">2. 揭示前预测：谁应该更靠近更新结果？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验前，完成两项预测：</p>
+<ol>
+<li>如果观测噪声变大，后验均值会更靠近先验预测，还是更靠近传感器读数？</li>
+<li>如果过程不确定性变大而观测质量不变，卡尔曼增益会变小，还是变大？</li>
+</ol>
+<p>请先选择答案，再展开控件。提交后实验才会揭示数值账本。</p>
+<h3 id="3">3. 公式桥：先验、似然与后验是同一条信息链<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>用 <span class="arithmatex">\(m_f\)</span> 和 <span class="arithmatex">\(P_f\)</span> 表示推进模型后的先验均值与方差，用 <span class="arithmatex">\(y\)</span> 表示观测，用 <span class="arithmatex">\(R\)</span> 表示观测误差方差。</p>
+<p>最小线性高斯观测模型为</p>
+<div class="arithmatex">\[
+y=Hx+\varepsilon,\qquad \varepsilon\sim\mathcal N(0,R).
+\]</div>
+<p>一维且 <span class="arithmatex">\(H=1\)</span> 时，创新、增益和后验分别为</p>
+<div class="arithmatex">\[
+d=y-m_f,
+\qquad K=\frac{P_f}{P_f+R},
+\]</div>
+<div class="arithmatex">\[
+m_a=m_f+Kd,
+\qquad P_a=(1-K)P_f.
+\]</div>
+<p><span class="arithmatex">\(K\)</span> 没有单位；当 <span class="arithmatex">\(R\ll P_f\)</span> 时，观测更有话语权，当 <span class="arithmatex">\(R\gg P_f\)</span> 时，模型先验更有话语权。</p>
+<h3 id="4">4. 互动实验：把过程噪声和观测噪声分开<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="earth-inverse-assimilation">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>以下为合成教学输入，不是实测流域数据。默认先验均值 <span class="arithmatex">\(m_f=120\)</span>、先验方差 <span class="arithmatex">\(P_f=500\)</span>、观测 <span class="arithmatex">\(y=150\)</span>、观测方差 <span class="arithmatex">\(R=225\)</span>，对应观测标准差 <span class="arithmatex">\(15\)</span> 个教学单位。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创新 <span class="arithmatex">\(d=y-m_f\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(30.0\)</span></td>
+<td>教学单位</td>
+</tr>
+<tr>
+<td>卡尔曼增益 <span class="arithmatex">\(K\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.690\)</span></td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>后验均值 <span class="arithmatex">\(m_a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(140.7\)</span></td>
+<td>教学单位</td>
+</tr>
+<tr>
+<td>后验方差 <span class="arithmatex">\(P_a\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(155.2\)</span></td>
+<td>教学单位<span class="arithmatex">\(^2\)</span></td>
+</tr>
+<tr>
+<td>后验标准差</td>
+<td style="text-align: right;"><span class="arithmatex">\(12.5\)</span></td>
+<td>教学单位</td>
+</tr>
+</tbody>
+</table>
+<p>提交两个预测后，控件可改变过程方差、观测噪声、观测值和模型漂移；图中的先验、观测与后验会和账本同步。</p>
+</div>
+<h3 id="5">5. 边界：一次漂亮更新不等于状态被“测真”<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li>线性高斯假设把非对称洪水尾部、截断状态和离群传感器压成了方差，极端风险可能因此被低估。</li>
+<li><span class="arithmatex">\(R\)</span> 不是“仪器型号的一个固定常数”；它依赖空间尺度、代表性误差、预处理和观测时间窗。</li>
+<li>一维 <span class="arithmatex">\(H=1\)</span> 只说明观测直接指向状态。真正的遥感反演常有非线性辐射传输、参数相关性和不可辨识方向。</li>
+<li>后验方差只对给定模型、先验和误差协方差负责；换一个模型族，后验可能整体移动。</li>
+</ul>
+<h3 id="6">6. 迁移：从标量账本到地球系统网格<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>把一维状态换成向量 <span class="arithmatex">\(\mathbf x\)</span>，把 <span class="arithmatex">\(P_f\)</span> 换成协方差矩阵 <span class="arithmatex">\(\mathbf P_f\)</span>，公式中的乘法就变为矩阵运算。</p>
+<p><strong>迁移问题：</strong>若两个传感器观测同一状态但误差相关，直接把两个独立更新串起来会漏掉什么？如果观测只在训练期覆盖了湿润季节，怎样在报告中标出旱季反演的外推边界？</p>
+</section>
+<h2 id="1_1">1. 反演与正问题：箭头反过来，困难增加<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>正问题给定状态和参数，计算观测：</p>
+<div class="arithmatex">\[
+\mathbf y=\mathcal H(\mathbf x,\boldsymbol\theta)+\boldsymbol\varepsilon.
+\]</div>
+<p>反演则试图由 <span class="arithmatex">\(\mathbf y\)</span> 求 <span class="arithmatex">\(\mathbf x\)</span> 或 <span class="arithmatex">\(\boldsymbol\theta\)</span>。</p>
+<p>正问题通常是“输入一组数，运行模型”；反问题还要判断解是否存在、是否唯一、是否对噪声稳定。</p>
+<p>这三件事对应 Hadamard 的适定性要求：存在性、唯一性和连续依赖。</p>
+<h3 id="11">1.1 一个数量级直觉：信息维数不能凭空增加<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>如果只有 10 个独立观测，却想同时解析 1000 个互不相关的网格状态，问题通常需要先验、正则化或降维。</p>
+<p>这不是计算机内存不够，而是数据中可用的信息方向不足。</p>
+<p>把观测算子线性化为 <span class="arithmatex">\(\mathbf H\)</span> 后，奇异值很小的方向对噪声特别敏感；这些方向就是反演的软肋。</p>
+<h3 id="12">1.2 正则化把“偏好”写在公式里<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>一个常见的二次目标是</p>
+<div class="arithmatex">\[
+J(\mathbf x)=
+\lVert\mathbf y-\mathbf H\mathbf x\rVert_{\mathbf R^{-1}}^2+
+\lambda\lVert\mathbf L(\mathbf x-\mathbf x_b)\rVert^2.
+\]</div>
+<p>第一项惩罚观测不一致，第二项把背景状态或平滑结构作为偏好，<span class="arithmatex">\(\lambda\)</span> 控制两者权衡。</p>
+<p>正则化不是凭空创造信息；它以可解释的偏好换取稳定性。</p>
+<h2 id="2_1">2. 数据同化的时间循环<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>设状态转移为</p>
+<div class="arithmatex">\[
+\mathbf x_{t}=\mathcal M_t(\mathbf x_{t-1})+\boldsymbol\eta_t,
+\]</div>
+<p>其中 <span class="arithmatex">\(\boldsymbol\eta_t\)</span> 是过程误差。</p>
+<p>一个最小循环包含：预报、接收观测、计算创新、更新、再预报。</p>
+<p>过程噪声 <span class="arithmatex">\(\mathbf Q\)</span> 描述模型没有写出的天气、混合和参数漂移；观测噪声 <span class="arithmatex">\(\mathbf R\)</span> 描述仪器和代表性误差。</p>
+<p>把所有偏差都塞进 <span class="arithmatex">\(\mathbf R\)</span> 会让模型看起来过于自信，把所有误差都塞进 <span class="arithmatex">\(\mathbf Q\)</span> 又会让观测几乎失去约束力。</p>
+<h3 id="21">2.1 创新是一个诊断，不只是一个差<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>创新 <span class="arithmatex">\(d\)</span> 大不一定说明模型错了：它也可能来自一次低概率观测噪声或未建模的突变。</p>
+<p>标准化创新可写为</p>
+<div class="arithmatex">\[
+z=\frac{d}{\sqrt{P_f+R}}.
+\]</div>
+<p>连续出现同号且过大的 <span class="arithmatex">\(z\)</span>，比单个大残差更提示偏差、漂移或错误的误差协方差。</p>
+<h3 id="22">2.2 数值稳定性与可追溯性<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>矩阵实现中应尽量使用平方根滤波、Cholesky 分解或等价稳定算法，而不是显式求逆。</p>
+<p>每次更新至少记录时间戳、观测版本、模型版本、<span class="arithmatex">\(Q/R\)</span> 设定、创新和拒绝规则。</p>
+<p>这份 provenance 账本让别人能区分“数据没来”“数据被拒绝”和“模型确实更新了”。</p>
+<h2 id="3_1">3. 常见误区清单<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>误区一：后验更窄，所以一定更正确。</strong></p>
+<p>后验方差变小只说明在当前假设中不确定性被压缩；如果观测偏差没有进入模型，窄区间可能是过度自信。</p>
+<p><strong>误区二：观测越多，信息就线性增加。</strong></p>
+<p>空间上高度相关的像元或时间上重复采样的传感器，提供的独立信息远少于计数值。</p>
+<p><strong>误区三：同化等于把观测硬塞进模型。</strong></p>
+<p>更新权重取决于误差协方差和观测算子；硬替换会破坏守恒、动力学或跨变量一致性。</p>
+<p><strong>误区四：反演输出的小数位代表精度。</strong></p>
+<p>计算器可以给出很多位，但输入误差、模型结构误差和尺度不匹配决定了有效精度。</p>
+<h2 id="4_1">4. 量级、单位与证据边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>卫星反演常把辐亮度、反射率、微波亮温或雷达回波转换成地表变量；中间的物理单位和校准链不能被一个“指数”隐藏。</p>
+<p>本页实验的 100、150 等数字只是无量纲教学单位；不代表某个流域的毫米、水位或土壤含水量。</p>
+<p>动态观测数字若被加入课程，应同时写明指标年、基准时段、不确定度与核验日期；本页不引入当前观测数值。</p>
+<p>可作为证据入口的资料包括 <a href="https://www.ipcc.ch/report/ar6/wg1/">IPCC AR6 WGI</a> 的观测与模型评估、<a href="https://science.nasa.gov/earth/facts/">NASA Earth science</a> 的地球观测入口，以及 <a href="https://www.noaa.gov/education/resource-collections/climate">NOAA 的数据与教育资源</a>。链接是资料入口，不替代具体产品的版本和元数据。</p>
+<h2 id="5_1">5. 从反演走向归因<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>反演问“隐藏状态是什么”；检测与归因还要问“变化是否超出内部变率，以及哪些外部强迫能解释指纹”。</p>
+<p>这一步不能只把相关性换成更漂亮的图，而要把零假设、对照模拟、有效样本量和替代解释分开。</p>
+<p>下一章把这个证据链压缩成一个可操作的指纹回归实验。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="21-observation-remote-sensing.html"><span class="pager-label">上一页</span>观测 I · 卫星、现场网与再分析</a>
+  <a class="pager-slot next" href="23-detection-attribution.html"><span class="pager-label">下一页</span>证据 · 检测、归因与极端事件</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/earth-inverse-assimilation.js"></script>
+</body>
+</html>

@@ -18,6 +18,7 @@ BUILDERS = {
     "clinic-course": "clinic-course/build_site.py",
     "comfyUI-course": "comfyUI-course/build_site.py",
     "cs-course": "cs-course/build_site.py",
+    "earth-course": "earth-course/build_site.py",
     "grad-math": "grad-math/build_site.py",
     "lang-course": "lang-course/build_site.py",
     "materials-course": "materials-course/build_site.py",

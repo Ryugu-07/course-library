@@ -118,12 +118,18 @@
     var builder = registry[name];
     if (!builder) return;
     var fallback = root.textContent.trim();
+    root.removeAttribute("data-cl-error");
+    root.removeAttribute("data-cl-error-message");
     root.setAttribute("data-cl-mounted", "true");
     try {
       builder(root, api);
     } catch (error) {
       root.removeAttribute("data-cl-mounted");
       root.setAttribute("data-cl-error", "true");
+      root.setAttribute(
+        "data-cl-error-message",
+        error && error.message ? error.message : String(error)
+      );
       root.textContent = fallback || "交互组件暂时无法加载，请阅读本节的静态推导。";
       if (window.console && console.error) console.error("Learning lab failed:", name, error);
     }

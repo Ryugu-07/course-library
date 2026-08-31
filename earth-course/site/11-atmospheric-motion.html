@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>环流、天气与旋转流体 · 地球系统与气候科学</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">地球系统与气候科学</a>
+    <div class="site-subtitle">岩石圈 · 水圈 · 大气圈 · 冰冻圈 · 生物圈</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 行星的骨架与时间</div><ul><li><a href="01-system-ledger.html">系统 I · 储库、通量与驻留时间</a></li><li><a href="02-deep-time.html">系统 II · 深时、地层与地质年代学</a></li><li><a href="03-seismic-earth.html">深部 I · 用地震波看见地球内部</a></li><li><a href="04-plate-tectonics.html">深部 II · 板块构造与地幔对流</a></li><li><a href="05-rock-geochemical-cycle.html">深部 III · 岩石循环与地球化学分异</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 被水重写的地表</div><ul><li><a href="06-weathering-soil.html">地表 I · 风化、土壤与临界带</a></li><li><a href="07-rivers-groundwater.html">地表 II · 河流、流域与地下水</a></li><li><a href="08-cryosphere.html">地表 III · 冰川、冰盖与海冰</a></li><li><a href="09-coasts-sediments.html">地表 IV · 海岸、沉积与海平面</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 大气与海洋的热机</div><ul><li><a href="10-radiation-balance.html">气候 I · 辐射平衡与行星温度</a></li><li class="active"><a href="11-atmospheric-motion.html">大气 I · 环流、天气与旋转流体</a></li><li><a href="12-clouds-precipitation.html">大气 II · 水汽、云与降水</a></li><li><a href="13-ocean-circulation.html">海洋 I · 风生环流与翻转环流</a></li><li><a href="14-coupled-variability.html">海气耦合 · ENSO、季风与年代际变率</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 气候为什么会变</div><ul><li><a href="15-carbon-cycle.html">碳 I · 快慢碳循环与海洋吸收</a></li><li><a href="16-biosphere-cycles.html">碳 II · 生物圈与生物地球化学循环</a></li><li><a href="17-paleoclimate.html">气候档案 · 代理记录与古气候</a></li><li><a href="18-forcing-aerosols.html">气候动力 · 温室气体、气溶胶与辐射强迫</a></li><li><a href="19-feedback-sensitivity.html">气候响应 · 反馈、敏感度与时滞</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 从方程到证据</div><ul><li><a href="20-climate-models.html">模型 I · 从能量平衡到地球系统模型</a></li><li><a href="21-observation-remote-sensing.html">观测 I · 卫星、现场网与再分析</a></li><li><a href="22-inverse-assimilation.html">观测 II · 反演、数据同化与不确定性</a></li><li><a href="23-detection-attribution.html">证据 · 检测、归因与极端事件</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 风险、选择与行星比较</div><ul><li><a href="24-geohazards.html">风险 I · 地震、火山与海啸</a></li><li><a href="25-hydroclimate-risk.html">风险 II · 热、旱、洪与复合极端</a></li><li><a href="26-mitigation-adaptation.html">选择 · 碳预算、减缓与适应</a></li><li><a href="27-planetary-climates.html">比较行星学 · 金星、火星与宜居性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone.html">收官 · 一个流域的地球系统数字孪生</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 04:28</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#earth-atmospheric-motion-learning-title">学习层：先给一条飞行航线画力图，再判断风向和地转近似</a><ul>
+<li><a href="#1">1. 具体情境：天气图上的等压线与一架跨海航班</a></li>
+<li><a href="#2">2. 揭示前预测：压力、旋转和尺度的三道门</a></li>
+<li><a href="#3">3. 公式桥：先写动量方程，再做尺度化</a></li>
+<li><a href="#4">4. 互动实验：把力图、尺度和速度放在一张账本</a></li>
+<li><a href="#5">5. 边界：平衡不是原因的替代品</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 从力到流</a></li>
+<li><a href="#2_1">2. 数量级感</a></li>
+<li><a href="#3_1">3. 资料与证据边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">大气运动 · 压力梯度、旋转与环流<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>风不是“空气从冷处跑到热处”的一句话，而是压力梯度、科里奥利力、摩擦、浮力和地球自转共同留下的速度场。本页用尺度分析把天气尺度的风与大尺度地转流分开。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="earth-atmospheric-motion-learning-title" class="learning-layer">
+<h2 id="earth-atmospheric-motion-learning-title">学习层：先给一条飞行航线画力图，再判断风向和地转近似<a class="headerlink" href="#earth-atmospheric-motion-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：天气图上的等压线与一架跨海航班<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>飞行签派员看到天气图上密集的等压线：同样的气压差，若分布在更短距离上，风会怎样？航线在北半球和南半球是否向同一侧偏转？这个场景用来训练受力和尺度判断，<strong>不是对某一次天气过程的预测</strong>。先定坐标、纬度和水平尺度，再决定哪些力可以近似平衡。</p>
+<h3 id="2">2. 揭示前预测：压力、旋转和尺度的三道门<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先提交三项预测：</p>
+<ul>
+<li>压力梯度力的直接加速度方向是从高压指向低压，还是相反？</li>
+<li>北半球自由大气中的运动，科里奥利偏转相对运动方向在右侧还是左侧？</li>
+<li><span class="arithmatex">\(Ro\ll1\)</span> 时，惯性相对科里奥利项小，风更接近地转平衡还是纯粹沿压力梯度直冲？</li>
+</ul>
+<p>揭示后，拖动纬度、气压梯度和尺度；实验同时给出科里奥利参数、Rossby 数和地转风速度，要求每个数字都回到量纲。</p>
+<h3 id="3">3. 公式桥：先写动量方程，再做尺度化<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在水平、局地切平面近似中，速度 <span class="arithmatex">\(\boldsymbol u\)</span> 的动量方程可概括为</p>
+<div class="arithmatex">\[
+\frac{D\boldsymbol u}{Dt}=-\frac{1}{\rho}\nabla_h p-f\boldsymbol k\times\boldsymbol u+\boldsymbol F_{\rm fric},
+\qquad f=2\Omega\sin\varphi.
+\]</div>
+<p>其中 <span class="arithmatex">\(\varphi\)</span> 是纬度，<span class="arithmatex">\(\Omega\simeq7.29\times10^{-5}\ \mathrm{s^{-1}}\)</span>。压力梯度力的量纲是 <span class="arithmatex">\(\mathrm{m\,s^{-2}}\)</span>；科里奥利项的量级是 <span class="arithmatex">\(fU\)</span>。若两者近似平衡，得到地转关系</p>
+<div class="arithmatex">\[
+f\boldsymbol k\times\boldsymbol u_g\simeq-\frac{1}{\rho}\nabla_h p,
+\qquad
+U_g\simeq\frac{\lvert\nabla_h p\rvert}{\rho\lvert f\rvert}.
+\]</div>
+<p>惯性与旋转项的比例用 Rossby 数记录：</p>
+<div class="arithmatex">\[
+Ro=\frac{U}{\lvert f\rvert L}.
+\]</div>
+<p>取 <span class="arithmatex">\(U=10\ \mathrm{m\,s^{-1}}\)</span>、<span class="arithmatex">\(L=1000\ \mathrm{km}\)</span>、<span class="arithmatex">\(\varphi=45^\circ\)</span>，<span class="arithmatex">\(Ro\)</span> 约为 <span class="arithmatex">\(0.10\)</span> 的量级，说明大尺度流可先试地转近似。靠近赤道时 <span class="arithmatex">\(f\to0\)</span>，同一公式会发出警报，而不是给出可信的无限大风速。</p>
+<p>静力平衡还提供垂直方向的桥：</p>
+<div class="arithmatex">\[
+\frac{\partial p}{\partial z}=-\rho g.
+\]</div>
+<p>温度水平梯度会通过热成风关系改变不同高度的地转风差；因此“地面风”和“高空急流”可以有很不一样的速度与方向。</p>
+<h3 id="4">4. 互动实验：把力图、尺度和速度放在一张账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="earth-atmospheric-motion">
+<p><strong>JavaScript 失效时的静态 fallback：</strong>默认示意输入为纬度 <span class="arithmatex">\(45^\circ\)</span>、水平气压梯度 <span class="arithmatex">\(1.2\ \mathrm{hPa}/100\ \mathrm{km}\)</span>、水平尺度 <span class="arithmatex">\(1000\ \mathrm{km}\)</span>、代表性风速 <span class="arithmatex">\(10\ \mathrm{m\,s^{-1}}\)</span>。它们是尺度实验参数，不是某一日期的天气观测。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 读法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\lvert f\rvert\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.03\times10^{-4}\)</span></td>
+<td>s⁻¹，<span class="arithmatex">\(45^\circ\)</span> 的科里奥利参数</td>
+</tr>
+<tr>
+<td>压力梯度</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.20\times10^{-3}\)</span></td>
+<td>Pa·m⁻¹</td>
+</tr>
+<tr>
+<td>地转风代理</td>
+<td style="text-align: right;">9.7</td>
+<td>m·s⁻¹，<span class="arithmatex">\(\rho=1.2\ \mathrm{kg\,m^{-3}}\)</span></td>
+</tr>
+<tr>
+<td>Rossby 数</td>
+<td style="text-align: right;">0.097</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>近似判断</td>
+<td style="text-align: right;">大尺度地转倾向</td>
+<td>低 <span class="arithmatex">\(Ro\)</span>，非赤道边界</td>
+</tr>
+</tbody>
+</table>
+<p>提交“高到低 / 低到高”“右侧 / 左侧”“地转 / 纯梯度”三项预测，再改变至少两个滑杆，观察 <span class="arithmatex">\(f\)</span>、<span class="arithmatex">\(U_g\)</span> 和 <span class="arithmatex">\(Ro\)</span> 的联动。</p>
+</div>
+<h3 id="5">5. 边界：平衡不是原因的替代品<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>地转风不等于所有风</strong>：天气系统的加速、喷流入口出口、对流、锋面和山地绕流会让惯性项不可忽略。</li>
+<li><strong>赤道不是普通中纬度的缩小版</strong>：<span class="arithmatex">\(f\)</span> 很小，beta 平面、重力波、对流和非地转项需要进入模型。</li>
+<li><strong>地面摩擦改变方向和速度</strong>：边界层内风会斜穿等压线流向低压，粗糙度和稳定度还会改变交换系数。</li>
+<li><strong>气压梯度的单位很容易错</strong>：<span class="arithmatex">\(1\ \mathrm{hPa}=100\ \mathrm{Pa}\)</span>，<span class="arithmatex">\(100\ \mathrm{km}=10^5\ \mathrm m\)</span>；漏掉一个换算会造成数量级错误。</li>
+<li><strong>天气图不是完整三维速度场</strong>：等压线给的是压力信息，温度、密度、垂直运动和地形仍需观测或模式约束。</li>
+</ul>
+<div class="cl-transfer">
+<p><strong>迁移问题：</strong>保持压力梯度不变，把纬度从 <span class="arithmatex">\(45^\circ\)</span> 移到 <span class="arithmatex">\(10^\circ\)</span>，地转速度代理为什么会显著增大而可信度反而下降？如果把水平尺度从 <span class="arithmatex">\(1000\)</span> km 缩到 <span class="arithmatex">\(100\)</span> km，<span class="arithmatex">\(Ro\)</span> 如何变？请说明哪一个结论是公式方向，哪一个需要天气尺度模型核验。</p>
+</div>
+</section>
+<h2 id="1_1">1. 从力到流<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>大气动力学常把压力梯度力、科里奥利力、离心力、摩擦和浮力分开。压力梯度是局地驱动力，地球自转把运动方向偏转，摩擦耗散动量，浮力和静力平衡控制垂直结构。不同尺度的“主角”不同，不能用一张中纬度天气图覆盖所有问题。</p>
+<p>北半球低压附近的自由大气环流通常呈逆时针，南半球则相反；这是方向约定与科里奥利项共同决定的统计结构，不是每一个瞬时风矢量都严格沿圆形轨道。</p>
+<h2 id="2_1">2. 数量级感<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>地球自转角速度是 <span class="arithmatex">\(10^{-5}\ \mathrm{s^{-1}}\)</span> 量级，中纬度 <span class="arithmatex">\(f\)</span> 是 <span class="arithmatex">\(10^{-4}\ \mathrm{s^{-1}}\)</span> 量级。以 <span class="arithmatex">\(L=10^6\ \mathrm m\)</span>、<span class="arithmatex">\(U=10\ \mathrm{m\,s^{-1}}\)</span> 代入，旋转时间 <span class="arithmatex">\(1/f\)</span> 约为数小时，平流时间 <span class="arithmatex">\(L/U\)</span> 约为一天，因而大尺度流有时间被自转显著转向。</p>
+<p>压力梯度 <span class="arithmatex">\(10^{-3}\ \mathrm{Pa\,m^{-1}}\)</span> 看起来很小，除以空气密度和 <span class="arithmatex">\(f\)</span> 后却能给出每秒数米到十米的地转风。这个换算是天气图“等压线越密，风通常越强”的定量版本，但仍受曲率、摩擦、地形和观测层高限制。</p>
+<h2 id="3_1">3. 资料与证据边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>再分析把观测与模式结合，适合看大尺度环流的连续场，但不是纯观测；站点、探空、卫星和雷达各自约束不同高度与变量。若使用某年的风速、急流位置或极端天气统计，必须写指标年、基准期、产品版本和核验日期。本页只使用稳定常数与标明为代表性输入的教学参数。</p>
+<p>还要检查速度的方向约定：实验中的地转风只显示速度大小，北/南半球的“右/左”是相对运动方向而言；如果把地图上的东西南北箭头与局地切平面混用，符号会错。真实天气分析通常还要保留曲率项、垂直切变和边界层摩擦。</p>
+<p>尺度分析的价值不是把所有项删掉，而是说明下一项该加在哪里。先用 <span class="arithmatex">\(Ro\)</span> 判断惯性是否可能小，再用观测风向、等压线曲率和摩擦层高度检查这个判断；模型边界本身就是结论的一部分。</p>
+<p>气压是标量，风是矢量；一张等压线图只给出压力场的几何信息，不能单独决定垂直速度、湍流或降水。迁移到具体天气个例时，还要保留观测时间、气压层和坐标投影。</p>
+<p>IPCC AR6 WGI 的大气环流评估、NASA 地球观测资料和 NOAA 的天气动力学教学资源可以作为进一步入口；不要把实验中的恒定密度当成真实天气系统的观测事实。</p>
+<p>推荐从 <a href="https://www.ipcc.ch/report/ar6/wg1/">IPCC AR6 WGI</a> 与 <a href="https://science.nasa.gov/earth/">NASA Earth science</a> 的大气观测入口开始。</p>
+<hr />
+<p><em>下一页：空气上升会冷却，但“相对湿度达到 100%”仍不是降水的充分条件。</em></p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-radiation-balance.html"><span class="pager-label">上一页</span>气候 I · 辐射平衡与行星温度</a>
+  <a class="pager-slot next" href="12-clouds-precipitation.html"><span class="pager-label">下一页</span>大气 II · 水汽、云与降水</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/earth-atmospheric-motion.js"></script>
+</body>
+</html>
