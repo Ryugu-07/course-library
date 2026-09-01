@@ -92,6 +92,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![板块边界的全球几何](assets/img/plate-global-map.svg)
+
+<figcaption><span class="fig-id">图 4.1</span>在全球示意投影中辨认海岭、俯冲带与转换边界，并把箭头读成相对运动而非绝对预报；地图、板块边界和箭头长度非导航比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![三类边界如何改变地表](assets/img/plate-boundary-sections.svg)
+
+<figcaption><span class="fig-id">图 4.2</span>三联剖面把同一位移 <i>d</i> = <i>vt</i> 分解为法向 <i>d</i><sub>n</sub> 与切向 <i>d</i><sub>s</sub>，帮助比较张性、汇聚和转换边界的机制；剖面深度与边界宽度是示意，不能直接推出应力或灾害时间。</figcaption>
+</figure>
+
 ## 1. 海岭、俯冲带和转换断层
 
 海岭处新洋壳形成并向两侧扩张，俯冲带把一块岩石圈送入深部，转换断层主要容纳横向相对运动。它们都是表面运动的几何描述，背后动力涉及热浮力、板块重力、地幔黏滞流动和界面摩擦，不能把“板块被传送带推着走”当成单一机制。

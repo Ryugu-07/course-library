@@ -8,6 +8,16 @@
 
 本页只做透明的情景核算，不提供个人投资建议，也不向个人或机构发出政策指令。
 
+<figure class="diagram visual-atlas" markdown="1">
+![减缓与适应的双路径和双账本](assets/img/climate-action-portfolio.svg)
+<figcaption><span class="fig-id">图 26.1</span>减缓作用在累积排放到气候 hazard 的上游，适应作用在暴露与脆弱性到残余影响的下游。本图是双路径情景示意，账本、箭头和风险接口非按比例；它不是全球排放预测、政策指令或具体损失预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![适应措施在 hazard 到影响风险链上的作用点](assets/img/adaptation-risk-chain.svg)
+<figcaption><span class="fig-id">图 26.2</span>适应可以改变 exposure、vulnerability 或恢复时间，但不自动改变物理 hazard。本图是风险边界示意，节点和作用路径非按比例；输入是条件情景，残余影响不是观测真值，也不是未来风险预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-mitigation-learning-title">

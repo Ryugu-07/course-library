@@ -10,6 +10,16 @@
 
 互动实验的所有数值都是归一化合成场景，不能读成某地下一季的预测。
 
+<figure class="diagram visual-atlas" markdown="1">
+![热、旱、洪的边际压力与复合耦合](assets/img/compound-extremes.svg)
+<figcaption><span class="fig-id">图 25.1</span>热、旱、洪在同一或连续时间窗中以边际压力和耦合项组成复合分数。本图是归一化机制示意，色带、时间窗和耦合门非按比例；输入是合成情景，不是观测序列、联合概率或某地天气预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![干旱记忆到集中降雨的流域级联](assets/img/flood-drought-watershed.svg)
+<figcaption><span class="fig-id">图 25.2</span>流域级联把低储量、集中降雨、径流路由和暴露节点接起来，并标出有限传感器。本图是俯视与过程混合示意，地形、河网、站点和级联路径非按比例；观测点不是状态真值，情景也不是洪水风险或预警预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-hydro-learning-title">

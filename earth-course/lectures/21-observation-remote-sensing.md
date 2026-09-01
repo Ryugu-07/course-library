@@ -81,6 +81,16 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![现场站、浮标、船舶、卫星和再分析观测网络](assets/img/observing-system.svg)
+<figcaption><span class="fig-id">图 21.1</span>现场站和浮标提供点或剖面证据，卫星提供像元和轨道条带，连续再分析网格还加入模型与同化。图例把直接观测、反演产品和再分析分开；点、剖面、像元与网格是支持尺度，不是准确度等级。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![电磁谱、观测算子与遥感反演](assets/img/remote-sensing-spectrum.svg)
+<figcaption><span class="fig-id">图 21.2</span>卫星首先测量特定波段的辐亮度，再经观测算子、反演先验、云掩膜和定标质量控制得到地球变量。可见光到微波的信号支持不同变量与尺度；反演变量不是传感器读数的同义词。</figcaption>
+</figure>
+
 ## 1. 现场观测、遥感和再分析的角色
 
 现场网通常提供高时间分辨率的点或剖面测量，优点是变量定义直接、过程可追踪；缺点是空间覆盖有限、站点迁移和周边环境变化会带来非气候偏差。

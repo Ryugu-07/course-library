@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCL、KVL 与节点分析 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li class="active"><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-kcl-kvl-nodal-learning-title">学习层：节点方程是工程账本，不是记号游戏</a><ul>
+<li><a href="#1">1. 具体故障情境：三个读数为什么不闭合</a></li>
+<li><a href="#2">2. 揭示前预测：改变负载、参考和测量会发生什么</a></li>
+<li><a href="#3">3. 公式桥：从节点电压到两个残差</a></li>
+<li><a href="#4-fallback">4. 互动实验：静态 fallback 表与节点图</a></li>
+<li><a href="#5">5. 模型边界：节点方程何时会骗你</a></li>
+<li><a href="#6">6. 真实修正：把残差变成证据链</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="03-kclkvl">03 · 用守恒找错：KCL、KVL、节点分析与残差<a class="headerlink" href="#03-kclkvl" title="Permanent link"></a></h1>
+<blockquote>
+<p>传感器节点的电压表读到 3.094 V，源支路电流约 19.06 mA，负载支路却只有 14.06 mA。有人说“电流表不准”，有人说“地不对”。在猜原因前，先让每个节点和每个回路接受守恒审计。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-kcl-kvl-nodal-learning-title" class="learning-layer">
+<h2 id="ee-kcl-kvl-nodal-learning-title">学习层：节点方程是工程账本，不是记号游戏<a class="headerlink" href="#ee-kcl-kvl-nodal-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：三个读数为什么不闭合<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在低功耗环境节点中，电源通过源电阻到达一个节点；节点一支路给负载，另一支路代表传感器偏置或保护网络吸走一股电流。按本页默认设定，源支路约 <span class="arithmatex">\(19.06\ \mathrm{mA}\)</span>、负载支路约 <span class="arithmatex">\(14.06\ \mathrm{mA}\)</span>，两者相差约 <span class="arithmatex">\(5\ \mathrm{mA}\)</span>，正好是电流汇支路；另一个独立的反例才是电流表多报 <span class="arithmatex">\(1\ \mathrm{mA}\)</span>。这个差值可能来自表计偏差、漏掉的支路、参考方向相反，也可能来自一个模型没有表示的动态电流。</p>
+<p>KCL、KVL 和节点分析给出三种互相校验的视角。KCL 在节点上核对电荷流入和流出，KVL 沿闭合回路核对电势变化，节点分析则选择一个参考节点，把未知量压缩成节点电压。只要参考方向和单位写清楚，残差就能告诉我们“哪里还没有被解释”。</p>
+<h3 id="2">2. 揭示前预测：改变负载、参考和测量会发生什么<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>揭示结果前先判断：</p>
+<ol>
+<li>源电阻和电流汇不变，把负载电阻增大，负载电流是降低、升高还是不变？</li>
+<li>只改变电压坐标的参考节点偏移，元件两端电压差和 KCL 残差会不会跟着改变？</li>
+<li>如果电流表把负载电流多报 <span class="arithmatex">\(1\ \mathrm{mA}\)</span>，测得的 KCL 残差仍会严格为零吗？</li>
+</ol>
+<p>第三问故意把模型结论和测量证据分开：理想方程可以闭合，带偏差的读数不一定闭合。不要为了让账本好看而把残差直接四舍五入成零。</p>
+<h3 id="3">3. 公式桥：从节点电压到两个残差<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把地选为参考节点，令节点电压为 <span class="arithmatex">\(V_n\)</span>。对本实验的源电阻 <span class="arithmatex">\(R_s\)</span>、负载 <span class="arithmatex">\(R_L\)</span> 和向下吸收的电流 <span class="arithmatex">\(I_{\mathrm{sink}}\)</span>，KCL 写成</p>
+<div class="arithmatex">\[
+\frac{V_s-V_n}{R_s}
+  =\frac{V_n}{R_L}+I_{\mathrm{sink}}.
+\]</div>
+<p>整理得</p>
+<div class="arithmatex">\[
+V_n=
+\frac{V_s/R_s-I_{\mathrm{sink}}}
+     {1/R_s+1/R_L}.
+\]</div>
+<p>电阻的单位桥是 <span class="arithmatex">\(\mathrm{V}/\Omega=\mathrm{A}\)</span>，所以方程两侧都是电流。定义</p>
+<div class="arithmatex">\[
+I_s=\frac{V_s-V_n}{R_s},\qquad
+I_L=\frac{V_n}{R_L},
+\]</div>
+<p>则 KCL 理想残差为</p>
+<div class="arithmatex">\[
+r_{\mathrm{KCL}}=I_s-I_L-I_{\mathrm{sink}},
+\qquad [r_{\mathrm{KCL}}]=\mathrm{A}.
+\]</div>
+<p>沿源到负载的闭合回路，KVL 可写为</p>
+<div class="arithmatex">\[
+r_{\mathrm{KVL}}
+ =V_s-(V_s-V_n)-V_n,
+\qquad [r_{\mathrm{KVL}}]=\mathrm{V}.
+\]</div>
+<p>代数上二者都应接近零，但“接近”必须和仪器分辨率、容差与时间窗口一起报告。把参考节点整体抬高 <span class="arithmatex">\(\Delta V_{\mathrm{ref}}\)</span> 只会让绝对坐标变为 <span class="arithmatex">\(V_n+\Delta V_{\mathrm{ref}}\)</span>；两端电压差和守恒式不变。</p>
+<p>本实验还把电流汇视为<strong>单电源</strong>器件：教学顺从区写成 <span class="arithmatex">\(0\le V_n\le V_s\)</span>。若节点方程算出 <span class="arithmatex">\(V_n&lt;0\)</span> 或 <span class="arithmatex">\(V_n&gt;V_s\)</span>，代数上的 KCL 仍可能闭合，但恒流汇已经超出这个物理顺从区；此时 <code>complianceValid=false</code>，负节点或超出供电范围的数值只能标为模型外推，不能当作真实输出。</p>
+<h3 id="4-fallback">4. 互动实验：静态 fallback 表与节点图<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-kcl-kvl-nodal">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>这是教学设定：<span class="arithmatex">\(V_s=5.0\ \mathrm{V}\)</span>、<span class="arithmatex">\(R_s=100\ \Omega\)</span>、<span class="arithmatex">\(R_L=220\ \Omega\)</span>、电流汇 <span class="arithmatex">\(I_{\mathrm{sink}}=5.00\ \mathrm{mA}\)</span>、参考偏移 <span class="arithmatex">\(0.80\ \mathrm{V}\)</span>、表计偏差为 <span class="arithmatex">\(0\)</span>。解得 <span class="arithmatex">\(V_n=3.09375\ \mathrm{V}\)</span>，处于单电源顺从区 <span class="arithmatex">\(0\le V_n\le V_s\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>节点电压 <span class="arithmatex">\(V_n\)</span></td>
+<td style="text-align: right;">3.09375</td>
+<td>V；相对参考节点</td>
+</tr>
+<tr>
+<td>绝对坐标电压</td>
+<td style="text-align: right;">3.89375</td>
+<td>V；加上教学参考偏移</td>
+</tr>
+<tr>
+<td>源支路电流 <span class="arithmatex">\(I_s\)</span></td>
+<td style="text-align: right;">19.06250</td>
+<td>mA</td>
+</tr>
+<tr>
+<td>负载电流 <span class="arithmatex">\(I_L\)</span></td>
+<td style="text-align: right;">14.06250</td>
+<td>mA</td>
+</tr>
+<tr>
+<td>KCL 理想残差</td>
+<td style="text-align: right;">0</td>
+<td>mA；<span class="arithmatex">\(I_s-I_L-I_{\mathrm{sink}}\)</span></td>
+</tr>
+<tr>
+<td>KVL 理想残差</td>
+<td style="text-align: right;">0</td>
+<td>V；源回路闭合</td>
+</tr>
+<tr>
+<td>KCL 测量残差</td>
+<td style="text-align: right;">0</td>
+<td>mA；默认表计偏差为零</td>
+</tr>
+<tr>
+<td>负载功率</td>
+<td style="text-align: right;">43.5059</td>
+<td>mW；<span class="arithmatex">\(V_nI_L\)</span></td>
+</tr>
+<tr>
+<td>单电源电流汇顺从区</td>
+<td style="text-align: right;">有效</td>
+<td><span class="arithmatex">\(0\le V_n\le V_s\)</span>；不在区间时结果为模型外推</td>
+</tr>
+</tbody>
+</table>
+<p>图中红色节点、箭头和地符号是语义标记，表格中的残差同时给出数值；颜色不是判断守恒的唯一依据。</p>
+</div>
+<h3 id="5">5. 模型边界：节点方程何时会骗你<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>上述推导把负载看成线性电阻，把电流汇看成已知常数，并假定测量发生在准稳态。真实传感器可能是非线性端口，输入电流随电压和温度变化；电容、ESD 结构和 MCU 唤醒会让 <span class="arithmatex">\(I(t)\)</span> 随时间变化。此时 KCL 仍然成立，但支路关系不能继续写成一个固定的 <span class="arithmatex">\(V/R\)</span>。</p>
+<p>理想“地”也有边界。实验中的参考节点是电压坐标原点，不自动等同于保护地、机壳地或大地。回流路径存在阻抗时，不同位置的“地”可能有电压差；远端节点的 KCL 残差还可能包含互连的寄生和测量带宽效应。</p>
+<h3 id="6">6. 真实修正：把残差变成证据链<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>真实修正应先保留原始读数，再注明符号约定、测量时间窗、仪器不确定度和未建模支路。可以分别改变 <span class="arithmatex">\(R_L\)</span>、电流汇和参考偏移：若只有参考偏移改变而差分电压不变，说明问题可能是坐标误读；若负载改变带来可重复的残差，说明应补充支路模型；若残差随带宽、探头或触发改变，先查测量链。</p>
+<p>节点分析适合形成“可复算的中间产物”：每个节点的参考、每条支路的方向、计算电流、实测电流、残差及其解释。工程结论应标注模型结论、实验结论或器件/标准约束，三者不能混在一列。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测量电流前先确认回路仍由低压限流源供电，且不会因为接入表计而改变节点；所有改线先断电。测电压时记录两个探头端点和参考节点，不把探头地夹在未知回流点；测动态电流时记录带宽、采样率和触发位置。用残差分析时保留足够有效数字，随后再用不确定度判断它是否有意义。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把电流方向的负号当成电流“消失”，没有统一参考方向；</li>
+<li>把电压坐标原点和真实安全地、机壳地混为一谈；</li>
+<li>把同一个支路在 KCL 中计算两次，或漏掉偏置/保护支路；</li>
+<li>用四舍五入后的电流判断残差，而不是用原始读数；</li>
+<li>看到理想残差为零，就声称真实硬件一定没有漏电、寄生或时变电流。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目留下“节点与残差表”：参考节点定义、节点方程、支路方向、KCL/KVL 残差、表计偏差假设和测量点。它将成为后续 Thevenin 等效、工作点和瞬态测量的共同坐标系。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：KCL、KVL、节点和网络分析入口。</li>
+<li><a href="https://openstax.org/details/books/college-physics-2e">OpenStax College Physics 2e</a>：基本电路、电流、电压和功率的教材入口。</li>
+<li><a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>：把测量和不确定度纳入判断的实验入口。</li>
+</ul>
+<p>本页的电阻、电流汇、参考偏移和表计偏差都是教学设定。KCL/KVL 是模型和测量的审计工具，不是市电施工或带电市电排故步骤；真实系统仍须保持低压、限流、可断电。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>KCL 记账流量，KVL 记账电势，节点分析把未知量组织成可复算的方程；残差则把“没有解释的部分”留在纸面上。参考节点是坐标约定，不是自动的安全证明。下一讲把多源线性网络压缩到端口，观察负载为何会让理想源电压下垂。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="02-lumped-components.html"><span class="pager-label">上一页</span>电路 I · 集总元件与参考方向</a>
+  <a class="pager-slot next" href="04-network-equivalents.html"><span class="pager-label">下一页</span>电路 III · 等效、叠加与端口</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-kcl-kvl-nodal.js"></script>
+</body>
+</html>

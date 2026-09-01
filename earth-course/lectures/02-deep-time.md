@@ -88,6 +88,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![地层中的时间书签](assets/img/deep-time-clock.svg)
+
+<figcaption><span class="fig-id">图 2.1</span>把火山灰层当作可对比的空间书签：叠覆律先给出“谁先谁后”，再由独立定年把相对顺序接到数值年龄；剖面层厚、倾角与距离均为示意，非等比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![从地层关系到年龄区间](assets/img/stratigraphy-dating.svg)
+
+<figcaption><span class="fig-id">图 2.2</span>年龄结论来自两条证据链的交叉约束：地层关系锁定顺序，衰变模型把 <i>f</i> 与 T<sub>1/2</sub> 转成 <i>t</i> ± σ<sub>t</sub>；用它检查“精确数字”是否真的有封闭性、校正和独立证据支撑。</figcaption>
+</figure>
+
 ## 1. 深时的三种时间说法
 
 相对年龄说“事件 A 早于事件 B”；数值年龄说“在指定方法和误差模型下，事件中心估计为某个年龄”；相关年龄说“同一标志层、同一磁性反转或同一化石带可把两个剖面对齐”。三者不是竞争关系，而是不同证据层。

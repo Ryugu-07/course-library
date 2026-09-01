@@ -95,6 +95,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![地球内部的分层与尺度](assets/img/earth-interior-cutaway.svg)
+
+<figcaption><span class="fig-id">图 3.1</span>球壳剖面把“层在哪里”与“波能否通过”放在同一画面：P 波可穿过液态外核，而 S 波在外核边界停止；各层半径与路径是概念示意，非真实比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![波的路径如何留下影区](assets/img/seismic-ray-shadow.svg)
+
+<figcaption><span class="fig-id">图 3.2</span>沿“介质性质 → 波速 → 缺失相位 → 影区几何”读取推理链，理解为什么单台站不能独立切出地球内部；射线为教学路径，不是实际层析追踪。</figcaption>
+</figure>
+
 ## 1. P 波、S 波和弹性参数
 
 在各向同性线性弹性介质中，纵波和横波速度分别受体积模量、剪切模量和密度控制。可用的结构性表达为

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """地球系统与气候科学静态站点生成器。"""
-import html, re, shutil, time
+import html, re, shutil, subprocess, sys, time
 from pathlib import Path
 import markdown
 from pygments.formatters import HtmlFormatter
@@ -238,6 +238,11 @@ def write_pygments_css():
 
 
 def main():
+    subprocess.run(
+        [sys.executable, str(ROOT / "figures" / "audit_visuals.py")],
+        cwd=ROOT,
+        check=True,
+    )
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "assets").mkdir(exist_ok=True)
     for asset in ["style.css", "site.js"]:

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>硬件总线与信号协议 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li class="active"><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-buses-learning-title">学习层：先为一条坏掉的总线找电气原因</a><ul>
+<li><a href="#1">1. 具体情境：同一块节点换了传感器，读数就间歇消失</a></li>
+<li><a href="#2">2. 揭示前预测：不要先看波形</a></li>
+<li><a href="#3">3. 公式桥：从电气层到时序预算</a></li>
+<li><a href="#4">4. 互动实验：五种电气层放到同一张图上</a></li>
+<li><a href="#5">5. 真实修正：同一“速率”不是同一条电气路</a></li>
+<li><a href="#6">6. 测量方案：把“软件重试”拆回硬件证据</a></li>
+<li><a href="#7">7. 项目迁移与验收</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 电气层比较，而不是协议栈比较</a></li>
+<li><a href="#2_1">2. 拓扑先于速率</a></li>
+<li><a href="#3_1">3. 模型失效边界</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">互连 I · 硬件总线的电气选择<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>传感器“有数据”不等于数据“能到达”：一根共享导线的电平、回流、边沿和终端，可能在软件开始重试以前就已经决定了成败。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-buses-learning-title" class="learning-layer">
+<h2 id="ee-buses-learning-title">学习层：先为一条坏掉的总线找电气原因<a class="headerlink" href="#ee-buses-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：同一块节点换了传感器，读数就间歇消失<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低压限流教学节点有一个 MCU、两只板载传感器和一块可断电的接口小板。近距离时 I2C、SPI 和 UART 都“偶尔能用”；把传感器移到一根较长的排线上，示波器看到数据边沿变圆，差分收发器的远端还出现反射。固件增加重试后，日志看起来更安静，却没有回答：总线的电气层是否有足够余量？</p>
+<p>这一讲只讨论<strong>电气层、拓扑和时序预算</strong>。帧格式、地址分配、驱动 API 和网络协议栈属于软件课程；这里把它们压缩成“某个边沿是否到达接收器判决窗口”。所有实验都在低压、限流、可断电条件下进行，短路注入前先断电并把电源限流设到教学值。</p>
+<h3 id="2">2. 揭示前预测：不要先看波形<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先写下三项方向预测：</p>
+<ol>
+<li>I2C 的上拉电阻减半，在总线电容不变时，上升沿会变快还是变慢？</li>
+<li>CAN 或 RS-485 的线末端缺少终端，反射风险会升高还是降低？</li>
+<li>SPI 把点对点走线改成星形分支，保持速率不变时，时序余量通常会增加还是减少？</li>
+</ol>
+<p>这里的“正确”只针对实验的简化模型。先提交预测，再揭示总线选择、参数滑块和故障注入；这样你能把方向判断和数值结果分开。</p>
+<h3 id="3">3. 公式桥：从电气层到时序预算<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对开漏线，最小一阶模型把上拉电阻 <span class="arithmatex">\(R_P\)</span> 和总线总电容 <span class="arithmatex">\(C_B\)</span> 看作一个 RC 网络。10% 到 90% 上升时间的教学近似是</p>
+<div class="arithmatex">\[
+t_r \approx 2.2 R_P C_B.
+\]</div>
+<p>若 <span class="arithmatex">\(R_P\)</span> 用 <span class="arithmatex">\(\mathrm{k\Omega}\)</span>、<span class="arithmatex">\(C_B\)</span> 用 <span class="arithmatex">\(\mathrm{pF}\)</span>，则 <span class="arithmatex">\(R_P C_B\)</span> 的数值单位正好是 <span class="arithmatex">\(\mathrm{ns}\)</span>。<span class="arithmatex">\(C_B\)</span> 不只是 PCB 走线：它还包括引脚、连接器、探头和并联设备。上拉电流的数量级可以用</p>
+<div class="arithmatex">\[
+I_P \approx \frac{V_{DD}}{R_P}
+\]</div>
+<p>检查；在 <span class="arithmatex">\(V_{DD}=3.3\ \mathrm{V}\)</span>、<span class="arithmatex">\(R_P=2.2\ \mathrm{k\Omega}\)</span> 的教学输入下，静态低电平时约为 <span class="arithmatex">\(1.5\ \mathrm{mA}\)</span>。</p>
+<p>总线先做时序预算，再做电气安全检查；两者不是同一扇门。每个比特的时间以及传播延迟是</p>
+<div class="arithmatex">\[
+T_b=\frac{1}{f_b},\qquad t_d=\frac{l}{v},\qquad t_{rt}=2t_d,
+\]</div>
+<p>其中 <span class="arithmatex">\(t_d\)</span> 是单向传播延迟，<span class="arithmatex">\(t_{rt}\)</span> 是往返延迟。只有预算明确要求“发出后还要等返回/反射证据”时才把传播项写成 <span class="arithmatex">\(t_{rt}\)</span>；单向到达判决使用 <span class="arithmatex">\(t_d\)</span>，不能无条件重复计算。</p>
+<p>总预算还要放进传播、收发器延迟、抖动、边沿和判决余量：</p>
+<div class="arithmatex">\[
+t_r+t_{rt}+t_{\mathrm{skew}}+t_{\mathrm{setup}} &lt; t_{\mathrm{budget}}.
+\]</div>
+<p>实验把 <span class="arithmatex">\(t_{\mathrm{budget}}\)</span> 暂定为 <span class="arithmatex">\(0.35T_b\)</span>，把板级传播延迟按 <span class="arithmatex">\(5\ \mathrm{ns/m}\)</span> 作为<strong>教学输入</strong>；这不是某个总线标准的通用限值。默认 <span class="arithmatex">\(f_b=400\ \mathrm{kbit/s}\)</span> 时 <span class="arithmatex">\(T_b=2.5\ \mathrm{\mu s}\)</span>，<span class="arithmatex">\(R_P=2.2\ \mathrm{k\Omega}\)</span>、<span class="arithmatex">\(C_B=80\ \mathrm{pF}\)</span> 给出 <span class="arithmatex">\(t_r\approx387.2\ \mathrm{ns}\)</span>；长度 <span class="arithmatex">\(0.50\ \mathrm{m}\)</span> 时 <span class="arithmatex">\(t_d=2.5\ \mathrm{ns}\)</span>、<span class="arithmatex">\(t_{rt}=5.0\ \mathrm{ns}\)</span>。本实验的预算明确要求往返证据，所以传播项使用 <span class="arithmatex">\(t_{rt}\)</span>；若只检查接收端单向到达，应改用 <span class="arithmatex">\(t_d\)</span>。再计入线形拓扑的 <span class="arithmatex">\(50\ \mathrm{ns}\)</span> 教学代理，约有 <span class="arithmatex">\(0.43\ \mathrm{\mu s}\)</span> 余量。</p>
+<h3 id="4">4. 互动实验：五种电气层放到同一张图上<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-hardware-buses">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>以下都是合成的教学输入，不是任一器件型号或标准承诺。默认选择 I2C：<span class="arithmatex">\(f_b=400\ \mathrm{kbit/s}\)</span>、长度 <span class="arithmatex">\(0.50\ \mathrm{m}\)</span>、<span class="arithmatex">\(C_B=80\ \mathrm{pF}\)</span>、<span class="arithmatex">\(R_P=2.2\ \mathrm{k\Omega}\)</span>、线形拓扑、无故障。计算用 <span class="arithmatex">\(t_r=2.2R_PC_B\)</span>、<span class="arithmatex">\(t_d=l/v\)</span>、<span class="arithmatex">\(t_{rt}=2t_d\)</span>、<span class="arithmatex">\(t_{\mathrm{budget}}=0.35T_b\)</span> 和 <span class="arithmatex">\(5\ \mathrm{ns/m}\)</span> 的板级传播代理；此预算需要往返回证，因此使用 <span class="arithmatex">\(t_{rt}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总线</td>
+<td style="text-align: right;">I2C</td>
+<td>开漏单端；共享线需要上拉</td>
+</tr>
+<tr>
+<td>上升时间 <span class="arithmatex">\(t_r\)</span></td>
+<td style="text-align: right;">387.2</td>
+<td>ns；教学 RC 近似</td>
+</tr>
+<tr>
+<td>比特时间 <span class="arithmatex">\(T_b\)</span></td>
+<td style="text-align: right;">2.5</td>
+<td>μs；400 kbit/s 的教学输入</td>
+</tr>
+<tr>
+<td>单向传播 <span class="arithmatex">\(t_d\)</span></td>
+<td style="text-align: right;">2.5</td>
+<td>ns；<span class="arithmatex">\(5\ \mathrm{ns/m}\times0.50\ \mathrm{m}\)</span></td>
+</tr>
+<tr>
+<td>往返传播 <span class="arithmatex">\(t_{rt}=2t_d\)</span></td>
+<td style="text-align: right;">5.0</td>
+<td>ns；本预算使用</td>
+</tr>
+<tr>
+<td>教学预算</td>
+<td style="text-align: right;">875.0</td>
+<td>ns；<span class="arithmatex">\(0.35T_b\)</span>，不是标准限值</td>
+</tr>
+<tr>
+<td>剩余余量</td>
+<td style="text-align: right;">432.8</td>
+<td>ns；另含线形拓扑的 50 ns 教学代理</td>
+</tr>
+<tr>
+<td>上拉静态电流</td>
+<td style="text-align: right;">1.50</td>
+<td>mA；<span class="arithmatex">\(3.3\ \mathrm{V}/2.2\ \mathrm{k\Omega}\)</span></td>
+</tr>
+<tr>
+<td>终端门</td>
+<td style="text-align: right;">PASS</td>
+<td>line 拓扑，auto 可用</td>
+</tr>
+<tr>
+<td>时序门</td>
+<td style="text-align: right;">PASS</td>
+<td>与电气安全独立</td>
+</tr>
+<tr>
+<td>电气安全 / <code>overallSafe</code></td>
+<td style="text-align: right;">SAFE / GO</td>
+<td>无故障、终端有效</td>
+</tr>
+</tbody>
+</table>
+<p>实验还提供 UART、SPI、CAN、RS-485 的电气层对照，以及星形/线形/点对点拓扑和开路、短路、缺终端、地电位偏移故障。开路或短路必须把可见状态置为 <strong>STOP</strong>；缺终端必须让终端门失败并阻止 <code>overallSafe</code>。时序门可以 PASS，但只要电气安全门失败，最终结论仍是 STOP。反过来，高速时序失败但没有电气故障时，应显示“时序 FAIL、<code>overallSafe=SAFE / GO</code>”，证明两类判定没有混在一起。故障结果是诊断练习，不是允许带电短接真实产品的操作建议。</p>
+</div>
+<h3 id="5">5. 真实修正：同一“速率”不是同一条电气路<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p><strong>UART</strong> 通常是点对点、单端、推挽电平，时钟不在信号线上；它仍需要共享参考、合适的电平范围和受控的边沿。长线、电平转换器和接收器阈值会改变可用余量。</p>
+<p><strong>I2C</strong> 用开漏/开集电极式的共享线表达高电平，低电平由器件拉低，高电平由上拉电阻恢复。节点多、线长、探头多，<span class="arithmatex">\(C_B\)</span> 就会变大；<span class="arithmatex">\(R_P\)</span> 太大时边沿慢，太小时低电平电流和器件耗散增加。具体时序值必须回到控制器、传感器和适用规范的当前数据手册。</p>
+<p><strong>SPI</strong> 多为推挽同步点对点或短距离扇出，时钟边沿会同时激励多个输入。片选数量、分支长度、串联阻尼和回流连续性属于板级电气问题，不要只看名义时钟频率。</p>
+<p><strong>CAN 与 RS-485</strong> 使用差分收发器和线形干线思路，终端位置、分支长度、共模范围和参考连接共同决定波形。终端不是“每个节点各放一个电阻”；缺失、重复或放错位置都会改变等效阻抗。终端电阻、共模范围和故障保护必须按具体收发器数据手册与适用标准核对，课程不填动态型号数字。</p>
+<h3 id="6">6. 测量方案：把“软件重试”拆回硬件证据<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li><strong>断电检查：</strong>确认低压电源、限流值、连接器方向、地线和终端位置；先测电阻/连通性，再上电。</li>
+<li><strong>近端与远端同时看：</strong>用同一触发条件观察发送端和最远接收端的电压或差分电压，记录 10%–90% 边沿、过冲、振铃、静态高低电平和故障时的电流。</li>
+<li><strong>把探头写进账本：</strong>探头输入电容会进入 <span class="arithmatex">\(C_B\)</span>；示波器带宽、地线长度和差分探头共模范围都要记录。不要把探头夹在“理想地”上就宣称测到了真实回流。</li>
+<li><strong>逐项故障注入：</strong>每次只改变一个可逆条件，短路只在断电且限流下接入；记录故障前后波形、恢复条件和停止原因。</li>
+</ol>
+<p>“一帧成功”不是充分证据。应同时保留原始波形、总线错误计数、供电电流和测试配置，说明是模型结果、测量结果还是数据手册/标准约束。</p>
+<h3 id="7">7. 项目迁移与验收<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>给贯穿项目建立一张<strong>总线电气账本</strong>：总线类型、供电和逻辑电平、拓扑图、节点数、估计/实测 <span class="arithmatex">\(C_B\)</span>、上拉或终端、最长支路、目标边沿、测量探头、故障注入和恢复证据。验收至少要求：最远端在目标工作电压范围内有可重复的判决余量；断开一个可注入故障后系统进入定义的安全状态并记录 <code>overallSafe</code>/STOP 原因；时序门与电气安全门分别留证；软件重试没有被用来掩盖边沿、回流或地参考问题。</p>
+</section>
+<h2 id="1_1">1. 电气层比较，而不是协议栈比较<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>把“总线”拆成四列会更不容易混淆：导线上的电压表示、驱动方式、允许的拓扑，以及能量如何在故障中流动。</p>
+<table>
+<thead>
+<tr>
+<th>接口</th>
+<th>典型电气层</th>
+<th>拓扑关注</th>
+<th>上拉/终端关注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UART</td>
+<td>单端、推挽、点对点</td>
+<td>参考地、线长、边沿</td>
+<td>短板内常不需要共享终端，但不能据此外推所有线缆</td>
+</tr>
+<tr>
+<td>I2C</td>
+<td>单端、开漏、共享线</td>
+<td>节点电容、分支、地址之外的物理负载</td>
+<td>上拉决定上升时间和低电平静态电流</td>
+</tr>
+<tr>
+<td>SPI</td>
+<td>单端、推挽、同步</td>
+<td>时钟扇出、片选、回流和支路</td>
+<td>可用源端串联阻尼；具体值需测量/仿真</td>
+</tr>
+<tr>
+<td>CAN</td>
+<td>差分收发器、共享干线</td>
+<td>干线、短支路、两端终端</td>
+<td>终端位置和共模范围依器件/适用标准</td>
+</tr>
+<tr>
+<td>RS-485</td>
+<td>差分收发器、共享干线</td>
+<td>干线、节点负载、参考与屏蔽</td>
+<td>终端、偏置和失效保护依器件/适用标准</td>
+</tr>
+</tbody>
+</table>
+<p>这里的“典型”是电气层的教学分类，不是某个版本的合规声明。一个实际产品可能加隔离、电平转换、共模扼流圈、ESD 保护或专用连接器；这些部件会改变寄生和故障能量路径。</p>
+<h2 id="2_1">2. 拓扑先于速率<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>点对点拓扑把源和负载关系压到最少；线形共享干线便于终端控制；星形会制造多个阻抗突变和不同传播时间。即使所有节点都使用同一个协议，星形分支也可能让接收端先看到多个反射。</p>
+<p>对差分干线，先画出“源—干线—末端—回流/参考”，再决定终端在哪里。对开漏共享线，先把所有引脚电容、连接器和测量探头列入 <span class="arithmatex">\(C_B\)</span>，再检查 <span class="arithmatex">\(R_P\)</span> 的电流和边沿。</p>
+<p>数量级判断很有用：低速并不意味着零问题。若一条线的往返传播只有数纳秒，而比特时间是数微秒，传播可能不是主要约束；若边沿只有数纳秒，即使平均比特率很低，传输线、反射和串扰仍可能先坏掉。</p>
+<h2 id="3_1">3. 模型失效边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>RC 上升沿模型忽略了输出晶体管的非线性、ESD 电容、连接器电感、探头加载、线缆分布参数和接收器阈值；“差分线两端各有一个终端”也不能替代对支路、共模和容差的检查。实验的教学预算不是标准合规门槛；标准条款、具体额定值和现场 EMC 结论必须以适用版本的一手文件为准。</p>
+<p>低压系统仍可能储存足够能量烧坏导线、连接器或器件。所有课堂故障都应使用限流、可断电电源，且不涉及市电施工、建筑配电、并网或带电市电测量。</p>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>电路和动态模型可回看 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。接口、测试和标准意识的入口是 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a> 与 <a href="https://standards.ieee.org/">IEEE Standards</a>。具体 UART、I2C、SPI、CAN、RS-485 收发器的电平、负载、共模和终端要求会随型号与版本变化，本页不伪造型号数字。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>总线选择先回答“电压怎样表示、回流在哪里、节点怎样连接、故障电流去哪里”，再回答“名义速率是多少”。用 <span class="arithmatex">\(t_r\)</span>、传播延迟和判决窗口建立预算，用近端/远端测量和可逆故障注入验证；把软件重试当作现象记录，不当作电气层的证明。下一讲把同一份节点账本转向电能：每一条供电支路的效率、静态电流和负载瞬态能否同时成立？</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="21-mcu-pwm.html"><span class="pager-label">上一页</span>嵌入式 · MCU、休眠与 PWM</a>
+  <a class="pager-slot next" href="23-power-tree.html"><span class="pager-label">下一页</span>供电 · 电源树、稳压与电源完整性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-hardware-buses.js"></script>
+</body>
+</html>

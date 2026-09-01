@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信号完整性与传输线 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li class="active"><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-signal-integrity-learning-title">学习层：为什么示波器上有多个一样高的电平</a><ul>
+<li><a href="#1">1. 具体情境：平均速率没变，换一根线就开始振铃</a></li>
+<li><a href="#2">2. 揭示前预测：先判断反射符号与模型边界</a></li>
+<li><a href="#3">3. 公式桥：传播、反射和眼图</a></li>
+<li><a href="#4">4. 互动实验：从一次阶跃看到反射与眼图</a></li>
+<li><a href="#5">5. 真实修正：阻抗不连续不只发生在负载</a></li>
+<li><a href="#6">6. 测量方案：把波形位置写进证据</a></li>
+<li><a href="#7">7. 项目迁移与验收</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 集总模型与传输线模型的边界</a></li>
+<li><a href="#2_1">2. 终端、反射与眼图的证据链</a></li>
+<li><a href="#3_1">3. 模型失效边界</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">高速 · 信号完整性与传输线边界<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>一条“低速总线”也可能有高速边沿；接收器看到的不是平均频率，而是传播、阻抗和每一次跳变在板上留下的回声。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-signal-integrity-learning-title" class="learning-layer">
+<h2 id="ee-signal-integrity-learning-title">学习层：为什么示波器上有多个一样高的电平<a class="headerlink" href="#ee-signal-integrity-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：平均速率没变，换一根线就开始振铃<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>传感器节点的 SPI 时钟只有几十 MHz，甚至被固件降到更低；但当走线变长、上升沿变快或负载换成连接器时，远端波形出现过冲、下冲和多次交叉。工程师若只比较“每秒多少个比特”，会漏掉真正的时间尺度：边沿到达负载的时间是否已经和边沿本身一样长？</p>
+<p>本页使用低压、限流、可断电的教学信号，不讨论高能脉冲、射频发射或市电测量。实验中的阻抗、传播速度、耦合和噪声都是明确标注的教学输入。</p>
+<h3 id="2">2. 揭示前预测：先判断反射符号与模型边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>在同一条线上，长度加倍时单程传播延迟会怎样变化？</li>
+<li>理想开路负载的反射系数是正、负还是零？</li>
+<li>在长度不变时把上升时间变快，更应该优先使用集总模型还是传输线模型？</li>
+</ol>
+<p>提交预测后才显示负载终端、耦合和噪声参数。请把“反射存在”和“系统一定失败”分开：反射是波形现象，是否越过接收器判决窗口还要看幅度、时序、阈值和测量带宽。</p>
+<h3 id="3">3. 公式桥：传播、反射和眼图<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>若信号线长度为 <span class="arithmatex">\(l\)</span>，传播速度为 <span class="arithmatex">\(v\)</span>，单程飞行时间为</p>
+<div class="arithmatex">\[
+t_d=\frac{l}{v},
+\qquad t_{rt}=2t_d.
+\]</div>
+<p>当上升时间 <span class="arithmatex">\(t_r\)</span> 不再明显大于飞行时间，集总模型会隐藏空间位置。一个常用的工程经验是：若 <span class="arithmatex">\(t_r\lesssim6t_d\)</span>，先按传输线检查；这只是规则经验，不是标准条款。相应的临界长度可写成 <span class="arithmatex">\(l_{crit}\approx vt_r/6\)</span>，但 <span class="arithmatex">\(v\)</span> 必须来自叠层、介质、线缆或实测。</p>
+<p>负载阻抗 <span class="arithmatex">\(Z_L\)</span> 与特性阻抗 <span class="arithmatex">\(Z_0\)</span> 的反射系数为</p>
+<div class="arithmatex">\[
+\Gamma=\frac{Z_L-Z_0}{Z_L+Z_0},
+\qquad
+V_{ref}=\Gamma V_{inc}.
+\]</div>
+<p>开路近似给 <span class="arithmatex">\(\Gamma=+1\)</span>，短路近似给 <span class="arithmatex">\(\Gamma=-1\)</span>，匹配给 <span class="arithmatex">\(\Gamma=0\)</span>。这里的 <span class="arithmatex">\(Z_L\)</span> 是波到达瞬间看到的等效阻抗，不一定等于万用表的静态电阻。</p>
+<p>眼图把很多个 UI（unit interval，单位间隔）叠在一起。眼高可用“信号幅度减去噪声、串扰和反射残差”的教学账本估算；眼宽则受抖动、边沿、传播偏差和采样时钟影响。眼图张开是证据的一部分，不是协议正确性的充分证明。</p>
+<p>本实验把 <span class="arithmatex">\(R_b\)</span>、UI、抖动 <span class="arithmatex">\(J\)</span>、边沿、传播和反射放进同一账本：</p>
+<div class="arithmatex">\[
+UI=\frac{1}{R_b},\qquad
+\text{closure}\sim\frac{t_r}{UI}+\frac{t_{rt}}{UI}+\frac{J}{UI}+|\Gamma|+\text{串扰/噪声代理}.
+\]</div>
+<p>因此 (Z_0)、数值 (Z_L)、线长、传播速度、上升时间、码率和抖动都是真实输入；改变任一项都必须能改变反射系数或教学眼图开口，而不是只改标签。</p>
+<p>默认教学输入取 <span class="arithmatex">\(l=0.30\ \mathrm{m}\)</span>、<span class="arithmatex">\(v=0.15\ \mathrm{m/ns}\)</span>、<span class="arithmatex">\(t_r=2\ \mathrm{ns}\)</span>，于是 <span class="arithmatex">\(t_d=2\ \mathrm{ns}\)</span>、<span class="arithmatex">\(t_{rt}=4\ \mathrm{ns}\)</span>，而 <span class="arithmatex">\(6t_d=12\ \mathrm{ns}\)</span>；因为 <span class="arithmatex">\(2&lt;12\)</span>，传输线模型应先进入检查。所有数值只是量级训练。</p>
+<h3 id="4">4. 互动实验：从一次阶跃看到反射与眼图<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-signal-integrity">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>合成教学输入为长度 <span class="arithmatex">\(0.30\ \mathrm{m}\)</span>、传播速度 <span class="arithmatex">\(0.15\ \mathrm{m/ns}\)</span>、上升时间 <span class="arithmatex">\(2\ \mathrm{ns}\)</span>、<span class="arithmatex">\(Z_0=50\ \Omega\)</span>、开路负载 <span class="arithmatex">\(Z_L=\infty\)</span>、码率 <span class="arithmatex">\(50\ \mathrm{Mb/s}\)</span>、抖动 <span class="arithmatex">\(80\ \mathrm{ps}\)</span>、入射幅度 <span class="arithmatex">\(1.0\ \mathrm{V}\)</span>、耦合代理 <span class="arithmatex">\(8\%\)</span>、噪声代理 <span class="arithmatex">\(5\%\)</span>。数值负载输入默认是 <span class="arithmatex">\(75\ \Omega\)</span>，但开路预设的有效 <span class="arithmatex">\(Z_L\)</span> 明确为 Infinity；这些参数都用于本页教学。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单程飞行时间 <span class="arithmatex">\(t_d\)</span></td>
+<td style="text-align: right;">2.0</td>
+<td>ns；<span class="arithmatex">\(l/v\)</span></td>
+</tr>
+<tr>
+<td>往返时间 <span class="arithmatex">\(t_{rt}\)</span></td>
+<td style="text-align: right;">4.0</td>
+<td>ns；一次反射往返</td>
+</tr>
+<tr>
+<td>传输线经验边界 <span class="arithmatex">\(6t_d\)</span></td>
+<td style="text-align: right;">12.0</td>
+<td>ns；规则经验，不是标准</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(Z_0 / Z_L\)</span></td>
+<td style="text-align: right;">50 / Infinity</td>
+<td>Ω；开路预设，<span class="arithmatex">\(Z_L=\infty\)</span></td>
+</tr>
+<tr>
+<td>码率 / UI</td>
+<td style="text-align: right;">50 / 20</td>
+<td>Mb/s / ns；<span class="arithmatex">\(UI=1000/R_b\)</span></td>
+</tr>
+<tr>
+<td>抖动 <span class="arithmatex">\(J\)</span></td>
+<td style="text-align: right;">0.08</td>
+<td>ns；80 ps</td>
+</tr>
+<tr>
+<td>反射系数 <span class="arithmatex">\(\Gamma\)</span></td>
+<td style="text-align: right;">+1.0</td>
+<td><span class="arithmatex">\((Z_L-Z_0)/(Z_L+Z_0)\)</span>，开路教学近似</td>
+</tr>
+<tr>
+<td>反射阶跃</td>
+<td style="text-align: right;">+1.0</td>
+<td>V；<span class="arithmatex">\(\Gamma V_{inc}\)</span></td>
+</tr>
+<tr>
+<td>串扰代理</td>
+<td style="text-align: right;">0.08</td>
+<td>V；入射幅度的 8%</td>
+</tr>
+<tr>
+<td>噪声代理</td>
+<td style="text-align: right;">0.05</td>
+<td>V；入射幅度的 5%</td>
+</tr>
+<tr>
+<td>眼高代理</td>
+<td style="text-align: right;">0.44</td>
+<td>V；含 <span class="arithmatex">\(t_r/UI\)</span>、传播、<span class="arithmatex">\(\Gamma\)</span>、串扰和噪声扣减</td>
+</tr>
+<tr>
+<td>眼宽代理</td>
+<td style="text-align: right;">45.6</td>
+<td>% UI；含传播、边沿、<span class="arithmatex">\(\Gamma\)</span> 和抖动扣减</td>
+</tr>
+</tbody>
+</table>
+<p>切换到匹配（<span class="arithmatex">\(Z_L=Z_0\)</span>）、短路（<span class="arithmatex">\(Z_L=0\)</span>）、开路（<span class="arithmatex">\(Z_L=\infty\)</span>）或数值负载，图会同时更新 <span class="arithmatex">\(\Gamma\)</span>、反射阶跃和眼图开口；改变 <span class="arithmatex">\(Z_0\)</span>、线长、传播速度、上升时间、码率或抖动也会改变结果。实验不模拟具体叠层、连接器、探头频响或标准接收器模板；它只帮助你决定“该不该测传播和阻抗”。</p>
+<p>一个刻意的边界反例是：<span class="arithmatex">\(l=0.01\ \mathrm{m}\)</span>、<span class="arithmatex">\(t_r=50\ \mathrm{ns}\)</span>、<span class="arithmatex">\(R_b=1\ \mathrm{Mb/s}\)</span> 时，<span class="arithmatex">\(t_d\approx0.067\ \mathrm{ns}\)</span>、<span class="arithmatex">\(6t_d\approx0.4\ \mathrm{ns}\)</span>，慢边沿相对极短线可先按集总模型；而 <span class="arithmatex">\(l=5\ \mathrm{m}\)</span>、<span class="arithmatex">\(t_r=0.2\ \mathrm{ns}\)</span>、同样 <span class="arithmatex">\(R_b=1\ \mathrm{Mb/s}\)</span> 时，<span class="arithmatex">\(t_d\approx33.3\ \mathrm{ns}\)</span>、<span class="arithmatex">\(6t_d\approx200\ \mathrm{ns}\)</span>，快边沿长线必须按传输线检查。相同码率不代表相同 SI 边界。</p>
+</div>
+<h3 id="5">5. 真实修正：阻抗不连续不只发生在负载<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>阻抗突变可能来自过孔焊盘、颈缩、平面开槽、连接器、分支、参考层切换和回流断裂。即使负载端匹配，源端、串联电阻、过孔和相邻走线仍可能产生反射。串联终端常把源端边沿变得更温和，但它的电阻、封装和驱动器输出阻抗必须共同计算。</p>
+<p><strong>串扰</strong>来自相邻导线的电容/电感耦合；平行长度、间距、参考平面和边沿决定耦合强弱。近端串扰和远端串扰的形状不同，受害线的终端又会改变观察结果。用“颜色更浅”描述串扰不够，应该报告峰值、持续时间、受害端位置和带宽。</p>
+<p><strong>眼图</strong>会把确定性反射、随机噪声、占空比失真和时钟抖动叠在一起；只看一张眼图不能识别来源。应配合单次波形、近端/远端触发、已知模式和终端变化。</p>
+<h3 id="6">6. 测量方案：把波形位置写进证据<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>在源端、走线中点、过孔后和负载端各定义测点；每个测点记录参考平面和探头连接。</li>
+<li>先用慢边沿或低重复率的单次阶跃观察传播，再恢复目标工作模式；这样能区分反射和连续数据叠加。</li>
+<li>若使用 TDR 或网络分析工具，只把它作为阻抗/传播的测量证据，记录校准、连接器、线缆和参考面；没有这些信息的曲线不应被当成 PCB 真值。</li>
+<li>示波器探头的电容、地线和带宽都会改变边沿。对差分信号记录共模范围，对单端信号记录回流路径。</li>
+</ol>
+<h3 id="7">7. 项目迁移与验收<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>把关键网络的长度、层叠/参考、估计 <span class="arithmatex">\(Z_0\)</span>、边沿、源/负载终端、过孔和串扰邻线写入信号完整性账本。验收要求不是“图上没有任何振铃”，而是最远端在目标电压、温度和负载组合下，眼高/眼宽和接收判决窗口有明确余量；若改动终端使眼图变好，还要复测功耗、EMC 和故障状态。</p>
+</section>
+<h2 id="1_1">1. 集总模型与传输线模型的边界<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>集总模型假设整个网络在同一时刻共享一个电压；这在传播时间远小于系统关心的边沿/时间尺度时很有效。传输线模型把电压和电流写成位置与时间的函数，才能解释“源端先变、远端后变、反射再回来”。</p>
+<p>不要用平均比特率单独判断边界。一个每秒只跳变几千次的控制线，如果驱动器边沿是 1 ns、线长足够长，也可能需要传输线思路；反过来，一个速率更高但边沿受控、线很短的网络可能先由集总寄生主导。</p>
+<h2 id="2_1">2. 终端、反射与眼图的证据链<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>终端的作用是让波看到的等效阻抗更接近 <span class="arithmatex">\(Z_0\)</span>，从而减少 <span class="arithmatex">\(|\Gamma|\)</span>；它不是“提高逻辑电平”的元件。终端会增加静态电流或边沿功耗，差分干线还要考虑共模和驱动能力。具体终端方式与数值必须由叠层、收发器数据手册和测量共同决定。</p>
+<p>眼高和眼宽的单位不同：眼高是 V，眼宽是 UI 或时间。把它们相加或只报一个“质量分”是量纲错误；项目账本应分别记录。</p>
+<h2 id="3_1">3. 模型失效边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>本页的 <span class="arithmatex">\(v=0.15\ \mathrm{m/ns}\)</span>、<span class="arithmatex">\(Z_0=50\ \Omega\)</span>、耦合百分比和眼图扣减都是教学输入，不代表某一 PCB、线缆或接收器。真实传播速度随介质和叠层变，阻抗随几何/频率/参考层变，反射还会受封装与探头改变。实验结果也不能替代适用标准的接收器模板或合规测试。</p>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>传输线与波的基础可回看 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>，电路和测量的工程入口可查 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a>。正式接口和测试条款入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>，具体阻抗、终端和接收器数字不能从本页教学参数外推。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>先比较 <span class="arithmatex">\(t_r\)</span> 与 <span class="arithmatex">\(t_d\)</span>，再决定集总还是传输线；用 <span class="arithmatex">\(\Gamma=(Z_L-Z_0)/(Z_L+Z_0)\)</span> 判断反射符号，用位置化测量和眼图区分幅度、时间和串扰。下一讲把波形问题落到板子：原理图怎样变成功能分区、连续回流和可测的 PCB？</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="24-grounding-emc.html"><span class="pager-label">上一页</span>兼容 · 接地、回流与 EMC</a>
+  <a class="pager-slot next" href="26-pcb-dft.html"><span class="pager-label">下一页</span>制造 · PCB、可测性与 DFT</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-signal-integrity.js"></script>
+</body>
+</html>

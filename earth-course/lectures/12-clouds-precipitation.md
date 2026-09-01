@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Cloud atlas by altitude and form](assets/img/cloud-atlas.svg)
+<figcaption><span class="fig-id">图 12.1</span>云型的垂直结构把层云、积云、积雨云、层积雨云与卷云和稳定/对流/冰相过程联系起来；高度带是近似教学尺度。可见云体并不自动意味着降水已经到达地面。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Warm rain and ice phase precipitation mechanisms](assets/img/precipitation-mechanisms.svg)
+<figcaption><span class="fig-id">图 12.2</span>抬升冷却与饱和之后，降水至少有两条机制路径：暖云中的碰并增长，以及冰晶参与的沉积、凇附、聚合和融化。虚线表示有条件的相变连接，不表示每朵云都会沿同一路径降水。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-cloud-precipitation-learning-title">
 
 <h2 id="earth-cloud-precipitation-learning-title">学习层：先追踪一个上升气团，再判断“有云”是否等于“会下雨”</h2>
@@ -114,7 +124,7 @@ $P^*$ 的单位按输入定义为 $\mathrm{mm\,h^{-1}}$ 的教学指标，未包
 
 从云到流域还要加水量闭合：降水可能落在山坡、冠层或土壤中，蒸发、截留、融雪和径流会改变最终入库量。云实验给的是中间环节，不是水库来水的直接预测。
 
-推荐阅读 [IPCC AR6 WGI Chapter 8](https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-8/) 的水循环评估，以及 [NASA Water Cycle](https://science.nasa.gov/earth/earth-observatory/the-water-cycle/) 的观测入口。
+推荐阅读 [IPCC AR6 WGI Chapter 8](https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-8/) 的水循环评估，以及 [USGS Water Cycle VizLab](https://water.usgs.gov/vizlab/water-cycle/) 的储库—通量可视化入口。
 
 ---
 

@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Earth energy budget geometry](assets/img/earth-energy-budget.svg)
+<figcaption><span class="fig-id">图 10.1</span>太阳短波先经过空间几何、云和大气，再在地表与大气之间分配；反射短波和吸收短波是不同账目，顶边界平衡时吸收短波才与向外长波相等。图中的 100 单位只是教学归一化。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Greenhouse effective emission height](assets/img/greenhouse-height.svg)
+<figcaption><span class="fig-id">图 10.2</span>温室气体增多时，有效长波发射层在简化剖面中上移；若该层更冷，向外长波会先减少，地表和对流随后调整，直到顶边界重新闭合能量收支。它解释机制，不直接给出温度预测。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-radiation-balance-learning-title">
 
 <h2 id="earth-radiation-balance-learning-title">学习层：先给行星做一张入账表，再判断反照率和发射率怎么推温度</h2>

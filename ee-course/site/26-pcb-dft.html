@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCB、可测性与 DFT · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li class="active"><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-pcb-dft-learning-title">学习层：一块“能运行”的板子为什么无法定位故障</a><ul>
+<li><a href="#1">1. 具体情境：实验室能烧录，装配线却找不到坏点</a></li>
+<li><a href="#2">2. 揭示前预测：先预测可测性和回流</a></li>
+<li><a href="#3">3. 公式桥：从布局选择到可验证产物</a></li>
+<li><a href="#4">4. 互动实验：在板上同时看分区、回流和测试点</a></li>
+<li><a href="#5">5. 真实修正：分区服务于电流路径，不服务于配色</a></li>
+<li><a href="#6">6. 测量与装配反馈方案</a></li>
+<li><a href="#7">7. 项目迁移与验收</a></li>
+</ul>
+</li>
+<li><a href="#1-pcb">1. 原理图到 PCB 的迁移顺序</a></li>
+<li><a href="#2-dft">2. DFT 不是只加测试点</a></li>
+<li><a href="#3_1">3. 模型失效边界</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="pcb-dft">制造 · PCB 分区、可测性与 DFT<a class="headerlink" href="#pcb-dft" title="Permanent link"></a></h1>
+<blockquote>
+<p>原理图通过仿真不代表成品可测：如果关键节点没有探针入口、回流被割断或装配反馈没有回到设计，问题会在最贵的那一步才出现。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-pcb-dft-learning-title" class="learning-layer">
+<h2 id="ee-pcb-dft-learning-title">学习层：一块“能运行”的板子为什么无法定位故障<a class="headerlink" href="#ee-pcb-dft-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：实验室能烧录，装配线却找不到坏点<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低压节点的原理图已经把传感器、MCU、电源和总线连通。第一块手工样板可以烧录，但装配后的第二批中有几块没有总线响应：测试工程师既无法在板上快速接触关键 rail，也无法判断是焊接、过孔、回流还是器件本体问题。功能分区如果只画成颜色区域，可能反而把回流切断；测试点如果只追求数量，可能没有真正观察到关键网络。</p>
+<p>本页聚焦 PCB 的功能分区、回流连续性、间距/过孔概念和 design for test（DFT）。所有示例是低压、限流、可断电教学系统，不提供市电板、建筑配电或带电高能测试做法。</p>
+<h3 id="2">2. 揭示前预测：先预测可测性和回流<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>把模拟、数字和电源“分区”后，如果跨区回流被迫绕路，信号完整性会自动变好吗？</li>
+<li>关键网络的测试点从 3 个增到 6 个，故障可观测覆盖通常会增加还是减少？</li>
+<li>过孔短 stub 越多，快速边沿的反射风险通常会增加还是减少？</li>
+</ol>
+<p>先提交预测，再调节回流连续性、测试点覆盖、教学间距阈值、过孔 stub 和装配反馈。数字只表示当前设计账本中的输入，不是某个工艺厂的永久规则。</p>
+<h3 id="3">3. 公式桥：从布局选择到可验证产物<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>若关键网络集合为 <span class="arithmatex">\(N_{critical}\)</span>，其中有测点且探针可达的网络数为 <span class="arithmatex">\(N_{observed}\)</span>，一个透明的可测性覆盖率是</p>
+<div class="arithmatex">\[
+C_{TP}=\frac{N_{observed}}{N_{critical}}.
+\]</div>
+<p>间距检查先写出工程规则的来源。若实际间距为 <span class="arithmatex">\(s_{actual}\)</span>，本次教学评审输入的最低间距为 <span class="arithmatex">\(s_{teach}\)</span>，则</p>
+<div class="arithmatex">\[
+m_s=s_{actual}-s_{teach}.
+\]</div>
+<p><span class="arithmatex">\(C_{TP}\)</span> 是无量纲比例，<span class="arithmatex">\(m_s\)</span> 的单位是 mm，二者不能混成一个没有解释的分数。回流连续性可用 0 到 1 的审查指标表达，但最后仍要通过几何、阻抗或波形证据确认。</p>
+<p>默认教学输入为 6 个关键网络、6 个可达测试点，<span class="arithmatex">\(C_{TP}=1.0\)</span>；实际间距 <span class="arithmatex">\(0.35\ \mathrm{mm}\)</span>、教学阈值 <span class="arithmatex">\(0.25\ \mathrm{mm}\)</span>，间距余量 <span class="arithmatex">\(0.10\ \mathrm{mm}\)</span>；回流连续性代理为 0.95，过孔 stub 为 1 个。它们只用于练习“先列规则，再算余量”。</p>
+<h3 id="4">4. 互动实验：在板上同时看分区、回流和测试点<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-pcb-dft">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认是合成教学输入：功能分区“分开但保持连续回流”，回流连续性 <span class="arithmatex">\(0.95\)</span>，关键网络 <span class="arithmatex">\(6\)</span> 个，测试点 <span class="arithmatex">\(6\)</span> 个，实际间距 <span class="arithmatex">\(0.35\ \mathrm{mm}\)</span>，教学评审阈值 <span class="arithmatex">\(0.25\ \mathrm{mm}\)</span>，过孔 <span class="arithmatex">\(4\)</span> 个、短 stub <span class="arithmatex">\(1\)</span> 个（始终约束 <span class="arithmatex">\(viaStubs\le viaCount\)</span>），装配反馈覆盖 <span class="arithmatex">\(75\%\)</span>。阈值不是 IPC 或任何认证标准条款。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>测试点覆盖 <span class="arithmatex">\(C_{TP}\)</span></td>
+<td style="text-align: right;">1.00</td>
+<td>无量纲；6/6 个关键网络</td>
+</tr>
+<tr>
+<td>回流连续性</td>
+<td style="text-align: right;">0.95</td>
+<td>0–1 教学审查输入</td>
+</tr>
+<tr>
+<td>间距余量 <span class="arithmatex">\(m_s\)</span></td>
+<td style="text-align: right;">+0.10</td>
+<td>mm；实际减教学阈值</td>
+</tr>
+<tr>
+<td>短 stub 风险代理</td>
+<td style="text-align: right;">0.25</td>
+<td>0–1；<span class="arithmatex">\(1/4\)</span>，且 <span class="arithmatex">\(viaStubs\le viaCount\)</span></td>
+</tr>
+<tr>
+<td>装配反馈覆盖</td>
+<td style="text-align: right;">0.75</td>
+<td>无量纲；教学输入</td>
+</tr>
+<tr>
+<td>可观测性代理</td>
+<td style="text-align: right;">0.94</td>
+<td>加权教学分，不是良率</td>
+</tr>
+<tr>
+<td>强制矩阵</td>
+<td style="text-align: right;">6/6 通过</td>
+<td>分区、回流、测试点、间距、装配、stub</td>
+</tr>
+<tr>
+<td>DFT 状态</td>
+<td style="text-align: right;">可进入评审</td>
+<td>只有所有强制门通过才是 <code>reviewReady</code></td>
+</tr>
+</tbody>
+</table>
+<p>图中会把模拟、功率、数字区、连续回流带、测试点和过孔画在同一块板上；改变一个量时，观察“看得见”与“电气上连续”是否同步。功能分区设为 mixed、强制 stub 门失败、测试点/回流/间距/装配任一门失败，都会使矩阵失败并阻止 <code>reviewReady</code>，不能只靠总分带过。</p>
+</div>
+<h3 id="5">5. 真实修正：分区服务于电流路径，不服务于配色<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p><strong>功能分区</strong>的目标是让噪声源、敏感受害者、电源转换回路和连接器各自有清楚的电流路径。不是把模拟地和数字地画成两座互不相连的岛，而是避免大电流、高 <span class="arithmatex">\(di/dt\)</span> 回流穿过敏感参考；是否分割平面要结合回流、层叠、频率和接口边界判断。</p>
+<p><strong>间距</strong>涉及电压、污染、工艺、爬电/电气间隙、制造能力和适用标准。教学实验只用一个显式阈值做算术；真实值必须由设计规则、工厂能力、器件封装和安全/EMC 条款共同确认。不要把本页 <span class="arithmatex">\(0.25\ \mathrm{mm}\)</span> 复制成通用规则。</p>
+<p><strong>过孔</strong>改变层间电流路径和寄生；高速网络中的 stub 可能引起反射，电源/地过孔则可能降低回路阻抗。过孔数量本身不是好坏指标，位置、反焊盘、参考层和制造公差更重要。</p>
+<p>本实验的 DFT 评审矩阵把分区、回流连续性、关键网络测试点覆盖、间距余量、装配反馈和 stub 作为独立强制门；<code>reviewReady</code> 当且仅当所有强制门通过。<code>viaStubs</code> 不能超过 <code>viaCount</code>，即使输入被限制到这个物理上限，stub 比例或 stub 门失败仍然会挡住评审。</p>
+<h3 id="6">6. 测量与装配反馈方案<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>原理图阶段为每条关键 rail、复位、时钟、总线、模拟输入和保护节点分配测试点 ID，并说明可用探头/夹具、最大允许负载和断电状态。</li>
+<li>PCB 阶段检查测试点是否被器件、外壳、丝印或治具遮挡；记录探针方向、焊盘尺寸和可达面。设计规则检查要保留版本和工厂反馈。</li>
+<li>首件装配后先做断电连通/阻值，再做限流上电；把焊接缺陷、丝印误导、探针干涉和未覆盖故障逐项回填到 DFT 账本。</li>
+<li>装配反馈不是“返工备注”而是设计输入：若某测点不可达，下一版同时修改布局、测试程序和验收矩阵。</li>
+</ol>
+<h3 id="7">7. 项目迁移与验收<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>交付 PCB 前，项目必须有功能分区图、关键回流标注、层叠/过孔假设、实际/教学间距区分、测试点清单、夹具接触方案和装配反馈记录。验收要求每个关键失效模式至少有一个可观测节点或可判别的替代证据；“无法探测”本身应成为设计风险，而不是在 bring-up 时临时找点。最终 <code>reviewReady</code> 必须能逐项回指上述六个强制门，不能由一个加权总分替代。</p>
+</section>
+<h2 id="1-pcb">1. 原理图到 PCB 的迁移顺序<a class="headerlink" href="#1-pcb" title="Permanent link"></a></h2>
+<p>先按能量和信息画边界，再按物理连接画器件：输入保护和电源转换靠近其负载回路；模拟传感器与参考/ADC 保持清楚的回流；数字时钟和总线保持连续参考；连接器、ESD 路径和屏蔽边界在布局早期出现。最后才是丝印、装配方向和测试点优化。</p>
+<p>一个分区若没有电流箭头就还不是设计理由。请在评审图上用线标出“正常返回”“快速边沿返回”“故障返回”，并说明它们是否共享过孔、连接器和参考平面。</p>
+<h2 id="2-dft">2. DFT 不是只加测试点<a class="headerlink" href="#2-dft" title="Permanent link"></a></h2>
+<p>可测性包括可激励性、可观测性、隔离性、夹具可达性、测试时间和故障诊断分辨率。给 rail 加测点但没有电流测量位置，可能仍无法区分稳压器与负载短路；给总线加测试点但探头改变电容，也可能改变原有时序。</p>
+<p>测试点覆盖率还必须和 FMEA 连接：关键性高、发生率高或检测困难的失效模式应优先获得独立证据，而不是让所有网络平均分配测点。</p>
+<h2 id="3_1">3. 模型失效边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>0–1 的回流连续性、可观测性分数和短 stub 风险只是审查代理。它们不能替代实际叠层、制造规则、探针加载、装配公差、X-ray/光学检查、边界扫描或功能测试。测试点数量增加也不能保证夹具接触良率或诊断唯一性。</p>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>电路、布局和测量基础可查 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a>。工程设计和持续改进的背景可查 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>，正式间距、制造和测试要求需从适用的 <a href="https://standards.ieee.org/">IEEE Standards</a> 及工厂设计规则核对。本页教学阈值不构成工艺或安全标准。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>PCB 分区的核心是电流路径，DFT 的核心是故障能否被激励、观测和定位。用 <span class="arithmatex">\(C_{TP}\)</span> 和间距余量做透明算术，用实物探针、装配反馈和回流波形补齐证据。下一讲把这些设计风险放进 FMEA、热/容差和 bring-up 的停止条件中。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="25-signal-integrity.html"><span class="pager-label">上一页</span>高速 · 信号完整性与传输线</a>
+  <a class="pager-slot next" href="27-reliability-bringup.html"><span class="pager-label">下一页</span>工程 · 可靠性、装配与 bring-up</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-pcb-dft.js"></script>
+</body>
+</html>

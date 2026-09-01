@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>功率、变压器与隔离概念 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li class="active"><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-ac-power-transformers-learning-title">学习层：同样的瓦数，为什么源头电流可能不同</a><ul>
+<li><a href="#1">1. 具体情境：低压交流测试台的功率预算</a></li>
+<li><a href="#2-wvarva">2. 揭示前预测：先分清 W、var、VA 与匝数比</a></li>
+<li><a href="#3">3. 公式桥：复功率把相位差变成能量账</a></li>
+<li><a href="#4">4. 互动实验：用功率三角和磁耦合同时记账</a></li>
+<li><a href="#5">5. 真实修正：功率平衡不等于器件无损</a></li>
+<li><a href="#6">6. 测量方案：用瞬时功率而不只看一个表针</a></li>
+<li><a href="#7">7. 模型失效、边界与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 有功、无功和视在功率的物理分工</a></li>
+<li><a href="#2">2. 理想变压器的比例与隔离</a></li>
+<li><a href="#3_1">3. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">交流 II · 功率、变压器与隔离概念<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>一个低压电源“电压够了”并不等于节点能稳定工作。交流负载可能从源头借走无功电流，变压器可以改变电压与电流的比例，却不能凭空创造有功功率；隔离也不是一句“没有地线”就完成了的安全声明。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-ac-power-transformers-learning-title" class="learning-layer">
+<h2 id="ee-ac-power-transformers-learning-title">学习层：同样的瓦数，为什么源头电流可能不同<a class="headerlink" href="#ee-ac-power-transformers-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：低压交流测试台的功率预算<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>贯穿项目的节点在低压测试台上给一个带电感性质的执行器或滤波负载供电。电压表读到 <span class="arithmatex">\(5.0\ \mathrm{V_{rms}}\)</span>，电流表读到 <span class="arithmatex">\(0.40\ \mathrm{A_{rms}}\)</span>，但两者峰值并不同步。源头要承受的是视在功率，不只是负载真正转成热、机械功或光的有功功率。若通过理想变压器把电压降到另一侧，电流会按相反比例变化；功率平衡仍然成立。</p>
+<p>下列数字全部是<strong>教学设定</strong>：电压 <span class="arithmatex">\(5.0\ \mathrm{V_{rms}}\)</span>、电流 <span class="arithmatex">\(0.40\ \mathrm{A_{rms}}\)</span>、电流滞后电压 <span class="arithmatex">\(36.9^\circ\)</span>，理想匝数比 <span class="arithmatex">\(a=N_p/N_s=2\)</span>。它们用于练习账本，不是市电参数、现场测量或器件推荐。</p>
+<h3 id="2-wvarva">2. 揭示前预测：先分清 W、var、VA 与匝数比<a class="headerlink" href="#2-wvarva" title="Permanent link"></a></h3>
+<p>打开实验前，预测：</p>
+<ol>
+<li>在电压和电流幅值不变时，把滞后角从 <span class="arithmatex">\(0^\circ\)</span> 增大，<span class="arithmatex">\(P\)</span> 会增加、减少还是不变？无功功率 <span class="arithmatex">\(Q\)</span> 呢？</li>
+<li>在一次电压、一次电流（因而一次视在功率）都固定时，理想变压器的 <span class="arithmatex">\(N_p/N_s\)</span> 加倍，二次电压和二次电流分别怎样变化？</li>
+<li>理想变压器的一次、二次绕组是否必须有金属导线直接相连，才能传递交流功率？</li>
+</ol>
+<p>提交后再拖动滞后角和匝数比。结果表会把功率三角、一次/二次端口和“隔离是拓扑概念还是安全认证”分开。</p>
+<h3 id="3">3. 公式桥：复功率把相位差变成能量账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>采用 rms 相量，电压为参考，电流滞后角记为 <span class="arithmatex">\(\phi\)</span>。复功率定义为</p>
+<div class="arithmatex">\[
+\underline S=\underline V\,\underline I^{*}=P+jQ,
+\]</div>
+<p>其中 <span class="arithmatex">\(*\)</span> 表示共轭，<span class="arithmatex">\(P\)</span> 是有功功率，单位 W；<span class="arithmatex">\(Q\)</span> 是无功功率，单位 var；视在功率是</p>
+<div class="arithmatex">\[
+|S|=V_{\mathrm{rms}}I_{\mathrm{rms}},\qquad
+P=VI\cos\phi,\qquad
+Q=VI\sin\phi,
+\]</div>
+<p>单位 VA。功率因数</p>
+<div class="arithmatex">\[
+\mathrm{PF}=\frac{P}{|S|}=\cos\phi
+\]</div>
+<p>（若波形正弦且相位定义清楚）。量纲检查：<span class="arithmatex">\(\mathrm V\cdot\mathrm A=\mathrm W\)</span>；var 与 W 具有相同的基本量纲，但分别表示无功与有功，不能在账本中混加；PF 无量纲。</p>
+<p>默认教学值给出 <span class="arithmatex">\(|S|=5.0\times0.40=2.0\ \mathrm{VA}\)</span>，<span class="arithmatex">\(\cos36.9^\circ\approx0.80\)</span>，所以 <span class="arithmatex">\(P\approx1.6\ \mathrm W\)</span>、<span class="arithmatex">\(Q\approx1.2\ \mathrm{var}\)</span>、PF 约 <span class="arithmatex">\(0.80\)</span>。功率三角满足 <span class="arithmatex">\(|S|^2=P^2+Q^2\)</span>；这是模型算例，不是电表数据。</p>
+<p>理想变压器的匝数比取</p>
+<div class="arithmatex">\[
+a=\frac{N_p}{N_s},\qquad
+\frac{V_p}{V_s}=a,\qquad
+\frac{I_p}{I_s}=\frac{1}{a},\qquad
+V_pI_p=V_sI_s.
+\]</div>
+<p>因此若一次电压 <span class="arithmatex">\(V_p=5.0\ \mathrm V\)</span>、一次电流 <span class="arithmatex">\(I_p=0.40\ \mathrm A\)</span> 固定，则一次视在功率 <span class="arithmatex">\(|S_p|=2.0\ \mathrm{VA}\)</span> 也固定。取 <span class="arithmatex">\(a=2\)</span> 时，二次电压约 <span class="arithmatex">\(2.5\ \mathrm V\)</span>，二次电流约 <span class="arithmatex">\(0.80\ \mathrm A\)</span>，理想二次有功仍约 <span class="arithmatex">\(1.6\ \mathrm W\)</span>。这只是低压理论映射，不是变压器绕组施工指导。</p>
+<h3 id="4">4. 互动实验：用功率三角和磁耦合同时记账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-ac-power-transformers">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为一次电压 <span class="arithmatex">\(V_p=5.0\ \mathrm{V_{rms}}\)</span>、一次电流 <span class="arithmatex">\(I_p=0.40\ \mathrm{A_{rms}}\)</span>、滞后角 <span class="arithmatex">\(\phi=36.9^\circ\)</span>、匝数比 <span class="arithmatex">\(a=N_p/N_s=2\)</span>。这里讨论二次电流时保持一次电流和一次视在功率也固定。理想模型给出一次视在功率 <span class="arithmatex">\(|S_p|=2.00\ \mathrm{VA}\)</span>、有功 <span class="arithmatex">\(P_p\approx1.60\ \mathrm W\)</span>、无功 <span class="arithmatex">\(Q_p\approx1.20\ \mathrm{var}\)</span>、PF <span class="arithmatex">\(\approx0.80\)</span>；二次电压 <span class="arithmatex">\(V_s=2.50\ \mathrm{V_{rms}}\)</span>、二次电流 <span class="arithmatex">\(I_s=0.80\ \mathrm{A_{rms}}\)</span>，二次功率账本仍为 <span class="arithmatex">\(2.00\ \mathrm{VA}\)</span>（理想无损）。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一次电压 <span class="arithmatex">\(V_p\)</span></td>
+<td style="text-align: right;">5.00</td>
+<td>V rms，低压教学输入</td>
+</tr>
+<tr>
+<td>一次电流 <span class="arithmatex">\(I_p\)</span></td>
+<td style="text-align: right;">0.400</td>
+<td>A rms，教学输入</td>
+</tr>
+<tr>
+<td>视在功率 <span class="arithmatex">\(\lvert S\rvert\)</span></td>
+<td style="text-align: right;">2.00</td>
+<td>VA，<span class="arithmatex">\(VI\)</span></td>
+</tr>
+<tr>
+<td>有功功率 <span class="arithmatex">\(P\)</span></td>
+<td style="text-align: right;">1.60</td>
+<td>W，<span class="arithmatex">\(VI\cos\phi\)</span></td>
+</tr>
+<tr>
+<td>无功功率 <span class="arithmatex">\(Q\)</span></td>
+<td style="text-align: right;">1.20</td>
+<td>var，<span class="arithmatex">\(VI\sin\phi\)</span></td>
+</tr>
+<tr>
+<td>功率因数</td>
+<td style="text-align: right;">0.800</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td>二次电压 <span class="arithmatex">\(V_s\)</span></td>
+<td style="text-align: right;">2.50</td>
+<td>V rms，<span class="arithmatex">\(V_p/a\)</span></td>
+</tr>
+<tr>
+<td>二次电流 <span class="arithmatex">\(I_s\)</span></td>
+<td style="text-align: right;">0.800</td>
+<td>A rms，理想功率平衡</td>
+</tr>
+</tbody>
+</table>
+<p>左侧图画 <span class="arithmatex">\(P\)</span>、<span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(|S|\)</span> 的功率三角；右侧画两组绕组和非导电隔离边界。箭头、虚线边界、端口标签和数值共同表达含义；图中“隔离”只是理想拓扑概念，不是安全认证。</p>
+</div>
+<h3 id="5">5. 真实修正：功率平衡不等于器件无损<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>非正弦波形需要更谨慎</strong>：<span class="arithmatex">\(P=VI\cos\phi\)</span> 只对正弦稳态或等效基波语境直接成立。开关电源、整流器和削顶波形要用瞬时功率 <span class="arithmatex">\(p(t)=v(t)i(t)\)</span> 的平均值；谐波电流会让总 PF 与位移功率因数不同。</li>
+<li><strong>变压器不是理想比例器</strong>：绕组电阻造成铜损，磁芯损耗和励磁电流改变空载电流，漏磁导致电压调节和相位变化，频率或幅值不合适还可能饱和。二次端电压不会在所有负载下都等于 <span class="arithmatex">\(V_p/a\)</span>。</li>
+<li><strong>隔离有寄生路径</strong>：绕组间电容、屏蔽、示波器地、保护接地和安装环境会形成共模耦合。没有直流导通不等于没有交流电流路径，更不等于满足爬电距离、绝缘、耐压或认证要求。</li>
+<li><strong>低压也有能量风险</strong>：<span class="arithmatex">\(5\ \mathrm V\)</span> 乘以较大的电流仍可发热、烧毁走线或造成短路电弧。要用限流、保险/保护和可断电状态定义实验边界。</li>
+</ul>
+<p>所以实验的有功、无功和理想匝数映射属于模型；功率分析仪读数属于测量证据；绝缘系统的额定值、测试和安装要求属于器件/标准约束，不能由漂亮的功率三角推出。</p>
+<h3 id="6">6. 测量方案：用瞬时功率而不只看一个表针<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>在低压、限流、可断电台架上，使用额定适用的低压交流源。用差分电压探头或安全的低压测量方式获取端口电压，用已知分流电阻和电流探头获取电流；先校准通道时间差，再计算一周期平均 <span class="arithmatex">\(P=\langle v(t)i(t)\rangle\)</span>、<span class="arithmatex">\(V_{\mathrm{rms}}\)</span>、<span class="arithmatex">\(I_{\mathrm{rms}}\)</span> 和 <span class="arithmatex">\(|S|\)</span>。对变压器分别测空载、轻载和受限负载，记录频率、端口参考、温度、限流设定和测量不确定度。</p>
+<p>不要把示波器地夹到未知电位或任何市电导体上；本页不提供带电市电测量、建筑配电、并网或变压器施工步骤。需要更高电压或认证隔离时，交给有资质人员按当地法规和适用标准处理。</p>
+<h3 id="7">7. 模型失效、边界与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>功率三角依赖明确的波形、端口和参考方向；理想变压器依赖线性磁耦合、无损耗、稳态交流和足够的绝缘条件。直流稳态不能靠理想变压器持续传能；启动、饱和、短路、负载突变和高频共振要回到时域、磁性器件或热模型。</p>
+<p>迁移到贯穿项目时，留下电源树中的 W/var/VA/PF 分栏，记录每个转换级的端口电压电流和最坏工况；若使用隔离器件，另建隔离边界图、共模路径图和适用额定值核对表。迁移问题：功率因数从 <span class="arithmatex">\(0.8\)</span> 提到 <span class="arithmatex">\(1.0\)</span> 而有功功率不变时，源端电流的理想比例是多少？如果空载二次电压接近理论值、带载后下降，哪些非理想项最值得优先测？</p>
+</section>
+<h2 id="1_1">1. 有功、无功和视在功率的物理分工<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>有功功率是一个时间窗口内真正净转移并耗散或做功的部分；无功功率描述储能元件在源与负载之间往返交换的正弦稳态账本；视在功率 <span class="arithmatex">\(VI\)</span> 是端口电压和电流 rms 幅值的乘积，反映导体、开关和变换器需要承受的总体电流尺度。无功不等于“没有电流”，它会占用电流能力，却不在一个周期内留下同等净能量。</p>
+<p>功率因数低时，在给定有功功率下需要更大的视在功率和电流。对于节点功率预算，必须说明是平均有功、峰值电流、rms 电流还是视在功率；把它们写成一个“功耗”数字会遮蔽供电瞬态和热风险。</p>
+<h2 id="2">2. 理想变压器的比例与隔离<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>理想模型只保留匝数比和磁耦合的端口关系。它可以在一次、二次之间改变电压/电流比例，不能改变理想有功功率的总账。隔离指一次和二次没有设计上的直接导电连接，但安全隔离还需要绝缘系统、结构、测试和适用标准共同证明。</p>
+<h2 id="3_1">3. 小结<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>用 <span class="arithmatex">\(\underline S=\underline V\underline I^*\)</span> 可以把相位差、W、var、VA 和 PF 放在同一账本；用 <span class="arithmatex">\(a=N_p/N_s\)</span> 可以在理想边界下把电压和电流反向缩放。真实系统还需处理波形谐波、铜损、铁损、漏感、励磁、温升、共模寄生和绝缘要求。低压理论不应被误读成市电施工规程。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>基本电路、交流功率和理想网络模型可参考 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>实验设计、波形测量和不确定度入口是 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>绝缘、测试与标准的正式入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>；本页不指定具体标准条款、耐压数值或器件额定值。</li>
+</ul>
+<p>具体数值均为教学设定或由公式计算的示例，不是动态观测、采购承诺或认证结论。所有互动限定为低压、限流、可断电教学系统；市电施工、带电测量、并网和高能电池系统须由有资质人员按当地法规与适用标准处理。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="09-phasors-impedance.html"><span class="pager-label">上一页</span>交流 I · 相量、阻抗与频率响应</a>
+  <a class="pager-slot next" href="11-lti-convolution.html"><span class="pager-label">下一页</span>系统 I · LTI、卷积与状态响应</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-ac-power-transformers.js"></script>
+</body>
+</html>

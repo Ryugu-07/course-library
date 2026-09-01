@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一阶系统与时间常数 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li class="active"><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 15:53</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-first-order-learning-title">学习层：先分清系统的记忆和测量的记忆</a><ul>
+<li><a href="#1">1. 具体故障情境：唤醒沿、储能元件与“看起来很慢”</a></li>
+<li><a href="#2">2. 揭示前预测：储能、带宽和连续性</a></li>
+<li><a href="#3-rcrl">3. 公式桥：RC、RL、初值和带宽</a></li>
+<li><a href="#4-fallback">4. 互动实验：静态 fallback 表与瞬态波形</a></li>
+<li><a href="#5">5. 模型边界：一个指数不是所有瞬态</a></li>
+<li><a href="#6">6. 真实修正：让初值、终值和带宽都可追溯</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="07-rcrl">07 · 电路有记忆：RC/RL 一阶瞬态、初值与测量带宽<a class="headerlink" href="#07-rcrl" title="Permanent link"></a></h1>
+<blockquote>
+<p>节点从休眠唤醒后，复位脚没有立刻越过门限；另一次测试中，电感支路电流却让电源出现短促下陷。示波器上的边沿还比计算慢，原因可能来自电路的时间常数，也可能来自探头和仪器的带宽。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-first-order-learning-title" class="learning-layer">
+<h2 id="ee-first-order-learning-title">学习层：先分清系统的记忆和测量的记忆<a class="headerlink" href="#ee-first-order-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：唤醒沿、储能元件与“看起来很慢”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>环境节点用 RC 网络延迟一个复位或传感器采样，另一个低压执行支路用 RL 网络限制电流建立速度。固件把唤醒当作瞬时事件，但电容电压不能凭空跳变，电感电流也不能凭空改变；如果采样在一个时间常数之前发生，读到的就是过渡状态。示波器若带宽太窄，还会把本来很快的边沿记录得更慢。</p>
+<p>一阶模型的价值是把“系统有多快”压缩成一个时间常数 <span class="arithmatex">\(\tau\)</span>，同时保留初值条件和测量链。它不承诺真实波形一定是完美指数，而是让我们知道每个偏差应该追查哪一类假设。</p>
+<h3 id="2">2. 揭示前预测：储能、带宽和连续性<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先作三个预测：</p>
+<ol>
+<li>在当前 RC 或 RL 模式中，把储能元件值加倍，时间常数 <span class="arithmatex">\(\tau\)</span> 会变长、变短，还是不变？</li>
+<li>把测量带宽降低十倍，记录到的上升沿通常会变慢、变快，还是不变？</li>
+<li>理想阶跃作用下，电容电压或电感电流在 <span class="arithmatex">\(0^+\)</span> 会立即跳到终值吗？</li>
+</ol>
+<p>这里的“连续”不是说电压和电流都永远连续。理想电容电压、理想电感电流具有连续初值；电阻电压或电流可以在开关改变时跳变。要先指出状态变量，再作判断。</p>
+<h3 id="3-rcrl">3. 公式桥：RC、RL、初值和带宽<a class="headerlink" href="#3-rcrl" title="Permanent link"></a></h3>
+<p>对源电阻 <span class="arithmatex">\(R\)</span> 与电容 <span class="arithmatex">\(C\)</span>，电容电压从初值 <span class="arithmatex">\(V_0\)</span> 向终值 <span class="arithmatex">\(V_\infty\)</span> 变化：</p>
+<div class="arithmatex">\[
+\tau_{RC}=RC,\qquad
+V_C(t)=V_\infty+(V_0-V_\infty)e^{-t/\tau_{RC}}.
+\]</div>
+<p>单位桥是 <span class="arithmatex">\(\Omega\cdot\mathrm{F}=(\mathrm{V}/\mathrm{A})(\mathrm{C}/\mathrm{V})=\mathrm{s}\)</span>。对电阻 <span class="arithmatex">\(R\)</span> 与电感 <span class="arithmatex">\(L\)</span>，电感电流为</p>
+<div class="arithmatex">\[
+\tau_{RL}=\frac{L}{R},\qquad
+I_L(t)=I_\infty+(I_0-I_\infty)e^{-t/\tau_{RL}}.
+\]</div>
+<p>由于 <span class="arithmatex">\(\mathrm{H}=\mathrm{V}\cdot\mathrm{s}/\mathrm{A}\)</span>，<span class="arithmatex">\(L/R\)</span> 的单位也是秒。理想状态变量满足</p>
+<div class="arithmatex">\[
+V_C(0^+)=V_C(0^-),\qquad
+I_L(0^+)=I_L(0^-).
+\]</div>
+<p>经过 <span class="arithmatex">\(t=\tau\)</span>，距离终值的误差比例为 <span class="arithmatex">\(e^{-1}\approx0.37\)</span>；经过 <span class="arithmatex">\(5\tau\)</span>，教学模型中的响应比例是 <span class="arithmatex">\(1-e^{-5}\approx99.33\%\)</span>，仍应称为“接近”而不是数学上已经等于终值。理想一阶 10–90% 上升时间为</p>
+<div class="arithmatex">\[
+t_{10\text{--}90}=\ln(9)\tau\approx2.197\tau.
+\]</div>
+<p>测量链也可能有一个近似上升时间</p>
+<div class="arithmatex">\[
+t_{\mathrm{meas}}\approx\frac{0.35}{B},
+\]</div>
+<p>其中 <span class="arithmatex">\(B\)</span> 是以 <span class="arithmatex">\(\mathrm{Hz}\)</span> 计的有效带宽；<span class="arithmatex">\(1/B\)</span> 的单位是秒。实验使用</p>
+<div class="arithmatex">\[
+t_{\mathrm{obs}}\approx
+\sqrt{t_{10\text{--}90}^2+t_{\mathrm{meas}}^2}
+\]</div>
+<p>作为教学近似，提醒我们观测波形是电路和仪器的合成，而不是“仪器只负责显示”。</p>
+<h3 id="4-fallback">4. 互动实验：静态 fallback 表与瞬态波形<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-first-order">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认模式是 RC，教学设定为阶跃 <span class="arithmatex">\(V_\infty=3.3\ \mathrm{V}\)</span>、<span class="arithmatex">\(R=1000\ \Omega\)</span>、<span class="arithmatex">\(C=1.0\ \mathrm{\mu F}\)</span>、初值/终值比例为 <span class="arithmatex">\(0\)</span>、观察窗口 <span class="arithmatex">\(5\tau\)</span>、测量带宽 <span class="arithmatex">\(10\ \mathrm{kHz}\)</span>。因此 <span class="arithmatex">\(\tau=1.000\ \mathrm{ms}\)</span>，窗口末电容电压约为 <span class="arithmatex">\(3.27778\ \mathrm{V}\)</span>。切换到 RL 时，同一组 <span class="arithmatex">\(R\)</span> 和 <span class="arithmatex">\(L=10\ \mathrm{mH}\)</span> 给出另一个状态量和时间尺度。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模式</td>
+<td style="text-align: right;">RC</td>
+<td>状态量为 <span class="arithmatex">\(V_C\)</span></td>
+</tr>
+<tr>
+<td>时间常数 <span class="arithmatex">\(\tau\)</span></td>
+<td style="text-align: right;">1.000</td>
+<td>ms；<span class="arithmatex">\(RC\)</span></td>
+</tr>
+<tr>
+<td>初始状态 <span class="arithmatex">\(V_C(0^-)\)</span></td>
+<td style="text-align: right;">0</td>
+<td>V</td>
+</tr>
+<tr>
+<td>终值 <span class="arithmatex">\(V_C(\infty)\)</span></td>
+<td style="text-align: right;">3.300000</td>
+<td>V</td>
+</tr>
+<tr>
+<td>窗口末状态 <span class="arithmatex">\(V_C(5\tau)\)</span></td>
+<td style="text-align: right;">3.277765</td>
+<td>V；<span class="arithmatex">\(1-e^{-5}\)</span></td>
+</tr>
+<tr>
+<td>初值连续误差</td>
+<td style="text-align: right;">0</td>
+<td>V；<span class="arithmatex">\(V_C(0^+)-V_C(0^-)\)</span></td>
+</tr>
+<tr>
+<td>理想 10–90% 上升时间</td>
+<td style="text-align: right;">2.197</td>
+<td>ms；<span class="arithmatex">\(\ln(9)\tau\)</span></td>
+</tr>
+<tr>
+<td>测量上升时间近似</td>
+<td style="text-align: right;">0.035</td>
+<td>ms；<span class="arithmatex">\(0.35/B\)</span></td>
+</tr>
+<tr>
+<td>合成观测上升时间</td>
+<td style="text-align: right;">2.197</td>
+<td>ms；平方和近似</td>
+</tr>
+<tr>
+<td>窗口内响应比例</td>
+<td style="text-align: right;">99.3262</td>
+<td>%；<span class="arithmatex">\(1-e^{-5}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>图中同时画出 RC/RL 电路、初值/终值虚线、指数状态轨迹和观察窗口；它不把一阶动态简化成一个通用柱状图。</p>
+</div>
+<h3 id="5">5. 模型边界：一个指数不是所有瞬态<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>一阶公式要求电路在切换后可以化成一个主要储能元件看到的等效电阻，且 <span class="arithmatex">\(R\)</span>、<span class="arithmatex">\(C\)</span> 或 <span class="arithmatex">\(L\)</span> 在时间窗内近似恒定。真实电容有 ESR、漏电和电压依赖，真实电感有绕组电阻、寄生电容和饱和；开关有导通电阻、传播延迟和抖动。电源本身的输出阻抗会改变最终值和时间常数。</p>
+<p>若有多个独立储能元件，响应通常包含多个极点；若开关或器件进入非线性区，指数参数也会随状态改变。<span class="arithmatex">\(0.35/B\)</span> 只是在近似单极点、近似测量链条件下的教学估算，不能替代具体仪器的频率响应和探头模型。</p>
+<h3 id="6">6. 真实修正：让初值、终值和带宽都可追溯<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>真实测量要先记录切换前的稳态，定义 <span class="arithmatex">\(0^-\)</span>；再记录切换后的源、负载和观测点，定义 <span class="arithmatex">\(0^+\)</span>。将 <span class="arithmatex">\(V_0\)</span>、<span class="arithmatex">\(V_\infty\)</span>、<span class="arithmatex">\(\tau\)</span>、10–90% 时间和测量带宽分开拟合。若初值不连续，先查开关寄生、探头接入、采样触发和参考地，再考虑模型是否缺少一个快速通道。</p>
+<p>把实际源电阻、ESR/ESL、漏电、线缆和探头等效到电路图中，重新计算或用实验数据识别有效 <span class="arithmatex">\(\tau\)</span>。报告中同时给出理想预测和真实修正，说明差异属于参数变化、模型缺项还是测量链限制。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测量前确认低压源已限流且可断电；先在无储能或小能量设定下验证触发，再接入目标 RC/RL。记录探头带宽、采样率、触发电平、时间基准、负载和重复次数。测电容电压时不要让探头输入电阻显著改变 <span class="arithmatex">\(R\)</span>；测电感电流时要确认电流传感器和回路不会改变电感的电气条件。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把 <span class="arithmatex">\(5\tau\)</span> 当成“已经精确等于终值”；</li>
+<li>忘记电容电压/电感电流的初值连续性，凭直觉画出垂直跳变；</li>
+<li>把测量带宽、采样率和触发时间混成同一个参数；</li>
+<li>在多极点、强非线性或饱和情况下仍强行拟合单一 <span class="arithmatex">\(\tau\)</span>；</li>
+<li>只报示波器看到的上升时间，不报探头、带宽、负载和切换前状态。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目留下“瞬态预测与测量计划”：RC/RL 状态变量、初值/终值、<span class="arithmatex">\(\tau\)</span>、预计 10–90% 时间、源与负载条件、仪器带宽、采样/触发记录、实际修正和残差。它把前六讲的安全边界、节点、端口、工作点与热预算连接成可复现的 bring-up 证据。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：RC/RL 动态、网络方程和器件模型入口。</li>
+<li><a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>：电路、电磁感应、电容和电感的基础背景。</li>
+<li><a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>：测量、带宽和实验记录入口。</li>
+</ul>
+<p>本页的电压、电阻、电容、电感、带宽和 <span class="arithmatex">\(0.35/B\)</span> 均用于教学模型；具体器件和仪器的动态数字必须回到型号资料、校准记录和适用标准。课程只讨论低压、限流、可断电系统，不涉及市电施工或带电市电操作。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>RC/RL 一阶模型用 <span class="arithmatex">\(\tau=RC\)</span> 或 <span class="arithmatex">\(\tau=L/R\)</span> 组织“有多快”，指数式保留初值和终值，连续性约束防止画出不可能的状态跳变；测量带宽则提醒我们观测本身也有动态。把理想预测、真实修正和仪器条件一起写进账本，才算完成一次可复现的瞬态验证。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="06-power-thermal-ratings.html"><span class="pager-label">上一页</span>功率 · 热、额定值与降额</a>
+  <a class="pager-slot next" href="08-rlc-resonance.html"><span class="pager-label">下一页</span>动态 II · RLC、阻尼与共振</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-first-order.js"></script>
+</body>
+</html>

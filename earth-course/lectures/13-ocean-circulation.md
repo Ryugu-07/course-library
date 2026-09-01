@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Global surface ocean currents](assets/img/global-ocean-currents.svg)
+<figcaption><span class="fig-id">图 13.1</span>全球表层图同时标出副热带环流、暖的西边界流（如 Gulf Stream、Kuroshio）、冷的东边界流和沿岸上升流；线宽只为读图服务，不代表输运量。地图为 schematic / non-navigation 示意，不能用于导航。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Ocean overturning circulation](assets/img/overturning-circulation.svg)
+<figcaption><span class="fig-id">图 13.2</span>经向剖面把较快的风生表层路径与较慢的密度驱动深层翻转分开：高纬致密水下沉，深层回流并在混合/上升流处回到表层。密度是状态诊断，不是完整输运预报。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-ocean-circulation-learning-title">
 
 <h2 id="earth-ocean-circulation-learning-title">学习层：先给一团海水称密度，再区分风生和密度驱动的路径</h2>
@@ -114,7 +124,7 @@ $$
 
 所以实验输出的“下沉倾向”是状态诊断，不是翻转流量或到达时间的观测结论。
 
-推荐阅读 [NOAA Ocean Observing](https://oceanservice.noaa.gov/facts/ocean-observing.html) 与 [IPCC AR6 WGI](https://www.ipcc.ch/report/ar6/wg1/)。
+推荐阅读 [NOAA Global Ocean Observing System](https://www.aoml.noaa.gov/global-ocean-observing-system/) 与 [IPCC AR6 WGI](https://www.ipcc.ch/report/ar6/wg1/)。
 
 ---
 

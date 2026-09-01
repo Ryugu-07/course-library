@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCU、休眠与 PWM · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li class="active"><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先算一整个唤醒周期，而不是盯着一个峰值</a><ul>
+<li><a href="#1-1">1. 具体情境：1 秒一醒的节点到底用了多少电</a></li>
+<li><a href="#2-pwm">2. 揭示前预测：先把电流和 PWM 分开</a></li>
+<li><a href="#3">3. 公式桥：积分、平均值与纹波</a></li>
+<li><a href="#4-pwm">4. 互动实验：把时间线、功耗和 PWM 波形放在同一页</a></li>
+<li><a href="#5-mcu">5. 真实修正：MCU 功耗由模式、外设和时钟共同决定</a></li>
+<li><a href="#6">6. 测量纪律：同时测时间、电流和波形</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 电流账本的四个层次</a></li>
+<li><a href="#2-pwm_1">2. PWM 的平均值不等于模拟输出</a></li>
+<li><a href="#3_1">3. 常见误判与纠正</a></li>
+<li><a href="#4">4. 资料与边界</a></li>
+<li><a href="#5">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="21-mcu-pwm">21 · MCU、唤醒与 PWM：用时间账本管理电流和波形<a class="headerlink" href="#21-mcu-pwm" title="Permanent link"></a></h1>
+<p>一个环境监测节点大部分时间在睡眠，却不代表它的平均电流等于睡眠电流。唤醒、ADC、传感器激励、无线发送、定时器和 PWM 负载都在不同时间取电；PWM 的占空比决定理想平均值，但负载的 RC、GPIO 电阻和定时器时钟决定纹波与能否继续运行。要交付系统，必须同时画<strong>事件时间线、电流积分、PWM 波形和外设边界</strong>。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-mcu-pwm-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先算一整个唤醒周期，而不是盯着一个峰值<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-1">1. 具体情境：1 秒一醒的节点到底用了多少电<a class="headerlink" href="#1-1" title="Permanent link"></a></h3>
+<p>教学节点以 <span class="arithmatex">\(3.3 \mathrm V\)</span> 供电，每 <span class="arithmatex">\(1 \mathrm s\)</span> 唤醒一次。MCU 活动 <span class="arithmatex">\(12 \mathrm{ms}\)</span>、活动电流 <span class="arithmatex">\(6 \mathrm{mA}\)</span>，睡眠电流 <span class="arithmatex">\(20 \mu\mathrm A\)</span>；传感器在其中 <span class="arithmatex">\(8 \mathrm{ms}\)</span> 取 <span class="arithmatex">\(0.4 \mathrm{mA}\)</span>，发送事件持续 <span class="arithmatex">\(2 \mathrm{ms}\)</span>、取 <span class="arithmatex">\(12 \mathrm{mA}\)</span>。另有一个 <span class="arithmatex">\(1 \mathrm{kHz}\)</span>、<span class="arithmatex">\(40\%\)</span> 占空比的 PWM，驱动 <span class="arithmatex">\(1 \mathrm{k\Omega}\)</span> 与 <span class="arithmatex">\(1 \mu\mathrm F\)</span> 的教学 RC 负载。</p>
+<p>这些数值是<strong>教学设定</strong>，不是某个 MCU、无线芯片、传感器或稳压器的动态规格。默认 PWM 定时器在睡眠时继续运行，且 PWM 负载也要进入整周期供电账本：系统平均约 <span class="arithmatex">\(1.4314\mathrm{mA}\)</span>，每秒约 <span class="arithmatex">\(0.3976\,\mu\mathrm{Ah}\)</span>。这里要特别注意单位：每周期的电荷不是把平均电流直接当作一小时电荷；互动表会同时给出 mA、<span class="arithmatex">\(\mu\mathrm{Ah}\)</span> 和 J，帮助检查量纲。</p>
+<h3 id="2-pwm">2. 揭示前预测：先把电流和 PWM 分开<a class="headerlink" href="#2-pwm" title="Permanent link"></a></h3>
+<ol>
+<li>周期性唤醒系统的平均电流，能否由一个睡眠电流或一个活动峰值单独代表？</li>
+<li>在同一个 RC 负载下提高 PWM 频率，纹波会变大、变小，还是必然变成零？</li>
+<li>MCU 进入睡眠后 PWM 是否继续运行，应看占空比，还是看具体外设和时钟源的条件？</li>
+</ol>
+<h3 id="3">3. 公式桥：积分、平均值与纹波<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对周期 <span class="arithmatex">\(T\)</span> 的分段电流，平均值定义为</p>
+<div class="arithmatex">\[
+I_{avg}=\frac1T\int_0^T i(t)\,dt.
+\]</div>
+<p>在活动、睡眠、传感器和发送时间分别为 <span class="arithmatex">\(t_a,t_s,t_{sen},t_{tx}\)</span> 的矩形近似下，可写成</p>
+<div class="arithmatex">\[
+I_{avg}\approx I_{MCU,a}\frac{t_a}{T}+I_{MCU,s}\left(1-\frac{t_a}{T}\right)+I_{sen}\frac{t_{sen}}{T}+I_{tx}\frac{t_{tx}}{T}.
+\]</div>
+<p>这只是 MCU、传感器和无线事件的部分账本；若 PWM 负载是电阻 <span class="arithmatex">\(R_L\)</span>，还要用实际 RC 电压积分加入</p>
+<div class="arithmatex">\[
+I_{PWM}=\frac1T\int_0^T\frac{v(t)}{R_L}\,dt,
+\qquad
+I_{avg,total}=I_{MCU}+I_{sen}+I_{tx}+I_{PWM},
+\]</div>
+<p>并以</p>
+<div class="arithmatex">\[
+P_{PWM}=\frac1T\int_0^T\frac{v(t)^2}{R_L}\,dt
+\]</div>
+<p>检查负载耗散；不能用 <span class="arithmatex">\((\overline v)^2/R_L\)</span> 代替平均功率。</p>
+<p>单位检查：mA 乘以 ms 再除以 ms 仍为 mA；周期电荷则为</p>
+<div class="arithmatex">\[
+Q_{period}=I_{avg}T,
+\]</div>
+<p>如果 <span class="arithmatex">\(I\)</span> 用 mA、<span class="arithmatex">\(T\)</span> 用小时，结果才是 mAh。默认整周期 <span class="arithmatex">\(I_{avg,total}=1.43142 \mathrm{mA}\)</span>、<span class="arithmatex">\(T=1/3600 \mathrm h\)</span>，所以 <span class="arithmatex">\(Q_{period}\approx0.3976 \mathrm{\mu Ah}\)</span>，供电平均功率约 <span class="arithmatex">\(P_{avg}=V I_{avg,total}=4.724 \mathrm{mW}\)</span>；其中 PWM 负载的平均电流约 <span class="arithmatex">\(1.31246\mathrm{mA}\)</span>。</p>
+<p>理想 PWM 平均值为</p>
+<div class="arithmatex">\[
+V_{PWM,avg}=V_{low}+D(V_{high}-V_{low}),
+\]</div>
+<p>其中 <span class="arithmatex">\(D\)</span> 无量纲。若经过 <span class="arithmatex">\(R\)</span>–<span class="arithmatex">\(C\)</span> 低通，<span class="arithmatex">\(\tau=RC\)</span>，在一个高电平时间 <span class="arithmatex">\(t_{on}=DT_{PWM}\)</span> 内有</p>
+<div class="arithmatex">\[
+v(t)=V_{high}+(v_{min}-V_{high})e^{-t/\tau},
+\]</div>
+<p>低电平段同理。令 <span class="arithmatex">\(a=e^{-t_{on}/\tau}\)</span>、<span class="arithmatex">\(b=e^{-t_{off}/\tau}\)</span>，非零 <span class="arithmatex">\(V_{low}\)</span> 时的周期稳态起点应直接解为</p>
+<div class="arithmatex">\[
+v_{min}=\frac{V_{low}(1-b)+V_{high}b(1-a)}{1-ab},
+\qquad
+v_{max}=V_{high}+(v_{min}-V_{high})a.
+\]</div>
+<p>周期稳态的 <span class="arithmatex">\(v_{max}-v_{min}\)</span> 是纹波峰峰值，它不会因为平均值公式漂亮就自动消失。默认 <span class="arithmatex">\(\tau=1 \mathrm{ms}\)</span>、<span class="arithmatex">\(D=0.4\)</span>，运行段理想与 RC 稳态平均值都为 <span class="arithmatex">\(1.32 \mathrm V\)</span>，稳态纹波约 <span class="arithmatex">\(0.777 \mathrm V_{pp}\)</span>；从每次唤醒的低电平启动算整周期时，RC 输出平均值为 <span class="arithmatex">\(1.312\mathrm V\)</span>，所以 PWM 负载电流也按整段积分。</p>
+<p>数量级判断：活动时间占比只有 <span class="arithmatex">\(12/1000=1.2\%\)</span>，但活动电流比睡眠电流大约两个数量级，所以活动段仍是 MCU 电流账本的主要项。PWM 负载是同一供电账本中的另一条时间积分：若负载是 <span class="arithmatex">\(1 \mathrm{k\Omega}\)</span>，运行段约 <span class="arithmatex">\(1.32 \mathrm V\)</span> 对应约 <span class="arithmatex">\(1.32 \mathrm{mA}\)</span>；若定时器在睡眠停止，停机后的 GPIO 保持电平还会把 RC 输出和平均电流改成另一种波形，不能继续套用连续运行的占空比平均值。</p>
+<h3 id="4-pwm">4. 互动实验：把时间线、功耗和 PWM 波形放在同一页<a class="headerlink" href="#4-pwm" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-mcu-pwm">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认教学设定为 <span class="arithmatex">\(V=3.3 \mathrm V\)</span>、周期 <span class="arithmatex">\(1000 \mathrm{ms}\)</span>；MCU 活动 <span class="arithmatex">\(6 \mathrm{mA}\times12 \mathrm{ms}\)</span>、睡眠 <span class="arithmatex">\(20 \mu\mathrm A\)</span>，传感器 <span class="arithmatex">\(0.4 \mathrm{mA}\times8 \mathrm{ms}\)</span>，发送 <span class="arithmatex">\(12 \mathrm{mA}\times2 \mathrm{ms}\)</span>。PWM 为 <span class="arithmatex">\(1 \mathrm{kHz}\)</span>、<span class="arithmatex">\(D=0.4\)</span>、<span class="arithmatex">\(V_{high}=3.3 \mathrm V\)</span>、<span class="arithmatex">\(V_{low}=0\)</span>，负载 <span class="arithmatex">\(1 \mathrm{k\Omega}\)</span> 与 <span class="arithmatex">\(1 \mu\mathrm F\)</span> RC；默认定时器在允许的睡眠时钟条件下继续运行，PWM 从 <span class="arithmatex">\(5\mathrm{ms}\)</span> 的低电平启动并按实际分段指数波形积分。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MCU 平均电流</td>
+<td style="text-align: right;">0.09176</td>
+<td>mA；活动/睡眠加权</td>
+</tr>
+<tr>
+<td>传感器平均电流</td>
+<td style="text-align: right;">0.00320</td>
+<td>mA；按 8 ms/周期</td>
+</tr>
+<tr>
+<td>发送平均电流</td>
+<td style="text-align: right;">0.02400</td>
+<td>mA；按 2 ms/周期</td>
+</tr>
+<tr>
+<td>PWM 负载平均电流</td>
+<td style="text-align: right;">1.31246</td>
+<td>mA；<span class="arithmatex">\((1/T)\int v(t)/R_L\,dt\)</span>，已计入系统</td>
+</tr>
+<tr>
+<td>系统平均电流</td>
+<td style="text-align: right;">1.43142</td>
+<td>mA；四项相加，含 PWM 负载</td>
+</tr>
+<tr>
+<td>每周期电荷</td>
+<td style="text-align: right;">0.39762</td>
+<td>µAh；1 秒周期</td>
+</tr>
+<tr>
+<td>平均功率</td>
+<td style="text-align: right;">4.72367</td>
+<td>mW；<span class="arithmatex">\(VI_{avg,total}\)</span></td>
+</tr>
+<tr>
+<td>PWM 负载平均功率</td>
+<td style="text-align: right;">1.78238</td>
+<td>mW；<span class="arithmatex">\((1/T)\int v(t)^2/R_L\,dt\)</span></td>
+</tr>
+<tr>
+<td>PWM 理想平均值</td>
+<td style="text-align: right;">1.320</td>
+<td>V；运行段占空比公式</td>
+</tr>
+<tr>
+<td>RC 输出整周期平均值</td>
+<td style="text-align: right;">1.312</td>
+<td>V；含 5 ms 低电平启动</td>
+</tr>
+<tr>
+<td>RC 稳态平均值</td>
+<td style="text-align: right;">1.320</td>
+<td>V；周期稳态积分</td>
+</tr>
+<tr>
+<td>PWM 稳态纹波</td>
+<td style="text-align: right;">776.541</td>
+<td>mV 峰峰值；指数 RC 的 min/max</td>
+</tr>
+<tr>
+<td>停机后输出</td>
+<td style="text-align: right;">睡眠中继续运行</td>
+<td>若 timerRunsInSleep=false，则停机后保持最后高/低电平</td>
+</tr>
+<tr>
+<td>外设边界</td>
+<td style="text-align: right;">条件继续</td>
+<td>需由具体 MCU 和时钟源确认</td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应画出唤醒、ADC、PWM 定时器、发送、停机后输出保持和睡眠的事件时间线；下面用实际的分段指数 RC 曲线画 PWM 命令与输出，不要用正弦曲线代替。时间线中的“睡眠继续运行”或“停机后保持高/低电平”要用文字说明条件，不能用颜色单独表示；平均值、稳态纹波和整周期积分也要分开标注。</p>
+</div>
+<h3 id="5-mcu">5. 真实修正：MCU 功耗由模式、外设和时钟共同决定<a class="headerlink" href="#5-mcu" title="Permanent link"></a></h3>
+<ul>
+<li><strong>睡眠电流不是一个永恒常数。</strong> 低功耗模式、保留的 RAM、唤醒源、BOR、看门狗、稳压器、GPIO 状态和温度都会改变它；数据手册的测试条件要逐项对齐。</li>
+<li><strong>活动电流要按事件拆分。</strong> 唤醒瞬态、ADC 采样、传感器自热、无线发送、Flash 操作和 DMA/定时器可能有不同电流峰值。平均值正确不代表电源能承受峰值。</li>
+<li><strong>PWM 是外设和时钟的边界。</strong> 有的定时器在某些睡眠模式保持时钟，有的会停；时钟源切换、唤醒延迟和输出保持状态必须查具体型号和模式。</li>
+<li><strong>PWM 负载属于系统电流账。</strong> 电阻负载的平均电流按 <span class="arithmatex">\(\int v(t)/R\,dt\)</span> 计入；负载功率按 <span class="arithmatex">\(\int v(t)^2/R\,dt\)</span> 计，不能从 MCU 的三项平均电流中遗漏。</li>
+<li><strong>平均值不描述纹波。</strong> PWM 负载的电阻、电感、电容、驱动电阻和布局决定瞬时电流/电压；ADC 采样时刻若与 PWM 相关，还会出现同步采样误差。</li>
+<li><strong>滤波器有代价。</strong> 更大的 <span class="arithmatex">\(RC\)</span> 减小纹波却增加启动/响应时间；电阻还会消耗静态功率，电容的 ESR/ESL 会把第 15 讲的真实元件边界带回来。</li>
+</ul>
+<h3 id="6">6. 测量纪律：同时测时间、电流和波形<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>在低压、限流、可断电条件下串入合适的电流测量元件，记录测量电阻的压降、带宽和仪器输入；不要让测量装置改变唤醒电压。</li>
+<li>用足够采样率捕捉唤醒峰值、发送脉冲和 PWM 边沿，再用明确的时间窗积分得到平均电流。把“峰值”“平均”“每周期电荷”分成不同栏。</li>
+<li>用示波器同时观察 GPIO/PWM、传感器供电、ADC 采样触发和电源轨；确认采样发生在 PWM 的哪个相位，避免把同步误差当成传感器噪声。</li>
+<li>改变睡眠时间、唤醒周期、PWM 频率、占空比和滤波器，每次保留固件版本、时钟源、外设状态和环境条件。</li>
+<li>数据手册给出的典型电流、最大电流和低功耗条件要与实测分别记录；一条电池寿命估算不能替代峰值供电和热检查。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>本页把 MCU、传感器和发送器看成分段恒流负载，把 PWM 负载看成线性一阶 RC，并假定事件时间固定、滤波器进入周期稳态。它不能预测启动瞬态、非线性负载、稳压器环路、时钟切换、无线协议重试、ADC 孔径效应或具体 MCU 睡眠寄存器的全部行为。</p>
+<p>项目产物是“MCU 供电与事件账本”：工作模式、唤醒源、活动/睡眠/外设电流、事件持续时间、峰值与平均值、每周期电荷、PWM 频率/占空比/纹波、采样相位、外设时钟条件、实测波形和数据手册版本。把电池寿命估算、供电瞬态和信号质量分别验收。</p>
+<h2 id="1">1. 电流账本的四个层次<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先列出每个状态的电流，再乘以停留时间；再把事件发生率映射到一个周期；最后才做长期平均。若系统存在不规则重试或事件，应用期望值和分布，而不要强行塞成固定周期。对于电池或限流电源，还要保留峰值、启动和故障路径，因为它们决定电源是否掉压。</p>
+<p>平均功耗只反映能量速率。电容储能可以撑过很短的峰值，但其电压下跌、ESR、ESL 和稳压器响应必须测量。把 <span class="arithmatex">\(Q=I_{avg}T\)</span> 用错单位，是低功耗估算中最常见的错误之一：1 秒周期的电荷不是 1 小时电荷，mA·ms 要换成 mA·h 才能得到 mAh。</p>
+<h2 id="2-pwm_1">2. PWM 的平均值不等于模拟输出<a class="headerlink" href="#2-pwm_1" title="Permanent link"></a></h2>
+<p>若负载是纯电阻，PWM 电压瞬时变化会直接形成方波电流；若有电感，电流由 <span class="arithmatex">\(L,di/dt\)</span> 限制；若有 RC，电压是充放电曲线。负载的“平均值”要说明平均的是电压、电流、功率还是传感器响应。对于非线性 LED、磁性负载或开关稳压器，<span class="arithmatex">\(P(V_{avg})\)</span> 通常不等于 <span class="arithmatex">\(\langle P(V)\rangle\)</span>。</p>
+<p>频率提高通常可以在同一个低通滤波器下减小纹波，但会增加开关损耗、EMI、定时器时钟负担和可能的测量混叠。占空比改变平均值，频率和滤波器改变纹波，两者不能互相替代。</p>
+<h2 id="3_1">3. 常见误判与纠正<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>睡眠电流就是整机平均电流。<strong>纠正：</strong>唤醒、传感器、发送和外设按时间积分。</li>
+<li><strong>误判：</strong>PWM 占空比就是负载看到的直流电压。<strong>纠正：</strong>要写负载、滤波器和观察带宽；纹波可能很大。</li>
+<li><strong>误判：</strong>低功耗模式会自动保留所有定时器。<strong>纠正：</strong>查具体外设、时钟源、输出保持和唤醒条件。</li>
+<li><strong>误判：</strong>电流表读出一个稳定小数就足够。<strong>纠正：</strong>测量带宽、采样率和时间窗决定你看见的是平均还是被滤掉的峰值。</li>
+<li><strong>误判：</strong>增加显示位数就能延长电池寿命。<strong>纠正：</strong>电池寿命来自能量预算、峰值供电、温度和真实事件统计。</li>
+</ul>
+<h2 id="4">4. 资料与边界<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<ul>
+<li>电路、时间响应和功率基础参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>低功耗测量、信号和实验判断参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>MCU、接口和测试的具体标准应从 <a href="https://standards.ieee.org/">IEEE Standards</a> 的适用版本核对；工程设计、风险和验证记录能力可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>。课程中的电流、PWM 和外设数值均为教学设定。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电的教学系统；不涉及市电、建筑配电、并网或高能电池包施工。</p>
+<h2 id="5">5. 小结<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>MCU 设计要把状态电流乘以时间，把事件放进周期账本，再把 PWM 的平均值与纹波、采样相位和外设时钟边界分开验证。平均功率、峰值电流、周期电荷和波形各回答不同问题；具体芯片的睡眠与定时器行为必须回到数据手册，并用带条件的实测确认。至此，15–21 讲已经把真实元件、保护、模拟接口、传感器、数字电气、同步和 MCU 供电串成一条可审计证据链。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="20-timing-synchronization.html"><span class="pager-label">上一页</span>数字 II · 时序、抖动与同步</a>
+  <a class="pager-slot next" href="22-hardware-buses.html"><span class="pager-label">下一页</span>互连 · 硬件总线与信号协议</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-mcu-pwm.js"></script>
+</body>
+</html>

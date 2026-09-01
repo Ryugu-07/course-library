@@ -103,6 +103,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![流域把降水汇总到出口](assets/img/watershed-hydrology.svg)
+
+<figcaption><span class="fig-id">图 7.1</span>从分水岭沿河网追到出口，区分降水深度 <i>P</i>、径流 <i>R</i>、蒸散 <i>ET</i> 与地下水补给 <i>G</i>；俯视地形、边界和地下水流线均为示意，面积与坡度非等比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![含水层的补给、储量与流向](assets/img/aquifer-cross-section.svg)
+
+<figcaption><span class="fig-id">图 7.2</span>沿剖面读取“补给 → 水位与储量 → Darcy 流 → 基流/抽水”的机制链，再用 Δ<i>S</i> = <i>G</i> − <i>W</i> 判断地下水是在恢复还是下降；含水层层厚、流线和井影响范围非等比例。</figcaption>
+</figure>
+
 ## 1. 河流把空间汇总成出口
 
 流域是以地形和地下水分水岭定义的控制体。流量是出口处的体积/时间，径流深是把出口体积除以面积后的等效深度。两个流域的流量不能直接比较，除非面积、时间窗和汇流定义都清楚。

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>热、额定值与降额 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li class="active"><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 15:53</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-power-thermal-ratings-learning-title">学习层：把额定值拆成电气边界和热边界</a><ul>
+<li><a href="#1">1. 具体故障情境：合上外壳后温升改变了行为</a></li>
+<li><a href="#2">2. 揭示前预测：电流、环境与热阻的方向</a></li>
+<li><a href="#3-vi">3. 公式桥：从 VI 功率到降额直线</a></li>
+<li><a href="#4-fallback">4. 互动实验：静态 fallback 表与热路径图</a></li>
+<li><a href="#5">5. 模型边界：热阻和额定值都带条件</a></li>
+<li><a href="#6">6. 真实修正：用数据手册条件重建降额表</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="06">06 · 电气上能工作，不等于热上能活着：功率、结温与降额<a class="headerlink" href="#06" title="Permanent link"></a></h1>
+<blockquote>
+<p>节点在室温台架上能连续采样，装进小盒子后却开始漂移并偶发复位。电源电压没有越界，真正被忽略的是器件把电功率变成热，热又沿一条不理想的路径抬高了结温。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-power-thermal-ratings-learning-title" class="learning-layer">
+<h2 id="ee-power-thermal-ratings-learning-title">学习层：把额定值拆成电气边界和热边界<a class="headerlink" href="#ee-power-thermal-ratings-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：合上外壳后温升改变了行为<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>环境监测节点的某个低压负载在 <span class="arithmatex">\(5\ \mathrm{V}\)</span>、几十毫安下工作。开放台架时空气流动和铜箔帮助散热；装入密闭外壳后，同样的电压和电流让传感器偏置漂移，MCU 复位门限被热变化触发。只检查“施加电压低于额定电压”不够，因为器件还可能超过电流、功率或结温边界。</p>
+<p>功率是能量流率，热阻把功率流换算成温升，额定值则是带条件的约束。设计要同时回答：电气量是否在限值内？热量从结到环境的路径是什么？环境温度升高或散热变差后还有多少余量？</p>
+<h3 id="2">2. 揭示前预测：电流、环境与热阻的方向<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先作三个预测：</p>
+<ol>
+<li>电压不变，把负载电流加倍，耗散功率和结温上升会怎样？</li>
+<li>环境温度升高而散热路径不变，允许耗散功率会增大还是降低？</li>
+<li>功率不变，把结到环境的总热阻增大，结温会怎样？</li>
+</ol>
+<p>预测时区分“额定电压/电流”与“允许功率”。它们都是边界，但不能互相替代。</p>
+<h3 id="3-vi">3. 公式桥：从 VI 功率到降额直线<a class="headerlink" href="#3-vi" title="Permanent link"></a></h3>
+<p>电阻性或端口负载的耗散功率可按已知量选择表达：</p>
+<div class="arithmatex">\[
+P=VI=I^2R=\frac{V^2}{R}.
+\]</div>
+<p>量纲桥是 <span class="arithmatex">\(\mathrm{V}\cdot\mathrm{A}=\mathrm{W}\)</span>；例如 <span class="arithmatex">\(5\ \mathrm{V}\times0.08\ \mathrm{A}=0.4\ \mathrm{W}\)</span>，属于 <span class="arithmatex">\(10^{-1}\ \mathrm{W}\)</span> 量级。对稳态热阻网络，若</p>
+<div class="arithmatex">\[
+R_{\theta JA}=R_{\theta JC}+R_{\theta CA},
+\]</div>
+<p>其中热阻单位为 <span class="arithmatex">\(\mathrm{^\circ C/W}\)</span> 或等价的 <span class="arithmatex">\(\mathrm{K/W}\)</span>，则</p>
+<div class="arithmatex">\[
+\Delta T_j=P R_{\theta JA},\qquad
+T_j=T_a+\Delta T_j.
+\]</div>
+<p><span class="arithmatex">\(\mathrm{W}\cdot\mathrm{^\circ C/W}=\mathrm{^\circ C}\)</span>，所以温升单位正确。给定一个教学结温上限 <span class="arithmatex">\(T_{j,\max}\)</span>，允许功率为</p>
+<div class="arithmatex">\[
+P_{\mathrm{allow}}=
+\frac{T_{j,\max}-T_a}{R_{\theta JA}}.
+\]</div>
+<p>这是一条随环境温度变化的降额关系；<span class="arithmatex">\(T_a\)</span> 每升高，分子变小，允许功率下降。电压和电流余量另写为</p>
+<div class="arithmatex">\[
+M_V=V_{\mathrm{rated}}-V,\qquad
+M_I=I_{\mathrm{rated}}-I.
+\]</div>
+<p>它们的单位分别是 <span class="arithmatex">\(\mathrm{V}\)</span> 和 <span class="arithmatex">\(\mathrm{A}\)</span>，不能用一个无量纲“通过”掩盖不同边界。</p>
+<h3 id="4-fallback">4. 互动实验：静态 fallback 表与热路径图<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-power-thermal-ratings">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为施加电压 <span class="arithmatex">\(V=5.0\ \mathrm{V}\)</span>、工作电流 <span class="arithmatex">\(I=80.0\ \mathrm{mA}\)</span>，电压教学额定 <span class="arithmatex">\(5.5\ \mathrm{V}\)</span>、电流教学额定 <span class="arithmatex">\(100.0\ \mathrm{mA}\)</span>；环境 <span class="arithmatex">\(T_a=25\ ^\circ\mathrm{C}\)</span>，<span class="arithmatex">\(R_{\theta JC}=5\ ^\circ\mathrm{C/W}\)</span>，<span class="arithmatex">\(R_{\theta CA}=35\ ^\circ\mathrm{C/W}\)</span>，<span class="arithmatex">\(T_{j,\max}=125\ ^\circ\mathrm{C}\)</span>。这些数字不指向具体器件。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>耗散功率 <span class="arithmatex">\(P\)</span></td>
+<td style="text-align: right;">0.400000</td>
+<td>W；<span class="arithmatex">\(VI\)</span></td>
+</tr>
+<tr>
+<td>总热阻 <span class="arithmatex">\(R_{\theta JA}\)</span></td>
+<td style="text-align: right;">40.0000</td>
+<td>°C/W；<span class="arithmatex">\(R_{\theta JC}+R_{\theta CA}\)</span></td>
+</tr>
+<tr>
+<td>结温上升 <span class="arithmatex">\(\Delta T\)</span></td>
+<td style="text-align: right;">16.00000</td>
+<td>°C；<span class="arithmatex">\(P R_{\theta JA}\)</span></td>
+</tr>
+<tr>
+<td>结温 <span class="arithmatex">\(T_j\)</span></td>
+<td style="text-align: right;">41.00000</td>
+<td>°C；<span class="arithmatex">\(T_a+\Delta T\)</span></td>
+</tr>
+<tr>
+<td>允许功率</td>
+<td style="text-align: right;">2.500000</td>
+<td>W；至 <span class="arithmatex">\(T_{j,\max}\)</span> 的教学预算</td>
+</tr>
+<tr>
+<td>热余量</td>
+<td style="text-align: right;">2.100000</td>
+<td>W；允许功率减实际功率</td>
+</tr>
+<tr>
+<td>电压余量</td>
+<td style="text-align: right;">0.5000</td>
+<td>V；教学额定减施加值</td>
+</tr>
+<tr>
+<td>电流余量</td>
+<td style="text-align: right;">20.0000</td>
+<td>mA；教学额定减施加值</td>
+</tr>
+<tr>
+<td>状态</td>
+<td style="text-align: right;">处于教学边界内</td>
+<td>不等于真实器件合格</td>
+</tr>
+</tbody>
+</table>
+<p>左图把电功率送入负载，右图把热流从结经过壳流向环境；它不是只用颜色画的柱状图，而是一个带节点和热阻的路径模型。</p>
+</div>
+<h3 id="5">5. 模型边界：热阻和额定值都带条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(R_{\theta JA}\)</span> 是对某一封装、板面积、铜箔、气流、安装方向和测试方法的等效描述，不是器件永远不变的材料常数。瞬态脉冲需要热阻抗 <span class="arithmatex">\(Z_\theta(t)\)</span> 或热 RC 网络；稳态热阻不能直接套到微秒级尖峰。芯片内部热点、封装热扩散和邻近热源也可能让一个平均结温掩盖局部风险。</p>
+<p>额定值之间还可能相互耦合。最大电流可能随温度下降，最大功率可能是降额曲线而不是一个常数；电源输出在负载变化时也可能改变 <span class="arithmatex">\(V\)</span> 和 <span class="arithmatex">\(I\)</span>。因此，“电压不过线”只能回答一个问题，不能替代功率与结温核查。</p>
+<h3 id="6">6. 真实修正：用数据手册条件重建降额表<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>工程选型时要把数据手册中的额定电压、电流、功率、结温范围、热阻/热阻抗及其测试条件抄入项目记录，并注明版本、封装、PCB 铜面积和环境假设。若封装或散热结构改变，不能沿用原来的 <span class="arithmatex">\(R_{\theta CA}\)</span>。对环境温度扫描，应绘出</p>
+<div class="arithmatex">\[
+P_{\mathrm{allow}}(T_a)
+  =\frac{T_{j,\max}-T_a}{R_{\theta JA}}
+\]</div>
+<p>并把实际工作点、容差、峰值与持续时间叠加在同一张图上。降额不是把一个固定比例随意乘上额定值，而是说明余量如何随环境和热路径变化。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测温前记录环境温度、等待时间、工作占空比、器件电压和电流；热像仪读数还受发射率、视角和反射影响，不能不加说明地当作结温。接触式温度传感器会改变局部热路径，也要记录安装方式。电压应尽量在器件引脚处测，电流应由已知低压限流回路提供；改变散热条件前先断电。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>只看电压额定，忘记 <span class="arithmatex">\(P=VI\)</span> 和电流额定；</li>
+<li>把环境温度当成结温，忽略热阻产生的温升；</li>
+<li>把不同封装、不同板和不同测试条件的热阻直接相加；</li>
+<li>用稳态热阻解释短脉冲，而没有时间尺度；</li>
+<li>把一次室温测试通过当成所有环境和重复周期都通过。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目留下“器件降额表”：每个发热器件的电气额定、功率、热路径、环境范围、<span class="arithmatex">\(T_j\)</span> 预测、允许功率、容差、测量方法和余量。它会与第 01 讲的故障能量预算和第 07 讲的瞬态时间窗合并。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：电压、电流、功率和电路模型基础。</li>
+<li><a href="https://openstax.org/details/books/college-physics-2e">OpenStax College Physics 2e</a>：电功率、能量与测量背景。</li>
+<li><a href="https://standards.ieee.org/">IEEE Standards</a>：若项目涉及安全、可靠性或测试合规，应核查适用标准的具体版本。</li>
+</ul>
+<p>本页的额定值、热阻、环境温度和结温上限全部是教学设定，不能作为任何具体器件的动态数字。真实值必须来自型号、封装、PCB、气流、版本和测试方法相匹配的数据手册；课程仍限定在低压、限流、可断电系统。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>电气边界回答“会不会被电压或电流压坏”，热边界回答“功率经过热阻后结温会到哪里”。用 <span class="arithmatex">\(P=VI\)</span>、<span class="arithmatex">\(\Delta T=PR_\theta\)</span> 和 <span class="arithmatex">\(P_{\mathrm{allow}}=(T_{j,\max}-T_a)/R_\theta\)</span> 把它们放进同一张降额账本。下一讲用一阶方程描述唤醒、滤波和电流建立过程，并检查仪器带宽是否在替你制造慢边沿。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="05-nonlinear-loadline.html"><span class="pager-label">上一页</span>非线性 · 负载线与工作点</a>
+  <a class="pager-slot next" href="07-first-order.html"><span class="pager-label">下一页</span>动态 I · 一阶系统与时间常数</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-power-thermal-ratings.js"></script>
+</body>
+</html>

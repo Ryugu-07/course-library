@@ -17,6 +17,7 @@ COURSES = (
     "comfyUI-course",
     "cs-course",
     "earth-course",
+    "ee-course",
     "grad-math",
     "lang-course",
     "materials-course",

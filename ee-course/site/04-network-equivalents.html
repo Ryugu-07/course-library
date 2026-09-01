@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>等效、叠加与端口 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li class="active"><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 15:53</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-network-equivalents-learning-title">学习层：等效只对指定端口负责</a><ul>
+<li><a href="#1">1. 具体故障情境：传感器一接入，电压就下垂</a></li>
+<li><a href="#2">2. 揭示前预测：先判断负载是否正在改变答案</a></li>
+<li><a href="#3">3. 公式桥：从多源网络到同一负载</a></li>
+<li><a href="#4-fallback">4. 互动实验：静态 fallback 表与端口图</a></li>
+<li><a href="#5">5. 模型边界：什么时候不能随意等效</a></li>
+<li><a href="#6">6. 真实修正：把源电阻和负载效应写进设计</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="04-thevenin-norton">04 · 从复杂网络看端口：叠加、Thevenin 与 Norton<a class="headerlink" href="#04-thevenin-norton" title="Permanent link"></a></h1>
+<blockquote>
+<p>MCU 从休眠唤醒的瞬间，传感器端电压从预期的 2.2 V 掉到 1.47 V，电源本身却没有“坏掉”。真正改变的是负载看见的源阻抗：同一个开路电压，接上一个有限负载后可以给出完全不同的端口结果。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-network-equivalents-learning-title" class="learning-layer">
+<h2 id="ee-network-equivalents-learning-title">学习层：等效只对指定端口负责<a class="headerlink" href="#ee-network-equivalents-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：传感器一接入，电压就下垂<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>贯穿节点有两路低压信号源：一路代表基准或偏置，另一路代表传感器输出；每一路都经过一个源电阻，负载是 MCU 输入和调理网络的等效电阻。断开负载时，用电压表测到一个漂亮的端口电压；接回真实负载后，端口电压下降，且两路源的贡献不再能按“谁的电压更大”直觉判断。</p>
+<p>叠加原理回答线性系统中“每个独立源贡献多少”；Thevenin 等效把端口外的线性网络压缩成一个 <span class="arithmatex">\(V_{\mathrm{th}}\)</span> 串联 <span class="arithmatex">\(R_{\mathrm{th}}\)</span>；Norton 等效则用一个 <span class="arithmatex">\(I_N\)</span> 并联同一个电阻。三者的共同边界是：<strong>端口外的负载行为等效，不是内部每一处都等效</strong>。</p>
+<h3 id="2">2. 揭示前预测：先判断负载是否正在改变答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先做三个预测：</p>
+<ol>
+<li>两路独立源分别激活，再把端口响应相加，线性网络的负载电压是否等于两项代数和？</li>
+<li>把负载电阻推向很大时，负载端电压会靠近 Thevenin 开路电压、零，还是 Norton 电流？</li>
+<li>把两路源电阻都增大，看到端口的等效源电阻会增大、减小，还是不变？</li>
+</ol>
+<p>第二问提醒我们：开路电压不是“任何负载下的输出电压”。负载效应正是源电阻进入工程设计的地方。</p>
+<h3 id="3">3. 公式桥：从多源网络到同一负载<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对两路电压源 <span class="arithmatex">\(V_1,V_2\)</span> 及串联源电阻 <span class="arithmatex">\(R_1,R_2\)</span>，令 <span class="arithmatex">\(G_1=1/R_1\)</span>、<span class="arithmatex">\(G_2=1/R_2\)</span>。端口开路时，</p>
+<div class="arithmatex">\[
+V_{\mathrm{th}}=
+\frac{V_1G_1+V_2G_2}{G_1+G_2},
+\qquad
+R_{\mathrm{th}}=\frac{1}{G_1+G_2}.
+\]</div>
+<p>单位桥为 <span class="arithmatex">\(G=1/\Omega=\mathrm{S}\)</span>，所以 <span class="arithmatex">\(VG\)</span> 是 <span class="arithmatex">\(\mathrm{V}/\Omega=\mathrm{A}\)</span>；分子除以电导仍为 <span class="arithmatex">\(\mathrm{V}\)</span>。Norton 参数为</p>
+<div class="arithmatex">\[
+I_N=\frac{V_{\mathrm{th}}}{R_{\mathrm{th}}},
+\qquad R_N=R_{\mathrm{th}}.
+\]</div>
+<p>接上负载 <span class="arithmatex">\(R_L\)</span> 后，</p>
+<div class="arithmatex">\[
+I_L=\frac{V_{\mathrm{th}}}{R_{\mathrm{th}}+R_L},
+\qquad
+V_L=I_LR_L
+   =V_{\mathrm{th}}\frac{R_L}{R_{\mathrm{th}}+R_L}.
+\]</div>
+<p>功率的单位桥仍是 <span class="arithmatex">\(\mathrm{V}\cdot\mathrm{A}=\mathrm{W}\)</span>。若分别只保留一路源并把另一理想电压源置零，则该源替换为短路，另一源的电阻仍留在网络中；完整负载电压满足</p>
+<div class="arithmatex">\[
+V_L=V_{L,1}+V_{L,2},
+\qquad
+r_{\mathrm{sup}}=V_L-V_{L,1}-V_{L,2}.
+\]</div>
+<p>在理想线性模型中 <span class="arithmatex">\(r_{\mathrm{sup}}=0\)</span>；真实测量中的非零值需要和容差、带宽和仪器误差区分。</p>
+<h3 id="4-fallback">4. 互动实验：静态 fallback 表与端口图<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-network-equivalents">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>使用教学设定 <span class="arithmatex">\(V_1=3.3\ \mathrm{V}\)</span>、<span class="arithmatex">\(V_2=1.1\ \mathrm{V}\)</span>、<span class="arithmatex">\(R_1=100\ \Omega\)</span>、<span class="arithmatex">\(R_2=100\ \Omega\)</span>、<span class="arithmatex">\(R_L=100\ \Omega\)</span>。先合并源网络得 <span class="arithmatex">\(V_{\mathrm{th}}=2.2\ \mathrm{V}\)</span>、<span class="arithmatex">\(R_{\mathrm{th}}=50\ \Omega\)</span>；接入负载后 <span class="arithmatex">\(V_L=1.466667\ \mathrm{V}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thevenin 开路电压 <span class="arithmatex">\(V_{\mathrm{th}}\)</span></td>
+<td style="text-align: right;">2.200000</td>
+<td>V</td>
+</tr>
+<tr>
+<td>Thevenin 电阻 <span class="arithmatex">\(R_{\mathrm{th}}\)</span></td>
+<td style="text-align: right;">50.000000</td>
+<td>Ω</td>
+</tr>
+<tr>
+<td>Norton 电流 <span class="arithmatex">\(I_N\)</span></td>
+<td style="text-align: right;">44.000000</td>
+<td>mA；<span class="arithmatex">\(V_{\mathrm{th}}/R_{\mathrm{th}}\)</span></td>
+</tr>
+<tr>
+<td>完整网络负载电压 <span class="arithmatex">\(V_L\)</span></td>
+<td style="text-align: right;">1.466667</td>
+<td>V</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(V_1\)</span> 单独贡献</td>
+<td style="text-align: right;">1.100000</td>
+<td>V；<span class="arithmatex">\(V_2\)</span> 置零</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(V_2\)</span> 单独贡献</td>
+<td style="text-align: right;">0.366667</td>
+<td>V；<span class="arithmatex">\(V_1\)</span> 置零</td>
+</tr>
+<tr>
+<td>叠加残差</td>
+<td style="text-align: right;">0</td>
+<td>V；完整值减两贡献</td>
+</tr>
+<tr>
+<td>负载电流</td>
+<td style="text-align: right;">14.666667</td>
+<td>mA；<span class="arithmatex">\(V_L/R_L\)</span></td>
+</tr>
+<tr>
+<td>负载功率</td>
+<td style="text-align: right;">21.511111</td>
+<td>mW；<span class="arithmatex">\(V_LI_L\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>这里的端口等效、叠加和负载数值都是教学仿真；它们不包含真实传感器的输入保护、频率依赖或热约束。</p>
+</div>
+<h3 id="5">5. 模型边界：什么时候不能随意等效<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>叠加原理要求网络对所讨论的变量是线性的。二极管、晶体管进入不同工作区、磁性器件饱和或限流器动作时，不能把每个源的独立结果简单相加。含有受控源时，计算 <span class="arithmatex">\(R_{\mathrm{th}}\)</span> 也不能把受控源随意关掉；需要按端口定义保留相应关系或使用测试源。</p>
+<p>Thevenin/Norton 是指定频率、指定端口、指定工作状态下的模型。电容和电感会使等效阻抗随频率变化，电源的动态输出阻抗会随负载瞬态变化，保护和稳压环路还可能引入时间依赖。等效模型没有告诉你热从哪里流，也没有保留内部节点的故障路径。</p>
+<h3 id="6">6. 真实修正：把源电阻和负载效应写进设计<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>真实节点中，<span class="arithmatex">\(R_{\mathrm{th}}\)</span> 往往是稳压器动态阻抗、走线、连接器、传感器输出级和测量网络的合成结果。工程记录应注明测量频率或时间窗、端口位置、负载状态和是否有保护器件。若需要最大功率传输的教学判断，可比较 <span class="arithmatex">\(R_L\)</span> 与 <span class="arithmatex">\(R_{\mathrm{th}}\)</span>；但真实系统通常还要优先满足电压范围、噪声、热和可靠性约束。</p>
+<p>调参时不要只看 <span class="arithmatex">\(V_L\)</span>。同时记录 <span class="arithmatex">\(I_L\)</span>、负载功率、源电阻上的压降和等效残差；这样才能区分“负载确实变重”和“仪器改变了端口”的两种解释。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测电阻或建立开路/短路测试状态前先断电，并确认电容已经按实验室规则放电；电阻档不应接到仍带电的回路。低压测试中也要先设置限流，再逐步连接已知负载。测端口电压时标出参考节点和负载两端，测源电阻效应时保持其他支路状态可复现。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把 <span class="arithmatex">\(V_{\mathrm{th}}\)</span> 当成接入任意负载后的端电压；</li>
+<li>置零电压源时忘记保留它的内阻；</li>
+<li>在非线性工作点上使用叠加原理；</li>
+<li>认为端口等效意味着内部功率、热路径和保护行为也等效；</li>
+<li>只报电压不报负载、频率、时间窗和测量不确定度。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目留下“端口等效与负载敏感性记录”：每个关键接口的端口定义、<span class="arithmatex">\(V_{\mathrm{th}}\)</span>、<span class="arithmatex">\(R_{\mathrm{th}}\)</span>、Norton 参数、负载范围、叠加残差、测量条件和不能等效的内部约束。下一讲把线性端口换成分段非线性器件，寻找真正的工作点。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：线性网络、叠加和等效电路入口。</li>
+<li><a href="https://openstax.org/details/books/college-physics-2e">OpenStax College Physics 2e</a>：电压、电流、电阻和功率基础。</li>
+<li><a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>：把端口测量和实验条件纳入结论。</li>
+</ul>
+<p>本页所有源电压、电阻和残差都是教学设定。具体器件的输出阻抗、频率响应、额定值和保护行为必须回到制造商资料与适用标准；课程仍限定在低压、限流、可断电系统，不涉及市电操作。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>叠加把线性响应拆成可检查的贡献，Thevenin/Norton 把指定端口压缩成等效源，但负载仍通过 <span class="arithmatex">\(R_{\mathrm{th}}\)</span> 改变结果。等效是有边界的语言，不是抹掉内部约束的魔法。下一讲让源直线与器件分段曲线相交，学习如何从交点读工作状态。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="03-kcl-kvl-nodal.html"><span class="pager-label">上一页</span>电路 II · KCL、KVL 与节点分析</a>
+  <a class="pager-slot next" href="05-nonlinear-loadline.html"><span class="pager-label">下一页</span>非线性 · 负载线与工作点</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-network-equivalents.js"></script>
+</body>
+</html>

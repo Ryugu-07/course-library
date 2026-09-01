@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>换能器、校准与不确定度 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li class="active"><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先问“这一个输入值由什么证据支撑”</a><ul>
+<li><a href="#1-25-269">1. 具体情境：桥式传感器的 25 单位为何校准后变成 26.9</a></li>
+<li><a href="#2">2. 揭示前预测：先判断哪些误差能被校准</a></li>
+<li><a href="#3">3. 公式桥：灵敏度、校准和不确定度</a></li>
+<li><a href="#4">4. 互动实验：让校准线和真实读数同时出现</a></li>
+<li><a href="#5">5. 真实修正：换能器的“输入”也需要定义</a></li>
+<li><a href="#6">6. 测量纪律：两点不是两个漂亮的数字</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 选择电阻式还是桥式读出</a></li>
+<li><a href="#2_1">2. 校准后仍然要做验证</a></li>
+<li><a href="#3_1">3. 常见误判与纠正</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="18">18 · 传感器与换能器：从电阻变化到可追溯读数<a class="headerlink" href="#18" title="Permanent link"></a></h1>
+<p>传感器节点报告“25.0”并不等于环境真的是 25.0。一个电阻式传感器先把被测量映射成电阻，再由桥路、激励源、运放和 ADC 变成电压，最后经过校准变成数字。每一层都可能有灵敏度、零点、漂移、噪声和非线性；如果没有参考标准和原始读数，漂亮的小数位只是格式。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-sensors-transducers-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先问“这一个输入值由什么证据支撑”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-25-269">1. 具体情境：桥式传感器的 25 单位为何校准后变成 26.9<a class="headerlink" href="#1-25-269" title="Permanent link"></a></h3>
+<p>用一个四分之一桥表示电阻式换能器。教学设定为参考电阻 <span class="arithmatex">\(R_{ref}=1000 \Omega\)</span>，传感器在零点为 <span class="arithmatex">\(R_0=1000 \Omega\)</span>，灵敏度为 <span class="arithmatex">\(2 \Omega/\)</span>输入单位，桥路激励为 <span class="arithmatex">\(3.3 \mathrm V\)</span>。实际输入取 25 单位，电子学有 <span class="arithmatex">\(1.02\)</span> 的增益因子、<span class="arithmatex">\(4 \mathrm{mV}\)</span> 零点偏置，环境温度相对校准点变化 <span class="arithmatex">\(10 ^\circ\mathrm C\)</span>，漂移代理为 <span class="arithmatex">\(0.2 \mathrm{mV}/^\circ\mathrm C\)</span>。</p>
+<p>在这个设定中，传感器电阻是 <span class="arithmatex">\(1050 \Omega\)</span>，理想桥路输出约 <span class="arithmatex">\(40.244 \mathrm{mV}\)</span>；但观测输出含电子学和温漂后约 <span class="arithmatex">\(47.049 \mathrm{mV}\)</span>。若校准点是 0 和 50 单位，反演结果约为 26.86。它不是“算法错了”，而是校准温度、漂移和不确定度没有被隐藏。</p>
+<h3 id="2">2. 揭示前预测：先判断哪些误差能被校准<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>在桥路和电子学不变时，把激励电压加倍，电压灵敏度大致加倍吗？</li>
+<li>两点校准最直接修正端点处的哪两类误差：零点/增益，还是所有非线性、迟滞和随机噪声？</li>
+<li>校准后温度改变却没有温度补偿，输入估计更可能出现一个偏置，还是带宽自动变大？</li>
+</ol>
+<h3 id="3">3. 公式桥：灵敏度、校准和不确定度<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>设传感器电阻的局部模型为</p>
+<div class="arithmatex">\[
+R_s(x)=R_0+k_Rx,
+\]</div>
+<p>其中 <span class="arithmatex">\(k_R\)</span> 的单位是 <span class="arithmatex">\(\Omega/\)</span>输入单位。四分之一桥输出可写成</p>
+<div class="arithmatex">\[
+V_b(x)=V_{exc}\left(\frac{R_s(x)}{R_s(x)+R_{ref}}-\frac12\right).
+\]</div>
+<p>对电阻的局部灵敏度为</p>
+<div class="arithmatex">\[
+\frac{dV_b}{dR_s}=V_{exc}\frac{R_{ref}}{(R_s+R_{ref})^2},
+\qquad
+\frac{dV_b}{dx}=\frac{dV_b}{dR_s}k_R.
+\]</div>
+<p>单位检查：<span class="arithmatex">\(V_{exc}\)</span> 是 V，分式对 <span class="arithmatex">\(R_s\)</span> 的导数是 <span class="arithmatex">\(\Omega^{-1}\)</span>，乘以 <span class="arithmatex">\(k_R\)</span> 的 <span class="arithmatex">\(\Omega/\)</span>单位后才得到 <span class="arithmatex">\(\mathrm{V}/\)</span>输入单位。</p>
+<p>把校准点的输入和读数记作 <span class="arithmatex">\((x_1,y_1)\)</span>、<span class="arithmatex">\((x_2,y_2)\)</span>，两点线性模型是</p>
+<div class="arithmatex">\[
+a=\frac{y_2-y_1}{x_2-x_1},
+\qquad b=y_1-ax_1,
+\qquad \hat x=\frac{y-b}{a}.
+\]</div>
+<p>这里 <span class="arithmatex">\(a\)</span> 的单位是 V/输入单位，<span class="arithmatex">\(b\)</span> 是 V。把反演式直接写成</p>
+<div class="arithmatex">\[
+\hat x=x_1+(x_2-x_1)\frac{y-y_1}{y_2-y_1}
+\]</div>
+<p>并对三个原始读数 <span class="arithmatex">\((y_1,y_2,y)\)</span> 求雅可比，而不是先把斜率和截距各自压缩成一个标准差：</p>
+<div class="arithmatex">\[
+\frac{\partial\hat x}{\partial y_1}=\frac{(x_2-x_1)(y-y_2)}{(y_2-y_1)^2},\quad
+\frac{\partial\hat x}{\partial y_2}=-\frac{(x_2-x_1)(y-y_1)}{(y_2-y_1)^2},\quad
+\frac{\partial\hat x}{\partial y}=\frac{x_2-x_1}{y_2-y_1}.
+\]</div>
+<p>若三次读数噪声独立，且校准点标准不确定度为 <span class="arithmatex">\(u_{y1},u_{y2}\)</span>、当前测量为 <span class="arithmatex">\(u_y\)</span>，可用 RSS 传播：</p>
+<div class="arithmatex">\[
+u_{\hat x}\approx\sqrt{\left(J_{y1}u_{y1}\right)^2+\left(J_{y2}u_{y2}\right)^2+\left(J_yu_y\right)^2}.
+\]</div>
+<p>其中 <span class="arithmatex">\(J_{y1},J_{y2},J_y\)</span> 就是上式的三个偏导；校准项只取前两项，当前测量项只取第三项。它不是自动得到的标准不确定度声明；相关误差、温度、迟滞和模型不适配必须另列。默认仿真给出校准灵敏度 <span class="arithmatex">\(1.603 \mathrm{mV}/\)</span>单位、漂移输入偏置约 <span class="arithmatex">\(1.248\)</span> 单位、校准项约 <span class="arithmatex">\(0.2212\)</span> 单位、合成教学不确定度约 <span class="arithmatex">\(0.6619\)</span> 单位。负灵敏度情形仍保留 <span class="arithmatex">\(a\)</span> 的符号；只有平方后的不确定度项才失去符号。</p>
+<p>数量级判断：桥路的小信号输出只有几十 mV，而 <span class="arithmatex">\(1 \mathrm{mV}\)</span> 噪声除以约 <span class="arithmatex">\(1.6 \mathrm{mV}/\)</span>单位就是约 <span class="arithmatex">\(0.62\)</span> 单位的输入不确定度。把 ADC 显示位数增加，并不会自动把这个物理不确定度变小。</p>
+<h3 id="4">4. 互动实验：让校准线和真实读数同时出现<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-sensors-transducers">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>以下为教学仿真，校准点为 <span class="arithmatex">\(x_1=0\)</span>、<span class="arithmatex">\(x_2=50\)</span> 单位，当前真实输入为 25 单位；<span class="arithmatex">\(V_{exc}=3.3 \mathrm V\)</span>，<span class="arithmatex">\(R_{ref}=R_0=1000 \Omega\)</span>，<span class="arithmatex">\(k_R=2 \Omega/\)</span>单位；电子学增益为 <span class="arithmatex">\(1.02\)</span>、零点偏置为 <span class="arithmatex">\(4 \mathrm{mV}\)</span>，温漂为 <span class="arithmatex">\(0.2 \mathrm{mV}/^\circ\mathrm C\)</span>，温差为 <span class="arithmatex">\(10 ^\circ\mathrm C\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>传感器电阻</td>
+<td style="text-align: right;">1050.00</td>
+<td><span class="arithmatex">\(\Omega\)</span>；<span class="arithmatex">\(R_0+k_Rx\)</span></td>
+</tr>
+<tr>
+<td>理想桥路输出</td>
+<td style="text-align: right;">40.244</td>
+<td>mV；不含电子学误差</td>
+</tr>
+<tr>
+<td>观测输出</td>
+<td style="text-align: right;">47.049</td>
+<td>mV；含增益、零点和温漂</td>
+</tr>
+<tr>
+<td>两点校准灵敏度</td>
+<td style="text-align: right;">1.603</td>
+<td>mV/输入单位</td>
+</tr>
+<tr>
+<td>两点校准估计</td>
+<td style="text-align: right;">26.858</td>
+<td>输入单位</td>
+</tr>
+<tr>
+<td>估计残差</td>
+<td style="text-align: right;">+1.858</td>
+<td>输入单位；温漂和非线性共同影响</td>
+</tr>
+<tr>
+<td>漂移输入偏置</td>
+<td style="text-align: right;">+1.248</td>
+<td>输入单位；未补偿代理</td>
+</tr>
+<tr>
+<td>校准雅可比 <span class="arithmatex">\((J_{y1},J_{y2},J_y)\)</span></td>
+<td style="text-align: right;">-288.77，-335.12，623.89</td>
+<td>输入单位/V；直接对 <span class="arithmatex">\(y_1,y_2,y\)</span> 求偏导</td>
+</tr>
+<tr>
+<td>校准项不确定度</td>
+<td style="text-align: right;">0.2212</td>
+<td>输入单位；前两个雅可比项 RSS</td>
+</tr>
+<tr>
+<td>合成教学不确定度</td>
+<td style="text-align: right;">0.6619</td>
+<td>输入单位；三个原始读数项 RSS</td>
+</tr>
+<tr>
+<td>中点非线性</td>
+<td style="text-align: right;">0.610</td>
+<td>输入单位；两点直线不能保证消除</td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应画出四个桥臂：三个 <span class="arithmatex">\(R_{ref}\)</span>、一个 <span class="arithmatex">\(R_{sensor}\)</span>，并标出 <span class="arithmatex">\(V_{out+}\)</span>、<span class="arithmatex">\(V_{out-}\)</span> 两个差分中点和激励回路；旁边画理想/原始曲线、两点校准直线、当前漂移读数、三个雅可比项和不确定度说明。校准点、当前读数和拟合线要同时用文字与点型/线型说明。</p>
+</div>
+<h3 id="5">5. 真实修正：换能器的“输入”也需要定义<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>灵敏度不是一个跨范围常数。</strong> 电阻、应变、温度或光照的响应可能有曲率；应区分局部灵敏度、全量程斜率和数据手册的典型曲线。</li>
+<li><strong>激励会改变传感器。</strong> 桥路电流和电阻产生自热，可能让被测量本身发生变化。低功耗节点常要在灵敏度、噪声、响应时间和自热之间取舍。</li>
+<li><strong>漂移有不同来源。</strong> 传感器本体、参考电阻、激励源、运放、ADC 参考、电路板温度梯度和机械装配都可能漂移；一个两点校准只处理它所看到的组合。</li>
+<li><strong>不确定度不是误差的同义词。</strong> 随机重复性、分辨率、系统偏差、校准标准不确定度和模型残差要分别记录；不能把所有数字加成一个“看起来保守”的百分比。</li>
+<li><strong>可追溯性需要链条。</strong> “参考标准 → 比较测量 → 原始读数 → 校准模型 → 报告值”每一段都要有日期、条件、仪器状态和不确定度。图上的拟合线不构成追溯性。</li>
+</ul>
+<h3 id="6">6. 测量纪律：两点不是两个漂亮的数字<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>先定义输入单位、参考点、量程、校准温度和允许的稳定时间；记录每个校准点的原始桥压和环境值。</li>
+<li>让激励源、参考电阻和 ADC 参考的连接在测量和校准中保持一致；否则“增益误差”可能只是换线造成的系统差。</li>
+<li>每个点做重复测量，保留均值、离散程度和异常处理规则；区分短期噪声与长期漂移。</li>
+<li>用第三个或更多验证点检查两点线性模型的残差、迟滞和温度敏感性；验证点不能又被悄悄拿去拟合。</li>
+<li>记录仪器校准状态、分辨率、输入阻抗、激励幅度和测量带宽。低压、限流、可断电条件仍然适用，任何自热或异常先停电。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>本页将电阻式传感器视为线性 <span class="arithmatex">\(R_0+k_Rx\)</span>，桥路无负载，电子学误差为固定增益/偏置，漂移为温度的一阶项，噪声项相互独立。这一模型不能证明迟滞、长期稳定性、机械耦合、湿度影响、饱和、频率响应或所有相关不确定度。</p>
+<p>项目产物是“传感器校准包”：换能器模型、桥路与激励条件、校准点和参考标准、原始读数、拟合参数、验证点残差、漂移试验、误差/不确定度预算、可追溯链和版本化记录。报告中的每一个有效数字都要能回到一个测量条件或模型假设。</p>
+<h2 id="1">1. 选择电阻式还是桥式读出<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>直接恒流读出使 <span class="arithmatex">\(V=IR\)</span> 很直观，但恒流源误差、自热和共模范围会进入预算。桥式读出可以把小的电阻变化变成差分信号，并抑制某些共模项，但它需要匹配的参考臂、稳定激励、差分放大和对桥路负载的检查。</p>
+<p>无论选择哪一种，先把换能器的物理量到电阻、再到电压、再到 ADC 码的链条写全。若中间某个“增益”没有单位，校准通常无法复核；若 ADC 参考在温度变化时漂移，传感器校准也不能独立解决。</p>
+<h2 id="2_1">2. 校准后仍然要做验证<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>两点校准是线性仿真的最小可行工具，适合识别零点和斜率；它不是“把传感器变准”的按钮。第三点验证可以暴露曲率，温度扫描可以暴露漂移，升降输入可以暴露迟滞，断电重启可以暴露启动状态差异。若项目要求可追溯，必须保留参考标准和测量链，不要只提交最终拟合系数。</p>
+<h2 id="3_1">3. 常见误判与纠正<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>校准后所有误差都消失。<strong>纠正：</strong>校准只修正被模型和校准点覆盖的误差。</li>
+<li><strong>误判：</strong>灵敏度越大越好。<strong>纠正：</strong>激励、自热、共模、量程、噪声和安全边界可能反向限制灵敏度。</li>
+<li><strong>误判：</strong>显示的分辨率就是测量不确定度。<strong>纠正：</strong>分辨率只是数字步长，噪声、漂移、标准和模型残差仍然存在。</li>
+<li><strong>误判：</strong>平均很多次就能消除系统偏差。<strong>纠正：</strong>平均主要降低独立随机项，温漂、增益和参考误差可能持续存在。</li>
+</ul>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ul>
+<li>桥路、电路变量和测量基础参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>实验、信号和测量判断参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>工程设计与证据记录能力可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>；涉及具体测试或标准时，应从 <a href="https://standards.ieee.org/">IEEE Standards</a> 的适用版本核对。教学数字不代表任何真实传感器的精度承诺。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电的教学系统；不涉及市电、建筑配电、并网或高能系统。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>传感器读数是换能器、激励、桥路、电子学、校准和参考标准共同产生的证据。灵敏度要带单位和工作点，两点校准要用验证点检查，漂移要映射到输入偏置，不确定度要写清独立性和来源，可追溯性要保留整条测量链。下一讲把这些模拟读数送入有门限、有负载和有边沿的 CMOS 数字世界。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="17-opamp-interface.html"><span class="pager-label">上一页</span>模拟 · 运放、基准与传感器接口</a>
+  <a class="pager-slot next" href="19-digital-electrical.html"><span class="pager-label">下一页</span>数字 I · 电气逻辑、电平与负载</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-sensors-transducers.js"></script>
+</body>
+</html>

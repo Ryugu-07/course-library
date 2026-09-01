@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>怎么读这门课 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li class="active"><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 15:48</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">一、这门课在解决什么问题</a></li>
+<li><a href="#_3">二、贯穿项目：低功耗多传感器环境监测节点</a></li>
+<li><a href="#_4">三、二十八章的地图</a></li>
+<li><a href="#_5">四、与已有课程的边界</a></li>
+<li><a href="#_6">五、阅读所需的前置与证据纪律</a></li>
+<li><a href="#_7">六、最小阅读路径</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">怎么读《电气与电子工程基础》<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>这门课从一个可测、可限流、可断电的目标开始：做出一个低功耗多传感器环境监测节点。它不把电路当成“元件连起来就会工作”的黑箱，而是持续追问电能从哪里来、信号怎样被表示、误差如何被测出、故障怎样被限制，以及一个设计在真实元件和真实布局下还能否成立。</p>
+</blockquote>
+<h2 id="_2">一、这门课在解决什么问题<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>电气与电子工程的核心不是背元件符号，也不是把每个公式套进理想电路。它是在有限的电压、电流、功耗、带宽、面积、成本和可靠性约束下，把<strong>电源、信号、器件、互连、测量和验证</strong>组织成一个能工作的系统。</p>
+<p>本课反复使用五个问题：</p>
+<ol>
+<li><strong>电能去了哪里</strong>：输入功率怎样分配到负载、储能、损耗和热？</li>
+<li><strong>信号是否可辨认</strong>：目标变化经过传感器、接口、滤波、采样和总线后，还剩多少可用信息？</li>
+<li><strong>模型在哪里失效</strong>：集总模型、线性模型、理想运放、理想地和理想开关分别在什么条件下不再可信？</li>
+<li><strong>故障会被限制吗</strong>：短路、反接、过压、浪涌、静电、过热和连接错误是否有明确的能量路径与保护边界？</li>
+<li><strong>怎样证明它工作</strong>：测量计划、容差、校准、测试点、日志和可重复的 bring-up 记录能否支持结论？</li>
+</ol>
+<p>一句话概括：<strong>物理定律告诉我们什么可能，电气与电子工程决定如何在约束中把可能的东西做成可测、可维护的系统。</strong></p>
+<figure class="diagram visual-atlas">
+<p><img alt="低功耗传感器节点的信号、电源与验证路径" src="assets/img/ee-system-roadmap.svg" /></p>
+<figcaption><span class="fig-id">课程地图</span>上方蓝色路径追踪信息从物理量走到记录，下方橙色路径追踪电能如何经过限流、保护与稳压到达负载，灰色回路提醒每一项设计结论都要回到安全、热、EMC、时序和测试证据。图是低压教学系统的机制示意，不是可直接施工的原理图。</figcaption>
+</figure>
+<h2 id="_3">二、贯穿项目：低功耗多传感器环境监测节点<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>全课围绕同一个小型系统逐步加约束：一个<strong>低压限流的低功耗多传感器环境监测节点</strong>，由可断电电源供电，周期性唤醒，读取温度、湿度、光照或压力等传感器，完成必要的模拟调理和模数转换，再通过硬件总线记录或发送数据。它的目标不是做成某个商品，而是让每一章都能在同一份工程账本上留下可检查的证据。</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>课程问题</th>
+<th>项目产物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需求与安全</td>
+<td>允许的电压、电流、能量、环境和断电条件是什么？</td>
+<td>安全边界、故障清单、验收条件</td>
+</tr>
+<tr>
+<td>电路与动态</td>
+<td>工作点、等效电路、时间常数和共振如何决定启动与响应？</td>
+<td>原理图、计算表、波形预测</td>
+</tr>
+<tr>
+<td>信号与测量</td>
+<td>噪声、带宽、采样率和量化如何改变可辨认的信息？</td>
+<td>测量计划、误差预算、校准记录</td>
+</tr>
+<tr>
+<td>真实硬件</td>
+<td>容差、寄生、数据手册额定值和保护器件如何改变理想结论？</td>
+<td>器件选择依据、降额表、接口保护方案</td>
+</tr>
+<tr>
+<td>数字与供电</td>
+<td>MCU 休眠/唤醒、PWM、总线时序和电源树能否共存？</td>
+<td>电源预算、时序图、总线测试记录</td>
+</tr>
+<tr>
+<td>交付与验证</td>
+<td>PCB 回流、EMC、可测性、装配和 bring-up 如何决定能否复现？</td>
+<td>测试点清单、故障注入记录、最终验证报告</td>
+</tr>
+</tbody>
+</table>
+<p>贯穿账本至少记录：工作电压范围、限流设定、睡眠与活动电流、峰值电流、各路功耗、传感器误差、采样与量化分辨率、总线失败模式、热与额定值余量，以及每一个结论对应的测量或计算证据。<strong>低压不自动等于无风险</strong>：电池、储能电容、热源、短路电流和错误接线仍需遵守实验室规则。</p>
+<p>本项目只讨论低压、限流、可断电的教学硬件。<strong>明确不涉及市电施工</strong>：不讲建筑配电、插座安装、断路器选型、固定布线、并网、开关柜、带电市电测量，也不把任何页面当作市电操作规程。需要接入市电的产品或实验，必须交由有资质人员按当地法规和适用标准处理。</p>
+<h2 id="_4">三、二十八章的地图<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>线</th>
+<th style="text-align: right;">章节</th>
+<th>主问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>安全与电路语言</strong></td>
+<td style="text-align: right;">01–04</td>
+<td>怎样用参考方向、KCL/KVL、节点和端口描述一个受限流系统？</td>
+</tr>
+<tr>
+<td><strong>非线性、功率与动态</strong></td>
+<td style="text-align: right;">05–08</td>
+<td>工作点、热、时间常数、阻尼和共振怎样决定真实响应？</td>
+</tr>
+<tr>
+<td><strong>交流、系统与测量</strong></td>
+<td style="text-align: right;">09–14</td>
+<td>如何用阻抗、LTI、频谱、噪声、采样和量化管理信号？</td>
+</tr>
+<tr>
+<td><strong>真实器件与接口</strong></td>
+<td style="text-align: right;">15–18</td>
+<td>数据手册、保护、运放和换能器怎样把理想模型接到世界？</td>
+</tr>
+<tr>
+<td><strong>数字、嵌入式与供电</strong></td>
+<td style="text-align: right;">19–23</td>
+<td>电气逻辑、时序、MCU、总线和电源树如何一起工作？</td>
+</tr>
+<tr>
+<td><strong>互连、制造与可靠性</strong></td>
+<td style="text-align: right;">24–27</td>
+<td>回流、EMC、信号完整性、PCB 可测性和 bring-up 如何保证复现？</td>
+</tr>
+<tr>
+<td><strong>收官</strong></td>
+<td style="text-align: right;">28</td>
+<td>如何交付一个有证据链的低功耗多传感器环境监测节点？</td>
+</tr>
+</tbody>
+</table>
+<p>每页尽量按同一个节奏组织：<strong>具体故障或现象 → 先作预测 → 理想模型 → 真实修正 → 测量/交互实验 → 失效边界 → 迁移到项目</strong>。第一遍阅读时，先写下“如果把这个参数加倍，哪个量会先坏”，再看公式和波形；复习时可以把页面当作速查表。</p>
+<h2 id="_5">四、与已有课程的边界<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
+<p>相邻课程提供了重要地基，但本课的责任是电气系统的工程接口。边界不是墙：电场会进入走线，材料会改变电阻，软件会暴露时序问题；下表说明的是<strong>主要问题归属</strong>，不是互相隔绝。</p>
+<table>
+<thead>
+<tr>
+<th>已有课程</th>
+<th>它主要回答</th>
+<th>本课负责的交界问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>physics</strong></td>
+<td>电磁、热力学、波、场和基本守恒定律为什么成立</td>
+<td>在集总近似、端口、阻抗、功率和可测量模型下怎样做电路判断；不重复完整 Maxwell 场论和基础物理推导</td>
+</tr>
+<tr>
+<td><strong>micro</strong></td>
+<td>半导体能带、器件物理、工艺、晶体管和芯片制造怎样工作</td>
+<td>把 IC、MOSFET、二极管和 ADC 当作带条件的工程器件使用；不展开器件物理、先进制程或流片流程</td>
+</tr>
+<tr>
+<td><strong>auto</strong></td>
+<td>反馈、稳定性、状态估计和控制器怎样改变系统行为</td>
+<td>关注传感器接口、执行开关、采样、PWM 电气实现和电源瞬态；不把闭环控制、机器人动力学或控制器综合作为主线</td>
+</tr>
+<tr>
+<td><strong>cs</strong></td>
+<td>算法、软件、体系结构、操作系统和数据如何计算</td>
+<td>负责 MCU 的电气边界、总线、时序、复位、功耗和硬件/固件接口；不替代算法、OS、编译器或应用协议课程</td>
+</tr>
+<tr>
+<td><strong>materials</strong></td>
+<td>材料组成、缺陷、制备、结构与性能如何关联</td>
+<td>用材料导致的容差、温漂、老化、封装和失效模式做选型与降额；不讲材料合成、晶体结构或材料表征主线</td>
+</tr>
+<tr>
+<td><strong>photo</strong></td>
+<td>光的传播、成像、光源、探测和光子器件如何工作</td>
+<td>把光学/环境传感器视作电气换能器，处理偏置、噪声、采样和校准；不讲完整光学设计、激光或光通信系统</td>
+</tr>
+</tbody>
+</table>
+<p>因此，本课程不是 physics 的“较浅版本”，也不是 micro、auto、cs、materials 或 photo 的替代站。它的独特工作对象是：<strong>一个跨越元件、信号、供电、布局、测量和验证边界的可交付电气系统</strong>。</p>
+<h2 id="_6">五、阅读所需的前置与证据纪律<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
+<p>高中代数、函数图像、基本单位换算和一点电压电流直觉足以开始。微积分、复数、线性代数和概率会在需要时以最小铺垫出现；不会把“会解方程”误当成“会做设计”。</p>
+<p>每页的结论应区分三种证据：</p>
+<ul>
+<li><strong>模型结论</strong>：由 KCL/KVL、器件方程、频域或时域假设推出，并写明假设；</li>
+<li><strong>实验结论</strong>：由仪器、探头、采样率、校准和重复测量得到，并保留不确定度；</li>
+<li><strong>工程约束</strong>：来自数据手册、IEEE 标准、认证框架或项目安全边界，不能用漂亮的仿真曲线替代。</li>
+</ul>
+<p>具体器件的额定值、标准条款、EMC 限值和安全要求随型号、版本、地区和应用场景变化；课程中的示例只用于训练判断，不构成采购、认证、施工或现场操作建议。</p>
+<h2 id="_7">六、最小阅读路径<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<p>时间有限时先读：<strong>01 安全 → 03 KCL/KVL/节点 → 06 功率与热 → 07 一阶动态 → 09 相量与阻抗 → 13 噪声 → 14 采样 → 17 运放接口 → 21 MCU/PWM → 23 电源树 → 28 收官</strong>。这条路径覆盖安全、电路、动态、信号、器件、嵌入式和交付验证。</p>
+<p>课程级资料入口见 <a href="../SOURCES.md"><code>SOURCES.md</code></a>。后续讲义应在页末保留“资料与边界”小节，说明用了哪个权威入口、哪些数字会变化，以及读者不应把简化模型外推到哪里。</p>
+<hr />
+<p><em>下一页从最先要守住的边界开始：怎样在低压、限流和可断电条件下建立安全的电气实验回路。</em></p>
+</article>
+<footer class="pager">
+  <span class="pager-slot prev"></span>
+  <a class="pager-slot next" href="01-system-safety.html"><span class="pager-label">下一页</span>安全 I · 低压、限流与测量边界</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

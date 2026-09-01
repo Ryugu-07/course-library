@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>低功耗多传感器节点 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li class="active"><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-capstone-learning-title">学习层：让一个节点通过有理由的最终验收</a><ul>
+<li><a href="#1">1. 具体情境：平均功耗通过，但系统仍然不应交付</a></li>
+<li><a href="#2">2. 揭示前预测：先预测系统级取舍</a></li>
+<li><a href="#3">3. 公式桥：功率、噪声、时序与证据</a></li>
+<li><a href="#4">4. 互动实验：系统数字孪生与验证矩阵</a></li>
+<li><a href="#5">5. 六本账怎样合成一个系统，而不是互相打架</a></li>
+<li><a href="#6">6. 测量与故障注入：最终验收的顺序</a></li>
+<li><a href="#7">7. 最终验收：不是“所有数都很好看”</a></li>
+</ul>
+</li>
+<li><a href="#1-0121">1. 把 01–21 讲带进收官</a></li>
+<li><a href="#2_1">2. 数字孪生的最小形状</a></li>
+<li><a href="#3_1">3. 模型失效边界与后续工作</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">收官 · 低功耗多传感器节点的证据闭环<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>一个节点真正完成的时刻，不是它第一次打印出数值，而是每个关键结论都能回到模型、测量或约束，并且在故障边界内知道什么时候必须停机。</p>
+</blockquote>
+<p>前 27 讲已经把同一个目标拆成许多看似分散的问题：安全边界限定了能量和操作；KCL/KVL、端口和等效模型建立了电路语言；功率、动态、噪声和采样决定了测量能否被辨认；真实器件、保护、传感器和 MCU 把模型接到世界；22–27 讲则继续追踪总线、电源、回流、信号完整性、PCB 可测性和 bring-up。</p>
+<p>本页不再增加一张“通用 checklist”。它把这些产物放回一个低功耗多传感器环境监测节点，用一份验证矩阵和一组可追溯的故障证据判断设计是否成立。实验使用合成教学输入，不代表商品规格、现场测量或任何真实环境预报。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-capstone-learning-title" class="learning-layer">
+<h2 id="ee-capstone-learning-title">学习层：让一个节点通过有理由的最终验收<a class="headerlink" href="#ee-capstone-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：平均功耗通过，但系统仍然不应交付<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设想一个节点每分钟唤醒一次，读取温度、湿度和光照传感器，在本地缓存后通过硬件总线输出。它的平均电流很低，静态台架上也能持续记录；但最远总线端在边沿时有反射，传感器唤醒使 rail 下陷，数字回流让模拟基线移动，装配批次又缺少关键测试点。只要把平均功耗写进报告，其他问题就会被隐藏。</p>
+<p>收官的工作不是把每个指标都压成一个分数，而是建立<strong>要求 → 模型/测量 → 证据 → 判据 → 失效动作</strong>的链。一个“通过”必须知道它验证了什么、没有验证什么，以及下一次故障注入如何让它失效。</p>
+<h3 id="2">2. 揭示前预测：先预测系统级取舍<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>活动电流和活动时间固定时，把唤醒周期缩短，平均电流会增加还是减少？</li>
+<li>噪声测量值低于教学预算、但总线时序余量为负，系统能否直接最终验收？</li>
+<li>测试点覆盖率为 100% 但没有 bring-up 波形和故障记录，证据闭环是否完整？</li>
+</ol>
+<p>提交三项预测后才展开系统参数和验证矩阵。默认结果设计为“可以继续验收”，不是产品承诺；改变一个输入使任一关键门失效时，实验会指出具体的账本行，而不是只显示一个总分。</p>
+<h3 id="3">3. 公式桥：功率、噪声、时序与证据<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>设周期为 <span class="arithmatex">\(T\)</span>（s），活动时间为 <span class="arithmatex">\(t_a\)</span>（s），休眠电流为 <span class="arithmatex">\(I_s\)</span>，活动 MCU 电流为 <span class="arithmatex">\(I_a\)</span>，活动传感器电流为 <span class="arithmatex">\(I_{sens}\)</span>，则</p>
+<div class="arithmatex">\[
+d=\frac{t_a}{T},
+\qquad
+I_{avg}=I_s(1-d)+(I_a+I_{sens})d.
+\]</div>
+<p>在 rail 电压 <span class="arithmatex">\(V\)</span> 下，平均输出功率 <span class="arithmatex">\(P_{avg}=VI_{avg}\)</span>。若把一天视为 <span class="arithmatex">\(24\ \mathrm{h}\)</span>，则 <span class="arithmatex">\(E_{day}=P_{avg}\times24\ \mathrm{h}\)</span>；若 <span class="arithmatex">\(P\)</span> 用 mW，结果单位是 mWh。输入侧还要除以已声明的教学效率 <span class="arithmatex">\(\eta\)</span>，不能把输出功率当成电源输入消耗。</p>
+<p>其余账本保持独立单位：噪声余量 <span class="arithmatex">\(M_N=V_{limit}-V_{meas}\)</span>（mV）；时序余量用 ns 或 % UI；热余量用 °C；测试点覆盖 <span class="arithmatex">\(C_{TP}=N_{observed}/N_{critical}\)</span>；故障约束率 <span class="arithmatex">\(C_F=N_{contained}/N_{injected}\)</span>。只有在每一项先通过各自判据后，才可报告“整体可验收”。</p>
+<p>关联输入也有硬约束：必须满足 <span class="arithmatex">\(t_a\le T\)</span> 和 <span class="arithmatex">\(N_{contained}\le N_{injected}\)</span>。任一关系不成立就生成失败的 <code>CONFIG_INVALID</code> 门；不得用截断、<code>min</code> 或饱和把无效配置改成通过。关键网络可测性要求 <span class="arithmatex">\(C_{TP}=1.00\)</span>；若确需例外，必须逐网记录批准的豁免，本实验默认不启用豁免。</p>
+<p>周期缩短的结论还有一个前提：只有当 <span class="arithmatex">\(I_a+I_{sens}&gt;I_s\)</span> 时，固定活动时间而缩短 <span class="arithmatex">\(T\)</span> 才会提高占空比和平均电流；此前提不成立时，不能直接套用“周期越短平均电流越高”。</p>
+<p>默认教学输入为 <span class="arithmatex">\(T=60\ \mathrm{s}\)</span>、<span class="arithmatex">\(t_a=0.8\ \mathrm{s}\)</span>、<span class="arithmatex">\(I_s=0.4\ \mathrm{mA}\)</span>、<span class="arithmatex">\(I_a=35\ \mathrm{mA}\)</span>、<span class="arithmatex">\(I_{sens}=8\ \mathrm{mA}\)</span>、<span class="arithmatex">\(V=3.3\ \mathrm{V}\)</span>、<span class="arithmatex">\(\eta=85\%\)</span>。于是 <span class="arithmatex">\(d\approx1.33\%\)</span>、<span class="arithmatex">\(I_{avg}\approx0.968\ \mathrm{mA}\)</span>、输出约 <span class="arithmatex">\(3.19\ \mathrm{mW}\)</span>，一天输入能量约 <span class="arithmatex">\(90.2\ \mathrm{mWh}\)</span>（合成预算为 <span class="arithmatex">\(100\ \mathrm{mWh/day}\)</span>）。这是数量级练习，不是电池容量建议。</p>
+<h3 id="4">4. 互动实验：系统数字孪生与验证矩阵<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-capstone-sensor-node">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>合成教学输入为周期 <span class="arithmatex">\(60\ \mathrm{s}\)</span>、活动 <span class="arithmatex">\(800\ \mathrm{ms}\)</span>、休眠 <span class="arithmatex">\(0.4\ \mathrm{mA}\)</span>、MCU 活动 <span class="arithmatex">\(35\ \mathrm{mA}\)</span>、传感器活动 <span class="arithmatex">\(8\ \mathrm{mA}\)</span>、rail <span class="arithmatex">\(3.3\ \mathrm{V}\)</span>、效率 <span class="arithmatex">\(85\%\)</span>、每日输入能量预算 <span class="arithmatex">\(100\ \mathrm{mWh/day}\)</span>；测得噪声 <span class="arithmatex">\(18\ \mathrm{mV}\)</span>，预算 <span class="arithmatex">\(30\ \mathrm{mV}\)</span>；rail 瞬态余量 <span class="arithmatex">\(20\ \mathrm{mV}\)</span>、回流 CM/DM 余量 <span class="arithmatex">\(16\ \mathrm{mV}\)</span>、总线余量 <span class="arithmatex">\(22\%\)</span>；关键网络 8 个、可达测试点 8 个（100%）；证据 10/10；注入故障 4 个、受控 4 个；热余量 <span class="arithmatex">\(25\ ^\circ\mathrm{C}\)</span>，限流/启动电流余量 <span class="arithmatex">\(80\ \mathrm{mA}\)</span>。关联关系为 <span class="arithmatex">\(800\ \mathrm{ms}\le60\times1000\ \mathrm{ms}\)</span>、<span class="arithmatex">\(4\le4\)</span>。以上均为教学输入。</p>
+<table>
+<thead>
+<tr>
+<th>验证矩阵行</th>
+<th style="text-align: right;">默认结果</th>
+<th>强制判据</th>
+<th>evidenceId / type / version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>功率/周期</td>
+<td style="text-align: right;"><span class="arithmatex">\(I_{avg}=0.968\ \mathrm{mA}\)</span></td>
+<td><span class="arithmatex">\(E_{in,day}\approx90.2\ \mathrm{mWh}\)</span>，能量余量严格为正</td>
+<td><code>EE28-PWR-001</code> / model / <code>v1</code></td>
+</tr>
+<tr>
+<td>rail 噪声</td>
+<td style="text-align: right;">18 / 30</td>
+<td>mV；噪声余量 +12 mV，严格为正</td>
+<td><code>EE28-NOISE-001</code> / measurement / <code>v1</code></td>
+</tr>
+<tr>
+<td>rail 瞬态</td>
+<td style="text-align: right;">+20</td>
+<td>mV；<code>RAIL_TRANSIENT(dropout/reset)</code>，严格为正</td>
+<td><code>EE28-RAIL_TRANSIENT-001</code> / measurement / <code>v1</code></td>
+</tr>
+<tr>
+<td>总线时序</td>
+<td style="text-align: right;">+22</td>
+<td>% UI；余量严格为正</td>
+<td><code>EE28-BUS-001</code> / measurement / <code>v1</code></td>
+</tr>
+<tr>
+<td>回流 CM/DM</td>
+<td style="text-align: right;">+16</td>
+<td>mV；<code>RETURN_CM_DM</code> 独立门，严格为正</td>
+<td><code>EE28-RETURN_CM_DM-001</code> / measurement / <code>v1</code></td>
+</tr>
+<tr>
+<td>PCB 可测性</td>
+<td style="text-align: right;">8 / 8</td>
+<td><span class="arithmatex">\(C_{TP}=1.00\)</span>；本 lab 要求关键网 100%</td>
+<td><code>EE28-PCB-001</code> / inspection / <code>v1</code></td>
+</tr>
+<tr>
+<td>故障约束</td>
+<td style="text-align: right;">4 / 4</td>
+<td><span class="arithmatex">\(C_F=1.00\)</span>；关系有效且每项有停止/恢复记录</td>
+<td><code>EE28-FAULT-001</code> / test / <code>v1</code></td>
+</tr>
+<tr>
+<td>热/容差</td>
+<td style="text-align: right;">+25</td>
+<td>°C；余量严格为正</td>
+<td><code>EE28-THERM-001</code> / calculation / <code>v1</code></td>
+</tr>
+<tr>
+<td>限流边界</td>
+<td style="text-align: right;">+80</td>
+<td>mA；余量严格为正</td>
+<td><code>EE28-SAFE-001</code> / measurement / <code>v1</code></td>
+</tr>
+<tr>
+<td>证据追溯</td>
+<td style="text-align: right;">10 / 10</td>
+<td>每行的来源、原始记录和版本齐全</td>
+<td><code>EE28-EVID-001</code> / traceability / <code>v1</code></td>
+</tr>
+<tr>
+<td>关联输入配置</td>
+<td style="text-align: right;">有效</td>
+<td><code>CONFIG_INVALID</code> 失败门通过；仅当 <span class="arithmatex">\(t_a\le T\)</span> 且 contained≤injected</td>
+<td><code>EE28-CONFIG_INVALID-001</code> / constraint / <code>v1</code></td>
+</tr>
+<tr>
+<td>最终状态</td>
+<td style="text-align: right;">11 / 11，可进入最终验收</td>
+<td>所有强制门通过；不是认证结论或现场运行许可</td>
+<td>每行均非空</td>
+</tr>
+</tbody>
+</table>
+<p>实验会把每个门映射到 22–27 讲的产物。降低测试点、增大活动占空比、提高噪声、缩小时序余量、减少受控故障记录、让活动时间超过周期或让 contained 大于 injected，都会在矩阵中留下明确的未通过行；无效关联显示 <code>CONFIG_INVALID</code>，不截断为通过。</p>
+</div>
+<h3 id="5">5. 六本账怎样合成一个系统，而不是互相打架<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p><strong>22 总线账</strong>回答电平、拓扑、上拉/终端、边沿、传播和总线故障；它给 28 讲留下“最远端可判决”的证据。</p>
+<p><strong>23 电源账</strong>回答 rail、效率、静态电流、压降、去耦和负载瞬态；它给出功率、噪声、复位和能量的边界。</p>
+<p><strong>24 回流/EMC 账</strong>回答参考节点、回流连续性、共模/差模、屏蔽和预兼容测量；它防止把模拟误差误写成传感器漂移。</p>
+<p><strong>25 信号完整性账</strong>回答集总/传输线边界、反射、终端、串扰和眼图；它把“波形看起来毛”改写成可量化的幅度/时间余量。</p>
+<p><strong>26 PCB/DFT 账</strong>回答功能分区、连续回流、间距/过孔假设、测试点和装配反馈；它使前面的问题在成品上仍然可观察。</p>
+<p><strong>27 可靠性/bring-up 账</strong>回答失效模式、热/容差、故障树、限流上电、阶段顺序、停止条件和证据版本；它定义“怎样安全地知道还不能交付”。</p>
+<p>这六本账不是并列的报告附件。电源瞬态会改变总线阈值，回流会改变模拟噪声，PCB 几何会改变终端，DFT 测点会改变电容，bring-up 故障又会反过来验证保护和电源树。因此最终矩阵保留来源 ID，不能只保留一个绿色总结果。</p>
+<h3 id="6">6. 测量与故障注入：最终验收的顺序<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li><strong>边界确认：</strong>核对低压输入、限流、可断电开关、能量来源、板号、软件/硬件版本和环境；不满足则不开始。</li>
+<li><strong>静态证据：</strong>断电测连通性/阻值，检查电源树、保护、测试点、终端和装配；把异常先标为待调查。</li>
+<li><strong>动态证据：</strong>按 27 讲阶段上电，记录 rail、启动电流、复位、总线近端/远端、回流地电位差、噪声和温度；同一配置至少能重复。</li>
+<li><strong>模式证据：</strong>分别测休眠、传感器活动、总线活动、最坏唤醒和同时负载；平均值不能替代瞬态。</li>
+<li><strong>故障证据：</strong>断电注入开路、缺终端、参考偏移、负载短路代理或传感器失联等单一故障；每次都先写预期安全状态、限流和停止条件，再保存故障前后波形与恢复记录。</li>
+<li><strong>追溯审计：</strong>每一行矩阵填“模型/测量/约束”三选一或组合，且 <code>evidenceId</code>、<code>type</code>、<code>version</code> 必须非空；附原始文件、计算版本、仪器设置、数据手册/标准版本和未验证假设。缺任一元数据就让证据门失败。</li>
+</ol>
+<h3 id="7">7. 最终验收：不是“所有数都很好看”<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>本项目的最终验收定义为：功率预算在声明周期和活动模式下成立；<code>RAIL_TRANSIENT(dropout/reset)</code>、噪声、总线时序和 <code>RETURN_CM_DM</code> 分别有严格正余量；总线和回流故障进入定义的安全状态；PCB 关键网络 100% 可测或有逐网批准豁免；热/容差与限流上电没有违反停止条件；关联输入没有触发 <code>CONFIG_INVALID</code>；每个结论都有可复现证据。任一关键行缺证据，结论是“未完成”，不是“默认通过”。</p>
+<p>一个很重要的反例是：<span class="arithmatex">\(E_{day}\)</span> 低于预算、噪声也低于预算，但总线余量为负。此时系统仍未通过，因为“能量够用”和“信息可判决”是不同账本。另一个反例是：矩阵全是模型通过，却没有一条最远端波形或故障记录；这只能说明仿真自洽，不能说明装配后的节点成立。</p>
+</section>
+<h2 id="1-0121">1. 把 01–21 讲带进收官<a class="headerlink" href="#1-0121" title="Permanent link"></a></h2>
+<p>前半程的产物也不能被 22–28 讲覆盖：</p>
+<table>
+<thead>
+<tr>
+<th>前置范围</th>
+<th>收官中保留的接口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01–04 安全与电路语言</td>
+<td>低压/限流/断电边界、参考方向、KCL/KVL、端口和故障能量路径</td>
+</tr>
+<tr>
+<td>05–08 非线性、功率与动态</td>
+<td>工作点、耗散、温升、时间常数、负载瞬态的假设</td>
+</tr>
+<tr>
+<td>09–14 交流、系统与测量</td>
+<td>阻抗、频率、带宽、噪声、采样率、量化和仪器不确定度</td>
+</tr>
+<tr>
+<td>15–18 真实器件与接口</td>
+<td>容差、寄生、保护、传感器校准和数据手册条件</td>
+</tr>
+<tr>
+<td>19–21 数字、时序与 MCU</td>
+<td>电平、阈值、复位、休眠/唤醒、PWM、同步和时序窗口</td>
+</tr>
+<tr>
+<td>22–27 互连、供电、回流、SI、PCB、bring-up</td>
+<td>六本硬件交付账、故障注入、验证矩阵和停止条件</td>
+</tr>
+</tbody>
+</table>
+<p>这样收官不是重复定义，而是检查边界是否互相兼容：例如 21 讲的唤醒电流进入 23 的 rail 瞬态，23 的回流进入 24 的共模/差模，25 的边沿进入 26 的过孔与测试点，26 的可测性决定 27 能否定位故障，27 的实测记录最终回填 28。</p>
+<h2 id="2_1">2. 数字孪生的最小形状<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>本课程的“数字孪生”不是逼真的三维外观，而是四层可审计对象：</p>
+<ol>
+<li><strong>状态：</strong>rail 电压、节点功耗、传感器工作状态、总线电平、温度和故障状态；</li>
+<li><strong>过程：</strong>功率转换、负载阶跃、回流耦合、传播/反射、装配/连接和 bring-up 状态转换；</li>
+<li><strong>观测：</strong>电源输入电流、各 rail、近/远端波形、共模/差模、温度、测试点和故障日志；</li>
+<li><strong>证据：</strong>输入版本、仪器配置、计算函数、原始波形、判据、失效边界和下一步动作。</li>
+</ol>
+<p>如果一个结果不能说明自己来自哪一层，就容易把模型当测量、把测量当额定值、把约束当成优化目标。</p>
+<h2 id="3_1">3. 模型失效边界与后续工作<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>本页把活动模式压成一个占空比，把 rail 噪声、总线余量、故障约束率和证据完整度用少量教学输入表示；真实节点还需要传感器偏置/漂移、无线或有线链路、存储、环境变化、连接器寿命、软件异常和更完整的 EMC/可靠性试验。闭合的功率账不证明测量准确，矩阵全通过也不证明满足某地区或产品类别的认证。</p>
+<p>任何具体型号的效率、静态电流、输入范围、终端、热阻、额定值和标准限值都应在选型日期回查一手资料，并记录版本和条件。课堂不涉及市电施工、并网、建筑配电或带电市电操作。</p>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>电路、功率和动态基础可查 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>；测量与实验判断可查 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a>。工程设计、风险、实验和持续改进的框架可查 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>，接口、EMC、测试与可靠性标准的正式入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>。这些入口不是本项目已经合规的证明。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>收官节点的核心交付物是一份有来源 ID 的验证矩阵：功率、噪声、时序、总线、保护、PCB、热和 bring-up 各自保留单位、判据、证据和停止动作。模型给出可计算的预期，测量给出受仪器和条件约束的事实，标准/数据手册/安全边界给出不能越过的约束；三者都齐，才有资格说“这个低功耗多传感器节点在声明范围内成立”。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="27-reliability-bringup.html"><span class="pager-label">上一页</span>工程 · 可靠性、装配与 bring-up</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-capstone-sensor-node.js"></script>
+</body>
+</html>

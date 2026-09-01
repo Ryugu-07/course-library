@@ -8,6 +8,16 @@
 
 两者都需要证据账本；相关性、时间先后和一张醒目的图都不能单独完成因果归因。
 
+<figure class="diagram visual-atlas" markdown="1">
+![检测与归因中的合成异常指纹](assets/img/attribution-fingerprints.svg)
+<figcaption><span class="fig-id">图 23.1</span>合成异常序列只有在超出零假设并与外部强迫指纹相容时，才进入更强的归因论证。本图是统计示意，横纵坐标、变率带和向量几何非按比例（也非观测比例）；观测与模型指纹属于不同证据边界，投影系数不是因果真值，也不是极端事件预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![极端事件归因的反事实世界比较](assets/img/event-attribution-worlds.svg)
+<figcaption><span class="fig-id">图 23.2</span>反事实比较固定事件定义后，对照自然强迫集合、全强迫集合与有限观测窗口。本图是情景对照示意，柱高、分布和世界几何非按比例；观测不等于反事实模拟，比较结果不是另一条真实历史，也不构成未来事件预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-detection-learning-title">

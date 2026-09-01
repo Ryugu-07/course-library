@@ -96,6 +96,16 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![气候反馈环的正负符号](assets/img/climate-feedback-loops.svg)
+<figcaption><span class="fig-id">图 19.1</span>普朗克过程提供净恢复，水汽与冰雪反照率通常沿放大路径作用，云则同时含有短波和长波竞争。图中先固定符号约定，再讨论幅度：蓝色表示负反馈或恢复，暖色表示正反馈或放大，金色虚线表示符号依状态而变。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![气候响应的多层时间尺度](assets/img/climate-response-timescales.svg)
+<figcaption><span class="fig-id">图 19.2</span>大气、陆地、混合层、深海以及冰盖和岩石的时间常数逐层变长；同一强迫因此可以同时呈现快瞬态、过渡过程和慢平衡尾部。表面温度上升与海洋热摄取下降是两条不同的响应曲线，不能用一个即时倍数替代。</figcaption>
+</figure>
+
 ## 1. 反馈的物理链
 
 普朗克响应是最基本的向外长波恢复：表面变暖会增加向外辐射。水汽通常增强温室效应，冰雪反照率变化会改变短波吸收，云同时影响短波反射和长波保温。符号由净效应和参考状态决定，不应只背“云是正反馈”。

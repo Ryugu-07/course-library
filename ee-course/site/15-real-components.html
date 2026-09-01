@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>容差、寄生与数据手册 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li class="active"><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先审计一个“看似正确”的去耦网络</a><ul>
+<li><a href="#1-100-nf-100-nf">1. 具体情境：为什么标称 100 nF 没有在所有频率都像 100 nF</a></li>
+<li><a href="#2">2. 揭示前预测：先写方向和数量级</a></li>
+<li><a href="#3">3. 公式桥：从标称值到端口阻抗</a></li>
+<li><a href="#4">4. 互动实验：把寄生项显式放进元件账本</a></li>
+<li><a href="#5">5. 真实修正：数据手册的数字都有条件</a></li>
+<li><a href="#6">6. 测量纪律：先定义端口，再谈“测到了元件值”</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 电阻：一个数值背后的误差预算</a></li>
+<li><a href="#2_1">2. 电容与电感：储能元件也有损耗和频率边界</a></li>
+<li><a href="#3_1">3. 常见误判与纠正</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="15">15 · 真实元件：容差、寄生与数据手册边界<a class="headerlink" href="#15" title="Permanent link"></a></h1>
+<p>一块传感器节点的 3.3 V 电源在示波器上看起来很干净，ADC 的低位却仍然偶尔跳动。原理图上的 100 nF 电容、10 kΩ 电阻和 10 µH 电感都没有画出误差，现实却不会只按标称值工作：温度改变电阻，封装和焊盘给电容添上 ESL，电感在自谐振后也不再是“更大的电抗”。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-real-components-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先审计一个“看似正确”的去耦网络<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-100-nf-100-nf">1. 具体情境：为什么标称 100 nF 没有在所有频率都像 100 nF<a class="headerlink" href="#1-100-nf-100-nf" title="Permanent link"></a></h3>
+<p>贯穿项目中的低功耗节点用一个电阻分压产生传感器偏置，用电容为 ADC 入口提供局部储能，再用小电感把数字电流脉冲与模拟支路隔开。下面的数字都是<strong>教学设定</strong>：<span class="arithmatex">\(R_0=10 \mathrm{k\Omega}\)</span>、<span class="arithmatex">\(C=100 \mathrm{nF}\)</span>、<span class="arithmatex">\(L=10 \mathrm{\mu H}\)</span>，温度相对参考点变化 <span class="arithmatex">\(40 ^\circ\mathrm C\)</span>，在 <span class="arithmatex">\(1 \mathrm{MHz}\)</span> 观察阻抗。</p>
+<p>问题不是“这个元件值对不对”，而是：它在<strong>哪个频率、温度、偏置、封装和测量夹具</strong>下才接近那个值？读者先把它当作一个有边界的端口模型。</p>
+<h3 id="2">2. 揭示前预测：先写方向和数量级<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验结果前，回答三件事：</p>
+<ol>
+<li><span class="arithmatex">\(100 \mathrm{ppm}/^\circ\mathrm C\)</span> 的 <span class="arithmatex">\(10 \mathrm{k\Omega}\)</span> 电阻跨越 <span class="arithmatex">\(40 ^\circ\mathrm C\)</span> 后，温漂更接近 <span class="arithmatex">\(0.4\%\)</span> 还是 <span class="arithmatex">\(4\%\)</span>？</li>
+<li>电容频率越过由 <span class="arithmatex">\(C\)</span> 和 ESL 决定的自谐振频率后，它仍然严格表现为容性吗？</li>
+<li>只读标称 <span class="arithmatex">\(C\)</span>、<span class="arithmatex">\(L\)</span> 和额定电压，能否预测高频去耦的真实阻抗？</li>
+</ol>
+<p>预测只针对这个教学模型。它不是某个厂商元件的额定值，也不是对一块实际 PCB 的测量结论。</p>
+<h3 id="3">3. 公式桥：从标称值到端口阻抗<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>电阻的温度一阶模型写成</p>
+<div class="arithmatex">\[
+R(T)=R_0\left[1+\alpha_R(T-T_0)\right],
+\]</div>
+<p>其中 <span class="arithmatex">\(R\)</span>、<span class="arithmatex">\(R_0\)</span> 的单位是 <span class="arithmatex">\(\Omega\)</span>，<span class="arithmatex">\(\alpha_R\)</span> 的单位是 <span class="arithmatex">\(\mathrm{K^{-1}}\)</span>，温差用 K 或 <span class="arithmatex">\(^\circ\mathrm C\)</span> 表示时数值差相同。若初始容差为 <span class="arithmatex">\(p_R\)</span>，一个教学用的包络可写成</p>
+<div class="arithmatex">\[
+R_{\min,\max}\approx R_0(1\mp p_R)\left[1+\alpha_R\Delta T\right].
+\]</div>
+<p>电容的串联寄生模型是</p>
+<div class="arithmatex">\[
+Z_C(\omega)=ESR+j\left(\omega ESL-\frac{1}{\omega C}\right),
+\qquad \omega=2\pi f.
+\]</div>
+<p><span class="arithmatex">\(ESR\)</span> 和 <span class="arithmatex">\(\omega ESL\)</span> 的单位是 <span class="arithmatex">\(\Omega\)</span>。当两项电抗抵消时，简化自谐振频率为</p>
+<div class="arithmatex">\[
+f_{\mathrm{SR,C}}\approx\frac{1}{2\pi\sqrt{ESL\,C}}.
+\]</div>
+<p>电感的绕组支路在低频可写成 <span class="arithmatex">\(Z_s=R_L+j\omega L\)</span>，但把绕组和封装的并联寄生电容记作 <span class="arithmatex">\(C_{\mathrm{par}}\)</span> 后，端口真正看到的是复数并联阻抗</p>
+<div class="arithmatex">\[
+Z_L=\left(\frac{1}{R_L+j\omega L}+j\omega C_{\mathrm{par}}\right)^{-1},
+\qquad
+\phi_L=\arg Z_L.
+\]</div>
+<p>其低损耗近似的自谐振频率仍可写成</p>
+<div class="arithmatex">\[
+f_{\mathrm{SR,L}}\approx\frac{1}{2\pi\sqrt{L C_{\mathrm{par}}}}.
+\]</div>
+<p>在 <span class="arithmatex">\(f&lt;f_{\mathrm{SR,L}}\)</span> 时 <span class="arithmatex">\(\operatorname{Im}Z_L&gt;0\)</span>、相位为正，端口呈电感性；越过自谐振后 <span class="arithmatex">\(\operatorname{Im}Z_L&lt;0\)</span>、相位转为负，端口呈电容性。这个状态判断必须来自并联复阻抗，而不是只把 <span class="arithmatex">\(\sqrt{R_L^2+(\omega L)^2}\)</span> 外推到所有频率。
+量纲检查很重要：<span class="arithmatex">\(ESL\,C\)</span> 和 <span class="arithmatex">\(LC_{\mathrm{par}}\)</span> 的单位都是 <span class="arithmatex">\(\mathrm{s^2}\)</span>，平方根是秒，倒数才是 Hz。代入教学值，电容自谐振约为 <span class="arithmatex">\(15.91 \mathrm{MHz}\)</span>，电感自谐振约为 <span class="arithmatex">\(9.17 \mathrm{MHz}\)</span>；<span class="arithmatex">\(1 \mathrm{MHz}\)</span> 下电容的含寄生阻抗幅值约 <span class="arithmatex">\(1.774 \Omega\)</span>，电感的真实并联阻抗幅值约 <span class="arithmatex">\(63.845 \Omega\)</span>、相位约 <span class="arithmatex">\(+89.45^\circ\)</span>，而不是把 <span class="arithmatex">\(C\)</span> 或 <span class="arithmatex">\(L\)</span> 当作无损、无边界元件。</p>
+<p>数量级判断：<span class="arithmatex">\(100 \mathrm{ppm}/^\circ\mathrm C\times40 ^\circ\mathrm C=4000 \mathrm{ppm}=0.4\%\)</span>。它比 <span class="arithmatex">\(1\%\)</span> 的初始容差小，但不会因此消失。频率每提高一个数量级，理想电容的容抗下降十倍，<span class="arithmatex">\(\omega ESL\)</span> 却上升十倍，交叉点必然存在。</p>
+<h3 id="4">4. 互动实验：把寄生项显式放进元件账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-real-components">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>以下均为教学仿真输入，不是采购承诺。<span class="arithmatex">\(R_0=10 \mathrm{k\Omega}\)</span>、容差 <span class="arithmatex">\(\pm1\%\)</span>、温漂 <span class="arithmatex">\(100 \mathrm{ppm}/^\circ\mathrm C\)</span>、<span class="arithmatex">\(\Delta T=40 ^\circ\mathrm C\)</span>；<span class="arithmatex">\(C=100 \mathrm{nF}\)</span>、容差 <span class="arithmatex">\(\pm10\%\)</span>、温漂 <span class="arithmatex">\(30 \mathrm{ppm}/^\circ\mathrm C\)</span>、<span class="arithmatex">\(ESR=0.8 \Omega\)</span>、<span class="arithmatex">\(ESL=1 \mathrm{nH}\)</span>；<span class="arithmatex">\(L=10 \mathrm{\mu H}\)</span>、容差 <span class="arithmatex">\(\pm20\%\)</span>、温漂 <span class="arithmatex">\(100 \mathrm{ppm}/^\circ\mathrm C\)</span>、绕组 <span class="arithmatex">\(ESR=0.6 \Omega\)</span>、<span class="arithmatex">\(C_{\mathrm{par}}=30 \mathrm{pF}\)</span>；测试频率为 <span class="arithmatex">\(1 \mathrm{MHz}\)</span>。一阶计算给出 <span class="arithmatex">\(R(T)=10040 \Omega\)</span>，容差加温漂包络约为 <span class="arithmatex">\(9939.6\)</span>–<span class="arithmatex">\(10140.4 \Omega\)</span>；<span class="arithmatex">\(C(T)=100.12 \mathrm{nF}\)</span>，最坏包络约为 <span class="arithmatex">\(90.108\)</span>–<span class="arithmatex">\(110.132 \mathrm{nF}\)</span>；<span class="arithmatex">\(L(T)=10.04 \mathrm{\mu H}\)</span>，最坏包络约为 <span class="arithmatex">\(8.032\)</span>–<span class="arithmatex">\(12.048 \mathrm{\mu H}\)</span>。电容自谐振约 <span class="arithmatex">\(15.906 \mathrm{MHz}\)</span>（容差包络 <span class="arithmatex">\(15.166\)</span>–<span class="arithmatex">\(16.766 \mathrm{MHz}\)</span>），电感自谐振约 <span class="arithmatex">\(9.170 \mathrm{MHz}\)</span>（电感容差包络 <span class="arithmatex">\(8.371\)</span>–<span class="arithmatex">\(10.253 \mathrm{MHz}\)</span>），<span class="arithmatex">\(|Z_C|\approx1.774 \Omega\)</span>、相位约 <span class="arithmatex">\(-63.19^\circ\)</span>，<span class="arithmatex">\(|Z_L|\approx63.845 \Omega\)</span>、相位约 <span class="arithmatex">\(+89.45^\circ\)</span>，当前电感状态为电感性。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>电阻温度值</td>
+<td style="text-align: right;">10040</td>
+<td><span class="arithmatex">\(\Omega\)</span>；<span class="arithmatex">\(10 \mathrm{k\Omega}\)</span> 加 <span class="arithmatex">\(0.4\%\)</span> 温漂</td>
+</tr>
+<tr>
+<td>电阻容差包络</td>
+<td style="text-align: right;">9939.6 … 10140.4</td>
+<td><span class="arithmatex">\(\Omega\)</span>；教学包络，不是统计置信区间</td>
+</tr>
+<tr>
+<td>电阻温漂</td>
+<td style="text-align: right;">+0.400</td>
+<td>%；<span class="arithmatex">\(100 \mathrm{ppm}/^\circ\mathrm C\times40 ^\circ\mathrm C\)</span></td>
+</tr>
+<tr>
+<td>电容温度值</td>
+<td style="text-align: right;">100.120</td>
+<td>nF；含温漂</td>
+</tr>
+<tr>
+<td>电容容差包络</td>
+<td style="text-align: right;">90.108 … 110.132</td>
+<td>nF；容差 + 温漂最坏角点</td>
+</tr>
+<tr>
+<td>电容阻抗幅值</td>
+<td style="text-align: right;">1.774</td>
+<td><span class="arithmatex">\(\Omega\)</span>；含 ESR 与 ESL</td>
+</tr>
+<tr>
+<td>电容相位</td>
+<td style="text-align: right;">-63.19</td>
+<td>°；复阻抗相位</td>
+</tr>
+<tr>
+<td>电容自谐振</td>
+<td style="text-align: right;">15.906</td>
+<td>MHz；容差包络约 15.166 … 16.766</td>
+</tr>
+<tr>
+<td>电感温度值</td>
+<td style="text-align: right;">10.040</td>
+<td><span class="arithmatex">\(\mathrm{\mu H}\)</span>；含温漂</td>
+</tr>
+<tr>
+<td>电感容差包络</td>
+<td style="text-align: right;">8.032 … 12.048</td>
+<td><span class="arithmatex">\(\mathrm{\mu H}\)</span>；容差 + 温漂最坏角点</td>
+</tr>
+<tr>
+<td>电感阻抗幅值</td>
+<td style="text-align: right;">63.845</td>
+<td><span class="arithmatex">\(\Omega\)</span>；<span class="arithmatex">\((R+j\omega L)\)</span> 与 <span class="arithmatex">\(C_{\rm par}\)</span> 的真实并联</td>
+</tr>
+<tr>
+<td>电感相位 / 状态</td>
+<td style="text-align: right;">+89.45 / 电感性</td>
+<td>° / 当前频率；越过自谐振后转为电容性</td>
+</tr>
+<tr>
+<td>电感自谐振</td>
+<td style="text-align: right;">9.170</td>
+<td>MHz；容差包络约 8.371 … 10.253</td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应同时画出电容的理想 <span class="arithmatex">\(C\)</span>、串联 ESR、串联 ESL，以及真正跨在电感绕组两个端点之间的 <span class="arithmatex">\(C_{\rm par}\)</span>；右侧用电容曲线和 <span class="arithmatex">\(L\parallel C_{\rm par}\)</span> 复阻抗曲线、自谐振虚线、相位/状态文字区分“电容性”“谐振附近”和“电感性”。</p>
+</div>
+<h3 id="5">5. 真实修正：数据手册的数字都有条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>理想公式先给方向，真实器件再决定偏差来自哪里。</p>
+<ul>
+<li><strong>容差不是精度的全部。</strong> 电阻的初始容差、温度系数、长期漂移、湿度和自热是不同栏。电容还要区分电介质、直流偏置导致的容量下降、频率、温度和老化；“<span class="arithmatex">\(100 \mathrm{nF}\)</span>”不能替代这些条件。</li>
+<li><strong>ESR 和 ESL 不是一个固定的“误差电阻”。</strong> ESR 常随频率、温度、纹波电流和测量幅度变化；ESL 包含器件内部、端头、焊盘和回路面积。两块同值电容放置不同，阻抗峰谷也可能不同。</li>
+<li><strong>电感的自谐振不是高频额定值。</strong> 自谐振以上，寄生电容主导的路径可能把能量送到不期望的回路。额定电流还受到直流电阻、磁芯饱和、温升和脉冲条件约束。</li>
+<li><strong>最坏情况不是把所有典型值相加。</strong> 容差堆叠应写清独立、相关、最坏包络或统计假设；若结论要用于保护或限值，先用保守包络，再用样本测量收窄。</li>
+</ul>
+<p>不要从实验的 <span class="arithmatex">\(15.9 \mathrm{MHz}\)</span> 推出“所有 100 nF 电容都在 15.9 MHz 自谐振”。那只是这个 <span class="arithmatex">\(C\)</span> 与 ESL 的教学组合。数据手册可能给出阻抗曲线、测试夹具、偏置、温度和允许纹波；必须以具体型号与版本为准。</p>
+<h3 id="6">6. 测量纪律：先定义端口，再谈“测到了元件值”<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>在原理图和测试记录中写出参考平面、测试频率、交流幅度、直流偏置、温度和仪器带宽。</li>
+<li>低频电阻用四线法或补偿后的连接测量；高频阻抗要记录夹具、连接器、探头地线和去嵌入方法。长鳄鱼夹本身就是额外的电感。</li>
+<li>比较数据手册曲线时，逐栏核对测试条件，不要把阻抗曲线的一个点当成全频带额定值。</li>
+<li>对温漂做升温和降温的重复记录，注明热稳定时间；对电容直流偏置和电感电流则分开扫量。</li>
+<li>只能在低压、限流、可断电的教学回路中验证；不得为了测“额定值”把器件推到过压、过流或高能瞬态。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>本页的串联 ESR/ESL 和并联 <span class="arithmatex">\(C_{\rm par}\)</span> 是<strong>教学模型</strong>：它能解释为何频率跨过自谐振后方向改变，却不能替代完整的频率、温度、偏置、封装和 PCB 电磁模型。它也不判断某个器件是否满足安全、寿命或认证要求。</p>
+<p>项目要留下的产物是“真实元件边界表”：每个关键 <span class="arithmatex">\(R/C/L\)</span> 记录标称值、容差、温度范围、温漂或偏置条件、ESR/ESL 或阻抗曲线来源、测试参考平面、最坏工作点和降额余量。把“模型结论”“测量证据”“数据手册条件”分成三列，后续电源完整性和 ADC 噪声分析才能追溯。</p>
+<h2 id="1">1. 电阻：一个数值背后的误差预算<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>若电阻承担分压、限流或反馈设定，绝对误差和比值误差的影响不同。两个电阻同温、同批次时，温漂可能部分相关；一个电阻靠近发热元件而另一个在空气中时，共模假设就失效。对分压</p>
+<div class="arithmatex">\[
+V_o=V_s\frac{R_2}{R_1+R_2},
+\]</div>
+<p>应先对 <span class="arithmatex">\(R_1,R_2\)</span> 做灵敏度或最坏包络分析，而不是只把两个百分比机械相加。电阻的功率也会反馈到温度：<span class="arithmatex">\(P=I^2R=V^2/R\)</span>，热阻和环境温度决定 <span class="arithmatex">\(\Delta T\)</span>，再由温漂回到阻值。这样就形成一个可能需要迭代的电热闭环。</p>
+<p>量纲检查：<span class="arithmatex">\(I^2R\)</span> 的单位是 <span class="arithmatex">\(\mathrm{A^2\Omega}=\mathrm W\)</span>；<span class="arithmatex">\(\alpha_R\Delta T\)</span> 无量纲，才能与 1 相加。若一个“温漂百分比”没有写参考温度和温差，它还不是可复核的工程数字。</p>
+<h2 id="2_1">2. 电容与电感：储能元件也有损耗和频率边界<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>电容理想储能为</p>
+<div class="arithmatex">\[
+E_C=\frac12CV^2,
+\]</div>
+<p>电感理想储能为</p>
+<div class="arithmatex">\[
+E_L=\frac12LI^2.
+\]</div>
+<p>这些式子适合估算能量数量级，却没有包含 ESR、磁芯损耗、漏电、介质损耗或开关瞬态。低功耗节点的去耦电容可能主要承担短时间电流，而滤波电容还必须看纹波电流和温升；小电感可能主要承担差模滤波，却在脉冲电流下接近饱和。</p>
+<p>当频率接近自谐振时，最小阻抗、相位、损耗和布局共同决定结果。不要把“阻抗低”与“能承受任意瞬态”混为一谈：能量、峰值电流和器件额定值是三条不同约束。</p>
+<h2 id="3_1">3. 常见误判与纠正<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>标称值就是任何频率下的值。<strong>纠正：</strong>标称值是指定条件下的名义参数，频率端口模型要加入寄生。</li>
+<li><strong>误判：</strong>电容越大越适合所有去耦。<strong>纠正：</strong>容量、ESR、ESL、自谐振、封装和布局要共同覆盖目标频谱。</li>
+<li><strong>误判：</strong>温漂只有在高温才重要。<strong>纠正：</strong>符号和温差决定方向，冷却、热梯度和自热也会改变结果。</li>
+<li><strong>误判：</strong>典型阻抗曲线可以当额定值。<strong>纠正：</strong>典型曲线用于理解趋势，额定值和寿命必须回到适用数据手册条件。</li>
+</ul>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ul>
+<li>稳定的电路变量、网络定律和基本交流阻抗，参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。这些入口支持模型与推导，不替代某个器件的数据手册。</li>
+<li>测量、误差与实验判断，参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>工程设计、风险与验证的能力框架可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>，具体标准条款需回到适用版本的 <a href="https://standards.ieee.org/">IEEE Standards</a>。课程中的元件数值全部是教学设定，不构成采购、认证或施工建议。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电的教学系统；不涉及市电施工、建筑配电、并网、带电市电测量或高能电源包。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>真实元件的第一条纪律是把“标称值”改写为“在条件 <span class="arithmatex">\(X\)</span>、频率 <span class="arithmatex">\(f\)</span>、温度 <span class="arithmatex">\(T\)</span> 和参考平面 <span class="arithmatex">\(P\)</span> 下的模型”。电阻要记容差、温漂和自热；电容与电感要记 ESR、ESL、寄生、损耗和自谐振；最后用数据手册条件和低压测量证据检查模型是否适用。下一讲把同样的边界语言用于反接、过流、感性回扫和 ESD 故障路径。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="14-sampling-quantization.html"><span class="pager-label">上一页</span>测量 II · 采样、混叠与量化</a>
+  <a class="pager-slot next" href="16-protection-switches.html"><span class="pager-label">下一页</span>接口 I · 保护、开关与故障电流</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-real-components.js"></script>
+</body>
+</html>

@@ -17,6 +17,11 @@
 
 ## 二、七条线的课程地图
 
+<figure class="diagram visual-atlas" markdown="1">
+![地球圈层剖面与七条课程学习路径](assets/img/earth-visual-roadmap.svg)
+<figcaption><span class="fig-id">课程地图</span>左边把岩石圈、水圈、冰冻圈、大气圈和深部地球放回同一颗行星；右边说明课程为何从守恒账本出发，逐步走到模型证据与风险决策。剖面和箭头都是机制示意，不按真实厚度或通量比例绘制。</figcaption>
+</figure>
+
 | 线 | 页面 | 主问题 |
 |---|---:|---|
 | **行星的骨架与时间** | 01–05 | 怎样从通量和地质档案读出一颗不断重塑自己的行星？ |

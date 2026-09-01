@@ -8,6 +8,16 @@
 
 本页实验使用教学参数比较机制，所有预设都不是实时观测，也不构成对任何行星未来状态的预测。
 
+<figure class="diagram visual-atlas" markdown="1">
+![金星样、地球样与火星样大气的能量收支对照](assets/img/planetary-climate-comparison.svg)
+<figcaption><span class="fig-id">图 27.1</span>三种大气共享顶层能量收支骨架，却可因入射、反照率、温室偏移和热惯性产生不同表面结果。本图是机制对照示意，行星大小、气氛厚度、箭头和参数非按比例；列中的数值是教学情景，不是行星观测或未来预测。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![轨道照度、教学宜居带与大气反馈条件链](assets/img/habitable-zone-context.svg)
+<figcaption><span class="fig-id">图 27.2</span>宜居带只表达一段相对照度条件，表面状态还受大气组成、云、水碳循环和热惯性约束。本图是轨道与条件链示意，轨道、带宽、行星点位和距离非按比例；其中的轨道参数是教学情景，不是天体历表、宜居性判定或气候预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-planetary-learning-title">

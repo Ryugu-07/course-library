@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>集总元件与参考方向 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li class="active"><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-lumped-components-learning-title">学习层：先问信号有没有时间走完整条线</a><ul>
+<li><a href="#1">1. 具体故障情境：同一块板上“低频正常、高速异常”</a></li>
+<li><a href="#2">2. 揭示前预测：长度、频率和阻抗的方向</a></li>
+<li><a href="#3">3. 公式桥：参考方向、元件方程和电长度</a></li>
+<li><a href="#4-fallback-rcl">4. 互动实验：静态 fallback 与 R/C/L 方向图</a></li>
+<li><a href="#5">5. 模型边界：什么时候“导线就是导线”不再够用</a></li>
+<li><a href="#6">6. 真实修正：把寄生变成可检查的参数</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02">02 · 元件不是点：集总假设、参考方向与失效尺度<a class="headerlink" href="#02" title="Permanent link"></a></h1>
+<blockquote>
+<p>一条 30 cm 的传感器线在直流读数上完全正常，边沿一快却出现过冲和重复触发。把整条线画成一个“理想导线”并没有让现象消失；它只是把传播时间从模型里藏起来了。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-lumped-components-learning-title" class="learning-layer">
+<h2 id="ee-lumped-components-learning-title">学习层：先问信号有没有时间走完整条线<a class="headerlink" href="#ee-lumped-components-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：同一块板上“低频正常、高速异常”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>环境节点把传感器放在离 MCU 一段距离的排线上。慢慢改变环境量时，ADC 读数看起来正确；唤醒沿或通信边沿加快后，远端电压变得不再同时变化，示波器上出现反射、振铃或不同测试点的相位差。若还把电阻、电容、电感当成无方向的标签，工程师很容易把本来属于回流路径和互连的效应误判成“某个器件坏了”。</p>
+<p>集总模型的意思不是“真实世界没有空间”，而是：在关心的时间尺度内，元件和互连的尺寸足够小，可以把电压、电流视为同一位置的变量。这个近似必须通过尺度比检查，不能由电路图的简洁程度决定。</p>
+<h3 id="2">2. 揭示前预测：长度、频率和阻抗的方向<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先回答：</p>
+<ol>
+<li>频率不变，把互连长度加长十倍，传播延迟与周期之比会变大还是变小？</li>
+<li>频率升高时，电容的幅值阻抗 <span class="arithmatex">\(|Z_C|\)</span> 是升高还是降低？</li>
+<li>当正弦的 <span class="arithmatex">\(t_p/T\)</span> 不再很小，或数字边沿的 <span class="arithmatex">\(t_p/t_r\)</span> 达到警戒值时，继续使用单一集总 R/C/L 模型，还是转向分布参数/传输线视角？</li>
+</ol>
+<p>预测中的“远小于”是尺度判断，不是精确的认证门槛。实验会使用一个明确标注为教学的判据，让你看见判据如何随参数变化。</p>
+<h3 id="3">3. 公式桥：参考方向、元件方程和电长度<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先把电流正方向画在图上，并采用被动符号约定：电流进入元件的 <span class="arithmatex">\(+\)</span> 端时，吸收功率为正。在线性集总元件中，</p>
+<div class="arithmatex">\[
+v_R=Ri_R,\qquad
+i_C=C\frac{\mathrm{d}v_C}{\mathrm{d}t},\qquad
+v_L=L\frac{\mathrm{d}i_L}{\mathrm{d}t}.
+\]</div>
+<p>单位桥分别是 <span class="arithmatex">\(\Omega=\mathrm{V}/\mathrm{A}\)</span>、<span class="arithmatex">\(\mathrm{F}=\mathrm{C}/\mathrm{V}\)</span> 和 <span class="arithmatex">\(\mathrm{H}=\mathrm{V}\cdot\mathrm{s}/\mathrm{A}\)</span>。正弦稳态下，令 <span class="arithmatex">\(\omega=2\pi f\)</span>，则</p>
+<div class="arithmatex">\[
+Z_C=\frac{1}{j\omega C}=-\frac{j}{\omega C},\qquad
+|Z_C|=\frac{1}{\omega C},\qquad
+Z_L=j\omega L,\qquad |Z_L|=\omega L.
+\]</div>
+<p><span class="arithmatex">\(\omega\)</span> 的单位是 <span class="arithmatex">\(\mathrm{rad}/\mathrm{s}\)</span>；弧度视作无量纲，因此 <span class="arithmatex">\(1/(\omega C)\)</span> 的单位为 <span class="arithmatex">\(\Omega\)</span>，而 <span class="arithmatex">\(\omega L\)</span> 也为 <span class="arithmatex">\(\Omega\)</span>。</p>
+<p>对长度为 <span class="arithmatex">\(\ell\)</span>、传播速度为 <span class="arithmatex">\(v_p\)</span> 的互连，</p>
+<div class="arithmatex">\[
+t_p=\frac{\ell}{v_p},\qquad
+T=\frac1f,\qquad
+\rho_{\mathrm{sine}}=\frac{t_p}{T}=\frac{\ell f}{v_p},\qquad
+\rho_{\mathrm{edge}}=\frac{t_p}{t_r}.
+\]</div>
+<p><span class="arithmatex">\(\ell/v_p\)</span> 给出 <span class="arithmatex">\(\mathrm{s}\)</span>，所以两个比值都无量纲；<span class="arithmatex">\(\rho_{\mathrm{sine}}\)</span> 也等于 <span class="arithmatex">\(\ell/\lambda\)</span>，其中 <span class="arithmatex">\(\lambda=v_p/f\)</span>。正弦信号使用 <span class="arithmatex">\(t_p/T\)</span>，数字边沿使用 <span class="arithmatex">\(t_p/t_r\)</span>，不能把一个判据替代另一个。本实验把 <span class="arithmatex">\(\rho_{\mathrm{sine}}\le0.1\)</span> 作为<strong>教学判据</strong>；若传播时间至少比周期小一个数量级，可先使用集总近似。对数字边沿，单程延迟约达到 <span class="arithmatex">\(0.5t_r\)</span>（即 <span class="arithmatex">\(\rho_{\mathrm{edge}}\ge0.5\)</span>）时进入传输线警戒；接近或超过这些教学阈值时，应把走线、回流和端接带进模型。这些数字不是所有板级、封装和边沿条件通用的标准值。</p>
+<h3 id="4-fallback-rcl">4. 互动实验：静态 fallback 与 R/C/L 方向图<a class="headerlink" href="#4-fallback-rcl" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-lumped-components">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>以下都是教学设定：<span class="arithmatex">\(R=100\ \Omega\)</span>、<span class="arithmatex">\(C=10\ \mathrm{nF}\)</span>、<span class="arithmatex">\(L=1\ \mathrm{\mu H}\)</span>、<span class="arithmatex">\(\ell=0.30\ \mathrm{m}\)</span>、<span class="arithmatex">\(f=1.00\ \mathrm{MHz}\)</span>，传播速度设为 <span class="arithmatex">\(v_p=2.0\times10^8\ \mathrm{m/s}\)</span>，数字上升时间 <span class="arithmatex">\(t_r=10.0\ \mathrm{ns}\)</span>。因此 <span class="arithmatex">\(t_p=1.5\ \mathrm{ns}\)</span>，<span class="arithmatex">\(T=1.0\ \mathrm{\mu s}\)</span>，<span class="arithmatex">\(t_p/T=0.0015\)</span>，<span class="arithmatex">\(t_p/t_r=0.15\)</span>；正弦集总判据和数字边沿传输线警戒均未触发。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>传播延迟 <span class="arithmatex">\(t_p\)</span></td>
+<td style="text-align: right;">1.5000</td>
+<td>ns；<span class="arithmatex">\(\ell/v_p\)</span></td>
+</tr>
+<tr>
+<td>正弦周期 <span class="arithmatex">\(T\)</span></td>
+<td style="text-align: right;">1.0000</td>
+<td>μs；<span class="arithmatex">\(1/f\)</span></td>
+</tr>
+<tr>
+<td>正弦电长度 <span class="arithmatex">\(t_p/T\)</span></td>
+<td style="text-align: right;">0.001500</td>
+<td>无量纲；教学判据 ≤ 0.1</td>
+</tr>
+<tr>
+<td>数字边沿 <span class="arithmatex">\(t_r\)</span></td>
+<td style="text-align: right;">10.0000</td>
+<td>ns；独立于正弦周期</td>
+</tr>
+<tr>
+<td>数字边沿比 <span class="arithmatex">\(t_p/t_r\)</span></td>
+<td style="text-align: right;">0.150000</td>
+<td>无量纲；传输线警戒约 ≥ 0.5</td>
+</tr>
+<tr>
+<td>波长 <span class="arithmatex">\(\lambda\)</span></td>
+<td style="text-align: right;">200.000</td>
+<td>m；<span class="arithmatex">\(v_p/f\)</span></td>
+</tr>
+<tr>
+<td>电容阻抗 <span class="arithmatex">\(\lvert Z_C\rvert\)</span></td>
+<td style="text-align: right;">15.915</td>
+<td>Ω；<span class="arithmatex">\(Z_C=1/(j\omega C)\)</span>、<span class="arithmatex">\(\lvert Z_C\rvert=1/(\omega C)\)</span></td>
+</tr>
+<tr>
+<td>电感阻抗 <span class="arithmatex">\(\lvert Z_L\rvert\)</span></td>
+<td style="text-align: right;">6.283</td>
+<td>Ω；<span class="arithmatex">\(\lvert Z_L\rvert=\omega L\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\tau_{RC}\)</span></td>
+<td style="text-align: right;">1000.000</td>
+<td>ns；<span class="arithmatex">\(R\cdot C\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\tau_{L/R}\)</span></td>
+<td style="text-align: right;">10.000</td>
+<td>ns；<span class="arithmatex">\(L/R\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>图中左侧电路固定了 <span class="arithmatex">\(i\)</span> 与各元件的电压参考方向；右侧把正弦的 <span class="arithmatex">\(T\)</span>、数字边沿的 <span class="arithmatex">\(t_r\)</span> 与同一个 <span class="arithmatex">\(t_p\)</span> 分开比较。数值不代表某块真实 PCB 的介电常数或器件寄生。</p>
+</div>
+<h3 id="5">5. 模型边界：什么时候“导线就是导线”不再够用<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>集总模型隐含了电场和磁场变化在空间上的传播可以忽略，且 R、C、L 的参数在所关心的频率和电流范围内近似常数。真实互连有分布电阻、电感、电容和损耗；连接器、封装焊盘、过孔、回流平面断裂和探头也会加入寄生。</p>
+<p>仅比较正弦频率还可能低估高速边沿，因为一个快跃迁包含更高的频谱成分。若上升时间短到传播延迟不可忽略，需至少记录边沿时间、走线长度、回流路径和端接条件。反过来，在低频、短线、缓慢变化的传感器信号上，贸然引入复杂传输线模型也可能只增加参数而没有增加证据。</p>
+<h3 id="6">6. 真实修正：把寄生变成可检查的参数<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>真实修正从“哪个元件”转向“哪段结构”：测量或估算互连的单位长度参数，检查封装和探头的输入电容，记录连接器与回流路径，比较源端和负载端波形。对于 R/C/L，数据手册给出的标称值、容差、频率范围、偏置依赖和温度系数都属于条件化信息，不应被一个名义数字替代。</p>
+<p>工程账本可以保留两个层级：第一层是集总原理图和 <span class="arithmatex">\(\rho\)</span> 的数量级判断，第二层是当 <span class="arithmatex">\(\rho\)</span> 或边沿效应变大时加入的分布寄生模型。模型升级应由测量残差触发，而不是因为图画得越复杂就越“真实”。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测量前标出参考节点和回流路径；示波器探头的地线不是抽象的“零”，它本身可能形成额外环路。记录探头输入电容、地线长度、测试点位置、采样率、带宽设置和信号边沿条件。先在低压限流源下确认静态电压，再比较不同位置的瞬态，不要把未知高能量源接到实验回路。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把“元件尺寸小”误认为“电气尺寸小”，没有计算 <span class="arithmatex">\(t_p/T\)</span>；</li>
+<li>忘记被动符号约定，导致电感或电容功率符号反了；</li>
+<li>把 <span class="arithmatex">\(X_C\)</span>、<span class="arithmatex">\(X_L\)</span> 当作电阻，忽略它们随频率变化；</li>
+<li>用一个典型传播速度替代实际板材、结构和回流条件；</li>
+<li>只看源端波形，未比较负载端和回流路径上的波形。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目账本留下“集总假设记录”：每条关键互连的长度、边沿/频率、传播速度假设、<span class="arithmatex">\(\rho\)</span>、R/C/L 参考方向、寄生来源、测量点和升级到分布模型的触发条件。下一讲会用节点与回路残差检查这张图是否真的守恒。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：基本元件、网络定律和动态电路入口。</li>
+<li><a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>：电流、电路、磁场与电磁传播的基础背景。</li>
+<li><a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>：测量与实验判断入口。</li>
+</ul>
+<p>本页的 <span class="arithmatex">\(v_p\)</span>、<span class="arithmatex">\(\rho\le0.1\)</span>、R/C/L、长度和频率均为教学设定或教学判据，不是器件保证、PCB 设计规则或标准限值。课程仍限定在低压、限流、可断电教学系统内，不涉及市电施工和带电市电测量。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>集总模型是一种带尺度条件的压缩语言。先固定参考方向，再用 <span class="arithmatex">\(v_R\)</span>、<span class="arithmatex">\(i_C\)</span>、<span class="arithmatex">\(v_L\)</span> 写局部方程；随后用 <span class="arithmatex">\(t_p/T\)</span> 检查互连能不能继续被当成一个点。下一讲把这些方向带入 KCL、KVL 和节点分析，并把残差当成测量证据。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="01-system-safety.html"><span class="pager-label">上一页</span>安全 I · 低压、限流与测量边界</a>
+  <a class="pager-slot next" href="03-kcl-kvl-nodal.html"><span class="pager-label">下一页</span>电路 II · KCL、KVL 与节点分析</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-lumped-components.js"></script>
+</body>
+</html>

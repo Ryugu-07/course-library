@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>可靠性、装配与 bring-up · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li class="active"><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-reliability-bringup-learning-title">学习层：把第一次上电变成一棵可停止的决策树</a><ul>
+<li><a href="#1">1. 具体情境：电流一上来就顶到限流，下一步不是继续加大电源</a></li>
+<li><a href="#2">2. 揭示前预测：先决定何时停止</a></li>
+<li><a href="#3">3. 公式桥：从风险排序到停止条件</a></li>
+<li><a href="#4-bring-up">4. 互动实验：风险账本和 bring-up 决策树</a></li>
+<li><a href="#5-fmea">5. 真实修正：FMEA 不是算出一个神奇的可靠度</a></li>
+<li><a href="#6-bring-up">6. Bring-up 顺序与测量方案</a></li>
+<li><a href="#7">7. 项目迁移与验收</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 可靠性是时间和证据的问题</a></li>
+<li><a href="#2_1">2. 测量证据的最小元数据</a></li>
+<li><a href="#3_1">3. 模型失效边界</a></li>
+<li><a href="#4">4. 资料与边界</a></li>
+<li><a href="#5">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="bring-up">工程 · 可靠性、装配与 bring-up<a class="headerlink" href="#bring-up" title="Permanent link"></a></h1>
+<blockquote>
+<p>第一块板最危险的读数往往不是“没有数据”，而是限流器正在保护它；bring-up 的专业性，体现在知道何时停、停下来要保留什么证据。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-reliability-bringup-learning-title" class="learning-layer">
+<h2 id="ee-reliability-bringup-learning-title">学习层：把第一次上电变成一棵可停止的决策树<a class="headerlink" href="#ee-reliability-bringup-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：电流一上来就顶到限流，下一步不是继续加大电源<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低压教学节点刚从装配台回来。目检没有明显问题，工程师设置了可断电、限流的电源后上电，电流快速升高，某条 rail 没有到达预期，MCU 也没有复位释放。此时“多试几次”“把限流调大”都会破坏诊断证据，甚至让一个可控故障变成器件损坏。</p>
+<p>本页把 FMEA、容差/热、故障树、bring-up 顺序、测量证据和停止条件放在一起。示例都限于低压、限流、可断电教学系统；不涉及市电施工、带电市电测量、建筑配电或高能电池包操作。</p>
+<h3 id="2">2. 揭示前预测：先决定何时停止<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>若实测启动电流达到电源限流值，下一步应继续观察并提高限流，还是停止并断电检查？</li>
+<li>对 <span class="arithmatex">\(P_{nom}\)</span> 乘以正容差后再估计温升，最坏温度会比只用名义功率高还是低？</li>
+<li>FMEA 中严重度 <span class="arithmatex">\(S\)</span>、发生度 <span class="arithmatex">\(O\)</span>、可探测度 <span class="arithmatex">\(D\)</span> 都增加时，教学 RPN 会增加还是减少？</li>
+</ol>
+<p>预测完成后，实验才显示风险分数、温度余量和 bring-up 决策树。RPN 的乘法是教学排序工具，不是某个标准的通用阈值；真实风险仍需团队定义严重度、暴露、检测方法和后果。</p>
+<h3 id="3">3. 公式桥：从风险排序到停止条件<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>教学 FMEA 先用三个 1–10 的等级：严重度 <span class="arithmatex">\(S\)</span>、发生度 <span class="arithmatex">\(O\)</span>、可探测度 <span class="arithmatex">\(D\)</span>。排序分数为</p>
+<div class="arithmatex">\[
+RPN=SOD.
+\]</div>
+<p>它没有物理单位，也不能与温度或电流直接比较。热/容差账本则保留单位：若功率正容差为 <span class="arithmatex">\(\delta_P\)</span>，</p>
+<div class="arithmatex">\[
+P_{max}=P_{nom}(1+\delta_P),
+\qquad
+T_{max}=T_A+P_{max}\theta_{JA},
+\]</div>
+<p>其中 <span class="arithmatex">\(T_A\)</span> 是环境温度（°C），<span class="arithmatex">\(\theta_{JA}\)</span> 是封装到环境的热阻（°C/W），<span class="arithmatex">\(P\)</span> 是 W。温度余量为 <span class="arithmatex">\(M_T=T_{limit}-T_{max}\)</span>，必须明确 <span class="arithmatex">\(T_{limit}\)</span> 来自哪份器件资料或项目教学门槛。</p>
+<p>限流上电的最小证据是</p>
+<div class="arithmatex">\[
+M_I=I_{limit}-I_{startup,peak}.
+\]</div>
+<p>若 <span class="arithmatex">\(M_I\le0\)</span> 或 <span class="arithmatex">\(M_T\le0\)</span>，或 rail/复位/温度不满足项目条件，应停止、断电、保存波形和配置；等号不是“刚好通过”。只有电流、热和 guard band 余量都严格为正，才能推进。默认教学输入 <span class="arithmatex">\(P_{nom}=0.45\ \mathrm{W}\)</span>、<span class="arithmatex">\(\delta_P=20\%\)</span>、<span class="arithmatex">\(T_A=25\ ^\circ\mathrm{C}\)</span>、<span class="arithmatex">\(\theta_{JA}=40\ ^\circ\mathrm{C/W}\)</span>，得到 <span class="arithmatex">\(T_{max}=46.6\ ^\circ\mathrm{C}\)</span>；它只是说明如何做量纲检查。</p>
+<h3 id="4-bring-up">4. 互动实验：风险账本和 bring-up 决策树<a class="headerlink" href="#4-bring-up" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-reliability-bringup">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学输入为 <span class="arithmatex">\(S=8\)</span>、<span class="arithmatex">\(O=3\)</span>、<span class="arithmatex">\(D=4\)</span>，所以 <span class="arithmatex">\(RPN=96\)</span>；名义功率 <span class="arithmatex">\(0.45\ \mathrm{W}\)</span>、正容差 <span class="arithmatex">\(20\%\)</span>、环境 <span class="arithmatex">\(25\ ^\circ\mathrm{C}\)</span>、热阻代理 <span class="arithmatex">\(40\ ^\circ\mathrm{C/W}\)</span>、教学温度上限 <span class="arithmatex">\(85\ ^\circ\mathrm{C}\)</span>；限流 <span class="arithmatex">\(250\ \mathrm{mA}\)</span>、启动峰值 <span class="arithmatex">\(180\ \mathrm{mA}\)</span>、实测静态电流 <span class="arithmatex">\(30\ \mathrm{mA}\)</span>；当前阶段为“限流上电”，故障为“无”，证据项 6/6。温度上限、热阻和风险等级均必须在真实项目中回到具体数据与批准的验收计划。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>教学 RPN</td>
+<td style="text-align: right;">96</td>
+<td>无量纲；<span class="arithmatex">\(SOD\)</span>，用于排序</td>
+</tr>
+<tr>
+<td>最坏功率</td>
+<td style="text-align: right;">0.54</td>
+<td>W；名义功率 × 1.20</td>
+</tr>
+<tr>
+<td>最坏温度代理</td>
+<td style="text-align: right;">46.6</td>
+<td>°C；<span class="arithmatex">\(T_A+P_{max}\theta\)</span></td>
+</tr>
+<tr>
+<td>温度余量</td>
+<td style="text-align: right;">38.4</td>
+<td>°C；教学上限减最坏温度</td>
+</tr>
+<tr>
+<td>启动电流余量</td>
+<td style="text-align: right;">70</td>
+<td>mA；限流减峰值</td>
+</tr>
+<tr>
+<td>静态电流余量</td>
+<td style="text-align: right;">220</td>
+<td>mA；限流减实测静态电流</td>
+</tr>
+<tr>
+<td>实测静态电流</td>
+<td style="text-align: right;">30</td>
+<td>mA；fallback 证据输入</td>
+</tr>
+<tr>
+<td>当前 bring-up 阶段</td>
+<td style="text-align: right;">限流上电</td>
+<td>通过前一阶段才可推进</td>
+</tr>
+<tr>
+<td>证据完成度</td>
+<td style="text-align: right;">6 / 6</td>
+<td>项；配置、波形、读数和停止条件</td>
+</tr>
+<tr>
+<td>决策</td>
+<td style="text-align: right;">可继续到 rail/复位检查</td>
+<td>所有余量严格为正；等号时 STOP</td>
+</tr>
+</tbody>
+</table>
+<p>调高严重度、容差、功率或启动峰值，树上的“停止”分支会改变。把电流或温度余量调到恰好为零也会 STOP，不能以“没有超出”为理由推进。选择短路、卡总线或过热等教学故障时，先保持限流并断电；故障注入是可逆的诊断实验，不是带电硬件试错。</p>
+</div>
+<h3 id="5-fmea">5. 真实修正：FMEA 不是算出一个神奇的可靠度<a class="headerlink" href="#5-fmea" title="Permanent link"></a></h3>
+<p><strong>FMEA</strong> 的价值在于把失效模式、原因、局部影响、系统影响、现有控制、检测证据和责任人放在同一行。<span class="arithmatex">\(S\)</span>、<span class="arithmatex">\(O\)</span>、<span class="arithmatex">\(D\)</span> 的标度必须有定义和例子；不同团队的 6 分不能直接比较。RPN 高不代表一定先发生，RPN 低也不代表可以忽略单点灾难性后果，必要时要单独设置严重度门槛。</p>
+<p><strong>容差与热</strong>必须覆盖输入电压、负载、元件容差、温度、通风、铜箔和装配变化。<span class="arithmatex">\(\theta_{JA}\)</span> 不是脱离 PCB 的材料常数；封装、铜面积、气流和邻近热源会改变它。若器件数据手册给出结温、降额或瞬态限制，应把原文版本和条件写进证据，而不是用教学 <span class="arithmatex">\(40\ ^\circ\mathrm{C/W}\)</span> 替代。</p>
+<p><strong>故障树</strong>适合沿“顶事件 → 中间事件 → 基本事件”反推证据。例如“节点复位”可能来自 rail 下陷、复位脚噪声、时钟未起振或固件看门狗；每一条路径都应有独立可观测量，否则无法区分原因。</p>
+<h3 id="6-bring-up">6. Bring-up 顺序与测量方案<a class="headerlink" href="#6-bring-up" title="Permanent link"></a></h3>
+<ol>
+<li><strong>资料/目检：</strong>核对 BOM、装配方向、极性、连接器、丝印和版本；拍照并记录板号。</li>
+<li><strong>断电连通：</strong>测电源对地阻值、短路、关键网连通和隔离边界；不要用“电阻很小”直接断言有故障，要结合并联电容与器件模型。</li>
+<li><strong>限流上电：</strong>从最低风险的输入/rail 开始，记录设定电压、限流、输入电流、各 rail、复位和温度；每次只推进一个阶段。</li>
+<li><strong>时钟/复位：</strong>先证明电源和复位稳定，再看时钟、启动脚和最小 MCU 状态；示波器触发与探头配置进入记录。</li>
+<li><strong>总线/负载：</strong>按 22–26 讲的总线、瞬态、回流、SI 和测试点账本逐项接入；不要把所有传感器一次性接上。</li>
+<li><strong>故障注入：</strong>先定义预期安全状态、限流和停止条件，再断电改变一个故障；保留故障前后证据和恢复动作。</li>
+</ol>
+<p>停止条件包括：电流达到或超过限流值、rail 超出项目/数据手册范围、温度达到或超过批准上限、出现不可解释的振荡/复位、保护件动作、测量连接不再可控。停止不是失败标签，而是保护系统和保留可解释性的设计动作。</p>
+<h3 id="7">7. 项目迁移与验收<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>把每次 bring-up 写成可复现记录：板号和版本、环境、输入与限流、阶段、仪器/探头、原始波形、读数、假设、通过/停止条件、故障、修正和下一步。最终进入 28 讲的验证矩阵时，每一行都要能指向一次测量、一个模型计算或一个约束来源；没有证据的“通过”只能标为待验证。</p>
+</section>
+<h2 id="1_1">1. 可靠性是时间和证据的问题<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>可靠性不只是“元件额定值够大”。它还包括重复上电、温度循环、连接器插拔、污染、振动、老化、软件状态和维修路径。课程在这里先建立工程纪律：先定义失效，再定义检测，再定义停止和恢复，最后才讨论试验次数。</p>
+<p>对于低功耗节点，休眠/唤醒切换也可能是寿命应力：电源树的瞬态、总线热插拔、传感器反向供电和 MCU 复位状态都要纳入 FMEA。</p>
+<h2 id="2_1">2. 测量证据的最小元数据<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>任何“电流正常”“温度可接受”“总线通过”都至少附上：板号/版本、日期、输入电压、限流、负载状态、仪器型号或配置、探头位置、采样带宽、原始文件和判据。型号数字和标准条款会变化；若使用数据手册额定值，保存版本与适用条件。</p>
+<h2 id="3_1">3. 模型失效边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>RPN 不产生失效率；热阻乘功率不描述瞬态热点；故障树的逻辑结构也不自动给出事件概率。教学实验只能检验公式、排序和停止流程是否自洽，不能替代寿命试验、统计可靠性、安规或正式认证。</p>
+<h2 id="4">4. 资料与边界<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>电路、功率和测量基础可查 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a>。工程设计、风险、实验和持续改进的框架可查 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>，可靠性与适用测试标准的正式入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>。本页不伪造具体器件额定值、寿命模型或动态限值。</p>
+<h2 id="5">5. 小结<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>可靠性判断要把失效模式、热/容差、故障树、限流上电、测量证据和停止条件连起来。先保护系统，再保护证据，最后推进阶段。下一讲把 01–27 讲留下的账本合成一个可审计的低功耗多传感器节点，并给出真正的最终验收。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="26-pcb-dft.html"><span class="pager-label">上一页</span>制造 · PCB、可测性与 DFT</a>
+  <a class="pager-slot next" href="28-capstone-sensor-node.html"><span class="pager-label">下一页</span>收官 · 低功耗多传感器节点</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-reliability-bringup.js"></script>
+</body>
+</html>

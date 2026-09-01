@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>低压、限流与测量边界 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li class="active"><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:03</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-system-safety-learning-title">学习层：把“安全”写成可审计的能量边界</a><ul>
+<li><a href="#1">1. 具体故障情境：传感器插接错误后的低压短路</a></li>
+<li><a href="#2">2. 揭示前预测：先写“最多会坏什么”</a></li>
+<li><a href="#3">3. 公式桥：从边界条件到能量账本</a></li>
+<li><a href="#4">4. 互动实验：先预测，再揭示故障路径</a></li>
+<li><a href="#5">5. 模型边界：限流不是魔法护盾</a></li>
+<li><a href="#6">6. 真实修正：从“低压”走向可交付边界</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="01">01 · 先守住边界：低压、限流与可断电系统<a class="headerlink" href="#01" title="Permanent link"></a></h1>
+<blockquote>
+<p>一个环境节点在实验台上“突然全灭”：插接器被错位插入，电源指示灯熄灭，保护器件却比传感器更热。第一问不是“哪根线接错了”，而是“故障电流从哪里来、最多会流多久、这段时间有多少能量必须被某个东西吸收”。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-system-safety-learning-title" class="learning-layer">
+<h2 id="ee-system-safety-learning-title">学习层：把“安全”写成可审计的能量边界<a class="headerlink" href="#ee-system-safety-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：传感器插接错误后的低压短路<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>贯穿项目是一枚低功耗多传感器环境监测节点。教学电源设为 <span class="arithmatex">\(5\ \mathrm{V}\)</span>，节点正常工作时接入一个等效负载；一次插接错误把两条电源线通过很小的故障电阻连在一起。指示灯变暗、限流器升温、MCU 复位，这些现象可能同时出现，却不是同一个量：电流决定导线和保护器件的应力，功率决定某个元件发热的速度，能量还要乘上故障持续时间。</p>
+<p>本页只讨论<strong>低压、限流、可断电的教学系统</strong>。低压不自动等于无风险，电池和电容仍可能储能，接线错误仍可能造成热损坏。这里不提供市电接线、建筑配电、并网或带电市电测量步骤；涉及这类系统时，只能由有资质人员依据当地法规和适用标准处理。</p>
+<h3 id="2">2. 揭示前预测：先写“最多会坏什么”<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验前，先做三个方向预测：</p>
+<ol>
+<li>故障已经触发限流后，再把故障电阻减小，故障电流会明显增大、明显减小，还是近似不变？</li>
+<li>其他参数不变，把自动断电时间加倍，故障能量预算会怎样变化？</li>
+<li>在理想限流下，故障电阻本身的功率是否会因为电阻继续变小而一直变大？</li>
+</ol>
+<p>预测时先分清“源提供的功率”和“故障电阻吸收的功率”。一个常见陷阱是看见短路就只盯着电流，忘记极小电阻两端电压也会变小。</p>
+<p>本讲的故障拓扑是：限流源先串联经过自动断电边界，之后的节点同时接着正常负载 <span class="arithmatex">\(R\)</span> 与故障支路 <span class="arithmatex">\(R_f\)</span>，两条支路都没有被断开。故障不是把正常负载从图上抹掉；它会抢走并联节点电压和限流电流。若真实设计采用互斥切换，必须明确写成“正常负载断开”，并用另一套能量账本。</p>
+<h3 id="3">3. 公式桥：从边界条件到能量账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对一个低压源、串联限流边界以及同时并联的正常负载和故障支路，先写并联等效电阻</p>
+<div class="arithmatex">\[
+R_p=\left(\frac1R+\frac1{R_f}\right)^{-1},\qquad
+I=\min\left(\frac{V_s}{R_p}, I_{\max}\right),\qquad
+V_n=IR_p.
+\]</div>
+<p>总电流 <span class="arithmatex">\(I\)</span> 的单位为安培；节点上的两本支路账分别是</p>
+<div class="arithmatex">\[
+I_f=\frac{V_n}{R_f},\qquad
+I_{\mathrm{load}}=\frac{V_n}{R},\qquad
+I=I_f+I_{\mathrm{load}}.
+\]</div>
+<p>故障支路的端电压、故障功率和正常负载功率分别为</p>
+<div class="arithmatex">\[
+V_f=I_fR_f,
+\qquad P_f=V_fI_f=I_f^2R_f,
+\qquad P_{\mathrm{load}}=V_nI_{\mathrm{load}}=I_{\mathrm{load}}^2R.
+\]</div>
+<p>限流器在这个理想串联模型中吸收</p>
+<div class="arithmatex">\[
+P_{\mathrm{lim}}=(V_s-V_n)I,
+\qquad P_s=V_sI.
+\]</div>
+<p>单位桥是 <span class="arithmatex">\(\mathrm{V}\cdot\mathrm{A}=\mathrm{W}\)</span>；若故障保持 <span class="arithmatex">\(t_f\)</span> 秒，则要把源、故障、正常负载和限流器分别记账：</p>
+<div class="arithmatex">\[
+E_s=P_st_f,\qquad
+E_f=P_ft_f,\qquad
+E_{\mathrm{load}}=P_{\mathrm{load}}t_f,\qquad
+E_{\mathrm{lim}}=P_{\mathrm{lim}}t_f.
+\]</div>
+<p>所以 <span class="arithmatex">\(\mathrm{W}\cdot\mathrm{s}=\mathrm{J}\)</span>。在理想限流器的这个简化模型里，能量账本应满足</p>
+<div class="arithmatex">\[
+E_s-E_f-E_{\mathrm{load}}-E_{\mathrm{lim}}=0.
+\]</div>
+<p>这是模型内部的闭合关系，不是对真实保护器件温度的保证。数量级判断也要同时看三项：<span class="arithmatex">\(0.1\ \mathrm{A}\)</span> 量级的电流乘以 <span class="arithmatex">\(5\ \mathrm{V}\)</span> 是 <span class="arithmatex">\(0.5\ \mathrm{W}\)</span> 量级；持续 <span class="arithmatex">\(2\ \mathrm{s}\)</span> 就是约 <span class="arithmatex">\(1\ \mathrm{J}\)</span> 的源能量。</p>
+<h3 id="4">4. 互动实验：先预测，再揭示故障路径<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-system-safety">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>下面使用的是<strong>教学设定</strong>，不是某个电源、保险丝或标准条款的额定值：<span class="arithmatex">\(V_s=5.0\ \mathrm{V}\)</span>、<span class="arithmatex">\(I_{\max}=120\ \mathrm{mA}\)</span>、正常负载 <span class="arithmatex">\(R=100\ \Omega\)</span>、故障电阻 <span class="arithmatex">\(R_f=0.50\ \Omega\)</span>、自动断电时间 <span class="arithmatex">\(t_f=2.0\ \mathrm{s}\)</span>。正常负载与故障支路同时并联在限流器之后；并联等效后总电流达到 <span class="arithmatex">\(120\ \mathrm{mA}\)</span>，所以两条支路都仍有电流，但故障支路占大部分。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>总源电流 <span class="arithmatex">\(I\)</span></td>
+<td style="text-align: right;">120.000</td>
+<td>mA；<span class="arithmatex">\(\min(V_s/R_p,I_{\max})\)</span></td>
+</tr>
+<tr>
+<td>正常负载电流 <span class="arithmatex">\(I_{\mathrm{load}}\)</span></td>
+<td style="text-align: right;">0.597</td>
+<td>mA；<span class="arithmatex">\(V_n/R\)</span></td>
+</tr>
+<tr>
+<td>故障电流 <span class="arithmatex">\(I_f\)</span></td>
+<td style="text-align: right;">119.403</td>
+<td>mA；<span class="arithmatex">\(V_n/R_f\)</span></td>
+</tr>
+<tr>
+<td>节点/故障端电压 <span class="arithmatex">\(V_n=V_f\)</span></td>
+<td style="text-align: right;">0.0597</td>
+<td>V；<span class="arithmatex">\(I_fR_f\)</span></td>
+</tr>
+<tr>
+<td>正常负载功率</td>
+<td style="text-align: right;">0.0356</td>
+<td>mW；<span class="arithmatex">\(I_{\mathrm{load}}^2R\)</span></td>
+</tr>
+<tr>
+<td>故障电阻功率</td>
+<td style="text-align: right;">7.1285</td>
+<td>mW；<span class="arithmatex">\(I_f^2R_f\)</span></td>
+</tr>
+<tr>
+<td>断电前源能量</td>
+<td style="text-align: right;">1.2000</td>
+<td>J；<span class="arithmatex">\(V_sIt_f\)</span></td>
+</tr>
+<tr>
+<td>故障吸收能量</td>
+<td style="text-align: right;">0.0143</td>
+<td>J；<span class="arithmatex">\(P_ft_f\)</span></td>
+</tr>
+<tr>
+<td>正常负载能量</td>
+<td style="text-align: right;">7.1285e-5</td>
+<td>J；<span class="arithmatex">\(P_{\mathrm{load}}t_f\)</span></td>
+</tr>
+<tr>
+<td>限流器热能</td>
+<td style="text-align: right;">1.1857</td>
+<td>J；<span class="arithmatex">\(P_{\mathrm{lim}}t_f\)</span></td>
+</tr>
+<tr>
+<td>能量闭合误差</td>
+<td style="text-align: right;">0</td>
+<td>J；内部方程检查</td>
+</tr>
+</tbody>
+</table>
+<p>图中的电路、限流边界和能量箭头是教学仿真；它不证明任何真实器件能承受这些功率，也不替代数据手册或实验室风险评估。</p>
+</div>
+<h3 id="5">5. 模型边界：限流不是魔法护盾<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>最小值模型把限流器当成瞬时、无寄生、无热记忆的理想边界。真实电源可能有输出电阻、限流响应时间、折返特性、启动浪涌限制和输出电容；保护器件的温升还取决于封装、铜箔、空气流动和故障重复率。电源关闭后，输入电容仍可能在短时间内提供能量，因此“软件已经关断”不等于回路立刻没有电压。</p>
+<p>模型还把故障写成一个固定的 <span class="arithmatex">\(R_f\)</span>。真实错误接触可能是随压力、氧化、温度和机械运动改变的阻抗，也可能同时让多个节点过压。若存在电感，断开瞬间会出现另一类电压暂态；若存在大电容，启动和插拔会有独立的能量预算。故障树应把<strong>电流上限、断电时限、剩余储能和最坏吸收元件</strong>分别列出。</p>
+<h3 id="6">6. 真实修正：从“低压”走向可交付边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>工程上先定义可断电边界，再选电源和保护器件。应记录允许的开路电压范围、持续与峰值电流、限流响应、断电触发条件、输入电容的初始能量，以及故障时每个器件可能吸收的功率。任何具体额定值都必须回到具体型号、温度、封装、版本和测试条件；本页的数字全部是教学输入。</p>
+<p>一旦真实修正改变了 <span class="arithmatex">\(I(t)\)</span>，能量就不应再写成一个常数功率乘时间，而应写为</p>
+<div class="arithmatex">\[
+E=\int_0^{t_{\mathrm{off}}}V(t)I(t)\,\mathrm{d}t.
+\]</div>
+<p>这条积分是从教学预算迁移到测量数据的桥。可以用受限流源和可更换的电阻性故障盒验证方向，但不要用未知储能源制造直接短路。所有改线先断电，先确认限流，再确认能量和温升的上限。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测量前把电源、限流设定、负载、故障模拟器和断电动作写在记录表上；电压表并联，电流表只有在已知低压限流回路中串联，并先确认表的量程和保险保护。记录探头位置、采样率、触发条件、故障开始与结束时间。若要估算能量，保存 <span class="arithmatex">\(V(t)\)</span> 与 <span class="arithmatex">\(I(t)\)</span>，不要只拍一张峰值照片。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把“电压低”当成“可以随意短接”，忽略电源和电容的储能；</li>
+<li>把限流值当成所有位置都承受同一电流，漏看限流器自身的热功率；</li>
+<li>把故障电阻功率 <span class="arithmatex">\(I^2R_f\)</span> 当成源功率 <span class="arithmatex">\(V_sI\)</span>；</li>
+<li>看到一次断电成功，就认为保护响应时间和重复故障都合格；</li>
+<li>忘记把地、回流路径和连接器接触电阻放进故障图。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目账本留下“安全边界与故障能量预算”一页：电源边界、限流设定、断电动作、正常/故障支路、<span class="arithmatex">\(P\)</span> 与 <span class="arithmatex">\(E\)</span> 的计算、最坏吸收元件、证据类型和未验证假设。下一讲会在同一张图上补上互连长度与 R/C/L 的参考方向。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：电路变量、基本网络和动态模型的课程入口。</li>
+<li><a href="https://openstax.org/details/books/college-physics-2e">OpenStax College Physics 2e</a>：电流、电阻、电功率和测量基础。</li>
+<li><a href="https://standards.ieee.org/">IEEE Standards</a>：若项目进入安全、EMC 或测试合规，应按适用标准的具体版本核查；入口本身不是合规结论。</li>
+</ul>
+<p>本页所有数值、限流判据和故障时间都是教学设定。它不涉及市电施工、配电、插座、断路器、并网或带电市电操作；真实产品的保护设计必须由有资质人员按当地法规、实验室规则和器件资料完成。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>安全电气系统的第一语言是边界：<span class="arithmatex">\(I_{\max}\)</span> 限住瞬时通量，<span class="arithmatex">\(t_{\mathrm{off}}\)</span> 限住持续时间，<span class="arithmatex">\(\int VI\,\mathrm{d}t\)</span> 限住故障能量。先预测电流、功率和能量各自的方向，再用模型和测量逐项闭合账本。下一讲把“一个点上的 R/C/L”放回互连长度和传播时间中，检查集总假设何时失效。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="index.html"><span class="pager-label">上一页</span>00 · 怎么读这门课</a>
+  <a class="pager-slot next" href="02-lumped-components.html"><span class="pager-label">下一页</span>电路 I · 集总元件与参考方向</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-system-safety.js"></script>
+</body>
+</html>

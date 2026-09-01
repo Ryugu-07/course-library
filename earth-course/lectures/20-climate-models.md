@@ -77,6 +77,16 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![从能量平衡模型到地球系统模型的层级](assets/img/model-hierarchy.svg)
+<figcaption><span class="fig-id">图 20.1</span>模型层级随问题而变：能量平衡模型适合全球收支，中等复杂度模型加入输送，GCM 表示三维环流，ESM 再耦合碳、氮和生态过程。阶梯表达可表示的范围与计算代价，不是无条件的准确度排名。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![大气海洋陆地地球系统网格柱](assets/img/earth-system-grid-column.svg)
+<figcaption><span class="fig-id">图 20.2</span>网格柱把连续的地球状态离散为可推进的平均单元，并把云、对流、湍流和地形等亚网格过程交给参数化。实线是网格尺度上解析的输送，虚线是参数化边界；网格变细会增加三维格点代价，但不会消除结构误差。</figcaption>
+</figure>
+
 ## 1. 模型层级和问题尺度
 
 能量平衡模型适合问全球平均能量、反馈符号和长时间尺度的数量级；中等复杂度的模型可以加入纬向输送、海陆差异或简化海洋；GCM以三维动力过程为主，适合环流和区域结构；ESM再耦合碳循环、生态、海洋生物地球化学和其他组分。

@@ -95,6 +95,16 @@ $Q_{10}$ 是温度每升高 $10\ ^\circ\mathrm C$ 时的速率比，实际值随
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![纬度带中的生物群系与碳库](assets/img/biosphere-biomes.svg)
+<figcaption><span class="fig-id">图 16.1</span>群系把碳库和限制因子放在空间背景中：热带、温带、针叶林、冻土与冰雪具有不同的水热条件、碳储存位置和扰动历史。图中的群系带与叶片、样地、通量塔、像元支持尺度均为概念示意，不代表生产力排名或面积比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![氮的固定、同化、矿化、硝化和反硝化循环](assets/img/nitrogen-cycle.svg)
+<figcaption><span class="fig-id">图 16.2</span>氮循环在大气氮库、铵态氮、硝态氮、有机氮和水体输出之间转换；绿色箭头突出生物转化，蓝色箭头突出化学或输送，虚线表示沉降等外部或间接约束。氮的可利用性会限制碳固定，但不对应一条固定的全球化学计量比。</figcaption>
+</figure>
+
 ## 1. 生物泵与陆地碳库
 
 生物泵把表层固定的有机碳通过颗粒沉降、溶解有机碳和食物网输送到更深海层。陆地系统则通过木材、根系、枯落物、土壤团聚体和湿地沉积物储存碳。关键不是“有没有绿色”，而是输入、输出和周转时间是否形成净储存。

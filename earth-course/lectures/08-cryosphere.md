@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Cryosphere components and boundaries](assets/img/cryosphere-components.svg)
+<figcaption><span class="fig-id">图 8.1</span>先把冰冻圈拆成季节性积雪、山地冰川、冰盖/冰架和海冰四个控制体，再问它们的水文驻留时间与海平面边界。图中“陆地冰”和“浮冰”的区分是质量账本的第一步；地图为 schematic / non-navigation 示意，几何不按比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Glacier mass balance process](assets/img/glacier-mass-balance.svg)
+<figcaption><span class="fig-id">图 8.2</span>冰川的积累区、平衡线和消融区把降雪、冰流、融水与两个不同账本连起来：陆地冰损失进入海平面换算，表面变暗改变短波吸收。箭头表示过程方向，不表示真实通量比例。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-cryosphere-learning-title">
 
 <h2 id="earth-cryosphere-learning-title">学习层：先给一座海湾做冰量账本，再判断海平面和反照率</h2>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>时序、抖动与同步 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li class="active"><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先预测“哪种余量变差”，再谈同步器</a><ul>
+<li><a href="#1">1. 具体情境：一个异步传感器中断为什么难以复现</a></li>
+<li><a href="#2">2. 揭示前预测：把偏斜的两个方向分开</a></li>
+<li><a href="#3">3. 公式桥：确定性余量与概率性风险</a></li>
+<li><a href="#4">4. 互动实验：同时看时序窗和同步器链</a></li>
+<li><a href="#5">5. 真实修正：时序约束不是测量的替代物</a></li>
+<li><a href="#6">6. 测量纪律：把偶发事件变成可复现记录</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1-setup-hold">1. setup 与 hold 的方向感</a></li>
+<li><a href="#2_1">2. 亚稳态的正确语言</a></li>
+<li><a href="#3_1">3. 常见误判与纠正</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="20">20 · 时序与同步：把“偶发错误”拆成时间窗和概率<a class="headerlink" href="#20" title="Permanent link"></a></h1>
+<p>环境节点的中断输入大多数时候都能被 MCU 读到，偶尔却多出一次计数或少一次唤醒。逻辑值本身可能没有错，错的是边沿到达采样触发器的时间：数据没有满足建立/保持要求，时钟路径有偏斜和抖动，异步输入还可能让触发器进入亚稳态。工程上要做两件不同的事：<strong>用余量检查确定性时序，用概率语言描述同步器风险</strong>。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-timing-synchronization-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先预测“哪种余量变差”，再谈同步器<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：一个异步传感器中断为什么难以复现<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>把传感器中断接到 MCU 的时钟域。教学设定为时钟周期 <span class="arithmatex">\(100 \mathrm{ns}\)</span>，发射触发器的 <span class="arithmatex">\(t_{CQ,max}=8 \mathrm{ns}\)</span>、<span class="arithmatex">\(t_{CQ,min}=4 \mathrm{ns}\)</span>，组合逻辑最大/最小延迟为 <span class="arithmatex">\(25/5 \mathrm{ns}\)</span>，接收触发器的 setup/hold 为 <span class="arithmatex">\(10/4 \mathrm{ns}\)</span>，捕获时钟相对发射时钟正偏斜 <span class="arithmatex">\(2 \mathrm{ns}\)</span>，再给 <span class="arithmatex">\(1 \mathrm{ns}\)</span> 的抖动预算。正 skew 统一定义为捕获边沿更晚；同步器相邻级间的教学布线延迟默认为 <span class="arithmatex">\(0 \mathrm{ns}\)</span>。</p>
+<p>这些是<strong>教学设定</strong>，不是某颗 MCU 的时序保证值。默认静态检查有 <span class="arithmatex">\(58 \mathrm{ns}\)</span> setup 余量和 <span class="arithmatex">\(2 \mathrm{ns}\)</span> hold 余量；它说明这条同步数据路径在该简化模型内通过，但异步边沿仍然可能落入敏感窗口。</p>
+<h3 id="2">2. 揭示前预测：把偏斜的两个方向分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>捕获时钟变晚，也就是正 skew 增大时，setup 余量和 hold 余量会同向变化，还是一个变好、一个变差？</li>
+<li>同步器级数增加，应说“在模型中降低亚稳态传播概率”，还是说“从此绝对安全”？</li>
+<li>setup 与 hold 共同定义的时间区域，是否就是异步边沿的敏感/危险窗口？</li>
+</ol>
+<h3 id="3">3. 公式桥：确定性余量与概率性风险<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>一条单周期路径的 setup 余量可以写成</p>
+<div class="arithmatex">\[
+S_{setup}=T+skew-jitter-t_{CQ,max}-t_{logic,max}-t_{setup}.
+\]</div>
+<p>hold 余量则从最早数据到达与捕获窗口开始比较：</p>
+<div class="arithmatex">\[
+S_{hold}=t_{CQ,min}+t_{logic,min}-skew-jitter-t_{hold}.
+\]</div>
+<p>所有量的单位都是时间；正余量表示模型内满足，负余量表示需要改路径、时钟或约束。由 setup 项得到的最低周期代理是</p>
+<div class="arithmatex">\[
+T_{min}=t_{CQ,max}+t_{logic,max}+t_{setup}+jitter-skew.
+\]</div>
+<p>若 <span class="arithmatex">\(N\)</span> 级同步器的相邻级直接相连，每两个真实级之间各有一个解析窗口，而不是每一级都凭空增加一窗。第 <span class="arithmatex">\(i\)</span> 个级间窗口为</p>
+<div class="arithmatex">\[
+W_i=\max\left(0,\,
+T+skew-jitter-t_{CQ,max}-t_{route}-t_{setup}\right),
+\qquad i=1,\ldots,N-1,
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+t_{resolve}=\sum_{i=1}^{N-1}W_i=(N-1)W_i
+\]</div>
+<p>（本实验假设各窗口相同）。这里显式扣除了真实的 <span class="arithmatex">\(t_{CQ,max}\)</span>、级间布线、下一级 setup、skew 和 jitter；正 skew 使捕获更晚，增加 setup/解析窗口，却减少 hold 余量。若 <span class="arithmatex">\(T_{min}\le0\)</span>，setup 不产生有限的最大时钟频率上限，不能把它显示成 0 MHz；hold 余量仍单独报告。</p>
+<p>异步输入的边沿若相对于采样时钟相位近似均匀，可用</p>
+<div class="arithmatex">\[
+p_{window}\approx\min\left(1,\frac{t_{setup}+t_{hold}+t_{jitter}}{T}\right)
+\]</div>
+<p>表示落入敏感窗口的相位比例。这只是概率代理；它不包含实际触发器的解析时间常数、器件老化、温度、布局和输入波形斜率。</p>
+<p>同步器常用的定性关系是</p>
+<div class="arithmatex">\[
+MTBF\propto\frac{e^{t_{resolve}/\tau_m}}{f_{clk}f_{data}C_m}.
+\]</div>
+<p>其中 <span class="arithmatex">\(\tau_m\)</span>、<span class="arithmatex">\(t_{resolve}\)</span> 是器件相关的时间量，<span class="arithmatex">\(C_m\)</span> 是实现常数。教学实验只显示相对的 <span class="arithmatex">\(\log_{10}\)</span> 风险代理，不把它伪装成器件 MTBF，也不把非零概率说成绝对安全。默认敏感窗口为 <span class="arithmatex">\(15 \mathrm{ns}\)</span>，占周期 <span class="arithmatex">\(15\%\)</span>；两级同步器只有 <span class="arithmatex">\(N-1=1\)</span> 个真实级间解析窗口，窗口为 <span class="arithmatex">\(83 \mathrm{ns}\)</span>，总解析时间也是 <span class="arithmatex">\(83 \mathrm{ns}\)</span>，相对风险对数约为 <span class="arithmatex">\(-181.1\)</span>，这个极小数只说明指数模型的方向，不能当作现场失效率。</p>
+<p>数量级判断：正 skew 每增加 <span class="arithmatex">\(1 \mathrm{ns}\)</span>，setup 余量增加约 <span class="arithmatex">\(1 \mathrm{ns}\)</span>，hold 余量减少约 <span class="arithmatex">\(1 \mathrm{ns}\)</span>。一个看似很小的时钟分配差异，在 hold 只剩几 ns 时就可能决定成败。把同步器多加一级的收益来自额外解析时间，而不是“魔法清零”。</p>
+<h3 id="4">4. 互动实验：同时看时序窗和同步器链<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-timing-synchronization">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认教学设定为 <span class="arithmatex">\(T=100 \mathrm{ns}\)</span>、<span class="arithmatex">\(t_{CQ,max/min}=8/4 \mathrm{ns}\)</span>、逻辑最大/最小延迟 <span class="arithmatex">\(25/5 \mathrm{ns}\)</span>、setup/hold <span class="arithmatex">\(10/4 \mathrm{ns}\)</span>、skew <span class="arithmatex">\(2 \mathrm{ns}\)</span>、jitter <span class="arithmatex">\(1 \mathrm{ns}\)</span>、同步器级间布线 <span class="arithmatex">\(t_{route}=0 \mathrm{ns}\)</span>、两级同步器，亚稳态时间常数代理 <span class="arithmatex">\(0.2 \mathrm{ns}\)</span>。正 skew 表示捕获时钟更晚。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>setup 余量</td>
+<td style="text-align: right;">58.0</td>
+<td>ns；含 skew、jitter 和最长路径</td>
+</tr>
+<tr>
+<td>hold 余量</td>
+<td style="text-align: right;">2.0</td>
+<td>ns；含最早路径</td>
+</tr>
+<tr>
+<td>setup 所需最小周期</td>
+<td style="text-align: right;">42.0</td>
+<td>ns；教学最慢路径</td>
+</tr>
+<tr>
+<td>最大时钟频率代理</td>
+<td style="text-align: right;">23.81</td>
+<td>MHz；<span class="arithmatex">\(10^3/T_{min}(ns)\)</span></td>
+</tr>
+<tr>
+<td>敏感窗口</td>
+<td style="text-align: right;">15.0</td>
+<td>ns；setup + hold + jitter</td>
+</tr>
+<tr>
+<td>敏感窗口占比</td>
+<td style="text-align: right;">15.00</td>
+<td>%；相位均匀假设代理</td>
+</tr>
+<tr>
+<td>级间解析窗口</td>
+<td style="text-align: right;">83.0</td>
+<td>ns；<span class="arithmatex">\(T+skew-jitter-t_{CQ,max}-t_{route}-setup\)</span></td>
+</tr>
+<tr>
+<td>真实窗口数</td>
+<td style="text-align: right;">1</td>
+<td>个；<span class="arithmatex">\(N-1\)</span>，两级同步器只有一个</td>
+</tr>
+<tr>
+<td>两级总解析时间代理</td>
+<td style="text-align: right;">83.0</td>
+<td>ns；窗口 × <span class="arithmatex">\((N-1)\)</span></td>
+</tr>
+<tr>
+<td>log10 风险代理</td>
+<td style="text-align: right;">-181.06</td>
+<td>相对指标；不是绝对失效率</td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应画出发射/捕获时钟、数据到达阶梯、setup 与 hold 敏感窗口，旁边画异步输入进入 FF1、FF2 的同步器链，并把每个真实级间窗口画成独立的 <span class="arithmatex">\(W_i\)</span>，标注 <span class="arithmatex">\(t_{CQ}\)</span>、级间布线、setup、skew、jitter 和 <span class="arithmatex">\(N-1\)</span> 个窗口。虚线、窗口底色、文字和级数共同编码，不能只靠颜色。</p>
+</div>
+<h3 id="5">5. 真实修正：时序约束不是测量的替代物<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>setup/hold 是器件条件。</strong> 不同电源、温度、工艺角、输入斜率和负载会改变 <span class="arithmatex">\(t_{CQ}\)</span>、setup、hold 和最小脉宽；教学数字只能用于练习预算。</li>
+<li><strong>skew 和 jitter 不是同一件事。</strong> skew 通常描述时钟到达位置的系统差异，jitter 描述随时间变化的边沿不确定性；时钟源、PLL、供电噪声和布线都会贡献它们。</li>
+<li><strong>最小延迟对 hold 特别重要。</strong> 只用最大延迟做 setup，而忽略最快角和时钟早晚，可能在高频或低温时出现 hold 失败。</li>
+<li><strong>同步器只处理单比特采样风险。</strong> 多比特计数器、脉冲宽度、事件丢失和跨域数据一致性还需要握手、Toggle、FIFO 或协议级设计。</li>
+<li><strong>MTBF 关系需要器件参数。</strong> <span class="arithmatex">\(\tau_m\)</span> 和常数不能凭空填写；没有供应商表征、硅后测量和目标环境条件，就不应给出绝对可靠性数字。</li>
+</ul>
+<h3 id="6">6. 测量纪律：把偶发事件变成可复现记录<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>记录时钟源、频率、供电、温度、探头带宽、触发设置和走线/连接条件；不要只记“偶尔错一次”。</li>
+<li>用示波器或逻辑分析仪分别观察源边沿、接收时钟、同步器输出和事件计数；采样率要足以分辨目标 ns 级窗口，仪器本身的抖动也要纳入解释。</li>
+<li>通过改变相位、频率、温度或输入边沿速度观察错误率趋势，保留测试时长、事件总数和未观察到错误的表述。没有观察到错误不等于证明概率为零。</li>
+<li>多位数据用协议级检查验证一致性；异步复位释放、时钟门控和低功耗唤醒要单独列时序约束。</li>
+<li>只在低压、限流、可断电的教学系统中做时序注入；不把实验结果外推到安全关键控制或市电设备。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>本页用固定延迟、固定 setup/hold、确定性 skew/jitter 预算、级间布线和 <span class="arithmatex">\(N-1\)</span> 个解析窗口构成最小模型。它不能给出具体触发器的 MTBF，不能捕捉所有相关抖动、输入斜率、温度、老化、布局串扰或多位 CDC 协议。</p>
+<p>项目产物是“逻辑与时序余量表”：每条跨域信号记录发射/捕获时钟、最大/最小路径、setup/hold、skew、jitter、约束版本、同步结构、风险假设、测量日志和失效响应。对同步器写“降低概率、仍需验证”，不要写“绝对安全”。</p>
+<h2 id="1-setup-hold">1. setup 与 hold 的方向感<a class="headerlink" href="#1-setup-hold" title="Permanent link"></a></h2>
+<p>setup 问的是捕获边沿到来之前数据是否已经稳定足够久，hold 问的是边沿之后数据是否继续稳定足够久。时钟偏斜对两者方向相反，是因为捕获边沿相对于发射边沿的位移同时改变了“给数据的总时间”和“不能太早改变”的窗口。</p>
+<p>工程约束中的数值通常来自库模型、静态时序分析和器件保证条件；示波器上的一次边沿只能作为测量证据的一部分。要覆盖最慢逻辑、最快逻辑、温度和电源角落，不能只在典型室温下看一个周期。</p>
+<h2 id="2_1">2. 亚稳态的正确语言<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>触发器在采样窗口附近可能需要更长时间解析到合法的逻辑状态。同步器通过把解析时间拉长来降低后续级仍受影响的概率；它不会改变“异步边沿可能落入窗口”这一事实，也不会使所有下游协议自动正确。</p>
+<p>用概率语言还有一个实际好处：测试报告可以写“在 <span class="arithmatex">\(N\)</span> 次事件、<span class="arithmatex">\(t\)</span> 秒观察中未观察到错误，风险模型假设为……”，而不是写“安全”。这让测量、模型和工程要求保持可追溯。</p>
+<h2 id="3_1">3. 常见误判与纠正<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>setup 通过就够了。<strong>纠正：</strong>hold、最小延迟、时钟偏斜和抖动可能单独失败。</li>
+<li><strong>误判：</strong>加两级触发器就绝对安全。<strong>纠正：</strong>级数降低概率，但风险仍非零，且需真实器件参数。</li>
+<li><strong>误判：</strong>没有复现错误就没有时序问题。<strong>纠正：</strong>偶发事件是概率问题，测试时长和相位覆盖要写清。</li>
+<li><strong>误判：</strong>同步器能修复多位数据撕裂。<strong>纠正：</strong>多位 CDC 需要握手、编码或 FIFO 等一致性结构。</li>
+</ul>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ul>
+<li>时域电路、动态响应与测量基础参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>电子信号和测量方法参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>接口与测试标准应从 <a href="https://standards.ieee.org/">IEEE Standards</a> 的适用版本核对；工程设计、风险和验证能力可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>。本讲的时序数字与风险数值是教学设定，不是芯片保证值或安全证明。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电教学系统；不涉及市电、建筑配电、并网或高能系统。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>时序问题先用 setup/hold、最大/最小路径和 skew/jitter 做确定性预算，再用同步器和概率模型描述亚稳态传播风险。同步器是降低概率的结构，不是绝对安全的许可证；多位数据、复位、时钟门控和低功耗唤醒还要分别验证。下一讲把事件时间线和 PWM 波形放入 MCU 的电流账本。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="19-digital-electrical.html"><span class="pager-label">上一页</span>数字 I · 电气逻辑、电平与负载</a>
+  <a class="pager-slot next" href="21-mcu-pwm.html"><span class="pager-label">下一页</span>嵌入式 · MCU、休眠与 PWM</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-timing-synchronization.js"></script>
+</body>
+</html>

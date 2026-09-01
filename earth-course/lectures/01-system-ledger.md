@@ -95,6 +95,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![地球系统的储库与边界](assets/img/system-reservoir-map.svg)
+
+<figcaption><span class="fig-id">图 1.1</span>用空间投影先划清储库边界，再沿箭头读取输入、输出与交换；这能帮助你把“库存在哪里”和“物质怎样移动”分成两列账。地图与储库范围是示意，边界和距离非等比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![扰动如何穿过快库与慢库](assets/img/system-timescale-ladder.svg)
+
+<figcaption><span class="fig-id">图 1.2</span>同一输入脉冲经过不同的 τ = S/F<sub>out</sub> 会留下不同长度的记忆；沿阶梯比较快响应与慢响应，可避免把“大通量”误读成“短驻留时间”。曲线是教学模型，不是观测序列。</figcaption>
+</figure>
+
 ## 1. 储库不是静态容器
 
 “库”不是说物质永远停在那里，而是对指定边界和时间窗口做的聚合。大气中的水汽、土壤中的水、河流中的水和冰盖中的水可以被分别记账，也可以在更粗的水循环模型里合成一个总储量。边界一变，储量定义和通量定义也会一起变。

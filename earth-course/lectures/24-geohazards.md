@@ -8,6 +8,16 @@
 
 本页把三者分开记账。一个无人的强震区仍可能有高 hazard，但社会风险可以很低；同一 hazard 在高暴露、低防护社区中可能造成完全不同的后果。
 
+<figure class="diagram visual-atlas" markdown="1">
+![地震、火山与海啸的灾害过程链](assets/img/hazard-processes.svg)
+<figcaption><span class="fig-id">图 24.1</span>地震、火山和海啸分别从物理源经过传播/转换到局地强度，再与暴露和脆弱性相接。本图是灾害过程示意，链条、箭头和节点非按比例；它划出物理情景与社会账本边界，不给出任何事件日期、损失真值或发生预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![简化板块活动带与 hazard、exposure、vulnerability 边界](assets/img/plate-hazard-belts.svg)
+<figcaption><span class="fig-id">图 24.2</span>简化板块带只提供物理危险性的空间背景，旁侧再区分 exposure 与 vulnerability。本图是物理情景的教学等距圆柱投影示意，板块带、点位、带宽和距离非按比例；它不是观测产品、导航图或风险预报，同一 hazard 带也不意味着同一社会风险。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-geohazards-learning-title">

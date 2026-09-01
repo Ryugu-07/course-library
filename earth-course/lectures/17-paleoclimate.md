@@ -75,6 +75,16 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![冰芯、树轮、珊瑚和沉积物古气候档案](assets/img/paleoclimate-archives.svg)
+<figcaption><span class="fig-id">图 17.1</span>冰芯、树轮、珊瑚和沉积物从不同空间与季节窗口保存过去环境的代理信号。读图时要把保存材料、代理响应和年龄约束分成三层；档案位置与时间分辨率是教学范围，不是全球平均的直接采样。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![沉积深度、年龄模型与代理校准链](assets/img/proxy-age-depth.svg)
+<figcaption><span class="fig-id">图 17.2</span>深度先通过层计数、放射性定年或沉积速率进入年龄模型，再用校准关系把代理信号转成气候变量。金色年龄带表示何时的不确定度，红色信号和蓝色校准表示多大与对应什么变量，二者不能相加成一个误差。</figcaption>
+</figure>
+
 ## 1. 档案类型与保存机制
 
 冰芯可以保存气泡中的古大气成分和冰的同位素信息；树轮记录生长季环境；珊瑚骨骼记录海温、盐度或生长条件的代理；湖泊与海洋沉积物把颗粒、花粉、微化石、磁性和有机分子叠加在沉积层中。

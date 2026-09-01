@@ -7,17 +7,25 @@ This file records the course-wide primary references. Individual lectures should
 ## Earth structure, hazards, and water
 
 - [USGS: The Interior of the Earth](https://pubs.usgs.gov/gip/interior/) — seismic paths, density, gravity, magnetism, and high-pressure experiments as independent constraints.
+- [USGS: This Dynamic Earth](https://pubs.usgs.gov/gip/dynamic/) — global plate distribution, boundary types, seafloor spreading, subduction, and hotspot context.
 - [USGS: Earthquakes](https://pubs.usgs.gov/gip/earthq1/) — faults, seismic waves, recording, and plate-boundary context.
 - [USGS Circular 1139: Ground Water and Surface Water](https://pubs.usgs.gov/circ/circ1139/) — recharge, permeability, confinement, residence time, and surface-water coupling.
+- [USGS Water Cycle VizLab](https://water.usgs.gov/vizlab/water-cycle/) — modern reservoir/flux visual grammar, including human water use and multiple connected subcycles.
 - [USGS Water Data](https://waterdata.usgs.gov/) — streamflow, groundwater, water quality, and site metadata; observations must retain station and time-window context.
 
 ## Atmosphere, ocean, cryosphere, and climate physics
 
 - [NASA: Climate and Earth’s Energy Budget](https://science.nasa.gov/earth/earth-observatory/climate-and-earths-energy-budget/) — top-of-atmosphere and surface energy flows; exact flux values carry observational uncertainty.
+- [NOAA Ocean Service: Currents Tutorial](https://oceanservice.noaa.gov/education/tutorial_currents/welcome.html) — wind-driven circulation, density-driven circulation, tides, boundary currents, and observing methods.
+- [NOAA Climate.gov: El Niño and La Niña](https://www.climate.gov/enso) — coupled tropical-Pacific state, trade winds, thermocline, upwelling, and teleconnection context.
+- [NOAA JetStream: Global Atmospheric Circulations](https://www.noaa.gov/jetstream/global/global-atmospheric-circulations) — Hadley, Ferrel and polar cells, jet streams, pressure belts, and rotation.
+- [NASA Earth Observatory: The Carbon Cycle](https://science.nasa.gov/earth/earth-observatory/the-carbon-cycle/) — fast and slow carbon reservoirs, land/ocean exchange, weathering, volcanism, and human perturbation.
+- [NASA Earthdata: Earth Observation Data Basics](https://www.earthdata.nasa.gov/learn/earth-observation-data-basics) — observing geometry, active/passive sensors, spectra, resolution, retrievals, and product levels.
 - [IPCC AR6 Working Group I](https://www.ipcc.ch/report/ar6/wg1/) — physical-science assessment and chapter index.
 - [IPCC AR6 WGI Chapter 5](https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-5/) — carbon and other biogeochemical cycles and feedbacks.
 - [IPCC AR6 WGI Chapter 7](https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-7/) — energy budget, effective radiative forcing, feedbacks, ECS, and TCR definitions.
 - [IPCC AR6 WGI Chapter 8](https://www.ipcc.ch/report/ar6/wg1/chapter/chapter-8/) — water-cycle changes and uncertainty.
+- [IPCC AR6 WGI Chapter 9](https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter09.pdf) — ocean, cryosphere, sea-level processes, circulation change, and observational constraints.
 - [IPCC AR6 WGI Atlas](https://www.ipcc.ch/report/ar6/wg1/chapter/atlas/) — regional observations, attribution, model ensembles, and downscaling evidence.
 
 ## Current indicators and carbon observations
@@ -37,3 +45,7 @@ This file records the course-wide primary references. Individual lectures should
 ## Update rule
 
 Stable equations and mechanisms are reviewed when the course model changes. Indicator values and policy-sensitive material are reviewed at least every six months, with an earlier review after a new WMO annual report, IPCC assessment, major dataset revision, or source withdrawal. Broken links are not silently replaced by secondary summaries.
+
+## Visual-source and reuse rule
+
+Course diagrams are original SVG teaching schematics generated from repository scripts. They use the process categories, labels, and scientific boundaries of the primary references above, but do not trace or reproduce a published plate. Captions distinguish schematic geometry from measured geography, and a diagram derived from a live indicator never substitutes for the dated source product.

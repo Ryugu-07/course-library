@@ -89,6 +89,16 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![碳库、通量与时间窗口的全球地景](assets/img/carbon-cycle-landscape.svg)
+<figcaption><span class="fig-id">图 15.1</span>碳库按位置和周转时间分成大气、陆地生物圈、海洋无机碳与沉积岩石；箱体表达储量，实线箭头表达通量，虚线表达慢交换或延迟返回。地图、容量条和通量都只是教学示意，不按真实面积或数值比例绘制。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![海洋溶解度泵、生物泵和碳酸盐缓冲](assets/img/ocean-carbon-pumps.svg)
+<figcaption><span class="fig-id">图 15.2</span>海气交换先把二氧化碳送入溶解无机碳，生物泵再把表层固定碳向深层输送，碳酸盐平衡同时提供缓冲并伴随酸化边界。向下箭头表示再分配，不表示碳被永久删除；不同路径的时间窗口也不同。</figcaption>
+</figure>
+
 ## 1. 储库、通量与时间尺度
 
 碳循环的第一种语言是储量，第二种语言是通量。储量告诉我们“现在箱子里有多少”，通量告诉我们“每年有多少穿过门”。没有时间窗口，任何“海洋吸收了很多”都缺少含义。

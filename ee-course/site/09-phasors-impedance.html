@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>相量、阻抗与频率响应 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li class="active"><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-phasors-impedance-learning-title">学习层：为什么电流没有和电压同时到达峰值</a><ul>
+<li><a href="#1">1. 具体情境：传感器激励线的幅度看似没变，读数却变了</a></li>
+<li><a href="#2">2. 揭示前预测：先预测相位和适用条件</a></li>
+<li><a href="#3">3. 公式桥：把微分器件换成复阻抗</a></li>
+<li><a href="#4-bode">4. 互动实验：相量链、复阻抗和 Bode 投影</a></li>
+<li><a href="#5">5. 真实修正：复数不是自动变真的仪器模型</a></li>
+<li><a href="#6">6. 测量方案：先校准相位，再相信相量图</a></li>
+<li><a href="#7">7. 模型失效、适用边界与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 相量是稳态解的记账方式</a></li>
+<li><a href="#2_1">2. 阻抗和导纳的选择</a></li>
+<li><a href="#3_1">3. 频响的三个检查</a></li>
+<li><a href="#4">4. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i">交流 I · 相量、阻抗与频率响应<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<blockquote>
+<p>同一条传感器线在 50 Hz、500 Hz 和 50 kHz 下可能表现得像三种不同的电路。电压和电流的“差一点相位”不是图上的装饰，而是储能、功率和滤波行为的入口。相量能把正弦稳态的微分方程压成可审计的复数账本，但它也有明确的适用边界。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-phasors-impedance-learning-title" class="learning-layer">
+<h2 id="ee-phasors-impedance-learning-title">学习层：为什么电流没有和电压同时到达峰值<a class="headerlink" href="#ee-phasors-impedance-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：传感器激励线的幅度看似没变，读数却变了<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低压节点给一个传感器桥或测试负载施加正弦激励。示波器上源电压仍然接近设定值，但串联电流的峰值和相位随着频率变化：低频时电容性支路让电流超前，高频时电感性支路让电流滞后，接近抵消点时电流达到相对峰值。若只用 <span class="arithmatex">\(V=IR\)</span>，就会把由储能元件承担的相位差错误地解释成“电阻变了”。</p>
+<p>以下数值是<strong>教学设定</strong>：<span class="arithmatex">\(R=10\ \Omega\)</span>、串联寄生 <span class="arithmatex">\(r_p=2\ \Omega\)</span>、<span class="arithmatex">\(L=10\ \mathrm{mH}\)</span>、<span class="arithmatex">\(C=10\ \mu\mathrm F\)</span>、<span class="arithmatex">\(f=500\ \mathrm{Hz}\)</span>、<span class="arithmatex">\(V_s=1.0\ \mathrm{V_{rms}}\)</span>。它故意把观察频率放在模型固有频率约 <span class="arithmatex">\(503\ \mathrm{Hz}\)</span> 附近，便于看到相量几乎抵消、但元件端电压可能大于源电压的现象。</p>
+<h3 id="2">2. 揭示前预测：先预测相位和适用条件<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在打开实验前回答：</p>
+<ol>
+<li>对串联 RLC，从远低于固有频率扫到远高于固有频率，电流相位大致是“先超前后滞后”还是“先滞后后超前”？</li>
+<li>当感抗 <span class="arithmatex">\(X_L\)</span> 和容抗 <span class="arithmatex">\(X_C\)</span> 大小相等时，总阻抗的幅值相对两侧频率会变大、变小还是达到局部最小？</li>
+<li>相量法直接描述的是启动瞬间的暂态，还是正弦稳态？</li>
+</ol>
+<p>提交后再调整频率和元件。实验的 Bode 图绘的是<strong>全串联电阻 <span class="arithmatex">\(R_{\mathrm{tot}}\)</span> 端口电压/源电压</strong>的教学传递量，和右侧相量图中的端口电压向量是同一个复数模型的不同投影。</p>
+<h3 id="3">3. 公式桥：把微分器件换成复阻抗<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>采用余弦参考 <span class="arithmatex">\(v(t)=\sqrt2 V\cos(\omega t+\phi)\)</span>，用相量 <span class="arithmatex">\(\underline V=V\angle\phi\)</span> 表示 rms 幅值和相位。对线性、时不变的理想元件，</p>
+<div class="arithmatex">\[
+Z_R=R,
+\qquad Z_L=j\omega L,
+\qquad Z_C=\frac{1}{j\omega C}=-\frac{j}{\omega C},
+\]</div>
+<p>其中 <span class="arithmatex">\(j^2=-1\)</span>，<span class="arithmatex">\(\omega=2\pi f\)</span>，<span class="arithmatex">\(f\)</span> 的单位是 Hz，<span class="arithmatex">\(\omega\)</span> 的单位是 rad/s。串联电路可以直接相加：</p>
+<div class="arithmatex">\[
+Z=R_{\mathrm{tot}}+jX,
+\qquad X=\omega L-\frac{1}{\omega C},
+\]</div>
+<div class="arithmatex">\[
+|Z|=\sqrt{R_{\mathrm{tot}}^2+X^2},
+\qquad \angle Z=\tan^{-1}\frac{X}{R_{\mathrm{tot}}},
+\qquad \underline I=\frac{\underline V_s}{Z}.
+\]</div>
+<p>单位检查：<span class="arithmatex">\(\omega L=(\mathrm{rad/s})\cdot\mathrm H=\Omega\)</span>，<span class="arithmatex">\(1/(\omega C)=\Omega\)</span>，因此 <span class="arithmatex">\(X\)</span> 与 <span class="arithmatex">\(R\)</span> 可以相加；<span class="arithmatex">\(V/Z=\mathrm V/\Omega=\mathrm A\)</span>。默认教学值在 <span class="arithmatex">\(500\ \mathrm{Hz}\)</span> 时 <span class="arithmatex">\(X_L\approx31.4\ \Omega\)</span>、<span class="arithmatex">\(X_C\approx31.8\ \Omega\)</span>，净电抗只有约 <span class="arithmatex">\(-0.4\ \Omega\)</span>，总阻抗约 <span class="arithmatex">\(12.0\ \Omega\)</span>，电流约 <span class="arithmatex">\(83\ \mathrm{mA_{rms}}\)</span>，相位约 <span class="arithmatex">\(+2^\circ\)</span>（电流相对源电压超前）。这些是模型算例，不是测量读数。</p>
+<p>相量图要保持同一个参考方向。本实验以源电压为参考，<span class="arithmatex">\(\underline V_s=V_s\angle0^\circ\)</span>；电流相位为 <span class="arithmatex">\(-\angle Z\)</span>，所以 <span class="arithmatex">\(\underline V_R=R_{\mathrm{tot}}\underline I\)</span>、<span class="arithmatex">\(\underline V_L\)</span> 超前电流 <span class="arithmatex">\(90^\circ\)</span>、<span class="arithmatex">\(\underline V_C\)</span> 落后电流 <span class="arithmatex">\(90^\circ\)</span>。在共振附近，<span class="arithmatex">\(\underline V_L\)</span> 与 <span class="arithmatex">\(\underline V_C\)</span> 可以分别大于源电压，但矢量和仍然等于 <span class="arithmatex">\(\underline V_s\)</span>。</p>
+<p>对电阻端口的传递函数，</p>
+<div class="arithmatex">\[
+H_R(j\omega)=\frac{\underline V_R}{\underline V_s}=\frac{R_{\mathrm{tot}}}{R_{\mathrm{tot}}+jX},
+\]</div>
+<p>这里的观察端口包含显式电阻和串联寄生，即全串联 <span class="arithmatex">\(R_{\mathrm{tot}}\)</span> 两端；在 <span class="arithmatex">\(f=f_0\)</span> 时 <span class="arithmatex">\(X=0\)</span>，故 <span class="arithmatex">\(|H_R|=1\)</span>。幅值用 <span class="arithmatex">\(20\log_{10}|H_R|\)</span> 表示 dB，相位为 <span class="arithmatex">\(-\angle Z\)</span>。Bode 图的横轴通常是对数频率；在一段足够宽、且元件模型仍然可信的频率范围内，斜率和相位共同揭示极点/零点，而不是一条“美化后的波形”。互动图按曲线实际 dB 范围留出边界，因此合法的高 <span class="arithmatex">\(Q\)</span> 尖峰不会被固定坐标裁掉。</p>
+<h3 id="4-bode">4. 互动实验：相量链、复阻抗和 Bode 投影<a class="headerlink" href="#4-bode" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-phasors-impedance">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为 <span class="arithmatex">\(R=10\ \Omega\)</span>、<span class="arithmatex">\(r_p=2\ \Omega\)</span>、<span class="arithmatex">\(L=10\ \mathrm{mH}\)</span>、<span class="arithmatex">\(C=10\ \mu\mathrm F\)</span>、<span class="arithmatex">\(f=500\ \mathrm{Hz}\)</span>、<span class="arithmatex">\(V_s=1.0\ \mathrm{V_{rms}}\)</span>。模型结果约为 <span class="arithmatex">\(Z=12.00-j0.42\ \Omega\)</span>，<span class="arithmatex">\(|Z|=12.01\ \Omega\)</span>，<span class="arithmatex">\(\angle Z=-1.98^\circ\)</span>，<span class="arithmatex">\(|I|=83.3\ \mathrm{mA_{rms}}\)</span>，电流相位约 <span class="arithmatex">\(+1.98^\circ\)</span>；电感和电容端电压的幅值约 <span class="arithmatex">\(2.62\ \mathrm V\)</span> 与 <span class="arithmatex">\(2.65\ \mathrm V\)</span>，方向相反后才与源相加。下面的 Bode 数字是同一教学网络在一组对数频率上的模型投影。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>角频率 <span class="arithmatex">\(\omega\)</span></td>
+<td style="text-align: right;">3142</td>
+<td>rad/s，<span class="arithmatex">\(2\pi f\)</span></td>
+</tr>
+<tr>
+<td>净电抗 <span class="arithmatex">\(X\)</span></td>
+<td style="text-align: right;">-0.42</td>
+<td><span class="arithmatex">\(\Omega\)</span>，<span class="arithmatex">\(X_L-X_C\)</span></td>
+</tr>
+<tr>
+<td>阻抗幅值 <span class="arithmatex">\(\lvert Z\rvert\)</span></td>
+<td style="text-align: right;">12.01</td>
+<td><span class="arithmatex">\(\Omega\)</span></td>
+</tr>
+<tr>
+<td>阻抗相位 <span class="arithmatex">\(\angle Z\)</span></td>
+<td style="text-align: right;">-1.98</td>
+<td>度，相对电压参考</td>
+</tr>
+<tr>
+<td>电流幅值 <span class="arithmatex">\(\lvert I\rvert\)</span></td>
+<td style="text-align: right;">83.3</td>
+<td>mA rms，<span class="arithmatex">\(V_s/\lvert Z\rvert\)</span></td>
+</tr>
+<tr>
+<td>电流相位</td>
+<td style="text-align: right;">+1.98</td>
+<td>度，<span class="arithmatex">\(-\angle Z\)</span></td>
+</tr>
+<tr>
+<td>电感端电压</td>
+<td style="text-align: right;">2.62</td>
+<td>V rms，模型幅值</td>
+</tr>
+<tr>
+<td>电容端电压</td>
+<td style="text-align: right;">2.65</td>
+<td>V rms，模型幅值</td>
+</tr>
+</tbody>
+</table>
+<p>相量图标题以“源电压作参考”为准，箭头方向和端点标签同时表示正负，不依赖颜色；向量长度按 <span class="arithmatex">\(V_L\)</span>、<span class="arithmatex">\(V_C\)</span>、<span class="arithmatex">\(V_R\)</span>、<span class="arithmatex">\(V_s\)</span> 中的最大幅值缩放并标明缩放语义。Bode 图把幅度和相位分成两个坐标区。所有可调值和曲线都属于教学仿真，真实系统还要检查频率范围、探头负载和元件数据手册。</p>
+</div>
+<h3 id="5">5. 真实修正：复数不是自动变真的仪器模型<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>寄生阻抗是频率相关的</strong>：线圈 DCR 和磁芯损耗、引脚电感、电容 ESR/ESL、源输出阻抗和探头输入阻抗会让 <span class="arithmatex">\(Z\)</span> 变成 <span class="arithmatex">\(Z(f, V, T)\)</span>，而不是三个理想常数的简单和。</li>
+<li><strong>参考地会带来相位错误</strong>：两通道探头的地夹线、触发抖动、仪器带宽限制和通道延迟会让小角度相位差不可信。接近 <span class="arithmatex">\(0^\circ\)</span> 的结论更需要校准和重复测量。</li>
+<li><strong>Bode 斜率只在模型区间内有意义</strong>：跨过器件自谐振或放大器稳定带宽后，低频集总模型的极点不再是全部物理。</li>
+<li><strong>非线性会破坏单一相量</strong>：磁芯饱和、二极管导通、压敏电阻动作或时变开关会产生谐波；此时一个基波相量只能描述一个投影，不能描述完整波形。</li>
+</ul>
+<p>实验结果与测量证据应分开标记：曲线由 <code>compute</code> 函数生成的是模型结果；扫频仪或示波器的幅相数据才是测量证据；额定值和 EMC 限值属于器件/标准要求，不能用 Bode 图替代。</p>
+<h3 id="6">6. 测量方案：先校准相位，再相信相量图<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>在低压限流条件下，函数发生器输出小幅正弦。示波器 CH1 测源电压，CH2 测电阻端电压或已知分流电阻两端电压。用两通道的时间差 <span class="arithmatex">\(\Delta t\)</span> 估计 <span class="arithmatex">\(\phi=360^\circ f\Delta t\)</span>，但先用同轴直连或同点校准通道延迟；再逐点改变 <span class="arithmatex">\(f\)</span>，记录 rms 幅值、相位、探头设置和重复散布。不要把游标分辨率当作不确定度，也不要在未知地参考下夹接地线。</p>
+<p>把测得的 <span class="arithmatex">\(V_R/V_s\)</span> 和相位与 <span class="arithmatex">\(H_R(j\omega)\)</span> 对齐时，先判断频率轴、rms/峰值和参考相位是否一致，再拟合 <span class="arithmatex">\(R_{\mathrm{tot}}\)</span>、有效 <span class="arithmatex">\(L\)</span>、有效 <span class="arithmatex">\(C\)</span>。测量计划应该能回答“差异来自参数、寄生还是仪器”，而不是只追求一条贴合曲线。</p>
+<h3 id="7">7. 模型失效、适用边界与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>相量法要求在观测窗口内系统近似线性、时不变，并且输入是单频正弦稳态；对非正弦但可线性分解的输入，可以逐个频率分量分析，再叠加结果。它不直接包含启动暂态、强非线性、频率随时间变化的 chirp、饱和、限幅和数字采样保持的瞬态。若边界条件变化比一个周期还快，先回到时域模型。</p>
+<p>迁移到贯穿项目时，保存一张端口定义图：电压参考、正方向、观测端口和回流路径必须明确；保存一张带单位的阻抗/频响表；再保存一份相位校准与测量不确定度记录。迁移问题：若电流相位从 <span class="arithmatex">\(+30^\circ\)</span> 变为 <span class="arithmatex">\(-30^\circ\)</span>，净电抗经历了什么符号变化？若 Bode 幅度看似吻合但相位整体偏移 <span class="arithmatex">\(8^\circ\)</span>，你会先检查通道延迟、模型寄生还是参考方向？</p>
+</section>
+<h2 id="1_1">1. 相量是稳态解的记账方式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>相量并没有把时间“删掉”；它把每个量共有的 <span class="arithmatex">\(e^{j\omega t}\)</span> 因子提出来。对一个频率固定的正弦稳态，微分对应乘以 <span class="arithmatex">\(j\omega\)</span>，积分对应除以 <span class="arithmatex">\(j\omega\)</span>，所以电感和电容可以用阻抗表达。相量的优势是 KCL、KVL 和分压形式仍然成立，只是实数换成复数。</p>
+<p>相位正负取决于参考约定。本文采用电压相量为参考、被动符号约定和余弦形式；若教材使用正弦形式，所有量可能看起来整体平移 <span class="arithmatex">\(90^\circ\)</span>，但可测的时间差和功率不变。工程记录必须把参考写出来。</p>
+<h2 id="2_1">2. 阻抗和导纳的选择<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>串联网络用阻抗相加最自然，并联网络可改用导纳 <span class="arithmatex">\(Y=1/Z\)</span> 相加。不能在同一行把一个支路的 <span class="arithmatex">\(Z\)</span> 与另一个支路的 <span class="arithmatex">\(Y\)</span> 直接相加。复数的实部与虚部分别携带不同物理含义：在被动网络里，实部对应平均耗散，虚部对应储能交换，但只有在端口定义、频率和符号约定清楚时才这样解释。</p>
+<h2 id="3_1">3. 频响的三个检查<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>看一条 Bode 图时至少检查：低频/高频极限是否符合拓扑；幅值单位是线性比、峰值比还是 rms 比；相位参考是否是输入到哪个输出端口。对数横轴让跨数量级的趋势可见，却不会自动修复低频漂移、采样稀疏或测量窗太短。</p>
+<h2 id="4">4. 小结<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>相量把正弦稳态下的电压、电流和相位写进复数方程：<span class="arithmatex">\(Z_R=R\)</span>、<span class="arithmatex">\(Z_L=j\omega L\)</span>、<span class="arithmatex">\(Z_C=1/(j\omega C)\)</span>。相量图说明向量如何相加，Bode 图说明频率怎样改变幅相；两者都必须标明参考、端口、频率范围和模型边界。启动暂态、强非线性、时变系统和高频寄生应回到更完整的时域或频变模型。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>电路定律、交流网络与动态元件的基础入口是 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 和 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>相位、信号和测量纪律可参考 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>设计与标准边界的正式入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>；本页不代替任何具体标准版本、器件数据手册或校准规程。</li>
+</ul>
+<p>页内所有具体参数和数值均为教学设定或由明确公式计算的示例，不是动态观测、采购承诺或市电操作指导。实验继续限定在低压、限流、可断电系统；市电、并网和高能系统由有资质人员按当地法规处理。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="08-rlc-resonance.html"><span class="pager-label">上一页</span>动态 II · RLC、阻尼与共振</a>
+  <a class="pager-slot next" href="10-ac-power-transformers.html"><span class="pager-label">下一页</span>交流 II · 功率、变压器与隔离概念</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-phasors-impedance.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>保护、开关与故障电流 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li class="active"><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先画故障的能量路径，再讨论器件名称</a><ul>
+<li><a href="#1-5-v">1. 具体情境：一个 5 V 执行器接口的三种错误</a></li>
+<li><a href="#2">2. 揭示前预测：故障不会自己消失</a></li>
+<li><a href="#3">3. 公式桥：电流、储能和瞬态电压</a></li>
+<li><a href="#4">4. 互动实验：沿着保护器件追踪电流</a></li>
+<li><a href="#5-mos">5. 真实修正：二极管和 MOS 不是万能保险</a></li>
+<li><a href="#6">6. 测量纪律：先让系统可断电，再看瞬态</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 开关的两个问题：状态和能量</a></li>
+<li><a href="#2_1">2. 回扫钳位的速度与压力</a></li>
+<li><a href="#3_1">3. 常见误判与纠正</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="16">16 · 保护与开关：把故障电流关在可解释的路径里<a class="headerlink" href="#16" title="Permanent link"></a></h1>
+<p>低功耗节点通常由低压、限流、可断电的实验电源供电，但一根连接器线插反、一个负载短路或一次开关关断，仍可能把能量送到不该去的地方。保护不是在原理图边上画一个二极管，而是回答：<strong>故障从哪里进入，电流经过什么，哪一个器件吸收能量，什么条件下必须断电？</strong></p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-protection-switches-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先画故障的能量路径，再讨论器件名称<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-5-v">1. 具体情境：一个 5 V 执行器接口的三种错误<a class="headerlink" href="#1-5-v" title="Permanent link"></a></h3>
+<p>把项目节点的一个执行器输出简化为 <span class="arithmatex">\(5 \mathrm V\)</span>、<span class="arithmatex">\(250 \mathrm{mA}\)</span> 限流电源、约 <span class="arithmatex">\(20 \Omega\)</span> 的教学负载和 <span class="arithmatex">\(10 \mathrm{mH}\)</span> 的感性分量。用户可能把电源反接；负载可能近似短路；开关可能在电流仍流动时快速关断。还有一种不由正常电源提供的扰动：连接器接触时的 ESD 电荷通过端口寄生电容耦合进来。</p>
+<p>这些不是施工步骤，也不是实际产品的保护方案。它们是<strong>低压、限流、可断电教学设定</strong>，用来训练故障树和能量账本。</p>
+<h3 id="2">2. 揭示前预测：故障不会自己消失<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>负载近似短路时，电流是由 <span class="arithmatex">\(V/R\)</span> 无限外推，还是由电源的限流设定约束？</li>
+<li><span class="arithmatex">\(10 \mathrm{mH}\)</span> 中的电流若在 <span class="arithmatex">\(20 \mathrm{\mu s}\)</span> 内被切断，没有回扫路径时，首先变大的会是电压还是电容？</li>
+<li>反接保护比较二极管和 MOS 开关时，应该只比较符号上的压降，还是比较故障电流路径与器件耗散？</li>
+</ol>
+<h3 id="3">3. 公式桥：电流、储能和瞬态电压<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>限流器存在时，串联负载的教学电流模型是</p>
+<div class="arithmatex">\[
+I=\min\left(I_{\mathrm{lim}},\frac{V_s}{R_{\mathrm{load}}+R_{\mathrm{on}}}\right).
+\]</div>
+<p>短路不是“电阻为零所以电流无限大”，而是把电源、线缆、开关和保护器件的边界暴露出来。故障功率要按路径逐项分账：</p>
+<div class="arithmatex">\[
+P_{\mathrm{fault}}=V_s I,
+\qquad
+P_R=I^2R_{\mathrm{fault}},
+\qquad
+P_{\mathrm{MOS}}=I^2R_{\mathrm{DS(on)}},
+\qquad
+P_{\mathrm{lim}}=\left[V_s-I(R_{\mathrm{fault}}+R_{\mathrm{DS(on)}})\right]I\ge 0.
+\]</div>
+<p>在这个串联故障模型中，必须检查 <span class="arithmatex">\(P_{\mathrm{fault}}=P_R+P_{\mathrm{MOS}}+P_{\mathrm{lim}}\)</span>；不能把“限流器耗散”写成扣掉故障电阻、却仍把 MOS 损耗藏在其中。这里 <span class="arithmatex">\(I\)</span> 用 A，<span class="arithmatex">\(R\)</span> 用 <span class="arithmatex">\(\Omega\)</span>，<span class="arithmatex">\(P\)</span> 才得到 W。</p>
+<p>电感电压遵循</p>
+<div class="arithmatex">\[
+v_L=L\frac{di}{dt},
+\qquad E_L=\frac12LI^2.
+\]</div>
+<p>若 <span class="arithmatex">\(10 \mathrm{mH}\)</span> 中有约 <span class="arithmatex">\(0.25 \mathrm A\)</span>，储能约 <span class="arithmatex">\(0.313 \mathrm{mJ}\)</span>。若硬性假定 <span class="arithmatex">\(20 \mathrm{\mu s}\)</span> 关断，未经钳位的 <span class="arithmatex">\(L\,di/dt\)</span> 代理峰值可到约 <span class="arithmatex">\(125 \mathrm V\)</span>。这个数字不是“电感会自动产生一个固定 125 V”，而是在关断斜率假设下提醒我们：寄生电容、开关击穿、回路电感和钳位路径必须被建模。</p>
+<p>本实验明确选择<strong>并联钳位</strong>作为反接拓扑：反接端口经过路径电阻进入二极管，再回到电源负端；其电流可写为</p>
+<div class="arithmatex">\[
+I_{\mathrm{rev}}\approx\min\left(I_{\mathrm{lim}},\frac{V_s-V_F}{R_{\mathrm{path}}}\right),
+\qquad P_D=V_FI_{\mathrm{rev}},
+\qquad P_{\mathrm{path}}=I_{\mathrm{rev}}^2R_{\mathrm{path}}.
+\]</div>
+<p>它与“串联阻断 MOS”是二选一的两种架构；串联阻断时只把 MOS 漏电作为独立对照，不把二极管电流再加进同一条反接账本。两种拓扑不能混用后声称功率守恒。</p>
+<p>ESD 的最小概念模型是储存在电容里的能量</p>
+<div class="arithmatex">\[
+E_{\mathrm{ESD}}=\frac12 C_{\mathrm{ESD}}V_{\mathrm{ESD}}^2.
+\]</div>
+<p>它只回答“有多少能量可能进入端口”，不等于任何标准测试波形。默认教学设定 <span class="arithmatex">\(100 \mathrm{pF}\)</span>、<span class="arithmatex">\(100 \mathrm V\)</span> 只有 <span class="arithmatex">\(0.5 \mathrm{\mu J}\)</span>；真实 ESD 试验的波形、源阻抗、接触方式和标准要求必须另行查证。</p>
+<h3 id="4">4. 互动实验：沿着保护器件追踪电流<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-protection-switches">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认教学设定为 <span class="arithmatex">\(V_s=5 \mathrm V\)</span>、<span class="arithmatex">\(I_{\mathrm{lim}}=250 \mathrm{mA}\)</span>、正常负载 <span class="arithmatex">\(20 \Omega\)</span>、故障电阻 <span class="arithmatex">\(0.2 \Omega\)</span>、MOS 导通电阻 <span class="arithmatex">\(0.12 \Omega\)</span>、反接拓扑为并联钳位、反接路径 <span class="arithmatex">\(100 \Omega\)</span>、二极管 <span class="arithmatex">\(V_F=0.7 \mathrm V\)</span>、<span class="arithmatex">\(L=10 \mathrm{mH}\)</span>、关断时间 <span class="arithmatex">\(20 \mathrm{\mu s}\)</span>、钳位电压 <span class="arithmatex">\(6 \mathrm V\)</span>。ESD 仅作 <span class="arithmatex">\(100 \mathrm{pF}\)</span>、<span class="arithmatex">\(100 \mathrm V\)</span> 的概念脉冲。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正常工作电流</td>
+<td style="text-align: right;">248.5</td>
+<td>mA；受限流和 <span class="arithmatex">\(R_{\rm load}+R_{\rm on}\)</span> 共同决定</td>
+</tr>
+<tr>
+<td>短路/故障电流</td>
+<td style="text-align: right;">250.0</td>
+<td>mA；达到教学限流上限</td>
+</tr>
+<tr>
+<td>故障电阻耗散</td>
+<td style="text-align: right;">12.5</td>
+<td>mW；<span class="arithmatex">\(I^2R_{\rm fault}\)</span></td>
+</tr>
+<tr>
+<td>故障 MOS 耗散</td>
+<td style="text-align: right;">7.5</td>
+<td>mW；<span class="arithmatex">\(I^2R_{\rm DS(on)}\)</span></td>
+</tr>
+<tr>
+<td>故障限流器耗散</td>
+<td style="text-align: right;">1230.0</td>
+<td>mW；剩余源功率</td>
+</tr>
+<tr>
+<td>故障源功率 / 分账和</td>
+<td style="text-align: right;">1250.0 / 1250.0</td>
+<td>mW；守恒残差约为 0</td>
+</tr>
+<tr>
+<td>反接二极管电流</td>
+<td style="text-align: right;">43.0</td>
+<td>mA；并联钳位路径 <span class="arithmatex">\(\left(5-0.7\right)/100\)</span></td>
+</tr>
+<tr>
+<td>串联阻断 MOS 漏电（对照）</td>
+<td style="text-align: right;">0.010</td>
+<td>mA；不与并联二极管相加</td>
+</tr>
+<tr>
+<td>电感储能</td>
+<td style="text-align: right;">0.309</td>
+<td>mJ；<span class="arithmatex">\(\frac12LI^2\)</span></td>
+</tr>
+<tr>
+<td>无钳位峰值代理</td>
+<td style="text-align: right;">124.3</td>
+<td>V；<span class="arithmatex">\(L\,di/dt\)</span> 教学估算</td>
+</tr>
+<tr>
+<td>6 V 钳位衰减时间</td>
+<td style="text-align: right;">414.2</td>
+<td><span class="arithmatex">\(\mathrm{\mu s}\)</span>；简化钳位模型</td>
+</tr>
+<tr>
+<td>ESD 概念能量</td>
+<td style="text-align: right;">0.500</td>
+<td><span class="arithmatex">\(\mathrm{\mu J}\)</span>；<span class="arithmatex">\(\frac12CV^2\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应画出“电源 → 限流器 → MOS → 负载 → 回流”的正常闭合路径；反接部分明确标注并联钳位，并画出二极管、感性负载回扫和 ESD 到参考负端的闭合回流。颜色只是辅助，箭头、文字和线型要同时说明方向，不能把串联阻断和并联钳位画成同一条电流。</p>
+</div>
+<h3 id="5-mos">5. 真实修正：二极管和 MOS 不是万能保险<a class="headerlink" href="#5-mos" title="Permanent link"></a></h3>
+<ul>
+<li><strong>二极管保护有代价。</strong> 它可能在正常方向产生压降和发热；反接时的电流由上游限流、串联电阻、二极管的脉冲能力和热环境共同决定。不能只看一个典型 <span class="arithmatex">\(V_F\)</span>。</li>
+<li><strong>反向阻断 MOS 依赖拓扑。</strong> MOS 的体二极管方向、源漏连接、栅极驱动、关断状态和漏电共同决定反接时是否真的阻断。<span class="arithmatex">\(R_{\mathrm{DS(on)}}\)</span> 是某些指定条件下的值，不是跨温度和电流的常数。</li>
+<li><strong>感性回扫必须有闭合路径。</strong> 飞轮二极管、TVS、钳位网络或受控开关都改变 <span class="arithmatex">\(di/dt\)</span>；钳位电压越高，关断可能越快，但器件承受的电压和能量也会增加。电感储能必须在路径中结算，不能从模型里删掉。</li>
+<li><strong>ESD 是耦合问题。</strong> 端口串联阻抗、钳位器件的动态电阻、地回流、机壳和布局决定电流在哪里闭合。一个“接地”符号不自动提供低阻抗回流。</li>
+</ul>
+<p>数据手册条件与标准要求必须分开：数据手册给某颗器件在特定温度、波形、占空比和散热条件下的额定能力；标准可能给出测试方法、脉冲等级、判据和合规流程。课程的故障路径图只是教学仿真，不能替代认证测试。</p>
+<h3 id="6">6. 测量纪律：先让系统可断电，再看瞬态<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>测试前断电检查极性、连续性和限流设定；给低压教学回路设置可见的电源开关，任何异常先断电。</li>
+<li>用低压、限流的实验电源和受控的小能量负载；不要通过提高电压或绕过限流来“逼出”保护极限。</li>
+<li>测量回扫时，探头的接地线和回路面积会改变尖峰。优先使用合适的差分测量和短回路，记录带宽限制、采样率和触发位置。</li>
+<li>分别记录电流、开关两端电压、保护器件两端电压和温升；不能只看一条漂亮的示波器曲线就宣布保护成立。</li>
+<li>ESD 在本课只作为能量路径和端口耦合概念讨论；不得把页面中的概念参数当作现场放电操作步骤。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>电阻限流模型假定电源能稳定进入限流状态，电感模型假定 <span class="arithmatex">\(L\)</span> 和关断斜率已知，ESD 模型假定一个简单电容放电。真实的电源折返、器件击穿、磁芯饱和、寄生电容、PCB 回路和热时间常数可能让这些假设同时失效。</p>
+<p>项目产物应是一张“故障能量路径矩阵”：对反接、短路、开关关断、ESD 耦合逐项记录入口、限流器、开关、负载、回流、最大估算能量、预期钳位、测量点、数据手册证据、标准/法规边界和断电动作。每一行都注明哪些是模型、哪些是实测、哪些是器件条件。</p>
+<h2 id="1">1. 开关的两个问题：状态和能量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>理想开关只回答“导通还是关断”，工程开关还要回答导通压降、关断漏电、转换时间、寄生电容、体二极管、栅极电荷和热。低边 N 沟道 MOS 的教学抽象可以先用 <span class="arithmatex">\(R_{\mathrm{on}}\)</span>，但开关瞬态要再加输出电容和回路电感。高边开关还涉及栅极相对源极的驱动边界、反向电流和电源时序。</p>
+<p>因此，“把负载接到 MOS 后面”不是完整设计。要列出正常电流、启动浪涌、堵转/短路电流、关断储能和故障返回路径；再决定限流器、熔断/电子保险、二极管或 MOS 阻断是否覆盖这些状态。</p>
+<h2 id="2_1">2. 回扫钳位的速度与压力<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>若钳位把电感两端限制在近似 <span class="arithmatex">\(V_C\)</span>，电流斜率数量级是</p>
+<div class="arithmatex">\[
+\left|\frac{di}{dt}\right|\approx\frac{V_C}{L},
+\qquad t_{\mathrm{decay}}\approx\frac{LI_0}{V_C}.
+\]</div>
+<p>它没有包含负载电阻、二极管压降和饱和特性，所以只能作一阶估算。更高的钳位电压通常给出更短的衰减时间，但会把电压应力推给 MOS、TVS 和 PCB；更低的钳位电压会延长回扫，可能影响下一次事件。工程上应以波形、温升和重复频率共同验收。</p>
+<h2 id="3_1">3. 常见误判与纠正<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>低压就不需要保护。<strong>纠正：</strong>短路和电感储能的峰值电流/电压仍可能损伤器件，低压只描述系统边界的一部分。</li>
+<li><strong>误判：</strong>二极管画上去就能吸收任意回扫。<strong>纠正：</strong>查反向电压、脉冲电流、平均功率、温升和回路布局。</li>
+<li><strong>误判：</strong>MOS 关断就是开路。<strong>纠正：</strong>体二极管、漏电和输出电容都提供可能的电流/电压路径。</li>
+<li><strong>误判：</strong>一次示波器测量证明了保护。<strong>纠正：</strong>要覆盖容差、温度、重复率、负载变化和测量夹具，并保留失败模式。</li>
+</ul>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ul>
+<li>基本电路、电功率、磁场与电感模型参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>低压电子实验、信号和测量判断参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>标准入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>；其页面不是对任一具体 ESD、EMC 或安全标准的自动合规声明。工程风险、验证和设计记录能力可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电教学系统。明确不涉及市电接线、建筑配电、并网、开关柜、带电市电测量或高能电池包施工；需要这些场景时应由有资质人员按当地法规和适用标准处理。</p>
+<h2 id="5">5. 小结<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>保护设计的核心不是器件清单，而是可审计的故障路径：限流器限制电流，二极管/MOS 决定反接方向，回扫钳位接住电感储能，ESD 路径把端口扰动导向可承受的位置。每个数字都要带单位、波形和条件；每个结论都要区分教学模型、实测证据、数据手册和标准要求。下一讲把“边界”搬到运放闭环和模拟传感器接口。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="15-real-components.html"><span class="pager-label">上一页</span>实物 · 容差、寄生与数据手册</a>
+  <a class="pager-slot next" href="17-opamp-interface.html"><span class="pager-label">下一页</span>模拟 · 运放、基准与传感器接口</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-protection-switches.js"></script>
+</body>
+</html>

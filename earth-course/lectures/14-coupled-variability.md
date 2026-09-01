@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![ENSO three states](assets/img/enso-three-states.svg)
+<figcaption><span class="fig-id">图 14.1</span>三幅赤道太平洋剖面用同一套变量比较 Neutral、El Nino 与 La Nina：信风强弱、温跃层坡度、东西海温异常和东部上升流一起变化。图为 schematic / non-navigation 的机制示意，不是固定周期表或业务预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Monsoon seasonal reversal](assets/img/monsoon-seasonal-engine.svg)
+<figcaption><span class="fig-id">图 14.2</span>季风反转的核心链条是季节性陆海加热差改变压力梯度，继而反转近地面风向、上升/下沉和降水分布；ENSO 可以调制区域概率，但不把所有季风区锁定成同一正负号。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-coupled-variability-learning-title">
 
 <h2 id="earth-coupled-variability-learning-title">学习层：先给热带海洋做一个双变量模型，再看 ENSO 如何投影到季风</h2>

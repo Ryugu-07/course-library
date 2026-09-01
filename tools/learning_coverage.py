@@ -20,6 +20,7 @@ FOCUS_COURSES = {
 }
 ENGINEERING_COURSES = {
     "auto-course": "Automation and control",
+    "ee-course": "Electrical and electronics engineering fundamentals",
     "materials-course": "Materials science",
     "mech-course": "Mechanical engineering",
 }
@@ -207,7 +208,7 @@ def main() -> int:
     )
     engineering = combined(
         "engineering-total",
-        "Control + materials + mechanical engineering",
+        "Control + electrical/electronics + materials + mechanical engineering",
         [item for item in measured if item.course in ENGINEERING_COURSES],
     )
     expansion = combined(

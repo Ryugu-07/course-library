@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接地、回流与 EMC · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li class="active"><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-grounding-emc-learning-title">学习层：同一块地，为什么 ADC 读数会随数字边沿跳动</a><ul>
+<li><a href="#1">1. 具体情境：传感器没有变，测量基线却在通信时移动</a></li>
+<li><a href="#2">2. 揭示前预测：先画回流，再看数值</a></li>
+<li><a href="#3">3. 公式桥：参考、回流与模式分解</a></li>
+<li><a href="#4">4. 互动实验：沿两条路径追踪共模和差模</a></li>
+<li><a href="#5-emc">5. 真实修正：接地、屏蔽和 EMC 各自回答不同问题</a></li>
+<li><a href="#6">6. 测量方案：先验证参考关系，再谈“噪声大小”</a></li>
+<li><a href="#7">7. 项目迁移与验收</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 从电流频谱画回流路径</a></li>
+<li><a href="#2-emc">2. EMC 预兼容的证据等级</a></li>
+<li><a href="#3_1">3. 模型失效边界</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="emc">兼容 · 接地、回流与 EMC 预兼容<a class="headerlink" href="#emc" title="Permanent link"></a></h1>
+<blockquote>
+<p>“接地”是一个参考关系和回流网络，不是一块神奇的零伏平面；当电流沿着意外的路径闭合，节点就会把自己的噪声送进别人的测量。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-grounding-emc-learning-title" class="learning-layer">
+<h2 id="ee-grounding-emc-learning-title">学习层：同一块地，为什么 ADC 读数会随数字边沿跳动<a class="headerlink" href="#ee-grounding-emc-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：传感器没有变，测量基线却在通信时移动<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低功耗节点在休眠时能稳定记录温度。唤醒 MCU、切换 PWM 负载或开始总线传输后，模拟输入的基线出现与数字边沿同步的细小阶跃；把示波器地夹到另一块测试板，问题还会变样。工程师若只说“地不干净”，仍没有指出：哪段回流有阻抗？电流是共模还是差模？屏蔽两端是否形成了额外环路？</p>
+<p>本页讨论低压教学系统的信号回路与 EMC 预兼容思维。它不提供市电接地、建筑配电、保护接地或带电市电测量做法；真实产品的安全接地和合规试验应由有资质人员按当地法规和适用标准处理。</p>
+<h3 id="2">2. 揭示前预测：先画回流，再看数值<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>两个“GND”之间存在返回电流和有限阻抗时，它们的电位差会是严格的 0 V，还是可能出现 mV 级偏移？</li>
+<li>保持 <span class="arithmatex">\(di/dt\)</span> 不变，把回路面积增大，电感性瞬态通常会升高还是降低？</li>
+<li>共模干扰在一对理想、完全对称的差分线上，是否必然等于差模误差？</li>
+</ol>
+<p>提交后，实验会把共模路径、差模路径、屏蔽连接和教学代理量画出来。图中的“风险”是相对诊断指标，不是认证限值。</p>
+<h3 id="3">3. 公式桥：参考、回流与模式分解<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对任意一段回流，最小模型是</p>
+<div class="arithmatex">\[
+V_G=I_{return}Z_{return}.
+\]</div>
+<p>当回路边沿足够快，阻抗不能只写成一个电阻，可先用电感项估算</p>
+<div class="arithmatex">\[
+V_L=L_{loop}\frac{di}{dt}.
+\]</div>
+<p>对差分对的两根导线 <span class="arithmatex">\(V_+\)</span>、<span class="arithmatex">\(V_-\)</span>，定义</p>
+<div class="arithmatex">\[
+V_{CM}=\frac{V_++V_-}{2},
+\qquad
+V_{DM}=V_+-V_-.
+\]</div>
+<p>共模是两根线一起相对参考移动，差模是两根线彼此相对移动。阻抗、几何和器件不对称会把一部分共模转换成差模：若转换比例为 <span class="arithmatex">\(\alpha\)</span>，则 <span class="arithmatex">\(V_{DM,err}\approx\alpha V_{CM}\)</span>。单位检查：<span class="arithmatex">\(\mathrm{A\cdot\Omega=V}\)</span>，<span class="arithmatex">\(\mathrm{H\cdot A/s=V}\)</span>。默认教学输入 <span class="arithmatex">\(I_{return}=100\ \mathrm{mA}\)</span>、<span class="arithmatex">\(Z_{return}=50\ \mathrm{m\Omega}\)</span> 给 <span class="arithmatex">\(V_G=5\ \mathrm{mV}\)</span>；<span class="arithmatex">\(L_{loop}=22\ \mathrm{nH}\)</span>、<span class="arithmatex">\(di=30\ \mathrm{mA}\)</span>、<span class="arithmatex">\(dt=8\ \mathrm{ns}\)</span> 给约 <span class="arithmatex">\(82.5\ \mathrm{mV}\)</span> 的电感性瞬态。</p>
+<h3 id="4">4. 互动实验：沿两条路径追踪共模和差模<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-grounding-emc">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>所有数值是合成教学输入。默认回路面积 <span class="arithmatex">\(A=20\ \mathrm{cm^2}\)</span>，用 <span class="arithmatex">\(L_{loop}=8\ \mathrm{nH}+0.7\ \mathrm{nH/cm^2}\times A\)</span> 的教学代理，边沿 <span class="arithmatex">\(8\ \mathrm{ns}\)</span>、边沿电流 <span class="arithmatex">\(30\ \mathrm{mA}\)</span>、回流 <span class="arithmatex">\(100\ \mathrm{mA}\)</span>、回流阻抗 <span class="arithmatex">\(50\ \mathrm{m\Omega}\)</span>、共模电流 <span class="arithmatex">\(2\ \mathrm{mA}\)</span>、不对称 <span class="arithmatex">\(3\%\)</span>、耦合代理 <span class="arithmatex">\(10\%\)</span>、屏蔽单端连接。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>回路面积</td>
+<td style="text-align: right;">20</td>
+<td>cm²；几何教学输入</td>
+</tr>
+<tr>
+<td>代理回路电感</td>
+<td style="text-align: right;">22</td>
+<td>nH；不是通用实测公式</td>
+</tr>
+<tr>
+<td>电感性瞬态</td>
+<td style="text-align: right;">82.5</td>
+<td>mV；<span class="arithmatex">\(L\,di/dt\)</span></td>
+</tr>
+<tr>
+<td>回流地电位差</td>
+<td style="text-align: right;">5.0</td>
+<td>mV；<span class="arithmatex">\(100\ \mathrm{mA}\times50\ \mathrm{m\Omega}\)</span></td>
+</tr>
+<tr>
+<td>共模路径噪声</td>
+<td style="text-align: right;">0.10</td>
+<td>mV；<span class="arithmatex">\(2\ \mathrm{mA}\times50\ \mathrm{m\Omega}\)</span></td>
+</tr>
+<tr>
+<td>共模转差模</td>
+<td style="text-align: right;">0.003</td>
+<td>mV；<span class="arithmatex">\(3\%\)</span> 不对称代理</td>
+</tr>
+<tr>
+<td>差模耦合代理</td>
+<td style="text-align: right;">8.253</td>
+<td>mV；电感项的 <span class="arithmatex">\(10\%\)</span> 加转换项</td>
+</tr>
+<tr>
+<td>低频地环路风险</td>
+<td style="text-align: right;">0.20</td>
+<td>单端连接的独立风险代理</td>
+</tr>
+<tr>
+<td>高频屏蔽/回流收益</td>
+<td style="text-align: right;">0.60</td>
+<td>单端连接的独立收益代理</td>
+</tr>
+<tr>
+<td>低频风险指数</td>
+<td style="text-align: right;">0.099</td>
+<td>仅作低频风险读数，不与高频收益合成排名</td>
+</tr>
+<tr>
+<td>屏蔽模式</td>
+<td style="text-align: right;">单端</td>
+<td>不输出无条件优劣排序</td>
+</tr>
+</tbody>
+</table>
+<p>你可以改变回路面积、边沿、回流阻抗、共模电流、不对称和屏蔽连接。实验分别显示低频地环路风险与高频屏蔽/回流收益，不把两者压成一个无条件的屏蔽优劣排序：两端连接可提高高频收益代理，但也会提高低频地环路风险代理。实验不会把“通过”解释成 EMC 合格证书；它只帮助你决定下一次测量应抓哪条路径。</p>
+</div>
+<h3 id="5-emc">5. 真实修正：接地、屏蔽和 EMC 各自回答不同问题<a class="headerlink" href="#5-emc" title="Permanent link"></a></h3>
+<p><strong>参考地不是宇宙零点。</strong>“0 V”只相对于选定参考节点成立；铜箔、过孔、连接器和电源返回都有电阻、电感和频率相关阻抗。把模拟地和数字地简单画成两块孤岛，可能迫使高频回流绕远路；把所有东西随意相连，又可能把大电流回流引入敏感节点。应先按电流频谱和几何画出闭合路径，再决定连接位置。</p>
+<p><strong>地环路</strong>是通过多个参考/屏蔽连接形成的闭合导电回路。低频环路电流可能制造基线偏移；高频下，低阻抗、短而连续的屏蔽/回流路径又可能更有利。这里把“低频地环路风险”和“高频屏蔽/回流收益”作为两条独立证据显示，不给单端/两端一个跨频段的无条件排名。连接决策要看信号频带、隔离边界、连接器和允许的共模电压。</p>
+<p><strong>屏蔽不是滤波器的替代物。</strong>屏蔽层的连接电感、接缝、尾纤长度、连接器外壳和入线位置都会决定高频效果。共模扼流圈、RC/LC 滤波、串联阻尼和 TVS 等保护件也会改变差模、共模和故障能量，需要按工作电压与数据手册验证。</p>
+<h3 id="6">6. 测量方案：先验证参考关系，再谈“噪声大小”<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>用同一台示波器、同一触发和可追溯的参考点同时测敏感节点、回流节点和扰动源；记录探头地线/差分探头的连接方式。</li>
+<li>做频域观察时保留带宽限制、窗函数、采样率和探头校准信息；“峰值更小”可能只是带宽变窄。</li>
+<li>改变一个几何条件：缩短回流、增加连续参考、移动负载回流或改变屏蔽连接。每次都记录共模、差模、受害信号和电源电流，不能只看一个通道。</li>
+<li>对低压教学故障使用断电可逆的开路、参考偏移或可控边沿变化；不要在未知能量源、建筑接地或市电系统上复制这些注入。</li>
+</ol>
+<h3 id="7">7. 项目迁移与验收<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>在项目账本中新增“回流/EMC”页：敏感回路、扰动回路、参考节点、回流连续性、预计 <span class="arithmatex">\(Z(f)\)</span>、共模/差模测点、屏蔽连接决策、保护器件和证据。验收不是要求“波形绝对为零”，而是要求目标信号在工作模式、线缆变化和规定故障下仍有可重复的差模余量，且所有降噪动作没有把故障电流或 ESD 能量引到更脆弱的节点。</p>
+</section>
+<h2 id="1_1">1. 从电流频谱画回流路径<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>直流和低频返回常受电阻、连接器接触和共地方式影响；快速数字边沿的回流更倾向于沿着使环路电感小的几何路径闭合。因而“信号线走这里、地线以后再补”往往会制造不可见的回路面积。</p>
+<p>建议在原理图和 PCB 草图上分别画：电源返回、数字边沿返回、模拟传感器返回、屏蔽/机壳路径和故障保护路径。每条路径标注正常电流、可能的瞬态电流和断开时的替代路径。</p>
+<h2 id="2-emc">2. EMC 预兼容的证据等级<a class="headerlink" href="#2-emc" title="Permanent link"></a></h2>
+<p>教学仿真适合回答“面积增大是否使 <span class="arithmatex">\(Ldi/dt\)</span> 增大”；实验测量能回答“这块板在此探头、此线缆、此工作模式下看到了什么”；正式标准测试才回答“在适用版本、布置、校准和限值下是否合规”。三者不能互换。</p>
+<p>标准限值、频段、测试距离、天线、受试设备布置和性能判据会随产品类别、地区与版本变化。本页不填任何动态 EMC 限值，也不把实验室近场探头的读数当作认证结果。</p>
+<h2 id="3_1">3. 模型失效边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(V_G=IZ\)</span> 的单点模型忽略了频率相关阻抗、分布电流、磁/电场耦合、连接器和外壳缝隙；<span class="arithmatex">\(Ldi/dt\)</span> 也只捕捉最小的电感性瞬态。共模和差模分解在两个导体定义清楚、测量参考稳定时才有意义。任何“屏蔽两端一定好”或“一定不能两端接”的绝对句子，都越过了本页证据边界。</p>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>电路与电磁基础可查 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OCW 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。测量设计可查 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OCW 6.071J: Introduction to Electronics, Signals, and Measurement</a>。EMC 的正式标准入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>，适用条款必须按产品、环境、版本和有资质的测试计划核对。</p>
+<h2 id="5">5. 小结<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>接地是参考与回流网络；先用 <span class="arithmatex">\(V=IZ\)</span>、<span class="arithmatex">\(V=Ldi/dt\)</span> 和 <span class="arithmatex">\(V_{CM}/V_{DM}\)</span> 分清路径与模式，再用几何改变和带宽受控的测量寻找真正受害者。EMC 预兼容的目标是减少未知并留下证据，不是提前宣称认证。下一讲把“快速边沿沿线传播”的问题单独拎出来：什么时候必须从集总模型切换到传输线模型？</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="23-power-tree.html"><span class="pager-label">上一页</span>供电 · 电源树、稳压与电源完整性</a>
+  <a class="pager-slot next" href="25-signal-integrity.html"><span class="pager-label">下一页</span>高速 · 信号完整性与传输线</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-grounding-emc.js"></script>
+</body>
+</html>

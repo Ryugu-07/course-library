@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Three-cell atmospheric circulation](assets/img/atmospheric-circulation.svg)
+<figcaption><span class="fig-id">图 11.1</span>沿纬向平均的剖面把 Hadley、Ferrel、Polar 三圈环流放在同一条纬度轴上：赤道附近上升，副热带和极区下沉，表面风带随之呈现东风与西风。纬度位置和环流宽度均为 schematic 示意，不是天气图。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Cyclone force balance](assets/img/cyclone-force-balance.svg)
+<figcaption><span class="fig-id">图 11.2</span>低压附近的风不是“压力梯度单独吹出来”的：压力梯度力指向低压，科氏力在南北半球偏转方向相反，近地面摩擦又使流线向内切入。两半球图示是理想化力平衡。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-atmospheric-motion-learning-title">
 
 <h2 id="earth-atmospheric-motion-learning-title">学习层：先给一条飞行航线画力图，再判断风向和地转近似</h2>

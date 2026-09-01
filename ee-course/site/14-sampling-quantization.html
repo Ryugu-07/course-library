@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>采样、混叠与量化 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li class="active"><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-sampling-quantization-learning-title">学习层：数字波形可能是模拟世界的错误别名</a><ul>
+<li><a href="#1-adc">1. 具体情境：ADC 把干扰折成了“真实信号”</a></li>
+<li><a href="#2">2. 揭示前预测：采样、折叠与位数</a></li>
+<li><a href="#3-nyquist">3. 公式桥：Nyquist、折叠和量化误差</a></li>
+<li><a href="#4-enob">4. 互动实验：把折叠线、采样点和 ENOB 放在一起</a></li>
+<li><a href="#5">5. 真实修正：采样前丢掉的信息无法靠软件复原</a></li>
+<li><a href="#6">6. 测量方案：同步观察模拟端与采样端</a></li>
+<li><a href="#7">7. 模型失效与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1-nyquist">1. Nyquist 条件是采样前的条件</a></li>
+<li><a href="#2_1">2. 量化与有效位数</a></li>
+<li><a href="#3">3. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">测量 II · 采样、混叠与量化<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>一个传感器输出在模拟端看起来只有 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span> 的目标，但旁边若有 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span> 的干扰，<span class="arithmatex">\(2\ \mathrm{kHz}\)</span> 采样会把它折叠到同一个 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span> 位置。采样不是“每隔一段时间看一眼”这么简单：抗混叠、量化步长、有效位数和证据链必须一起设计。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-sampling-quantization-learning-title" class="learning-layer">
+<h2 id="ee-sampling-quantization-learning-title">学习层：数字波形可能是模拟世界的错误别名<a class="headerlink" href="#ee-sampling-quantization-learning-title" title="Permanent link"></a></h2>
+<h3 id="1-adc">1. 具体情境：ADC 把干扰折成了“真实信号”<a class="headerlink" href="#1-adc" title="Permanent link"></a></h3>
+<p>低功耗节点每隔固定时间读取传感器。目标变化约 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span>，模拟线上还叠着一个 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span> 的开关干扰。若采样率为 <span class="arithmatex">\(2.0\ \mathrm{kHz}\)</span>，Nyquist 频率为 <span class="arithmatex">\(1.0\ \mathrm{kHz}\)</span>，高于该边界的干扰会在采样序列中折叠到 <span class="arithmatex">\(|1600-2000|=400\ \mathrm{Hz}\)</span>。软件看到的“400 Hz 峰”可能是目标，也可能是干扰的别名；采样后再加数字滤波无法可靠地把两者分开。</p>
+<p>以下数值全部是<strong>教学设定</strong>：目标 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span>、干扰 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span>、采样率 <span class="arithmatex">\(2000\ \mathrm{Hz}\)</span>、双极性满量程 <span class="arithmatex">\(\pm1.0\ \mathrm V\)</span>、<span class="arithmatex">\(10\)</span> 位 ADC、目标幅值 <span class="arithmatex">\(0.80\ \mathrm V_{pk}\)</span>。抗混叠滤波器用一个理想砖墙式教学开关，截止设为 <span class="arithmatex">\(800\ \mathrm{Hz}\)</span>，它在采样前分别作用于目标和干扰，所以阻断 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span> 干扰；若把截止降到目标频率以下，目标也会从 ADC 输入消失。它不是实际滤波器曲线或 ADC 数据手册承诺。</p>
+<h3 id="2">2. 揭示前预测：采样、折叠与位数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前预测：</p>
+<ol>
+<li>当采样率低于目标频率两倍时，目标会保持原频率还是发生混叠？</li>
+<li><span class="arithmatex">\(1600\ \mathrm{Hz}\)</span> 干扰以 <span class="arithmatex">\(2000\ \mathrm{Hz}\)</span> 采样时，折叠后的频率更接近 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span>、<span class="arithmatex">\(800\ \mathrm{Hz}\)</span> 还是 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span>？</li>
+<li>在模拟噪声可以忽略时，位数增加 <span class="arithmatex">\(2\)</span> 位，量化步长和量化 rms 误差大致变为原来的几分之一？</li>
+</ol>
+<p>提交预测后可改变采样率、干扰频率、抗混叠截止频率和位数。左图画时域采样点与量化阶梯，右图画 Nyquist 折叠；“抗混叠后干扰幅值为零”是理想教学开关的输出，不是测量证据。</p>
+<h3 id="3-nyquist">3. 公式桥：Nyquist、折叠和量化误差<a class="headerlink" href="#3-nyquist" title="Permanent link"></a></h3>
+<p>对带限模拟信号，理想均匀采样的基本条件是</p>
+<div class="arithmatex">\[
+f_s&gt;2f_{\max},
+\]</div>
+<p>其中 <span class="arithmatex">\(f_s\)</span> 是采样率，<span class="arithmatex">\(f_{\max}\)</span> 是采样前仍可能存在的最高频率。等号只是在无限长、理想砖墙、无噪声等极限下的边界记号，工程上需要留余量。采样频谱以 <span class="arithmatex">\(f_s\)</span> 为周期重复，因此一个频率 <span class="arithmatex">\(f\)</span> 在基带的折叠频率可写成</p>
+<div class="arithmatex">\[
+f_{\mathrm{alias}}=\left|\left((f+\tfrac12f_s)\bmod f_s\right)-\tfrac12f_s\right|.
+\]</div>
+<p>更直观地说：先把频率搬到 <span class="arithmatex">\([0,f_s)\)</span>，超过 <span class="arithmatex">\(f_s/2\)</span> 的部分关于 Nyquist 线折回。频率单位是 Hz；<span class="arithmatex">\(f_s/2\)</span> 是 Hz，条件两边单位一致。</p>
+<p>双极性 <span class="arithmatex">\(N\)</span> 位 ADC 的理想量化步长为</p>
+<div class="arithmatex">\[
+q=\frac{2V_{\mathrm{FS}}}{2^N},
+\qquad
+v_{q,\mathrm{rms}}\approx\frac{q}{\sqrt{12}}.
+\]</div>
+<p>本实验明确采用 <span class="arithmatex">\(2^N\)</span> 级 mid-rise 量化器。对输入 <span class="arithmatex">\(x\in[-V_{\mathrm{FS}},V_{\mathrm{FS}}]\)</span>，码索引为</p>
+<div class="arithmatex">\[
+k=\min\!\left(2^N-1,\max\!\left(0,\left\lfloor\frac{x+V_{\mathrm{FS}}}{q}\right\rfloor\right)\right),
+\qquad
+Q(x)=-V_{\mathrm{FS}}+\left(k+\frac12\right)q,
+\qquad k\in\{0,\ldots,2^N-1\}.
+\]</div>
+<p>这里 <span class="arithmatex">\(V_{\mathrm{FS}}\)</span> 是正向满量程幅度，单位 V；<span class="arithmatex">\(q\)</span> 和 <span class="arithmatex">\(v_q\)</span> 也是 V。若信号是峰值 <span class="arithmatex">\(A_{pk}\)</span> 的正弦，信号 rms 为 <span class="arithmatex">\(A_{pk}/\sqrt2\)</span>，仅用量化噪声估算的 SNR 为</p>
+<div class="arithmatex">\[
+\mathrm{SNR}_{q}=20\log_{10}\frac{A_{pk}/\sqrt2}{q/\sqrt{12}}\approx6.02N+1.76\ \mathrm{dB}
+\]</div>
+<p>（最后一个近似默认正弦接近满量程且量化误差近似白噪声）。若另有模拟噪声 <span class="arithmatex">\(v_a\)</span>，可用 <span class="arithmatex">\(v_{\mathrm{tot}}=\sqrt{v_q^2+v_a^2}\)</span>，再由实际信号 rms 计算 SNR。有效位数 ENOB 常按</p>
+<div class="arithmatex">\[
+\mathrm{ENOB}=\frac{\mathrm{SNR}_{\mathrm{meas}}-1.76}{6.02}
+\]</div>
+<p>定义，但必须说明输入幅度、带宽、失真和测量方法。完整量纲检查：<span class="arithmatex">\(2V_{\mathrm{FS}}/2^N\)</span> 仍为 V，除以无量纲 <span class="arithmatex">\(\sqrt{12}\)</span> 仍为 V；幅值比进入对数后无量纲。默认 <span class="arithmatex">\(q=2/1024\approx1.95\ \mathrm{mV}\)</span>，量化 rms 约 <span class="arithmatex">\(0.56\ \mathrm{mV}\)</span>，是 <span class="arithmatex">\(10^{-3}\ \mathrm V\)</span> 量级；若目标信号是数百毫伏，量化通常不是第一个数量级瓶颈，但有效位数仍可能因模拟噪声和失真下降。</p>
+<p>抗混叠开关应先作用于每个模拟分量，再构造 <span class="arithmatex">\(x_{\mathrm{ADC}}(t)\)</span>；采样点取真实的 <span class="arithmatex">\(t_n=n/f_s\)</span>，图中的保持阶梯只连接这些离散样值，不能用连续曲线末点冒充重复样本。若 <span class="arithmatex">\(|x_{\mathrm{ADC}}|&gt;V_{\mathrm{FS}}\)</span>，状态为 <strong>overload</strong>，应停止报告白量化噪声 SNR/ENOB，转而记录削顶和失真。</p>
+<h3 id="4-enob">4. 互动实验：把折叠线、采样点和 ENOB 放在一起<a class="headerlink" href="#4-enob" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-sampling-quantization">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为目标 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span>、干扰 <span class="arithmatex">\(1600\ \mathrm{Hz}\)</span>、<span class="arithmatex">\(f_s=2000\ \mathrm{Hz}\)</span>、抗混叠截止 <span class="arithmatex">\(800\ \mathrm{Hz}\)</span>、<span class="arithmatex">\(N=10\)</span>、<span class="arithmatex">\(V_{\mathrm{FS}}=1.0\ \mathrm V\)</span>、目标幅值 <span class="arithmatex">\(0.80\ \mathrm V_{pk}\)</span>、模拟噪声 <span class="arithmatex">\(0.50\ \mathrm{mV_{rms}}\)</span>。Nyquist 频率为 <span class="arithmatex">\(1000\ \mathrm{Hz}\)</span>；干扰的未滤波别名为 <span class="arithmatex">\(400\ \mathrm{Hz}\)</span>，但理想抗混叠开关将其阻断。量化步长约 <span class="arithmatex">\(1.953\ \mathrm{mV}\)</span>，量化 rms 约 <span class="arithmatex">\(0.564\ \mathrm{mV}\)</span>；合成噪声约 <span class="arithmatex">\(0.754\ \mathrm{mV}\)</span>，目标 SNR 约 <span class="arithmatex">\(57.5\ \mathrm{dB}\)</span>，对应 ENOB 约 <span class="arithmatex">\(9.3\)</span> 位。这些是教学模型计算。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标频率</td>
+<td style="text-align: right;">400</td>
+<td>Hz，教学输入</td>
+</tr>
+<tr>
+<td>干扰频率</td>
+<td style="text-align: right;">1600</td>
+<td>Hz，教学输入</td>
+</tr>
+<tr>
+<td>采样率 <span class="arithmatex">\(f_s\)</span></td>
+<td style="text-align: right;">2000</td>
+<td>Hz</td>
+</tr>
+<tr>
+<td>Nyquist 频率</td>
+<td style="text-align: right;">1000</td>
+<td>Hz，<span class="arithmatex">\(f_s/2\)</span></td>
+</tr>
+<tr>
+<td>未滤波干扰别名</td>
+<td style="text-align: right;">400</td>
+<td>Hz，折叠结果</td>
+</tr>
+<tr>
+<td>抗混叠后干扰幅值</td>
+<td style="text-align: right;">0</td>
+<td>归一化教学开关输出</td>
+</tr>
+<tr>
+<td>量化步长 <span class="arithmatex">\(q\)</span></td>
+<td style="text-align: right;">1.953</td>
+<td>mV，双极性 10 位</td>
+</tr>
+<tr>
+<td>量化 rms</td>
+<td style="text-align: right;">0.564</td>
+<td>mV，<span class="arithmatex">\(q/\sqrt{12}\)</span></td>
+</tr>
+<tr>
+<td>目标 SNR</td>
+<td style="text-align: right;">约 57.5</td>
+<td>dB，含教学模拟噪声</td>
+</tr>
+<tr>
+<td>ENOB</td>
+<td style="text-align: right;">约 9.3</td>
+<td>位，由上述 SNR 反推</td>
+</tr>
+</tbody>
+</table>
+<p>右图明确画出 Nyquist 线和从干扰到别名的折叠箭头；左图的阶梯只表示量化模型。改变抗混叠截止到高于干扰，才能看到别名幅值回到输入干扰幅值。</p>
+<p>通过抗混叠开关的干扰会以别名频率进入 ADC 输入；污染账本至少记录其滤后幅值、rms、功率和目标的 SINR。默认截止 <span class="arithmatex">\(800\ \mathrm{Hz}\)</span> 阻断干扰，因此别名污染为零，SINR 与含白噪声的目标 SNR 相同。</p>
+</div>
+<h3 id="5">5. 真实修正：采样前丢掉的信息无法靠软件复原<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>抗混叠滤波器需要过渡带</strong>：真实滤波器不是砖墙，必须让通带、过渡带、阻带和采样率留出频率余量；传感器、保护器件和 ADC 输入网络还会共同改变响应。</li>
+<li><strong>采样时钟有抖动</strong>：高频输入对时钟抖动更敏感；即使 <span class="arithmatex">\(f_s&gt;2f_{\max}\)</span>，抖动也会造成幅相噪声。</li>
+<li><strong>量化误差不总是白噪声</strong>：输入与采样频率同步、码型周期、缺码、DNL/INL、参考噪声和饱和会让误差相关或产生杂散。</li>
+<li><strong>ENOB 不是“位数减固定损失”</strong>：它依赖输入频率、幅度、测量带宽、失真、噪声和测试定义；必须附上 SNR/SINAD 的条件。</li>
+<li><strong>混叠可能长得很合理</strong>：折叠后的频率落在目标带宽内时，数字域的滤波无法判断来源；必须在 ADC 前处理或增加观测。</li>
+<li><strong>过载先于噪声指标</strong>：模拟 ADC 输入超出 <span class="arithmatex">\(\pm V_{\mathrm{FS}}\)</span> 时，削顶和谐波已经破坏白量化噪声假设；此时 SNR/ENOB 标为不适用。</li>
+</ul>
+<p>实验中的抗混叠“开关”是教学仿真；示波器/ADC 的时域与频谱记录是测量证据；采样率、输入范围、绝对最大额定值和转换器性能属于具体数据手册/标准约束。</p>
+<h3 id="6">6. 测量方案：同步观察模拟端与采样端<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>用低压函数发生器分别加入目标和可控干扰，在 ADC 前设置已知低通或实验室认证的低压滤波路径；用示波器同时观察滤波前、滤波后和采样时钟。记录 <span class="arithmatex">\(f_s\)</span>、时钟源、触发、输入幅度、满量程、量化码、滤波器过渡带和采样时长。改变干扰频率跨过 Nyquist 线，验证别名随折叠移动；改变位数或输入幅度，计算码宽、rms 误差和 SNR，并报告饱和、窗函数和频率分辨率。</p>
+<p>所有测量保持低压、限流、可断电；不要把示波器或 ADC 接到市电导体，也不要把本页的 Nyquist 关系当作建筑配电或高能系统的操作规程。</p>
+<h3 id="7">7. 模型失效与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>若信号并非带限、时钟不均匀、采样保持有孔径、输入过载或滤波器时变，理想采样定理的结论只能作为第一层检查。若混叠源来自未知环境，单次频谱不能识别它，需要改变采样率、加入模拟滤波或增加同步观测。</p>
+<p>迁移到贯穿项目时，交付一张采样计划：目标带宽、最坏干扰、模拟抗混叠过渡带、采样率、ADC 满量程、位数、预期 ENOB、时钟误差和验证记录都要列出；再把每个数字标成模型、测量或数据手册约束。迁移问题：采样率加倍但抗混叠滤波器不变，哪一个失效边界改善、哪一个没有改善？若 SNR 很高但 ENOB 低，失真或输入幅度定义可能怎样影响结论？</p>
+</section>
+<h2 id="1-nyquist">1. Nyquist 条件是采样前的条件<a class="headerlink" href="#1-nyquist" title="Permanent link"></a></h2>
+<p>采样定理讨论的是信号在采样前已经带限的情形。若模拟输入仍含有高频能量，采样频谱会周期重复并重叠；ADC 之后的数字滤波只能处理已经折叠后的频率，不能可靠区分原始来源。抗混叠滤波器的设计因此属于模拟链路的一部分，不是软件事后补丁。</p>
+<h2 id="2_1">2. 量化与有效位数<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>理想位数决定码宽，不决定完整转换器的噪声、失真、线性、参考稳定性和时钟质量。量化 rms <span class="arithmatex">\(q/\sqrt{12}\)</span> 是在误差近似均匀且与信号不相关时的模型；ENOB 用实测性能反推“等效位数”，应附测试条件。</p>
+<h2 id="3">3. 小结<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>采样率必须相对于采样前最高频率留余量，抗混叠滤波器负责在模拟域减少频谱重叠；混叠频率按 <span class="arithmatex">\(f_s\)</span> 周期折叠。量化步长随 <span class="arithmatex">\(2^{-N}\)</span> 缩小，理想量化噪声和 SNR 可给出数量级，但真实 ENOB 还受模拟噪声、失真、时钟抖动、参考和输入范围影响。最终验收必须把模型、测量证据和数据手册约束分开。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>采样、滤波和信号测量的课程入口是 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>电路、动态和信号接口基础可回看 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>。</li>
+<li>交流、测量和单位基础可参考 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>转换器性能、测试和工程边界的正式入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>；本页不指定具体 ADC 型号或标准条款。</li>
+</ul>
+<p>页内具体参数均为教学设定或由公式计算，不是动态采样记录。互动限定于低压、限流、可断电系统；不涉及市电施工、带电测量、并网或高能电池包操作。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="13-noise-dynamic-range.html"><span class="pager-label">上一页</span>测量 I · 噪声、SNR 与动态范围</a>
+  <a class="pager-slot next" href="15-real-components.html"><span class="pager-label">下一页</span>实物 · 容差、寄生与数据手册</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-sampling-quantization.js"></script>
+</body>
+</html>

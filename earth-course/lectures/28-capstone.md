@@ -8,6 +8,16 @@
 
 本页的实验使用八个时间步的合成降水、蒸散和上游入流，只演示模型闭合与观测更新，不预测任何真实流域。
 
+<figure class="diagram visual-atlas" markdown="1">
+![流域数字孪生的模型、观测、状态与证据架构](assets/img/digital-twin-architecture.svg)
+<figcaption><span class="fig-id">图 28.1</span>数字孪生把情景输入、过程模型、状态估计、有限观测、更新诊断和 provenance 分层连接。本图是系统架构示意，层级、箭头和接口非按比例；场景不是预报，观测不是完整状态，分析场也不是现实真值。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![流域多源观测网络与观测算子](assets/img/watershed-observation-network.svg)
+<figcaption><span class="fig-id">图 28.2</span>雨量站、土壤探头、河道水位、地下水井和卫星代理从不同角度约束流域状态。本图是观测网示意，站点、足迹、河网和空间覆盖非按比例；每个读数都是有限且带误差的观测，不应被当作状态真值或水文预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-capstone-learning-title">

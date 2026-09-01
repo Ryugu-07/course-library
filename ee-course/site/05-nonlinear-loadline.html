@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>负载线与工作点 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li class="active"><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 15:53</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-nonlinear-loadline-learning-title">学习层：用两条曲线找一个同时成立的状态</a><ul>
+<li><a href="#1">1. 具体故障情境：同一器件换一条源电阻就换一个结果</a></li>
+<li><a href="#2">2. 揭示前预测：先猜交点怎么动</a></li>
+<li><a href="#3">3. 公式桥：从分段关系到交点</a></li>
+<li><a href="#4-fallback">4. 互动实验：静态 fallback 表与专属负载线图</a></li>
+<li><a href="#5">5. 模型边界：分段模型能解释什么，不能解释什么</a></li>
+<li><a href="#6">6. 真实修正：用数据手册和测量替换教学参数</a></li>
+<li><a href="#7">7. 测量纪律与常见误判</a></li>
+<li><a href="#_1">贯穿项目产物</a></li>
+</ul>
+</li>
+<li><a href="#_2">资料与边界</a></li>
+<li><a href="#_3">小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="05">05 · 交点才是工作状态：分段非线性负载线<a class="headerlink" href="#05" title="Permanent link"></a></h1>
+<blockquote>
+<p>一颗指示二极管接到低压节点后没有如预期发光，换掉传感器却又出现过大的电流。问题不在于某一个“正确的二极管电压”，而在于源的约束和器件的 I-V 关系有没有在同一个工作点相遇。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-nonlinear-loadline-learning-title" class="learning-layer">
+<h2 id="ee-nonlinear-loadline-learning-title">学习层：用两条曲线找一个同时成立的状态<a class="headerlink" href="#ee-nonlinear-loadline-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体故障情境：同一器件换一条源电阻就换一个结果<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>在环境节点的低压指示支路中，源电压通过串联电阻驱动一个二极管或其他非线性端口。初次测试时电流很小，工程师把它解释成“器件没导通”；更换为更小的源电阻后，电流突然增大，温升和电源电压下垂一起出现。器件没有一个脱离外部回路就能决定的“工作电流”：它必须同时满足源侧和器件侧的关系。</p>
+<p>负载线法把源网络的约束画成一条直线，把器件的分段 I-V 模型画成另一条曲线或折线。两者的交点 <span class="arithmatex">\(Q=(V_Q,I_Q)\)</span> 才是该组源、串联电阻和器件参数下的工作点。</p>
+<h3 id="2">2. 揭示前预测：先猜交点怎么动<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先回答：</p>
+<ol>
+<li>在导通区把源电压提高，工作电流会升高、降低，还是不变？</li>
+<li>把源电阻增大，负载线斜率变得更平，工作电流会怎样？</li>
+<li>把分段模型的阈值电压提高，交点通常向哪个方向移动？</li>
+</ol>
+<p>不要把“阈值”理解为真实器件的精确开关。它是这个教学模型用于表示膝点的参数；真实 I-V 曲线通常是连续的，且受电流、温度、反向状态和频率影响。</p>
+<h3 id="3">3. 公式桥：从分段关系到交点<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>源侧负载线为</p>
+<div class="arithmatex">\[
+I_{\mathrm{source}}(V_D)=\frac{V_s-V_D}{R_s}.
+\]</div>
+<p>它的单位是 <span class="arithmatex">\(\mathrm{V}/\Omega=\mathrm{A}\)</span>，斜率是</p>
+<div class="arithmatex">\[
+\frac{\mathrm{d}I_{\mathrm{source}}}{\mathrm{d}V_D}
+  =-\frac1{R_s}\quad [\mathrm{A}/\mathrm{V}].
+\]</div>
+<p>为了练习分段推理，把器件写成</p>
+<div class="arithmatex">\[
+I_D(V_D)=
+\begin{cases}
+0, &amp; V_D&lt;V_k,\\[4pt]
+\dfrac{V_D-V_k}{r_d}, &amp; V_D\ge V_k.
+\end{cases}
+\]</div>
+<p>若 <span class="arithmatex">\(V_s\le V_k\)</span>，模型在截止段，<span class="arithmatex">\(I_Q=0\)</span>。若 <span class="arithmatex">\(V_s&gt;V_k\)</span>，联立导通段与源侧直线，得到</p>
+<div class="arithmatex">\[
+I_Q=\frac{V_s-V_k}{R_s+r_d},
+\qquad
+V_Q=V_k+I_Qr_d.
+\]</div>
+<p>这里 <span class="arithmatex">\(R_s+r_d\)</span> 的单位为 <span class="arithmatex">\(\Omega\)</span>，所以电压除以电阻仍为安培；<span class="arithmatex">\(V_QI_Q\)</span> 的单位为 <span class="arithmatex">\(\mathrm{V}\cdot\mathrm{A}=\mathrm{W}\)</span>。代回源侧还可以定义交点残差</p>
+<div class="arithmatex">\[
+r_Q=\frac{V_s-V_Q}{R_s}-I_Q,
+\qquad [r_Q]=\mathrm{A}.
+\]</div>
+<h3 id="4-fallback">4. 互动实验：静态 fallback 表与专属负载线图<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-nonlinear-loadline">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为 <span class="arithmatex">\(V_s=5.0\ \mathrm{V}\)</span>、<span class="arithmatex">\(R_s=330\ \Omega\)</span>、<span class="arithmatex">\(V_k=0.70\ \mathrm{V}\)</span>、<span class="arithmatex">\(r_d=20\ \Omega\)</span>。注意，<span class="arithmatex">\(0.70\ \mathrm{V}\)</span> 不是任意真实二极管的通用额定或恒定正向压降。该设定下</p>
+<div class="arithmatex">\[
+I_Q=\frac{5.0-0.70}{330+20}
+  =12.285714\ \mathrm{mA},
+\qquad
+V_Q=0.945714\ \mathrm{V}.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认读数</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作点电压 <span class="arithmatex">\(V_Q\)</span></td>
+<td style="text-align: right;">0.945714</td>
+<td>V；两条曲线交点</td>
+</tr>
+<tr>
+<td>工作点电流 <span class="arithmatex">\(I_Q\)</span></td>
+<td style="text-align: right;">12.285714</td>
+<td>mA；两条关系共同满足</td>
+</tr>
+<tr>
+<td>负载线零电压截距</td>
+<td style="text-align: right;">15.151515</td>
+<td>mA；<span class="arithmatex">\(V_s/R_s\)</span></td>
+</tr>
+<tr>
+<td>工作点功率</td>
+<td style="text-align: right;">11.618776</td>
+<td>mW；<span class="arithmatex">\(V_QI_Q\)</span></td>
+</tr>
+<tr>
+<td>负载线斜率</td>
+<td style="text-align: right;">-0.00303030</td>
+<td>A/V；<span class="arithmatex">\(-1/R_s\)</span></td>
+</tr>
+<tr>
+<td>导通分段斜率</td>
+<td style="text-align: right;">0.05000000</td>
+<td>A/V；<span class="arithmatex">\(1/r_d\)</span></td>
+</tr>
+<tr>
+<td>交点残差</td>
+<td style="text-align: right;">0</td>
+<td>mA；教学方程闭合</td>
+</tr>
+<tr>
+<td>状态</td>
+<td style="text-align: right;">导通段</td>
+<td>分段模型解释</td>
+</tr>
+</tbody>
+</table>
+<p>图中的蓝线是源约束，红线是导通分段，绿色点是工作点；直线和折线即使颜色失去，也可由图例、线型和文字识别。</p>
+</div>
+<h3 id="5">5. 模型边界：分段模型能解释什么，不能解释什么<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>分段模型把器件的连续曲线压缩成截止段、膝点和一条斜率为 <span class="arithmatex">\(1/r_d\)</span> 的导通段。它适合回答“源电阻变大时交点往哪边走”这类方向问题，不适合直接给出某个具体器件的正向压降、反向击穿、电流脉冲能力或温度极限。进入反向区、击穿区、频率较高的动态区，或发生热反馈时，当前方程就不完整。</p>
+<p>负载线的交点也不保证稳定性。若源中还含有电感、电容、控制环路或具有迟滞的保护，工作点可能随时间移动，甚至出现多个可达状态。此时要把静态 I-V 图和第 07 讲的动态测量分开。</p>
+<h3 id="6">6. 真实修正：用数据手册和测量替换教学参数<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>真实设计应在目标电流、温度、脉冲持续时间和反向条件下查具体器件资料，必要时用受限流低压测试源测量 I-V 曲线。把实测曲线和源负载线放在同一电压、电流坐标上，再报告交点、容差范围和温升；不要把一个标称膝点直接写成认证结论。</p>
+<p>改变 <span class="arithmatex">\(R_s\)</span> 通常是最直接的保护与工作点手段，但还要核对它自己的功率、脉冲额定和源的限流边界。若器件模型来自拟合，应保存拟合区间、残差和未覆盖的反向/高温区域。</p>
+<h3 id="7">7. 测量纪律与常见误判<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>测量前把器件串联电阻、低压限流设定和断电动作写清楚；不要把非线性器件直接接到未知电流能力的源上。逐点扫 I-V 时记录步长、等待时间、温度和极性；在器件可能发热时给出时间窗口。电压和电流应在同一工作点、同一时刻或同一稳态条件下取样。</p>
+<p>常见误判包括：</p>
+<ul>
+<li>把 <span class="arithmatex">\(0.7\ \mathrm{V}\)</span> 当作所有二极管、所有电流和所有温度下的常数；</li>
+<li>只画器件曲线，忘记源电阻也决定可达到的电流；</li>
+<li>把线的斜率 <span class="arithmatex">\(-1/R_s\)</span> 和器件斜率 <span class="arithmatex">\(1/r_d\)</span> 混为一谈；</li>
+<li>认为交点残差为零就证明真实器件没有温漂、寄生或动态；</li>
+<li>不标电压、电流的正方向，导致“电流变负”被误读成计算失败。</li>
+</ul>
+<h3 id="_1">贯穿项目产物<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本讲给项目留下“非线性工作点卡片”：器件端口模型、源负载线、<span class="arithmatex">\(Q=(V_Q,I_Q)\)</span>、功率、温度/容差条件、交点残差、I-V 测量计划和模型适用区间。下一讲将把工作点的 <span class="arithmatex">\(VI\)</span> 功率送进热路径，检查额定值和降额余量。</p>
+</section>
+<h2 id="_2">资料与边界<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>：半导体端口、负载线和电路模型入口。</li>
+<li><a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>：电压、电流、功率和电路定律基础。</li>
+<li><a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>：实验测量和模型验证入口。</li>
+</ul>
+<p>本页的 <span class="arithmatex">\(V_k\)</span>、<span class="arithmatex">\(r_d\)</span>、源电阻和电压都是教学设定；具体器件的 I-V 数字、最大电流、反向能力和温度系数必须回到制造商数据手册。课程只讨论低压、限流、可断电教学系统，不涉及市电施工。</p>
+<h2 id="_3">小结<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>负载线把“源能给什么”和“器件会取什么”放进同一张图；工作点是两者同时成立的交点。分段模型能训练方向和数量级，却不能伪装成真实器件数据。下一讲用 <span class="arithmatex">\(P=VI\)</span>、热阻和额定值回答：这个工作点能否长期承受。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="04-network-equivalents.html"><span class="pager-label">上一页</span>电路 III · 等效、叠加与端口</a>
+  <a class="pager-slot next" href="06-power-thermal-ratings.html"><span class="pager-label">下一页</span>功率 · 热、额定值与降额</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-nonlinear-loadline.js"></script>
+</body>
+</html>

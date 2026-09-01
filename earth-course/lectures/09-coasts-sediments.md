@@ -4,6 +4,16 @@
 
 <div data-learning-page></div>
 
+<figure class="diagram visual-atlas" markdown="1">
+![Coastal sediment cell](assets/img/coastal-sediment-cell.svg)
+<figcaption><span class="fig-id">图 9.1</span>海岸沉积单元把河流来沙、沿岸输运、海滩/沙丘储存和陆架输出放进同一个边界；先标清 Qin、Qout 与补沙/疏浚，才有资格讨论岸线向哪边移动。平面图为 schematic / non-navigation 示意，不是海图，几何不按比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![Sea-level and shoreline response](assets/img/sea-level-shore-response.svg)
+<figcaption><span class="fig-id">图 9.2</span>同一海岸剖面中，相对海平面上升、波浪再分配与沉积物净损失可以共同推动岸线后退；沉积输入大于输出时，海滩储量又能支撑向海推进。图示是形态响应代理，不是对某个海岸的预报。</figcaption>
+</figure>
+
 <section class="learning-layer" markdown="1" aria-labelledby="earth-coast-sediment-learning-title">
 
 <h2 id="earth-coast-sediment-learning-title">学习层：先给一个海岸单元记账，再把净沉积映射成岸线变化</h2>

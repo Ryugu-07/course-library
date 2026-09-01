@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>傅里叶、滤波与频谱 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li class="active"><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-fourier-filters-learning-title">学习层：更干净的读数为什么可能更迟</a><ul>
+<li><a href="#1">1. 具体情境：低功耗传感器的噪声和响应速度要同时交付</a></li>
+<li><a href="#2">2. 揭示前预测：先看频谱，再看阶跃</a></li>
+<li><a href="#3">3. 公式桥：傅里叶分解把卷积变成乘法</a></li>
+<li><a href="#4">4. 互动实验：频谱分量与时间响应放在一张图上</a></li>
+<li><a href="#5">5. 真实修正：截止频率不是一把万能剪刀</a></li>
+<li><a href="#6">6. 测量方案：同时测带宽和时间代价</a></li>
+<li><a href="#7">7. 模型失效与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1-fourier-fft">1. Fourier 视角不是“只用 FFT”</a></li>
+<li><a href="#2_1">2. 低通、高通和带宽</a></li>
+<li><a href="#3_1">3. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii">系统 II · 傅里叶、滤波与频谱<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<blockquote>
+<p>一个温度传感器的阶跃既包含慢变化，也包含一个很宽的边沿频谱。滤波器若把高频噪声压下去，也会把边沿变慢；若只看时域曲线，带宽代价不明显，若只看频谱，又可能忘记系统需要在某个时间内完成响应。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-fourier-filters-learning-title" class="learning-layer">
+<h2 id="ee-fourier-filters-learning-title">学习层：更干净的读数为什么可能更迟<a class="headerlink" href="#ee-fourier-filters-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：低功耗传感器的噪声和响应速度要同时交付<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>节点每次唤醒都要在有限时间内读取一个传感器变化。低通滤波能保留慢的环境变化，抑制较快的开关毛刺和射频耦合；但截止频率越低，阶跃响应的时间常数越长。若把“曲线更平滑”误当成“信息更多”，就可能在采样前把真正的快速事件抹掉。</p>
+<p>下面的默认数字是<strong>教学设定</strong>：一阶截止频率 <span class="arithmatex">\(f_c=1000\ \mathrm{Hz}\)</span>，测试正弦 <span class="arithmatex">\(f=500\ \mathrm{Hz}\)</span>，输入幅值归一化为 <span class="arithmatex">\(1\)</span>。因此低通的时间常数约 <span class="arithmatex">\(0.159\ \mathrm{ms}\)</span>，测试分量幅值约为 <span class="arithmatex">\(0.894\)</span>、相位约 <span class="arithmatex">\(-26.6^\circ\)</span>；单位阶跃经过一个时间常数到达最终值的 <span class="arithmatex">\(63.2\%\)</span>。这些是理想模型计算，不是传感器观测。</p>
+<h3 id="2">2. 揭示前预测：先看频谱，再看阶跃<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前预测：</p>
+<ol>
+<li>一阶低通保留低频还是高频？一阶高通保留哪一侧？</li>
+<li>对任意一阶低通/高通，在 <span class="arithmatex">\(f=f_c\)</span> 时幅值相对通带约为 <span class="arithmatex">\(1/\sqrt2\)</span>，也就是约 <span class="arithmatex">\(-3\ \mathrm{dB}\)</span>；这个说法应成立还是不成立？</li>
+<li>把低通截止频率减半，单位阶跃的响应时间大致变快、变慢还是不变？</li>
+</ol>
+<p>提交预测后可切换低通/高通、调整截止频率和测试频率。图中上方是离散频谱分量经过滤波后的幅度，下方是阶跃响应；同一截止频率会在两个视角留下不同代价。</p>
+<h3 id="3">3. 公式桥：傅里叶分解把卷积变成乘法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>把一个足够良好的信号写成频率分量的叠加。连续傅里叶变换的一种约定是</p>
+<div class="arithmatex">\[
+X(f)=\int_{-\infty}^{\infty}x(t)e^{-j2\pi ft}\,dt,
+\qquad
+x(t)=\int_{-\infty}^{\infty}X(f)e^{j2\pi ft}\,df.
+\]</div>
+<p>线性时不变系统在频域满足</p>
+<div class="arithmatex">\[
+Y(f)=H(f)X(f),
+\]</div>
+<p>其中 <span class="arithmatex">\(H(f)\)</span> 是频率响应；时域卷积对应频域乘法。<span class="arithmatex">\(f\)</span> 的单位是 Hz，若用角频率则 <span class="arithmatex">\(\omega=2\pi f\)</span>，单位 rad/s。对一阶 RC 形式，<span class="arithmatex">\(\tau=1/(2\pi f_c)\)</span>：</p>
+<div class="arithmatex">\[
+H_{\mathrm{LP}}(j\omega)=\frac{1}{1+j\omega\tau},
+\qquad
+H_{\mathrm{HP}}(j\omega)=\frac{j\omega\tau}{1+j\omega\tau}.
+\]</div>
+<p>两者在 <span class="arithmatex">\(\omega=1/\tau\)</span> 处幅值都是 <span class="arithmatex">\(1/\sqrt2\)</span>。高通还可写成</p>
+<div class="arithmatex">\[
+H_{\mathrm{HP}}(s)=\frac{s\tau}{1+s\tau}=1-\frac{1}{1+s\tau},
+\qquad
+h_{\mathrm{HP}}(t)=\delta(t)-\frac{1}{\tau}e^{-t/\tau}u(t).
+\]</div>
+<p>这里的 <span class="arithmatex">\(\delta(t)\)</span> 属于高通的<strong>冲激响应</strong>，不是把阶跃响应画成无限高的尖峰。高通的单位阶跃响应在 <span class="arithmatex">\(t=0^+\)</span> 发生有限跳变，随后按 <span class="arithmatex">\(y_{\mathrm{HP}}(t)=e^{-t/\tau}\)</span> 指数衰减；低通则为 <span class="arithmatex">\(y_{\mathrm{LP}}(t)=1-e^{-t/\tau}\)</span>。</p>
+<p>量纲检查：<span class="arithmatex">\(\omega\tau\)</span> 无量纲，因此 <span class="arithmatex">\(H\)</span> 是无量纲幅相比；<span class="arithmatex">\(f_c\)</span> 用 Hz，<span class="arithmatex">\(1/(2\pi f_c)\)</span> 用 s；<span class="arithmatex">\(20\log_{10}|H|\)</span> 是 dB，不是电压单位。默认 <span class="arithmatex">\(f_c=1000\ \mathrm{Hz}\)</span> 给 <span class="arithmatex">\(\tau=1.59\times10^{-4}\ \mathrm{s}\)</span>，数量级是 <span class="arithmatex">\(10^{-4}\ \mathrm s\)</span>；如果唤醒窗口只有 <span class="arithmatex">\(50\ \mu\mathrm s\)</span>，就不能把输出当作已稳态。</p>
+<h3 id="4">4. 互动实验：频谱分量与时间响应放在一张图上<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-fourier-filters">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为一阶低通、<span class="arithmatex">\(f_c=1000\ \mathrm{Hz}\)</span>、测试频率 <span class="arithmatex">\(500\ \mathrm{Hz}\)</span>。模型给出 <span class="arithmatex">\(\tau=0.159\ \mathrm{ms}\)</span>、测试幅值 <span class="arithmatex">\(|H|=0.894\)</span>、<span class="arithmatex">\(20\log_{10}|H|\approx-0.97\ \mathrm{dB}\)</span>、相位约 <span class="arithmatex">\(-26.6^\circ\)</span>，在 <span class="arithmatex">\(t=\tau\)</span> 时低通阶跃输出为 <span class="arithmatex">\(0.632\)</span>。若切换为高通且仍取 <span class="arithmatex">\(f=0.5f_c\)</span>，则 <span class="arithmatex">\(|H|=0.447\)</span>、<span class="arithmatex">\(20\log_{10}|H|=-6.99\ \mathrm{dB}\)</span>、相位为 <span class="arithmatex">\(+63.4^\circ\)</span>；其阶跃输出从 <span class="arithmatex">\(t=0^+\)</span> 的有限值 <span class="arithmatex">\(1\)</span> 开始，再指数衰减。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>截止频率 <span class="arithmatex">\(f_c\)</span></td>
+<td style="text-align: right;">1000</td>
+<td>Hz，教学输入</td>
+</tr>
+<tr>
+<td>时间常数 <span class="arithmatex">\(\tau\)</span></td>
+<td style="text-align: right;">0.159</td>
+<td>ms，<span class="arithmatex">\(1/(2\pi f_c)\)</span></td>
+</tr>
+<tr>
+<td>测试频率</td>
+<td style="text-align: right;">500</td>
+<td>Hz，教学输入</td>
+</tr>
+<tr>
+<td>测试幅值 <span class="arithmatex">\(\lvert H\rvert\)</span></td>
+<td style="text-align: right;">0.894</td>
+<td>无量纲，低通模型</td>
+</tr>
+<tr>
+<td>测试幅度 dB</td>
+<td style="text-align: right;">-0.97</td>
+<td>dB，<span class="arithmatex">\(20\log_{10}\lvert H\rvert\)</span></td>
+</tr>
+<tr>
+<td>测试相位</td>
+<td style="text-align: right;">-26.6</td>
+<td>度，低通模型</td>
+</tr>
+<tr>
+<td>一时间常数阶跃值</td>
+<td style="text-align: right;">0.632</td>
+<td>归一化单位，<span class="arithmatex">\(1-e^{-1}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>上图的竖线不是普通柱图：每根谱线代表一个 Fourier 分量，线高同时显示输入与滤波后幅值；下图显示单位阶跃经过低通或高通后的时间曲线。它们共同表达带宽与边沿的折衷，都是教学仿真。</p>
+</div>
+<h3 id="5">5. 真实修正：截止频率不是一把万能剪刀<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>滤波器不是砖墙</strong>：真实 RC、运放有有限滚降、相位和输出驱动能力；高阶滤波器的阶跃可能有过冲或振铃，通带/阻带纹波也要按拓扑说明。</li>
+<li><strong>频谱有限且有窗函数</strong>：有限时间采样把频谱与窗函数卷积；边沿、周期不整齐和泄漏会让“某根谱线”变宽，不能把 FFT 图的每个峰都当成独立物理源。</li>
+<li><strong>信号定义先于滤波选择</strong>：环境量的变化带宽、允许延迟、采样率和故障事件持续时间必须一起写；只凭噪声外观调低 <span class="arithmatex">\(f_c\)</span> 会制造不可见的延迟。</li>
+<li><strong>元件与布局会加新极点</strong>：传感器输出阻抗、ADC 采样电容、保护器件和长线缆会与滤波器相互作用，实测 <span class="arithmatex">\(H(f)\)</span> 可能不是单一一阶式。</li>
+</ul>
+<p>实验中曲线是教学模型，频谱仪/示波器记录才是测量证据；具体器件的带宽、容差、额定电流与稳定性属于数据手册或标准约束。</p>
+<h3 id="6">6. 测量方案：同时测带宽和时间代价<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>用低压函数发生器产生单频正弦和受控阶跃，示波器 CH1 测输入、CH2 测输出。先在低频和高频端确定通带参考，再逐点测幅值和时间差，计算 <span class="arithmatex">\(20\log_{10}(V_o/V_i)\)</span> 与相位；对阶跃记录 <span class="arithmatex">\(10\%\)</span>–<span class="arithmatex">\(90\%\)</span> 上升时间、过冲和稳定时间。保持探头衰减、终端、电缆和负载不变，记录采样率、时间窗、重复性和温度。</p>
+<p>若要验证 Fourier 解释，可对同一个有限时长阶跃保存时域记录和窗函数说明，再比较滤波前后频谱。不要用一张平滑 FFT 图替代对真实输入的定义。</p>
+<h3 id="7">7. 模型失效与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>输入若是非平稳、强非线性、时变采样或超出放大器/传感器摆幅，简单的 <span class="arithmatex">\(Y=HX\)</span> 不再充分；滤波器若进入饱和，频率分量会互调。时域约束优先于漂亮的频谱：若事件必须在 <span class="arithmatex">\(100\ \mu\mathrm s\)</span> 内被发现，就需要从允许延迟反推带宽，而不是先选一个看起来安静的低通。</p>
+<p>迁移到贯穿项目时，留下“目标信号带宽—允许延迟—采样率—滤波器—实测频响”的表，并把阶跃响应与频谱保存为同一测量记录。迁移问题：若把 <span class="arithmatex">\(f_c\)</span> 降到原来四分之一，时间常数与同一 <span class="arithmatex">\(f\)</span> 下的衰减趋势如何变化？若频谱中出现超出传感器物理带宽的高频峰，先检查激励、布局、采样窗还是滤波器模型？</p>
+</section>
+<h2 id="1-fourier-fft">1. Fourier 视角不是“只用 FFT”<a class="headerlink" href="#1-fourier-fft" title="Permanent link"></a></h2>
+<p>傅里叶级数适合周期信号，傅里叶变换适合更广的时域信号，离散 Fourier 变换适合有限采样序列。它们都需要明确时间窗、采样率、归一化和频率分辨率。FFT 是一种高效算法，不会自动识别窗函数、抗混叠或物理因果关系。</p>
+<h2 id="2_1">2. 低通、高通和带宽<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>低通把慢变化保留下来，高通把变化边沿或快速分量保留下来；带宽必须相对于任务定义。<span class="arithmatex">\(-3\ \mathrm{dB}\)</span> 是一阶幅值的常用参考点，不等于“截止后全部消失”，也不等于任意滤波器的唯一带宽定义。对噪声，还需要说明等效噪声带宽，而不是只报名义截止频率。</p>
+<h2 id="3_1">3. 小结<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>傅里叶视角把输入分成频率分量，LTI 滤波器用 <span class="arithmatex">\(H(f)\)</span> 对每个分量施加幅度和相位；一阶低通/高通在 <span class="arithmatex">\(f_c\)</span> 处约为 <span class="arithmatex">\(-3\ \mathrm{dB}\)</span>，而时间常数 <span class="arithmatex">\(\tau=1/(2\pi f_c)\)</span> 把带宽代价带回阶跃响应。真正的设计必须在信号带宽、噪声、允许延迟、采样窗和器件/布局边界之间做证据化取舍。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>电路滤波、动态响应和线性网络可参考 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>。</li>
+<li>信号、频率响应与测量实验入口是 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>电磁与交流的物理基础可回看 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+</ul>
+<p>页内具体参数和数字均为教学设定或公式结果，不是动态观测。互动只覆盖低压、限流、可断电系统；不提供市电施工、带电测量或认证滤波器选型。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="11-lti-convolution.html"><span class="pager-label">上一页</span>系统 I · LTI、卷积与状态响应</a>
+  <a class="pager-slot next" href="13-noise-dynamic-range.html"><span class="pager-label">下一页</span>测量 I · 噪声、SNR 与动态范围</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-fourier-filters.js"></script>
+</body>
+</html>

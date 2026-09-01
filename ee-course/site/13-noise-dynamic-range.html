@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>噪声、SNR 与动态范围 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li class="active"><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-noise-dynamic-range-learning-title">学习层：增加带宽为什么会让底噪升高</a><ul>
+<li><a href="#1">1. 具体情境：一个毫伏级变化到底可不可见</a></li>
+<li><a href="#2">2. 揭示前预测：密度、积分和信噪比</a></li>
+<li><a href="#3-db">3. 公式桥：从噪声密度积分到 dB</a></li>
+<li><a href="#4">4. 互动实验：看见“密度 × 带宽”的面积</a></li>
+<li><a href="#5">5. 真实修正：噪声密度和测量带宽都要定义</a></li>
+<li><a href="#6">6. 测量方案：短接、终端、积分和重复性</a></li>
+<li><a href="#7">7. 模型失效与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1_1">1. 热噪声的边界</a></li>
+<li><a href="#2-snr">2. SNR 与动态范围的分工</a></li>
+<li><a href="#3">3. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-snr">测量 I · 热噪声、SNR 与动态范围<a class="headerlink" href="#i-snr" title="Permanent link"></a></h1>
+<blockquote>
+<p>示波器上“没有信号”的一条细线，也可能是探头底噪、热噪声和带宽共同画出来的。先把噪声密度写成每根带宽的单位，再积分到测量窗口，才能判断一个传感器的小变化是被物理噪声淹没，还是只是仪器没有被正确设置。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-noise-dynamic-range-learning-title" class="learning-layer">
+<h2 id="ee-noise-dynamic-range-learning-title">学习层：增加带宽为什么会让底噪升高<a class="headerlink" href="#ee-noise-dynamic-range-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：一个毫伏级变化到底可不可见<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低功耗节点的传感器输出只有毫伏级变化。工程师把示波器带宽从 <span class="arithmatex">\(100\ \mathrm{Hz}\)</span> 打开到 <span class="arithmatex">\(1\ \mathrm{kHz}\)</span>，波形看起来突然更“粗”；如果只看峰峰值，可能会把带宽增加误判成传感器变差。电阻的热噪声、电路的输入等效噪声密度和测量带宽共同决定 rms 噪声，信号大小再决定 SNR 与动态范围。</p>
+<p>以下数字是<strong>教学设定</strong>：<span class="arithmatex">\(R=1.0\ \mathrm{k\Omega}\)</span>、<span class="arithmatex">\(T=300\ \mathrm K\)</span>、等效噪声带宽 <span class="arithmatex">\(B=1.0\ \mathrm{kHz}\)</span>、仪器白噪声密度 <span class="arithmatex">\(5\ \mathrm{nV}/\sqrt{\mathrm{Hz}}\)</span>、目标信号 <span class="arithmatex">\(10\ \mathrm{mV_{rms}}\)</span>、满量程 <span class="arithmatex">\(1.0\ \mathrm V_{rms}\)</span>。它们用于演算和量级判断，不是某台仪器的动态噪声记录。</p>
+<h3 id="2">2. 揭示前预测：密度、积分和信噪比<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前先预测：</p>
+<ol>
+<li>白噪声带宽扩大四倍，积分后的 rms 噪声会扩大约四倍、两倍还是不变？</li>
+<li>只把电阻值扩大四倍，热噪声电压密度会扩大约四倍、两倍还是不变？</li>
+<li>在满量程固定且噪声不变时，目标信号减半，SNR 和动态范围会变大还是变小？</li>
+</ol>
+<p>提交后调节电阻、温度、带宽和仪器底噪。图中用 PSD <span class="arithmatex">\(S_v\)</span> 在频率轴上的矩形积分表示 <span class="arithmatex">\(S_vB\)</span>，再开方得到 rms 噪声，而不是把一根噪声曲线冒充一条真实测量记录。</p>
+<h3 id="3-db">3. 公式桥：从噪声密度积分到 dB<a class="headerlink" href="#3-db" title="Permanent link"></a></h3>
+<p>热平衡下，理想电阻的 Johnson 电压幅度密度为</p>
+<div class="arithmatex">\[
+e_{n,R}=\sqrt{4k_\mathrm BT R}\quad [\mathrm{V}/\sqrt{\mathrm{Hz}}],
+\]</div>
+<p>其中 <span class="arithmatex">\(k_\mathrm B=1.380649\times10^{-23}\ \mathrm{J/K}\)</span> 是定义常数，<span class="arithmatex">\(T\)</span> 是 K，<span class="arithmatex">\(R\)</span> 是 <span class="arithmatex">\(\Omega\)</span>。对应的电压功率谱密度是</p>
+<div class="arithmatex">\[
+S_{v,R}=e_{n,R}^2=4k_\mathrm BT R\quad [\mathrm{V^2/Hz}].
+\]</div>
+<p>在白噪声和矩形等效带宽的教学近似下，先对 PSD 积分再开方：</p>
+<div class="arithmatex">\[
+v_{n,R}^2=\int_0^B S_{v,R}\,df=S_{v,R}B\quad [\mathrm{V^2}],
+\qquad
+v_{n,R}=\sqrt{S_{v,R}B}=e_{n,R}\sqrt B,
+\qquad
+v_{n,\mathrm{tot}}=\sqrt{v_{n,R}^2+v_{n,\mathrm{inst}}^2}.
+\]</div>
+<p>若仪器幅度密度为 <span class="arithmatex">\(e_{n,\mathrm{inst}}\)</span>，则 <span class="arithmatex">\(S_{v,\mathrm{inst}}=e_{n,\mathrm{inst}}^2\)</span>，独立源的 PSD 相加为 <span class="arithmatex">\(S_{v,\mathrm{tot}}=S_{v,R}+S_{v,\mathrm{inst}}\)</span>，再由 <span class="arithmatex">\(v_{n,\mathrm{tot}}=\sqrt{S_{v,\mathrm{tot}}B}\)</span> 得到 rms 电压。图中的矩形“面积”因此是方差 <span class="arithmatex">\(\mathrm{V^2}\)</span>，不是把幅度密度乘 <span class="arithmatex">\(B\)</span> 后称作功率。</p>
+<p>独立噪声源用均方根平方相加，不直接相加幅值。若信号 rms 值为 <span class="arithmatex">\(V_s\)</span>，</p>
+<div class="arithmatex">\[
+\mathrm{SNR}_{\mathrm{dB}}=20\log_{10}\frac{V_s}{v_{n,\mathrm{tot}}}.
+\]</div>
+<p>若满量程可用信号 rms 值为 <span class="arithmatex">\(V_{\mathrm{FS}}\)</span>，在同一个输入等效噪声定义下，动态范围可以记为</p>
+<div class="arithmatex">\[
+\mathrm{DR}_{\mathrm{dB}}=20\log_{10}\frac{V_{\mathrm{FS}}}{v_{n,\mathrm{tot}}}.
+\]</div>
+<p>这两个 dB 量回答不同问题：SNR 针对当前信号，DR 针对可用最大信号与底噪之间的范围。量纲检查：<span class="arithmatex">\(k_\mathrm BT\)</span> 是 J，即 <span class="arithmatex">\(\mathrm{V\,C}\)</span>；乘以 <span class="arithmatex">\(R=\mathrm{V/A}\)</span> 并利用 <span class="arithmatex">\(\mathrm C=\mathrm{A\,s}\)</span>，得到 <span class="arithmatex">\(\mathrm{V^2s}=\mathrm{V^2/Hz}\)</span>，开方后为 <span class="arithmatex">\(\mathrm{V}/\sqrt{\mathrm{Hz}}\)</span>；再乘 <span class="arithmatex">\(\sqrt B\)</span> 回到 V。</p>
+<p>默认教学值的热噪声密度约 <span class="arithmatex">\(4.1\ \mathrm{nV}/\sqrt{\mathrm{Hz}}\)</span>，在 <span class="arithmatex">\(1\ \mathrm{kHz}\)</span> 下热噪声 rms 约 <span class="arithmatex">\(0.129\ \mu\mathrm V\)</span>；仪器密度对应约 <span class="arithmatex">\(0.158\ \mu\mathrm V\)</span>，合成底噪约 <span class="arithmatex">\(0.204\ \mu\mathrm V\)</span>。因此 <span class="arithmatex">\(10\ \mathrm{mV}\)</span> 信号的 SNR 约 <span class="arithmatex">\(94\ \mathrm{dB}\)</span>，<span class="arithmatex">\(1\ \mathrm V\)</span> 满量程的教学动态范围约 <span class="arithmatex">\(134\ \mathrm{dB}\)</span>。这些数字是公式结果，不是仪器宣称。</p>
+<h3 id="4">4. 互动实验：看见“密度 × 带宽”的面积<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-noise-dynamic-range">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为 <span class="arithmatex">\(R=1.0\ \mathrm{k\Omega}\)</span>、<span class="arithmatex">\(T=300\ \mathrm K\)</span>、<span class="arithmatex">\(B=1.0\ \mathrm{kHz}\)</span>、仪器噪声密度 <span class="arithmatex">\(5\ \mathrm{nV}/\sqrt{\mathrm{Hz}}\)</span>、信号 <span class="arithmatex">\(10\ \mathrm{mV_{rms}}\)</span>、满量程 <span class="arithmatex">\(1.0\ \mathrm V_{rms}\)</span>。理想热噪声密度约 <span class="arithmatex">\(4.07\ \mathrm{nV}/\sqrt{\mathrm{Hz}}\)</span>，热噪声 rms 约 <span class="arithmatex">\(0.129\ \mu\mathrm V\)</span>；仪器项约 <span class="arithmatex">\(0.158\ \mu\mathrm V\)</span>；独立源合成底噪约 <span class="arithmatex">\(0.204\ \mu\mathrm V\)</span>，SNR 约 <span class="arithmatex">\(93.8\ \mathrm{dB}\)</span>，教学动态范围约 <span class="arithmatex">\(133.8\ \mathrm{dB}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>电阻 <span class="arithmatex">\(R\)</span></td>
+<td style="text-align: right;">1.00</td>
+<td>kΩ，教学输入</td>
+</tr>
+<tr>
+<td>温度 <span class="arithmatex">\(T\)</span></td>
+<td style="text-align: right;">300</td>
+<td>K，教学输入</td>
+</tr>
+<tr>
+<td>等效带宽 <span class="arithmatex">\(B\)</span></td>
+<td style="text-align: right;">1000</td>
+<td>Hz，矩形积分近似</td>
+</tr>
+<tr>
+<td>热噪声密度</td>
+<td style="text-align: right;">4.07</td>
+<td>nV/√Hz</td>
+</tr>
+<tr>
+<td>热噪声 rms</td>
+<td style="text-align: right;">0.129</td>
+<td>µV，<span class="arithmatex">\(e_n\sqrt B\)</span></td>
+</tr>
+<tr>
+<td>仪器噪声 rms</td>
+<td style="text-align: right;">0.158</td>
+<td>µV，白噪声教学项</td>
+</tr>
+<tr>
+<td>合成底噪</td>
+<td style="text-align: right;">0.204</td>
+<td>µV，RSS</td>
+</tr>
+<tr>
+<td>SNR</td>
+<td style="text-align: right;">93.8</td>
+<td>dB，当前信号</td>
+</tr>
+<tr>
+<td>动态范围</td>
+<td style="text-align: right;">133.8</td>
+<td>dB，满量程到底噪</td>
+</tr>
+</tbody>
+</table>
+<p>图中的阴影面积代表在 <span class="arithmatex">\(0\)</span> 到 <span class="arithmatex">\(B\)</span> 内积分的噪声方差 <span class="arithmatex">\(S_vB\)</span>（<span class="arithmatex">\(\mathrm{V^2}\)</span>），旁边标出开方后的 <span class="arithmatex">\(e_n\sqrt B\)</span>（<span class="arithmatex">\(\mathrm{V_{rms}}\)</span>）；它不是把 <span class="arithmatex">\(e_nB\)</span> 称作功率，也不是一条伪造的频谱观测。</p>
+<p>若当前信号 rms 值超过满量程 rms 值，即 <span class="arithmatex">\(V_s&gt;V_{\mathrm{FS}}\)</span>，实验输出状态为 <strong>overload</strong>。此时削顶已经破坏线性工作点，SNR 和动态范围均标为“不适用”，不能用噪声很小的公式给出虚假的高分数。</p>
+</div>
+<h3 id="5">5. 真实修正：噪声密度和测量带宽都要定义<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>实际噪声未必是白的</strong>：<span class="arithmatex">\(1/f\)</span> 噪声、爆米花噪声、开关尖峰、机械耦合和环境电磁干扰会让密度随频率变化，积分必须是 <span class="arithmatex">\(\int S_v(f)df\)</span>，不能永远用 <span class="arithmatex">\(e_n\sqrt B\)</span>。</li>
+<li><strong>带宽常常是 ENBW</strong>：示波器带宽限制、数字滤波器、RBW、窗函数和平均算法有各自的等效噪声带宽；名义截止频率不是积分区间的全部说明。</li>
+<li><strong>噪声可能相关</strong>：两个源若相关，不能简单 RSS；放大器的电压噪声和电流噪声还会通过源阻抗共同转化为输入等效噪声。</li>
+<li><strong>动态范围受上端限制</strong>：满量程、削顶、线性范围、共模范围和热压缩会决定可用最大信号；底噪低不等于大信号不失真。</li>
+</ul>
+<p>曲线和表格是教学仿真；短接输入、终端匹配和多次采样得到的底噪才是测量证据；器件噪声指标、带宽与标准测试方法要以具体数据手册和适用标准为准。</p>
+<h3 id="6">6. 测量方案：短接、终端、积分和重复性<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>先定义输入等效端口和测量带宽。用同轴端接或低噪声短接测仪器底噪，改变示波器带宽限制或数字带宽，检查 rms 噪声是否按 <span class="arithmatex">\(\sqrt B\)</span> 缩放；再接入已知电阻，改变 <span class="arithmatex">\(R\)</span> 或温度条件，在不改变其他设置的情况下拟合 <span class="arithmatex">\(4kTR\)</span> 斜率。记录采样率、记录长度、窗函数、RBW/ENBW、探头衰减、接地和重复统计量。</p>
+<p>不要用示波器的峰峰值直接当作 rms 热噪声，也不要把一条带宽未知的 FFT 垂直刻度直接和 <span class="arithmatex">\(\mathrm{nV}/\sqrt{\mathrm{Hz}}\)</span> 相比。全程使用低压、限流、可断电信号源。</p>
+<h3 id="7">7. 模型失效与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>如果目标信号接近 <span class="arithmatex">\(1/f\)</span> 拐点、存在周期性干扰或噪声与信号相关，就需要频率相关 PSD、互谱、锁相或时域故障记录；单一白噪声 rms 不能支撑结论。若底噪已低于 ADC 量化噪声，下一步应接入第 14 讲的量化与采样预算，而不是继续假设模拟噪声主导。</p>
+<p>迁移到贯穿项目时，保留噪声源表：传感器、偏置电阻、放大器、ADC、参考源和仪器分别写输入等效密度、积分带宽、相关性和证据类型；把目标最小变化、SNR 门槛、满量程和动态范围写在同一页。迁移问题：带宽加倍时为什么噪声只乘 <span class="arithmatex">\(\sqrt2\)</span>？如果测得噪声随带宽线性增长，哪一个“白噪声 + 矩形带宽”假设最可能失效？</p>
+</section>
+<h2 id="1_1">1. 热噪声的边界<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>Johnson 噪声是热平衡电阻的模型；温度、频率范围、端口定义和测量带宽必须清楚。真实电阻、传感器和放大器还可能有电流噪声、<span class="arithmatex">\(1/f\)</span> 噪声和外部干扰。把所有底噪都叫“热噪声”会掩盖可改进的布局、偏置和屏蔽问题。</p>
+<h2 id="2-snr">2. SNR 与动态范围的分工<a class="headerlink" href="#2-snr" title="Permanent link"></a></h2>
+<p>SNR 是当前信号相对于噪声的可辨认程度；动态范围是系统允许的最大线性信号相对于底噪的跨度。一个系统可能对当前小信号有足够 SNR，却因为满量程太小而容易削顶；也可能满量程很大，却在目标信号处 SNR 不够。必须同时给出信号定义、噪声积分带宽和上端线性边界。</p>
+<h2 id="3">3. 小结<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>先用噪声密度的单位，再用 PSD 在有效带宽上积分，最后用 rms 比值计算 SNR 和动态范围。白噪声近似给出有用的数量级：带宽四倍，rms 噪声两倍；电阻四倍，热噪声电压密度两倍。真实测量还要处理 <span class="arithmatex">\(1/f\)</span>、相关源、ENBW、探头底噪、削顶和温度。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>电路噪声、交流电路和能量量纲的基础入口是 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>测量带宽、实验记录和不确定度训练可参考 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>工程测试与标准入口是 <a href="https://standards.ieee.org/">IEEE Standards</a>，本页不代替具体仪器、器件或标准测试方法。</li>
+</ul>
+<p>页内数值均为教学设定或公式计算，不是动态噪声观测。互动只覆盖低压、限流、可断电的教学信号；不涉及市电测量、认证实验或高能系统。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="12-fourier-filters.html"><span class="pager-label">上一页</span>系统 II · 傅里叶、滤波与频谱</a>
+  <a class="pager-slot next" href="14-sampling-quantization.html"><span class="pager-label">下一页</span>测量 II · 采样、混叠与量化</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-noise-dynamic-range.js"></script>
+</body>
+</html>

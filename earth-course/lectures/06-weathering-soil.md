@@ -83,6 +83,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![临界带把地表过程串起来](assets/img/critical-zone-section.svg)
+
+<figcaption><span class="fig-id">图 6.1</span>垂向剖面把水、CO₂、温度和溶质放进同一个临界带控制体，帮助你看见根区、风化基岩和裂隙水之间的耦合；坡面长度、深度与层厚非等比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![风化前沿如何推进](assets/img/soil-weathering-front.svg)
+
+<figcaption><span class="fig-id">图 6.2</span>风化库存的变化由化学生成与侵蚀输出共同决定：即使 <i>R</i><sub>w</sub> 增大，若 <i>E</i><sub>soil</sub> 增长更快，土壤仍可能变薄；前沿位置和输运路径为教学代理。</figcaption>
+</figure>
+
 ## 1. 临界带的垂向剖面
 
 从冠层、枯落物到表土、根区、风化基岩和裂隙水，临界带把大气输入、生态过程、矿物反应和地下水流动接在一起。边界通常不是一条平面；不同坡位、岩性和排水条件可以有不同深度与年龄结构。

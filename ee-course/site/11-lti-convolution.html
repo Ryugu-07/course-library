@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LTI、卷积与状态响应 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li class="active"><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#ee-lti-convolution-learning-title">学习层：输入结束了，输出为什么还没结束</a><ul>
+<li><a href="#1">1. 具体情境：唤醒脉冲过后，传感器读数还在爬升</a></li>
+<li><a href="#2">2. 揭示前预测：先分离两种响应</a></li>
+<li><a href="#3">3. 公式桥：从冲激响应到卷积积分</a></li>
+<li><a href="#4">4. 互动实验：让冲激响应滑过输入</a></li>
+<li><a href="#5-lti">5. 真实修正：LTI 是可验证的近似，不是器件身份证</a></li>
+<li><a href="#6-hx">6. 测量方案：分别测 h、x 与初始状态</a></li>
+<li><a href="#7">7. 模型失效与项目迁移</a></li>
+</ul>
+</li>
+<li><a href="#1-lti">1. 叠加是 LTI 的工程工具</a></li>
+<li><a href="#2_1">2. 零输入与零状态是不同实验</a></li>
+<li><a href="#3_1">3. 小结</a></li>
+<li><a href="#_1">资料与边界</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-lti">系统 I · LTI、卷积与状态响应<a class="headerlink" href="#i-lti" title="Permanent link"></a></h1>
+<blockquote>
+<p>同一个传感器脉冲，为什么换一块“响应慢一点”的调理电路后，尾巴会拖得更长？把输入拆成许多小脉冲，每一个都由同一个脉冲响应搬移、缩放再相加，就能把黑箱输出变成可检查的卷积；但前提是系统真的近似线性且时不变。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-lti-convolution-learning-title" class="learning-layer">
+<h2 id="ee-lti-convolution-learning-title">学习层：输入结束了，输出为什么还没结束<a class="headerlink" href="#ee-lti-convolution-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 具体情境：唤醒脉冲过后，传感器读数还在爬升<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>低功耗节点让传感器偏置开启 <span class="arithmatex">\(3\ \mathrm{ms}\)</span>，然后关闭开关。模拟前端和传感器本身有储能与极点，输出不会在开关断开时立即回到零。调试者需要把输出分成两部分：由初始状态留下的<strong>零输入响应</strong>，以及由这次脉冲输入产生的<strong>零状态响应</strong>。如果换一种脉冲宽度，输出的每一点都仍由同一个冲激响应叠加而来，才可以使用 LTI 的卷积规则。</p>
+<p>数字是<strong>教学设定</strong>：一阶系统时间常数 <span class="arithmatex">\(\tau=4\ \mathrm{ms}\)</span>，输入脉冲幅值 <span class="arithmatex">\(1.0\)</span>（归一化单位），从 <span class="arithmatex">\(1\ \mathrm{ms}\)</span> 开始持续 <span class="arithmatex">\(3\ \mathrm{ms}\)</span>，初始状态 <span class="arithmatex">\(y_0=0.40\)</span>，观察 <span class="arithmatex">\(25\ \mathrm{ms}\)</span>。这不是某个传感器的数据手册值，也不是现场波形。</p>
+<h3 id="2">2. 揭示前预测：先分离两种响应<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>打开实验前回答：</p>
+<ol>
+<li>输入脉冲结束后，零状态响应会立刻归零，还是会保留一个衰减尾巴？</li>
+<li>把初始状态加倍，只改变零输入响应还是也改变由输入脉冲产生的零状态响应？</li>
+<li>对一个真正的 LTI 系统，把同一脉冲整体延迟，输出的形状会改变还是只会整体延迟？</li>
+</ol>
+<p>提交后可以拖动 <span class="arithmatex">\(\tau\)</span>、脉冲宽度、延迟和初始状态。图中会同时画输入、脉冲响应、卷积输出和状态分解，避免把“输出有尾巴”直接归因于一个未验证的器件参数。</p>
+<h3 id="3">3. 公式桥：从冲激响应到卷积积分<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>连续时间 LTI 系统由零状态响应的冲激响应 <span class="arithmatex">\(h(t)\)</span> 完全刻画：</p>
+<div class="arithmatex">\[
+y_{\mathrm{zs}}(t)=(h*x)(t)=\int_{-\infty}^{\infty}h(\tau)x(t-\tau)\,d\tau.
+\]</div>
+<p>这里 <span class="arithmatex">\(x(t)\)</span> 是输入，<span class="arithmatex">\(h(t)\)</span> 是单位冲激的响应，<span class="arithmatex">\(y_{\mathrm{zs}}\)</span> 是初始状态为零时的输出。交换积分变量也可写成 <span class="arithmatex">\(\int h(t-\tau)x(\tau)d\tau\)</span>；关键是一个函数要先翻转、再平移、再与输入相乘积分。对 LTI 系统，</p>
+<div class="arithmatex">\[
+y(t)=y_{\mathrm{zi}}(t)+y_{\mathrm{zs}}(t),
+\qquad y_{\mathrm{zi}}(t)\text{ 只由初始状态决定}.
+\]</div>
+<p>以归一化一阶低通为例，</p>
+<div class="arithmatex">\[
+\tau\frac{dy}{dt}+y=x,
+\qquad h(t)=\frac{1}{\tau}e^{-t/\tau}u(t),
+\]</div>
+<p><span class="arithmatex">\(u(t)\)</span> 是单位阶跃，<span class="arithmatex">\(\tau\)</span> 的单位为 s，<span class="arithmatex">\(h(t)\)</span> 的单位为 <span class="arithmatex">\(\mathrm{s^{-1}}\)</span>，使 <span class="arithmatex">\(h\,dt\)</span> 无量纲。若输入是幅值 <span class="arithmatex">\(A\)</span>、宽度 <span class="arithmatex">\(T\)</span> 的矩形脉冲，零状态输出在脉冲内为 <span class="arithmatex">\(A(1-e^{-t/\tau})\)</span>，脉冲结束后为 <span class="arithmatex">\(A(1-e^{-T/\tau})e^{-(t-T)/\tau}\)</span>（时间原点需按输入延迟平移）。完整量纲检查：左侧 <span class="arithmatex">\(\tau dy/dt\)</span> 与 <span class="arithmatex">\(y\)</span> 同单位，右侧 <span class="arithmatex">\(x\)</span> 同单位；卷积中 <span class="arithmatex">\(h\)</span> 的 <span class="arithmatex">\(\mathrm{s^{-1}}\)</span> 乘以 <span class="arithmatex">\(x\)</span> 再乘 <span class="arithmatex">\(d\tau\)</span>，回到输出单位。</p>
+<p>离散复核时取真实时间点 <span class="arithmatex">\(t_n\)</span>，只累加 <span class="arithmatex">\(t_k\le t_n\)</span> 的输入样本，令滞后 <span class="arithmatex">\(\ell=t_n-t_k\ge0\)</span>，使用 <span class="arithmatex">\(h(\ell)x(t_k)\)</span>；不能读取未来的 <span class="arithmatex">\(t_k&gt;t_n\)</span>。时间网格的最后一点也必须不超过观察窗口。若用 <span class="arithmatex">\(h(0)\Delta t=\Delta t/\tau\)</span>，它只是第一个样本的权重，不应命名为截断冲激响应面积。</p>
+<p>默认设定在观察末端的零输入部分约为 <span class="arithmatex">\(0.40e^{-25/4}\approx7.7\times10^{-4}\)</span>，零状态尾巴也已降到约 <span class="arithmatex">\(3\times10^{-3}\)</span> 量级；毫秒时间常数与毫秒脉冲宽度同量级，所以不能用“脉冲很短，输出可以忽略”来偷换假设。</p>
+<h3 id="4">4. 互动实验：让冲激响应滑过输入<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-lti-convolution">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>教学设定为 <span class="arithmatex">\(\tau=4.00\ \mathrm{ms}\)</span>、脉冲从 <span class="arithmatex">\(1.00\ \mathrm{ms}\)</span> 开始、宽度 <span class="arithmatex">\(3.00\ \mathrm{ms}\)</span>、幅值 <span class="arithmatex">\(1.00\)</span>、初始状态 <span class="arithmatex">\(y_0=0.40\)</span>、观察到 <span class="arithmatex">\(25.0\ \mathrm{ms}\)</span>。脉冲结束时零状态输出约为 <span class="arithmatex">\(1-e^{-3/4}=0.528\)</span>；随后它按 <span class="arithmatex">\(\tau=4\ \mathrm{ms}\)</span> 衰减。零输入项在末端约 <span class="arithmatex">\(7.7\times10^{-4}\)</span>，总输出约 <span class="arithmatex">\(3.5\times10^{-3}\)</span>，数值均由教学方程得到。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时间常数 <span class="arithmatex">\(\tau\)</span></td>
+<td style="text-align: right;">4.00</td>
+<td>ms，一阶记忆尺度</td>
+</tr>
+<tr>
+<td>输入开始</td>
+<td style="text-align: right;">1.00</td>
+<td>ms，教学脉冲位置</td>
+</tr>
+<tr>
+<td>输入宽度</td>
+<td style="text-align: right;">3.00</td>
+<td>ms</td>
+</tr>
+<tr>
+<td>脉冲结束零状态输出</td>
+<td style="text-align: right;">0.528</td>
+<td>归一化单位，<span class="arithmatex">\(1-e^{-T/\tau}\)</span></td>
+</tr>
+<tr>
+<td>末端零输入输出</td>
+<td style="text-align: right;"><span class="arithmatex">\(7.7\times10^{-4}\)</span></td>
+<td>归一化单位，<span class="arithmatex">\(y_0e^{-t/\tau}\)</span></td>
+</tr>
+<tr>
+<td>末端总输出</td>
+<td style="text-align: right;">约 <span class="arithmatex">\(3.5\times10^{-3}\)</span></td>
+<td>归一化单位，教学模型</td>
+</tr>
+</tbody>
+</table>
+<p>图示中的滑动曲线表示 <span class="arithmatex">\(h(t-\tau)\)</span> 在输入上移动，下面的输出曲线同时标出 <span class="arithmatex">\(y_{\mathrm{zi}}\)</span>、<span class="arithmatex">\(y_{\mathrm{zs}}\)</span> 和 <span class="arithmatex">\(y\)</span>。卷积的阴影是计算示意，不是测量采样点。</p>
+</div>
+<h3 id="5-lti">5. 真实修正：LTI 是可验证的近似，不是器件身份证<a class="headerlink" href="#5-lti" title="Permanent link"></a></h3>
+<ul>
+<li><strong>线性可能只在小信号附近成立</strong>：传感器饱和、运放输出摆幅、开关导通电阻随电压变化，会让叠加和比例失效。</li>
+<li><strong>时不变可能只在固定状态成立</strong>：温度、供电、偏置、采样保持状态或自动增益改变，都会让 <span class="arithmatex">\(h(t)\)</span> 随时间变化。</li>
+<li><strong>脉冲响应有带宽和观测窗</strong>：输入边沿比采样间隔更快时，测得的是仪器和探头共同的响应；观察窗太短则把慢尾巴误判为零。</li>
+<li><strong>初始条件常常不可见</strong>：电容电压、积分器状态和传感器热状态可能在触发前就非零，零输入项不能被“减掉”而不记录。</li>
+</ul>
+<p>因此交互实验的分解和卷积闭合只证明教学模型；它不能证明一块实际板卡在大信号、温漂或切换时仍是 LTI。真实系统要保存激励、状态、测量链和重复试验。</p>
+<h3 id="6-hx">6. 测量方案：分别测 <i>h</i>、<i>x</i> 与初始状态<a class="headerlink" href="#6-hx" title="Permanent link"></a></h3>
+<p>先用足够小的低压阶跃或窄脉冲，测量输入端和输出端，并记录触发前的基线。用输入幅度缩放和时间平移做两组检验：若输出按比例缩放且只整体平移，LTI 近似有证据支持；再把输入关断，单独记录零输入尾巴。用已知采样间隔对输入和估计的 <span class="arithmatex">\(h\)</span> 做离散卷积，与实测零状态输出比较；报告残差、时间窗、探头带宽和不确定度，而不是只报告峰值。</p>
+<p>所有实验仍限定为低压、限流、可断电；不要把脉冲注入未知市电或高能储能回路。</p>
+<h3 id="7">7. 模型失效与项目迁移<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>当系统含有乘法调制、自动换挡、饱和、死区、迟滞、时变采样率或非平稳环境，单一 <span class="arithmatex">\(h(t)\)</span> 不再足够。可以分段线性化、建立状态空间模型或直接保留非线性仿真，但必须标出哪些数据支持哪一种近似。</p>
+<p>迁移到贯穿项目时，保存一份“输入—脉冲响应—输出—初始状态”四列记录，并把传感器唤醒的零状态响应和上一次采样残留的零输入响应分别写入测量计划。迁移问题：若两次唤醒间隔缩短到 <span class="arithmatex">\(\tau\)</span> 的量级，为什么上一周期状态不能忽略？若同一输入在冷机和热机输出比例不同，你会把问题归给线性失效、时变失效还是测量链？</p>
+</section>
+<h2 id="1-lti">1. 叠加是 LTI 的工程工具<a class="headerlink" href="#1-lti" title="Permanent link"></a></h2>
+<p>线性意味着 <span class="arithmatex">\(T\{a x_1+b x_2\}=aT\{x_1\}+bT\{x_2\}\)</span>；时不变意味着输入整体延迟，输出也整体延迟。二者合在一起，任意输入都可以看成许多加权、平移的冲激，输出就是这些脉冲响应的叠加。卷积不是“把两个数组相乘”，而是一个带有平移和积分的运算。</p>
+<p>离散系统中，</p>
+<div class="arithmatex">\[
+y[n]=\sum_{k=-\infty}^{\infty}h[k]x[n-k].
+\]</div>
+<p>每项的索引方向很重要；把 <span class="arithmatex">\(x[n-k]\)</span> 写成 <span class="arithmatex">\(x[n+k]\)</span> 会把因果关系反过来。实现时要明确 <span class="arithmatex">\(h[0]\)</span>、采样间隔和边界补零规则。</p>
+<h2 id="2_1">2. 零输入与零状态是不同实验<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>零输入响应是“输入归零但保留初始状态”；零状态响应是“初始状态归零但保留输入”。它们在数学上线性相加，在测量上却需要不同的启动条件。只测一次通道并不能识别二者分别贡献了多少。</p>
+<h2 id="3_1">3. 小结<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>LTI 系统可以用冲激响应 <span class="arithmatex">\(h\)</span> 描述，零状态输出由卷积给出，完整输出还要加零输入响应。卷积的时间平移结构解释了系统记忆，也提供了从测量激励到输出预测的可复核路径。线性、时不变、因果和测量带宽都是假设，不满足时要换模型。</p>
+<h2 id="_1">资料与边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<ul>
+<li>电路动态与线性网络的基础入口是 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a>。</li>
+<li>信号、系统、测量和实验方法可参考 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>物理量、微分方程和交流基础可回看 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+</ul>
+<p>本页数值均为教学设定或由给出的模型计算；互动闭合不等于真实传感器验证。课程只覆盖低压、限流、可断电系统，不涉及市电施工、带电市电测量或高能系统。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="10-ac-power-transformers.html"><span class="pager-label">上一页</span>交流 II · 功率、变压器与隔离概念</a>
+  <a class="pager-slot next" href="12-fourier-filters.html"><span class="pager-label">下一页</span>系统 II · 傅里叶、滤波与频谱</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-lti-convolution.js"></script>
+</body>
+</html>

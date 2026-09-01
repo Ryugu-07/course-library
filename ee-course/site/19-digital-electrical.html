@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电气逻辑、电平与负载 · 电气与电子工程基础</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = null;
+  try { t = localStorage.getItem('theme'); } catch (error) { /* file:// may deny storage */ }
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">电气与电子工程基础</a>
+    <div class="site-subtitle">安全 · 电路 · 信号 · 硬件系统</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">导论</div><ul><li><a href="index.html">00 · 怎么读这门课</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线一 · 安全与电路语言</div><ul><li><a href="01-system-safety.html">安全 I · 低压、限流与测量边界</a></li><li><a href="02-lumped-components.html">电路 I · 集总元件与参考方向</a></li><li><a href="03-kcl-kvl-nodal.html">电路 II · KCL、KVL 与节点分析</a></li><li><a href="04-network-equivalents.html">电路 III · 等效、叠加与端口</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线二 · 非线性、功率与动态</div><ul><li><a href="05-nonlinear-loadline.html">非线性 · 负载线与工作点</a></li><li><a href="06-power-thermal-ratings.html">功率 · 热、额定值与降额</a></li><li><a href="07-first-order.html">动态 I · 一阶系统与时间常数</a></li><li><a href="08-rlc-resonance.html">动态 II · RLC、阻尼与共振</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线三 · 交流、系统与测量</div><ul><li><a href="09-phasors-impedance.html">交流 I · 相量、阻抗与频率响应</a></li><li><a href="10-ac-power-transformers.html">交流 II · 功率、变压器与隔离概念</a></li><li><a href="11-lti-convolution.html">系统 I · LTI、卷积与状态响应</a></li><li><a href="12-fourier-filters.html">系统 II · 傅里叶、滤波与频谱</a></li><li><a href="13-noise-dynamic-range.html">测量 I · 噪声、SNR 与动态范围</a></li><li><a href="14-sampling-quantization.html">测量 II · 采样、混叠与量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线四 · 真实器件与接口</div><ul><li><a href="15-real-components.html">实物 · 容差、寄生与数据手册</a></li><li><a href="16-protection-switches.html">接口 I · 保护、开关与故障电流</a></li><li><a href="17-opamp-interface.html">模拟 · 运放、基准与传感器接口</a></li><li><a href="18-sensors-transducers.html">传感 · 换能器、校准与不确定度</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线五 · 数字、嵌入式与供电</div><ul><li class="active"><a href="19-digital-electrical.html">数字 I · 电气逻辑、电平与负载</a></li><li><a href="20-timing-synchronization.html">数字 II · 时序、抖动与同步</a></li><li><a href="21-mcu-pwm.html">嵌入式 · MCU、休眠与 PWM</a></li><li><a href="22-hardware-buses.html">互连 · 硬件总线与信号协议</a></li><li><a href="23-power-tree.html">供电 · 电源树、稳压与电源完整性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">线六 · 互连、制造与可靠性</div><ul><li><a href="24-grounding-emc.html">兼容 · 接地、回流与 EMC</a></li><li><a href="25-signal-integrity.html">高速 · 信号完整性与传输线</a></li><li><a href="26-pcb-dft.html">制造 · PCB、可测性与 DFT</a></li><li><a href="27-reliability-bringup.html">工程 · 可靠性、装配与 bring-up</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="28-capstone-sensor-node.html">收官 · 低功耗多传感器节点</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-01 17:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">学习层：先判断一个“逻辑正确但边沿太慢”的节点</a><ul>
+<li><a href="#1-4">1. 具体情境：4 个输入把一个开漏信号拖慢</a></li>
+<li><a href="#2">2. 揭示前预测：把状态和边沿分开</a></li>
+<li><a href="#3-rc">3. 公式桥：门限、噪声裕量和 RC 边沿</a></li>
+<li><a href="#4">4. 互动实验：同时看门限、扇出和电流路径</a></li>
+<li><a href="#5">5. 真实修正：逻辑电平、负载和接口类型要对上</a></li>
+<li><a href="#6">6. 测量纪律：用高阻、短回路、足够采样率</a></li>
+<li><a href="#7">7. 模型边界与项目产物</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 用门限区间而不是一个切换电压思考</a></li>
+<li><a href="#2_1">2. 上拉、动态功率和边沿的取舍</a></li>
+<li><a href="#3">3. 常见误判与纠正</a></li>
+<li><a href="#4_1">4. 资料与边界</a></li>
+<li><a href="#5_1">5. 小结</a></li>
+</ul>
+</div>
+</details>
+<h1 id="19-0-1">19 · 数字电气：逻辑电平不是抽象的 0 和 1<a class="headerlink" href="#19-0-1" title="Permanent link"></a></h1>
+<p>传感器节点的 GPIO 读数在静态检查时全都正确，接上四个外部输入后却出现偶发的低电平误判。问题可能不在布尔逻辑，而在电气边界：CMOS 的 VIH/VIL 是区间，噪声裕量要从 VOH/VOL 扣出来，扇出会增加输入电容，上拉电阻同时决定上升速度和争用电流。</p>
+<div data-learning-page></div>
+
+<section aria-labelledby="ee-digital-electrical-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先判断一个“逻辑正确但边沿太慢”的节点<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1-4">1. 具体情境：4 个输入把一个开漏信号拖慢<a class="headerlink" href="#1-4" title="Permanent link"></a></h3>
+<p>教学节点用 <span class="arithmatex">\(3.3 \mathrm V\)</span> 逻辑，一条开漏/开集电极风格的线由 <span class="arithmatex">\(10 \mathrm{k\Omega}\)</span> 上拉，接入 4 个、每个 <span class="arithmatex">\(10 \mathrm{pF}\)</span> 的输入。接收门限暂以 <span class="arithmatex">\(V_{IL}=0.3V_{DD}\)</span>、<span class="arithmatex">\(V_{IH}=0.7V_{DD}\)</span> 作为<strong>教学设定</strong>；驱动低电平的等效电阻取 <span class="arithmatex">\(30 \Omega\)</span>。</p>
+<p>静态看，<span class="arithmatex">\(V_{OH}=3.1 \mathrm V\)</span>、<span class="arithmatex">\(V_{OL}=0.1 \mathrm V\)</span> 可能有不错的噪声裕量；动态看，总电容是 <span class="arithmatex">\(40 \mathrm{pF}\)</span>，上升沿约 <span class="arithmatex">\(339 \mathrm{ns}\)</span>。开漏释放高态还要扣掉输入漏电：默认 4 个输入、<span class="arithmatex">\(1\,\mu\mathrm A\)</span> 和 <span class="arithmatex">\(10\mathrm{k\Omega}\)</span> 上拉得到 <span class="arithmatex">\(V_{H,rel}=3.26\mathrm V\)</span>，仍高于 <span class="arithmatex">\(V_{IH}=2.31\mathrm V\)</span>。如果系统给出的上升时间预算是 <span class="arithmatex">\(100\mathrm{ns}\)</span>，逻辑电平仍然可能最终有效，但时序、采样窗口和 EMI 余量已经需要重新审计。</p>
+<h3 id="2">2. 揭示前预测：把状态和边沿分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li>更多 CMOS 输入挂在同一输出上，会使上升沿更快、更慢，还是完全不变？</li>
+<li>上拉电阻变大时，开漏线的上升沿和低电平电流怎样变化？</li>
+<li>推挽输出强制为低、外部上拉仍接在高电平时，最需要警惕的是“只有噪声”还是争用电流与耗散？</li>
+</ol>
+<h3 id="3-rc">3. 公式桥：门限、噪声裕量和 RC 边沿<a class="headerlink" href="#3-rc" title="Permanent link"></a></h3>
+<p>对于一个采用教学门限的 CMOS 接收器，噪声裕量定义为</p>
+<div class="arithmatex">\[
+NM_H=V_{OH}-V_{IH},
+\qquad NM_L=V_{IL}-V_{OL}.
+\]</div>
+<p>它们的单位是 V，且不能把 <span class="arithmatex">\(V_{IH}\)</span>、<span class="arithmatex">\(V_{IL}\)</span> 当作一个唯一切换电压。实际数据手册会以最小/最大保证条件给出输入和输出范围。</p>
+<p>一个上拉电阻给电容充电的近似为</p>
+<div class="arithmatex">\[
+V(t)=V_{DD}\left(1-e^{-t/(R_{PU}C_{tot})}\right),
+\]</div>
+<p>从 <span class="arithmatex">\(0.3V_{DD}\)</span> 到 <span class="arithmatex">\(0.7V_{DD}\)</span> 的时间约为</p>
+<div class="arithmatex">\[
+t_r=\ln\left(\frac{0.7}{0.3}\right)R_{PU}C_{tot}\approx0.847R_{PU}C_{tot}.
+\]</div>
+<p>量纲检查：<span class="arithmatex">\(\Omega\cdot\mathrm F=\mathrm s\)</span>。<span class="arithmatex">\(C_{tot}\)</span> 不是只看一个引脚，还可能包含走线、探头、连接器和封装寄生。</p>
+<p>若低驱动等效电阻为 <span class="arithmatex">\(R_{DRV}\)</span>，下降沿可用同样结构估算。推挽低与上拉争用时，最小串联模型是</p>
+<div class="arithmatex">\[
+I_{\mathrm{fight}}\approx\frac{V_{DD}}{R_{PU}+R_{DRV}},
+\qquad P_{PU}=I_{\mathrm{fight}}^2R_{PU}.
+\]</div>
+<p>开漏释放时，不能只用“输入数小于某个旧扇出整数”来判断高态。若 <span class="arithmatex">\(N\)</span> 个输入的漏电方向取最坏同向，</p>
+<div class="arithmatex">\[
+V_{H,rel}=V_{DD}-N I_{in}R_{PU},
+\qquad
+N_{H,OD}=\left\lfloor\frac{V_{DD}-V_{IH}}{R_{PU}I_{in}}\right\rfloor.
+\]</div>
+<p>低态也要把上拉和输入漏电列入电流账：</p>
+<div class="arithmatex">\[
+I_{PU,L}=\frac{V_{DD}-V_{OL}}{R_{PU}},
+\qquad I_{leak,L}=N I_{in},
+\qquad I_L=I_{PU,L}+I_{leak,L}.
+\]</div>
+<p>动态功耗中的 <span class="arithmatex">\(f\)</span> 在本页定义为“可能发生完整 0↔1 翻转的事件率”，<span class="arithmatex">\(\alpha\)</span> 是实际发生翻转的活动因子。因此</p>
+<div class="arithmatex">\[
+P_{dyn}=\alpha f C_{tot}V_{DD}^2.
+\]</div>
+<p>一次实际翻转的上升段分别从电源取走并储存 <span class="arithmatex">\(\tfrac12 C_{tot}V_{DD}^2\)</span>，充电电阻耗散同样的 <span class="arithmatex">\(\tfrac12 C_{tot}V_{DD}^2\)</span>；下降段再耗散 <span class="arithmatex">\(\tfrac12 C_{tot}V_{DD}^2\)</span>，所以完整事件的电源账是 <span class="arithmatex">\(CV^2\)</span>，上升/下降分账各为 <span class="arithmatex">\(\alpha f\tfrac12CV^2\)</span>。</p>
+<p>默认设定的 <span class="arithmatex">\(NM_H=0.79 \mathrm V\)</span>、<span class="arithmatex">\(NM_L=0.89 \mathrm V\)</span>，开漏高态扇出按 <span class="arithmatex">\(V_{IH}\)</span> 和输入漏电为 <span class="arithmatex">\(99\)</span> 个，低态上拉电流为 <span class="arithmatex">\(0.320\mathrm{mA}\)</span>、输入漏电为 <span class="arithmatex">\(0.004\mathrm{mA}\)</span>；但上升沿约 <span class="arithmatex">\(339\mathrm{ns}\)</span>，超过 <span class="arithmatex">\(100\mathrm{ns}\)</span> 预算。争用电流约 <span class="arithmatex">\(0.329\mathrm{mA}\)</span>，若 <span class="arithmatex">\(\alpha=0.5\)</span>、<span class="arithmatex">\(f=1\mathrm{MHz}\)</span>，动态功率为 <span class="arithmatex">\(0.218\mathrm{mW}\)</span>，上升/下降各 <span class="arithmatex">\(0.109\mathrm{mW}\)</span>。这是“静态逻辑合法、动态边界不合格”的典型。</p>
+<p>数量级判断：把负载数从 4 增到 8，<span class="arithmatex">\(C_{tot}\)</span> 近似加倍，RC 上升时间也近似加倍；把上拉从 <span class="arithmatex">\(10 \mathrm{k\Omega}\)</span> 改成 <span class="arithmatex">\(20 \mathrm{k\Omega}\)</span>，高态漏电余量和上升时间都会变差，而低态上拉电流与争用电流下降。速度、静态耗散和高态电平是同一个电阻的三面。</p>
+<h3 id="4">4. 互动实验：同时看门限、扇出和电流路径<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="ee-digital-electrical">
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认教学设定为 <span class="arithmatex">\(V_{DD}=3.3 \mathrm V\)</span>，<span class="arithmatex">\(V_{IH}=2.31 \mathrm V\)</span>、<span class="arithmatex">\(V_{IL}=0.99 \mathrm V\)</span>、<span class="arithmatex">\(V_{OH}=3.10 \mathrm V\)</span>、<span class="arithmatex">\(V_{OL}=0.10 \mathrm V\)</span>；接入 4 个 <span class="arithmatex">\(10 \mathrm{pF}\)</span> 输入，上拉为 <span class="arithmatex">\(10\mathrm{k\Omega}\)</span>，低驱动电阻为 <span class="arithmatex">\(30\Omega\)</span>，上升时间预算为 <span class="arithmatex">\(100\mathrm{ns}\)</span>。默认输入漏电为 <span class="arithmatex">\(1\,\mu\mathrm A\)</span>，动态活动因子 <span class="arithmatex">\(\alpha=0.5\)</span>，完整翻转事件率 <span class="arithmatex">\(f=1\mathrm{MHz}\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>账本项</th>
+<th style="text-align: right;">默认结果</th>
+<th>单位 / 解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高电平噪声裕量</td>
+<td style="text-align: right;">0.790</td>
+<td>V；<span class="arithmatex">\(V_{OH}-V_{IH}\)</span></td>
+</tr>
+<tr>
+<td>低电平噪声裕量</td>
+<td style="text-align: right;">0.890</td>
+<td>V；<span class="arithmatex">\(V_{IL}-V_{OL}\)</span></td>
+</tr>
+<tr>
+<td>总输入电容</td>
+<td style="text-align: right;">40.0</td>
+<td>pF；4 个输入之和</td>
+</tr>
+<tr>
+<td>上升时间</td>
+<td style="text-align: right;">338.9</td>
+<td>ns；0.3–0.7 <span class="arithmatex">\(V_{DD}\)</span></td>
+</tr>
+<tr>
+<td>下降时间</td>
+<td style="text-align: right;">1.017</td>
+<td>ns；低驱动教学模型</td>
+</tr>
+<tr>
+<td>开漏高态扇出上限</td>
+<td style="text-align: right;">99</td>
+<td>个；<span class="arithmatex">\(\lfloor(V_{DD}-V_{IH})/(R_{PU}I_{in})\rfloor\)</span></td>
+</tr>
+<tr>
+<td>释放高电平</td>
+<td style="text-align: right;">3.260</td>
+<td>V；4 个输入漏电后的 <span class="arithmatex">\(V_{H,rel}\)</span>，仍 ≥ VIH</td>
+</tr>
+<tr>
+<td>低态上拉电流</td>
+<td style="text-align: right;">0.320</td>
+<td>mA；<span class="arithmatex">\((V_{DD}-V_{OL})/R_{PU}\)</span></td>
+</tr>
+<tr>
+<td>低态输入漏电</td>
+<td style="text-align: right;">0.004</td>
+<td>mA；<span class="arithmatex">\(N I_{in}\)</span></td>
+</tr>
+<tr>
+<td>低态总电流</td>
+<td style="text-align: right;">0.324</td>
+<td>mA；上拉 + 输入漏电</td>
+</tr>
+<tr>
+<td>DC 扇出上限</td>
+<td style="text-align: right;">99</td>
+<td>个；高态/低态电流约束取小</td>
+</tr>
+<tr>
+<td>边沿扇出上限</td>
+<td style="text-align: right;">1</td>
+<td>个；由 100 ns 上升沿预算决定</td>
+</tr>
+<tr>
+<td>建议扇出</td>
+<td style="text-align: right;">1</td>
+<td>个；取 DC 与边沿约束较小者</td>
+</tr>
+<tr>
+<td>争用电流</td>
+<td style="text-align: right;">0.329</td>
+<td>mA；上拉与低驱动串联</td>
+</tr>
+<tr>
+<td>动态功率</td>
+<td style="text-align: right;">0.218</td>
+<td>mW；<span class="arithmatex">\(\alpha f C V^2\)</span>，<span class="arithmatex">\(f\)</span> 为完整翻转事件率</td>
+</tr>
+<tr>
+<td>动态上升/下降分账</td>
+<td style="text-align: right;">0.109 + 0.109</td>
+<td>mW；各为 <span class="arithmatex">\(\alpha f\frac12CV^2\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>图意说明：</strong>互动 SVG 应画出 <span class="arithmatex">\(V_{IL}\)</span>、<span class="arithmatex">\(V_{IH}\)</span> 门限与 RC 上升曲线；扇出面板要显示按 <span class="arithmatex">\(R_{PU}\)</span>、<span class="arithmatex">\(V_{IH}\)</span>、输入漏电计算的开漏高态上限和释放高电平，以及低态上拉/漏电电流。另一部分画出 <span class="arithmatex">\(V_{DD}\to R_{PU}\to\)</span> 低驱动 <span class="arithmatex">\(\to GND\)</span> 的争用路径，并标出 <span class="arithmatex">\(\alpha f CV^2\)</span> 及上升/下降 <span class="arithmatex">\(\tfrac12CV^2\)</span> 分账。虚线、文字和箭头共同表达状态、边沿和电流，不能只靠红绿颜色。</p>
+</div>
+<h3 id="5">5. 真实修正：逻辑电平、负载和接口类型要对上<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ul>
+<li><strong>VIH/VIL 不是通用常数。</strong> 它们依赖输入电源、逻辑族、温度和保证条件；一个器件的典型切换点不能替代另一个器件的最小保证值。</li>
+<li><strong>扇出不是单一数字。</strong> 开漏高态要用上拉、VIH 和输入漏电算释放电压/扇出；低态要计上拉与输入漏电，另再检查 IOH/IOL。动态扇出受总电容、上升/下降时间、事件率和允许抖动约束。两者都要算。</li>
+<li><strong>上拉只适合特定接口语义。</strong> 开漏/开集电极允许多个设备释放或拉低；推挽输出若互相对抗会形成持续电流。不要把两种输出类型混接后再靠“逻辑上不会同时为高”自我安慰。</li>
+<li><strong>边沿速度会改变系统。</strong> 慢边沿增加接收器处于门限区的时间，可能放大噪声和抖动；过快边沿则可能激励走线、封装和回流寄生。串联电阻、上拉选择和布局要以波形证据为准。</li>
+<li><strong>跨电压域要单独审计。</strong> 输入绝对最大值、钳位电流、上电顺序和未供电状态可能比逻辑真值表更早失败。</li>
+</ul>
+<p>数据手册提供具体 <span class="arithmatex">\(V_{IH}/V_{IL}\)</span>、<span class="arithmatex">\(V_{OH}/V_{OL}\)</span>、IOH/IOL、输入电容和绝对最大条件；标准提供接口或测试要求时，要引用适用版本。课堂中的 0.3/0.7 比例只是教学设定。</p>
+<h3 id="6">6. 测量纪律：用高阻、短回路、足够采样率<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>先确认参考地和电源轨，再分别测静态高/低电平、上升/下降时间、门限交叉时间和争用电流。</li>
+<li>探头电容应计入 <span class="arithmatex">\(C_{tot}\)</span>；地线过长会制造额外电感和振铃。记录探头型号、带宽限制和连接方式。</li>
+<li>用可控的负载数、上拉和串联电阻做对比实验；每次只改一个参数，并保存波形与条件。</li>
+<li>对开漏线检查释放时间、被拉低时间、多个驱动者的状态和未供电设备的钳位路径；不能只在单设备静态下验收。</li>
+<li>低压、限流、可断电地注入故障；不把这里的逻辑实验外推到市电控制或高能开关。</li>
+</ol>
+<h3 id="7">7. 模型边界与项目产物<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>RC 模型把输出看成理想电阻和总电容，争用模型把驱动器看成固定电阻，噪声裕量用静态保证值近似。它不能预测传输线效应、串扰、地弹、输入保护的非线性、动态电流限制或具体逻辑族的完整时序。</p>
+<p>项目产物是“逻辑与电气余量表”：每条信号记录发送端/接收端电源、VIH/VIL、VOH/VOL、NMH/NML、DC/动态扇出、总电容、边沿预算、上拉与争用检查、测量参考平面以及跨电压域和上电状态。每个数值都标注是数据手册条件、教学模型还是实测结果。</p>
+<h2 id="1">1. 用门限区间而不是一个切换电压思考<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>数字系统的抽象把一段电压区间映射为 0 或 1，但工程验收要留出噪声裕量。输入处在 <span class="arithmatex">\(V_{IL}\)</span> 与 <span class="arithmatex">\(V_{IH}\)</span> 之间时，接收器状态可能不受保证；输出处在保证的 <span class="arithmatex">\(V_{OL}\)</span> 或 <span class="arithmatex">\(V_{OH}\)</span> 范围之外时，发送端也不能宣称逻辑有效。</p>
+<p>因此，静态噪声裕量只是第一关。第二关是信号在门限区停留多久，第三关是回流和供电噪声如何移动整个波形，第四关是边沿是否满足后续时序。它们不能用一个“逻辑分析仪显示 1”统统代替。</p>
+<h2 id="2_1">2. 上拉、动态功率和边沿的取舍<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>电容性负载的一次完整翻转事件从供电取走 <span class="arithmatex">\(CV^2\)</span> 的能量：上升段的储能/充电耗散各为 <span class="arithmatex">\(\frac12CV^2\)</span>，下降段再耗散 <span class="arithmatex">\(\frac12CV^2\)</span>。若 <span class="arithmatex">\(f\)</span> 是完整翻转事件率、<span class="arithmatex">\(\alpha\)</span> 是实际活动因子，则动态功率为 <span class="arithmatex">\(P_{dyn}=\alpha f CV^2\)</span>；这个估算仍依赖上升/下降对称性和驱动方式，不能当作整颗芯片的功耗规格。</p>
+<p>上拉电阻越小，边沿更快，但低电平保持时的静态功耗更高；越大则反之。真实选择还受到总线电容、最长线、允许的时序、漏电、热和 EMC 约束。这个取舍应在项目电源预算和信号完整性记录中同时出现。</p>
+<h2 id="3">3. 常见误判与纠正<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<ul>
+<li><strong>误判：</strong>只要静态读出 0/1，信号就合格。<strong>纠正：</strong>还要查门限区停留、边沿、抖动和回流。</li>
+<li><strong>误判：</strong>扇出就是数据手册上一个固定整数。<strong>纠正：</strong>分开算 DC 电流扇出和动态电容扇出。</li>
+<li><strong>误判：</strong>上拉越强越好。<strong>纠正：</strong>速度、低电平功耗、争用电流和 EMI 需要平衡。</li>
+<li><strong>误判：</strong>开漏和推挽只是两种画法。<strong>纠正：</strong>它们的多驱动语义和故障电流路径不同。</li>
+</ul>
+<h2 id="4_1">4. 资料与边界<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<ul>
+<li>电路、电容动态和功率基础参见 <a href="https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/">MIT OpenCourseWare 6.002: Circuits and Electronics</a> 与 <a href="https://openstax.org/details/books/university-physics-volume-2">OpenStax University Physics Volume 2</a>。</li>
+<li>电子信号和测量方法参见 <a href="https://ocw.mit.edu/courses/6-071j-introduction-to-electronics-signals-and-measurement-spring-2006/">MIT OpenCourseWare 6.071J: Introduction to Electronics, Signals, and Measurement</a>。</li>
+<li>具体接口/测试标准应从 <a href="https://standards.ieee.org/">IEEE Standards</a> 的适用版本核对；工程设计与验证能力可参考 <a href="https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/">ABET Criteria for Accrediting Engineering Programs</a>。页面的门限和器件参数是教学设定，不是任意芯片的保证值。</li>
+</ul>
+<p>本讲只讨论低压、限流、可断电的数字接口；不涉及市电施工、建筑配电、并网或高能开关设备。</p>
+<h2 id="5_1">5. 小结<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>数字电气不是把电压贴上 0/1 标签，而是管理门限、裕量、负载、边沿和电流路径。先用数据手册保证值定义逻辑区间，再用 <span class="arithmatex">\(RC\)</span> 和争用模型预测方向，最后用带测量条件的波形确认。下一讲把边沿放进采样时刻，处理建立/保持、时钟偏斜、抖动和同步器的概率风险。</p>
+</section>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="18-sensors-transducers.html"><span class="pager-label">上一页</span>传感 · 换能器、校准与不确定度</a>
+  <a class="pager-slot next" href="20-timing-synchronization.html"><span class="pager-label">下一页</span>数字 II · 时序、抖动与同步</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/ee-digital-electrical.js"></script>
+</body>
+</html>

@@ -8,6 +8,16 @@
 
 本页的重点不是把任何一个算法称为“真相机器”，而是学会问：先验从哪里来，观测误差有多大，更新后还剩多少不确定性。
 
+<figure class="diagram visual-atlas" markdown="1">
+![数据同化的时间循环：先验、观测、创新与分析状态](assets/img/assimilation-cycle.svg)
+<figcaption><span class="fig-id">图 22.1</span>数据同化把模型推进、有限观测、创新和分析状态放进一个时间循环。本图是流程示意，节点、箭头和状态空间非按比例；输入是合成情景，观测带有误差，分析场是给定模型与误差假设下的估计，不是真值，也不是预报。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![反问题的分辨率与信息方向](assets/img/inverse-problem-resolution.svg)
+<figcaption><span class="fig-id">图 22.2</span>正问题沿状态到信号的方向生成观测，反问题沿信号到估计的方向依赖观测算子与正则化。本图是信息结构示意，奇异值和维数非按比例；观测是有限采样，估计场是条件化分析，不应被当作真值或未来预报。</figcaption>
+</figure>
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="earth-inverse-learning-title">

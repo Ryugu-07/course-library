@@ -85,6 +85,18 @@ $$
 
 </section>
 
+<figure class="diagram visual-atlas" markdown="1">
+![岩石循环连接地表与深部](assets/img/rock-cycle-landscape.svg)
+
+<figcaption><span class="fig-id">图 5.1</span>沿景观剖面追踪抬升、风化、搬运、沉积、埋藏、熔融与火山作用，看到岩石类别其实是多个储库之间的过程节点；地形、地层与深度非等比例。</figcaption>
+</figure>
+
+<figure class="diagram visual-atlas" markdown="1">
+![部分熔融如何产生分异](assets/img/magma-differentiation.svg)
+
+<figcaption><span class="fig-id">图 5.2</span>部分熔融和分离结晶会改变液相与晶相的元素分配，使残余熔体沿组成坐标移动；用 <i>X</i><sub>j</sub> = <i>M</i><sub>j</sub><i>c</i><sub>j</sub> 检查元素选择性，同时牢记箭头和组成轴是教学示意。</figcaption>
+</figure>
+
 ## 1. 从岩石循环到地球化学循环
 
 岩石循环关注相态、矿物和构造过程，地球化学循环关注元素、同位素和氧化还原状态。二者相互嵌套：板块把海洋沉积物带入深部，火山把挥发分返回表面，风化和沉积改变元素的表层分配，生命又改变许多反应的路径和速率。
