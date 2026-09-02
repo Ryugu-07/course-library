@@ -20,6 +20,7 @@ SKIP_TEXT_TAGS = {"code", "pre", "script", "style"}
 PARAGRAPH_RE = re.compile(r"<p(?:\s[^>]*)?>(.*?)</p>", re.IGNORECASE | re.DOTALL)
 RAW_LIST_RE = re.compile(r"(?m)^[ \t]*(?:[-+*]|\d+[.)])[ \t]+")
 ALLOWED_SOURCE_CONTROLS = {"\n", "\r"}
+HUB_DIRS = ("humanities",)
 
 
 class PageParser(HTMLParser):
@@ -80,6 +81,10 @@ class PageParser(HTMLParser):
 
 def site_html_files(root: Path) -> list[Path]:
     pages = [root / "index.html"] if (root / "index.html").is_file() else []
+    for hub_name in HUB_DIRS:
+        hub = root / hub_name
+        if hub.is_dir():
+            pages.extend(hub.rglob("*.html"))
     for site in sorted(root.glob("*/site")):
         pages.extend(site.rglob("*.html"))
     return sorted(set(pages))

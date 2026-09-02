@@ -1,6 +1,10 @@
-# 本地课程资料库
+# 公开课程资料库
 
-这个私有仓库汇总本地课程，方便在 macOS 更新后推送到 GitHub，再在 Windows 的 `E:` 盘拉取和浏览。
+这个公开仓库汇总可在线阅读、离线运行和持续修订的课程。公网入口：
+
+<https://course.hhzi.eu.cc/>
+
+课程内容欢迎事实更正、解释改进、可视化建议和实验反馈。请使用 [GitHub Issues](https://github.com/Ryugu-07/course-library/issues/new/choose) 提交，参与方式见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
 
 ## Windows 首次使用
 
@@ -28,7 +32,11 @@ git pull
 start-courses.bat
 ```
 
-## 课程列表
+## 分馆与课程
+
+根目录 `index.html` 是数学、科学、工程与计算课程入口；`humanities/index.html` 是独立的文史哲分馆。
+
+### 理工课程
 
 - `agent-lab`：从最小 SWE Agent 到现代编程智能体
 - `ai-course`：AI 原理、工程、研究与实验课程
@@ -49,9 +57,10 @@ start-courses.bat
 - `micro-course`：半导体器件、集成电路、制造与芯片产业
 - `photo-course`：光学、激光、成像、光通信与光子技术
 - `psych-course`：心理学方法、认知、社会、临床与应用心理学
-- `wxb-course`：王小波作品、思想、文体与精神世界专题阅读
 
-课程入口是仓库根目录的 `index.html`。
+### 文史哲分馆
+
+- `wxb-course`：王小波作品、思想、文体与精神世界专题阅读
 
 ## 质量检查
 
@@ -89,6 +98,6 @@ Build command: python tools/build_public_site.py
 Build output directory: public
 ```
 
-构建器会把 20 个已生成课程站点汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送时重建、审查并验证这份发布产物。
+构建器会把 20 个已生成课程站点和文史哲分馆汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送和拉取请求时重建、审查并验证这份发布产物。
 
 推荐把自定义域名设为 `course.hhzi.eu.cc`，以免影响现有的 `medusa.hhzi.eu.cc`。课程完全是静态内容，阅读进度仍保存在每台设备各自的浏览器中，不会跨设备同步。

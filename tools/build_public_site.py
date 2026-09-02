@@ -30,6 +30,7 @@ COURSES = (
     "psych-course",
     "wxb-course",
 )
+HUBS = ("humanities",)
 
 MAX_FILES = 20_000
 MAX_FILE_BYTES = 25 * 1024 * 1024
@@ -56,6 +57,10 @@ def main() -> int:
     if missing:
         print(f"ERROR: missing generated site(s): {', '.join(missing)}", file=sys.stderr)
         return 1
+    missing_hubs = [name for name in HUBS if not (root / name / "index.html").is_file()]
+    if missing_hubs:
+        print(f"ERROR: missing hub(s): {', '.join(missing_hubs)}", file=sys.stderr)
+        return 1
 
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir()
@@ -65,6 +70,9 @@ def main() -> int:
         destination = output / name / "site"
         destination.parent.mkdir(parents=True)
         shutil.copytree(root / name / "site", destination)
+
+    for name in HUBS:
+        shutil.copytree(root / name, output / name)
 
     shutil.copy2(
         root / "agent-lab" / "minimal_swe_agent.py",
@@ -89,7 +97,10 @@ def main() -> int:
         )
         return 1
 
-    print(f"PASS: assembled {len(COURSES)} course sites in {output}")
+    print(
+        f"PASS: assembled {len(COURSES)} course sites and "
+        f"{len(HUBS)} collection hub(s) in {output}"
+    )
     print(f"Files: {len(files):,}; total: {format_mib(total_size)}")
     print(
         f"Largest: {largest.relative_to(output)} "
