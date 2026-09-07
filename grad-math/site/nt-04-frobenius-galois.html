@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frobenius 与 Galois 表示 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li class="active"><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 扩大域，不等于复制点表</a></li>
+<li><a href="#2">2. 两个特征根保留多少计数信息</a></li>
+<li><a href="#3">3. 不用求复根也能算扩域</a></li>
+<li><a href="#4">4. 从一个有限域走到有理数域上的表示</a></li>
+<li><a href="#5">5. 边界与研究窗口</a><ul>
+<li><a href="#_1">把整串点数装进一个有理函数</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 实验与迁移</a></li>
+<li><a href="#_2">速查与来源</a></li>
+</ul>
+</div>
+</details>
+<h1 id="04-frobenius">数论桥梁 04 · Frobenius：把点数写成对称作用的迹<a class="headerlink" href="#04-frobenius" title="Permanent link"></a></h1>
+<blockquote>
+<p>为什么在 <span class="arithmatex">\(\mathbb F_5\)</span> 数一次点，就能预测同一曲线在 <span class="arithmatex">\(\mathbb F_{25}\)</span> 的点数？先修前三讲，以及<a href="alg2-02-galois.html">域与 Galois 理论</a>。本讲从扩域计数走到表示的定义，最后分清算术与几何 Langlands 的接口。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 扩大域，不等于复制点表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathbb F_{p^r}\)</span> 是有 <span class="arithmatex">\(p^r\)</span> 个元素的域，包含 <span class="arithmatex">\(\mathbb F_p\)</span>。同一方程允许更多坐标后，旧点仍在，也可能出现新点。它不是把原来的点任意配成 <span class="arithmatex">\(r\)</span> 元组，因此新点数没有理由是旧点数的 <span class="arithmatex">\(r\)</span> 次方。</p>
+<p>特征 <span class="arithmatex">\(p\)</span> 时，二项式中间系数都被 <span class="arithmatex">\(p\)</span> 整除，所以 <span class="arithmatex">\((x+y)^p=x^p+y^p\)</span>。映射 <span class="arithmatex">\(x\mapsto x^p\)</span> 保持加法与乘法，在代数闭包上是自同构。对系数在 <span class="arithmatex">\(\mathbb F_p\)</span> 的曲线，逐坐标取 <span class="arithmatex">\(p\)</span> 次幂仍落在曲线上，得到 Frobenius 映射 <span class="arithmatex">\(\pi\)</span>。一个点的坐标属于 <span class="arithmatex">\(\mathbb F_{p^r}\)</span>，恰好等价于它被 <span class="arithmatex">\(\pi^r\)</span> 固定。</p>
+<p>扩域不会改变方程的系数，却会改变允许代入的坐标集合。因此每次记录点数时，都应同时标明曲线与底域。</p>
+<p>这个观察把“找方程的解”变成“数某个对称作用的不动点”。直接数所有坐标依然昂贵；椭圆曲线的群结构提供了进一步压缩：研究它在扭点上的线性作用。</p>
+<figure>
+<p><img alt="左侧有限域点是Frobenius固定点；中间二次多项式的迹与行列式；右侧递推计算扩域点数，模5给9、模25给27。" src="assets/img/nt-04-frobenius-galois.svg" /></p>
+<figcaption>图 1：计数、线性作用与扩域递推是同一条链。特征根不是曲线的两个坐标，也不是两个实际点。</figcaption>
+</figure>
+<h2 id="2">2. 两个特征根保留多少计数信息<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>选一个不同于 <span class="arithmatex">\(p\)</span> 的素数 <span class="arithmatex">\(\ell\)</span>。代数闭包上的 <span class="arithmatex">\(\ell^n\)</span> 扭点构成两个循环方向，沿乘 <span class="arithmatex">\(\ell\)</span> 的映射取逆极限，得到秩 2 的 <span class="arithmatex">\(\mathbb Z_\ell\)</span> 模 <span class="arithmatex">\(T_\ell E\)</span>。选择基后，Frobenius 在其上成为一个二乘二矩阵。</p>
+<p>对光滑椭圆曲线，经典定理给出</p>
+<div class="arithmatex">\[\det(TI-\pi)=T^2-a_pT+p,\quad
+a_p=p+1-\#E(\mathbb F_p).\]</div>
+<p>这不是任意二乘二矩阵都拥有的形式；曲线几何保证迹是整数、行列式为 <span class="arithmatex">\(p\)</span>，并且不依赖所选的辅助素数 <span class="arithmatex">\(\ell\)</span>。设复特征根为 <span class="arithmatex">\(\alpha,\beta\)</span>，则 <span class="arithmatex">\(\alpha+\beta=a_p\)</span>、<span class="arithmatex">\(\alpha\beta=p\)</span>，且 <span class="arithmatex">\(|\alpha|=|\beta|=\sqrt p\)</span>。后者给出第一讲的 Hasse 界：<span class="arithmatex">\(|a_p|\le|\alpha|+|\beta|=2\sqrt p\)</span>。</p>
+<p>更强的计数定理是</p>
+<div class="arithmatex">\[N_r:=\#E(\mathbb F_{p^r})=p^r+1-(\alpha^r+\beta^r).\]</div>
+<p>本讲使用这条几何定理而不假装已经从有限表证明它。它可由 Frobenius 与度数理论建立，或放进更一般的上同调迹公式。下面的递推则完全是可手算的代数后果。</p>
+<h2 id="3">3. 不用求复根也能算扩域<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>定义 <span class="arithmatex">\(A_r=\alpha^r+\beta^r\)</span>，则 <span class="arithmatex">\(A_0=2\)</span>，<span class="arithmatex">\(A_1=a_p\)</span>。每个根满足 <span class="arithmatex">\(z^2-a_pz+p=0\)</span>，乘 <span class="arithmatex">\(z^{r-2}\)</span> 后对两个根相加：</p>
+<div class="arithmatex">\[A_r=a_pA_{r-1}-pA_{r-2}.\]</div>
+<p>沿用 <span class="arithmatex">\(y^2=x^3+x+1\)</span>，模 5 计数给 <span class="arithmatex">\(a_5=-3\)</span>。所以 <span class="arithmatex">\(A_2=9-10=-1\)</span>，<span class="arithmatex">\(A_3=(-3)(-1)-5(-3)=18\)</span>。于是 <span class="arithmatex">\(N_1=9\)</span>、<span class="arithmatex">\(N_2=25+1+1=27\)</span>、<span class="arithmatex">\(N_3=125+1-18=108\)</span>。特征根是 <span class="arithmatex">\((-3\pm i\sqrt{11})/2\)</span>，模都为 <span class="arithmatex">\(\sqrt5\)</span>，迹随次数振荡而点数保持整数。</p>
+<p>也可独立检查第二项。取 <span class="arithmatex">\(\mathbb F_{25}=\mathbb F_5[u]/(u^2-2)\)</span>，因为 2 在模 5 下非平方，每个元素唯一写成 <span class="arithmatex">\(a+bu\)</span>。在这 25 个元素中先列平方频数，再对每个 <span class="arithmatex">\(x\)</span> 数 <span class="arithmatex">\(x^3+x+1\)</span> 的平方根，最后加 <span class="arithmatex">\(O\)</span>，确实得到 27。这里的独立枚举没有调用迹递推，因此能发现递推符号、初值或模数的实现错误。</p>
+<h2 id="4">4. 从一个有限域走到有理数域上的表示<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>现在设 <span class="arithmatex">\(E\)</span> 定义在 <span class="arithmatex">\(\mathbb Q\)</span>。绝对 Galois 群 <span class="arithmatex">\(G_{\mathbb Q}=\operatorname{Gal}(\overline{\mathbb Q}/\mathbb Q)\)</span> 作用在全部代数坐标上，并保持加法。它在 Tate 模上诱导连续表示</p>
+<div class="arithmatex">\[\rho_{E,\ell}:G_{\mathbb Q}\longrightarrow\mathrm{GL}_2(\mathbb Z_\ell).\]</div>
+<p>选基改变矩阵，却只作共轭，因此迹和行列式不变。在好约化素数 <span class="arithmatex">\(p\ne\ell\)</span> 处，表示不分歧，选择按剩余域 <span class="arithmatex">\(x\mapsto x^p\)</span> 作用的算术 Frobenius 约定，其特征多项式仍为 <span class="arithmatex">\(T^2-a_pT+p\)</span>。若文献改用逆 Frobenius 或对偶上同调，必须同步调整公式，不能只凭名字拼接两种约定。</p>
+<p>矩阵因此把不同素数的局部数据放进一个共同的全局对象。模性定理说，有理椭圆曲线对应适当层的权重 2 新形式，其好素数 Fourier 系数与这些迹相同。这比“几张点表恰好匹配”强得多；需要控制所有相关素数、局部条件和解析结构。</p>
+<h2 id="5">5. 边界与研究窗口<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>在坏约化处，光滑模型条件改变，不能强行使用同一个二次局部因子；在 <span class="arithmatex">\(p=\ell\)</span> 处，上述不分歧描述也不直接适用。即使某两条曲线拥有相同迹，也不必在原坐标下同构：同源曲线可以共享相应的局部计数。迹压缩了重要信息，也确实丢掉了一些信息。</p>
+<p>2019 年全实三次域的模性结果证明了指定域类中的一般结论；2026 年算术型双曲一致化研究则以明确的存在假设推出几何模性。两者体现的研究方法包括模曲线上的点、同源、Galois 表示与自动形式。本路线只是让这些问题可读，不把经典的有理数域结论误报成 2026 才发现。</p>
+<p>这也不是<a href="frontier-03-geometric-langlands.html">几何 Langlands</a>的证明。那里研究复曲线上的局部系统与层的范畴；这里研究数域 Galois 群与自动形式。二者共享表示与对称性的语言，但更换基底、对象和范畴需要新的先修，不能把一个对应的名字当成所有版本已解决。</p>
+<h3 id="_1">把整串点数装进一个有理函数<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>另一种记录所有扩域计数的方式是形式幂级数 <span class="arithmatex">\(Z_E(t)=\exp(\sum_{r\ge1}N_rt^r/r)\)</span>。这里先把 <span class="arithmatex">\(t\)</span> 当形式变量，不急于讨论复解析收敛。代入已知点数公式，利用 <span class="arithmatex">\(-\log(1-z)=\sum_{r\ge1}z^r/r\)</span>，得到</p>
+<div class="arithmatex">\[Z_E(t)=\frac{(1-\alpha t)(1-\beta t)}{(1-t)(1-pt)}
+=\frac{1-a_pt+pt^2}{(1-t)(1-pt)}.\]</div>
+<p>因此无限多次扩域计数被一个二次分子编码。这个推导清楚区分了两个层次：从几何得到点数公式是深的定理；在公式成立后重排形式级数是本讲可完成的代数。不能因为最后的有理函数很短，就以为其几何前提也很容易。</p>
+<p>验收时可以反过来展开它的对数，检查第一项是否为 <span class="arithmatex">\(N_1\)</span>、第二项是否为 <span class="arithmatex">\(N_2/2\)</span>。若忘掉指数定义中的除以次数，会把计数与系数混淆。这一编码也说明辅助素数 ℓ 没有成为计数变量：扩域次数、所处素数和表示所用的 ℓ 各扮演不同角色，应始终保留名称。</p>
+<h2 id="6">6. 实验与迁移<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<div class="learning-lab" data-learning-lab="research-math" data-research-topic="nt-frobenius">
+<p>先预测扩域点数是否为旧点数的平方，再改变素数与次数。后备参数：素数编号 0，<span class="arithmatex">\(p=5\)</span>，<span class="arithmatex">\(r=2\)</span>。</p>
+</div>
+<p>默认静态结果：<span class="arithmatex">\(N_1=9\)</span>、<span class="arithmatex">\(a_5=-3\)</span>、<span class="arithmatex">\(A_2=-1\)</span>、<span class="arithmatex">\(N_2=27\)</span>。图上归一化迹为 <span class="arithmatex">\(A_r/(2p^{r/2})\)</span>，必须位于 <span class="arithmatex">\([-1,1]\)</span>；这不表示点数本身被 1 限制。</p>
+<p><strong>题一。</strong> 若某好素数处 <span class="arithmatex">\(a_p=0\)</span>，计算 <span class="arithmatex">\(N_2\)</span>，并说明它位于扩域 Hasse 窗口的哪里。</p>
+<details>
+<summary>独立作答后核对</summary>
+<p><span class="arithmatex">\(A_2=-2p\)</span>，所以 <span class="arithmatex">\(N_2=p^2+1+2p=(p+1)^2\)</span>，达到 <span class="arithmatex">\(\mathbb F_{p^2}\)</span> 窗口的上端。原域的零迹并不意味着所有扩域也零迹。</p>
+</details>
+<p><strong>题二。</strong> 第一讲的二次扭曲把 <span class="arithmatex">\(a_p\)</span> 改为 <span class="arithmatex">\(-a_p\)</span>。扭曲后哪些扩域点数一定与原曲线相同？</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>两个根同时变为 <span class="arithmatex">\(-\alpha,-\beta\)</span>，故 <span class="arithmatex">\(A_r\)</span> 乘 <span class="arithmatex">\((-1)^r\)</span>。偶数次数的点数相同；奇数次数的迹反号，点数围绕 <span class="arithmatex">\(p^r+1\)</span> 对称。它们在二次扩域变得同构与此吻合。</p>
+</details>
+</section>
+<h2 id="_2">速查与来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>公式</th>
+<th>条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frobenius 多项式</td>
+<td><span class="arithmatex">\(T^2-a_pT+p\)</span></td>
+<td>光滑曲线、约定一致</td>
+</tr>
+<tr>
+<td>扩域递推</td>
+<td><span class="arithmatex">\(A_0=2,A_1=a_p,A_r=a_pA_{r-1}-pA_{r-2}\)</span></td>
+<td><span class="arithmatex">\(N_r=p^r+1-A_r\)</span></td>
+</tr>
+<tr>
+<td>Galois 表示</td>
+<td><span class="arithmatex">\(G_{\mathbb Q}\to\mathrm{GL}_2(\mathbb Z_\ell)\)</span></td>
+<td>好素数 <span class="arithmatex">\(p\ne\ell\)</span> 才用所述局部公式</td>
+</tr>
+</tbody>
+</table>
+<p>实际访问 <strong>2026-09-08</strong>：<a href="https://www.jmilne.org/math/Books/EC2.pdf">Milne，2020 第二版</a>；<a href="https://math.mit.edu/classes/18.783/2023/lectures.html">Sutherland，2023 第 6–8、23–25 讲</a>；<a href="https://arxiv.org/abs/1901.03436">全实三次域模性，首稿 2019-01-11、期刊 2020</a>；<a href="https://arxiv.org/abs/2607.03830">算术型双曲一致化，首稿 2026-07-04、修订 2026-08-27，预印本</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="nt-03-modular-forms.html"><span class="pager-label">上一页</span>数论 III · 模形式与 q 展开</a>
+  <a class="pager-slot next" href="kinetic-01-liouville-marginals.html"><span class="pager-label">下一页</span>动理学 I · Liouville 与边缘分布</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-math.js?v=ed2dea8308c3"></script>
+</body>
+</html>

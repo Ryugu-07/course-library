@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>潜在动力学 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li class="active"><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 世界模型需要保留什么</a></li>
+<li><a href="#2">2. 从一步训练到想象中的行为</a></li>
+<li><a href="#3">3. 一个三行就能看见的长时误差</a></li>
+<li><a href="#4">4. 一般误差界有哪些前提</a></li>
+<li><a href="#5">5. 近期研究推进了哪一个瓶颈</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-05">AI 研究 05 · 潜在世界模型：能预测下一帧，还能预测下一步行动吗<a class="headerlink" href="#ai-05" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：模型想象中的十步都很合理，真实执行为什么仍会走偏？先修：<a href="frontier-02-reasoning-rl.html">可验证奖励与强化学习</a>、条件概率与递推。资料核查截至 <strong>2026-09-08</strong>；本讲开启“世界模型与具身”四讲路线，实验是无量纲线性动力学的精确对照。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 世界模型需要保留什么<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>看到一张杯子的照片，并不知道它正向左还是向右移动。若智能体只能依据当前图像，下一刻的预测就可能有两个解释。世界模型通常把历史观测与动作压缩成内部状态，再预测行动后的状态、观测和奖励。这种内部状态称为潜在状态，它不是现实世界的完整复制。</p>
+<p>记观测为 <span class="arithmatex">\(o_t\)</span>、动作为 <span class="arithmatex">\(a_t\)</span>，历史为 <span class="arithmatex">\(h_t=(o_{0:t},a_{0:t-1})\)</span>。编码器产生 <span class="arithmatex">\(z_t=E(h_t)\)</span>，转移模型为 <span class="arithmatex">\(p_\theta(z_{t+1}\mid z_t,a_t)\)</span>，奖励模型为 <span class="arithmatex">\(r_\theta(z_t,a_t)\)</span>。理想情况下，<span class="arithmatex">\(z_t\)</span> 保留对未来任务相关量的预测所需信息，使额外历史不再显著改变条件分布。</p>
+<p>这比重建当前图像更强。设隐状态 <span class="arithmatex">\(x=\pm1\)</span>，观测 <span class="arithmatex">\(o=x^2=1\)</span>，行动让 <span class="arithmatex">\(x'=x+1\)</span>。两种隐状态的下一观测分别为 4 和 0。能够完美重建当前的 1，并不意味着知道该预测哪个未来。需要历史、额外传感器，或显式保留多种可能的信念状态。</p>
+<figure><img src="assets/img/research-05-latent-world-model.svg" alt="历史被编码成潜在状态，模型连续用自己的预测滚动；实际观测只在起点提供，偏差随步骤累积。" /><figcaption>图 1：自由滚动与每一步喂入真实观测不同。后者能掩盖前者的累积误差。</figcaption></figure>
+<h2 id="2">2. 从一步训练到想象中的行为<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>一个典型训练目标同时包含观测重建、奖励预测，以及让看过新观测的后验状态与仅依据历史的先验转移接近的项。不同算法的离散潜变量、损失缩放和梯度处理不同，但共同问题是：训练时有真实数据校正，想象时却要继续使用自己预测的状态。</p>
+<p><a href="https://arxiv.org/abs/1912.01603">Dreamer，首稿 2019-12-03</a>利用潜在空间中的想象轨迹学习行为。<a href="https://arxiv.org/abs/2301.04104">DreamerV3，首稿 2023-01-10</a>进一步研究跨多类任务的通用训练设置。这些工作说明潜在预测可以支持控制，不意味着每个潜变量都有唯一物理解释，也不意味着画面更逼真一定带来更好的动作。</p>
+<p>给定策略 <span class="arithmatex">\(\pi(a\mid z)\)</span>，可以在模型中滚动并估计折扣回报</p>
+<div class="arithmatex">\[
+\widehat V^\pi(z_0)=\mathbb E_{\pi,p_\theta}
+\sum_{t=0}^{H-1}\gamma^t r_\theta(z_t,a_t).
+\]</div>
+<p><span class="arithmatex">\(\gamma\in[0,1]\)</span> 是折扣因子，<span class="arithmatex">\(H\)</span> 是想象长度。优化该量只直接改善模型内的目标；若策略找到模型没有学对的区域，它可能提高预测回报，同时降低真实回报。训练数据来自哪些策略与状态，因此是控制问题的一部分。</p>
+<h2 id="3">3. 一个三行就能看见的长时误差<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(x_0=1\)</span>，真实系统满足 <span class="arithmatex">\(x_{t+1}=ax_t\)</span>，学得模型为 <span class="arithmatex">\(\hat x_{t+1}=(a+\delta)\hat x_t\)</span>。逐次代入得到</p>
+<div class="arithmatex">\[
+x_H=a^H,\quad \hat x_H=(a+\delta)^H,\quad
+ e_H=|(a+\delta)^H-a^H|.
+\]</div>
+<p>这里 <span class="arithmatex">\(\delta\)</span> 是增益偏差，不是每一步恒定的绝对状态误差。默认 <span class="arithmatex">\(a=1,\delta=0.03,H=10\)</span>：初态上的一步误差为 0.03，十步后却为 <span class="arithmatex">\(1.03^{10}-1=0.343916\)</span>。模型反复放大已偏大的输入，导致错误持续积累。</p>
+<p>当 <span class="arithmatex">\(\delta\)</span> 很小时，对参数做一阶展开：<span class="arithmatex">\((a+\delta)^H-a^H\approx Ha^{H-1}\delta\)</span>。它是局部近似，较大的 <span class="arithmatex">\(H\delta\)</span> 会使高阶项不可忽略。也不要把所有系统都叫指数爆炸：若两种增益都小于 1，状态和长时绝对差可能都衰减；观察时间范围和归一化方式会改变读图结论。</p>
+<h2 id="4">4. 一般误差界有哪些前提<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>对真实映射 <span class="arithmatex">\(f\)</span> 与模型 <span class="arithmatex">\(\hat f\)</span>，假设沿所需区域，<span class="arithmatex">\(f\)</span> 的 Lipschitz 常数为 <span class="arithmatex">\(L\)</span>，且 <span class="arithmatex">\(\|\hat f(x)-f(x)\|\le\varepsilon\)</span>。同一起点自由滚动后，由三角不等式</p>
+<div class="arithmatex">\[
+e_{t+1}\le\varepsilon+Le_t,
+\quad e_H\le\varepsilon\sum_{j=0}^{H-1}L^j.
+\]</div>
+<p>推导是在 <span class="arithmatex">\(\hat f(\hat x_t)-f(x_t)\)</span> 中加减 <span class="arithmatex">\(f(\hat x_t)\)</span>。关键是单步误差界必须覆盖模型自己访问的状态，而非只在训练样本上平均成立。若系统有行动，上述界还需在比较采用的行动条件下成立；两条轨迹采用不同反馈动作时，必须进一步处理策略误差。</p>
+<p>因此多步训练、模型集成和短时想象都有合理动机，但都不是无条件保证。集成成员可能共享同一种数据缺口；看似一致的不确定性很小，现实偏差仍然很大。专业评估应把真实观测校正的一步预测，与起点相同、行动序列固定的自由滚动分开报告，再测量策略改变后访问区域中的表现。</p>
+<h2 id="5">5. 近期研究推进了哪一个瓶颈<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/abs/2509.24527">Dreamer 4，首稿 2025-09-29</a>研究更可扩展的视频世界模型与模型内行为学习，报告在 Minecraft 中仅用离线数据学习取得钻石的控制任务，并处理动作条件与对象交互预测。这是特定环境、数据和协议下的研究证据，不是机器人现实交互已由离线视频全面解决。</p>
+<p>阅读这条前沿路线时，可以用本讲提出三个具体问题：模型是否保留与行动结果有关的隐信息；长时评估是否固定了比较的动作序列；策略改进是否在真实环境中验证。视觉相似度主要度量图像层面的误差，任务奖励可能只在少数接触事件处敏感，二者不一定同步改善。</p>
+<p>还要把想象长度与实际行动长度区分开：模型可以预测二十步，控制器却只执行一步便重新观察。这样的反馈可能减轻自由滚动误差，但不能让预测本身变准确。比较方法时若一个系统每步获得真实观测、另一个连续开环执行，二者使用的信息不同，必须在评估协议里明示。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="world">改变真实增益、模型偏差与滚动长度，比较真实和模型自由滚动。</div>
+<p>默认终点为真实 1、模型 1.343916。先把偏差改为零，检查任意步数都重合；再把真实增益降低，观察同样参数偏差是否仍造成同样终点误差。最后分别关注绝对误差与相对误差，解释为什么两者可能给出不同直觉。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：模型在训练集的一步均方误差很小，能否直接把其平方根代入上述一致误差界？</p>
+<details>
+<summary>展开答案</summary>
+<p>不能。均方误差对某个数据分布平均，而界需要访问区域中的逐点上界。罕见状态可能误差很大，策略也可能集中访问这些状态。需要明确分布与访问范围，或改用带概率条件的误差分析。</p>
+</details>
+<p><strong>题二</strong>：两个潜在编码都能完美重建当前照片，其中一个保留最近运动方向，另一个没有。怎样设计预测测试区分它们？</p>
+<details>
+<summary>展开答案</summary>
+<p>选择当前画面近似相同、历史运动方向相反的样本，施加相同动作，比较未来位置或接触事件的条件预测。只测当前重建无法区分；还应允许后验保留多峰，不强迫未知状态成为单一确定点。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>条件或公式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>潜在状态</td>
+<td>历史压缩应保留任务相关未来的信息</td>
+</tr>
+<tr>
+<td>线性滚动</td>
+<td><span class="arithmatex">\(e_H=\lvert(a+\delta)^H-a^H\rvert\)</span></td>
+</tr>
+<tr>
+<td>一般误差界</td>
+<td><span class="arithmatex">\(e_H\le\varepsilon\sum L^j\)</span>，需访问区域的一致单步界</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/1912.01603">Dreamer</a>、<a href="https://arxiv.org/abs/2301.04104">DreamerV3</a>、<a href="https://arxiv.org/abs/2509.24527">Dreamer 4</a>。先修：<a href="frontier-02-reasoning-rl.html">可验证奖励与强化学习</a>；下一讲：<a href="research-06-model-based-planning.html">模型预测规划</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-04-simulation-inference.html"><span class="pager-label">上一讲</span>科学 AI IV · 模拟推断</a>
+  <a class="pager-slot next" href="research-06-model-based-planning.html"><span class="pager-label">下一讲</span>世界模型 II · 基于模型的规划</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>碰撞与 Boltzmann 方程 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li class="active"><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 从一次碰撞开始，不能先假设熵增</a></li>
+<li><a href="#2">2. 三类守恒量逐项检查</a></li>
+<li><a href="#3">3. 从一对速度到碰撞算子</a></li>
+<li><a href="#4-h">4. H 定理的符号从哪里来</a></li>
+<li><a href="#5">5. 稀薄极限为什么不是忽略所有碰撞</a><ul>
+<li><a href="#_1">一个角度滑块不代表真实的碰撞统计</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 实验与迁移</a></li>
+<li><a href="#_2">速查与来源</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02-boltzmann">动力学极限 02 · Boltzmann 碰撞：可逆的两球怎样产生统计熵增<a class="headerlink" href="#02-boltzmann" title="Permanent link"></a></h1>
+<blockquote>
+<p>两球碰撞可以倒放，气体却常从不均匀走向平衡。哪里引入了方向性？先修<a href="kinetic-01-liouville-marginals.html">Liouville 与边缘</a>。本讲先推导可逆散射，再分开讨论碰撞积分与极限闭合。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 从一次碰撞开始，不能先假设熵增<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>考虑等质量、光滑、无内部转动的硬球。碰撞前速度为 <span class="arithmatex">\(v,w\)</span>，球心连线的单位向量为 <span class="arithmatex">\(n\)</span>。相对速度 <span class="arithmatex">\(g=v-w\)</span> 分成法向与切向；弹性无摩擦碰撞翻转法向相对速度，切向不变。因此</p>
+<div class="arithmatex">\[g'=g-2(g\cdot n)n.\]</div>
+<p>质心速度 <span class="arithmatex">\(V=(v+w)/2\)</span> 不变，再由 <span class="arithmatex">\(v'=V+g'/2\)</span>、<span class="arithmatex">\(w'=V-g'/2\)</span> 得</p>
+<div class="arithmatex">\[v'=v-[(v-w)\cdot n]n,\quad
+w'=w+[(v-w)\cdot n]n.\]</div>
+<p>把这个操作再做一次就恢复原速度，因为第一次已把 <span class="arithmatex">\(g\cdot n\)</span> 反号。若粒子质量不同，质心分解中的权重也要改变；不能只保留这组等质量速度公式。这里的可逆性是能直接核对的恒等式，不依赖我们对气体的直觉。</p>
+<figure>
+<p><img alt="入射速度分成法向和切向，碰撞使相对速度法向反向；45度法向下v从(2,0)变为(1,-1)，w从零变为(1,1)。" src="assets/img/kinetic-02-boltzmann-collisions.svg" /></p>
+<figcaption>图 1：等质量碰撞同时保持质心运动和相对速率。箭头只表示这一次散射，不是带统计频率的整个气体演化。</figcaption>
+</figure>
+<h2 id="2">2. 三类守恒量逐项检查<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>相加即得 <span class="arithmatex">\(v'+w'=v+w\)</span>，所以动量守恒。能量可以用质心变量检查：</p>
+<div class="arithmatex">\[\frac{|v|^2+|w|^2}{2}=|V|^2+\frac{|g|^2}{4}.\]</div>
+<p>反射保持 <span class="arithmatex">\(|g|\)</span>，因此总动能保持。粒子没有生成或消失，粒子数也保持。但单个粒子的动能通常会变，这正是速度分布可以改变的原因。</p>
+<p>取二维 <span class="arithmatex">\(v=(2,0),w=(0,0)\)</span>，<span class="arithmatex">\(n=(\cos\theta,\sin\theta)\)</span>。散射后 <span class="arithmatex">\(v'=(2\sin^2\theta,-2\cos\theta\sin\theta)\)</span>，<span class="arithmatex">\(w'=(2\cos^2\theta,2\cos\theta\sin\theta)\)</span>。各自动能为 <span class="arithmatex">\(2\sin^2\theta\)</span> 与 <span class="arithmatex">\(2\cos^2\theta\)</span>，总和恒为 2。正碰 <span class="arithmatex">\(\theta=0\)</span> 交换速度，掠碰 <span class="arithmatex">\(\theta=90^\circ\)</span> 没有转移；两者都符合相同公式。</p>
+<h2 id="3">3. 从一对速度到碰撞算子<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(f(t,x,v)\)</span> 为单粒子相空间密度。无外力时输运为 <span class="arithmatex">\(\partial_tf+v\cdot\nabla_xf\)</span>；同一位置的碰撞增减速度为 <span class="arithmatex">\(v\)</span> 的粒子，写成</p>
+<div class="arithmatex">\[Q(f,f)(v)=\int_{\mathbb R^d}\int_{\mathbb S^{d-1}}
+B(v-w,n)[f(v')f(w')-f(v)f(w)]\,dn\,dw.\]</div>
+<p>这里省略相同的 <span class="arithmatex">\((t,x)\)</span>，<span class="arithmatex">\(B\ge0\)</span> 表示相对通量与散射截面；硬球法向参数化下与 <span class="arithmatex">\(|(v-w)\cdot n|\)</span> 成比例，常数或半球约定可吸收到 <span class="arithmatex">\(B\)</span> 中。第一项通过可逆碰撞换元表示增益，第二项是损失。统计乘积 <span class="arithmatex">\(f(v)f(w)\)</span> 才是关键闭合，它不能只从一次碰撞公式推出。</p>
+<p>若 <span class="arithmatex">\(\varphi\)</span> 满足每次碰撞的 <span class="arithmatex">\(\varphi(v)+\varphi(w)=\varphi(v')+\varphi(w')\)</span>，对称换元后有</p>
+<div class="arithmatex">\[\int\varphi(v)Q(f,f)(v)\,dv
+=\frac12\int Bf(v)f(w)[\varphi(v')+\varphi(w')-\varphi(v)-\varphi(w)]\,dn\,dw\,dv=0.\]</div>
+<p>取 <span class="arithmatex">\(\varphi=1,v,|v|^2/2\)</span> 就把微观守恒提升为碰撞积分的守恒。积分换元需要对称的微观可逆核及可积性；任意编造一个非负核并不自动满足全部结论。</p>
+<h2 id="4-h">4. H 定理的符号从哪里来<a class="headerlink" href="#4-h" title="Permanent link"></a></h2>
+<p>在空间齐次或无边界熵通量的情形，取 <span class="arithmatex">\(H=\int f\log f\)</span>。在正性与足够正则、可积条件下，用前面的对称性得到</p>
+<div class="arithmatex">\[\frac{dH}{dt}=-\frac14\int B(A-C)\log\frac AC\,dn\,dw\,dv\le0,
+\qquad A=f(v')f(w'),\ C=f(v)f(w).\]</div>
+<p>原因只是对正数 <span class="arithmatex">\(A,C\)</span>，差 <span class="arithmatex">\(A-C\)</span> 与 <span class="arithmatex">\(\log A-\log C\)</span> 同号。Boltzmann 的 <span class="arithmatex">\(H\)</span> 下降对应物理熵 <span class="arithmatex">\(-H\)</span> 上升，不能把两个符号混用。零分布处要通过极限约定处理，不能直接计算 <span class="arithmatex">\(\log0\)</span>。</p>
+<p>在合适的非退化碰撞模型中，零熵产生要求 <span class="arithmatex">\(\log f\)</span> 为碰撞不变量，得到 Maxwell 分布 <span class="arithmatex">\(M(v)=C_0\exp[-|v-u|^2/(2T)]\)</span>，<span class="arithmatex">\(T&gt;0\)</span>。这说明平衡由守恒矩参数化；它不表示任意初值在任意范数下、以一个统一速率立刻收敛。</p>
+<h2 id="5">5. 稀薄极限为什么不是忽略所有碰撞<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>单位体积内有 <span class="arithmatex">\(N\)</span> 个直径 <span class="arithmatex">\(\varepsilon\)</span> 的球。在 <span class="arithmatex">\(d\)</span> 维，碰撞截面尺度是 <span class="arithmatex">\(\varepsilon^{d-1}\)</span>，占据体积尺度是 <span class="arithmatex">\(\varepsilon^d\)</span>。Boltzmann–Grad 缩放保持 <span class="arithmatex">\(N\varepsilon^{d-1}\)</span> 为常数量级，却令 <span class="arithmatex">\(N\varepsilon^d\to0\)</span>：气体占据体积越来越小，但单粒子碰撞率仍可保持有限。</p>
+<p>困难来自重碰撞与共享碰撞历史。碰过的粒子会相关，有限系统不能在每次碰撞后无条件“重新独立”。2024 首稿、2025 修订的 Deng–Hani–Ma 工作将硬球到 Boltzmann 的推导延长到相应 Boltzmann 解存在且满足假设的时间范围，使用累积相关和碰撞图的控制。2025 环面版本还明确限定维数、初始随机集合、速度加权界与参数关系。</p>
+<p>因此微观可逆与 H 定理没有代数矛盾：选取初始统计类、投影到少粒子观测、再取极限产生了有效不可逆描述。把精确轨道全部倒转，会带入特殊的相关初值，不能原封不动沿用正向混沌假设。研究成果推进的是这条限制明确的链，既不是所有物质模型的统一定理，也不是 Navier–Stokes 正则性问题的解答。</p>
+<h3 id="_1">一个角度滑块不代表真实的碰撞统计<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>在实验里均匀改变法向角，是为了逐个检查几何散射，并不是声称气体的各个法向以相同概率出现。真实碰撞频率还乘相对通量，几乎掠过的两球和迎面相遇的两球权重不同；粒子的入射速度本身也来自分布。如果用均匀角度采样取代正确核，可能仍保留每次碰撞的动量和能量，却得到错误的宏观散射频率。</p>
+<p>这提供了一个重要反例：守恒检查是必要的，但不是模型身份的充分检查。两个不同的碰撞核可以有完全相同的守恒量和同类平衡，却有不同的输运系数与松弛速率。研究黏性时，不能只报告总能量误差很小，就认定碰撞实现足够准确。</p>
+<p>还可以比较两团相向运动的窄速度分布与同动能的 Maxwell 分布。它们可能有相同质量、零平均动量和相同温度，却有不同的高阶形状，前者一般不在碰撞平衡。守恒量决定允许到达哪些状态，碰撞机制与熵产生决定怎样改变形状。下一讲的四速实验正是把这个区别缩成能完全算清楚的有限模型，而不是用一次正碰代表热化过程。</p>
+<h2 id="6">6. 实验与迁移<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<div class="learning-lab" data-learning-lab="research-math" data-research-topic="kinetic-collisions">
+<p>先预测法向角 0、45、90 度时能量怎样分配，再改变入射速率。此实验逐次验证散射，不从两个球拟合气体分布。</p>
+</div>
+<p>默认静态结果：<span class="arithmatex">\(u=2,\theta=45^\circ\)</span>；<span class="arithmatex">\(v'=(1,-1)\)</span>、<span class="arithmatex">\(w'=(1,1)\)</span>；总动量 <span class="arithmatex">\((2,0)\)</span>，总动能 <strong>2</strong>，每个粒子动能 <strong>1</strong>。当速率加倍时动量加倍、能量变四倍。</p>
+<p><strong>题一。</strong> 把法向量换成 <span class="arithmatex">\(-n\)</span> 会得到不同的碰撞吗？</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>不会。<span class="arithmatex">\([g\cdot(-n)](-n)=(g\cdot n)n\)</span>，所以速度结果不变。角度积分若覆盖整个球面，要与只用入射半球的约定协调归一化，不能重复计数后仍使用原系数。</p>
+</details>
+<p><strong>题二。</strong> 若保持体积分数 <span class="arithmatex">\(N\varepsilon^d\)</span> 为非零常数而令半径趋零，能否照搬本讲有限碰撞率的论证？</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>不能；<span class="arithmatex">\(N\varepsilon^{d-1}\)</span> 此时约为常数除以 <span class="arithmatex">\(\varepsilon\)</span>，会发散。密集结构、时间缩放或相关修正需要另行处理。稀薄与流体尺度并不是一句“粒子很多”就能区分的。</p>
+</details>
+</section>
+<h2 id="_2">速查与来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>机制</th>
+<th>条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>弹性散射</td>
+<td><span class="arithmatex">\(g'=g-2(g\cdot n)n\)</span></td>
+<td>等质量、无摩擦</td>
+</tr>
+<tr>
+<td>碰撞积分</td>
+<td>增益减损失，含 <span class="arithmatex">\(ff_*\)</span></td>
+<td>统计闭合需证明</td>
+</tr>
+<tr>
+<td>H 定理</td>
+<td><span class="arithmatex">\((A-C)\log(A/C)\ge0\)</span></td>
+<td>核对称、正则与可积条件</td>
+</tr>
+</tbody>
+</table>
+<p>下一讲：<a href="kinetic-03-hydrodynamic-limits.html">从局部平衡到流体</a>。实际访问 <strong>2026-09-08</strong>：<a href="https://www.cmls.polytechnique.fr/perso/golse/Surveys/FGHdBookEvEq.pdf">Golse，2005 作者综述</a>；<a href="https://arxiv.org/abs/2408.07818">长时间硬球推导，2024-08-14 首稿／2025-07-18 v3</a>；<a href="https://arxiv.org/html/2503.01800v1">Deng–Hani–Ma，2025-03-03，碰撞定义及定理 1</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="kinetic-01-liouville-marginals.html"><span class="pager-label">上一页</span>动理学 I · Liouville 与边缘分布</a>
+  <a class="pager-slot next" href="kinetic-03-hydrodynamic-limits.html"><span class="pager-label">下一页</span>动理学 III · 流体极限与闭合</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-math.js?v=ed2dea8308c3"></script>
+</body>
+</html>

@@ -115,3 +115,18 @@ python3.12 -m venv .venv
 先把玩具模型手算出来，再对照论文中的真实系统规模、数据和评估。预印本结论、论文报告的经验现象与已经证明的恒等式会分别标明；不同论文的测量协议不能直接混成同一个排行榜。
 
 相关路线：[数学前沿](../../grad-math/site/index.html) · [物理前沿](../../physics-course/site/index.html#研究前沿课程)。
+
+
+<h2 id="research-curriculum">连续研究课程：从基础工具到研究问题</h2>
+
+每条线按四讲顺序推进：先建立可算对象，再检验模型条件，最后进入研究文献。讲次之间有关联；与前面的专题课可以交叉阅读。
+
+**科学机器学习**
+
+[算子学习](research-01-operator-learning.html) → [Fourier 神经算子](research-02-fourier-operator.html) → [等变网络](research-03-equivariant-networks.html) → [模拟推断](research-04-simulation-inference.html)。
+
+**世界模型与具身智能**
+
+[潜在动力学](research-05-latent-world-model.html) → [基于模型的规划](research-06-model-based-planning.html) → [视觉语言动作模型](research-07-vision-language-action.html) → [泛化与任务评估](research-08-embodied-evaluation.html)。
+
+科学机器学习线先修神经网络、线性代数、概率与微分方程；世界模型与具身线先修动力学、优化和条件概率。实验使用明确的低维模型，便于手算与复验；论文中的大模型训练和机器人评测另列数据、算力及环境条件。

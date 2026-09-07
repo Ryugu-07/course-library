@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fourier 神经算子 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li class="active"><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 把远距离相互作用搬到频率空间</a></li>
+<li><a href="#2">2. 从离散傅里叶定义推出混叠</a></li>
+<li><a href="#3">3. 截断、混叠与非线性是三件相连的事</a></li>
+<li><a href="#4">4. 怎样认真验证跨分辨率能力</a></li>
+<li><a href="#5">5. 先预测，再增加采样点</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-02">AI 研究 02 · 傅里叶神经算子：低频计算为何也会犯高频错误<a class="headerlink" href="#ai-02" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：训练网格上的误差已经接近零，换一个更密的网格为什么会暴露整条错波？先修：<a href="research-01-operator-learning.html">算子学习</a>、复数与傅里叶级数。资料核查截至 <strong>2026-09-08</strong>；本讲把 FNO 的结构与一个固定谱投影实验分开。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 把远距离相互作用搬到频率空间<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>上一讲的热方程中，每个傅里叶模式只需乘一个衰减因子。这让人想到：对更复杂的物理映射，能否直接学习各模式之间的通道变换？傅里叶神经算子使用这类结构，将全局空间操作变成有限个谱系数上的计算。它能表达非局部关系，但不会自动消除采样带来的信息损失。</p>
+<p>设中间特征为 <span class="arithmatex">\(v_\ell(x)\in\mathbb R^c\)</span>，一个典型层可写成</p>
+<div class="arithmatex">\[
+v_{\ell+1}(x)=\sigma\!\left(W_\ell v_\ell(x)+
+\mathcal F^{-1}[R_\ell(k)\mathcal Fv_\ell(k)](x)\right).
+\]</div>
+<p><span class="arithmatex">\(W_\ell\)</span> 是每个位置共用的通道线性映射，<span class="arithmatex">\(R_\ell(k)\)</span> 是频率相关的复矩阵，只在选定模式上参数化；<span class="arithmatex">\(\sigma\)</span> 是点态非线性。输入提升到通道空间，若干层之后再投影成物理输出。这里“傅里叶”指计算结构，不等于把整个偏微分方程解析求解了。<a href="https://arxiv.org/abs/2010.08895">FNO，首稿 2020-10-18</a>给出了原始架构与若干 PDE 实验。</p>
+<figure><img src="assets/img/research-02-fourier-operator.svg" alt="真实九次正弦经十六点采样后与负七次正弦不可区分，保留七阶模式会重建成后者。" /><figcaption>图 1：采样先发生，谱截断在后；低频谱系数中可能已经混进了高频信息。</figcaption></figure>
+<h2 id="2">2. 从离散傅里叶定义推出混叠<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(N\)</span> 个点 <span class="arithmatex">\(x_j=2\pi j/N\)</span>，<span class="arithmatex">\(j=0,\ldots,N-1\)</span>。本讲的 DFT 归一化为</p>
+<div class="arithmatex">\[
+\widehat u_m=\frac1N\sum_{j=0}^{N-1}u(x_j)e^{-imx_j}.
+\]</div>
+<p>在这些节点上，<span class="arithmatex">\(e^{i(k+N)x_j}=e^{ikx_j}e^{2\pi ij}=e^{ikx_j}\)</span>。因此相差整数倍 <span class="arithmatex">\(N\)</span> 的频率产生完全相同的数组。这叫混叠，不是优化器没有训练好，而是观察本身不唯一。</p>
+<p>现在令 <span class="arithmatex">\(N=16,k=9\)</span>。因为 <span class="arithmatex">\(9\equiv-7\pmod{16}\)</span>，</p>
+<div class="arithmatex">\[
+\sin(9x_j)=-\sin(7x_j).
+\]</div>
+<p>如果谱层只保留 <span class="arithmatex">\(|m|\le7\)</span>，并把保留权重设为 1，就会重建 <span class="arithmatex">\(-\sin7x\)</span>。它在全部训练节点上的误差为零，但真实函数是 <span class="arithmatex">\(\sin9x\)</span>。利用正交性，归一化连续误差满足</p>
+<div class="arithmatex">\[
+\frac1{2\pi}\int_0^{2\pi}|\sin9x+\sin7x|^2dx
+=\frac12+\frac12=1.
+\]</div>
+<p>所以 RMS 等于 1。这个完整反例说明，插值到更密的输出网格只是更清晰地画出错误，并没有恢复缺失的信息。</p>
+<h2 id="3">3. 截断、混叠与非线性是三件相连的事<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>截断表示主动不保留某些模式。例如 <span class="arithmatex">\(N=32,k=9,K=7\)</span>，九阶波已经可以被采样分辨，却在投影中被删掉，重建近于零，RMS 是 <span class="arithmatex">\(1/\sqrt2\)</span>。混叠则发生在采样时：尚未决定保留多少模式，高频就已经与别的频率无法区分。两种失败的曲线与数值不同。</p>
+<p>非线性还会在层内生成新频率。即使输入只有 <span class="arithmatex">\(\sin kx\)</span>，平方也产生</p>
+<div class="arithmatex">\[
+\sin^2kx=\tfrac12-\tfrac12\cos2kx.
+\]</div>
+<p>若网格无法分辨 <span class="arithmatex">\(2k\)</span>，新模式就会折回。实际 FNO 使用的激活不一定是平方，但频率扩展的风险依然存在。增加保留模式数不能超过网格的信息上限；抗混叠需要合适的过采样、滤波或离散化设计，并检查它们与非线性的先后次序。</p>
+<p>本实验为简洁而略去偶数网格的 Nyquist 模式 <span class="arithmatex">\(m=N/2\)</span>，实际截断为 <span class="arithmatex">\(\min(K,N/2-1)\)</span>。该频率的正弦在全部节点为零，余弦则交替正负，二者不能照搬普通正负频率对的处理。实验用显式 DFT，便于看清约定；工程实现通常用 FFT 提速。</p>
+<h2 id="4">4. 怎样认真验证跨分辨率能力<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>同一组频率权重可以在不同网格执行，首先说明参数数量未绑定于像素数。它是否逼近同一个连续算子，还取决于输入正则性、谱归一化、已解析的频带、数值积分和训练分布。上一讲的 <span class="arithmatex">\(I_NG_NP_N\)</span> 比较仍然需要做。<a href="https://arxiv.org/abs/2108.08481">神经算子理论，首稿 2021-08-19</a>提供了函数空间视角，而不是任何离散模型都无条件可迁移的承诺。</p>
+<p>边界同样关键。周期傅里叶展开默认两端相接；非周期函数在拼接处可能出现跳跃，带来振荡和大量高频。填充、坐标变换或不同基函数都能改变实现，但必须说明物理边界如何进入模型。把一个固定温度边界问题直接当周期问题，增加层数也无法让任务定义变正确。</p>
+<p>近期的<a href="https://arxiv.org/abs/2506.10973">函数空间架构研究，首稿 2025-06-12</a>把有限网络扩展的原则放到前台。这条研究线的价值，是让“同一模型作用于不同表示”有明确数学含义。对应用报告，应同时索要同网格误差、跨网格误差、输入频带与边界测试；单个细网格展示不足以识别误差来源。</p>
+<h2 id="5">5. 先预测，再增加采样点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>一个实用的诊断顺序是：先用常数输入检查零频与归一化，再用单一可解析模式检查幅度和相位，最后输入两个模式并加入非线性。若常数经过恒等谱层后翻倍，问题很可能在正反变换约定；若仅高频失败，才继续区分截断和混叠。误差表最好同时记录空间范数与频谱误差，因为很小但物理重要的高频可能被总能量指标掩盖。对于湍流等多尺度过程，还需要检查能谱、守恒量和统计分布，不能把本例的平滑扩散直觉直接推广到所有动力学。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="fourier">调整采样点、真实频率与保留频带，比较传感器误差和密网格误差。</div>
+<p>默认 <span class="arithmatex">\(N=16,k=9,K=7\)</span>：有符号折回波数为 −7，采样 RMS 在浮点精度内为零，512 点密网格 RMS 为 1。本例频率均低于密网格的混叠阈值，其均匀求和能验证相应三角多项式的积分。先把 <span class="arithmatex">\(N\)</span> 改成 32，再把 <span class="arithmatex">\(K\)</span> 从 7 调到 9：第一步消除混叠，第二步才解除截断。</p>
+<p>对实际训练还应留出整个输入函数作为测试单位，避免把同一函数的相邻节点拆到两边。否则所谓泛化可能只是在原有曲线上补点。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：只在训练节点上检查 <span class="arithmatex">\(N=16\)</span> 的九阶正弦，换十次随机初始化能发现上述错误吗？</p>
+<details>
+<summary>展开答案</summary>
+<p>不能靠这些节点区分两种函数。随机初始化可能改变拟合方式，却不创造新观察。需要离开原网格的验证点，或者独立高分辨率真值，并明确允许输入的频带。</p>
+</details>
+<p><strong>题二</strong>：输入波数不超过 6，做一次平方后，在 <span class="arithmatex">\(N=16\)</span> 上是否仍然充分解析？</p>
+<details>
+<summary>展开答案</summary>
+<p>未必。平方可能产生 12 阶模式，而 12 在 16 点上折回 −4；实信号的正负频率还会配对。可先在更密网格计算非线性，再适当低通，最后下采样；所需频带应由操作产生的最高频率确定。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>判别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>混叠</td>
+<td><span class="arithmatex">\(k\)</span> 与 <span class="arithmatex">\(k+N\)</span> 在 <span class="arithmatex">\(N\)</span> 点上不可区分</td>
+</tr>
+<tr>
+<td>截断</td>
+<td>已分辨的模式也可能被 <span class="arithmatex">\(\lvert k\rvert&gt;K\)</span> 删除</td>
+</tr>
+<tr>
+<td>非线性</td>
+<td>会生成额外频率，需重新检查解析能力</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/2010.08895">FNO</a>、<a href="https://arxiv.org/abs/2108.08481">神经算子</a>、<a href="https://arxiv.org/abs/2506.10973">2025 函数空间扩展</a>。先修：<a href="research-01-operator-learning.html">算子学习</a>；下一讲：<a href="research-03-equivariant-networks.html">等变网络</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-01-operator-learning.html"><span class="pager-label">上一讲</span>科学 AI I · 算子学习</a>
+  <a class="pager-slot next" href="research-03-equivariant-networks.html"><span class="pager-label">下一讲</span>科学 AI III · 等变网络</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

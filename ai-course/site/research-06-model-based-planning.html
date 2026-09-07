@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>基于模型的规划 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li class="active"><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 优化的是模型中的未来</a></li>
+<li><a href="#2">2. 把受约束最优解从头推出来</a></li>
+<li><a href="#3">3. 观察之后，剩余问题已经改变</a></li>
+<li><a href="#4">4. 动作限制不等于状态保证</a></li>
+<li><a href="#5">5. 从解析模型到潜在空间规划</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-06">AI 研究 06 · 模型预测规划：最优计划为何还要重新计算<a class="headerlink" href="#ai-06" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：模型已经算出“最优动作”，为什么执行第一步后还要再观察、再优化？先修：<a href="research-05-latent-world-model.html">潜在世界模型</a>、导数与凸二次函数。资料核查截至 <strong>2026-09-08</strong>；实验真正求解两次带动作约束的优化，不把简单更新规则冒充规划。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 优化的是模型中的未来<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>模型预测控制通常从当前状态出发，预测若干步的后果，在约束下选择动作序列，只执行开头一段，然后重新观察并求解。反馈让计划使用新的实际状态；最优化保证则首先属于使用的模型。只要模型有偏差，预计可行与真实可行就可能分开。</p>
+<p>本讲固定两步截止时间，状态和动作无量纲，真实系统为 <span class="arithmatex">\(x_{t+1}=x_t+u_t\)</span>，初态 <span class="arithmatex">\(x_0=0\)</span>。控制器相信 <span class="arithmatex">\(\hat x_{t+1}=\hat x_t+\hat b u_t\)</span>，其中 <span class="arithmatex">\(\hat b&gt;0\)</span> 是它对动作效果的估计。目标位置为 <span class="arithmatex">\(r&gt;0\)</span>，动作限制为 <span class="arithmatex">\(|u_t|\le U\)</span>。</p>
+<p>计划最小化</p>
+<div class="arithmatex">\[
+J(u_0,u_1)=[\hat b(u_0+u_1)-r]^2+
+\lambda(u_0^2+u_1^2),\qquad\lambda=0.1.
+\]</div>
+<p>第一项奖励到达目标，第二项惩罚用力。增大第二项会允许留下位置误差，以节约动作；所以最优终点未必等于目标，哪怕模型完全正确。理解代价定义，比把曲线末端“差一点”都判成算法失败更重要。</p>
+<figure><img src="assets/img/research-06-model-based-planning.svg" alt="两步约束优化只执行第一步，真实状态被重新观察后求解剩余一步，形成反馈回路。" /><figcaption>图 1：本讲采用固定截止时间的缩短时域。通常的持续运行 MPC 也可每次保持固定预测长度，两者需明确区分。</figcaption></figure>
+<h2 id="2">2. 把受约束最优解从头推出来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>目标的 Hessian 为 <span class="arithmatex">\(2\hat b^2\mathbf1\mathbf1^T+2\lambda I\)</span>。由于 <span class="arithmatex">\(\lambda&gt;0\)</span>，对任何非零向量 <span class="arithmatex">\(v\)</span>，二次型都严格为正，目标严格凸，因此盒约束上的最优解唯一。</p>
+<p>问题对交换 <span class="arithmatex">\(u_0,u_1\)</span> 不变；唯一最优解必须满足 <span class="arithmatex">\(u_0=u_1=u\)</span>。也可固定动作和，用 <span class="arithmatex">\(u_0^2+u_1^2\ge(u_0+u_1)^2/2\)</span> 说明平均分配最省动作。于是只需求解</p>
+<div class="arithmatex">\[
+\min_{|u|\le U}(2\hat b u-r)^2+2\lambda u^2.
+\]</div>
+<p>对 <span class="arithmatex">\(u\)</span> 求导并令其为零，得到 <span class="arithmatex">\(u^*=\hat b r/(2\hat b^2+\lambda)\)</span>。若超出允许区间，凸函数在相应边界取最小值，所以</p>
+<div class="arithmatex">\[
+u_0=u_1=\operatorname{clip}_{[-U,U]}
+\left(\frac{\hat b r}{2\hat b^2+\lambda}\right).
+\]</div>
+<p>这里裁剪是该特定对称凸问题的解析结论，不能推广为任意非线性规划“先无约束求解再逐项裁剪”都正确。有状态耦合约束时，后者可能直接破坏可行性。</p>
+<h2 id="3">3. 观察之后，剩余问题已经改变<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>执行第一步后，真实状态是 <span class="arithmatex">\(x_1=u_0\)</span>，而非模型原本预计的 <span class="arithmatex">\(\hat b u_0\)</span>。截止时间还剩一步，重新优化</p>
+<div class="arithmatex">\[
+\min_{|v|\le U}(x_1+\hat b v-r)^2+\lambda v^2,
+\quad v^*=\operatorname{clip}_{[-U,U]}
+\left(\frac{\hat b(r-x_1)}{\hat b^2+\lambda}\right).
+\]</div>
+<p>之前已付出的动作成本是常数，不影响此时的最优选择。这一重规划真正利用了新观测，但并未自动修正增益 <span class="arithmatex">\(\hat b\)</span>；系统辨识与状态反馈是相关而不同的工作。</p>
+<p>默认 <span class="arithmatex">\(\hat b=1.3,r=1,U=0.6\)</span>，原计划两步各约 <span class="arithmatex">\(0.373563\)</span>。模型预计终点为 <span class="arithmatex">\(0.971264\)</span>，真实开环终点只有 <span class="arithmatex">\(0.747126\)</span>。重新观察后第二步改为 <span class="arithmatex">\(0.454954\)</span>，真实终点达到 <span class="arithmatex">\(0.828517\)</span>。位置误差在本设置中下降，但不是所有偏差、约束和代价下反馈都必然更接近目标的定理。</p>
+<h2 id="4">4. 动作限制不等于状态保证<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>把动作控制在允许范围内，是当前实验直接保证的约束。若机器人不能穿过墙面，还必须约束真实状态。用错误模型预测状态，仅检查 <span class="arithmatex">\(\hat x_t\)</span> 不撞墙并不足够。例如模型低估动作效果时，真实位移可能比预计更大，满足模型限制的动作仍会越界。</p>
+<p>一种鲁棒思路是使用误差集合 <span class="arithmatex">\(E_t\)</span>，要求预测状态加上所有允许偏差仍在安全集合 <span class="arithmatex">\(X\)</span> 内：<span class="arithmatex">\(\hat x_t\oplus E_t\subseteq X\)</span>。<span class="arithmatex">\(\oplus\)</span> 表示集合中两元素逐对相加。误差集合要由可信的扰动界和闭环误差传播得到，不能随意画一个“安全余量”。集合太小会漏掉风险，太大会导致无可行动作。</p>
+<p><a href="https://arxiv.org/abs/1806.04167">学习近似 MPC 的保证，首稿 2018-06-11</a>把鲁棒设计与统计学习界结合，研究近似控制器的稳定和约束性质。它的意义正在于把保证所需的误差条件写清，而非宣称任意学得控制器都有同样结论。</p>
+<h2 id="5">5. 从解析模型到潜在空间规划<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/abs/2310.16828">TD-MPC2，首稿 2023-10-25，修订 2024-03-21</a>研究在潜在模型中做局部轨迹优化并跨任务学习。其任务表现与架构扩展证据，不应被转换成所有现实状态约束已获证明。学得的价值函数还能近似时域外的回报，但价值误差也会改变最优选择。</p>
+<p><a href="https://arxiv.org/abs/2506.20334">区域性质与鲁棒 NMPC，首稿 2025-06-25，修订 2026-03-25</a>利用特定循环网络的区域增量稳定性，构造管状非线性 MPC，并在相应条件下分析收敛和递归可行性；验证包括 pH 中和过程的数值模拟。研究前沿在于如何让学习模型、观测器和约束证明相互兼容，条件范围本身就是成果的一部分。</p>
+<p>真正实施时还要报告求解耗时、失败时的备用动作、状态估计误差和采样周期。一次计算出的全局最优若在截止时间之后才返回，也无法作为当前控制动作。下一讲将把这一点变成可直接测量的时序误差。</p>
+<p>可以用独立枚举检验解析答案：在动作方形区域上铺一张密网格，对每对动作直接模拟模型终点并计算代价，确认没有网格候选优于解析解。再缩小网格间距，最优候选应逼近同一位置。这种检查不重复求导过程，能发现分母中的系数或动作约束写错。实际高维系统无法穷举所有序列，于是需要数值优化、采样搜索或策略提供候选；此时求解器返回的是可行解、局部最优还是带界的全局最优，需要如实说明。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="planning">改变模型增益、目标和动作上限，查看最优计划、真实执行与剩余一步的重优化。</div>
+<p>先降低动作上限，预测哪些设置会撞到约束边界。再令 <span class="arithmatex">\(\hat b=1\)</span>，检查两次规划是否与准确模型的动态一致性相符；保留动作惩罚时，终点仍可能略低于目标。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：若 <span class="arithmatex">\(\lambda=0\)</span> 且动作未受限，原来的“唯一且对称最优”证明还成立吗？</p>
+<details>
+<summary>展开答案</summary>
+<p>不成立。只要动作和等于 <span class="arithmatex">\(r/\hat b\)</span>，都能令终点误差为零；目标沿某些方向不再严格凸。对称分配仍可选，却未必唯一。正的动作惩罚消除了这种退化。</p>
+</details>
+<p><strong>题二</strong>：为什么不能把任意规划器输出裁剪到动作上限后，就声称原有状态安全证明仍成立？</p>
+<details>
+<summary>展开答案</summary>
+<p>裁剪改变整条预测轨迹，可能使原本依靠后续动作避障的计划失效。应在优化中纳入约束，或重新验证裁剪后的闭环可行性。本讲裁剪只对已证明的特定凸盒约束问题有效。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>本讲解析式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>两步初始最优</td>
+<td><span class="arithmatex">\(u=\operatorname{clip}(\hat b r/(2\hat b^2+0.1))\)</span></td>
+</tr>
+<tr>
+<td>剩余一步</td>
+<td><span class="arithmatex">\(v=\operatorname{clip}(\hat b(r-x_1)/(\hat b^2+0.1))\)</span></td>
+</tr>
+<tr>
+<td>约束边界</td>
+<td>动作可行不自动保证真实状态可行</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/1806.04167">近似 MPC 保证</a>、<a href="https://arxiv.org/abs/2310.16828">TD-MPC2</a>、<a href="https://arxiv.org/abs/2506.20334">2026 区域鲁棒 NMPC</a>。先修：<a href="research-05-latent-world-model.html">世界模型</a>；下一讲：<a href="research-07-vision-language-action.html">视觉语言动作模型</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-05-latent-world-model.html"><span class="pager-label">上一讲</span>世界模型 I · 潜在动力学</a>
+  <a class="pager-slot next" href="research-07-vision-language-action.html"><span class="pager-label">下一讲</span>具身 I · 视觉语言动作模型</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

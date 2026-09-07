@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>泛化与任务评估 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li class="active"><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先定义任务结束时什么叫成功</a></li>
+<li><a href="#2">2. 同样两个策略，为何会交换排名</a></li>
+<li><a href="#3">3. 拆分必须隔开会泄漏的信息</a></li>
+<li><a href="#4">4. 长任务与不确定性怎样读</a></li>
+<li><a href="#5">5. 基准怎样支持、又限制前沿结论</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-08">AI 研究 08 · 具身评估：成功率究竟属于哪一种任务<a class="headerlink" href="#ai-08" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：一段成功视频、一个平均分和一次真实部署，分别能证明什么？先修：<a href="research-07-vision-language-action.html">视觉语言动作模型</a>、条件概率与抽样。资料核查截至 <strong>2026-09-08</strong>；本讲用固定合成任务库演示评估计算，机器人能力结论必须来自真实对应数据。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 先定义任务结束时什么叫成功<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>“拿起杯子”可以有多种实现，也有多种失败。杯子离桌一瞬间随后掉落，是否算成功？严谨协议要先写出成功谓词，例如在规定时限内，杯子处于指定区域、保持所需姿态并稳定两秒；还需规定碰撞、掉落、超时和人工接管如何计入。不同任务的阈值应来自任务要求，而非看完结果后选择。</p>
+<p>记第 <span class="arithmatex">\(i\)</span> 次完整任务的结果为 <span class="arithmatex">\(S_i\in\{0,1\}\)</span>，成功率估计为 <span class="arithmatex">\(\hat p=n^{-1}\sum_iS_i\)</span>。一次任务而非一帧图像是这里的统计单位。连续的一千帧并不等于一千次独立抓取，同一次试验中的停顿与重试也应按预先规定处理。</p>
+<p>此外，报告终点成功和过程代价有不同作用。更快失败不应该得到“效率更高”的奖励；成功吞吐、时间、碰撞与人工干预应有明确分母。可以报告成功任务耗时，但必须同时报告失败比例，避免只对幸存样本计时造成误导。</p>
+<figure><img src="assets/img/research-08-embodied-evaluation.svg" alt="训练与验证按完整任务隔离，测试先分别统计简单和困难任务，再按预先规定的部署比例加权。" /><figcaption>图 1：一个平均分的含义由任务定义、拆分单位和目标分布共同决定。</figcaption></figure>
+<h2 id="2">2. 同样两个策略，为何会交换排名<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>设任务分成简单 <span class="arithmatex">\(E\)</span> 和困难 <span class="arithmatex">\(D\)</span>，部署中简单任务的比例为 <span class="arithmatex">\(q\)</span>。全概率公式给出</p>
+<div class="arithmatex">\[
+P(S=1)=qP(S=1\mid E)+(1-q)P(S=1\mid D).
+\]</div>
+<p>策略 A 的条件成功率为 0.95 和 0.35，策略 B 为 0.8 和 0.5。简单任务占 80% 时，A 为 <span class="arithmatex">\(0.8\times0.95+0.2\times0.35=0.83\)</span>，B 为 0.74；占 20% 时，A 为 0.47，B 为 0.56。算法没有改变，评估问题变了。</p>
+<p>两者差为 <span class="arithmatex">\(0.3q-0.15\)</span>，所以在 <span class="arithmatex">\(q=0.5\)</span> 时恰好打平。这个临界点说明“谁更好”需要部署分布，而非再寻找一个脱离任务的总分。专业报告应先展示各任务族的成功次数和试验次数，再同时给出平衡平均与预先规定的部署加权平均。</p>
+<p>实验固定简单、困难各 100 个编号，以均匀中点 <span class="arithmatex">\((i+0.5)/100\)</span> 小于指定比例来生成成功标签。这是可重复的合成库，不是真实机器人的随机抽样。默认 A 的计数为 95/100、35/100，平衡分数为 0.65；滑块改变目标比例，不会重新生成训练结果。</p>
+<h2 id="3">3. 拆分必须隔开会泄漏的信息<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>如果同一次操作的前半段进训练集，后半段进测试集，即便文件名不同，场景、轨迹与物体状态仍高度关联。对“新轨迹泛化”，至少应按完整轨迹拆分；对“新物体泛化”，还应让对象身份隔离；对“新场景泛化”，则需隔离房间布局或场景实例。这些是不同测试，不应互相替代。</p>
+<p>训练集拟合参数，验证集选择超参数、任务阈值与停止时机，测试集只承担最终评估。不断根据测试失败修改策略，再继续把同一组测试称为未见数据，会使结论越来越乐观。最少要记录任务版本、初始化种子、允许示范数、机器人平台和人工介入规则。</p>
+<p>本实验还提供一个明确写死的污染模型：假设比例 <span class="arithmatex">\(\ell\)</span> 的测试任务被复制并能靠记忆强制成功，其余保持真实成功率 <span class="arithmatex">\(p\)</span>，则显示分数为</p>
+<div class="arithmatex">\[
+p_{\rm shown}=\ell+(1-\ell)p.
+\]</div>
+<p>它说明为什么污染会抬高分数，不能据分数反推现实中泄漏了多少。真实复制任务也未必总成功，这里“强制成功”是教学假设，目的在于使分母与机制透明。</p>
+<h2 id="4">4. 长任务与不确定性怎样读<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>一个任务需要依次通过十个阶段，若每个阶段在前面都成功的条件下，成功概率都是 0.9，则由概率链式法则</p>
+<div class="arithmatex">\[
+P(\text{全成功})=\prod_{j=1}^{10}
+P(S_j=1\mid S_1=\cdots=S_{j-1}=1)=0.9^{10}\approx0.348678.
+\]</div>
+<p>此处用的是条件概率，不需要额外假定各阶段独立。把“单阶段约九成”说成“整项任务约九成”，会严重高估长程能力。阶段失败诊断还能区分目标识别、接触、运输和放置的瓶颈，帮助确定应该补什么数据。</p>
+<p>若完整试验可视为独立同分布的伯努利抽样，<span class="arithmatex">\(\operatorname{Var}(\hat p)=p(1-p)/n\)</span>。在样本较多且远离边界时，可以用 <span class="arithmatex">\(\sqrt{\hat p(1-\hat p)/n}\)</span> 估计标准误；小样本或零失败应使用合适的二项区间，不能报告“零不确定性”。相同场景反复微调的试验可能相关，独立假设需要检查，更多相近重置不一定带来相同有效信息量。</p>
+<h2 id="5">5. 基准怎样支持、又限制前沿结论<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/abs/2306.03310">LIBERO，首稿 2023-06-05</a>组织多种机器人操作任务以研究迁移与持续学习，提示评估需要分解知识类型和任务顺序。<a href="https://arxiv.org/abs/2405.05941">SIMPLER，首稿 2024-05-09</a>研究用模拟评估现实操作策略，并比较指定任务与平台上的模拟、真实结果。模拟中的相对表现能否外推，需要实测相关性，而非只凭画面相似。</p>
+<p><a href="https://www.pi.website/blog/pi07">π0.7 官方研究，2026-04-16</a>展示近期 VLA 的可引导与组合任务方向。面对这样的研究，值得保留的不只是成功示例，还包括训练与测试的关系、指令复杂度、人工帮助、失败类别以及试验次数。公司研究可提供一手证据，其范围由报告中的实际协议决定，不能自动升级为跨所有平台的排序。</p>
+<p>当前这条路线因此与前三讲闭合：世界模型决定预测误差，规划决定如何使用预测，动作接口与延迟决定怎样真实执行，任务协议决定最后的成功数字究竟在测什么。可以分层诊断，却不能把某一层的好指标当成整个系统已经成功。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="embodied">改变困难任务表现、部署任务混合及假设污染比例，查看条件计数、总体成功与排名变化。</div>
+<p>先保持策略不变，把简单任务比例从 0.8 改为 0.2，预测排名是否翻转；再增加假设污染，比较显示分数与干净分数。最后查看十阶段链式成功值，解释它与各阶段平均值为什么不同。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：希望声明能泛化到新厨房，只留出旧厨房中的新相机帧够不够？应怎样拆分？</p>
+<details>
+<summary>展开答案</summary>
+<p>不够。应按厨房或场景实例隔离训练与测试，并记录物体身份、布局和任务分布是否也变化。可另设旧场景新轨迹、新场景旧物体等分层测试，帮助定位泛化来源；结果只支持对应的外推范围。</p>
+</details>
+<p><strong>题二</strong>：二十次试验中全部成功，能否写“成功概率为 100%”？</p>
+<details>
+<summary>展开答案</summary>
+<p>可以写观测计数 20/20，但总体成功概率仍有不确定性。独立同分布假设下，真实概率低于 1 也可能产生二十连胜，应给二项置信区间或明确假设的后验区间，同时报告初始化与人工干预协议。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>必须写清</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>成功率</td>
+<td>成功谓词、试验次数、超时与人工接管</td>
+</tr>
+<tr>
+<td>数据拆分</td>
+<td>轨迹、物体、场景分别对应不同泛化问题</td>
+</tr>
+<tr>
+<td>分布与长程</td>
+<td>条件成功率再加权；阶段条件成功率用乘积</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/2306.03310">LIBERO</a>、<a href="https://arxiv.org/abs/2405.05941">SIMPLER</a>、<a href="https://www.pi.website/blog/pi07">π0.7</a>。先修：<a href="research-07-vision-language-action.html">VLA 与时序</a>；回看：<a href="research-05-latent-world-model.html">潜在世界模型</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-07-vision-language-action.html"><span class="pager-label">上一讲</span>具身 I · 视觉语言动作模型</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

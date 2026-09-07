@@ -13,6 +13,7 @@
 """
 
 import html
+import hashlib
 import re
 import shutil
 import time
@@ -86,6 +87,18 @@ COURSE = [
         ("frontier-01-flow-matching.md", "前沿 I · Flow Matching"),
         ("frontier-02-reasoning-rl.md", "前沿 II · 推理强化学习"),
         ("frontier-03-mechanistic-interpretability.md", "前沿 III · 机制可解释性"),
+    ]),
+    ("研究课程 · 科学机器学习", [
+        ("research-01-operator-learning.md", "科学 AI I · 算子学习"),
+        ("research-02-fourier-operator.md", "科学 AI II · Fourier 神经算子"),
+        ("research-03-equivariant-networks.md", "科学 AI III · 等变网络"),
+        ("research-04-simulation-inference.md", "科学 AI IV · 模拟推断"),
+    ]),
+    ("研究课程 · 世界模型与具身智能", [
+        ("research-05-latent-world-model.md", "世界模型 I · 潜在动力学"),
+        ("research-06-model-based-planning.md", "世界模型 II · 基于模型的规划"),
+        ("research-07-vision-language-action.md", "具身 I · 视觉语言动作模型"),
+        ("research-08-embodied-evaluation.md", "具身 II · 泛化与任务评估"),
     ]),
 ]
 
@@ -164,7 +177,17 @@ def learning_assets(src: str):
     if missing:
         raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
     scripts = ['<script defer src="assets/learning/learning.js"></script>']
-    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    if any(name.startswith("research-") for name in names):
+        if not (SHARED / "research-renderer.js").is_file():
+            raise FileNotFoundError("Missing research lab renderer")
+        version = hashlib.sha256((SHARED / "research-renderer.js").read_bytes()).hexdigest()[:12]
+        scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
+    for name in names:
+        version = ""
+        if name.startswith("research-"):
+            digest = hashlib.sha256((SHARED / "labs" / f"{name}.js").read_bytes()).hexdigest()[:12]
+            version = f"?v={digest}"
+        scripts.append(f'<script defer src="assets/learning/labs/{name}.js{version}"></script>')
     return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
 
 

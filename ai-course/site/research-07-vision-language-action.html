@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>视觉语言动作模型 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li class="active"><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 三种输入输出，共用一条时间线</a></li>
+<li><a href="#2">2. 一百毫秒究竟意味着什么</a></li>
+<li><a href="#3">3. 外推能补偿什么，不能补偿什么</a></li>
+<li><a href="#4">4. 动作块不是把延迟藏起来</a></li>
+<li><a href="#5">5. 前沿的泛化声称要落到哪些条件</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-07">AI 研究 07 · 视觉语言动作模型：从看懂指令到按时执行<a class="headerlink" href="#ai-07" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：模型理解“把杯子放到移动托盘上”，为何仍会在动作落下时错过目标？先修：<a href="research-06-model-based-planning.html">模型预测规划</a>、<a href="frontier-01-flow-matching.html">Flow Matching</a>。资料核查截至 <strong>2026-09-08</strong>；实验只解析观测时序，不能据此声称机器人任务已被验证。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 三种输入输出，共用一条时间线<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>视觉语言动作模型简称 VLA。视觉说明当前场景，语言指定任务，机器人状态提供关节、末端位置等信息，输出则是一段具有物理含义的动作。动作可以是关节目标、末端位姿增量或控制信号；必须注明坐标系、单位、执行周期和控制接口。一个正确的文字回答与一个可以执行的动作序列，评价条件并不相同。</p>
+<p>把动作块写为 <span class="arithmatex">\(A_t=(a_t,\ldots,a_{t+H-1})\)</span>，策略为 <span class="arithmatex">\(\pi_\theta(A_t\mid o_t,s_t,\ell)\)</span>。<span class="arithmatex">\(o_t\)</span> 是观测，<span class="arithmatex">\(s_t\)</span> 是机器人状态，<span class="arithmatex">\(\ell\)</span> 是指令，<span class="arithmatex">\(H\)</span> 是动作块长度。这里下标应对应<strong>捕获时刻或计划执行时刻</strong>，不能含混地都称作“当前”。相机曝光、图像传输、网络推断和执行器通信各占时间。</p>
+<p><a href="https://www.pi.website/blog/pi05">π0.5 官方研究，2025-04-22</a>研究从异质数据中学习更开放环境下的机器人操作。模型可以采用语言视觉骨干与连续动作生成模块，动作生成不必等价于逐字输出文本。异质数据中的网页理解、机器人示范与动作监督，各自提供不同证据；照片本身通常不包含可直接执行的关节标签。</p>
+<figure><img src="assets/img/research-07-vision-language-action.svg" alt="相机在零时刻看到目标，模型经过延迟才给出命令；目标已前进，动作块还要按新的实际时间执行。" /><figcaption>图 1：延迟发生时，世界继续运动。动作块中的每个命令需要与真实执行时刻对齐。</figcaption></figure>
+<h2 id="2">2. 一百毫秒究竟意味着什么<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取最简单的运动目标 <span class="arithmatex">\(q(t)=vt\)</span>，速度 <span class="arithmatex">\(v\ge0\)</span>，单位 m/s。每隔 <span class="arithmatex">\(\Delta\)</span> 秒捕获一次位置，固定延迟 <span class="arithmatex">\(\tau\)</span> 秒后命令到达。先假定执行器能瞬时到达收到的位置，并在两次更新之间保持不动。这个理想化去掉了惯性，专门隔离观测变旧带来的误差。</p>
+<p>在稳定更新阶段，时刻 <span class="arithmatex">\(t\ge\tau\)</span> 最新到达的观测捕获于</p>
+<div class="arithmatex">\[
+s(t)=\Delta\left\lfloor\frac{t-\tau}{\Delta}\right\rfloor,
+\qquad \hat q(t)=vs(t).
+\]</div>
+<p>于是 <span class="arithmatex">\(e(t)=q(t)-\hat q(t)=v[t-s(t)]\)</span>。每个周期内，观测年龄从 <span class="arithmatex">\(\tau\)</span> 增到接近 <span class="arithmatex">\(\tau+\Delta\)</span>，随后收到新观测而跳回。即使模型完美识别图像中的位置，命令仍然系统性落后。</p>
+<p>对均匀分布在一个更新周期内的相位 <span class="arithmatex">\(r\in[0,\Delta)\)</span> 积分：</p>
+<div class="arithmatex">\[
+\bar e=v(\tau+\Delta/2),\qquad
+\mathrm{RMS}=v\sqrt{\tau^2+\tau\Delta+\Delta^2/3}.
+\]</div>
+<p>第一式来自 <span class="arithmatex">\(\mathbb Er=\Delta/2\)</span>，第二式来自 <span class="arithmatex">\(\mathbb Er^2=\Delta^2/3\)</span>。误差上确界为 <span class="arithmatex">\(v(\tau+\Delta)\)</span>，在理想瞬时更新约定下未必恰好取到。延迟和更新周期是不同参数；提高吞吐量并不总是缩短单次响应延迟。</p>
+<h2 id="3">3. 外推能补偿什么，不能补偿什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>若速度已准确知道，可把捕获位置向前预测 <span class="arithmatex">\(\tau\)</span> 秒，收到后执行 <span class="arithmatex">\(v[s(t)+\tau]\)</span>。这抵消固定延迟，但仍会在周期内保持不变，因此剩余 RMS 为 <span class="arithmatex">\(v\Delta/\sqrt3\)</span>。它没有创造连续更新，也没有解决目标加速、遮挡、速度估计偏差或执行器动态。</p>
+<p>默认 <span class="arithmatex">\(v=0.5\)</span> m/s、<span class="arithmatex">\(\tau=0.2\)</span> s、<span class="arithmatex">\(\Delta=0.1\)</span> s：平均滞后为 0.125 m，RMS 约 0.125831 m；只补偿已知延迟后 RMS 约 0.028868 m。仅考虑延迟的一步差为 0.1 m，而完整周期平均误差更大。这解释了为什么“只快一点”有时显著改变动态任务的结果。</p>
+<p>真实控制往往不能瞬间跳到新位置。若直接切换两个不一致的动作块，位置、速度或加速度可能突变。简单把候选动作平均，还可能把两个各自可行的绕障策略平均成一条撞障路线；控制动作空间中的平均不保证任务语义和几何约束保持。</p>
+<h2 id="4">4. 动作块不是把延迟藏起来<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>动作分块让模型一次预测未来多个命令，执行旧块时可异步计算新块。关键在于，新结果到达时，旧块前面的一部分已经真实执行，无法回滚。新块必须与已承诺的前缀和当前实际状态兼容，同时对新观测保持反应能力。</p>
+<p><a href="https://www.pi.website/research/real_time_chunking">Real-Time Action Chunking，2025-06-09</a>将重叠动作的一致性组织为补全问题：冻结已确定会执行的部分，对重叠段与剩余段进行相应处理。原工作研究推断时方法；官方页面于 2025-12-08 链接了训练时版本。论文的真实机器人与模拟任务提供该协议下的证据，本讲匀速目标公式只解释其中一个时序动机，并非复现它的算法。</p>
+<p>一个可核验的系统日志至少记录观察捕获、推断开始、推断完成、动作实际执行四种时间戳。还要区分动作块长度与重规划间隔：预测一秒动作，并不代表必须一秒后才能重新看。末端位姿采用相机坐标还是机器人底座坐标、增量是对哪一个状态定义，也会在延迟时改变解释。</p>
+<h2 id="5">5. 前沿的泛化声称要落到哪些条件<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://www.pi.website/blog/pi07">π0.7 官方研究，2026-04-16</a>讨论可引导性与组合能力等方向。阅读公司研究报告时，应核对训练数据、指令修改方式、允许的人工反馈、机器人平台与测试任务，再判断它支持哪种泛化；某些新任务成功不等于任意物体、任意家居或任意延迟下都可用。</p>
+<p>VLA 还会面对视觉混淆与行动代价不对称。识别错一个杯子可能只是分类误差，执行抓取却可能使后续状态完全不同。因此应分开测语言条件是否改变目标选择、动作是否满足接口约定、整段任务是否成功；不能只用离线动作均方误差替代闭环实验。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="vla">改变目标速度、观测到动作延迟和更新周期，比较旧位置命令与只补偿延迟的命令。</div>
+<p>先把速度设为零，检查本模型的时序误差归零；再保持速度与延迟不变，仅提高更新频率。你会看到周期误差下降，却仍有固定延迟项。若把模型换成加速目标，应重新推导，不应继续沿用匀速公式。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：两套模型每秒都完成十次推断，一套每次延迟 50 ms，另一套流水线延迟 300 ms。它们的动态控制表现必然相同吗？</p>
+<details>
+<summary>展开答案</summary>
+<p>不必。吞吐量相同不代表观测年龄相同；目标在额外 250 ms 内会继续运动。还应检查流水线结果是否按时间顺序执行，过期动作是否丢弃，以及闭环重规划周期。</p>
+</details>
+<p><strong>题二</strong>：对已有动作块做平滑后视频更流畅，能否据此判断任务更安全、更成功？</p>
+<details>
+<summary>展开答案</summary>
+<p>不能。平滑会改变轨迹和接触时机，可能违反几何约束。需要在相同任务初始化下测量成功、碰撞、执行时间及人工干预，并检查控制接口的速度和加速度限制。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\tau\)</span></td>
+<td>捕获到动作到达的固定延迟</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\Delta\)</span></td>
+<td>位置命令的更新周期</td>
+</tr>
+<tr>
+<td>匀速保持误差</td>
+<td><span class="arithmatex">\(\bar e=v(\tau+\Delta/2)\)</span>；补偿延迟仍有周期误差</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://www.pi.website/blog/pi05">π0.5</a>、<a href="https://www.pi.website/research/real_time_chunking">实时动作分块</a>、<a href="https://www.pi.website/blog/pi07">π0.7</a>。先修：<a href="research-06-model-based-planning.html">规划</a>；下一讲：<a href="research-08-embodied-evaluation.html">具身评估</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-06-model-based-planning.html"><span class="pager-label">上一讲</span>世界模型 II · 基于模型的规划</a>
+  <a class="pager-slot next" href="research-08-embodied-evaluation.html"><span class="pager-label">下一讲</span>具身 II · 泛化与任务评估</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

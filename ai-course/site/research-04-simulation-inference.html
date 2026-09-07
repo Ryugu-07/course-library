@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模拟推断 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li class="active"><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 正向容易，逆向可能没有唯一答案</a></li>
+<li><a href="#2">2. 从贝叶斯公式算出多峰后验</a></li>
+<li><a href="#3">3. 学一个后验，与算这个后验有什么关系</a></li>
+<li><a href="#4">4. 覆盖率的平均对象必须说清</a></li>
+<li><a href="#5">5. 近期诊断为何继续研究“覆盖也会骗人”</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-04">AI 研究 04 · 模拟推断：观测能告诉我们哪些参数<a class="headerlink" href="#ai-04" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：模拟器能从参数生成数据，但拿到数据后，能否唯一找回参数并诚实表达不确定性？先修：贝叶斯公式、<a href="04-neural-networks.html">神经网络</a>。资料核查截至 <strong>2026-09-08</strong>；实验用可枚举真值检验后验与覆盖，不能代替复杂模拟器的验证。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 正向容易，逆向可能没有唯一答案<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>给定材料参数，模拟一次散射图样可能很容易；对每个候选参数写出观测的概率密度，却可能极其困难。模拟推断利用能生成 <span class="arithmatex">\((\theta,y)\)</span> 的程序学习似然、后验或密度比，让大量重复推断更便宜。困难不只在计算量，还在于观测究竟包含多少辨识信息。</p>
+<p>先研究一个小得可以穷举的模型：<span class="arithmatex">\(\theta\)</span> 均匀取 <span class="arithmatex">\(\{-2,-1,0,1,2\}\)</span>，观测</p>
+<div class="arithmatex">\[
+y=\theta^2+\varepsilon,\qquad \varepsilon\sim\mathcal N(0,0.5^2).
+\]</div>
+<p>变量无量纲。<span class="arithmatex">\(+1\)</span> 与 <span class="arithmatex">\(-1\)</span> 生成完全相同的观测分布，<span class="arithmatex">\(+2\)</span> 与 <span class="arithmatex">\(-2\)</span> 也是如此。无论收集多少这种平方观测，都无法在对称先验下识别符号。这是统计模型的不可辨识性，不是神经网络太小。</p>
+<figure><img src="assets/img/research-04-simulation-inference.svg" alt="参数正一和负一经过平方模拟器都到观测一附近；反向后验有两个峰而不是唯一解。" /><figcaption>图 1：正向映射合并的信息，逆向推断不能凭空拆开。后验应保留仍然合理的多个解释。</figcaption></figure>
+<h2 id="2">2. 从贝叶斯公式算出多峰后验<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>若推断时采用的噪声标准差为 <span class="arithmatex">\(\sigma\)</span>，五个参数的后验质量为</p>
+<div class="arithmatex">\[
+p_\sigma(\theta_i\mid y)=
+\frac{\exp[-(y-\theta_i^2)^2/(2\sigma^2)]}
+{\sum_{j=1}^5\exp[-(y-\theta_j^2)^2/(2\sigma^2)]}.
+\]</div>
+<p>均匀先验和相同高斯归一化常数在分子分母中抵消。实现先减去最大的对数权重再指数化，避免极小概率全部下溢为零；这只改变数值尺度，不改变概率比。</p>
+<p>当 <span class="arithmatex">\(y=1,\sigma=0.5\)</span>，<span class="arithmatex">\(\theta=\pm1\)</span> 各约占 <span class="arithmatex">\(0.468311\)</span>，零约占 <span class="arithmatex">\(0.063379\)</span>，两个端点各约 <span class="arithmatex">\(7.13\times10^{-9}\)</span>。后验均值是零，却不是概率最大的解释。报告一个均值和一条连续误差棒，会隐藏“双峰之间反而不可信”的结构。</p>
+<p>本讲构造至少含 80% 后验质量的集合：按概率从大到小加入参数，达到阈值时保留全部并列项。默认集合是 <span class="arithmatex">\(\{-1,1\}\)</span>，质量约 <span class="arithmatex">\(0.936621\)</span>。由于参数离散且保持并列对称，它通常无法恰好含 80%，这会影响后面覆盖率的读法。</p>
+<h2 id="3">3. 学一个后验，与算这个后验有什么关系<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>真实科学模拟常没有可计算的似然，因此用网络 <span class="arithmatex">\(q_\phi(\theta\mid y)\)</span> 拟合模拟联合分布中的条件规律。若从先验抽参数再模拟数据，负对数似然目标可分解为</p>
+<div class="arithmatex">\[
+\mathbb E_{p(\theta,y)}[-\log q_\phi(\theta\mid y)]
+=\mathbb E_{p(y)}H[p(\theta\mid y)]
++\mathbb E_{p(y)}D_{\rm KL}(p(\theta\mid y)\|q_\phi(\theta\mid y)).
+\]</div>
+<p>第一项与网络无关，第二项衡量条件分布差异。因此理想容量和理想优化下，目标指向真实后验；有限训练、先验覆盖不足和模拟器偏差都会使这个结论难以直接实现。<a href="https://arxiv.org/abs/1911.01429">SBI 综述，首稿 2019-11-04</a>梳理了不同学习对象与科学用途。</p>
+<p>本实验故意不训练网络，因为精确枚举为后验算法提供了独立真值。若小模型都不能保持符号对称和概率归一化，扩大规模只会让错误更难诊断。若使用顺序模拟集中到特定观测附近，还要处理提议分布与原先验的差异，不能把采样策略悄悄当成新的先验。</p>
+<h2 id="4">4. 覆盖率的平均对象必须说清<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(C(Y)\)</span> 为可信集合。本实验重复从上述先验和真实噪声生成数据，计算</p>
+<div class="arithmatex">\[
+\Pr_{\theta\sim p,\,Y\sim p(\cdot\mid\theta)}[\theta\in C(Y)].
+\]</div>
+<p>这是<strong>先验预测覆盖</strong>。若推断模型正确，则由全期望公式，它等于 <span class="arithmatex">\(\mathbb E_Y p(\theta\in C(Y)\mid Y)\)</span>，至少约为 0.8。它不是对每个固定 <span class="arithmatex">\(\theta\)</span> 都有 80% 的频率学保证。离散集合过度包含与并列项保留，会使本例默认平均值高达约 <span class="arithmatex">\(0.973094\)</span>。</p>
+<p>程序对标准正态 <span class="arithmatex">\(z\in[-6,6]\)</span> 以步长 0.025 做梯形积分，逐个参数检查集合是否包含真值，再按均匀先验平均；截断积分经过归一化。因此显示值是数值近似，不能把最后几位当成精确概率。调整假设噪声而保留真实噪声 0.5，可观察模型设定错误如何改变不确定性。</p>
+<p><a href="https://arxiv.org/abs/1804.06788">SBC，首稿 2018-04-18</a>利用联合分布的自洽性检查贝叶斯计算，常用后验样本秩等统计。离散参数存在并列秩，需专门处理；本实验的可信集合覆盖图不是完整 SBC 的替代实现。</p>
+<h2 id="5">5. 近期诊断为何继续研究“覆盖也会骗人”<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://research.vu.nl/en/publications/generalizing-coverage-plots-for-simulation-based-inference/">Generalizing Coverage Plots，TMLR 2026-03-22 提前在线发表</a>指出，已有期望覆盖图可能把明显错误的后验也判断为良好，并提出更有辨识力的诊断。一个直观警报是：始终返回很宽的集合可能覆盖很好，却没有利用观测。</p>
+<p>实际报告应同时检查后验形状、与真值可比的模拟任务、覆盖随参数区域的变化，以及后验预测是否解释新数据。模拟器缺少关键物理时，即使网络精确学会其后验，也不代表现实参数可靠。训练集、校准集和最终评估模拟要分开，参数范围与噪声设定要记录。</p>
+<p>还应区分“算法没算对”与“观测模型不对”。在本例中，若程序算出的正负概率不相等，是实现或近似算法违背了已知对称；若现实噪声有重尾却仍用高斯似然，则精确计算也只能得到错误模型的后验。前者可用枚举真值和结构测试定位，后者要靠新数据、残差与物理知识识别。二者需要不同修复，不能一律归因于样本不足。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="inference">改变观测与推断采用的噪声，观察五点后验、可信集合及先验预测覆盖。</div>
+<p>先固定 <span class="arithmatex">\(y=1\)</span> 缩小假设噪声：正负两个峰会更集中，但符号仍不可辨识。再移动观测，检查左右概率是否始终配对；这是本模型可用的结构诊断。默认覆盖约 97.31%，并非“比 80% 预测准确率更好”。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：新增观测 <span class="arithmatex">\(z=\theta+\eta\)</span>，其中噪声已知，能否帮助识别符号？</p>
+<details>
+<summary>展开答案</summary>
+<p>可以。正负参数现在给出不同的联合观测分布。若两种噪声条件独立，联合似然是两项乘积；噪声越大帮助通常越弱，但原则上打破了原来的符号对称。仅继续测量平方量则不能做到这一点。</p>
+</details>
+<p><strong>题二</strong>：可信集合始终取全部五个参数，覆盖率为多少？它说明算法优秀吗？</p>
+<details>
+<summary>展开答案</summary>
+<p>覆盖为 1，但没有排除任何参数。应同时关注集合大小、后验概率质量和数据依赖性；覆盖是必要的诊断维度之一，不能独自衡量信息量或后验正确性。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>本讲含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不可辨识</td>
+<td><span class="arithmatex">\(+\theta\)</span> 与 <span class="arithmatex">\(-\theta\)</span> 的观测分布相同</td>
+</tr>
+<tr>
+<td>可信集合</td>
+<td>至少含 80% 后验质量，并列一起保留</td>
+</tr>
+<tr>
+<td>先验预测覆盖</td>
+<td>对参数先验和模拟观测共同平均；非逐参数保证</td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/1911.01429">SBI</a>、<a href="https://arxiv.org/abs/1804.06788">SBC</a>、<a href="https://research.vu.nl/en/publications/generalizing-coverage-plots-for-simulation-based-inference/">2026 覆盖诊断</a>。先修：<a href="04-neural-networks.html">神经网络</a>；继续另一条路线：<a href="research-05-latent-world-model.html">潜在世界模型</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-03-equivariant-networks.html"><span class="pager-label">上一讲</span>科学 AI III · 等变网络</a>
+  <a class="pager-slot next" href="research-05-latent-world-model.html"><span class="pager-label">下一讲</span>世界模型 I · 潜在动力学</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

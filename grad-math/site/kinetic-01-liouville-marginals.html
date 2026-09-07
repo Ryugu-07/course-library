@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liouville 与边缘分布 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li class="active"><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:40</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 确定轨道与随机初值并不矛盾</a></li>
+<li><a href="#2">2. 边缘是积分，不是挑一个典型坐标</a></li>
+<li><a href="#3">3. 一个能算到底的闭合反例</a></li>
+<li><a href="#4-liouville">4. 对 Liouville 积分会出现什么</a></li>
+<li><a href="#5">5. 混沌传播究竟声称什么</a><ul>
+<li><a href="#_1">用相关余项明确“忽略了多少”</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 实验与迁移题</a></li>
+<li><a href="#_2">速查与来源</a></li>
+</ul>
+</div>
+</details>
+<h1 id="01-liouville">动力学极限 01 · Liouville 与边缘：为什么少看几个粒子会丢掉闭合<a class="headerlink" href="#01-liouville" title="Permanent link"></a></h1>
+<blockquote>
+<p>空气里每个分子都服从力学，为什么不能直接把牛顿方程取平均就得到流体方程？本讲先找出平均之后究竟缺了什么。先修微分方程、概率密度与<a href="mt-03-conditional-martingale.html">条件期望</a>；所有课堂模型使用无量纲坐标。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 确定轨道与随机初值并不矛盾<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>给定 <span class="arithmatex">\(N\)</span> 个粒子的全部初始位置与速度，微观模型规定一条轨道。实验无法精确准备每个分子的状态，因此用概率密度描述初值。随机的是我们研究的初始集合；给定初值后的演化仍可以完全确定。把这两层分清，才不会把统计方程误读成“牛顿定律被随机力代替”。</p>
+<p>记相点 <span class="arithmatex">\(z_i=(x_i,v_i)\)</span>，联合密度为 <span class="arithmatex">\(F_N(t,z_1,\ldots,z_N)\)</span>，积分为 1。对光滑 Hamilton 系统，<span class="arithmatex">\(\dot x_i=v_i\)</span>，<span class="arithmatex">\(\dot v_i=F_i\)</span>。若力只依赖位置，相空间速度场的散度为零，连续性方程化为</p>
+<div class="arithmatex">\[\partial_tF_N+\sum_i v_i\cdot\nabla_{x_i}F_N+
+\sum_i F_i\cdot\nabla_{v_i}F_N=0.\]</div>
+<p>这就是 Liouville 方程。沿轨道求导正好为零，所以 <span class="arithmatex">\(F_N(t,Z)=F_N(0,\Phi_{-t}Z)\)</span>；密度可以被拉长、折叠，体积却保持。适当可积与边界条件下，精细熵 <span class="arithmatex">\(\int F_N\log F_N\)</span> 不变。后面出现的熵耗散必须解释信息或极限发生了什么，不能在这一行凭空添加不可逆性。</p>
+<h2 id="2">2. 边缘是积分，不是挑一个典型坐标<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对可交换的粒子分布，定义 <span class="arithmatex">\(s\)</span> 粒子边缘</p>
+<div class="arithmatex">\[f_N^{(s)}(z_1,\ldots,z_s)=\int F_N(z_1,\ldots,z_N)\,dz_{s+1}\cdots dz_N.\]</div>
+<p>这里每个边缘都归一化为 1；若用“单位体积内的期望粒子数”作定义，会多出 <span class="arithmatex">\(N\)</span> 或组合因子，方程系数必须一起改。边缘能给一个或几个指定标签的观测分布，但一般不能重建联合律。特别是 <span class="arithmatex">\(f^{(2)}\)</span> 并不由 <span class="arithmatex">\(f^{(1)}\)</span> 唯一决定。</p>
+<figure>
+<p><img alt="两个自由粒子拥有相同的一粒子方差，速度正相关使相对位置分布更窄；积分掉一个粒子后看不见这种相关。" src="assets/img/kinetic-01-liouville-marginals.svg" /></p>
+<figcaption>图 1：边缘相同，联合结构仍可不同。小距离事件由位置差分布控制，不能只用两张一粒子图判断。</figcaption>
+</figure>
+<h2 id="3">3. 一个能算到底的闭合反例<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>取一维自由粒子 <span class="arithmatex">\(X_i(t)=X_i(0)+tV_i\)</span>。初始位置独立标准 Gaussian，速度各自也是标准 Gaussian，彼此协方差为 <span class="arithmatex">\(\rho\)</span>，位置向量与速度向量独立。于是</p>
+<div class="arithmatex">\[\operatorname{Var}X_i(t)=1+t^2,\qquad
+\operatorname{Cov}(X_1(t),X_2(t))=\rho t^2.\]</div>
+<p>改变 <span class="arithmatex">\(\rho\)</span>，任何一个粒子的位置边缘都不变，但位置差 <span class="arithmatex">\(D=X_1-X_2\)</span> 满足</p>
+<div class="arithmatex">\[\operatorname{Var}D=2[1+t^2(1-\rho)].\]</div>
+<p>在 <span class="arithmatex">\(t=1,\rho=1/2\)</span> 时，单粒子方差都是 2，位置差方差却是 3；若错误地把两个边缘相乘，会算成 4。位置差在零处的密度分别为 <span class="arithmatex">\(1/\sqrt{6\pi}\approx0.230329\)</span> 与 <span class="arithmatex">\(1/\sqrt{8\pi}\approx0.199471\)</span>。对很小的 <span class="arithmatex">\(h&gt;0\)</span>，事件 <span class="arithmatex">\(|D|&lt;h\)</span> 的概率约为 <span class="arithmatex">\(2h\)</span> 乘这个密度。密度值不是事件概率，连续模型中 <span class="arithmatex">\(D=0\)</span> 的概率本身为零。</p>
+<p>这个例子没有硬球半径，也没有真正碰撞；它只严格反驳“相同一粒子统计必有相同二粒子接近概率”。在碰撞问题中，相遇处的联合结构恰好决定碰撞频率，闭合缺口因此有直接物理后果。</p>
+<h2 id="4-liouville">4. 对 Liouville 积分会出现什么<a class="headerlink" href="#4-liouville" title="Permanent link"></a></h2>
+<p>为看清代数，先考虑光滑偶势 <span class="arithmatex">\(\Phi\)</span> 的平均场力</p>
+<div class="arithmatex">\[F_i=-\frac1N\sum_{j\ne i}\nabla\Phi(x_i-x_j).\]</div>
+<p>把 Liouville 方程对 <span class="arithmatex">\(z_2,\ldots,z_N\)</span> 积分。假设速度方向衰减足够快、空间周期或边界通量已处理，被积掉变量上的散度项积分为零；剩下与粒子 1 有关的 <span class="arithmatex">\(N-1\)</span> 项。交换性让它们相等，得到</p>
+<div class="arithmatex">\[\partial_tf_N^{(1)}+v\cdot\nabla_xf_N^{(1)}
+=\frac{N-1}{N}\int\nabla\Phi(x-y)\cdot\nabla_v f_N^{(2)}(x,v,y,w)\,dy\,dw.\]</div>
+<p>一粒子方程右边要二粒子边缘；二粒子方程又要三粒子边缘。这种相接的方程组叫 BBGKY 层级。它没有把问题彻底解开，而是准确标记了未知信息藏在哪里。</p>
+<p>若在可证明的极限下 <span class="arithmatex">\(f_N^{(2)}\to f\otimes f\)</span>，右边才变成由 <span class="arithmatex">\(f\)</span> 决定的平均力，得到 Vlasov 型闭合。请注意：光滑长程弱相互作用的平均场尺度，不是下一讲稀薄硬球的 Boltzmann–Grad 尺度。相同的“独立性”口号放到不同作用范围和时间尺度上，会得到不同方程。</p>
+<h2 id="5">5. 混沌传播究竟声称什么<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>所谓混沌通常是一个粒子数趋于无穷的统计定义：对每个固定 <span class="arithmatex">\(s\)</span>，<span class="arithmatex">\(f_N^{(s)}\)</span> 在指定拓扑中趋于 <span class="arithmatex">\(f^{\otimes s}\)</span>。它不是说轨道毫无规律，也不是说有限 <span class="arithmatex">\(N\)</span> 的粒子始终独立。碰撞会产生相关；证明要控制这些相关对所需观测的贡献，并允许正确的禁入区域与边界结构。</p>
+<p>2024 年 Deng–Hani–Ma 的硬球推导工作及 2025 年修订控制了长时间的碰撞历史和累积相关。2025 年环面上的进一步结果，在二维或三维、特定随机初始集合、带速度权的界与缩放关系下得到边缘逼近。这里的推进是使统计闭合有误差控制，不是把任意相关初值直接替换成乘积。我们的 Gaussian 反例仍然有效，因为它根本没有满足那种渐近混沌假设。</p>
+<h3 id="_1">用相关余项明确“忽略了多少”<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>可以把二粒子边缘写成 <span class="arithmatex">\(f_N^{(2)}=f_N^{(1)}\otimes f_N^{(1)}+c_N^{(2)}\)</span>，把第二项定义为相关余项。这样代入一粒子方程，乘积部分产生闭合平均力，余项产生误差。目标不是笼统要求一切相关都消失，而是证明它在所需积分、权重和时间范围内足够小。</p>
+<p>弱收敛尤其需要谨慎：对光滑有界观测成立的极限，未必允许直接代入碰撞边界上的奇异观测。硬球接触集合的几何和重碰撞历史，正是比 Gaussian 自由例子困难的部分。研究论文中的拓扑不是可跳读的技术注脚，而是结论允许我们观察什么的说明。</p>
+<p>做数值检验时也应分层：先验证完整自由流的线性变换，再从联合协方差算出边缘和位置差。若程序直接把一粒子边缘相乘，就已预先删除要研究的相关性，之后无论画多少次动画，都不会发现这个闭合错误。</p>
+<h2 id="6">6. 实验与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><div class="learning-lab" data-learning-lab="research-math" data-research-topic="kinetic-marginals" markdown="1">
+先保持时间不变，只改变速度相关性。预测哪项不变、哪条曲线变窄，再揭示计算。
+</div></p>
+<p>默认静态结果：<span class="arithmatex">\(t=1,\rho=0.5\)</span>；单粒子方差 <strong>2</strong>，两位置协方差 <strong>0.5</strong>，相关系数 <strong>0.25</strong>，位置差方差 <strong>3</strong>，零处密度 <strong>0.230329433</strong>。无交互时可直接用方差的双线性展开核对。</p>
+<p><strong>题一。</strong> 初始位置改为协方差 <span class="arithmatex">\(c\)</span>，其余假设不变。位置差方差怎样改变？只观察速度边缘能否发现它？</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>位置协方差成为 <span class="arithmatex">\(c+\rho t^2\)</span>，差方差为 <span class="arithmatex">\(2(1-c)+2t^2(1-\rho)\)</span>。速度边缘完全看不到 <span class="arithmatex">\(c\)</span>。必须说明完整初始联合假设，不能仅报每个变量的方差。</p>
+</details>
+<p><strong>题二。</strong> 有人由完整 Liouville 熵恒定推断一粒子边缘熵也恒定。这一推断缺了什么？</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>取边缘丢掉相关信息，完整联合熵不等于各边缘熵之和，除非有独立性等额外条件。输运或相互作用可改变边缘及相关结构而保持完整熵。还需注意微分熵的有限性，不能随意对发散量作减法。</p>
+</details>
+</section>
+<h2 id="_2">速查与来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>对象</th>
+<th>闭合问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>微观统计</td>
+<td><span class="arithmatex">\(F_N(t)=F_N(0)\circ\Phi_{-t}\)</span></td>
+<td>维数随 <span class="arithmatex">\(N\)</span> 增大</td>
+</tr>
+<tr>
+<td>边缘</td>
+<td><span class="arithmatex">\(f_N^{(s)}=\int F_N\)</span></td>
+<td>一般需要下一层</td>
+</tr>
+<tr>
+<td>混沌传播</td>
+<td><span class="arithmatex">\(f_N^{(s)}\to f^{\otimes s}\)</span></td>
+<td>固定 <span class="arithmatex">\(s\)</span>、指定尺度与拓扑</td>
+</tr>
+</tbody>
+</table>
+<p>下一讲：<a href="kinetic-02-boltzmann-collisions.html">弹性碰撞与 Boltzmann</a>。实际访问 <strong>2026-09-08</strong>：<a href="https://www.cmls.polytechnique.fr/perso/golse/Surveys/FGHdBookEvEq.pdf">Golse，作者综述《The Boltzmann equation and its hydrodynamic limits》，2005</a>；<a href="https://arxiv.org/abs/2408.07818">Deng–Hani–Ma，首稿 2024-08-14，v3 修订 2025-07-18</a>；<a href="https://arxiv.org/html/2503.01800v1">同作者，粒子到流体，2025-03-03，定义 1.3 与定理 1</a>。后两项引用的是所核查研究版本，不声称穷尽后续进展。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="nt-04-frobenius-galois.html"><span class="pager-label">上一页</span>数论 IV · Frobenius 与 Galois 表示</a>
+  <a class="pager-slot next" href="kinetic-02-boltzmann-collisions.html"><span class="pager-label">下一页</span>动理学 II · 碰撞与 Boltzmann 方程</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-math.js?v=ed2dea8308c3"></script>
+</body>
+</html>

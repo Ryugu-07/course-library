@@ -7,6 +7,7 @@ COURSE 中已注册全部规划页；缺失文件构建时跳过并提示——�
 """
 
 import html
+import hashlib
 import re
 import shutil
 import time
@@ -159,6 +160,18 @@ COURSE = [
         ("frontier-02-fault-tolerant-quantum.md", "前沿 II · 容错量子计算"),
         ("frontier-03-holographic-information.md", "前沿 III · 全息量子信息"),
     ]),
+    ("研究课程 · 强关联与非平衡", [
+        ("research-01-hubbard-dimer.md", "强关联 I · Hubbard 二聚体"),
+        ("research-02-quantum-criticality.md", "强关联 II · 量子临界与有限尺寸"),
+        ("research-03-thermalization-eth.md", "非平衡 I · 热化与 ETH"),
+        ("research-04-driven-open-systems.md", "非平衡 II · 驱动与开放系统"),
+    ]),
+    ("研究课程 · 现代场论方法", [
+        ("research-05-symmetry-correlators.md", "场论方法 I · 对称性与关联函数"),
+        ("research-06-conformal-bootstrap.md", "场论方法 II · 共形自举"),
+        ("research-07-scattering-amplitudes.md", "场论方法 III · 散射振幅"),
+        ("research-08-generalized-symmetry.md", "场论方法 IV · 广义对称性"),
+    ]),
 ]
 
 MD_EXTENSIONS = [
@@ -228,7 +241,17 @@ def learning_assets(src: str):
     if missing:
         raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
     scripts = ['<script defer src="assets/learning/learning.js"></script>']
-    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    if any(name.startswith("research-") for name in names):
+        if not (SHARED / "research-renderer.js").is_file():
+            raise FileNotFoundError("Missing research lab renderer")
+        version = hashlib.sha256((SHARED / "research-renderer.js").read_bytes()).hexdigest()[:12]
+        scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
+    for name in names:
+        version = ""
+        if name.startswith("research-"):
+            digest = hashlib.sha256((SHARED / "labs" / f"{name}.js").read_bytes()).hexdigest()[:12]
+            version = f"?v={digest}"
+        scripts.append(f'<script defer src="assets/learning/labs/{name}.js{version}"></script>')
     return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
 
 
@@ -246,6 +269,8 @@ def sync_learning_assets(md_names):
     (destination / "labs").mkdir(parents=True)
     for asset in ("learning.css", "learning.js"):
         shutil.copy(SHARED / asset, destination / asset)
+    if any(name.startswith("research-") for name in names):
+        shutil.copy(SHARED / "research-renderer.js", destination / "research-renderer.js")
     for name in names:
         source = SHARED / "labs" / f"{name}.js"
         if not source.is_file():

@@ -7,6 +7,7 @@ COURSE 中已注册全部规划页；缺失文件构建时跳过并提示——�
 """
 
 import html
+import hashlib
 import re
 import shutil
 import time
@@ -110,6 +111,18 @@ COURSE = [
         ("frontier-02-singular-spde.md", "前沿 II · 奇异 SPDE 与重整化"),
         ("frontier-03-geometric-langlands.md", "前沿 III · 几何 Langlands"),
     ]),
+    ("研究课程 · 现代数论入口", [
+        ("nt-01-elliptic-counting.md", "数论 I · 有限域上的椭圆曲线"),
+        ("nt-02-elliptic-group.md", "数论 II · 椭圆曲线群与有理点"),
+        ("nt-03-modular-forms.md", "数论 III · 模形式与 q 展开"),
+        ("nt-04-frobenius-galois.md", "数论 IV · Frobenius 与 Galois 表示"),
+    ]),
+    ("研究课程 · 微观到宏观", [
+        ("kinetic-01-liouville-marginals.md", "动理学 I · Liouville 与边缘分布"),
+        ("kinetic-02-boltzmann-collisions.md", "动理学 II · 碰撞与 Boltzmann 方程"),
+        ("kinetic-03-hydrodynamic-limits.md", "动理学 III · 流体极限与闭合"),
+        ("kinetic-04-wave-kinetics.md", "动理学 IV · 波湍流与共振"),
+    ]),
 ]
 
 MD_EXTENSIONS = [
@@ -179,7 +192,17 @@ def learning_assets(src: str):
     if missing:
         raise FileNotFoundError(f"Missing learning lab scripts: {', '.join(missing)}")
     scripts = ['<script defer src="assets/learning/learning.js"></script>']
-    scripts.extend(f'<script defer src="assets/learning/labs/{name}.js"></script>' for name in names)
+    if any(name.startswith("research-") for name in names):
+        if not (SHARED / "research-renderer.js").is_file():
+            raise FileNotFoundError("Missing research lab renderer")
+        version = hashlib.sha256((SHARED / "research-renderer.js").read_bytes()).hexdigest()[:12]
+        scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
+    for name in names:
+        version = ""
+        if name.startswith("research-"):
+            digest = hashlib.sha256((SHARED / "labs" / f"{name}.js").read_bytes()).hexdigest()[:12]
+            version = f"?v={digest}"
+        scripts.append(f'<script defer src="assets/learning/labs/{name}.js{version}"></script>')
     return "\n" + LEARNING_HEAD, "\n" + "\n".join(scripts)
 
 

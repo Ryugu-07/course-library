@@ -59,3 +59,18 @@
 读每讲时先完成可控计算，再读“研究窗口”。机制实验可以检验玩具模型的代数和边界；对实验装置、非微扰理论或宇宙本身的结论，必须回到原论文的条件。
 
 相关路线：[数学前沿](../../grad-math/site/index.html) · [AI 前沿](../../ai-course/site/index.html#研究前沿课程)。
+
+
+<h2 id="research-curriculum">连续研究课程：从基础工具到研究问题</h2>
+
+每条线按四讲顺序推进：先建立可算对象，再检验模型条件，最后进入研究文献。讲次之间有关联；与前面的专题课可以交叉阅读。
+
+**强关联与非平衡**
+
+[Hubbard 二聚体](research-01-hubbard-dimer.html) → [量子临界与有限尺寸](research-02-quantum-criticality.html) → [热化与 ETH](research-03-thermalization-eth.html) → [驱动与开放系统](research-04-driven-open-systems.html)。
+
+**现代场论方法**
+
+[对称性与关联函数](research-05-symmetry-correlators.html) → [共形自举](research-06-conformal-bootstrap.html) → [散射振幅](research-07-scattering-amplitudes.html) → [广义对称性](research-08-generalized-symmetry.html)。
+
+强关联与非平衡线先修量子力学、统计物理及密度矩阵；现代场论方法线先修场论、散射与复数。短模型给出可核对的机制；读研究窗口时还要核对系统尺寸、极限、噪声和模型假设。

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>等变网络 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li class="active"><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 07:51</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 相同物体，数字却换了一套</a></li>
+<li><a href="#2">2. 算一个不满足等变的网络层</a></li>
+<li><a href="#3">3. 从矩阵条件到几何消息传递</a></li>
+<li><a href="#4">4. 为什么逐坐标激活需要小心</a></li>
+<li><a href="#5">5. 前沿问题已经超过“是否等变”</a></li>
+<li><a href="#6">6. 迁移练习</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-03">AI 研究 03 · 等变网络：把坐标变化写进模型的规则<a class="headerlink" href="#ai-03" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>问题</strong>：把一个分子整体转动，模型预测的能量与力应该各自怎样变化？先修：<a href="04-neural-networks.html">神经网络</a>、向量与矩阵。资料核查截至 <strong>2026-09-08</strong>；实验精确检验二维线性映射，研究讨论延伸到图网络与原子模型。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 相同物体，数字却换了一套<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>在没有外部方向场的理想条件下，孤立分子的整体转动不改变能量。但力是有方向的向量：分子转动后，每个原子的力也应同样转动。如果把二者都叫“旋转不变”，就会抹掉预测目标之间的差别。</p>
+<p>用群 <span class="arithmatex">\(G\)</span> 表示允许的变换及其组合。<span class="arithmatex">\(\rho_{\rm in}(g)\)</span> 作用于输入，<span class="arithmatex">\(\rho_{\rm out}(g)\)</span> 作用于输出。模型 <span class="arithmatex">\(f\)</span> 的等变条件是</p>
+<div class="arithmatex">\[
+f(\rho_{\rm in}(g)x)=\rho_{\rm out}(g)f(x),\quad
+\text{对所有允许的 }g,x.
+\]</div>
+<p>标量能量的输出作用是恒等映射，条件退化为不变性；向量力的输出作用则是旋转矩阵。群作用必须先定义清楚，不能只说“用了几何特征，所以具有物理对称性”。</p>
+<figure><img src="assets/img/research-03-equivariant-networks.svg" alt="同一输入分成两条路径：先旋转再映射得到(0,2)，先映射再旋转得到(0,1)，结果不同表明这个映射不满足所检验的旋转等变。" /><figcaption>图 1：等变性约束两条计算路径一致。它要求全部指定的群元素，而不是某一张图看起来相似。</figcaption></figure>
+<h2 id="2">2. 算一个不满足等变的网络层<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>设输入 <span class="arithmatex">\(x=(1,0)^T\)</span>，旋转矩阵为</p>
+<div class="arithmatex">\[
+R_\phi=\begin{pmatrix}\cos\phi&amp;-\sin\phi\\\sin\phi&amp;\cos\phi\end{pmatrix},
+\quad A=\begin{pmatrix}1&amp;0\\0&amp;a\end{pmatrix}.
+\]</div>
+<p>这个层沿横向不变、纵向放大 <span class="arithmatex">\(a\)</span> 倍。直接计算两条路径：</p>
+<div class="arithmatex">\[
+AR_\phi x=(\cos\phi,a\sin\phi)^T,
+\quad R_\phi Ax=(\cos\phi,\sin\phi)^T.
+\]</div>
+<p>因此交换误差为 <span class="arithmatex">\(\lvert a-1\rvert\lvert\sin\phi\rvert\)</span>。取 <span class="arithmatex">\(a=2,\phi=90^\circ\)</span>，误差就是 1；取零度却看不出任何问题。检查一个特殊角度并不能检验全部对称性。</p>
+<p>作为对照，<span class="arithmatex">\(aI\)</span> 与每个旋转矩阵交换，因此线性层 <span class="arithmatex">\(x\mapsto ax\)</span> 旋转等变。这只是一个充分构造，并非所有二维旋转等变线性映射的分类：如果只要求平面旋转、不要求反射，还可以有与九十度旋转相关的项。指定 <span class="arithmatex">\(SO(2)\)</span> 还是整个正交群 <span class="arithmatex">\(O(2)\)</span>，允许的模型就可能不同。</p>
+<h2 id="3">3. 从矩阵条件到几何消息传递<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设原子位置为 <span class="arithmatex">\(r_i\)</span>，节点标量属性为 <span class="arithmatex">\(h_i\)</span>。考虑更新</p>
+<div class="arithmatex">\[
+r'_i=r_i+\sum_j(r_i-r_j)\,
+\psi_\theta(h_i,h_j,\|r_i-r_j\|^2).
+\]</div>
+<p>括号内位移是向量，<span class="arithmatex">\(\psi\)</span> 输出标量。若全体位置变为 <span class="arithmatex">\(Qr_i+t\)</span>，其中 <span class="arithmatex">\(Q^TQ=I\)</span>，距离平方不变，位移变为 <span class="arithmatex">\(Q(r_i-r_j)\)</span>，所以整个右侧变成 <span class="arithmatex">\(Qr'_i+t\)</span>。这逐项给出了旋转、反射及平移的等变证明。</p>
+<p>证明有条件：节点属性需要按标量规则处理；邻接关系应在变换下保持对应；求和必须与节点重编号兼容。按不变距离建图可满足这一点，按“全局横坐标最近”的规则连边一般不满足。若输入含方向属性，就需赋予正确的表示，不能把向量三个分量当成三个独立不变标量。</p>
+<p><a href="https://arxiv.org/abs/2102.09844">EGNN，首稿 2021-02-19</a>体现了这种利用距离与相对位移构造更新的思路。<a href="https://arxiv.org/abs/1602.07576">群等变卷积网络，首稿 2016-02-24</a>则展示如何通过群结构设计共享参数。架构保证减少需要从样本中重复学习的坐标变化规律，但仍需学习真实的相互作用。</p>
+<h2 id="4">4. 为什么逐坐标激活需要小心<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>对普通标量通道使用非线性通常没有问题；对向量坐标分别做 ReLU 却会破坏旋转规则。例如 <span class="arithmatex">\(x=(-1,0)\)</span> 经过 ReLU 得到零，而先旋转半周变成 <span class="arithmatex">\((1,0)\)</span>，再 ReLU 得到原向量。两条路径不同。</p>
+<p>一个替代构造是 <span class="arithmatex">\(f(x)=g(\|x\|^2)x\)</span>：长度平方不变，标量门控不改变向量的变换方式，所以对任意正交变换等变。多种表示之间的非线性耦合更复杂，需要检查张量积、收缩或门控是否保留指定表示。漂亮的向量图并不能代替这项代数检查。</p>
+<p>物理任务也未必拥有假设中的完整群。如果存在固定重力 <span class="arithmatex">\(g\)</span>，只旋转物体而不旋转重力，是改变了物理情境，而不是单纯换坐标。可以把 <span class="arithmatex">\(g\)</span> 也作为会变换的输入，或者只要求保持该方向的子群对称。类似地，边界、晶格、手性与外电场都可能缩小对称群。</p>
+<h2 id="5">5. 前沿问题已经超过“是否等变”<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/abs/2603.03155">Information Routing in Atomistic Foundation Models，首稿 2026-03-03</a>研究任务目标与等变结构怎样影响原子基础模型中信息的线性可读性。这里线性探针读得出某个量，是表征分析的证据，不是该量独自造成预测的因果证明，更不是“所有等变架构必然学到同一物理概念”的定理。</p>
+<p>专业评估至少分三层：数值上是否遵守声明的变换规则；在留出的分子或材料上是否预测准确；动力学滚动中是否稳定。对称性不能单独保证能量守恒，也不能保证预测力来自某个势能。若定义 <span class="arithmatex">\(F_i=-\nabla_{r_i}E\)</span>，可把保守力结构写进模型，但仍需处理光滑性、截断邻域和数值积分误差。</p>
+<p>训练时做旋转数据增强，与架构等变也有区别。增强要求模型在有限的变换样本上拟合一致关系；架构约束则在精确算术和成立条件下对整个指定群强制该关系。工程中的浮点误差、截断邻域和排序规则仍可能破坏实现，所以二者都应做数值检查。可为同一结构采样多种旋转，比较标量误差与向量旋转后的误差，并把靠近邻接阈值的情况单独测试。模型若只在坐标轴方向表现良好，平均测试可能掩盖这一弱点；报告最大偏差通常比只报告平均偏差更能发现结构实现问题。</p>
+<div class="learning-lab" data-learning-lab="research-ai" data-research-topic="equivariance">改变旋转角与纵向缩放，比较两个计算顺序的向量差。</div>
+<p>默认 <span class="arithmatex">\(a=2,\phi=90^\circ\)</span>，两条路径分别得到 <span class="arithmatex">\((0,2)\)</span> 与 <span class="arithmatex">\((0,1)\)</span>，误差为 1；<span class="arithmatex">\(aI\)</span> 对照误差为零。把角度改成 180 度，当前反例也恰好为零。请用这一点解释为什么随机和结构化测试需要互补。</p>
+<h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一</strong>：预测分子总能量时把所有原子重编号，输出应不变还是同样重排？预测每个原子的力呢？</p>
+<details>
+<summary>展开答案</summary>
+<p>总能量是一个标量，对重编号应不变；逐原子的力列表应按同一置换重排。这是不同的输出群作用。仅对节点特征求和可形成不变读出，但逐节点预测需要保留对应关系。</p>
+</details>
+<p><strong>题二</strong>：一个模型在任意旋转下都预测零力，是否已经解决原子力预测？</p>
+<details>
+<summary>展开答案</summary>
+<p>零向量满足等变条件，却可能处处不准确。等变是结构约束，损失与独立数据检验物理拟合。还应检查能量梯度关系及随时间累积的误差，避免把一个必要的合理性条件当成充分的成功证据。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>等变</td>
+<td><span class="arithmatex">\(f\rho_{\rm in}(g)=\rho_{\rm out}(g)f\)</span></td>
+</tr>
+<tr>
+<td>不变标量</td>
+<td>输出群作用为恒等</td>
+</tr>
+<tr>
+<td>实验反例</td>
+<td><span class="arithmatex">\(A=\mathrm{diag}(1,a)\)</span>，误差 <span class="arithmatex">\(\lvert a-1\rvert\lvert\sin\phi\rvert\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>来源：<a href="https://arxiv.org/abs/1602.07576">群等变卷积</a>、<a href="https://arxiv.org/abs/2102.09844">EGNN</a>、<a href="https://arxiv.org/abs/2603.03155">2026 原子表征研究</a>。先修：<a href="research-01-operator-learning.html">算子学习</a>；下一讲：<a href="research-04-simulation-inference.html">模拟推断</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="research-02-fourier-operator.html"><span class="pager-label">上一讲</span>科学 AI II · Fourier 神经算子</a>
+  <a class="pager-slot next" href="research-04-simulation-inference.html"><span class="pager-label">下一讲</span>科学 AI IV · 模拟推断</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
+</body>
+</html>

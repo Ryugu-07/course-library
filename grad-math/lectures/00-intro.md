@@ -58,3 +58,18 @@
 几何 Langlands 的完整证明需要代数几何、D-模、导出范畴等本库尚未完整开设的先修；本讲提供可核查的概念桥梁与论文入口，不宣称一讲即可掌握证明。三讲都将经典理论、近期结果、尚待解决的问题分开标注。
 
 相关路线：[物理前沿](../../physics-course/site/index.html#研究前沿课程) · [AI 前沿](../../ai-course/site/index.html#研究前沿课程)。
+
+
+<h2 id="research-curriculum">连续研究课程：从基础工具到研究问题</h2>
+
+每条线按四讲顺序推进：先建立可算对象，再检验模型条件，最后进入研究文献。讲次之间有关联；与前面的专题课可以交叉阅读。
+
+**现代数论入口**
+
+[有限域上的椭圆曲线](nt-01-elliptic-counting.html) → [椭圆曲线群与有理点](nt-02-elliptic-group.html) → [模形式与 q 展开](nt-03-modular-forms.html) → [Frobenius 与 Galois 表示](nt-04-frobenius-galois.html)。
+
+**微观到宏观**
+
+[Liouville 与边缘分布](kinetic-01-liouville-marginals.html) → [碰撞与 Boltzmann 方程](kinetic-02-boltzmann-collisions.html) → [流体极限与闭合](kinetic-03-hydrodynamic-limits.html) → [波湍流与共振](kinetic-04-wave-kinetics.html)。
+
+现代数论线先修群、环、域与复分析；微观到宏观线先修测度概率、常微分方程及 PDE。数论中的 Frobenius 提供算术动机，几何 Langlands 的概形、层与导出范畴仍需另外准备；请按[可自测的先修路线](frontier-03-geometric-langlands.html#langlands-prerequisite-route)逐项补齐。
