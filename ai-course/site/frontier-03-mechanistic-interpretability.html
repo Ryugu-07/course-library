@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>机制可解释性 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li class="active"><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 06:35</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 一个坐标轴未必对应一个概念</a></li>
+<li><a href="#2">2. 稀疏自编码器究竟学了什么</a></li>
+<li><a href="#3">3. 相关性之后，必须提出可被干预推翻的假设</a></li>
+<li><a href="#4">4. 实验：先预测单删与双删</a><ul>
+<li><a href="#or">静态实验后备：OR 冗余路径</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 前沿正在从特征走向计算链条</a></li>
+<li><a href="#6">6. 两道迁移题</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-03">AI 前沿 03 · 机制可解释性：从“亮了什么”到“什么真正改变了输出”<a class="headerlink" href="#ai-03" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核心问题</strong>：一个神经元在模型回答“猫”时总是活跃，删除它却没有影响。是测量错了，还是“找到概念神经元”的解释太简单？本讲研究特征表示、稀疏分解与因果干预。先修：<a href="04-neural-networks.html">神经网络的中间激活</a>、<a href="06-transformer.html">Transformer 中的信息传递</a>。资料核查截至 <strong>2026-09-08</strong>；下文明确区分数学玩具模型、研究观察与尚未完成的机制解释。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 一个坐标轴未必对应一个概念<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>神经网络中间层的激活可以写成 <span class="arithmatex">\(h\in\mathbb R^d\)</span>。每个坐标是一个数，但我们希望解释的是“否定”“地名”“括号是否配对”这样的特征。直接逐个查看神经元，相当于假设人能理解的特征恰好对齐坐标轴；训练目标通常没有保证这一点。</p>
+<p><strong>叠加表示</strong>的基本设想是：当特征很少同时出现时，网络可能用少量维度容纳更多特征方向。考虑平面内三个单位方向</p>
+<div class="arithmatex">\[
+d_1=(1,0),\quad d_2=(-1/2,\sqrt3/2),\quad d_3=(-1/2,-\sqrt3/2).
+\]</div>
+<p>若每次只有一个非负特征强度 <span class="arithmatex">\(a_i\)</span> 非零，<span class="arithmatex">\(h=\sum_i a_i d_i\)</span> 落在对应射线上，可以区分三类。但若三个强度都为 1，<span class="arithmatex">\(h=d_1+d_2+d_3=0\)</span>，就与全部缺席相撞。<strong>稀疏性减少同时冲突，不会让信息维度凭空无限增加。</strong> <a href="https://arxiv.org/abs/2209.10652">Toy Models of Superposition，arXiv 首稿 2022-09-21</a>用受控模型研究了这类表示机制；这不等于证明所有大模型都严格采用本例三个方向。</p>
+<h2 id="2">2. 稀疏自编码器究竟学了什么<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>我们可以收集冻结语言模型的激活，另训练一个稀疏自编码器（SAE）。它把 <span class="arithmatex">\(h\)</span> 编码成较高维的 <span class="arithmatex">\(z\in\mathbb R^m\)</span>，再重建原激活：</p>
+<div class="arithmatex">\[
+z=\operatorname{ReLU}(W_eh+b_e),\qquad \widehat h=Dz+b_d.
+\]</div>
+<p>这里 <span class="arithmatex">\(m&gt;d\)</span> 允许候选特征比原维度更多，<span class="arithmatex">\(D\)</span> 的每一列是一个特征方向。一个教学版目标是</p>
+<div class="arithmatex">\[
+\mathcal L_{SAE}=\mathbb E\big[\|h-\widehat h\|_2^2+\lambda\|z\|_1\big],
+\quad \|D_{:,i}\|_2=1.
+\]</div>
+<p>第一项要求解释保留原激活，第二项让每个样本只启用少数特征。单位列范数不是装饰：若任意放大 <span class="arithmatex">\(D\)</span> 并同比缩小 <span class="arithmatex">\(z\)</span>，重建不变而稀疏惩罚下降，会产生尺度漏洞。实际 SAE 还有不同稀疏约束与激活设计，此式不是所有实现的统一标准。</p>
+<p>为什么“激活稀疏”仍不等于“概念已解释”？以一维且 <span class="arithmatex">\(h\ge0\)</span> 的子问题为例，最小化 <span class="arithmatex">\((h-z)^2+\lambda z\)</span>，约束 <span class="arithmatex">\(z\ge0\)</span>。内部解满足 <span class="arithmatex">\(2(z-h)+\lambda=0\)</span>，结合边界得</p>
+<div class="arithmatex">\[
+z^*=\max(0,h-\lambda/2).
+\]</div>
+<p>惩罚会把保留的激活也缩小。重建误差、特征拆分或混合都可能影响下游解释；漂亮的特征名称并不消除这些问题。<a href="https://www.anthropic.com/research/mapping-mind-language-model">Mapping the mind，发布于 2024-05-21</a>展示了在生产语言模型上提取和干预特征的研究，同时仍将完整理解模型视为未完成的目标。</p>
+<h2 id="3">3. 相关性之后，必须提出可被干预推翻的假设<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>观察“<span class="arithmatex">\(z_i\)</span> 大时常输出某词”，只能得到相关线索。共同的上游输入可能同时引起特征与输出；特征也可能携带信息，却没有被后续计算使用。更强的问题是：在固定输入及其余指定条件下，改变特征是否按预测改变输出？</p>
+<p>常用操作包括消融、把另一输入的激活替换过来，以及沿一个特征方向增加强度。它们都要说明<strong>改哪里、改成什么、保留什么、测哪个输出</strong>。测量目标最好是候选答案概率或 logit 的变化，并搭配多个输入和负对照，而不只是观察一次生成文本“看起来变了”。</p>
+<figure>
+<img src="assets/img/frontier-circuits.svg" alt="输入x分别复制到h1与h2，再通过max合并输出。x等于1时删除任一支路输出仍为1，两条支路一起删除才变为0。" />
+<figcaption>图 1：OR 冗余电路中，单条路径并非必要，但可以有因果作用。该电路由公式指定，不是从大模型发现的真实回路。</figcaption>
+</figure>
+<p>设 <span class="arithmatex">\(x\in\{0,1\}\)</span>，隐藏变量 <span class="arithmatex">\(h_1=h_2=x\)</span>，输出为</p>
+<div class="arithmatex">\[
+y=\max(h_1,h_2).
+\]</div>
+<p>当 <span class="arithmatex">\(x=1\)</span>，自然运行是 <span class="arithmatex">\((h_1,h_2,y)=(1,1,1)\)</span>。执行 <span class="arithmatex">\(do(h_1=0)\)</span> 后，另一条路径仍传递 1，输出不变；执行 <span class="arithmatex">\(do(h_1=0,h_2=0)\)</span> 后才得到 0。所以“单消融无影响”不能推出“这条路径没有作用”，它也可能被另一条路径替代。</p>
+<p>在此模型、输出 <span class="arithmatex">\(y=1\)</span> 和给定干预集合下，每条激活路径都足以维持输出；单条路径不是必要条件，两条至少一条活跃才是必要条件。<strong>必要性与充分性都必须附带背景条件</strong>，不能被简化成特征的永久标签。</p>
+<h2 id="4">4. 实验：先预测单删与双删<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>保持 <span class="arithmatex">\(x=1\)</span>，先写下“仅删除第一条”和“两条都删除”的输出。再把 <span class="arithmatex">\(x\)</span> 改为 0：没有激活的场景能检验原来路径的作用吗？</p>
+<div class="learning-lab" data-frontier-topic="circuits" data-learning-lab="frontier-lab">
+<h3 id="or">静态实验后备：OR 冗余路径<a class="headerlink" href="#or" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>输入 x</th>
+<th>干预</th>
+<th>干预后的 h₁,h₂</th>
+<th style="text-align: right;">输出 y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>不干预</td>
+<td>1,1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>第一条置零</td>
+<td>0,1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>第二条置零</td>
+<td>1,0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>两条置零</td>
+<td>0,0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>0</td>
+<td>不干预或置零</td>
+<td>0,0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>这是确定性因果模型的真值表，不需要统计估计。自然数据只含隐藏状态 (0,0) 与 (1,1)；单消融产生的 (0,1) 或 (1,0) 位于自然分布之外。公式让本例的反事实可精确计算，大模型中的类似干预还需要有效性检验。</p>
+</div>
+<h2 id="5">5. 前沿正在从特征走向计算链条<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>单个 SAE 重建的是激活；要解释多个层怎样协作，还需定位特征之间的计算关系。<a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">Circuit Tracing，发布于 2025-03-27</a>使用跨层替代模型与归因图提出机制假设，并用干预核查。方法明确承认注意力模式的生成机制、重建缺口和跨输入的一般电路等限制，不能把归因图当成完整执行日志。</p>
+<p>同日的<a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">On the Biology of a Large Language Model</a>将方法用于特定模型的多步任务等案例，也考察了公开思维链与实际机制不一致的情形。案例说明内部路径可以被研究，不说明所有推理都已被读出，更不意味着模型写出的解释天然忠实。</p>
+<p><strong>更新的机制问题，2026-08-21：</strong><a href="https://www.transformer-circuits.pub/2026/interference_effectiveness_helpfulness/index.html">Characterizing interference weights in a tiny language model</a>把“权重大”进一步拆成两问：它对输出影响多大，以及它对任务损失有帮助还是有害。可以用消融前后的平均损失差</p>
+<div class="arithmatex">\[
+H(w)=\mathbb E[\ell_{\mathrm{ablated}\,w}-\ell_{\mathrm{original}}]
+\]</div>
+<p>衡量后一问：正值表示删掉后更差，但这仍依赖评估分布。研究在单层、约 290 万参数的模型上检查虚拟权重，发现原始权重大小不足以识别功能连接。作者明确说明精细测量开销难直接推广到前沿大模型。该官方研究笔记把本讲的消融逻辑推进到真实训练的小模型，不是已经完成通用电路读出的宣布；单权重的效果也不能直接相加预测联合删除，因为非线性交互仍在。</p>
+<p>专业验收应问：替代模型保留多少原行为？预测的干预在原模型上是否成立？换一种提示和特征字典还成立吗？零消融是否制造了异常状态？一个方向被命名为“欺骗”或“安全”后，仍须检验其选择性、混杂与副作用。这些问题关系到故障诊断和行为控制，是机制解释的研究内容，而不是画完回路之后才补上的声明。</p>
+<h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一：换成 AND。</strong> 保持 <span class="arithmatex">\(h_1=h_2=x\)</span>，令 <span class="arithmatex">\(y=\min(h_1,h_2)\)</span>。在 <span class="arithmatex">\(x=1\)</span> 时，单消融结果怎样？单条激活是否充分？</p>
+<details>
+<summary>展开答案与条件</summary>
+<p>删除任一条都使输出变为 0，因此两条在此背景下分别必要。但只保留一条为 1、另一条为 0，不足以产生 <span class="arithmatex">\(y=1\)</span>，所以单条并不充分。自然输入上的 OR 与 AND 都满足 <span class="arithmatex">\(y=x\)</span>，只有观察自然数据无法区分两个内部机制；干预揭示差异。</p>
+</details>
+<p><strong>题二：相关特征能否直接当开关？</strong> 某 SAE 特征与拒答高度相关，放大它后模型也更常拒答。这是否证明它只负责安全判断？</p>
+<details>
+<summary>展开研究设计</summary>
+<p>不能。干预支持该方向能影响输出，但它可能混合语气、主题和拒答等属性，过大干预也可能破坏一般语言能力。应比较正常与危险任务、多个幅度及随机方向对照，检查副作用和分布偏离，再测试更具体的机制假设。不能用一次行为变化给整个向量方向赋予唯一语义。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>形式或检查</th>
+<th>不应推出的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>稀疏叠加</td>
+<td><span class="arithmatex">\(h=\sum_i a_i d_i\)</span>，少数 <span class="arithmatex">\(a_i\)</span> 活跃</td>
+<td>维度不再限制信息</td>
+</tr>
+<tr>
+<td>教学版 SAE</td>
+<td><span class="arithmatex">\(\|h-Dz-b_d\|^2+\lambda\|z\|_1\)</span>，解码列归一化</td>
+<td>每个稀疏方向都有唯一自然概念</td>
+</tr>
+<tr>
+<td>OR 冗余电路</td>
+<td><span class="arithmatex">\(h_1=h_2=x\)</span>，<span class="arithmatex">\(y=\max(h_1,h_2)\)</span></td>
+<td>单消融无效意味着路径无用</td>
+</tr>
+<tr>
+<td>因果验收</td>
+<td>干预位置、数值、对照和输出指标均明确</td>
+<td>影响输出等于完整解释全部机制</td>
+</tr>
+</tbody>
+</table>
+<p>先修入口：<a href="04-neural-networks.html">神经网络</a>、<a href="06-transformer.html">Transformer</a>。一手来源：<a href="https://arxiv.org/abs/2209.10652">Superposition，2022-09-21 arXiv 首稿</a>、<a href="https://www.anthropic.com/research/mapping-mind-language-model">Mapping the mind，2024-05-21</a>、<a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">Circuit Tracing，2025-03-27</a>、<a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">Biology 案例，2025-03-27</a>。近期入口：<a href="https://www.transformer-circuits.pub/2026/interference_effectiveness_helpfulness/index.html">小模型干扰权重研究，2026-08-21</a>。研究资料核查截至 2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="frontier-02-reasoning-rl.html"><span class="pager-label">上一讲</span>前沿 II · 推理强化学习</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-lab.js"></script>
+</body>
+</html>

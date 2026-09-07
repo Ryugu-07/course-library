@@ -154,6 +154,11 @@ COURSE = [
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
     ]),
+    ("研究前沿 · 专题课程", [
+        ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),
+        ("frontier-02-fault-tolerant-quantum.md", "前沿 II · 容错量子计算"),
+        ("frontier-03-holographic-information.md", "前沿 III · 全息量子信息"),
+    ]),
 ]
 
 MD_EXTENSIONS = [

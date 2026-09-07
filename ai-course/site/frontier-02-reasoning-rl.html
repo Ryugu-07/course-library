@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推理强化学习 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li class="active"><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 06:35</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 会打分，不等于已经知道正确解法</a></li>
+<li><a href="#2">2. 奖励怎样改变回答概率</a></li>
+<li><a href="#3">3. 推理时计算：先问“出现过”，再问“选对了”</a></li>
+<li><a href="#4">4. 实验：给计算预算同时配上验证器</a><ul>
+<li><a href="#p0201k4">静态实验后备：p=0.2、α=0.1、k=4</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 研究证据：哪些结论可以带出实验</a></li>
+<li><a href="#6">6. 两道迁移题</a></li>
+<li><a href="#_1">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-02">AI 前沿 02 · 可验证奖励：训练更会解题，还是让解法更容易被抽到<a class="headerlink" href="#ai-02" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核心问题</strong>：模型一次答对率上升，是否意味着它发现了全新的推理方法？多生成几份答案，又是否一定能选出正确的一份？本讲把训练、搜索与验证分开建模。先修：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练背景</a>、<a href="19-inference-serving.html">推理服务中的成本</a>。资料核查截至 <strong>2026-09-08</strong>；引用保留首次公开日期，课堂数字都是明确假设下的计算。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 会打分，不等于已经知道正确解法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设任务是写一个整数排序程序。模型生成代码，测试器运行测试，再返回 0 或 1。与逐步告诉模型如何排序相比，<strong>可验证奖励强化学习</strong>（RLVR）只要求某种外部检查产生奖励。模型称为策略 <span class="arithmatex">\(\pi_\theta\)</span>，参数是 <span class="arithmatex">\(\theta\)</span>；题目记为 <span class="arithmatex">\(q\)</span>，完整回答记为 <span class="arithmatex">\(y\)</span>，奖励是 <span class="arithmatex">\(R(q,y)\)</span>。</p>
+<p>“可验证”描述奖励的来源，不是绝对可靠的承诺。通过有限测试的程序仍可能漏掉重复元素或空数组；数值答案正确也不保证中间证明正确。我们真正关心的性质记为 <span class="arithmatex">\(C\)</span>，检查器给出的接收信号记为 <span class="arithmatex">\(V\)</span>，研究时不能偷偷把 <span class="arithmatex">\(C=1\)</span> 与 <span class="arithmatex">\(V=1\)</span> 当成同一件事。</p>
+<figure>
+<img src="assets/img/frontier-reasoning.svg" alt="训练环中检查器奖励通过策略梯度更新模型参数；推理环中固定参数生成多个候选再验证选择，二者共享验证器风险但不是同一计算。" />
+<figcaption>图 1：上方改变参数，下方在参数冻结后分配计算。候选覆盖率、检查器接收率和最终正确率需要分别记录。</figcaption>
+</figure>
+<h2 id="2">2. 奖励怎样改变回答概率<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>先固定一道题、忽略正则项，并假设回答长度有界、奖励本身不依赖 <span class="arithmatex">\(\theta\)</span>。最大化期望奖励</p>
+<div class="arithmatex">\[
+J(\theta)=\sum_y\pi_\theta(y\mid q)R(q,y).
+\]</div>
+<p>利用 <span class="arithmatex">\(\nabla\pi=\pi\nabla\log\pi\)</span>，在可交换求和与微分的条件下，</p>
+<div class="arithmatex">\[
+\nabla J
+=\mathbb E_{y\sim\pi_\theta}[R(q,y)\nabla\log\pi_\theta(y\mid q)].
+\]</div>
+<p>回答由 token 序列组成，乘法概率变成对数的加法：</p>
+<div class="arithmatex">\[
+\log\pi_\theta(y\mid q)
+=\sum_{\ell=1}^{|y|}\log\pi_\theta(y_\ell\mid q,y_{&lt;\ell}).
+\]</div>
+<p>因此一次最终奖励可以影响整段回答的 token 概率。这提供了学习信号，却没有自动告诉我们究竟哪一步值得奖励：碰巧正确的步骤也会一起受到影响，这叫信用分配问题。</p>
+<p>若基线 <span class="arithmatex">\(b(q)\)</span> 不依赖本次采样的回答，可用 <span class="arithmatex">\(R-b(q)\)</span> 替代 <span class="arithmatex">\(R\)</span>，因为期望下 <span class="arithmatex">\(\mathbb E\nabla\log\pi=0\)</span>。合适的基线能减少梯度估计的波动。<strong>GRPO 的一个关键设计</strong>是对同题的一组回答比较奖励，例如</p>
+<div class="arithmatex">\[
+A_i=\frac{R_i-\overline R}{s_R+\varepsilon},
+\]</div>
+<p>其中 <span class="arithmatex">\(s_R\)</span> 是组内标准差，<span class="arithmatex">\(\varepsilon&gt;0\)</span> 防止除零。组内均值与标准差来自样本；不要把这个经验归一化直接等同于上面的任意无偏基线定理。完整 GRPO 还包含新旧策略概率比、裁剪、参考策略约束等设计，不能只照这一行实现算法。<a href="https://arxiv.org/html/2402.03300v1">DeepSeekMath，首稿 2024-02-05，第 4 节</a>给出原始方法。</p>
+<p>若某组全错且奖励全为零，所有 <span class="arithmatex">\(A_i=0\)</span>：这组相对奖励没有区分方向。探索分布、题目难度、奖励粒度和基础模型能力都会影响学习，不是有一个 0/1 检查器就能无限进步。</p>
+<h2 id="3">3. 推理时计算：先问“出现过”，再问“选对了”<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>冻结参数，对同题独立采样 <span class="arithmatex">\(k\)</span> 次，每次真实正确概率为 <span class="arithmatex">\(p\)</span>。所有候选都错的概率是 <span class="arithmatex">\((1-p)^k\)</span>，故</p>
+<div class="arithmatex">\[
+\operatorname{pass@}k=1-(1-p)^k.
+\]</div>
+<p>这是理想判定下“至少出现一个正确答案”的<strong>覆盖率</strong>，不是系统最终返回答案的正确率。若每次都复制相同答案，尝试完全相关，多抽几次也不会得到这条曲线。在数据集上，各题有自己的 <span class="arithmatex">\(p_j\)</span>，应平均各题的覆盖率，不能把平均单次正确率先代入非线性公式。</p>
+<p>现在明确一个有缺陷的选择规则：正确答案总被接收，错误答案以 <span class="arithmatex">\(\alpha\)</span> 的概率误接收；候选及检查事件独立，系统返回第一个被接收的候选。单次接收概率</p>
+<div class="arithmatex">\[
+r=p+(1-p)\alpha.
+\]</div>
+<p>第 <span class="arithmatex">\(i\)</span> 次返回正确，要求前 <span class="arithmatex">\(i-1\)</span> 次被拒绝、本次真实正确。因此</p>
+<div class="arithmatex">\[
+P_{\rm correct}=\sum_{i=1}^k(1-r)^{i-1}p
+=\frac p r[1-(1-r)^k],\quad r&gt;0.
+\]</div>
+<p>相应地，错误返回概率是 <span class="arithmatex">\(\frac{(1-p)\alpha}{r}[1-(1-r)^k]\)</span>，全拒绝概率是 <span class="arithmatex">\((1-r)^k\)</span>。当 <span class="arithmatex">\(r=0\)</span>，系统始终拒绝，正确与错误返回概率均为零。只看有返回的情况，正确比例为 <span class="arithmatex">\(p/r\)</span>。候选变多不能自动修复验证器，甚至会增加错误返回的绝对概率。</p>
+<h2 id="4">4. 实验：给计算预算同时配上验证器<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先预测：若 <span class="arithmatex">\(p=0.2\)</span>，尝试 4 次的覆盖率接近六成，系统实际返回正确的概率也会接近六成吗？把误接收率从零调到 0.1，再核对区别。</p>
+<div class="learning-lab" data-frontier-topic="reasoning" data-learning-lab="frontier-lab">
+<h3 id="p0201k4">静态实验后备：p=0.2、α=0.1、k=4<a class="headerlink" href="#p0201k4" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>公式</th>
+<th style="text-align: right;">结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>至少出现一个真实正确候选</td>
+<td>1−0.8⁴</td>
+<td style="text-align: right;">0.5904</td>
+</tr>
+<tr>
+<td>至少接收一个候选</td>
+<td>1−0.72⁴</td>
+<td style="text-align: right;">0.73126144</td>
+</tr>
+<tr>
+<td>最终返回正确</td>
+<td>(0.2/0.28)×(1−0.72⁴)</td>
+<td style="text-align: right;">0.52232960</td>
+</tr>
+<tr>
+<td>最终返回错误</td>
+<td>(0.08/0.28)×(1−0.72⁴)</td>
+<td style="text-align: right;">0.20893184</td>
+</tr>
+<tr>
+<td>全部拒绝</td>
+<td>0.72⁴</td>
+<td style="text-align: right;">0.26873856</td>
+</tr>
+</tbody>
+</table>
+<p>最后三项相加为 1。给定系统返回了答案，其正确比例约为 0.7143。这个实验计算独立尝试与假阳性验证的概率，<strong>没有更新模型参数，不是 RL 训练模拟</strong>，也不判断思维链是否忠实。</p>
+</div>
+<h2 id="5">5. 研究证据：哪些结论可以带出实验<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/html/2501.12948v1">DeepSeek-R1 首稿，2025-01-22</a>报告了基于奖励的后训练及不同训练流程，提供了特定模型与任务上的推理表现证据。它不把上面的独立采样公式变成训练定律，也不能证明每段公开思维链都反映真实内部机制；本讲引用首稿，不将后来修订当成首发内容。</p>
+<p><a href="https://arxiv.org/abs/2408.03314">Snell 等，首稿 2024-08-06</a>研究测试时计算如何随题目难度与方法改变收益。其意义是需要按任务分配预算，不能笼统承诺“多想一定更好”。<a href="https://arxiv.org/abs/2504.13837">Yue 等，首稿 2025-04-18</a>用不同采样预算考察 RLVR 后的能力边界，报告的现象提醒我们：单次成功率提高与大预算下的解题覆盖变化必须分别测量，结论受所测模型、任务与预算限制。</p>
+<p><strong>更新的测量争论：</strong><a href="https://arxiv.org/html/2509.21882v3">The Hidden Costs and Measurement Gaps of RLVR</a>于 <strong>2025-09-26</strong> 首次提交，所核查 v3 修订于 <strong>2026-05-25</strong>。这是一篇立场与测量研究：作者指出部分所测差距在预算、提示与数据版本匹配后缩小，并主张同时报告拒答、校准和污染检查；它不是“RL 无效”的一般定理。</p>
+<p>它与本讲选择模型的联系很具体：让系统更少拒绝，可能同时增加正确返回和错误返回。只比较回答数量或某一个 pass@k 点，不能区分策略改善、搜索预算增加与验证器改变。应在相同预算下，另报双方都尝试回答的题目上的正确率，以及新增尝试题目的表现；这种拆分也不能替代完整端到端评估。</p>
+<p>做前沿复现时，应固定题目切分，记录训练预算、输出长度、采样温度、验证器错误率与实际选择规则；再画预算—正确率曲线。形式证明检查器能验证所写命题是否被证明，却不能替人确认题目形式化是否忠于原意。公开自然语言推理是输出数据，内部机制需要<a href="frontier-03-mechanistic-interpretability.html">下一讲的因果干预</a>等独立证据。</p>
+<h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一：极端验证器。</strong> 若 <span class="arithmatex">\(\alpha=1\)</span>，无限增加 <span class="arithmatex">\(k\)</span> 能提高最终正确率吗？</p>
+<details>
+<summary>展开答案</summary>
+<p>不能。<span class="arithmatex">\(r=1\)</span>，检查器总接收第一个候选，返回正确率就是 <span class="arithmatex">\(p\)</span>。与此同时 oracle 覆盖率在 <span class="arithmatex">\(p&gt;0\)</span> 时趋近 1。二者的巨大差异来自“找到”与“选出”之间的验证瓶颈。</p>
+</details>
+<p><strong>题二：训练组没有奖励差异。</strong> 四个回答都通过一个过弱的测试集，组内奖励全为 1。能否据此宣布模型已学会任务？还应改变什么？</p>
+<details>
+<summary>展开分析</summary>
+<p>组内相对优势为零，说明当前奖励没有区分这四个回答；不能推断真实正确性或任务覆盖。应引入独立的边界测试、检查反例和题目难度，再看新测试上的表现。不要把最终测试集直接拿来反复选择训练设置，否则评估会泄漏。</p>
+</details>
+</section>
+<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>公式或判据</th>
+<th>限制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>奖励训练</td>
+<td><span class="arithmatex">\(\nabla J=\mathbb E[R\nabla\log\pi_\theta]\)</span></td>
+<td>本式奖励不依赖参数；实际算法另有稳定化设计</td>
+</tr>
+<tr>
+<td>独立候选覆盖</td>
+<td><span class="arithmatex">\(\mathrm{pass@}k=1-(1-p)^k\)</span></td>
+<td>固定题目、独立同分布尝试；不是选择正确率</td>
+</tr>
+<tr>
+<td>有误接收的首个通过策略</td>
+<td><span class="arithmatex">\(r=p+(1-p)\alpha\)</span>，<span class="arithmatex">\(P_{correct}=p[1-(1-r)^k]/r\)</span></td>
+<td>正确必接收；<span class="arithmatex">\(r=0\)</span> 时正确返回概率为 0</td>
+</tr>
+<tr>
+<td>忠实机制</td>
+<td>公开思维链需要独立机制证据</td>
+<td>答案正确与文字解释忠实分开评估</td>
+</tr>
+</tbody>
+</table>
+<p>先修入口：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练</a>。一手来源：<a href="https://arxiv.org/html/2402.03300v1">DeepSeekMath，2024-02-05 首稿</a>、<a href="https://arxiv.org/html/2501.12948v1">DeepSeek-R1，2025-01-22 首稿</a>、<a href="https://arxiv.org/abs/2408.03314">测试时计算分配，2024-08-06 首稿</a>、<a href="https://arxiv.org/abs/2504.13837">RLVR 能力边界研究，2025-04-18 首稿</a>。近期测量入口：<a href="https://arxiv.org/abs/2509.21882">RLVR 测量研究，2025-09-26 首稿／2026-05-25 v3</a>。研究资料核查截至 2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="frontier-01-flow-matching.html"><span class="pager-label">上一讲</span>前沿 I · Flow Matching</a>
+  <a class="pager-slot next" href="frontier-03-mechanistic-interpretability.html"><span class="pager-label">下一讲</span>前沿 III · 机制可解释性</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-lab.js"></script>
+</body>
+</html>

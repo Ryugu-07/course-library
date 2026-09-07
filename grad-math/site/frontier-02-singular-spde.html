@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>奇异 SPDE 与重整化 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li class="active"><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 06:36</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#frontier-spde-title">先把噪声磨平再计算，为什么答案还会不断漂走？</a></li>
+<li><a href="#1">1. 难点出现在乘法，而不只是随机性</a></li>
+<li><a href="#2">2. 一个能算到底的模型：平方的均值从哪里来</a></li>
+<li><a href="#3">3. 从单个随机数到随机分布</a></li>
+<li><a href="#4-taylor">4. 正则性结构怎样扩充 Taylor 展开</a></li>
+<li><a href="#5">5. 为什么必须检查“次临界”</a></li>
+<li><a href="#6">6. 两道迁移题</a></li>
+<li><a href="#7">7. 从个别修正到系统方法</a></li>
+<li><a href="#_1">速查：重整化不止是减均值</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ii-spde">数学前沿 II · 奇异 SPDE：为什么随机方程需要重整化<a class="headerlink" href="#ii-spde" title="Permanent link"></a></h1>
+<blockquote>
+<p>本讲从 Gaussian 平方的完整计算进入重整化，再解释正则性结构解决什么问题。先修：<a href="pde2-01-distributions.html">分布与弱导数</a>、<a href="pde2-02-sobolev.html">Sobolev 空间</a>、<a href="sc-02-ito-integral.html">Itô 积分</a>。后半讲需要 Hölder/Besov 正则性和不动点方法；树与重构定理在此说明结构，不替代原论文证明。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="frontier-spde-title" class="learning-layer">
+<h2 id="frontier-spde-title">先把噪声磨平再计算，为什么答案还会不断漂走？<a class="headerlink" href="#frontier-spde-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 难点出现在乘法，而不只是随机性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>粗糙界面高度常用形式方程</p>
+<div class="arithmatex">\[
+\partial_t h=\partial_x^2h+(\partial_xh)^2+\xi
+\]</div>
+<p>描述，其中 <span class="arithmatex">\(\xi\)</span> 是时空白噪声。这是 KPZ 方程的一种系数归一化。白噪声不是每一点都有普通数值的函数：它通过对测试函数的积分定义，满足 <span class="arithmatex">\(\mathbb E[\xi(\varphi)\xi(\psi)]=\int\varphi\psi\)</span>。</p>
+<p>热核能平滑输入，却未必平滑到可以逐点相乘。在一空间维，相关随机卷积的空间正则性约为 <span class="arithmatex">\(1/2\)</span> 以下，导数约为 <span class="arithmatex">\(-1/2\)</span> 以下；因此 <span class="arithmatex">\((\partial_xh)^2\)</span> 不能按普通函数平方直接解释。先卷积光滑噪声 <span class="arithmatex">\(\xi_\delta\)</span> 会得到可计算方程，但当尺度 <span class="arithmatex">\(\delta\downarrow0\)</span>，额外项可能发散。Hairer 的 KPZ 工作建立了可控制近似的解概念，不能用“网格够细就好”代替。<a href="https://arxiv.org/abs/1109.6811">KPZ 原始论文</a></p>
+<h2 id="2">2. 一个能算到底的模型：平方的均值从哪里来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(Z\sim N(0,1)\)</span>，<span class="arithmatex">\(X=\sqrt C\,Z\)</span>，其中 <span class="arithmatex">\(C&gt;0\)</span> 是方差。Gaussian 矩给出 <span class="arithmatex">\(\mathbb E[X^2]=C\)</span>、<span class="arithmatex">\(\mathbb E[X^4]=3C^2\)</span>。定义 Wick 平方</p>
+<div class="arithmatex">\[
+:X^2:\,=X^2-C.
+\]</div>
+<p>它减去已知的自收缩项，均值变为零。然而</p>
+<div class="arithmatex">\[
+\operatorname{Var}(:X^2:)
+=\mathbb E[(X^2-C)^2]
+=3C^2-2C^2+C^2=2C^2.
+\]</div>
+<p>减掉常数不会改变方差。若 <span class="arithmatex">\(C\)</span> 随分辨率增长，中心化后的随机量仍可能越来越大。<strong>“均值归零”既不是“噪声消失”，也不是“已经证明收敛”。</strong></p>
+<p>更系统的定义来自生成函数</p>
+<div class="arithmatex">\[
+e^{tX-Ct^2/2}
+=1+tX+\frac{t^2}{2}(X^2-C)
++\frac{t^3}{6}(X^3-3CX)+\cdots.
+\]</div>
+<p>比较系数得到 <span class="arithmatex">\(:X^3:=X^3-3CX\)</span>。三次非线性的修正是线性项，不是简单减一个常数。这个代数计算开始解释为什么重整化后的随机方程会出现新的低阶项。</p>
+<figure class="plot">
+<p><img alt="C等于2时，原始平方2z²与Wick平方2z²减2的曲线相差固定常数2；均值由2移到0，方差仍为8。" src="assets/img/frontier-spde.svg" /></p>
+<figcaption>横轴 z 是标准 Gaussian 的可能取值，纵轴是对应输出。曲线整体下移不改变随机输出的方差；期望要按 Gaussian 密度加权，不能用图下的普通面积代替。</figcaption>
+</figure>
+<h2 id="3">3. 从单个随机数到随机分布<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>真正的 SPDE 涉及彼此相关的中心 Gaussian 场 <span class="arithmatex">\(X_\delta(x)\)</span>。记协方差为 <span class="arithmatex">\(G_\delta(x,y)\)</span>；平稳情形下 <span class="arithmatex">\(C_\delta=G_\delta(x,x)\)</span> 不依赖 <span class="arithmatex">\(x\)</span>。Gaussian 配对公式给</p>
+<div class="arithmatex">\[
+\mathbb E[X_\delta(x)^2X_\delta(y)^2]
+=C_\delta^2+2G_\delta(x,y)^2.
+\]</div>
+<p>因此，对光滑紧支撑测试函数 <span class="arithmatex">\(\varphi\)</span>，中心化平方积分的方差是</p>
+<div class="arithmatex">\[
+\mathbb E\left[\left(\int\varphi(x):X_\delta(x)^2:\,dx\right)^2\right]
+=2\iint\varphi(x)\varphi(y)G_\delta(x,y)^2\,dx\,dy.
+\]</div>
+<p>这次控制对象是整个协方差核。二维对数型奇点的平方局部可积，因为 <span class="arithmatex">\(\int_0^1r(\log r)^2dr&lt;\infty\)</span>；这说明为何某些 Wick 场在测试函数下可能有良好极限，即使逐点方差发散。要证明收敛，还需同一耦合下不同截断的协方差估计和 Cauchy 性，上式本身并未完成证明。</p>
+<p>反过来，若把场换成所有位置共享同一个 <span class="arithmatex">\(X_\delta\)</span>，则积分只是 <span class="arithmatex">\((\int\varphi)(X_\delta^2-C_\delta)\)</span>，方差仍随 <span class="arithmatex">\(C_\delta^2\)</span> 发散。空间平均不是自动有效；相关结构决定结果。</p>
+<h2 id="4-taylor">4. 正则性结构怎样扩充 Taylor 展开<a class="headerlink" href="#4-taylor" title="Permanent link"></a></h2>
+<p>光滑函数在点 <span class="arithmatex">\(x\)</span> 附近用 <span class="arithmatex">\(1,(y-x),(y-x)^2\)</span> 描述。奇异方程需要额外“基元”：噪声符号 <span class="arithmatex">\(\Xi\)</span>、热核积分 <span class="arithmatex">\(\mathcal I(\Xi)\)</span>，以及由它们形成的非线性组合。给每个符号分配正则性次数，组成分级空间 <span class="arithmatex">\(T=\bigoplus_\alpha T_\alpha\)</span>。</p>
+<p>形式符号还不是随机场。一个<strong>模型</strong>用 <span class="arithmatex">\(\Pi_x\)</span> 将符号解释为实际分布，用 <span class="arithmatex">\(\Gamma_{xy}\)</span> 将点 <span class="arithmatex">\(y\)</span> 的展开换到点 <span class="arithmatex">\(x\)</span>。解先写成取值于 <span class="arithmatex">\(T\)</span> 的局部展开 <span class="arithmatex">\(F(x)\)</span>，再由重构算子 <span class="arithmatex">\(\mathcal R\)</span> 合成分布。重构定理的关键估计形如</p>
+<div class="arithmatex">\[
+\big|\langle\mathcal RF-\Pi_xF(x),\varphi_x^\lambda\rangle\big|
+\lesssim\lambda^\gamma,\qquad\gamma&gt;0,
+\]</div>
+<p>其中 <span class="arithmatex">\(\varphi_x^\lambda\)</span> 是在 <span class="arithmatex">\(x\)</span> 附近按所选尺度缩放的测试函数。它要求局部展开在小尺度上一致拼接；不是只给符号起名字。对模型重整化、证明模型收敛，再利用解映射的连续性，才把光滑近似连到极限解。<a href="https://arxiv.org/abs/1303.5113">Hairer 的正则性结构理论</a></p>
+<p>以三维 <span class="arithmatex">\(\Phi^4\)</span> 动力学的形式式子 <span class="arithmatex">\(\partial_tu=\Delta u-u^3+\xi\)</span> 为例，光滑近似会加入依赖截断的线性反项。Wick 三次方提示其中一种来源，但完整 <span class="arithmatex">\(\Phi^4_3\)</span> 还涉及更高阶修正；本讲的单个 Gaussian 计算并未证明该方程存在唯一解。</p>
+<h2 id="5">5. 为什么必须检查“次临界”<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>热方程按时间权重 2、空间权重 1 缩放。<span class="arithmatex">\(d\)</span> 维空间的时空白噪声正则性约为 <span class="arithmatex">\(-(d+2)/2\)</span>，热核积分提升 2，故线性随机卷积约有 <span class="arithmatex">\(\alpha=(2-d)/2\)</span> 的正则性，严格估计通常还要略减一点。</p>
+<p>三次项经积分后的形式次数为 <span class="arithmatex">\(3\alpha+2\)</span>。要比起始粗糙度更好，要求 <span class="arithmatex">\(3\alpha+2&gt;\alpha\)</span>，即 <span class="arithmatex">\(d&lt;4\)</span>。这是 <span class="arithmatex">\(\Phi^4\)</span> 的次临界尺度判断；<span class="arithmatex">\(d=4\)</span> 在临界边界，不能把同一套局部次临界结论直接搬过去。次数账本给出路线，乘法、随机估计与重构才完成严格工作。</p>
+<div class="learning-lab" data-frontier-topic="spde" data-learning-lab="frontier-lab">
+<p><strong>完整静态后备：</strong>实验只画 <span class="arithmatex">\(X^2=Cz^2\)</span> 与 <span class="arithmatex">\(:X^2:=C(z^2-1)\)</span> 两条确定性曲线，<span class="arithmatex">\(z\)</span> 对应标准 Gaussian 输入；不是 SPDE 求解器。先预测增大 <span class="arithmatex">\(C\)</span> 后，中心化曲线是否会变平，再核对：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(C\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathbb E[X^2]\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathbb E[:X^2:]\)</span></th>
+<th style="text-align: right;">两者的方差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1（默认）</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">128</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">512</td>
+</tr>
+</tbody>
+</table>
+<p>例如 <span class="arithmatex">\(C=2,z=0\)</span> 时，两条曲线的输出为 <span class="arithmatex">\(0,-2\)</span>；<span class="arithmatex">\(z=1\)</span> 时为 <span class="arithmatex">\(2,0\)</span>；<span class="arithmatex">\(z=2\)</span> 时为 <span class="arithmatex">\(8,6\)</span>。均值为零不意味着曲线处处为零，也不意味着每次抽样后的经验均值精确等于零。</p>
+</div>
+<h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题 1。</strong> <span class="arithmatex">\(X\sim N(0,C)\)</span>。求 <span class="arithmatex">\(Y=X^3-3CX\)</span> 的均值与方差，判断它是否因为中心化而在 <span class="arithmatex">\(C\to\infty\)</span> 时保持有界方差。</p>
+<details>
+<summary>独立作答后核对题 1</summary>
+<p>奇数矩为零，所以 <span class="arithmatex">\(\mathbb EY=0\)</span>。用 <span class="arithmatex">\(\mathbb EX^6=15C^3\)</span> 得 <span class="arithmatex">\(\mathbb EY^2=15C^3-6C\cdot3C^2+9C^2\cdot C=6C^3\)</span>。方差仍发散；去除 Gaussian 自收缩与获得普通随机变量极限是不同要求。</p>
+</details>
+<p><strong>题 2。</strong> 两种近似采用反项 <span class="arithmatex">\(C_\delta\)</span> 与 <span class="arithmatex">\(C_\delta+c\)</span>，其中 <span class="arithmatex">\(c\)</span> 是固定常数。如果第一种 Wick 平方收敛到随机分布 <span class="arithmatex">\(Y\)</span>，第二种会收敛到什么？这说明什么？</p>
+<details>
+<summary>独立作答后核对题 2</summary>
+<p>第二种是第一种减 <span class="arithmatex">\(c\)</span>，所以极限为 <span class="arithmatex">\(Y-c\)</span>。与测试函数配对时，相差 <span class="arithmatex">\(-c\int\varphi\)</span>。重整化可以留下有限参数选择；必须说明归一化约定和物理参数如何校准，不能只要求“去掉无穷大”便宣称所有近似得到完全同一个方程。</p>
+</details>
+<h2 id="7">7. 从个别修正到系统方法<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>正则性结构的代数重整化用装饰树组织嵌套的奇异乘积，避免每个方程都凭经验猜反项。2025 年首发、2026 年修订的 flow 方法研究进一步核对其重整化与 BPHZ 方案的联系。这是方法之间的结构比较，不等于所有临界或超临界方程已经解决。</p>
+<p>以下一手来源均于 <strong>2026-09-08</strong> 实际访问；列出原始日期与所查状态，未作最新工作的穷尽检索。</p>
+<ul>
+<li>Hairer，<a href="https://arxiv.org/abs/1109.6811">Solving the KPZ equation</a>：首发 <strong>2011-09-30</strong>，所查修订 <strong>2012-07-26</strong>；严格的路径式解与近似理论。</li>
+<li>Hairer，<a href="https://arxiv.org/abs/1303.5113">A theory of regularity structures</a>：首发 <strong>2013-03-20</strong>，接受稿修订 <strong>2014-02-15</strong>；重构、随机模型与重整化解理论。</li>
+<li>Bruned、Hairer、Zambotti，<a href="https://arxiv.org/abs/1610.08468">Algebraic renormalisation of regularity structures</a>：首发 <strong>2016-10-26</strong>，修订 <strong>2018-11-19</strong>；系统构造装饰树与 BPHZ 型代数重整化。</li>
+<li>Bruned、Minguella，<a href="https://arxiv.org/abs/2504.04885">Renormalisation in the flow approach for singular SPDEs</a>：首发 <strong>2025-04-07</strong>，修订 <strong>2026-05-24</strong>；所查页面标注待刊 <em>Annals of Probability</em>，比较 flow 与正则性结构的重整化方案。</li>
+</ul>
+</section>
+<h2 id="_1">速查：重整化不止是减均值<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>可验证公式</th>
+<th>不能跳过的下一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单个 Gaussian</td>
+<td><span class="arithmatex">\(:X^2:=X^2-C\)</span>，方差 <span class="arithmatex">\(2C^2\)</span></td>
+<td>中心化不保证逐点收敛</td>
+</tr>
+<tr>
+<td>随机场</td>
+<td><span class="arithmatex">\(\operatorname{Cov}(:X(x)^2:,:X(y)^2:)=2G(x,y)^2\)</span></td>
+<td>控制测试函数下的核与跨截断差</td>
+</tr>
+<tr>
+<td>正则性结构</td>
+<td>局部符号、模型、重构、重整化</td>
+<td>随机模型收敛和解映射估计</td>
+</tr>
+</tbody>
+</table>
+<p>实验说明均值与波动的区别；严格 SPDE 理论还要处理相关性、空间尺度和非线性迭代。次临界条件指出可应用理论的范围，不能被有限曲线代替。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="frontier-01-schrodinger-bridge.html"><span class="pager-label">上一页</span>前沿 I · Schrödinger 桥与路径空间</a>
+  <a class="pager-slot next" href="frontier-03-geometric-langlands.html"><span class="pager-label">下一页</span>前沿 III · 几何 Langlands</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-lab.js"></script>
+</body>
+</html>

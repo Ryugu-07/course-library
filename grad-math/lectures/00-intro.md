@@ -43,3 +43,18 @@
 ---
 
 *建议入口：概率与分析线的测度概率 I（全站地基），或按需直接跳到你正在用的课程。*
+
+
+## 研究前沿：从定理工具进入活跃问题
+
+下面三讲是彼此可独立选择的专题课。每讲先完成一个可算的入门模型，再明确进入正式理论还需要哪些对象与技术；不把有限演示当成大定理的证明。文献核查日期为 **2026-09-08**，论文的首发、修订与发表状态在各页分别列出。
+
+| 专题课 | 已有课程的起点 | 本讲要跨过的门槛 | 完成后的自测 |
+|---|---|---|---|
+| [Schrödinger 桥与路径空间](frontier-01-schrodinger-bridge.html) | [最优传输与对偶](ot-01-monge-kantorovich.html)、[Girsanov](sc-04-girsanov.html) | 从端点耦合走到整个随机过程上的相对熵 | 为什么参考过程改变，最可能的桥也会改变？ |
+| [奇异 SPDE 与重整化](frontier-02-singular-spde.html) | [分布与弱导数](pde2-01-distributions.html)、[Itô 积分](sc-02-ito-integral.html) | 普通乘法为何失效，需怎样定义修正后的对象 | 为什么减去发散均值仍不足以证明收敛？ |
+| [几何 Langlands](frontier-03-geometric-langlands.html) | [覆盖空间](at-02-covering.html)、[群论](alg2-01-groups-advanced.html) | 从有限群 Fourier 类比进入局部系统、层与范畴 | 2024 证明系列解决的是哪个精确版本？ |
+
+几何 Langlands 的完整证明需要代数几何、D-模、导出范畴等本库尚未完整开设的先修；本讲提供可核查的概念桥梁与论文入口，不宣称一讲即可掌握证明。三讲都将经典理论、近期结果、尚待解决的问题分开标注。
+
+相关路线：[物理前沿](../../physics-course/site/index.html#研究前沿课程) · [AI 前沿](../../ai-course/site/index.html#研究前沿课程)。

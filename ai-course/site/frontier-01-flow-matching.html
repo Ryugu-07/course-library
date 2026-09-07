@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Matching · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li class="active"><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 06:35</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 生成时，数据端点恰好是未知的</a></li>
+<li><a href="#2">2. 为什么平方回归会得到正确的平均速度</a></li>
+<li><a href="#3">3. 一个能从头算完的高斯模型</a><ul>
+<li><a href="#_1">训练损失为什么未必应该降到零</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 实验：先预测中途的宽度</a><ul>
+<li><a href="#2_1">静态实验后备：μ=2 的边际账本</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 从直线目标到前沿研究问题</a><ul>
+<li><a href="#_2">更新的机制：平均速度能否跨过整段时间</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 两道迁移题</a></li>
+<li><a href="#_3">速查摘要</a></li>
+</ul>
+</div>
+</details>
+<h1 id="ai-01-flow-matching">AI 前沿 01 · Flow Matching：怎样学会把噪声搬成数据<a class="headerlink" href="#ai-01-flow-matching" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>核心问题</strong>：如果噪声点和数据点之间可以画直线，为什么不能直接沿这条线生成？本讲区分“给定两个端点的训练路径”和“生成时真正可用的速度场”。先修：<a href="04-neural-networks.html">梯度与神经网络</a>、<a href="16-text-to-image.html">生成图像的任务背景</a>。研究资料核查截至 <strong>2026-09-08</strong>；文中注明首次公开日期，实验为可解析的一维模型，不代表图像模型性能。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 生成时，数据端点恰好是未知的<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>训练集给出许多图片，目标却不是原样抽取一张。我们希望先抽一个容易产生的随机向量，再通过可学习的变换得到新的样本。把向量想成运动中的点：初始分布是噪声，终点分布接近数据。这里的“运动”发生在特征空间，时间 <span class="arithmatex">\(t\in[0,1]\)</span> 是无量纲的生成进度，不是物理秒数。</p>
+<p>训练时可以抽到噪声 <span class="arithmatex">\(X_0\)</span> 和数据 <span class="arithmatex">\(X_1\)</span>，构造</p>
+<div class="arithmatex">\[
+X_t=(1-t)X_0+tX_1,\qquad U=X_1-X_0.
+\]</div>
+<p>每一对端点的路径都是直线，导数都是 <span class="arithmatex">\(U\)</span>。但生成时只有新的 <span class="arithmatex">\(X_0\)</span>，并不知道该去哪个 <span class="arithmatex">\(X_1\)</span>。模型必须学会：<strong>只给当前位置与时刻，应该往哪里走？</strong> 这就是速度网络 <span class="arithmatex">\(v_\theta(x,t)\)</span> 的任务。</p>
+<figure>
+<img src="assets/img/frontier-flow.svg" alt="独立高斯端点插值的分布带在中途收窄；给定端点的直线不等于只依赖当前位置的生成速度场。" />
+<figcaption>图 1：均值从 0 移到 μ，中间的宽度先缩小再变大。图示使用 μ=2；纵向宽度表示一个标准差，不是所有样本的边界。</figcaption>
+</figure>
+<h2 id="2">2. 为什么平方回归会得到正确的平均速度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>最直接的训练目标是随机抽取时刻和端点，最小化</p>
+<div class="arithmatex">\[
+\mathcal L(\theta)=\mathbb E\|v_\theta(X_t,t)-U\|^2.
+\]</div>
+<p>它不要求每次训练都数值积分整条生成轨迹，这就是此处“无需模拟的训练”的含义；<strong>生成仍需解常微分方程</strong>。许多端点对可能在同一时刻经过相同区域，因此目标速度不必唯一。</p>
+<p>固定 <span class="arithmatex">\(X_t=x\)</span>，令 <span class="arithmatex">\(m=\mathbb E[U\mid X_t=x]\)</span>。把 <span class="arithmatex">\(U=m+(U-m)\)</span> 代入并展开：</p>
+<div class="arithmatex">\[
+\mathbb E[\|v-U\|^2\mid x]
+=\|v-m\|^2+\mathbb E[\|U-m\|^2\mid x].
+\]</div>
+<p>交叉项为零，因为条件下 <span class="arithmatex">\(\mathbb E[U-m\mid x]=0\)</span>。第二项不受 <span class="arithmatex">\(v\)</span> 控制，所以总体最优解是</p>
+<div class="arithmatex">\[
+v^*(x,t)=\mathbb E[X_1-X_0\mid X_t=x].
+\]</div>
+<p>这是条件期望的平方损失性质；神经网络受容量、数据和优化限制，未必达到最优。分布层面的理由也可看清：对光滑试验函数 <span class="arithmatex">\(\varphi\)</span>，</p>
+<div class="arithmatex">\[
+\frac{d}{dt}\mathbb E\varphi(X_t)
+=\mathbb E[\nabla\varphi(X_t)\!\cdot U]
+=\mathbb E[\nabla\varphi(X_t)\!\cdot v^*(X_t,t)].
+\]</div>
+<p>在允许微分与期望交换、速度场足够正则等条件下，这对应连续性方程 <span class="arithmatex">\(\partial_t p_t+\nabla\cdot(p_tv^*)=0\)</span>。因此求解 <span class="arithmatex">\(\dot Z_t=v^*(Z_t,t)\)</span> 可以运输相同的<strong>边际分布</strong>，不要求复现原来每一对端点的配对。<a href="https://arxiv.org/abs/2210.02747">Flow Matching，首稿 2022-10-06</a>给出了条件回归与边际目标之间的理论关系。</p>
+<h2 id="3">3. 一个能从头算完的高斯模型<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设独立端点满足 <span class="arithmatex">\(X_0\sim\mathcal N(0,1)\)</span>、<span class="arithmatex">\(X_1\sim\mathcal N(\mu,1)\)</span>。本例坐标也无量纲。独立性使协方差项消失：</p>
+<div class="arithmatex">\[
+\mathbb EX_t=t\mu,\quad D(t)=\operatorname{Var}(X_t)=(1-t)^2+t^2.
+\]</div>
+<p>目标速度 <span class="arithmatex">\(U\)</span> 的均值为 <span class="arithmatex">\(\mu\)</span>，而</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(U,X_t)
+=\operatorname{Cov}(X_1-X_0,(1-t)X_0+tX_1)=2t-1.
+\]</div>
+<p><span class="arithmatex">\(U,X_t\)</span> 联合高斯，故条件均值是线性的；将均值、协方差和方差代入得到</p>
+<div class="arithmatex">\[
+\boxed{v^*(x,t)=\mu+\frac{2t-1}{D(t)}(x-t\mu)}.
+\]</div>
+<p>第一项平移中心；第二项在前半程把点向中心拉，在后半程把点向外推。令 <span class="arithmatex">\(z_t=Z_t-t\mu\)</span>，则 <span class="arithmatex">\(\dot z_t=(2t-1)z_t/D(t)\)</span>。又因 <span class="arithmatex">\(D'(t)=2(2t-1)\)</span>，积分后</p>
+<div class="arithmatex">\[
+Z_t=t\mu+\sqrt{D(t)}Z_0.
+\]</div>
+<p>这直接验证了 ODE 的边际方差确为 <span class="arithmatex">\(D(t)\)</span>。当 <span class="arithmatex">\(t=1/2\)</span>，标准差为 <span class="arithmatex">\(1/\sqrt2\)</span>，即使两个端点的标准差都是 1！恒定速度 <span class="arithmatex">\(v=\mu\)</span> 也能把本例的起点分布送到正确终点，但中间一直保持标准差 1，<strong>不符合所指定的插值路径</strong>。终点正确与路径匹配是不同的验收目标。</p>
+<h3 id="_1">训练损失为什么未必应该降到零<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>在一个训练批次中，每行先独立抽取一对端点，再抽取一个 t，计算混合位置与目标速度。网络输入是位置和 t，数据端点只用来构造监督目标，不能在生成时作为额外输入偷渡进去。每次更新只回归这些局部速度；训练结束后，再从新的噪声点积分 ODE。</p>
+<p>本例还能检查“损失非零就是没学会”这个误解。在 t=1/2 时，U 与 Xₜ 的协方差为零；二者联合高斯，所以条件速度的方差仍是 Var(U)=2。最优预测虽然是 μ，各端点对的实际速度仍上下波动，因此该时刻的最小期望平方损失就是 2。模型已经准确匹配条件均值，也能运输正确边际，却不能猜中被隐藏的端点配对。</p>
+<p>实际训练报告中的损失同时包含这种条件不确定性、模型近似误差和有限样本波动。因此，更换路径或配对后，不能只比较未经校准的损失数值大小来宣布生成器更好。还应沿学到的速度实际求解，检查分布是否到达目标，以及有限步数是否把方差或细节压坏。</p>
+<h2 id="4">4. 实验：先预测中途的宽度<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在操作前写下：当 <span class="arithmatex">\(\mu=2,t=1/2\)</span> 时，均值和标准差各是多少？改变 <span class="arithmatex">\(\mu\)</span> 会改变收缩比例吗？</p>
+<div class="learning-lab" data-frontier-topic="flow" data-learning-lab="frontier-lab">
+<h3 id="2_1">静态实验后备：μ=2 的边际账本<a class="headerlink" href="#2_1" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>时刻 t</th>
+<th style="text-align: right;">正确均值</th>
+<th style="text-align: right;">正确标准差 √D(t)</th>
+<th style="text-align: right;">恒速平移的标准差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>0.25</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.7906</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.7071</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>0.75</td>
+<td style="text-align: right;">1.5</td>
+<td style="text-align: right;">0.7906</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>即使交互未加载，也可代入公式核对全表。改变 μ 只平移均值线；独立端点造成的方差曲线不变。这是解析分布实验，没有训练图像模型，也没有测量采样质量。</p>
+</div>
+<h2 id="5">5. 从直线目标到前沿研究问题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><a href="https://arxiv.org/abs/2209.03003">Rectified Flow，首稿 2022-09-07</a>研究从配对直线路径学习 ODE，并用模型产生的新配对再次训练以改进路径。这不意味着“随机连接端点已得到最优传输”，也不意味着所有学习轨迹都天然是一条直线。本例生成轨迹包含 <span class="arithmatex">\(\sqrt{D(t)}\)</span>，已经给出了区别。</p>
+<p><a href="https://arxiv.org/abs/2403.03206">高分辨率 Rectified Flow Transformer，首稿 2024-03-05</a>把路径、时间采样与图文模型架构一起放入图像生成实验。它提供规模应用的证据，却不能把效果全归因于一个回归公式。<a href="https://arxiv.org/abs/2412.06264">Flow Matching Guide and Code，首稿 2024-12-09</a>系统讨论路径设计及扩展，可作为继续推导的入口。</p>
+<p>真正需要比较的是：同一数据与预算下，端点配对怎样影响速度方差？时间采样是否漏掉难学区域？少步求解带来的离散误差如何与模型误差区分？线性插值在训练阶段便宜，不保证生成只需一步。专业复现实验应同时记录速度误差、函数求值次数与样本指标，并报告潜空间解码器和条件引导设置。</p>
+<h3 id="_2">更新的机制：平均速度能否跨过整段时间<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p><a href="https://arxiv.org/html/2505.13447v1">Mean Flows，首稿 2025-05-19</a>把学习对象从瞬时速度推进到区间平均速度。沿一条真实 ODE 轨迹定义</p>
+<div class="arithmatex">\[
+\overline v_{r,s}=\frac{Z_s-Z_r}{s-r}
+=\frac1{s-r}\int_r^s v(Z_t,t)\,dt.
+\]</div>
+<p>固定 r，对 s 使用乘积法则，得到 <span class="arithmatex">\(\overline v_{r,s}+(s-r)d_s\overline v_{r,s}=v(Z_s,s)\)</span>。这提供了学习平均速度的恒等式；其中导数沿轨迹计算，不是只对显式时间变量求偏导。研究的单步采样是在学习这个不同的对象，并非把普通 Euler 步长任意放大。本讲高斯例子的全程平均速度恰为 μ，而起点瞬时速度是 μ−Z₀，两者的差异可直接算出。</p>
+<p><a href="https://arxiv.org/abs/2512.01286">FM 样本复杂度研究，首稿 2025-12-01</a>进一步区分近似、有限样本和优化误差。在其损失正则性与数据有界等假设下才能使用相应保证；本讲的无界高斯模型不能未经检查直接套用。这条研究线关心的是“训练误差怎样转成分布误差”，不只比较图片是否好看。</p>
+<h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一：改变配对。</strong> 若不再独立抽端点，而令 <span class="arithmatex">\(X_1=X_0+\mu\)</span>，写出 <span class="arithmatex">\(X_t\)</span>、方差和最优速度。为什么终点分布没变，训练问题却变了？</p>
+<details>
+<summary>展开推导与判断</summary>
+<p>此时 <span class="arithmatex">\(X_t=X_0+t\mu\)</span>，方差恒为 1，<span class="arithmatex">\(U=\mu\)</span>，所以 <span class="arithmatex">\(v^*=\mu\)</span>。端点边际仍分别是两个单位方差高斯，但联合分布，也就是配对方式，改变了；中间路径与回归目标随之改变。不能只报起点终点分布而省略 coupling。</p>
+</details>
+<p><strong>题二：一步 Euler。</strong> 使用本例正确速度，从 <span class="arithmatex">\(t=0\)</span> 一步走到 1。结果有正确方差吗？这能否否定连续 ODE 的推导？</p>
+<details>
+<summary>展开计算与误差来源</summary>
+<p><span class="arithmatex">\(v^*(x,0)=\mu-x\)</span>，故 <span class="arithmatex">\(Z_1^{Euler}=Z_0+\mu-Z_0=\mu\)</span>：所有点塌到均值，方差为零。连续解终点却是 <span class="arithmatex">\(\mu+Z_0\)</span>。失败来自使用跨度 1 的 Euler 离散，不是连续运输公式错误；增大步数或改进路径后仍需重新检查误差。</p>
+</details>
+</section>
+<h2 id="_3">速查摘要<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>公式或操作</th>
+<th>使用边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直线监督目标</td>
+<td><span class="arithmatex">\(X_t=(1-t)X_0+tX_1\)</span>，<span class="arithmatex">\(U=X_1-X_0\)</span></td>
+<td>端点配对方式必须说明</td>
+</tr>
+<tr>
+<td>边际速度</td>
+<td><span class="arithmatex">\(v^*(x,t)=\mathbb E[U\mid X_t=x]\)</span></td>
+<td>平方损失总体最优解</td>
+</tr>
+<tr>
+<td>独立单位高斯端点</td>
+<td><span class="arithmatex">\(D(t)=(1-t)^2+t^2\)</span>，<span class="arithmatex">\(v^*=\mu+(2t-1)(x-t\mu)/D(t)\)</span></td>
+<td>常速平移仅匹配本例终点</td>
+</tr>
+<tr>
+<td>生成</td>
+<td>求解 <span class="arithmatex">\(\dot Z_t=v_\theta(Z_t,t)\)</span></td>
+<td>训练免积分不等于生成免积分</td>
+</tr>
+</tbody>
+</table>
+<p>先修入口：<a href="04-neural-networks.html">神经网络</a>；图像任务：<a href="16-text-to-image.html">文生图</a>。一手来源：<a href="https://arxiv.org/abs/2210.02747">Flow Matching，2022-10-06 首稿</a>、<a href="https://arxiv.org/abs/2209.03003">Rectified Flow，2022-09-07 首稿</a>、<a href="https://arxiv.org/abs/2403.03206">高分辨率 RF Transformer，2024-03-05 首稿</a>、<a href="https://arxiv.org/abs/2412.06264">FM Guide，2024-12-09 首稿</a>。近期入口：<a href="https://arxiv.org/abs/2505.13447">MeanFlow，2025-05-19</a>、<a href="https://arxiv.org/abs/2512.01286">FM 样本复杂度，2025-12-01</a>。研究资料核查截至 2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="project-01-heat-inverse.html"><span class="pager-label">上一讲</span>项目 01 · 从温度读数反推初态</a>
+  <a class="pager-slot next" href="frontier-02-reasoning-rl.html"><span class="pager-label">下一讲</span>前沿 II · 推理强化学习</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-lab.js"></script>
+</body>
+</html>

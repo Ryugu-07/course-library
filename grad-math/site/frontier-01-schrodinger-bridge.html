@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schrödinger 桥与路径空间 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li class="active"><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 06:29</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#frontier-bridge-title">两张粒子分布照片之间，怎样选择一段随机历史？</a></li>
+<li><a href="#1">1. 为什么端点配对还不够</a></li>
+<li><a href="#2">2. 关键推导：先固定端点，再看中间</a></li>
+<li><a href="#3">3. 从乘子得到桥的动力学</a></li>
+<li><a href="#4">4. 连续时间：控制能量为什么等于路径熵</a></li>
+<li><a href="#5">5. 可算的端点练习</a></li>
+<li><a href="#6">6. 两道迁移题</a></li>
+<li><a href="#7">7. 正在向哪里推进</a></li>
+<li><a href="#_1">速查：路径桥的三个层次</a></li>
+</ul>
+</div>
+</details>
+<h1 id="i-schrodinger">数学前沿 I · Schrödinger 桥：在路径空间里校准随机运动<a class="headerlink" href="#i-schrodinger" title="Permanent link"></a></h1>
+<blockquote>
+<p>本讲从端点运输推进到整条随机路径的相对熵、条件分解和动力学。先修：<a href="ot-01-monge-kantorovich.html">Monge–Kantorovich</a>、<a href="ot-02-wasserstein.html">Wasserstein 几何</a>、<a href="ot-03-computational.html">计算最优传输</a>；连续时间部分还需条件期望、Itô 积分与 Girsanov 定理。数值练习可以独立完成，连续路径的存在性定理需另读原文。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="frontier-bridge-title" class="learning-layer">
+<h2 id="frontier-bridge-title">两张粒子分布照片之间，怎样选择一段随机历史？<a class="headerlink" href="#frontier-bridge-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 为什么端点配对还不够<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一群粒子按已知扩散规律运动。实验只在开始和结束拍到密度 <span class="arithmatex">\(\mu_0,\mu_T\)</span>，没有逐个追踪粒子。许多运动都符合两张照片；我们希望找到既满足观测、又尽量少偏离已知规律的随机过程。</p>
+<p>记 <span class="arithmatex">\(\Omega\)</span> 为所有路径组成的空间，<span class="arithmatex">\(X_t(\omega)=\omega(t)\)</span> 为取出时刻位置的操作。参考规律 <span class="arithmatex">\(R\)</span> 和待求规律 <span class="arithmatex">\(P\)</span> 都是 <span class="arithmatex">\(\Omega\)</span> 上的概率测度；<span class="arithmatex">\(P_t\)</span> 是 <span class="arithmatex">\(X_t\)</span> 的分布。Schrödinger 桥求解</p>
+<div class="arithmatex">\[
+\min_{P:\,P_0=\mu_0,\ P_T=\mu_T}
+H(P\mid R),\qquad
+H(P\mid R)=\int_\Omega\log\frac{dP}{dR}\,dP.
+\]</div>
+<p>若 <span class="arithmatex">\(P\)</span> 不对 <span class="arithmatex">\(R\)</span> 绝对连续，定义代价为 <span class="arithmatex">\(+\infty\)</span>。这意味着参考过程根本不会发生的事件，不能无代价地加入答案。这里优化的是整群路径的概率律；它不同于只选一条“最佳轨迹”。相关定理还要求可行性和有限熵，不能只凭上式宣称任何两张照片都有解。<a href="https://arxiv.org/html/1308.0215v1">Léonard 的路径空间论述</a></p>
+<h2 id="2">2. 关键推导：先固定端点，再看中间<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>先在有限状态、有限时刻且参考路径概率全正的模型中推导。令 <span class="arithmatex">\(\pi=P_{0T}\)</span>、<span class="arithmatex">\(r=R_{0T}\)</span> 为端点联合分布，<span class="arithmatex">\(P^{xy},R^{xy}\)</span> 为给定起终点后的条件路径律。将联合概率拆成“端点概率×条件概率”，对数把乘法变成加法：</p>
+<div class="arithmatex">\[
+H(P\mid R)=H(\pi\mid r)
++\sum_{x,y}\pi(x,y)H(P^{xy}\mid R^{xy}).
+\]</div>
+<p>第二项非负。固定 <span class="arithmatex">\(\pi\)</span> 后，取 <span class="arithmatex">\(P^{xy}=R^{xy}\)</span> 即令它为零。因此最优过程只需重配端点权重；在给定同一对端点后，沿途的条件随机规律保留参考桥。</p>
+<p>这一步解释了静态运输表与动态过程的联系。<strong>端点矩阵只给权重，参考条件桥给中间路径。</strong> 只有二者合起来，才确定动态答案。连续情形用条件测度和积分替代求和，须保证解离与熵分解合法。</p>
+<figure class="plot">
+<p><img alt="路径桥的两层分解：端点联合分布从r改为π，同一对端点之间仍使用参考条件路径R的桥；两层合成完整路径律P。" src="assets/img/frontier-bridge.svg" /></p>
+<figcaption>不同曲线表示同一端点对之间可能的路径；重配端点概率不等于把每条路径拉成直线。图为概率结构示意，曲线不是模拟数据。</figcaption>
+</figure>
+<h2 id="3">3. 从乘子得到桥的动力学<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>对正边缘的有限模型，最小化 <span class="arithmatex">\(\sum_{xy}\pi_{xy}\log(\pi_{xy}/r_{xy})\)</span>，加入行列和约束。内部驻点满足</p>
+<div class="arithmatex">\[
+\log\frac{\pi_{xy}}{r_{xy}}+1-\alpha_x-\beta_y=0
+\quad\Longrightarrow\quad
+\pi_{xy}=f(x)r_{xy}g(y).
+\]</div>
+<p>把常数吸收到 <span class="arithmatex">\(f,g\)</span>；它们须共同满足两端边缘，不能随便指定。连同上一节可得 <span class="arithmatex">\(dP/dR=f(X_0)g(X_T)\)</span>。<span class="arithmatex">\(f\)</span> 乘常数而 <span class="arithmatex">\(g\)</span> 除以同一常数，不改变 <span class="arithmatex">\(P\)</span>。</p>
+<p>若参考过程是一阶 Markov 链，转移矩阵记为 <span class="arithmatex">\(K_t\)</span>。向后计算</p>
+<div class="arithmatex">\[
+g_t(x)=\sum_yK_t(x,y)g_{t+1}(y),\qquad g_T=g.
+\]</div>
+<p>新的转移概率为</p>
+<div class="arithmatex">\[
+K_t^*(x,y)=K_t(x,y)\frac{g_{t+1}(y)}{g_t(x)}.
+\]</div>
+<p>分母正时，行和正好为 1。这个 Doob 变换把终点要求传回每一步，而 <span class="arithmatex">\(P_0(x)=f(x)R_0(x)g_0(x)\)</span> 负责初始约束。验证行和，是把“路径优化”落实成可执行随机运动的最小检查。</p>
+<h2 id="4">4. 连续时间：控制能量为什么等于路径熵<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在适当绝对连续性与可积性条件下，参考扩散为 <span class="arithmatex">\(dX_t=b_t(X_t)dt+\sqrt\varepsilon\,dW_t\)</span>。候选过程增加漂移 <span class="arithmatex">\(u_t\)</span>，并固定相同初始分布。Girsanov 换测度给</p>
+<div class="arithmatex">\[
+H(P\mid R)=\frac{1}{2\varepsilon}
+\mathbb E_P\int_0^T\|u_t\|^2dt.
+\]</div>
+<p>所以“少改参考随机律”对应“少花额外控制能量”。若初始分布不同，还必须加 <span class="arithmatex">\(H(P_0\mid R_0)\)</span>；若改变扩散系数，不能直接沿用这个漂移公式。</p>
+<p>光滑正函数 <span class="arithmatex">\(g_t(x)=\mathbb E_R[g(X_T)\mid X_t=x]\)</span> 满足向后 Kolmogorov 方程。对生成元 <span class="arithmatex">\(L=b\cdot\nabla+(\varepsilon/2)\Delta\)</span> 使用乘积法则，新增一阶项是 <span class="arithmatex">\(\varepsilon\nabla\log g_t\cdot\nabla\)</span>，因此桥漂移为</p>
+<div class="arithmatex">\[
+b_t^*=b_t+\varepsilon\nabla\log g_t.
+\]</div>
+<p>它把熵、控制和 score 型梯度连接起来。小噪声趋向最优传输需要额外紧性与极限条件；不能把某一次低噪声模拟当作收敛证明。<a href="https://arxiv.org/abs/1011.2564">小噪声极限定理</a></p>
+<p>还要区分两种误差：固定 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 时，算法是否准确逼近这个随机桥；改变 <span class="arithmatex">\(\varepsilon\)</span> 时，桥本身怎样接近另一个极限问题。减小噪声不会自动降低网络估计误差，也可能使条件采样更困难。数值验收至少应检查两端边缘是否同时匹配、漂移能量是否有限，以及换时间步长后结果是否稳定，而不能只展示一张看似正确的终点散点图。</p>
+<h2 id="5">5. 可算的端点练习<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>先预测：两端都各有一半质量，留在原位置成本为零、跨位置成本为 1。熵权重 <span class="arithmatex">\(\varepsilon\)</span> 越大，交叉质量会增大还是减小？</p>
+<div class="learning-lab" data-frontier-topic="bridge" data-learning-lab="frontier-lab">
+<p><strong>完整静态后备：</strong>本实验只算 <span class="arithmatex">\(2\times2\)</span> 端点熵正则化，不模拟连续路径。成本 <span class="arithmatex">\(C=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span>，边缘均为 <span class="arithmatex">\((1/2,1/2)\)</span>；最小化 <span class="arithmatex">\(\langle C,\pi\rangle+\varepsilon\sum\pi_{ij}\log\pi_{ij}\)</span>。所有可行矩阵写成 <span class="arithmatex">\(\pi=\begin{pmatrix}p&amp;q\\q&amp;p\end{pmatrix}\)</span>、<span class="arithmatex">\(q=1/2-p\)</span>。</p>
+<p>目标导数为 <span class="arithmatex">\(-2+2\varepsilon\log(p/q)\)</span>，从而</p>
+<div class="arithmatex">\[
+p=\frac{1}{2(1+e^{-1/\varepsilon})},\qquad q=\frac12-p.
+\]</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(\varepsilon\)</span></th>
+<th style="text-align: right;">每个对角格 <span class="arithmatex">\(p\)</span></th>
+<th style="text-align: right;">每个交叉格 <span class="arithmatex">\(q\)</span></th>
+<th style="text-align: right;">总交叉质量 <span class="arithmatex">\(2q\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.491007</td>
+<td style="text-align: right;">0.008993</td>
+<td style="text-align: right;">0.017986</td>
+</tr>
+<tr>
+<td style="text-align: right;">1（默认）</td>
+<td style="text-align: right;">0.365529</td>
+<td style="text-align: right;">0.134471</td>
+<td style="text-align: right;">0.268941</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.281088</td>
+<td style="text-align: right;">0.218912</td>
+<td style="text-align: right;">0.437823</td>
+</tr>
+</tbody>
+</table>
+<p>实验界面采用到均匀四格耦合的 <span class="arithmatex">\(\mathrm{KL}(\pi\mid1/4)=\sum\pi_{ij}\log\pi_{ij}+\log4\)</span>；乘以 <span class="arithmatex">\(\varepsilon\)</span> 后只比上述目标多常数 <span class="arithmatex">\(\varepsilon\log4\)</span>，极小解相同。Sinkhorn 缩放使用核 <span class="arithmatex">\(K_{ij}=e^{-C_{ij}/\varepsilon}\)</span>；在这个对称例中一次共同归一化就满足边缘。参数趋零时趋于对角运输，趋无穷时四格趋于 <span class="arithmatex">\(1/4\)</span>。矩阵和行列和可以手算复核；它检验端点优化机制，尚不检验神经网络的路径近似精度。</p>
+</div>
+<h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题 1。</strong> 参考链绝不换位置，即 <span class="arithmatex">\(K=I\)</span>。若初始边缘为 <span class="arithmatex">\((1/2,1/2)\)</span>，目标为 <span class="arithmatex">\((1/4,3/4)\)</span>，能否找到有限路径 KL 的桥？</p>
+<details>
+<summary>独立作答后核对题 1</summary>
+<p>不能。有限 KL 要求 <span class="arithmatex">\(P\ll R\)</span>，所以候选过程也不能换位置，终点边缘只能等于初始边缘。这是支持不可达导致的不可行；增加 Sinkhorn 迭代次数不会产生原本不存在的参考路径。</p>
+</details>
+<p><strong>题 2。</strong> 若研究者还要求粒子中途避开高风险区域，单靠端点 <span class="arithmatex">\(\mu_0,\mu_T\)</span> 能表达这个要求吗？怎样修改目标？</p>
+<details>
+<summary>独立作答后核对题 2</summary>
+<p>端点相同的路径可能经历不同风险。可增加 <span class="arithmatex">\(\mathbb E_P\int_0^TV_t(X_t)dt\)</span>。若 <span class="arithmatex">\(Z=\mathbb E_R[e^{-\int Vdt}]\)</span> 有限且正，定义 <span class="arithmatex">\(dR^V=Z^{-1}e^{-\int Vdt}dR\)</span>，则 <span class="arithmatex">\(H(P\mid R^V)=H(P\mid R)+\mathbb E_P\int Vdt+\log Z\)</span>。优化因而转向带路径势能的参考律。它改变条件桥，不能只改端点表而忽略沿途代价。</p>
+</details>
+<h2 id="7">7. 正在向哪里推进<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>2023 年的 DSBM 把桥匹配与迭代 Markov 拟合结合，研究如何在高维近似路径律。2026 年的 Twisted Schrödinger Bridge Matching 预印本进一步加入 Feynman–Kac 势能。严格的连续问题、理想迭代收敛、有限网络训练和实际样本质量是不同层次，后者仍需独立误差检验。</p>
+<p>以下为实际核对的原始研究与作者论述；访问日期均为 <strong>2026-09-08</strong>，是选定阅读入口，不是最新文献的穷尽清单。</p>
+<ul>
+<li>Léonard，<a href="https://arxiv.org/abs/1308.0215">路径空间 Schrödinger 问题综述</a>：首发 <strong>2013-08-01</strong>，期刊版 <strong>2014</strong>；包含严格条件、熵分解与 <span class="arithmatex">\((f,g)\)</span> 变换。</li>
+<li>Léonard，<a href="https://arxiv.org/abs/1011.2564">From the Schrödinger problem to the Monge–Kantorovich problem</a>：首发 <strong>2010-11-11</strong>，JFA <strong>2012</strong>；证明带假设的小噪声极限。</li>
+<li>Shi、De Bortoli、Campbell、Doucet，<a href="https://arxiv.org/abs/2303.16852">Diffusion Schrödinger Bridge Matching</a>：首发 <strong>2023-03-29</strong>；迭代 Markov 拟合与计算方法研究。</li>
+<li>Noble 等，<a href="https://arxiv.org/abs/2607.16987">Twisted Schrödinger Bridge Matching</a>：首发 <strong>2026-07-18</strong>，所查页面标为<strong>预印本</strong>；推广到带势能的桥，并报告数值实验，不能据此宣布所有训练情境均有保证。</li>
+</ul>
+</section>
+<h2 id="_1">速查：路径桥的三个层次<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>本讲的结论</th>
+<th>必须保留的条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>路径熵</td>
+<td><span class="arithmatex">\(H(P\mid R)=H(\pi\mid r)+\mathbb E_\pi H(P^{xy}\mid R^{xy})\)</span></td>
+<td>条件分解存在，熵合法</td>
+</tr>
+<tr>
+<td>有限 Markov 桥</td>
+<td><span class="arithmatex">\(K_t^*(x,y)=K_t(x,y)g_{t+1}(y)/g_t(x)\)</span></td>
+<td>分母正、端点约束共同满足</td>
+</tr>
+<tr>
+<td>漂移控制</td>
+<td><span class="arithmatex">\(H(P\mid R)=\mathbb E_P\int\|u\|^2dt/(2\varepsilon)\)</span></td>
+<td>同初始律、同扩散项及换测度条件</td>
+</tr>
+</tbody>
+</table>
+<p>静态端点实验验证质量分配；连续时间桥还要指定参考条件路径。近期研究把这套结构推广到学习的动力学与带势能的路径约束。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="alg2-03-insolvability.html"><span class="pager-label">上一页</span>代数进阶 III · 五次不可解</a>
+  <a class="pager-slot next" href="frontier-02-singular-spde.html"><span class="pager-label">下一页</span>前沿 II · 奇异 SPDE 与重整化</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/frontier-lab.js"></script>
+</body>
+</html>

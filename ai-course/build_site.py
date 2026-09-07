@@ -82,6 +82,11 @@ COURSE = [
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
     ]),
+    ("研究前沿 · 专题课程", [
+        ("frontier-01-flow-matching.md", "前沿 I · Flow Matching"),
+        ("frontier-02-reasoning-rl.md", "前沿 II · 推理强化学习"),
+        ("frontier-03-mechanistic-interpretability.md", "前沿 III · 机制可解释性"),
+    ]),
 ]
 
 MD_EXTENSIONS = [

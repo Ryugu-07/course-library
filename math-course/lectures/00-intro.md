@@ -32,3 +32,8 @@
 ---
 
 *从双主干的第一页开始：整座分析大厦的地基——实数完备性的六大等价定理。*
+
+
+## 从本科基础走向研究前沿
+
+研究生数学库新增三讲前沿专题：[Schrödinger 桥](../../grad-math/site/frontier-01-schrodinger-bridge.html)、[奇异 SPDE 与重整化](../../grad-math/site/frontier-02-singular-spde.html)、[几何 Langlands](../../grad-math/site/frontier-03-geometric-langlands.html)。先从本库的概率、泛函、PDE 或群论进入相应研究生先修，再读专题中的正式对象与论文窗口。几何 Langlands 还需代数几何和导出范畴；页面会明确指出这些尚未完整覆盖的先修，不把名称识记当作理解。

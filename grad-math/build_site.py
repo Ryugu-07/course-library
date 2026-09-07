@@ -105,6 +105,11 @@ COURSE = [
         ("alg2-02-galois.md", "代数进阶 II · Galois 对应"),
         ("alg2-03-insolvability.md", "代数进阶 III · 五次不可解"),
     ]),
+    ("研究前沿 · 专题课程", [
+        ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),
+        ("frontier-02-singular-spde.md", "前沿 II · 奇异 SPDE 与重整化"),
+        ("frontier-03-geometric-langlands.md", "前沿 III · 几何 Langlands"),
+    ]),
 ]
 
 MD_EXTENSIONS = [
