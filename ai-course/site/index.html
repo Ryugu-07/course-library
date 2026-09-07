@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-09-08 04:55</div>
   </div>
 </nav>
 <main id="content">
@@ -38,8 +38,8 @@
 <ul>
 <li><a href="#_2">课程地图</a></li>
 <li><a href="#_3">怎么使用这门课</a></li>
-<li><a href="#_4">环境准备</a></li>
-<li><a href="#_5">讲义如何更新</a></li>
+<li><a href="#environment">环境准备</a></li>
+<li><a href="#_4">讲义如何更新</a></li>
 </ul>
 </div>
 </details>
@@ -169,7 +169,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>实验室（10 个可运行实验）</strong>：每个原理讲次都配一个动手实验，"跑过一遍"比"读过一遍"记得牢。lab01–lab07 纯本地运行（numpy / scikit-learn / PyTorch），lab08–lab10 调用 DeepSeek API。</p>
+<p><strong>实验室（10 个可运行实验）</strong>：每个原理讲次都配一个动手实验，"跑过一遍"比"读过一遍"记得牢。lab01–lab07 在本机计算（numpy / scikit-learn / PyTorch），不需要 API key；lab05 首次会尝试下载数据。lab08–lab10 调用 DeepSeek API，需要联网、账号与有效 API key。</p>
 <h2 id="_3">怎么使用这门课<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <ol>
 <li><strong>读讲义</strong>：浏览器里按顺序读。公式不要跳——上篇的推导是为你的数学背景定制的，动笔跟一遍推导是本课程最有价值的部分。</li>
@@ -177,28 +177,35 @@
 <li><strong>改着玩</strong>：每个 lab 末尾有"动手改改"建议。把参数改坏、观察怎么坏，比看十遍正确结果学得多。</li>
 </ol>
 <p>推荐节奏：每讲 1–2 天（读讲义 + 跑实验 + 推导），全程约 4–6 周。上下篇可以交替读（比如每周 2 讲原理 + 1 讲应用），应用篇相互独立可跳读。</p>
-<h2 id="_4">环境准备<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
-<p>只需要做一次：</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/ai-course
-
-<span class="c1"># 实验环境已建好（Python 3.12 venv），验证一下：</span>
-.venv/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import torch, sklearn; print(&#39;OK&#39;)&quot;</span>
-
-<span class="c1"># lab08-10 需要 DeepSeek API key：</span>
-cp<span class="w"> </span>labs/.env.example<span class="w"> </span>labs/.env
-<span class="c1"># 然后编辑 labs/.env 填入你的 DEEPSEEK_API_KEY</span>
+<h2 id="environment">环境准备<a class="headerlink" href="#environment" title="Permanent link"></a></h2>
+<p>阅读网页无需安装实验环境。运行 Python 实验时，先安装 Git 与 Python 3.12，在你希望保存课程的目录打开终端。以下命令从公开仓库开始；如果已克隆，直接进入其中的 <code>ai-course</code> 目录，从创建虚拟环境那一步继续。</p>
+<p><strong>Windows PowerShell：</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">Ryugu</span><span class="p">-</span><span class="n">07</span><span class="p">/</span><span class="n">course-library</span><span class="p">.</span><span class="n">git</span>
+<span class="nb">cd </span><span class="n">course-library</span><span class="p">/</span><span class="n">ai-course</span>
+<span class="n">py</span> <span class="p">-</span><span class="n">3</span><span class="p">.</span><span class="n">12</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
+<span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">-r</span> <span class="n">labs</span><span class="p">/</span><span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
+<span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">-c</span> <span class="s2">&quot;import numpy, matplotlib, sklearn, torch; print(&#39;OK&#39;)&quot;</span>
+<span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">labs</span><span class="p">/</span><span class="n">lab01_find_function</span><span class="p">.</span><span class="n">py</span>
 </code></pre></div>
-<p>跑实验的方式（以 lab01 为例）：</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/ai-course
+<p><strong>macOS / Linux：</strong></p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Ryugu-07/course-library.git
+<span class="nb">cd</span><span class="w"> </span>course-library/ai-course
+python3.12<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+.venv/bin/python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>labs/requirements.txt
+.venv/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import numpy, matplotlib, sklearn, torch; print(&#39;OK&#39;)&quot;</span>
 .venv/bin/python<span class="w"> </span>labs/lab01_find_function.py
 </code></pre></div>
-<p>图表会弹窗显示并同时保存到 <code>labs/output/</code> 目录。</p>
-<h2 id="_5">讲义如何更新<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
-<p>讲义源文件是 <code>lectures/*.md</code>，站点由 <code>build_site.py</code> 生成。你（或 AI）修改讲义后重新构建：</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/ai-course
+<p>依赖清单是仓库内的 <code>ai-course/labs/requirements.txt</code>，首次安装需要联网。命令直接指定虚拟环境中的 Python，无需额外激活环境。图表会先保存到 <code>labs/output/</code>，再弹窗；关闭图窗后程序继续。无桌面环境的运行方法、CPU 最小检查和 API 配置见<a href="labs.html">实验总览</a>。</p>
+<p>普通 CPU 可以运行实验，无需 M4。lab05–lab07 的代码在 MPS 可用时使用 Apple GPU，否则使用 CPU；训练时间随硬件和参数变化，先完成短实验再尝试默认训练配置。</p>
+<h2 id="_4">讲义如何更新<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>讲义源文件是 <code>lectures/*.md</code>，站点由 <code>build_site.py</code> 生成。在上面的 <code>ai-course</code> 目录中，使用已安装依赖的虚拟环境重建：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Windows PowerShell</span>
+<span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">build_site</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># macOS / Linux</span>
 .venv/bin/python<span class="w"> </span>build_site.py
 </code></pre></div>
-<p>浏览方式二选一：直接双击 <code>site/index.html</code>；或起个本地服务 <code>python3 -m http.server -d site 8080</code> 后访问 <code>http://localhost:8080</code>。</p>
+<p>浏览全部课程时，从仓库根目录启动服务：Windows 使用 <code>py -3.12 -m http.server 8778</code>，macOS / Linux 使用 <code>python3.12 -m http.server 8778</code>，然后打开 <code>http://localhost:8778/</code>。这样跨课程相对链接也能正常访问。</p>
 <div class="admonition note">
 <p class="admonition-title">关于时效</p>
 <p>上篇的历史与数学不会过期。下篇涉及具体产品与模型（第 10、11 讲尤其），以 2026 年初为基准写成——AI 产品迭代极快，实操前用最新信息核对一遍（讲义里标注了哪些结论易变、哪些方法论长期有效）。</p>

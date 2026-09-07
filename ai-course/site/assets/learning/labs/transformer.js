@@ -13,14 +13,14 @@
   var HEADS = [
     {
       label: "头 1",
-      note: "偏向内容相似度",
+      note: "投影方案 A",
       wq: [[0.9, 0.1], [0.1, 0.8], [0.7, -0.2], [-0.1, 0.6]],
       wk: [[0.8, 0.2], [0.0, 0.9], [0.6, -0.1], [-0.2, 0.7]],
       wv: [[1.0, 0.0], [0.0, 1.0], [0.5, 0.5], [-0.5, 0.3]]
     },
     {
       label: "头 2",
-      note: "偏向关系 / 位置线索",
+      note: "投影方案 B",
       wq: [[0.2, 0.9], [0.8, -0.1], [-0.4, 0.6], [0.7, 0.2]],
       wk: [[0.1, 0.8], [0.9, 0.1], [-0.3, 0.7], [0.6, 0.4]],
       wv: [[0.4, -0.2], [0.1, 0.8], [0.9, 0.2], [0.2, 0.6]]
@@ -84,6 +84,40 @@
     return exponentials.map(function (value) { return total ? value / total : 0; });
   }
 
+  // One query, d_k=1, q=1, keys=(0, log(odds)); values are independently editable.
+  function mixingComputation(odds, valueY, masked) {
+    var weights = softmax([0, masked ? -Infinity : Math.log(odds)]);
+    return { weights: weights, output: [2 * weights[0], valueY * weights[1]] };
+  }
+
+  function selfTest() {
+    var checks = 0;
+    function check(condition, message) { checks += 1; if (!condition) throw new Error(message); }
+    function close(a, b) { return Math.abs(a - b) < 1e-12; }
+    var base = mixingComputation(3, 2, false), changed = mixingComputation(3, 4, false);
+    check(close(base.weights[0], 0.25) && close(base.weights[1], 0.75), "softmax of (0, ln3)");
+    check(close(base.output[0], 0.5) && close(base.output[1], 1.5), "worked output");
+    check(JSON.stringify(base.weights) === JSON.stringify(changed.weights), "V intervention leaves A unchanged");
+    check(close(changed.output[1] - base.output[1], base.weights[1] * 2), "delta output = weight times delta value");
+    var masked = mixingComputation(3, 4, true);
+    check(masked.weights[1] === 0 && masked.output[0] === 2 && masked.output[1] === 0, "mask removes value 2");
+    [1 / 3, 1, 3].forEach(function (odds) {
+      var result = mixingComputation(odds, 4, false);
+      check(close(result.weights[0] + result.weights[1], 1), "weights normalize");
+      check(close(result.weights[1] / result.weights[0], odds), "exponential score ratio");
+    });
+    [false, true].forEach(function (causal) {
+      HEADS.forEach(function (head) {
+        var result = headComputation(head, causal);
+        result.weights.forEach(function (row, i) {
+          check(close(row.reduce(function (a, b) { return a + b; }, 0), 1), "full head row normalizes");
+          if (causal) check(row.every(function (w, j) { return j <= i || w === 0; }), "future keys masked");
+        });
+      });
+    });
+    return { checks: checks };
+  }
+
   function headComputation(head, causal) {
     var q = EMBEDDINGS.map(function (row) { return project(row, head.wq); });
     var k = EMBEDDINGS.map(function (row) { return project(row, head.wk); });
@@ -119,6 +153,7 @@
     style.textContent = [
       ".cl-transformer { --cl-tf-bg: var(--bg, #faf6ee); --cl-tf-panel: var(--block-bg, #f5f0e3); --cl-tf-border: var(--border, #e0d7c4); --cl-tf-fg: var(--fg, #2c2a26); --cl-tf-soft: var(--fg-soft, #6b6557); --cl-tf-accent: var(--accent, #8a5a2b); --cl-tf-blue: #2d6f9f; --cl-tf-green: #4d8658; margin: 1.5rem 0 2rem; color: var(--cl-tf-fg); font-size: .93rem; line-height: 1.5; }",
       ".cl-transformer * { box-sizing: border-box; }",
+      ".cl-transformer .cl-tf-mini{padding:1rem;border-bottom:2px solid var(--cl-tf-border);}.cl-transformer .cl-tf-mini-controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;}.cl-transformer .cl-tf-mini label{display:grid;gap:.4rem;min-width:0;}.cl-transformer .cl-tf-mini select,.cl-transformer .cl-tf-mini button,.cl-transformer .cl-tf-mini input[type=range]{min-height:44px;max-width:100%;}.cl-transformer .cl-tf-mini input[type=checkbox]{width:20px;height:20px;}.cl-transformer .cl-tf-mini svg{display:block;width:100%;max-width:420px;margin:auto;}.cl-transformer .cl-tf-mini-readout{padding:.8rem;background:var(--cl-tf-panel);line-height:1.8;overflow-wrap:anywhere;}.cl-transformer .cl-tf-mini-bars{display:flex;height:26px;border:1px solid var(--cl-tf-border);margin:.6rem 0;}.cl-transformer .cl-tf-mini-bars span{display:block;}.cl-transformer .cl-tf-mini-bars span:first-child{background:#3974a8;}.cl-transformer .cl-tf-mini-bars span:last-child{background:#d7a44d;}",
       ".cl-transformer .cl-tf-shell { border: 1px solid var(--cl-tf-border); border-radius: 8px; overflow: hidden; background: var(--cl-tf-bg); }",
       ".cl-transformer .cl-tf-header { padding: 1.1rem 1.25rem .95rem; border-bottom: 1px solid var(--cl-tf-border); background: var(--cl-tf-panel); }",
       ".cl-transformer .cl-tf-kicker { margin: 0 0 .2rem; color: var(--cl-tf-accent); font-size: .75rem; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }",
@@ -230,6 +265,12 @@
   function buildInterface(root) {
     root.innerHTML = [
       '<div class="cl-tf-shell">',
+      '<section class="cl-tf-mini"><h3>先混合两个 value</h3><p>固定 q=1、k₁=0、dₖ=1。分数 s₂=k₂ 可选；v₁=(2,0)，只修改 v₂ 的第二分量。</p>',
+      '<div class="cl-tf-mini-controls"><label>第二个 key / 分数<select data-cl-tf-odds aria-label="第二个 key / 分数"><option value="3">ln 3：偏向第二个</option><option value="1">0：两者相同</option><option value="0.3333333333333333">−ln 3：偏向第一个</option></select></label>',
+      '<label>v₂ 的第二分量<input data-cl-tf-value type="range" min="0" max="4" step="1" value="2" aria-label="v₂ 的第二分量"></label>',
+      '<label><input data-cl-tf-mini-mask type="checkbox" aria-label="屏蔽第二个 key">屏蔽第二个 key</label><button type="button" data-cl-tf-mini-reset>重置双 value 实验</button></div>',
+      '<div data-cl-tf-mini-result></div><p>蓝色为 a₁，金色为 a₂；文字同时给出权重。虚线连接两个 value，圆点是它们的加权输出。这里改变投影后的 V；改原始 X 通常也会改变 Q/K。</p></section>',
+
       '  <header class="cl-tf-header">',
       '    <p class="cl-tf-kicker">scaled dot-product attention · 固定玩具权重</p>',
       '    <h3>选择一个 query，看它如何混合 value</h3>',
@@ -275,6 +316,28 @@
       output: root.querySelector("[data-cl-tf-output]"),
       announce: root.querySelector("[data-cl-tf-announce]")
     };
+  }
+
+  function mountMixing(root) {
+    var odds = root.querySelector("[data-cl-tf-odds]");
+    var value = root.querySelector("[data-cl-tf-value]");
+    var mask = root.querySelector("[data-cl-tf-mini-mask]");
+    var result = root.querySelector("[data-cl-tf-mini-result]");
+    function update() {
+      var y = Number(value.value), mix = mixingComputation(Number(odds.value), y, mask.checked);
+      var a = mix.weights, o = mix.output;
+      function fmt(n) { return n.toFixed(2); }
+      var px = 50 + 85 * o[0], py = 190 - 35 * o[1], vy = 190 - 35 * y;
+      result.innerHTML = '<p class="cl-tf-mini-readout" aria-live="polite">A = (' + fmt(a[0]) + ', ' + fmt(a[1]) + '); v₂ = (0, ' + y + ')<br>o = ' + fmt(a[0]) + ' × (2, 0) + ' + fmt(a[1]) + ' × (0, ' + y + ') = (' + fmt(o[0]) + ', ' + fmt(o[1]) + ')</p>' +
+        '<div class="cl-tf-mini-bars" aria-hidden="true"><span style="width:' + a[0] * 100 + '%"></span><span style="width:' + a[1] * 100 + '%"></span></div>' +
+        '<svg viewBox="0 0 360 240" role="img" aria-label="value 平面中的加权输出 (' + fmt(o[0]) + ', ' + fmt(o[1]) + ')" xmlns="http://www.w3.org/2000/svg">' +
+        '<g fill="none" stroke="currentColor"><path d="M50 25V190H315" opacity=".5"/><path d="M220 190L50 ' + vy + '" stroke-dasharray="5 5"/><path d="M50 190H' + px + 'V' + py + '" stroke="#3974a8" stroke-width="2"/></g>' +
+        '<rect x="215" y="185" width="10" height="10" fill="#3974a8"/><path d="M50 ' + (vy - 7) + 'l7 14h-14z" fill="#b07d25"/><circle cx="' + px + '" cy="' + py + '" r="7" fill="currentColor"/>' +
+        '<g fill="currentColor" font-size="17"><text x="226" y="215">v₁=(2,0)</text><text x="65" y="' + Math.max(25, vy - 13) + '">v₂=(0,' + y + ')</text><text x="' + (px + 12) + '" y="' + (py - 10) + '">o</text><text x="15" y="25">y</text><text x="320" y="195">x</text><text x="25" y="212">0</text></g></svg>';
+    }
+    odds.addEventListener("change", update); value.addEventListener("input", update); mask.addEventListener("change", update);
+    root.querySelector("[data-cl-tf-mini-reset]").addEventListener("click", function () { odds.value = "3"; value.value = "2"; mask.checked = false; update(); });
+    update();
   }
 
   function renderHeads(refs, state, computations, api) {
@@ -336,6 +399,7 @@
       installStyles();
       var state = { query: 0, causal: false };
       var refs = buildInterface(root);
+      mountMixing(root);
 
       function update() {
         var computations = HEADS.map(function (head) { return headComputation(head, state.causal); });
@@ -362,6 +426,11 @@
         announce(api, refs, root, state.causal ? "因果 mask 开启：未来 token 不再能向当前 query 传值。" : "因果 mask 关闭：每个位置都能读取整行上下文。 ");
       });
     });
+  }
+
+  if (typeof module === "object" && module.exports) {
+    module.exports = { mixingComputation: mixingComputation, selfTest: selfTest };
+    if (require.main === module) console.log("transformer self-test: PASS (" + selfTest().checks + " checks)");
   }
 
   if (typeof window !== "undefined") {

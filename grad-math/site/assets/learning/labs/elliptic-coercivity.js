@@ -21,7 +21,6 @@
   var PI = Math.PI;
   var FIRST_EIGENVALUE = PI * PI;
   var MODAL_LIMIT = 512;
-  var RESONANCE_TOL = 1e-8;
   var FORCING_TOL = 1e-10;
   var STYLE_ID = "cl-elliptic-coercivity-styles";
   var SERIAL = 0;
@@ -114,8 +113,9 @@
     return k * k * FIRST_EIGENVALUE;
   }
 
-  function resonant(difference, eigen) {
-    return Math.abs(difference) <= RESONANCE_TOL * Math.max(1, Math.abs(eigen));
+  function resonant(difference) {
+    // Presets use the same stored eigenvalue. A small nonzero gap remains nonresonant.
+    return difference === 0;
   }
 
   function statusLabel(status) {
@@ -137,7 +137,7 @@
       var lambda = eigenvalue(k);
       var d = lambda + params.c;
       var f = forcingCoefficient(k, params.forcing);
-      var isResonant = resonant(d, lambda);
+      var isResonant = resonant(d);
       var row = {
         k: k,
         lambda: lambda,
@@ -166,8 +166,8 @@
     });
     var finiteStatus = finiteResonances.length === 0 ? "unique" : (finiteCompatible ? "multiple" : "no-solution");
     var finiteComputable = finiteStatus !== "no-solution";
-    var alphaInfinite = Math.min(1, 1 + params.c / FIRST_EIGENVALUE);
-    var coercive = alphaInfinite > RESONANCE_TOL;
+    var alphaInfinite = Math.min(1, (FIRST_EIGENVALUE + params.c) / FIRST_EIGENVALUE);
+    var coercive = alphaInfinite > 0;
     var exactDefined = fullStatus !== "no-solution";
     var finiteResidualSquared = 0;
     var fullResidualSquared = 0;
@@ -267,6 +267,13 @@
     check(nearResonance.coercive, "just above first eigenvalue should remain coercive");
     check(near(nearResonance.minimumModalMargin, 0.18, 1e-10), "near-resonance margin");
     check(nearResonance.minimumAbsoluteModalMargin < 0.19, "near-resonance absolute gap");
+
+    [1e-8, -1e-8].forEach(function (gap) {
+      var close = evaluate({ c: -FIRST_EIGENVALUE + gap, N: 5, forcing: "generic" });
+      check(close.fullStatus === "unique", "nonzero near-resonance gap remains unique");
+      check(close.coercive === (gap > 0), "coercivity follows the sign of the gap");
+      check(near(close.rows[0].margin * close.rows[0].exactCoefficient, 0.85, 1e-12), "near-resonance coefficient solves modal equation");
+    });
 
     var compatible = evaluate({ c: -FIRST_EIGENVALUE, N: 5, forcing: "compatible" });
     check(compatible.fullStatus === "multiple", "compatible resonance should be multiple");

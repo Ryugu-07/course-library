@@ -49,14 +49,15 @@ try {
 <div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 09:37</div>
+    <div class="build-time">构建于 2026-09-08 05:05</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#mech-02-learning-title">学习层：椭圆轨道上的角动量，为什么会“漏掉”？</a><ul>
+<li><a href="#mech-02-learning-title">学习层：从单摆的一个角度到守恒律</a><ul>
+<li><a href="#_1">起步：一根杆为什么能省掉一个未知力？</a></li>
 <li><a href="#1">1. 先看一个可计算的谜题</a></li>
 <li><a href="#2">2. 驻值不是一般的最小值</a></li>
 <li><a href="#3">3. 动手：先提交三项判断</a></li>
@@ -71,13 +72,13 @@ try {
 <li><a href="#3-lt-v">3. \(L=T-V\) 的边界与坐标表达</a></li>
 <li><a href="#4_1">4. 循环坐标：守恒量的最快入口</a></li>
 <li><a href="#5-noether">5. Noether：从精确不变性到守恒律</a><ul>
-<li><a href="#_1">精确对称性</a></li>
-<li><a href="#_2">准对称性与边界项</a></li>
+<li><a href="#_2">精确对称性</a></li>
+<li><a href="#_3">准对称性与边界项</a></li>
 </ul>
 </li>
 <li><a href="#6">6. 时间平移与能量：条件式结论</a></li>
 <li><a href="#7">7. 一套可复核的拉格朗日工作流</a><ul>
-<li><a href="#_3">迁移题</a></li>
+<li><a href="#_4">迁移题</a></li>
 </ul>
 </li>
 </ul>
@@ -91,7 +92,39 @@ try {
 <div data-learning-page></div>
 
 <section aria-labelledby="mech-02-learning-title" class="learning-layer">
-<h2 id="mech-02-learning-title">学习层：椭圆轨道上的角动量，为什么会“漏掉”？<a class="headerlink" href="#mech-02-learning-title" title="Permanent link"></a></h2>
+<h2 id="mech-02-learning-title">学习层：从单摆的一个角度到守恒律<a class="headerlink" href="#mech-02-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">起步：一根杆为什么能省掉一个未知力？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>设支点固定、杆无质量且长度为 <span class="arithmatex">\(l\)</span>，末端质点质量为 <span class="arithmatex">\(m\)</span>，忽略摩擦，在均匀重力场中做平面运动。摆角 <span class="arithmatex">\(\theta\)</span> 从竖直向下方向量起，竖直坐标 <span class="arithmatex">\(y\)</span> 向上。杆的约束 <span class="arithmatex">\(x^2+y^2=l^2\)</span> 让两个坐标只剩一个独立变量：</p>
+<div class="arithmatex">\[
+x=l\sin\theta,\qquad y=-l\cos\theta,
+\qquad \dot x^2+\dot y^2=l^2\dot\theta^2.
+\]</div>
+<figure class="plot">
+<p><img alt="单摆：摆角从向下竖直线量起，杆长l，质点沿圆弧运动，重力向下，允许位移沿切线。" src="assets/img/lagrange-pendulum-bridge.svg" /></p>
+<figcaption>杆力沿半径，允许的微小位移沿切线，两者垂直。因此理想杆力对允许虚位移不做功，可以在广义坐标方程中消去。</figcaption>
+</figure>
+<p>把最低点的势能设为零，便有</p>
+<div class="arithmatex">\[
+\begin{aligned}
+T&amp;=\tfrac12ml^2\dot\theta^2,\\
+V&amp;=mgl(1-\cos\theta),\\
+L&amp;=T-V.
+\end{aligned}
+\]</div>
+<p>逐项计算 Euler–Lagrange 方程中的两项，而不是直接背结果：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\frac{d}{dt}\frac{\partial L}{\partial\dot\theta}&amp;=ml^2\ddot\theta,\\
+\frac{\partial L}{\partial\theta}&amp;=-mgl\sin\theta,\\
+\ddot\theta+\frac gl\sin\theta&amp;=0.
+\end{aligned}
+\]</div>
+<p>这一步尚未作小角近似。只有在 <span class="arithmatex">\(|\theta|\ll1\)</span>（弧度）时，才能用 <span class="arithmatex">\(\sin\theta\approx\theta\)</span> 得到简谐振子和周期 <span class="arithmatex">\(2\pi\sqrt{l/g}\)</span>。先预测：增大质量会改变这个理想单摆的运动方程吗？增大摆幅后，小角周期公式还可靠吗？</p>
+<details>
+<summary>核对：哪些参数真的影响运动？</summary>
+<p>质量从方程两项中同时约掉，因此给定相同初始角度与角速度时，运动与 <span class="arithmatex">\(m\)</span> 无关。长度仍以 <span class="arithmatex">\(g/l\)</span> 进入方程。大摆幅下必须保留 <span class="arithmatex">\(\sin\theta\)</span>，周期一般依赖振幅；不能把小角结论推广到所有摆幅。</p>
+</details>
+<p>单摆说明怎样从约束写出 <span class="arithmatex">\(L\)</span>。下面的二维振子再追问：已经得到方程后，哪些对称性会带来守恒量？</p>
 <h3 id="1">1. 先看一个可计算的谜题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>取二维振子</p>
 <div class="arithmatex">\[
@@ -279,7 +312,7 @@ q_i\longmapsto q_i+\varepsilon K_i(q,t),
 \qquad
 \delta q_i=K_i.
 \]</div>
-<h3 id="_1">精确对称性<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<h3 id="_2">精确对称性<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
 <p>若作用量的局部拉格朗日量在该变换下精确不变，<span class="arithmatex">\(\delta L=0\)</span>，则</p>
 <div class="arithmatex">\[
 \begin{aligned}
@@ -294,7 +327,7 @@ q_i\longmapsto q_i+\varepsilon K_i(q,t),
 \boxed{Q=\sum_i p_iK_i,\qquad \frac{dQ}{dt}=0.}
 \]</div>
 <p>平移 <span class="arithmatex">\(K=\hat{\mathbf n}\)</span> 给动量；平面旋转 <span class="arithmatex">\(K=(-y,x)\)</span> 给 <span class="arithmatex">\(Q=xp_y-yp_x=L_z\)</span>。二维振子只有在 <span class="arithmatex">\(\omega_x=\omega_y\)</span> 时对任意旋转满足 <span class="arithmatex">\(\delta L=0\)</span>。</p>
-<h3 id="_2">准对称性与边界项<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<h3 id="_3">准对称性与边界项<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
 <p>有些变换不让 <span class="arithmatex">\(L\)</span> 原地不动，而是只改变一个全导数：</p>
 <div class="arithmatex">\[
 \delta L=\frac{dF(q,t)}{dt}.
@@ -330,7 +363,7 @@ E=\sum_i p_i\dot q_i-L.
 <li><strong>检查显含时间</strong>：<span class="arithmatex">\(E=p\cdot\dot q-L\)</span>，并验证 <span class="arithmatex">\(dE/dt=-\partial_tL\)</span>。</li>
 <li><strong>分别检查方程、轨迹和初态</strong>：一条特殊轨迹的几何性质不能替代整个模型的对称性证明。</li>
 </ol>
-<h3 id="_3">迁移题<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<h3 id="_4">迁移题<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
 <ul>
 <li>对中心势用极坐标重新推导 <span class="arithmatex">\(p_\theta=mr^2\dot\theta\)</span>，并说明这一步使用的是旋转不变性还是仅仅使用了一个坐标记号。</li>
 <li>对自由粒子的 Galilei boost 验证 <span class="arithmatex">\(\delta L=d(mx)/dt\)</span>，再解释为什么 <span class="arithmatex">\(Q=pt-mx\)</span> 在 <span class="arithmatex">\(\dot x\)</span> 恒定时不随时间变。</li>

@@ -7,7 +7,52 @@
 
 <section class="learning-layer" markdown="1" aria-labelledby="mech-02-learning-title">
 
-<h2 id="mech-02-learning-title">学习层：椭圆轨道上的角动量，为什么会“漏掉”？</h2>
+<h2 id="mech-02-learning-title">学习层：从单摆的一个角度到守恒律</h2>
+
+### 起步：一根杆为什么能省掉一个未知力？
+
+设支点固定、杆无质量且长度为 $l$，末端质点质量为 $m$，忽略摩擦，在均匀重力场中做平面运动。摆角 $\theta$ 从竖直向下方向量起，竖直坐标 $y$ 向上。杆的约束 $x^2+y^2=l^2$ 让两个坐标只剩一个独立变量：
+
+$$
+x=l\sin\theta,\qquad y=-l\cos\theta,
+\qquad \dot x^2+\dot y^2=l^2\dot\theta^2.
+$$
+
+<figure class="plot" markdown="1">
+![单摆：摆角从向下竖直线量起，杆长l，质点沿圆弧运动，重力向下，允许位移沿切线。](assets/img/lagrange-pendulum-bridge.svg)
+<figcaption>杆力沿半径，允许的微小位移沿切线，两者垂直。因此理想杆力对允许虚位移不做功，可以在广义坐标方程中消去。</figcaption>
+</figure>
+
+把最低点的势能设为零，便有
+
+$$
+\begin{aligned}
+T&=\tfrac12ml^2\dot\theta^2,\\
+V&=mgl(1-\cos\theta),\\
+L&=T-V.
+\end{aligned}
+$$
+
+逐项计算 Euler–Lagrange 方程中的两项，而不是直接背结果：
+
+$$
+\begin{aligned}
+\frac{d}{dt}\frac{\partial L}{\partial\dot\theta}&=ml^2\ddot\theta,\\
+\frac{\partial L}{\partial\theta}&=-mgl\sin\theta,\\
+\ddot\theta+\frac gl\sin\theta&=0.
+\end{aligned}
+$$
+
+这一步尚未作小角近似。只有在 $|\theta|\ll1$（弧度）时，才能用 $\sin\theta\approx\theta$ 得到简谐振子和周期 $2\pi\sqrt{l/g}$。先预测：增大质量会改变这个理想单摆的运动方程吗？增大摆幅后，小角周期公式还可靠吗？
+
+<details markdown="1">
+<summary>核对：哪些参数真的影响运动？</summary>
+
+质量从方程两项中同时约掉，因此给定相同初始角度与角速度时，运动与 $m$ 无关。长度仍以 $g/l$ 进入方程。大摆幅下必须保留 $\sin\theta$，周期一般依赖振幅；不能把小角结论推广到所有摆幅。
+
+</details>
+
+单摆说明怎样从约束写出 $L$。下面的二维振子再追问：已经得到方程后，哪些对称性会带来守恒量？
 
 ### 1. 先看一个可计算的谜题
 

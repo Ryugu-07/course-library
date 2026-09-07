@@ -62,7 +62,7 @@
         limit: 1,
         kind: "two-sided",
         f: function (x) { return x * x; },
-        theorem: "在 |x−1| ≤ 1/2 内有 |x+1| < 5/2；δ = min(1/2, ε/3) 足够。",
+        theorem: "在 |x−1| < 1/2 内有 |x+1| < 5/2；δ = min(1/2, ε/3) 足够。",
         boundary: "局部因子界依赖先选出的邻域；不能把它当作全局 Lipschitz 常数。"
       },
       {
@@ -146,7 +146,8 @@
       ".lq-lab .lq-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.lq-lab .lq-actions>*{flex:1 1 155px;}.lq-lab .lq-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.lq-lab .lq-pass,.lq-lab .lq-ok{color:var(--lq-green);}.lq-lab .lq-warn,.lq-lab .lq-fail{color:var(--lq-red);}",
       ".lq-lab .lq-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.lq-lab .lq-control{display:grid;gap:5px;min-width:0;}.lq-lab .lq-control label{color:var(--fg-soft);font-size:13px;font-weight:700;}.lq-lab .lq-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
       ".lq-lab .lq-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:12px 0;}.lq-lab .lq-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.lq-lab .lq-metric.lq-blue{border-top-color:var(--lq-blue);}.lq-lab .lq-metric.lq-gold{border-top-color:var(--lq-gold);}.lq-lab .lq-metric.lq-green{border-top-color:var(--lq-green);}.lq-lab .lq-metric.lq-red{border-top-color:var(--lq-red);}.lq-lab .lq-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.lq-lab .lq-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".lq-lab .lq-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lq-lab .lq-charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:12px;}.lq-lab .lq-chart{min-width:0;}.lq-lab .lq-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.lq-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.lq-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lq-lab .lq-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lq-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lq-lab th,.lq-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lq-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lq-lab .lq-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lq-green);background:var(--bg);font-size:13px;line-height:1.7;}",
+      ".lq-lab .lq-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lq-lab .lq-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px;}.lq-lab .lq-chart{min-width:0;}.lq-lab .lq-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.lq-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.lq-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lq-lab .lq-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lq-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lq-lab th,.lq-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lq-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lq-lab .lq-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lq-green);background:var(--bg);font-size:13px;line-height:1.7;}",
+      ".lq-lab .lq-ledger-details{margin-top:14px;}.lq-lab .lq-ledger-details summary{padding:10px 0;min-height:44px;cursor:pointer;font-size:14px;line-height:1.6;font-weight:700;}",
       "@media(max-width:760px){.lq-lab .lq-controls,.lq-lab .lq-charts{grid-template-columns:minmax(0,1fr);}.lq-lab .lq-choice-row{grid-template-columns:minmax(0,1fr);}}",
       "@media(max-width:420px){.lq-lab .lq-predict{padding-left:11px;padding-right:11px;}.lq-lab th,.lq-lab td{padding-left:5px;padding-right:5px;}}",
       "@media(prefers-reduced-motion:reduce){.lq-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
@@ -205,7 +206,7 @@
         return {
           level: "theorem",
           label: "定理证书",
-          text: "先锁定 |x−1| ≤ 1/2，再用 |x+1| < 5/2 控制乘积。"
+          text: "先锁定 |x−1| < 1/2，再用 |x+1| < 5/2 控制乘积。"
         };
       }
       if (selected.kind !== "two-sided") {
@@ -245,7 +246,7 @@
           x: x,
           value: value,
           error: error,
-          passes: error !== null && error < epsilon
+          passes: error === null ? null : error < epsilon
         };
       });
       return {
@@ -253,7 +254,7 @@
         epsilon: positiveEpsilon(epsilon),
         rows: rows,
         passed: rows.filter(function (row) { return row.passes; }).length,
-        failed: rows.filter(function (row) { return !row.passes; }).length
+        failed: rows.filter(function (row) { return row.passes === false; }).length
       };
     }
 
@@ -363,7 +364,7 @@
       return node;
     }
 
-    function pathFrom(points, mapX, mapY, yMin, yMax) {
+    function pathFrom(points, mapX, mapY) {
       var commands = [];
       var open = false;
       points.forEach(function (point) {
@@ -371,92 +372,138 @@
           open = false;
           return;
         }
-        var y = clamp(point.y, yMin, yMax);
-        commands.push((open ? "L" : "M") + mapX(point.x) + " " + mapY(y));
+        // Keep the real coordinates: the SVG clip trims the curve, without
+        // turning values beyond the viewport into artificial horizontal lines.
+        commands.push((open ? "L" : "M") + mapX(point.x) + " " + mapY(point.y));
         open = true;
       });
       return commands.join(" ");
     }
 
+    function plotBounds(data) {
+      var selected = data.model;
+      var span = Math.max(data.delta * 1.5, selected.kind === "two-sided" ? 0.05 : 0.6);
+      var ySpan = Math.max(data.epsilon * 1.8, 0.1);
+      return {
+        xMin: selected.x0 - span,
+        xMax: selected.x0 + span,
+        yMin: selected.kind === "two-sided" ? selected.limit - ySpan : (selected.kind === "divergent" ? -4 : -1.5),
+        yMax: selected.kind === "two-sided" ? selected.limit + ySpan : (selected.kind === "divergent" ? 4 : 1.5)
+      };
+    }
+
     function plotSvg(doc, data, uid) {
       var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 520 300",
+        viewBox: "0 0 520 360",
         role: "img",
         "aria-labelledby": uid + "-title " + uid + "-desc"
       });
-      svg.appendChild(svgNode(doc, "title", { id: uid + "-title" }, "函数曲线与穿孔邻域探针"));
-      svg.appendChild(svgNode(
-        doc,
-        "desc",
-        { id: uid + "-desc" },
-        "蓝线是函数，金色带是目标误差带，圆点是有限探针；图形不能替代对所有邻域点的证明。"
-      ));
-      var margin = { left: 45, right: 14, top: 18, bottom: 31 };
+      svg.appendChild(svgNode(doc, "title", { id: uid + "-title" }, "函数、输入邻域与输出误差带"));
+      svg.appendChild(svgNode(doc, "desc", { id: uid + "-desc" },
+        "蓝色竖带表示 x₀−δ 到 x₀+δ，中心点排除；金色横带表示 L−ε 到 L+ε。圆点是有限探针，边缘三角表示读数超出纵轴。没有共同目标 L 时不评通过率。"));
+      var margin = { left: 108, right: 40, top: 48, bottom: 85 };
       var width = 520 - margin.left - margin.right;
-      var height = 300 - margin.top - margin.bottom;
+      var height = 360 - margin.top - margin.bottom;
       var selected = data.model;
-      var span = Math.max(data.delta * 1.35, selected.kind === "two-sided" ? 0.5 : 0.4);
-      var xMin = selected.x0 - span;
-      var xMax = selected.x0 + span;
-      var yMin;
-      var yMax;
-      if (selected.kind === "two-sided") {
-        var ySpan = Math.max(Math.abs(selected.limit) * 0.45, data.epsilon * 2.5, 0.7);
-        yMin = selected.limit - ySpan;
-        yMax = selected.limit + ySpan;
-      } else {
-        yMin = selected.kind === "reciprocal" ? -4 : -1.5;
-        yMax = selected.kind === "reciprocal" ? 4 : 1.5;
-      }
-      var mapX = function (x) { return margin.left + (x - xMin) / (xMax - xMin) * width; };
-      var mapY = function (y) { return margin.top + (yMax - y) / (yMax - yMin) * height; };
+      var bounds = plotBounds(data);
+      var mapX = function (x) { return margin.left + (x - bounds.xMin) / (bounds.xMax - bounds.xMin) * width; };
+      var mapY = function (y) { return margin.top + (bounds.yMax - y) / (bounds.yMax - bounds.yMin) * height; };
+      var defs = svgNode(doc, "defs", {});
+      var clip = svgNode(doc, "clipPath", { id: uid + "-plot-clip" });
+      clip.appendChild(svgNode(doc, "rect", { x: margin.left, y: margin.top, width: width, height: height }));
+      defs.appendChild(clip);
+      svg.appendChild(defs);
       var chart = svgNode(doc, "g", {});
-      chart.appendChild(svgNode(doc, "line", {
-        x1: margin.left, y1: mapY(0), x2: margin.left + width, y2: mapY(0),
-        stroke: "currentColor", "stroke-opacity": "0.35", "stroke-width": "1"
-      }));
-      chart.appendChild(svgNode(doc, "line", {
-        x1: mapX(selected.x0), y1: margin.top, x2: mapX(selected.x0), y2: margin.top + height,
-        stroke: "var(--lq-gold)", "stroke-dasharray": "5 4", "stroke-width": "1.4"
+      chart.appendChild(svgNode(doc, "text", { x: margin.left, y: 27, "font-size": "22" }, selected.formula));
+      chart.appendChild(svgNode(doc, "rect", {
+        x: mapX(selected.x0 - data.delta), y: margin.top,
+        width: mapX(selected.x0 + data.delta) - mapX(selected.x0 - data.delta), height: height,
+        fill: "var(--lq-blue)", "fill-opacity": "0.09"
       }));
       if (selected.kind === "two-sided") {
-        var bandTop = mapY(selected.limit + data.epsilon);
-        var bandBottom = mapY(selected.limit - data.epsilon);
         chart.appendChild(svgNode(doc, "rect", {
-          x: margin.left, y: bandTop, width: width, height: Math.max(0, bandBottom - bandTop),
-          fill: "var(--lq-gold)", "fill-opacity": "0.16"
+          x: margin.left, y: mapY(selected.limit + data.epsilon), width: width,
+          height: mapY(selected.limit - data.epsilon) - mapY(selected.limit + data.epsilon),
+          fill: "var(--lq-gold)", "fill-opacity": "0.18"
         }));
+        [
+          { value: selected.limit + data.epsilon, label: "L + ε", direction: -1 },
+          { value: selected.limit, label: "L", direction: 0 },
+          { value: selected.limit - data.epsilon, label: "L − ε", direction: 1 }
+        ].forEach(function (tick) {
+          var actualY = mapY(tick.value);
+          // Keep labels readable even when epsilon is much smaller than the viewport.
+          var labelY = mapY(selected.limit) + tick.direction * Math.max(42, Math.abs(actualY - mapY(selected.limit)));
+          chart.appendChild(svgNode(doc, "line", {
+            x1: margin.left, y1: actualY, x2: margin.left + width, y2: actualY,
+            stroke: "var(--lq-gold)", "stroke-dasharray": "4 4", "stroke-width": "1"
+          }));
+          chart.appendChild(svgNode(doc, "line", {
+            x1: margin.left - 22, y1: labelY, x2: margin.left - 2, y2: actualY,
+            stroke: "var(--lq-gold)", "stroke-width": "1.4"
+          }));
+          chart.appendChild(svgNode(doc, "text", {
+            x: margin.left - 28, y: labelY + 7, "text-anchor": "end", "font-size": "22"
+          }, tick.label));
+        });
+      } else {
+        [bounds.yMin, 0, bounds.yMax].forEach(function (value) {
+          chart.appendChild(svgNode(doc, "text", {
+            x: margin.left - 14, y: mapY(value) + (value === bounds.yMax ? 20 : 0), "text-anchor": "end", "font-size": "22"
+          }, formatNumber(value)));
+        });
       }
+      chart.appendChild(svgNode(doc, "line", {
+        x1: margin.left, y1: margin.top + height, x2: margin.left + width, y2: margin.top + height,
+        stroke: "currentColor", "stroke-opacity": "0.5"
+      }));
+      [-1, 0, 1].forEach(function (direction) {
+        var x = mapX(selected.x0 + direction * data.delta);
+        chart.appendChild(svgNode(doc, "line", {
+          x1: x, y1: margin.top, x2: x, y2: margin.top + height,
+          stroke: "var(--lq-blue)", "stroke-dasharray": "4 4", "stroke-width": "1"
+        }));
+        chart.appendChild(svgNode(doc, "text", {
+          x: x, y: margin.top + height + (direction === 0 ? 66 : 30),
+          "text-anchor": direction < 0 ? "end" : direction > 0 ? "start" : "middle", "font-size": "22"
+        }, direction < 0 ? "x₀ − δ" : direction > 0 ? "x₀ + δ" : "x₀（排除）"));
+      });
+      var marks = svgNode(doc, "g", { "clip-path": "url(#" + uid + "-plot-clip)" });
       var curve = [];
-      for (var i = 0; i <= 140; i += 1) {
-        var x = xMin + (xMax - xMin) * i / 140;
-        curve.push({ x: x, y: x === selected.x0 ? NaN : selected.f(x) });
+      for (var i = 0; i <= 280; i += 1) {
+        var x = bounds.xMin + (bounds.xMax - bounds.xMin) * i / 280;
+        // Break explicitly at the midpoint; floating arithmetic can miss x === x₀.
+        curve.push({ x: x, y: i === 140 ? NaN : selected.f(x) });
       }
-      chart.appendChild(svgNode(doc, "path", {
-        d: pathFrom(curve, mapX, mapY, yMin, yMax),
-        fill: "none",
-        stroke: "var(--lq-blue)",
-        "stroke-width": "2.4",
-        "stroke-linecap": "round"
+      marks.appendChild(svgNode(doc, "path", {
+        d: pathFrom(curve, mapX, mapY), fill: "none", stroke: "var(--lq-blue)",
+        "stroke-width": "2.4", "stroke-linecap": "round"
       }));
       data.probes.forEach(function (row) {
         if (!finite(row.value)) return;
-        chart.appendChild(svgNode(doc, "circle", {
-          cx: mapX(row.x),
-          cy: mapY(row.value),
-          r: "4",
-          fill: row.passes ? "var(--lq-green)" : "var(--lq-red)",
-          stroke: "var(--bg)",
-          "stroke-width": "1.5"
-        }));
+        var color = row.passes === null ? "var(--lq-blue)" : row.passes ? "var(--lq-green)" : "var(--lq-red)";
+        var x = mapX(row.x);
+        if (row.value < bounds.yMin || row.value > bounds.yMax) {
+          var top = row.value > bounds.yMax;
+          var y = top ? margin.top + 2 : margin.top + height - 2;
+          var base = top ? y + 7 : y - 7;
+          var marker = svgNode(doc, "path", { d: "M" + x + " " + y + " L" + (x - 4) + " " + base + " L" + (x + 4) + " " + base + " Z", fill: color });
+          marker.appendChild(svgNode(doc, "title", {}, "超出纵轴：f(x)=" + formatNumber(row.value, 5)));
+          marks.appendChild(marker);
+        } else {
+          marks.appendChild(svgNode(doc, "circle", {
+            cx: x, cy: mapY(row.value), r: "4", fill: color,
+            stroke: "var(--bg)", "stroke-width": "1.5"
+          }));
+        }
       });
-      chart.appendChild(svgNode(doc, "text", {
-        x: margin.left + width - 3, y: margin.top + height + 23,
-        "text-anchor": "end", "font-size": "11"
-      }, "x"));
-      chart.appendChild(svgNode(doc, "text", {
-        x: margin.left + 5, y: margin.top + 12, "font-size": "11"
-      }, selected.formula));
+      if (selected.limit !== null) {
+        marks.appendChild(svgNode(doc, "circle", {
+          cx: mapX(selected.x0), cy: mapY(selected.limit), r: "4",
+          fill: "var(--bg)", stroke: "var(--lq-blue)", "stroke-width": "1.5"
+        }));
+      }
+      chart.appendChild(marks);
       svg.appendChild(chart);
       return svg;
     }
@@ -532,13 +579,14 @@
       replaceChildren(refs.metrics, [
         metric(refs.doc, "当前模型", data.model.label, "lq-blue"),
         metric(refs.doc, "候选 δ", formatNumber(data.delta, 4), "lq-gold"),
-        metric(refs.doc, "有限通过", data.passed + "/" + data.probes.length, data.failed ? "lq-red" : "lq-green"),
+        metric(refs.doc, "有限通过", data.model.limit === null ? "不适用（无共同 L）" : data.passed + "/" + data.probes.length, data.model.limit === null ? "lq-blue" : data.failed ? "lq-red" : "lq-green"),
         metric(refs.doc, "左侧范围", data.side.leftRange.min === null ? "—" : formatNumber(data.side.leftRange.min, 3) + " … " + formatNumber(data.side.leftRange.max, 3), "lq-blue"),
         metric(refs.doc, "右侧范围", data.side.rightRange.min === null ? "—" : formatNumber(data.side.rightRange.min, 3) + " … " + formatNumber(data.side.rightRange.max, 3), "lq-blue")
       ]);
       replaceChildren(refs.chart, [
         element(refs.doc, "h4", {}, "函数、误差带与有限探针"),
-        element(refs.doc, "div", { className: "lq-chart-frame" }, plotSvg(refs.doc, data, refs.uid))
+        element(refs.doc, "div", { className: "lq-chart-frame" }, plotSvg(refs.doc, data, refs.uid)),
+        element(refs.doc, "p", { className: "lq-note" }, "蓝色竖带：0 < |x−x₀| < δ；金色横带：|f(x)−L| < ε。边界线不包含在内；空心点表示本次极限检验跳过 x₀。边缘三角表示超出纵轴，精确读数见表。" + (data.model.limit === null ? " 本模型没有共同目标 L，因此不画目标误差带，也不评通过率。" : ""))
       ]);
       var rows = data.probes.map(function (row, index) {
         return element(refs.doc, "tr", {}, [
@@ -546,7 +594,7 @@
           element(refs.doc, "td", {}, formatNumber(row.x, 5)),
           element(refs.doc, "td", {}, formatNumber(row.value, 5)),
           element(refs.doc, "td", {}, row.error === null ? "—" : formatNumber(row.error, 5)),
-          element(refs.doc, "td", { className: row.passes ? "lq-ok" : "lq-fail" }, row.passes ? "通过" : "未通过")
+          element(refs.doc, "td", { className: row.passes === null ? "" : row.passes ? "lq-ok" : "lq-fail" }, row.passes === null ? "不适用（无共同 L）" : row.passes ? "通过" : "未通过")
         ]);
       });
       rows.push(element(refs.doc, "tr", {}, [
@@ -667,7 +715,10 @@
       refs.ledgerBody = element(doc, "tbody");
       table.appendChild(refs.ledgerBody);
       ledger.appendChild(table);
-      results.appendChild(ledger);
+      var ledgerDetails = element(doc, "details", { className: "lq-ledger-details" });
+      ledgerDetails.appendChild(element(doc, "summary", {}, "展开完整探针表：逐点核对 x、f(x) 与误差"));
+      ledgerDetails.appendChild(ledger);
+      results.appendChild(ledgerDetails);
       refs.boundary = element(doc, "p", { className: "lq-boundary" });
       results.appendChild(refs.boundary);
       shell.appendChild(results);
@@ -772,6 +823,31 @@
       var reciprocal = analyze({ modelId: "reciprocal", ruleId: "eps-over-3", epsilon: 0.3, probeCount: 7 });
       assert(reciprocal.model.kind === "divergent", "reciprocal kind");
       assert(reciprocal.side.leftRange.max < 0 && reciprocal.side.rightRange.min > 0, "reciprocal signs");
+      assert(reciprocal.failed === 0 && reciprocal.probes.every(function (row) { return row.passes === null; }), "no target must not manufacture failed epsilon tests");
+      assert(plotBounds(reciprocal).yMin === -4 && plotBounds(reciprocal).yMax === 4, "divergent model uses the intended vertical range");
+      assert(pathFrom([{ x: -1, y: 2 }, { x: 0, y: NaN }, { x: 1, y: -2 }], function (x) { return x; }, function (y) { return y; }) === "M-1 2 M1 -2", "puncture breaks the plotted curve without joining the two sides");
+
+      // Exercise the actual SVG builder without requiring a browser package.
+      var svgNodes = [];
+      var svgDoc = { createElementNS: function (namespace, tag) {
+        var node = { tag: tag, attrs: {}, children: [], setAttribute: function (key, value) { this.attrs[key] = value; }, appendChild: function (child) { this.children.push(child); } };
+        svgNodes.push(node);
+        return node;
+      } };
+      plotSvg(svgDoc, reciprocal, "regression-reciprocal");
+      assert(svgNodes.some(function (node) { return node.tag === "clipPath" && node.attrs.id === "regression-reciprocal-plot-clip"; }), "viewport clip is defined");
+      assert(svgNodes.some(function (node) { return node.attrs["clip-path"] === "url(#regression-reciprocal-plot-clip)"; }), "curve and probes use the viewport clip");
+      assert(svgNodes.filter(function (node) { return node.tag === "title" && /^超出纵轴/.test(node.textContent || ""); }).length === reciprocal.probes.length, "offscreen reciprocal probes become visible edge markers");
+      svgNodes = [];
+      plotSvg(svgDoc, linear, "regression-linear");
+      ["x₀ − δ", "x₀ + δ", "L + ε", "L − ε"].forEach(function (label) {
+        assert(svgNodes.some(function (node) { return node.tag === "text" && node.textContent === label; }), "diagram labels " + label);
+      });
+      assert(svgNodes.filter(function (node) { return node.tag === "text"; }).every(function (node) { return Number(node.attrs["font-size"]) * 292 / 520 >= 12; }), "diagram labels stay at least 12 px in a 292 px mobile frame");
+      svgNodes = [];
+      plotSvg(svgDoc, analyze({ epsilon: 0.0001 }), "regression-tiny-epsilon");
+      var bandLabels = svgNodes.filter(function (node) { return node.tag === "text" && ["L + ε", "L", "L − ε"].indexOf(node.textContent) !== -1; });
+      assert(Number(bandLabels[1].attrs.y) - Number(bandLabels[0].attrs.y) >= 41.9 && Number(bandLabels[2].attrs.y) - Number(bandLabels[1].attrs.y) >= 41.9, "tiny epsilon uses separated labels with leaders to true boundaries");
 
       var oscillatory = analyze({ modelId: "oscillatory", ruleId: "eps-over-3", epsilon: 0.3, probeCount: 7 });
       assert(oscillatory.side.spread > 1, "oscillatory finite spread");

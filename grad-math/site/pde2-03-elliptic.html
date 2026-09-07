@@ -45,14 +45,15 @@ try {
 <div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-22 14:24</div>
+    <div class="build-time">构建于 2026-09-08 05:05</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#elliptic-coercivity-learning-title">学习层：余量穿过零点，结论如何分叉？</a><ul>
+<li><a href="#elliptic-coercivity-learning-title">学习层：从一条抛物线走到弱解与共振</a><ul>
+<li><a href="#_1">起步：为什么把微分方程改写成积分等式？</a></li>
 <li><a href="#1">1. 先预测：强制性、可逆性与共振不是同一件事</a></li>
 <li><a href="#2-galerkin">2. 精确账本：Galerkin 截断与全模态结论</a></li>
 <li><a href="#3">3. 这个模型不能替代哪些一般定理？</a></li>
@@ -74,7 +75,29 @@ try {
 <div data-learning-page></div>
 
 <section aria-labelledby="elliptic-coercivity-learning-title" class="learning-layer">
-<h2 id="elliptic-coercivity-learning-title">学习层：余量穿过零点，结论如何分叉？<a class="headerlink" href="#elliptic-coercivity-learning-title" title="Permanent link"></a></h2>
+<h2 id="elliptic-coercivity-learning-title">学习层：从一条抛物线走到弱解与共振<a class="headerlink" href="#elliptic-coercivity-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">起步：为什么把微分方程改写成积分等式？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>先做一个能手算到底的问题：<span class="arithmatex">\(-u''=1\)</span>，<span class="arithmatex">\(u(0)=u(1)=0\)</span>。积分两次并代入端点，得到 <span class="arithmatex">\(u(x)=x(1-x)/2\)</span>。取光滑且端点为零的测试函数 <span class="arithmatex">\(v\)</span>，把方程乘以 <span class="arithmatex">\(v\)</span> 后积分：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\int_0^1v\,dx&amp;=\int_0^1(-u'')v\,dx\\
+&amp;=-[u'v]_0^1+\int_0^1u'v'\,dx\\
+&amp;=\int_0^1u'v'\,dx.
+\end{aligned}
+\]</div>
+<p>边界项消失是因为 <strong><span class="arithmatex">\(v\)</span> 在端点为零</strong>。最后一个等式不再出现 <span class="arithmatex">\(u''\)</span>，所以即使候选函数没有经典二阶导数，只要它属于 <span class="arithmatex">\(H_0^1(0,1)\)</span>，两边仍有意义。利用光滑测试函数在 <span class="arithmatex">\(H_0^1\)</span> 中的稠密性，等式延伸到所有 <span class="arithmatex">\(v\in H_0^1\)</span>；这就是弱形式。</p>
+<figure class="plot">
+<p><img alt="抛物线精确解与单个帽函数近似：两端为零，在中点都等于八分之一，近似解在中点有折角。" src="assets/img/elliptic-weak-bridge.svg" /></p>
+<figcaption>实线是精确解，虚线是只有一个自由系数的 Galerkin 近似。折角妨碍经典二阶求导，却不妨碍弱形式中的积分。</figcaption>
+</figure>
+<p>具体取“帽函数” <span class="arithmatex">\(\varphi(x)=2x\)</span>（<span class="arithmatex">\(x\le1/2\)</span>）、<span class="arithmatex">\(2(1-x)\)</span>（<span class="arithmatex">\(x\ge1/2\)</span>），试 <span class="arithmatex">\(u_h=a\varphi\)</span>。在子空间 <span class="arithmatex">\(V_h=\mathrm{span}\{\varphi\}\)</span> 中只需检验 <span class="arithmatex">\(v=\varphi\)</span>：</p>
+<div class="arithmatex">\[
+a\underbrace{\int_0^1(\varphi')^2dx}_{4}
+=\underbrace{\int_0^1\varphi\,dx}_{1/2}
+\quad\Longrightarrow\quad a=1/8.
+\]</div>
+<p>这只是对 <span class="arithmatex">\(V_h\)</span> 内所有测试函数成立的近似解，不是对整个 <span class="arithmatex">\(H_0^1\)</span> 成立的精确弱解。增加基函数，才有机会逼近更多形状。</p>
+<p>接下来把方程改为 <span class="arithmatex">\(-u''+cu=f\)</span>，弱形式随之多出 <span class="arithmatex">\(\int cuv\)</span>。实验选择 <span class="arithmatex">\(\phi_k=\sqrt2\sin(k\pi x)\)</span>，因为它们满足零端点条件、彼此 <span class="arithmatex">\(L^2\)</span> 正交归一，且 <span class="arithmatex">\(-\phi_k''=(k\pi)^2\phi_k\)</span>。分部积分还给出 <span class="arithmatex">\(\int_0^1\phi_j'\phi_k'dx=(k\pi)^2\delta_{jk}\)</span>。代入 <span class="arithmatex">\(u_N=\sum_{j=1}^Nu_j\phi_j\)</span> 并逐个取 <span class="arithmatex">\(v=\phi_k\)</span>，交叉项消失，留下 <span class="arithmatex">\(((k\pi)^2+c)u_k=f_k\)</span>，其中 <span class="arithmatex">\(f_k=\int_0^1f\phi_k\,dx\)</span>。<strong>弱形式把函数问题变成一组系数方程；共振就是某个模态的乘子 <span class="arithmatex">\((k\pi)^2+c\)</span> 恰好变为零。</strong></p>
 <h3 id="1">1. 先预测：强制性、可逆性与共振不是同一件事<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>固定一维光滑域 <span class="arithmatex">\(\Omega=(0,1)\)</span>、齐次 Dirichlet 条件，并把</p>
 <div class="arithmatex">\[
@@ -243,7 +266,7 @@ f_1=\begin{cases}0.85,&amp;\text{一般强迫},\\0,&amp;\text{第一模态相容
 <div class="arithmatex">\[
 \int_\Omega \nabla u\cdot\nabla v\,dx = \int_\Omega f v\,dx \qquad \forall v \in H_0^1(\Omega)
 \]</div>
-<p><strong>定义（弱解）</strong>：满足上式的 <span class="arithmatex">\(u \in H_0^1\)</span>。<strong>只需一阶弱导数</strong>——比经典解的 <span class="arithmatex">\(C^2\)</span> 便宜两个数量级；边界条件内化在空间 <span class="arithmatex">\(H_0^1\)</span> 里（pde2-02 迹定理的安排）。一般椭圆算子 <span class="arithmatex">\(-\mathrm{div}(A\nabla u) + cu\)</span> 同构，双线性形式 <span class="arithmatex">\(B[u,v] = \int A\nabla u\cdot\nabla v + cuv\)</span>。</p>
+<p><strong>定义（弱解）</strong>：满足上式的 <span class="arithmatex">\(u \in H_0^1\)</span>。这里要求可平方积分的<strong>一阶弱导数</strong>，而不预先要求经典解的 <span class="arithmatex">\(C^2\)</span> 光滑性；这是正则性要求的改变，不是“数量级”的比较。边界条件内化在空间 <span class="arithmatex">\(H_0^1\)</span> 里（pde2-02 迹定理的安排）。一般椭圆算子 <span class="arithmatex">\(-\mathrm{div}(A\nabla u) + cu\)</span> 同构，双线性形式 <span class="arithmatex">\(B[u,v] = \int A\nabla u\cdot\nabla v + cuv\)</span>。</p>
 <h2 id="2-laxmilgram">2. Lax–Milgram 定理（存在唯一性的发动机）<a class="headerlink" href="#2-laxmilgram" title="Permanent link"></a></h2>
 <p><strong>定理（Lax–Milgram）</strong> Hilbert 空间 <span class="arithmatex">\(H\)</span> 上的双线性形式 <span class="arithmatex">\(B\)</span> 若满足
 （i）<strong>有界</strong>：<span class="arithmatex">\(|B[u,v]| \leq \beta\|u\|\|v\|\)</span>；（ii）<strong>强制（coercive）</strong>：<span class="arithmatex">\(B[u,u] \geq \alpha\|u\|^2\)</span>，
@@ -289,7 +312,12 @@ f_1=\begin{cases}0.85,&amp;\text{一般强迫},\\0,&amp;\text{第一模态相容
 </tr>
 </tbody>
 </table>
-<p>（工程出口一嘴：<strong>有限元方法</strong> = 在 <span class="arithmatex">\(H_0^1\)</span> 的有限维子空间里解同一个弱形式——Galerkin 投影；Céa 引理说误差 = 最佳逼近误差的常数倍。弱解理论不是抽象洁癖，是 FEM 工业的直接地基【引用】。）</p>
+<p><strong>工程出口：有限元与 Céa 引理。</strong> 取有限维相容子空间 <span class="arithmatex">\(V_h\subset V=H_0^1\)</span>，在其中解同一个弱形式。若 <span class="arithmatex">\(B\)</span> 在 <span class="arithmatex">\(V\)</span> 上有界（常数 <span class="arithmatex">\(\beta\)</span>）且强制（常数 <span class="arithmatex">\(\alpha&gt;0\)</span>），则</p>
+<div class="arithmatex">\[
+\|u-u_h\|_V\le\frac{\beta}{\alpha}\inf_{v_h\in V_h}\|u-v_h\|_V.
+\]</div>
+<p>这是误差的<strong>上界</strong>。令 <span class="arithmatex">\(e=u-u_h\)</span>，Galerkin 正交性 <span class="arithmatex">\(B[e,w_h]=0\)</span> 给出
+<span class="arithmatex">\(\alpha\|e\|_V^2\le B[e,e]=B[e,u-v_h]\le\beta\|e\|_V\|u-v_h\|_V\)</span>；对 <span class="arithmatex">\(v_h\)</span> 取下确界即得结论。当 <span class="arithmatex">\(B\)</span> 还对称时，它定义能量范数 <span class="arithmatex">\(\|w\|_B=\sqrt{B[w,w]}\)</span>，此时才有精确最佳逼近关系 <span class="arithmatex">\(\|u-u_h\|_B=\min_{v_h\in V_h}\|u-v_h\|_B\)</span>。一般范数下的准最佳上界与能量范数下的等号不能混用。可核对 <a href="https://finite-element.github.io/L5_convergence.html">Galerkin 收敛讲义</a>。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（L–M 条件检查）</strong> <span class="arithmatex">\(-\Delta u + cu = f\)</span>，<span class="arithmatex">\(c(x) \geq 0\)</span>：<span class="arithmatex">\(B[u,u] = \|\nabla u\|^2 + \int cu^2 \geq \|\nabla u\|^2\)</span>——强制性照旧（<span class="arithmatex">\(c \geq 0\)</span> 白送）。若常数 <span class="arithmatex">\(c&lt; -\lambda_1\)</span>，强制性破产，但这本身不等于共振或不可逆；在 <span class="arithmatex">\(c\ne-\lambda_k\)</span> 的谱点之外，算子仍可能唯一可逆。恰在 <span class="arithmatex">\(c=-\lambda_k\)</span> 时，核出现，解是否存在由 <span class="arithmatex">\(f\)</span> 对该核的正交条件决定：相容则多解，不相容则无解（Fredholm 择一【引用】），这是本科 ode-02 共振现象的椭圆版。</p>
 <p><strong>例 2（弱解亲手验证）</strong> 一维 <span class="arithmatex">\(-u'' = 1\)</span> 于 <span class="arithmatex">\((0,1)\)</span>、零边界：<span class="arithmatex">\(u = \frac{x(1-x)}{2}\)</span>；验证弱形式 <span class="arithmatex">\(\int u'v' = \int v\)</span> 对 <span class="arithmatex">\(v \in C_c^\infty\)</span>（分部积分）——最小的完整弱解实例，值得写全。</p>

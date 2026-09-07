@@ -29,33 +29,51 @@
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li class="active"><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-13 11:53</div>
+    <div class="build-time">构建于 2026-09-08 04:55</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">运行方式</a></li>
-<li><a href="#_2">实验清单</a></li>
-<li><a href="#_3">建议玩法</a></li>
-<li><a href="#_4">环境备忘</a></li>
+<li><a href="#cpu">首次运行与 CPU 最小检查</a></li>
+<li><a href="#lab0810-api">lab08–10 的 API 配置</a></li>
+<li><a href="#_1">实验清单</a></li>
+<li><a href="#_2">建议玩法</a></li>
+<li><a href="#_3">环境备忘</a></li>
 </ul>
 </div>
 </details>
 <h1 id="lab01lab10">实验总览（lab01–lab10）<a class="headerlink" href="#lab01lab10" title="Permanent link"></a></h1>
 <blockquote>
-<p>讲义负责"懂"，实验负责"会"。十个实验按课程顺序排列：lab01–07 纯本地运行（无需联网、无需 API key），lab08–10 需要 DeepSeek API key（总花费不到一元）。所有实验源代码都有密集的教学注释——<strong>代码本身就是讲义的一部分</strong>，建议逐块读懂再改参数玩。</p>
+<p>讲义负责“懂”，实验负责“会”。十个实验按课程顺序排列：lab01–07 在本机计算，无需 API key；其中 lab05 会尝试联网下载 MNIST。lab08–10 需要联网和 DeepSeek API key，费用取决于实际调用量与服务当时的价格。所有实验源代码都有教学注释，建议逐块读懂再改参数。</p>
 </blockquote>
-<h2 id="_1">运行方式<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/ai-course
-.venv/bin/python<span class="w"> </span>labs/lab01_find_function.py<span class="w">     </span><span class="c1"># 以 lab01 为例</span>
+<h2 id="cpu">首次运行与 CPU 最小检查<a class="headerlink" href="#cpu" title="Permanent link"></a></h2>
+<p>先按<a href="index.html#environment">课程导览的环境准备</a>克隆公开仓库并安装 <code>labs/requirements.txt</code>。以下命令均在仓库的 <code>ai-course</code> 目录运行。</p>
+<p>先运行 lab04：它只用 numpy 训练四个 XOR 样本，同时比较解析梯度与数值梯度，不需要 GPU、数据下载或 API。这是检查计算与画图流程能否跑通的最小起点。</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Windows PowerShell</span>
+<span class="p">.\.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">python</span><span class="p">.</span><span class="n">exe</span> <span class="n">labs</span><span class="p">/</span><span class="n">lab04_backprop_xor</span><span class="p">.</span><span class="n">py</span>
 </code></pre></div>
-<p>图表会弹窗显示，同时自动保存到 <code>labs/output/</code>。lab08–10 首次运行前：</p>
-<div class="highlight"><pre><span></span><code>cp<span class="w"> </span>labs/.env.example<span class="w"> </span>labs/.env
-<span class="c1"># 编辑 labs/.env，填入 platform.deepseek.com 创建的 API key</span>
+<div class="highlight"><pre><span></span><code><span class="c1"># macOS / Linux</span>
+.venv/bin/python<span class="w"> </span>labs/lab04_backprop_xor.py
 </code></pre></div>
-<h2 id="_2">实验清单<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>检查终端是否输出梯度相对误差、训练损失和四个点的预测，并查看 <code>labs/output/lab04_xor.png</code>。图表先保存再弹窗，关闭图窗后程序继续。梯度检查只检验这一组数值与实现的一致性，不能代替反向传播的推导。</p>
+<p>无桌面环境时，在运行命令前设置 Matplotlib 的 <code>Agg</code> 后端，仅保存图片：PowerShell 执行 <code>$env:MPLBACKEND = "Agg"</code>；macOS / Linux 执行 <code>export MPLBACKEND=Agg</code>。恢复弹窗可分别执行 <code>Remove-Item Env:MPLBACKEND</code> 或 <code>unset MPLBACKEND</code>。</p>
+<h2 id="lab0810-api">lab08–10 的 API 配置<a class="headerlink" href="#lab0810-api" title="Permanent link"></a></h2>
+<p>这三个实验使用 <code>labs/llm_utils.py</code> 中的 DeepSeek 接口与模型配置，不是离线实验。首次运行前复制配置模板：</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Windows PowerShell</span>
+<span class="nb">Copy-Item</span> <span class="n">labs</span><span class="p">/.</span><span class="n">env</span><span class="p">.</span><span class="n">example</span> <span class="n">labs</span><span class="p">/.</span><span class="n">env</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># macOS / Linux</span>
+cp<span class="w"> </span>labs/.env.example<span class="w"> </span>labs/.env
+</code></pre></div>
+<p>编辑 <code>labs/.env</code>，将 <code>DEEPSEEK_API_KEY</code> 换成自己的有效 key；已有配置时无需再次复制。不要把该文件提交到仓库。随后用上面相同的 Python 路径运行相应脚本。</p>
+<ul>
+<li><strong>lab08</strong> 调用文本生成接口，比较提示词与采样设置。</li>
+<li><strong>lab09</strong> 除 API 外，还会在本机创建示例账单文件并执行代码中定义的计算、读文件工具。</li>
+<li><strong>lab10</strong> 在本机生成销售 CSV，再执行模型生成的 Python 分析代码；当前实现没有沙箱隔离。应在不含私人文件和额外凭据的隔离实验环境中运行，并先读懂 <code>run_python</code> 的实现。</li>
+</ul>
+<h2 id="_1">实验清单<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -93,7 +111,7 @@
 <tr>
 <td>lab05 CNN 识数字</td>
 <td>05</td>
-<td>M4/MPS 上训小 CNN，对比全连接的参数量与准确率，可视化卷积核</td>
+<td>在 CPU 或可用的 MPS 上训小 CNN，对比全连接的参数量与准确率，可视化卷积核</td>
 <td>本地*</td>
 </tr>
 <tr>
@@ -129,17 +147,17 @@
 </tbody>
 </table>
 <p>*lab05 优先下载 MNIST（约 12MB），网络不通自动退回离线的 sklearn digits 数据集。</p>
-<h2 id="_3">建议玩法<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<h2 id="_2">建议玩法<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <ol>
 <li><strong>先跑通，再读码，再改坏</strong>：每个实验末尾都有"动手改改"清单——把参数改到极端、观察怎么坏，比看十遍正确结果学得多；</li>
 <li><strong>对照讲义公式读代码</strong>：lab04 的四个方程、lab06 的注意力实现，都是讲义公式的逐行直译，代码里标了对应小节；</li>
 <li><strong>(*) 两个必做</strong>：lab04（反向传播 + 梯度检查）与 lab09（手搓 agent loop）——前者是理解深度学习的地基，后者是祛魅"智能体"的最短路径。</li>
 </ol>
-<h2 id="_4">环境备忘<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="_3">环境备忘<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <ul>
-<li>虚拟环境在 <code>~/ai-course/.venv</code>（Python 3.12），依赖清单见 <code>labs/requirements.txt</code>；</li>
-<li>出现 <code>ModuleNotFoundError</code> 说明用了系统 Python，务必用 <code>.venv/bin/python</code> 运行；</li>
-<li>lab06/07 用 MPS（Apple GPU）加速，单个实验 2–10 分钟；嫌慢可减小 <code>steps</code>。</li>
+<li>虚拟环境由你首次运行时创建于仓库的 <code>ai-course/.venv</code>，依赖清单见 <code>labs/requirements.txt</code>；</li>
+<li>出现 <code>ModuleNotFoundError</code> 时，先确认使用了本页所示的虚拟环境 Python，再用同一个 Python 执行 <code>-m pip install -r labs/requirements.txt</code>；这类错误也可能来自依赖尚未成功安装；</li>
+<li>lab05–07 自动选择 MPS（可用时）或 CPU，当前代码不会自动选择 CUDA。默认训练耗时取决于硬件；lab06 可在源码调用处减小 <code>train_minigpt</code> 的 <code>steps</code>、<code>d</code> 与 <code>n_layer</code>（<code>d</code> 须能被 4 整除）；lab07 可减小 <code>STEPS</code>。它们没有对应的命令行参数，短运行只检查流程，不能据此判断生成质量或缩放规律。</li>
 </ul>
 </article>
 <footer class="pager">

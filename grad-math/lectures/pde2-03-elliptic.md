@@ -7,7 +7,38 @@
 
 <section class="learning-layer" markdown="1" aria-labelledby="elliptic-coercivity-learning-title">
 
-<h2 id="elliptic-coercivity-learning-title">学习层：余量穿过零点，结论如何分叉？</h2>
+<h2 id="elliptic-coercivity-learning-title">学习层：从一条抛物线走到弱解与共振</h2>
+
+### 起步：为什么把微分方程改写成积分等式？
+
+先做一个能手算到底的问题：$-u''=1$，$u(0)=u(1)=0$。积分两次并代入端点，得到 $u(x)=x(1-x)/2$。取光滑且端点为零的测试函数 $v$，把方程乘以 $v$ 后积分：
+
+$$
+\begin{aligned}
+\int_0^1v\,dx&=\int_0^1(-u'')v\,dx\\
+&=-[u'v]_0^1+\int_0^1u'v'\,dx\\
+&=\int_0^1u'v'\,dx.
+\end{aligned}
+$$
+
+边界项消失是因为 **$v$ 在端点为零**。最后一个等式不再出现 $u''$，所以即使候选函数没有经典二阶导数，只要它属于 $H_0^1(0,1)$，两边仍有意义。利用光滑测试函数在 $H_0^1$ 中的稠密性，等式延伸到所有 $v\in H_0^1$；这就是弱形式。
+
+<figure class="plot" markdown="1">
+![抛物线精确解与单个帽函数近似：两端为零，在中点都等于八分之一，近似解在中点有折角。](assets/img/elliptic-weak-bridge.svg)
+<figcaption>实线是精确解，虚线是只有一个自由系数的 Galerkin 近似。折角妨碍经典二阶求导，却不妨碍弱形式中的积分。</figcaption>
+</figure>
+
+具体取“帽函数” $\varphi(x)=2x$（$x\le1/2$）、$2(1-x)$（$x\ge1/2$），试 $u_h=a\varphi$。在子空间 $V_h=\mathrm{span}\{\varphi\}$ 中只需检验 $v=\varphi$：
+
+$$
+a\underbrace{\int_0^1(\varphi')^2dx}_{4}
+=\underbrace{\int_0^1\varphi\,dx}_{1/2}
+\quad\Longrightarrow\quad a=1/8.
+$$
+
+这只是对 $V_h$ 内所有测试函数成立的近似解，不是对整个 $H_0^1$ 成立的精确弱解。增加基函数，才有机会逼近更多形状。
+
+接下来把方程改为 $-u''+cu=f$，弱形式随之多出 $\int cuv$。实验选择 $\phi_k=\sqrt2\sin(k\pi x)$，因为它们满足零端点条件、彼此 $L^2$ 正交归一，且 $-\phi_k''=(k\pi)^2\phi_k$。分部积分还给出 $\int_0^1\phi_j'\phi_k'dx=(k\pi)^2\delta_{jk}$。代入 $u_N=\sum_{j=1}^Nu_j\phi_j$ 并逐个取 $v=\phi_k$，交叉项消失，留下 $((k\pi)^2+c)u_k=f_k$，其中 $f_k=\int_0^1f\phi_k\,dx$。**弱形式把函数问题变成一组系数方程；共振就是某个模态的乘子 $(k\pi)^2+c$ 恰好变为零。**
 
 ### 1. 先预测：强制性、可逆性与共振不是同一件事
 
@@ -126,7 +157,7 @@ $$
 \int_\Omega \nabla u\cdot\nabla v\,dx = \int_\Omega f v\,dx \qquad \forall v \in H_0^1(\Omega)
 $$
 
-**定义（弱解）**：满足上式的 $u \in H_0^1$。**只需一阶弱导数**——比经典解的 $C^2$ 便宜两个数量级；边界条件内化在空间 $H_0^1$ 里（pde2-02 迹定理的安排）。一般椭圆算子 $-\mathrm{div}(A\nabla u) + cu$ 同构，双线性形式 $B[u,v] = \int A\nabla u\cdot\nabla v + cuv$。
+**定义（弱解）**：满足上式的 $u \in H_0^1$。这里要求可平方积分的**一阶弱导数**，而不预先要求经典解的 $C^2$ 光滑性；这是正则性要求的改变，不是“数量级”的比较。边界条件内化在空间 $H_0^1$ 里（pde2-02 迹定理的安排）。一般椭圆算子 $-\mathrm{div}(A\nabla u) + cu$ 同构，双线性形式 $B[u,v] = \int A\nabla u\cdot\nabla v + cuv$。
 
 ## 2. Lax–Milgram 定理（存在唯一性的发动机）
 
@@ -159,7 +190,14 @@ $$
 | Poincaré/Rellich | 钉边界 ⇒ 导数控制一切；紧性可购买 | 强制性、谱离散 |
 | Lax–Milgram + 正则性 | 弱空间里赢存在性，自举赎回光滑 | 分离变量的执照、FEM |
 
-（工程出口一嘴：**有限元方法** = 在 $H_0^1$ 的有限维子空间里解同一个弱形式——Galerkin 投影；Céa 引理说误差 = 最佳逼近误差的常数倍。弱解理论不是抽象洁癖，是 FEM 工业的直接地基【引用】。）
+**工程出口：有限元与 Céa 引理。** 取有限维相容子空间 $V_h\subset V=H_0^1$，在其中解同一个弱形式。若 $B$ 在 $V$ 上有界（常数 $\beta$）且强制（常数 $\alpha>0$），则
+
+$$
+\|u-u_h\|_V\le\frac{\beta}{\alpha}\inf_{v_h\in V_h}\|u-v_h\|_V.
+$$
+
+这是误差的**上界**。令 $e=u-u_h$，Galerkin 正交性 $B[e,w_h]=0$ 给出
+$\alpha\|e\|_V^2\le B[e,e]=B[e,u-v_h]\le\beta\|e\|_V\|u-v_h\|_V$；对 $v_h$ 取下确界即得结论。当 $B$ 还对称时，它定义能量范数 $\|w\|_B=\sqrt{B[w,w]}$，此时才有精确最佳逼近关系 $\|u-u_h\|_B=\min_{v_h\in V_h}\|u-v_h\|_B$。一般范数下的准最佳上界与能量范数下的等号不能混用。可核对 [Galerkin 收敛讲义](https://finite-element.github.io/L5_convergence.html)。
 
 ## 5. 练习与要点
 

@@ -34,8 +34,8 @@ def attention(Q, K, V):
     return A @ V, A                            # 加权求和 + 返回权重矩阵
 
 def demo_attention():
-    # 手造一个微型例子: 5 个"词", 已带位置信息的 8 维表示。
-    # 我们故意让"它"的向量与"猫"相近——注意力应该会发现这一点。
+    # 手造一个微型例子: 5 个词标签对应的 8 维人工向量。
+    # 我们故意让"它"的向量与"猫"相近；这演示设定向量后的运算，不是学习语义。
     words = ["猫", "追", "老鼠", "而", "它"]
     rng = np.random.default_rng(1)
     X = rng.normal(0, 1, (5, 8))
@@ -49,7 +49,10 @@ def demo_attention():
     print(header)
     for i, w in enumerate(words):
         print(f"  {w:>4s}: " + "".join(f"{A[i,j]:6.2f}" for j in range(5)))
-    print(f'  → 看"它"那一行: 对"猫"的权重最高(除自身外)——指代关系被内积捕捉。')
+    strongest = int(np.argmax(A[4, :4]))
+    print(f'  → “它”行除自身外最大权重位于“{words[strongest]}”：{A[4, strongest]:.4f}。')
+    print('    这是手工设置向量后的内积结果，不能证明模型学会了指代。')
+    print('    迁移检查：只把图上的词标签互换而保持 X 不变，数值矩阵会变吗？不会；attention 没有读取标签。')
 
     fig, ax = plt.subplots(figsize=(5, 4.2))
     im = ax.imshow(A, cmap="YlOrBr")

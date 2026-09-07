@@ -12,7 +12,7 @@
 </div>
 <div class="learning-prediction">
 <h3>先做预测，再打开实验</h3>
-<p>先猜：若 <span class="arithmatex">\(C\)</span> 增加 4 倍，论文摘要的主结论会倾向于让 <span class="arithmatex">\(N,D\)</span> 各约增加 2 倍；而本页交互模型由 <span class="arithmatex">\(\alpha=.34,\beta=.28\)</span> 严格算出 <span class="arithmatex">\(N^*\)</span> 约增加 <span class="arithmatex">\(4^{.452}\)</span> 倍、<span class="arithmatex">\(D^*\)</span> 约增加 <span class="arithmatex">\(4^{.548}\)</span> 倍。拖动算力与 <span class="arithmatex">\(r=D/N\)</span>，观察“当前配比”和“最优配比”是否重合。</p>
+<p>先猜：预算增加到原来的 4 倍时，应该只扩大参数量、只扩大数据量，还是同时扩大二者？若模型与数据的幂律指数不同，两者的最优扩展倍数还会完全相同吗？写下理由，再用下面的约束消元推导和实验核对。</p>
 </div>
 <div class="learning-model">
 <h3>最小模型：拟合的损失面 + 计算约束</h3>

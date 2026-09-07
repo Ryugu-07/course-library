@@ -38,7 +38,7 @@
 |---|---|---|
 | 19 | 推理服务：延迟、吞吐与排队 | 同一块硬件怎样在首 token、单请求等待与总吞吐之间取舍？ |
 
-**实验室（10 个可运行实验）**：每个原理讲次都配一个动手实验，"跑过一遍"比"读过一遍"记得牢。lab01–lab07 纯本地运行（numpy / scikit-learn / PyTorch），lab08–lab10 调用 DeepSeek API。
+**实验室（10 个可运行实验）**：每个原理讲次都配一个动手实验，"跑过一遍"比"读过一遍"记得牢。lab01–lab07 在本机计算（numpy / scikit-learn / PyTorch），不需要 API key；lab05 首次会尝试下载数据。lab08–lab10 调用 DeepSeek API，需要联网、账号与有效 API key。
 
 ## 怎么使用这门课
 
@@ -48,40 +48,51 @@
 
 推荐节奏：每讲 1–2 天（读讲义 + 跑实验 + 推导），全程约 4–6 周。上下篇可以交替读（比如每周 2 讲原理 + 1 讲应用），应用篇相互独立可跳读。
 
-## 环境准备
+## 环境准备 {#environment}
 
-只需要做一次：
+阅读网页无需安装实验环境。运行 Python 实验时，先安装 Git 与 Python 3.12，在你希望保存课程的目录打开终端。以下命令从公开仓库开始；如果已克隆，直接进入其中的 `ai-course` 目录，从创建虚拟环境那一步继续。
 
-```bash
-cd ~/ai-course
+**Windows PowerShell：**
 
-# 实验环境已建好（Python 3.12 venv），验证一下：
-.venv/bin/python -c "import torch, sklearn; print('OK')"
-
-# lab08-10 需要 DeepSeek API key：
-cp labs/.env.example labs/.env
-# 然后编辑 labs/.env 填入你的 DEEPSEEK_API_KEY
+```powershell
+git clone https://github.com/Ryugu-07/course-library.git
+cd course-library/ai-course
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r labs/requirements.txt
+.\.venv\Scripts\python.exe -c "import numpy, matplotlib, sklearn, torch; print('OK')"
+.\.venv\Scripts\python.exe labs/lab01_find_function.py
 ```
 
-跑实验的方式（以 lab01 为例）：
+**macOS / Linux：**
 
 ```bash
-cd ~/ai-course
+git clone https://github.com/Ryugu-07/course-library.git
+cd course-library/ai-course
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r labs/requirements.txt
+.venv/bin/python -c "import numpy, matplotlib, sklearn, torch; print('OK')"
 .venv/bin/python labs/lab01_find_function.py
 ```
 
-图表会弹窗显示并同时保存到 `labs/output/` 目录。
+依赖清单是仓库内的 `ai-course/labs/requirements.txt`，首次安装需要联网。命令直接指定虚拟环境中的 Python，无需额外激活环境。图表会先保存到 `labs/output/`，再弹窗；关闭图窗后程序继续。无桌面环境的运行方法、CPU 最小检查和 API 配置见[实验总览](labs.html)。
+
+普通 CPU 可以运行实验，无需 M4。lab05–lab07 的代码在 MPS 可用时使用 Apple GPU，否则使用 CPU；训练时间随硬件和参数变化，先完成短实验再尝试默认训练配置。
 
 ## 讲义如何更新
 
-讲义源文件是 `lectures/*.md`，站点由 `build_site.py` 生成。你（或 AI）修改讲义后重新构建：
+讲义源文件是 `lectures/*.md`，站点由 `build_site.py` 生成。在上面的 `ai-course` 目录中，使用已安装依赖的虚拟环境重建：
+
+```powershell
+# Windows PowerShell
+.\.venv\Scripts\python.exe build_site.py
+```
 
 ```bash
-cd ~/ai-course
+# macOS / Linux
 .venv/bin/python build_site.py
 ```
 
-浏览方式二选一：直接双击 `site/index.html`；或起个本地服务 `python3 -m http.server -d site 8080` 后访问 `http://localhost:8080`。
+浏览全部课程时，从仓库根目录启动服务：Windows 使用 `py -3.12 -m http.server 8778`，macOS / Linux 使用 `python3.12 -m http.server 8778`，然后打开 `http://localhost:8778/`。这样跨课程相对链接也能正常访问。
 
 !!! note "关于时效"
     上篇的历史与数学不会过期。下篇涉及具体产品与模型（第 10、11 讲尤其），以 2026 年初为基准写成——AI 产品迭代极快，实操前用最新信息核对一遍（讲义里标注了哪些结论易变、哪些方法论长期有效）。

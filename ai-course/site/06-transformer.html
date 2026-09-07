@@ -44,13 +44,23 @@ try {
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-22 14:24</div>
+    <div class="build-time">构建于 2026-09-08 05:05</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本讲目录</summary><div class="toc">
 <ul>
+<li><a href="#_1">学习层：注意力到底在“选择”什么</a><ul>
+<li><a href="#query">具体谜题：query「它」应该向谁取值？</a></li>
+<li><a href="#_2">先做预测，再读矩阵</a></li>
+<li><a href="#value">先手算：两个 value 怎么混成一个输出？</a></li>
+<li><a href="#_3">最小模型：四个矩阵乘法</a></li>
+<li><a href="#token">形式化步骤：从 token 到一行权重</a></li>
+<li><a href="#_4">边界与反例：可视化不等于语义证明</a></li>
+<li><a href="#_5">迁移题：区分并行与依赖</a></li>
+</ul>
+</li>
 <li><a href="#1">1. 前置：词怎么变成向量</a></li>
 <li><a href="#2-rnn">2. RNN：给网络装上记忆</a><ul>
 <li><a href="#21">2.1 结构</a></li>
@@ -69,32 +79,48 @@ try {
 <li><a href="#36">3.6 代价与账本</a></li>
 </ul>
 </li>
-<li><a href="#_1">本讲小结</a></li>
+<li><a href="#_6">本讲小结</a></li>
 </ul>
 </div>
 </details>
 <h1 id="06-transformer">第 06 讲 · 从序列建模到 Transformer<a class="headerlink" href="#06-transformer" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>诞生场景</strong>：CNN 吃定了图像，但语言是另一种生物：句子变长、顺序敏感（"猫追狗"≠"狗追猫"）、依赖可以横跨很远（"那只我上周在邻居家院子里见过的<strong>猫</strong>……<strong>它</strong>"）。为序列而生的 RNN 统治了 NLP 十年，却始终被两个毛病纠缠：记不住远处、算得太慢。2017 年，Google 的八人小组扔出一篇标题狂妄的论文——《Attention Is All You Need》：把循环彻底扔掉，只留注意力。这个叫 <strong>Transformer</strong> 的架构不仅吞掉了 NLP，后来还回头吞掉了视觉，成为今天一切大模型的骨架。本讲从 RNN 的困境出发，一步步推到 Transformer 的每个部件——<strong>知其然，更知其为什么非这么设计不可</strong>。</p>
+<p><strong>问题从哪里来</strong>：序列既有顺序，也有远距离依赖。RNN 按时间步更新状态，长距离梯度传播与串行计算都会增加训练难度。2017 年的《Attention Is All You Need》提出以注意力为核心的 Transformer，后来广泛用于语言、视觉和多模态模型。本讲从序列建模的约束出发，解释各部件的作用与设计取舍；Transformer 是一条重要路线，并非所有大模型唯一可用的架构。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section class="learning-layer">
-<h2>学习层：注意力到底在“选择”什么</h2>
+<h2 id="_1">学习层：注意力到底在“选择”什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <div class="learning-puzzle">
-<h3>具体谜题：query「它」应该向谁取值？</h3>
+<h3 id="query">具体谜题：query「它」应该向谁取值？<a class="headerlink" href="#query" title="Permanent link"></a></h3>
 <p>把句子缩成四个 token：「猫」、「追」、「老鼠」、「它」。下面的两个头使用手写的确定性玩具权重。先猜：当 query 是「它」时，两个头的 softmax 行会不会相同？打开 causal mask 后，第三个位置还能读取第四个位置吗？</p>
 </div>
 <div class="learning-prediction">
-<h3>先做预测，再读矩阵</h3>
-<p>不看答案先写下三句：<strong>①</strong> 没有 mask 时，每个位置都能看到四个 key；<strong>②</strong> 有 mask 时，第 <span class="arithmatex">\(i\)</span> 行只能保留 <span class="arithmatex">\(j\le i\)</span>；<strong>③</strong> 两个头即使输入相同，也可能因为 <span class="arithmatex">\(W^Q,W^K,W^V\)</span> 不同而得到不同的混合。再点击 query 按钮，看猜测是否与热力图一致。</p>
+<h3 id="_2">先做预测，再读矩阵<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先写下判断与理由：<strong>①</strong> 没有 mask 时，第一个位置可以读取几个 key？<strong>②</strong> 打开因果 mask 后，第三个位置还能读取第四个位置吗？<strong>③</strong> 输入相同，是否足以保证两个头的权重相同？再点击 query 按钮核对。</p>
 </div>
 <div class="learning-model">
-<h3>最小模型：四个矩阵乘法</h3>
+<h3 id="value">先手算：两个 value 怎么混成一个输出？<a class="headerlink" href="#value" title="Permanent link"></a></h3>
+<p>先只看一个 query，假设已经算好的两个缩放分数是 <span class="arithmatex">\(s=(0,\ln3)\)</span>，value 为 <span class="arithmatex">\(v_1=(2,0)\)</span>、<span class="arithmatex">\(v_2=(0,2)\)</span>。softmax 与输出逐项是</p>
+<div class="arithmatex">\[
+\begin{aligned}
+(a_1,a_2)&amp;=\frac{(e^0,e^{\ln3})}{e^0+e^{\ln3}}=(1/4,3/4),\\
+o&amp;=\tfrac14(2,0)+\tfrac34(0,2)\\
+&amp;=(0.5,1.5).
+\end{aligned}
+\]</div>
+<p>分数决定“各取多少”，value 决定“取来什么”。先预测：保持两个分数不变，只把 <span class="arithmatex">\(v_2\)</span> 改成 <span class="arithmatex">\((0,4)\)</span>，权重和输出分别会怎样改变？下面实验的双 value 控件可以检验这件事，再进入四 token、两头的矩阵版本。</p>
+<details>
+<summary>手算后核对</summary>
+<p>权重仍为 <span class="arithmatex">\((1/4,3/4)\)</span>，输出变为 <span class="arithmatex">\((0.5,3)\)</span>。只改变第 <span class="arithmatex">\(j\)</span> 个 value 时，<span class="arithmatex">\(\Delta o_i=a_{ij}\Delta v_j\)</span>。这是对投影后 <span class="arithmatex">\(V\)</span> 的教学干预；若直接修改原始输入 <span class="arithmatex">\(X\)</span>，一般会同时改变 <span class="arithmatex">\(Q,K,V\)</span>。</p>
+</details>
+</div>
+<div class="learning-model">
+<h3 id="_3">最小模型：四个矩阵乘法<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
 <p>每个头把 <span class="arithmatex">\(X\in\mathbb R^{4\times4}\)</span> 投影成 <span class="arithmatex">\(Q,K,V\in\mathbb R^{4\times2}\)</span>，计算 <span class="arithmatex">\(S=QK^\top/\sqrt2\in\mathbb R^{4\times4}\)</span>，逐行 softmax 得到 <span class="arithmatex">\(A\)</span>，最后取 <span class="arithmatex">\(O=AV\in\mathbb R^{4\times2}\)</span>。两个头的输出拼接成四维向量；真实模型还会乘一个 <span class="arithmatex">\(W^O\)</span>，本 lab 为了看清混合暂时省略它。</p>
 </div>
 <div class="learning-formal">
-<h3>形式化步骤：从 token 到一行权重</h3>
+<h3 id="token">形式化步骤：从 token 到一行权重<a class="headerlink" href="#token" title="Permanent link"></a></h3>
 <ol>
 <li>先把 token 与位置编码相加，得到一行输入 <span class="arithmatex">\(x_i\)</span>；本实验把这一步折叠进固定的四维 toy embedding。</li>
 <li>用三个独立投影产生角色：<span class="arithmatex">\(q_i=x_iW^Q\)</span>（我在找什么）、<span class="arithmatex">\(k_j=x_jW^K\)</span>（我能被怎样匹配）、<span class="arithmatex">\(v_j=x_jW^V\)</span>（匹配后实际拿走的内容）。</li>
@@ -104,7 +130,7 @@ try {
 </ol>
 </div>
 <div class="learning-boundary">
-<h3>边界与反例：可视化不等于语义证明</h3>
+<h3 id="_4">边界与反例：可视化不等于语义证明<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
 <ul>
 <li>本 lab 的权重是玩具设定；一格权重大，只能说明这组参数在这个输入上更偏向某个 value，不能证明真实模型学到了“它指代猫”。</li>
 <li>关闭因果 mask 会让未来 token 泄漏到当前行，适合双向编码器的示意，却不适合训练自回归生成器。</li>
@@ -113,14 +139,13 @@ try {
 </ul>
 </div>
 <div class="learning-transfer">
-<h3>迁移题：区分并行与依赖</h3>
+<h3 id="_5">迁移题：区分并行与依赖<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
 <p>若把四个 token 扩成 <span class="arithmatex">\(n\)</span> 个，注意力分数矩阵从 <span class="arithmatex">\(4\times4\)</span> 变成 <span class="arithmatex">\(n\times n\)</span>。请分别回答：训练一个已知序列时，哪一维可以并行；生成第 <span class="arithmatex">\(t+1\)</span> 个 token 时，哪一个新依赖迫使你等待；总成本为什么不只有 <span class="arithmatex">\(O(n^2d)\)</span>，还要加上投影与 FFN 的 <span class="arithmatex">\(O(nd^2)\)</span>？</p>
 </div>
 <div class="learning-lab" data-learning-lab="transformer">
 <p><strong>无 JavaScript 时的静态版本：</strong>记住四个 token 的形状账本：每头 <span class="arithmatex">\(Q,K,V:4\times2\)</span>，分数与权重是 <span class="arithmatex">\(4\times4\)</span>，输出两头拼成四维。对 query「它」，先按 <span class="arithmatex">\(S=QK^\top/\sqrt2\)</span> 算一行，再 softmax 并对四个 value 做加权和；开启 causal mask 时，未来列的分数是 <span class="arithmatex">\(-\infty\)</span>、权重为 0。页面脚本加载后可逐个查看两个 toy head 的 Q/K/V、分数热力图、softmax 热力图和输出混合。</p>
 </div>
 </section>
-
 <h2 id="1">1. 前置：词怎么变成向量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="正弦位置编码" src="assets/img/06-positional-encoding.svg" /></p>
@@ -156,7 +181,7 @@ c_t &amp;= f_t \odot c_{t-1} + i_t \odot \tilde c_t &amp;&amp;\star\;\text{记�
 o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &amp;&amp;\text{输出门}
 \end{aligned}
 \]</div>
-<p>盯住带星号的那行：<span class="arithmatex">\(c_t\)</span> 的更新是<strong>加法</strong>。求导 <span class="arithmatex">\(\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)\)</span>——不再有 <span class="arithmatex">\(W\)</span> 连乘；只要遗忘门开着（<span class="arithmatex">\(f \approx 1\)</span>），梯度就沿细胞状态近乎无衰减地流回远处。<strong>和 ResNet 的 <span class="arithmatex">\(y = x + F(x)\)</span> 是同一个药方：用加法通路替换连乘通路</strong>（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。</p>
+<p>盯住带星号的那行：<span class="arithmatex">\(c_t\)</span> 的更新是<strong>加法</strong>。保持门值与候选内容固定时，直接细胞通路的导数为 <span class="arithmatex">\(\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)\)</span>。完整递归梯度还包含经 <span class="arithmatex">\(h_{t-1}\)</span> 到各门的路径，因此不能把这一个通路当作全部导数。直接通路不再含有 <span class="arithmatex">\(W\)</span> 连乘；只要遗忘门开着（<span class="arithmatex">\(f \approx 1\)</span>），梯度就沿细胞状态近乎无衰减地流回远处。<strong>和 ResNet 的 <span class="arithmatex">\(y = x + F(x)\)</span> 是同一个药方：用加法通路替换连乘通路</strong>（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。</p>
 <h3 id="24-seq2seq">2.4 seq2seq 与注意力的初登场<a class="headerlink" href="#24-seq2seq" title="Permanent link"></a></h3>
 <p>机器翻译需要"读完一句话，写出另一句话"——<strong>seq2seq</strong>（2014）：一个 RNN（编码器）把源句压成一个向量，另一个 RNN（解码器）从这个向量展开生成译文。立刻暴露<strong>信息瓶颈</strong>：不管句子多长，全部意义都要挤过一个固定维数的向量——长句翻译质量断崖式下跌。</p>
 <p>Bahdanau et al. (2014) 的修复从根上改变了历史：别压成一个向量，<strong>解码器每生成一个词，回头"看一眼"源句的所有位置，按相关性加权</strong>：</p>
@@ -177,24 +202,24 @@ o_t &amp;= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &a
 </figure>
 <p>2017 年的暴论：<strong>把循环从主干中扔掉</strong>，用自注意力配合逐位置的 FFN、残差与归一化。让序列里每个词直接与所有词（包括自己）两两交互——<strong>自注意力（self-attention）</strong>。任意两词之间的路径长度从 RNN 的 <span class="arithmatex">\(O(n)\)</span> 降到 <span class="arithmatex">\(O(1)\)</span>（信号不必逐步传递）。在训练时，一层内所有位置可以组成矩阵并行计算；但自回归推理要等前一个 token 生成后才能得到下一个 token，仍然是串行生成。两宗罪一次清账，但代价后面说。</p>
 <h3 id="31-query-key-value">3.1 Query / Key / Value<a class="headerlink" href="#31-query-key-value" title="Permanent link"></a></h3>
-<p>自注意力的运作可以类比一次数据库检索。每个词的嵌入向量 <span class="arithmatex">\(x_i \in \mathbb{R}^{d_{\text{model}}}\)</span> 经三个<strong>学习到的</strong>线性投影，生成三种角色：</p>
+<p>自注意力的运作可以类比一次数据库检索。本节使用行向量约定（前面的 RNN 递推使用列向量）；每个词的嵌入行向量 <span class="arithmatex">\(x_i \in \mathbb{R}^{1\times d_{\text{model}}}\)</span> 经三个<strong>学习到的</strong>线性投影，生成三种角色：</p>
 <div class="arithmatex">\[
-q_i = W^Q x_i \quad (\text{query：我在找什么}), \qquad
-k_i = W^K x_i \quad (\text{key：我能提供什么}), \qquad
-v_i = W^V x_i \quad (\text{value：我实际的内容})
+q_i = x_i W^Q \quad (\text{query：我在找什么}), \qquad
+k_i = x_i W^K \quad (\text{key：我能提供什么}), \qquad
+v_i = x_i W^V \quad (\text{value：我实际的内容})
 \]</div>
-<p>词 <span class="arithmatex">\(i\)</span> 更新自己的表示时：拿自己的 <span class="arithmatex">\(q_i\)</span> 与<strong>所有</strong>词的 <span class="arithmatex">\(k_j\)</span> 做内积算相关度，softmax 归一化成权重，再对所有 <span class="arithmatex">\(v_j\)</span> 加权求和。矩阵形式（<span class="arithmatex">\(Q, K, V \in \mathbb{R}^{n \times d_k}\)</span> 按行堆叠）：</p>
+<p>词 <span class="arithmatex">\(i\)</span> 更新自己的表示时：拿自己的 <span class="arithmatex">\(q_i\)</span> 与<strong>所有</strong>词的 <span class="arithmatex">\(k_j\)</span> 做内积算相关度，softmax 归一化成权重，再对所有 <span class="arithmatex">\(v_j\)</span> 加权求和。矩阵形式按行堆叠：<span class="arithmatex">\(Q,K\in\mathbb R^{n\times d_k}\)</span>，<span class="arithmatex">\(V\in\mathbb R^{n\times d_v}\)</span>，输出属于 <span class="arithmatex">\(\mathbb R^{n\times d_v}\)</span>。常见设置取 <span class="arithmatex">\(d_v=d_k\)</span>，但并非必要；起步实验就取 <span class="arithmatex">\(d_k=1,d_v=2\)</span>。三个投影矩阵相应为 <span class="arithmatex">\(W^Q,W^K\in\mathbb R^{d_{\mathrm{model}}\times d_k}\)</span>、<span class="arithmatex">\(W^V\in\mathbb R^{d_{\mathrm{model}}\times d_v}\)</span>。</p>
 <div class="arithmatex">\[
 \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
 \]</div>
-<p>一个具体图景：处理"它"这个词时，它的 <span class="arithmatex">\(q\)</span> 与"猫"的 <span class="arithmatex">\(k\)</span> 内积很大 → "它"的新表示大量混入"猫"的 <span class="arithmatex">\(v\)</span> → <strong>指代消解在一层内完成</strong>，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是<strong>上下文相关</strong>的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。</p>
+<p>一个具体图景：处理"它"这个词时，它的 <span class="arithmatex">\(q\)</span> 与"猫"的 <span class="arithmatex">\(k\)</span> 内积很大 → "它"的新表示大量混入"猫"的 <span class="arithmatex">\(v\)</span> → 这一层便能直接混合两个位置的信息，不必经过中间每个位置；但内积大不等于已经完成指代消解，是否学到语义关系还需任务与泛化证据。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是<strong>上下文相关</strong>的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。</p>
 <h3 id="32-sqrtd_k">3.2 为什么除以 <span class="arithmatex">\(\sqrt{d_k}\)</span>：完整推导<a class="headerlink" href="#32-sqrtd_k" title="Permanent link"></a></h3>
-<p>这个不起眼的分母是面试高频题，更是理解"训练稳定性"的好样本。设 <span class="arithmatex">\(q, k \in \mathbb{R}^{d_k}\)</span> 的各分量独立、均值 0、方差 1（初始化时近似成立）。内积 <span class="arithmatex">\(q^\top k = \sum_{i=1}^{d_k} q_i k_i\)</span> 的均值与方差：</p>
+<p>这个不起眼的分母是面试高频题，更是理解"训练稳定性"的好样本。设 <span class="arithmatex">\(q, k \in \mathbb{R}^{d_k}\)</span> 的各分量独立、均值 0、方差 1（初始化时近似成立）。内积 <span class="arithmatex">\(q\cdot k = \sum_{i=1}^{d_k} q_i k_i\)</span> 的均值与方差：</p>
 <div class="arithmatex">\[
-\mathbb{E}[q^\top k] = \sum_i \mathbb{E}[q_i]\mathbb{E}[k_i] = 0
+\mathbb{E}[q\cdot k] = \sum_i \mathbb{E}[q_i]\mathbb{E}[k_i] = 0
 \]</div>
 <div class="arithmatex">\[
-\mathrm{Var}(q^\top k) = \sum_i \mathrm{Var}(q_i k_i) = \sum_i \Big(\mathbb{E}[q_i^2 k_i^2] - 0\Big) = \sum_i \mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k
+\mathrm{Var}(q\cdot k) = \sum_i \mathrm{Var}(q_i k_i) = \sum_i \Big(\mathbb{E}[q_i^2 k_i^2] - 0\Big) = \sum_i \mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k
 \]</div>
 <p>（用了独立性与 <span class="arithmatex">\(\mathrm{Var}(q_i k_i) = \mathbb{E}[q_i^2]\mathbb{E}[k_i^2] - (\mathbb{E}[q_i k_i])^2\)</span>。）即内积的标准差为 <span class="arithmatex">\(\sqrt{d_k}\)</span>：维数越高，分数天然越散。<span class="arithmatex">\(d_k = 64\)</span> 时分数标准差为 8，喂给 softmax 意味着 <span class="arithmatex">\(e^{8}\)</span> 级别的比值——softmax 输出趋近 one-hot（饱和），而饱和区的梯度趋近 0（softmax 的 Jacobian 元素含 <span class="arithmatex">\(p_i(1-p_i)\)</span> 因子，<span class="arithmatex">\(p\)</span> 贴近 0/1 时归零）——注意力还没开始学就"梯度死亡"。除以 <span class="arithmatex">\(\sqrt{d_k}\)</span> 把方差归一回 1，softmax 工作在灵敏区。<strong>又一次，架构细节的动机是保梯度存活</strong>——从 ReLU、LSTM、ResNet 到这里，同一主题第四次出现。</p>
 <h3 id="33">3.3 多头注意力<a class="headerlink" href="#33" title="Permanent link"></a></h3>
@@ -283,7 +308,7 @@ x \leftarrow \mathrm{LayerNorm}\big(x + \mathrm{FFN}(x)\big)
 </table>
 <p>Transformer 用"对序列长度平方"的注意力计算，换来了一层内的<strong>矩阵并行</strong>与任意两位置之间 <span class="arithmatex">\(O(1)\)</span> 的信息路径。2017 年 <span class="arithmatex">\(n\)</span> 只有几百，这笔交易血赚；今天上下文拉到十万、百万 token，<span class="arithmatex">\(n^2\)</span> 就是"长上下文为什么贵"（第 08 讲的现实约束）的直接根源，也催生了 FlashAttention、稀疏/线性注意力等一整个研究方向。这里的并行指训练时已知整段序列的层内计算，不包括仍需逐 token 推进的自回归生成。</p>
 <p>还有一层更深的意味：对比 CNN（硬编码局部性）与 RNN（硬编码顺序递归），<strong>Transformer 的结构先验最弱</strong>——它只假设"表示间的两两交互有用"，其余一切交给数据。第 01 讲的偏差–方差逻辑预言：弱先验模型需要更多数据，但数据管够时上限更高。于是当数据真的管够（整个互联网），Transformer 不仅统治语言，还以 ViT（2020，把图像切成 16×16 的块当"词"处理）反攻视觉，把 CNN 从王座上请了下去。<strong>一个架构通吃所有模态</strong>——这为"规模化"铺平了道路，那正是下一讲的主题。</p>
-<h2 id="_1">本讲小结<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_6">本讲小结<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>

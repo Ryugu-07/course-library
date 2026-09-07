@@ -1,10 +1,10 @@
 # 第 06 讲 · 从序列建模到 Transformer
 
-> **诞生场景**：CNN 吃定了图像，但语言是另一种生物：句子变长、顺序敏感（"猫追狗"≠"狗追猫"）、依赖可以横跨很远（"那只我上周在邻居家院子里见过的**猫**……**它**"）。为序列而生的 RNN 统治了 NLP 十年，却始终被两个毛病纠缠：记不住远处、算得太慢。2017 年，Google 的八人小组扔出一篇标题狂妄的论文——《Attention Is All You Need》：把循环彻底扔掉，只留注意力。这个叫 **Transformer** 的架构不仅吞掉了 NLP，后来还回头吞掉了视觉，成为今天一切大模型的骨架。本讲从 RNN 的困境出发，一步步推到 Transformer 的每个部件——**知其然，更知其为什么非这么设计不可**。
+> **问题从哪里来**：序列既有顺序，也有远距离依赖。RNN 按时间步更新状态，长距离梯度传播与串行计算都会增加训练难度。2017 年的《Attention Is All You Need》提出以注意力为核心的 Transformer，后来广泛用于语言、视觉和多模态模型。本讲从序列建模的约束出发，解释各部件的作用与设计取舍；Transformer 是一条重要路线，并非所有大模型唯一可用的架构。
 
 <div data-learning-page></div>
 
-<section class="learning-layer">
+<section class="learning-layer" markdown="1">
 <h2>学习层：注意力到底在“选择”什么</h2>
 <div class="learning-puzzle">
 <h3>具体谜题：query「它」应该向谁取值？</h3>
@@ -12,7 +12,29 @@
 </div>
 <div class="learning-prediction">
 <h3>先做预测，再读矩阵</h3>
-<p>不看答案先写下三句：<strong>①</strong> 没有 mask 时，每个位置都能看到四个 key；<strong>②</strong> 有 mask 时，第 <span class="arithmatex">\(i\)</span> 行只能保留 <span class="arithmatex">\(j\le i\)</span>；<strong>③</strong> 两个头即使输入相同，也可能因为 <span class="arithmatex">\(W^Q,W^K,W^V\)</span> 不同而得到不同的混合。再点击 query 按钮，看猜测是否与热力图一致。</p>
+<p>先写下判断与理由：<strong>①</strong> 没有 mask 时，第一个位置可以读取几个 key？<strong>②</strong> 打开因果 mask 后，第三个位置还能读取第四个位置吗？<strong>③</strong> 输入相同，是否足以保证两个头的权重相同？再点击 query 按钮核对。</p>
+</div>
+<div class="learning-model" markdown="1">
+<h3>先手算：两个 value 怎么混成一个输出？</h3>
+
+先只看一个 query，假设已经算好的两个缩放分数是 $s=(0,\ln3)$，value 为 $v_1=(2,0)$、$v_2=(0,2)$。softmax 与输出逐项是
+
+$$
+\begin{aligned}
+(a_1,a_2)&=\frac{(e^0,e^{\ln3})}{e^0+e^{\ln3}}=(1/4,3/4),\\
+o&=\tfrac14(2,0)+\tfrac34(0,2)\\
+&=(0.5,1.5).
+\end{aligned}
+$$
+
+分数决定“各取多少”，value 决定“取来什么”。先预测：保持两个分数不变，只把 $v_2$ 改成 $(0,4)$，权重和输出分别会怎样改变？下面实验的双 value 控件可以检验这件事，再进入四 token、两头的矩阵版本。
+
+<details markdown="1">
+<summary>手算后核对</summary>
+
+权重仍为 $(1/4,3/4)$，输出变为 $(0.5,3)$。只改变第 $j$ 个 value 时，$\Delta o_i=a_{ij}\Delta v_j$。这是对投影后 $V$ 的教学干预；若直接修改原始输入 $X$，一般会同时改变 $Q,K,V$。
+
+</details>
 </div>
 <div class="learning-model">
 <h3>最小模型：四个矩阵乘法</h3>
@@ -96,7 +118,7 @@ o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o), \quad h_t = o_t \odot \tanh(c_t) &&\tex
 \end{aligned}
 $$
 
-盯住带星号的那行：$c_t$ 的更新是**加法**。求导 $\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)$——不再有 $W$ 连乘；只要遗忘门开着（$f \approx 1$），梯度就沿细胞状态近乎无衰减地流回远处。**和 ResNet 的 $y = x + F(x)$ 是同一个药方：用加法通路替换连乘通路**（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。
+盯住带星号的那行：$c_t$ 的更新是**加法**。保持门值与候选内容固定时，直接细胞通路的导数为 $\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t)$。完整递归梯度还包含经 $h_{t-1}$ 到各门的路径，因此不能把这一个通路当作全部导数。直接通路不再含有 $W$ 连乘；只要遗忘门开着（$f \approx 1$），梯度就沿细胞状态近乎无衰减地流回远处。**和 ResNet 的 $y = x + F(x)$ 是同一个药方：用加法通路替换连乘通路**（LSTM 早了 18 年）。LSTM 与其简化版 GRU 撑起了 2014–2017 年的 NLP：机器翻译、语音识别（Siri）、输入法联想。
 
 ### 2.4 seq2seq 与注意力的初登场
 
@@ -131,32 +153,32 @@ RNN 还有个与生俱来的工程死穴：$h_t$ 依赖 $h_{t-1}$，**必须逐�
 
 ### 3.1 Query / Key / Value
 
-自注意力的运作可以类比一次数据库检索。每个词的嵌入向量 $x_i \in \mathbb{R}^{d_{\text{model}}}$ 经三个**学习到的**线性投影，生成三种角色：
+自注意力的运作可以类比一次数据库检索。本节使用行向量约定（前面的 RNN 递推使用列向量）；每个词的嵌入行向量 $x_i \in \mathbb{R}^{1\times d_{\text{model}}}$ 经三个**学习到的**线性投影，生成三种角色：
 
 $$
-q_i = W^Q x_i \quad (\text{query：我在找什么}), \qquad
-k_i = W^K x_i \quad (\text{key：我能提供什么}), \qquad
-v_i = W^V x_i \quad (\text{value：我实际的内容})
+q_i = x_i W^Q \quad (\text{query：我在找什么}), \qquad
+k_i = x_i W^K \quad (\text{key：我能提供什么}), \qquad
+v_i = x_i W^V \quad (\text{value：我实际的内容})
 $$
 
-词 $i$ 更新自己的表示时：拿自己的 $q_i$ 与**所有**词的 $k_j$ 做内积算相关度，softmax 归一化成权重，再对所有 $v_j$ 加权求和。矩阵形式（$Q, K, V \in \mathbb{R}^{n \times d_k}$ 按行堆叠）：
+词 $i$ 更新自己的表示时：拿自己的 $q_i$ 与**所有**词的 $k_j$ 做内积算相关度，softmax 归一化成权重，再对所有 $v_j$ 加权求和。矩阵形式按行堆叠：$Q,K\in\mathbb R^{n\times d_k}$，$V\in\mathbb R^{n\times d_v}$，输出属于 $\mathbb R^{n\times d_v}$。常见设置取 $d_v=d_k$，但并非必要；起步实验就取 $d_k=1,d_v=2$。三个投影矩阵相应为 $W^Q,W^K\in\mathbb R^{d_{\mathrm{model}}\times d_k}$、$W^V\in\mathbb R^{d_{\mathrm{model}}\times d_v}$。
 
 $$
 \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V
 $$
 
-一个具体图景：处理"它"这个词时，它的 $q$ 与"猫"的 $k$ 内积很大 → "它"的新表示大量混入"猫"的 $v$ → **指代消解在一层内完成**，无论"猫"隔了 3 个词还是 300 个词。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是**上下文相关**的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。
+一个具体图景：处理"它"这个词时，它的 $q$ 与"猫"的 $k$ 内积很大 → "它"的新表示大量混入"猫"的 $v$ → 这一层便能直接混合两个位置的信息，不必经过中间每个位置；但内积大不等于已经完成指代消解，是否学到语义关系还需任务与泛化证据。对比 word2vec 的静态词向量（"苹果"只有一个向量），自注意力产出的是**上下文相关**的表示——"苹果发布会"和"苹果真甜"里的"苹果"，走出注意力层时已是两个不同向量。
 
 ### 3.2 为什么除以 $\sqrt{d_k}$：完整推导
 
-这个不起眼的分母是面试高频题，更是理解"训练稳定性"的好样本。设 $q, k \in \mathbb{R}^{d_k}$ 的各分量独立、均值 0、方差 1（初始化时近似成立）。内积 $q^\top k = \sum_{i=1}^{d_k} q_i k_i$ 的均值与方差：
+这个不起眼的分母是面试高频题，更是理解"训练稳定性"的好样本。设 $q, k \in \mathbb{R}^{d_k}$ 的各分量独立、均值 0、方差 1（初始化时近似成立）。内积 $q\cdot k = \sum_{i=1}^{d_k} q_i k_i$ 的均值与方差：
 
 $$
-\mathbb{E}[q^\top k] = \sum_i \mathbb{E}[q_i]\mathbb{E}[k_i] = 0
+\mathbb{E}[q\cdot k] = \sum_i \mathbb{E}[q_i]\mathbb{E}[k_i] = 0
 $$
 
 $$
-\mathrm{Var}(q^\top k) = \sum_i \mathrm{Var}(q_i k_i) = \sum_i \Big(\mathbb{E}[q_i^2 k_i^2] - 0\Big) = \sum_i \mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k
+\mathrm{Var}(q\cdot k) = \sum_i \mathrm{Var}(q_i k_i) = \sum_i \Big(\mathbb{E}[q_i^2 k_i^2] - 0\Big) = \sum_i \mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k
 $$
 
 （用了独立性与 $\mathrm{Var}(q_i k_i) = \mathbb{E}[q_i^2]\mathbb{E}[k_i^2] - (\mathbb{E}[q_i k_i])^2$。）即内积的标准差为 $\sqrt{d_k}$：维数越高，分数天然越散。$d_k = 64$ 时分数标准差为 8，喂给 softmax 意味着 $e^{8}$ 级别的比值——softmax 输出趋近 one-hot（饱和），而饱和区的梯度趋近 0（softmax 的 Jacobian 元素含 $p_i(1-p_i)$ 因子，$p$ 贴近 0/1 时归零）——注意力还没开始学就"梯度死亡"。除以 $\sqrt{d_k}$ 把方差归一回 1，softmax 工作在灵敏区。**又一次，架构细节的动机是保梯度存活**——从 ReLU、LSTM、ResNet 到这里，同一主题第四次出现。

@@ -305,6 +305,10 @@
         assert(condition, "maxwell-constraints self-test failed: " + message);
       }
 
+      [0, 9, 90, 180, 270, 360].forEach(function (degrees) {
+        check(formatNumber(degrees, 0) === String(degrees), "phase preserves integer zeros: " + degrees);
+      });
+      check(formatNumber(1.20, 3) === "1.2", "fractional padding still removed");
       check(nearly(dot([1, 2, 3], [2, 0, 1]), 5), "dot product");
       check(cross([0, 0, 1], [1, 0, 0])[1] === 1, "right-hand cross product");
       check(nearly(magnitude([3, 4, 0]), 5), "vector magnitude");
@@ -390,7 +394,8 @@
       if (!finite(value)) return "—";
       var places = digits === undefined ? 3 : digits;
       if (value !== 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+      var fixed = value.toFixed(places);
+      return fixed.indexOf(".") === -1 ? fixed : fixed.replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function formatVector(vectorValue) {
