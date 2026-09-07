@@ -79,6 +79,9 @@ COURSE = [
     ("实验室", [
         ("labs.md", "实验总览（lab01–lab10）"),
     ]),
+    ("跨学科综合项目", [
+        ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
+    ]),
 ]
 
 MD_EXTENSIONS = [

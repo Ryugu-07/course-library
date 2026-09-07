@@ -151,6 +151,9 @@ COURSE = [
     ("了望塔（第三档）", [
         ("beyond-01-lookout.md", "了望塔 · 量子引力与超越标准模型"),
     ]),
+    ("跨学科综合项目", [
+        ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
+    ]),
 ]
 
 MD_EXTENSIONS = [
@@ -243,6 +246,8 @@ def sync_learning_assets(md_names):
         if not source.is_file():
             raise FileNotFoundError(f"Missing learning lab script: {source}")
         shutil.copy(source, destination / "labs" / source.name)
+    if "heat-inverse-project" in names:
+        shutil.copytree(SHARED / "projects" / "heat-inverse", destination / "projects" / "heat-inverse")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

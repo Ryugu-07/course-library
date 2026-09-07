@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从温度读数反推初态 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li class="active"><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 05:59</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#_1">先明确任务：预测未来准确，不等于还原过去正确</a><ul>
+<li><a href="#_2">一个反直觉的验收问题</a></li>
+</ul>
+</li>
+<li><a href="#1">1. 把物理实验翻译成监督学习</a><ul>
+<li><a href="#_3">这里“学到”的只有八个数</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 数据切分的单位必须是整条轨迹</a></li>
+<li><a href="#3">3. 八参数线性逆滤波器怎样训练</a><ul>
+<li><a href="#_4">一行公式里的“训练分布偏好”</a></li>
+<li><a href="#_5">三个估计器必须在同一协议下比较</a></li>
+</ul>
+</li>
+<li><a href="#4-lambda">4. 验证集只选择 \(\lambda\)，测试集禁止调参</a></li>
+<li><a href="#5">5. 交互实验：先下注，再看三重压力测试</a><ul>
+<li><a href="#_6">在操作前写下三条预测</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 三种测试情景分别在问什么</a></li>
+<li><a href="#7">7. 三个指标回答三个不同的问题</a></li>
+<li><a href="#8">8. 实验报告模板</a><ul>
+<li><a href="#a">A. 问题与预测</a></li>
+<li><a href="#b">B. 可复现配置</a></li>
+<li><a href="#c">C. 验证选择证据</a></li>
+<li><a href="#d">D. 冻结后的测试结果</a></li>
+<li><a href="#e">E. 机制解释与失败审计</a></li>
+<li><a href="#f">F. 结论边界</a></li>
+</ul>
+</li>
+<li><a href="#9">9. 迁移题：预测得准，却还原错了</a></li>
+<li><a href="#10">10. 项目文件与跨学科入口</a></li>
+<li><a href="#_7">项目速查</a></li>
+</ul>
+</div>
+</details>
+<h1 id="01">综合项目 01 · 从冷却后的温度倒推初始热场<a class="headerlink" href="#01" title="Permanent link"></a></h1>
+<blockquote>
+<p>本项目使用按公开协议构造的模拟数据，不是真实材料测温记录。一根杆已经冷却了 1 秒。你现在能读到 16 个传感器的温度，但真正想知道的是：刚开始时哪里最热？这不是把热方程“倒放”那么简单。扩散会优先抹掉细小、快速起伏的结构；测量噪声却会在逆运算中被放大。本项目把这个物理反问题变成一个可审计的机器学习任务，并要求你说明模型何时失效，而不只是在一张测试表上争夺最低误差。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2 id="_1">先明确任务：预测未来准确，不等于还原过去正确<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<div class="learning-puzzle">
+<h3 id="_2">一个反直觉的验收问题<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>假设两个方法都能准确预测 0.5 秒后的温度。你能否据此断言，它们都正确还原了初始热场？</p>
+<p>先写下你的判断与理由，再展开解释。</p>
+<details>
+<summary>核对这个判断</summary>
+<p>高频温度起伏衰减得最快；即使初始时猜错了尖锐热斑，过一会儿以后，两条温度曲线也可能已经被扩散磨得十分相似。因此，“未来预测好”是有价值的证据，却不是“过去细节正确”的证明。这个差别将决定我们为什么同时报告三种指标。</p>
+</details>
+</div>
+<h2 id="1">1. 把物理实验翻译成监督学习<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>我们研究长度为 <span class="arithmatex">\(L=1\,\mathrm m\)</span> 的细棒。<span class="arithmatex">\(u(x,t)\)</span> 表示相对恒温热浴的<strong>超额温度</strong>，单位是 K；<span class="arithmatex">\(u&lt;0\)</span> 只表示比热浴冷，不是负的绝对温度。两端始终满足 <span class="arithmatex">\(u(0,t)=u(L,t)=0\)</span>，没有持续热源，也暂不考虑对流和辐射。棒内扩散率固定为</p>
+<div class="arithmatex">\[
+\kappa=0.01\,\mathrm{m^2/s},\qquad u_t=\kappa u_{xx}.
+\]</div>
+<p>16 个内部传感器位于 <span class="arithmatex">\(x_j=jL/17\)</span>。项目只保留前 8 个正弦模态：</p>
+<div class="arithmatex">\[
+Q_{jk}=\sqrt{\frac{2}{17}}\sin\!\left(\frac{jk\pi}{17}\right),
+\quad j=1,\ldots,16,
+\quad k=1,\ldots,8.
+\]</div>
+<p>这些列满足 <span class="arithmatex">\(Q^\top Q=I\)</span>。初始温度向量写成 <span class="arithmatex">\(u_0=Qa\)</span>，其中 <span class="arithmatex">\(a\in\mathbb R^8\)</span> 是我们要恢复的模态系数。这个八模态空间是明确的建模限制，不等于完整的无限维热方程。</p>
+<p>经过时间 <span class="arithmatex">\(t\)</span> 后，第 <span class="arithmatex">\(k\)</span> 个模态乘上衰减因子</p>
+<div class="arithmatex">\[
+s_k(t)=\exp\!\left[-\kappa(k\pi/L)^2t\right].
+\]</div>
+<p>令 <span class="arithmatex">\(S(t)=\operatorname{diag}(s_1,\ldots,s_8)\)</span>，传感器数据为</p>
+<div class="arithmatex">\[
+y=QS(t)a+\varepsilon,
+\qquad \varepsilon\sim\mathcal N(0,\sigma^2I_{16}).
+\]</div>
+<p>左乘 <span class="arithmatex">\(Q^\top\)</span> 得到模态观测</p>
+<div class="arithmatex">\[
+b=Q^\top y=S(t)a+Q^\top\varepsilon.
+\]</div>
+<p>因为 <span class="arithmatex">\(Q\)</span> 的列正交归一，投影不会改变这 8 个方向上的噪声方差。现在可以逐项对应机器学习术语：</p>
+<table>
+<thead>
+<tr>
+<th>项目对象</th>
+<th>机器学习角色</th>
+<th style="text-align: right;">形状</th>
+<th>单位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一整条模拟轨迹</td>
+<td>一个样本</td>
+<td style="text-align: right;">1</td>
+<td>—</td>
+</tr>
+<tr>
+<td>模态观测 <span class="arithmatex">\(b=Q^\top y\)</span></td>
+<td>输入特征</td>
+<td style="text-align: right;">8</td>
+<td>K</td>
+</tr>
+<tr>
+<td>初始模态 <span class="arithmatex">\(a\)</span></td>
+<td>监督标签</td>
+<td style="text-align: right;">8</td>
+<td>K</td>
+</tr>
+<tr>
+<td>对角权重 <span class="arithmatex">\(w\)</span></td>
+<td>待学习参数</td>
+<td style="text-align: right;">8</td>
+<td>无量纲</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\hat u_0=Q\hat a\)</span></td>
+<td>最终输出</td>
+<td style="text-align: right;">16</td>
+<td>K</td>
+</tr>
+</tbody>
+</table>
+<div class="learning-model">
+<h3 id="_3">这里“学到”的只有八个数<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>模型对每个模态分别使用</p>
+<div class="arithmatex">\[
+\hat a_k=w_k b_k.
+\]</div>
+<p>它没有隐藏层、非线性激活或跨模态连接，因此是<strong>监督训练的对角线性逆滤波器</strong>，不是神经网络。它的好处是每个参数都能解释；代价是它无法学习模态之间的相互作用，也没有截距项。</p>
+</div>
+<h2 id="2">2. 数据切分的单位必须是整条轨迹<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>每一种测试情景都共享同一组 128 条训练、32 条验证轨迹，再配 32 条测试轨迹，共 192 条。完整导出同时包含三个测试情景，因此总共保存 256 条轨迹记录：</p>
+<table>
+<thead>
+<tr>
+<th>切分</th>
+<th style="text-align: right;">轨迹数</th>
+<th style="text-align: right;">起始种子</th>
+<th>可以做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>训练集</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">101</td>
+<td>拟合八个 <span class="arithmatex">\(w_k\)</span></td>
+</tr>
+<tr>
+<td>验证集</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">202</td>
+<td>从固定网格选择 Tikhonov 的 <span class="arithmatex">\(\lambda\)</span></td>
+</tr>
+<tr>
+<td>测试集</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">303</td>
+<td>冻结所有选择后，只做最终评估</td>
+</tr>
+</tbody>
+</table>
+<p>每条轨迹的 16 个传感器读数、真实初始场和独立的未来观测必须留在同一切分。若把传感器行随机拆开，同一根棒、同一个 <span class="arithmatex">\(a\)</span> 的局部信息就会同时出现在训练与测试中；这会把“记住同一轨迹”伪装成“推广到新轨迹”。</p>
+<p>轨迹 <span class="arithmatex">\(i\)</span> 使用 <span class="arithmatex">\((\text{split seed}+104729i)\bmod 2^{32}\)</span> 初始化独立伪随机流。即使 <span class="arithmatex">\(\sigma=0\)</span>，生成器仍抽取全部噪声随机数，使不同噪声设置保持同一条可比较的数据轨迹。改变 <span class="arithmatex">\(t\)</span> 或 <span class="arithmatex">\(\sigma\)</span> 会按相同种子重新生成全部切分，并重新拟合线性滤波器；改变测试情景只会修改测试轨迹，不能反向改变训练或验证。</p>
+<h2 id="3">3. 八参数线性逆滤波器怎样训练<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>对固定模态 <span class="arithmatex">\(k\)</span>，训练目标是 128 条训练轨迹上的平方误差：</p>
+<div class="arithmatex">\[
+J_k(w_k)=\sum_{i\in\mathrm{train}}(w_kb_{ik}-a_{ik})^2.
+\]</div>
+<p>逐步求导：</p>
+<div class="arithmatex">\[
+\frac{\mathrm dJ_k}{\mathrm dw_k}
+=2\sum_i b_{ik}(w_kb_{ik}-a_{ik})
+=2w_k\sum_i b_{ik}^2-2\sum_i b_{ik}a_{ik}.
+\]</div>
+<p>令导数为零，在 <span class="arithmatex">\(\sum_i b_{ik}^2&gt;0\)</span> 时得到</p>
+<div class="arithmatex">\[
+\boxed{
+w_k=\frac{\sum_{i\in\mathrm{train}}b_{ik}a_{ik}}
+{\sum_{i\in\mathrm{train}}b_{ik}^2}}
+\]</div>
+<p>八个模态各算一次，训练便结束了。由于 <span class="arithmatex">\(Q^\top Q=I\)</span>，最小化系数平方误差与最小化 16 个传感器位置上的初始场平方误差只差一个固定比例，不会改变最优 <span class="arithmatex">\(w\)</span>。若某模态在全部训练样本中都有 <span class="arithmatex">\(b_{ik}=0\)</span>，分母为零，数据不能识别这个权重；默认生成数据不会出现这一退化情形，但公式的适用条件必须说清。</p>
+<h3 id="_4">一行公式里的“训练分布偏好”<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>把训练样本数想象成无限多，并令 <span class="arithmatex">\(m_{2,k}=\mathbb E[a_k^2]\)</span>。由 <span class="arithmatex">\(b_k=s_ka_k+\eta_k\)</span> 且噪声与信号独立可得</p>
+<div class="arithmatex">\[
+w_k^*=\frac{s_km_{2,k}}{s_k^2m_{2,k}+\sigma^2}.
+\]</div>
+<p>无噪声时它趋近 <span class="arithmatex">\(1/s_k\)</span>，像直接求逆；噪声显著或训练分布中的该模态本来就很弱时，它会把该模态压小。换句话说，平滑训练分布隐含地告诉模型：“高频通常不重要。”这在同分布测试上可能有利，在突然出现尖锐热斑时却可能成为错误的归纳偏置。</p>
+<p>上式是无限样本的总体最优值，不是有限训练结果必须严格满足的公式。实际八个权重没有非负约束；弱信号模态的有限样本相关可能为负。例如默认数据的第 8 权重约为 −0.048746，而总体公式约为 0.004231。负权重来自有限样本波动，不能被解释成热扩散的真实逆增益。</p>
+<div class="learning-formal">
+<h3 id="_5">三个估计器必须在同一协议下比较<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<ol>
+<li><strong>无正则最小二乘</strong>：<span class="arithmatex">\(\hat a_k=b_k/s_k\)</span>。它忠实地逆转衰减，也会把高频噪声乘以很大的 <span class="arithmatex">\(1/s_k\)</span>。</li>
+<li><strong>零阶 Tikhonov</strong>：<span class="arithmatex">\(\hat a_k=s_kb_k/(s_k^2+\lambda)\)</span>。这里 <span class="arithmatex">\(\lambda\)</span> 直接惩罚 <span class="arithmatex">\(\|a\|^2\)</span>，没有暗中乘入 <span class="arithmatex">\(\sigma^2\)</span>，也不是导数平滑惩罚。</li>
+<li><strong>学习的对角滤波器</strong>：<span class="arithmatex">\(\hat a_k=w_kb_k\)</span>。八个 <span class="arithmatex">\(w_k\)</span> 只由训练集监督标签拟合；验证集和测试集标签都不参与拟合。</li>
+</ol>
+<p>线性学习基线并不必然优于解析正则化。它只是把“所有模态共享一个 <span class="arithmatex">\(\lambda\)</span>”换成“每个模态从训练分布学习一个缩放”。当部署分布改变时，这份灵活性也会成为脆弱性。</p>
+</div>
+<h2 id="4-lambda">4. 验证集只选择 <span class="arithmatex">\(\lambda\)</span>，测试集禁止调参<a class="headerlink" href="#4-lambda" title="Permanent link"></a></h2>
+<p>Tikhonov 候选网格固定为</p>
+<div class="arithmatex">\[
+\Lambda=\{10^{-6},10^{-5},10^{-4},10^{-3},10^{-2},10^{-1}\}.
+\]</div>
+<p>对每个候选 <span class="arithmatex">\(\lambda\)</span>，用 32 条验证轨迹的合成真值计算初始场 MSE：</p>
+<div class="arithmatex">\[
+\operatorname{MSE}_{\mathrm{val}}(\lambda)
+=\frac{1}{32\times16}
+\sum_{i\in\mathrm{val}}
+\left\|Q\hat a_i^{(\lambda)}-Qa_i\right\|_2^2.
+\]</div>
+<p>选择平均 MSE 最小的 <span class="arithmatex">\(\lambda\)</span>；完全并列时取较小者。合成实验允许我们查看验证真值，真实材料实验通常没有这种权限。验证轨迹在 <span class="arithmatex">\(t+0.5\,\mathrm s\)</span> 的独立带噪观测<strong>不参与</strong>逆滤波器拟合或 <span class="arithmatex">\(\lambda\)</span> 选择，只保留作预测诊断。</p>
+<p>选定 <span class="arithmatex">\(\lambda\)</span> 后立即冻结。不得查看测试 RMSE 再换 <span class="arithmatex">\(\lambda\)</span>，不得根据高频或错误扩散率测试结果重新训练 <span class="arithmatex">\(w\)</span>，也不得只报告最好看的测试情景。否则“测试集”已经变成第二个验证集。</p>
+<h2 id="5">5. 交互实验：先下注，再看三重压力测试<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<div class="learning-experiment">
+<h3 id="_6">在操作前写下三条预测<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<ol>
+<li>当 <span class="arithmatex">\(t\)</span> 增大时，哪个估计器最容易放大高频噪声？</li>
+<li>在高频分布外测试中，哪一个训练假设会首先暴露？</li>
+<li>为什么错误扩散率可能让未来预测和初始场重建同时出现系统偏差？</li>
+</ol>
+<div class="learning-lab" data-learning-lab="heat-inverse-project">
+<p><strong>无 JavaScript 时的静态读法：</strong>默认设置为 <span class="arithmatex">\(t=1\,\mathrm s\)</span>、<span class="arithmatex">\(\sigma=0.02\,\mathrm K\)</span>、手动探索 <span class="arithmatex">\(\lambda=0.001\)</span>。共享实验使用同一组 128/32/32 轨迹、同一八模态前向模型和同一组估计器；可以切换 <span class="arithmatex">\(t\in\{0.5,1,1.5\}\)</span>、<span class="arithmatex">\(\sigma\in\{0,0.02,0.05\}\)</span>、测试情景与测试轨迹编号 0–31。基准表始终使用验证集选出的 <span class="arithmatex">\(\lambda\)</span>，手动 <span class="arithmatex">\(\lambda\)</span> 只用于观察滤波强弱，不能改写正式测试结果。</p>
+<p>默认验证集选择 <span class="arithmatex">\(\lambda=0.01\)</span>。以下为默认平滑测试集 32 条轨迹的已计算结果，全部单位为 K；手动探索的默认 <span class="arithmatex">\(0.001\)</span> 不用于此表。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th style="text-align: right;">初态 RMSE</th>
+<th style="text-align: right;">观测残差 RMS</th>
+<th style="text-align: right;">独立晚时刻 RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无正则最小二乘</td>
+<td style="text-align: right;">3.254382</td>
+<td style="text-align: right;">0.014445</td>
+<td style="text-align: right;">0.022268</td>
+</tr>
+<tr>
+<td>Tikhonov，验证 <span class="arithmatex">\(\lambda=0.01\)</span></td>
+<td style="text-align: right;">0.052893</td>
+<td style="text-align: right;">0.024608</td>
+<td style="text-align: right;">0.028316</td>
+</tr>
+<tr>
+<td>学习的八参数逆</td>
+<td style="text-align: right;">0.043310</td>
+<td style="text-align: right;">0.017826</td>
+<td style="text-align: right;">0.022202</td>
+</tr>
+</tbody>
+</table>
+<p>可见最小残差不对应最小初态误差。第 7 节给出指标定义，第 10 节的完整数据可离线核对全部三种测试场景。</p>
+<p>读图时同时检查四件事：当前观测圆点与晚时刻独立观测空心方点分别对应哪个时间；每个方法保留或压掉了哪些模态；初始场 RMSE 是否和未来预测 RMSE 给出相同排序；切换情景后训练得到的八个 <span class="arithmatex">\(w_k\)</span> 是否保持不变。</p>
+</div>
+</div>
+<h2 id="6">6. 三种测试情景分别在问什么<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>情景</th>
+<th>只改变什么</th>
+<th>要诊断的能力</th>
+<th>不允许的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平滑同分布</td>
+<td>测试轨迹来自与训练相同的平滑系数族</td>
+<td>在协议匹配且模型正确时的基线表现；噪声与逆放大的权衡</td>
+<td>一次同分布胜出不能证明普遍最优</td>
+</tr>
+<tr>
+<td>高频 OOD</td>
+<td>偶数测试轨迹令 <span class="arithmatex">\(a_6\leftarrow a_6+6\,\mathrm K\)</span>，奇数轨迹令 <span class="arithmatex">\(a_6\leftarrow a_6-6\,\mathrm K\)</span></td>
+<td>训练分布很少出现强高频时，学习滤波器能否外推</td>
+<td>不能用该测试标签回头扩充训练后仍称为同一次测试</td>
+</tr>
+<tr>
+<td>错误扩散率</td>
+<td>测试数据真值改为 <span class="arithmatex">\(\kappa=0.016\,\mathrm{m^2/s}\)</span>，估计器仍假设 0.01</td>
+<td>前向物理模型失配时，数据驱动缩放和解析求逆如何一起偏离</td>
+<td>不能把系统误差全归因于随机噪声或“模型容量不足”</td>
+</tr>
+</tbody>
+</table>
+<p>平滑同分布不是一种灾难性失效；它是必要的对照条件。高频 OOD 改变的是系数分布，错误扩散率改变的是前向机制。把两者分开，才能知道失败来自“训练数据没见过”还是“物理方程本身用错了”。</p>
+<h2 id="7">7. 三个指标回答三个不同的问题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对 32 条测试轨迹和 16 个传感器位置，统一先汇总平方误差再开根号：</p>
+<div class="arithmatex">\[
+\operatorname{RMSE}_{u_0}
+=\sqrt{\frac{1}{32\times16}\sum_i\|Q\hat a_i-Qa_i\|_2^2}.
+\]</div>
+<p>还要报告当前观测残差</p>
+<div class="arithmatex">\[
+\operatorname{RMS}_{\mathrm{obs}}
+=\sqrt{\frac{1}{32\times16}\sum_i
+\|QS(t)\hat a_i-y_i\|_2^2},
+\]</div>
+<p>以及对独立未来带噪观测 <span class="arithmatex">\(y_i^+\)</span> 的预测 RMSE：</p>
+<div class="arithmatex">\[
+\operatorname{RMSE}_{\mathrm{future}}
+=\sqrt{\frac{1}{32\times16}\sum_i
+\|QS(t+0.5)\hat a_i-y_i^+\|_2^2}.
+\]</div>
+<p>不要先算每条轨迹的 RMSE 再取平均；那是另一个聚合量。未来指标的目标含有新噪声，因此即使前向模型和初始场都完美，它也仍有噪声底。当前观测残差小可能只是过度追随噪声，未来预测好也可能是扩散隐藏了高频错误，只有三项并列才形成完整诊断。</p>
+<h2 id="8">8. 实验报告模板<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>按下面顺序提交。表格中三种估计器、三种情景都必须出现，不得只展示赢家。</p>
+<h3 id="a">A. 问题与预测<a class="headerlink" href="#a" title="Permanent link"></a></h3>
+<ul>
+<li>用一句话写清要恢复的量、可观测量和为什么问题不稳定。</li>
+<li>在运行前预测 <span class="arithmatex">\(t\)</span>、<span class="arithmatex">\(\sigma\)</span> 与测试情景会怎样改变三种估计器。</li>
+</ul>
+<h3 id="b">B. 可复现配置<a class="headerlink" href="#b" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>你的记录</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>协议版本</td>
+<td><code>heat-inverse-v1</code></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t\)</span>、<span class="arithmatex">\(\sigma\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td>训练/验证/测试轨迹数</td>
+<td>128 / 32 / 32</td>
+</tr>
+<tr>
+<td>切分种子</td>
+<td>101 / 202 / 303</td>
+</tr>
+<tr>
+<td>候选 <span class="arithmatex">\(\lambda\)</span> 网格</td>
+<td></td>
+</tr>
+<tr>
+<td>验证选中的 <span class="arithmatex">\(\lambda\)</span></td>
+<td></td>
+</tr>
+<tr>
+<td>测试情景</td>
+<td>smooth / high-frequency / wrong-diffusivity</td>
+</tr>
+<tr>
+<td>代码与数据文件校验</td>
+<td>文件名、版本或提交号</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c">C. 验证选择证据<a class="headerlink" href="#c" title="Permanent link"></a></h3>
+<p>列出六个候选 <span class="arithmatex">\(\lambda\)</span> 的验证初始场 MSE，标出胜者和并列规则。单独声明：测试标签未参与选择；学习滤波器只在训练集拟合。</p>
+<h3 id="d">D. 冻结后的测试结果<a class="headerlink" href="#d" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>情景</th>
+<th>估计器</th>
+<th style="text-align: right;">初始场 RMSE / K</th>
+<th style="text-align: right;">当前观测残差 RMS / K</th>
+<th style="text-align: right;">未来预测 RMSE / K</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>smooth</td>
+<td>无正则 / Tikhonov / 学习滤波</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>high-frequency</td>
+<td>无正则 / Tikhonov / 学习滤波</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr>
+<td>wrong-diffusivity</td>
+<td>无正则 / Tikhonov / 学习滤波</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="e">E. 机制解释与失败审计<a class="headerlink" href="#e" title="Permanent link"></a></h3>
+<ul>
+<li>用 <span class="arithmatex">\(s_k\)</span>、<span class="arithmatex">\(1/s_k\)</span>、Tikhonov 滤波因子和学得的 <span class="arithmatex">\(w_k\)</span> 解释结果，不用“模型更聪明”代替机制。</li>
+<li>指出高频 OOD 与错误扩散率失配的证据分别是什么。</li>
+<li>找出至少一个“当前或未来拟合不错，但初始重建仍不可信”的例子。</li>
+<li>写出八模态限制、独立高斯噪声、已知边界和无持续热源这些假设中，哪一条最可能妨碍真实部署。</li>
+</ul>
+<h3 id="f">F. 结论边界<a class="headerlink" href="#f" title="Permanent link"></a></h3>
+<p>只允许写“在本协议、这些种子、这个候选网格和这些测试情景下”的比较。真实实验没有隐藏的初始真值，必须依靠额外传感器、独立成像、重复实验或物理先验获得证据。</p>
+<h2 id="9">9. 迁移题：预测得准，却还原错了<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>一个部署系统在平滑验证集上选择了 <span class="arithmatex">\(\lambda\)</span>，未来 0.5 秒预测误差也很低。后来生产线上改用更窄的局部加热器，但扩散率没有改变。系统仍能较好预测稍后的温度，却把初始热斑重建得过宽。</p>
+<ol>
+<li>这更接近哪一种测试情景？</li>
+<li>为什么未来预测没有及时暴露问题？</li>
+<li>应怎样修订验证方案，而不是直接把测试样本拿去调参？</li>
+</ol>
+<details>
+<summary>展开参考答案</summary>
+<p>这更接近<strong>高频 OOD</strong>：窄热斑需要较强的高频模态，而平滑训练分布会让学习滤波器把这些模态视为低信号、高风险方向。热扩散继续衰减高频，所以过宽的初始估计与真实尖锐热斑在未来可能变得相似；低未来误差不能证明初始细节正确。</p>
+<p>应先保留这批生产样本作为一次诚实的分布外评估，记录失效，再另外收集或模拟代表窄加热器的新训练与验证轨迹；扩展验证情景、检查八模态分辨率是否足够，并在独立的新测试集上重新评估。若真实初始场不可见，还需要独立物理测量，而不是把未来预测误差当作替代真值。</p>
+</details>
+<h2 id="10">10. 项目文件与跨学科入口<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<ul>
+<li><a href="assets/learning/projects/heat-inverse/PROTOCOL.md">实验协议</a>：物理假设、随机流、切分、估计器和指标的唯一约定。</li>
+<li><a href="assets/learning/projects/heat-inverse/reference.py">NumPy 参考实现</a>：独立生成默认数据并复算基准。</li>
+<li><a href="assets/learning/projects/heat-inverse/benchmark-default.json">默认基准数据</a>：用于核对实现，不用于偷偷选择超参数。</li>
+<li><a href="../../math-course/site/project-01-heat-inverse.html">数学入口：衰减谱、SVD 与 Tikhonov 推导</a></li>
+<li><a href="../../physics-course/site/project-01-heat-inverse.html">物理入口：热方程、传感器链与模型误差</a></li>
+</ul>
+<p>这个项目以后会在图像去模糊、地球物理反演、医学成像、系统辨识和科学机器学习中再次出现。对象会变，纪律不会变：先写清前向机制和数据单位，再隔离训练、验证与测试，最后用刻意设计的分布外与模型失配情景检验结论。</p>
+</section>
+<h2 id="_7">项目速查<a class="headerlink" href="#_7" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>冻结协议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>监督学习任务</td>
+<td>输入 <span class="arithmatex">\(b=Q^\top y\)</span>，标签 <span class="arithmatex">\(a\)</span>，输出 <span class="arithmatex">\(Q\widehat a\)</span>；只保留 8 个模态</td>
+</tr>
+<tr>
+<td>学习模型</td>
+<td><span class="arithmatex">\(\widehat a_k=w_kb_k\)</span>，<span class="arithmatex">\(w_k=\sum_{\rm train}b_{ik}a_{ik}/\sum_{\rm train}b_{ik}^2\)</span>；无截距、无隐藏层</td>
+</tr>
+<tr>
+<td>数据划分</td>
+<td>128 条训练、32 条验证、每个场景 32 条测试；按完整轨迹划分</td>
+</tr>
+<tr>
+<td>参数选择</td>
+<td>验证集初态 MSE 选择 Tikhonov 的 <span class="arithmatex">\(\lambda\)</span>；测试标签不参与选择</td>
+</tr>
+<tr>
+<td>三个测试条件</td>
+<td>平滑同分布、高频增强、实际扩散率与假设不符</td>
+</tr>
+<tr>
+<td>报告指标</td>
+<td>初态 RMSE、当前残差 RMS、独立晚时刻预测 RMSE，均为 K</td>
+</tr>
+</tbody>
+</table>
+<p>学习模式包含逐步推导、共同实验、报告模板和迁移题。复现下载：<a href="assets/learning/projects/heat-inverse/PROTOCOL.md">协议</a>、<a href="assets/learning/projects/heat-inverse/reference.py">NumPy 脚本</a>、<a href="assets/learning/projects/heat-inverse/benchmark-default.json">默认数据</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="labs.html"><span class="pager-label">上一讲</span>实验总览（lab01–lab10）</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/heat-inverse-project.js"></script>
+</body>
+</html>

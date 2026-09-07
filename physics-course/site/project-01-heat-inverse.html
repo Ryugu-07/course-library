@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从温度读数反推初态 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li class="active"><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 05:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#_2">学习层：温度曲线变平了，丢失的细节还能找回来吗？</a><ul>
+<li><a href="#heat-physics-title">1. 先区分“曾经加热过”与“现在还在加热”</a></li>
+<li><a href="#2">2. 一种温度形状为什么会按指数衰减？</a></li>
+<li><a href="#3">3. 从杆到读数：我们实际逆推的是哪一步？</a></li>
+<li><a href="#4">4. 动手前先判断，再用三本账核对</a></li>
+<li><a href="#5">5. 为什么另一次测温仍不能证明所有初态细节？</a></li>
+<li><a href="#6">6. 反例：扩散率写错，零残差也会认错初态</a></li>
+<li><a href="#7">7. 独立迁移题：改变杆长，还是改变物理模型？</a></li>
+</ul>
+</li>
+<li><a href="#_3">把这次实验带到另外两个入口</a></li>
+<li><a href="#_4">项目速查</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">综合项目 · 冷却后的温度能告诉我们最初哪里更热吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p><strong>物理入口</strong>：把一根杆的冷却过程写成可检验的模型，再判断逆推结果究竟得到了哪些证据。前置只需导数、正弦函数与指数衰减；本页会补出分离变量的关键步骤。本项目全部数据由已知模型构造，<strong>不是实际材料的测温记录</strong>。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="heat-physics-title" class="learning-layer">
+<h2 id="_2">学习层：温度曲线变平了，丢失的细节还能找回来吗？<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h3 id="heat-physics-title">1. 先区分“曾经加热过”与“现在还在加热”<a class="headerlink" href="#heat-physics-title" title="Permanent link"></a></h3>
+<p>一根杆曾被加热，也可能有局部区域比周围更冷。到 <span class="arithmatex">\(t=0\)</span> 时，我们停止加热，随后只让温度分布自行扩散。过了一段时间，16 个测点各读出一个数。我们要找的是 <strong><span class="arithmatex">\(t=0\)</span> 的温度分布</strong>，不是持续热源的位置或功率。</p>
+<p>先把模型的每个条件说清楚：</p>
+<table>
+<thead>
+<tr>
+<th>场景中的对象</th>
+<th>数学记号与单位</th>
+<th>本项目的约定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>杆的位置</td>
+<td><span class="arithmatex">\(x\)</span>，米（m）</td>
+<td><span class="arithmatex">\(0\le x\le L\)</span>，<span class="arithmatex">\(L=1\,\mathrm m\)</span></td>
+</tr>
+<tr>
+<td>从停止加热起经过的时间</td>
+<td><span class="arithmatex">\(t\)</span>，秒（s）</td>
+<td>首次观测在 <span class="arithmatex">\(0.5\)</span>、<span class="arithmatex">\(1\)</span> 或 <span class="arithmatex">\(1.5\,\mathrm s\)</span></td>
+</tr>
+<tr>
+<td>相对固定热浴的温差</td>
+<td><span class="arithmatex">\(u(x,t)\)</span>，开尔文（K）</td>
+<td><span class="arithmatex">\(u=T-T_{\rm bath}\)</span>；负值表示比热浴冷，不是负绝对温度</td>
+</tr>
+<tr>
+<td>热扩散率</td>
+<td><span class="arithmatex">\(\kappa\)</span>，<span class="arithmatex">\(\mathrm{m^2/s}\)</span></td>
+<td>默认 <span class="arithmatex">\(0.01\,\mathrm{m^2/s}\)</span>，在杆上保持常数</td>
+</tr>
+<tr>
+<td>两端温差</td>
+<td><span class="arithmatex">\(u(0,t),u(L,t)\)</span></td>
+<td>都固定为零，即两端维持热浴温度</td>
+</tr>
+<tr>
+<td>内部读数位置</td>
+<td><span class="arithmatex">\(x_j=jL/17\)</span></td>
+<td><span class="arithmatex">\(j=1,\ldots,16\)</span>，不把固定温度的端点当作传感器</td>
+</tr>
+</tbody>
+</table>
+<p>把杆视为一维，意味着忽略横截面上的温差；本模型也忽略对流、辐射和持续内热源。在这些假设下，热方程是</p>
+<div class="arithmatex">\[
+\frac{\partial u}{\partial t}=\kappa\frac{\partial^2u}{\partial x^2},
+\qquad u(0,t)=u(L,t)=0.
+\]</div>
+<p>它把局部形状与局部变化连起来：在一个光滑的温度峰顶，<span class="arithmatex">\(u_{xx}&lt;0\)</span>，所以 <span class="arithmatex">\(u_t&lt;0\)</span>，峰顶会降温；在谷底则相反。这里控制变化的是<strong>曲率</strong>，不是仅凭“这个点很热”作判断。两端被固定热浴维持温度，杆可以通过端点交换热量，因此不能要求整根杆的总热量始终不变。</p>
+<p><strong>单位先对一次账：</strong>左边是 <span class="arithmatex">\(\mathrm{K/s}\)</span>，右边是 <span class="arithmatex">\((\mathrm{m^2/s})(\mathrm{K/m^2})=\mathrm{K/s}\)</span>。如果实验中仍在加热，方程就需加入热源项；如果材料参数随位置变化，空间算子也要相应改变。本项目的逆推公式不能直接搬到那些模型中。</p>
+<h3 id="2">2. 一种温度形状为什么会按指数衰减？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先找一种在冷却时只改变高度、不改变形状的解，写成</p>
+<div class="arithmatex">\[
+u(x,t)=X(x)G(t).
+\]</div>
+<p>代入热方程，在可除的位置分离变量：</p>
+<div class="arithmatex">\[
+X(x)G'(t)=\kappa X''(x)G(t)
+\quad\Longrightarrow\quad
+\frac{G'(t)}{\kappa G(t)}=\frac{X''(x)}{X(x)}=-\mu.
+\]</div>
+<p>左边只依赖时间，右边只依赖位置；要在整个区域相等，只能等于同一个常数。两端固定为零，非零的空间解满足</p>
+<div class="arithmatex">\[
+X''+\mu X=0,\qquad X(0)=X(L)=0.
+\]</div>
+<p><span class="arithmatex">\(\mu=0\)</span> 时，直线同时在两端为零，只能是零解；<span class="arithmatex">\(\mu&lt;0\)</span> 的指数型空间解也不能满足两个零端点而保持非零。因此非零模态取 <span class="arithmatex">\(\mu&gt;0\)</span>。先由左端条件留下正弦，再由右端条件限制波数：</p>
+<div class="arithmatex">\[
+X_k(x)\propto\sin\left(\frac{k\pi x}{L}\right),
+\qquad \mu_k=\left(\frac{k\pi}{L}\right)^2,
+\qquad k=1,2,\ldots.
+\]</div>
+<p>时间部分于是只剩一阶方程：</p>
+<div class="arithmatex">\[
+G_k'=-\kappa\mu_kG_k
+\quad\Longrightarrow\quad
+G_k(t)=G_k(0)\exp\left[-\kappa\left(\frac{k\pi}{L}\right)^2t\right].
+\]</div>
+<p>记衰减因子为 <span class="arithmatex">\(s_k(t)\)</span>，衰减时间尺度为 <span class="arithmatex">\(\tau_k\)</span>：</p>
+<div class="arithmatex">\[
+s_k(t)=e^{-t/\tau_k},\qquad
+\tau_k=\frac{L^2}{\kappa k^2\pi^2}.
+\]</div>
+<p><span class="arithmatex">\(k\)</span> 越大，沿杆变化越密，代表越细的空间结构；其衰减率按 <span class="arithmatex">\(k^2\)</span> 增长。例如第 6 模态的衰减率是第 1 模态的 36 倍。这个结论来自热方程的二阶空间导数，不是绘图程序刻意把细节擦掉。</p>
+<p>线性方程允许把这些解相加。本项目只保留前 <strong>8 个正弦模态</strong>，连续温度曲线定义为</p>
+<div class="arithmatex">\[
+u(x,t)=\sqrt{\frac{2}{17}}\sum_{k=1}^{8}
+a_k\sin\left(\frac{k\pi x}{L}\right)s_k(t).
+\]</div>
+<p><span class="arithmatex">\(a_k\)</span> 是初始模态系数，单位为 K。前面的无量纲系数用于下面 16 个测点的离散正交归一化；它不是要求正弦函数在连续区间上的积分范数等于 1。八模态是明确的建模限制：本实验没有声称用 16 个读数恢复任意精细的连续温度分布。</p>
+<h3 id="3">3. 从杆到读数：我们实际逆推的是哪一步？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先列出完整的数据链，避免把图上的曲线当成直接观测到的真相：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>数学对象</th>
+<th>物理含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>准备初态</td>
+<td><span class="arithmatex">\(a\in\mathbb R^8\)</span></td>
+<td>8 个初始模态系数</td>
+</tr>
+<tr>
+<td>等待冷却</td>
+<td><span class="arithmatex">\(S(t)a\)</span>，<span class="arithmatex">\(S(t)=\operatorname{diag}(s_k(t))\)</span></td>
+<td>各模态分别衰减</td>
+</tr>
+<tr>
+<td>读取测点位置</td>
+<td><span class="arithmatex">\(Q S(t)a\in\mathbb R^{16}\)</span></td>
+<td>16 个测点的无噪声温差</td>
+</tr>
+<tr>
+<td>加入传感器误差</td>
+<td><span class="arithmatex">\(y=Q S(t)a+\varepsilon\)</span></td>
+<td>实际交给逆推器的 16 个数</td>
+</tr>
+</tbody>
+</table>
+<p>这里</p>
+<div class="arithmatex">\[
+Q_{jk}=\sqrt{\frac{2}{17}}\sin\left(\frac{jk\pi}{17}\right),
+\quad Q\in\mathbb R^{16\times8},\quad Q^\top Q=I,
+\qquad y=Q S(t)a+\varepsilon.
+\]</div>
+<p>噪声模型是每个测点独立的 <span class="arithmatex">\(\varepsilon_j\sim\mathcal N(0,\sigma^2)\)</span>；<span class="arithmatex">\(\sigma\)</span> 的单位也是 K。它是本模拟的传感器模型，不表示真实仪器的误差必定独立或服从高斯分布。</p>
+<p>乘 <span class="arithmatex">\(Q^\top\)</span>，把测点读数投影到模态坐标：</p>
+<div class="arithmatex">\[
+b=Q^\top y=S(t)a+Q^\top\varepsilon.
+\]</div>
+<p>由于 <span class="arithmatex">\(Q\)</span> 的列正交归一，投影后每个噪声分量的方差仍是 <span class="arithmatex">\(\sigma^2\)</span>。无正则逆推逐项除以 <span class="arithmatex">\(s_k\)</span>：</p>
+<div class="arithmatex">\[
+\widehat a_k=\frac{b_k}{s_k(t)}
+=a_k+\frac{(Q^\top\varepsilon)_k}{s_k(t)}.
+\]</div>
+<p>最后一项解释了问题：冷却时被压小的模态，逆推时也会把噪声放大。有限时间内这些 <span class="arithmatex">\(s_k\)</span> 都大于零，所以在<strong>八模态、参数正确、无噪声且精确运算</strong>的条件下可以反解；读数中一旦有误差，“公式可逆”就不保证“恢复稳定”。</p>
+<p><strong>无脚本也能算的小例子。</strong> 单独构造 <span class="arithmatex">\(a_1=a_6=1\,\mathrm K\)</span>、其余系数为零，并令 <span class="arithmatex">\(t=1\,\mathrm s\)</span>、<span class="arithmatex">\(\sigma=0\)</span>。这不是默认数据的某一条记录，只是代公式的练习：</p>
+<div class="arithmatex">\[
+b_1=e^{-0.01\pi^2}\,\mathrm K,\qquad
+b_6=e^{-0.36\pi^2}\,\mathrm K.
+\]</div>
+<p>分别除以各自的衰减因子都会还原 <span class="arithmatex">\(1\,\mathrm K\)</span>。若两个模态读数恰好都多出同一个小误差 <span class="arithmatex">\(\delta\)</span>，初态系数误差却分别成为 <span class="arithmatex">\(e^{0.01\pi^2}\delta\)</span> 与 <span class="arithmatex">\(e^{0.36\pi^2}\delta\)</span>；第 6 模态的误差放大明显更强。这里给定的 <span class="arithmatex">\(\delta\)</span> 是用于比较的扰动，不是宣称每次随机噪声都相等。</p>
+<h3 id="4">4. 动手前先判断，再用三本账核对<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先写下预测与理由：</p>
+<ol>
+<li>噪声幅度相同，晚一点测温，会让初态细节更容易恢复还是更困难？</li>
+<li>两个逆推结果都能贴近当前温度读数，是否就同样接近真实初态？</li>
+<li>再过 <span class="arithmatex">\(0.5\,\mathrm s\)</span> 测一次，预测准确是否足以证明恢复了第 6 模态？</li>
+</ol>
+<div class="learning-lab" data-learning-lab="heat-inverse-project">
+<p><strong>静态后备：</strong>上节双模态例子给出了 <span class="arithmatex">\(t=1\)</span> 时的读数。到 <span class="arithmatex">\(t+0.5\)</span>，各模态在已有读数上再乘</p>
+<div class="arithmatex">\[
+s_k(0.5)=e^{-0.005k^2\pi^2}.
+\]</div>
+<p>因此第 1 模态成为 <span class="arithmatex">\(e^{-0.015\pi^2}\,\mathrm K\)</span>，第 6 模态成为 <span class="arithmatex">\(e^{-0.54\pi^2}\,\mathrm K\)</span>。对任意重建系数 <span class="arithmatex">\(\widehat a\)</span>，把 <span class="arithmatex">\(Q S(t+0.5)\widehat a\)</span> 与独立的新读数比较即可检查未来预测；初态则比较 <span class="arithmatex">\(Q\widehat a\)</span> 与 <span class="arithmatex">\(Qa\)</span>。二者检查的是不同对象。</p>
+<table>
+<thead>
+<tr>
+<th>检查对象</th>
+<th>比较什么</th>
+<th>单位与解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>初态场 RMSE</td>
+<td><span class="arithmatex">\(Q\widehat a\)</span> 与模拟真值 <span class="arithmatex">\(Qa\)</span></td>
+<td>K；只有模拟中才直接知道真值</td>
+</tr>
+<tr>
+<td>当前读数残差 RMS</td>
+<td><span class="arithmatex">\(Q S(t)\widehat a\)</span> 与用于拟合的 <span class="arithmatex">\(y\)</span></td>
+<td>K；反映贴合已用读数的程度</td>
+</tr>
+<tr>
+<td>后续时刻预测 RMSE</td>
+<td><span class="arithmatex">\(Q S(t+0.5)\widehat a\)</span> 与未参与拟合的新读数</td>
+<td>K；仍包含新测量噪声</td>
+</tr>
+</tbody>
+</table>
+<p><strong>读图顺序：</strong>先确认杆上 16 个测点及温差单位；再比较初态曲线与冷却后的读数；最后同时看三项误差。并排比较无正则、Tikhonov 与学习型滤波器，观察方法怎样改变“贴合当前读数”和“恢复初态”的取舍。</p>
+</div>
+<p>建议先选正确扩散率的平滑场景，固定一条测试轨迹，把噪声从零调到非零；再固定噪声改变观测时刻。切到高频场景，看看训练分布以外的第 6 模态会怎样影响判断。更换 <span class="arithmatex">\(t\)</span> 或 <span class="arithmatex">\(\sigma\)</span> 时，实验按固定种子重新生成各数据集并重新拟合学习滤波器；不能把不同设置中的方法读数误解成同一个已经冻结的估计器。</p>
+<p>实验的 Tikhonov 惩罚是 <span class="arithmatex">\(\lambda\lVert a\rVert^2\)</span>，约束系数大小，不直接惩罚空间导数。学习型方法只拟合 8 个逐模态线性系数，不是神经网络。数学入口解释滤波公式，AI 入口解释训练与验证规则；这里要抓住它们共同面对的物理限制：细尺度温度形状已被扩散压低。</p>
+<h3 id="5">5. 为什么另一次测温仍不能证明所有初态细节？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>后续读数发生在 <span class="arithmatex">\(t+0.5\,\mathrm s\)</span>，噪声与首次读数独立，并且<strong>从未交给逆推器拟合</strong>。这比只查看当前残差多了一项有用的检验，但它仍然经过同一个平滑过程。</p>
+<p>设某次重建的第 <span class="arithmatex">\(k\)</span> 模态初态误差为 <span class="arithmatex">\(\Delta a_k\)</span>。它到后续读数中的影响只有</p>
+<div class="arithmatex">\[
+\Delta u_{\rm future}=Q_{\cdot k}\,s_k(t+0.5)\Delta a_k.
+\]</div>
+<p>对较大的 <span class="arithmatex">\(k\)</span>，即使 <span class="arithmatex">\(\Delta a_k\)</span> 不小，乘上很小的 <span class="arithmatex">\(s_k\)</span> 后也可能被新噪声掩盖。因此“未来温度预测很好”支持模型在这个观测尺度上的预测，不能直接证明初态的每一条细纹都恢复正确。即使模型和初态都完全正确，与<strong>含噪声</strong>的新读数比较时也会留下噪声误差。</p>
+<p>在真实实验中，我们看不到隐藏的初态真值。若要验证初态细节，需要额外的独立物理证据，例如更早时刻的可靠测量，或事先受控且已知的初始条件；不能用同一份拟合数据反复作证。</p>
+<h3 id="6">6. 反例：扩散率写错，零残差也会认错初态<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>错误扩散率场景保持初态生成分布不变，但测试数据实际使用</p>
+<div class="arithmatex">\[
+\kappa_{\rm true}=0.016\,\mathrm{m^2/s},
+\qquad \kappa_{\rm assumed}=0.01\,\mathrm{m^2/s}.
+\]</div>
+<p>所有估计器仍按后者计算衰减。先去掉噪声，只看无正则逆推的一项；令 <span class="arithmatex">\(\mu_k=(k\pi/L)^2\)</span>：</p>
+<div class="arithmatex">\[
+b_k=e^{-\kappa_{\rm true}\mu_k t}a_k,
+\qquad
+\widehat a_k=e^{\kappa_{\rm assumed}\mu_k t}b_k
+=e^{-(\kappa_{\rm true}-\kappa_{\rm assumed})\mu_k t}a_k.
+\]</div>
+<p>真实材料衰减得更快，估计器却以为它衰减得较慢，于是把部分衰减误认成“最初就没有那么大的模态”。把这个错误初态代回<strong>假定模型</strong>，仍然正好得到当前的 <span class="arithmatex">\(b_k\)</span>：当前残差可以为零，初态却不正确。</p>
+<p>再过 <span class="arithmatex">\(\Delta t=0.5\,\mathrm s\)</span>，从当前模态读数出发，两种预测分别是</p>
+<div class="arithmatex">\[
+\widehat b_k(t+\Delta t)=b_k(t)e^{-\kappa_{\rm assumed}\mu_k\Delta t},
+\qquad
+b_k^{\rm true}(t+\Delta t)=b_k(t)e^{-\kappa_{\rm true}\mu_k\Delta t}.
+\]</div>
+<p>对非零模态，假定模型的振幅衰减不足；独立后续读数有机会揭示这个不一致。不过细模态太小或噪声太强时，差异仍可能不易看见。这里推导的是无噪声、无正则情形，用来隔离模型错误；有正则或学习滤波时，还会叠加估计偏差。调大正则强度不能替代对材料参数和边界条件的检验。</p>
+<h3 id="7">7. 独立迁移题：改变杆长，还是改变物理模型？<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>不用读取实验答案，分别给出公式与理由：</p>
+<ol>
+<li>换成 <span class="arithmatex">\(L=2\,\mathrm m\)</span> 的杆，扩散率与模态编号 <span class="arithmatex">\(k\)</span> 不变。若要达到原来 <span class="arithmatex">\(1\,\mathrm s\)</span> 后相同的相对衰减，需要等多久？“相同编号”表示相同的相对空间形状，不是相同米制波长。</li>
+<li>初态只有第一正弦模态且 <span class="arithmatex">\(a_1&lt;0\)</span>，因此杆内部比热浴冷，即 <span class="arithmatex">\(u&lt;0\)</span>。没有持续热源时，这个负系数随时间会变得更负，还是趋近零？用时间因子回答。</li>
+<li>只在 <span class="arithmatex">\(t\)</span> 时刻读取一个非零模态，既不知道其初态系数 <span class="arithmatex">\(a_k\)</span>，又不知道 <span class="arithmatex">\(\kappa\)</span>。无噪声能否唯一确定这两个未知量？如果再获得一个不同时间的精确读数，会增加什么信息？</li>
+</ol>
+<details>
+<summary>核对推理与边界</summary>
+<p><strong>1. 等 4 秒。</strong> 相对衰减的指数是 <span class="arithmatex">\(\kappa k^2\pi^2t/L^2\)</span>。长度加倍，要把时间乘 4 才能保持指数不变。比较的是同一编号的正弦形状；若比较相同的物理波长，则不能直接套这个结论。</p>
+<p><strong>2. 趋近零。</strong> <span class="arithmatex">\(a_k(t)=a_k(0)e^{-t/\tau_k}\)</span>，指数因子为正且逐渐减小，所以符号不变，绝对值减小。负温差意味着向热浴温度靠近，不意味着绝对温度低于零 K；多模态叠加时，不应把单个系数的行为误说成每个点都单调变化。</p>
+<p><strong>3. 一个读数不够。</strong> 对任意候选 <span class="arithmatex">\(\kappa\)</span>，都可取 <span class="arithmatex">\(a_k=b_k(t)e^{\kappa\mu_k t}\)</span> 得到同一个读数。再有 <span class="arithmatex">\(t_2&gt;t_1\)</span> 的非零精确读数，且已知这确实是同一个自由衰减模态，则</p>
+<div class="arithmatex">\[
+\frac{b_k(t_2)}{b_k(t_1)}=e^{-\kappa\mu_k(t_2-t_1)},
+\qquad
+\kappa=-\frac{\ln[b_k(t_2)/b_k(t_1)]}{\mu_k(t_2-t_1)}.
+\]</div>
+<p>两读数同号，比例为正，才能使用这个公式。真实含噪数据若接近零，取比值和对数会很不稳定；持续热源、变化的边界或空间不均匀的扩散率也会破坏单模态自由衰减假设。若用第二次读数估计 <span class="arithmatex">\(\kappa\)</span>，它就成为拟合数据，不能再称为同一次评估中的独立后续检验；本项目特意保留它，只作检验。</p>
+</details>
+</section>
+<h2 id="_3">把这次实验带到另外两个入口<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p><a href="../../math-course/site/project-01-heat-inverse.html">数学入口：模态衰减、奇异值与正则化</a> 解释逆推为何放大噪声，以及 Tikhonov 的滤波因子怎样推出来。<a href="../../ai-course/site/project-01-heat-inverse.html">AI 入口：完整轨迹划分与分布外测试</a> 解释学习滤波器、验证集选择与测试报告。三个入口共享同一个实验，不代表进行了三次独立的物理研究。</p>
+<p>可下载 <a href="assets/learning/projects/heat-inverse/PROTOCOL.md">完整协议</a>、<a href="assets/learning/projects/heat-inverse/reference.py">独立 NumPy 参考脚本</a> 与 <a href="assets/learning/projects/heat-inverse/benchmark-default.json">默认完整基准数据</a>。默认数据对应协议规定的 <span class="arithmatex">\(t=1\,\mathrm s\)</span>、<span class="arithmatex">\(\sigma=0.02\,\mathrm K\)</span>；网页切换设置后，要连同设置记录一并解释结果。每份导出的测试数据只用于评估，不能再用它反过来选择参数，然后把同一批测试误差当作独立成绩。</p>
+<p>一份合格的物理实验结论应交代四件事：采用了哪些边界与材料假设；测点读到了什么；哪些初态结构的恢复有证据支持；哪些误差仍可能来自噪声、过度简化或错误参数。先明确这些，逆问题才有可核查的物理含义。</p>
+<h2 id="_4">项目速查<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>物理约定</th>
+<th>公式或检验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>超额温度与边界</td>
+<td><span class="arithmatex">\(u=T-T_{\rm bath}\)</span>，<span class="arithmatex">\(u(0,t)=u(L,t)=0\)</span>；无持续热源</td>
+</tr>
+<tr>
+<td>前向演化</td>
+<td><span class="arithmatex">\(u_t=\kappa u_{xx}\)</span>，<span class="arithmatex">\(\kappa=0.01\,\mathrm{m^2/s}\)</span>，<span class="arithmatex">\(L=1\,\mathrm m\)</span></td>
+</tr>
+<tr>
+<td>模态衰减</td>
+<td><span class="arithmatex">\(s_k(t)=e^{-\kappa(k\pi/L)^2t}\)</span>，<span class="arithmatex">\(\tau_k=L^2/(\kappa k^2\pi^2)\)</span></td>
+</tr>
+<tr>
+<td>模型失配测试</td>
+<td>实际 <span class="arithmatex">\(\kappa=0.016\)</span>，逆推仍用 <span class="arithmatex">\(0.01\)</span>；初态分布不变</td>
+</tr>
+<tr>
+<td>独立时间检验</td>
+<td><span class="arithmatex">\(t+0.5\)</span> 秒新读数不参与拟合；预测好不能证明初态细节恢复正确</td>
+</tr>
+</tbody>
+</table>
+<p>学习模式包含分离变量推导、测点图、交互实验和可辨识性迁移题。全部结果来自八模态模拟。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="beyond-01-lookout.html"><span class="pager-label">上一页</span>了望塔 · 量子引力与超越标准模型</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/heat-inverse-project.js"></script>
+</body>
+</html>

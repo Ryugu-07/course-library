@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从温度读数反推初态 · 本科数学复习库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">本科数学复习库</a>
+    <div class="site-subtitle">定义 · 定理 · 证明思路 · 速查</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">分析线</div><ul><li><a href="analysis-01-real-limits.html">数分 I · 实数完备性与极限</a></li><li><a href="analysis-02-differential.html">数分 II · 一元微分学</a></li><li><a href="analysis-03-integral.html">数分 III · 一元积分学</a></li><li><a href="analysis-04-series.html">数分 IV · 级数</a></li><li><a href="analysis-05-multivar-diff.html">数分 V · 多元微分学</a></li><li><a href="analysis-06-multivar-int.html">数分 VI · 多元积分学</a></li><li><a href="ode-01-first-order.html">常微分 I · 一阶方程与解的理论</a></li><li><a href="ode-02-linear.html">常微分 II · 高阶线性方程</a></li><li><a href="ode-03-systems-stability.html">常微分 III · 线性系统与稳定性</a></li><li><a href="complex-01-analytic.html">复变 I · 解析函数与 C–R 方程</a></li><li><a href="complex-02-integration.html">复变 II · Cauchy 定理与积分公式</a></li><li><a href="complex-03-residues.html">复变 III · 级数与留数定理</a></li><li><a href="real-01-measure.html">实变 I · Lebesgue 测度</a></li><li><a href="real-02-lebesgue-integral.html">实变 II · 积分与收敛定理</a></li><li><a href="real-03-lp-spaces.html">实变 III · Lp 空间</a></li><li><a href="func-01-banach.html">泛函 I · 度量与 Banach 空间</a></li><li><a href="func-02-hilbert.html">泛函 II · Hilbert 空间</a></li><li><a href="func-03-operators.html">泛函 III · 有界算子与三大定理</a></li><li><a href="pde-01-separation.html">偏微分 I · 三大方程与分离变量</a></li><li><a href="pde-02-characteristics-kernels.html">偏微分 II · 特征线、行波与热核</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">代数与几何线</div><ul><li><a href="algebra-01-polynomial.html">高代 I · 多项式</a></li><li><a href="algebra-02-determinant.html">高代 II · 行列式与线性方程组</a></li><li><a href="algebra-03-matrix.html">高代 III · 矩阵</a></li><li><a href="algebra-04-linear-space.html">高代 IV · 线性空间与线性映射</a></li><li><a href="algebra-05-eigen.html">高代 V · 特征值与标准形</a></li><li><a href="algebra-06-quadratic.html">高代 VI · 二次型与内积空间</a></li><li><a href="geo-01-vectors-planes.html">解几 I · 向量代数与平面直线</a></li><li><a href="geo-02-quadrics.html">解几 II · 二次曲面</a></li><li><a href="alg-abs-01-groups.html">抽代 I · 群论</a></li><li><a href="alg-abs-02-rings-fields.html">抽代 II · 环、域与 Galois 一瞥</a></li><li><a href="top-01-spaces.html">拓扑 I · 拓扑空间与连续映射</a></li><li><a href="top-02-compact-connected.html">拓扑 II · 紧致、连通与分离性</a></li><li><a href="dg-01-curves.html">微分几何 I · 曲线论</a></li><li><a href="dg-02-surfaces.html">微分几何 II · 曲面论与绝妙定理</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率统计线</div><ul><li><a href="prob-01-space-bayes.html">概率 I · 概率空间与贝叶斯</a></li><li><a href="prob-02-random-variables.html">概率 II · 随机变量与分布</a></li><li><a href="prob-03-multivariate.html">概率 III · 多维随机变量</a></li><li><a href="prob-04-moments.html">概率 IV · 数字特征与条件期望</a></li><li><a href="prob-05-limit-theorems.html">概率 V · 极限定理</a></li><li><a href="stat-01-sampling.html">统计 I · 统计量与抽样分布</a></li><li><a href="stat-02-estimation.html">统计 II · 点估计与 Cramér–Rao</a></li><li><a href="stat-03-interval.html">统计 III · 区间估计</a></li><li><a href="stat-04-testing.html">统计 IV · 假设检验</a></li><li><a href="stat-05-regression.html">统计 V · 回归与方差分析</a></li><li><a href="stoch-01-poisson.html">随机过程 I · Poisson 过程</a></li><li><a href="stoch-02-markov-1.html">随机过程 II · Markov 链（一）</a></li><li><a href="stoch-03-markov-2.html">随机过程 III · Markov 链（二）</a></li><li><a href="stoch-04-brownian.html">随机过程 IV · 布朗运动与鞅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">应用计算线</div><ul><li><a href="num-01-error.html">数值 I · 误差与数值稳定性</a></li><li><a href="num-02-linear-systems.html">数值 II · 线性方程组</a></li><li><a href="num-03-roots-interp.html">数值 III · 求根、插值与逼近</a></li><li><a href="num-04-quadrature-ode.html">数值 IV · 数值积分与 ODE</a></li><li><a href="opt-01-convex.html">优化 I · 凸分析基础</a></li><li><a href="opt-02-unconstrained.html">优化 II · 无约束优化</a></li><li><a href="opt-03-duality-kkt.html">优化 III · 对偶与 KKT</a></li><li><a href="opt-04-lp-dp.html">优化 IV · 线性规划与动态规划</a></li><li><a href="model-01-methodology.html">建模 I · 方法论与量纲分析</a></li><li><a href="model-02-classic-models.html">建模 II · 经典模型谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">扩展线（信息 · 金融 · 离散）</div><ul><li><a href="info-01-entropy.html">信息论 I · 熵与信源编码</a></li><li><a href="info-02-kl-mi.html">信息论 II · KL 散度与互信息</a></li><li><a href="info-03-maxent-channel.html">信息论 III · 最大熵与信道容量</a></li><li><a href="sde-01-ito.html">随机微积分 I · 二次变差与 Itô 引理</a></li><li><a href="sde-02-sde-diffusion.html">随机微积分 II · SDE 与扩散模型</a></li><li><a href="sde-03-black-scholes.html">随机微积分 III · Black–Scholes</a></li><li><a href="ts-01-stationary-arma.html">时间序列 I · 平稳性与 ARMA</a></li><li><a href="ts-02-nonstationary-garch.html">时间序列 II · GARCH 与预测纪律</a></li><li><a href="graph-01-counting.html">图论组合 I · 计数与生成函数</a></li><li><a href="graph-02-graphs.html">图论组合 II · 图的基本理论</a></li><li><a href="graph-03-matching-flows.html">图论组合 III · 匹配与网络流</a></li><li><a href="game-01-nash.html">博弈论 I · 策略型博弈与 Nash 均衡</a></li><li><a href="game-02-zerosum-dynamic.html">博弈论 II · 零和、动态与机制设计</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li class="active"><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 05:57</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#heat-inverse-math-title">学习层：数据拟合得很好，为什么初始温度仍会错得很远？</a><ul>
+<li><a href="#1">1. 要恢复的是什么？</a></li>
+<li><a href="#2">2. 先算两个模态，看噪声怎样进入答案</a></li>
+<li><a href="#3">3. 投影与奇异值：把“难恢复”写成一个数</a></li>
+<li><a href="#4">4. 最小二乘解存在，稳定性仍可能很差</a></li>
+<li><a href="#5-tikhonov">5. 从目标函数求导，得到 Tikhonov 滤波器</a></li>
+<li><a href="#6">6. 先预测，再打开三种反演的共同实验</a></li>
+<li><a href="#7">7. 换一个情境，检查结论的边界</a></li>
+</ul>
+</li>
+<li><a href="#_2">项目速查</a></li>
+</ul>
+</div>
+</details>
+<h1 id="_1">综合项目 · 从冷却后的温度反推初态<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<blockquote>
+<p>数学入口：一次热扩散实验，把正交投影、奇异值、最小二乘和正则化连成一条推导。本项目使用<strong>按公开协议构造的模拟数据</strong>。三个课程站点共享相同参数、数据划分和实验。</p>
+<p>先修可按需查阅：<a href="algebra-06-quadratic.html">内积、正交与奇异值分解</a>、<a href="num-02-linear-systems.html">线性系统与数值稳定性</a>、<a href="pde-01-separation.html">热方程与分离变量</a>。继续阅读：<a href="../../physics-course/site/project-01-heat-inverse.html">物理入口</a> · <a href="../../ai-course/site/project-01-heat-inverse.html">AI 入口</a>。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section aria-labelledby="heat-inverse-math-title" class="learning-layer">
+<h2 id="heat-inverse-math-title">学习层：数据拟合得很好，为什么初始温度仍会错得很远？<a class="headerlink" href="#heat-inverse-math-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 要恢复的是什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>设想一根长 <span class="arithmatex">\(L=1\,\mathrm m\)</span> 的细棒，初始加热结束后不再有持续热源。我们只在 <span class="arithmatex">\(t=1\,\mathrm s\)</span> 读到 16 个内部传感器的温度，却想知道刚开始时哪里更热、哪里更冷。热扩散已经削弱了温度起伏；传感器还带有误差。直接把扩散“倒过来算”，会把什么一起放大？</p>
+<p>用 <span class="arithmatex">\(u(x,t)\)</span> 表示相对固定环境的<strong>超额温度</strong>，单位为 K；负值表示比环境冷。两端保持 <span class="arithmatex">\(u=0\)</span>，热扩散率固定为 <span class="arithmatex">\(\kappa=0.01\,\mathrm{m^2/s}\)</span>，忽略对流和辐射。本页先采用这套模型；模型错误留到后面的检验。</p>
+<p>传感器位置是 <span class="arithmatex">\(x_j=jL/17\)</span>，<span class="arithmatex">\(j=1,\ldots,16\)</span>。只保留八种正弦形状，把初始读数写成</p>
+<div class="arithmatex">\[
+\mathbf u_0=Q\mathbf a,\qquad
+Q_{jk}=\sqrt{\frac{2}{17}}\sin\frac{jk\pi}{17},\quad k=1,\ldots,8.
+\]</div>
+<p><span class="arithmatex">\(\mathbf a=(a_1,\ldots,a_8)^\mathsf T\)</span> 是待恢复的八个系数，单位为 K。<span class="arithmatex">\(a_1\)</span> 控制宽缓的起伏，较大的 <span class="arithmatex">\(k\)</span> 对应更细的空间变化。这个归一化使离散列向量满足 <span class="arithmatex">\(Q^\mathsf TQ=I_8\)</span>；它按 <strong>16 个传感器的求和内积</strong>归一化。连续曲线也使用同一个 <span class="arithmatex">\(\sqrt{2/17}\)</span> 因子，不另换成连续 <span class="arithmatex">\(L^2\)</span> 归一化。</p>
+<p>热方程 <span class="arithmatex">\(u_t=\kappa u_{xx}\)</span> 使第 <span class="arithmatex">\(k\)</span> 种形状的系数乘上</p>
+<div class="arithmatex">\[
+s_k(t)=\exp\!\left[-\kappa\left(\frac{k\pi}{L}\right)^2t\right].
+\]</div>
+<p>指数无量纲：<span class="arithmatex">\(\kappa\)</span> 的 <span class="arithmatex">\(\mathrm{m^2/s}\)</span>、波数平方的 <span class="arithmatex">\(\mathrm{m^{-2}}\)</span> 和时间的 <span class="arithmatex">\(\mathrm s\)</span> 相消。定义 <span class="arithmatex">\(S=\operatorname{diag}(s_1,\ldots,s_8)\)</span>，传感器观测便是</p>
+<div class="arithmatex">\[
+\mathbf y=QS\mathbf a+\boldsymbol\epsilon.
+\]</div>
+<p>这里 <span class="arithmatex">\(\boldsymbol\epsilon\)</span> 的 16 个分量独立服从 <span class="arithmatex">\(N(0,\sigma^2)\)</span>，默认 <span class="arithmatex">\(\sigma=0.02\,\mathrm K\)</span>。八模态假设限制了我们能重建的形状；它尚未描述完整的无限维逆热问题。</p>
+<h3 id="2">2. 先算两个模态，看噪声怎样进入答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先做一个人工指定扰动的手算练习：仅令 <span class="arithmatex">\(a_1=6\,\mathrm K\)</span>、<span class="arithmatex">\(a_6=0.20\,\mathrm K\)</span>，其余系数为零。把观测投影为 <span class="arithmatex">\(\mathbf b=Q^\mathsf T\mathbf y\)</span>，这一次指定投影扰动 <span class="arithmatex">\(\eta_1=0\)</span>、<span class="arithmatex">\(\eta_6=0.02\,\mathrm K\)</span>，其余为零。完整随机基准仍使用上一节的独立传感器噪声。</p>
+<p>先预测：相同量级的读数误差，放到第 1 模态和第 6 模态上，会造成相同的初态误差吗？</p>
+<p>因为 <span class="arithmatex">\(Q^\mathsf TQ=I\)</span>，每个投影读数满足 <span class="arithmatex">\(b_k=s_ka_k+\eta_k\)</span>。在 <span class="arithmatex">\(t=1\,\mathrm s\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>模态</th>
+<th style="text-align: right;">衰减 <span class="arithmatex">\(s_k\)</span></th>
+<th style="text-align: right;">初态系数 <span class="arithmatex">\(a_k\)</span>（K）</th>
+<th style="text-align: right;">投影读数 <span class="arithmatex">\(b_k\)</span>（K）</th>
+<th style="text-align: right;">直接相除 <span class="arithmatex">\(b_k/s_k\)</span>（K）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(k=1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.906018\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.000000\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5.436108\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(6.000000\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(k=6\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.028637\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.200000\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.025727\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.898399\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>第 6 模态的原始信号到观测时刻只剩 <span class="arithmatex">\(0.028637\times0.20\approx0.005727\,\mathrm K\)</span>。把 <span class="arithmatex">\(0.02\,\mathrm K\)</span> 的扰动一起除以 <span class="arithmatex">\(0.028637\)</span>，初态系数就多出约 <span class="arithmatex">\(0.698399\,\mathrm K\)</span>。算法确实解出了观测方程，但这个方程包含噪声。</p>
+<h3 id="3">3. 投影与奇异值：把“难恢复”写成一个数<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(A=QS\)</span>。这是一个 <span class="arithmatex">\(16\times8\)</span> 矩阵；由于 <span class="arithmatex">\(Q\)</span> 的列正交归一、<span class="arithmatex">\(S\)</span> 的对角元正且从大到小排列，</p>
+<div class="arithmatex">\[
+A=QSI_8^\mathsf T
+\]</div>
+<p>就是它的薄奇异值分解。此处的奇异值恰好是热衰减因子 <span class="arithmatex">\(s_k\)</span>：输入第 <span class="arithmatex">\(k\)</span> 个单位系数时，输出向量的长度只剩 <span class="arithmatex">\(s_k\)</span>。在 <span class="arithmatex">\(t=1\,\mathrm s\)</span>，<span class="arithmatex">\(s_8\approx0.00180617\)</span>，因此</p>
+<div class="arithmatex">\[
+\operatorname{cond}_2(A)=\frac{s_1}{s_8}\approx501.624.
+\]</div>
+<p>这个数描述八模态模型最容易与最难传递的方向相差多少。它不表示每一次重建误差都恰好放大 501 倍；实际误差还取决于扰动落在哪些方向。</p>
+<p>正交投影还能解释为什么先计算 <span class="arithmatex">\(\mathbf b\)</span> 不会丢掉可用于这个模型的拟合信息。将 <span class="arithmatex">\(\mathbf y\)</span> 分成 <span class="arithmatex">\(Q\mathbf b\)</span> 和与 <span class="arithmatex">\(Q\)</span> 的列空间垂直的部分，勾股关系给出</p>
+<div class="arithmatex">\[
+\|A\mathbf a-\mathbf y\|_2^2
+=\|S\mathbf a-\mathbf b\|_2^2
++\|(I_{16}-QQ^\mathsf T)\mathbf y\|_2^2.
+\]</div>
+<p>第二项不随 <span class="arithmatex">\(\mathbf a\)</span> 改变，所以最小化原始 16 个读数的残差，等价于最小化八个模态的残差。它也提醒我们：即使把八个模态完全拟合，16 个传感器的残差通常仍非零。</p>
+<h3 id="4">4. 最小二乘解存在，稳定性仍可能很差<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>支持的时间范围内所有 <span class="arithmatex">\(s_k&gt;0\)</span>，无正则最小二乘解唯一：</p>
+<div class="arithmatex">\[
+\widehat a_k^{\rm LS}=\frac{b_k}{s_k}
+=a_k+\frac{\eta_k}{s_k}.
+\]</div>
+<p>由 <span class="arithmatex">\(\boldsymbol\eta=Q^\mathsf T\boldsymbol\epsilon\)</span> 和正交归一性，</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(\boldsymbol\eta)
+=Q^\mathsf T(\sigma^2I_{16})Q=\sigma^2I_8,
+\qquad
+\operatorname{Var}(\widehat a_k^{\rm LS}-a_k)=\frac{\sigma^2}{s_k^2}.
+\]</div>
+<p>投影本身没有增加每个模态的噪声方差；逆运算中的除法才造成放大。观测越晚，高频 <span class="arithmatex">\(s_k\)</span> 越小。这是数值反演中的关键区别：<strong>方程有唯一解，并不保证数据稍变时答案也只稍变。</strong></p>
+<p>在本页的八模态模型内，传感器上的初态误差还可直接由系数计算：</p>
+<div class="arithmatex">\[
+\operatorname{RMSE}_{\rm initial}
+=\sqrt{\frac{1}{16}\|Q(\widehat{\mathbf a}-\mathbf a)\|_2^2}
+=\frac{\|\widehat{\mathbf a}-\mathbf a\|_2}{4}.
+\]</div>
+<p>所以刚才两模态手算的初态 RMSE 约为 <span class="arithmatex">\(0.174600\,\mathrm K\)</span>。分母 4 来自 16 个传感器，与取了几个非零模态无关。</p>
+<h3 id="5-tikhonov">5. 从目标函数求导，得到 Tikhonov 滤波器<a class="headerlink" href="#5-tikhonov" title="Permanent link"></a></h3>
+<p>如果不允许反演任意放大系数，可以增加一个系数大小惩罚：</p>
+<div class="arithmatex">\[
+J(\mathbf a)=\|S\mathbf a-\mathbf b\|_2^2+\lambda\|\mathbf a\|_2^2
+=\sum_{k=1}^8\big[(s_ka_k-b_k)^2+\lambda a_k^2\big],
+\qquad\lambda&gt;0.
+\]</div>
+<p>这是<strong>零阶 Tikhonov 正则化</strong>。它惩罚系数幅度，不是空间导数；本协议也没有把残差除以 <span class="arithmatex">\(\sigma^2\)</span>，因此不能在公式里另插一个噪声方差因子。<span class="arithmatex">\(s_k\)</span> 与 <span class="arithmatex">\(\lambda\)</span> 均无量纲，<span class="arithmatex">\(J\)</span> 的单位为 <span class="arithmatex">\(\mathrm K^2\)</span>。</p>
+<p>各模态彼此分开，固定其余系数，对 <span class="arithmatex">\(a_k\)</span> 求偏导：</p>
+<div class="arithmatex">\[
+\frac{\partial J}{\partial a_k}
+=2s_k(s_ka_k-b_k)+2\lambda a_k=0
+\quad\Longrightarrow\quad
+\widehat a_k^{\rm Tik}=\frac{s_kb_k}{s_k^2+\lambda}.
+\]</div>
+<p>二阶偏导 <span class="arithmatex">\(2(s_k^2+\lambda)&gt;0\)</span>，所以这个驻点就是该模态的唯一最小值。把答案与最小二乘并排写，变化更清楚：</p>
+<div class="arithmatex">\[
+\widehat a_k^{\rm Tik}
+=\underbrace{\frac{s_k^2}{s_k^2+\lambda}}_{\text{介于 0 与 1 之间的收缩因子}}
+\widehat a_k^{\rm LS}.
+\]</div>
+<p>当 <span class="arithmatex">\(s_k^2\gg\lambda\)</span> 时，几乎保留直接反演；当 <span class="arithmatex">\(s_k^2\ll\lambda\)</span> 时，显著压低这个不稳定方向。这样也会压低真实信号，因此要在偏差与噪声之间取舍。</p>
+<p>在两模态手算中取手动 <span class="arithmatex">\(\lambda=0.001\)</span>，得到 <span class="arithmatex">\(\widehat a_1\approx5.992700\,\mathrm K\)</span>、<span class="arithmatex">\(\widehat a_6\approx0.404793\,\mathrm K\)</span>，初态 RMSE 约为 <span class="arithmatex">\(0.051231\,\mathrm K\)</span>。这一组数据的误差改善了；下一组数据是否仍改善，需要检验。</p>
+<h3 id="6">6. 先预测，再打开三种反演的共同实验<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>操作前先写下理由：</p>
+<ol>
+<li>从 <span class="arithmatex">\(t=0.5\)</span> 改到 <span class="arithmatex">\(1.5\,\mathrm s\)</span>，噪声强度相同，哪类空间细节更难恢复？</li>
+<li>增大手动 <span class="arithmatex">\(\lambda\)</span>，为什么可能让曲线更平稳，却离真实初态更远？</li>
+<li>如果一个算法对 <span class="arithmatex">\(t+0.5\,\mathrm s\)</span> 的温度预测很好，是否已证明它恢复了初态的高频细节？</li>
+</ol>
+<p>实验还提供一个从训练轨迹学得的对角线性滤波器 <span class="arithmatex">\(\widehat a_k=w_kb_k\)</span>。它只有八个权重，不是神经网络；其训练与分布变化问题在 <a href="../../ai-course/site/project-01-heat-inverse.html">AI 入口</a> 展开。</p>
+<div class="learning-lab" data-learning-lab="heat-inverse-project">
+<p><strong>JavaScript 不可用时的完整静态后备。</strong> 默认采用 <span class="arithmatex">\(L=1\,\mathrm m\)</span>、<span class="arithmatex">\(\kappa=0.01\,\mathrm{m^2/s}\)</span>、16 个内部传感器、8 个模态、<span class="arithmatex">\(t=1\,\mathrm s\)</span>、<span class="arithmatex">\(\sigma=0.02\,\mathrm K\)</span>，测试情境为 smooth。数据由公开确定性发生器生成：128 条完整训练轨迹、32 条验证轨迹、32 条测试轨迹，种子分别为 101、202、303；同一条轨迹的传感器读数不跨集合。</p>
+<p>从输入到输出的计算步骤是：</p>
+<ol>
+<li>对每条轨迹计算 <span class="arithmatex">\(\mathbf b=Q^\mathsf T\mathbf y\)</span>，使用上文 <span class="arithmatex">\(s_k(t)\)</span>。</li>
+<li>最小二乘取 <span class="arithmatex">\(b_k/s_k\)</span>。Tikhonov 取 <span class="arithmatex">\(s_kb_k/(s_k^2+\lambda)\)</span>。</li>
+<li>仅在训练集拟合 <span class="arithmatex">\(w_k=\sum b_ka_k/\sum b_k^2\)</span>。分母与分子均在 128 条训练轨迹上求和；不使用截距、验证行或测试标签。</li>
+<li>从 <span class="arithmatex">\(10^{-6},10^{-5},10^{-4},10^{-3},10^{-2},10^{-1}\)</span> 中，按 32 条验证轨迹的平均初态 MSE 选 <span class="arithmatex">\(\lambda\)</span>；相等时选较小值。默认选中 <span class="arithmatex">\(\lambda=0.01\)</span>。这是下表的参数，手动探索的默认值 <span class="arithmatex">\(0.001\)</span> 单独使用。</li>
+<li>固定以上参数，在 32 条测试轨迹上评估。每个总体指标先合并所有轨迹、所有传感器的平方误差，再取平均和平方根。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>默认测试集的算法</th>
+<th style="text-align: right;">初态 RMSE（K）</th>
+<th style="text-align: right;">拟合时刻观测残差 RMS（K）</th>
+<th style="text-align: right;">独立晚时刻预测 RMSE（K）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无正则最小二乘</td>
+<td style="text-align: right;"><span class="arithmatex">\(3.254382\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.014445\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.022268\)</span></td>
+</tr>
+<tr>
+<td>Tikhonov，验证选 <span class="arithmatex">\(\lambda=0.01\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.052893\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.024608\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.028316\)</span></td>
+</tr>
+<tr>
+<td>训练所得对角线性滤波器</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.043310\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.017826\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.022202\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>这些数值按协议独立计算，保留六位小数。这里的“晚时刻”是 <span class="arithmatex">\(t+0.5\,\mathrm s\)</span>，使用另一组独立传感器噪声；这些读数从未参与拟合。它的 RMSE 是相对<strong>有噪声的新观测</strong>计算，即使初态与模型完全正确，也仍有噪声误差。</p>
+<p>最小二乘取得较小的拟合残差，却有很大的初态误差；晚时刻的进一步扩散又削弱了那部分高频错误。因此，不能仅靠残差或未来温度就断言初态细节正确。初态真值在这里可查，是因为数据来自模拟。</p>
+<p>下载：<a href="assets/learning/projects/heat-inverse/PROTOCOL.md">完整协议</a> · <a href="assets/learning/projects/heat-inverse/reference.py">独立 NumPy 参考脚本</a> · <a href="assets/learning/projects/heat-inverse/benchmark-default.json">默认基准完整数据</a>。协议固定了随机数发生器、每次抽样顺序、导出字段和评估方式，可离线重复表中计算。</p>
+</div>
+<h3 id="7">7. 换一个情境，检查结论的边界<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p><strong>题 A：正则化一定更准吗？</strong> 保持 <span class="arithmatex">\(t=1\,\mathrm s\)</span>，现在没有噪声，且只有 <span class="arithmatex">\(a_6=6\,\mathrm K\)</span> 非零。比较最小二乘与手动 <span class="arithmatex">\(\lambda=0.001\)</span> 的重建。解释为什么上一节的排序不构成普遍定理。</p>
+<details>
+<summary>完成题 A 后核对</summary>
+<p>此时 <span class="arithmatex">\(b_6=6s_6\)</span>。最小二乘恢复 <span class="arithmatex">\(a_6=6\)</span>；Tikhonov 给</p>
+<div class="arithmatex">\[
+\widehat a_6=6\frac{s_6^2}{s_6^2+0.001}\approx2.703432\,\mathrm K.
+\]</div>
+<p>它把真实的高频成分也压低了。零噪声且前向模型正确时，这个有限维模型的直接反演能够精确恢复；固定正 <span class="arithmatex">\(\lambda\)</span> 的收缩反而带来偏差。本题是单模态构造；实验的 high-frequency 情境则在原测试轨迹第 6 系数上按索引交替加减 <span class="arithmatex">\(6\,\mathrm K\)</span>，二者不要混作同一组数据。</p>
+</details>
+<p><strong>题 B：如果热扩散率估错了呢？</strong> 无噪声时，真实测试棒的 <span class="arithmatex">\(\kappa_{\rm true}=0.016\,\mathrm{m^2/s}\)</span>，反演仍假设 <span class="arithmatex">\(\kappa_{\rm assumed}=0.01\,\mathrm{m^2/s}\)</span>。写出直接反演的 <span class="arithmatex">\(\widehat a_k/a_k\)</span>（假设 <span class="arithmatex">\(a_k\ne0\)</span>），判断高频会被高估还是低估。</p>
+<details>
+<summary>完成题 B 后核对</summary>
+<p>数据由真实衰减生成，计算却除以假设衰减，因此</p>
+<div class="arithmatex">\[
+\frac{\widehat a_k}{a_k}
+=\frac{s_k^{\rm true}(t)}{s_k^{\rm assumed}(t)}
+=\exp\!\left[-(0.016-0.01)\left(\frac{k\pi}{L}\right)^2t\right]&lt;1.
+\]</div>
+<p>高频系数的幅度被低估得更严重；这是前向模型错误，即使传感器无噪声也存在。增大样本数或套用一个正则化公式，不会自动修正所假设的扩散率。可在实验的 wrong-diffusivity 情境中检验，并到 <a href="../../physics-course/site/project-01-heat-inverse.html">物理入口</a> 讨论怎样取得独立的材料与时间证据。</p>
+</details>
+<p>这个项目中的奇异值告诉我们哪些初态方向在观测中已经很弱，正则化则明确规定怎样处理这些方向。相同问题还会出现在模糊图像复原、层析成像和参数反演中：先写清前向模型、数据噪声与允许的解空间，再决定怎样求逆，以及用什么证据验证答案。</p>
+</section>
+<h2 id="_2">项目速查<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>八模态模型中的公式</th>
+<th>使用条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前向观测</td>
+<td><span class="arithmatex">\(y=QS a+\varepsilon\)</span>，<span class="arithmatex">\(Q^\top Q=I\)</span></td>
+<td>固定浴温端点，常数扩散率，16 个测点</td>
+</tr>
+<tr>
+<td>奇异值</td>
+<td><span class="arithmatex">\(s_k=e^{-\kappa(k\pi/L)^2t}\)</span></td>
+<td><span class="arithmatex">\(k=1,\ldots,8\)</span>，<span class="arithmatex">\(L=1\)</span> m</td>
+</tr>
+<tr>
+<td>最小二乘</td>
+<td><span class="arithmatex">\(\widehat a_k=(Q^\top y)_k/s_k\)</span></td>
+<td>数据误差会被 <span class="arithmatex">\(1/s_k\)</span> 放大</td>
+</tr>
+<tr>
+<td>零阶 Tikhonov</td>
+<td><span class="arithmatex">\(\widehat a_k=s_k(Q^\top y)_k/(s_k^2+\lambda)\)</span></td>
+<td>惩罚 <span class="arithmatex">\(\lambda\lVert a\rVert^2\)</span>；验证集选择基准参数</td>
+</tr>
+<tr>
+<td>初态 RMSE</td>
+<td><span class="arithmatex">\(\lVert\widehat a-a\rVert_2/4\)</span> K</td>
+<td>只对本项目的正交离散模型成立；真值来自模拟</td>
+</tr>
+</tbody>
+</table>
+<p>学习模式包含推导、交互实验与反例。复现文件：<a href="assets/learning/projects/heat-inverse/PROTOCOL.md">协议</a>、<a href="assets/learning/projects/heat-inverse/reference.py">NumPy 脚本</a>、<a href="assets/learning/projects/heat-inverse/benchmark-default.json">默认数据</a>。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="game-02-zerosum-dynamic.html"><span class="pager-label">上一页</span>博弈论 II · 零和、动态与机制设计</a>
+  <span class="pager-slot next"></span>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/heat-inverse-project.js"></script>
+</body>
+</html>

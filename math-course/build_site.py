@@ -125,6 +125,9 @@ COURSE = [
         ("game-01-nash.md", "博弈论 I · 策略型博弈与 Nash 均衡"),
         ("game-02-zerosum-dynamic.md", "博弈论 II · 零和、动态与机制设计"),
     ]),
+    ("跨学科综合项目", [
+        ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
+    ]),
 ]
 
 MD_EXTENSIONS = [

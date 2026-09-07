@@ -601,16 +601,16 @@
       metric(doc, "H₀¹ 强制常数 α"),
       metric(doc, "全谱最小 |dₖ|"),
       metric(doc, "第一模态系数 u₁"),
-      metric(doc, "全方程残差 ||r_N||₂"),
-      metric(doc, "能量/截断误差 ||(u−u_N)′||₂"),
-      metric(doc, "有符号双线性型尾项 a(e_N,e_N)")
+      metric(doc, "残差 ||r_N||₂（512 模态近似）"),
+      metric(doc, "截断误差 ||(u−u_N)′||₂（512 模态近似）"),
+      metric(doc, "双线性型尾项 a(e_N,e_N)（累加至 k=512）")
     ];
     frame.appendChild(makeElement(doc, "div", { className: "ec-metrics", "aria-label": "模态诊断" }, metrics.map(function (item) { return item.node; })));
     var chartFrame = makeElement(doc, "div", { className: "ec-chart-frame" });
     frame.appendChild(chartFrame);
     var ledger = makeElement(doc, "div", { className: "ec-ledger" });
     var table = makeElement(doc, "table");
-    table.appendChild(makeElement(doc, "caption", { text: "模态账本：k≤N 是 Galerkin 系数；k>N 以零截断并显示精确模态尾项。" }));
+    table.appendChild(makeElement(doc, "caption", { text: "模态账本：k≤N 是 Galerkin 系数；k>N 以零截断。各行显示解析模态系数；残差与尾项总量仅累加至 k=512，并非无限级数的精确总和。" }));
     var head = makeElement(doc, "thead");
     var headRow = makeElement(doc, "tr");
     ["k", "λₖ", "fₖ", "dₖ=λₖ+c", "uₖ⁽ᴺ⁾", "uₖ（全模态）", "有限模态残差"].forEach(function (label) { headRow.appendChild(makeElement(doc, "th", { text: label })); });
@@ -622,7 +622,7 @@
     frame.appendChild(ledger);
     var interpretationNode = makeElement(doc, "p", { className: "ec-interpretation", role: "status", "aria-live": "polite", text: "" });
     frame.appendChild(interpretationNode);
-    frame.appendChild(makeElement(doc, "p", { className: "ec-caution", text: "这里的误差来自已知正弦模态级数：它审计一维模型的代数与 Fredholm 分支，不是一般域上 Lax–Milgram、谱定理或正则性定理的证明。" }));
+    frame.appendChild(makeElement(doc, "p", { className: "ec-caution", text: "这里的残差与误差诊断截断到第 512 模态，未包含更高阶尾项，也未提供该尾项的严格误差界；各行系数来自已知正弦模态公式：它审计一维模型的代数与 Fredholm 分支，不是一般域上 Lax–Milgram、谱定理或正则性定理的证明。" }));
     stage.appendChild(frame);
     layout.appendChild(stage);
     revealed.appendChild(layout);
