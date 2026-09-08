@@ -51,14 +51,15 @@
       '[data-learning-lab="physics-magnetic-order"] button,[data-learning-lab="physics-magnetic-order"] select{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}',
       '[data-learning-lab="physics-magnetic-order"] button:hover{border-color:var(--mgo-blue)}[data-learning-lab="physics-magnetic-order"] button:focus-visible,[data-learning-lab="physics-magnetic-order"] select:focus-visible,[data-learning-lab="physics-magnetic-order"] input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-actions{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}[data-learning-lab="physics-magnetic-order"] .mgo-actions>*{flex:1 1 170px}[data-learning-lab="physics-magnetic-order"] .mgo-primary{border-color:var(--mgo-blue);background:var(--mgo-blue);color:#fff;font-weight:750}[data-learning-lab="physics-magnetic-order"] .mgo-feedback{min-height:2em;margin:8px 0;font-weight:700}[data-learning-lab="physics-magnetic-order"] .mgo-warn{color:var(--mgo-red)}',
-      '[data-learning-lab="physics-magnetic-order"] .mgo-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-controls,[data-learning-lab="physics-magnetic-order"] .mgo-stage{min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-magnetic-order"] .mgo-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-magnetic-order"] output{color:var(--mgo-blue);font-variant-numeric:tabular-nums}',
-      '[data-learning-lab="physics-magnetic-order"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--mgo-blue)}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-magnetic-order"] svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg,currentColor)}[data-learning-lab="physics-magnetic-order"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
+      '[data-learning-lab="physics-magnetic-order"] .mgo-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-controls,[data-learning-lab="physics-magnetic-order"] .mgo-stage{min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-magnetic-order"] .mgo-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-magnetic-order"] .mgo-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-magnetic-order"] output{color:var(--mgo-blue);font-variant-numeric:tabular-nums}',
+      '[data-learning-lab="physics-magnetic-order"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--mgo-blue)}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-magnetic-order"] svg{display:block;width:820px;min-width:820px;height:auto;color:var(--fg,currentColor)}[data-learning-lab="physics-magnetic-order"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-grid{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-opacity:.7}[data-learning-lab="physics-magnetic-order"] .mgo-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.75}[data-learning-lab="physics-magnetic-order"] .mgo-landscape{fill:none;stroke:var(--mgo-blue);stroke-width:2.6}[data-learning-lab="physics-magnetic-order"] .mgo-phase{fill:none;stroke:var(--mgo-green);stroke-width:2.5}[data-learning-lab="physics-magnetic-order"] .mgo-zero{stroke:var(--mgo-gold);stroke-width:1.6;stroke-dasharray:5 4}[data-learning-lab="physics-magnetic-order"] .mgo-current{fill:var(--mgo-red);stroke:var(--bg,#fff);stroke-width:1.3}[data-learning-lab="physics-magnetic-order"] .mgo-arrow-a{stroke:var(--mgo-blue);stroke-width:2.7}[data-learning-lab="physics-magnetic-order"] .mgo-arrow-b{stroke:var(--mgo-orange);stroke-width:2.7}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin:8px 0 0;color:var(--fg-soft,currentColor);font-size:12px}[data-learning-lab="physics-magnetic-order"] .mgo-key{display:inline-flex;align-items:center;gap:5px}[data-learning-lab="physics-magnetic-order"] .mgo-swatch{display:inline-block;width:18px;height:3px;background:var(--mgo-blue)}[data-learning-lab="physics-magnetic-order"] .mgo-swatch[data-kind="phase"]{background:var(--mgo-green)}[data-learning-lab="physics-magnetic-order"] .mgo-swatch[data-kind="current"]{width:9px;height:9px;border-radius:50%;background:var(--mgo-red)}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-preset-row{display:flex;flex-wrap:wrap;gap:7px}[data-learning-lab="physics-magnetic-order"] .mgo-preset-row button{flex:1 1 105px;font-size:12.5px}[data-learning-lab="physics-magnetic-order"] .mgo-preset-row button[aria-pressed="true"]{border-color:var(--mgo-blue);background:var(--mgo-blue);color:#fff;font-weight:750}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}[data-learning-lab="physics-magnetic-order"] .mgo-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#cbd5e1);background:var(--bg,transparent)}[data-learning-lab="physics-magnetic-order"] .mgo-metric:nth-child(4n+1){border-color:var(--mgo-blue)}[data-learning-lab="physics-magnetic-order"] .mgo-metric:nth-child(4n+2){border-color:var(--mgo-orange)}[data-learning-lab="physics-magnetic-order"] .mgo-metric:nth-child(4n+3){border-color:var(--mgo-green)}[data-learning-lab="physics-magnetic-order"] .mgo-metric:nth-child(4n){border-color:var(--mgo-red)}[data-learning-lab="physics-magnetic-order"] .mgo-metric span{display:block;color:var(--fg-soft,currentColor);font-size:11.5px}[data-learning-lab="physics-magnetic-order"] .mgo-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}',
       '[data-learning-lab="physics-magnetic-order"] .mgo-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}[data-learning-lab="physics-magnetic-order"] table{width:100%;min-width:570px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}[data-learning-lab="physics-magnetic-order"] th,[data-learning-lab="physics-magnetic-order"] td{padding:7px 8px;border-bottom:1px solid var(--border,#cbd5e1);text-align:left;vertical-align:top;overflow-wrap:anywhere}[data-learning-lab="physics-magnetic-order"] th{color:var(--fg-soft,currentColor);font-size:11px}[data-learning-lab="physics-magnetic-order"] .mgo-note{margin-top:11px;padding:10px 12px;border-left:3px solid var(--mgo-gold);color:var(--fg-soft,currentColor);font-size:13px;line-height:1.7}',
-      '@media(max-width:900px){[data-learning-lab="physics-magnetic-order"] .mgo-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-magnetic-order"] .mgo-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-magnetic-order"] .mgo-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame svg{min-width:640px}}@media(max-width:430px){[data-learning-lab="physics-magnetic-order"] .mgo-metrics{grid-template-columns:1fr}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-magnetic-order"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      '@media(max-width:900px){[data-learning-lab="physics-magnetic-order"] .mgo-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-magnetic-order"] .mgo-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-magnetic-order"] .mgo-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame svg{min-width:820px}}@media(max-width:430px){[data-learning-lab="physics-magnetic-order"] .mgo-metrics{grid-template-columns:1fr}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-magnetic-order"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      ,'[data-theme="dark"] [data-learning-lab="physics-magnetic-order"]{--mgo-blue:#85b9ef;--mgo-orange:#e6be68;--mgo-green:#83c69c;--mgo-red:#ed9f94;--mgo-gold:#e6be68}[data-learning-lab="physics-magnetic-order"] .mgo-stage-frame:focus-visible,[data-learning-lab="physics-magnetic-order"] .mgo-ledger:focus-visible{outline:3px solid var(--mgo-blue)}'
     ].join("");
 
     function assert(condition, message) { if (!condition) throw new Error(message); }
@@ -77,10 +78,11 @@
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
     function formatNumber(value, digits) {
+      if(value===Infinity)return "发散";
       if (!Number.isFinite(value)) return "—";
       var places = digits === undefined ? 3 : digits;
       if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+      return places===0?value.toFixed(0):value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function copyDefaults() {
@@ -99,10 +101,11 @@
     }
 
     function entropyPart(magnetization) {
-      var m = Math.max(-1 + 1e-12, Math.min(1 - 1e-12, magnetization));
+      var m = finite(magnetization,"magnetization");
+      if(Math.abs(m)>1)throw new RangeError("magnetization must be in [-1,1]");
       var plus = (1 + m) / 2;
       var minus = (1 - m) / 2;
-      return plus * Math.log(plus) + minus * Math.log(minus);
+      return (plus===0?0:plus*Math.log(plus))+(minus===0?0:minus*Math.log(minus));
     }
 
     function interactionSign(model) { return model === "antiferro" ? -1 : 1; }
@@ -113,67 +116,57 @@
       return -sign * config.coupling * mA * mB / 2 - config.field * (mA + mB) / 2 + config.temperature * (entropyPart(mA) + entropyPart(mB)) / 2;
     }
 
-    function fixedPoint(config, startA, startB) {
-      var sign = interactionSign(config.model);
-      var mA = startA;
-      var mB = startB;
-      for (var iteration = 0; iteration < 900; iteration += 1) {
-        var nextA = Math.tanh((sign * config.coupling * mB + config.field) / config.temperature);
-        var nextB = Math.tanh((sign * config.coupling * mA + config.field) / config.temperature);
-        var updatedA = 0.65 * nextA + 0.35 * mA;
-        var updatedB = 0.65 * nextB + 0.35 * mB;
-        if (Math.max(Math.abs(updatedA - mA), Math.abs(updatedB - mB)) < 1e-11) {
-          mA = updatedA;
-          mB = updatedB;
-          break;
-        }
-        mA = updatedA;
-        mB = updatedB;
-      }
-      return { mA: mA, mB: mB, freeEnergy: meanFieldFreeEnergy(mA, mB, config) };
+    function bisect(fn, lo, hi) {
+      var flo=fn(lo),fhi=fn(hi);
+      if(flo===0)return lo;if(fhi===0)return hi;
+      if(flo*fhi>0)throw new Error("root is not bracketed");
+      for(var i=0;i<90;i++){var mid=(lo+hi)/2;if(mid===lo||mid===hi)break;var f=fn(mid);if(f===0)return mid;if(f*flo>0){lo=mid;flo=f;}else hi=mid;}
+      return (lo+hi)/2;
     }
 
     function solveMeanField(input) {
-      var config = normalizeConfig(input);
-      var samePositive = [0.95, 0.95];
-      var sameNegative = [-0.95, -0.95];
-      var oppositePositive = [0.95, -0.95];
-      var oppositeNegative = [-0.95, 0.95];
-      var zero = [0, 0];
-      var seeds = config.model === "ferro"
-        ? [samePositive, sameNegative, oppositePositive, oppositeNegative, zero]
-        : [oppositePositive, oppositeNegative, samePositive, sameNegative, zero];
-      var candidates = seeds.map(function (seed) { return fixedPoint(config, seed[0], seed[1]); });
-      candidates.sort(function (left, right) { return left.freeEnergy - right.freeEnergy; });
-      var best = candidates[0];
-      return {
-        config: config,
-        mA: best.mA,
-        mB: best.mB,
-        magnetization: (best.mA + best.mB) / 2,
-        staggered: (best.mA - best.mB) / 2,
-        freeEnergy: best.freeEnergy,
-        residualA: best.mA - Math.tanh((interactionSign(config.model) * config.coupling * best.mB + config.field) / config.temperature),
-        residualB: best.mB - Math.tanh((interactionSign(config.model) * config.coupling * best.mA + config.field) / config.temperature),
-        candidates: candidates
-      };
-    }
-
-    function solveOnBranch(config, reference, field) {
-      return fixedPoint({ model: config.model, coupling: config.coupling, temperature: config.temperature, field: field }, reference.mA, reference.mB);
+      var config=normalizeConfig(input),K=config.coupling,T=config.temperature,h=config.field,s=interactionSign(config.model),limit=(K+Math.abs(h))/T+1;
+      var candidates=[];
+      function add(mA,mB){
+        if(candidates.some(function(c){return Math.max(Math.abs(c.mA-mA),Math.abs(c.mB-mB))<1e-10;}))return;
+        var residualA=mA-Math.tanh((s*K*mB+h)/T),residualB=mB-Math.tanh((s*K*mA+h)/T);
+        var stability=T*T-K*K*(1-mA*mA)*(1-mB*mB);
+        if(Math.max(Math.abs(residualA),Math.abs(residualB))>1e-9||stability< -1e-12)return;
+        candidates.push({mA:mA,mB:mB,freeEnergy:meanFieldFreeEnergy(mA,mB,config),residualA:residualA,residualB:residualB,stability:stability});
+      }
+      if(h===0){
+        var m=0;
+        if(T<K){var turning=Math.acosh(Math.sqrt(K/T));m=Math.tanh(bisect(function(u){return T*u-K*Math.tanh(u);},turning,limit));}
+        add(m,s*m);if(m!==0)add(-m,-s*m);
+      }else if(s===1){
+        // T*u-K*tanh(u)-h is monotone between its two analytic turning points.
+        var cuts=[-limit,limit];if(T<K){var u0=Math.acosh(Math.sqrt(K/T));cuts.push(-u0,u0);}cuts.sort(function(a,b){return a-b;});
+        var fun=function(u){return T*u-K*Math.tanh(u)-h;};
+        for(var j=1;j<cuts.length;j++)if(fun(cuts[j-1])*fun(cuts[j])<=0){var u=bisect(fun,cuts[j-1],cuts[j]);add(Math.tanh(u),Math.tanh(u));}
+      }else{
+        // Eliminate B exactly. Search the remaining scalar stationary equation,
+        // with extra logarithmic brackets about the uniform branch near bifurcation.
+        var uniform=bisect(function(u){return T*u+K*Math.tanh(u)-h;},-limit,limit);
+        var points=[uniform],fn=function(u){return T*u+K*Math.tanh((-K*Math.tanh(u)+h)/T)-h;};
+        for(var k=0;k<=1024;k++)points.push(-limit+2*limit*k/1024);
+        for(var scale=1e-12;scale<2*limit;scale*=2){points.push(clamp(uniform-scale,-limit,limit),clamp(uniform+scale,-limit,limit));}
+        points.sort(function(a,b){return a-b;});
+        add(Math.tanh(uniform),Math.tanh(uniform));
+        for(var n=1;n<points.length;n++)if(fn(points[n-1])*fn(points[n])<0){var rootU=bisect(fn,points[n-1],points[n]);var A=Math.tanh(rootU);add(A,Math.tanh((-K*A+h)/T));}
+      }
+      if(!candidates.length)throw new Error("no converged stable mean-field solution found");
+      candidates.sort(function(a,b){var diff=a.freeEnergy-b.freeEnergy;return Math.abs(diff)>1e-13?diff:(s===1?(h<0?a.mA-b.mA:b.mA-a.mA):(b.mA-b.mB)-(a.mA-a.mB));});
+      var best=candidates[0];
+      return {config:config,mA:best.mA,mB:best.mB,magnetization:(best.mA+best.mB)/2,staggered:(best.mA-best.mB)/2,freeEnergy:best.freeEnergy,residualA:best.residualA,residualB:best.residualB,candidates:candidates};
     }
 
     function susceptibility(input, delta) {
-      var config = normalizeConfig(input);
-      var step = delta === undefined ? 0.001 : finite(delta, "field step");
-      if (step <= 0) throw new RangeError("field step must be positive");
-      var reference = solveMeanField(config);
-      var lowerField = Math.max(-0.6, config.field - step);
-      var upperField = Math.min(0.6, config.field + step);
-      if (upperField <= lowerField) throw new RangeError("field step does not produce a finite difference");
-      var lower = lowerField === config.field ? reference : solveOnBranch(config, reference, lowerField);
-      var upper = upperField === config.field ? reference : solveOnBranch(config, reference, upperField);
-      return ((upper.mA + upper.mB) / 2 - (lower.mA + lower.mB) / 2) / (upperField - lowerField);
+      var config=normalizeConfig(input);
+      if(delta!==undefined&&finite(delta,"field step")<=0)throw new RangeError("field step must be positive");
+      var r=solveMeanField(config),a=(1-r.mA*r.mA)/config.temperature,b=(1-r.mB*r.mB)/config.temperature,K=config.coupling,s=interactionSign(config.model);
+      if(r.mA===r.mB){var d=1-s*K*a;return d===0?Infinity:a/d;}
+      var denominator=1-K*K*a*b;
+      return denominator===0?Infinity:(a+b+2*s*K*a*b)/(2*denominator);
     }
 
     function phaseCurve(input, count) {
@@ -182,7 +175,9 @@
       var samples = count === undefined ? 65 : Math.round(finite(count, "phase samples"));
       if (samples < 3) throw new RangeError("phase samples must be at least 3");
       for (var index = 0; index < samples; index += 1) {
-        var temperature = 0.2 + 2.3 * index / (samples - 1);
+        var temperature = index===samples-1 ? 2.8 : 0.2 + 2.6 * index / (samples - 1);
+        var criticalIndex=Math.round((config.coupling-.2)/2.6*(samples-1));
+        if(index===criticalIndex&&index>0&&index<samples-1)temperature=config.coupling;
         var result = solveMeanField({ model: config.model, coupling: config.coupling, temperature: temperature, field: 0 });
         points.push({ temperature: temperature, order: config.model === "ferro" ? Math.abs(result.magnetization) : Math.abs(result.staggered), magnetization: result.magnetization, staggered: result.staggered });
       }
@@ -240,7 +235,7 @@
       for (var index = 0; index < samples; index += 1) {
         var order = -1 + 2 * index / (samples - 1);
         if (index === anchorIndex) order = clamp(anchor.order, -1, 1);
-        var minimum = config.model === "antiferro" ? minimizeUniformMoment(config, order) : minimizeUniformMoment(config, order);
+        var minimum = minimizeUniformMoment(config, order);
         points.push({ order: order, freeEnergy: minimum.freeEnergy, uniformMoment: minimum.uniformMoment, mA: minimum.mA, mB: minimum.mB });
       }
       return points;
@@ -253,7 +248,7 @@
       var currentOrder = config.model === "ferro" ? result.magnetization : result.staggered;
       var surface = landscape(config, 121, { order: currentOrder });
       var symmetryResidual = Math.abs(meanFieldFreeEnergy(0.43, config.model === "ferro" ? 0.43 : -0.43, { model: config.model, coupling: config.coupling, temperature: config.temperature, field: 0 }) - meanFieldFreeEnergy(-0.43, config.model === "ferro" ? -0.43 : 0.43, { model: config.model, coupling: config.coupling, temperature: config.temperature, field: 0 }));
-      return { config: config, solution: result, curve: curve, landscape: surface, criticalTemperature: config.coupling, susceptibility: susceptibility(config), symmetryResidual: symmetryResidual };
+      return { config: config, solution: result, curve: curve, landscape: surface, criticalTemperature: config.coupling, susceptibility: susceptibility(config), zeroFieldCurrent: solveMeanField({model:config.model,coupling:config.coupling,temperature:config.temperature,field:0}), symmetryResidual: symmetryResidual };
     }
 
     function makeElement(doc, tag, attributes, children) {
@@ -295,10 +290,10 @@
       (doc.head || doc.documentElement).appendChild(style);
     }
 
-    function svgText(doc, x, y, value, anchor, size) { return makeSvg(doc, "text", { x: x, y: y, "text-anchor": anchor || "start", "font-size": size || 11 }, [value]); }
+    function svgText(doc, x, y, value, anchor, size) { return makeSvg(doc, "text", { x: x, y: y, "text-anchor": anchor || "start", "font-size": Math.max(12,size || 12) }, [value]); }
 
     function drawChartAxes(doc, group, left, top, right, bottom, yMin, yMax, title, xLabel, yLabel) {
-      group.appendChild(svgText(doc, left, top - 10, title, "start", 13));
+      group.appendChild(svgText(doc, left, top - 23, title, "start", 13));
       for (var tick = 0; tick <= 4; tick += 1) {
         var y = top + tick / 4 * (bottom - top);
         group.appendChild(makeSvg(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: "mgo-grid" }));
@@ -306,8 +301,8 @@
       }
       group.appendChild(makeSvg(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, class: "mgo-axis" }));
       group.appendChild(makeSvg(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, class: "mgo-axis" }));
-      group.appendChild(svgText(doc, (left + right) / 2, bottom + 23, xLabel, "middle", 11));
-      group.appendChild(svgText(doc, left - 33, (top + bottom) / 2, yLabel, "middle", 11));
+      group.appendChild(svgText(doc, (left + right) / 2, bottom + 42, xLabel, "middle", 11));
+      group.appendChild(svgText(doc, left, top - 7, yLabel, "start", 12));
       return { mapX: function (value, min, max) { return left + (value - min) / (max - min) * (right - left); }, mapY: function (value) { return bottom - (value - yMin) / (yMax - yMin) * (bottom - top); }, left: left, right: right, top: top, bottom: bottom };
     }
 
@@ -324,36 +319,38 @@
       var leftChart = drawChartAxes(doc, svg, 52, 48, 390, 225, fMin - fPad, fMax + fPad, "自由能地形", result.config.model === "ferro" ? "m_A=m_B=q" : "q=(m_A-m_B)/2；M 最小化", "f(q)");
       var landPoints = result.landscape.map(function (point) { return { x: leftChart.mapX(point.order, -1, 1), y: leftChart.mapY(point.freeEnergy) }; });
       svg.appendChild(makeSvg(doc, "path", { d: landPoints.map(function (point, index) { return (index ? "L" : "M") + point.x.toFixed(2) + " " + point.y.toFixed(2); }).join(" "), class: "mgo-landscape" }));
+      [-1,0,1].forEach(function(x){svg.appendChild(svgText(doc,leftChart.mapX(x,-1,1),leftChart.bottom+19,String(x),"middle",12));});
       var currentOrder = result.config.model === "ferro" ? result.solution.magnetization : result.solution.staggered;
       var currentLandscapePoint = result.landscape.reduce(function (best, point) { return Math.abs(point.order - currentOrder) < Math.abs(best.order - currentOrder) ? point : best; }, result.landscape[0]);
       svg.appendChild(makeSvg(doc, "circle", { cx: leftChart.mapX(currentLandscapePoint.order, -1, 1), cy: leftChart.mapY(currentLandscapePoint.freeEnergy), r: 5, class: "mgo-current" }));
       svg.appendChild(makeSvg(doc, "line", { x1: leftChart.mapX(0, -1, 1), y1: leftChart.top, x2: leftChart.mapX(0, -1, 1), y2: leftChart.bottom, class: "mgo-zero" }));
 
-      var rightChart = drawChartAxes(doc, svg, 460, 48, 790, 225, 0, 1.05, "零场有序度随温度", "T / K", result.config.model === "ferro" ? "|M|" : "|M_s|");
-      var phasePoints = result.curve.map(function (point) { return { x: rightChart.mapX(point.temperature, .2, 2.5), y: rightChart.mapY(point.order) }; });
+      var rightChart = drawChartAxes(doc, svg, 460, 48, 790, 225, 0, 1.05, "零场有序度随温度", "T（无量纲）", result.config.model === "ferro" ? "|M|" : "|M_s|");
+      var phasePoints = result.curve.map(function (point) { return { x: rightChart.mapX(point.temperature, .2, 2.8), y: rightChart.mapY(point.order) }; });
       svg.appendChild(makeSvg(doc, "path", { d: phasePoints.map(function (point, index) { return (index ? "L" : "M") + point.x.toFixed(2) + " " + point.y.toFixed(2); }).join(" "), class: "mgo-phase" }));
-      var criticalX = rightChart.mapX(result.criticalTemperature, .2, 2.5);
+      [.2,1,1.8,2.8].forEach(function(x){svg.appendChild(svgText(doc,rightChart.mapX(x,.2,2.8),rightChart.bottom+19,String(x),"middle",12));});
+      var criticalX = rightChart.mapX(result.criticalTemperature, .2, 2.8);
       svg.appendChild(makeSvg(doc, "line", { x1: criticalX, y1: rightChart.top, x2: criticalX, y2: rightChart.bottom, class: "mgo-zero" }));
-      var currentX = rightChart.mapX(result.config.temperature, .2, 2.5);
-      var currentPhase = result.curve.reduce(function (best, point) { return Math.abs(point.temperature - result.config.temperature) < Math.abs(best.temperature - result.config.temperature) ? point : best; }, result.curve[0]);
+      var currentX = rightChart.mapX(result.config.temperature, .2, 2.8);
+      var currentPhase = {order: Math.abs(result.config.model === "ferro" ? result.zeroFieldCurrent.magnetization : result.zeroFieldCurrent.staggered)};
       svg.appendChild(makeSvg(doc, "circle", { cx: currentX, cy: rightChart.mapY(currentPhase.order), r: 5, class: "mgo-current" }));
       svg.appendChild(svgText(doc, criticalX + 5, rightChart.top + 13, "T_c=" + formatNumber(result.criticalTemperature, 2), "start", 10));
 
-      svg.appendChild(svgText(doc, 52, 275, result.config.model === "ferro" ? "当前状态：同向排列，M=(m_A+m_B)/2" : "当前状态：反向排列，M_s=(m_A-m_B)/2", "start", 13));
+      svg.appendChild(svgText(doc, 52, 300, result.config.model === "ferro" ? "子晶格平均值（非单次自旋快照）：M=(m_A+m_B)/2" : "子晶格平均值（非单次自旋快照）：M_s=(m_A-m_B)/2", "start", 13));
       var baseY = 365;
       for (var site = 0; site < 10; site += 1) {
         var isA = site % 2 === 0;
         var m = isA ? result.solution.mA : result.solution.mB;
         var x = 85 + site * 67;
         var direction = Math.sign(m) || 1;
-        var length = 30 + 20 * Math.abs(m);
-        svg.appendChild(makeSvg(doc, "circle", { cx: x, cy: baseY, r: 21, fill: isA ? "#315f9d" : "#a36a16", opacity: .16, stroke: isA ? COLORS.blue : COLORS.orange }));
-        svg.appendChild(makeSvg(doc, "line", { x1: x, y1: baseY + 13 * direction, x2: x, y2: baseY - length * direction, class: isA ? "mgo-arrow-a" : "mgo-arrow-b" }));
-        svg.appendChild(makeSvg(doc, "polygon", { points: x + "," + (baseY - length * direction) + " " + (x - 6) + "," + (baseY - (length - 10) * direction) + " " + (x + 6) + "," + (baseY - (length - 10) * direction), fill: isA ? COLORS.blue : COLORS.orange }));
-        svg.appendChild(svgText(doc, x, baseY + 42, isA ? "A" : "B", "middle", 10));
+        var length = 48 * Math.abs(m);
+        svg.appendChild(makeSvg(doc, "circle", { cx: x, cy: baseY, r: 21, fill: isA ? "#315f9d" : "#a36a16", opacity: .16, stroke: isA ? "var(--mgo-blue)" : "var(--mgo-orange)" }));
+        svg.appendChild(makeSvg(doc, "line", { x1: x, y1: baseY, x2: x, y2: baseY - length * direction, class: isA ? "mgo-arrow-a" : "mgo-arrow-b" }));
+        if(Math.abs(m)>1e-8) svg.appendChild(makeSvg(doc, "polygon", { points: x + "," + (baseY - length * direction) + " " + (x - 6) + "," + (baseY - (length - Math.min(10,length*.5)) * direction) + " " + (x + 6) + "," + (baseY - (length - Math.min(10,length*.5)) * direction), fill: isA ? "var(--mgo-blue)" : "var(--mgo-orange)" }));
+        svg.appendChild(svgText(doc, x, baseY + 66, isA ? "A" : "B", "middle", 10));
       }
       svg.appendChild(svgText(doc, 52, 470, "m_A=" + formatNumber(result.solution.mA, 3) + "；m_B=" + formatNumber(result.solution.mB, 3) + "；场 h=" + formatNumber(result.config.field, 3), "start", 12));
-      svg.appendChild(svgText(doc, 790, 470, "红点：当前温度 / 当前极小", "end", 11));
+      svg.appendChild(svgText(doc, 790, 498, "左点：当前极小；右点：同温零场", "end", 11));
       return svg;
     }
 
@@ -383,9 +380,9 @@
       predictionForm.appendChild(makeElement(doc, "fieldset", {}, [
         makeElement(doc, "legend", { text: "先预测，再揭示" }),
         makeElement(doc, "div", { className: "mgo-prediction-grid" }, [
-          predictionField(doc, "order", "T<K、h≈0 时是否有自发有序？", [{ value: "yes", label: "有非零序参量" }, { value: "no", label: "仍为零" }, { value: "always", label: "与温度无关" }]),
-          predictionField(doc, "antiferro", "反铁磁有序的均匀 M 通常是", [{ value: "zero", label: "接近零" }, { value: "large", label: "与 Ms 一样大" }, { value: "undefined", label: "无法定义" }]),
-          predictionField(doc, "field", "小外场 h 的作用首先是", [{ value: "select", label: "选择 ± 分支" }, { value: "remove", label: "消灭交换" }, { value: "raiseTc", label: "必然升高 Tc" }])
+          predictionField(doc, "order", "本平均场模型 T<K、h=0 时是否有自发有序？", [{ value: "yes", label: "有非零序参量" }, { value: "no", label: "仍为零" }, { value: "always", label: "与温度无关" }]),
+          predictionField(doc, "antiferro", "零场等价子晶格反铁磁的均匀 M 是", [{ value: "zero", label: "接近零" }, { value: "large", label: "与 Ms 一样大" }, { value: "undefined", label: "无法定义" }]),
+          predictionField(doc, "field", "铁磁低温分支：小均匀外场首先怎样作用？", [{ value: "select", label: "选择 ± 分支" }, { value: "remove", label: "消灭交换" }, { value: "raiseTc", label: "必然升高 Tc" }])
         ])
       ]));
       var predictionActions = makeElement(doc, "div", { className: "mgo-actions" });
@@ -413,7 +410,7 @@
         inputs[key] = { input: input, output: output, digits: digits };
         controls.appendChild(makeElement(doc, "div", { className: "mgo-control" }, [makeElement(doc, "label", {}, [label, output]), input]));
       }
-      addRange("coupling", "耦合 K (=k_B T_c)", "0.4", "1.8", "0.01", 2);
+      addRange("coupling", "无量纲耦合 K（零场 T_c=K）", "0.4", "1.8", "0.01", 2);
       addRange("temperature", "温度 T", "0.2", "2.8", "0.01", 2);
       addRange("field", "外场 h", "-0.6", "0.6", "0.01", 2);
       controls.appendChild(makeElement(doc, "h4", { text: "预设" }));
@@ -425,7 +422,7 @@
       });
       controls.appendChild(presetRow);
       var stage = makeElement(doc, "div", { className: "mgo-stage" });
-      var frame = makeElement(doc, "div", { className: "mgo-stage-frame" });
+      var frame = makeElement(doc, "div", { className: "mgo-stage-frame",tabindex:"0",role:"region","aria-label":"磁性数值图，可横向滚动" });
       var chartHost = makeElement(doc, "div");
       frame.appendChild(chartHost);
       frame.appendChild(makeElement(doc, "div", { className: "mgo-legend" }, [
@@ -439,7 +436,7 @@
       bench.appendChild(layout);
       var metrics = makeElement(doc, "div", { className: "mgo-metrics" });
       bench.appendChild(metrics);
-      var ledger = makeElement(doc, "div", { className: "mgo-ledger" });
+      var ledger = makeElement(doc, "div", { className: "mgo-ledger",tabindex:"0",role:"region","aria-label":"磁性数值账本，可横向滚动" });
       bench.appendChild(ledger);
       var note = makeElement(doc, "p", { className: "mgo-note" });
       bench.appendChild(note);
@@ -456,8 +453,8 @@
         var rows = [
           ["自洽解", "m_A=" + formatNumber(solution.mA, 4) + "，m_B=" + formatNumber(solution.mB, 4), "残差 max=" + formatNumber(Math.max(Math.abs(solution.residualA), Math.abs(solution.residualB)), 2)],
           ["序参量", orderLabel + "=" + formatNumber(result.config.model === "ferro" ? solution.magnetization : solution.staggered, 4), result.config.model === "ferro" ? "同向分量衡量净磁化。" : "反向分量衡量交错有序，均匀 M 可很小。"],
-          ["响应", "chi=dM/dh≈" + formatNumber(result.susceptibility, 3), "这是当前有限差分与当前分支的局部响应，不是所有温度下的 Curie-Weiss 直线。"],
-          ["对称性", "F(q)-F(-q) at h=0=" + formatNumber(result.symmetryResidual, 3), "h=0 时自旋翻转保持自由能；外场会倾斜两井。"]
+          ["响应", "chi=dM/dh=" + formatNumber(result.susceptibility, 3), "对当前稳定分支隐式求导；不跨越铁磁零场分支跳跃。临界发散单列，不用有限步长伪装微分值。"],
+          ["对称性", "F(q)-F(-q) at h=0=" + formatNumber(result.symmetryResidual, 3), "全局翻转需h=0；等价子晶格交换在均匀场下仍保持反铁磁±Ms简并。"]
         ];
         var body = makeElement(doc, "tbody", {});
         rows.forEach(function (row) { body.appendChild(makeElement(doc, "tr", {}, [makeElement(doc, "td", { text: row[0] }), makeElement(doc, "td", { text: row[1] }), makeElement(doc, "td", { text: row[2] })])); });
@@ -493,6 +490,7 @@
         render();
         announce(state.feedback);
       });
+      predictionForm.addEventListener("change",function(){state.revealed=false;state.feedback="预测已更改，请重新提交。";render();});
       resetButton.addEventListener("click", function () { predictionForm.reset(); state = { config: copyDefaults(), predictions: {}, revealed: false, preset: "default", feedback: "" }; render(); announce("磁性实验已重置；预测重新隐藏。"); });
       render();
     }
