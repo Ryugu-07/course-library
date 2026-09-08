@@ -388,4 +388,3 @@ $$
 终端正权重 $g(X_T)$ → 条件期望 $h(t,x)$ → 正密度鞅 $h(t,X_t)/h(0,0)$ → Doob 漂移 $u=\varepsilon\partial_x\log h$ → 条件桥不变 → 路径 KL 等于终端 KL与平方漂移能量。下一步可回到[Schrödinger 桥](frontier-01-schrodinger-bridge.html)，区分“给定势产生端点”与“给定端点反求势”。
 
 路径相对熵、条件桥分解与 Schrödinger 问题的系统背景见 [Léonard 的综述](https://arxiv.org/abs/1308.0215)；有限熵扩散的漂移观点可追溯到 [Föllmer 的论文目录与原始文献](https://www.math.hu-berlin.de/~foellmer/publications.html)；Doob 变换的时空调和函数与条件过程公式可对照 [Bonn 随机分析讲义](https://wt.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Patrik_Ferrari/Lectures/WS14StochAnal/Doobhtransform.pdf)。本讲闭式已由高斯积分、生成元与矩方程三条路径交叉核对。资料核查：2026-09-08。
-
