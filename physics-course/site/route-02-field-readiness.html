@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>关联函数到振幅 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li><li><a href="bridge-07-mps-metric.html">计算桥 VII · MPS 范数与局部优化</a></li><li><a href="bridge-08-product-sweeps.html">计算桥 VIII · 乘积 MPS 往返扫描</a></li><li><a href="bridge-09-mps-environments.html">计算桥 IX · MPS 环境与中心求解</a></li><li><a href="bridge-10-two-site-truncation.html">计算桥 X · 两站点更新与截断</a></li><li><a href="bridge-11-two-site-sweeps.html">计算桥 XI · 两站点往返扫描</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-mps-readiness.html">路线验收 · Schmidt 到变分扫描</a></li><li class="active"><a href="route-02-field-readiness.html">路线验收 · 关联函数到振幅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 22:04</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 入口诊断：一个漂亮公式还缺哪张说明书？</a></li>
+<li><a href="#2">2. 第一站：截肢与外态归一化分别做一次</a></li>
+<li><a href="#3">3. 第二站：同一个截断，才是同一份减法</a></li>
+<li><a href="#4">4. 第三站：换减法点，为什么耦合也要跟着变？</a></li>
+<li><a href="#5">5. 第四站：去掉外腿以后，内部极点还必须留下</a></li>
+<li><a href="#6">6. 退出题：换了输入，还能指出结论的边界吗？</a></li>
+<li><a href="#_1">速查与继续阅读</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02">学习路线 02 · 从关联函数到振幅：四份账本能否互相核对？<a class="headerlink" href="#02" title="Permanent link"></a></h1>
+<blockquote>
+<p>路线：<a href="bridge-01-lsz.html">外腿与 LSZ</a> → <a href="bridge-02-loop-subtraction.html">圈积分与减法</a> → 改变减法点的阶数检查 → <a href="research-07-scattering-amplitudes.html">内部极点与接触项</a>。本页要求提交四份可复算记录，训练“算的是什么、删掉了什么、还缺什么”。不是完整单圈散射计算，也不把欧氏泡图直接当成物理截面。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 入口诊断：一个漂亮公式还缺哪张说明书？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先不展开答案。每题写结果和一句依据，按第一处无法解释的步骤回课，不用总分掩盖缺口。</p>
+<table>
+<thead>
+<tr>
+<th>入口题</th>
+<th>要交的证据</th>
+<th>卡住时回哪里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A：四点时序函数不为零，就有相互作用散射吗？</td>
+<td>连通部分与自由场反例</td>
+<td><a href="bridge-01-lsz.html">外腿与 LSZ</a></td>
+</tr>
+<tr>
+<td>B：两个对数发散积分相减，一定没有有限歧义吗？</td>
+<td>两项的截断、质量和减法点记录</td>
+<td><a href="bridge-02-loop-subtraction.html">圈积分与减法</a></td>
+</tr>
+<tr>
+<td>C：只改参考动量而固定重整化耦合，是否还是同一预测？</td>
+<td>同一阶的参数变换式</td>
+<td>本页第三站</td>
+</tr>
+<tr>
+<td>D：外腿和内部交换线都含极点，能一起截掉吗？</td>
+<td>哪些极点是外态重叠，哪些保留动力学</td>
+<td><a href="research-07-scattering-amplitudes.html">散射振幅</a></td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>入口题核对：先辨对象，再辨数值</summary>
+<p>A：不能。自由场四点函数有三种两点函数配对，但连通四点函数为零。B：不能。同一处方的公共紫外对数可相消，换截断比例却会留下有限常数。C：一般不能；减法点变了，重整化参数也要按同一微扰阶数改变。D：不能。LSZ 去掉外腿传播并归一化外态，内部极点与相互作用的因子化有关，应保留。</p>
+<p>若 A 不会，先做第一站；B 不会，第二站从径向积分开始；C 不会，第三站逐项展开；D 不会，第四站必须同时交留数与有限角度值。只认得名词不算通过。</p>
+</details>
+<p><img alt="从连通函数去外腿得到振幅定义，另一条计算线用同一截断作减法并改变减法点；最终核对内部极点保留而接触项仍需额外输入。" src="assets/img/route-02-field-readiness.svg" /></p>
+<h2 id="2">2. 第一站：截肢与外态归一化分别做一次<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>固定四维、单种稳定标量，采用 <span class="arithmatex">\(\hbar=c=1\)</span>、度规 <span class="arithmatex">\((+---)\)</span>，并定义</p>
+<div class="arithmatex">\[\langle f|S-1|i\rangle=i(2\pi)^4\delta^4(P_f-P_i)\mathcal M.\]</div>
+<p>公共 delta 已提出。四条完整传播子在单粒子极点附近为 <span class="arithmatex">\(iZ/(p_i^2-m^2+i0)\)</span>；用它们截肢后的核记作 <span class="arithmatex">\(\Gamma_{\rm amp}\)</span>。<strong>交卷要求：</strong>取 <span class="arithmatex">\(Z=1/2\)</span>、<span class="arithmatex">\(\Gamma_{\rm amp}=-0.4i\)</span>，算 <span class="arithmatex">\(i\mathcal M\)</span>、<span class="arithmatex">\(\mathcal M\)</span> 与模平方，并说明是否已得到截面。</p>
+<details>
+<summary>第一站题解：留数不等于新的顶点</summary>
+<p>完整传播子截肢去掉每条 <span class="arithmatex">\(Z\)</span>，而 LSZ 对每条外腿还保留场与渐近态重叠 <span class="arithmatex">\(\sqrt Z\)</span>。四腿合起来</p>
+<div class="arithmatex">\[i\mathcal M=(\sqrt Z)^4\Gamma_{\rm amp}=Z^2\Gamma_{\rm amp}=-0.1i,\]</div>
+<p>所以 <span class="arithmatex">\(\mathcal M=-0.1\)</span>，<span class="arithmatex">\(|\mathcal M|^2=0.01\)</span>。若所给核已经包含外态归一化，就不能再乘 <span class="arithmatex">\(Z^2\)</span>；必须先定义核再做乘法。模平方还须结合运动学、流强、相空间和相同末态计数，才有截面。</p>
+<p>将公共单位幂提出，在 <span class="arithmatex">\(Z=1\)</span> 的形式外腿模型中，截 k 条后的模为 <span class="arithmatex">\(A_k(\delta)=0.4\delta^{k-4}\)</span>。这是另一项极点阶数核验，不是上面 <span class="arithmatex">\(Z=1/2\)</span> 情况的模拟：δ=0.2 时，未截肢为 250，截三腿为 2，截四腿为 0.4；δ=0.1 时分别为 4000、4、0.4。残留极点决定发散阶数，而相位决定如何从 <span class="arithmatex">\(i\mathcal M\)</span> 读出符号，两者不可相互代替。</p>
+</details>
+<p><strong>实验输入。</strong> 默认 λ=0.2、δ=0.1、k=3，输出模分别为 2000、2、0.2。先改 λ=0.4、δ=0.2，再分别检查 k=0、3、4，最后将 δ 减半。这个实验固定 Z=1，不能用来数值验证外态留数题。δ 只是代数离壳量，未实现完整散射运动学；无脚本时用上方两组静态数值核验。</p>
+<div class="learning-lab" data-learning-lab="research-foundations" data-research-topic="lsz">
+<p>无脚本参照见第一站题解；实验不覆盖 Z 的变动。</p>
+</div>
+<h2 id="3">3. 第二站：同一个截断，才是同一份减法<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>接下来计算欧氏单泡图的标量积分，<strong>不是延续第一站得到一个完整单圈振幅</strong>。取质量单位 m=1。Feynman 参数化和平移后，按每个参数 x 的 <span class="arithmatex">\(|k|&lt;\Lambda\)</span> 定义正规化区域：</p>
+<div class="arithmatex">\[B_\Lambda(Q)=\frac1{8\pi^2}\int_0^1 I(\Lambda,M_x)\,dx,
+\qquad M_x^2=1+x(1-x)Q^2,\]</div>
+<div class="arithmatex">\[I(\Lambda,M)=\frac12\left[\log\frac{\Lambda^2+M^2}{M^2}+\frac{M^2}{\Lambda^2+M^2}-1\right].\]</div>
+<p><strong>交卷要求：</strong>由这个式子推出 <span class="arithmatex">\(B_R(Q;Q_0)\)</span>，证明交换两动量会反号；取 Q=2、Q₀=0，比较 Λ=10、20、40。再判断故意用 <span class="arithmatex">\(B_{2\Lambda}(Q)-B_\Lambda(Q_0)\)</span> 会不会给同一个极限。</p>
+<details>
+<summary>第二站题解：有限常数不会因为发散消失而自动正确</summary>
+<p>固定 Q、Q₀ 后，<span class="arithmatex">\(I=\log(\Lambda/M)-1/2+O(M^2/\Lambda^2)\)</span>。x 在紧区间内且两动量固定，M 有统一上下界，故余项可统一控制并取积分极限：</p>
+<div class="arithmatex">\[B_R(Q;Q_0)=-\frac1{16\pi^2}\int_0^1\log\frac{1+x(1-x)Q^2}{1+x(1-x)Q_0^2}\,dx.\]</div>
+<p>交换分子分母，结果反号；Q=Q₀ 时严格为零。对 Q=2、Q₀=0，静态参照为</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Λ</th>
+<th style="text-align: right;">BΛ(2)−BΛ(0)</th>
+<th style="text-align: right;">与极限之差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">−0.003038636971</td>
+<td style="text-align: right;">0.000082694826</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">−0.003100333504</td>
+<td style="text-align: right;">0.000020998293</td>
+</tr>
+<tr>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">−0.003116061569</td>
+<td style="text-align: right;">0.000005270227</td>
+</tr>
+</tbody>
+</table>
+<p>共同极限约为 −0.003121331796。有限截断误差逐渐减小，不等于有限截断已经严格达到极限。</p>
+<p>若两项使用不同截断比例，则</p>
+<div class="arithmatex">\[\lim_{\Lambda\to\infty}[B_{2\Lambda}(Q)-B_\Lambda(Q_0)]
+=B_R(Q;Q_0)+\frac{\log2}{8\pi^2}.\]</div>
+<p>额外项约为 0.008778811597。发散虽仍相消，却留下错误匹配产生的有限偏移。若有意把它当另一正规化／减法选择，必须相应改变参数匹配条件；不能直接宣称与原减法相同。这里所有 Q 都保持固定，不能暗中令 Q 随 Λ 增大。</p>
+</details>
+<p><strong>实验输入。</strong> 本题沿用默认 Q=2、Q₀=0、Λ=10，依次改 Λ=20、40。默认计算用 256 段 Simpson 参数积分，径向积分用解析式；误差还包括数值求积。上表用独立 128 点 Gauss–Legendre 求积，末几位可能与网页读数不同（本题约 4×10⁻¹²），不应把它混入有限截断误差的解释。实验只让两项共用同一个截断，故“不等截断”的反例需按上式手算，不能把某一滑块误认为第二个截断。无脚本参照在上表。</p>
+<div class="learning-lab" data-learning-lab="research-foundations" data-research-topic="loop">
+<p>无脚本时使用第二站的三行数值与极限式。</p>
+</div>
+<h2 id="4">4. 第三站：换减法点，为什么耦合也要跟着变？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>这里只讨论明确规定的无量纲教学量</p>
+<div class="arithmatex">\[F(Q)=g_R+c\,g_R^2 B_R(Q;Q_0)+O(g_R^3),\]</div>
+<p>c 是固定组合系数，不能从本式读取完整 φ⁴ 理论的 beta 函数。取 c=3，原减法点 Q₀=0，新减法点 Q₁=1，测试点 Q=2。<strong>交卷要求：</strong>按 <span class="arithmatex">\(F(Q_1)=g_1\)</span> 推出参数变换，证明两种写法到二阶相同；再解释直接把二阶表达式当完整函数代入，为什么会有很小的差。</p>
+<details>
+<summary>第三站题解：比较预测时要同时对齐微扰阶数</summary>
+<p>记 <span class="arithmatex">\(a=B_R(1;0)\)</span>、<span class="arithmatex">\(b=B_R(2;1)\)</span>。对数比的相乘给出精确加法关系</p>
+<div class="arithmatex">\[B_R(2;0)=a+b.\]</div>
+<p>而匹配条件给出</p>
+<div class="arithmatex">\[g_1=g_R+cg_R^2a+O(g_R^3).\]</div>
+<p>在新减法点写 <span class="arithmatex">\(F(Q)=g_1+cg_1^2B_R(Q;1)+O(g_1^3)\)</span>，代入并<strong>重新截到二阶</strong>，就得到 <span class="arithmatex">\(g_R+cg_R^2[a+B_R(Q;1)]+O(g_R^3)\)</span>，与原式一致。只改变 Q₀ 而不改变 g，预测会在已保留的二阶就变掉。</p>
+<p>为看见阶数差异，暂将每个二阶多项式直接当数值函数，定义 <span class="arithmatex">\(\widetilde g_1=g+cg^2a\)</span>、<span class="arithmatex">\(F_0=g+cg^2(a+b)\)</span>、<span class="arithmatex">\(\widetilde F_1=\widetilde g_1+c\widetilde g_1^2b\)</span>。代数展开给</p>
+<div class="arithmatex">\[\widetilde F_1-F_0=2c^2g^3ab+c^3g^4a^2b.\]</div>
+<p>这是这两个截断表达式之间的差，不是完整理论已知的三圈或三阶物理修正。独立积分参照 <span class="arithmatex">\(a\approx-0.000962834341\)</span>、<span class="arithmatex">\(b\approx-0.002158497452\)</span> 给出：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">g</th>
+<th style="text-align: right;">g̃₁</th>
+<th style="text-align: right;">F₀</th>
+<th style="text-align: right;">F̃₁−F₀</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">0.199884459879</td>
+<td style="text-align: right;">0.199625440184</td>
+<td style="text-align: right;">2.991852237×10⁻⁷</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.099971114970</td>
+<td style="text-align: right;">0.099906360046</td>
+<td style="text-align: right;">3.740355576×10⁻⁸</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.049992778742</td>
+<td style="text-align: right;">0.049976590012</td>
+<td style="text-align: right;">4.675782145×10⁻⁹</td>
+</tr>
+</tbody>
+</table>
+<p>减半 g，差约缩小八倍，符合首项为三阶；微小差并不意味着需要“修掉”二阶一致性。未知高阶项的实际大小并未由本表确定。</p>
+</details>
+<p>这一步复用上面的泡图实验求 a、b：分别输入 (Q,Q₀)=(1,0)、(2,1)，读取“减法极限 BR”，再自己计算参数变换。滑块中没有 g 或 c；不要把有限截断差拿来代替这里定义的 BR。网页表格会简化小数位，用它核对符号与量级即可；复算本节的高精度差值请使用上面的 a、b 参照或自行提高求积精度，不能从已经舍入的读数恢复丢失的有效位。</p>
+<h2 id="5">5. 第四站：去掉外腿以后，内部极点还必须留下<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>现在换到研究振幅课的<strong>形式无质量树级模型</strong>，与第二、三站的有质量欧氏积分不是同一物理过程。以入射／出射动量定义 s、t、u，满足 s+t+u=0。固定符号 <span class="arithmatex">\(\mathcal A=-\mathcal M\)</span>：</p>
+<div class="arithmatex">\[\mathcal A=g_3^2\left(\frac1s+\frac1t+\frac1u\right)+\lambda_4.\]</div>
+<p><span class="arithmatex">\(g_3\)</span> 的质量维数为 1，λ₄ 无量纲，均不同于第三站的教学耦合 g。该 φ³ 模型只演示极点代数，不提供稳定非微扰真空。</p>
+<p><strong>交卷要求：</strong>固定参考 s=1、<span class="arithmatex">\(g_3/\sqrt s=1\)</span>、cosθ=1/2，分别取 λ₄=0 和 2，算三个通道及总振幅；再在解析运动学中固定非零 t、令 s→0，算留数。为什么有限角度差与留数相同不矛盾？</p>
+<details>
+<summary>第四站题解：留数约束不到所有有限项</summary>
+<p><span class="arithmatex">\(t=-s(1-\cos\theta)/2=-1/4\)</span>，<span class="arithmatex">\(u=-3/4\)</span>，三个交换项为 <span class="arithmatex">\(1,-4,-4/3\)</span>，和为 −13/3。加 λ₄=2 后总振幅为 −7/3；在 <span class="arithmatex">\(\mathcal A=-\mathcal M\)</span> 的约定下，两个 M 分别为 13/3、7/3，仍不是概率。</p>
+<p>求 s 道留数时保持维数耦合 <span class="arithmatex">\(g_3\)</span> 和非零 t 固定，令 <span class="arithmatex">\(u=-s-t\)</span>，则</p>
+<div class="arithmatex">\[\lim_{s\to0}s\mathcal A=g_3^2.\]</div>
+<p>t、u 通道与接触常数此时都有限，乘 s 后消失。不要沿“固定角度、s→0”的路径求这个单通道留数；那样 t、u 也同时趋零，混入其他极点。实验固定 s=1，滑动角度不能实现这个解析极限。</p>
+<p>相同留数只说明简单交换极点的系数相同，不能确定接触项。外腿已经截肢也不意味着内部传播子要删掉；删掉它就破坏了这份因子化信息。</p>
+</details>
+<p><strong>实验输入。</strong> 默认缩放耦合 1、接触项 0、cosθ=0，总振幅 −3。请改 cosθ=0.5，比较接触项 0 与 2，应得到 −4.333333333 与 −2.333333333，归一化 s 道留数均为 1。实验避开 cosθ=±1，未显示极点不等于它不存在。无脚本时按上方分数核对。</p>
+<div class="learning-lab" data-learning-lab="research-physics" data-research-topic="amplitude">
+<p>无脚本时使用第四站的三个分数与两种接触项结果。</p>
+</div>
+<h2 id="6">6. 退出题：换了输入，还能指出结论的边界吗？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>合上前文，交一页四行记录：</p>
+<ol>
+<li>完整传播子截肢核为 −0.5i、Z=0.8，算 M 与模平方。</li>
+<li>把不匹配截断改成 <span class="arithmatex">\(B_{3\Lambda}(Q)-B_\Lambda(Q_0)\)</span>，写出多出的常数；若 Q=Q₀，极限是否为零？</li>
+<li>新减法点记为 Q₂，写 g₂ 与原 g 的二阶关系，说明为何不能固定 g 只换标签。</li>
+<li>在第四站振幅中加入 <span class="arithmatex">\(d(s^2+t^2+u^2)\)</span>，写 d 的质量维数，判断是否改变简单极点留数，以及改变了哪种信息。</li>
+</ol>
+<details>
+<summary>退出题答案与验收条件</summary>
+<ol>
+<li><span class="arithmatex">\(\mathcal M=-(0.8)^2(0.5)=-0.32\)</span>，模平方 0.1024；仍需相空间等才能得到截面。</li>
+<li>多出 <span class="arithmatex">\(\log3/(8\pi^2)\)</span>，即便 Q=Q₀ 也不为零。必须对齐处方或重新匹配有限参数。</li>
+<li><span class="arithmatex">\(g_2=g+cg^2B_R(Q_2;Q_0)+O(g^3)\)</span>；重整化参数的定义来自该点的匹配条件，改变定义会改变其数值。</li>
+<li><span class="arithmatex">\([d]=\mathrm{mass}^{-4}\)</span>；多项式在简单交换极点处有限，故不改留数，却改变有限角度值和高能增长。能满足所有极点检查不等于答案已唯一。</li>
+</ol>
+<p>每行既要有公式也要有解释。把模平方叫截面、不同截断直接相减、把未保留的高阶差当二阶错误、沿三个通道同时奇异的路径求单通道留数，任一出现都应回到对应站。</p>
+</details>
+<p>隔两三天闭卷复测：改 Z=0.6、截肢核 −0.5i；两截断比例改为 1/2；角度取 cosθ=−1/2，检查 t、u 对换后结果是否相同。自行保存初答、纠错理由和复测日期。本页不记录作答，也没有据此收集学习效果数据。</p>
+</section>
+<h2 id="_1">速查与继续阅读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>已能交出的证据</th>
+<th>接下来可以做</th>
+<th>本页还未完成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>外腿留数、符号和归一化记录</td>
+<td><a href="research-07-scattering-amplitudes.html">散射振幅与因子化</a></td>
+<td>自旋／规范场、红外安全散射与实际截面</td>
+</tr>
+<tr>
+<td>同处方减法及二阶参数匹配</td>
+<td><a href="qft-03-path-renorm.html">路径积分与重整化</a></td>
+<td>完整 s、t、u 单圈振幅、质量／场强反项和高阶误差</td>
+</tr>
+<tr>
+<td>留数正确但接触项仍可变的反例</td>
+<td><a href="research-06-conformal-bootstrap.html">共形 bootstrap</a>中区分一致性与唯一性</td>
+<td>共形块、反射正性、严格数值排除证书</td>
+</tr>
+<tr>
+<td>想把关联函数用于外场响应</td>
+<td><a href="bridge-04-spectral-response.html">Kubo 的两能级响应计算</a></td>
+<td>这是另一种关联函数与可观测量约定，不能直接套时序散射振幅</td>
+</tr>
+</tbody>
+</table>
+<p>原始教学参照：<a href="https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3">Tong：Interacting Fields</a>的连通图、截肢及 LSZ；<a href="https://davidtong.org/teaching/statistical-field-theory/sfthtml/S3">Tong：The Renormalisation Group</a>的圈积分与参数组织；<a href="https://arxiv.org/abs/1308.1697">Elvang、Huang：Scattering Amplitudes</a>的解析结构与壳上方法。具体正规化处方、二阶匹配和四站数值在本页独立给出。核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="route-01-mps-readiness.html"><span class="pager-label">上一页</span>路线验收 · Schmidt 到变分扫描</a>
+  <a class="pager-slot next" href="frontier-01-entanglement-matter.html"><span class="pager-label">下一页</span>前沿 I · 多体纠缠与量子物态</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-foundations.js?v=081e076804d6"></script>
+<script defer src="assets/learning/labs/research-physics.js?v=c1a46fc4013d"></script>
+</body>
+</html>

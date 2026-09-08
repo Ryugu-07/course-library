@@ -328,3 +328,5 @@ $r=0$ 时 $K=I$，故 $g_0=g_1=g_2$，路径权重中的终端势与分母相消
 | 熵投影 | $H(Q\mid R)\ge H(P\mid R)$ | 对导出的 $\mu,\nu$，$P$ 是极小桥 |
 
 路径空间 Schrödinger 问题、熵的条件分解与 $(f,g)$ 变换可参见 Léonard 的 [A survey of the Schrödinger problem and some of its connections with optimal transport](https://arxiv.org/abs/1308.0215)；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 [Schrödinger Bridge Samplers](https://arxiv.org/abs/1912.13170)。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-08。
+
+连续训练：[路径熵与随机场极限](route-02-stochastic-readiness.html)把有限模型、误差控制和退出题接成可交卷的路线。

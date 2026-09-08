@@ -118,3 +118,5 @@ $$F(Q)=g_R+cg_R^2B_R(Q;Q_0)+O(g_R^3).$$
 参数化 → 配平方 → 明确正规化区域 → 算径向积分 → 指定减法条件 → 保留有限动量依赖。返回[路径积分与重整化](qft-03-path-renorm.html)理解 RG，或进入[散射振幅](research-07-scattering-amplitudes.html)。
 
 一手教学来源：[David Tong：The Renormalisation Group](https://davidtong.org/teaching/statistical-field-theory/sfthtml/S3)，用于圈积分、短波模式与重整化的背景；本页单通道减法处方与全部算例已明确写出。资料核查：2026-09-08。
+
+连续训练：[从关联函数到振幅](route-02-field-readiness.html)用四份账本检查外腿归一化、同处方减法、参数匹配和内部极点。

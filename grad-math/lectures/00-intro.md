@@ -103,3 +103,5 @@
 随机分析路线有两个计算入口。[Markov 桥与路径枚举](bridge-10-markov-paths.html)将端点重配落实为两步转移及八条路径，接回 Schrödinger 桥；[Wick 平均与 L² 极限](bridge-09-wick-limits.html)要求亲自写出同一 Fourier 耦合下两个截断的均方差，再进入奇异 SPDE 的核估计。
 
 验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。
+
+随机分析训练可从[路径熵与随机场极限的连续作业](route-02-stochastic-readiness.html)进入：有限路径桥与 Wick 平均分成两支，各自完成诊断、计算、退出题与复测。

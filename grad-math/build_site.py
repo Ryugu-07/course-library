@@ -127,6 +127,7 @@ COURSE = [
     ]),
     ("学习路线与连续作业", [
         ("route-01-derived-readiness.md", "路线验收 · 整数分解到导出观点"),
+        ("route-02-stochastic-readiness.md", "路线验收 · 路径熵与随机场极限"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),

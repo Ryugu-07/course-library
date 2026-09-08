@@ -95,3 +95,5 @@ $i\mathcal M=Z^2(-ig)=-ig/4$，所以 $\mathcal M=-g/4$。如果原先所谓“�
 连通关联函数 → 单粒子极点与留数 → 外腿截肢和归一化 → 壳上振幅 → 相空间与截面。接着读[重整化的积分与减法](bridge-02-loop-subtraction.html)，再返回[散射振幅与因子化](research-07-scattering-amplitudes.html)。
 
 一手教学来源：[David Tong：Interacting Fields](https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3)，包括时序关联、S 矩阵及 LSZ 约化。公式的标量、稳定粒子、树级与归一化约定已在正文分别限定。资料核查：2026-09-08。
+
+连续训练：[从关联函数到振幅](route-02-field-readiness.html)用四份账本检查外腿归一化、同处方减法、参数匹配和内部极点。

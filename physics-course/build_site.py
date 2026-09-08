@@ -170,6 +170,7 @@ COURSE = [
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),
+        ("route-02-field-readiness.md", "路线验收 · 关联函数到振幅"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),

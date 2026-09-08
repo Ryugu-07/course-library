@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>路径熵与随机场极限 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li class="active"><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 22:05</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#stochastic-readiness-title">面对随机对象，你能说清“改了什么”和“收敛的是什么”吗？</a></li>
+<li><a href="#1">1. 先做入口诊断，再选择支线</a></li>
+<li><a href="#2">2. 统一记账规则：概率表和极限式都不能只看最后一格</a></li>
+<li><a href="#3">3. 第一站：从向后势算出八条路径</a></li>
+<li><a href="#4">4. 第二站：端点不动，只改条件桥</a></li>
+<li><a href="#5-wick">5. 第三站：用正交性把 Wick 平方变成有限和</a></li>
+<li><a href="#6">6. 第四站：从有限尾和判定真正的收敛对象</a></li>
+<li><a href="#7">7. 退出题：换一次输入，证据链还在吗？</a></li>
+<li><a href="#8">8. 边界清单：四站结束后仍不能声称什么</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="02-wick">学习路线 02 · 路径熵与 Wick 极限<a class="headerlink" href="#02-wick" title="Permanent link"></a></h1>
+<blockquote>
+<p>这是一条含两支的四站计算路线。有限路径熵支线：<a href="bridge-10-markov-paths.html">Markov 路径桥</a> → <a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a>；随机场极限支线：<a href="bridge-09-wick-limits.html">Wick 平方与截断极限</a> → <a href="frontier-02-singular-spde.html">奇异 SPDE</a>。两支共享概率、条件分解与极限论证的习惯，但<strong>互不构成先修</strong>，可以任意先做一支。目标是交出可逐项核验的有限模型证据，不是宣称已经掌握一般路径空间测度或奇异 SPDE 解理论。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="stochastic-readiness-title" class="learning-layer">
+<h2 id="stochastic-readiness-title">面对随机对象，你能说清“改了什么”和“收敛的是什么”吗？<a class="headerlink" href="#stochastic-readiness-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 先做入口诊断，再选择支线<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>准备一页计算纸。每题既写结论，也写决定结论的等式；仅凭熟悉词语猜答案，按“需要回课”处理。</p>
+<table>
+<thead>
+<tr>
+<th>入口题</th>
+<th>应交的证据</th>
+<th>若卡住，从哪里开始</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A：终端势 <span class="arithmatex">\(g_2=(1,w)\)</span> 中的 <span class="arithmatex">\(w\)</span> 是否就是终点状态 1 的概率？</td>
+<td>写出 <span class="arithmatex">\(g_0=K^2g_2\)</span> 与终边缘公式</td>
+<td><a href="bridge-10-markov-paths.html">Markov 路径桥</a></td>
+</tr>
+<tr>
+<td>B：保持起终点边缘不变，任意修改中间条件桥会不会保持路径 KL 不变？</td>
+<td>写出相对熵的条件链式分解</td>
+<td><a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a></td>
+</tr>
+<tr>
+<td>C：减去 <span class="arithmatex">\(\mathbb E X_N(x)^2\)</span> 后，点上 Wick 平方的方差是否自动有界？</td>
+<td>用 Gaussian 四阶矩算方差</td>
+<td><a href="bridge-09-wick-limits.html">Wick 平方与截断极限</a></td>
+</tr>
+<tr>
+<td>D：本路线证明收敛的是点值、随机分布，还是一个标量配对？</td>
+<td>明确写出随机变量与所用范数</td>
+<td><a href="frontier-02-singular-spde.html">奇异 SPDE</a></td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>入口题核对：根据第一次说不清的地方进入相应站点</summary>
+<p>A：不是。<span class="arithmatex">\(w\)</span> 是路径的终端相对权重，终边缘还取决于初始边缘与参考链的可达性：</p>
+<div class="arithmatex">\[
+\nu_k=g_2(k)\sum_i\mu_i\frac{(K^2)_{ik}}{g_0(i)}.
+\]</div>
+<p>B：不会。固定端点联合分布 <span class="arithmatex">\(Q_{02}\)</span> 时，条件项</p>
+<div class="arithmatex">\[
+\sum_{i,k}Q_{02}(i,k)
+H\bigl(Q(\cdot\mid i,k)\mid R(\cdot\mid i,k)\bigr)
+\]</div>
+<p>通常会增加；只有保留参考条件桥才把它压到零。C：不会。若 <span class="arithmatex">\(X_N(x)\)</span> 是方差 <span class="arithmatex">\(C_N\)</span> 的中心 Gaussian，则</p>
+<div class="arithmatex">\[
+\operatorname{Var}(X_N(x)^2-C_N)=2C_N^2.
+\]</div>
+<p>D：本路线只证明</p>
+<div class="arithmatex">\[
+Y_N=\left\langle:X_N^2:,1\right\rangle
+\]</div>
+<p>这个标量随机变量在特定参数范围内按 <span class="arithmatex">\(L^2(\Omega)\)</span> 收敛。它不是逐点极限，也不是完整随机分布或 SPDE 解。</p>
+<p>若 A、B 能独立完成，可以直接从第三站开始随机场支线；若 C、D 能独立完成，也可以先做路径支线。不要把支线顺序误读为理论依赖。</p>
+</details>
+<p><img alt="入口诊断分成两条彼此独立的训练支线。左支从八条Markov路径到固定端点条件桥的KL反例；右支从Fourier正交化简到尾和Cauchy判据。两支最后汇合为一份写明对象、条件、数值和边界的退出答案。" src="assets/img/route-02-stochastic-readiness.svg" /></p>
+<h2 id="2">2. 统一记账规则：概率表和极限式都不能只看最后一格<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>路径支线固定状态 <span class="arithmatex">\(\{0,1\}\)</span>、时刻 <span class="arithmatex">\(0,1,2\)</span>，参考初始分布为 <span class="arithmatex">\((1/2,1/2)\)</span>，参考转移为</p>
+<div class="arithmatex">\[
+K=\begin{pmatrix}1-r&amp;r\\r&amp;1-r\end{pmatrix}.
+\]</div>
+<p>相对熵统一使用自然对数。若候选律在参考概率为零的事件上放了正质量，KL 记为 <span class="arithmatex">\(+\infty\)</span>。</p>
+<p>随机场支线固定圆周 <span class="arithmatex">\(\mathbb T=[0,2\pi]\)</span> 上的归一化平均</p>
+<div class="arithmatex">\[
+\langle f\rangle=\frac1{2\pi}\int_0^{2\pi}f(x)\,dx,
+\]</div>
+<p>并让所有截断共用同一组独立标准 Gaussian 系数。比较 <span class="arithmatex">\(Y_M-Y_N\)</span> 时若重新抽样，就已经换了问题。</p>
+<p>四站共同采用一条验收规则：先写输入，再写中间对象，最后写等式和误差。只报告终点概率、一个 KL 数字或一张趋降曲线，都不算完成。</p>
+<h2 id="3">3. 第一站：从向后势算出八条路径<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>固定输入。</strong> 取</p>
+<div class="arithmatex">\[
+r=\frac14,
+\qquad
+\mu=(1/2,1/2),
+\qquad
+g_2=(1,2).
+\]</div>
+<p><strong>交卷要求。</strong> 算出 <span class="arithmatex">\(g_1=Kg_2\)</span>、<span class="arithmatex">\(g_0=K^2g_2\)</span>、初始校准因子 <span class="arithmatex">\(f\)</span>、两步 Doob 转移、八条路径概率和三个时刻的边缘。另写一句为什么终点状态 1 的概率不等于 <span class="arithmatex">\(2/3\)</span>。</p>
+<details>
+<summary>第一站题解：势向后走，概率向前走</summary>
+<p>逐次矩阵乘法给出</p>
+<div class="arithmatex">\[
+g_1=(5/4,7/4),
+\qquad
+g_0=(11/8,13/8).
+\]</div>
+<p>因为参考初始分布是 <span class="arithmatex">\((1/2,1/2)\)</span>，</p>
+<div class="arithmatex">\[
+f_i=\frac{\mu_i}{R_0(i)g_0(i)},
+\qquad
+f=(8/11,8/13).
+\]</div>
+<p>由</p>
+<div class="arithmatex">\[
+K_t^*(i,j)=K_{ij}\frac{g_{t+1}(j)}{g_t(i)}
+\]</div>
+<p>得到</p>
+<div class="arithmatex">\[
+K_0^*=\begin{pmatrix}15/22&amp;7/22\\5/26&amp;21/26\end{pmatrix},
+\qquad
+K_1^*=\begin{pmatrix}3/5&amp;2/5\\1/7&amp;6/7\end{pmatrix}.
+\]</div>
+<p>每行和为 1，因为 <span class="arithmatex">\(g_t=Kg_{t+1}\)</span>。路径律为</p>
+<div class="arithmatex">\[
+P(i,j,k)=\mu_iK_0^*(i,j)K_1^*(j,k)
+=\mu_i\frac{K_{ij}K_{jk}g_2(k)}{g_0(i)}.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th style="text-align: right;">000</th>
+<th style="text-align: right;">001</th>
+<th style="text-align: right;">010</th>
+<th style="text-align: right;">011</th>
+<th style="text-align: right;">100</th>
+<th style="text-align: right;">101</th>
+<th style="text-align: right;">110</th>
+<th style="text-align: right;">111</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(P\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(9/44\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3/22\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/44\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3/22\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3/52\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/26\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3/52\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(9/26\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>求和得到</p>
+<div class="arithmatex">\[
+P_0=(1/2,1/2),
+\quad
+P_1=(125/286,161/286),
+\quad
+P_2=(49/143,94/143).
+\]</div>
+<p>终点状态 1 的概率是 <span class="arithmatex">\(94/143\approx0.657343\)</span>，不是 <span class="arithmatex">\(2/3\)</span>。<span class="arithmatex">\(w=2\)</span> 只是相对于状态 0 的终端势比；分母 <span class="arithmatex">\(g_0(i)\)</span> 还携带从每个起点到终点的两步可达性。</p>
+</details>
+<p><strong>实验核对。</strong> 路径实验让 <span class="arithmatex">\(r\)</span> 在 0.05 到 0.45、<span class="arithmatex">\(w\)</span> 在 0.25 到 4、<span class="arithmatex">\(u=\mu_0\)</span> 在 0.1 到 0.9 间变化，默认值正是本题输入。每次调参都重新导出终边缘，不是任意指定双边缘的求解器。</p>
+<p><strong>无脚本后备：</strong>默认状态 1 概率依次为 <span class="arithmatex">\(0.500000,0.562937,0.657343\)</span>；路径 KL 与端点 KL 都为 <span class="arithmatex">\(0.0536544361\)</span>。八条路径的精确值见本题表。</p>
+<div class="learning-lab" data-learning-lab="research-paths" data-research-topic="markov"></div>
+<h2 id="4">4. 第二站：端点不动，只改条件桥<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p><strong>固定输入。</strong> 沿用第一站的 <span class="arithmatex">\(P\)</span> 与参考律 <span class="arithmatex">\(R(i,j,k)=\tfrac12K_{ij}K_{jk}\)</span>。先把端点联合分布写成</p>
+<div class="arithmatex">\[
+\pi=P_{02}=
+\begin{pmatrix}
+5/22&amp;3/11\\
+3/26&amp;5/13
+\end{pmatrix},
+\]</div>
+<p>参考端点表为</p>
+<div class="arithmatex">\[
+R_{02}=\begin{pmatrix}5/16&amp;3/16\\3/16&amp;5/16\end{pmatrix}.
+\]</div>
+<p>构造另一条路径律 <span class="arithmatex">\(Q\)</span>：保持端点联合表 <span class="arithmatex">\(Q_{02}=\pi\)</span>，对除 <span class="arithmatex">\((i,k)=(0,0)\)</span> 外的端点对保持参考条件桥；只把</p>
+<div class="arithmatex">\[
+R(j=0,1\mid0,0)=(9/10,1/10)
+\]</div>
+<p>改成</p>
+<div class="arithmatex">\[
+Q(j=0,1\mid0,0)=(1/2,1/2).
+\]</div>
+<p><strong>交卷要求。</strong> 写出被改变的两条路径概率，证明两端边缘不变，再用 KL 链式分解计算增加量。</p>
+<details>
+<summary>第二站题解：同一端点表并不决定同一个路径代价</summary>
+<p>因为 <span class="arithmatex">\(\pi_{00}=5/22\)</span>，新路径概率为</p>
+<div class="arithmatex">\[
+Q(000)=Q(010)=\frac12\cdot\frac5{22}=\frac5{44}.
+\]</div>
+<p>原来这两格分别是 <span class="arithmatex">\(9/44,1/44\)</span>；它们的和仍为 <span class="arithmatex">\(5/22\)</span>。其他六格保持不变，所以整个端点联合分布 <span class="arithmatex">\(Q_{02}=\pi\)</span>，起点与终点边缘当然也都不变。</p>
+<p>相对熵按端点和条件路径分解：</p>
+<div class="arithmatex">\[
+H(Q\mid R)=H(\pi\mid R_{02})
++\sum_{i,k}\pi_{ik}
+H\bigl(Q(\cdot\mid i,k)\mid R(\cdot\mid i,k)\bigr).
+\]</div>
+<p>只有 <span class="arithmatex">\((0,0)\)</span> 项非零。它的条件 KL 为</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H\bigl((1/2,1/2)\mid(9/10,1/10)\bigr)
+&amp;=\frac12\log\frac{1/2}{9/10}
++\frac12\log\frac{1/2}{1/10}\\
+&amp;=\frac12\log\frac{25}{9}
+\approx0.5108256238.
+\end{aligned}
+\]</div>
+<p>乘端点权重后，路径 KL 的增加量是</p>
+<div class="arithmatex">\[
+\Delta H=\frac5{22}\cdot\frac12\log\frac{25}{9}
+=\frac5{44}\log\frac{25}{9}
+\approx0.1160967327.
+\]</div>
+<p>第一站的 <span class="arithmatex">\(P\)</span> 保留了所有参考条件桥，所以</p>
+<div class="arithmatex">\[
+H(P\mid R)=H(\pi\mid R_{02})\approx0.0536544361.
+\]</div>
+<p>新路径律则有</p>
+<div class="arithmatex">\[
+\boxed{H(Q\mid R)\approx0.1697511688.}
+\]</div>
+<p>这给出一个严格反例：保持端点联合分布，甚至不只保持两端边缘，仍可因改变中间条件桥而增加路径 KL。</p>
+</details>
+<p>这两站完成的是有限状态、有限时刻、参考路径全正时的熵投影。它把<a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a>中的条件分解落到了八格账本上；没有证明连续路径的解离存在性、Girsanov 公式，也没有实现任意给定双边缘的势迭代。</p>
+<h2 id="5-wick">5. 第三站：用正交性把 Wick 平方变成有限和<a class="headerlink" href="#5-wick" title="Permanent link"></a></h2>
+<p>路径支线到此已经完成。现在独立开始随机场支线，不需要把 <span class="arithmatex">\(K,g_t\)</span> 或路径 KL 带过来。</p>
+<p>令</p>
+<div class="arithmatex">\[
+X_N(x)=\sum_{k=1}^Nk^{-s}
+\bigl(a_k\cos kx+b_k\sin kx\bigr),
+\]</div>
+<p>其中 <span class="arithmatex">\(a_k,b_k\)</span> 相互独立且服从 <span class="arithmatex">\(N(0,1)\)</span>。设</p>
+<div class="arithmatex">\[
+C_N=\mathbb E[X_N(x)^2]=\sum_{k=1}^Nk^{-2s},
+\qquad
+Y_N=\left\langle X_N^2-C_N\right\rangle.
+\]</div>
+<p><strong>固定输入。</strong> 取 <span class="arithmatex">\(s=1/2,N=2,M=4\)</span>。<strong>交卷要求。</strong> 用 Fourier 正交性写出 <span class="arithmatex">\(Y_2\)</span>，再算点上 Wick 平方方差、<span class="arithmatex">\(\operatorname{Var}Y_2\)</span> 与 <span class="arithmatex">\(\mathbb E|Y_4-Y_2|^2\)</span>。</p>
+<details>
+<summary>第三站题解：空间平均删除的是交叉频率</summary>
+<p>归一化平均满足</p>
+<div class="arithmatex">\[
+\langle\cos kx\cos lx\rangle
+=\langle\sin kx\sin lx\rangle=\frac12\delta_{kl},
+\qquad
+\langle\cos kx\sin lx\rangle=0.
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+Y_N=\frac12\sum_{k=1}^Nk^{-2s}
+\bigl(a_k^2+b_k^2-2\bigr).
+\]</div>
+<p>令 <span class="arithmatex">\(Q_k=a_k^2+b_k^2-2\)</span>。它们独立、均值为零、方差为 4。对 <span class="arithmatex">\(s=1/2,N=2\)</span>，</p>
+<div class="arithmatex">\[
+Y_2=\frac12\left(Q_1+\frac12Q_2\right).
+\]</div>
+<p>点方差尺度为</p>
+<div class="arithmatex">\[
+C_2=1+\frac12=\frac32,
+\]</div>
+<p>所以点上 Wick 平方的方差仍是</p>
+<div class="arithmatex">\[
+2C_2^2=\frac92.
+\]</div>
+<p>空间平均后的方差则为</p>
+<div class="arithmatex">\[
+\operatorname{Var}Y_2
+=\sum_{k=1}^2k^{-2}
+=1+\frac14=\frac54.
+\]</div>
+<p>因为 <span class="arithmatex">\(Y_4\)</span> 与 <span class="arithmatex">\(Y_2\)</span> 使用同一组系数，前两项相消：</p>
+<div class="arithmatex">\[
+Y_4-Y_2=\frac12\left(\frac13Q_3+\frac14Q_4\right).
+\]</div>
+<p>故</p>
+<div class="arithmatex">\[
+\boxed{
+\mathbb E|Y_4-Y_2|^2
+=\frac19+\frac1{16}
+=\frac{25}{144}.
+}
+\]</div>
+<p>均方根差恰为 <span class="arithmatex">\(5/12\)</span>。减均值没有让点值稳定；真正改变求和结构的是测试函数平均与 Fourier 正交性。</p>
+</details>
+<h2 id="6">6. 第四站：从有限尾和判定真正的收敛对象<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>固定输入。</strong> 仍使用同一耦合，先取一般 <span class="arithmatex">\(s\)</span>，再分别代入 <span class="arithmatex">\(s=1/2\)</span> 与临界值 <span class="arithmatex">\(s=1/4\)</span>。<strong>交卷要求。</strong> 推导跨截断均方差，给出 <span class="arithmatex">\(L^2\)</span> Cauchy 的充要阈值，并用 <span class="arithmatex">\(N=16,M=32\)</span> 的数值区分收敛情形与临界反例。</p>
+<details>
+<summary>第四站题解：先看无穷尾，再解释有限图</summary>
+<p>独立性给出精确等式</p>
+<div class="arithmatex">\[
+\mathbb E|Y_M-Y_N|^2
+=\sum_{k=N+1}^Mk^{-4s}.
+\]</div>
+<p>所以 <span class="arithmatex">\((Y_N)\)</span> 在 <span class="arithmatex">\(L^2(\Omega)\)</span> 中 Cauchy，当且仅当</p>
+<div class="arithmatex">\[
+\sum_{k\ge1}k^{-4s}&lt;\infty,
+\]</div>
+<p>也就是</p>
+<div class="arithmatex">\[
+\boxed{s&gt;1/4.}
+\]</div>
+<p>此时 <span class="arithmatex">\(L^2\)</span> 完备性给出一个标量随机变量 <span class="arithmatex">\(Y\in L^2(\Omega)\)</span>，使 <span class="arithmatex">\(Y_N\to Y\)</span>。还可由积分比较得到</p>
+<div class="arithmatex">\[
+\mathbb E|Y-Y_N|^2
+=\sum_{k&gt;N}k^{-4s}
+\le\frac{N^{1-4s}}{4s-1}.
+\]</div>
+<p>当 <span class="arithmatex">\(s=1/2,N=16,M=32\)</span> 时，</p>
+<div class="arithmatex">\[
+\mathbb E|Y_{32}-Y_{16}|^2
+=\sum_{k=17}^{32}k^{-2}
+\approx0.0298207294,
+\]</div>
+<p>均方根差约 <span class="arithmatex">\(0.172686796\)</span>，到无穷截断的均方误差上界为 <span class="arithmatex">\(1/16=0.0625\)</span>。</p>
+<p>临界 <span class="arithmatex">\(s=1/4\)</span> 时，</p>
+<div class="arithmatex">\[
+\mathbb E|Y_{2N}-Y_N|^2
+=\sum_{k=N+1}^{2N}\frac1k\longrightarrow\log2,
+\]</div>
+<p>不会趋零。<span class="arithmatex">\(N=16\)</span> 时已经是 <span class="arithmatex">\(0.6777662022\)</span>。有限曲线即使局部下降，也不能推翻这条倍增子序列的非 Cauchy 证据。</p>
+<p>收敛对象始终是</p>
+<div class="arithmatex">\[
+Y_N=\langle:X_N^2:,1\rangle,
+\]</div>
+<p>不是 <span class="arithmatex">\(X_N(x)^2-C_N\)</span> 的点值，也不是完整随机分布 <span class="arithmatex">\(:X_N^2:\)</span>。</p>
+</details>
+<p><strong>实验核对。</strong> Wick 实验令 <span class="arithmatex">\(N\)</span> 从 2 到 128、<span class="arithmatex">\(s\)</span> 从 0 到 1，始终比较 <span class="arithmatex">\(M=2N\)</span>；默认 <span class="arithmatex">\(N=16,s=1/2\)</span>。</p>
+<p><strong>无脚本后备：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align: right;"><span class="arithmatex">\(C_N\)</span></th>
+<th style="text-align: right;">点上 Wick 方差</th>
+<th style="text-align: right;"><span class="arithmatex">\(\operatorname{Var}Y_N\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\mathbb E\lvert Y_{2N}-Y_N\rvert^2\)</span></th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(N=16,s=1/2\)</span></td>
+<td style="text-align: right;">3.380728993</td>
+<td style="text-align: right;">22.858657051</td>
+<td style="text-align: right;">1.584346533</td>
+<td style="text-align: right;">0.029820729</td>
+<td>有 <span class="arithmatex">\(L^2\)</span> 极限</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N=16,s=1/4\)</span></td>
+<td style="text-align: right;">6.663994608</td>
+<td style="text-align: right;">88.817648277</td>
+<td style="text-align: right;">3.380728993</td>
+<td style="text-align: right;">0.677766202</td>
+<td>临界，不是 <span class="arithmatex">\(L^2\)</span> Cauchy</td>
+</tr>
+</tbody>
+</table>
+<div class="learning-lab" data-learning-lab="research-limits" data-research-topic="wick"></div>
+<p>这两站只为常数测试函数建立了一个标量 <span class="arithmatex">\(L^2\)</span> 极限。它为<a href="frontier-02-singular-spde.html">奇异 SPDE</a>提供“点值发散但测试函数配对可能收敛”的具体证据，却不能推出任意测试函数下一致收敛，更不能推出某个非线性 SPDE 的解存在、唯一或与近似无关。</p>
+<h2 id="7">7. 退出题：换一次输入，证据链还在吗？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>合上四站题解，分别完成两小题。它们互相独立，可以分两页提交。</p>
+<p><strong>路径题。</strong> 保持第二站的端点表 <span class="arithmatex">\(\pi\)</span>，只把 <span class="arithmatex">\((0,0)\)</span> 条件桥从 <span class="arithmatex">\((9/10,1/10)\)</span> 改成 <span class="arithmatex">\((4/5,1/5)\)</span>。计算路径 KL 增量与新总 KL。</p>
+<p><strong>极限题。</strong> 改取 <span class="arithmatex">\(s=3/8\)</span>。判断点方差尺度 <span class="arithmatex">\(C_N\)</span> 是否有界、<span class="arithmatex">\(Y_N\)</span> 是否在 <span class="arithmatex">\(L^2\)</span> 收敛，并给出到极限的均方误差与均方根误差上界。</p>
+<details>
+<summary>退出题答案与验收标准</summary>
+<p>路径题的条件 KL 为</p>
+<div class="arithmatex">\[
+D=\frac45\log\frac{4/5}{9/10}
++\frac15\log\frac{1/5}{1/10}
+=\frac45\log\frac89+\frac15\log2
+\approx0.04440300759.
+\]</div>
+<p>只有端点对 <span class="arithmatex">\((0,0)\)</span> 被修改，所以</p>
+<div class="arithmatex">\[
+\Delta H=\pi_{00}D
+=\frac5{22}D
+\approx0.01009159263.
+\]</div>
+<p>新总 KL 为</p>
+<div class="arithmatex">\[
+H(Q\mid R)\approx0.05365443615+0.01009159263
+=0.06374602878.
+\]</div>
+<p>极限题中 <span class="arithmatex">\(2s=3/4\le1\)</span>，故</p>
+<div class="arithmatex">\[
+C_N=\sum_{k=1}^Nk^{-3/4}
+\]</div>
+<p>发散，点上 Wick 方差 <span class="arithmatex">\(2C_N^2\)</span> 也发散。但 <span class="arithmatex">\(4s=3/2&gt;1\)</span>，所以 <span class="arithmatex">\(Y_N\)</span> 在 <span class="arithmatex">\(L^2\)</span> 中收敛。积分比较给</p>
+<div class="arithmatex">\[
+\mathbb E|Y-Y_N|^2
+\le\frac{N^{-1/2}}{1/2}
+=2N^{-1/2},
+\]</div>
+<p>以及</p>
+<div class="arithmatex">\[
+\|Y-Y_N\|_{L^2}\le\sqrt2\,N^{-1/4}.
+\]</div>
+<p>通过要求：路径题必须说明端点表未改，极限题必须明确区分点上发散与标量配对收敛；只报两个小数或只写“重整化有效”都不通过。</p>
+</details>
+<p>隔两三天不看答案复测：路径支线改用 <span class="arithmatex">\(r=1/3,u=2/5,w=3/2\)</span>，至少算到 <span class="arithmatex">\(g_1=(7/6,4/3)\)</span>、<span class="arithmatex">\(g_0=(11/9,23/18)\)</span> 与导出终点概率 <span class="arithmatex">\(\nu_1=771/1265\)</span>；随机场支线用 <span class="arithmatex">\(s=3/8,N=2,M=4\)</span>，从有限和重新算 <span class="arithmatex">\(\operatorname{Var}Y_2\)</span> 与跨截断均方差。这两组分数输入不落在当前实验滑块的离散步长上，应手算或自行编程复算，不能用最接近的网格值冒充原题。保存首次错误、修正理由和复测日期，本页不记录作答数据。</p>
+<h2 id="8">8. 边界清单：四站结束后仍不能声称什么<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>已完成的证据</th>
+<th>可以继续</th>
+<th>仍需另外证明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>两状态三时刻路径律、Doob 转移与 KL 条件分解</td>
+<td><a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a>的连续路径动机</td>
+<td>任意双边缘势求解、连续解离、Girsanov 条件</td>
+</tr>
+<tr>
+<td>一次保持端点表但提高路径 KL 的反例</td>
+<td>理解参考条件桥为何是熵投影的一部分</td>
+<td>一般空间中的存在唯一性与数值收敛</td>
+</tr>
+<tr>
+<td>常数测试函数下 Wick 平方的有限和与 <span class="arithmatex">\(L^2\)</span> Cauchy 判据</td>
+<td><a href="frontier-02-singular-spde.html">奇异 SPDE</a>的重整化入口</td>
+<td>任意测试函数估计、随机分布拓扑、非线性解理论</td>
+</tr>
+<tr>
+<td>临界 <span class="arithmatex">\(s=1/4\)</span> 的倍增反例</td>
+<td>判断有限图像能否支持极限主张</td>
+<td>一般 Wick 幂、时间正则性和近似稳定性</td>
+</tr>
+</tbody>
+</table>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>支线</th>
+<th>核心分解</th>
+<th>必须说清的对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有限路径熵</td>
+<td><span class="arithmatex">\(H(Q\mid R)=H(Q_{02}\mid R_{02})+\mathbb E_{Q_{02}}H(Q^{ik}\mid R^{ik})\)</span></td>
+<td>完整路径概率律</td>
+</tr>
+<tr>
+<td>随机场极限</td>
+<td><span class="arithmatex">\(\mathbb E\lvert Y_M-Y_N\rvert^2=\sum_{N&lt;k\le M}k^{-4s}\)</span></td>
+<td>标量随机变量 <span class="arithmatex">\(Y_N\)</span> 的 <span class="arithmatex">\(L^2(\Omega)\)</span> 极限</td>
+</tr>
+</tbody>
+</table>
+<p>路径空间 Schrödinger 问题、条件桥与熵分解参照 Léonard 的作者论文 <a href="https://arxiv.org/abs/1308.0215">A survey of the Schrödinger problem and some of its connections with optimal transport</a>，其期刊版发表于 2014 年；小噪声趋向 Monge–Kantorovich 需额外条件，见 <a href="https://arxiv.org/abs/1011.2564">From the Schrödinger problem to the Monge–Kantorovich problem</a>。Gaussian Fourier 场、Wick 幂与 <span class="arithmatex">\(L^2\)</span> 构造可对照 Hairer 的作者讲义 <a href="https://hairer.org/notes/StochasticAnalysisCourse.pdf">Advanced Stochastic Analysis</a>；奇异随机方程为何还需要模型、重整化和解映射理论，见 Hairer 的 <a href="https://arxiv.org/abs/1803.03044">Renormalisation of parabolic stochastic PDEs</a>。本页新增有限数值均已从所列公式独立复算；资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="route-01-derived-readiness.html"><span class="pager-label">上一页</span>路线验收 · 整数分解到导出观点</a>
+  <a class="pager-slot next" href="frontier-01-schrodinger-bridge.html"><span class="pager-label">下一页</span>前沿 I · Schrödinger 桥与路径空间</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-paths.js?v=7e66cead9d52"></script>
+<script defer src="assets/learning/labs/research-limits.js?v=6ff18a8fa1cb"></script>
+</body>
+</html>
