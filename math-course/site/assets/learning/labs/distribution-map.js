@@ -109,9 +109,9 @@
     ".dm-lab .dm-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}.dm-lab .dm-actions>*{flex:1 1 155px;}",
     ".dm-lab .dm-feedback{min-height:1.8em;margin:9px 0 0;font-weight:700;}.dm-lab .dm-pass{color:var(--dm-green);}.dm-lab .dm-warn{color:var(--dm-red);}",
     ".dm-lab .dm-revealed{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".dm-lab .dm-layout{display:grid;grid-template-columns:minmax(205px,.46fr) minmax(0,1.54fr);gap:14px;align-items:start;min-width:0;}",
+    ".dm-lab .dm-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start;min-width:0;}",
     ".dm-lab .dm-controls,.dm-lab .dm-stage{min-width:0;}",
-    ".dm-lab .dm-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
+    ".dm-lab .dm-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
     ".dm-lab .dm-controls h4{font-size:14px;}.dm-lab .dm-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}",
     ".dm-lab .dm-preset-grid button{font-size:12px;}.dm-lab .dm-control{display:grid;gap:5px;min-width:0;}",
     ".dm-lab .dm-control label{color:var(--dm-muted);font-size:12.5px;font-weight:700;}.dm-lab .dm-control output{color:var(--dm-blue);font-variant-numeric:tabular-nums;}",
@@ -125,9 +125,10 @@
     ".dm-lab .dm-chart{min-width:0;}.dm-lab .dm-chart h4{margin-bottom:3px;font-size:13.5px;}.dm-lab .dm-chart-note{min-height:2.9em;margin:0 0 6px;font-size:12px;line-height:1.5;}",
     ".dm-lab .dm-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}",
     ".dm-lab .dm-chart-svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg);}.dm-lab .dm-chart-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
-    ".dm-lab .dm-grid-line{stroke:currentColor;stroke-width:1;stroke-opacity:.14;}.dm-lab .dm-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.62;}.dm-lab .dm-main-line{fill:none;stroke:var(--dm-blue);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;}.dm-lab .dm-area{fill:var(--dm-gold);fill-opacity:.28;stroke:none;}.dm-lab .dm-atom-line{stroke:var(--dm-red);stroke-width:2.4;stroke-dasharray:6 4;}.dm-lab .dm-atom-bar{fill:var(--dm-red);fill-opacity:.72;}.dm-lab .dm-quantile-point{fill:var(--dm-green);stroke:var(--bg);stroke-width:1.4;}.dm-lab .dm-chart-label{font-size:11px;fill:var(--dm-muted)!important;}.dm-lab .dm-chart-title{font-size:13px;font-weight:750;}.dm-lab .dm-small-label{font-size:10.5px;fill:var(--dm-muted)!important;}",
+    ".dm-lab .dm-grid-line{stroke:currentColor;stroke-width:1;stroke-opacity:.14;}.dm-lab .dm-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.62;}.dm-lab .dm-main-line{fill:none;stroke:var(--dm-blue);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;}.dm-lab .dm-area{fill:var(--dm-gold);fill-opacity:.28;stroke:none;}.dm-lab .dm-atom-line{stroke:var(--dm-red);stroke-width:2.4;stroke-dasharray:6 4;}.dm-lab .dm-atom-bar{fill:var(--dm-red);fill-opacity:.72;}.dm-lab .dm-quantile-point{fill:var(--dm-green);stroke:var(--bg);stroke-width:1.4;}.dm-lab .dm-chart-label{font-size:13px;fill:var(--dm-muted)!important;}.dm-lab .dm-chart-title{font-size:14px;font-weight:750;}.dm-lab .dm-small-label{font-size:12px;fill:var(--dm-muted)!important;}",
     ".dm-lab .dm-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--dm-green);background:var(--block-bg,var(--bg));font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
     ".dm-lab .dm-ledger{max-width:100%;margin-top:13px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.dm-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.dm-lab th,.dm-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.dm-lab th{color:var(--dm-muted);font-size:11.5px;}.dm-lab .dm-caution{margin:10px 0 0;color:var(--dm-muted);font-size:12px;line-height:1.65;}",
+    ".dm-lab .dm-controls h4,.dm-lab .dm-controls .dm-note,.dm-lab .dm-controls .dm-preset-grid,.dm-lab .dm-controls .dm-control:last-child{grid-column:1/-1;}",
     "@media(max-width:900px){.dm-lab .dm-layout{grid-template-columns:minmax(0,1fr);}.dm-lab .dm-controls{grid-template-columns:repeat(2,minmax(0,1fr));}.dm-lab .dm-controls h4,.dm-lab .dm-controls .dm-note,.dm-lab .dm-controls .dm-preset-grid,.dm-lab .dm-controls .dm-control:last-child{grid-column:1/-1;}}",
     "@media(max-width:700px){.dm-lab .dm-question-grid,.dm-lab .dm-chart-grid{grid-template-columns:minmax(0,1fr);}.dm-lab .dm-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}.dm-lab .dm-controls{grid-template-columns:minmax(0,1fr);}.dm-lab .dm-controls>*{grid-column:auto!important;}.dm-lab .dm-preset-grid{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:430px){.dm-lab .dm-prediction{padding:10px;}.dm-lab .dm-chart-frame{padding:4px;}.dm-lab table{font-size:11.5px;}.dm-lab th,.dm-lab td{padding-left:5px;padding-right:5px;}}",
@@ -215,7 +216,7 @@
     var model = resolveModel(input);
     if (!finite(Number(x))) return 0;
     return sortedAtoms(model).reduce(function (sum, atom) {
-      return sum + (near(atom.x, Number(x)) ? atom.p : 0);
+      return sum + (atom.x === Number(x) ? atom.p : 0);
     }, 0);
   }
 
@@ -231,7 +232,7 @@
     var model = resolveModel(input);
     var value = continuousCDF(model, x);
     sortedAtoms(model).forEach(function (atom) {
-      if (atom.x <= x + EPS) value += atom.p;
+      if (atom.x <= x) value += atom.p;
     });
     return clamp(value, 0, 1);
   }
@@ -280,7 +281,7 @@
     var b = Number(right);
     if (!finite(a) || !finite(b)) return NaN;
     if (b < a) { var swap = a; a = b; b = swap; }
-    if (near(a, b)) return 0;
+    if (a === b) return 0;
     return clamp(cdf(model, b) - cdf(model, a), 0, 1);
   }
 
@@ -306,14 +307,16 @@
 
   function generalizedInverse(input, probability) {
     var model = resolveModel(input);
-    var p = clamp(Number(probability), 0, 1);
+    var p = Number(probability);
+    if (!(p >= 0 && p <= 1)) return NaN;
+    // Plot endpoints use support limits; the infimum definition is for 0<p<1.
     var atoms = sortedAtoms(model);
     var component = model.continuous;
     if (model.id === "discrete") {
       var cumulative = 0;
       for (var i = 0; i < atoms.length; i += 1) {
         cumulative += atoms[i].p;
-        if (p <= cumulative + EPS) return atoms[i].x;
+        if (p <= cumulative) return atoms[i].x;
       }
       return atoms.length ? atoms[atoms.length - 1].x : model.domain[1];
     }
@@ -323,8 +326,8 @@
     if (model.id === "mixture") {
       var atom = atoms[0];
       var atomBefore = continuousCDF(model, atom.x);
-      if (p <= atomBefore + EPS) return component.lower + (p / component.weight) * (component.upper - component.lower);
-      if (p <= atomBefore + atom.p + EPS) return atom.x;
+      if (p <= atomBefore) return component.lower + (p / component.weight) * (component.upper - component.lower);
+      if (p <= atomBefore + atom.p) return atom.x;
       return component.lower + ((p - atom.p) / component.weight) * (component.upper - component.lower);
     }
     if (model.id === "square") return p * p;
@@ -445,7 +448,7 @@
       probability: intervalProbability(model, params.a, params.b),
       continuousArea: continuousIntervalArea(model, params.a, params.b),
       atomMass: sortedAtoms(model).reduce(function (sum, atom) {
-        return sum + (atom.x > params.a + EPS && atom.x <= params.b + EPS ? atom.p : 0);
+        return sum + (atom.x > params.a && atom.x <= params.b ? atom.p : 0);
       }, 0)
     };
     var probe = model.probe;
@@ -584,7 +587,7 @@
   function chartSvg(doc, ariaLabel) {
     return svgElement(doc, "svg", {
       className: "dm-chart-svg",
-      viewBox: "0 0 760 330",
+      viewBox: "0 0 400 330",
       role: "img",
       "aria-label": ariaLabel
     });
@@ -595,7 +598,7 @@
   }
 
   function scaffold(doc, svg, title, xDomain, yDomain, xLabel, yLabel, model) {
-    var plot = { left: 58, right: 735, top: 36, bottom: 262 };
+    var plot = { left: 50, right: 380, top: 50, bottom: 262 };
     svg.appendChild(chartText(doc, plot.left, 20, title, "dm-chart-title"));
     var yTicks = yDomain[1] === 1 ? [0, 0.5, 1] : [0, yDomain[1] / 2, yDomain[1]];
     yTicks.forEach(function (value) {
@@ -633,7 +636,7 @@
       svg.appendChild(svgElement(doc, "rect", { x: x - width / 2, y: y, width: width, height: plot.bottom - y, className: "dm-atom-bar", rx: 2 }));
       svg.appendChild(chartText(doc, x, y - 7, formatNumber(atom.p, 2), "dm-small-label", { "text-anchor": "middle" }));
     });
-    if (model.kind === "mixed") svg.appendChild(chartText(doc, plot.right - 4, plot.top + 14, "atom mass only", "dm-small-label", { "text-anchor": "end" }));
+    if (model.kind === "mixed") svg.appendChild(chartText(doc, plot.right - 4, plot.top - 10, "atom mass only", "dm-small-label", { "text-anchor": "end" }));
     return svg;
   }
 
@@ -663,9 +666,9 @@
       var after = cdf(model, atom.x);
       svg.appendChild(svgElement(doc, "circle", { cx: x, cy: scaleY(before, [0, 1], plot), r: 4.5, fill: "var(--bg)", stroke: "var(--dm-red)", "stroke-width": 2 }));
       svg.appendChild(svgElement(doc, "circle", { cx: x, cy: scaleY(after, [0, 1], plot), r: 4.2, className: "dm-quantile-point" }));
-      svg.appendChild(chartText(doc, x + 7, scaleY(after, [0, 1], plot) - 8, "jump=" + formatNumber(atom.p, 2), "dm-small-label"));
+      svg.appendChild(chartText(doc, x > plot.right - 75 ? x - 7 : x + 7, scaleY(after, [0, 1], plot) - 8, "jump=" + formatNumber(atom.p, 2), "dm-small-label", {"text-anchor": x > plot.right - 75 ? "end" : "start"}));
     });
-    if (!result.pointMasses.length) svg.appendChild(chartText(doc, plot.right - 4, plot.top + 14, "continuous", "dm-small-label", { "text-anchor": "end" }));
+    if (!result.pointMasses.length) svg.appendChild(chartText(doc, plot.right - 4, plot.top - 10, "continuous", "dm-small-label", { "text-anchor": "end" }));
     return svg;
   }
 
@@ -674,7 +677,7 @@
     var a = clamp(left, domain[0], domain[1]);
     var b = clamp(right, domain[0], domain[1]);
     if (b <= a) return "";
-    var values = linspace(a, b, 25).map(function (x) { return { x: x, y: continuousDensity(model, x) }; }).filter(function (point) { return finite(point.y); });
+    var values = linspace(a, b, 161).map(function (x) { return { x: x, y: Math.min(yMax, continuousDensity(model, x)) }; }).filter(function (point) { return finite(point.y); });
     if (!values.length) return "";
     var points = [{ x: values[0].x, y: 0 }].concat(values).concat([{ x: values[values.length - 1].x, y: 0 }]);
     return pathFromPoints(points, domain, [0, yMax], plot);
@@ -691,9 +694,9 @@
     }
     var finiteValues = result.densityCurve.map(function (point) { return point.y; }).filter(finite);
     var max = finiteValues.reduce(function (value, point) { return Math.max(value, point); }, 0);
-    var yMax = Math.max(1, max * 1.25);
+    var yMax = model.id === "square" ? 4 : Math.max(1, max * 1.25);
     plot = scaffold(doc, svg, "Density / interval area", model.domain, [0, yMax], "x", "density", model);
-    var curvePoints = result.densityCurve.filter(function (point) { return finite(point.y); });
+    var curvePoints = result.densityCurve.map(function (point) { return {x: point.x, y: Math.min(yMax, point.y)}; }).filter(function (point) { return finite(point.y); });
     svg.appendChild(path(doc, pathFromPoints(curvePoints, model.chartDomain, [0, yMax], plot), "dm-main-line"));
     var area = areaPath(model, result.interval.left, result.interval.right, plot, yMax);
     if (area) svg.appendChild(path(doc, area, "dm-area"));
@@ -702,15 +705,28 @@
       svg.appendChild(line(doc, x, plot.bottom, x, plot.top + 30, "dm-atom-line"));
       svg.appendChild(chartText(doc, x + 6, plot.top + 24, "atom", "dm-small-label"));
     });
-    svg.appendChild(chartText(doc, plot.right - 4, plot.top + 14, result.pointMasses.length ? "continuous part" : "area=(a,b]", "dm-small-label", { "text-anchor": "end" }));
+    svg.appendChild(chartText(doc, plot.right - 4, plot.top - 10, result.pointMasses.length ? "continuous part" : (model.id === "square" ? "top clipped; mass is analytic" : "area=(a,b]"), "dm-small-label", { "text-anchor": "end" }));
     return svg;
   }
 
   function quantileChart(doc, result) {
     var model = result.model;
     var svg = chartSvg(doc, "Generalized inverse and deterministic quantile grid");
-    var plot = scaffold(doc, svg, "Quantile: Q(p)=inf{x:F(x)>=p}", model.chartDomain, [0, 1], "quantile value", "p", model);
-    var curve = linspace(0.01, 0.99, 80).map(function (p) { return { x: generalizedInverse(model, p), y: p }; });
+    var plot = scaffold(doc, svg, "Quantile: Q(p)", model.chartDomain, [0, 1], "quantile value", "p", model);
+    var curve;
+    if (model.id === "discrete") {
+      var cumulative = 0;
+      sortedAtoms(model).forEach(function (atom) {
+        var segment = [{ x: atom.x, y: cumulative }, { x: atom.x, y: cumulative + atom.p }];
+        svg.appendChild(path(doc, pathFromPoints(segment, model.chartDomain, [0, 1], plot), "dm-main-line"));
+        if (cumulative > 0) svg.appendChild(svgElement(doc, "circle", { cx: scaleX(atom.x, model.chartDomain, plot), cy: scaleY(cumulative, [0, 1], plot), r: 3.5, fill: "var(--bg)", stroke: "var(--dm-blue)" }));
+        cumulative += atom.p;
+        svg.appendChild(svgElement(doc, "circle", { cx: scaleX(atom.x, model.chartDomain, plot), cy: scaleY(cumulative, [0, 1], plot), r: 3, fill: "var(--dm-blue)" }));
+      });
+      curve = [];
+    } else if (model.id === "mixture") {
+      curve = [{x:0,y:0},{x:0.4,y:0.28},{x:0.4,y:0.58},{x:1,y:1}];
+    } else curve = linspace(0, 1, 101).map(function (p) { return { x: generalizedInverse(model, p), y: p }; });
     svg.appendChild(path(doc, pathFromPoints(curve, model.chartDomain, [0, 1], plot), "dm-main-line"));
     result.quantileGrid.probabilities.forEach(function (p, index) {
       svg.appendChild(svgElement(doc, "circle", {
@@ -720,7 +736,7 @@
         className: "dm-quantile-point"
       }));
     });
-    svg.appendChild(chartText(doc, plot.right - 4, plot.top + 14, "midpoint grid; not IID samples", "dm-small-label", { "text-anchor": "end" }));
+    svg.appendChild(chartText(doc, plot.right - 4, plot.top - 10, "midpoint grid; not IID", "dm-small-label", { "text-anchor": "end" }));
     return svg;
   }
 
@@ -954,7 +970,7 @@
       clear(chartGrid);
       chartGrid.appendChild(chartPanel(doc, "点质量 / PMF", "离散 PMF 是点质量；连续模型用 0 表示点概率，混合模型把 atom 单列。", pmfChart(doc, result)));
       chartGrid.appendChild(chartPanel(doc, "CDF", "右连续的 F(x) 统一记录跳跃、斜率和区间差。", cdfChart(doc, result)));
-      chartGrid.appendChild(chartPanel(doc, "密度与区间面积", "金色区域只表示连续部分的面积；红色竖线表示 atom。", densityChart(doc, result)));
+      chartGrid.appendChild(chartPanel(doc, "密度与区间面积", result.modelId === "square" ? "零点密度无界，顶部截到4；阴影不是完整概率，精确质量见账本。" : "金色区域只表示连续部分的面积；红色竖线表示 atom。", densityChart(doc, result)));
       chartGrid.appendChild(chartPanel(doc, "Quantile / generalized inverse", "绿色点是 p_i=(i+1/2)/N 的确定性 quantile grid，不是 IID 样本。", quantileChart(doc, result)));
       renderLedger(result);
       interpretationNode.textContent = interpretation(result);

@@ -30,7 +30,7 @@
     ".ht-lab .ht-pass{color:var(--cl-green)}.ht-lab .ht-warn{color:var(--cl-red)}",
     ".ht-lab .ht-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0}",
     ".ht-lab .ht-metric{min-width:0;padding:9px 4px;border-top:2px solid var(--border)}.ht-lab .ht-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.ht-lab .ht-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ht-lab svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
+    ".ht-lab svg{min-width:560px;display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
     ".ht-lab svg text{fill:var(--fg);font-family:inherit;letter-spacing:0}.ht-lab .ht-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55}",
     ".ht-lab .ht-null{stroke:var(--accent);stroke-width:2.6;fill:none}.ht-lab .ht-alt{stroke:var(--cl-gold);stroke-width:2.6;fill:none}.ht-lab .ht-observed{stroke:var(--cl-red);stroke-width:2.2;stroke-dasharray:5 4}",
     ".ht-lab .ht-reject{fill:var(--cl-red);fill-opacity:.1}",
@@ -41,15 +41,18 @@
 
   function clamp(value, low, high) { return Math.min(high, Math.max(low, value)); }
 
-  function erf(value) {
-    var sign = value < 0 ? -1 : 1;
-    var x = Math.abs(value);
+  // Evaluate the small tail directly instead of subtracting a CDF rounded to 1.
+  // The existing erf approximation has an absolute probability error about 1e-7.
+  function normalSF(value) {
+    if (value === 0) return 0.5;
+    var x = Math.abs(value) / Math.SQRT2;
     var t = 1 / (1 + 0.3275911 * x);
     var polynomial = (((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t);
-    return sign * (1 - polynomial * Math.exp(-x * x));
+    var tail = 0.5 * polynomial * Math.exp(-x * x);
+    return value > 0 ? tail : 1 - tail;
   }
 
-  function normalCDF(value) { return 0.5 * (1 + erf(value / Math.SQRT2)); }
+  function normalCDF(value) { return normalSF(-value); }
 
   function normalPDF(value, mean) {
     var shifted = value - (mean || 0);
@@ -70,7 +73,7 @@
   function testPower(n, alpha, alternative) {
     var critical = inverseNormal(1 - alpha / 2);
     var shift = Math.sqrt(n) * alternative;
-    return clamp(normalCDF(-critical - shift) + 1 - normalCDF(critical - shift), 0, 1);
+    return clamp(normalCDF(-critical - shift) + normalSF(critical - shift), 0, 1);
   }
 
   function analyze(config) {
@@ -82,7 +85,7 @@
     var standardError = 1 / Math.sqrt(n);
     var critical = inverseNormal(1 - alpha / 2);
     var z = mean / standardError;
-    var p = clamp(2 * (1 - normalCDF(Math.abs(z))), 0, 1);
+    var p = clamp(2 * normalSF(Math.abs(z)), 0, 1);
     var ci = [mean - critical * standardError, mean + critical * standardError];
     var bonferroniAlpha = alpha / tests;
     return {
@@ -162,13 +165,14 @@
   function format(value, digits) {
     if (!Number.isFinite(value)) return "-";
     if (Math.abs(value) > 0 && Math.abs(value) < 0.0001) return value.toExponential(2);
-    return value.toFixed(digits === undefined ? 3 : digits).replace(/0+$/, "").replace(/\.$/, "");
+    var text = value.toFixed(digits === undefined ? 3 : digits);
+    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
   }
 
-  function curvePath(mean, mapX, mapY) {
+  function curvePath(mean, mapX, mapY, low, high) {
     var path = "";
     for (var index = 0; index <= 180; index += 1) {
-      var x = -6 + 12 * index / 180;
+      var x = low + (high - low) * index / 180;
       path += (index ? "L" : "M") + mapX(x).toFixed(2) + " " + mapY(normalPDF(x, mean)).toFixed(2) + " ";
     }
     return path;
@@ -176,11 +180,13 @@
 
   function distributionSvg(doc, result) {
     var left = 48, right = 578, top = 35, bottom = 270;
-    var mapX = function (value) { return left + (value + 6) / 12 * (right - left); };
+    var low = Math.min(-6, result.z - 1);
+    var high = Math.max(6, result.alternativeShift + 6, result.z + 1);
+    var mapX = function (value) { return left + (value - low) / (high - low) * (right - left); };
     var mapY = function (value) { return bottom - value / 0.43 * (bottom - top); };
     var svg = svgNode(doc, "svg", { viewBox: "0 0 600 320", role: "img", "aria-label": "零假设与指定备择下的 z 统计量分布" });
     svg.appendChild(svgNode(doc, "title", {}, "z 检验的零分布、备择分布与拒绝域"));
-    var critical = Math.min(6, result.critical);
+    var critical = result.critical;
     svg.appendChild(svgNode(doc, "rect", { x: left, y: top, width: Math.max(0, mapX(-critical) - left), height: bottom - top, class: "ht-reject" }));
     svg.appendChild(svgNode(doc, "rect", { x: mapX(critical), y: top, width: Math.max(0, right - mapX(critical)), height: bottom - top, class: "ht-reject" }));
     [0, 0.2, 0.4].forEach(function (tick) {
@@ -188,18 +194,17 @@
       svg.appendChild(svgNode(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: "ht-grid" }));
       svg.appendChild(svgNode(doc, "text", { x: left - 7, y: y + 4, "font-size": 10, "text-anchor": "end" }, format(tick, 1)));
     });
-    [-6, -3, 0, 3, 6].forEach(function (tick) {
+    [low, low + (high - low) / 4, (low + high) / 2, high - (high - low) / 4, high].forEach(function (tick) {
       var x = mapX(tick);
       svg.appendChild(svgNode(doc, "line", { x1: x, y1: top, x2: x, y2: bottom, class: "ht-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 18, "font-size": 10, "text-anchor": "middle" }, String(tick)));
+      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 18, "font-size": 10, "text-anchor": "middle" }, format(tick, 1)));
     });
-    svg.appendChild(svgNode(doc, "path", { d: curvePath(0, mapX, mapY), class: "ht-null" }));
-    svg.appendChild(svgNode(doc, "path", { d: curvePath(result.alternativeShift, mapX, mapY), class: "ht-alt" }));
-    var observed = clamp(result.z, -6, 6);
+    svg.appendChild(svgNode(doc, "path", { d: curvePath(0, mapX, mapY, -6, 6), class: "ht-null" }));
+    svg.appendChild(svgNode(doc, "path", { d: curvePath(result.alternativeShift, mapX, mapY, result.alternativeShift - 6, result.alternativeShift + 6), class: "ht-alt" }));
+    var observed = result.z;
     svg.appendChild(svgNode(doc, "line", { x1: mapX(observed), y1: top, x2: mapX(observed), y2: bottom, class: "ht-observed" }));
     svg.appendChild(svgNode(doc, "text", { x: left, y: 20, "font-size": 12, "font-weight": 700 }, "蓝：H0；金：mu=最小重要差异；红虚线：观测 z"));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: bottom + 38, "font-size": 10, "text-anchor": "end" }, "z（视窗 -6 到 6）"));
-    if (Math.abs(result.z) > 6 || result.alternativeShift > 6) svg.appendChild(svgNode(doc, "text", { x: right, y: 20, "font-size": 10, "text-anchor": "end" }, "超出视窗的中心已截在边缘"));
+    svg.appendChild(svgNode(doc, "text", { x: right, y: bottom + 38, "font-size": 10, "text-anchor": "end" }, "z（随两分布与观测值共同定标）"));
     return svg;
   }
 
@@ -225,7 +230,7 @@
     var prediction = { decision: null, practical: null };
     var revealed = false;
     var shell = element(doc, "div", "ht-lab");
-    shell.appendChild(element(doc, "p", "ht-note", "已知 sigma=1 的双侧 z 检验。先判断单项显著性与实际重要性，再看五本账。"));
+    shell.appendChild(element(doc, "p", "ht-note", "已知 sigma=1 的双侧 z 检验。先判断单项显著性与实际重要性，再看五本账。尾概率为数值近似，绝对误差约 10⁻⁷；极小 p 值的相对误差会更大。"));
     var presets = element(doc, "div", "ht-presets");
     var presetButtons = [];
     PRESETS.forEach(function (preset) {
@@ -330,7 +335,7 @@
       results.hidden = false; results.replaceChildren();
       var metrics = element(doc, "div", "ht-metrics");
       metrics.appendChild(metric(doc, "观测 z", format(data.z, 3)));
-      metrics.appendChild(metric(doc, "双侧 p", format(data.p, 5)));
+      metrics.appendChild(metric(doc, "双侧 p", (data.p === 0 ? "<1e-308" : format(data.p, 5))));
       metrics.appendChild(metric(doc, "单项决策", decisionLabel(data)));
       metrics.appendChild(metric(doc, format((1 - data.alpha) * 100, 0) + "% CI", "[" + format(data.ci[0], 3) + ", " + format(data.ci[1], 3) + "]"));
       metrics.appendChild(metric(doc, "在最小重要差异处的功效", format(100 * data.power, 1) + "%"));
@@ -339,26 +344,26 @@
       metrics.appendChild(metric(doc, "独立时 FWER", format(100 * data.fwerIndependent, 1) + "%"));
       metrics.appendChild(metric(doc, "Bonferroni 单项阈值", format(data.bonferroniAlpha, 5)));
       metrics.appendChild(metric(doc, "Bonferroni 决策", data.bonferroniReject ? "拒绝" : "不拒绝"));
-      results.appendChild(metrics); results.appendChild(distributionSvg(doc, data));
+      results.appendChild(metrics); var figure = element(doc, "div"); figure.style.overflowX = "auto"; figure.tabIndex = 0; figure.setAttribute("role", "region"); figure.setAttribute("aria-label", "检验分布图，窄屏可横向滚动"); figure.appendChild(distributionSvg(doc, data)); results.appendChild(figure);
       var wrap = element(doc, "div", "ht-ledger");
       var table = element(doc, "table"); table.setAttribute("aria-label", "假设检验透明账本");
       var thead = element(doc, "thead"), head = element(doc, "tr");
       ["账本", "当前问题", "可回答", "不能回答"].forEach(function (label) { var th = element(doc, "th", "", label); th.scope = "col"; head.appendChild(th); });
       thead.appendChild(head); table.appendChild(thead); var body = element(doc, "tbody");
       [
-        ["单项检验", "H0 下观测是否极端", decisionLabel(data) + "，p=" + format(data.p, 5), "H0 为真的概率"],
+        ["单项检验", "H0 下观测是否极端", decisionLabel(data) + "，p=" + (data.p === 0 ? "<1e-308" : format(data.p, 5)), "H0 为真的概率"],
         ["区间/效应", "与哪些 mu 相容", "CI=" + format(data.ci[0], 3) + " 到 " + format(data.ci[1], 3), "领域阈值是否合理"],
         ["功效", "若 mu=最小重要差异", format(100 * data.power, 1) + "% 的长期拒绝率", "本次发现为真的概率"],
         ["多重性", "同时筛选 " + data.tests + " 项", "E[V]=" + format(data.expectedFalse, 2) + "；独立 FWER=" + format(100 * data.fwerIndependent, 1) + "%", "事后选择可忽略"],
         ["家族校正", "Bonferroni alpha/m", data.bonferroniReject ? "仍拒绝" : "不再拒绝", "所有检验都独立"]
       ].forEach(function (row) { var tr = element(doc, "tr"); row.forEach(function (value) { tr.appendChild(element(doc, "td", "", value)); }); body.appendChild(tr); });
       table.appendChild(body); wrap.appendChild(table); results.appendChild(wrap);
-      results.appendChild(element(doc, "p", "ht-note", "图中金线只表示预先指定的 mu=最小重要差异；若它的中心超出 z 视窗，曲线会在边缘外。FWER 的闭式值使用独立空检验，Bonferroni 上界不要求独立。"));
+      results.appendChild(element(doc, "p", "ht-note", "窄屏可在图内横向滚动读坐标。图中金线只表示预先指定的 mu=最小重要差异；横轴随零分布、备择分布和观测值共同定标，每条正态曲线显示中心两侧各六个标准差。FWER 的闭式值使用独立空检验，Bonferroni 上界不要求独立。"));
     }
     sync(); render();
   }
 
-  var exported = { PRESETS: PRESETS, normalCDF: normalCDF, inverseNormal: inverseNormal, testPower: testPower, analyze: analyze, selfTest: selfTest };
+  var exported = { PRESETS: PRESETS, normalCDF: normalCDF, normalSF: normalSF, inverseNormal: inverseNormal, testPower: testPower, analyze: analyze, selfTest: selfTest };
   if (typeof module !== "undefined" && module.exports) module.exports = exported;
   if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") host.CourseLearning.register("hypothesis-testing", mount);
   if (typeof module !== "undefined" && module.exports && typeof require !== "undefined" && require.main === module) {

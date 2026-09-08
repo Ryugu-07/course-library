@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:47</div>
   </div>
 </nav>
 <main id="content">
@@ -59,6 +59,7 @@ try {
 <li><a href="#3">3. 正式桥：投影给出拟合，诊断检查假设</a></li>
 <li><a href="#4">4. 定理、假设与失败边界</a></li>
 <li><a href="#5">5. 动手实验与静态后备</a></li>
+<li><a href="#6">6. 迁移题：删掉一个点，删掉哪条保证？</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 一元线性回归</a></li>
@@ -89,7 +90,7 @@ try {
 <p>揭示前先判断：残差、误差、杠杆和影响度各自测什么；弯曲关系会不会在 R² 很高时仍留下结构化残差；同方差、独立性、线性关系缺一项时，斜率的标准误与 t 推断能否原样使用。</p>
 <p>实验提供三个固定数据情境：近似线性、弯曲关系和带可拖动高杠杆点的样本。提交四项预测后才显示散点、拟合线、残差图、R² 与 Cook 影响度账本。</p>
 <h3 id="3">3. 正式桥：投影给出拟合，诊断检查假设<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>一元 OLS 解为</p>
+<p>以下固定设计包含截距，要求 <span class="arithmatex">\(n&gt;2\)</span> 且 <span class="arithmatex">\(S_{xx}=\sum_i(x_i-\bar x)^2&gt;0\)</span>。一元 OLS 解为</p>
 <div class="arithmatex">\[
 \hat\beta_1=\frac{S_{xy}}{S_{xx}},
 \qquad
@@ -105,7 +106,7 @@ e_i=y_i-\hat y_i
 \varepsilon_i=y_i-(\beta_0+\beta_1x_i)
 \quad\text{是模型中的潜在误差。}
 \]</div>
-<p>平方和分解与样本内拟合度为</p>
+<p>含截距的 OLS 有平方和分解；当 <span class="arithmatex">\(\mathrm{SST}&gt;0\)</span> 时定义样本内拟合度为</p>
 <div class="arithmatex">\[
 \mathrm{SST}=\mathrm{SSR}+\mathrm{SSE},
 \qquad
@@ -115,12 +116,13 @@ R^2=1-\frac{\mathrm{SSE}}{\mathrm{SST}}.
 <div class="arithmatex">\[
 h_{ii}=\frac1n+\frac{(x_i-\bar x)^2}{S_{xx}},
 \]</div>
-<p>它只描述 <span class="arithmatex">\(x\)</span> 位置；影响度还要结合残差大小。一个常用的学生化前 Cook 量写成</p>
+<p>它只描述 <span class="arithmatex">\(x\)</span> 位置；影响度还要结合残差大小。在 <span class="arithmatex">\(\widehat\sigma^2&gt;0\)</span> 且 <span class="arithmatex">\(h_{ii}&lt;1\)</span> 时，Cook 距离写成</p>
 <div class="arithmatex">\[
 D_i=\frac{e_i^2}{2\,\widehat{\sigma}^2}\frac{h_{ii}}{(1-h_{ii})^2},
 \qquad
 \widehat{\sigma}^2=\frac{\mathrm{SSE}}{n-2}.
 \]</div>
+<p>常量响应使 <span class="arithmatex">\(\mathrm{SST}=0\)</span>，此时 <span class="arithmatex">\(R^2\)</span> 的比值没有定义；完美拟合使误差尺度为零，Cook 距离也不能靠把 <span class="arithmatex">\(0/0\)</span> 填成 <span class="arithmatex">\(0\)</span> 来解释。杠杆为 <span class="arithmatex">\(1\)</span> 时删除该点可能使设计秩亏，需单独检查。</p>
 <h3 id="4">4. 定理、假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>拟合不等于因果。</strong>OLS 可以描述条件均值或线性投影；因果解释还需要随机化或可辩护的识别、时间顺序与混杂控制。</li>
@@ -167,18 +169,33 @@ D_i=\frac{e_i^2}{2\,\widehat{\sigma}^2}\frac{h_{ii}}{(1-h_{ii})^2},
 </table>
 <p>观测数据中“练习时长与分数相关”不自动等于“增加练习造成分数提升”；需要随机化或明确的因果识别假设。R² 也不等于模型质量，应该把残差结构、预测任务、外推范围和影响点一起报告。</p>
 </div>
+<h3 id="6">6. 迁移题：删掉一个点，删掉哪条保证？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>若所有 <span class="arithmatex">\(x_i=3\)</span>，正规方程还能唯一给出截距与斜率吗？若所有 <span class="arithmatex">\(y_i=7\)</span> 但 <span class="arithmatex">\(x_i\)</span> 有变化，<span class="arithmatex">\(R^2\)</span> 是否应写成 <span class="arithmatex">\(1\)</span>？</li>
+<li>已有含截距的 OLS 直线，再添加一个很远的 <span class="arithmatex">\(x_*\)</span>，但恰取 <span class="arithmatex">\(y_*=\hat\beta_0+\hat\beta_1x_*\)</span>。斜率会改变吗？高杠杆为何不保证高影响？</li>
+<li>对 <span class="arithmatex">\(X\sim U(0,10),Y=X^2\)</span> 推出线性投影与残差形状，核对 <span class="arithmatex">\(R^2=15/16\)</span>。</li>
+</ol>
+<details>
+<summary>核对：秩、正规方程与一个可积算例</summary>
+<ol>
+<li>所有 <span class="arithmatex">\(x_i=3\)</span> 时只识别 <span class="arithmatex">\(\beta_0+3\beta_1\)</span>，设计秩为 <span class="arithmatex">\(1\)</span>。所有 <span class="arithmatex">\(y_i=7\)</span> 时拟合常量 <span class="arithmatex">\(7\)</span>、<span class="arithmatex">\(\mathrm{SST}=\mathrm{SSE}=0\)</span>，<span class="arithmatex">\(R^2=1-0/0\)</span> 无定义；这与低但非零响应尺度不同。</li>
+<li>新点在旧直线上残差为零，对两个正规方程新增贡献均为零，因此旧系数仍为扩充样本的唯一 OLS 解。该点可有很高杠杆，但删除它不改变系数，若误差尺度为正则 Cook 距离为零。影响的定义是删除后的拟合变化，见 <a href="https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/regrdiag.htm">NIST 回归诊断</a>。</li>
+<li><span class="arithmatex">\(EX=5\)</span>，<span class="arithmatex">\(EX^2=100/3\)</span>，<span class="arithmatex">\(EX^3=250\)</span>，<span class="arithmatex">\(EX^4=2000\)</span>；<span class="arithmatex">\(\operatorname{Var}(X)=25/3\)</span>，<span class="arithmatex">\(\operatorname{Cov}(X,X^2)=250/3\)</span>，所以直线为 <span class="arithmatex">\(10x-50/3\)</span>。残差 <span class="arithmatex">\(x^2-10x+50/3\)</span> 是 U 形；<span class="arithmatex">\(\operatorname{Var}(X^2)=8000/9\)</span>，解释方差为 <span class="arithmatex">\(10^2(25/3)=2500/3\)</span>，比值 <span class="arithmatex">\(15/16\)</span>。</li>
+</ol>
+<p>先修：<a href="algebra-04-linear-space.html">最小二乘与投影</a>、<a href="prob-04-moments.html">条件期望</a>、<a href="stat-03-interval.html">区间</a>；后续：<a href="num-02-linear-systems.html">线性系统的数值误差</a>。</p>
+</details>
 </section>
 <h2 id="1_1">1. 一元线性回归<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="最小二乘拟合与残差" src="assets/img/stat-05-regression.svg" /></p>
 <figcaption><span class="fig-id">图 5.1</span>最小二乘：选直线使各点到直线的竖直残差（红）平方和最小——回归的几何本质。</figcaption>
 </figure>
-<p><strong>模型</strong> <span class="arithmatex">\(Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\)</span>，<span class="arithmatex">\(\varepsilon_i\)</span> i.i.d. <span class="arithmatex">\(N(0, \sigma^2)\)</span>。（理论出身：二维正态的条件期望是线性的——概率 III 性质 2；一般总体则视为对 <span class="arithmatex">\(E[Y\mid x]\)</span> 的线性逼近——概率 IV“最佳预测”的可实现版。）</p>
+<p><strong>模型</strong> <span class="arithmatex">\(Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i\)</span>，<span class="arithmatex">\(x_i\)</span> 为固定设计、<span class="arithmatex">\(S_{xx}&gt;0\)</span>、<span class="arithmatex">\(n&gt;2\)</span>，<span class="arithmatex">\(\varepsilon_i\)</span> i.i.d. <span class="arithmatex">\(N(0, \sigma^2)\)</span> 且 <span class="arithmatex">\(\sigma&gt;0\)</span>。（理论出身：二维正态的条件期望是线性的——概率 III 性质 2；一般总体则视为对 <span class="arithmatex">\(E[Y\mid x]\)</span> 的线性逼近——概率 IV“最佳预测”的可实现版。）</p>
 <p><strong>最小二乘估计（OLS）</strong>：<span class="arithmatex">\(\min_{\beta_0,\beta_1}\sum(y_i - \beta_0 - \beta_1 x_i)^2\)</span>，求偏导置零（正规方程）解得</p>
 <div class="arithmatex">\[
 \hat\beta_1 = \frac{\sum(x_i - \bar x)(y_i - \bar y)}{\sum(x_i - \bar x)^2} = \frac{S_{xy}}{S_{xx}}, \qquad \hat\beta_0 = \bar y - \hat\beta_1 \bar x
 \]</div>
-<p>（斜率 = 样本协方差/样本方差 ≈ <span class="arithmatex">\(\rho\frac{\sigma_y}{\sigma_x}\)</span>——与概率 III 二维正态条件期望的系数严丝合缝；回归线必过重心 <span class="arithmatex">\((\bar x, \bar y)\)</span>。）正态误差下 OLS = MLE（统计 II 的对应再现）。</p>
+<p>（斜率 = 样本协方差/样本方差；两样本标准差非零时恰为 <span class="arithmatex">\(r s_y/s_x\)</span>，总体线性投影系数则为 <span class="arithmatex">\(\rho\sigma_y/\sigma_x\)</span>——与概率 III 二维正态条件期望的系数严丝合缝；回归线必过重心 <span class="arithmatex">\((\bar x, \bar y)\)</span>。）正态误差下 OLS = MLE（统计 II 的对应再现）。</p>
 <p><strong>Gauss–Markov 定理</strong>（陈述）：误差零均值、同方差、不相关时，OLS 是<strong>最佳线性无偏估计（BLUE）</strong>——线性无偏类里方差最小。（不需要正态性；正态时更强——在所有无偏估计里最优。）</p>
 <h2 id="2-ml">2. 推断配套（统计版回归比 ML 版多出的部分）<a class="headerlink" href="#2-ml" title="Permanent link"></a></h2>
 <p><strong>方差估计</strong>：<span class="arithmatex">\(\hat\sigma^2 = \frac{\text{SSE}}{n-2}\)</span>（残差平方和，自由度扣掉两个参数）。</p>
@@ -202,6 +219,7 @@ R^2 = \frac{\text{SSR}}{\text{SST}} \in [0, 1]
 <p>🔗 从这里向 ML 的分岔：统计关心 <span class="arithmatex">\(\hat\beta\)</span> 的<strong>推断</strong>（哪些变量显著、区间多宽），ML 关心<strong>预测</strong>（测试集误差）；变量多起来后正则化与交叉验证接管模型选择（ai 课 01 讲）——两个学科在同一个公式上分道扬镳，又在实践中殊途同归。</p>
 <h2 id="4-anova">4. 单因素方差分析（ANOVA）<a class="headerlink" href="#4-anova" title="Permanent link"></a></h2>
 <p><strong>问题</strong>：<span class="arithmatex">\(k\)</span> 组均值是否全相等（t 检验只能两组；多次两两 t 检验会引爆多重检验问题——统计 IV）。</p>
+<p><strong>精确 F 推断的模型</strong>：<span class="arithmatex">\(Y_{ij}=\mu_j+\varepsilon_{ij}\)</span>，所有误差独立且服从同一个 <span class="arithmatex">\(N(0,\sigma^2)\)</span>、<span class="arithmatex">\(\sigma&gt;0\)</span>。组数 <span class="arithmatex">\(k\ge2\)</span>，每组 <span class="arithmatex">\(n_j\ge1\)</span>，总数 <span class="arithmatex">\(n=\sum_jn_j&gt;k\)</span>。组间不同方差、相关观测或非正态小样本不能无条件沿用下述精确 F 分布。模型参照 <a href="https://itl.nist.gov/div898/handbook/ppc/section2/ppc231.htm">NIST 单因素 ANOVA</a>。</p>
 <p><strong>思想</strong>：把总变差拆成<strong>组间</strong>（处理效应）与<strong>组内</strong>（随机噪声）：</p>
 <div class="arithmatex">\[
 \text{SST} = \underbrace{\sum_j n_j(\bar Y_{j} - \bar Y)^2}_{\text{SSA（组间）}} + \underbrace{\sum_j\sum_i (Y_{ij} - \bar Y_j)^2}_{\text{SSE（组内）}}
@@ -213,11 +231,11 @@ F = \frac{\text{SSA}/(k-1)}{\text{SSE}/(n-k)} \sim F(k-1,\ n-k)
 <p><span class="arithmatex">\(F\)</span> 大 ⇒ 组间差异远超噪声水平 ⇒ 拒绝“全相等”。（进一步找“谁和谁不同”用多重比较法，知其名。）回归与 ANOVA 本是一家：把组别编码成哑变量，ANOVA 就是回归的特例——线性模型一统江湖。</p>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（回归全流程）</strong> 广告费 x 与销售额 y，<span class="arithmatex">\(n = 10\)</span>：<span class="arithmatex">\(S_{xx} = 90,\ S_{xy} = 225,\ \bar x = 5, \bar y = 20\)</span>，SSE <span class="arithmatex">\(= 27\)</span>。
-<em>解</em>：<span class="arithmatex">\(\hat\beta_1 = 2.5,\ \hat\beta_0 = 7.5\)</span>；<span class="arithmatex">\(\hat\sigma^2 = 27/8 = 3.375\)</span>；检验 <span class="arithmatex">\(H_0: \beta_1 = 0\)</span>：<span class="arithmatex">\(T = \frac{2.5}{\sqrt{3.375/90}} \approx 12.9 \gg t_{0.025}(8) = 2.306\)</span>——回归极显著。每加 1 单位广告费，销售额平均增 2.5（附带整套不确定度，这就是统计版回归的完整交付）。</p>
-<p><strong>例 2（残差图的必要性）</strong> 数据真实关系 <span class="arithmatex">\(y = x^2\)</span>（<span class="arithmatex">\(x \in [0, 10]\)</span>），强行线性回归可得 <span class="arithmatex">\(R^2 \approx 0.94\)</span>——数字很漂亮，残差图却呈明显 U 形（先正后负再正）。<strong>结论：<span class="arithmatex">\(R^2\)</span> 看“解释了多少”，残差图看“漏了什么”，二者缺一不可。</strong></p>
-<p><strong>例 3（ANOVA 判型）</strong> 三种教学法各 8 人，算得 SSA <span class="arithmatex">\(= 84\)</span>，SSE <span class="arithmatex">\(= 168\)</span>。<span class="arithmatex">\(F = \frac{84/2}{168/21} = 5.25 &gt; F_{0.05}(2, 21) \approx 3.47\)</span> ⇒ 教学法之间存在显著差异（至于哪两种之间——多重比较的活）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<em>解</em>：<span class="arithmatex">\(\hat\beta_1 = 2.5,\ \hat\beta_0 = 7.5\)</span>；<span class="arithmatex">\(\hat\sigma^2 = 27/8 = 3.375\)</span>；检验 <span class="arithmatex">\(H_0: \beta_1 = 0\)</span>：<span class="arithmatex">\(T = \frac{2.5}{\sqrt{3.375/90}} \approx 12.9 \gg t_{0.975}(8) = 2.306\)</span>——回归极显著。采用下尾分位数记号 <span class="arithmatex">\(P(T\le t_p)=p\)</span>。拟合线中广告费相差 1 单位对应销售额预测均值相差 2.5；观测关联本身不识别增加广告费的因果效果。</p>
+<p><strong>例 2（残差图的必要性）</strong> 取总体 <span class="arithmatex">\(X\sim U(0,10)\)</span>、<span class="arithmatex">\(Y=X^2\)</span>，最佳线性投影有 <span class="arithmatex">\(R^2=\operatorname{Corr}(X,X^2)^2=15/16\approx0.94\)</span>（有限样本随设计而变）——数字很漂亮，残差图却呈明显 U 形（先正后负再正）。<strong>结论：<span class="arithmatex">\(R^2\)</span> 看“解释了多少”，残差图看“漏了什么”，二者缺一不可。</strong></p>
+<p><strong>例 3（ANOVA 判型）</strong> 三种教学法各 8 人，算得 SSA <span class="arithmatex">\(= 84\)</span>，SSE <span class="arithmatex">\(= 168\)</span>。<span class="arithmatex">\(F = \frac{84/2}{168/21} = 5.25 &gt; F_{0.95}(2, 21) \approx 3.47\)</span> ⇒ 教学法之间存在显著差异（至于哪两种之间——多重比较的活）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>统计线五页完工。至此“分析+代数双主干 → 概率 → 优化 → 统计”的 AI 衔接主干道全线贯通；侧栏其余占位课程（数值分析、随机过程、实变、泛函……）按需增补——每一门的规划骨架都已写在占位页里。</em></p>
+<p><em>下一步可沿数值线性代数检查求解稳定性，沿概率与统计课程检查模型假设，再在真实数据项目中练习残差和不确定度报告。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stat-04-testing.html"><span class="pager-label">上一页</span>统计 IV · 假设检验</a>

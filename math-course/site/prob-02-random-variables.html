@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:51</div>
   </div>
 </nav>
 <main id="content">
@@ -64,7 +64,7 @@ try {
 </li>
 <li><a href="#1">1. 随机变量与分布函数</a></li>
 <li><a href="#2_1">2. 离散型：分布列与四大分布</a></li>
-<li><a href="#3_1">3. 连续型：密度与四大分布</a></li>
+<li><a href="#3_1">3. 绝对连续型：密度与常见分布</a></li>
 <li><a href="#4_1">4. 随机变量函数的分布</a></li>
 <li><a href="#5_1">5. 典型例题</a></li>
 </ul>
@@ -92,7 +92,7 @@ try {
 <h3 id="3">3. 最小模型：四种表示只是同一测度的不同投影<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>先固定四个完全解析的预设：</p>
 <p><strong>离散模型。</strong> <span class="arithmatex">\(P(X=0)=0.2,\ P(X=1)=0.5,\ P(X=2)=0.3\)</span>。点质量是 PMF 的条目，CDF 在 <span class="arithmatex">\(0,1,2\)</span> 处跳跃。</p>
-<p><strong>绝对连续模型。</strong> <span class="arithmatex">\(X\sim U(0,1)\)</span>，<span class="arithmatex">\(f_X(x)=1\)</span>（<span class="arithmatex">\(0&lt;x&lt;1\)</span>），所以 <span class="arithmatex">\(F(x)=x\)</span>（在 <span class="arithmatex">\([0,1]\)</span> 内），<span class="arithmatex">\(P(a&lt;X\le b)=\int_a^b f_X(x)\,dx=b-a\)</span>。</p>
+<p><strong>绝对连续模型。</strong> <span class="arithmatex">\(X\sim U(0,1)\)</span>，<span class="arithmatex">\(f_X(x)=1\)</span>（<span class="arithmatex">\(0&lt;x&lt;1\)</span>），所以 <span class="arithmatex">\(F(x)=x\)</span>（在 <span class="arithmatex">\([0,1]\)</span> 内），<span class="arithmatex">\(P(a&lt;X\le b)=\int_a^b f_X(x)\,dx=b-a\)</span>（<span class="arithmatex">\(0\le a\le b\le1\)</span>）。</p>
 <p><strong>混合模型。</strong></p>
 <div class="arithmatex">\[
 \mathcal L(X)=0.3\,\delta_{0.4}+0.7\,U(0,1).
@@ -110,12 +110,13 @@ f_Y(y)=\frac{1/2}{2\sqrt y}+\frac{1/2}{2\sqrt y}=\frac1{2\sqrt y}.
 <p>四种表示的翻译规则可以压缩成：</p>
 <ol>
 <li><strong>点质量 / PMF</strong>：<span class="arithmatex">\(p(x)=P(X=x)\)</span>，离散时对所有支持点求和；连续点的 <span class="arithmatex">\(p(x)\)</span> 可以处处为 <span class="arithmatex">\(0\)</span>。</li>
-<li><strong>CDF</strong>：<span class="arithmatex">\(F(x)=P(X\le x)\)</span>，总是右连续；原子表现为跳跃，连续部分表现为斜率。</li>
+<li><strong>CDF</strong>：<span class="arithmatex">\(F(x)=P(X\le x)\)</span>，总是右连续；原子表现为跳跃；在绝对连续部分可由密度解释斜率。一般连续 CDF 还可能含奇异连续部分，不能只读导数。</li>
 <li><strong>密度 / 区间面积</strong>：若全分布绝对连续，<span class="arithmatex">\(P(a&lt;X\le b)=\int_a^b f\)</span>。混合分布只能把连续部分面积和原子质量分开相加。</li>
-<li><strong>Quantile / generalized inverse</strong>：<span class="arithmatex">\(Q(p)=\inf\{x:F(x)\ge p\}\)</span>。CDF 有跳跃时，跳跃对应的整段 <span class="arithmatex">\(p\)</span> 都映回同一个原子位置。</li>
+<li><strong>Quantile / generalized inverse</strong>：对 <span class="arithmatex">\(0&lt;p&lt;1\)</span>，<span class="arithmatex">\(Q(p)=\inf\{x:F(x)\ge p\}\)</span>。CDF 有跳跃时，跳跃对应的整段 <span class="arithmatex">\(p\)</span> 都映回同一个原子位置。</li>
 </ol>
+<p>为什么均匀概率刻度能生成原分布？对 <span class="arithmatex">\(0&lt;p&lt;1\)</span>，由 <span class="arithmatex">\(F\)</span> 单调、右连续可得 <span class="arithmatex">\(Q(p)\le x\iff p\le F(x)\)</span>。所以若 <span class="arithmatex">\(U\sim U(0,1)\)</span>，就有 <span class="arithmatex">\(P(Q(U)\le x)=P(U\le F(x))=F(x)\)</span>。原子跳跃使整段均匀概率落到同一点，概率质量因此恰好守恒。</p>
 <h3 id="4">4. 可操作实验：先过预测门，再切换同一份账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>下方实验固定预设和解析公式，不调用随机数。揭示后可以切换四个模型、改变区间 <span class="arithmatex">\((a,b]\)</span> 和 quantile grid 点数 <span class="arithmatex">\(N\)</span>。四格图共用同一个模型：PMF / 点质量、CDF、密度与区间面积、quantile / generalized inverse。图内标注使用英文，方便把 <span class="arithmatex">\(F\)</span>、density、area、<span class="arithmatex">\(Q\)</span> 这些符号和正文公式对齐。</p>
+<p>下方实验固定预设和解析公式，不调用随机数。揭示后可以切换四个模型、改变区间 <span class="arithmatex">\((a,b]\)</span> 和 quantile grid 点数 <span class="arithmatex">\(N\)</span>。四格图共用同一个模型：PMF / 点质量、CDF、密度与区间面积、quantile / generalized inverse。图内标注使用英文，方便把 <span class="arithmatex">\(F\)</span>、density、area、<span class="arithmatex">\(Q\)</span> 这些符号和正文公式对齐。平方变换的密度在零点无界，图中纵轴显示到 <span class="arithmatex">\(4\)</span> 并明确截去顶部；阴影只显示视窗内部分，区间质量读解析账本，不把截顶面积当成完整概率。</p>
 <div class="learning-lab" data-learning-lab="distribution-map" markdown="1">
 <p><strong>无 JavaScript 时的完整静态读法：</strong>四个预设都用解析式读取，绝不把 quantile grid 冒充 IID 随机样本。令 <span class="arithmatex">\(p_i=(i+\tfrac12)/N\)</span>，网格点为 <span class="arithmatex">\(Q(p_i)\)</span>，每个点权重 <span class="arithmatex">\(1/N\)</span>；它是中点积分 / 可视化规则，因此相同预设和 <span class="arithmatex">\(N\)</span> 每次都给出相同结果。</p>
 <table>
@@ -177,6 +178,17 @@ f_Y(y)=\frac{1/2}{2\sqrt y}+\frac{1/2}{2\sqrt y}=\frac1{2\sqrt y}.
 <li>对任意给定 CDF，如何用 <span class="arithmatex">\(Q(p_i)\)</span> 和等权中点规则近似 <span class="arithmatex">\(E[h(X)]\)</span>？写出近似式，并说明它何时只是确定性积分近似，不能当作 Monte Carlo 误差条。</li>
 <li>给出一个点概率为 <span class="arithmatex">\(0\)</span> 但区间概率为正的例子，再给出一个含原子的混合分布例子；分别指出应查看 CDF 的斜率还是跳跃。</li>
 </ol>
+<details>
+<summary>迁移题核对：原子移动、两根相加与积分规则</summary>
+<ol>
+<li><span class="arithmatex">\(F(0.8^-)=0.7(0.8)=0.56\)</span>，<span class="arithmatex">\(F(0.8)=0.86\)</span>；<span class="arithmatex">\(Q(p)=0.8\)</span> 对 <span class="arithmatex">\(p\in[0.56,0.86]\)</span> 成立。这里左端也包含，因为 <span class="arithmatex">\(x&lt;0.8\)</span> 时 <span class="arithmatex">\(0.7x&lt;0.56\)</span>。</li>
+<li><span class="arithmatex">\(F_Y(y)=0\)</span>（<span class="arithmatex">\(y&lt;0\)</span>），<span class="arithmatex">\(F_Y(y)=\sqrt y/2\)</span>（<span class="arithmatex">\(0\le y\le4\)</span>），<span class="arithmatex">\(F_Y(y)=1\)</span>（<span class="arithmatex">\(y&gt;4\)</span>）。两根各贡献 <span class="arithmatex">\((1/4)/(2\sqrt y)\)</span>，合得 <span class="arithmatex">\(f_Y(y)=1/(4\sqrt y)\)</span>（<span class="arithmatex">\(0&lt;y&lt;4\)</span>）。零点密度发散但可积，且无原子；<span class="arithmatex">\(Q(p)=4p^2\)</span>。</li>
+<li>若 <span class="arithmatex">\(E|h(X)|&lt;\infty\)</span>，则 <span class="arithmatex">\(E[h(X)]=\int_0^1 h(Q(p))\,dp\)</span>。取 <span class="arithmatex">\(p_i=(i+1/2)/N\)</span> 后近似为 <span class="arithmatex">\(N^{-1}\sum_{i=0}^{N-1}h(Q(p_i))\)</span>；例如 <span class="arithmatex">\(h\circ Q\)</span> 黎曼可积时，中点和收敛。仅有 Lebesgue 可积性不保证任意固定网格收敛，也不给 IID 标准误。</li>
+<li><span class="arithmatex">\(U(0,1)\)</span> 中 <span class="arithmatex">\(P(X=1/2)=0\)</span>，而 <span class="arithmatex">\(P(0.4&lt;X\le0.6)=0.2\)</span>；本页混合模型在 <span class="arithmatex">\(0.4\)</span> 的跳跃为 <span class="arithmatex">\(0.3\)</span>，区间账还要加连续面积。</li>
+</ol>
+<p><strong>四种预设没有穷尽所有分布。</strong>令独立公平位 <span class="arithmatex">\(B_j\in\{0,1\}\)</span>，<span class="arithmatex">\(X=\sum_{j\ge1}2B_j/3^j\)</span> 落在 Cantor 集。单点质量为零（前 <span class="arithmatex">\(m\)</span> 位固定的概率至多 <span class="arithmatex">\(2^{1-m}\to0\)</span>），故 CDF 连续；其支持集长度为零，故没有普通密度。CDF 在删去的开区间上恒定，导数几乎处处为零，却从 <span class="arithmatex">\(0\)</span> 增至 <span class="arithmatex">\(1\)</span>。这说明“连续 CDF”比“有 PDF”更宽。参照 <a href="https://arnabc74.github.io/prob2_2025/cantor.html">Cantor 分布讲义</a>；先修：<a href="real-01-measure.html">测度</a>、<a href="real-02-lebesgue-integral.html">Lebesgue 积分</a>。</p>
+</details>
+</details>
 </section>
 <h2 id="1">1. 随机变量与分布函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 随机变量 <span class="arithmatex">\(X: \Omega \to \mathbb{R}\)</span>（可测函数——每个事件 <span class="arithmatex">\(\{X \leq x\}\)</span> 都在事件域内）。</p>
@@ -235,9 +247,10 @@ f_Y(y)=\frac{1/2}{2\sqrt y}+\frac{1/2}{2\sqrt y}=\frac1{2\sqrt y}.
 </tr>
 </tbody>
 </table>
-<p><strong>泊松定理</strong>（二项的极限）：<span class="arithmatex">\(n \to \infty,\ np \to \lambda\)</span> 时 <span class="arithmatex">\(B(n, p) \to P(\lambda)\)</span>——"大量机会 × 微小概率 = 泊松"，<span class="arithmatex">\(n \geq 100, np \leq 10\)</span> 时近似可用。<strong>几何分布的无记忆性</strong>：<span class="arithmatex">\(P(X &gt; m + n \mid X &gt; m) = P(X &gt; n)\)</span>（离散唯一；"已经失败 m 次"不改变未来——赌徒谬误的数学反驳）。</p>
-<h2 id="3_1">3. 连续型：密度与四大分布<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(F(x) = \int_{-\infty}^x f(t)\,dt\)</span>；<span class="arithmatex">\(f \geq 0\)</span>，<span class="arithmatex">\(\int f = 1\)</span>；<span class="arithmatex">\(F' = f\)</span>（连续点处）。</p>
+<p>表中 <span class="arithmatex">\(q=1-p\)</span>；二项 <span class="arithmatex">\(n\)</span> 为非负整数、<span class="arithmatex">\(0\le p\le1\)</span>、<span class="arithmatex">\(k=0,\ldots,n\)</span>；Poisson <span class="arithmatex">\(\lambda&gt;0\)</span>、<span class="arithmatex">\(k=0,1,\ldots\)</span>；几何取 <span class="arithmatex">\(0&lt;p&lt;1\)</span>、<span class="arithmatex">\(k=1,2,\ldots\)</span>。超几何要求整数 <span class="arithmatex">\(0\le M,n\le N\)</span>，只在两个组合数均可行的 <span class="arithmatex">\(k\)</span> 上取值。</p>
+<p><strong>泊松定理</strong>（二项的极限）：<span class="arithmatex">\(n \to \infty,\ np \to \lambda\)</span> 时 <span class="arithmatex">\(B(n, p) \to P(\lambda)\)</span>——"大量机会 × 微小概率 = 泊松"，有限样本的准确程度还取决于 <span class="arithmatex">\(p\)</span> 与所求事件，不能仅凭两个经验阈值保证。<strong>几何分布的无记忆性</strong>：<span class="arithmatex">\(P(X &gt; m + n \mid X &gt; m) = P(X &gt; n)\)</span>（离散唯一；"已经失败 m 次"不改变未来——赌徒谬误的数学反驳）。</p>
+<h2 id="3_1">3. 绝对连续型：密度与常见分布<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>以下均匀分布要求 <span class="arithmatex">\(a&lt;b\)</span>，指数要求 <span class="arithmatex">\(\lambda&gt;0\)</span>，非退化正态要求 <span class="arithmatex">\(\sigma&gt;0\)</span>。密度表示为 <span class="arithmatex">\(F(x) = \int_{-\infty}^x f(t)\,dt\)</span>；<span class="arithmatex">\(f \geq 0\)</span>，<span class="arithmatex">\(\int f = 1\)</span>；<span class="arithmatex">\(F' = f\)</span>（连续点处）。</p>
 <table>
 <thead>
 <tr>
@@ -293,19 +306,19 @@ f_Y(y)=\frac{1/2}{2\sqrt y}+\frac{1/2}{2\sqrt y}=\frac1{2\sqrt y}.
 <ul>
 <li><strong>离散</strong>：把 <span class="arithmatex">\(X\)</span> 的取值代进 <span class="arithmatex">\(g\)</span>，同值合并概率；</li>
 <li><strong>连续通用法（分布函数法）</strong>：<span class="arithmatex">\(F_Y(y) = P(g(X) \leq y)\)</span> 化成关于 <span class="arithmatex">\(X\)</span> 的区间概率，再求导。<strong>万能，优先掌握</strong>；</li>
-<li><strong>公式法</strong>（<span class="arithmatex">\(g\)</span> 严格单调可导）：</li>
+<li><strong>公式法</strong>（一个充分条件：<span class="arithmatex">\(X\)</span> 有密度且落在某区间，<span class="arithmatex">\(g\)</span> 在该区间上为 <span class="arithmatex">\(C^1\)</span>、严格单调且 <span class="arithmatex">\(g'\)</span> 处处非零）：</li>
 </ul>
 <div class="arithmatex">\[
 f_Y(y) = f_X\big(g^{-1}(y)\big)\,\Big|\frac{d\,g^{-1}(y)}{dy}\Big|
 \]</div>
 <p>（导数因子 = 一维 Jacobi——变量替换的"密度守恒"：<span class="arithmatex">\(|f_Y\,dy| = |f_X\,dx|\)</span>。🔗 归一化流生成模型的核心公式就是它的多维版，行列式换成 Jacobi 行列式，数分 VI/V 呼应。）</p>
-<p><strong>必会两例</strong>：<span class="arithmatex">\(X \sim N(0,1) \Rightarrow Y = X^2 \sim \chi^2(1)\)</span>（分布函数法，密度 <span class="arithmatex">\(\frac{1}{\sqrt{2\pi y}}e^{-y/2}\)</span>——统计页三大分布的起点）；<span class="arithmatex">\(F\)</span> 连续严格增时 <span class="arithmatex">\(F(X) \sim U(0,1)\)</span>（<strong>概率积分变换</strong>——一切随机数生成的原理：均匀数过 <span class="arithmatex">\(F^{-1}\)</span> 得任意分布）。</p>
+<p><strong>必会两例</strong>：<span class="arithmatex">\(X \sim N(0,1) \Rightarrow Y = X^2 \sim \chi^2(1)\)</span>（分布函数法，密度 <span class="arithmatex">\(\frac{1}{\sqrt{2\pi y}}e^{-y/2}\)</span>——统计页三大分布的起点）；<span class="arithmatex">\(F\)</span> 连续严格增时 <span class="arithmatex">\(F(X) \sim U(0,1)\)</span>（<strong>概率积分变换</strong>——一切随机数生成的原理：均匀数过广义逆 <span class="arithmatex">\(Q\)</span> 得任意分布）。</p>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（正态概率）</strong> 某测量 <span class="arithmatex">\(X \sim N(10, 4)\)</span>，求 <span class="arithmatex">\(P(8 &lt; X \leq 14)\)</span>。
 <em>解</em>：标准化 <span class="arithmatex">\(P(-1 &lt; Z \leq 2) = \Phi(2) - \Phi(-1) = 0.9772 - (1 - 0.8413) = 0.8185\)</span>。</p>
-<p><strong>例 2（泊松近似）</strong> 某书 500 页共 100 个错字，求某页至少 2 个错字的概率。
-<em>解</em>：每页错字数近似 <span class="arithmatex">\(P(\lambda),\ \lambda = 0.2\)</span>：<span class="arithmatex">\(P(X \geq 2) = 1 - e^{-0.2}(1 + 0.2) \approx 0.0175\)</span>。</p>
-<p><strong>例 3（函数分布，分布函数法全流程）</strong> <span class="arithmatex">\(X \sim U(0, 1)\)</span>，求 <span class="arithmatex">\(Y = -\frac{1}{\lambda}\ln X\)</span> 的分布。
+<p><strong>例 2（泊松近似）</strong> 某书 500 页共 100 个错字，假设每个错字独立且等概率落在各页，求某页至少 2 个错字的概率。
+<em>解</em>：准确模型是 <span class="arithmatex">\(B(100,1/500)\)</span>，再近似为 <span class="arithmatex">\(P(\lambda),\ \lambda = 0.2\)</span>：<span class="arithmatex">\(P(X \geq 2) = 1 - e^{-0.2}(1 + 0.2) \approx 0.0175\)</span>。</p>
+<p><strong>例 3（函数分布，分布函数法全流程）</strong> <span class="arithmatex">\(X \sim U(0, 1)\)</span>，给定 <span class="arithmatex">\(\lambda&gt;0\)</span>，求 <span class="arithmatex">\(Y = -\frac{1}{\lambda}\ln X\)</span> 的分布。
 <em>解</em>：<span class="arithmatex">\(y &gt; 0\)</span> 时 <span class="arithmatex">\(F_Y(y) = P(-\frac1\lambda \ln X \leq y) = P(X \geq e^{-\lambda y}) = 1 - e^{-\lambda y}\)</span>——<strong>指数分布</strong>。这正是"均匀数变指数数"的生成器公式（概率积分变换的实战版，Monte Carlo 模拟必备）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：多个随机变量同台——联合分布、独立性、卷积与二维正态。</em></p>

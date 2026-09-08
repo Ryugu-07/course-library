@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:47</div>
   </div>
 </nav>
 <main id="content">
@@ -73,7 +73,7 @@ try {
 </details>
 <h1 id="i">概率 I · 概率空间与贝叶斯公式<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>概率论的第一页解决"概率是什么"：Kolmogorov 公理把它定义为满足三条规则的集合函数——从此概率论成为严格数学，其余一切（条件概率、独立性、Bayes）都是公理的推论。本页也是全站与 AI 课程交汇最密的一页：贝叶斯公式是机器学习半壁江山的地基。</p>
+<p>概率论的第一页解决"概率是什么"：Kolmogorov 公理把它定义为满足三条规则的集合函数——从此概率论成为严格数学，其余一切（条件概率、独立性、Bayes）都是公理的推论。本页也是全站与 AI 课程交汇最密的一页：贝叶斯公式连接生成模型、分类与不确定性更新。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -147,8 +147,17 @@ P(D\mid+)
 <ol>
 <li>保持 <span class="arithmatex">\(\pi=1\%\)</span>、<span class="arithmatex">\(s=99\%\)</span>，把特异度调为 <span class="arithmatex">\(99.9\%\)</span>。不用实验，先算 <span class="arithmatex">\(FP\)</span> 和 <span class="arithmatex">\(PPV\)</span>，再解释为什么少改一个测试参数会带来大幅后验变化。</li>
 <li>某人第一次和第二次都阳性。若两次检测在给定真实状态后条件独立，且两次 <span class="arithmatex">\(s,c\)</span> 相同，写出后验赔率如何从 <span class="arithmatex">\(\pi/(1-\pi)\)</span> 更新；然后说明哪一种共享误差会让“似然比平方”失效。</li>
-<li>某人阴性时，为什么默认参数下可以说“基本排除”比“阳性后基本确诊”更接近事实？用 <span class="arithmatex">\(NPV=P(\bar D\mid-)\)</span> 和四格计数各写一句，不要把 <span class="arithmatex">\(NPV\)</span> 误读成 <span class="arithmatex">\(P(D\mid-)\)</span>。</li>
+<li>只在本页虚构模型中，为什么阴性组的患病比例远低于阳性组？用 <span class="arithmatex">\(NPV=P(\bar D\mid-)\)</span> 和四格计数各写一句，不要把 <span class="arithmatex">\(NPV\)</span> 误读成 <span class="arithmatex">\(P(D\mid-)\)</span>。</li>
 </ol>
+<details>
+<summary>迁移题核对：计数、赔率与条件独立</summary>
+<ol>
+<li><span class="arithmatex">\(FP=10000(0.99)(0.001)=9.9\)</span> 是期望人数，<span class="arithmatex">\(TP=99\)</span>，故 <span class="arithmatex">\(PPV=99/108.9=10/11\approx90.9\%\)</span>。假阳性率从 <span class="arithmatex">\(0.05\)</span> 降为 <span class="arithmatex">\(0.001\)</span>，缩小到原来的 <span class="arithmatex">\(1/50\)</span>；健康组很大，减少这一项会显著改变分母。</li>
+<li>两个真实状态下都条件独立时，后验赔率为 <span class="arithmatex">\([\pi/(1-\pi)][s/(1-c)]^2\)</span>。默认值为 <span class="arithmatex">\((1/99)19.8^2=3.96\)</span>，后验概率 <span class="arithmatex">\(3.96/4.96=99/124\approx79.8\%\)</span>。若第二次完全复制第一次的系统误差，则两次同阳性等于一次阳性事件，后验仍为 <span class="arithmatex">\(1/6\)</span>，不能平方。</li>
+<li>阴性组共 <span class="arithmatex">\(9406\)</span> 个期望观测，其中患病 <span class="arithmatex">\(1\)</span>、健康 <span class="arithmatex">\(9405\)</span>，故 <span class="arithmatex">\(P(D\mid-)=1/9406\)</span>，<span class="arithmatex">\(NPV=9405/9406\)</span>。这些是给定模型下的组内比例，不是检测本身不随人群变化的“准确率”。</li>
+</ol>
+<p>先修：<a href="real-01-measure.html">概率测度</a>；后续：<a href="prob-02-random-variables.html">随机变量与分布</a>、<a href="prob-04-moments.html">条件期望</a>。</p>
+</details>
 </section>
 <figure class="diagram">
 <p><img alt="贝叶斯：先验→似然→后验的概率树 / 混淆矩阵式方块图（如疾病检测假阳性）。" src="assets/img/prob-01-bayes-tree.svg" /></p>
@@ -168,7 +177,7 @@ P(D\mid+)
 P(A \cup B) = P(A) + P(B) - P(A\cap B), \qquad P\Big(\bigcup_1^n A_i\Big) = \sum P(A_i) - \sum_{i&lt;j} P(A_i\cap A_j) + \cdots \ \text{（容斥）}
 \]</div>
 <p>次可加性 <span class="arithmatex">\(P(\cup A_i) \leq \sum P(A_i)\)</span>（联合界——🔗 ai 课 01 讲泛化界推导的第一步就是它）；<strong>概率的连续性</strong>：<span class="arithmatex">\(A_n \uparrow A \Rightarrow P(A_n) \to P(A)\)</span>。</p>
-<p><strong>两个古典模型</strong>：古典概型 <span class="arithmatex">\(P(A) = \frac{|A|}{|\Omega|}\)</span>（等可能有限，组合计数主战场）；几何概型 <span class="arithmatex">\(P(A) = \frac{\text{测度}(A)}{\text{测度}(\Omega)}\)</span>（例：会面问题、Buffon 投针 <span class="arithmatex">\(P = \frac{2l}{\pi d}\)</span>——用随机模拟反估 <span class="arithmatex">\(\pi\)</span>，Monte Carlo 的鼻祖）。</p>
+<p><strong>两个古典模型</strong>：古典概型 <span class="arithmatex">\(P(A) = \frac{|A|}{|\Omega|}\)</span>（等可能有限，组合计数主战场）；几何概型 <span class="arithmatex">\(P(A) = \frac{\text{测度}(A)}{\text{测度}(\Omega)}\)</span>（要求均匀分布且总测度有限、非零；例：会面问题）。Buffon 投针在针长 <span class="arithmatex">\(0&lt;l\le d\)</span>、平行线间距 <span class="arithmatex">\(d\)</span>、针的方向及相对位置独立均匀时，命中概率为 <span class="arithmatex">\(P=2l/(\pi d)\)</span>；长针不能照用此式。</p>
 <h2 id="2_1">2. 条件概率<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(P(A \mid B) = \dfrac{P(A\cap B)}{P(B)}\ (P(B) &gt; 0)\)</span>——"已知 <span class="arithmatex">\(B\)</span> 发生，世界缩小为 <span class="arithmatex">\(B\)</span>，在其中重新归一化"。对固定的正概率事件 <span class="arithmatex">\(B\)</span>，<span class="arithmatex">\(P(\cdot \mid B)\)</span> 本身是合法概率测度（满足三公理），一切概率公式对它照用。</p>
 <p><strong>乘法公式</strong>（各个前置交集的条件概率有定义时）：<span class="arithmatex">\(P(A_1\cap A_2\cap\cdots\cap A_n) = P(A_1)P(A_2 \mid A_1)\cdots P(A_n \mid A_1\cap\cdots\cap A_{n-1})\)</span>。🔗 LLM 的自回归分解 <span class="arithmatex">\(P(w_1,\dots,w_T) = \prod P(w_t \mid w_{&lt;t})\)</span>（ai 课 07 讲）就是这条公式——"下一词预测"的数学出生证。</p>
@@ -191,7 +200,7 @@ P(B_k \mid A) = \frac{P(B_k)\,P(A \mid B_k)}{\sum_i P(B_i)\,P(A \mid B_i)}
 <div class="arithmatex">\[
 P(\text{病}\mid +) = \frac{0.001 \times 0.99}{0.001 \times 0.99 + 0.999 \times 0.01} \approx 9\%
 \]</div>
-<p>阳性了也只有一成患病——<strong>先验（基率）低时，再准的检测也大部分是假阳性</strong>。这个反直觉是贝叶斯思维的成人礼；预测与判断类工作（包括你的预测层复盘）中"忽视基率"是头号认知事故。
+<p>这里阳性组约九成是假阳性，因为 <span class="arithmatex">\((1-\pi)(1-c)&gt;\pi s\)</span>。<strong>低基率与非零假阳性率要一起比较</strong>：若特异度为 <span class="arithmatex">\(1\)</span> 且阳性事件有正概率，就没有假阳性，不能说“再准也一样”。
 这里检测的 <span class="arithmatex">\(99\%\)</span> 是 <span class="arithmatex">\(P(+\mid\text{病})\)</span>，不是 <span class="arithmatex">\(P(\text{病}\mid+)\)</span>；后者才是上式要更新的后验。</p>
 <p>🔗 <strong>AI 衔接总站</strong>：贝叶斯最优分类器 <span class="arithmatex">\(\arg\max_k P(Y{=}k\mid x)\)</span>（ai 课 01 讲的理论上限）、朴素贝叶斯（03 讲，直接实现本公式）、"正则化 = 先验"的 MAP 观点（03 讲拉普拉斯平滑）、以及"新证据更新信念"作为超预测方法论的核心循环——全部从本节出发。</p>
 <h2 id="4_1">4. 独立性<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>

@@ -138,7 +138,7 @@
       q: q,
       left: left,
       right: right,
-      gap: Math.max(0, right - left),
+      gap: right - left,
       equality: Math.abs(right - left) <= EPS * Math.max(1, Math.abs(right), Math.abs(left))
     };
   }
@@ -155,7 +155,7 @@
       p: p,
       left: left,
       right: right,
-      gap: Math.max(0, right - left),
+      gap: right - left,
       equality: Math.abs(right - left) <= EPS * Math.max(1, Math.abs(right), Math.abs(left))
     };
   }
@@ -204,7 +204,7 @@
       countingNorm: countingNorm,
       infinityNorm: lpNorm(values, measure, Infinity),
       dimensionFactor: dimensionFactor,
-      countToProbability: countingNorm / probabilityNorm,
+      countToProbability: probabilityNorm === 0 ? null : countingNorm / probabilityNorm,
       holder: holderResult,
       minkowski: minkowskiResult,
       curve: CURVE_P.map(function (curveP, index) {
@@ -403,14 +403,14 @@
     var height = 340;
     var plot = { x: 42, y: 42, w: 405, h: 235 };
     var bars = { x: 505, y: 63, w: 190, h: 185 };
-    var maximum = Math.max.apply(null, result.curve.map(function (entry) { return Math.max(entry.probability, entry.counting); })) * 1.12;
+    var maximum = Math.max(1e-12, Math.max.apply(null, result.curve.map(function (entry) { return Math.max(entry.probability, entry.counting); })) * 1.12);
     function mapX(index) { return plot.x + index * plot.w / (result.curve.length - 1); }
     function mapY(value) { return plot.y + plot.h - value / maximum * plot.h; }
     [0, maximum / 2, maximum].forEach(function (value) {
       svg.appendChild(svgNode(doc, "line", { x1: plot.x, y1: mapY(value), x2: plot.x + plot.w, y2: mapY(value), class: value === 0 ? "lp-axis" : "lp-grid" }));
       svg.appendChild(svgNode(doc, "text", { x: plot.x - 7, y: mapY(value) + 4, class: "lp-label", "text-anchor": "end" }, formatNumber(null, value, 1)));
     });
-    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: 21, class: "lp-title" }, "Lp 范数随 p 的几何变化"));
+    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: 21, class: "lp-title" }, "Lp 范数（横轴为离散取值，非线性 p 轴）"));
     svg.appendChild(svgNode(doc, "text", { x: plot.x, y: plot.y + plot.h + 20, class: "lp-label" }, "p=1"));
     svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w, y: plot.y + plot.h + 20, class: "lp-label", "text-anchor": "end" }, "p=∞"));
     function pathFor(key) {
@@ -442,7 +442,7 @@
         svg.appendChild(svgNode(doc, "text", { x: x + barWidth / 2, y: vector.y + 73, class: "lp-label", "text-anchor": "middle" }, String(value)));
       });
     });
-    svg.appendChild(svgNode(doc, "text", { x: bars.x, y: 287, class: "lp-label" }, "端点两条曲线都回到 max |f_i|；中间高度受测度归一化影响。"));
+    svg.appendChild(svgNode(doc, "text", { x: bars.x, y: 287, class: "lp-label" }, "p=∞ 时均为 max |f_i|。"));
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     svg.setAttribute("role", "img");
     svg.setAttribute("aria-label", "概率测度和计数测度下 Lp 范数曲线及向量条目");
@@ -453,10 +453,10 @@
       ["||f||p（当前测度）", formatNumber(api, result.norm, 5)],
       ["||f||∞", formatNumber(api, result.infinityNorm, 5)],
       ["Hölder 左端 / 右端", formatNumber(api, result.holder.left, 5) + " / " + formatNumber(api, result.holder.right, 5)],
-      ["Hölder gap", formatNumber(api, result.holder.gap, 7)],
+      ["Hölder 右−左（保留舍入符号）", formatNumber(api, result.holder.gap, 7)],
       ["Minkowski 左端 / 右端", formatNumber(api, result.minkowski.left, 5) + " / " + formatNumber(api, result.minkowski.right, 5)],
-      ["Minkowski gap", formatNumber(api, result.minkowski.gap, 7)],
-      ["计数 / 概率", formatNumber(api, result.countToProbability, 5) + "（理论 n^(1/p)=" + formatNumber(api, result.dimensionFactor, 5) + "）"]
+      ["Minkowski 右−左（保留舍入符号）", formatNumber(api, result.minkowski.gap, 7)],
+      ["计数 / 概率", (result.countToProbability === null ? "未定义（0/0）" : formatNumber(api, result.countToProbability, 5)) + "（理论 n^(1/p)=" + formatNumber(api, result.dimensionFactor, 5) + "）"]
     ];
     var body = makeElement(api, doc, "tbody", {});
     rows.forEach(function (row) {
@@ -584,10 +584,10 @@
       renderLedger(api, doc, ledgerHost, result);
       renderCurveLedger(api, doc, curveHost, result);
       var checks = [
-        [result.holder.gap <= 1e-8, "Hölder：左端 ≤ 右端，gap=" + formatNumber(api, result.holder.gap, 7)],
-        [result.minkowski.gap <= 1e-8, "Minkowski：左端 ≤ 右端，gap=" + formatNumber(api, result.minkowski.gap, 7)],
+        [result.holder.gap >= -1e-8, "Hölder：左端 ≤ 右端，gap=" + formatNumber(api, result.holder.gap, 7)],
+        [result.minkowski.gap >= -1e-8, "Minkowski：左端 ≤ 右端，gap=" + formatNumber(api, result.minkowski.gap, 7)],
         [near(result.infinityNorm, Math.max.apply(null, result.values.map(function (value) { return Math.abs(value); }))), "p→∞：回到 max |f_i|=" + formatNumber(api, result.infinityNorm, 5)],
-        [near(result.countToProbability, result.dimensionFactor), "归一化：计数/概率=" + formatNumber(api, result.countToProbability, 5) + " = n^(1/p)"]
+        [near(result.countingNorm, result.dimensionFactor * result.probabilityNorm), "归一化：计数范数 = n^(1/p) × 概率范数（零向量也成立）"]
       ];
       replaceChildren(checksHost, checks.map(function (check) {
         return makeElement(api, doc, "li", {}, [makeElement(api, doc, "span", { className: "lp-check " + (check[0] ? "lp-check-pass" : "lp-check-fail") }, [check[0] ? "✓" : "×"]), makeElement(api, doc, "span", {}, [check[1]])]);

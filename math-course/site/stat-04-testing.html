@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:47</div>
   </div>
 </nav>
 <main id="content">
@@ -178,7 +178,13 @@ E[V]=m\alpha,\qquad
 <h3 id="6">6. 回到一般检验语言<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <p>检验由零假设族、统计量、拒绝域和采样/选择规则共同定义。Neyman–Pearson 引理对简单零假设与简单备择给最强检验；复合假设、双侧问题和模型选择需要额外结构，不能把“固定 <span class="arithmatex">\(\alpha\)</span> 后总有唯一最优检验”当作普遍结论。匹配的检验与置信集合是同一族接受域的两种读法，但只有在模型、侧别和显著性水平一致时才可直接对偶。</p>
 <h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<p>某团队测试 40 个指标，只报告最小的 <span class="arithmatex">\(p=0.018\)</span>；另一个团队只测试一个预先注册指标，得到同样的 p 值。两项数据的单项 z 分数相同，为什么证据账本不同？若第二个团队还规定“提升至少 0.2 个标准差才值得上线”，你还需要哪些区间信息？</p>
+<p>某团队测试 40 个指标，只报告最小的 <span class="arithmatex">\(p=0.018\)</span>；另一个团队只测试一个预先注册指标，得到同样的 p 值。两项数据的单项 z 分数绝对值相同，为什么证据账本不同？若第二个团队还规定“提升至少 0.2 个标准差才值得上线”，你还需要哪些区间信息？</p>
+<details>
+<summary>迁移题核对：把筛选过程写进错误率</summary>
+<p>取家族水平 <span class="arithmatex">\(0.05\)</span>，40 项 Bonferroni 阈值为 <span class="arithmatex">\(0.05/40=0.00125\)</span>，<span class="arithmatex">\(0.018\)</span> 未达标；对应调整 p 值为 <span class="arithmatex">\(\min(1,40\cdot0.018)=0.72\)</span>。一个预注册单项检验则在水平 <span class="arithmatex">\(0.05\)</span> 下拒绝。相同的单项尾概率没有包含相同的选择过程。</p>
+<p>若关心正向提升至少 <span class="arithmatex">\(0.2\)</span>，需要匹配模型的区间下端超过 <span class="arithmatex">\(0.2\)</span>，以及预先规定的区间水平；只知双侧 p 值，连效应正负都不知道，也不能知道效应量、标准误和样本量各是多少。区间完全落在 <span class="arithmatex">\([-0.2,0.2]\)</span> 内与“未拒绝零效应”也不同；若要正式做等效检验，还需对应双单侧规则。</p>
+<p>先修：<a href="stat-01-sampling.html">抽样分布</a>、<a href="stat-03-interval.html">置信区间</a>、<a href="prob-01-space-bayes.html">Bayes 条件方向</a>；后续：<a href="stat-05-regression.html">回归诊断</a>。</p>
+</details>
 </section>
 <h2 id="1">1. 基本框架：错误率属于决策规则<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>原假设 <span class="arithmatex">\(H_0\)</span> 是被检验的参数集合，备择 <span class="arithmatex">\(H_1\)</span> 是对立集合。检验统计量必须在 <span class="arithmatex">\(H_0\)</span> 下有可校准分布；拒绝域是数据落入后拒绝 <span class="arithmatex">\(H_0\)</span> 的集合。</p>
@@ -252,7 +258,8 @@ E[V]=m\alpha,\qquad
 <p>不建议先做方差齐性 F 检验，再依据结果选择 pooled t 或 Welch t；这种两阶段选择改变整体错误率，而且 F 检验本身对非正态敏感。若没有由设计与科学机制支持的等方差约束，Welch t 通常是更稳妥的默认值。单侧或双侧也必须由问题在看数据前决定。</p>
 <p>水平 <span class="arithmatex">\(\alpha\)</span> 的双侧点零假设检验与 <span class="arithmatex">\(1-\alpha\)</span> 置信区间对偶：在同一模型和构造下，<span class="arithmatex">\(\theta_0\)</span> 不在区间内，当且仅当拒绝 <span class="arithmatex">\(H_0:\theta=\theta_0\)</span>。</p>
 <h2 id="4_1">4. 多重检验与分布检验<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>做 <span class="arithmatex">\(m\)</span> 个水平 <span class="arithmatex">\(\alpha\)</span> 的空检验时，<span class="arithmatex">\(m\alpha\)</span> 是期望假阳性数；独立时 <span class="arithmatex">\(1-(1-\alpha)^m\)</span> 才是至少一个假阳性的概率。Bonferroni 控制家族错误率；Benjamini–Hochberg 控制的是不同目标，即假发现率。选择哪一个取决于错误损失和研究流程。</p>
+<p>做 <span class="arithmatex">\(m\)</span> 个水平至多 <span class="arithmatex">\(\alpha\)</span> 的空检验时，<span class="arithmatex">\(E[V]\le m\alpha\)</span>；若每项实际错误率都等于 <span class="arithmatex">\(\alpha\)</span> 才取等号，再加独立性才有 <span class="arithmatex">\(P(V\ge1)=1-(1-\alpha)^m\)</span>。Bonferroni 用联合界控制家族错误率，不需要独立性。</p>
+<p>Benjamini–Hochberg（BH）控制另一目标 <span class="arithmatex">\(\mathrm{FDR}=E[V/\max(R,1)]\)</span>，其中 <span class="arithmatex">\(V\)</span> 为错拒数、<span class="arithmatex">\(R\)</span> 为总拒绝数。排序 <span class="arithmatex">\(p_{(1)}\le\cdots\le p_{(m)}\)</span>，找最大 <span class="arithmatex">\(k\)</span> 使 <span class="arithmatex">\(p_{(k)}\le kq/m\)</span>，拒绝前 <span class="arithmatex">\(k\)</span> 项；没有这样的 <span class="arithmatex">\(k\)</span> 就不拒绝。有效 p 值加独立性，或真零假设子集上的 PRDS 正依赖条件，给出 FDR 不超过 <span class="arithmatex">\(q\)</span> 的保证；任意相关性不能直接沿用。任意依赖下可用更保守的 BY 阈值 <span class="arithmatex">\(kq/(m\sum_{j=1}^m1/j)\)</span>。条件与结论见 <a href="https://doi.org/10.1214/aos/1013699998">Benjamini–Yekutieli 原文</a>。选择方法须先明确要控制“至少错一次”还是“发现中错的比例”。</p>
 <p>拟合优度与列联表常用 Pearson 统计量</p>
 <div class="arithmatex">\[
 \chi^2=\sum_i\frac{(O_i-E_i)^2}{E_i}.
