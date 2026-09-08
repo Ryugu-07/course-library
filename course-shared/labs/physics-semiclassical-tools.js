@@ -21,8 +21,9 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STYLE_ID = "physics-semiclassical-tools-styles";
   var STYLE_TEXT = [
-    ".pst-lab{--pst-blue:var(--cl-blue,#315f9d);--pst-green:var(--cl-green,#39734d);--pst-gold:var(--cl-gold,#9b6a12);--pst-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
-    ".pst-lab *,.pst-lab *::before,.pst-lab *::after{box-sizing:border-box}.pst-lab [hidden]{display:none!important}.pst-lab h3,.pst-lab h4{margin:0;letter-spacing:0}.pst-lab h3{font-size:1.15rem}.pst-lab p{margin:.65em 0}.pst-lab button,.pst-lab input{font:inherit;letter-spacing:0}.pst-lab button{min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pst-lab button:hover{border-color:var(--pst-blue)}.pst-lab button:focus-visible,.pst-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pst-lab button[aria-pressed=true],.pst-lab .pst-primary{background:var(--pst-blue);border-color:var(--pst-blue);color:var(--bg);font-weight:750}.pst-note,.pst-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pst-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pst-gold);background:var(--block-bg,var(--bg))}.pst-question{margin:0 0 12px;padding:0;border:0}.pst-question:last-of-type{margin-bottom:0}.pst-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pst-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pst-choices button{font-size:12px}.pst-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pst-actions>*{flex:1 1 170px}.pst-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pst-pass{color:var(--pst-green)}.pst-warn{color:var(--pst-red)}.pst-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pst-modes{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.pst-modes button{flex:1 1 150px}.pst-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pst-control{display:grid;gap:5px;min-width:0}.pst-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pst-control output{color:var(--pst-blue);font-variant-numeric:tabular-nums}.pst-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pst-blue)}.pst-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pst-panel{margin-top:8px}.pst-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.pst-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pst-stage svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.pst-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pst-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pst-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pst-curve{fill:none;stroke:var(--pst-blue);stroke-width:2.7}.pst-secondary{fill:none;stroke:var(--pst-gold);stroke-width:2.4;stroke-dasharray:6 4}.pst-marker{fill:var(--pst-red);stroke:var(--bg);stroke-width:1.5}.pst-label{font-size:11px;fill:var(--fg-soft)}.pst-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pst-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pst-metric:nth-child(4n+1){border-color:var(--pst-blue)}.pst-metric:nth-child(4n+2){border-color:var(--pst-gold)}.pst-metric:nth-child(4n+3){border-color:var(--pst-green)}.pst-metric:nth-child(4n+4){border-color:var(--pst-red)}.pst-metric span{display:block;color:var(--fg-soft);font-size:11px}.pst-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pst-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pst-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pst-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pst-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pst-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pst-choices{grid-template-columns:minmax(0,1fr)}.pst-controls,.pst-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pst-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ".pst-lab{--pst-blue:#315f9d;--pst-green:var(--cl-green,#39734d);--pst-gold:var(--cl-gold,#9b6a12);--pst-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
+    ".pst-lab *,.pst-lab *::before,.pst-lab *::after{box-sizing:border-box}.pst-lab [hidden]{display:none!important}.pst-lab h3,.pst-lab h4{margin:0;letter-spacing:0}.pst-lab h3{font-size:1.15rem}.pst-lab p{margin:.65em 0}.pst-lab button,.pst-lab input{font:inherit;letter-spacing:0}.pst-lab button{min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pst-lab button:hover{border-color:var(--pst-blue)}.pst-lab button:focus-visible,.pst-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pst-lab button[aria-pressed=true],.pst-lab .pst-primary{background:var(--pst-blue);border-color:var(--pst-blue);color:var(--bg);font-weight:750}.pst-note,.pst-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pst-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pst-gold);background:var(--block-bg,var(--bg))}.pst-question{margin:0 0 12px;padding:0;border:0}.pst-question:last-of-type{margin-bottom:0}.pst-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pst-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pst-choices button{font-size:12px}.pst-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pst-actions>*{flex:1 1 170px}.pst-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pst-pass{color:var(--pst-green)}.pst-warn{color:var(--pst-red)}.pst-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pst-modes{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.pst-modes button{flex:1 1 150px}.pst-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pst-control{display:grid;gap:5px;min-width:0}.pst-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pst-control output{color:var(--pst-blue);font-variant-numeric:tabular-nums}.pst-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pst-blue)}.pst-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pst-panel{margin-top:8px}.pst-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto}.pst-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pst-stage svg{display:block;width:100%;height:auto;min-width:680px;color:var(--fg)}.pst-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pst-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pst-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pst-curve{fill:none;stroke:var(--pst-blue);stroke-width:2.7}.pst-secondary{fill:none;stroke:var(--pst-gold);stroke-width:2.4;stroke-dasharray:6 4}.pst-marker{fill:var(--pst-red);stroke:var(--bg);stroke-width:1.5}.pst-label{font-size:12px;fill:var(--fg-soft)}.pst-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pst-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pst-metric:nth-child(4n+1){border-color:var(--pst-blue)}.pst-metric:nth-child(4n+2){border-color:var(--pst-gold)}.pst-metric:nth-child(4n+3){border-color:var(--pst-green)}.pst-metric:nth-child(4n+4){border-color:var(--pst-red)}.pst-metric span{display:block;color:var(--fg-soft);font-size:11px}.pst-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pst-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pst-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pst-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pst-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pst-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pst-choices{grid-template-columns:minmax(0,1fr)}.pst-controls,.pst-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pst-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,"[data-theme=dark] .pst-lab{--pst-blue:#85b9ef;--pst-gold:#e6be68;--pst-green:#83c69c;--pst-red:#ed9f94}.pst-stage:focus-visible{outline:3px solid var(--pst-blue);outline-offset:2px}"
   ].join("\n");
   var ID_SERIAL = 0;
 
@@ -86,7 +87,7 @@
     var width = clamp(number(a, 1), 0.125, 8);
     var kinetic = width / 4;
     var potential = 1 / (4 * width);
-    return { a: width, kinetic: kinetic, potential: potential, energy: kinetic + potential, exactGround: 0.5, excess: kinetic + potential - 0.5 };
+    return { a: width, kinetic: kinetic, potential: potential, energy: kinetic + potential, exactGround: 0.5, excess: (width - 1) * (width - 1) / (4 * width) };
   }
 
   function adiabaticMetric(s, coupling, rate) {
@@ -95,8 +96,8 @@
     var sweepRate = Math.abs(number(rate, 0.005));
     var radius = Math.sqrt(detuning * detuning + gapCoupling * gapCoupling);
     var gap = 2 * radius;
-    var epsilon = radius > 0 ? gapCoupling * sweepRate / (4 * radius * radius * radius) : Infinity;
-    return { s: detuning, coupling: gapCoupling, rate: sweepRate, radius: radius, gap: gap, epsilon: epsilon, firstBasisProbability: radius > 0 ? (1 - detuning / radius) / 2 : 0.5 };
+    var epsilon = radius > 0 ? gapCoupling * sweepRate / (4 * radius * radius * radius) : null;
+    return { s: detuning, coupling: gapCoupling, rate: sweepRate, radius: radius, gap: gap, epsilon: epsilon, firstBasisProbability: radius > 0 ? (1 - detuning / radius) / 2 : null };
   }
 
   function initialState() {
@@ -126,80 +127,59 @@
 
   function drawChart(doc, chart, mode, state) {
     clear(chart);
-    chart.appendChild(svgElement(doc, "title", { text: mode === "wkb" ? "谐振子 WKB 作用量" : mode === "variational" ? "高斯试探态变分能量" : "两能级绝热能隙与绝热参数" }));
-    chart.appendChild(svgElement(doc, "desc", { text: "图形把控制参数、近似量和精确或失效边界放在同一坐标中。" }));
-    var left = 52;
-    var right = 638;
-    var top = 34;
-    var bottom = 274;
-    function line(x1, y1, x2, y2, className) { chart.appendChild(svgElement(doc, "line", { class: className || "pst-axis", x1: x1, y1: y1, x2: x2, y2: y2 })); }
-    function text(x, y, value, attrs) { chart.appendChild(svgElement(doc, "text", Object.assign({ class: "pst-label", x: x, y: y }, attrs || {}), [value])); }
-    if (mode === "wkb") {
-      var width = right - left;
-      var e = wkbOscillator(state.n);
-      var bounds = wkbPlotBounds(state.n);
-      var xMin = bounds.xMin;
-      var xMax = bounds.xMax;
-      function sx(x) { return left + (x - xMin) / (xMax - xMin) * width; }
-      function sy(value) { return bottom - value / bounds.yMax * (bottom - top); }
-      line(left, bottom, right, bottom, "pst-axis");
-      line(sx(0), top, sx(0), bottom, "pst-grid");
-      var potential = [];
-      for (var i = 0; i <= 120; i += 1) {
-        var x = xMin + (xMax - xMin) * i / 120;
-        potential.push(sx(x).toFixed(1) + "," + sy(x * x / 2).toFixed(1));
-      }
-      chart.appendChild(svgElement(doc, "polyline", { class: "pst-curve", points: potential.join(" ") }));
-      line(sx(-e.turningPoint), sy(e.energy), sx(e.turningPoint), sy(e.energy), "pst-secondary");
-      chart.appendChild(svgElement(doc, "circle", { class: "pst-marker", cx: sx(0), cy: sy(e.energy), r: 5 }));
-      text(left, top - 8, "V(x)=x²/2；蓝：势阱，金：Eₙ");
-      text(right, bottom + 20, "x", { "text-anchor": "end" });
-      text(sx(e.turningPoint), sy(e.energy) - 9, "转折点 ±" + format(e.turningPoint, 2), { "text-anchor": "middle" });
-      text(left + 6, sy(e.energy) - 9, "Eₙ=" + format(e.energy, 3));
-      text(right - 8, top + 14, "∮p dx / 2πℏ=" + format(e.actionOverHbar, 2), { "text-anchor": "end" });
-    } else if (mode === "variational") {
-      var logMin = Math.log(0.125);
-      var logMax = Math.log(8);
-      function sxA(a) { return left + (Math.log(a) - logMin) / (logMax - logMin) * (right - left); }
-      function syA(value) { return bottom - (value - 0.45) / 3.7 * (bottom - top); }
-      line(left, bottom, right, bottom, "pst-axis");
-      line(sxA(1), top, sxA(1), bottom, "pst-grid");
-      var curve = [];
-      for (var j = 0; j <= 120; j += 1) {
-        var a = Math.exp(logMin + (logMax - logMin) * j / 120);
-        curve.push(sxA(a).toFixed(1) + "," + syA(variationalGaussian(a).energy).toFixed(1));
-      }
-      chart.appendChild(svgElement(doc, "polyline", { class: "pst-curve", points: curve.join(" ") }));
-      line(left, syA(0.5), right, syA(0.5), "pst-secondary");
-      var v = variationalGaussian(state.a);
-      chart.appendChild(svgElement(doc, "circle", { class: "pst-marker", cx: sxA(v.a), cy: syA(v.energy), r: 5 }));
-      text(left, top - 8, "E(a)=a/4+1/(4a)");
-      text(sxA(1), bottom + 20, "a=1：精确基态", { "text-anchor": "middle" });
-      text(right, syA(0.5) - 8, "E₀=1/2", { "text-anchor": "end" });
-      text(sxA(v.a), syA(v.energy) - 10, "当前 E=" + format(v.energy, 3), { "text-anchor": "middle" });
+    chart.appendChild(svgElement(doc, "title", { text: mode === "wkb" ? "谐振子势阱与WKB能量" : mode === "variational" ? "对数宽度轴上的高斯变分能量" : "分开刻度的瞬时能隙与局部绝热指标" }));
+    chart.appendChild(svgElement(doc, "desc", { text: "所有坐标均有数值刻度。绝热指标使用单独的自适应纵轴，峰值不截平；图不计算实际含时演化或跃迁概率。" }));
+    var left = 68, right = 622, top = 52, bottom = 354;
+    function line(x1,y1,x2,y2,cls) { chart.appendChild(svgElement(doc,"line",{class:cls||"pst-axis",x1:x1,y1:y1,x2:x2,y2:y2})); }
+    function text(x,y,value,attrs) { chart.appendChild(svgElement(doc,"text",Object.assign({class:"pst-label",x:x,y:y},attrs||{}),[value])); }
+    function dot(x,y) { chart.appendChild(svgElement(doc,"circle",{class:"pst-marker",cx:x,cy:y,r:5})); }
+    function curve(fn, sx, sy, x0, x1, cls, count) {
+      var pts=[]; count=count||320;
+      for(var i=0;i<=count;i++){var x=x0+(x1-x0)*i/count;pts.push(sx(x).toFixed(3)+","+sy(fn(x)).toFixed(3));}
+      chart.appendChild(svgElement(doc,"polyline",{class:cls||"pst-curve",points:pts.join(" ")}));
+    }
+    function ticksY(vals,sy) { vals.forEach(function(v){var y=sy(v);line(left,y,right,y,"pst-grid");text(left-9,y+4,format(v,3),{"text-anchor":"end"});}); }
+    function ticksX(vals,sx,y) { line(left,y,right,y); vals.forEach(function(v){var x=sx(v);line(x,y,x,y+5);text(x,y+20,format(v,3),{"text-anchor":"middle"});}); }
+    if(mode==="wkb") {
+      var e=wkbOscillator(state.n), b=wkbPlotBounds(state.n);
+      var sx=function(x){return left+(x-b.xMin)/(b.xMax-b.xMin)*(right-left);};
+      var sy=function(y){return bottom-y/b.yMax*(bottom-top);};
+      ticksY([0,b.yMax/4,b.yMax/2,3*b.yMax/4,b.yMax],sy);
+      ticksX([b.xMin,b.xMin/2,0,b.xMax/2,b.xMax],sx,bottom);
+      curve(function(x){return x*x/2;},sx,sy,b.xMin,b.xMax);
+      line(left,sy(e.energy),right,sy(e.energy),"pst-secondary");
+      dot(sx(-e.turningPoint),sy(e.energy));dot(sx(e.turningPoint),sy(e.energy));
+      text(left,25,"能量 / ℏω；蓝：V(x)，金：Eₙ="+format(e.energy));
+      text(left,407,"转折点 x=±"+format(e.turningPoint)+"；I/(2πℏ)="+format(e.actionOverHbar));
+      text(right,391,"位置 x / √(ℏ/mω)",{"text-anchor":"end"});
+    } else if(mode==="variational") {
+      var v=variationalGaussian(state.a);
+      var sxA=function(a){return left+(Math.log2(a)+3)/6*(right-left);};
+      var syA=function(y){return bottom-y/2.25*(bottom-top);};
+      ticksY([0,.5,1,1.5,2],syA); ticksX([.125,.25,.5,1,2,4,8],sxA,bottom);
+      curve(function(z){return variationalGaussian(Math.pow(2,z)).energy;},function(z){return sxA(Math.pow(2,z));},syA,-3,3);
+      line(left,syA(.5),right,syA(.5),"pst-secondary");dot(sxA(v.a),syA(v.energy));
+      text(left,25,"能量 / ℏω；蓝：E(a)，金：精确 E₀=0.5");
+      text(right,391,"a（对数刻度，每格×2）",{"text-anchor":"end"});
+      text(left,417,"当前 a="+format(v.a)+"，E="+format(v.energy)+"；最优点 a=1");
     } else {
-      var ad = adiabaticMetric(state.s, state.coupling, state.rate);
-      function sxS(s) { return left + (s + 1) / 2 * (right - left); }
-      function syGap(value) { return bottom - value / 2.1 * (bottom - top); }
-      function syEps(value) { return bottom - clamp(value, 0, 1.2) / 1.2 * (bottom - top); }
-      line(left, bottom, right, bottom, "pst-axis");
-      line(sxS(0), top, sxS(0), bottom, "pst-grid");
-      var gapPoints = [];
-      var epsPoints = [];
-      for (var k = 0; k <= 120; k += 1) {
-        var s = -1 + 2 * k / 120;
-        var m = adiabaticMetric(s, state.coupling, state.rate);
-        gapPoints.push(sxS(s).toFixed(1) + "," + syGap(m.gap).toFixed(1));
-        epsPoints.push(sxS(s).toFixed(1) + "," + syEps(m.epsilon).toFixed(1));
-      }
-      chart.appendChild(svgElement(doc, "polyline", { class: "pst-curve", points: gapPoints.join(" ") }));
-      chart.appendChild(svgElement(doc, "polyline", { class: "pst-secondary", points: epsPoints.join(" ") }));
-      chart.appendChild(svgElement(doc, "circle", { class: "pst-marker", cx: sxS(state.s), cy: syGap(ad.gap), r: 5 }));
-      text(left, top - 8, "蓝：Δ(s)=2√(s²+g²)；金：ε(s)");
-      text(right, bottom + 20, "s", { "text-anchor": "end" });
-      text(left + 7, syGap(ad.gap) - 9, "当前 Δ=" + format(ad.gap, 3));
-      text(right - 8, syEps(Math.min(ad.epsilon, 1.2)) - 9, "ε=" + format(ad.epsilon, 3), { "text-anchor": "end" });
-      text(sxS(0), top + 15, "最小 gap=2g", { "text-anchor": "middle" });
+      var ad=adiabaticMetric(state.s,state.coupling,state.rate);
+      var gapMax=2*Math.hypot(1,state.coupling)*1.08;
+      var epsPeak=adiabaticMetric(0,state.coupling,state.rate).epsilon;
+      var epsMax=epsPeak*1.12;
+      var sxS=function(x){return left+(x+1)/2*(right-left);};
+      var syG=function(y){return 170-y/gapMax*118;};
+      var syE=function(y){return 354-y/epsMax*118;};
+      ticksY([0,gapMax/2,gapMax],syG);ticksX([-1,-.5,0,.5,1],sxS,170);
+      ticksY([0,epsPeak/2,epsPeak],syE);ticksX([-1,-.5,0,.5,1],sxS,354);
+      curve(function(x){return adiabaticMetric(x,state.coupling,state.rate).gap;},sxS,syG,-1,1,"pst-curve",800);
+      curve(function(x){return adiabaticMetric(x,state.coupling,state.rate).epsilon;},sxS,syE,-1,1,"pst-secondary",800);
+      line(sxS(state.s),52,sxS(state.s),170,"pst-grid");line(sxS(state.s),236,sxS(state.s),354,"pst-grid");
+      dot(sxS(state.s),syG(ad.gap));dot(sxS(state.s),syE(ad.epsilon));
+      text(left,25,"上图 Δ(s)：能量差；当前 Δ="+format(ad.gap));
+      text(left,219,"下图 ε(s)：局部指标；全程峰值="+format(epsPeak));
+      text(left,409,"当前 s="+format(state.s)+"，ε="+format(ad.epsilon)+"；上下纵轴分别自适应，请比较刻度数值");
+      text(right,390,"扫描位置 s",{"text-anchor":"end"});
     }
   }
 
@@ -229,6 +209,9 @@
         var button = element(doc, "button", { type: "button", text: label, "aria-pressed": "false" });
         button.addEventListener("click", function () {
           state.predictions[questionIndex] = optionIndex;
+          state.revealed = false;
+          render();
+          feedback.textContent = "预测已更改，请重新揭示。";
           choiceButtons[questionIndex].forEach(function (item) { item.setAttribute("aria-pressed", "false"); });
           button.setAttribute("aria-pressed", "true");
         });
@@ -279,9 +262,10 @@
     controls.appendChild(panels.variational);
     controls.appendChild(panels.adiabatic);
     revealed.appendChild(controls);
-    var stage = element(doc, "div", { className: "pst-stage" });
-    var stageTitle = element(doc, "div", { className: "pst-stage-title" }, [element(doc, "span", { text: "同一坐标中的近似量与边界" }), element(doc, "span", { className: "pst-status", text: "" })]);
-    var chart = svgElement(doc, "svg", { viewBox: "0 0 680 320", role: "img", "aria-label": "半经典工具可视化" });
+    revealed.appendChild(element(doc,"p",{className:"pst-note",text:"窄屏可聚焦图框后左右滚动。绝热模式上下图分别使用能隙轴和局部指标轴；峰值完整显示。"}));
+    var stage = element(doc, "div", { className: "pst-stage", tabindex: "0", role: "region", "aria-label": "半经典数值图，可横向滚动" });
+    var stageTitle = element(doc, "div", { className: "pst-stage-title" }, [element(doc, "span", { text: "数值刻度与适用边界" }), element(doc, "span", { className: "pst-status", text: "" })]);
+    var chart = svgElement(doc, "svg", { viewBox: "0 0 680 440", role: "img", "aria-label": "半经典工具可视化" });
     stage.appendChild(stageTitle);
     stage.appendChild(chart);
     revealed.appendChild(stage);
@@ -315,25 +299,25 @@
         metricNodes[0].value.textContent = "E=" + format(result.energy, 3) + " ℏω";
         metricNodes[1].value.textContent = "xₜ=" + format(result.turningPoint, 3);
         metricNodes[2].value.textContent = "I/(2πℏ)=" + format(result.actionOverHbar, 2);
-        explanation = "势阱内可用；转折点外需接指数尾";
+        explanation = "转折点附近局部形式失效，需连接";
         formula.textContent = "I(E)=∮p dx=2πE；令 I=2π(n+1/2) 得 E=" + format(result.energy, 3) + "（ℏ=ω=1）";
       } else if (state.mode === "variational") {
         result = variationalGaussian(state.a);
         metricNodes[0].value.textContent = "E=" + format(result.energy, 4) + " ℏω";
         metricNodes[1].value.textContent = "E−E₀=" + format(result.excess, 4);
         metricNodes[2].value.textContent = "T/V=" + format(result.kinetic / result.potential, 3);
-        explanation = result.excess < 1e-10 ? "达到这族试探态的最优点" : "上界：不能低于 E₀";
+        explanation = result.a === 1 ? "达到这族试探态的最优点" : "上界：不能低于 E₀";
         formula.textContent = "E(a)=T+V=a/4+1/(4a)；a=" + format(result.a, 3) + "，E₀=1/2";
       } else {
         result = adiabaticMetric(state.s, state.coupling, state.rate);
         metricNodes[0].value.textContent = "Δ=" + format(result.gap, 4);
-        metricNodes[1].value.textContent = "p₁(g.s.)=" + format(result.firstBasisProbability, 3);
+        metricNodes[1].value.textContent = "瞬时基态 p₁=" + format(result.firstBasisProbability, 3);
         metricNodes[2].value.textContent = "ε=" + format(result.epsilon, 4);
-        explanation = result.epsilon < 0.1 ? "慢扫候选：ε≪1" : result.epsilon < 1 ? "过渡区：要检验非绝热跃迁" : "快扫：绝热近似危险";
+        explanation = result.epsilon < 0.1 ? "局部指标低于0.1（显示分区）" : result.epsilon < 1 ? "过渡区：要检验非绝热跃迁" : "局部指标≥1，需检验实际演化";
         formula.textContent = "R=√(s²+g²)；Δ=2R；ε=|g|v/(4R³)；当前 s=" + format(result.s, 2);
       }
       metricNodes[3].value.textContent = explanation;
-      stageTitle.querySelector(".pst-status").textContent = state.mode === "adiabatic" && result.epsilon < 0.1 ? "绝热条件较好" : state.mode === "variational" ? "基态上界" : "近似需看边界";
+      stageTitle.querySelector(".pst-status").textContent = state.mode === "adiabatic" && result.epsilon < 0.1 ? "局部 ε<0.1，非概率保证" : state.mode === "variational" ? "基态上界" : "近似需看边界";
       drawChart(doc, chart, state.mode, state);
     }
     reveal.addEventListener("click", function () {
@@ -354,6 +338,8 @@
       choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); });
       feedback.className = "pst-feedback";
       feedback.textContent = "预测已清空。";
+      state.revealed = false;
+      render();
     });
     reset.addEventListener("click", function () {
       resetState(state);
