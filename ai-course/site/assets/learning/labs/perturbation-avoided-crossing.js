@@ -32,18 +32,19 @@
   ];
 
   var STYLE_TEXT = [
-    ".pa-lab{--pa-blue:var(--cl-blue,#315f9d);--pa-gold:var(--cl-gold,#95670d);--pa-green:var(--cl-green,#347247);--pa-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
+    ".pa-lab{--pa-blue:#315f9d;--pa-gold:var(--cl-gold,#95670d);--pa-green:var(--cl-green,#347247);--pa-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
     ".pa-lab *,.pa-lab *::before,.pa-lab *::after{box-sizing:border-box;}.pa-lab [hidden]{display:none!important;}",
     ".pa-lab h3,.pa-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.pa-lab h3{font-size:1.16rem;}.pa-lab h4{margin-top:16px;font-size:1rem;}",
     ".pa-lab .pa-intro,.pa-lab .pa-note,.pa-lab .pa-feedback,.pa-lab .pa-interpretation{color:var(--fg-soft);font-size:13px;overflow-wrap:anywhere;}",
     ".pa-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.pa-lab legend{margin-bottom:8px;font-weight:750;}.pa-lab .pa-question{margin:12px 0 6px;font-size:13px;font-weight:700;}",
     ".pa-lab .pa-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.pa-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.pa-lab button:hover{border-color:var(--accent);}.pa-lab button:focus-visible,.pa-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}.pa-lab button[aria-pressed=true],.pa-lab button.pa-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.pa-lab button:disabled{opacity:.55;cursor:not-allowed;}",
     ".pa-lab .pa-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.pa-lab .pa-actions>*{flex:1 1 160px;}.pa-lab .pa-feedback{min-height:2em;margin:8px 0;font-weight:700;}.pa-lab .pa-pass{color:var(--pa-green);}.pa-lab .pa-warn{color:var(--pa-red);}",
-    ".pa-lab .pa-revealed{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}.pa-lab .pa-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0;}.pa-lab .pa-controls,.pa-lab .pa-stage{min-width:0;}.pa-lab .pa-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.pa-lab .pa-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.pa-lab .pa-presets button{font-size:12px;}",
+    ".pa-lab .pa-revealed{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}.pa-lab .pa-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0;}.pa-lab .pa-controls,.pa-lab .pa-stage{min-width:0;}.pa-lab .pa-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.pa-lab .pa-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.pa-lab .pa-presets button{font-size:12px;}",
     ".pa-lab .pa-control{display:grid;gap:5px;}.pa-lab .pa-control label{font-size:13px;font-weight:700;color:var(--fg-soft);}.pa-lab .pa-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.pa-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.pa-lab .pa-scale{display:flex;justify-content:space-between;color:var(--fg-soft);font-size:11px;}",
-    ".pa-lab .pa-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.pa-lab .pa-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.pa-lab .pa-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.pa-lab .pa-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.7;}.pa-lab .pa-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72;}.pa-lab .pa-exact-low{stroke:var(--pa-blue);}.pa-lab .pa-exact-high{stroke:var(--pa-gold);}.pa-lab .pa-approx{stroke:var(--pa-red);stroke-dasharray:6 5;}.pa-lab .pa-unperturbed{stroke:var(--fg-soft);stroke-dasharray:3 5;}.pa-lab .pa-curve{fill:none;stroke-width:2.5;}.pa-lab .pa-current{stroke:var(--pa-green);stroke-width:1.5;stroke-dasharray:4 4;}.pa-lab .pa-dot{stroke:var(--bg);stroke-width:2;}.pa-lab .pa-label{font-size:10.5px;}.pa-lab .pa-title{font-size:12px;font-weight:800;text-anchor:middle;}.pa-lab .pa-bar-bg{fill:var(--border);}.pa-lab .pa-bar-one{fill:var(--pa-blue);}.pa-lab .pa-bar-two{fill:var(--pa-gold);}",
+    ".pa-lab .pa-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}.pa-lab .pa-svg{display:block;width:100%;min-width:680px;height:auto;color:var(--fg);}.pa-lab .pa-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.pa-lab .pa-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.7;}.pa-lab .pa-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72;}.pa-lab .pa-exact-low{stroke:var(--pa-blue);}.pa-lab .pa-exact-high{stroke:var(--pa-gold);}.pa-lab .pa-approx{stroke:var(--pa-red);stroke-dasharray:6 5;}.pa-lab .pa-unperturbed{stroke:var(--fg-soft);stroke-dasharray:3 5;}.pa-lab .pa-curve{fill:none;stroke-width:2.5;}.pa-lab .pa-current{stroke:var(--pa-green);stroke-width:1.5;stroke-dasharray:4 4;}.pa-lab .pa-dot{stroke:var(--bg);stroke-width:2;}.pa-lab .pa-label{font-size:12px;}.pa-lab .pa-title{font-size:12px;font-weight:800;text-anchor:middle;}.pa-lab .pa-bar-bg{fill:var(--border);}.pa-lab .pa-bar-one{fill:var(--pa-blue);}.pa-lab .pa-bar-two{fill:var(--pa-gold);}",
     ".pa-lab .pa-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:12px 0;}.pa-lab .pa-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.pa-lab .pa-metric:nth-child(1),.pa-lab .pa-metric:nth-child(4){border-color:var(--pa-blue);}.pa-lab .pa-metric:nth-child(2),.pa-lab .pa-metric:nth-child(5){border-color:var(--pa-gold);}.pa-lab .pa-metric:nth-child(3),.pa-lab .pa-metric:nth-child(6){border-color:var(--pa-red);}.pa-lab .pa-metric span{display:block;color:var(--fg-soft);font-size:11.5px;}.pa-lab .pa-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".pa-lab .pa-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}.pa-lab table{width:100%;min-width:690px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.pa-lab th,.pa-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.pa-lab th{color:var(--fg-soft);font-size:11.5px;}.pa-lab .pa-interpretation{margin-top:10px;padding:10px 12px;border-left:3px solid var(--pa-green);background:var(--bg);}",
+    "html[data-theme=dark] .pa-lab{--pa-blue:#83c8ff;--pa-gold:#e2b458;--pa-green:#72bd8b;--pa-red:#f08c7d}",
     "@media(max-width:1180px){.pa-lab .pa-layout{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:680px){.pa-lab .pa-choice-row{grid-template-columns:minmax(0,1fr);}.pa-lab .pa-presets{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:420px){.pa-lab .pa-frame{padding:4px;}.pa-lab table{font-size:11.5px;}.pa-lab th,.pa-lab td{padding-left:5px;padding-right:5px;}}",
@@ -67,18 +68,20 @@
     var ground = -radius;
     var excited = radius;
     var gap = 2 * radius;
-    var ratio = Math.abs(delta) > EPS ? Math.abs(v / delta) : null;
-    var approxGround = Math.abs(delta) > EPS ? -Math.abs(delta) / 2 - v * v / Math.abs(delta) : null;
-    var approxExcited = Math.abs(delta) > EPS ? Math.abs(delta) / 2 + v * v / Math.abs(delta) : null;
+    var ratio = delta !== 0 ? Math.abs(v / delta) : null;
+    var approxGround = delta !== 0 ? -Math.abs(delta) / 2 - v * v / Math.abs(delta) : null;
+    var approxExcited = delta !== 0 ? Math.abs(delta) / 2 + v * v / Math.abs(delta) : null;
     var phi = degreesToRadians(phiDeg);
     var trialEnergy = (delta / 2) * Math.cos(2 * phi) + v * Math.sin(2 * phi);
-    var groundP1 = radius > EPS ? 0.5 * (1 - delta / (2 * radius)) : null;
-    var groundP2 = groundP1 === null ? null : 1 - groundP1;
-    var excitedP1 = groundP1 === null ? null : 1 - groundP1;
-    var excitedP2 = excitedP1 === null ? null : 1 - excitedP1;
-    var optimumPhiDeg = radius > EPS ? 0.5 * Math.atan2(-2 * v, -delta) * 180 / Math.PI : null;
-    var variationalGap = trialEnergy - ground;
-    if (variationalGap < 0 && variationalGap > -1e-12) variationalGap = 0;
+    var smallWeight = radius === 0 ? null : 0.5 * (v / radius) * (v / (radius + Math.abs(delta) / 2));
+    var groundP1 = radius === 0 ? null : delta >= 0 ? smallWeight : 1 - smallWeight;
+    var groundP2 = radius === 0 ? null : delta >= 0 ? 1 - smallWeight : smallWeight;
+    var excitedP1 = groundP2;
+    var excitedP2 = groundP1;
+    var optimumPhiDeg = radius !== 0 ? 0.5 * Math.atan2(-2 * v, -delta) * 180 / Math.PI : null;
+    var variationalGap = radius === 0 ? 0 : 2 * radius * Math.pow(Math.sin(phi - degreesToRadians(optimumPhiDeg)), 2);
+    var a = Math.abs(delta) / 2;
+    var approximationError = delta === 0 ? null : Math.pow(v / (a + radius), 2) * (v / (2 * a)) * v;
     return {
       delta: delta,
       v: v,
@@ -89,7 +92,8 @@
       ratio: ratio,
       approxGround: approxGround,
       approxExcited: approxExcited,
-      approxError: approxGround === null ? null : Math.abs(approxGround - ground),
+      errorBound: delta === 0 ? null : Math.abs(Math.pow(v / delta, 2) * (v / delta) * v),
+      approxError: approxGround === null ? null : approximationError,
       trialEnergy: trialEnergy,
       variationalGap: variationalGap,
       groundP1: groundP1,
@@ -97,8 +101,8 @@
       excitedP1: excitedP1,
       excitedP2: excitedP2,
       optimumPhiDeg: optimumPhiDeg,
-      degenerate: Math.abs(delta) <= EPS,
-      trueCrossing: radius <= EPS
+      degenerate: delta === 0,
+      trueCrossing: radius === 0
     };
   }
 
@@ -222,7 +226,7 @@
       svg.appendChild(svgNode(doc, "text", { x: plot.x - 6, y: mapY(value) + 4, class: "pa-label", "text-anchor": "end" }, format(value, 1)));
     });
     svg.appendChild(svgNode(doc, "line", { x1: mapX(0), y1: plot.y, x2: mapX(0), y2: plot.y + plot.h, class: "pa-grid" }));
-    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: 23, class: "pa-title" }, "能级随 detuning delta 变化"));
+    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: 23, class: "pa-title" }, "能级 E 随 detuning delta 变化"));
     svg.appendChild(svgNode(doc, "text", { x: plot.x, y: plot.y + plot.h + 20, class: "pa-label" }, "-1.5"));
     svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w, y: plot.y + plot.h + 20, class: "pa-label", "text-anchor": "end" }, "+1.5"));
     svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: plot.y + plot.h + 20, class: "pa-label", "text-anchor": "middle" }, "delta"));
@@ -262,7 +266,7 @@
     svg.appendChild(svgNode(doc, "line", { x1: currentX, y1: plot.y, x2: currentX, y2: plot.y + plot.h, class: "pa-current" }));
     svg.appendChild(svgNode(doc, "circle", { cx: currentX, cy: mapY(current.ground), r: "5", class: "pa-dot", fill: "var(--pa-blue)" }));
     svg.appendChild(svgNode(doc, "circle", { cx: currentX, cy: mapY(current.excited), r: "5", class: "pa-dot", fill: "var(--pa-gold)" }));
-    svg.appendChild(svgNode(doc, "text", { x: plot.x + 8, y: plot.y + 15, class: "pa-label pa-exact-low" }, "蓝/金：精确；红虚：二阶；灰虚：v=0"));
+    svg.appendChild(svgNode(doc, "text", { x: plot.x + 8, y: plot.y + 15, class: "pa-label" }, "蓝/金：精确；红虚：二阶；灰虚：v=0"));
 
     svg.appendChild(svgNode(doc, "text", { x: bars.x + bars.w / 2, y: 23, class: "pa-title" }, "当前本征态的基底权重"));
     if (current.groundP1 === null) {
@@ -277,7 +281,7 @@
         svg.appendChild(svgNode(doc, "rect", { x: bars.x, y: entry.y, width: bars.w * entry.p1, height: "30", rx: "3", class: "pa-bar-one" }));
         svg.appendChild(svgNode(doc, "rect", { x: bars.x + bars.w * entry.p1, y: entry.y, width: bars.w * entry.p2, height: "30", rx: "3", class: "pa-bar-two" }));
         svg.appendChild(svgNode(doc, "text", { x: bars.x, y: entry.y + 49, class: "pa-label" }, "|1>: " + format(100 * entry.p1, 1) + "%"));
-        svg.appendChild(svgNode(doc, "text", { x: bars.x + bars.w, y: entry.y + 49, class: "pa-label", "text-anchor": "end" }, "|2>: " + format(100 * entry.p2, 1) + "%"));
+        svg.appendChild(svgNode(doc, "text", { x: bars.x + bars.w, y: entry.y + 66, class: "pa-label", "text-anchor": "end" }, "|2>: " + format(100 * entry.p2, 1) + "%"));
       });
     }
     svg.appendChild(svgNode(doc, "text", { x: bars.x, y: 313, class: "pa-label" }, "蓝=|1>，金=|2>"));
@@ -302,18 +306,19 @@
     clear(root);
     var uid = "pa-" + (SERIAL += 1);
     var state = copyPreset(PRESETS[0]);
-    var answers = { reliable: null, gap: null, variational: null };
+    var answers = { reliable: null, gap: null, firstOrder: null, variational: null };
     var shell = makeElement(doc, "div", { className: "pa-lab" });
     shell.appendChild(makeElement(doc, "h3", {}, "二能级微扰：谱隙才是分母"));
-    shell.appendChild(makeElement(doc, "p", { className: "pa-intro" }, "同一个小耦合 v，在大谱隙处可能可靠，在近简并处却会强烈混合。先做三项预测，再用精确对角化审计二阶式和变分上界。"));
+    shell.appendChild(makeElement(doc, "p", { className: "pa-intro" }, "同一个小耦合 v，在大谱隙处可能可靠，在近简并处却会强烈混合。先做四项预测，再用精确对角化审计二阶式和变分上界。"));
     var questions = [
       { key: "reliable", prompt: "1. 判断非简并展开可靠性，主要看什么？", expected: "ratio", choices: [["v", "只看 |v|"], ["ratio", "看 |v/delta|"], ["phi", "看试探角 phi"]] },
       { key: "gap", prompt: "2. delta=0 且 v 非零时最小能隙是多少？", expected: "twov", choices: [["zero", "0"], ["v", "|v|"], ["twov", "2|v|"]] },
-      { key: "variational", prompt: "3. 归一化试探态能量能低于精确基态吗？", expected: "no", choices: [["yes", "可以"], ["no", "不可以"], ["excited", "只对激发态不可以"]] }
+      { key: "firstOrder", prompt: "3. delta 非零、V 纯非对角时，一阶能量修正？", expected: "zero", choices: [["zero", "0"], ["v", "v"], ["gap", "delta"]] },
+      { key: "variational", prompt: "4. 归一化试探态能量能低于精确基态吗？", expected: "no", choices: [["yes", "可以"], ["no", "不可以"], ["excited", "只对激发态不可以"]] }
     ];
     var form = makeElement(doc, "form");
     var fieldset = makeElement(doc, "fieldset");
-    fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：三项都回答后才显示谱"));
+    fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：四项都回答后才显示谱"));
     var choiceButtons = [];
     questions.forEach(function (question) {
       fieldset.appendChild(makeElement(doc, "p", { className: "pa-question" }, question.prompt));
@@ -322,6 +327,8 @@
         var button = makeElement(doc, "button", { type: "button", "aria-pressed": "false" }, choice[1]);
         button.addEventListener("click", function () {
           answers[question.key] = choice[0];
+          revealed.setAttribute("hidden", "hidden");
+          feedback.textContent = "预测已更新，请重新提交核对。";
           choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", answers[item.key] === item.value ? "true" : "false"); });
         });
         choiceButtons.push({ key: question.key, value: choice[0], node: button });
@@ -333,7 +340,7 @@
     var submit = makeElement(doc, "button", { type: "submit", className: "pa-primary" }, "提交预测并揭示");
     var clearPredictions = makeElement(doc, "button", { type: "button" }, "清空预测");
     form.appendChild(makeElement(doc, "div", { className: "pa-actions" }, [submit, clearPredictions]));
-    var feedback = makeElement(doc, "p", { className: "pa-feedback", role: "status", "aria-live": "polite" }, "请完成三项预测。 ");
+    var feedback = makeElement(doc, "p", { className: "pa-feedback", role: "status", "aria-live": "polite" }, "请完成四项预测。 ");
     form.appendChild(feedback);
     shell.appendChild(form);
 
@@ -374,7 +381,8 @@
 
     var stage = makeElement(doc, "div", { className: "pa-stage" });
     var svg = svgNode(doc, "svg", { class: "pa-svg", width: "680", height: "330", viewBox: "0 0 680 330", role: "img", "aria-label": "二能级避免交叉和基底混合概率图" });
-    stage.appendChild(makeElement(doc, "div", { className: "pa-frame" }, svg));
+    stage.appendChild(makeElement(doc, "div", { className: "pa-frame", tabindex: "0", role: "region", "aria-label": "避免交叉图，可横向滚动" }, svg));
+    stage.appendChild(makeElement(doc, "p", { className: "pa-note" }, "窄屏可横向滑动；红虚线只在 |v/delta|≤0.3 区域显示，这是绘图阈值。"));
     var metrics = [metric(doc, "控制比 |v/delta|"), metric(doc, "精确 gap"), metric(doc, "精确 E0"), metric(doc, "二阶 E0"), metric(doc, "二阶绝对误差"), metric(doc, "试探值 - E0")];
     stage.appendChild(makeElement(doc, "div", { className: "pa-metrics" }, metrics.map(function (item) { return item.node; })));
     stage.appendChild(makeElement(doc, "h4", {}, "三种方法的当前账本"));
@@ -411,14 +419,14 @@
         ["简并子空间", current.degenerate ? (current.trueCrossing ? "V=0，本征基不唯一" : "E=±|v|，gap=2|v|") : "当前无需切换", "先在简并块内对角化 V", "不保证块外耦合可忽略"],
         ["变分试探", "E(phi)=" + format(current.trialEnergy, 6), "归一化；这里只审计基态", "不自动给激发态同类上界"]
       ]);
-      var reliability = current.ratio === null ? (current.trueCrossing ? "H=0，任何基底都是本征基；非简并分母没有意义。" : "delta=0，必须先做简并对角化。") : (current.ratio <= 0.1 ? "|v/delta| 很小，二阶式在这个模型中表现良好。" : (current.ratio <= 0.3 ? "已进入过渡区，必须用精确谱检查误差。" : "接近简并，非简并二阶式不再可靠。"));
-      interpretation.textContent = reliability + " 当前 gap=" + format(current.gap, 6) + "；试探能量比精确基态高 " + format(current.variationalGap, 6) + "。能量只依赖 |v|，但 v 的符号会改变本征向量的相对相位。";
+      var reliability = current.ratio === null ? (current.trueCrossing ? "H=0，任何基底都是本征基；非简并分母没有意义。" : "delta=0，必须先做简并对角化。") : "请将当前绝对误差及其上界与所需容忍误差比较；0.3 只是图中显示虚线的阈值。";
+      interpretation.textContent = reliability + " 二阶误差上界=" + format(current.errorBound, 6) + "；当前 gap=" + format(current.gap, 6) + "；试探能量比精确基态高 " + format(current.variationalGap, 6) + "。能量只依赖 |v|，但 v 的符号会改变本征向量的相对相位。";
     }
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       if (questions.some(function (question) { return !answers[question.key]; })) {
-        feedback.className = "pa-feedback pa-warn"; feedback.textContent = "请先完成三项预测。"; return;
+        feedback.className = "pa-feedback pa-warn"; feedback.textContent = "请先完成四项预测。"; return;
       }
       var correct = questions.filter(function (question) { return answers[question.key] === question.expected; }).length;
       feedback.className = "pa-feedback " + (correct === questions.length ? "pa-pass" : "pa-warn");
@@ -426,18 +434,19 @@
       revealed.removeAttribute("hidden"); render();
     });
     clearPredictions.addEventListener("click", function () {
-      answers = { reliable: null, gap: null, variational: null };
+      answers = { reliable: null, gap: null, firstOrder: null, variational: null };
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
-      feedback.className = "pa-feedback"; feedback.textContent = "预测已清空。";
+      revealed.setAttribute("hidden", "hidden");
+      feedback.className = "pa-feedback"; feedback.textContent = "预测已清空，结果已重新隐藏。";
     });
     deltaControl.input.addEventListener("input", function () { state.delta = Number(deltaControl.input.value); state.id = "custom"; render(); });
     vControl.input.addEventListener("input", function () { state.v = Number(vControl.input.value); state.id = "custom"; render(); });
     phiControl.input.addEventListener("input", function () { state.phiDeg = Number(phiControl.input.value); state.id = "custom"; render(); });
     relock.addEventListener("click", function () {
       revealed.setAttribute("hidden", "hidden");
-      answers = { reliable: null, gap: null, variational: null };
+      answers = { reliable: null, gap: null, firstOrder: null, variational: null };
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
-      feedback.className = "pa-feedback"; feedback.textContent = "已重新上锁，请再做三项预测。";
+      feedback.className = "pa-feedback"; feedback.textContent = "已重新上锁，请再做四项预测。";
     });
   }
 

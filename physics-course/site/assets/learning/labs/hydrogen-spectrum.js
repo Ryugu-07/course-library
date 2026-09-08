@@ -27,25 +27,25 @@
   var TRANSITIONS = [
     {
       id: "2p-1s",
-      label: "2p,m=0 → 1s,m=0 · E1 允许",
+      label: "2p,m=0 → 1s,m=0",
       from: { n: 2, l: 1, m: 0 },
       to: { n: 1, l: 0, m: 0 }
     },
     {
       id: "2s-1s",
-      label: "2s,m=0 → 1s,m=0 · Δl=0 禁戒",
+      label: "2s,m=0 → 1s,m=0",
       from: { n: 2, l: 0, m: 0 },
       to: { n: 1, l: 0, m: 0 }
     },
     {
       id: "3d-2p-allowed",
-      label: "3d,m=2 → 2p,m=1 · E1 允许",
+      label: "3d,m=2 → 2p,m=1",
       from: { n: 3, l: 2, m: 2 },
       to: { n: 2, l: 1, m: 1 }
     },
     {
       id: "3d-2p-forbidden",
-      label: "3d,m=2 → 2p,m=0 · Δm=-2 禁戒",
+      label: "3d,m=2 → 2p,m=0",
       from: { n: 3, l: 2, m: 2 },
       to: { n: 2, l: 1, m: 0 }
     }
@@ -59,8 +59,9 @@
   ];
 
   var STYLE_TEXT = [
-    ".hys-lab{--hys-blue:var(--cl-blue,#315f9d);--hys-green:var(--cl-green,#39734d);--hys-gold:var(--cl-gold,#9b6a12);--hys-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
-    ".hys-lab *,.hys-lab *::before,.hys-lab *::after{box-sizing:border-box}.hys-lab [hidden]{display:none!important}.hys-lab h3,.hys-lab h4{margin:0;color:var(--fg,#292722);letter-spacing:0}.hys-lab h3{font-size:1.12rem}.hys-lab h4{font-size:1rem}.hys-lab p{margin:8px 0}.hys-lab .hys-note,.hys-lab .hys-feedback,.hys-lab .hys-detail{color:var(--fg-soft,var(--muted,#6b6557));font-size:13px;line-height:1.65}.hys-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.hys-lab button:hover{border-color:var(--hys-blue)}.hys-lab button:focus-visible,.hys-lab input:focus-visible,.hys-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.hys-lab button[aria-pressed=true],.hys-lab .hys-primary{border-color:var(--hys-blue);background:var(--hys-blue);color:var(--bg,#fff);font-weight:750}.hys-lab .hys-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 14px}.hys-lab .hys-presets button{font-size:12px}.hys-lab .hys-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;margin:11px 0;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-control{display:grid;gap:4px;min-width:0}.hys-lab .hys-control label{font-size:12.5px;font-weight:700;color:var(--fg-soft,var(--muted,#6b6557))}.hys-lab .hys-control output{color:var(--hys-blue);font-variant-numeric:tabular-nums}.hys-lab select{width:100%;height:44px;min-height:44px;padding:5px 7px;border:1px solid var(--border,#d7d0c2);border-radius:5px;background:var(--bg,#fff);color:inherit;font:inherit}.hys-lab input[type=range]{display:block;width:100%;height:44px;min-height:44px;margin:0;accent-color:var(--hys-blue)}.hys-lab .hys-predict{margin-top:12px;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-question{margin:10px 0 0;padding:9px;border:1px solid var(--border,#d7d0c2);min-width:0}.hys-lab .hys-question legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.hys-lab .hys-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.hys-lab .hys-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.hys-lab .hys-actions>*{flex:1 1 160px}.hys-lab .hys-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.hys-lab .hys-pass{color:var(--hys-green)}.hys-lab .hys-warn{color:var(--hys-red)}.hys-lab .hys-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.hys-lab .hys-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:11px 0}.hys-lab .hys-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-metric:nth-child(4n+1){border-color:var(--hys-blue)}.hys-lab .hys-metric:nth-child(4n+2){border-color:var(--hys-green)}.hys-lab .hys-metric:nth-child(4n+3){border-color:var(--hys-gold)}.hys-lab .hys-metric:nth-child(4n){border-color:var(--hys-red)}.hys-lab .hys-metric span{display:block;color:var(--fg-soft,var(--muted,#6b6557));font-size:11px;line-height:1.4}.hys-lab .hys-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.hys-lab .hys-charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;min-width:0}.hys-lab .hys-chart{min-width:0}.hys-lab .hys-frame{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow:hidden}.hys-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#292722)}.hys-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.hys-lab .hys-axis{stroke:currentColor;stroke-opacity:.22;stroke-width:1}.hys-lab .hys-level{stroke:var(--hys-blue);stroke-width:2.4}.hys-lab .hys-level-selected{stroke:var(--hys-red);stroke-width:4}.hys-lab .hys-curve{fill:none;stroke:var(--hys-green);stroke-width:2.5}.hys-lab .hys-node{stroke:var(--hys-gold);stroke-width:1.2;stroke-dasharray:4 4}.hys-lab .hys-small-label{font-size:10px;fill:var(--fg-soft,var(--muted,#6b6557))}.hys-lab .hys-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}.hys-lab table{width:100%;min-width:660px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.hys-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#6b6557));font-size:12px}.hys-lab th,.hys-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.hys-lab th{color:var(--fg-soft,var(--muted,#6b6557));font-size:11.5px}.hys-lab .hys-callout{margin-top:12px;padding:9px 11px;border-left:3px solid var(--hys-gold);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#6b6557));font-size:12.5px;line-height:1.65}",
+    ".hys-lab{--hys-blue:#315f9d;--hys-green:var(--cl-green,#39734d);--hys-gold:var(--cl-gold,#9b6a12);--hys-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
+    ".hys-lab *,.hys-lab *::before,.hys-lab *::after{box-sizing:border-box}.hys-lab [hidden]{display:none!important}.hys-lab h3,.hys-lab h4{margin:0;color:var(--fg,#292722);letter-spacing:0}.hys-lab h3{font-size:1.12rem}.hys-lab h4{font-size:1rem}.hys-lab p{margin:8px 0}.hys-lab .hys-note,.hys-lab .hys-feedback,.hys-lab .hys-detail{color:var(--fg-soft,var(--muted,#6b6557));font-size:13px;line-height:1.65}.hys-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.hys-lab button:hover{border-color:var(--hys-blue)}.hys-lab button:focus-visible,.hys-lab input:focus-visible,.hys-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.hys-lab button[aria-pressed=true],.hys-lab .hys-primary{border-color:var(--hys-blue);background:var(--hys-blue);color:var(--bg,#fff);font-weight:750}.hys-lab .hys-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0 14px}.hys-lab .hys-presets button{font-size:12px}.hys-lab .hys-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;margin:11px 0;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-control{display:grid;gap:4px;min-width:0}.hys-lab .hys-control label{font-size:12.5px;font-weight:700;color:var(--fg-soft,var(--muted,#6b6557))}.hys-lab .hys-control output{color:var(--hys-blue);font-variant-numeric:tabular-nums}.hys-lab select{width:100%;height:44px;min-height:44px;padding:5px 7px;border:1px solid var(--border,#d7d0c2);border-radius:5px;background:var(--bg,#fff);color:inherit;font:inherit}.hys-lab input[type=range]{display:block;width:100%;height:44px;min-height:44px;margin:0;accent-color:var(--hys-blue)}.hys-lab .hys-predict{margin-top:12px;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-question{margin:10px 0 0;padding:9px;border:1px solid var(--border,#d7d0c2);min-width:0}.hys-lab .hys-question legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.hys-lab .hys-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.hys-lab .hys-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.hys-lab .hys-actions>*{flex:1 1 160px}.hys-lab .hys-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.hys-lab .hys-pass{color:var(--hys-green)}.hys-lab .hys-warn{color:var(--hys-red)}.hys-lab .hys-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.hys-lab .hys-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:11px 0}.hys-lab .hys-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.hys-lab .hys-metric:nth-child(4n+1){border-color:var(--hys-blue)}.hys-lab .hys-metric:nth-child(4n+2){border-color:var(--hys-green)}.hys-lab .hys-metric:nth-child(4n+3){border-color:var(--hys-gold)}.hys-lab .hys-metric:nth-child(4n){border-color:var(--hys-red)}.hys-lab .hys-metric span{display:block;color:var(--fg-soft,var(--muted,#6b6557));font-size:11px;line-height:1.4}.hys-lab .hys-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.hys-lab .hys-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}.hys-lab .hys-chart{min-width:0}.hys-lab .hys-frame{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow-x:auto}.hys-lab svg{display:block;width:100%;min-width:640px;height:auto;color:var(--fg,#292722)}.hys-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.hys-lab .hys-axis{stroke:currentColor;stroke-opacity:.22;stroke-width:1}.hys-lab .hys-level{stroke:var(--hys-blue);stroke-width:2.4}.hys-lab .hys-level-selected{stroke:var(--hys-red);stroke-width:4}.hys-lab .hys-curve{fill:none;stroke:var(--hys-green);stroke-width:2.5}.hys-lab .hys-node{stroke:var(--hys-gold);stroke-width:1.2;stroke-dasharray:4 4}.hys-lab .hys-small-label{font-size:12px;fill:var(--fg-soft,var(--muted,#6b6557))}.hys-lab .hys-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}.hys-lab table{width:100%;min-width:660px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.hys-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#6b6557));font-size:12px}.hys-lab th,.hys-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.hys-lab th{color:var(--fg-soft,var(--muted,#6b6557));font-size:11.5px}.hys-lab .hys-callout{margin-top:12px;padding:9px 11px;border-left:3px solid var(--hys-gold);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#6b6557));font-size:12.5px;line-height:1.65}",
+    "html[data-theme=dark] .hys-lab{--hys-blue:#83c8ff;--hys-green:#72bd8b;--hys-gold:#e2b458;--hys-red:#f08c7d}",
     "@media(max-width:900px){.hys-lab .hys-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.hys-lab .hys-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.hys-lab .hys-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
     "@media(max-width:650px){.hys-lab .hys-charts{grid-template-columns:minmax(0,1fr)}.hys-lab .hys-choice-row{grid-template-columns:minmax(0,1fr)}}",
     "@media(max-width:420px){.hys-lab .hys-presets,.hys-lab .hys-controls,.hys-lab .hys-metrics{grid-template-columns:minmax(0,1fr)}.hys-lab .hys-predict{padding:9px}.hys-lab .hys-frame{padding:4px}.hys-lab table{font-size:11.5px}.hys-lab th,.hys-lab td{padding-left:5px;padding-right:5px}}",
@@ -164,9 +165,20 @@
     var points = radialGrid(n, l, { steps: steps === undefined ? 360 : steps });
     var peak = points[0];
     points.forEach(function (point) { if (point.probability > peak.probability) peak = point; });
+    var nodePositions=[];
+    for(var i=1;i<points.length;i++){
+      var a=points[i-1],b=points[i];
+      if(a.r>0 && a.wavefunction===0)nodePositions.push(a.r);
+      if(a.wavefunction*b.wavefunction<0){
+        var lo=a.r,hi=b.r,sign=a.wavefunction;
+        for(var j=0;j<45;j++){var mid=(lo+hi)/2;if(radialWavefunction(n,l,mid)*sign>0)lo=mid;else hi=mid;}
+        nodePositions.push((lo+hi)/2);
+      }
+    }
     return {
       n: n,
       l: l,
+      nodePositions: nodePositions,
       nodes: radialNodes(n, l),
       points: points,
       normalization: integrate(points),
@@ -196,7 +208,7 @@
       deltaM: deltaM,
       allowed: allowed,
       photonEnergy: allowed ? energy(from.n) - energy(to.n) : null,
-      reason: !validStates ? "量子数不合法" : !downward ? "需要从较高 n 向较低 n 记账" : allowed ? "Δl=±1 且 Δm=0,±1" : "不满足 E1 选择定则"
+      reason: !validStates ? "量子数不合法" : !downward ? "需要从较高 n 向较低 n 记账" : allowed ? "通过必要筛选；仍需偏振分量和非零径向积分" : "不满足 E1 选择定则"
     };
   }
 
@@ -332,7 +344,7 @@
   function format(value, digits) {
     var places = digits === undefined ? 3 : digits;
     if (!Number.isFinite(value)) return "-";
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function metric(doc, label, value) {
@@ -343,43 +355,31 @@
   }
 
   function energyChart(doc, result) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 640 285", role: "img", "aria-label": "氢原子 n 能级与简并账本" });
-    svg.appendChild(svgNode(doc, "title", {}, "非相对论 Coulomb 氢原子能级"));
-    var left = 86, right = 330, bottom = 245, top = 34, baseEnergy = energy(1);
-    function mapY(value) { return bottom - (value - baseEnergy) / (0 - baseEnergy) * (bottom - top); }
-    [baseEnergy, -RYDBERG_EV / 4, -RYDBERG_EV / 9, -RYDBERG_EV / 16, -RYDBERG_EV / 25].forEach(function (value) {
-      var y = mapY(value);
-      svg.appendChild(svgNode(doc, "line", { x1: 56, y1: y, x2: right + 35, y2: y, class: "hys-axis" }));
-      svg.appendChild(svgNode(doc, "text", { x: 50, y: y + 4, "text-anchor": "end", class: "hys-small-label" }, format(value, 2) + " eV"));
-    });
-    result.shells.forEach(function (shell) {
-      var y = mapY(shell.energy);
-      svg.appendChild(svgNode(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: shell.n === result.state.n ? "hys-level hys-level-selected" : "hys-level" }));
-      svg.appendChild(svgNode(doc, "text", { x: right + 45, y: y + 4, class: "hys-small-label" }, "n=" + shell.n + " · " + shell.orbitalDegeneracy + " / " + shell.spinDegeneracy));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: left, y: 18, class: "hys-small-label" }, "轨道简并 / 计自旋简并"));
-    return svg;
+    var svg = svgNode(doc, "svg", { viewBox: "0 0 640 360", role: "img", "aria-label": "氢原子能级，左边真实eV刻度，右边分开排布标签" });
+    svg.appendChild(svgNode(doc, "title", {}, "Coulomb 能级，13.6 eV 常数经舍入"));
+    var left=80,right=330,top=45,bottom=310;
+    function y(E){return bottom+(E+13.6)/13.6*(top-bottom);}
+    [-12,-8,-4,0].forEach(function(E){svg.appendChild(svgNode(doc,"line",{x1:left,y1:y(E),x2:right,y2:y(E),class:"hys-axis"}));svg.appendChild(svgNode(doc,"text",{x:left-9,y:y(E)+4,"text-anchor":"end",class:"hys-small-label"},String(E)));});
+    svg.appendChild(svgNode(doc,"text",{x:left,y:22,class:"hys-small-label"},"能量 / eV（0 为电离阈值）"));
+    result.shells.forEach(function(s){var yy=y(s.energy),labelY=bottom-(s.n-1)*52;
+      svg.appendChild(svgNode(doc,"line",{x1:left,y1:yy,x2:right,y2:yy,class:s.n===result.state.n?"hys-level hys-level-selected":"hys-level"}));
+      svg.appendChild(svgNode(doc,"path",{d:"M330 "+yy+" L382 "+labelY+" L395 "+labelY,class:"hys-axis",fill:"none"}));
+      svg.appendChild(svgNode(doc,"text",{x:402,y:labelY+4,class:"hys-small-label"},"n="+s.n+"："+format(s.energy,3)+" eV"));
+      svg.appendChild(svgNode(doc,"text",{x:402,y:labelY+20,class:"hys-small-label"},"轨道 "+s.orbitalDegeneracy+" / 含自旋 "+s.spinDegeneracy));
+    });return svg;
   }
 
   function radialChart(doc, result) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 640 285", role: "img", "aria-label": "氢原子径向概率分布" });
-    svg.appendChild(svgNode(doc, "title", {}, result.stateLabel + " 的径向概率 r²|R|²"));
-    var points = result.radial.points, left = 52, right = 605, bottom = 240, top = 35;
-    var maxProbability = 0;
-    points.forEach(function (point) { maxProbability = Math.max(maxProbability, point.probability); });
-    maxProbability = Math.max(maxProbability, 1e-12);
-    svg.appendChild(svgNode(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, class: "hys-axis" }));
-    svg.appendChild(svgNode(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, class: "hys-axis" }));
-    var polyline = points.filter(function (_, index) { return index % 3 === 0 || index === points.length - 1; }).map(function (point) {
-      var x = left + (point.r / points[points.length - 1].r) * (right - left);
-      var y = bottom - (point.probability / maxProbability) * (bottom - top);
-      return x.toFixed(2) + "," + y.toFixed(2);
-    }).join(" ");
-    svg.appendChild(svgNode(doc, "polyline", { points: polyline, class: "hys-curve" }));
-    svg.appendChild(svgNode(doc, "text", { x: left, y: 20, class: "hys-small-label" }, "P(r)=r²|R|²；节点数=" + result.radial.nodes));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: bottom + 25, "text-anchor": "end", class: "hys-small-label" }, "r / a₀"));
-    svg.appendChild(svgNode(doc, "text", { x: left - 5, y: top - 8, "text-anchor": "end", class: "hys-small-label" }, "概率"));
-    return svg;
+    var svg=svgNode(doc,"svg",{viewBox:"0 0 640 320",role:"img","aria-label":"带数值刻度的径向概率密度与正半轴节点"});
+    svg.appendChild(svgNode(doc,"title",{},result.stateLabel+" 的径向概率密度"));
+    var pts=result.radial.points,L=75,R=610,T=45,B=265,maxR=pts[pts.length-1].r,maxP=1.1*result.radial.peakProbability;
+    function x(r){return L+r/maxR*(R-L);}function y(p){return B-p/maxP*(B-T);}
+    [0,.5,1].forEach(function(f){var val=f*maxP;svg.appendChild(svgNode(doc,"line",{x1:L,y1:y(val),x2:R,y2:y(val),class:"hys-axis"}));svg.appendChild(svgNode(doc,"text",{x:L-9,y:y(val)+4,"text-anchor":"end",class:"hys-small-label"},format(val,4)));});
+    [0,.25,.5,.75,1].forEach(function(f){svg.appendChild(svgNode(doc,"text",{x:x(f*maxR),y:B+20,"text-anchor":"middle",class:"hys-small-label"},format(f*maxR,1)));});
+    svg.appendChild(svgNode(doc,"polyline",{points:pts.map(function(p){return x(p.r)+","+y(p.probability);}).join(" "),class:"hys-curve"}));
+    result.radial.nodePositions.forEach(function(r){svg.appendChild(svgNode(doc,"line",{x1:x(r),y1:T,x2:x(r),y2:B,class:"hys-node"}));});
+    svg.appendChild(svgNode(doc,"text",{x:L,y:22,class:"hys-small-label"},"密度 P(r) / a₀⁻¹；虚线为数值节点"));
+    svg.appendChild(svgNode(doc,"text",{x:R,y:309,"text-anchor":"end",class:"hys-small-label"},"r / a₀"));return svg;
   }
 
   function table(doc, caption, headers, rows) {
@@ -419,7 +419,7 @@
       var output = element(doc, "output", { for: uid + "-" + key, text: "" });
       var label = element(doc, "label", { htmlFor: uid + "-" + key }, [labelText + " = ", output]);
       var box = element(doc, "div", { className: "hys-control" }); box.appendChild(label); box.appendChild(input);
-      input.addEventListener("input", function () { state[key] = Number(input.value); if (key === "n") { state.l = clamp(state.l, 0, state.n - 1); state.m = clamp(state.m, -state.l, state.l); } if (key === "l") state.m = clamp(state.m, -state.l, state.l); state.presetId = ""; state.revealed = false; render(); });
+      input.addEventListener("input", function () { state[key] = Number(input.value); if (key === "n") { state.l = clamp(state.l, 0, state.n - 1); state.m = clamp(state.m, -state.l, state.l); } if (key === "l") state.m = clamp(state.m, -state.l, state.l); state.presetId = ""; state.predictions = {}; state.revealed = false; render(); });
       return { box: box, input: input, output: output, digits: digits };
     }
     var nControl = rangeControl("n", "主量子数 n", 1, MAX_N, 1, 0);
@@ -432,15 +432,15 @@
 
     var questions = [
       { id: "m-count", label: "给定 l 后，m 有多少个允许值？", choices: [["two-l-plus-one", "2l+1 个"], ["l-plus-one", "l+1 个"]] },
-      { id: "energy", label: "理想 Coulomb 模型中能量主要依赖什么？", choices: [["n", "只依赖 n"], ["lm", "依赖 l 和 m"]] },
-      { id: "selection", label: "E1 选择定则是否决定候选跃迁允许？", choices: [["rules", "看 Δl=±1、Δm=0,±1"], ["always", "所有向下跃迁都允许"]] }
+      { id: "energy", label: "理想 Coulomb 模型中能量依赖哪些量子数？", choices: [["n", "只依赖 n"], ["lm", "依赖 l 和 m"]] },
+      { id: "selection", label: "当前候选跃迁是否通过向下 E1 必要筛选？", choices: [["pass", "通过必要筛选"], ["fail", "不通过"]] }
     ];
     var prediction = element(doc, "section", { className: "hys-predict", "aria-labelledby": uid + "-predict-title" }); prediction.appendChild(element(doc, "h4", { id: uid + "-predict-title", text: "先预测三件事，再揭示谱账" }));
     var questionButtons = {};
     questions.forEach(function (question) {
       var fieldset = element(doc, "fieldset", { className: "hys-question" }); fieldset.appendChild(element(doc, "legend", { text: question.label }));
       var choices = element(doc, "div", { className: "hys-choice-row" }); questionButtons[question.id] = [];
-      question.choices.forEach(function (choice) { var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice[1] }); button.addEventListener("click", function () { state.predictions[question.id] = choice[0]; state.revealed = false; renderPrediction(); renderStatus(); }); questionButtons[question.id].push({ value: choice[0], node: button }); choices.appendChild(button); });
+      question.choices.forEach(function (choice) { var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice[1] }); button.addEventListener("click", function () { state.predictions[question.id] = choice[0]; state.revealed = false; render(); }); questionButtons[question.id].push({ value: choice[0], node: button }); choices.appendChild(button); });
       fieldset.appendChild(choices); prediction.appendChild(fieldset);
     });
     var actions = element(doc, "div", { className: "hys-actions" }); var reveal = element(doc, "button", { type: "button", className: "hys-primary", text: "揭示并核对" }); var reset = element(doc, "button", { type: "button", text: "重置预测" }); actions.appendChild(reveal); actions.appendChild(reset); prediction.appendChild(actions);
@@ -448,7 +448,7 @@
 
     var results = element(doc, "section", { className: "hys-results", hidden: true, "aria-labelledby": uid + "-results-title" }); results.appendChild(element(doc, "h4", { id: uid + "-results-title", text: "氢原子三本谱账" })); var metrics = element(doc, "div", { className: "hys-metrics" }); results.appendChild(metrics);
     var charts = element(doc, "div", { className: "hys-charts" }); var energyHost = element(doc, "div", { className: "hys-chart" }); var radialHost = element(doc, "div", { className: "hys-chart" }); charts.appendChild(energyHost); charts.appendChild(radialHost); results.appendChild(charts);
-    var stateHost = element(doc, "div", {}); var transitionHost = element(doc, "div", {}); results.appendChild(stateHost); results.appendChild(transitionHost); results.appendChild(element(doc, "p", { className: "hys-callout", text: "边界：这是非相对论、球对称、单电子 Coulomb 参考模型。n²/2n² 的简并忽略精细结构、Lamb shift、超精细结构和外场；E1 规则也不覆盖磁偶极、电四极、多电子组态混合等过程。" }));
+    var stateHost = element(doc, "div", {}); var transitionHost = element(doc, "div", {}); results.appendChild(stateHost); results.appendChild(transitionHost); results.appendChild(element(doc, "p", { className: "hys-callout", text: "窄屏可横向滑动两图与账本。边界：这是非相对论、球对称、单电子 Coulomb 参考模型。n²/2n² 的简并忽略精细结构、Lamb shift、超精细结构和外场；E1 规则也不覆盖磁偶极、电四极、多电子组态混合等过程。" }));
     shell.appendChild(results); root.classList.add("hys-lab"); clear(root); root.appendChild(shell);
 
     function renderPrediction() { questions.forEach(function (question) { questionButtons[question.id].forEach(function (item) { item.node.setAttribute("aria-pressed", state.predictions[question.id] === item.value ? "true" : "false"); }); }); }
@@ -461,19 +461,20 @@
       transitionSelect.value = state.transitionId;
       presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", item.id === state.presetId ? "true" : "false"); });
     }
-    function render() { renderControls(); renderPrediction(); renderStatus(); if (!state.revealed) { results.hidden = true; return; } var result = analyze({ n: state.n, l: state.l, m: state.m, transitionId: state.transitionId }); var expected = { "m-count": "two-l-plus-one", energy: "n", selection: "rules" }; var correct = questions.every(function (question) { return state.predictions[question.id] === expected[question.id]; }); feedback.className = "hys-feedback " + (correct ? "hys-pass" : "hys-warn"); feedback.textContent = (correct ? "三项预测都命中。" : "预测已揭示，请按量子数和选择定则复盘。") + " 当前态为 " + result.stateLabel + "。"; if (api && typeof api.announce === "function") api.announce(root, feedback.textContent); results.hidden = false;
-      metrics.replaceChildren(metric(doc, "状态", result.stateLabel), metric(doc, "E_n", format(result.energy, 4) + " eV"), metric(doc, "允许 l", result.allowedL.join(", ")), metric(doc, "允许 m", result.allowedM.join(", ")), metric(doc, "本 l 轨道简并", String(result.orbitalDegeneracy)), metric(doc, "n² / 2n²", result.shellOrbitalDegeneracy + " / " + result.shellSpinDegeneracy), metric(doc, "径向节点", String(result.radial.nodes)), metric(doc, "峰值半径", format(result.radial.peakRadius, 2) + " a₀"));
-      clear(energyHost); energyHost.appendChild(element(doc, "h4", { text: "能级与简并" })); energyHost.appendChild(element(doc, "div", { className: "hys-frame" }, energyChart(doc, result))); clear(radialHost); radialHost.appendChild(element(doc, "h4", { text: "径向概率分布" })); radialHost.appendChild(element(doc, "div", { className: "hys-frame" }, radialChart(doc, result)));
-      clear(stateHost); stateHost.appendChild(table(doc, "量子数、能量和径向账本", ["项目", "结果"], [["n 的允许范围", "1,2,…"], ["l 的允许范围", result.allowedL.join(", ")], ["m 的允许范围", result.allowedM.join(", ")], ["E_n", format(result.energy, 6) + " eV"], ["有限窗口归一化（r≤8n²a₀）", format(result.radial.normalization, 5)], ["径向节点理论值", String(result.radial.nodes)]]));
-      clear(transitionHost); var transition = result.transition; transitionHost.appendChild(table(doc, "E1 候选跃迁账本", ["项目", "结果"], [["from → to", stateLabel(transition.from) + " → " + stateLabel(transition.to)], ["Δl / Δm", transition.deltaL + " / " + transition.deltaM], ["状态合法", transition.validStates ? "是" : "否"], ["能量方向", transition.downward ? "向下" : "不是向下"], ["E1 结论", transition.allowed ? "允许" : "禁戒"], ["原因", transition.reason], ["光子能量", transition.photonEnergy === null ? "无 E1 读数" : format(transition.photonEnergy, 6) + " eV"]]));
+    function render() { renderControls(); renderPrediction(); renderStatus(); if (!state.revealed) { results.hidden = true; return; } var result = analyze({ n: state.n, l: state.l, m: state.m, transitionId: state.transitionId }); var expected = { "m-count": "two-l-plus-one", energy: "n", selection: result.transition.allowed ? "pass" : "fail" }; var correct = questions.every(function (question) { return state.predictions[question.id] === expected[question.id]; }); feedback.className = "hys-feedback " + (correct ? "hys-pass" : "hys-warn"); feedback.textContent = (correct ? "三项预测都命中。" : "预测已揭示，请按量子数和选择定则复盘。") + " 当前态为 " + result.stateLabel + "。"; if (api && typeof api.announce === "function") api.announce(root, feedback.textContent); results.hidden = false;
+      metrics.replaceChildren(metric(doc, "状态", result.stateLabel), metric(doc, "E_n", format(result.energy, 4) + " eV"), metric(doc, "允许 l", result.allowedL.join(", ")), metric(doc, "允许 m", result.allowedM.join(", ")), metric(doc, "本 l 轨道简并", String(result.orbitalDegeneracy)), metric(doc, "n² / 2n²", result.shellOrbitalDegeneracy + " / " + result.shellSpinDegeneracy), metric(doc, "数值 / 理论节点", result.radial.nodePositions.length + " / " + result.radial.nodes), metric(doc, "采样峰值半径", format(result.radial.peakRadius, 2) + " a₀"));
+      clear(energyHost); energyHost.appendChild(element(doc, "h4", { text: "能级与简并" })); energyHost.appendChild(element(doc, "div", { className: "hys-frame", tabindex: "0", role: "region", "aria-label": "带刻度的氢原子图，可横向滚动" }, energyChart(doc, result))); clear(radialHost); radialHost.appendChild(element(doc, "h4", { text: "径向概率分布" })); radialHost.appendChild(element(doc, "div", { className: "hys-frame", tabindex: "0", role: "region", "aria-label": "带刻度的氢原子图，可横向滚动" }, radialChart(doc, result)));
+      clear(stateHost); stateHost.appendChild(table(doc, "量子数、能量和径向账本", ["项目", "结果"], [["n 的允许范围", "1,2,…"], ["l 的允许范围", result.allowedL.join(", ")], ["m 的允许范围", result.allowedM.join(", ")], ["E_n", format(result.energy, 6) + " eV"], ["有限窗口归一化（r≤8n²a₀）", format(result.radial.normalization, 5)], ["径向节点理论值", String(result.radial.nodes)], ["数值正节点 / a₀", result.radial.nodePositions.map(function(r){return format(r,5);}).join(", ") || "无"]]));
+      clear(transitionHost); var transition = result.transition; transitionHost.appendChild(table(doc, "E1 候选跃迁账本", ["项目", "结果"], [["from → to", stateLabel(transition.from) + " → " + stateLabel(transition.to)], ["Δl / Δm", transition.deltaL + " / " + transition.deltaM], ["状态合法", transition.validStates ? "是" : "否"], ["能量方向", transition.downward ? "向下" : "不是向下"], ["E1 结论", transition.allowed ? "通过必要筛选" : "未通过向下 E1 筛选"], ["原因", transition.reason], ["候选能量差", transition.photonEnergy === null ? "无 E1 读数" : format(transition.photonEnergy, 6) + " eV"]]));
     }
-    transitionSelect.addEventListener("change", function () { state.transitionId = transitionSelect.value; state.presetId = ""; state.revealed = false; render(); });
+    transitionSelect.addEventListener("change", function () { state.transitionId = transitionSelect.value; state.presetId = ""; state.predictions = {}; state.revealed = false; render(); });
     reveal.addEventListener("click", function () { if (Object.keys(state.predictions).length !== questions.length) { feedback.className = "hys-feedback hys-warn"; feedback.textContent = "请先完成三项预测，再揭示谱账。"; return; } state.revealed = true; render(); });
     reset.addEventListener("click", function () { state.predictions = {}; state.revealed = false; render(); });
     render();
   }
 
   return {
+    format: format,
     RYDBERG_EV: RYDBERG_EV,
     MAX_N: MAX_N,
     TRANSITIONS: TRANSITIONS,
