@@ -46,7 +46,7 @@
     adiabatic: {
       label: "可逆绝热",
       kind: "reversible",
-      description: "pV^γ=常数，Q=0"
+      description: "恒定热容：pV^γ=常数，Q=0"
     }
   };
   var PRESETS = [
@@ -85,7 +85,7 @@
     ".tp-lab .tp-metric{min-width:0;padding:8px;border-top:2px solid var(--border);background:var(--bg)}",
     ".tp-lab .tp-metric span{display:block;color:var(--fg-soft);font-size:11.5px}",
     ".tp-lab .tp-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".tp-lab svg{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
+    ".tp-lab [data-stage]{overflow-x:auto}.tp-lab svg{display:block;min-width:640px;width:100%;height:auto;max-width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
     ".tp-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
     ".tp-lab .tp-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55}",
     ".tp-lab .tp-axis{stroke:currentColor;stroke-width:1.25;opacity:.75}",
@@ -289,7 +289,7 @@
     if (Math.abs(value) < 5e-10) return "0";
     var places = digits === undefined ? 5 : digits;
     if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function element(doc, tag, attrs, children) {
@@ -349,19 +349,23 @@
       "aria-labelledby": prefix + "-plot-title " + prefix + "-plot-desc"
     });
     svg.appendChild(svgElement(doc, "title", { id: prefix + "-plot-title" }, "理想气体过程的 P-V 路径"));
-    svg.appendChild(svgElement(doc, "desc", { id: prefix + "-plot-desc" }, ledger.kind === "irreversible" ? "红色虚线是非平衡自由膨胀边界，不用于压力积分。" : "蓝线是所选平衡态过程，端点标出初态与终态。"));
+    svg.appendChild(svgElement(doc, "desc", { id: prefix + "-plot-desc" }, ledger.kind === "irreversible" ? "红色虚线是非平衡自由膨胀边界，不用于压力积分。" : "实线是所选平衡态过程，端点标出初态与终态。"));
     var left = 54;
     var right = 588;
     var top = 34;
     var bottom = 266;
     var minV = 1;
-    var maxV = ledger.V2 * 1.04;
+    var maxV = ledger.V2 * 1.14;
     var maxP = Math.max(1.05, ledger.p1 * 1.08, ledger.p2 * 1.08);
     [1, 0.5, 0].forEach(function (fraction) {
       var p = fraction * maxP;
       var y = mapY(p, top, bottom, 0, maxP);
       svg.appendChild(svgElement(doc, "line", { x1: left, x2: right, y1: y, y2: y, className: "tp-grid" }));
-      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: y + 4, "font-size": 11, "text-anchor": "end" }, formatNumber(p, 2)));
+      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: y + 4, "font-size": 12, "text-anchor": "end" }, formatNumber(p, 2)));
+    });
+    [1, (1 + ledger.V2) / 2, ledger.V2].forEach(function (v) {
+      var x = mapX(v, left, right, minV, maxV);
+      svg.appendChild(svgElement(doc, "text", {x:x,y:bottom+21,"font-size":12,"text-anchor":"middle"}, formatNumber(v,2)));
     });
     svg.appendChild(svgElement(doc, "line", { x1: left, x2: left, y1: top, y2: bottom, className: "tp-axis" }));
     svg.appendChild(svgElement(doc, "line", { x1: left, x2: right, y1: bottom, y2: bottom, className: "tp-axis" }));
@@ -389,10 +393,10 @@
       var x = mapX(point.V, left, right, minV, maxV);
       var y = mapY(point.p, top, bottom, 0, maxP);
       svg.appendChild(svgElement(doc, "circle", { cx: x, cy: y, r: 4.2, className: "tp-point" }));
-      svg.appendChild(svgElement(doc, "text", { x: x + 7, y: y - 8, "font-size": 11 }, point.label));
+      svg.appendChild(svgElement(doc, "text", { x: x + 7, y: y - 8, "font-size": 12 }, point.label));
     });
-    svg.appendChild(svgElement(doc, "text", { x: right, y: 25, "font-size": 11, "text-anchor": "end" }, ledger.kind === "irreversible" ? "红虚线：非平衡边界，不积分" : "蓝：所选路径；金虚线：等温参照"));
-    svg.appendChild(svgElement(doc, "text", { x: right, y: 310, "font-size": 11, "text-anchor": "end" }, "V；p 纵轴，工作符号：ΔW=−∫p_ext dV"));
+    svg.appendChild(svgElement(doc, "text", { x: right, y: 25, "font-size": 12, "text-anchor": "end" }, ledger.kind === "irreversible" ? "红虚线：非平衡边界，不积分" : "实线：所选路径；虚线：等温参照"));
+    svg.appendChild(svgElement(doc, "text", { x: right, y: 310, "font-size": 12, "text-anchor": "end" }, "V；p 纵轴，工作符号：ΔW=−∫p_ext dV"));
     return svg;
   }
 
@@ -401,7 +405,7 @@
     var table = element(doc, "table", { "aria-label": "热力学过程账本" });
     table.appendChild(element(doc, "caption", { text: "本页符号：dU=δQ+δW，δW=−p_ext dV；ΔU、ΔS 为状态量，ΔW、ΔQ 为过程量" }));
     var head = element(doc, "tr");
-    ["过程", "类型", "ΔW（系统功）", "ΔQ", "ΔU", "ΔS", "总熵产生", "公式/边界"].forEach(function (label) {
+    ["过程", "类型", "W（外界对系统做功）", "ΔQ", "ΔU", "ΔS", "总熵产生", "公式/边界"].forEach(function (label) {
       head.appendChild(element(doc, "th", { scope: "col", text: label }));
     });
     table.appendChild(element(doc, "thead", {}, [head]));
@@ -440,7 +444,7 @@
     var revealed = false;
     var shell = element(doc, "div", { className: "tp-lab" });
     shell.innerHTML = [
-      '<p class="tp-note">先统一功的符号，再揭示 PV 路径。蓝线是平衡态路径；自由膨胀的红虚线只作边界示意，不能借一条虚构压力曲线计算功。</p>',
+      '<p class="tp-note">先统一功的符号，再揭示 PV 路径。实线是平衡态路径；自由膨胀的红虚线只作边界示意，不能借一条虚构压力曲线计算功。</p>',
       '<div class="tp-prediction"><h3>预测门：三项都作答后才能揭示</h3>',
       '<fieldset data-question="0"><legend>1. 同端点改变路径，哪些量必相同？</legend><div class="tp-choices">',
       '<button type="button" data-question="0" data-answer="state">ΔU、ΔS；Q、ΔW 可变</button><button type="button" data-question="0" data-answer="path">Q、ΔW；ΔU、ΔS 可变</button><button type="button" data-question="0" data-answer="all">四者都相同</button>',
@@ -448,15 +452,15 @@
       '<fieldset data-question="1"><legend>2. 可逆等温膨胀 V:1→2 的符号？</legend><div class="tp-choices">',
       '<button type="button" data-question="1" data-answer="isothermal">ΔW=−ln2，ΔQ=+ln2，ΔU=0</button><button type="button" data-question="1" data-answer="positive">ΔW=+ln2，ΔQ=0</button><button type="button" data-question="1" data-answer="zero">三者都为 0</button>',
       '</div></fieldset>',
-      '<fieldset data-question="2"><legend>3. 真空自由膨胀（理想气体）怎样记账？</legend><div class="tp-choices">',
+      '<fieldset data-question="2"><legend>3. 隔热真空自由膨胀（理想气体）怎样记账？</legend><div class="tp-choices">',
       '<button type="button" data-question="2" data-answer="reversible">ΔS=0，因为 Q=W=0</button><button type="button" data-question="2" data-answer="entropy">Q=W=ΔU=0，但 ΔS>0 且有熵产生</button><button type="button" data-question="2" data-answer="curve">可用一条平衡态曲线积分</button>',
       '</div></fieldset>',
       '<div class="tp-actions"><button class="tp-primary" type="button" data-action="reveal">核对预测并揭示</button><button type="button" data-action="reset">重置</button></div>',
       '<p class="tp-feedback" role="status" aria-live="polite" aria-atomic="true">请先完成三项预测。</p></div>',
       '<div class="tp-controls" hidden><div class="tp-control-group"><label>过程预设</label><div class="tp-presets" data-presets></div></div>',
       '<div class="tp-control-group"><label for="' + prefix + '-v2">终体积 V₂：<output data-output="V2">2</output></label><input id="' + prefix + '-v2" data-input="V2" type="range" min="1.2" max="3.5" step="0.1" value="2">',
-      '<span class="tp-note">归一化：nR=1，T₁=V₁=1，γ=<output data-output="gamma">1.667</output></span></div></div>',
-      '<div class="tp-results" hidden><div data-metrics></div><div data-stage></div><div data-table></div><p class="tp-note">有限路径图和梯形积分是数值证据；状态函数公式、可逆熵公式和自由膨胀熵产生分别依赖理想气体、平衡/准静态或不可逆边界的假设。</p></div>'
+      '<span class="tp-note">窄屏图可横向滚动。归一化：nR=1，T₁=V₁=1，γ=<output data-output="gamma">1.667</output></span></div></div>',
+      '<div class="tp-results" hidden><div data-metrics></div><div data-stage tabindex="0" role="region" aria-label="PV图，窄屏可横向滚动"></div><div data-table></div><p class="tp-note">有限路径图和梯形积分是数值证据；状态函数公式、可逆熵公式和自由膨胀熵产生分别依赖理想气体、平衡/准静态或不可逆边界的假设。</p></div>'
     ].join("");
     rootNode.replaceChildren(shell);
     var lab = shell;
@@ -500,7 +504,7 @@
       metrics.innerHTML = [
         ["当前过程", ledger.label],
         ["类型", ledger.kind === "reversible" ? "可逆/平衡" : "不可逆/非平衡边界"],
-        ["ΔW（系统功）", formatNumber(ledger.workOn, 6)],
+        ["W（外界对系统做功）", formatNumber(ledger.workOn, 6)],
         ["ΔQ", formatNumber(ledger.heat, 6)],
         ["ΔU（state）", formatNumber(ledger.deltaU, 6)],
         ["ΔS（state）", formatNumber(ledger.deltaS, 6)],

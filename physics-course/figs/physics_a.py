@@ -1,4 +1,6 @@
-import sys; sys.path.insert(0,"/Users/karasuakamatsu/physics-course/figs")
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import *
 
 def f_least_action():
@@ -94,22 +96,35 @@ def f_double_slit():
     save(fig,"opt-01-double-slit")
 
 def f_carnot():
-    fig,ax=plt.subplots(figsize=(5.6,4.0))
-    V=np.linspace(1,3,100)
-    ax.plot(V,3/V,color=ACC,lw=2); ax.plot(V,1/V,color=ACC,lw=2)
-    V2=np.linspace(1.4,2.3,100)
-    ax.plot(V2,3/V2**1.4*1.4**0.4,color=RED,lw=2); ax.plot(V2*1.0,1/V2*1.0,color=RED,lw=0)
-    # simpler: draw a labeled loop
-    ax.clear()
-    Va=np.linspace(1,1.8,50); Vb=np.linspace(1.8,2.6,50)
-    ax.plot(Va,2.5/Va,color=RED,lw=2); ax.text(1.2,2.0,r"$T_h$ isotherm",color=RED,fontsize=9)
-    ax.plot(Vb,2.5/1.8*(1.8/Vb)**1.4,color=ACC,lw=2)
-    Vc=np.linspace(2.6,1.9,50); ax.plot(Vc,0.9/Vc,color="#c77",lw=2); ax.text(2.0,.45,r"$T_c$ isotherm",color="#c77",fontsize=9)
-    Vd=np.linspace(1.9,1.0,50); ax.plot(Vd,0.9/1.9*(1.9/Vd)**1.4,color=ACC,lw=2)
-    ax.text(1.35,1.5,"adiabat",color=ACC,fontsize=9,rotation=-45)
-    ax.set_xlabel(r"$V$"); ax.set_ylabel(r"$P$"); ax.set_xlim(0.8,2.9); ax.set_ylim(0,3)
-    ax.set_title(r"Carnot cycle: two isotherms + two adiabats",fontsize=12)
-    save(fig,"sm-01-carnot")
+    # nR=1, constant gamma: both adiabats must meet both isotherms.
+    gamma, Th, Tc = 5/3, 2.5, 1.5
+    Va, Vb = 1.0, 1.6
+    scale = (Th/Tc)**(1/(gamma-1))
+    Vc, Vd = Vb*scale, Va*scale
+    segments = [
+        (np.linspace(Va,Vb,100), lambda v: Th/v, RED),
+        (np.linspace(Vb,Vc,100), lambda v: Th/Vb*(Vb/v)**gamma, "#315f9d"),
+        (np.linspace(Vc,Vd,100), lambda v: Tc/v, GREEN),
+        (np.linspace(Vd,Va,100), lambda v: Tc/Vd*(Vd/v)**gamma, "#315f9d"),
+    ]
+    fig, ax = plt.subplots(figsize=(6.8,4.5))
+    all_v, all_p = [], []
+    for v, law, color in segments:
+        pressure = law(v)
+        ax.plot(v,pressure,color=color,lw=2)
+        ax.annotate('',xy=(v[57],pressure[57]),xytext=(v[47],pressure[47]),
+                    arrowprops=dict(arrowstyle='->',color=color,lw=2))
+        all_v.extend(v); all_p.extend(pressure)
+    ax.fill(all_v,all_p,color=ACC,alpha=.12)
+    for label, v, p in [('A',Va,Th/Va),('B',Vb,Th/Vb),('C',Vc,Tc/Vc),('D',Vd,Tc/Vd)]:
+        ax.plot(v,p,'o',color=INK,ms=4); ax.annotate(label,(v,p),xytext=(6,7),textcoords='offset points')
+    ax.text(1.04,2.72,r'$T_h=2.5$; $T_c=1.5$; $\gamma=5/3$',fontsize=12)
+    ax.text(1.95,2.4,'A→B: isothermal heat input',fontsize=10)
+    ax.text(1.95,2.15,'B→C, D→A: adiabatic',fontsize=10,color='#315f9d')
+    ax.text(1.95,.25,'C→D: isothermal heat output',fontsize=10)
+    ax.set(xlabel=r'$V$ (normalized)',ylabel=r'$p$ (normalized)',xlim=(.8,Vc+.3),ylim=(0,3))
+    ax.set_title('Carnot cycle: closed reversible loop; efficiency = 40%',fontsize=12)
+    save(fig,'sm-01-carnot',reproducible=True)
 
 def f_quantum_stats():
     E=np.linspace(-2,4,400)

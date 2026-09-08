@@ -42,19 +42,19 @@
   }
 
   function occupation(kind, energy, chemicalPotential, temperature) {
-    var T = Math.max(EPS, Number(temperature));
+    var T = Number(temperature);
+    if (!(T > 0) || !Number.isFinite(T)) return NaN;
     var x = (Number(energy) - Number(chemicalPotential)) / T;
     if (kind === "bose") {
-      if (x <= 0) return Infinity;
-      if (x > 700) return 0;
+      if (x < 0) return NaN;
+      if (x === 0) return Infinity;
+      if (x > 50) { var q = Math.exp(-x); return q / (1 - q); }
       return 1 / Math.expm1(x);
     }
     if (kind === "fermi") {
-      if (x > 700) return 0;
-      if (x < -700) return 1;
+      if (x >= 0) { var qf = Math.exp(-x); return qf / (1 + qf); }
       return 1 / (Math.exp(x) + 1);
     }
-    if (x > 700) return 0;
     return Math.exp(-x);
   }
 
@@ -82,9 +82,9 @@
   }
 
   function classicalRelativeError(kind, x) {
-    var exact = kind === "bose" ? 1 / Math.expm1(x) : 1 / (Math.exp(x) + 1);
-    var classical = Math.exp(-x);
-    return Math.abs(exact - classical) / Math.max(exact, EPS);
+    if ((kind !== "bose" && kind !== "fermi") || !Number.isFinite(x) || (kind === "bose" && x <= 0)) return NaN;
+    // Relative to the exact occupation, both differences simplify to exp(-x).
+    return Math.exp(-x);
   }
 
   function selfTest() {
@@ -96,7 +96,7 @@
     check(occupation("fermi", 10, 0, 1) > 0 && occupation("fermi", 10, 0, 1) < 0.001, "Fermi high-energy tail");
     check(near(occupation("bose", 1, 0, 1), 1 / Math.expm1(1)), "Bose formula");
     check(occupation("bose", 0, 0, 1) === Infinity, "Bose boundary diverges");
-    check(occupation("bose", 0, 0.1, 1) === Infinity, "invalid Bose mu above ground flagged");
+    check(Number.isNaN(occupation("bose", 0, 0.1, 1)), "invalid Bose mu above ground flagged");
     check(classicalRelativeError("bose", 10) < 0.001, "Bose classical limit");
     check(classicalRelativeError("fermi", 10) < 0.001, "Fermi classical limit");
 
@@ -121,9 +121,9 @@
     ".qo-lab button,.qo-lab input{font:inherit}.qo-lab button{min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.qo-lab button:hover{border-color:var(--accent)}.qo-lab button:focus-visible,.qo-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.qo-lab button[aria-pressed=true],.qo-lab .qo-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}",
     ".qo-lab fieldset{min-width:0;margin:0;padding:0;border:0}.qo-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750}.qo-lab .qo-questions{display:grid;gap:10px}.qo-lab .qo-question{padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}.qo-lab .qo-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:7px}.qo-lab .qo-choices button{font-size:12px}",
     ".qo-lab .qo-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.qo-lab .qo-actions>*{flex:1 1 170px}.qo-lab .qo-feedback{min-height:2em;margin:8px 0;color:var(--fg-soft);font-size:13px;font-weight:700}.qo-lab .qo-pass{color:var(--qo-green)}.qo-lab .qo-warn{color:var(--qo-red)}",
-    ".qo-lab .qo-reveal{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.qo-lab .qo-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0}.qo-lab .qo-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
+    ".qo-lab .qo-reveal{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.qo-lab .qo-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}.qo-lab .qo-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
     ".qo-lab .qo-control{display:grid;gap:4px}.qo-lab label{color:var(--fg-soft);font-size:13px;font-weight:700}.qo-lab output{color:var(--accent);font-variant-numeric:tabular-nums}.qo-lab input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}.qo-lab .qo-kind{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}",
-    ".qo-lab .qo-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.qo-lab svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.qo-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.qo-lab .qo-axis{stroke:currentColor;stroke-width:1.2;opacity:.7}.qo-lab .qo-grid{stroke:var(--border);stroke-width:1}.qo-lab .qo-exact{fill:none;stroke:var(--qo-blue);stroke-width:3}.qo-lab .qo-classical{fill:none;stroke:var(--qo-gold);stroke-width:2;stroke-dasharray:6 5}.qo-lab .qo-mu{stroke:var(--qo-red);stroke-width:2;stroke-dasharray:3 4}",
+    ".qo-lab .qo-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.qo-lab .qo-plot-scroll{overflow-x:auto}.qo-lab svg{display:block;min-width:640px;width:100%;height:auto;max-width:100%;color:var(--fg)}.qo-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.qo-lab .qo-axis{stroke:currentColor;stroke-width:1.2;opacity:.7}.qo-lab .qo-grid{stroke:var(--border);stroke-width:1}.qo-lab .qo-exact{fill:none;stroke:var(--qo-blue);stroke-width:3}.qo-lab .qo-classical{fill:none;stroke:var(--qo-gold);stroke-width:2;stroke-dasharray:6 5}.qo-lab .qo-mu{stroke:var(--qo-red);stroke-width:2;stroke-dasharray:3 4}",
     ".qo-lab .qo-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:10px 0}.qo-lab .qo-metric{padding:8px;border-top:2px solid var(--border);background:var(--bg)}.qo-lab .qo-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.qo-lab .qo-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
     ".qo-lab .qo-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.qo-lab table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px}.qo-lab th,.qo-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.qo-lab th{color:var(--fg-soft)}.qo-lab .qo-note{margin-top:10px;padding:10px 12px;border-left:3px solid var(--qo-green);background:var(--bg);font-size:13px;line-height:1.65}",
     "@media(max-width:900px){.qo-lab .qo-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:700px){.qo-lab .qo-choices{grid-template-columns:minmax(0,1fr)}}"
@@ -138,6 +138,7 @@
   }
 
   function format(value, digits) {
+    if (Number.isNaN(value)) return "未定义";
     if (!isFinite(value)) return "∞";
     if (value !== 0 && Math.abs(value) < 0.001) return Number(value).toExponential(2);
     return Number(value).toFixed(digits == null ? 3 : digits);
@@ -162,10 +163,10 @@
       '</div></fieldset><div class="qo-actions"><button class="qo-primary" type="button" data-action="submit">提交预测并揭示</button><button type="button" data-action="reset">重置</button></div><p class="qo-feedback" role="status" aria-live="polite"></p>',
       '<div class="qo-reveal" hidden><div class="qo-layout"><div class="qo-controls">',
       '<div class="qo-kind"><button type="button" data-kind="fermi" aria-pressed="true">Fermi–Dirac</button><button type="button" data-kind="bose">Bose–Einstein</button></div>',
-      '<div class="qo-control"><label for="' + prefix + '-temp">温度 kBT：<output data-output="temp">0.60</output></label><input id="' + prefix + '-temp" data-input="temp" type="range" min="0.08" max="2" step="0.02" value="0.6"></div>',
+      '<div class="qo-control"><label for="' + prefix + '-temp">温度能量 kBT（同能级单位）：<output data-output="temp">0.60</output></label><input id="' + prefix + '-temp" data-input="temp" type="range" min="0.08" max="2" step="0.02" value="0.6"></div>',
       '<div class="qo-control"><label for="' + prefix + '-mu">化学势 μ：<output data-output="mu">0.50</output></label><input id="' + prefix + '-mu" data-input="mu" type="range" min="-1.5" max="2" step="0.02" value="0.5"></div>',
       '<p class="qo-note" data-boundary></p></div><div class="qo-stage">',
-      '<svg viewBox="0 0 640 310" role="img" aria-labelledby="' + prefix + '-title ' + prefix + '-desc"><title id="' + prefix + '-title">量子与经典占据曲线</title><desc id="' + prefix + '-desc">实线是当前量子统计，虚线是 Boltzmann 近似，红线标记化学势。</desc><g data-svg></g></svg>',
+      '<div class="qo-plot-scroll" tabindex="0" role="region" aria-label="占据图，窄屏可横向滚动"><svg viewBox="0 0 640 310" role="img" aria-labelledby="' + prefix + '-title ' + prefix + '-desc"><title id="' + prefix + '-title">量子与经典占据曲线</title><desc id="' + prefix + '-desc">实线是当前量子统计，虚线是 Boltzmann 近似，红线标记化学势。</desc><g data-svg></g></svg></div>',
       '<div class="qo-metrics" data-metrics></div><div class="qo-table-wrap"><table><thead><tr><th>ε</th><th>简并度 g</th><th>每态占据</th><th>该层粒子数</th><th>能量贡献</th></tr></thead><tbody data-ledger></tbody></table></div><p class="qo-note" data-note></p>',
       '</div></div></div></div>'
     ].join("");
@@ -197,21 +198,25 @@
 
       var exactPoints = [];
       var classicalPoints = [];
-      var maxY = kind === "fermi" ? 1 : Math.min(12, Math.max(1, occupation(kind, 0, mu, temperature)));
+      var maxY = kind === "fermi" ? 1 : Math.max(1, occupation(kind, 0, mu, temperature)) * 1.05;
       for (var index = 0; index <= 120; index += 1) {
         var energy = 3 * index / 120;
-        exactPoints.push(Math.min(maxY, occupation(kind, energy, mu, temperature)));
-        classicalPoints.push(Math.min(maxY, occupation("classical", energy, mu, temperature)));
+        exactPoints.push(occupation(kind, energy, mu, temperature));
+        classicalPoints.push(occupation("classical", energy, mu, temperature));
       }
       function path(values) {
+        var inside = false;
         return values.map(function (value, index) {
           var x = 52 + 536 * index / (values.length - 1);
           var y = 266 - 212 * value / Math.max(maxY, EPS);
-          return (index ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+          if (value > maxY || !Number.isFinite(value)) { inside = false; return ""; }
+          var command = inside ? "L" : "M"; inside = true;
+          return command + x.toFixed(1) + " " + y.toFixed(1);
         }).join(" ");
       }
       var muX = 52 + 536 * clamp(mu / 3, 0, 1);
-      lab.querySelector("[data-svg]").innerHTML = [
+      var ticks = [0,0.5,1].map(function (f) { var y=266-212*f; return '<text x="45" y="'+(y+4)+'" text-anchor="end" font-size="12">'+format(maxY*f,1)+'</text>'; }).join("");
+      lab.querySelector("[data-svg]").innerHTML = [ticks,
         '<line class="qo-axis" x1="52" y1="266" x2="588" y2="266"></line><line class="qo-axis" x1="52" y1="54" x2="52" y2="266"></line>',
         '<path class="qo-exact" d="' + path(exactPoints) + '"></path><path class="qo-classical" d="' + path(classicalPoints) + '"></path>',
         mu >= 0 ? '<line class="qo-mu" x1="' + muX.toFixed(1) + '" y1="54" x2="' + muX.toFixed(1) + '" y2="266"></line>' : '',
@@ -230,8 +235,8 @@
         return "<tr><td>" + format(row.energy, 1) + "</td><td>" + row.degeneracy + "</td><td>" + format(row.perState, 4) + "</td><td>" + format(row.particles, 4) + "</td><td>" + format(row.energyContribution, 4) + "</td></tr>";
       }).join("");
       lab.querySelector("[data-note]").textContent = kind === "fermi"
-        ? "FD 的上限来自每个单粒子态的 0/1 允许占据；表中的简并度只是把多个不同态相加，不违反 Pauli。"
-        : "BE 的大基态占据来自 μ 接近最低能量时分母变小；真正 BEC 还要固定总粒子数、取体积极限并检查激发态容量。";
+        ? "图中超出纵轴的经典曲线不显示；它不代表量子占据被截平。窄屏图可横向滚动。FD 的上限来自每个单粒子态的 0/1 允许占据；表中的简并度只是把多个不同态相加，不违反 Pauli。"
+        : "BE纵轴随真实基态占据调整，数值未截顶。窄屏图可横向滚动。BE 的大基态占据来自 μ 接近最低能量时分母变小；真正 BEC 还要固定总粒子数、取体积极限并检查激发态容量。";
     }
 
     lab.addEventListener("click", function (event) {

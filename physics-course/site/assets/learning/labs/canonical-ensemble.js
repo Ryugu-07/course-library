@@ -6,7 +6,7 @@
   var INSTANCE = 0;
   var LIMITS = { x: [0, 8], N: [1, 400], g: [1, 8] };
   var PRESETS = [
-    { id: "equal", label: "等退化基线", x: 1, N: 24, g0: 1, g1: 1 },
+    { id: "equal", label: "等简并基线", x: 1, N: 24, g0: 1, g1: 1 },
     { id: "excited-triplet", label: "激发三重简并", x: 0, N: 24, g0: 1, g1: 3 },
     { id: "concentration", label: "大 N 集中", x: 1, N: 200, g0: 1, g1: 1 },
     { id: "frozen", label: "低温冻结", x: 6, N: 40, g0: 1, g1: 1 }
@@ -38,10 +38,10 @@
     ".ce-lab .ce-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}",
     ".ce-lab .ce-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}",
     ".ce-lab .ce-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".ce-lab .ce-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}",
-    ".ce-lab .ce-chart{min-width:0;}",
+    ".ce-lab .ce-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;}",
+    ".ce-lab .ce-chart{min-width:0;overflow-x:auto;}",
     ".ce-lab .ce-chart h4{margin:0 0 7px;font-size:13px;}",
-    ".ce-lab svg{display:block;width:100%;height:auto;max-width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;}",
+    ".ce-lab svg{display:block;min-width:620px;width:100%;height:auto;max-width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;}",
     ".ce-lab svg text{fill:var(--fg);font-family:inherit;letter-spacing:0;}",
     ".ce-lab .ce-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55;}",
     ".ce-lab .ce-axis{stroke:var(--border);stroke-width:1.25;}",
@@ -212,7 +212,7 @@
     if (Math.abs(value) < 5e-10) return "0";
     var places = digits === undefined ? 3 : digits;
     if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function element(doc, tag, attrs, children) {
@@ -276,16 +276,16 @@
     var yMax = 2.1;
     var svg = svgNode(doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "每单元 Schottky 热容曲线" });
     svg.appendChild(svgNode(doc, "title", {}, "每单元 Schottky 热容曲线"));
-    svg.appendChild(svgNode(doc, "desc", {}, "横轴固定为 x=beta epsilon 从零到八，纵轴固定为每单元热容；金色虚线是等退化峰，绿色虚线是当前退化峰，红线是当前 x。"));
+    svg.appendChild(svgNode(doc, "desc", {}, "横轴固定为 x=beta epsilon 从零到八，纵轴固定为每单元热容；金色虚线是等简并峰，绿色虚线是当前简并峰，红线是当前 x。"));
     [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
       var y = mapLinear(fraction * yMax, 0, yMax, bottom, top);
       svg.appendChild(svgNode(doc, "line", { x1: left, x2: right, y1: y, y2: y, className: "ce-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: left - 8, y: y + 4, "font-size": 10, "text-anchor": "end" }, formatNumber(fraction * yMax, 1)));
+      svg.appendChild(svgNode(doc, "text", { x: left - 8, y: y + 4, "font-size": 12, "text-anchor": "end" }, formatNumber(fraction * yMax, 1)));
     });
     [0, 2, 4, 6, 8].forEach(function (value) {
       var x = mapLinear(value, 0, xMax, left, right);
       svg.appendChild(svgNode(doc, "line", { x1: x, x2: x, y1: bottom, y2: bottom + 5, className: "ce-axis" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 20, "font-size": 10, "text-anchor": "middle" }, String(value)));
+      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 20, "font-size": 12, "text-anchor": "middle" }, String(value)));
     });
     svg.appendChild(svgNode(doc, "line", { x1: left, x2: left, y1: top, y2: bottom, className: "ce-axis" }));
     svg.appendChild(svgNode(doc, "line", { x1: left, x2: right, y1: bottom, y2: bottom, className: "ce-axis" }));
@@ -309,8 +309,8 @@
     svg.appendChild(svgNode(doc, "line", { x1: currentX, x2: currentX, y1: top, y2: bottom, className: "ce-current" }));
     svg.appendChild(svgNode(doc, "circle", { cx: currentPeakX, cy: mapLinear(clamp(result.peakCv, 0, yMax), 0, yMax, bottom, top), r: 5, fill: "var(--cl-green)" }));
     svg.appendChild(svgNode(doc, "text", { x: left, y: 22, "font-size": 13, "font-weight": 700 }, "Cᵥ/(Nk_B)：两端为零，中间有峰"));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: 22, "font-size": 10, "text-anchor": "end" }, "金：等退化 x*=2.399；绿：当前退化峰；红：当前 x"));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: height - 10, "font-size": 10, "text-anchor": "end" }, "x=βε"));
+    svg.appendChild(svgNode(doc, "text", { x: right, y: 40, "font-size": 12, "text-anchor": "end" }, "金：等简并 x*=2.399；绿：当前简并峰；红：当前 x"));
+    svg.appendChild(svgNode(doc, "text", { x: right, y: height - 10, "font-size": 12, "text-anchor": "end" }, "x=βε"));
     return svg;
   }
 
@@ -323,34 +323,41 @@
     var bottom = 304;
     var svg = svgNode(doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "固定 K 除以 N 坐标的精确二项分布" });
     svg.appendChild(svgNode(doc, "title", {}, "固定 K/N 坐标的精确二项分布"));
-    svg.appendChild(svgNode(doc, "desc", {}, "横轴固定为 K/N 从零到一，纵轴固定为概率从零到一；柱高是精确二项概率，绿色线是均值，金色区域是一倍标准差。"));
+    svg.appendChild(svgNode(doc, "desc", {}, "横轴固定为 K/N 从零到一，纵轴固定为概率从零到一；柱高是精确二项概率，圆点突出概率大于万分之一的柱顶，绿色线是均值，金色区域是一倍标准差。"));
     [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
       var y = mapLinear(fraction, 0, 1, bottom, top);
       svg.appendChild(svgNode(doc, "line", { x1: left, x2: right, y1: y, y2: y, className: "ce-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: left - 8, y: y + 4, "font-size": 10, "text-anchor": "end" }, formatNumber(fraction, 2)));
+      svg.appendChild(svgNode(doc, "text", { x: left - 8, y: y + 4, "font-size": 12, "text-anchor": "end" }, formatNumber(fraction, 2)));
     });
     [0, 0.25, 0.5, 0.75, 1].forEach(function (value) {
       var x = mapLinear(value, 0, 1, left, right);
       svg.appendChild(svgNode(doc, "line", { x1: x, x2: x, y1: bottom, y2: bottom + 5, className: "ce-axis" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 20, "font-size": 10, "text-anchor": "middle" }, formatNumber(value, 2)));
+      svg.appendChild(svgNode(doc, "text", { x: x, y: bottom + 20, "font-size": 12, "text-anchor": "middle" }, formatNumber(value, 2)));
     });
     var bandLow = clamp(result.p - result.fractionSigma, 0, 1);
     var bandHigh = clamp(result.p + result.fractionSigma, 0, 1);
     svg.appendChild(svgNode(doc, "rect", { x: mapLinear(bandLow, 0, 1, left, right), y: top, width: mapLinear(bandHigh, 0, 1, left, right) - mapLinear(bandLow, 0, 1, left, right), height: bottom - top, className: "ce-band" }));
-    var barWidth = Math.max(1.2, (right - left) / result.N * 0.82);
+    var barWidth = Math.min(8, (right - left) / result.N * 0.7);
     result.distribution.rows.forEach(function (row) {
       var center = mapLinear(row.fraction, 0, 1, left, right);
       var heightPx = row.probability * (bottom - top);
-      var x = clamp(center - barWidth / 2, left, right - barWidth);
-      svg.appendChild(svgNode(doc, "rect", { x: x, y: bottom - heightPx, width: barWidth, height: heightPx, className: "ce-bar" }));
+      var x = center - barWidth / 2;
+      svg.appendChild(svgNode(doc, "rect", { x: x, y: bottom - heightPx, width: barWidth, height: heightPx, "data-k": row.k, className: "ce-bar" }));
+    });
+    // End-point atoms can lie directly on an axis; markers keep their height inspectable.
+    result.distribution.rows.forEach(function (row) {
+      if (row.probability > 1e-4) svg.appendChild(svgNode(doc, "circle", {
+        cx: mapLinear(row.fraction, 0, 1, left, right), cy: bottom-row.probability*(bottom-top),
+        r: 2.2, fill: "var(--accent)"
+      }));
     });
     var meanX = mapLinear(result.p, 0, 1, left, right);
     svg.appendChild(svgNode(doc, "line", { x1: meanX, x2: meanX, y1: top, y2: bottom, className: "ce-mean" }));
     svg.appendChild(svgNode(doc, "line", { x1: left, x2: left, y1: top, y2: bottom, className: "ce-axis" }));
     svg.appendChild(svgNode(doc, "line", { x1: left, x2: right, y1: bottom, y2: bottom, className: "ce-axis" }));
     svg.appendChild(svgNode(doc, "text", { x: left, y: 22, "font-size": 13, "font-weight": 700 }, "P(K=k)：精确二项分布"));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: 22, "font-size": 10, "text-anchor": "end" }, "坐标固定 K/N∈[0,1]；绿：p；金：±σ"));
-    svg.appendChild(svgNode(doc, "text", { x: right, y: height - 10, "font-size": 10, "text-anchor": "end" }, "K/N"));
+    svg.appendChild(svgNode(doc, "text", { x: right, y: 40, "font-size": 12, "text-anchor": "end" }, "坐标固定 K/N∈[0,1]；绿：p；金：±σ"));
+    svg.appendChild(svgNode(doc, "text", { x: right, y: height - 10, "font-size": 12, "text-anchor": "end" }, "K/N"));
     return svg;
   }
 
@@ -409,11 +416,11 @@
     fluctuationMetrics.appendChild(metric(doc, "固定的单元 p", formatNumber(result.p, 5)));
     results.appendChild(fluctuationMetrics);
     var charts = element(doc, "div", { className: "ce-charts" });
-    charts.appendChild(element(doc, "div", { className: "ce-chart" }, [element(doc, "h4", { text: "热容随 x 的曲线" }), heatCapacitySvg(doc, result)]));
-    charts.appendChild(element(doc, "div", { className: "ce-chart" }, [element(doc, "h4", { text: "固定坐标的 K 分布" }), distributionSvg(doc, result)]));
+    charts.appendChild(element(doc, "div", { className: "ce-chart", tabindex: 0, role: "region", "aria-label": "统计图，窄屏可横向滚动" }, [element(doc, "h4", { text: "热容随 x 的曲线" }), heatCapacitySvg(doc, result)]));
+    charts.appendChild(element(doc, "div", { className: "ce-chart", tabindex: 0, role: "region", "aria-label": "统计图，窄屏可横向滚动" }, [element(doc, "h4", { text: "固定坐标的 K 分布" }), distributionSvg(doc, result)]));
     results.appendChild(charts);
     appendLedger(doc, results, result);
-    results.appendChild(element(doc, "p", { className: "ce-note", text: "N 只改变 E[K]、Var(K) 和 K/N 的集中尺度；在相同 x、g₀、g₁ 下，p、S/(Nk_B) 与 Cᵥ/(Nk_B) 不随 N 改变。所有柱高来自稳定的对数二项概率并重新归一化。" }));
+    results.appendChild(element(doc, "p", { className: "ce-note", text: "N 只改变 E[K]、Var(K) 和 K/N 的集中尺度；在相同 x、g₀、g₁ 下，p、S/(Nk_B) 与 Cᵥ/(Nk_B) 不随 N 改变。窄屏可在图内横向滚动。所有柱高来自稳定的对数二项概率并重新归一化。" }));
   }
 
   function mount(root, api) {
@@ -428,7 +435,7 @@
     var feedbackText = "先选择三项预测，再点击“核对预测”。";
     var feedbackClass = "";
     var shell = element(doc, "div", { className: "ce-lab" });
-    shell.appendChild(element(doc, "p", { className: "ce-note", text: "精确正则系综：调节退化与 βε，先预测高温占据、两端零热容和 Schottky 峰，再比较固定 K/N 坐标上的二项分布。" }));
+    shell.appendChild(element(doc, "p", { className: "ce-note", text: "精确正则系综：调节简并度与 βε，先预测高温占据、两端零热容和 Schottky 峰，再比较固定 K/N 坐标上的二项分布。" }));
 
     var presetRow = element(doc, "div", { className: "ce-presets", role: "group", "aria-label": "正则系综教学预设" });
     var presetButtons = [];
@@ -447,7 +454,7 @@
     var controls = element(doc, "div", { className: "ce-controls", "aria-label": "正则系综参数控制" });
     var inputs = {};
     [
-      ["x", "无量纲温度 x=βε", LIMITS.x[0], LIMITS.x[1], 0.01, 2],
+      ["x", "无量纲逆温度 x=βε", LIMITS.x[0], LIMITS.x[1], 0.01, 2],
       ["N", "独立单元数 N", LIMITS.N[0], LIMITS.N[1], 1, 0],
       ["g0", "基态简并 g₀", LIMITS.g[0], LIMITS.g[1], 1, 0],
       ["g1", "激发态简并 g₁", LIMITS.g[0], LIMITS.g[1], 1, 0]
@@ -478,7 +485,7 @@
       {
         key: "highTemperature",
         prompt: "g₀=1、g₁=3 且 x→0 时，p_exc 趋向哪里？",
-        choices: [["half", "1/2"], ["degenerate", "3/4（数退化态）"], ["zero", "0"]],
+        choices: [["half", "1/2"], ["degenerate", "3/4（数简并态）"], ["zero", "0"]],
         expected: "degenerate"
       },
       {
@@ -539,7 +546,7 @@
       }
       var correct = questions.filter(function (question) { return predictions[question.key] === question.expected; }).length;
       revealed = true;
-      feedbackText = "已揭晓：" + correct + "/3 命中。高温极限数退化态；等退化峰满足 x tanh(x/2)=2。";
+      feedbackText = "已揭晓：" + correct + "/3 命中。高温极限数简并态；等简并峰满足 x tanh(x/2)=2。";
       feedbackClass = correct === questions.length ? "ce-pass" : "ce-warn";
       render();
       announce(feedbackText);

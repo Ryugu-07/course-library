@@ -24,18 +24,18 @@
   var KB = 1.380649e-23;
   var MOLECULE_MASS = 4.65e-26;
   var SQRT_TWO = Math.sqrt(2);
-  var GRADIENT_ARIA_LABEL = "数密度梯度，单位 m^-4（十的二十七次方每立方米每米）";
+  var GRADIENT_ARIA_LABEL = "示踪浓度梯度 ∂c/∂x，单位 m^-4（十的二十七次方每立方米每米）";
   var PRESETS = [
     { id: "ambient", label: "常压氮气：Kn 很小", densityLog: 0.398, temperature: 300, sigma: 4.3, length: 1, gradient: 0.5 },
     { id: "microchannel", label: "微通道：稀薄一些", densityLog: -1.602, temperature: 300, sigma: 4.3, length: 0.05, gradient: 0.5 },
-    { id: "vacuum", label: "高真空：趋向弹道", densityLog: -2.602, temperature: 300, sigma: 4.3, length: 1, gradient: 0.5 },
+    { id: "vacuum", label: "稀薄微通道：趋向弹道", densityLog: -3, temperature: 300, sigma: 4.3, length: 0.005, gradient: 0.5 },
     { id: "hot", label: "高温气体：速度变快", densityLog: 0.398, temperature: 900, sigma: 4.3, length: 1, gradient: 0.5 }
   ];
 
   var STYLE_TEXT = [
     ".kt-lab{--kt-blue:var(--cl-blue,#315f9d);--kt-gold:var(--cl-gold,#9b6a12);--kt-green:var(--cl-green,#39734d);--kt-red:var(--cl-red,#b64335);display:block;max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
     ".kt-lab *,.kt-lab *::before,.kt-lab *::after{box-sizing:border-box}.kt-lab [hidden]{display:none!important}.kt-lab h3,.kt-lab h4{margin:0;letter-spacing:0}.kt-lab h3{font-size:1.16rem}.kt-lab p{margin:8px 0}.kt-lab .kt-note{color:var(--fg-soft,#6b6557);font-size:13px;line-height:1.7}.kt-lab button,.kt-lab input{font:inherit;letter-spacing:0}.kt-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.kt-lab button:hover{border-color:var(--kt-blue)}.kt-lab button[aria-pressed=true],.kt-lab .kt-primary{border-color:var(--kt-blue);background:var(--kt-blue);color:var(--bg,#fff);font-weight:750}.kt-lab button:focus-visible,.kt-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.kt-lab .kt-predict{margin:13px 0 0;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.kt-lab .kt-predict legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.kt-lab .kt-question{display:grid;gap:7px;margin:10px 0}.kt-lab .kt-question strong{font-size:13px}.kt-lab .kt-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.kt-lab .kt-choices button{font-size:12px}.kt-lab .kt-actions,.kt-lab .kt-presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.kt-lab .kt-actions>*{flex:1 1 170px}.kt-lab .kt-presets button{flex:1 1 145px;font-size:12px}.kt-lab .kt-feedback{min-height:2em;margin:8px 0;color:var(--fg-soft,#6b6557);font-size:13px;font-weight:700}.kt-lab .kt-good{color:var(--kt-green)}.kt-lab .kt-warn{color:var(--kt-red)}",
-    ".kt-lab .kt-reveal{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.kt-lab .kt-controls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;align-items:end;margin:12px 0}.kt-lab .kt-control{display:grid;gap:5px;min-width:0}.kt-lab .kt-control label,.kt-lab .kt-control>span{color:var(--fg-soft,#6b6557);font-size:12.5px;font-weight:700;line-height:1.45}.kt-lab .kt-control output{color:var(--kt-blue);font-variant-numeric:tabular-nums}.kt-lab .kt-control input[type=range]{display:block;width:100%;min-width:0;min-height:44px;margin:0;accent-color:var(--kt-blue)}.kt-lab .kt-stage{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.kt-lab svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg,#292722)}.kt-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.kt-lab .kt-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.kt-lab .kt-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#d7d0c2);background:var(--bg,#fff)}.kt-lab .kt-metric:nth-child(3n+1){border-color:var(--kt-blue)}.kt-lab .kt-metric:nth-child(3n+2){border-color:var(--kt-gold)}.kt-lab .kt-metric:nth-child(3n){border-color:var(--kt-green)}.kt-lab .kt-metric span{display:block;color:var(--fg-soft,#6b6557);font-size:11px;line-height:1.4}.kt-lab .kt-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.kt-lab .kt-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.kt-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.kt-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,#6b6557);font-size:12px}.kt-lab th,.kt-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.kt-lab th{color:var(--fg-soft,#6b6557);font-size:11.5px}.kt-lab .kt-status{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--kt-green);background:var(--block-bg,var(--bg,#fff));font-size:13px;line-height:1.7}.kt-lab .kt-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:7px;color:var(--fg-soft,#6b6557);font-size:12px}.kt-lab .kt-legend span{display:inline-flex;align-items:center;gap:5px}.kt-lab .kt-swatch{display:inline-block;width:21px;border-top:3px solid var(--kt-blue)}.kt-lab .kt-swatch-gold{border-color:var(--kt-gold)}.kt-lab .kt-swatch-red{border-color:var(--kt-red);border-top-style:dashed}",
+    ".kt-lab .kt-reveal{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.kt-lab .kt-controls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;align-items:end;margin:12px 0}.kt-lab .kt-control{display:grid;gap:5px;min-width:0}.kt-lab .kt-control label,.kt-lab .kt-control>span{color:var(--fg-soft,#6b6557);font-size:12.5px;font-weight:700;line-height:1.45}.kt-lab .kt-control output{color:var(--kt-blue);font-variant-numeric:tabular-nums}.kt-lab .kt-control input[type=range]{display:block;width:100%;min-width:0;min-height:44px;margin:0;accent-color:var(--kt-blue)}.kt-lab .kt-stage{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:7px;background:var(--bg,#fff);overflow-x:auto}.kt-lab svg{display:block;min-width:760px;width:100%;height:auto;max-width:100%;color:var(--fg,#292722)}.kt-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.kt-lab .kt-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.kt-lab .kt-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#d7d0c2);background:var(--bg,#fff)}.kt-lab .kt-metric:nth-child(3n+1){border-color:var(--kt-blue)}.kt-lab .kt-metric:nth-child(3n+2){border-color:var(--kt-gold)}.kt-lab .kt-metric:nth-child(3n){border-color:var(--kt-green)}.kt-lab .kt-metric span{display:block;color:var(--fg-soft,#6b6557);font-size:11px;line-height:1.4}.kt-lab .kt-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.kt-lab .kt-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.kt-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.kt-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,#6b6557);font-size:12px}.kt-lab th,.kt-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.kt-lab th{color:var(--fg-soft,#6b6557);font-size:11.5px}.kt-lab .kt-status{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--kt-green);background:var(--block-bg,var(--bg,#fff));font-size:13px;line-height:1.7}.kt-lab .kt-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:7px;color:var(--fg-soft,#6b6557);font-size:12px}.kt-lab .kt-legend span{display:inline-flex;align-items:center;gap:5px}.kt-lab .kt-swatch{display:inline-block;width:21px;border-top:3px solid var(--kt-blue)}.kt-lab .kt-swatch-gold{border-color:var(--kt-gold)}.kt-lab .kt-swatch-red{border-color:var(--kt-red);border-top-style:dashed}",
     ".kt-lab svg{overflow:visible}.kt-lab .kt-axis{fill:none;stroke:currentColor;stroke-width:1.2;stroke-opacity:.65}.kt-lab .kt-curve{fill:none;stroke:var(--kt-blue);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}.kt-lab .kt-mean{fill:none;stroke:var(--kt-gold);stroke-width:1.8;stroke-dasharray:5 4}.kt-lab .kt-length{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}.kt-lab .kt-collision{fill:var(--kt-green);stroke:var(--bg,#fff);stroke-width:1}.kt-lab .kt-ballistic{fill:var(--kt-red)}.kt-lab .kt-lambda{fill:none;stroke:var(--kt-gold);stroke-width:2.6;stroke-linecap:round}.kt-lab .kt-title{fill:currentColor;font-size:12px;font-weight:750}.kt-lab .kt-label{fill:var(--fg-soft,#6b6557);font-size:11px}.kt-lab .kt-callout{fill:currentColor;font-size:11px;font-weight:750}.kt-lab .kt-positive{fill:var(--kt-green);font-size:11px;font-weight:750}.kt-lab .kt-negative{fill:var(--kt-red);font-size:11px;font-weight:750}",
     "@media(max-width:950px){.kt-lab .kt-controls{grid-template-columns:repeat(3,minmax(0,1fr))}.kt-lab .kt-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:620px){.kt-lab .kt-controls,.kt-lab .kt-metrics,.kt-lab .kt-choices{grid-template-columns:minmax(0,1fr)}.kt-lab .kt-stage{padding:4px}}@media(prefers-reduced-motion:reduce){.kt-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
   ].join("\n");
@@ -56,7 +56,7 @@
     if (!finite(value)) return "—";
     var places = digits === undefined ? 3 : digits;
     if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function normalize(input) {
@@ -151,46 +151,41 @@
     }
     var meanU = 2 / Math.sqrt(Math.PI);
     var meanX = left + meanU / 4 * (right - left);
-    var scaleLeft = 405;
-    var scaleRight = 715;
-    var scaleY = 130;
-    var lambdaRatio = data.knudsen;
-    var ticks = [];
-    if (lambdaRatio < 1) {
-      var count = Math.min(9, Math.max(1, Math.floor(1 / lambdaRatio)));
-      for (var tick = 0; tick <= count; tick += 1) {
-        var tickX = scaleLeft + tick * lambdaRatio * (scaleRight - scaleLeft);
-        if (tickX <= scaleRight + 1) ticks.push('<circle class="kt-collision" cx="' + tickX.toFixed(2) + '" cy="' + scaleY + '" r="4"></circle>');
-      }
-    } else {
-      ticks.push('<circle class="kt-collision kt-ballistic" cx="' + scaleLeft + '" cy="' + scaleY + '" r="5"></circle>');
-    }
-    var lambdaEnd = Math.min(scaleRight + 55, scaleLeft + Math.max(lambdaRatio, 0.03) * (scaleRight - scaleLeft));
+    var scaleLeft = 410, scaleRight = 712, scaleY = 130;
+    // Every decade receives the same width; no artificial minimum lambda.
+    var ratioMin = -8, ratioMax = 4;
+    var ratioX = scaleLeft + (Math.log10(data.knudsen) - ratioMin) / (ratioMax - ratioMin) * (scaleRight - scaleLeft);
+    var scaleTicks = [-8,-4,0,4].map(function (power) {
+      var x=scaleLeft+(power-ratioMin)/(ratioMax-ratioMin)*(scaleRight-scaleLeft);
+      return line(x,scaleY-5,x,scaleY+5,"kt-axis")+text(x,scaleY+25,"10^"+power,"kt-label","middle");
+    }).join("");
+    var speedTicks = [0,1,2,3,4].map(function(u){return text(left+u/4*(right-left),bottom+20,u,"kt-label","middle");}).join("") +
+      [0,0.4,0.8].map(function(p){return text(left-5,bottom-p/0.9*(bottom-top)+4,p,"kt-label","end");}).join("");
     var regimeClass = data.knudsen < 0.1 ? "kt-positive" : "kt-negative";
     return [
       '<svg viewBox="0 0 760 285" role="img" aria-labelledby="' + uid + '-title ' + uid + '-desc">',
       '<title id="' + uid + '-title">分子速度分布与平均自由程</title>',
-      '<desc id="' + uid + '-desc">左侧显示归一化 Maxwell 速率分布及平均速率，右侧将平均自由程与宏观长度比较，碰撞点密度对应 Knudsen 数。</desc>',
+      '<desc id="' + uid + '-desc">左侧显示归一化 Maxwell 速率分布及平均速率，右侧以对数刻度显示平均自由程除以宏观长度，不画虚构的等间隔碰撞点。</desc>',
       text(185, 25, "Maxwell 速率分布：u=v/v_th", "kt-title", "middle"),
+      speedTicks,
       line(left, bottom, right, bottom, "kt-axis"),
       line(left, top, left, bottom, "kt-axis"),
       '<path class="kt-curve" d="' + curve.join(" ") + '"></path>',
       line(meanX, top + 8, meanX, bottom, "kt-mean"),
       text(meanX + 5, top + 18, "v̄", "kt-callout"),
-      text(right, bottom + 22, "u", "kt-label", "end"),
+      text(right+15, bottom + 22, "u", "kt-label", "end"),
       text(left - 7, top + 4, "p(u)", "kt-label", "end"),
-      text(560, 25, "宏观长度 L 与平均自由程 λ", "kt-title", "middle"),
+      text(560, 25, "λ/L 的对数刻度", "kt-title", "middle"),
       line(scaleLeft, scaleY, scaleRight, scaleY, "kt-length"),
       line(scaleLeft, scaleY - 12, scaleLeft, scaleY + 12, "kt-length"),
       line(scaleRight, scaleY - 12, scaleRight, scaleY + 12, "kt-length"),
-      ticks.join(""),
-      '<line class="kt-lambda" x1="' + scaleLeft + '" y1="' + (scaleY - 30) + '" x2="' + lambdaEnd.toFixed(2) + '" y2="' + (scaleY - 30) + '"></line>',
-      text(scaleLeft, scaleY + 35, "0", "kt-label"),
-      text(scaleRight, scaleY + 35, "L=" + format(data.state.length, 3) + " mm", "kt-label", "end"),
-      text(Math.min(lambdaEnd + 5, 710), scaleY - 37, "λ", "kt-callout"),
-      text(560, 205, "λ/L=Kn=" + format(data.knudsen, 4), regimeClass, "middle"),
+      scaleTicks,
+      '<circle class="kt-collision" cx="'+ratioX.toFixed(2)+'" cy="'+scaleY+'" r="5"></circle>',
+      text(560, 82, "当前 Kn="+format(data.knudsen,4), "kt-callout", "middle"),
+      text(560, 180, "平均碰撞次数尺度 L/λ≈"+format(1/data.knudsen,2), "kt-label", "middle"),
+      text(560, 205, "标记为尺度估计，不是单条粒子轨迹", "kt-label", "middle"),
       text(560, 229, data.regime, regimeClass, "middle"),
-      text(560, 254, "λ=1/(√2 nσ)，碰撞不是连续摩擦的原始定义", "kt-label", "middle"),
+      text(560, 254, "背景 n 决定 λ；示踪浓度 c 决定扩散通量", "kt-label", "middle"),
       '</svg>'
     ].join("");
   }
@@ -216,7 +211,7 @@
     root.innerHTML = [
       '<div class="kt-lab">',
       '<h3>动力学输运：碰撞如何变成扩散系数</h3>',
-      '<p class="kt-note">这里用稀薄、单原子/分子理想气体的数量级模型连接 Boltzmann 方程、平均自由程和宏观通量。先猜缩放关系，再检查 Knudsen 数是否允许把气体当连续介质。</p>',
+      '<p class="kt-note">这里用均匀氮气背景中理想标签粒子的数量级模型；n 是背景总密度，c 是示踪浓度。通量相对背景整体速度定义。先猜缩放关系，再检查 Knudsen 数是否允许把气体当连续介质。</p>',
       '<fieldset class="kt-predict"><legend>三项预测</legend>',
       '<div class="kt-question" data-question="0"><strong>1. 在 T、σ、L 固定时，把数密度 n 加倍，平均自由程 λ 怎样变？</strong><div class="kt-choices"><button type="button" data-choice="0">减半</button><button type="button" data-choice="1">加倍</button><button type="button" data-choice="2">不变</button></div></div>',
       '<div class="kt-question" data-question="1"><strong>2. 固定 n、σ，提高温度，平均分子速率与估计的 D 怎样变？</strong><div class="kt-choices"><button type="button" data-choice="0">都增加</button><button type="button" data-choice="1">都减少</button><button type="button" data-choice="2">λ 变，D 不变</button></div></div>',
@@ -231,13 +226,13 @@
       '<label class="kt-control">T：<output data-output="temperature"></output><input data-input="temperature" type="range" min="80" max="1200" step="10" value="300" aria-label="温度，开尔文"></label>',
       '<label class="kt-control">σ：<output data-output="sigma"></output><input data-input="sigma" type="range" min="1" max="12" step="0.1" value="4.3" aria-label="碰撞截面，十的负十九次方平方米"></label>',
       '<label class="kt-control">L：<output data-output="length"></output><input data-input="length" type="range" min="0.005" max="10" step="0.005" value="1" aria-label="宏观长度，毫米"></label>',
-      '<label class="kt-control">∂n/∂x：<output data-output="gradient"></output><input data-input="gradient" type="range" min="0" max="2" step="0.05" value="0.5" aria-label="' + GRADIENT_ARIA_LABEL + '"></label>',
+      '<label class="kt-control">∂c/∂x：<output data-output="gradient"></output><input data-input="gradient" type="range" min="0" max="2" step="0.05" value="0.5" aria-label="' + GRADIENT_ARIA_LABEL + '"></label>',
       '</div>',
-      '<div class="kt-stage" data-stage></div>',
+      '<div class="kt-stage" data-stage tabindex="0" role="region" aria-label="速率与Kn对数图，窄屏可横向滚动"></div>',
       '<div class="kt-metrics" data-metrics></div>',
-      '<div class="kt-table-wrap"><table><caption>碰撞、随机游走和宏观输运的账本</caption><thead><tr><th>量</th><th>当前值</th><th>关系/解释</th></tr></thead><tbody data-ledger></tbody></table></div>',
+      '<div class="kt-table-wrap"><table><caption>碰撞、随机游走和宏观输运的账本</caption><thead><tr><th>量</th><th>关系/解释</th><th>当前值</th></tr></thead><tbody data-ledger></tbody></table></div>',
       '<p class="kt-status" data-status role="status" aria-live="polite"></p>',
-      '<div class="kt-legend"><span><i class="kt-swatch"></i>速率分布</span><span><i class="kt-swatch kt-swatch-gold"></i>平均自由程标记</span><span><i class="kt-swatch kt-swatch-red"></i>过渡/弹道提示</span></div>',
+      '<div class="kt-legend"><span><i class="kt-swatch"></i>速率分布</span><span><i class="kt-swatch kt-swatch-gold"></i>平均速率虚线</span><span><i class="kt-swatch kt-swatch-red"></i>过渡/弹道提示</span></div>',
       '</div></div>'
     ].join("");
     var lab = root.firstElementChild;
@@ -286,16 +281,16 @@
         metric(doc, "Kn", format(data.knudsen, 5))
       );
       lab.querySelector("[data-ledger]").innerHTML = [
-        ["碰撞率", "λ=1/(√2 nσ)", format(data.meanFreePath, 4) + " m"],
+        ["平均自由程", "λ=1/(√2 nσ)", format(data.meanFreePath, 4) + " m"],
         ["热运动尺度", "v̄=√(8k_BT/(πm))", format(data.meanSpeed, 3) + " m/s"],
         ["随机游走", "D≈λv̄/3", format(data.diffusion, 4) + " m²/s"],
         ["剪切输运", "η≈ρD=ρλv̄/3", format(data.viscosity, 4) + " Pa s"],
-        ["Fick 通量", "J_n=−D∂n/∂x", format(data.numberFlux, 3) + " m⁻² s⁻¹"],
+        ["示踪 Fick 通量", "J_c=−D∂c/∂x", format(data.numberFlux, 3) + " m⁻² s⁻¹"],
         ["连续性检查", "Kn=λ/L", format(data.knudsen, 5) + "；" + data.regime]
       ].map(function (row) { return "<tr><th scope=\"row\">" + row[0] + "</th><td>" + row[1] + "</td><td>" + row[2] + "</td></tr>"; }).join("");
       lab.querySelector("[data-status]").textContent = data.knudsen < 0.01
-        ? "Kn 很小：许多次碰撞发生在宏观长度内，局部平衡和 Navier–Stokes/Fick 型闭合较有希望；系数仍是稀薄气体近似。"
-        : "Kn 不再很小：边界层、非局部输运或弹道效应开始重要，不能只把宏观黏性系数当作普适常数。";
+        ? "几何 Kn 很小，局部平衡较有希望。示踪通量还要求 λ|∇c|≪c；此处未输入局部 c，不能验证这一条件。系数只是数量级估计，窄屏图可横向滚动。"
+        : "Kn 不再很小：D、η 和示踪通量仍显示形式估计，不表示局部输运闭合有效。还需检查 λ|∇c|≪c；窄屏图可横向滚动。";
     }
 
     lab.addEventListener("click", function (event) {
