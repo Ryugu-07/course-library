@@ -29,7 +29,7 @@ $A_1{-}B_1{-}A_2{-}B_2\cdots A_N{-}B_N$，其中胞内键为 $t_1$、跨胞键�
 3. 取 $t_1=t_2$：轨迹会不会穿过原点？此时能否给 winding 一个连续、稳定的整数？
 4. 在拓扑参数下，把 $N$ 从偶数改成奇数。你预测的是“拓扑数改变”，还是“有限尺寸的离散能级和劈裂改变”？
 
-先记下答案，再点击实验里的“拓扑（$t_2>t_1$）”预设；不要先用图形替你猜。
+先在实验的四项预测中提交答案，再查看默认拓扑预设。修改预测或重置会重新隐藏图和读数。
 
 <h3>3. 最小模型：同一个 Hamiltonian 的三种读法</h3>
 
@@ -74,7 +74,17 @@ $$
 \lvert\psi_{B_n}\rvert\propto\left\lvert\frac{t_1}{t_2}\right\rvert^{N-n}.
 $$
 
-有限 $N$ 时左右包络重叠，形成一对 $E_\pm\simeq\pm C(t_1/t_2)^N$ 的小能量；除非退化极限 $t_1=0$，它们不是精确零能。
+递推来自零能方程 $t_1\psi_{A_n}+t_2\psi_{A_{n+1}}=0$，所以幅度逐胞乘 $-r$，其中 $r=t_1/t_2$。半无限可归一化态要求 $r<1$，其局域长度（以原胞为单位）为 $\xi=1/\log(t_2/t_1)$。
+
+有限开链还要满足另一端边界条件。把截断的左右包络分别归一化，归一化因子平方为 $(1-r^2)/(1-r^{2N})$，两者之间的矩阵元绝对值为
+
+$$
+|h_{LR}|=\frac{t_2(1-r^2)r^N}{1-r^{2N}}.
+$$
+
+当 $N\gg\xi$ 时，这个二维边界子空间近似给出 $E_\pm\simeq\pm |h_{LR}|$；它不是全参数的精确本征值公式。若链太短或接近临界点，中间两级甚至还在 bulk 带的能量范围内，不能只凭 $w=1$ 就称为“近零端态”。实验会单独检查中间两级是否落在 $|E|<|t_2-t_1|$ 内。
+
+对默认的 $2N$ 站点链，行列式递推给出 $\det H_N=(-1)^N t_1^{2N}$，所以任意有限 $N$、$t_1>0$ 都没有精确零本征值。计算机若将极小劈裂显示在数值分辨尺度以下，那是未分辨，不是证明其为零。
 
 定义手征算符 $\Gamma=\mathrm{diag}(1,-1,1,-1,\ldots)$，则
 $\{\Gamma,H_N\}=0$：每个 $E$ 都有一个 $-E$ 的伙伴。本实验数值检查的是这种**子晶格手征对称**及其谱配对；不要把它与 BdG Hamiltonian 的粒子—空穴冗余混为一谈。实跃迁的 SSH 模型还可讨论其他反幺正对称，但本页的 $E\leftrightarrow-E$ 结论只需手征对称。
@@ -104,14 +114,14 @@ $q(k)=(t_1+t_2\cos k,t_2\sin k)$，所以 $t_2>t_1$ 时圆包围原点、$w=1$ �
 
 静态核对公式为
 
-<div class="arithmatex">\[
-H_N=\sum_n t_1\lvert A_n\rangle\langle B_n\rvert
-+\sum_{n<N}t_2\lvert B_n\rangle\langle A_{n+1}\rvert+\mathrm{h.c.},
+$$
+H_N=\sum_{n=1}^N t_1\lvert A_n\rangle\langle B_n\rvert
++\sum_{n=1}^{N-1}t_2\lvert B_n\rangle\langle A_{n+1}\rvert+\mathrm{h.c.},
 \quad E_\pm(k)=\pm\sqrt{t_1^2+t_2^2+2t_1t_2\cos k},
 \quad \Delta_\mathrm{bulk}=2|t_2-t_1|.
-\]</div>
+$$
 
-<p>有限链的近零两级约为 <span class="arithmatex">\(\pm C(t_1/t_2)^N\)</span>（<span class="arithmatex">\(C\)</span> 依赖具体 <span class="arithmatex">\(N,t_1,t_2\)</span>），故有限 <span class="arithmatex">\(t_1\)</span> 时一般不精确为零。奇数/偶数 <span class="arithmatex">\(N\)</span> 都是 <span class="arithmatex">\(N\)</span> 个 <span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(N\)</span> 个 <span class="arithmatex">\(B\)</span>，不会仅因原胞数奇偶产生子晶格不平衡的精确零模；奇偶主要改变允许能级和有限尺寸劈裂。反向终止会交换边界切在哪里，必须连同原胞约定一起解释。</p>
+当 $N\gg\xi$ 时，有限链的近零两级可用上文投影矩阵元近似；有限 $t_1>0$ 时没有精确零能。奇数/偶数 $N$ 都是 $N$ 个 A 与 $N$ 个 B，不会仅因原胞数奇偶产生子晶格不平衡的精确零模。反向终止改变端键，须连同原胞约定解释。
 
 </div>
 
@@ -119,7 +129,7 @@ H_N=\sum_n t_1\lvert A_n\rangle\langle B_n\rvert
 
 - **先固定终止再谈边界态。** 本页的 $q=t_1+t_2e^{ik}$、原胞 $(A_n,B_n)$ 与默认弱端终止共同规定了“$t_2>t_1\Rightarrow w=1$ 且有端点态”。交换原胞或把链从强键处截断，会重新标记 winding 与端点；bulk 不会凭空改变，边界对应关系改变了。
 - **winding 需要 bulk gap。** $t_1=t_2$ 时圆穿过原点，$E_\pm(\pi)=0$，不能在 gap 闭合的点把 winding 当成仍然稳定的整数。
-- **零能钉扎需要手征对称。** 只要保持手征对称且 bulk gap 不闭合，端点态可在无序下移动但仍受对称约束；加入任意子晶格对角势（例如 $\mu_A\ne\mu_B$）会破坏 $\{\Gamma,H\}=0$，端点能量可离开零，甚至与 bulk 混合。端点态不是对所有扰动、相互作用或耗散都免疫。
+- **零能钉扎需要手征对称。** 保持手征对称、相应 bulk gap 和边界条件时，半无限端态受对称约束；有限两端仍可混合。非零对角势一般破坏相对于旧零点的 $\{\Gamma,H\}=0$，但不能反过来推断能谱必不成对：整体势 $\mu I$ 可通过重设能量零点去掉，均匀交错势 $m\Gamma$ 虽破坏旧手征关系，在这个特殊模型里仍有另一原因产生正负配对，见迁移解答。端点态不是对所有扰动、相互作用或耗散都免疫。
 - **有限链不是半无限链。** 两端态的指数尾巴重叠会造成 $\pm E$ 劈裂；看见“不是零”不等于拓扑消失。增大 $N$ 或减小 $t_1/t_2$ 才是在本模型内压低劈裂的办法。
 - **Zak 相位要说规范。** 在固定的周期 Bloch 规范、原胞和轨道嵌入下，手征 SSH 模型的下带 Zak 相位可与 $\pi w$（模 $2\pi$）对应；但单独报一个“Zak = 0/\pi”不说明原胞原点、轨道位置和规范是不完整的。改原胞/终止会改变相位代表与极化的参考，也会改变哪一端暴露出边界态；本页用明确的 $q(k)$ 和终止避免把 convention 当材料无关的绝对标签。
 
@@ -133,7 +143,26 @@ H_N=\sum_n t_1\lvert A_n\rangle\langle B_n\rvert
 
 1. 取 $N=9$、$(t_1,t_2)=(0.72,1.08)$。先预测 $w$、bulk gap、近零劈裂的趋势，以及选中近零本征态的概率分布；再与实验数值检查比较。
 2. 保持同一个 bulk 参数，把终止切到强键一侧。你预计端点态会保留、消失，还是换到另一种 $t_1>t_2$ 的参数区？回答时必须同时写出“原胞/终止改变”的理由。
-3. 在默认拓扑链上给每个格点加同一个对角势 $\mu I$，以及给 A/B 加相反对角势。哪一个只把谱整体平移，哪一个破坏手征配对并让端点离开零？为什么“有边界态”和“精确零能”是两句不同的判断？
+3. 在默认拓扑链上给每个格点加同一个对角势 $\mu I$，以及给 A/B 加相反对角势。分别计算与原 $\Gamma$ 的反对易子；哪一种只平移能量零点，交错势下能量是否仍可能成 $\pm$ 对？为什么“有边界态”和“精确零能”是两句不同的判断？
+
+<details class="answer" markdown="1">
+<summary>展开边界、能谱与扰动的独立核对</summary>
+
+**1.** $r=2/3$，$w=1$，bulk gap $=0.72$；$\xi=1/\log(3/2)\approx2.466$ 胞，$N/\xi\approx3.65$。上面的二维投影给 $|h_{LR}|\approx0.015618$，全 $18\times18$ 矩阵给 $|E|\approx0.015656$，劈裂约 $0.031312$。两个结果接近但不完全相等，正好显示有限子空间近似的误差。中间本征态的两端总权重（各取一个完整端胞）约 $0.558741$，左右各约一半；其余概率仍分布在指数尾部，不是全部挤在两个最外站点。
+
+**2.** 反向终止把有限矩阵的键序列换成 $t_2,t_1,t_2,\ldots,t_2$，此时长链端态条件换成 $t_1>t_2$。这对应从无限二聚链平移一个站点后截取相同长度，有限显示中的 A/B 是按新站点顺序重标的；图中 $q=t_1+t_2e^{ik}$ 仍保留原 bulk 约定，不能把它误读为新有限原胞的 Bloch 矩阵。两种终止应连同所参照的真空一起比较。对第1题参数，反向链不出现该端点近零对。
+
+**3.** 令 $H_0$ 为原手征链。$H_0+\mu I$ 的谱为 $\mu+E_j$，与原 $\Gamma$ 的反对易子为 $2\mu\Gamma$；把零点移到 $\mu$ 即恢复相同结构。对 $H_m=H_0+m\Gamma$，$\{\Gamma,H_m\}=2mI$，但
+
+$$
+H_m^2=H_0^2+m^2I.
+$$
+
+在每个由 $|E\rangle,\Gamma|E\rangle$ 张成的二维空间里，$H_m$ 的矩阵可取 $E\sigma_z+m\sigma_x$，于是新能量仍为 $\pm\sqrt{E^2+m^2}$。例如 $m=0.2$ 与第1题端态给约 $\pm0.200612$。原手征对称已破坏，正负谱仍然配对；一般非均匀对角势则没有这个特殊代数保证。半无限端态可留在边界却移到 $\pm m$，所以“有端态”和“零能钉扎”必须分开判断。
+
+</details>
+
+**先修回链：**[简正模与矩阵](mech-04-oscillation-rigid.html) → [量子态与本征值](qm-01-framework.html) → [有限链与 Bloch 能带](solid-02-bands.html)。有限 SSH 模型的本征态与边界条件也可对照 [Rutgers 固体物理 SSH 讲义习题解答](https://www.physics.rutgers.edu/~coleman/603/Ex/hwk1_soln.pdf)。
 
 </section>
 
@@ -143,14 +172,16 @@ H_N=\sum_n t_1\lvert A_n\rangle\langle B_n\rvert
 
 **倒格子**：$\mathbf b_i$ 满足 $\mathbf a_i\cdot\mathbf b_j = 2\pi\delta_{ij}$——**晶格的 Fourier 对偶**（周期函数只含倒格矢频率分量：数分 IV Fourier 级数的三维版）。**布里渊区**：倒空间的“元胞”（Wigner–Seitz 式取法）——SSH 实验的 $k\in[0,2\pi)$ 与 solid-02 的一维 Bloch $k$ 都住在这里。
 
-**X 射线衍射**：Bragg 条件 $2d\sin\theta = n\lambda$ ⟺ von Laue 条件“动量转移 = 倒格矢”（**衍射图样直接拍摄倒格子**——opt-01“远场 = Fourier 变换”的晶体版：晶体学就是三维傅里叶光学；DNA 双螺旋的照片 51 号是它的名场面）。
+**X 射线衍射**：Bragg 条件 $2d\sin\theta = n\lambda$ ⟺ von Laue 条件“波矢转移 $\Delta\mathbf k=\mathbf G$，相应动量转移为 $\hbar\mathbf G$”（**衍射图样直接拍摄倒格子**——opt-01“远场 = Fourier 变换”的晶体版：晶体学就是三维傅里叶光学；DNA 双螺旋的照片 51 号是它的名场面）。
 
 ## 2. 晶格振动：从弹簧链到色散关系
 
-<figure class="plot" markdown="1">
+<div style="position:relative;max-width:100%;overflow-x:auto" tabindex="0" role="region" aria-label="双原子链色散图，可横向滚动" markdown="1">
+<figure class="plot" style="min-width:760px" markdown="1">
 ![双原子链声子色散](assets/img/solid-01-phonon.svg)
-<figcaption><span class="fig-id">图 1.1</span>双原子链的声子色散：低频声学支（原子同相）与高频光学支（反相振动），中间是禁带。</figcaption>
+<figcaption><span class="fig-id">图 1.1</span>双原子链的声子色散：近邻等弹簧常数、质量比 m₂/m₁=2 的模型；同相/反相指长波极限，区界两支之间有隙。</figcaption>
 </figure>
+</div>
 
 **一维单原子链【推导】**：近邻弹簧模型 $m\ddot u_n = C(u_{n+1} + u_{n-1} - 2u_n)$，试解 $u_n = e^{i(kna - \omega t)}$（周期结构的 Bloch 式猜解——solid-02 的预演）：
 
@@ -158,21 +189,50 @@ $$
 \omega(k) = 2\sqrt{\frac{C}{m}}\,\Big|\sin\frac{ka}{2}\Big|
 $$
 
-**色散关系读法**：长波 $\omega \approx v_sk$（线性——声波，$v_s = a\sqrt{C/m}$：**固体的声速是弹簧常数的宏观回声**）；区界 $k = \pm\frac\pi a$ 处群速为零（驻波——Bragg 反射自锁）；$k$ 只在第一布里渊区有意义（$k$ 与 $k + \frac{2\pi}{a}$ 描述同一格点运动——离散采样的混叠，数值/信号的 Nyquist 同源）。
+**色散关系读法**：长波 $\omega \approx v_s|k|$（线性——声波，$v_s = a\sqrt{C/m}$：**固体的声速是弹簧常数的宏观回声**）；区界 $k = \pm\frac\pi a$ 处群速为零（驻波——Bragg 反射自锁）；只需选一个第一布里渊区作不重复标记（$k$ 与 $k + \frac{2\pi}{a}$ 描述同一格点运动——离散采样的混叠，数值/信号的 Nyquist 同源）。
 
-**双原子链【骨架】**：两支解——**声学支**（长波齐动 = 声音）与**光学支**（原胞内反相振动，$\omega$ 有隙、可与光耦合——红外吸收的来源；名字的出处）。三维：$3p$ 支（$p$ = 基元原子数），3 支声学 + 其余光学。SSH 链中的两分量是局部轨道/格点振幅，不是声学与光学声子的直接替身；它提供的是把“二原胞 + gap + 边界”看清楚的紧束缚骨架。
+**双原子链：写出质量才能画两支。** 取原胞长 $a$，质量 $m_1,m_2$ 交替，所有近邻弹簧常数均为 $C$。位移 $u_n=Ue^{i(kna-\omega t)}$、$v_n=Ve^{i(kna-\omega t)}$ 给出
+
+$$
+\begin{pmatrix}
+2C-m_1\omega^2 & -C(1+e^{-ika})\\
+-C(1+e^{ika}) & 2C-m_2\omega^2
+\end{pmatrix}
+\begin{pmatrix}U\\V\end{pmatrix}=0,
+$$
+
+令行列式为零，得到
+
+$$
+\omega_\pm^2=C\left(\frac1{m_1}+\frac1{m_2}\right)
+\pm C\sqrt{\left(\frac1{m_1}+\frac1{m_2}\right)^2
+-\frac4{m_1m_2}\sin^2\frac{ka}{2}}.
+$$
+
+$k\to0$ 的声学支有 $U=V$，光学支有 $m_1U+m_2V=0$；在其他 $k$，相对幅度与相位需由上面的矩阵求，不能一律画成同相/反相。图取 $C=m_1=1,m_2=2$：区中心 $\omega_-=0,\omega_+=\sqrt3$，区界为 $1,\sqrt2$。若 $m_1=m_2$，区界两支接触，这是单原子链换用较大原胞后的折叠，不是必有一个声子禁带。
+
+三维稳定晶体的 $p$ 原子原胞有 $3p$ 支，其中 3 支声学，其余光学。光学模若能改变电偶极矩才具有红外活性；不是每支光学声子都能被红外光直接激发。SSH 中的两分量是电子轨道振幅，不是两种质量的位移，不能用它代替声子动力学矩阵。
 
 ## 3. 声子：振动的量子
 
 每个简正模是一个谐振子（mech-04 → qm-02 流水线）⇒ 能量量子化 $\hbar\omega_k$——**声子**：晶格振动的粒子化身（玻色子，数不守恒，$\mu = 0$——与光子同族）。
 
-**Debye 比热【推导骨架】**：声子气按 Planck 同款处理（sm-03），线性色散 + 模式总数截断（Debye 频率 $\omega_D$——自由度守恒定截断）：
+**Debye 比热：三维模式计数给出 $T^3$。** 在三维、长波线性色散的近似中，球壳内模式数正比于 $k^2dk$，所以态密度正比于 $\omega^2$。用原子总数 $N_{\rm at}$ 规定模式总数为 $3N_{\rm at}$，取
 
 $$
-C_V \propto T^3\ (T \ll \Theta_D), \qquad C_V \to 3Nk_B\ (T \gg \Theta_D)
+g(\omega)=\frac{9N_{\rm at}}{\omega_D^3}\omega^2,
+\quad 0\le\omega\le\omega_D,
+\qquad \Theta_D=\frac{\hbar\omega_D}{k_B}.
 $$
 
-——低温 $T^3$ 律（实验金标准）与高温 Dulong–Petit 一网收；$\Theta_D$（Debye 温度）= 晶格的“量子/经典分界线”（金刚石 2200 K——室温下“量子固体”，比热远低于经典值；铅 105 K——室温已经典）。
+每模热能为 $\hbar\omega/(e^{\hbar\omega/k_BT}-1)$；零点能在谐近似定容求导时不贡献比热。积分后对温度求导得
+
+$$
+C_V^{\rm ph}=9N_{\rm at}k_B\left(\frac T{\Theta_D}\right)^3
+\int_0^{\Theta_D/T}\frac{x^4e^x}{(e^x-1)^2}\,dx.
+$$
+
+低温可把上限延至无穷，积分为 $4\pi^4/15$，于是 $C_V^{\rm ph}\sim(12\pi^4/5)N_{\rm at}k_B(T/\Theta_D)^3$。高温每模回到 $k_B$，总和趋于 $3N_{\rm at}k_B$。这里是**声子贡献**；金属电子还可能给线性的 $\gamma T$ 项。$T^3$ 也依赖三维与线性色散，不能直接套在一维链或弯曲模上。进一步的积分推导见 [Tong 统计物理：声子与 Debye 模型](https://www.damtp.cam.ac.uk/user/tong/statphys/statmechhtml/S3.html)。
 
 **声子的工作清单**：热传导（声子气的输运——绝缘体导热靠它；边界/缺陷散射解释纳米材料导热差）；电阻的温度依赖（电子被声子散射——solid-02）；超导配对的媒人（电子—声子耦合——cm-02 BCS 的红娘）；中子散射测色散（直接给 $\omega(k)$ 曲线——实验与 §2 公式对表）。
 
@@ -182,7 +242,13 @@ $$
 
 **例 2（色散关系读图）** 一维链 $C, m$ 给定：区界频率 $\omega_{\max} = 2\sqrt{C/m}$ ~ THz 量级（原子弹簧的固有节拍）——固体的红外/拉曼光谱窗口由此设定。
 
-**例 3（Debye 数量级）** 铜 $\Theta_D \approx 343$ K：室温比热已近 $3Nk_B$（经典）✓；10 K 时 $C \propto T^3$ 掉四个量级——低温物理实验“样品一冷比热消失”的日常，也是稀释制冷机能把 mK 级样品“冻透”的原因。
+**例 3（Debye 数量级）** 以铜的近似参数 $\Theta_D=343$ K 演算：10 K 时
+
+$$
+\frac{C_V^{\rm ph}}{3N_{\rm at}k_B}\approx\frac{4\pi^4}{5}\left(\frac{10}{343}\right)^3\approx0.001931,
+$$
+
+约为经典极限的 $1/518$，并非只看 $(10/343)^3$ 就断言“掉四个数量级”。升至20 K，低温模型预言声子比热约乘8；这不代表总比热也恰好乘8。室温不应再用低温 $T^3$ 式，代入完整积分得到约经典极限的 $0.938$。
 
 ---
 

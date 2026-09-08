@@ -1,14 +1,6 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var EPSILON = 1e-10;
   var INSTANCE = 0;
@@ -69,13 +61,9 @@
 
   function formatNumber(api, value, digits) {
     if (!Number.isFinite(value)) return "—";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits === undefined ? 3 : digits);
-    }
-    return value.toFixed(digits === undefined ? 3 : digits)
-      .replace(/0+$/, "")
-      .replace(/\.$/, "");
+    var d = digits === undefined ? 3 : digits;
+    if(value !== 0 && Math.abs(value)<.001) return value.toExponential(2);
+    return d===0 ? value.toFixed(0) : value.toFixed(d).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function injectStyles(doc) {
@@ -84,12 +72,12 @@
     style.setAttribute("data-ssh-style", "true");
     style.id = STYLE_ID;
     style.textContent = [
-      ".ssh-lab{--ssh-fg:var(--fg,#292722);--ssh-muted:var(--fg-soft,#6b6557);--ssh-bg:var(--bg,#fff);--ssh-panel:var(--block-bg,#f4f1e9);--ssh-border:var(--border,#ded7c7);--ssh-accent:var(--accent,#315f9d);--ssh-t1:var(--cl-blue,#315f9d);--ssh-t2:var(--cl-gold,#9b6a12);--ssh-green:var(--cl-green,#39734d);--ssh-red:var(--cl-red,#b64335);box-sizing:border-box;color:var(--ssh-fg);font-size:.96em;line-height:1.55;min-width:0}",
+      ".ssh-lab{--ssh-fg:var(--fg,#292722);--ssh-muted:var(--fg-soft,#6b6557);--ssh-bg:var(--bg,#fff);--ssh-panel:var(--block-bg,#f4f1e9);--ssh-border:var(--border,#ded7c7);--ssh-accent:#315f9d;--ssh-t1:#315f9d;--ssh-t2:var(--cl-gold,#9b6a12);--ssh-green:var(--cl-green,#39734d);--ssh-red:var(--cl-red,#b64335);box-sizing:border-box;color:var(--ssh-fg);font-size:.96em;line-height:1.55;min-width:0}",
       ".ssh-lab *,.ssh-lab *::before,.ssh-lab *::after{box-sizing:border-box}",
       ".ssh-lab .ssh-shell{display:grid;gap:14px;min-width:0}",
       ".ssh-lab .ssh-heading{color:var(--ssh-accent);font-size:1.25rem;margin:0}",
       ".ssh-lab .ssh-intro,.ssh-lab .ssh-note,.ssh-lab .ssh-status,.ssh-lab .ssh-live{color:var(--ssh-muted);margin:0}",
-      ".ssh-lab .ssh-layout{align-items:start;display:grid;gap:16px;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);min-width:0}",
+      ".ssh-lab .ssh-layout{align-items:start;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);min-width:0}",
       ".ssh-lab .ssh-controls,.ssh-lab .ssh-stage{min-width:0}",
       ".ssh-lab .ssh-controls{display:grid;gap:11px}",
       ".ssh-lab .ssh-control-heading{font-size:1rem;margin:0}",
@@ -107,14 +95,14 @@
       ".ssh-lab .ssh-button:focus-visible,.ssh-lab select:focus-visible,.ssh-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
       ".ssh-lab .ssh-stage-frame{background:var(--ssh-bg);border:1px solid var(--ssh-border);border-radius:7px;min-width:0;padding:9px}",
       ".ssh-lab .ssh-stage-title{align-items:baseline;color:var(--ssh-muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin:0 0 7px}",
-      ".ssh-lab .ssh-figure{border:1px solid var(--ssh-border);border-radius:5px;margin:0;overflow:hidden;padding:3px}",
-      ".ssh-lab .ssh-svg{color:var(--ssh-fg);display:block;height:auto;max-width:100%;width:100%}",
+      ".ssh-lab .ssh-figure{border:1px solid var(--ssh-border);border-radius:5px;margin:0;overflow-x:auto;padding:3px}",
+      ".ssh-lab .ssh-svg{color:var(--ssh-fg);display:block;height:auto;min-width:900px;width:100%}",
       ".ssh-lab .ssh-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
       ".ssh-lab .ssh-panel-bg{fill:var(--ssh-bg);stroke:var(--ssh-border);stroke-width:1}",
       ".ssh-lab .ssh-gridline{fill:none;stroke:var(--ssh-border);stroke-opacity:.62;stroke-width:1}",
       ".ssh-lab .ssh-axis{fill:none;stroke:var(--ssh-fg);stroke-opacity:.55;stroke-width:1.2}",
       ".ssh-lab .ssh-zero{fill:none;stroke:var(--ssh-muted);stroke-dasharray:5 4;stroke-width:1.2}",
-      ".ssh-lab .ssh-tick{fill:var(--ssh-muted)!important;font-size:11px}",
+      ".ssh-lab .ssh-tick{fill:var(--ssh-muted)!important;font-size:12px}",
       ".ssh-lab .ssh-axis-label{fill:var(--ssh-muted)!important;font-size:12px;font-weight:650}",
       ".ssh-lab .ssh-panel-title{fill:var(--ssh-fg)!important;font-size:14px;font-weight:750}",
       ".ssh-lab .ssh-callout{fill:var(--ssh-accent)!important;font-size:12px;font-weight:750}",
@@ -143,7 +131,8 @@
       ".ssh-lab .ssh-checks{color:var(--ssh-muted);font-size:.84em;line-height:1.55;margin:8px 0 0}",
       ".ssh-lab .ssh-checks strong{color:var(--ssh-fg)}",
       "@media (max-width:820px){.ssh-lab .ssh-layout{grid-template-columns:minmax(0,1fr)}.ssh-lab .ssh-stage-frame{padding:7px}.ssh-lab .ssh-figure{padding:2px}}",
-      "@media (max-width:520px){.ssh-lab .ssh-preset-grid{grid-template-columns:minmax(0,1fr)}.ssh-lab .ssh-figure{overflow-x:auto;-webkit-overflow-scrolling:touch}.ssh-lab .ssh-svg{min-width:720px;max-width:none}.ssh-lab .ssh-svg text{font-size:10px}.ssh-lab .ssh-panel-title{font-size:12px}.ssh-lab .ssh-axis-label,.ssh-lab .ssh-callout{font-size:11px}}",
+      "@media (max-width:520px){.ssh-lab .ssh-preset-grid{grid-template-columns:minmax(0,1fr)}}",
+      ".ssh-lab [hidden]{display:none!important}.ssh-lab .ssh-figure:focus-visible{outline:3px solid var(--ssh-accent)}.ssh-predictions{display:grid;gap:10px;padding:12px;border:1px solid var(--ssh-border)}.ssh-predictions label{display:grid;gap:6px}.ssh-predictions select{font:inherit}[data-theme=dark] .ssh-lab{--ssh-accent:#85b9ef;--ssh-t1:#85b9ef;--ssh-t2:#e6be68;--ssh-green:#83c69c;--ssh-red:#ed9f94}",
       "@media (prefers-reduced-motion:reduce){.ssh-lab *{scroll-behavior:auto!important;transition:none!important}}"
     ].join("\n");
     var host = doc.head || doc.documentElement || doc.body;
@@ -218,7 +207,7 @@
     var merged = {
       x: x,
       y: y,
-      "font-size": "11",
+      "font-size": "12",
       className: "ssh-tick"
     };
     Object.keys(attrs || {}).forEach(function (key) {
@@ -387,7 +376,7 @@
 
   function phaseData(t1, t2) {
     var difference = t2 - t1;
-    if (Math.abs(difference) < EPSILON) {
+    if (difference === 0) {
       return { winding: null, label: "未定义（gap 闭合）", phase: "临界" };
     }
     if (difference > 0) {
@@ -419,7 +408,11 @@
     var phaseHasEdges = state.termination === "t1"
       ? phase.winding === 1
       : phase.winding === 0;
+    var numericalResolution=Math.max(1e-11,10*checks.eigenResidual);
+    var resolvedInGap=phaseHasEdges && Math.max(Math.abs(lowerEdgeEnergy),Math.abs(upperEdgeEnergy)) < Math.abs(state.t2-state.t1)-numericalResolution;
     return {
+      numericalResolution:numericalResolution,
+      resolvedInGap:resolvedInGap,
       matrix: matrix,
       values: eigensystem.values,
       vectors: eigensystem.vectors,
@@ -494,7 +487,7 @@
     svgText(doc, svg, x + 12, y + height - 19,
       state.termination === "t1"
         ? "默认：A1—B1 的胞内键为 t1，左右均以 t1 截断"
-        : "反向切口：左右均以 t2 截断；bulk 参数不变，边界对应改变", {
+        : "反向切口：端键 t2；站点顺序重新标为 A/B", {
         className: "ssh-tick"
       });
   }
@@ -503,7 +496,7 @@
     panel(doc, svg, x, y, width, height, "② 有限链本征谱：E ↔ −E");
     var plotLeft = x + 72;
     var plotRight = x + width - 16;
-    var plotTop = y + 39;
+    var plotTop = y + 66;
     var plotBottom = y + height - 31;
     var maxEnergy = Math.max(0.5, Math.max.apply(null, data.values.map(Math.abs)) * 1.08);
     var mapY = function (energy) {
@@ -522,21 +515,22 @@
     data.values.forEach(function (energy, index) {
       var className = index === data.selected
         ? "ssh-spectrum-selected"
-        : data.phaseHasEdges && (index === Math.floor(data.values.length / 2) - 1 ||
+        : data.resolvedInGap && (index === Math.floor(data.values.length / 2) - 1 ||
           index === Math.floor(data.values.length / 2))
           ? "ssh-spectrum-edge"
           : "ssh-spectrum-level";
-      svgLine(doc, svg, levelLeft, mapY(energy), levelRight, mapY(energy), className);
+      if(index !== data.selected) svgLine(doc, svg, levelLeft, mapY(energy), levelRight, mapY(energy), className);
     });
-    svgText(doc, svg, plotRight, y + 24,
-      data.phaseHasEdges
-        ? "金色：有限尺寸边界对；彩色：当前选中"
-        : "彩色：当前选中；金色边界对不在此切口出现", {
+    svgLine(doc,svg,levelLeft,mapY(data.selectedEnergy),levelRight,mapY(data.selectedEnergy),"ssh-spectrum-selected");
+    svgText(doc, svg, plotRight, y + 44,
+      data.resolvedInGap
+        ? "金色：落在 bulk 隙内的中间对；蓝色：选中态"
+        : "中间两级未落在 bulk 隙内；不标成近零端态", {
         className: "ssh-tick",
         "text-anchor": "end"
       });
     svgText(doc, svg, x + 12, y + height - 10,
-      "选中 j=" + (data.selected + 1) + "，E=" + formatNumber(null, data.selectedEnergy, 4), {
+      "选中 j=" + (data.selected + 1) + "，E≈" + formatNumber(null, data.selectedEnergy, 4), {
         className: "ssh-callout"
       });
     svgText(doc, svg, plotLeft - 8, plotTop - 8, "E", {
@@ -549,7 +543,7 @@
     panel(doc, svg, x, y, width, height, "③ 选中态：格点概率 |ψj|²");
     var plotLeft = x + 43;
     var plotRight = x + width - 15;
-    var plotTop = y + 47;
+    var plotTop = y + 66;
     var plotBottom = y + height - 48;
     var maxProbability = Math.max.apply(null, data.probabilities);
     var probabilityTop = Math.max(0.08, maxProbability * 1.14);
@@ -570,21 +564,21 @@
       svgRect(doc, svg, barX, mapY(probability), barWidth,
         plotBottom - mapY(probability), index % 2 === 0 ? "ssh-prob-a" : "ssh-prob-b");
     });
-    svgText(doc, svg, plotLeft, plotBottom + 20, "A1", {
+    svgText(doc, svg, plotLeft + spacing / 2, plotBottom + 20, "A1", {
       className: "ssh-tick",
       "text-anchor": "middle"
     });
-    svgText(doc, svg, plotRight, plotBottom + 20, "B" + state.cells, {
+    svgText(doc, svg, plotRight - spacing / 2, plotBottom + 20, "B" + state.cells, {
       className: "ssh-tick",
       "text-anchor": "middle"
     });
-    svgText(doc, svg, plotRight, y + 25,
+    svgText(doc, svg, plotRight, y + 45,
       "左右两端权重=" + formatNumber(null, data.edgeWeight, 3), {
         className: "ssh-callout",
         "text-anchor": "end"
       });
     svgText(doc, svg, x + 12, y + height - 14,
-      "Σ|ψj|²=1 · A/B 颜色交替 · 选中态通常是左右端态的 ± 混合", {
+      "Σ|ψj|²=1；仅近零端态对适用左右端混合的解释", {
         className: "ssh-axis-label"
       });
   }
@@ -603,6 +597,12 @@
     svgLine(doc, svg, centerX, mapY(-range), centerX, mapY(range), "ssh-axis");
     svgLine(doc, svg, mapX(-range), mapY(0), mapX(range), mapY(0), "ssh-gridline");
     svgLine(doc, svg, mapX(0), mapY(-range), mapX(0), mapY(range), "ssh-gridline");
+    [-range/2,range/2].forEach(function(v){
+      svgLine(doc,svg,mapX(v),centerY-4,mapX(v),centerY+4,"ssh-axis");
+      svgText(doc,svg,mapX(v),centerY+20,formatNumber(null,v,2),{"text-anchor":"middle"});
+      svgLine(doc,svg,centerX-4,mapY(v),centerX+4,mapY(v),"ssh-axis");
+      svgText(doc,svg,centerX-8,mapY(v)+4,formatNumber(null,v,2),{"text-anchor":"end"});
+    });
     var path = "";
     var samples = 220;
     for (var i = 0; i <= samples; i += 1) {
@@ -637,7 +637,7 @@
       className: "ssh-axis-label"
     });
     svgText(doc, svg, x + 12, y + height - 14,
-      "q(k)=(t1+t2 cos k, t2 sin k)，k: 0→2π 为逆时针方向", {
+      "q=t1+t2 exp(ik)；k: 0→2π 逆时针", {
         className: "ssh-axis-label"
       });
   }
@@ -688,7 +688,21 @@
       text: "正的 t1、t2 控制同一条二聚化链；四个视图每次随参数重算。默认原胞与终止固定为 A1—B1—A2…—BN，故 t2>t1 对应 winding=1 与边界态。"
     }));
 
-    var layout = makeElement(doc, "div", { className: "ssh-layout" });
+    var layout = makeElement(doc, "div", { className: "ssh-layout", hidden:true });
+    var predictions=makeElement(doc,"fieldset",{className:"ssh-predictions"});
+    predictions.appendChild(makeElement(doc,"legend",{text:"先完成四项预测"}));
+    var predictionSpecs=[
+      ["t1=.45、t2=1.10：固定 q 约定的 winding？",["1","0","未定义"],0],
+      ["交换强弱后，默认 t1 端的长链近零端态？",["仍由本终止要求","不再由本终止要求","与终止无关"],1],
+      ["t1=t2 时的 winding？",["稳定为 1","稳定为 0","未定义"],2],
+      ["只改变原胞数的奇偶，bulk 拓扑数？",["改变","不改变；有限谱可变","奇数必有精确零模"],1]
+    ];
+    var predictionInputs=predictionSpecs.map(function(spec){var f=selectField(doc,spec[0],[{value:"",label:"请选择预测"}].concat(spec[1].map(function(t,i){return{value:String(i),label:t};})),"");predictions.appendChild(f.wrapper);f.select.addEventListener("change",function(){layout.hidden=true;predictionFeedback.textContent="预测已更改，请重新提交。";});return f.select;});
+    var predictionSubmit=actionButton(doc,"提交预测并揭示"),predictionClear=actionButton(doc,"清空预测");
+    var predictionFeedback=makeElement(doc,"p",{role:"status","aria-live":"polite",text:""});
+    predictionSubmit.addEventListener("click",function(){if(predictionInputs.some(function(e){return e.value==="";})){predictionFeedback.textContent="请先完成四项预测。";return;}var score=predictionInputs.reduce(function(n,e,i){return n+(Number(e.value)===predictionSpecs[i][2]?1:0);},0);predictionFeedback.textContent="预测命中 "+score+"/4；现在检查谱、概率与终止。";layout.hidden=false;});
+    function clearPredictions(){predictionInputs.forEach(function(e){e.value="";});layout.hidden=true;predictionFeedback.textContent="预测已清空，实验重新上锁。";}
+    predictionClear.addEventListener("click",clearPredictions);predictions.appendChild(predictionSubmit);predictions.appendChild(predictionClear);predictions.appendChild(predictionFeedback);shell.appendChild(predictions);
     var controls = makeElement(doc, "div", { className: "ssh-controls" });
     controls.appendChild(makeElement(doc, "h4", {
       className: "ssh-control-heading",
@@ -738,6 +752,7 @@
       state.cells = 8;
       state.selected = 8;
       state.termination = "t1";
+      clearPredictions();
       render("已重置为默认拓扑链：N=8、t1=0.45、t2=1.10、默认 t1 终止。");
     });
     controls.appendChild(resetButton);
@@ -750,9 +765,9 @@
     var stageFrame = makeElement(doc, "div", { className: "ssh-stage-frame" });
     var stageTitle = makeElement(doc, "div", { className: "ssh-stage-title" }, [
       makeElement(doc, "strong", { text: "四图对账：局部 · 谱 · 波函数 · bulk" }),
-      makeElement(doc, "span", { text: "纯原生 SVG，单节点重绘" })
+      makeElement(doc, "span", { text: "窄屏聚焦图框后可左右滚动" })
     ]);
-    var figure = makeElement(doc, "figure", { className: "ssh-figure" });
+    var figure = makeElement(doc, "figure", { className: "ssh-figure", tabindex:"0", role:"region", "aria-label":"SSH 四图，可横向滚动" });
     var svg = makeSvg(doc, "svg", {
       className: "ssh-svg",
       viewBox: "0 0 900 760",
@@ -766,10 +781,10 @@
     var metrics = metricGrid(doc, [
       { id: "phase", label: "相位：winding" },
       { id: "gap", label: "bulk gap" },
-      { id: "edge", label: "中间近零对 ±ε" },
+      { id: "edge", label: "中间两级与数值分辨率" },
       { id: "edgeWeight", label: "选中态两端权重" },
       { id: "pair", label: "E ↔ −E 配对残差" },
-      { id: "chiral", label: "‖{Γ,H}‖∞ 残差" },
+      { id: "chiral", label: "{Γ,H} 最大元素残差" },
       { id: "eigen", label: "本征方程残差" },
       { id: "parity", label: "原胞与子晶格" }
     ]);
@@ -840,13 +855,12 @@
       cellsField.output.textContent = String(state.cells) +
         (state.cells % 2 === 0 ? "（偶数）" : "（奇数）");
       selectedField.output.textContent = "j=" + (data.selected + 1) +
-        "，E=" + formatNumber(api, data.selectedEnergy, 4);
+        "，E≈" + formatNumber(api, data.selectedEnergy, 4);
       metrics.refs.phase.textContent = data.phase.label;
       metrics.refs.gap.textContent = formatNumber(api, data.bulkGap, 3);
-      metrics.refs.edge.textContent = data.phaseHasEdges
-        ? "±" + formatNumber(api, data.edgeEnergy, 5) +
-          "（Δ=" + formatNumber(api, data.edgeSplitting, 5) + "）"
-        : data.phase.winding === null ? "gap 闭合" : "无受拓扑要求的近零对";
+      metrics.refs.edge.textContent = data.edgeEnergy < data.numericalResolution
+        ? "|E| ≤数值分辨尺度 "+formatNumber(api,data.numericalResolution,2)+"；未证实精确零"
+        : "±"+formatNumber(api,data.edgeEnergy,5)+"（Δ="+formatNumber(api,data.edgeSplitting,5)+"）"+(data.resolvedInGap?" 隙内对":" 非隙内对");
       metrics.refs.edgeWeight.textContent = formatNumber(api, data.edgeWeight, 3) +
         "（左 " + formatNumber(api, data.leftWeight, 3) +
         " / 右 " + formatNumber(api, data.rightWeight, 3) + "）";
@@ -865,7 +879,7 @@
       });
       checks.appendChild(checkStrong);
       checks.appendChild(doc.createTextNode(
-        "。残差越接近 0 越好；E↔−E 来自手征对称，不是有限链把边界能级强行设成零。"
+        "。小劈裂低于此数值精度时不能分辨；此时求解器可返回近简并子空间的任意混合，单个向量的左右权重不是可靠的精细结论。"
       ));
       drawDashboard(doc, refs.stage, state, data);
       var active = presetId();
@@ -878,11 +892,11 @@
       } else {
       live.textContent = data.phase.winding === null
           ? "临界：q(k) 穿过原点，bulk gap 闭合，winding 不定义。"
-          : data.phaseHasEdges
+          : data.resolvedInGap
             ? (state.termination === "t1"
               ? "拓扑且为默认 t1 终止：观察两端近零态的指数混合与有限尺寸劈裂。"
               : "反向 t2 终止暴露另一种切口的边界近零对；这不改变当前 q(k) 约定下的 bulk winding。")
-            : "当前切口没有边界近零对；比较 q(k)、终止方式与谱的对应。";
+            : "中间两级未分离到 bulk 隙内；检查终止，并比较链长与局域长度。不能只凭 winding 把短链能级称作近零端态。";
       }
     }
 
@@ -912,5 +926,6 @@
     render("");
   }
 
-  window.CourseLearning.register("ssh-edge-state", buildLab);
+  if(typeof module === "object" && module.exports) module.exports={makeMatrix:makeMatrix,jacobiSymmetric:jacobiSymmetric,computeState:computeState,phaseData:phaseData,formatNumber:formatNumber,buildLab:buildLab};
+  if(typeof window !== "undefined" && window.CourseLearning) window.CourseLearning.register("ssh-edge-state", buildLab);
 }());

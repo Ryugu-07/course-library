@@ -39,14 +39,10 @@ def f_hydrogen_radial():
     save(fig,"qm-03-hydrogen-radial")
 
 def f_phonon():
-    k=np.linspace(-np.pi,np.pi,400); fig,ax=plt.subplots(figsize=(6.4,3.8))
-    ac=2*np.abs(np.sin(k/2)); op=np.sqrt(3+np.cos(k))*1.4
-    ax.plot(k,ac,color=ACC,lw=2,label="acoustic branch")
-    ax.plot(k,op,color=RED,lw=2,label="optical branch")
-    ax.set_xlabel(r"wavevector $k$"); ax.set_ylabel(r"$\omega(k)$"); ax.legend(frameon=False,fontsize=10)
-    ax.set_xticks([-np.pi,0,np.pi]); ax.set_xticklabels([r"$-\pi/a$","0",r"$\pi/a$"])
-    ax.set_title(r"Phonon dispersion (diatomic chain)",fontsize=12)
-    save(fig,"solid-01-phonon")
+    # Keep the legacy figure entry point on the same physical model.
+    import runpy
+    from pathlib import Path
+    runpy.run_path(str(Path(__file__).resolve().parents[2] / 'tools/build_lattice_figure.py'))
 
 def f_bands():
     k=np.linspace(-1,1,400); fig,ax=plt.subplots(figsize=(6.0,4.0))
