@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模叠与自同构 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li><li><a href="bridge-20-derived-products.html">基础 XX · 导出纤维积与乘法</a></li><li><a href="bridge-21-derived-category-roofs.html">基础 XXI · 导出范畴与roofs</a></li><li><a href="bridge-22-d-modules.html">基础 XXII · 一般D模与奇点</a></li><li class="active"><a href="bridge-23-moduli-stacks.html">基础 XXIII · 模叠与自同构</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li><li><a href="bridge-18-heat-distributions.html">基础 XVIII · 热核与随机分布</a></li><li><a href="bridge-19-products-reconstruction.html">基础 XIX · 分布乘积与重建</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">真实数据与综合项目</div><ul><li><a href="project-01-co2-trends.html">真实数据 · CO₂趋势与相关误差</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:55</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#moduli-stacks-title">若所有对象只剩一个名字，它们原来的对称性去了哪里？</a></li>
+<li><a href="#1">1. 模问题不是一张对象名单，而是一套随底空间变化的族</a></li>
+<li><a href="#2">2. 为什么取同构类集合会丢失可计算信息</a></li>
+<li><a href="#3-bmathbb-g_m">3. \(B\mathbb G_m\)：几何点只有一类，群胚却绝不平凡</a></li>
+<li><a href="#4-xg-t-torsor">4. 商叠 \([X/G]\) 的 T-点：torsor 加等变映射</a></li>
+<li><a href="#5-mathbb-g_m-w-mathbb-a1">5. 主模型：\(\mathbb G_m\) 以权 \(w\) 作用在 \(\mathbb A^1\)</a></li>
+<li><a href="#6-1-2">6. 权 1 与权 2：同一轨道图，不同稳定子</a></li>
+<li><a href="#7">7. 下降：局部对象和重叠同构何时来自一个全局对象</a></li>
+<li><a href="#8">8. 何时称为代数叠：下降还不够</a></li>
+<li><a href="#9">9. 同时计算轨道、稳定子与非平凡族</a></li>
+<li><a href="#10">10. 两道迁移题</a></li>
+<li><a href="#11-langlands">11. 通往几何 Langlands 还差哪些具体门槛</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="23">基础衔接 23 · 模叠：参数空间为什么必须记住自同构<a class="headerlink" href="#23" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-04-sheaves.html">层与粘合</a>、<a href="bridge-13-affine-gluing.html">仿射图粘合</a>、<a href="bridge-14-fibers-base-change.html">纤维与基变换</a>、<a href="bridge-21-derived-category-roofs.html">导出范畴</a>。本讲固定底域 <span class="arithmatex">\(k=\mathbb C\)</span>。我们从函子点与群胚值模问题出发，完整计算 <span class="arithmatex">\(B\mathbb G_m\)</span> 和 <span class="arithmatex">\([\mathbb A^1/\mathbb G_m]\)</span> 的两个权作用；目标是看懂“族、基变换、自同构、下降、atlas 与对角线”各自承担什么，不把一张轨道图冒充为模叠。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="moduli-stacks-title" class="learning-layer">
+<h2 id="moduli-stacks-title">若所有对象只剩一个名字，它们原来的对称性去了哪里？<a class="headerlink" href="#moduli-stacks-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 模问题不是一张对象名单，而是一套随底空间变化的族<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一个几何模问题首先问：对每个测试概形 <span class="arithmatex">\(T\)</span>，有哪些以 <span class="arithmatex">\(T\)</span> 为参数的对象族？因此它自然表现为反变赋值</p>
+<div class="arithmatex">\[
+\mathcal M:(\mathrm{Sch}/k)^{\mathrm{op}}
+\longrightarrow\mathrm{Groupoids}.
+\]</div>
+<p><span class="arithmatex">\(\mathcal M(T)\)</span> 的对象是 <span class="arithmatex">\(T\)</span>-族，箭头是族的同构。之所以取群胚，是因为模问题通常只把同构当作可逆比较；非可逆退化由底空间和族本身编码，不直接作为纤维群胚中的箭头。</p>
+<p>给态射</p>
+<div class="arithmatex">\[
+f:T'\longrightarrow T,
+\]</div>
+<p>每个 <span class="arithmatex">\(T\)</span>-族 <span class="arithmatex">\(E\)</span> 都必须能拉回成 <span class="arithmatex">\(T'\)</span>-族</p>
+<div class="arithmatex">\[
+f^*E\in\mathcal M(T').
+\]</div>
+<p>若再有 <span class="arithmatex">\(g:T''\to T'\)</span>，则 <span class="arithmatex">\((fg)^*E\)</span> 与 <span class="arithmatex">\(g^*f^*E\)</span> 有规范同构，并满足更高的结合相容性。为了入门常把它写成严格等号，但真正的纤维范畴保存这些规范同构；忽略它们会在复杂基变换中产生不相容选择。</p>
+<p>例如“秩 <span class="arithmatex">\(r\)</span> 向量丛”的 <span class="arithmatex">\(T\)</span>-点不是一个固定向量空间，而是 <span class="arithmatex">\(T\)</span> 上秩 <span class="arithmatex">\(r\)</span> 的局部自由层。沿 <span class="arithmatex">\(f\)</span> 拉回后得到 <span class="arithmatex">\(f^*E\)</span>。只列代数闭点上的同构类，既看不到非平凡族，也看不到族在无穷小底空间上的变形。</p>
+<h2 id="2">2. 为什么取同构类集合会丢失可计算信息<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>给群胚 <span class="arithmatex">\(\mathcal M(T)\)</span> 取对象的同构类集合</p>
+<div class="arithmatex">\[
+\pi_0\mathcal M(T)
+\]</div>
+<p>会删掉每个对象 <span class="arithmatex">\(E\)</span> 的自同构群</p>
+<div class="arithmatex">\[
+\operatorname{Aut}_T(E).
+\]</div>
+<p>这不是只少了“对象有多对称”的注释。自同构控制对角线、稳定子、变形理论中的负一次方向，以及许多积分和计数公式中的权重。两个模问题即使有相同的同构类集合，也可能因稳定子不同而不是同一个叠。</p>
+<p>最小例子是一个一维复向量空间。所有一维空间彼此同构，所以同构类集合只有一个元素；但一个给定的一维空间有自同构群</p>
+<div class="arithmatex">\[
+\mathbb C^\times.
+\]</div>
+<p>把它压成一个普通点，会把所有非零缩放都删掉。模叠 <span class="arithmatex">\(B\mathbb G_m\)</span> 正是保存这份信息的对象。</p>
+<h2 id="3-bmathbb-g_m">3. <span class="arithmatex">\(B\mathbb G_m\)</span>：几何点只有一类，群胚却绝不平凡<a class="headerlink" href="#3-bmathbb-g_m" title="Permanent link"></a></h2>
+<p>对任意测试概形 <span class="arithmatex">\(T\)</span>，定义</p>
+<div class="arithmatex">\[
+B\mathbb G_m(T)
+=\{\mathbb G_m\text{-torsors on }T\}
+\]</div>
+<p>及其 torsor 同构组成的群胚。<span class="arithmatex">\(\mathbb G_m\)</span>-torsor 与线丛等价，所以也可写成</p>
+<div class="arithmatex">\[
+B\mathbb G_m(T)
+=\{\text{line bundles on }T\text{ and their isomorphisms}\}.
+\]</div>
+<p>当 <span class="arithmatex">\(T=\operatorname{Spec}\mathbb C\)</span> 时，每个线丛都平凡，因此只有一个同构类；但平凡线丛的自同构群是 <span class="arithmatex">\(\mathbb G_m(\mathbb C)=\mathbb C^\times\)</span>。所以</p>
+<div class="arithmatex">\[
+B\mathbb G_m(\mathbb C)
+\simeq */\!/\mathbb C^\times,
+\]</div>
+<p>右边表示“一个对象及其全部自同构”的群胚，不是普通单点集合。</p>
+<p>更重要的是，换成 <span class="arithmatex">\(T=\mathbb P^1\)</span> 后会出现 <span class="arithmatex">\(\mathcal O(d)\)</span> 等非平凡线丛。它们在每张仿射图上都平凡，却不能由一个全局基向量描述。若只看</p>
+<div class="arithmatex">\[
+*/\mathbb G_m(T)
+\]</div>
+<p>这类使用全局函数作规范变换的朴素作用群胚，只能得到平凡 torsor；正确的 <span class="arithmatex">\(B\mathbb G_m(T)\)</span> 必须允许在覆盖上平凡、再用过渡函数粘合的 torsor。</p>
+<h2 id="4-xg-t-torsor">4. 商叠 <span class="arithmatex">\([X/G]\)</span> 的 T-点：torsor 加等变映射<a class="headerlink" href="#4-xg-t-torsor" title="Permanent link"></a></h2>
+<p>令代数群 <span class="arithmatex">\(G\)</span> 左作用在概形 <span class="arithmatex">\(X\)</span> 上。商叠不能只定义成点集 <span class="arithmatex">\(X/G\)</span>。它在测试概形 <span class="arithmatex">\(T\)</span> 上的对象是</p>
+<div class="arithmatex">\[
+\boxed{(P\to T,\ u:P\to X),}
+\]</div>
+<p>其中 <span class="arithmatex">\(P\to T\)</span> 是右 <span class="arithmatex">\(G\)</span>-torsor，而 <span class="arithmatex">\(u\)</span> 满足</p>
+<div class="arithmatex">\[
+u(pg)=g^{-1}u(p).
+\]</div>
+<p>箭头是与 <span class="arithmatex">\(u\)</span> 相容的 torsor 同构。这个定义自动包含非平凡 torsor，也让基变换明确可算：</p>
+<div class="arithmatex">\[
+(P,u)\longmapsto
+(P\times_TT',\ u|_{P\times_TT'}).
+\]</div>
+<p>取 <span class="arithmatex">\(X=\operatorname{Spec}k\)</span> 且作用平凡，就恢复</p>
+<div class="arithmatex">\[
+[\operatorname{Spec}k/G]=BG.
+\]</div>
+<p>若 <span class="arithmatex">\(T=\operatorname{Spec}\mathbb C\)</span> 且 torsor 平凡，群胚可以画成普通作用群胚：对象是 <span class="arithmatex">\(x\in X(\mathbb C)\)</span>，从 <span class="arithmatex">\(x\)</span> 到 <span class="arithmatex">\(y\)</span> 的箭头是满足 <span class="arithmatex">\(g\cdot x=y\)</span> 的群元素。特别地，</p>
+<div class="arithmatex">\[
+\operatorname{Aut}(x)=G_x
+\]</div>
+<p>就是稳定子。这个几何点画面适合算稳定子，但不能替代任意 <span class="arithmatex">\(T\)</span> 上的 torsor 定义。</p>
+<h2 id="5-mathbb-g_m-w-mathbb-a1">5. 主模型：<span class="arithmatex">\(\mathbb G_m\)</span> 以权 <span class="arithmatex">\(w\)</span> 作用在 <span class="arithmatex">\(\mathbb A^1\)</span><a class="headerlink" href="#5-mathbb-g_m-w-mathbb-a1" title="Permanent link"></a></h2>
+<p>令</p>
+<div class="arithmatex">\[
+\lambda\cdot x=\lambda^w x,
+\qquad w\ge1,
+\]</div>
+<p>并记商叠为</p>
+<div class="arithmatex">\[
+\mathcal X_w=[\mathbb A^1/\mathbb G_m].
+\]</div>
+<p>一个 <span class="arithmatex">\(T\)</span>-点可具体改写成</p>
+<div class="arithmatex">\[
+\boxed{(L,s),\qquad
+L\text{ 是 }T\text{ 上线丛},\quad
+s\in\Gamma(T,L^{\otimes w}).}
+\]</div>
+<p>理由是：按上面的右 torsor 约定，令 <span class="arithmatex">\(L=P\times^{\mathbb G_m}\mathbb C_1\)</span>，其中 <span class="arithmatex">\((p\lambda,v)\sim(p,\lambda v)\)</span>。条件 <span class="arithmatex">\(u(p\lambda)=\lambda^{-w}u(p)\)</span> 正好让 <span class="arithmatex">\(u\)</span> 下降成 <span class="arithmatex">\(L^{\otimes w}\)</span> 的截面。沿 <span class="arithmatex">\(f:T'\to T\)</span> 基变换时，</p>
+<div class="arithmatex">\[
+(L,s)\longmapsto(f^*L,f^*s).
+\]</div>
+<p>所以“参数移动”不是把一个复数 <span class="arithmatex">\(x\)</span> 代入另一张表，而是连线丛与截面一起拉回。</p>
+<p>先在复几何点上算轨道。无论 <span class="arithmatex">\(w=1\)</span> 还是 <span class="arithmatex">\(w=2\)</span>，都有两个轨道类型：</p>
+<div class="arithmatex">\[
+\{0\},
+\qquad \mathbb C^\times.
+\]</div>
+<p>非零轨道的闭包包含 <span class="arithmatex">\(0\)</span>。坐标环中的正权单项式都不是不变量，因此</p>
+<div class="arithmatex">\[
+\mathbb C[x]^{\mathbb G_m}=\mathbb C.
+\]</div>
+<p>所以仿射不变量商是单点，连两个轨道类型都不能分开。朴素轨道集合保留两个元素，却仍删掉下面的稳定子。</p>
+<figure>
+<p><img alt="顶部说明模问题把每个测试概形送到对象与同构组成的群胚，并沿基变换拉回。中部把商叠的T点拆成G torsor和等变映射。底部比较Gm作用在仿射直线的权一和权二：两者都有零轨道与非零轨道，不变量环都只有常数，但权一非零点稳定子平凡，权二非零点稳定子为正负一组成的mu二。" src="assets/img/bridge-23-moduli-stacks.svg" /></p>
+<figcaption>
+<p>轨道集合与不变量商都不能区分权 1、权 2 的全部几何；商叠保留的稳定子立刻看出差异。对一般底空间，还必须把平凡轨道图升级为 torsor 与下降数据。</p>
+</figcaption>
+</figure>
+<h2 id="6-1-2">6. 权 1 与权 2：同一轨道图，不同稳定子<a class="headerlink" href="#6-1-2" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(x=0\)</span>，任意 <span class="arithmatex">\(\lambda\in\mathbb G_m\)</span> 都固定它，所以</p>
+<div class="arithmatex">\[
+\operatorname{Stab}(0)=\mathbb G_m
+\]</div>
+<p>对两个权都成立。</p>
+<p>若 <span class="arithmatex">\(x\ne0\)</span>，稳定条件是</p>
+<div class="arithmatex">\[
+\lambda^w x=x
+\quad\Longleftrightarrow\quad
+\lambda^w=1.
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+\operatorname{Stab}_{w=1}(x)=\{1\},
+\]</div>
+<p>而</p>
+<div class="arithmatex">\[
+\boxed{
+\operatorname{Stab}_{w=2}(x)=\mu_2=\{1,-1\}.
+}
+\]</div>
+<p>权 <span class="arithmatex">\(2\)</span> 的 <span class="arithmatex">\(-1\)</span> 实际上固定每一个点，所以该作用有全局核 <span class="arithmatex">\(\mu_2\)</span>；权 <span class="arithmatex">\(1\)</span> 的非零轨道则是自由的。两种作用的轨道集合都是“零、非零”两个类型，不变量环也同为 <span class="arithmatex">\(\mathbb C\)</span>，但商叠在稠密非零轨道上的稳定子不同。因此</p>
+<div class="arithmatex">\[
+[\mathbb A^1/\mathbb G_m]_{w=1}
+\not\simeq
+[\mathbb A^1/\mathbb G_m]_{w=2}.
+\]</div>
+<p>用 <span class="arithmatex">\((L,s)\)</span> 语言也能看到同一结论。对权 <span class="arithmatex">\(1\)</span> 的非零 <span class="arithmatex">\(s\in L\)</span>，截面把 <span class="arithmatex">\(L\)</span> 平凡化，保持 <span class="arithmatex">\(s\)</span> 的线丛自同构只能是恒等。对权 <span class="arithmatex">\(2\)</span>，非零 <span class="arithmatex">\(s\in L^{\otimes2}\)</span> 只把 <span class="arithmatex">\(L^2\)</span> 平凡化；缩放 <span class="arithmatex">\(L\)</span> 的 <span class="arithmatex">\(-1\)</span> 仍保持 <span class="arithmatex">\(s\)</span>，于是留下 <span class="arithmatex">\(\mu_2\)</span>。</p>
+<h2 id="7">7. 下降：局部对象和重叠同构何时来自一个全局对象<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(\{T_i\to T\}\)</span> 是 fppf 覆盖。模问题成为 stack in groupoids，需要两类下降条件：</p>
+<ol>
+<li>对两个对象 <span class="arithmatex">\(E,F\in\mathcal M(T)\)</span>，它们的同构在覆盖上构成一个层；局部同构若在重叠上一致，就唯一粘合。</li>
+<li>给每个 <span class="arithmatex">\(T_i\)</span> 上的对象 <span class="arithmatex">\(E_i\)</span>，以及重叠 <span class="arithmatex">\(T_{ij}\)</span> 上的同构</li>
+</ol>
+<div class="arithmatex">\[
+\phi_{ij}:E_j|_{T_{ij}}\xrightarrow{\sim}E_i|_{T_{ij}},
+\]</div>
+<p>若在三重重叠满足 cocycle</p>
+<div class="arithmatex">\[
+\phi_{ij}\phi_{jk}=\phi_{ik},
+\]</div>
+<p>则这些数据必须来自某个全局对象 <span class="arithmatex">\(E\)</span>，并且这个粘合在同构意义下唯一。</p>
+<p>对 <span class="arithmatex">\(B\mathbb G_m\)</span>，这就是线丛的下降。沿用 <a href="bridge-06-cech.html">Čech 讲义</a>的基向量约定，以 <span class="arithmatex">\(\mathbb P^1=U_0\cup U_1\)</span> 为例，两张图上取平凡线丛，并在重叠上规定 <span class="arithmatex">\(e_1=z^d e_0\)</span>，就粘出 <span class="arithmatex">\(\mathcal O(d)\)</span>。当 <span class="arithmatex">\(d\ne0\)</span> 时，不能用两张图上的可逆正则函数把 <span class="arithmatex">\(z^d\)</span> 同时消成 <span class="arithmatex">\(1\)</span>，所以得到真正的非平凡全局 torsor。</p>
+<p>这解释了为什么商叠定义要使用 torsor。只写 <span class="arithmatex">\(X(T)\)</span> 上的全局群作用，只捕捉已经全局平凡化的 torsor；stackification 补入所有局部平凡且满足下降的数据。</p>
+<h2 id="8">8. 何时称为代数叠：下降还不够<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>一个 fppf stack in groupoids <span class="arithmatex">\(\mathcal X\)</span> 若要成为本讲约定下的<strong>代数叠</strong>，还要满足两条几何可表示性条件：</p>
+<div class="arithmatex">\[
+\boxed{
+\Delta_{\mathcal X}:\mathcal X\to\mathcal X\times\mathcal X
+\text{ 可由代数空间表示},
+}
+\]</div>
+<p>并且存在概形 <span class="arithmatex">\(U\)</span> 与光滑满射</p>
+<div class="arithmatex">\[
+\boxed{U\longrightarrow\mathcal X.}
+\]</div>
+<p>第二支箭头叫光滑 atlas。它允许用一张概形图覆盖叠，但叠本身通常不是概形。第一条对角线条件并非技术附录：对两个 <span class="arithmatex">\(T\)</span>-对象 <span class="arithmatex">\(E,F\)</span>，纤维积</p>
+<div class="arithmatex">\[
+T\times_{(E,F),\,\mathcal X\times\mathcal X}\mathcal X
+\]</div>
+<p>正是 <span class="arithmatex">\(\operatorname{Isom}_T(E,F)\)</span>。因此对角线可表示，意味着“同构与自同构也组成可控的代数几何对象”。</p>
+<p>若 <span class="arithmatex">\(G\)</span> 是光滑仿射代数群并作用在概形 <span class="arithmatex">\(X\)</span> 上，标准映射</p>
+<div class="arithmatex">\[
+X\longrightarrow[X/G]
+\]</div>
+<p>是光滑满射 atlas；沿一个 <span class="arithmatex">\(T\)</span>-点 <span class="arithmatex">\((P,u)\)</span> 拉回这张 atlas，得到的正是 torsor <span class="arithmatex">\(P\to T\)</span>。对角线则记录等变同构。于是本讲的</p>
+<div class="arithmatex">\[
+B\mathbb G_m,
+\qquad[\mathbb A^1/\mathbb G_m]
+\]</div>
+<p>都是代数叠。</p>
+<p>Deligne-Mumford 条件要求可取 étale atlas，因而稳定子必须是离散的相应群概形。<span class="arithmatex">\([\mathbb A^1/\mathbb G_m]\)</span> 在 <span class="arithmatex">\(0\)</span> 处有正维稳定子 <span class="arithmatex">\(\mathbb G_m\)</span>，所以无论权 <span class="arithmatex">\(1\)</span> 还是权 <span class="arithmatex">\(2\)</span>，都不是 Deligne-Mumford 叠。权 <span class="arithmatex">\(2\)</span> 的非零稳定子 <span class="arithmatex">\(\mu_2\)</span> 是有限的，并不能消除原点处的失败。</p>
+<h2 id="9">9. 同时计算轨道、稳定子与非平凡族<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<div class="learning-lab" data-learning-lab="research-moduli-stacks" data-research-topic="quotient-gm"></div>
+<p>先在复几何点上改变权与零/非零类型。图画单位圆上的群元素 λ 与其像 λ^w x，标出完整的有限稳定子 μ_w；x=0 时整个复乘法群都是稳定子，单位圆仅是其中的实截面，不能把它当作整个 Gm。表格同时保留轨道集和不变量商，比较信息丢在哪里。</p>
+<div class="learning-lab" data-learning-lab="research-moduli-stacks" data-research-topic="descent"></div>
+<p>再把底空间换成 P¹，实际拉回过渡函数。图沿重叠圆 z=e^(iθ) 展示 z^d 与 (z^m)^d 的相位，次数变化来自代入，不是把若干离散点粘起来。截面空间维数由两张图的正则性计算：对 L^w=O(wd)，局部多项式次数必须在0到wd之间，所以维数为 max(wd+1,0)。负次数时只有零截面；零截面始终是合法对象。</p>
+<p>对非负 wd，例取齐次截面 X₀^(wd)，它在无穷远的零点阶为 wd，拉回后为 mwd。当 wd&gt;0 时这不是处处非零截面；它的零点不能被“非零轨道”按钮抹掉。两个实验分别审查几何点和全局族，不能把前者的非零数值冒充任意线丛的全局非零框架。</p>
+<p>默认 <span class="arithmatex">\(w=2,x=1,T=\operatorname{Spec}\mathbb C\)</span> 时：</p>
+<div class="arithmatex">\[
+\operatorname{Orb}(1)=\mathbb C^\times,
+\qquad
+\overline{\operatorname{Orb}(1)}=\mathbb A^1,
+\]</div>
+<div class="arithmatex">\[
+\operatorname{Stab}(1)=\mu_2,
+\qquad
+\mathbb C[x]^{\mathbb G_m}=\mathbb C.
+\]</div>
+<p>因此轨道集合报告“非零”这一类，不变量商报告一个点，stack 视图还必须报告自同构 <span class="arithmatex">\(\{1,-1\}\)</span>。切到 <span class="arithmatex">\(x=0\)</span> 后稳定子变成整个 <span class="arithmatex">\(\mathbb G_m\)</span>；切到权 <span class="arithmatex">\(1\)</span> 后非零稳定子变平凡。组件若只显示两个轨道点，就没有实现本讲的教学目标。</p>
+<p>对 <span class="arithmatex">\(T=\mathbb P^1,d=1\)</span>，无脚本状态显示过渡函数 <span class="arithmatex">\(z\)</span> 给出 <span class="arithmatex">\(\mathcal O(1)\)</span>。它在 <span class="arithmatex">\(U_0,U_1\)</span> 上分别平凡，基变换到任一图后确实成为平凡 torsor；但在整个 <span class="arithmatex">\(\mathbb P^1\)</span> 上不能选出无零全局框架。</p>
+<h2 id="10">10. 两道迁移题<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 把主模型改成权 <span class="arithmatex">\(3\)</span> 作用</p>
+<div class="arithmatex">\[
+\lambda\cdot x=\lambda^3x.
+\]</div>
+<p>写出商叠的 <span class="arithmatex">\(T\)</span>-点，计算 <span class="arithmatex">\(x=0\)</span> 与 <span class="arithmatex">\(x\ne0\)</span> 的稳定子，并求仿射不变量环。它与权 <span class="arithmatex">\(1\)</span> 商叠能否等价？</p>
+<details>
+<summary>查看线丛、截面与稳定子</summary>
+<p>一个 <span class="arithmatex">\(T\)</span>-点是线丛 <span class="arithmatex">\(L\)</span> 与截面</p>
+<div class="arithmatex">\[
+s\in\Gamma(T,L^{\otimes3}).
+\]</div>
+<p><span class="arithmatex">\(x=0\)</span> 的稳定子是整个 <span class="arithmatex">\(\mathbb G_m\)</span>。若 <span class="arithmatex">\(x\ne0\)</span>，稳定条件 <span class="arithmatex">\(\lambda^3=1\)</span> 给出</p>
+<div class="arithmatex">\[
+\operatorname{Stab}(x)=\mu_3.
+\]</div>
+<p>所有正次单项式都有正权，所以</p>
+<div class="arithmatex">\[
+\mathbb C[x]^{\mathbb G_m}=\mathbb C.
+\]</div>
+<p>权 <span class="arithmatex">\(1\)</span> 与权 <span class="arithmatex">\(3\)</span> 的轨道类型和仿射不变量商相同，但非零点稳定子分别为平凡群与 <span class="arithmatex">\(\mu_3\)</span>，因此商叠不等价。</p>
+</details>
+<p><strong>题二。</strong> 在 <span class="arithmatex">\(B\mathbb G_m(\mathbb P^1)\)</span> 中，用两张标准仿射图和基向量关系 <span class="arithmatex">\(e_1=z^2e_0\)</span> 构造线丛。再沿</p>
+<div class="arithmatex">\[
+F_3:[X_0:X_1]\longmapsto[X_0^3:X_1^3]
+\]</div>
+<p>拉回。新的过渡函数和线丛是什么？为什么这个计算同时检验了族的基变换与下降，而不只是次数相乘的口诀？</p>
+<details>
+<summary>查看重叠上的实际拉回</summary>
+<p><span class="arithmatex">\(z^2\)</span> 粘出 <span class="arithmatex">\(\mathcal O(2)\)</span>。在 <span class="arithmatex">\(U_0\)</span> 上，<span class="arithmatex">\(F_3\)</span> 把目标坐标 <span class="arithmatex">\(z\)</span> 拉回成源坐标 <span class="arithmatex">\(z^3\)</span>，所以过渡函数拉回为</p>
+<div class="arithmatex">\[
+(z^3)^2=z^6.
+\]</div>
+<p>它粘出</p>
+<div class="arithmatex">\[
+F_3^*\mathcal O(2)\cong\mathcal O(6).
+\]</div>
+<p>计算不是只比较整数：局部平凡线丛先沿两张图拉回，重叠同构 <span class="arithmatex">\(z^2\)</span> 也必须沿 <span class="arithmatex">\(F_3\)</span> 拉回，并仍满足 cocycle。正是这组拉回后的下降数据定义了全局线丛；次数 <span class="arithmatex">\(3\cdot2=6\)</span> 是计算结果。</p>
+</details>
+<h2 id="11-langlands">11. 通往几何 Langlands 还差哪些具体门槛<a class="headerlink" href="#11-langlands" title="Permanent link"></a></h2>
+<p>本讲的 quotient stack 是入口，不是研究级模叠理论的替代品。要读懂</p>
+<div class="arithmatex">\[
+\operatorname{D-mod}_{1/2}(\operatorname{Bun}_G)
+\simeq
+\operatorname{IndCoh}_{\operatorname{Nilp}}
+(\operatorname{LS}_{\check G}),
+\]</div>
+<p>至少还要逐项补齐：</p>
+<ol>
+<li>把 <span class="arithmatex">\(\operatorname{Bun}_G(T)\)</span> 写成曲线 <span class="arithmatex">\(X\times T\)</span> 上主 <span class="arithmatex">\(G\)</span>-丛的群胚，并掌握其 atlas、对角线、非准紧性与连通分支。</li>
+<li>学习 cotangent complex 与 derived mapping stack。对象的无穷小自同构、变形和障碍不是一张经典切空间能同时保存的；例如 <span class="arithmatex">\(G\)</span>-丛 <span class="arithmatex">\(P\)</span> 的变形复形由 <span class="arithmatex">\(R\Gamma(X,\operatorname{ad}P)[1]\)</span> 控制。</li>
+<li>在叠上构造 D-模的导出范畴及六函子，处理非安全映射、扭曲和 <span class="arithmatex">\(\operatorname{Bun}_G\)</span> 上的半密度修正；上一讲的单个 Weyl 商模远远不够。</li>
+<li>理解 Hecke correspondence 怎样通过拉回、张量与推前成为函子，并验证不同点、不同表示之间的张量相容性。</li>
+<li>在谱侧学习 derived stack <span class="arithmatex">\(\operatorname{LS}_{\check G}\)</span>、IndCoh 与奇异支撑；<span class="arithmatex">\(\operatorname{Nilp}\)</span> 是余切方向中的全局幂零条件，不是“稳定子含幂零矩阵”的简称。</li>
+</ol>
+<p>完成这些门槛后，才进入<a href="frontier-03-geometric-langlands.html#langlands-prerequisite-route">几何 Langlands 前沿讲</a>的正式公式。权作用实验只证明“稳定子与族必须保留”，没有构造 <span class="arithmatex">\(\operatorname{Bun}_G\)</span>、局部系统模叠、Hecke 特征对象或范畴等价。</p>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>模问题把 <span class="arithmatex">\(T\)</span> 送到 <span class="arithmatex">\(T\)</span>-族及其同构组成的群胚，并沿基变换拉回。<span class="arithmatex">\(BG(T)\)</span> 是 <span class="arithmatex">\(G\)</span>-torsor 群胚；<span class="arithmatex">\([X/G](T)\)</span> 是 torsor 加等变映射。对权 <span class="arithmatex">\(w\)</span> 的 <span class="arithmatex">\(\mathbb G_m\curvearrowright\mathbb A^1\)</span>，<span class="arithmatex">\(T\)</span>-点是 <span class="arithmatex">\((L,s\in L^w)\)</span>；权 <span class="arithmatex">\(1,2\)</span> 的轨道与不变量商相同，非零稳定子却分别为 <span class="arithmatex">\(1,\mu_2\)</span>。代数叠还要求可表示对角线与光滑满射 atlas。</p>
+<p>stack in groupoids 的下降定义见 <a href="https://stacks.math.columbia.edu/tag/02ZH">Stacks Project：Stacks in groupoids</a>，代数叠的三项条件见 <a href="https://stacks.math.columbia.edu/tag/026N">Algebraic stacks</a>，商叠构造见 <a href="https://stacks.math.columbia.edu/tag/04UI">Quotient stacks</a>，<span class="arithmatex">\(BG\)</span> 与 torsor 的精确定义见 <a href="https://stacks.math.columbia.edu/tag/036Z">Classifying torsors</a>。本讲没有建立一般 Artin 可表示性、coarse moduli space、GIT 稳定性、cotangent complex 或 derived stack；它们是进入研究级模空间前必须继续学习的内容。核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-22-d-modules.html"><span class="pager-label">上一页</span>基础 XXII · 一般D模与奇点</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
+<script defer src="assets/learning/labs/research-moduli-stacks.js?v=9fc1b9801b1c"></script>
+</body>
+</html>

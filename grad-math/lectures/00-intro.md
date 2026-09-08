@@ -55,7 +55,7 @@
 | [奇异 SPDE 与重整化](frontier-02-singular-spde.html) | [分布与弱导数](pde2-01-distributions.html)、[Itô 积分](sc-02-ito-integral.html) | 普通乘法为何失效，需怎样定义修正后的对象 | 为什么减去发散均值仍不足以证明收敛？ |
 | [几何 Langlands](frontier-03-geometric-langlands.html) | [覆盖空间](at-02-covering.html)、[群论](alg2-01-groups-advanced.html) | 从有限群 Fourier 类比进入局部系统、层与范畴 | 2024 证明系列解决的是哪个精确版本？ |
 
-几何 Langlands 的完整证明需要代数几何、D-模、导出范畴等本库尚未完整开设的先修；本讲提供可核查的概念桥梁与论文入口，不宣称一讲即可掌握证明。三讲都将经典理论、近期结果、尚待解决的问题分开标注。
+几何 Langlands 的完整证明需要代数几何、D-模、导出范畴等需要逐步学习的先修；本讲提供可核查的概念桥梁与论文入口，不宣称一讲即可掌握证明。三讲都将经典理论、近期结果、尚待解决的问题分开标注。
 
 相关路线：[物理前沿](../../physics-course/site/index.html#研究前沿课程) · [AI 前沿](../../ai-course/site/index.html#研究前沿课程)。
 
@@ -99,6 +99,8 @@
 | 比较相同双点背后的自由族与挠元族，计算乘法核和 Tor | [非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html) | 普通纤维、平坦性与导出张量的衔接 |
 | 区分相切的交点长度与乘法核，计算直线自交 | [相交、接触阶与 Tor](bridge-16-intersections-tor.html) | 非横截并不自动产生高次 Tor |
 | 把拟同构形式求逆并实际计算roof复合 | [导出范畴与roofs](bridge-21-derived-category-roofs.html) | 同伦拉回、射影提升、Ext类与锥三角 |
+| 区分函数模与点支撑、holonomic与正则性 | [一般D模与奇点](bridge-22-d-modules.html) | Weyl作用、特征簇、单值化与方向增长 |
+| 对相同轨道计算不同稳定子，拉回一族线丛 | [模叠与自同构](bridge-23-moduli-stacks.html) | torsor、下降、atlas与对角线 |
 | 从Koszul微分追踪类的乘法，区分合法分解与冗余方程 | [导出纤维积与乘法](bridge-20-derived-products.html) | 半自由模型、分次Leibniz、自交外代数 |
 | 从局部环计算 m/m²，用双数提升核验一阶切向约束 | [局部环与切空间](bridge-11-tangent-spaces.html) | 概形的无穷小信息与奇点 |
 | 写出 C* 上的水平解，检验一次绕行的单值化 | [联络、水平截面与 D-模](bridge-08-connections.html) | 局部系统、微分方程与几何 Langlands |
@@ -108,7 +110,7 @@
 | 从整个 Fourier 场的尾和证明随机分布极限，辨认临界失败 | [热核与随机分布](bridge-18-heat-distributions.html) | Sobolev 阈值、测试函数与同噪声热核极限 |
 | 看见高频共振留下低频，核对乘积条件与局部重建假设 | [分布乘积与重建](bridge-19-products-reconstruction.html) | Bony乘积、Wick增强与重建的作用边界 |
 
-验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。
+验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠都有可计算入口；研究级六函子、Bun_G、Hecke、IndCoh与奇异支撑仍需专题训练。
 
 随机分析训练可从[路径熵与随机场极限的连续作业](route-02-stochastic-readiness.html)进入：有限路径桥与 Wick 平均分成两支，各自完成诊断、计算、退出题与复测。
 

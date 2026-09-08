@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一般D模与奇点 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li><li><a href="bridge-20-derived-products.html">基础 XX · 导出纤维积与乘法</a></li><li><a href="bridge-21-derived-category-roofs.html">基础 XXI · 导出范畴与roofs</a></li><li class="active"><a href="bridge-22-d-modules.html">基础 XXII · 一般D模与奇点</a></li><li><a href="bridge-23-moduli-stacks.html">基础 XXIII · 模叠与自同构</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li><li><a href="bridge-18-heat-distributions.html">基础 XVIII · 热核与随机分布</a></li><li><a href="bridge-19-products-reconstruction.html">基础 XIX · 分布乘积与重建</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">真实数据与综合项目</div><ul><li><a href="project-01-co2-trends.html">真实数据 · CO₂趋势与相关误差</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:55</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#d-modules-title">同一个微分算子，怎样既描述函数，也描述只活在一点上的对象？</a></li>
+<li><a href="#1">1. 乘坐标与求导为什么不能放进交换多项式环</a></li>
+<li><a href="#2-mathcal-d_x">2. 一般光滑簇上的 \(\mathcal D_X\)</a></li>
+<li><a href="#3-a_1a_1partial">3. 第一个商模：\(A_1/A_1\partial\) 就是普通多项式函数</a></li>
+<li><a href="#4-a_1a_1x">4. 第二个商模：\(A_1/A_1x\) 只支撑在原点，却不是有限维</a></li>
+<li><a href="#5">5. 特征簇：把最高阶方向投影到余切空间</a></li>
+<li><a href="#6-xpartial-alpha">6. \(x\partial-\alpha\)：正则奇点、规范移位与单值化</a></li>
+<li><a href="#7">7. 不规则奇点：单值化甚至可能什么也没发现</a></li>
+<li><a href="#8">8. 操作同一个代数关系，再比较不同奇点</a></li>
+<li><a href="#9">9. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="22-d-">基础衔接 22 · D-模：把微分方程、支撑与奇点装进同一个对象<a class="headerlink" href="#22-d-" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-01-modules.html">模与商</a>、<a href="bridge-03-complexes.html">链复形</a>、<a href="bridge-08-connections.html">联络与单值化</a>、<a href="bridge-21-derived-category-roofs.html">导出范畴与 roofs</a>。本讲固定在特征 <span class="arithmatex">\(0\)</span> 的复数域上，先从仿射直线的第一 Weyl 代数算起，再说明哪些结论能推广到光滑簇。目标是分清“向量丛带可积联络”与“一般 D-模”，并用特征簇、正则奇点和不规则奇点回答三种不同的问题。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="d-modules-title" class="learning-layer">
+<h2 id="d-modules-title">同一个微分算子，怎样既描述函数，也描述只活在一点上的对象？<a class="headerlink" href="#d-modules-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 乘坐标与求导为什么不能放进交换多项式环<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(X=\mathbb A^1_{\mathbb C}\)</span> 上，让 <span class="arithmatex">\(x\)</span> 表示乘以坐标，让 <span class="arithmatex">\(\partial=\partial_x\)</span> 表示求导。对任意多项式 <span class="arithmatex">\(f\)</span>，乘积法则给出</p>
+<div class="arithmatex">\[
+\partial(xf)-x\partial(f)=f.
+\]</div>
+<p>所以作为算子有</p>
+<div class="arithmatex">\[
+\boxed{[\partial,x]=\partial x-x\partial=1.}
+\]</div>
+<p>第一 Weyl 代数定义为</p>
+<div class="arithmatex">\[
+A_1=\mathbb C\langle x,\partial\rangle/
+(\partial x-x\partial-1).
+\]</div>
+<p>尖括号表示先取不交换自由代数。关系允许把每个元素唯一整理成</p>
+<div class="arithmatex">\[
+P=\sum_{j=0}^r a_j(x)\partial^j,
+\qquad a_j(x)\in\mathbb C[x].
+\]</div>
+<p>例如</p>
+<div class="arithmatex">\[
+\partial x^3=x^3\partial+3x^2.
+\]</div>
+<p>右边多出的 <span class="arithmatex">\(3x^2\)</span> 正是 Leibniz 规则，不是排序误差。若错误地令 <span class="arithmatex">\(x\partial=\partial x\)</span>，就会把所有导数对系数的作用删掉。</p>
+<p>正规形的存在来自反复用 <span class="arithmatex">\(\partial x=x\partial+1\)</span> 换序；唯一性可用算子作用检验：若最高阶为 r 的组合恒为零，连续与乘 x 取 r 次交换子会得到 <span class="arithmatex">\(r!a_r(x)=0\)</span>，特征0迫使最高系数为零，再向下归纳。</p>
+<p>一个<strong>左 <span class="arithmatex">\(A_1\)</span>-模</strong> <span class="arithmatex">\(M\)</span> 同时给出 <span class="arithmatex">\(x\)</span> 与 <span class="arithmatex">\(\partial\)</span> 在 <span class="arithmatex">\(M\)</span> 上的作用，并要求二者满足同一交换子关系。元素 <span class="arithmatex">\(m\in M\)</span> 可被多项式乘，也可被求导方向作用；一个循环模常写成</p>
+<div class="arithmatex">\[
+M=A_1/A_1P,
+\]</div>
+<p>其中 <span class="arithmatex">\(A_1P\)</span> 是由算子 <span class="arithmatex">\(P\)</span> 生成的左理想。关系 <span class="arithmatex">\(P\bar1=0\)</span> 把微分方程保存在模内部。</p>
+<h2 id="2-mathcal-d_x">2. 一般光滑簇上的 <span class="arithmatex">\(\mathcal D_X\)</span><a class="headerlink" href="#2-mathcal-d_x" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(X\)</span> 是光滑复代数簇。可内在地令 <span class="arithmatex">\(F_{-1}\mathcal D_X=0\)</span>，并递归定义 <span class="arithmatex">\(F_r\mathcal D_X\)</span> 为满足 <span class="arithmatex">\([P,f]\in F_{r-1}\mathcal D_X\)</span> 对所有局部函数 f 成立的复线性算子 P；取这些层之并就是 <span class="arithmatex">\(\mathcal D_X\)</span>。在本讲的光滑特征0条件下，微分算子层 <span class="arithmatex">\(\mathcal D_X\)</span> 由函数 <span class="arithmatex">\(f\in\mathcal O_X\)</span> 与向量场 <span class="arithmatex">\(\xi\in\mathcal T_X\)</span> 局部生成，基本关系是</p>
+<div class="arithmatex">\[
+[\xi,f]=\xi(f),
+\qquad
+[\xi,\eta]=[\xi,\eta]_{\rm Lie}.
+\]</div>
+<p>在一张光滑坐标图 <span class="arithmatex">\((x_1,\ldots,x_n)\)</span> 上，它看起来像由</p>
+<div class="arithmatex">\[
+x_1,\ldots,x_n,\partial_1,\ldots,\partial_n
+\]</div>
+<p>生成的 Weyl 代数层，其中</p>
+<div class="arithmatex">\[
+[\partial_i,x_j]=\delta_{ij},
+\qquad [x_i,x_j]=[\partial_i,\partial_j]=0.
+\]</div>
+<p>“光滑、特征 <span class="arithmatex">\(0\)</span>”不是装饰条件。它使切向量场表现良好，并让微分算子按阶数的伴随分次恢复余切空间上的交换函数环。奇异底空间或正特征中的微分算子会出现额外现象，本讲的公式不能原样搬过去。</p>
+<p>全讲使用<strong>左 D-模</strong>。左右 D-模可以借助典范线丛互换，但公式会带符号和扭曲；不声明侧别就直接混用商模，是常见错误。</p>
+<h2 id="3-a_1a_1partial">3. 第一个商模：<span class="arithmatex">\(A_1/A_1\partial\)</span> 就是普通多项式函数<a class="headerlink" href="#3-a_1a_1partial" title="Permanent link"></a></h2>
+<p>令</p>
+<div class="arithmatex">\[
+M_{\rm fun}=A_1/A_1\partial,
+\qquad e=[1].
+\]</div>
+<p>关系 <span class="arithmatex">\(\partial e=0\)</span> 意味着每个正规形中含正次 <span class="arithmatex">\(\partial\)</span> 的项作用到 <span class="arithmatex">\(e\)</span> 后消失。因此</p>
+<div class="arithmatex">\[
+M_{\rm fun}=\mathbb C[x]e
+\]</div>
+<p>作为 <span class="arithmatex">\(\mathbb C[x]\)</span>-模自由秩一。作用为</p>
+<div class="arithmatex">\[
+x\cdot(f e)=xf e,
+\qquad
+\partial\cdot(f e)=f'e,
+\]</div>
+<p>因为</p>
+<div class="arithmatex">\[
+\partial(f e)=f\partial e+f'e=f'e.
+\]</div>
+<p>所以 <span class="arithmatex">\(M_{\rm fun}\)</span> 不是“满足所有导数为零的常数空间”。它是整个函数模，只是循环生成元 <span class="arithmatex">\(e\)</span> 被 <span class="arithmatex">\(\partial\)</span> 杀死；对 <span class="arithmatex">\(xe\)</span> 再作用 <span class="arithmatex">\(\partial\)</span> 仍得到 <span class="arithmatex">\(e\)</span>。</p>
+<p>一般地，一个向量丛 <span class="arithmatex">\(E\)</span> 带代数联络</p>
+<div class="arithmatex">\[
+\nabla:E\longrightarrow E\otimes\Omega_X^1
+\]</div>
+<p>时，可以令向量场按 <span class="arithmatex">\(\nabla_\xi\)</span> 作用。要让所有向量场关系真的给出 <span class="arithmatex">\(\mathcal D_X\)</span>-作用，必须有零曲率</p>
+<div class="arithmatex">\[
+[\nabla_\xi,\nabla_\eta]=\nabla_{[\xi,\eta]}.
+\]</div>
+<p>这就是<strong>可积或平坦联络</strong>。在光滑特征 <span class="arithmatex">\(0\)</span> 情形，底层为 <span class="arithmatex">\(\mathcal O_X\)</span>-凝聚的左 <span class="arithmatex">\(\mathcal D_X\)</span>-模与带可积联络的向量丛对应；这里的 <span class="arithmatex">\(\mathcal O_X\)</span>-凝聚条件至关重要。</p>
+<h2 id="4-a_1a_1x">4. 第二个商模：<span class="arithmatex">\(A_1/A_1x\)</span> 只支撑在原点，却不是有限维<a class="headerlink" href="#4-a_1a_1x" title="Permanent link"></a></h2>
+<p>现在令</p>
+<div class="arithmatex">\[
+M_\delta=A_1/A_1x,
+\qquad \delta=[1].
+\]</div>
+<p>关系是 <span class="arithmatex">\(x\delta=0\)</span>。用 <span class="arithmatex">\(\partial x-x\partial=1\)</span> 反复换序，可得</p>
+<div class="arithmatex">\[
+x\partial^j=\partial^jx-j\partial^{j-1}.
+\]</div>
+<p>因此在商模中</p>
+<div class="arithmatex">\[
+\boxed{x\partial^j\delta=-j\partial^{j-1}\delta.}
+\]</div>
+<p>作为复向量空间，<span class="arithmatex">\(M_\delta\)</span> 有基</p>
+<div class="arithmatex">\[
+\delta,\partial\delta,\partial^2\delta,\ldots.
+\]</div>
+<p>它不是有限维，也不是 <span class="arithmatex">\(\mathbb C[x]\)</span>-有限生成模：乘 <span class="arithmatex">\(x\)</span> 只能把导数阶数向下降，无法从有限多个基向量生成任意高阶 <span class="arithmatex">\(\partial^j\delta\)</span>。但把 <span class="arithmatex">\(x\)</span> 局部化为可逆元后，<span class="arithmatex">\(x\delta=0\)</span> 会推出 <span class="arithmatex">\(\delta=0\)</span>，所以这个模的几何支撑只在 <span class="arithmatex">\(x=0\)</span>。</p>
+<p>这正是“所有 D-模都是向量丛带联络”的反例。<span class="arithmatex">\(M_\delta\)</span> 是循环的、D-凝聚的，却有点支撑，底层不是局部自由 <span class="arithmatex">\(\mathcal O_X\)</span>-模。把它类比为 delta 分布及其导数有助于直觉，但代数定义就是上面的左商模，不依赖先建立分布论。</p>
+<p>还有一个有用的警告：方程 <span class="arithmatex">\(xu=0\)</span> 在普通全纯函数中只有零解，但 <span class="arithmatex">\(M_\delta\)</span> 本身绝非零对象。若只用普通函数解空间探测所有 D-模，会漏掉点支撑信息；完整的 Riemann-Hilbert 对应需要导出解函子和构造性层，而不是“把每个方程写成若干函数”。</p>
+<figure>
+<p><img alt="顶部从乘坐标与求导的交换子进入Weyl代数。中部并列比较A1模掉偏导与A1模掉x：前者是函数模且特征簇为零截面，后者由delta及其各阶导数组成且特征簇是原点的整个余切纤维。底部比较x偏导减alpha的正则奇点和偏导减一除x平方的不规则奇点，前者由幂函数与单值化描述，后者由指数e负一除x的方向增长描述。" src="assets/img/bridge-22-d-modules.svg" /></p>
+<figcaption>
+<p>D-模同时看见方程与支撑。两个商模都 holonomic，却分别沿整个底空间传播和集中在一点；正则性则是另一层关于奇点渐近行为的信息。</p>
+</figcaption>
+</figure>
+<h2 id="5">5. 特征簇：把最高阶方向投影到余切空间<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>按微分阶数过滤 <span class="arithmatex">\(\mathcal D_X\)</span>：函数是 <span class="arithmatex">\(0\)</span> 阶，向量场是 <span class="arithmatex">\(1\)</span> 阶。交换子会降低一次阶数，因此伴随分次重新交换，并有</p>
+<div class="arithmatex">\[
+\operatorname{gr}\mathcal D_X
+\cong\operatorname{Sym}_{\mathcal O_X}\mathcal T_X
+\cong\pi_*\mathcal O_{T^*X},\qquad \pi:T^*X\to X.
+\]</div>
+<p>这里的凝聚 D-模要求底层O-拟凝聚，并局部由有限多个元素作为D-模生成。对这样的 M，<strong>好过滤</strong>是下有界、穷尽的O-凝聚子模过滤 <span class="arithmatex">\(F_jM\)</span>，满足 <span class="arithmatex">\(F_i\mathcal D_X\cdot F_jM\subseteq F_{i+j}M\)</span>，且分次模局部有限生成于 <span class="arithmatex">\(\operatorname{gr}\mathcal D_X\)</span>。它把无穷多个导数按阶数组织起来；不是截掉高阶后改变原模。将分次模视为余切空间上的凝聚层，令</p>
+<div class="arithmatex">\[
+\operatorname{Char}(M)
+=\operatorname{Supp}(\operatorname{gr}M)
+\subseteq T^*X.
+\]</div>
+<p>虽然好过滤不唯一，所得特征簇的闭子集与选择无关。它记录微分方程在哪些余切方向失去椭圆性；这里只讨论集合支撑，不计算特征循环的重数。</p>
+<p>在 <span class="arithmatex">\(\mathbb A^1\)</span> 上用余切坐标 <span class="arithmatex">\(\xi\)</span> 表示 <span class="arithmatex">\(\partial\)</span> 的主符号。于是</p>
+<div class="arithmatex">\[
+\operatorname{Char}(M_{\rm fun})=V(\xi),
+\]</div>
+<p>即余切丛的零截面；而</p>
+<div class="arithmatex">\[
+\operatorname{Char}(M_\delta)=V(x),
+\]</div>
+<p>即原点上方的整个余切纤维。可以直接检查：函数模取 <span class="arithmatex">\(F_j=0\)</span>（j&lt;0）、<span class="arithmatex">\(F_j=\mathbb C[x]e\)</span>（j≥0），正阶导数在分次上作用为0，故分次模是 <span class="arithmatex">\(\mathbb C[x,\xi]/(\xi)\)</span>。点模取 <span class="arithmatex">\(F_j=\operatorname{span}_{\mathbb C}(\delta,\ldots,\partial^j\delta)\)</span>；乘x降阶，所以在分次上作用为0，而ξ升阶，故分次模是 <span class="arithmatex">\(\mathbb C[x,\xi]/(x)\)</span>。这实际给出上述两张特征簇，而不只是从图猜支撑。两者维数都为 <span class="arithmatex">\(1=\dim X\)</span>。</p>
+<p>对光滑不可约 <span class="arithmatex">\(n\)</span> 维 <span class="arithmatex">\(X\)</span> 上的非零凝聚 D-模，Bernstein 不等式给出</p>
+<div class="arithmatex">\[
+\dim\operatorname{Char}(M)\ge n.
+\]</div>
+<p>若取到最小可能维数</p>
+<div class="arithmatex">\[
+\boxed{\dim\operatorname{Char}(M)=\dim X,}
+\]</div>
+<p>就称 <span class="arithmatex">\(M\)</span> 为 <strong>holonomic D-模</strong>。holonomic 表示方程系统在特征方向意义下“尽可能有限”，不表示底层向量空间有限维，也不表示底层 <span class="arithmatex">\(\mathcal O_X\)</span>-模一定是向量丛。<span class="arithmatex">\(M_\delta\)</span> 同时反驳这两个误解。</p>
+<h2 id="6-xpartial-alpha">6. <span class="arithmatex">\(x\partial-\alpha\)</span>：正则奇点、规范移位与单值化<a class="headerlink" href="#6-xpartial-alpha" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(X=\mathbb G_m=\operatorname{Spec}\mathbb C[x,x^{-1}]\)</span> 上考虑循环 D-模</p>
+<div class="arithmatex">\[
+M_\alpha=\mathcal D_X/
+\mathcal D_X(x\partial-\alpha).
+\]</div>
+<p>一支 D-线性解把生成元送到局部函数 <span class="arithmatex">\(u\)</span>，关系要求</p>
+<div class="arithmatex">\[
+(x\partial-\alpha)u=0.
+\]</div>
+<p>在选定 <span class="arithmatex">\(\operatorname{Log}x\)</span> 的小区域中</p>
+<div class="arithmatex">\[
+u=x^\alpha=\exp(\alpha\operatorname{Log}x).
+\]</div>
+<p>绕 <span class="arithmatex">\(x=0\)</span> 正向一周，<span class="arithmatex">\(\operatorname{Log}x\)</span> 增加 <span class="arithmatex">\(2\pi i\)</span>，因此解的单值化是</p>
+<div class="arithmatex">\[
+\boxed{u\longmapsto e^{2\pi i\alpha}u.}
+\]</div>
+<p>这里算的是解函子 <span class="arithmatex">\(\operatorname{Hom}_{\mathcal D}(M_\alpha,\mathcal O)\)</span> 的单值化。模自身满足 <span class="arithmatex">\(\partial e=(\alpha/x)e\)</span>；它的水平截面 <span class="arithmatex">\(fe\)</span> 却满足 <span class="arithmatex">\(f^{\prime}+(\alpha/x)f=0\)</span>，所以是 <span class="arithmatex">\(x^{-\alpha}e\)</span>，单值化为 <span class="arithmatex">\(e^{-2\pi i\alpha}\)</span>。两者互为对偶，不能把解空间与模自身的水平截面混用。</p>
+<p>把未知函数写成 <span class="arithmatex">\(u=x^m v\)</span>，其中 <span class="arithmatex">\(m\in\mathbb Z\)</span>，则</p>
+<div class="arithmatex">\[
+x\partial v=(\alpha-m)v.
+\]</div>
+<p>所以整数规范变换把 <span class="arithmatex">\(\alpha\)</span> 改为 <span class="arithmatex">\(\alpha-m\)</span>，而</p>
+<div class="arithmatex">\[
+e^{2\pi i(\alpha-m)}=e^{2\pi i\alpha}
+\]</div>
+<p>保持单值化。<span class="arithmatex">\(\alpha=3/2\)</span> 与 <span class="arithmatex">\(1/2\)</span> 在 <span class="arithmatex">\(\mathbb G_m\)</span> 上由这种规范相连；这不自动说明它们在已经指定延拓的 <span class="arithmatex">\(\mathbb A^1\)</span> 上是同一个 D-模，因为 <span class="arithmatex">\(x^m\)</span> 在原点未必可逆。</p>
+<p>把方程看成原点附近的亚纯联络时，系数 <span class="arithmatex">\(\alpha/x\)</span> 至多有一阶极点，属于<strong>正则奇点</strong>。正则性控制的是解在奇点附近的增长类型；它与 holonomic 不是同一个形容词。具体选择延拓 <span class="arithmatex">\(\widetilde M_\alpha=A_1/A_1(x\partial-\alpha)\)</span>（不是宣称所有延拓相同）。其算子主符号是</p>
+<div class="arithmatex">\[
+\sigma(x\partial-\alpha)=x\xi,
+\]</div>
+<p>因主符号环是整环，<span class="arithmatex">\(\sigma(QP)=\sigma(Q)\sigma(P)\)</span>，这个主左理想的分次理想正是 <span class="arithmatex">\((x\xi)\)</span>。故此延拓的特征簇等于</p>
+<div class="arithmatex">\[
+V(x\xi)=V(\xi)\cup V(x),
+\]</div>
+<p>即零截面与原点余切纤维之并，仍是一维，因而 holonomic。特征簇看见原点是奇异位置，却没有仅凭这张集合告诉我们奇点是否正则。</p>
+<h2 id="7">7. 不规则奇点：单值化甚至可能什么也没发现<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>在穿孔圆盘上考虑</p>
+<div class="arithmatex">\[
+\left(\partial-\frac1{x^2}\right)u=0.
+\]</div>
+<p>积分给出</p>
+<div class="arithmatex">\[
+u(x)=e^{-1/x}.
+\]</div>
+<p>它绕原点一周仍回到自身，单值化是 <span class="arithmatex">\(1\)</span>。但若写</p>
+<div class="arithmatex">\[
+x=re^{i\theta},
+\]</div>
+<p>则</p>
+<div class="arithmatex">\[
+|u(x)|=\exp\left(-\frac{\cos\theta}{r}\right).
+\]</div>
+<p>沿 <span class="arithmatex">\(\theta=0\)</span> 接近原点时它快速衰减，沿 <span class="arithmatex">\(\theta=\pi\)</span> 时却以 <span class="arithmatex">\(e^{1/r}\)</span> 快速增长；<span class="arithmatex">\(\theta=\pi/2,3\pi/2\)</span> 是增长类型改变的方向。系数 <span class="arithmatex">\(1/x^2\)</span> 是二阶极点，这个秩一模型在 <span class="arithmatex">\(0\)</span> 有<strong>不规则奇点</strong>，它的指数增长类型不能由普通单值化矩阵完整记录。这个秩一精确指数例没有非平凡的 Stokes 矩阵；高秩系统中不同扇区的渐近基还可能通过非平凡 Stokes 矩阵连接，不能把本例的方向增长直接当成已经算出了那些矩阵。</p>
+<p>因此三张账必须分开：</p>
+<table>
+<thead>
+<tr>
+<th>性质</th>
+<th>回答的问题</th>
+<th>本讲例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>holonomic</td>
+<td>特征簇是否达到最小维数</td>
+<td><span class="arithmatex">\(M_{\rm fun},M_\delta,M_\alpha\)</span> 都是</td>
+</tr>
+<tr>
+<td>regular singular</td>
+<td>奇点附近是否只有受控的正则增长</td>
+<td><span class="arithmatex">\(x\partial-\alpha\)</span> 在 <span class="arithmatex">\(0\)</span> 正则</td>
+</tr>
+<tr>
+<td>monodromy</td>
+<td>沿闭路解析延拓怎样变换解</td>
+<td><span class="arithmatex">\(e^{2\pi i\alpha}\)</span>；<span class="arithmatex">\(e^{-1/x}\)</span> 的普通单值化为 <span class="arithmatex">\(1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>“单值化平凡”不推出正则，“holonomic”也不推出所有奇点正则。正则 holonomic D-模与构造性拓扑数据之间有经典 Riemann-Hilbert 对应；不规则情形需要加入 Stokes 数据的增强版本。本讲只展示这些条件为什么不可删，没有证明对应。</p>
+<h2 id="8">8. 操作同一个代数关系，再比较不同奇点<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<div class="learning-lab" data-learning-lab="research-d-modules" data-research-topic="weyl-support"></div>
+<p>第一项实验按有限多项式的精确系数实际执行 x 与 ∂ 的两种顺序。它仅显示无限维模中的有限多个元素，没有在最高次数把乘法截断成一个错误的有限维 Weyl 表示。特征簇图是复余切簇的实坐标切片；零截面和纤维是整条线，图窗外继续延伸。</p>
+<div class="learning-lab" data-learning-lab="research-d-modules" data-research-topic="singular-growth"></div>
+<p>第二项实验把“绕一圈”和“沿一条射线接近零”分开。图画 log|u|，避免指数过大掩盖另一条方向；调小半径时，正则幂函数随 log r 变化，不规则指数随 1/r 变化。滑块中的 α 取实数，不能据此概括所有复参数或所有高秩系统。</p>
+<p>无脚本默认先取 <span class="arithmatex">\(j=3\)</span>：</p>
+<div class="arithmatex">\[
+x\partial^3\delta=-3\partial^2\delta.
+\]</div>
+<p>交换子可在 <span class="arithmatex">\(x^3\)</span> 上核对：</p>
+<div class="arithmatex">\[
+\partial(x\cdot x^3)-x\partial(x^3)
+=4x^3-3x^3=x^3.
+\]</div>
+<p>再取 <span class="arithmatex">\(\alpha=1/2,w=1\)</span>，得到单值化 <span class="arithmatex">\(e^{\pi i}=-1\)</span>。正则模型的特征方程是 <span class="arithmatex">\(x\xi=0\)</span>；不规则模型 <span class="arithmatex">\(e^{-1/x}\)</span> 的普通单值化虽为 <span class="arithmatex">\(1\)</span>，沿正实轴衰减、沿负实轴增长。实验必须同时报告这两件事，不能用“转一圈回来了”误判正则性。</p>
+<h2 id="9">9. 两道迁移题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 考虑</p>
+<div class="arithmatex">\[
+M=A_1/A_1(\partial-x).
+\]</div>
+<p>求局部函数解，计算其在 <span class="arithmatex">\(\mathbb A^1\)</span> 上的特征簇并判断是否 holonomic。把直线紧化到 <span class="arithmatex">\(\mathbb P^1\)</span> 后，<span class="arithmatex">\(\infty\)</span> 是正则还是不规则奇点？</p>
+<details>
+<summary>查看解、主符号与无穷远渐近</summary>
+<p>方程是 <span class="arithmatex">\(u'=xu\)</span>，所以</p>
+<div class="arithmatex">\[
+u=e^{x^2/2}
+\]</div>
+<p>乘任意常数。算子的一阶主符号是 <span class="arithmatex">\(\xi\)</span>，故</p>
+<div class="arithmatex">\[
+\operatorname{Char}(M)=V(\xi),
+\]</div>
+<p>是零截面，维数 <span class="arithmatex">\(1\)</span>；因此 <span class="arithmatex">\(M\)</span> holonomic。</p>
+<p>令 <span class="arithmatex">\(z=1/x\)</span>。因为 <span class="arithmatex">\(\partial_x=-z^2\partial_z\)</span>，方程变成</p>
+<div class="arithmatex">\[
+\partial_z u=-\frac1{z^3}u,
+\]</div>
+<p>解为 <span class="arithmatex">\(e^{1/(2z^2)}\)</span>。系数有三阶极点并产生方向相关的指数增长，所以 <span class="arithmatex">\(\infty\)</span> 是不规则奇点。仿射特征簇为零截面并没有自动证明紧化边界处正则。</p>
+</details>
+<p><strong>题二。</strong> 比较 <span class="arithmatex">\(M_{\rm fun}=A_1/A_1\partial\)</span> 与 <span class="arithmatex">\(M_\delta=A_1/A_1x\)</span>。分别算 <span class="arithmatex">\(x\partial^2\)</span> 对循环生成元的作用，并说明为什么两者都是 holonomic，却只有前者来自 <span class="arithmatex">\(\mathbb A^1\)</span> 上的向量丛带联络。</p>
+<details>
+<summary>查看交换子、支撑与底层 O 模</summary>
+<p>在 <span class="arithmatex">\(M_{\rm fun}\)</span> 中 <span class="arithmatex">\(\partial e=0\)</span>，所以</p>
+<div class="arithmatex">\[
+x\partial^2e=0.
+\]</div>
+<p>在 <span class="arithmatex">\(M_\delta\)</span> 中</p>
+<div class="arithmatex">\[
+x\partial^2\delta=-2\partial\delta.
+\]</div>
+<p>前者作为 <span class="arithmatex">\(\mathbb C[x]\)</span>-模是自由秩一，带通常微分作用；其特征簇为 <span class="arithmatex">\(V(\xi)\)</span>。后者的基为所有 <span class="arithmatex">\(\partial^j\delta\)</span>，不是 <span class="arithmatex">\(\mathbb C[x]\)</span>-有限生成模，并只支撑在原点；其特征簇为 <span class="arithmatex">\(V(x)\)</span>。两张特征簇都一维，所以两者都 holonomic；holonomic 条件没有把点支撑模块强迫成向量丛。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathcal D_X\)</span> 同时编码函数与向量场，局部满足 <span class="arithmatex">\([\partial_i,x_j]=\delta_{ij}\)</span>。只有底层 <span class="arithmatex">\(\mathcal O_X\)</span>-凝聚的左 D-模才对应向量丛带可积联络；<span class="arithmatex">\(A_1/A_1x\)</span> 是点支撑反例。特征簇来自好过滤，holonomic 指其维数等于 <span class="arithmatex">\(\dim X\)</span>。<span class="arithmatex">\(x\partial-\alpha\)</span> 是正则奇点模型，单值化为 <span class="arithmatex">\(e^{2\pi i\alpha}\)</span>；<span class="arithmatex">\(e^{-1/x}\)</span> 单值化平凡却不规则。</p>
+<p>定义、好过滤、特征簇、holonomic 与 Riemann-Hilbert 边界可核对 <a href="https://websites.umich.edu/~mmustata/DmodulesNotes.pdf">Mustață：D-modules and singularities</a>；Weyl 代数入口见 <a href="https://ic.ufrj.br/~collier/Books/Dmod.html">Coutinho：A primer of algebraic D-modules</a>，联络的代数定义见 <a href="https://stacks.math.columbia.edu/tag/07I0">Stacks Project：Connections</a>。本讲没有构造六函子、特征循环、V-filtration、b-function、perverse sheaf 或不规则 Riemann-Hilbert 对应；在模叠上定义 D-模还需要下一讲的几何语言。核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-21-derived-category-roofs.html"><span class="pager-label">上一页</span>基础 XXI · 导出范畴与roofs</a>
+  <a class="pager-slot next" href="bridge-23-moduli-stacks.html"><span class="pager-label">下一页</span>基础 XXIII · 模叠与自同构</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
+<script defer src="assets/learning/labs/research-d-modules.js?v=d7ade2c9fce2"></script>
+</body>
+</html>

@@ -123,6 +123,8 @@ COURSE = [
         ("bridge-16-intersections-tor.md", "基础 XVI · 相交、接触阶与 Tor"),
         ("bridge-20-derived-products.md", "基础 XX · 导出纤维积与乘法"),
         ("bridge-21-derived-category-roofs.md", "基础 XXI · 导出范畴与roofs"),
+        ("bridge-22-d-modules.md", "基础 XXII · 一般D模与奇点"),
+        ("bridge-23-moduli-stacks.md", "基础 XXIII · 模叠与自同构"),
     ]),
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),

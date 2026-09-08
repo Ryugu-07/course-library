@@ -18,8 +18,8 @@
 | 1. 环、模与概形 | 几何需要记录函数、局部结构及无穷小信息 | 解释为何两个只有一个普通点的对象仍可能具有不同函数环 | [环与域](../../math-course/site/alg-abs-02-rings-fields.html)、[模与商](bridge-01-modules.html)、[局部化](bridge-02-localization.html)、[交换代数](https://stacks.math.columbia.edu/tag/00AO)、[概形](https://stacks.math.columbia.edu/tag/01H8) |
 | 2. 层与向量丛 | 各坐标片的数据要在重叠处相容地粘合 | 写出三片重叠上的转移矩阵条件；说明局部平凡为何不等于整体平凡 | [覆盖空间](at-02-covering.html)、[层与粘合的算例](bridge-04-sheaves.html)、[层](https://stacks.math.columbia.edu/tag/006A) |
 | 3. 同调代数与导出范畴 | 核、余核和高阶障碍要在同一框架中追踪 | 对一个两项复形计算两级上同调，检查参数变化时是否跳跃 | [同调与边界](at-03-homology.html)、[链复形的完整计算](bridge-03-complexes.html)、[同调代数](https://stacks.math.columbia.edu/tag/00ZU)、[导出范畴](https://stacks.math.columbia.edu/tag/05QI) |
-| 4. 联络、局部系统与 D-模 | 几何对象上还要记录微分方程与平行运输 | 计算微分与乘法的交换子，说明微分算子环为何不交换 | [联络](mfld-03-riemannian.html)、本讲第 2、3 节；进入论文前仍需专门的代数 D-模训练 |
-| 5. 模叠、Hecke 对应与相容性 | 参数空间必须保留自同构，对应要作用在整族对象上 | 说明为什么仅把同构对象合成一个点会丢掉自同构；写出 Hecke 特征关系中各项的类型 | 本讲第 2、4 节；[作者证明系列](https://people.mpim-bonn.mpg.de/gaitsgde/GLC/)作为研究入口 |
+| 4. 联络、局部系统与 D-模 | 几何对象上还要记录微分方程与平行运输 | 计算微分与乘法的交换子，说明微分算子环为何不交换 | [秩一联络](bridge-08-connections.html) → [一般D模与奇点](bridge-22-d-modules.html)；后续六函子与叠上D模另需研究训练 |
+| 5. 模叠、Hecke 对应与相容性 | 参数空间必须保留自同构，对应要作用在整族对象上 | 说明为什么仅把同构对象合成一个点会丢掉自同构；写出 Hecke 特征关系中各项的类型 | [模叠、torsor与下降](bridge-23-moduli-stacks.html)；本讲第 2、4 节及[作者证明系列](https://people.mpim-bonn.mpg.de/gaitsgde/GLC/)作为研究入口 |
 
 新开的[椭圆曲线与现代数论线](nt-01-elliptic-counting.html)补充算术例子和 Frobenius 的动机。它与上述路线互相启发，但点数计算不会自动建立层、导出范畴或 D-模。理解有限例子、读懂定理陈述、掌握证明，是三个不同的学习目标。
 
@@ -211,3 +211,5 @@ $A\phi_k=(\omega^k+\omega^{-k})\phi_k$，特征值为 $2,-1,-1$。后两个方�
 导出观点的计算衔接：[链同伦与映射锥](bridge-12-homotopy-cones.html)。先用锥检测拟同构，再区分在同伦范畴中已有逆与需要进一步形式反演的映射；这仍不是完整导出范畴或导出代数几何课程。
 
 若要把导出自交的直觉变成可跟算的例子，接着做[相交、接触阶与 Tor](bridge-16-intersections-tor.html)的三例与共享分量迁移题。
+
+把概念落实到计算：先做[一般D模](bridge-22-d-modules.html)的点支撑商模和不规则反例，再做[模叠](bridge-23-moduli-stacks.html)的权作用与P¹族。后者列明Bun_G、余切复形、叠上六函子、Hecke、IndCoh与幂零奇异支撑的研究门槛，不能把完成有限实验误记为完成Langlands证明。

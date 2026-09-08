@@ -313,3 +313,5 @@ $$
 继续计算：[射影直线上的 Čech 上同调](bridge-06-cech.html)把相容函数对推广到 $\mathcal O(k)$ 的局部截面，并测量一次粘合障碍。
 
 继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。
+
+从空间粘合继续到[模叠与下降](bridge-23-moduli-stacks.html)，比较局部对象、重叠同构和全局非平凡torsor，并实际拉回P¹上的线丛。

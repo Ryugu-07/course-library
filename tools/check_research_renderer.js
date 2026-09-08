@@ -92,4 +92,12 @@ scatter.mount(scatterRoot,api);all(scatterRoot,n=>n.tag==="button")[0].fire("cli
 equal(all(scatterRoot,n=>n.attrs.className==="rs-data-point").length,2);
 equal(all(scatterRoot,n=>n.tag==="polyline").length,0);
 equal(all(scatterRoot,n=>n.attrs.className==="rs-data-point").map(n=>n.attrs.cx),[104,420]);
+// A unit circle must stay circular when the plotting rectangle is not square.
+const circle=renderer.create("circle",{test:{...config,compute:()=>({rows:[["points",4]],chart:{equalScale:true,title:"circle",xlabel:"x",ylabel:"y",series:[{dots:true,points:[[-1,0],[1,0],[0,-1],[0,1]]}]},text:"unit circle"})}});
+const circleRoot=new Node("div",{"data-research-topic":"test"});circleRoot.ownerDocument=doc;
+circle.mount(circleRoot,api);all(circleRoot,n=>n.tag==="button")[0].fire("click");
+const cp=all(circleRoot,n=>n.attrs.className==="rs-data-point");
+equal(cp.length,4);
+equal(Math.abs((cp[1].attrs.cx-cp[0].attrs.cx)-(cp[2].attrs.cy-cp[3].attrs.cy))<1e-10,true);
+equal(cp.every(p=>p.attrs.cx>=104&&p.attrs.cx<=420&&p.attrs.cy>=48&&p.attrs.cy<=254),true);
 console.log(`PASS: ${checks} shared renderer contract and interaction checks`);

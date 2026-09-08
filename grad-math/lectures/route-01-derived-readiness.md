@@ -164,3 +164,5 @@ P 的 $H^0=\mathbb Z/3$，其余为零。原锥为 $\mathbb Z\xrightarrow{-3}\ma
 
 
 下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。
+
+准备进入几何Langlands时，请补做[一般D模](bridge-22-d-modules.html)与[模叠](bridge-23-moduli-stacks.html)两组迁移题：说明holonomic为何不等于向量丛，再用同轨道不同稳定子解释普通商遗漏的信息。

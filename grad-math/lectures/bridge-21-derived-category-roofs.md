@@ -475,3 +475,5 @@ $$
 $C(R)$ 保留严格链映射；$K(R)$ 把链同伦的映射识别；$D(R)$ 再把拟同构形式求逆。导出态射可写成 $X\xleftarrow{\simeq}Q\to Y$，而上有界射影分解把它化成链映射模同伦。$\operatorname{Ext}^1_R(M,N)$ 就是 $\operatorname{Hom}_{D(R)}(M,N[1])$；映射锥给出 $X\to Y\to\operatorname{Cone}(f)\to X[1]$。
 
 定义与边界可核对 [Stacks Project：Homotopy category](https://stacks.math.columbia.edu/tag/013H)、[Chain homotopy](https://stacks.math.columbia.edu/tag/010V)、[Derived categories](https://stacks.math.columbia.edu/tag/05RR) 与 [Derived category of a ring](https://stacks.math.columbia.edu/tag/0914)；上有界射影复形的计算性质见 [bounded above complexes of projectives](https://stacks.math.columbia.edu/tag/0648)，移位和锥的符号约定见 [Sign rules](https://stacks.math.columbia.edu/tag/0FNG)。本讲只建立模复形上的可计算入口，不展开 Verdier 公理、大小问题、dg/∞-增强、t-结构、谱序列或层的导出下降；D-模、栈与六函子留给后续专题。核查：2026-09-09。
+
+下一步：[一般D模](bridge-22-d-modules.html)给出导出解函子为何必要的点支撑反例；[模叠](bridge-23-moduli-stacks.html)保留族、自同构与下降数据。

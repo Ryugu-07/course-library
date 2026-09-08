@@ -126,3 +126,5 @@ $f=z^{-2}$ 满足 $zf'=-2f$，所以 $z^{-2}e$ 是 $\mathbb C^*$ 上的全局代
 ## 速查与资料
 
 $\nabla=d-\alpha\,dz/z$ 的局部水平解为 $z^\alpha$；一次单值化为 $e^{2\pi i\alpha}$；整数规范 $e'=z^me$ 给 $\alpha'=\alpha-m$ 而不改单值化；$D=z\partial_z$ 把水平条件写成 $(D-\alpha)f=0$。联络的 Leibniz 规则与 de Rham 复形见 [Stacks Project：Connections](https://stacks.math.columbia.edu/tag/07I0)；D-模的进一步入口见 [Ginzburg：Lectures on D-modules](https://math.berkeley.edu/~nadler/ginzburg.dmodules.pdf)。本讲只处理 $\mathbb C^*$ 上秩一、平坦、正则奇点模型。核查：2026-09-08。
+
+继续用[一般D模与奇点](bridge-22-d-modules.html)比较底层O-凝聚的联络与点支撑模；留意解函子与模本身的水平截面单值化互为对偶。
