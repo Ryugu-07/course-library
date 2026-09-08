@@ -21,8 +21,9 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STYLE_ID = "physics-nuclear-detector-styles";
   var STYLE_TEXT = [
-    ".pndt-lab{--pndt-blue:var(--cl-blue,#315f9d);--pndt-green:var(--cl-green,#39734d);--pndt-gold:var(--cl-gold,#9b6a12);--pndt-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
-    ".pndt-lab *,.pndt-lab *::before,.pndt-lab *::after{box-sizing:border-box}.pndt-lab [hidden]{display:none!important}.pndt-lab h3,.pndt-lab h4{margin:0;letter-spacing:0}.pndt-lab h3{font-size:1.15rem}.pndt-lab p{margin:.65em 0}.pndt-lab button,.pndt-lab input,.pndt-lab select{font:inherit;letter-spacing:0}.pndt-lab button,.pndt-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pndt-lab button:hover{border-color:var(--pndt-blue)}.pndt-lab button:focus-visible,.pndt-lab input:focus-visible,.pndt-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pndt-lab button[aria-pressed=true],.pndt-lab .pndt-primary{background:var(--pndt-blue);border-color:var(--pndt-blue);color:var(--bg);font-weight:750}.pndt-note,.pndt-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pndt-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pndt-gold);background:var(--block-bg,var(--bg))}.pndt-question{margin:0 0 12px;padding:0;border:0}.pndt-question:last-of-type{margin-bottom:0}.pndt-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pndt-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pndt-choices button{font-size:12px}.pndt-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pndt-actions>*{flex:1 1 170px}.pndt-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pndt-pass{color:var(--pndt-green)}.pndt-warn{color:var(--pndt-red)}.pndt-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pndt-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pndt-control{display:grid;gap:5px;min-width:0}.pndt-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pndt-control output{color:var(--pndt-blue);font-variant-numeric:tabular-nums}.pndt-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pndt-blue)}.pndt-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pndt-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.pndt-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pndt-stage svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.pndt-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pndt-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pndt-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pndt-curve{fill:none;stroke:var(--pndt-blue);stroke-width:2.7}.pndt-secondary{fill:none;stroke:var(--pndt-gold);stroke-width:2.2;stroke-dasharray:6 4}.pndt-marker{fill:var(--pndt-red);stroke:var(--bg);stroke-width:1.5}.pndt-bar{fill:var(--pndt-green);fill-opacity:.78}.pndt-label{font-size:11px;fill:var(--fg-soft)}.pndt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pndt-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pndt-metric:nth-child(4n+1){border-color:var(--pndt-blue)}.pndt-metric:nth-child(4n+2){border-color:var(--pndt-gold)}.pndt-metric:nth-child(4n+3){border-color:var(--pndt-green)}.pndt-metric:nth-child(4n+4){border-color:var(--pndt-red)}.pndt-metric span{display:block;color:var(--fg-soft);font-size:11px}.pndt-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pndt-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pndt-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pndt-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pndt-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pndt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pndt-choices{grid-template-columns:minmax(0,1fr)}.pndt-controls,.pndt-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pndt-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ".pndt-lab{--pndt-blue:#315f9d;--pndt-green:var(--cl-green,#39734d);--pndt-gold:var(--cl-gold,#9b6a12);--pndt-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
+    ".pndt-lab *,.pndt-lab *::before,.pndt-lab *::after{box-sizing:border-box}.pndt-lab [hidden]{display:none!important}.pndt-lab h3,.pndt-lab h4{margin:0;letter-spacing:0}.pndt-lab h3{font-size:1.15rem}.pndt-lab p{margin:.65em 0}.pndt-lab button,.pndt-lab input,.pndt-lab select{font:inherit;letter-spacing:0}.pndt-lab button,.pndt-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pndt-lab button:hover{border-color:var(--pndt-blue)}.pndt-lab button:focus-visible,.pndt-lab input:focus-visible,.pndt-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pndt-lab button[aria-pressed=true],.pndt-lab .pndt-primary{background:var(--pndt-blue);border-color:var(--pndt-blue);color:var(--bg);font-weight:750}.pndt-note,.pndt-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pndt-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pndt-gold);background:var(--block-bg,var(--bg))}.pndt-question{margin:0 0 12px;padding:0;border:0}.pndt-question:last-of-type{margin-bottom:0}.pndt-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pndt-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pndt-choices button{font-size:12px}.pndt-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pndt-actions>*{flex:1 1 170px}.pndt-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pndt-pass{color:var(--pndt-green)}.pndt-warn{color:var(--pndt-red)}.pndt-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pndt-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pndt-control{display:grid;gap:5px;min-width:0}.pndt-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pndt-control output{color:var(--pndt-blue);font-variant-numeric:tabular-nums}.pndt-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pndt-blue)}.pndt-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pndt-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto}.pndt-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pndt-stage svg{display:block;width:100%;height:auto;min-width:760px;color:var(--fg)}.pndt-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pndt-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pndt-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pndt-curve{fill:none;stroke:var(--pndt-blue);stroke-width:2.7}.pndt-secondary{fill:none;stroke:var(--pndt-gold);stroke-width:2.2;stroke-dasharray:6 4}.pndt-marker{fill:var(--pndt-red);stroke:var(--bg);stroke-width:1.5}.pndt-bar{fill:var(--pndt-green);fill-opacity:.78}.pndt-label{font-size:12px;fill:var(--fg-soft)}.pndt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pndt-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pndt-metric:nth-child(4n+1){border-color:var(--pndt-blue)}.pndt-metric:nth-child(4n+2){border-color:var(--pndt-gold)}.pndt-metric:nth-child(4n+3){border-color:var(--pndt-green)}.pndt-metric:nth-child(4n+4){border-color:var(--pndt-red)}.pndt-metric span{display:block;color:var(--fg-soft);font-size:11px}.pndt-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pndt-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pndt-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pndt-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pndt-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pndt-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pndt-choices{grid-template-columns:minmax(0,1fr)}.pndt-controls,.pndt-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pndt-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,"[data-theme=dark] .pndt-lab{--pndt-blue:#85b9ef;--pndt-gold:#e6be68;--pndt-green:#83c69c;--pndt-red:#ed9f94}.pndt-stage:focus-visible{outline:3px solid var(--pndt-blue);outline-offset:2px}"
   ].join("\n");
 
   var REACTIONS = [
@@ -38,8 +39,8 @@
   function format(value, digits) {
     if (!Number.isFinite(value)) return "—";
     var places = digits === undefined ? 3 : digits;
-    var text = Math.abs(value) > 0 && Math.abs(value) < 0.001 ? value.toExponential(Math.min(places, 4)) : value.toFixed(places);
-    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
+    if(value !== 0 && (Math.abs(value)<0.001 || Math.abs(value)>=1e5)) return value.toExponential(Math.min(places,3));
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
   function setAttributes(node, attrs) {
     Object.keys(attrs || {}).forEach(function (key) {
@@ -86,7 +87,7 @@
     var threshold = reaction.q < 0 ? -reaction.q * (1 + reaction.massRatio) : 0;
     var allowed = energy >= threshold;
     var opticalDepth = arealDensity * sigmaBarn * 1e-24;
-    var interactionProbability = allowed ? 1 - Math.exp(-opticalDepth) : 0;
+    var interactionProbability = allowed ? -Math.expm1(-opticalDepth) : 0;
     var incomingRate = flux * illuminatedArea;
     var incidentRate = incomingRate * interactionProbability;
     var detectedRate = incidentRate * efficiency;
@@ -120,45 +121,28 @@
 
   function drawChart(doc, chart, result) {
     clear(chart);
-    chart.appendChild(svgElement(doc, "title", { text: "核反应阈值、反应率与计数噪声" }));
-    chart.appendChild(svgElement(doc, "desc", { text: "左图把阈值以上的简化反应率画出，右图比较入射、相互作用和探测后的计数预算。" }));
-    var left = 52;
-    var split = 344;
-    var right = 638;
-    var top = 34;
-    var bottom = 274;
-    function line(x1, y1, x2, y2, className) { chart.appendChild(svgElement(doc, "line", { class: className || "pndt-axis", x1: x1, y1: y1, x2: x2, y2: y2 })); }
-    function text(x, y, value, attrs) { chart.appendChild(svgElement(doc, "text", Object.assign({ class: "pndt-label", x: x, y: y }, attrs || {}), [value])); }
-    function sx(energy) { return left + 22 + energy / 12 * (split - left - 42); }
-    function sy(rate) { return bottom - rate / Math.max(result.detectedRate * 1.25, 1) * (bottom - top); }
-    line(left + 22, bottom, split - 20, bottom, "pndt-axis");
-    line(left + 22, top, left + 22, bottom, "pndt-axis");
-    var ratePoints = [];
-    for (var i = 0; i <= 100; i += 1) {
-      var energy = 12 * i / 100;
-      var probe = reactionLedger({ reaction: result.reaction.id, energy: energy, sigmaBarn: result.sigmaBarn, arealDensity: result.arealDensity, flux: result.flux, illuminatedArea: result.illuminatedArea, efficiency: result.efficiency, liveTime: result.liveTime });
-      ratePoints.push(sx(energy).toFixed(1) + "," + sy(probe.detectedRate).toFixed(1));
-    }
-    chart.appendChild(svgElement(doc, "polyline", { class: "pndt-curve", points: ratePoints.join(" ") }));
-    line(sx(result.threshold), top, sx(result.threshold), bottom, "pndt-secondary");
-    chart.appendChild(svgElement(doc, "circle", { class: "pndt-marker", cx: sx(result.energy), cy: sy(result.detectedRate), r: 5 }));
-    text(left + 26, top - 8, "探测率 /s（σ 固定的教学模型）");
-    text(split - 23, bottom + 20, "E_lab /MeV", { "text-anchor": "end" });
-    text(sx(result.threshold) + 4, top + 15, "阈值 " + format(result.threshold, 2), {});
-    text(sx(result.energy), sy(result.detectedRate) - 9, format(result.detectedRate, 1) + "/s", { "text-anchor": "middle" });
-    line(split + 12, bottom, right - 10, bottom, "pndt-axis");
-    line(split + 12, top, split + 12, bottom, "pndt-axis");
-    var values = [result.incomingRate, result.incidentRate, result.detectedRate];
-    var labels = ["入射总率", "反应", "探测"];
-    var maxValue = Math.max.apply(null, values.concat([1]));
-    values.forEach(function (value, index) {
-      var x = split + 34 + index * 86;
-      var y = bottom - value / maxValue * (bottom - top);
-      chart.appendChild(svgElement(doc, "rect", { class: "pndt-bar", x: x, y: y, width: 42, height: bottom - y, rx: 2 }));
-      text(x + 21, bottom + 18, labels[index], { "text-anchor": "middle" });
-      text(x + 21, Math.max(top + 12, y - 7), format(value, value > 1000 ? 0 : 2), { "text-anchor": "middle" });
-    });
-    text(split + 18, top - 8, "计数预算 /s（ΦA）");
+    chart.appendChild(svgElement(doc,"title",{text:"固定截面阶跃与入射到探测的计数率"}));
+    chart.appendChild(svgElement(doc,"desc",{text:"左图精确标出模型阈值，不用采样斜坡替代阶跃。左图尺度由过阈值平台决定，即使当前能量在阈值下也完整可见。右图三率共用线性轴，薄靶小柱应结合数值阅读。"}));
+    var left=72,mid=348,rightLeft=432,right=726,top=56,bottom=298;
+    function line(x1,y1,x2,y2,cls){chart.appendChild(svgElement(doc,"line",{class:cls||"pndt-axis",x1:x1,y1:y1,x2:x2,y2:y2}));}
+    function text(x,y,t,anchor){chart.appendChild(svgElement(doc,"text",{class:"pndt-label",x:x,y:y,"text-anchor":anchor||"start"},[t]));}
+    var plateau=result.incomingRate*(-Math.expm1(-result.opticalDepth))*result.efficiency;
+    var maxRate=plateau*1.2;
+    var sx=function(E){return left+E/12*(mid-left);},sy=function(r){return bottom-r/maxRate*(bottom-top);};
+    [0,plateau/2,plateau].forEach(function(r){line(left,sy(r),mid,sy(r),"pndt-grid");text(left-8,sy(r)+4,format(r,2),"end");});
+    line(left,bottom,mid,bottom);[0,3,6,9,12].forEach(function(E){line(sx(E),bottom,sx(E),bottom+5);text(sx(E),bottom+22,String(E),"middle");});
+    var thresholdX=sx(result.threshold),levelY=sy(plateau);
+    if(result.threshold>0){line(left,bottom,thresholdX,bottom,"pndt-curve");line(thresholdX,bottom,thresholdX,levelY,"pndt-secondary");}
+    line(thresholdX,levelY,mid,levelY,"pndt-curve");
+    chart.appendChild(svgElement(doc,"circle",{class:"pndt-marker",cx:sx(result.energy),cy:sy(result.detectedRate),r:5}));
+    text(left,24,"探测率 /s；常截面平台");text(mid,347,"入射动能 /MeV","end");
+    text(left,373,"阈值="+format(result.threshold,3)+"；当前率="+format(result.detectedRate,2)+"/s");
+    var rateMax=result.incomingRate*1.15,ry=function(r){return bottom-r/rateMax*(bottom-top);};
+    [0,result.incomingRate/2,result.incomingRate].forEach(function(r){line(rightLeft,ry(r),right,ry(r),"pndt-grid");text(rightLeft-8,ry(r)+4,format(r,1),"end");});
+    line(rightLeft,bottom,right,bottom);
+    [result.incomingRate,result.incidentRate,result.detectedRate].forEach(function(r,i){var x=464+i*103;chart.appendChild(svgElement(doc,"rect",{class:"pndt-bar",x:x-23,y:ry(r),width:46,height:bottom-ry(r)}));text(x,ry(r)-10,format(r,2),"middle");text(x,bottom+22,["入射","反应","探测"][i],"middle");});
+    text(rightLeft,24,"总率 /s；三柱共用线性轴");text(right,347,"小柱可很短，请读数值","end");
+    text(right,397,"左右图各用自己的纵轴；未模拟死时间和背景","end");
   }
 
   function mount(root, api) {
@@ -181,7 +165,7 @@
       var choices = element(doc, "div", { className: "pndt-choices" }); choiceButtons[questionIndex] = [];
       question.options.forEach(function (label, optionIndex) {
         var button = element(doc, "button", { type: "button", text: label, "aria-pressed": "false" });
-        button.addEventListener("click", function () { state.predictions[questionIndex] = optionIndex; choiceButtons[questionIndex].forEach(function (item) { item.setAttribute("aria-pressed", "false"); }); button.setAttribute("aria-pressed", "true"); });
+        button.addEventListener("click", function () { state.predictions[questionIndex] = optionIndex; state.revealed = false; render(); feedback.textContent = "预测已更改，请重新提交。"; choiceButtons[questionIndex].forEach(function (item) { item.setAttribute("aria-pressed", "false"); }); button.setAttribute("aria-pressed", "true"); });
         choiceButtons[questionIndex].push(button); choices.appendChild(button);
       });
       fieldset.appendChild(choices); prediction.appendChild(fieldset);
@@ -209,12 +193,13 @@
     rangeControls.efficiency = makeRange(doc, controls, "探测效率 ε", "efficiency", 0.1, 1, 0.01, 2, "", state, render);
     rangeControls.liveTime = makeRange(doc, controls, "活时间 T", "liveTime", 1, 60, 1, 0, " s", state, render);
     revealed.appendChild(controls);
-    var stage = element(doc, "div", { className: "pndt-stage" });
+    revealed.appendChild(element(doc,"p",{className:"pndt-note",text:"图有数值刻度；窄屏可聚焦图框后左右滚动。"}));
+    var stage = element(doc, "div", { className: "pndt-stage", tabindex:"0", role:"region", "aria-label":"核物理数值图，可横向滚动" });
     var stageTitle = element(doc, "div", { className: "pndt-stage-title" }, [element(doc, "span", { text: "左：阈值响应；右：从入射到探测的预算" }), element(doc, "span", { className: "pndt-status", text: "" })]);
-    var chart = svgElement(doc, "svg", { viewBox: "0 0 680 320", role: "img", "aria-label": "核反应阈值和探测计数图" });
+    var chart = svgElement(doc, "svg", { viewBox: "0 0 760 410", role: "img", "aria-label": "核反应阈值和探测计数图" });
     stage.appendChild(stageTitle); stage.appendChild(chart); revealed.appendChild(stage);
     var metrics = element(doc, "div", { className: "pndt-metrics" });
-    var metricNodes = [metric(doc, "阈值 E_th"), metric(doc, "相互作用概率"), metric(doc, "探测计数 N"), metric(doc, "相对 Poisson" )];
+    var metricNodes = [metric(doc, "阈值 E_th"), metric(doc, "相互作用概率"), metric(doc, "期望计数 / 预测 RMS"), metric(doc, "相对 Poisson" )];
     metricNodes.forEach(function (item) { metrics.appendChild(item.node); }); revealed.appendChild(metrics);
     var formula = element(doc, "div", { className: "pndt-formula", text: "E_th=−Q(1+m_a/m_A)（Q<0）；P=1−e⁻ⁿˡσ；N=ΦA_illumPεT；σ_N=√N" }); revealed.appendChild(formula);
     var reset = element(doc, "button", { type: "button", className: "pndt-reset", text: "重置实验" }); revealed.appendChild(reset); root.appendChild(revealed);
@@ -234,14 +219,14 @@
       var result = reactionLedger(state);
       metricNodes[0].value.textContent = result.threshold > 0 ? format(result.threshold, 3) + " MeV" : "0（放热）";
       metricNodes[1].value.textContent = result.allowed ? format(result.interactionProbability * 100, 4) + "%" : "0（未过阈值）";
-      metricNodes[2].value.textContent = format(result.expectedCounts, 0) + " ± " + format(result.poissonRms, 1);
+      metricNodes[2].value.textContent = format(result.expectedCounts, 1) + " / " + format(result.poissonRms, 1);
       metricNodes[3].value.textContent = Number.isFinite(result.relativePoisson) ? format(result.relativePoisson * 100, 2) + "%" : "—";
       stageTitle.querySelector(".pndt-status").textContent = result.allowed ? "通道打开：截面模型生效" : "通道关闭：低于运动学阈值";
       formula.textContent = "E_cm=" + format(result.centerOfMassEnergy, 3) + " MeV；ΦA=" + format(result.flux * result.illuminatedArea, 1) + "/s；P=" + format(result.interactionProbability, 6) + "；N=ΦA PεT=" + format(result.expectedCounts, 1) + "；σ_N=√N";
       drawChart(doc, chart, result);
     }
     reveal.addEventListener("click", function () { if (state.predictions.some(function (value) { return value === null; })) { feedback.className = "pndt-feedback pndt-warn"; feedback.textContent = "请先完成四个预测，再揭示事件账本。"; return; } var score = state.predictions.reduce(function (sum, value, index) { return sum + (value === questions[index].answer ? 1 : 0); }, 0); feedback.className = "pndt-feedback " + (score === questions.length ? "pndt-pass" : "pndt-warn"); feedback.textContent = "预测命中 " + score + "/" + questions.length + "；现在沿着束流、靶、探测器逐项审计。"; state.revealed = true; render(); announce(api, root, feedback.textContent); });
-    clearPredictions.addEventListener("click", function () { state.predictions = [null, null, null, null]; choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pndt-feedback"; feedback.textContent = "预测已清空。"; });
+    clearPredictions.addEventListener("click", function () { state.predictions = [null, null, null, null]; choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pndt-feedback"; feedback.textContent = "预测已清空。"; state.revealed = false; render(); });
     reset.addEventListener("click", function () { resetState(state); choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pndt-feedback"; feedback.textContent = "实验已重置并上锁。"; render(); announce(api, root, "核反应与探测实验已重置。"); });
     render();
   }

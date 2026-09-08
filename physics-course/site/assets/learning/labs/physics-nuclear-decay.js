@@ -21,8 +21,9 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STYLE_ID = "physics-nuclear-decay-styles";
   var STYLE_TEXT = [
-    ".pnd-lab{--pnd-blue:var(--cl-blue,#315f9d);--pnd-green:var(--cl-green,#39734d);--pnd-gold:var(--cl-gold,#9b6a12);--pnd-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
-    ".pnd-lab *,.pnd-lab *::before,.pnd-lab *::after{box-sizing:border-box}.pnd-lab [hidden]{display:none!important}.pnd-lab h3,.pnd-lab h4{margin:0;letter-spacing:0}.pnd-lab h3{font-size:1.15rem}.pnd-lab p{margin:.65em 0}.pnd-lab button,.pnd-lab input,.pnd-lab select{font:inherit;letter-spacing:0}.pnd-lab button,.pnd-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pnd-lab button:hover{border-color:var(--pnd-blue)}.pnd-lab button:focus-visible,.pnd-lab input:focus-visible,.pnd-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pnd-lab button[aria-pressed=true],.pnd-lab .pnd-primary{background:var(--pnd-blue);border-color:var(--pnd-blue);color:var(--bg);font-weight:750}.pnd-note,.pnd-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pnd-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pnd-gold);background:var(--block-bg,var(--bg))}.pnd-question{margin:0 0 12px;padding:0;border:0}.pnd-question:last-of-type{margin-bottom:0}.pnd-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pnd-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pnd-choices button{font-size:12px}.pnd-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pnd-actions>*{flex:1 1 170px}.pnd-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pnd-pass{color:var(--pnd-green)}.pnd-warn{color:var(--pnd-red)}.pnd-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pnd-modes{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.pnd-modes button{flex:1 1 150px}.pnd-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pnd-control{display:grid;gap:5px;min-width:0}.pnd-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pnd-control output{color:var(--pnd-blue);font-variant-numeric:tabular-nums}.pnd-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pnd-blue)}.pnd-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pnd-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.pnd-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pnd-stage svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.pnd-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pnd-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pnd-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pnd-curve{fill:none;stroke:var(--pnd-blue);stroke-width:2.7}.pnd-secondary{fill:none;stroke:var(--pnd-gold);stroke-width:2.2;stroke-dasharray:6 4}.pnd-marker{fill:var(--pnd-red);stroke:var(--bg);stroke-width:1.5}.pnd-bar{fill:var(--pnd-green);fill-opacity:.76}.pnd-label{font-size:11px;fill:var(--fg-soft)}.pnd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pnd-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pnd-metric:nth-child(4n+1){border-color:var(--pnd-blue)}.pnd-metric:nth-child(4n+2){border-color:var(--pnd-gold)}.pnd-metric:nth-child(4n+3){border-color:var(--pnd-green)}.pnd-metric:nth-child(4n+4){border-color:var(--pnd-red)}.pnd-metric span{display:block;color:var(--fg-soft);font-size:11px}.pnd-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pnd-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pnd-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pnd-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pnd-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pnd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pnd-choices{grid-template-columns:minmax(0,1fr)}.pnd-controls,.pnd-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pnd-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ".pnd-lab{--pnd-blue:#315f9d;--pnd-green:var(--cl-green,#39734d);--pnd-gold:var(--cl-gold,#9b6a12);--pnd-red:var(--cl-red,#b64335);color:var(--fg);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}",
+    ".pnd-lab *,.pnd-lab *::before,.pnd-lab *::after{box-sizing:border-box}.pnd-lab [hidden]{display:none!important}.pnd-lab h3,.pnd-lab h4{margin:0;letter-spacing:0}.pnd-lab h3{font-size:1.15rem}.pnd-lab p{margin:.65em 0}.pnd-lab button,.pnd-lab input,.pnd-lab select{font:inherit;letter-spacing:0}.pnd-lab button,.pnd-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}.pnd-lab button:hover{border-color:var(--pnd-blue)}.pnd-lab button:focus-visible,.pnd-lab input:focus-visible,.pnd-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pnd-lab button[aria-pressed=true],.pnd-lab .pnd-primary{background:var(--pnd-blue);border-color:var(--pnd-blue);color:var(--bg);font-weight:750}.pnd-note,.pnd-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}.pnd-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pnd-gold);background:var(--block-bg,var(--bg))}.pnd-question{margin:0 0 12px;padding:0;border:0}.pnd-question:last-of-type{margin-bottom:0}.pnd-question legend{max-width:100%;margin-bottom:7px;font-size:13px;font-weight:750;line-height:1.5}.pnd-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pnd-choices button{font-size:12px}.pnd-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pnd-actions>*{flex:1 1 170px}.pnd-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pnd-pass{color:var(--pnd-green)}.pnd-warn{color:var(--pnd-red)}.pnd-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.pnd-modes{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.pnd-modes button{flex:1 1 150px}.pnd-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0;align-items:end}.pnd-control{display:grid;gap:5px;min-width:0}.pnd-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.pnd-control output{color:var(--pnd-blue);font-variant-numeric:tabular-nums}.pnd-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--pnd-blue)}.pnd-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}.pnd-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto}.pnd-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--fg-soft);font-size:13px}.pnd-stage svg{display:block;width:100%;height:auto;min-width:680px;color:var(--fg)}.pnd-stage svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pnd-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.pnd-grid{stroke:currentColor;stroke-width:1;stroke-opacity:.14}.pnd-curve{fill:none;stroke:var(--pnd-blue);stroke-width:2.7}.pnd-secondary{fill:none;stroke:var(--pnd-gold);stroke-width:2.2;stroke-dasharray:6 4}.pnd-marker{fill:var(--pnd-red);stroke:var(--bg);stroke-width:1.5}.pnd-bar{fill:var(--pnd-green);fill-opacity:.76}.pnd-label{font-size:12px;fill:var(--fg-soft)}.pnd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.pnd-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.pnd-metric:nth-child(4n+1){border-color:var(--pnd-blue)}.pnd-metric:nth-child(4n+2){border-color:var(--pnd-gold)}.pnd-metric:nth-child(4n+3){border-color:var(--pnd-green)}.pnd-metric:nth-child(4n+4){border-color:var(--pnd-red)}.pnd-metric span{display:block;color:var(--fg-soft);font-size:11px}.pnd-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pnd-formula{margin:12px 0 0;padding:9px 11px;border-left:3px solid var(--pnd-blue);background:var(--bg);font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;overflow-x:auto}.pnd-reset{margin-top:10px;color:var(--fg-soft)}@media(max-width:900px){.pnd-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pnd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.pnd-choices{grid-template-columns:minmax(0,1fr)}.pnd-controls,.pnd-metrics{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.pnd-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,"[data-theme=dark] .pnd-lab{--pnd-blue:#85b9ef;--pnd-gold:#e6be68;--pnd-green:#83c69c;--pnd-red:#ed9f94}.pnd-stage:focus-visible{outline:3px solid var(--pnd-blue);outline-offset:2px}"
   ].join("\n");
 
   var PRESETS = [
@@ -41,8 +42,8 @@
   function format(value, digits) {
     if (!Number.isFinite(value)) return "—";
     var places = digits === undefined ? 3 : digits;
-    var text = Math.abs(value) > 0 && Math.abs(value) < 0.001 ? value.toExponential(Math.min(places, 4)) : value.toFixed(places);
-    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
+    if(value !== 0 && (Math.abs(value)<0.001 || Math.abs(value)>=1e5)) return value.toExponential(Math.min(places,3));
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
   function setAttributes(node, attrs) {
     Object.keys(attrs || {}).forEach(function (key) {
@@ -157,43 +158,32 @@
 
   function drawChart(doc, chart, mode, state) {
     clear(chart);
-    chart.appendChild(svgElement(doc, "title", { text: mode === "structure" ? "半经验质量公式的结合能曲线" : "半衰期衰变曲线" }));
-    chart.appendChild(svgElement(doc, "desc", { text: "结构图显示稳定线附近的每核子结合能，衰变图显示剩余比例随半衰期数下降。" }));
-    var left = 52;
-    var right = 638;
-    var top = 34;
-    var bottom = 274;
-    function line(x1, y1, x2, y2, className) { chart.appendChild(svgElement(doc, "line", { class: className || "pnd-axis", x1: x1, y1: y1, x2: x2, y2: y2 })); }
-    function text(x, y, value, attrs) { chart.appendChild(svgElement(doc, "text", Object.assign({ class: "pnd-label", x: x, y: y }, attrs || {}), [value])); }
-    if (mode === "structure") {
-      function sx(A) { return left + (A - 4) / 236 * (right - left); }
-      function sy(value) { return bottom - (value - 2) / 7.5 * (bottom - top); }
-      line(left, bottom, right, bottom, "pnd-axis");
-      line(left, sy(8), right, sy(8), "pnd-grid");
-      var points = [];
-      for (var i = 4; i <= 240; i += 2) points.push(sx(i).toFixed(1) + "," + sy(binding(i, stableZ(i)).perNucleon).toFixed(1));
-      chart.appendChild(svgElement(doc, "polyline", { class: "pnd-curve", points: points.join(" ") }));
-      var selected = binding(state.A, state.Z);
-      chart.appendChild(svgElement(doc, "circle", { class: "pnd-marker", cx: sx(selected.A), cy: sy(selected.perNucleon), r: 5 }));
-      text(left, top - 8, "蓝：Z≈稳定线；红点：当前核");
-      text(right, bottom + 20, "A", { "text-anchor": "end" });
-      text(left + 6, sy(selected.perNucleon) - 9, "B/A=" + format(selected.perNucleon, 2) + " MeV");
-      text(right - 8, sy(8) - 8, "8 MeV 参考线", { "text-anchor": "end" });
-    } else {
-      function sxT(ratio) { return left + ratio / 5 * (right - left); }
-      function syT(value) { return bottom - value * (bottom - top); }
-      var decay = decayLedger(state.preset, state.timeRatio);
-      line(left, bottom, right, bottom, "pnd-axis");
-      line(left, syT(0.5), right, syT(0.5), "pnd-grid");
-      var decayPoints = [];
-      for (var j = 0; j <= 100; j += 1) decayPoints.push(sxT(5 * j / 100).toFixed(1) + "," + syT(decayFraction(5 * j / 100)).toFixed(1));
-      chart.appendChild(svgElement(doc, "polyline", { class: "pnd-curve", points: decayPoints.join(" ") }));
-      line(sxT(state.timeRatio), top, sxT(state.timeRatio), bottom, "pnd-secondary");
-      chart.appendChild(svgElement(doc, "circle", { class: "pnd-marker", cx: sxT(Math.min(5, state.timeRatio)), cy: syT(decay.fraction), r: 5 }));
-      text(left, top - 8, "N/N₀=2⁻ᵗ/ᵀ¹ᐟ²；蓝：剩余核", {});
-      text(right, bottom + 20, "t/T₁/₂", { "text-anchor": "end" });
-      text(left + 6, syT(decay.fraction) - 9, "剩余=" + format(decay.fraction * 100, 1) + "%");
-      text(right - 8, syT(0.5) - 8, "一个半衰期=50%", { "text-anchor": "end" });
+    chart.appendChild(svgElement(doc,"title",{text:mode==="structure"?"液滴模型：整数质量数参考线与当前核子组合":"平均存活比例与半衰期刻度"}));
+    chart.appendChild(svgElement(doc,"desc",{text:"结构图按全部整数质量数计算，包含奇偶配对起伏；纵轴自适应显示负的模型结合能。衰变图是固定核素的平均存活比例，不是单个核的轨迹。"}));
+    var left=68,right=626,top=48,bottom=318;
+    function line(x1,y1,x2,y2,cls){chart.appendChild(svgElement(doc,"line",{class:cls||"pnd-axis",x1:x1,y1:y1,x2:x2,y2:y2}));}
+    function text(x,y,t,anchor){chart.appendChild(svgElement(doc,"text",{class:"pnd-label",x:x,y:y,"text-anchor":anchor||"start"},[t]));}
+    function dot(x,y){chart.appendChild(svgElement(doc,"circle",{class:"pnd-marker",cx:x,cy:y,r:5}));}
+    function yTicks(vals,sy){vals.forEach(function(y){line(left,sy(y),right,sy(y),"pnd-grid");text(left-8,sy(y)+4,format(y,2),"end");});}
+    function xTicks(vals,sx){line(left,bottom,right,bottom);vals.forEach(function(x){line(sx(x),bottom,sx(x),bottom+5);text(sx(x),bottom+21,String(x),"middle");});}
+    if(mode==="structure"){
+      var selected=binding(state.A,state.Z),yMin=Math.min(0,Math.floor(selected.perNucleon)-1),yMax=10;
+      var sx=function(A){return left+(A-4)/236*(right-left);},sy=function(v){return bottom-(v-yMin)/(yMax-yMin)*(bottom-top);};
+      xTicks([4,50,100,150,200,240],sx);yTicks([yMin,yMin+(yMax-yMin)/4,yMin+(yMax-yMin)/2,yMin+3*(yMax-yMin)/4,yMax],sy);
+      var points=[];for(var A=4;A<=240;A++)points.push(sx(A).toFixed(3)+","+sy(binding(A,stableZ(A)).perNucleon).toFixed(3));
+      chart.appendChild(svgElement(doc,"polyline",{class:"pnd-curve",points:points.join(" ")}));dot(sx(state.A),sy(selected.perNucleon));
+      text(left,24,"B/A（MeV/核子）；蓝线连接整数 A 的参考 Z");
+      text(left,376,"当前 A="+state.A+"，Z="+state.Z+"，B/A="+format(selected.perNucleon,3)+"；纵轴自适应");
+      text(right,355,"质量数 A","end");
+    }else{
+      var sx=function(t){return left+t/5*(right-left);},sy=function(f){return bottom-f*(bottom-top);};
+      xTicks([0,1,2,3,4,5],sx);yTicks([0,.25,.5,.75,1],sy);
+      var points=[];for(var i=0;i<=200;i++)points.push(sx(i/40).toFixed(3)+","+sy(decayFraction(i/40)).toFixed(3));
+      chart.appendChild(svgElement(doc,"polyline",{class:"pnd-curve",points:points.join(" ")}));
+      var d=decayLedger(state.preset,state.timeRatio);dot(sx(d.ratio),sy(d.fraction));line(sx(d.ratio),top,sx(d.ratio),bottom,"pnd-secondary");
+      text(left,24,"平均存活比例 N/N₀；T₁/₂="+format(d.preset.halfLife,3)+d.preset.unit);
+      text(right,355,"经过的半衰期数 t/T₁/₂","end");
+      text(left,376,"t="+format(d.ratio*d.preset.halfLife,3)+d.preset.unit+"，平均剩余 "+format(d.fraction*100,2)+"%");
     }
   }
 
@@ -208,7 +198,7 @@
       { prompt: "半衰期后剩余原子数是多少？", options: ["1/2", "1/4", "0"], answer: 0 },
       { prompt: "α 衰变的核素变化？", options: ["A−4、Z−2", "A−2、Z−1", "A 不变、Z+1"], answer: 0 },
       { prompt: "B/A 最大就自动保证核素立刻稳定吗？", options: ["是，结合能足够就没有衰变", "不是，还要看守恒、量子选择和势垒", "只取决于半衰期单位"], answer: 1 },
-      { prompt: "A 固定时把 Z 偏离稳定线，半经验式的非对称项会怎样？", options: ["增加结合", "减小结合", "完全不变"], answer: 1 }
+      { prompt: "A 固定时把 Z 从 A/2 移开，非对称项对结合能的贡献怎样？", options: ["增加结合", "减小结合", "完全不变"], answer: 1 }
     ];
     root.appendChild(element(doc, "h3", { text: "预测闸门：结合能账本与随机衰变不是同一件事" }));
     root.appendChild(element(doc, "p", { className: "pnd-note", text: "先预测半衰期、α 衰变的核子账和稳定线；揭示后可在结构与衰变视图之间切换。α Q 使用实测 α 粒子结合能 Bα=28.2957 MeV，半经验式只用于母核和子核。" }));
@@ -221,7 +211,7 @@
       choiceButtons[questionIndex] = [];
       question.options.forEach(function (label, optionIndex) {
         var button = element(doc, "button", { type: "button", text: label, "aria-pressed": "false" });
-        button.addEventListener("click", function () { state.predictions[questionIndex] = optionIndex; choiceButtons[questionIndex].forEach(function (item) { item.setAttribute("aria-pressed", "false"); }); button.setAttribute("aria-pressed", "true"); });
+        button.addEventListener("click", function () { state.predictions[questionIndex] = optionIndex; state.revealed = false; render(); feedback.textContent = "预测已更改，请重新提交。"; choiceButtons[questionIndex].forEach(function (item) { item.setAttribute("aria-pressed", "false"); }); button.setAttribute("aria-pressed", "true"); });
         choiceButtons[questionIndex].push(button);
         choices.appendChild(button);
       });
@@ -235,7 +225,7 @@
     actions.appendChild(reveal); actions.appendChild(clearPredictions); prediction.appendChild(actions); prediction.appendChild(feedback); root.appendChild(prediction);
 
     var revealed = element(doc, "div", { className: "pnd-revealed", hidden: true });
-    revealed.appendChild(element(doc, "h4", { text: "核结构与衰变 ledger" }));
+    revealed.appendChild(element(doc, "h4", { text: "核结构与衰变账本" }));
     var modes = element(doc, "div", { className: "pnd-modes", role: "group", "aria-label": "选择核物理视图" });
     var modeButtons = {};
     [["structure", "结构：结合能"], ["decay", "衰变：半衰期"]].forEach(function (item) {
@@ -261,9 +251,10 @@
     panels.decay.appendChild(element(doc, "div", { className: "pnd-control" }, [element(doc, "label", { "for": decaySelectId, text: "选择核素" }), decaySelect]));
     rangeControls.timeRatio = makeRange(doc, panels.decay, "经过的半衰期数 t/T₁/₂", "timeRatio", 0, 5, 0.05, 2, "", state, render);
     revealed.appendChild(panels.structure); revealed.appendChild(panels.decay);
-    var stage = element(doc, "div", { className: "pnd-stage" });
+    revealed.appendChild(element(doc,"p",{className:"pnd-note",text:"图有数值刻度；窄屏可聚焦图框后左右滚动。"}));
+    var stage = element(doc, "div", { className: "pnd-stage", tabindex:"0", role:"region", "aria-label":"核物理数值图，可横向滚动" });
     var stageTitle = element(doc, "div", { className: "pnd-stage-title" }, [element(doc, "span", { text: "公式直接生成的教学读数" }), element(doc, "span", { className: "pnd-status", text: "" })]);
-    var chart = svgElement(doc, "svg", { viewBox: "0 0 680 320", role: "img", "aria-label": "核结构和衰变可视化" });
+    var chart = svgElement(doc, "svg", { viewBox: "0 0 680 400", role: "img", "aria-label": "核结构和衰变可视化" });
     stage.appendChild(stageTitle); stage.appendChild(chart); revealed.appendChild(stage);
     var metrics = element(doc, "div", { className: "pnd-metrics" });
     var metricNodes = [metric(doc, "总结合能"), metric(doc, "每核子结合能"), metric(doc, "α 衰变 Q"), metric(doc, "当前衰变读数")];
@@ -297,13 +288,13 @@
       syncControls();
       var structure = binding(state.A, state.Z);
       var decay = decayLedger(state.preset, state.timeRatio);
-      var q = alphaQ(state.A, state.Z);
+      var q = state.A > 4 && state.Z >= 2 && state.A - state.Z >= 2 ? alphaQ(state.A, state.Z) : null;
       metricNodes[0].value.textContent = format(structure.total, 2) + " MeV";
       metricNodes[1].value.textContent = format(structure.perNucleon, 3) + " MeV/核子";
-      metricNodes[2].value.textContent = Number.isFinite(q) ? format(q, 2) + " MeV" : "不可定义";
+      metricNodes[2].value.textContent = Number.isFinite(q) ? format(q, 2) + " MeV" : "不满足α的核子数要求";
       metricNodes[3].value.textContent = format(decay.fraction * 100, 1) + "%（" + format(decay.ratio, 2) + " T₁/₂）";
-      stageTitle.querySelector(".pnd-status").textContent = state.mode === "structure" ? (structure.Z === stableZ(structure.A) ? "接近稳定线" : "非对称项在惩罚") : "统计平均的衰变律";
-      formula.textContent = state.mode === "structure" ? "B=" + format(structure.total, 2) + " MeV；B/A=" + format(structure.perNucleon, 3) + " MeV/核子；Qα=" + format(q, 2) + " MeV（Bα=28.2957 MeV 实测）" : "N/N₀=2⁻ᵗ/ᵀ¹ᐟ²=" + format(decay.fraction, 5) + "；λT₁/₂=ln2";
+      stageTitle.querySelector(".pnd-status").textContent = state.mode === "structure" ? (structure.total <= 0 ? "模型未给出束缚核：不是实测核素" : "参考 Z=" + stableZ(structure.A) + "；库仑/非对称/配对共同作用") : "统计平均的衰变律";
+      formula.textContent = state.mode === "structure" ? "B=" + format(structure.total, 2) + " MeV；B/A=" + format(structure.perNucleon, 3) + " MeV/核子；Qα=" + format(q, 2) + " MeV（Bα=28.2957 MeV 实测）" : "N/N₀=2⁻ᵗ/ᵀ¹ᐟ²=" + format(decay.fraction, 5) + "；T₁/₂=" + format(decay.preset.halfLife,3) + decay.preset.unit + "，t=" + format(decay.ratio*decay.preset.halfLife,3) + decay.preset.unit + "；λT₁/₂=ln2";
       drawChart(doc, chart, state.mode, state);
     }
     reveal.addEventListener("click", function () {
@@ -313,7 +304,7 @@
       feedback.textContent = "预测命中 " + score + "/" + questions.length + "；现在比较结构能量与时间统计。";
       state.revealed = true; render(); announce(api, root, feedback.textContent);
     });
-    clearPredictions.addEventListener("click", function () { state.predictions = [null, null, null, null]; choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pnd-feedback"; feedback.textContent = "预测已清空。"; });
+    clearPredictions.addEventListener("click", function () { state.predictions = [null, null, null, null]; choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pnd-feedback"; feedback.textContent = "预测已清空。"; state.revealed = false; render(); });
     reset.addEventListener("click", function () { resetState(state); choiceButtons.forEach(function (buttons) { buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); }); }); feedback.className = "pnd-feedback"; feedback.textContent = "实验已重置并上锁。"; render(); announce(api, root, "核结构与衰变实验已重置。"); });
     render();
   }
