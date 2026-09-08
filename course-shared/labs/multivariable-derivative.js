@@ -101,7 +101,7 @@
       var x = t * scale;
       var y = x * x * x;
       var value = scalarValue("all-directions", x, y);
-      return { t: x, value: value, quotient: Math.abs(value) / vectorNorm([x, y]) };
+      return { t: x, x: x, y: y, value: value, quotient: Math.abs(value) / vectorNorm([x, y]) };
     });
   }
 
@@ -243,25 +243,35 @@
       parts.push('<circle cx="' + centerX + '" cy="' + centerY + '" r="76" fill="none" stroke="currentColor" stroke-opacity=".23"></circle>');
       var direction = unitDirection(data.angle);
       parts.push('<line class="mv-gold-line" x1="' + centerX + '" y1="' + centerY + '" x2="' + (centerX + 76 * direction[0]).toFixed(1) + '" y2="' + (centerY - 76 * direction[1]).toFixed(1) + '"></line>');
-      if (data.gradient) {
+      if (data.kind === "smooth") {
         var gradientScale = 34 / Math.max(1, vectorNorm(data.gradient));
         parts.push('<line class="mv-green-line" x1="' + centerX + '" y1="' + centerY + '" x2="' + (centerX + data.gradient[0] * gradientScale).toFixed(1) + '" y2="' + (centerY - data.gradient[1] * gradientScale).toFixed(1) + '"></line>');
         parts.push(svgText(145, 245, "绿：∇f，金：方向 u", "mv-small"));
         parts.push(svgText(315, 105, "Dᵤf=" + fixed(data.directionalDerivative, 3), "mv-small"));
       } else {
+        var logs = data.curvedPath.map(function (row) { return Math.log10(row.quotient); });
+        var low = Math.floor(Math.min.apply(null, logs));
+        var high = Math.ceil(Math.max.apply(null, logs));
+        if (high <= low) high = low + 1;
+        function pathY(row) { return 215 - 115 * (Math.log10(row.quotient) - low) / (high - low); }
+        parts.push(svgText(370, 80, "余项比（纵轴对数）", "mv-small"));
+        [low, high].forEach(function (power) {
+          var py = 215 - 115 * (power - low) / (high - low);
+          parts.push('<line class="mv-grid" x1="380" y1="' + py + '" x2="600" y2="' + py + '"></line>');
+          parts.push(svgText(375, py + 4, "10^" + power, "mv-small", "end"));
+        });
         var curve = data.curvedPath.map(function (row, index) {
-          var x = 380 + index * 55;
-          var y = 220 - Math.min(150, row.quotient * 30);
-          return (index ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+          return (index ? "L" : "M") + (380 + index * 55) + " " + pathY(row).toFixed(2);
         }).join(" ");
         parts.push('<path class="mv-red-line" d="' + curve + '"></path>');
         data.curvedPath.forEach(function (row, index) {
-          var x = 380 + index * 55;
-          var y = 220 - Math.min(150, row.quotient * 30);
-          parts.push('<circle class="mv-point" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4"></circle>');
+          var px = 380 + index * 55;
+          parts.push('<circle class="mv-point" cx="' + px + '" cy="' + pathY(row).toFixed(2) + '" r="4"></circle>');
+          parts.push(svgText(px, 232, row.t.toPrecision(2), "mv-small", "middle"));
         });
-        parts.push(svgText(375, 245, "红：|f(t,t³)|/||(t,t³)||", "mv-small"));
-        parts.push(svgText(300, 105, "直线方向商≈" + fixed(data.directionalQuotient, 4), "mv-small"));
+        parts.push(svgText(375, 254, "t 每步减半；|g(t,t³)|/||(t,t³)||", "mv-small"));
+        parts.push(svgText(95, 85, "直线方向商≈" + fixed(data.directionalQuotient, 4), "mv-small"));
+        parts.push(svgText(145, 245, "金：当前方向 u；偏导均为 0", "mv-small"));
       }
       parts.push(svgText(56, 294, "有限探针是数值证据；线性主部/路径量词才是定理判断。", "mv-small"));
     } else {
@@ -269,10 +279,18 @@
       parts.push('<rect x="78" y="92" width="250" height="126" fill="none" stroke="currentColor" stroke-opacity=".32"></rect>');
       parts.push(svgText(203, 120, "J(0)=" + matrixText(matrix), "mv-title", "middle"));
       parts.push(svgText(203, 151, "det J=" + fixed(data.determinant, 2) + "，rank=" + data.rank, "mv-small", "middle"));
-      parts.push('<line class="mv-blue-line" x1="390" y1="210" x2="590" y2="96"></line>');
-      parts.push('<line class="mv-gold-line" x1="390" y1="96" x2="590" y2="210"></line>');
-      parts.push('<circle class="mv-point" cx="490" cy="153" r="7"></circle>');
-      parts.push(svgText(490, 247, data.kind === "fold" ? "两支折叠到同一点" : "逆含立方根，导数发散", "mv-small", "middle"));
+      parts.push('<line class="mv-axis" x1="380" y1="160" x2="610" y2="160"></line><line class="mv-axis" x1="495" y1="80" x2="495" y2="225"></line>');
+      var mapCurve = [];
+      for (var i = 0; i <= 80; i += 1) {
+        var t = -1 + i / 40;
+        var output = data.kind === "fold" ? mapValue("fold", t, 0)[0] : mapValue("cusp", 0, t)[1];
+        mapCurve.push((i ? "L" : "M") + (495 + 100 * t).toFixed(2) + " " + (160 - 60 * output).toFixed(2));
+      }
+      parts.push('<path class="mv-blue-line" d="' + mapCurve.join(" ") + '"></path>');
+      parts.push(svgText(395, 237, "−1", "mv-small", "middle"));
+      parts.push(svgText(595, 237, "1", "mv-small", "middle"));
+      parts.push(svgText(490, 72, data.kind === "fold" ? "第一分量：x ↦ x²（y 不变）" : "第二分量：y ↦ y³（x 不变）", "mv-small", "middle"));
+      parts.push(svgText(490, 257, data.kind === "fold" ? "±x 给相同输出" : "单调一一对应，原点切线水平", "mv-small", "middle"));
       parts.push(svgText(56, 294, "奇异 J 只撤销逆函数定理的证书，不自动给出同一种反例。", "mv-small"));
     }
     return parts.join("");
@@ -338,7 +356,7 @@
       lab.querySelector('[data-output="step"]').textContent = fixed(data.step, 3);
       lab.querySelector("[data-svg]").innerHTML = buildSvg(data);
       var rows;
-      if (data.gradient) {
+      if (data.kind === "smooth") {
         rows = [
           ["梯度 ∇f", vectorText(data.gradient), "C¹ 模型的 Frechet 线性主部", "只对该光滑模型与点成立"],
           ["方向导数 Dᵤf", fixed(data.directionalDerivative, 5), "梯度与单位方向的内积", "不是任意有限 h 的商"],
@@ -347,7 +365,7 @@
         ];
       } else if (data.kind === "all-directions") {
         rows = [
-          ["∇f(0)", vectorText(data.gradient), "偏导与所有直线方向导数都为 0", "这还不是 Frechet 定义的全邻域估计"],
+          ["偏导组成的候选向量", vectorText(data.gradient), "偏导与所有直线方向导数都为 0", "这还不是 Frechet 定义的全邻域估计"],
           ["当前方向有限商", fixed(data.directionalQuotient, 5), "有限探针的数值证据", "取极限后才是方向导数"],
           ["沿 y=x³ 的 f", fixed(data.curvedPath[0].value, 4), "曲线路径证明不连续", "路径量词不能由直线样本替代"],
           ["Frechet 结论", "不可微", "可微必连续；连续性已经失败", "有限采样不能证明所有路径"]
@@ -361,7 +379,7 @@
         ];
       }
       lab.querySelector("[data-ledger]").innerHTML = rows.map(function (row) { return "<tr>" + row.map(function (cell) { return "<td>" + escapeHtml(cell) + "</td>"; }).join("") + "</tr>"; }).join("");
-      lab.querySelector("[data-status]").textContent = data.kind === "smooth" ? "定理层：光滑二次函数在该点 Frechet 可微。数值层：当前有限商只是在逼近 Dᵤf。" : data.kind === "all-directions" ? "定理层：所有直线方向导数存在仍不足以推出可微；沿抛物线的账本给出具体失败边界。" : "定理层：逆函数定理只在 det J≠0 时发证书。数值层：当前 Jacobian 与两个显式映射说明奇异情形不能一概而论。";
+      lab.querySelector("[data-status]").textContent = data.kind === "smooth" ? "定理层：光滑二次函数在该点 Frechet 可微。数值层：当前有限商只是在逼近 Dᵤf。" : data.kind === "all-directions" ? "定理层：所有直线方向导数存在仍不足以推出可微；沿三次曲线 y=x³的账本给出具体失败边界。" : "定理层：逆函数定理只在 det J≠0 时发证书。数值层：当前 Jacobian 与两个显式映射说明奇异情形不能一概而论。";
     }
 
     lab.addEventListener("click", function (event) {
@@ -420,8 +438,8 @@
     var quotientFine = Math.abs(directionalQuotient("all-directions", [0, 0], 30, 0.005));
     check(quotientFine < 0.6 * quotientCoarse, "non-axis directional quotient tends to zero");
     var curved = curvedPathEvidence(0.02);
-    check(near(curved[0].value, 0.5), "parabola value is one half");
-    check(curved[curved.length - 1].quotient > curved[0].quotient, "Frechet quotient grows on parabola");
+    check(near(curved[0].value, 0.5), "cubic path value is one half");
+    check(curved[curved.length - 1].quotient > curved[0].quotient, "Frechet quotient grows on cubic path");
     var regular = analyze({ kind: "regular" });
     check(near(determinant(regular.jacobian), -3), "regular determinant");
     check(regular.rank === 2, "regular Jacobian rank");

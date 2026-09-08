@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 02:50</div>
   </div>
 </nav>
 <main id="content">
@@ -156,6 +156,12 @@ S_5(x)=\frac4\pi\left(\sin x+\frac{\sin3x}{3}+\frac{\sin5x}{5}\right),
 <li>对周期锯齿波 <span class="arithmatex">\(h(x)=x\)</span>，在 <span class="arithmatex">\(x=\pi\)</span> 处写出 <span class="arithmatex">\(h(\pi^-)\)</span>、<span class="arithmatex">\(h(\pi^+)\)</span> 和 Fourier 极限；再解释为什么把端点的函数值改成 <span class="arithmatex">\(0\)</span> 不会改变积分系数，却会让“级数收敛到函数值”的表述更准确。</li>
 <li>最后给自己一个反例检查：如果某个周期函数连续但只有有限个角点，为什么“部分和连续”不再自动阻止一致收敛？还需要回到具体的光滑性、系数衰减或一致收敛判别，而不是从“有 Fourier 级数”直接推出一致收敛。</li>
 </ol>
+<details>
+<summary>迁移题核对：端点值与一致收敛的不同作用</summary>
+<p>第 1 题由正交性给 <span class="arithmatex">\(a_0=2,a_1=2,b_2=-1\)</span>。第 2 题两侧极限分别为 <span class="arithmatex">\(\pi,-\pi\)</span>，平均为 <span class="arithmatex">\(0\)</span>；改变一个点不改变积分系数。第 3 题没有了“不连续极限”这一障碍，但仍需要充分条件。例如周期三角波 <span class="arithmatex">\(|x|\)</span> 的非零余弦系数按 <span class="arithmatex">\(1/n^2\)</span> 衰减，M 判别法给一致收敛；仅凭“部分和连续”不能直接作结论。</p>
+<p>再试 <span class="arithmatex">\(u_n(x)=x^n/n\)</span>：在任意 <span class="arithmatex">\([-r,r]\)</span>（<span class="arithmatex">\(r&lt;1\)</span>），导数尾项由几何级数控制，且 <span class="arithmatex">\(u_n(0)=0\)</span>，所以可以逐项求导；把区间扩大到包含 <span class="arithmatex">\(1\)</span>，原级数在 <span class="arithmatex">\(1\)</span> 就是调和级数，条件失效。</p>
+</details>
+<p>先修回链：<a href="analysis-03-integral.html">积分与微积分基本定理</a>；后续：<a href="real-03-lp-spaces.html">L² 与正交展开</a>。</p>
 </section>
 <h2 id="1_1">1. 数项级数<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
@@ -219,9 +225,14 @@ S_5(x)=\frac4\pi\left(\sin x+\frac{\sin3x}{3}+\frac{\sin5x}{5}\right),
 <p><strong>三大传递定理</strong>（一致收敛买到的东西）：</p>
 <ol>
 <li><strong>连续性</strong>：<span class="arithmatex">\(u_n\)</span> 连续 + 一致收敛 ⇒ <span class="arithmatex">\(S\)</span> 连续（极限可交换 <span class="arithmatex">\(\lim_x \lim_n = \lim_n \lim_x\)</span>）；</li>
-<li><strong>逐项积分</strong>：<span class="arithmatex">\(\int_a^b S = \sum \int_a^b u_n\)</span>；</li>
-<li><strong>逐项求导</strong>：需 <span class="arithmatex">\(\sum u_n'\)</span> 一致收敛（对导数级数提要求，不是对原级数）。</li>
+<li><strong>逐项积分</strong>：若各 <span class="arithmatex">\(u_n\)</span> 在有限闭区间 <span class="arithmatex">\([a,b]\)</span> 上 Riemann 可积，且原级数一致收敛，则 <span class="arithmatex">\(S\)</span> 可积且 <span class="arithmatex">\(\int_a^b S = \sum \int_a^b u_n\)</span>；</li>
+<li><strong>逐项求导</strong>：若各 <span class="arithmatex">\(u_n\in C^1[a,b]\)</span>，<span class="arithmatex">\(\sum u_n'\)</span> 在 <span class="arithmatex">\([a,b]\)</span> 一致收敛，且 <span class="arithmatex">\(\sum u_n(x_*)\)</span> 在至少一个 <span class="arithmatex">\(x_*\in[a,b]\)</span> 收敛，则原级数在 <span class="arithmatex">\([a,b]\)</span> 一致收敛，和函数在内部可导且 <span class="arithmatex">\(S'=\sum u_n'\)</span>。这里给的是便于使用的充分条件。</li>
 </ol>
+<p>为什么需要那个锚点 <span class="arithmatex">\(x_*\)</span>？对 <span class="arithmatex">\(C^1\)</span> 项，有</p>
+<div class="arithmatex">\[
+\sum_{n=N}^{M}u_n(x)=\sum_{n=N}^{M}u_n(x_*)+\int_{x_*}^{x}\sum_{n=N}^{M}u_n'(t)\,dt.
+\]</div>
+<p>锚点控制常数项；导数尾和的一致小量再乘区间长度，控制所有 <span class="arithmatex">\(x\)</span>。若漏掉锚点，<span class="arithmatex">\(u_n(x)\equiv1\)</span> 的导数级数恒为零，原级数却发散。对一般可导项也有更广版本，见<a href="https://www.math.uwaterloo.ca/~snew/PMATH331/Chap3SequencesOfFunctions.pdf">Waterloo 讲义定理 3.16</a>。</p>
 <p>🔗 <strong>AI 衔接</strong>：一致收敛是"函数序列极限保性质"的通行证——万能逼近定理（ai 课 04 讲）里"一致稠密"的"一致"就是它。</p>
 <h2 id="3_1">3. 幂级数<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定理（Abel）</strong> <span class="arithmatex">\(\sum a_n x^n\)</span> 在 <span class="arithmatex">\(x_0 \neq 0\)</span> 收敛 ⇒ 在 <span class="arithmatex">\(|x| &lt; |x_0|\)</span> 内绝对收敛。⇒ 收敛域是以原点为心的区间。</p>

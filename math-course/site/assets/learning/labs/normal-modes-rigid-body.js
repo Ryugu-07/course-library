@@ -29,7 +29,7 @@
   var INERTIA = [
     [2, -1, 0],
     [-1, 2, 0],
-    [0, 0, 5]
+    [0, 0, 4]
   ];
   var MODE_PRESETS = [
     { id: "low", label: "低频模", amplitude: [1, 0], note: "只激发 ω²=2 的同向模。" },
@@ -39,7 +39,7 @@
   var AXIS_PRESETS = [
     { id: "1", label: "绕轴 1（I=1）" },
     { id: "2", label: "绕轴 2（I=3）" },
-    { id: "3", label: "绕轴 3（I=5）" }
+    { id: "3", label: "绕轴 3（I=4）" }
   ];
   var STYLE_TEXT = [
     ".nm-lab{--nm-blue:var(--cl-blue,#315f9d);--nm-gold:var(--cl-gold,#95670d);--nm-green:var(--cl-green,#347247);--nm-red:var(--cl-red,#b13d32);--nm-purple:#745a9d;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
@@ -223,7 +223,7 @@
     var axes = [
       { id: "1", label: "轴 1", moment: 1, axis: [1 / rootTwo, 1 / rootTwo, 0] },
       { id: "2", label: "轴 2", moment: 3, axis: [1 / rootTwo, -1 / rootTwo, 0] },
-      { id: "3", label: "轴 3", moment: 5, axis: [0, 0, 1] }
+      { id: "3", label: "轴 3", moment: 4, axis: [0, 0, 1] }
     ];
     return axes.map(function (item) {
       var image = matVec3(inertia, item.axis);
@@ -247,7 +247,7 @@
   }
 
   function stabilityLedger(spin) {
-    var moments = [1, 3, 5];
+    var moments = [1, 3, 4];
     var omega = spin === undefined ? 1 : Number(spin);
     var coefficients = [
       (moments[2] - moments[0]) * (moments[0] - moments[1]) / (moments[1] * moments[2]),
@@ -319,7 +319,7 @@
     assert(result.trajectory.length === 65 && result.trajectory.every(function (sample) { return finite(sample.displacement[0]) && finite(sample.displacement[1]); }), "deterministic trajectory samples"); checks += 1;
     assert(result.principalAxes.length === 3, "three principal axes"); checks += 1;
     assert(result.principalAxes.every(function (axis) { return near(axis.unitNorm, 1) && axis.residualNorm <= 1e-9 && near(axis.quadratic, axis.moment); }), "principal-axis ledger"); checks += 1;
-    assert(near(result.stability[0].sigmaSquared, -8 / 15) && near(result.stability[1].sigmaSquared, 4 / 5) && near(result.stability[2].sigmaSquared, -8 / 3), "torque-free stability coefficients"); checks += 1;
+    assert(near(result.stability[0].sigmaSquared, -1 / 2) && near(result.stability[1].sigmaSquared, 1 / 2) && near(result.stability[2].sigmaSquared, -1), "torque-free stability coefficients"); checks += 1;
     assert(result.stability[1].classification.indexOf("不稳定") !== -1 && result.stability[0].classification.indexOf("稳定") !== -1, "intermediate-axis classification"); checks += 1;
     assert(result.selectedStability.axis === "2" && result.selectedStability.torqueFree && result.selectedStability.linearized, "stability scope flags"); checks += 1;
     assert(evaluate({ modeId: "low", time: 0.25 }).selectedDisplacement.length === 2, "low-mode preset"); checks += 1;

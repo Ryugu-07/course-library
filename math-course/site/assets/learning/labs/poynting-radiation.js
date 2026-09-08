@@ -592,7 +592,7 @@
           addLedgerRow(doc, body, ["角分布", "dP/dΩ ∝ sin²θ", result.checks.angularLaw ? "通过；θ=0 轴向节点" : "失败"]);
           addLedgerRow(doc, body, ["辐射功率", "P=p₀²ω⁴/(12π ε₀c³)", result.checks.totalPowerFormula ? "固定 p₀、短偶极、非相对论、谐稳态" : "失败"]);
           addLedgerRow(doc, body, ["时间平均", "⟨S⟩=(1/2μ₀)Re(E×B*)", result.timeAverage ? "周期平均；不是任意瞬时场值" : "失败"]);
-          status.textContent = "偶极模式：源附近的 1/r³、1/r² 项可储能并交换能量；只有辐射区的 1/r 项主导时，球面上的时间平均能流才直接读作净辐射功率。";
+          status.textContent = "偶极模式：源附近的 1/r³、1/r² 项可储能并交换能量；纯远场式需 1/r 项主导；若保留完整场，在源外无耗散壳层的周期稳态下，各闭合面平均净通量相等。";
         }
         ledger.appendChild(body);
       }
@@ -660,7 +660,7 @@
       prediction.appendChild(makeQuestion("axis", "2. 电偶极沿振荡轴 θ=0 的远场功率？", [
         { value: "zero", label: "零" }, { value: "max", label: "最大" }, { value: "constant", label: "与角度无关" }, { value: "undefined", label: "未定义" }
       ]));
-      prediction.appendChild(makeQuestion("zone", "3. 什么时候可把时间平均 ⟨S⟩ 直接读成净辐射流？", [
+      prediction.appendChild(makeQuestion("zone", "3. 什么时候适合只保留 1/r 远场项来近似辐射流？", [
         { value: "far-condition", label: "辐射区 kr≫1" }, { value: "near", label: "源旁 kr≪1" }, { value: "instant", label: "任意瞬时值" }, { value: "static", label: "静电极限" }
       ]));
       prediction.appendChild(makeQuestion("frequency", "4. 在固定 p₀、短偶极、非相对论和谐稳态条件下，P_rad 随频率？", [
@@ -715,7 +715,7 @@
       results.appendChild(element(doc, "div", { className: "pr-ledger-wrap" }, ledger));
       status = element(doc, "p", { className: "pr-status", "aria-live": "polite" }, "");
       results.appendChild(status);
-      results.appendChild(element(doc, "p", { className: "pr-interpretation" }, "三层读法：E/B/S 方向是局部向量关系；近场含可返回源的反应性能量；辐射功率是远场球面上的周期平均净能流。ω⁴ 只属于本页声明的固定振幅、短偶极、非相对论谐稳态模型。"));
+      results.appendChild(element(doc, "p", { className: "pr-interpretation" }, "三层读法：E/B/S 方向是局部向量关系；近场含可返回源的反应性能量；辐射功率可在远场求周期平均净通量；完整场在源外近场闭合面上也满足相同的平均能量守恒。ω⁴ 只属于本页声明的固定振幅、短偶极、非相对论谐稳态模型。"));
       shell.appendChild(results);
       root.replaceChildren(shell);
 

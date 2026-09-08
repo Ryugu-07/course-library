@@ -233,7 +233,7 @@
     var prediction = element(doc, "div", { className: "dll-prediction" });
     prediction.appendChild(element(doc, "strong", { className: "dll-prediction-title", text: "预测门：完成三项后揭晓" }));
     var questions = [
-      { prompt: "1. 若 f 在 a 附近二阶可导，割线斜率与 f'(a) 的误差是什么阶？", choices: [["linear", "O(|h|)"], ["quadratic", "O(h²)"], ["none", "没有统一阶"]], expected: "linear" },
+      { prompt: "1. 若 f 在 a 附近二阶可导且二阶导数有界，割线斜率与 f'(a) 的误差是什么阶？", choices: [["linear", "O(|h|)"], ["quadratic", "O(h²)"], ["none", "没有统一阶"]], expected: "linear" },
       { prompt: "2. 同一条件下，f(a+h) 与切线 L_a(a+h) 的误差是什么阶？", choices: [["linear", "O(|h|)"], ["quadratic", "O(h²)"], ["constant", "必为 0"]], expected: "quadratic" },
       { prompt: "3. |x| 在 0 与 x² 在 0 能否直接套用普通导数/逆函数公式？", choices: [["fails", "不能；两处都缺少所需条件"], ["always", "能，有限差商已足够"], ["corner-only", "只有 |x| 需要小心"]], expected: "fails" }
     ];

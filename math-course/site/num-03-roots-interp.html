@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 02:53</div>
   </div>
 </nav>
 <main id="content">
@@ -58,13 +58,14 @@ try {
 <li><a href="#2">2. 最小模型：三种求根步骤各自保证什么？</a></li>
 <li><a href="#3">3. 插值的稳定计算：节点、公式、误差范数</a></li>
 <li><a href="#4">4. 误区与迁移</a></li>
+<li><a href="#5">5. 迁移题：证书究竟约束哪个点？</a></li>
 </ul>
 </li>
 <li><a href="#1-fx-0">1. 非线性方程求根 \(f(x) = 0\)</a></li>
 <li><a href="#2_1">2. 多项式插值</a></li>
 <li><a href="#3-runge">3. Runge 现象与两条出路</a></li>
 <li><a href="#4_1">4. 最小二乘拟合（数据带噪时的正确姿势）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#5_1">5. 典型例题</a></li>
 </ul>
 </div>
 </details>
@@ -89,6 +90,11 @@ r\in[a_k,b_k],\qquad |m_k-r|\leq\frac{b_k-a_k}{2};
 x_{k+1}=x_k-\frac{f(x_k)}{f'(x_k)}
 \]</div>
 <p>是局部线性化：单根 <span class="arithmatex">\(f'(r)\neq0\)</span>、初值落在合适邻域且导数不太小时，才有局部二次收敛的保证；它本身不维护区间，候选点可能越界。保守/阻尼 Newton 保留一个有效变号区间，只有当 Newton 候选点在区间内且残差下降时才接受，否则缩短步长或回退到中点。它的区间证书与二分同源，但速度不必每步二次。</p>
+<p>还有一条容易漏掉的区别：对任意区间内点 <span class="arithmatex">\(x_k\)</span>，仅由 <span class="arithmatex">\(r\in[a_k,b_k]\)</span> 能保证的是</p>
+<div class="arithmatex">\[
+|x_k-r|\le\max(x_k-a_k,b_k-x_k).
+\]</div>
+<p>只有 <span class="arithmatex">\(x_k\)</span> 恰为中点才可使用半宽。实验的保守 Newton 证书已按当前点计算，并且所有候选都对<strong>当前收缩区间</strong>检查。固定预设用 <span class="arithmatex">\(|f(x_k)|\le10^{-14}\)</span> 或区间宽度 <span class="arithmatex">\(\le10^{-12}\max(1,|x_k|)\)</span> 停止，避免机器精度下无法“继续严格下降”而把好解推远。残差停止只是数值规则；平根仍可能有较大根误差。浮点函数求值的符号也不是严格区间算术证书。</p>
 <p>三种量必须分列记录：</p>
 <div class="arithmatex">\[
 \text{残差 }|f(x_k)|,\qquad
@@ -189,7 +195,7 @@ E_N=\max_{x\in[-1,1]}|f(x)-P_N(x)|,
 <td>接受区间内的降残差步，否则减半或取中点</td>
 <td><span class="arithmatex">\(\lvert f(x)\rvert\)</span></td>
 <td><span class="arithmatex">\(\lvert x-r\rvert\)</span></td>
-<td>有效变号区间的半宽</td>
+<td>当前点到区间两端距离的较大者</td>
 <td>接受 Newton、阻尼、区间回退</td>
 </tr>
 </tbody>
@@ -242,12 +248,27 @@ x_i^{\rm ch}=\cos\frac{i\pi}{N-1}\quad(0\le i&lt;N),
 <li><strong>“Runge 现象证明高次插值总是坏”是错的。</strong> 它是一个特定函数、区间、等距节点和均匀误差范数下的反例；节点策略、函数正则性与误差范数都要写清楚。</li>
 <li><strong>“Chebyshev 节点无条件最好”也是错的。</strong> 这里的优势对应光滑函数的全局插值和区间均匀误差；噪声、非均匀权重、奇异点或分段方法会改变选择。</li>
 </ul>
+<h3 id="5">5. 迁移题：证书究竟约束哪个点？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>已知 <span class="arithmatex">\(r\in[0,1]\)</span>，当前点为 <span class="arithmatex">\(x=0.9\)</span>，能保证误差不超过 <span class="arithmatex">\(0.5\)</span> 吗？</li>
+<li>对 <span class="arithmatex">\(f(x)=(x-1)^3\)</span>，残差 <span class="arithmatex">\(10^{-12}\)</span> 对应的根误差是多少？</li>
+<li>已知 <span class="arithmatex">\(|f'|\ge m&gt;0\)</span> 于包含 <span class="arithmatex">\(x,r\)</span> 的区间，如何从残差推出误差界？这比仅知道“单根”多了什么？</li>
+</ol>
+<details>
+<summary>展开核对：半宽、残差与导数下界</summary>
+<ol>
+<li>不能；根可能在 <span class="arithmatex">\(0\)</span>，误差可达 <span class="arithmatex">\(0.9\)</span>。中点 <span class="arithmatex">\(0.5\)</span> 才享有半宽 <span class="arithmatex">\(0.5\)</span> 的界。</li>
+<li><span class="arithmatex">\(|x-1|=10^{-4}\)</span>。小残差不能不经缩放就被称作同样小的坐标误差。</li>
+<li>中值定理给 <span class="arithmatex">\(|f(x)-f(r)|=|f'(\xi)||x-r|\ge m|x-r|\)</span>，故误差不超过 <span class="arithmatex">\(|f(x)|/m\)</span>。需要整个相关区间上的可验证下界，不能只用未知根处“导数非零”替代。</li>
+</ol>
+</details>
+<p>先修回链：<a href="analysis-02-differential.html">中值定理</a>、<a href="num-01-error.html">浮点误差</a>。实现中可参考 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brentq.html">SciPy brentq 的连续性、变号与坐标停止容差说明</a>；本实验的保守 Newton 并非 Brent 算法。</p>
 </div>
 </section>
 <h2 id="1-fx-0">1. 非线性方程求根 <span class="arithmatex">\(f(x) = 0\)</span><a class="headerlink" href="#1-fx-0" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="Newton 法切线求根" src="assets/img/num-03-newton.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>Newton 法：在当前点作切线，切线与横轴的交点是下一个猜测——二阶收敛，求根的主力。</figcaption>
+<figcaption><span class="fig-id">图 3.1</span>Newton 法：在当前点作切线，切线与横轴的交点是下一个猜测——在足够光滑的单根附近局部二次收敛。</figcaption>
 </figure>
 <p><strong>二分法</strong>：连续函数变号区间反复对半（零点定理，数分 I 的算法化）。在连续与变号假设成立、函数求值符号可靠时，每步区间减半——<strong>线性收敛</strong>、区间证书稳健；要把绝对误差压到 <span class="arithmatex">\(\varepsilon\)</span>，步数约为 <span class="arithmatex">\(\log_2\frac{b-a}{\varepsilon}\)</span>。<strong>打底用</strong>。</p>
 <p><strong>不动点迭代</strong>（统一视角）：改写 <span class="arithmatex">\(f(x) = 0 \iff x = g(x)\)</span>，迭代 <span class="arithmatex">\(x_{k+1} = g(x_k)\)</span>。</p>
@@ -273,11 +294,11 @@ f(x) - P_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{i=0}^{n}(x - x_i)
 </figure>
 <p><strong>反例（Runge, 1901）</strong>：<span class="arithmatex">\(f(x) = \frac{1}{1 + 25x^2}\)</span> 在 <span class="arithmatex">\([-1,1]\)</span> 上取越来越密的等距节点做全局插值时，插值多项式不在整个区间上一致收敛，端部会出现不断放大的振荡。根源可从节点多项式、Lebesgue 放大与函数复奇点共同理解，不能只把责任归给某一个余项因子。<strong>"多项式次数"可能成为过拟合旋钮</strong>——这与 ai 课 01 讲的偏差—方差问题相通；对带噪数据强制穿过每点通常会放大噪声，但是否“必然变差”仍取决于噪声模型、节点、度量与正则化。</p>
 <p><strong>出路一（换节点）</strong>：取 <strong>Chebyshev 根</strong> <span class="arithmatex">\(x_i = \cos\frac{(2i+1)\pi}{2n+2}\)</span>（端部加密），其首一节点多项式在 <span class="arithmatex">\([-1,1]\)</span> 上达到 minimax 尺度；上方实验使用的是同时包含两个端点的 <strong>Chebyshev–Lobatto 节点</strong> <span class="arithmatex">\(x_i=\cos\frac{i\pi}{n}\)</span>。两族公式不同，但都把节点向端部聚集，并显著改善本页 Runge 例子的均匀误差与 Lebesgue 放大；不能把其中一条公式悄悄换成另一条（谱方法的地基，知其所以然即可）。</p>
-<p><strong>出路二（降次分段）——三次样条</strong>：每段三次多项式，节点处 <span class="arithmatex">\(C^2\)</span> 拼接（函数、一二阶导全连续）+ 两个边界条件 ⇒ 系数由三对角方程组唯一定（追赶法 <span class="arithmatex">\(O(n)\)</span> 解，上一页的特例）。样条以"分段低次"换取无震荡 + 极好的光滑视觉——CAD、字体、动画曲线的工业标准。<strong>心法：宁可分段低次，不要全局高次。</strong></p>
+<p><strong>出路二（降次分段）——三次样条</strong>：每段三次多项式，节点处 <span class="arithmatex">\(C^2\)</span> 拼接（函数、一二阶导全连续）+ 两个边界条件 ⇒ 系数由三对角方程组唯一定（追赶法 <span class="arithmatex">\(O(n)\)</span> 解，上一页的特例）。样条以分段低次控制全局高次振荡，并提供平滑连接；普通三次样条仍可能过冲，保单调或保形需要额外设计。样条广泛用于 CAD、字体与动画曲线；是否选分段方法仍要看数据和误差需求。</p>
 <h2 id="4_1">4. 最小二乘拟合（数据带噪时的正确姿势）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>放弃"穿过每点"，改求 <span class="arithmatex">\(\min_c \sum_i \big(y_i - \sum_k c_k \varphi_k(x_i)\big)^2\)</span>——正规方程 <span class="arithmatex">\(A^\top A c = A^\top y\)</span>（高代最小二乘/统计 V OLS 的同一公式第三次出场）。数值要点回收上一页：正规方程条件数是 <span class="arithmatex">\(\kappa(A)^2\)</span>（平方级恶化！），认真做用 <strong>QR 分解</strong>直接解最小二乘——"同一数学、不同算法、精度两个档次"的又一标本。</p>
 <p><strong>插值 vs 拟合的选择判据</strong>：数据精确（函数表、几何造型）→ 插值/样条；数据带噪（实验、统计）→ 低维拟合 + 残差诊断（统计 V）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（改写的艺术）</strong> 解 <span class="arithmatex">\(x^3 - x - 1 = 0\)</span>（根 <span class="arithmatex">\(\approx 1.325\)</span>）。改写 A：<span class="arithmatex">\(x = x^3 - 1\)</span>，<span class="arithmatex">\(g' = 3x^2 \approx 5.3 &gt; 1\)</span> <strong>发散</strong>；改写 B：<span class="arithmatex">\(x = \sqrt[3]{x + 1}\)</span>，<span class="arithmatex">\(g' = \frac13(x+1)^{-2/3} \approx 0.19 &lt; 1\)</span> <strong>收敛</strong>（每步误差乘 0.19）。同一方程，生死两重天。</p>
 <p><strong>例 2（Newton 手算）</strong> <span class="arithmatex">\(\sqrt 2\)</span>：解 <span class="arithmatex">\(x^2 - 2 = 0\)</span>，<span class="arithmatex">\(x_{k+1} = \frac12(x_k + \frac{2}{x_k})\)</span>。从 <span class="arithmatex">\(x_0 = 1\)</span>：<span class="arithmatex">\(1.5,\ 1.41\overline{6},\ 1.414216,\ 1.41421356\dots\)</span>——四步 8 位有效，二次收敛的体感（这也是巴比伦开方法，人类最古老的算法之一）。</p>
 <p><strong>例 3（差商表）</strong> 过 <span class="arithmatex">\((0,1), (1,2), (2,5)\)</span>：差商 <span class="arithmatex">\(f[x_0]=1,\ f[x_0,x_1]=1,\ f[x_0,x_1,x_2]=\frac{3-1}{2}=1\)</span> ⇒ <span class="arithmatex">\(P_2 = 1 + x + x(x-1) = x^2 + 1\)</span>。验证三点全过 ✓。<span class="arithmatex">\(\blacksquare\)</span></p>
