@@ -311,3 +311,5 @@ $$
 概形粘合定理与两个标准例子见 [Stacks Project：Glueing schemes](https://stacks.math.columbia.edu/tag/01JA)、[Projective line](https://stacks.math.columbia.edu/tag/01JE) 和 [Affine space with zero doubled](https://stacks.math.columbia.edu/tag/01JD)。仿射态射与环同态反向对应见 [The category of affine schemes](https://stacks.math.columbia.edu/tag/01HX)；双原点直线使用的分离性判据见 [Separation axioms](https://stacks.math.columbia.edu/tag/01KH)。资料核查：2026-09-08。
 
 继续计算：[射影直线上的 Čech 上同调](bridge-06-cech.html)把相容函数对推广到 $\mathcal O(k)$ 的局部截面，并测量一次粘合障碍。
+
+继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。

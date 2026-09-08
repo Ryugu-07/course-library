@@ -335,3 +335,5 @@ $$
 | 更高商 $\mathfrak m^n/\mathfrak m^{n+1}$ | 高阶厚度 | 双重与三重厚点切维相同但长度不同 |
 
 双数定义、切空间及其与局部余切空间的对偶见 [Stacks Project：Tangent spaces](https://stacks.math.columbia.edu/tag/0B28)；闭点剩余域的限定见 [Hilbert Nullstellensatz](https://stacks.math.columbia.edu/tag/00FV)。本讲只在复仿射有限型闭点上推导 Jacobian 核，不把尖点算例扩张成一般概形光滑性判据。资料核查：2026-09-08。
+
+继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。

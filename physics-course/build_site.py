@@ -165,6 +165,7 @@ COURSE = [
         ("bridge-07-mps-metric.md", "计算桥 VII · MPS 范数与局部优化"),
         ("bridge-08-product-sweeps.md", "计算桥 VIII · 乘积 MPS 往返扫描"),
         ("bridge-09-mps-environments.md", "计算桥 IX · MPS 环境与中心求解"),
+        ("bridge-10-two-site-truncation.md", "计算桥 X · 两站点更新与截断"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),
@@ -251,8 +252,18 @@ PAGE_TMPL = """<!DOCTYPE html>
 """
 
 
+def lab_dependencies(names):
+    # Two-site updates reuse the tested Ising Hamiltonian and symmetric eigensolver.
+    expanded = []
+    for name in names:
+        if name == "research-two-site":
+            expanded.append("research-environments")
+        expanded.append(name)
+    return list(dict.fromkeys(expanded))
+
+
 def learning_assets(src: str):
-    names = list(dict.fromkeys(LEARNING_LAB_RE.findall(src)))
+    names = lab_dependencies(LEARNING_LAB_RE.findall(src))
     if not names:
         return "", ""
     missing = [name for name in names if not (SHARED / "labs" / f"{name}.js").is_file()]
@@ -281,7 +292,7 @@ def sync_learning_assets(md_names):
     for md_name in md_names:
         src = (LECTURES / md_name).read_text(encoding="utf-8")
         names.extend(LEARNING_LAB_RE.findall(src))
-    names = list(dict.fromkeys(names))
+    names = lab_dependencies(names)
     if not names:
         return
     (destination / "labs").mkdir(parents=True)

@@ -85,4 +85,11 @@ button.fire("click"); sliders[0].value = "99"; sliders[0].fire("input");
 equal(all(output, n => n.attrs.role === "status").length, 1);
 equal(all(output, n => n.tag === "table").length, 0);
 reset.fire("click"); equal(all(output, n => n.tag === "table").length, 1);
+// Isolated points must be visible and must not become a spurious connecting curve.
+const scatter=renderer.create("scatter",{test:{...config,compute:()=>({rows:[["points",2]],chart:{title:"points",xlabel:"x",ylabel:"y",series:[{label:"roots",dots:true,points:[[-1,0],[1,0]]}]},text:"two roots"})}});
+const scatterRoot=new Node("div",{"data-research-topic":"test"});scatterRoot.ownerDocument=doc;
+scatter.mount(scatterRoot,api);all(scatterRoot,n=>n.tag==="button")[0].fire("click");
+equal(all(scatterRoot,n=>n.attrs.className==="rs-data-point").length,2);
+equal(all(scatterRoot,n=>n.tag==="polyline").length,0);
+equal(all(scatterRoot,n=>n.attrs.className==="rs-data-point").map(n=>n.attrs.cx),[104,420]);
 console.log(`PASS: ${checks} shared renderer contract and interaction checks`);

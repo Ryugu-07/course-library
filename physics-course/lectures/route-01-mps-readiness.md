@@ -166,3 +166,5 @@ $$Av=(\tau,1+\tau,1+\tau,\tau)^T=\tau v,$$
 完成本路线说明你能复核最小 MPS 优化链。一般 χ 还需要左右环境收缩、有效 Hamiltonian 作用、两站点更新、截断误差与收敛检查，不能由 χ=1 扫描自动覆盖。进一步读 [Schollwöck 的 MPS／DMRG 综述](https://arxiv.org/abs/1008.3477)，或返回[张量网络课](mb-01-tensor-networks.html)对照每一步的位置。
 
 继续计算：[MPS 环境与八维中心求解](bridge-09-mps-environments.html)。
+
+继续训练：[两站点更新与 SVD 截断](bridge-10-two-site-truncation.html)把环境、规范与 Schmidt 分解合在一次可复算更新中，并比较截断前后的物理能量。

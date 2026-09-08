@@ -114,11 +114,13 @@
         const palette = ["#497ec5", "#c65c3d", "#20876c", "#9868b4"];
         const patterns = ["none", "8 4", "2 5", "10 3 2 3"];
         chart.series.forEach(function (s, i) {
-          g.appendChild(svg("polyline", { points: s.points.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] }));
+          if (s.dots) {
+            s.points.forEach(p => g.appendChild(svg("circle", { cx: X(p[0]), cy: Y(p[1]), r: 6, fill: s.color || palette[i % 4], className: "rs-data-point" })));
+          } else g.appendChild(svg("polyline", { points: s.points.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] }));
         });
         if (chart.marker && chart.marker.every(Number.isFinite)) g.appendChild(svg("circle", { cx: X(chart.marker[0]), cy: Y(chart.marker[1]), r: 6, fill: "none", stroke: "currentColor", "stroke-width": 2 }));
         const legend = el("figcaption", {}, chart.series.map(function (s, i) {
-          return el("div", {}, [svg("svg", { viewBox: "0 0 44 20", "aria-hidden": "true" }, svg("path", { d: "M1,10H43", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] })), s.label]);
+          return el("div", {}, [svg("svg", { viewBox: "0 0 44 20", "aria-hidden": "true" }, s.dots ? svg("circle", { cx: 22, cy: 10, r: 6, fill: s.color || palette[i % 4] }) : svg("path", { d: "M1,10H43", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] })), s.label]);
         }));
         legend.appendChild(el("p", {}, "纵轴：" + chart.ylabel + "。坐标范围随数据缩放；离散数据之间的连线仅便于阅读。"));
         return el("figure", {}, [g, legend]);

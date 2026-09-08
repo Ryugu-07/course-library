@@ -149,3 +149,5 @@ Wa=0 的方向不对应非零物理态，Rayleigh 商在那里没有定义。应
 路线验收：[连续作业：从 Schmidt 截断到变分扫描](route-01-mps-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
 
 继续计算：[MPS 环境与八维中心求解](bridge-09-mps-environments.html)。
+
+继续训练：[两站点更新与 SVD 截断](bridge-10-two-site-truncation.html)把环境、规范与 Schmidt 分解合在一次可复算更新中，并比较截断前后的物理能量。

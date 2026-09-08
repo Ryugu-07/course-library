@@ -118,6 +118,7 @@ COURSE = [
         ("bridge-11-tangent-spaces.md", "基础 XI · 局部环与切空间"),
         ("bridge-12-homotopy-cones.md", "基础 XII · 链同伦与映射锥"),
         ("bridge-13-affine-gluing.md", "基础 XIII · 仿射图粘合与态射"),
+        ("bridge-14-fibers-base-change.md", "基础 XIV · 纤维与基变换"),
     ]),
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),

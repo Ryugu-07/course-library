@@ -3,7 +3,7 @@
  const core=typeof module==="object"&&module.exports?require("../research-renderer.js"):root.ResearchLab;
  const lib=factory(core);
  if(typeof module==="object"&&module.exports)module.exports=lib;
- else if(root.CourseLearning)root.CourseLearning.register("research-environments",lib.mount);
+ else {root.ResearchEnvironments=lib;if(root.CourseLearning)root.CourseLearning.register("research-environments",lib.mount);}
 })(typeof globalThis!=="undefined"?globalThis:this,function(core){
  "use strict";
  const I=[[1,0],[0,1]],X=[[0,1],[1,0]],Z=[[1,0],[0,-1]];
@@ -22,7 +22,7 @@
     for(let k=0;k<n;k++){const u=V[k][p],v=V[k][q];V[k][p]=c*u-s*v;V[k][q]=s*u+c*v;}
     a[p][p]=c*c*app-2*c*s*apq+s*s*aqq;a[q][q]=s*s*app+2*c*s*apq+c*c*aqq;a[p][q]=a[q][p]=0;
    }
-   if(max<1e-12){const order=Array.from({length:n},(_,i)=>i).sort((i,j)=>a[i][i]-a[j][j]);return {values:order.map(i=>a[i][i]),vector:V.map(r=>r[order[0]])};}
+   if(max<1e-12){const order=Array.from({length:n},(_,i)=>i).sort((i,j)=>a[i][i]-a[j][j]);return {values:order.map(i=>a[i][i]),vector:V.map(r=>r[order[0]]),vectors:V.map(r=>order.map(i=>r[i]))};}
   }
   throw Error("对角化未收敛");
  }
@@ -74,5 +74,5 @@
  chart:{title:"固定不同右块时的最优能量",xlabel:"右块混合角 α（度）",ylabel:"能量（J=1）",xticks:[0,45,90],series:[{label:"各固定子空间的最低能量",points:Array.from({length:19},(_,i)=>[i*5,eigen(effective(environments(i*5,v.g),v.g)).values[0]])},{label:"完整四站基态",points:[[0,m.ground],[90,m.ground]]}],marker:[v.alpha,m.E]},
  text:"α 改变右块张成的物理子空间，不只是坐标规范。每个点都重新优化中心；图线连接采样值。局部残差小只证明投影后的方程解得准，物理残差还可非零。"};}}
  };
- return Object.assign(core.create("research-environments",configs),{environments,effective,hamiltonian,calculate,growRight});
+ return Object.assign(core.create("research-environments",configs),{environments,effective,hamiltonian,calculate,growRight,eigen});
 });

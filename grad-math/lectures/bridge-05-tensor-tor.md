@@ -109,3 +109,5 @@ $d=4$，两者都同构于 $\mathbb Z/4$。乘八的核是 $\{0,3,6,9\}$，像�
 双线性映射经张量积唯一分解；右正合保留余核；平坦要求也保留单射；Tor 由自由或投射分解张量后的同调计算。下一讲：[射影直线上的 Čech 上同调](bridge-06-cech.html)。定义与一般定理参见 [Stacks：张量积](https://stacks.math.columbia.edu/tag/00CV)、[平坦模](https://stacks.math.columbia.edu/tag/00H9)、[计算 Tor](https://stacks.math.columbia.edu/tag/064F)。本讲的循环模计算已在正文证明。核查：2026-09-08。
 
 路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
+
+继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。

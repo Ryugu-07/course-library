@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纤维与基变换 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li class="active"><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 20:34</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#fibers-base-change-title">两个解在原点撞成一个以后，另一个解真的消失了吗？</a></li>
+<li><a href="#1">1. 纤维不是把点画在竖线上，而是做一次张量积</a></li>
+<li><a href="#2">2. 非零闭纤维：两个不同的约化点</a></li>
+<li><a href="#3-2">3. 零闭纤维：只有一个点，却仍保留长度 2</a></li>
+<li><a href="#4-2">4. 为什么总长度不跳：源环本来就是秩 2 自由模</a></li>
+<li><a href="#5">5. 闭点不是底空间的全部点</a></li>
+<li><a href="#6">6. 基变换：让平方根成为底空间上的坐标</a></li>
+<li><a href="#7">7. 实验怎样读，哪些东西它没有画出</a></li>
+<li><a href="#8">8. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="14">基础衔接 14 · 纤维与基变换：两个点怎样合成一个双点<a class="headerlink" href="#14" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-01-modules.html">模、商与张量积</a>、<a href="bridge-05-tensor-tor.html">张量积与平坦性</a>、<a href="bridge-13-affine-gluing.html">仿射概形与反向环映射</a>。本讲固定复数域，用 <span class="arithmatex">\(t=x^2\)</span> 这一条仿射态射推导概形纤维、非约化特殊纤维与一次基变换。只在这个有限自由例子中讨论平坦性和纤维长度，不建立一般平坦族、分歧或相交理论。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="fibers-base-change-title" class="learning-layer">
+<h2 id="fibers-base-change-title">两个解在原点撞成一个以后，另一个解真的消失了吗？<a class="headerlink" href="#fibers-base-change-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 纤维不是把点画在竖线上，而是做一次张量积<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设仿射态射</p>
+<div class="arithmatex">\[
+f:X=\operatorname{Spec}A\longrightarrow
+S=\operatorname{Spec}B
+\]</div>
+<p>来自反向环同态 <span class="arithmatex">\(B\to A\)</span>。对底空间中的点 <span class="arithmatex">\(p\in\operatorname{Spec}B\)</span>，它的剩余域记为 <span class="arithmatex">\(\kappa(p)\)</span>。概形论纤维定义成纤维积</p>
+<div class="arithmatex">\[
+X_p=X\times_S\operatorname{Spec}\kappa(p).
+\]</div>
+<p>仿射纤维积把箭头翻回环上的张量积，因此</p>
+<div class="arithmatex">\[
+\boxed{
+X_p\cong
+\operatorname{Spec}\bigl(A\otimes_B\kappa(p)\bigr).
+}
+\]</div>
+<p>这比集合论原像多做了一件关键的事：不仅找出哪些素理想落在 <span class="arithmatex">\(p\)</span> 上，还保留商环中的幂零元、剩余域和重数信息。</p>
+<p>本讲的固定模型是</p>
+<div class="arithmatex">\[
+B=\mathbb C[t]\longrightarrow A=\mathbb C[x],
+\qquad t\longmapsto x^2.
+\]</div>
+<p>在闭点坐标上，它对应</p>
+<div class="arithmatex">\[
+f:\mathbb A^1_x\longrightarrow\mathbb A^1_t,
+\qquad x\longmapsto t=x^2.
+\]</div>
+<p>下面先算底空间闭点 <span class="arithmatex">\(p_a=(t-a)\)</span> 的纤维，其中 <span class="arithmatex">\(a\in\mathbb C\)</span>。因为 <span class="arithmatex">\(\kappa(p_a)=\mathbb C\)</span>，且 <span class="arithmatex">\(t\)</span> 在剩余域中变成 <span class="arithmatex">\(a\)</span>，</p>
+<div class="arithmatex">\[
+\begin{aligned}
+A\otimes_B\kappa(p_a)
+&amp;=\mathbb C[x]\otimes_{\mathbb C[t]}\mathbb C[t]/(t-a)\\
+&amp;\cong\mathbb C[x]/(x^2-a).
+\end{aligned}
+\]</div>
+<p>所以“令 <span class="arithmatex">\(t=a\)</span>”不是随意代值，而是张量积化成商环后的结果。</p>
+<h2 id="2">2. 非零闭纤维：两个不同的约化点<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(a\ne0\)</span>，在 <span class="arithmatex">\(\mathbb C\)</span> 中选平方根 <span class="arithmatex">\(r\)</span>，使 <span class="arithmatex">\(r^2=a\)</span>。于是</p>
+<div class="arithmatex">\[
+x^2-a=(x-r)(x+r).
+\]</div>
+<p>因为 <span class="arithmatex">\(r\ne0\)</span> 且复数域特征不是 2，两个根不同，理想 <span class="arithmatex">\((x-r)\)</span> 与 <span class="arithmatex">\((x+r)\)</span> 互素。中国剩余定理给出</p>
+<div class="arithmatex">\[
+\mathbb C[x]/(x^2-a)
+\cong
+\mathbb C[x]/(x-r)\times
+\mathbb C[x]/(x+r)
+\cong\mathbb C\times\mathbb C.
+\]</div>
+<p>因此每个非零复闭点纤维含两个不同闭点 <span class="arithmatex">\(x=r,-r\)</span>，每一点都是约化的，局部长度各为 1。</p>
+<p>若实验只让 <span class="arithmatex">\(a\)</span> 沿实轴移动，<span class="arithmatex">\(a&gt;0\)</span> 时两根落在实轴，<span class="arithmatex">\(a&lt;0\)</span> 时两根落在虚轴；但底域仍是 <span class="arithmatex">\(\mathbb C\)</span>，所以负的实参数也有两个复闭点。不能把“没有实根”误写成“纤维为空”。</p>
+<h2 id="3-2">3. 零闭纤维：只有一个点，却仍保留长度 2<a class="headerlink" href="#3-2" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(a=0\)</span>，纤维环变成</p>
+<div class="arithmatex">\[
+R_0=\mathbb C[x]/(x^2).
+\]</div>
+<p>它只有一个素理想 <span class="arithmatex">\((x)\)</span>：每个素理想都必须包含幂零元 <span class="arithmatex">\(x\)</span>，而商掉 <span class="arithmatex">\((x)\)</span> 后只剩域 <span class="arithmatex">\(\mathbb C\)</span>。因此底层拓扑空间只有一个闭点。</p>
+<p>但 <span class="arithmatex">\(x\)</span> 在 <span class="arithmatex">\(R_0\)</span> 中不为零，只满足 <span class="arithmatex">\(x^2=0\)</span>。所以该纤维不是约化点 <span class="arithmatex">\(\operatorname{Spec}\mathbb C\)</span>，而是带有一阶无穷小方向的<strong>双点</strong>。作为复向量空间，</p>
+<div class="arithmatex">\[
+R_0=\mathbb C\cdot1\oplus\mathbb C\cdot x,
+\qquad \dim_{\mathbb C}R_0=2.
+\]</div>
+<p>更可算地，对任意闭纤维 <span class="arithmatex">\(R_a=\mathbb C[x]/(x^2-a)\)</span>，以 <span class="arithmatex">\((1,\bar x)\)</span> 为基，“乘以 <span class="arithmatex">\(\bar x\)</span>”的矩阵是</p>
+<div class="arithmatex">\[
+M_{\bar x}=
+\begin{pmatrix}0&amp;a\\1&amp;0\end{pmatrix},
+\qquad M_{\bar x}^2=aI.
+\]</div>
+<p>当 <span class="arithmatex">\(a=0\)</span> 时，这仍是非零矩阵，但平方为零。根图只显示一个原点，这个算符却直接暴露了该点上保留的幂零结构。</p>
+<p>组成列</p>
+<div class="arithmatex">\[
+0\subset(x)\subset R_0
+\]</div>
+<p>的两个相邻商都同构于 <span class="arithmatex">\(\mathbb C\)</span>，故这个局部 Artin 环的长度为 2。这里“长度 2”不表示纤维的 Krull 维数是 2；它仍是零维概形，也不表示有两个无法区分的普通拓扑点。长度记录的是结构层中仍未消失的代数厚度。</p>
+<figure>
+<p><img alt="映射t等于x平方的非零复闭纤维有两个不同根，零纤维只有一个支撑点但坐标环含非零平方零元；基变换t等于s平方后出现x等于正负s的两条分支，它们只在s非零处环分裂。" src="assets/img/bridge-14-fibers-base-change.svg" /></p>
+<figcaption>点的数目在 a=0 从二变一，但纤维环的复向量空间维数始终为 2。基变换把两根变成两条可见分支；原点处相交正是不能全局直积分解的位置。</figcaption>
+</figure>
+<h2 id="4-2">4. 为什么总长度不跳：源环本来就是秩 2 自由模<a class="headerlink" href="#4-2" title="Permanent link"></a></h2>
+<p>任意多项式都能唯一拆成偶次与奇次部分：</p>
+<div class="arithmatex">\[
+h(x)=h_{\rm even}(x^2)+x\,h_{\rm odd}(x^2).
+\]</div>
+<p>把 <span class="arithmatex">\(t\)</span> 的作用解释为乘 <span class="arithmatex">\(x^2\)</span>，就得到 <span class="arithmatex">\(\mathbb C[t]\)</span>-模同构</p>
+<div class="arithmatex">\[
+\boxed{
+\mathbb C[x]\cong
+\mathbb C[t]\cdot1\oplus
+\mathbb C[t]\cdot x.
+}
+\]</div>
+<p>所以 <span class="arithmatex">\(A\)</span> 是秩 2 的自由 <span class="arithmatex">\(B\)</span>-模，因而在本例中是平坦模。与任意点的剩余域张量后，</p>
+<div class="arithmatex">\[
+A\otimes_B\kappa(p)
+\cong
+\kappa(p)\cdot1\oplus\kappa(p)\cdot x
+\]</div>
+<p>仍是二维 <span class="arithmatex">\(\kappa(p)\)</span>-向量空间。对这里的有限复闭点纤维，这个维数就是总长度：</p>
+<table>
+<thead>
+<tr>
+<th>闭点参数</th>
+<th>纤维环</th>
+<th style="text-align: right;">支撑闭点数</th>
+<th>各点长度</th>
+<th style="text-align: right;">总长度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(a\ne0\)</span></td>
+<td><span class="arithmatex">\(\mathbb C\times\mathbb C\)</span></td>
+<td style="text-align: right;">2</td>
+<td><span class="arithmatex">\(1,1\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(a=0\)</span></td>
+<td><span class="arithmatex">\(\mathbb C[x]/(x^2)\)</span></td>
+<td style="text-align: right;">1</td>
+<td>2</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>因此“所有闭纤维总长度为 2”不等于“每个闭纤维都有两个不同点”。平坦性在这个例子里容许两个点合并，只要特殊纤维用非约化结构保存丢失的长度。</p>
+<p>这里只使用了“自由模推出平坦模”。一般情况下，凭几张纤维图或长度表不能自动证明一个态射平坦；有限平坦、平坦族的判据与纤维长度定理需要额外假设。</p>
+<h2 id="5">5. 闭点不是底空间的全部点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>上面 <span class="arithmatex">\(a\in\mathbb C\)</span> 描述的是 <span class="arithmatex">\(\operatorname{Spec}\mathbb C[t]\)</span> 的闭点 <span class="arithmatex">\((t-a)\)</span>。底空间还含泛点</p>
+<div class="arithmatex">\[
+\eta=(0),\qquad \kappa(\eta)=\mathbb C(t).
+\]</div>
+<p>泛纤维为</p>
+<div class="arithmatex">\[
+X_\eta=
+\operatorname{Spec}\bigl(\mathbb C(t)[x]/(x^2-t)\bigr).
+\]</div>
+<p><span class="arithmatex">\(t\)</span> 不是 <span class="arithmatex">\(\mathbb C(t)\)</span> 中的平方：按不可约因子 <span class="arithmatex">\(t\)</span> 计算零点阶数，<span class="arithmatex">\(t\)</span> 的阶数为 1，而任意有理函数平方的零点与极点阶数都为偶数。因此 <span class="arithmatex">\(x^2-t\)</span> 在该域上不可约；这个商本身是次数 2 的域扩张，泛纤维只有一个点，其剩余域却比 <span class="arithmatex">\(\mathbb C(t)\)</span> 大二次。于是“非零纤维有两个点”必须严格读成“非零<strong>复闭点</strong>上的纤维有两个复闭点”，不能拿闭点图代替整个素谱。</p>
+<h2 id="6">6. 基变换：让平方根成为底空间上的坐标<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>现在用</p>
+<div class="arithmatex">\[
+g:S'=\operatorname{Spec}\mathbb C[s]\longrightarrow
+S=\operatorname{Spec}\mathbb C[t],
+\qquad t\longmapsto s^2
+\]</div>
+<p>改变底空间。拉回后的总空间是</p>
+<div class="arithmatex">\[
+X'=X\times_SS',
+\]</div>
+<p>其坐标环为</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\mathbb C[x]\otimes_{\mathbb C[t]}\mathbb C[s]
+&amp;\cong\mathbb C[s,x]/(x^2-s^2)\\
+&amp;=\mathbb C[s,x]/\bigl((x-s)(x+s)\bigr).
+\end{aligned}
+\]</div>
+<p>几何上出现两条分支</p>
+<div class="arithmatex">\[
+x=s,\qquad x=-s,
+\]</div>
+<p>它们在 <span class="arithmatex">\((s,x)=(0,0)\)</span> 相交。这里不能直接使用中国剩余定理宣称</p>
+<div class="arithmatex">\[
+\mathbb C[s,x]/(x^2-s^2)
+\not\cong
+\mathbb C[s]\times\mathbb C[s].
+\]</div>
+<p>因为两个理想的和是</p>
+<div class="arithmatex">\[
+(x-s)+(x+s)=(x-s,2s),
+\]</div>
+<p>它在原点仍是适当理想，并不等于整个环。换句话说，两条分支在原点没有分开。</p>
+<p>只有把 <span class="arithmatex">\(s\)</span> 变成可逆元，也就是删掉基底的原点后，<span class="arithmatex">\(2s\)</span> 才可逆，两个理想才互素。此时中国剩余定理给出</p>
+<div class="arithmatex">\[
+\mathbb C[s,s^{-1},x]/(x^2-s^2)
+\cong
+\mathbb C[s,s^{-1}]\times
+\mathbb C[s,s^{-1}].
+\]</div>
+<p>两个线性因子各生成素理想，而且</p>
+<div class="arithmatex">\[
+(x-s)\cap(x+s)=\bigl((x-s)(x+s)\bigr).
+\]</div>
+<p>所以取两条分支上的限制给出单射</p>
+<div class="arithmatex">\[
+\mathbb C[s,x]/(x^2-s^2)
+\hookrightarrow
+\mathbb C[s]\times\mathbb C[s],
+\qquad
+[h]\longmapsto\bigl(h(s,s),h(s,-s)\bigr).
+\]</div>
+<p>它不是满射：像中的一对多项式在 <span class="arithmatex">\(s=0\)</span> 必须取相同值。这个单射说明总空间 <span class="arithmatex">\(X'\)</span> 本身是两条相交的约化直线；但它在 <span class="arithmatex">\(s=0\)</span> 上的纤维仍是 <span class="arithmatex">\(\operatorname{Spec}\mathbb C[x]/(x^2)\)</span>，是非约化双点。约化的总空间可以拥有非约化纤维，这两句话并不冲突。</p>
+<h2 id="7">7. 实验怎样读，哪些东西它没有画出<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验固定复数底域，只让闭点参数 <span class="arithmatex">\(a\)</span> 沿实区间 <span class="arithmatex">\([-2,2]\)</span> 移动。它会把 <span class="arithmatex">\(x^2=a\)</span> 的根画在复平面上：负 <span class="arithmatex">\(a\)</span> 给两个纯虚根，正 <span class="arithmatex">\(a\)</span> 给两个实根，<span class="arithmatex">\(a=0\)</span> 显示一个带长度 2 标记的双点。根轨迹只是闭点支撑的动画，不是完整概形，也没有画出泛点、局部环或所有素理想。</p>
+<p><strong>无脚本后备：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(a\)</span></th>
+<th>两个代数根</th>
+<th style="text-align: right;">不同支撑点数</th>
+<th>是否约化</th>
+<th style="text-align: right;"><span class="arithmatex">\(\dim_{\mathbb C}\)</span> 纤维环</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(-2\)</span></td>
+<td><span class="arithmatex">\(\pm i\sqrt2\)</span></td>
+<td style="text-align: right;">2</td>
+<td>是</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(-1\)</span></td>
+<td><span class="arithmatex">\(\pm i\)</span></td>
+<td style="text-align: right;">2</td>
+<td>是</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(0\)</span>，重根</td>
+<td style="text-align: right;">1</td>
+<td>否，环中 <span class="arithmatex">\(\bar x\ne0\)</span> 但 <span class="arithmatex">\(\bar x^2=0\)</span></td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(\pm1\)</span></td>
+<td style="text-align: right;">2</td>
+<td>是</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(\pm\sqrt2\)</span></td>
+<td style="text-align: right;">2</td>
+<td>是</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<div class="learning-lab" data-learning-lab="research-fibers" data-research-topic="square"></div>
+<h2 id="8">8. 两道迁移题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 把模型改成 <span class="arithmatex">\(\mathbb C[t]\to\mathbb C[x]\)</span>，<span class="arithmatex">\(t\mapsto x^3\)</span>。证明源环是秩 3 自由模，并计算非零闭纤维与零闭纤维的支撑点数、约化性和总长度。若再作 <span class="arithmatex">\(t=s^3\)</span> 的基变换，会看到什么？</p>
+<details>
+<summary>按次数除以 3，再分解三次差</summary>
+<p>每个多项式唯一写成</p>
+<div class="arithmatex">\[
+h(x)=h_0(x^3)+x h_1(x^3)+x^2h_2(x^3),
+\]</div>
+<p>所以 <span class="arithmatex">\(\mathbb C[x]\)</span> 以 <span class="arithmatex">\(1,x,x^2\)</span> 为 <span class="arithmatex">\(\mathbb C[t]\)</span>-基，秩为 3。闭纤维环是</p>
+<div class="arithmatex">\[
+\mathbb C[x]/(x^3-a).
+\]</div>
+<p>若 <span class="arithmatex">\(a\ne0\)</span>，多项式与导数 <span class="arithmatex">\(3x^2\)</span> 没有公共根；在 <span class="arithmatex">\(\mathbb C\)</span> 上它分成三个不同线性因子，因此纤维有三个约化闭点，总长度 3。若 <span class="arithmatex">\(a=0\)</span>，得到 <span class="arithmatex">\(\mathbb C[x]/(x^3)\)</span>：只有一个支撑点，<span class="arithmatex">\(x\)</span> 为三阶幂零元，组成列</p>
+<div class="arithmatex">\[
+0\subset(x^2)\subset(x)\subset\mathbb C[x]/(x^3)
+\]</div>
+<p>显示长度为 3。</p>
+<p>令 <span class="arithmatex">\(\omega=e^{2\pi i/3}\)</span>。基变换 <span class="arithmatex">\(t=s^3\)</span> 后</p>
+<div class="arithmatex">\[
+x^3-s^3=(x-s)(x-\omega s)(x-\omega^2s),
+\]</div>
+<p>得到三条在原点相交的分支。只有在 <span class="arithmatex">\(s\)</span> 可逆后，它们才两两互素并由中国剩余定理分裂成三份 <span class="arithmatex">\(\mathbb C[s,s^{-1}]\)</span>；原点处不能写成三个环的直积。</p>
+</details>
+<p><strong>题二。</strong> 把底域改为 <span class="arithmatex">\(\mathbb R\)</span>，仍取 <span class="arithmatex">\(t=x^2\)</span>。对实闭点 <span class="arithmatex">\(a&gt;0,a=0,a&lt;0\)</span>，纤维是否分别有两个、一个、零个点？</p>
+<details>
+<summary>区分实有理点、素谱点和剩余域</summary>
+<p><span class="arithmatex">\(a&gt;0\)</span> 时</p>
+<div class="arithmatex">\[
+\mathbb R[x]/(x^2-a)\cong\mathbb R\times\mathbb R,
+\]</div>
+<p>有两个实闭点。<span class="arithmatex">\(a=0\)</span> 时得到 <span class="arithmatex">\(\mathbb R[x]/(x^2)\)</span>，只有一个非约化闭点。</p>
+<p>若 <span class="arithmatex">\(a&lt;0\)</span>，<span class="arithmatex">\(x^2-a=x^2+|a|\)</span> 在 <span class="arithmatex">\(\mathbb R\)</span> 上不可约，商环同构于 <span class="arithmatex">\(\mathbb C\)</span> 作为实代数。它的素谱仍有一个闭点，只是剩余域为 <span class="arithmatex">\(\mathbb C\)</span>，没有 <span class="arithmatex">\(\mathbb R\)</span>-值根。因此纤维不是空集。其局部环长度为 1，剩余域对 <span class="arithmatex">\(\mathbb R\)</span> 的次数为 2，所以总次数仍为</p>
+<div class="arithmatex">\[
+\dim_{\mathbb R}\mathbb C=2.
+\]</div>
+<p>“没有实有理点”与“概形没有点”是两种不同陈述。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>观察</th>
+<th>正确对象</th>
+<th>本例结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>点 <span class="arithmatex">\(p\)</span> 上的纤维</td>
+<td><span class="arithmatex">\(\operatorname{Spec}(A\otimes_B\kappa(p))\)</span></td>
+<td>闭纤维为 <span class="arithmatex">\(\operatorname{Spec}\mathbb C[x]/(x^2-a)\)</span></td>
+</tr>
+<tr>
+<td>支撑点数</td>
+<td>纤维环的素理想数</td>
+<td>非零闭纤维 2，零闭纤维 1</td>
+</tr>
+<tr>
+<td>总长度</td>
+<td>有限复纤维坐标环的复维数</td>
+<td>始终为 2</td>
+</tr>
+<tr>
+<td>基变换</td>
+<td>纤维积，对应环张量积</td>
+<td><span class="arithmatex">\(x^2-s^2=0\)</span> 的两分支只在 <span class="arithmatex">\(s\ne0\)</span> 分裂</td>
+</tr>
+</tbody>
+</table>
+<p>概形纤维的定义与剩余域见 <a href="https://stacks.math.columbia.edu/tag/01JW">Stacks Project：Base change in algebraic geometry</a>，仿射纤维积的张量积公式见 <a href="https://stacks.math.columbia.edu/tag/01JO">Fibre products of schemes</a>。有限局部自由态射的秩与纤维次数可对照 <a href="https://stacks.math.columbia.edu/tag/02KA">Finite locally free morphisms</a> 和 <a href="https://stacks.math.columbia.edu/tag/03J3">Universally bounded fibres</a>。资料核查：2026-09-08。</p>
+<p>下一步可回到<a href="bridge-11-tangent-spaces.html">切空间</a>，比较双点的普通点、长度与 <span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span>；也可回到<a href="bridge-05-tensor-tor.html">张量积与 Tor</a>，理解基变换为何由张量积执行。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-13-affine-gluing.html"><span class="pager-label">上一页</span>基础 XIII · 仿射图粘合与态射</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-fibers.js?v=db42e6fcb2a8"></script>
+</body>
+</html>

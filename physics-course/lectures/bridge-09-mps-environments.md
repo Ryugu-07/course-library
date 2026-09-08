@@ -176,3 +176,5 @@ $$\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,$$
 ## 速查与下一步
 
 最近邻 Ising 每侧保留 G（范数）、K（内部 Hamiltonian）、C（边界 X）。从空块开始递推，组合成 N 与 H_eff，再将局部解放回完整态核验。本讲的一般公式不依赖 χ=1，实验固定 χ=2；MPO、两站点更新及完整扫描仍需后续展开。原始阅读：[Schollwöck 的 MPS／DMRG 综述](https://arxiv.org/abs/1008.3477)。核查：2026-09-08。
+
+继续训练：[两站点更新与 SVD 截断](bridge-10-two-site-truncation.html)把环境、规范与 Schmidt 分解合在一次可复算更新中，并比较截断前后的物理能量。
