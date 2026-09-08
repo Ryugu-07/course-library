@@ -2,7 +2,7 @@
  "use strict";
  const node=typeof module==="object"&&module.exports;
  const lib=factory(node?require("../research-renderer.js"):root.ResearchLab,node?require("./research-environments.js"):root.ResearchEnvironments);
- if(node)module.exports=lib;else if(root.CourseLearning)root.CourseLearning.register("research-two-site",lib.mount);
+ if(node)module.exports=lib;else {root.ResearchTwoSite=lib;if(root.CourseLearning)root.CourseLearning.register("research-two-site",lib.mount);}
 })(typeof globalThis!=="undefined"?globalThis:this,function(core,env){
  "use strict";
  const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),mv=(A,v)=>A.map(r=>dot(r,v));

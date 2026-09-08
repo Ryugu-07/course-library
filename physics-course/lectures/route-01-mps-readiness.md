@@ -168,3 +168,5 @@ $$Av=(\tau,1+\tau,1+\tau,\tau)^T=\tau v,$$
 继续计算：[MPS 环境与八维中心求解](bridge-09-mps-environments.html)。
 
 继续训练：[两站点更新与 SVD 截断](bridge-10-two-site-truncation.html)把环境、规范与 Schmidt 分解合在一次可复算更新中，并比较截断前后的物理能量。
+
+继续训练：[两站点完整往返](bridge-11-two-site-sweeps.html)逐步重建当前态的块基，记录候选接受与拒绝，并用非零残差识别能量停滞。

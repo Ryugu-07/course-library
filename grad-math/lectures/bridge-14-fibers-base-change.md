@@ -339,3 +339,5 @@ $$
 概形纤维的定义与剩余域见 [Stacks Project：Base change in algebraic geometry](https://stacks.math.columbia.edu/tag/01JW)，仿射纤维积的张量积公式见 [Fibre products of schemes](https://stacks.math.columbia.edu/tag/01JO)。有限局部自由态射的秩与纤维次数可对照 [Finite locally free morphisms](https://stacks.math.columbia.edu/tag/02KA) 和 [Universally bounded fibres](https://stacks.math.columbia.edu/tag/03J3)。资料核查：2026-09-08。
 
 下一步可回到[切空间](bridge-11-tangent-spaces.html)，比较双点的普通点、长度与 $\mathfrak m/\mathfrak m^2$；也可回到[张量积与 Tor](bridge-05-tensor-tor.html)，理解基变换为何由张量积执行。
+
+继续计算：[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)比较普通纤维相同但 Tor 不同的两个族，把乘法的核接回导出张量。

@@ -155,3 +155,5 @@ P 的 $H^0=\mathbb Z/3$，其余为零。原锥为 $\mathbb Z\xrightarrow{-3}\ma
 | 想理解局部无穷小变化 | [局部环与切空间](bridge-11-tangent-spaces.html) | 更完整的变形理论 |
 
 定义与符号沿用所链接的四篇课程。原始参照：[Stacks Project：复形](https://stacks.math.columbia.edu/tag/010V)、[同伦与移位](https://stacks.math.columbia.edu/tag/0119)。本页是连续作业与自诊断，不增加一套新的数学约定。
+
+继续计算：[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)比较普通纤维相同但 Tor 不同的两个族，把乘法的核接回导出张量。
