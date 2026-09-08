@@ -38,8 +38,8 @@
     ".gz-lab .gz-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--gz-gold);background:var(--bg);}.gz-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.gz-lab legend{margin-bottom:8px;color:var(--fg);font-weight:750;line-height:1.5;}.gz-lab .gz-question{min-width:0;margin:11px 0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.gz-lab .gz-question legend{color:var(--gz-soft);font-size:13px;font-weight:650;}",
     ".gz-lab .gz-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.gz-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.gz-lab button:hover{border-color:var(--accent);}.gz-lab button[aria-pressed=\"true\"],.gz-lab button.gz-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.gz-lab button:disabled{cursor:not-allowed;opacity:.55;}.gz-lab button:focus-visible,.gz-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
     ".gz-lab .gz-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.gz-lab .gz-actions>*{flex:1 1 180px;}.gz-lab .gz-feedback{min-height:2em;margin:8px 0;font-weight:700;}.gz-lab .gz-pass{color:var(--gz-green);}.gz-lab .gz-warn{color:var(--gz-red);}.gz-lab .gz-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".gz-lab .gz-layout{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}.gz-lab .gz-controls,.gz-lab .gz-stage{min-width:0;}.gz-lab .gz-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.gz-lab .gz-controls h4{margin:0;}.gz-lab .gz-preset-grid{display:grid;gap:7px;}.gz-lab .gz-preset-grid button{font-size:12px;text-align:left;}.gz-lab .gz-control{display:grid;gap:5px;min-width:0;}.gz-lab .gz-control label{color:var(--gz-soft);font-size:13px;font-weight:700;}.gz-lab .gz-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.gz-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
-    ".gz-lab .gz-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.gz-lab .gz-chart-title{display:flex;justify-content:space-between;gap:10px;margin:0 0 7px;color:var(--gz-soft);font-size:13px;}.gz-lab .gz-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.gz-lab .gz-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.gz-lab .gz-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.gz-lab .gz-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.62;}.gz-lab .gz-zero{stroke:var(--gz-gold);stroke-width:1.2;stroke-dasharray:4 4;}.gz-lab .gz-path-p{fill:none;stroke:var(--gz-blue);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}.gz-lab .gz-path-q{fill:none;stroke:var(--gz-gold);stroke-width:2;stroke-dasharray:7 4;stroke-linecap:round;stroke-linejoin:round;}.gz-lab .gz-bar{fill:var(--gz-red);fill-opacity:.72;}.gz-lab .gz-bar-top{stroke:var(--gz-green);stroke-width:1.4;stroke-dasharray:3 3;}.gz-lab .gz-label{font-size:11px;}.gz-lab .gz-chart-label{font-size:12px;font-weight:750;}",
+    ".gz-lab .gz-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0;}.gz-lab .gz-controls,.gz-lab .gz-stage{min-width:0;}.gz-lab .gz-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.gz-lab .gz-controls h4{margin:0;}.gz-lab .gz-preset-grid{display:grid;gap:7px;}.gz-lab .gz-preset-grid button{font-size:12px;text-align:left;}.gz-lab .gz-control{display:grid;gap:5px;min-width:0;}.gz-lab .gz-control label{color:var(--gz-soft);font-size:13px;font-weight:700;}.gz-lab .gz-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.gz-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
+    ".gz-lab .gz-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}.gz-lab .gz-chart-title{display:flex;justify-content:space-between;gap:10px;margin:0 0 7px;color:var(--gz-soft);font-size:13px;}.gz-lab .gz-svg{display:block;width:100%;min-width:760px;height:auto;color:var(--fg);}.gz-lab .gz-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.gz-lab .gz-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.gz-lab .gz-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.62;}.gz-lab .gz-zero{stroke:var(--gz-gold);stroke-width:1.2;stroke-dasharray:4 4;}.gz-lab .gz-path-p{fill:none;stroke:var(--gz-blue);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}.gz-lab .gz-path-q{fill:none;stroke:var(--gz-gold);stroke-width:2;stroke-dasharray:7 4;stroke-linecap:round;stroke-linejoin:round;}.gz-lab .gz-bar{fill:var(--gz-red);fill-opacity:.72;}.gz-lab .gz-bar-top{stroke:var(--gz-green);stroke-width:1.4;stroke-dasharray:3 3;}.gz-lab .gz-label{font-size:12px;}.gz-lab .gz-chart-label{font-size:12px;font-weight:750;}",
     ".gz-lab .gz-legend{display:flex;flex-wrap:wrap;gap:7px 15px;margin:8px 2px 0;color:var(--gz-soft);font-size:12px;}.gz-lab .gz-legend-item{display:inline-flex;align-items:center;gap:6px;}.gz-lab .gz-swatch{display:inline-block;width:25px;height:0;border-top:3px solid currentColor;}.gz-lab .gz-swatch-p{color:var(--gz-blue);}.gz-lab .gz-swatch-q{color:var(--gz-gold);border-top-style:dashed;}.gz-lab .gz-swatch-weight{color:var(--gz-red);}",
     ".gz-lab .gz-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 12px;}.gz-lab .gz-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.gz-lab .gz-metric:nth-child(1),.gz-lab .gz-metric:nth-child(4){border-top-color:var(--gz-blue);}.gz-lab .gz-metric:nth-child(2),.gz-lab .gz-metric:nth-child(5){border-top-color:var(--gz-gold);}.gz-lab .gz-metric:nth-child(3),.gz-lab .gz-metric:nth-child(6){border-top-color:var(--gz-red);}.gz-lab .gz-metric span{display:block;color:var(--gz-soft);font-size:11.5px;line-height:1.4;}.gz-lab .gz-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".gz-lab .gz-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.gz-lab table{width:100%;min-width:850px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.gz-lab caption{padding:0 0 7px;text-align:left;color:var(--gz-soft);font-size:12px;line-height:1.55;}.gz-lab th,.gz-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.gz-lab th{color:var(--gz-soft);font-size:11.5px;font-weight:750;}.gz-lab td:nth-child(2){white-space:nowrap;font-weight:700;}.gz-lab .gz-caution{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--gz-green);background:var(--bg);color:var(--gz-soft);font-size:12.5px;line-height:1.7;}",
@@ -321,7 +321,8 @@
     if (!finite(value)) return value === Infinity ? "∞" : "—";
     if (api && typeof api.format === "function") return api.format(value, digits);
     var places = digits === undefined ? 4 : digits;
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    var result = value.toFixed(places);
+    return result.indexOf(".") < 0 ? result : result.replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function metricNode(api, doc, label, value) {
@@ -347,8 +348,8 @@
     var pad = Math.max(0.2, 0.12 * (yMax - yMin));
     yMin -= pad;
     yMax += pad;
-    var left = 48;
-    var width = 700;
+    var left = 70;
+    var width = 668;
     var top = 22;
     var pathHeight = 205;
     var weightTop = 274;
@@ -358,14 +359,22 @@
     function yMap(value) { return top + (yMax - value) / (yMax - yMin) * pathHeight; }
     var children = [
       svgElement(api, doc, "title", { id: prefix + "-chart-title" }, "Girsanov 固定增量路径与归一化权重"),
-      svgElement(api, doc, "desc", { id: prefix + "-chart-desc" }, "上图比较 P 下带漂移路径与同一增量的无漂移坐标，下图显示稳定化后的归一化权重。"),
+      svgElement(api, doc, "desc", { id: prefix + "-chart-desc" }, "上图比较同一 P 下样本的 X_t 与 σB_t；换测度不改变 X 的样本取值，而改变路径的权重。下图显示归一化权重。"),
       svgElement(api, doc, "line", { className: "gz-axis", x1: left, y1: top + pathHeight, x2: left + width, y2: top + pathHeight }),
       svgElement(api, doc, "line", { className: "gz-axis", x1: left, y1: top, x2: left, y2: top + pathHeight }),
       svgElement(api, doc, "line", { className: "gz-zero", x1: left, y1: yMap(0), x2: left + width, y2: yMap(0) }),
       svgElement(api, doc, "text", { className: "gz-chart-label", x: left + 7, y: top + 14 }, "同一固定增量的路径"),
       svgElement(api, doc, "text", { className: "gz-label", x: left + width - 3, y: top + pathHeight + 19, "text-anchor": "end" }, "t=" + formatNumber(api, result.T, 2)),
-      svgElement(api, doc, "text", { className: "gz-label", x: left - 7, y: top + 4, "text-anchor": "end" }, "X_t")
+      svgElement(api, doc, "text", { className: "gz-label", x: left - 7, y: top - 8, "text-anchor": "end" }, "X")
     ];
+    for (var tick = 0; tick <= 4; tick += 1) {
+      var value = yMin + (yMax - yMin) * tick / 4;
+      children.push(svgElement(api, doc, "text", { className: "gz-label", x: left - 8, y: yMap(value) + 4, "text-anchor": "end" }, formatNumber(api, value, 2)));
+    }
+    for (var ti = 0; ti < (result.T === 0 ? 1 : 4); ti += 1) {
+      var time = result.T * ti / 4;
+      children.push(svgElement(api, doc, "text", { className: "gz-label", x: xMap(time), y: top + pathHeight + 19, "text-anchor": "middle" }, formatNumber(api, time, 2)));
+    }
     [
       { key: "drifted", className: "gz-path-p" },
       { key: "nodrift", className: "gz-path-q" }
@@ -376,17 +385,23 @@
       children.push(svgElement(api, doc, "path", { className: curve.className, d: d }));
     });
     children.push(svgElement(api, doc, "circle", { cx: xMap(result.T), cy: yMap(path[path.length - 1].drifted), r: 4.2, fill: "var(--gz-blue)" }));
-    children.push(svgElement(api, doc, "text", { className: "gz-chart-label", x: left + 7, y: weightTop - 10 }, "P 下样本权重（归一化后，固定增量集合）"));
+    children.push(svgElement(api, doc, "text", { className: "gz-chart-label", x: left + 7, y: weightTop - 10 }, "归一化权重；纵轴随最大权重变化"));
     var barWidth = width / result.weights.length;
     var maxWeight = Math.max.apply(Math, result.weights);
     var weightScale = maxWeight > 0 ? weightHeight / maxWeight : 0;
     children.push(svgElement(api, doc, "line", { className: "gz-axis", x1: left, y1: weightTop + weightHeight, x2: left + width, y2: weightTop + weightHeight }));
+    [0, maxWeight / 2, maxWeight].forEach(function (w) {
+      children.push(svgElement(api, doc, "text", { className: "gz-label", x: left - 8, y: weightTop + weightHeight - w * weightScale + 4, "text-anchor": "end" }, formatNumber(api, w, 3)));
+    });
+    [1, result.sampleCount].forEach(function (n) {
+      children.push(svgElement(api, doc, "text", { className: "gz-label", x: left + (n - 0.5) * barWidth, y: weightTop + weightHeight + 18, "text-anchor": "middle" }, String(n)));
+    });
     result.weights.forEach(function (weight, index) {
       var height = weight * weightScale;
       children.push(svgElement(api, doc, "rect", { className: "gz-bar", x: left + index * barWidth + 0.3, y: weightTop + weightHeight - height, width: Math.max(0.8, barWidth - 0.7), height: height }));
     });
     children.push(svgElement(api, doc, "line", { className: "gz-bar-top", x1: left, y1: weightTop + weightHeight - (1 / result.weights.length) * weightScale, x2: left + width, y2: weightTop + weightHeight - (1 / result.weights.length) * weightScale }));
-    children.push(svgElement(api, doc, "text", { className: "gz-label", x: left + width - 3, y: weightTop + weightHeight + 18, "text-anchor": "end" }, "样本编号"));
+    children.push(svgElement(api, doc, "text", { className: "gz-label", x: left + width / 2, y: weightTop + weightHeight + 18, "text-anchor": "middle" }, "样本编号（绿虚线为 1/N）"));
     return svgElement(api, doc, "svg", { className: "gz-svg", viewBox: "0 0 760 360", role: "img", "aria-labelledby": prefix + "-chart-title " + prefix + "-chart-desc" }, children);
   }
 
@@ -410,7 +425,7 @@
         prompt: "P 下取 X_t=σθt+σB_t，按上面的 dQ/dP 加权后，Q 下 X_t 的漂移是多少？",
         choices: [{ value: "zero", label: "0：无漂移" }, { value: "double", label: "2σθ" }, { value: "same", label: "仍为 σθ" }],
         expected: "zero",
-        explanation: "Q 下写 B_t=\tilde B_t−θt，所以 X_t=σθt+σ(\tilde B_t−θt)=σ\tilde B_t。"
+        explanation: "Q 下写 B_t=B̃_t−θt，所以 X_t=σθt+σ(B̃_t−θt)=σB̃_t。"
       },
       {
         key: "novikov",
@@ -481,10 +496,10 @@
       element(api, doc, "p", { className: "gz-note" }, "P 下固定模型：X_t=σθt+σB_t；权重只用同一条 Brownian 终值 B_T。图像每次重算同一 seed 的 192 条路径。")
     ]);
 
-    var chartHost = element(api, doc, "div", { className: "gz-stage-frame" });
+    var chartHost = element(api, doc, "div", { className: "gz-stage-frame", role: "region", tabindex: "0", "aria-label": "路径与权重图；窄屏可横向滚动" });
     var legend = element(api, doc, "div", { className: "gz-legend", "aria-label": "图例" }, [
       element(api, doc, "span", { className: "gz-legend-item" }, [element(api, doc, "i", { className: "gz-swatch gz-swatch-p" }), "P 下带漂移 X_t"]),
-      element(api, doc, "span", { className: "gz-legend-item" }, [element(api, doc, "i", { className: "gz-swatch gz-swatch-q" }), "Q 下无漂移坐标 σB_t"]),
+      element(api, doc, "span", { className: "gz-legend-item" }, [element(api, doc, "i", { className: "gz-swatch gz-swatch-q" }), "P 下的 σB_t 对照（不是同一路径换测度）"]),
       element(api, doc, "span", { className: "gz-legend-item" }, [element(api, doc, "i", { className: "gz-swatch gz-swatch-weight" }), "归一化权重"])
     ]);
     var metricGrid = element(api, doc, "div", { className: "gz-metrics", "aria-label": "权重与目标矩" });
@@ -505,13 +520,13 @@
       ])]),
       ledgerBody
     ]);
-    var caution = element(api, doc, "p", { className: "gz-caution" }, "反例与迁移：有限样本把权重归一化为 1，不等于证明 E_P[Z_T]=1。常数有限 θ、有限 T 时 Z_T>0 且 Novikov 成立，Q 与 P 等价；无限时间、不可积的随机 θ 或只得到局部鞅时，不能自动声称存在同一个概率 Q。迁移到非高斯增量时，指数形式与可积性检查必须重新证明。 ");
+    var caution = element(api, doc, "p", { className: "gz-caution" }, "换测度改变样本权重，不把蓝线逐点减去漂移变成另一条路径。黄虚线是 P 下 σB_t 的对照，它的 P 分布与 X 在 Q 下的分布相同。自归一化重要性估计有限样本一般有偏。反例与迁移：有限样本把权重归一化为 1，不等于证明 E_P[Z_T]=1。常数有限 θ、有限 T 时 Z_T>0 且 Novikov 成立，Q 与 P 等价；无限时间、不可积的随机 θ 或只得到局部鞅时，不能自动声称存在同一个概率 Q。迁移到非高斯增量时，指数形式与可积性检查必须重新证明。 ");
     var stage = element(api, doc, "section", { className: "gz-revealed", hidden: true, "aria-labelledby": prefix + "-stage-title" });
     stage.appendChild(element(api, doc, "h3", { id: prefix + "-stage-title" }, "权重账本与固定 Brownian 增量"));
     stage.appendChild(element(api, doc, "div", { className: "gz-layout" }, [
       controls,
       element(api, doc, "section", { className: "gz-stage" }, [
-        element(api, doc, "div", { className: "gz-chart-title" }, [element(api, doc, "span", {}, "路径与权重"), element(api, doc, "span", { className: "gz-note" }, "固定 seed，不是定理证明")]),
+        element(api, doc, "div", { className: "gz-chart-title" }, [element(api, doc, "span", {}, "路径与权重"), element(api, doc, "span", { className: "gz-note" }, "窄屏可横向滚动；固定 seed")]),
         chartHost,
         legend,
         metricGrid,
@@ -537,8 +552,8 @@
     function renderMetrics(result) {
       replaceChildren(metricWeight, metricNode(api, doc, "样本平均 Z_T", formatNumber(api, result.weightSummary.rawMean, 5)));
       replaceChildren(metricEss, metricNode(api, doc, "ESS / N", formatNumber(api, result.weightSummary.ess, 2) + " / " + result.sampleCount));
-      replaceChildren(metricTerminal, metricNode(api, doc, "加权 E_Q[X_T]", formatNumber(api, result.terminal.weightedMean, 5)));
-      replaceChildren(metricArea, metricNode(api, doc, "加权 E_Q[A_T]", formatNumber(api, result.area.weightedMean, 5)));
+      replaceChildren(metricTerminal, metricNode(api, doc, "自归一化估计 E_Q[X_T]", formatNumber(api, result.terminal.weightedMean, 5)));
+      replaceChildren(metricArea, metricNode(api, doc, "自归一化估计 E_Q[A_N]", formatNumber(api, result.area.weightedMean, 5)));
       replaceChildren(metricNovikov, metricNode(api, doc, "Novikov 值", formatNumber(api, result.novikov.expectation, 4)));
       replaceChildren(metricDrift, metricNode(api, doc, "P 下漂移 σθ", formatNumber(api, result.drift, 4)));
     }
@@ -550,8 +565,8 @@
         ledgerRow(api, doc, ["归一化权重和", formatNumber(api, result.weightSummary.normalizedSum, 7), "数值稳定化后强制为 1，不是定理证明"]),
         ledgerRow(api, doc, ["E_Q[X_T]", formatNumber(api, result.terminal.weightedMean, 7), "目标 0；X_T=σθT+σB_T 在 P 下带漂移"]),
         ledgerRow(api, doc, ["E_Q[X_T²]", formatNumber(api, result.terminal.weightedSecond, 7), "目标 σ²T=" + formatNumber(api, result.terminal.exactSecond, 5)]),
-        ledgerRow(api, doc, ["E_Q[A_T]", formatNumber(api, result.area.weightedMean, 7), "A_T=∫X_tdt 的目标均值 0；这是路径量"]),
-        ledgerRow(api, doc, ["E_Q[A_T²]", formatNumber(api, result.area.weightedSecond, 7), "离散梯形路径的解析目标 " + formatNumber(api, result.area.exactSecond, 5)]),
+        ledgerRow(api, doc, ["E_Q[A_N]", formatNumber(api, result.area.weightedMean, 7), "这里用梯形离散 A_N 近似 ∫X_tdt；其目标均值也是 0"]),
+        ledgerRow(api, doc, ["E_Q[A_N²]", formatNumber(api, result.area.weightedSecond, 7), "离散梯形路径的解析目标 " + formatNumber(api, result.area.exactSecond, 5)]),
         ledgerRow(api, doc, ["ESS", formatNumber(api, result.weightSummary.ess, 5), "1/Σw_i²；|θ| 大时有限样本权重退化"]),
         ledgerRow(api, doc, ["Novikov / AC", result.novikov.holds ? "成立 / 等价" : "不成立", "常数有限 θ、有限 T：exp(θ²T/2)<∞ 且 Z_T>0"])
       ];

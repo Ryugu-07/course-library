@@ -72,7 +72,7 @@ $$
 ### 4. 三个工具的证书 / 反例
 
 - **Slutsky**：若 $X_n\xrightarrow{d}X$ 且 $Y_n\xrightarrow{P}c$，其中 $c$ 是常数，则和、积、在 $c\ne0$ 时的商可由联合收敛和连续映射推出。若两个边缘都只收敛到非退化分布，边缘信息不决定联合结构：$X=Y=R$ 时 $X+Y=2R$，$X=R,Y=-R$ 时 $X+Y=0$，不能直接套定理。
-- **连续映射**：$g$ 必须在极限变量的相关支撑上连续。$X_n=R/n\to0$、$g(x)=x^2$ 是可用证书；$X_n=1/n\to0$、$g(x)=1/x$ 在 $0$ 处不连续，则 $g(X_n)=n$ 发散，不能把形式代入当作结论。
+- **连续映射**：精确条件是 $g$ 的不连续点集 $D_g$ 满足 $P(X\in D_g)=0$；在极限支撑上处处连续是更强的常用充分条件。$X_n=R/n\to0$、$g(x)=x^2$ 是可用证书；$X_n=1/n\to0$、$g(x)=1/x$ 在 $0$ 处不连续且极限质量全在 0，则 $g(X_n)=n$ 发散，不能把形式代入当作结论。
 - **Delta method**：需要 $\sqrt n(T_n-\theta)\xrightarrow{d}Z$，并且 $g$ 在 $\theta$ 可微、$g'(\theta)\ne0$ 才能得到一阶尺度。取 $T_n=1+R/\sqrt n,g(x)=x^2$，有 $\sqrt n(g(T_n)-1)=2R+1/\sqrt n$；若改为 $\theta=0$，则 $g'(0)=0$，$\sqrt nT_n^2\to0$ 而 $nT_n^2=1$，必须切换到二阶尺度。
 
 反例选择器让你先选择一个拟议箭头，再选模型：依概率不推出 a.s. 选 independent spike；a.s. 不推出 $L^2$ 选 nested spike；有限图不证明一般定理选 triangular array；两个非退化边缘不能直接套 Slutsky 选两种 coupling。选择器的答案是在提交后才显示。
@@ -81,7 +81,7 @@ $$
 
 - $L^p$、依概率、依分布的结论必须写明目标变量；“矩看起来稳定”不是 $L^p$ 收敛证书。
 - 三角阵列的每行可以有精确 PMF，但行间独立、同分布、Lindeberg 条件或共同概率空间等信息要另行声明；有限图只展示当前行。
-- 连续映射的“连续”是对极限支撑说的；有界连续函数可用于依分布收敛，但不连续函数需要额外边界质量条件。
+- 连续映射不要求 $g$ 处处连续，但要求极限变量以概率 1 避开它的不连续点；有界连续检验函数可用于依分布收敛，不连续函数需要检查极限在断点上的质量。
 - 一阶 Delta 的导数为零不是小误差，而是主项消失；要重标度并保留二阶项，极限类型也可能改变。
 - 迁移到 MLE、t 统计量或机器学习风险时，先把 CLT/相合性作为输入证书，再逐条检查 Slutsky、CMT、Delta 的条件；不要用一次 finite-n 图替代渐近证明。
 
@@ -100,12 +100,12 @@ $$
 
 **特征函数工具（Lévy 连续性定理）【引用】** $\varphi_{X_n}(t) \to \varphi_X(t)$ 逐点（极限在 0 连续）$\iff X_n \xrightarrow{d} X$——CLT 证明（本科概率 V）的引擎，正式引用备案。
 
-**紧性（Prokhorov）一嘴【引用】**：胎紧（tight，质量不逃逸）⟺ 依分布收敛子列存在——"分布列的 Bolzano–Weierstrass"，证明存在极限分布时的兜底工具。
+**紧性（Prokhorov）【引用】**：在 Polish 空间上，一族概率测度紧（tight，质量一致不逃逸）当且仅当它在弱拓扑中相对紧。对序列 $(\mu_n)$，等价表述是：**每个子序列**都有一个进一步弱收敛子序列。仅仅“原序列存在一个收敛子列”远远不够；例如 $\mu_{2n}=\delta_0$、$\mu_{2n+1}=\delta_n$ 有收敛的偶数子列，却不紧。
 
 ## 2. 三大工具
 
-**定理（连续映射，CMT）** $X_n \xrightarrow{d} X$、$g$ 在 $X$ 的支撑上连续 ⇒ $g(X_n) \xrightarrow{d} g(X)$。
-**【骨架】** Portmanteau 第一条：$Ef(g(X_n)) = E(f\circ g)(X_n)$，$f\circ g$ 有界连续。$\blacksquare$（对 $\xrightarrow{P}$、a.s. 同样成立。）
+**定理（连续映射，CMT）** $X_n\xrightarrow{d}X$，且 $g$ 的不连续点集 $D_g$ 满足 $P(X\in D_g)=0$，则 $g(X_n)\xrightarrow{d}g(X)$。要求 $g$ 在 $X$ 的整个支撑上连续是更强、但常用的充分条件。
+**【骨架】** 若 $g$ 全局连续，Portmanteau 第一条可直接用于有界连续的 $f\circ g$。在一般的 $P(X\in D_g)=0$ 版本里，$f\circ g$ 未必全局连续，需用扩展 Portmanteau 定理（或 Skorokhod 表示后在连续点逐点传递）完成；不能仍把 $f\circ g$ 宣称为处处连续。$\blacksquare$（对 $\xrightarrow{P}$、a.s. 有对应版本。）
 
 **定理（Slutsky）** $X_n \xrightarrow{d} X$，$Y_n \xrightarrow{P} c$（常数），则
 
@@ -125,7 +125,7 @@ $$
 **【证明】** Taylor：$g(T_n) - g(\theta) = g'(\theta)(T_n - \theta) + R_n$，$R_n = o_P(|T_n - \theta|)$（可微性 + $T_n \xrightarrow{P}\theta$）。乘 $\sqrt n$：主项 CMT 给 $g'(\theta)N(0,\sigma^2)$，余项 $\sqrt n R_n = o_P(1)$，Slutsky 收尾。$\blacksquare$
 **读法**：**"光滑函数不改变 $\sqrt n$ 速率，只按导数平方缩放方差"**——误差传播定律（物理实验课的公式）的严格版。$g'(\theta) = 0$ 时降速为 $n$、极限变 $\chi^2$ 型（二阶 Delta【引用】）——"参数恰在临界点"的检验为何行为异常的答案。
 
-**记号纪律（$o_P/O_P$ 演算）**：$o_P(1)$ = 依概率趋零；$O_P(1)$ = 胎紧。运算规则如同小 o/大 O（$o_P\cdot O_P = o_P$ 等）——渐近论证的速记法，后两页全程使用。
+**记号纪律（$o_P/O_P$ 演算）**：$o_P(1)$ = 依概率趋零；$O_P(1)$ = 依概率有界（等价地，相应分布族 tight）。运算规则如同小 o/大 O（$o_P\cdot O_P=o_P$ 等）——渐近论证的速记法，后两页全程使用。
 
 ## 3. 联合渐近与多维版
 

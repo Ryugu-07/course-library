@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -195,9 +195,14 @@ h=\gcd\{\text{所有闭路长度}\}
 </table>
 <p><strong>读法</strong>：<strong>"非负 + 强连通 ⇒ 唯一的正主方向"</strong>，但这不等于原始幂法必收敛。凡是"系统的长期占比/排名/结构"问题，先找 Perron 向量，再检查是否本原以及起点的 Perron 投影；周期情形要改用惰性化、Cesàro 平均或其他结构化算法。收敛速率还取决于谱隙和非正规性。一条定理在四个学科收租，是"结构决定谱"的最佳样板。</p>
 <h2 id="3_1">3. 谱隙与混合时间（定量补遗）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>本原非负矩阵：<span class="arithmatex">\(\frac{A^k}{\rho^k} \to v w^\top\)</span>（Perron 左右向量的外积——秩一极限），误差 <span class="arithmatex">\(\sim\big|\frac{\lambda_2}{\rho}\big|^k\)</span>【骨架：Jordan 分解按模排序，次大块衰减主导】。Markov 语言：混合时间 <span class="arithmatex">\(\approx \frac{1}{1 - |\lambda_2|}\)</span>（谱隙的倒数）——<strong>图的连通"瓶颈"越细，<span class="arithmatex">\(\lambda_2\)</span> 越贴近 1，混合越慢</strong>（Cheeger 不等式把这句直觉定量化：谱隙 ⟺ 图的导通率【引用】——谱图理论的门牌，MCMC 诊断与社区发现共用）。</p>
+<p>本原非负矩阵在归一化 <span class="arithmatex">\(w^\top v=1\)</span> 后满足 <span class="arithmatex">\(\frac{A^k}{\rho^k}\to vw^\top\)</span>（Perron 左右向量的外积——秩一极限）。若次外围模为 <span class="arithmatex">\(r=|\lambda_2|/\rho&lt;1\)</span>，而该模上的最大 Jordan 块大小为 <span class="arithmatex">\(s\)</span>，一般只能写</p>
+<div class="arithmatex">\[
+\left\|\frac{A^k}{\rho^k}-vw^\top\right\|=O\!\left(k^{s-1}r^k\right);
+\]</div>
+<p>只有在相应部分可对角化且特征向量基条件良好时，才可把它简写成“纯 <span class="arithmatex">\(r^k\)</span> 衰减”。等价地，对任意 <span class="arithmatex">\(r&lt;\beta&lt;1\)</span> 总可吸收多项式因子，得到 <span class="arithmatex">\(O(\beta^k)\)</span>，但常数仍记录非正规性。</p>
+<p>Markov 语言也要分层：有限<strong>可逆</strong>链在 <span class="arithmatex">\(L^2(\pi)\)</span> 中由绝对次特征值 <span class="arithmatex">\(\lambda_*\)</span> 控制，松弛时间是 <span class="arithmatex">\((1-\lambda_*)^{-1}\)</span>；达到总变差误差 <span class="arithmatex">\(\varepsilon\)</span> 还通常带有 <span class="arithmatex">\(\log(1/\varepsilon)\)</span> 与初始分布/<span class="arithmatex">\(\pi_{\min}\)</span> 因子。非可逆、非正规链不能只看一个特征值，Jordan 块、特征向量条件数或奇异值/伪谱都可能制造显著暂态。<strong>谱隙倒数是时间尺度，不是无条件的完整混合时间公式。</strong></p>
 <h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（PF 全套手算）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 2 &amp; 1\end{pmatrix}\)</span>（非负不可约）：特征值 <span class="arithmatex">\(2, -1\)</span>——<span class="arithmatex">\(\rho = 2\)</span> 正实 ✓ 单根 ✓；Perron 向量 <span class="arithmatex">\((1, 2)^\top &gt; 0\)</span> ✓；<span class="arithmatex">\(|\lambda_2/\rho| = \frac12\)</span> ⇒ 幂法每步误差减半。五分钟把定理四条全验一遍。</p>
+<p><strong>例 1（PF 全套手算）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 2 &amp; 1\end{pmatrix}\)</span>（非负不可约）：特征值 <span class="arithmatex">\(2, -1\)</span>——<span class="arithmatex">\(\rho = 2\)</span> 正实 ✓ 单根 ✓；Perron 向量 <span class="arithmatex">\((1, 2)^\top &gt; 0\)</span> ✓。此 <span class="arithmatex">\(2\times2\)</span> 例可对角化，且起点的 Perron 投影非零时，非主分量每步恰乘 <span class="arithmatex">\(-1/2\)</span>，所以方向误差渐近按 <span class="arithmatex">\(1/2\)</span> 缩小；这不是一般非正规矩阵的逐步恒等式。五分钟把定理四条全验一遍。</p>
 <p><strong>例 2（周期的反例）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 1 &amp; 0\end{pmatrix}\)</span>（二部图/周期 2）：特征值 <span class="arithmatex">\(\pm1\)</span>——模最大者两个 ✗ 幂法震荡不收敛——<strong>Frobenius 情形"非周期"条件的必要性</strong>；PageRank 的随机跳跃、Markov 链的"惰性化"（<span class="arithmatex">\(\frac{I+P}{2}\)</span>）都是给周期打的疫苗。</p>
 <p><strong>例 3（Leontief 判可行）</strong> <span class="arithmatex">\(C = \begin{pmatrix}0.2 &amp; 0.3\\ 0.4 &amp; 0.1\end{pmatrix}\)</span>：行和 <span class="arithmatex">\(&lt; 1\)</span> ⇒（Gershgorin）<span class="arithmatex">\(\rho &lt; 1\)</span> ⇒ 任何需求向量都有非负产出方案 <span class="arithmatex">\((I-C)^{-1}d = \sum C^kd\)</span>——级数的每项都是"第 <span class="arithmatex">\(k\)</span> 轮间接需求"：<strong>经济学含义与 Neumann 级数逐项对应</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />

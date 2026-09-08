@@ -179,7 +179,19 @@ $$
 
 **自举（bootstrap）**：在系数、域边界和边界数据也有相应光滑度时，$u \in H^2$ 使方程可逐项再差商 ⇒ $f \in H^k \Rightarrow u \in H^{k+2}_{loc}$；配合 Sobolev 嵌入（pde2-02：$H^k$，$k$ 大 ⇒ 连续可微）：**$f \in C^\infty$ 只在这些附加假设同时成立时才推出 $u \in C^\infty$**——椭圆算子把数据的光滑性"加二传递"。边界正则性还需平坦化与全局边界估计，粗糙域/角点不能直接套用内正则性。
 
-**谱理论闭环【骨架】**：对对称、强制的 Dirichlet 形式（例如 $c\ge0$），解算子 $T: f \mapsto u$ 是 $L^2 \to H_0^1 \hookrightarrow L^2$ 的复合——**Rellich 紧嵌入（pde2-02）使 $T$ 紧**且对称正 ⇒ 泛函 III 紧自伴谱定理：存在特征值 $0 < \lambda_1 \leq \lambda_2 \to \infty$ 与 $L^2$ 正交基特征函数。$c$ 变号或强制性失败时，必须改用相应的自伴算子/Fredholm框架，不能无条件沿用“正解算子”措辞。**本科 pde-01 分离变量法的合法性证明书**在此正式签发（那页引用的 Sturm–Liouville 理论即本段的一维情形）。
+**谱理论闭环【骨架】**：对对称、强制的 Dirichlet 形式（例如 $c\ge0$），令椭圆算子为 $L$，解算子 $T=L^{-1}:f\mapsto u$ 是 $L^2\to H_0^1\hookrightarrow L^2$ 的复合——**Rellich 紧嵌入（pde2-02）使 $T$ 紧**且自伴正。紧自伴谱定理给出
+
+$$
+T\phi_j=\mu_j\phi_j,\qquad \mu_1\ge\mu_2\ge\cdots>0,\qquad \mu_j\to0,
+$$
+
+以及 $L^2$ 正交基 $\{\phi_j\}$。同一组函数满足原椭圆算子
+
+$$
+L\phi_j=\lambda_j\phi_j,\qquad \lambda_j=\mu_j^{-1}\to\infty.
+$$
+
+趋零的是**紧解算子**的特征值，趋无穷的是通常无界的**微分算子**特征值，二者不能共用同一个 $\lambda_j$ 句子。$c$ 变号或强制性失败时，必须改用相应的自伴算子/Fredholm 框架，不能无条件沿用“正解算子”措辞。**本科 pde-01 分离变量法的合法性证明书**在此正式签发（那页引用的 Sturm–Liouville 理论即本段的一维情形）。
 
 ## 4. 现代 PDE 三页资产盘点
 

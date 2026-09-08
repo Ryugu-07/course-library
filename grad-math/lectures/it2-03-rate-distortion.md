@@ -93,13 +93,19 @@ $$
 
 偏置 Bernoulli 的一般式需要额外分段和适用范围，不能把 $h(p)-h(D)$ 不加条件地写成所有 $p,D$ 的公式；本页实验只验证公平 bit 的精确边界。
 
-**高斯-平方误差**（另一个模型）：
+**高斯-平方误差**（另一个模型，$X\sim N(0,\sigma^2)$，码率以 bit/source symbol 计）：
 
 $$
-R(D) = \frac12\log\frac{\sigma^2}{D}
+R(D)=\begin{cases}
++\infty,&D=0,\\[2pt]
+\frac12\log_2\frac{\sigma^2}{D},&0<D<\sigma^2,\\[2pt]
+0,&D\ge\sigma^2,
+\end{cases}
+\qquad
+=\left[\frac12\log_2\frac{\sigma^2}{D}\right]_+\quad(D>0).
 $$
 
-——每多花 1 比特，失真减 4 倍（6dB/bit：音频工程的口诀出处）；多维高斯的**反注水**（reverse water-filling【引用】）：失真预算优先花在大方差分量——**PCA 截断保大特征值的率失真论证**（高代/统计的直觉获得信息论定价）。
+——在正码率段，每多花 1 bit，允许失真减 4 倍（6dB/bit）；$D\ge\sigma^2$ 时输出常数 0 已达到预算，不能继续套负码率。多维高斯的**反注水**（reverse water-filling【引用】）：失真预算优先花在大方差分量——**PCA 截断保大特征值的率失真论证**（高代/统计的直觉获得信息论定价）。
 
 🔗 **现代对账**：神经压缩/VAE 的 $\beta$-VAE 目标 $\mathrm{rate} + \beta\,\mathrm{distortion}$ 就是 $R(D)$ 的拉格朗日形式（comfy 课 VAE 的"压缩-保真"权衡在此有精确理论）；扩散模型的感知-失真权衡是它的当代延长线【引用 Blau–Michaeli】。
 

@@ -109,10 +109,16 @@ $$
 \|\hat\Sigma - I\|_{\mathrm{op}} \leq CK^2\Big(\sqrt{\frac{n + t^2}{m}} + \frac{n + t^2}{m}\Big)
 $$
 
-故 $m \gtrsim \varepsilon^{-2}(n + t^2)$ 时误差 $\leq \varepsilon$。
+因此在 $0<\varepsilon\le1$、$K\ge1$ 的常用归一化下，一个清楚的充分条件是
+
+$$
+m\gtrsim K^4\varepsilon^{-2}(n+t^2),
+$$
+
+此时两项都不超过常数倍的 $\varepsilon$。省略 $K^4$ 只有在把亚高斯范数 $K$ 当作固定常数时才合法。
 **【骨架】** 对称版三件套：$\langle(\hat\Sigma - I)u, u\rangle = \frac1m\sum_i\big(\langle X_i, u\rangle^2 - 1\big)$——独立零均值**亚指数**量（亚高斯的平方！hdp-01 §2 的那句话正是为此准备）的均值 ⇒ Bernstein 双段尾；union bound 于 $9^n$ 网点：小偏差段给 $\sqrt{n/m}$、大偏差段给 $n/m$，恰是定理的两项。$\blacksquare$
 
-**读法**：**"样本 ≈ 维数"即可谱一致估计**；两项结构 = Bernstein 的高斯/指数双段在样本量上的投影（$m \gg n$ 时根号项主导——渐近统计的 $\sqrt{n/m}$ 速率；$m \sim n$ 时线性项显形——高维修正）。🔗 PCA 的样本量依据、高维回归 $(X^\top X)$ 的条件保障、以及"embedding 空间协方差白化要多少数据"全部由此定价。
+**读法**：当尾部尺度 $K=O(1)$ 时，**"样本 ≈ 维数"**即可得到常数级谱误差；若要误差 $\varepsilon$，则还要付 $\varepsilon^{-2}$，重尾程度则通过 $K^4$ 定价。两项结构 = Bernstein 的高斯/指数双段在样本量上的投影（$m \gg n$ 时根号项主导——渐近统计的 $\sqrt{n/m}$ 速率；$m \sim n$ 时线性项显形——高维修正）。🔗 PCA 的样本量依据、高维回归 $(X^\top X)$ 的条件保障、以及"embedding 空间协方差白化要多少数据"全部由此定价。
 
 ## 4. 练习与要点
 

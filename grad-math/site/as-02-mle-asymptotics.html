@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -125,7 +125,8 @@ I(p)=\frac1{p(1-p)}.
 </tr>
 </tbody>
 </table>
-<p>实验还对所有 <span class="arithmatex">\(k\)</span> 穷举 Wald 与 Wilson 区间是否覆盖真值，并按二项概率加权。覆盖率是 <span class="arithmatex">\((n,p)\)</span> 的离散函数；“95%”是构造的名义目标或渐近校准，不是逐参数精确恒等式。</p>
+<p>实验还对所有 <span class="arithmatex">\(k\)</span> 穷举 Wald 与 Wilson 区间是否覆盖真值，并按二项概率加权。固定 <span class="arithmatex">\(n\)</span> 时，覆盖率随 <span class="arithmatex">\(p\)</span> 变化通常含跳跃；“95%”是构造的名义目标或渐近校准，不是逐参数精确恒等式。</p>
+</div>
 <h3 id="3-mle">3. 从特例回到一般 MLE<a class="headerlink" href="#3-mle" title="Permanent link"></a></h3>
 <ul>
 <li><strong>相合性先于局部展开。</strong>若可识别性、良分离最大点或一致大数律失败，先把 <span class="arithmatex">\(\hat\theta\)</span> 拉回 <span class="arithmatex">\(\theta_0\)</span> 邻域的步骤就不存在。</li>
@@ -134,33 +135,60 @@ I(p)=\frac1{p(1-p)}.
 <li><strong>误设模型要换方差。</strong>伪真值附近通常出现 sandwich 协方差；把模型内 Fisher 逆直接当真实抽样方差可能低估不确定性。</li>
 </ul>
 </div>
-</div>
 </section>
+<p>先修回链：<a href="as-01-convergence-tools.html">收敛工具与 Delta 方法</a>、<a href="mt-02-lln.html">大数律与中心极限定理</a>。</p>
 <h2 id="1-kl">1. 相合性：KL 的胜利<a class="headerlink" href="#1-kl" title="Permanent link"></a></h2>
 <p>MLE 是 <strong>M-估计</strong>（最大化经验准则 <span class="arithmatex">\(M_n(\theta) = \frac1n\sum\ln f(X_i;\theta)\)</span>）的特例；总体准则 <span class="arithmatex">\(M(\theta) = E_{\theta_0}\ln f(X;\theta)\)</span>。</p>
-<p><strong>引理（真值是总体冠军）【证明】</strong> <span class="arithmatex">\(M(\theta_0) - M(\theta) = E_{\theta_0}\ln\frac{f(X;\theta_0)}{f(X;\theta)} = D_{\mathrm{KL}}(f_{\theta_0}\|f_\theta) \geq 0\)</span>，可识别性（<span class="arithmatex">\(\theta \neq \theta_0 \Rightarrow f_\theta \neq f_{\theta_0}\)</span>）时严格。<span class="arithmatex">\(\blacksquare\)</span>——<strong>MLE 的靶心就是 KL 的最小点</strong>（本科信息论 II"MLE = 最小化 KL"在总体层面的重述）。</p>
-<p><strong>定理（相合性）</strong> 可识别 + 紧参数空间 + 准则的一致大数定律 <span class="arithmatex">\(\sup_\theta|M_n(\theta) - M(\theta)| \xrightarrow{P} 0\)</span> ⇒ <span class="arithmatex">\(\hat\theta_n \xrightarrow{P} \theta_0\)</span>。
-<strong>【证明】</strong> <span class="arithmatex">\(M(\hat\theta_n) \geq M_n(\hat\theta_n) - \sup|M_n - M| \geq M_n(\theta_0) - o_P(1) \geq M(\theta_0) - 2\,o_P(1)\)</span>——<strong>经验冠军的总体成绩逼近总体冠军</strong>；可识别 + 紧性给"成绩接近 ⇒ 位置接近"（<span class="arithmatex">\(M\)</span> 连续、最大点良分离），故 <span class="arithmatex">\(\hat\theta_n \to \theta_0\)</span>。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：三个条件各司其职——可识别（靶心唯一）、ULLN（经验面不欺骗，<strong>hdp-04 一致大数定律在此交货</strong>：紧集 + 连续性给覆盖数有限）、紧性（不会跑到无穷远）。<strong>任何 M-估计（最小二乘、稳健回归、经验风险最小化）同一套三段论</strong>——slt 线将对 ERM 重演它。</p>
+<p>以下把密度理解为相对于同一支配测度定义；分布可识别指不同参数给出不同概率分布，而不是仅在零测集上密度取值不同。先假定所写的总体对数似然期望有限，以避免 <span class="arithmatex">\(\infty-\infty\)</span>；更一般的扩展值版本须直接处理对数似然比。</p>
+<p><strong>引理（真值是总体冠军）【证明】</strong> <span class="arithmatex">\(M(\theta_0) - M(\theta) = E_{\theta_0}\ln\frac{f(X;\theta_0)}{f(X;\theta)} = D_{\mathrm{KL}}(f_{\theta_0}\|f_\theta) \geq 0\)</span>，可识别性（<span class="arithmatex">\(\theta \neq \theta_0 \Rightarrow P_\theta \neq P_{\theta_0}\)</span>）时严格。<span class="arithmatex">\(\blacksquare\)</span>——<strong>MLE 的靶心就是 KL 的最小点</strong>（本科信息论 II"MLE = 最小化 KL"在总体层面的重述）。</p>
+<p><strong>定理（M-估计相合性的可用版本）</strong> 设 <span class="arithmatex">\(\theta_0\)</span> 是总体准则的<strong>良分离最大点</strong>：对每个 <span class="arithmatex">\(\varepsilon&gt;0\)</span>，</p>
+<div class="arithmatex">\[
+\sup_{d(\theta,\theta_0)\ge\varepsilon}M(\theta)&lt;M(\theta_0).
+\]</div>
+<p>若 <span class="arithmatex">\(\sup_\theta|M_n(\theta)-M(\theta)|\xrightarrow{P}0\)</span>，且估计量允许数值误差但满足</p>
+<div class="arithmatex">\[
+M_n(\hat\theta_n)\ge\sup_{\theta\in\Theta}M_n(\theta)-o_P(1),
+\]</div>
+<p>则 <span class="arithmatex">\(\hat\theta_n\xrightarrow{P}\theta_0\)</span>。在紧参数空间上，<span class="arithmatex">\(M\)</span> 连续且有唯一最大点是推出“良分离”的一组方便充分条件；可识别性通常用于证明唯一性，却不能单独替代连续性与分离条件。</p>
+<p><strong>【证明】</strong> 一致收敛与近似最大化给 <span class="arithmatex">\(M(\hat\theta_n)\ge M(\theta_0)-o_P(1)\)</span>。固定 <span class="arithmatex">\(\varepsilon&gt;0\)</span>，良分离给出间隙 <span class="arithmatex">\(\eta_\varepsilon=M(\theta_0)-\sup_{d(\theta,\theta_0)\ge\varepsilon}M(\theta)&gt;0\)</span>；因此事件 <span class="arithmatex">\(d(\hat\theta_n,\theta_0)\ge\varepsilon\)</span> 只能发生在统一误差或优化误差至少吃掉 <span class="arithmatex">\(\eta_\varepsilon\)</span> 的情形，其概率趋零。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>读法</strong>：条件各司其职——良分离（成绩接近才能推出位置接近）、ULLN（经验面不欺骗）、近似 argmax（允许实际优化器只做到 <span class="arithmatex">\(o_P(1)\)</span> 精度）。紧性 + 连续唯一最大点是一条建立良分离的路线，不是定理里可以悄悄省略的推理。<strong>任何 M-估计（最小二乘、稳健回归、经验风险最小化）都要过同一套三段论</strong>。</p>
 <h2 id="2">2. 渐近正态性（主定理）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定理</strong> 正则条件下（真值内点、<span class="arithmatex">\(\ln f\)</span> 二阶光滑、信息阵 <span class="arithmatex">\(I(\theta_0)\)</span> 正定、可换积分求导序）：</p>
+<p><strong>定理（一组常用的充分条件）</strong> 设样本 iid、模型正确，<span class="arithmatex">\(\hat\theta_n\)</span> 已相合且真值是参数空间内点；邻域内对数密度二阶连续可微，可交换积分和求导，得分具有有限且正定的信息阵 <span class="arithmatex">\(I(\theta_0)\)</span>，经验 Hessian 在该邻域满足一致大数律。若估计量满足平均得分为 <span class="arithmatex">\(o_P(n^{-1/2})\)</span>（精确内点 MLE 得分为零），则：</p>
 <div class="arithmatex">\[
 \sqrt n\,(\hat\theta_n - \theta_0) \;\xrightarrow{d}\; N\big(0,\ I(\theta_0)^{-1}\big)
 \]</div>
-<p><strong>【证明（经典 Taylor 路线）】</strong> 得分函数 <span class="arithmatex">\(\psi(\theta) = \frac1n\sum\partial_\theta\ln f(X_i;\theta)\)</span>，MLE 满足 <span class="arithmatex">\(\psi(\hat\theta_n) = 0\)</span>。在 <span class="arithmatex">\(\theta_0\)</span> 处展开：</p>
+<p><strong>【证明（一维 Taylor 路线）】</strong> 得分函数 <span class="arithmatex">\(\psi(\theta) = \frac1n\sum\partial_\theta\ln f(X_i;\theta)\)</span>，MLE 满足 <span class="arithmatex">\(\psi(\hat\theta_n) = 0\)</span>。在 <span class="arithmatex">\(\theta_0\)</span> 处展开：</p>
 <div class="arithmatex">\[
 0 = \psi(\theta_0) + \psi'(\tilde\theta)(\hat\theta_n - \theta_0)
 \;\Rightarrow\;
 \sqrt n(\hat\theta_n - \theta_0) = \big[-\psi'(\tilde\theta)\big]^{-1}\sqrt n\,\psi(\theta_0)
 \]</div>
 <p>三个部件：① <span class="arithmatex">\(\sqrt n\,\psi(\theta_0) \xrightarrow{d} N(0, I(\theta_0))\)</span>——得分是 i.i.d. 零均值（正则条件：<span class="arithmatex">\(E\partial\ln f = 0\)</span>）方差 <span class="arithmatex">\(I\)</span> 的和，<strong>CLT</strong>；② <span class="arithmatex">\(-\psi'(\tilde\theta) \xrightarrow{P} I(\theta_0)\)</span>——二阶导的 LLN + 相合性把 <span class="arithmatex">\(\tilde\theta\)</span> 钉在 <span class="arithmatex">\(\theta_0\)</span> 邻域（一致性论证【骨架】）；③ Slutsky 合成 <span class="arithmatex">\(I^{-1}N(0, I) = N(0, I^{-1})\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>结构读法（记这个不记条件清单）</strong>：<strong>"估计误差 = 曲率之逆 × 得分噪声"</strong>——分子是随机性（CLT 管）、分母是可辨性（信息 = 对数似然峰的曲率，统计 II）；峰越尖（<span class="arithmatex">\(I\)</span> 大）方差越小。多维版同构（<span class="arithmatex">\(I^{-1}\)</span> 为矩阵逆）。</p>
+<p><strong>结构读法（与条件一起记）</strong>：<strong>"估计误差 = 曲率之逆 × 得分噪声"</strong>——分子是随机性（CLT 管）、分母是可辨性（信息 = 对数似然峰的曲率，统计 II）；峰越尖（<span class="arithmatex">\(I\)</span> 大）方差越小。多维时不能一般地用同一个中间点表示整个向量差；改用线段积分 Hessian</p>
+<div class="arithmatex">\[
+H_n=\int_0^1\nabla\psi\big(\theta_0+t(\hat\theta_n-\theta_0)\big)dt
+\]</div>
+<p>使 <span class="arithmatex">\(\psi(\hat\theta_n)-\psi(\theta_0)=H_n(\hat\theta_n-\theta_0)\)</span>，再由相合性与统一控制得到 <span class="arithmatex">\(-H_n\to_P I\)</span>。</p>
 <p><strong>渐近有效性</strong>：极限方差恰为 Cramér–Rao 下界 <span class="arithmatex">\(I^{-1}\)</span>（统计 II）——MLE 在正则模型中渐近不可改进（严格表述需 Hájek–Le Cam 卷积定理堵住"超有效"漏洞——Hodges 反例：可在孤立点超越 C–R 但代价是邻域性能崩坏；局部渐近极小极大意义下 MLE 最优【引用】）。</p>
-<p><strong>失效清单（工程同样重要）</strong>：真值在边界（方差非负约束）→ 极限变截断正态；参数维数随 <span class="arithmatex">\(n\)</span> 增长 → 一切失效（高维统计另立门户，hdp 线接管）；模型误设 → <span class="arithmatex">\(\hat\theta\)</span> 收敛到 KL 最近点（"伪真值"），方差变三明治公式 <span class="arithmatex">\(I^{-1}JI^{-1}\)</span>（稳健标准误的出处【引用 White】——计量经济学天天在用）。</p>
+<p><strong>失效清单（工程同样重要）</strong>：真值在边界时极限通常是 Gaussian 向切锥的投影，而不只是口头上的“截断正态”。最小例子是 <span class="arithmatex">\(X_i\sim N(\theta,1)\)</span>、参数空间 <span class="arithmatex">\(\Theta=[0,\infty)\)</span>、真值 <span class="arithmatex">\(\theta_0=0\)</span>：</p>
+<div class="arithmatex">\[
+\hat\theta_n=\max(0,\bar X),\qquad
+\sqrt n\,\hat\theta_n\Rightarrow\max(0,Z),\quad Z\sim N(0,1).
+\]</div>
+<p>极限在 <span class="arithmatex">\(0\)</span> 处有质量 <span class="arithmatex">\(1/2\)</span>，正半轴上保留标准正态密度；它不是把正态条件化到正半轴所得、总质量重新归一化的普通截断正态。参数维数随 <span class="arithmatex">\(n\)</span> 增长则需高维理论接管；模型误设时 <span class="arithmatex">\(\hat\theta\)</span> 收敛到 KL 最近点（“伪真值”），协方差一般变成 sandwich <span class="arithmatex">\(I^{-1}JI^{-1}\)</span>（稳健标准误的出处【引用 White】）。</p>
 <h2 id="3">3. 练习与要点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>例 1（信息阵亲算）</strong> 正态 <span class="arithmatex">\(N(\mu, \sigma^2)\)</span> 双参数：<span class="arithmatex">\(I = \mathrm{diag}\big(\frac{1}{\sigma^2}, \frac{1}{2\sigma^4}\big)\)</span>（二阶导取期望）⇒ <span class="arithmatex">\(\sqrt n(\hat\sigma^2 - \sigma^2) \xrightarrow{d} N(0, 2\sigma^4)\)</span>——与 as-01 例 1 对账吻合 ✓（两条独立路线同一答案，互为 verify）。</p>
 <p><strong>例 2（Delta + MLE 流水线）</strong> 泊松 <span class="arithmatex">\(\hat\lambda = \bar X\)</span>，目标 <span class="arithmatex">\(g(\lambda) = e^{-\lambda}\)</span>（零事件概率）：<span class="arithmatex">\(\sqrt n(e^{-\bar X} - e^{-\lambda}) \xrightarrow{d} N(0,\ \lambda e^{-2\lambda})\)</span>（<span class="arithmatex">\(I^{-1} = \lambda\)</span> 进 Delta）——"任何参数函数的置信区间"标准作业。</p>
-<p><strong>例 3（误设的体感）</strong> 用正态模型拟合厚尾数据：<span class="arithmatex">\(\hat\mu\)</span> 仍相合（KL 最近的正态均值 = 真均值,对称时），但基于 <span class="arithmatex">\(I^{-1}\)</span> 的标准误<strong>低估</strong>真实波动——三明治公式修正。<strong>"模型错了，点估计可能还行，置信区间先死"</strong>——读实证研究时的验尸重点（呼应本科时序页伪回归的教训）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（误设的体感，要把方差参数说清）</strong> 用固定方差为 1 的工作模型 <span class="arithmatex">\(N(\mu,1)\)</span> 拟合真实的中心化 <span class="arithmatex">\(t_3\)</span> 数据。准 MLE 仍是 <span class="arithmatex">\(\hat\mu=\bar X\)</span> 且收敛到 0，但工作模型给 <span class="arithmatex">\(I^{-1}=1\)</span>，真实得分方差为 <span class="arithmatex">\(J=\operatorname{Var}(X)=3\)</span>，所以 <span class="arithmatex">\(\sqrt n\hat\mu\)</span> 的真实方差是 sandwich <span class="arithmatex">\(I^{-1}JI^{-1}=3\)</span>；模型标准误 <span class="arithmatex">\(1/\sqrt n\)</span> 会低估为真实值的 <span class="arithmatex">\(1/\sqrt3\)</span>。若同时自由估计正态方差，则在这个“纯 iid 均值”特例里伪真方差会对上 <span class="arithmatex">\(\operatorname{Var}(X)\)</span>，不能继续声称必然低估；异方差回归或固定错方差才真正暴露 sandwich 差异。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>可评分迁移（边界投影）</strong>：仍取 <span class="arithmatex">\(\Theta=[0,\infty)\)</span>，但令真实局部参数 <span class="arithmatex">\(\theta_n=h/\sqrt n\)</span>（固定 <span class="arithmatex">\(h\ge0\)</span>）。求 <span class="arithmatex">\(\sqrt n(\hat\theta_n-\theta_n)\)</span> 的极限，并分别给出 <span class="arithmatex">\(h=0\)</span> 与 <span class="arithmatex">\(h=1\)</span> 时估计量卡在边界的极限概率。</p>
+<details>
+<summary>独立作答后核对</summary>
+<p>因为 <span class="arithmatex">\(\sqrt n\bar X=h+Z\)</span>，有 <span class="arithmatex">\(\sqrt n\hat\theta_n\Rightarrow\max(0,h+Z)\)</span>，从而</p>
+<div class="arithmatex">\[
+\sqrt n(\hat\theta_n-\theta_n)\Rightarrow\max(0,h+Z)-h.
+\]</div>
+<p>卡在边界的概率趋于 <span class="arithmatex">\(P(h+Z\le0)=\Phi(-h)\)</span>：<span class="arithmatex">\(h=0\)</span> 时为 <span class="arithmatex">\(1/2\)</span>，<span class="arithmatex">\(h=1\)</span> 时约为 <span class="arithmatex">\(0.1587\)</span>。这说明局部备择下的边界效应不会被一句“样本很大”抹掉。</p>
+</details>
 <hr />
 <p><em>下一页：检验的渐近理论——似然比/Wald/得分三大检验的等价性、Wilks 定理，渐近统计三页收官。</em></p>
 </article>

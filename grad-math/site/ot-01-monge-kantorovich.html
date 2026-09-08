@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -191,18 +191,23 @@ W_c(\mu, \nu) = \min_{\pi \in \Pi(\mu,\nu)}\ \int c(x, y)\,d\pi(x, y)
 W_c(\mu,\nu) = \sup_{\varphi(x) + \psi(y) \leq c(x,y)}\ \int\varphi\,d\mu + \int\psi\,d\nu
 \]</div>
 <p><strong>【证明思路（LP 对偶的无限维版）】</strong> 拉格朗日化边缘约束：乘子 <span class="arithmatex">\(\varphi, \psi\)</span> 对偶边缘条件，<span class="arithmatex">\(\inf_\pi\sup_{\varphi,\psi}\)</span> 交换（Fenchel–Rockafellar，cvx-01——或有限情形直接 LP 强对偶，优化 IV）；内层 <span class="arithmatex">\(\inf_{\pi\geq0}\int(c - \varphi - \psi)d\pi\)</span> 有限当且仅当 <span class="arithmatex">\(\varphi \oplus \psi \leq c\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>经济学读法（Kantorovich 的诺奖直觉）</strong>：外包商对"从 <span class="arithmatex">\(x\)</span> 装货"收 <span class="arithmatex">\(\varphi(x)\)</span>、"到 <span class="arithmatex">\(y\)</span> 卸货"收 <span class="arithmatex">\(\psi(y)\)</span>，报价不超自运成本（约束）；对偶说<strong>最优外包收入 = 自运最小成本</strong>——影子价格的搬运版。<strong>c-变换</strong>：固定 <span class="arithmatex">\(\varphi\)</span> 后，可把 <span class="arithmatex">\(\psi\)</span> 提升到 <span class="arithmatex">\(\varphi^c(y) = \inf_x[c(x,y) - \varphi(x)]\)</span>——这是随成本 <span class="arithmatex">\(c\)</span> 定制的广义共轭。它与 Legendre–Fenchel 共轭密切相关但不能无视符号：例如 <span class="arithmatex">\(c(x,y)=\langle x,y\rangle\)</span> 时 <span class="arithmatex">\(\varphi^c(y)=-\varphi^*(-y)\)</span>；平方距离成本则在剥离二次项、重写势函数后化为通常的凸共轭（cvx-01）。</p>
+<p><strong>经济学读法（Kantorovich 的诺奖直觉）</strong>：外包商对"从 <span class="arithmatex">\(x\)</span> 装货"收 <span class="arithmatex">\(\varphi(x)\)</span>、"到 <span class="arithmatex">\(y\)</span> 卸货"收 <span class="arithmatex">\(\psi(y)\)</span>，报价不超自运成本（约束）；对偶说<strong>最优外包收入 = 自运最小成本</strong>——影子价格的搬运版。<strong>c-变换</strong>：固定 <span class="arithmatex">\(\varphi\)</span> 后，可把 <span class="arithmatex">\(\psi\)</span> 提升到 <span class="arithmatex">\(\varphi^c(y) = \inf_x[c(x,y) - \varphi(x)]\)</span>——这是随成本 <span class="arithmatex">\(c\)</span> 定制的广义共轭。它与 Legendre–Fenchel 共轭密切相关但不能无视符号。按 <span class="arithmatex">\(g^*(z)=\sup_x\{\langle z,x\rangle-g(x)\}\)</span> 的约定，当 <span class="arithmatex">\(c(x,y)=\langle x,y\rangle\)</span> 时</p>
+<div class="arithmatex">\[
+\varphi^c(y)=\inf_x\{\langle x,y\rangle-\varphi(x)\}
+=-(-\varphi)^*(-y),
+\]</div>
+<p>而不是 <span class="arithmatex">\(-\varphi^*(-y)\)</span>；平方距离成本则在剥离二次项、重写势函数后化为通常的凸共轭（cvx-01）。</p>
 <p><strong>特例（Kantorovich–Rubinstein，<span class="arithmatex">\(c = d\)</span> 距离）</strong>：</p>
 <div class="arithmatex">\[
 W_1(\mu, \nu) = \sup_{\mathrm{Lip}(f)\leq1}\ \int f\,d\mu - \int f\,d\nu
 \]</div>
 <p><strong>【骨架】</strong> <span class="arithmatex">\(c\)</span>-变换对距离成本给 <span class="arithmatex">\(\varphi^c = -\varphi\)</span> 且 <span class="arithmatex">\(\varphi\)</span> 1-Lipschitz（三角不等式）。<span class="arithmatex">\(\blacksquare\)</span>——<strong><span class="arithmatex">\(W_1\)</span> = "最会区分两个分布的 Lipschitz 检验函数"</strong>：WGAN 判别器的权重裁剪/梯度惩罚就是在逼近这个 sup 的约束（ot-03 兑现）。</p>
 <h2 id="3_1">3. 一维的完全解（唯一能手算的情形，务必掌握）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定理</strong> <span class="arithmatex">\(\mathbb{R}\)</span> 上、凸成本 <span class="arithmatex">\(c(x-y)\)</span>：最优方案 = <strong>单调重排</strong>（分位数对分位数）：</p>
+<p><strong>定理</strong> 在 <span class="arithmatex">\(\mathbb{R}\)</span> 上，若成本为 <span class="arithmatex">\(c(x,y)=h(x-y)\)</span> 且 <span class="arithmatex">\(h\)</span> 凸，则共同分位数耦合 <span class="arithmatex">\((F_\mu^{-1}(U),F_\nu^{-1}(U))\)</span> 是一个最优方案。特别地，对 <span class="arithmatex">\(p\ge1\)</span> 的 <span class="arithmatex">\(h(z)=|z|^p\)</span>，</p>
 <div class="arithmatex">\[
 W_p^p(\mu,\nu) = \int_0^1\big|F_\mu^{-1}(t) - F_\nu^{-1}(t)\big|^p\,dt
 \]</div>
-<p><strong>【骨架】</strong> 交换论证：若计划中存在"交叉"配对（<span class="arithmatex">\(x_1 &lt; x_2\)</span> 配 <span class="arithmatex">\(y_1 &gt; y_2\)</span>），解开交叉不增成本（凸成本的四点不等式）⇒ 最优必单调；单调耦合 = 分位数变换（概率 II 概率积分变换的双人版）。<span class="arithmatex">\(\blacksquare\)</span>
+<p><strong>【骨架】</strong> 交换论证：若计划中存在“交叉”配对（<span class="arithmatex">\(x_1&lt;x_2\)</span> 配 <span class="arithmatex">\(y_1&gt;y_2\)</span>），解开交叉不增成本（凸成本的四点不等式），反复交换即可构造共同分位数这一单调最优耦合。若 <span class="arithmatex">\(h\)</span> 严格凸，真正的交叉通常会使成本严格下降，因而可进一步排除最优计划中的交叉；若 <span class="arithmatex">\(h\)</span> 仅凸而有仿射区间，交换可能取等，其他非单调计划也可能同样最优。因此“存在单调最优解”和“所有最优解都单调”不能互换。上面的 <span class="arithmatex">\(W_p\)</span> 分位数公式专属于成本 <span class="arithmatex">\(|x-y|^p\)</span>，不是任意凸 <span class="arithmatex">\(h\)</span> 的同名公式。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>读法</strong>：一维 OT = 排序（离散情形字面排序，<span class="arithmatex">\(O(n\log n)\)</span>）——分位数匹配、直方图均衡、经验分布比较的理论身份；高维没有"排序"——这正是下一页 Brenier 定理要回答的。</p>
 <h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Monge 无解、Kantorovich 有解）</strong> <span class="arithmatex">\(\mu = \delta_0\)</span>，<span class="arithmatex">\(\nu = \frac12\delta_{-1} + \frac12\delta_1\)</span>：映射无解（一点不能去两处）；耦合 <span class="arithmatex">\(\pi = \frac12\delta_{(0,-1)} + \frac12\delta_{(0,1)}\)</span> 合法，<span class="arithmatex">\(W_1 = 1\)</span>——松弛的必要性三行看懂。</p>

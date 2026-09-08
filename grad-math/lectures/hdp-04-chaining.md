@@ -86,7 +86,7 @@ $$
 \|X_t - X_s\|_{\psi_2} \leq d(t, s) \qquad (\text{近的参数, 差得少——概率版 Lipschitz})
 $$
 
-范例：高斯过程 $X_t = \langle g, t\rangle$（$g$ 标准高斯向量，$T \subseteq \mathbb{R}^n$，$d$ = 欧氏距离）；经验过程 $X_f = \frac{1}{\sqrt n}\sum_i(f(Z_i) - Ef)$（$T$ = 函数类 $\mathcal{F}$——slt 线的主角，此处埋人）。
+范例：高斯过程 $X_t=\langle g,t\rangle$（$g$ 标准高斯向量，$T\subseteq\mathbb R^n$，$d$ = 欧氏距离）；以及给定样本后的 Rademacher 过程 $G_n^\epsilon(f)=n^{-1/2}\sum_i\epsilon_i f(Z_i)$，其条件增量度量是 $L^2(P_n)$。未经尾部条件的原始经验过程不自动满足同一个亚高斯增量假设；第 3 节会先用对称化把它送到 Rademacher 过程，再调用 Dudley。
 
 目标：$E\sup_{t\in T}X_t$ 的上界——"这族随机量同时能有多大"。
 
@@ -102,32 +102,55 @@ $$
 
 每级增量的尺度 $d(t_k, t_{k-1}) \leq 3\cdot2^{-k}$ 很小（亚高斯尾很尖），每级的 union bound 只需付该级网点数 $|\mathcal{N}_k|$ 的对数——**大跳靠粗网（点少）、细节靠细网（增量小）**，各尺度各付各账。
 
-**定理（Dudley 熵积分）** 亚高斯增量过程：
+**定理（Dudley 熵积分，一种标准版本）** 设 $(X_t)_{t\in T}$ 是中心化、可分的实过程，$d$ 是有限直径的伪度量，并满足亚高斯增量尾界；固定锚点 $t_0\in T$，则在相应上确界可测（或采用外期望）的条件下
 
 $$
-E\sup_{t \in T} X_t \;\leq\; C\int_0^{\infty}\sqrt{\ln N(T, d, \varepsilon)}\;d\varepsilon
+E\sup_{t\in T}(X_t-X_{t_0})
+\;\leq\;
+C\int_0^{\operatorname{diam}(T,d)}
+\sqrt{\ln N(T,d,\varepsilon)}\,d\varepsilon.
 $$
 
-其中 $N(T,d,\varepsilon)$ = 覆盖数（ε-网最小点数）。
-**【骨架】** 沿链逐级取期望最大值：第 $k$ 级贡献 $\lesssim 2^{-k}\sqrt{\ln|\mathcal{N}_k|}$（亚高斯 max 界：$m$ 个 $\psi_2$ 范数 $\leq\sigma$ 的量，$E\max \lesssim \sigma\sqrt{\ln m}$——hdp-01 尾界 + 积分一行）；对 $k$ 求和即熵积分的离散化（几何级数刻度下逐段矩形逼近）。$\blacksquare$
+其中 $N(T,d,\varepsilon)$ 是覆盖数（ε-网最小点数）。若 $EX_{t_0}=0$，左侧也等于 $E\sup_tX_t$；若过程不中心化或要控制 $E\sup_t|X_t|$，须另保留锚点项（或把 $T$ 对称化），不能让它凭空消失。
+
+**【骨架】** 从 $X_t-X_{t_0}$ 开始沿链望远镜展开，逐级取期望最大值：第 $k$ 级贡献 $\lesssim 2^{-k}\sqrt{\ln|\mathcal{N}_k|}$（亚高斯 max 界：$m$ 个 $\psi_2$ 范数 $\leq\sigma$ 的量，$E\max\lesssim\sigma\sqrt{\ln m}$）；对 $k$ 求和即熵积分的离散化。可分性让上确界由可数稠密子集决定，覆盖尾项趋零/熵积分有限则允许链极限；非可分过程要指定可测版本或用外期望。$\blacksquare$
 
 **读法**：**过程的最大值由"各尺度的复杂度 $\sqrt{\ln N(\varepsilon)}$ 沿尺度积分"控制**——几何复杂度（覆盖数）到概率界（sup 期望）的通用换算器。一步网 = 只取积分的一个矩形；chaining 的改进即"积分优于单点求值"。（前沿注脚【引用】：Talagrand 泛函 $\gamma_2$ 把 Dudley 收紧为双向匹配的 majorizing measures 定理——高斯过程 sup 的完全刻画；知其存在即可。）
 
 ## 3. 经验过程与一致大数定律
 
-**统计学习的桥**：泛化误差的核心量是
+**统计学习的桥**：记 $P_nf=n^{-1}\sum_i f(Z_i)$。泛化误差的核心量是
 
 $$
 E\sup_{f \in \mathcal{F}}\Big|\frac1n\sum_i f(Z_i) - Ef\Big|
 $$
 
-——**函数类上的经验过程 sup**。SLLN（mt-02）管单个 $f$；学习需要**一致**版本（算法会挑 $f$——ai 课 01 讲"专挑训练误差最小"的那个陷阱的正式形态）。Dudley 给出通用答案：
+——**函数类上的经验过程 sup**。SLLN（mt-02）管单个 $f$；学习需要**一致**版本。这里不能把随机的 $L^2(P_n)$ 覆盖数直接塞进原过程后跳过桥梁。先引入独立 Rademacher 符号 $\epsilon_i$，条件于样本定义
 
 $$
-E\sup_{\mathcal{F}} \lesssim \frac{C}{\sqrt n}\int_0^\infty \sqrt{\ln N(\mathcal{F}, L^2(P_n), \varepsilon)}\,d\varepsilon
+G_n^\epsilon(f)=\frac1{\sqrt n}\sum_{i=1}^n\epsilon_i f(Z_i),
+\qquad
+d_n(f,g)=\left(P_n(f-g)^2\right)^{1/2}.
 $$
 
-函数类的覆盖数增长决定学习的样本复杂度——**"能学 = 覆盖数不太大 = 熵积分收敛"**。VC 类的覆盖数 $N(\varepsilon) \lesssim \varepsilon^{-Cd}$（Haussler【引用】）使积分收敛，给 $\sqrt{d/n}$ 速率——slt-02/03 将从另一条路（Rademacher + 对称化）抵达同一结论，两桥互证。
+给定 $Z_1,\ldots,Z_n$，这个过程对 $d_n$ 有亚高斯增量。对称化与条件 Dudley 依次给
+
+$$
+E^*\sup_{f\in\mathcal F}|(P_n-P)f|
+\le \frac{2}{\sqrt n}E_Z^*E_\epsilon
+\sup_{f\in\mathcal F}|G_n^\epsilon(f)|,
+$$
+
+以及在取 $f_0\in\mathcal F$ 并处理锚点后
+
+$$
+E_\epsilon\sup_{f\in\mathcal F}|G_n^\epsilon(f)-G_n^\epsilon(f_0)|
+\lesssim
+\int_0^{\operatorname{diam}(\mathcal F,d_n)}
+\sqrt{\ln N(\mathcal F,d_n,\varepsilon)}\,d\varepsilon.
+$$
+
+$E^*$ 表示外期望，用来覆盖函数类不可数时上确界可能不自动可测的情形；若预先假设可数/可分且可测，可去掉星号。函数类的覆盖数增长由此决定一个**充分的**学习复杂度证书。VC 型覆盖界配合包络、可测性和对称化可导出典型 $\sqrt{d/n}$ 量级；“熵积分发散”只说明这条充分路线没有给出有限常数，不等价于不可学习或 ULLN 失败。
 
 ## 4. 高维概率四页资产盘点
 
@@ -142,7 +165,15 @@ $$
 
 **例 1（亚高斯 max 界亲算）** $m$ 个 $\|X_i\|_{\psi_2}\leq\sigma$：$E\max X_i \leq C\sigma\sqrt{\ln m}$——用尾界积分 $E\max \leq t_0 + \int_{t_0}^\infty m\,e^{-ct^2/\sigma^2}dt$ 并取 $t_0 = \sigma\sqrt{\ln m}/\sqrt c$。（chaining 每级用的正是这一行；也解释了"$m$ 个高斯的最大值 $\approx \sigma\sqrt{2\ln m}$"——mt-01 例 1 的上界方向。）
 
-**例 2（Dudley 应用：Lipschitz 类）** $[0,1]$ 上 1-Lipschitz 函数类：$\ln N(\varepsilon) \asymp \varepsilon^{-1}$ ⇒ 熵积分 $\int_0^1 \varepsilon^{-1/2}d\varepsilon < \infty$ 收敛——一致 LLN 成立，速率 $n^{-1/2}$；对比 $d$ 维 Lipschitz 类 $\ln N \asymp \varepsilon^{-d}$：$d \geq 2$ 时积分发散于 0 端——**非参数学习的维数灾难在熵积分的收敛性里现出原形**。
+**例 2（Dudley 应用：Lipschitz 类）** 必须先钉住常数方向。令
+
+$$
+\mathcal F_d=\{f:[0,1]^d\to\mathbb R:\operatorname{Lip}(f)\le1,\ f(0)=0\}.
+$$
+
+于是 $|f(x)|\le\sqrt d$ 给出有界包络；若不要求 $f(0)=0$ 或另给 $\|f\|_\infty$ 上界，任意加常数会使类无界。对 $d=1$，sup 范数熵满足 $\ln N(\varepsilon)\asymp\varepsilon^{-1}$，Dudley 积分有限并支持根号 $n$ 级控制。对一般 $d$，$\ln N(\varepsilon)\asymp\varepsilon^{-d}$，当 $d\ge2$ 时该积分在 0 端发散：这准确地诊断了**这条未截断 Dudley 证书失效**，不能据此宣布 ULLN 失败。事实上，固定有限 $d$ 时 $\mathcal F_d$ 由 Arzelà--Ascoli 在 sup 范数下全有界，结合有限网与单个函数 LLN 仍可证明它是 Glivenko--Cantelli 类；困难落在速率而非一致收敛的存在性。
+
+**可评分追问**：对 $d=3$，学生写“熵积分发散，所以存在 $f_n\in\mathcal F_3$ 使 $(P_n-P)f_n$ 不收敛到 0”，错在何处？合格答案应同时指出：发散只否定当前充分上界；$f(0)=0$ 给出共同包络；sup 范数有限网加 LLN 仍推出 ULLN。
 
 **例 3（桥的体感）** 有限类 $|\mathcal{F}| = m$：覆盖数 $\leq m$ 恒定，Dudley 退化为 $\sqrt{\ln m / n}$——恰是 ai 课 01 讲有限假设类泛化界。**那页的 $\ln|\mathcal{H}|$，在本页看来是熵积分最粗的一格矩形。**$\blacksquare$
 

@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -170,11 +170,17 @@ I(X;\hat X)=1-H(X\mid\hat X)\ge1-H(E)\ge1-H_2(D),\qquad D\le\frac12.
 \]</div>
 <p>最后一个不等号用的是二元熵在 <span class="arithmatex">\([0,1/2]\)</span> 上递增；若 <span class="arithmatex">\(D\ge1/2\)</span>，输出常数 0 的零率重构已有 <span class="arithmatex">\(E[d]=1/2\le D\)</span>。<strong>可达性</strong>取 BSC 测试信道 <span class="arithmatex">\(\hat X=X\oplus Z\)</span>、<span class="arithmatex">\(Z\sim\operatorname{Bernoulli}(D)\)</span>，其 <span class="arithmatex">\(q(\hat X)\)</span> 仍均匀，恰有 <span class="arithmatex">\(I=1-H_2(D)\)</span>。</p>
 <p>偏置 Bernoulli 的一般式需要额外分段和适用范围，不能把 <span class="arithmatex">\(h(p)-h(D)\)</span> 不加条件地写成所有 <span class="arithmatex">\(p,D\)</span> 的公式；本页实验只验证公平 bit 的精确边界。</p>
-<p><strong>高斯-平方误差</strong>（另一个模型）：</p>
+<p><strong>高斯-平方误差</strong>（另一个模型，<span class="arithmatex">\(X\sim N(0,\sigma^2)\)</span>，码率以 bit/source symbol 计）：</p>
 <div class="arithmatex">\[
-R(D) = \frac12\log\frac{\sigma^2}{D}
+R(D)=\begin{cases}
++\infty,&amp;D=0,\\[2pt]
+\frac12\log_2\frac{\sigma^2}{D},&amp;0&lt;D&lt;\sigma^2,\\[2pt]
+0,&amp;D\ge\sigma^2,
+\end{cases}
+\qquad
+=\left[\frac12\log_2\frac{\sigma^2}{D}\right]_+\quad(D&gt;0).
 \]</div>
-<p>——每多花 1 比特，失真减 4 倍（6dB/bit：音频工程的口诀出处）；多维高斯的<strong>反注水</strong>（reverse water-filling【引用】）：失真预算优先花在大方差分量——<strong>PCA 截断保大特征值的率失真论证</strong>（高代/统计的直觉获得信息论定价）。</p>
+<p>——在正码率段，每多花 1 bit，允许失真减 4 倍（6dB/bit）；<span class="arithmatex">\(D\ge\sigma^2\)</span> 时输出常数 0 已达到预算，不能继续套负码率。多维高斯的<strong>反注水</strong>（reverse water-filling【引用】）：失真预算优先花在大方差分量——<strong>PCA 截断保大特征值的率失真论证</strong>（高代/统计的直觉获得信息论定价）。</p>
 <p>🔗 <strong>现代对账</strong>：神经压缩/VAE 的 <span class="arithmatex">\(\beta\)</span>-VAE 目标 <span class="arithmatex">\(\mathrm{rate} + \beta\,\mathrm{distortion}\)</span> 就是 <span class="arithmatex">\(R(D)\)</span> 的拉格朗日形式（comfy 课 VAE 的"压缩-保真"权衡在此有精确理论）；扩散模型的感知-失真权衡是它的当代延长线【引用 Blau–Michaeli】。</p>
 <h2 id="2-sanov">2. 类型方法与 Sanov 定理<a class="headerlink" href="#2-sanov" title="Permanent link"></a></h2>
 <p><strong>类型（经验分布）</strong>：序列 <span class="arithmatex">\(x^n\)</span> 的直方图 <span class="arithmatex">\(P_{x^n}\)</span>。两个计数事实【骨架】：类型总数 <span class="arithmatex">\(\leq (n+1)^{|\mathcal{X}|}\)</span>（<strong>多项式</strong>——与序列的指数形成落差）；给定类型 <span class="arithmatex">\(Q\)</span> 的序列数 <span class="arithmatex">\(\approx 2^{nH(Q)}\)</span>；真分布 <span class="arithmatex">\(P\)</span> 下"类型 <span class="arithmatex">\(Q\)</span> 的全部序列"的概率</p>

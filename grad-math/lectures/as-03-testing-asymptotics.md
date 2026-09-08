@@ -92,7 +92,13 @@ $$
 
 ## 1. Neyman–Pearson 引理（检验最优性的原点）
 
-**定理（N–P）** 简单假设 $H_0: f_0$ vs $H_1: f_1$：给定水平 $\alpha$ 下功效最大的检验是**似然比检验**——拒绝当 $\frac{f_1(x)}{f_0(x)} > k$（$k$ 由 $\alpha$ 定）。
+**定理（N–P）** 简单假设 $H_0:f_0$ vs $H_1:f_1$：给定水平 $\alpha$ 下功效最大的检验是**似然比检验**。一般写成拒绝函数
+
+$$
+\varphi^*(x)=\mathbf1\{f_1/f_0>k\}+\gamma\mathbf1\{f_1/f_0=k\},\qquad0\le\gamma\le1,
+$$
+
+其中 $k,\gamma$ 选到 $E_0\varphi^*=\alpha$（若能做到）。连续模型常有等号集零概率，可取 $\gamma=0$；离散模型里若非随机阈值跨过 $\alpha$，在等号层随机化才可能精确达到指定水平。
 **【证明】** 设 $\varphi^*$ 为 LR 检验、$\varphi$ 任意水平 $\leq\alpha$ 检验（取值 $[0,1]$ 的拒绝概率函数）。逐点非负性：$(\varphi^*(x) - \varphi(x))(f_1(x) - kf_0(x)) \geq 0$（LR $> k$ 处 $\varphi^* = 1 \geq \varphi$；$< k$ 处 $\varphi^* = 0 \leq \varphi$）。积分展开：$\int(\varphi^* - \varphi)f_1 \geq k\int(\varphi^* - \varphi)f_0 \geq 0$（后者由水平条件）。即功效 $\varphi^* \geq \varphi$。$\blacksquare$
 **读法**：**证据的正确排序方式是似然比**——三行证明立起整个检验理论的北极星；本科统计 IV 各检验的"合理性"都溯源于此（复合假设下推广为单调似然比/UMP 理论【引用】）。
 
@@ -104,7 +110,9 @@ $$
 |---|---|---|---|
 | **似然比 LR** | $2\big[\ell(\hat\theta) - \ell(\theta_0)\big]$ | 峰顶比约束点高多少 | 两个模型 |
 | **Wald** | $n(\hat\theta - \theta_0)^\top I(\hat\theta)(\hat\theta - \theta_0)$ | 估计离原点多远（按信息度量） | 仅无约束 |
-| **得分 Score** | $\frac1n\,\psi(\theta_0)^\top I(\theta_0)^{-1}\psi(\theta_0)$ | 约束点处的坡度多陡 | 仅约束下 |
+| **得分 Score** | $n\,\bar\psi_n(\theta_0)^\top I(\theta_0)^{-1}\bar\psi_n(\theta_0)$ | 约束点处的坡度多陡 | 仅约束下 |
+
+这里 $\bar\psi_n(\theta)=n^{-1}\sum_{i=1}^n\partial_\theta\log f(X_i;\theta)$ 是**平均得分**，$I$ 是单个观测的信息阵；若改用总得分 $U_n=n\bar\psi_n$，同一统计量写成 $n^{-1}U_n^\top I^{-1}U_n$。两种记号不能把 $n$ 的位置混用。
 
 **定理（Wilks + 三剑客等价）** 正则条件下，$H_0$ 真时三者都 $\xrightarrow{d} \chi^2(q)$，且两两之差 $= o_P(1)$。
 **【骨架】**（一维核心计算）：对 $\ell$ 在 $\hat\theta$ 处二阶 Taylor（一阶项为零——MLE 是驻点）：
@@ -129,7 +137,14 @@ CMT/Slutsky/Delta（语法）→ M-估计三段论 + "曲率之逆 × 得分噪�
 
 ## 5. 练习与要点
 
-**例 1（三剑客亲算）** 泊松 $H_0: \lambda = 1$，观测 $\bar X = 1.2, n = 100$：Wald $= n(\bar X - 1)^2/\bar X = 3.33$；Score $= n(\bar X - 1)^2/1 = 4.0$；LR $= 2n[\bar X\ln\bar X - \bar X + 1] = 3.65$——三者相近（等价的体现）但不等（有限样本的分野），都对照 $\chi^2(1)_{0.05} = 3.84$：**Score 拒绝、其余不拒绝**——边缘案例三剑客可以投出不同票，报告时说明用了哪把剑是学术诚实的一部分。
+**例 1（三剑客亲算）** 泊松 $H_0:\lambda=1$，观测 $\bar X=1.2,n=100$：Wald $=n(\bar X-1)^2/\bar X=3.33$；Score $=n(\bar X-1)^2/1=4.0$；
+
+$$
+\mathrm{LR}=2n[\bar X\ln\bar X-\bar X+1]
+=200[1.2\ln(1.2)-0.2]\approx3.757.
+$$
+
+三者相近（等价的体现）但不等（有限样本的分野），都对照 $\chi^2(1)_{0.05}\approx3.841$：**Score 拒绝、Wald 与 LR 不拒绝**。边缘案例三剑客可以投出不同票，报告时说明用了哪把剑是学术诚实的一部分。
 
 **例 2（Wilks 实战：嵌套模型比较）** 回归模型删 3 个变量：$2(\ell_{\text{全}} - \ell_{\text{删}})$ 对照 $\chi^2(3)$——变量选择的 LR 检验流水线（AIC = 此量 $- 2\times$参数差的改装，本科时序页信息准则认亲）。
 

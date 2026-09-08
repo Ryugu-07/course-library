@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -162,7 +162,7 @@ M_{\mathrm{chain}}=\sum_{k=1}^K\max_{e\text{ 在第 }k\text{ 层}}\Delta_e,
 <div class="arithmatex">\[
 \|X_t - X_s\|_{\psi_2} \leq d(t, s) \qquad (\text{近的参数, 差得少——概率版 Lipschitz})
 \]</div>
-<p>范例：高斯过程 <span class="arithmatex">\(X_t = \langle g, t\rangle\)</span>（<span class="arithmatex">\(g\)</span> 标准高斯向量，<span class="arithmatex">\(T \subseteq \mathbb{R}^n\)</span>，<span class="arithmatex">\(d\)</span> = 欧氏距离）；经验过程 <span class="arithmatex">\(X_f = \frac{1}{\sqrt n}\sum_i(f(Z_i) - Ef)\)</span>（<span class="arithmatex">\(T\)</span> = 函数类 <span class="arithmatex">\(\mathcal{F}\)</span>——slt 线的主角，此处埋人）。</p>
+<p>范例：高斯过程 <span class="arithmatex">\(X_t=\langle g,t\rangle\)</span>（<span class="arithmatex">\(g\)</span> 标准高斯向量，<span class="arithmatex">\(T\subseteq\mathbb R^n\)</span>，<span class="arithmatex">\(d\)</span> = 欧氏距离）；以及给定样本后的 Rademacher 过程 <span class="arithmatex">\(G_n^\epsilon(f)=n^{-1/2}\sum_i\epsilon_i f(Z_i)\)</span>，其条件增量度量是 <span class="arithmatex">\(L^2(P_n)\)</span>。未经尾部条件的原始经验过程不自动满足同一个亚高斯增量假设；第 3 节会先用对称化把它送到 Rademacher 过程，再调用 Dudley。</p>
 <p>目标：<span class="arithmatex">\(E\sup_{t\in T}X_t\)</span> 的上界——"这族随机量同时能有多大"。</p>
 <h2 id="2-chaining">2. 从一步网到 chaining<a class="headerlink" href="#2-chaining" title="Permanent link"></a></h2>
 <p><strong>一步网（hdp-03 的方法）</strong>的代价：粒度 <span class="arithmatex">\(\varepsilon\)</span> 的网给 <span class="arithmatex">\(E\sup \lesssim \sup_{\text{网点}} + \text{离散化误差}\)</span>——粗网省点数但误差大，细网反之，<strong>单一尺度必有牺牲</strong>。</p>
@@ -171,23 +171,41 @@ M_{\mathrm{chain}}=\sum_{k=1}^K\max_{e\text{ 在第 }k\text{ 层}}\Delta_e,
 X_t = X_{t_0} + \sum_{k\geq 1}\big(X_{t_k} - X_{t_{k-1}}\big), \qquad t_k = \text{在 } \mathcal{N}_k \text{ 中最近的点}
 \]</div>
 <p>每级增量的尺度 <span class="arithmatex">\(d(t_k, t_{k-1}) \leq 3\cdot2^{-k}\)</span> 很小（亚高斯尾很尖），每级的 union bound 只需付该级网点数 <span class="arithmatex">\(|\mathcal{N}_k|\)</span> 的对数——<strong>大跳靠粗网（点少）、细节靠细网（增量小）</strong>，各尺度各付各账。</p>
-<p><strong>定理（Dudley 熵积分）</strong> 亚高斯增量过程：</p>
+<p><strong>定理（Dudley 熵积分，一种标准版本）</strong> 设 <span class="arithmatex">\((X_t)_{t\in T}\)</span> 是中心化、可分的实过程，<span class="arithmatex">\(d\)</span> 是有限直径的伪度量，并满足亚高斯增量尾界；固定锚点 <span class="arithmatex">\(t_0\in T\)</span>，则在相应上确界可测（或采用外期望）的条件下</p>
 <div class="arithmatex">\[
-E\sup_{t \in T} X_t \;\leq\; C\int_0^{\infty}\sqrt{\ln N(T, d, \varepsilon)}\;d\varepsilon
+E\sup_{t\in T}(X_t-X_{t_0})
+\;\leq\;
+C\int_0^{\operatorname{diam}(T,d)}
+\sqrt{\ln N(T,d,\varepsilon)}\,d\varepsilon.
 \]</div>
-<p>其中 <span class="arithmatex">\(N(T,d,\varepsilon)\)</span> = 覆盖数（ε-网最小点数）。
-<strong>【骨架】</strong> 沿链逐级取期望最大值：第 <span class="arithmatex">\(k\)</span> 级贡献 <span class="arithmatex">\(\lesssim 2^{-k}\sqrt{\ln|\mathcal{N}_k|}\)</span>（亚高斯 max 界：<span class="arithmatex">\(m\)</span> 个 <span class="arithmatex">\(\psi_2\)</span> 范数 <span class="arithmatex">\(\leq\sigma\)</span> 的量，<span class="arithmatex">\(E\max \lesssim \sigma\sqrt{\ln m}\)</span>——hdp-01 尾界 + 积分一行）；对 <span class="arithmatex">\(k\)</span> 求和即熵积分的离散化（几何级数刻度下逐段矩形逼近）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>其中 <span class="arithmatex">\(N(T,d,\varepsilon)\)</span> 是覆盖数（ε-网最小点数）。若 <span class="arithmatex">\(EX_{t_0}=0\)</span>，左侧也等于 <span class="arithmatex">\(E\sup_tX_t\)</span>；若过程不中心化或要控制 <span class="arithmatex">\(E\sup_t|X_t|\)</span>，须另保留锚点项（或把 <span class="arithmatex">\(T\)</span> 对称化），不能让它凭空消失。</p>
+<p><strong>【骨架】</strong> 从 <span class="arithmatex">\(X_t-X_{t_0}\)</span> 开始沿链望远镜展开，逐级取期望最大值：第 <span class="arithmatex">\(k\)</span> 级贡献 <span class="arithmatex">\(\lesssim 2^{-k}\sqrt{\ln|\mathcal{N}_k|}\)</span>（亚高斯 max 界：<span class="arithmatex">\(m\)</span> 个 <span class="arithmatex">\(\psi_2\)</span> 范数 <span class="arithmatex">\(\leq\sigma\)</span> 的量，<span class="arithmatex">\(E\max\lesssim\sigma\sqrt{\ln m}\)</span>）；对 <span class="arithmatex">\(k\)</span> 求和即熵积分的离散化。可分性让上确界由可数稠密子集决定，覆盖尾项趋零/熵积分有限则允许链极限；非可分过程要指定可测版本或用外期望。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p><strong>读法</strong>：<strong>过程的最大值由"各尺度的复杂度 <span class="arithmatex">\(\sqrt{\ln N(\varepsilon)}\)</span> 沿尺度积分"控制</strong>——几何复杂度（覆盖数）到概率界（sup 期望）的通用换算器。一步网 = 只取积分的一个矩形；chaining 的改进即"积分优于单点求值"。（前沿注脚【引用】：Talagrand 泛函 <span class="arithmatex">\(\gamma_2\)</span> 把 Dudley 收紧为双向匹配的 majorizing measures 定理——高斯过程 sup 的完全刻画；知其存在即可。）</p>
 <h2 id="3_1">3. 经验过程与一致大数定律<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>统计学习的桥</strong>：泛化误差的核心量是</p>
+<p><strong>统计学习的桥</strong>：记 <span class="arithmatex">\(P_nf=n^{-1}\sum_i f(Z_i)\)</span>。泛化误差的核心量是</p>
 <div class="arithmatex">\[
 E\sup_{f \in \mathcal{F}}\Big|\frac1n\sum_i f(Z_i) - Ef\Big|
 \]</div>
-<p>——<strong>函数类上的经验过程 sup</strong>。SLLN（mt-02）管单个 <span class="arithmatex">\(f\)</span>；学习需要<strong>一致</strong>版本（算法会挑 <span class="arithmatex">\(f\)</span>——ai 课 01 讲"专挑训练误差最小"的那个陷阱的正式形态）。Dudley 给出通用答案：</p>
+<p>——<strong>函数类上的经验过程 sup</strong>。SLLN（mt-02）管单个 <span class="arithmatex">\(f\)</span>；学习需要<strong>一致</strong>版本。这里不能把随机的 <span class="arithmatex">\(L^2(P_n)\)</span> 覆盖数直接塞进原过程后跳过桥梁。先引入独立 Rademacher 符号 <span class="arithmatex">\(\epsilon_i\)</span>，条件于样本定义</p>
 <div class="arithmatex">\[
-E\sup_{\mathcal{F}} \lesssim \frac{C}{\sqrt n}\int_0^\infty \sqrt{\ln N(\mathcal{F}, L^2(P_n), \varepsilon)}\,d\varepsilon
+G_n^\epsilon(f)=\frac1{\sqrt n}\sum_{i=1}^n\epsilon_i f(Z_i),
+\qquad
+d_n(f,g)=\left(P_n(f-g)^2\right)^{1/2}.
 \]</div>
-<p>函数类的覆盖数增长决定学习的样本复杂度——<strong>"能学 = 覆盖数不太大 = 熵积分收敛"</strong>。VC 类的覆盖数 <span class="arithmatex">\(N(\varepsilon) \lesssim \varepsilon^{-Cd}\)</span>（Haussler【引用】）使积分收敛，给 <span class="arithmatex">\(\sqrt{d/n}\)</span> 速率——slt-02/03 将从另一条路（Rademacher + 对称化）抵达同一结论，两桥互证。</p>
+<p>给定 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span>，这个过程对 <span class="arithmatex">\(d_n\)</span> 有亚高斯增量。对称化与条件 Dudley 依次给</p>
+<div class="arithmatex">\[
+E^*\sup_{f\in\mathcal F}|(P_n-P)f|
+\le \frac{2}{\sqrt n}E_Z^*E_\epsilon
+\sup_{f\in\mathcal F}|G_n^\epsilon(f)|,
+\]</div>
+<p>以及在取 <span class="arithmatex">\(f_0\in\mathcal F\)</span> 并处理锚点后</p>
+<div class="arithmatex">\[
+E_\epsilon\sup_{f\in\mathcal F}|G_n^\epsilon(f)-G_n^\epsilon(f_0)|
+\lesssim
+\int_0^{\operatorname{diam}(\mathcal F,d_n)}
+\sqrt{\ln N(\mathcal F,d_n,\varepsilon)}\,d\varepsilon.
+\]</div>
+<p><span class="arithmatex">\(E^*\)</span> 表示外期望，用来覆盖函数类不可数时上确界可能不自动可测的情形；若预先假设可数/可分且可测，可去掉星号。函数类的覆盖数增长由此决定一个<strong>充分的</strong>学习复杂度证书。VC 型覆盖界配合包络、可测性和对称化可导出典型 <span class="arithmatex">\(\sqrt{d/n}\)</span> 量级；“熵积分发散”只说明这条充分路线没有给出有限常数，不等价于不可学习或 ULLN 失败。</p>
 <h2 id="4_1">4. 高维概率四页资产盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <table>
 <thead>
@@ -222,7 +240,12 @@ E\sup_{\mathcal{F}} \lesssim \frac{C}{\sqrt n}\int_0^\infty \sqrt{\ln N(\mathcal
 </table>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（亚高斯 max 界亲算）</strong> <span class="arithmatex">\(m\)</span> 个 <span class="arithmatex">\(\|X_i\|_{\psi_2}\leq\sigma\)</span>：<span class="arithmatex">\(E\max X_i \leq C\sigma\sqrt{\ln m}\)</span>——用尾界积分 <span class="arithmatex">\(E\max \leq t_0 + \int_{t_0}^\infty m\,e^{-ct^2/\sigma^2}dt\)</span> 并取 <span class="arithmatex">\(t_0 = \sigma\sqrt{\ln m}/\sqrt c\)</span>。（chaining 每级用的正是这一行；也解释了"<span class="arithmatex">\(m\)</span> 个高斯的最大值 <span class="arithmatex">\(\approx \sigma\sqrt{2\ln m}\)</span>"——mt-01 例 1 的上界方向。）</p>
-<p><strong>例 2（Dudley 应用：Lipschitz 类）</strong> <span class="arithmatex">\([0,1]\)</span> 上 1-Lipschitz 函数类：<span class="arithmatex">\(\ln N(\varepsilon) \asymp \varepsilon^{-1}\)</span> ⇒ 熵积分 <span class="arithmatex">\(\int_0^1 \varepsilon^{-1/2}d\varepsilon &lt; \infty\)</span> 收敛——一致 LLN 成立，速率 <span class="arithmatex">\(n^{-1/2}\)</span>；对比 <span class="arithmatex">\(d\)</span> 维 Lipschitz 类 <span class="arithmatex">\(\ln N \asymp \varepsilon^{-d}\)</span>：<span class="arithmatex">\(d \geq 2\)</span> 时积分发散于 0 端——<strong>非参数学习的维数灾难在熵积分的收敛性里现出原形</strong>。</p>
+<p><strong>例 2（Dudley 应用：Lipschitz 类）</strong> 必须先钉住常数方向。令</p>
+<div class="arithmatex">\[
+\mathcal F_d=\{f:[0,1]^d\to\mathbb R:\operatorname{Lip}(f)\le1,\ f(0)=0\}.
+\]</div>
+<p>于是 <span class="arithmatex">\(|f(x)|\le\sqrt d\)</span> 给出有界包络；若不要求 <span class="arithmatex">\(f(0)=0\)</span> 或另给 <span class="arithmatex">\(\|f\|_\infty\)</span> 上界，任意加常数会使类无界。对 <span class="arithmatex">\(d=1\)</span>，sup 范数熵满足 <span class="arithmatex">\(\ln N(\varepsilon)\asymp\varepsilon^{-1}\)</span>，Dudley 积分有限并支持根号 <span class="arithmatex">\(n\)</span> 级控制。对一般 <span class="arithmatex">\(d\)</span>，<span class="arithmatex">\(\ln N(\varepsilon)\asymp\varepsilon^{-d}\)</span>，当 <span class="arithmatex">\(d\ge2\)</span> 时该积分在 0 端发散：这准确地诊断了<strong>这条未截断 Dudley 证书失效</strong>，不能据此宣布 ULLN 失败。事实上，固定有限 <span class="arithmatex">\(d\)</span> 时 <span class="arithmatex">\(\mathcal F_d\)</span> 由 Arzelà--Ascoli 在 sup 范数下全有界，结合有限网与单个函数 LLN 仍可证明它是 Glivenko--Cantelli 类；困难落在速率而非一致收敛的存在性。</p>
+<p><strong>可评分追问</strong>：对 <span class="arithmatex">\(d=3\)</span>，学生写“熵积分发散，所以存在 <span class="arithmatex">\(f_n\in\mathcal F_3\)</span> 使 <span class="arithmatex">\((P_n-P)f_n\)</span> 不收敛到 0”，错在何处？合格答案应同时指出：发散只否定当前充分上界；<span class="arithmatex">\(f(0)=0\)</span> 给出共同包络；sup 范数有限网加 LLN 仍推出 ULLN。</p>
 <p><strong>例 3（桥的体感）</strong> 有限类 <span class="arithmatex">\(|\mathcal{F}| = m\)</span>：覆盖数 <span class="arithmatex">\(\leq m\)</span> 恒定，Dudley 退化为 <span class="arithmatex">\(\sqrt{\ln m / n}\)</span>——恰是 ai 课 01 讲有限假设类泛化界。<strong>那页的 <span class="arithmatex">\(\ln|\mathcal{H}|\)</span>，在本页看来是熵积分最粗的一格矩形。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>高维概率完卷。下一门：随机分析——布朗运动与 Itô 积分的严格版（本科 sde 三页的证明级重建）。</em></p>

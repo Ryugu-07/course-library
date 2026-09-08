@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 04:59</div>
   </div>
 </nav>
 <main id="content">
@@ -177,7 +177,11 @@ p_n=p_0+\frac{h}{\sqrt n}.
 </ul>
 </section>
 <h2 id="1-neymanpearson">1. Neyman–Pearson 引理（检验最优性的原点）<a class="headerlink" href="#1-neymanpearson" title="Permanent link"></a></h2>
-<p><strong>定理（N–P）</strong> 简单假设 <span class="arithmatex">\(H_0: f_0\)</span> vs <span class="arithmatex">\(H_1: f_1\)</span>：给定水平 <span class="arithmatex">\(\alpha\)</span> 下功效最大的检验是<strong>似然比检验</strong>——拒绝当 <span class="arithmatex">\(\frac{f_1(x)}{f_0(x)} &gt; k\)</span>（<span class="arithmatex">\(k\)</span> 由 <span class="arithmatex">\(\alpha\)</span> 定）。
+<p><strong>定理（N–P）</strong> 简单假设 <span class="arithmatex">\(H_0:f_0\)</span> vs <span class="arithmatex">\(H_1:f_1\)</span>：给定水平 <span class="arithmatex">\(\alpha\)</span> 下功效最大的检验是<strong>似然比检验</strong>。一般写成拒绝函数</p>
+<div class="arithmatex">\[
+\varphi^*(x)=\mathbf1\{f_1/f_0&gt;k\}+\gamma\mathbf1\{f_1/f_0=k\},\qquad0\le\gamma\le1,
+\]</div>
+<p>其中 <span class="arithmatex">\(k,\gamma\)</span> 选到 <span class="arithmatex">\(E_0\varphi^*=\alpha\)</span>（若能做到）。连续模型常有等号集零概率，可取 <span class="arithmatex">\(\gamma=0\)</span>；离散模型里若非随机阈值跨过 <span class="arithmatex">\(\alpha\)</span>，在等号层随机化才可能精确达到指定水平。
 <strong>【证明】</strong> 设 <span class="arithmatex">\(\varphi^*\)</span> 为 LR 检验、<span class="arithmatex">\(\varphi\)</span> 任意水平 <span class="arithmatex">\(\leq\alpha\)</span> 检验（取值 <span class="arithmatex">\([0,1]\)</span> 的拒绝概率函数）。逐点非负性：<span class="arithmatex">\((\varphi^*(x) - \varphi(x))(f_1(x) - kf_0(x)) \geq 0\)</span>（LR <span class="arithmatex">\(&gt; k\)</span> 处 <span class="arithmatex">\(\varphi^* = 1 \geq \varphi\)</span>；<span class="arithmatex">\(&lt; k\)</span> 处 <span class="arithmatex">\(\varphi^* = 0 \leq \varphi\)</span>）。积分展开：<span class="arithmatex">\(\int(\varphi^* - \varphi)f_1 \geq k\int(\varphi^* - \varphi)f_0 \geq 0\)</span>（后者由水平条件）。即功效 <span class="arithmatex">\(\varphi^* \geq \varphi\)</span>。<span class="arithmatex">\(\blacksquare\)</span>
 <strong>读法</strong>：<strong>证据的正确排序方式是似然比</strong>——三行证明立起整个检验理论的北极星；本科统计 IV 各检验的"合理性"都溯源于此（复合假设下推广为单调似然比/UMP 理论【引用】）。</p>
 <h2 id="2_1">2. 三大检验<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
@@ -206,12 +210,13 @@ p_n=p_0+\frac{h}{\sqrt n}.
 </tr>
 <tr>
 <td><strong>得分 Score</strong></td>
-<td><span class="arithmatex">\(\frac1n\,\psi(\theta_0)^\top I(\theta_0)^{-1}\psi(\theta_0)\)</span></td>
+<td><span class="arithmatex">\(n\,\bar\psi_n(\theta_0)^\top I(\theta_0)^{-1}\bar\psi_n(\theta_0)\)</span></td>
 <td>约束点处的坡度多陡</td>
 <td>仅约束下</td>
 </tr>
 </tbody>
 </table>
+<p>这里 <span class="arithmatex">\(\bar\psi_n(\theta)=n^{-1}\sum_{i=1}^n\partial_\theta\log f(X_i;\theta)\)</span> 是<strong>平均得分</strong>，<span class="arithmatex">\(I\)</span> 是单个观测的信息阵；若改用总得分 <span class="arithmatex">\(U_n=n\bar\psi_n\)</span>，同一统计量写成 <span class="arithmatex">\(n^{-1}U_n^\top I^{-1}U_n\)</span>。两种记号不能把 <span class="arithmatex">\(n\)</span> 的位置混用。</p>
 <p><strong>定理（Wilks + 三剑客等价）</strong> 正则条件下，<span class="arithmatex">\(H_0\)</span> 真时三者都 <span class="arithmatex">\(\xrightarrow{d} \chi^2(q)\)</span>，且两两之差 <span class="arithmatex">\(= o_P(1)\)</span>。
 <strong>【骨架】</strong>（一维核心计算）：对 <span class="arithmatex">\(\ell\)</span> 在 <span class="arithmatex">\(\hat\theta\)</span> 处二阶 Taylor（一阶项为零——MLE 是驻点）：</p>
 <div class="arithmatex">\[
@@ -225,7 +230,12 @@ p_n=p_0+\frac{h}{\sqrt n}.
 <h2 id="4">4. 渐近统计三页资产盘点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>CMT/Slutsky/Delta（语法）→ M-估计三段论 + "曲率之逆 × 得分噪声"（MLE 主定理）→ N–P 排序原理 + 三剑客 χ²（检验）。<strong>一切光滑参数模型的大样本推断到此闭环</strong>；界外（高维 <span class="arithmatex">\(p \sim n\)</span>、非光滑、误设）各有下游学科接管（hdp 线、稳健统计、slt 线）。</p>
 <h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（三剑客亲算）</strong> 泊松 <span class="arithmatex">\(H_0: \lambda = 1\)</span>，观测 <span class="arithmatex">\(\bar X = 1.2, n = 100\)</span>：Wald <span class="arithmatex">\(= n(\bar X - 1)^2/\bar X = 3.33\)</span>；Score <span class="arithmatex">\(= n(\bar X - 1)^2/1 = 4.0\)</span>；LR <span class="arithmatex">\(= 2n[\bar X\ln\bar X - \bar X + 1] = 3.65\)</span>——三者相近（等价的体现）但不等（有限样本的分野），都对照 <span class="arithmatex">\(\chi^2(1)_{0.05} = 3.84\)</span>：<strong>Score 拒绝、其余不拒绝</strong>——边缘案例三剑客可以投出不同票，报告时说明用了哪把剑是学术诚实的一部分。</p>
+<p><strong>例 1（三剑客亲算）</strong> 泊松 <span class="arithmatex">\(H_0:\lambda=1\)</span>，观测 <span class="arithmatex">\(\bar X=1.2,n=100\)</span>：Wald <span class="arithmatex">\(=n(\bar X-1)^2/\bar X=3.33\)</span>；Score <span class="arithmatex">\(=n(\bar X-1)^2/1=4.0\)</span>；</p>
+<div class="arithmatex">\[
+\mathrm{LR}=2n[\bar X\ln\bar X-\bar X+1]
+=200[1.2\ln(1.2)-0.2]\approx3.757.
+\]</div>
+<p>三者相近（等价的体现）但不等（有限样本的分野），都对照 <span class="arithmatex">\(\chi^2(1)_{0.05}\approx3.841\)</span>：<strong>Score 拒绝、Wald 与 LR 不拒绝</strong>。边缘案例三剑客可以投出不同票，报告时说明用了哪把剑是学术诚实的一部分。</p>
 <p><strong>例 2（Wilks 实战：嵌套模型比较）</strong> 回归模型删 3 个变量：<span class="arithmatex">\(2(\ell_{\text{全}} - \ell_{\text{删}})\)</span> 对照 <span class="arithmatex">\(\chi^2(3)\)</span>——变量选择的 LR 检验流水线（AIC = 此量 <span class="arithmatex">\(- 2\times\)</span>参数差的改装，本科时序页信息准则认亲）。</p>
 <p><strong>例 3（Wald 的参数化陷阱）</strong> 检验 <span class="arithmatex">\(\theta = 1\)</span> 与检验 <span class="arithmatex">\(\ln\theta = 0\)</span> 的 Wald 统计量<strong>不同</strong>（Delta 缩放不抵消），LR 则完全相同——"换个参数化结论翻转"是 Wald 的原罪；重要结论用 LR 复核。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />

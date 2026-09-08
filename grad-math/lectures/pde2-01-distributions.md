@@ -121,7 +121,14 @@ $$
 
 ## 5. 练习与要点
 
-**例 1（手算弱导数）** $u(x) = x\mathbb{1}_{x>0}$（ReLU！）：弱导数 $= H(x)$（分部积分验证）；二阶分布导数 $= \delta$，非函数 ⇒ $u \in W^{1,p}$ 而 $\notin W^{2,p}$。**ReLU 网络的"导数"在分布意义下完全合法**——ai 课里含糊带过的"ReLU 在 0 处导数"在此有正式户口（优化 I 次梯度之外的第二种严格化）。
+**例 1（手算弱导数）** $u(x) = x\mathbb{1}_{x>0}$（ReLU）：弱导数 $= H(x)$（分部积分验证）；二阶分布导数 $= \delta$，非函数。因此对 $1\le p\le\infty$，
+
+$$
+u\in W^{1,p}_{\mathrm{loc}}(\mathbb R),\qquad
+u\in W^{1,p}((-R,R))\ \text{对每个 }R<\infty,
+$$
+
+但 $u\notin W^{2,p}_{\mathrm{loc}}(\mathbb R)$。在整条 $\mathbb R$ 上，ReLU 本身不属于有限 $p$ 的 $L^p$，所以不能省略定义域而写 $u\in W^{1,p}(\mathbb R)$。**ReLU 网络的“导数”在分布意义下完全合法**——ai 课里含糊带过的“ReLU 在 0 处导数”在此有正式户口（优化 I 次梯度之外的第二种严格化）。
 
 **例 2（分布收敛）** $f_n = \frac{n}{2}\mathbb{1}_{[-1/n, 1/n]} \to \delta$（分布意义）：$\langle f_n, \varphi\rangle \to \varphi(0)$（连续性一行）——"越来越尖的针"的极限身份；同理磨光核 $\eta_\varepsilon \to \delta$：**δ 是一切近似单位元的极限**（概率里的"退化分布"、信号里的"冲激响应"同源）。
 
