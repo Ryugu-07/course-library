@@ -88,3 +88,5 @@ $18=2\cdot3^2$，删去 $3^2$ 后得到 $\mathbb Z/2$。原映射是模二，因
 | $\mathbb Z_{(p)}$ | 不被素数 $p$ 整除的整数 |
 
 下一讲：[链复形与同调](bridge-03-complexes.html)；几何方向可回到本讲后继续[层与粘合](bridge-04-sheaves.html)。定义、通用性质与零环判据见 [Stacks Project：Localization](https://stacks.math.columbia.edu/tag/00CM)。资料核查：2026-09-08。
+
+继续计算：[仿射图粘合与态射](bridge-13-affine-gluing.html)。

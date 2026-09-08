@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MPS 环境与中心求解 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li><li><a href="bridge-07-mps-metric.html">计算桥 VII · MPS 范数与局部优化</a></li><li><a href="bridge-08-product-sweeps.html">计算桥 VIII · 乘积 MPS 往返扫描</a></li><li class="active"><a href="bridge-09-mps-environments.html">计算桥 IX · MPS 环境与中心求解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-mps-readiness.html">路线验收 · Schmidt 到变分扫描</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 19:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 从一个邻居数，变成一组环境矩阵</a></li>
+<li><a href="#2">2. 五种项怎样进入中心问题</a></li>
+<li><a href="#3">3. 环境不是凭空给出的：从边界逐站递推</a></li>
+<li><a href="#4-2">4. 一个可以逐项算完的键维 2 右块</a></li>
+<li><a href="#5-8-16">5. 8 维中心解与 16 维物理态对账</a></li>
+<li><a href="#6">6. 为什么局部解得准，完整态仍不够好？</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与下一步</a></li>
+</ul>
+</div>
+</details>
+<h1 id="09-mps">基础衔接 09 · MPS 环境：把整条链压进局部矩阵<a class="headerlink" href="#09-mps" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-07-mps-metric.html">MPS 范数与局部优化</a>、<a href="bridge-08-product-sweeps.html">乘积态往返扫描</a>、<a href="route-01-mps-readiness.html">路线验收</a>。本讲把邻居标量提升为矩阵，推导任意键维下最近邻 Ising 链的环境递推，再完整求解一个四站、键维 2、中心 8 维的例子。只更新一次中心，不宣称已经实现一般 DMRG 扫描。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 从一个邻居数，变成一组环境矩阵<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>χ=1 时，邻居只提供一个期望值 x。χ&gt;1 时，中心会连接多个左块态和右块态，必须保留它们之间的交叉矩阵元，不能把每个虚拟通道当成互不相干的概率。</p>
+<p>在中心站 j 展开</p>
+<div class="arithmatex">\[|\psi(a)\rangle=\sum_{\ell,s,r}a_{\ell sr}|L_\ell\rangle|s\rangle|R_r\rangle=Wa.\]</div>
+<p>左块包括站 1 到 j−1，右块包括 j+1 到末站。固定块态以后，a 是唯一变化的中心坐标。本页 Hamiltonian 固定为开放链</p>
+<div class="arithmatex">\[H=-\sum_{i=1}^{L-1}X_iX_{i+1}-g\sum_{i=1}^L Z_i,\qquad g&gt;0,\]</div>
+<p>Pauli 本征值 ±1，能量单位 J=1。每侧保留三种矩阵，第一指标总是 bra，第二指标总是 ket：</p>
+<div class="arithmatex">\[G_L{}_{\ell\ell'}=\langle L_\ell|L_{\ell'}\rangle,\quad
+K_L{}_{\ell\ell'}=\langle L_\ell|H_L|L_{\ell'}\rangle,\quad
+C_L{}_{\ell\ell'}=\langle L_\ell|X_{j-1}|L_{\ell'}\rangle.\]</div>
+<p><span class="arithmatex">\(H_L\)</span> 只含左块内部的键与横场。右侧类似，<span class="arithmatex">\(C_R\)</span> 用右块最靠近中心的 <span class="arithmatex">\(X_{j+1}\)</span>。G 记录范数，K 记录块内能量，C 记录跨向中心的边界算符；三者作用不同。空块的起点为 G=(1)、K=(0)、C=(0)。</p>
+<h2 id="2">2. 五种项怎样进入中心问题<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>按坐标顺序 (ℓ,s,r)，将 H 的项分为左块、右块、中心横场与两条跨块键，得到</p>
+<div class="arithmatex">\[\boxed{N=G_L\otimes I\otimes G_R,}\]</div>
+<div class="arithmatex">\[\begin{aligned}
+H_{\rm eff}={}&amp;K_L\otimes I\otimes G_R
++G_L\otimes I\otimes K_R\\
+&amp;-gG_L\otimes Z\otimes G_R
+-C_L\otimes X\otimes G_R
+-G_L\otimes X\otimes C_R.
+\end{aligned}\]</div>
+<p>例如最后一项的矩阵元为 <span class="arithmatex">\(-\langle L_\ell|L_{\ell'}\rangle X_{ss'}\langle R_r|X_{j+1}|R_{r'}\rangle\)</span>，正是跨中心与右邻的一条键。G 不能随手略掉；只有左右块态正交归一时 N=I。</p>
+<p>求解 <span class="arithmatex">\(H_{\rm eff}a=ENa\)</span>。这里 K 已包括环境的内部能量，因此 E 是完整态的能量，不再只是“中心附近两条键”的能量。一般非正交块需按上一讲处理 N 的秩和正定性。</p>
+<p><img alt="四站链分成左块站1、中心站2和右块站3到4，左右块分别提供范数、内部能量和边界算符矩阵，合成为八维局部问题。" src="assets/img/bridge-09-mps-environments.svg" /></p>
+<h2 id="3">3. 环境不是凭空给出的：从边界逐站递推<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>向左块末尾加入一个站，令新块态为</p>
+<div class="arithmatex">\[|L'_b\rangle=\sum_{\ell,s}A^s_{\ell b}|L_\ell\rangle|s\rangle.\]</div>
+<p>代入内积即可得到</p>
+<div class="arithmatex">\[G'_L=\sum_s(A^s)^\dagger G_LA^s,\qquad
+C'_L=\sum_{s,t}X_{st}(A^s)^\dagger G_LA^t,\]</div>
+<div class="arithmatex">\[K'_L=\sum_s(A^s)^\dagger K_LA^s
+-g\sum_{s,t}Z_{st}(A^s)^\dagger G_LA^t
+-\sum_{s,t}X_{st}(A^s)^\dagger C_LA^t.\]</div>
+<p>三项分别是旧块内部能量、新站横场、旧末站到新站的一条键。最后一项必须用旧的 C；更新后新的 C 改为新站上的 X。若先覆盖旧 C，再计算 K，就会接错边界。</p>
+<p>右侧从末站向中心加入一个站，写</p>
+<div class="arithmatex">\[|R'_b\rangle=\sum_{s,r}B^s_{br}|s\rangle|R_r\rangle.\]</div>
+<p>为避免把转置和共轭的方向猜错，定义一次收缩</p>
+<div class="arithmatex">\[\mathcal T_B(O,E)_{bb'}=
+\sum_{s,t,r,r'}\overline{B^s_{br}}\,O_{st}\,E_{rr'}\,B^t_{b'r'}.\]</div>
+<p>则</p>
+<div class="arithmatex">\[G'_R=\mathcal T_B(I,G_R),\quad C'_R=\mathcal T_B(X,G_R),\]</div>
+<div class="arithmatex">\[K'_R=\mathcal T_B(I,K_R)-g\mathcal T_B(Z,G_R)-\mathcal T_B(X,C_R).\]</div>
+<p>这套公式允许任意相容键维与复张量，针对的是本讲的最近邻 XX 与横场 Z 模型。更一般 Hamiltonian 通常用 MPO 组织更多算符通道，不能把三个环境矩阵无条件套到所有相互作用上。网页实验使用实张量。</p>
+<h2 id="4-2">4. 一个可以逐项算完的键维 2 右块<a class="headerlink" href="#4-2" title="Permanent link"></a></h2>
+<p>取 L=4，中心 j=2。左块态直接为 <span class="arithmatex">\(|L_0\rangle=|0\rangle,|L_1\rangle=|1\rangle\)</span>，所以</p>
+<div class="arithmatex">\[G_L=I_2,\quad K_L=-gZ,\quad C_L=X.\]</div>
+<p>右块取两个正交归一态</p>
+<div class="arithmatex">\[|R_0\rangle=c|00\rangle+s|11\rangle,\quad |R_1\rangle=|01\rangle,
+\qquad c=\cos\alpha,\quad s=\sin\alpha.\]</div>
+<p>它们确实可以由两个 MPS 张量生成。末站列向量与第三站矩阵分别取</p>
+<div class="arithmatex">\[B_4^0=\begin{pmatrix}1\\0\end{pmatrix},\quad
+B_4^1=\begin{pmatrix}0\\1\end{pmatrix},\]</div>
+<div class="arithmatex">\[B_3^0=\begin{pmatrix}c&amp;0\\0&amp;1\end{pmatrix},\quad
+B_3^1=\begin{pmatrix}0&amp;s\\0&amp;0\end{pmatrix}.\]</div>
+<p>右块振幅是 <span class="arithmatex">\((B_3^{s_3}B_4^{s_4})_r\)</span>。例如 00 给出 (c,0)，01 给出 (0,1)，11 给出 (s,0)。逐站满足右正交条件 <span class="arithmatex">\(\sum_sB_i^s(B_i^s)^\dagger=I\)</span>。</p>
+<p>从末站开始，递推先得到 <span class="arithmatex">\(G_4=I,K_4=-gZ,C_4=X\)</span>；再加入第三站，得到</p>
+<div class="arithmatex">\[\boxed{G_R=I_2,\quad C_R=sX,\quad
+K_R=\begin{pmatrix}-\sin2\alpha-2g\cos2\alpha&amp;0\\0&amp;0\end{pmatrix}.}\]</div>
+<p>可以不靠递推公式再次核验。<span class="arithmatex">\(X_3|01\rangle=|11\rangle\)</span>，与 <span class="arithmatex">\(R_0\)</span> 的重叠为 s，故 C 的非对角元为 s。<span class="arithmatex">\(R_0\)</span> 中 <span class="arithmatex">\(\langle X_3X_4\rangle=2cs=\sin2\alpha\)</span>，<span class="arithmatex">\(\langle Z_3+Z_4\rangle=2(c^2-s^2)=2\cos2\alpha\)</span>，所以 K₀₀ 如上。R₁ 的两自旋横场相抵、XX 期望为零；交叉能量项也为零。</p>
+<h2 id="5-8-16">5. 8 维中心解与 16 维物理态对账<a class="headerlink" href="#5-8-16" title="Permanent link"></a></h2>
+<p>中心有 <span class="arithmatex">\(2\times2\times2=8\)</span> 个分量。G_L=G_R=I，故 N=I₈，将上面的 K、C 代入第 2 节即可构造一个实对称 8×8 矩阵。</p>
+<p>完整映射是 <span class="arithmatex">\(W=I_2\otimes I_2\otimes R\)</span>，其中 R 是按 00、01、10、11 排列的 4×2 列矩阵</p>
+<div class="arithmatex">\[R=\begin{pmatrix}c&amp;0\\0&amp;1\\0&amp;0\\s&amp;0\end{pmatrix}.\]</div>
+<p>因此可独立构造完整 16×16 自旋 Hamiltonian，核对 <span class="arithmatex">\(W^T W=I_8\)</span> 和 <span class="arithmatex">\(H_{\rm eff}=W^THW\)</span>。实际大链不会存储这个指数大的 W；四站模型只是让每个索引都可核验。</p>
+<p>默认 α=45°、g=1，<span class="arithmatex">\(C_R=X/\sqrt2,K_R=\operatorname{diag}(-1,0)\)</span>。计算账本为：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>局部最低能量</td>
+<td style="text-align: right;">−3.417406940</td>
+</tr>
+<tr>
+<td>将 ψ=Wa 放回完整 H 重算的能量</td>
+<td style="text-align: right;">−3.417406940</td>
+</tr>
+<tr>
+<td>同一开放四站模型的精确基态</td>
+<td style="text-align: right;">−4.758770483</td>
+</tr>
+<tr>
+<td>局部方程残差 ‖H_eff a−Ea‖</td>
+<td style="text-align: right;">数值舍入尺度，约 10⁻¹⁵</td>
+</tr>
+<tr>
+<td>完整物理残差 ‖Hψ−Eψ‖</td>
+<td style="text-align: right;">1.991292391</td>
+</tr>
+</tbody>
+</table>
+<p>先预测再计算：改变 α，只是换了一种表示坐标吗？局部残差小能否使最后一行也接近零？α 范围 0° 到 90°，g 范围 0.2 到 2，默认值与上表一致。</p>
+<div class="learning-lab" data-learning-lab="research-environments" data-research-topic="center">
+<p>无脚本时按上表核对；另有端点参照：α=0°、g=1 时，局部能量 −4.236067977，物理残差 √2；α=90°、g=1 时，局部能量 −2.493959207，物理残差 1。</p>
+</div>
+<p>图中的每个 α 都重新构造右块并优化中心。α 改变 span{R₀,R₁}，因而改变可搜索的物理子空间，并非只在同一子空间内作可逆换坐标。不同 α 的子空间同为 8 维，却通常没有包含关系，不能要求能量随 α 单调。</p>
+<h2 id="6">6. 为什么局部解得准，完整态仍不够好？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>因为 W 是等距嵌入，局部本征方程只要求</p>
+<div class="arithmatex">\[W^T(H\psi-E\psi)=0.\]</div>
+<p>它消除了残差在可搜索子空间中的分量，却没有消除正交补中的分量。对归一化 ψ，完整残差平方正是能量方差</p>
+<div class="arithmatex">\[\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,\]</div>
+<p>其中 E 必须是该态的实际能量。零方差意味着某个本征态，也不能单靠它区分基态与激发态。</p>
+<p>这里 χ=2 的默认能量甚至高于上一讲优化后的 χ=1 乘积态。没有违反变分家族包含关系：<strong>所有</strong> χ≤2 的 MPS 包含 χ=1 态，但本讲锁死了左右块，只搜索其中一个 8 维子空间，未必包含上一讲得到的乘积态。扩大允许键维与改变固定环境不是同一操作。</p>
+<p>下一步完整扫描需移动正交中心、更新环境并处理键维；两站点更新后还要做 SVD 分解与截断。这里完成的是一般键维环境递推及一次具体中心求解，为这些步骤提供可核验的中间量。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> α=0° 时为什么中心与第三站之间的有效 XX 项消失？推导任意 g&gt;0 时的局部最低能量。</p>
+<details>
+<summary>从固定右块的物理含义推导</summary>
+<p>此时右块为 span{|00⟩,|01⟩}，第三站固定为 |0⟩，故投影后的 X₃ 为零，C_R=0。前三项剩下第一、二站的 <span class="arithmatex">\(-X_1X_2-g(Z_1+Z_2)\)</span>，以及右块内部最低能 −2g。两自旋 Hamiltonian 的偶块本征值为 <span class="arithmatex">\(\pm\sqrt{1+4g^2}\)</span>，奇块为 ±1；g&gt;0 时最低为 <span class="arithmatex">\(-\sqrt{1+4g^2}\)</span>。所以 <span class="arithmatex">\(E_{\min}=-2g-\sqrt{1+4g^2}\)</span>，g=1 时给出 −4.236067977。</p>
+<p>有效键消失只说明它在选定子空间内的矩阵元为零；完整 H 仍会把态带到子空间外，因此不能据此删除物理模型中的那条键。</p>
+</details>
+<p><strong>题二。</strong> 将右块基换成 R′=RS，其中 S 是可逆但不正交的 2×2 矩阵。空间是否改变？能否继续令 G_R=I？</p>
+<details>
+<summary>把基变换和物理子空间变化分开</summary>
+<p>列空间不变，但 <span class="arithmatex">\(G'_R=S^\dagger G_RS=S^\dagger S\)</span>，<span class="arithmatex">\(K'_R=S^\dagger K_RS\)</span>、<span class="arithmatex">\(C'_R=S^\dagger C_RS\)</span>。令 T=I⊗I⊗S，则 <span class="arithmatex">\(N'=T^\dagger NT\)</span>、<span class="arithmatex">\(H'_{\rm eff}=T^\dagger H_{\rm eff}T\)</span>；用广义 Rayleigh 商仍得到同一个最低能量。继续错误地令 G_R=I，会把坐标长度误当物理范数。这与改变 α 的实验不同：可逆 S 保留原来的列空间。</p>
+</details>
+</section>
+<h2 id="_1">速查与下一步<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>最近邻 Ising 每侧保留 G（范数）、K（内部 Hamiltonian）、C（边界 X）。从空块开始递推，组合成 N 与 H_eff，再将局部解放回完整态核验。本讲的一般公式不依赖 χ=1，实验固定 χ=2；MPO、两站点更新及完整扫描仍需后续展开。原始阅读：<a href="https://arxiv.org/abs/1008.3477">Schollwöck 的 MPS／DMRG 综述</a>。核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-08-product-sweeps.html"><span class="pager-label">上一页</span>计算桥 VIII · 乘积 MPS 往返扫描</a>
+  <a class="pager-slot next" href="route-01-mps-readiness.html"><span class="pager-label">下一页</span>路线验收 · Schmidt 到变分扫描</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-environments.js?v=ce4ec5aa940e"></script>
+</body>
+</html>

@@ -164,6 +164,7 @@ COURSE = [
         ("bridge-06-ising-parity.md", "计算桥 VI · Ising 奇偶与完整谱"),
         ("bridge-07-mps-metric.md", "计算桥 VII · MPS 范数与局部优化"),
         ("bridge-08-product-sweeps.md", "计算桥 VIII · 乘积 MPS 往返扫描"),
+        ("bridge-09-mps-environments.md", "计算桥 IX · MPS 环境与中心求解"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),

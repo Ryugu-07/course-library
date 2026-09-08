@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仿射图粘合与态射 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li class="active"><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 19:53</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#affine-gluing-title">两张仿射直线为什么能粘成射影直线，而不是仍然只得到一张直线？</a></li>
+<li><a href="#1">1. 先把两张图与重叠区域写成环</a></li>
+<li><a href="#2">2. 为什么环映射箭头必须反过来</a></li>
+<li><a href="#3">3. 全局正则函数只有常数，空间却绝不是一个点</a></li>
+<li><a href="#4">4. 只把倒数改成恒等，就得到双原点直线</a></li>
+<li><a href="#5">5. 局部公式怎样粘成一个射影态射</a></li>
+<li><a href="#6">6. 相容必须作为概形态射成立</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="13">基础衔接 13 · 仿射粘合：两张坐标图怎样成为一个概形<a class="headerlink" href="#13" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-02-localization.html">局部化</a>、<a href="bridge-04-sheaves.html">层与粘合</a>。<a href="bridge-06-cech.html">射影直线上的 Čech 计算</a>已经使用过同一覆盖，本讲补上它背后的概形构造与态射粘合。全篇固定底域为 <span class="arithmatex">\(\mathbb C\)</span>，沿用 <span class="arithmatex">\(z=X_1/X_0\)</span>；只建立两个仿射图的具体模型，不系统发展一般概形范畴、基变换或分离态射理论。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="affine-gluing-title" class="learning-layer">
+<h2 id="affine-gluing-title">两张仿射直线为什么能粘成射影直线，而不是仍然只得到一张直线？<a class="headerlink" href="#affine-gluing-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 先把两张图与重叠区域写成环<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>射影直线的两个标准仿射图是</p>
+<div class="arithmatex">\[
+U_0=\{X_0\ne0\}=\operatorname{Spec}\mathbb C[z],
+\qquad z=\frac{X_1}{X_0},
+\]</div>
+<p>以及</p>
+<div class="arithmatex">\[
+U_1=\{X_1\ne0\}=\operatorname{Spec}\mathbb C[w],
+\qquad w=\frac{X_0}{X_1}.
+\]</div>
+<p>它们不是沿整张仿射直线粘合。第一张图中只有 <span class="arithmatex">\(z\)</span> 可逆的地方进入重叠：</p>
+<div class="arithmatex">\[
+D(z)=\operatorname{Spec}\mathbb C[z,z^{-1}],
+\]</div>
+<p>第二张图对应</p>
+<div class="arithmatex">\[
+D(w)=\operatorname{Spec}\mathbb C[w,w^{-1}].
+\]</div>
+<p>在重叠处，两个坐标满足</p>
+<div class="arithmatex">\[
+\boxed{w=\frac1z.}
+\]</div>
+<p>因此 <span class="arithmatex">\(z=0\)</span> 对应的闭点 <span class="arithmatex">\([1:0]\)</span> 不在重叠中，<span class="arithmatex">\(w=0\)</span> 对应的闭点 <span class="arithmatex">\([0:1]\)</span> 也不在重叠中；它们都留在粘合后的空间里。其余非零复坐标按 <span class="arithmatex">\(a\leftrightarrow a^{-1}\)</span> 配对。</p>
+<p>这段闭点语言只是直观入口。<span class="arithmatex">\(\operatorname{Spec}\mathbb C[z]\)</span> 的点是所有素理想，不仅有闭点 <span class="arithmatex">\((z-a)\)</span>，还含有泛点 <span class="arithmatex">\((0)\)</span>。在射影直线的图画里写下“复平面加无穷远点”，并没有列出概形的全部素谱点；后面的构造以环和局部化为准。</p>
+<h2 id="2">2. 为什么环映射箭头必须反过来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>设</p>
+<div class="arithmatex">\[
+\varphi_{01}:D(z)\longrightarrow D(w)
+\]</div>
+<p>是在点坐标上执行 <span class="arithmatex">\(w=1/z\)</span> 的同构。对应的坐标环同构却从目标函数拉回到源：</p>
+<div class="arithmatex">\[
+\boxed{
+\varphi_{01}^{\sharp}:
+\mathbb C[w,w^{-1}]
+\longrightarrow
+\mathbb C[z,z^{-1}],
+\qquad w\longmapsto z^{-1}.
+}
+\]</div>
+<p>原因可以用“函数先去目标，再拉回源”记忆。若 <span class="arithmatex">\(g\)</span> 是 <span class="arithmatex">\(D(w)\)</span> 上的函数，拉回函数是</p>
+<div class="arithmatex">\[
+\varphi_{01}^{\sharp}(g)=g\circ\varphi_{01},
+\]</div>
+<p>所以它必须定义在 <span class="arithmatex">\(D(z)\)</span> 上。仿射概形的态射</p>
+<div class="arithmatex">\[
+\operatorname{Spec}A\longrightarrow\operatorname{Spec}B
+\]</div>
+<p>与环同态 <span class="arithmatex">\(B\to A\)</span> 对应，箭头相反。反向粘合映射由 <span class="arithmatex">\(z\mapsto w^{-1}\)</span> 给出，两次复合都是恒等。</p>
+<p>一般粘合需要在每对图的重叠上给同构，要求反向同构互为逆，并在三重重叠上满足 cocycle 条件。这里只用两张图，真正需要核对的核心就是两边重叠相同、映射互逆。标准粘合定理随后把拓扑空间与结构层一起粘成一个概形：</p>
+<div class="arithmatex">\[
+U_0\cup_{\varphi_{01}}U_1\cong\mathbb P^1_{\mathbb C}.
+\]</div>
+<h2 id="3">3. 全局正则函数只有常数，空间却绝不是一个点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>一个全局正则函数由两张图上的多项式</p>
+<div class="arithmatex">\[
+p(z)\in\mathbb C[z],
+\qquad q(w)\in\mathbb C[w]
+\]</div>
+<p>组成，并要求它们在重叠上表示同一函数：</p>
+<div class="arithmatex">\[
+p(z)=q(1/z)
+\quad\text{于 }\mathbb C[z,z^{-1}]\text{ 中成立}.
+\]</div>
+<p><span class="arithmatex">\(p(z)\)</span> 只含非负次幂，<span class="arithmatex">\(q(1/z)\)</span> 只含非正次幂。Laurent 单项式线性无关，所以两边只能共同保留零次项。于是</p>
+<div class="arithmatex">\[
+\boxed{
+\Gamma(\mathbb P^1_{\mathbb C},\mathcal O)=\mathbb C.
+}
+\]</div>
+<p>但 <span class="arithmatex">\(\mathbb P^1_{\mathbb C}\)</span> 至少有上面两个不同闭点 <span class="arithmatex">\([1:0]\)</span> 与 <span class="arithmatex">\([0:1]\)</span>，而 <span class="arithmatex">\(\operatorname{Spec}\mathbb C\)</span> 只有一个点。因此</p>
+<div class="arithmatex">\[
+\mathbb P^1_{\mathbb C}
+\not\cong
+\operatorname{Spec}\Gamma(\mathbb P^1_{\mathbb C},\mathcal O).
+\]</div>
+<p>若 <span class="arithmatex">\(X\)</span> 是仿射概形，<span class="arithmatex">\(X\cong\operatorname{Spec}\Gamma(X,\mathcal O_X)\)</span>；本例说明这个恢复公式不能无条件推广到所有概形。全局函数很少，不表示空间没有局部几何。</p>
+<figure>
+<p><img alt="射影直线把两个去掉原点的仿射图用倒数关系粘合，环映射方向与点映射相反；双原点直线改用恒等关系后保留两个原点；右侧d次幂态射的两个局部公式在重叠上相容。" src="assets/img/bridge-13-affine-gluing.svg" /></p>
+<figcaption>同样是两张仿射直线与同样的非零重叠，过渡映射决定了粘合结果。图只负责展示数据流；双原点直线的非分离性要由正文中的环判据证明。</figcaption>
+</figure>
+<h2 id="4">4. 只把倒数改成恒等，就得到双原点直线<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>再取两张仿射图</p>
+<div class="arithmatex">\[
+V_0=\operatorname{Spec}\mathbb C[z],
+\qquad
+V_1=\operatorname{Spec}\mathbb C[w],
+\]</div>
+<p>仍沿 <span class="arithmatex">\(D(z)\)</span> 与 <span class="arithmatex">\(D(w)\)</span> 粘合，但这次令点坐标满足</p>
+<div class="arithmatex">\[
+\boxed{w=z}
+\]</div>
+<p>而不是 <span class="arithmatex">\(w=1/z\)</span>。坐标环拉回为</p>
+<div class="arithmatex">\[
+\mathbb C[w,w^{-1}]
+\longrightarrow
+\mathbb C[z,z^{-1}],
+\qquad w\longmapsto z.
+\]</div>
+<p>所有非零点按相同坐标识别，两边的原点却都不属于重叠，因而保留成两个不同闭点 <span class="arithmatex">\(0_0,0_1\)</span>。这就是<strong>双原点仿射直线</strong> <span class="arithmatex">\(L\)</span>。</p>
+<p>它的全局正则函数是相容多项式对</p>
+<div class="arithmatex">\[
+(p(z),q(w)),\qquad p(z)=q(z)
+\text{ 于 }\mathbb C[z,z^{-1}]\text{ 中}.
+\]</div>
+<p>局部化 <span class="arithmatex">\(\mathbb C[z]\to\mathbb C[z,z^{-1}]\)</span> 是单射，所以这迫使两个多项式相同，得到</p>
+<div class="arithmatex">\[
+\Gamma(L,\mathcal O_L)\cong\mathbb C[t].
+\]</div>
+<p>相应的典范态射 <span class="arithmatex">\(L\to\operatorname{Spec}\mathbb C[t]=\mathbb A^1\)</span> 在两张图上都使用原坐标；它把 <span class="arithmatex">\(0_0,0_1\)</span> 送到同一个普通原点，因而不是同构。由上一节的仿射恢复性质，<span class="arithmatex">\(L\)</span> 不仿射，当然也不可能与 <span class="arithmatex">\(\mathbb A^1\)</span> 同构。全局函数环相同并没有恢复出两个原点的差别。</p>
+<p>这里还出现一个更精确的失败。对分离的 <span class="arithmatex">\(\mathbb C\)</span>-概形，任意两个仿射开集 <span class="arithmatex">\(V_0,V_1\)</span> 必须使自然环映射</p>
+<div class="arithmatex">\[
+\Gamma(V_0,\mathcal O)\otimes_{\mathbb C}
+\Gamma(V_1,\mathcal O)
+\longrightarrow
+\Gamma(V_0\cap V_1,\mathcal O)
+\]</div>
+<p>满射。在双原点直线中，它具体是</p>
+<div class="arithmatex">\[
+\mathbb C[z,w]\longrightarrow\mathbb C[t,t^{-1}],
+\qquad z\longmapsto t,\quad w\longmapsto t.
+\]</div>
+<p>其像只有 <span class="arithmatex">\(\mathbb C[t]\)</span>，不含 <span class="arithmatex">\(t^{-1}\)</span>，所以不满射。由标准仿射开集交判据，<span class="arithmatex">\(L\)</span> 不是分离概形。这个环计算才是本讲采用的证明；“两个原点看起来分不开”的示意图不是证明。作为对照，<span class="arithmatex">\(\mathbb P^1\)</span> 的同一映射把 <span class="arithmatex">\(z\)</span> 送到 <span class="arithmatex">\(t\)</span>、把 <span class="arithmatex">\(w\)</span> 送到 <span class="arithmatex">\(t^{-1}\)</span>，因而能生成整个 Laurent 环。</p>
+<h2 id="5">5. 局部公式怎样粘成一个射影态射<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>固定整数 <span class="arithmatex">\(d\ge1\)</span>，考虑</p>
+<div class="arithmatex">\[
+F_d:\mathbb P^1\longrightarrow\mathbb P^1,
+\qquad
+[X_0:X_1]\longmapsto[X_0^d:X_1^d].
+\]</div>
+<p>两个齐次多项式次数相同，且不会同时在射影点上为零，所以公式良定义。为了不混淆源与目标，在目标的两张图上改用坐标</p>
+<div class="arithmatex">\[
+u=\frac{Y_1}{Y_0},
+\qquad
+v=\frac{Y_0}{Y_1},
+\qquad v=\frac1u.
+\]</div>
+<p>目标开集 <span class="arithmatex">\(\{Y_0\ne0\}\)</span> 的原像正是源的 <span class="arithmatex">\(U_0\)</span>，目标开集 <span class="arithmatex">\(\{Y_1\ne0\}\)</span> 的原像正是源的 <span class="arithmatex">\(U_1\)</span>。局部点坐标公式为</p>
+<div class="arithmatex">\[
+u=z^d\quad\text{于 }U_0,
+\qquad
+v=w^d\quad\text{于 }U_1.
+\]</div>
+<p>严格说，相应的仿射环映射仍从目标到源：</p>
+<div class="arithmatex">\[
+\mathbb C[u]\longrightarrow\mathbb C[z],
+\quad u\longmapsto z^d,
+\qquad
+\mathbb C[v]\longrightarrow\mathbb C[w],
+\quad v\longmapsto w^d.
+\]</div>
+<p>在源的重叠上 <span class="arithmatex">\(w=z^{-1}\)</span>，所以第二张图给出</p>
+<div class="arithmatex">\[
+v=w^d=z^{-d}.
+\]</div>
+<p>第一张图先给 <span class="arithmatex">\(u=z^d\)</span>，再用目标重叠关系 <span class="arithmatex">\(v=u^{-1}\)</span>，同样得到 <span class="arithmatex">\(v=z^{-d}\)</span>。两份局部态射在整个重叠概形上相同，因而唯一粘成 <span class="arithmatex">\(F_d\)</span>。</p>
+<p>这个检查使用的是<strong>目标开集的原像</strong>。一般态射下，源开集的像未必是开集，更未必是方便的仿射图；不能反过来凭“局部公式的图像落在哪里”随意拼接。这里</p>
+<div class="arithmatex">\[
+F_d^{-1}(\{Y_0\ne0\})=U_0,
+\qquad
+F_d^{-1}(\{Y_1\ne0\})=U_1
+\]</div>
+<p>恰好让两张标准图直接适用。</p>
+<h2 id="6">6. 相容必须作为概形态射成立<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>在复闭点上代几个数只能发现明显错误，不能证明两份局部态射相同。环同态相等会同时控制所有素谱点以及结构层拉回，才是完整的仿射检查。反过来，两个公式即使在少数闭点上碰巧给出同值，也可能在坐标环中不同。</p>
+<p>因此两图粘合可以压缩成下面的证据链：</p>
+<ol>
+<li>写出源图、目标图和真正的重叠开集。</li>
+<li>把点坐标公式翻成反向的坐标环同态。</li>
+<li>在局部化后的重叠环中验证两种复合严格相等。</li>
+<li>由态射粘合的唯一性得到全局态射。</li>
+</ol>
+<p>这还没有分类所有 <span class="arithmatex">\(\mathbb P^1\to\mathbb P^1\)</span> 的态射，也没有讨论分歧、次数的函数域定义或除子。<span class="arithmatex">\(F_d\)</span> 只是一份能逐项核查的标准样本。</p>
+<p>下面复用 Čech 课的实验来核对第三节的全局函数。实验默认滑块是 <span class="arithmatex">\(k=-3\)</span>，这里的 <span class="arithmatex">\(k\)</span> 是线丛 <span class="arithmatex">\(\mathcal O(k)\)</span> 的指标，不是底域。请务必把它调到 <strong><span class="arithmatex">\(k=0\)</span></strong>：此时 <span class="arithmatex">\(\mathcal O(0)=\mathcal O\)</span>，应看到 <span class="arithmatex">\(h^0=1,h^1=0\)</span>。关闭脚本时，静态核对也很直接：<span class="arithmatex">\(\mathbb C[z]\)</span> 提供非负指数，<span class="arithmatex">\(\mathbb C[z^{-1}]\)</span> 提供非正指数，两边交集只剩指数 <span class="arithmatex">\(0\)</span>。</p>
+<div class="learning-lab" data-learning-lab="research-geometry" data-research-topic="cech"></div>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 仍以源坐标 <span class="arithmatex">\(z,w\)</span> 和目标坐标 <span class="arithmatex">\(u,v\)</span> 表示两张射影图。若有人在 <span class="arithmatex">\(U_0\)</span> 写 <span class="arithmatex">\(u=z^2\)</span>，在 <span class="arithmatex">\(U_1\)</span> 写 <span class="arithmatex">\(v=w^3\)</span>，这两份局部态射能否粘合？</p>
+<details>
+<summary>把两边都换成目标坐标 v</summary>
+<p>不能。在重叠上，第一份公式与目标关系 <span class="arithmatex">\(v=u^{-1}\)</span> 合起来给</p>
+<div class="arithmatex">\[
+v=(z^2)^{-1}=z^{-2}=w^2.
+\]</div>
+<p>第二份却给 <span class="arithmatex">\(v=w^3\)</span>。<span class="arithmatex">\(w^2\)</span> 与 <span class="arithmatex">\(w^3\)</span> 在 <span class="arithmatex">\(\mathbb C[w,w^{-1}]\)</span> 中不是同一个元素，所以两个环同态在整个重叠上不同。它们在 <span class="arithmatex">\(w=1\)</span> 这个闭点上碰巧相等，也不足以粘合。</p>
+</details>
+<p><strong>题二。</strong> 取常数 <span class="arithmatex">\(c\in\mathbb C^\times\)</span>，把两张仿射直线沿非零部分按 <span class="arithmatex">\(w=c/z\)</span> 粘合。所得概形是否仍与 <span class="arithmatex">\(\mathbb P^1\)</span> 同构？它的全局正则函数是什么？</p>
+<details>
+<summary>在第二张图重新缩放坐标</summary>
+<p>令 <span class="arithmatex">\(w'=w/c\)</span>。因为 <span class="arithmatex">\(c\)</span> 可逆，这给出第二张仿射图的坐标变换，而重叠关系变成</p>
+<div class="arithmatex">\[
+w'=\frac wc=\frac1z.
+\]</div>
+<p>所以粘合数据经坐标重标后就是标准射影直线，所得概形与 <span class="arithmatex">\(\mathbb P^1\)</span> 同构。全局函数条件是</p>
+<div class="arithmatex">\[
+p(z)=q(c/z).
+\]</div>
+<p>左边只含非负 <span class="arithmatex">\(z\)</span> 次幂，右边只含非正次幂；<span class="arithmatex">\(c\ne0\)</span> 不改变指数，故仍只有常数：</p>
+<div class="arithmatex">\[
+\Gamma(X,\mathcal O_X)=\mathbb C.
+\]</div>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>点或开集方向</th>
+<th>坐标环方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>射影图粘合</td>
+<td><span class="arithmatex">\(D(z)\to D(w)\)</span>，<span class="arithmatex">\(w=1/z\)</span></td>
+<td><span class="arithmatex">\(\mathbb C[w,w^{-1}]\to\mathbb C[z,z^{-1}]\)</span></td>
+</tr>
+<tr>
+<td>双原点粘合</td>
+<td><span class="arithmatex">\(D(z)\to D(w)\)</span>，<span class="arithmatex">\(w=z\)</span></td>
+<td><span class="arithmatex">\(w\mapsto z\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(F_d\)</span> 的零号图</td>
+<td><span class="arithmatex">\(U_0\to\{Y_0\ne0\}\)</span>，<span class="arithmatex">\(u=z^d\)</span></td>
+<td><span class="arithmatex">\(\mathbb C[u]\to\mathbb C[z]\)</span></td>
+</tr>
+<tr>
+<td>粘合态射</td>
+<td>在源重叠上比较局部映射</td>
+<td>在局部化环中比较拉回</td>
+</tr>
+</tbody>
+</table>
+<p>概形粘合定理与两个标准例子见 <a href="https://stacks.math.columbia.edu/tag/01JA">Stacks Project：Glueing schemes</a>、<a href="https://stacks.math.columbia.edu/tag/01JE">Projective line</a> 和 <a href="https://stacks.math.columbia.edu/tag/01JD">Affine space with zero doubled</a>。仿射态射与环同态反向对应见 <a href="https://stacks.math.columbia.edu/tag/01HX">The category of affine schemes</a>；双原点直线使用的分离性判据见 <a href="https://stacks.math.columbia.edu/tag/01KH">Separation axioms</a>。资料核查：2026-09-08。</p>
+<p>继续计算：<a href="bridge-06-cech.html">射影直线上的 Čech 上同调</a>把相容函数对推广到 <span class="arithmatex">\(\mathcal O(k)\)</span> 的局部截面，并测量一次粘合障碍。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-12-homotopy-cones.html"><span class="pager-label">上一页</span>基础 XII · 链同伦与映射锥</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-geometry.js?v=1b5ebf5a0b7b"></script>
+</body>
+</html>

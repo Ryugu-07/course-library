@@ -155,3 +155,5 @@ $$r_{\rm loc}=\max_j\sqrt{(x_j-b_j/\sqrt{b_j^2+g^2})^2+
 固定环境 → 计算邻居场 b_j → 解 2×2 局部题 → 用最新结果更新下一站 → 记录完整能量 → 往返并检查停止信号。本讲明确 χ=1、开放边界、统一能量单位。一般 MPS 扫描与环境张量见 [Schollwöck 综述](https://arxiv.org/abs/1008.3477)。返回[张量网络](mb-01-tensor-networks.html)。核查：2026-09-08。
 
 路线验收：[连续作业：从 Schmidt 截断到变分扫描](route-01-mps-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
+
+继续计算：[MPS 环境与八维中心求解](bridge-09-mps-environments.html)。

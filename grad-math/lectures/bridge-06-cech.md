@@ -101,3 +101,5 @@ $$h(z)=2z^{-4}+3z^{-2}+5z^{-1}+7+z^2,$$
 $\delta=z^kf_1-f_0$；$H^0$ 数两个指数区域的交集，$H^1$ 数未被并集覆盖的缺口。一般定理与射影空间计算参见 [Stacks：Cohomology of projective space](https://stacks.math.columbia.edu/tag/01XS)。本讲仅在 $\mathbb P^1_{\mathbb C}$ 上展开计算，资料核查：2026-09-08。
 
 继续推导：[Hom、Ext 与扩张](bridge-07-ext.html)解释扩张等价及分裂；[联络与水平截面](bridge-08-connections.html)给出局部系统进入微分方程的完整算例。
+
+继续计算：[仿射图粘合与态射](bridge-13-affine-gluing.html)。
