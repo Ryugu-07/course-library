@@ -98,3 +98,5 @@ $6x\equiv0\pmod8$ 等价于 $3x\equiv0\pmod4$，故核为 $\{0,4\}$。逐个乘�
 | 整数换基 | 变换及其逆都保持整数坐标 |
 
 下一讲：[局部化与局部信息](bridge-02-localization.html)。定义与进一步理论见 [Stacks Project：交换代数](https://stacks.math.columbia.edu/tag/00AO) 的 Modules、Quotients、Localization 各节；本讲整数算例均可直接复算。资料核查：2026-09-08。
+
+路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。

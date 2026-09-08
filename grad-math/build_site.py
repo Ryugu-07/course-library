@@ -122,6 +122,9 @@ COURSE = [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),
         ("bridge-10-markov-paths.md", "基础 X · Markov 桥与路径枚举"),
     ]),
+    ("学习路线与连续作业", [
+        ("route-01-derived-readiness.md", "路线验收 · 整数分解到导出观点"),
+    ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),
         ("frontier-02-singular-spde.md", "前沿 II · 奇异 SPDE 与重整化"),
