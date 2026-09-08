@@ -137,3 +137,5 @@ $$\Delta_{\rm spin}=2J\tan\frac{\pi}{4L}\sim\frac{\pi J}{2L}.$$
 ## 速查与原始阅读
 
 周期自旋先分 P=±1；偶扇区用反周期费米动量、奇扇区用周期动量；对角化后继续施加奇偶约束。完整谱、固定扇区和单准粒子尺度须分别标注。原始模型与边界修正的讨论见 [Pfeuty 1970](https://www.math.ucdavis.edu/~bxn/pfeuty1970.pdf)；原文自旋归一化与本讲 Pauli 约定不同。本讲直接矩阵、符号及数值均按文中约定核对。返回[量子临界与有限尺寸](research-02-quantum-criticality.html)。核查：2026-09-08。
+
+后续诊断：[全链方差与初态](bridge-15-variance-initial-states.html)用双层MPO测H²，比较四个初态；两站点零方差激发态解释为何局部残差不能充当基态证书。

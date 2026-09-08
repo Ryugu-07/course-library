@@ -174,3 +174,5 @@ $$Av=(\tau,1+\tau,1+\tau,\tau)^T=\tau v,$$
 后续实现训练：[正交中心与环境缓存](bridge-12-mps-cache.html)，从完整小系统的验证走向真正存储与收缩 MPS 张量。
 
 后续计算：[MPO与Krylov](bridge-14-mpo-krylov.html)把算符也组织成张量，通过 Hv 接口接回缓存扫描；显式局部残差与SVD丢弃权重分开检查。
+
+后续诊断：[全链方差与初态](bridge-15-variance-initial-states.html)用双层MPO测H²，比较四个初态；两站点零方差激发态解释为何局部残差不能充当基态证书。

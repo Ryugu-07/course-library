@@ -76,7 +76,7 @@
 
 <h2 id="foundation-route">基础衔接：先把代数与几何之间的计算接通</h2>
 
-基础衔接目前有 **18 讲：代数与几何 14 讲，随机分析 4 讲**。它们不必按编号全部顺读。先用[从整数分解到导出观点的连续作业](route-01-derived-readiness.html)诊断，再按目标选择：
+基础衔接目前有 **19 讲：代数与几何 14 讲，随机分析 5 讲**。它们不必按编号全部顺读。先用[从整数分解到导出观点的连续作业](route-01-derived-readiness.html)诊断，再按目标选择：
 
 - 同调代数主线：模与商 → 复形 → 张量积与 Tor → 链同伦与映射锥；Ext 可在模与分解之后接入。
 - 几何主线：局部化 → 层与粘合 → Čech；局部环与切空间、联络与水平截面按后续问题选读。
@@ -104,6 +104,7 @@
 随机分析路线有两个计算入口。[Markov 桥与路径枚举](bridge-10-markov-paths.html)将端点重配落实为两步转移及八条路径，接回 Schrödinger 桥；[Wick 平均与 L² 极限](bridge-09-wick-limits.html)要求亲自写出同一 Fourier 耦合下两个截断的均方差，再进入奇异 SPDE 的核估计。
 | 用终端倾斜推导连续漂移，对照路径KL与控制能量 | [连续时间路径熵与控制](bridge-17-continuous-control.html) | Girsanov、Doob变换与同扩散条件 |
 | 从整个 Fourier 场的尾和证明随机分布极限，辨认临界失败 | [热核与随机分布](bridge-18-heat-distributions.html) | Sobolev 阈值、测试函数与同噪声热核极限 |
+| 看见高频共振留下低频，核对乘积条件与局部重建假设 | [分布乘积与重建](bridge-19-products-reconstruction.html) | Bony乘积、Wick增强与重建的作用边界 |
 
 验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。
 

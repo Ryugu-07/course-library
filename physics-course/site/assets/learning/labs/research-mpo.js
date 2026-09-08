@@ -1,7 +1,7 @@
 (function(root,factory){
  "use strict";const node=typeof module==="object"&&module.exports;
  const lib=factory(node?require("../research-renderer.js"):root.ResearchLab,node?require("./research-environments.js"):root.ResearchEnvironments,node?require("./research-mps-cache.js"):root.ResearchMPSCache);
- if(node)module.exports=lib;else if(root.CourseLearning)root.CourseLearning.register("research-mpo",lib.mount);
+ if(node)module.exports=lib;else {root.ResearchMPO=lib;if(root.CourseLearning)root.CourseLearning.register("research-mpo",lib.mount);}
 })(typeof globalThis!=="undefined"?globalThis:this,function(core,env,mps){
  "use strict";
  const I=[[1,0],[0,1]],X=[[0,1],[1,0]],Z=[[1,0],[0,-1]],zero=()=>[[0,0],[0,0]],scale=(A,c)=>A.map(r=>r.map(v=>v*c));
@@ -34,9 +34,11 @@
   const orthogonality=Math.max(...Q.flatMap((q,i)=>Q.map((p,j)=>Math.abs(dot(q,p)-(i===j?1:0)))));
   return {vector:v,energy,residual,steps:Q.length,actions:Q.length+1,breakdown,orthogonality};
  }
- function run(length,g,chi,rounds,maxSteps,inspect){
+ function run(length,g,chi,rounds,maxSteps,inspect,angles){
   if(!Number.isInteger(length)||length<2||!Number.isFinite(g)||g<=0||!Number.isInteger(chi)||chi<1||!Number.isInteger(rounds)||rounds<1)throw Error("无效扫描参数");
-  const W=ising(g),tensors=mps.initial(length),left=[],right=[],history=[];right[length]=boundary([1,0,0]);
+  if(angles!==undefined&&(!Array.isArray(angles)||angles.length!==length||!angles.every(Number.isFinite)))throw Error("初态角度须逐站给出有限实数");
+  const clean=x=>Math.abs(x)<1e-15?0:x;
+  const W=ising(g),tensors=angles===undefined?mps.initial(length):angles.map(t=>[[[clean(Math.cos(t/2))]],[[clean(Math.sin(t/2))]]]),left=[],right=[],history=[];right[length]=boundary([1,0,0]);
   for(let j=length-1;j>=0;j--)right[j]=growRight(right[j+1],tensors[j],W);
   const start=right[0][2][0][0];let actions=0;
   for(let round=1;round<=rounds;round++)for(const direction of [1,-1]){

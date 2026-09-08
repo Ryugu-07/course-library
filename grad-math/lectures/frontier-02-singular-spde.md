@@ -156,3 +156,5 @@ $$
 连续训练：[路径熵与随机场极限](route-02-stochastic-readiness.html)把有限模型、误差控制和退出题接成可交卷的路线。
 
 后续练习：[热核正则化与随机分布](bridge-18-heat-distributions.html)把单一测试函数推广到完整 Sobolev 范数，推导精确阈值与临界壳层，并区分有限频率图和无穷尾界。
+
+后续练习：[分布乘积与重建](bridge-19-products-reconstruction.html)从相位反例、负Sobolev单壳层极限走到准确的模型相容条件，区分重整化对象与重建定理的职责。

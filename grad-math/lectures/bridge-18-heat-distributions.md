@@ -380,3 +380,5 @@ $$
 两份实 Fourier 模态 → $H^s$ 二阶矩级数 → 阈值 $s<\alpha-1/2$ → 临界壳层 $2\log2$ → 热乘子 $e^{-\epsilon k^2}$ → 同噪声下的支配收敛。回到[Wick 平方](bridge-09-wick-limits.html)时，应明确那里只证明了一个二次场的常数配对极限；本讲证明的是线性场自身在完整 Sobolev 范数中的极限。
 
 Gaussian 随机变量、Hilbert 空间随机级数与正则化背景见 Hairer 的 [Advanced Stochastic Analysis](https://hairer.org/notes/StochasticAnalysisCourse.pdf)；热半群、空间白噪声与分布值 SPDE 的系统入口见作者讲义 [An Introduction to Stochastic PDEs](https://arxiv.org/abs/0907.4178)；圆周 Fourier 与 Sobolev 归一化可对照 Hairer 与 Kurniawan 的 [Stochastic PDEs with multiscale structure](https://www.hairer.org/papers/multiscale_spde.pdf)。本讲阈值、临界壳层和尾界均由正文级数独立推出。资料核查：2026-09-08。
+
+后续练习：[分布乘积与重建](bridge-19-products-reconstruction.html)从相位反例、负Sobolev单壳层极限走到准确的模型相容条件，区分重整化对象与重建定理的职责。

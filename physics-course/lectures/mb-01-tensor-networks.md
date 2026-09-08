@@ -178,3 +178,5 @@ $$
 路线验收：[连续作业：从 Schmidt 截断到变分扫描](route-01-mps-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
 
 后续计算：[MPO与Krylov](bridge-14-mpo-krylov.html)把算符也组织成张量，通过 Hv 接口接回缓存扫描；显式局部残差与SVD丢弃权重分开检查。
+
+后续诊断：[全链方差与初态](bridge-15-variance-initial-states.html)用双层MPO测H²，比较四个初态；两站点零方差激发态解释为何局部残差不能充当基态证书。
