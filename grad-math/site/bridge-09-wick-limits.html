@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wick 平均与 L² 极限 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li class="active"><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 17:35</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#wick-limits-title">每个点都越来越不稳定，为什么整体平均反而可能稳定？</a></li>
+<li><a href="#1">1. 先固定同一场，再逐步打开高频</a></li>
+<li><a href="#2">2. 减均值只完成了第一步</a></li>
+<li><a href="#3-fourier">3. Fourier 正交性把双重和变成能量账本</a></li>
+<li><a href="#4">4. 方差级数给出精确门槛</a></li>
+<li><a href="#5">5. 临界反例与默认实验</a></li>
+<li><a href="#6">6. 这证明了什么，又没有证明什么</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="09-wick">基础衔接 09 · Wick 平方与截断极限：点值发散后还能留下什么<a class="headerlink" href="#09-wick" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="mt-01-measure-expectation.html">测度论语言与期望</a>、<a href="mt-02-lln.html">独立性与大数律</a>、<a href="pde2-01-distributions.html">分布与弱导数</a>，并会使用三角函数的正交关系。本讲在圆周上把一个 Gaussian Fourier 场算到底：点上的平方越来越狂躁，减去均值仍不能救回点值；但对常数测试函数的空间平均，在恰当正则性下却能成为 <span class="arithmatex">\(L^2\)</span> Cauchy 序列。这是通往<a href="frontier-02-singular-spde.html">奇异 SPDE 与重整化</a>的一座可验算小桥，不是完整随机分布收敛定理。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="wick-limits-title" class="learning-layer">
+<h2 id="wick-limits-title">每个点都越来越不稳定，为什么整体平均反而可能稳定？<a class="headerlink" href="#wick-limits-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 先固定同一场，再逐步打开高频<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把圆周写成 <span class="arithmatex">\(\mathbb T=[0,2\pi]\)</span>，首尾视为同一点，并固定归一化平均</p>
+<div class="arithmatex">\[
+\langle f\rangle=\frac1{2\pi}\int_0^{2\pi}f(x)\,dx.
+\]</div>
+<p>令 <span class="arithmatex">\(a_k,b_k\)</span> 相互独立且都服从 <span class="arithmatex">\(N(0,1)\)</span>。对 <span class="arithmatex">\(s\geq0\)</span> 定义 Fourier 截断</p>
+<div class="arithmatex">\[
+X_N(x)=\sum_{k=1}^N k^{-s}
+\bigl(a_k\cos kx+b_k\sin kx\bigr).
+\]</div>
+<p><span class="arithmatex">\(k^{-s}\)</span> 是第 <span class="arithmatex">\(k\)</span> 个频率的振幅尺度：<span class="arithmatex">\(s\)</span> 越大，高频衰减越快。所有 <span class="arithmatex">\(N\)</span> 使用<strong>同一组</strong>随机系数；从 <span class="arithmatex">\(N\)</span> 到 <span class="arithmatex">\(M\)</span> 只是把 <span class="arithmatex">\(N+1,\ldots,M\)</span> 模态接上去。这一点决定了 <span class="arithmatex">\(Y_M-Y_N\)</span> 能否只剩尾部。若每次截断都重新抽一套系数，比较的是两个独立样本，不是同一随机对象的逼近。</p>
+<p>对任意固定 <span class="arithmatex">\(x\)</span>，<span class="arithmatex">\(X_N(x)\)</span> 是中心 Gaussian，且</p>
+<div class="arithmatex">\[
+\begin{aligned}
+C_N:=\mathbb E[X_N(x)^2]
+&amp;=\sum_{k=1}^Nk^{-2s}
+\bigl(\cos^2kx+\sin^2kx\bigr)\\
+&amp;=\sum_{k=1}^Nk^{-2s}.
+\end{aligned}
+\]</div>
+<p>方差与 <span class="arithmatex">\(x\)</span> 无关。特别地，<span class="arithmatex">\(s=1/2\)</span> 时 <span class="arithmatex">\(C_N=H_N\)</span> 是调和和，按 <span class="arithmatex">\(\log N\)</span> 发散。因此 <span class="arithmatex">\(X_N(x)\)</span> 不会在固定点上成为 <span class="arithmatex">\(L^2\)</span> Cauchy 序列。</p>
+<h2 id="2">2. 减均值只完成了第一步<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>点上的 Wick 平方是</p>
+<div class="arithmatex">\[
+W_N(x)=X_N(x)^2-C_N.
+\]</div>
+<p>它满足 <span class="arithmatex">\(\mathbb EW_N(x)=0\)</span>。但若 <span class="arithmatex">\(Z\sim N(0,C_N)\)</span>，则 <span class="arithmatex">\(\mathbb EZ^4=3C_N^2\)</span>，所以</p>
+<div class="arithmatex">\[
+\operatorname{Var}W_N(x)
+=3C_N^2-C_N^2=2C_N^2.
+\]</div>
+<p>在 <span class="arithmatex">\(s=1/2\)</span> 时，这个方差是 <span class="arithmatex">\(2H_N^2\)</span>，仍然发散。反项 <span class="arithmatex">\(C_N\)</span> 去掉的是确定性均值，不会改变随机波动。于是“已经 Wick 排序”和“每一点都有极限”是两句不同的话。</p>
+<p>真正值得试的是让粗糙对象作用在测试函数上。本讲只选最简单的常数测试函数 <span class="arithmatex">\(1\)</span>，即定义</p>
+<div class="arithmatex">\[
+Y_N=\langle W_N\rangle
+=\frac1{2\pi}\int_0^{2\pi}\bigl(X_N(x)^2-C_N\bigr)\,dx.
+\]</div>
+<h2 id="3-fourier">3. Fourier 正交性把双重和变成能量账本<a class="headerlink" href="#3-fourier" title="Permanent link"></a></h2>
+<p>展开 <span class="arithmatex">\(X_N^2\)</span> 会出现许多 <span class="arithmatex">\(k,l\)</span> 交叉项。归一化平均满足</p>
+<div class="arithmatex">\[
+\langle\cos kx\cos lx\rangle
+=\langle\sin kx\sin lx\rangle=\frac12\delta_{kl},
+\qquad
+\langle\cos kx\sin lx\rangle=0.
+\]</div>
+<p>因此不同频率互相消掉，同频率的正弦与余弦各留下 <span class="arithmatex">\(1/2\)</span>：</p>
+<div class="arithmatex">\[
+\langle X_N^2\rangle
+=\frac12\sum_{k=1}^Nk^{-2s}(a_k^2+b_k^2).
+\]</div>
+<p>又因为 <span class="arithmatex">\(C_N=\frac12\sum_{k=1}^Nk^{-2s}(1+1)\)</span>，所以</p>
+<div class="arithmatex">\[
+\boxed{Y_N=\frac12\sum_{k=1}^Nk^{-2s}
+\bigl(a_k^2+b_k^2-2\bigr).}
+\]</div>
+<p>这就是机制：空间平均不是把噪声“抹平”，而是利用 Fourier 正交性把交叉项精确投影掉，留下各频率相互独立的中心化能量。</p>
+<figure>
+<p><img alt="Fourier平方展开先形成许多频率交叉项，圆周平均通过正交性删除不同频率和正弦余弦交叉项，只保留每个频率的中心化能量二分之一乘k负二s次乘a平方加b平方减二。" src="assets/img/bridge-09-wick-limits.svg" /></p>
+<figcaption>圆周平均是一种精确投影。它消去交叉模态，却不会自动保证剩余模态之和收敛；收敛门槛还要由方差级数判断。</figcaption>
+</figure>
+<h2 id="4">4. 方差级数给出精确门槛<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(Q_k=a_k^2+b_k^2-2\)</span>。因为 <span class="arithmatex">\(a_k,b_k\)</span> 独立，且标准 Gaussian 平方的方差为 <span class="arithmatex">\(2\)</span>，所以</p>
+<div class="arithmatex">\[
+\mathbb EQ_k=0,
+\qquad
+\operatorname{Var}Q_k=2+2=4.
+\]</div>
+<p>不同 <span class="arithmatex">\(k\)</span> 的 <span class="arithmatex">\(Q_k\)</span> 也独立。于是</p>
+<div class="arithmatex">\[
+\operatorname{Var}Y_N
+=\frac14\sum_{k=1}^Nk^{-4s}\operatorname{Var}Q_k
+=\sum_{k=1}^Nk^{-4s}.
+\]</div>
+<p>更重要的是，在同一耦合下，若 <span class="arithmatex">\(M\geq N\)</span>，前 <span class="arithmatex">\(N\)</span> 项逐项抵消：</p>
+<div class="arithmatex">\[
+Y_M-Y_N=\frac12\sum_{k=N+1}^Mk^{-2s}Q_k,
+\]</div>
+<p>从而</p>
+<div class="arithmatex">\[
+\boxed{\mathbb E|Y_M-Y_N|^2
+=\sum_{k=N+1}^Mk^{-4s}.}
+\]</div>
+<p>因此 <span class="arithmatex">\((Y_N)\)</span> 在 <span class="arithmatex">\(L^2\)</span> 中 Cauchy，当且仅当 <span class="arithmatex">\(p\)</span> 级数 <span class="arithmatex">\(\sum k^{-4s}\)</span> 收敛，也就是</p>
+<div class="arithmatex">\[
+\boxed{s&gt;\frac14.}
+\]</div>
+<p>这不是从有限图像猜出的阈值，而是由完整的跨截断二阶矩等式得到的。由于 <span class="arithmatex">\(L^2\)</span> 是完备的，Cauchy 性保证存在同一概率空间上的极限 <span class="arithmatex">\(Y\in L^2\)</span>。对 <span class="arithmatex">\(s&gt;1/4\)</span>，先令 <span class="arithmatex">\(M\to\infty\)</span>（利用 <span class="arithmatex">\(L^2\)</span> 范数的连续性），再作积分比较，得到误差界</p>
+<div class="arithmatex">\[
+\mathbb E|Y-Y_N|^2
+=\sum_{k&gt;N}k^{-4s}
+\leq\int_N^\infty x^{-4s}\,dx
+=\frac{N^{1-4s}}{4s-1},
+\]</div>
+<p>所以均方根误差不超过</p>
+<div class="arithmatex">\[
+\|Y-Y_N\|_{L^2}
+\leq\sqrt{\frac{N^{1-4s}}{4s-1}}.
+\]</div>
+<h2 id="5">5. 临界反例与默认实验<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>临界值 <span class="arithmatex">\(s=1/4\)</span> 不能靠“差一点”蒙混过去。令 <span class="arithmatex">\(M=2N\)</span>，则</p>
+<div class="arithmatex">\[
+\mathbb E|Y_{2N}-Y_N|^2
+=\sum_{k=N+1}^{2N}\frac1k\longrightarrow\log2\neq0.
+\]</div>
+<p>因此序列甚至不能让相邻倍增截断彼此靠近。若 <span class="arithmatex">\(s&lt;1/4\)</span>，同一块尾和还会随 <span class="arithmatex">\(N\)</span> 按 <span class="arithmatex">\(N^{1-4s}\)</span> 量级增长。</p>
+<p>默认实验取 <span class="arithmatex">\(N=16,s=1/2,M=2N=32\)</span>。这时点值与平均展示出完全不同的命运：</p>
+<div class="learning-lab" data-learning-lab="research-limits" data-research-topic="wick">
+<p><strong>完整静态后备：</strong>先预测把 <span class="arithmatex">\(N\)</span> 从 16 增到 32 时，点上 Wick 平方的方差和空间平均的跨截断差会一起变小吗？实验中的 <span class="arithmatex">\(N\)</span> 范围为 2 到 128，<span class="arithmatex">\(s\)</span> 范围为 0 到 1，比较截断固定为 <span class="arithmatex">\(M=2N\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>默认账本</th>
+<th>公式</th>
+<th style="text-align: right;">数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>点方差尺度</td>
+<td><span class="arithmatex">\(C_{16}=H_{16}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.380729\)</span></td>
+</tr>
+<tr>
+<td>点上 Wick 平方方差</td>
+<td><span class="arithmatex">\(2C_{16}^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(22.858657\)</span></td>
+</tr>
+<tr>
+<td>平均量方差</td>
+<td><span class="arithmatex">\(\sum_{k=1}^{16}k^{-2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1.584347\)</span></td>
+</tr>
+<tr>
+<td>两截断均方差</td>
+<td><span class="arithmatex">\(\sum_{k=17}^{32}k^{-2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.029821\)</span></td>
+</tr>
+<tr>
+<td>两截断均方根差</td>
+<td>上一行开方</td>
+<td style="text-align: right;"><span class="arithmatex">\(0.172687\)</span></td>
+</tr>
+<tr>
+<td>到极限的尾和上界</td>
+<td><span class="arithmatex">\(16^{-1}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.062500\)</span></td>
+</tr>
+<tr>
+<td>到极限的均方根上界</td>
+<td><span class="arithmatex">\(16^{-1/2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.250000\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(s=1/2\)</span> 时，<span class="arithmatex">\(C_N\)</span> 和点上方差继续发散，但 <span class="arithmatex">\(\operatorname{Var}Y_N\to\sum_{k\geq1}k^{-2}=\pi^2/6\)</span>，而跨截断差趋零。若把滑块调到 <span class="arithmatex">\(s=1/4\)</span>，尾积分上界不再适用；默认 <span class="arithmatex">\(N=16\)</span> 时 <span class="arithmatex">\(\mathbb E|Y_{32}-Y_{16}|^2\approx0.677766\)</span>，增加 <span class="arithmatex">\(N\)</span> 也不会把倍增截断差压到零。</p>
+</div>
+<h2 id="6">6. 这证明了什么，又没有证明什么<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>我们已经严格证明：当 <span class="arithmatex">\(s&gt;1/4\)</span> 时，标量随机变量</p>
+<div class="arithmatex">\[
+Y_N=\left\langle:X_N^2:,1\right\rangle
+\]</div>
+<p>在 <span class="arithmatex">\(L^2\)</span> 中收敛。这里的 <span class="arithmatex">\(1\)</span> 是常数测试函数，归一化配对就是圆周平均。</p>
+<p>我们<strong>没有</strong>证明 <span class="arithmatex">\(:X_N^2:\)</span> 作为随机分布收敛。完整结论必须允许每个光滑测试函数 <span class="arithmatex">\(\varphi\)</span>，研究</p>
+<div class="arithmatex">\[
+\left\langle:X_N^2:,\varphi\right\rangle,
+\]</div>
+<p>并给出随 <span class="arithmatex">\(\varphi\)</span>、空间尺度和函数空间范数一致的估计。更没有证明某个非线性 SPDE 的解收敛；方程还需要时间正则性、非线性乘积、固定点或重构以及近似方案的稳定性。</p>
+<p>这个模型补上了前沿课中的一块中间推理：点值方差发散并不排除测试函数配对收敛，而中心化本身也不保证这种收敛。决定结果的是空间相关结构经过测试函数投影后留下怎样的可求和尾部。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 仍用同一耦合，但把比较截断改成 <span class="arithmatex">\(M=3N\)</span>。证明 <span class="arithmatex">\(s=1/4\)</span> 时 <span class="arithmatex">\(\mathbb E|Y_{3N}-Y_N|^2\to\log3\)</span>。这个结论怎样排除 <span class="arithmatex">\(L^2\)</span> Cauchy 性？若 <span class="arithmatex">\(s&gt;1/4\)</span>，<span class="arithmatex">\(M/N\)</span> 的固定比例会改变阈值吗？</p>
+<details>
+<summary>先判断尾和，再查看</summary>
+<p><span class="arithmatex">\(s=1/4\)</span> 时，跨截断方差为 <span class="arithmatex">\(\sum_{k=N+1}^{3N}1/k\)</span>，由积分比较或调和数渐近式趋于 <span class="arithmatex">\(\log3\)</span>，不趋于零。Cauchy 条件要求任意充分大的 <span class="arithmatex">\(M,N\)</span> 都彼此接近，因此这一组反例已经足够。<span class="arithmatex">\(s&gt;1/4\)</span> 时，任何 <span class="arithmatex">\(M\geq N\)</span> 的差都被无穷尾和 <span class="arithmatex">\(N^{1-4s}/(4s-1)\)</span> 控制，所以固定比例不会改变阈值。</p>
+</details>
+<p><strong>题二。</strong> 把反项从 <span class="arithmatex">\(C_N\)</span> 改成 <span class="arithmatex">\(C_N+c\)</span>，其中 <span class="arithmatex">\(c\)</span> 与 <span class="arithmatex">\(N\)</span> 无关。新的空间平均极限是什么？它是否改变 <span class="arithmatex">\(s&gt;1/4\)</span> 的 Cauchy 阈值？</p>
+<details>
+<summary>分开检查确定性平移与随机尾部</summary>
+<p>新的平均量是</p>
+<div class="arithmatex">\[
+\frac1{2\pi}\int_0^{2\pi}\bigl(X_N^2-C_N-c\bigr)dx=Y_N-c.
+\]</div>
+<p>若 <span class="arithmatex">\(Y_N\to Y\)</span>，新极限就是 <span class="arithmatex">\(Y-c\)</span>。跨截断差仍为 <span class="arithmatex">\((Y_M-c)-(Y_N-c)=Y_M-Y_N\)</span>，所以阈值不变。有限反项选择会平移极限，却不会修复一个不可求和的随机尾部。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>本讲的判据</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>固定点</td>
+<td><span class="arithmatex">\(C_N=\sum k^{-2s}\)</span></td>
+<td><span class="arithmatex">\(s=1/2\)</span> 时点方差发散</td>
+</tr>
+<tr>
+<td>点上 Wick 平方</td>
+<td><span class="arithmatex">\(\operatorname{Var}(X_N^2-C_N)=2C_N^2\)</span></td>
+<td>减均值不等于点值收敛</td>
+</tr>
+<tr>
+<td>常数测试函数</td>
+<td><span class="arithmatex">\(\mathbb E\lvert Y_M-Y_N\rvert^2=\sum_{N&lt;k\leq M}k^{-4s}\)</span></td>
+<td>当且仅当 <span class="arithmatex">\(s&gt;1/4\)</span> 时 <span class="arithmatex">\(L^2\)</span> Cauchy</td>
+</tr>
+<tr>
+<td>随机分布或 SPDE</td>
+<td>还需所有测试函数和尺度的一致估计</td>
+<td>本讲没有证明</td>
+</tr>
+</tbody>
+</table>
+<p>更广的 Wick 幂与 Fourier 截断背景可参见 Hairer 的 <a href="https://hairer.org/notes/StochasticAnalysisCourse.pdf">Advanced Stochastic Analysis 讲义</a>，其中以 Gaussian Fourier 场构造 <span class="arithmatex">\(\Phi^4_2\)</span>；奇异方程中近似、反项与极限解的关系见 Hairer 的 <a href="https://arxiv.org/abs/1803.03044">Renormalisation of parabolic stochastic PDEs</a>。本讲的有限和、阈值与误差界均已在正文独立推导，不把这个一维标量算例冒充一般定理。资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-08-connections.html"><span class="pager-label">上一页</span>基础 VIII · 联络、水平截面与 D-模</a>
+  <a class="pager-slot next" href="frontier-01-schrodinger-bridge.html"><span class="pager-label">下一页</span>前沿 I · Schrödinger 桥与路径空间</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-limits.js?v=6ff18a8fa1cb"></script>
+</body>
+</html>

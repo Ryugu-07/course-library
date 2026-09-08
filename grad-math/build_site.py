@@ -115,6 +115,7 @@ COURSE = [
         ("bridge-06-cech.md", "基础 VI · Čech 与射影直线"),
         ("bridge-07-ext.md", "基础 VII · Hom、Ext 与扩张"),
         ("bridge-08-connections.md", "基础 VIII · 联络、水平截面与 D-模"),
+        ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),

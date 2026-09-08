@@ -209,7 +209,7 @@ $$\frac{1}{T_2} = \frac{1}{2T_1}+\frac{1}{T_\phi}$$
 
 ## 5. 测量：比"坍缩"更完整的描述
 
-初等量子力学里的测量公设（投影 + 坍缩）其实是理想情形。更一般的框架叫 **POVM**：一组算符 $\{M_m\}$ 满足 $\sum_m M_m^\dagger M_m = I$，结果 $m$ 的概率为 $p_m=\mathrm{Tr}(M_m^\dagger M_m\rho)$，测后态为 $M_m\rho M_m^\dagger/p_m$。
+初等量子力学里的测量公设（投影 + 坍缩）其实是理想情形。更一般的结果统计由 **POVM** 描述：一组半正定效应算符 $\{E_m\}$ 满足 $\sum_m E_m=I$，结果概率为 $p_m=\mathrm{Tr}(E_m\rho)$。POVM 本身不唯一决定测后态。若另外指定每个结果一个测量算符 $M_m$，且 $E_m=M_m^\dagger M_m$，则在 $p_m>0$ 时测后态为 $M_m\rho M_m^\dagger/p_m$；一般测量仪器还可对同一结果包含多个 Kraus 算符。见[Kraus 与 Choi 的具体推导](bridge-05-quantum-channels.html)。
 
 **它能描述投影测量做不到的事**：不完美探测器、只提取部分信息的**弱测量**、以及"测量导致的反作用可以被调节"这一事实。
 

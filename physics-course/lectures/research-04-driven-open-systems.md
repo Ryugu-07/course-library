@@ -18,7 +18,7 @@ $$H/\hbar=(\Delta\sigma_z+\Omega\sigma_x)/2,\qquad L=\sqrt\gamma\,|g\rangle\lang
 
 $$\dot\rho=-\frac i\hbar[H,\rho]+L\rho L^\dagger-\frac12\{L^\dagger L,\rho\}.$$
 
-跳跃项把激发态人口送到基态，反对易项使总迹守恒并衰减相干。只保留前一项会让概率凭空增加。Lindblad 结构保证在其数学条件下产生完全正的动力学；“完全正”要求系统连着任意辅助系统时仍不产生负概率。
+跳跃项把激发态人口送到基态，反对易项使总迹守恒并衰减相干。只保留前一项会让概率凭空增加。Lindblad 结构保证在其数学条件下产生完全正的动力学；“完全正”要求系统连着任意辅助系统时仍不产生负概率。具体证明与反例见[Kraus 与 Choi](bridge-05-quantum-channels.html)：转置会通过单比特正性检验，却在 Bell 输入上产生负本征值。
 
 ## 2. 三条实方程怎样容纳振荡与衰减
 
