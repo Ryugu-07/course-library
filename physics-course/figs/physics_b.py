@@ -45,14 +45,9 @@ def f_phonon():
     runpy.run_path(str(Path(__file__).resolve().parents[2] / 'tools/build_lattice_figure.py'))
 
 def f_bands():
-    k=np.linspace(-1,1,400); fig,ax=plt.subplots(figsize=(6.0,4.0))
-    for n,off,gap in [(0,0,0),(1,2.2,0.6),(2,5,0.4)]:
-        E=off+2*np.abs(k)+n
-        ax.fill_between(k,off+1.0*k**2, off+1.0*k**2+0.9,color=ACC2,alpha=.5)
-    ax.axhspan(1.9,2.2,color=RED,alpha=.25); ax.text(0.5,2.0,"band gap",color=RED,fontsize=10)
-    ax.set_xlabel(r"$k$"); ax.set_ylabel(r"$E(k)$"); ax.set_xticks([-1,0,1]); ax.set_xticklabels([r"$-\pi/a$","0",r"$\pi/a$"])
-    ax.set_title(r"Electronic band structure: allowed bands + forbidden gaps",fontsize=12)
-    save(fig,"solid-02-bands")
+    import runpy
+    from pathlib import Path
+    runpy.run_path(str(Path(__file__).resolve().parents[2] / 'tools/build_band_figure.py'))
 
 def f_special_functions():
     x=np.linspace(0,15,400); fig,axes=plt.subplots(1,2,figsize=(8.6,3.4))

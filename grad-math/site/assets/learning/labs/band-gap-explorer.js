@@ -1,14 +1,6 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var TWO_PI = 2 * Math.PI;
   var EPSILON = 1e-8;
@@ -97,12 +89,9 @@
 
   function formatNumber(api, value, digits) {
     if (!Number.isFinite(value)) return "—";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits === undefined ? 3 : digits);
-    }
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
+    var d=digits===undefined?3:digits;
+    if(value!==0&&Math.abs(value)<.001)return value.toExponential(2);
+    return d===0?value.toFixed(0):value.toFixed(d).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function formatAngle(api, value) {
@@ -125,7 +114,7 @@
     style.setAttribute("data-bge-style", "true");
     style.id = STYLE_ID;
     style.textContent = [
-      ".bge-lab{--bge-fg:var(--fg,#292722);--bge-muted:var(--fg-soft,#6b6557);--bge-bg:var(--bg,#fff);--bge-panel:var(--block-bg,#f4f1e9);--bge-border:var(--border,#ded7c7);--bge-accent:var(--accent,#315f9d);--bge-green:var(--cl-green,#39734d);--bge-gold:var(--cl-gold,#9b6a12);--bge-red:var(--cl-red,#b64335);--bge-blue:var(--cl-blue,#315f9d);box-sizing:border-box;color:var(--bge-fg);font-size:.96em;line-height:1.55;min-width:0}",
+      ".bge-lab{--bge-fg:var(--fg,#292722);--bge-muted:var(--fg-soft,#6b6557);--bge-bg:var(--bg,#fff);--bge-panel:var(--block-bg,#f4f1e9);--bge-border:var(--border,#ded7c7);--bge-accent:#315f9d;--bge-green:var(--cl-green,#39734d);--bge-gold:var(--cl-gold,#9b6a12);--bge-red:var(--cl-red,#b64335);--bge-blue:#315f9d;box-sizing:border-box;color:var(--bge-fg);font-size:.96em;line-height:1.55;min-width:0}",
       ".bge-lab *,.bge-lab *::before,.bge-lab *::after{box-sizing:border-box}",
       ".bge-lab .bge-shell{display:grid;gap:14px;min-width:0}",
       ".bge-lab .bge-heading{color:var(--bge-accent);font-size:1.25rem;margin:0}",
@@ -136,7 +125,7 @@
       ".bge-lab .bge-tab[aria-selected=true]{background:var(--bge-accent);border-color:var(--bge-accent);color:var(--bge-bg);font-weight:750}",
       ".bge-lab .bge-tab:focus-visible,.bge-lab .bge-button:focus-visible,.bge-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
       ".bge-lab .bge-panel{min-width:0}",
-      ".bge-lab .bge-layout{align-items:start;display:grid;gap:16px;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);min-width:0}",
+      ".bge-lab .bge-layout{align-items:start;display:grid;gap:16px;grid-template-columns:minmax(0,1fr);min-width:0}",
       ".bge-lab .bge-controls,.bge-lab .bge-stage{min-width:0}",
       ".bge-lab .bge-controls{display:grid;gap:11px}",
       ".bge-lab .bge-control-heading{font-size:1rem;margin:0}",
@@ -151,9 +140,9 @@
       ".bge-lab .bge-button.bge-primary{background:var(--bge-accent);border-color:var(--bge-accent);color:var(--bge-bg);font-weight:700}",
       ".bge-lab .bge-stage-frame{background:var(--bge-bg);border:1px solid var(--bge-border);border-radius:7px;min-width:0;padding:9px}",
       ".bge-lab .bge-stage-title{align-items:baseline;color:var(--bge-muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;margin:0 0 7px}",
-      ".bge-lab .bge-figure{border:1px solid var(--bge-border);border-radius:5px;margin:0;overflow:hidden;padding:4px}",
+      ".bge-lab .bge-figure{border:1px solid var(--bge-border);border-radius:5px;margin:0;overflow-x:auto;padding:4px}",
       ".bge-lab .bge-figure figcaption{color:var(--bge-muted);font-size:.84em;line-height:1.45;margin:.5rem .25rem .15rem}",
-      ".bge-lab .bge-svg{color:var(--bge-fg);display:block;height:auto;max-width:100%;width:100%}",
+      ".bge-lab .bge-svg{color:var(--bge-fg);display:block;height:auto;min-width:760px;width:100%}",
       ".bge-lab .bge-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
       ".bge-lab .bge-plot-bg{fill:var(--bge-bg)}",
       ".bge-lab .bge-gridline{fill:none;stroke:var(--bge-border);stroke-opacity:.64;stroke-width:1}",
@@ -196,7 +185,8 @@
       ".bge-lab .bge-ledger-note{color:var(--bge-muted);font-size:.83em;margin:8px 0 0}",
       ".bge-lab .bge-live{color:var(--bge-muted);font-size:.86em;margin:0;min-height:1.35em}",
       "@media (max-width:760px){.bge-lab .bge-layout{grid-template-columns:minmax(0,1fr)}.bge-lab .bge-stage-frame{padding:7px}.bge-lab .bge-figure{padding:2px}}",
-      "@media (max-width:520px){.bge-lab .bge-preset-grid{grid-template-columns:minmax(0,1fr)}.bge-lab .bge-svg text{font-size:11px}.bge-lab .bge-axis-label,.bge-lab .bge-callout{font-size:12px}}",
+      "@media (max-width:520px){.bge-lab .bge-preset-grid{grid-template-columns:minmax(0,1fr)}.bge-lab .bge-svg text{font-size:12px}.bge-lab .bge-axis-label,.bge-lab .bge-callout{font-size:12px}}",
+      ".bge-lab [hidden]{display:none!important}.bge-figure:focus-visible,.bge-ledger-wrap:focus-visible{outline:3px solid var(--bge-accent)}.bge-predictions{display:grid;gap:10px;padding:12px;border:1px solid var(--bge-border)}.bge-predictions label{display:grid;gap:6px}.bge-predictions select{font:inherit;min-height:44px;max-width:100%;background:var(--bge-bg);color:var(--bge-fg)}[data-theme=dark] .bge-lab{--bge-accent:#85b9ef;--bge-blue:#85b9ef;--bge-gold:#e6be68;--bge-green:#83c69c;--bge-red:#ed9f94}",
       "@media (prefers-reduced-motion:reduce){.bge-lab *{scroll-behavior:auto!important;transition:none!important}}"
     ].join("\n");
     var host = doc.head || doc.documentElement || doc.body;
@@ -235,9 +225,9 @@
     var frame = makeElement(doc, "div", { className: "bge-stage-frame" });
     var heading = makeElement(doc, "div", { className: "bge-stage-title" }, [
       makeElement(doc, "strong", { text: title }),
-      makeElement(doc, "span", { text: "SVG 状态图" })
+      makeElement(doc, "span", { text: "窄屏聚焦图框后可左右滚动" })
     ]);
-    var figure = makeElement(doc, "figure", { className: "bge-figure" });
+    var figure = makeElement(doc, "figure", { className: "bge-figure", tabindex:"0", role:"region", "aria-label":"能带数值图，可横向滚动" });
     var titleId = id + "-svg-title";
     var descId = id + "-svg-desc";
     var svg = makeSvg(doc, "svg", {
@@ -370,8 +360,8 @@
 
   function computeA(V, q) {
     var base = q * q + 1;
-    var radius = Math.sqrt(4 * q * q + V * V);
-    var ratio = radius > EPSILON ? 2 * q / radius : 0;
+    var radius = Math.hypot(2*q,V);
+    var ratio = radius > 0 ? 2 * q / radius : null;
     var lowerPlusWeight = (1 - ratio) / 2;
     var upperPlusWeight = (1 + ratio) / 2;
     return {
@@ -381,8 +371,8 @@
       freeMinus: (q - 1) * (q - 1),
       gap: 2 * Math.abs(V),
       splitting: 2 * radius,
-      lowerPlusWeight: clamp(lowerPlusWeight, 0, 1),
-      upperPlusWeight: clamp(upperPlusWeight, 0, 1)
+      lowerPlusWeight: radius === 0 ? null : clamp(lowerPlusWeight, 0, 1),
+      upperPlusWeight: radius === 0 ? null : clamp(upperPlusWeight, 0, 1)
     };
   }
 
@@ -446,7 +436,7 @@
     svgText(doc, info.svg, zeroX + 11, (mapY(lowerZero) + mapY(upperZero)) / 2 + 4,
       "gap=" + formatNumber(api, data.gap, 2), { className: "bge-callout" });
 
-    svgText(doc, info.svg, plot.width - plot.right, plot.height - 10, "q = k − G/2", {
+    svgText(doc, info.svg, plot.width - plot.right, plot.height - 10, "q = κ/(G/2)，κ = k − G/2", {
       className: "bge-axis-label",
       "text-anchor": "end"
     });
@@ -494,7 +484,7 @@
     controls.appendChild(presets);
     controls.appendChild(makeElement(doc, "p", {
       className: "bge-note",
-      text: "虚线是 V=0 的基底色散；实线是二能级本征值。权重显示 |±G/2⟩ 基底的模方，V 的符号只改变相对相位。"
+      text: "虚线是 V=0 的基底色散；实线是二能级本征值。权重显示 |κ±G/2⟩ 基底的模方，V 的符号只改变相对相位。"
     }));
 
     var stage = makeElement(doc, "div", { className: "bge-stage" });
@@ -511,8 +501,8 @@
       { id: "lower", label: "当前 E−(q)" },
       { id: "upper", label: "当前 E+(q)" },
       { id: "split", label: "当前分裂 ΔE(q)" },
-      { id: "lowerWeight", label: "E− 中 |+G/2⟩" },
-      { id: "upperWeight", label: "E+ 中 |+G/2⟩" }
+      { id: "lowerWeight", label: "E− 中 |κ+G/2⟩" },
+      { id: "upperWeight", label: "E+ 中 |κ+G/2⟩" }
     ]);
     stage.appendChild(metrics.node);
     var weightNote = makeElement(doc, "p", {
@@ -575,18 +565,11 @@
     refs.metrics.lower.textContent = formatNumber(api, data.lower, 3);
     refs.metrics.upper.textContent = formatNumber(api, data.upper, 3);
     refs.metrics.split.textContent = formatNumber(api, data.splitting, 3);
-    refs.metrics.lowerWeight.textContent =
-      (100 * data.lowerPlusWeight).toFixed(1) + "%";
-    refs.metrics.upperWeight.textContent =
-      (100 * data.upperPlusWeight).toFixed(1) + "%";
-    refs.weightNote.textContent =
-      "当前 q=" + formatNumber(api, state.q, 2) +
-      "：E− 的 |+G/2⟩ / |−G/2⟩ 权重为 " +
-      (100 * data.lowerPlusWeight).toFixed(1) + "% / " +
-      (100 * (1 - data.lowerPlusWeight)).toFixed(1) + "%；E+ 为 " +
-      (100 * data.upperPlusWeight).toFixed(1) + "% / " +
-      (100 * (1 - data.upperPlusWeight)).toFixed(1) + "%。" +
-      (data.splitting < EPSILON ? " 恰好简并时本征基底不唯一，50/50 只是连续极限的显示。" : "");
+    refs.metrics.lowerWeight.textContent = data.lowerPlusWeight===null?"未定义":(100*data.lowerPlusWeight).toFixed(1)+"%";
+    refs.metrics.upperWeight.textContent = data.upperPlusWeight===null?"未定义":(100*data.upperPlusWeight).toFixed(1)+"%";
+    refs.weightNote.textContent = data.lowerPlusWeight===null
+      ? "q=V=0 时矩阵为单位阵，本征基底任意；沿 V=0 或 q=0 接近会得到不同权重，不能指定唯一 50/50。"
+      : "当前 q="+formatNumber(api,state.q,2)+"：E− 的 |κ+G/2⟩ / |κ−G/2⟩ 权重为 "+(100*data.lowerPlusWeight).toFixed(1)+"% / "+(100*(1-data.lowerPlusWeight)).toFixed(1)+"%；E+ 为 "+(100*data.upperPlusWeight).toFixed(1)+"% / "+(100*(1-data.upperPlusWeight)).toFixed(1)+"%。";
     refs.status.textContent =
       "区界 gap=2|V|=" + formatNumber(api, data.gap, 2) +
       "；当前分裂 ΔE(q)=" + formatNumber(api, data.splitting, 3) + "。";
@@ -597,9 +580,10 @@
     var xF = Math.PI * fill;
     var fermi = -2 * t * Math.cos(xF);
     var curvature = 2 * t * Math.cos(probe);
-    var mass = Math.abs(curvature) > EPSILON ? 1 / curvature : null;
+    if (Math.abs(Math.cos(probe)) < 4 * Number.EPSILON) curvature = 0;
+    var mass = curvature !== 0 ? 1 / curvature : null;
     var velocity = 2 * t * Math.sin(probe);
-    var toyVelocityIntegral = 4 * t * Math.sin(xF) * Math.sin(shift);
+    var toyVelocityIntegral = fill===0||fill===1?0:4 * t * Math.sin(xF) * Math.sin(shift);
     return {
       t: t,
       fill: fill,
@@ -623,7 +607,7 @@
   }
 
   function periodicSegments(center, halfWidth) {
-    if (halfWidth >= Math.PI - EPSILON) return [[-Math.PI, Math.PI]];
+    if (halfWidth >= Math.PI) return [[-Math.PI, Math.PI]];
     var start = center - halfWidth;
     var end = center + halfWidth;
     while (start < -Math.PI) {
@@ -720,14 +704,14 @@
       className: "bge-axis-label",
       "text-anchor": "end"
     });
-    svgText(doc, info.svg, plot.left - 8, plot.top - 7, "E / t", {
+    svgText(doc, info.svg, plot.left - 8, plot.top - 7, "E（模型单位）", {
       className: "bge-axis-label",
       "text-anchor": "start"
     });
   }
 
   function makeLedger(doc) {
-    var wrap = makeElement(doc, "div", { className: "bge-ledger-wrap" });
+    var wrap = makeElement(doc, "div", { className: "bge-ledger-wrap", tabindex:"0", role:"region", "aria-label":"速度积分账本，可横向滚动" });
     var table = makeElement(doc, "table", {
       className: "bge-ledger",
       "aria-label": "k 空间速度账本"
@@ -792,7 +776,7 @@
     }));
     var tField = rangeField(doc, "跳跃尺度 t", 0.25, 1.5, 0.01, state.t);
     var fillField = rangeField(doc, "填充率 f", 0, 1, 0.01, state.fill);
-    var probeField = rangeField(doc, "曲率探针 ka", -Math.PI, Math.PI, 0.01, state.probe);
+    var probeField = rangeField(doc, "曲率探针 ka/π", -1, 1, 0.01, state.probe/Math.PI);
     var shiftField = rangeField(doc, "试探分布位移 δ(ka)", -0.35, 0.35, 0.01, state.shift);
     controls.appendChild(tField.wrapper);
     controls.appendChild(fillField.wrapper);
@@ -874,7 +858,7 @@
       onChange("");
     });
     probeField.input.addEventListener("input", function () {
-      state.probe = number(probeField.input.value, state.probe);
+      state.probe = Math.PI*number(probeField.input.value, state.probe/Math.PI);
       onChange("");
     });
     shiftField.input.addEventListener("input", function () {
@@ -904,7 +888,7 @@
     state.shift = clamp(number(state.shift, 0), -0.35, 0.35);
     refs.tField.input.value = String(state.t);
     refs.fillField.input.value = String(state.fill);
-    refs.probeField.input.value = String(state.probe);
+    refs.probeField.input.value = String(state.probe/Math.PI);
     refs.shiftField.input.value = String(state.shift);
     refs.tField.output.textContent = formatNumber(api, state.t, 2);
     refs.fillField.output.textContent = (100 * state.fill).toFixed(0) + "%";
@@ -920,9 +904,9 @@
     refs.metrics.response.textContent = formatNumber(api, data.toyVelocityIntegral, 3);
 
     var rangeText;
-    if (state.fill <= EPSILON) {
+    if (state.fill === 0) {
       rangeText = "空带";
-    } else if (state.fill >= 1 - EPSILON) {
+    } else if (state.fill === 1) {
       rangeText = "整个 BZ：−π≤ka≤π";
     } else {
       rangeText = "平衡：−" + formatAngle(api, data.xF) +
@@ -932,9 +916,9 @@
     refs.ledger.currentValue.textContent =
       "平衡积分=0；δ=" + formatNumber(api, state.shift, 2) +
       " 时 toy ∫occ vg dk=" + formatNumber(api, data.toyVelocityIntegral, 3);
-    refs.ledger.conclusion.textContent = state.fill >= 1 - EPSILON
+    refs.ledger.conclusion.textContent = state.fill === 1
       ? "满带覆盖整个周期 BZ，试探位移后的速度积分仍为 0；这不是说每个 k 态的 vg 都为 0。"
-      : state.fill <= EPSILON
+      : state.fill === 0
         ? "空带没有占据态；没有可计算的载流子分布响应。"
         : "部分填充保留空态；对称平衡仍可为 0，但分布位移可改变速度账本。";
     refs.status.textContent =
@@ -947,6 +931,7 @@
 
   function mount(root, api) {
     var doc = root.ownerDocument || document;
+    root.classList.add("bge-lab");
     injectStyles(doc);
     INSTANCE += 1;
     var id = "bge-" + INSTANCE;
@@ -966,6 +951,20 @@
       text: "两个确定性玩具模型：A 只看区界二能级耦合，B 只看一维独立电子紧束缚带。每次拖动都由同一组公式重算。"
     }));
 
+    var revealContainer=makeElement(doc,"div",{className:"bge-reveal",hidden:true});
+    var predictions=makeElement(doc,"fieldset",{className:"bge-predictions"});predictions.appendChild(makeElement(doc,"legend",{text:"先完成四项预测"}));
+    var questions=[
+      ["q=0、V=.25：区界间隔？",[".25",".50","1"],1],
+      ["q=0、V≠0：每种平面波概率权重？",["各一半","全部在一支","未定义"],0],
+      ["t>0：带底、带顶的电子曲率符号？",["正、负","负、正","都正"],0],
+      ["小的占据区间位移可改变哪种带的速度积分？",["满带","非空且未满的带","两者总相同"],1]
+    ];
+    var answers=questions.map(function(q){var label=makeElement(doc,"label",{},q[0]),select=makeElement(doc,"select",{"aria-label":q[0]});select.appendChild(makeElement(doc,"option",{value:"",text:"请选择预测"}));q[1].forEach(function(t,i){select.appendChild(makeElement(doc,"option",{value:String(i),text:t}));});label.appendChild(select);predictions.appendChild(label);select.addEventListener("change",function(){revealContainer.hidden=true;gateFeedback.textContent="预测已更改，请重新提交。";});return select;});
+    var submit=actionButton(doc,"提交预测并揭示"),clearPrediction=actionButton(doc,"清空预测"),reset=actionButton(doc,"重置实验"),gateFeedback=makeElement(doc,"p",{role:"status","aria-live":"polite"});
+    submit.addEventListener("click",function(){if(answers.some(function(e){return e.value==="";})){gateFeedback.textContent="请先完成四项预测。";return;}var score=answers.reduce(function(n,e,i){return n+(Number(e.value)===questions[i][2]?1:0);},0);gateFeedback.textContent="预测命中 "+score+"/4；现在比较能级和速度积分。";revealContainer.hidden=false;});
+    function lock(){answers.forEach(function(e){e.value="";});revealContainer.hidden=true;gateFeedback.textContent="预测已清空，实验重新上锁。";}
+    clearPrediction.addEventListener("click",lock);reset.addEventListener("click",function(){Object.assign(state.a,{V:.25,q:0});Object.assign(state.b,{t:1,fill:.5,probe:0,shift:.12});state.mode="a";lock();render();});
+    predictions.appendChild(submit);predictions.appendChild(clearPrediction);predictions.appendChild(reset);predictions.appendChild(gateFeedback);shell.appendChild(predictions);
     var tabs = makeElement(doc, "div", {
       className: "bge-tabs",
       role: "tablist",
@@ -991,7 +990,7 @@
     });
     tabs.appendChild(tabA);
     tabs.appendChild(tabB);
-    shell.appendChild(tabs);
+    revealContainer.appendChild(tabs);
 
     var live = makeElement(doc, "p", {
       className: "bge-live",
@@ -1027,9 +1026,10 @@
     bRefs = makeB(doc, id, state.b, changed);
     aRefs.doc = doc;
     bRefs.doc = doc;
-    shell.appendChild(aRefs.panel);
-    shell.appendChild(bRefs.panel);
-    shell.appendChild(live);
+    revealContainer.appendChild(aRefs.panel);
+    revealContainer.appendChild(bRefs.panel);
+    revealContainer.appendChild(live);
+    shell.appendChild(revealContainer);
     root.replaceChildren(shell);
 
     function chooseMode(mode) {
@@ -1060,7 +1060,6 @@
     render();
   }
 
-  window.CourseLearning.register("band-gap-explorer", function (root, api) {
-    mount(root, api);
-  });
+  if(typeof module === "object" && module.exports) module.exports={computeA:computeA,computeB:computeB,periodicSegments:periodicSegments,formatNumber:formatNumber,mount:mount};
+  if(typeof window !== "undefined" && window.CourseLearning) window.CourseLearning.register("band-gap-explorer",mount);
 }());
