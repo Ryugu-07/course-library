@@ -14,7 +14,7 @@ for(const cells of [3,4,8,9,18])for(const [t1,t2]of[[.1,1.5],[.45,1.1],[.72,1.08
  ok(r.checks.eigenResidual<1e-10,'full eigen residual');
  const mu=.2,Hmu=r.matrix.map((row,i)=>row.map((v,j)=>v+(i===j?mu:0))),Hm=r.matrix.map((row,i)=>row.map((v,j)=>v+(i===j?(i%2?-mu:mu):0)));
  a.jacobiSymmetric(Hmu).values.forEach((v,i)=>close(v,r.values[i]+mu));
- 
+
  // Extremely tiny roots can have a numerical sign ambiguity: use exact paired positive radii.
  const positive=r.values.slice(cells).map(v=>Math.hypot(v,mu));const paired=positive.map(v=>-v).concat(positive).sort((x,y)=>x-y);
  a.jacobiSymmetric(Hm).values.forEach((v,i)=>close(v,paired[i]));
