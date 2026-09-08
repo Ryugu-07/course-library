@@ -44,7 +44,7 @@
         label: "independent rare spike",
         formula: "X_n = n I{U_n <= 1/n}, independent U_n",
         certificates: { as: "no", probability: "yes", l1: "no", l2: "no", distribution: "delta0" },
-        limit: "no a.s. limit",
+        limit: "0（依概率）；无 a.s. 极限",
         boundary: "The exact no-spike product tends to zero, so spikes occur infinitely often a.s."
       },
       {
@@ -241,7 +241,7 @@
       ".conv-lab .conv-gate{margin:15px 0;padding:13px 14px;border-left:3px solid var(--conv-gold);background:var(--conv-block)}.conv-lab .conv-gate h4{margin:0 0 9px;color:var(--accent)}.conv-lab .conv-question-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.conv-lab .conv-question{display:grid;gap:5px;min-width:0}.conv-lab .conv-question label{font-size:13px;font-weight:700;overflow-wrap:anywhere}.conv-lab .conv-question select{width:100%}",
       ".conv-lab .conv-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.conv-lab .conv-actions>*{flex:1 1 150px}.conv-lab .conv-feedback{min-height:1.5em;margin:9px 0 0}.conv-lab .conv-pass{color:var(--conv-green);font-weight:700}.conv-lab .conv-warn{color:var(--conv-red);font-weight:700}",
       ".conv-lab .conv-results{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}.conv-lab .conv-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 13px}.conv-lab .conv-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--conv-block)}.conv-lab .conv-metric:nth-child(3n+1){border-top-color:var(--conv-blue)}.conv-lab .conv-metric:nth-child(3n+2){border-top-color:var(--conv-gold)}.conv-lab .conv-metric:nth-child(3n){border-top-color:var(--conv-green)}.conv-lab .conv-metric span{display:block;color:var(--conv-muted);font-size:11px;overflow-wrap:anywhere}.conv-lab .conv-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".conv-lab .conv-chart{min-width:0;margin:12px 0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden}.conv-lab .conv-chart svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.conv-lab .conv-chart svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
+      ".conv-lab .conv-chart{min-width:0;margin:12px 0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto}.conv-lab .conv-chart svg{display:block;width:100%;height:auto;min-width:700px;color:var(--fg)}.conv-lab .conv-chart svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
       ".conv-lab .conv-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px}.conv-lab table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.conv-lab .conv-ledger table{min-width:760px}.conv-lab th,.conv-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere}.conv-lab th{color:var(--conv-muted);font-size:11px;font-weight:750}",
       ".conv-lab .conv-callout{margin:11px 0 0;padding:10px 12px;border-left:3px solid var(--conv-green);background:var(--conv-block);font-size:13px;line-height:1.65;overflow-wrap:anywhere}.conv-lab .conv-boundary{border-left-color:var(--conv-red)}.conv-lab [hidden]{display:none!important}",
       "@media(max-width:700px){.conv-lab .conv-controls,.conv-lab .conv-question-list{grid-template-columns:minmax(0,1fr)}}@media(max-width:430px){.conv-lab .conv-gate,.conv-lab .conv-controls{padding-left:10px;padding-right:10px}.conv-lab .conv-tabs{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.conv-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
@@ -463,7 +463,8 @@
       if (value === null || value === undefined) return "-";
       if (!finite(value)) return "-";
       if (api && typeof api.format === "function") return api.format(value, digits);
-      return value.toFixed(digits === undefined ? 4 : digits).replace(/0+$/, "").replace(/\.$/, "");
+      var text = value.toFixed(digits === undefined ? 4 : digits);
+      return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function makeElement(api, doc, tag, attrs, children) {
@@ -520,63 +521,38 @@
     }
 
     function svgText(api, doc, x, y, text, attrs) {
-      var values = { x: x, y: y, "font-size": 11, fill: "var(--fg-soft)", "aria-hidden": "true" };
+      var values = { x: x, y: y, "font-size": 12, fill: "var(--fg-soft)", "aria-hidden": "true" };
       Object.keys(attrs || {}).forEach(function (key) { values[key] = attrs[key]; });
       return makeSvg(api, doc, "text", values, [text]);
     }
 
     function drawSequenceChart(api, doc, data) {
-      var width = 700;
-      var height = 270;
-      var left = 48;
-      var right = 674;
-      var top = 30;
-      var bottom = 220;
-      var maximum = data.pmf.reduce(function (value, entry) { return Math.max(value, entry.probability); }, 0);
-      var minValue = data.pmf[0].value;
-      var maxValue = data.pmf[data.pmf.length - 1].value;
-      var span = Math.max(1, maxValue - minValue);
-      var svg = makeSvg(api, doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "exact finite probability mass ledger" });
-      svg.appendChild(makeSvg(api, doc, "title", {}, ["exact finite probability masses"]));
-      svg.appendChild(makeSvg(api, doc, "desc", {}, ["Bars show exact probabilities for the selected finite n; they are not sampled paths."]));
-      svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "currentColor", "stroke-width": 1.2 }));
-      var barWidth = Math.min(42, Math.max(8, (right - left) / Math.max(4, data.pmf.length * 1.7)));
-      data.pmf.forEach(function (entry, index) {
-        var x = left + (right - left) * (entry.value - minValue) / span;
-        if (data.pmf.length === 1) x = (left + right) / 2;
-        var barHeight = (bottom - top) * entry.probability / Math.max(maximum, 1e-12);
-        svg.appendChild(makeSvg(api, doc, "rect", { x: x - barWidth / 2, y: bottom - barHeight, width: barWidth, height: barHeight, fill: index % 2 ? "var(--conv-blue)" : "var(--conv-gold)", opacity: "0.82" }));
-        svg.appendChild(svgText(api, doc, x, bottom + 17, formatNumber(api, entry.value, 3), { "text-anchor": "middle", "font-size": 10 }));
-        svg.appendChild(svgText(api, doc, x, bottom - barHeight - 5, formatNumber(api, entry.probability, 4), { "text-anchor": "middle", "font-size": 10 }));
-      });
-      svg.appendChild(svgText(api, doc, left, 17, data.formula + "; n=" + data.n, { "font-size": 13, "font-weight": 700 }));
-      svg.appendChild(svgText(api, doc, right, bottom + 37, "value; labels are exact", { "text-anchor": "end", "font-size": 10 }));
+      var left=64,right=664,top=66,bottom=268;
+      var minValue=data.pmf[0].value,maxValue=data.pmf[data.pmf.length-1].value,span=maxValue-minValue;
+      var maximum=Math.max.apply(null,data.pmf.map(function(e){return e.probability})),yMax=1.12*maximum;
+      var svg=makeSvg(api,doc,"svg",{viewBox:"0 0 700 330",role:"img","aria-label":"当前有限 n 的概率质量图"});
+      svg.appendChild(makeSvg(api,doc,"title",{},["解析概率质量，坐标随当前支持与最大质量变化"]));
+      svg.appendChild(makeSvg(api,doc,"desc",{},["纵轴是概率，柱来自解析PMF；图和表中小数经过舍入。有限图不能证明极限定理。"]));
+      function xx(v){return left+(right-left)*(v-minValue)/span}function yy(v){return bottom-(bottom-top)*v/yMax}
+      [0,.5,1].forEach(function(t){var y=yy(t*yMax);svg.appendChild(makeSvg(api,doc,"line",{x1:left,x2:right,y1:y,y2:y,stroke:"var(--border)"}));svg.appendChild(svgText(api,doc,left-18,y+4,formatNumber(api,t*yMax,3),{"text-anchor":"end"}));});
+      var width=Math.min(24,.65*(right-left)/Math.max(1,data.pmf.length-1));
+      data.pmf.forEach(function(e,i){var x=xx(e.value),y=yy(e.probability);svg.appendChild(makeSvg(api,doc,"rect",{x:x-width/2,y:y,width:width,height:bottom-y,fill:i%2?"var(--conv-blue)":"var(--conv-gold)",opacity:.82,"data-value":e.value}));if(data.pmf.length<=2)svg.appendChild(svgText(api,doc,x,y-8,formatNumber(api,e.probability,4),{"text-anchor":"middle"}));});
+      var ticks=data.pmf.length<=2?[minValue,maxValue]:[minValue,minValue+span/4,minValue+span/2,minValue+3*span/4,maxValue];
+      ticks.forEach(function(v){svg.appendChild(svgText(api,doc,xx(v),bottom+22,formatNumber(api,v,3),{"text-anchor":"middle"}));});
+      svg.appendChild(svgText(api,doc,left,22,data.formula+"; n="+data.n,{"font-size":13,"font-weight":700}));
+      svg.appendChild(svgText(api,doc,left,44,"纵轴：概率；小数为舍入值，完整原子列在下表"));
+      svg.appendChild(svgText(api,doc,right,320,"取值（横轴随当前支持范围缩放）",{"text-anchor":"end"}));
       return svg;
     }
 
-    function drawToolChart(api, doc, data) {
-      var width = 700;
-      var height = 230;
-      var svg = makeSvg(api, doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "theorem certificate flow" });
-      svg.appendChild(makeSvg(api, doc, "title", {}, ["conclusion certificate"]));
-      svg.appendChild(makeSvg(api, doc, "desc", {}, ["A finite toy ledger is followed by a hypothesis check and a conclusion or boundary warning."]));
-      var boxes = [
-        { x: 22, title: "finite toy", line: data.formula, color: "var(--conv-blue)" },
-        { x: 246, title: "hypothesis", line: data.certificate[0], color: "var(--conv-gold)" },
-        { x: 470, title: data.expected.boundary === "none" ? "conclusion" : "boundary", line: data.certificate[data.certificate.length - 1], color: data.expected.boundary === "none" ? "var(--conv-green)" : "var(--conv-red)" }
-      ];
-      boxes.forEach(function (box, index) {
-        svg.appendChild(makeSvg(api, doc, "rect", { x: box.x, y: 70, width: 192, height: 78, rx: 5, fill: "var(--bg)", stroke: box.color, "stroke-width": 2 }));
-        svg.appendChild(svgText(api, doc, box.x + 96, 94, box.title, { "text-anchor": "middle", "font-size": 12, "font-weight": 700 }));
-        svg.appendChild(svgText(api, doc, box.x + 96, 119, box.line, { "text-anchor": "middle", "font-size": 10 }));
-        if (index < boxes.length - 1) {
-          svg.appendChild(makeSvg(api, doc, "line", { x1: box.x + 192, y1: 109, x2: box.x + 216, y2: 109, stroke: "currentColor", "stroke-width": 1.5 }));
-          svg.appendChild(makeSvg(api, doc, "path", { d: "M" + (box.x + 211) + " 104 L" + (box.x + 218) + " 109 L" + (box.x + 211) + " 114", fill: "none", stroke: "currentColor", "stroke-width": 1.5 }));
-        }
-      });
-      svg.appendChild(svgText(api, doc, 350, 34, data.label, { "text-anchor": "middle", "font-size": 14, "font-weight": 700 }));
-      svg.appendChild(svgText(api, doc, 350, 190, "finite rows certify this toy only; theorem hypotheses carry the general result", { "text-anchor": "middle", "font-size": 10 }));
-      return svg;
+    function drawToolChart(api,doc,data){
+      var svg=makeSvg(api,doc,"svg",{viewBox:"0 0 700 400",role:"img","aria-label":"条件到结论的推理图"});
+      svg.appendChild(makeSvg(api,doc,"title",{},[data.label]));
+      svg.appendChild(makeSvg(api,doc,"desc",{},["先写当前模型，再核对条件，最后区分可用结论和失效边界。"]));
+      svg.appendChild(svgText(api,doc,350,24,data.label,{"text-anchor":"middle","font-size":14,"font-weight":700}));
+      var boxes=[{title:"当前模型",line:data.formula,color:"var(--conv-blue)"},{title:"核对条件",line:data.certificate[0],color:"var(--conv-gold)"},{title:data.expected.boundary==="none"?"可得结论":"需要记录的边界",line:data.certificate[data.certificate.length-1],color:data.expected.boundary==="none"?"var(--conv-green)":"var(--conv-red)"}];
+      boxes.forEach(function(box,i){var y=44+108*i;svg.appendChild(makeSvg(api,doc,"rect",{x:34,y:y,width:632,height:82,rx:5,fill:"var(--bg)",stroke:box.color,"stroke-width":2}));svg.appendChild(svgText(api,doc,350,y+26,box.title,{"text-anchor":"middle","font-weight":700}));svg.appendChild(svgText(api,doc,350,y+55,box.line,{"text-anchor":"middle"}));if(i<2)svg.appendChild(makeSvg(api,doc,"path",{d:"M350 "+(y+84)+" v19 m-5 -5 l5 5 l5 -5",fill:"none",stroke:"currentColor","stroke-width":1.5}));});
+      svg.appendChild(svgText(api,doc,350,378,"有限账本只验证当前模型；推广仍需定理假设",{"text-anchor":"middle"}));return svg;
     }
 
     function renderSequenceResults(api, doc, section, data, claimData) {
@@ -589,7 +565,7 @@
       metrics.appendChild(metric(api, "E X_n^2", formatNumber(api, data.stats.second, 5)));
       metrics.appendChild(metric(api, "distribution limit", data.certificates.distribution));
       section.appendChild(metrics);
-      section.appendChild(makeElement(api, doc, "div", { className: "conv-chart" }, [drawSequenceChart(api, doc, data)]));
+      section.appendChild(makeElement(api, doc, "div", { className: "conv-chart", tabindex: 0, role: "region", "aria-label": "有限概率图或定理图，窄屏可横向滚动" }, [drawSequenceChart(api, doc, data)]));
       var ledger = makeElement(api, doc, "div", { className: "conv-ledger" });
       var table = makeElement(api, doc, "table", {});
       table.appendChild(makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [
@@ -611,13 +587,13 @@
       certificateTable.appendChild(makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, ["mode"]), makeElement(api, doc, "th", {}, ["certificate"]), makeElement(api, doc, "th", {}, ["limit"])] )]));
       var certificateBody = makeElement(api, doc, "tbody");
       [["a.s.", data.certificates.as], ["in probability", data.certificates.probability], ["L1", data.certificates.l1], ["L2", data.certificates.l2], ["in distribution", data.certificates.distribution]].forEach(function (row) {
-        certificateBody.appendChild(makeElement(api, doc, "tr", {}, [makeElement(api, doc, "td", {}, [row[0]]), makeElement(api, doc, "td", {}, [row[1]]), makeElement(api, doc, "td", {}, [data.limit])]));
+        certificateBody.appendChild(makeElement(api, doc, "tr", {}, [makeElement(api, doc, "td", {}, [row[0]]), makeElement(api, doc, "td", {}, [row[1]]), makeElement(api, doc, "td", {}, [row[1] === "no" ? "无该收敛极限" : row[1] === "not-claimed" ? "未指定共同路径" : row[0] === "in distribution" ? (data.certificates.distribution === "delta0" ? "δ₀" : data.certificates.distribution === "normal01" ? "N(0,1)" : "Rademacher") : data.id === "fixed-rademacher" ? "ε" : "0"])]));
       });
       certificateTable.appendChild(certificateBody);
       ledger.appendChild(makeElement(api, doc, "p", { className: "conv-note" }, ["Conclusion certificate"]));
       ledger.appendChild(certificateTable);
       section.appendChild(makeElement(api, doc, "p", { className: "conv-callout conv-boundary" }, [
-        "Boundary: ", data.boundary, " For the independent-spike model, the finite no-spike product is exactly ", data.noSpikeProduct === null ? "not used" : formatNumber(api, data.noSpikeProduct, 6), "."
+        "Boundary: ", data.boundary, " 对独立尖峰，区间 2≤j≤n 的无尖峰概率为（n=1为空乘积） ", data.noSpikeProduct === null ? "not used" : formatNumber(api, data.noSpikeProduct, 6), "."
       ]));
       section.appendChild(makeElement(api, doc, "p", { className: "conv-callout" }, [
         "Counterexample selector: ", claimData.label, " Answer = ", claimData.answerLabel, ". Exact reason: ", claimData.exact
@@ -635,7 +611,7 @@
       metrics.appendChild(metric(api, "condition", data.expected.condition));
       metrics.appendChild(metric(api, "conclusion", data.expected.conclusion));
       section.appendChild(metrics);
-      section.appendChild(makeElement(api, doc, "div", { className: "conv-chart" }, [drawToolChart(api, doc, data)]));
+      section.appendChild(makeElement(api, doc, "div", { className: "conv-chart", tabindex: 0, role: "region", "aria-label": "有限概率图或定理图，窄屏可横向滚动" }, [drawToolChart(api, doc, data)]));
       var ledger = makeElement(api, doc, "div", { className: "conv-ledger" });
       var table = makeElement(api, doc, "table", {});
       table.appendChild(makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, ["ledger item"]), makeElement(api, doc, "th", {}, ["exact value"]), makeElement(api, doc, "th", {}, ["reading"])] )]));
@@ -650,7 +626,7 @@
         "Certificate: ", data.certificate.join("; "), ". ", data.boundary
       ]));
       section.appendChild(makeElement(api, doc, "p", { className: "conv-callout" }, [
-        "Migration hint: Slutsky needs a constant limit, CMT needs continuity at the limit, and first-order Delta needs a nonzero derivative plus a first-order asymptotic input."
+        "迁移时分别核对：Slutsky 的常数极限；CMT 的极限变量避开不连续点；Delta 的一阶输入与可微性。导数为零时一阶结论仍成立但退化；本实验平方函数有非零二阶导数，才转用 n 尺度。"
       ]));
     }
 
@@ -761,11 +737,11 @@
       }
 
       var shell = makeElement(api, doc, "div", { className: "conv-shell", "aria-labelledby": uid + "-title" });
-      shell.appendChild(makeElement(api, doc, "h3", { id: uid + "-title" }, ["Convergence tools: certificate and counterexample selector"]));
+      shell.appendChild(makeElement(api, doc, "h3", { id: uid + "-title" }, ["收敛工具：核对条件，选择反例"]));
       shell.appendChild(makeElement(api, doc, "p", { className: "conv-intro" }, ["所有有限概率和矩由解析 PMF 直接求和；先提交预测，再打开账本。"]));
-      var tabs = makeElement(api, doc, "div", { className: "conv-tabs", role: "tablist", "aria-label": "convergence lab mode" });
-      modeButtons.sequence = makeElement(api, doc, "button", { type: "button", role: "tab", "aria-pressed": "true" }, ["序列 / 三角阵列"]);
-      modeButtons.tools = makeElement(api, doc, "button", { type: "button", role: "tab", "aria-pressed": "false" }, ["Slutsky / CMT / Delta"]);
+      var tabs = makeElement(api, doc, "div", { className: "conv-tabs", role: "group", "aria-label": "收敛实验模式" });
+      modeButtons.sequence = makeElement(api, doc, "button", { type: "button", "aria-pressed": "true" }, ["序列 / 三角阵列"]);
+      modeButtons.tools = makeElement(api, doc, "button", { type: "button", "aria-pressed": "false" }, ["Slutsky / CMT / Delta"]);
       tabs.appendChild(modeButtons.sequence);
       tabs.appendChild(modeButtons.tools);
       shell.appendChild(tabs);
@@ -780,16 +756,16 @@
       nInput = makeElement(api, doc, "input", { type: "range", min: 1, max: 16, step: 1, value: state.n, "aria-label": "finite n" });
       nOutput = makeElement(api, doc, "output", {}, [String(state.n)]);
       nInput.addEventListener("input", function () { state.n = Math.max(1, Math.min(16, Math.round(Number(nInput.value)))); lock("sequence"); });
-      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["sequence preset"]), sequenceSelect]));
-      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["counterexample selector"]), claimSelect]));
-      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["finite n: ", nOutput]), nInput]));
+      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["序列模型"]), sequenceSelect]));
+      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["反例选择"]), claimSelect]));
+      sequenceControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["当前 n：", nOutput]), nInput]));
       shell.appendChild(sequenceControls);
 
       var toolControls = makeElement(api, doc, "div", { className: "conv-controls", hidden: true });
       toolSelect = makeElement(api, doc, "select", { "aria-label": "tool case" });
       TOOL_CASES.forEach(function (tool) { toolSelect.appendChild(makeElement(api, doc, "option", { value: tool.id }, [tool.label])); });
       toolSelect.addEventListener("change", function () { state.toolId = toolSelect.value; state.prediction.tools = {}; state.revealed.tools = false; makeToolQuestions(); rebuildToolGate(); render(); });
-      toolControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["tool case"]), toolSelect]));
+      toolControls.appendChild(makeElement(api, doc, "div", { className: "conv-control" }, [makeElement(api, doc, "label", {}, ["工具案例"]), toolSelect]));
       shell.appendChild(toolControls);
 
       function gateShell(mode, title) {

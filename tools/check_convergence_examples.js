@@ -1,0 +1,6 @@
+'use strict';const assert=require('node:assert/strict'),c=require('../course-shared/labs/convergence-tools');let checks=0;function near(a,b){checks++;assert(Math.abs(a-b)<2e-12*Math.max(1,Math.abs(b)),`${a} != ${b}`)}
+// Enumerate all +/-1 rows, independently of binomial-coefficient implementation.
+for(let n=1;n<=16;n++){const counts=new Map();for(let bits=0;bits<2**n;bits++){let sum=0;for(let j=0;j<n;j++)sum+=(bits>>j)&1?1:-1;counts.set(sum,(counts.get(sum)||0)+1);}const r=c.sequenceData('triangular-rademacher',n);for(const row of r.pmf)near(row.probability,counts.get(Math.round(row.value*Math.sqrt(n)))/2**n);near(r.stats.second,1);near(r.stats.fourth,3-2/n);
+for(const id of ['nested-spike','independent-spike','scaled-rademacher','fixed-rademacher']){const d=c.sequenceData(id,n);near(d.stats.total,1);if(id.includes('spike')){near(d.stats.mean,1);near(d.stats.absFirst,1);near(d.stats.second,n);}else{near(d.stats.mean,0);near(d.stats.second,id==='fixed-rademacher'?1:1/n);}}let product=1;for(let j=2;j<=n;j++)product*=1-1/j;near(c.sequenceData('independent-spike',n).noSpikeProduct,product);}
+for(const r of [-1,1])for(const n of [1,4,16,64]){near(Math.sqrt(n)*((1+r/Math.sqrt(n))**2-1),2*r+1/Math.sqrt(n));near(n*(r/Math.sqrt(n))**2,1);near(n**1.5*(r/Math.sqrt(n))**3,r);}
+console.log(`convergence examples independent checks: PASS (${checks})`);
