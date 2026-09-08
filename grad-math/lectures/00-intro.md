@@ -76,7 +76,7 @@
 
 <h2 id="foundation-route">基础衔接：先把代数与几何之间的计算接通</h2>
 
-这一组补的是原课程到研究专题之间的中间工具。顺序建议：**模与商 → 局部化 → 链复形 → 层与粘合**。它们是四讲基础训练，尚不构成完整的交换代数、代数几何或导出范畴课程。
+这一组补的是原课程到研究专题之间的中间工具。顺序建议：**模与商 → 局部化 → 链复形 → 层与粘合 → 张量积与 Tor → Čech 上同调**。它们是六讲基础训练，尚不构成完整的交换代数、代数几何或导出范畴课程。
 
 | 先独立尝试 | 若不会，回到哪里 | 本讲完成后的下一步 |
 |---|---|---|
@@ -84,5 +84,7 @@
 | 算出模十二反演二后还剩几个元素 | [局部化](bridge-02-localization.html) | 素谱、局部环与函数芽 |
 | 写出三角形的边界矩阵，区分边框与填面 | [链复形](bridge-03-complexes.html) | 链映射、同伦与导出范畴 |
 | 判断三弧局部系统是否有非零全局平坦截面 | [层与粘合](bridge-04-sheaves.html) | 向量丛、联络与局部系统 |
+| 从自由分解算出循环模的张量积与 Tor₁，并反驳一次成功就证明平坦 | [张量积、平坦性与 Tor](bridge-05-tensor-tor.html) | 换底、导出张量积与交点 |
+| 写出 O(−3) 的 Čech 微分，逐项消去 Laurent 多项式 | [Čech 与射影直线](bridge-06-cech.html) | 层上同调、扩张与丛的模问题 |
 
-验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写有限模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)，其中概形理论、张量积与导出函子的系统训练、D-模及模叠仍有后续任务。
+验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。

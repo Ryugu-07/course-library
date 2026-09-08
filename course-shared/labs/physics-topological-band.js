@@ -38,8 +38,8 @@
     var NEAR_GAP = 0.1;
     var DEFAULTS = { mass: -1, ky: 0 };
     var PRESETS = [
-      { id: "chern-minus", label: "C=-1 区间", mass: -1, ky: 0 },
-      { id: "chern-plus", label: "C=+1 区间", mass: 1, ky: 0 },
+      { id: "chern-plus", label: "C=+1 区间", mass: -1, ky: 0 },
+      { id: "chern-minus", label: "C=-1 区间", mass: 1, ky: 0 },
       { id: "trivial", label: "平庸区间", mass: 2.6, ky: 0 },
       { id: "critical", label: "gap 闭合", mass: 0, ky: 0 }
     ];
@@ -83,7 +83,8 @@
       if (!Number.isFinite(value)) return "—";
       var places = digits === undefined ? 3 : digits;
       if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+      var formatted = value.toFixed(places);
+      return formatted.indexOf(".") < 0 ? formatted : formatted.replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function formatInvariant(value, digits) { return Number.isFinite(value) ? formatNumber(value, digits) : "undefined"; }
@@ -109,7 +110,7 @@
     function qwzPhaseLabel(mass) {
       if (massGapDistance(mass) <= GAP_EPS) return NaN;
       if (mass < -2 || mass > 2) return 0;
-      return mass < 0 ? -1 : 1;
+      return mass < 0 ? 1 : -1;
     }
 
     function nearCriticalGap(gap) { return gap <= NEAR_GAP + 1e-12; }
@@ -122,7 +123,7 @@
       var triple = vector.x * crossX + vector.y * crossY + vector.z * crossZ;
       var norm = dNorm(vector);
       if (norm < 1e-12) return NaN;
-      return -0.5 * triple / Math.pow(norm, 3);
+      return 0.5 * triple / Math.pow(norm, 3);
     }
 
     function integrateCurvature(mass, count) {
@@ -273,7 +274,7 @@
       var closed = gap <= GAP_EPS;
       var chern = closed ? NaN : chernNumber(config.mass);
       var phase = closed ? NaN : berryPhase(config.mass, config.ky);
-      return { config: config, curvature: curvatureMap(config.mass), chern: chern, hallConductivity: chern, gap: gap, gapStatus: closed ? "closed" : nearCriticalGap(gap) ? "near" : "open", invariantsDefined: Number.isFinite(chern) && Number.isFinite(phase), berryPhase: phase, edge: edge, edgeSpectrum: edgeSpectrum(config.mass) };
+      return { config: config, curvature: curvatureMap(config.mass), chern: chern, hallConductivity: -chern, gap: gap, gapStatus: closed ? "closed" : nearCriticalGap(gap) ? "near" : "open", invariantsDefined: Number.isFinite(chern) && Number.isFinite(phase), berryPhase: phase, edge: edge, edgeSpectrum: edgeSpectrum(config.mass) };
     }
 
     function makeElement(doc, tag, attributes, children) {
@@ -490,7 +491,7 @@
         var rows = [
           ["Berry phase", "γ(k_y)=" + formatInvariant(result.berryPhase, 3) + " rad", Number.isFinite(result.berryPhase) ? "只对这条闭合回路给出模 2π 的相位；换 ky 会变。" : "Wilson loop 遇到能带简并，Berry phase undefined。"],
           ["Chern invariant", "C_-=" + formatInvariant(result.chern, 3), Number.isFinite(result.chern) ? "下带在整个 BZ 保持隔离；当前符号采用 A=i⟨u|∇u⟩。" : "bulk gap 闭合，绝缘体 Chern invariant undefined。"],
-          ["Hall response", "σ_xy/(e²/h)=" + formatInvariant(result.hallConductivity, 3), "在本下带与坐标约定下取 σ_xy=C_- e²/h，和 Chern 符号一致。"],
+          ["Hall response", "σ_xy/(e²/h)=" + formatInvariant(result.hallConductivity, 3), "电子电荷 −e，σ_xy=j_x/E_y；填满下带时 σ_xy=−C_- e²/h。"],
           ["edge condition", "|m+cos k_y|=" + formatNumber(Math.abs(result.edge.effectiveMass), 3), result.edge.exists ? "当前切片有理想边界支。" : "当前切片无理想边界支；别把单点当 C。"],
           ["bulk gap", "Δ=" + formatNumber(result.gap, 3), result.gapStatus === "open" ? "当前参数远离数值 gap 闭合。" : result.gapStatus === "near" ? "Δ≤0.1，属于近临界区；相位标签仍需说明数值口径。" : "gap 闭合，所有绝缘体不变量按 undefined 显示。"]
         ];
@@ -511,7 +512,7 @@
         chartHost.replaceChildren(drawSvg(doc, result));
         metrics.replaceChildren(metric(doc, "下带 C", formatInvariant(result.chern, 3)), metric(doc, "bulk gap", formatNumber(result.gap, 3) + "（" + result.gapStatus + "）"), metric(doc, "Berry γ", formatInvariant(result.berryPhase, 3) + " rad"), metric(doc, "edge", result.edge.exists ? "存在" : "无"));
         ledger.replaceChildren(renderLedger(result));
-        note.textContent = "边界提示：模型是干净、两带、平移不变的 QWZ 代理；本实验固定 A=i⟨u|∇u⟩，因此 Wilson、曲率、Chern 与 Hall 符号同一口径。gap 闭合时所有绝缘体不变量都显示 undefined。";
+        note.textContent = "边界提示：模型是干净、两带、平移不变的 QWZ 代理；本实验固定 A=i⟨u|∇u⟩，曲率与 Wilson 回路同号；定义 σ_xy=j_x/E_y，电子满带 Hall 为 −C e²/h。gap 闭合时所有绝缘体不变量都显示 undefined。";
       }
 
       predictionForm.addEventListener("submit", function (event) {
@@ -534,19 +535,19 @@
       var checks = 0;
       function check(condition, message) { checks += 1; assert(condition, message); }
       var minus = analyze(DEFAULTS);
-      check(minus.chern < -0.85 && minus.chern > -1.15, "m=-1 has lower-band Chern number -1");
-      check(near(minus.hallConductivity, minus.chern, 1e-12) && Number.isFinite(minus.berryPhase), "Hall and Wilson signs use the same A=i<u|grad u> convention");
+      check(minus.chern > 0.85 && minus.chern < 1.15, "m=-1 has lower-band Chern number +1");
+      check(near(minus.hallConductivity, -minus.chern, 1e-12) && Number.isFinite(minus.berryPhase), "sigma_xy=jx/Ey equals minus C for electron charge -e");
       check(minus.gap > 1.8, "m=-1 is gapped");
       check(Math.abs(Math.abs(minus.berryPhase) - PI) < 0.08, "m=-1 ky=0 Berry phase is pi modulo 2pi");
       check(minus.edge.exists && near(minus.edge.positiveEnergy, 0, 1e-12), "ky=0 slice has a zero-energy edge crossing");
       var plus = analyze({ mass: 1, ky: 0 });
-      check(plus.chern > 0.85 && plus.chern < 1.15, "m=1 has lower-band Chern number +1");
+      check(plus.chern < -0.85 && plus.chern > -1.15, "m=1 has lower-band Chern number -1");
       var trivial = analyze({ mass: 2.6, ky: 0 });
       check(Math.abs(trivial.chern) < 0.15 && !trivial.edge.exists, "m=2.6 is trivial with no ky=0 edge slice");
       var critical = bulkGap(0, 41);
       check(critical < 1e-8, "m=0 closes the bulk gap");
       var nearCritical = analyze({ mass: 1.95, ky: 0 });
-      check(nearCritical.gapStatus === "near" && nearCritical.gap <= NEAR_GAP + 1e-10 && nearCritical.chern === 1, "gap 0.1 is classified near and receives the analytic QWZ phase label");
+      check(nearCritical.gapStatus === "near" && nearCritical.gap <= NEAR_GAP + 1e-10 && nearCritical.chern === -1, "gap 0.1 is classified near and receives the analytic QWZ phase label");
       var criticalAnalysis = analyze({ mass: 0, ky: 0 });
       check(criticalAnalysis.gapStatus === "closed" && !Number.isFinite(criticalAnalysis.chern) && !Number.isFinite(criticalAnalysis.hallConductivity) && !Number.isFinite(criticalAnalysis.berryPhase), "bulk gap closure makes Chern, Hall, and Wilson invariants undefined");
       check(lowerEigenvector(PI, 0, 0) === null && !Number.isFinite(berryPhase(-2, 0)), "degenerate eigenvectors and Wilson loops never use an arbitrary state");

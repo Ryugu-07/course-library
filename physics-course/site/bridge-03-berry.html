@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berry 联络与曲率 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论与量子几何</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li class="active"><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 15:34</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 能量没有变化，绕一圈为何仍能留下相位</a></li>
+<li><a href="#2">2. 先写出下能级的向量，符号才有依据</a></li>
+<li><a href="#3">3. 北边好用的相位，到南极失效</a></li>
+<li><a href="#4">4. 一条纬线与整个球面是两个不同问题</a></li>
+<li><a href="#5">5. 迁移题</a></li>
+<li><a href="#_1">速查与下一步</a></li>
+</ul>
+</div>
+</details>
+<h1 id="03-berry">基础衔接 03 · Berry 联络与曲率：把两能级的相位算清楚<a class="headerlink" href="#03-berry" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="qm-01-framework.html">量子态与内积</a>、<a href="qm-03-angular-hydrogen.html">自旋</a>、<a href="qm-06-wkb-variational-adiabatic.html">绝热近似</a>。目标：从一个明确本征态推出联络、曲率与回路相位，再接到<a href="solid-04-topological.html">拓扑能带</a>。全讲固定 <span class="arithmatex">\(A=i\langle u|du\rangle\)</span>，曲率 <span class="arithmatex">\(F=dA\)</span>，球面取向为 <span class="arithmatex">\(d\theta\wedge d\phi\)</span>。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 能量没有变化，绕一圈为何仍能留下相位<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>取 Hamiltonian <span class="arithmatex">\(H=E\mathbf n\cdot\boldsymbol\sigma\)</span>，<span class="arithmatex">\(E&gt;0\)</span> 是能量，<span class="arithmatex">\(\mathbf n=(\sin\theta\cos\phi,\sin\theta\sin\phi,\cos\theta)\)</span> 为单位向量，角度以弧度计。两条能量恒为 <span class="arithmatex">\(\pm E\)</span>，能隙恒为 <span class="arithmatex">\(2E\)</span>。改变 <span class="arithmatex">\(\mathbf n\)</span> 不改能谱，却会改变本征态。</p>
+<p>若沿缓慢路径保持在一个非简并本征态，设 <span class="arithmatex">\(|\psi(t)\rangle=e^{i\alpha(t)}|u(t)\rangle\)</span>。代入 Schrödinger 方程，并左乘 <span class="arithmatex">\(\langle u|\)</span>，得到</p>
+<div class="arithmatex">\[\dot\alpha=-\varepsilon/\hbar+i\langle u|\dot u\rangle.\]</div>
+<p>总相位包含动力学部分 <span class="arithmatex">\(-\int\varepsilon dt/\hbar\)</span> 与几何部分 <span class="arithmatex">\(\gamma=\int i\langle u|du\rangle\)</span>。本实验只算后者；快速驱动引起跃迁时，这个绝热单带描述就不够了。</p>
+<h2 id="2">2. 先写出下能级的向量，符号才有依据<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(s=\sin(\theta/2),c=\cos(\theta/2)\)</span>，选择</p>
+<div class="arithmatex">\[|u_-^N\rangle=\begin{pmatrix}-e^{-i\phi}s\\c\end{pmatrix},\qquad
+H/E=\begin{pmatrix}\cos\theta&amp;e^{-i\phi}\sin\theta\\e^{i\phi}\sin\theta&amp;-\cos\theta\end{pmatrix}.\]</div>
+<p>其范数为一。第一分量相乘后为 <span class="arithmatex">\(e^{-i\phi}(-s\cos\theta+c\sin\theta)=e^{-i\phi}s\)</span>；第二分量为 <span class="arithmatex">\(-s\sin\theta-c\cos\theta=-c\)</span>。故 <span class="arithmatex">\(H|u_-^N\rangle=-E|u_-^N\rangle\)</span>，确实是下能级。</p>
+<p>直接求导：</p>
+<div class="arithmatex">\[\partial_\theta u_-^N=\tfrac12(-e^{-i\phi}c,-s)^T,\qquad
+\partial_\phi u_-^N=(ie^{-i\phi}s,0)^T.\]</div>
+<p>于是 <span class="arithmatex">\(\langle u|\partial_\theta u\rangle=0\)</span>，<span class="arithmatex">\(\langle u|\partial_\phi u\rangle=-is^2\)</span>，所以</p>
+<div class="arithmatex">\[A_N=\frac{1-\cos\theta}{2}\,d\phi,\qquad
+F=dA_N=\frac{\sin\theta}{2}\,d\theta\wedge d\phi.\]</div>
+<p>下能级在本约定下是正号。换上能级、改 <span class="arithmatex">\(A\)</span> 的定义或反转取向都可能改变符号；固定了三者之后，符号就不能随意挑选。</p>
+<h2 id="3">3. 北边好用的相位，到南极失效<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在北极 <span class="arithmatex">\(\theta=0\)</span>，<span class="arithmatex">\(u_-^N=(0,1)^T\)</span> 不依赖 <span class="arithmatex">\(\phi\)</span>。在南极却成为 <span class="arithmatex">\((-e^{-i\phi},0)^T\)</span>，同一个物理点用了不同向量表示。不是量子态奇异，而是这个局部相位选择不能覆盖整个球面。</p>
+<p>取南侧规范 <span class="arithmatex">\(u_-^S=e^{i\phi}u_-^N=(-s,e^{i\phi}c)^T\)</span>，它在南极良好。一般相位变换 <span class="arithmatex">\(u'=e^{i\chi}u\)</span> 给出</p>
+<div class="arithmatex">\[A'=i\langle u'|du'\rangle=A-d\chi.\]</div>
+<p>因此 <span class="arithmatex">\(A_S=-(1+\cos\theta)d\phi/2\)</span>，但 <span class="arithmatex">\(dA_S=dA_N\)</span>。联络的局部表达不同，曲率相同。两个规范沿重叠处通过过渡函数连接；这与<a href="../../grad-math/site/bridge-04-sheaves.html">数学的层与粘合</a>共享局部数据的组织方式，不过这里还多了 Hermitian 内积与联络。</p>
+<p><img alt="北侧和南侧规范的联络分别为二分之一乘一减余弦及负二分之一乘一加余弦，两者相差负dφ而曲率相同。" src="assets/img/bridge-03-berry.svg" /></p>
+<h2 id="4">4. 一条纬线与整个球面是两个不同问题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>固定 <span class="arithmatex">\(0&lt;\theta&lt;\pi\)</span>，令 <span class="arithmatex">\(\phi\)</span> 正向走一圈：</p>
+<div class="arithmatex">\[\gamma_N=\pi(1-\cos\theta),\qquad \gamma_S=\gamma_N-2\pi.\]</div>
+<p>两种结果有相同的 <span class="arithmatex">\(e^{i\gamma}\)</span>。对任意非周期规范，闭合物理路径的规范不变表达还应包括端点项：<span class="arithmatex">\(\gamma=\int A+\arg\langle u(0)|u(T)\rangle\)</span>。不能只积分一个在首尾选了不同相位的向量而漏掉这个补偿。</p>
+<p>整个球面上 <span class="arithmatex">\(\int F=2\pi\)</span>，故第一 Chern 数 <span class="arithmatex">\(C=(2\pi)^{-1}\int F=1\)</span>。一条纬线相位一般不是整数；球面整体积分则是本征线丛的不变量。</p>
+<p>把球面参数换成任意 <span class="arithmatex">\(x,y\)</span>，下带曲率是拉回：</p>
+<div class="arithmatex">\[F_{xy}=\tfrac12\mathbf n\cdot(\partial_x\mathbf n\times\partial_y\mathbf n).\]</div>
+<p>这也可由 <span class="arithmatex">\(P_-=(1-\mathbf n\cdot\boldsymbol\sigma)/2\)</span> 与 <span class="arithmatex">\(F_{xy}=i\operatorname{Tr}P_-[\partial_xP_-,\partial_yP_-]\)</span> 得到。用 <span class="arithmatex">\([\mathbf a\cdot\boldsymbol\sigma,\mathbf b\cdot\boldsymbol\sigma]=2i(\mathbf a\times\mathbf b)\cdot\boldsymbol\sigma\)</span> 即可检查正号。它是检查 QWZ 能带公式的独立方法。</p>
+<div class="learning-lab" data-learning-lab="research-geometry" data-research-topic="berry">
+<p>先预测：换南侧规范后，相位改了 <span class="arithmatex">\(2\pi\)</span>，干涉结果会改变吗？默认 <span class="arithmatex">\(\theta/\pi=0.5\)</span>、北侧规范、64 个回路分段。精确相位 <span class="arithmatex">\(\gamma=\pi\)</span>，<span class="arithmatex">\(F_{\theta\phi}=1/2\)</span>；南侧为 <span class="arithmatex">\(-\pi\)</span>，但两者的复相位都为 <span class="arithmatex">\(-1\)</span>。</p>
+</div>
+<p>数值实验用闭合重叠乘积 <span class="arithmatex">\(\gamma_N^{\rm disc}=-\arg\prod_j\langle u_j|u_{j+1}\rangle\)</span>，比较的是模 <span class="arithmatex">\(2\pi\)</span> 的误差。离散点太少会有误差；若相邻重叠为零，取相位本身失去定义。实验限制角度远离两极，并显示分段数以避免把网格结果当精确公式。</p>
+<h2 id="5">5. 迁移题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 取 <span class="arithmatex">\(\theta=\pi/3\)</span>，计算两种规范的纬线相位与共同曲率。</p>
+<details>
+<summary>查看计算</summary>
+<p><span class="arithmatex">\(\gamma_N=\pi/2\)</span>，<span class="arithmatex">\(\gamma_S=-3\pi/2\)</span>，二者的复相位均为 <span class="arithmatex">\(i\)</span>；<span class="arithmatex">\(F_{\theta\phi}=\sqrt3/4\)</span>。不能因原始实数相位不同就判断物理不同。</p>
+</details>
+<p><strong>题二。</strong> 把 <span class="arithmatex">\(E\)</span> 从正数连续降到零，球面方向 <span class="arithmatex">\(\mathbf n\)</span> 仍可在代码里定义，这是否保证 Berry 单带结论仍适用？</p>
+<details>
+<summary>查看能隙条件</summary>
+<p>不保证。<span class="arithmatex">\(E=0\)</span> 时整个两能级简并，Hamiltonian 不再选定唯一的下带投影。继续代入同一个向量只是在简并空间中人为挑选一个态，不能当作隔离能带的几何不变量。</p>
+</details>
+</section>
+<h2 id="_1">速查与下一步<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>本约定下 <span class="arithmatex">\(A_N=(1-\cos\theta)d\phi/2\)</span>，<span class="arithmatex">\(F_{\theta\phi}=\sin\theta/2\)</span>，下带球面 Chern 数为 <span class="arithmatex">\(+1\)</span>。回到<a href="solid-04-topological.html">拓扑能带</a>，再进入<a href="research-09-quantum-metric.html">量子几何张量与量子度量</a>。几何相位的原始定义参见 <a href="https://doi.org/10.1098/rspa.1984.0023">Berry：Quantal phase factors accompanying adiabatic changes</a>；正文计算使用明确约定独立展开。核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-02-loop-subtraction.html"><span class="pager-label">上一页</span>计算桥 II · 圈积分与减法</a>
+  <a class="pager-slot next" href="frontier-01-entanglement-matter.html"><span class="pager-label">下一页</span>前沿 I · 多体纠缠与量子物态</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-geometry.js?v=1b5ebf5a0b7b"></script>
+</body>
+</html>

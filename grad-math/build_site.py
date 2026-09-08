@@ -111,6 +111,8 @@ COURSE = [
         ("bridge-02-localization.md", "基础 II · 局部化与素谱入口"),
         ("bridge-03-complexes.md", "基础 III · 链复形与同调计算"),
         ("bridge-04-sheaves.md", "基础 IV · 层、限制与粘合"),
+        ("bridge-05-tensor-tor.md", "基础 V · 张量积、平坦性与 Tor"),
+        ("bridge-06-cech.md", "基础 VI · Čech 与射影直线"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),

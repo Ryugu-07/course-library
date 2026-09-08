@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>张量积、平坦性与 Tor · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li class="active"><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 15:34</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 明明是单射，换系数后却变成零映射</a></li>
+<li><a href="#2">2. 不靠猜：算出两个循环模的张量积</a></li>
+<li><a href="#3">3. 右正合保留了什么，又漏掉什么</a></li>
+<li><a href="#4-tor">4. 先保留分解，再换系数，得到 Tor</a></li>
+<li><a href="#5">5. 平坦不是“挑一个例子没有出错”</a></li>
+<li><a href="#6">6. 迁移题：从答案检验定义</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="05-tor">基础衔接 05 · 张量积、平坦性与 Tor：一次换系数会丢掉什么<a class="headerlink" href="#05-tor" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-01-modules.html">模与正合性</a>、<a href="bridge-03-complexes.html">链复形</a>。目标：从双线性定义推出一个张量积，并用自由分解找回普通换系数遗漏的信息。所有环均交换且有单位，模均为单位模。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 明明是单射，换系数后却变成零映射<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>整数上的乘二映射是单射：<span class="arithmatex">\(2a=0\)</span> 强迫 <span class="arithmatex">\(a=0\)</span>。但把计算改到 <span class="arithmatex">\(\mathbb Z/2\)</span>，乘二就是零。不能因此说整数证明有错；改变的是运算所在的模。要准确追踪这种变化，我们需要一种把系数作用移到新对象上的运算。</p>
+<p>对 <span class="arithmatex">\(R\)</span>-模 <span class="arithmatex">\(M,N\)</span>，张量积 <span class="arithmatex">\(M\otimes_RN\)</span> 由符号 <span class="arithmatex">\(m\otimes n\)</span> 的有限和生成，并施加双线性关系：</p>
+<div class="arithmatex">\[
+(m+m')\otimes n=m\otimes n+m'\otimes n,\quad
+m\otimes(n+n')=m\otimes n+m\otimes n',\quad
+(rm)\otimes n=m\otimes(rn).
+\]</div>
+<p>形式上，可先取所有有序对上的自由 <span class="arithmatex">\(R\)</span>-模，再对这些关系生成的子模取商。这样并非只造出了一个符号系统：任一双线性映射 <span class="arithmatex">\(b:M\times N\to P\)</span> 都唯一诱导线性映射 <span class="arithmatex">\(\widetilde b:M\otimes_RN\to P\)</span>，满足 <span class="arithmatex">\(\widetilde b(m\otimes n)=b(m,n)\)</span>。关系恰好保证这个赋值良定义。</p>
+<p>张量积不是笛卡尔积。若 <span class="arithmatex">\(V=R^r,W=R^s\)</span> 都自由，则 <span class="arithmatex">\(e_i\otimes f_j\)</span> 构成 <span class="arithmatex">\(rs\)</span> 个基向量；一般元素是它们的线性组合，并非都能写成单个纯张量。</p>
+<h2 id="2">2. 不靠猜：算出两个循环模的张量积<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取正整数 <span class="arithmatex">\(m,n\)</span>，设 <span class="arithmatex">\(d=\gcd(m,n)\)</span>。每个纯张量都能写成</p>
+<div class="arithmatex">\[\bar a\otimes\bar b=ab(\bar1\otimes\bar1).\]</div>
+<p>令 <span class="arithmatex">\(t=\bar1\otimes\bar1\)</span>，则 <span class="arithmatex">\(mt=nt=0\)</span>。由 Bézout 等式 <span class="arithmatex">\(d=um+vn\)</span>，有 <span class="arithmatex">\(dt=0\)</span>，所以整个张量积是一个至多有 <span class="arithmatex">\(d\)</span> 个元素的循环群。</p>
+<p>“至多”还不是等号。构造双线性映射</p>
+<div class="arithmatex">\[b:(\mathbb Z/m)\times(\mathbb Z/n)\to\mathbb Z/d,\qquad b(\bar a,\bar b)=\overline{ab}.\]</div>
+<p>改变 <span class="arithmatex">\(a\)</span> 的代表元会增加 <span class="arithmatex">\(mb\)</span>，它被 <span class="arithmatex">\(d\)</span> 整除；改变 <span class="arithmatex">\(b\)</span> 同理，所以映射良定义。它把 <span class="arithmatex">\(t\)</span> 送到 <span class="arithmatex">\(\bar1\)</span>，因此 <span class="arithmatex">\(t\)</span> 的阶至少为 <span class="arithmatex">\(d\)</span>。两边合起来证明</p>
+<div class="arithmatex">\[\boxed{(\mathbb Z/m)\otimes_{\mathbb Z}(\mathbb Z/n)\cong\mathbb Z/d.}\]</div>
+<p>例如 <span class="arithmatex">\(m=6,n=4\)</span> 得到 <span class="arithmatex">\(\mathbb Z/2\)</span>，而互素的 <span class="arithmatex">\(m=3,n=4\)</span> 得到零模。零模只有一个元素，并非空集。</p>
+<h2 id="3">3. 右正合保留了什么，又漏掉什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>从短正合列</p>
+<div class="arithmatex">\[0\to\mathbb Z\xrightarrow{\times m}\mathbb Z\to\mathbb Z/m\to0\]</div>
+<p>出发，与 <span class="arithmatex">\(N=\mathbb Z/n\)</span> 张量。利用 <span class="arithmatex">\(\mathbb Z\otimes N\cong N\)</span>，得到</p>
+<div class="arithmatex">\[N\xrightarrow{\times m}N\longrightarrow N/mN\to0.\]</div>
+<p>这里乘法映射的像正是商映射的核，商映射也仍满射。一般定理称张量积是右正合的；其原因是张量积保留商：对关系取商之后，双线性映射的泛性质与先张量再除以关系的像一致。</p>
+<p>但左端不能随意补上 <span class="arithmatex">\(0\to\)</span>。默认 <span class="arithmatex">\(m=6,n=4\)</span> 时，<span class="arithmatex">\(\bar0\)</span> 和 <span class="arithmatex">\(\bar2\)</span> 都被乘六送到零。原来无核的映射出现了核。</p>
+<p><img alt="整数乘六换成模四系数后，零和二都被送到零；余核与核各有两个元素。" src="assets/img/bridge-05-tensor-tor.svg" /></p>
+<h2 id="4-tor">4. 先保留分解，再换系数，得到 Tor<a class="headerlink" href="#4-tor" title="Permanent link"></a></h2>
+<p>把上面的两个自由模放在同调次数 <span class="arithmatex">\(1,0\)</span>，连同到 <span class="arithmatex">\(\mathbb Z/m\)</span> 的增广映射，构成自由分解。计算 Tor 时，与 <span class="arithmatex">\(N\)</span> 张量的是自由项；增广目标不是再多放入复形的一项。得到</p>
+<div class="arithmatex">\[0\longrightarrow N\xrightarrow{\times m}N\longrightarrow0.\]</div>
+<p>零次同调是余核 <span class="arithmatex">\(N/mN\)</span>，一次同调是核 <span class="arithmatex">\(N[m]=\{a\in N:ma=0\}\)</span>。写 <span class="arithmatex">\(m=dm',n=dn'\)</span>，其中 <span class="arithmatex">\(m',n'\)</span> 互素，则</p>
+<div class="arithmatex">\[ma\equiv0\pmod n\iff n'\mid a.\]</div>
+<p>核由 <span class="arithmatex">\(\overline{n'}\)</span> 生成，有 <span class="arithmatex">\(d\)</span> 个元素。因此</p>
+<div class="arithmatex">\[\operatorname{Tor}^{\mathbb Z}_1(\mathbb Z/m,\mathbb Z/n)\cong\mathbb Z/d,\qquad
+\operatorname{Tor}^{\mathbb Z}_{i}=0\ (i\ge2).\]</div>
+<p>高次消失来自这里长度为一的自由分解。对任意环上的任意模不能照抄。零次与一次同调在本例恰好同构，但含义不同：一个记录商，一个记录换系数后新增的核。</p>
+<div class="learning-lab" data-learning-lab="research-geometry" data-research-topic="tensor">
+<p>先预测：把 <span class="arithmatex">\(m=6,n=4\)</span> 改成 <span class="arithmatex">\(m=5,n=4\)</span>，核和余核怎样变化？实验逐个列出模 <span class="arithmatex">\(n\)</span> 的乘法像；默认核为 <span class="arithmatex">\(\{0,2\}\)</span>，像为 <span class="arithmatex">\(\{0,2\}\)</span>，余核有两类，Tor₁ 也有两个元素。</p>
+</div>
+<h2 id="5">5. 平坦不是“挑一个例子没有出错”<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>模 <span class="arithmatex">\(N\)</span> 称为平坦，当与它张量保持所有短正合列正合。自由模是平坦的，因为与自由模张量相当于取若干份直和。局部化 <span class="arithmatex">\(S^{-1}R\)</span> 也是平坦的；这把本讲接回<a href="bridge-02-localization.html">允许新分母</a>的操作。</p>
+<p><span class="arithmatex">\(\mathbb Z/n\)</span> 在 <span class="arithmatex">\(n&gt;1\)</span> 时不平坦：用整数乘 <span class="arithmatex">\(n\)</span> 的单射就能构造失败。即便实验中选择互素的 <span class="arithmatex">\(m,n\)</span> 得到 Tor₁ 为零，也只验证了一个输入，不能推出 <span class="arithmatex">\(\mathbb Z/n\)</span> 平坦。反过来，平坦并不要求有有限个基；例如 <span class="arithmatex">\(\mathbb Q\)</span> 是 <span class="arithmatex">\(\mathbb Z\)</span> 的局部化，平坦，却不是非零自由 <span class="arithmatex">\(\mathbb Z\)</span>-模。</p>
+<p>在导出几何里，换底不能只看普通张量积；先选合适分解再张量，会保留 Tor 所记录的高次信息。这是<a href="frontier-03-geometric-langlands.html#derived-intersection-calculation">几何 Langlands 页的导出交点算例</a>的入口，不等于已经构造了整个导出范畴。</p>
+<h2 id="6">6. 迁移题：从答案检验定义<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 求 <span class="arithmatex">\((\mathbb Z/8)\otimes\mathbb Z/12\)</span> 与 Tor₁，并在 <span class="arithmatex">\(\mathbb Z/12\)</span> 中写出核。</p>
+<details>
+<summary>查看推导</summary>
+<p><span class="arithmatex">\(d=4\)</span>，两者都同构于 <span class="arithmatex">\(\mathbb Z/4\)</span>。乘八的核是 <span class="arithmatex">\(\{0,3,6,9\}\)</span>，像是 <span class="arithmatex">\(\{0,4,8\}\)</span>，余核有 <span class="arithmatex">\(12/3=4\)</span> 类。核有四个元素，不是只有四本身这一个元素。</p>
+</details>
+<p><strong>题二。</strong> 实验取 <span class="arithmatex">\(m=5,n=4\)</span> 时 Tor₁ 为零，能推出 <span class="arithmatex">\(\mathbb Z/4\)</span> 平坦吗？给出一个反证输入。</p>
+<details>
+<summary>查看反例</summary>
+<p>不能。改用 <span class="arithmatex">\(m=4\)</span>，原整数乘四单射在张量后变成 <span class="arithmatex">\(\mathbb Z/4\)</span> 上的零映射，有整个 <span class="arithmatex">\(\mathbb Z/4\)</span> 为核。平坦性的量词是所有短正合列。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>双线性映射经张量积唯一分解；右正合保留余核；平坦要求也保留单射；Tor 由自由或投射分解张量后的同调计算。下一讲：<a href="bridge-06-cech.html">射影直线上的 Čech 上同调</a>。定义与一般定理参见 <a href="https://stacks.math.columbia.edu/tag/00CV">Stacks：张量积</a>、<a href="https://stacks.math.columbia.edu/tag/00H9">平坦模</a>、<a href="https://stacks.math.columbia.edu/tag/064F">计算 Tor</a>。本讲的循环模计算已在正文证明。核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-04-sheaves.html"><span class="pager-label">上一页</span>基础 IV · 层、限制与粘合</a>
+  <a class="pager-slot next" href="bridge-06-cech.html"><span class="pager-label">下一页</span>基础 VI · Čech 与射影直线</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-geometry.js?v=1b5ebf5a0b7b"></script>
+</body>
+</html>

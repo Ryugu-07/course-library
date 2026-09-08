@@ -82,5 +82,7 @@
 | 固定四个费米轨道顺序，亲自算出单重态到双占据的振幅 −2t | [Hubbard 第 2 节的六基矢与逐项作用表](research-01-hubbard-dimer.html)；先修[二次量子化](cm-01-second-quant.html) | 强关联、低能有效模型 |
 | 从连通四点函数中截去四条外腿，并核对 i 与 Z 因子 | [LSZ 与外腿截肢](bridge-01-lsz.html) | [散射振幅与因子化](research-07-scattering-amplitudes.html) |
 | 亲自完成径向积分，解释为何同截断减法留下有限动量依赖 | [圈积分与减法](bridge-02-loop-subtraction.html) | [重整化](qft-03-path-renorm.html)、有效场论与 RG |
+| 用明确的下能级向量算出 A、F，并核对南北规范的相位差 | [Berry 联络与曲率](bridge-03-berry.html) | [拓扑能带](solid-04-topological.html)、Chern 数 |
+| 从相邻态重叠算出度量，解释为何零曲率不意味着零距离 | [量子几何张量](research-09-quantum-metric.html) | 谱学重建、平带几何与 2026 年磁交换研究窗口 |
 
 这里补的是已有理论课程中的计算跳步。通过短模型不能直接宣布掌握完整场论：LSZ 的渐近态证明、一般多圈重整化、规范场与红外处理仍需专题训练。读者若不能解释某一步使用的条件，应先完成相应验收题再进入研究窗口。

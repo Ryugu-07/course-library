@@ -155,9 +155,10 @@ COURSE = [
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
     ]),
-    ("基础衔接 · 场论计算", [
+    ("基础衔接 · 场论与量子几何", [
         ("bridge-01-lsz.md", "计算桥 I · LSZ 与外腿截肢"),
         ("bridge-02-loop-subtraction.md", "计算桥 II · 圈积分与减法"),
+        ("bridge-03-berry.md", "计算桥 III · Berry 联络与曲率"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),
@@ -175,6 +176,9 @@ COURSE = [
         ("research-06-conformal-bootstrap.md", "场论方法 II · 共形自举"),
         ("research-07-scattering-amplitudes.md", "场论方法 III · 散射振幅"),
         ("research-08-generalized-symmetry.md", "场论方法 IV · 广义对称性"),
+    ]),
+    ("研究课程 · 量子几何与材料", [
+        ("research-09-quantum-metric.md", "量子几何 · 度量、测量与研究边界"),
     ]),
 ]
 
@@ -252,7 +256,7 @@ def learning_assets(src: str):
         scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
     for name in names:
         version = ""
-        if name.startswith("research-"):
+        if name.startswith("research-") or name == "physics-topological-band":
             digest = hashlib.sha256((SHARED / "labs" / f"{name}.js").read_bytes()).hexdigest()[:12]
             version = f"?v={digest}"
         scripts.append(f'<script defer src="assets/learning/labs/{name}.js{version}"></script>')

@@ -94,3 +94,5 @@ $$\mathbb Z/2\xrightarrow{0}\mathbb Z/2.$$
 ## 速查与继续学习
 
 先验条件 $d^2=0$ → 求核得到闭链 → 求像得到边界 → 取商得到同调。下一讲：[层、限制与粘合](bridge-04-sheaves.html)。定义和进一步阅读见 [Stacks Project：Complexes](https://stacks.math.columbia.edu/tag/010V) 与 [Tensor products](https://stacks.math.columbia.edu/tag/00CV)；三角形矩阵和整数复形是本讲明确展开的计算。资料核查：2026-09-08。
+
+后续计算：[张量积、平坦性与 Tor](bridge-05-tensor-tor.html)从自由分解继续，解释为什么换系数要保留整个复形。

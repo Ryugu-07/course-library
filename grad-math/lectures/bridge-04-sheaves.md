@@ -83,3 +83,5 @@ $a_2=-2,a_3=2$，回到弧一仍为 2。单值化作用为 $+1$，任意 $a_1$ �
 预层给出开集上的对象与限制；层要求相容数据唯一粘合；茎记录一点附近的芽；局部系统增加局部常值结构与单值化。返回[几何 Langlands 的先修路线](frontier-03-geometric-langlands.html#langlands-prerequisite-route)，继续检查尚未覆盖的范畴、概形理论、联络与 D-模。
 
 定义与函数例子参见 [Stacks Project：Sheaves](https://stacks.math.columbia.edu/tag/006S)。本讲的分式相容条件和三弧符号计算已逐步展开，不将它们当作一般几何定理的证明。资料核查：2026-09-08。
+
+后续计算：[Čech 与射影直线](bridge-06-cech.html)明确指定覆盖、线丛与微分，逐项算出一次上同调，补上一般粘合例子之后的计算步骤。
