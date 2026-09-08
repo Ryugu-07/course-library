@@ -143,3 +143,5 @@ Wa=0 的方向不对应非零物理态，Rayleigh 商在那里没有定义。应
 ## 速查与原始阅读
 
 先写 ψ=Wa，再算 N=W†W 与 H_eff=W†HW，约束变分得到 H_eff a=ENa。左右环境正交后才有 N=I；QR 重新分配张量保持态不变，SVD 截断另有误差。参见 [Schollwöck 的 MPS／DMRG 综述](https://arxiv.org/abs/1008.3477)中变分更新和规范形式的推导。返回[张量网络](mb-01-tensor-networks.html)。核查：2026-09-08。
+
+下一步：[四自旋乘积 MPS 的完整扫描](bridge-08-product-sweeps.html)将局部更新串成一次往返，用能量账本和坐标优化陷阱检查收敛判断。

@@ -116,6 +116,7 @@ COURSE = [
         ("bridge-07-ext.md", "基础 VII · Hom、Ext 与扩张"),
         ("bridge-08-connections.md", "基础 VIII · 联络、水平截面与 D-模"),
         ("bridge-11-tangent-spaces.md", "基础 XI · 局部环与切空间"),
+        ("bridge-12-homotopy-cones.md", "基础 XII · 链同伦与映射锥"),
     ]),
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),

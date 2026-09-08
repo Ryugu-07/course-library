@@ -163,6 +163,7 @@ COURSE = [
         ("bridge-05-quantum-channels.md", "计算桥 V · Kraus 与 Choi"),
         ("bridge-06-ising-parity.md", "计算桥 VI · Ising 奇偶与完整谱"),
         ("bridge-07-mps-metric.md", "计算桥 VII · MPS 范数与局部优化"),
+        ("bridge-08-product-sweeps.md", "计算桥 VIII · 乘积 MPS 往返扫描"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),

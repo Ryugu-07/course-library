@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>链同伦与映射锥 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li class="active"><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 18:50</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#homotopy-cones-title">两个复形同调相同，是否一定能逐项互相还原？</a></li>
+<li><a href="#1">1. 先看真正的问题：地图可能看起来不同，却留下同样的洞</a></li>
+<li><a href="#2">2. 链同伦：把一次“先走微分再退回”的误差视为可消去</a></li>
+<li><a href="#3">3. 第一个完整收缩：非零项不等于非零信息</a></li>
+<li><a href="#4">4. 主模型：标量映射的锥把可逆性变成一次秩跳变</a></li>
+<li><a href="#5">5. 一般映射锥：负号不是装饰，而是让两条路径抵消</a></li>
+<li><a href="#6">6. 为什么锥恰好检测拟同构</a></li>
+<li><a href="#7">7. 整数反例：拟同构没有链同伦逆</a></li>
+<li><a href="#8">8. 为什么有限维向量空间看起来更友好</a></li>
+<li><a href="#9">9. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="12">基础衔接 12 · 映射锥：把一个映射的失败装进复形<a class="headerlink" href="#12" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-03-complexes.html">链复形：先区分闭合与边界</a>。本讲统一使用<strong>上链约定</strong>：微分 <span class="arithmatex">\(d^n:C^n\to C^{n+1}\)</span> 提高次数。目标是分清三件常被混在一起的事：链映射诱导同调映射、链同伦忽略可收缩的往返、拟同构只要求同调上可逆。我们不会在这里完整构造导出范畴。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="homotopy-cones-title" class="learning-layer">
+<h2 id="homotopy-cones-title">两个复形同调相同，是否一定能逐项互相还原？<a class="headerlink" href="#homotopy-cones-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 先看真正的问题：地图可能看起来不同，却留下同样的洞<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>上一讲把一个复形压缩成上同调</p>
+<div class="arithmatex">\[
+H^n(C)=\ker d_C^n/\operatorname{im}d_C^{n-1}.
+\]</div>
+<p>现在给两个上链复形 <span class="arithmatex">\(A^\bullet,B^\bullet\)</span> 和一族同次数线性映射 <span class="arithmatex">\(f^n:A^n\to B^n\)</span>。仅有逐项映射还不够；它必须与微分交换：</p>
+<div class="arithmatex">\[
+\boxed{d_B^n f^n=f^{n+1}d_A^n.}
+\]</div>
+<p>这样的 <span class="arithmatex">\(f\)</span> 才叫<strong>上链映射</strong>。若 <span class="arithmatex">\(x\)</span> 是闭元，即 <span class="arithmatex">\(d_Ax=0\)</span>，那么 <span class="arithmatex">\(d_Bf(x)=f(d_Ax)=0\)</span>；若 <span class="arithmatex">\(x=d_Ay\)</span> 是边界，那么 <span class="arithmatex">\(f(x)=d_Bf(y)\)</span> 仍是边界。因此 <span class="arithmatex">\(f\)</span> 诱导</p>
+<div class="arithmatex">\[
+H^n(f):H^n(A)\longrightarrow H^n(B),\qquad [x]\longmapsto[f(x)].
+\]</div>
+<p>若每个 <span class="arithmatex">\(H^n(f)\)</span> 都是同构，就称 <span class="arithmatex">\(f\)</span> 为<strong>拟同构</strong>。注意定义只承诺“所有洞的信息相同”，并没有承诺每个 <span class="arithmatex">\(f^n\)</span> 可逆，也没有自动给出一个反向链映射。</p>
+<h2 id="2">2. 链同伦：把一次“先走微分再退回”的误差视为可消去<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(f,g:A^\bullet\to B^\bullet\)</span> 都是上链映射。一条从 <span class="arithmatex">\(f\)</span> 到 <span class="arithmatex">\(g\)</span> 的<strong>上链同伦</strong>是一族降一次数的映射</p>
+<div class="arithmatex">\[
+h^n:A^n\longrightarrow B^{n-1}
+\]</div>
+<p>满足</p>
+<div class="arithmatex">\[
+\boxed{f-g=d_Bh+hd_A,}
+\]</div>
+<p>也就是逐次写成</p>
+<div class="arithmatex">\[
+f^n-g^n=d_B^{n-1}h^n+h^{n+1}d_A^n.
+\]</div>
+<p>为何这类误差不会改变上同调？若 <span class="arithmatex">\(d_Ax=0\)</span>，则</p>
+<div class="arithmatex">\[
+(f-g)(x)=d_Bh(x)+h(d_Ax)=d_Bh(x),
+\]</div>
+<p>它在 <span class="arithmatex">\(B\)</span> 中只是一个边界。因此链同伦的映射诱导相同的上同调映射。</p>
+<p>若存在链映射 <span class="arithmatex">\(u:B^\bullet\to A^\bullet\)</span>，使</p>
+<div class="arithmatex">\[
+uf\simeq\operatorname{id}_A,\qquad fu\simeq\operatorname{id}_B,
+\]</div>
+<p>就称 <span class="arithmatex">\(f\)</span> 为<strong>链同伦等价</strong>。它必然是拟同构，因为 <span class="arithmatex">\(H(u)H(f)\)</span> 与 <span class="arithmatex">\(H(f)H(u)\)</span> 都是恒等映射。反过来在一般系数环上并不成立，第 7 节会给出一个无法逃避的整数反例。</p>
+<h2 id="3">3. 第一个完整收缩：非零项不等于非零信息<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>取域 <span class="arithmatex">\(k\)</span> 上的两项上链复形</p>
+<div class="arithmatex">\[
+C^0=k\xrightarrow{\ 1\ }C^1=k,
+\]</div>
+<p>其他次数为零。它的上同调全为零，但两个链群都非零。更强的是，它可以<strong>收缩</strong>到零：令</p>
+<div class="arithmatex">\[
+h^1:C^1\to C^0,\qquad h^1=\operatorname{id}_k,
+\]</div>
+<p>其余 <span class="arithmatex">\(h^n=0\)</span>。在次数 <span class="arithmatex">\(0\)</span>，有 <span class="arithmatex">\(h^1d^0=\operatorname{id}_{C^0}\)</span>；在次数 <span class="arithmatex">\(1\)</span>，有 <span class="arithmatex">\(d^0h^1=\operatorname{id}_{C^1}\)</span>。所以</p>
+<div class="arithmatex">\[
+\operatorname{id}_C=d_Ch+hd_C,
+\]</div>
+<p>即 <span class="arithmatex">\(\operatorname{id}_C\simeq0\)</span>。称这样的复形为<strong>可缩复形</strong>。可缩一定推出上同调全零，因为恒等映射与零映射在上同调上相同；但“上同调全零是否一定可缩”取决于系数环境，不能在所有环上直接反推。</p>
+<h2 id="4">4. 主模型：标量映射的锥把可逆性变成一次秩跳变<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(A=B=k[0]\)</span>，即两个复形都只在次数 <span class="arithmatex">\(0\)</span> 放一个域 <span class="arithmatex">\(k\)</span>。取</p>
+<div class="arithmatex">\[
+f:A\longrightarrow B,\qquad f=\times a.
+\]</div>
+<p>它的映射锥在本例中就是</p>
+<div class="arithmatex">\[
+\operatorname{Cone}(f)^{-1}=k
+\xrightarrow{\ \times a\ }
+\operatorname{Cone}(f)^0=k.
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+H^{-1}(\operatorname{Cone}(f))=\ker(\times a),
+\qquad
+H^0(\operatorname{Cone}(f))=\operatorname{coker}(\times a).
+\]</div>
+<p>若 <span class="arithmatex">\(a\ne0\)</span>，域中的非零数可逆，微分的秩为 <span class="arithmatex">\(1\)</span>，两个上同调都为零。此时还能写出显式收缩：</p>
+<div class="arithmatex">\[
+s^0:\operatorname{Cone}(f)^0\to\operatorname{Cone}(f)^{-1},
+\qquad s^0(y)=\frac{y}{a},
+\]</div>
+<p>其余 <span class="arithmatex">\(s^n=0\)</span>。对次数 <span class="arithmatex">\(-1\)</span> 的 <span class="arithmatex">\(x\)</span>，<span class="arithmatex">\(s^0d^{-1}(x)=x\)</span>；对次数 <span class="arithmatex">\(0\)</span> 的 <span class="arithmatex">\(y\)</span>，<span class="arithmatex">\(d^{-1}s^0(y)=y\)</span>，所以</p>
+<div class="arithmatex">\[
+ds+sd=\operatorname{id}_{\operatorname{Cone}(f)}.
+\]</div>
+<p>若 <span class="arithmatex">\(a=0\)</span>，微分秩为 <span class="arithmatex">\(0\)</span>，于是</p>
+<div class="arithmatex">\[
+H^{-1}\cong k,\qquad H^0\cong k.
+\]</div>
+<p>这时 <span class="arithmatex">\(1/a\)</span> 根本不存在，锥也不可能可缩。若它可缩，恒等映射会在非零上同调上同时等于恒等与零，矛盾。</p>
+<figure>
+<p><img alt="映射锥把A整体左移一个次数并与B叠放，微分中的负号保证两条混合路径抵消；下方比较a非零时可收缩与a等于零时出现两个上同调群。" src="assets/img/bridge-12-homotopy-cones.svg" /></p>
+<figcaption>映射锥是映射的“误差复形”。对标量映射，a≠0 时除以 a 给出收缩；只有精确的 a=0 才同时留下核与余核。</figcaption>
+</figure>
+<h2 id="5">5. 一般映射锥：负号不是装饰，而是让两条路径抵消<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>对任意上链映射 <span class="arithmatex">\(f:A^\bullet\to B^\bullet\)</span>，定义</p>
+<div class="arithmatex">\[
+\boxed{
+\operatorname{Cone}(f)^n=B^n\oplus A^{n+1},
+\qquad
+d_{\rm Cone}(b,x)=\bigl(d_Bb+f(x),-d_Ax\bigr).
+}
+\]</div>
+<p>这里 <span class="arithmatex">\(x\in A^{n+1}\)</span>，所以第一分量中的 <span class="arithmatex">\(f\)</span> 实际是 <span class="arithmatex">\(f^{n+1}\)</span>。把微分再做一次：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+d_{\rm Cone}^2(b,x)
+&amp;=d_{\rm Cone}\bigl(d_Bb+f(x),-d_Ax\bigr)\\
+&amp;=\bigl(d_B^2b+d_Bf(x)-f(d_Ax),\ d_A^2x\bigr)\\
+&amp;=(0,0).
+\end{aligned}
+\]</div>
+<p>第一分量为零用到了链映射条件 <span class="arithmatex">\(d_Bf=fd_A\)</span>；第二分量为零用到了 <span class="arithmatex">\(d_A^2=0\)</span>。若把第二分量草率写成 <span class="arithmatex">\(+d_Ax\)</span>，第一分量一般会变成</p>
+<div class="arithmatex">\[
+d_Bf(x)+f(d_Ax)=2f(d_Ax),
+\]</div>
+<p>不再自动为零。其他教材可以把符号移到等价的约定里，但同一套约定内部必须协调。</p>
+<p>更概念化地，移位复形 <span class="arithmatex">\(A[1]\)</span> 定义为</p>
+<div class="arithmatex">\[
+A[1]^n=A^{n+1},\qquad d_{A[1]}=-d_A.
+\]</div>
+<p>于是映射锥进入逐项分裂的短正合列</p>
+<div class="arithmatex">\[
+0\longrightarrow B^\bullet
+\longrightarrow\operatorname{Cone}(f)^\bullet
+\longrightarrow A[1]^\bullet
+\longrightarrow0.
+\]</div>
+<p>负号正是让最后的投影成为链映射所需要的移位符号。</p>
+<h2 id="6">6. 为什么锥恰好检测拟同构<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>上面的短正合列给出标准长正合上同调列。把指标排到能看见 <span class="arithmatex">\(f\)</span> 的位置：</p>
+<div class="arithmatex">\[
+\cdots\to H^{n-1}(\operatorname{Cone}(f))
+\to H^n(A)\xrightarrow{H^n(f)}H^n(B)
+\to H^n(\operatorname{Cone}(f))
+\to H^{n+1}(A)\xrightarrow{H^{n+1}(f)}H^{n+1}(B)\to\cdots
+\]</div>
+<p>这立刻给出判据</p>
+<div class="arithmatex">\[
+\boxed{f\text{ 是拟同构}\quad\Longleftrightarrow\quad
+\operatorname{Cone}(f)\text{ 上同调全为零}.}
+\]</div>
+<p>理由可以逐项读出。若 <span class="arithmatex">\(H^n(f)\)</span> 对所有 <span class="arithmatex">\(n\)</span> 都是同构，正合性迫使夹在相邻同构之间的 <span class="arithmatex">\(H^n(\operatorname{Cone}(f))\)</span> 为零。反过来，若所有锥上同调都为零，那么正合列同时给出 <span class="arithmatex">\(H^n(f)\)</span> 的单射性与满射性。</p>
+<p>因此三种强度应按下面的方向记忆：</p>
+<div class="arithmatex">\[
+\text{逐项同构}
+\Longrightarrow
+\text{链同伦等价}
+\Longrightarrow
+\text{拟同构}.
+\]</div>
+<p>映射锥上同调全零只说明最后一层。若还知道锥可缩，才对应更强的链同伦等价。下一节说明“全零”和“可缩”为什么不能随意互换。</p>
+<h2 id="7">7. 整数反例：拟同构没有链同伦逆<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>固定整数 <span class="arithmatex">\(n\ge2\)</span>。取自由两项复形</p>
+<div class="arithmatex">\[
+P^{-1}=\mathbb Z\xrightarrow{\ \times n\ }P^0=\mathbb Z
+\]</div>
+<p>以及只在次数 <span class="arithmatex">\(0\)</span> 非零的复形</p>
+<div class="arithmatex">\[
+M^0=\mathbb Z/n.
+\]</div>
+<p>定义链映射 <span class="arithmatex">\(q:P^\bullet\to M^\bullet\)</span>：次数 <span class="arithmatex">\(0\)</span> 取模 <span class="arithmatex">\(n\)</span>，次数 <span class="arithmatex">\(-1\)</span> 取零。它确实与微分相容，因为 <span class="arithmatex">\(q^0(nx)=0\)</span>。又有</p>
+<div class="arithmatex">\[
+H^{-1}(P)=0,\qquad H^0(P)=\mathbb Z/n,
+\]</div>
+<p>所以 <span class="arithmatex">\(q\)</span> 是拟同构。</p>
+<p>现在假设它有链同伦逆 <span class="arithmatex">\(s:M^\bullet\to P^\bullet\)</span>。次数 <span class="arithmatex">\(0\)</span> 的分量必须是群同态</p>
+<div class="arithmatex">\[
+s^0:\mathbb Z/n\longrightarrow\mathbb Z.
+\]</div>
+<p>但这样的同态只能是零：若 <span class="arithmatex">\(z=s^0([1])\)</span>，则 <span class="arithmatex">\(nz=s^0([n])=s^0(0)=0\)</span>；而 <span class="arithmatex">\(\mathbb Z\)</span> 没有非零挠元，所以 <span class="arithmatex">\(z=0\)</span>。因此 <span class="arithmatex">\(s=0\)</span>，从而 <span class="arithmatex">\(qs=0\)</span>。</p>
+<p>另一方面，<span class="arithmatex">\(M\)</span> 只在次数 <span class="arithmatex">\(0\)</span> 非零且微分为零，任意同伦算子都无处可去，所以 <span class="arithmatex">\(M\to M\)</span> 的两个链映射同伦当且仅当它们严格相等。于是</p>
+<div class="arithmatex">\[
+qs=0\not\simeq\operatorname{id}_M.
+\]</div>
+<p>矛盾说明 <span class="arithmatex">\(q\)</span> 没有链同伦逆。它在上同调上完全正确，却不能在链复形层面逐项倒过来。导出范畴的一个核心动作正是<strong>形式地</strong>把这类拟同构变成可逆箭头；本讲到此为止，不把这个口号冒充为完整构造。</p>
+<h2 id="8">8. 为什么有限维向量空间看起来更友好<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(C^\bullet\)</span> 是域 <span class="arithmatex">\(k\)</span> 上的有界无环复形，每个子空间都能选补空间。记</p>
+<div class="arithmatex">\[
+Z^n=\ker d^n=B^n=\operatorname{im}d^{n-1},
+\]</div>
+<p>并选 <span class="arithmatex">\(C^n=B^n\oplus L^n\)</span>。微分限制为同构</p>
+<div class="arithmatex">\[
+d^n|_{L^n}:L^n\xrightarrow{\sim}B^{n+1}.
+\]</div>
+<p>在 <span class="arithmatex">\(B^{n+1}\)</span> 上用这个同构的逆定义降次映射，在 <span class="arithmatex">\(L^{n+1}\)</span> 上令它为零，就得到 <span class="arithmatex">\(ds+sd=\operatorname{id}_C\)</span>。因此域上的有界无环复形可缩。</p>
+<p>这也意味着：域上的有界复形之间，拟同构的锥是有界无环复形，因而可缩；标准锥判据进一步给出该拟同构是链同伦等价。整数反例没有矛盾，因为 <span class="arithmatex">\(\mathbb Z/n\)</span> 在 <span class="arithmatex">\(\mathbb Z\)</span>-模中不能像向量子空间那样总能找到线性补空间。不要把“向量空间可分裂”的舒适经验无条件搬到一般环的模上。</p>
+<div class="learning-lab" data-learning-lab="research-descent" data-research-topic="cone">
+<p><strong>先预测，再拖动：</strong>实验固定 <span class="arithmatex">\(k=\mathbb R\)</span>，滑块控制 <span class="arithmatex">\(a\in[-2,2]\)</span>，步长 <span class="arithmatex">\(0.25\)</span>，默认 <span class="arithmatex">\(a=1\)</span>。页面应实时显示两项微分 <span class="arithmatex">\(\mathbb R\xrightarrow{\times a}\mathbb R\)</span>、微分秩、<span class="arithmatex">\(\dim H^{-1}\)</span>、<span class="arithmatex">\(\dim H^0\)</span>，以及收缩公式 <span class="arithmatex">\(s(y)=y/a\)</span> 是否存在。</p>
+<p><strong>完整静态后备：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><span class="arithmatex">\(a\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\operatorname{rank}(\times a)\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\dim H^{-1}\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\dim H^0\)</span></th>
+<th>可缩？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(-2\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>是，<span class="arithmatex">\(s(y)=-y/2\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(-0.25\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>是，<span class="arithmatex">\(s(y)=-4y\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td>否，<span class="arithmatex">\(1/a\)</span> 不存在</td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(0.25\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>是，<span class="arithmatex">\(s(y)=4y\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span>（默认）</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>是，<span class="arithmatex">\(s(y)=y\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>是，<span class="arithmatex">\(s(y)=y/2\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>图表横轴是两个离散次数 <span class="arithmatex">\(-1,0\)</span>，不是参数 <span class="arithmatex">\(a\)</span>；它显示当前 <span class="arithmatex">\(a\)</span> 下两处上同调的维数。连接这两个点的线只帮助眼睛比较，既不创造“分数次数”，也不表示中间还有连续取值。拖动滑块时，秩与维数在每个非零 <span class="arithmatex">\(a\)</span> 处保持不变，只在精确的 <span class="arithmatex">\(a=0\)</span> 跳变；不能把这种跳变误读成 <span class="arithmatex">\(a\)</span> 接近零时维数连续增大。</p>
+</div>
+<h2 id="9">9. 两道迁移题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 对任意上链复形 <span class="arithmatex">\(A^\bullet\)</span>，证明 <span class="arithmatex">\(\operatorname{Cone}(\operatorname{id}_A)\)</span> 可缩。请给出收缩，而不只说它的上同调为零。</p>
+<details>
+<summary>把锥的两个分量交换到正确次数</summary>
+<p>这里</p>
+<div class="arithmatex">\[
+\operatorname{Cone}(\operatorname{id}_A)^n=A^n\oplus A^{n+1},
+\qquad d(b,x)=(d_Ab+x,-d_Ax).
+\]</div>
+<p>定义</p>
+<div class="arithmatex">\[
+s^n:A^n\oplus A^{n+1}\longrightarrow A^{n-1}\oplus A^n,
+\qquad s^n(b,x)=(0,b).
+\]</div>
+<p>则</p>
+<div class="arithmatex">\[
+ds(b,x)=d(0,b)=(b,-d_Ab),
+\]</div>
+<p>而</p>
+<div class="arithmatex">\[
+sd(b,x)=s(d_Ab+x,-d_Ax)=(0,d_Ab+x).
+\]</div>
+<p>相加得到 <span class="arithmatex">\((ds+sd)(b,x)=(b,x)\)</span>。因此 <span class="arithmatex">\(s\)</span> 是显式收缩。这也直接展示了锥微分中负号如何参与抵消。</p>
+</details>
+<p><strong>题二。</strong> 把 <span class="arithmatex">\(f:\mathbb Z[0]\to\mathbb Z[0]\)</span> 取为乘 <span class="arithmatex">\(6\)</span>。计算映射锥的上同调。再把整个复形与 <span class="arithmatex">\(\mathbb Q\)</span> 张量，结论怎样变化？能否由有理数上的结果反推整数上的锥可缩？</p>
+<details>
+<summary>分别检查核、余核与系数变化</summary>
+<p>整数上的锥是</p>
+<div class="arithmatex">\[
+\mathbb Z\xrightarrow{\ \times6\ }\mathbb Z
+\]</div>
+<p>放在次数 <span class="arithmatex">\(-1,0\)</span>。乘 <span class="arithmatex">\(6\)</span> 在 <span class="arithmatex">\(\mathbb Z\)</span> 上单射，所以 <span class="arithmatex">\(H^{-1}=0\)</span>；其像为 <span class="arithmatex">\(6\mathbb Z\)</span>，余核为 <span class="arithmatex">\(\mathbb Z/6\mathbb Z\)</span>，故</p>
+<div class="arithmatex">\[
+H^0\cong\mathbb Z/6.
+\]</div>
+<p>因此该锥既不无环也不可缩，<span class="arithmatex">\(f\)</span> 不是拟同构。与 <span class="arithmatex">\(\mathbb Q\)</span> 张量后得到 <span class="arithmatex">\(\mathbb Q\xrightarrow{\times6}\mathbb Q\)</span>，乘 <span class="arithmatex">\(6\)</span> 可逆，锥可用 <span class="arithmatex">\(s(y)=y/6\)</span> 收缩。不能反推原整数复形可缩：换系数会抹掉 <span class="arithmatex">\(\mathbb Z/6\)</span> 挠信息。有理化后看不见的东西，在整数上仍可能真实存在。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>要求</th>
+<th>保证</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>上链映射</td>
+<td><span class="arithmatex">\(d_Bf=fd_A\)</span></td>
+<td>诱导上同调映射</td>
+</tr>
+<tr>
+<td>上链同伦</td>
+<td><span class="arithmatex">\(f-g=d_Bh+hd_A\)</span>，<span class="arithmatex">\(h\)</span> 降一次数</td>
+<td><span class="arithmatex">\(H(f)=H(g)\)</span></td>
+</tr>
+<tr>
+<td>链同伦等价</td>
+<td>有反向链映射，复合分别同伦于恒等</td>
+<td>一定是拟同构</td>
+</tr>
+<tr>
+<td>拟同构</td>
+<td>每个 <span class="arithmatex">\(H^n(f)\)</span> 都是同构</td>
+<td>锥无环，但一般未必可缩</td>
+</tr>
+<tr>
+<td>映射锥</td>
+<td><span class="arithmatex">\(B^n\oplus A^{n+1}\)</span>，微分含 <span class="arithmatex">\(-d_A\)</span></td>
+<td>把映射的核余核型失败组织成一个复形</td>
+</tr>
+</tbody>
+</table>
+<p>复形的定义见 <a href="https://stacks.math.columbia.edu/tag/010V">Stacks Project：Complexes</a>，上链同伦、移位与符号约定见 <a href="https://stacks.math.columbia.edu/tag/0119">Homotopy and the shift functor</a>，映射锥的短正合列见 <a href="https://stacks.math.columbia.edu/tag/09P1">Cones and distinguished triangles</a>。锥与拟同构的关系由其长正合上同调列给出，可对照 <a href="https://stacks.math.columbia.edu/tag/05RR">Derived categories</a>。资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-11-tangent-spaces.html"><span class="pager-label">上一页</span>基础 XI · 局部环与切空间</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-descent.js?v=19a4bbd7f49e"></script>
+</body>
+</html>

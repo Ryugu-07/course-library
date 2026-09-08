@@ -115,7 +115,7 @@ $$
 \chi_*=\max_{1\leq k<N}r_k.
 $$
 
-实际局部更新的推导见[MPS 范数与局部优化](bridge-07-mps-metric.html)：先从环境重叠构造 N，再解 H_eff a=ENa；左右环境正交后才能省略 N。
+实际局部更新的推导见[MPS 范数与局部优化](bridge-07-mps-metric.html)：先从环境重叠构造 N，再解 H_eff a=ENa；左右环境正交后才能省略 N。随后可在[乘积 MPS 往返扫描](bridge-08-product-sweeps.html)中逐次核查完整能量，比较固定点与精确基态。
 
 这解释了链图的两种读法：金色“最窄桥”告诉你哪里局部最容易压缩；蓝色最大桥需求才决定统一 MPS 的 exact capacity。DMRG 做的不是凭空假定态低秩，而是在一组有限 $\chi$ 的 MPS 中变分最小化 $\langle\psi|H|\psi\rangle$；若能隙、纠缠谱衰减等条件让截断尾部很小，它就会高效，但“低熵”仍不能替代对谱尾和误差的检查。
 

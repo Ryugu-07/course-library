@@ -84,6 +84,7 @@
 | 亲自完成径向积分，解释为何同截断减法留下有限动量依赖 | [圈积分与减法](bridge-02-loop-subtraction.html) | [重整化](qft-03-path-renorm.html)、有效场论与 RG |
 | 用明确的下能级向量算出 A、F，并核对南北规范的相位差 | [Berry 联络与曲率](bridge-03-berry.html) | [拓扑能带](solid-04-topological.html)、Chern 数 |
 | 从相邻态重叠算出度量，解释为何零曲率不意味着零距离 | [量子几何张量](research-09-quantum-metric.html) | 谱学重建、平带几何与 2026 年磁交换研究窗口 |
+| 完成一轮逐点扫描，区分停止信号与全局最优证据 | [乘积 MPS 往返扫描](bridge-08-product-sweeps.html) | 张量网络算法、初值敏感性与误差诊断 |
 | 从环境重叠构造范数矩阵，说明普通本征问题何时有效 | [MPS 范数与局部优化](bridge-07-mps-metric.html) | 张量网络规范化、变分算法与数值稳定性 |
 | 用自旋矩阵计算两个奇偶块，比较完整隙与单准粒子尺度 | [Ising 奇偶与完整谱](bridge-06-ising-parity.html) | 临界缩放、边界条件与谱选择定则 |
 | 从 Kraus 算符算出 Choi 矩阵，用 Bell 输入否决转置映射 | [Kraus 与 Choi](bridge-05-quantum-channels.html) | 完全正性、过程层析与噪声建模 |
