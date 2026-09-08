@@ -196,3 +196,5 @@ t、u 通道与接触常数此时都有限，乘 s 后消失。不要沿“固�
 | 想把关联函数用于外场响应 | [Kubo 的两能级响应计算](bridge-04-spectral-response.html) | 这是另一种关联函数与可观测量约定，不能直接套时序散射振幅 |
 
 原始教学参照：[Tong：Interacting Fields](https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3)的连通图、截肢及 LSZ；[Tong：The Renormalisation Group](https://davidtong.org/teaching/statistical-field-theory/sfthtml/S3)的圈积分与参数组织；[Elvang、Huang：Scattering Amplitudes](https://arxiv.org/abs/1308.1697)的解析结构与壳上方法。具体正规化处方、二阶匹配和四站数值在本页独立给出。核查：2026-09-08。
+
+继续[共形块、正性与排除证书](bridge-13-positive-blocks.html)，从后裔范数算真正的共形块，并用解析不等式覆盖一维允许谱的整个半轴。

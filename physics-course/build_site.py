@@ -168,6 +168,7 @@ COURSE = [
         ("bridge-10-two-site-truncation.md", "计算桥 X · 两站点更新与截断"),
         ("bridge-11-two-site-sweeps.md", "计算桥 XI · 两站点往返扫描"),
         ("bridge-12-mps-cache.md", "计算桥 XII · 正交中心与环境缓存"),
+        ("bridge-13-positive-blocks.md", "计算桥 XIII · 共形块与正性证书"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),

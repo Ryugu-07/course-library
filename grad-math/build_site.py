@@ -125,6 +125,7 @@ COURSE = [
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),
         ("bridge-10-markov-paths.md", "基础 X · Markov 桥与路径枚举"),
+        ("bridge-17-continuous-control.md", "基础 XVII · 连续路径熵与控制"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-derived-readiness.md", "路线验收 · 整数分解到导出观点"),

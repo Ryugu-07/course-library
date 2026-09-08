@@ -124,3 +124,5 @@ Zhou 于 **2026-09-02** 提交的 Pre-Strings 讲义以全息关联函数为对�
 - [Gaiotto 等：广义全局对称性](https://arxiv.org/abs/1412.5148)，2014-12-16 首稿，2015-01-10 修订；将对称约束推广到延展算符，留待第四讲。
 
 来源核查：2026-09-08。下一讲：[共形 bootstrap](research-06-conformal-bootstrap.html)。
+
+继续[共形块、正性与排除证书](bridge-13-positive-blocks.html)，从后裔范数算真正的共形块，并用解析不等式覆盖一维允许谱的整个半轴。

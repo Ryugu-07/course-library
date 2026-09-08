@@ -110,3 +110,5 @@ $\epsilon_k/J=2\sqrt{(g-1)^2+4g\sin^2(k/2)}$；临界长波 $z=\nu=1$。实验�
 - [Simmons-Duffin：共形理论与 bootstrap 讲义](https://arxiv.org/abs/1602.07982)，2016-02-25 首发；为临界极限的关联函数提供下一条路线。
 
 来源核查：2026-09-08。下一讲：[退相位与本征态热化](research-03-thermalization-eth.html)。
+
+继续[共形块、正性与排除证书](bridge-13-positive-blocks.html)，从后裔范数算真正的共形块，并用解析不等式覆盖一维允许谱的整个半轴。

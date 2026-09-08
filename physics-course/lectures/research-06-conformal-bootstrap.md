@@ -111,3 +111,5 @@ Crossing 要保留运动学幂；bootstrap 结合它与正谱系数。GFF 是已
 - [Elvang、Huang：散射振幅讲义](https://arxiv.org/abs/1308.1697)，2013 年首发；为下一讲的解析结构与因子化提供入口。
 
 来源核查：2026-09-08。下一讲：[散射振幅](research-07-scattering-amplitudes.html)。
+
+继续[共形块、正性与排除证书](bridge-13-positive-blocks.html)，从后裔范数算真正的共形块，并用解析不等式覆盖一维允许谱的整个半轴。

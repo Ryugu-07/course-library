@@ -479,3 +479,5 @@ $$
 | 随机场极限 | $\mathbb E\lvert Y_M-Y_N\rvert^2=\sum_{N<k\le M}k^{-4s}$ | 标量随机变量 $Y_N$ 的 $L^2(\Omega)$ 极限 |
 
 路径空间 Schrödinger 问题、条件桥与熵分解参照 Léonard 的作者论文 [A survey of the Schrödinger problem and some of its connections with optimal transport](https://arxiv.org/abs/1308.0215)，其期刊版发表于 2014 年；小噪声趋向 Monge–Kantorovich 需额外条件，见 [From the Schrödinger problem to the Monge–Kantorovich problem](https://arxiv.org/abs/1011.2564)。Gaussian Fourier 场、Wick 幂与 $L^2$ 构造可对照 Hairer 的作者讲义 [Advanced Stochastic Analysis](https://hairer.org/notes/StochasticAnalysisCourse.pdf)；奇异随机方程为何还需要模型、重整化和解映射理论，见 Hairer 的 [Renormalisation of parabolic stochastic PDEs](https://arxiv.org/abs/1803.03044)。本页新增有限数值均已从所列公式独立复算；资料核查：2026-09-08。
+
+继续[连续时间路径熵与控制](bridge-17-continuous-control.html)，用完整高斯模型对照终端倾斜、Doob漂移、条件桥与路径能量。

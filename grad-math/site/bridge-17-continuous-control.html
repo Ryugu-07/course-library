@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连续路径熵与控制 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li class="active"><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 23:12</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#continuous-control-title">只在终点重新加权，整条随机路径为什么会出现漂移？</a></li>
+<li><a href="#1">1. 参考路径与终端倾斜</a></li>
+<li><a href="#2">2. 高斯配方：把未来权重压回当前时刻</a></li>
+<li><a href="#3-doob">3. Doob 变换：漂移是未来对数权重的梯度</a></li>
+<li><a href="#4">4. 终点变成哪个高斯？</a></li>
+<li><a href="#5">5. 为什么条件桥完全没变？</a></li>
+<li><a href="#6-kl-kl">6. 路径 KL、终端 KL 与控制能量为何相等？</a></li>
+<li><a href="#7">7. 实验怎样读：四个参数，各自改变哪一层？</a></li>
+<li><a href="#8">8. 两道迁移题</a></li>
+<li><a href="#9-schrodinger">9. 这是不是已经解了任意 Schrödinger 桥？</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="17">基础衔接 17 · 连续时间路径熵与控制：给布朗路径的终点加权<a class="headerlink" href="#17" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-10-markov-paths.html">有限状态 Markov 路径</a>、<a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥入口</a>。本讲固定同一个初点与同一个扩散系数，用一个可积的终端权重倾斜布朗路径。我们会完整算出 <span class="arithmatex">\(h\)</span> 函数、Doob 漂移、终端高斯、路径相对熵与控制能量；这不是任意双端边缘的 Schrödinger 桥求解器。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="continuous-control-title" class="learning-layer">
+<h2 id="continuous-control-title">只在终点重新加权，整条随机路径为什么会出现漂移？<a class="headerlink" href="#continuous-control-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 参考路径与终端倾斜<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>在时间区间 <span class="arithmatex">\([0,T]\)</span> 上，令参考测度 <span class="arithmatex">\(R\)</span> 下的坐标过程满足</p>
+<div class="arithmatex">\[
+X_0=0,
+\qquad
+dX_t=\sqrt\varepsilon\,dW_t,
+\qquad \varepsilon&gt;0.
+\]</div>
+<p>所以 <span class="arithmatex">\(X_T\sim N(0,\varepsilon T)\)</span>。选择严格为正的终端权重</p>
+<div class="arithmatex">\[
+g(x)=\exp\left(ax-\frac b2x^2\right),
+\qquad a\in\mathbb R,\quad b\ge0.
+\]</div>
+<p>定义</p>
+<div class="arithmatex">\[
+h(t,x)=E_R[g(X_T)\mid X_t=x]
+\]</div>
+<p>以及新的路径测度</p>
+<div class="arithmatex">\[
+\boxed{
+\frac{dP}{dR}=\frac{g(X_T)}{h(0,0)}.
+}
+\]</div>
+<p>这不是一句形式记号。因为 <span class="arithmatex">\(b\ge0\)</span>，高斯尾部足以保证 <span class="arithmatex">\(0&lt;h(0,0)&lt;\infty\)</span>；分母正是 <span class="arithmatex">\(E_R[g(X_T)]\)</span>，所以右边非负且期望为 1，确实定义概率测度。<span class="arithmatex">\(P\)</span> 与 <span class="arithmatex">\(R\)</span> 的初始分布都是同一个 <span class="arithmatex">\(\delta_0\)</span>，这里没有额外的初始 KL 项。</p>
+<p>可以把操作想成给每条路径一张只由终点决定的“权重票”：走到较受 <span class="arithmatex">\(g\)</span> 偏爱的终点，整条路径在新总体里出现得更频繁。接下来要证明，这种全路径重排等价于在每个时刻加入一个状态依赖漂移。</p>
+<h2 id="2">2. 高斯配方：把未来权重压回当前时刻<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(t&lt;T\)</span> 时给定 <span class="arithmatex">\(X_t=x\)</span>，剩余增量是方差</p>
+<div class="arithmatex">\[
+v=\varepsilon(T-t)
+\]</div>
+<p>的高斯变量。写终点为 <span class="arithmatex">\(y\)</span>，则</p>
+<div class="arithmatex">\[
+h(t,x)=\frac1{\sqrt{2\pi v}}
+\int_{\mathbb R}
+\exp\left[-\frac{(y-x)^2}{2v}+ay-\frac b2y^2\right]dy.
+\]</div>
+<p>令</p>
+<div class="arithmatex">\[
+D_t=1+b\varepsilon(T-t)=1+bv.
+\]</div>
+<p>把指数对 <span class="arithmatex">\(y\)</span> 配方：</p>
+<div class="arithmatex">\[
+-\frac{(y-x)^2}{2v}+ay-\frac b2y^2
+=-\frac{D_t}{2v}
+\left(y-\frac{x+av}{D_t}\right)^2
++\frac{ax-bx^2/2+a^2v/2}{D_t}.
+\]</div>
+<p>第一项积分后给出 <span class="arithmatex">\(D_t^{-1/2}\)</span>，因此</p>
+<div class="arithmatex">\[
+\boxed{
+h(t,x)=D_t^{-1/2}
+\exp\left(
+\frac{ax-bx^2/2+a^2\varepsilon(T-t)/2}{D_t}
+\right).
+}
+\]</div>
+<p>两个端点检查能及时发现符号错误。<span class="arithmatex">\(t=T\)</span> 时 <span class="arithmatex">\(D_T=1\)</span>，上式回到 <span class="arithmatex">\(h(T,x)=g(x)\)</span>；而</p>
+<div class="arithmatex">\[
+h(0,0)=D_0^{-1/2}
+\exp\left(\frac{a^2\varepsilon T}{2D_0}\right),
+\qquad D_0=1+b\varepsilon T.
+\]</div>
+<p>由条件期望的塔式性质，</p>
+<div class="arithmatex">\[
+M_t=\frac{h(t,X_t)}{h(0,0)}
+=E_R\left[\frac{g(X_T)}{h(0,0)}\middle|\mathcal F_t\right]
+\]</div>
+<p>是正的、一致可积的 <span class="arithmatex">\(R\)</span>-鞅，且 <span class="arithmatex">\(M_T=dP/dR\)</span>。这里“真鞅”不是从一个未经检查的局部鞅猜出来的，而是由可积终端密度的条件期望直接保证。</p>
+<h2 id="3-doob">3. Doob 变换：漂移是未来对数权重的梯度<a class="headerlink" href="#3-doob" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(h\)</span> 满足向后热方程</p>
+<div class="arithmatex">\[
+\partial_t h+\frac\varepsilon2\partial_{xx}h=0,
+\qquad h(T,x)=g(x).
+\]</div>
+<p>对光滑测试函数 <span class="arithmatex">\(f\)</span>，把参考生成元作用在乘积 <span class="arithmatex">\(hf\)</span> 上并除以 <span class="arithmatex">\(h\)</span>。用上面的热方程消去只作用于 <span class="arithmatex">\(h\)</span> 的项，得到时间非齐次 Doob 生成元</p>
+<div class="arithmatex">\[
+\mathcal L_t^P f
+=\frac\varepsilon2 f''
++\varepsilon\,\partial_x\log h(t,x)f'.
+\]</div>
+<p>由显式 <span class="arithmatex">\(h\)</span>，</p>
+<div class="arithmatex">\[
+\partial_x\log h(t,x)=\frac{a-bx}{D_t}.
+\]</div>
+<p>所以 <span class="arithmatex">\(P\)</span> 下的过程满足</p>
+<div class="arithmatex">\[
+\boxed{
+dX_t=u(t,X_t)dt+\sqrt\varepsilon\,dW_t^P,
+\qquad
+u(t,x)=\frac{\varepsilon(a-bx)}{1+b\varepsilon(T-t)}.
+}
+\]</div>
+<p><span class="arithmatex">\(a\)</span> 把路径整体拉向一个方向；<span class="arithmatex">\(b\)</span> 提供指向 <span class="arithmatex">\(a/b\)</span> 的线性回复，但分母随剩余时间改变强度。<span class="arithmatex">\(b=0\)</span> 时只剩常漂移 <span class="arithmatex">\(u=\varepsilon a\)</span>。这里改变的是漂移，二次变差仍为 <span class="arithmatex">\([X]_t=\varepsilon t\)</span>。</p>
+<p>严格地说，Girsanov 换测度需要密度过程是真鞅，并要有足够可积性来讨论熵与能量。Novikov 条件是一种常用的充分条件，却不是定义换测度的必要条件。本模型中，<span class="arithmatex">\(M_t\)</span> 已由可积的正终端密度直接构造为一致可积鞅；显式线性漂移和高斯边缘还保证下文的平方能量有限。因此无需把“形式随机指数”当作已经完成的证明。</p>
+<h2 id="4">4. 终点变成哪个高斯？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>参考终点密度乘上 <span class="arithmatex">\(g\)</span>：</p>
+<div class="arithmatex">\[
+\frac{dP_T}{dx}\propto
+\exp\left[-\frac{x^2}{2\varepsilon T}+ax-\frac b2x^2\right].
+\]</div>
+<p>再次配方，得到</p>
+<div class="arithmatex">\[
+\boxed{
+P_T=N(\mu_T,\sigma_T^2),
+\quad
+\mu_T=\frac{a\varepsilon T}{D_0},
+\quad
+\sigma_T^2=\frac{\varepsilon T}{D_0}.
+}
+\]</div>
+<p>增大 <span class="arithmatex">\(a\)</span> 改变均值方向；增大 <span class="arithmatex">\(b\)</span> 压缩终端方差，同时也抑制均值大小。不要把 <span class="arithmatex">\(g\)</span> 本身误叫作终端概率密度：它是相对于参考终端律的未归一化权重，真正密度还包含参考高斯与归一化常数。</p>
+<p>任意中间时刻也能直接读出。因为下节将证明给定终点后的桥没有改变，</p>
+<div class="arithmatex">\[
+E_P[X_t]=\frac tT\mu_T
+=\frac{a\varepsilon t}{D_0},
+\]</div>
+<div class="arithmatex">\[
+\operatorname{Var}_P(X_t)
+=\varepsilon t\left(1-\frac tT\right)
++\frac{t^2}{T^2}\sigma_T^2
+=\frac{\varepsilon tD_t}{D_0}.
+\]</div>
+<p>这些边缘公式也可由线性 SDE 的矩方程得到，是一条独立核对路径。</p>
+<h2 id="5">5. 为什么条件桥完全没变？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>密度 <span class="arithmatex">\(dP/dR\)</span> 只依赖 <span class="arithmatex">\(X_T\)</span>。对任意有界路径泛函 <span class="arithmatex">\(F\)</span>，用正则条件分布写</p>
+<div class="arithmatex">\[
+E_P[F\mid X_T]
+=\frac{E_R[Fg(X_T)\mid X_T]}{E_R[g(X_T)\mid X_T]}
+=E_R[F\mid X_T].
+\]</div>
+<p>因此对 <span class="arithmatex">\(P_T\)</span>-几乎处处的终点 <span class="arithmatex">\(y\)</span>，</p>
+<div class="arithmatex">\[
+\boxed{P(\,\cdot\mid X_T=y)=R(\,\cdot\mid X_T=y).}
+\]</div>
+<p>右边是从 0 到 <span class="arithmatex">\(y\)</span> 的布朗桥：</p>
+<div class="arithmatex">\[
+E[X_t\mid X_T=y]=\frac tT y,
+\]</div>
+<div class="arithmatex">\[
+\operatorname{Cov}(X_s,X_t\mid X_T=y)
+=\varepsilon\left(\min(s,t)-\frac{st}{T}\right).
+\]</div>
+<p>所以 <span class="arithmatex">\(P\)</span> 不是修改每个终点对应的桥形状，而是重新分配不同终点桥的混合权重。条件在连续变量的单点事件上概率为零；上式应理解为正则条件概率的版本，而不是用初等比值除以 <span class="arithmatex">\(P(X_T=y)=0\)</span>。</p>
+<h2 id="6-kl-kl">6. 路径 KL、终端 KL 与控制能量为何相等？<a class="headerlink" href="#6-kl-kl" title="Permanent link"></a></h2>
+<p>因为两测度给定 <span class="arithmatex">\(X_T\)</span> 后的条件路径律相同，相对熵链式分解中的条件项为零：</p>
+<div class="arithmatex">\[
+\boxed{
+D(P\|R)=D(P_T\|R_T).
+}
+\]</div>
+<p>对两个一维高斯 <span class="arithmatex">\(P_T=N(\mu_T,\sigma_T^2)\)</span> 与 <span class="arithmatex">\(R_T=N(0,\varepsilon T)\)</span>，代入高斯 KL 得</p>
+<div class="arithmatex">\[
+D(P_T\|R_T)
+=\frac12\left[
+\frac1{D_0}
++\frac{a^2\varepsilon T}{D_0^2}
+-1+\log D_0
+\right].
+\]</div>
+<p>另一边从 Girsanov 密度计算。令 <span class="arithmatex">\(\theta_t=u(t,X_t)/\sqrt\varepsilon\)</span>。在 <span class="arithmatex">\(P\)</span> 下写 <span class="arithmatex">\(dW_t=dW_t^P+\theta_tdt\)</span>，则</p>
+<div class="arithmatex">\[
+\log\frac{dP}{dR}
+=\int_0^T\theta_t\,dW_t^P
++\frac12\int_0^T\theta_t^2dt.
+\]</div>
+<p>本模型平方可积，随机积分期望为零，故</p>
+<div class="arithmatex">\[
+\boxed{
+D(P\|R)=\frac1{2\varepsilon}
+E_P\int_0^T u(t,X_t)^2dt.
+}
+\]</div>
+<p>这份能量还可以不用随机模拟，直接由中间高斯边缘积分。由上一节的均值与方差，</p>
+<div class="arithmatex">\[
+E_P[(a-bX_t)^2]
+=\frac{a^2D_t^2}{D_0^2}
++\frac{b^2\varepsilon tD_t}{D_0}.
+\]</div>
+<p>代入 <span class="arithmatex">\(u=\varepsilon(a-bX_t)/D_t\)</span>，在 <span class="arithmatex">\(b&gt;0\)</span> 时利用</p>
+<div class="arithmatex">\[
+\int_0^T\frac{t}{D_0-b\varepsilon t}dt
+=\frac{D_0\log D_0}{b^2\varepsilon^2}
+-\frac{T}{b\varepsilon},
+\]</div>
+<p>得到</p>
+<div class="arithmatex">\[
+\frac1{2\varepsilon}E_P\int_0^T u^2dt
+=\frac12\left[
+\frac{a^2\varepsilon T}{D_0^2}
++\log D_0-1+\frac1{D_0}
+\right],
+\]</div>
+<p>与终端 KL 逐项相同。<span class="arithmatex">\(b=0\)</span> 的结果由直接计算或连续极限得到，不需要在含 <span class="arithmatex">\(b^{-1}\)</span> 的中间式里硬代零。</p>
+<figure>
+<p><img alt="参考布朗路径从固定原点扩散到高斯终点，终端权重g重新分配终点；h函数把未来权重向后传播成漂移u，但每个给定终点下的布朗桥保持不变。图下给出路径KL、终端高斯KL和漂移平方能量三者相等。" src="assets/img/bridge-17-continuous-control.svg" /></p>
+<figcaption>终端权重不改“给定终点以后怎样走”的桥，只改“各种终点的桥各占多少”；同一件重排既能从终端 KL 计账，也能从整段漂移能量计账。</figcaption>
+</figure>
+<h2 id="7">7. 实验怎样读：四个参数，各自改变哪一层？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验控制 <span class="arithmatex">\(a\in[-2,2]\)</span>、<span class="arithmatex">\(b\in[0,3]\)</span>、<span class="arithmatex">\(\varepsilon\in[0.5,2]\)</span>、<span class="arithmatex">\(T\in[0.5,2]\)</span>。默认均为 1。它展示解析终端均值与方差、若干时刻的漂移场，并用两条独立公式计算终端 KL 与积分能量。</p>
+<p>按下面顺序操作：</p>
+<ol>
+<li>默认输入先核对 <span class="arithmatex">\(D_0=2\)</span>、<span class="arithmatex">\(\mu_T=1/2\)</span>、<span class="arithmatex">\(\sigma_T^2=1/2\)</span>，两份代价都为约 <span class="arithmatex">\(0.2215735903\)</span>。</li>
+<li>把 <span class="arithmatex">\(a\)</span> 从 1 改成 <span class="arithmatex">\(-1\)</span>。均值和漂移场左右翻转，方差与 KL 不变，因为代价只含 <span class="arithmatex">\(a^2\)</span>。</li>
+<li>令 <span class="arithmatex">\(a=0\)</span>，再增大 <span class="arithmatex">\(b\)</span>。终端均值保持零，方差缩小；控制仍要付出把终点分布压窄的代价。</li>
+<li>令 <span class="arithmatex">\(b=0\)</span>、<span class="arithmatex">\(a=1\)</span>。漂移应在全部时空恒为 <span class="arithmatex">\(\varepsilon\)</span>；默认 <span class="arithmatex">\(\varepsilon=T=1\)</span> 时终端为 <span class="arithmatex">\(N(1,1)\)</span>，KL 与积分能量都为 <span class="arithmatex">\(1/2\)</span>。</li>
+</ol>
+<p><span class="arithmatex">\(\varepsilon\)</span> 滑块每次定义一个新的“参考与控制成对问题”。它可以检验本页解析式怎样依赖噪声强度，但不能把两个不同 <span class="arithmatex">\(\varepsilon\)</span> 的连续路径律直接送进 Girsanov KL 比较；这个陷阱在第二道迁移题处理。</p>
+<p><strong>无脚本后备：</strong></p>
+<table>
+<thead>
+<tr>
+<th>输入 <span class="arithmatex">\((a,b,\varepsilon,T)\)</span></th>
+<th style="text-align: right;">终端均值</th>
+<th style="text-align: right;">终端方差</th>
+<th style="text-align: right;"><span class="arithmatex">\(D(P\|R)\)</span></th>
+<th>漂移特征</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\((1,1,1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.2215735903\)</span></td>
+<td><span class="arithmatex">\(u(t,x)=(1-x)/(2-t)\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((-1,1,1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-0.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.2215735903\)</span></td>
+<td>默认场关于原点反向</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((0,1,1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.0965735903\)</span></td>
+<td>只做向零回复与压缩</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\((1,0,1,1)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
+<td><span class="arithmatex">\(u(t,x)=1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>表中的 KL 与积分能量必须分别算出后相符；只把同一个数字复制到两行，不算独立核验。漂移图是解析场的切片，不是有限样本对期望的证明。</p>
+<style>[data-learning-lab="research-control"] .rs-output td {min-width: 105px;}</style>
+<div class="learning-lab" data-learning-lab="research-control" data-research-topic="gaussian"></div>
+<h2 id="8">8. 两道迁移题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 令 <span class="arithmatex">\(b=0\)</span>，保留任意 <span class="arithmatex">\(a\in\mathbb R\)</span>、<span class="arithmatex">\(\varepsilon,T&gt;0\)</span>。从 <span class="arithmatex">\(h\)</span> 开始推导漂移、终端律和两种熵代价，不直接引用默认数值。</p>
+<details>
+<summary>查看答案：指数线性权重对应常漂移</summary>
+<p>此时 <span class="arithmatex">\(D_t=1\)</span>，所以</p>
+<div class="arithmatex">\[
+h(t,x)=\exp\left(ax+\frac{a^2\varepsilon(T-t)}2\right),
+\qquad
+u=\varepsilon\partial_x\log h=\varepsilon a.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+X_T\sim N(a\varepsilon T,\varepsilon T).
+\]</div>
+<p>它与参考终点高斯方差相同，故</p>
+<div class="arithmatex">\[
+D(P_T\|R_T)
+=\frac{(a\varepsilon T)^2}{2\varepsilon T}
+=\frac12a^2\varepsilon T.
+\]</div>
+<p>控制能量也直接给出</p>
+<div class="arithmatex">\[
+\frac1{2\varepsilon}E_P\int_0^T(\varepsilon a)^2dt
+=\frac12a^2\varepsilon T.
+\]</div>
+<p>给定终点后的条件路径仍是扩散系数 <span class="arithmatex">\(\varepsilon\)</span> 的布朗桥；常漂移改变终点混合，不改变这些桥。</p>
+</details>
+<p><strong>题二。</strong> 比较两个无漂移参考过程 <span class="arithmatex">\(R_\varepsilon\)</span> 与 <span class="arithmatex">\(R_{\widetilde\varepsilon}\)</span>，其中 <span class="arithmatex">\(\varepsilon\ne\widetilde\varepsilon\)</span>。为什么它们的终端高斯 KL 有限，却不能把连续路径 KL 当作同一个有限数？用 <span class="arithmatex">\(n\)</span> 个等距增量的离散化说明极限发生什么。</p>
+<details>
+<summary>查看答案：扩散强度写在路径的二次变差里</summary>
+<p><span class="arithmatex">\(R_\varepsilon\)</span>-几乎每条路径满足</p>
+<div class="arithmatex">\[
+[X]_t=\varepsilon t,
+\]</div>
+<p>而 <span class="arithmatex">\(R_{\widetilde\varepsilon}\)</span>-几乎每条路径满足 <span class="arithmatex">\([X]_t=\widetilde\varepsilon t\)</span>。两类路径由可测的二次变差事件区分，因而当两扩散系数不同时，两条连续路径律互相奇异，路径 KL 为无穷。Girsanov 定理可改变漂移，不能改变这个二次变差。</p>
+<p>若只观察 <span class="arithmatex">\(n\)</span> 个等距增量，每个增量分别服从 <span class="arithmatex">\(N(0,\varepsilon T/n)\)</span> 与 <span class="arithmatex">\(N(0,\widetilde\varepsilon T/n)\)</span>。令 <span class="arithmatex">\(r=\varepsilon/\widetilde\varepsilon\)</span>，独立增量的 KL 相加为</p>
+<div class="arithmatex">\[
+D(R_\varepsilon^{(n)}\|R_{\widetilde\varepsilon}^{(n)})
+=\frac n2\left(r-1-\log r\right).
+\]</div>
+<p><span class="arithmatex">\(r\ne1\)</span> 时括号严格为正，所以网格加密后线性发散。终端只保留增量总和，丢掉了能辨认二次变差的大量路径信息；它的有限 KL 不能代替连续路径 KL。</p>
+</details>
+<h2 id="9-schrodinger">9. 这是不是已经解了任意 Schrödinger 桥？<a class="headerlink" href="#9-schrodinger" title="Permanent link"></a></h2>
+<p>不是。本讲给定一个终端势 <span class="arithmatex">\(g\)</span>，它自动决定终端分布</p>
+<div class="arithmatex">\[
+dP_T\propto g\,dR_T.
+\]</div>
+<p>若题目反过来指定任意终端边缘，必须先检查它对 <span class="arithmatex">\(R_T\)</span> 的绝对连续性并求出相应密度；若初、终两端边缘都需要同时调整，通常还要解一对 Schrödinger 势的耦合问题。本讲初点固定为双方共同的 <span class="arithmatex">\(\delta_0\)</span>，只做单侧终端倾斜。</p>
+<p>同样，本页的高斯闭式依赖线性 Brownian 参考与二次终端势。一般扩散、路径依赖势、状态约束或不可积权重，需要重新检查 <span class="arithmatex">\(h\)</span> 的存在、正则性、密度鞅与能量有限性。公式的形状可以提示方向，不能替代这些条件。</p>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>终端正权重 <span class="arithmatex">\(g(X_T)\)</span> → 条件期望 <span class="arithmatex">\(h(t,x)\)</span> → 正密度鞅 <span class="arithmatex">\(h(t,X_t)/h(0,0)\)</span> → Doob 漂移 <span class="arithmatex">\(u=\varepsilon\partial_x\log h\)</span> → 条件桥不变 → 路径 KL 等于终端 KL与平方漂移能量。下一步可回到<a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a>，区分“给定势产生端点”与“给定端点反求势”。</p>
+<p>路径相对熵、条件桥分解与 Schrödinger 问题的系统背景见 <a href="https://arxiv.org/abs/1308.0215">Léonard 的综述</a>；有限熵扩散的漂移观点可追溯到 <a href="https://www.math.hu-berlin.de/~foellmer/publications.html">Föllmer 的论文目录与原始文献</a>；Doob 变换的时空调和函数与条件过程公式可对照 <a href="https://wt.iam.uni-bonn.de/fileadmin/WT/Inhalt/people/Patrik_Ferrari/Lectures/WS14StochAnal/Doobhtransform.pdf">Bonn 随机分析讲义</a>。本讲闭式已由高斯积分、生成元与矩方程三条路径交叉核对。资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-10-markov-paths.html"><span class="pager-label">上一页</span>基础 X · Markov 桥与路径枚举</a>
+  <a class="pager-slot next" href="route-01-derived-readiness.html"><span class="pager-label">下一页</span>路线验收 · 整数分解到导出观点</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-control.js?v=d44ac62807d6"></script>
+</body>
+</html>
