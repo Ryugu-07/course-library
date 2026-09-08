@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:12</div>
   </div>
 </nav>
 <main id="content">
@@ -277,6 +277,14 @@ dX_t=b(X_t,t)\,dt+\sigma(X_t,t)\,dW_t,
 <li>将 tent 换成一个有正有负、积分为 <span class="arithmatex">\(0\)</span> 的紧支撑函数。哪一步正性证明失效？能否构造某个观测点让热卷积恰好为 <span class="arithmatex">\(0\)</span>？</li>
 <li>从 <span class="arithmatex">\(\widehat u(k,t)=e^{-\kappa k^2t}\widehat\varphi(k)\)</span> 解释逆热问题的条件数为什么随最高频率指数爆炸，并写出一个必须的正则化想法。</li>
 </ol>
+<details>
+<summary>迁移题参考答案</summary>
+<ol>
+<li>输运解为 <span class="arithmatex">\(u(x,t)=\varphi(x-ct)\)</span>。平移不改变 Lebesgue 测度，所以 <span class="arithmatex">\(1\le p&lt;\infty\)</span> 时换元 <span class="arithmatex">\(y=x-ct\)</span> 得 <span class="arithmatex">\(\|u(\cdot,t)\|_p^p=\int|\varphi(y)|^pdy\)</span>；<span class="arithmatex">\(p=\infty\)</span> 时本质上确界也不变。热方程则是 <span class="arithmatex">\(u=G_t*\varphi\)</span>，其中 <span class="arithmatex">\(G_t\ge0\)</span> 且 <span class="arithmatex">\(\|G_t\|_1=1\)</span>，Young 不等式给 <span class="arithmatex">\(\|u\|_p\le\|\varphi\|_p\)</span>。通常是收缩而非守恒：例如非恒定初值的峰值会被平均压低；对任意 <span class="arithmatex">\(\varphi\in L^1\)</span>，有符号总量 <span class="arithmatex">\(\int u=\int\varphi\)</span> 都由 Fubini 定理和 <span class="arithmatex">\(\int G_t=1\)</span> 保持；若初值还非负，这才同时是 <span class="arithmatex">\(L^1\)</span> 范数守恒。变号初值的正负部分可能相消，<span class="arithmatex">\(\|u\|_1\)</span> 只保证不增。</li>
+<li>正性证明在“被积函数 <span class="arithmatex">\(G_t(x-y)\varphi(y)\)</span> 处处非负”这一步失效。可取非零奇函数 <span class="arithmatex">\(\varphi\)</span>，令其紧支撑且积分为 <span class="arithmatex">\(0\)</span>；因 <span class="arithmatex">\(G_t\)</span> 为偶函数，<span class="arithmatex">\((G_t*\varphi)(0)=0\)</span>。这说明无限传播不等于解在每点都严格为正，后者需要非负且非零等条件。</li>
+<li>截止到最高频率 <span class="arithmatex">\(K\)</span> 时，反演要把第 <span class="arithmatex">\(k\)</span> 模态乘以 <span class="arithmatex">\(e^{\kappa k^2t}\)</span>，最坏放大因子约为 <span class="arithmatex">\(e^{\kappa K^2t}\)</span>；数据中的微小高频噪声会压过信号。一个基本修复是谱截断，只反演 <span class="arithmatex">\(|k|\le K_c\)</span>；也可用 Tikhonov 正则化，以拟合终态和惩罚初态粗糙度之间的权衡替代裸逆算子。<span class="arithmatex">\(K_c\)</span> 或正则化强度必须随噪声水平选择。</li>
+</ol>
+</details>
 <hr />
 <p><em>本页的主线：双曲型方程先问“依赖锥到没到”，抛物型方程先问“卷积核的符号与频率衰减是什么”。下一步可把这些全直线公式带到有界域的谱展开与数值离散。</em></p>
 </article>

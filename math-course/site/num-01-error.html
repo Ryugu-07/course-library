@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 05:37</div>
   </div>
 </nav>
 <main id="content">
@@ -166,6 +166,10 @@ E(h)\approx C_1h^2+C_2\frac{\varepsilon_{\rm mach}}{h}.
 <p>设算法返回 <span class="arithmatex">\(\widehat y\)</span>。前向误差比较 <span class="arithmatex">\(\widehat y\)</span> 与精确 <span class="arithmatex">\(f(x)\)</span>；后向误差寻找一个小扰动 <span class="arithmatex">\(\Delta x\)</span>，使 <span class="arithmatex">\(\widehat y=f(x+\Delta x)\)</span>。若算法后向稳定，仍只能得到“前向误差约为条件数乘后向误差”的结论。于是诊断顺序是：先问输入问题是否病态，再问算法是否额外放大误差。</p>
 <h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
 <p>softmax 的直接式含有 <span class="arithmatex">\(e^{x_i}\)</span>，大正数会溢出。证明把所有 logits 同减 <span class="arithmatex">\(m=\max_i x_i\)</span> 不改变 softmax，再解释这属于稳定改写而不是改善 softmax 问题的条件数。若输入本身只精确到 fp16，改写还能挽回哪些误差，不能挽回哪些？</p>
+<details>
+<summary>迁移题参考答案</summary>
+<p>对每个 <span class="arithmatex">\(i\)</span>，<span class="arithmatex">\(e^{x_i-m}/\sum_j e^{x_j-m}=e^{-m}e^{x_i}/(e^{-m}\sum_j e^{x_j})=e^{x_i}/\sum_j e^{x_j}\)</span>，所以减去最大值在精确算术中不改变答案。数值上最大的指数变为 <span class="arithmatex">\(1\)</span>，其余都在 <span class="arithmatex">\((0,1]\)</span>，从而避免大正 logits 的指数溢出，并把不可避免的下溢集中到本来就极小的概率项；log-sum-exp 也同理稳定。它修的是求值算法，不会恢复输入量化时已经丢失的信息：若两个 logits 在 fp16 中已舍入成同一个数，或小差异已被吞掉，后续平移无法把差异找回来；病态输入扰动对输出的敏感性也不会被代数恒等式消除。</p>
+</details>
 </section>
 <h2 id="1">1. 误差的来源与度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>四个来源</strong>：模型误差（数学模型 ≠ 现实）、观测误差（数据本身带噪）、<strong>截断误差</strong>（无穷过程砍成有限：Taylor 截断、迭代提前停）、<strong>舍入误差</strong>（有限位表示）。数值分析主管后两个。</p>

@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:16</div>
   </div>
 </nav>
 <main id="content">
@@ -177,10 +177,15 @@ X_{n+1}=X_n+b(X_n,t_n)h+\sigma(X_n,t_n)\sqrt{h}\,Z_n,
 \]</div>
 <p>这三行乘法表是整门课的新增内容，其余全是老微积分带着它重跑一遍。</p>
 <h2 id="2-ito">2. Itô 积分<a class="headerlink" href="#2-ito" title="Permanent link"></a></h2>
-<p><strong>定义思想</strong>：<span class="arithmatex">\(\int_0^t f(s)\,dB_s = \lim \sum f(t_i)\big(B_{t_{i+1}} - B_{t_i}\big)\)</span>——被积函数在<strong>左端点</strong>取值。这不是品味是原则：<span class="arithmatex">\(f(t_i)\)</span> 只能用到 <span class="arithmatex">\(t_i\)</span> 之前的信息（<strong>适应性/不可预见性</strong>——赌注必须在开牌前下好；金融语义：交易策略不能偷看未来价格。你预测层的 forward-only 铁律，在此是定义的一部分而非附加纪律）。</p>
+<p><strong>定义思想</strong>：先对简单可预测过程 <span class="arithmatex">\(H_s=\sum_i\xi_i1_{(t_i,t_{i+1}]}(s)\)</span> 定义</p>
+<div class="arithmatex">\[
+\int_0^t H_s\,dB_s=\sum_i\xi_i(B_{t_{i+1}}-B_{t_i}),\qquad \xi_i\in L^2(\mathcal F_{t_i}).
+\]</div>
+<p>系数在每段开始时就已确定。对满足 <span class="arithmatex">\(E\int_0^t f_s^2ds&lt;\infty\)</span> 的可预测过程 <span class="arithmatex">\(f\)</span>，选简单过程 <span class="arithmatex">\(H^{(n)}\to f\)</span> 于 <span class="arithmatex">\(L^2(\Omega\times[0,t])\)</span>，再用下述等距性定义积分的 <span class="arithmatex">\(L^2(\Omega)\)</span> 极限；它不依赖所选近似。</p>
+<p><strong>不能把一般积分当成任意左端采样。</strong> 对连续且满足适当平方可积控制的适应过程，左端阶梯近似通常可行；一般可预测 <span class="arithmatex">\(L^2\)</span> 过程却只按几乎处处等价类定义。例如在 <span class="arithmatex">\([0,1]\)</span> 上取确定性 <span class="arithmatex">\(f_s=1_{\mathbb Q}(s)\)</span>，其积分为零；若所有分割点为有理数，直接取 <span class="arithmatex">\(f_{t_i}\)</span> 却给出 <span class="arithmatex">\(B_1\)</span>。这说明需要的是 <span class="arithmatex">\(L^2\)</span> 近似，不是无条件逐点采样。</p>
 <p><strong>两条基本性质</strong>：</p>
 <ul>
-<li><strong>鞅性</strong>：<span class="arithmatex">\(E\big[\int_0^t f\,dB\big] = 0\)</span>（左端点取值 × 零均值增量——"公平赌博的累积盈亏期望为零"）；</li>
+<li><strong>鞅性</strong>：在上述平方可积条件下，<span class="arithmatex">\(M_t=\int_0^t f_s\,dB_s\)</span> 是平方可积鞅，因而 <span class="arithmatex">\(E[M_t]=0\)</span>；若只假设局部平方可积，则通常只能先得到<strong>连续局部鞅</strong>，不能未经一致可积或其他积分性条件就升级成真鞅；</li>
 <li><strong>Itô 等距</strong>：<span class="arithmatex">\(E\Big[\big(\int_0^t f\,dB\big)^2\Big] = E\Big[\int_0^t f^2\,ds\Big]\)</span>——随机积分的"勾股定理"（<span class="arithmatex">\(L^2\)</span> 理论的地基，方差可算）。</li>
 </ul>
 <p>（<strong>Stratonovich 积分</strong>一嘴：取中点的另一种定义，保持经典链式法则但失去鞅性——物理惯用；金融与概率统一用 Itô，两者可互换转换。）</p>
@@ -214,6 +219,7 @@ S_t = S_0\exp\Big[\Big(\mu - \frac{\sigma^2}{2}\Big)t + \sigma B_t\Big]
 <p><strong>例 3（验证乘法表）</strong> <span class="arithmatex">\(d(tB_t) = B\,dt + t\,dB + \underbrace{dt\,dB}_{=0}\)</span>——交叉项按乘法表归零，分部积分公式 <span class="arithmatex">\(\int_0^t s\,dB_s = tB_t - \int_0^t B\,ds\)</span> 成立（此例无修正项：<span class="arithmatex">\(f = tx\)</span> 对 <span class="arithmatex">\(x\)</span> 线性，<span class="arithmatex">\(f_{xx} = 0\)</span>——<strong>修正项只找弯曲的函数</strong>）。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：让方程整个随机化——SDE、OU 过程与 Fokker–Planck 方程，并与扩散模型正式对账。</em></p>
+<p><strong>积分构造来源：</strong>北京大学李东风 <a href="https://math.pku.edu.cn/teachers/lidf/course/stochproc/stochprocnotes/html/_book/stocint.html">《应用随机过程》§8.2</a> 给出简单可料过程、等距延拓与版本约定。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="info-03-maxent-channel.html"><span class="pager-label">上一页</span>信息论 III · 最大熵与信道容量</a>

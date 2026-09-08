@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:12</div>
   </div>
 </nav>
 <main id="content">
@@ -119,28 +119,28 @@ N' = rN\Big(1 - \frac{N}{K}\Big) \quad\Rightarrow\quad N(t) = \frac{K}{1 + Ce^{-
 \]</div>
 <p>定性分析不解方程已知全局（ode-01 相线：<span class="arithmatex">\(N = K\)</span> 稳定平衡）；无量纲化后无参数（model-01 例 3）。<strong>S 曲线的普适性</strong>：技术扩散、市场渗透、菌落生长——"先指数后饱和"是资源受限增长的通用形状（产品渗透率预测的第一模型）。</p>
 <h2 id="2-sir">2. SIR 传染病模型（本页主菜）<a class="headerlink" href="#2-sir" title="Permanent link"></a></h2>
-<p><strong>假设</strong>：人群分三仓 <span class="arithmatex">\(S\)</span>（易感）<span class="arithmatex">\(I\)</span>（感染）<span class="arithmatex">\(R\)</span>（移出），总数不变；感染速率 <span class="arithmatex">\(\propto S \times I\)</span>（充分混合），康复速率 <span class="arithmatex">\(\propto I\)</span>：</p>
+<p><strong>假设</strong>：下面统一使用人口比例 <span class="arithmatex">\(s=S/N,i=I/N,r=R/N\)</span>，所以 <span class="arithmatex">\(s+i+r=1\)</span>；<span class="arithmatex">\(\beta\)</span> 是每名感染者的有效接触率，充分混合使感染通量为 <span class="arithmatex">\(\beta si\)</span>，康复通量为 <span class="arithmatex">\(\gamma i\)</span>：</p>
 <div class="arithmatex">\[
-S' = -\beta SI, \qquad I' = \beta SI - \gamma I, \qquad R' = \gamma I
+s'=-\beta si,\qquad i'=\beta si-\gamma i,\qquad r'=\gamma i
 \]</div>
 <p><strong>不解方程读出全部大局</strong>（ODE 定性分析的展销会）：</p>
 <ul>
-<li><strong>爆发判据</strong>：当 <span class="arithmatex">\(I&gt;0\)</span> 时，<span class="arithmatex">\(I'=I(\beta S-\gamma)&gt;0\iff S&gt;\gamma/\beta\)</span>；若 <span class="arithmatex">\(I=0\)</span>，则 <span class="arithmatex">\(I'=0\)</span>，无感染是一个不变状态。定义<strong>基本再生数</strong></li>
+<li><strong>爆发判据</strong>：当 <span class="arithmatex">\(i&gt;0\)</span> 时，<span class="arithmatex">\(i'=i(\beta s-\gamma)&gt;0\iff s&gt;\gamma/\beta\)</span>；若 <span class="arithmatex">\(i=0\)</span>，则 <span class="arithmatex">\(i'=0\)</span>，无感染是一个不变状态。全易感基准下的<strong>基本再生数</strong>与时变有效再生数分别为</li>
 </ul>
 <div class="arithmatex">\[
-R_0 = \frac{\beta S_0}{\gamma} \quad (\text{一个感染者在全易感人群中平均传染的人数})
+R_0=\frac{\beta}{\gamma},\qquad R_e(t)=R_0s(t).
 \]</div>
-<p>在初始感染为正且经典充分混合模型成立时，<span class="arithmatex">\(R_0&gt;1\)</span> 表示感染初期增长，<span class="arithmatex">\(R_0&lt;1\)</span> 表示初期衰减，<span class="arithmatex">\(R_0=1\)</span> 是一阶阈值边界（此时要看参数变化或更高阶行为，而不能喊“爆发”）。口罩、隔离与免疫分别通过接触率或有效易感比例改变这个阈值；它是模型内的中心参数，不是脱离假设的命运开关；</p>
+<p>一个感染者进入全易感人群时平均制造 <span class="arithmatex">\(R_0\)</span> 个继发感染；实际初始增长条件是 <span class="arithmatex">\(R_e(0)=R_0s_0&gt;1\)</span>。因此即使 <span class="arithmatex">\(R_0&gt;1\)</span>，若初始易感比例已经足够低，感染仍会衰减。<span class="arithmatex">\(R_e(0)=1\)</span> 是一阶阈值边界；口罩、隔离与免疫分别通过 <span class="arithmatex">\(\beta\)</span> 或 <span class="arithmatex">\(s\)</span> 改变它。这个数是模型内参数，不是脱离假设的命运开关；</p>
 <ul>
-<li><strong>群体免疫阈值</strong>：使 <span class="arithmatex">\(R_0^{\text{eff}} &lt; 1\)</span> 需免疫比例 <span class="arithmatex">\(&gt; 1 - \frac{1}{R_0}\)</span>（<span class="arithmatex">\(R_0 = 3 \Rightarrow\)</span> 67%）——一行代数，公共卫生政策的地基；</li>
-<li><strong>疫情不会感染所有人</strong>：<span class="arithmatex">\(S\)</span> 降到 <span class="arithmatex">\(\gamma/\beta\)</span> 后疫情转衰，最终规模由超越方程定（首次积分 <span class="arithmatex">\(\frac{dI}{dS} = -1 + \frac{\gamma}{\beta S}\)</span> 给守恒量——ode-03 的手法）。</li>
+<li><strong>群体免疫阈值</strong>：在同质混合、疫苗完全阻断感染等理想条件下，使 <span class="arithmatex">\(R_e&lt;1\)</span> 需免疫比例 <span class="arithmatex">\(&gt;1-1/R_0\)</span>（<span class="arithmatex">\(R_0=3\Rightarrow67\%\)</span>）；现实中的异质接触和效力衰减会改写这个阈值；</li>
+<li><strong>感染人数何时转降？</strong> 在 <span class="arithmatex">\(\beta,\gamma&gt;0\)</span>、<span class="arithmatex">\(s_0&gt;0,i_0&gt;0\)</span> 的封闭 SIR 模型中，<span class="arithmatex">\(i\)</span> 在 <span class="arithmatex">\(s&lt;\gamma/\beta\)</span> 时下降；若初始已低于阈值，就从一开始下降。用比例记号除去时间得 <span class="arithmatex">\(di/ds=-1+\gamma/(\beta s)\)</span>，所以 <span class="arithmatex">\(i+s-(\gamma/\beta)\log s\)</span> 守恒。令 <span class="arithmatex">\(i_\infty=0\)</span>，得到 <span class="arithmatex">\(s_\infty-(\gamma/\beta)\log s_\infty=i_0+s_0-(\gamma/\beta)\log s_0\)</span>；最终仍有 <span class="arithmatex">\(s_\infty&gt;0\)</span> 的易感者。这里的 <span class="arithmatex">\(s,i\)</span> 都是比例，不能把人数 <span class="arithmatex">\(S,I\)</span> 直接代入同一式。</li>
 </ul>
 <p><strong>模型的谱系繁殖</strong>：加仓室（SEIR 潜伏期）、加网络（放弃充分混合——图上的传染）、加随机（小人群用 Markov 链，随机过程 II）——"从骨架模型逐层加真"的教科书路径。信息传播/爆款扩散同构套用（"病毒式传播"是数学同构不是修辞）。</p>
 <h2 id="3-lotkavolterra-">3. Lotka–Volterra 捕食者-猎物<a class="headerlink" href="#3-lotkavolterra-" title="Permanent link"></a></h2>
 <div class="arithmatex">\[
 x' = x(a - by), \qquad y' = y(-c + dx) \qquad (x \text{ 兔}, y \text{ 狐})
 \]</div>
-<p>结论（ode-03 已证）：闭轨道永恒振荡，且<strong>轨道平均恰为平衡点</strong> <span class="arithmatex">\((\bar x, \bar y) = (c/d,\ a/b)\)</span>。<strong>Volterra 原理</strong>（历史出发点：一战后亚得里亚海鲨鱼比例为何上升）：<strong>无差别捕捞（<span class="arithmatex">\(a \downarrow, c \uparrow\)</span>）反而提高捕食者平衡占比的猎物端</strong>——直觉难及、模型一眼：干预生态系统的后果常反直觉，先算再动手。农药悖论（喷药后害虫反弹更凶）同款机理。</p>
+<p>结论（ode-03 已证）：闭轨道永恒振荡，且<strong>轨道平均恰为平衡点</strong> <span class="arithmatex">\((\bar x,\bar y)=(c/d,a/b)\)</span>。若对猎物和捕食者施加同一按比例捕捞率 <span class="arithmatex">\(h\)</span>，方程变为 <span class="arithmatex">\(x'=x[(a-h)-by],\ y'=y[-(c+h)+dx]\)</span>，于是新平衡（也即闭轨道上的时间平均）为 <span class="arithmatex">\((\bar x_h,\bar y_h)=((c+h)/d,(a-h)/b)\)</span>，其中 <span class="arithmatex">\(0&lt;h&lt;a\)</span>。猎物平均数量增加、捕食者平均数量减少，这才是 <strong>Volterra 原理</strong> 的精确方向；并不是“捕食者占比上升”。模型解释了一战期间捕捞减弱后，捕食性鱼类比例为何可能上升，但真实生态还受年龄结构、季节和多物种网络影响。</p>
 <h2 id="4-mm1">4. 排队模型 M/M/1（随机过程的实战合成）<a class="headerlink" href="#4-mm1" title="Permanent link"></a></h2>
 <p><strong>假设</strong>：顾客 Poisson 到达（率 <span class="arithmatex">\(\lambda\)</span>，随机过程 I）、服务时间独立同分布为指数（率 <span class="arithmatex">\(\mu\)</span>）、单服务台、先来先服务、无限等待空间且不拒绝到达——队长是<strong>生灭 Markov 链</strong>（随机过程 II/III）。在这些条件和稳态口径下，记 <span class="arithmatex">\(\rho = \lambda/\mu\)</span>（利用率）；只有 <span class="arithmatex">\(\rho &lt; 1\)</span> 时才存在几何平稳分布 <span class="arithmatex">\(\pi_n = (1-\rho)\rho^n\)</span>，并有：</p>
 <div class="arithmatex">\[

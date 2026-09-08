@@ -1,14 +1,6 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var INSTANCE = 0;
   var EPS = 1e-9;
@@ -18,10 +10,12 @@
   var CONSTRAINT_LABELS = ["x=0", "y=0", "x+y=R"];
 
   var STYLE_TEXT = [
-    ".kkt-active-set-lab { --kkt-feasible: var(--cl-green, #39734d); --kkt-boundary: var(--cl-gold, #9b6a12); --kkt-target: var(--cl-red, #b64335); --kkt-optimum: var(--cl-blue, #315f9d); --kkt-gradient: var(--cl-red, #b64335); --kkt-balance: #7546a8; --kkt-muted: var(--fg-soft, #6f6a60); line-height: 1.5; min-width: 0; }",
+    ".kkt-active-set-lab { --kkt-feasible: var(--cl-green, #39734d); --kkt-boundary: var(--cl-gold, #9b6a12); --kkt-target: var(--cl-red, #b64335); --kkt-optimum: #315f9d; --kkt-gradient: var(--cl-red, #b64335); --kkt-balance: #7546a8; --kkt-muted: var(--fg-soft, #6f6a60); line-height: 1.5; min-width: 0; }",
     "html[data-theme=\"dark\"] .kkt-active-set-lab { --kkt-feasible: #72bd8b; --kkt-boundary: #e2b458; --kkt-target: #f08c7d; --kkt-optimum: #83c8ff; --kkt-gradient: #f08c7d; --kkt-balance: #c5a1ff; --kkt-muted: #b8b2a7; }",
+    ".kkt-active-set-lab select { min-height:44px; width:100%; font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--border); padding:8px; }",
+    ".kkt-active-set-lab [hidden] { display:none !important; }",
     ".kkt-active-set-lab *, .kkt-active-set-lab *::before, .kkt-active-set-lab *::after { box-sizing: border-box; }",
-    ".kkt-active-set-lab .kkt-layout { display: grid; grid-template-columns: minmax(210px, .72fr) minmax(0, 1.28fr); gap: 18px; align-items: start; }",
+    ".kkt-active-set-lab .kkt-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }",
     ".kkt-active-set-lab .kkt-controls, .kkt-active-set-lab .kkt-stage { min-width: 0; }",
     ".kkt-active-set-lab .kkt-controls { display: grid; gap: 12px; }",
     ".kkt-active-set-lab .kkt-controls h4 { margin: 0; }",
@@ -36,33 +30,33 @@
     ".kkt-active-set-lab button:focus-visible, .kkt-active-set-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
     ".kkt-active-set-lab .kkt-note, .kkt-active-set-lab .kkt-boundary-note { margin: 0; color: var(--kkt-muted); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
     ".kkt-active-set-lab .kkt-stage-title { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; color: var(--kkt-muted); font-size: 13px; }",
-    ".kkt-active-set-lab .kkt-stage-frame { max-width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow: hidden; }",
-    ".kkt-active-set-lab .kkt-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--fg); }",
+    ".kkt-active-set-lab .kkt-stage-frame { max-width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow-x: auto; }",
+    ".kkt-active-set-lab .kkt-svg { display: block; width: 100%; min-width: 620px; max-width: none; height: auto; color: var(--fg); }",
     ".kkt-active-set-lab .kkt-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
     ".kkt-active-set-lab .kkt-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }",
     ".kkt-active-set-lab .kkt-grid { fill: none; stroke: currentColor; stroke-opacity: .13; stroke-width: 1; }",
     ".kkt-active-set-lab .kkt-axis { fill: none; stroke: currentColor; stroke-opacity: .58; stroke-width: 1.35; }",
-    ".kkt-active-set-lab .kkt-axis-label { fill: var(--kkt-muted) !important; font-size: 11px; }",
+    ".kkt-active-set-lab .kkt-axis-label { fill: var(--kkt-muted) !important; font-size: 12px; }",
     ".kkt-active-set-lab .kkt-panel-title { fill: currentColor !important; font-size: 14px; font-weight: 700; }",
     ".kkt-active-set-lab .kkt-contour { fill: none; stroke: var(--kkt-boundary); stroke-width: 1.15; opacity: .42; }",
     ".kkt-active-set-lab .kkt-feasible-region { fill: var(--kkt-feasible); fill-opacity: .12; stroke: var(--kkt-feasible); stroke-width: 1.5; }",
     ".kkt-active-set-lab .kkt-edge { fill: none; stroke-linecap: round; stroke-linejoin: round; }",
     ".kkt-active-set-lab .kkt-edge-active { stroke: var(--kkt-boundary); stroke-width: 4.2; }",
     ".kkt-active-set-lab .kkt-edge-inactive { stroke: var(--kkt-muted); stroke-width: 1.35; stroke-dasharray: 4 4; opacity: .72; }",
-    ".kkt-active-set-lab .kkt-edge-label { fill: var(--kkt-boundary) !important; font-size: 11px; font-weight: 700; }",
+    ".kkt-active-set-lab .kkt-edge-label { fill: var(--kkt-boundary) !important; font-size: 12px; font-weight: 700; }",
     ".kkt-active-set-lab .kkt-q-link { fill: none; stroke: var(--kkt-target); stroke-width: 1.25; stroke-dasharray: 4 4; opacity: .72; }",
     ".kkt-active-set-lab .kkt-target-point { fill: var(--kkt-target); stroke: var(--bg); stroke-width: 2; }",
     ".kkt-active-set-lab .kkt-optimum-point { fill: var(--kkt-optimum); stroke: var(--bg); stroke-width: 2.2; }",
-    ".kkt-active-set-lab .kkt-target-label { fill: var(--kkt-target) !important; font-size: 11.5px; font-weight: 700; }",
-    ".kkt-active-set-lab .kkt-optimum-label { fill: var(--kkt-optimum) !important; font-size: 11.5px; font-weight: 700; }",
+    ".kkt-active-set-lab .kkt-target-label { fill: var(--kkt-target) !important; font-size: 12px; font-weight: 700; }",
+    ".kkt-active-set-lab .kkt-optimum-label { fill: var(--kkt-optimum) !important; font-size: 12px; font-weight: 700; }",
     ".kkt-active-set-lab .kkt-gradient-vector { fill: none; stroke: var(--kkt-gradient); stroke-width: 2.5; stroke-linecap: round; }",
     ".kkt-active-set-lab .kkt-balance-vector { fill: none; stroke: var(--kkt-balance); stroke-width: 2.5; stroke-linecap: round; }",
     ".kkt-active-set-lab .kkt-gradient-head { fill: var(--kkt-gradient); }",
     ".kkt-active-set-lab .kkt-balance-head { fill: var(--kkt-balance); }",
-    ".kkt-active-set-lab .kkt-vector-label { fill: var(--kkt-gradient) !important; font-size: 11px; font-weight: 700; }",
+    ".kkt-active-set-lab .kkt-vector-label { fill: var(--kkt-gradient) !important; font-size: 12px; font-weight: 700; }",
     ".kkt-active-set-lab .kkt-inset-title { fill: currentColor !important; font-size: 13px; font-weight: 700; }",
-    ".kkt-active-set-lab .kkt-inset-copy { fill: var(--kkt-muted) !important; font-size: 10.5px; }",
-    ".kkt-active-set-lab .kkt-inset-zero { fill: var(--kkt-balance) !important; font-size: 11px; font-weight: 700; }",
+    ".kkt-active-set-lab .kkt-inset-copy { fill: var(--kkt-muted) !important; font-size: 12px; }",
+    ".kkt-active-set-lab .kkt-inset-zero { fill: var(--kkt-balance) !important; font-size: 12px; font-weight: 700; }",
     ".kkt-active-set-lab .kkt-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 10px; color: var(--kkt-muted); font-size: 12px; }",
     ".kkt-active-set-lab .kkt-legend-item { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }",
     ".kkt-active-set-lab .kkt-legend-line { display: inline-block; width: 25px; height: 0; border-top: 3px solid currentColor; flex: 0 0 auto; }",
@@ -76,12 +70,12 @@
     ".kkt-active-set-lab .kkt-dot-optimum { background: var(--kkt-optimum); }",
     ".kkt-active-set-lab .kkt-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; margin-top: 12px; }",
     ".kkt-active-set-lab .kkt-metric { min-width: 0; padding: 9px 10px; border-top: 2px solid var(--border); background: var(--bg); }",
-    ".kkt-active-set-lab .kkt-metric span { display: block; color: var(--kkt-muted); font-size: 11.5px; line-height: 1.4; }",
+    ".kkt-active-set-lab .kkt-metric span { display: block; color: var(--kkt-muted); font-size: 12px; line-height: 1.4; }",
     ".kkt-active-set-lab .kkt-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
     ".kkt-active-set-lab .kkt-table-wrap { max-width: 100%; margin-top: 12px; overflow-x: auto; }",
     ".kkt-active-set-lab .kkt-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12.5px; }",
     ".kkt-active-set-lab .kkt-table th, .kkt-active-set-lab .kkt-table td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }",
-    ".kkt-active-set-lab .kkt-table th { color: var(--kkt-muted); font-size: 11.5px; font-weight: 650; }",
+    ".kkt-active-set-lab .kkt-table th { color: var(--kkt-muted); font-size: 12px; font-weight: 650; }",
     ".kkt-active-set-lab .kkt-table td:nth-child(2), .kkt-active-set-lab .kkt-table td:nth-child(3) { font-variant-numeric: tabular-nums; }",
     ".kkt-active-set-lab .kkt-row-active td:first-child { color: var(--kkt-boundary); font-weight: 700; }",
     ".kkt-active-set-lab .kkt-row-state-active { color: var(--kkt-boundary); font-weight: 700; }",
@@ -185,7 +179,7 @@
   }
 
   function isFeasible(x, y, R) {
-    return x >= -ACTIVE_EPS && y >= -ACTIVE_EPS && x + y <= R + ACTIVE_EPS;
+    return x >= 0 && y >= 0 && x + y <= R;
   }
 
   function addCandidate(candidates, a, b, x, y, source) {
@@ -195,15 +189,6 @@
       source: source,
       value: objective(a, b, x, y)
     });
-  }
-
-  function snapPoint(x, y, R) {
-    if (Math.abs(x) < ACTIVE_EPS) x = 0;
-    if (Math.abs(y) < ACTIVE_EPS) y = 0;
-    if (Math.abs(x - R) < ACTIVE_EPS) x = R;
-    if (Math.abs(y - R) < ACTIVE_EPS) y = R;
-    if (Math.abs(x + y - R) < ACTIVE_EPS) y = R - x;
-    return { x: clamp(x, 0, R), y: clamp(y, 0, R) };
   }
 
   function projectToTriangle(a, b, R) {
@@ -220,9 +205,9 @@
 
     var best = candidates[0];
     candidates.forEach(function (candidate) {
-      if (candidate.value < best.value - EPS) best = candidate;
+      if (candidate.value < best.value) best = candidate;
     });
-    var point = snapPoint(best.x, best.y, R);
+    var point = { x: best.x, y: best.y };
     return {
       x: point.x,
       y: point.y,
@@ -234,9 +219,9 @@
   function computeMultipliers(point, a, b, R) {
     var x = point.x;
     var y = point.y;
-    var atX = Math.abs(x) <= ACTIVE_EPS;
-    var atY = Math.abs(y) <= ACTIVE_EPS;
-    var atR = Math.abs(x + y - R) <= ACTIVE_EPS;
+    var atX = x === 0;
+    var atY = y === 0;
+    var atR = Math.abs(x + y - R) <= 8 * Number.EPSILON * Math.max(1, R);
     var lambdaX = 0;
     var lambdaY = 0;
     var lambdaR = 0;
@@ -395,7 +380,7 @@
         className: "kkt-axis-label",
         "text-anchor": "end"
       }),
-      svgText(api, box.left - 8, box.top - 9, "y", {
+      svgText(api, 25, 60, "y", {
         className: "kkt-axis-label",
         "text-anchor": "end"
       })
@@ -425,18 +410,6 @@
     addLine(api, children, mapper, 0, R, R, 0,
       "kkt-edge " + (result.active[2] ? "kkt-edge-active" : "kkt-edge-inactive"));
 
-    children.push(
-      svgText(api, mapper.sx(-0.17), mapper.sy(R * 0.52), "x=0", {
-        className: "kkt-edge-label",
-        "text-anchor": "end"
-      }),
-      svgText(api, mapper.sx(R * 0.53), mapper.sy(-0.2), "y=0", {
-        className: "kkt-edge-label"
-      }),
-      svgText(api, mapper.sx(R * 0.63), mapper.sy(R * 0.37 - 0.2), "x+y=R", {
-        className: "kkt-edge-label"
-      })
-    );
   }
 
   function addArrowMarker(api, id, headClass) {
@@ -463,7 +436,7 @@
     );
     var x = mapper.sx(result.point.x);
     var y = mapper.sy(result.point.y);
-    if (norm <= EPS) {
+    if (norm === 0) {
       children.push(
         svgText(api, x + 24, y - 12, "∇f=0", {
           className: "kkt-vector-label",
@@ -483,10 +456,6 @@
         x2: endX,
         y2: endY,
         "marker-end": "url(#" + markerId + ")"
-      }),
-      svgText(api, endX + 4, endY - 5, "∇f", {
-        className: "kkt-vector-label",
-        "text-anchor": "start"
       })
     );
   }
@@ -503,7 +472,7 @@
         className: "kkt-panel",
         x: x0,
         y: 10,
-        width: 142,
+        width: 162,
         height: 380,
         rx: 7
       }),
@@ -521,7 +490,7 @@
       })
     );
 
-    if (norm <= EPS) {
+    if (norm === 0) {
       children.push(
         makeSvg(api, "circle", {
           className: "kkt-optimum-point",
@@ -573,8 +542,8 @@
         "text-anchor": "start"
       }),
       svgText(api, x0 + 12, 243, "Σλ∇g = (" +
-        formatNumber(null, -result.gradient.x, 2) + ", " +
-        formatNumber(null, -result.gradient.y, 2) + ")", {
+        formatNumber(null, -result.lambda.x+result.lambda.R, 2) + ", " +
+        formatNumber(null, -result.lambda.y+result.lambda.R, 2) + ")", {
         className: "kkt-inset-copy",
         "text-anchor": "start"
       }),
@@ -661,7 +630,9 @@
         mapper.sx(0) + "," + mapper.sy(result.R)
       ].join(" ")
     }));
-    addLine(api, [clipped], mapper, result.a, result.b, result.point.x, result.point.y, "kkt-q-link");
+    var links = [];
+    addLine(api, links, mapper, result.a, result.b, result.point.x, result.point.y, "kkt-q-link");
+    appendChildren(clipped, links);
     children.push(clipped);
     drawEdges(api, children, mapper, result);
     drawPlotVector(api, children, mapper, result, ids.gradientMarker);
@@ -673,7 +644,7 @@
         cy: mapper.sy(result.b),
         r: 5.5
       }),
-      svgText(api, mapper.sx(result.a) + 8, mapper.sy(result.b) - 9, "q=" +
+      svgText(api, 44, 428, "q=" +
         formatPoint(api, result.a, result.b), {
         className: "kkt-target-label",
         "text-anchor": "start"
@@ -684,7 +655,7 @@
         cy: mapper.sy(result.point.y),
         r: 6.5
       }),
-      svgText(api, mapper.sx(result.point.x) + 9, mapper.sy(result.point.y) + 17, "z*=" +
+      svgText(api, 240, 428, "z*=" +
         formatPoint(api, result.point.x, result.point.y), {
         className: "kkt-optimum-label",
         "text-anchor": "start"
@@ -797,7 +768,7 @@
       balanceMarker: instanceId + "-balance-marker"
     };
     var first = getPreset("interior");
-    var state = { presetId: first.id, a: first.a, b: first.b, R: first.R };
+    var state = { presetId: first.id, a: first.a, b: first.b, R: first.R, revealed: false };
     var refs = { presetButtons: [], rows: [], checks: [] };
 
     clear(root);
@@ -822,17 +793,18 @@
       var button = makeElement(api, "button", {
         type: "button",
         "aria-pressed": preset.id === state.presetId ? "true" : "false",
-        "aria-label": "选择" + preset.description + "，目标点" +
+        "aria-label": "目标点" +
           formatPoint(null, preset.a, preset.b) + "，资源 R=" + preset.R
-      }, [preset.label]);
+      }, ["参数组 " + (PRESETS.indexOf(preset) + 1)]);
       button.addEventListener("click", function () {
         state.presetId = preset.id;
         state.a = preset.a;
         state.b = preset.b;
         state.R = preset.R;
         setInputs();
+        lock();
         update();
-        announce(api, root, "已切换到" + preset.description + "，目标点" +
+        announce(api, root, "已切换参数，目标点" +
           formatPoint(api, state.a, state.b) + "，资源 R=" + formatNumber(api, state.R, 1));
       });
       refs.presetButtons.push({ id: preset.id, button: button });
@@ -870,17 +842,37 @@
       state.b = preset.b;
       state.R = preset.R;
       setInputs();
+      lock();
       update();
-      announce(api, root, "已恢复" + preset.label + "预设");
+      announce(api, root, "已恢复参数；请重新预测");
     });
     controls.appendChild(reset);
     controls.appendChild(makeElement(api, "p", { className: "kkt-note" }, [
       "滑块支持 Tab 聚焦和方向键微调；粗边只表示约束等号成立，乘子表会另外显示哪些边真正提供法向量平衡。"
     ]));
 
+    var prediction = makeElement(api, "select", { "aria-label": "活动集预测" }, []);
+    [["", "请选择活动集"]].concat([
+      ["none", "无活动约束"], ["0", "仅 x=0"], ["1", "仅 y=0"], ["2", "仅 x+y=R"],
+      ["0,1", "x=0 与 y=0"], ["1,2", "y=0 与资源边"], ["0,2", "x=0 与资源边"]
+    ]).forEach(function (item) { prediction.appendChild(makeElement(api, "option", { value:item[0] }, [item[1]])); });
+    var feedback = makeElement(api, "p", { className:"kkt-status", "aria-live":"polite" }, ["先选活动集，再揭示几何与乘子。"]);
+    var reveal = makeElement(api, "button", { type:"button", className:"kkt-primary" }, ["揭示 KKT 证书"]);
+    controls.appendChild(prediction); controls.appendChild(reveal); controls.appendChild(feedback);
+    prediction.addEventListener("change", function () { state.revealed=false; stage.hidden=true; feedback.textContent="预测已修改，请重新揭示。"; });
+    reveal.addEventListener("click", function () {
+      if (!prediction.value) { feedback.textContent="请先选择活动集。"; prediction.focus(); return; }
+      var result=solve(state.a,state.b,state.R);
+      var key=result.active.map(function(v,i){return v?i:null;}).filter(function(v){return v!==null;}).join(",") || "none";
+      state.revealed=true; stage.hidden=false;
+      feedback.textContent=prediction.value===key ? "活动集预测正确；再核对乘子是否为正。" : "活动集需修正；请对照粗边与约束值检查。";
+      update();
+    });
+    function lock() { state.revealed=false; stage.hidden=true; prediction.value=""; feedback.textContent="参数已改变；请重新预测。"; }
+
     var svg = makeSvg(api, "svg", {
       className: "kkt-svg",
-      viewBox: "0 0 540 400",
+      viewBox: "0 0 560 440",
       role: "img",
       "aria-labelledby": ids.title + " " + ids.desc
     });
@@ -971,7 +963,8 @@
       "aria-label": "KKT 活动集几何和残差"
     }, [
       stageTitle,
-      makeElement(api, "div", { className: "kkt-stage-frame" }, [svg]),
+      makeElement(api, "p", { className:"kkt-note" }, ["图中坐标等比例；箭头统一长度，只示方向。窄屏可聚焦图框后左右滚动。活动集显示采用 1e−7 容差，乘子另行计算。"]),
+      makeElement(api, "div", { className: "kkt-stage-frame", tabindex: "0", role: "region", "aria-label": "KKT 图，窄屏可左右滚动" }, [svg]),
       legend,
       metrics,
       makeElement(api, "div", { className: "kkt-table-wrap" }, [table]),
@@ -981,6 +974,7 @@
       boundary
     ]);
 
+    stage.hidden = true;
     root.appendChild(heading);
     root.appendChild(intro);
     root.appendChild(makeElement(api, "div", { className: "kkt-layout" }, [
@@ -1062,16 +1056,19 @@
     sliderA.input.addEventListener("input", function () {
       state.presetId = "";
       state.a = clamp(Number(sliderA.input.value), -1.5, 6.5);
+      lock();
       update();
     });
     sliderB.input.addEventListener("input", function () {
       state.presetId = "";
       state.b = clamp(Number(sliderB.input.value), -1.5, 6.5);
+      lock();
       update();
     });
     sliderR.input.addEventListener("input", function () {
       state.presetId = "";
       state.R = clamp(Number(sliderR.input.value), 1, 6);
+      lock();
       update();
     });
     sliderA.input.addEventListener("change", function () {
@@ -1088,5 +1085,6 @@
     update();
   }
 
-  window.CourseLearning.register("kkt-active-set", buildLab);
+  if (typeof module === "object" && module.exports) module.exports = { solve:solve, projectToTriangle:projectToTriangle, objective:objective, PRESETS:PRESETS, mount:buildLab };
+  if (typeof window !== "undefined" && window.CourseLearning) window.CourseLearning.register("kkt-active-set", buildLab);
 }());

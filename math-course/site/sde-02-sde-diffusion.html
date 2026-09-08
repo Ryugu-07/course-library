@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:12</div>
   </div>
 </nav>
 <main id="content">
@@ -147,7 +147,7 @@ E_{\mathrm{w}}(h;\varphi)=
 \]</div>
 <p>前者比较同一噪声下的路径，后者只比较分布对测试函数的期望；它们不是同一个误差。标准结论也必须带前提：在全局 Lipschitz、线性增长等常见条件下，连续时间 EM 的 <span class="arithmatex">\(L^p\)</span> 路径/终点强误差通常是 <span class="arithmatex">\(O(h^{1/2})\)</span>；在系数、初值和测试函数足够光滑并满足相应增长条件时，弱误差通常是 <span class="arithmatex">\(O(h)\)</span>。这些阶数不是无条件口号。OU 的扩散系数是常数，固定终点的强误差还可能出现更高的特殊阶；这不能外推为一般乘性噪声 SDE 的结论。</p>
 <h3 id="4">4. 动手验证：路径账本、分布账本与收敛账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>下方实验的默认参数是 <span class="arithmatex">\(T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85\)</span>，固定 <span class="arithmatex">\(256\)</span> 条轨迹和固定种子。调节步长层级、选择一条路径，再按下重置观察：</p>
+<p>下方实验的默认参数是 <span class="arithmatex">\(T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85\)</span>，固定 <span class="arithmatex">\(256\)</span> 条轨迹和固定种子。先预测哪种噪声标度能保留非退化扩散，再揭示三本账；改变步长层级会隐藏旧结果并要求重新预测，选择不同路径则只是在同一已揭示账本中浏览：</p>
 <ol>
 <li><strong>单路径账本</strong>：蓝线使用 <span class="arithmatex">\(\sqrt{h}Z\)</span>，红线故意使用 <span class="arithmatex">\(hZ\)</span>，两者共享同一组聚合噪声；绿色虚线是解析均值 <span class="arithmatex">\(m_t\)</span>，不是某条“真实路径”。</li>
 <li><strong>分布账本</strong>：蓝/红直方图分别是正确与错误标度的终点样本；绿色曲线是 <span class="arithmatex">\(N(m_T,v_T)\)</span> 的解析密度。表格同时列出经验均值、经验方差与解析值，密度按“每单位 <span class="arithmatex">\(x\)</span>”归一化。</li>
@@ -155,7 +155,7 @@ E_{\mathrm{w}}(h;\varphi)=
 </ol>
 <p>先把层级从粗调到细，回答：正确标度的分布宽度是否保持在解析方差附近？错误标度是否塌向均值？再换一条路径，检查“单条路径长得像均值”是不是一个可靠判断。最后看收敛图，并说明为什么最高层参考和固定噪声耦合仍然只是有限实验设计。</p>
 <div class="learning-lab" data-learning-lab="sde-path-distribution">
-<p><strong>无 JavaScript 时的静态读法：</strong>实验固定 <span class="arithmatex">\(T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85\)</span>，由确定性 PRNG 生成 <span class="arithmatex">\(256\)</span> 条最高层高斯噪声，再聚合为粗步长；重置会回到相同噪声账本。正确 EM 每步加入 <span class="arithmatex">\(\sigma\sqrt h Z\)</span>，错误对照加入 <span class="arithmatex">\(\sigma hZ\)</span>。单路径图应显示错误版本随 <span class="arithmatex">\(h\to0\)</span> 失去随机宽度；终点直方图应与 OU 的 <span class="arithmatex">\(N(m_T,v_T)\)</span> 对账，其中 <span class="arithmatex">\(m_T=x_0e^{-\theta T}\)</span>、<span class="arithmatex">\(v_T=\frac{\sigma^2}{2\theta}(1-e^{-2\theta T})\)</span>。收敛图把共享噪声下的强 RMS 与 <span class="arithmatex">\(\varphi(x)=x\)</span> 的精确 EM 弱偏差分开；直方图中的 ensemble 均值和方差仍只是有限 Monte Carlo 估计。有限的 <span class="arithmatex">\(256\)</span> 个样本、有限最高层和一条 PRNG 序列只能说明这个可复现实验的账本，不能证明 Fokker–Planck PDE、EM 收敛定理或“几乎处处”结论。</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>实验固定 <span class="arithmatex">\(T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85\)</span>，由确定性 PRNG 生成 <span class="arithmatex">\(256\)</span> 条最高层高斯噪声，再聚合为粗步长；重置会回到相同噪声账本。预测题的答案来自方差账：<span class="arithmatex">\(N=T/h\)</span> 个 <span class="arithmatex">\(\sqrt hZ\)</span> 增量累计方差为 <span class="arithmatex">\(Nh=T\)</span>，而 <span class="arithmatex">\(hZ\)</span> 的累计方差为 <span class="arithmatex">\(Nh^2=Th\to0\)</span>。正确 EM 每步加入 <span class="arithmatex">\(\sigma\sqrt h Z\)</span>，错误对照加入 <span class="arithmatex">\(\sigma hZ\)</span>。单路径图应显示错误版本随 <span class="arithmatex">\(h\to0\)</span> 失去随机宽度；终点直方图应与 OU 的 <span class="arithmatex">\(N(m_T,v_T)\)</span> 对账，其中 <span class="arithmatex">\(m_T=x_0e^{-\theta T}\)</span>、<span class="arithmatex">\(v_T=\frac{\sigma^2}{2\theta}(1-e^{-2\theta T})\)</span>。收敛图把共享噪声下的强 RMS 与 <span class="arithmatex">\(\varphi(x)=x\)</span> 的精确 EM 弱偏差分开；直方图中的 ensemble 均值和方差仍只是有限 Monte Carlo 估计。有限的 <span class="arithmatex">\(256\)</span> 个样本、有限最高层和一条 PRNG 序列只能说明这个可复现实验的账本，不能证明 Fokker–Planck PDE、EM 收敛定理或“几乎处处”结论。</p>
 </div>
 <h3 id="5">5. 误区与边界：哪些读法会越界？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
@@ -196,6 +196,14 @@ L_t\varphi(x)=\mu(x,t)\varphi'(x)
 <li>把噪声改成 <span class="arithmatex">\(\sigma(X_t,t)dB_t\)</span>，你还会直接宣称 EM 强阶 <span class="arithmatex">\(1/2\)</span>、弱阶 <span class="arithmatex">\(1\)</span> 吗？请列出至少两项需要检查的系数/测试函数假设，并说明为什么同一噪声耦合仍是强误差比较的必要条件。</li>
 <li>在 VP-SDE 中用 <span class="arithmatex">\(s=T-t\)</span> 做反向采样时，写出 <span class="arithmatex">\(dY_s\)</span> 的漂移；再解释为什么“反向公式里的 <span class="arithmatex">\(dt\)</span> 为负”和“换成 <span class="arithmatex">\(ds&gt;0\)</span> 后漂移符号翻转”是同一个过程，而不是两个相互矛盾的答案。</li>
 </ol>
+<details>
+<summary>迁移题参考答案</summary>
+<ol>
+<li>令 <span class="arithmatex">\(Y_t=X_t-a\)</span>，则 <span class="arithmatex">\(dY_t=-\theta Y_tdt+\sigma dB_t\)</span>。若 <span class="arithmatex">\(X_0\)</span> 为常数，<span class="arithmatex">\(E[X_t]=a+(X_0-a)e^{-\theta t}\)</span> 且 <span class="arithmatex">\(\operatorname{Var}(X_t)=\frac{\sigma^2}{2\theta}(1-e^{-2\theta t})\)</span>。当 <span class="arithmatex">\(\theta&gt;0\)</span> 时平稳分布为 <span class="arithmatex">\(N(a,\sigma^2/(2\theta))\)</span>。在标准适应 Itô 设定中，随机 <span class="arithmatex">\(X_0\)</span> 是 <span class="arithmatex">\(\mathcal F_0\)</span> 可测且平方可积，<span class="arithmatex">\(B\)</span> 相对该信息流是布朗运动，因此未来布朗增量已经独立于 <span class="arithmatex">\(X_0\)</span>。此时均值中的 <span class="arithmatex">\(X_0\)</span> 改为 <span class="arithmatex">\(E[X_0]\)</span>，方差再加 <span class="arithmatex">\(e^{-2\theta t}\operatorname{Var}(X_0)\)</span>。若让初值偷看未来噪声，就已离开这里的标准设定，不能直接沿用普通 Itô 理论。</li>
+<li>不能直接宣称阶数。常用强收敛结论要检查漂移和扩散系数的全局 Lipschitz、线性增长以及所取矩存在；弱一阶通常还要求系数和测试函数有足够阶的光滑导数与多项式增长控制。局部 Lipschitz、超线性增长、非光滑测试函数或退化边界都可能改写结论。同一噪声耦合让粗细离散共享同一条布朗路径，因而路径差才是强误差；各自独立抽噪声只是在比较两个样本。</li>
+<li>正向 VP 漂移为 <span class="arithmatex">\(f(x,t)=-\tfrac12\beta(t)x\)</span>。用递增反向时钟 <span class="arithmatex">\(s=T-t\)</span>，同一过程满足 <span class="arithmatex">\(dY_s=[\frac12\beta(T-s)Y_s+\beta(T-s)\nabla\log p_{T-s}(Y_s)]ds+\sqrt{\beta(T-s)}\,d\widetilde B_s\)</span>。原公式沿 <span class="arithmatex">\(t:T\to0\)</span> 积分时 <span class="arithmatex">\(dt=-ds\)</span>；换元把时间增量改成正的 <span class="arithmatex">\(ds\)</span>，漂移整体随之翻号，布朗增量则由反向时钟下的新布朗运动表示。两式只是坐标约定不同。</li>
+</ol>
+</details>
 </section>
 <h2 id="1-sde">1. SDE：带噪声的动力系统<a class="headerlink" href="#1-sde" title="Permanent link"></a></h2>
 <div class="arithmatex">\[

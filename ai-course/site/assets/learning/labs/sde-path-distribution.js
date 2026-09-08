@@ -28,6 +28,7 @@
 
   var STYLE_TEXT = [
     ".sde-path-distribution-lab { --sde-correct: var(--accent, #315f9d); --sde-wrong: var(--cl-red, #b64335); --sde-analytic: var(--cl-green, #39734d); --sde-weak: var(--cl-gold, #9b6a12); --sde-muted: var(--fg-soft, #6f6a60); --sde-grid: currentColor; line-height: 1.5; }",
+    ".sde-path-distribution-lab [hidden] { display: none !important; }",
     "html[data-theme='dark'] .sde-path-distribution-lab { --sde-correct: #83c8ff; --sde-wrong: #f08c7d; --sde-analytic: #72bd8b; --sde-weak: #e2b458; --sde-muted: #b8b2a7; }",
     ".sde-path-distribution-lab .sde-heading { margin: 0; }",
     ".sde-path-distribution-lab .sde-intro, .sde-path-distribution-lab .sde-note, .sde-path-distribution-lab .sde-status { color: var(--sde-muted); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
@@ -44,6 +45,12 @@
     ".sde-path-distribution-lab button:hover { border-color: var(--accent); }",
     ".sde-path-distribution-lab button[aria-pressed='true'], .sde-path-distribution-lab .sde-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }",
     ".sde-path-distribution-lab button:focus-visible, .sde-path-distribution-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
+    ".sde-path-distribution-lab .sde-predict { margin: 0 0 16px; padding: 12px 14px; border-left: 3px solid var(--sde-weak); background: var(--block-bg, var(--bg)); }",
+    ".sde-path-distribution-lab .sde-predict strong { display: block; margin-bottom: 9px; }",
+    ".sde-path-distribution-lab .sde-predict-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }",
+    ".sde-path-distribution-lab .sde-predict-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }",
+    ".sde-path-distribution-lab .sde-predict-actions button { flex: 1 1 180px; }",
+    ".sde-path-distribution-lab .sde-predict-feedback { min-height: 1.6em; margin: 8px 0 0; color: var(--sde-muted); font-size: 13px; font-weight: 650; }",
     ".sde-path-distribution-lab .sde-preset-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }",
     ".sde-path-distribution-lab .sde-preset-grid button { min-width: 0; padding-left: 5px; padding-right: 5px; font-size: 12.5px; }",
     ".sde-path-distribution-lab .sde-reset { width: 100%; }",
@@ -83,7 +90,7 @@
     ".sde-path-distribution-lab .sde-table td:nth-child(3) { color: var(--sde-wrong); font-weight: 700; }",
     ".sde-path-distribution-lab .sde-footnote { margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--sde-analytic); background: var(--block-bg, var(--bg)); color: var(--sde-muted); font-size: 12.5px; line-height: 1.65; }",
     "@media (max-width: 760px) { .sde-path-distribution-lab .sde-layout { grid-template-columns: minmax(0, 1fr); } }",
-    "@media (max-width: 500px) { .sde-path-distribution-lab .sde-stage-frame { padding: 5px; overflow-x: auto; } .sde-path-distribution-lab .sde-svg { min-width: 640px; max-width: none; } .sde-path-distribution-lab .sde-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }",
+    "@media (max-width: 500px) { .sde-path-distribution-lab .sde-stage-frame { padding: 5px; overflow-x: auto; } .sde-path-distribution-lab .sde-svg { min-width: 640px; max-width: none; } .sde-path-distribution-lab .sde-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sde-path-distribution-lab .sde-predict-options { grid-template-columns: minmax(0, 1fr); } }",
     "@media (prefers-reduced-motion: reduce) { .sde-path-distribution-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
   ].join("\n");
 
@@ -945,7 +952,9 @@
     var uid = "sde-lab-" + INSTANCE;
     var state = {
       level: CONFIG.defaultLevel,
-      path: CONFIG.defaultPath
+      path: CONFIG.defaultPath,
+      prediction: "",
+      revealed: false
     };
     var dataset = makeDataset();
     var convergence = convergenceData(dataset);
@@ -981,6 +990,7 @@
       }, ["L=" + level]);
       button.addEventListener("click", function () {
         state.level = level;
+        lockResults("层级已改变；请重新预测后再揭示账本。");
         render();
       });
       return button;
@@ -1027,7 +1037,47 @@
       id: uid + "-heading"
     }, ["SDE 路径—分布双账本"]);
     var intro = makeElement(api, "p", { className: "sde-intro" }, [
-      "先看一条 OU 路径，再看同一噪声账本下的 256 个终点。正确 EM 用 √h·Z，红色对照故意用 h·Z；解析均值/方差只作可核对的定理靶点。"
+      "先预测步长缩小时两种噪声标度会怎样，再揭示同一噪声账本下的一条 OU 路径与 256 个终点。解析均值/方差只作可核对的定理靶点。"
+    ]);
+    var predictionFeedback = makeElement(api, "p", {
+      className: "sde-predict-feedback",
+      "aria-live": "polite"
+    }, ["请选择一个判断。"]);
+    var predictionChoices = [
+      { value: "sqrt", label: "√h·Z 保持非退化扩散" },
+      { value: "linear", label: "h·Z 保持非退化扩散" },
+      { value: "same", label: "两种标度极限相同" }
+    ];
+    var predictionButtons = predictionChoices.map(function (choice) {
+      var button = makeElement(api, "button", {
+        type: "button",
+        "data-prediction": choice.value,
+        "aria-pressed": "false"
+      }, [choice.label]);
+      button.addEventListener("click", function () {
+        state.prediction = choice.value;
+        state.revealed = false;
+        stage.hidden = true;
+        status.hidden = true;
+        predictionButtons.forEach(function (candidate) {
+          candidate.setAttribute(
+            "aria-pressed",
+            candidate.getAttribute("data-prediction") === choice.value ? "true" : "false"
+          );
+        });
+        predictionFeedback.textContent = "预测已记录；现在可以揭示账本。";
+      });
+      return button;
+    });
+    var revealButton = makeElement(api, "button", {
+      type: "button",
+      className: "sde-primary"
+    }, ["揭示路径与分布"]);
+    var predictionBox = makeElement(api, "div", { className: "sde-predict" }, [
+      makeElement(api, "strong", {}, ["先预测：当 h 逐步减小时，哪种离散噪声仍保留 O(1) 的累计方差？"]),
+      makeElement(api, "div", { className: "sde-predict-options" }, predictionButtons),
+      makeElement(api, "div", { className: "sde-predict-actions" }, [revealButton]),
+      predictionFeedback
     ]);
 
     clear(root);
@@ -1035,9 +1085,23 @@
     root.setAttribute("aria-labelledby", uid + "-heading");
     root.appendChild(heading);
     root.appendChild(intro);
+    root.appendChild(predictionBox);
     root.appendChild(
       makeElement(api, "div", { className: "sde-layout" }, [controls, stage])
     );
+    stage.hidden = true;
+    status.hidden = true;
+
+    function lockResults(message) {
+      state.prediction = "";
+      state.revealed = false;
+      stage.hidden = true;
+      status.hidden = true;
+      predictionButtons.forEach(function (button) {
+        button.setAttribute("aria-pressed", "false");
+      });
+      predictionFeedback.textContent = message || "请选择一个判断。";
+    }
 
     function render() {
       var level = clamp(
@@ -1070,20 +1134,22 @@
           Number(button.getAttribute("data-level")) === level ? "true" : "false"
         );
       });
-      refs.status.textContent =
-        "当前路径终点：正确 " +
-        formatNumber(api, correctEndpoint, 3) +
-        "；错误 " +
-        formatNumber(api, wrongEndpoint, 3) +
-        "。ensemble 均值/方差：正确 (" +
-        formatNumber(api, correctStats.mean, 3) +
-        ", " +
-        formatNumber(api, correctStats.variance, 3) +
-        ")；解析 (" +
-        formatNumber(api, dataset.analyticMean, 3) +
-        ", " +
-        formatNumber(api, dataset.analyticVariance, 3) +
-        ")。";
+      if (state.revealed) {
+        refs.status.textContent =
+          "当前路径终点：正确 " +
+          formatNumber(api, correctEndpoint, 3) +
+          "；错误 " +
+          formatNumber(api, wrongEndpoint, 3) +
+          "。ensemble 均值/方差：正确 (" +
+          formatNumber(api, correctStats.mean, 3) +
+          ", " +
+          formatNumber(api, correctStats.variance, 3) +
+          ")；解析 (" +
+          formatNumber(api, dataset.analyticMean, 3) +
+          ", " +
+          formatNumber(api, dataset.analyticVariance, 3) +
+          ")。";
+      }
 
       replaceChildren(pathHost, [
         stageTitle(api, "单路径账本", "路径 " + (path + 1) + " / " + CONFIG.paths),
@@ -1164,6 +1230,7 @@
 
     levelControl.input.addEventListener("input", function () {
       state.level = Number(levelControl.input.value);
+      lockResults("层级已改变；旧预测已失效，请重新判断。");
       render();
     });
     pathControl.input.addEventListener("input", function () {
@@ -1173,6 +1240,7 @@
     resetButton.addEventListener("click", function () {
       state.level = CONFIG.defaultLevel;
       state.path = CONFIG.defaultPath;
+      lockResults("已重置到固定噪声；请重新预测后再揭示。");
       render();
       if (api && typeof api.announce === "function") {
         api.announce(
@@ -1183,6 +1251,24 @@
             CONFIG.defaultLevel +
             "、路径 1。"
         );
+      }
+    });
+
+    revealButton.addEventListener("click", function () {
+      if (!state.prediction) {
+        predictionFeedback.textContent = "请先选择一个判断。";
+        predictionButtons[0].focus();
+        return;
+      }
+      state.revealed = true;
+      stage.hidden = false;
+      status.hidden = false;
+      predictionFeedback.textContent = state.prediction === "sqrt"
+        ? "预测命中：N=T/h 个独立增量各有方差 h，总方差保持 T；h·Z 的总方差 Nh²=Th 会塌到 0。"
+        : "需要修正：√h·Z 的累计方差是 Nh=T；h·Z 的累计方差是 Nh²=Th→0。";
+      render();
+      if (api && typeof api.announce === "function") {
+        api.announce(root, predictionFeedback.textContent);
       }
     });
 

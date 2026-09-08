@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:18</div>
   </div>
 </nav>
 <main id="content">
@@ -181,17 +181,18 @@ C = \max_{p(x)} I(X; Y)
 <h2 id="3_1">3. 压缩即预测即智能（全课收束）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>三块拼图合成一个命题：</p>
 <ol>
-<li><strong>预测 → 压缩</strong>（算术编码）：给定预测模型 <span class="arithmatex">\(q(x_{t+1} \mid x_{\leq t})\)</span>，算术编码能以<strong>恰好 <span class="arithmatex">\(-\log q\)</span> 比特</strong>编码实际出现的符号——任何预测器都可机械地变成压缩器，压缩率 = 模型的交叉熵；</li>
+<li><strong>预测 → 压缩</strong>（算术编码）：给定逐步归一化的预测模型 <span class="arithmatex">\(q(x_t\mid x_{&lt;t})\)</span>，序列概率是 <span class="arithmatex">\(q(x_{1:n})=\prod_tq(x_t\mid x_{&lt;t})\)</span>。在解码器已知长度 <span class="arithmatex">\(n\)</span>、被编码序列的 <span class="arithmatex">\(q&gt;0\)</span>、区间运算精确的理想模型中，选取包含于最终概率区间的二进制子区间，可使整段码长满足 <span class="arithmatex">\(-\log_2q\le\ell&lt; -\log_2q+2\)</span>。常数来自整段的二进制取整与收尾，不是说每个符号恰占 <span class="arithmatex">\(-\log q\)</span> 个整数比特。若还要编码长度，应另计长度头；实际有限精度的概率量化和区间取整也须另记冗余，它们可能随 <span class="arithmatex">\(n\)</span> 累积，不能无条件塞进相对原始 <span class="arithmatex">\(q\)</span> 的 <span class="arithmatex">\(O(1)\)</span>。在理想固定长度模型下除以 <span class="arithmatex">\(n\)</span>，收尾开销才渐近消失，期望码率趋向该序列分布的每符号交叉熵；</li>
 <li><strong>压缩 → 预测</strong>（反向同样成立）：好的压缩器隐含好的预测分布；</li>
-<li><strong>于是</strong>：LLM 的训练目标（最小化下一词交叉熵，ai 课 07）<strong>字面上就是</strong>"把互联网压缩到极致"；困惑度 = 平均分支数 = 每词码长的指数。"压缩即智能"从口号升格为：<strong>建模 <span class="arithmatex">\(p(\text{世界产生的数据})\)</span> 的精度，与压缩这些数据的能力，是同一个数</strong>。</li>
+<li><strong>语言模型的联系</strong>：下一 token 交叉熵衡量模型给测试序列分配的平均负对数概率；若用同一分布编码，它对应理想码率。以 bit 为单位时困惑度为 <span class="arithmatex">\(2^{H(p,q)}\)</span>，可理解为有效不确定性规模，通常不是实际候选数的算术平均。模型参数存储、分词、计算与有限精度开销另计；训练损失也不等于泛化能力或智能的完整度量，不能据此断言已经把整个互联网压缩到极限。</li>
 </ol>
-<p><strong>Kolmogorov 复杂度</strong>一瞥（理论天花板）：<span class="arithmatex">\(K(x)\)</span> = 能输出 <span class="arithmatex">\(x\)</span> 的最短程序长度——终极压缩极限；不可计算（停机问题），但给出"随机 = 不可压缩"的定义与 Occam 剃刀的形式化（最小描述长度 MDL 原则：模型选择 = 最小化"模型码长 + 数据码长"——正则化的信息论第三出身，与贝叶斯先验、约束优化三足鼎立）。</p>
+<p><strong>Kolmogorov 复杂度</strong>一瞥（理论天花板）：相对于固定通用机 <span class="arithmatex">\(U\)</span>，<span class="arithmatex">\(K_U(x)\)</span> 是让 <span class="arithmatex">\(U\)</span> 输出 <span class="arithmatex">\(x\)</span> 的最短程序长度；换通用机至多改变一个依赖机器、不依赖字符串的加法常数。它不可计算，但能严格表达“不可压缩”：对均匀随机的 <span class="arithmatex">\(n\)</span> 位串，计数表明 <span class="arithmatex">\(\Pr[K_U(X)&lt;n-c]\le2^{-c}\)</span>（常数细节随所用 plain/prefix 版本调整）。因此有限随机串只是以高概率不可压缩，并不是每一条“看起来乱”的串都能被证明没有短程序。MDL 把这条思想变成“模型码长 + 数据码长”的选择原则。</p>
 <h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（最大熵推导指数分布）</strong> 支撑 <span class="arithmatex">\([0,\infty)\)</span>、<span class="arithmatex">\(E[X] = \frac1\lambda\)</span>：<span class="arithmatex">\(p^* \propto e^{-\lambda_1 x}\)</span>（§1 通解，<span class="arithmatex">\(f_1 = x\)</span>），归一化定出 <span class="arithmatex">\(p^* = \lambda e^{-\lambda x}\)</span> ✓——"等待时间无额外假设 ⇒ 指数分布"，概率 II 无记忆性的第三种解释。</p>
 <p><strong>例 2（信道容量计算）</strong> 翻转率 <span class="arithmatex">\(\varepsilon = 0.1\)</span> 的 BSC：<span class="arithmatex">\(C = 1 - h(0.1) \approx 0.531\)</span> 比特/次——每传 2 比特原始数据约需 3.8 次信道使用（配上好的纠错码）。</p>
-<p><strong>例 3（MDL 直觉）</strong> 数据 = 1000 位交替的 0101…：逐位存 1000 比特；"程序：打印 01 五百次"约几十比特——<strong>规律 = 可压缩性</strong>。反之真随机串无短程序——"看起来乱"与"确实乱"的分界由压缩性判定。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（MDL 直觉）</strong> 数据 = 1000 位交替的 0101…：逐位存 1000 比特；"程序：打印 01 五百次"约几十比特——<strong>规律 = 可压缩性</strong>。反过来不能检查某个有限字符串的外观后断言它“真随机”；上面的计数界只说均匀抽取时，能省下至少 <span class="arithmatex">\(c\)</span> bit 的字符串比例至多约为 <span class="arithmatex">\(2^{-c}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>信息论三页完工。下一门把布朗运动炼成微积分——随机微积分：Itô 引理、SDE，以及金融与扩散模型共用的那套数学。</em></p>
+<p><strong>编码来源：</strong>Stanford EE368B <a href="https://web.stanford.edu/class/ee368b/Handouts/03-LosslessCoding2.pdf">无损编码讲义 Part 2</a> 解释概率区间与整段收尾开销；有限精度相对原模型的冗余需另外计量。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="info-02-kl-mi.html"><span class="pager-label">上一页</span>信息论 II · KL 散度与互信息</a>

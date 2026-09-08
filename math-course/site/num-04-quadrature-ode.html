@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 05:37</div>
   </div>
 </nav>
 <main id="content">
@@ -267,9 +267,9 @@ y_{n+1} = y_n + h\, f(t_n, y_n)
 <li>自适应步长（RK45 等）：两个阶数的差估计误差，动态调 <span class="arithmatex">\(h\)</span>——<code>scipy.solve_ivp</code> 的默认内核。</li>
 </ul>
 <p><strong>稳定性与刚性（本节最重要的观念）</strong>：对试验方程 <span class="arithmatex">\(y' = \lambda y\ (\lambda &lt; 0\)</span>，真解衰减)，显式 Euler 要求 <span class="arithmatex">\(|1 + h\lambda| &lt; 1\)</span> 即 <span class="arithmatex">\(h &lt; \frac{2}{|\lambda|}\)</span>——<strong>步长有硬上限，超了数值解爆炸</strong>（优化 II 学习率上限 <span class="arithmatex">\(2/L\)</span> 是同一个不等式！）。系统里快慢时间尺度并存（<strong>刚性方程</strong>）时，快模态的步长限制拖死整个计算 ⇒ 换<strong>隐式方法</strong>：隐式 Euler <span class="arithmatex">\(y_{n+1} = y_n + h f(t_{n+1}, y_{n+1})\)</span>（每步解方程——上两页的求根/线性方程组在此当零件），<strong>无条件稳定（A-稳定）</strong>，步长只受精度不受稳定性限制。<strong>显式便宜怕刚性，隐式贵但吃刚性</strong>——选型的全部纲领。</p>
-<p>🔗 <strong>AI 衔接（收网）</strong>：comfy 课 03 讲说"采样器 = 概率流 ODE 的数值积分器"——现在你有了全部零件：<code>euler</code> 就是本节 Euler 法、<code>heun</code> 就是改进 Euler、<code>dpm++</code> 是利用方程半线性结构的定制积分器、"20–30 步够用"是高阶方法误差阶的直接推论、karras 日程是自适应步长思想的离线版。<strong>Neural ODE</strong> 则反过来把 RK 求解器当网络层反传。数学的复利在此结算。</p>
+<p>🔗 <strong>AI 衔接（收网）</strong>：comfy 课 03 讲说"采样器 = 概率流 ODE 的数值积分器"——现在你有了全部零件：<code>euler</code> 对应一阶显式推进、<code>heun</code> 对应二阶预测—校正，<code>dpm++</code> 则利用扩散方程结构设计更新。实践中“20–30 步看起来够用”不能仅凭少量试跑反推出高阶收敛：还要固定模型、噪声日程与误差指标，做步长细化对照，并区分离散误差、模型误差和感知指标。Karras 日程是非均匀预设网格，与依据在线局部误差估计调整步长的经典自适应算法相关，但不完全等同。<strong>Neural ODE</strong> 则反过来把 ODE 求解器当网络层反传。</p>
 <h2 id="3">3. 典型例题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>例 1（Simpson 手算）</strong> <span class="arithmatex">\(\int_0^1 e^{-x^2}dx\)</span>（无初等原函数——数分 III 的名例）：<span class="arithmatex">\(h = 0.5\)</span> 复合 Simpson：<span class="arithmatex">\(\frac{0.25}{3}[f(0) + 4f(0.25) + 2f(0.5) + 4f(0.75) + f(1)] \approx 0.74683\)</span>（真值 0.746824——五个点四位准，<span class="arithmatex">\(O(h^4)\)</span> 的威力）。</p>
+<p><strong>例 1（Simpson 手算）</strong> <span class="arithmatex">\(\int_0^1 e^{-x^2}dx\)</span>（无初等原函数——数分 III 的名例）：取 <span class="arithmatex">\(N=4\)</span> 个子区间，所以 <span class="arithmatex">\(h=(1-0)/4=0.25\)</span>。复合 Simpson 给 <span class="arithmatex">\(\frac{h}{3}[f(0)+4f(0.25)+2f(0.5)+4f(0.75)+f(1)]\approx0.746855\)</span>，真值约为 <span class="arithmatex">\(0.746824\)</span>。这一个算例与理论误差界相符，但单个网格上的小误差本身不能测出四阶；要比较一列逐次减半的 <span class="arithmatex">\(h\)</span>。</p>
 <p><strong>例 2（Euler vs RK4）</strong> <span class="arithmatex">\(y' = y,\ y(0) = 1\)</span>，求 <span class="arithmatex">\(y(1) = e\)</span>，<span class="arithmatex">\(h = 0.25\)</span>：Euler 给 <span class="arithmatex">\((1.25)^4 = 2.441\)</span>（差 10%）；RK4 给 <span class="arithmatex">\(2.7183\)</span>（差 <span class="arithmatex">\(&lt;10^{-4}\)</span>）。同样 4 步，四个数量级的差距——<strong>阶数就是生产力</strong>。</p>
 <p><strong>例 3（稳定性红线）</strong> <span class="arithmatex">\(y' = -100y,\ y(0)=1\)</span>：显式 Euler 要求 <span class="arithmatex">\(h &lt; 0.02\)</span>，取 <span class="arithmatex">\(h = 0.03\)</span> 则 <span class="arithmatex">\(y_n = (-2)^n\)</span> 震荡爆炸（真解 <span class="arithmatex">\(e^{-100t}\)</span> 温顺趋零）；隐式 Euler <span class="arithmatex">\(y_{n+1} = \frac{y_n}{1 + 100h}\)</span> 任意步长单调衰减 ✓。<strong>数值爆炸 ≠ 方程有问题，先查步长与稳定域。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />

@@ -302,6 +302,7 @@
       '<p class="lpc-question">揭示前预测：连续 LP 的最优点由哪组边界决定？</p>' +
       '<label>活动集预测<select data-role="prediction"><option value="">请选择</option><option value="r1-r3">资源 1 + 混合资源</option><option value="r2-r3">资源 2 + 混合资源</option><option value="r1-r2">两条单资源边</option><option value="axis">坐标轴边界</option><option value="interior">内部点</option><option value="single">单条资源边</option><option value="multiple">退化：多条边</option></select></label>' +
       '<div class="lpc-actions"><button class="lpc-primary" type="button" data-role="reveal">揭示证书</button><button type="button" data-role="reset">重置</button></div>' +
+      '<p class="lpc-note" data-role="feedback" aria-live="polite">请选择活动集；容量改变后需要重新预测。</p>' +
       '<div class="lpc-result" data-role="result" hidden aria-live="polite"></div>' +
       '</div>';
 
@@ -312,6 +313,7 @@
     };
     var prediction = root.querySelector('[data-role="prediction"]');
     var result = root.querySelector('[data-role="result"]');
+    var feedback = root.querySelector('[data-role="feedback"]');
 
     function params() {
       return { a: Number(controls.a.value), b: Number(controls.b.value), c: Number(controls.c.value) };
@@ -349,10 +351,12 @@
 
     root.querySelector('[data-role="reveal"]').addEventListener("click", function () {
       if (!prediction.value) {
+        feedback.textContent = "请先选择活动集，再揭示证书。";
         prediction.focus();
         return;
       }
       result.hidden = false;
+      feedback.textContent = "预测已提交；下方证书已揭示。";
       render();
     });
     root.querySelector('[data-role="reset"]').addEventListener("click", function () {
@@ -362,12 +366,21 @@
       prediction.value = "";
       result.hidden = true;
       result.innerHTML = "";
+      feedback.textContent = "已重置；请重新选择活动集。";
       render();
     });
+    function invalidatePrediction() {
+      prediction.value = "";
+      result.hidden = true;
+      result.innerHTML = "";
+      feedback.textContent = "容量已改变；旧预测已失效，请重新选择活动集。";
+      render();
+    }
     Object.keys(controls).forEach(function (key) {
-      controls[key].addEventListener("input", render);
-      controls[key].addEventListener("change", render);
+      controls[key].addEventListener("input", invalidatePrediction);
+      controls[key].addEventListener("change", invalidatePrediction);
     });
+    prediction.addEventListener("change", function () { result.hidden=true; result.innerHTML=""; feedback.textContent="预测已修改；请重新揭示证书。"; });
     render();
   }
 

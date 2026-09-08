@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 05:37</div>
   </div>
 </nav>
 <main id="content">
@@ -197,6 +197,11 @@ z_{\mu,k+1}=(1-\alpha\mu)z_{\mu,k},\qquad z_{L,k+1}=(1-\alpha L)z_{L,k}.
 </ul>
 <h3 id="6">6. 迁移问题：模型变了，哪些结论要重写？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <p>如果把 <span class="arithmatex">\(H\)</span> 换成一个只“近似”已知的 Hessian，或把更新改成带动量的二阶递推，你会如何从特征方向重新写稳定多项式？如果 <span class="arithmatex">\(H\)</span> 不再正定，<span class="arithmatex">\(f\)</span> 可能有鞍点或无下界；此时“<span class="arithmatex">\(0&lt;\alpha&lt;2/L\)</span> 就收敛到全局最小”还剩下哪一部分？请分别指出需要的凸性、光滑性、谱界和线性求解假设，而不要把这个二维椭圆碗的图像当作任意非凸地形的定理。</p>
+<details>
+<summary>迁移题参考答案</summary>
+<p>对 heavy-ball 更新 <span class="arithmatex">\(x_{k+1}=x_k-\alpha Hx_k+\beta(x_k-x_{k-1})\)</span>，沿 <span class="arithmatex">\(H\)</span> 的特征向量、特征值 <span class="arithmatex">\(\lambda\)</span> 投影后有 <span class="arithmatex">\(z_{k+1}=(1+\beta-\alpha\lambda)z_k-\beta z_{k-1}\)</span>，故特征多项式是 <span class="arithmatex">\(r^2-(1+\beta-\alpha\lambda)r+\beta=0\)</span>。稳定要对谱中的每个 <span class="arithmatex">\(\lambda\)</span> 检查两个根都严格落在单位圆内；只检查一个平均曲率不够。若使用近似 Hessian 或近似线性求解，还要把谱误差和求解残差纳入收缩界。</p>
+<p>若 <span class="arithmatex">\(H\)</span> 不定，正特征值方向仍可在 <span class="arithmatex">\(0&lt;\alpha&lt;2/L\)</span> 下受控，但负特征值方向的梯度下降因子 <span class="arithmatex">\(1-\alpha\lambda&gt;1\)</span>，会离开驻点；这可能帮助逃离严格鞍点，却既不证明目标有下界，也不证明轨迹会到全局最小。全局最小保证需要凸性（常配合 <span class="arithmatex">\(L\)</span>-光滑）；线性速率还通常需要强凸下界 <span class="arithmatex">\(\mu I\preceq H\)</span>。一般非凸问题最多在额外条件下谈收敛到驻点。</p>
+</details>
 </section>
 <h2 id="1-v">1. 最优性条件（回收数分 V）<a class="headerlink" href="#1-v" title="Permanent link"></a></h2>
 <p>一阶必要：<span class="arithmatex">\(\nabla f(x^*) = 0\)</span>；二阶充分：<span class="arithmatex">\(\nabla f = 0\)</span> 且 <span class="arithmatex">\(\nabla^2 f(x^*) \succ 0\)</span> ⇒ 严格局部极小。凸问题中一阶条件即充要（优化 I）。算法的目标因此明确：<strong>找驻点</strong>（凸时即终点；非凸时接受"够好的"驻点——深度学习的现实立场）。</p>

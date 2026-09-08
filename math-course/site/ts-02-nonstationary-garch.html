@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 06:21</div>
   </div>
 </nav>
 <main id="content">
@@ -59,6 +59,7 @@ try {
 <li><a href="#3">3. 正式桥：条件、无条件、估计、预测四个层次</a></li>
 <li><a href="#4-fallback">4. 可操作实验与静态 fallback</a></li>
 <li><a href="#5">5. 定理与失败边界</a></li>
+<li><a href="#6">6. 迁移：把三个容易混淆的量分开</a></li>
 </ul>
 </li>
 <li><a href="#1-arima">1. 单位根与 ARIMA</a></li>
@@ -84,7 +85,7 @@ r_t=\sigma_t\varepsilon_t,
 \qquad
 \sigma_t^2=\omega+\alpha r_{t-1}^2+\beta\sigma_{t-1}^2.
 \]</div>
-<p>同一时刻，<span class="arithmatex">\(\sigma_t^2\)</span> 是给定过去信息的<strong>条件方差</strong>；无条件方差是把所有历史状态平均掉后的长期基准。实验台会让一个冲击进入固定样本，再把条件波动、终点分布与多步预测并排显示。先问“我能预测哪一个量”，再问“我能不能解释它”。</p>
+<p>同一时刻，<span class="arithmatex">\(\sigma_t^2\)</span> 是给定过去信息的<strong>条件方差</strong>；无条件方差是把所有历史状态平均掉后的长期基准。实验台会让一个冲击进入固定样本，再把条件波动、创新直方图与多步预测并排显示。先问“我能预测哪一个量”，再问“我能不能解释它”。</p>
 <h3 id="2">2. 先预测：三个门槛先于任何漂亮图形<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>在揭示实验结果前，先作出三项判断：</p>
 <ul>
@@ -92,7 +93,7 @@ r_t=\sigma_t\varepsilon_t,
 <li>一次大冲击让下一期条件方差上升后，远期方差会回到哪里？它会无限记住冲击，还是按持久性衰减？</li>
 <li>看到冲击后的波动响应，能否直接说“这个冲击造成了后续损失”？若创新与其他信息相关，答案是否仍然成立？</li>
 </ul>
-<p>实验先隐藏平稳性证书、预测曲线、厚尾统计与冲击响应表；提交预测后才揭示。把“可预测的条件二阶矩”与“无条件分布的长期形状”分开，是本页的第一条纪律。</p>
+<p>实验先隐藏有限方差证书、预测曲线、厚尾统计与冲击响应表；提交预测后才揭示。把“可预测的条件二阶矩”与“无条件分布的长期形状”分开，是本页的第一条纪律。</p>
 <h3 id="3">3. 正式桥：条件、无条件、估计、预测四个层次<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>令 <span class="arithmatex">\(\mathcal F_{t-1}\)</span> 表示截至 <span class="arithmatex">\(t-1\)</span> 的信息。若 <span class="arithmatex">\(\mathbb E[\varepsilon_t\mid\mathcal F_{t-1}]=0\)</span>、<span class="arithmatex">\(\mathbb E[\varepsilon_t^2\mid\mathcal F_{t-1}]=1\)</span>，则</p>
 <div class="arithmatex">\[
@@ -100,8 +101,8 @@ r_t=\sigma_t\varepsilon_t,
 \qquad
 \mathbb E[r_t^2]=\frac{\omega}{1-\alpha-\beta}
 \]</div>
-<p>的第二个等式需要 <span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 和相应的有限二阶矩。它不是把每一期的 <span class="arithmatex">\(\sigma_t^2\)</span> 都替换成同一个数字；前者随历史变化，后者是总体平均。</p>
-<p>在平稳 GARCH(1,1) 中，给定当前信息的多步方差预测满足</p>
+<p>的第二个等式还要求处于因果平稳解，并满足 <span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 和相应的有限二阶矩。它不是把每一期的 <span class="arithmatex">\(\sigma_t^2\)</span> 都替换成同一个数字；前者随历史变化，后者是总体平均。</p>
+<p>从有限初始方差出发，在本页创新条件下，多步条件方差预测满足（有限时域不要求严格平稳）</p>
 <div class="arithmatex">\[
 \widehat{\sigma}_{t+1\mid t}^2
 =\omega+\alpha r_t^2+\beta\sigma_t^2,
@@ -111,9 +112,13 @@ r_t=\sigma_t\varepsilon_t,
 \]</div>
 <p>（<span class="arithmatex">\(h\ge2\)</span> 的递推使用未来标准化创新的条件二阶矩为 1）。因此当持久性小于 1 时，预测渐近回到长期方差。参数通常由时序上的准极大似然、厚尾分布似然或稳健估计得到；估计区间、预测区间和未来真实值必须按时间顺序分开。</p>
 <p>若 <span class="arithmatex">\(\varepsilon_t\)</span> 使用标准化 Student-t，创新可以有厚尾；这解释了极端收益比正态模型更常见，但“厚尾”不自动等于条件均值可预测，也不替代残差诊断。冲击响应是模型下的条件反事实账本，不是仅凭相关图得到的因果效应；因果解释还需要识别假设、外生性或实验设计。</p>
+<p><strong>把长期公式推出来。</strong> 记 <span class="arithmatex">\(v_t=\sigma_t^2\)</span>、<span class="arithmatex">\(A_t=\alpha\varepsilon_t^2+\beta\)</span>，则 <span class="arithmatex">\(v_t=\omega+A_{t-1}v_{t-1}\)</span>。对因果平稳解，独立性使 <span class="arithmatex">\(E[A_{t-1}v_{t-1}]=(\alpha+\beta)E[v]\)</span>；若 <span class="arithmatex">\(E[v]&lt;\infty\)</span>，移项得到 <span class="arithmatex">\(E[v]=\omega/(1-\alpha-\beta)\)</span>。当 <span class="arithmatex">\(\alpha+\beta\ge1\)</span>，等式左侧 <span class="arithmatex">\((1-\alpha-\beta)E[v]\)</span> 不可能等于正数 <span class="arithmatex">\(\omega\)</span>，所以没有有限无条件方差。</p>
+<p>反过来，反复展开给出非负级数 <span class="arithmatex">\(v_t=\omega\sum_{j\ge0}\prod_{k=1}^jA_{t-k}\)</span>。若 <span class="arithmatex">\(c=\alpha+\beta&lt;1\)</span>，其期望由单调收敛定理等于 <span class="arithmatex">\(\omega\sum_{j\ge0}c^j&lt;\infty\)</span>，所以级数几乎处处有限，构成因果平稳解。这补上了“代数上写得出”到“确有有限矩解”的一步。</p>
+<p>设 <span class="arithmatex">\(F_h=E[v_{t+h}\mid\mathcal F_t]\)</span>。当 <span class="arithmatex">\(c&lt;1\)</span>，减去 <span class="arithmatex">\(\bar v=\omega/(1-c)\)</span> 即得 <span class="arithmatex">\(F_h-\bar v=c^{h-1}(F_1-\bar v)\)</span>。当 <span class="arithmatex">\(c=1\)</span>，则 <span class="arithmatex">\(F_h=F_1+(h-1)\omega\)</span>，没有有限回归目标。</p>
+<p><strong>冲击增量需要一条对照线。</strong> 固定当前方差 <span class="arithmatex">\(v\)</span>，把已知收益设为 <span class="arithmatex">\(s\)</span>，与“当前平方收益等于其条件均值 <span class="arithmatex">\(v\)</span>”作比较。第一步增量是 <span class="arithmatex">\(\Delta_1=\alpha(s^2-v)\)</span>，以后 <span class="arithmatex">\(\Delta_h=c^{h-1}\Delta_1\)</span>。实验同时列出冲击后的方差水平、基准水平和两者之差；这是一种模型内条件比较，人工替换收益的时点不是 iid 创新样本。</p>
 <h3 id="4-fallback">4. 可操作实验与静态 fallback<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
 <div class="learning-lab" data-learning-lab="garch-volatility">
-<p><strong>静态 fallback（脚本不可用时）：</strong>用 <span class="arithmatex">\(\omega=0.00001,\alpha=0.08,\beta=0.90\)</span> 时，持久性为 <span class="arithmatex">\(0.98\)</span>，长期方差为 <span class="arithmatex">\(0.0005\)</span>，而不是某一天的条件方差。一次 <span class="arithmatex">\(-3\%\)</span> 收益会通过 <span class="arithmatex">\(\alpha r_t^2\)</span> 抬高下一期条件方差；随后在“未来创新均值为零、方差为一”的预测账本中按 <span class="arithmatex">\(0.98\)</span> 的速度回归长期方差。若把 <span class="arithmatex">\(\beta\)</span> 调到使 <span class="arithmatex">\(\alpha+\beta\ge1\)</span>，长期方差栏应显示“无有限平稳证书”。</p>
+<p><strong>静态 fallback（脚本不可用时）：</strong>用 <span class="arithmatex">\(\omega=0.00001,\alpha=0.08,\beta=0.90\)</span> 时，持久性为 <span class="arithmatex">\(0.98\)</span>，长期方差为 <span class="arithmatex">\(0.0005\)</span>，而不是某一天的条件方差。一次 <span class="arithmatex">\(-3\%\)</span> 收益会通过 <span class="arithmatex">\(\alpha r_t^2\)</span> 抬高下一期条件方差；随后在“未来创新均值为零、方差为一”的预测账本中按 <span class="arithmatex">\(0.98\)</span> 的速度回归长期方差。若把 <span class="arithmatex">\(\beta\)</span> 调到使 <span class="arithmatex">\(\alpha+\beta\ge1\)</span>，长期方差栏应显示“无有限方差证书”。</p>
 <table>
 <caption>静态核对表</caption>
 <thead>
@@ -149,46 +154,61 @@ r_t=\sigma_t\varepsilon_t,
 </div>
 <h3 id="5">5. 定理与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
-<li><span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 是常用的有限二阶矩与协方差平稳证书；它不是所有高阶矩、所有创新分布或所有非线性 GARCH 变体的完整条件。</li>
+<li>在 <span class="arithmatex">\(\omega&gt;0\)</span>、<span class="arithmatex">\(\alpha,\beta\ge0\)</span>、<span class="arithmatex">\(\varepsilon_t\)</span> 独立同分布且 <span class="arithmatex">\(E\varepsilon_t=0,E\varepsilon_t^2=1\)</span> 的标准 GARCH(1,1) 下，严格平稳解的经典条件是 <span class="arithmatex">\(E\log(\alpha\varepsilon_t^2+\beta)&lt;0\)</span>。更强但更易检查的 <span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 保证有限二阶矩与协方差平稳，并给出无条件方差公式；它不是严格平稳的必要条件，也不是高阶矩或非线性变体的完整条件。</li>
 <li>条件方差能预测不等于收益能预测；必须和随机游走/历史均值基线、时间切分与滚动出样本评估比较。</li>
 <li>Student-t 的自由度决定尾部与矩是否存在；估计出的厚尾参数也有不确定性，有限样本直方图不能证明总体尾指数。</li>
 <li>冲击响应图展示模型内的动态相关；没有外生冲击与识别设计时，不能把它写成“冲击导致了结果”。</li>
 <li>非平稳样本、制度断点、估计误差和预测误差会让长期回归线失效；有限回放不能冒充一般平稳性定理。</li>
 </ul>
+<h3 id="6">6. 迁移：把三个容易混淆的量分开<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>用本页参数 <span class="arithmatex">\(\omega=10^{-5},\alpha=0.08,\beta=0.90\)</span>，从 <span class="arithmatex">\(v=0.0001\)</span> 和收益 <span class="arithmatex">\(s=-0.03\)</span> 出发，分别求第一步冲击方差、基准方差、增量，以及第二步增量。方差水平以后上升还是下降？</li>
+<li>设 <span class="arithmatex">\(\alpha=0,\beta=0.8\)</span>、创新正态。平稳收益是否一定厚尾？若改成标准化 Student-t，自由度为 3，哪些二阶/四阶结论还成立？</li>
+<li>一次滚动预测在训练期内选定模型，却用整份数据拟合标准化器；它通过了时间切分吗？</li>
+</ol>
+<details>
+<summary>迁移题参考答案</summary>
+<ol>
+<li>冲击方差 <span class="arithmatex">\(F_1=0.000172\)</span>，基准 <span class="arithmatex">\(F_1^{(0)}=\omega+0.98v=0.000108\)</span>，故 <span class="arithmatex">\(\Delta_1=0.000064\)</span>、<span class="arithmatex">\(\Delta_2=0.98\Delta_1=0.00006272\)</span>。两条方差水平都低于 <span class="arithmatex">\(\bar v=0.0005\)</span>，均逐步上升；增量却逐步缩小。大跌对下一期风险的增量与风险的长期走势不是同一个量。</li>
+<li><span class="arithmatex">\(\alpha=0\)</span> 时平稳方差恒定，所以正态创新仍给正态收益。标准化 <span class="arithmatex">\(t_3\)</span> 的方差可归一到 1，四阶矩却发散；条件方差与长期二阶矩公式可用，依赖总体峰度或平方收益总体相关的四阶矩论证不可直接用。有限样本统计量算得出来，不代表相应总体矩存在。</li>
+<li>没有。标准化参数已经使用未来分布信息。每个预测起点只在当时训练窗口内拟合标准化器、选择参数，再将冻结的变换应用于之后数据；还要留意标签窗口跨越分割边界。</li>
+</ol>
+</details>
 </section>
 <h2 id="1-arima">1. 单位根与 ARIMA<a class="headerlink" href="#1-arima" title="Permanent link"></a></h2>
-<p><strong>随机游走</strong> <span class="arithmatex">\(X_t = X_{t-1} + \varepsilon_t\)</span>（AR(1) 的 <span class="arithmatex">\(\phi = 1\)</span>，"单位根"）：方差 <span class="arithmatex">\(= t\sigma^2\)</span> 线性发散、冲击<strong>永不消退</strong>（对比平稳 AR 的指数遗忘）——布朗运动的离散版（sde 线对账）。股价的对数近似随机游走（有效市场的弱式表述）；<strong>预测 <span class="arithmatex">\(\hat X_{t+h} = X_t\)</span></strong>：随机游走的最优预测就是"今天的值"——<strong>任何跑不赢这个 naive 基线的花哨模型都是负资产</strong>（预测实务第一军规）。</p>
-<p><strong>处理：差分</strong>。<span class="arithmatex">\(d\)</span> 次差分后平稳则称 <span class="arithmatex">\(I(d)\)</span>；对差分序列建 ARMA = <strong>ARIMA(p, d, q)</strong>（金融标配：对数价格 <span class="arithmatex">\(I(1)\)</span> ⇒ 收益率 <span class="arithmatex">\(\Delta\ln P\)</span> 平稳，一切建模在收益率上进行）。<strong>判别：ADF 单位根检验</strong>（<span class="arithmatex">\(H_0\)</span>: 有单位根/非平稳——注意方向：不拒绝 ≠ 证明非平稳，统计 IV 的老规矩）。趋势平稳（确定性趋势+平稳扰动，去趋势即可）与差分平稳（随机趋势，必须差分）是两种病要对症——误诊会造出人工相关。</p>
+<p><strong>随机游走</strong> <span class="arithmatex">\(X_t = X_{t-1} + \varepsilon_t\)</span>（本例 <span class="arithmatex">\(X_0\)</span> 确定、创新 iid、零均值、方差 <span class="arithmatex">\(\sigma^2&lt;\infty\)</span>）（AR(1) 的 <span class="arithmatex">\(\phi = 1\)</span>，"单位根"）：方差 <span class="arithmatex">\(= t\sigma^2\)</span> 线性发散、冲击<strong>永不消退</strong>（对比平稳 AR 的指数遗忘）——布朗运动的离散版（sde 线对账）。对数价格有时以随机游走作基线；这只是待检验的模型，有效市场假说本身不推出 iid 正态或严格随机游走。<strong>预测 <span class="arithmatex">\(\hat X_{t+h} = X_t\)</span></strong>：在平方损失与上述信息设定下，其条件期望预测就是"今天的值"——应在相同损失和出样本协议下与此基线比较，不能仅凭训练拟合优度判断预测价值。</p>
+<p><strong>处理：差分</strong>。<span class="arithmatex">\(I(d)\)</span> 通常指最小非负整数 <span class="arithmatex">\(d\)</span> 次差分后成为 <span class="arithmatex">\(I(0)\)</span> 的序列；这里的 <span class="arithmatex">\(I(0)\)</span> 还包含适当短记忆条件，不能只凭一幅平稳外观判定；对差分序列建 ARMA = <strong>ARIMA(p, d, q)</strong>（若对数价格确为 <span class="arithmatex">\(I(1)\)</span>，对数价格的一阶差分（即对数收益率）才有相应平稳性；不能对所有资产和时段预先断言）。<strong>判别：ADF 单位根检验</strong>（<span class="arithmatex">\(H_0\)</span>: 有单位根/非平稳——注意方向：不拒绝 ≠ 证明非平稳，统计 IV 的老规矩）。趋势平稳（确定性趋势+平稳扰动，去趋势即可）与差分平稳（随机趋势，必须差分）是两种病要对症——误诊会造出人工相关。</p>
 <h2 id="2_1">2. 伪回归：时序统计的头号陷阱<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>现象（Granger–Newbold 实验）</strong>：两个<strong>独立</strong>的随机游走互相回归，约 75% 的概率得到"显著"系数、<span class="arithmatex">\(R^2\)</span> 常高达 0.2+——<strong>全是幻觉</strong>：非平稳序列各自漫游产生的巧合趋势被回归当成了关系。</p>
-<p><strong>病理</strong>：统计 V 回归的 t 检验假设残差平稳，单位根序列违反前提——p 值失效（统计 IV"检验的前提"一课的惨案现场）。<strong>防身三则</strong>：回归前先验平稳性（ADF）；非平稳序列用差分/收益率回归；若确要在水平值上谈长期关系，走<strong>协整</strong>（两个 <span class="arithmatex">\(I(1)\)</span> 序列的某线性组合平稳——"醉汉与狗"：各自漫游但不走散；配对交易的统计学基础，知其名与含义）。</p>
-<p>🔗 <strong>研报防身术</strong>：宏观变量对资产价格的"显著相关"大多是水平值伪回归 + 多重检验（统计 IV）的合成品——看到回测/相关性结论先问三件事：平稳吗？几个假设检验里挑出来的？出样本验证了吗？</p>
+<p><strong>现象（Granger–Newbold 实验）</strong>：两个<strong>独立</strong>的随机游走做水平值回归，也可能频繁得到常规 t 检验的“显著”系数及较高 <span class="arithmatex">\(R^2\)</span>。拒绝率依赖样本长度、确定性项、生成过程与所用检验，并非固定的 75%；巧合趋势不能直接解释为关系。</p>
+<p><strong>病理</strong>：常规 t 检验的参考分布需要误差与设计满足相应外生性、方差/相关结构等条件。对无协整的单位根水平序列，通常的平稳渐近理论失效；仅检查“残差平稳”也不足以恢复所有推断前提（统计 IV"检验的前提"一课的惨案现场）。<strong>防身三则</strong>：回归前结合生成机制、图形与单位根/协整诊断（ADF 不是自动决策开关）；非平稳序列用差分/收益率回归；若确要在水平值上谈长期关系，走<strong>协整</strong>（两个 <span class="arithmatex">\(I(1)\)</span> 序列的某线性组合平稳——"醉汉与狗"：各自漫游但不走散；配对交易的统计学基础，知其名与含义）。</p>
+<p>🔗 <strong>研报防身术</strong>：宏观变量与资产价格的“显著相关”可能受到水平值伪回归和多重检验影响——看到回测/相关性结论先问三件事：平稳吗？几个假设检验里挑出来的？出样本验证了吗？</p>
 <h2 id="3-garch">3. GARCH：给波动率建模<a class="headerlink" href="#3-garch" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="GARCH 波动聚集" src="assets/img/ts-02-garch.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>GARCH 捕捉"波动聚集"：大波动扎堆、平静期也扎堆——收益率序列（上）的波动 \(\sigma_t\)（下）自身有惯性。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>GARCH 捕捉"波动聚集"：大波动扎堆、平静期也扎堆——模拟参数为 ω=0.05、α=0.12、β=0.85，600 个无量纲时点；不是实际资产数据，也不同于学习层的日收益实验参数。收益率序列（上）的波动 \(\sigma_t\)（下）自身有惯性。</figcaption>
 </figure>
-<p><strong>金融收益率的三大典型事实</strong>：收益本身近似不可预测（ACF≈0）；<strong>收益的平方显著自相关</strong>——波动聚集（大波动扎堆出现）；分布尖峰厚尾（正态低估极端风险——B–S 页 IV 微笑的统计学根源）。</p>
-<p><strong>ARCH 的洞察（Engle，诺奖）</strong>：建模<strong>条件方差</strong>。GARCH(1,1)（实务九成场合够用）：</p>
+<p><strong>金融收益序列中常见的经验现象</strong>：收益的线性自相关较弱；平方收益可有明显自相关，体现波动聚集；经验分布可比正态更尖峰、厚尾。这些模式需按资产和时段检验。零 ACF 也不等于条件均值不可预测，它只排除了相应的线性相关；谈总体平方收益相关还需要有限四阶矩。</p>
+<p><strong>ARCH 的洞察（Engle，诺奖）</strong>：建模<strong>条件方差</strong>。GARCH(1,1)（一个常用起点，是否足够应由残差和出样本表现决定）：</p>
 <div class="arithmatex">\[
 r_t = \sigma_t \varepsilon_t, \qquad \sigma_t^2 = \omega + \alpha\, r_{t-1}^2 + \beta\, \sigma_{t-1}^2
 \]</div>
-<p>——今天的方差 = 底噪 + 昨天冲击的平方 + 昨天的方差（<strong>方差的 ARMA</strong>）。<span class="arithmatex">\(\alpha + \beta &lt; 1\)</span> 保平稳，长期方差 <span class="arithmatex">\(= \frac{\omega}{1 - \alpha - \beta}\)</span>；<span class="arithmatex">\(\alpha + \beta\)</span> 常估到 0.95+——<strong>波动的记忆很长</strong>（冲击半衰期数周）。副产品：即使 <span class="arithmatex">\(\varepsilon_t\)</span> 正态，<span class="arithmatex">\(r_t\)</span> 的无条件分布自动厚尾（方差混合——概率 III 的连续混合分布机制）✓ 典型事实全命中。</p>
-<p><strong>用途</strong>：波动率预测（风险管理 VaR、期权定价的 <span class="arithmatex">\(\sigma\)</span> 输入——sde-03 对账：GARCH 预测的波动与期权 IV 的比较本身就是交易信号）；<strong>"收益不可测、风险可测"</strong>——时序分析在金融最诚实的结论。</p>
+<p>——今天的方差 = 底噪 + 昨天冲击的平方 + 昨天的方差（常被口语化为“方差的 ARMA”）。在 <span class="arithmatex">\(\omega&gt;0\)</span>、<span class="arithmatex">\(\alpha,\beta\ge0\)</span>、<span class="arithmatex">\(\varepsilon_t\)</span> iid、零均值且单位方差的标准设定下，<span class="arithmatex">\(\alpha+\beta&lt;1\)</span> 是<strong>有限方差证书</strong>，此时长期无条件方差为 <span class="arithmatex">\(\omega/(1-\alpha-\beta)\)</span>。严格平稳本身由更一般的对数矩条件 <span class="arithmatex">\(E\log(\alpha\varepsilon_t^2+\beta)&lt;0\)</span> 刻画，所以“<span class="arithmatex">\(\alpha+\beta\ge1\)</span>”不等于“一定不存在严格平稳解”，在本页正参数标准因果平稳模型下，排除了有限无条件二阶矩；并不排除无穷二阶矩的严格平稳解。当估计的 <span class="arithmatex">\(\alpha+\beta\)</span> 接近但小于 1 时，模型内方差预测对初始状态的依赖衰减较慢。若正态创新配合非恒定的随机条件方差，且四阶矩有限，则 <span class="arithmatex">\(E[r_t^4]=3E[\sigma_t^4]&gt;3(E[\sigma_t^2])^2\)</span>，峰度大于 3；若 <span class="arithmatex">\(\alpha=0,\beta&lt;1\)</span> 且处于平稳解，方差恒为 <span class="arithmatex">\(\omega/(1-\beta)\)</span>，收益仍正态。这一反例说明“GARCH”名称本身不保证厚尾；幂律尾指数还需要更专门的条件。</p>
+<p><strong>用途</strong>：在给定模型下预测波动，辅助风险度量。GARCH 通常估计真实概率下的条件风险；期权隐含波动还反映风险中性定价、期限结构和波动风险溢价，二者差异不能直接当成交易收益。风险也有估计误差，不能把“可预测二阶矩”读成风险已被精确测定。</p>
 <h2 id="4">4. 预测纪律（本页的实务收束）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <ol>
-<li><strong>切分必须按时间</strong>：训练在前、测试在后——随机切分让模型偷看未来（数据泄漏），回测虚高（<strong>forward-only 不是偏好是数学要求</strong>——你预测层的铁律在此是教科书条目）；</li>
+<li><strong>切分必须按时间</strong>：训练在前、测试在后——随机切分让模型偷看未来（数据泄漏），回测虚高（验证应重现实际预测时可获得的信息；特征计算、缩放、模型选择及重叠标签都要防泄漏）；</li>
 <li><strong>滚动评估</strong>：walk-forward（逐步扩窗/滑窗重估再预测下一步）模拟真实使用；</li>
-<li><strong>基线必须在场</strong>：naive（昨天值）、历史均值、季节 naive——跑不赢基线的模型没有存在权（§1 军规）；</li>
-<li><strong>区间随视野膨胀</strong>：报告点预测必配区间；长视野预测收敛到无条件分布（ts-01）——"模型的信息半衰期"要如实交代；</li>
+<li><strong>基线必须在场</strong>：naive（昨天值）、历史均值、季节 naive——在预先选定的损失与评估区间内比较改进量及其不确定性；</li>
+<li><strong>区间随模型变化</strong>：报告点预测时说明区间的条件与校准；随机游走误差方差随视野增长，稳定 AR 的误差方差趋于上限，GARCH 的条件方差预测也可能从高处下降。不能把“区间一定越来越宽”当成所有模型的定理；</li>
 <li><strong>制度变化（regime change）</strong>：平稳性是局部假设——结构断点（政策、危机）之后旧参数作废；滚动窗口与"模型也会过期"的自觉是最后的防线。</li>
 </ol>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（差分定 d）</strong> 序列 ACF 衰减极慢近似线性 ⇒ 单位根嫌疑；一阶差分后 ACF 一步截尾 ⇒ ARIMA(0,1,1) 候选（= 简单指数平滑的统计身份，顺带认亲）。</p>
-<p><strong>例 2（GARCH 更新手算）</strong> <span class="arithmatex">\(\omega = 0.00001, \alpha = 0.08, \beta = 0.9\)</span>，昨日 <span class="arithmatex">\(\sigma_{t-1} = 1\%\)</span>、收益 <span class="arithmatex">\(r_{t-1} = -3\%\)</span>（大跌）：<span class="arithmatex">\(\sigma_t^2 = 0.00001 + 0.08(0.0009) + 0.9(0.0001) = 0.000172\)</span> ⇒ <span class="arithmatex">\(\sigma_t \approx 1.31\%\)</span>——一次冲击把日波动率从 1% 抬到 1.31%，并将按 <span class="arithmatex">\(\alpha+\beta = 0.98\)</span> 的速率缓慢消退。</p>
-<p><strong>例 3（伪回归自检设计）</strong> 用代码各生成两条独立随机游走各 200 点，回归看 t 值——重复 100 次统计"显著"比例（预期 ~3/4）；再对差分序列重跑（显著比例回落到 ~5% = 名义水平）。<strong>十行代码看清一个百年陷阱</strong>，值得真跑一次。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（差分定 d）</strong> 序列 ACF 衰减极慢近似线性 ⇒ 单位根嫌疑；一阶差分后 ACF 一步截尾 ⇒ ARIMA(0,1,1) 候选（与简单指数平滑预测的对应还需无漂移、合适 MA 参数及一致初始化；ACF 外观只提出候选，不能证明模型）。</p>
+<p><strong>例 2（GARCH 更新手算）</strong> <span class="arithmatex">\(\omega = 0.00001, \alpha = 0.08, \beta = 0.9\)</span>，昨日 <span class="arithmatex">\(\sigma_{t-1} = 1\%\)</span>、收益 <span class="arithmatex">\(r_{t-1} = -3\%\)</span>（大跌）：<span class="arithmatex">\(\sigma_t^2 = 0.00001 + 0.08(0.0009) + 0.9(0.0001) = 0.000172\)</span> ⇒ <span class="arithmatex">\(\sigma_t \approx 1.31\%\)</span>——一次冲击把日波动率从 1% 抬到 1.31%，但 <span class="arithmatex">\(0.000172\)</span> 仍低于长期方差 <span class="arithmatex">\(0.0005\)</span>，所以从这一状态出发的远期方差预测会上升！按 <span class="arithmatex">\(0.98\)</span> 衰减的是“预测与长期方差的差”，以及相对同一基准的冲击增量，并不一定是方差水平本身。</p>
+<p><strong>例 3（伪回归自检设计）</strong> 用代码各生成两条独立随机游走各 200 点，回归看 t 值——重复 100 次统计"显著"比例（报告实际拒绝率及二项抽样误差，不预设固定比例）；再对差分序列重跑。在本例独立正态创新、正确含截距回归与名义 5% 检验下，重复拒绝率才应围绕 5% 波动。<strong>十行代码看清一个百年陷阱</strong>，值得真跑一次。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>时间序列两页完工。最后一门：图论与组合——离散世界的计数与结构。</em></p>
+<p><strong>先修与来源：</strong><a href="prob-04-moments.html">条件期望</a>、<a href="ts-01-stationary-arma.html">平稳 ARMA</a>、<a href="stat-04-testing.html">检验前提</a>。条件风险建模的原始讨论见 Engle <a href="https://www.nobelprize.org/prizes/economics/2003/engle/lecture/">诺贝尔讲演</a>；平稳级数与矩条件可对照研究者 Hanno Reuvers 的 <a href="https://hannoreuvers.github.io/post/garch11/">GARCH(1,1) 推导和代码</a>。本页公式推导以明示的创新/因果平稳条件为准，图中有限模拟不验证全部严格平稳性。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ts-01-stationary-arma.html"><span class="pager-label">上一页</span>时间序列 I · 平稳性与 ARMA</a>

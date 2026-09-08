@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 05:30</div>
   </div>
 </nav>
 <main id="content">
@@ -121,7 +121,11 @@ V(i-1,w), &amp; w&lt;w_i,\\
 </ul>
 <h3 id="6">6. 可迁移问题：换一个资源，先保留哪条检查？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <p>若目标系数或容量改变，先重算候选顶点，再用原始/对偶账本核验；若加入整数约束，另解整数候选或 DP 递推。问自己：当前图形是在证明连续模型，还是只是在展示一个 toy 的几何直觉？这条区分会一路跟到组合优化和强化学习。</p>
-<div class="learning-lab" data-learning-lab="lp-dp-certificates" markdown="1">
+<details markdown="1">
+<summary>迁移题参考答案</summary>
+<p>容量 <span class="arithmatex">\(b\)</span> 改变后，旧活动集和旧对偶乘子都可能失效。先枚举新可行域的轴截点与约束交点，选出目标最大的连续候选 <span class="arithmatex">\(x^*\)</span>；再求一个对偶可行 <span class="arithmatex">\(u^*\)</span>，检查 <span class="arithmatex">\(c^\top x^*=b^\top u^*\)</span> 与互补松弛。只有这两本账同时通过，才是连续 LP 的最优证书。若变量必须为整数，连续最优值在最大化问题中只是上界；需要枚举、分支定界或本页的有界背包 DP 得到整数最优，不能把 <span class="arithmatex">\(x^*\)</span> 四舍五入后直接交卷。容量滑块改变时，实验会隐藏旧结果并要求重新预测，正是在模拟这张证书的失效。</p>
+</details>
+<div class="learning-lab" data-learning-lab="lp-dp-certificates">
 <p><strong>无 JavaScript 时的静态 fallback：</strong>默认连续 LP 的最优点为 <span class="arithmatex">\((2,6)\)</span>，原始目标为 <span class="arithmatex">\(36\)</span>；对偶变量为 <span class="arithmatex">\((0,\frac32,1)\)</span>，对偶目标也为 <span class="arithmatex">\(36\)</span>，原始/对偶松弛和互补松弛均为零。页面开启脚本后，可改变三个容量，先选择活动边再揭示 SVG、连续与整数解、对偶值和证书账本。整数约束与 DP 状态仍需单独判断；可行点本身不代表最优。</p>
 </div>
 </section>
