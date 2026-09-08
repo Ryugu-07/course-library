@@ -2,7 +2,6 @@
   "use strict";
 
   var PI = Math.PI;
-  var SINGULARITY_EPSILON = 1e-8;
   var SAMPLE_COUNT = 420;
   var VIEWBOX_WIDTH = 520;
   var VIEWBOX_HEIGHT = 250;
@@ -33,15 +32,12 @@
   }
 
   function arrayFactorAtPhase(phase, slitCount) {
-    var denominator = Math.sin(phase);
-    if (Math.abs(denominator) > SINGULARITY_EPSILON) {
-      return Math.sin(slitCount * phase) / denominator;
-    }
-
-    // Centered equally spaced slits have a finite limit at every m*pi.
+    if (!Number.isFinite(phase) || !Number.isInteger(slitCount) || slitCount < 1) return NaN;
+    // Reduce about m*pi, then use sinc so near-peaks are not flattened.
     var multiple = Math.round(phase / PI);
-    var sign = Math.cos(slitCount * multiple * PI) / Math.cos(multiple * PI);
-    return slitCount * sign;
+    var delta = phase - multiple * PI;
+    var sign = ((slitCount - 1) * multiple) % 2 === 0 ? 1 : -1;
+    return sign * slitCount * sinc(slitCount * delta) / sinc(delta);
   }
 
   function arrayFactor(u, spacing, slitCount) {
@@ -115,7 +111,8 @@
     if (!Number.isFinite(value)) {
       return "-";
     }
-    return value.toFixed(digits === undefined ? 2 : digits).replace(/0+$/, "").replace(/\.$/, "");
+    var result = value.toFixed(digits === undefined ? 2 : digits);
+    return result.indexOf(".") < 0 ? result : result.replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function assertClose(actual, expected, message, tolerance) {
@@ -255,7 +252,7 @@
         x: x,
         y: y,
         fill: "currentColor",
-        "font-size": "11",
+        "font-size": "12",
         "text-anchor": "middle"
       },
       attrs || {}
@@ -283,7 +280,7 @@
         }),
         text(api, PLOT_LEFT - 8, y + 4, formatNumber(api, tick, 1), {
           "text-anchor": "end",
-          "font-size": "10"
+          "font-size": "12"
         })
       );
     });
@@ -301,7 +298,7 @@
           "stroke-opacity": "0.1"
         }),
         text(api, x, PLOT_BOTTOM + 20, formatNumber(api, value, 1), {
-          "font-size": "10"
+          "font-size": "12"
         })
       );
     });
@@ -317,11 +314,11 @@
       }),
       text(api, PLOT_LEFT, PLOT_TOP - 9, yLabel, {
         "text-anchor": "start",
-        "font-size": "11"
+        "font-size": "12"
       }),
       text(api, PLOT_RIGHT, PLOT_BOTTOM + 39, xLabel, {
         "text-anchor": "end",
-        "font-size": "10"
+        "font-size": "12"
       })
     );
     return children;
@@ -351,7 +348,7 @@
           ? "双缝孔径透射"
           : "光栅孔径透射";
     var description =
-      "横轴是无量纲孔径坐标 xi=x/a；蓝色矩形表示 " +
+      "横轴是无量纲孔径坐标 xi=x/a；有色矩形表示 " +
       count +
       " 个透射缝，缝宽 w=" +
       state.width.toFixed(2) +
@@ -362,8 +359,8 @@
     appendAxis(api, chart, -extent, extent, "t(xi)", "xi = x/a", [0, 1]).forEach(function (node) {
       chart.appendChild(node);
     });
-    var y = PLOT_BOTTOM - (PLOT_BOTTOM - PLOT_TOP) * 0.84;
-    var height = (PLOT_BOTTOM - PLOT_TOP) * 0.84;
+    var y = PLOT_TOP;
+    var height = PLOT_BOTTOM - PLOT_TOP;
     centers.forEach(function (center, index) {
       var x = plotScale(center - state.width / 2, -extent, extent);
       var right = plotScale(center + state.width / 2, -extent, extent);
@@ -371,7 +368,7 @@
         makeSvg(api, "rect", {
           x: x,
           y: y,
-          width: Math.max(1, right - x),
+          width: right - x,
           height: height,
           fill: "var(--accent, #315f9d)",
           "fill-opacity": "0.78",
@@ -380,19 +377,32 @@
         })
       );
       if (index === 0 && centers.length === 1) {
-        chart.appendChild(text(api, (x + right) / 2, y - 8, "w", { "font-size": "10" }));
+        chart.appendChild(text(api, (x + right) / 2, y - 8, "w", { "font-size": "12" }));
       }
     });
     chart.appendChild(
       text(api, PLOT_LEFT + 8, y + 15, "透射 = 1", {
         "text-anchor": "start",
-        "font-size": "10"
+        "font-size": "12"
       })
     );
+    svg.setAttribute("aria-labelledby", chart.getAttribute("aria-labelledby"));
     svg.appendChild(chart.firstChild);
     while (chart.firstChild) {
       svg.appendChild(chart.firstChild);
     }
+  }
+
+  function intensitySamples(state, uMax) {
+    var count = patternCount(state.pattern, state.slitCount);
+    var steps = Math.max(SAMPLE_COUNT, Math.ceil(2 * uMax * count * state.spacing * 24));
+    if (steps % 2) steps += 1;
+    var points = [];
+    for (var i = 0; i <= steps; i += 1) points.push(-uMax + 2 * uMax * i / steps);
+    if (count > 1) {
+      for (var m = -Math.floor(uMax * state.spacing); m <= Math.floor(uMax * state.spacing); m += 1) points.push(m / state.spacing);
+    }
+    return points.sort(function (a, b) { return a - b; });
   }
 
   function drawIntensity(api, svg, state) {
@@ -419,9 +429,12 @@
             stroke: "var(--cl-gold, #9b6a12)",
             "stroke-dasharray": "4 4",
             "stroke-opacity": "0.72"
-          }),
-          text(api, zeroX, PLOT_TOP + 12, "±1/w", {
-            "font-size": "9",
+          })
+        );
+        chart.appendChild(
+          text(api, zeroX + (zero < 0 ? -4 : 4), PLOT_TOP + 12, zero < 0 ? "−1/w" : "+1/w", {
+            "text-anchor": zero < 0 ? "end" : "start",
+            "font-size": "12",
             fill: "var(--cl-gold, #9b6a12)"
           })
         );
@@ -452,22 +465,12 @@
     }
 
     var path = "";
-    for (var index = 0; index <= SAMPLE_COUNT; index += 1) {
-      var u = -uMax + (2 * uMax * index) / SAMPLE_COUNT;
-      var intensity = Math.min(
-        1.05,
-        normalizedIntensity(
-          state.pattern,
-          u,
-          state.width,
-          state.spacing,
-          state.slitCount
-        )
-      );
+    intensitySamples(state, uMax).forEach(function (u, index) {
+      var intensity = normalizedIntensity(state.pattern, u, state.width, state.spacing, state.slitCount);
       var x = plotScale(u, -uMax, uMax);
-      var y = PLOT_BOTTOM - (intensity / 1.05) * (PLOT_BOTTOM - PLOT_TOP);
+      var y = PLOT_BOTTOM - intensity * (PLOT_BOTTOM - PLOT_TOP);
       path += (index === 0 ? "M" : "L") + x.toFixed(2) + " " + y.toFixed(2) + " ";
-    }
+    });
     chart.appendChild(
       makeSvg(api, "path", {
         d: path,
@@ -479,8 +482,9 @@
     );
     chart.appendChild(text(api, PLOT_LEFT + 8, PLOT_TOP + 15, "强度 = |A|²", {
       "text-anchor": "start",
-      "font-size": "10"
+      "font-size": "12"
     }));
+    svg.setAttribute("aria-labelledby", chart.getAttribute("aria-labelledby"));
     while (chart.firstChild) {
       svg.appendChild(chart.firstChild);
     }
@@ -659,7 +663,7 @@
     var modelNote = makeElement(api, "div", { className: "cl-note" }, [
       makeElement(api, "p", {}, ["模型：" ]),
       makeElement(api, "div", { className: "cl-formula", "aria-label": "当前复振幅和强度公式" }, [formulaText(state)]),
-      makeElement(api, "p", {}, ["A 是复场振幅；右图只画 I/I(0)=|A|²。阵因子分母为零时使用可去奇点极限。"])
+      makeElement(api, "p", {}, ["A 是复场振幅；强度图只画 I/I(0)=|A|²。阵因子分母为零时使用可去奇点极限。"])
     ]);
     var controlGrid = makeElement(api, "div", { className: "cl-grid" }, [
       controls,
@@ -674,7 +678,7 @@
           makeElement(api, "strong", {}, ["孔径透射 t(ξ)"]),
           makeElement(api, "span", {}, ["ξ = x/a"])
         ]),
-        apertureSvg
+        makeElement(api, "div", { className: "fo-scroll", role: "region", tabIndex: 0, "aria-label": "孔径图；窄屏可横向滚动" }, [apertureSvg])
       ])
     ]);
     var intensityStage = makeElement(api, "div", { className: "cl-stage" }, [
@@ -683,10 +687,10 @@
           makeElement(api, "strong", {}, ["远场强度 I(u)/I(0)"]),
           makeElement(api, "span", {}, ["u 无量纲"])
         ]),
-        intensitySvg
+        makeElement(api, "div", { className: "fo-scroll", role: "region", tabIndex: 0, "aria-label": "强度图；窄屏可横向滚动" }, [intensitySvg])
       ])
     ]);
-    var plotGrid = makeElement(api, "div", { className: "cl-grid" }, [
+    var plotGrid = makeElement(api, "div", { className: "cl-grid fo-plots" }, [
       apertureStage,
       intensityStage
     ]);
@@ -697,6 +701,7 @@
       "aria-live": "polite"
     });
 
+    root.appendChild(makeElement(api, "style", {}, ["[data-learning-lab=fourier-optics] .fo-plots { grid-template-columns: minmax(0,1fr); } [data-learning-lab=fourier-optics] .fo-scroll { overflow-x:auto; } [data-learning-lab=fourier-optics] .fo-scroll svg { min-width:520px; width:100%; height:auto; }"]));
     root.appendChild(heading);
     root.appendChild(intro);
     root.appendChild(predictionForm);
@@ -715,7 +720,7 @@
       state.slitCount = Number(countInput.value);
       widthOutput.textContent = state.width.toFixed(2);
       spacingOutput.textContent = state.spacing.toFixed(2);
-      countOutput.textContent = String(state.slitCount);
+      countOutput.textContent = String(patternCount(state.pattern, state.slitCount));
       spacingInput.disabled = state.pattern === "single";
       countInput.disabled = state.pattern !== "grating";
       modelNote.querySelector(".cl-formula").textContent = formulaText(state);
@@ -743,8 +748,8 @@
         "，d=" +
         state.spacing.toFixed(2) +
         "，N=" +
-        state.slitCount +
-        "。窄缝使有限宽度包络变宽；增大 d 使阵因子条纹在 u 轴上变密。";
+        patternCount(state.pattern, state.slitCount) +
+        "。窄屏可横向滚动查看完整刻度。窄缝使有限宽度包络变宽；增大 d 使阵因子条纹在 u 轴上变密。";
     }
 
     predictionForm.addEventListener("submit", function (event) {
@@ -794,6 +799,7 @@
   }
 
   var exported = {
+    intensitySamples: intensitySamples,
     sinc: sinc,
     rectangularSlitAmplitude: rectangularSlitAmplitude,
     singleSlitAmplitude: rectangularSlitAmplitude,

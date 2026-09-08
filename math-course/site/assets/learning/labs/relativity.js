@@ -6,7 +6,7 @@
     width: 720,
     height: 500,
     originX: 330,
-    originY: 330,
+    originY: 310,
     scale: 52,
     xMin: -5.8,
     xMax: 5.8,
@@ -14,12 +14,12 @@
     tMax: 4.5
   };
   var EVENTS = {
+    coincident: { label: "重合事件", x: 0, t: 0, note: "P 与 O 是同一时空事件，零间隔不代表存在一段光的传播。" },
     timelike: { label: "类时", x: 1, t: 2, note: "可以存在某个惯性系，使两事件发生在同一地点。" },
     lightlike: { label: "类光", x: 2, t: 2, note: "在 c=1 下满足 |x|=|t|，只能由光速信号连接。" },
     spacelike: { label: "类空", x: 2, t: 1, note: "任何惯性系都不能让它们由低于光速的信号连接。" }
   };
   var EVENT_ORDER = ["timelike", "lightlike", "spacelike"];
-  var TOLERANCE = 0.018;
 
   function setAttrs(node, attrs) {
     Object.keys(attrs || {}).forEach(function (key) {
@@ -68,13 +68,15 @@
   }
 
   function classify(x, t) {
-    var interval = t * t - x * x;
-    if (Math.abs(interval) <= TOLERANCE) return "lightlike";
-    return interval > 0 ? "timelike" : "spacelike";
+    if (!Number.isFinite(x) || !Number.isFinite(t)) return "invalid";
+    if (x === 0 && t === 0) return "coincident";
+    if (Math.abs(t) === Math.abs(x)) return "lightlike";
+    return Math.abs(t) > Math.abs(x) ? "timelike" : "spacelike";
   }
 
   function transform(x, t, beta) {
-    var gamma = 1 / Math.sqrt(1 - beta * beta);
+    if (!Number.isFinite(x) || !Number.isFinite(t) || !Number.isFinite(beta) || Math.abs(beta) >= 1) return { gamma: NaN, x: NaN, t: NaN };
+    var gamma = 1 / Math.sqrt((1 - beta) * (1 + beta));
     return {
       gamma: gamma,
       x: gamma * (x - beta * t),
@@ -117,7 +119,10 @@
     var style = doc.createElement("style");
     style.setAttribute("data-cl-relativity-style", "true");
     style.textContent = [
-      ".cl-sr-lab { --cl-sr-bg: var(--block-bg, #f5f0e3); --cl-sr-deep: var(--code-bg, #f1ece0); --cl-sr-fg: var(--fg, #2c2a26); --cl-sr-muted: var(--fg-soft, #6b6557); --cl-sr-border: var(--border, #e0d7c4); --cl-sr-blue: var(--link, #315f9d); --cl-sr-red: var(--accent, #a03d3d); --cl-sr-green: var(--cl-green, #39734d); color: var(--cl-sr-fg); margin: 2em 0; font-size: .96em; line-height: 1.6; }",
+      ".cl-sr-lab { --cl-sr-bg: var(--block-bg, #f5f0e3); --cl-sr-deep: var(--code-bg, #f1ece0); --cl-sr-fg: var(--fg, #2c2a26); --cl-sr-muted: var(--fg-soft, #6b6557); --cl-sr-border: var(--border, #e0d7c4); --cl-sr-blue: #315f9d; --cl-sr-red: var(--accent, #a03d3d); --cl-sr-green: var(--cl-green, #39734d); color: var(--cl-sr-fg); margin: 2em 0; font-size: .96em; line-height: 1.6; }",
+      "[data-theme=dark] .cl-sr-lab { --cl-sr-blue: #79a9e0; }",
+      ".cl-sr-lab .cl-grid { grid-template-columns: minmax(0, 1fr); }",
+      ".cl-sr-scroll { overflow-x: auto; }",
       ".cl-sr-lab *, .cl-sr-lab *::before, .cl-sr-lab *::after { box-sizing: border-box; }",
       ".cl-sr-lab h2 { color: var(--cl-sr-red); font-size: 1.35rem; margin: 0 0 .25rem; }",
       ".cl-sr-lab h3 { font-size: 1rem; margin: 1rem 0 .45rem; }",
@@ -142,7 +147,7 @@
       ".cl-sr-stage-frame { background: var(--bg, #fff); border: 1px solid var(--cl-sr-border); border-radius: 6px; padding: .65rem; }",
       ".cl-sr-stage-title { align-items: baseline; color: var(--cl-sr-muted); display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; margin: 0 0 .5rem; }",
       ".cl-sr-figure { border: 1px solid var(--cl-sr-border); border-radius: 6px; margin: 0; overflow: hidden; padding: .35rem; }",
-      ".cl-sr-svg { display: block; height: auto; max-width: 100%; width: 100%; }",
+      ".cl-sr-svg { display: block; height: auto; min-width: 640px; width: 100%; }",
       ".cl-sr-svg text { fill: var(--cl-sr-fg); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: 0; }",
       ".cl-sr-gridline { stroke: var(--cl-sr-border); stroke-width: 1; }",
       ".cl-sr-cone { fill: none; stroke: var(--cl-sr-red); stroke-dasharray: 7 5; stroke-width: 2; }",
@@ -292,6 +297,15 @@
   }
 
   function drawGuideLine(doc, svg, x1, t1, x2, t2, className) {
+    var dx = x2 - x1, dt = t2 - t1, lo = 0, hi = 1;
+    [[x1, dx, PLOT.xMin, PLOT.xMax], [t1, dt, PLOT.tMin, PLOT.tMax]].forEach(function (axis) {
+      if (axis[1] === 0) { if (axis[0] < axis[2] || axis[0] > axis[3]) hi = -1; return; }
+      var a = (axis[2] - axis[0]) / axis[1], b = (axis[3] - axis[0]) / axis[1];
+      lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b));
+    });
+    if (lo > hi) return;
+    x2 = x1 + hi * dx; t2 = t1 + hi * dt;
+    x1 += lo * dx; t1 += lo * dt;
     var start = mapPoint(x1, t1);
     var end = mapPoint(x2, t2);
     svg.appendChild(line(doc, {
@@ -400,8 +414,11 @@
       var figure = makeElement(doc, "figure", "cl-sr-figure");
       var svgParts = makeSvg(doc, ids);
       var svg = svgParts.svg;
-      figure.appendChild(svg);
-      figure.appendChild(makeElement(doc, "figcaption", "cl-sr-axis-note", "虚线红色光锥：x=±t（c=1）；蓝/红轴分别是 S 与 S'。同一事件点 P 不移动，坐标标签会改变。图中的同时线只是坐标辅助线，不是欧氏垂线。"));
+      var scroll = makeElement(doc, "div", "cl-sr-scroll");
+      setAttrs(scroll, { role: "region", tabindex: "0", "aria-label": "时空图；窄屏可横向滚动" });
+      scroll.appendChild(svg);
+      figure.appendChild(scroll);
+      figure.appendChild(makeElement(doc, "figcaption", "cl-sr-axis-note", "窄屏可横向滚动查看完整坐标。虚线红色光锥：x=±t（c=1）；蓝/红轴分别是 S 与 S'。同一事件点 P 不移动，坐标标签会改变。图中的同时线只是坐标辅助线，不是欧氏垂线。"));
       stageFrame.appendChild(figure);
 
       var metrics = makeElement(doc, "div", "cl-metrics cl-sr-metrics");
@@ -430,7 +447,7 @@
       shell.appendChild(grid);
       var boundary = makeElement(doc, "aside", "cl-note cl-sr-legend");
       boundary.appendChild(makeElement(doc, "strong", "", "读图边界："));
-      boundary.appendChild(doc.createTextNode("视觉上的轴倾斜不是把 x、t 做普通旋转；只有 s² 的代数值、同时性条件与因果类型是参考系无关的物理判断。"));
+      boundary.appendChild(doc.createTextNode("视觉上的轴倾斜不是把 x、t 做普通旋转；s² 与因果类型保持不变；异地事件的同时性依赖参考系。"));
       shell.appendChild(boundary);
       replaceContents(root, shell);
 
@@ -472,8 +489,8 @@
 
         axisLabel(doc, svg, axes.xAxis.end, "x", "cl-sr-axis-label", 8, 5);
         axisLabel(doc, svg, axes.tAxis.end, "t", "cl-sr-axis-label", -5, -8);
-        axisLabel(doc, svg, axes.xPrimeAxis.end, "x'", "cl-sr-axis-label-prime", 8, 5);
-        axisLabel(doc, svg, axes.tPrimeAxis.end, "t'", "cl-sr-axis-label-prime", 7, -8);
+        axisLabel(doc, svg, axes.xPrimeAxis.end, "x'", "cl-sr-axis-label-prime", 8, Math.abs(state.beta) < 0.08 ? -18 : 5);
+        axisLabel(doc, svg, axes.tPrimeAxis.end, "t'", "cl-sr-axis-label-prime", 18, -8);
         svg.appendChild(makeSvgElement(doc, "text", { x: "20", y: "26", "class": "cl-sr-small" }, "c=1：光锥 x=±t"));
         svg.appendChild(makeSvgElement(doc, "text", { x: "20", y: "48", "class": "cl-sr-small" }, "蓝：S　红：S'　实线点：P"));
 
@@ -493,7 +510,7 @@
         primeMetric.value.textContent = "(" + format(api, prime.x, 2) + ", " + format(api, prime.t, 2) + ")";
         intervalMetric.value.textContent = format(api, interval, 3);
         typeMetric.value.textContent = typeInfo.label;
-        formula.textContent = "S：s²=t²−x²=" + format(api, state.t, 3) + "²−" + format(api, state.x, 3) + "²=" + format(api, interval, 3) + "；S'：t'²−x'²=" + format(api, prime.t, 3) + "²−" + format(api, prime.x, 3) + "²=" + format(api, primeInterval, 3);
+        formula.textContent = "S：s²=t²−x²=(" + format(api, state.t, 3) + ")²−(" + format(api, state.x, 3) + ")²=" + format(api, interval, 3) + "；S'：t'²−x'²=(" + format(api, prime.t, 3) + ")²−(" + format(api, prime.x, 3) + ")²=" + format(api, primeInterval, 3);
         status.textContent = typeInfo.note + " 同时线：蓝色为 t=常数，红色为 t'=常数；它们通常不重合。";
         setPressedButtons(type);
       }
@@ -543,7 +560,9 @@
     }
   }
 
-  if (window.CourseLearning && typeof window.CourseLearning.register === "function") {
+  if (typeof module !== "undefined" && module.exports) module.exports = { classify: classify, transform: transform, mapPoint: mapPoint, axisSegment: axisSegment, PLOT: PLOT };
+
+  if (typeof window !== "undefined" && window.CourseLearning && typeof window.CourseLearning.register === "function") {
     window.CourseLearning.register("relativity", function (root, api) {
       mount(root, api);
     });

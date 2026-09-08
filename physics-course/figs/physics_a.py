@@ -73,27 +73,32 @@ def f_dipole_radiation():
 
 def f_spacetime():
     fig,ax=plt.subplots(figsize=(5.4,5.0))
-    x=np.linspace(-2.5,2.5,10)
+    x=np.linspace(-2.5,2.5,101)
     ax.fill_between(x,np.abs(x),2.6,color=ACC2,alpha=.2)
     ax.plot(x,x,color=RED,lw=1.5); ax.plot(x,-x,color=RED,lw=1.5)
     ax.text(2.0,2.2,"light cone",color=RED,fontsize=10)
     b=0.5  # boost
-    ax.plot(x,b*x,color=ACC,lw=1.8); ax.text(2.1,b*2.1,r"$x'$",color=ACC,fontsize=12)
-    ax.plot(b*x,x,color=ACC,lw=1.8); ax.text(b*2.1+.05,2.2,r"$ct'$",color=ACC,fontsize=12)
+    ax.plot(x,b*x,color="#315f9d",lw=1.8); ax.text(2.1,b*2.1,r"$x'$",color="#315f9d",fontsize=12)
+    ax.plot(b*x,x,color="#315f9d",lw=1.8); ax.text(b*2.1+.05,2.2,r"$ct'$",color="#315f9d",fontsize=12)
     ax.axhline(0,color=INK,lw=.8); ax.axvline(0,color=INK,lw=.8)
     ax.text(2.4,-.25,r"$x$",fontsize=12); ax.text(.1,2.4,r"$ct$",fontsize=12)
     ax.set_xlim(-2.5,2.7); ax.set_ylim(-2.5,2.7); ax.set_aspect("equal"); ax.set_xticks([]); ax.set_yticks([])
-    ax.set_title(r"Minkowski diagram: boosted frame tilts axes",fontsize=12)
-    save(fig,"sr-01-spacetime")
+    ax.set_title(r"Minkowski diagram: beta = 0.5, equal x/ct scales",fontsize=12)
+    save(fig,"sr-01-spacetime",reproducible=True)
 
 def f_double_slit():
-    x=np.linspace(-3,3,600)
-    fig,ax=plt.subplots(figsize=(6.8,3.6))
-    I=(np.cos(6*x))**2*(np.sinc(1.2*x))**2
-    ax.plot(x,I,color=ACC,lw=2); ax.fill_between(x,I,color=ACC,alpha=.2)
-    ax.set_xlabel(r"screen position"); ax.set_ylabel("intensity")
-    ax.set_title(r"Double-slit: interference fringes under diffraction envelope",fontsize=12)
-    save(fig,"opt-01-double-slit")
+    u=np.linspace(-4,4,2401)
+    w,d=0.5,1.5
+    envelope=np.sinc(w*u)**2
+    intensity=np.cos(np.pi*d*u)**2*envelope
+    fig,ax=plt.subplots(figsize=(6.8,3.8))
+    ax.plot(u,intensity,color=ACC,lw=1.8,label="double slit")
+    ax.plot(u,envelope,color=RED,lw=1.4,ls="--",label="single-slit envelope")
+    ax.set_xlabel(r"$u=(a/\lambda)\sin\theta$"); ax.set_ylabel(r"$I(u)/I(0)$")
+    ax.set_ylim(-.03,1.06); ax.set_xlim(-4,4)
+    ax.legend(loc="upper right",fontsize=9)
+    ax.set_title(r"Double slit: $w=0.5$, $d=1.5$; orders $m=\pm3$ vanish",fontsize=11)
+    save(fig,"opt-01-double-slit",reproducible=True)
 
 def f_carnot():
     # nR=1, constant gamma: both adiabats must meet both isotherms.
