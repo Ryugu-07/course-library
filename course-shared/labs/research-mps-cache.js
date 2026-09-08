@@ -1,7 +1,7 @@
 (function(root,factory){
  "use strict";const node=typeof module==="object"&&module.exports;
  const lib=factory(node?require("../research-renderer.js"):root.ResearchLab,node?require("./research-environments.js"):root.ResearchEnvironments,node?require("./research-two-site.js"):root.ResearchTwoSite);
- if(node)module.exports=lib;else if(root.CourseLearning)root.CourseLearning.register("research-mps-cache",lib.mount);
+ if(node)module.exports=lib;else {root.ResearchMPSCache=lib;if(root.CourseLearning)root.CourseLearning.register("research-mps-cache",lib.mount);}
 })(typeof globalThis!=="undefined"?globalThis:this,function(core,env,two){
  "use strict";
  const I=[[1,0],[0,1]],X=[[0,1],[1,0]],Z=[[1,0],[0,-1]];

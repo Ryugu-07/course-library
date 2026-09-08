@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>热核与随机分布 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li><li class="active"><a href="bridge-18-heat-distributions.html">基础 XVIII · 热核与随机分布</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 23:47</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#heat-distributions-title">每个光滑测试函数都看见极限，为什么还要指定 Sobolev 空间？</a></li>
+<li><a href="#1">1. 先把圆周、基和范数的归一化钉牢</a></li>
+<li><a href="#2">2. 不只看一个配对：直接计算整个空间范数</a></li>
+<li><a href="#3">3. 临界值不能靠有限曲线蒙混</a></li>
+<li><a href="#4">4. 一个测试函数的收敛，究竟少了什么？</a></li>
+<li><a href="#5">5. 为什么白噪声不是“每一点抽一个普通随机数”？</a></li>
+<li><a href="#6">6. 热核怎样平滑，又在哪个拓扑回去？</a></li>
+<li><a href="#7">7. 实验怎样读：频率滤波不是收敛证书</a></li>
+<li><a href="#8">8. 两道迁移题</a></li>
+<li><a href="#9-spde">9. 这一步离奇异 SPDE 还有多远？</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="18">基础衔接 18 · 热核正则化与随机分布：在哪个空间里真的收敛？<a class="headerlink" href="#18" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="pde2-01-distributions.html">分布与弱导数</a>、<a href="pde2-02-sobolev.html">Sobolev 空间</a>、<a href="bridge-09-wick-limits.html">Wick 平方与截断极限</a>。Wick 平方讲只让一个随机对象与常数测试函数配对；本讲把整个 Fourier 场放入 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span>，给出精确正则性阈值，再证明热核平滑在同一概率空间上回到原随机分布。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="heat-distributions-title" class="learning-layer">
+<h2 id="heat-distributions-title">每个光滑测试函数都看见极限，为什么还要指定 Sobolev 空间？<a class="headerlink" href="#heat-distributions-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 先把圆周、基和范数的归一化钉牢<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把圆周写成 <span class="arithmatex">\(\mathbb T=[0,2\pi]\)</span>，使用归一化测度</p>
+<div class="arithmatex">\[
+\frac{dx}{2\pi}.
+\]</div>
+<p>实三角基</p>
+<div class="arithmatex">\[
+e_k^c(x)=\sqrt2\cos(kx),
+\qquad
+e_k^s(x)=\sqrt2\sin(kx),
+\qquad k\ge1
+\]</div>
+<p>在 <span class="arithmatex">\(L^2(\mathbb T,dx/(2\pi))\)</span> 中正交归一。本讲去掉常数模；这让 <span class="arithmatex">\(\alpha=0\)</span> 的例子成为<strong>均值为零的空间白噪声</strong>，不是包含独立零模的完整白噪声。</p>
+<p>令 <span class="arithmatex">\(\xi_k^c,\xi_k^s\)</span> 全部相互独立且服从 <span class="arithmatex">\(N(0,1)\)</span>，固定 <span class="arithmatex">\(\alpha\ge0\)</span>，定义</p>
+<div class="arithmatex">\[
+X_N(x)=\sum_{k=1}^N k^{-\alpha}
+\bigl(\xi_k^c e_k^c(x)+\xi_k^s e_k^s(x)\bigr).
+\]</div>
+<p>所有截断共用<strong>同一组</strong>随机系数。从 <span class="arithmatex">\(N\)</span> 到 <span class="arithmatex">\(M\)</span> 只打开新频率，不重新抽取旧频率。</p>
+<p>若 <span class="arithmatex">\(f\)</span> 的实 Fourier 坐标为 <span class="arithmatex">\(\widehat f_k^c,\widehat f_k^s\)</span>，本讲采用</p>
+<div class="arithmatex">\[
+\|f\|_{H^s}^2
+=\sum_{k\ge1}(1+k^2)^s
+\left(|\widehat f_k^c|^2+|\widehat f_k^s|^2\right)
+\]</div>
+<p>作为去零模部分的 Sobolev 范数。<span class="arithmatex">\(s&lt;0\)</span> 不是“负的范数”，而是高频受到较小权重的较粗空间；其完备化包含普通点值未必存在的分布。</p>
+<h2 id="2">2. 不只看一个配对：直接计算整个空间范数<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>正交性和 <span class="arithmatex">\(E[(\xi_k^c)^2]=E[(\xi_k^s)^2]=1\)</span> 给出</p>
+<div class="arithmatex">\[
+\boxed{
+E\|X_N\|_{H^s}^2
+=2\sum_{k=1}^N(1+k^2)^s k^{-2\alpha}.
+}
+\]</div>
+<p>前面的因子 2 来自每个正频率的余弦与正弦两份实坐标。若改用复指数基，必须同时处理正负频率与实值共轭约束；不能只换符号而保留错误计数。</p>
+<p>对 <span class="arithmatex">\(M&gt;N\)</span>，同一耦合使前 <span class="arithmatex">\(N\)</span> 个频率逐项消掉，因此</p>
+<div class="arithmatex">\[
+\boxed{
+E\|X_M-X_N\|_{H^s}^2
+=2\sum_{k=N+1}^M(1+k^2)^s k^{-2\alpha}.
+}
+\]</div>
+<p>当 <span class="arithmatex">\(k\)</span> 很大时，被加项与 <span class="arithmatex">\(2k^{2s-2\alpha}\)</span> 同阶。<span class="arithmatex">\(p\)</span> 级数判据于是给出</p>
+<div class="arithmatex">\[
+\sum_{k\ge1}(1+k^2)^s k^{-2\alpha}&lt;\infty
+\quad\Longleftrightarrow\quad
+2s-2\alpha&lt;-1.
+\]</div>
+<p>也就是精确阈值</p>
+<div class="arithmatex">\[
+\boxed{s&lt;\alpha-\frac12.}
+\]</div>
+<p>在这个范围内，<span class="arithmatex">\((X_N)\)</span> 是 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> Cauchy 序列。因为 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 完备，存在同一概率空间上的 <span class="arithmatex">\(H^s\)</span> 值随机变量 <span class="arithmatex">\(X\)</span>，使</p>
+<div class="arithmatex">\[
+X_N\longrightarrow X
+\qquad\text{于 }L^2(\Omega;H^s).
+\]</div>
+<p>这句话同时指定了随机变量拓扑和空间拓扑，比“每个频率看起来稳定”强得多。</p>
+<h2 id="3">3. 临界值不能靠有限曲线蒙混<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在临界值 <span class="arithmatex">\(s=\alpha-1/2\)</span>，取倍增截断 <span class="arithmatex">\(M=2N\)</span>：</p>
+<div class="arithmatex">\[
+E\|X_{2N}-X_N\|_{H^{\alpha-1/2}}^2
+=2\sum_{k=N+1}^{2N}
+(1+k^2)^{\alpha-1/2}k^{-2\alpha}.
+\]</div>
+<p>单项可以写成</p>
+<div class="arithmatex">\[
+\frac2k\left(1+\frac1{k^2}\right)^{\alpha-1/2},
+\]</div>
+<p>所以</p>
+<div class="arithmatex">\[
+\boxed{
+E\|X_{2N}-X_N\|_{H^{\alpha-1/2}}^2
+\longrightarrow2\log2\ne0.
+}
+\]</div>
+<p>序列在临界空间不是 Cauchy。若 <span class="arithmatex">\(s&gt;\alpha-1/2\)</span>，倍增壳层更不会趋零。图上某几个有限 <span class="arithmatex">\(N\)</span> 的曲线变平，不能覆盖这个无限频率反例。</p>
+<p>这里的二阶矩发散已经否定 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 收敛，但单凭“期望无穷”还不能断言每个样本的范数无穷。要得到几乎必然的临界失败，再设</p>
+<div class="arithmatex">\[w_k=(1+k^2)^{\alpha-1/2}k^{-2\alpha}\sim k^{-1},\qquad
+Z_k=(\xi_k^c)^2+(\xi_k^s)^2.\]</div>
+<p><span class="arithmatex">\(Z_k\)</span> 独立，<span class="arithmatex">\(E Z_k=2\)</span>、<span class="arithmatex">\(\operatorname{Var}Z_k=4\)</span>。因为 <span class="arithmatex">\(\sum_k4w_k^2&lt;\infty\)</span>，独立中心随机变量级数 <span class="arithmatex">\(\sum_k w_k(Z_k-2)\)</span> 几乎必然收敛（可由其部分和是有界于 <span class="arithmatex">\(L^2\)</span> 的鞅及鞅收敛定理得到）。而 <span class="arithmatex">\(\sum_k2w_k=\infty\)</span>，故 <span class="arithmatex">\(\sum_k w_kZ_k=\infty\)</span> 几乎必然。这才证明 <span class="arithmatex">\(X\)</span> 几乎必然不属于临界空间；更高阶空间嵌入临界空间，因而也被排除。低于临界时范数平方期望有限，则范数几乎必然有限。</p>
+<p>在收敛范围内还能给出可交卷的尾界。令</p>
+<div class="arithmatex">\[
+p=2\alpha-2s&gt;1,
+\qquad
+C_s=2^{\max(s,0)}.
+\]</div>
+<p>对 <span class="arithmatex">\(k\ge1\)</span>，有 <span class="arithmatex">\((1+k^2)^s\le C_sk^{2s}\)</span>，故</p>
+<div class="arithmatex">\[
+\boxed{
+E\|X-X_N\|_{H^s}^2
+\le\frac{2C_s}{p-1}N^{1-p}.
+}
+\]</div>
+<p>这是均方 <span class="arithmatex">\(H^s\)</span> 误差界；开平方才是 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 范数界。</p>
+<h2 id="4">4. 一个测试函数的收敛，究竟少了什么？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>对光滑测试函数 <span class="arithmatex">\(\varphi\)</span>，记</p>
+<div class="arithmatex">\[
+\widehat\varphi_k^c=\langle\varphi,e_k^c\rangle,
+\qquad
+\widehat\varphi_k^s=\langle\varphi,e_k^s\rangle,
+\]</div>
+<p>其中配对使用 <span class="arithmatex">\(dx/(2\pi)\)</span>。则</p>
+<div class="arithmatex">\[
+\langle X_N,\varphi\rangle
+=\sum_{k=1}^Nk^{-\alpha}
+\left(\xi_k^c\widehat\varphi_k^c
++\xi_k^s\widehat\varphi_k^s\right),
+\]</div>
+<p>并且</p>
+<div class="arithmatex">\[
+\boxed{
+\operatorname{Var}\langle X_N,\varphi\rangle
+=\sum_{k=1}^Nk^{-2\alpha}
+\left(|\widehat\varphi_k^c|^2
++|\widehat\varphi_k^s|^2\right).
+}
+\]</div>
+<p>光滑函数的 Fourier 系数比任意固定负幂衰减得更快，所以这份标量方差级数收敛。对每个固定 <span class="arithmatex">\(\varphi\)</span>，配对因此在 <span class="arithmatex">\(L^2(\Omega)\)</span> 中有极限。</p>
+<p>但只检查一个 <span class="arithmatex">\(\varphi\)</span> 完全可能漏掉高频。例如 <span class="arithmatex">\(\varphi(x)=\cos x\)</span> 时，<span class="arithmatex">\(N\ge1\)</span> 后</p>
+<div class="arithmatex">\[
+\langle X_N,\cos x\rangle
+=\frac1{\sqrt2}\xi_1^c,
+\]</div>
+<p>与所有 <span class="arithmatex">\(k\ge2\)</span> 的坐标无关。这个标量从第一步就“完美收敛”，却无法判断整个场是否在 <span class="arithmatex">\(H^{-1/2}\)</span>、<span class="arithmatex">\(L^2\)</span> 或任何其他指定空间收敛。</p>
+<p>要声称随机分布在某个拓扑中收敛，需要一组控制测试函数族或空间范数的一致估计，并处理随机律的紧性或强耦合。本模型用上一节的 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 尾和直接完成了这件事；单个配对只是必要的观察窗口，不是充分证书。</p>
+<h2 id="5">5. 为什么白噪声不是“每一点抽一个普通随机数”？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(\alpha=0\)</span>。对任意固定 <span class="arithmatex">\(x\)</span>，截断场的点方差为</p>
+<div class="arithmatex">\[
+E[X_N(x)^2]
+=2\sum_{k=1}^N
+\left(\cos^2kx+\sin^2kx\right)
+=2N.
+\]</div>
+<p>所以 <span class="arithmatex">\(X_N(x)\)</span> 不会在 <span class="arithmatex">\(L^2(\Omega)\)</span> 中收敛。事实上它服从 <span class="arithmatex">\(N(0,2N)\)</span>，对每个有限 <span class="arithmatex">\(M\)</span>，<span class="arithmatex">\(P(|X_N(x)|\le M)\to0\)</span>，连有限随机点值的依概率极限也不存在。更本质地，上一节给出的极限只属于</p>
+<div class="arithmatex">\[
+H^s\qquad(s&lt;-1/2),
+\]</div>
+<p>而点值评价并不是这些负正则性空间上的连续泛函。白噪声的基本对象是 <span class="arithmatex">\(\varphi\mapsto\langle X,\varphi\rangle\)</span>，不是一张由相互独立点值组成的普通函数表。</p>
+<p>由于本讲去掉零模，<span class="arithmatex">\(\alpha=0\)</span> 时对一般测试函数有</p>
+<div class="arithmatex">\[
+\operatorname{Var}\langle X,\varphi\rangle
+=\|\varphi-\langle\varphi,1\rangle\|_{L^2}^2.
+\]</div>
+<p>若把独立常数模补回，右边才变成完整的 <span class="arithmatex">\(\|\varphi\|_{L^2}^2\)</span>。这个差别不影响高频正则性阈值，但影响协方差的精确公式。</p>
+<h2 id="6">6. 热核怎样平滑，又在哪个拓扑回去？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>圆周 Laplacian 满足</p>
+<div class="arithmatex">\[
+\Delta e_k^c=-k^2e_k^c,
+\qquad
+\Delta e_k^s=-k^2e_k^s.
+\]</div>
+<p>因此对 <span class="arithmatex">\(\epsilon&gt;0\)</span>，定义</p>
+<div class="arithmatex">\[
+X_\epsilon=e^{\epsilon\Delta}X
+=\sum_{k\ge1}e^{-\epsilon k^2}k^{-\alpha}
+\bigl(\xi_k^ce_k^c+\xi_k^se_k^s\bigr).
+\]</div>
+<p>热核不是“把所有频率减去同一个常数”，而是给第 <span class="arithmatex">\(k\)</span> 个频率乘 <span class="arithmatex">\(e^{-\epsilon k^2}\)</span>。高频按 <span class="arithmatex">\(k^2\)</span> 指数压低。对任意 <span class="arithmatex">\(r\in\mathbb R\)</span>，</p>
+<div class="arithmatex">\[
+E\|X_\epsilon\|_{H^r}^2
+=2\sum_{k\ge1}(1+k^2)^r k^{-2\alpha}e^{-2\epsilon k^2}&lt;\infty.
+\]</div>
+<p>所以对每个固定 <span class="arithmatex">\(\epsilon&gt;0\)</span>，该级数在任意 Sobolev 阶数收敛。取可数个整数 <span class="arithmatex">\(r\)</span> 并用圆周上的 Sobolev 嵌入，可得 <span class="arithmatex">\(X_\epsilon\)</span> 几乎必然是 <span class="arithmatex">\(C^\infty\)</span> 函数。</p>
+<p>现在固定任意 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span>，并让 <span class="arithmatex">\(X_\epsilon\)</span> 与 <span class="arithmatex">\(X\)</span> 使用<strong>同一组</strong> <span class="arithmatex">\(\xi_k^c,\xi_k^s\)</span>。则</p>
+<div class="arithmatex">\[
+E\|X_\epsilon-X\|_{H^s}^2
+=2\sum_{k\ge1}(1+k^2)^s k^{-2\alpha}
+\left(1-e^{-\epsilon k^2}\right)^2.
+\]</div>
+<p>对每个固定 <span class="arithmatex">\(k\)</span>，括号随 <span class="arithmatex">\(\epsilon\downarrow0\)</span> 趋于零；它又被 1 控制，而</p>
+<div class="arithmatex">\[
+2(1+k^2)^s k^{-2\alpha}
+\]</div>
+<p>在所选 <span class="arithmatex">\(s\)</span> 下可求和。离散支配收敛定理于是给出</p>
+<div class="arithmatex">\[
+\boxed{
+X_\epsilon\longrightarrow X
+\quad\text{于 }L^2(\Omega;H^s),
+\qquad s&lt;\alpha-\frac12.
+}
+\]</div>
+<p>这里同时写清了概率拓扑、空间拓扑和耦合方式。若每个 <span class="arithmatex">\(\epsilon\)</span> 都独立重采样一个 <span class="arithmatex">\(X_\epsilon'\)</span>，则交叉项期望为零，反而有</p>
+<div class="arithmatex">\[
+E\|X_\epsilon'-X\|_{H^s}^2
+=E\|X_\epsilon'\|_{H^s}^2+E\|X\|_{H^s}^2
+\longrightarrow2E\|X\|_{H^s}^2,
+\]</div>
+<p>不会趋零。两边的<strong>分布律</strong>仍可能收敛，不等于这组独立样本在均方意义靠近。</p>
+<figure>
+<p><img alt="原始随机Fourier场具有延伸到高频的谱，热核乘子e的负epsilon k平方压低高频并产生光滑场。下方Sobolev轴标出s小于alpha减二分之一时L2概率H s收敛，临界点倍增壳层趋于二倍log2；固定测试函数只观察频谱的一种投影。" src="assets/img/bridge-18-heat-distributions.svg" /></p>
+<figcaption>
+<p>热核让每个固定 <span class="arithmatex">\(\epsilon&gt;0\)</span> 的场变光滑；让 <span class="arithmatex">\(\epsilon\downarrow0\)</span> 时，只有先选定 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span> 并沿用同一噪声，才能得到这里证明的强 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 极限。</p>
+</figcaption>
+</figure>
+<h2 id="7">7. 实验怎样读：频率滤波不是收敛证书<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验使用 <span class="arithmatex">\(\alpha\in[0,2]\)</span>、<span class="arithmatex">\(s\in[-1.5,1]\)</span>、截断 <span class="arithmatex">\(N\in\{8,16,32,64,128\}\)</span> （截断滑块选择指数 <span class="arithmatex">\(n\)</span>，即 <span class="arithmatex">\(N=2^n\)</span>）与热时间 <span class="arithmatex">\(\epsilon\in[0.01,0.2]\)</span>；建议默认 <span class="arithmatex">\(\alpha=0\)</span>、<span class="arithmatex">\(s=-3/4\)</span>、<span class="arithmatex">\(N=16\)</span>、<span class="arithmatex">\(\epsilon=0.05\)</span>。它画出原始与热过滤后的模态贡献，并报告部分和、倍增壳层和理论尾界。</p>
+<p>按下面顺序操作：</p>
+<ol>
+<li>默认输入满足 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span>。核对 <span class="arithmatex">\(E\|X_{16}\|_{H^{-3/4}}^2\approx3.267141087\)</span>，<span class="arithmatex">\(16&lt;k\le32\)</span> 的倍增壳层约为 <span class="arithmatex">\(0.282552038\)</span>。</li>
+<li>保持 <span class="arithmatex">\(\alpha=0,N=16\)</span>，把 <span class="arithmatex">\(s\)</span> 改成临界值 <span class="arithmatex">\(-1/2\)</span>。倍增壳层约为 <span class="arithmatex">\(1.354173150\)</span>；增大 <span class="arithmatex">\(N\)</span> 时它趋近 <span class="arithmatex">\(2\log2\approx1.386294361\)</span>，不会趋零。</li>
+<li>回到 <span class="arithmatex">\(s=-3/4\)</span>，减小 <span class="arithmatex">\(\epsilon\)</span>。热滤波曲线逐步接近原谱，但越来越多高频重新出现；有限画布接近不等于已证明无穷级数收敛。</li>
+<li>增大 <span class="arithmatex">\(\alpha\)</span>。阈值 <span class="arithmatex">\(\alpha-1/2\)</span> 向右移动，说明原场本身更平滑；这与固定 <span class="arithmatex">\(\epsilon&gt;0\)</span> 时热核带来的无限阶平滑是两件事。</li>
+</ol>
+<p>默认收敛例有 <span class="arithmatex">\(p=3/2\)</span>、<span class="arithmatex">\(C_s=1\)</span>，所以上一节尾界给</p>
+<div class="arithmatex">\[
+E\|X-X_{16}\|_{H^{-3/4}}^2\le1.
+\]</div>
+<p>这个界故意保守，但覆盖全部未显示频率。实验模态曲线和部分和只用于理解，阈值证明依赖完整级数与临界壳层。</p>
+<p><strong>无脚本后备：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th style="text-align: right;"><span class="arithmatex">\(E\lVert X_N\rVert_{H^s}^2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(E\lVert X_{2N}-X_N\rVert_{H^s}^2\)</span></th>
+<th>判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\alpha=0,s=-3/4,N=16\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(3.267141087\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0.282552038\)</span></td>
+<td>位于收敛区，尾界为 1</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha=0,s=-1/2,N=16\)</span></td>
+<td style="text-align: right;">不作为证书</td>
+<td style="text-align: right;"><span class="arithmatex">\(1.354173150\)</span></td>
+<td>临界；壳层趋于 <span class="arithmatex">\(2\log2\)</span></td>
+</tr>
+<tr>
+<td>一般 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span></td>
+<td style="text-align: right;">有有限极限</td>
+<td style="text-align: right;">趋向 0</td>
+<td><span class="arithmatex">\(L^2(\Omega;H^s)\)</span> Cauchy</td>
+</tr>
+<tr>
+<td>一般 <span class="arithmatex">\(s=\alpha-1/2\)</span></td>
+<td style="text-align: right;">发散</td>
+<td style="text-align: right;">趋于 <span class="arithmatex">\(2\log2\)</span></td>
+<td>非 Cauchy</td>
+</tr>
+</tbody>
+</table>
+<style>[data-learning-lab="research-heat-fields"] .rs-output td {min-width:105px;}</style>
+<div class="learning-lab" data-learning-lab="research-heat-fields" data-research-topic="sobolev"></div>
+<h2 id="8">8. 两道迁移题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 取 <span class="arithmatex">\(\alpha=0\)</span>。分别判断 <span class="arithmatex">\(X_N\)</span> 在 <span class="arithmatex">\(H^{-3/4}\)</span> 与 <span class="arithmatex">\(H^{-1/2}\)</span> 中是否为 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> Cauchy；对收敛情形给出平方尾误差界，对临界情形给出倍增反例。</p>
+<details>
+<summary>查看答案：只差四分之一阶，结论完全不同</summary>
+<p><span class="arithmatex">\(s=-3/4\)</span> 时</p>
+<div class="arithmatex">\[
+p=2\alpha-2s=\frac32&gt;1,
+\]</div>
+<p>所以序列收敛，且</p>
+<div class="arithmatex">\[
+E\|X-X_N\|_{H^{-3/4}}^2
+\le\frac{2}{1/2}N^{-1/2}
+=4N^{-1/2}.
+\]</div>
+<p><span class="arithmatex">\(s=-1/2\)</span> 正好临界。此时</p>
+<div class="arithmatex">\[
+E\|X_{2N}-X_N\|_{H^{-1/2}}^2
+=2\sum_{k=N+1}^{2N}(1+k^2)^{-1/2}
+\longrightarrow2\log2.
+\]</div>
+<p>因此它不是 Cauchy。白噪声属于每个 <span class="arithmatex">\(H^{-1/2-\delta}\)</span>（以这里的 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 意义），却不属于临界 <span class="arithmatex">\(H^{-1/2}\)</span>。</p>
+</details>
+<p><strong>题二。</strong> 有人只用 <span class="arithmatex">\(\varphi(x)=\cos x\)</span> 测试，发现 <span class="arithmatex">\(\langle X_N,\varphi\rangle\)</span> 从 <span class="arithmatex">\(N=1\)</span> 起就不变，于是宣称 <span class="arithmatex">\(X_N\)</span> 在 <span class="arithmatex">\(H^{-1/2}\)</span> 收敛。指出错误，并给出能直接反驳的量。</p>
+<details>
+<summary>查看答案：一只低频探针看不见高频壳层</summary>
+<p>由正交性，</p>
+<div class="arithmatex">\[
+\langle X_N,\cos x\rangle
+=\frac1{\sqrt2}\xi_1^c
+\]</div>
+<p>对所有 <span class="arithmatex">\(N\ge1\)</span> 都成立。这个测试只读取第一个余弦模，完全遗漏 <span class="arithmatex">\(k\ge2\)</span>。</p>
+<p>在 <span class="arithmatex">\(\alpha=0,s=-1/2\)</span> 中，直接检查整个 Sobolev 壳层：</p>
+<div class="arithmatex">\[
+E\|X_{2N}-X_N\|_{H^{-1/2}}^2\to2\log2\ne0.
+\]</div>
+<p>因此 <span class="arithmatex">\(H^{-1/2}\)</span> Cauchy 性失败。一个连续线性泛函上的收敛不能推出 Hilbert 空间范数收敛；需要控制全部方向的总能量。</p>
+</details>
+<h2 id="9-spde">9. 这一步离奇异 SPDE 还有多远？<a class="headerlink" href="#9-spde" title="Permanent link"></a></h2>
+<p>本讲构造了一个线性 Gaussian 随机分布，证明 Fourier 截断和热核正则化在指定负 Sobolev 空间中收敛。它已经比单一测试函数配对更强，却还没有定义 <span class="arithmatex">\(X^2\)</span>、Wick 幂或任何非线性方程。</p>
+<p>进入<a href="frontier-02-singular-spde.html">奇异 SPDE</a>时，困难会从“场在哪个空间”升级为“粗糙对象能否相乘、近似反项是否一致、解映射是否连续”。热核能制造光滑近似，但“每个 <span class="arithmatex">\(\epsilon\)</span> 都可计算”本身不保证非线性结果随 <span class="arithmatex">\(\epsilon\downarrow0\)</span> 收敛，更不保证不同正则化方案给出同一物理参数。</p>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>两份实 Fourier 模态 → <span class="arithmatex">\(H^s\)</span> 二阶矩级数 → 阈值 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span> → 临界壳层 <span class="arithmatex">\(2\log2\)</span> → 热乘子 <span class="arithmatex">\(e^{-\epsilon k^2}\)</span> → 同噪声下的支配收敛。回到<a href="bridge-09-wick-limits.html">Wick 平方</a>时，应明确那里只证明了一个二次场的常数配对极限；本讲证明的是线性场自身在完整 Sobolev 范数中的极限。</p>
+<p>Gaussian 随机变量、Hilbert 空间随机级数与正则化背景见 Hairer 的 <a href="https://hairer.org/notes/StochasticAnalysisCourse.pdf">Advanced Stochastic Analysis</a>；热半群、空间白噪声与分布值 SPDE 的系统入口见作者讲义 <a href="https://arxiv.org/abs/0907.4178">An Introduction to Stochastic PDEs</a>；圆周 Fourier 与 Sobolev 归一化可对照 Hairer 与 Kurniawan 的 <a href="https://www.hairer.org/papers/multiscale_spde.pdf">Stochastic PDEs with multiscale structure</a>。本讲阈值、临界壳层和尾界均由正文级数独立推出。资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-17-continuous-control.html"><span class="pager-label">上一页</span>基础 XVII · 连续路径熵与控制</a>
+  <a class="pager-slot next" href="route-01-derived-readiness.html"><span class="pager-label">下一页</span>路线验收 · 整数分解到导出观点</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-heat-fields.js?v=7c88bec71d9f"></script>
+</body>
+</html>

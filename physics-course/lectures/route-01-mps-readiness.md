@@ -172,3 +172,5 @@ $$Av=(\tau,1+\tau,1+\tau,\tau)^T=\tau v,$$
 继续训练：[两站点完整往返](bridge-11-two-site-sweeps.html)逐步重建当前态的块基，记录候选接受与拒绝，并用非零残差识别能量停滞。
 
 后续实现训练：[正交中心与环境缓存](bridge-12-mps-cache.html)，从完整小系统的验证走向真正存储与收缩 MPS 张量。
+
+后续计算：[MPO与Krylov](bridge-14-mpo-krylov.html)把算符也组织成张量，通过 Hv 接口接回缓存扫描；显式局部残差与SVD丢弃权重分开检查。

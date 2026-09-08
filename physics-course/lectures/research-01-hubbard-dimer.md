@@ -154,3 +154,5 @@ $E_-=(U-\sqrt{U^2+16t^2})/2$，$D=\partial_UE_-$；$J\simeq4t^2/U$ 只适用于�
 - [Bourgund 等：混合维度 Hubbard 系统中的个别条纹](https://www.nature.com/articles/s41586-024-08270-7)，2025-01-01 期刊实验论文；受控耦合推进了虚拟交换机制，结论限于所测关联与前驱结构。
 
 来源核查：2026-09-08。下一讲：[量子临界与有限尺寸](research-02-quantum-criticality.html)。
+
+后续计算：[MPO与Krylov](bridge-14-mpo-krylov.html)把算符也组织成张量，通过 Hv 接口接回缓存扫描；显式局部残差与SVD丢弃权重分开检查。

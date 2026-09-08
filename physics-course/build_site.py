@@ -169,6 +169,7 @@ COURSE = [
         ("bridge-11-two-site-sweeps.md", "计算桥 XI · 两站点往返扫描"),
         ("bridge-12-mps-cache.md", "计算桥 XII · 正交中心与环境缓存"),
         ("bridge-13-positive-blocks.md", "计算桥 XIII · 共形块与正性证书"),
+        ("bridge-14-mpo-krylov.md", "计算桥 XIV · MPO与Krylov"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),
@@ -260,6 +261,8 @@ def lab_dependencies(names):
     # Two-site updates reuse the tested Ising Hamiltonian and symmetric eigensolver.
     expanded = []
     for name in names:
+        if name == "research-mpo":
+            expanded.extend(["research-environments", "research-two-site", "research-mps-cache"])
         if name in ("research-sweeps", "research-mps-cache"):
             expanded.extend(["research-environments", "research-two-site"])
         if name == "research-two-site":

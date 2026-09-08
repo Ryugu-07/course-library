@@ -235,3 +235,5 @@ $$
 更广的 Wick 幂与 Fourier 截断背景可参见 Hairer 的 [Advanced Stochastic Analysis 讲义](https://hairer.org/notes/StochasticAnalysisCourse.pdf)，其中以 Gaussian Fourier 场构造 $\Phi^4_2$；奇异方程中近似、反项与极限解的关系见 Hairer 的 [Renormalisation of parabolic stochastic PDEs](https://arxiv.org/abs/1803.03044)。本讲的有限和、阈值与误差界均已在正文独立推导，不把这个一维标量算例冒充一般定理。资料核查：2026-09-08。
 
 连续训练：[路径熵与随机场极限](route-02-stochastic-readiness.html)把有限模型、误差控制和退出题接成可交卷的路线。
+
+后续练习：[热核正则化与随机分布](bridge-18-heat-distributions.html)把单一测试函数推广到完整 Sobolev 范数，推导精确阈值与临界壳层，并区分有限频率图和无穷尾界。
