@@ -15,9 +15,9 @@
 
 | 阶段 | 为什么需要它 | 完成这一阶段的自测 | 入口 |
 |---|---|---|---|
-| 1. 环、模与概形 | 几何需要记录函数、局部结构及无穷小信息 | 解释为何两个只有一个普通点的对象仍可能具有不同函数环 | [环与域](../../math-course/site/alg-abs-02-rings-fields.html)、[交换代数](https://stacks.math.columbia.edu/tag/00AO)、[概形](https://stacks.math.columbia.edu/tag/01H8) |
-| 2. 层与向量丛 | 各坐标片的数据要在重叠处相容地粘合 | 写出三片重叠上的转移矩阵条件；说明局部平凡为何不等于整体平凡 | [覆盖空间](at-02-covering.html)、[层](https://stacks.math.columbia.edu/tag/006A) |
-| 3. 同调代数与导出范畴 | 核、余核和高阶障碍要在同一框架中追踪 | 对一个两项复形计算两级上同调，检查参数变化时是否跳跃 | [同调与边界](at-03-homology.html)、[同调代数](https://stacks.math.columbia.edu/tag/00ZU)、[导出范畴](https://stacks.math.columbia.edu/tag/05QI) |
+| 1. 环、模与概形 | 几何需要记录函数、局部结构及无穷小信息 | 解释为何两个只有一个普通点的对象仍可能具有不同函数环 | [环与域](../../math-course/site/alg-abs-02-rings-fields.html)、[模与商](bridge-01-modules.html)、[局部化](bridge-02-localization.html)、[交换代数](https://stacks.math.columbia.edu/tag/00AO)、[概形](https://stacks.math.columbia.edu/tag/01H8) |
+| 2. 层与向量丛 | 各坐标片的数据要在重叠处相容地粘合 | 写出三片重叠上的转移矩阵条件；说明局部平凡为何不等于整体平凡 | [覆盖空间](at-02-covering.html)、[层与粘合的算例](bridge-04-sheaves.html)、[层](https://stacks.math.columbia.edu/tag/006A) |
+| 3. 同调代数与导出范畴 | 核、余核和高阶障碍要在同一框架中追踪 | 对一个两项复形计算两级上同调，检查参数变化时是否跳跃 | [同调与边界](at-03-homology.html)、[链复形的完整计算](bridge-03-complexes.html)、[同调代数](https://stacks.math.columbia.edu/tag/00ZU)、[导出范畴](https://stacks.math.columbia.edu/tag/05QI) |
 | 4. 联络、局部系统与 D-模 | 几何对象上还要记录微分方程与平行运输 | 计算微分与乘法的交换子，说明微分算子环为何不交换 | [联络](mfld-03-riemannian.html)、本讲第 2、3 节；进入论文前仍需专门的代数 D-模训练 |
 | 5. 模叠、Hecke 对应与相容性 | 参数空间必须保留自同构，对应要作用在整族对象上 | 说明为什么仅把同构对象合成一个点会丢掉自同构；写出 Hecke 特征关系中各项的类型 | 本讲第 2、4 节；[作者证明系列](https://people.mpim-bonn.mpg.de/gaitsgde/GLC/)作为研究入口 |
 
@@ -106,7 +106,7 @@ $$
 
 左侧是丛模叠上适当半扭曲的 D-模范畴：D-模由微分算子作用组织，能表达随几何变化的微分方程数据。右侧是对偶群 de Rham 局部系统模叠上、带**幂零奇异支撑条件**的 ind-coherent 层范畴。$\operatorname{Nilp}$ 约束的是奇异支撑方向，不是说局部系统的所有矩阵都幂零。[GLC I 的正式设定](https://arxiv.org/html/2405.03599v3)
 
-这些是带导出结构的范畴；完整定义需学习复形、同调和高阶相容性。本讲给出公式的角色图，尚未建立这些先修。等价要求保留态射信息，并使每个对象在同构意义下都有原像；它远强于“两侧对象数相同”。
+这些是带导出结构的范畴；完整定义需学习复形、同调和高阶相容性。本讲给出公式的角色图；[链复形基础](bridge-03-complexes.html)已经提供核、像、拟同构的可算入口，但尚未建立高阶范畴与完整导出理论。等价要求保留态射信息，并使每个对象在同构意义下都有原像；它远强于“两侧对象数相同”。
 
 ## 4. Hecke 操作为什么像“特征值方程”
 

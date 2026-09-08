@@ -79,13 +79,19 @@ $$\langle\Omega|T\phi(x_1)\cdots\phi(x_n)|\Omega\rangle = \frac{\int\mathcal D\p
 
 **生成泛函** $Z[J]=\int\mathcal D\phi\,e^{iS+i\int J\phi}$，对源求泛函导数产出一切关联函数。
 
-**自由场的高斯积分【完整推导】**：$S_0=\int d^4x\,\tfrac12\left[(\partial\phi)^2-m^2\phi^2\right] = -\tfrac12\int\phi(\partial^2+m^2)\phi$。无限维高斯配方（把 $\phi\to\phi+\Delta_F J$）给
+**自由场的高斯积分【推导骨架】**：先作有限模式正规化，并加入 Feynman 的 $i0$ 处方。将二次作用量写成 $S_0=\tfrac12\phi K\phi$，其中 $K=-(\partial^2+m^2)+i0$，积分和指标收缩已缩写。定义 $\Delta=K^{-1}$，其动量表达为 $1/(p^2-m^2+i0)$；本段的 Feynman 时序两点函数则记为 $G_F=i\Delta$，两者相差一个 $i$。
 
-$$Z_0[J]=Z_0[0]\exp\left[-\tfrac{i}{2}\int d^4x\,d^4y\,J(x)\Delta_F(x-y)J(y)\right]$$
+配平方得到
 
-$\Delta_F$ 即 Feynman 传播子。**两次求导即得两点函数，四次求导自动产生三项配对——Wick 定理由此一行证出**（配对即高斯积分的矩公式）。
+$$\tfrac12\phi K\phi+J\phi=\tfrac12(\phi+\Delta J)K(\phi+\Delta J)-\tfrac12J\Delta J.$$
 
-**$\ln Z$ 生成连通图**：这与概率论中"矩母函数的对数生成累积量"**逐字同构**（🔗 sm-02）。$Z[J]$ 就是场论的 MGF。
+平移积分变量后，独立于源的 Gaussian 因子约去，因此
+
+$$\frac{Z_0[J]}{Z_0[0]}=\exp\left[-\tfrac{i}{2}\int d^4x\,d^4y\,J(x)\Delta(x-y)J(y)\right].$$
+
+每次对 $J$ 求导带出 $i\phi$，所以时序 $n$ 点函数应乘 $i^{-n}$。两次求导给 $i^{-2}(-i\Delta)=i\Delta=G_F$；四次求导给 $G_{F,12}G_{F,34}+G_{F,13}G_{F,24}+G_{F,14}G_{F,23}$。这推得正规化自由 Gaussian 理论的四点 Wick 配对；连续极限与相互作用理论仍需额外处理，不能把形式配平方称为所有 Wick 定理情形的完整证明。
+
+**$\ln Z$ 生成连通图**：其组合结构对应概率论中对数生成累积量；Minkowski 权重是振荡复数，一般不是正概率测度。源的 $i$ 因子仍须保留。关联函数到粒子散射还需要[LSZ 与外腿截肢](bridge-01-lsz.html)。
 
 **Wick 转动**：$t\to-i\tau$ 使 $e^{iS}\to e^{-S_E}$——**得到统计力学的配分函数**。$S_E$ 就是 asm-01 的 Ginzburg–Landau 自由能泛函。**qft 与临界现象是同一数学的两个读法**，这也是本页与 asm-03 互为镜像的根源；格点 QCD 正是这条欧氏积分的蒙卡实现（🔗 comp-01）。
 
@@ -95,11 +101,11 @@ $\Delta_F$ 即 Feynman 传播子。**两次求导即得两点函数，四次求�
 
 以 $\phi^4$ 的四点函数单圈修正（"鱼"图）为例：
 
-$$i\mathcal M_{1\text{-loop}} \sim \frac{(-i\lambda)^2}{2}\int\frac{d^4\ell}{(2\pi)^4}\frac{i}{\ell^2-m^2}\cdot\frac{i}{(\ell+p)^2-m^2}$$
+$$i\mathcal M_{1\text{-loop}} \sim \frac{(-i\lambda)^2}{2}\int\frac{d^4\ell}{(2\pi)^4}\frac{i}{\ell^2-m^2+i0}\cdot\frac{i}{(\ell+p)^2-m^2+i0}$$
 
 大 $\ell$ 时被积函数 $\sim1/\ell^4$，而测度 $d^4\ell\sim\ell^3d\ell$ → $\int d\ell/\ell$：**对数紫外发散**。
 
-**病灶的物理定位**：$\ell\to\infty$ 即**短距离**。发散意味着"我们假装这个理论一直适用到零距离"——**这个假设本身才是错的**。
+**物理定位**：大圈动量探查短距离结构。这里发现的是一个未经重整化的微扰积分存在紫外发散；它本身不证明连续理论不可能存在，也不独自证明某个具体新物理能标。若把模型视为有效理论，还需独立说明其适用范围。下一步应写清正规化与参数定义，见[完整的单泡图积分和减法](bridge-02-loop-subtraction.html)。
 
 **正规化**（先给积分立规矩，发散被参数化而非消失）：
 
@@ -112,11 +118,12 @@ $$i\mathcal M_{1\text{-loop}} \sim \frac{(-i\lambda)^2}{2}\int\frac{d^4\ell}{(2\
 
 **② 用实验定义物理参数**：例如在某个动量点 $s_0$ 定义 $\lambda_R \equiv -\mathcal M(s_0)$。
 
-**③ 消去裸参数。** 把 $\lambda_0$ 用 $\lambda_R$ 表达后代回，得到
+**③ 消去裸参数。** 在同一微扰阶次，把裸参数用减法点定义的参数表达后代回。不能在没有交代质量、散射角和三个通道的情况下，把整个四点振幅一律写成单个 $\log(s/s_0)$。一个已经完整算出的单通道欧氏结果是
 
-$$\mathcal M(s) = -\lambda_R - \frac{3\lambda_R^2}{32\pi^2}\ln\frac{s}{s_0}+O(\lambda_R^3)$$
+$$B_R(Q;Q_0)=-\frac1{16\pi^2}\int_0^1dx\,
+\log\frac{m^2+x(1-x)Q^2}{m^2+x(1-x)Q_0^2},\qquad m>0.$$
 
-在这个已经施加 renormalization condition 的 toy/阶次里，$\Lambda$（或 $1/\epsilon$）从所写的物理量表达式中消失——**用物理量表达物理量，发散逐阶相消**。这不是对任意裸表达式的自动删除，而是参数定义、对称性和阶次组织共同给出的结果。
+[计算桥第二讲](bridge-02-loop-subtraction.html)从原积分推到该式，并用固定组合系数的教学量展示反项账本。完整 $\phi^4$ 散射还需通道求和、顶点与对称因子、Minkowski 解析延拓。相消依赖参数定义和阶次组织，不能对任意裸表达式自动删除发散。
 
 **power-counting 判据**：耦合的质量量纲 $\ge0$ 是判断微扰可重整性的必要框架（在给定维数和局域展开下组织 counterterm），不是脱离其它结构的充分定理。四维中 $[\lambda_{\phi^4}]=0$、$[\lambda_{\phi^6}]=-2$、$[G_N]=-2$；还要检查规范/全局对称性、允许的 counterterm、反常、幺正性与其它一致性条件。不能仅凭三组量纲就概括完整 QED、QCD 或标准模型的全部 UV 行为。
 

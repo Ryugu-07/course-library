@@ -37,3 +37,7 @@
 ## 从本科基础走向研究前沿
 
 研究生数学库新增三讲前沿专题：[Schrödinger 桥](../../grad-math/site/frontier-01-schrodinger-bridge.html)、[奇异 SPDE 与重整化](../../grad-math/site/frontier-02-singular-spde.html)、[几何 Langlands](../../grad-math/site/frontier-03-geometric-langlands.html)。先从本库的概率、泛函、PDE 或群论进入相应研究生先修，再读专题中的正式对象与论文窗口。几何 Langlands 还需代数几何和导出范畴；页面会明确指出这些尚未完整覆盖的先修，不把名称识记当作理解。
+
+### 进入代数几何前的中间课程
+
+线性空间、环论和拓扑之后，可沿[模与商](../../grad-math/site/bridge-01-modules.html) → [局部化](../../grad-math/site/bridge-02-localization.html) → [链复形](../../grad-math/site/bridge-03-complexes.html) → [层与粘合](../../grad-math/site/bridge-04-sheaves.html)继续。这里补的是研究方向的专门先修，不把尚未学习代数几何视为本科基础不合格。先做[研究生入口的四项自测](../../grad-math/site/index.html#foundation-route)，再决定从哪一讲开始。

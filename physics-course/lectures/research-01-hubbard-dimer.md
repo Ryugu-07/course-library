@@ -22,13 +22,47 @@ $c^\dagger$ 创建电子，$n=c^\dagger c$ 数电子；$t,U,H$ 都有能量单�
 
 ## 2. 六维空间为什么缩成二阶矩阵
 
-四个轨道选两个电子有六个基态。总自旋守恒，把它们分成三个三重态与三个单重态。一个单重态是两格各一个电子的
+四个轨道选两个电子有六个占据基矢；这里“基矢”指 basis vector，不是六个最低能态。为把符号算到底，缩写 $c_1=c_{1\uparrow},c_2=c_{1\downarrow},c_3=c_{2\uparrow},c_4=c_{2\downarrow}$，并总按编号递增排列创建算符：
+
+| 占据基矢 | 创建算符定义 |
+|---|---|
+| $D_1=\lvert\uparrow\downarrow,0\rangle$ | $c_1^\dagger c_2^\dagger\lvert0\rangle$ |
+| $A=\lvert\uparrow,\downarrow\rangle$ | $c_1^\dagger c_4^\dagger\lvert0\rangle$ |
+| $B=\lvert\downarrow,\uparrow\rangle$ | $c_2^\dagger c_3^\dagger\lvert0\rangle$ |
+| $D_2=\lvert0,\uparrow\downarrow\rangle$ | $c_3^\dagger c_4^\dagger\lvert0\rangle$ |
+| $T_+=\lvert\uparrow,\uparrow\rangle$ | $c_1^\dagger c_3^\dagger\lvert0\rangle$ |
+| $T_-=\lvert\downarrow,\downarrow\rangle$ | $c_2^\dagger c_4^\dagger\lvert0\rangle$ |
+
+利用 $\{c_i,c_j^\dagger\}=\delta_{ij}$、$\{c_i,c_j\}=0$。作用一个湮灭算符时，每跨过一个不同轨道的创建算符就多一个负号；创建新电子后，再按固定顺序排列也可能产生负号。例如 $c_2^\dagger c_4 A=-c_2^\dagger c_1^\dagger\lvert0\rangle=D_1$，两个负号抵消。对 $B$ 则 $c_1^\dagger c_3 B=-D_1$，只留下一个负号。
+
+下面逐项列出跃迁部分 $H_t=-t(c_1^\dagger c_3+c_3^\dagger c_1+c_2^\dagger c_4+c_4^\dagger c_2)$ 在四个相关态上的作用；表内每项已包含 $-t$。
+
+| 算符项 | $A$ | $B$ | $D_1$ | $D_2$ |
+|---|---|---|---|---|
+| $-tc_1^\dagger c_3$ | $0$ | $+tD_1$ | $0$ | $-tA$ |
+| $-tc_3^\dagger c_1$ | $-tD_2$ | $0$ | $+tB$ | $0$ |
+| $-tc_2^\dagger c_4$ | $-tD_1$ | $0$ | $0$ | $+tB$ |
+| $-tc_4^\dagger c_2$ | $0$ | $+tD_2$ | $-tA$ | $0$ |
+
+相加可得 $H_tA=-t(D_1+D_2)$、$H_tB=+t(D_1+D_2)$。同自旋的 $T_\pm$ 则每项要么湮灭空轨道，要么向已占据轨道创建电子，全部为零。总自旋守恒，把这六维空间分成三个三重态与三个单重态。一个单重态是两格各一个电子的
 
 $$
 |S\rangle=(|\uparrow,\downarrow\rangle-|\downarrow,\uparrow\rangle)/\sqrt2,
 $$
 
-另一个是对称双占据 $|D_+\rangle=(|\uparrow\downarrow,0\rangle+|0,\uparrow\downarrow\rangle)/\sqrt2$。选取上述相位后，跃迁把它们相连，矩阵元为 $-2t$。因子 2 来自两种自旋、两个方向的振幅及归一化；它不是凭经验补上的交换系数。
+另一个是对称双占据 $|D_+\rangle=(|\uparrow\downarrow,0\rangle+|0,\uparrow\downarrow\rangle)/\sqrt2$。逐项表给出
+
+$$H_t|S\rangle=\frac{-t(D_1+D_2)-t(D_1+D_2)}{\sqrt2}=-2t|D_+\rangle,$$
+
+而 $|T_0\rangle=(A+B)/\sqrt2$ 的两组振幅恰好抵消，$H_t|T_0\rangle=0$。同样从表中得 $H_tD_1=H_tD_2=-tA+tB$，所以 $H_t|D_+\rangle=-2t|S\rangle$，$H_t|D_-\rangle=0$。矩阵的两侧非对角元相同，也核对了厄米性。
+
+**停下来验收：**若把基矢 $B$ 改成 $B'=-B$，能否只把表中的 $B$ 列反号，仍保留 $|S\rangle=(A-B')/\sqrt2$？
+
+<details markdown="1"><summary>核对基底相位与物理态</summary>
+
+不能。同一个物理单重态现在是 $(A+B')/\sqrt2$，态坐标与算符矩阵必须一起变换。只改一列而不改对应行还会破坏厄米性。合法换基不改变本征值，却会改变矩阵元和态的坐标表达。
+
+</details>
 
 $$
 H_{S,D_+}=\begin{pmatrix}0&-2t\\-2t&U\end{pmatrix}.

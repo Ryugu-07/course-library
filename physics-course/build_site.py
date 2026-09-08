@@ -155,6 +155,10 @@ COURSE = [
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
     ]),
+    ("基础衔接 · 场论计算", [
+        ("bridge-01-lsz.md", "计算桥 I · LSZ 与外腿截肢"),
+        ("bridge-02-loop-subtraction.md", "计算桥 II · 圈积分与减法"),
+    ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),
         ("frontier-02-fault-tolerant-quantum.md", "前沿 II · 容错量子计算"),

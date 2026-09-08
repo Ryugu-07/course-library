@@ -106,6 +106,12 @@ COURSE = [
         ("alg2-02-galois.md", "代数进阶 II · Galois 对应"),
         ("alg2-03-insolvability.md", "代数进阶 III · 五次不可解"),
     ]),
+    ("基础衔接 · 代数到几何", [
+        ("bridge-01-modules.md", "基础 I · 模、商与正合性"),
+        ("bridge-02-localization.md", "基础 II · 局部化与素谱入口"),
+        ("bridge-03-complexes.md", "基础 III · 链复形与同调计算"),
+        ("bridge-04-sheaves.md", "基础 IV · 层、限制与粘合"),
+    ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),
         ("frontier-02-singular-spde.md", "前沿 II · 奇异 SPDE 与重整化"),

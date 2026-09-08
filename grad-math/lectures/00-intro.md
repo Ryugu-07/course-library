@@ -73,3 +73,16 @@
 [Liouville 与边缘分布](kinetic-01-liouville-marginals.html) → [碰撞与 Boltzmann 方程](kinetic-02-boltzmann-collisions.html) → [流体极限与闭合](kinetic-03-hydrodynamic-limits.html) → [波湍流与共振](kinetic-04-wave-kinetics.html)。
 
 现代数论线先修群、环、域与复分析；微观到宏观线先修测度概率、常微分方程及 PDE。数论中的 Frobenius 提供算术动机，几何 Langlands 的概形、层与导出范畴仍需另外准备；请按[可自测的先修路线](frontier-03-geometric-langlands.html#langlands-prerequisite-route)逐项补齐。
+
+<h2 id="foundation-route">基础衔接：先把代数与几何之间的计算接通</h2>
+
+这一组补的是原课程到研究专题之间的中间工具。顺序建议：**模与商 → 局部化 → 链复形 → 层与粘合**。它们是四讲基础训练，尚不构成完整的交换代数、代数几何或导出范畴课程。
+
+| 先独立尝试 | 若不会，回到哪里 | 本讲完成后的下一步 |
+|---|---|---|
+| 解释整数乘六为何单射却不满射，模六商为何不是向量空间 | [模、商与正合性](bridge-01-modules.html)；先补本科线性空间与环论 | 局部化、表示与分解 |
+| 算出模十二反演二后还剩几个元素 | [局部化](bridge-02-localization.html) | 素谱、局部环与函数芽 |
+| 写出三角形的边界矩阵，区分边框与填面 | [链复形](bridge-03-complexes.html) | 链映射、同伦与导出范畴 |
+| 判断三弧局部系统是否有非零全局平坦截面 | [层与粘合](bridge-04-sheaves.html) | 向量丛、联络与局部系统 |
+
+验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写有限模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)，其中概形理论、张量积与导出函子的系统训练、D-模及模叠仍有后续任务。
