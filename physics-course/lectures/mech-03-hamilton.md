@@ -3,6 +3,8 @@
 > **对标**：Goldstein §8–9 / Landau §7 ｜ **前置**：mech-02、cvx-01（Legendre 变换！）
 > 力学的第三种写法：用 Legendre 变换把 \((q,\dot q)\) 换成 \((q,p)\)——**相空间**。方程降为一阶对称形式、演化成为相空间的“流”、泊松括号让力学代数化。这不只是换记号：**量子力学（对易子）与统计物理（相空间测度）都从这扇门进屋**。
 
+> 可直接复习：[拉格朗日力学](mech-02-lagrange.html)、[凸共轭](../../grad-math/site/cvx-01-conjugate.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1">
@@ -41,8 +43,8 @@ H(\theta,p)=\frac{p^2}{2}+1-\cos\theta .
 
 能量阈值是顶点势能 \(E=2\)：
 
-- \(E<2\)：摆动，\(\theta\) 在转向点之间往复；
-- \(E=2\)：分离曲线（separatrix）能级；
+- \(0<E<2\)：摆动，\(\theta\) 在转向点之间往复；
+- \(E=0\)：最低点平衡；\(E=2\)：分离曲线（separatrix）能级；
 - \(E>2\)：转动，摆越过顶点，\(\theta\) 沿周期方向持续绕行。
 
 等能曲线可以直接画成
@@ -70,6 +72,16 @@ p=\pm\sqrt{2\bigl(E-1+\cos\theta\bigr)} .
 - **曲线不是时间演化。**解析式给出能级集合；要沿某一支读方向，还要结合 \(\dot\theta=p\) 和 \(\dot p=-\sin\theta\)。鞍点本身的速度为零。
 
 把一维单摆当作模板：先由 \(H\) 找不变量，再看周期坐标的拓扑，最后用临界能量分开轨道类型。这个顺序也适用于更一般的一维自治 Hamilton 系统。
+
+### 6. 迁移：时间依赖的守恒量与阻尼
+
+自由粒子 $H=p^2/(2m)$ 中，$f=q-pt/m$ 显含时间，仍能守恒吗？若单摆加入 $-\gamma p$，求 $\dot H$ 和相流散度，并说明是否还能使用保体积结论。
+
+<details markdown="1"><summary>核对显含时间项与体积收缩</summary>
+
+$\{f,H\}=p/m$，$\partial_tf=-p/m$，二者相消。显含时间不等于一定不守恒。阻尼单摆中 $\dot H=\sin\theta\,p+p(-\sin\theta-\gamma p)=-\gamma p^2$；相流散度为 $-\gamma$。$\gamma>0$ 时面积按 $e^{-\gamma t}$ 缩小，模型已经不满足本页标准Hamilton保体积条件。
+
+</details>
 
 </section>
 

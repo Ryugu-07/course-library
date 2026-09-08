@@ -4,6 +4,8 @@
 > 牛顿力学是全部物理的原型：**给定力，运动由二阶 ODE 决定**。本页把框架立严（三定律的真实逻辑地位）、把三大守恒律从方程中推出来，并给出"守恒律 = 求解捷径"的方法论——它是下一页变分力学的铺垫，也是 Noether 定理的直觉预演。
 
 
+> 可直接复习：[多元微分](../../math-course/site/analysis-05-multivar-diff.html)、[ODE初值问题](../../math-course/site/ode-01-first-order.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="mech01-learning-title">
@@ -12,7 +14,7 @@
 
 ### 1. 先把自由体图的边界画出来
 
-取一维两物体碰撞作为最小模型：
+取一维两物体碰撞作为最小模型（以下质量用kg、速度用m/s、距离用m、时间用s）：
 
 $$
 m_1=1,\quad m_2=2,\quad v_1=2,\quad v_2=-\frac12.
@@ -117,6 +119,17 @@ $\mathbf v_{k+1}=\mathbf v_k+h\mathbf a$ 画离散路径。Euler 路径随着 $h
 - **定理级**：惯性系中 $m\mathbf a=\mathbf F$；封闭系统的内部冲量在成对相消条件下不改总动量；固定原点的角动量方程还要保留内部力矩，只有中心成对内力或零内部净力矩时才约成 $\dot{\mathbf L}_O=\boldsymbol\tau_O^{\mathrm{ext}}$。
 - **有限证据**：实验只显示一个碰撞参数、一种参考系加速度、有限个时间步和有限个原点选择；通过一次账本不等于对所有外力和初值的证明。
 - **失败边界**：改变系统边界会改变内外力分类；非惯性系要加惯性力；移动原点要保留 $\!-\mathbf V_O\times\mathbf P$ 修正；把 Euler 轨迹的漂移叫作精确动力学违反，是把数值离散误差混进定理层。
+
+### 7. 迁移：势能的零点能决定是否束缚吗？
+
+取 $k>0$，把谐振子势改写成 $V(x)=kx^2/2+100$。若总能量为101，能否因E>0就称为散射？再考虑 $V(x,t)=k(t)x^2/2$，逐时刻都无旋是否足以保证能量守恒？
+
+<details markdown="1"><summary>核对束缚判据与外部驱动</summary>
+
+第一例的允许区间是 $|x|\le\sqrt{2/k}$，运动仍束缚。势能加常数只平移能量数值，不改变力或轨道；应比较E与有效势以及无穷远行为。第二例的 $\dot E=\dot k(t)x^2/2$ 一般非零，时变弹簧的驱动会输入或抽取能量。守恒需要时间不变等条件，不能只看空间旋度。
+
+</details>
+
 </section>
 
 <figure class="diagram" markdown="1">
@@ -136,7 +149,7 @@ $\mathbf v_{k+1}=\mathbf v_k+h\mathbf a$ 画离散路径。Euler 路径随着 $h
 
 **角动量**：对单粒子或已把内部净力矩正确计入的系统，$\dot{\mathbf L}=\boldsymbol\tau=\sum\mathbf r\times\mathbf F$。中心外力与成对中心内力使相应力矩为零，才得到角动量守恒；第三定律仅给“等大反向”时还不足以消去内部力矩。单粒子中心力场进一步给出轨道共面与 Kepler 第二定律。
 
-**能量**：$W = \int\mathbf F\cdot d\mathbf r = \Delta T$（动能定理，**【推导】**$\mathbf F\cdot\dot{\mathbf r} = m\ddot{\mathbf r}\cdot\dot{\mathbf r} = \frac{d}{dt}\frac12 m\dot r^2$）；**保守力** = 做功与路径无关 ⟺ $\mathbf F = -\nabla V$ ⟺ $\nabla\times\mathbf F = 0$（单连通域——数分 VI 的三个等价在物理的原产地）⇒ $E = T + V$ 守恒。
+**能量**：$W = \int\mathbf F\cdot d\mathbf r = \Delta T$（动能定理，**【推导】**$\mathbf F\cdot\dot{\mathbf r} = m\ddot{\mathbf r}\cdot\dot{\mathbf r} = \frac{d}{dt}\frac12 m\dot r^2$）；**保守力** = 做功与路径无关 ⟺ $\mathbf F = -\nabla V$ ⟺ $\nabla\times\mathbf F = 0$（单连通域——数分 VI 的三个等价在物理的原产地）；还要要求势能无显含时间，才有 $E=T+V$ 守恒。若 $V=V(\mathbf r,t)$，沿运动 $d(T+V)/dt=\partial_tV$；每个固定时刻的力无旋，并不能保证机械能守恒。
 
 **方法论读法**：守恒律把二阶 ODE **降阶为一阶甚至代数问题**——能量守恒的一维运动直接分离变量 $t = \int\frac{dr}{\sqrt{2(E - V)/m}}$，根本不解牛顿方程。"找守恒量优先于解方程"是整个物理的工作习惯；**守恒律从哪来**（为什么恰好这三个）——下一页 Noether 定理给出惊人的回答：对称性。
 
@@ -148,7 +161,7 @@ $$
 E = \frac12 m\dot r^2 + \underbrace{\frac{L^2}{2mr^2} + V(r)}_{V_{\text{eff}}(r)}
 $$
 
-（离心项 $\frac{L^2}{2mr^2}$ 是角向运动"折算"进径向的能量。）**看 $V_{\text{eff}}$ 图定性读全部轨道**：极小值处圆轨道、$E < 0$ 束缚振荡、$E > 0$ 散射——不解方程先知命运（ode-01 相线分析的力学版）。
+（离心项 $\frac{L^2}{2mr^2}$ 是角向运动"折算"进径向的能量。）**看 $V_{\text{eff}}$ 图定性读全部轨道**：驻点给圆轨道，非退化极小值给径向线性稳定、极大值给不稳定；允许区间由 $E\ge V_{\mathrm{eff}}$ 决定。只有另指定如Kepler势 $V=-k/r$ 且 $V(\infty)=0$、$L\ne0$ 时，才可用 $E<0$ 判束缚、$E\ge0$ 判非束缚——不解方程先知命运（ode-01 相线分析的力学版）。
 
 **Kepler 问题**（$V = -\frac{k}{r}$）**【推导骨架】**：轨道方程用 Binet 换元 $u = 1/r$，$\frac{d^2u}{d\theta^2} + u = \frac{mk}{L^2}$——**谐振子方程**（！）——解为圆锥曲线：
 

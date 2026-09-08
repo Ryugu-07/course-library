@@ -137,7 +137,8 @@
     }
     var epsilon = data.eccentricity;
     var asymptote = Math.acos(1 / epsilon);
-    var span = Math.max(0.12, Math.min(0.34, asymptote * 0.42));
+    // Stay strictly inside the physical asymptote even near a head-on orbit.
+    var span = Math.min(0.34, asymptote * 0.42);
     var start = -asymptote + span;
     var end = asymptote - span;
     var p = data.impact * data.impact / data.a;
@@ -184,10 +185,14 @@
 
   function scatteringGeometry(data) {
     var raw = orbitRawPoints(data);
+    var maxX = Math.max.apply(null, raw.points.map(function (point) { return Math.abs(point.x); }));
+    var maxY = Math.max.apply(null, raw.points.map(function (point) { return Math.abs(point.y); }));
+    // One scale for both coordinates; keep every trajectory point in the plot,
+    // leaving the right panel exclusively for the independent angle sketch.
     var transform = {
-      originX: 300,
+      originX: 245,
       originY: 126,
-      scale: 214 / Math.max(raw.extent, data.rMin * 2, 20)
+      scale: Math.min(200 / Math.max(maxX, data.rMin * 1.15), 68 / Math.max(maxY, EPS))
     };
     var screenPoints = raw.points.map(function (point) { return screenPoint(point, transform); });
     var turnRaw = { x: data.rMin, y: 0 };
@@ -218,18 +223,20 @@
       '<svg viewBox="0 0 600 220" role="img" aria-labelledby="' + uid + '-geometry-title ' + uid + '-geometry-desc">',
       '<title id="' + uid + '-geometry-title">中心势散射的双曲线轨道几何</title>',
       '<desc id="' + uid + '-geometry-desc">蓝色曲线是由有效势决定的散射轨道，中心金点是散射中心，红色标记是最近接距离，旁边显示散射角。</desc>',
-      '<line class="ps-axis" x1="25" y1="126" x2="575" y2="126"></line>',
-      '<line class="ps-axis" x1="300" y1="22" x2="300" y2="200"></line>',
+      '<defs><marker id="' + uid + '-incoming" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 8 4 L 0 8 Z" fill="var(--ps-green)"></path></marker></defs>',
+      '<line class="ps-axis" x1="25" y1="126" x2="385" y2="126"></line>',
+      '<line class="ps-axis" x1="245" y1="36" x2="245" y2="200"></line>',
       '<path class="ps-orbit" d="' + geometry.path + '"></path>',
-      '<circle class="ps-center" cx="300" cy="126" r="6"></circle>',
+      '<circle class="ps-center" cx="245" cy="126" r="6"></circle>',
       '<circle class="ps-turn" cx="' + turnX.toFixed(2) + '" cy="' + turnY + '" r="5"></circle>',
-      line(300, 126, turnX, turnY, "ps-radius"),
+      line(245, 126, turnX, turnY, "ps-radius"),
       line(angle.center.x, angle.center.y, angle.start.x, angle.start.y, "ps-angle-ray"),
       line(angle.center.x, angle.center.y, angle.end.x, angle.end.y, "ps-angle-ray"),
       '<path class="ps-angle" d="' + angle.path + '"></path>',
-      '<line class="ps-arrow" x1="77" y1="126" x2="130" y2="126"></line>',
-      svgText(73, 113, "入射", "ps-label"),
-      svgText(300, 218, "中心势 κ/r", "ps-label", "middle"),
+      '<path class="ps-arrow" d="' + pathFromScreenPoints(geometry.screenPoints.slice(0, 9)) + '" marker-end="url(#' + uid + '-incoming)"></path>',
+      svgText(30, 42, "箭头沿入射段", "ps-label"),
+      svgText(245, 218, "中心势 κ/r", "ps-label", "middle"),
+      svgText(496, 197, "角度示意（非轨道）", "ps-label", "middle"),
       svgText(turnX - 7, turnY - 10, "r_min", "ps-label", "end"),
       svgText(515, 69, "χ=" + format(data.angleDegrees, 2) + "°", "ps-callout"),
       svgText(300, 18, "轨道/散射几何（单位化显示）", "ps-title", "middle"),

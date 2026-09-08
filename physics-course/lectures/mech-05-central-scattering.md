@@ -3,6 +3,8 @@
 > **对标**：Taylor *Classical Mechanics* ch. scattering / Goldstein §3、§5 ｜ **前置**：mech-01（守恒量）、mech-02（变分与对称性）、mech-03（相空间）
 > 把一束粒子射向一个看不见的中心，屏幕上为什么会出现一条有规律的角分布？中心势散射把“轨道长什么样”和“实验会数到多少粒子”接成一条链：角动量给出有效势，双曲线给出偏折角，冲量参数的面积元素给出微分截面。Rutherford 散射不是一条孤零零的公式，而是这三本账的合账。
 
+> 可直接复习：[牛顿守恒律](mech-01-newton.html)、[Hamilton相空间](mech-03-hamilton.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="central-scattering-learning-title">
@@ -54,6 +56,11 @@ $$
 在默认值下 $a=0.500\ \mathrm{fm}$，所以
 $r_{\min}=3.541\ \mathrm{fm}$，$\chi=18.925^\circ$。最近接并不发生在 $r=b$；$b$ 是无相互作用时的直线偏移量，不是实际轨道的最短半径。
 
+<figure class="plot" markdown="1">
+![默认排斥Coulomb轨道与冲量参数到角度的面积映射](assets/img/mech-05-impact-map.svg)
+<figcaption>轨道由守恒量确定；微分截面再计算冲量参数环带与立体角环带的面积比。左图是有限轨道片段，不把端点当作无穷远入射方向。</figcaption>
+</figure>
+
 <h3>3. 动手实验：让有效势与屏幕读数同步</h3>
 
 先完成三个预测，再打开实验台。四个预设分别强调基线、小 $b$、高能和强排斥。拖动 $E,b,\kappa$ 时，左图给出双曲线轨道的几何支线，右图画出总能量线与有效势的交点；下方把最近接距离、偏心率和微分截面分开显示。
@@ -81,6 +88,8 @@ $$
 
 在这个默认点，$V_{\mathrm{eff}}(r_{\min})=2.000\ \mathrm{MeV}$。若把 $b$ 从 $3$ 减小到 $1\ \mathrm{fm}$，同样的公式给出更大的 $\chi$；若把 $E$ 从 $2$ 提高到 $8\ \mathrm{MeV}$，$a$ 变成 $0.125\ \mathrm{fm}$，偏折减弱。
 
+</div>
+
 <h3>4. 误区、反例与适用边界</h3>
 
 - **$b$ 不是最近接距离。**它是无穷远入射线的几何参数；只有没有力时轨道才是一条与中心保持 $b$ 的直线。
@@ -102,7 +111,11 @@ $$
 
 估计角分布。你应得到 $a=0.250\ \mathrm{fm}$、$r_{\min}\approx2.266\ \mathrm{fm}$、$\chi\approx14.251^\circ$，以及约 $66.016\ \mathrm{fm^2/sr}$。最后说明：为什么同一个 $a/b$ 同时出现在轨道偏折和截面公式中？这一步要求你把“轨道问题”和“统计多少条轨道”接回同一几何参数。
 
-</div>
+<details markdown="1"><summary>核对轨道与截面的共同参数</summary>
+
+角度关系 $b=a\cot(\chi/2)$ 来自单轨道几何；截面再计算这一映射的面积Jacobian：$d\sigma/d\Omega=(b/\sin\chi)|db/d\chi|$。因此两者不是独立拼接的公式，而是同一个冲量参数到出射方向的映射，分别回答“往哪走”和“一束入射有多少条轨道走到这里”。
+
+</details>
 
 </section>
 

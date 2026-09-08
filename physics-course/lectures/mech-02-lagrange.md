@@ -3,6 +3,8 @@
 > **对标**：Goldstein §1–2 / Landau *Mechanics* §1–2 ｜ **前置**：mech-01、数分 V（变分预备）、优化 III（约束）
 > 拉格朗日力学把“画出每个约束力”换成“在位形空间上写一个标量 \(L\)”。核心不是一句“自然界总在最小化作用量”，而是固定端点下的**驻作用量**：真实路径的一阶变分为零。由此得到 Euler–Lagrange 方程、循环坐标和 Noether 守恒律；每一步都要把模型的对称性、边界条件和适用范围说清楚。
 
+> 可直接复习：[牛顿力学](mech-01-newton.html)、[多元微分](../../math-course/site/analysis-05-multivar-diff.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="mech-02-learning-title">
@@ -324,6 +326,15 @@ $$
 - 对自由粒子的 Galilei boost 验证 \(\delta L=d(mx)/dt\)，再解释为什么 \(Q=pt-mx\) 在 \(\dot x\) 恒定时不随时间变。
 - 对各向异性振子从 \(\delta q=(-y,x)\) 直接算出 \(\delta L\)，并指出轴轨道为什么不能反推旋转对称。
 - 给一个显含时间的 \(V(q,t)\)，用 \(dE/dt=-\partial_tL\) 说明能量变化来自外部做功，而不是 Euler–Lagrange 失效。
+
+<details markdown="1"><summary>核对四道迁移题的关键步骤</summary>
+
+1. 从 $L=m(\dot r^2+r^2\dot\theta^2)/2-V(r)$ 对 $\dot\theta$ 求导得 $p_\theta=mr^2\dot\theta$；守恒还依赖 $\partial_\theta L=0$。坐标名字叫角度本身不保证势能旋转不变。
+2. $\delta\dot x=1$，故 $\delta L=m\dot x=d(mx)/dt$；$d(pt-mx)/dt=t\dot p+p-m\dot x=0$。
+3. 旋转不改变动能，$\delta L=(\omega_x^2-\omega_y^2)xy$；轴轨道使该值沿特定解为零，但一般位形仍不为零。
+4. 可取 $V=k(t)q^2/2$：$\dot E=\dot k(t)q^2/2$。时变参数的外部驱动交换能量，EL方程依然有效。
+
+</details>
 
 ---
 
