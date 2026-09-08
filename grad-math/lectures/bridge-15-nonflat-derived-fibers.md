@@ -356,3 +356,5 @@ Tor 由自由分解张量后取同调的定义见 [Stacks Project：Tor groups a
 下一步可把这里的两项复形带到闭嵌入的交中，观察普通张量给出交点环，而 Tor 记录非横截相交留下的额外同调；也可回到[纤维与基变换](bridge-14-fibers-base-change.html)，比较“零纤维非约化”与“总族不平坦”为什么是两件不同的事。
 
 把同一两项分解用到几何相交，继续[相交、接触阶与 Tor](bridge-16-intersections-tor.html)：相切的长度可以变大，而 Tor₁ 仍为零。
+
+继续计算：[导出纤维积与乘法](bridge-20-derived-products.html)保留链级乘法、Leibniz符号和同调类的外积，并用重复方程说明分解合法性不能省略。

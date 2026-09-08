@@ -265,3 +265,5 @@ $$
 从[张量积与 Tor](bridge-05-tensor-tor.html)带来的自由分解，在[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)中检测参数杀死的挠元，本讲则把同一机制放进相交。接下来可回到[几何 Langlands 的导出自交入口](frontier-03-geometric-langlands.html#derived-intersection-calculation)，比较“点在直线内自交”与这里“直线在平面内自交”的同一模式。
 
 Tor 由自由分解张量后的同调定义，见 [Stacks Project：Tor groups and flatness](https://stacks.math.columbia.edu/tag/00LY)；高次 Tor 全消失称为 Tor 独立，见 [Tor independence](https://stacks.math.columbia.edu/tag/065Y)；Tor 在经典相交重数中的使用及其附加假设见 [Intersection multiplicities using Tor formula](https://stacks.math.columbia.edu/tag/0AZR)。本讲三个核心例子均已在正文由两项自由分解直接计算。资料核查：2026-09-08。
+
+继续计算：[导出纤维积与乘法](bridge-20-derived-products.html)保留链级乘法、Leibniz符号和同调类的外积，并用重复方程说明分解合法性不能省略。

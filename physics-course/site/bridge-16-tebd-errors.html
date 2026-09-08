@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>张量时间演化与误差 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li><li><a href="bridge-07-mps-metric.html">计算桥 VII · MPS 范数与局部优化</a></li><li><a href="bridge-08-product-sweeps.html">计算桥 VIII · 乘积 MPS 往返扫描</a></li><li><a href="bridge-09-mps-environments.html">计算桥 IX · MPS 环境与中心求解</a></li><li><a href="bridge-10-two-site-truncation.html">计算桥 X · 两站点更新与截断</a></li><li><a href="bridge-11-two-site-sweeps.html">计算桥 XI · 两站点往返扫描</a></li><li><a href="bridge-12-mps-cache.html">计算桥 XII · 正交中心与环境缓存</a></li><li><a href="bridge-13-positive-blocks.html">计算桥 XIII · 共形块与正性证书</a></li><li><a href="bridge-14-mpo-krylov.html">计算桥 XIV · MPO与Krylov</a></li><li><a href="bridge-15-variance-initial-states.html">计算桥 XV · 全链方差与初态</a></li><li class="active"><a href="bridge-16-tebd-errors.html">计算桥 XVI · 张量时间演化与误差</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-mps-readiness.html">路线验收 · Schmidt 到变分扫描</a></li><li><a href="route-02-field-readiness.html">路线验收 · 关联函数到振幅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 00:35</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先把模型和单位固定</a></li>
+<li><a href="#2">2. 二阶分裂变成哪些真正的门？</a></li>
+<li><a href="#3-svd">3. 每次SVD之前，正交中心必须在正确位置</a></li>
+<li><a href="#4">4. 单次丢弃权重怎样变成态距离？</a></li>
+<li><a href="#5-oh2">5. 不只写O(h²)：给一个有常数的全程分裂界</a></li>
+<li><a href="#6">6. 三条轨迹必须在同一时间轴比较</a></li>
+<li><a href="#7">7. 浮点检查与适用边界</a></li>
+<li><a href="#8">8. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="16">基础衔接 16 · 张量时间演化：怎样把一小步误差带到整段轨迹？<a class="headerlink" href="#16" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-10-two-site-truncation.html">两站点截断</a>、<a href="bridge-12-mps-cache.html">MPS正交中心</a>、<a href="bridge-15-variance-initial-states.html">全链方差与初态</a>。静态求最低能量与实时演化是不同问题。本讲实际施加复数酉门、更新MPS并截断，再把时间分裂、压缩和浮点问题分开。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 先把模型和单位固定<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>取开放Ising链、Pauli本征值±1，令J=ℏ=1：</p>
+<div class="arithmatex">\[H=A+B,\qquad A=-g\sum_{j=1}^L Z_j,\qquad B=-\sum_{j=1}^{L-1}X_jX_{j+1}.\]</div>
+<p>时间以ℏ/J为单位。初态固定为每站60°的乘积态：</p>
+<div class="arithmatex">\[|\psi_0\rangle=\bigotimes_{j=1}^L
+\left(\cos\frac\pi6|0\rangle+\sin\frac\pi6|1\rangle\right).\]</div>
+<p>我们要近似<span class="arithmatex">\(e^{-iTH}|\psi_0\rangle\)</span>，而不是逐步重新求H的最低态。即使初始系数全实，实时演化通常也会产生复数相位，不能沿用实数张量代码而忽略虚部。</p>
+<p>A内部的各项相互对易；B内部的XX项即便共享一个站点也相互对易，因为共享位置都是同一个X。但A与B一般<strong>不对易</strong>，这正是本例时间分裂误差的来源。</p>
+<h2 id="2">2. 二阶分裂变成哪些真正的门？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取步长<span class="arithmatex">\(h=T/m\)</span>，使用对称Strang一步</p>
+<div class="arithmatex">\[S(h)=e^{-ihA/2}e^{-ihB}e^{-ihA/2}.\]</div>
+<p>右边先作用：半步Z、整步XX、再半步Z。单站门是</p>
+<div class="arithmatex">\[U_Z(h/2)=\begin{pmatrix}e^{igh/2}&amp;0\\0&amp;e^{-igh/2}\end{pmatrix}.\]</div>
+<p>由于<span class="arithmatex">\((X\otimes X)^2=I\)</span>，两站点门有闭式</p>
+<div class="arithmatex">\[\boxed{U_{XX}(h)=\cos h\,I+i\sin h\,(X\otimes X).}\]</div>
+<p>所以合并中心<span class="arithmatex">\(\Theta_{\lambda st\rho}\)</span>后，程序实际执行</p>
+<div class="arithmatex">\[\Theta'_{\lambda st\rho}
+=\cos h\,\Theta_{\lambda st\rho}
++i\sin h\,\Theta_{\lambda,1-s,1-t,\rho}.\]</div>
+<p>B内部的门对易，可以按从左到右的键顺序逐个施加。<strong>有截断时</strong>，门之间插入了非线性的压缩操作，不同更新顺序仍可能产生不同近似；不能由精确门对易推断所有截断轨迹相同。</p>
+<h2 id="3-svd">3. 每次SVD之前，正交中心必须在正确位置<a class="headerlink" href="#3-svd" title="Permanent link"></a></h2>
+<p>把合并张量整理为矩阵<span class="arithmatex">\(M_{(\lambda s),(t\rho)}\)</span>。若左右块基正交，它的Frobenius范数才等于完整物理态的范数。对复SVD</p>
+<div class="arithmatex">\[M=U\Sigma V^\dagger\]</div>
+<p>保留最大的χ个奇异值，归一化后把U留在左站，将<span class="arithmatex">\(\Sigma V^\dagger\)</span>送往右站，中心随门一起右移。</p>
+<p>每个时间步的实际流程是：半步单站Z门 → 从左到右逐键XX门与SVD截断 → 半步Z门 → 从右到左无截断地把中心移回首站。最后这次规范变换保留已有键秩和全部有效方向，只改表示，为下一步准备正交块基；它不是额外的物理演化或压缩。</p>
+<p>本实现直接用复数列的Jacobi SVD，内积含共轭。保留块和丢弃块的范数由实际分解结果计算；没有把完整波函数重新分解来冒充局部张量更新。网页另外展开4或6站完整波函数做小系统参照及观测，因此整个演示仍有<span class="arithmatex">\(2^L\)</span>规模的参照成本，不是可直接扩展到长链的生产库。</p>
+<h2 id="4">4. 单次丢弃权重怎样变成态距离？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>对归一化的门后态，Schmidt权重满足<span class="arithmatex">\(\sum_k\sigma_k^2=1\)</span>，定义</p>
+<div class="arithmatex">\[\epsilon=\sum_{k&gt;\chi}\sigma_k^2,\qquad q=1-\epsilon&gt;0.\]</div>
+<p>归一化压缩态<span class="arithmatex">\(|\widetilde\psi\rangle\)</span>与原态采用SVD自然给出的相位，则重叠为<span class="arithmatex">\(\sqrt q\)</span>。因此</p>
+<div class="arithmatex">\[\boxed{\delta=\|\psi-\widetilde\psi\|_2
+=\sqrt{2(1-\sqrt{1-\epsilon})}
+=\sqrt{\frac{2\epsilon}{1+\sqrt{1-\epsilon}}}.}\]</div>
+<p>最后一个写法在ε很小时避免直接用两个接近1的数相减。小ε下<span class="arithmatex">\(\delta\sim\sqrt\epsilon\)</span>，不是ε。</p>
+<p>现在把同一门序列的无压缩态记作ψ_k，压缩态记作φ_k。第k个门U_k为酉，压缩造成实际距离δ_k，三角不等式给</p>
+<div class="arithmatex">\[\begin{aligned}
+\|\phi_k-\psi_k\|
+&amp;\le\|\phi_k-U_k\phi_{k-1}\|
+ +\|U_k(\phi_{k-1}-\psi_{k-1})\|\\
+&amp;=\delta_k+\|\phi_{k-1}-\psi_{k-1}\|.
+\end{aligned}\]</div>
+<p>从同一初态出发，迭代得到</p>
+<div class="arithmatex">\[\boxed{\|\phi_K-\psi_K\|\le\sum_{k=1}^K\delta_k.}\]</div>
+<p>没有假设误差相互独立或相位随机。<span class="arithmatex">\(\sum\epsilon_k\)</span>不能直接替代这个态距离界；平方误差一般也不能不加理由地直接相加。界依赖精确正交块基与精确SVD，实际浮点影响稍后另列。</p>
+<h2 id="5-oh2">5. 不只写O(h²)：给一个有常数的全程分裂界<a class="headerlink" href="#5-oh2" title="Permanent link"></a></h2>
+<p>这里用有限有界矩阵给出保守证明，避免把渐近记号当成可用误差数字。设<span class="arithmatex">\(a=\|A\|\)</span>、<span class="arithmatex">\(b=\|B\|\)</span>，比较S(t)与<span class="arithmatex">\(U(t)=e^{-it(A+B)}\)</span>。在t=0处直接求导，二者的0、1、2阶导数相同。A、B为Hermitian，实时间上的指数均酉；乘积三阶求导的Leibniz公式给</p>
+<div class="arithmatex">\[\|S^{(3)}(t)\|\le(a/2+b+a/2)^3=(a+b)^3,\]</div>
+<p>同时<span class="arithmatex">\(\|U^{(3)}(t)\|\le\|A+B\|^3\le(a+b)^3\)</span>。Taylor积分余项于是给</p>
+<div class="arithmatex">\[\boxed{\|S(h)-U(h)\|\le\frac{|h|^3}{3}(a+b)^3.}\]</div>
+<p>m次相同酉步的望远镜展开不放大每一项，故对T=mh&gt;0，</p>
+<div class="arithmatex">\[\boxed{\|S(h)^m-e^{-iTH}\|
+\le\frac{Th^2}{3}(a+b)^3.}\]</div>
+<p>本链可取<span class="arithmatex">\(a=gL\)</span>、<span class="arithmatex">\(b=L-1\)</span>。两者分别由共同Z本征态与共同X本征态达到；边界是开放链，所以只有L−1个XX项。由此得到网页显示的</p>
+<div class="arithmatex">\[B_{\rm split}=\frac{Th^2}{3}(gL+L-1)^3.\]</div>
+<p>它的常数很松，可能大于归一化态距离的平凡界2。这时它没有有效的精度判别力，不应把“算出了一个界”说成“精度已经足够”。利用局域对易子结构可得到更紧界，但本讲的数值保证仅使用这里已证明的保守版本。</p>
+<p>把压缩与分裂连接起来，在上述精确算术假设下，</p>
+<div class="arithmatex">\[\boxed{\|\phi_m-e^{-iTH}\psi_0\|
+\le\min\left(2,B_{\rm split}+\sum_k\delta_k\right).}\]</div>
+<p>浮点运算若有累计认证界，还应加上那一项。本页没有完成严格浮点误差传播，所以不把公式界宣称为对每个浏览器浮点输出的无条件证书。</p>
+<p><img alt="同一初态沿精确演化、完整态Strang演化和复MPS门后截断三条路径前进。MPS与Strang之间由累计截断态距离控制，Strang与精确路径之间由保守时间分裂界控制，浮点验证另行进行。" src="assets/img/bridge-16-tebd-errors.svg" /></p>
+<h2 id="6">6. 三条轨迹必须在同一时间轴比较<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>网页同时保留三种对象：实际复MPS演化、完整波函数执行同一Strang门序列、完整Hamiltonian谱分解给出的演化参照。第三种方法只有浮点对角化精度，不是任意精度符号答案。MPS更新不读取后两者来选择张量。</p>
+<p>三种态距离均从相同初态和相位约定计算；它们满足三角不等式，通常不满足相加等式。全局相位不影响物理观测，因此表格还给不保真度<span class="arithmatex">\(1-|\langle\psi_{\rm exact},\phi\rangle|^2\)</span>（两态均先归一化）；不要把全局相位距离直接当作可观测差异。</p>
+<p>默认L=4、g=1、χ=2、T=1、10步：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>步长h</td>
+<td style="text-align: right;">0.1</td>
+</tr>
+<tr>
+<td>初始／最终能量</td>
+<td style="text-align: right;">−4.25／−4.253835394</td>
+</tr>
+<tr>
+<td>最终平均Z磁化</td>
+<td style="text-align: right;">0.691244034</td>
+</tr>
+<tr>
+<td>MPS对精确演化的态距离</td>
+<td style="text-align: right;">0.049018085</td>
+</tr>
+<tr>
+<td>纯Strang态距离</td>
+<td style="text-align: right;">0.008251243</td>
+</tr>
+<tr>
+<td>MPS对同一Strang序列的距离</td>
+<td style="text-align: right;">0.050415024</td>
+</tr>
+<tr>
+<td>累计丢弃权重</td>
+<td style="text-align: right;">0.000581000</td>
+</tr>
+<tr>
+<td>累计截断态距离界</td>
+<td style="text-align: right;">0.053480642</td>
+</tr>
+<tr>
+<td>保守Strang界</td>
+<td style="text-align: right;">1.143333333</td>
+</tr>
+</tbody>
+</table>
+<p>先保持χ=2，把时间步数加倍；再保持步数不变，把χ提高到4。L4时χ4足以容纳任何态，压缩路径差应降到浮点量级，剩余主要是Strang误差。此时把8步改成16步、再改成32步，可以看见误差约以四倍下降。L6要χ8才能对所有键容纳完整态。</p>
+<style>[data-learning-lab="research-tebd"] .rs-output td {min-width:110px;}</style>
+<div class="learning-lab" data-learning-lab="research-tebd" data-research-topic="evolution">
+<p>无脚本后备：默认数值见上表。χ4/L4消除实际截断以后，缩小步长主要检查二阶时间分裂；χ1会产生更大的压缩误差。累计丢弃权重0.000581不能被当作态距离上界，因为实际压缩路径差约0.050415。</p>
+</div>
+<h2 id="7">7. 浮点检查与适用边界<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>独立验算使用NumPy复SVD和SciPy完整矩阵指数，对每个时间步的能量、磁化、范数、三条误差、每次丢弃权重逐项比较，并检查每次门更新后的左右正交块。一般复矩形矩阵也用于核验分解和保真度恒等式；不能只在实数或所有项对易的模型上测试。</p>
+<p>数值线性代数本身会制造假误差：先形成MM†再求SVD会平方条件数。本页直接对复列做Jacobi旋转，仍不宣称达到任意精度。约10⁻¹¹以下的态差结合独立参照与规范误差解释；公式中的精确SVD和酉性不能未经检查地替换成“电脑总会精确做到”。</p>
+<p>更大L、更长T、纠缠快速增长或更一般Hamiltonian需要新的资源与误差分析。固定χ下减小h不必让整个MPS结果任意精确：压缩仍在，门与压缩的总次数也增加。本文不提供长期高精度或任意多体系统的普遍保证。</p>
+<h2 id="8">8. 两道迁移题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 100次压缩各丢弃<span class="arithmatex">\(\epsilon=10^{-6}\)</span>。仅知道这些数字，能否把总态距离保证在<span class="arithmatex">\(10^{-4}\)</span>？用本讲方法给出一个有效上界，并解释它为什么可能远大于实际误差。</p>
+<details>
+<summary>查看答案：需要累加的是态距离</summary>
+<p>每次<span class="arithmatex">\(\delta=\sqrt{2\times10^{-6}/(1+\sqrt{1-10^{-6}})}\approx0.001000000125\)</span>。总距离界约0.1000000125，而不是<span class="arithmatex">\(100\epsilon=10^{-4}\)</span>。三角不等式按所有误差朝同一最坏方向累加；实际演化中方向可能抵消，所以它可很保守，但在没有额外信息时不能擅自假设抵消。</p>
+</details>
+<p><strong>题二。</strong> H=Z、初态<span class="arithmatex">\(|+\rangle\)</span>。错误程序始终输出初态不动。它报告能量恒为0，这能验证动力学正确吗？比较正确与错误的<span class="arithmatex">\(\langle X\rangle(t)\)</span>。如果固定χ的MPS已几乎不再随h变化，又能得出什么？</p>
+<details>
+<summary>查看答案：守恒量不能代替轨迹</summary>
+<p>正确态是<span class="arithmatex">\((e^{-it}|0\rangle+e^{it}|1\rangle)/\sqrt2\)</span>，所以<span class="arithmatex">\(\langle X\rangle=\cos2t\)</span>；错误程序始终给1。两者能量都为0，能量守恒未发现相对相位错误。固定χ下h收敛只表明某个时间离散误差可能已小，仍须增大χ并比较压缩路径差、相关观测与独立参照，不能直接宣称精确动力学。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>门真正作用在张量上；SVD前确认块基正交；同一门序列下累加δ；另给分裂算符界；浮点检查单列。三条误差曲线比只看能量或Σε更能解释哪里需要增加预算。</p>
+<p>MPS/TEBD实时演化与Strang分裂背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck的MPS综述第7节</a>；更紧的对易子误差分析可读 <a href="https://arxiv.org/abs/1912.08854">Childs等的Theory of Trotter Error with Commutator Scaling</a>。本页实际使用的保守常数由第5节独立推导，没有把更紧论文界未经实现地放进实验。资料核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-15-variance-initial-states.html"><span class="pager-label">上一页</span>计算桥 XV · 全链方差与初态</a>
+  <a class="pager-slot next" href="route-01-mps-readiness.html"><span class="pager-label">下一页</span>路线验收 · Schmidt 到变分扫描</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-environments.js?v=d3b82df0dfef"></script>
+<script defer src="assets/learning/labs/research-tebd.js?v=1c20cd095d27"></script>
+</body>
+</html>

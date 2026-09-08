@@ -159,3 +159,5 @@ P 的 $H^0=\mathbb Z/3$，其余为零。原锥为 $\mathbb Z\xrightarrow{-3}\ma
 继续计算：[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)比较普通纤维相同但 Tor 不同的两个族，把乘法的核接回导出张量。
 
 后续计算训练：[相交、接触阶与 Tor](bridge-16-intersections-tor.html)，把张量后的核与普通交点长度分开记账。
+
+继续计算：[导出纤维积与乘法](bridge-20-derived-products.html)保留链级乘法、Leibniz符号和同调类的外积，并用重复方程说明分解合法性不能省略。

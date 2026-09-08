@@ -171,6 +171,7 @@ COURSE = [
         ("bridge-13-positive-blocks.md", "计算桥 XIII · 共形块与正性证书"),
         ("bridge-14-mpo-krylov.md", "计算桥 XIV · MPO与Krylov"),
         ("bridge-15-variance-initial-states.md", "计算桥 XV · 全链方差与初态"),
+        ("bridge-16-tebd-errors.md", "计算桥 XVI · 张量时间演化与误差"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),
@@ -268,7 +269,7 @@ def lab_dependencies(names):
             expanded.extend(["research-environments", "research-two-site", "research-mps-cache"])
         if name in ("research-sweeps", "research-mps-cache"):
             expanded.extend(["research-environments", "research-two-site"])
-        if name == "research-two-site":
+        if name in ("research-two-site", "research-tebd"):
             expanded.append("research-environments")
         expanded.append(name)
     return list(dict.fromkeys(expanded))

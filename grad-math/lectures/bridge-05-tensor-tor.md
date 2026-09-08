@@ -115,3 +115,5 @@ $d=4$，两者都同构于 $\mathbb Z/4$。乘八的核是 $\{0,3,6,9\}$，像�
 继续计算：[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)比较普通纤维相同但 Tor 不同的两个族，把乘法的核接回导出张量。
 
 继续[相交、接触阶与 Tor](bridge-16-intersections-tor.html)，比较横截、相切与自交的核和余核。
+
+继续计算：[导出纤维积与乘法](bridge-20-derived-products.html)保留链级乘法、Leibniz符号和同调类的外积，并用重复方程说明分解合法性不能省略。
