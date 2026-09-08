@@ -89,6 +89,6 @@
 | 区分扩张类与中间模，给出非分裂扩张 | [Hom、Ext 与扩张](bridge-07-ext.html) | 同调代数与丛的变形 |
 | 写出 C* 上的水平解，检验一次绕行的单值化 | [联络、水平截面与 D-模](bridge-08-connections.html) | 局部系统、微分方程与几何 Langlands |
 
-随机分析路线另补：[Wick 平均与 L² 极限](bridge-09-wick-limits.html)。先亲自写出同一 Fourier 耦合下两个截断的均方差，再进入奇异 SPDE 的核估计。
+随机分析路线有两个计算入口。[Markov 桥与路径枚举](bridge-10-markov-paths.html)将端点重配落实为两步转移及八条路径，接回 Schrödinger 桥；[Wick 平均与 L² 极限](bridge-09-wick-limits.html)要求亲自写出同一 Fourier 耦合下两个截断的均方差，再进入奇异 SPDE 的核估计。
 
 验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。

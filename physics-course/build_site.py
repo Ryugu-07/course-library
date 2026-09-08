@@ -155,12 +155,13 @@ COURSE = [
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
     ]),
-    ("基础衔接 · 场论与量子几何", [
+    ("基础衔接 · 场论、量子与多体", [
         ("bridge-01-lsz.md", "计算桥 I · LSZ 与外腿截肢"),
         ("bridge-02-loop-subtraction.md", "计算桥 II · 圈积分与减法"),
         ("bridge-03-berry.md", "计算桥 III · Berry 联络与曲率"),
         ("bridge-04-spectral-response.md", "计算桥 IV · 对易子与响应谱"),
         ("bridge-05-quantum-channels.md", "计算桥 V · Kraus 与 Choi"),
+        ("bridge-06-ising-parity.md", "计算桥 VI · Ising 奇偶与完整谱"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),

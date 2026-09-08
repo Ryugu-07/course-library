@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ising 奇偶与完整谱 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li class="active"><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 18:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 同一条链，为什么能报出三个不同的“隙”？</a></li>
+<li><a href="#2">2. 先不用费米子，就能把矩阵分成两块</a></li>
+<li><a href="#3-jordanwigner">3. Jordan–Wigner 的字符串怎样产生交换负号</a></li>
+<li><a href="#4">4. 能量对角化之后，奇偶约束仍然在</a></li>
+<li><a href="#5">5. 四个自旋已足以看清差别</a></li>
+<li><a href="#6">6. 接回临界缩放与测量选择</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与原始阅读</a></li>
+</ul>
+</div>
+</details>
+<h1 id="06-ising">基础衔接 06 · Ising 链的奇偶扇区：从自旋矩阵核对完整能隙<a class="headerlink" href="#06-ising" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="cm-01-second-quant.html">二次量子化</a>、<a href="research-02-quantum-criticality.html">量子临界</a>。本讲固定偶数个自旋、周期边界、Pauli 本征值 ±1，实验只取 L=4 或 6。目标：算清 Jordan–Wigner 边界符号，并区分完整谱、固定扇区与单准粒子的低能尺度。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 同一条链，为什么能报出三个不同的“隙”？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>沿用横场 Ising 模型</p>
+<div class="arithmatex">\[H=-J\sum_{j=1}^{L}\sigma_j^x\sigma_{j+1}^x-h\sum_{j=1}^{L}\sigma_j^z,
+\qquad \sigma_{L+1}^x=\sigma_1^x,\quad J&gt;0,\quad g=h/J\ge0.\]</div>
+<p>每条邻接键计一次。实验使用 L=4、6，避开 L=2 时“周期求和”会把同一对自旋计两遍的特殊约定。研究课给出的色散</p>
+<div class="arithmatex">\[\epsilon_k/J=2\sqrt{(g-1)^2+4g\sin^2(k/2)}\]</div>
+<p>描述准粒子能量，但周期自旋系统还要满足奇偶约束。我们分别定义：</p>
+<ul>
+<li>完整隙 <span class="arithmatex">\(\Delta_{\rm spin}=E_1-E_0\)</span>：合并全部自旋能级、按重数排序后取前两项；基态简并时此定义给零。</li>
+<li>偶扇区内部隙 <span class="arithmatex">\(\Delta_+=E_{+,1}-E_{+,0}\)</span>：只在奇偶值 +1 的子空间内排序。</li>
+<li><span class="arithmatex">\(\epsilon_{\pi/L}\)</span>：反周期费米子动量中的单准粒子尺度，未必对应允许的同扇区激发。</li>
+</ul>
+<p>这三个定义不能在拟合或实验对比时互相替换。</p>
+<h2 id="2">2. 先不用费米子，就能把矩阵分成两块<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>定义全局奇偶算符 <span class="arithmatex">\(P=\prod_j\sigma_j^z\)</span>。横场项与它对易；每条相邻耦合翻转两个自旋，与两个 <span class="arithmatex">\(\sigma^z\)</span> 的反对易负号相乘后变成正号，所以 <span class="arithmatex">\([H,P]=0\)</span>。</p>
+<p>在 <span class="arithmatex">\(\sigma^z\)</span> 基底中，用 <span class="arithmatex">\(b_j=0,1\)</span> 分别表示本征值 +1、−1，令 <span class="arithmatex">\(n(b)=\sum_j b_j\)</span>。矩阵作用是</p>
+<div class="arithmatex">\[\frac HJ|b\rangle=-g\bigl(L-2n(b)\bigr)|b\rangle
+-\sum_{j=1}^{L}|b\text{ 的第 }j,j+1\text{ 位同时翻转}\rangle.\]</div>
+<p><span class="arithmatex">\(P|b\rangle=(-1)^{n(b)}|b\rangle\)</span>。因此把偶数个 1 与奇数个 1 的基矢分别收集，就得到两个 <span class="arithmatex">\(2^{L-1}\times2^{L-1}\)</span> 实对称块。实验直接构造这两个自旋矩阵，不用色散公式填充能级。</p>
+<p>例如 L=4 的 <span class="arithmatex">\(|0000\rangle\)</span> 对角元是 <span class="arithmatex">\(-4g\)</span>，四个非零跃迁分别到 <span class="arithmatex">\(|1100\rangle,|0110\rangle,|0011\rangle,|1001\rangle\)</span>，系数都为 −1；它们仍在偶扇区。这个例子足以手工检查代码的键计数与场的符号。</p>
+<h2 id="3-jordanwigner">3. Jordan–Wigner 的字符串怎样产生交换负号<a class="headerlink" href="#3-jordanwigner" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(\sigma^+=(\sigma^x+i\sigma^y)/2=|0\rangle\langle1|\)</span>，定义</p>
+<div class="arithmatex">\[S_j=\prod_{\ell&lt;j}\sigma_\ell^z,\qquad c_j=S_j\sigma_j^+,
+\qquad c_j^\dagger=S_j\sigma_j^-.\]</div>
+<p>同一点上，<span class="arithmatex">\(c_j^\dagger c_j=(1-\sigma_j^z)/2\)</span>，所以 1 对应一个费米子。不同点上，若 <span class="arithmatex">\(j&lt;k\)</span>，<span class="arithmatex">\(S_k\)</span> 含有 <span class="arithmatex">\(\sigma_j^z\)</span>，将 <span class="arithmatex">\(\sigma_j^+\)</span> 穿过它恰好产生一个负号；其余不同点算符对易。于是 <span class="arithmatex">\(\{c_j,c_k\}=0\)</span>、<span class="arithmatex">\(\{c_j,c_k^\dagger\}=\delta_{jk}\)</span>。字符串负责保留费米交换结构。</p>
+<p>令 <span class="arithmatex">\(A_j=c_j^\dagger+c_j=S_j\sigma_j^x\)</span>，<span class="arithmatex">\(B_j=c_j^\dagger-c_j=-iS_j\sigma_j^y\)</span>。对内部键，利用 <span class="arithmatex">\(S_{j+1}=S_j\sigma_j^z\)</span> 与 <span class="arithmatex">\(\sigma^y\sigma^z=i\sigma^x\)</span>，得到</p>
+<div class="arithmatex">\[B_jA_{j+1}=-i\sigma_j^y\sigma_j^z\sigma_{j+1}^x
+=\sigma_j^x\sigma_{j+1}^x.\]</div>
+<p>周期边界不同：<span class="arithmatex">\(S_L=P\sigma_L^z\)</span>，且 <span class="arithmatex">\(\sigma^z\sigma^y=-i\sigma^x\)</span>，所以</p>
+<div class="arithmatex">\[B_LA_1=-P\sigma_L^x\sigma_1^x,\qquad
+\sigma_L^x\sigma_1^x=-P B_LA_1.\]</div>
+<p>完整 Hamiltonian 因而是</p>
+<div class="arithmatex">\[H=-J\sum_{j=1}^{L-1}B_jA_{j+1}+JP B_LA_1
+-h\sum_j(1-2c_j^\dagger c_j).\]</div>
+<p>边界项中的 P 与二次乘积对易；固定到 <span class="arithmatex">\(P=p=\pm1\)</span> 的扇区后，可用边界条件 <span class="arithmatex">\(c_{L+1}=-p c_1\)</span> 将它记成统一的二次型。这里 p 是已选扇区的数值，不能在奇算符中随意交换全局算符 P。</p>
+<p>于是偶扇区对应反周期动量 <span class="arithmatex">\(k=(2m+1)\pi/L\)</span>，奇扇区对应周期动量 <span class="arithmatex">\(k=2m\pi/L\)</span>。周期自旋并不意味着两个费米扇区都采用周期动量。</p>
+<p><img alt="周期自旋链按全局奇偶分成两块；偶扇区为反周期费米子动量，奇扇区为周期动量，完整隙需合并两块后排序。" src="assets/img/bridge-06-ising-parity.svg" /></p>
+<h2 id="4">4. 能量对角化之后，奇偶约束仍然在<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Bogoliubov 变换把 k 与 −k 配对。偶扇区中的配对真空保持偶性，只能加入偶数个准粒子，不能单独加入最低动量的一个准粒子后仍留在本扇区。对本讲模型，最低允许的一对是 <span class="arithmatex">\(\pm\pi/L\)</span>，所以</p>
+<div class="arithmatex">\[\Delta_+=2\epsilon_{\pi/L}.\]</div>
+<p>奇扇区还包含不成对的 k=0、π 模。它们在变换前贡献</p>
+<div class="arithmatex">\[2J(g-1)(n_0-1/2)+2J(g+1)(n_\pi-1/2).\]</div>
+<p>当 g 穿过 1 时，第一个系数变号，能量最低的 <span class="arithmatex">\(n_0\)</span> 占据随之改变；求最低能时仍须满足总奇偶为奇。把所有模式都改成正能量、再毫无检查地选“零准粒子”，会丢失这条约束。完整自旋矩阵的分块对角化为这一细节提供了直接校验。</p>
+<h2 id="5">5. 四个自旋已足以看清差别<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>默认 J=1、g=1、L=4，两个块的最低能量约为</p>
+<div class="arithmatex">\[E_{+,0}=-5.226251860,\qquad E_{-,0}=-4.828427125.\]</div>
+<p>偶块第二能级为 <span class="arithmatex">\(-2.164784401\)</span>，奇块第二能级为 <span class="arithmatex">\(-2\)</span>（有简并）。合并后，完整第二能级来自奇块。因此</p>
+<div class="arithmatex">\[\Delta_{\rm spin}=0.397824735,\quad
+\epsilon_{\pi/4}=1.530733729,\quad
+\Delta_+=3.061467459.\]</div>
+<p>这不是数值算法意见不同，而是在回答三个不同的问题。</p>
+<p><div class="learning-lab" data-learning-lab="research-paths" data-research-topic="ising" markdown="1">
+先预测：完整第二能级会来自哪个扇区？默认 L=4、g=1；上面的三个数值是静态后备。实验显示两个扇区各自最低六能级，先分别减去全局最低能，保留简并的重数。完整隙由两块全部能级共同排序得到。
+</div></p>
+<p>g=0 时，两种沿 x 完全有序的乘积态简并，取其对称与反对称组合分别落入两个奇偶扇区。完整隙按本讲定义是零，而偶扇区内部首次激发要产生一对畴壁、花费 4J；此时单准粒子尺度为 2J。仅这一个极限就否决了“三个隙总相等”的说法。</p>
+<h2 id="6">6. 接回临界缩放与测量选择<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>在 g=1 时，<span class="arithmatex">\(\epsilon_k=4J|\sin(k/2)|\)</span>。令 <span class="arithmatex">\(x=\pi/(2L)\)</span>，选动量在 <span class="arithmatex">\([0,2\pi)\)</span>；两组有限和是</p>
+<div class="arithmatex">\[\sum_{m=0}^{L-1}\sin((2m+1)x)=\csc x,\qquad
+\sum_{m=0}^{L-1}\sin(2mx)=\cot x.\]</div>
+<p>每个模式对真空能贡献 <span class="arithmatex">\(-\epsilon_k/2\)</span>。周期组的 k=0 模此时能量为零，可以取满足奇性约束的占据而不增加能量。因此 <span class="arithmatex">\(E_{+,0}=-2J\csc x\)</span>、<span class="arithmatex">\(E_{-,0}=-2J\cot x\)</span>。相减并用 <span class="arithmatex">\((1-\cos x)/\sin x=\tan(x/2)\)</span>，得到跨扇区最低劈裂</p>
+<div class="arithmatex">\[\Delta_{\rm spin}=2J\tan\frac{\pi}{4L}\sim\frac{\pi J}{2L}.\]</div>
+<p>对照 <span class="arithmatex">\(\epsilon_{\pi/L}=4J\sin(\pi/2L)\sim2\pi J/L\)</span>：它们都有 <span class="arithmatex">\(1/L\)</span> 尺度，但前因子不同。这里的有限三角和来自几何级数 <span class="arithmatex">\(\sum_{m=0}^{L-1}e^{i(a+md)}=e^{ia}(1-e^{iLd})/(1-e^{id})\)</span>，取虚部即可分别求出两组 <span class="arithmatex">\(\sin(k/2)\)</span> 之和。实验的两个尺寸用于核对模型，不能单独证明临界普适类。</p>
+<p>测量还受选择定则约束。若观测算符 O 与 P 对易，它只能连接同奇偶态；若与 P 反对易，则连接相反奇偶态。这可以由 <span class="arithmatex">\(\langle a|O|b\rangle=p_a p_b\langle a|O|b\rangle\)</span>（对易情形）直接看出。<span class="arithmatex">\(\sigma^z_j\)</span> 与 P 对易，<span class="arithmatex">\(\sigma^x_j\)</span> 与 P 反对易。因此完整谱里最低的隙未必会出现在指定算符的响应谱中；还要计算矩阵元。接着读<a href="bridge-04-spectral-response.html">对易子与响应谱</a>，才能把能级与可测吸收连接起来。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> g=0 时，完整隙为零是否说明创建畴壁不耗能？为什么周期链中的首次局部缺陷要成对出现？</p>
+<details>
+<summary>区分基态劈裂与畴壁激发</summary>
+<p>零隙指两种有序基态简并。每个反向邻接键相对一致键多花 2J；周期链绕行一圈必须回到起始方向，畴壁数为偶数，因此最少两个、能量 4J。基态重数与激发代价是不同信息。</p>
+</details>
+<p><strong>题二。</strong> 若只计算偶扇区，并用一个与 P 对易的微扰驱动，能看到奇扇区最低能级吗？这会否定完整谱的存在吗？</p>
+<details>
+<summary>检查算符选择定则</summary>
+<p>从偶态出发，该微扰的偶—奇矩阵元为零，所以不能直接激发奇态；这限制的是具体实验协议。完整谱仍包含奇态。改变为与 P 反对易的算符可以允许跨扇区跃迁，但允许并不保证每个具体矩阵元都非零。</p>
+</details>
+</section>
+<h2 id="_1">速查与原始阅读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>周期自旋先分 P=±1；偶扇区用反周期费米动量、奇扇区用周期动量；对角化后继续施加奇偶约束。完整谱、固定扇区和单准粒子尺度须分别标注。原始模型与边界修正的讨论见 <a href="https://www.math.ucdavis.edu/~bxn/pfeuty1970.pdf">Pfeuty 1970</a>；原文自旋归一化与本讲 Pauli 约定不同。本讲直接矩阵、符号及数值均按文中约定核对。返回<a href="research-02-quantum-criticality.html">量子临界与有限尺寸</a>。核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-05-quantum-channels.html"><span class="pager-label">上一页</span>计算桥 V · Kraus 与 Choi</a>
+  <a class="pager-slot next" href="frontier-01-entanglement-matter.html"><span class="pager-label">下一页</span>前沿 I · 多体纠缠与量子物态</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-paths.js?v=7e66cead9d52"></script>
+</body>
+</html>

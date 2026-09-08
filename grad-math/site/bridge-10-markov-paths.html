@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markov 桥与路径枚举 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li class="active"><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 18:02</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#markov-paths-title">只改终点偏好，怎样让每一步都提前作出反应？</a></li>
+<li><a href="#1">1. 一枚会停留或翻面的硬币</a></li>
+<li><a href="#2">2. 终端信息先向后传播</a></li>
+<li><a href="#3-doob">3. Doob 转移为什么每行和为一</a></li>
+<li><a href="#4">4. 默认八路径账本</a></li>
+<li><a href="#5">5. 固定端点以后，中间桥为什么原封不动</a></li>
+<li><a href="#6">6. 为什么它真是这对边缘的熵极小桥</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="10-markov">基础衔接 10 · Markov 路径桥：八条路径怎样完成一次熵投影<a class="headerlink" href="#10-markov" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="mt-03-conditional-martingale.html">条件期望与鞅</a>、<a href="ot-03-computational.html">计算最优传输</a>。本讲把<a href="frontier-01-schrodinger-bridge.html">Schrödinger 桥</a>缩到两个状态、三个时刻和八条路径，在一页账本中验证向后势、Doob 转移、三时刻边缘与路径相对熵。我们先选择终端势并由它导出终边缘，再证明所得路径律是这对边缘的熵极小桥；这不是求解任意指定双边缘的 Sinkhorn 算法。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="markov-paths-title" class="learning-layer">
+<h2 id="markov-paths-title">只改终点偏好，怎样让每一步都提前作出反应？<a class="headerlink" href="#markov-paths-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 一枚会停留或翻面的硬币<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>状态空间只有 <span class="arithmatex">\(\{0,1\}\)</span>，时刻为 <span class="arithmatex">\(t=0,1,2\)</span>。参考过程从</p>
+<div class="arithmatex">\[
+R_0=(1/2,1/2)
+\]</div>
+<p>出发，每一步使用同一个转移矩阵</p>
+<div class="arithmatex">\[
+K=\begin{pmatrix}1-r&amp;r\\r&amp;1-r\end{pmatrix},
+\qquad 0&lt;r&lt;1.
+\]</div>
+<p><span class="arithmatex">\(r\)</span> 是一次翻转状态的概率。因为所有矩阵元都正，八条路径 <span class="arithmatex">\((i,j,k)\in\{0,1\}^3\)</span> 在参考律下都有正概率</p>
+<div class="arithmatex">\[
+R(i,j,k)=R_0(i)K_{ij}K_{jk}.
+\]</div>
+<p>现在希望新过程从指定分布</p>
+<div class="arithmatex">\[
+\mu=(u,1-u),\qquad 0&lt;u&lt;1
+\]</div>
+<p>出发，并在终点更偏爱状态 1。先选正终端势</p>
+<div class="arithmatex">\[
+g_2=(1,w),\qquad w&gt;0.
+\]</div>
+<p><span class="arithmatex">\(w\)</span> 不是预先指定的终点概率；它只是给落在状态 1 的路径一个相对权重。把 <span class="arithmatex">\(g_2\)</span> 整体乘同一正数不会改变最后的路径律，所以固定第一个分量为 1 只是消除尺度自由度。</p>
+<h2 id="2">2. 终端信息先向后传播<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>定义</p>
+<div class="arithmatex">\[
+g_1=Kg_2,\qquad g_0=Kg_1=K^2g_2.
+\]</div>
+<p>逐项写开：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+g_1(0)&amp;=1-r+rw,&amp;
+g_1(1)&amp;=r+(1-r)w,\\
+g_0(0)&amp;=(1-2r+2r^2)+2r(1-r)w,&amp;
+g_0(1)&amp;=2r(1-r)+(1-2r+2r^2)w.
+\end{aligned}
+\]</div>
+<p>这里 <span class="arithmatex">\(g_t(i)\)</span> 可以读作：参考链目前位于 <span class="arithmatex">\(i\)</span> 时，未来终端权重的条件平均。它满足向后递推，而概率分布稍后沿相反方向向前演化。</p>
+<p>为了把新初始边缘钉成 <span class="arithmatex">\(\mu\)</span>，定义</p>
+<div class="arithmatex">\[
+f_i=\frac{\mu_i}{R_0(i)g_0(i)}.
+\]</div>
+<p>八条路径的新概率为</p>
+<div class="arithmatex">\[
+\boxed{P(i,j,k)=f_iR_0(i)K_{ij}K_{jk}g_2(k)
+=\mu_i\frac{K_{ij}K_{jk}g_2(k)}{g_0(i)}.}
+\]</div>
+<p>对固定 <span class="arithmatex">\(i\)</span> 求和，<span class="arithmatex">\(\sum_{j,k}K_{ij}K_{jk}g_2(k)=(K^2g_2)(i)=g_0(i)\)</span>，所以</p>
+<div class="arithmatex">\[
+\sum_{j,k}P(i,j,k)=\mu_i.
+\]</div>
+<p>这同时证明总概率为 1 和 <span class="arithmatex">\(P_0=\mu\)</span>，不是额外归一化后的巧合。</p>
+<figure>
+<p><img alt="三个时刻上，终端势g2经过K向左递推成g1和g0，初始概率mu再经过由相邻g之比扭转的K星向右流到中间边缘和终边缘nu。" src="assets/img/bridge-10-markov-paths.svg" /></p>
+<figcaption>势函数向后传递，概率向前流动。相邻势的比值把终点偏好分摊到每一步，同时使每一行仍精确归一。</figcaption>
+</figure>
+<h2 id="3-doob">3. Doob 转移为什么每行和为一<a class="headerlink" href="#3-doob" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\(t=0,1\)</span> 定义扭转后的转移</p>
+<div class="arithmatex">\[
+K_t^*(i,j)=K_{ij}\frac{g_{t+1}(j)}{g_t(i)}.
+\]</div>
+<p>因为 <span class="arithmatex">\(g_t=Kg_{t+1}\)</span>，所以</p>
+<div class="arithmatex">\[
+\sum_jK_t^*(i,j)
+=\frac{\sum_jK_{ij}g_{t+1}(j)}{g_t(i)}=1.
+\]</div>
+<p>所有项也非负，因此 <span class="arithmatex">\(K_t^*\)</span> 确实是转移矩阵。把两步相乘时，中间势望远镜消去：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\mu_iK_0^*(i,j)K_1^*(j,k)
+&amp;=\mu_iK_{ij}\frac{g_1(j)}{g_0(i)}
+K_{jk}\frac{g_2(k)}{g_1(j)}\\
+&amp;=\mu_i\frac{K_{ij}K_{jk}g_2(k)}{g_0(i)}
+=P(i,j,k).
+\end{aligned}
+\]</div>
+<p>所以 <span class="arithmatex">\(P\)</span> 是一条从 <span class="arithmatex">\(\mu\)</span> 出发的 Markov 链，而不是只在路径表上拼出的联合分布。</p>
+<p>终点边缘由演化<strong>计算出来</strong>：</p>
+<div class="arithmatex">\[
+\boxed{\nu_k=P_2(k)
+=g_2(k)\sum_i\mu_i\frac{(K^2)_{ik}}{g_0(i)}.}
+\]</div>
+<p>这一步的逻辑顺序很重要：本讲给定 <span class="arithmatex">\((r,u,w)\)</span>，输出 <span class="arithmatex">\(\nu\)</span>。若问题反过来给定任意 <span class="arithmatex">\(\mu,\nu\)</span>，必须求出同时满足两端约束的势，通常需要 Schrödinger 系统或 Sinkhorn 迭代。</p>
+<h2 id="4">4. 默认八路径账本<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>取实验默认值</p>
+<div class="arithmatex">\[
+r=\frac14,\qquad w=2,\qquad u=\frac12.
+\]</div>
+<p>则</p>
+<div class="arithmatex">\[
+g_2=(1,2),\quad
+g_1=(5/4,7/4),\quad
+g_0=(11/8,13/8),\quad
+f=(8/11,8/13).
+\]</div>
+<p>两步扭转转移分别是</p>
+<div class="arithmatex">\[
+K_0^*=
+\begin{pmatrix}
+15/22&amp;7/22\\
+5/26&amp;21/26
+\end{pmatrix},
+\qquad
+K_1^*=
+\begin{pmatrix}
+3/5&amp;2/5\\
+1/7&amp;6/7
+\end{pmatrix}.
+\]</div>
+<p>因此八条路径全部可以逐格复算：</p>
+<table>
+<thead>
+<tr>
+<th>路径 <span class="arithmatex">\((i,j,k)\)</span></th>
+<th style="text-align: right;">精确概率</th>
+<th style="text-align: right;">小数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>000</td>
+<td style="text-align: right;"><span class="arithmatex">\(9/44\)</span></td>
+<td style="text-align: right;">0.204545</td>
+</tr>
+<tr>
+<td>001</td>
+<td style="text-align: right;"><span class="arithmatex">\(3/22\)</span></td>
+<td style="text-align: right;">0.136364</td>
+</tr>
+<tr>
+<td>010</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/44\)</span></td>
+<td style="text-align: right;">0.022727</td>
+</tr>
+<tr>
+<td>011</td>
+<td style="text-align: right;"><span class="arithmatex">\(3/22\)</span></td>
+<td style="text-align: right;">0.136364</td>
+</tr>
+<tr>
+<td>100</td>
+<td style="text-align: right;"><span class="arithmatex">\(3/52\)</span></td>
+<td style="text-align: right;">0.057692</td>
+</tr>
+<tr>
+<td>101</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/26\)</span></td>
+<td style="text-align: right;">0.038462</td>
+</tr>
+<tr>
+<td>110</td>
+<td style="text-align: right;"><span class="arithmatex">\(3/52\)</span></td>
+<td style="text-align: right;">0.057692</td>
+</tr>
+<tr>
+<td>111</td>
+<td style="text-align: right;"><span class="arithmatex">\(9/26\)</span></td>
+<td style="text-align: right;">0.346154</td>
+</tr>
+</tbody>
+</table>
+<p>按时刻求边缘得到</p>
+<div class="arithmatex">\[
+P_0=(1/2,1/2),\qquad
+P_1=(125/286,161/286),
+\qquad
+P_2=\nu=(49/143,94/143).
+\]</div>
+<p>也可以从前向演化核对终点：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\nu_0&amp;=\frac{125}{286}\frac35+\frac{161}{286}\frac17
+=\frac{49}{143},\\
+\nu_1&amp;=\frac{125}{286}\frac25+\frac{161}{286}\frac67
+=\frac{94}{143}.
+\end{aligned}
+\]</div>
+<div class="learning-lab" data-learning-lab="research-paths" data-research-topic="markov">
+<p><strong>完整静态后备：</strong>先预测增大 <span class="arithmatex">\(w\)</span> 后，终点状态 1 的概率是否会直接等于 <span class="arithmatex">\(w/(1+w)\)</span>。实验允许 <span class="arithmatex">\(r\)</span> 从 0.05 到 0.45、<span class="arithmatex">\(w\)</span> 从 0.25 到 4、<span class="arithmatex">\(u\)</span> 从 0.1 到 0.9；默认值如上。答案一般不是 <span class="arithmatex">\(w/(1+w)\)</span>，因为初始边缘和两步可达性也进入 <span class="arithmatex">\(g_0\)</span> 与 <span class="arithmatex">\(\nu\)</span>。</p>
+<p>默认八条路径概率见上表；三时刻状态 1 概率依次为</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">时刻</th>
+<th style="text-align: right;"><span class="arithmatex">\(P_t(1)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2=0.500000\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;"><span class="arithmatex">\(161/286\approx0.562937\)</span></td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;"><span class="arithmatex">\(94/143\approx0.657343\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>默认路径相对熵为</p>
+<div class="arithmatex">\[
+H(P\mid R)
+=\frac12\log\frac8{11}
++\frac12\log\frac8{13}
++\frac{94}{143}\log2
+\approx0.0536544.
+\]</div>
+</div>
+<h2 id="5">5. 固定端点以后，中间桥为什么原封不动<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>新过程的端点联合分布是</p>
+<div class="arithmatex">\[
+\pi_{ik}=\sum_jP(i,j,k)
+=\mu_i\frac{(K^2)_{ik}g_2(k)}{g_0(i)}.
+\]</div>
+<p>给定起点 <span class="arithmatex">\(i\)</span> 与终点 <span class="arithmatex">\(k\)</span> 后，中间状态的条件概率为</p>
+<div class="arithmatex">\[
+\boxed{P(j\mid i,k)
+=\frac{K_{ij}K_{jk}}{(K^2)_{ik}}.}
+\]</div>
+<p><span class="arithmatex">\(f_i,R_0(i),g_2(k)\)</span> 全部约掉了。右边恰好也是参考链的 <span class="arithmatex">\(R(j\mid i,k)\)</span>。桥改变了不同端点对的权重，却没有改变同一端点对内部怎样经过中间状态。</p>
+<p>同一事实也让完整路径 KL 缩成端点 KL。因为</p>
+<div class="arithmatex">\[
+\frac{P(i,j,k)}{R(i,j,k)}=f_i g_2(k),
+\qquad
+\frac{\pi_{ik}}{R_{02}(i,k)}=f_i g_2(k),
+\]</div>
+<p>其中 <span class="arithmatex">\(R_{02}(i,k)=R_0(i)(K^2)_{ik}\)</span>，所以</p>
+<div class="arithmatex">\[
+\boxed{H(P\mid R)=H(\pi\mid R_{02}).}
+\]</div>
+<p>中间状态没有贡献额外 KL，原因不是它“不重要”，而是条件桥被精确保留。</p>
+<h2 id="6">6. 为什么它真是这对边缘的熵极小桥<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>现在固定本讲已经导出的两端边缘 <span class="arithmatex">\(\mu,\nu\)</span>。任取另一条具有相同边缘的路径律 <span class="arithmatex">\(Q\)</span>，相对熵链式分解给</p>
+<div class="arithmatex">\[
+H(Q\mid R)
+=H(Q_{02}\mid R_{02})
++\sum_{i,k}Q_{02}(i,k)
+H\bigl(Q(\cdot\mid i,k)\mid R(\cdot\mid i,k)\bigr).
+\]</div>
+<p>第二项非负，所以给定端点联合分布后，保留参考条件桥最省熵。端点层还需证明 <span class="arithmatex">\(\pi\)</span> 最优。利用</p>
+<div class="arithmatex">\[
+\log\frac{\pi_{ik}}{R_{02}(i,k)}
+=\log f_i+\log g_2(k),
+\]</div>
+<p>以及 <span class="arithmatex">\(Q_{02}\)</span> 与 <span class="arithmatex">\(\pi\)</span> 具有相同的行、列边缘，得到</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H(Q_{02}\mid R_{02})
+&amp;=H(Q_{02}\mid\pi)
++\sum_{i,k}Q_{02}(i,k)\log\frac{\pi_{ik}}{R_{02}(i,k)}\\
+&amp;=H(Q_{02}\mid\pi)+H(\pi\mid R_{02})\\
+&amp;\ge H(\pi\mid R_{02}).
+\end{aligned}
+\]</div>
+<p>合起来，</p>
+<div class="arithmatex">\[
+H(Q\mid R)\ge H(P\mid R).
+\]</div>
+<p>在这里所有参考概率都正，等号要求端点表就是 <span class="arithmatex">\(\pi\)</span>，且每个端点条件桥都等于参考条件桥，因此 <span class="arithmatex">\(P\)</span> 是唯一极小解。这一证明针对由 <span class="arithmatex">\((u,w)\)</span> 生成的 <span class="arithmatex">\(\mu,\nu\)</span>；它没有跳过“任意给定 <span class="arithmatex">\(\nu\)</span> 时怎样求势”的另一半问题。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 保持任意 <span class="arithmatex">\(0&lt;r&lt;1\)</span> 和 <span class="arithmatex">\(0&lt;u&lt;1\)</span>，但令 <span class="arithmatex">\(w=1\)</span>。求 <span class="arithmatex">\(g_2,g_1,g_0,f\)</span> 与两步转移，并说明为什么新过程仍不一定等于参考过程。</p>
+<p><details markdown="1"><summary>分开检查转移与初始分布</summary></p>
+<p><span class="arithmatex">\(g_2=g_1=g_0=(1,1)\)</span>，所以 <span class="arithmatex">\(K_0^*=K_1^*=K\)</span>。但</p>
+<div class="arithmatex">\[
+f_i=\frac{\mu_i}{R_0(i)}=2\mu_i,
+\]</div>
+<p>因此新过程的初始边缘是 <span class="arithmatex">\(\mu\)</span>，未必是参考的 <span class="arithmatex">\((1/2,1/2)\)</span>。终边缘为 <span class="arithmatex">\(\nu=\mu K^2\)</span>。终端势不倾斜只恢复了参考<strong>转移</strong>，没有抹掉已经指定的初始边缘变化。</p>
+</details>
+<p><strong>题二。</strong> 实验故意不允许 <span class="arithmatex">\(r=0\)</span>。若取边界值 <span class="arithmatex">\(r=0\)</span>，参考链只能走 000 与 111。此时本讲构造导出的 <span class="arithmatex">\(\nu\)</span> 是什么？能否另外指定 <span class="arithmatex">\(\mu=(1/2,1/2)\)</span>、<span class="arithmatex">\(\nu=(1/4,3/4)\)</span> 并得到有限 KL 的桥？</p>
+<details>
+<summary>先检查参考支持</summary>
+<p><span class="arithmatex">\(r=0\)</span> 时 <span class="arithmatex">\(K=I\)</span>，故 <span class="arithmatex">\(g_0=g_1=g_2\)</span>，路径权重中的终端势与分母相消，得到 <span class="arithmatex">\(P(000)=u\)</span>、<span class="arithmatex">\(P(111)=1-u\)</span>，所以 <span class="arithmatex">\(\nu=\mu\)</span>，与 <span class="arithmatex">\(w\)</span> 无关。</p>
+<p>若强行要求不同的终边缘，就必须给换状态路径正概率，但参考律在这些路径上为零。候选律不再满足 <span class="arithmatex">\(P\ll R\)</span>，于是 <span class="arithmatex">\(H(P\mid R)=+\infty\)</span>。这不是数值迭代太少，而是支持不可达。实验域取 <span class="arithmatex">\(r\ge0.05\)</span> 正是为了把可计算的全支持模型与这个边界反例分开。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>可验算等式</th>
+<th>它保证什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>势向后传</td>
+<td><span class="arithmatex">\(g_t=Kg_{t+1}\)</span></td>
+<td><span class="arithmatex">\(K_t^*\)</span> 每行和为 1</td>
+</tr>
+<tr>
+<td>概率向前流</td>
+<td><span class="arithmatex">\(P(i,j,k)=\mu_iK_0^*(i,j)K_1^*(j,k)\)</span></td>
+<td><span class="arithmatex">\(P_0=\mu\)</span>，演化得到 <span class="arithmatex">\(P_2=\nu\)</span></td>
+</tr>
+<tr>
+<td>固定端点条件桥</td>
+<td><span class="arithmatex">\(P(j\mid i,k)=K_{ij}K_{jk}/(K^2)_{ik}\)</span></td>
+<td>中间路径沿用参考桥</td>
+</tr>
+<tr>
+<td>KL 望远镜</td>
+<td><span class="arithmatex">\(H(P\mid R)=H(\pi\mid R_{02})\)</span></td>
+<td>没有额外条件路径代价</td>
+</tr>
+<tr>
+<td>熵投影</td>
+<td><span class="arithmatex">\(H(Q\mid R)\ge H(P\mid R)\)</span></td>
+<td>对导出的 <span class="arithmatex">\(\mu,\nu\)</span>，<span class="arithmatex">\(P\)</span> 是极小桥</td>
+</tr>
+</tbody>
+</table>
+<p>路径空间 Schrödinger 问题、熵的条件分解与 <span class="arithmatex">\((f,g)\)</span> 变换可参见 Léonard 的 <a href="https://arxiv.org/abs/1308.0215">A survey of the Schrödinger problem and some of its connections with optimal transport</a>；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 <a href="https://arxiv.org/abs/1912.13170">Schrödinger Bridge Samplers</a>。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-09-wick-limits.html"><span class="pager-label">上一页</span>基础 IX · Wick 平均与 L² 极限</a>
+  <a class="pager-slot next" href="frontier-01-schrodinger-bridge.html"><span class="pager-label">下一页</span>前沿 I · Schrödinger 桥与路径空间</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-paths.js?v=7e66cead9d52"></script>
+</body>
+</html>
