@@ -120,3 +120,6 @@ $$F(Q)=g_R+cg_R^2B_R(Q;Q_0)+O(g_R^3).$$
 一手教学来源：[David Tong：The Renormalisation Group](https://davidtong.org/teaching/statistical-field-theory/sfthtml/S3)，用于圈积分、短波模式与重整化的背景；本页单通道减法处方与全部算例已明确写出。资料核查：2026-09-08。
 
 连续训练：[从关联函数到振幅](route-02-field-readiness.html)用四份账本检查外腿归一化、同处方减法、参数匹配和内部极点。
+
+
+进一步把二点反项、s/t/u三泡图、离壳减法点和物理截面接通，可做[同一φ⁴模型的单圈散射训练](bridge-17-phi4-scattering.html)，并用阈值虚部与换点匹配独立核验。

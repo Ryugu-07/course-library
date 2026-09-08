@@ -93,6 +93,7 @@
 | 从正后裔范数计算共形块，手验连续谱的排除泛函 | [共形块、正性与排除证书](bridge-13-positive-blocks.html) | 一维块、OPE正性与有条件的严格谱隙界 |
 | 用一般算符张量计算 Hv，并直接检查 Krylov 局部残差 | [MPO与Krylov](bridge-14-mpo-krylov.html) | 稀疏路径、缓存接入与不变子空间反例 |
 | 收缩真正H²，并在同一预算下比较四个初态 | [全链方差与初态](bridge-15-variance-initial-states.html) | 局部投影漏项、奇偶扇区与低方差激发态 |
+| 在同一φ⁴模型算完图、反项、阈值与截面 | [单圈散射与重整化](bridge-17-phi4-scattering.html) | 相同粒子计数、MOM匹配与幺正性核验 |
 | 实际施加复数门，分开时间分裂与逐步截断误差 | [张量时间演化与误差](bridge-16-tebd-errors.html) | Strang、复SVD、正交中心和累计态距离界 |
 | 完成一轮逐点扫描，区分停止信号与全局最优证据 | [乘积 MPS 往返扫描](bridge-08-product-sweeps.html) | 张量网络算法、初值敏感性与误差诊断 |
 | 从环境重叠构造范数矩阵，说明普通本征问题何时有效 | [MPS 范数与局部优化](bridge-07-mps-metric.html) | 张量网络规范化、变分算法与数值稳定性 |

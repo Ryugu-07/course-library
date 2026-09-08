@@ -161,3 +161,6 @@ P 的 $H^0=\mathbb Z/3$，其余为零。原锥为 $\mathbb Z\xrightarrow{-3}\ma
 后续计算训练：[相交、接触阶与 Tor](bridge-16-intersections-tor.html)，把张量后的核与普通交点长度分开记账。
 
 继续计算：[导出纤维积与乘法](bridge-20-derived-products.html)保留链级乘法、Leibniz符号和同调类的外积，并用重复方程说明分解合法性不能省略。
+
+
+下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。

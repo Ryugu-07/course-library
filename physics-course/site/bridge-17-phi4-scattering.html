@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单圈散射与重整化 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li><li><a href="bridge-07-mps-metric.html">计算桥 VII · MPS 范数与局部优化</a></li><li><a href="bridge-08-product-sweeps.html">计算桥 VIII · 乘积 MPS 往返扫描</a></li><li><a href="bridge-09-mps-environments.html">计算桥 IX · MPS 环境与中心求解</a></li><li><a href="bridge-10-two-site-truncation.html">计算桥 X · 两站点更新与截断</a></li><li><a href="bridge-11-two-site-sweeps.html">计算桥 XI · 两站点往返扫描</a></li><li><a href="bridge-12-mps-cache.html">计算桥 XII · 正交中心与环境缓存</a></li><li><a href="bridge-13-positive-blocks.html">计算桥 XIII · 共形块与正性证书</a></li><li><a href="bridge-14-mpo-krylov.html">计算桥 XIV · MPO与Krylov</a></li><li><a href="bridge-15-variance-initial-states.html">计算桥 XV · 全链方差与初态</a></li><li><a href="bridge-16-tebd-errors.html">计算桥 XVI · 张量时间演化与误差</a></li><li class="active"><a href="bridge-17-phi4-scattering.html">计算桥 XVII · 单圈散射与重整化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-mps-readiness.html">路线验收 · Schmidt 到变分扫描</a></li><li><a href="route-02-field-readiness.html">路线验收 · 关联函数到振幅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:11</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 一个发散的积分，怎样给出有限的实验预测？</a></li>
+<li><a href="#2-12">2. 先数图，尤其不要丢掉两种不同的1/2</a></li>
+<li><a href="#3">3. 二点函数先固定质量和外腿</a></li>
+<li><a href="#4">4. 实际算一个泡图，再把三个通道相加</a></li>
+<li><a href="#5">5. 减法点必须说清楚：它不是物理散射角</a></li>
+<li><a href="#6">6. 虚部不是数值噪声：它核对了概率守恒</a></li>
+<li><a href="#7">7. 从振幅到截面：一致保留微扰阶数</a></li>
+<li><a href="#8">8. 任意尺度的正确含义：换点必须同时换参数</a></li>
+<li><a href="#9">9. 迁移题：检查你是否真正连接了各步</a></li>
+<li><a href="#10">10. 验算与下一步</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="17">基础衔接 17 · 从单圈图到散射截面：同一个模型里的重整化闭环<a class="headerlink" href="#17" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="route-02-field-readiness.html">场论连续作业</a>、<a href="bridge-01-lsz.html">LSZ与外腿</a>、<a href="bridge-02-loop-subtraction.html">圈积分减法</a>。本讲把图、积分、参数定义、阈值和截面放进同一个有质量实标量模型。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 一个发散的积分，怎样给出有限的实验预测？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>假设两颗相同标量粒子碰撞，探测器统计出射方向。最低阶预测没有角依赖；加入量子涨落后，积分发散，还出现一个看似任意的尺度μ。如果只说“减去无穷大”，学习者无法判断最后到底预测了什么。</p>
+<p>我们要完成一条可复算的链：<strong>确定粒子和耦合的定义 → 算全部单圈贡献 → 按同一约定减法 → 检查概率守恒 → 算截面 → 换定义点并匹配参数</strong>。</p>
+<p>取四维Minkowski度规<span class="arithmatex">\((+---)\)</span>、<span class="arithmatex">\(\hbar=c=1\)</span>、正质量<span class="arithmatex">\(m&gt;0\)</span>及小的正耦合λ：</p>
+<div class="arithmatex">\[\mathcal L=\frac12(\partial\phi)^2-\frac12m^2\phi^2-\frac\lambda{4!}\phi^4
++\frac{\delta Z}{2}(\partial\phi)^2-\frac{\delta m^2}{2}\phi^2-\frac{\delta\lambda}{4!}\phi^4.\]</div>
+<p>λ无量纲；m、动量和μ有能量量纲。m定义为传播子极点质量，极点残数取1；λ在下面的Euclidean减法点定义。真空泡由真空归一化消去，不参与连通散射。这里只做弱耦合的固定单圈训练，不声称φ⁴描述现实基本粒子或提供任意高能的完备理论。</p>
+<p>采用<span class="arithmatex">\(S=1+iT\)</span>，<span class="arithmatex">\(\langle f|iT|i\rangle=i(2\pi)^4\delta^4(P_f-P_i)\mathcal M\)</span>。顶点<span class="arithmatex">\(-i\lambda\)</span>，传播子<span class="arithmatex">\(i/(k^2-m^2+i0)\)</span>，所以<span class="arithmatex">\(\mathcal M_{\rm tree}=-\lambda\)</span>。把这个负号固定下来，后面的干涉符号才不会混乱。</p>
+<h2 id="2-12">2. 先数图，尤其不要丢掉两种不同的1/2<a class="headerlink" href="#2-12" title="Permanent link"></a></h2>
+<p>四点单圈有s、t、u三个泡图，对应外腿配对<span class="arithmatex">\((12|34)\)</span>、<span class="arithmatex">\((13|24)\)</span>、<span class="arithmatex">\((14|23)\)</span>。每个图的对称因子为1/2：两个相同内部线可以交换。</p>
+<p>也可从Wick收缩核对。对固定外腿配对，交换两顶点有2种，每个顶点接两条已标记外腿有<span class="arithmatex">\(4\times3=12\)</span>种，余下两条内线配对有2种；除以Dyson的<span class="arithmatex">\(2!\)</span>和两个<span class="arithmatex">\(4!\)</span>：</p>
+<div class="arithmatex">\[\frac{2\times12\times12\times2}{2!(4!)^2}=\frac12.\]</div>
+<p>二点单圈是tadpole：两条已标记外腿有<span class="arithmatex">\(4\times3\)</span>种收缩，除以<span class="arithmatex">\(4!\)</span>也得1/2。它与外动量无关。后面截面另有一个<strong>相同末态计数的1/2!</strong>；两者来源不同，不能只留一个。</p>
+<h2 id="3">3. 二点函数先固定质量和外腿<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>令<span class="arithmatex">\(d=4-\epsilon\)</span>，环积分带<span class="arithmatex">\(\kappa^\epsilon\)</span>；κ是维数正规化的积分尺度，μ则是耦合定义点，暂时分开记。写</p>
+<div class="arithmatex">\[\Delta_\epsilon=\frac2\epsilon-\gamma_E+\log4\pi.\]</div>
+<p>本讲直接记录“二点1PI插入的图值”，避免混用文献里正负号不同的Σ：tadpole图为</p>
+<div class="arithmatex">\[\frac{-i\lambda}{2}\kappa^\epsilon\int\frac{d^dk}{(2\pi)^d}\frac{i}{k^2-m^2+i0}
+=i\frac{\lambda m^2}{32\pi^2}\left[\Delta_\epsilon+1-\log\frac{m^2}{\kappa^2}\right]+O(\epsilon).\]</div>
+<p>质量反项的图值为<span class="arithmatex">\(-i\delta m^2\)</span>，故取</p>
+<div class="arithmatex">\[\delta m^2=\frac{\lambda m^2}{32\pi^2}\left[\Delta_\epsilon+1-\log\frac{m^2}{\kappa^2}\right]+O(\lambda^2),\qquad\delta Z=0+O(\lambda^2).\]</div>
+<p>常数插入完全抵消，传播子极点保留在<span class="arithmatex">\(m^2\)</span>；因为这一圈没有外动量依赖，极点残数在此阶也没有修正。外腿自能图加反项经LSZ处理后不再额外加入本讲的<span class="arithmatex">\(O(\lambda^2)\)</span>四点振幅。两圈后这些简化一般不成立。</p>
+<h2 id="4">4. 实际算一个泡图，再把三个通道相加<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>若通过泡图的总动量为p、<span class="arithmatex">\(p^2=s\)</span>，其图值为</p>
+<div class="arithmatex">\[i\mathcal M_s=\frac{(-i\lambda)^2}{2}\kappa^\epsilon\int\frac{d^dk}{(2\pi)^d}
+\frac{i}{k^2-m^2+i0}\frac{i}{(k+p)^2-m^2+i0}.\]</div>
+<p>用<span class="arithmatex">\(1/(AB)=\int_0^1dx/[xA+(1-x)B]^2\)</span>，再平移环动量，分母变为<span class="arithmatex">\([\ell^2-D(x)+i0]^2\)</span>，其中<span class="arithmatex">\(D(x)=m^2-sx(1-x)\)</span>。维数正规化允许这种平移。先在Euclidean外动量计算，再按<span class="arithmatex">\(i0\)</span>解析延拓，得到</p>
+<div class="arithmatex">\[\kappa^\epsilon\int\frac{d^d\ell}{(2\pi)^d}\frac1{[\ell^2-D+i0]^2}
+=\frac{i}{16\pi^2}\left[\Delta_\epsilon-\log\frac{D-i0}{\kappa^2}\right]+O(\epsilon).\]</div>
+<p>这一结果来自Wick旋转后的径向积分：<span class="arithmatex">\(\Gamma(2-d/2)(D-i0)^{d/2-2}/(4\pi)^{d/2}\)</span>；展开<span class="arithmatex">\(\Gamma(\epsilon/2)=2/\epsilon-\gamma_E+O(\epsilon)\)</span>即可追踪常数。于是定义</p>
+<div class="arithmatex">\[L(s)=\int_0^1dx\,\log\frac{m^2-sx(1-x)-i0}{\kappa^2},\qquad
+\boxed{\mathcal M_s=\frac{\lambda^2}{32\pi^2}[\Delta_\epsilon-L(s)].}\]</div>
+<p>另外两个泡图把s替换为t、u。这个步骤是同一拉格朗日量的三个交叉通道，不是把别的模型的减法例子拼接进来。</p>
+<h2 id="5">5. 减法点必须说清楚：它不是物理散射角<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>选<strong>离壳对称Euclidean MOM</strong>条件：四个外动量全取流入、总和为0，各<span class="arithmatex">\(p_i^2=-3\mu^2/4\)</span>，且<span class="arithmatex">\(s=t=u=-\mu^2\)</span>。例如Euclidean空间里等长四向量指向正四面体顶点，便实现这些不变量。规定该点的四点1PI振幅为<span class="arithmatex">\(-\lambda(\mu)\)</span>。</p>
+<p>物理散射外腿满足<span class="arithmatex">\(p_i^2=m^2\)</span>及<span class="arithmatex">\(s+t+u=4m^2\)</span>，所以<strong>不可能</strong>同时有三个通道都等于<span class="arithmatex">\(-\mu^2\)</span>。减法是定义参数用的离壳条件，不是声称探测器能到达该点。</p>
+<p>四点反项给<span class="arithmatex">\(\mathcal M_{\rm ct}=-\delta\lambda\)</span>。令</p>
+<div class="arithmatex">\[\delta\lambda=\frac{3\lambda^2}{32\pi^2}[\Delta_\epsilon-L(-\mu^2)]+O(\lambda^3),\]</div>
+<p>则发散与κ依赖都在差中消去：</p>
+<div class="arithmatex">\[\boxed{\mathcal M=-\lambda+\mathcal M_{\rm loop}+O(\lambda^3),\qquad
+\mathcal M_{\rm loop}=\frac{\lambda^2}{32\pi^2}\sum_{q=s,t,u}[L(-\mu^2)-L(q)].}\]</div>
+<p>这是混合的“极点质量＋离壳MOM耦合”方案，不是<span class="arithmatex">\(\overline{\rm MS}\)</span>。两者的发散部分一致，有限部分和λ的数值定义不同。省去有限减法后仍沿用本式的λ，就改变了计算问题。</p>
+<p><img alt="泡图的相同内部线产生图的二分之一因子；三个通道在同一个离壳参考点减法；当通道能量越过四倍质量平方，对数负值区间打开，其长度等于两体速度因子。" src="assets/img/bridge-17-phi4-scattering.svg" /></p>
+<h2 id="6">6. 虚部不是数值噪声：它核对了概率守恒<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>令<span class="arithmatex">\(r=s/m^2\)</span>并去掉常数<span class="arithmatex">\(\log(m^2/\kappa^2)\)</span>，定义<span class="arithmatex">\(F(r)=\int_0^1\log[1-rx(1-x)-i0]dx\)</span>。网页用的解析式可由<span class="arithmatex">\(x=(1+y)/2\)</span>后积分<span class="arithmatex">\(\log(a+by^2)\)</span>得到：</p>
+<div class="arithmatex">\[F(r)=\begin{cases}
+-2+2b\operatorname{artanh}(1/b),&amp;r&lt;0,\ b=\sqrt{1-4/r},\\
+0,&amp;r=0,\\
+-2+2a\arctan(1/a),&amp;0&lt;r&lt;4,\ a=\sqrt{4/r-1},\\
+-2,&amp;r=4,\\
+-2+2\beta\operatorname{artanh}\beta-i\pi\beta,&amp;r&gt;4,\ \beta=\sqrt{1-4/r}.
+\end{cases}\]</div>
+<p>小r直接用两项相减会丢精度；展开对数并逐项积分给稳定级数</p>
+<div class="arithmatex">\[F(r)=-\sum_{n\ge1}\frac{(n!)^2}{n(2n+1)!}r^n=-\frac r6-\frac{r^2}{60}-\cdots,\qquad |r|&lt;4.\]</div>
+<p>当<span class="arithmatex">\(s&gt;4m^2\)</span>，参数区间<span class="arithmatex">\(x_-&lt;x&lt;x_+\)</span>中对数参数为负，<span class="arithmatex">\(x_\pm=(1\pm\beta)/2\)</span>。由<span class="arithmatex">\(\log(-a-i0)=\log a-i\pi\)</span>，虚部正好等于<span class="arithmatex">\(-\pi(x_+-x_-)=-\pi\beta\)</span>。振幅前另有减号，所以</p>
+<div class="arithmatex">\[\boxed{\operatorname{Im}\mathcal M_s=\frac{\lambda^2\beta}{32\pi}&gt;0.}\]</div>
+<p>同一结果可独立由<span class="arithmatex">\(S^\dagger S=1\)</span>验证。展开<span class="arithmatex">\(S=1+iT\)</span>得<span class="arithmatex">\(-i(T-T^\dagger)=T^\dagger T\)</span>；插入完整两粒子态，在前向散射的<span class="arithmatex">\(O(\lambda^2)\)</span>有</p>
+<div class="arithmatex">\[2\operatorname{Im}\mathcal M_{ii}
+=\frac1{2!}\int d\Phi_2\,|\mathcal M_{\rm tree}|^2
+=\frac12\frac\beta{8\pi}\lambda^2.\]</div>
+<p>这里<span class="arithmatex">\(\int d\Phi_2=\beta/(8\pi)\)</span>，末态相同所以另除2。物理区t、u不大于0，没有这个两粒子虚部；只有s通道贡献。对照两种计算，可发现一个漏掉的1/2或错误的<span class="arithmatex">\(i0\)</span>符号，而不只是“数值看上去合理”。</p>
+<div class="learning-lab" data-learning-lab="research-scattering-loop" data-research-topic="threshold"></div>
+<p>先预测，再打开结果。r=4时<span class="arithmatex">\(F=-2\)</span>、虚部为0；r=8时<span class="arithmatex">\(\beta=1/\sqrt2\)</span>、<span class="arithmatex">\(\operatorname{Im}\mathcal M_s/\lambda^2=1/(32\sqrt2\pi)\)</span>。阈值以下的r在这个实验里是虚拟通道变量，不是两个质量m入射粒子的可达能量。</p>
+<h2 id="7">7. 从振幅到截面：一致保留微扰阶数<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>质心系取<span class="arithmatex">\(z=\cos\theta\)</span>，则</p>
+<div class="arithmatex">\[s&gt;4m^2,\qquad t=-\frac{s-4m^2}{2}(1-z),\qquad u=-\frac{s-4m^2}{2}(1+z).\]</div>
+<p>两体相空间微分为<span class="arithmatex">\(d\Phi_2/d\Omega=\beta/(32\pi^2)\)</span>，入射不变量通量为<span class="arithmatex">\(2s\beta\)</span>。因此，若对<strong>完整立体角</strong>积分，并把两颗相同出射粒子计为一个事件，</p>
+<div class="arithmatex">\[\boxed{\frac{d\sigma}{d\Omega}=\frac{|\mathcal M|^2}{128\pi^2s}.}\]</div>
+<p>若只积分一个代表半球，可去掉相同粒子的1/2；两种约定的总事件率必须相同。不能全立体角积分又漏因子。严格阈值入射通量为0，上式在那里表示从<span class="arithmatex">\(s&gt;4m^2\)</span>趋近的极限。</p>
+<p>因为树级是<span class="arithmatex">\(-\lambda\)</span>，单圈是<span class="arithmatex">\(O(\lambda^2)\)</span>，一致的下一阶截面为</p>
+<div class="arithmatex">\[\boxed{|\mathcal M|^2_{\rm NLO}=\lambda^2-2\lambda\operatorname{Re}\mathcal M_{\rm loop}+O(\lambda^4).}\]</div>
+<p>直接平方<span class="arithmatex">\(-\lambda+\mathcal M_{\rm loop}\)</span>会多出<span class="arithmatex">\(|\mathcal M_{\rm loop}|^2\)</span>。它只是部分<span class="arithmatex">\(\lambda^4\)</span>项，同阶还有树级与两圈的干涉，尚未计算。因此不能把那个平方称为完整的更高阶截面。虚部不进入本模型的λ³干涉，却已在上节的幺正性检验中不可缺少。</p>
+<div class="learning-lab" data-learning-lab="research-scattering-loop" data-research-topic="angular"></div>
+<p>无脚本也可复算：取<span class="arithmatex">\(m=1,s=8,z=0,\mu=1,\lambda=1\)</span>，则<span class="arithmatex">\(t=u=-2\)</span>。依次求<span class="arithmatex">\(F(-1),F(8),F(-2)\)</span>，代入<span class="arithmatex">\(\mathcal M_{\rm loop}=[3F(-1)-F(8)-2F(-2)]/(32\pi^2)\)</span>，最后计算<span class="arithmatex">\([1-2\operatorname{Re}\mathcal M_{\rm loop}]/(1024\pi^2)\)</span>。表格和曲线中的单位为<span class="arithmatex">\(m^2d\sigma/d\Omega\)</span>，恢复物理单位后截面随<span class="arithmatex">\(m^{-2}\)</span>缩放。</p>
+<p>默认参数的核对值如下；无需运行脚本也能检查你的计算：</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Re M_loop</td>
+<td style="text-align: right;">0.00205051170</td>
+</tr>
+<tr>
+<td>Im M_loop</td>
+<td style="text-align: right;">0.00703372122</td>
+</tr>
+<tr>
+<td>树级 m² dσ/dΩ</td>
+<td style="text-align: right;">0.0000989464684</td>
+</tr>
+<tr>
+<td>NLO m² dσ/dΩ</td>
+<td style="text-align: right;">0.0000985406866</td>
+</tr>
+<tr>
+<td>相对截面修正</td>
+<td style="text-align: right;">−0.00410102339（约−0.4101%）</td>
+</tr>
+</tbody>
+</table>
+<p>调z变号只交换t与u，所以角分布必须前后对称。只有树级时它是平的；单圈通道对数引入角依赖。小λ与本页有限能区使示例修正温和，但“小修正”不能证明所有未知高阶项都小；大对数、强耦合等情形需要额外分析。</p>
+<h2 id="8">8. 任意尺度的正确含义：换点必须同时换参数<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>令原尺度为<span class="arithmatex">\(\mu_1\)</span>、耦合<span class="arithmatex">\(\lambda_1\)</span>。要求两套定义描述同一振幅，到单圈阶得到</p>
+<div class="arithmatex">\[\boxed{\lambda_2=\lambda_1+\frac{3\lambda_1^2}{32\pi^2}[L(-\mu_2^2)-L(-\mu_1^2)]+O(\lambda_1^3).}\]</div>
+<p>推导只需代回：<span class="arithmatex">\(-\lambda_2\)</span>的变化抵消三份减法常数的变化；在单圈系数里用<span class="arithmatex">\(\lambda_2^2\)</span>替代<span class="arithmatex">\(\lambda_1^2\)</span>仅产生<span class="arithmatex">\(O(\lambda_1^3)\)</span>差。因此是“到已计算阶次一致”，不是把有限截断公式宣称为精确尺度无关。</p>
+<div class="learning-lab" data-learning-lab="research-scattering-loop" data-research-topic="matching"></div>
+<p>取<span class="arithmatex">\(\mu_1=1,\mu_2=2\)</span>，让λ依次为0.2、0.1、0.05。固定λ换点的振幅差正比λ²；一致匹配后的数值剩余从λ³起，所以减半比值趋向8。后者只是所用截断公式的残余阶数，不能据此算出真实两圈系数。</p>
+<p>再对匹配式取<span class="arithmatex">\(\log\mu\)</span>导数，在固定极点质量m下得到这个质量依赖方案的一圈β函数：</p>
+<div class="arithmatex">\[\frac{d\lambda}{d\log\mu}
+=\frac{3\lambda^2}{16\pi^2}\int_0^1dx\,\frac{\mu^2x(1-x)}{m^2+\mu^2x(1-x)}+O(\lambda^3).\]</div>
+<p>当<span class="arithmatex">\(\mu\gg m\)</span>，积分趋向1，恢复<span class="arithmatex">\(3\lambda^2/(16\pi^2)\)</span>；当<span class="arithmatex">\(\mu\ll m\)</span>，积分约为<span class="arithmatex">\(\mu^2/(6m^2)\)</span>。不能把高能极限直接当成本方案所有尺度的公式。</p>
+<h2 id="9">9. 迁移题：检查你是否真正连接了各步<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 某程序取<span class="arithmatex">\(m=1,s=8,\lambda=1\)</span>，报告树级总截面<span class="arithmatex">\(1/(64\pi)\)</span>，同时泡图算出<span class="arithmatex">\(2\operatorname{Im}\mathcal M=1/(8\sqrt2\pi)\)</span>。它对完整立体角计数。两处结果各有什么问题？</p>
+<details>
+<summary>查看答案：独立追踪图因子与事件计数</summary>
+<p>树级<span class="arithmatex">\(d\sigma/d\Omega=1/(1024\pi^2)\)</span>，总截面应为<span class="arithmatex">\(1/(256\pi)\)</span>，报告大了4倍。两体相空间给<span class="arithmatex">\(2\operatorname{Im}\mathcal M=1/(16\sqrt2\pi)\)</span>，报告大了2倍。仅凭最终数值不能唯一定位代码，但应分别检查<span class="arithmatex">\(s=8\)</span>是否代对、通量与全立体角末态1/2，以及泡图内部1/2。修好振幅的图因子不能自动修好截面的事件计数。</p>
+</details>
+<p><strong>题二。</strong> 同学把μ从m换成2m，保持λ数值不动，发现截面变化，认为重整化失败。另一人把单圈振幅完整平方，说已经包含两圈精度。分别给出修正步骤。若将所有能量包括m和μ同时放大3倍而λ不变，截面应如何缩放？</p>
+<details>
+<summary>查看答案：参数匹配、阶数与单位</summary>
+<p>先用第8节把<span class="arithmatex">\(\lambda(m)\)</span>匹配为<span class="arithmatex">\(\lambda(2m)\)</span>，再比较同一s、t、u下的预测；一致匹配后振幅差是<span class="arithmatex">\(O(\lambda^3)\)</span>，截面差是<span class="arithmatex">\(O(\lambda^4)\)</span>，恰为尚未控制的阶次。单圈完整平方中的<span class="arithmatex">\(|\mathcal M_{\rm loop}|^2\)</span>必须与树级—两圈干涉一起才能组成该阶预测；本讲只保留树级—单圈干涉。所有能量乘3保持s/m²、μ/m与z不变，振幅无量纲而<span class="arithmatex">\(d\sigma/d\Omega\)</span>变为原来的1/9。这是很有效的单位检查。</p>
+</details>
+<h2 id="10">10. 验算与下一步<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>程序的解析泡函数用70位Feynman参数积分作独立参照；阈值上方在两个根处分段，虚部另由负对数区间长度计算。阈值下方也在<span class="arithmatex">\(x=1/2\)</span>分段，避免漏掉尖锐区域。还核对交叉对称、离壳减法条件、光学定理、尺度匹配剩余阶数及质量缩放。双精度输出不是严格舍入误差证书。</p>
+<p>本讲完成的是有质量实φ⁴的单圈二点重整化与<span class="arithmatex">\(2\to2\)</span>散射训练。规范场的Ward恒等式、红外实辐射抵消、两圈重叠发散、非微扰定义和真实实验拟合仍需后续课程，不能从这个有限模型推断已经完成所有场论计算。</p>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>树级<span class="arithmatex">\(-\lambda\)</span>；三泡图各1/2；极点质量固定；对称Euclidean点定义λ；减法后取完整三个通道；虚部检验幺正性；NLO截面只留干涉；换μ同时匹配λ。</p>
+<p>图的系数和发散项可交叉检查 <a href="https://feyncalc.github.io/FeynCalcExamples/Phi4/OneLoop/Renormalization">FeynCalc官方φ⁴单圈重整化算例</a>，该算例的MS方案需与本讲有限MOM减法区分。场论正规化与参数定义背景见 <a href="https://www.thphys.uni-heidelberg.de/~pawlowski/qftII_23/script/QFT_lectureNotes_22-23.pdf">Pawlowski量子场论讲义第7章</a>；幺正性关系参见 <a href="https://www.damtp.cam.ac.uk/user/tong/qft/col1.pdf">Cambridge相对论光学定理补充讲义</a>。本页给出具体模型的推导与独立数值复算，资料核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-16-tebd-errors.html"><span class="pager-label">上一页</span>计算桥 XVI · 张量时间演化与误差</a>
+  <a class="pager-slot next" href="route-01-mps-readiness.html"><span class="pager-label">下一页</span>路线验收 · Schmidt 到变分扫描</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-scattering-loop.js?v=50f78a15fae1"></script>
+</body>
+</html>

@@ -411,3 +411,6 @@ $\eta^2=0$。合法性来自张量之前的 $x,y$ 是 $R$ 中正则序列，$K_R
 导出纤维积在仿射图上由导出张量描述；Koszul 代数把方程写成负一次生成元的微分；分次 Leibniz 规则让乘法下降到同调；自交的 Tor 类组成代数，而不是互不相干的向量空间名单。
 
 Koszul 复形作为外代数与微分导子的定义见 [Stacks Project：The Koszul complex](https://stacks.math.columbia.edu/tag/0622)，正则序列给出 Koszul 正则性见 [Koszul regular sequences](https://stacks.math.columbia.edu/tag/062F)；dg 模上的导出张量见 [Derived tensor product](https://stacks.math.columbia.edu/tag/09LP)，同调类乘积的链级良定义性可对照 [Products and Tor](https://stacks.math.columbia.edu/tag/068G)。导出仿射纤维积、普通截断与高阶 Tor 的几何关系见 Toën 的 [Derived Algebraic Geometry](https://arxiv.org/abs/1401.1044)，特别是其仿射纤维积与自交讨论。本文三个 Koszul 例子均在正文逐项计算。资料核查：2026-09-09。
+
+
+下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。

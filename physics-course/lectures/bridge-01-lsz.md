@@ -97,3 +97,6 @@ $i\mathcal M=Z^2(-ig)=-ig/4$，所以 $\mathcal M=-g/4$。如果原先所谓“�
 一手教学来源：[David Tong：Interacting Fields](https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3)，包括时序关联、S 矩阵及 LSZ 约化。公式的标量、稳定粒子、树级与归一化约定已在正文分别限定。资料核查：2026-09-08。
 
 连续训练：[从关联函数到振幅](route-02-field-readiness.html)用四份账本检查外腿归一化、同处方减法、参数匹配和内部极点。
+
+
+进一步把二点反项、s/t/u三泡图、离壳减法点和物理截面接通，可做[同一φ⁴模型的单圈散射训练](bridge-17-phi4-scattering.html)，并用阈值虚部与换点匹配独立核验。

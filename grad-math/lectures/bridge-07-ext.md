@@ -132,3 +132,6 @@ $[a]=[6]\in\mathbb Z/8$，$d=\gcd(6,8)=2$，所以 $E_6\cong\mathbb Z\oplus\math
 ## 速查与资料
 
 自由分解后应用 $\operatorname{Hom}(-,\mathbb Z)$，一次余核给出 $\operatorname{Ext}^1_{\mathbb Z}(\mathbb Z/n,\mathbb Z)=\mathbb Z/n$；具体类 $[a]$ 可写成 $nx=ae$；分裂等价于 $[a]=0$。下一讲：[联络、水平截面与 D-模入口](bridge-08-connections.html)。扩张及固定两端的等价定义见 [Stacks Project：Extensions](https://stacks.math.columbia.edu/tag/010I)，Ext 与扩张类的识别见 [Stacks Project：Injective modules](https://stacks.math.columbia.edu/tag/01D8)。本讲循环模计算已逐步展开。核查：2026-09-08。
+
+
+下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。

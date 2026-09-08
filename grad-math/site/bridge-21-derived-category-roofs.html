@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导出范畴与roofs · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li><li><a href="bridge-20-derived-products.html">基础 XX · 导出纤维积与乘法</a></li><li class="active"><a href="bridge-21-derived-category-roofs.html">基础 XXI · 导出范畴与roofs</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li><li><a href="bridge-18-heat-distributions.html">基础 XVIII · 热核与随机分布</a></li><li><a href="bridge-19-products-reconstruction.html">基础 XIX · 分布乘积与重建</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:09</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#derived-roofs-title">一支没有链同伦逆的箭头，怎样在新世界里变成可逆？</a></li>
+<li><a href="#1">1. 三层世界解决三种不同的麻烦</a></li>
+<li><a href="#2">2. 三个容易混淆的判断，强度并不相同</a></li>
+<li><a href="#3-mathbb-zn-kmathbb-z">3. 主模型：\(\mathbb Z/n\) 的自由分解为何还不能在 \(K(\mathbb Z)\) 中求逆</a></li>
+<li><a href="#4-roof">4. Roof：形式逆不是一支假装存在的链映射</a></li>
+<li><a href="#5-roof">5. 射影分解：什么时候 roof 可以退化成一支普通链映射</a></li>
+<li><a href="#6-roof-extmathbb-z6-mathbb-z41">6. 把一张 roof 算成 Ext：\(\mathbb Z/6\) 到 \(\mathbb Z/4[1]\)</a></li>
+<li><a href="#7">7. 映射锥与三角：负号怎样保证结构没有坏掉</a></li>
+<li><a href="#8">8. 亲手改变代表元，再检查锥的符号</a></li>
+<li><a href="#9">9. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="21-roofs">基础衔接 21 · 导出范畴与 roofs：怎样把拟同构真的倒过来<a class="headerlink" href="#21-roofs" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-03-complexes.html">链复形</a>、<a href="bridge-07-ext.html">Hom 与 Ext</a>、<a href="bridge-12-homotopy-cones.html">映射锥</a>。本讲统一采用<strong>上链约定</strong>：<span class="arithmatex">\(d:C^q\to C^{q+1}\)</span>。目标不是把“导出范畴”当作一句高级口号，而是看清 <span class="arithmatex">\(C(R)\to K(R)\to D(R)\)</span> 每一步究竟忘掉什么、修复什么，并亲手算出一个由 roof 表示的 Ext 类。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="derived-roofs-title" class="learning-layer">
+<h2 id="derived-roofs-title">一支没有链同伦逆的箭头，怎样在新世界里变成可逆？<a class="headerlink" href="#derived-roofs-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 三层世界解决三种不同的麻烦<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>固定环 <span class="arithmatex">\(R\)</span>。一个上链复形是带微分的分次 <span class="arithmatex">\(R\)</span>-模</p>
+<div class="arithmatex">\[
+\cdots\longrightarrow X^{q-1}\xrightarrow{d_X^{q-1}}X^q
+\xrightarrow{d_X^q}X^{q+1}\longrightarrow\cdots,
+\qquad d_X^{q}d_X^{q-1}=0.
+\]</div>
+<p>从复形走向导出范畴，要经过三层不能混称的对象：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>对象</th>
+<th>映射</th>
+<th>这一层解决什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(C(R)\)</span></td>
+<td><span class="arithmatex">\(R\)</span>-模复形</td>
+<td>严格链映射</td>
+<td>保留全部链级数据</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(K(R)\)</span></td>
+<td>同样的复形</td>
+<td>链映射模掉链同伦</td>
+<td>忽略可收缩的链级往返</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(D(R)\)</span></td>
+<td>同样的复形</td>
+<td>把拟同构形式地变成可逆后的映射</td>
+<td>只按导出信息比较复形</td>
+</tr>
+</tbody>
+</table>
+<p>第一步是商，第二步是局部化：</p>
+<div class="arithmatex">\[
+\boxed{C(R)\longrightarrow K(R)\longrightarrow
+D(R)=K(R)[\mathrm{Qis}^{-1}].}
+\]</div>
+<p>这里 <span class="arithmatex">\(\mathrm{Qis}\)</span> 是拟同构组成的类。<span class="arithmatex">\(K(R)\)</span> 仍然没有把所有拟同构倒过来；<span class="arithmatex">\(D(R)\)</span> 的定义正是补上这些形式逆。不要把这两步压成“忽略微分细节”：链同伦与拟同构保留的信息强度不同。</p>
+<h2 id="2">2. 三个容易混淆的判断，强度并不相同<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>两个链映射 <span class="arithmatex">\(f,g:X\to Y\)</span> <strong>链同伦</strong>，是指存在降一次数的映射 <span class="arithmatex">\(h^q:X^q\to Y^{q-1}\)</span>，使</p>
+<div class="arithmatex">\[
+\boxed{f-g=d_Yh+hd_X.}
+\]</div>
+<p>因此 <span class="arithmatex">\(K(R)\)</span> 中把 <span class="arithmatex">\(f\)</span> 与 <span class="arithmatex">\(g\)</span> 看成同一支箭头。若 <span class="arithmatex">\(f:X\to Y\)</span> 有链映射 <span class="arithmatex">\(u:Y\to X\)</span> 满足</p>
+<div class="arithmatex">\[
+uf\simeq\operatorname{id}_X,
+\qquad fu\simeq\operatorname{id}_Y,
+\]</div>
+<p>则 <span class="arithmatex">\(f\)</span> 是<strong>链同伦等价</strong>。若 <span class="arithmatex">\(H^q(f)\)</span> 对每个 <span class="arithmatex">\(q\)</span> 都是同构，则 <span class="arithmatex">\(f\)</span> 是<strong>拟同构</strong>。总有</p>
+<div class="arithmatex">\[
+\text{链同伦等价}\Longrightarrow\text{拟同构},
+\]</div>
+<p>反向在一般环上不成立。</p>
+<p>甚至“两个复形的各阶同调群抽象同构”也比“存在拟同构”更弱。前者只给两张同调清单，并没有给一支与微分相容、在同调上实现这些同构的箭头；有时连拟同构的锯齿都不存在。</p>
+<p>一个锋利的例子取</p>
+<div class="arithmatex">\[
+R=k[t]/(t^2),
+\qquad
+C=\bigl[R\xrightarrow{\ t\ }R\bigr]
+\]</div>
+<p>放在次数 <span class="arithmatex">\(-1,0\)</span>。因为 <span class="arithmatex">\(\ker(t:R\to R)=(t)\)</span> 且 <span class="arithmatex">\(R/(t)=k\)</span>，所以</p>
+<div class="arithmatex">\[
+H^{-1}(C)\cong k,
+\qquad H^0(C)\cong k.
+\]</div>
+<p>令 <span class="arithmatex">\(D=k[1]\oplus k\)</span>，微分为零，它有同样的同调清单；这里 <span class="arithmatex">\(k[1]^{-1}=k\)</span>。但 <span class="arithmatex">\(C\)</span> 与 <span class="arithmatex">\(D\)</span> 在导出范畴中并不同构。理由可由导出张量检测：<span class="arithmatex">\(C\)</span> 本身是有界自由复形，故 <span class="arithmatex">\(C\otimes_R^{\mathbf L}k=C\otimes_Rk\)</span> 只在次数 <span class="arithmatex">\(-1,0\)</span> 有同调；而 <span class="arithmatex">\(k\)</span> 在 <span class="arithmatex">\(R\)</span> 上有周期自由分解</p>
+<div class="arithmatex">\[
+\cdots\xrightarrow{t}R\xrightarrow{t}R\xrightarrow{t}R\longrightarrow k,
+\]</div>
+<p>张量 <span class="arithmatex">\(k\)</span> 后所有微分都变成零，所以 <span class="arithmatex">\(D\otimes_R^{\mathbf L}k\)</span> 在任意低的次数仍有非零同调。若 <span class="arithmatex">\(C\)</span> 与 <span class="arithmatex">\(D\)</span> 拟同构，这个保拟同构的导出运算不可能给出两种不同答案。</p>
+<p>因此应分层记忆：</p>
+<div class="arithmatex">\[
+\boxed{
+\text{链同伦等价}
+\Rightarrow\text{拟同构}
+\Rightarrow\text{同调群逐阶同构},
+}
+\]</div>
+<p>而两个反向箭头都不能无条件补上。</p>
+<h2 id="3-mathbb-zn-kmathbb-z">3. 主模型：<span class="arithmatex">\(\mathbb Z/n\)</span> 的自由分解为何还不能在 <span class="arithmatex">\(K(\mathbb Z)\)</span> 中求逆<a class="headerlink" href="#3-mathbb-zn-kmathbb-z" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(n\ge2\)</span>，并把两项自由复形写成</p>
+<div class="arithmatex">\[
+P^{-1}=\mathbb Z\xrightarrow{\ n\ }P^0=\mathbb Z.
+\]</div>
+<p>令 <span class="arithmatex">\(M=\mathbb Z/n\)</span> 只位于次数 <span class="arithmatex">\(0\)</span>。增广映射</p>
+<div class="arithmatex">\[
+\varepsilon:P\longrightarrow M
+\]</div>
+<p>在次数 <span class="arithmatex">\(0\)</span> 是模 <span class="arithmatex">\(n\)</span> 商映射，在次数 <span class="arithmatex">\(-1\)</span> 是零。它诱导</p>
+<div class="arithmatex">\[
+H^{-1}(P)=0,
+\qquad H^0(P)=\mathbb Z/n=H^0(M),
+\]</div>
+<p>所以 <span class="arithmatex">\(\varepsilon\)</span> 是拟同构。</p>
+<p>它却不是链同伦等价。任何链映射 <span class="arithmatex">\(s:M\to P\)</span> 的次数 <span class="arithmatex">\(0\)</span> 分量都是群同态</p>
+<div class="arithmatex">\[
+s^0:\mathbb Z/n\longrightarrow\mathbb Z,
+\]</div>
+<p>而这样的同态只能为零。又因为 <span class="arithmatex">\(M\)</span> 只在次数 <span class="arithmatex">\(0\)</span> 非零，<span class="arithmatex">\(M\to M\)</span> 的零映射不可能与恒等映射链同伦。因此 <span class="arithmatex">\(\varepsilon\)</span> 在 <span class="arithmatex">\(K(\mathbb Z)\)</span> 中没有逆。</p>
+<p>这就是为什么只走到 <span class="arithmatex">\(K(R)\)</span> 仍不够。<span class="arithmatex">\(K(R)\)</span> 消去了可收缩误差，却不会凭空制造一支不存在的反向链映射。</p>
+<h2 id="4-roof">4. Roof：形式逆不是一支假装存在的链映射<a class="headerlink" href="#4-roof" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(D(R)\)</span> 中，从 <span class="arithmatex">\(X\)</span> 到 <span class="arithmatex">\(Y\)</span> 的箭头可由一张 roof 表示：</p>
+<div class="arithmatex">\[
+\boxed{
+X\xleftarrow[\simeq]{\ s\ }Q\xrightarrow{\ f\ }Y,
+}
+\]</div>
+<p>其中左腿 <span class="arithmatex">\(s\)</span> 是拟同构。读法是先在导出范畴中走 <span class="arithmatex">\(s^{-1}:X\to Q\)</span>，再走 <span class="arithmatex">\(f:Q\to Y\)</span>，所以这张 roof 表示 <span class="arithmatex">\(f\,s^{-1}\)</span>。</p>
+<p>这不是说在 <span class="arithmatex">\(C(R)\)</span> 中偷偷选了一支 <span class="arithmatex">\(X\to Q\)</span>。形式逆存在于局部化之后；roof 正好把“逆从哪里来”显式保留下来。两张 roof 若在某个共同加细上给出相同箭头，就表示同一个导出态射。</p>
+<p>主模型中的 <span class="arithmatex">\(\varepsilon:P\to M\)</span> 在 <span class="arithmatex">\(D(\mathbb Z)\)</span> 里的逆由</p>
+<div class="arithmatex">\[
+M\xleftarrow[\simeq]{\ \varepsilon\ }P
+\xrightarrow{\ \operatorname{id}_P\ }P
+\]</div>
+<p>表示。注意右腿是 <span class="arithmatex">\(P\to P\)</span> 的真实链映射，左腿才负责形式求逆。我们没有构造不存在的链映射 <span class="arithmatex">\(M\to P\)</span>。</p>
+<p>一般地，若有 roofs</p>
+<div class="arithmatex">\[X\xleftarrow[\simeq]{s}Q\xrightarrow{f}Y,\qquad
+Y\xleftarrow[\simeq]{t}Q'\xrightarrow{g}Z,\]</div>
+<p>不能直接写链映射<span class="arithmatex">\(t^{-1}f\)</span>，因为<span class="arithmatex">\(t^{-1}\)</span>在链级未必存在。这里给出一个真正的共同加细，称为<strong>同伦拉回</strong>：</p>
+<div class="arithmatex">\[W^q=Q^q\oplus Q'^q\oplus Y^{q-1},\]</div>
+<div class="arithmatex">\[\boxed{d_W(q,q',h)=(d_Qq,d_{Q'}q',-d_Yh+f(q)-t(q')).}\]</div>
+<p>利用<span class="arithmatex">\(f,t\)</span>是链映射，第二次微分的第三项是</p>
+<div class="arithmatex">\[-d_Y[-d_Yh+f(q)-t(q')]+f(d_Qq)-t(d_{Q'}q')=0,\]</div>
+<p>所以W确实是复形。两投影<span class="arithmatex">\(a:W\to Q\)</span>与<span class="arithmatex">\(b:W\to Q'\)</span>是链映射；取第三分量H(q,q',h)=h作为降一次数的映射，就有</p>
+<div class="arithmatex">\[fa-tb=d_YH+Hd_W.\]</div>
+<p>也就是中间方块在<span class="arithmatex">\(K(R)\)</span>里交换。投影a逐项满射，它的核是<span class="arithmatex">\(t\)</span>的锥移位后的同构副本（可能相差整体符号约定）；t为拟同构，所以该核无环，短正合列的同调长正合列给出a也是拟同构。于是两张roof的复合可以<strong>实际写成</strong></p>
+<div class="arithmatex">\[\boxed{X\xleftarrow[\simeq]{sa}W\xrightarrow{gb}Z.}\]</div>
+<p>W也可记为<span class="arithmatex">\(\operatorname{Cone}(f,-t)[-1]\)</span>，上式明确给出了选择的坐标与符号。不能把普通拉回随意代替这个构造：普通拉回不自动保留拟同构。</p>
+<p>两张roof的等价关系则要求存在共同加细，使到X的左复合相同且为拟同构、到Y的右复合相同；这里“相同”都是在<span class="arithmatex">\(K(R)\)</span>中，即允许链同伦。由此得到的局部化满足通用性质：任意把拟同构送到同构的函子<span class="arithmatex">\(F:K(R)\to\mathcal E\)</span>都唯一地经D(R)分解（在通常的自然同构意义下），在roof上取<span class="arithmatex">\(F(f)F(s)^{-1}\)</span>。这说明这些新增箭头不是任意添加的规则。</p>
+<figure>
+<p><img alt="三层图展示C(R)保留严格链映射、K(R)模掉链同伦、D(R)把拟同构变成可逆。中层用自由复形P到模M的增广说明该拟同构在K中没有逆，但在D中由M左指向P再恒等到P的roof表示逆。下层把Ext类写成M经P到N平移的roof，并把乘n映射的锥放进标准三角。" src="assets/img/bridge-21-derived-category-roofs.svg" /></p>
+<figcaption>
+<p>导出范畴并不抹掉计算数据：它把拟同构放在 roof 的左腿，再让分解上的普通链映射承担右腿。映射锥则把同一机制组织成三角。</p>
+</figcaption>
+</figure>
+<h2 id="5-roof">5. 射影分解：什么时候 roof 可以退化成一支普通链映射<a class="headerlink" href="#5-roof" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(P\)</span> 是<strong>上有界</strong>的射影模复形。这里“上有界”指存在 <span class="arithmatex">\(N\)</span>，使 <span class="arithmatex">\(q&gt;N\)</span> 时 <span class="arithmatex">\(P^q=0\)</span>。这种 <span class="arithmatex">\(P\)</span> 具有关键性质：从 <span class="arithmatex">\(P\)</span> 到任意无环复形的链映射都链同伦于零。因此对任意复形 <span class="arithmatex">\(Y\)</span>，自然映射给出</p>
+<div class="arithmatex">\[
+\boxed{
+\operatorname{Hom}_{K(R)}(P,Y)
+\cong
+\operatorname{Hom}_{D(R)}(P,Y).
+}
+\]</div>
+<p>这个性质可从最高次数向下证明。若A无环、<span class="arithmatex">\(f:P\to A\)</span>是链映射，先在最高非零次数N观察<span class="arithmatex">\(f^N(P^N)\subseteq Z^N(A)\)</span>。无环使<span class="arithmatex">\(d_A:A^{N-1}\to Z^N(A)\)</span>满射，<span class="arithmatex">\(P^N\)</span>射影便能提升为<span class="arithmatex">\(h^N:P^N\to A^{N-1}\)</span>。下一次数把<span class="arithmatex">\(f^{N-1}-h^Nd_P\)</span>作为待提升的循环，再用射影性构造<span class="arithmatex">\(h^{N-1}\)</span>，逐次下降得到<span class="arithmatex">\(f=d_Ah+hd_P\)</span>。上有界保证这项归纳有起点；不要求向低次数有限终止。</p>
+<p>对拟同构t，Cone(t)无环，且它的所有移位仍无环。上述零同伦性质和Hom复形的锥长正合列说明<span class="arithmatex">\(\operatorname{Hom}_K(P,t)\)</span>是双射，于是任何roof都能化为从P出发的真实链映射的同伦类。这里的“唯一”是同伦类唯一，不是选出的链映射或提升唯一。</p>
+<p>若 <span class="arithmatex">\(X\in D^-(R)\)</span>，选择一个上有界的射影分解</p>
+<div class="arithmatex">\[
+p_X:P_X\xrightarrow{\simeq}X,
+\]</div>
+<p>便有</p>
+<div class="arithmatex">\[
+\operatorname{Hom}_{D(R)}(X,Y)
+\cong
+\operatorname{Hom}_{K(R)}(P_X,Y).
+\]</div>
+<p>右边只需计算链映射模链同伦。roof 的左腿并未消失，而是被固定成 <span class="arithmatex">\(p_X\)</span>；所有其他 roof 都能唯一地折算到这个选择上。</p>
+<p>复合也能具体完成。设</p>
+<div class="arithmatex">\[
+\alpha:X\to Y
+\quad\text{由}\quad f:P_X\to Y\text{表示},
+\]</div>
+<div class="arithmatex">\[
+\beta:Y\to Z
+\quad\text{由}\quad g:P_Y\to Z\text{表示}.
+\]</div>
+<p>因为 <span class="arithmatex">\(P_X\)</span> 有上述性质，<span class="arithmatex">\(p_Y:P_Y\to Y\)</span> 诱导</p>
+<div class="arithmatex">\[
+\operatorname{Hom}_{K(R)}(P_X,P_Y)
+\xrightarrow{\sim}
+\operatorname{Hom}_{K(R)}(P_X,Y).
+\]</div>
+<p>所以可把 <span class="arithmatex">\(f\)</span> 提升为 <span class="arithmatex">\(\widetilde f:P_X\to P_Y\)</span>，满足</p>
+<div class="arithmatex">\[
+p_Y\widetilde f\simeq f.
+\]</div>
+<p>于是 <span class="arithmatex">\(\beta\alpha\)</span> 由普通复合 <span class="arithmatex">\(g\widetilde f:P_X\to Z\)</span> 表示。不同提升只差链同伦，故导出态射不变。</p>
+<p>这个结论有明确边界：<strong>无界的逐项射影复形不一定具有上述性质。</strong> 无界导出范畴通常改用 K-projective 分解；对右导出函子常用 K-injective 分解，对导出张量常用 K-flat 分解。不能把“每一项都射影”当成无界情形的万能通行证。</p>
+<h2 id="6-roof-extmathbb-z6-mathbb-z41">6. 把一张 roof 算成 Ext：<span class="arithmatex">\(\mathbb Z/6\)</span> 到 <span class="arithmatex">\(\mathbb Z/4[1]\)</span><a class="headerlink" href="#6-roof-extmathbb-z6-mathbb-z41" title="Permanent link"></a></h2>
+<p>现在令</p>
+<div class="arithmatex">\[
+M=\mathbb Z/n,
+\qquad N=\mathbb Z/m,
+\]</div>
+<p>仍用 <span class="arithmatex">\(P=[\mathbb Z\xrightarrow{n}\mathbb Z]\)</span> 分解 <span class="arithmatex">\(M\)</span>。Hom 复形 <span class="arithmatex">\(\operatorname{Hom}_{\mathbb Z}(P,N)\)</span> 在次数 <span class="arithmatex">\(0,1\)</span> 是</p>
+<div class="arithmatex">\[
+N\xrightarrow{\ -n\ }N.
+\]</div>
+<p>负号来自 Hom 微分</p>
+<div class="arithmatex">\[
+d_{\rm Hom}(\phi)=d_N\phi-(-1)^{|\phi|}\phi d_P;
+\]</div>
+<p>它不改变本例的核与余核。于是</p>
+<div class="arithmatex">\[
+\operatorname{Hom}_{\mathbb Z}(M,N)
+\cong\ker(n:N\to N)=N[n],
+\]</div>
+<div class="arithmatex">\[
+\boxed{
+\operatorname{Ext}^1_{\mathbb Z}(M,N)
+\cong\operatorname{coker}(n:N\to N)=N/nN,
+}
+\]</div>
+<p>而更高 Ext 为零。</p>
+<p>一个元素 <span class="arithmatex">\(a\in N\)</span> 定义链映射</p>
+<div class="arithmatex">\[
+f_a:P\longrightarrow N[1],
+\qquad f_a^{-1}(1)=a,
+\qquad f_a^0=0.
+\]</div>
+<p>它给出导出态射的 roof</p>
+<div class="arithmatex">\[
+\boxed{
+M\xleftarrow[\simeq]{\ \varepsilon\ }P
+\xrightarrow{\ f_a\ }N[1].
+}
+\]</div>
+<p>若 <span class="arithmatex">\(a-b\in nN\)</span>，则 <span class="arithmatex">\(f_a\)</span> 与 <span class="arithmatex">\(f_b\)</span> 链同伦；反之亦然。因此 roof 类恰好由 <span class="arithmatex">\([a]\in N/nN\)</span> 参数化。这一次，Ext 不再只是一个由定理报出的群：每个元素都变成了一张可写出的 roof。</p>
+<p>取 <span class="arithmatex">\(n=6,m=4\)</span>。在 <span class="arithmatex">\(N=\mathbb Z/4\)</span> 上，乘 <span class="arithmatex">\(6\)</span> 等于乘 <span class="arithmatex">\(2\)</span>，所以</p>
+<div class="arithmatex">\[
+\ker(\times6)=\{[0],[2]\}\cong\mathbb Z/2,
+\]</div>
+<div class="arithmatex">\[
+6N=\{[0],[2]\},
+\qquad N/6N\cong\mathbb Z/2.
+\]</div>
+<p>故</p>
+<div class="arithmatex">\[
+\operatorname{Hom}(\mathbb Z/6,\mathbb Z/4)\cong\mathbb Z/2,
+\qquad
+\operatorname{Ext}^1(\mathbb Z/6,\mathbb Z/4)\cong\mathbb Z/2.
+\]</div>
+<p><span class="arithmatex">\(a=[1]\)</span> 的 roof 代表非零生成元；<span class="arithmatex">\(a=[3]\)</span> 与它同类，因为 <span class="arithmatex">\([3]-[1]=[2]\in6N\)</span>；<span class="arithmatex">\(a=[2]\)</span> 代表零类。若再给群同态 <span class="arithmatex">\(u:N\to N'\)</span>，复合 <span class="arithmatex">\(u[1]\circ f_a\)</span> 只是把 roof 的右腿改成 <span class="arithmatex">\(u[1]f_a\)</span>。分解让导出复合重新成为可检查的链映射复合。</p>
+<p>还可以计算一个真正需要提升的复合，而不只做目标上的后复合。令</p>
+<div class="arithmatex">\[X=\mathbb Z/6,\quad Y=\mathbb Z/4,\quad N=\mathbb Z/8,\]</div>
+<p>取<span class="arithmatex">\(\alpha:X\to Y\)</span>为<span class="arithmatex">\([1]\mapsto[2]\)</span>，以及<span class="arithmatex">\(\beta:Y\to N[1]\)</span>为右腿代表元<span class="arithmatex">\(a=1\)</span>的Ext类。把α提升到两个自由分解<span class="arithmatex">\(P_6\to P_4\)</span>时，次数0的映射是乘2；链条件要求</p>
+<div class="arithmatex">\[4\widetilde\alpha^{-1}=\widetilde\alpha^0\,6=12,\]</div>
+<p>所以次数−1必须乘3。复合<span class="arithmatex">\(\beta\alpha\)</span>的右腿代表元因此是<span class="arithmatex">\(3\in\mathbb Z/8\)</span>，它在<span class="arithmatex">\((\mathbb Z/8)/6(\mathbb Z/8)\cong\mathbb Z/2\)</span>中非零。若误用次数0的系数2代替次数−1的3，就会错误地算成零类。</p>
+<p>一般<span class="arithmatex">\([1]\mapsto[b]:\mathbb Z/n\to\mathbb Z/m\)</span>要求<span class="arithmatex">\(m\mid nb\)</span>；选整数代表b后，提升两次数分别是b与nb/m。改变b为b+m使低次数提升多n，正好改变复合右腿一个nN中的元素，所以导出类不依赖代表选择。</p>
+<h2 id="7">7. 映射锥与三角：负号怎样保证结构没有坏掉<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对链映射 <span class="arithmatex">\(f:X\to Y\)</span>，定义移位</p>
+<div class="arithmatex">\[
+X[1]^q=X^{q+1},
+\qquad d_{X[1]}=-d_X,
+\]</div>
+<p>以及映射锥</p>
+<div class="arithmatex">\[
+\operatorname{Cone}(f)^q=Y^q\oplus X^{q+1},
+\]</div>
+<div class="arithmatex">\[
+\boxed{
+d_{\rm Cone}(y,x)=\bigl(d_Yy+f(x),-d_Xx\bigr).
+}
+\]</div>
+<p>这给出 <span class="arithmatex">\(K(R)\)</span> 和 <span class="arithmatex">\(D(R)\)</span> 中的标准三角</p>
+<div class="arithmatex">\[
+X\xrightarrow{f}Y\longrightarrow
+\operatorname{Cone}(f)\longrightarrow X[1].
+\]</div>
+<p>第二分量的负号同时保证 <span class="arithmatex">\(d_{\rm Cone}^2=0\)</span>，并保证投影
+<span class="arithmatex">\(\operatorname{Cone}(f)\to X[1]\)</span> 是链映射。三角不是把三个对象画成循环就自动成立；它携带的是由映射锥产生的特定结构。</p>
+<p>令 <span class="arithmatex">\(f\)</span> 是 <span class="arithmatex">\(\mathbb Z[0]\)</span> 上的乘 <span class="arithmatex">\(n\)</span> 映射。则</p>
+<div class="arithmatex">\[
+\operatorname{Cone}(n)
+=\bigl[\mathbb Z\xrightarrow{n}\mathbb Z\bigr]
+=P,
+\]</div>
+<p>并且 <span class="arithmatex">\(P\xrightarrow{\simeq}\mathbb Z/n\)</span>。所以标准三角在 <span class="arithmatex">\(D(\mathbb Z)\)</span> 中可改写为熟悉的</p>
+<div class="arithmatex">\[
+\boxed{
+\mathbb Z\xrightarrow{n}\mathbb Z
+\longrightarrow\mathbb Z/n
+\longrightarrow\mathbb Z[1].
+}
+\]</div>
+<p>它把“乘 <span class="arithmatex">\(n\)</span> 的余核”与“一次移位后的连接态射”放进同一个对象。这里不能把三角范畴中的三角简单当作阿贝尔范畴的短正合列；导出范畴一般没有让每支态射都拥有普通核、余核的阿贝尔结构。</p>
+<h2 id="8">8. 亲手改变代表元，再检查锥的符号<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>先预测<span class="arithmatex">\(n=6,m=4\)</span>时<span class="arithmatex">\(a=1,3,2\)</span>分别属于哪个Ext类，然后打开实验。程序实际枚举<span class="arithmatex">\(\mathbb Z/m\)</span>中微分−n的核、像、陪集以及零同伦的见证h。层级切换只改变ε是否可逆的解释，有限群的算术不会随着术语改变。</p>
+<div class="learning-lab" data-learning-lab="research-derived-category" data-research-topic="roofs"></div>
+<p>无脚本核对：默认<span class="arithmatex">\(n=6,m=4,a=1\)</span>，微分输出依次为<span class="arithmatex">\(0,2,0,2\)</span>；核与像都是<span class="arithmatex">\(\{0,2\}\)</span>，Ext的陪集为<span class="arithmatex">\(\{0,2\}\)</span>与<span class="arithmatex">\(\{1,3\}\)</span>。a=1为非零类，a=3仍是同一类；a=2为零类，h=1满足<span class="arithmatex">\(6h=2\pmod4\)</span>，给出实际零同伦见证。</p>
+<p>符号开关使用下面的最小反例。令</p>
+<div class="arithmatex">\[
+C^{-1}=k\xrightarrow{1}C^0=k,
+\qquad f=\operatorname{id}_C.
+\]</div>
+<p>正确的 <span class="arithmatex">\(\operatorname{Cone}(f)\)</span> 在次数 <span class="arithmatex">\(-2,-1,0\)</span> 的微分为</p>
+<div class="arithmatex">\[
+k\longrightarrow k^2\longrightarrow k,
+\]</div>
+<div class="arithmatex">\[
+x\longmapsto(x,-x),
+\qquad(y,z)\longmapsto y+z.
+\]</div>
+<p>两次微分给出 <span class="arithmatex">\(x-x=0\)</span>，而且 <span class="arithmatex">\(\operatorname{Cone}(\operatorname{id})\)</span> 可缩。若把第一个箭头错误改成 <span class="arithmatex">\(x\mapsto(x,x)\)</span>，复合变成 <span class="arithmatex">\(2x\)</span>；在特征不为 <span class="arithmatex">\(2\)</span> 时，它甚至不再是复形。</p>
+<div class="learning-lab" data-learning-lab="research-derived-category" data-research-topic="cones"></div>
+<p>默认取Q与标准负号，两次微分为零，各阶同调维数均为0。若切到错误正号，程序报告“不是复形”，不再套用维数减秩公式。切到特征2后，两个符号相同；请用下一题解释这为何不能支持一般地删掉负号。</p>
+<h2 id="9">9. 两道迁移题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 取 <span class="arithmatex">\(M=\mathbb Z/8\)</span>、<span class="arithmatex">\(N=\mathbb Z/12\)</span>。计算 <span class="arithmatex">\(\operatorname{Hom}(M,N)\)</span> 与 <span class="arithmatex">\(\operatorname{Ext}^1(M,N)\)</span>，并判断 roof</p>
+<div class="arithmatex">\[
+M\xleftarrow{\simeq}P\xrightarrow{f_a}N[1]
+\]</div>
+<p>何时代表零。<span class="arithmatex">\(a=[1]\)</span> 代表什么？</p>
+<details>
+<summary>查看 Hom 复形与 roof 商类</summary>
+<p>Hom 复形是</p>
+<div class="arithmatex">\[
+\mathbb Z/12\xrightarrow{-8}\mathbb Z/12.
+\]</div>
+<p>乘 <span class="arithmatex">\(8\)</span> 的核为 <span class="arithmatex">\(\{[0],[3],[6],[9]\}\cong\mathbb Z/4\)</span>，所以</p>
+<div class="arithmatex">\[
+\operatorname{Hom}(\mathbb Z/8,\mathbb Z/12)\cong\mathbb Z/4.
+\]</div>
+<p>像为 <span class="arithmatex">\(8N=\{[0],[4],[8]\}\)</span>，故余核也有 <span class="arithmatex">\(4\)</span> 个元素：</p>
+<div class="arithmatex">\[
+\operatorname{Ext}^1(\mathbb Z/8,\mathbb Z/12)
+\cong N/8N\cong\mathbb Z/4.
+\]</div>
+<p><span class="arithmatex">\(f_a\)</span> 链同伦于零当且仅当 <span class="arithmatex">\(a\in8N\)</span>，即 <span class="arithmatex">\(a\in\{[0],[4],[8]\}\)</span>。<span class="arithmatex">\(a=[1]\)</span> 的 roof 是 <span class="arithmatex">\(\mathbb Z/4\)</span> 的生成元。</p>
+</details>
+<p><strong>题二。</strong> 对上一节的 <span class="arithmatex">\(C=[k\xrightarrow{1}k]\)</span>，逐次验证正确符号给出的 <span class="arithmatex">\(\operatorname{Cone}(\operatorname{id}_C)\)</span> 无同调。再说明错误正号为什么在特征 <span class="arithmatex">\(2\)</span> 时没有被 <span class="arithmatex">\(d^2\)</span> 检验抓住，但仍不能据此宣布所有 cone 符号都可删。</p>
+<details>
+<summary>查看微分、同调与特征边界</summary>
+<p>正确微分是</p>
+<div class="arithmatex">\[
+k\xrightarrow{x\mapsto(x,-x)}k^2
+\xrightarrow{(y,z)\mapsto y+z}k.
+\]</div>
+<p>第一支箭头单射；第二支满射；第二支的核是 <span class="arithmatex">\(\{(y,-y)\}\)</span>，恰好等于第一支的像。因此三个次数的同调都为零。事实上 cone of identity 总是可缩。</p>
+<p>若错误地用 <span class="arithmatex">\(x\mapsto(x,x)\)</span>，两次微分是 <span class="arithmatex">\(2x\)</span>。特征 <span class="arithmatex">\(2\)</span> 时这个数值碰巧为零，而且 <span class="arithmatex">\(-x=x\)</span>，所以该特例看不出差异；但在一般环上 <span class="arithmatex">\(2\)</span> 不为零。统一的移位与 cone 约定必须对任意底环成立，不能由一个特征 <span class="arithmatex">\(2\)</span> 的退化现象篡改定义。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(C(R)\)</span> 保留严格链映射；<span class="arithmatex">\(K(R)\)</span> 把链同伦的映射识别；<span class="arithmatex">\(D(R)\)</span> 再把拟同构形式求逆。导出态射可写成 <span class="arithmatex">\(X\xleftarrow{\simeq}Q\to Y\)</span>，而上有界射影分解把它化成链映射模同伦。<span class="arithmatex">\(\operatorname{Ext}^1_R(M,N)\)</span> 就是 <span class="arithmatex">\(\operatorname{Hom}_{D(R)}(M,N[1])\)</span>；映射锥给出 <span class="arithmatex">\(X\to Y\to\operatorname{Cone}(f)\to X[1]\)</span>。</p>
+<p>定义与边界可核对 <a href="https://stacks.math.columbia.edu/tag/013H">Stacks Project：Homotopy category</a>、<a href="https://stacks.math.columbia.edu/tag/010V">Chain homotopy</a>、<a href="https://stacks.math.columbia.edu/tag/05RR">Derived categories</a> 与 <a href="https://stacks.math.columbia.edu/tag/0914">Derived category of a ring</a>；上有界射影复形的计算性质见 <a href="https://stacks.math.columbia.edu/tag/0648">bounded above complexes of projectives</a>，移位和锥的符号约定见 <a href="https://stacks.math.columbia.edu/tag/0FNG">Sign rules</a>。本讲只建立模复形上的可计算入口，不展开 Verdier 公理、大小问题、dg/∞-增强、t-结构、谱序列或层的导出下降；D-模、栈与六函子留给后续专题。核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-20-derived-products.html"><span class="pager-label">上一页</span>基础 XX · 导出纤维积与乘法</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/labs/research-derived-category.js?v=3eabbc0cea8c"></script>
+</body>
+</html>

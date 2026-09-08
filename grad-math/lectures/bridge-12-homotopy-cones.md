@@ -363,3 +363,6 @@ $$
 复形的定义见 [Stacks Project：Complexes](https://stacks.math.columbia.edu/tag/010V)，上链同伦、移位与符号约定见 [Homotopy and the shift functor](https://stacks.math.columbia.edu/tag/0119)，映射锥的短正合列见 [Cones and distinguished triangles](https://stacks.math.columbia.edu/tag/09P1)。锥与拟同构的关系由其长正合上同调列给出，可对照 [Derived categories](https://stacks.math.columbia.edu/tag/05RR)。资料核查：2026-09-08。
 
 路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
+
+
+下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。

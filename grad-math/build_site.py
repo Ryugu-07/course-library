@@ -121,6 +121,8 @@ COURSE = [
         ("bridge-14-fibers-base-change.md", "基础 XIV · 纤维与基变换"),
         ("bridge-15-nonflat-derived-fibers.md", "基础 XV · 非平坦族与导出纤维"),
         ("bridge-16-intersections-tor.md", "基础 XVI · 相交、接触阶与 Tor"),
+        ("bridge-20-derived-products.md", "基础 XX · 导出纤维积与乘法"),
+        ("bridge-21-derived-category-roofs.md", "基础 XXI · 导出范畴与roofs"),
     ]),
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),
@@ -128,7 +130,6 @@ COURSE = [
         ("bridge-17-continuous-control.md", "基础 XVII · 连续路径熵与控制"),
         ("bridge-18-heat-distributions.md", "基础 XVIII · 热核与随机分布"),
         ("bridge-19-products-reconstruction.md", "基础 XIX · 分布乘积与重建"),
-        ("bridge-20-derived-products.md", "基础 XX · 导出纤维积与乘法"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-derived-readiness.md", "路线验收 · 整数分解到导出观点"),

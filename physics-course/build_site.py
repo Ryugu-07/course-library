@@ -172,6 +172,7 @@ COURSE = [
         ("bridge-14-mpo-krylov.md", "计算桥 XIV · MPO与Krylov"),
         ("bridge-15-variance-initial-states.md", "计算桥 XV · 全链方差与初态"),
         ("bridge-16-tebd-errors.md", "计算桥 XVI · 张量时间演化与误差"),
+        ("bridge-17-phi4-scattering.md", "计算桥 XVII · 单圈散射与重整化"),
     ]),
     ("学习路线与连续作业", [
         ("route-01-mps-readiness.md", "路线验收 · Schmidt 到变分扫描"),

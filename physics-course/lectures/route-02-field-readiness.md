@@ -198,3 +198,6 @@ t、u 通道与接触常数此时都有限，乘 s 后消失。不要沿“固�
 原始教学参照：[Tong：Interacting Fields](https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3)的连通图、截肢及 LSZ；[Tong：The Renormalisation Group](https://davidtong.org/teaching/statistical-field-theory/sfthtml/S3)的圈积分与参数组织；[Elvang、Huang：Scattering Amplitudes](https://arxiv.org/abs/1308.1697)的解析结构与壳上方法。具体正规化处方、二阶匹配和四站数值在本页独立给出。核查：2026-09-08。
 
 继续[共形块、正性与排除证书](bridge-13-positive-blocks.html)，从后裔范数算真正的共形块，并用解析不等式覆盖一维允许谱的整个半轴。
+
+
+进一步把二点反项、s/t/u三泡图、离壳减法点和物理截面接通，可做[同一φ⁴模型的单圈散射训练](bridge-17-phi4-scattering.html)，并用阈值虚部与换点匹配独立核验。

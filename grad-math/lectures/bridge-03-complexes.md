@@ -98,3 +98,6 @@ $$\mathbb Z/2\xrightarrow{0}\mathbb Z/2.$$
 后续计算：[张量积、平坦性与 Tor](bridge-05-tensor-tor.html)从自由分解继续，解释为什么换系数要保留整个复形。
 
 路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
+
+
+下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。
