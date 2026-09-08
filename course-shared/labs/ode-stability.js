@@ -178,12 +178,14 @@
     var maxAbs = 1;
     data.points.forEach(function (p) { maxAbs = Math.max(maxAbs, Math.abs(p.x), Math.abs(p.y)); });
     var range = maxAbs * 1.12;
-    var mapX = function (value) { return 35 + (value + range) / (2 * range) * 350; };
+    var mapX = function (value) { return 85 + (value + range) / (2 * range) * 250; };
     var mapY = function (value) { return 292 - (value + range) / (2 * range) * 250; };
     [-0.5, 0, 0.5].forEach(function (fraction) {
       var value = fraction * 2 * range;
       svg.appendChild(svgNode(doc, "line", { x1: mapX(value), y1: 42, x2: mapX(value), y2: 292, class: fraction === 0 ? "ods-axis" : "ods-grid" }));
-      svg.appendChild(svgNode(doc, "line", { x1: 35, y1: mapY(value), x2: 385, y2: mapY(value), class: fraction === 0 ? "ods-axis" : "ods-grid" }));
+      svg.appendChild(svgNode(doc, "line", { x1: 85, y1: mapY(value), x2: 335, y2: mapY(value), class: fraction === 0 ? "ods-axis" : "ods-grid" }));
+      svg.appendChild(svgNode(doc, "text", { x: mapX(value), y: 308, "font-size": 10, "text-anchor": "middle" }, formatNumber(value, 1)));
+      svg.appendChild(svgNode(doc, "text", { x: 77, y: mapY(value) + 4, "font-size": 10, "text-anchor": "end" }, formatNumber(value, 1)));
     });
     for (var gx = -2; gx <= 2; gx += 1) {
       for (var gy = -2; gy <= 2; gy += 1) {
@@ -201,7 +203,7 @@
     svg.appendChild(svgNode(doc, "circle", { cx: mapX(last.x), cy: mapY(last.y), r: 5, class: "ods-end" }));
     svg.appendChild(svgNode(doc, "text", { x: 35, y: 24, "font-size": 13, "font-weight": 700 }, "相图：绿点起始，红点终点"));
     svg.appendChild(svgNode(doc, "text", { x: 388, y: 309, "font-size": 11, "text-anchor": "end" }, "x₁"));
-    svg.appendChild(svgNode(doc, "text", { x: 42, y: 54, "font-size": 11 }, "x₂"));
+    svg.appendChild(svgNode(doc, "text", { x: 75, y: 34, "font-size": 11 }, "x₂"));
     return svg;
   }
 
@@ -219,8 +221,11 @@
     var refY = 292 - 1 / maxY * 250;
     svg.appendChild(svgNode(doc, "line", { x1: 42, y1: refY, x2: 382, y2: refY, class: "ods-reference" }));
     svg.appendChild(svgNode(doc, "path", { d: pathFrom(data.points, mapX, mapY), class: "ods-norm" }));
+    [0, 0.5, 1].forEach(function (fraction) {
+      svg.appendChild(svgNode(doc, "text", { x: 42 + fraction * 340, y: 309, "font-size": 10, "text-anchor": "middle" }, formatNumber(horizon * fraction, 2)));
+    });
     svg.appendChild(svgNode(doc, "text", { x: 42, y: 24, "font-size": 13, "font-weight": 700 }, "长度账本：‖x(t)‖₂ / ‖x(0)‖₂"));
-    svg.appendChild(svgNode(doc, "text", { x: 382, y: 309, "font-size": 11, "text-anchor": "end" }, "t"));
+    svg.appendChild(svgNode(doc, "text", { x: 405, y: 309, "font-size": 11, "text-anchor": "end" }, "t"));
     svg.appendChild(svgNode(doc, "text", { x: 378, y: refY - 6, "font-size": 10, "text-anchor": "end" }, "初始长度 1"));
     return svg;
   }

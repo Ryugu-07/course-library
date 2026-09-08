@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:29</div>
   </div>
 </nav>
 <main id="content">
@@ -58,6 +58,7 @@ try {
 <li><a href="#2">2. 先预测：存在、唯一与延拓分三张票</a></li>
 <li><a href="#3">3. 最小模型：三个问题需要三种证书</a></li>
 <li><a href="#4">4. 模型边界</a></li>
+<li><a href="#5">5. 迁移题：解公式之外，还要交什么？</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 求解工具箱（识别类型是全部功夫）</a></li>
@@ -99,7 +100,7 @@ y_a(t)=
 <ul>
 <li><strong>局部存在</strong>：连续右端可由 Peano 定理给出局部解，但不保证唯一；Picard–Lindelöf 以对状态变量的局部 Lipschitz 条件同时给出局部存在与唯一。</li>
 <li><strong>唯一</strong>：比较的是同一初值附近的全部解，不是某个数值算法只画出一条轨迹。平方根例中的 <span class="arithmatex">\(y_a\)</span> 是解析反证。</li>
-<li><strong>最大延拓</strong>：即使局部唯一，解仍可能在有限时刻爆破或跑出方程定义域。<span class="arithmatex">\(y'=y^2,\ y(0)=1\)</span> 的最大向前区间是 <span class="arithmatex">\((-\infty,1)\)</span>。</li>
+<li><strong>最大延拓</strong>：即使局部唯一，解仍可能在有限时刻爆破或跑出方程定义域。<span class="arithmatex">\(y'=y^2,\ y(0)=1\)</span> 的最大解区间是 <span class="arithmatex">\((-\infty,1)\)</span>，从初时刻向前可到 <span class="arithmatex">\([0,1)\)</span>。</li>
 </ul>
 <div class="learning-lab" data-learning-lab="ode-existence-uniqueness">
 <p><strong>无 JavaScript 时的静态读法：</strong></p>
@@ -137,10 +138,25 @@ y_a(t)=
 </tr>
 </tbody>
 </table>
-<p>实验揭示后可切换三类方程、改变观察窗与 Euler 步数；平方根模型会并排展示等待时间 (a=0,1,2) 的三个解析分支。有限步数值轨迹只诊断当前离散化；存在唯一性与最大延拓仍由定理假设和解析解负责。</p>
 </div>
+<p>切换方程或参数后要重新提交预测。实验可改变观察窗与 Euler 步数；平方根模型会并排展示等待时间 (a=0,1,2) 的三个解析分支。图按全部解析分支和数值轨迹自动定标，不把超量程值截成水平线。设 <span class="arithmatex">\(T\)</span> 为观察终点，爆破模型只计算到 <span class="arithmatex">\(\min(T,0.98)&lt;1\)</span>，表格标出该实际观察时刻；<span class="arithmatex">\(t=1\)</span> 是定义域边界，不补画之后的解。有限步数值轨迹只诊断当前离散化；存在唯一性与最大延拓仍由定理假设和解析解负责。</p>
 <h3 id="4">4. 模型边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <p>本实验只处理三个一维自治方程；Peano 与 Picard–Lindelöf 的一般陈述需要在初值附近选定矩形，并分别检查连续性、对状态变量的一致局部 Lipschitz 条件。刚性、多值微分包含、随机微分方程和数值稳定性不由这三个 toy 覆盖。</p>
+<h3 id="5">5. 迁移题：解公式之外，还要交什么？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>给 <span class="arithmatex">\(y'=y^2,\ y(0)=y_0\)</span> 写出解及最大区间；<span class="arithmatex">\(y_0=0\)</span> 是否会被分离变量漏掉？</li>
+<li>对 <span class="arithmatex">\(y'=\sqrt{|y|}\)</span>，证明等待解在 <span class="arithmatex">\(t=a\)</span> 也是 <span class="arithmatex">\(C^1\)</span> 解。Euler 从精确零出发为什么不能发现所有分支？</li>
+<li><span class="arithmatex">\(y'+y/x=\sin x/x\)</span> 的显式解如果在 <span class="arithmatex">\(x=0\)</span> 有有限极限，是否就成为跨过零点的原方程解？</li>
+</ol>
+<details>
+<summary>展开核对：初值、拼接和最大区间</summary>
+<ol>
+<li><span class="arithmatex">\(y_0=0\)</span> 时 <span class="arithmatex">\(y\equiv0\)</span>；否则 <span class="arithmatex">\(y=y_0/(1-y_0t)\)</span>。当 <span class="arithmatex">\(y_0&gt;0\)</span>，最大区间 <span class="arithmatex">\((-\infty,1/y_0)\)</span>；当 <span class="arithmatex">\(y_0&lt;0\)</span>，是 <span class="arithmatex">\((1/y_0,\infty)\)</span>。每次除以 <span class="arithmatex">\(y^2\)</span> 后必须补回零解。</li>
+<li><span class="arithmatex">\(t&lt;a\)</span> 时导数与右端均为零；<span class="arithmatex">\(t&gt;a\)</span> 时均为 <span class="arithmatex">\((t-a)/2\)</span>；拼接点两侧导数都趋零。Euler 更新 <span class="arithmatex">\(y_{n+1}=y_n+h\sqrt{|y_n|}\)</span> 从零始终为零，所以只能选择一个合法分支，不能作为唯一性证据。</li>
+<li>不能。即使选 <span class="arithmatex">\(C=1\)</span> 使 <span class="arithmatex">\((1-\cos x)/x\to0\)</span>，原方程的系数仍在零点无定义。若要延拓，须另行定义新方程，并重新核对其解。</li>
+</ol>
+</details>
+<p>先修：<a href="analysis-03-integral.html">微积分基本定理</a>、<a href="func-01-banach.html">完备性与压缩映射</a>；后续：<a href="ode-03-systems-stability.html">线性系统稳定性</a>。一般存在和延拓条件见 <a href="https://www.mat.univie.ac.at/~gerald/ftp/book-ode/ode.pdf">Teschl 第 2 章</a>。</p>
 </section>
 <h2 id="1_1">1. 求解工具箱（识别类型是全部功夫）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <table>
@@ -155,7 +171,7 @@ y_a(t)=
 <tr>
 <td>可分离</td>
 <td><span class="arithmatex">\(y' = f(x)g(y)\)</span></td>
-<td><span class="arithmatex">\(\int\frac{dy}{g(y)} = \int f(x)dx\)</span></td>
+<td>在 <span class="arithmatex">\(g(y)\ne0\)</span> 的分支上 <span class="arithmatex">\(\int dy/g(y)=\int f(x)dx\)</span>；另查 <span class="arithmatex">\(g(y)=0\)</span> 的平衡解</td>
 </tr>
 <tr>
 <td>齐次</td>
@@ -183,12 +199,13 @@ y_a(t)=
 <div class="arithmatex">\[
 y = e^{-\int p\,dx}\Big(\int q\, e^{\int p\,dx}\,dx + C\Big)
 \]</div>
+<p>上述换元要保留定义域：齐次型须 <span class="arithmatex">\(x\ne0\)</span>；Bernoulli 的 <span class="arithmatex">\(n=0,1\)</span> 直接按线性方程处理，其他 <span class="arithmatex">\(n\)</span> 的幂换元需限制实幂有定义且可逆的分支，并另查被除掉的零解。对 <span class="arithmatex">\(C^1\)</span> 系数，<span class="arithmatex">\(M_y=N_x\)</span> 保证局部恰当；全域势函数还需单连通等条件。</p>
 <p>结构读法：<strong>通解 = 齐次通解 + 非齐次特解</strong>——线性方程的普适结构（下一页高阶版、高代线性方程组同构）。恰当方程不恰当时找积分因子（只依赖 <span class="arithmatex">\(x\)</span> 或 <span class="arithmatex">\(y\)</span> 的两个判别式，查表级知识）。</p>
 <h2 id="2_1">2. 存在唯一性定理（理论基石）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定理（Picard–Lindelöf）</strong> 初值问题 <span class="arithmatex">\(y' = f(x, y),\ y(x_0) = y_0\)</span>：若 <span class="arithmatex">\(f\)</span> 在初值附近的矩形内连续，且在该矩形内关于 <span class="arithmatex">\(y\)</span> 一致满足 <strong>Lipschitz 条件</strong>（<span class="arithmatex">\(|f(x, y_1) - f(x, y_2)| \leq L|y_1 - y_2|\)</span>），则在某个较小区间上存在唯一解。</p>
 <p><em>证明思路（三步，泛函 I 将正式收编）</em>：1. 初值问题 ⟺ 积分方程 <span class="arithmatex">\(y(x) = y_0 + \int_{x_0}^x f(t, y(t))dt\)</span>；2. 右端定义算子 <span class="arithmatex">\(T\)</span>，在小区间上 <span class="arithmatex">\(T\)</span> 是压缩映射（Lipschitz 常数 × 区间长 &lt; 1）；3. 压缩映像原理给唯一不动点——<strong>Picard 迭代</strong> <span class="arithmatex">\(y_{n+1} = T y_n\)</span> 收敛到解（还是可计算的构造性证明，数值 III 不动点迭代的老家）。</p>
 <p><strong>唯一性失效的名例</strong>：<span class="arithmatex">\(y' = \sqrt{|y|},\ y(0) = 0\)</span>——除 <span class="arithmatex">\(y \equiv 0\)</span> 外，对任意 <span class="arithmatex">\(a\geq0\)</span>，令 <span class="arithmatex">\(y=0\)</span>（<span class="arithmatex">\(x\leq a\)</span>）、<span class="arithmatex">\(y=(x-a)^2/4\)</span>（<span class="arithmatex">\(x\geq a\)</span>）都给出一条解；不能把 <span class="arithmatex">\(x^2/4\)</span> 不分区间地写到负半轴上，因为那里导数符号不对。<span class="arithmatex">\(\sqrt{|y|}\)</span> 在 0 处不满足 Lipschitz。<strong>物理读法</strong>：这个具体系统允许"同一初态有多种未来"；非 Lipschitz 本身只是唯一性定理失去担保，不自动证明每个系统都不唯一。</p>
-<p><strong>解的延拓</strong>：局部解可延拓到"跑出定义域或爆破"为止；<span class="arithmatex">\(y' = y^2\)</span> 的解 <span class="arithmatex">\(y = \frac{1}{C - x}\)</span> 在有限时间爆破——非线性方程解的寿命可以有限（与线性方程全局存在对照）。</p>
+<p><strong>解的延拓</strong>：局部解可延拓到"跑出定义域或爆破"为止；<span class="arithmatex">\(y' = y^2\)</span> 的解 <span class="arithmatex">\(y = \frac{1}{C - x}\)</span> 在有限时间爆破——非线性方程解的寿命可以有限（线性方程则在系数连续的整个给定区间内存在，不能跨越系数奇点）。</p>
 <h2 id="3_1">3. 定性预览：不解方程看解<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="方向场与解曲线" src="assets/img/ode-01-slope-field.svg" /></p>
@@ -198,11 +215,11 @@ y = e^{-\int p\,dx}\Big(\int q\, e^{\int p\,dx}\,dx + C\Big)
 <div class="arithmatex">\[
 y' = ry\Big(1 - \frac{y}{K}\Big)
 \]</div>
-<p>平衡点 <span class="arithmatex">\(0\)</span>（不稳）与 <span class="arithmatex">\(K\)</span>（稳，环境容量）——不用解方程就知道"任何正初值都趋于 <span class="arithmatex">\(K\)</span>"；可分离法也能显式解出 S 形曲线，两条路互相印证。</p>
-<p>🔗 <strong>衔接</strong>：梯度流 <span class="arithmatex">\(x' = -\nabla f(x)\)</span> 是"连续时间的梯度下降"（优化 II——学习率 <span class="arithmatex">\(\to 0\)</span> 的极限），平衡点=驻点、稳定性=极小性；数值解法（Euler/RK4）在数值 IV；概率版（加噪声的 ODE = SDE）在随机过程 IV 与扩散模型（comfy 课 02）。</p>
+<p>假设 <span class="arithmatex">\(r&gt;0,K&gt;0\)</span>，平衡点 <span class="arithmatex">\(0\)</span>（不稳）与 <span class="arithmatex">\(K\)</span>（稳，环境容量）——不用解方程就知道"任何正初值都趋于 <span class="arithmatex">\(K\)</span>"；可分离法也能解出 Logistic 曲线（大于 <span class="arithmatex">\(K\)</span> 的初值从上方下降，并非一律 S 形），两条路互相印证。</p>
+<p>🔗 <strong>衔接</strong>：梯度流 <span class="arithmatex">\(x' = -\nabla f(x)\)</span> 是"连续时间的梯度下降"（优化 II——学习率 <span class="arithmatex">\(\to 0\)</span> 的极限），平衡点是驻点；在非退化极小点，正定 Hessian 给出局部渐近稳定，退化情形另判；数值解法（Euler/RK4）在数值 IV；概率版（加噪声的 ODE = SDE）在随机过程 IV 与扩散模型（comfy 课 02）。</p>
 <h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（一阶线性全流程）</strong> <span class="arithmatex">\(y' + \frac{y}{x} = \frac{\sin x}{x}\)</span>：<span class="arithmatex">\(\mu = e^{\int dx/x} = x\)</span>，<span class="arithmatex">\((xy)' = \sin x\)</span> ⇒ <span class="arithmatex">\(y = \frac{C - \cos x}{x}\)</span>。</p>
-<p><strong>例 2（换元识别）</strong> <span class="arithmatex">\(y' = \frac{y}{x} + \tan\frac{y}{x}\)</span>：齐次型，<span class="arithmatex">\(u = y/x\)</span> 得 <span class="arithmatex">\(x u' = \tan u\)</span>，分离得 <span class="arithmatex">\(\sin u = Cx\)</span>，即 <span class="arithmatex">\(\sin\frac{y}{x} = Cx\)</span>。</p>
+<p><strong>例 1（一阶线性全流程）</strong> <span class="arithmatex">\(y' + \frac{y}{x} = \frac{\sin x}{x}\)</span>：在任一不含 <span class="arithmatex">\(0\)</span> 的区间上，<span class="arithmatex">\(e^{\int dx/x}=|x|\)</span>；积分因子可乘非零常数，故两侧都可选 <span class="arithmatex">\(\mu=x\)</span>，<span class="arithmatex">\((xy)' = \sin x\)</span> ⇒ <span class="arithmatex">\(y = \frac{C - \cos x}{x}\)</span>。</p>
+<p><strong>例 2（换元识别）</strong> <span class="arithmatex">\(y' = \frac{y}{x} + \tan\frac{y}{x}\)</span>：在 <span class="arithmatex">\(x\ne0\)</span> 且 <span class="arithmatex">\(\cos(y/x)\ne0\)</span> 的分支上，齐次型，<span class="arithmatex">\(u = y/x\)</span> 得 <span class="arithmatex">\(x u' = \tan u\)</span>，分离得 <span class="arithmatex">\(\sin u = Cx\)</span>，即 <span class="arithmatex">\(\sin\frac{y}{x} = Cx\)</span>。<span class="arithmatex">\(C=0\)</span> 还包括 <span class="arithmatex">\(y=k\pi x\)</span>；不能跨越 <span class="arithmatex">\(\tan(y/x)\)</span> 的极点拼接。</p>
 <p><strong>例 3（Picard 迭代亲手转两圈）</strong> <span class="arithmatex">\(y' = y,\ y(0) = 1\)</span>：<span class="arithmatex">\(y_0 = 1\)</span>，<span class="arithmatex">\(y_1 = 1 + \int_0^x 1\,dt = 1 + x\)</span>，<span class="arithmatex">\(y_2 = 1 + x + \frac{x^2}{2}\)</span>，……——迭代逐项长出 <span class="arithmatex">\(e^x\)</span> 的 Taylor 级数。存在性证明与幂级数解法在此握手。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：高阶线性方程——特征方程三型解、共振，与"解空间是线性空间"的代数真相。</em></p>

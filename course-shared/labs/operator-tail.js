@@ -286,7 +286,7 @@
   }
 
   function spectrumSvg(api, doc, result, uid) {
-    var width = 700, height = 320, left = 58, right = 24, top = 34, bottom = 42;
+    var width = 700, height = 320, left = 228, right = 228, top = 34, bottom = 42;
     var plotRight = width - right, plotBottom = height - bottom;
     var svg = makeSvg(api, doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-labelledby": uid + "-spectrum-title " + uid + "-spectrum-desc" });
     svg.appendChild(makeSvg(api, doc, "title", { id: uid + "-spectrum-title" }, "当前算子的无限谱与有限截面谱"));
@@ -297,20 +297,21 @@
       svg.appendChild(makeSvg(api, doc, "line", { x1: mapX(tick), y1: top, x2: mapX(tick), y2: plotBottom, className: tick === 0 ? "ot-axis" : "ot-grid" }));
       svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: mapY(tick), x2: plotRight, y2: mapY(tick), className: tick === 0 ? "ot-axis" : "ot-grid" }));
       svg.appendChild(svgText(api, doc, mapX(tick), plotBottom + 17, String(tick), { "text-anchor": "middle" }));
+      svg.appendChild(svgText(api, doc, left - 8, mapY(tick) + 4, String(tick), { "text-anchor": "end" }));
     });
     if (result.spectrumKind === "shift") {
       svg.appendChild(makeSvg(api, doc, "circle", { cx: mapX(0), cy: mapY(0), r: Math.abs(mapX(1) - mapX(0)), className: "ot-spectrum-boundary" }));
-      svg.appendChild(makeSvg(api, doc, "circle", { cx: mapX(0), cy: mapY(0), r: Math.abs(mapX(1) - mapX(0)) * 0.98, className: "ot-spectrum-full", "fill-opacity": "0.12" }));
+      svg.appendChild(makeSvg(api, doc, "circle", { cx: mapX(0), cy: mapY(0), r: Math.abs(mapX(1) - mapX(0)), className: "ot-spectrum-full", "fill-opacity": "0.12" }));
       svg.appendChild(svgText(api, doc, mapX(-1.15), mapY(1.12), "无限谱：闭单位圆盘；近似谱：单位圆周", {}));
     } else {
-      var values = result.spectrumKind === "decay" ? [0].concat(result.finiteSpectrumValues) : [1];
+      var values = result.spectrumKind === "decay" ? [0].concat(Array.from({length: 64}, function (_, i) { return 1 / (i + 1); })) : [1];
       values.forEach(function (value, index) {
         svg.appendChild(makeSvg(api, doc, "circle", { cx: mapX(value), cy: mapY(0), r: 4, className: "ot-spectrum-full" }));
-        if (index > 0 || result.spectrumKind === "flat") {
+        if ((index > 0 && index <= result.params.N) || result.spectrumKind === "flat") {
           svg.appendChild(makeSvg(api, doc, "circle", { cx: mapX(value), cy: mapY(0), r: 7, className: "ot-spectrum-finite" }));
         }
       });
-      svg.appendChild(svgText(api, doc, mapX(-1.15), mapY(1.12), result.spectrumKind === "decay" ? "蓝：{0}∪{1/n}；红：当前 N 截面" : "蓝/红重合：谱为 {1}", {}));
+      svg.appendChild(svgText(api, doc, mapX(-1.15), mapY(1.12), result.spectrumKind === "decay" ? "蓝：0 与前 64 项；红：当前 N 截面" : "蓝/红重合：谱为 {1}", {}));
     }
     result.finiteSpectrumValues.forEach(function (value) {
       if (result.spectrumKind === "shift") {

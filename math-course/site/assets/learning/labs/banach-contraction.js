@@ -45,7 +45,7 @@
     ".bc-lab .bc-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.bc-lab .bc-actions>*{flex:1 1 170px;}.bc-lab .bc-feedback{min-height:2em;margin:8px 0;font-weight:700;}.bc-lab .bc-pass{color:var(--bc-green);}.bc-lab .bc-warn{color:var(--bc-red);}",
     ".bc-lab .bc-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.bc-lab .bc-presets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:11px 0;}.bc-lab .bc-presets button{font-size:12px;}.bc-lab .bc-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px;margin:12px 0;}.bc-lab .bc-control{display:grid;gap:5px;min-width:0;}.bc-lab .bc-control label{color:var(--bc-soft);font-size:13px;font-weight:700;}.bc-lab output{color:var(--accent);font-variant-numeric:tabular-nums;}.bc-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.bc-lab .bc-domain{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.bc-lab .bc-domain-label{grid-column:1/-1;color:var(--bc-soft);font-size:13px;font-weight:700;}",
     ".bc-lab .bc-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0;}.bc-lab .bc-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.bc-lab .bc-metric:nth-child(1),.bc-lab .bc-metric:nth-child(4){border-top-color:var(--bc-blue);}.bc-lab .bc-metric:nth-child(2),.bc-lab .bc-metric:nth-child(5){border-top-color:var(--bc-gold);}.bc-lab .bc-metric:nth-child(3),.bc-lab .bc-metric:nth-child(6){border-top-color:var(--bc-green);}.bc-lab .bc-metric span{display:block;color:var(--bc-soft);font-size:11.5px;line-height:1.4;}.bc-lab .bc-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}",
-    ".bc-lab .bc-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.bc-lab svg{display:block;width:100%;height:auto;min-width:650px;color:var(--fg);}.bc-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.bc-lab .bc-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.bc-lab .bc-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.bc-lab .bc-trajectory{fill:none;stroke:var(--bc-blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}.bc-lab .bc-fixed{stroke:var(--bc-gold);stroke-width:1.6;stroke-dasharray:5 4;}.bc-lab .bc-prior{fill:none;stroke:var(--bc-red);stroke-width:2;stroke-dasharray:6 4;}.bc-lab .bc-posterior{fill:none;stroke:var(--bc-green);stroke-width:2;stroke-dasharray:2 4;}.bc-lab .bc-point{fill:var(--bc-blue);stroke:var(--bg);stroke-width:1.5;}.bc-lab .bc-chart-title{font-size:13px;font-weight:750;}.bc-lab .bc-chart-label{font-size:11px;}",
+    ".bc-lab .bc-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.bc-lab svg{display:block;width:100%;height:auto;min-width:650px;color:var(--fg);}.bc-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.bc-lab .bc-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.bc-lab .bc-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.bc-lab .bc-trajectory{fill:none;stroke:var(--bc-blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}.bc-lab .bc-fixed{stroke:var(--bc-gold);stroke-width:1.6;stroke-dasharray:5 4;}.bc-lab .bc-prior{fill:none;stroke:var(--bc-red);stroke-width:2;stroke-dasharray:6 4;}.bc-lab .bc-posterior{fill:none;stroke:var(--bc-green);stroke-width:2;stroke-dasharray:2 4;}.bc-lab .bc-error{fill:none;stroke:var(--cl-purple,#8b5cf6);stroke-width:2;}.bc-lab .bc-point{fill:var(--bc-blue);stroke:var(--bg);stroke-width:1.5;}.bc-lab .bc-chart-title{font-size:13px;font-weight:750;}.bc-lab .bc-chart-label{font-size:11px;}",
     ".bc-lab .bc-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.bc-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.bc-lab caption{padding:0 0 7px;text-align:left;color:var(--bc-soft);font-size:12px;line-height:1.55;}.bc-lab th,.bc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap;}.bc-lab th{color:var(--bc-soft);font-size:11.5px;font-weight:750;}.bc-lab .bc-good{color:var(--bc-green);font-weight:750;}.bc-lab .bc-bad{color:var(--bc-red);font-weight:750;}.bc-lab .bc-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--bc-green);background:var(--bg);font-size:13px;line-height:1.7;}",
     "@media(max-width:980px){.bc-lab .bc-presets{grid-template-columns:repeat(3,minmax(0,1fr));}.bc-lab .bc-controls{grid-template-columns:repeat(2,minmax(0,1fr));}.bc-lab .bc-metrics{grid-template-columns:repeat(3,minmax(0,1fr));}}",
     "@media(max-width:650px){.bc-lab .bc-choice-row,.bc-lab .bc-domain{grid-template-columns:minmax(0,1fr);}.bc-lab .bc-presets,.bc-lab .bc-controls,.bc-lab .bc-metrics{grid-template-columns:minmax(0,1fr);}.bc-lab .bc-chart{padding:5px;}}",
@@ -170,11 +170,12 @@
       fixedPoint: point,
       fixedPointInDomain: pointInDomain,
       certificate: complete && invariant && contraction && pointInDomain,
+      initialInDomain: domainContains(config.domain, config.x0),
       escapedAt: escapedAt,
       rows: rows
     };
     result.classification = classify(result);
-    result.boundsCertified = result.certificate;
+    result.boundsCertified = result.certificate && result.initialInDomain;
     return result;
   }
 
@@ -182,7 +183,7 @@
     return {
       certificate: result.certificate ? "certified" : "not-certified",
       failure: result.certificate ? "none" : result.classification,
-      bounds: result.certificate ? "certified" : "formal"
+      bounds: result.boundsCertified ? "certified" : "formal"
     };
   }
 
@@ -192,7 +193,7 @@
     var places = digits === undefined ? 4 : digits;
     var absolute = Math.abs(value);
     if (absolute > 0 && (absolute < 0.001 || absolute >= 10000)) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function makeElement(api, doc, tag, attrs, children) {
@@ -289,7 +290,7 @@
       return plotBottom - (value - yMin) / (yMax - yMin) * (plotBottom - top);
     }
     svg.appendChild(makeSvg(api, doc, "title", { id: uid + "-chart-title" }, "Banach 迭代、实际误差和先验后验界"));
-    svg.appendChild(makeSvg(api, doc, "desc", { id: uid + "-chart-desc" }, "蓝线是迭代点，金色虚线是代数固定点，红绿虚线是误差界；界只有在三张证书齐全时才有定理意义。"));
+    svg.appendChild(makeSvg(api, doc, "desc", { id: uid + "-chart-desc" }, "蓝线是迭代点，金线是代数固定点，紫线为实际误差，红绿虚线是误差界；界需要三张证书和域内初值。"));
     [0, 0.5, 1].forEach(function (fraction) {
       var value = yMin + fraction * (yMax - yMin);
       svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: y(value), x2: plotRight, y2: y(value), className: fraction === 0 ? "bc-axis" : "bc-grid" }));
@@ -305,14 +306,14 @@
       svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: y(result.fixedPoint), x2: plotRight, y2: y(result.fixedPoint), className: "bc-fixed" }));
     }
     svg.appendChild(makeSvg(api, doc, "path", { d: linePath(result.rows, x, y, "x"), className: "bc-trajectory" }));
-    svg.appendChild(makeSvg(api, doc, "path", { d: linePath(result.rows, x, y, "actualError"), className: "bc-point" }));
+    svg.appendChild(makeSvg(api, doc, "path", { d: linePath(result.rows, x, y, "actualError"), className: "bc-error" }));
     svg.appendChild(makeSvg(api, doc, "path", { d: linePath(result.rows, x, y, "aPriori"), className: "bc-prior" }));
     svg.appendChild(makeSvg(api, doc, "path", { d: linePath(result.rows, x, y, "aPosteriori"), className: "bc-posterior" }));
     result.rows.forEach(function (row) {
       if (finite(row.x)) svg.appendChild(makeSvg(api, doc, "circle", { cx: x(row.n), cy: y(row.x), r: 3.5, className: "bc-point" }));
     });
     svg.appendChild(svgText(api, doc, left, 18, "x_n 与误差界", { className: "bc-chart-title" }));
-    svg.appendChild(svgText(api, doc, plotRight, 18, "蓝：x_n　金：x*　红：先验　绿：后验", { "text-anchor": "end" }));
+    svg.appendChild(svgText(api, doc, left, 338, "蓝：x_n　金：x*　紫：实际误差　红：先验界　绿：后验界", {}));
     svg.appendChild(svgText(api, doc, (left + plotRight) / 2, height - 10, "迭代次数 n", { "text-anchor": "middle" }));
     return svg;
   }
@@ -384,8 +385,8 @@
         key: "bounds",
         title: "图中的误差界应怎样解释？",
         choices: [
-          ["certified", "三证书齐全时是定理界"],
-          ["formal", "无证书时只能形式诊断"]
+          ["certified", "三证书与初值域均满足"],
+          ["formal", "当前轨道只有形式诊断"]
         ]
       }
     ];
@@ -505,13 +506,17 @@
         metric(api, doc, "固定点", format(result.fixedPoint, 5)),
         metric(api, doc, "完备 / 不变", (result.complete ? "是" : "否") + " / " + (result.invariant ? "是" : "否")),
         metric(api, doc, "全局压缩", result.globalContraction ? "是" : "否"),
-        metric(api, doc, "证书判决", result.certificate ? "可套定理" : "不可套定理")
+        metric(api, doc, "映射证书", result.certificate ? "可套定理" : "不可套定理"),
+        metric(api, doc, "初值属于 D", result.initialInDomain ? "是" : "否"),
+        metric(api, doc, "当前轨道误差界", result.boundsCertified ? "有证书" : "形式诊断")
       );
       drawChart(api, doc, chart, result, uid);
       clear(ledgerWrap);
       ledgerWrap.appendChild(table(api, doc, result));
       var note;
-      if (result.certificate) {
+      if (result.certificate && !result.initialInDomain) {
+        note = "映射本身三证书齐全，但当前 x₀ 不属于 D；D 上的定理不为这条初始轨道提供误差证书。仿射公式可在更大空间继续计算，不等于原域的保证。";
+      } else if (result.boundsCertified) {
         note = "三张证书齐全：实际误差应落在先验界与后验界之下；它们分别使用初始步长和最近一步。";
       } else if (result.classification === "escape") {
         note = "q 仍小于 1，但 T(D) 不在 D 内；轨迹一旦逃出，D 上的 Banach 证书就停止适用。";

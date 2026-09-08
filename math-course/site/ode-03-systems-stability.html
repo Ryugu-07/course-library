@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:23</div>
   </div>
 </nav>
 <main id="content">
@@ -180,6 +180,14 @@ A^\mathsf TP+PA=-Q.
 <p>于是 <span class="arithmatex">\(V(\mathbf x)=\mathbf x^\mathsf TP\mathbf x\)</span> 沿轨线严格下降。这个定理解释了为何非正规系统即使欧氏长度先放大，仍有另一把“尺子”能单调记录它走向原点。</p>
 <h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
 <p>梯度流在极小点附近的 Jacobian 是负 Hessian；RNN 的离散传播则看特征值模和奇异值。请解释：为什么“谱半径小于 1”描述离散系统的长期命运，却仍不能单独保证每一步的梯度范数都缩小？</p>
+<details>
+<summary>展开核对：固定矩阵的长期衰减与单步放大</summary>
+<p>取 <span class="arithmatex">\(B=\begin{pmatrix}1/2&amp;2\\0&amp;1/2\end{pmatrix}\)</span>。两特征值均为 <span class="arithmatex">\(1/2\)</span>，但 <span class="arithmatex">\(Be_2=(2,1/2)^\mathsf T\)</span>，长度为 <span class="arithmatex">\(\sqrt{17}/2&gt;1\)</span>。对 <span class="arithmatex">\(k\ge0\)</span>，</p>
+<div class="arithmatex">\[B^k=2^{-k}\begin{pmatrix}1&amp;4k\\0&amp;1\end{pmatrix}\longrightarrow0.\]</div>
+<p>指数衰减最终胜过多项式因子；每一步对所有向量都不放大则要求最大奇异值 <span class="arithmatex">\(\|B\|_2\le1\)</span>。连续预设 <span class="arithmatex">\(A=\begin{pmatrix}-1&amp;8\\0&amp;-2\end{pmatrix}\)</span> 从 <span class="arithmatex">\(e_2\)</span> 出发，有 <span class="arithmatex">\(x(t)=(8(e^{-t}-e^{-2t}),e^{-2t})\)</span>；在 <span class="arithmatex">\(t=\log2\)</span> 时是 <span class="arithmatex">\((2,1/4)\)</span>，直接证实瞬态放大。</p>
+<p>还要保留“固定矩阵”的条件。RNN 沿序列产生变化的 Jacobian，不能仅检查每个谱半径：上面的 <span class="arithmatex">\(B\)</span> 与 <span class="arithmatex">\(B^\mathsf T\)</span> 各自谱半径都为 <span class="arithmatex">\(1/2\)</span>，但 <span class="arithmatex">\(BB^\mathsf T\)</span> 的最大特征值大于 <span class="arithmatex">\(4\)</span>，交替乘积可以增长。需要控制实际乘积、奇异值或共同 Lyapunov 条件。</p>
+</details>
+<p>先修：<a href="algebra-05-eigen.html">矩阵与特征值</a>、<a href="ode-01-first-order.html">一阶解的存在与延拓</a>；后续：<a href="opt-02-unconstrained.html">无约束优化</a>。</p>
 </section>
 <h2 id="1">1. 化组与矩阵指数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><span class="arithmatex">\(n\)</span> 阶标量方程可通过 <span class="arithmatex">\(x_1=y,x_2=y',\dots\)</span> 化为一阶系统。齐次常系数问题</p>
@@ -238,12 +246,12 @@ A^\mathsf TP+PA=-Q.
 </table>
 <p>重复或虚轴特征值必须继续检查 Jordan 结构；“连续看实部、离散看模”只在严格不等式的双曲情形最省心。</p>
 <h2 id="3-lyapunov">3. 非线性系统与 Lyapunov 方法<a class="headerlink" href="#3-lyapunov" title="Permanent link"></a></h2>
-<p>对 <span class="arithmatex">\(\dot{\mathbf x}=F(\mathbf x)\)</span> 的平衡点 <span class="arithmatex">\(\mathbf x^*\)</span>，线性化矩阵为 <span class="arithmatex">\(J=DF(\mathbf x^*)\)</span>。若 <span class="arithmatex">\(J\)</span> 没有虚轴特征值，则线性化给出局部定性分类；若有零实部特征值，需用高阶项、中心流形或 Lyapunov 方法继续判断。</p>
-<p>Lyapunov 直接法寻找 <span class="arithmatex">\(V(\mathbf x^*)=0\)</span>、邻域内 <span class="arithmatex">\(V&gt;0\)</span> 的函数。若 <span class="arithmatex">\(\dot V\le0\)</span> 可得到稳定性的条件；若 <span class="arithmatex">\(\dot V&lt;0\)</span> 可得到渐近稳定。半负定情形要结合 LaSalle 不变性原理，不能仅凭一个等号方向自动宣告趋于平衡点。</p>
+<p>对 <span class="arithmatex">\(F\)</span> 在邻域内为 <span class="arithmatex">\(C^1\)</span> 的自治系统 <span class="arithmatex">\(\dot{\mathbf x}=F(\mathbf x)\)</span>，在平衡点 <span class="arithmatex">\(\mathbf x^*\)</span>，线性化矩阵为 <span class="arithmatex">\(J=DF(\mathbf x^*)\)</span>。若 <span class="arithmatex">\(J\)</span> 没有虚轴特征值，则线性化给出局部定性分类；若有零实部特征值，需用高阶项、中心流形或 Lyapunov 方法继续判断。</p>
+<p>Lyapunov 直接法寻找 <span class="arithmatex">\(V(\mathbf x^*)=0\)</span>、除平衡点外 <span class="arithmatex">\(V&gt;0\)</span> 的 <span class="arithmatex">\(C^1\)</span> 函数。若 <span class="arithmatex">\(\dot V\le0\)</span> 可得到稳定性的条件；若除平衡点外 <span class="arithmatex">\(\dot V&lt;0\)</span> 可得到局部渐近稳定。半负定情形要结合 LaSalle 不变性原理，不能仅凭一个等号方向自动宣告趋于平衡点。</p>
 <h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1。</strong> <span class="arithmatex">\(A=\begin{pmatrix}0&amp;1\\-2&amp;-3\end{pmatrix}\)</span> 的特征值为 <span class="arithmatex">\(-1,-2\)</span>，故为稳定结点，通解可写成两个衰减特征模之和。</p>
 <p><strong>例 2。</strong> <span class="arithmatex">\(A=\begin{pmatrix}1&amp;-2\\1&amp;-1\end{pmatrix}\)</span> 有 <span class="arithmatex">\(\tau=0,\Delta=1,D=-4\)</span>，特征值为 <span class="arithmatex">\(\pm i\)</span>。该具体矩阵可对角化并产生有界周期轨线；但不能把“纯虚根”脱离半单条件推广到任意矩阵。</p>
-<p><strong>例 3。</strong> 对 <span class="arithmatex">\(x'=-x+y^2,\ y'=-y+x^2\)</span>，取 <span class="arithmatex">\(V=(x^2+y^2)/2\)</span>。在足够小邻域内，三次项被负二次项控制，故 <span class="arithmatex">\(\dot V&lt;0\)</span>，原点局部渐近稳定。</p>
+<p><strong>例 3。</strong> 对 <span class="arithmatex">\(x'=-x+y^2,\ y'=-y+x^2\)</span>，取 <span class="arithmatex">\(V=(x^2+y^2)/2\)</span>。在半径 <span class="arithmatex">\(r&lt;1\)</span> 的球内，<span class="arithmatex">\(|xy^2+yx^2|\le r(x^2+y^2)\)</span>，故 <span class="arithmatex">\(\dot V\le-(1-r)(x^2+y^2)\)</span>；除原点外 <span class="arithmatex">\(\dot V&lt;0\)</span>，原点局部渐近稳定。</p>
 <hr />
 <p><em>这页把“特征值决定长期命运”补成了完整说法：谱给结局，几何给过程，Lyapunov 函数给证书。</em></p>
 </article>

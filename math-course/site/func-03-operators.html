@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:27</div>
   </div>
 </nav>
 <main id="content">
@@ -117,7 +117,7 @@ D_\downarrow e_n=\frac1n e_n,\qquad I e_n=e_n,\qquad S e_n=e_{n+1}\quad\text{on 
 <tr>
 <th>对象</th>
 <th style="text-align: right;"><span class="arithmatex">\(\lVert T\rVert\)</span></th>
-<th style="text-align: right;">有限秩</th>
+<th style="text-align: right;">截断秩</th>
 <th style="text-align: right;">解析尾界 <span class="arithmatex">\(\lVert T-T_N\rVert\)</span></th>
 <th>无限谱</th>
 <th>近似谱 / 有限截面谱</th>
@@ -155,15 +155,25 @@ D_\downarrow e_n=\frac1n e_n,\qquad I e_n=e_n,\qquad S e_n=e_{n+1}\quad\text{on 
 <h3 id="4">4. 边界、反例与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>有界不等于紧</strong>：<span class="arithmatex">\(I\)</span> 和 <span class="arithmatex">\(S\)</span> 都有界，且范数都为 <span class="arithmatex">\(1\)</span>；紧性要求单位球像的闭包列紧，或在这里用有限秩算子范数逼近。</li>
-<li><strong>有限维不证明无限维</strong>：任何单个矩阵都自动紧；要证明无限算子紧，必须给出对所有尾部的解析控制。<span class="arithmatex">\(S_N\to S\)</span> 甚至不在算子范数下收敛，虽然某些向量上有截断直觉。</li>
+<li><strong>有限维不证明无限维</strong>：任何单个矩阵都自动紧；要证明无限算子紧，必须给出对所有尾部的解析控制。<span class="arithmatex">\(S_N\to S\)</span> 甚至不在算子范数下收敛，但对每个固定 <span class="arithmatex">\(x\in\ell^2\)</span> 都有 <span class="arithmatex">\(S_Nx\to Sx\)</span>（强收敛）；逐向量收敛不能交换为对整个单位球的一致控制。</li>
 <li><strong>特征值不等于谱</strong>：<span class="arithmatex">\(S\)</span> 没有特征值，但开单位圆盘仍在谱中；近似谱边界也不是有限 <span class="arithmatex">\(S_N\)</span> 的特征值集合。</li>
 <li><strong>迁移提示</strong>：把 <span class="arithmatex">\(D_\downarrow\)</span> 换成紧区间上的 <span class="arithmatex">\(L^2[0,1]\)</span> 积分算子 <span class="arithmatex">\(Tf(x)=\int_0^1K(x,t)f(t)\,dt\)</span>，在 <span class="arithmatex">\(K\in C([0,1]^2)\)</span>（或更一般的 Hilbert–Schmidt 条件）下写出一个有限秩核近似，并说明哪一条尾界替代了 <span class="arithmatex">\(1/(N+1)\)</span>。不要把这个特例自动推广到任意非紧定义域或任意“连续核”。</li>
 </ul>
+<details>
+<summary>展开核对：用核误差控制整个单位球</summary>
+<p>把 <span class="arithmatex">\([0,1]\)</span> 等分成 <span class="arithmatex">\(m\)</span> 个区间 <span class="arithmatex">\(I_i\)</span>，取各段代表点 <span class="arithmatex">\(\xi_i\)</span>。定义分片常数核</p>
+<div class="arithmatex">\[K_m(x,t)=\sum_{i,j=1}^m K(\xi_i,\xi_j)\mathbf1_{I_i}(x)\mathbf1_{I_j}(t).\]</div>
+<p>对应 <span class="arithmatex">\(T_mf\)</span> 落在 <span class="arithmatex">\(\operatorname{span}\{\mathbf1_{I_i}\}_{i=1}^m\)</span>，因此秩至多 <span class="arithmatex">\(m\)</span>，不是项数 <span class="arithmatex">\(m^2\)</span>。连续核在紧方块上一致连续，故 <span class="arithmatex">\(\|K-K_m\|_\infty\to0\)</span>。两次积分和 Cauchy–Schwarz 给</p>
+<div class="arithmatex">\[\|(T-T_m)f\|_2^2\le\int_0^1\int_0^1|K-K_m|^2\,dt\,dx\;\|f\|_2^2,\]</div>
+<p>于是 <span class="arithmatex">\(\|T-T_m\|\le\|K-K_m\|_{L^2([0,1]^2)}\le\|K-K_m\|_\infty\to0\)</span>。这条对所有单位向量都有效的界，才替代了对角模型的 <span class="arithmatex">\(1/(N+1)\)</span>。一般平方可积核可用有限张量和在 <span class="arithmatex">\(L^2\)</span> 中逼近，仍由同一不等式收尾。</p>
+<p>反过来，<span class="arithmatex">\(S_N\to S\)</span> 的强收敛并不给紧性：对任何固定 <span class="arithmatex">\(x\)</span>，其尾部能量消失；但选随 <span class="arithmatex">\(N\)</span> 变化的 <span class="arithmatex">\(e_N\)</span>，始终有 <span class="arithmatex">\(\|(S-S_N)e_N\|=1\)</span>。两个量词次序决定了结论能走多远。</p>
+</details>
+<p>先修：<a href="real-03-lp-spaces.html">Lp 不等式</a>、<a href="func-02-hilbert.html">Hilbert 空间</a>；后续：<a href="pde-02-characteristics-kernels.html">PDE 核方法</a>。</p>
 </section>
 <h2 id="1_1">1. 有界线性算子<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(T: X \to Y\)</span> 线性；<strong>有界</strong> = 存在 <span class="arithmatex">\(C\)</span> 使 <span class="arithmatex">\(\|Tx\| \leq C\|x\|\)</span>；最小的 <span class="arithmatex">\(C\)</span> 为<strong>算子范数</strong> <span class="arithmatex">\(\|T\| = \sup_{\|x\|=1}\|Tx\|\)</span>。</p>
 <p><strong>定理（连续 ⟺ 有界）</strong> 线性算子连续 <span class="arithmatex">\(\iff\)</span> 有界 <span class="arithmatex">\(\iff\)</span> 在一点连续。（线性把局部性质摊成全局——无穷维里"连续"的正确打开方式是"有界"。）</p>
-<p><strong>例子光谱</strong>：矩阵（有限维全有界，<span class="arithmatex">\(\|A\|\)</span> = 最大奇异值——高代 V）；例如在紧区间 <span class="arithmatex">\([0,1]\)</span> 上取 <span class="arithmatex">\(L^2[0,1]\to L^2[0,1]\)</span>，若 <span class="arithmatex">\(K\in C([0,1]^2)\)</span>，则 <span class="arithmatex">\(Tf(x)=\int_0^1K(x,t)f(t)dt\)</span> 有界且紧——“紧”是把有界集映成相对紧集，依赖这里的紧定义域与函数空间假设；<strong>微分算子 <span class="arithmatex">\(\frac{d}{dx}\)</span> 无界</strong>（<span class="arithmatex">\(\|x^n\|_\infty = 1\)</span> 但 <span class="arithmatex">\(\|nx^{n-1}\|_\infty = n \to \infty\)</span>）——分析里最重要的算子偏偏无界，这是 PDE 理论技术含量的来源（弱解、分布的动机）。</p>
+<p><strong>例子光谱</strong>：矩阵（有限维全有界，<span class="arithmatex">\(\|A\|\)</span> = 最大奇异值——高代 V）；例如在紧区间 <span class="arithmatex">\([0,1]\)</span> 上取 <span class="arithmatex">\(L^2[0,1]\to L^2[0,1]\)</span>，若 <span class="arithmatex">\(K\in C([0,1]^2)\)</span>，则 <span class="arithmatex">\(Tf(x)=\int_0^1K(x,t)f(t)dt\)</span> 有界且紧——“紧”是把有界集映成相对紧集，依赖这里的紧定义域与函数空间假设；<strong>微分算子 <span class="arithmatex">\(\frac{d}{dx}:(C^1[0,1],\|\cdot\|_\infty)\to(C[0,1],\|\cdot\|_\infty)\)</span> 无界</strong>（<span class="arithmatex">\(\|x^n\|_\infty = 1\)</span> 但 <span class="arithmatex">\(\|nx^{n-1}\|_\infty = n \to \infty\)</span>）——分析里最重要的算子偏偏无界，这是 PDE 理论技术含量的来源（弱解、分布的动机）。</p>
 <p><strong>对偶空间</strong> <span class="arithmatex">\(X^*\)</span> 是全体连续线性泛函组成的空间（配算子范数成 Banach 空间——即使 <span class="arithmatex">\(X\)</span> 不完备）。在常见的 <span class="arithmatex">\(\sigma\)</span>-有限测度空间上，且 <span class="arithmatex">\(1\le p&lt;\infty\)</span>、<span class="arithmatex">\(1/p+1/q=1\)</span> 时，<span class="arithmatex">\(\big(L^p(\mu)\big)^*\cong L^q(\mu)\)</span>；<span class="arithmatex">\(p=1\)</span> 时 <span class="arithmatex">\(q=\infty\)</span>。不能把这句话延长成 <span class="arithmatex">\((L^\infty)^*=L^1\)</span>：后者通常严格大于 <span class="arithmatex">\(L^1\)</span>。Hilbert 情形自对偶（泛函 II Riesz）。</p>
 <h2 id="2_1">2. 三大定理（陈述 + 一句话意义）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>本节的背景假设要写在量词里：Hahn–Banach 只需赋范空间；<strong>一致有界原理</strong>要求定义域 <span class="arithmatex">\(X\)</span> 是 Banach（值域可先取赋范空间）；<strong>开映射定理</strong>要求 <span class="arithmatex">\(X,Y\)</span> 都是 Banach；<strong>闭图像定理</strong>也要求 <span class="arithmatex">\(X,Y\)</span> 都是 Banach。以下把这些完备性保留下来。</p>
@@ -173,7 +183,7 @@ D_\downarrow e_n=\frac1n e_n,\qquad I e_n=e_n,\qquad S e_n=e_{n+1}\quad\text{on 
 <em>意义</em>："逐点温顺则整体温顺"（完备性是关键燃料，Baire 纲定理驱动）。反向应用可证存在性：某点 Fourier 级数发散的连续函数存在——数分 IV 那句"连续函数的 Fourier 级数可以发散"的定理级出处。</p>
 <p><strong>3. 开映射定理</strong>（Banach 空间之间的满射有界算子把开集映成开集）<strong>与闭图像定理</strong>（Banach 空间之间的线性算子若图像闭，则有界）。
 <em>意义</em>：Banach 空间之间，<strong>双射有界算子的逆自动有界</strong>（逆算子定理）——"解存在唯一"免费升级为"解连续依赖数据"（适定性的第三条——数值 I 条件数关心的正是这个连续依赖的量化）。闭图像定理则是"验证有界"的常用捷径。</p>
-<p>（三大定理的共同引擎是 <strong>Baire 纲定理</strong>：完备度量空间非可数个无处稠密集之并——完备性的深层红利，知其名。）</p>
+<p>一致有界、开映射及闭图像定理的标准证明使用 <strong>Baire 纲定理</strong>：非空完备度量空间不能写成可数个无处稠密集之并。<strong>Hahn–Banach 是另一条证明路线</strong>，一般延拓常用 Zorn 引理，不要求空间完备；不能把三者都归因于 Baire。可对照 <a href="https://ocw.mit.edu/courses/18-102-introduction-to-functional-analysis-spring-2021/resources/lecture-notes/">MIT 18.102 第 5—6 讲</a>。</p>
 <h2 id="3">3. 谱理论一瞥：特征值的无穷维命运<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>谱</strong> <span class="arithmatex">\(\sigma(T) = \{\lambda : T - \lambda I \text{ 不可逆}\}\)</span>——特征值概念的推广。无穷维的新现象：谱未必由特征值组成（连续谱：<span class="arithmatex">\(L^2[0,1]\)</span> 上乘法算子 <span class="arithmatex">\(Tf = xf\)</span> 的谱是 <span class="arithmatex">\([0,1]\)</span>，却无一个特征向量）。对复 Banach 空间上的有界算子，谱非空、紧、含于半径 <span class="arithmatex">\(\|T\|\)</span> 的圆盘。</p>
 <p><strong>紧算子（最像矩阵的无穷维算子）</strong>：把有界集映成相对紧集（上面的连续核积分算子是在紧区间、<span class="arithmatex">\(L^2\)</span> 空间等假设下的典型）。其谱理论几乎照搬矩阵：非零谱皆特征值、至多可数、只能聚于 0。</p>
@@ -183,7 +193,7 @@ H=\ker(T)\oplus\overline{\operatorname{span}\{e_n:\lambda_n\ne0\}},\qquad
 Tx = \sum_{\lambda_n\ne0} \lambda_n \langle x, e_n\rangle e_n,
 \qquad \lambda_n\in\mathbb{R},\ \lambda_n\to0.
 \]</div>
-<p>这里还要把 <span class="arithmatex">\(\ker(T)\)</span> 的正交基补进整套 Hilbert 正交基；零特征空间可能是无限维，不能暗示“只有趋于 <span class="arithmatex">\(0\)</span> 的非零特征向量”就自动张成全 <span class="arithmatex">\(H\)</span>。——<strong>高代 V 实对称矩阵谱定理的无穷维版</strong>，对角化哲学的终章。应用：Sturm–Liouville 特征展开（PDE 页分离变量的合法性来源）、Mercer 定理的谱形式（核函数 <span class="arithmatex">\(K = \sum\lambda_n e_n \otimes e_n\)</span>——ai 课 02 特征映射的构造）、PCA 的连续版（Karhunen–Loève 展开，随机过程的正交分解）。</p>
+<p>若非零特征值有无穷多个，按重数列出时 <span class="arithmatex">\(\lambda_n\to0\)</span>；有限秩时求和只有有限项。这里还要把 <span class="arithmatex">\(\ker(T)\)</span> 的正交基补进整套 Hilbert 正交基；零特征空间可能是无限维，不能暗示“只有趋于 <span class="arithmatex">\(0\)</span> 的非零特征向量”就自动张成全 <span class="arithmatex">\(H\)</span>。——<strong>高代 V 实对称矩阵谱定理的无穷维版</strong>，对角化哲学的终章。应用：Sturm–Liouville 特征展开（PDE 页分离变量的合法性来源）、在连续正定核等 Mercer 条件下的核展开（复值时 <span class="arithmatex">\(K(x,t)=\sum\lambda_n e_n(x)\overline{e_n(t)}\)</span>——ai 课 02 特征映射的构造）、PCA 的连续版（Karhunen–Loève 展开，随机过程的正交分解）。</p>
 <h2 id="4_1">4. 泛函分析全景收束<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>三页的地图：<strong>空间</strong>（Banach：完备赋范；Hilbert：+内积=几何）→ <strong>映射</strong>（有界算子；三大定理保证理论不塌）→ <strong>结构</strong>（谱分解=无穷维对角化）。它是本站多条线的汇流点：实变给了主角（<span class="arithmatex">\(L^p\)</span>），数分的收敛概念在此变成范数选择，高代的对角化在此完成无穷维加冕，ODE/数值的迭代法源于压缩映像，概率的条件期望是投影，机器学习的核方法住在 RKHS。<strong>"函数是空间中的点、问题是算子的性质"——这个视角本身就是泛函分析给的最大礼物。</strong></p>
 <h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
