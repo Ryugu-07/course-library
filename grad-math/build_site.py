@@ -120,6 +120,7 @@ COURSE = [
         ("bridge-13-affine-gluing.md", "基础 XIII · 仿射图粘合与态射"),
         ("bridge-14-fibers-base-change.md", "基础 XIV · 纤维与基变换"),
         ("bridge-15-nonflat-derived-fibers.md", "基础 XV · 非平坦族与导出纤维"),
+        ("bridge-16-intersections-tor.md", "基础 XVI · 相交、接触阶与 Tor"),
     ]),
     ("基础衔接 · 随机分析与路径", [
         ("bridge-09-wick-limits.md", "基础 IX · Wick 平均与 L² 极限"),

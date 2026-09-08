@@ -113,3 +113,5 @@ $d=4$，两者都同构于 $\mathbb Z/4$。乘八的核是 $\{0,3,6,9\}$，像�
 继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。
 
 继续计算：[非平坦族与导出纤维](bridge-15-nonflat-derived-fibers.html)比较普通纤维相同但 Tor 不同的两个族，把乘法的核接回导出张量。
+
+继续[相交、接触阶与 Tor](bridge-16-intersections-tor.html)，比较横截、相切与自交的核和余核。

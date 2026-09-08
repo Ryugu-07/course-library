@@ -163,3 +163,5 @@ $$(0.957934080,\ 0.286915020,\ 0.006213393,\ 0.001861001).$$
 算法背景见 [Schollwöck，MPS 与 DMRG 综述，第 4.1、4.5、6 节](https://arxiv.org/html/1008.3477v2)及 [Tensor Network 的两站点 DMRG 步骤](https://tensornetwork.org/mps/algorithms/dmrg/)。本页四站数值、升能对照及误差账本由所列 Hamiltonian 独立复算。资料核查：2026-09-08。
 
 继续训练：[两站点完整往返](bridge-11-two-site-sweeps.html)逐步重建当前态的块基，记录候选接受与拒绝，并用非零残差识别能量停滞。
+
+沿扫描方向传递奇异值并维护有效块环境，见[正交中心与环境缓存](bridge-12-mps-cache.html)。

@@ -354,3 +354,5 @@ $$
 Tor 由自由分解张量后取同调的定义见 [Stacks Project：Tor groups and flatness](https://stacks.math.columbia.edu/tag/00LY)，平坦性等价于张量保持单射可对照 [Flat modules and flat ring maps](https://stacks.math.columbia.edu/tag/00H9)。导出张量的负次数同调满足 $H^{-p}=\operatorname{Tor}_p$，见 [Computing Tor](https://stacks.math.columbia.edu/tag/064F)；一般 K-flat 语境下的定义见 [Derived tensor product](https://stacks.math.columbia.edu/tag/06XY)。资料核查：2026-09-08。
 
 下一步可把这里的两项复形带到闭嵌入的交中，观察普通张量给出交点环，而 Tor 记录非横截相交留下的额外同调；也可回到[纤维与基变换](bridge-14-fibers-base-change.html)，比较“零纤维非约化”与“总族不平坦”为什么是两件不同的事。
+
+把同一两项分解用到几何相交，继续[相交、接触阶与 Tor](bridge-16-intersections-tor.html)：相切的长度可以变大，而 Tor₁ 仍为零。
