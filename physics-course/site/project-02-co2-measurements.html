@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CO₂真实测量与误差 · 物理讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">物理讲义库</a>
+    <div class="site-subtitle">推导 · 直觉 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南与课程地图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 力学与场</div><ul><li><a href="mech-01-newton.html">力学 I · 牛顿力学与守恒律</a></li><li><a href="mech-02-lagrange.html">力学 II · 拉格朗日力学与变分原理</a></li><li><a href="mech-03-hamilton.html">力学 III · 哈密顿力学与相空间</a></li><li><a href="mech-04-oscillation-rigid.html">力学 IV · 振动与刚体</a></li><li><a href="mech-05-central-scattering.html">力学 V · 轨道、散射与截面</a></li><li><a href="cont-01-elastic-waves.html">连续介质 · 弹性、应力与声波</a></li><li><a href="em-01-electrostatics.html">电磁 I · 静电与静磁</a></li><li><a href="em-02-maxwell.html">电磁 II · Maxwell 方程与电磁波</a></li><li><a href="em-03-energy-radiation.html">电磁 III · 能量、动量与辐射入门</a></li><li><a href="em-04-media-waveguides.html">电磁 IV · 介质、色散与波导</a></li><li><a href="sr-01-relativity.html">狭义相对论 · 洛伦兹变换与四矢量</a></li><li><a href="opt-01-waves.html">光学 · 干涉、衍射与傅里叶光学</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">本科 · 热、量子与物质</div><ul><li><a href="sm-01-thermodynamics.html">统计物理 I · 热力学定律与熵</a></li><li><a href="sm-02-ensembles.html">统计物理 II · 系综与配分函数</a></li><li><a href="sm-03-quantum-stats.html">统计物理 III · 量子统计</a></li><li><a href="sm-04-kinetic-transport.html">统计物理 IV · 动理学与输运</a></li><li><a href="qm-01-framework.html">量子 I · 波函数与基本框架</a></li><li><a href="qm-02-1d-oscillator.html">量子 II · 一维问题与谐振子</a></li><li><a href="qm-03-angular-hydrogen.html">量子 III · 角动量、氢原子与自旋</a></li><li><a href="qm-04-perturbation.html">量子 IV · 微扰论与近似方法</a></li><li><a href="qm-05-identical-particles.html">量子 V · 全同粒子与交换统计</a></li><li><a href="qm-06-wkb-variational-adiabatic.html">量子 VI · WKB、变分与绝热近似</a></li><li><a href="atom-01-modern.html">近代物理 · 原子、光谱与核</a></li><li><a href="nuc-01-structure-decay.html">核物理 I · 核结构与衰变</a></li><li><a href="nuc-02-reactions-detectors.html">核物理 II · 核反应与探测</a></li><li><a href="solid-01-lattice.html">固体 I · 晶格与声子</a></li><li><a href="solid-02-bands.html">固体 II · 能带与半导体</a></li><li><a href="solid-03-magnetism.html">固体 III · 磁性与集体有序</a></li><li><a href="solid-04-topological.html">固体 IV · Berry 相位与拓扑物态</a></li><li><a href="mp-01-special-functions.html">数理方法 · 特殊函数与 Green 函数</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验物理与测量</div><ul><li><a href="exp-01-measurement-uncertainty.html">实验 I · 测量、不确定度与模型检验</a></li><li><a href="exp-02-noise-lockin.html">实验 II · 噪声、频谱与锁相检测</a></li><li><a href="exp-03-spectroscopy-imaging.html">实验 III · 光谱、成像与分辨率</a></li><li><a href="exp-04-vacuum-cryogenic-daq.html">实验 IV · 真空、低温与数据采集</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究生 · 理论核心</div><ul><li><a href="aqm-01-symmetry.html">高量 I · 对称性与角动量理论</a></li><li><a href="aqm-02-scattering.html">高量 II · 散射理论</a></li><li><a href="aqm-03-path-density.html">高量 III · 路径积分与密度矩阵</a></li><li><a href="oqs-01-decoherence.html">开放量子系统 · 退相干与主方程</a></li><li><a href="ced-01-boundary.html">电动力学 I · 边值问题与多极展开</a></li><li><a href="ced-02-radiation.html">电动力学 II · 推迟势与辐射</a></li><li><a href="asm-01-phase-transitions.html">统计进阶 I · 相变与 Landau 理论</a></li><li><a href="asm-02-ising.html">统计进阶 II · Ising 模型</a></li><li><a href="asm-03-rg.html">统计进阶 III · 重整化群入门</a></li><li><a href="gr-01-equivalence.html">广相 I · 等效原理与测地线</a></li><li><a href="gr-02-einstein-schwarzschild.html">广相 II · Einstein 方程与 Schwarzschild</a></li><li><a href="gr-03-blackholes-waves.html">广相 III · 黑洞、引力波与宇宙学度规</a></li><li><a href="gr-04-kerr-causal.html">广相 IV · Kerr 黑洞与因果结构</a></li><li><a href="qi-01-qubits.html">量子信息 I · Qubit、纠缠与 Bell 不等式</a></li><li><a href="qi-02-algorithms.html">量子信息 II · 量子算法</a></li><li><a href="qi-03-error-correction.html">量子信息 III · 量子纠错与 NISQ</a></li><li><a href="amo-01-cold-atoms.html">原子分子光物理 · 激光冷却与量子气体</a></li><li><a href="cosmo-01-frw.html">宇宙学 I · FRW 与 Friedmann 方程</a></li><li><a href="cosmo-02-thermal.html">宇宙学 II · 热历史与 CMB</a></li><li><a href="cosmo-03-perturbations-structure.html">宇宙学 III · 扰动与结构形成</a></li><li><a href="cosmo-04-inflation-darkenergy.html">宇宙学 IV · 暴胀与暗能量</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">计算物理</div><ul><li><a href="comp-01-methods.html">计算 I · 蒙卡与分子动力学</a></li><li><a href="comp-02-dynamics-symplectic.html">计算 II · 动力系统与辛积分</a></li><li><a href="comp-03-pde-fem.html">计算 III · 偏微分方程与有限元</a></li><li><a href="comp-04-monte-carlo-lattice.html">计算 IV · 格点模型与蒙特卡洛</a></li><li><a href="comp-05-inverse-uncertainty.html">计算 V · 逆问题与不确定度量化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">流体与非线性</div><ul><li><a href="fl-01-continuum.html">流体 I · 连续介质与 Navier–Stokes</a></li><li><a href="fl-02-viscous.html">流体 II · 粘性、边界层与阻力</a></li><li><a href="fl-03-turbulence.html">流体 III · 湍流与标度律</a></li><li><a href="fl-04-instability.html">流体 IV · 不稳定性与对流</a></li><li><a href="fl-05-chaos.html">非线性 · 混沌与奇怪吸引子</a></li><li><a href="fl-06-plasma-mhd.html">等离子体 · 磁流体与聚变</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">天体物理</div><ul><li><a href="ap-01-radiative.html">天体 I · 辐射转移与恒星大气</a></li><li><a href="ap-02-stellar-structure.html">天体 II · 恒星结构与演化</a></li><li><a href="ap-03-nucleosynthesis.html">天体 III · 核合成与元素起源</a></li><li><a href="ap-04-compact.html">天体 IV · 致密天体与简并压</a></li><li><a href="ap-05-accretion.html">天体 V · 吸积、喷流与高能天体</a></li><li><a href="ap-06-galaxies.html">天体 VI · 星系动力学与暗物质</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">前沿基础（第二档）</div><ul><li><a href="qft-01-canonical.html">场论 I · 经典场与正则量子化</a></li><li><a href="qft-02-feynman.html">场论 II · 相互作用与 Feynman 图</a></li><li><a href="qft-03-path-renorm.html">场论 III · 路径积分与重整化</a></li><li><a href="cm-01-second-quant.html">凝聚态 I · 二次量子化与电子气</a></li><li><a href="cm-02-bcs.html">凝聚态 II · 超导 BCS</a></li><li><a href="cm-03-greens-quasiparticles.html">凝聚态 III · Green 函数与准粒子</a></li><li><a href="cm-04-transport-correlations.html">凝聚态 IV · 强关联与量子输运</a></li><li><a href="pp-01-gauge.html">粒子 I · 规范原理与粒子谱</a></li><li><a href="pp-02-electroweak.html">粒子 II · 电弱统一与 Higgs</a></li><li><a href="pp-03-qcd-hadrons.html">粒子 III · QCD、强子与禁闭</a></li><li><a href="pp-04-flavor-neutrinos.html">粒子 IV · 味、混合与中微子</a></li><li><a href="pp-05-colliders-detectors.html">粒子 V · 对撞机、探测器与事件重建</a></li><li><a href="neq-01-fluctuation.html">非平衡 I · Langevin、线性响应与涨落定理</a></li><li><a href="neq-02-kubo-transport.html">非平衡 II · Kubo 响应与输运</a></li><li><a href="neq-03-active-matter.html">非平衡 III · 活性物质与自组织</a></li><li><a href="mb-01-tensor-networks.html">量子多体 · 张量网络与变分方法</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">了望塔（第三档）</div><ul><li><a href="beyond-01-lookout.html">了望塔 · 量子引力与超越标准模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li><li class="active"><a href="project-02-co2-measurements.html">项目 02 · CO₂真实测量与误差</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 场论、量子与多体</div><ul><li><a href="bridge-01-lsz.html">计算桥 I · LSZ 与外腿截肢</a></li><li><a href="bridge-02-loop-subtraction.html">计算桥 II · 圈积分与减法</a></li><li><a href="bridge-03-berry.html">计算桥 III · Berry 联络与曲率</a></li><li><a href="bridge-04-spectral-response.html">计算桥 IV · 对易子与响应谱</a></li><li><a href="bridge-05-quantum-channels.html">计算桥 V · Kraus 与 Choi</a></li><li><a href="bridge-06-ising-parity.html">计算桥 VI · Ising 奇偶与完整谱</a></li><li><a href="bridge-07-mps-metric.html">计算桥 VII · MPS 范数与局部优化</a></li><li><a href="bridge-08-product-sweeps.html">计算桥 VIII · 乘积 MPS 往返扫描</a></li><li><a href="bridge-09-mps-environments.html">计算桥 IX · MPS 环境与中心求解</a></li><li><a href="bridge-10-two-site-truncation.html">计算桥 X · 两站点更新与截断</a></li><li><a href="bridge-11-two-site-sweeps.html">计算桥 XI · 两站点往返扫描</a></li><li><a href="bridge-12-mps-cache.html">计算桥 XII · 正交中心与环境缓存</a></li><li><a href="bridge-13-positive-blocks.html">计算桥 XIII · 共形块与正性证书</a></li><li><a href="bridge-14-mpo-krylov.html">计算桥 XIV · MPO与Krylov</a></li><li><a href="bridge-15-variance-initial-states.html">计算桥 XV · 全链方差与初态</a></li><li><a href="bridge-16-tebd-errors.html">计算桥 XVI · 张量时间演化与误差</a></li><li><a href="bridge-17-phi4-scattering.html">计算桥 XVII · 单圈散射与重整化</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-mps-readiness.html">路线验收 · Schmidt 到变分扫描</a></li><li><a href="route-02-field-readiness.html">路线验收 · 关联函数到振幅</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-entanglement-matter.html">前沿 I · 多体纠缠与量子物态</a></li><li><a href="frontier-02-fault-tolerant-quantum.html">前沿 II · 容错量子计算</a></li><li><a href="frontier-03-holographic-information.html">前沿 III · 全息量子信息</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 强关联与非平衡</div><ul><li><a href="research-01-hubbard-dimer.html">强关联 I · Hubbard 二聚体</a></li><li><a href="research-02-quantum-criticality.html">强关联 II · 量子临界与有限尺寸</a></li><li><a href="research-03-thermalization-eth.html">非平衡 I · 热化与 ETH</a></li><li><a href="research-04-driven-open-systems.html">非平衡 II · 驱动与开放系统</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代场论方法</div><ul><li><a href="research-05-symmetry-correlators.html">场论方法 I · 对称性与关联函数</a></li><li><a href="research-06-conformal-bootstrap.html">场论方法 II · 共形自举</a></li><li><a href="research-07-scattering-amplitudes.html">场论方法 III · 散射振幅</a></li><li><a href="research-08-generalized-symmetry.html">场论方法 IV · 广义对称性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:39</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先追踪一个真正的观测值</a></li>
+<li><a href="#2-ppm">2. ppm的分母，决定你测的到底是什么</a></li>
+<li><a href="#3">3. 从光学信号到摩尔分数，中间必须有校准</a></li>
+<li><a href="#4">4. 仪器读得准确，不等于每小时都代表背景大气</a></li>
+<li><a href="#5-057020047">5. 0.57、0.20与0.47为什么都可能是正确的？</a></li>
+<li><a href="#6">6. 从变化率到排放，缺的是可辨识的物理模型</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="41458-ppm">真实数据项目 · 414.58 ppm是怎样测出来的？<a class="headerlink" href="#41458-ppm" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="exp-01-measurement-uncertainty.html">测量与不确定度</a>、<a href="exp-02-noise-lockin.html">噪声与锁相</a>、<a href="exp-03-spectroscopy-imaging.html">光谱与成像</a>。接着用<a href="../../grad-math/site/project-01-co2-trends.html">数学项目：趋势、季节与相关误差</a>拟合同一份资料。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 先追踪一个真正的观测值<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>NOAA的固定2026-08-05快照中，Mauna Loa在2020年7月的月均值为<strong>414.58 ppm</strong>，有效天数30，日均值标准差0.57 ppm，月平均不确定度0.20 ppm。这些数字属于四个不同的量，不是一行“测量精度”。</p>
+<p>本项目使用同一份1990—2021月数据子集，把物理测量与数学统计接起来。文件已经经过定标、背景空气筛选、聚合与月中心校正；我们保留的“上游原文”不是原始仪器波形，也不含逐次湿度或ring-down时间。不要把课堂机制算例误认为NOAA未公开的原始读数。</p>
+<p>可以直接下载<a href="assets/learning/projects/co2-observations/co2_mm_mlo_2026-08-05.txt">未改写TXT</a>、<a href="assets/learning/projects/co2-observations/subset.csv">分析CSV</a>、<a href="assets/learning/projects/co2-observations/manifest.json">版本与SHA-256</a>和<a href="assets/learning/projects/co2-observations/README.md">复算说明</a>。数据由NOAA Global Monitoring Laboratory提供；完整原文注明早期Scripps资料，分析子集只使用NOAA时期。数据与本课程派生模型分开署名，不暗示NOAA背书。</p>
+<h2 id="2-ppm">2. ppm的分母，决定你测的到底是什么<a class="headerlink" href="#2-ppm" title="Permanent link"></a></h2>
+<p>本资料测的是干空气CO₂摩尔分数</p>
+<div class="arithmatex">\[x_d=\frac{n_{\rm CO_2}}{n_{\rm air}-n_{\rm H_2O}},\qquad \mathrm{ppm}=10^6x_d.\]</div>
+<p>令水汽在湿空气中的摩尔分数为<span class="arithmatex">\(h=n_{\rm H_2O}/n_{\rm air}\)</span>，湿空气CO₂分数<span class="arithmatex">\(x_w=n_{\rm CO_2}/n_{\rm air}\)</span>，则只需整理分母便得</p>
+<div class="arithmatex">\[\boxed{x_d=\frac{x_w}{1-h},\qquad x_w=(1-h)x_d.}\]</div>
+<p>假设上述7月空气加入水汽后h=3%，而CO₂与其他干空气分子数之比不变，那么湿值为<span class="arithmatex">\(414.58\times0.97=402.1426\)</span> ppm，干值仍为414.58 ppm。水汽没有在这里消灭CO₂；它改变了湿空气计数的分母。</p>
+<div class="learning-lab" data-learning-lab="research-co2-observations" data-research-topic="dry"></div>
+<p>图的纵轴显示“湿值减干值”，参考零点表示干值；表格保留实际ppm数值。水汽滑块是课堂假设，不是所选月份实际湿度。无脚本也可用上面的比例复算。若把湿值直接与官方干值比较，会制造约12.44 ppm的虚假下降，远大于这里0.20 ppm的月均不确定度。</p>
+<p>干摩尔分数也不同于单位体积浓度。理想气体近似下，数密度<span class="arithmatex">\(c_N=x_dp_d/(k_BT)\)</span>，会随干空气分压<span class="arithmatex">\(p_d\)</span>和温度T变化；同一团气体热胀冷缩时，x_d可以保持不变。该关系用于单位解释，并不替代真实气体与仪器的详细修正。</p>
+<h2 id="3">3. 从光学信号到摩尔分数，中间必须有校准<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>NOAA技术说明指出2019年4月Mauna Loa改用腔衰荡光谱（CRDS），此前使用红外吸收分析仪。因此不能把整段1990—2021记录都画成同一种仪器的直接读数。</p>
+<p>理解CRDS可从一个最小速率模型出发：光在高反射腔中多次通过样品，关闭激光后</p>
+<div class="arithmatex">\[I(t)=I_0e^{-t/\tau},\qquad \frac{dI}{dt}=-\left(\frac1{\tau_0}+c\alpha\right)I,\]</div>
+<p>从而</p>
+<div class="arithmatex">\[\boxed{\alpha=\frac1c\left(\frac1\tau-\frac1{\tau_0}\right).}\]</div>
+<p>这里<span class="arithmatex">\(\tau_0\)</span>描述参考条件下的腔损耗，τ是有吸收时的时间常数，α为单位长度吸收系数，c为光速。这个简化模型假设腔内损耗可按常数速率相加；真实装置还需波长、谱线、压力、温度、水汽与仪器响应处理。</p>
+<p>例如<strong>机制算例</strong>取<span class="arithmatex">\(\tau_0=100\ \mu\mathrm{s}\)</span>、<span class="arithmatex">\(\tau=80\ \mu\mathrm{s}\)</span>，则额外衰减率为2500 s⁻¹，<span class="arithmatex">\(\alpha\approx8.34\times10^{-6}\ \mathrm{m}^{-1}\)</span>。这还不是ppm：还需把吸收与单位体积的CO₂量联系，再通过受控条件和标准气体转换为干摩尔分数。本数据包没有这些τ值；这里没有用假波形声称重建真实月均值。</p>
+<p>为何标准气体不可省？即使知道一个光学关系，实际探测器增益、腔损耗与温压状态仍可能漂移。已知摩尔分数的标准气体确定响应曲线，独立目标气体检验校准，参考气体帮助跟踪短时漂移。校准能发现某些误差，不等于所有系统误差都归零。</p>
+<h2 id="4">4. 仪器读得准确，不等于每小时都代表背景大气<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>山坡风、局地植物和输运会使站点空气短时偏离想测的背景状态。NOAA按变化平稳性、局地影响和仪器状态标记小时资料，再形成日均、月均。月数据包没有保留每个小时的V/U/D等标记，所以不能声称从月表复核了每一次小时剔除。</p>
+<p>我们能检查的是月级别的有效天数和官方质量说明。完整上游文件中，负的标准差/unc或天数可表示插值或早期未知；本1990—2021子集384行质量列均非负。实验提高最少有效天数时会报告实际剔除数，但不能把“剩下更平滑”当成筛选正确的证明。</p>
+<p>分析窗口止于2021，避开2022年底火山活动后临时改用Maunakea、2023年恢复Mauna Loa的站点变化。若扩展时间范围，就应把这个观测条件变化纳入版本与模型讨论，而不是静默拼接。</p>
+<p><img alt="空气进入测量链后依次经历干燥、标准气体定标、背景筛选和日/月聚合。输出的月均值及unc送入同一份数学趋势模型。测量不确定度、模型残差与全球排放推断属于不同层次。" src="assets/img/project-02-co2-measurements.svg" /></p>
+<h2 id="5-057020047">5. 0.57、0.20与0.47为什么都可能是正确的？<a class="headerlink" href="#5-057020047" title="Permanent link"></a></h2>
+<p>2020年7月的daily_std=0.57 ppm描述每日均值波动，monthly_unc=0.20 ppm描述官方月均不确定度。官方处理考虑天气尺度波动与日际相关；所以<span class="arithmatex">\(0.57/\sqrt{30}\approx0.104\)</span> ppm并不能替代0.20 ppm。有效天数不是独立重复测量次数。</p>
+<p>数学项目默认季节模型在2010—2019的残差RMSE约0.471 ppm，又是另一件事：它混合了测量和天气变化，以及该有限趋势/季节模型没描述的结构。残差大于官方unc，不自动证明仪器坏了；曲线拟合得好，也不能证明测量没有共同校准偏差。</p>
+<div class="learning-lab" data-learning-lab="research-co2-observations" data-research-topic="residuals"></div>
+<p>默认训练120个月，时间中心2015，斜率约2.428153 ppm/年；iid斜率标准误0.015350 ppm/年，考虑月相关的HAC示例为0.036299 ppm/年。两种标准误都依赖回归假设，它们与官方逐月unc的单位和估计对象不同。图中的±unc不是回归置信带。</p>
+<h2 id="6">6. 从变化率到排放，缺的是可辨识的物理模型<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>一个简化、充分混合的箱体可写</p>
+<div class="arithmatex">\[\frac{dC}{dt}=E-S,\]</div>
+<p>这里必须先把C、源E和汇S定义为相容量纲；例如C为箱内CO₂摩尔量，E、S为摩尔/年。即使知道<span class="arithmatex">\(dC/dt\)</span>，也只知道差值：对任意函数h，同时令<span class="arithmatex">\(E'=E+h,S'=S+h\)</span>，观测变化率不变。只靠C无法把源和汇分别识别出来。</p>
+<p>实际单站测量还含空间输运；ppm/年是摩尔分数的变化率，不能直接替换成Gt/年。要推断排放，还需大气总量、空间代表性、输运、源汇与其他观测约束。本项目的真实数据拟合只给一条站点记录在指定模型下的统计描述。</p>
+<p>同样，2020—2021留出检验只表示这些行没有用于本课程回归的系数计算；数据本身是2026修订版。我们没有把这项事后练习当成当年的实时预测或新的气候研究结论。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 同一团干空气的真实CO₂为420 ppm，加入水汽后湿空气水汽摩尔分数为2%。直接报告湿空气ppm是多少？再假设温度不变、干空气压力减半，干摩尔分数与单位体积CO₂数密度各怎样改变？</p>
+<details>
+<summary>查看分母变化与体积浓度</summary>
+<p>湿值为<span class="arithmatex">\(420\times0.98=411.6\)</span> ppm。干值仍420 ppm。固定温度下干空气压力减半，在理想气体近似中数密度<span class="arithmatex">\(x_dp_d/(k_BT)\)</span>减半，干摩尔分数不变。前者是每单位体积的分子数，后者是分子数之比，不能用同一个“浓度不变”含糊描述。</p>
+</details>
+<p><strong>题二。</strong> 两组独立仪器共用一个有偏的标准气体，彼此读数很一致。能否据此断言绝对准确？若月曲线给出了箱体净增加5 mol/年，写出两组不同的非负源汇数值，并说明加入更高阶多项式拟合是否能把它们分开。</p>
+<details>
+<summary>查看共同系统误差与不可辨识性</summary>
+<p>仪器间一致能检验部分独立误差，却可能看不到共用标准带来的偏差；还需独立溯源或不同校准链。源汇可取<span class="arithmatex">\((E,S)=(8,3)\)</span>或<span class="arithmatex">\((15,10)\)</span> mol/年，都给净增加5。更复杂多项式只拟合净变化，不能由同一观测增加关于E与S的独立约束。若未加入新的物理条件或观测，两种机制仍不可辨识。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>先确认干/湿分母，再确认校准和背景选择；月均unc、回归残差和参数标准误各自有定义；站点趋势不能直接变成全球排放。原始方法见<a href="https://gml.noaa.gov/ccgg/about/co2_measurements.html">NOAA测量说明</a>，数据聚合、不确定度和站点变化见<a href="https://gml.noaa.gov/ccgg/trends/mlo.html">月均值说明</a>，数据使用条件见<a href="https://gml.noaa.gov/about/disclaimer.html">GML条款</a>。核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="project-01-heat-inverse.html"><span class="pager-label">上一页</span>项目 01 · 从温度读数反推初态</a>
+  <a class="pager-slot next" href="bridge-01-lsz.html"><span class="pager-label">下一页</span>计算桥 I · LSZ 与外腿截肢</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/projects/co2-observations/data.js?v=efc80be3c72b"></script>
+<script defer src="assets/learning/labs/research-co2-observations.js?v=56f405484408"></script>
+</body>
+</html>

@@ -131,6 +131,9 @@ COURSE = [
         ("bridge-18-heat-distributions.md", "基础 XVIII · 热核与随机分布"),
         ("bridge-19-products-reconstruction.md", "基础 XIX · 分布乘积与重建"),
     ]),
+    ("真实数据与综合项目", [
+        ("project-01-co2-trends.md", "真实数据 · CO₂趋势与相关误差"),
+    ]),
     ("学习路线与连续作业", [
         ("route-01-derived-readiness.md", "路线验收 · 整数分解到导出观点"),
         ("route-02-stochastic-readiness.md", "路线验收 · 路径熵与随机场极限"),
@@ -226,6 +229,10 @@ def learning_assets(src: str):
             raise FileNotFoundError("Missing research lab renderer")
         version = hashlib.sha256((SHARED / "research-renderer.js").read_bytes()).hexdigest()[:12]
         scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
+    if "research-co2-observations" in names:
+        data_path = SHARED / "projects" / "co2-observations" / "data.js"
+        digest = hashlib.sha256(data_path.read_bytes()).hexdigest()[:12]
+        scripts.append(f'<script defer src="assets/learning/projects/co2-observations/data.js?v={digest}"></script>')
     for name in names:
         version = ""
         if name.startswith("research-"):

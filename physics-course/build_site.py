@@ -154,6 +154,7 @@ COURSE = [
     ]),
     ("跨学科综合项目", [
         ("project-01-heat-inverse.md", "项目 01 · 从温度读数反推初态"),
+        ("project-02-co2-measurements.md", "项目 02 · CO₂真实测量与误差"),
     ]),
     ("基础衔接 · 场论、量子与多体", [
         ("bridge-01-lsz.md", "计算桥 I · LSZ 与外腿截肢"),
@@ -289,6 +290,10 @@ def learning_assets(src: str):
             raise FileNotFoundError("Missing research lab renderer")
         version = hashlib.sha256((SHARED / "research-renderer.js").read_bytes()).hexdigest()[:12]
         scripts.append(f'<script defer src="assets/learning/research-renderer.js?v={version}"></script>')
+    if "research-co2-observations" in names:
+        data_path = SHARED / "projects" / "co2-observations" / "data.js"
+        digest = hashlib.sha256(data_path.read_bytes()).hexdigest()[:12]
+        scripts.append(f'<script defer src="assets/learning/projects/co2-observations/data.js?v={digest}"></script>')
     for name in names:
         version = ""
         if name.startswith("research-") or name == "physics-topological-band":
@@ -319,6 +324,8 @@ def sync_learning_assets(md_names):
         if not source.is_file():
             raise FileNotFoundError(f"Missing learning lab script: {source}")
         shutil.copy(source, destination / "labs" / source.name)
+    if "research-co2-observations" in names:
+        shutil.copytree(SHARED / "projects" / "co2-observations", destination / "projects" / "co2-observations")
     if "heat-inverse-project" in names:
         shutil.copytree(SHARED / "projects" / "heat-inverse", destination / "projects" / "heat-inverse")
 

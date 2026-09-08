@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CO₂趋势与相关误差 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li><li><a href="bridge-12-homotopy-cones.html">基础 XII · 链同伦与映射锥</a></li><li><a href="bridge-13-affine-gluing.html">基础 XIII · 仿射图粘合与态射</a></li><li><a href="bridge-14-fibers-base-change.html">基础 XIV · 纤维与基变换</a></li><li><a href="bridge-15-nonflat-derived-fibers.html">基础 XV · 非平坦族与导出纤维</a></li><li><a href="bridge-16-intersections-tor.html">基础 XVI · 相交、接触阶与 Tor</a></li><li><a href="bridge-20-derived-products.html">基础 XX · 导出纤维积与乘法</a></li><li><a href="bridge-21-derived-category-roofs.html">基础 XXI · 导出范畴与roofs</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li><li><a href="bridge-17-continuous-control.html">基础 XVII · 连续路径熵与控制</a></li><li><a href="bridge-18-heat-distributions.html">基础 XVIII · 热核与随机分布</a></li><li><a href="bridge-19-products-reconstruction.html">基础 XIX · 分布乘积与重建</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">真实数据与综合项目</div><ul><li class="active"><a href="project-01-co2-trends.html">真实数据 · CO₂趋势与相关误差</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">学习路线与连续作业</div><ul><li><a href="route-01-derived-readiness.html">路线验收 · 整数分解到导出观点</a></li><li><a href="route-02-stochastic-readiness.html">路线验收 · 路径熵与随机场极限</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-09 01:39</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 先提出能由这份数据回答的问题</a></li>
+<li><a href="#2">2. 读列名之前，先读单位与质量标记</a></li>
+<li><a href="#3">3. 同一数据，比较三个明确的均值模型</a></li>
+<li><a href="#4">4. 从一个误差模型，推导一个标准误</a></li>
+<li><a href="#5">5. 先预测，再观察这三个模型的分歧</a></li>
+<li><a href="#6">6. 交付一份可以被别人复算的报告</a></li>
+<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="co2">真实数据项目 · CO₂趋势：标准误很小，为什么预测仍会失败？<a class="headerlink" href="#co2" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="ma-01-norms-perturbation.html">矩阵扰动与范数</a>、<a href="nla-01-svd-stability.html">SVD与数值稳定性</a>、<a href="as-01-convergence-tools.html">渐近统计工具</a>。本科起点可先读<a href="../../math-course/site/stat-05-regression.html">线性回归</a>。同一数据的测量过程见<a href="../../physics-course/site/project-02-co2-measurements.html">物理项目：干空气、定标与月均值</a>。</p>
+</blockquote>
+<div data-learning-page></div>
+<section class="learning-layer">
+<h2 id="1">1. 先提出能由这份数据回答的问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>我们手中是Mauna Loa的真实月平均CO₂记录，不是人为给直线加噪声。任务是：用2010—2019年训练一个趋势加季节模型，再查看它在2020—2021年的误差。与此同时，比较“估计斜率的不确定性”和“下一月预测的不确定性”为什么不是一个数。</p>
+<p>我们不从单站的ppm变化直接反推全球排放。站点代表性、输运、碳源和碳汇是另一层物理模型；数学拟合不能越过这些缺失信息。</p>
+<p>本讲采用NOAA于<strong>2026-08-05</strong>创建的固定数据快照，分析1990—2021的384个月。它已经经过校准、背景空气选择、日/月聚合与月中心校正，<strong>不是原始仪器信号</strong>。2020—2021只在本课程拟合步骤中留出；上游数据是后来修订的快照，所以这项练习不能宣称为当年实时预测的回测。</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>你可以核验什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="assets/learning/projects/co2-observations/co2_mm_mlo_2026-08-05.txt">未改写的上游TXT</a></td>
+<td>原始列、引用要求、插值标记和创建时间</td>
+</tr>
+<tr>
+<td><a href="assets/learning/projects/co2-observations/subset.csv">384月CSV</a> / <a href="assets/learning/projects/co2-observations/subset.json">JSON</a></td>
+<td>每个拟合输入，含年月索引与质量解释</td>
+</tr>
+<tr>
+<td><a href="assets/learning/projects/co2-observations/manifest.json">版本清单</a></td>
+<td>原文件SHA-256、抓取时间、量标与来源</td>
+</tr>
+<tr>
+<td><a href="assets/learning/projects/co2-observations/README.md">复算说明</a></td>
+<td>如何从固定文件重新提取并独立检验</td>
+</tr>
+</tbody>
+</table>
+<p>数据由NOAA GML提供，本课程处理结果不代表NOAA官方分析。NOAA数据不受课程原创版权声明覆盖。完整原文含早期Scripps资料，本项目分析窗口只用NOAA时期。</p>
+<h2 id="2">2. 读列名之前，先读单位与质量标记<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>观测<span class="arithmatex">\(y_i\)</span>的单位是<strong>干空气摩尔分数ppm</strong>，即<span class="arithmatex">\(10^6n_{\rm CO_2}/n_{\rm dry\ air}\)</span>；不是质量浓度、不是ppm/年，也不是排放质量。时间<span class="arithmatex">\(t_i\)</span>用文件给出的decimal year，月份索引<span class="arithmatex">\(k_i=12\times\text{year}+\text{month}-1\)</span>用于判断真正的月间隔。</p>
+<p><code>days</code>是有效天数，<code>daily_std</code>描述每日均值的波动，<code>monthly_unc</code>是官方月平均不确定度，三者用途不同。官方unc依据天气系统经过站点时的日际变化，并考虑相邻日相关，不能机械套<span class="arithmatex">\(\mathrm{std}/\sqrt{\mathrm{days}}\)</span>。它也不是跨十年回归的残差标准差。</p>
+<p>原文件以负数标注插值或早期未知质量信息；不能把这些值平方后当权重。本选定子集384个月质量列均非负。实验可提高“最少有效天数”查看筛选敏感性，报告剔除数；这种筛选改变样本，不自动提高推断可靠性。</p>
+<p>没有使用官方<code>deseasonalized</code>列参与拟合。它与monthly average来自同一资料，且去季节处理使用邻近多个年份，不能把两列当成两组独立观测或未经说明地用于预测评估。</p>
+<h2 id="3">3. 同一数据，比较三个明确的均值模型<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>固定训练结束于2019，中心时刻<span class="arithmatex">\(t_0=(\text{start}+2020)/2\)</span>。令<span class="arithmatex">\(u_i=t_i-t_0\)</span>，分别拟合：</p>
+<div class="arithmatex">\[\begin{aligned}
+\text{直线：}\quad &amp;f(t)=a+bu,\\
+\text{季节：}\quad &amp;f(t)=a+bu+\sum_{j=1}^2[c_j\sin(2\pi jt)+d_j\cos(2\pi jt)],\\
+\text{季节＋曲率：}\quad &amp;f(t)=a+bu+eu^2+\sum_{j=1}^2[c_j\sin(2\pi jt)+d_j\cos(2\pi jt)].
+\end{aligned}\]</div>
+<p>参数数目分别为2、6、7。a以ppm计，b以ppm/年计，e以ppm/年²计；正弦、余弦的自变量无量纲，t中的一年对应一个周期。这里的b是<strong>去掉季节项后，趋势在<span class="arithmatex">\(t_0\)</span>的局部斜率</strong>；曲率模型在别的时刻斜率为<span class="arithmatex">\(b+2eu\)</span>。</p>
+<p>正弦项是对季节变化的统计近似，不等于证明每一项来自某个特定生态机制。多一个参数必然使训练最小二乘误差不增，却未必改善留出表现。</p>
+<p>把每一行基函数写成<span class="arithmatex">\(x_i^T\)</span>，组成设计矩阵X。最小二乘解满足</p>
+<div class="arithmatex">\[\hat\theta=\arg\min_\theta\|y-X\theta\|^2,\qquad X^T(y-X\hat\theta)=0.\]</div>
+<p>当X满列秩时，形式解为<span class="arithmatex">\((X^TX)^{-1}X^Ty\)</span>。但程序不直接对大日期构造正规方程：先中心化时间，再用带重正交的QR分解<span class="arithmatex">\(X=QR\)</span>，求解</p>
+<div class="arithmatex">\[R\hat\theta=Q^Ty.\]</div>
+<p>中心化不改变模型所能表示的函数，只改善列的尺度；QR也不会让不可辨识的模型突然变得可辨识，所以程序还检查秩。</p>
+<h2 id="4">4. 从一个误差模型，推导一个标准误<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>假设<span class="arithmatex">\(y=X\theta_*+\varepsilon\)</span>，<span class="arithmatex">\(E(\varepsilon\mid X)=0\)</span>。记<span class="arithmatex">\(A=(X^TX)^{-1}\)</span>，则</p>
+<div class="arithmatex">\[\hat\theta-\theta_*=AX^T\varepsilon,\qquad
+\operatorname{Cov}(\hat\theta\mid X)=AX^T\Omega XA,\]</div>
+<p>其中<span class="arithmatex">\(\Omega=\operatorname{Cov}(\varepsilon\mid X)\)</span>。这是解释各种标准误的共同起点。</p>
+<p>若进一步假设误差独立且同方差，<span class="arithmatex">\(\Omega=\sigma^2I\)</span>，就有</p>
+<div class="arithmatex">\[\widehat{\operatorname{Cov}}_{\rm iid}=\frac{\sum_i\hat\varepsilon_i^2}{n-p}A.\]</div>
+<p>斜率标准误是其b对应对角元素的平方根。只有附加正态等条件才有熟悉的精确t推断；只算出一个标准误不等于已经验证这些条件。</p>
+<p>真实月度残差常连续数月偏高或偏低，此时<span class="arithmatex">\(\Omega\)</span>并非对角阵。本页同时算Bartlett/Newey–West形式的HAC协方差。定义影响向量</p>
+<div class="arithmatex">\[w_i=Ax_i\hat\varepsilon_i,\qquad
+K_L(h)=\max\left(0,1-\frac{|h|}{L+1}\right),\]</div>
+<p>并使用明确的有限样本修正约定</p>
+<div class="arithmatex">\[\boxed{\widehat V_{\rm HAC}=\frac n{n-p}\sum_{i,j}K_L(k_i-k_j)w_iw_j^T.}\]</div>
+<p>L是日历月滞后，实验取0—24。L=0仍是异方差稳健的对角“肉”矩阵，通常不等于iid估计；HAC也<strong>不保证总比iid标准误大</strong>，不同滞后的相关项可能相互抵消。</p>
+<p>这个核为什么不会随意产生负方差？<span class="arithmatex">\(K_L(k_i-k_j)\)</span>等于两个长度<span class="arithmatex">\(L+1\)</span>整数窗口的重叠比例，因此是窗口指示向量的Gram矩阵；把缺失月的<span class="arithmatex">\(w_k\)</span>记为0后，双和可写成若干窗口和的外积之和。故精确算术下<span class="arithmatex">\(\widehat V_{\rm HAC}\)</span>半正定。程序按真实<span class="arithmatex">\(k_i-k_j\)</span>计算，筛掉某个月后不会把其两侧月份误认为相隔一个月。</p>
+<p>这只是有限样本构造的性质。其渐近可靠性还需要均值模型正确、误差外生、设计可辨、适当矩条件与弱依赖，以及带宽随样本量适当增长等条件；本页手动选L和几幅残差图没有证明这些条件。尤其HAC不能修复错误趋势、结构变化或与误差有关的缺失机制，也不是未知高阶误差的上界。</p>
+<p><img alt="同一份官方月均资料按日期分成训练和留出。训练数据进入设计矩阵与QR，再进入残差的日历月相关核；留出观测只与训练拟合的延伸比较。官方月均不确定度在测量层，回归标准误在参数层。" src="assets/img/project-01-co2-trends.svg" /></p>
+<h2 id="5">5. 先预测，再观察这三个模型的分歧<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<div class="learning-lab" data-learning-lab="research-co2-observations" data-research-topic="trend"></div>
+<p>图为突出变化，纵轴显示<span class="arithmatex">\(\mathrm{CO_2}-400\)</span> ppm；400只是画图参考值，输入数据与表格仍是原始ppm数值。</p>
+<p>无脚本也能核对：固定训练2010—2019、120个月，留出24个月，不额外按天数筛选，L=12：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th style="text-align: right;">b（ppm/年）</th>
+<th style="text-align: right;">iid标准误</th>
+<th style="text-align: right;">HAC标准误</th>
+<th style="text-align: right;">训练RMSE（ppm）</th>
+<th style="text-align: right;">留出RMSE（ppm）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直线</td>
+<td style="text-align: right;">2.377975</td>
+<td style="text-align: right;">0.072769</td>
+<td style="text-align: right;">0.060946</td>
+<td style="text-align: right;">2.281819</td>
+<td style="text-align: right;">2.353789</td>
+</tr>
+<tr>
+<td>季节</td>
+<td style="text-align: right;">2.428153</td>
+<td style="text-align: right;">0.015350</td>
+<td style="text-align: right;">0.036299</td>
+<td style="text-align: right;">0.471230</td>
+<td style="text-align: right;">0.423543</td>
+</tr>
+<tr>
+<td>季节＋曲率</td>
+<td style="text-align: right;">2.428153</td>
+<td style="text-align: right;">0.013595</td>
+<td style="text-align: right;">0.024161</td>
+<td style="text-align: right;">0.415535</td>
+<td style="text-align: right;">0.649136</td>
+</tr>
+</tbody>
+</table>
+<p>加入曲率降低了训练误差和这里的标准误，但留出误差反而增加。这不是证明曲率永远错误，而是一个实际反例：<strong>参数标准误小，不保证模型形式正确，也不保证延伸预测准确</strong>。</p>
+<p>默认季节模型的相邻月残差相关约0.687。它是实际相邻月对的Pearson相关，提示iid假设值得怀疑，不是因果证据。改L只改变协方差估计，不改变拟合系数或预测曲线。</p>
+<div class="learning-lab" data-learning-lab="research-co2-observations" data-research-topic="residuals"></div>
+<p>残差图上下两条官方unc线仅用于比较量级；它们不是这条回归曲线的置信带。也不要因为残差超过unc就认定测量出错：短均值模型可能根本没有描述相应的时间变化。</p>
+<h2 id="6">6. 交付一份可以被别人复算的报告<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>报告应写明快照版本、训练/留出日期、筛选规则、设计列、参数单位、QR方法、HAC带宽与修正因子。展示三个模型的残差及留出误差，并解释哪一个结论来自数据、哪一个依赖误差假设。</p>
+<p>源码用NumPy从上游TXT独立解析，再以SVD求解、完整日历核矩阵计算协方差，与网页的QR和逐对累加对照。还检查改变留出数据不会改变训练系数、负质量标记不会变成有效权重，以及删月后的滞后不能按存储行号压缩。</p>
+<p>反复看留出误差来选择模型，会把它变成调参集。本页用于认识这一机制；若要报告独立泛化表现，需要预先固定方案并另设未使用的评估资料。本讲没有新增真实学习者试用结果，也没有把这次历史拟合当成NOAA的预测产品。</p>
+<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 筛掉二月后，数组相邻两行变成一月和三月。L=1时，HAC是否应把这两行的交叉项计入？若把真实残差过程写为<span class="arithmatex">\(\varepsilon_t=z_t-z_{t-1}\)</span>、z独立同方差，稳健标准误是否必然大于iid标准误？</p>
+<details>
+<summary>查看日历间隔与负相关反例</summary>
+<p>一月到三月相隔2个月，<span class="arithmatex">\(K_1(2)=0\)</span>，不计入；若按数组相邻错误地用<span class="arithmatex">\(K_1(1)=1/2\)</span>，就加入了不存在的一月滞后项。对差分噪声，<span class="arithmatex">\(\operatorname{Var}\varepsilon_t=2\sigma_z^2\)</span>、<span class="arithmatex">\(\operatorname{Cov}(\varepsilon_t,\varepsilon_{t-1})=-\sigma_z^2\)</span>。负相关可能降低某些线性估计量的方差，所以HAC不必比iid大；仍须针对实际设计与核计算，不能只看一个lag1符号就决定所有系数。</p>
+</details>
+<p><strong>题二。</strong> 某报告说“斜率标准误为0.015 ppm/年，所以下一月CO₂误差不会超过0.015 ppm”，又把2 ppm/年说成全球排放2 Gt/年。指出两处逻辑断裂。为何更复杂模型的训练误差降低并不能修补它们？</p>
+<details>
+<summary>查看参数、预测与物理单位</summary>
+<p>斜率标准误的单位是ppm/年，下一月观测误差的单位是ppm；预测还依赖其他系数的协方差、未来噪声、模型误设与时间相关。标准误本身也不是确定上界。ppm是摩尔分数，Gt是质量，需要大气总量、空间代表性以及源汇/输运模型才能相连。增加参数仅扩大拟合函数空间，不能凭空提供这些物理信息或验证统计假设。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>同一测量产品有不同层次的误差：月均unc、模型残差、参数标准误、未来预测误差，不能混用。原始说明见<a href="https://gml.noaa.gov/ccgg/trends/mlo.html">NOAA月均值与不确定度</a>及<a href="https://gml.noaa.gov/ccgg/trends/trends_log.html">量标变更记录</a>；HAC方法与其渐近理论入口见<a href="https://www.nber.org/papers/t0055">Newey与West原始工作论文</a>。本页明确给出实际实现的有限样本公式，没有宣称证明完整HAC一致性定理。核查：2026-09-09。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-19-products-reconstruction.html"><span class="pager-label">上一页</span>基础 XIX · 分布乘积与重建</a>
+  <a class="pager-slot next" href="route-01-derived-readiness.html"><span class="pager-label">下一页</span>路线验收 · 整数分解到导出观点</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=37fc5ad6083c"></script>
+<script defer src="assets/learning/projects/co2-observations/data.js?v=efc80be3c72b"></script>
+<script defer src="assets/learning/labs/research-co2-observations.js?v=56f405484408"></script>
+</body>
+</html>

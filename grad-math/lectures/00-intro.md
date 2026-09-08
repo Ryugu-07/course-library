@@ -111,3 +111,8 @@
 验收应同时包含手算、解释条件和构造反例。每讲折叠答案供独立作答后核对；实验只检验所写模型。完成后再读[几何 Langlands 的分阶段先修表](frontier-03-geometric-langlands.html#langlands-prerequisite-route)及[导出交点计算](frontier-03-geometric-langlands.html#derived-intersection-calculation)。张量积与上同调已有可计算入口，一般概形理论、导出范畴、D-模及模叠仍有后续任务。
 
 随机分析训练可从[路径熵与随机场极限的连续作业](route-02-stochastic-readiness.html)进入：有限路径桥与 Wick 平均分成两支，各自完成诊断、计算、退出题与复测。
+
+
+## 同一份真实测量，连接物理与统计
+
+[NOAA CO₂真实数据项目](project-01-co2-trends.html)提供固定上游快照、单位/质量说明、默认可复算结果和迁移题；分别追踪测量过程、模型残差与趋势标准误，比较实际训练和留出表现。
