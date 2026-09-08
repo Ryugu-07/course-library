@@ -113,6 +113,8 @@ COURSE = [
         ("bridge-04-sheaves.md", "基础 IV · 层、限制与粘合"),
         ("bridge-05-tensor-tor.md", "基础 V · 张量积、平坦性与 Tor"),
         ("bridge-06-cech.md", "基础 VI · Čech 与射影直线"),
+        ("bridge-07-ext.md", "基础 VII · Hom、Ext 与扩张"),
+        ("bridge-08-connections.md", "基础 VIII · 联络、水平截面与 D-模"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-schrodinger-bridge.md", "前沿 I · Schrödinger 桥与路径空间"),

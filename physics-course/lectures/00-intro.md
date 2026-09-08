@@ -84,5 +84,7 @@
 | 亲自完成径向积分，解释为何同截断减法留下有限动量依赖 | [圈积分与减法](bridge-02-loop-subtraction.html) | [重整化](qft-03-path-renorm.html)、有效场论与 RG |
 | 用明确的下能级向量算出 A、F，并核对南北规范的相位差 | [Berry 联络与曲率](bridge-03-berry.html) | [拓扑能带](solid-04-topological.html)、Chern 数 |
 | 从相邻态重叠算出度量，解释为何零曲率不意味着零距离 | [量子几何张量](research-09-quantum-metric.html) | 谱学重建、平带几何与 2026 年磁交换研究窗口 |
+| 从密度矩阵一阶展开确定对易子顺序，并用静态解核验 | [对易子与响应谱](bridge-04-spectral-response.html) | Kubo、Lehmann 表示、噪声与耗散 |
+| 从有限驱动振幅算出跃迁，再写出度量的加权谱积分 | [弱驱动与谱学测量](research-10-metric-spectroscopy.html) | 几何测量协议、有限时间和微扰误差 |
 
 这里补的是已有理论课程中的计算跳步。通过短模型不能直接宣布掌握完整场论：LSZ 的渐近态证明、一般多圈重整化、规范场与红外处理仍需专题训练。读者若不能解释某一步使用的条件，应先完成相应验收题再进入研究窗口。

@@ -109,10 +109,12 @@ $$
 
 $$
 \chi^R_{AB}(t)=\frac{i}{\hbar}\theta(t)
-\left\langle[B(0),A(t)]\right\rangle_0.
+\left\langle[A(t),B(0)]\right\rangle_0.
 $$
 
-符号会随 $H'=+fB$ 的约定一起改变，但三件事不变：有一个 commutator、平均取在参考态、以及 $\theta(t)$ 限制积分上限。它不是“把相关函数加一条箭头”这么简单；对易子取的是扰动前后顺序的差异，正是因果反应的量子编码。
+对 $H'=-fB$，一阶密度矩阵修正为 $\delta\rho_I=(i/\hbar)\int f[B,\rho_0]dt'$；由 $\operatorname{Tr}(A[B,\rho_0])=\operatorname{Tr}(\rho_0[A,B])$ 确定上述顺序。若改写成 $[B(0),A(t)]$，系数须同时变为 $-i/\hbar$。符号也会随 $H'=+fB$ 的约定改变，但固定扰动与响应定义之后就不能任意选择。
+
+完整的两能级计算见[从对易子到响应谱](bridge-04-spectral-response.html)：取 $H_0=\Delta\sigma_z/2,B=q\sigma_x$，得到零温静态易感率 $2q^2/\Delta>0$，与精确小场基态一致。对易子、参考态平均和 $\theta(t)$ 的因果顺序各自承担明确作用；响应不是简单地给相关函数加一条箭头。
 
 对电导，把 $A$ 选成电流 $J$，把 $f$ 选成电场或矢势的相应耦合，处理 diamagnetic/contact 项后才能得到具体的 $\sigma(\omega)$。不同规范和边界条件会改变公式的中间长相，但物理电流和最终可测量响应必须一致。
 

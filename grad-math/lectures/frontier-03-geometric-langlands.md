@@ -205,3 +205,5 @@ $A\phi_k=(\omega^k+\omega^{-k})\phi_k$，特征值为 $2,-1,-1$。后两个方�
 | 几何 Langlands | 丛侧 D-模与局部系统侧带支撑条件的层范畴等价 | 本讲聚焦特征零、全局、无分歧版本 |
 
 2024 年系列及后续修订给出这里讨论的几何结论；整个算术 Langlands 纲领并未因此自动完成。
+
+继续先修训练：[Ext 与扩张](bridge-07-ext.html)区分同调类与对象同构；[联络与 D-模入口](bridge-08-connections.html)从 C* 水平解与单值化开始。这里的秩一正则奇点模型尚未建立一般 Riemann–Hilbert 对应或 Langlands 所需模叠。

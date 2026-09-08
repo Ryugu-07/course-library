@@ -118,3 +118,5 @@ $1-\cos^2(\epsilon/2)=\epsilon^2/4+O(\epsilon^4)$，所以 $g_{tt}=1/4$。局部
 ## 速查与继续阅读
 
 $Q_{ij}=\langle\partial_i u|(1-P)|\partial_j u\rangle=g_{ij}-iF_{ij}/2$。实部控制相邻射线的局部距离，曲率记录反对称几何；二者都不能由能谱单独决定。接回[强关联与量子输运](cm-04-transport-correlations.html)时，需要额外建立多体响应；接回[拓扑能带](solid-04-topological.html)时，先把取向与符号统一。本讲没有复现材料实验，也未声称覆盖整个量子几何研究领域。
+
+继续推导：[弱驱动与谱学测量](research-10-metric-spectroscopy.html)把带间矩阵元接到有限时间跃迁、黄金律与加权谱积分。

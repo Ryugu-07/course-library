@@ -159,6 +159,7 @@ COURSE = [
         ("bridge-01-lsz.md", "计算桥 I · LSZ 与外腿截肢"),
         ("bridge-02-loop-subtraction.md", "计算桥 II · 圈积分与减法"),
         ("bridge-03-berry.md", "计算桥 III · Berry 联络与曲率"),
+        ("bridge-04-spectral-response.md", "计算桥 IV · 对易子与响应谱"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),
@@ -179,6 +180,7 @@ COURSE = [
     ]),
     ("研究课程 · 量子几何与材料", [
         ("research-09-quantum-metric.md", "量子几何 · 度量、测量与研究边界"),
+        ("research-10-metric-spectroscopy.md", "量子几何 · 弱驱动与谱学测量"),
     ]),
 ]
 
