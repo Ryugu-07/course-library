@@ -1,17 +1,8 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var TWO_PI = 2 * Math.PI;
-  var EPSILON = 1e-9;
   var instanceCount = 0;
 
   function setAttributes(node, attrs) {
@@ -87,14 +78,17 @@
   }
 
   function probabilities(thetaM, thetaS) {
-    var halfDelta = (thetaM - thetaS) / 2;
-    return {
-      plus: Math.pow(Math.cos(halfDelta), 2),
-      minus: Math.pow(Math.sin(halfDelta), 2)
-    };
+    var delta = normalize(thetaM - thetaS);
+    // Exact aligned/opposite directions in the represented angles only.
+    // Do not discard small but positive probabilities with a probability floor.
+    if (delta === 0) return { plus: 1, minus: 0 };
+    if (delta === Math.PI) return { plus: 0, minus: 1 };
+    return { plus: Math.pow(Math.cos(delta / 2), 2), minus: Math.pow(Math.sin(delta / 2), 2) };
   }
 
   function percentage(value) {
+    if (value > 0 && value < 0.001) return "<0.1%";
+    if (value < 1 && value > 0.999) return ">99.9%";
     return (clamp(value, 0, 1) * 100).toFixed(1) + "%";
   }
 
@@ -121,13 +115,15 @@
     var style = doc.createElement("style");
     style.setAttribute("data-qme-style", "true");
     style.textContent = [
-      ".qme-lab { --qme-state: var(--cl-green, #39734d); --qme-measure: var(--accent, #315f9d); --qme-muted: var(--fg-soft, #6b6557); --qme-border: var(--border, #d7d0c2); --qme-track: var(--block-bg, #f4f1e9); color: var(--fg, #292722); font-size: .95em; line-height: 1.55; }",
+      ".qme-lab { --qme-state: var(--cl-green, #39734d); --qme-measure: #315f9d; --qme-muted: var(--fg-soft, #6b6557); --qme-border: var(--border, #d7d0c2); --qme-track: var(--block-bg, #f4f1e9); color: var(--fg, #292722); font-size: .95em; line-height: 1.55; }",
+      "html[data-theme=dark] .qme-lab { --qme-measure:#83c8ff; --qme-state:#72bd8b; }",
+      ".qme-lab [hidden]{display:none!important}.qme-scroll{overflow-x:auto;max-width:100%;}.qme-gate{padding:12px;border:1px solid var(--border);margin:12px 0}.qme-gate label{display:block;margin:10px 0}.qme-gate select{display:block;max-width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg)}",
       ".qme-lab *, .qme-lab *::before, .qme-lab *::after { box-sizing: border-box; }",
       ".qme-lab .qme-shell { min-width: 0; }",
       ".qme-lab .qme-heading { margin: 0 0 .25rem; color: var(--accent, #315f9d); font-size: 1.25rem; }",
       ".qme-lab .qme-intro, .qme-lab .qme-note, .qme-lab .qme-status { color: var(--qme-muted); }",
       ".qme-lab .qme-intro { margin: 0 0 1rem; }",
-      ".qme-lab .qme-grid { display: grid; grid-template-columns: minmax(190px, .72fr) minmax(0, 1.28fr); gap: 20px; align-items: start; }",
+      ".qme-lab .qme-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }",
       ".qme-lab .qme-controls, .qme-lab .qme-stage { min-width: 0; }",
       ".qme-lab .qme-section { margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--qme-border); }",
       ".qme-lab .qme-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }",
@@ -149,7 +145,7 @@
       ".qme-lab .qme-small { color: var(--qme-muted); font-size: .86em; }",
       ".qme-lab .qme-state-line { margin: .8rem 0 0; color: var(--qme-state); font-weight: 700; }",
       ".qme-lab .qme-stage-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }",
-      ".qme-lab .qme-svg { display: block; width: 100%; max-width: 100%; height: auto; color: inherit; }",
+      ".qme-lab .qme-svg { display: block; width: 100%; min-width: 560px; height: auto; color: inherit; }",
       ".qme-lab .qme-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
       ".qme-lab .qme-circle { fill: none; stroke: var(--qme-border); stroke-width: 2; }",
       ".qme-lab .qme-axis-line { fill: none; stroke: var(--qme-muted); stroke-dasharray: 4 5; stroke-width: 1.2; }",
@@ -177,7 +173,7 @@
       ".qme-lab .qme-history { max-height: 12rem; margin: .45rem 0 0; padding-left: 1.35rem; overflow-y: auto; color: var(--qme-muted); font-size: .88em; }",
       ".qme-lab .qme-history li { margin: .3rem 0; padding-left: 2px; overflow-wrap: anywhere; }",
       ".qme-lab .qme-callout { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--qme-border); color: var(--qme-muted); font-size: .88em; }",
-      "@media (max-width: 700px) { .qme-lab { margin-left: -8px; margin-right: -8px; padding: 14px; } .qme-lab .qme-grid { grid-template-columns: minmax(0, 1fr); } .qme-lab .qme-svg { min-width: 0; } .qme-lab .qme-action-row, .qme-lab .qme-demo-row { grid-template-columns: minmax(0, 1fr); } }",
+      "@media (max-width: 700px) { .qme-lab { margin-left: -8px; margin-right: -8px; padding: 14px; } .qme-lab .qme-grid { grid-template-columns: minmax(0, 1fr); }  .qme-lab .qme-action-row, .qme-lab .qme-demo-row { grid-template-columns: minmax(0, 1fr); } }",
       "@media (prefers-reduced-motion: reduce) { .qme-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
     ].join("\n");
     var host = doc.head || doc.documentElement || doc.body;
@@ -220,6 +216,7 @@
       thetaM: 0,
       preparation: "+z",
       history: [],
+      measurementCount: 0,
       message: "当前显示 +z 沿 z 轴测量的确定性结果。"
     };
 
@@ -246,6 +243,7 @@
         state.thetaS = preset.theta;
         state.preparation = preset.label;
         state.history = [];
+        state.measurementCount = 0;
         state.message = "已重置为 " + preset.label + "；请先预测再调分析器。";
         render();
         announce(state.message);
@@ -341,7 +339,10 @@
     svg.appendChild(defs);
     var drawing = makeSvg(api, doc, "g", { className: "qme-drawing" });
     svg.appendChild(drawing);
-    stage.appendChild(svg);
+    var scroll = makeElement(api, doc, "div", { className: "qme-scroll", tabindex: "0", role: "region", "aria-label": "测量机制图，可横向滚动" });
+    scroll.appendChild(svg);
+    stage.appendChild(scroll);
+    stage.appendChild(makeElement(api, doc, "p", { className: "qme-small" }, "窄屏可横向滑动机制图；下方始终列出两个输出概率。"));
 
     var outcomes = makeElement(api, doc, "div", { className: "qme-outcomes", "aria-label": "Born 概率分束" });
     var plusOutcome = makeOutcome(api, doc, "+ 输出", "qme-bar-plus", "+ 结果概率");
@@ -362,6 +363,41 @@
 
     grid.appendChild(controls);
     grid.appendChild(stage);
+    var gate = makeElement(api, doc, "form", { className: "qme-gate" });
+    gate.appendChild(makeElement(api, doc, "strong", {}, "先记录四项预测，再打开实验"));
+    var questions = [
+      ["+z 输入测 z，p(+)？", ["1", "1/2", "0"], "1"],
+      ["+z 输入测 x，p(+)？", ["1", "1/2", "0"], "1/2"],
+      ["-z 输入测 z，p(+)？", ["1", "1/2", "0"], "0"],
+      ["+z 选 +x 后再测 z，p(+)？", ["1", "1/2", "0"], "1/2"]
+    ];
+    var selects = questions.map(function (q) {
+      var select = makeElement(api, doc, "select", { "aria-label": q[0] });
+      select.appendChild(makeElement(api, doc, "option", { value: "" }, "请选择"));
+      q[1].forEach(function (v) { select.appendChild(makeElement(api, doc, "option", { value: v }, v)); });
+      gate.appendChild(makeElement(api, doc, "label", {}, [q[0], select]));
+      return select;
+    });
+    var reveal = makeElement(api, doc, "button", { type: "submit", className: "qme-button" }, "提交预测并揭示");
+    var reset = makeElement(api, doc, "button", { type: "button", className: "qme-button" }, "重置预测");
+    var feedback = makeElement(api, doc, "p", { "aria-live": "polite" }, "实验结果在提交前隐藏。");
+    gate.appendChild(reveal); gate.appendChild(reset); gate.appendChild(feedback);
+    grid.hidden = true;
+    gate.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (selects.some(function (s) { return !s.value; })) { feedback.textContent = "请先完成四项预测。"; return; }
+      var correct = selects.filter(function (s, i) { return s.value === questions[i][2]; }).length;
+      grid.hidden = false;
+      feedback.textContent = correct + "/4 项命中；用实验逐项核对。";
+    });
+    reset.addEventListener("click", function () {
+      selects.forEach(function (s) { s.value = ""; }); grid.hidden = true;
+      state.thetaS = 0; state.thetaM = 0; state.preparation = "+z";
+      state.history = []; state.measurementCount = 0;
+      state.message = "已重置为 +z 沿 z 测量。"; render();
+      feedback.textContent = "预测已重置，结果已隐藏。";
+    });
+    shell.appendChild(gate);
     shell.appendChild(grid);
     root.replaceChildren(shell);
 
@@ -404,11 +440,17 @@
       };
     }
 
+    function currentProbabilities() {
+      // All UI angles are integral degrees, including projected states.
+      // Subtract those integers first to preserve exactly repeated/opposite axes.
+      return probabilities((degree(state.thetaM) - degree(state.thetaS)) * Math.PI / 180, 0);
+    }
+
     function selectBranch(branch, announceText) {
-      var result = probabilities(state.thetaM, state.thetaS);
+      var result = currentProbabilities();
       var selectedProbability = branch === "+" ? result.plus : result.minus;
-      if (selectedProbability < EPSILON) return;
-      var measurementNumber = state.history.length + 1;
+      if (selectedProbability === 0) return;
+      var measurementNumber = ++state.measurementCount;
       setHistory(measurementItem(measurementNumber, state.thetaS, state.thetaM, result, "保留 " + branch));
       state.thetaS = normalize(state.thetaM + (branch === "+" ? 0 : Math.PI));
       state.preparation = directionLabel(state.thetaS) + "（投影后保留 " + branch + "）";
@@ -466,9 +508,8 @@
         "marker-end": "url(#" + ids.stateMarker + ")"
       }));
       drawing.appendChild(makeSvg(api, doc, "circle", { className: "qme-center", cx: center.x, cy: center.y, r: 4 }));
-      drawing.appendChild(svgText(api, doc, statePoint.x + (statePoint.x < center.x ? -9 : 9), statePoint.y - 9, "θ_s=" + degree(state.thetaS) + "° " + directionLabel(state.thetaS), { className: "qme-state-label", "text-anchor": statePoint.x < center.x ? "end" : "start" }));
-      drawing.appendChild(svgText(api, doc, measurePoint.x + (measurePoint.x < center.x ? -9 : 9), measurePoint.y + 18, "θ_m=" + degree(state.thetaM) + "° " + directionLabel(state.thetaM), { className: "qme-measure-label", "text-anchor": measurePoint.x < center.x ? "end" : "start" }));
-      drawing.appendChild(svgText(api, doc, negativePoint.x + (negativePoint.x < center.x ? -9 : 9), negativePoint.y + 16, "−", { className: "qme-measure-label", "text-anchor": negativePoint.x < center.x ? "end" : "start" }));
+      drawing.appendChild(svgText(api, doc, 28, 282, "制备 θ_s=" + degree(state.thetaS) + "° " + directionLabel(state.thetaS), { className: "qme-state-label" }));
+      drawing.appendChild(svgText(api, doc, 28, 304, "分析 θ_m=" + degree(state.thetaM) + "° " + directionLabel(state.thetaM), { className: "qme-measure-label" }));
       drawing.appendChild(svgText(api, doc, 314, 30, "同一条 x–z 大圆：y=0", { className: "qme-muted-label" }));
 
       var splitX = 387;
@@ -481,26 +522,27 @@
       drawing.appendChild(svgText(api, doc, 512, 104, "+", { className: "qme-measure-label" }));
       drawing.appendChild(svgText(api, doc, 512, 202, "−", { className: "qme-measure-label" }));
       drawing.appendChild(svgText(api, doc, 302, 176, "θ_m", { className: "qme-measure-label" }));
-      drawing.appendChild(svgText(api, doc, 314, 245, "概率由下方条形给出，不按单次事件动画", { className: "qme-muted-label" }));
+      drawing.appendChild(svgText(api, doc, 314, 245, "概率见下方条形", { className: "qme-muted-label" }));
+      drawing.appendChild(svgText(api, doc, 314, 268, "示意图不表示单次随机事件", { className: "qme-muted-label" }));
       svgDesc.textContent = "x-z 大圆中，制备态为 " + directionLabel(state.thetaS) + "（theta_s=" + degree(state.thetaS) + "°），分析器 + 方向为 " + directionLabel(state.thetaM) + "（theta_m=" + degree(state.thetaM) + "°）；Born 概率为加号 " + percentage(result.plus) + "、减号 " + percentage(result.minus) + "。";
     }
 
     function render() {
-      var result = probabilities(state.thetaM, state.thetaS);
+      var result = currentProbabilities();
       analyzerInput.value = String(degree(state.thetaM));
       analyzerOutput.textContent = degree(state.thetaM) + "° (" + directionLabel(state.thetaM) + ")";
       stageState.textContent = "当前态：" + state.preparation + "，θ_s=" + degree(state.thetaS) + "°";
       status.textContent = state.message;
-      plusOutcome.fill.style.width = percentage(result.plus);
-      minusOutcome.fill.style.width = percentage(result.minus);
+      plusOutcome.fill.style.width = (result.plus * 100) + "%";
+      minusOutcome.fill.style.width = (result.minus * 100) + "%";
       plusOutcome.value.textContent = percentage(result.plus);
       minusOutcome.value.textContent = percentage(result.minus);
       plusOutcome.track.setAttribute("aria-valuenow", String((result.plus * 100).toFixed(1)));
       minusOutcome.track.setAttribute("aria-valuenow", String((result.minus * 100).toFixed(1)));
       plusOutcome.track.setAttribute("aria-valuetext", percentage(result.plus));
       minusOutcome.track.setAttribute("aria-valuetext", percentage(result.minus));
-      keepPlus.disabled = result.plus < EPSILON;
-      keepMinus.disabled = result.minus < EPSILON;
+      keepPlus.disabled = result.plus === 0;
+      keepMinus.disabled = result.minus === 0;
       preparationPresets.forEach(function (preset) {
         preset.button.setAttribute("aria-pressed", Math.abs(normalize(state.thetaS - preset.theta)) < 0.001 ? "true" : "false");
       });
@@ -525,9 +567,11 @@
       state.thetaM = 0;
       state.preparation = "+z（第一次保留 + 后）";
       state.history = [];
+      state.measurementCount = 0;
       var first = probabilities(0, 0);
       setHistory(measurementItem(1, 0, 0, first, "第一次保留 +，状态仍为 +z"));
       setHistory(measurementItem(2, 0, 0, first, "同轴重复：p(+)=1，p(-)=0"));
+      state.measurementCount = 2;
       state.message = "同轴重复：第一次沿 z 轴保留 + 后，第二次沿同一 z 轴仍是 100% 的 +。";
       render();
       announce(state.message);
@@ -537,6 +581,7 @@
       state.thetaM = Math.PI / 2;
       state.preparation = "+z";
       state.history = [];
+      state.measurementCount = 0;
       var first = probabilities(Math.PI / 2, 0);
       setHistory(measurementItem(1, 0, Math.PI / 2, first, "第一次在 x 轴条件保留 +，状态更新为 +x"));
       state.thetaS = Math.PI / 2;
@@ -544,12 +589,14 @@
       state.thetaM = 0;
       var second = probabilities(0, Math.PI / 2);
       setHistory(measurementItem(2, Math.PI / 2, 0, second, "插入不相容 x 轴后再测 z，恢复 1/2–1/2"));
+      state.measurementCount = 2;
       state.message = "+z → 选 +x → 再测 z：当前第二次测量为 1/2、1/2；不相容轴重新带来概率性。";
       render();
       announce(state.message);
     });
     clearHistory.addEventListener("click", function () {
       state.history = [];
+      state.measurementCount = 0;
       state.message = "历史已清除，当前态与当前分析器没有改变。";
       render();
       announce(state.message);
@@ -558,7 +605,10 @@
     render();
   }
 
-  window.CourseLearning.register("quantum-measurement", function (root, api) {
-    mount(root, api);
-  });
+  if (typeof module === "object" && module.exports) {
+    module.exports = { probabilities: probabilities, normalize: normalize, degree: degree, percentage: percentage, mount: mount };
+  }
+  if (typeof window !== "undefined" && window.CourseLearning && typeof window.CourseLearning.register === "function") {
+    window.CourseLearning.register("quantum-measurement", mount);
+  }
 }());

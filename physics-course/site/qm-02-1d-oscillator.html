@@ -56,14 +56,14 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 05:39</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：无限维的精确阶梯，有限图从哪一层开始撒谎？</a><ul>
+<li><a href="#_1">学习层：无限维的精确阶梯，有限模型从哪里出现误差？</a><ul>
 <li><a href="#1">1. 先预测：能级、节点和顶端边界</a></li>
 <li><a href="#2">2. 精确账本：升降算符与波函数是同一套结构</a></li>
 <li><a href="#3-fock">3. 有限 Fock 图：可计算，不等于无限维定理</a></li>
@@ -74,18 +74,20 @@ try {
 <li><a href="#1_1">1. 一维方法论与三个标准问题</a></li>
 <li><a href="#2_1">2. 谐振子：升降算符（本页主菜）</a></li>
 <li><a href="#3">3. 练习与要点</a></li>
+<li><a href="#_2">原始资料与进一步核查</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">量子 II · 一维问题与谐振子<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：Griffiths §2 ｜ <strong>前置</strong>：qm-01、ode-02
-一维定态问题是量子直觉的训练场：束缚态的量子化、隧穿的指数律。压轴是<strong>谐振子的升降算符解法</strong>——不解任何微分方程、纯代数摘下全部能谱：量子力学最优雅的三页纸，也是场论（qft-01"粒子 = 激发量子"）的原型。</p>
+一维定态问题是量子直觉的训练场：束缚态的量子化、隧穿的指数律。压轴是<strong>谐振子的升降算符解法</strong>——以代数推得允许能级，再由波函数证明存在性与完备性：量子力学最优雅的三页纸，也是场论（qft-01"粒子 = 激发量子"）的原型。</p>
 </blockquote>
+<p>先修：<a href="qm-01-framework.html">投影与量子态</a>、<a href="../../math-course/site/ode-02-linear.html">二阶线性方程</a>。学完应能区分能量投影、算符乘积截断和位置网格三种操作，而不只背出 <span class="arithmatex">\(E_n\)</span>。</p>
 <div data-learning-page></div>
 
 <section aria-labelledby="oscillator-learning-title" class="learning-layer">
-<h2 id="_1">学习层：无限维的精确阶梯，有限图从哪一层开始撒谎？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_1">学习层：无限维的精确阶梯，有限模型从哪里出现误差？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <h3 id="1">1. 先预测：能级、节点和顶端边界<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>先在无量纲单位 <span class="arithmatex">\(\hbar=m=\omega=1\)</span> 下预测：</p>
 <ol>
@@ -118,9 +120,9 @@ E_n=n+\frac12,\qquad
 a_N^\dagger|N-1\rangle=0,\qquad
 [a_N,a_N^\dagger]=I_N-N|N-1\rangle\langle N-1|.
 \]</div>
-<p>因此 <span class="arithmatex">\(n&lt;N-1\)</span> 的能级和升降系数可以忠实复现，但顶层会留下边界残差；用 <span class="arithmatex">\(H_N=(a_N^\dagger a_N+a_Na_N^\dagger)/2\)</span> 计算顶层时，能量也会显示截断伪影。有限网格还会丢掉 <span class="arithmatex">\(|x|&gt;X\)</span> 的高斯尾。图和数值只是在有限图上核对精确公式，不能证明无限 Hilbert 空间的完备谱定理，也不能把截断边界当成物理墙。</p>
+<p>令 <span class="arithmatex">\(P_N\)</span> 为前 <span class="arithmatex">\(N\)</span> 个 Fock 态的投影。<strong>先算无限维能量再投影</strong>得到 <span class="arithmatex">\(P_NHP_N=a_N^\dagger a_N+I_N/2\)</span>，全部保留能级（包括顶层）仍为 <span class="arithmatex">\(n+1/2\)</span>。<strong>先截断再相乘</strong>得到 <span class="arithmatex">\(H_N=(a_N^\dagger a_N+a_Na_N^\dagger)/2\)</span>，顶层只有 <span class="arithmatex">\((N-1)/2\)</span>，比真实能量低 <span class="arithmatex">\(N/2\)</span>。原因是投影不保持乘法：<span class="arithmatex">\(P_Naa^\dagger P_N\ne(P_NaP_N)(P_Na^\dagger P_N)\)</span>。离开又返回子空间的路径被后者删掉了。有限网格还会丢掉 <span class="arithmatex">\(|x|&gt;X\)</span> 的高斯尾。实验的 <span class="arithmatex">\(\int_{-X}^X|\psi|^2\)</span>、<span class="arithmatex">\(\int_{-X}^X x^2|\psi|^2\)</span>、<span class="arithmatex">\(\int_{-X}^X|\psi'|^2\)</span> 是原始求积值；未补尾、未重新归一化，组合所得只是全线不确定性乘积的数值诊断，不是新量子态的严格方差。硬切波函数还会引入边界不连续，不能据此宣称违反不确定性原理。图和数值只是在有限图上核对精确公式，不能证明无限 Hilbert 空间的完备谱定理，也不能把截断边界当成物理墙。</p>
 <h3 id="4">4. 动手实验：先锁定判断，再揭开两张账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>揭示后可调激发数 <span class="arithmatex">\(n\)</span>、截断维数 <span class="arithmatex">\(N\)</span> 和位置窗口 <span class="arithmatex">\(X\)</span>。波函数图标出节点与有限窗口；账本同时列出精确能级、有限矩阵能级、归一化、节点数、不确定性和顶端换算子残差。</p>
+<p>揭示后可调激发数 <span class="arithmatex">\(n\)</span>、截断维数 <span class="arithmatex">\(N\)</span> 和位置窗口 <span class="arithmatex">\(X\)</span>。波函数图标出节点与有限窗口；账本同时列出精确能级、有限矩阵能级、归一化、节点数、不确定性和顶端对易子残差。</p>
 <div class="learning-lab" data-learning-lab="quantum-oscillator">
 <p><strong>无 JavaScript 时的静态读法：</strong> 默认取 <span class="arithmatex">\(\hbar=m=\omega=1\)</span>、<span class="arithmatex">\(n=2\)</span>、<span class="arithmatex">\(N=12\)</span>。无限维精确答案是</p>
 <table>
@@ -167,33 +169,47 @@ a_N^\dagger|N-1\rangle=0,\qquad
 <p>有限图负责可复算的诊断；能级等间距、归一化和节点定理仍属于无限维模型及其定义域。</p>
 </div>
 <h3 id="5">5. 迁移问题：从谐振子回到一般一维势<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>任意光滑势阱的极小值附近可用谐振子近似，但有限深阱还要处理指数尾和边界匹配，隧穿率也依赖势垒积分而不是谐振子的等间距谱。请在换势、换边界或换基底时，分别标注“精确代数结果”“数值截断结果”和“半经典近似”，不要把有限矩阵的漂亮图线外推成任意势的定理。</p>
+<p>光滑势阱在非退化极小值 <span class="arithmatex">\(x_0\)</span>（<span class="arithmatex">\(V''(x_0)&gt;0\)</span>）附近才有非零频率的谐振子近似，但有限深阱还要处理指数尾和边界匹配，隧穿率也依赖势垒积分而不是谐振子的等间距谱。请在换势、换边界或换基底时，分别标注“精确代数结果”“数值截断结果”和“半经典近似”，不要把有限矩阵的漂亮图线外推成任意势的定理。</p>
+<p>先闭卷算三题，再打开答案：</p>
+<ol>
+<li><span class="arithmatex">\(N=4\)</span>、输入 <span class="arithmatex">\(|3\rangle\)</span>，分别求 <span class="arithmatex">\(\langle P_NHP_N\rangle\)</span>、<span class="arithmatex">\(\langle H_N\rangle\)</span> 和 <span class="arithmatex">\(\langle[a_N,a_N^\dagger]-I_N\rangle\)</span>。</li>
+<li><span class="arithmatex">\(V(x)=\lambda x^4\)</span>（<span class="arithmatex">\(\lambda&gt;0\)</span>）在零点有极小值。为什么二阶小振动近似不能给出其束缚能级？</li>
+<li>归一化波函数 <span class="arithmatex">\(\psi(x)\propto e^{-(1-ic)x^2/(4s^2)}\)</span>（<span class="arithmatex">\(s&gt;0,c\in\mathbb R\)</span>）的密度仍是高斯。求 <span class="arithmatex">\(\sigma_x\sigma_p\)</span>，判断“高斯一定使乘积为 <span class="arithmatex">\(\hbar/2\)</span>”是否成立。</li>
+</ol>
+<details class="answer">
+<summary>迁移答案：三种近似不能混用</summary>
+<ol>
+<li>三个数依次是 <span class="arithmatex">\(7/2\)</span>、<span class="arithmatex">\(3/2\)</span>、<span class="arithmatex">\(-4\)</span>。最后一项的<strong>残差范数</strong>为 <span class="arithmatex">\(4\)</span>；数值正负与范数不能混称。丢掉的是 <span class="arithmatex">\(|3\rangle\xrightarrow{a^\dagger}2|4\rangle\xrightarrow{a}4|3\rangle\)</span> 这条中间路径。</li>
+<li><span class="arithmatex">\(V''(0)=0\)</span>，二阶 Taylor 项为零；首个束缚项为四次，不能借用等间距谱。仅由量纲，平衡 <span class="arithmatex">\(\hbar^2/(m\ell^2)\)</span> 与 <span class="arithmatex">\(\lambda\ell^4\)</span> 得 <span class="arithmatex">\(\ell\sim(\hbar^2/(m\lambda))^{1/6}\)</span>，能量尺度为 <span class="arithmatex">\(\hbar^{4/3}\lambda^{1/3}m^{-2/3}\)</span>；这仍没有确定每个无量纲能级常数。</li>
+<li><span class="arithmatex">\(\langle x\rangle=\langle p\rangle=0\)</span>，<span class="arithmatex">\(\sigma_x^2=s^2\)</span>。由 <span class="arithmatex">\(p\psi=i\hbar(1-ic)x\psi/(2s^2)\)</span> 得 <span class="arithmatex">\(\sigma_p^2=\hbar^2(1+c^2)/(4s^2)\)</span>，故乘积为 <span class="arithmatex">\(\hbar\sqrt{1+c^2}/2\)</span>，仅 <span class="arithmatex">\(c=0\)</span> 达到 <span class="arithmatex">\(\hbar/2\)</span>。非零 <span class="arithmatex">\(c\)</span> 的位置—动量协方差为 <span class="arithmatex">\(\hbar c/2\)</span>；它仍可饱和含协方差的 Robertson–Schrödinger 不等式。</li>
+</ol>
+</details>
 </div>
 </section>
 <h2 id="1_1">1. 一维方法论与三个标准问题<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="无限深方势阱能级与波函数" src="assets/img/qm-02-square-well.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>无限深方势阱：边界把波函数量子化成驻波，能级 \(E_n\propto n^2\)——最简单的"束缚即离散"。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>无限深方势阱：边界把波函数量子化成驻波，能级 \(E_n\propto n^2\)——有限区间 Dirichlet 边界下的离散谱。曲线是波函数经任意幅度缩放后上移至对应能级，纵轴不能同时读作能量和波函数的物理单位。</figcaption>
 </figure>
-<p>定态方程 <span class="arithmatex">\(-\frac{\hbar^2}{2m}\psi'' + V\psi = E\psi\)</span>。<strong>通用直觉</strong>：<span class="arithmatex">\(E &gt; V\)</span> 区振荡、<span class="arithmatex">\(E &lt; V\)</span> 区指数（经典禁区衰减尾）；束缚态要求归一化 ⇒ <strong>边界条件挑出离散谱</strong>（pde-01"边界量子化频率"的量子重演）；一维束缚态无简并、基态无节点、第 <span class="arithmatex">\(n\)</span> 态 <span class="arithmatex">\(n\)</span> 个节点【引用】。</p>
+<p>定态方程 <span class="arithmatex">\(-\frac{\hbar^2}{2m}\psi'' + V\psi = E\psi\)</span>。<strong>通用直觉</strong>：常势区 <span class="arithmatex">\(E&gt;V\)</span> 给振荡解、<span class="arithmatex">\(E&lt;V\)</span> 给指数解；变势时这只是局部曲率直觉，WKB 形式还需势缓变并避开转向点。在这里的实、足够规则势与连通区间上，采用分离的自伴边界条件（或全线正规束缚条件），且不附加自旋等内部自由度，离散束缚本征值为单重，按能量排序的第 <span class="arithmatex">\(n\)</span> 态有 <span class="arithmatex">\(n\)</span> 个节点。环上的周期边界可能简并，不能照搬这一结论。有限方阱还有连续散射谱；归一化束缚态并不意味着整个谱都是离散的。</p>
 <p>这里的节点编号约定从 <span class="arithmatex">\(n=0\)</span> 开始：基态是第 <span class="arithmatex">\(0\)</span> 个束缚态且无节点，第 <span class="arithmatex">\(n\)</span> 个束缚态才有 <span class="arithmatex">\(n\)</span> 个节点。</p>
-<p><strong>无限深方阱</strong>：<span class="arithmatex">\(\psi_n = \sqrt{\frac2L}\sin\frac{n\pi x}{L}\)</span>，<span class="arithmatex">\(E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}\)</span>——"驻波量子化"最裸露的样本；<span class="arithmatex">\(E_1 &gt; 0\)</span>：<strong>零点能</strong>（不确定性原理不许静止，qm-01 例 2 同源）。</p>
+<p><strong>无限深方阱</strong>（此处改用常见的 <span class="arithmatex">\(n=1,2,\ldots\)</span> 编号，因此节点数为 <span class="arithmatex">\(n-1\)</span>）：<span class="arithmatex">\(\psi_n = \sqrt{\frac2L}\sin\frac{n\pi x}{L}\)</span>，<span class="arithmatex">\(E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}\)</span>——"驻波量子化"最裸露的样本；<span class="arithmatex">\(E_1 &gt; 0\)</span>：<strong>零点能</strong>（不确定性原理不许静止，qm-01 例 2 同源）。</p>
 <p><strong>有限深阱</strong>：阱外指数尾——波函数<strong>渗入经典禁区</strong>；束缚态条件化为超越方程（图解法——数值 III 求根的物理练习）。</p>
 <p><strong>隧穿【厚势垒 / WKB 主指数，不是完整透射率】</strong>：方势垒中 <span class="arithmatex">\(\psi \sim e^{-\kappa x}\)</span>（<span class="arithmatex">\(\kappa = \sqrt{2m(V_0 - E)}/\hbar\)</span>）。在厚势垒、WKB 主导的极限，完整透射率的对数主项为</p>
 <div class="arithmatex">\[
 T_{\mathrm{WKB}}\ \propto\ e^{-2\kappa a}
 \]</div>
-<p>前因子、界面匹配、共振和薄势垒修正不在这条主指数里——所以它不是任意参数下的完整 <span class="arithmatex">\(T\)</span> 公式——但它明确了<strong>对势垒宽度与高度的指数敏感性</strong>。收租清单：α 衰变（Gamow：寿命跨 20 个数量级由指数解释）、扫描隧道显微镜（STM：距离变 1 Å 电流变一个量级——原子成像的灵敏度来源）、闪存写入、太阳核聚变（质子靠隧穿越过库仑壁——<strong>太阳发光靠量子隧穿</strong>）。</p>
+<p>前因子、界面匹配、共振和薄势垒修正不在这条主指数里——所以它不是任意参数下的完整 <span class="arithmatex">\(T\)</span> 公式——但它明确了<strong>对势垒宽度与高度的指数敏感性</strong>。收租清单：α 衰变（Gamow：隧穿主指数解释寿命对衰变能量的强敏感性）、扫描隧道显微镜（STM：距离改变 1 Å 就可显著改变电流，变化幅度取决于有效功函数——原子成像的灵敏度来源）、闪存写入、太阳核聚变（质子靠隧穿越过库仑壁——<strong>太阳发光靠量子隧穿</strong>）。</p>
 <h2 id="2_1">2. 谐振子：升降算符（本页主菜）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="量子谐振子等间距能级" src="assets/img/qm-02-harmonic.svg" /></p>
-<figcaption><span class="fig-id">图 2.2</span>量子谐振子：抛物势里能级等间距 \(E_n=\hbar\omega(n+\tfrac12)\)，波函数是 Hermite 多项式 × 高斯。</figcaption>
+<figcaption><span class="fig-id">图 2.2</span>量子谐振子：抛物势里能级等间距 \(E_n=\hbar\omega(n+\tfrac12)\)，波函数是 Hermite 多项式 × 高斯；图中各条波函数先按峰值缩放，再上移到对应能级，因此显示形状而非归一化幅度。</figcaption>
 </figure>
 <p><span class="arithmatex">\(\hat H = \frac{\hat p^2}{2m} + \frac12m\omega^2\hat x^2\)</span>。<strong>定义</strong>：</p>
 <div class="arithmatex">\[
 \hat a = \sqrt{\frac{m\omega}{2\hbar}}\Big(\hat x + \frac{i\hat p}{m\omega}\Big), \qquad [\hat a, \hat a^\dagger] = 1 \quad (\text{由 } [\hat x,\hat p] = i\hbar \text{ 一行})
 \]</div>
-<p><strong>【推导（纯代数摘谱）】</strong> <span class="arithmatex">\(\hat H = \hbar\omega\big(\hat a^\dagger\hat a + \frac12\big)\)</span>（直接展开）。记数算符 <span class="arithmatex">\(\hat n = \hat a^\dagger\hat a\)</span>：对易子给 <span class="arithmatex">\(\hat n(\hat a^\dagger|\nu\rangle) = (\nu + 1)(\hat a^\dagger|\nu\rangle)\)</span>——<span class="arithmatex">\(\hat a^\dagger\)</span> <strong>升一级</strong>、<span class="arithmatex">\(\hat a\)</span> 降一级；非负性 <span class="arithmatex">\(\nu = \|\hat a|\nu\rangle\|^2 \geq 0\)</span> 要求阶梯有底 ⇒ 存在 <span class="arithmatex">\(\hat a|0\rangle = 0\)</span> 的基态、谱为非负整数：</p>
+<p><strong>【推导（纯代数摘谱）】</strong> <span class="arithmatex">\(\hat H = \hbar\omega\big(\hat a^\dagger\hat a + \frac12\big)\)</span>（直接展开）。记数算符 <span class="arithmatex">\(\hat n = \hat a^\dagger\hat a\)</span>：对易子给 <span class="arithmatex">\(\hat n(\hat a^\dagger|\nu\rangle) = (\nu + 1)(\hat a^\dagger|\nu\rangle)\)</span>——<span class="arithmatex">\(\hat a^\dagger\)</span> <strong>升一级</strong>、<span class="arithmatex">\(\hat a\)</span> 降一级；对归一化本征态（假定所需升降操作在定义域内），非负性给 <span class="arithmatex">\(\nu=\|a|\nu\rangle\|^2\ge0\)</span>，且 <span class="arithmatex">\(\|a^k|\nu\rangle\|^2=\nu(\nu-1)\cdots(\nu-k+1)\)</span>。若 <span class="arithmatex">\(\nu\)</span> 非整数，取 <span class="arithmatex">\(k=\lfloor\nu\rfloor+2\)</span>，右边恰有一个负因子，与范数平方非负矛盾；所以允许本征值只能是非负整数。解 <span class="arithmatex">\(a\psi_0=0\)</span> 得可归一化基态，再升阶构造全部 Hermite 本征态；它们在 <span class="arithmatex">\(L^2(\mathbb R)\)</span> 中完备，从而确实没有漏掉其他谱：</p>
 <div class="arithmatex">\[
 E_n = \hbar\omega\Big(n + \frac12\Big), \qquad n = 0, 1, 2, \dots
 \]</div>
@@ -201,13 +217,15 @@ E_n = \hbar\omega\Big(n + \frac12\Big), \qquad n = 0, 1, 2, \dots
 <p><strong>为什么这页纸重要到超出谐振子</strong>：</p>
 <ul>
 <li><strong>等间隔能级 <span class="arithmatex">\(\hbar\omega\)</span></strong> ⇒ 能量以"份"存取——<strong>量子（quantum）一词的实体</strong>；黑体辐射 Planck 假设（sm-03）的力学基础；</li>
-<li>任何势的极小值附近 ≈ 谐振子（Taylor 二阶，mech-04 小振动的量子版）——分子振动光谱、晶格声子（solid-01）全是它；</li>
+<li>光滑势的非退化极小值附近 <span class="arithmatex">\(V''(x_0)&gt;0\)</span> 时可近似谐振子（Taylor 二阶，mech-04 小振动的量子版）——分子振动光谱、晶格声子（solid-01）全是它；</li>
 <li><strong>场论的原型</strong>（qft-01 的预告）：电磁场 = 无穷多谐振子（每个模式一个，opt/em 的简正模），<span class="arithmatex">\(\hat a^\dagger\)</span> = "产生一个光子"——<strong>粒子是场的激发量子</strong>这句现代物理总纲，语法就是本页的升降算符。</li>
 </ul>
 <h2 id="3">3. 练习与要点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>例 1（代数法算矩阵元）</strong> <span class="arithmatex">\(\langle n|\hat x^2|n\rangle\)</span>：<span class="arithmatex">\(\hat x = \sqrt{\frac{\hbar}{2m\omega}}(\hat a + \hat a^\dagger)\)</span> 展开、只留不改变 <span class="arithmatex">\(n\)</span> 的组合（<span class="arithmatex">\(\hat a\hat a^\dagger + \hat a^\dagger\hat a = 2\hat n + 1\)</span>）⇒ <span class="arithmatex">\(= \frac{\hbar}{m\omega}\big(n + \frac12\big)\)</span>——验证基态恰饱和不确定性下限 <span class="arithmatex">\(\sigma_x\sigma_p = \frac\hbar2\)</span>（<strong>高斯态是最小不确定态</strong>——信息论 III 高斯最大熵的量子亲戚）。</p>
-<p><strong>例 2（隧穿主指数数量级）</strong> 电子、势垒 1 eV、宽 0.5 nm：<span class="arithmatex">\(\kappa \approx 5.1\ \mathrm{nm}^{-1}\)</span>，<span class="arithmatex">\(T_{\mathrm{WKB}}\propto e^{-5.1}\)</span>；宽度加倍时主指数变为 <span class="arithmatex">\(e^{-10.2}\)</span>。这只是厚势垒主指数，前因子与匹配条件仍需另算——STM 灵敏度与闪存漏电的同一笔账。</p>
-<p><strong>例 3（零点能与边界效应）</strong> 液氦常压不固化（零点振动能 &gt; 晶格束缚）；Casimir 力测到的是边界改变后的 <strong>QED 真空涨落谱 / 能量差</strong>（两块金属板之间的边界相关力），不是可以脱离参考态直接测量的“绝对零点能”【引用】。因此它支持边界相关的量子涨落效应，但不能单独把绝对 <span class="arithmatex">\(\frac12\hbar\omega\)</span> 当作可直接读出的实验量。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（代数法算矩阵元）</strong> <span class="arithmatex">\(\langle n|\hat x^2|n\rangle\)</span>：<span class="arithmatex">\(\hat x = \sqrt{\frac{\hbar}{2m\omega}}(\hat a + \hat a^\dagger)\)</span> 展开、只留不改变 <span class="arithmatex">\(n\)</span> 的组合（<span class="arithmatex">\(\hat a\hat a^\dagger + \hat a^\dagger\hat a = 2\hat n + 1\)</span>）⇒ <span class="arithmatex">\(= \frac{\hbar}{m\omega}\big(n + \frac12\big)\)</span>——验证基态恰饱和不确定性下限 <span class="arithmatex">\(\sigma_x\sigma_p = \frac\hbar2\)</span>（<strong>这里的实高斯基态使乘积达到下界</strong>；带二次相位的高斯未必如此，见上方迁移题）。</p>
+<p><strong>例 2（隧穿主指数数量级）</strong> 电子、势垒高于入射能量 <span class="arithmatex">\(V_0-E=1\)</span> eV、宽 0.5 nm：<span class="arithmatex">\(\kappa \approx 5.1\ \mathrm{nm}^{-1}\)</span>，<span class="arithmatex">\(T_{\mathrm{WKB}}\propto e^{-5.1}\)</span>；宽度加倍时主指数变为 <span class="arithmatex">\(e^{-10.2}\)</span>。这只是厚势垒主指数，前因子与匹配条件仍需另算——STM 灵敏度与闪存漏电的同一笔账。</p>
+<p><strong>例 3（零点能与边界效应）</strong> 液氦在低温常压下仍不固化，量子运动与原子间相互作用的竞争是关键，不能由一个孤立谐振子的能量比较直接判定相态。Casimir 实验测的是物体间随几何和材料改变的力，可用边界相关能量的导数计算，并非脱离参考态的“绝对零点能”读数。<a href="https://journals.aps.org/prd/abstract/10.1103/PhysRevD.72.021301">Jaffe（2005）</a> 也展示了不诉诸零点能的 QED 表述，因此不能单凭这一实验把绝对 <span class="arithmatex">\(\frac12\hbar\omega\)</span> 当作已被直接测量。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="_2">原始资料与进一步核查<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p><a href="https://dlmf.nist.gov/18.39#i">NIST DLMF §18.39(i)</a> 给出 Schrödinger 算符、离散/连续谱的区分与谐振子 Hermite 解；<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2013/808334d09369e3a726f6f20d82315c20_MIT8_04S13_Lec08.pdf">MIT 8.04 第8讲</a> 可对照升降算符和基态推导。本页的有限矩阵反例与迁移题可由上述定义独立计算。</p>
 <hr />
 <p><em>下一页：转入三维——角动量的代数、氢原子的完整求解与自旋：元素周期表从三个量子数里长出来。</em></p>
 </article>

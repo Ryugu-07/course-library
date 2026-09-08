@@ -1,7 +1,9 @@
 # 量子 I · 波函数与基本框架
 
 > **对标**：Griffiths *QM* §1–3 ｜ **前置**：泛函 II（Hilbert 空间——量子力学的数学就是它）、em-03（经典原子之死）、概率线
-> 量子力学的公理体系一页立齐：态 = Hilbert 空间矢量、观测量 = 自伴算符、测量 = 谱投影 + Born 概率、演化 = Schrödinger 方程。你的泛函分析在此整体变现——**量子力学是 Hilbert 空间理论的物理实例化**。
+> 量子力学的基本框架：纯态 = Hilbert 空间中的射线、观测量 = 自伴算符、测量 = 谱投影 + Born 概率、演化 = Schrödinger 方程。你的泛函分析在此整体变现——**量子力学是 Hilbert 空间理论的物理实例化**。
+
+先修自检：能否计算复内积、正交投影和条件概率？若不熟悉，先看[Hilbert 空间与投影](../../math-course/site/func-02-hilbert.html)、[算子与谱](../../math-course/site/func-03-operators.html)、[条件概率](../../math-course/site/prob-01-space-bayes.html)。本页采用理想投影测量；一般测量仪器还需要更广的 POVM/量子操作语言。
 
 <div data-learning-page></div>
 
@@ -48,7 +50,7 @@ p(+)=\langle P_+\rangle=\cos^2\!\left(\frac{\theta_m-\theta_s}{2}\right),\qquad
 p(-)=\langle P_-\rangle=\sin^2\!\left(\frac{\theta_m-\theta_s}{2}\right).
 $$
 
-若在一次理想投影测量中**条件选择**保留“$+$”分支，后续态更新为 $P_+\lvert\psi\rangle/\sqrt{p(+)}$，在这个大圆模型里就是 $\theta_s\leftarrow\theta_m$；保留“$-$”则是 $\theta_s\leftarrow\theta_m+\pi$。按钮不会替你抽一个随机结果，而是让你检查每一个条件分支的后续预测。
+只有相应分支的概率严格大于零时，才能归一化该分支；零概率结果不能作为后续条件态。若在一次理想投影测量中**条件选择**保留“$+$”分支，后续态更新为 $P_+\lvert\psi\rangle/\sqrt{p(+)}$，在这个大圆模型里就是 $\theta_s\leftarrow\theta_m$；保留“$-$”则是 $\theta_s\leftarrow\theta_m+\pi$。按钮不会替你抽一个随机结果，而是让你检查每一个条件分支的后续预测。
 
 <h3>4. 动手实验：调分析器，再选择投影分支</h3>
 
@@ -92,11 +94,22 @@ $$
 p(+z\mid +x)=\cos^2\frac{90^\circ}{2}=\frac12,\qquad p(-z\mid +x)=\frac12.
 $$
 
-密度算符写法是 $\rho\mapsto P_\pm\rho P_\pm/p(\pm)$（选择性结果）或 $\rho\mapsto P_+\rho P_++P_-\rho P_-$（忽略结果）。这两句把实验的“分束—选支—再测”收回到 Born 规则与投影公理，而不把图形当作经典轨迹的证据。
+密度算符满足 $\rho\ge0$、$\operatorname{tr}\rho=1$；纯态为 $\rho=|\psi\rangle\langle\psi|$，混合态可描述制备的不确定性。令 $p(\pm)=\operatorname{tr}(\rho P_\pm)$，选择性更新为 $\rho\mapsto P_\pm\rho P_\pm/p(\pm)$，要求 $p(\pm)>0$；忽略结果的更新为 $\rho\mapsto P_+\rho P_++P_-\rho P_-$，无需对零概率分支归一化。这两句把实验的“分束—选支—再测”收回到 Born 规则与投影公理，而不把图形当作经典轨迹的证据。
 
 <h3>7. 迁移题：换一个角度，自己闭环</h3>
 
-取初态 $+z$，把分析器调到 $\theta_m=60^\circ$，先手算 $p(+)$ 与 $p(-)$；若条件保留“$-$”，再把分析器调回 $z$，预测第二次的两个概率。然后用 $P_\pm(\theta)$ 验证：为什么这仍然是同一套公理，而不是为 Stern–Gerlach 另造一条经验规则？最后说明这个二维实验遗漏了哪一个 Bloch 球自由度。
+取初态 $+z$，把分析器调到 $\theta_m=60^\circ$，先手算 $p(+)$ 与 $p(-)$；若条件保留“$-$”，再把分析器调回 $z$，预测第二次的两个概率。然后用 $P_\pm(\theta)$ 验证：为什么这仍然是同一套公理，而不是为 Stern–Gerlach 另造一条经验规则？最后说明这个二维实验遗漏了哪一个 Bloch 球自由度。第一次为“$-$”且第二次为“$+$”的**联合概率**，和上述第二次的条件概率相同吗？
+
+<details class="answer" markdown="1">
+<summary>独立验算：条件概率、联合概率与遗漏的相位</summary>
+
+第一次的两概率为 $3/4,1/4$。保留“$-$”后 $\theta_s=240^\circ$，故再测 $z$ 得 $p(+\mid\text{首次}-)=\cos^2(120^\circ)=1/4$，$p(-\mid\text{首次}-)=3/4$。联合概率为 $(1/4)(1/4)=1/16$：分母是全部初始制备次数，而条件概率的分母只是第一次被保留的次数。
+
+也可直接算 $P_-(60^\circ)|+z\rangle=(1/4,-\sqrt3/4)^T$，范数平方 $1/4$；归一化后分量为 $(1/2,-\sqrt3/2)^T$，第一分量平方就是 $1/4$。它与 $|+_{240^\circ}\rangle$ 只差整体负号。
+
+一般纯态可写成 $\cos(\vartheta/2)|+z\rangle+e^{i\varphi}\sin(\vartheta/2)|-z\rangle$；本实验没有自由变化的相对相位 $\varphi$，所以不能探查一般 $y$ 分量。整体相位不改变概率，相对相位会改变另一测量基的概率。
+
+</details>
 
 </section>
 
@@ -114,10 +127,12 @@ $$
 
 | 公理 | 内容 | 泛函分析对应 |
 |---|---|---|
-| 态 | 归一化矢量 $\lvert\psi\rangle \in \mathcal H$（相位不物理） | Hilbert 空间（泛函 II） |
-| 观测量 | 自伴算符 $\hat A$ | 谱定理保实谱+正交本征系（泛函 III） |
+| 态 | 纯态是单位矢量 $\lvert\psi\rangle\in\mathcal H$ 模掉整体相位；一般态用正的迹一密度算符 $\rho$ | Hilbert 空间与迹类算符 |
+| 观测量 | 自伴算符 $\hat A$ | 谱定理给实谱与投影值测度；只有纯点谱情形才有完备正交本征系 |
 | 测量 | 得本征值 $a_n$，概率 $\langle\psi\rvert P_n\lvert\psi\rangle$（非简并时为 $\lvert\langle a_n\vert\psi\rangle\rvert^2$）；在理想投影模型中按 $P_n$ 更新后续态（非简并时才是唯一的本征态） | 正交投影（泛函 II 投影定理） |
 | 演化 | $i\hbar\frac{\partial}{\partial t}\lvert\psi\rangle = \hat H\lvert\psi\rangle$ | 酉群 $e^{-i\hat Ht/\hbar}$（$\hat H$ 不显含时间；时变 $\hat H(t)$ 需用时间有序 $\mathcal T\exp[-\frac{i}{\hbar}\int_0^t\hat H(\tau)\,d\tau]$；保范——概率守恒） |
+
+表中的测量行针对离散本征值。一般自伴算符用谱投影 $P_A(B)$ 描述读数落在 Borel 集 $B$ 的概率 $\operatorname{tr}(\rho P_A(B))$。位置的精确单点通常概率为零；实验记录的是有限区间。符号 $|x\rangle$ 是广义本征态，并不是 $L^2(\mathbb R)$ 中可归一化的矢量。时变无界 Hamiltonian 的传播子还需共同定义域和适当正则性；时间有序指数首先是形式记号。
 
 位置表象：$\psi(x) = \langle x\vert\psi\rangle$，$\hat x = x$、$\hat p = -i\hbar\frac{\partial}{\partial x}$，$|\psi(x)|^2$ = 概率密度（$\mathcal H = L^2$——实变 III 的空间是量子态的家）。**正则对易关系**：
 
@@ -125,19 +140,21 @@ $$
 [\hat x, \hat p] = i\hbar
 $$
 
-（mech-03 的字典 $\{q,p\} = 1 \to \frac{1}{i\hbar}[\hat x,\hat p]$ 兑现——经典力学按泊松括号整体翻译。）
+这个等式可先在共同不变稠密核 $\mathcal S(\mathbb R)$（快速衰减光滑函数）上验证，不能对所有 $L^2$ 矢量直接相乘无界算符。
 
-**期望值与演化**：$\langle A\rangle = \langle\psi|\hat A|\psi\rangle$；**Ehrenfest 定理【推导】**（Schrödinger 方程代入求导一行）：$\frac{d\langle A\rangle}{dt} = \frac{1}{i\hbar}\langle[\hat A, \hat H]\rangle + \left\langle\frac{\partial\hat A}{\partial t}\right\rangle$——若 $\hat A$ 无显含时间，才退化为前一项；期望值在合适条件下走经典方程（与经典 $\frac{df}{dt} = \{f, H\}$ 平行）。
+（mech-03 的字典 $\{q,p\} = 1 \to \frac{1}{i\hbar}[\hat x,\hat p]$ 体现正则坐标的对应；任意经典观测量的乘积与泊松括号不能都无损翻译成算符恒等式，还会遇到排序问题。）
+
+**期望值与演化**：$\langle A\rangle = \langle\psi|\hat A|\psi\rangle$；**Ehrenfest 定理【推导】**（Schrödinger 方程代入求导一行）：$\frac{d\langle A\rangle}{dt} = \frac{1}{i\hbar}\langle[\hat A, \hat H]\rangle + \left\langle\frac{\partial\hat A}{\partial t}\right\rangle$。这里假定相关向量在所需算符及乘积定义域内，期望可微；若 $\hat A$ 无显含时间，才没有最后一项。对 $H=p^2/(2m)+V(x)$ 得 $d\langle p\rangle/dt=-\langle V'(x)\rangle$，一般不是 $-V'(\langle x\rangle)$。例如 $V(x)=\lambda x^4/4$，均值为 $\mu$、方差为 $s^2$ 的高斯位置分布有 $\langle V'(x)\rangle=\lambda(\mu^3+3\mu s^2)$；额外项说明平均轨迹需要态的宽度信息。
 
 ## 3. 不确定性原理（定理，非哲学）
 
-**定理（Robertson）【推导】** 对任意态：
+**定理（Robertson）【推导】** 对归一化态，假定方差有限且处于 $AB$、$BA$ 的定义域（以下使用算符对易子写法）：
 
 $$
 \sigma_A\,\sigma_B \;\geq\; \frac{1}{2}\big|\langle[\hat A, \hat B]\rangle\big|
 $$
 
-*证*：对 $|f\rangle = (\hat A - \langle A\rangle)|\psi\rangle$、$|g\rangle = (\hat B - \langle B\rangle)|\psi\rangle$ 用 **Cauchy–Schwarz**（全站第 N 次），取虚部整理出对易子。$\blacksquare$ 代 $[\hat x, \hat p] = i\hbar$：
+*证*：对 $|f\rangle = (\hat A - \langle A\rangle)|\psi\rangle$、$|g\rangle = (\hat B - \langle B\rangle)|\psi\rangle$ 用 **Cauchy–Schwarz** 得 $\sigma_A\sigma_B=\|f\|\|g\|\ge|\langle f|g\rangle|\ge|\operatorname{Im}\langle f|g\rangle|$。又 $2i\operatorname{Im}\langle f|g\rangle=\langle[A,B]\rangle$，即得结论。$\blacksquare$ 代 $[\hat x, \hat p] = i\hbar$：
 
 $$
 \sigma_x\sigma_p \geq \frac{\hbar}{2}
@@ -147,21 +164,32 @@ $$
 
 ## 4. 定态与一般解法
 
-分离变量（pde-01 的方法在量子的主场）：$\hat H\psi_n = E_n\psi_n$（**定态 Schrödinger 方程**——自伴算符的本征值问题：能级 = 谱，泛函 III 的语言完全接管），一般解
+分离变量（pde-01 的方法在量子的主场）：$\hat H\psi_n = E_n\psi_n$（**定态 Schrödinger 方程**——自伴算符的本征值问题：能级 = 谱，泛函 III 的语言完全接管）；当 $H$ 不显含时间，且有完备的离散本征基时，可写
 
 $$
 \Psi(x, t) = \sum_n c_n\,\psi_n(x)\,e^{-iE_nt/\hbar}, \qquad c_n = \langle\psi_n|\Psi(0)\rangle
 $$
 
-——正交展开（泛函 II Fourier 展开的量子版）：**解量子问题 = 求谱 + 展开初态**。定态的 $|\Psi|^2$ 不随时间变（名字的由来）；动力学来自能级间的相位差拍（例 3）。
+若存在连续谱，须用谱积分 $|\Psi(t)\rangle=\int e^{-iEt/\hbar}\,dP_H(E)|\Psi(0)\rangle$，不能只留下离散求和。这是正交展开（泛函 II Fourier 展开的量子版）：**解量子问题 = 求谱 + 展开初态**。定态的 $|\Psi|^2$ 不随时间变（名字的由来）；动力学来自能级间的相位差拍（例 3）。
 
 ## 5. 练习与要点
 
-**例 1（Born 规则手算）** $\Psi = \frac{1}{\sqrt2}\psi_1 + \frac{1}{\sqrt2}\psi_2$：测能量得 $E_1, E_2$ 各半概率；按投影公理更新后续态——再测必得同值（投影的幂等性）。期望 $\langle H\rangle = \frac{E_1+E_2}{2}$ 但**单次测量永远得不到这个值**——期望值 ≠ 可能读数：量子概率的第一课。
+**例 1（Born 规则手算）** 设 $\psi_1,\psi_2$ 归一且正交，对应不同的 $E_1\ne E_2$，$H$ 不显含时间。 $\Psi = \frac{1}{\sqrt2}\psi_1 + \frac{1}{\sqrt2}\psi_2$：测能量得 $E_1, E_2$ 各半概率；按投影公理更新后续态——紧接着重复同一理想测量必得同值（投影的幂等性；中间不能插入改变该子空间的操作）。期望 $\langle H\rangle = \frac{E_1+E_2}{2}$ 但**单次测量永远得不到这个值**——期望值 ≠ 可能读数：量子概率的第一课。
 
 **例 2（不确定性数量级）** 电子限制在原子尺度 $\sigma_x \sim 10^{-10}$ m：$\sigma_p \geq \frac{\hbar}{2\sigma_x}$ ⇒ 动能 $\sim\frac{\sigma_p^2}{2m} \sim$ eV 级——**原子的尺寸-能量刻度由不确定性原理锁定**（电子不塌进核：压得越紧动能越贵——em-03 经典塌缩悖论的量子解答）。
 
-**例 3（相位差拍）** 上例叠加态的 $|\Psi(x,t)|^2$ 含 $\cos\frac{(E_2 - E_1)t}{\hbar}$ 项——概率密度以 $\omega_{21}=(E_2-E_1)/\hbar$ 的 Bohr 角频率振荡：**能级差除以 $\hbar$ 才是角频率**（光谱线的出处，atom-01 收线）。$\blacksquare$
+**例 3（相位差拍）** 上例的复波函数一般给出
+
+$$
+|\Psi(x,t)|^2=\tfrac12(|\psi_1(x)|^2+|\psi_2(x)|^2)
++\operatorname{Re}\!\left[\psi_1(x)^*\psi_2(x)e^{-i(E_2-E_1)t/\hbar}\right].
+$$
+
+只有选取实波函数时，交叉项才直接写成 $\psi_1\psi_2\cos((E_2-E_1)t/\hbar)$。局部重叠为零处没有拍频项，积分后的总概率始终为 $1$（正交性消去交叉项）。能级差除以 $\hbar$ 是 Bohr **角频率**；出现可见光谱线还需相应耦合矩阵元不为零。
+
+## 原始资料与进一步核查
+
+[MIT 22.51 完整讲义](https://ocw.mit.edu/courses/22-51-quantum-theory-of-radiation-interactions-fall-2012/693972cea9cf9da5e4e9e86fbc72c9e7_MIT22_51F12_Notes.pdf) 第3章讨论公理和重复测量，第7章引入混合态；连续谱与广义本征态可衔接本站算子课程。上方概率例子用二阶投影矩阵即可独立复算。
 
 ---
 

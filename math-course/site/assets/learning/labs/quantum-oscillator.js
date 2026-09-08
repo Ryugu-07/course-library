@@ -30,7 +30,7 @@
     { id: "wide", label: "高激发 n=6", n: 6, N: 20, X: 8 }
   ];
   var STYLE_TEXT = [
-    ".qo-lab{--qo-blue:var(--cl-blue,#315f9d);--qo-gold:var(--cl-gold,#9b6a12);--qo-green:var(--cl-green,#39734d);--qo-red:var(--cl-red,#b64335);--qo-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
+    ".qo-lab{--qo-blue:#315f9d;--qo-gold:var(--cl-gold,#9b6a12);--qo-green:var(--cl-green,#39734d);--qo-red:var(--cl-red,#b64335);--qo-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
     "html[data-theme=\"dark\"] .qo-lab{--qo-blue:#83c8ff;--qo-gold:#e2b458;--qo-green:#72bd8b;--qo-red:#f08c7d;--qo-soft:#b8b2a7;}",
     ".qo-lab *,.qo-lab *::before,.qo-lab *::after{box-sizing:border-box;}.qo-lab [hidden]{display:none!important;}",
     ".qo-lab h3,.qo-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.qo-lab h3{font-size:1.18rem;}.qo-lab h4{font-size:1rem;}.qo-lab .qo-intro,.qo-lab .qo-note,.qo-lab .qo-feedback{color:var(--qo-soft);font-size:13px;line-height:1.7;}",
@@ -39,7 +39,7 @@
     ".qo-lab .qo-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.qo-lab .qo-actions>*{flex:1 1 170px;}.qo-lab .qo-feedback{min-height:2em;margin:8px 0;font-weight:700;}.qo-lab .qo-pass{color:var(--qo-green);}.qo-lab .qo-warn{color:var(--qo-red);}",
     ".qo-lab .qo-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.qo-lab .qo-presets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:11px 0;}.qo-lab .qo-presets button{font-size:12px;}.qo-lab .qo-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:12px 0;}.qo-lab .qo-control{display:grid;gap:5px;min-width:0;}.qo-lab .qo-control label{color:var(--qo-soft);font-size:13px;font-weight:700;}.qo-lab output{color:var(--accent);font-variant-numeric:tabular-nums;}.qo-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
     ".qo-lab .qo-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0;}.qo-lab .qo-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.qo-lab .qo-metric:nth-child(1),.qo-lab .qo-metric:nth-child(4){border-top-color:var(--qo-blue);}.qo-lab .qo-metric:nth-child(2),.qo-lab .qo-metric:nth-child(5){border-top-color:var(--qo-gold);}.qo-lab .qo-metric:nth-child(3),.qo-lab .qo-metric:nth-child(6){border-top-color:var(--qo-green);}.qo-lab .qo-metric span{display:block;color:var(--qo-soft);font-size:11.5px;line-height:1.4;}.qo-lab .qo-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}",
-    ".qo-lab .qo-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.qo-lab svg{display:block;width:100%;height:auto;min-width:700px;color:var(--fg);}.qo-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.qo-lab .qo-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.qo-lab .qo-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.qo-lab .qo-wave{fill:none;stroke:var(--qo-blue);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;}.qo-lab .qo-node{stroke:var(--qo-red);stroke-width:1.4;stroke-dasharray:4 4;}.qo-lab .qo-bar-exact{fill:var(--qo-blue);fill-opacity:.78;}.qo-lab .qo-bar-truncated{fill:var(--qo-red);fill-opacity:.78;}.qo-lab .qo-chart-title{font-size:13px;font-weight:750;}.qo-lab .qo-chart-label{font-size:11px;}",
+    ".qo-lab .qo-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.qo-lab svg{display:block;width:100%;height:auto;min-width:780px;color:var(--fg);}.qo-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.qo-lab .qo-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.qo-lab .qo-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.qo-lab .qo-wave{fill:none;stroke:var(--qo-blue);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;}.qo-lab .qo-node{stroke:var(--qo-red);stroke-width:1.4;stroke-dasharray:4 4;}.qo-lab .qo-bar-exact{fill:var(--qo-blue);fill-opacity:.78;}.qo-lab .qo-bar-truncated{fill:var(--qo-red);fill-opacity:.78;}.qo-lab .qo-chart-title{font-size:13px;font-weight:750;}.qo-lab .qo-chart-label{font-size:12px;}",
     ".qo-lab .qo-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.qo-lab table{width:100%;min-width:900px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.qo-lab caption{padding:0 0 7px;text-align:left;color:var(--qo-soft);font-size:12px;line-height:1.55;}.qo-lab th,.qo-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap;}.qo-lab th{color:var(--qo-soft);font-size:11.5px;font-weight:750;}.qo-lab .qo-good{color:var(--qo-green);font-weight:750;}.qo-lab .qo-bad{color:var(--qo-red);font-weight:750;}.qo-lab .qo-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--qo-green);background:var(--bg);font-size:13px;line-height:1.7;}",
     "@media(max-width:980px){.qo-lab .qo-presets{grid-template-columns:repeat(3,minmax(0,1fr));}.qo-lab .qo-metrics{grid-template-columns:repeat(3,minmax(0,1fr));}}",
     "@media(max-width:650px){.qo-lab .qo-choice-row,.qo-lab .qo-presets,.qo-lab .qo-controls,.qo-lab .qo-metrics{grid-template-columns:minmax(0,1fr);}.qo-lab .qo-chart{padding:5px;}}",
@@ -182,6 +182,8 @@
       loweringCoefficient: config.n > 0 ? Math.sqrt(config.n) : 0,
       raisingCoefficient: atTop ? 0 : Math.sqrt(config.n + 1),
       exactEnergy: exactEnergy,
+      projectedEnergy: exactEnergy,
+      signedCommutatorResidual: atTop ? -config.N : 0,
       truncatedEnergy: truncatedEnergy,
       energyError: truncatedEnergy - exactEnergy,
       commutatorResidual: atTop ? config.N : 0,
@@ -237,7 +239,7 @@
     var places = digits === undefined ? 5 : digits;
     var absolute = Math.abs(value);
     if (absolute > 0 && (absolute < 0.001 || absolute >= 10000)) return value.toExponential(Math.min(places, 5));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function appendChildren(node, children, doc) {
@@ -305,8 +307,8 @@
   function drawChart(api, doc, svg, result, uid) {
     clear(svg);
     var width = 780;
-    var height = 370;
-    var top = 38;
+    var height = 410;
+    var top = 64;
     var bottom = 52;
     var leftA = 52;
     var rightA = 430;
@@ -345,10 +347,10 @@
     svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: plotBottom, x2: rightA, y2: plotBottom, className: "qo-axis" }));
     svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: top, x2: leftA, y2: plotBottom, className: "qo-axis" }));
     svg.appendChild(svgText(api, doc, leftA, 20, "ψ_n(x)：节点与有限窗口", { className: "qo-chart-title" }));
-    svg.appendChild(svgText(api, doc, rightA, 20, "红虚线：网格识别的节点", { "text-anchor": "end" }));
+    svg.appendChild(svgText(api, doc, rightA, 43, "红虚线：网格识别的节点", { "text-anchor": "end" }));
     var bars = [
-      { label: "E_n", value: result.fock.exactEnergy, className: "qo-bar-exact" },
-      { label: "E_N", value: result.fock.truncatedEnergy, className: "qo-bar-truncated" }
+      { label: "P_N H P_N", value: result.fock.exactEnergy, className: "qo-bar-exact" },
+      { label: "H_N", value: result.fock.truncatedEnergy, className: "qo-bar-truncated" }
     ];
     [0, energyMax / 2, energyMax].forEach(function (value) {
       svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: yB(value), x2: rightB, y2: yB(value), className: "qo-grid" }));
@@ -364,8 +366,8 @@
     });
     svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: plotBottom, x2: rightB, y2: plotBottom, className: "qo-axis" }));
     svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: top, x2: leftB, y2: plotBottom, className: "qo-axis" }));
-    svg.appendChild(svgText(api, doc, leftB, 20, "能量：无限维 vs 截断图", { className: "qo-chart-title" }));
-    svg.appendChild(svgText(api, doc, rightB, 20, result.fock.atTop ? "顶层泄漏" : "当前态未到顶层", { "text-anchor": "end" }));
+    svg.appendChild(svgText(api, doc, leftB, 20, "能量：先投影 H / 先截断乘积", { className: "qo-chart-title" }));
+    svg.appendChild(svgText(api, doc, rightB, 43, result.fock.atTop ? "顶层乘积误差" : "当前态未到顶层", { "text-anchor": "end" }));
   }
 
   function metric(api, doc, label, value) {
@@ -378,14 +380,15 @@
   function ledger(api, doc, result) {
     var rows = [
       ["精确能级 E_n", format(result.fock.exactEnergy, 7), "n + 1/2", "无限维解析值"],
-      ["截断能级 E_N", format(result.fock.truncatedEnergy, 7), format(result.fock.energyError, 7), result.fock.atTop ? "顶层少了升算子项" : "当前态低于顶层"],
+      ["先投影 H 的能级", format(result.fock.projectedEnergy, 7), "n + 1/2", "包括顶层都精确"],
+      ["先截断乘积 H_N", format(result.fock.truncatedEnergy, 7), format(result.fock.energyError, 7), result.fock.atTop ? "顶层少了升算子项" : "当前态低于顶层"],
       ["能级间隔", "1", "E_{n+1}−E_n", "等间距，不随 n 增长"],
       ["降算符系数", format(result.fock.loweringCoefficient, 7), "sqrt(n)", "a|n>"],
       ["升算符系数", format(result.fock.raisingCoefficient, 7), "sqrt(n+1)", result.fock.atTop ? "有限图把它截成 0" : "a†|n>"],
       ["网格归一化", format(result.grid.norm, 9), "1", "有限窗口与求积误差"],
       ["节点数", String(result.grid.nodeCount), String(result.exact.nodes), "从 n=0 编号"],
-      ["不确定性乘积", format(result.exact.uncertaintyProduct, 7), format(result.numeric.uncertaintyProduct, 7), "解析值 / 网格值"],
-      ["顶层对易子残差", format(result.fock.commutatorResidual, 7), "0（非顶层）或 N（顶层）", "I_N−N|N−1><N−1|"]
+      ["全线乘积 / 原始网格诊断", format(result.exact.uncertaintyProduct, 7), format(result.numeric.uncertaintyProduct, 7), "未补尾且未归一化；网格列不是新态方差"],
+      ["对易子残差范数", format(result.fock.commutatorResidual, 7), "0（非顶层）或 N（顶层）", "有符号残差在顶层是 −N"]
     ];
     var tableNode = makeElement(api, doc, "table", {});
     tableNode.appendChild(makeElement(api, doc, "caption", {}, "透明账本：精确公式、网格诊断和有限 Fock 边界分栏。"));
@@ -409,7 +412,7 @@
     var doc = root.ownerDocument || document;
     installStyles(doc);
     clear(root);
-    root.className = "qo-lab";
+    root.classList.add("qo-lab");
     var uid = "qo-" + (++SERIAL);
     var state = {
       config: copyConfig(DEFAULTS),
@@ -511,13 +514,14 @@
     addRange("X", "位置窗口 X", 4, 12, 0.5);
     revealed.appendChild(controls);
     var metricsNode = makeElement(api, doc, "div", { className: "qo-metrics" });
-    var chartWrap = makeElement(api, doc, "div", { className: "qo-chart" });
-    var chart = makeSvg(api, doc, "svg", { viewBox: "0 0 780 370", role: "img", "aria-labelledby": uid + "-chart-title " + uid + "-chart-desc" });
+    var chartWrap = makeElement(api, doc, "div", { className: "qo-chart", tabindex: "0", role: "region", "aria-label": "谐振子波函数与能量图，可横向滚动" });
+    var chart = makeSvg(api, doc, "svg", { viewBox: "0 0 780 410", role: "img", "aria-labelledby": uid + "-chart-title " + uid + "-chart-desc" });
     chartWrap.appendChild(chart);
     var ledgerWrap = makeElement(api, doc, "div", { className: "qo-ledger" });
     var interpretation = makeElement(api, doc, "p", { className: "qo-interpretation" });
     revealed.appendChild(metricsNode);
     revealed.appendChild(chartWrap);
+    revealed.appendChild(makeElement(api, doc, "p", { className: "qo-note" }, "窄屏可横向滑动图与账本；蓝柱为先投影 H 的能量，红柱为先截断再相乘的能量。"));
     revealed.appendChild(ledgerWrap);
     revealed.appendChild(interpretation);
     shell.appendChild(revealed);
@@ -540,8 +544,8 @@
       metricsNode.replaceChildren(
         metric(api, doc, "n / N", result.config.n + " / " + result.config.N),
         metric(api, doc, "精确 E_n", format(result.fock.exactEnergy, 5)),
-        metric(api, doc, "截断 E_N", format(result.fock.truncatedEnergy, 5)),
-        metric(api, doc, "归一化", format(result.grid.norm, 7)),
+        metric(api, doc, "先截断乘积 H_N", format(result.fock.truncatedEnergy, 5)),
+        metric(api, doc, "有限窗概率质量", format(result.grid.norm, 7)),
         metric(api, doc, "节点数", result.grid.nodeCount + " / " + result.exact.nodes),
         metric(api, doc, "sigma_x sigma_p", format(result.exact.uncertaintyProduct, 5))
       );
@@ -549,8 +553,8 @@
       clear(ledgerWrap);
       ledgerWrap.appendChild(ledger(api, doc, result));
       interpretation.textContent = result.fock.atTop
-        ? "当前态正好在有限 Fock 图顶层：升算符被截断，对易子残差为 N，截断能量不再等于无限维 E_n。"
-        : "当前态低于 Fock 顶层；能级、升降系数和节点应与无限维公式一致，剩余差异来自有限位置窗口和网格求积。";
+        ? "当前态正好在有限 Fock 图顶层：升算符被截断，对易子残差范数为 N；先截断再相乘的 H_N 有误差，但 P_N H P_N 仍给出精确 E_n。"
+        : "当前态低于 Fock 顶层；两种能量和升降系数在该态一致。有限位置窗口可能遗漏节点与概率质量；网格乘积仅作求积诊断。";
     }
 
     form.addEventListener("submit", function (event) {
@@ -628,6 +632,7 @@
 
   return {
     PRESETS: PRESETS,
+    format: format,
     factorial: factorial,
     hermite: hermite,
     wavefunction: wavefunction,
