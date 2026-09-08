@@ -87,6 +87,7 @@
 | 从自由分解算出循环模的张量积与 Tor₁，并反驳一次成功就证明平坦 | [张量积、平坦性与 Tor](bridge-05-tensor-tor.html) | 换底、导出张量积与交点 |
 | 写出 O(−3) 的 Čech 微分，逐项消去 Laurent 多项式 | [Čech 与射影直线](bridge-06-cech.html) | 层上同调、扩张与丛的模问题 |
 | 区分扩张类与中间模，给出非分裂扩张 | [Hom、Ext 与扩张](bridge-07-ext.html) | 同调代数与丛的变形 |
+| 从局部环计算 m/m²，用双数提升核验一阶切向约束 | [局部环与切空间](bridge-11-tangent-spaces.html) | 概形的无穷小信息与奇点 |
 | 写出 C* 上的水平解，检验一次绕行的单值化 | [联络、水平截面与 D-模](bridge-08-connections.html) | 局部系统、微分方程与几何 Langlands |
 
 随机分析路线有两个计算入口。[Markov 桥与路径枚举](bridge-10-markov-paths.html)将端点重配落实为两步转移及八条路径，接回 Schrödinger 桥；[Wick 平均与 L² 极限](bridge-09-wick-limits.html)要求亲自写出同一 Fourier 耦合下两个截断的均方差，再进入奇异 SPDE 的核估计。

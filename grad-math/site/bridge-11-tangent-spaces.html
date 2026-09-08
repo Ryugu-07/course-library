@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>局部环与切空间 · 研究生数学讲义库</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">研究生数学讲义库</a>
+    <div class="site-subtitle">定理 · 证明 · 对标教材</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">总览</div><ul><li><a href="index.html">00 · 使用指南：标注体系与教材对照</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">概率与分析线</div><ul><li><a href="mt-01-measure-expectation.html">测度概率 I · 测度论语言与期望</a></li><li><a href="mt-02-lln.html">测度概率 II · 独立性与大数定律</a></li><li><a href="mt-03-conditional-martingale.html">测度概率 III · 条件期望与鞅</a></li><li><a href="mt-04-martingale-convergence.html">测度概率 IV · 鞅收敛与应用</a></li><li><a href="hdp-01-subgaussian.html">高维概率 I · 亚高斯与集中不等式</a></li><li><a href="hdp-02-random-vectors.html">高维概率 II · 随机向量与降维</a></li><li><a href="hdp-03-random-matrices.html">高维概率 III · 随机矩阵与谱界</a></li><li><a href="hdp-04-chaining.html">高维概率 IV · 链式法与经验过程</a></li><li><a href="sc-01-brownian-rigorous.html">随机分析 I · 布朗运动的严格构造</a></li><li><a href="sc-02-ito-integral.html">随机分析 II · Itô 积分的构造</a></li><li><a href="sc-03-ito-formula-sde.html">随机分析 III · Itô 公式与 SDE 理论</a></li><li><a href="sc-04-girsanov.html">随机分析 IV · Girsanov 与 Feynman–Kac</a></li><li><a href="pde2-01-distributions.html">现代 PDE I · 分布与弱导数</a></li><li><a href="pde2-02-sobolev.html">现代 PDE II · Sobolev 空间</a></li><li><a href="pde2-03-elliptic.html">现代 PDE III · 椭圆方程弱解理论</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">统计与学习线</div><ul><li><a href="as-01-convergence-tools.html">渐近统计 I · 收敛工具箱</a></li><li><a href="as-02-mle-asymptotics.html">渐近统计 II · MLE 渐近理论</a></li><li><a href="as-03-testing-asymptotics.html">渐近统计 III · 三大检验与局部理论</a></li><li><a href="slt-01-pac.html">统计学习 I · PAC 框架与有限类</a></li><li><a href="slt-02-vc.html">统计学习 II · VC 理论</a></li><li><a href="slt-03-rademacher.html">统计学习 III · Rademacher 复杂度</a></li><li><a href="slt-04-stability-online.html">统计学习 IV · 稳定性与在线学习</a></li><li><a href="mdp-01-bellman.html">MDP I · Bellman 算子与压缩</a></li><li><a href="mdp-02-iteration.html">MDP II · 价值迭代与策略迭代</a></li><li><a href="mdp-03-stochastic-approx.html">MDP III · 随机逼近与 Q 学习</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">优化与计算线</div><ul><li><a href="cvx-01-conjugate.html">凸优化 I · 共轭函数与 Fenchel 对偶</a></li><li><a href="cvx-02-first-order.html">凸优化 II · 一阶方法收敛性证明</a></li><li><a href="cvx-03-splitting.html">凸优化 III · 增广拉格朗日与 ADMM</a></li><li><a href="cvx-04-interior-point.html">凸优化 IV · 内点法与 SDP</a></li><li><a href="nla-01-svd-stability.html">数值线代 I · SVD、QR 与后向稳定性</a></li><li><a href="nla-02-eigen.html">数值线代 II · 特征值算法</a></li><li><a href="nla-03-krylov.html">数值线代 III · Krylov 子空间方法</a></li><li><a href="ma-01-norms-perturbation.html">矩阵分析 I · 范数、谱半径与扰动</a></li><li><a href="ma-02-psd-functions.html">矩阵分析 II · 半正定、Schur 补与矩阵函数</a></li><li><a href="ma-03-perron.html">矩阵分析 III · Perron–Frobenius</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">信息与传输线</div><ul><li><a href="it2-01-aep.html">信息论进阶 I · AEP 与典型集</a></li><li><a href="it2-02-channel.html">信息论进阶 II · 信道编码定理</a></li><li><a href="it2-03-rate-distortion.html">信息论进阶 III · 率失真与大偏差</a></li><li><a href="ot-01-monge-kantorovich.html">最优传输 I · Monge–Kantorovich 与对偶</a></li><li><a href="ot-02-wasserstein.html">最优传输 II · Wasserstein 几何与 Brenier</a></li><li><a href="ot-03-computational.html">最优传输 III · Sinkhorn 与生成模型</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">几何与代数线</div><ul><li><a href="mfld-01-manifolds.html">流形几何 I · 光滑流形与切空间</a></li><li><a href="mfld-02-forms-stokes.html">流形几何 II · 微分形式与 Stokes</a></li><li><a href="mfld-03-riemannian.html">流形几何 III · 黎曼度量与测地线</a></li><li><a href="mfld-04-curvature.html">流形几何 IV · 曲率</a></li><li><a href="at-01-fundamental-group.html">代数拓扑 I · 同伦与基本群</a></li><li><a href="at-02-covering.html">代数拓扑 II · 覆盖空间与 van Kampen</a></li><li><a href="at-03-homology.html">代数拓扑 III · 同调</a></li><li><a href="alg2-01-groups-advanced.html">代数进阶 I · Sylow 与可解群</a></li><li><a href="alg2-02-galois.html">代数进阶 II · Galois 对应</a></li><li><a href="alg2-03-insolvability.html">代数进阶 III · 五次不可解</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 代数到几何</div><ul><li><a href="bridge-01-modules.html">基础 I · 模、商与正合性</a></li><li><a href="bridge-02-localization.html">基础 II · 局部化与素谱入口</a></li><li><a href="bridge-03-complexes.html">基础 III · 链复形与同调计算</a></li><li><a href="bridge-04-sheaves.html">基础 IV · 层、限制与粘合</a></li><li><a href="bridge-05-tensor-tor.html">基础 V · 张量积、平坦性与 Tor</a></li><li><a href="bridge-06-cech.html">基础 VI · Čech 与射影直线</a></li><li><a href="bridge-07-ext.html">基础 VII · Hom、Ext 与扩张</a></li><li><a href="bridge-08-connections.html">基础 VIII · 联络、水平截面与 D-模</a></li><li class="active"><a href="bridge-11-tangent-spaces.html">基础 XI · 局部环与切空间</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">基础衔接 · 随机分析与路径</div><ul><li><a href="bridge-09-wick-limits.html">基础 IX · Wick 平均与 L² 极限</a></li><li><a href="bridge-10-markov-paths.html">基础 X · Markov 桥与路径枚举</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-schrodinger-bridge.html">前沿 I · Schrödinger 桥与路径空间</a></li><li><a href="frontier-02-singular-spde.html">前沿 II · 奇异 SPDE 与重整化</a></li><li><a href="frontier-03-geometric-langlands.html">前沿 III · 几何 Langlands</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 现代数论入口</div><ul><li><a href="nt-01-elliptic-counting.html">数论 I · 有限域上的椭圆曲线</a></li><li><a href="nt-02-elliptic-group.html">数论 II · 椭圆曲线群与有理点</a></li><li><a href="nt-03-modular-forms.html">数论 III · 模形式与 q 展开</a></li><li><a href="nt-04-frobenius-galois.html">数论 IV · Frobenius 与 Galois 表示</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-08 18:25</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本页目录</summary><div class="toc">
+<ul>
+<li><a href="#tangent-spaces-title">同样只有一个点，为什么一个方向为零，另一个却有切向量？</a></li>
+<li><a href="#1">1. 点集只回答“在哪里”，函数环还回答“怎样靠近”</a></li>
+<li><a href="#2">2. 为什么要先除掉平方消失</a></li>
+<li><a href="#3">3. 双数把“一阶但没有更高阶”做成精确代数</a></li>
+<li><a href="#4-jacobian">4. Jacobian 核从多项式一阶展开直接出现</a></li>
+<li><a href="#5">5. 抛物线：代数切空间与熟悉切线一致</a></li>
+<li><a href="#6-zariski">6. 尖点：曲线一维，Zariski 切空间却在原点跳到二维</a></li>
+<li><a href="#7">7. 切空间仍然看不见全部厚度</a></li>
+<li><a href="#8">8. 两道迁移题</a></li>
+<li><a href="#_1">速查与资料</a></li>
+</ul>
+</div>
+</details>
+<h1 id="11-zariski">基础衔接 11 · Zariski 切空间：一个普通点里能藏几条无穷小方向<a class="headerlink" href="#11-zariski" title="Permanent link"></a></h1>
+<blockquote>
+<p>先修：<a href="bridge-01-modules.html">模与商</a>、<a href="bridge-02-localization.html">局部化</a>、<a href="bridge-04-sheaves.html">层与茎</a>。本讲只处理复数域上有限生成代数的仿射概形及其闭点：从局部环的 <span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span>、双数提升和 Jacobian 核三个角度计算同一个切空间。它补足<a href="frontier-03-geometric-langlands.html#langlands-prerequisite-route">几何 Langlands 先修路线</a>中的无穷小信息，但不建立一般概形、光滑态射或切复形理论。</p>
+</blockquote>
+<div data-learning-page></div>
+<section aria-labelledby="tangent-spaces-title" class="learning-layer">
+<h2 id="tangent-spaces-title">同样只有一个点，为什么一个方向为零，另一个却有切向量？<a class="headerlink" href="#tangent-spaces-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 点集只回答“在哪里”，函数环还回答“怎样靠近”<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>对含单位交换环 <span class="arithmatex">\(A\)</span>，仿射概形</p>
+<div class="arithmatex">\[
+X=\operatorname{Spec}A
+\]</div>
+<p>的点是 <span class="arithmatex">\(A\)</span> 的素理想。一个点 <span class="arithmatex">\(\mathfrak p\)</span> 附近的函数由局部环</p>
+<div class="arithmatex">\[
+\mathcal O_{X,\mathfrak p}=A_{\mathfrak p}
+\]</div>
+<p>记录；它的极大理想为 <span class="arithmatex">\(\mathfrak m_{\mathfrak p}=\mathfrak pA_{\mathfrak p}\)</span>，剩余域为</p>
+<div class="arithmatex">\[
+\kappa(\mathfrak p)=
+\mathcal O_{X,\mathfrak p}/\mathfrak m_{\mathfrak p}.
+\]</div>
+<p>一般点的剩余域未必是底域。本讲限定 <span class="arithmatex">\(A\)</span> 是有限生成 <span class="arithmatex">\(\mathbb C\)</span>-代数，并只看闭点。Hilbert 零点定理保证这些闭点的剩余域就是 <span class="arithmatex">\(\mathbb C\)</span>；在多项式坐标中，闭点 <span class="arithmatex">\((p_1,\ldots,p_n)\)</span> 对应极大理想 <span class="arithmatex">\((x_1-p_1,\ldots,x_n-p_n)\)</span>。</p>
+<p>先比较</p>
+<div class="arithmatex">\[
+X_0=\operatorname{Spec}\mathbb C,\qquad
+X_1=\operatorname{Spec}\bigl(\mathbb C[\eta]/(\eta^2)\bigr).
+\]</div>
+<p>两个底层拓扑空间都只有一个点：第二个环中每个素理想都包含幂零元 <span class="arithmatex">\(\eta\)</span>，所以唯一素理想是 <span class="arithmatex">\((\eta)\)</span>。但 <span class="arithmatex">\(X_0\)</span> 的点附近没有非零的消失函数，而 <span class="arithmatex">\(X_1\)</span> 中 <span class="arithmatex">\(\eta\ne0\)</span>、<span class="arithmatex">\(\eta^2=0\)</span>。普通点集忘掉了这条一阶厚度。</p>
+<h2 id="2">2. 为什么要先除掉平方消失<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在闭点 <span class="arithmatex">\(p\)</span> 的局部环中，<span class="arithmatex">\(\mathfrak m_p\)</span> 由所有在 <span class="arithmatex">\(p\)</span> 消失的函数芽组成。乘积 <span class="arithmatex">\(fg\)</span> 若 <span class="arithmatex">\(f,g\in\mathfrak m_p\)</span>，就在该点至少二阶消失。只保留一阶信息，就是取余切空间</p>
+<div class="arithmatex">\[
+\mathfrak m_p/\mathfrak m_p^2.
+\]</div>
+<p>Zariski 切空间定义为它的复线性对偶：</p>
+<div class="arithmatex">\[
+\boxed{
+T_pX=\operatorname{Hom}_{\mathbb C}
+\bigl(\mathfrak m_p/\mathfrak m_p^2,\mathbb C\bigr).
+}
+\]</div>
+<p>对 <span class="arithmatex">\(X_0=\operatorname{Spec}\mathbb C\)</span>，极大理想为零，所以 <span class="arithmatex">\(T_pX_0=0\)</span>。对双数点 <span class="arithmatex">\(X_1\)</span>，<span class="arithmatex">\(\mathfrak m=(\eta)\)</span> 且 <span class="arithmatex">\(\mathfrak m^2=0\)</span>，故 <span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span> 由 <span class="arithmatex">\(\eta\)</span> 的类生成，切空间维数为 1。两个空间的普通点集相同，切空间却不同。</p>
+<p>“取对偶”把一阶消失函数变成测量方向的线性规则。一个切向量 <span class="arithmatex">\(v\)</span> 接收函数 <span class="arithmatex">\(f\)</span>，输出它沿该方向的一阶变化；任何二阶乘积都应输出零，所以规则必须经过 <span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span>。</p>
+<h2 id="3">3. 双数把“一阶但没有更高阶”做成精确代数<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>令</p>
+<div class="arithmatex">\[
+D=\mathbb C[\epsilon]/(\epsilon^2).
+\]</div>
+<p>闭点 <span class="arithmatex">\(p\)</span> 给出求值同态 <span class="arithmatex">\(p^\#:A\to\mathbb C\)</span>。点上的一个双数提升，是 <span class="arithmatex">\(\mathbb C\)</span>-代数同态</p>
+<div class="arithmatex">\[
+\widetilde p^\#:A\longrightarrow D
+\]</div>
+<p>使它模掉 <span class="arithmatex">\(\epsilon\)</span> 后回到 <span class="arithmatex">\(p^\#\)</span>。因此必可写成</p>
+<div class="arithmatex">\[
+\widetilde p^\#(a)=p^\#(a)+\epsilon\,\delta(a).
+\]</div>
+<p>乘法保持要求</p>
+<div class="arithmatex">\[
+\delta(ab)=p^\#(a)\delta(b)+p^\#(b)\delta(a),
+\]</div>
+<p>也就是点 <span class="arithmatex">\(p\)</span> 处的 Leibniz 规则。若 <span class="arithmatex">\(a,b\in\mathfrak m_p\)</span>，两项的函数值都为零，所以 <span class="arithmatex">\(\delta(ab)=0\)</span>；<span class="arithmatex">\(\delta\)</span> 因而消掉 <span class="arithmatex">\(\mathfrak m_p^2\)</span>，给出 <span class="arithmatex">\(\mathfrak m_p/\mathfrak m_p^2\)</span> 上的线性泛函。</p>
+<p>这里从 <span class="arithmatex">\(A\)</span> 进入局部环还需核对分母。记闭点对应的极大理想为 <span class="arithmatex">\(\mathfrak p=\ker p^\#\)</span>。若 <span class="arithmatex">\(s\notin\mathfrak p\)</span>，则 <span class="arithmatex">\(p^\#(s)\ne0\)</span>，而</p>
+<div class="arithmatex">\[
+p^\#(s)+\epsilon\delta(s)
+\]</div>
+<p>在 <span class="arithmatex">\(D\)</span> 中可逆，其逆为</p>
+<div class="arithmatex">\[
+\frac1{p^\#(s)}
+-\epsilon\frac{\delta(s)}{p^\#(s)^2}.
+\]</div>
+<p>因此局部化的通用性质让提升唯一延拓到 <span class="arithmatex">\(A_{\mathfrak p}=\mathcal O_{X,p}\)</span>；这才使上面的局部环余切空间与双数提升严格接上。</p>
+<p>反过来，给定 <span class="arithmatex">\(\ell:\mathfrak m_p/\mathfrak m_p^2\to\mathbb C\)</span>，令</p>
+<div class="arithmatex">\[
+\delta(a)=\ell\bigl([a-p^\#(a)]\bigr),
+\]</div>
+<p>就得到满足 Leibniz 规则的 <span class="arithmatex">\(\delta\)</span>，从而得到唯一双数提升。因此</p>
+<div class="arithmatex">\[
+\boxed{
+T_pX
+\cong\{\operatorname{Spec}D\to X
+\text{ 的点上提升}\}.
+}
+\]</div>
+<p>这不是把 <span class="arithmatex">\(\epsilon\)</span> 当成一个“很小但非零的实数”。<span class="arithmatex">\(\epsilon^2=0\)</span> 是精确关系，它强制所有二阶及更高项消失。</p>
+<h2 id="4-jacobian">4. Jacobian 核从多项式一阶展开直接出现<a class="headerlink" href="#4-jacobian" title="Permanent link"></a></h2>
+<p>令</p>
+<div class="arithmatex">\[
+A=\mathbb C[x_1,\ldots,x_n]/(F_1,\ldots,F_m),
+\qquad X=\operatorname{Spec}A,
+\]</div>
+<p>闭点 <span class="arithmatex">\(p=(p_1,\ldots,p_n)\)</span> 满足所有 <span class="arithmatex">\(F_\alpha(p)=0\)</span>。向量</p>
+<div class="arithmatex">\[
+v=(v_1,\ldots,v_n)\in\mathbb C^n
+\]</div>
+<p>对应候选提升</p>
+<div class="arithmatex">\[
+x_i\longmapsto p_i+\epsilon v_i.
+\]</div>
+<p>因为 <span class="arithmatex">\(\epsilon^2=0\)</span>，多项式展开精确截断在一阶：</p>
+<div class="arithmatex">\[
+F_\alpha(p+\epsilon v)
+=F_\alpha(p)+\epsilon\sum_{i=1}^n
+\frac{\partial F_\alpha}{\partial x_i}(p)v_i.
+\]</div>
+<p>提升能穿过商环，当且仅当每个生成关系仍被送到零。又因 <span class="arithmatex">\(F_\alpha(p)=0\)</span>，条件就是</p>
+<div class="arithmatex">\[
+J_F(p)v=0.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\boxed{T_pX=\ker J_F(p).}
+\]</div>
+<p>这里的 Jacobian 是所给定义方程在该点的一阶部分。它不是从画出的曲线“目测一条切线”，也不是数值微分近似。</p>
+<figure>
+<p><img alt="一个点p先提升到p加epsilon乘v，代入多项式后因epsilon平方为零只留下Jacobian乘v；抛物线原点留下一个线性约束，而尖点原点梯度为零、没有一阶约束。" src="assets/img/bridge-11-tangent-spaces.svg" /></p>
+<figcaption>双数探针只保留一阶项。本讲平面曲线普通点的线性项切出一条方向；尖点的定义方程没有一次项，所有环境方向都会通过这一阶测试。</figcaption>
+</figure>
+<h2 id="5">5. 抛物线：代数切空间与熟悉切线一致<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>取</p>
+<div class="arithmatex">\[
+X_{\rm par}=V(y-x^2)\subset\mathbb A^2_{\mathbb C}.
+\]</div>
+<p>参数点 <span class="arithmatex">\(p_t=(t,t^2)\)</span>。将</p>
+<div class="arithmatex">\[
+x\mapsto t+\epsilon a,\qquad
+y\mapsto t^2+\epsilon b
+\]</div>
+<p>代入 <span class="arithmatex">\(F=y-x^2\)</span>：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+F(p_t+\epsilon(a,b))
+&amp;=t^2+\epsilon b-(t+\epsilon a)^2\\
+&amp;=\epsilon(b-2ta).
+\end{aligned}
+\]</div>
+<p>所以</p>
+<div class="arithmatex">\[
+T_{p_t}X_{\rm par}
+=\{(a,b)\in\mathbb C^2:b=2ta\}.
+\]</div>
+<p>梯度为 <span class="arithmatex">\(\nabla F(p_t)=(-2t,1)\)</span>，永远非零，切空间维数始终为 1。参数曲线 <span class="arithmatex">\(t\mapsto(t,t^2)\)</span> 的速度 <span class="arithmatex">\((1,2t)\)</span> 正好张成这个核。在这里，Zariski 切空间与微积分中的切线相符。</p>
+<h2 id="6-zariski">6. 尖点：曲线一维，Zariski 切空间却在原点跳到二维<a class="headerlink" href="#6-zariski" title="Permanent link"></a></h2>
+<p>取尖点曲线</p>
+<div class="arithmatex">\[
+X_{\rm cusp}=V(y^2-x^3),
+\qquad p_t=(t^2,t^3).
+\]</div>
+<p>设 <span class="arithmatex">\(F=y^2-x^3\)</span>。梯度为</p>
+<div class="arithmatex">\[
+\nabla F(p_t)=(-3t^4,2t^3),
+\]</div>
+<p>所以切向约束是</p>
+<div class="arithmatex">\[
+\boxed{-3t^4a+2t^3b=0.}
+\]</div>
+<p>当 <span class="arithmatex">\(t\ne0\)</span> 时，这是一个非零线性方程，切空间维数为 1；等价地 <span class="arithmatex">\(b=(3t/2)a\)</span>。但在尖点 <span class="arithmatex">\(t=0\)</span>，</p>
+<div class="arithmatex">\[
+\nabla F(0,0)=(0,0),
+\]</div>
+<p>一阶约束变成 <span class="arithmatex">\(0=0\)</span>，故</p>
+<div class="arithmatex">\[
+T_{(0,0)}X_{\rm cusp}=\mathbb C^2.
+\]</div>
+<p>这不表示曲线在原点突然变成二维。坐标环</p>
+<div class="arithmatex">\[
+\mathbb C[x,y]/(y^2-x^3)
+\cong\mathbb C[t^2,t^3]\subset\mathbb C[t]
+\]</div>
+<p>是超越次数 1 的整环，所以曲线维数为 1。这里使用了有限生成整域的 Krull 维数等于其分式域超越次数这一标准定理，本讲不证明它。切空间变大是在报告奇性：方程最低次数为二，没有线性项，一阶探针来不及看见约束。</p>
+<p>也不要把二维 Zariski 切空间与实图像的割线极限混同。实参数点 <span class="arithmatex">\((t^2,t^3)\)</span> 从原点看过去，斜率</p>
+<div class="arithmatex">\[
+\frac{t^3}{t^2}=t\longrightarrow0,
+\]</div>
+<p>所以实割线趋向 <span class="arithmatex">\(x\)</span> 轴。要系统记录最低次齐次方程及重数，需要切锥等进一步工具；本讲只计算一阶 Zariski 切空间。</p>
+<h2 id="7">7. 切空间仍然看不见全部厚度<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>再比较两个都只有一个闭点的局部 Artin 概形：</p>
+<div class="arithmatex">\[
+Z_2=\operatorname{Spec}\mathbb C[\eta]/(\eta^2),
+\qquad
+Z_3=\operatorname{Spec}\mathbb C[\eta]/(\eta^3).
+\]</div>
+<p>两者的极大理想都由 <span class="arithmatex">\(\eta\)</span> 生成，而且</p>
+<div class="arithmatex">\[
+\dim_{\mathbb C}\mathfrak m/\mathfrak m^2=1.
+\]</div>
+<p>所以它们的 Zariski 切空间都为一维。然而坐标环作为 <span class="arithmatex">\(\mathbb C\)</span>-向量空间的基分别为</p>
+<div class="arithmatex">\[
+(1,\eta),\qquad(1,\eta,\eta^2),
+\]</div>
+<p>局部 Artin 长度分别为 2 和 3。切空间只看 <span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span>，会忘记 <span class="arithmatex">\(\mathfrak m^2/\mathfrak m^3\)</span> 中的二阶厚度。相同普通点和相同切维仍不足以判定两个概形相同。</p>
+<div class="learning-lab" data-learning-lab="research-local" data-research-topic="tangent">
+<p><strong>完整静态后备：</strong>实验的 curve=0 表示抛物线，curve=1 表示尖点；默认 curve=1、<span class="arithmatex">\(t=0\)</span>。滑块 <span class="arithmatex">\(t\)</span> 从 <span class="arithmatex">\(-1\)</span> 到 <span class="arithmatex">\(1\)</span>，图只画实参数曲线与当前点，切空间计算仍在 <span class="arithmatex">\(\mathbb C\)</span> 上。</p>
+<table>
+<thead>
+<tr>
+<th>曲线与参数</th>
+<th>点 <span class="arithmatex">\(p_t\)</span></th>
+<th>梯度</th>
+<th>切向约束</th>
+<th style="text-align: right;">切维</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>抛物线，<span class="arithmatex">\(t=0\)</span></td>
+<td><span class="arithmatex">\((0,0)\)</span></td>
+<td><span class="arithmatex">\((0,1)\)</span></td>
+<td><span class="arithmatex">\(b=0\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>抛物线，<span class="arithmatex">\(t=1\)</span></td>
+<td><span class="arithmatex">\((1,1)\)</span></td>
+<td><span class="arithmatex">\((-2,1)\)</span></td>
+<td><span class="arithmatex">\(b=2a\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>尖点，<span class="arithmatex">\(t=-1/2\)</span></td>
+<td><span class="arithmatex">\((1/4,-1/8)\)</span></td>
+<td><span class="arithmatex">\((-3/16,-1/4)\)</span></td>
+<td><span class="arithmatex">\(b=-3a/4\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>尖点，<span class="arithmatex">\(t=0\)</span>（默认）</td>
+<td><span class="arithmatex">\((0,0)\)</span></td>
+<td><span class="arithmatex">\((0,0)\)</span></td>
+<td>无一阶约束</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>尖点，<span class="arithmatex">\(t=1/2\)</span></td>
+<td><span class="arithmatex">\((1/4,1/8)\)</span></td>
+<td><span class="arithmatex">\((-3/16,1/4)\)</span></td>
+<td><span class="arithmatex">\(b=3a/4\)</span></td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>只有精确的 <span class="arithmatex">\(t=0\)</span> 才使尖点梯度同时为零；再小但非零的 <span class="arithmatex">\(t\)</span> 仍给一维切空间。图中的切向线段只是当前 Jacobian 核的实切片；尖点处显示的两条坐标轴是整个二维空间的一组基方向，不表示切空间只有两条线，也不表示曲线填满一块区域。</p>
+</div>
+<h2 id="8">8. 两道迁移题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 取交叉曲线 <span class="arithmatex">\(X=V(xy)\subset\mathbb A^2_{\mathbb C}\)</span>。分别计算原点、<span class="arithmatex">\((1,0)\)</span> 与 <span class="arithmatex">\((0,1)\)</span> 的 Zariski 切空间，并比较曲线维数。</p>
+<details>
+<summary>先写梯度，再核对</summary>
+<p><span class="arithmatex">\(F=xy\)</span> 的梯度为 <span class="arithmatex">\((y,x)\)</span>。在原点梯度为零，所以</p>
+<div class="arithmatex">\[
+T_{(0,0)}X=\mathbb C^2.
+\]</div>
+<p>在 <span class="arithmatex">\((1,0)\)</span>，切向约束是 <span class="arithmatex">\(b=0\)</span>，得到 <span class="arithmatex">\(x\)</span> 轴方向；在 <span class="arithmatex">\((0,1)\)</span>，约束是 <span class="arithmatex">\(a=0\)</span>，得到 <span class="arithmatex">\(y\)</span> 轴方向。两条分支各为一维，整个曲线的维数也是 1，但交点的 Zariski 切空间维数跳到 2。它记录两支的一阶张成空间，不把交点变成二维曲面。</p>
+</details>
+<p><strong>题二。</strong> 为什么 <span class="arithmatex">\(Z_2=\operatorname{Spec}\mathbb C[\eta]/(\eta^2)\)</span> 与 <span class="arithmatex">\(Z_3=\operatorname{Spec}\mathbb C[\eta]/(\eta^3)\)</span> 有相同切维，却能被二阶截断探针 <span class="arithmatex">\(\mathbb C[\epsilon]/(\epsilon^3)\)</span> 区分？</p>
+<details>
+<summary>检查关系在二阶探针中的像</summary>
+<p>一个点上提升把</p>
+<div class="arithmatex">\[
+\eta\longmapsto a\epsilon+b\epsilon^2.
+\]</div>
+<p>对 <span class="arithmatex">\(Z_2\)</span>，关系 <span class="arithmatex">\(\eta^2=0\)</span> 变成 <span class="arithmatex">\(a^2\epsilon^2=0\)</span>，复数域上强迫 <span class="arithmatex">\(a=0\)</span>；对 <span class="arithmatex">\(Z_3\)</span>，<span class="arithmatex">\((a\epsilon+b\epsilon^2)^3=0\)</span> 自动成立，<span class="arithmatex">\(a\)</span> 可以非零。普通双数只保留模 <span class="arithmatex">\(\epsilon^2\)</span> 的一阶信息，因此两者切维同为 1；允许保留到二阶后，三重厚点多出的结构才显现。</p>
+</details>
+</section>
+<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>观察层次</th>
+<th>保存的信息</th>
+<th>本讲算例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>普通闭点</td>
+<td>函数取值</td>
+<td><span class="arithmatex">\(\operatorname{Spec}\mathbb C\)</span> 与双数点都只有一点</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathfrak m/\mathfrak m^2\)</span></td>
+<td>一阶消失函数</td>
+<td>切空间是其线性对偶</td>
+</tr>
+<tr>
+<td>双数提升</td>
+<td><span class="arithmatex">\(p+\epsilon v\)</span>，其中 <span class="arithmatex">\(\epsilon^2=0\)</span></td>
+<td>精确导出 <span class="arithmatex">\(J_F(p)v=0\)</span></td>
+</tr>
+<tr>
+<td>更高商 <span class="arithmatex">\(\mathfrak m^n/\mathfrak m^{n+1}\)</span></td>
+<td>高阶厚度</td>
+<td>双重与三重厚点切维相同但长度不同</td>
+</tr>
+</tbody>
+</table>
+<p>双数定义、切空间及其与局部余切空间的对偶见 <a href="https://stacks.math.columbia.edu/tag/0B28">Stacks Project：Tangent spaces</a>；闭点剩余域的限定见 <a href="https://stacks.math.columbia.edu/tag/00FV">Hilbert Nullstellensatz</a>。本讲只在复仿射有限型闭点上推导 Jacobian 核，不把尖点算例扩张成一般概形光滑性判据。资料核查：2026-09-08。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="bridge-08-connections.html"><span class="pager-label">上一页</span>基础 VIII · 联络、水平截面与 D-模</a>
+  <a class="pager-slot next" href="bridge-09-wick-limits.html"><span class="pager-label">下一页</span>基础 IX · Wick 平均与 L² 极限</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/labs/research-local.js?v=afc5ad32eba8"></script>
+</body>
+</html>

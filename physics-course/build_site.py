@@ -162,6 +162,7 @@ COURSE = [
         ("bridge-04-spectral-response.md", "计算桥 IV · 对易子与响应谱"),
         ("bridge-05-quantum-channels.md", "计算桥 V · Kraus 与 Choi"),
         ("bridge-06-ising-parity.md", "计算桥 VI · Ising 奇偶与完整谱"),
+        ("bridge-07-mps-metric.md", "计算桥 VII · MPS 范数与局部优化"),
     ]),
     ("研究前沿 · 专题课程", [
         ("frontier-01-entanglement-matter.md", "前沿 I · 多体纠缠与量子物态"),
