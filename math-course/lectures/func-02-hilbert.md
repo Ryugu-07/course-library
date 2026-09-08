@@ -10,7 +10,7 @@
 
 <h3 id="hilbert-learning-title">1. 具体谜题：斜着给出的子空间，最近点是谁？</h3>
 
-把 $H=mathbb R^3$ 配上标准内积，取
+把 $H=\mathbb R^3$ 配上标准内积，取
 
 $$
 x=(2,-1,3),\qquad M=\operatorname{span}\{u_1=(1,1,0),u_2=(0,1,1)\}.
@@ -19,7 +19,7 @@ $$
 这里的两个生成向量并不正交，所以“把坐标各自截掉”不是投影算法。先猜三件事：
 
 1. $P_Mx$ 是否会同时满足 $x-P_Mx\perp u_1,u_2$？
-2. $|x\|^2$ 是否等于 $|P_Mx\|^2+|x-P_Mx\|^2$？
+2. $\|x\|^2$ 是否等于 $\|P_Mx\|^2+\|x-P_Mx\|^2$？
 3. 对 $u_1,u_2$ 做 Gram–Schmidt 后，投影系数是否只是把 $x$ 与新的正交单位向量做内积？
 
 ### 2. 可审计的有限模型：Gram–Schmidt 把“最近”变成逐项记账
@@ -37,7 +37,7 @@ $$
 q_1=\frac{(1,1,0)}{\sqrt2},\qquad q_2=\frac{(-1,1,2)}{\sqrt6},\qquad P_Mx=(0,1,1),\qquad r=x-P_Mx=(2,-2,2).
 $$
 
-于是 $langle r,u_1\rangle=langle r,u_2\rangle=0$，并且
+于是 $\langle r,u_1\rangle=\langle r,u_2\rangle=0$，并且
 $14=\|x\|^2=\|P_Mx\|^2+\|r\|^2=2+12$。这不是“图上看起来最近”：正交性给出 Pythagoras 身份，闭性保证极限仍留在子空间中。
 
 ### 3. Riesz 读法与有限截断
@@ -55,7 +55,7 @@ $\varphi_y(v)=\langle v,y\rangle$；例如 $y=(1,-2,1)$ 时，$\varphi_y(x)=7$�
 
 **无 JavaScript 时的静态读法：**标准模型取 $x=(2,-1,3)$。斜平面例中 $M=\operatorname{span}\{(1,1,0),(0,1,1)\}$，正交化基为 $q_1=(1,1,0)/\sqrt2$、$q_2=(-1,1,2)/\sqrt6$。
 
-| 有限模型 | $P_Mx$ | 残差 $r$ | $\|x\|^2$ | $\|P_Mx\|^2+\|r\|^2$ | $\max_j|\langle r,q_j\rangle|$ |
+| 有限模型 | $P_Mx$ | 残差 $r$ | $\|x\|^2$ | $\|P_Mx\|^2+\|r\|^2$ | $\max_j\lvert\langle r,q_j\rangle\rvert$ |
 |---|---|---|---:|---:|---:|
 | 斜平面（两生成元） | $(0,1,1)$ | $(2,-2,2)$ | $14$ | $2+12=14$ | $0$ |
 | 直线 $\operatorname{span}\{(1,1,0)\}$ | $(1/2,1/2,0)$ | $(3/2,-3/2,3)$ | $14$ | $1/2+27/2=14$ | $0$ |
@@ -72,21 +72,40 @@ $\varphi_y(v)=\langle v,y\rangle$；例如 $y=(1,-2,1)$ 时，$\varphi_y(x)=7$�
 - “有限截断误差变小”需要嵌套子空间、正交结构和完备性等条件；Bessel 不等式本身只给能量不增加，不能单独推出残差趋于零。
 - Riesz 表示要求连续线性泛函；在 Hilbert 空间中连续性与有界性等价。把任意形式上的求值都当成连续泛函，会越过 RKHS 的边界条件。
 
+
+### 6. 迁移题：最近点为何必须留在空间里？
+
+1. 在 $\ell^2$ 中令 $M=c_{00}$（只有有限项非零的序列），$x=(1,1/2,1/3,\ldots)$。有限截断越来越近，是否就有 $M$ 中的最近点？
+2. 在 $L^2[0,1]$，前述 $x^2$ 到 $\operatorname{span}\{1,x\}$ 的投影为 $x-1/6$。算残差平方积分，检查是否真比零函数更近。
+3. 对本页复内积约定，$\varphi(v)=iv$（$H=\mathbb C$）的 Riesz 代表向量是什么？
+
+<details markdown="1"><summary>展开核对：闭性、误差与复共轭</summary>
+
+1. $\sum n^{-2}<\infty$，所以 $x\in\ell^2$，但 $x\notin c_{00}$。有限截断让距离下确界为 $0$；若最近点达到该值便只能等于 $x$，矛盾。$c_{00}$ 不闭，最近点不存在。
+2. $r=x^2-x+1/6$，直接积分得 $\int_0^1r^2dx=1/180$；原范数平方 $1/5$，投影平方积分 $7/36$，满足 $1/5=7/36+1/180$。残差分别与 $1,x$ 正交。
+3. $\langle v,y\rangle=v\overline y=iv$，故 $y=-i$。换内积线性变量的约定时，表示式也要相应调整。
+
+</details>
+
+先修：[L² 系数与范数](real-03-lp-spaces.html)、[线性空间](algebra-04-linear-space.html)；继续：[有界算子](func-03-operators.html)。
+
 </section>
 
 ## 1. 内积空间与两条身份判据
+
+**约定** 复空间内积对第一个变量线性、第二个变量共轭线性；本页有限实验取实数。
 
 **定义** 内积 $\langle\cdot,\cdot\rangle$（线性、共轭对称、正定）⇒ 范数 $\|x\| = \sqrt{\langle x,x\rangle}$；完备者称 **Hilbert 空间**。主角：$\ell^2$、$L^2$（实变 III——$p = 2$ 独享内积的原因见下）。
 
 **Cauchy–Schwarz**：$|\langle x, y\rangle| \leq \|x\|\|y\|$（全站第四次出场，正式的抽象版）。
 
-**平行四边形法则**：$\|x+y\|^2 + \|x-y\|^2 = 2\|x\|^2 + 2\|y\|^2$——**范数来自内积的充要判据**（不满足即无缘内积：$L^p (p \neq 2)$、$C[a,b]$ 全被此式排除——"$L^2$ 特殊"有了一行证明）。
+**平行四边形法则**：$\|x+y\|^2 + \|x-y\|^2 = 2\|x\|^2 + 2\|y\|^2$——**范数来自内积的充要判据**（不满足即无缘内积：含两个独立不交支撑方向的通常 $L^p$（$p\ne2$）、非退化区间上的 $C[a,b]$ 上确界范数都被排除；一维等退化空间除外——"$L^2$ 特殊"有了一行证明）。
 
 ## 2. 投影定理（Hilbert 几何的顶梁柱）
 
 <figure class="plot" markdown="1">
 ![正交投影是最佳逼近](assets/img/func-02-orthogonal-projection.svg)
-<figcaption><span class="fig-id">图 2.1</span>最佳逼近定理：子空间 \(M\) 上离 \(x\) 最近的点是正交投影 \(\hat x\)，误差 \(x-\hat x\perp M\)——最小二乘的几何本质。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>最佳逼近定理：闭线性子空间 \(M\) 上离 \(x\) 最近的点是正交投影 \(\hat x\)，误差 \(x-\hat x\perp M\)——最小二乘的几何本质。</figcaption>
 </figure>
 
 **定理（最佳逼近 + 正交分解）** $M$ 是 Hilbert 空间 $H$ 的闭子空间，则任意 $x \in H$ 存在**唯一**分解
@@ -124,9 +143,9 @@ $$
 \varphi(x) = \langle x, y_\varphi\rangle, \qquad \|\varphi\| = \|y_\varphi\|
 $$
 
-（*思路*：$\ker\varphi$ 是闭超平面，投影定理取其正交补的方向向量。）**读法**：Hilbert 空间的对偶就是自己（自对偶）——"测量"与"向量"同一。应用射程：量子力学 bra-ket 记号的数学许可、PDE 弱解存在性（Lax–Milgram 定理是其变体）、以及——
+（*思路*：若 $\varphi\ne0$，$\ker\varphi$ 是闭超平面；零泛函直接由 $y=0$ 表示。对非零情形，由投影定理取其正交补的方向向量。）**读法**：Hilbert 空间可与其连续对偶等距对应；本页复内积约定下，$y\mapsto\langle\cdot,y\rangle$ 是共轭线性的对应——"测量"与"向量"同一。应用射程：量子力学 bra-ket 记号的数学许可、PDE 弱解存在性（Lax–Milgram 定理是其变体）、以及——
 
-🔗 **RKHS 与核方法（ai 课 02 的欠条）**：再生核 Hilbert 空间 = "求值泛函 $f \mapsto f(x)$ 连续"的函数 Hilbert 空间；Riesz 表示给出再生核 $K(x, \cdot)$ 使 $f(x) = \langle f, K(x,\cdot)\rangle$——**Mercer 定理构造的特征空间正是 RKHS**，SVM 的核技巧在泛函分析里有正式户口；表示定理（解落在样本核函数张成的子空间）就是投影定理的应用。
+🔗 **RKHS 与核方法（ai 课 02 的欠条）**：再生核 Hilbert 空间 = "求值泛函 $f \mapsto f(x)$ 连续"的函数 Hilbert 空间；Riesz 表示给出唯一代表函数 $K_x$ 使 $f(x)=\langle f,K_x\rangle$（以 $K_x$ 记号避免复共轭与两个自变量约定混淆）——**Mercer 定理构造的特征空间正是 RKHS**，SVM 的核技巧在泛函分析里有正式户口；表示定理（解落在样本核函数张成的子空间）就是投影定理的应用。
 
 ## 5. 典型例题
 

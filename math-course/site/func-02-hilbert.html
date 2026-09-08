@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 03:12</div>
   </div>
 </nav>
 <main id="content">
@@ -59,6 +59,7 @@ try {
 <li><a href="#3-riesz">3. Riesz 读法与有限截断</a></li>
 <li><a href="#4">4. 动手实验：先选判断，再揭示投影账本</a></li>
 <li><a href="#5">5. 边界提醒：模型揭示了什么，不能替代什么？</a></li>
+<li><a href="#6">6. 迁移题：最近点为何必须留在空间里？</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 内积空间与两条身份判据</a></li>
@@ -78,14 +79,14 @@ try {
 <section aria-labelledby="hilbert-learning-title" class="learning-layer">
 <h2 id="_1">学习层：先猜投影的账，再让有限模型揭晓<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <h3 id="hilbert-learning-title">1. 具体谜题：斜着给出的子空间，最近点是谁？<a class="headerlink" href="#hilbert-learning-title" title="Permanent link"></a></h3>
-<p>把 <span class="arithmatex">\(H=mathbb R^3\)</span> 配上标准内积，取</p>
+<p>把 <span class="arithmatex">\(H=\mathbb R^3\)</span> 配上标准内积，取</p>
 <div class="arithmatex">\[
 x=(2,-1,3),\qquad M=\operatorname{span}\{u_1=(1,1,0),u_2=(0,1,1)\}.
 \]</div>
 <p>这里的两个生成向量并不正交，所以“把坐标各自截掉”不是投影算法。先猜三件事：</p>
 <ol>
 <li><span class="arithmatex">\(P_Mx\)</span> 是否会同时满足 <span class="arithmatex">\(x-P_Mx\perp u_1,u_2\)</span>？</li>
-<li><span class="arithmatex">\(|x\|^2\)</span> 是否等于 <span class="arithmatex">\(|P_Mx\|^2+|x-P_Mx\|^2\)</span>？</li>
+<li><span class="arithmatex">\(\|x\|^2\)</span> 是否等于 <span class="arithmatex">\(\|P_Mx\|^2+\|x-P_Mx\|^2\)</span>？</li>
 <li>对 <span class="arithmatex">\(u_1,u_2\)</span> 做 Gram–Schmidt 后，投影系数是否只是把 <span class="arithmatex">\(x\)</span> 与新的正交单位向量做内积？</li>
 </ol>
 <h3 id="2-gramschmidt">2. 可审计的有限模型：Gram–Schmidt 把“最近”变成逐项记账<a class="headerlink" href="#2-gramschmidt" title="Permanent link"></a></h3>
@@ -98,7 +99,7 @@ P_Mx=\sum_j\langle x,q_j\rangle q_j.
 <div class="arithmatex">\[
 q_1=\frac{(1,1,0)}{\sqrt2},\qquad q_2=\frac{(-1,1,2)}{\sqrt6},\qquad P_Mx=(0,1,1),\qquad r=x-P_Mx=(2,-2,2).
 \]</div>
-<p>于是 <span class="arithmatex">\(langle r,u_1\rangle=langle r,u_2\rangle=0\)</span>，并且
+<p>于是 <span class="arithmatex">\(\langle r,u_1\rangle=\langle r,u_2\rangle=0\)</span>，并且
 <span class="arithmatex">\(14=\|x\|^2=\|P_Mx\|^2+\|r\|^2=2+12\)</span>。这不是“图上看起来最近”：正交性给出 Pythagoras 身份，闭性保证极限仍留在子空间中。</p>
 <h3 id="3-riesz">3. Riesz 读法与有限截断<a class="headerlink" href="#3-riesz" title="Permanent link"></a></h3>
 <p>在同一个有限 Hilbert 空间里，任意线性泛函都能写成
@@ -108,12 +109,52 @@ q_1=\frac{(1,1,0)}{\sqrt2},\qquad q_2=\frac{(-1,1,2)}{\sqrt6},\qquad P_Mx=(0,1,1
 <p>选择一个有限模型并回答三个判断。揭示前只保留你的选择，不显示投影向量、残差或误差分解；揭示后再看 Gram–Schmidt 基、系数、正交性和 Pythagoras 的逐项数值。所有数字都由同一个有限向量模型直接计算。</p>
 <div class="learning-lab" data-learning-lab="hilbert-projection" markdown="1">
 <p><strong>无 JavaScript 时的静态读法：</strong>标准模型取 <span class="arithmatex">\(x=(2,-1,3)\)</span>。斜平面例中 <span class="arithmatex">\(M=\operatorname{span}\{(1,1,0),(0,1,1)\}\)</span>，正交化基为 <span class="arithmatex">\(q_1=(1,1,0)/\sqrt2\)</span>、<span class="arithmatex">\(q_2=(-1,1,2)/\sqrt6\)</span>。</p>
-<p>| 有限模型 | <span class="arithmatex">\(P_Mx\)</span> | 残差 <span class="arithmatex">\(r\)</span> | <span class="arithmatex">\(\|x\|^2\)</span> | <span class="arithmatex">\(\|P_Mx\|^2+\|r\|^2\)</span> | <span class="arithmatex">\(\max_j|\langle r,q_j\rangle|\)</span> |
-|---|---|---|---:|---:|---:|
-| 斜平面（两生成元） | <span class="arithmatex">\((0,1,1)\)</span> | <span class="arithmatex">\((2,-2,2)\)</span> | <span class="arithmatex">\(14\)</span> | <span class="arithmatex">\(2+12=14\)</span> | <span class="arithmatex">\(0\)</span> |
-| 直线 <span class="arithmatex">\(\operatorname{span}\{(1,1,0)\}\)</span> | <span class="arithmatex">\((1/2,1/2,0)\)</span> | <span class="arithmatex">\((3/2,-3/2,3)\)</span> | <span class="arithmatex">\(14\)</span> | <span class="arithmatex">\(1/2+27/2=14\)</span> | <span class="arithmatex">\(0\)</span> |
-| 截断平面 <span class="arithmatex">\(\operatorname{span}\{e_1,e_2\}\)</span> | <span class="arithmatex">\((2,-1,0)\)</span> | <span class="arithmatex">\((0,0,3)\)</span> | <span class="arithmatex">\(14\)</span> | <span class="arithmatex">\(5+9=14\)</span> | <span class="arithmatex">\(0\)</span> |
-| 完整基 <span class="arithmatex">\(\mathbb R^3\)</span> | <span class="arithmatex">\((2,-1,3)\)</span> | <span class="arithmatex">\((0,0,0)\)</span> | <span class="arithmatex">\(14\)</span> | <span class="arithmatex">\(14+0=14\)</span> | <span class="arithmatex">\(0\)</span> |</p>
+<table>
+<thead>
+<tr>
+<th>有限模型</th>
+<th><span class="arithmatex">\(P_Mx\)</span></th>
+<th>残差 <span class="arithmatex">\(r\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\|x\|^2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\|P_Mx\|^2+\|r\|^2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(\max_j\lvert\langle r,q_j\rangle\rvert\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>斜平面（两生成元）</td>
+<td><span class="arithmatex">\((0,1,1)\)</span></td>
+<td><span class="arithmatex">\((2,-2,2)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2+12=14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>直线 <span class="arithmatex">\(\operatorname{span}\{(1,1,0)\}\)</span></td>
+<td><span class="arithmatex">\((1/2,1/2,0)\)</span></td>
+<td><span class="arithmatex">\((3/2,-3/2,3)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/2+27/2=14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>截断平面 <span class="arithmatex">\(\operatorname{span}\{e_1,e_2\}\)</span></td>
+<td><span class="arithmatex">\((2,-1,0)\)</span></td>
+<td><span class="arithmatex">\((0,0,3)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(5+9=14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+<tr>
+<td>完整基 <span class="arithmatex">\(\mathbb R^3\)</span></td>
+<td><span class="arithmatex">\((2,-1,3)\)</span></td>
+<td><span class="arithmatex">\((0,0,0)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(14+0=14\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+</tr>
+</tbody>
+</table>
 <p>有限维的“闭”只说明最近点存在，不说明有限个基向量已经描述了某个无穷维对象；表中完整基的 <span class="arithmatex">\(0\)</span> 残差是本三维模型的完备性结论，不是对任意截断 Fourier 级数的自动保证。有限 <span class="arithmatex">\(\mathbb R^3\)</span> 截断只能演示投影恒等式，不能替代闭子空间假设或无限维正交系完备性的证明。</p>
 </div>
 <h3 id="5">5. 边界提醒：模型揭示了什么，不能替代什么？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
@@ -122,15 +163,31 @@ q_1=\frac{(1,1,0)}{\sqrt2},\qquad q_2=\frac{(-1,1,2)}{\sqrt6},\qquad P_Mx=(0,1,1
 <li>“有限截断误差变小”需要嵌套子空间、正交结构和完备性等条件；Bessel 不等式本身只给能量不增加，不能单独推出残差趋于零。</li>
 <li>Riesz 表示要求连续线性泛函；在 Hilbert 空间中连续性与有界性等价。把任意形式上的求值都当成连续泛函，会越过 RKHS 的边界条件。</li>
 </ul>
+<h3 id="6">6. 迁移题：最近点为何必须留在空间里？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\(\ell^2\)</span> 中令 <span class="arithmatex">\(M=c_{00}\)</span>（只有有限项非零的序列），<span class="arithmatex">\(x=(1,1/2,1/3,\ldots)\)</span>。有限截断越来越近，是否就有 <span class="arithmatex">\(M\)</span> 中的最近点？</li>
+<li>在 <span class="arithmatex">\(L^2[0,1]\)</span>，前述 <span class="arithmatex">\(x^2\)</span> 到 <span class="arithmatex">\(\operatorname{span}\{1,x\}\)</span> 的投影为 <span class="arithmatex">\(x-1/6\)</span>。算残差平方积分，检查是否真比零函数更近。</li>
+<li>对本页复内积约定，<span class="arithmatex">\(\varphi(v)=iv\)</span>（<span class="arithmatex">\(H=\mathbb C\)</span>）的 Riesz 代表向量是什么？</li>
+</ol>
+<details>
+<summary>展开核对：闭性、误差与复共轭</summary>
+<ol>
+<li><span class="arithmatex">\(\sum n^{-2}&lt;\infty\)</span>，所以 <span class="arithmatex">\(x\in\ell^2\)</span>，但 <span class="arithmatex">\(x\notin c_{00}\)</span>。有限截断让距离下确界为 <span class="arithmatex">\(0\)</span>；若最近点达到该值便只能等于 <span class="arithmatex">\(x\)</span>，矛盾。<span class="arithmatex">\(c_{00}\)</span> 不闭，最近点不存在。</li>
+<li><span class="arithmatex">\(r=x^2-x+1/6\)</span>，直接积分得 <span class="arithmatex">\(\int_0^1r^2dx=1/180\)</span>；原范数平方 <span class="arithmatex">\(1/5\)</span>，投影平方积分 <span class="arithmatex">\(7/36\)</span>，满足 <span class="arithmatex">\(1/5=7/36+1/180\)</span>。残差分别与 <span class="arithmatex">\(1,x\)</span> 正交。</li>
+<li><span class="arithmatex">\(\langle v,y\rangle=v\overline y=iv\)</span>，故 <span class="arithmatex">\(y=-i\)</span>。换内积线性变量的约定时，表示式也要相应调整。</li>
+</ol>
+</details>
+<p>先修：<a href="real-03-lp-spaces.html">L² 系数与范数</a>、<a href="algebra-04-linear-space.html">线性空间</a>；继续：<a href="func-03-operators.html">有界算子</a>。</p>
 </section>
 <h2 id="1">1. 内积空间与两条身份判据<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>约定</strong> 复空间内积对第一个变量线性、第二个变量共轭线性；本页有限实验取实数。</p>
 <p><strong>定义</strong> 内积 <span class="arithmatex">\(\langle\cdot,\cdot\rangle\)</span>（线性、共轭对称、正定）⇒ 范数 <span class="arithmatex">\(\|x\| = \sqrt{\langle x,x\rangle}\)</span>；完备者称 <strong>Hilbert 空间</strong>。主角：<span class="arithmatex">\(\ell^2\)</span>、<span class="arithmatex">\(L^2\)</span>（实变 III——<span class="arithmatex">\(p = 2\)</span> 独享内积的原因见下）。</p>
 <p><strong>Cauchy–Schwarz</strong>：<span class="arithmatex">\(|\langle x, y\rangle| \leq \|x\|\|y\|\)</span>（全站第四次出场，正式的抽象版）。</p>
-<p><strong>平行四边形法则</strong>：<span class="arithmatex">\(\|x+y\|^2 + \|x-y\|^2 = 2\|x\|^2 + 2\|y\|^2\)</span>——<strong>范数来自内积的充要判据</strong>（不满足即无缘内积：<span class="arithmatex">\(L^p (p \neq 2)\)</span>、<span class="arithmatex">\(C[a,b]\)</span> 全被此式排除——"<span class="arithmatex">\(L^2\)</span> 特殊"有了一行证明）。</p>
+<p><strong>平行四边形法则</strong>：<span class="arithmatex">\(\|x+y\|^2 + \|x-y\|^2 = 2\|x\|^2 + 2\|y\|^2\)</span>——<strong>范数来自内积的充要判据</strong>（不满足即无缘内积：含两个独立不交支撑方向的通常 <span class="arithmatex">\(L^p\)</span>（<span class="arithmatex">\(p\ne2\)</span>）、非退化区间上的 <span class="arithmatex">\(C[a,b]\)</span> 上确界范数都被排除；一维等退化空间除外——"<span class="arithmatex">\(L^2\)</span> 特殊"有了一行证明）。</p>
 <h2 id="2-hilbert">2. 投影定理（Hilbert 几何的顶梁柱）<a class="headerlink" href="#2-hilbert" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="正交投影是最佳逼近" src="assets/img/func-02-orthogonal-projection.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>最佳逼近定理：子空间 \(M\) 上离 \(x\) 最近的点是正交投影 \(\hat x\)，误差 \(x-\hat x\perp M\)——最小二乘的几何本质。</figcaption>
+<figcaption><span class="fig-id">图 2.1</span>最佳逼近定理：闭线性子空间 \(M\) 上离 \(x\) 最近的点是正交投影 \(\hat x\)，误差 \(x-\hat x\perp M\)——最小二乘的几何本质。</figcaption>
 </figure>
 <p><strong>定理（最佳逼近 + 正交分解）</strong> <span class="arithmatex">\(M\)</span> 是 Hilbert 空间 <span class="arithmatex">\(H\)</span> 的闭子空间，则任意 <span class="arithmatex">\(x \in H\)</span> 存在<strong>唯一</strong>分解</p>
 <div class="arithmatex">\[
@@ -184,8 +241,8 @@ x = P_M x + z, \qquad P_M x \in M,\ z \perp M
 <div class="arithmatex">\[
 \varphi(x) = \langle x, y_\varphi\rangle, \qquad \|\varphi\| = \|y_\varphi\|
 \]</div>
-<p>（<em>思路</em>：<span class="arithmatex">\(\ker\varphi\)</span> 是闭超平面，投影定理取其正交补的方向向量。）<strong>读法</strong>：Hilbert 空间的对偶就是自己（自对偶）——"测量"与"向量"同一。应用射程：量子力学 bra-ket 记号的数学许可、PDE 弱解存在性（Lax–Milgram 定理是其变体）、以及——</p>
-<p>🔗 <strong>RKHS 与核方法（ai 课 02 的欠条）</strong>：再生核 Hilbert 空间 = "求值泛函 <span class="arithmatex">\(f \mapsto f(x)\)</span> 连续"的函数 Hilbert 空间；Riesz 表示给出再生核 <span class="arithmatex">\(K(x, \cdot)\)</span> 使 <span class="arithmatex">\(f(x) = \langle f, K(x,\cdot)\rangle\)</span>——<strong>Mercer 定理构造的特征空间正是 RKHS</strong>，SVM 的核技巧在泛函分析里有正式户口；表示定理（解落在样本核函数张成的子空间）就是投影定理的应用。</p>
+<p>（<em>思路</em>：若 <span class="arithmatex">\(\varphi\ne0\)</span>，<span class="arithmatex">\(\ker\varphi\)</span> 是闭超平面；零泛函直接由 <span class="arithmatex">\(y=0\)</span> 表示。对非零情形，由投影定理取其正交补的方向向量。）<strong>读法</strong>：Hilbert 空间可与其连续对偶等距对应；本页复内积约定下，<span class="arithmatex">\(y\mapsto\langle\cdot,y\rangle\)</span> 是共轭线性的对应——"测量"与"向量"同一。应用射程：量子力学 bra-ket 记号的数学许可、PDE 弱解存在性（Lax–Milgram 定理是其变体）、以及——</p>
+<p>🔗 <strong>RKHS 与核方法（ai 课 02 的欠条）</strong>：再生核 Hilbert 空间 = "求值泛函 <span class="arithmatex">\(f \mapsto f(x)\)</span> 连续"的函数 Hilbert 空间；Riesz 表示给出唯一代表函数 <span class="arithmatex">\(K_x\)</span> 使 <span class="arithmatex">\(f(x)=\langle f,K_x\rangle\)</span>（以 <span class="arithmatex">\(K_x\)</span> 记号避免复共轭与两个自变量约定混淆）——<strong>Mercer 定理构造的特征空间正是 RKHS</strong>，SVM 的核技巧在泛函分析里有正式户口；表示定理（解落在样本核函数张成的子空间）就是投影定理的应用。</p>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（投影实算）</strong> 在 <span class="arithmatex">\(L^2[0,1]\)</span> 中求 <span class="arithmatex">\(f = x^2\)</span> 到 <span class="arithmatex">\(M = \mathrm{span}\{1, x\}\)</span> 的投影。
 <em>解</em>：设 <span class="arithmatex">\(P f = a + bx\)</span>，正交条件 <span class="arithmatex">\(\langle f - Pf, 1\rangle = \langle f - Pf, x\rangle = 0\)</span> 给方程组：<span class="arithmatex">\(a + \frac b2 = \frac13\)</span>，<span class="arithmatex">\(\frac a2 + \frac b3 = \frac14\)</span> ⇒ <span class="arithmatex">\(a = -\frac16, b = 1\)</span>。<span class="arithmatex">\(Pf = x - \frac16\)</span>——这同时是"用直线拟合 <span class="arithmatex">\(x^2\)</span>"的最小二乘解（统计 V 的连续版）。</p>
