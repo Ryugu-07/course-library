@@ -3,6 +3,8 @@
 > **对标**：Griffiths §8、§11 入门 ｜ **前置**：em-01/02
 > 本页给"场是实在的"补齐力学证据：场携带**能量**（Poynting 定理）与**动量**（辐射压），并回答一个改变世界的问题——**加速电荷为什么辐射**（Larmor 公式）。这是本科电磁的收官，也是天线、同步辐射与"经典原子必塌缩"悖论（量子力学的引信）的出发点。
 
+> 可直接复习：[Maxwell约束](em-02-maxwell.html)、[球面通量](em-01-electrostatics.html)、[波导与介质](em-04-media-waveguides.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="poynting-radiation-learning-title">
@@ -13,7 +15,7 @@
 
 ### 1. 平面波：$\mathbf E$、$\mathbf B$、$\mathbf k$ 与 Poynting 矢量
 
-对无源均匀介质中的线性平面波，
+对无源真空中的单色线偏振平面波，取同相实峰值振幅，
 
 $$
 \mathbf B_0=\frac{1}{c}\hat{\mathbf k}\times\mathbf E_0,
@@ -22,6 +24,8 @@ $$
 \qquad
 \langle\mathbf S\rangle=\frac{\mathbf E_0\times\mathbf B_0}{2\mu_0}.
 $$
+
+若改用一般复振幅（如椭圆偏振），应写 $\langle\mathbf S\rangle=\operatorname{Re}(\mathbf E_0\times\mathbf B_0^*)/(2\mu_0)$。上式的 $\varepsilon_0,\mu_0,c$ 为真空常数，不能直接代替有材料色散或磁化时的本构与能量账。
 
 所以 $\mathbf E\perp\mathbf B\perp\mathbf k$，且 $\langle\mathbf S\rangle$ 与 $+\mathbf k$ 同向。瞬时场若写成 $\cos(\omega t-\mathbf k\cdot\mathbf r)$，瞬时 $\mathbf S$ 还带 $\cos^2$；相位为 $\pi/2$ 的某一时刻可以有瞬时能流为零，但一个周期平均的能流仍非零。反向 $\mathbf B$ 即使偶然保留 $|E|/(c|B|)=1$，也会把能流翻向 $-\mathbf k$，不能只验振幅比。
 
@@ -37,7 +41,7 @@ $$
 
 沿偶极轴 $\theta=0$ 不辐射，赤道面最强；积分 $\int\sin^2\theta\,d\Omega=8\pi/3$ 才得到总功率。这个 $P\propto\omega^4$ 只在**固定 $p_0$、短偶极、非相对论、谐稳态**这些条件同时成立时使用，不能推出笼统的“频率越高，任意短波天线越高效”。真实天线效率还受尺寸与波长的比例、阻抗匹配、导体损耗、介质损耗、馈电和带宽影响。
 
-区域也必须分账：源本身的有限尺寸与电流分布不由点偶极远场式解决；源附近 $kr\ll1$ 有 $1/r^3$、$1/r^2$ 的近场/反应性项，能量可以在场和源之间往返；辐射区 $kr\gg1$ 才由 $1/r$ 项主导，球面上的周期平均径向通量稳定地给出净辐射功率；$kr\approx1$ 是过渡区，不能硬套纯远场方向图。
+区域也必须分账：源本身的有限尺寸与电流分布不由点偶极远场式解决；源附近 $kr\ll1$ 有 $1/r^3$、$1/r^2$ 的近场/反应性项，能量可以在场和源之间往返；辐射区 $kr\gg1$ 才由 $1/r$ 项主导，可以直接用纯远场近似计算功率；$kr\approx1$ 是过渡区，不能硬套纯远场方向图。
 
 ### 3. 预测门与静态后备
 
@@ -51,7 +55,7 @@ $$
 | $B$ 反向预设 | $\lvert E\rvert/(c\lvert B\rvert)$ 可仍为 1，但 $\mathbf E\times\mathbf B\parallel-\mathbf k$ | 方向账失败，不能用振幅比掩盖 |
 | 偶极方向图 | $dP/d\Omega\propto\sin^2\theta$，$P_{\rm rad}=p_0^2\omega^4/(12\pi\varepsilon_0c^3)$ | 固定 $p_0$、短偶极、非相对论、谐稳态 |
 | 近场/源附近 | $1/r^3,1/r^2$ 项可见，能量可返回源 | 不把瞬时 $S$ 或局部储能全叫作辐射功率 |
-| 辐射区 | $1/r$ 项主导，$\langle\mathbf S\rangle\simeq\langle S_r\rangle\hat r$ | $kr\gg1$，球面通量才给净远场辐射 |
+| 辐射区 | $1/r$ 项主导，$\langle\mathbf S\rangle\simeq\langle S_r\rangle\hat r$ | $kr\gg1$，可直接用纯远场项近似球面净通量 |
 
 微波炉和手机的频率例子也不能被压成“频率高/低”的二分：微波炉主要涉及金属腔体、门缝/网孔的电磁屏蔽和波导截止，以及食物材料的介电损耗；手机能否穿墙还取决于波长相对孔隙的尺度、墙体介电常数与电导率造成的反射/吸收、天线和链路预算。它们不是由本节的点偶极 $\omega^4$ 式单独决定的。
 
@@ -61,11 +65,23 @@ $$
 
 </div>
 
+### 4. 迁移：近场球面不能算周期平均功率吗？
+
+取包住全部源的两个同心球面，其间是真空无源壳层，系统已进入周期稳态。较小球面可以满足 $kr<1$。完整场的两个球面周期平均净通量相等吗？再比较波长450 nm与650 nm在相同极化率近似下的Rayleigh散射强度。
+
+<details markdown="1"><summary>核对闭合面的平均能量账</summary>
+
+由 [Feynman场能守恒推导](https://www.feynmanlectures.caltech.edu/II_27.html) 的局部定理对壳层积分：$dU_{\mathrm{shell}}/dt+\Phi_{\mathrm{out}}-\Phi_{\mathrm{in}}=0$。完整周期后场能恢复，故 $\langle\Phi_{\mathrm{out}}\rangle=\langle\Phi_{\mathrm{in}}\rangle$，并不要求内球面处于远场。不能做的是把近场的瞬时局部能流或储能一概当净辐射，或直接删掉近场项。实验实际保留点偶极的 $1/r^3,1/r^2,1/r$ 场，因而可验 $r^2\langle S_r\rangle=dP/d\Omega$ 在不同半径一致；辐射轴附近主导远场项为零，有限kr的相对远场误差不一定小。
+
+波长例的比值是 $(650/450)^4\approx4.35$，不是16；还需固定入射强度并保留短散射体、远离共振和极化率近似不变的条件。
+
+</details>
+
 </section>
 
 ## 1. Poynting 定理：场的能量记账
 
-**定理【推导】** 从 Lorentz 力对电荷做功率 $\mathbf J\cdot\mathbf E$ 出发，用 Ampère–Maxwell 消 $\mathbf J$、矢量恒等式 $\nabla\cdot(\mathbf E\times\mathbf B) = \mathbf B\cdot(\nabla\times\mathbf E) - \mathbf E\cdot(\nabla\times\mathbf B)$ 与 Faraday：
+**真空场的定理【推导】** 从 Lorentz 力对电荷做功率 $\mathbf J\cdot\mathbf E$ 出发，用 Ampère–Maxwell 消 $\mathbf J$、矢量恒等式 $\nabla\cdot(\mathbf E\times\mathbf B) = \mathbf B\cdot(\nabla\times\mathbf E) - \mathbf E\cdot(\nabla\times\mathbf B)$ 与 Faraday：
 
 $$
 \frac{\partial u}{\partial t} + \nabla\cdot\mathbf S = -\mathbf J\cdot\mathbf E, \qquad u = \frac{\varepsilon_0E^2}{2} + \frac{B^2}{2\mu_0}, \quad \mathbf S = \frac{\mathbf E\times\mathbf B}{\mu_0}
@@ -77,7 +93,7 @@ $$
 
 场还带动量：$\mathbf g = \varepsilon_0\,\mathbf E\times\mathbf B = \frac{\mathbf S}{c^2}$（动量密度）**【骨架】**（对 Lorentz 力密度做与 §1 平行的记账，应力张量 $T_{ij}$ 携带动量流【引用 §8.2】）。
 
-**辐射压**：电磁波打在吸收面上 $P = \frac{I}{c}$（反射加倍）——阳光 $\sim 5\ \mu\mathrm{Pa}$：微小但真实（彗尾方向、太阳帆、光镊的原理——光镊已是诺奖级实验室日常）。**光子语言预告**：$E = pc$ 的经典对应（sr-01 四动量、atom-01 光电效应两处收线）。
+**辐射压**：真空平面波法向入射到完全吸收面时 $P = \frac{I}{c}$（理想镜面完全反射加倍）——阳光 $\sim 5\ \mu\mathrm{Pa}$：微小但真实（彗尾方向、太阳帆、光镊的原理——光镊已是诺奖级实验室日常）。**光子语言预告**：$E = pc$ 的经典对应（sr-01 四动量、atom-01 光电效应两处收线）。
 
 ## 3. 辐射：加速电荷发光
 
@@ -99,7 +115,7 @@ $$
 **三个立即的物理**：
 
 - **短偶极模型下的频率缩放**：在固定 $p_0$、短偶极、非相对论、谐稳态条件下 $p_0\sim qx_0$，所以 $P \propto \omega^4$；这不是任意真实短波天线“更高效”的定理，尺寸、匹配和损耗仍需单独核对；
-- **瑞利散射 $\propto \omega^4$**：束缚电子被阳光驱动再辐射——蓝光散射强于红光 16 倍：**天空为什么蓝、夕阳为什么红**，一个幂律的功劳；
+- **瑞利散射 $\propto \omega^4$**：束缚电子被阳光驱动再辐射——同样入射强度、远离材料共振且极化率近似不变时，波长缩短一半使散射强16倍；具体蓝/红波长的比值通常并非恰好2，不能固定称为16倍：**天空为什么蓝、夕阳为什么红**，一个幂律的功劳；
 - **经典原子的死刑判决**：绕核电子向心加速 ⇒ 持续辐射 ⇒ 能量流失 ⇒ 轨道塌缩（估算寿命 $\sim 10^{-11}$ s【引用】）——**经典物理自己证明了自己在原子尺度必须让位**：量子力学（qm-01）的引信在此点燃。
 
 ## 4. 练习与要点
@@ -112,4 +128,4 @@ $$
 
 ---
 
-*电磁三页完卷。下一页：把"光速对谁都一样"当公理会发生什么——狭义相对论：时空的重新装配。*
+*下一页把能流带入介质和金属波导，检查边界、截止与群速度。*

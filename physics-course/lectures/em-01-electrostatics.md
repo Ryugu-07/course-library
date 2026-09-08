@@ -3,6 +3,8 @@
 > **对标**：Griffiths *EM* §2–5 ｜ **前置**：数分 VI（三大公式）、pde-01（Laplace）
 > 电磁学前半是"矢量微积分的物理正身"：Gauss 定律 = 散度定理的物理、环路定律 = Stokes 定理的物理。本页把静电静磁的骨架立起来：两对方程、势的语言、以及解题的三板斧（对称性 Gauss、镜像法、分离变量）。
 
+> 可直接复习：[向量积分与三大公式](../../math-course/site/analysis-06-multivar-int.html)、[椭圆边值问题](../../grad-math/site/pde2-03-elliptic.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="em-01-learning-title">
@@ -52,12 +54,24 @@ $$
 
 **无 JavaScript 时的静态读法：**先用上表判断证书等级。球/平面行可以把场从通量提出积分号，因为对称性使法向场恒定或成对相等；非对称行只能相信闭合面通量，不能相信“平均场 = 每点场”。规范常数只平移 $V$，而 Dirichlet 固定零点、Neumann 留一个常数自由度。
 
+</div>
+
 ### 4. 定理假设与失效边界
 
 - **Gauss 的适用边界**：闭合面足够分段光滑、$\mathbf E$ 与电荷满足 Maxwell 方程；通量结论本身不要求选面具有对称性，但“由通量恢复场”要求球、平面等对称性确实保持源与边界。
 - **Poisson 的源项边界**：光滑 $\rho$ 时可逐点使用 $\nabla^2V=-\rho/\varepsilon$；界面电荷和点电荷要加入跳跃项或 $\delta$ 分布，不能把奇异源当成普通有限函数。
 - **等势与唯一性**：等势面只说明切向场为零，不能由一条有限采样曲线证明整个曲面等势。Dirichlet 问题在合适区域给出唯一 $V$；Neumann 问题还需相容条件，并且 $V+C$ 的加法常数不可由法向导数消除。
 - **证据等级**：脚本的通量求积、等势 spread 和点源附近有限差分只针对固定模型、采样面与步长；它们是数值证据。Gauss/Poisson/唯一性结论是带上述假设的定理级陈述。
+
+### 5. 迁移：零通量能否推出零场？
+
+在均匀非零电场中画一个不包电荷的球，求通量；再比较有界连通区域中的零Dirichlet数据和零Neumann数据。最后，$\mathbf B=B_0\hat z$ 的磁力线是否闭合？
+
+<details markdown="1"><summary>核对对称性、边界与磁力线</summary>
+
+均匀电场穿出与穿入相消，总通量为零，场却处处非零。有界连通区域的调和势若边界全为零，则 $V=0$；若边界法向导数全为零，则由Green恒等式 $\int|\nabla V|^2=0$ 得 $V=C$，常数未固定。一般Neumann源数据还要求 $\int_{\partial\Omega}\partial_nV\,dA=-\int_\Omega\rho/\varepsilon\,dV$。均匀磁场线是延伸至无穷远的直线；无散不等于每条线闭合。
+
+</details>
 
 </section>
 
@@ -78,9 +92,9 @@ $$
 
 **Gauss 定律**：$\oint\mathbf E\cdot d\mathbf A = \frac{Q_{\text{enc}}}{\varepsilon_0}$ ⟺ $\nabla\cdot\mathbf E = \frac{\rho}{\varepsilon_0}$（点电荷通量 = $\frac{q}{\varepsilon_0}$ 与半径无关——$\frac{1}{r^2}$ 与球面积 $r^2$ 恰好相消，**平方反比律的几何本质**；散度定理（数分 VI）升级为微分形式；$\nabla\cdot\frac{\hat{\mathbf r}}{r^2} = 4\pi\delta^3(\mathbf r)$——pde2-01 的 δ 在物理的原产地）。
 
-**无旋性**：$\nabla\times\mathbf E = 0$（中心力保守，mech-01/数分 VI）⇒ 标势 $\mathbf E = -\nabla V$，$V = \frac{1}{4\pi\varepsilon_0}\int\frac{\rho\,dV'}{|\mathbf r - \mathbf r'|}$。
+**无旋性**：$\nabla\times\mathbf E = 0$（静电且区域单连通等条件下，mech-01/数分 VI）⇒ 全局标势 $\mathbf E = -\nabla V$，$V = \frac{1}{4\pi\varepsilon_0}\int\frac{\rho\,dV'}{|\mathbf r - \mathbf r'|}$。
 
-合并即**泊松方程** $\nabla^2 V = -\frac{\rho}{\varepsilon_0}$（真空处 Laplace）——**静电学 = 椭圆 PDE 的边值问题**（pde-01/pde2-03 的物理主顾；调和函数的极值原理翻译成"电势无内部极值 ⇒ 空腔屏蔽"）。
+合并即**泊松方程** $\nabla^2 V = -\frac{\rho}{\varepsilon_0}$（无电荷区域为Laplace）——**静电学 = 椭圆 PDE 的边值问题**（pde-01/pde2-03 的物理主顾）。对完全封闭、无内部电荷的导体空腔，整个腔壁同一电势，唯一性给出腔内常势和零场；仅“调和函数无严格内部极值”本身不能推出任意空腔屏蔽。
 
 **解题三板斧**：
 
@@ -88,17 +102,19 @@ $$
 2. **镜像法**：接地导体旁的点电荷 ⟺ 镜像电荷的双电荷问题（唯一性定理背书：边界条件相同则解相同【骨架：两解之差调和且边界为零 ⇒ 恒零——能量积分或极值原理】）；
 3. **分离变量**：球坐标下 Laplace 方程的解 = Legendre 多项式级数（mp-01 的特殊函数在此上岗）。
 
-**导体与电容**：静电平衡 ⇒ 导体内 $\mathbf E = 0$、表面等势、电荷聚于表面（曲率大处密——尖端放电）；电容 $C = Q/V$，能量 $U = \frac12 CV^2 = \frac{\varepsilon_0}{2}\int E^2\,dV$——**能量储于场中**（不是电荷上）：场的实在性第一证据（em-03 展开）。
+**导体与电容**：静电平衡 ⇒ 导体内 $\mathbf E = 0$、表面等势、导体的净多余自由电荷聚于表面（尖端场增强取决于整个几何和边界，不能仅由局部曲率单独定量）；两导体电容 $C = Q/V$ 中的V是电势差，能量 $U = \frac12 CV^2 = \frac{\varepsilon_0}{2}\int E^2\,dV$——**能量储于场中**（不是电荷上）：场的实在性第一证据（em-03 展开）。
 
 ## 2. 静磁：从 Biot–Savart 到 Ampère
 
 电流产生磁场：$d\mathbf B = \frac{\mu_0}{4\pi}\frac{I\,d\boldsymbol\ell\times\hat{\mathbf r}}{r^2}$（Biot–Savart）。两条微分定律：
 
 $$
-\nabla\cdot\mathbf B = 0 \qquad (\text{无磁荷——磁力线永闭合}), \qquad \nabla\times\mathbf B = \mu_0\mathbf J \quad (\text{Ampère})
+\nabla\cdot\mathbf B = 0 \qquad (\text{无磁荷——磁力线在光滑场区不凭空起止}), \qquad \nabla\times\mathbf B = \mu_0\mathbf J \quad (\text{Ampère})
 $$
 
-（环路定律 ⟺ Stokes 定理（数分 VI）；$\nabla\cdot\mathbf B = 0$ ⇒ 矢势 $\mathbf B = \nabla\times\mathbf A$——"无散场必是旋度"，Poincaré 引理（grad-math 流形 II）的物理化身；规范自由 $\mathbf A \to \mathbf A + \nabla\chi$ 首次登场——它将长成 20 世纪物理的中心思想（pp-01））。
+磁力线不一定是闭合曲线：均匀磁场的线可延伸到无穷远；无散只约束通量与局部起止。
+
+（环路定律 ⟺ Stokes 定理（数分 VI）；$\nabla\cdot\mathbf B = 0$ ⇒ 局部可取矢势 $\mathbf B = \nabla\times\mathbf A$；全局还需闭二形式为恰当形式，例如可缩域上成立。这是Poincaré引理（grad-math流形II）的局部应用，全局结论还要检查拓扑；规范自由 $\mathbf A \to \mathbf A + \nabla\chi$ 首次登场——它将长成 20 世纪物理的中心思想（pp-01））。
 
 **静电静磁对照表**（结构之美）：
 

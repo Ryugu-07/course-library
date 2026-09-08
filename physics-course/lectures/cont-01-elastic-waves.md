@@ -3,6 +3,8 @@
 > **对标**：Achenbach *Wave Propagation in Elastic Solids* ch.1–2 / Landau《弹性理论》§7 ｜ **前置**：fl-01（连续介质守恒）、solid-01（晶格与声子）、qm-02（波包）
 > 固体不是“不会流动的空气”：受到扰动时，局部形变会通过应力把信息传给邻近区域。弹性波的速度由“恢复力有多硬”和“惯性有多大”共同决定；遇到材料界面时，波的振幅、相位和能量又由波阻抗共同约束。本页把纵波、剪切横波与界面反射放进同一份账本。
 
+> 可直接复习：[小振动与刚体](mech-04-oscillation-rigid.html)、[连续介质守恒](fl-01-continuum.html)、[晶格长波极限](solid-01-lattice.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="elastic-wave-learning-title">
@@ -29,7 +31,7 @@ $$
 \varepsilon_{ij}=\frac12(\partial_i u_j+\partial_j u_i).
 $$
 
-各向同性线性材料的 Hooke 定律是
+本页取每侧均匀、各向同性线性材料，密度为正、$K>0,G>0$。Hooke 定律是
 
 $$
 \sigma_{ij}=\lambda_{\mathrm L}\delta_{ij}\,\nabla\cdot\mathbf u+2G\varepsilon_{ij},
@@ -64,9 +66,14 @@ $$
 
 <h3>3. 动手实验：模式、材料和界面一次只改一个</h3>
 
-先完成三个预测，再打开实验台。预设包括铝到钢、反向传播、铝的剪切横波以及软材料界面。改变模式或材料后，波形图会同步改变速度与波长；能量柱显示反射率 $R$ 和透射率 $T$，因此可以检查“位移反相”与“能量守恒”不是同一个符号。
+先完成三个预测，再打开实验台。预设包括铝到钢、反向传播、铝的剪切横波以及软材料界面。改变模式或材料后，波形图会同步改变速度与波长；通常显示界面两侧各12 mm，高频时自动缩短为较短波长的8倍以内，图中明确标出窗口长度，以免把欠采样假象当成真实长波；能量柱显示反射率 $R$ 和透射率 $T$，因此可以检查“位移反相”与“能量守恒”不是同一个符号。
 
 <div class="learning-lab" data-learning-lab="physics-elastic-wave" markdown="1">
+
+<figure class="plot" markdown="1">
+![铝到钢的默认纵波：位移反相与正能量比例分别显示。](assets/img/cont-01-interface-default.svg)
+<figcaption>铝到钢的默认纵波：位移反相与正能量比例分别显示。 图与下表采用相同默认参数。</figcaption>
+</figure>
 
 **无 JavaScript 时的静态读法：**模型是各向同性、线性、无耗散材料的法向入射标量波。默认值为铝 $\to$ 钢、纵波、$f=1.00\ \mathrm{MHz}$。使用材料参数
 $\rho_{\mathrm{Al}}=2700\ \mathrm{kg/m^3}$、$K_{\mathrm{Al}}=76\ \mathrm{GPa}$、$G_{\mathrm{Al}}=26\ \mathrm{GPa}$，
@@ -95,6 +102,8 @@ $$
 
 负的 $r_u$ 表示铝侧的反射位移反相，不表示负能量。若换成钢 $\to$ 铝，$r_u$ 会变成正值，而 $R$ 与 $T$ 保持相同的交换对称结构。
 
+</div>
+
 <h3>4. 误区、反例与适用边界</h3>
 
 - **速度不是只由密度决定。**$c$ 同时含模量与密度；软而轻的聚合物和硬而重的钢不能用“密度越大越慢”单独判断。
@@ -116,7 +125,11 @@ $$
 
 再用实验台核对。最后回答：如果只看到“钢更硬”，为什么仍不能直接猜出横波反射率？你必须指出速度公式里的 $G$ 和界面条件里的 $Z$ 分别承担了什么角色。
 
-</div>
+<details markdown="1"><summary>核对剪切反射和细棒反例</summary>
+
+钢的 $c_T\approx3.178\ \mathrm{km/s}$，两侧剪切阻抗约为8.379与24.950 MRayl，所以 $r_u\approx-0.4972$、$R\approx0.2472$、$T\approx0.7528$。$G$通过波速进入阻抗，但密度也参与，单看“硬”不能判反射率。再取铝：$Y\approx70.016\ \mathrm{GPa}$，细棒波速约5.092 km/s，明显不同于体纵波6.402 km/s；边界模型必须先选对。
+
+</details>
 
 </section>
 
@@ -136,7 +149,7 @@ $$
 $$
 
 体积模量 $K$ 与 Lamé 参数的关系是
-$K=\lambda_{\mathrm L}+2G/3$。正定的弹性能要求合适的模量约束；物理材料的压缩与剪切变形都要付出能量。
+$K=\lambda_{\mathrm L}+2G/3$。弹性能密度可分成 $W=K(\operatorname{tr}\varepsilon)^2/2+G\,\varepsilon_{\mathrm{dev}}:\varepsilon_{\mathrm{dev}}$；因此严格正定要求 $K>0,G>0$，其中 $\varepsilon_{\mathrm{dev}}=\varepsilon-\mathbf I\operatorname{tr}\varepsilon/3$。压缩与剪切分别付出能量。
 
 没有体力时，动量守恒是
 
@@ -192,11 +205,11 @@ $$
 \langle I\rangle\propto Z\,|\dot U|^2,\qquad Z=\rho c.
 $$
 
-$Z$ 的单位为 $\mathrm{kg/(m^2s)}$，常称 MRayl。它衡量介质对运动的“惯性负担”；两种材料的 $c$ 可能接近，但若 $\rho$ 差异大，阻抗仍会明显不匹配。
+$1\ \mathrm{Rayl}=1\ \mathrm{kg/(m^2s)}$，$1\ \mathrm{MRayl}=10^6\ \mathrm{Rayl}$。它衡量介质对运动的“惯性负担”；两种材料的 $c$ 可能接近，但若 $\rho$ 差异大，阻抗仍会明显不匹配。
 
 ## 4. 界面条件如何推出反射系数
 
-设界面在 $x=0$，左侧入射波、反射波，右侧透射波。法向入射且没有界面质量时，界面处的位移连续：
+设界面在 $x=0$，左侧入射波、反射波，右侧透射波。法向入射且界面完美粘结、无滑移或开裂、没有界面质量时，界面处的位移连续：
 
 $$
 U_i+U_r=U_t.
@@ -230,13 +243,13 @@ $$
 
 **例 1：自由端与固定端。**把第二介质阻抗趋近零，$r_u\to+1$，位移在界面同相反射；把阻抗趋近无穷大，$r_u\to-1$，位移反相。这是绳端反射两种极限的连续介质版本。
 
-**例 2：有限棒的共振。**长度为 $L$ 的两端边界会把向前和反射波叠加成驻波。理想自由-自由或固定-固定棒的纵向本征频率近似为
+**例 2：有限细棒的共振。**侧面自由、横向尺寸远小于波长的细棒可发生Poisson横向收缩，轴向有效刚度是Young模量 $Y=9KG/(3K+G)$。因此杆波速为 $c_{\mathrm{rod}}=\sqrt{Y/\rho}$，与前面的无限介质体纵波 $c_{\mathrm L}$ 不同。理想自由-自由或固定-固定细棒的非零纵向本征频率近似为
 
 $$
-f_n=\frac{n c_{\mathrm L}}{2L},\qquad n=1,2,\ldots
+f_n=\frac{n c_{\mathrm{rod}}}{2L},\qquad n=1,2,\ldots
 $$
 
-边界条件改变的是允许的节点结构，不是把材料内部的波速重新定义。
+自由-自由棒另有零频刚体平移模。端点条件决定驻波节点，而侧向约束决定选用哪一种有效弹性刚度；不能只凭“纵波”两个字套同一个波速。可对照 [MIT细棒弹性波讲义](https://ocw.mit.edu/courses/6-641-electromagnetic-fields-forces-and-motion-spring-2005/resources/lecture16/)。
 
 **例 3：从声子到宏观波。**设一维链相邻原子间的键力常数为 $k_s$（单位 $\mathrm{N/m}$）、原子质量为 $m$、晶格间距为 $a$。长波极限给出 $\omega\approx c k$；当 $ka$ 不再很小时，离散方程给出
 $\omega=2\sqrt{k_s/m}\,\lvert\sin(ka/2)\rvert$。这里的 $k_s$ 不是前文单位为 Pa 的体积模量 $K$。此时群速可小于相速，甚至在带边为零；“固体里波速恒定”只属于连续、线性、低频近似。

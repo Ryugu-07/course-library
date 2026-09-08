@@ -3,6 +3,8 @@
 > **对标**：Griffiths §7、§9 ｜ **前置**：em-01、pde-02（波动方程）
 > 物理学史上最著名的"补丁"：Maxwell 给 Ampère 定律加了一项位移电流，方程组闭合的瞬间——**光从方程里跑了出来**。本页推导这一切，并把电磁波的性质（横波、偏振、能流）配齐。
 
+> 可直接复习：[静电静磁与通量](em-01-electrostatics.html)、[波动方程](../../math-course/site/pde-02-characteristics-kernels.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="em-02-learning-title">
@@ -85,17 +87,29 @@ $\mathbf E_0=\hat{\mathbf x}+i\hat{\mathbf y}$、$\mathbf B_0=\hat{\mathbf y}-i\
 
 这里的横向性、$|E|=c|B|$ 和 $\langle\mathbf S\rangle\parallel\mathbf k$ 是**单色平面波在均匀无源线性真空中的结论**，不是任意电磁场的逐点定律。多个频率的叠加、局域波包、天线附近的近场、反射/透射边界和有限束都需要保留相应的空间结构与边界条件；介质中还要改用介质的本构关系，不能直接套用 $\varepsilon_0,\mu_0$ 的真空比例。
 
+### 4. 迁移：波动方程的解一定是Maxwell解吗？
+
+真空中有人提出 $\mathbf E=E_0\hat z\cos(kz-\omega t)$，$\omega=ck$，并说它满足波动方程所以是电磁波。指出缺少的约束。再给沿 $-\hat z$ 传播、$\mathbf E_0=E_0\hat x$ 的合法波配上磁场。
+
+<details markdown="1"><summary>核对Gauss约束与传播方向</summary>
+
+第一式确实满足每分量波动方程，却有 $\nabla\cdot\mathbf E=-kE_0\sin(kz-\omega t)\ne0$，违反无源Gauss约束。波动方程是必要条件，单独不足以保证完整Maxwell方程。第二问取 $\mathbf B_0=-E_0\hat y/c$；其叉积能流沿 $-\hat z$，与传播方向一致。
+
+</details>
+
 </section>
 
 ## 1. Faraday 感应与位移电流
 
-**Faraday 定律**：变化的磁通感生电场——$\oint\mathbf E\cdot d\boldsymbol\ell = -\frac{d\Phi_B}{dt}$ ⟺
+**Faraday 定律（固定闭合回路和固定跨面）**：变化的磁通感生电场——$\oint\mathbf E\cdot d\boldsymbol\ell = -\frac{d\Phi_B}{dt}$ ⟺
 
 $$
 \nabla\times\mathbf E = -\frac{\partial\mathbf B}{\partial t}
 $$
 
 （负号 = Lenz 定律：感应总在抵抗变化——能量守恒的守门员；发电机、变压器的全部原理。）
+
+若回路本身以速度 $\mathbf v$ 运动，感应电动势应含运动项：$\mathcal E=\oint_{C(t)}(\mathbf E+\mathbf v\times\mathbf B)\cdot d\boldsymbol\ell=-d\Phi_B/dt$。移动导体切割静磁场也可有电动势，不能只用固定回路的 $\oint\mathbf E\cdot d\boldsymbol\ell$。
 
 **Maxwell 的补丁【推导】**：若把 Ampère 方程暂写成静磁形式 $\nabla\times\mathbf B = \mu_0\mathbf J$，取散度会得到 $\nabla\cdot\mathbf J=0$；但一般源的连续性方程是 $\nabla\cdot\mathbf J=-\partial_t\rho$，两者只在特殊的定常情形相容。补上**位移电流** $\varepsilon_0\partial_t\mathbf E$ 后，Gauss 定律的时间导数正好补偿连续性方程，方程组对任意局域源保持一致。$\blacksquare$——**由数学自洽性倒逼出的新物理**：理论物理方法论的经典示范。
 

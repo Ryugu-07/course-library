@@ -141,7 +141,7 @@
   }
 
   function text(x, y, value, className, anchor) {
-    return '<text x="' + x + '" y="' + y + '"' + (className ? ' class="' + className + '"' : "") + (anchor ? ' text-anchor="' + anchor + '"' : "") + '>' + String(value) + "</text>";
+    return '<text x="' + x + '" y="' + y + '"' + (className ? ' class="' + className + '"' : "") + (anchor ? ' text-anchor="' + anchor + '"' : "") + '>' + String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</text>";
   }
 
   function waveDisplacement(amplitude, wavenumber, direction, x, omega, time) {
@@ -177,17 +177,18 @@
   }
 
   function waveGeometry(data) {
-    var interfaceX = 368;
-    var baseline = 104;
-    var incident = wavePath(34, interfaceX, baseline, 25, data.k1, data.omega, data.snapshotTime, -PLOT_LENGTH, 0, 1);
-    var reflected = wavePath(34, interfaceX, baseline, 25 * data.reflection, data.k1, data.omega, data.snapshotTime, -PLOT_LENGTH, 0, -1);
-    var transmitted = wavePath(interfaceX, 724, baseline, 25 * data.transmission, data.k2, data.omega, data.snapshotTime, 0, PLOT_LENGTH, 1);
+    var interfaceX = 380;
+    var baseline = 125;
+    var length = Math.min(PLOT_LENGTH, 8 * Math.min(data.wavelength1, data.wavelength2));
+    var incident = wavePath(34, interfaceX, baseline, 25, data.k1, data.omega, data.snapshotTime, -length, 0, 1);
+    var reflected = wavePath(34, interfaceX, baseline, 25 * data.reflection, data.k1, data.omega, data.snapshotTime, -length, 0, -1);
+    var transmitted = wavePath(interfaceX, 726, baseline, 25 * data.transmission, data.k2, data.omega, data.snapshotTime, 0, length, 1);
     return {
       interfaceX: interfaceX,
       baseline: baseline,
-      physicalLength: PLOT_LENGTH,
-      cycles1: PLOT_LENGTH / data.wavelength1,
-      cycles2: PLOT_LENGTH / data.wavelength2,
+      physicalLength: length,
+      cycles1: length / data.wavelength1,
+      cycles2: length / data.wavelength2,
       incident: incident,
       reflected: reflected,
       transmitted: transmitted,
@@ -199,31 +200,35 @@
     var geometry = waveGeometry(data);
     var baseline = geometry.baseline;
     var interfaceX = geometry.interfaceX;
-    var barBase = 253;
-    var barScale = 125;
+    var barBase = 390;
+    var barScale = 100;
     var rHeight = data.reflectance * barScale;
     var tHeight = data.transmittance * barScale;
     return [
-      '<svg viewBox="0 0 760 300" role="img" aria-labelledby="' + uid + '-title ' + uid + '-desc">',
+      '<svg viewBox="0 0 760 435" role="img" aria-labelledby="' + uid + '-title ' + uid + '-desc">',
+      '<defs><marker id="' + uid + '-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="var(--ew-green)"></path></marker></defs>',
       '<title id="' + uid + '-title">弹性波在材料界面的反射与透射</title>',
       '<desc id="' + uid + '-desc">左侧按物理相位 kx 加减 ωt 显示入射、反射和透射位移波；右侧用能量比例柱显示 R 加 T 等于 1。三条波在同一快照时间满足界面位移连续。</desc>',
-      '<rect class="ew-material-one" x="15" y="31" width="353" height="146" rx="4"></rect>',
-      '<rect class="ew-material-two" x="368" y="31" width="377" height="146" rx="4"></rect>',
-      line(368, 24, 368, 184, "ew-interface"),
+      '<rect class="ew-material-one" x="15" y="50" width="365" height="150" rx="4"></rect>',
+      '<rect class="ew-material-two" x="380" y="50" width="365" height="150" rx="4"></rect>',
+      line(380, 44, 380, 210, "ew-interface"),
       line(25, baseline, 735, baseline, "ew-axis"),
       '<path class="ew-incident" d="' + geometry.incident + '"></path>',
       '<path class="ew-reflected" d="' + geometry.reflected + '"></path>',
       '<path class="ew-transmitted" d="' + geometry.transmitted + '"></path>',
-      '<line class="ew-arrow" x1="75" y1="48" x2="127" y2="48"></line>',
-      '<line class="ew-arrow ew-arrow-reverse" x1="215" y1="154" x2="160" y2="154"></line>',
-      '<line class="ew-arrow" x1="452" y1="48" x2="507" y2="48"></line>',
-      text(102, 24, "介质 1：" + data.first.label + "，Z₁=" + format(data.z1 / 1e6, 2) + " MRayl", "ew-title", "middle"),
-      text(557, 24, "介质 2：" + data.second.label + "，Z₂=" + format(data.z2 / 1e6, 2) + " MRayl", "ew-title", "middle"),
-      text(117, 199, "入射 u_i", "ew-label", "middle"),
-      text(212, 199, "反射 u_r", "ew-label", "middle"),
-      text(526, 199, "透射 u_t", "ew-label", "middle"),
-      text(368, 218, "x=0：u_i+u_r=u_t（同一快照 t=0）", "ew-label", "middle"),
-      text(368, 237, "k=2π/λ，λ=c/f；拖动 f 会改变空间周期", "ew-label", "middle"),
+      '<line marker-end="url(#' + uid + '-arrow)" class="ew-arrow" x1="75" y1="66" x2="127" y2="66"></line>',
+      '<line marker-end="url(#' + uid + '-arrow)" class="ew-arrow ew-arrow-reverse" x1="215" y1="184" x2="160" y2="184"></line>',
+      '<line marker-end="url(#' + uid + '-arrow)" class="ew-arrow" x1="452" y1="66" x2="507" y2="66"></line>',
+      text(195, 28, "介质 1：" + data.first.label + "，Z₁=" + format(data.z1 / 1e6, 2) + " MRayl", "ew-title", "middle"),
+      text(570, 28, "介质 2：" + data.second.label + "，Z₂=" + format(data.z2 / 1e6, 2) + " MRayl", "ew-title", "middle"),
+      text(117, 224, "入射 u_i", "ew-label", "middle"),
+      text(240, 224, "反射 u_r", "ew-label", "middle"),
+      text(570, 224, "透射 u_t", "ew-label", "middle"),
+      text(25, 266, "界面总位移：u_i+u_r=u_t", "ew-title"),
+      text(25, 295, "两侧各显示 " + format(geometry.physicalLength * 1000, 3) + " mm", "ew-label"),
+      text(25, 322, "高频缩短窗口，最多8个周期", "ew-label"),
+      text(25, 349, "λ=c/f；三条曲线为同一时刻", "ew-label"),
+      text(25, 376, "纵波曲线画位移标量，并非横向振动", "ew-label"),
       line(437, barBase, 715, barBase, "ew-axis"),
       '<rect class="ew-r-bar" x="492" y="' + (barBase - rHeight).toFixed(2) + '" width="62" height="' + rHeight.toFixed(2) + '"></rect>',
       '<rect class="ew-t-bar" x="605" y="' + (barBase - tHeight).toFixed(2) + '" width="62" height="' + tHeight.toFixed(2) + '"></rect>',
@@ -231,7 +236,7 @@
       text(636, barBase + 18, "T", "ew-label", "middle"),
       text(523, barBase - rHeight - 8, format(data.reflectance, 3), "ew-callout", "middle"),
       text(636, barBase - tHeight - 8, format(data.transmittance, 3), "ew-callout", "middle"),
-      text(575, 226, "能量比例：R+T=1", "ew-title", "middle"),
+      text(575, 266, "能量比例：R+T=1", "ew-title", "middle"),
       '</svg>'
     ].join("");
   }

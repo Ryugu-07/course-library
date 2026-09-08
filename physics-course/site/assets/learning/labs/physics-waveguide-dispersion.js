@@ -128,21 +128,28 @@
   }
 
   function text(x, y, value, className, anchor) {
-    return '<text x="' + x + '" y="' + y + '"' + (className ? ' class="' + className + '"' : "") + (anchor ? ' text-anchor="' + anchor + '"' : "") + '>' + String(value) + "</text>";
+    return '<text x="' + x + '" y="' + y + '"' + (className ? ' class="' + className + '"' : "") + (anchor ? ' text-anchor="' + anchor + '"' : "") + '>' + String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</text>";
   }
 
   function modeTopology(modeInput) {
     var selected = typeof modeInput === "string" ? mode(modeInput) : modeInput || MODES.te10;
     var xRegions = Math.max(selected.m + 1, 1);
     var yRegions = Math.max(selected.n + 1, 1);
+    function boundaries(order) {
+      var result = [0];
+      for (var i = 0; i < order; i += 1) result.push((i + 0.5) / order);
+      result.push(1);
+      return result;
+    }
+    var xBounds = boundaries(selected.m), yBounds = boundaries(selected.n);
     var signs = [];
     var values = [];
     for (var row = 0; row < yRegions; row += 1) {
       var signRow = [];
       var valueRow = [];
       for (var column = 0; column < xRegions; column += 1) {
-        var xFraction = (column + 0.5) / xRegions;
-        var yFraction = (row + 0.5) / yRegions;
+        var xFraction = (xBounds[column] + xBounds[column + 1]) / 2;
+        var yFraction = (yBounds[row] + yBounds[row + 1]) / 2;
         var value = Math.cos(selected.m * Math.PI * xFraction) * Math.cos(selected.n * Math.PI * yFraction);
         valueRow.push(value);
         signRow.push(value >= 0 ? 1 : -1);
@@ -150,7 +157,7 @@
       signs.push(signRow);
       values.push(valueRow);
     }
-    return { mode: selected, xRegions: xRegions, yRegions: yRegions, signs: signs, values: values };
+    return { mode: selected, xRegions: xRegions, yRegions: yRegions, xBounds: xBounds, yBounds: yBounds, signs: signs, values: values };
   }
 
   function waveguideGeometry(data) {
@@ -164,16 +171,19 @@
     for (var row = 0; row < topology.yRegions; row += 1) {
       for (var column = 0; column < topology.xRegions; column += 1) {
         var sign = topology.signs[row][column] > 0 ? "wg-lobe-a" : "wg-lobe-b";
-        var x = left + column * cellWidth;
-        var y = top + row * cellHeight;
-        cells.push('<rect class="' + sign + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + cellWidth.toFixed(1) + '" height="' + cellHeight.toFixed(1) + '"></rect>');
+        var x = left + topology.xBounds[column] * 225;
+        var y = top + topology.yBounds[row] * 132;
+        var width = (topology.xBounds[column + 1] - topology.xBounds[column]) * 225;
+        var height = (topology.yBounds[row + 1] - topology.yBounds[row]) * 132;
+        cells.push('<rect class="' + sign + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + width.toFixed(1) + '" height="' + height.toFixed(1) + '"></rect>');
+        cells.push(text(x + width / 2, y + height / 2 + 4, topology.signs[row][column] > 0 ? "+" : "−", "wg-title", "middle"));
       }
     }
     var chartLeft = 361;
     var chartRight = 724;
     var chartTop = 68;
     var chartBottom = 202;
-    var maxRatio = 2.5;
+    var maxRatio = Math.max(2.5, data.ratio * 1.1);
     var maxBeta = Math.sqrt(maxRatio * maxRatio - 1);
     var evanescentCurve = [];
     for (var belowIndex = 0; belowIndex <= 40; belowIndex += 1) {
@@ -191,14 +201,14 @@
       var py = chartBottom - normalizedBeta / maxBeta * (chartBottom - chartTop);
       curve.push((i ? "L " : "M ") + px.toFixed(2) + " " + py.toFixed(2));
     }
-    var currentRatio = Math.min(data.ratio, maxRatio);
+    var currentRatio = data.ratio;
     var currentX = chartLeft + currentRatio / maxRatio * (chartRight - chartLeft);
     var currentMagnitude = data.propagationState === "above"
       ? Math.sqrt(Math.max(0, data.ratio * data.ratio - 1))
       : data.propagationState === "below"
         ? Math.sqrt(Math.max(0, 1 - data.ratio * data.ratio))
         : 0;
-    var currentY = chartBottom - Math.min(currentMagnitude, maxBeta) / maxBeta * (chartBottom - chartTop);
+    var currentY = chartBottom - currentMagnitude / maxBeta * (chartBottom - chartTop);
     var cutoffX = chartLeft + (chartRight - chartLeft) / maxRatio;
     var stateText = data.propagationState === "above"
       ? "传播区：β>0（实数），α=0"
@@ -224,6 +234,8 @@
       evanescentPath: evanescentCurve.join(" "),
       propagationPath: curve.join(" "),
       cutoffX: cutoffX,
+      maxRatio: maxRatio,
+      maxBeta: maxBeta,
       currentX: currentX,
       currentY: currentY,
       stateText: stateText,
@@ -262,7 +274,8 @@
       '<circle class="wg-current" cx="' + geometry.currentX.toFixed(2) + '" cy="' + geometry.currentY.toFixed(2) + '" r="5"></circle>',
       text(geometry.cutoffX + 5, chartTop + 15, "f_c", "wg-callout"),
       text(chartRight, chartBottom + 22, "f/f_c", "wg-label", "end"),
-      text(chartLeft - 8, chartTop + 4, "β/k_c", "wg-label", "end"),
+      text(chartLeft - 8, chartTop + 4, "归一波数", "wg-label", "end"),
+      text(chartRight, chartBottom + 40, "范围 0–" + format(geometry.maxRatio, 2), "wg-label", "end"),
       text(545, 257, geometry.stateText, data.propagationState === "above" ? "wg-positive" : data.propagationState === "below" ? "wg-negative" : "wg-label", "middle"),
       text(545, 278, data.propagationState === "above" ? "v_p>c_m，v_g<c_m，v_pv_g=c_m²" : geometry.detailText, "wg-label", "middle"),
       '</svg>'
