@@ -148,6 +148,15 @@ $$
 
 例如 $m=-0.001$ 的解析 $C_-=+1$，而 $512\times512$ 中点积分约为 $0.2112$：这是网格漏峰，不是分数 Chern 数。实验保留该数值并提示尚未充分分辨，不用解析标签覆盖它。在 $m=0$ 等边界，两带不能在整个 BZ 上保持隔离，绝缘带 Chern 数本身未定义。
 
+**更隐蔽的反例：整数也可能来自未分辨的网格。** 在相同 $A=i\langle u|du\rangle$ 约定下，Fukui–Hatsugai–Suzuki（FHS）格点法先取归一化重叠
+
+$$
+U_\mu(k)=\frac{\langle u(k)|u(k+\Delta k_\mu)\rangle}{|\langle u(k)|u(k+\Delta k_\mu)\rangle|},\quad
+C_N=-\frac1{2\pi}\sum_k\operatorname{Arg}\frac{U_x(k)U_y(k+\Delta k_x)}{U_x(k+\Delta k_y)U_y(k)},
+$$
+
+其中 $\operatorname{Arg}$ 取主值，各方向周期回接，且重叠须非零。本仓独立 NumPy 本征矢复算，在 $m=+0.001$、网格点 $k_\mu=-\pi+2\pi j/N$ 时，$N=41$ 得到 $C_N=+1$，$N=81$ 才得到解析相图的 $-1$。这是**格点整数与连续带拓扑尚未对应**，不是连续模型在加密时改变拓扑。需检查窄峰的分辨与加密稳定性；只检查“输出整数”不能验收。算法来源见 [Fukui–Hatsugai–Suzuki 原论文](https://arxiv.org/abs/cond-mat/0503172)；这里的具体反例来自本模型的复算，数值保存在独立参考数据中。
+
 <h3>6. 边界谱：bulk-boundary correspondence 的一条可检验切片</h3>
 
 沿 $x$ 方向取半无限链、保留 $k_y$ 为好量子数。实验分别画左、右两种半无限边界的解；有限宽条带的两侧重叠修正在这里没有加入。有效质量与可归一化条件为

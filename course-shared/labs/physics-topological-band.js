@@ -203,9 +203,8 @@
       return phase;
     }
 
-    function bulkGap(mass,grid){
+    function bulkGap(mass){
       var value=finite(mass,"mass");
-      if(grid!==undefined&&Math.round(finite(grid,"gap grid"))<3)throw new RangeError("gap grid must be at least 3");
       // |d|²=m²+2+2m(a+b)+2ab is bilinear on a,b in [-1,1].
       return 2*massGapDistance(value);
     }
@@ -347,7 +346,7 @@
       [lo,hi].forEach(function(points){svg.appendChild(makeSvg(doc,"path",{d:pathFrom(points),fill:"none",stroke:COLORS.gray,"stroke-width":1.2}));});
       [positive,negative].forEach(function(points,i){if(points.length)svg.appendChild(makeSvg(doc,"path",{d:pathFrom(points),class:i?"ptb-edge-alt":"ptb-edge"}));});
       if(result.edge.exists)[result.edge.positiveEnergy,result.edge.negativeEnergy].forEach(function(e){svg.appendChild(makeSvg(doc,"circle",{cx:mx(result.config.ky),cy:my(e),r:5,class:"ptb-current"}));});
-      label(60,425,"浅蓝：当前 k_y 的体谱投影隙；红 / 金：左 / 右半无限边界支。");
+      label(60,425,"浅蓝：各 k_y 的体谱投影隙；红 / 橙：左 / 右半无限边界支；圆点：当前切片。");
       label(60,451,"m="+formatNumber(result.config.mass,2)+"；k_y="+formatNumber(result.config.ky,3)+"；|λ|="+formatNumber(result.edge.decay,3)+"；振幅衰减长度 ξ="+(result.edge.exists?formatNumber(result.edge.localizationLength,3):"不适用"));
       label(60,478,"解析 QWZ C="+formatInvariant(result.chern,0)+"；全局能隙 Δ="+formatNumber(result.gap,4),"start",14);
       var est=result.chernEstimate;
@@ -509,7 +508,7 @@
       check(plus.chern < -0.85 && plus.chern > -1.15, "m=1 has lower-band Chern number -1");
       var trivial = analyze({ mass: 2.6, ky: 0 });
       check(Math.abs(trivial.chern) < 0.15 && !trivial.edge.exists, "m=2.6 is trivial with no ky=0 edge slice");
-      var critical = bulkGap(0, 41);
+      var critical = bulkGap(0);
       check(critical < 1e-8, "m=0 closes the bulk gap");
       var nearCritical = analyze({ mass: 1.95, ky: 0 });
       check(nearCritical.gapStatus === "near" && nearCritical.gap <= NEAR_GAP + 1e-10 && nearCritical.chern === -1 && Number.isFinite(nearCritical.chernEstimate.value), "analytic QWZ label and computed curvature integral are separately reported");

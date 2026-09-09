@@ -27,5 +27,25 @@ for m,y in [(-1,.5),(-.2,0),(.2,np.pi),(-1,0)]:
   A=np.sin(y)*sy+(m+np.cos(y))*sz
   H=np.kron(np.eye(L),A)+np.kron(np.diag(np.ones(L-1),1),T)+np.kron(np.diag(np.ones(L-1),-1),T.conj().T)
   es,vs=np.linalg.eigh(H);i=int(np.argmin(abs(es-np.sin(y))));edges.append(dict(m=m,y=y,L=L,energy=float(es[i]),leftWeight=float(np.sum(abs(vs[:4,i])**2))))
-Path(__file__).with_name('fixtures').joinpath('topological-numpy.json').write_text(json.dumps(dict(numpy=np.__version__,projectors=rows,loops=loops,edges=edges),indent=2)+'\n')
-print('Wrote',len(rows),'projectors,',len(loops),'Wilson loops,',len(edges),'finite chains')
+# High-resolution loops and both spatial ends are separate checks from 512-point agreement.
+fineLoops=[]
+for m,y in [(0,np.pi/2),(-1,.4),(1,-.7)]:
+ n=4096;us=[state(x,y,m) for x in np.linspace(-np.pi,np.pi,n,endpoint=False)]
+ links=[np.vdot(us[i],us[(i+1)%n]) for i in range(n)]
+ phase=-np.angle(np.prod([z/abs(z) for z in links]))
+ fineLoops.append(dict(m=m,y=y,points=n,phase=float(phase)))
+rightEdges=[]
+for m,y in [(-1,.5),(-1,-.5),(1,2.6)]:
+ L=24;A=np.sin(y)*sy+(m+np.cos(y))*sz
+ H=np.kron(np.eye(L),A)+np.kron(np.diag(np.ones(L-1),1),T)+np.kron(np.diag(np.ones(L-1),-1),T.conj().T)
+ es,vs=np.linalg.eigh(H);i=int(np.argmin(abs(es+np.sin(y))))
+ rightEdges.append(dict(m=m,y=y,L=L,energy=float(es[i]),leftWeight=float(np.sum(abs(vs[:4,i])**2)),rightWeight=float(np.sum(abs(vs[-4:,i])**2))))
+def fhs(m,n):
+ us=np.array([[state(-np.pi+2*np.pi*i/n,-np.pi+2*np.pi*j/n,m) for j in range(n)] for i in range(n)])
+ ux=np.sum(us.conj()*np.roll(us,-1,axis=0),axis=2);uy=np.sum(us.conj()*np.roll(us,-1,axis=1),axis=2)
+ ux/=abs(ux);uy/=abs(uy)
+ loop=ux*np.roll(uy,-1,axis=0)/np.roll(ux,-1,axis=1)/uy
+ return float(-np.sum(np.angle(loop))/(2*np.pi))
+fhsRows=[dict(m=.001,count=n,value=fhs(.001,n)) for n in [41,81]]
+Path(__file__).with_name('fixtures').joinpath('topological-numpy.json').write_text(json.dumps(dict(numpy=np.__version__,projectors=rows,loops=loops,edges=edges,fineLoops=fineLoops,rightEdges=rightEdges,fhs=fhsRows),indent=2)+'\n')
+print('Wrote',len(rows),'projectors,',len(loops),'Wilson loops,',len(edges),'finite chains;',len(fineLoops),'fine loops;',len(rightEdges),'right edges;',fhsRows)
