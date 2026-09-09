@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 09:53</div>
   </div>
 </nav>
 <main id="content">
@@ -68,6 +68,7 @@ try {
 <li><a href="#2">2. 先预测：函数值、边界残差与点源跳跃</a></li>
 <li><a href="#3">3. 三个可审计边界问题</a></li>
 <li><a href="#4">4. 失效边界</a></li>
+<li><a href="#5">5. 迁移题：从点源核到真正的解</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 特殊函数：一个来源，一张表</a></li>
@@ -79,8 +80,8 @@ try {
 </details>
 <h1 id="green">数理方法 · 特殊函数与 Green 函数<a class="headerlink" href="#green" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Arfken 主干 / 梁昆淼下册 ｜ <strong>前置</strong>：数学站 pde/复变/泛函线（大部头已在彼处）
-数学物理方法的主体（复变、PDE、变分）你的数学站已建成——本页只补物理特有的两块：<strong>特殊函数全家福</strong>（它们不是杂技，全是"对称坐标系分离变量的必然产物"）与 <strong>Green 函数方法</strong>（物理人的"逆算子"语言）。定位：速查 + 认亲。</p>
+<p><strong>对标</strong>：Arfken 主干 / 梁昆淼下册。<strong>先修回链</strong>：<a href="../../math-course/site/pde-01-separation.html">分离变量</a>、<a href="../../math-course/site/ode-02-linear.html">线性常微分方程</a>、<a href="../../grad-math/site/pde2-01-distributions.html">分布与基本解</a>。
+数学物理方法的主体（复变、PDE、变分）你的数学站已建成——本页只补物理特有的两块：<strong>特殊函数全家福</strong>（它们不是杂技，来自具体坐标、势与边界下的分离方程）与 <strong>Green 函数方法</strong>（物理人的"逆算子"语言）。定位：速查 + 认亲。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -92,6 +93,40 @@ try {
 J_m(kR)=0,
 \]</div>
 <p>于是 <span class="arithmatex">\(kR\)</span> 只能取 Bessel 零点。方程决定候选函数族，定义域、权重和边界条件共同决定自伴算子、正交关系与离散谱。只背“柱坐标用 Bessel”会漏掉真正完成量子化的那道边界证书。</p>
+<p>把推导写完整：理想均匀张力圆膜满足 <span class="arithmatex">\(u_{tt}=c^2\Delta u\)</span>。取 <span class="arithmatex">\(u=a(r)\cos(m\varphi)e^{-i\omega t}\)</span>，单值性要求整数 <span class="arithmatex">\(m\)</span>，得到</p>
+<div class="arithmatex">\[
+-(ra')'+\frac{m^2}{r}a=k^2ra,\qquad k=\omega/c,\qquad 0&lt;r&lt;R.
+\]</div>
+<p>这是权重 <span class="arithmatex">\(r\)</span> 的径向 Sturm–Liouville 问题；原点为奇异端点，取在原点正则的解（排除 <span class="arithmatex">\(Y_m\)</span>），保留 <span class="arithmatex">\(a=J_m(kr)\)</span>。对不同本征值，分部积分相减给</p>
+<div class="arithmatex">\[
+(k_n^2-k_j^2)\int_0^R r a_n a_j\,dr
+=\left[r(a_n a_j'-a_j a_n')\right]_0^R=0.
+\]</div>
+<p>最后一个零来自原点正则及同一组自伴外边界，不能跳过。轴对称 <span class="arithmatex">\(m=0\)</span> 时，<strong>Dirichlet</strong> 条件 <span class="arithmatex">\(a(R)=0\)</span> 给 <span class="arithmatex">\(J_0(kR)=0\)</span>；<strong>Neumann</strong> 条件 <span class="arithmatex">\(a'(R)=0\)</span> 在 <span class="arithmatex">\(k&gt;0\)</span> 时给 <span class="arithmatex">\(J_0'(kR)=-J_1(kR)=0\)</span>，还须单独保留 <span class="arithmatex">\(k=0\)</span> 的常数零模。这里 Neumann 是规定法向导数为零的理想模型，不是对所有真实膜边缘装置的描述。</p>
+<table>
+<thead>
+<tr>
+<th>轴对称边界</th>
+<th>零模</th>
+<th>第一个正根 <span class="arithmatex">\(kR\)</span></th>
+<th>半径变为两倍</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dirichlet</td>
+<td>无</td>
+<td><span class="arithmatex">\(2.4048255577\)</span></td>
+<td>固定 <span class="arithmatex">\(c\)</span> 时所有 <span class="arithmatex">\(\omega\)</span> 减半</td>
+</tr>
+<tr>
+<td>Neumann</td>
+<td>常数模 <span class="arithmatex">\(k=0\)</span></td>
+<td><span class="arithmatex">\(3.8317059702\)</span></td>
+<td>所有非零 <span class="arithmatex">\(\omega\)</span> 减半，零模仍为零</td>
+</tr>
+</tbody>
+</table>
 <h3 id="2">2. 先预测：函数值、边界残差与点源跳跃<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <ol>
 <li><span class="arithmatex">\(J_0(0)=1\)</span>，固定边缘条件 <span class="arithmatex">\(J_0(kR)=0\)</span> 的第一根是否会在 <span class="arithmatex">\(kR=0\)</span>？</li>
@@ -131,7 +166,7 @@ J_m(kR)=0,
 </tr>
 </tbody>
 </table>
-<p>实验揭示后可切换三种模型：Bessel 页扫描并二分零点，Legendre 页用递推显示节点，Green 页移动点源并直接列左右导数。数值零点只验证当前低阶问题；完备性来自相应自伴 Sturm–Liouville 定理，而不是曲线看起来“够多”。</p>
+<p>实验揭示后可切换三种模型：Bessel 页比较两类边界与半径，正零点由扫描、二分得到；Neumann 第0模单列。Legendre 页用递推并允许选择对照次数，同奇偶的不同次数与同次范数都可检查。Green 页移动点源、改变长度并列左右导数。实验在 <span class="arithmatex">\(|x|\le20\)</span> 用128点中点求积计算 <span class="arithmatex">\(J_0(x)=\pi^{-1}\int_0^\pi\cos(x\sin t)dt\)</span>，并由导数关系计算 <span class="arithmatex">\(J_1\)</span>，避免较大 <span class="arithmatex">\(x\)</span> 下交错幂级数的消减；这仍是有范围的数值近似。数值零点只验证当前低阶问题；完备性来自相应自伴 Sturm–Liouville 定理，而不是曲线看起来“够多”。</p>
 </div>
 <h3 id="4">4. 失效边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
@@ -139,13 +174,32 @@ J_m(kR)=0,
 <li>Green 函数依赖边界/初始或辐射条件。若算子有零模，普通逆不存在，需加规范、投影或广义逆。</li>
 <li><span class="arithmatex">\(J_m(x)\)</span> 的余弦渐近式是固定阶 <span class="arithmatex">\(m\)</span>、<span class="arithmatex">\(x\to+\infty\)</span> 的结论；阶与自变量同时变大要用一致渐近。</li>
 </ul>
+<h3 id="5">5. 迁移题：从点源核到真正的解<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>在 <span class="arithmatex">\([0,L]\)</span> 上，使用 <span class="arithmatex">\(G(x,\xi)=x_&lt;(L-x_&gt;)/L\)</span> 求解 <span class="arithmatex">\(-u''=1\)</span>、两端为零。不要只抄核；把源位置积分拆成两段。</li>
+<li>如果边界换为 <span class="arithmatex">\(u'(0)=u'(L)=0\)</span>，同一个载荷 <span class="arithmatex">\(f=1\)</span> 能否有解？若 <span class="arithmatex">\(\int_0^L f=0\)</span>，解是否唯一？</li>
+<li>计算 <span class="arithmatex">\(\int_{-1}^1P_2P_4dx\)</span> 与 <span class="arithmatex">\(\int_{-1}^1P_2^2dx\)</span>。为什么只检查 <span class="arithmatex">\(P_2P_3\)</span> 不足以区分正确的 Legendre 实现与任意奇偶多项式？</li>
+</ol>
+<details class="answer">
+<summary>展开积分与边界检查</summary>
+<p><strong>1. 分段计算。</strong></p>
+<div class="arithmatex">\[
+u(x)=\frac{L-x}{L}\int_0^x\xi\,d\xi+\frac{x}{L}\int_x^L(L-\xi)\,d\xi=\frac{x(L-x)}2.
+\]</div>
+<p>于是 <span class="arithmatex">\(u(0)=u(L)=0\)</span> 且 <span class="arithmatex">\(-u''=1\)</span>。核的连续性及导数跳跃也能直接推导：设左支 <span class="arithmatex">\(A x\)</span>、右支 <span class="arithmatex">\(B(L-x)\)</span>，连续给 <span class="arithmatex">\(A\xi=B(L-\xi)\)</span>；在点源两侧积分 <span class="arithmatex">\(-G''=\delta\)</span> 给 <span class="arithmatex">\(-B-A=-1\)</span>，解得 <span class="arithmatex">\(A=(L-\xi)/L\)</span>、<span class="arithmatex">\(B=\xi/L\)</span>。</p>
+<p><strong>2. 兼容条件。</strong> 积分方程得 <span class="arithmatex">\(\int_0^L fdx=-u'(L)+u'(0)=0\)</span>，所以 <span class="arithmatex">\(f=1\)</span> 无解。零平均载荷时仍可加任意常数；加 <span class="arithmatex">\(\int u=0\)</span> 才选定一个逆。投影 Green 核应满足 <span class="arithmatex">\(-G''=\delta(x-\xi)-1/L\)</span>，不是普通点源逆。</p>
+<p><strong>3. 同奇偶的正交检查。</strong> <span class="arithmatex">\(P_2=(3x^2-1)/2\)</span>、<span class="arithmatex">\(P_4=(35x^4-30x^2+3)/8\)</span>；乘积为 <span class="arithmatex">\((105x^6-125x^4+39x^2-3)/16\)</span>，积分为0，而 <span class="arithmatex">\(\int P_2^2=2/5\)</span>。<span class="arithmatex">\(P_2P_3\)</span> 是奇函数，其积分为0还没有检验同奇偶阶之间的正交结构。</p>
+</details>
 </section>
 <h2 id="1">1. 特殊函数：一个来源，一张表<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="Bessel 与 Legendre 函数" src="assets/img/mp-01-special-functions.svg" /></p>
+<div style="overflow-x:auto;position:relative" tabindex="0" role="region" aria-label="特殊函数图，可横向滚动">
+<figure class="plot" markdown="1" style="min-width:820px">
+![Bessel 与 Legendre 函数](assets/img/mp-01-special-functions.svg)
 <figcaption><span class="fig-id">图 1.1</span>两族最常见的特殊函数：Bessel \(J_n\)（柱对称问题）与 Legendre \(P_n\)（球对称问题）——都是分离变量后的本征函数。</figcaption>
 </figure>
-<p><strong>统一出身</strong>：在对称坐标系里分离 Helmholtz/Laplace 方程（pde-01 的流程），径向/角向方程的解<strong>必然</strong>是它们——不是发明，是分离变量的副产物：</p>
+</div>
+
+<p><strong>统一出身</strong>：在对称坐标系里分离 Helmholtz/Laplace 方程（pde-01 的流程），径向/角向方程的解出现相应函数族；Hermite 与 Laguerre 还需要二次势、Coulomb 势等具体动力学，不能单由坐标系决定：</p>
 <table>
 <thead>
 <tr>
@@ -160,7 +214,7 @@ J_m(kR)=0,
 <td><strong>Legendre <span class="arithmatex">\(P_\ell(x)\)</span></strong></td>
 <td>球坐标角向（轴对称）</td>
 <td>多极展开（em-01/ced-01）</td>
-<td>正交完备于 <span class="arithmatex">\([-1,1]\)</span>；Rodrigues 公式</td>
+<td><span class="arithmatex">\(L^2([-1,1],dx)\)</span> 正交完备，范数平方 <span class="arithmatex">\(2/(2\ell+1)\)</span></td>
 </tr>
 <tr>
 <td><strong>球谐 <span class="arithmatex">\(Y_\ell^m\)</span></strong></td>
@@ -172,13 +226,13 @@ J_m(kR)=0,
 <td><strong>Bessel <span class="arithmatex">\(J_n\)</span></strong></td>
 <td>柱坐标径向</td>
 <td>圆膜振动、光纤模式、圆孔衍射（opt-01 Airy）</td>
-<td>无穷多零点 → 径向量子化</td>
+<td>正则性与指定边界一起选出径向谱</td>
 </tr>
 <tr>
 <td><strong>球 Bessel <span class="arithmatex">\(j_\ell\)</span></strong></td>
 <td>球坐标径向（自由粒子）</td>
 <td>散射分波（aqm-02）</td>
-<td><span class="arithmatex">\(j_0 = \frac{\sin x}{x}\)</span></td>
+<td><span class="arithmatex">\(j_0=\sin x/x\)</span>，在 <span class="arithmatex">\(x=0\)</span> 取极限 <span class="arithmatex">\(1\)</span></td>
 </tr>
 <tr>
 <td><strong>Hermite <span class="arithmatex">\(H_n\)</span></strong></td>
@@ -194,7 +248,7 @@ J_m(kR)=0,
 </tr>
 </tbody>
 </table>
-<p><strong>方法论读法</strong>：这些函数族可安放进相应的 <strong>Sturm–Liouville 问题</strong>（pde-01 §2 / 泛函 III 自伴谱理论的实例）；在给定区间、权重与自伴边界条件后，才继承<strong>实谱、正交性、完备展开</strong>。"用什么函数展开"要同时看坐标系、势和边界。物理人的实用三招：递推关系、母函数、渐近形式；例如固定阶 <span class="arithmatex">\(n\)</span> 且 <span class="arithmatex">\(x\to+\infty\)</span> 时 <span class="arithmatex">\(J_n(x)\sim\sqrt{\frac{2}{\pi x}}\cos(\cdots)\)</span>，阶与自变量同时变大则需另一套一致渐近。</p>
+<p><strong>方法论读法</strong>：这些函数族可安放进相应的 <strong>Sturm–Liouville 问题</strong>（pde-01 §2 / 泛函 III 自伴谱理论的实例）；在给定区间、权重与自伴边界条件后，才继承<strong>实谱、正交性、完备展开</strong>。"用什么函数展开"要同时看坐标系、势和边界。物理人的实用三招：递推关系、母函数、渐近形式；例如固定阶 <span class="arithmatex">\(n\)</span> 且 <span class="arithmatex">\(x\to+\infty\)</span> 时 <span class="arithmatex">\(J_n(x)\sim\sqrt{2/(\pi x)}\cos(x-n\pi/2-\pi/4)\)</span>，阶与自变量同时变大则需另一套一致渐近。</p>
 <h2 id="2-green">2. Green 函数：物理人的逆算子<a class="headerlink" href="#2-green" title="Permanent link"></a></h2>
 <p><strong>定义</strong>：线性算子 <span class="arithmatex">\(\hat L\)</span> 的点源响应</p>
 <div class="arithmatex">\[
@@ -203,21 +257,22 @@ J_m(kR)=0,
 <p>——<strong>"任意源 = 点源的叠加，解 = 点源响应的叠加"</strong>（线性性的全部利用；pde2-01 基本解的物理名字）。在边界/初始/辐射条件已固定且逆存在时，<span class="arithmatex">\(G\)</span> 是 <span class="arithmatex">\(\hat L^{-1}\)</span> 的积分核；有零模时需先投影或另加规范，不能直接逐谱除以零。</p>
 <p><strong>三大常客【推导/引用】</strong>：</p>
 <ul>
-<li><strong>静电</strong>：<span class="arithmatex">\(\hat L = -\nabla^2\)</span>，<span class="arithmatex">\(G = \frac{1}{4\pi|\mathbf r - \mathbf r'|}\)</span>——<strong>Coulomb 势本人</strong>（em-01 的叠加积分原来就是 Green 函数方法）；带边界的 <span class="arithmatex">\(G\)</span> = 镜像法的正式身份（镜像电荷 = 构造满足边界条件的 Green 函数）；</li>
-<li><strong>波动（推迟 Green 函数）</strong>：<span class="arithmatex">\(G_{\text{ret}} \propto \frac{\delta(t - t' - |\mathbf r - \mathbf r'|/c)}{|\mathbf r - \mathbf r'|}\)</span>——"影响以光速迟到"（ced-02 推迟势的内核，因果律的数学化身）；</li>
-<li><strong>热传导</strong>：<span class="arithmatex">\(G\)</span> = 热核（pde-02/数学站 sde 线——高斯的第 N 次出场）。</li>
+<li><strong>三维无界静电</strong>：<span class="arithmatex">\(\hat L = -\nabla^2\)</span>，<span class="arithmatex">\(G = \frac{1}{4\pi|\mathbf r - \mathbf r'|}\)</span>——单位点源的核，电势还须乘电荷与介电系数（em-01 的叠加积分原来就是 Green 函数方法）；带边界的 <span class="arithmatex">\(G\)</span> = 镜像法的正式身份（镜像电荷 = 构造满足边界条件的 Green 函数）；</li>
+<li><strong>三维无界波动</strong>：对 <span class="arithmatex">\(\hat L=c^{-2}\partial_t^2-\Delta\)</span>，取 <span class="arithmatex">\(\tau=t-t'\)</span>、<span class="arithmatex">\(\rho=|\mathbf r-\mathbf r'|\)</span>，推迟核为 <span class="arithmatex">\(G_{\rm ret}=\delta(\tau-\rho/c)/(4\pi\rho)\)</span>；<span class="arithmatex">\(c\)</span> 是此方程的波速，只有电磁真空情境才特指光速。算子若改成 <span class="arithmatex">\(\partial_t^2-c^2\Delta\)</span>，核需再除以 <span class="arithmatex">\(c^2\)</span>。</li>
+<li><strong>无界热传导</strong>：对 <span class="arithmatex">\(\partial_t-D\Delta\)</span>，<span class="arithmatex">\(D&gt;0\)</span>，<span class="arithmatex">\(d\)</span> 维推迟热核为 <span class="arithmatex">\(\Theta(\tau)(4\pi D\tau)^{-d/2}\exp[-\rho^2/(4D\tau)]\)</span>；它满足初始单位质量，边界存在时通常要另构造。</li>
 </ul>
-<p><strong>本征函数展开【推导】</strong>：<span class="arithmatex">\(G = \sum_n\frac{\varphi_n(\mathbf r)\varphi_n^*(\mathbf r')}{\lambda_n}\)</span>（把 <span class="arithmatex">\(\delta\)</span> 按完备基展开、逐项除本征值——"逆算子 = 谱的倒数"：泛函 III 谱定理的直接应用）。<strong>量子力学的传播子</strong>、场论的 Feynman 传播子（qft-02 的中心对象）都是这个结构——<strong>Green 函数是贯穿本站研究生板块的第一记号</strong>。</p>
-<p>🔗 对账：ML 里核回归的 kernel、GP 的协方差核在数学上同宗（正定核 = 某算子的 Green 函数/谱展开——Mercer 定理，数学站 ai 线）；"卷积响应"的世界观（信号系统/扩散模型的去噪核）同源。</p>
+<p><strong>本征函数展开【推导】</strong>：先假设指定自伴算子具有离散完备正交归一基、没有零本征值，并假设源属于逆算子的定义域，按相应测度展开。<span class="arithmatex">\(G = \sum_n\frac{\varphi_n(\mathbf r)\varphi_n^*(\mathbf r')}{\lambda_n}\)</span>（把 <span class="arithmatex">\(\delta\)</span> 按完备基展开、逐项除本征值——"逆算子 = 谱的倒数"：泛函 III 谱定理的直接应用）。连续谱需把求和改成谱积分；解与核的收敛意义也要说明。量子时间演化核的谱系数是 <span class="arithmatex">\(e^{-iE_nt/\hbar}\)</span>，而预解式核是 <span class="arithmatex">\((E-E_n\pm i0)^{-1}\)</span>；Feynman、推迟、超前核的边界处方不同，不能统称为无条件的 <span class="arithmatex">\(1/\lambda_n\)</span>。</p>
+<p>🔗 对账：正定协方差核可定义正算子，但不必可逆，更不自动是某个局部微分算子的 Green 函数。例如常数核对应秩1算子，有大量零模。只有指定算子、函数空间、定义域及边界后，“核是逆算子”才成为可检验的命题。</p>
 <h2 id="3_1">3. 渐近与量纲（物理人的两件防身器）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>量纲分析</strong>：数学站建模页已立（Buckingham π）；物理补一句——<strong>自然单位制</strong>（<span class="arithmatex">\(\hbar = c = 1\)</span>：长度=时间=1/能量）是研究生板块的默认货币（qft/pp 线），换算锚点：<span class="arithmatex">\(\hbar c \approx 197\)</span> MeV·fm。</p>
 <p><strong>渐近展开一嘴</strong>：驻相法/最速下降（复变 III 围道思想的延伸【引用】）——大参数积分的物理直觉来源（短波极限 = 几何光学、经典极限 <span class="arithmatex">\(\hbar \to 0\)</span> = 驻相在经典路径——aqm-03 路径积分的预告）。</p>
 <h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（多极展开亲算）</strong> <span class="arithmatex">\(\frac{1}{|\mathbf r - \mathbf r'|} = \sum_\ell \frac{r'^\ell}{r^{\ell+1}}P_\ell(\cos\theta)\)</span>（母函数定义本身）——远场电势 = 单极 + 偶极 + 四极…（ced-01 的主粮）；"远看任何电荷分布都像点电荷 + 修正"的数学。</p>
+<p><strong>例 1（多极展开亲算）</strong> <span class="arithmatex">\(\frac{1}{|\mathbf r - \mathbf r'|} = \sum_\ell \frac{r'^\ell}{r^{\ell+1}}P_\ell(\cos\theta)\)</span>（仅当 <span class="arithmatex">\(r^{\prime}&lt;r\)</span>；对有界电荷分布，观测点需在全部源点外）——远场电势 = 单极 + 偶极 + 四极…（ced-01 的主粮）；总电荷为零时单极项消失，首个非零多极矩才控制远场，不能总以点电荷为主项。</p>
 <p><strong>例 2（Green 函数用法演示）</strong> 一维弦 <span class="arithmatex">\(-u'' = f\)</span>、两端固定：<span class="arithmatex">\(G(x, x') = \frac{x_&lt;(L - x_&gt;)}{L}\)</span>（分段线性、在 <span class="arithmatex">\(x'\)</span> 处满足 <span class="arithmatex">\(G'_+-G'_-=-1\)</span>，因此 <span class="arithmatex">\(-G''=\delta\)</span>）；任意载荷的挠度一个积分完事——工程与物理共用的"影响函数"。</p>
-<p><strong>例 3（自然单位换算）</strong> 质子质量 938 MeV ⇒ 康普顿波长 <span class="arithmatex">\(\frac{\hbar c}{mc^2} = \frac{197}{938} \approx 0.21\)</span> fm——核物理尺度一秒读出：自然单位制的日常红利。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（自然单位换算）</strong> 质子静能 <span class="arithmatex">\(mc^2\approx938\)</span> MeV ⇒ 约化康普顿波长 <span class="arithmatex">\(\frac{\hbar c}{mc^2} = \frac{197}{938} \approx 0.21\)</span> fm——通常康普顿波长 <span class="arithmatex">\(h/(mc)\)</span> 还要乘 <span class="arithmatex">\(2\pi\)</span>；此处为约化尺度：自然单位制的日常红利。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>本科板块 20 页全部完卷。研究生板块开幕：高等量子力学——对称性接管量子理论。</em></p>
+<p><em>继续学习：<a href="aqm-02-scattering.html">高等量子力学中的散射</a>用球Bessel与出射边界，<a href="ced-01-boundary.html">静电边值问题</a>继续使用Green函数。</em></p>
+<p><strong>原始参考</strong>：<a href="https://dlmf.nist.gov/10.9">NIST DLMF：Bessel 积分表示</a>、<a href="https://dlmf.nist.gov/10.21">零点</a>、<a href="https://dlmf.nist.gov/18.3">经典正交多项式的权重和归一化</a>。Green跳跃与零模兼容条件在本页直接推导。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="solid-04-topological.html"><span class="pager-label">上一页</span>固体 IV · Berry 相位与拓扑物态</a>
