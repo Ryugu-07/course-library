@@ -26,4 +26,13 @@ const basis=[[1,0,0],[0,1,0],[0,0,1]];for(const K of [-.25,0,.25])for(const X of
 // R convention gives -R(e1,e2)e1 towards +e2. Check small-loop sign and convergence.
 for(const ell of [.02,.01,.005]){let theta0=1.1,R=2,dphi=ell/(R*Math.sin(theta0)),angle=dphi*(Math.cos(theta0)-Math.cos(theta0+ell/R));ok(angle>0,'CCW positive transport');near(angle/r.holonomyAngle(1/(R*R),ell),1,.006);}
 for(const orientation of [-1,1])for(const initialMode of ['parallel','fan']){let q=r.evaluateExperiment({orientation,initialMode});near(q.holonomy,.09*orientation);near(q.firstZero,initialMode==='fan'?2*Math.PI:Math.PI);}
+// Extreme finite coordinates remain valid; distinguish representability from geometry.
+for(const x of [1e78,1e155,1e200,1e308])for(const sign of [-1,1]){
+ const q=[sign*x,0],p=g.sphereStereographicToEmbedding(q),metric=g.metricTensor('sphere','stereographic',q),gamma=g.christoffelSymbols('sphere','stereographic',q);
+ near(p[0]/(2/x),sign,1e-12);near(p[1],0);near(p[2],1);ok(metric.regular,'finite chart always regular');near(gamma.symbols[0][0][0]/(-2/x),sign,1e-12);
+ if(x===1e78){near(metric.matrix[0][0]/4e-312,1,1e-10);ok(metric.numericallyUsable,'subnormal metric retained');ok(metric.determinant===null,'underflow not falsely zero determinant');}
+ else {ok(!metric.numericallyUsable&&metric.matrix===null,'unrepresentable metric explicit');}
+}
+for(const angle of [1e-155,1e-200,1e-300]){let q=g.sphereSphericalToStereographic([angle,0]);near(q[0]/(2/angle),1,1e-12);near(q[1],0);}
+for(const fn of [()=>g.sphereSphericalToStereographic([Number.MIN_VALUE,0]),()=>g.sphereStereographicToEmbedding([Infinity,0]),()=>g.metricTensor('sphere','stereographic',[NaN,0]),()=>g.christoffelSymbols('sphere','stereographic',[0,Infinity])]){checks++;assert.throws(fn);}
 console.log(`Riemannian independent checks: PASS (${checks})`);

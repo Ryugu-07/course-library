@@ -146,6 +146,13 @@
     return [[[0, 0], [0, 0]], [[0, 0], [0, 0]]];
   }
 
+  function stereographicScale(u,v) {
+    if(!finite(u)||!finite(v))throw new RangeError("stereographic coordinates must be finite");
+    var scale=Math.max(1,Math.abs(u),Math.abs(v)),a=u/scale,b=v/scale,w=1/scale;
+    var den=w*w+a*a+b*b;
+    return {a:a,b:b,w:w,den:den,inverse:w*w/den};
+  }
+
   function metricTensor(manifold, chart, coordinates) {
     var q = coordinates || [0, 0];
     var first = Number(q[0]);
@@ -163,9 +170,10 @@
       return { matrix: [[1, 0], [0, determinant]], determinant: determinant, regular: finite(first) && first > 0 && first < PI, manifoldRegular: true, note: "θ=0,π 是经纬坐标的极点奇异；球面仍是光滑流形。" };
     }
     if (manifold === "sphere" && chart === "stereographic") {
-      var rhoSquared = first * first + second * second;
-      var factor = 4 / Math.pow(1 + rhoSquared, 2);
-      return { matrix: [[factor, 0], [0, factor]], determinant: factor * factor, regular: finite(factor) && factor > 0, manifoldRegular: true, note: "北极被此 stereographic 图排除；有限坐标处度量正定。" };
+      var scaled = stereographicScale(first,second);
+      var lengthScale=2*scaled.inverse, factor=lengthScale*lengthScale;
+      var usable=factor>0;
+      return { matrix: usable ? [[factor,0],[0,factor]] : null, determinant: usable && factor*factor>0 ? factor*factor : null, regular: true, numericallyUsable: usable, manifoldRegular: true, note: usable ? "有限立体坐标数学上正则；极小行列式可能低于浮点表示范围。" : "此图数学上正则，但度量分量小于浮点可表示范围；请换图，不是流形奇异。" };
     }
     throw new Error("unknown metric chart: " + manifold + "/" + chart);
   }
@@ -201,9 +209,9 @@
       return { symbols: symbols, nonzero: nonzero, regular: regular, note: regular ? "Γ^θ_φφ=-sinθ cosθ，Γ^φ_θφ=Γ^φ_φθ=cotθ。" : "极点处经纬 Christoffel 坐标式失效。" };
     }
     if (manifold === "sphere" && chart === "stereographic") {
-      var denominator = 1 + first * first + second * second;
-      var A = -2 * first / denominator;
-      var B = -2 * second / denominator;
+      var scaled=stereographicScale(first,second);
+      var A=-2*scaled.a*scaled.w/scaled.den;
+      var B=-2*scaled.b*scaled.w/scaled.den;
       put(0, 0, 0, A, "Γ^u_uu");
       put(0, 0, 1, B, "Γ^u_uv");
       put(0, 1, 0, B, "Γ^u_vu");
@@ -212,7 +220,7 @@
       put(1, 0, 1, A, "Γ^v_uv");
       put(1, 1, 0, A, "Γ^v_vu");
       put(1, 1, 1, B, "Γ^v_vv");
-      return { symbols: symbols, nonzero: nonzero, regular: true, note: "g=4(1+u²+v²)⁻² I 的共形 Christoffel 分量。" };
+      return { symbols: symbols, nonzero: nonzero, regular: regular, note: "g=4(1+u²+v²)⁻² I 的共形 Christoffel 分量。" };
     }
     throw new Error("unknown Christoffel chart: " + manifold + "/" + chart);
   }
@@ -246,11 +254,15 @@
   }
 
   function northProjection(point) {
-    var rho2 = point[0] * point[0] + point[1] * point[1];
-    if (rho2 === 0 && point[2] > 0) return null;
-    // Rationalize 1-z near the north pole on the unit sphere.
-    var factor = point[2] > 0 ? (1 + point[2]) / rho2 : 1 / (1 - point[2]);
-    return [point[0] * factor, point[1] * factor];
+    var rho=Math.hypot(point[0],point[1]);
+    if(rho===0&&point[2]>0)return null;
+    if(point[2]>0){
+      // Multiply the normalized planar direction before dividing by tiny rho.
+      var projected=[(point[0]/rho)*(1+point[2])/rho,(point[1]/rho)*(1+point[2])/rho];
+      if(!projected.every(finite))throw new RangeError("stereographic projection exceeds floating-point range; the chart is mathematically regular");
+      return projected;
+    }
+    return [point[0]/(1-point[2]),point[1]/(1-point[2])];
   }
 
   function sphereSphericalToStereographic(coordinates) {
@@ -261,8 +273,8 @@
   function sphereStereographicToEmbedding(coordinates) {
     var u = Number(coordinates[0]);
     var v = Number(coordinates[1]);
-    var rhoSquared = u * u + v * v;
-    return [2 * u / (1 + rhoSquared), 2 * v / (1 + rhoSquared), (rhoSquared - 1) / (1 + rhoSquared)];
+    var scaled=stereographicScale(u,v);
+    return [2*scaled.a*scaled.w/scaled.den,2*scaled.b*scaled.w/scaled.den,(scaled.a*scaled.a+scaled.b*scaled.b-scaled.w*scaled.w)/scaled.den];
   }
 
   function chartCoordinatesFromEmbedding(manifold, chart, point) {
@@ -284,7 +296,7 @@
     }
     var target = chartCoordinatesFromEmbedding(manifold, toChart, point);
     var sourceMetric = metricTensor(manifold, fromChart, coordinates);
-    var targetMetric = target ? metricTensor(manifold, toChart, target) : null;
+    var targetMetric = target && target.every(finite) ? metricTensor(manifold, toChart, target) : null;
     return {
       manifold: manifold,
       fromChart: fromChart,
@@ -294,8 +306,12 @@
       embedding: point,
       sourceRegular: sourceMetric.regular,
       targetRegular: !!(targetMetric && targetMetric.regular),
+      sourceNumericallyUsable: sourceMetric.numericallyUsable !== false,
+      targetNumericallyUsable: !!targetMetric && targetMetric.numericallyUsable !== false,
       manifoldRegular: true,
-      note: sourceMetric.regular && targetMetric && targetMetric.regular
+      note: sourceMetric.numericallyUsable === false || targetMetric && targetMetric.numericallyUsable === false
+        ? "坐标图数学上正则，但度量数值无法表示；请换图。"
+        : sourceMetric.regular && targetMetric && targetMetric.regular
         ? "坐标分量改变，但嵌入点与度量长度不变。"
         : "至少一个坐标图在此点失效；嵌入点仍在光滑流形上。"
     };
@@ -430,10 +446,10 @@
     var chartChristoffel = coordinates ? christoffelSymbols(preset.manifold, chart, coordinates) : null;
     var coordinate = coordinates ? coordinateVelocityAndAcceleration(preset.manifold, chart, point, velocity, acceleration) : { velocity: null, acceleration: null };
     var energy = 0.5 * dot(velocity, velocity);
-    var coordinateEnergy = chartMetric && coordinate.velocity && chartMetric.regular
+    var coordinateEnergy = chartMetric && coordinate.velocity && chartMetric.regular && chartMetric.numericallyUsable !== false
       ? 0.5 * (chartMetric.matrix[0][0] * coordinate.velocity[0] * coordinate.velocity[0] + 2 * chartMetric.matrix[0][1] * coordinate.velocity[0] * coordinate.velocity[1] + chartMetric.matrix[1][1] * coordinate.velocity[1] * coordinate.velocity[1])
       : null;
-    var chartRegular = !!(chartMetric && chartMetric.regular && chartChristoffel && chartChristoffel.regular && coordinate.velocity && coordinate.acceleration);
+    var chartRegular = !!(chartMetric && chartMetric.regular && chartMetric.numericallyUsable !== false && chartChristoffel && chartChristoffel.regular && coordinate.velocity && coordinate.acceleration);
     var residual = geodesicResidual(chartChristoffel, coordinate.velocity, coordinate.acceleration);
     var analyticResidual = analyticGeodesicResidual(preset.manifold, point, acceleration, speed);
     var affineStatus = !chartRegular
