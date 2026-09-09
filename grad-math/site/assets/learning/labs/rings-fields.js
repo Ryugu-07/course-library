@@ -522,7 +522,7 @@
     return [
       {
         key: "probe",
-        prompt: "在 Z_" + ring.modulus + " 中，余数 2 是单位吗？",
+        prompt: "在 Z_" + ring.modulus + " 中，整数 2 的剩余类 [2] 是单位吗？",
         expected: ring.probeUnit ? "yes" : "no",
         choices: [{ value: "yes", label: "是" }, { value: "no", label: "不是" }]
       },

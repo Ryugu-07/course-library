@@ -8,7 +8,7 @@
 <div tabindex="0" role="region" aria-label="可横向滚动的循环群与着色轨道图" style="overflow-x:auto">
 <img src="assets/img/alg-abs-01-cyclic-group.svg" alt="模4加法表、偶奇两块的商群表，以及16个二色四位置着色分成6个旋转轨道" style="min-width:1050px;max-width:none;width:100%">
 </div>
-<figcaption><span class="fig-id">图 alg-abs.1</span>模4加法按偶奇两块得到商群；二色四位置着色按旋转分成六个轨道。块、元素和操作各有明确的表格位置。</figcaption>
+<figcaption><span class="fig-id">图 alg-abs-01.1</span>模4加法按偶奇两块得到商群；二色四位置着色按旋转分成六个轨道。块、元素和操作各有明确的表格位置。</figcaption>
 </figure>
 
 <div data-learning-page></div>
