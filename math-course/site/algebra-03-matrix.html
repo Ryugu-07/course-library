@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 14:05</div>
   </div>
 </nav>
 <main id="content">
@@ -58,14 +58,16 @@ try {
 <li><a href="#2">2. 揭示前预测：先写下顺序与空间</a></li>
 <li><a href="#3-">3. 正式桥：复合、相似、左右乘与秩-零度</a></li>
 <li><a href="#4">4. 定理与失败边界</a></li>
+<li><a href="#5">5. 迁移练习：一条轨迹能证明矩阵相等吗？</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 运算与乘法的本质</a></li>
 <li><a href="#2_1">2. 逆矩阵</a></li>
 <li><a href="#3">3. 分块矩阵</a></li>
 <li><a href="#4_1">4. 初等矩阵与等价标准形</a></li>
-<li><a href="#5">5. 秩的不等式体系</a></li>
+<li><a href="#5_1">5. 秩的不等式体系</a></li>
 <li><a href="#6">6. 典型例题</a></li>
+<li><a href="#7">7. 原始资料与继续阅读</a></li>
 </ul>
 </div>
 </details>
@@ -77,6 +79,7 @@ try {
 
 <section aria-labelledby="algebra03-learning-title" class="learning-layer">
 <h2 id="algebra03-learning-title">学习层：同一个矩阵既是映射，也是一张坐标照片<a class="headerlink" href="#algebra03-learning-title" title="Permanent link"></a></h2>
+<p><strong>先修与去向：</strong>需要<a href="algebra-02-determinant.html">行列式与线性方程组</a>中的消元和解空间；抽象解释见下一页<a href="algebra-04-linear-space.html">线性空间</a>，相似与谱进入<a href="algebra-05-eigen.html">特征值</a>。本页默认实数矩阵；涉及除以二的分解与对合例题，在特征二的域上不能照搬。</p>
 <h3 id="1">1. 具体情境：两段设备和两套坐标如何读成同一件事？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>想象一个二维流水线：输入向量 <span class="arithmatex">\(x\)</span> 先经过设备 <span class="arithmatex">\(B\)</span>，再经过设备 <span class="arithmatex">\(A\)</span>，输出是 <span class="arithmatex">\(A(Bx)\)</span>。如果把设备顺序交换，输出变成 <span class="arithmatex">\(B(Ax)\)</span>，通常不同。另一方面，若只更换坐标基，线性映射本身没有换，变的是它的矩阵照片：</p>
 <div class="arithmatex">\[
@@ -85,7 +88,7 @@ try {
 [A]_{\mathrm{new}}=T^{-1}AT
 \end{gathered}
 \]</div>
-<p>实验同时画出两种复合顺序、相似变换和左右初等乘法。这样“矩阵乘法”不会被误读成逐元素乘法，也不会把坐标变换误说成换了物理映射。</p>
+<p>实验把两种复合顺序放在同标尺的两幅图中，再用坐标与核像账本核对相似变换和左右初等乘法。这样“矩阵乘法”不会被误读成逐元素乘法，也不会把坐标变换误说成换了物理映射。</p>
 <h3 id="2">2. 揭示前预测：先写下顺序与空间<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>打开实验前，先回答五个问题：</p>
 <ol>
@@ -101,12 +104,40 @@ try {
 <div class="arithmatex">\[
 (AB)x=A(Bx).
 \]</div>
-<p>所以 <span class="arithmatex">\(AB\)</span> 的第 <span class="arithmatex">\(j\)</span> 列是 <span class="arithmatex">\(A\)</span> 作用在 <span class="arithmatex">\(B\)</span> 的第 <span class="arithmatex">\(j\)</span> 列上；复合顺序自然不交换。相似公式 <span class="arithmatex">\(T^{-1}AT\)</span> 则来自同一映射在两套基之间的坐标转换。左乘初等矩阵改变行，右乘初等矩阵改变列；当因子可逆时它们都保持秩，但核与像分别受到不同的推送或拉回。</p>
+<p>所以 <span class="arithmatex">\(AB\)</span> 的第 <span class="arithmatex">\(j\)</span> 列是 <span class="arithmatex">\(A\)</span> 作用在 <span class="arithmatex">\(B\)</span> 的第 <span class="arithmatex">\(j\)</span> 列上；复合一般不交换；例如同一矩阵的幂、相同基下的两个对角矩阵又可以交换。相似公式 <span class="arithmatex">\(T^{-1}AT\)</span> 则来自同一映射在两套基之间的坐标转换。左乘初等矩阵改变行，右乘初等矩阵改变列；当因子可逆时它们都保持秩，但核与像分别受到不同的推送或拉回。</p>
 <p>对线性映射 <span class="arithmatex">\(A:V\to W\)</span>，秩-零度定理是</p>
 <div class="arithmatex">\[
 \dim\ker A+\dim\operatorname{Im}A=\dim V.
 \]</div>
-<p>在二维投影中，压掉的一条方向进入核，留下的一条方向构成像；这正是方程组自由变量数的几何版本。</p>
+<p>这个等式可以从“先补全定义域的基”证明：取核的一组基 <span class="arithmatex">\(u_1,\ldots,u_k\)</span>，补成 <span class="arithmatex">\(V\)</span> 的基 <span class="arithmatex">\(u_1,\ldots,u_k,v_1,\ldots,v_r\)</span>。任意向量的像都由 <span class="arithmatex">\(Av_1,\ldots,Av_r\)</span> 张成；若这些像的线性组合为零，对应的 <span class="arithmatex">\(v_j\)</span> 组合就落入核，与补全后的基独立性矛盾。因此它们是像的一组基，<span class="arithmatex">\(k+r=\dim V\)</span>。这里 <span class="arithmatex">\(V\)</span> 有限维。</p>
+<p><strong>左右乘到底改变什么？</strong> 对可逆 <span class="arithmatex">\(L,R\)</span>，逐个翻译“映成零”和“全部输出”可得</p>
+<div class="arithmatex">\[
+\ker(LA)=\ker A,\quad \operatorname{Im}(LA)=L\operatorname{Im}A,
+\qquad
+\ker(AR)=R^{-1}\ker A,\quad \operatorname{Im}(AR)=\operatorname{Im}A.
+\]</div>
+<p>例如 <span class="arithmatex">\(LAx=0\iff Ax=0\)</span>，因为可以左乘 <span class="arithmatex">\(L^{-1}\)</span>；而 <span class="arithmatex">\(ARx=0\iff Rx\in\ker A\)</span>，所以核被 <span class="arithmatex">\(R^{-1}\)</span> 拉回。<span class="arithmatex">\(R\)</span> 可逆意味着 <span class="arithmatex">\(Rx\)</span> 遍历整个定义域，所以右乘不改变像。它们都保维数，具体方向却可能改变。</p>
+<p>实验采用</p>
+<div class="arithmatex">\[
+T(t)=\begin{pmatrix}1&amp;t\\0&amp;1\end{pmatrix},\quad
+L(l)=\begin{pmatrix}1&amp;0\\l&amp;1\end{pmatrix},\quad
+R(r)=\begin{pmatrix}1&amp;r\\0&amp;1\end{pmatrix}.
+\]</div>
+<p>输入两坐标在 <span class="arithmatex">\([-2,2]\)</span>，<span class="arithmatex">\(t,l,r\in[-1,1]\)</span>。<span class="arithmatex">\(A,B\)</span> 可从投影 <span class="arithmatex">\(P=\operatorname{diag}(1,0)\)</span>、剪切 <span class="arithmatex">\(S=\begin{pmatrix}1&amp;0.8\\0&amp;1\end{pmatrix}\)</span>、缩放 <span class="arithmatex">\(D=\operatorname{diag}(1.5,0.5)\)</span>、交换 <span class="arithmatex">\(J=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span> 中选择。</p>
+<p>取 <span class="arithmatex">\(A=P\)</span>，则</p>
+<div class="arithmatex">\[
+LPR=\begin{pmatrix}1&amp;r\\l&amp;lr\end{pmatrix},\qquad
+\ker(LPR)=\operatorname{span}\{(-r,1)^\top\},\quad
+\operatorname{Im}(LPR)=\operatorname{span}\{(1,l)^\top\}.
+\]</div>
+<p>秩仍为一，但 <span class="arithmatex">\(r\)</span> 转动核方向、<span class="arithmatex">\(l\)</span> 改变像方向。注意核在<strong>输入空间</strong>，像在<strong>输出空间</strong>，不能把它们画在同一个平面上就默认是同一类对象。</p>
+<figure class="plot">
+<div aria-label="核与像方向插图，可横向滚动" role="region" style="max-width:100%;overflow-x:auto" tabindex="0">
+<img style="min-width:720px" src="assets/img/algebra-03-kernel-image.svg" alt="分别在输入和输出平面展示左右剪切后核与像的方向改变，维数仍各为一">
+</div>
+<figcaption>固定 \(l=1/2,r=-1/2\)。左图画 \(R^{-1}\ker P\)，右图画 \(L\operatorname{Im}P\)，两者都不是把一个向量“从核搬到像”。紫点给出各自的一条生成向量，可代入迁移题第三题复算。</figcaption>
+</figure>
+<p><strong>换基的复算闭环：</strong> 先算 <span class="arithmatex">\(x_{\rm new}=T^{-1}x\)</span>，再算 <span class="arithmatex">\(y_{\rm new}=(T^{-1}AT)x_{\rm new}\)</span>，最后还原 <span class="arithmatex">\(Ty_{\rm new}=Ax\)</span>。只对比 <span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(T^{-1}AT\)</span> 的元素是否相同，不能判断物理映射是否改变。也不能把同一个旧坐标数列直接塞进新矩阵，却仍声称输入向量没有变。</p>
 <div class="learning-lab" data-learning-lab="matrix-transformations">
 <p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(A\)</span> 为投影到 <span class="arithmatex">\(x\)</span> 轴，<span class="arithmatex">\(B\)</span> 为水平剪切，输入 <span class="arithmatex">\(x=(1,1)\)</span>。</p>
 <table>
@@ -145,11 +176,12 @@ try {
 </tr>
 <tr>
 <td><span class="arithmatex">\(T^{-1}AT\)</span></td>
-<td>取剪切基后矩阵改变</td>
-<td>映射不变，坐标表示改变</td>
+<td><span class="arithmatex">\(t=0.5\)</span> 时为 <span class="arithmatex">\(\begin{pmatrix}1&amp;0.5\\0&amp;0\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(x_{\rm new}=(0.5,1)\)</span>，输出新坐标 <span class="arithmatex">\((1,0)\)</span>，还原仍是 <span class="arithmatex">\(Ax\)</span></td>
 </tr>
 </tbody>
 </table>
+</div>
 <h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>映射边界</strong>：矩阵是选定基下的坐标表示，不是脱离定义域、陪域和基的“裸对象”；<span class="arithmatex">\(AB\)</span> 与 <span class="arithmatex">\(BA\)</span> 甚至可能尺寸不同，方阵也通常不交换。</li>
@@ -158,30 +190,51 @@ try {
 <li><strong>相似边界</strong>：<span class="arithmatex">\(T^{-1}AT\)</span> 只描述可逆换基下的同一线性变换。任意两个矩阵都不因“看起来像”就相似。</li>
 <li><strong>实验边界</strong>：SVG 只画一个二维输入和有限组预设；它能暴露顺序差异，却不能由一条轨迹证明所有向量、所有维数上的矩阵恒等式。</li>
 </ul>
-</div>
+<h3 id="5">5. 迁移练习：一条轨迹能证明矩阵相等吗？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>取 <span class="arithmatex">\(A=P,B=S\)</span>。给一个非零输入使 <span class="arithmatex">\(ABx=BAx\)</span>，同时证明 <span class="arithmatex">\(AB\ne BA\)</span>。</li>
+<li>取 <span class="arithmatex">\(A=P,t=1,x=(1,2)^\top\)</span>。求输入、输出的新坐标，再还原输出；说明若误把旧数列 <span class="arithmatex">\((1,2)\)</span> 当作新坐标会发生什么。</li>
+<li>取 <span class="arithmatex">\(A=P,l=1/2,r=-1/2\)</span>。求 <span class="arithmatex">\(LAR\)</span>、核和像；给出一个非零核向量，并给一个能产生输出 <span class="arithmatex">\((2,1)^\top\)</span> 的输入。</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li>取 <span class="arithmatex">\(x=(1,0)^\top\)</span>，两条路径都得到 <span class="arithmatex">\((1,0)^\top\)</span>。但 <span class="arithmatex">\(AB=\begin{pmatrix}1&amp;0.8\\0&amp;0\end{pmatrix}\)</span>、<span class="arithmatex">\(BA=\begin{pmatrix}1&amp;0\\0&amp;0\end{pmatrix}\)</span>，对输入 <span class="arithmatex">\(e_2\)</span> 分别得到 <span class="arithmatex">\((0.8,0)^\top\)</span> 和零。矩阵相等必须对所有输入成立；检验一组定义域基已足够，一条任意轨迹不够。</li>
+<li><span class="arithmatex">\(x_{\rm new}=(-1,2)^\top\)</span>，新矩阵 <span class="arithmatex">\(C=\begin{pmatrix}1&amp;1\\0&amp;0\end{pmatrix}\)</span>，所以 <span class="arithmatex">\(y_{\rm new}=(1,0)^\top\)</span>，还原后仍是 <span class="arithmatex">\(Ax=(1,0)^\top\)</span>。若把旧数列当新坐标，会得到 <span class="arithmatex">\(C(1,2)^\top=(3,0)^\top\)</span>；它实际上对应旧输入 <span class="arithmatex">\(T(1,2)^\top=(3,2)^\top\)</span>，已经换了输入。</li>
+<li><span class="arithmatex">\(LAR=\begin{pmatrix}1&amp;-1/2\\1/2&amp;-1/4\end{pmatrix}\)</span>，核为 <span class="arithmatex">\(\operatorname{span}\{(1/2,1)^\top\}\)</span>，像为 <span class="arithmatex">\(\operatorname{span}\{(1,1/2)^\top\}\)</span>。直接相乘验证核向量被映成零；输入 <span class="arithmatex">\((2,0)^\top\)</span> 产生 <span class="arithmatex">\((2,1)^\top\)</span>。所有产生该输出的输入还可加上任意核向量。</li>
+</ol>
+</details>
+<p>账本中的秩按已知映射与可逆因子的结构给出；显示的小数是近似值。把这些小数重新当作精确数据输入软件，可能得到一个不同的矩阵：微小舍入甚至会把秩一矩阵变成精确满秩矩阵。此时需要结合误差尺度讨论数值秩，不能用新数据推翻原映射的代数结论。类似地，数值行列式下溢成零也不等价于数学上不可逆。</p>
 </section>
 <h2 id="1_1">1. 运算与乘法的本质<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p>加法、数乘逐元素；<strong>乘法</strong> <span class="arithmatex">\((AB)_{ij} = \sum_k a_{ik}b_{kj}\)</span>。为什么这样定义？因为<strong>矩阵乘法 = 线性映射的复合</strong>（高代 IV 将正式建立；先记住这个视角，乘法的一切"怪癖"都由它解释）：</p>
 <ul>
-<li><strong>不交换</strong>：<span class="arithmatex">\(AB \neq BA\)</span>（映射复合本来就不交换）；</li>
-<li><strong>有零因子</strong>：<span class="arithmatex">\(AB = 0 \nRightarrow A = 0\)</span> 或 <span class="arithmatex">\(B = 0\)</span>；<strong>不能消去</strong>：<span class="arithmatex">\(AB = AC \nRightarrow B = C\)</span>（除非 <span class="arithmatex">\(A\)</span> 可逆）；</li>
+<li><strong>一般不交换</strong>：存在 <span class="arithmatex">\(AB\ne BA\)</span> 的例子；相同矩阵及同阶对角矩阵可以交换，不能把“不满足交换律”读成“每一对都不交换”；</li>
+<li><strong>有零因子</strong>：<span class="arithmatex">\(A,B\)</span> 都非零也可能 <span class="arithmatex">\(AB=0\)</span>，如 <span class="arithmatex">\(P=\operatorname{diag}(1,0)\)</span> 与 <span class="arithmatex">\(I-P\)</span> 的乘积为零；<strong>不能消去</strong>：<span class="arithmatex">\(AB = AC \nRightarrow B = C\)</span>（左消去只需 <span class="arithmatex">\(A\)</span> 满列秩，即 <span class="arithmatex">\(\ker A=\{0\}\)</span>；方阵时这才等价于可逆）；</li>
 <li>结合律、分配律成立；<span class="arithmatex">\((AB)^\top = B^\top A^\top\)</span>（穿衣脱衣顺序）。</li>
 </ul>
 <p><strong>方阵幂与多项式</strong>：<span class="arithmatex">\(A^k\)</span>、<span class="arithmatex">\(f(A) = a_n A^n + \cdots + a_0 I\)</span>；同一矩阵的多项式彼此交换——这一小事实是高代 V 里 Cayley–Hamilton 与最小多项式理论的操作基础。</p>
-<p><strong>特殊矩阵速查</strong>：对角、数量矩阵 <span class="arithmatex">\(kI\)</span>（与一切方阵交换，且只有它们如此）、上/下三角（乘积保持三角）、对称 <span class="arithmatex">\(A^\top = A\)</span> / 反对称 <span class="arithmatex">\(A^\top = -A\)</span>（任意方阵 = 对称 + 反对称的唯一分解 <span class="arithmatex">\(A = \frac{A + A^\top}{2} + \frac{A - A^\top}{2}\)</span>）、正交矩阵（高代 VI）、幂等 <span class="arithmatex">\(A^2 = A\)</span>（投影）、幂零 <span class="arithmatex">\(A^k = 0\)</span>。</p>
+<p><strong>特殊矩阵速查</strong>：对角、数量矩阵 <span class="arithmatex">\(kI\)</span>（与一切同阶方阵交换，且只有它们如此）、上/下三角（乘积保持三角）、对称 <span class="arithmatex">\(A^\top = A\)</span> / 反对称 <span class="arithmatex">\(A^\top = -A\)</span>（任意方阵 = 对称 + 反对称的唯一分解 <span class="arithmatex">\(A = \frac{A + A^\top}{2} + \frac{A - A^\top}{2}\)</span>）、正交矩阵（高代 VI）、幂等 <span class="arithmatex">\(A^2 = A\)</span>（沿核投影到像，不必正交；实矩阵还对称时才是正交投影）、幂零 <span class="arithmatex">\(A^k = 0\)</span>。</p>
 <h2 id="2_1">2. 逆矩阵<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(AB = BA = I\)</span> 则 <span class="arithmatex">\(B = A^{-1}\)</span>（存在必唯一）。</p>
 <p><strong>定理（可逆判别大集合）</strong> 对 <span class="arithmatex">\(n\)</span> 阶方阵，以下等价：<span class="arithmatex">\(A\)</span> 可逆 <span class="arithmatex">\(\iff \det A \neq 0 \iff \mathrm{rank}\,A = n \iff Ax = 0\)</span> 只有零解 <span class="arithmatex">\(\iff\)</span> 行（列）向量组线性无关 <span class="arithmatex">\(\iff A\)</span> 可写成初等矩阵之积 <span class="arithmatex">\(\iff\)</span> 0 不是 <span class="arithmatex">\(A\)</span> 的特征值。<strong>这张等价清单是线性代数的"中枢神经"，各页概念在此汇合，值得整体背诵。</strong></p>
 <p><strong>求逆两法</strong>：伴随法 <span class="arithmatex">\(A^{-1} = \frac{1}{\det A}\mathrm{adj}(A)\)</span>（理论用、<span class="arithmatex">\(2\times2\)</span> 速算 <span class="arithmatex">\(\begin{pmatrix} a&amp;b\\c&amp;d\end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix} d&amp;-b\\-c&amp;a\end{pmatrix}\)</span>）；初等变换法 <span class="arithmatex">\((A \mid I) \xrightarrow{\text{行变换}} (I \mid A^{-1})\)</span>（实算用）。</p>
 <p>性质：<span class="arithmatex">\((AB)^{-1} = B^{-1}A^{-1}\)</span>；<span class="arithmatex">\((A^\top)^{-1} = (A^{-1})^\top\)</span>；<span class="arithmatex">\(\det A^{-1} = (\det A)^{-1}\)</span>。</p>
-<p><strong>伴随矩阵补充公式</strong>（考试常客）：<span class="arithmatex">\(\det(\mathrm{adj} A) = (\det A)^{n-1}\)</span>；<span class="arithmatex">\(\mathrm{rank}(\mathrm{adj}A) = n / 1 / 0\)</span> 分别对应 <span class="arithmatex">\(\mathrm{rank}A = n / n{-}1 / {&lt;}n{-}1\)</span>。</p>
+<p><strong>伴随矩阵补充公式</strong>（先取 <span class="arithmatex">\(n\ge2\)</span>）：<span class="arithmatex">\(\det(\mathrm{adj} A) = (\det A)^{n-1}\)</span>；<span class="arithmatex">\(\mathrm{rank}(\mathrm{adj}A) = n / 1 / 0\)</span> 分别对应 <span class="arithmatex">\(\mathrm{rank}A = n / n{-}1 / {&lt;}n{-}1\)</span>。<span class="arithmatex">\(n=1\)</span> 时按零阶子式为一的约定，<span class="arithmatex">\(\operatorname{adj}([a])=[1]\)</span>，单独处理。</p>
 <h2 id="3">3. 分块矩阵<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>把矩阵按块划分，<strong>块当元素做运算</strong>（乘法要求分法相容）。三个高频武器：</p>
+<p>把矩阵按块划分后按相容尺寸做加乘，<strong>保持乘法顺序</strong>；块矩阵一般不交换。行列式公式中的对角块须为方阵。三个高频武器：</p>
 <ul>
 <li><strong>分块对角</strong>：<span class="arithmatex">\(\mathrm{diag}(A_1, A_2)\)</span> 的逆/幂/行列式逐块算，<span class="arithmatex">\(\det = \det A_1 \det A_2\)</span>；</li>
 <li><strong>分块三角</strong>：<span class="arithmatex">\(\det\begin{pmatrix} A &amp; C \\ 0 &amp; B \end{pmatrix} = \det A \det B\)</span>；</li>
 <li><strong>打洞（Schur 补）</strong>：用块消元处理 <span class="arithmatex">\(\begin{pmatrix} A &amp; B \\ C &amp; D\end{pmatrix}\)</span>，<span class="arithmatex">\(A\)</span> 可逆时行列式 <span class="arithmatex">\(= \det A \cdot \det(D - CA^{-1}B)\)</span>。🔗 Schur 补在数值分析（分块消元）、统计（条件高斯分布的协方差！概率页）中反复出现。</li>
 </ul>
+<p>Schur 补公式可以直接由块消元推出，不必硬记：当 <span class="arithmatex">\(A\)</span> 可逆时，</p>
+<div class="arithmatex">\[
+\begin{pmatrix}I&amp;0\\-CA^{-1}&amp;I\end{pmatrix}
+\begin{pmatrix}A&amp;B\\C&amp;D\end{pmatrix}
+=\begin{pmatrix}A&amp;B\\0&amp;D-CA^{-1}B\end{pmatrix}.
+\]</div>
+<p>左乘因子的行列式为一，右侧是分块上三角，于是得到上述乘积。这里没有交换 <span class="arithmatex">\(C,A^{-1},B\)</span> 的顺序。</p>
 <p><strong>列/行视角</strong>（比元素视角更重要的思维方式）：<span class="arithmatex">\(Ax\)</span> = A 的<strong>列的线性组合</strong>（系数是 <span class="arithmatex">\(x\)</span> 的分量）；<span class="arithmatex">\(AB\)</span> 的每列 = <span class="arithmatex">\(A\)</span> 乘 <span class="arithmatex">\(B\)</span> 的对应列。🔗 神经网络每层 <span class="arithmatex">\(Wx\)</span> 就该这样读（ai 课 04 讲）。</p>
 <h2 id="4_1">4. 初等矩阵与等价标准形<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>初等矩阵</strong> = 单位阵做一次初等变换；左乘 = 行变换、右乘 = 列变换。初等矩阵皆可逆。</p>
@@ -189,9 +242,9 @@ try {
 <div class="arithmatex">\[
 PAQ = \begin{pmatrix} I_r &amp; 0 \\ 0 &amp; 0 \end{pmatrix}, \qquad r = \mathrm{rank}\,A
 \]</div>
-<p>——<strong>在"两边随便乘可逆阵"的等价关系下，秩是唯一的不变量</strong>。这是三大标准形（等价/相似/合同）中最粗的一个，后两个分别在高代 V、VI 登场，"变换群越小、不变量越细"的主线由此开始。</p>
-<h2 id="5">5. 秩的不等式体系<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>（证明思路多为"解空间包含关系"或"分块打洞"，每条至少会用。）</p>
+<p>——固定矩阵尺寸后，秩是这类左右可逆变换的<strong>完全分类不变量</strong>：同秩当且仅当等价；其他不变量也可以是秩的函数，不能把“唯一”理解为不存在这样的函数。这是三大标准形（等价/相似/合同）中最粗的一个，后两个分别在高代 V、VI 登场，"变换群越小、不变量越细"的主线由此开始。</p>
+<h2 id="5_1">5. 秩的不等式体系<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>加法要求 <span class="arithmatex">\(A,B\)</span> 同尺寸；乘法取 <span class="arithmatex">\(A\)</span> 为 <span class="arithmatex">\(m\times n\)</span>、<span class="arithmatex">\(B\)</span> 为 <span class="arithmatex">\(n\times p\)</span>，Sylvester 下界里的 <span class="arithmatex">\(n\)</span> 是中间空间维数。下面的秩-零度解释也给出证明方法。</p>
 <table>
 <thead>
 <tr>
@@ -222,12 +275,22 @@ PAQ = \begin{pmatrix} I_r &amp; 0 \\ 0 &amp; 0 \end{pmatrix}, \qquad r = \mathrm
 </tr>
 </tbody>
 </table>
+<p>对 Sylvester 不等式，把 <span class="arithmatex">\(A\)</span> 限制在 <span class="arithmatex">\(\operatorname{Im}B\)</span> 上：它的核是 <span class="arithmatex">\(\ker A\cap\operatorname{Im}B\)</span>，故</p>
+<div class="arithmatex">\[
+\operatorname{rank}(AB)=\operatorname{rank}B-\dim(\ker A\cap\operatorname{Im}B)
+\ge\operatorname{rank}B-(n-\operatorname{rank}A).
+\]</div>
 <p>🔗 <strong>AI 衔接</strong>：低秩 = 信息冗余可压缩——LoRA（comfy 课 05 讲 <span class="arithmatex">\(\Delta W = BA\)</span>，<span class="arithmatex">\(\mathrm{rank} \leq r\)</span>）、推荐系统矩阵分解、模型压缩全部立足于秩的语言。</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（求逆）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 1 &amp; 2 &amp; 3 \\ 2 &amp; 5 &amp; 3 \\ 1 &amp; 0 &amp; 8 \end{pmatrix}\)</span>：<span class="arithmatex">\((A\mid I)\)</span> 行变换到 <span class="arithmatex">\((I \mid A^{-1})\)</span>，得 <span class="arithmatex">\(A^{-1} = \begin{pmatrix} -40 &amp; 16 &amp; 9 \\ 13 &amp; -5 &amp; -3 \\ 5 &amp; -2 &amp; -1 \end{pmatrix}\)</span>（验算 <span class="arithmatex">\(AA^{-1} = I\)</span> 一次，防手滑）。</p>
 <p><strong>例 2（Sylvester 应用）</strong> <span class="arithmatex">\(A^2 = I\)</span>（对合矩阵），证明 <span class="arithmatex">\(\mathrm{rank}(A + I) + \mathrm{rank}(A - I) = n\)</span>。
 <em>解</em>：<span class="arithmatex">\((A+I)(A-I) = 0\)</span> ⇒ 秩和 <span class="arithmatex">\(\leq n\)</span>（Sylvester）；又 <span class="arithmatex">\((A+I) - (A-I) = 2I\)</span> ⇒ 秩和 <span class="arithmatex">\(\geq \mathrm{rank}(2I) = n\)</span>。两头夹住等号。<strong>"乘积为零 + 和为可逆"双夹是这类题的固定拳法。</strong></p>
 <p><strong>例 3（分块求逆）</strong> <span class="arithmatex">\(M = \begin{pmatrix} A &amp; 0 \\ C &amp; B \end{pmatrix}\)</span>（<span class="arithmatex">\(A, B\)</span> 可逆），验证 <span class="arithmatex">\(M^{-1} = \begin{pmatrix} A^{-1} &amp; 0 \\ -B^{-1}CA^{-1} &amp; B^{-1} \end{pmatrix}\)</span>（按块乘一遍即可；记结构不记公式：对角块取逆，角块"左右夹逆再变号"）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="7">7. 原始资料与继续阅读<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://www.ocw.mit.edu/ans7870/18/18.013a/textbook/HTML/chapter32/section06.html">MIT：Invariants of Transformations</a>，两端换基与相似变换的坐标推导。</li>
+<li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT 18.06：Linear Algebra</a>，消元、列空间、零空间及四个基本子空间的课程资料；本页把核与像放回各自的空间。</li>
+</ul>
 <hr />
 <p><em>下一页离开具体矩阵，进入公理化的世界：线性空间与线性映射——"矩阵是线性映射在基下的照片"这句话将正式成立。</em></p>
 </article>

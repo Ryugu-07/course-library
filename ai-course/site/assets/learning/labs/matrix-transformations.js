@@ -29,7 +29,6 @@
     "use strict";
 
     var STYLE_ID = "cl-matrix-transformations-styles";
-    var EPS = 1e-10;
     var MAPS = [
       { id: "projection", label: "投影到 x 轴", matrix: [[1, 0], [0, 0]] },
       { id: "shear", label: "水平剪切", matrix: [[1, 0.8], [0, 1]] },
@@ -110,9 +109,9 @@
       '[data-learning-lab="matrix-transformations"] .mt-primary{background:var(--mt-accent);border-color:var(--mt-accent);color:#fff;font-weight:750}',
       '[data-learning-lab="matrix-transformations"] .mt-feedback{min-height:2em;margin:8px 0;font-weight:700}',
       '[data-learning-lab="matrix-transformations"] .mt-good{color:var(--mt-good)}[data-learning-lab="matrix-transformations"] .mt-warn{color:var(--mt-warn)}',
-      '[data-learning-lab="matrix-transformations"] .mt-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1fr);gap:16px;align-items:start;margin-top:16px}',
-      '[data-learning-lab="matrix-transformations"] .mt-chart{min-width:0;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
-      '[data-learning-lab="matrix-transformations"] svg{display:block;width:100%;height:auto}',
+      '[data-learning-lab="matrix-transformations"] .mt-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}',
+      '[data-learning-lab="matrix-transformations"] .mt-chart{min-width:0;max-width:100%;overflow-x:auto;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
+      '[data-learning-lab="matrix-transformations"] svg{display:block;width:100%;min-width:700px;height:auto}',
       '[data-learning-lab="matrix-transformations"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
       '[data-learning-lab="matrix-transformations"] .mt-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.7}[data-learning-lab="matrix-transformations"] .mt-gridline{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-opacity:.65}[data-learning-lab="matrix-transformations"] .mt-title{font-size:13px;font-weight:750}[data-learning-lab="matrix-transformations"] .mt-legend{font-size:11px}[data-learning-lab="matrix-transformations"] .mt-vector-label{font-size:11px}',
       '[data-learning-lab="matrix-transformations"] .mt-table-wrap{max-width:100%;overflow-x:auto}',
@@ -125,6 +124,9 @@
       '[data-learning-lab="matrix-transformations"] .mt-boundary{margin:12px 0;padding:10px 12px;border-left:3px solid var(--mt-warn);background:var(--bg,transparent);font-size:13px;line-height:1.7}',
       '@media(max-width:820px){[data-learning-lab="matrix-transformations"] .mt-control-grid,[data-learning-lab="matrix-transformations"] .mt-grid{grid-template-columns:minmax(0,1fr)}}',
       '@media(max-width:620px){[data-learning-lab="matrix-transformations"] .mt-options{grid-template-columns:minmax(0,1fr)}}',
+      '[data-theme="dark"] [data-learning-lab="matrix-transformations"]{--mt-accent:#c4b5fd;--mt-blue:#60a5fa;--mt-red:#fca5a5;--mt-good:#4ade80;--mt-warn:#fbbf24}',
+      '[data-theme="dark"] [data-learning-lab="matrix-transformations"] button.mt-primary,[data-theme="dark"] [data-learning-lab="matrix-transformations"] button[aria-pressed="true"],[data-theme="dark"] [data-learning-lab="matrix-transformations"] button:hover{color:#2e1065}',
+      '[data-learning-lab="matrix-transformations"] [tabindex]:focus-visible{outline:3px solid #c4b5fd;outline-offset:-3px}',
       '@media(prefers-reduced-motion:reduce){[data-learning-lab="matrix-transformations"] *{scroll-behavior:auto!important;transition:none!important}}'
     ].join("");
 
@@ -152,39 +154,78 @@
       return found.label;
     }
 
+    function finite(value) {
+      if (typeof value !== "number" || !Number.isFinite(value)) throw new RangeError("expected finite numeric value");
+      return value;
+    }
+    function checked(matrix) {
+      if (!Array.isArray(matrix) || matrix.length !== 2) throw new TypeError("expected a 2 by 2 matrix");
+      for (var i=0;i<2;i++) {
+        if (!Array.isArray(matrix[i]) || matrix[i].length !== 2) throw new TypeError("expected a 2 by 2 matrix");
+        for (var j=0;j<2;j++) finite(matrix[i][j]);
+      }
+      return matrix;
+    }
+    function bounded(value,low,high) {
+      finite(value); if (value<low || value>high) throw new RangeError("outside teaching domain"); return value;
+    }
     function multiply(left, right) {
-      return [
-        [left[0][0] * right[0][0] + left[0][1] * right[1][0], left[0][0] * right[0][1] + left[0][1] * right[1][1]],
-        [left[1][0] * right[0][0] + left[1][1] * right[1][0], left[1][0] * right[0][1] + left[1][1] * right[1][1]]
-      ];
+      checked(left); checked(right);
+      return checked([
+        [left[0][0]*right[0][0]+left[0][1]*right[1][0],left[0][0]*right[0][1]+left[0][1]*right[1][1]],
+        [left[1][0]*right[0][0]+left[1][1]*right[1][0],left[1][0]*right[0][1]+left[1][1]*right[1][1]]
+      ]);
     }
-
     function apply(matrix, vector) {
-      return { x: matrix[0][0] * vector.x + matrix[0][1] * vector.y, y: matrix[1][0] * vector.x + matrix[1][1] * vector.y };
+      checked(matrix); finite(vector.x); finite(vector.y);
+      return {x:finite(matrix[0][0]*vector.x+matrix[0][1]*vector.y),y:finite(matrix[1][0]*vector.x+matrix[1][1]*vector.y)};
     }
-
-    function determinant(matrix) {
-      return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+    // Exact dyadic arithmetic only for the 2x2 determinant/rank certificate.
+    // It certifies the supplied binary numbers, not an unknown matrix before rounding.
+    function dyadic(value) {
+      finite(value); if (value===0) return {n:0n,e:0};
+      var view=new DataView(new ArrayBuffer(8));view.setFloat64(0,value,false);
+      var high=view.getUint32(0,false),low=view.getUint32(4,false),exponent=(high>>>20)&2047;
+      var mantissa=(BigInt(high&1048575)<<32n)|BigInt(low);
+      if(exponent)mantissa|=1n<<52n;
+      return {n:high>>>31?-mantissa:mantissa,e:exponent?exponent-1075:-1074};
     }
-
+    function exactDet(matrix) {
+      checked(matrix);var a=dyadic(matrix[0][0]),b=dyadic(matrix[0][1]),c=dyadic(matrix[1][0]),d=dyadic(matrix[1][1]);
+      var e1=a.e+d.e,e2=b.e+c.e,e=Math.min(e1,e2);
+      return {n:((a.n*d.n)<<BigInt(e1-e))-((b.n*c.n)<<BigInt(e2-e)),e:e};
+    }
+    function ratio(numerator,denominator,requireNonzero) {
+      if(denominator.n===0n)throw new RangeError("division by zero");
+      if(numerator.n===0n)return 0;
+      function parts(pair) {
+        var n=pair.n<0n?-pair.n:pair.n,bits=n.toString(2).length,shift=Math.max(0,bits-54);
+        return {mantissa:Number(n>>BigInt(shift))/Math.pow(2,Math.min(bits,54)-1),exponent:pair.e+bits-1};
+      }
+      var a=parts(numerator),b=parts(denominator),m=a.mantissa/b.mantissa,e=a.exponent-b.exponent;
+      if(m<1){m*=2;e--;}
+      if(m>=2){m/=2;e++;}
+      var pivot=Math.max(-1022,Math.min(1023,e));
+      var value=(m*Math.pow(2,pivot))*Math.pow(2,e-pivot);
+      if(!Number.isFinite(value)||(requireNonzero&&value===0))throw new RangeError("result outside floating-point representation");
+      return (numerator.n<0n)!==(denominator.n<0n)?-value:value;
+    }
+    function determinant(matrix) {return ratio(exactDet(matrix),{n:1n,e:0},false);}
     function rank(matrix) {
-      var scale = Math.max(Math.abs(matrix[0][0]), Math.abs(matrix[0][1]), Math.abs(matrix[1][0]), Math.abs(matrix[1][1]));
-      if (scale <= EPS) return 0;
-      return Math.abs(determinant(matrix)) > 1e-9 ? 2 : 1;
+      checked(matrix);if(matrix.every(function(row){return row.every(function(v){return v===0;});}))return 0;
+      return exactDet(matrix).n===0n?1:2;
     }
-
     function inverse(matrix) {
-      var det = determinant(matrix);
-      if (Math.abs(det) <= EPS) return null;
-      return [[matrix[1][1] / det, -matrix[0][1] / det], [-matrix[1][0] / det, matrix[0][0] / det]];
+      var det=exactDet(matrix);if(det.n===0n)return null;
+      return [[matrix[1][1],-matrix[0][1]],[-matrix[1][0],matrix[0][0]]].map(function(row){return row.map(function(v){return ratio(dyadic(v),det,true);});});
     }
 
     function leftShear(value) {
-      return [[1, value], [0, 1]];
+      return [[1, 0], [value, 1]];
     }
 
     function rightShear(value) {
-      return [[1, 0], [value, 1]];
+      return [[1, value], [0, 1]];
     }
 
     function basisMatrix(value) {
@@ -200,30 +241,29 @@
     }
 
     function format(value, digits) {
-      var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) < Math.pow(10, -places) / 2) value = 0;
-      var text = Number(value).toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "") || "0";
+      finite(value);var places=digits===undefined?3:digits;
+      if(value===0)return "0";
+      if(Math.abs(value)<Math.pow(10,-places)||Math.abs(value)>=1e6)return value.toExponential(3);
+      var text=value.toFixed(places);return places?text.replace(/0+$/,"").replace(/\.$/,""):text;
     }
-
     function kernelLabel(matrix) {
       var r = rank(matrix);
       if (r === 2) return "{0}";
       if (r === 0) return "R²";
       var a = matrix[0][0];
       var b = matrix[0][1];
-      if (Math.abs(a) + Math.abs(b) <= EPS) { a = matrix[1][0]; b = matrix[1][1]; }
-      return "span{" + format(-b) + ", " + format(a) + "}";
+      if (a === 0 && b === 0) { a = matrix[1][0]; b = matrix[1][1]; }
+      return "span{(" + format(-b) + ", " + format(a) + ")}";
     }
 
     function imageLabel(matrix) {
       var r = rank(matrix);
       if (r === 0) return "{0}";
       if (r === 2) return "R²";
-      var column = Math.abs(matrix[0][0]) + Math.abs(matrix[1][0]) > EPS
+      var column = matrix[0][0] !== 0 || matrix[1][0] !== 0
         ? { x: matrix[0][0], y: matrix[1][0] }
         : { x: matrix[0][1], y: matrix[1][1] };
-      return "span{" + format(column.x) + ", " + format(column.y) + "}";
+      return "span{(" + format(column.x) + ", " + format(column.y) + ")}";
     }
 
     function evaluate(input) {
@@ -231,11 +271,11 @@
       var state = {
         a: input.a,
         b: input.b,
-        x: Number(input.x),
-        y: Number(input.y),
-        basis: Number(input.basis),
-        left: Number(input.left),
-        right: Number(input.right)
+        x: bounded(input.x,-2,2),
+        y: bounded(input.y,-2,2),
+        basis: bounded(input.basis,-1,1),
+        left: bounded(input.left,-1,1),
+        right: bounded(input.right,-1,1)
       };
       [state.x, state.y, state.basis, state.left, state.right].forEach(function (value) {
         if (!Number.isFinite(value)) throw new RangeError("matrix transformation parameters must be finite");
@@ -255,6 +295,8 @@
       var Bx = apply(B, x);
       var ABx = apply(A, Bx);
       var BAx = apply(B, Ax);
+      var newInput=apply(TInverse,x),newOutput=apply(coordinateA,newInput),restoredOutput=apply(T,newOutput);
+      var LA=multiply(L,A),AR=multiply(A,R);
       return {
         state: state,
         A: A,
@@ -262,6 +304,10 @@
         AB: AB,
         BA: BA,
         T: T,
+        newInput:newInput,newOutput:newOutput,restoredOutput:restoredOutput,
+        LA:LA,AR:AR,
+        kernelLAR:rank(A)===2?"{0}":"span{("+format(-state.right)+", 1)}",
+        imageLAR:rank(A)===2?"R²":"span{(1, "+format(state.left)+")}",
         coordinateA: coordinateA,
         L: L,
         R: R,
@@ -275,7 +321,7 @@
         kernelA: kernelLabel(A),
         imageA: imageLabel(A),
         commute: near(AB[0][0], BA[0][0]) && near(AB[0][1], BA[0][1]) && near(AB[1][0], BA[1][0]) && near(AB[1][1], BA[1][1]),
-        rankLAR: rank(LAR)
+        rankLAR: rank(A)
       };
     }
 
@@ -288,33 +334,20 @@
     }
 
     function svgFor(data) {
-      var vectors = [
-        { value: data.x, color: "#475569", label: "x" },
-        { value: data.Ax, color: "#d97706", label: "Ax" },
-        { value: data.Bx, color: "#15803d", label: "Bx" },
-        { value: data.ABx, color: "#2563eb", label: "A(Bx)" },
-        { value: data.BAx, color: "#dc2626", label: "B(Ax)" }
-      ];
-      var limit = 2.8;
-      vectors.forEach(function (item) { limit = Math.max(limit, Math.abs(item.value.x) + 0.5, Math.abs(item.value.y) + 0.5); });
-      function map(vector) { return { x: 310 + 220 * vector.x / limit, y: 178 - 130 * vector.y / limit }; }
-      var grid = [];
-      for (var g = -2; g <= 2; g += 1) {
-        var horizontalStart = map({ x: -limit, y: g });
-        var horizontalEnd = map({ x: limit, y: g });
-        var verticalStart = map({ x: g, y: -limit });
-        var verticalEnd = map({ x: g, y: limit });
-        grid.push('<line x1="' + horizontalStart.x + '" y1="' + horizontalStart.y + '" x2="' + horizontalEnd.x + '" y2="' + horizontalEnd.y + '" class="mt-gridline"/>');
-        grid.push('<line x1="' + verticalStart.x + '" y1="' + verticalStart.y + '" x2="' + verticalEnd.x + '" y2="' + verticalEnd.y + '" class="mt-gridline"/>');
+      var vectors=[data.x,data.Ax,data.Bx,data.ABx,data.BAx],limit=2;
+      vectors.forEach(function(v){limit=Math.max(limit,Math.ceil(Math.max(Math.abs(v.x),Math.abs(v.y))+.5));});
+      var pixels=120/limit;
+      function panel(offset,intermediate,output,midLabel,outLabel,color) {
+        function map(v){return{x:offset+180+pixels*v.x,y:198-pixels*v.y};}
+        var html='',ticks=[-limit,0,limit];
+        ticks.forEach(function(t){var x=map({x:t,y:0}).x,y=map({x:0,y:t}).y;html+='<line x1="'+(offset+60)+'" y1="'+y+'" x2="'+(offset+300)+'" y2="'+y+'" class="mt-gridline"/><line x1="'+x+'" y1="78" x2="'+x+'" y2="318" class="mt-gridline"/><text x="'+x+'" y="338" text-anchor="middle" class="mt-legend">'+t+'</text><text x="'+(offset+48)+'" y="'+(y+4)+'" text-anchor="end" class="mt-legend">'+t+'</text>';});
+        html+='<line x1="'+(offset+52)+'" y1="198" x2="'+(offset+306)+'" y2="198" class="mt-axis"/><line x1="'+(offset+180)+'" y1="70" x2="'+(offset+180)+'" y2="325" class="mt-axis"/>';
+        [{v:data.x,color:'currentColor',dash:true},{v:intermediate,color:'var(--mt-good)'},{v:output,color:color}].forEach(function(item){var end=map(item.v);html+='<line x1="'+(offset+180)+'" y1="198" x2="'+end.x+'" y2="'+end.y+'" stroke="'+item.color+'" stroke-width="3" '+(item.dash?'stroke-dasharray="5 4"':'')+'/><circle cx="'+end.x+'" cy="'+end.y+'" r="4" fill="'+item.color+'"/>';});
+        html+='<text x="'+(offset+24)+'" y="52" class="mt-title">'+outLabel+'：'+(outLabel==='ABx'?'先 B 后 A':'先 A 后 B')+'</text><text x="'+(offset+314)+'" y="205" class="mt-legend">x₁</text><text x="'+(offset+192)+'" y="74" class="mt-legend">x₂</text>';
+        html+='<text x="'+(offset+24)+'" y="365" class="mt-legend">虚线输入 x='+vectorText(data.x)+'</text><text x="'+(offset+24)+'" y="388" class="mt-legend">绿色中间 '+midLabel+'='+vectorText(intermediate)+'</text><text x="'+(offset+24)+'" y="411" class="mt-legend">'+(outLabel==='ABx'?'蓝色':'红色')+'输出 '+outLabel+'='+vectorText(output)+'</text>';
+        return html;
       }
-      var origin = map({ x: 0, y: 0 });
-      var lines = vectors.map(function (item) {
-        var endpoint = map(item.value);
-        return '<line x1="' + origin.x + '" y1="' + origin.y + '" x2="' + endpoint.x + '" y2="' + endpoint.y + '" stroke="' + item.color + '" stroke-width="' + (item.label === "x" ? 2 : 3) + '" marker-end="url(#mt-arrow)"/><text x="' + (endpoint.x + 5) + '" y="' + (endpoint.y - 5) + '" fill="' + item.color + '" class="mt-vector-label">' + item.label + '</text>';
-      }).join("");
-      return '<svg viewBox="0 0 620 330" role="img" aria-label="线性映射复合后的向量比较"><defs><marker id="mt-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="currentColor"/></marker></defs>' + grid.join("") +
-        '<line x1="42" y1="178" x2="578" y2="178" class="mt-axis"/><line x1="310" y1="30" x2="310" y2="302" class="mt-axis"/>' + lines +
-        '<text x="48" y="24" class="mt-title">同一个输入向量的五种读法</text><text x="420" y="314" class="mt-legend">蓝 A(Bx)，红 B(Ax)</text></svg>';
+      return '<svg viewBox="0 0 720 438" role="img" aria-label="两种复合顺序，同输入与同一等比例坐标"><text x="24" y="24" class="mt-title">同一输入，两种顺序；两图共用等比例坐标；重合向量请读下方数值</text>'+panel(0,data.Bx,data.ABx,'Bx','ABx','var(--mt-blue)')+panel(360,data.Ax,data.BAx,'Ax','BAx','var(--mt-red)')+'</svg>';
     }
 
     function matrixRows(data) {
@@ -322,20 +355,28 @@
         '<tr><td>B</td><td>' + matrixText(data.B) + '</td><td>第二段映射</td></tr>' +
         '<tr><td>AB</td><td>' + matrixText(data.AB) + '</td><td>A(Bx)，先 B 后 A</td></tr>' +
         '<tr><td>BA</td><td>' + matrixText(data.BA) + '</td><td>B(Ax)，先 A 后 B</td></tr>' +
+        '<tr><td>T</td><td>' + matrixText(data.T) + '</td><td>新基向量在旧坐标中的列</td></tr>' +
+        '<tr><td>T⁻¹x</td><td>' + vectorText(data.newInput) + '</td><td>同一个输入的新坐标</td></tr>' +
+        '<tr><td>(T⁻¹AT)(T⁻¹x)</td><td>' + vectorText(data.newOutput) + '</td><td>输出的新坐标</td></tr>' +
+        '<tr><td>T × 输出新坐标</td><td>' + vectorText(data.restoredOutput) + '</td><td>还原后应等于 Ax</td></tr>' +
         '<tr><td>T⁻¹AT</td><td>' + matrixText(data.coordinateA) + '</td><td>同一 A 的新基坐标表示</td></tr>' +
+        '<tr><td>L</td><td>' + matrixText(data.L) + '</td><td>第二行加 l 倍第一行</td></tr>' +
+        '<tr><td>R</td><td>' + matrixText(data.R) + '</td><td>第二列加 r 倍第一列</td></tr>' +
+        '<tr><td>ker(LAR)</td><td>' + data.kernelLAR + '</td><td>R⁻¹ ker(A)，定义域中的子空间</td></tr>' +
+        '<tr><td>Im(LAR)</td><td>' + data.imageLAR + '</td><td>L Im(A)，陪域中的子空间</td></tr>' +
         '<tr><td>LAR</td><td>' + matrixText(data.LAR) + '</td><td>左行变换与右列变换</td></tr>';
     }
 
     function resultHtml(data, predictionCorrect) {
       var answerText = predictionCorrect ? "预测命中：现在把映射、坐标表示和数表运算分开读。" : "预测已核对：请重看左右乘、非交换和秩-零度边界。";
-      return '<div class="mt-grid"><div class="mt-chart">' + svgFor(data) + '</div><div>' +
+      return '<div class="mt-grid"><div class="mt-chart" tabindex="0" role="region" aria-label="复合顺序图，可横向滚动">' + svgFor(data) + '</div><div>' +
         '<div class="mt-metrics"><div class="mt-metric"><span>rank(A)</span><strong>' + data.rankA + '</strong></div>' +
         '<div class="mt-metric"><span>dim ker(A)</span><strong>' + (2 - data.rankA) + '</strong></div>' +
         '<div class="mt-metric"><span>ker(A)</span><strong>' + data.kernelA + '</strong></div>' +
         '<div class="mt-metric"><span>Im(A)</span><strong>' + data.imageA + '</strong></div>' +
         '<div class="mt-metric"><span>AB=BA?</span><strong>' + (data.commute ? "本例相同" : "本例不同") + '</strong></div>' +
-        '<div class="mt-metric"><span>rank(LAR)</span><strong>' + data.rankLAR + '</strong></div></div>' +
-        '<div class="mt-table-wrap"><table><caption>映射、坐标与左右乘账本</caption><thead><tr><th>对象</th><th>矩阵或向量</th><th>读法</th></tr></thead><tbody>' +
+        '<div class="mt-metric"><span>理论 rank(LAR)</span><strong>' + data.rankLAR + '</strong></div></div>' +
+        '<div class="mt-table-wrap" tabindex="0" role="region" aria-label="映射与坐标账本，可横向滚动"><table><caption>映射、坐标与左右乘账本</caption><thead><tr><th>对象</th><th>矩阵或向量</th><th>读法</th></tr></thead><tbody>' +
         '<tr><td>x</td><td>' + vectorText(data.x) + '</td><td>输入向量</td></tr>' +
         '<tr><td>Ax</td><td>' + vectorText(data.Ax) + '</td><td>先作用 A</td></tr>' +
         '<tr><td>Bx</td><td>' + vectorText(data.Bx) + '</td><td>先作用 B</td></tr>' +
@@ -343,7 +384,7 @@
         '<tr><td>B(Ax)</td><td>' + vectorText(data.BAx) + '</td><td>对应 BAx</td></tr>' +
         matrixRows(data) +
         '</tbody></table></div>' +
-        '<p class="mt-boundary">' + answerText + ' rank-nullity 在当前二维定义域给出 ' + (2 - data.rankA) + ' + ' + data.rankA + ' = 2。L、R 可逆时保秩，但它们对核、像的作用并不相同。</p>' +
+        '<p class="mt-boundary">' + answerText + ' rank-nullity 在当前二维定义域给出 ' + (2 - data.rankA) + ' + ' + data.rankA + ' = 2。L、R 可逆，故本族 rank(LAR)=rank(A)。核与像的具体方向分别由 R⁻¹ 和 L 改变。相似变换的坐标值可能不同，但还原输出始终是同一个 Ax。</p>' +
         '</div></div>';
     }
 
@@ -416,7 +457,8 @@
           button.setAttribute("aria-pressed", "false");
           button.addEventListener("click", function () {
             predictions[question.id] = option.id;
-            renderPrediction();
+            state.revealed = false;
+            render();
             refs.feedback.textContent = "预测已记录；结果仍隐藏。";
             refs.feedback.className = "mt-feedback";
           });
@@ -464,9 +506,7 @@
         state.basis = Number(refs.basis.value);
         state.left = Number(refs.left.value);
         state.right = Number(refs.right.value);
-        predictions = {};
-        state.revealed = false;
-        refs.feedback.textContent = "参数已改变，请重新预测；结果再次隐藏。";
+        refs.feedback.textContent = state.revealed ? "参数已更新，请核对两条路径、换基还原与核像账本。" : "参数已更新，请完成预测。";
         refs.feedback.className = "mt-feedback";
         render();
       }
@@ -502,6 +542,7 @@
         refs.feedback.textContent = "五题都选完后，结果才会出现。";
         refs.feedback.className = "mt-feedback";
         render();
+        choices.order[0].node.focus();
         announce("矩阵变换实验已重置，结果再次隐藏。");
       });
       render();
@@ -550,6 +591,7 @@
       rank: rank,
       inverse: inverse,
       evaluate: evaluate,
+      format: format,
       mount: mount,
       selfTest: selfTest
     };
