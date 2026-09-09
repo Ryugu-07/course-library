@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-10 06:53</div>
   </div>
 </nav>
 <main id="content">
@@ -62,12 +62,17 @@ try {
 <li><a href="#6">6. 可迁移问题：换一个资源，先保留哪条检查？</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 线性规划：问题与几何</a></li>
-<li><a href="#2_1">2. 单纯形法（思想版）</a></li>
-<li><a href="#3-lp_1">3. LP 对偶（对偶理论的完美标本）</a></li>
+<li><a href="#1_1">1. 线性规划：最优点不一定只有一个顶点</a></li>
+<li><a href="#2_1">2. 单纯形法：换基有时不移动</a></li>
+<li><a href="#3-lp_1">3. LP 对偶：先核对不等号和乘子的符号</a></li>
 <li><a href="#4_1">4. 整数规划一瞥</a></li>
-<li><a href="#5_1">5. 动态规划</a></li>
-<li><a href="#6_1">6. 典型例题</a></li>
+<li><a href="#5_1">5. 动态规划：先把状态和边界写完整</a><ul>
+<li><a href="#_2">有限阶段为什么可以倒着算？</a></li>
+<li><a href="#_3">本页有界背包的每一格是什么？</a></li>
+<li><a href="#_4">与最短路、强化学习的连接</a></li>
+</ul>
+</li>
+<li><a href="#6_1">6. 典型例题：从最优值追到选择本身</a></li>
 </ul>
 </div>
 </details>
@@ -86,7 +91,7 @@ try {
 \]</div>
 <p>先不要画图。给出一个满足全部不等式的点并不难，难的是回答：它是不是利润最大的点？如果把产品改成整件发货，连续解还能不能直接当作答案？如果把“阶段”换成背包容量，为什么要写状态 <span class="arithmatex">\(V(i,w)\)</span>，而不是继续找一个连续顶点？</p>
 <h3 id="2">2. 先预测：哪两条边会同时绷紧？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>在打开实验前，预测默认实例的最优点和活动约束：是资源 1 与混合资源、资源 2 与混合资源、两条单资源边，还是坐标轴边界？同时写下你认为对偶目标值会不会与原目标值相等。滑块改变容量后再预测一次；只看“可行”不能替代最优性判断。</p>
+<p>在打开实验前，预测默认实例的最优点，并勾出全部取等号的约束，包括资源边和 <span class="arithmatex">\(x=0,y=0\)</span> 两条下界。退化时可以有三条甚至更多约束同时紧。同时写下你认为对偶目标值会不会与原目标值相等。滑块改变容量后再预测一次；只看“可行”不能替代最优性判断。</p>
 <h3 id="3-lp">3. 最小模型：连续 LP 的双重证书<a class="headerlink" href="#3-lp" title="Permanent link"></a></h3>
 <p>对一般形式</p>
 <div class="arithmatex">\[
@@ -96,13 +101,19 @@ try {
 <div class="arithmatex">\[
 \min\;b^\top u\quad\text{s.t.}\quad A^\top u\ge c,\quad u\ge0.
 \]</div>
-<p>一个完整的最优证书要同时检查：原始可行 <span class="arithmatex">\(Ax\le b\)</span>；对偶可行 <span class="arithmatex">\(A^\top u\ge c\)</span>；原始目标与对偶目标的间隙为零；以及互补松弛</p>
+<p>一个完整的最优证书要同时检查：原始可行 <span class="arithmatex">\(Ax\le b,\ x\ge0\)</span>；对偶可行 <span class="arithmatex">\(A^\top u\ge c\)</span>；原始目标与对偶目标的间隙为零；以及互补松弛</p>
 <div class="arithmatex">\[
 u_i\bigl(b_i-A_i x\bigr)=0,\qquad x_j\bigl((A^\top u)_j-c_j\bigr)=0.
 \]</div>
-<p>默认实例的连续答案是 <span class="arithmatex">\((x,y)=(2,6)\)</span>，利润 <span class="arithmatex">\(36\)</span>；对偶证书可取 <span class="arithmatex">\(u=(0,\frac32,1)\)</span>，其目标 <span class="arithmatex">\(12\cdot\frac32+18=36\)</span>。这四行账本比“图上看起来最远”更正式。</p>
+<p>默认实例的连续答案是 <span class="arithmatex">\((x,y)=(2,6)\)</span>，利润 <span class="arithmatex">\(36\)</span>；对偶证书可取 <span class="arithmatex">\(u=(0,\frac32,1)\)</span>，其目标 <span class="arithmatex">\(12\cdot\frac32+18=36\)</span>。原始松弛是 <span class="arithmatex">\((2,0,0)\)</span>，对偶松弛是 <span class="arithmatex">\((0,0)\)</span>；<strong>不是全部松弛都为零，而是每个乘积为零。</strong>有两单位资源 1 剩余，其价格 <span class="arithmatex">\(u_1=0\)</span>，恰好使乘积消失。</p>
+<p>为什么零间隙能证明最优？对任意双侧可行点，</p>
+<div class="arithmatex">\[
+b^\mathsf Tu-c^\mathsf Tx
+=u^\mathsf T(b-Ax)+x^\mathsf T(A^\mathsf Tu-c)\ge0.
+\]</div>
+<p>两类项都非负，故任意对偶可行值是所有原始可行值的上界。若某个原始点达到这个上界，就已最优；互补松弛是该非负和为零的逐项表达，不是还需要独立添加的第三种神秘条件。</p>
 <h3 id="4">4. 正式桥：顶点、整数与状态不是同一个对象<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>若 LP 有最优解，线性目标在多面体上有一个顶点最优解；强对偶把两个可行账本的相等变成最优性证书。把 <span class="arithmatex">\(x,y\)</span> 改成整数后，可行集变成格点，连续对偶值仍是整数问题的上界，却不必由整数点达到；四舍五入也可能破坏约束。动态规划则把阶段和资源写成离散状态，例如</p>
+<p>对本例这样的非空有界多面体，线性目标至少有一个顶点最优解；一般多面体还须核对是否含有直线，不能无条件套用顶点结论。强对偶把两个可行账本的相等变成最优性证书。把 <span class="arithmatex">\(x,y\)</span> 改成整数后，可行集变成格点，连续对偶值仍是整数问题的上界，却不必由整数点达到；四舍五入也可能破坏约束。动态规划则把阶段和资源写成离散状态，例如</p>
 <div class="arithmatex">\[
 V(0,w)=0,\qquad
 V(i,w)=
@@ -114,71 +125,177 @@ V(i-1,w), &amp; w&lt;w_i,\\
 <p>它依靠最优子结构和重叠子问题，不是把整数状态误当作连续 LP 的顶点。</p>
 <h3 id="5">5. 误区与边界：证书能证明什么，不能证明什么？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
-<li><strong>数值可行不等于最优。</strong> 一个点满足全部约束，只能通过原始可行性；没有对偶可行性和零间隙，不能交付“最优”。</li>
+<li><strong>可行不等于最优。</strong> 本页用双侧可行加零间隙提供最优性证明；也可以用完整顶点枚举或其他有效论证，单凭“图上这个点可行”不够。</li>
 <li><strong>互补不等于任意活动集。</strong> 约束绷紧时乘子可以为零；变量为零时对应的对偶约束可以有正松弛。</li>
 <li><strong>连续证书不自动解决整数问题。</strong> LP 松弛的对偶值是界，分支定界还要处理整数性；DP 的表格状态也要保留离散转移。</li>
-<li><strong>退化与数值误差。</strong> 多个顶点或约束同时活动时证书可能不唯一；计算中应报告容差，而不是把很小的残差当成精确等式。</li>
+<li><strong>退化、多解与舍入要分开。</strong> 一个顶点可有多组基，一个最优面可包含多个点，一个最优点也可能有多个对偶证书；这些不是同一个概念。通用浮点求解器需报告残差及容差，本实验的整数容量和固定系数则允许用整数分子作精确判断。</li>
 </ul>
 <h3 id="6">6. 可迁移问题：换一个资源，先保留哪条检查？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <p>若目标系数或容量改变，先重算候选顶点，再用原始/对偶账本核验；若加入整数约束，另解整数候选或 DP 递推。问自己：当前图形是在证明连续模型，还是只是在展示一个 toy 的几何直觉？这条区分会一路跟到组合优化和强化学习。</p>
-<details markdown="1">
-<summary>迁移题参考答案</summary>
-<p>容量 <span class="arithmatex">\(b\)</span> 改变后，旧活动集和旧对偶乘子都可能失效。先枚举新可行域的轴截点与约束交点，选出目标最大的连续候选 <span class="arithmatex">\(x^*\)</span>；再求一个对偶可行 <span class="arithmatex">\(u^*\)</span>，检查 <span class="arithmatex">\(c^\top x^*=b^\top u^*\)</span> 与互补松弛。只有这两本账同时通过，才是连续 LP 的最优证书。若变量必须为整数，连续最优值在最大化问题中只是上界；需要枚举、分支定界或本页的有界背包 DP 得到整数最优，不能把 <span class="arithmatex">\(x^*\)</span> 四舍五入后直接交卷。容量滑块改变时，实验会隐藏旧结果并要求重新预测，正是在模拟这张证书的失效。</p>
+<details class="answer" markdown="1">
+<summary>迁移题参考答案：只改容量，哪些证书仍可行？</summary>
+<p>保持 <span class="arithmatex">\(A,c\)</span> 不变，只改右端容量 <span class="arithmatex">\(b\)</span> 时，原始可行域改变，但对偶约束 <span class="arithmatex">\(A^\mathsf Tu\ge c,u\ge0\)</span> 没变。<strong>旧对偶解仍可行，却可能不再最优</strong>；它给新问题的上界 <span class="arithmatex">\(b_{\rm new}^\mathsf Tu_{\rm old}\)</span>。</p>
+<p>默认容量下 <span class="arithmatex">\(u=(0,3/2,1)\)</span>。固定前两项容量为 <span class="arithmatex">\(4,12\)</span>，只把混合资源容量记为 <span class="arithmatex">\(C\)</span>，枚举三个对偶转折点可得</p>
+<div class="arithmatex">\[
+V(C)=\min\{42,\ 18+C,\ 2.5C\}
+=\begin{cases}
+2.5C,&amp;0\le C\le12,\\
+18+C,&amp;12\le C\le24,\\
+42,&amp;C\ge24.
+\end{cases}
+\]</div>
+<p>在 <span class="arithmatex">\(C=18\)</span> 附近，一单位混合资源增加一单位利润；从 <span class="arithmatex">\(C=24\)</span> 再增加资源，利润却不变。折点处左右导数不同，对偶影子价格可能不唯一。因此旧价格能给增量上界，不能承诺任意幅度变化都带来线性收益。若再加整数约束，还要另解格点或 DP；连续价格不直接等于整件生产的边际利润。</p>
 </details>
 <div class="learning-lab" data-learning-lab="lp-dp-certificates">
-<p><strong>无 JavaScript 时的静态 fallback：</strong>默认连续 LP 的最优点为 <span class="arithmatex">\((2,6)\)</span>，原始目标为 <span class="arithmatex">\(36\)</span>；对偶变量为 <span class="arithmatex">\((0,\frac32,1)\)</span>，对偶目标也为 <span class="arithmatex">\(36\)</span>，原始/对偶松弛和互补松弛均为零。页面开启脚本后，可改变三个容量，先选择活动边再揭示 SVG、连续与整数解、对偶值和证书账本。整数约束与 DP 状态仍需单独判断；可行点本身不代表最优。</p>
+<p><strong>无 JavaScript 时的静态 fallback：</strong>默认连续 LP 的最优点为 <span class="arithmatex">\((2,6)\)</span>，原始目标为 <span class="arithmatex">\(36\)</span>；对偶变量为 <span class="arithmatex">\((0,\frac32,1)\)</span>，对偶目标也为 <span class="arithmatex">\(36\)</span>，原始松弛为 <span class="arithmatex">\((2,0,0)\)</span>、对偶松弛为 <span class="arithmatex">\((0,0)\)</span>，五个互补乘积均为零。页面开启脚本后，可改变三个容量，先勾出全部活动约束再揭示几何、连续与整数解、对偶值和精确证书账本；完整 DP 表可选格查看前驱。整数约束与 DP 状态仍需单独判断；可行点本身不代表最优。</p>
 </div>
 </section>
-<h2 id="1_1">1. 线性规划：问题与几何<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 线性规划：最优点不一定只有一个顶点<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<style>
+.lp-static{max-width:100%;overflow-x:auto}.lp-static img{width:1100px!important;min-width:1100px;max-width:none!important}.lp-static:focus-visible{outline:3px solid var(--cl-focus)}
+@media(prefers-reduced-motion:reduce){html:has(.lp-static){scroll-behavior:auto!important}}
+</style>
 <figure class="plot">
-<p><img alt="线性规划最优在可行域顶点" src="assets/img/opt-04-lp.svg" /></p>
-<figcaption><span class="fig-id">图 4.1</span>线性规划的最优解必在可行多边形的顶点上——单纯形法沿棱在顶点间移动的几何依据。</figcaption>
+<div aria-label="可横向滚动的 LP 与影子价格图" class="lp-static" role="region" tabindex="0">
+<p><img alt="左图画实际可行五边形、最优点和利润线；右图画混合容量变化时的分段最优利润" src="assets/img/opt-04-lp.svg" /></p>
+</div>
+<figcaption><span class="fig-id">图 4.1</span>左图是本页产品模型；右图说明影子价格有适用区间，在容量 12 和 24 处发生改变。图框可用方向键横向阅读。</figcaption>
 </figure>
-<p><strong>标准形</strong>：</p>
+<p>标准形常写成</p>
 <div class="arithmatex">\[
-\min\ c^\top x \quad \text{s.t.} \quad Ax = b,\quad x \geq 0
+\min c^\mathsf Tx\quad\text{s.t.}\quad Ax=b,\quad x\ge0.
 \]</div>
-<p>（任何 LP 可化标准形：不等式加松弛变量、自由变量拆正负部。）</p>
-<p><strong>几何</strong>：可行域是<strong>多面体</strong>（半空间之交，凸）；目标是线性的——等值面是平行超平面族，"推到底"必停在边界。</p>
-<p><strong>定理（顶点最优性）</strong> LP 若有最优解，则必有一个<strong>顶点</strong>（基本可行解）是最优解。
-<em>思路</em>：线性函数在凸多面体上的最值在极点取到（否则沿某方向还能改进或目标无界）。——搜索空间从连续体塌缩为<strong>有限个顶点</strong>，算法由此可能。</p>
-<h2 id="2_1">2. 单纯形法（思想版）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>代数对应</strong>：顶点 <span class="arithmatex">\(\leftrightarrow\)</span> 基本可行解（选 <span class="arithmatex">\(m\)</span> 列构成可逆基 <span class="arithmatex">\(B\)</span>，<span class="arithmatex">\(x_B = B^{-1}b \geq 0\)</span>，其余变量取零）。</p>
-<p><strong>算法一句话</strong>：<strong>从一个顶点沿棱走向更优的相邻顶点，走到无处可优为止。</strong>每步操作：</p>
+<p>不等式可以加松弛变量，自由变量可拆为两个非负变量之差。可行域是有限个闭半空间及超平面的交，称为多面体；若还有界，则为多胞体。</p>
+<p><strong>准确的顶点结论：</strong>非空多面体不含整条直线，并且线性目标有有限最优值时，至少有一个最优顶点。标准非负形的可行域不含直线，所以满足这一结论；有界非空多面体也满足。注意是“至少有一个”，不是“所有最优点都是顶点”。</p>
+<details class="answer">
+<summary>两个反例：没有顶点，以及整条边都最优</summary>
+<p>在直线 <span class="arithmatex">\(P=\{(x,0):x\in\mathbb R\}\)</span> 上最小化零函数，每一点都最优，却没有顶点，因为任一点都是左右两个不同可行点的中点。</p>
+<p>在正方形 <span class="arithmatex">\([0,1]^2\)</span> 上最大化 <span class="arithmatex">\(x\)</span>，整条边 <span class="arithmatex">\(\{1\}\times[0,1]\)</span> 都最优，只有两端是顶点。这解释了平行等值线“推到边界”时可能贴住整条面；零目标甚至让整个区域最优。</p>
+</details>
+<p><strong>标准形的证明线索：</strong>若一个最优解的正分量所对应的列线性相关，取只支撑在这些分量上的非零向量 <span class="arithmatex">\(d\)</span>，使 <span class="arithmatex">\(Ad=0\)</span>。足够小的正负步都保持非负；最优性迫使 <span class="arithmatex">\(c^\mathsf Td=0\)</span>。选择一个方向移动，直到某个正分量变零，保持目标不变而缩小支撑。重复有限次后，正分量对应列独立，可扩充为一组基，得到最优基本可行解。这同时说明“方向上不能再改进”不代表最优解只有一个。<a href="https://courses.csail.mit.edu/6.854/19/Scribe/s12-duality/s12-duality.html">MIT 线性规划讲义</a>。</p>
+<h2 id="2_1">2. 单纯形法：换基有时不移动<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>先去除冗余等式，使 <span class="arithmatex">\(A\)</span> 有满行秩 <span class="arithmatex">\(m\)</span>。选 <span class="arithmatex">\(m\)</span> 个独立列组成 <span class="arithmatex">\(B\)</span>，解 <span class="arithmatex">\(Bx_B=b\)</span>，令非基变量为零；若 <span class="arithmatex">\(x_B\ge0\)</span>，这就是基本可行解。实际求解线性系统，而非显式算逆矩阵。不同基可对应同一个退化顶点。</p>
+<p>对最小化问题，非基列 <span class="arithmatex">\(A_j\)</span> 的检验数（约化成本）为</p>
+<div class="arithmatex">\[
+\bar c_j=c_j-c_B^\mathsf TB^{-1}A_j.
+\]</div>
+<p>若所有 <span class="arithmatex">\(\bar c_j\ge0\)</span>，当前原始可行基和 <span class="arithmatex">\(y=B^{-\mathsf T}c_B\)</span> 组成对偶证书，可停机。否则选一个 <span class="arithmatex">\(\bar c_j&lt;0\)</span>，让 <span class="arithmatex">\(x_j=t\)</span> 增长，基本变量变成 <span class="arithmatex">\(x_B-tq\)</span>，其中 <span class="arithmatex">\(Bq=A_j\)</span>。</p>
 <ol>
-<li>算检验数（各非基变量入基能否降目标）——全非负则当前顶点最优，停机；</li>
-<li>选一个负检验数变量<strong>入基</strong>（下降方向）；</li>
-<li>最小比值法则定谁<strong>出基</strong>（走到棱的尽头即撞上新约束）；</li>
-<li>换基（Gauss 消元一步），回到 1。</li>
+<li>若存在 <span class="arithmatex">\(q_i&gt;0\)</span>，可行步长由 <span class="arithmatex">\(t_{\max}=\min_{q_i&gt;0}(x_B)_i/q_i\)</span> 决定，相应变量出基。</li>
+<li>若没有 <span class="arithmatex">\(q_i&gt;0\)</span>，则 <span class="arithmatex">\(t\)</span> 可无限增大且目标持续下降，说明问题无界。</li>
+<li>若 <span class="arithmatex">\(t_{\max}=0\)</span>，发生退化换基，点和目标都可能不变。不能声称每次换基都严格改善。</li>
 </ol>
-<p>补充认知：最坏情形指数步（Klee–Minty 立方体），但实践中极快；<strong>内点法</strong>（多项式复杂度、走可行域内部）是它的现代对手，大规模 LP 两者并用。退化、循环与 Bland 规则知道名字即可。</p>
-<h2 id="3-lp_1">3. LP 对偶（对偶理论的完美标本）<a class="headerlink" href="#3-lp_1" title="Permanent link"></a></h2>
-<p>对标准形 <span class="arithmatex">\(\min c^\top x,\ Ax = b,\ x \geq 0\)</span>，其对偶为</p>
+<p>初始化还需要一个可行基，可用第一阶段辅助问题寻找；找不到可能意味着原问题不可行。某些选基规则在退化时会循环，Bland 规则用固定最小下标选择打破循环。某些单纯形规则有指数最坏例子；这不妨碍它在许多实际问题中高效。具有复杂度保证的内点法提供另一类方法，通常沿内部或相对内部的中心路径近似推进，但不可行起始变体不要求每一步原始可行。</p>
+<h2 id="3-lp_1">3. LP 对偶：先核对不等号和乘子的符号<a class="headerlink" href="#3-lp_1" title="Permanent link"></a></h2>
+<p>本页实验使用最大化不等式形，其对偶 <span class="arithmatex">\(u\ge0\)</span> 已在学习层推导。标准等式最小化形则有</p>
 <div class="arithmatex">\[
-\max\ b^\top y \quad \text{s.t.} \quad A^\top y \leq c
+\max b^\mathsf Ty\quad\text{s.t.}\quad A^\mathsf Ty\le c,\qquad y\in\mathbb R^m.
 \]</div>
-<p>（写法口诀：变量与约束互换身份、<span class="arithmatex">\(b\)</span> 与 <span class="arithmatex">\(c\)</span> 互换位置、min ≤ 对 max ≥。对偶的对偶 = 原问题。）</p>
-<p><strong>LP 强对偶</strong>：两侧只要有一侧有最优解，另一侧同有且最优值<strong>相等</strong>（不需要 Slater——线性的特权）。<strong>互补松弛</strong>：<span class="arithmatex">\(x_j^* &gt; 0 \Rightarrow\)</span> 对偶第 <span class="arithmatex">\(j\)</span> 约束绷紧；<span class="arithmatex">\(y_i^* \neq 0 \Rightarrow\)</span> 原第 <span class="arithmatex">\(i\)</span> 约束绷紧——<strong>已知一侧最优解可解出另一侧</strong>（考试与应用的标准操作）。</p>
-<p><strong>影子价格实感</strong>：<span class="arithmatex">\(y_i^*\)</span> = 资源 <span class="arithmatex">\(b_i\)</span> 增加一单位时最优利润的增量——"这吨原料值多少钱"由优化问题内生地定出。🔗 最大流-最小割定理是 LP 对偶的组合化身；SVM 对偶（优化 III）在 LP 这里有最干净的原型。</p>
+<p><strong>等式对应的 <span class="arithmatex">\(y\)</span> 是自由变量，不能强加非负。</strong>弱对偶来自
+<span class="arithmatex">\(c^\mathsf Tx-b^\mathsf Ty=x^\mathsf T(c-A^\mathsf Ty)\ge0\)</span>。原始等式已经恒紧，互补条件剩下 <span class="arithmatex">\(x_j(c-A^\mathsf Ty)_j=0\)</span>，不能把不等式形的资源乘子口诀机械搬来。</p>
+<p><strong>有限维 LP 强对偶：</strong>若一侧可行且有有限最优值，另一侧也取得最优解，且两值相等，不需要 Slater 严格可行条件。若原始无界则对偶不可行；原始不可行时，对偶既可能无界也可能不可行，不能简单把两种状态一一对换。</p>
+<p>对实验中的最大化资源模型，记最优利润为 <span class="arithmatex">\(V(b)\)</span>。任意在 <span class="arithmatex">\(b\)</span> 处最优的对偶解 <span class="arithmatex">\(u^*\)</span>，对新的非负容量 <span class="arithmatex">\(b'\)</span> 给出</p>
+<div class="arithmatex">\[
+V(b')\le b'^\mathsf Tu^*
+=V(b)+(b'-b)^\mathsf Tu^*.
+\]</div>
+<p>这说明 <span class="arithmatex">\(u^*\)</span> 是凹价值函数的一个上支撑斜率（超梯度）。在同一对偶解持续最优的区间内等号成立；可微时它才给出通常的边际导数。折点的多重影子价格、容量大幅变化和整数批量都会使“一单位资源总值这个价格”的说法失效。学习层的分段例子和右侧静态图可逐段验证。</p>
 <h2 id="4_1">4. 整数规划一瞥<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>变量限整数（选址、排班、背包）。难点：可行域不再凸，许多整数规划是 NP 难的，连续 LP 结论不能直接搬过来。两个思想级武器：<strong>LP 松弛</strong>（去掉整数约束解 LP；最大化问题得到上界，最小化问题得到下界，同时常给出分数解）；<strong>分支定界</strong>（对分数变量分两支 <span class="arithmatex">\(x_j \leq \lfloor v \rfloor\)</span> / <span class="arithmatex">\(\geq \lceil v \rceil\)</span> 递归，用 LP 界剪枝——"用松弛问题的界导航穷举"）。</p>
-<h2 id="5_1">5. 动态规划<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>适用结构</strong>：问题可分<strong>阶段</strong>，且满足——</p>
-<p><strong>最优子结构（Bellman 最优性原理）</strong>：最优策略的任何后段，对其起点而言仍是最优策略。于是价值函数满足递推：</p>
+<h2 id="5_1">5. 动态规划：先把状态和边界写完整<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>状态必须包含决定未来可行动作、转移及代价所需的信息。如果未来依赖“之前是否买过某项许可”，仅用当前地点作状态就不够；要把许可状态也纳入。最优子结构是：固定一个充分状态后，最优方案的后段也必须解决该状态的子问题。</p>
+<h3 id="_2">有限阶段为什么可以倒着算？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>对阶段 <span class="arithmatex">\(t=0,\dots,T-1\)</span>，终端代价 <span class="arithmatex">\(g_T\)</span>、阶段代价 <span class="arithmatex">\(\ell_t\)</span>、确定转移 <span class="arithmatex">\(F_t\)</span>，Bellman 递推为</p>
 <div class="arithmatex">\[
-V(s) = \min_{a}\ \big[\,c(s, a) + V\big(s'(s, a)\big)\,\big]
+V_T(s)=g_T(s),\qquad
+V_t(s)=\min_{a\in\mathcal A_t(s)}
+\{\ell_t(s,a)+V_{t+1}(F_t(s,a))\}.
 \]</div>
-<p>（当前代价 + 后续最优——"倒着算"或"记忆化"。）</p>
-<p><strong>重叠子问题</strong>：朴素递归会重复计算 ⇒ 记表复用，指数变多项式。</p>
-<p><strong>经典例题谱</strong>：最短路（Dijkstra/Bellman–Ford 皆可视为 DP）、背包（<span class="arithmatex">\(V(i, w)\)</span> 二维表）、最长公共子序列、编辑距离、矩阵链乘。</p>
-<p>🔗 <strong>AI 衔接</strong>：把递推里的确定转移换成概率转移、代价换成奖励，就是<strong>马尔可夫决策过程的 Bellman 方程</strong>——强化学习（Q-learning、价值迭代）的全部理论骨架就是随机化的 DP（随机过程页 Markov 链是它的另一半地基）；ai 课 04 讲说反向传播 = "链式法则 + 动态规划"，指的正是"记表复用"这个思想。</p>
-<h2 id="6_1">6. 典型例题<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
-<p><strong>例 1（LP 建模 + 图解）</strong> 产品 A/B 利润 3/5，工时约束 <span class="arithmatex">\(x_A \leq 4\)</span>，<span class="arithmatex">\(2x_B \leq 12\)</span>，<span class="arithmatex">\(3x_A + 2x_B \leq 18\)</span>。求利润最大。
-<em>解</em>：二维直接画可行域（五边形），顶点逐个算目标：<span class="arithmatex">\((2, 6)\)</span> 处 <span class="arithmatex">\(z = 36\)</span> 最大。（教材第一题的价值在于亲眼看到"最优在顶点"。）</p>
-<p><strong>例 2（互补松弛解对偶）</strong> 例 1 的对偶变量：最优解处绷紧的约束是第 2、3 条 ⇒ <span class="arithmatex">\(y_1 = 0\)</span>；对 <span class="arithmatex">\(x_A, x_B &gt; 0\)</span> 的两条对偶约束取等：<span class="arithmatex">\(3y_1 + 3y_3 = 3\)</span> 变为 <span class="arithmatex">\(3y_3 = 3\)</span>…解得 <span class="arithmatex">\(y_2 = \frac32,\ y_3 = 1\)</span>。验证 <span class="arithmatex">\(b^\top y = 12\cdot\frac32 + 18\cdot 1 = 36 = p^*\)</span> ✓。第三车间的工时影子价格 1 元/时——加班费低于它就值得加。</p>
-<p><strong>例 3（DP 背包）</strong> 容量 5，物品 (重,值) = (2,3),(3,4),(4,5)。递推 <span class="arithmatex">\(V(i, w) = \max\big(V(i{-}1, w),\ V(i{-}1, w - w_i) + v_i\big)\)</span> 填表得 <span class="arithmatex">\(V = 7\)</span>（取前两件）。<strong>手填一张 DP 表的经验不可替代</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>先知道终端值，才能从 <span class="arithmatex">\(T-1\)</span> 倒推。这里假设可行动作非空且最小值取得，例如有限状态、有限动作的情形；否则应分别处理无可行动作、用下确界代替最小值及策略存在性。阶段下标和终端条件不能省略后仍声称能直接“倒着算”。</p>
+<h3 id="_3">本页有界背包的每一格是什么？<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>产品 <span class="arithmatex">\(x\)</span> 最多有 <span class="arithmatex">\(a\)</span> 份、每份占混合资源 <span class="arithmatex">\(3\)</span>、利润 <span class="arithmatex">\(3\)</span>；产品 <span class="arithmatex">\(y\)</span> 最多有 <span class="arithmatex">\(\lfloor b/2\rfloor\)</span> 份、每份占资源 <span class="arithmatex">\(2\)</span>、利润 <span class="arithmatex">\(5\)</span>。把每份视为一件可取或不取的物品，便得到 <span class="arithmatex">\(n=a+\lfloor b/2\rfloor\)</span> 件物品、容量 <span class="arithmatex">\(C=c\)</span> 的 0/1 背包。</p>
+<p><span class="arithmatex">\(V(i,w)\)</span> 表示只用前 <span class="arithmatex">\(i\)</span> 件、重量<strong>至多</strong>为 <span class="arithmatex">\(w\)</span> 的最高价值。允许什么也不取，所以 <span class="arithmatex">\(V(0,w)=0\)</span>；若要求恰好装满，就应把 <span class="arithmatex">\(V(0,w&gt;0)\)</span> 改为不可达，而不能继续用零。</p>
+<p>第 <span class="arithmatex">\(i\)</span> 件重 <span class="arithmatex">\(w_i\)</span>、值 <span class="arithmatex">\(v_i\)</span>，两种选择为</p>
+<div class="arithmatex">\[
+\text{不取： }V(i-1,w),\qquad
+\text{取： }V(i-1,w-w_i)+v_i\quad(w\ge w_i).
+\]</div>
+<p>取较大者。两项都读<strong>上一行</strong>，保证每件只用一次；若压成一行数组却从小容量向大容量更新，会意外重复使用同一件物品，变成另一种问题。实验保留完整表，选格后会指出两个前驱及取舍；并列时示范保留“不取”，这只决定输出哪一个最优方案。</p>
+<p>复杂度 <span class="arithmatex">\(O(nC)\)</span> 对容量的数值是多项式，但整数 <span class="arithmatex">\(C\)</span> 的二进制输入长度只有 <span class="arithmatex">\(O(\log C)\)</span>，所以通常称为<strong>伪多项式</strong>。重叠子问题让缓存有用，不保证状态总数对输入长度是多项式；状态维度增加还会遇到维数灾难。<a href="https://courses.csail.mit.edu/6.006/fall11/rec/rec21_knapsack.pdf">MIT 背包与伪多项式讲义</a>。</p>
+<h3 id="_4">与最短路、强化学习的连接<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>有向无环图的最短路可按拓扑序递推；Bellman–Ford 可以用“允许经过的边数”作阶段；Dijkstra 还利用非负边权的贪心性质，不能把任何带负边的图直接交给它。若存在从起点可达且能通向终点的负环，最短路价值可能为 <span class="arithmatex">\(-\infty\)</span>，不再有有限最短路径。</p>
+<p>随机转移时把后续值改为条件期望。对<strong>有限状态和动作、奖励有界、折扣 <span class="arithmatex">\(0\le\gamma&lt;1\)</span></strong> 的无限期 MDP，</p>
+<div class="arithmatex">\[
+(TV)(s)=\max_a\left\{r(s,a)+\gamma\sum_{s'}P(s'|s,a)V(s')\right\}.
+\]</div>
+<p>由 <span class="arithmatex">\(\|TV-TW\|_\infty\le\gamma\|V-W\|_\infty\)</span>，Bellman 算子有唯一不动点，价值迭代收敛。这与没有折扣的无限期问题不是同一套保证；Q-learning 还需要自己的采样与步长条件，不能只写出 Bellman 方程就宣布学会最优策略。<a href="https://www.mit.edu/~dimitrib/DP_Slides.pdf">Bertsekas 动态规划课程讲义</a>。</p>
+<h2 id="6_1">6. 典型例题：从最优值追到选择本身<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<p><strong>例 1：列全顶点。</strong> 默认产品模型的可行顶点是 <span class="arithmatex">\((0,0),(4,0),(4,3),(2,6),(0,6)\)</span>，对应利润 <span class="arithmatex">\(0,12,27,36,30\)</span>，所以 <span class="arithmatex">\((2,6)\)</span> 最优。这里连续和整数最优恰好相同，不是整数问题的一般性质。</p>
+<p><strong>例 2：从互补解对偶。</strong> 默认点在资源 1 上有正松弛，故 <span class="arithmatex">\(u_1=0\)</span>；两个产品数量都正，故对偶两条约束取等号：</p>
+<div class="arithmatex">\[
+u_1+3u_3=3,\qquad 2u_2+2u_3=5.
+\]</div>
+<p>解得 <span class="arithmatex">\(u_3=1,u_2=3/2\)</span>，目标 <span class="arithmatex">\(4u_1+12u_2+18u_3=36\)</span>。在混合容量保持 <span class="arithmatex">\(12&lt;C&lt;24\)</span> 的区间内，边际价格为 <span class="arithmatex">\(1\)</span>；超出区间需重新判断，加班成本还需与适用区间内的实际增量收益比较。</p>
+<p><strong>例 3：分数解为什么不能直接四舍五入？</strong> 改成 <span class="arithmatex">\(a=4,b=11,c=18\)</span>。连续解为 <span class="arithmatex">\((7/3,11/2)\)</span>，目标 <span class="arithmatex">\(69/2=34.5\)</span>。普通四舍五入得到 <span class="arithmatex">\((2,6)\)</span>，违反 <span class="arithmatex">\(2y\le11\)</span>；整数最优为 <span class="arithmatex">\((2,5)\)</span>，利润 <span class="arithmatex">\(31\)</span>。本例向下取整恰好成功，但它不是一般整数规划算法；本页由完整枚举和 DP 另行证明整数最优。</p>
+<p><strong>例 4：手填背包表。</strong> 容量 <span class="arithmatex">\(5\)</span>，物品 <span class="arithmatex">\((w_i,v_i)=(2,3),(3,4),(4,5)\)</span>。先预测最优价值和选中物品，再展开。</p>
+<details class="answer" markdown="1">
+<summary>完整状态表与回溯</summary>
+
+<table>
+<thead>
+<tr>
+<th>已考虑物品</th>
+<th style="text-align: right;"><span class="arithmatex">\(w=0\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(1\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(2\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(3\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(4\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(5\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>第 1 件</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>前 2 件</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td>前 3 件</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">7</td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(V(3,5)=\max(V(2,5),V(2,1)+5)=\max(7,5)=7\)</span>，不取第 3 件；<span class="arithmatex">\(V(2,5)\)</span> 选择 <span class="arithmatex">\(V(1,2)+4=7\)</span>，取第 2 件；剩余容量 <span class="arithmatex">\(2\)</span> 再取第 1 件。总重 <span class="arithmatex">\(5\)</span>、总值 <span class="arithmatex">\(7\)</span>。若只有一件 <span class="arithmatex">\((2,3)\)</span> 却用同一行从小到大更新，容量 <span class="arithmatex">\(4\)</span> 会错误得到 <span class="arithmatex">\(6\)</span>，相当于把同一件拿了两次。</p>
+</details>
 <hr />
-<p><em>运筹线四页完工。它的孪生兄弟在应用计算线等着：数值分析（同样的问题, 问"计算机怎么算得又快又稳"）。下面转入统计线。</em></p>
+<p><em>下一步可连接<a href="graph-02-graphs.html">图与最短路</a>、<a href="graph-03-matching-flows.html">最大流与匹配</a>，或回到<a href="num-01-error.html">数值误差</a>区分精确证书与浮点残差。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="opt-03-duality-kkt.html"><span class="pager-label">上一页</span>优化 III · 对偶与 KKT</a>
