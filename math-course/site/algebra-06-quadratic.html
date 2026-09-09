@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-09 16:15</div>
   </div>
 </nav>
 <main id="content">
@@ -58,14 +58,16 @@ try {
 <li><a href="#2">2. 先预测：合同、惯性与正定</a></li>
 <li><a href="#3">3. 正式桥：从替换公式到惯性定理</a></li>
 <li><a href="#4">4. 定理级结论与失败边界</a></li>
+<li><a href="#5">5. 迁移：从合同走向内积与低秩</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 二次型与合同</a></li>
 <li><a href="#2_1">2. 正定性</a></li>
 <li><a href="#3_1">3. 内积空间与正交</a></li>
 <li><a href="#4_1">4. 谱定理（本页顶点）</a></li>
-<li><a href="#5">5. 通往机器学习的两级台阶</a></li>
+<li><a href="#5_1">5. 通往机器学习的两级台阶</a></li>
 <li><a href="#6">6. 典型例题</a></li>
+<li><a href="#7">7. 继续阅读</a></li>
 </ul>
 </div>
 </details>
@@ -77,17 +79,16 @@ try {
 
 <section aria-labelledby="algebra06-learning-title" class="learning-layer">
 <h2 id="algebra06-learning-title">学习层：二次型换坐标，保留下来的是什么？<a class="headerlink" href="#algebra06-learning-title" title="Permanent link"></a></h2>
+<p><strong>先修</strong>：<a href="algebra-04-linear-space.html">线性空间与换基</a>、<a href="algebra-05-eigen.html">特征值与标准形</a>。本页以实有限维空间为主；函数空间和无限维投影会另列条件。后续可连接<a href="stat-05-regression.html">最小二乘</a>、<a href="num-02-linear-systems.html">数值线性系统</a>和<a href="func-02-hilbert.html">Hilbert 空间</a>。</p>
 <h3 id="1">1. 一个具体的合同实例<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>考虑</p>
-<div class="arithmatex">\[
-q_t(x,y)=x^2+2txy+y^2,\qquad
-A_t=\begin{pmatrix}1&amp;t\\ t&amp;1\end{pmatrix}.
-\]</div>
-<p>在 <span class="arithmatex">\(t=0.5\)</span> 时，两个特征值为 <span class="arithmatex">\(1.5,0.5\)</span>，二次型正定，<span class="arithmatex">\(q_t=1\)</span> 是椭圆；在 <span class="arithmatex">\(t=1.4\)</span> 时，特征值一正一负，等值线变成双曲线。现在做可逆替换 <span class="arithmatex">\(x=Cy\)</span>，例如</p>
-<div class="arithmatex">\[
-C_s=\begin{pmatrix}1&amp;s\\0&amp;1\end{pmatrix},\qquad B=C_s^\mathsf{T}A_tC_s.
-\]</div>
-<p>这是合同变换：同一个二次型换了一套坐标。它不应被写成相似变换 <span class="arithmatex">\(C_s^{-1}A_tC_s\)</span>，因为那是线性映射换基时的矩阵照片。</p>
+<p>实验使用同一组三个矩阵族，参数 <span class="arithmatex">\(-1.8\le b\le1.8\)</span>：</p>
+<div class="arithmatex">\[A_+=\begin{pmatrix}2&amp;b\\b&amp;2\end{pmatrix},\qquad A_{\pm}=\begin{pmatrix}1&amp;b\\b&amp;-1\end{pmatrix},\qquad A_0=\begin{pmatrix}1&amp;b\\b&amp;b^2\end{pmatrix}.\]</div>
+<p>它们分别始终正定、不定、秩为 1 的半正定。第一族的特征值为 <span class="arithmatex">\(2\pm b&gt;0\)</span>；第二族为 <span class="arithmatex">\(\pm\sqrt{1+b^2}\)</span>；第三族因为 <span class="arithmatex">\(q(x_1,x_2)=(x_1+bx_2)^2\)</span>，特征值为 <span class="arithmatex">\(1+b^2,0\)</span>。这三个证明涵盖整个参数区间，不是从画面猜符号。</p>
+<p>现在做可逆替换 <span class="arithmatex">\(x=C_sy\)</span>，其中</p>
+<div class="arithmatex">\[C_s=\begin{pmatrix}1&amp;s\\0&amp;1\end{pmatrix},\qquad B=C_s^{\mathsf T}AC_s,\qquad -1.5\le s\le1.5.\]</div>
+<p>若 <span class="arithmatex">\(A=\begin{pmatrix}a&amp;b\\b&amp;c\end{pmatrix}\)</span>，则</p>
+<div class="arithmatex">\[B=\begin{pmatrix}a&amp;as+b\\as+b&amp;as^2+2bs+c\end{pmatrix}.\]</div>
+<p>左右图分别用旧坐标 <span class="arithmatex">\(x\)</span> 与新坐标 <span class="arithmatex">\(y\)</span> 画同一等值集合，标记点满足 <span class="arithmatex">\(y=C_s^{-1}x=(x_1-sx_2,x_2)\)</span>。坐标点会移动，<strong>二次型的数值不变</strong>：<span class="arithmatex">\(x^{\mathsf T}Ax=y^{\mathsf T}By\)</span>。这不是线性算子矩阵的相似变换 <span class="arithmatex">\(C_s^{-1}AC_s\)</span>。</p>
 <h3 id="2">2. 先预测：合同、惯性与正定<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>打开实验台前，先写下三个预测：</p>
 <ol>
@@ -105,104 +106,126 @@ x^\mathsf{T}Ax=y^\mathsf{T}(C^\mathsf{T}AC)y.
 <div class="arithmatex">\[
 \operatorname{Inertia}(C^\mathsf{T}AC)=\operatorname{Inertia}(A)=(p,q,r),
 \]</div>
-<p>其中 <span class="arithmatex">\(p,q,r\)</span> 分别是正、负、零特征方向的个数。合同不变量是符号计数，不是一般意义下的特征值列表；相似变换才保留全部特征值、迹和行列式。</p>
+<p>其中 <span class="arithmatex">\(p,q,r\)</span> 分别是正、负、零特征值的个数（计重数）。合同不变量是符号计数，不是一般意义下的特征值列表；相似变换才保留全部特征值、迹和行列式。</p>
 <div class="learning-lab" data-learning-lab="quadratic-forms">
-<p><strong>JavaScript 失效时的静态 fallback：</strong>对 <span class="arithmatex">\(A_t\)</span> 和 <span class="arithmatex">\(C_s\)</span> 只记录精确代数结论。<span class="arithmatex">\(s\)</span> 可以任意取实数，因为 <span class="arithmatex">\(C_s\)</span> 的行列式恒为 <span class="arithmatex">\(1\)</span>。</p>
+<p><strong>JavaScript 失效时的静态读法：</strong>取 <span class="arithmatex">\(b=0.5,s=1\)</span>，可逐项复算 <span class="arithmatex">\(C_s^{\mathsf T}AC_s\)</span>。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: right;"><span class="arithmatex">\(t\)</span></th>
-<th><span class="arithmatex">\(A_t\)</span> 的特征值</th>
-<th>惯性指数 <span class="arithmatex">\((p,q,r)\)</span></th>
-<th><span class="arithmatex">\(q_t=1\)</span> 的形状</th>
-<th>合同后结论</th>
+<th>族</th>
+<th>原矩阵 <span class="arithmatex">\(A\)</span></th>
+<th>合同矩阵 <span class="arithmatex">\(B\)</span></th>
+<th>惯性 <span class="arithmatex">\((p,q,r)\)</span></th>
+<th><span class="arithmatex">\(q=1\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
-<td><span class="arithmatex">\(1.5,0.5\)</span></td>
+<td>正定</td>
+<td><span class="arithmatex">\(\begin{pmatrix}2&amp;1/2\\1/2&amp;2\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(\begin{pmatrix}2&amp;5/2\\5/2&amp;5\end{pmatrix}\)</span></td>
 <td><span class="arithmatex">\((2,0,0)\)</span></td>
 <td>椭圆</td>
-<td>仍为正定</td>
 </tr>
 <tr>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td><span class="arithmatex">\(2,0\)</span></td>
-<td><span class="arithmatex">\((1,0,1)\)</span></td>
-<td>两条平行直线 <span class="arithmatex">\(x+y=\pm1\)</span></td>
-<td>零方向仍存在</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(1.4\)</span></td>
-<td><span class="arithmatex">\(2.4,-0.4\)</span></td>
+<td>不定</td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;1/2\\1/2&amp;-1\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;3/2\\3/2&amp;1\end{pmatrix}\)</span></td>
 <td><span class="arithmatex">\((1,1,0)\)</span></td>
 <td>双曲线</td>
-<td>仍是不定</td>
+</tr>
+<tr>
+<td>半正定</td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;1/2\\1/2&amp;1/4\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;3/2\\3/2&amp;9/4\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\((1,0,1)\)</span></td>
+<td>两条平行直线</td>
 </tr>
 </tbody>
 </table>
-<p>例如 <span class="arithmatex">\(t=0.5,s=1\)</span> 时，合同矩阵为 <span class="arithmatex">\(C_s^\mathsf{T}A_tC_s\)</span>，其特征值一般已经不是 <span class="arithmatex">\(1.5,0.5\)</span>，但两个方向仍为正。把 <span class="arithmatex">\(C_s^{-1}A_tC_s\)</span> 的谱拿来替代合同结论，就是把两个标准形问题混在了一起。</p>
+<p>半正定族原等值线为 <span class="arithmatex">\(x_1+\tfrac12x_2=\pm1\)</span>，换坐标后为 <span class="arithmatex">\(y_1+\tfrac32y_2=\pm1\)</span>；取旧点 <span class="arithmatex">\((3/4,1/2)\)</span>，新坐标为 <span class="arithmatex">\((1/4,1/2)\)</span>，代入两式都得 1。这里 <span class="arithmatex">\(\det C_s=1\)</span>，因此 <span class="arithmatex">\(\det B=\det A\)</span>；一般可逆合同只有 <span class="arithmatex">\(\det B=(\det C)^2\det A\)</span>，不能把剪切特例误当一般行列式不变。</p>
 </div>
 <h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>定理级</strong>：实对称二次型在可逆合同下由 <span class="arithmatex">\((p,q,r)\)</span> 完全分类；正定等价于 <span class="arithmatex">\(p=n\)</span>，也等价于所有特征值为正以及 Sylvester 顺序主子式全为正。</li>
 <li><strong>相似与合同边界</strong>：<span class="arithmatex">\(T^{-1}AT\)</span> 描述同一线性映射换基后的矩阵；<span class="arithmatex">\(C^\mathsf{T}AC\)</span> 描述同一二次型换坐标后的矩阵。合同不保证一般特征值逐个不变。</li>
 <li><strong>有限证据</strong>：一张等值线或有限个 <span class="arithmatex">\(x\)</span> 的取值不能证明全空间正定；正定命题要求对所有非零 <span class="arithmatex">\(x\)</span> 成立，或给出等价的谱、主子式或合同证书。</li>
-<li><strong>退化边界</strong>：零特征值意味着半定或退化，需要把零惯性指数保留下来；接近零的浮点特征值不能自动当作精确零，必须说明容差或回到精确计算。</li>
+<li><strong>退化边界</strong>：零特征值意味着退化，整体仍可能不定，需要把零惯性指数保留下来；接近零的浮点特征值不能自动当作精确零，必须说明容差或回到精确计算。</li>
 </ul>
+<h3 id="5">5. 迁移：从合同走向内积与低秩<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li><span class="arithmatex">\(H=\operatorname{diag}(0,-1)\)</span> 的两个顺序主子式都是 0。它半正定吗？哪一个主子式暴露了问题？</li>
+<li>半正定实验中取 <span class="arithmatex">\(b=0.5,s=1\)</span>，原点 <span class="arithmatex">\(x=(3/4,1/2)\)</span> 对应哪个 <span class="arithmatex">\(y\)</span>？求 <span class="arithmatex">\(q\)</span>，并给出原矩阵与合同矩阵的零方向。</li>
+<li>对 <span class="arithmatex">\(D=\operatorname{diag}(3,1,0)\)</span> 求一个最优秩不超过 1 的近似，以及谱范数、Frobenius 范数误差。若换成 <span class="arithmatex">\(\operatorname{diag}(1,1,0)\)</span>，Frobenius 最优解还唯一吗？</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li>不是：<span class="arithmatex">\(e_2^{\mathsf T}He_2=-1\)</span>。第二个对角元素组成的一阶主子式为 <span class="arithmatex">\(-1\)</span>；它不是左上角的顺序主子式。半正定必须检查全体主子式。</li>
+<li><span class="arithmatex">\(y=C^{-1}x=(1/4,1/2)\)</span>；<span class="arithmatex">\((3/4+\tfrac12\cdot\tfrac12)^2=(1/4+\tfrac32\cdot\tfrac12)^2=1\)</span>。原零方向 <span class="arithmatex">\((-1/2,1)\)</span>，新零方向 <span class="arithmatex">\((-3/2,1)=C^{-1}(-1/2,1)\)</span>；零空间方向在坐标里改变，但维数仍为 1。</li>
+<li>取 <span class="arithmatex">\(D_1=\operatorname{diag}(3,0,0)\)</span>，两种误差均为 1。对 <span class="arithmatex">\(\operatorname{diag}(1,1,0)\)</span>，前两维任意单位向量 <span class="arithmatex">\(u\)</span> 都给出最优 <span class="arithmatex">\(uu^{\mathsf T}\)</span>，Frobenius 误差仍为 1；相等的截断边界奇异值导致非唯一。</li>
+</ol>
+</details>
 </section>
 <h2 id="1_1">1. 二次型与合同<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(n\)</span> 元二次型 <span class="arithmatex">\(f(x) = x^\top A x\)</span>（约定 <span class="arithmatex">\(A\)</span> 对称——任何二次型的矩阵可对称化）。可逆线性替换 <span class="arithmatex">\(x = Cy\)</span> 后矩阵变为</p>
+<p><strong>定义</strong> <span class="arithmatex">\(n\)</span> 元二次型 <span class="arithmatex">\(f(x) = x^\top A x\)</span>（实数域，约定 <span class="arithmatex">\(A\)</span> 对称；因为 <span class="arithmatex">\(x^{\mathsf T}Ax=x^{\mathsf T}(A+A^{\mathsf T})x/2\)</span>）。可逆线性替换 <span class="arithmatex">\(x = Cy\)</span> 后矩阵变为</p>
 <div class="arithmatex">\[
 B = C^\top A\, C
 \]</div>
 <p><strong>定义（合同）</strong> <span class="arithmatex">\(B \simeq A \iff \exists\)</span> 可逆 <span class="arithmatex">\(C:\ B = C^\top A C\)</span>。（对照：相似是 <span class="arithmatex">\(T^{-1}AT\)</span>——<strong>相似 = 换基看变换，合同 = 换坐标看二次型</strong>，第三种标准形理论开张。）</p>
 <p><strong>化标准形三法</strong>：配方法（万能）；初等变换法（对 <span class="arithmatex">\(A\)</span> 做成对的行列变换）；正交替换法（见 §3，能同时保持几何）。</p>
 <p><strong>定理（惯性定理）</strong> 实二次型的标准形 <span class="arithmatex">\(\sum_{i=1}^{p} y_i^2 - \sum_{i=p+1}^{p+q} y_i^2\)</span> 中正项数 <span class="arithmatex">\(p\)</span>（正惯性指数）与负项数 <span class="arithmatex">\(q\)</span> 唯一确定。——<strong>合同关系下的完全不变量是 <span class="arithmatex">\((p, q, n - p - q)\)</span></strong>（复数域上只剩秩）。</p>
+<p><strong>为何正负个数不能被换坐标改变？</strong> 在标准形中，正项坐标张成一个 <span class="arithmatex">\(p\)</span> 维正定子空间。若另有维数大于 <span class="arithmatex">\(p\)</span> 的子空间处处正定，它必与由负项和零项张成的 <span class="arithmatex">\(n-p\)</span> 维子空间有非零交点（用上一页维数公式），但该点的二次型值不大于零，矛盾。故 <span class="arithmatex">\(p\)</span> 是“限制为正定的子空间所能达到的最大维数”；可逆坐标变换双向保持这个性质和维数，<span class="arithmatex">\(p\)</span> 因而不变。对 <span class="arithmatex">\(-q\)</span> 同理得负指数不变，最后 <span class="arithmatex">\(r=n-p-q\)</span>。这也解释了符号不变量的几何意义。</p>
 <h2 id="2_1">2. 正定性<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="二次型等值线由定性决定" src="assets/img/algebra-06-quadratic-forms.svg" /></p>
-<figcaption><span class="fig-id">图 6.1</span>二次型 \(\mathbf{x}^\top A\mathbf{x}\) 的等值线由 \(A\) 的定性决定：正定→椭圆（碗）、不定→双曲（鞍）、半定→退化。</figcaption>
+<div aria-label="三类二次型与剪切图，可横向滚动" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/algebra-06-quadratic-forms.svg" alt="三种矩阵在相同剪切下的q等于一曲线，蓝为旧坐标金为新坐标" style="min-width:720px;width:100%;display:block">
+</div>
+<figcaption><span class="fig-id">图 6.1</span>固定 \(b=1/2,s=1\)，三个模型与实验一致；只画 \(q=1\) 的等值线，不把它当作三维曲面。半正定例为秩 1 的平方型，两条平行直线垂直于非零特征方向；一般半定矩阵的正等值集也可能为空。</figcaption>
 </figure>
 <p><strong>定义</strong> <span class="arithmatex">\(f\)</span> 正定 <span class="arithmatex">\(\iff x \neq 0 \Rightarrow x^\top A x &gt; 0\)</span>。（半正定：<span class="arithmatex">\(\geq 0\)</span>。）</p>
 <p><strong>定理（正定判据大集合）</strong> 实对称 <span class="arithmatex">\(A\)</span> 正定 <span class="arithmatex">\(\iff\)</span> 正惯性指数 <span class="arithmatex">\(= n\)</span> <span class="arithmatex">\(\iff\)</span> 一切特征值 <span class="arithmatex">\(&gt; 0\)</span> <span class="arithmatex">\(\iff\)</span> <strong>顺序主子式全 <span class="arithmatex">\(&gt; 0\)</span></strong>（Sylvester 准则）<span class="arithmatex">\(\iff \exists\)</span> 可逆 <span class="arithmatex">\(C:\ A = C^\top C\)</span>（"正定 = 某个满秩矩阵的 Gram 矩阵"）。</p>
-<p>半正定的对应版本：特征值 <span class="arithmatex">\(\geq 0\)</span>；<span class="arithmatex">\(A = C^\top C\)</span>（<span class="arithmatex">\(C\)</span> 不必满秩）；<strong>注意顺序主子式 <span class="arithmatex">\(\geq 0\)</span> 不是半正定的充分条件</strong>（需全体主子式 <span class="arithmatex">\(\geq 0\)</span>）——高频陷阱。</p>
-<p>🔗 <strong>AI 衔接</strong>：Hessian 正定 ⇒ 严格极小（数分 V 会师点）；凸函数 <span class="arithmatex">\(\iff\)</span> Hessian 半正定；核函数合法性 <span class="arithmatex">\(\iff\)</span> Gram 矩阵半正定（ai 课 02 讲 Mercer 定理的判据正是本节语言）；协方差矩阵天生半正定（概率页）。</p>
+<p><strong>顺序主子式为何有效？</strong> 正定矩阵限制在前 <span class="arithmatex">\(j\)</span> 个坐标组成的子空间上仍正定，其特征值全正，所以行列式 <span class="arithmatex">\(\Delta_j&gt;0\)</span>。反向若所有 <span class="arithmatex">\(\Delta_j&gt;0\)</span>，按顺序配方（等价于对称消元）得到 <span class="arithmatex">\(A=LDL^{\mathsf T}\)</span>，<span class="arithmatex">\(L\)</span> 可逆，<span class="arithmatex">\(D\)</span> 的对角元为 <span class="arithmatex">\(\Delta_j/\Delta_{j-1}\)</span>，约定 <span class="arithmatex">\(\Delta_0=1\)</span>；它们全正，故 <span class="arithmatex">\(x^{\mathsf T}Ax=(L^{\mathsf T}x)^{\mathsf T}D(L^{\mathsf T}x)&gt;0\)</span>。半正定时零主元会破坏这条除法，不能把所有严格不等号直接换成非严格号。</p>
+<p>半正定的对应版本：特征值 <span class="arithmatex">\(\geq 0\)</span>；<span class="arithmatex">\(A = C^\top C\)</span>（<span class="arithmatex">\(C\)</span> 不必满秩）；<strong>注意顺序主子式 <span class="arithmatex">\(\geq 0\)</span> 不是半正定的充分条件</strong>（需全体主子式 <span class="arithmatex">\(\geq 0\)</span>）；例如 <span class="arithmatex">\(\operatorname{diag}(0,-1)\)</span> 的顺序主子式全为零却不是半正定。</p>
+<p><strong>与优化、统计的连接</strong>：<span class="arithmatex">\(C^2\)</span> 函数在驻点处 Hessian 正定，可由二阶 Taylor 展开推出严格局部极小；如果梯度不为零，单看 Hessian 不够。在开凸域上，<span class="arithmatex">\(C^2\)</span> 函数凸当且仅当每一点 Hessian 半正定；沿任意线段限制成一元函数可证明这个判据。核函数的半正定要求对<strong>任意有限样本集</strong>构造的 Gram 矩阵都半正定，只检查一个数据集不够；Mercer 特征展开还另需紧致性、连续性等相应假设。协方差矩阵半正定直接来自 <span class="arithmatex">\(u^{\mathsf T}\operatorname{Cov}(X)u=\operatorname{Var}(u^{\mathsf T}X)\ge0\)</span>，前提是二阶矩存在。</p>
 <h2 id="3_1">3. 内积空间与正交<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定义（Euclid 空间）</strong> 实线性空间 + 内积 <span class="arithmatex">\(\langle\cdot,\cdot\rangle\)</span>（对称、双线性、正定）。标准例 <span class="arithmatex">\(\langle x, y\rangle = x^\top y\)</span>；函数空间例 <span class="arithmatex">\(\langle f, g\rangle = \int_a^b fg\,dx\)</span>（Fourier 级数的舞台，数分 IV）。</p>
-<p>长度 <span class="arithmatex">\(\|x\| = \sqrt{\langle x,x\rangle}\)</span>；<strong>Cauchy–Schwarz</strong> <span class="arithmatex">\(|\langle x, y\rangle| \leq \|x\|\|y\|\)</span>（<em>证明一行</em>：<span class="arithmatex">\(\|x + ty\|^2 \geq 0\)</span> 的判别式 <span class="arithmatex">\(\leq 0\)</span>）；夹角、三角不等式随之成立。</p>
-<p><strong>正交基与 Gram–Schmidt 正交化</strong>：任意基可逐个"减去在前面各向量上的投影"化为正交基：</p>
+<p><strong>定义（实内积空间）</strong> 实线性空间 + 内积 <span class="arithmatex">\(\langle\cdot,\cdot\rangle\)</span>（对称、双线性、正定）。标准例 <span class="arithmatex">\(\langle x, y\rangle = x^\top y\)</span>；函数空间例 <span class="arithmatex">\(\langle f, g\rangle = \int_a^b fg\,dx\)</span>，例如在 <span class="arithmatex">\(a&lt;b\)</span> 的 <span class="arithmatex">\(C[a,b]\)</span> 上它是正定的；对一般平方可积函数则要把几乎处处相等者视为同一个元素，才得到 <span class="arithmatex">\(L^2\)</span> 内积。通常 Euclid 空间特指有限维实内积空间。</p>
+<p>长度 <span class="arithmatex">\(\|x\| = \sqrt{\langle x,x\rangle}\)</span>；<strong>Cauchy–Schwarz</strong> <span class="arithmatex">\(|\langle x, y\rangle| \leq \|x\|\|y\|\)</span>（若 <span class="arithmatex">\(y=0\)</span> 显然；否则 <span class="arithmatex">\(\|x+ty\|^2\ge0\)</span> 是首项系数为 <span class="arithmatex">\(\|y\|^2&gt;0\)</span> 的二次式，判别式非正即得结论；等号恰对应线性相关）；夹角、三角不等式随之成立。</p>
+<p><strong>正交基与 Gram–Schmidt 正交化</strong>：任意有限线性无关序列可逐个"减去在前面各向量上的投影"化为正交基：</p>
 <div class="arithmatex">\[
 \beta_k = \alpha_k - \sum_{i&lt;k} \frac{\langle \alpha_k, \beta_i\rangle}{\langle \beta_i, \beta_i\rangle}\beta_i
 \]</div>
-<p>（🔗 QR 分解的手工版，数值页。）标准正交基下坐标 = 内积投影 <span class="arithmatex">\(x_i = \langle v, e_i\rangle\)</span>——Fourier 系数公式的有限维原型。</p>
+<p>独立性保证每个 <span class="arithmatex">\(\beta_i\ne0\)</span>，再归一化得标准正交序列。若输入列表相关，某一步余量为零，不能继续除以其平方长度。数值计算还需关注舍入造成的正交性损失，见<a href="num-02-linear-systems.html">数值线性系统</a>。标准正交基下坐标 = 内积投影 <span class="arithmatex">\(x_i = \langle v, e_i\rangle\)</span>——Fourier 系数公式的有限维原型。</p>
 <p><strong>正交矩阵</strong> <span class="arithmatex">\(Q^\top Q = I\)</span>：列为标准正交基；保内积保长度（等距变换）；<span class="arithmatex">\(\det Q = \pm 1\)</span>（旋转/反射）；逆 = 转置（数值上零成本求逆——正交矩阵是数值计算的宠儿）。</p>
-<p><strong>正交补与投影</strong>：<span class="arithmatex">\(V = W \oplus W^\perp\)</span>；向 <span class="arithmatex">\(W\)</span> 的正交投影是"<span class="arithmatex">\(W\)</span> 中离 <span class="arithmatex">\(v\)</span> 最近的点"。🔗 <strong>最小二乘的几何本相</strong>：<span class="arithmatex">\(Ax = b\)</span> 无解时求 <span class="arithmatex">\(\min\|Ax - b\|\)</span>，即把 <span class="arithmatex">\(b\)</span> 投影到列空间——法方程 <span class="arithmatex">\(A^\top A\hat x = A^\top b\)</span> 就是"残差 ⊥ 列空间"的代数写法（统计页回归的地基）。</p>
+<p><strong>正交补与投影</strong>：有限维内积空间的任意子空间都有 <span class="arithmatex">\(V = W \oplus W^\perp\)</span>；无限维 Hilbert 空间需 <span class="arithmatex">\(W\)</span> 闭，普通内积空间不能无条件照搬。向 <span class="arithmatex">\(W\)</span> 的正交投影是"<span class="arithmatex">\(W\)</span> 中离 <span class="arithmatex">\(v\)</span> 最近的点"。🔗 <strong>最小二乘的几何本相</strong>：<span class="arithmatex">\(Ax = b\)</span> 无解时求 <span class="arithmatex">\(\min\|Ax - b\|\)</span>，即把 <span class="arithmatex">\(b\)</span> 投影到列空间——法方程 <span class="arithmatex">\(A^\top A\hat x = A^\top b\)</span> 就是"残差 ⊥ 列空间"的代数写法。残差正交保证最近点唯一，但系数 <span class="arithmatex">\(\hat x\)</span> 只有在 <span class="arithmatex">\(A\)</span> 满列秩时唯一；不同系数可以表示同一投影点。</p>
 <h2 id="4_1">4. 谱定理（本页顶点）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>定理（实对称矩阵的谱定理）</strong> 实对称 <span class="arithmatex">\(A\)</span> 必可<strong>正交对角化</strong>：存在正交矩阵 <span class="arithmatex">\(Q\)</span>，</p>
 <div class="arithmatex">\[
 Q^\top A\, Q = \mathrm{diag}(\lambda_1, \dots, \lambda_n), \qquad \lambda_i \in \mathbb{R}
 \]</div>
-<p>三个组成部分及思路：1.特征值全实（<span class="arithmatex">\(\bar\xi^\top A \xi\)</span> 两算）；2.不同特征值的特征向量正交（<span class="arithmatex">\(\lambda_1\langle\xi_1,\xi_2\rangle = \xi_2^\top A\xi_1 = \lambda_2\langle\xi_1,\xi_2\rangle\)</span>）；3.归纳 + 不变子空间（<span class="arithmatex">\(W^\perp\)</span> 对对称变换不变）。</p>
+<p>证明的主线是不断取出一个方向。先在复数域取特征向量 <span class="arithmatex">\(z\ne0\)</span>；<span class="arithmatex">\(z^*Az=\lambda z^*z\)</span>，左边因 <span class="arithmatex">\(A^*=A\)</span> 为实数，故 <span class="arithmatex">\(\lambda\)</span> 实。<span class="arithmatex">\(z\)</span> 的实部或虚部至少一个非零，于是可取实单位特征向量 <span class="arithmatex">\(q_1\)</span>。若 <span class="arithmatex">\(v\perp q_1\)</span>，则 <span class="arithmatex">\(\langle Av,q_1\rangle=\langle v,Aq_1\rangle=0\)</span>，所以 <span class="arithmatex">\(q_1^\perp\)</span> 对 <span class="arithmatex">\(A\)</span> 不变；限制在这个低一维空间上仍对称，归纳得到完整正交特征基。不同特征值的方向自动正交；相同特征值内部仍要自行选正交基。</p>
 <p>等价的<strong>谱分解</strong>写法：<span class="arithmatex">\(A = \sum_i \lambda_i\, q_i q_i^\top\)</span>——对称矩阵 = 各特征方向上一维投影的加权和。</p>
 <p><strong>双重身份</strong>：对实对称矩阵，正交替换<strong>同时是相似与合同</strong>（<span class="arithmatex">\(Q^\top = Q^{-1}\)</span>）——两大标准形理论在此合流：二次型的正交标准形对角元 = 特征值，正惯性指数 = 正特征值个数。几何应用：二次曲面 <span class="arithmatex">\(x^\top A x = 1\)</span> 的主轴方向 = 特征向量方向（"主轴定理"）。</p>
-<h2 id="5">5. 通往机器学习的两级台阶<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>主成分分析（PCA）</strong>：数据协方差矩阵（实对称半正定）做谱分解，特征向量 = 数据方差最大的正交方向，特征值 = 各方向方差——<strong>"找数据的主轴" = 谱定理的统计应用</strong>。降维即保留大特征值方向。</p>
+<h2 id="5_1">5. 通往机器学习的两级台阶<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>主成分分析（PCA）</strong>：先将每个特征列减去样本均值，对中心化数据 <span class="arithmatex">\(X\in\mathbb R^{N\times d}\)</span> 取 <span class="arithmatex">\(\Sigma=X^{\mathsf T}X/N\)</span>（若估计总体协方差也可约定除以 <span class="arithmatex">\(N-1\)</span>）。对单位方向 <span class="arithmatex">\(u\)</span>，投影方差为 <span class="arithmatex">\(u^{\mathsf T}\Sigma u\)</span>；按特征值从大到小的正交基展开可知最大值是 <span class="arithmatex">\(\lambda_1\)</span>，之后在其正交补里继续最大化。特征值等于相应方向方差——<strong>"找数据的主轴" = 谱定理的统计应用</strong>。降维即保留大特征值方向。</p>
 <p><strong>奇异值分解（SVD）</strong>：任意（不必方、不必对称）<span class="arithmatex">\(m \times n\)</span> 实矩阵</p>
 <div class="arithmatex">\[
 A = U \Sigma V^\top
 \]</div>
-<p><span class="arithmatex">\(U, V\)</span> 正交，<span class="arithmatex">\(\Sigma\)</span> 对角非负（奇异值 <span class="arithmatex">\(\sigma_i = \sqrt{\lambda_i(A^\top A)}\)</span>）。存在性归结为对 <span class="arithmatex">\(A^\top A\)</span>（对称半正定）用谱定理。<strong>读法：任何线性映射 = 旋转 → 各轴伸缩 → 旋转</strong>。</p>
-<p><strong>Eckart–Young 定理</strong>：截断 SVD（保留前 <span class="arithmatex">\(k\)</span> 个奇异值）是 <span class="arithmatex">\(A\)</span> 的<strong>最优秩 <span class="arithmatex">\(k\)</span> 逼近</strong>。🔗 这是低秩世界的宪法：LoRA 的合法性（comfy 课 05 讲）、推荐系统、图像压缩、模型剪枝全部引用本条。<strong>SVD 是本科线性代数交给机器学习的最重要一件武器。</strong></p>
+<p><span class="arithmatex">\(U, V\)</span> 正交，<span class="arithmatex">\(\Sigma\)</span> 对角非负（奇异值 <span class="arithmatex">\(\sigma_i = \sqrt{\lambda_i(A^\top A)}\)</span>）。这里 <span class="arithmatex">\(U\)</span> 为 <span class="arithmatex">\(m\times m\)</span>、<span class="arithmatex">\(V\)</span> 为 <span class="arithmatex">\(n\times n\)</span>，<span class="arithmatex">\(\Sigma\)</span> 为 <span class="arithmatex">\(m\times n\)</span> 的矩形对角矩阵。对 <span class="arithmatex">\(A^{\mathsf T}A\)</span> 取正交特征向量 <span class="arithmatex">\(v_i\)</span>；当 <span class="arithmatex">\(\sigma_i&gt;0\)</span> 时定义 <span class="arithmatex">\(u_i=Av_i/\sigma_i\)</span>，由内积计算 <span class="arithmatex">\(u_i^{\mathsf T}u_j=\delta_{ij}\)</span>。将这些 <span class="arithmatex">\(u_i\)</span> 补成输出空间的正交基；零奇异值对应 <span class="arithmatex">\(Av_i=0\)</span>，不做除零。于是 <span class="arithmatex">\(Av_i=\sigma_i u_i\)</span> 给出 SVD。<strong>读法：输入正交换坐标 → 各轴伸缩或压到零 → 输出正交换坐标</strong>；正交变化可含反射，不全是旋转。</p>
+<p><strong>Eckart–Young–Mirsky 定理（明确误差是什么）</strong>：设 <span class="arithmatex">\(\sigma_1\ge\cdots\ge\sigma_r&gt;0\)</span>，<span class="arithmatex">\(0\le k&lt;r\)</span>，令 <span class="arithmatex">\(A_k=\sum_{i=1}^k\sigma_i u_iv_i^{\mathsf T}\)</span>。在所有秩<strong>不超过</strong> <span class="arithmatex">\(k\)</span> 的矩阵中，它同时最小化谱范数和 Frobenius 范数误差：</p>
+<div class="arithmatex">\[\min_{\operatorname{rank}B\le k}\|A-B\|_2=\sigma_{k+1},\qquad \min_{\operatorname{rank}B\le k}\|A-B\|_F=\sqrt{\sum_{i&gt;k}\sigma_i^2}.\]</div>
+<p>若 <span class="arithmatex">\(k\ge r\)</span>，取 <span class="arithmatex">\(B=A\)</span> 误差为零。谱范数下界可这样看：在 <span class="arithmatex">\(\operatorname{span}(v_1,\ldots,v_{k+1})\)</span> 中，<span class="arithmatex">\(B\)</span> 必有一个单位核向量 <span class="arithmatex">\(v\)</span>，故 <span class="arithmatex">\(\|(A-B)v\|=\|Av\|\ge\sigma_{k+1}\)</span>。截断矩阵达到此界。Frobenius 下界也能看清：设 <span class="arithmatex">\(P\)</span> 是到候选 <span class="arithmatex">\(B\)</span> 列空间的正交投影，则 <span class="arithmatex">\(\|A-B\|_F^2\ge\|(I-P)A\|_F^2=\sum_i\sigma_i^2(1-\|Pu_i\|^2)\)</span>。权重 <span class="arithmatex">\(\alpha_i=\|Pu_i\|^2\)</span> 满足 <span class="arithmatex">\(0\le\alpha_i\le1\)</span>、<span class="arithmatex">\(\sum_i\alpha_i\le k\)</span>，所以最多保留前 <span class="arithmatex">\(k\)</span> 个最大平方奇异值之和；剩下至少是尾部平方和。截断 SVD 达到这个下界。若 <span class="arithmatex">\(0&lt;k&lt;r\)</span> 且 <span class="arithmatex">\(\sigma_k&gt;\sigma_{k+1}\)</span>，Frobenius 最优近似唯一；相等时可能不唯一。谱范数下即使有这个间隙也不保证唯一，例如 <span class="arithmatex">\(\operatorname{diag}(3,1)\)</span> 的 <span class="arithmatex">\(\operatorname{diag}(3,0)\)</span> 和 <span class="arithmatex">\(\operatorname{diag}(2,0)\)</span> 都有最优误差 1。</p>
+<p>这条定理解释给定矩阵的低秩压缩误差；它并不证明神经网络训练更新必然低秩，也不保证任意低秩适配训练目标最优。</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（正交对角化全流程）</strong> <span class="arithmatex">\(A = \begin{pmatrix} 2 &amp; 1 &amp; 1 \\ 1 &amp; 2 &amp; 1 \\ 1 &amp; 1 &amp; 2\end{pmatrix}\)</span>。
-<em>解</em>：特征多项式 <span class="arithmatex">\((\lambda - 1)^2(\lambda - 4)\)</span>。<span class="arithmatex">\(\lambda = 4\)</span>：<span class="arithmatex">\(\xi = (1,1,1)^\top\)</span>；<span class="arithmatex">\(\lambda = 1\)</span>：解出二维特征子空间，取基后 <strong>Gram–Schmidt 正交化</strong>（同特征值内部不自动正交！），三向量单位化拼成 <span class="arithmatex">\(Q\)</span>。<span class="arithmatex">\(Q^\top AQ = \mathrm{diag}(4,1,1)\)</span>。</p>
+<em>解</em>：特征多项式 <span class="arithmatex">\((\lambda - 1)^2(\lambda - 4)\)</span>。<span class="arithmatex">\(\lambda = 4\)</span>：<span class="arithmatex">\(\xi = (1,1,1)^\top\)</span>；<span class="arithmatex">\(\lambda = 1\)</span>：解出二维特征子空间，取基后 <strong>Gram–Schmidt 正交化</strong>（同特征值内部不自动正交！），可以具体选 <span class="arithmatex">\(q_1=(1,1,1)/\sqrt3\)</span>、<span class="arithmatex">\(q_2=(1,-1,0)/\sqrt2\)</span>、<span class="arithmatex">\(q_3=(1,1,-2)/\sqrt6\)</span>，三向量单位化且两两正交，拼成 <span class="arithmatex">\(Q\)</span>。<span class="arithmatex">\(Q^\top AQ = \mathrm{diag}(4,1,1)\)</span>。</p>
 <p><strong>例 2（带参数正定判别）</strong> <span class="arithmatex">\(f = x_1^2 + x_2^2 + 5x_3^2 + 2tx_1x_2 - 2x_1x_3 + 4x_2x_3\)</span> 正定，求 <span class="arithmatex">\(t\)</span>。
 <em>解</em>：顺序主子式：<span class="arithmatex">\(\Delta_1 = 1 &gt; 0\)</span>；<span class="arithmatex">\(\Delta_2 = 1 - t^2 &gt; 0\)</span>；<span class="arithmatex">\(\Delta_3 = \det A = -5t^2 - 4t &gt; 0\)</span>。联立得 <span class="arithmatex">\(-\frac45 &lt; t &lt; 0\)</span>。</p>
 <p><strong>例 3（谱分解速算矩阵函数）</strong> 对例 1 的 <span class="arithmatex">\(A\)</span> 求 <span class="arithmatex">\(A^{100}\)</span>：令 <span class="arithmatex">\(P_1=\frac13\mathbf 1\mathbf 1^\top=\frac13J\)</span> 为到 <span class="arithmatex">\((1,1,1)\)</span> 方向的正交投影，<span class="arithmatex">\(P_2=I-P_1\)</span>，则 <span class="arithmatex">\(A=4P_1+P_2\)</span>。由 <span class="arithmatex">\(P_i^2=P_i\)</span> 与 <span class="arithmatex">\(P_1P_2=0\)</span>，立即得到 <span class="arithmatex">\(A^{100}=4^{100}P_1+P_2\)</span>。<strong>谱分解把矩阵函数变成特征值函数。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
-<p><em>双主干至此完工。侧栏其余课程的占位页已备好规划骨架——下一门想建哪门，随时把占位页当 spec 开工。</em></p>
+<h2 id="7">7. 继续阅读<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><a href="https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/resources/lecture-7-eckart-young-the-closest-rank-k-matrix-to-a/">MIT 18.065：Eckart–Young 课程</a>继续讨论低秩近似及范数；<a href="https://www.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf">Boyd–Vandenberghe《Convex Optimization》§3.1.4</a>给出二阶凸性判据及定义域条件。进入高阶应用前，应能解释为什么合同保符号、相似保谱、正交变化才额外保长度。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="algebra-05-eigen.html"><span class="pager-label">上一页</span>高代 V · 特征值与标准形</a>
