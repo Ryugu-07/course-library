@@ -46,42 +46,45 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:37</div>
+    <div class="build-time">构建于 2026-09-10 05:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#quadrature-ode-learning-title">学习层：先问误差证书，再问步数够不够</a><ul>
+<li><a href="#quadrature-ode-learning-title">学习层：先检查误差依据，再判断步数够不够</a><ul>
 <li><a href="#1">1. 一个实验，两种模式</a></li>
 <li><a href="#2">2. 求积：光滑不等于已分辨</a></li>
-<li><a href="#3-ode">3. ODE：三个放大因子，三种“阶”</a></li>
-<li><a href="#4">4. 边界、反例与迁移</a></li>
+<li><a href="#3">3. 光滑窄峰能让估计器误报“零误差”</a></li>
+<li><a href="#4-ode">4. ODE：四个放大因子，三个不同问题</a></li>
+<li><a href="#5">5. 边界、反例与迁移</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 数值积分（求积公式）</a></li>
 <li><a href="#2-ode-y-ft-y-yt_0-y_0">2. ODE 数值解：初值问题 \(y' = f(t, y),\ y(t_0) = y_0\)</a></li>
-<li><a href="#3">3. 典型例题</a></li>
+<li><a href="#3_1">3. 典型例题</a></li>
+<li><a href="#4">4. 自己推导，再展开核对</a></li>
+<li><a href="#5_1">5. 阅读与复核依据</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv-ode">数值 IV · 数值积分与 ODE 数值解<a class="headerlink" href="#iv-ode" title="Permanent link"></a></h1>
 <blockquote>
-<p>收官页处理两个"解析解常常不存在"的战场：定积分（原函数写不出是常态——数分 III 的坦白）与常微分方程（能解析解的是博物馆展品——ODE 页的坦白）。ODE 数值解一节有一条你已经走过的暗线：<strong>扩散模型的采样器下拉框（euler/heun/……）就是本节的方法名录</strong>。</p>
+<p>积分与微分方程即使没有方便的解析表达式，也可以数值求解。难点随之变成：怎样判断步数够不够，怎样发现误差估计漏掉的信息，以及怎样避免把方程本来衰减的解算成爆炸的数列。本页把这三件事分开检查。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="quadrature-ode-learning-title" class="learning-layer">
-<h2 id="quadrature-ode-learning-title">学习层：先问误差证书，再问步数够不够<a class="headerlink" href="#quadrature-ode-learning-title" title="Permanent link"></a></h2>
+<h2 id="quadrature-ode-learning-title">学习层：先检查误差依据，再判断步数够不够<a class="headerlink" href="#quadrature-ode-learning-title" title="Permanent link"></a></h2>
 <h3 id="1">1. 一个实验，两种模式<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>实验台有“求积”和“稳定性”两个页签。求积固定区间 <span class="arithmatex">\([0,1]\)</span>，比较同一组节点上的 composite trapezoid、composite Simpson 与自适应 Simpson 对照算法；稳定性固定试验方程</p>
+<p>实验台有“求积”和“稳定性”两个页签。求积固定区间 <span class="arithmatex">\([0,1]\)</span>，比较同一组节点上的 复合梯形、复合 Simpson 与自适应 Simpson 对照算法；稳定性固定试验方程</p>
 <div class="arithmatex">\[
 y'=-\lambda y,\qquad y(0)=1,\qquad \lambda&gt;0.
 \]</div>
-<p>先回答预测门，提交前不显示曲线、数值或答案账本。页签、函数、步数改变时，当前预测会重新上锁。所有交互数字都是公式直接计算，不抽样，也不把一张有限图当成一般定理。</p>
+<p>先回答预测门，提交前不显示曲线、数值或答案账本。页签、函数、步数改变时，当前预测会重新上锁。实验没有随机抽样；求积算法确实会在有限节点上采样函数。更换预测答案也会隐藏结果，直到再次提交。</p>
 <h3 id="2">2. 求积：光滑不等于已分辨<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>本实验的两个被积函数是</p>
+<p>先看两个被积函数</p>
 <div class="arithmatex">\[
 f_{\rm smooth}(x)=\cos x+x^2,
 \qquad
@@ -101,7 +104,7 @@ T_N=h\left[\frac{f(0)+f(1)}2+\sum_{j=1}^{N-1}f(jh)\right].
 <div class="arithmatex">\[
 S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{even},\,0&lt;j&lt;N}f(jh)\right].
 \]</div>
-<p>这里的 <span class="arithmatex">\(O(h^4)\)</span> 不是只要“函数看起来平滑”就自动成立：需要 <span class="arithmatex">\(N\)</span> 为偶数，并且至少有足够的四阶光滑性（例如 <span class="arithmatex">\(f\in C^4[0,1]\)</span>，四阶导数有界）。窄峰在节点之间时，固定规则可能同时错过峰高；自适应 Simpson 对照算法用局部误差估计细分，但两个预设的解析积分才是真误差基准，有限递归不是全局证明。</p>
+<p>这里的 <span class="arithmatex">\(O(h^4)\)</span> 不是只要“函数看起来平滑”就自动成立：需要 <span class="arithmatex">\(N\)</span> 为偶数，并且至少有足够的四阶光滑性（例如 <span class="arithmatex">\(f\in C^4[0,1]\)</span>，四阶导数有界）。窄峰在节点之间时，固定规则可能同时错过峰高；自适应 Simpson 对照算法用局部误差估计细分，但估计器可能看不到所有局部特征。解析积分是数学上的真值表达式；实验用独立的高精度数值参考近似它，误差读数仍不是严格区间界。</p>
 <p><strong>静态 fallback：求积账本。</strong> 关闭 JavaScript 时，先用上面的两个解析值作真误差基准；取 <span class="arithmatex">\(N=8\)</span>，逐项计算端点、奇偶内点和误差。自适应 Simpson 的数值只作为算法对照。对 smooth，<span class="arithmatex">\(S_N\)</span> 应比 <span class="arithmatex">\(T_N\)</span> 更快下降；对 peak，先检查峰的位置 <span class="arithmatex">\(x=0.65\)</span> 是否被网格分辨，再谈阶数。</p>
 <table>
 <thead>
@@ -137,7 +140,30 @@ S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{eve
 </tr>
 </tbody>
 </table>
-<h3 id="3-ode">3. ODE：三个放大因子，三种“阶”<a class="headerlink" href="#3-ode" title="Permanent link"></a></h3>
+<h3 id="3">3. 光滑窄峰能让估计器误报“零误差”<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(c=39/64\)</span>、<span class="arithmatex">\(w=1/128\)</span>，定义</p>
+<div class="arithmatex">\[
+b(x)=
+\begin{cases}
+(1-u^2)^5,&amp;|u|&lt;1,\quad u=(x-c)/w,\\
+0,&amp;|u|\ge1.
+\end{cases}
+\]</div>
+<p>在支撑端点，函数及前四阶导数都接到零，所以 <span class="arithmatex">\(b\in C^4\)</span>；这不是靠不连续制造的反例。换元并展开多项式可得</p>
+<div class="arithmatex">\[
+\int_0^1 b(x)\,dx
+=w\int_{-1}^1(1-u^2)^5\,du
+=\frac{1}{128}\frac{512}{693}
+=\frac4{693}&gt;0.
+\]</div>
+<p>普通自适应 Simpson 初次读取 <span class="arithmatex">\(0,1/4,1/2,3/4,1\)</span>。它们都在支撑 <span class="arithmatex">\([77/128,79/128]\)</span> 外，于是粗、细两次 Simpson 值都是零，内部误差估计 <span class="arithmatex">\(|S_{\rm fine}-S_{\rm coarse}|/15\)</span> 也为零。<strong>把容差再缩小一万倍，仍不会让这五个零暴露出窄峰。</strong></p>
+<figure class="plot">
+<div aria-label="可横向滚动的窄峰静态图" role="region" style="overflow-x:auto" tabindex="0"><img src="assets/img/num-04-missed-peak.svg" alt="五个初始探针错过 C4 窄峰，下面放大真实支撑区间" style="min-width:800px"></div>
+<figcaption>上图保留整个单位区间，下图放大峰的支撑；红点才是初始算法探针。</figcaption>
+</figure>
+<p>实验的第三个预设正是这个反例。“已知支撑分段”一行先给出支撑端点，再分别积分三段；算法因此能在中间段读到峰顶。它比普通算法多用了先验信息。蓝色绘图曲线也特意在峰内部取点，不能把绘图的分辨率当成求积器实际获得的信息；下方短线才是求积器的真实探针。</p>
+<p>手算还可以检查网格错位：<span class="arithmatex">\(N=32\)</span> 时全部均匀节点漏峰，<span class="arithmatex">\(T_{32}=S_{32}=0\)</span>；<span class="arithmatex">\(N=64\)</span> 时只有第 <span class="arithmatex">\(39\)</span> 个节点取到峰顶，故 <span class="arithmatex">\(T_{64}=1/64\)</span>、<span class="arithmatex">\(S_{64}=1/48\)</span>，二者又都偏大。光滑性保证的是适当误差界和渐近阶，不保证每次加倍节点都立刻改善结果。</p>
+<h3 id="4-ode">4. ODE：四个放大因子，三个不同问题<a class="headerlink" href="#4-ode" title="Permanent link"></a></h3>
 <p>令 <span class="arithmatex">\(z=\lambda h\)</span>。对试验方程，一步更新都有形式 <span class="arithmatex">\(y_{n+1}=G(z)y_n\)</span>：</p>
 <table>
 <thead>
@@ -146,7 +172,7 @@ S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{eve
 <th><span class="arithmatex">\(G(z)\)</span></th>
 <th>局部截断误差</th>
 <th>全局误差</th>
-<th>负实轴上的绝对稳定区</th>
+<th>负实轴上的有界区 <span class="arithmatex">\(\lvert G\rvert\le1\)</span></th>
 </tr>
 </thead>
 <tbody>
@@ -171,9 +197,16 @@ S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{eve
 <td><span class="arithmatex">\(O(h^4)\)</span></td>
 <td>约 <span class="arithmatex">\(0\le z\le2.785\)</span></td>
 </tr>
+<tr>
+<td>隐式 Euler</td>
+<td><span class="arithmatex">\(1/(1+z)\)</span></td>
+<td><span class="arithmatex">\(O(h^2)\)</span></td>
+<td><span class="arithmatex">\(O(h)\)</span></td>
+<td>所有 <span class="arithmatex">\(z\ge0\)</span></td>
+</tr>
 </tbody>
 </table>
-<p>“局部阶”描述单步截断误差；“全局阶”描述固定终点、步长趋于零时累计误差；“绝对稳定”只问误差是否被 <span class="arithmatex">\(|G(z)|\)</span> 放大。它们不是同一句话。Euler 还有一个容易被稳定区遮住的反例：当 <span class="arithmatex">\(1&lt;z&lt;2\)</span> 时它仍绝对稳定，但 <span class="arithmatex">\(G(z)&lt;0\)</span>，数值解会交替变号；真解 <span class="arithmatex">\(e^{-\lambda t}\)</span> 始终为正。取 <span class="arithmatex">\(\lambda=20\)</span>、<span class="arithmatex">\(h=0.0625\)</span>，<span class="arithmatex">\(z=1.25\)</span>，第一步就得到 <span class="arithmatex">\(y_1=-0.25\)</span>。若 <span class="arithmatex">\(z&gt;2\)</span>，才进入绝对不稳定并逐步爆炸。</p>
+<p>本页“局部截断误差”指从精确初值出发的一步缺陷，<strong>没有除以 <span class="arithmatex">\(h\)</span></strong>；有的教材把除以 <span class="arithmatex">\(h\)</span> 的量称作局部截断误差，阶数会少一。“全局阶”描述固定终点、步长趋于零时累计误差；“绝对稳定”只问误差是否被 <span class="arithmatex">\(|G(z)|\)</span> 放大。在 <span class="arithmatex">\(|G|&lt;1\)</span> 时，数值模态随步数衰减；<span class="arithmatex">\(|G|=1\)</span> 只保持幅值。特别是 Euler 的 <span class="arithmatex">\(z=2\)</span> 给出 <span class="arithmatex">\((-1)^n\)</span>，它有界却永不衰减。Euler 还有一个容易被稳定区遮住的反例：当 <span class="arithmatex">\(1&lt;z&lt;2\)</span> 时它仍绝对稳定，但 <span class="arithmatex">\(G(z)&lt;0\)</span>，数值解会交替变号；真解 <span class="arithmatex">\(e^{-\lambda t}\)</span> 始终为正。取 <span class="arithmatex">\(\lambda=20\)</span>、<span class="arithmatex">\(h=0.0625\)</span>，<span class="arithmatex">\(z=1.25\)</span>，第一步就得到 <span class="arithmatex">\(y_1=-0.25\)</span>。若 <span class="arithmatex">\(z&gt;2\)</span>，才进入绝对不稳定并逐步爆炸。</p>
 <p><strong>静态 fallback：ODE 账本。</strong> 取 <span class="arithmatex">\(\lambda=20\)</span>、<span class="arithmatex">\(T=0.5\)</span>、<span class="arithmatex">\(N=8\)</span>，所以 <span class="arithmatex">\(h=0.0625,z=1.25\)</span>。先列一行放大因子，再列终点和精确解；不要只看终点，因为 Euler 的越界发生在第一步。</p>
 <table>
 <thead>
@@ -204,28 +237,34 @@ S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{eve
 <td>四阶全局误差，但不是任意步长稳定</td>
 </tr>
 <tr>
-<td>exact</td>
-<td style="text-align: right;"><span class="arithmatex">\(e^{-10}\)</span> 每一步为 <span class="arithmatex">\(e^{-1.25}\)</span></td>
+<td>隐式 Euler</td>
+<td style="text-align: right;"><span class="arithmatex">\(4/9\)</span></td>
+<td><span class="arithmatex">\((4/9)^8\)</span></td>
+<td>保正且衰减，但仍只是一阶方法</td>
+</tr>
+<tr>
+<td>解析解</td>
+<td style="text-align: right;"><span class="arithmatex">\(e^{-1.25}\)</span></td>
 <td><span class="arithmatex">\(e^{-\lambda T}=e^{-10}\)</span></td>
 <td>连续方程的正性与衰减基准</td>
 </tr>
 </tbody>
 </table>
-<h3 id="4">4. 边界、反例与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<h3 id="5">5. 边界、反例与迁移<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
 <li>Simpson 的 <span class="arithmatex">\(N\)</span> 不是任意正整数；奇数子区间不能静默套用交错权重。函数四阶导数不受控、节点没有分辨窄峰时，也不能把观察到的 <span class="arithmatex">\(h^4\)</span> 当作证书。</li>
-<li>自适应 Simpson 是“在给定容差和递归深度下的算法对照”，不是精确积分器；本页的解析值才用于计算真误差。它也可能在不连续、尖点或浮点抵消处需要新的误差诊断。</li>
+<li>自适应 Simpson 是“在给定容差和递归深度下的算法对照”，不是精确积分器；本页用解析表达式的高精度参考估算误差。即使对 <span class="arithmatex">\(C^4\)</span> 函数，它也可能漏掉未采到的窄峰。资源上限、浮点中点无法再细分，会单独报告，不与估计准则通过混在一起。</li>
 <li>Euler 的 <span class="arithmatex">\(|G|&lt;1\)</span> 只说明试验方程上的绝对稳定，不说明单调性、正性或一般非线性 ODE 的可靠性。<span class="arithmatex">\(1&lt;z&lt;2\)</span> 的变号是一个最小反例。</li>
 <li>刚性问题中，快模态把显式方法的 <span class="arithmatex">\(h\)</span> 上限压得很小；隐式方法的稳定区更大，但每一步要解方程，不能只凭“无条件稳定”忽略精度、非线性求解和问题条件数。</li>
 <li>迁移到扩散采样器、神经 ODE 或 PDE 时，先写出实际线性化的 <span class="arithmatex">\(G\)</span>、局部误差来源和状态变量的尺度，再把本页的阶数/稳定性证书搬过去。</li>
 </ul>
 <div class="learning-lab" data-learning-lab="quadrature-ode" markdown="1">
-<p><strong>无 JavaScript 时的静态读法：</strong>求积模式固定 <span class="arithmatex">\([0,1]\)</span>、<span class="arithmatex">\(N=8\)</span>，在上表的 smooth 与 peak 两行之间切换；ODE 模式固定 <span class="arithmatex">\(\lambda=20,T=0.5,N=8\)</span>。预测门的问题只要求判断条件，不要求先算出小数。交互显示的每一行都包含输入、方法、结果、误差、阶/稳定性说明和边界状态；SVG 曲线只画有限采样点，不能替代解析证书。</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>求积模式固定 <span class="arithmatex">\([0,1]\)</span>、<span class="arithmatex">\(N=8\)</span>，手算上表的宽缓函数、窄峰，并验证紧支撑反例的五次求值；ODE 模式固定 <span class="arithmatex">\(\lambda=20,T=0.5,N=8\)</span>。预测门的问题只要求判断条件，不要求先算出小数。交互显示的每一行都包含输入、方法、结果、误差、阶/稳定性说明和边界状态；SVG 曲线只画有限采样点，不能替代解析证书。</p>
 </div>
 </section>
 <h2 id="1_1">1. 数值积分（求积公式）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>思想</strong>：<span class="arithmatex">\(\int_a^b f \approx \sum w_i f(x_i)\)</span>——插值型求积 = 对被积函数插值再精确积分（上一页的直接应用）。<strong>代数精度</strong> = 能精确积分的多项式最高次数（衡量公式好坏的标尺）。</p>
-<p><strong>两个基本公式与复合版</strong>（<span class="arithmatex">\(h\)</span> = 小区间宽）：</p>
+<p><strong>两个基本公式与复合版</strong>：下表用 <span class="arithmatex">\(H\)</span> 表示一个完整面板的宽度。Simpson 面板由两个小区间组成，因此 <span class="arithmatex">\(H=2h\)</span>；复合公式中的 <span class="arithmatex">\(h=(b-a)/N\)</span> 仍是相邻节点距离。</p>
 <table>
 <thead>
 <tr>
@@ -238,21 +277,27 @@ S_N=\frac h3\left[f(0)+f(1)+4\sum_{j\in\mathrm{odd}}f(jh)+2\sum_{j\in\mathrm{eve
 <tbody>
 <tr>
 <td>梯形</td>
-<td><span class="arithmatex">\(\frac{h}{2}(f_0 + f_1)\)</span></td>
+<td><span class="arithmatex">\(\frac{H}{2}(f_0 + f_1)\)</span></td>
 <td>1</td>
 <td><span class="arithmatex">\(O(h^2)\)</span></td>
 </tr>
 <tr>
 <td><strong>Simpson</strong></td>
-<td><span class="arithmatex">\(\frac{h}{6}(f_0 + 4f_{1/2} + f_1)\)</span></td>
+<td><span class="arithmatex">\(\frac{H}{6}(f_0 + 4f_{1/2} + f_1)\)</span></td>
 <td><strong>3</strong>（白赚一阶：对称抵消）</td>
 <td><span class="arithmatex">\(O(h^4)\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>复合 Simpson 是手算与轻量代码的性价比之王（在光滑性和偶数子区间前提满足、且处于渐近区时，步长减半误差约除 16）。</p>
-<p><strong>Romberg 加速（Richardson 外推）</strong>：在同一嵌套的均匀网格上，已知梯形误差 <span class="arithmatex">\(\approx c h^2 + O(h^4)\)</span>，用两个步长的结果<strong>解出并消去</strong> <span class="arithmatex">\(c h^2\)</span> 项：<span class="arithmatex">\(T^* = \frac{4T(h/2) - T(h)}{3}\)</span>。对复合梯形的首级，这与同一嵌套均匀网格上的复合 Simpson 结果等价；若两个 <span class="arithmatex">\(T\)</span> 来自不嵌套或不均匀的网格，不能直接叫作 Simpson。递推下去逐阶消误差。"知道误差的形状，就能把它外推掉"——这个思想通用（数值微分、ODE 步长控制同款）。</p>
-<p><strong>Gauss 求积</strong>：在给定区间和权函数下，选取相应正交多项式的零点；例如单位权函数对应 Legendre 权。若函数满足相应正则性，<span class="arithmatex">\(n\)</span> 个 Gauss 节点对该权下的多项式达到 <span class="arithmatex">\(2n-1\)</span> 次代数精度。高精度少节点的场合（谱方法、物理仿真）的标配；“<span class="arithmatex">\(2n-1\)</span>”依赖权函数、正交族和误差条件，不能脱离这些前提泛化。</p>
+<p>例如在 <span class="arithmatex">\([a,b]\)</span> 上，有足够光滑性时，</p>
+<div class="arithmatex">\[
+|I-T_N|\le\frac{b-a}{12}h^2\|f''\|_\infty,\qquad
+|I-S_N|\le\frac{b-a}{180}h^4\|f^{(4)}\|_\infty.
+\]</div>
+<p>第二式要求 <span class="arithmatex">\(N\)</span> 偶数、<span class="arithmatex">\(f\in C^4[a,b]\)</span>。可从每个 Simpson 面板的误差 <span class="arithmatex">\(-H^5 f^{(4)}(\xi)/2880\)</span> 相加得到：面板数是 <span class="arithmatex">\((b-a)/(2h)\)</span>，代入 <span class="arithmatex">\(H=2h\)</span> 正好留下分母 <span class="arithmatex">\(180\)</span>。窄峰的四阶导数尺度含 <span class="arithmatex">\(w^{-4}\)</span>；“属于 <span class="arithmatex">\(C^4\)</span>”并不意味着这个常数很小。</p>
+<p>自适应估计中的 <span class="arithmatex">\(15\)</span> 也有来源：若一个面板细分前后的误差主项满足 <span class="arithmatex">\(I-S_{\rm coarse}\approx16C\)</span>、<span class="arithmatex">\(I-S_{\rm fine}\approx C\)</span>，则 <span class="arithmatex">\(C\approx(S_{\rm fine}-S_{\rm coarse})/15\)</span>。修正值为 <span class="arithmatex">\(S_{\rm fine}+(S_{\rm fine}-S_{\rm coarse})/15\)</span>。这段推理依赖两次规则已看见同一误差主项；窄峰反例恰好破坏这一条件。内部估计也不直接等于修正后结果的严格误差上界。</p>
+<p><strong>Romberg 加速（Richardson 外推）</strong>：在同一嵌套的均匀网格上，在足够光滑性支持的误差展开中，已知 <span class="arithmatex">\(T(h)-I=c h^2 + O(h^4)\)</span>，用两个步长的结果<strong>解出并消去</strong> <span class="arithmatex">\(c h^2\)</span> 项：<span class="arithmatex">\(T^* = \frac{4T(h/2) - T(h)}{3}\)</span>。对复合梯形的首级，这与同一嵌套均匀网格上的复合 Simpson 结果等价；若两个 <span class="arithmatex">\(T\)</span> 来自不嵌套或不均匀的网格，不能直接叫作 Simpson。更高阶外推需要相应更高阶误差展开；不能无限外推而不检查光滑性、舍入误差与节点是否分辨特征。"知道误差的形状，就能把它外推掉"——这个思想通用（数值微分、ODE 步长控制同款）。</p>
+<p><strong>Gauss 求积</strong>：取有限区间上的正权函数 <span class="arithmatex">\(\omega\)</span>，假设所需矩存在且多项式内积非退化。<span class="arithmatex">\(n\)</span> 次正交多项式的 <span class="arithmatex">\(n\)</span> 个零点作为节点，能精确积分次数不超过 <span class="arithmatex">\(2n-1\)</span> 的多项式；单位权对应 Gauss–Legendre。证明的关键是将任意这样的多项式写成 <span class="arithmatex">\(p=q\,p_n+r\)</span>，其中 <span class="arithmatex">\(\deg q,\deg r\le n-1\)</span>：第一项因正交性积分为零，在节点处也为零，剩下 <span class="arithmatex">\(r\)</span> 由插值求积精确积分。<strong>代数精度是多项式恒等式，不需要对一个任意被积函数另加 <span class="arithmatex">\(C^{2n}\)</span> 条件。</strong> 对一般函数估计余项时，才另外引入相应正则性。</p>
 <p><strong>高维的诅咒与出路</strong>：网格法代价 <span class="arithmatex">\(O(N^d)\)</span> 随维数指数爆炸 ⇒ 在方差有限等条件下，Monte Carlo 的抽样误差量级 <span class="arithmatex">\(O(1/\sqrt n)\)</span> 的指数形式不显含 <span class="arithmatex">\(d\)</span>；但常数、被积函数方差、有效采样和混合难度都可能随维数严重恶化，所以它是可扩展的基线，不是无条件“与维数无关”或唯一可行方案。</p>
 <h2 id="2-ode-y-ft-y-yt_0-y_0">2. ODE 数值解：初值问题 <span class="arithmatex">\(y' = f(t, y),\ y(t_0) = y_0\)</span><a class="headerlink" href="#2-ode-y-ft-y-yt_0-y_0" title="Permanent link"></a></h2>
 <p><strong>Euler 法</strong>（切线小步走，数分 II 线性化第三次上岗）：</p>
@@ -264,16 +309,51 @@ y_{n+1} = y_n + h\, f(t_n, y_n)
 <ul>
 <li><strong>改进 Euler / Heun（二阶）</strong>：先 Euler 预测终点，再用两端斜率平均校正——<span class="arithmatex">\(O(h^2)\)</span>，每步 2 次 <span class="arithmatex">\(f\)</span> 求值；</li>
 <li><strong>经典 RK4（四阶）</strong>：四次斜率采样 <span class="arithmatex">\(k_1..k_4\)</span> 加权 <span class="arithmatex">\(\frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)\)</span>——<span class="arithmatex">\(O(h^4)\)</span>，"精度性价比"的历史标杆，手算/教学/中等精度实务的默认选择；</li>
-<li>自适应步长（RK45 等）：两个阶数的差估计误差，动态调 <span class="arithmatex">\(h\)</span>——<code>scipy.solve_ivp</code> 的默认内核。</li>
+<li>自适应步长（RK45 等）：两个阶数的差估计误差，动态调 <span class="arithmatex">\(h\)</span>——<code>scipy.integrate.solve_ivp</code> 默认方法为 RK45：五阶推进、四阶嵌入估计，不是固定步长经典 RK4。</li>
 </ul>
-<p><strong>稳定性与刚性（本节最重要的观念）</strong>：对试验方程 <span class="arithmatex">\(y' = \lambda y\ (\lambda &lt; 0\)</span>，真解衰减)，显式 Euler 要求 <span class="arithmatex">\(|1 + h\lambda| &lt; 1\)</span> 即 <span class="arithmatex">\(h &lt; \frac{2}{|\lambda|}\)</span>——<strong>步长有硬上限，超了数值解爆炸</strong>（优化 II 学习率上限 <span class="arithmatex">\(2/L\)</span> 是同一个不等式！）。系统里快慢时间尺度并存（<strong>刚性方程</strong>）时，快模态的步长限制拖死整个计算 ⇒ 换<strong>隐式方法</strong>：隐式 Euler <span class="arithmatex">\(y_{n+1} = y_n + h f(t_{n+1}, y_{n+1})\)</span>（每步解方程——上两页的求根/线性方程组在此当零件），<strong>无条件稳定（A-稳定）</strong>，步长只受精度不受稳定性限制。<strong>显式便宜怕刚性，隐式贵但吃刚性</strong>——选型的全部纲领。</p>
-<p>🔗 <strong>AI 衔接（收网）</strong>：comfy 课 03 讲说"采样器 = 概率流 ODE 的数值积分器"——现在你有了全部零件：<code>euler</code> 对应一阶显式推进、<code>heun</code> 对应二阶预测—校正，<code>dpm++</code> 则利用扩散方程结构设计更新。实践中“20–30 步看起来够用”不能仅凭少量试跑反推出高阶收敛：还要固定模型、噪声日程与误差指标，做步长细化对照，并区分离散误差、模型误差和感知指标。Karras 日程是非均匀预设网格，与依据在线局部误差估计调整步长的经典自适应算法相关，但不完全等同。<strong>Neural ODE</strong> 则反过来把 ODE 求解器当网络层反传。</p>
-<h2 id="3">3. 典型例题<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>从局部误差到全局误差。</strong> 设 <span class="arithmatex">\(f\)</span> 对 <span class="arithmatex">\(y\)</span> 在所考察邻域内以常数 <span class="arithmatex">\(L\)</span> Lipschitz，精确解足够光滑，数值轨迹留在该邻域；固定终点 <span class="arithmatex">\(T\)</span>（此处 <span class="arithmatex">\(t_0=0\)</span>）。Euler 的误差递推满足</p>
+<div class="arithmatex">\[
+|e_{n+1}|\le(1+hL)|e_n|+C h^2.
+\]</div>
+<p>由精确初值 <span class="arithmatex">\(e_0=0\)</span> 迭代，</p>
+<div class="arithmatex">\[
+|e_N|\le C h^2\sum_{j=0}^{N-1}(1+hL)^j
+\le \frac{C h}{L}(e^{LT}-1)\quad(L&gt;0).
+\]</div>
+<p><span class="arithmatex">\(L=0\)</span> 时直接用 <span class="arithmatex">\(CTh\)</span>。这才解释了“一步 <span class="arithmatex">\(O(h^2)\)</span>、总体 <span class="arithmatex">\(O(h)\)</span>”；更一般的 <span class="arithmatex">\(p\)</span> 阶方法需要相应一步稳定性与 <span class="arithmatex">\(O(h^{p+1})\)</span> 缺陷。固定时间区间、常数受控，是推导的一部分。</p>
+<p><strong>稳定性与刚性。</strong> 改用复数试验方程 <span class="arithmatex">\(y'=\mu y\)</span>、<span class="arithmatex">\(\operatorname{Re}\mu&lt;0\)</span>，记 <span class="arithmatex">\(\zeta=h\mu\)</span>（与实验中正的 <span class="arithmatex">\(z=\lambda h\)</span> 区分）。显式 Euler 的放大因子为 <span class="arithmatex">\(R(\zeta)=1+\zeta\)</span>；负实轴上要求 <span class="arithmatex">\(h|\mu|&lt;2\)</span> 才衰减。多尺度系统中，快模态可能迫使显式步长远小于慢变化部分的精度要求，这是刚性的典型表现。</p>
+<p>隐式 Euler 每步求解 <span class="arithmatex">\(y_{n+1}=y_n+h f(t_{n+1},y_{n+1})\)</span>。对线性试验方程，</p>
+<div class="arithmatex">\[
+R(\zeta)=\frac1{1-\zeta},\qquad
+|1-\zeta|^2=(1-\operatorname{Re}\zeta)^2+(\operatorname{Im}\zeta)^2\ge1
+\quad(\operatorname{Re}\zeta\le0).
+\]</div>
+<p>所以它 <strong>A-稳定</strong>：整个左半平面都在有界稳定区；并且 <span class="arithmatex">\(R(\zeta)\to0\)</span> 当 <span class="arithmatex">\(|\zeta|\to\infty\)</span>，还具有 <strong>L-稳定性</strong>，会压低极快的衰减模态。这只解除线性试验方程的步长稳定性障碍。精度、非线性方程能否可靠求解、守恒或正性等额外结构，仍可能限制步长。</p>
+<p>🔗 <strong>AI 衔接</strong>：某些确定性扩散采样器求解概率流 ODE，可以借助本页的步长、阶数和稳定性观念；另一些算法求解 SDE 或加入随机校正，不能全归入 ODE。神经 ODE 将向量场参数化，训练还要选择对离散求解过程求导或连续伴随等策略；前向数值误差和梯度误差都应检查。模型误差、离散误差与感知指标也不相同。</p>
+<h2 id="3_1">3. 典型例题<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Simpson 手算）</strong> <span class="arithmatex">\(\int_0^1 e^{-x^2}dx\)</span>（无初等原函数——数分 III 的名例）：取 <span class="arithmatex">\(N=4\)</span> 个子区间，所以 <span class="arithmatex">\(h=(1-0)/4=0.25\)</span>。复合 Simpson 给 <span class="arithmatex">\(\frac{h}{3}[f(0)+4f(0.25)+2f(0.5)+4f(0.75)+f(1)]\approx0.746855\)</span>，真值约为 <span class="arithmatex">\(0.746824\)</span>。这一个算例与理论误差界相符，但单个网格上的小误差本身不能测出四阶；要比较一列逐次减半的 <span class="arithmatex">\(h\)</span>。</p>
-<p><strong>例 2（Euler vs RK4）</strong> <span class="arithmatex">\(y' = y,\ y(0) = 1\)</span>，求 <span class="arithmatex">\(y(1) = e\)</span>，<span class="arithmatex">\(h = 0.25\)</span>：Euler 给 <span class="arithmatex">\((1.25)^4 = 2.441\)</span>（差 10%）；RK4 给 <span class="arithmatex">\(2.7183\)</span>（差 <span class="arithmatex">\(&lt;10^{-4}\)</span>）。同样 4 步，四个数量级的差距——<strong>阶数就是生产力</strong>。</p>
+<p><strong>例 2（Euler 与 RK4，固定相同步数）</strong> 对 <span class="arithmatex">\(y'=y,\ y(0)=1\)</span>，取 <span class="arithmatex">\(h=1/4\)</span>、四步到 <span class="arithmatex">\(T=1\)</span>。Euler 给出 <span class="arithmatex">\((5/4)^4=2.44140625\)</span>，绝对误差约 <span class="arithmatex">\(0.276876\)</span>。RK4 的单步因子为 <span class="arithmatex">\(1+h+h^2/2+h^3/6+h^4/24\)</span>，四次幂约为 <span class="arithmatex">\(2.7182099392\)</span>，绝对误差约 <span class="arithmatex">\(7.18893\times10^{-5}\)</span>。这里误差比约 <span class="arithmatex">\(3851\)</span>，但 RK4 每步也用了四次函数求值；比较效率应同时记录成本。一个固定步长上的比值不能代替收敛阶验证。</p>
 <p><strong>例 3（稳定性红线）</strong> <span class="arithmatex">\(y' = -100y,\ y(0)=1\)</span>：显式 Euler 要求 <span class="arithmatex">\(h &lt; 0.02\)</span>，取 <span class="arithmatex">\(h = 0.03\)</span> 则 <span class="arithmatex">\(y_n = (-2)^n\)</span> 震荡爆炸（真解 <span class="arithmatex">\(e^{-100t}\)</span> 温顺趋零）；隐式 Euler <span class="arithmatex">\(y_{n+1} = \frac{y_n}{1 + 100h}\)</span> 任意步长单调衰减 ✓。<strong>数值爆炸 ≠ 方程有问题，先查步长与稳定域。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>数值分析四页完工——误差、方程组、逼近、积分与 ODE，"让数学在机器上落地"的四大件齐了。应用计算线只剩数学建模一门占位。</em></p>
+<h2 id="4">4. 自己推导，再展开核对<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1：五个探针均为零时，怎样计算窄峰的正积分？</summary>
+<p>用 <span class="arithmatex">\(u=(x-c)/w\)</span>，把积分写成 <span class="arithmatex">\(2w\sum_{k=0}^{5}(-1)^k\binom5k/(2k+1)=4/693\)</span>。支撑端点的零点重数为五，保证前四阶导数连续接零。普通自适应求积只看到了支撑外的零值，缩小容差无法提供新信息；提供支撑分段或主动增加探针，才改变算法获得的数据。</p>
+</details>
+<details class="answer">
+<summary>练习 2：z=2 时 Euler 与 Heun 都有界，它们是否逼近衰减？隐式 Euler 呢？</summary>
+<p>Euler 的 <span class="arithmatex">\(G=-1\)</span>，产生 <span class="arithmatex">\((-1)^n\)</span>；Heun 的 <span class="arithmatex">\(G=1\)</span>，一直等于一。二者都不衰减。隐式 Euler 的 <span class="arithmatex">\(G=1/3\)</span>，正且衰减，但一步真实衰减因子是 <span class="arithmatex">\(e^{-2}\approx0.135335\)</span>，与 <span class="arithmatex">\(1/3\)</span> 相差明显。稳定性回答幅值是否增长，精度回答与真实轨迹相差多少。</p>
+</details>
+<details class="answer">
+<summary>练习 3：为什么隐式梯形法 A-稳定，却不一定适合消除极快模态？</summary>
+<p>它的 <span class="arithmatex">\(R(\zeta)=(1+\zeta/2)/(1-\zeta/2)\)</span>。当 <span class="arithmatex">\(\operatorname{Re}\zeta\le0\)</span>，分母模方减分子模方为 <span class="arithmatex">\(-2\operatorname{Re}\zeta\ge0\)</span>，所以 <span class="arithmatex">\(|R|\le1\)</span>。但沿负实轴 <span class="arithmatex">\(\zeta\to-\infty\)</span>，<span class="arithmatex">\(R\to-1\)</span>，极快模态可能以近乎不衰减的交替符号残留；因此它不是 L-稳定。这说明更高精度阶与强衰减能力仍是不同性质。</p>
+</details>
+<h2 id="5_1">5. 阅读与复核依据<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://fncbook.github.io/v1.0/localapprox/demos/adapt-usage.html">Driscoll 与 Braun：自适应积分实验</a>：实际节点、误差估计与实际误差的差别。</li>
+<li><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html">SciPy 官方 solve_ivp 文档</a>：RK45 的默认选择、嵌入阶数及刚性方法。软件选项需以当前版本文档为准。</li>
+<li><a href="https://arxiv.org/abs/2011.13456">Song 等：Score-Based Generative Modeling through Stochastic Differential Equations</a>：反向 SDE 与对应概率流 ODE 的区别。</li>
+</ul>
+<p>前置连接：<a href="num-01-error.html">浮点误差</a>、<a href="num-02-linear-systems.html">线性方程组</a>、<a href="num-03-roots-interp.html">插值与逼近</a>。本页的求积、误差递推与隐式求解，分别调用了这些基础。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="num-03-roots-interp.html"><span class="pager-label">上一页</span>数值 III · 求根、插值与逼近</a>
