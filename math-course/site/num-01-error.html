@@ -46,75 +46,93 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:37</div>
+    <div class="build-time">构建于 2026-09-10 04:39</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：数学上完全等价，为什么机器会给出不同答案？</a><ul>
-<li><a href="#numerical-error-learning-title">1. 具体谜题：把步长再缩小，导数反而更不准</a></li>
-<li><a href="#2">2. 先预测：等价改写还是盲目加精度？</a></li>
-<li><a href="#3">3. 三个最小模型：误差是怎样进入账本的？</a></li>
-<li><a href="#4">4. 动手验证：红线是运算路径，蓝线是稳定参照</a></li>
-<li><a href="#5">5. 误区与边界</a></li>
-<li><a href="#6">6. 回到理论：前向误差、后向误差与条件数</a></li>
-<li><a href="#7">7. 迁移问题</a></li>
+<li><a href="#_1">学习层：同一个公式，哪一步把信息丢了？</a><ul>
+<li><a href="#numerical-error-learning-title">1. 从一个能亲手检查的矛盾开始</a></li>
+<li><a href="#2">2. 先预测，再看三个不同的账</a></li>
+<li><a href="#3">3. 两个恒等改写</a></li>
+<li><a href="#4">4. 差分：把步长缩小也有代价</a></li>
+<li><a href="#5">5. 求和：一个成功例子和一个失败例子</a></li>
+<li><a href="#6">6. 用结论时，先带上边界</a></li>
+<li><a href="#7">7. 迁移题</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 误差的来源与度量</a></li>
-<li><a href="#2_1">2. 浮点数系统</a></li>
-<li><a href="#3_1">3. 灾难性相消（头号杀手）</a></li>
-<li><a href="#4-vs">4. 条件数与稳定性：问题的错 vs 算法的错</a></li>
-<li><a href="#5_1">5. 典型例题</a></li>
+<li><a href="#1">1. 误差与计算问题</a></li>
+<li><a href="#2-binary64">2. binary64：间距、舍入和范围</a></li>
+<li><a href="#3_1">3. 相消：误差可能早于减法发生</a></li>
+<li><a href="#4_1">4. 条件数来自问题与扰动模型</a></li>
+<li><a href="#5_1">5. 前向、后向与稳定性</a></li>
+<li><a href="#6_1">6. 差分的误差估计为何有三分之一次方</a></li>
+<li><a href="#7_1">7. 求和算法到底补偿了什么？</a></li>
+<li><a href="#8">8. 从基础走向更深入的数值计算</a><ul>
+<li><a href="#_2">进一步阅读</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
 <h1 id="i">数值 I · 误差与数值稳定性<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>数值分析回答一个被纯数学掩盖的问题：<strong>公式在纸上对，在机器上算出来对吗？</strong>计算机用有限位数表示实数，每一步都在舍入——本页建立"误差从哪来、怎么放大、如何驯服"的基本语言。这一页的思维（条件数、灾难性相消、稳定改写）在深度学习的 fp16/fp8 时代重新成为一线技能。</p>
+<p><strong>数学恒等式给出同一个实数，机器的运算路径却可能给出不同近似。</strong>本页学习把输入误差、截断误差、舍入误差分开，再判断：应当改写算法、提高精度，还是重新审视问题本身？</p>
 </blockquote>
 <div data-learning-page></div>
 
 <figure class="diagram">
-<p><img alt="浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。" src="assets/img/num-01-float-line.svg" /></p>
-<figcaption><span class="fig-id">图 num-01.1</span>浮点数在数轴上非均匀分布（大数间隙大）+ 机器精度。</figcaption>
+<div role="region" tabindex="0" aria-label="可横向滚动的浮点数轴" style="overflow-x:auto">
+<img src="assets/img/num-01-float-line.svg" alt="三位有效二进制模型的真实数轴：区间一到二间距四分之一，二到四间距二分之一；binary64在一的左右间距不同" style="min-width:1100px">
+</div>
+<figcaption><span class="fig-id">图 num-01.1</span>上图所有点都按真实数值等比例定位；下图单独放大 binary64 在 1 附近的三个邻点，左右间距比为 1∶2。</figcaption>
 </figure>
+
 <section aria-labelledby="numerical-error-learning-title" class="learning-layer">
-<h2 id="_1">学习层：数学上完全等价，为什么机器会给出不同答案？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="numerical-error-learning-title">1. 具体谜题：把步长再缩小，导数反而更不准<a class="headerlink" href="#numerical-error-learning-title" title="Permanent link"></a></h3>
-<p>中央差分</p>
-<div class="arithmatex">\[
-f'(x)\approx\frac{f(x+h)-f(x-h)}{2h}
-\]</div>
-<p>在实数算术中随 <span class="arithmatex">\(h\to0\)</span> 收敛；在机器里，<span class="arithmatex">\(h\)</span> 太小时两个函数值越来越接近，相减丢掉有效数字，再除以很小的 <span class="arithmatex">\(h\)</span> 把舍入误差放大。于是误差先按截断项下降，跨过平衡点后又上升，形成一条 U 曲线。</p>
-<p>这不是浮点数“偶尔出错”，而是两类误差竞争的可预测结果。更重要的是：<strong>问题的条件数</strong>与<strong>算法的稳定性</strong>必须分别记账。</p>
-<h3 id="2">2. 先预测：等价改写还是盲目加精度？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>选择四个情境之一：根式相消、余弦相消、中央差分、求和顺序。先预测哪种变化能改善结果：</p>
+<h2 id="_1">学习层：同一个公式，哪一步把信息丢了？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="numerical-error-learning-title">1. 从一个能亲手检查的矛盾开始<a class="headerlink" href="#numerical-error-learning-title" title="Permanent link"></a></h3>
+<p>在 binary64 的常用“舍入到最近、正中取偶”模式下，<span class="arithmatex">\(10^{16}\)</span> 附近相邻数差 2。因此先算 <span class="arithmatex">\(10^{16}+1\)</span>，会舍入回 <span class="arithmatex">\(10^{16}\)</span>；再减去 <span class="arithmatex">\(10^{16}\)</span>，得到 0。实数的精确和却是 1。</p>
+<p>这不是减法那一步必然算错：<strong>小项在前面的加法中已经丢了</strong>。把顺序改为 <span class="arithmatex">\((10^{16}-10^{16})+1\)</span>，机器就能得到 1。说明“问题的答案”和“求答案的路径”需要分别检查。</p>
+<h3 id="2">2. 先预测，再看三个不同的账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>选择根式、余弦、差分或求和。先回答当前结果是否为 0（求和时是否精确），再判断算法是否具有普遍保证；揭示后才能看结果和误差图。换参数或改答案都会重新隐藏结果。</p>
 <ul>
-<li>用代数恒等式避开近数相减；</li>
-<li>继续把差分步长缩到最小；</li>
-<li>用补偿变量保存被大数吞掉的小项。</li>
+<li><strong>输入账</strong>：本实验的 <span class="arithmatex">\(x,h\)</span> 取固定 binary64 网格；参考也针对这个二进制数，而不是尚未舍入的十进制数。</li>
+<li><strong>算法账</strong>：实际双精度输出，与独立的 80 位参考比较。稳定改写仍可能有非零误差。</li>
+<li><strong>截断账</strong>：差分公式本身也只是导数的近似，即使每步实数运算完全准确，也不等于导数。</li>
 </ul>
-<p>揭晓前，数值、误差曲线和诊断账都保持隐藏。</p>
-<h3 id="3">3. 三个最小模型：误差是怎样进入账本的？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p><strong>相消。</strong>当 <span class="arithmatex">\(x\)</span> 很小时，</p>
+<h3 id="3">3. 两个恒等改写<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>对本实验 <span class="arithmatex">\(x&gt;0\)</span>，</p>
 <div class="arithmatex">\[
-\frac{\sqrt{1+x}-1}{x}
-=\frac{1}{\sqrt{1+x}+1},
+\frac{\sqrt{1+x}-1}{x}=\frac1{\sqrt{1+x}+1},
 \qquad
-1-\cos x=2\sin^2\frac{x}{2}.
+1-\cos x=2\sin^2(x/2).
 \]</div>
-<p>左式在浮点路径中先产生两个几乎相等的数再相减；右式在实数算术完全等价，却避开了信息相消。稳定改写不是改变问题，而是改变舍入误差经过的路线。</p>
-<p><strong>截断与舍入平衡。</strong>中央差分的截断误差为 <span class="arithmatex">\(O(h^2)\)</span>，而函数求值与相减造成的舍入项可粗略写成 <span class="arithmatex">\(O(\varepsilon_{\rm mach}/h)\)</span>，总误差模型为</p>
+<p>根式左边可能先把 <span class="arithmatex">\(1+x\)</span> 或它的平方根舍入成 1，接着相减只剩 0；右边直接算一个接近 <span class="arithmatex">\(1/2\)</span> 的数。余弦左边也可能把 <span class="arithmatex">\(\cos x\)</span> 舍入成 1；右边保留了小角度的信息。</p>
+<p>这里的“更稳定”指常见小量情境下误差更受控，<strong>不是保证每个输入都比直接式精确，更不是保证零误差</strong>。当 <span class="arithmatex">\(x\ne0\)</span> 时根式两式相等；右边还能连续延拓到 <span class="arithmatex">\(x=0\)</span>，左边原式在那里没有定义。</p>
+<h3 id="4">4. 差分：把步长缩小也有代价<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>用</p>
 <div class="arithmatex">\[
-E(h)\approx C_1h^2+C_2\frac{\varepsilon_{\rm mach}}{h}.
+D(h)=\frac{e^{1+h}-e^{1-h}}{2h}
+=e\frac{\sinh h}{h}
 \]</div>
-<p>所以最优 <span class="arithmatex">\(h\)</span> 不是零；常数量级依赖函数、尺度和实现，实验只展示 <span class="arithmatex">\(e^x\)</span> 在 <span class="arithmatex">\(x=1\)</span> 的一个具体双精度路径。</p>
-<p><strong>长求和。</strong>序列 <span class="arithmatex">\(10^{16},1,1,\ldots,1,-10^{16}\)</span> 的精确和等于小项个数。朴素顺序会让许多 <span class="arithmatex">\(1\)</span> 在加到 <span class="arithmatex">\(10^{16}\)</span> 时消失；Kahan 补偿求和用额外变量回收每步遗失的低位。它能显著改善很多求和，但不是任意病态问题的万能精确算法。</p>
-<h3 id="4">4. 动手验证：红线是运算路径，蓝线是稳定参照<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>拖动十进制尺度，观察直接表达式的相对误差。中央差分会出现 U 形；根式和余弦的直接式会在小尺度突然失去数字；求和情境固定一组对抗顺序，比较朴素与 Kahan。账本把“数学值”“浮点路径”“问题条件”分开，不允许用一句“电脑精度不够”结束诊断。</p>
+<p>近似 <span class="arithmatex">\(f'(1)=e\)</span>。第二式是这个特殊函数的<strong>差分改写</strong>，不是把参考值 <span class="arithmatex">\(e\)</span> 直接放进“更好算法”一列。两种计算都与同一个导数参考比较。</p>
+<p>实数 Taylor 展开给出</p>
+<div class="arithmatex">\[
+\frac{D(h)-e}{e}=\frac{\sinh h}{h}-1
+=\frac{h^2}{6}+O(h^4).
+\]</div>
+<p>直接式通常还受约 <span class="arithmatex">\(O(u/h)\)</span> 的舍入放大影响，粗略包络为 <span class="arithmatex">\(Ah^2+Bu/h\)</span>。它解释了“太大、太小都可能不好”，但实际采样有锯齿和偶然抵消，<strong>不应画成保证单调的光滑 U 形</strong>。特殊的 sinh 改写避开了这条相消路径；不能据此假设任意黑箱函数都有这种改写。</p>
+<h3 id="5">5. 求和：一个成功例子和一个失败例子<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>比较朴素、Kahan、Neumaier 三种求和。对 <span class="arithmatex">\(10^{16}\)</span> 后跟 20000 个 1 再抵消的大数，Kahan 能保存朴素方法丢掉的小项。但是：</p>
+<div class="arithmatex">\[
+(10^{16},1,-10^{16},3)
+\quad\Longrightarrow\quad
+\text{朴素}=3,\quad\text{Kahan}=3,\quad
+\text{Neumaier}=4.
+\]</div>
+<p>精确和为 4。Neumaier 在这个例子成功，并不保证对任何有限序列都精确。也试试奇数个 1：先聚合小项再加大数，仍可能在最后一次舍入时丢失或多出 1。</p>
 <div class="learning-lab" data-learning-lab="floating-point-error">
 <p><strong>无 JavaScript 时的静态读法：</strong></p>
 <table>
@@ -122,107 +140,159 @@ E(h)\approx C_1h^2+C_2\frac{\varepsilon_{\rm mach}}{h}.
 <tr>
 <th>情境</th>
 <th>直接路径</th>
-<th>稳定路径</th>
-<th>核心判断</th>
+<th>改写或补偿</th>
+<th>检查重点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\bigl(\sqrt{1+x}-1\bigr)/x\)</span>，<span class="arithmatex">\(x\ll1\)</span></td>
-<td>近数相减</td>
-<td>有理化</td>
-<td>同一问题，不同稳定性</td>
+<td>根式，<span class="arithmatex">\(x\approx10^{-16}\)</span></td>
+<td>先形成 <span class="arithmatex">\(1+x\)</span>，可能变成 1</td>
+<td>有理化结果接近 <span class="arithmatex">\(1/2\)</span></td>
+<td>参考值不能由被评估算法自己定义</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(1-\cos x\)</span>，<span class="arithmatex">\(x\ll1\)</span></td>
-<td>结果可能舍入成 0</td>
-<td><span class="arithmatex">\(2\sin^2(x/2)\)</span></td>
-<td>恒等改写保存低位</td>
+<td>余弦，<span class="arithmatex">\(x\approx10^{-8}\)</span></td>
+<td><span class="arithmatex">\(1-\cos x\)</span> 可能为 0</td>
+<td><span class="arithmatex">\(2\sin^2(x/2)\approx5\times10^{-17}\)</span></td>
+<td>相消发生前的求值舍入</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(f'(1)\)</span> 的中央差分</td>
-<td><span class="arithmatex">\(h\)</span> 太大有截断、太小有相消</td>
-<td>选平衡尺度</td>
-<td>“更小”不等于“更准”</td>
+<td>导数，<span class="arithmatex">\(h\approx0.1\)</span></td>
+<td>中央差分有截断误差</td>
+<td>sinh 改写仍有同一截断误差</td>
+<td>改算法不能消除公式近似</td>
 </tr>
 <tr>
-<td>大数、小项、大数相消</td>
-<td>朴素顺序吞掉小项</td>
-<td>补偿求和</td>
-<td>加法不满足机器结合律</td>
+<td><span class="arithmatex">\(10^{16},1,-10^{16},3\)</span></td>
+<td>结果 3</td>
+<td>Kahan 3，Neumaier 4</td>
+<td>一个成功样本不是普遍定理</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>条件数属于问题。</strong>它问精确输出对输入扰动有多敏感；换一个稳定算法不能消除问题本身的敏感性。</li>
-<li><strong>稳定性属于算法。</strong>后向稳定意味着计算结果可解释为邻近输入的精确答案；它不保证病态问题的前向误差小。</li>
-<li><strong><code>==</code> 不是一概禁止。</strong>离散计数、精确可表示的哨兵值或经过证明的路径可以比较；近似实数结果通常应使用与尺度相称的绝对/相对容差。</li>
-<li><strong>Kahan 不是魔法。</strong>极端溢出、下溢、NaN、并行重排与更高精度要求仍需单独处理。</li>
-<li><strong>图中的“真值”有范围。</strong>稳定恒等式可作本 toy 的可靠参照；一般科学计算需要更高精度、解析值或可证明误差界交叉验证。</li>
-</ul>
-<h3 id="6">6. 回到理论：前向误差、后向误差与条件数<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>设算法返回 <span class="arithmatex">\(\widehat y\)</span>。前向误差比较 <span class="arithmatex">\(\widehat y\)</span> 与精确 <span class="arithmatex">\(f(x)\)</span>；后向误差寻找一个小扰动 <span class="arithmatex">\(\Delta x\)</span>，使 <span class="arithmatex">\(\widehat y=f(x+\Delta x)\)</span>。若算法后向稳定，仍只能得到“前向误差约为条件数乘后向误差”的结论。于是诊断顺序是：先问输入问题是否病态，再问算法是否额外放大误差。</p>
-<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<p>softmax 的直接式含有 <span class="arithmatex">\(e^{x_i}\)</span>，大正数会溢出。证明把所有 logits 同减 <span class="arithmatex">\(m=\max_i x_i\)</span> 不改变 softmax，再解释这属于稳定改写而不是改善 softmax 问题的条件数。若输入本身只精确到 fp16，改写还能挽回哪些误差，不能挽回哪些？</p>
-<details>
-<summary>迁移题参考答案</summary>
-<p>对每个 <span class="arithmatex">\(i\)</span>，<span class="arithmatex">\(e^{x_i-m}/\sum_j e^{x_j-m}=e^{-m}e^{x_i}/(e^{-m}\sum_j e^{x_j})=e^{x_i}/\sum_j e^{x_j}\)</span>，所以减去最大值在精确算术中不改变答案。数值上最大的指数变为 <span class="arithmatex">\(1\)</span>，其余都在 <span class="arithmatex">\((0,1]\)</span>，从而避免大正 logits 的指数溢出，并把不可避免的下溢集中到本来就极小的概率项；log-sum-exp 也同理稳定。它修的是求值算法，不会恢复输入量化时已经丢失的信息：若两个 logits 在 fp16 中已舍入成同一个数，或小差异已被吞掉，后续平移无法把差异找回来；病态输入扰动对输出的敏感性也不会被代数恒等式消除。</p>
+<p>图中“精确 0”单独成行，不把 0 假装成 <span class="arithmatex">\(10^{-18}\)</span>。曲线只连接所列采样；同坐标的点可能重合。参考以高、低两个浮点数保存来估算残差；这能看见低于一个 binary64 间距的误差，但不是严格区间证明。浏览器的超越函数实现允许末位差异。</p>
+<h3 id="6">6. 用结论时，先带上边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>条件数依赖你如何描述输入和度量扰动；后向稳定需要一个明确的“邻近输入”定义。比较近似数常用绝对与相对容差组合，但计数和经过证明的精确整数可以直接比较。提高输出精度不能恢复输入阶段已经抹掉的信息。</p>
+<h3 id="7">7. 迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p><strong>题 1：小心“减法丢位”。</strong>设输入是两个已知的精确 binary64 数 <span class="arithmatex">\(x=1+2^{-52}\)</span>、<span class="arithmatex">\(y=1\)</span>。求机器差值；再说明为什么这不否定“相近的测量值相减可能很不可靠”。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>差为可精确表示的 <span class="arithmatex">\(2^{-52}\)</span>，此减法精确。若原始测量值却各带绝对误差至多 <span class="arithmatex">\(\eta\)</span>，差的输入误差可达 <span class="arithmatex">\(2\eta\)</span>，相对差值便可能很大。相近浮点数在 Sterbenz 条件下能精确相减，仍无法修复此前的输入或函数求值误差。</p>
+</details>
+<p><strong>题 2：步长怎么选？</strong>对正数 <span class="arithmatex">\(A,B,u\)</span>，最小化误差包络 <span class="arithmatex">\(E(h)=Ah^2+Bu/h\)</span>，<span class="arithmatex">\(h&gt;0\)</span>。这能否精确预测每个浏览器里最好的采样步长？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(E'(h)=2Ah-Bu/h^2\)</span>，故 <span class="arithmatex">\(h_*=(Bu/(2A))^{1/3}\)</span>。且 <span class="arithmatex">\(E''(h)=2A+2Bu/h^3&gt;0\)</span>，这是唯一全局最小点。它预测量级，不能给出实际离散误差的精确极小位置：<span class="arithmatex">\(A,B\)</span> 与函数和实现有关，真实误差不是两个正项的精确和，还会有偶然抵消。</p>
+</details>
+<p><strong>题 3：稳定 softmax。</strong>输入为有限实数 <span class="arithmatex">\(x_1,\ldots,x_n\)</span>，证明同减 <span class="arithmatex">\(m=\max x_i\)</span> 不改变 softmax；说明它保护哪一步，以及已经量化的输入能否恢复。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>实数中分子分母同乘 <span class="arithmatex">\(e^{-m}\)</span>，故 <span class="arithmatex">\(e^{x_i-m}/\sum_j e^{x_j-m}=e^{x_i}/\sum_j e^{x_j}\)</span>。平移后最大指数为 1，其余在 <span class="arithmatex">\((0,1]\)</span>，避免大正指数溢出；机器中很小的项仍可能下溢为 0，因此不能声称每个概率都严格正。已量化成相同值的两个输入不会因平移恢复差别。这个推导假定输入有限；含无穷或 NaN 的程序接口需要单独规定行为。</p>
 </details>
 </section>
-<h2 id="1">1. 误差的来源与度量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>四个来源</strong>：模型误差（数学模型 ≠ 现实）、观测误差（数据本身带噪）、<strong>截断误差</strong>（无穷过程砍成有限：Taylor 截断、迭代提前停）、<strong>舍入误差</strong>（有限位表示）。数值分析主管后两个。</p>
-<p><strong>度量</strong>：绝对误差 <span class="arithmatex">\(e = |\hat x - x|\)</span>；<strong>相对误差</strong> <span class="arithmatex">\(e_r = \frac{|\hat x - x|}{|x|}\)</span>（跨量级比较用它）；有效数字 <span class="arithmatex">\(n\)</span> 位 <span class="arithmatex">\(\approx\)</span> 相对误差 <span class="arithmatex">\(\leq \frac12 \times 10^{1-n}\)</span>。</p>
-<h2 id="2_1">2. 浮点数系统<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>IEEE 754 binary64 的有效精度为 53 个二进制位。1 与下一个可表示数的间距常记作<strong>机器 epsilon</strong> <span class="arithmatex">\(\varepsilon_{\text{mach}}=2^{-52}\approx2.2\times10^{-16}\)</span>；在 round-to-nearest 且结果为正规数等标准假设下，相对舍入误差界常用<strong>单位舍入</strong> <span class="arithmatex">\(u=2^{-53}\)</span>。于是四则运算的基本模型写成 <span class="arithmatex">\(fl(a\circ b)=(a\circ b)(1+\delta)\)</span>、<span class="arithmatex">\(|\delta|\le u\)</span>；溢出、下溢与非正规数要另行处理。</p>
-<p>三条立刻反直觉的推论：浮点加法<strong>不满足结合律</strong>（求和顺序影响结果——按通常从左到右的双精度计算，<span class="arithmatex">\(10^{16} + 1 - 10^{16} = 0\)</span>）；近似实数结果的相等判断应使用与问题尺度相称的绝对/相对容差，而离散计数和经过证明的精确可表示值仍可用 <code>==</code>；长求和可按绝对值从小到大，或采用成对/Kahan 等补偿算法。</p>
-<p>🔗 深度学习语境：fp32/fp16/bf16/fp8 就是不同档位的 <span class="arithmatex">\(\varepsilon_{\text{mach}}\)</span>（fp16 只有 <span class="arithmatex">\(\sim 10^{-3}\)</span> 的相对精度、动态范围窄——混合精度训练里 loss scaling 防下溢、bf16 牺牲精度换范围，全是本节逻辑；comfy 课 04 讲的量化是更极端的同类交易）。</p>
-<h2 id="3_1">3. 灾难性相消（头号杀手）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>两个相近的数相减，有效数字批量阵亡</strong>：<span class="arithmatex">\(x = 0.12345678\)</span>，<span class="arithmatex">\(y = 0.12345612\)</span>，各 8 位有效，差 <span class="arithmatex">\(6.6\times10^{-7}\)</span> 只剩 2 位——<strong>前导位相同的部分在相减中携带的信息归零，相对误差放大约 <span class="arithmatex">\(\frac{|x|}{|x-y|}\)</span> 倍</strong>。</p>
-<p>对策是<strong>代数改写，绕开相减</strong>（必会三例）：</p>
+<h2 id="1">1. 误差与计算问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>四类来源是模型误差、观测误差、截断误差、舍入误差。给定精确目标 <span class="arithmatex">\(y\)</span> 与近似 <span class="arithmatex">\(\widehat y\)</span>，绝对误差为 <span class="arithmatex">\(|\widehat y-y|\)</span>；当 <span class="arithmatex">\(y\ne0\)</span>，相对误差为 <span class="arithmatex">\(|\widehat y-y|/|y|\)</span>。目标为 0 时应使用绝对误差或明确的外部尺度，不能偷偷用“最小正数”替代分母。</p>
+<p>有效数字必须结合首位和采用的定义判断；“相对误差约为 <span class="arithmatex">\(10^{-p}\)</span>”可以描述精度量级，不自动等于任意定义下恰有 <span class="arithmatex">\(p\)</span> 位有效数字。</p>
+<h2 id="2-binary64">2. binary64：间距、舍入和范围<a class="headerlink" href="#2-binary64" title="Permanent link"></a></h2>
+<p>正常数写作 <span class="arithmatex">\((-1)^s(1.b_1\cdots b_{52})_2\,2^e\)</span>，有 53 位二进制有效精度。在区间 <span class="arithmatex">\([2^e,2^{e+1})\)</span>，相邻数间距是 <span class="arithmatex">\(2^{e-52}\)</span>。因此 1 的左邻点是 <span class="arithmatex">\(1-2^{-53}\)</span>，右邻点是 <span class="arithmatex">\(1+2^{-52}\)</span>。</p>
+<ul>
+<li>机器 epsilon 通常指 <span class="arithmatex">\(1\)</span> 到右邻点的间距：<span class="arithmatex">\(\varepsilon_{\rm mach}=2^{-52}\)</span>。</li>
+<li>舍入到最近时常用单位舍入 <span class="arithmatex">\(u=2^{-53}\)</span>。在无溢出且精确结果落在正常数范围的标准条件下，
+  [
+  \operatorname{fl}(a\circ b)=(a\circ b)(1+\delta),\qquad|\delta|\le u.
+  ]</li>
+<li>非正常数采用固定间距 <span class="arithmatex">\(2^{-1074}\)</span>，能逐渐接近 0，却不能维持同一个相对误差界；最小正正常数是 <span class="arithmatex">\(2^{-1022}\)</span>。</li>
+<li>超越函数不应无条件套用“四则运算正确舍入”结论；语言规范和具体数学库需要分别核对。</li>
+</ul>
+<p>“正中取偶”的偶，是保留尾数最低位为 0，不是看十进制末位。有限精度还破坏结合律；容差比较本身也通常不具传递性，不能直接作为排序等价关系。</p>
+<h2 id="3_1">3. 相消：误差可能早于减法发生<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>设输入近似值为 <span class="arithmatex">\(\widehat x=x+\Delta x,\widehat y=y+\Delta y\)</span>。即使减法精确，</p>
+<div class="arithmatex">\[
+(\widehat x-\widehat y)-(x-y)=\Delta x-\Delta y,
+\qquad
+\frac{|\Delta x-\Delta y|}{|x-y|}
+\le\frac{|\Delta x|+|\Delta y|}{|x-y|}.
+\]</div>
+<p>分母很小，就会放大先前的误差。<strong>不能只数差值剩几个非零数字，就断言减法自身丢掉了多少准确位。</strong></p>
+<p>Sterbenz 引理给出一个精确性窗口：同一二进制格式的非负浮点数 <span class="arithmatex">\(x,y\)</span>，若 <span class="arithmatex">\(y/2\le x\le2y\)</span>，且采用支持渐进下溢的相应运算，则 <span class="arithmatex">\(x-y\)</span> 可精确计算。它与灾难性相消不冲突：精确减去两个已经错误的近似值，仍可得到很差的真实差值近似。</p>
+<p>稳定改写的三个例子：</p>
 <table>
 <thead>
 <tr>
-<th>危险表达式</th>
-<th>场景</th>
-<th>稳定改写</th>
+<th>直接表达式与范围</th>
+<th>改写</th>
+<th>仍须检查</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\sqrt{x + 1} - \sqrt{x}\)</span>（<span class="arithmatex">\(x\)</span> 大）</td>
-<td>—</td>
-<td><span class="arithmatex">\(\dfrac{1}{\sqrt{x+1} + \sqrt{x}}\)</span>（有理化）</td>
+<td><span class="arithmatex">\(\sqrt{x+1}-\sqrt x\)</span>，<span class="arithmatex">\(x\ge0\)</span></td>
+<td><span class="arithmatex">\(1/(\sqrt{x+1}+\sqrt x)\)</span></td>
+<td>中间结果溢出及输入舍入</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\dfrac{-b + \sqrt{b^2 - 4ac}}{2a}\)</span>（<span class="arithmatex">\(b &gt; 0\)</span> 且 <span class="arithmatex">\(b^2 \gg 4ac\)</span>）</td>
-<td>求根公式小根</td>
-<td>先算大根 <span class="arithmatex">\(x_1 = \frac{-b - \sqrt{\cdot}}{2a}\)</span>，小根用<strong>韦达</strong> <span class="arithmatex">\(x_2 = \frac{c}{a x_1}\)</span></td>
+<td><span class="arithmatex">\(1-\cos x\)</span>，小角度</td>
+<td><span class="arithmatex">\(2\sin^2(x/2)\)</span></td>
+<td>下溢和三角函数求值误差</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(1 - \cos x\)</span>（<span class="arithmatex">\(x\)</span> 小）</td>
-<td>—</td>
-<td><span class="arithmatex">\(2\sin^2\frac{x}{2}\)</span>（恒等式）</td>
+<td>二次式 <span class="arithmatex">\(at^2+bt+c\)</span>，<span class="arithmatex">\(a\ne0,\Delta=b^2-4ac\ge0\)</span></td>
+<td><span class="arithmatex">\(q=-\tfrac12(b+\operatorname{sgn}_+(b)\sqrt\Delta)\)</span>，根为 <span class="arithmatex">\(q/a,c/q\)</span></td>
+<td><span class="arithmatex">\(q=0\)</span> 特例、判别式和乘积溢出；<span class="arithmatex">\(\operatorname{sgn}_+(0)=1\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>（🔗 机器学习标准库里的 <code>log1p</code>、<code>expm1</code>、log-sum-exp 减最大值技巧（lab06 的 softmax 实现！）、交叉熵与 softmax 融合成一个算子——全是工业化的"稳定改写"。）</p>
-<h2 id="4-vs">4. 条件数与稳定性：问题的错 vs 算法的错<a class="headerlink" href="#4-vs" title="Permanent link"></a></h2>
-<p>两个必须分开的概念：</p>
-<p><strong>条件数（问题固有的敏感度）</strong>：输入扰动 <span class="arithmatex">\(1\%\)</span>，输出扰动多少？可微函数 <span class="arithmatex">\(f\)</span> 的相对条件数</p>
+<p>二次式中 <span class="arithmatex">\(q=0\)</span> 对应 <span class="arithmatex">\(b=c=0\)</span>（实数条件下），两个根均为 0，不能做 <span class="arithmatex">\(c/q\)</span>。大尺度系数还需缩放；稳定选符号本身不保证判别式计算安全。小量对数与指数可使用专门的 log1p、expm1 算法，避免先形成接近 1 的量再相消。</p>
+<h2 id="4_1">4. 条件数来自问题与扰动模型<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>对可微标量函数 <span class="arithmatex">\(f\)</span>，在 <span class="arithmatex">\(x\ne0,f(x)\ne0\)</span> 的点，Taylor 展开给出</p>
 <div class="arithmatex">\[
-\kappa = \Big|\frac{x f'(x)}{f(x)}\Big|
+\frac{f(x+\Delta x)-f(x)}{f(x)}
+=\frac{xf'(x)}{f(x)}\frac{\Delta x}{x}
++o(|\Delta x|/|x|).
 \]</div>
-<p>（例：<span class="arithmatex">\(f = \sqrt x\)</span> 的 <span class="arithmatex">\(\kappa = \frac12\)</span> 良态。对两输入差 <span class="arithmatex">\(g(x,y)=x-y\)</span>，若按分量相对扰动 <span class="arithmatex">\(|\Delta x|\le\epsilon|x|,|\Delta y|\le\epsilon|y|\)</span> 计量，条件数为 <span class="arithmatex">\(\frac{|x|+|y|}{|x-y|}\)</span>，相近数时巨大；而“先准确表示了两个数，再把它们相减”的浮点实现还要另查算法路径。矩阵版 <span class="arithmatex">\(\kappa(A) = \|A\|\|A^{-1}\|\)</span> 下一页主演。）<strong>病态问题无法靠代数重排消除输入敏感度</strong>；可改进的是模型、输入精度或问题表述。</p>
-<p><strong>数值稳定性（算法的品行）</strong>：算法引入的误差是否被不必要地放大。同一问题不同算法品行可以天差地别（求根公式两种写法即例）。<strong>后向稳定</strong>的现代表述：算出的解是"某个邻近问题的精确解"——好算法把锅完全甩给输入扰动。</p>
-<p><strong>总账</strong>：最终误差 <span class="arithmatex">\(\lesssim\)</span> 条件数 × (输入误差 + 算法等效扰动)。诊断次序：结果不对，先问问题病不病（条件数），再查算法稳不稳。</p>
-<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（相消实测）</strong> 用求根公式解 <span class="arithmatex">\(x^2-10^8x+1=0\)</span>：直接用 <span class="arithmatex">\(\bigl(10^8-\sqrt{10^{16}-4}\bigr)/2\)</span> 算小根会严重丢位，在某些精度/实现上甚至舍入为 0；先稳定计算大根，再用韦达关系 <span class="arithmatex">\(x_1x_2=1\)</span> 得小根，可保留接近 <span class="arithmatex">\(10^{-8}\)</span> 的有效信息。挽回多少位取决于具体格式和中间运算，不应固定宣称恰好 16 位。</p>
-<p><strong>例 2（条件数计算）</strong> <span class="arithmatex">\(f(x)=\ln x\)</span> 在 <span class="arithmatex">\(x\approx1\)</span> 处的相对条件数为 <span class="arithmatex">\(\kappa=1/|\ln x|\to\infty\)</span>：若输入已经以 <span class="arithmatex">\(x\)</span> 的形式舍入到 1，没有算法能恢复丢失扰动。若原始数据本来就是小量 <span class="arithmatex">\(y=x-1\)</span>，<code>log1p(y)</code> 则能避免先形成 <span class="arithmatex">\(1+y\)</span> 再相消的额外算法误差；这是“问题条件”与“求值稳定性”分账的典型例子。</p>
-<p><strong>例 3（求和顺序）</strong> 单精度下从大到小累加 <span class="arithmatex">\(\sum_{n=1}^{10^7} \frac1n\)</span> 与从小到大加，结果差在第 4 位有效数字——小项先聚成气候再遇大项，信息不被吞。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：线性方程组 <span class="arithmatex">\(Ax = b\)</span> 的数值解——LU 分解、选主元的必要性、病态矩阵与迭代法。</em></p>
+<p>因此局部相对条件数是 <span class="arithmatex">\(\kappa_f(x)=|xf'(x)/f(x)|\)</span>；绝对条件数是 <span class="arithmatex">\(|f'(x)|\)</span>。零输入或零输出应改用适合的绝对/混合尺度，而非机械代入。</p>
+<p>对 <span class="arithmatex">\(g(x,y)=x-y\ne0\)</span>，若 <span class="arithmatex">\(|\Delta x|\le\epsilon|x|,|\Delta y|\le\epsilon|y|\)</span>，分量相对条件数为</p>
+<div class="arithmatex">\[
+\kappa_g=\frac{|x|+|y|}{|x-y|}.
+\]</div>
+<p>同样，求和 <span class="arithmatex">\(s=\sum x_i\ne0\)</span> 的分量相对条件数为 <span class="arithmatex">\(\sum|x_i|/|s|\)</span>。这解释了正负大项抵消的敏感度。即使某个整数样本恰好精确，附近问题仍可能病态。</p>
+<p>两个容易混淆的对数问题：</p>
+<p>[
+f(x)=\log x:\quad\kappa_f=\frac1{|\log x|}\quad(x&gt;0,x\ne1);
+]
+[
+g(y)=\log(1+y):\quad
+\kappa_g=\left|\frac{y}{(1+y)\log(1+y)}\right|\longrightarrow1.
+]</p>
+<p>接近 1 的 <span class="arithmatex">\(x\)</span> 与接近 0 的原始小量 <span class="arithmatex">\(y\)</span> 使用了不同的相对扰动尺度。log1p 改善的是给定 <span class="arithmatex">\(y\)</span> 的求值路径；若手上只有已经舍入为 1 的 <span class="arithmatex">\(x\)</span>，它不能恢复未知的 <span class="arithmatex">\(y\)</span>。</p>
+<h2 id="5_1">5. 前向、后向与稳定性<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>前向误差直接比较 <span class="arithmatex">\(\widehat y\)</span> 与 <span class="arithmatex">\(f(x)\)</span>。在指定输入空间和范数下，后向误差寻找最小扰动，使 <span class="arithmatex">\(\widehat y=f(x+\Delta x)\)</span>；这种解释有时不存在，不能默认任何输出都对应附近输入。</p>
+<p>后向稳定算法使该扰动按问题规模受 <span class="arithmatex">\(O(u)\)</span> 控制。在可微、扰动足够小、条件数适用的范围内，前向相对误差一阶上界约为“条件数 × 后向相对误差”。若还存在输入误差，要把输入误差也算进总扰动；这不是无条件等式，也不是对任意大扰动的保证。</p>
+<p>一个简单证明模板是将 <span class="arithmatex">\(\widehat y=f(x+\Delta x)\)</span> 代入上一节 Taylor 展开：稳定性控制 <span class="arithmatex">\(\Delta x\)</span>，条件数控制这段输入变化如何传到输出。病态问题可能让一个后向稳定算法仍产生较大前向误差。</p>
+<h2 id="6_1">6. 差分的误差估计为何有三分之一次方<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(f\)</span> 在邻域内三次连续可微，中央差分的截断误差至多 <span class="arithmatex">\(\max|f'''|h^2/6\)</span>。若两端函数求值分别带至多 <span class="arithmatex">\(\eta\)</span> 的绝对误差，它们对差分的贡献至多 <span class="arithmatex">\(\eta/h\)</span>；实际形成 <span class="arithmatex">\(x\pm h\)</span> 的误差和最后除法还需纳入估计。</p>
+<p>于是 <span class="arithmatex">\(Ah^2+Bu/h\)</span> 是典型尺度模型，最优量级 <span class="arithmatex">\(h\sim u^{1/3}\)</span> 来自平衡两项。函数值、坐标尺度、导数量级改变后，常数就变了；不能把某个固定步长当成通用建议。</p>
+<h2 id="7_1">7. 求和算法到底补偿了什么？<a class="headerlink" href="#7_1" title="Permanent link"></a></h2>
+<p>朴素求和每次舍入。标准模型下，长度 <span class="arithmatex">\(n\)</span> 的递归求和（无溢出等）满足</p>
+<div class="arithmatex">\[
+|\widehat s-s|\le\gamma_{n-1}\sum_i|x_i|,
+\qquad
+\gamma_k=\frac{ku}{1-ku},\quad ku&lt;1.
+\]</div>
+<p>证明要点：把每一步写成乘 <span class="arithmatex">\(1+\delta_j\)</span>，展开后每个输入带若干舍入因子；用 <span class="arithmatex">\(|\prod(1+\delta_j)-1|\le\gamma_k\)</span> 控制累积偏差。除以 <span class="arithmatex">\(|s|\)</span> 后，求和条件数自然出现。</p>
+<p>Kahan 的每步操作为 <span class="arithmatex">\(y=x_i-c,\ t=s+y,\ c=(t-s)-y,\ s=t\)</span>。补偿量 <span class="arithmatex">\(c\)</span> 试图保存本次未进入主和的低位。Neumaier 变体根据 <span class="arithmatex">\(|s|\)</span> 与 <span class="arithmatex">\(|x_i|\)</span> 谁更大，分别积累 <span class="arithmatex">\((s-t)+x_i\)</span> 或 <span class="arithmatex">\((x_i-t)+s\)</span>，最后返回 <span class="arithmatex">\(s+c\)</span>。这些补偿量自身也是浮点数；不能任意重排括号，否则算法意义会改变。</p>
+<p>成对求和缩短累积链，补偿求和多保存低位，更多精度增加表示能力；它们解决的路径不同。检查精度时应给出格式、顺序、样本和参考，不能凭“逆序通常更好”宣称固定多出几位。对于整数、精确有理数、高精度参考或区间界，分别说明依据。</p>
+<h2 id="8">8. 从基础走向更深入的数值计算<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>接下来可把这里的条件数、后向误差和补偿思想带到 LU 选主元、迭代改进、病态最小二乘与微分方程。遇到新算法时，先找明确的输入模型和输出误差目标，再看误差分析或可复现对照；一次曲线漂亮的演示还不构成稳定性证明。</p>
+<h3 id="_2">进一步阅读<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ul>
+<li><a href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html">Goldberg：What Every Computer Scientist Should Know About Floating-Point Arithmetic</a>：浮点表示、相消与舍入分析的原始论文重印。</li>
+<li><a href="https://eprints.maths.manchester.ac.uk/238/">Higham：Accuracy and Stability of Numerical Algorithms</a>：第 2–4 章系统讨论舍入模型和求和。</li>
+<li><a href="https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.exp">ECMAScript 数值与 Math 函数规范</a>：核对浏览器中的 Number 语义与超越函数实现边界。</li>
+</ul>
+<p><em>下一页：线性方程组的数值解——把“残差小”与“解准确”分开。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stoch-04-brownian.html"><span class="pager-label">上一页</span>随机过程 IV · 布朗运动与鞅</a>
