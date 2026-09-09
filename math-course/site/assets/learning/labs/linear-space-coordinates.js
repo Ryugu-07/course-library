@@ -34,7 +34,6 @@
     var SVG_NS = "http://www.w3.org/2000/svg";
     var STYLE_ID = "cl-linear-space-coordinates-style";
     var INSTANCE = 0;
-    var EPS = 1e-10;
     var DEFAULTS = { presetId: "parameter", t: 0, px: 3, py: 2 };
 
     var PRESETS = [
@@ -73,9 +72,10 @@
       ".lsc-lab .lsc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.lsc-lab .lsc-actions>*{flex:1 1 155px;}.lsc-lab .lsc-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.lsc-lab .lsc-pass,.lsc-lab .lsc-ok{color:var(--lsc-green);}.lsc-lab .lsc-warn,.lsc-lab .lsc-fail{color:var(--lsc-red);}",
       ".lsc-lab .lsc-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.lsc-lab .lsc-control{display:grid;gap:5px;min-width:0;}.lsc-lab .lsc-control label{color:var(--fg-soft);font-size:13px;font-weight:700;}.lsc-lab .lsc-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
       ".lsc-lab .lsc-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0;}.lsc-lab .lsc-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.lsc-lab .lsc-metric.lsc-blue{border-top-color:var(--lsc-blue);}.lsc-lab .lsc-metric.lsc-gold{border-top-color:var(--lsc-gold);}.lsc-lab .lsc-metric.lsc-green{border-top-color:var(--lsc-green);}.lsc-lab .lsc-metric.lsc-red{border-top-color:var(--lsc-red);}.lsc-lab .lsc-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.lsc-lab .lsc-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".lsc-lab .lsc-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lsc-lab .lsc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,1.15fr);gap:14px;margin-top:12px;}.lsc-lab .lsc-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.lsc-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.lsc-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lsc-lab .lsc-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lsc-lab table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lsc-lab th,.lsc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lsc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lsc-lab .lsc-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lsc-green);background:var(--bg);font-size:13px;line-height:1.7;}",
+      ".lsc-lab .lsc-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lsc-lab .lsc-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px;}.lsc-lab .lsc-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);max-width:100%;overflow-x:auto;}.lsc-lab svg{display:block;width:100%;min-width:700px;height:auto;color:var(--fg);}.lsc-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lsc-lab .lsc-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lsc-lab table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lsc-lab th,.lsc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lsc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lsc-lab .lsc-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lsc-green);background:var(--bg);font-size:13px;line-height:1.7;}",
       "@media(max-width:760px){.lsc-lab .lsc-controls,.lsc-lab .lsc-grid{grid-template-columns:minmax(0,1fr);}.lsc-lab .lsc-choice-row{grid-template-columns:minmax(0,1fr);}}",
       "@media(max-width:420px){.lsc-lab .lsc-predict{padding-left:11px;padding-right:11px;}.lsc-lab th,.lsc-lab td{padding-left:5px;padding-right:5px;}}",
+      '[data-theme="dark"] .lsc-lab{--lsc-blue:#60a5fa;--lsc-gold:#fbbf24;--lsc-green:#4ade80;--lsc-red:#fca5a5}.lsc-lab [tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;}',
       "@media(prefers-reduced-motion:reduce){.lsc-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
     ].join("\n");
 
@@ -83,16 +83,22 @@
       return typeof value === "number" && isFinite(value);
     }
 
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+    function number(value) {
+      if(!finite(value))throw new RangeError("expected a finite number");return value;
     }
-
-    function formatNumber(value, digits) {
-      if (!finite(value)) return "—";
-      if (Math.abs(value) < 5e-12) return "0";
-      var text = Number(value).toFixed(digits === undefined ? 3 : digits);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
+    function bounded(value,low,high){number(value);if(value<low||value>high)throw new RangeError("outside teaching domain");return value;}
+    function formatNumber(value,digits){
+      number(value);var places=digits===undefined?3:digits;if(value===0)return "0";
+      if(Math.abs(value)<Math.pow(10,-places)||Math.abs(value)>=1e6)return value.toExponential(3);
+      var text=value.toFixed(places);return places?text.replace(/0+$/,"").replace(/\.$/,""):text;
     }
+    function checked(matrix){
+      if(!Array.isArray(matrix)||matrix.length!==2||!Array.isArray(matrix[0])||matrix[0].length<1||matrix[0].length>64)throw new TypeError("expected 2 rows and 1 to 64 columns");
+      var n=matrix[0].length;
+      for(var i=0;i<2;i++){if(!Array.isArray(matrix[i])||matrix[i].length!==n)throw new TypeError("ragged matrix");for(var j=0;j<n;j++)number(matrix[i][j]);}
+      return matrix;
+    }
+    function check2(matrix){checked(matrix);if(matrix[0].length!==2)throw new TypeError("expected 2 by 2 matrix");return matrix;}
 
     function presetById(id) {
       for (var i = 0; i < PRESETS.length; i += 1) {
@@ -101,87 +107,68 @@
       throw new Error("Unknown vector preset: " + id);
     }
 
-    function matrixFromColumns(vectors) {
-      var rows = [];
-      var dimension = vectors[0] ? vectors[0].length : 0;
-      for (var r = 0; r < dimension; r += 1) {
-        rows[r] = [];
-        for (var c = 0; c < vectors.length; c += 1) rows[r][c] = Number(vectors[c][r]);
+    function matrixFromColumns(vectors){
+      if(!Array.isArray(vectors)||vectors.length<1||vectors.length>64)throw new TypeError("expected 1 to 64 two-dimensional vectors");
+      for(var i=0;i<vectors.length;i++){if(!Array.isArray(vectors[i])||vectors[i].length!==2)throw new TypeError("expected two-dimensional vector");number(vectors[i][0]);number(vectors[i][1]);}
+      return [vectors.map(function(v){return v[0];}),vectors.map(function(v){return v[1];})];
+    }
+    function dyadic(value) {
+      number(value); if (value===0) return {n:0n,e:0};
+      var view=new DataView(new ArrayBuffer(8));view.setFloat64(0,value,false);
+      var high=view.getUint32(0,false),low=view.getUint32(4,false),exponent=(high>>>20)&2047;
+      var mantissa=(BigInt(high&1048575)<<32n)|BigInt(low);
+      if(exponent)mantissa|=1n<<52n;
+      return {n:high>>>31?-mantissa:mantissa,e:exponent?exponent-1075:-1074};
+    }
+    function exactDet(matrix) {
+      check2(matrix);var a=dyadic(matrix[0][0]),b=dyadic(matrix[0][1]),c=dyadic(matrix[1][0]),d=dyadic(matrix[1][1]);
+      var e1=a.e+d.e,e2=b.e+c.e,e=Math.min(e1,e2);
+      return {n:((a.n*d.n)<<BigInt(e1-e))-((b.n*c.n)<<BigInt(e2-e)),e:e};
+    }
+    function ratio(numerator,denominator,requireNonzero) {
+      if(denominator.n===0n)throw new RangeError("division by zero");
+      if(numerator.n===0n)return 0;
+      function parts(pair) {
+        var n=pair.n<0n?-pair.n:pair.n,bits=n.toString(2).length,shift=Math.max(0,bits-54);
+        return {mantissa:Number(n>>BigInt(shift))/Math.pow(2,Math.min(bits,54)-1),exponent:pair.e+bits-1};
       }
-      return rows;
+      var a=parts(numerator),b=parts(denominator),m=a.mantissa/b.mantissa,e=a.exponent-b.exponent;
+      if(m<1){m*=2;e--;}
+      if(m>=2){m/=2;e++;}
+      var pivot=Math.max(-1022,Math.min(1023,e));
+      var value=(m*Math.pow(2,pivot))*Math.pow(2,e-pivot);
+      if(!Number.isFinite(value)||(requireNonzero&&value===0))throw new RangeError("result outside floating-point representation");
+      return (numerator.n<0n)!==(denominator.n<0n)?-value:value;
     }
-
-    function matrixRank(input) {
-      var matrix = input.map(function (row) { return row.slice(); });
-      var rows = matrix.length;
-      var cols = rows ? matrix[0].length : 0;
-      var pivotRow = 0;
-      for (var col = 0; col < cols && pivotRow < rows; col += 1) {
-        var pivot = pivotRow;
-        for (var r = pivotRow + 1; r < rows; r += 1) {
-          if (Math.abs(matrix[r][col]) > Math.abs(matrix[pivot][col])) pivot = r;
-        }
-        if (Math.abs(matrix[pivot][col]) <= EPS) continue;
-        var temp = matrix[pivotRow];
-        matrix[pivotRow] = matrix[pivot];
-        matrix[pivot] = temp;
-        var scale = matrix[pivotRow][col];
-        for (var c = col; c < cols; c += 1) matrix[pivotRow][c] /= scale;
-        for (var rr = 0; rr < rows; rr += 1) {
-          if (rr === pivotRow) continue;
-          var factor = matrix[rr][col];
-          if (Math.abs(factor) <= EPS) continue;
-          for (var cc = col; cc < cols; cc += 1) matrix[rr][cc] -= factor * matrix[pivotRow][cc];
-        }
-        pivotRow += 1;
-      }
-      return pivotRow;
+    function matrixRank(matrix){
+      checked(matrix);var n=matrix[0].length;
+      if(matrix.every(function(row){return row.every(function(v){return v===0;});}))return 0;
+      for(var i=0;i<n;i++)for(var j=i+1;j<n;j++)if(exactDet([[matrix[0][i],matrix[0][j]],[matrix[1][i],matrix[1][j]]]).n!==0n)return 2;
+      return 1;
     }
-
-    function determinant2(a, b) {
-      return a[0] * b[1] - a[1] * b[0];
+    function determinant2(a,b){return ratio(exactDet(matrixFromColumns([a,b])),{n:1n,e:0},false);}
+    function solve2(a,b,target){
+      var det=exactDet(matrixFromColumns([a,b]));matrixFromColumns([target]);
+      if(det.n===0n)return null;
+      return [ratio(exactDet(matrixFromColumns([target,b])),det,true),ratio(exactDet(matrixFromColumns([a,target])),det,true)];
     }
-
-    function solve2(a, b, target) {
-      var det = determinant2(a, b);
-      if (Math.abs(det) <= EPS) return null;
-      return [
-        (target[0] * b[1] - b[0] * target[1]) / det,
-        (a[0] * target[1] - target[0] * a[1]) / det
-      ];
-    }
-
-    function analyze(options) {
-      var settings = options || {};
-      var preset = presetById(settings.presetId || DEFAULTS.presetId);
-      var t = Number(settings.t === undefined ? DEFAULTS.t : settings.t);
-      var px = Number(settings.px === undefined ? DEFAULTS.px : settings.px);
-      var py = Number(settings.py === undefined ? DEFAULTS.py : settings.py);
-      if (![t, px, py].every(finite)) throw new RangeError("coordinate parameters must be finite");
-      var vectors = preset.vectors(t);
-      var matrix = matrixFromColumns(vectors);
-      var rank = matrixRank(matrix);
-      var dimension = preset.dimension;
-      var independent = rank === vectors.length;
-      var spans = rank === dimension;
-      var basis = independent && spans;
-      var target = [px, py];
-      var coordinates = vectors.length >= 2 ? solve2(vectors[0], vectors[1], target) : null;
-      return {
-        preset: preset,
-        t: t,
-        vectors: vectors,
-        labels: preset.labels,
-        matrix: matrix,
-        rank: rank,
-        dimension: dimension,
-        nullity: vectors.length - rank,
-        independent: independent,
-        spans: spans,
-        basis: basis,
-        target: target,
-        coordinates: coordinates
-      };
+    function analyze(options){
+      if(options!==undefined&&(options===null||typeof options!=="object"))throw new TypeError("expected coordinate options");
+      var settings=options||{},preset=presetById(settings.presetId===undefined?DEFAULTS.presetId:settings.presetId);
+      var t=bounded(settings.t===undefined?DEFAULTS.t:settings.t,-2,4);
+      var px=bounded(settings.px===undefined?DEFAULTS.px:settings.px,-8,8),py=bounded(settings.py===undefined?DEFAULTS.py:settings.py,-8,8);
+      var vectors=preset.vectors(t),matrix=matrixFromColumns(vectors),target=[px,py];
+      var rank=preset.id==="redundant"?2:preset.id==="collinear"||t===2?1:2;
+      var nullity=vectors.length-rank,independent=nullity===0,spans=rank===2,basis=independent&&spans;
+      var inSpan=rank===2||px===py,coordinates=solve2(vectors[0],vectors[1],target);
+      var relations=preset.id==="redundant"?[[-t,-1,1]]:preset.id==="collinear"?[[-2,1,0],[-t,0,1]]:t===2?[[-2,1]]:[];
+      var particular=!inSpan?null:preset.id==="redundant"?[px,py,0]:preset.id==="collinear"?[px,0,0]:rank===1?[px,0]:coordinates;
+      var reconstructed=particular?[0,1].map(function(j){return vectors.reduce(function(sum,v,i){return sum+v[j]*particular[i];},0);}):null;
+      var residual=reconstructed?Math.hypot(reconstructed[0]-px,reconstructed[1]-py):null;
+      var condition=null;
+      if(preset.id==="redundant")condition=1;
+      else if(basis){var trace=6+t*t;condition=(trace+Math.hypot(2-(4+t*t),2*(2+t)))/(2*Math.abs(t-2));}
+      return {preset:preset,t:t,vectors:vectors,labels:preset.labels,matrix:matrix,rank:rank,dimension:2,nullity:nullity,independent:independent,spans:spans,basis:basis,target:target,coordinates:coordinates,relations:relations,inSpan:inSpan,particular:particular,reconstructed:reconstructed,residual:residual,condition:condition,representation:!inSpan?"无表示":nullity?"无穷多种表示":"唯一表示"};
     }
 
     function element(doc, tag, attrs, children) {
@@ -248,7 +235,8 @@
         });
         button.addEventListener("click", function () {
           refs.state.predictions[key] = choice.value;
-          renderPrediction(refs);
+          refs.state.revealed=false;
+          refs.render();
         });
         refs[key].push({ value: choice.value, node: button });
         row.appendChild(button);
@@ -273,45 +261,25 @@
       refs.feedback.className = "lsc-feedback";
     }
 
-    function arrowSvg(doc, data, uid) {
-      var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 500 320",
-        role: "img",
-        "aria-labelledby": uid + "-svg-title " + uid + "-svg-desc"
-      });
-      svg.appendChild(svgNode(doc, "title", { id: uid + "-svg-title" }, "向量坐标与生成空间"));
-      svg.appendChild(svgNode(doc, "desc", { id: uid + "-svg-desc" }, "箭头从原点出发，显示当前向量列与目标向量。"));
-      var maxAbs = 2.5;
-      data.vectors.forEach(function (vector) {
-        maxAbs = Math.max(maxAbs, Math.abs(vector[0]) + 0.6, Math.abs(vector[1]) + 0.6);
-      });
-      maxAbs = Math.max(maxAbs, Math.abs(data.target[0]) + 0.6, Math.abs(data.target[1]) + 0.6);
-      maxAbs = Math.min(7, maxAbs);
-      var left = 42, top = 18, width = 420, height = 260;
-      var mapX = function (value) { return left + (value + maxAbs) / (2 * maxAbs) * width; };
-      var mapY = function (value) { return top + (maxAbs - value) / (2 * maxAbs) * height; };
-      var ox = mapX(0), oy = mapY(0);
-      for (var tick = -Math.floor(maxAbs); tick <= Math.floor(maxAbs); tick += 1) {
-        if (tick === 0) continue;
-        svg.appendChild(svgNode(doc, "line", { x1: mapX(tick), y1: top, x2: mapX(tick), y2: top + height, stroke: "currentColor", "stroke-opacity": "0.12" }));
-        svg.appendChild(svgNode(doc, "line", { x1: left, y1: mapY(tick), x2: left + width, y2: mapY(tick), stroke: "currentColor", "stroke-opacity": "0.12" }));
-      }
-      svg.appendChild(svgNode(doc, "line", { x1: left, y1: oy, x2: left + width, y2: oy, stroke: "currentColor", "stroke-opacity": "0.55" }));
-      svg.appendChild(svgNode(doc, "line", { x1: ox, y1: top, x2: ox, y2: top + height, stroke: "currentColor", "stroke-opacity": "0.55" }));
-      var colors = ["var(--lsc-blue)", "var(--lsc-gold)", "var(--lsc-green)"];
-      data.vectors.forEach(function (vector, index) {
-        var color = colors[index % colors.length];
-        var ex = mapX(vector[0]), ey = mapY(vector[1]);
-        svg.appendChild(svgNode(doc, "line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: color, "stroke-width": "3", "stroke-linecap": "round" }));
-        svg.appendChild(svgNode(doc, "circle", { cx: ex, cy: ey, r: "4.5", fill: color, stroke: "var(--bg)", "stroke-width": "1.5" }));
-        svg.appendChild(svgNode(doc, "text", { x: ex + 7, y: ey - 7, "font-size": "12", "font-weight": "700" }, data.labels[index]));
-      });
-      var tx = mapX(data.target[0]), ty = mapY(data.target[1]);
-      svg.appendChild(svgNode(doc, "circle", { cx: tx, cy: ty, r: "5", fill: "var(--lsc-red)", stroke: "var(--bg)", "stroke-width": "2" }));
-      svg.appendChild(svgNode(doc, "text", { x: tx + 8, y: ty + 16, "font-size": "12", "font-weight": "700" }, "p"));
-      svg.appendChild(svgNode(doc, "text", { x: left + width - 5, y: oy - 8, "font-size": "11", "text-anchor": "end" }, "x"));
-      svg.appendChild(svgNode(doc, "text", { x: ox + 7, y: top + 12, "font-size": "11" }, "y"));
-      svg.appendChild(svgNode(doc, "text", { x: left, y: 14, "font-size": "13", "font-weight": "700" }, "坐标图：列向量、目标 p 与生成方向"));
+    function arrowSvg(doc,data,uid){
+      var svg=svgNode(doc,"svg",{viewBox:"0 0 700 470",role:"img","aria-labelledby":uid+"-svg-title "+uid+"-svg-desc"});
+      svg.appendChild(svgNode(doc,"title",{id:uid+"-svg-title"},"列向量、生成空间与目标"));
+      svg.appendChild(svgNode(doc,"desc",{id:uid+"-svg-desc"},"同一等比例标准坐标；淡色平面或斜线表示生成空间，右侧图例保留重合向量的身份。"));
+      var limit=2;data.vectors.concat([data.target]).forEach(function(v){limit=Math.max(limit,Math.ceil(Math.max(Math.abs(v[0]),Math.abs(v[1]))+.5));});
+      var pixels=165/limit,ox=240,oy=235,mapX=function(x){return ox+pixels*x;},mapY=function(y){return oy-pixels*y;};
+      if(data.rank===2)svg.appendChild(svgNode(doc,"rect",{x:75,y:70,width:330,height:330,fill:"var(--lsc-blue)","fill-opacity":.06}));
+      else svg.appendChild(svgNode(doc,"line",{x1:75,y1:400,x2:405,y2:70,stroke:"var(--lsc-blue)","stroke-width":8,"stroke-opacity":.2}));
+      [-limit,0,limit].forEach(function(t){svg.appendChild(svgNode(doc,"line",{x1:mapX(t),y1:70,x2:mapX(t),y2:400,stroke:"currentColor","stroke-opacity":.12}));svg.appendChild(svgNode(doc,"line",{x1:75,y1:mapY(t),x2:405,y2:mapY(t),stroke:"currentColor","stroke-opacity":.12}));svg.appendChild(svgNode(doc,"text",{x:mapX(t),y:422,"text-anchor":"middle","font-size":13},String(t)));svg.appendChild(svgNode(doc,"text",{x:63,y:mapY(t)+4,"text-anchor":"end","font-size":13},String(t)));});
+      svg.appendChild(svgNode(doc,"line",{x1:70,y1:oy,x2:415,y2:oy,stroke:"currentColor","stroke-opacity":.6}));svg.appendChild(svgNode(doc,"line",{x1:ox,y1:65,x2:ox,y2:405,stroke:"currentColor","stroke-opacity":.6}));
+      var colors=["var(--lsc-blue)","var(--lsc-gold)","var(--lsc-green)"];
+      data.vectors.forEach(function(v,i){var color=colors[i];svg.appendChild(svgNode(doc,"line",{x1:ox,y1:oy,x2:mapX(v[0]),y2:mapY(v[1]),stroke:color,"stroke-width":3}));svg.appendChild(svgNode(doc,"circle",{cx:mapX(v[0]),cy:mapY(v[1]),r:4.5,fill:color}));svg.appendChild(svgNode(doc,"circle",{cx:444,cy:94+i*37,r:4,fill:color}));svg.appendChild(svgNode(doc,"text",{x:456,y:99+i*37,"font-size":13},data.labels[i]+"=("+v.map(function(x){return formatNumber(x);}).join(", ")+")"));});
+      svg.appendChild(svgNode(doc,"circle",{cx:mapX(data.target[0]),cy:mapY(data.target[1]),r:5,fill:"var(--lsc-red)"}));
+      svg.appendChild(svgNode(doc,"text",{x:440,y:231,"font-size":13},"红点 p=("+data.target.map(function(x){return formatNumber(x);}).join(", ")+")"));
+      svg.appendChild(svgNode(doc,"text",{x:440,y:261,"font-size":13},data.rank===2?"淡色区域：span = R²":"淡色直线：span = {(a,a)}"));
+      svg.appendChild(svgNode(doc,"text",{x:440,y:292,"font-size":13},"目标："+data.representation));
+      svg.appendChild(svgNode(doc,"text",{x:24,y:28,"font-size":16,"font-weight":700},"先看目标是否在生成空间，再问表示是否唯一"));
+      svg.appendChild(svgNode(doc,"text",{x:24,y:49,"font-size":13},"等比例标准坐标；重合向量和零向量请结合图例与系数关系读。"));
+      svg.appendChild(svgNode(doc,"text",{x:423,y:oy+5,"font-size":13},"x"));svg.appendChild(svgNode(doc,"text",{x:ox+8,y:66,"font-size":13},"y"));
       return svg;
     }
 
@@ -337,18 +305,21 @@
         metric(refs.doc, "列秩", String(data.rank), data.rank === data.dimension ? "lsc-green" : "lsc-red"),
         metric(refs.doc, "生成空间维数", String(data.rank), "lsc-gold"),
         metric(refs.doc, "线性无关", data.independent ? "是" : "否", data.independent ? "lsc-green" : "lsc-red"),
-        metric(refs.doc, "基", data.basis ? "是" : "否", data.basis ? "lsc-green" : "lsc-red")
+        metric(refs.doc, "基", data.basis ? "是" : "否", data.basis ? "lsc-green" : "lsc-red"),
+        metric(refs.doc,"列关系空间维数",String(data.nullity),"lsc-gold"),
+        metric(refs.doc,"目标 p 的表示",data.representation,"lsc-blue"),
+        metric(refs.doc,"前两列基的 κ₂",data.condition===null?"不适用（非基）":formatNumber(data.condition),"lsc-gold")
       ]);
       replaceChildren(refs.chart, [
         element(refs.doc, "h4", { text: "向量箭头与坐标对象" }),
-        element(refs.doc, "div", { className: "lsc-chart-frame" }, arrowSvg(refs.doc, data, refs.uid))
+        element(refs.doc, "div", { className: "lsc-chart-frame", tabindex:"0", role:"region", "aria-label":"向量与生成空间图，可横向滚动" }, arrowSvg(refs.doc, data, refs.uid))
       ]);
       var rows = data.vectors.map(function (vector, index) {
         return element(refs.doc, "tr", {}, [
           element(refs.doc, "th", { scope: "row", text: data.labels[index] }),
           element(refs.doc, "td", { text: "(" + vector.map(function (value) { return formatNumber(value, 2); }).join(", ") + ")" }),
           element(refs.doc, "td", { text: "列 " + (index + 1) }),
-          element(refs.doc, "td", { text: data.independent ? "当前列组无冗余" : "存在列关系的可能" })
+          element(refs.doc, "td", { text: data.independent ? "当前列组无冗余" : "确定存在线性关系，见下方关系基" })
         ]);
       });
       rows.push(element(refs.doc, "tr", {}, [
@@ -357,13 +328,14 @@
         element(refs.doc, "td", { text: "标准坐标" }),
         element(refs.doc, "td", { text: data.coordinates ? "前两列坐标 = (" + formatNumber(data.coordinates[0], 3) + ", " + formatNumber(data.coordinates[1], 3) + ")" : "前两列不能唯一坐标化" })
       ]));
+      function row(label,value,role,meaning){rows.push(element(refs.doc,"tr",{},[element(refs.doc,"th",{scope:"row",text:label}),element(refs.doc,"td",{text:value}),element(refs.doc,"td",{text:role}),element(refs.doc,"td",{text:meaning})]));}
+      var list=function(v){return "("+v.map(function(x){return formatNumber(x);}).join(", ")+")";};
+      row("系数特解 c₀",data.particular?list(data.particular):"不存在","A c₀ = p",data.representation);
+      data.relations.forEach(function(relation,i){row("关系基 z"+(i+1),list(relation),"A z"+(i+1)+" = 0","所有解可加此方向的任意倍数（有解时）");});
+      row("重新合成 p",data.reconstructed?list(data.reconstructed):"不适用","按当前浮点系数复算",data.residual===null?"目标不在 span 内":"残差二范数 = "+formatNumber(data.residual));
       replaceChildren(refs.ledgerBody, rows);
-      refs.boundary.textContent =
-        "证书与证据分开读：当前 SVG 和表格只检查了 " + data.vectors.length +
-        " 个列向量；秩 " + data.rank + " 证明的是它们生成的子空间维数。" +
-        (data.coordinates
-          ? " 目标 p 的坐标换算依赖前两列可逆。"
-          : " 当前前两列退化，不能给目标 p 唯一坐标。");
+      refs.boundary.textContent="当前列矩阵 A:R^"+data.vectors.length+"→R²：秩 "+data.rank+" + 关系空间维数 "+data.nullity+" = 列数 "+data.vectors.length+"。这些有限列的完整代数计算可以证明是否生成指定的 R²；不能据此推断未给出的函数空间。"+(data.inSpan?(data.nullity?" 全部表示为 c₀ 加上所列关系基的任意线性组合；选定子列的坐标不能用来断言整组系数唯一。":" 当前是基，坐标唯一；接近 t=2 时基会病态，浮点重新合成残差应单独查看。") : " 目标 p 不在生成直线上，所以没有任何系数解，不能仅说坐标不唯一。");
+
     }
 
     function mount(root, api) {
@@ -382,7 +354,7 @@
       var refs = { doc: doc, uid: uid, state: state };
       var shell = element(doc, "div", { className: "lsc-shell" });
       shell.appendChild(element(doc, "h3", { text: "生成、独立与坐标实验" }));
-      shell.appendChild(element(doc, "p", { className: "lsc-note", text: "先预测，再揭示列秩、生成空间和坐标换算。有限列的计算不代替全空间证明。" }));
+      shell.appendChild(element(doc, "p", { className: "lsc-note", text: "先预测，再揭示列秩、生成空间和坐标换算。完整列关系可判定这些向量是否生成指定空间。" }));
 
       var prediction = element(doc, "section", {
         className: "lsc-predict",
@@ -396,12 +368,12 @@
         { value: "unknown", label: "只能看长度" }
       ]));
       questionList.appendChild(choiceQuestion(doc, refs, "redundancy", "2. 三列向量生成 R²，是否必然线性无关？", [
-        { value: "span-dependent", label: "不必然，可能冗余" },
+        { value: "span-dependent", label: "必然相关，生成仍有冗余" },
         { value: "always-independent", label: "是，生成就独立" },
         { value: "same-count", label: "只要长度相同" }
       ]));
       questionList.appendChild(choiceQuestion(doc, refs, "coordinates", "3. 换基后改变的是？", [
-        { value: "coordinates-change", label: "坐标变，向量不变" },
+        { value: "coordinates-change", label: "向量不变，坐标按基换算" },
         { value: "vector-change", label: "向量变，坐标不变" },
         { value: "both-fixed", label: "两者都不变" }
       ]));
@@ -423,8 +395,8 @@
       });
       refs.tInput = element(doc, "input", { type: "range", min: "-2", max: "4", step: "0.25", value: String(DEFAULTS.t), "aria-label": "参数 t" });
       refs.tOutput = element(doc, "output", { text: formatNumber(DEFAULTS.t, 2) });
-      refs.pxInput = element(doc, "input", { type: "number", step: "0.5", value: String(DEFAULTS.px), "aria-label": "目标向量 p 的 x 坐标" });
-      refs.pyInput = element(doc, "input", { type: "number", step: "0.5", value: String(DEFAULTS.py), "aria-label": "目标向量 p 的 y 坐标" });
+      refs.pxInput = element(doc, "input", { type: "number", min:"-8", max:"8", step: "0.5", value: String(DEFAULTS.px), "aria-label": "目标向量 p 的 x 坐标" });
+      refs.pyInput = element(doc, "input", { type: "number", min:"-8", max:"8", step: "0.5", value: String(DEFAULTS.py), "aria-label": "目标向量 p 的 y 坐标" });
       controls.appendChild(element(doc, "div", { className: "lsc-control" }, [
         element(doc, "label", { text: "向量族" }), refs.presetSelect
       ]));
@@ -449,7 +421,7 @@
       var grid = element(doc, "div", { className: "lsc-grid" });
       refs.chart = element(doc, "div");
       grid.appendChild(refs.chart);
-      var ledger = element(doc, "div", { className: "lsc-ledger" });
+      var ledger = element(doc, "div", { className: "lsc-ledger", tabindex:"0", role:"region", "aria-label":"系数与关系账本，可横向滚动" });
       var table = element(doc, "table", { "aria-label": "向量列与坐标账本" });
       table.appendChild(element(doc, "caption", { text: "当前列向量、对象身份与目标坐标" }));
       table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, [
@@ -476,6 +448,7 @@
         if (state.revealed) renderResults(refs);
       }
 
+      refs.render=render;
       reveal.addEventListener("click", function () {
         var answers = { span: "no-span", redundancy: "span-dependent", coordinates: "coordinates-change" };
         var keys = ["span", "redundancy", "coordinates"];
@@ -503,6 +476,7 @@
         };
         refs.state = state;
         render();
+        refs.span[0].node.focus();
       });
       refs.presetSelect.addEventListener("change", function () {
         state.presetId = refs.presetSelect.value;
@@ -512,14 +486,13 @@
         state.t = Number(refs.tInput.value);
         if (state.revealed) renderResults(refs);
       });
-      refs.pxInput.addEventListener("change", function () {
-        state.px = finite(Number(refs.pxInput.value)) ? Number(refs.pxInput.value) : DEFAULTS.px;
-        if (state.revealed) renderResults(refs);
-      });
-      refs.pyInput.addEventListener("change", function () {
-        state.py = finite(Number(refs.pyInput.value)) ? Number(refs.pyInput.value) : DEFAULTS.py;
-        if (state.revealed) renderResults(refs);
-      });
+      function targetChanged(key,input){
+        var value=input.valueAsNumber;
+        if(!finite(value)||value< -8||value>8){input.value=String(state[key]);refs.feedback.textContent="目标坐标须为 −8 到 8 的有限数；已保留上次有效值。";refs.feedback.className="lsc-feedback lsc-warn";return;}
+        state[key]=value;refs.feedback.textContent="目标已更新，查看是否有解与是否唯一。";refs.feedback.className="lsc-feedback";if(state.revealed)renderResults(refs);
+      }
+      refs.pxInput.addEventListener("change",function(){targetChanged("px",refs.pxInput);});
+      refs.pyInput.addEventListener("change",function(){targetChanged("py",refs.pyInput);});
       render();
     }
 
@@ -554,7 +527,7 @@
       assert(!redundant.independent && !redundant.basis, "redundant set is not a basis");
       assert(redundant.nullity === 1, "redundant nullity");
 
-      var collinear = analyze({ presetId: "collinear", t: -3 });
+      var collinear = analyze({ presetId: "collinear", t: -2 });
       assert(collinear.rank === 1 && !collinear.spans, "collinear span");
       var rejected = false;
       try { analyze({ presetId: "missing" }); } catch (error) { rejected = true; }
@@ -572,6 +545,7 @@
       determinant2: determinant2,
       solve2: solve2,
       analyze: analyze,
+      formatNumber: formatNumber,
       mount: mount,
       selfTest: selfTest
     };

@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 08:38</div>
+    <div class="build-time">构建于 2026-09-09 15:12</div>
   </div>
 </nav>
 <main id="content">
@@ -58,14 +58,16 @@ try {
 <li><a href="#2">2. 先预测：生成、独立、基与维数</a></li>
 <li><a href="#3">3. 正式桥：从行列式到坐标化</a></li>
 <li><a href="#4">4. 定理级结论与失败边界</a></li>
+<li><a href="#5">5. 迁移：生成性、坐标与抽象对象</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 线性空间</a></li>
 <li><a href="#2_1">2. 基、维数与坐标</a></li>
 <li><a href="#3_1">3. 线性映射与线性变换</a></li>
 <li><a href="#4_1">4. 线性映射的矩阵表示（本页顶点）</a></li>
-<li><a href="#5">5. 对偶空间一瞥</a></li>
+<li><a href="#5_1">5. 对偶空间一瞥</a></li>
 <li><a href="#6">6. 典型例题</a></li>
+<li><a href="#7">7. 原始资料与继续阅读</a></li>
 <li><a href="#_1">基础衔接与计算验收</a></li>
 </ul>
 </div>
@@ -78,6 +80,7 @@ try {
 
 <section aria-labelledby="algebra04-learning-title" class="learning-layer">
 <h2 id="algebra04-learning-title">学习层：先认出向量，再相信坐标<a class="headerlink" href="#algebra04-learning-title" title="Permanent link"></a></h2>
+<p><strong>先修与去向：</strong>回看<a href="algebra-02-determinant.html">行列式与方程组</a>的秩与自由变量，以及<a href="algebra-03-matrix.html">矩阵</a>的核像、左右乘和换基还原；本页把这些计算抽象为定义和定理。下一步是<a href="algebra-05-eigen.html">特征值与不变子空间</a>。</p>
 <h3 id="1">1. 一个具体的生成问题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>在 <span class="arithmatex">\(\mathbb{R}^2\)</span> 中取</p>
 <div class="arithmatex">\[
@@ -91,7 +94,7 @@ u=(1,1),\qquad v=(2,t).
 <li>三个向量若能生成二维空间，是否必然线性无关，因而是一个基？</li>
 <li>换基以后，同一个抽象向量的几何对象会不会改变；改变的究竟是向量还是坐标列？</li>
 </ol>
-<p>提交预测后，实验台会揭示秩、零空间关系、生成空间维数和一组坐标换算。有限列表上的秩计算很有用，但它只回答“这几个向量”的命题，不能凭有限样本证明一个无限维空间中的全称命题。</p>
+<p>提交预测后，实验台会揭示秩、零空间关系、生成空间维数和一组坐标换算。完整的列关系计算可以严格证明这些向量是否生成指定的有限维空间；这与只抽查某些函数、却声称它们生成整个无限维函数空间，是不同的推理。</p>
 <h3 id="3">3. 正式桥：从行列式到坐标化<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>令 <span class="arithmatex">\(A=[u\ v]\)</span>。在二维情形，</p>
 <div class="arithmatex">\[
@@ -106,7 +109,19 @@ u=(1,1),\qquad v=(2,t).
 <div class="arithmatex">\[
 p_{\mathrm{std}}=B p_B,\qquad p_B=B^{-1}p_{\mathrm{std}}.
 \]</div>
-<p>这就是“坐标是相对于基的系数”，而不是把抽象向量缩减成某一串数字。</p>
+<p>为什么坐标唯一？生成性先保证至少有一组系数；若两组系数表示同一向量，相减得到一个零向量的线性组合，独立性迫使系数差全为零。两项条件缺一不可。</p>
+<p><strong>有解和唯一是两道关。</strong> 实验中的列矩阵 <span class="arithmatex">\(A:\mathbb R^m\to\mathbb R^2\)</span> 把系数列映成向量，<span class="arithmatex">\(m\)</span> 是列数。目标 <span class="arithmatex">\(p\)</span> 能否表示，就是 <span class="arithmatex">\(Ac=p\)</span> 是否有解；有解后，全部系数是 <span class="arithmatex">\(c_0+\ker A\)</span>。</p>
+<ul>
+<li>参数族在 <span class="arithmatex">\(t=2\)</span> 时，<span class="arithmatex">\(c_1u+c_2v=(c_1+2c_2)(1,1)\)</span>。若 <span class="arithmatex">\(p_x\ne p_y\)</span>，无解；若 <span class="arithmatex">\(p=(a,a)\)</span>，全部系数为 <span class="arithmatex">\((a,0)+\lambda(-2,1)\)</span>。</li>
+<li>三列 <span class="arithmatex">\(e_1,e_2,w=(t,1)\)</span> 总能生成 <span class="arithmatex">\(\mathbb R^2\)</span>，但<strong>必然相关</strong>，因为 <span class="arithmatex">\(-te_1-e_2+w=0\)</span>。对任意 <span class="arithmatex">\(p=(p_x,p_y)\)</span>，全部表示为 <span class="arithmatex">\((p_x,p_y,0)+\lambda(-t,-1,1)\)</span>。只选前两列得到唯一的标准坐标，不等于整组三列表示唯一。</li>
+<li>三列 <span class="arithmatex">\(u,2u,tu\)</span> 的秩为一，关系空间维数为二，一组关系基是 <span class="arithmatex">\((-2,1,0)\)</span>、<span class="arithmatex">\((-t,0,1)\)</span>。目标在线上才有解，有解时可独立加入这两个关系方向。</li>
+</ul>
+<p>这些关系本身就是可代入验证的证书。对于 <span class="arithmatex">\(t\ne2\)</span> 的参数族，唯一坐标是</p>
+<div class="arithmatex">\[
+c_2=\frac{p_y-p_x}{t-2},\qquad c_1=p_x-2c_2.
+\]</div>
+<p>当 <span class="arithmatex">\(t\)</span> 很接近二、<span class="arithmatex">\(p_y-p_x\ne0\)</span> 时，系数可能很大并互相抵消。数学上仍是基，浮点计算却可能敏感，所以实验同时给出前两列基的条件数与重新合成残差。它不会把“接近退化”直接当作“已经退化”。</p>
+<p>这就是“坐标是相对于基的系数”：对象、坐标和表示的唯一性要分开读。</p>
 <div class="learning-lab" data-learning-lab="linear-space-coordinates">
 <p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(u=(1,1)\)</span>、<span class="arithmatex">\(v=(2,t)\)</span>，并把 <span class="arithmatex">\(p=(3,2)\)</span> 当作标准坐标。下表只对列出的有限向量作判断：</p>
 <table>
@@ -136,7 +151,7 @@ p_{\mathrm{std}}=B p_B,\qquad p_B=B^{-1}p_{\mathrm{std}}.
 </tr>
 <tr>
 <td style="text-align: right;"><span class="arithmatex">\(3\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
 <td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
 <td>是</td>
 <td>是</td>
@@ -155,27 +170,47 @@ p_{\mathrm{std}}=B p_B,\qquad p_B=B^{-1}p_{\mathrm{std}}.
 <h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>定理级</strong>：列秩等于列空间维数；在有限维同一空间中，<span class="arithmatex">\(n\)</span> 个向量生成 <span class="arithmatex">\(n\)</span> 维空间，当且仅当它们线性无关，当且仅当它们构成一个基。基给出的坐标表示存在且唯一。</li>
-<li><strong>有限证据</strong>：实验台只计算当前 <span class="arithmatex">\(2\)</span> 维或 <span class="arithmatex">\(3\)</span> 维向量列表的矩阵；所有抽样通过，只说明这些列没有发现问题，不等于对未列出的向量作了全空间证明。</li>
+<li><strong>有限证据</strong>：实验台处理 <span class="arithmatex">\(\mathbb R^2\)</span> 中的两列或三列；它完整计算这些列的关系，可判定它们是否生成整个指定的 <span class="arithmatex">\(\mathbb R^2\)</span>。有限列结论不能被偷换成另一无限维空间的结论。</li>
 <li><strong>抽象与坐标边界</strong>：换基改变的是坐标表示和矩阵照片，不是抽象向量；把坐标等同于向量会混淆对象、基和记录方式。</li>
-<li><strong>退化边界</strong>：若列向量不足以生成目标空间，或矩阵秩下降，不能把“生成一个子空间”说成“生成整个空间”；数值计算中接近零的行列式还需要给出容差或精确论证。</li>
+<li><strong>退化边界</strong>：若列向量不足以生成目标空间，或矩阵秩下降，不能把“生成一个子空间”说成“生成整个空间”；本参数族用精确条件 <span class="arithmatex">\(t=2\)</span> 判断退化，数值条件数则回答坐标计算是否敏感；两者不混为同一阈值。</li>
 </ul>
+<h3 id="5">5. 迁移：生成性、坐标与抽象对象<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>令 <span class="arithmatex">\(t=2\)</span>，分别表示目标 <span class="arithmatex">\((3,3)\)</span> 和 <span class="arithmatex">\((3,2)\)</span>。若改用三列 <span class="arithmatex">\(e_1,e_2,(2,1)\)</span>，这两个目标的结论怎样改变？</li>
+<li>在 <span class="arithmatex">\(t=0\)</span> 的基 <span class="arithmatex">\(B=((1,1),(2,0))\)</span> 中表示 <span class="arithmatex">\(p=(3,2)\)</span>。若第二个基向量加倍成 <span class="arithmatex">\((4,0)\)</span>，新坐标是多少？画图中的 <span class="arithmatex">\(p\)</span> 是否移动？</li>
+<li>在 <span class="arithmatex">\(\mathbb R[x]_3=\operatorname{span}\{1,x,x^2\}\)</span> 上，取新基 <span class="arithmatex">\(1,x,x^2/2\)</span>，求导映射的矩阵是什么？解释为什么它是幂零的，但不是零映射。</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li>两列族中，<span class="arithmatex">\((3,3)\)</span> 的全部系数为 <span class="arithmatex">\((3,0)+\lambda(-2,1)\)</span>；<span class="arithmatex">\((3,2)\)</span> 不在直线 <span class="arithmatex">\(x=y\)</span> 上，无解。三列族中两者都能表示，全部系数分别为 <span class="arithmatex">\((3,3,0)+\lambda(-2,-1,1)\)</span> 与 <span class="arithmatex">\((3,2,0)+\lambda(-2,-1,1)\)</span>。生成整个平面不意味着三列独立。</li>
+<li><span class="arithmatex">\(p=2(1,1)+\tfrac12(2,0)\)</span>，所以坐标 <span class="arithmatex">\((2,1/2)\)</span>。第二基向量加倍后，系数减半，变成 <span class="arithmatex">\((2,1/4)\)</span>；<span class="arithmatex">\(2(1,1)+\tfrac14(4,0)\)</span> 仍为同一个 <span class="arithmatex">\((3,2)\)</span>。一般换基可以混合全部坐标，不只是逐项缩放。</li>
+<li>求导依次把三个基向量送到 <span class="arithmatex">\(0,1,x\)</span>，所以矩阵为 <span class="arithmatex">\(\begin{pmatrix}0&amp;1&amp;0\\0&amp;0&amp;1\\0&amp;0&amp;0\end{pmatrix}\)</span>。其三次方为零，而一次作用在 <span class="arithmatex">\(x\)</span> 上得到一，故本身非零。过渡矩阵 <span class="arithmatex">\(T=\operatorname{diag}(1,1,1/2)\)</span>，可直接核对 <span class="arithmatex">\(T^{-1}AT\)</span>。</li>
+</ol>
+</details>
+<p>实验目标坐标限定在 <span class="arithmatex">\([-8,8]\)</span>，参数 <span class="arithmatex">\(t\in[-2,4]\)</span>。前两列的坐标只在它们构成基时给出；其他情况会明确区分无解与无穷多解，并列出关系基和全部表示的构造。</p>
 </section>
 <figure class="plot">
-<p><img alt="线性映射把一组基/网格变成另一组（方格→平行四边形网格）。" src="assets/img/algebra-04-linear-map.svg" /></p>
-<figcaption><span class="fig-id">图 algebra-04.1</span>线性映射把一组基/网格变成另一组（方格→平行四边形网格）。</figcaption>
+<div tabindex="0" role="region" aria-label="同一向量的两组坐标，可横向滚动" style="max-width:100%;overflow-x:auto">
+<img style="min-width:700px" src="assets/img/algebra-04-linear-map.svg" alt="固定目标p等于三二，由两倍b1加半倍b2组成，标准坐标与B坐标不同但目标没有移动">
+</div>
+<figcaption>图 algebra-04.1：固定 \(B=((1,1),(2,0))\)，\(p=2b_1+\tfrac12b_2=(3,2)\)。图中的目标不动，标准基记录 \((3,2)\)，基 \(B\) 记录 \((2,1/2)\)。这是坐标变化；若真的施加一个线性映射，向量对象本身可能改变。</figcaption>
 </figure>
+
 <h2 id="1_1">1. 线性空间<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> 数域 <span class="arithmatex">\(P\)</span> 上的线性空间 <span class="arithmatex">\(V\)</span>：配备加法与数乘、满足八条公理（加法交换结合、有零元负元、数乘结合分配、<span class="arithmatex">\(1\cdot v = v\)</span>）的集合。</p>
-<p><strong>例子清单</strong>（体会公理化的威力）：<span class="arithmatex">\(P^n\)</span>；<span class="arithmatex">\(m\times n\)</span> 矩阵全体；次数 <span class="arithmatex">\(&lt; n\)</span> 的多项式 <span class="arithmatex">\(P[x]_n\)</span>；<span class="arithmatex">\([a,b]\)</span> 上连续函数 <span class="arithmatex">\(C[a,b]\)</span>（无限维）；齐次方程组解集。</p>
-<p><strong>子空间</strong>：对加法数乘封闭的非空子集。判定只需验封闭性。重要构造：生成子空间 <span class="arithmatex">\(\mathrm{span}(\alpha_1,\dots,\alpha_s)\)</span>；<strong>和</strong> <span class="arithmatex">\(V_1 + V_2 = \{v_1 + v_2\}\)</span> 与<strong>交</strong> <span class="arithmatex">\(V_1 \cap V_2\)</span>（并集一般不是子空间！）。</p>
-<p><strong>定理（维数公式）</strong></p>
+<p><strong>例子清单</strong>（体会公理化的威力）：<span class="arithmatex">\(P^n\)</span>；<span class="arithmatex">\(m\times n\)</span> 矩阵全体；次数 <span class="arithmatex">\(&lt;n\)</span> 的多项式与零多项式组成 <span class="arithmatex">\(P[x]_n\)</span>（<span class="arithmatex">\(n\ge1\)</span>）；非退化区间 <span class="arithmatex">\(a&lt;b\)</span> 上的连续函数 <span class="arithmatex">\(C[a,b]\)</span>（无限维）；齐次方程组解集。</p>
+<p>为什么 <span class="arithmatex">\(C[a,b]\)</span> 在 <span class="arithmatex">\(a&lt;b\)</span> 时无限维？对任意 <span class="arithmatex">\(N\)</span>，函数 <span class="arithmatex">\(1,x,\ldots,x^N\)</span> 都线性无关：若线性组合在整个区间为零，对应多项式有无限多个根，故所有系数为零。可以找到任意长的独立列表，所以不存在有限基。这个论证用到了<a href="algebra-01-polynomial.html">多项式根数上界</a>，并非从几个抽样点猜维数。
++
++<strong>子空间</strong>：对加法数乘封闭的非空子集。判定只需验封闭性。重要构造：生成子空间 <span class="arithmatex">\(\mathrm{span}(\alpha_1,\dots,\alpha_s)\)</span>；<strong>和</strong> <span class="arithmatex">\(V_1 + V_2 = \{v_1 + v_2\}\)</span> 与<strong>交</strong> <span class="arithmatex">\(V_1 \cap V_2\)</span>（并集一般不是子空间！）。</p>
+<p><strong>定理（有限维子空间的维数公式）</strong></p>
 <div class="arithmatex">\[
 \dim(V_1 + V_2) = \dim V_1 + \dim V_2 - \dim(V_1 \cap V_2)
 \]</div>
-<p><em>思路</em>：取交的基，分别扩充为 <span class="arithmatex">\(V_1\)</span>、<span class="arithmatex">\(V_2\)</span> 的基，证拼起来是和的基（容斥的线性代数版）。</p>
-<p><strong>直和</strong> <span class="arithmatex">\(V_1 \oplus V_2\)</span>：<span class="arithmatex">\(V_1 \cap V_2 = \{0\}\)</span>，等价于"分解唯一"、"维数相加"。<strong>空间按直和拆解 = 问题按分量拆解</strong>——高代 V 特征子空间分解、Jordan 理论的组织原则。</p>
+<p><em>证明骨架</em>：取交的基 <span class="arithmatex">\(u_1,\ldots,u_k\)</span>，分别补上 <span class="arithmatex">\(v_1,\ldots,v_r\)</span> 与 <span class="arithmatex">\(w_1,\ldots,w_s\)</span> 成为两子空间的基。合并后显然生成和空间；若有零线性组合，把 <span class="arithmatex">\(w\)</span> 项移到另一侧，它同时属于 <span class="arithmatex">\(V_1\)</span> 与 <span class="arithmatex">\(V_2\)</span>，因而属于交。用 <span class="arithmatex">\(V_2\)</span> 的基独立性先消去全部 <span class="arithmatex">\(w\)</span> 系数，再用 <span class="arithmatex">\(V_1\)</span> 的基独立性消去其余系数。因此合并列表是基，数个数得公式。</p>
+<p><strong>直和</strong> <span class="arithmatex">\(V_1 \oplus V_2\)</span>：<span class="arithmatex">\(V_1 \cap V_2 = \{0\}\)</span>，等价于和空间内每个向量分解唯一；有限维时还等价于维数相加。若写 <span class="arithmatex">\(V=V_1\oplus V_2\)</span>，还须两者之和等于 <span class="arithmatex">\(V\)</span>。无限维的基数加法不能反推直和。<strong>空间按直和拆解 = 问题按分量拆解</strong>——高代 V 特征子空间分解、Jordan 理论的组织原则。</p>
 <h2 id="2_1">2. 基、维数与坐标<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>基</strong>：线性无关的生成组；<strong>维数</strong> = 基的元素个数（与基的选取无关——需证任意两基等长，替换定理）。基选定后每个向量有唯一坐标：<span class="arithmatex">\(v = \sum x_i \varepsilon_i \mapsto x = (x_1,\dots,x_n)^\top\)</span>——<strong>任何 <span class="arithmatex">\(n\)</span> 维空间坐标化后就是 <span class="arithmatex">\(P^n\)</span></strong>（同构），抽象向量从此可以用数组计算。</p>
+<p><strong>基</strong>：线性无关的生成组；这里每个向量都用有限项线性组合表示。有限维时，<strong>维数</strong> = 基的元素个数（与基的选取无关——需证任意两基等长，替换定理）。基选定后每个向量有唯一坐标：<span class="arithmatex">\(v = \sum x_i \varepsilon_i \mapsto x = (x_1,\dots,x_n)^\top\)</span>——<strong>任何 <span class="arithmatex">\(n\)</span> 维空间坐标化后就是 <span class="arithmatex">\(P^n\)</span></strong>（同构），抽象向量从此可以用数组计算。</p>
 <p><strong>基变换与坐标变换</strong>：新基 <span class="arithmatex">\((\eta_1,\dots,\eta_n) = (\varepsilon_1,\dots,\varepsilon_n)\,T\)</span>（<span class="arithmatex">\(T\)</span> 为过渡矩阵，可逆），则同一向量的坐标变换为</p>
 <div class="arithmatex">\[
 x_{\text{旧}} = T\, x_{\text{新}}
@@ -184,17 +219,22 @@ x_{\text{旧}} = T\, x_{\text{新}}
 <h2 id="3_1">3. 线性映射与线性变换<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(\mathcal{A}: V \to W\)</span> 满足 <span class="arithmatex">\(\mathcal{A}(k\alpha + l\beta) = k\mathcal{A}\alpha + l\mathcal{A}\beta\)</span>。<span class="arithmatex">\(V = W\)</span> 时称线性变换。</p>
 <p><strong>核与像</strong>：<span class="arithmatex">\(\ker\mathcal{A} = \{v: \mathcal{A}v = 0\}\)</span>（子空间，衡量"压缩掉多少"）；<span class="arithmatex">\(\mathrm{Im}\,\mathcal{A} = \mathcal{A}(V)\)</span>（子空间，衡量"到达多少"）。单射 <span class="arithmatex">\(\iff \ker = \{0\}\)</span>。</p>
-<p><strong>定理（秩–零度定理）</strong></p>
+<p><strong>定理（有限维定义域的秩–零度定理）</strong></p>
 <div class="arithmatex">\[
 \dim \ker \mathcal{A} + \dim \mathrm{Im}\,\mathcal{A} = \dim V
 \]</div>
-<p><em>思路</em>：取 <span class="arithmatex">\(\ker\)</span> 的基扩充为 <span class="arithmatex">\(V\)</span> 的基，证扩充部分的像是 <span class="arithmatex">\(\mathrm{Im}\)</span> 的基。<strong>读法：定义域的维数守恒——压缩掉的 + 幸存的 = 全部。</strong>方程组语言的重述：<span class="arithmatex">\(n - \mathrm{rank}A\)</span> 个自由变量（高代 II 基础解系的个数）正是 <span class="arithmatex">\(\dim\ker\)</span>。有限维推论：单 <span class="arithmatex">\(\iff\)</span> 满 <span class="arithmatex">\(\iff\)</span> 逆（同维时）。</p>
+<p><em>思路</em>：取 <span class="arithmatex">\(\ker\)</span> 的基扩充为 <span class="arithmatex">\(V\)</span> 的基，证扩充部分的像是 <span class="arithmatex">\(\mathrm{Im}\)</span> 的基。<strong>读法：定义域的维数守恒——压缩掉的 + 幸存的 = 全部。</strong>方程组语言的重述：<span class="arithmatex">\(n - \mathrm{rank}A\)</span> 个自由变量（高代 II 基础解系的个数）正是 <span class="arithmatex">\(\dim\ker\)</span>。当定义域与陪域同为有限维且维数相同时，单 <span class="arithmatex">\(\iff\)</span> 满 <span class="arithmatex">\(\iff\)</span> 可逆。无限维不成立：在 <span class="arithmatex">\(\mathbb R[x]\)</span> 上，乘以 <span class="arithmatex">\(x\)</span> 单射但不是满射（常数一没有原像）；求导满射但不单射（常数都在核里）。</p>
 <h2 id="4_1">4. 线性映射的矩阵表示（本页顶点）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>取定 <span class="arithmatex">\(V\)</span> 的基 <span class="arithmatex">\(\{\varepsilon_i\}\)</span>，线性变换 <span class="arithmatex">\(\mathcal{A}\)</span> 由它在基上的作用完全决定：</p>
 <div class="arithmatex">\[
 \mathcal{A}(\varepsilon_1, \dots, \varepsilon_n) = (\varepsilon_1, \dots, \varepsilon_n)\, A
 \]</div>
 <p><span class="arithmatex">\(A\)</span> 的第 <span class="arithmatex">\(j\)</span> 列 = <span class="arithmatex">\(\mathcal{A}\varepsilon_j\)</span> 的坐标。于是<strong>映射的复合 ↔ 矩阵乘法、映射求逆 ↔ 矩阵求逆</strong>（高代 III"乘法为什么那样定义"在此兑现）；坐标层面 <span class="arithmatex">\(y = Ax\)</span>。</p>
+<p>一般映射 <span class="arithmatex">\(F:V\to W\)</span> 的矩阵可能为矩形：若 <span class="arithmatex">\(\dim V=n,\dim W=m\)</span>，分别选两端的基，则第 <span class="arithmatex">\(j\)</span> 列是 <span class="arithmatex">\(F\varepsilon_j\)</span> 在输出基下的 <span class="arithmatex">\(m\)</span> 个坐标。若输入过渡矩阵为 <span class="arithmatex">\(T\)</span>、输出过渡矩阵为 <span class="arithmatex">\(S\)</span>，由 <span class="arithmatex">\(x_{\rm old}=Tx_{\rm new}\)</span>、<span class="arithmatex">\(y_{\rm old}=Sy_{\rm new}\)</span> 得</p>
+<div class="arithmatex">\[
+M_{\rm new}=S^{-1}M_{\rm old}T.
+\]</div>
+<p>只有同一空间的线性变换、两端采用同一组新基时，才取 <span class="arithmatex">\(S=T\)</span> 得到相似变换。</p>
 <p><strong>换基后矩阵怎么变</strong>：基经 <span class="arithmatex">\(T\)</span> 变换，则同一变换 <span class="arithmatex">\(\mathcal{A}\)</span> 在新基下的矩阵为</p>
 <div class="arithmatex">\[
 B = T^{-1} A\, T
@@ -202,15 +242,19 @@ B = T^{-1} A\, T
 <p><strong>定义（相似）</strong> <span class="arithmatex">\(B \sim A \iff \exists\)</span> 可逆 <span class="arithmatex">\(T:\ B = T^{-1}AT\)</span>。——<strong>相似矩阵是同一线性变换在不同基下的照片</strong>。整个高代 V 的问题由此成立：给一个变换，找一组基让它的照片（矩阵）最简单——那就是对角化与 Jordan 标准形。</p>
 <p><strong>相似不变量</strong>（换照片角度不变的本质属性）：行列式、秩、迹 <span class="arithmatex">\(\mathrm{tr}A = \sum a_{ii}\)</span>（<span class="arithmatex">\(\mathrm{tr}(AB) = \mathrm{tr}(BA)\)</span> ⇒ 相似不变）、特征多项式（高代 V）。</p>
 <p><strong>不变子空间</strong>：<span class="arithmatex">\(\mathcal{A}W \subseteq W\)</span>。若 <span class="arithmatex">\(V\)</span> 可分解为不变子空间直和，矩阵呈<strong>分块对角</strong>——"找不变子空间 = 把变换拆成小块"，标准形理论的战略。</p>
-<p>🔗 <strong>AI 衔接</strong>：神经网络的每一线性层就是一个线性映射，"表示学习"可以读作"为数据找一组好基"；嵌入空间的语义方向（ai 课 06 讲 king−man+woman）是坐标与基观念的直接应用。</p>
-<h2 id="5">5. 对偶空间一瞥<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(V\)</span> 上全体线性函数 <span class="arithmatex">\(f:V\to P\)</span> 构成<strong>代数对偶空间</strong> <span class="arithmatex">\(V^*\)</span>。当 <span class="arithmatex">\(V\)</span> <strong>有限维</strong>时，<span class="arithmatex">\(\dim V^*=\dim V\)</span>，且基 <span class="arithmatex">\(\{\varepsilon_j\}\)</span> 有对偶基 <span class="arithmatex">\(f_i(\varepsilon_j)=\delta_{ij}\)</span>。无限维时，代数对偶通常严格更大，不能照搬等维结论；泛函分析还会按拓扑筛出连续对偶。（行向量之于列向量、梯度之于方向导数的严格出身。）</p>
+<p>🔗 <strong>AI 衔接</strong>：神经网络的每一线性层就是一个线性映射，只有在线性可逆变换的情境下，“换一组好基”才是严格描述。一般表示学习可以非线性、改变维数或丢失信息；语义向量类比只是经验现象，不由线性空间公理保证。</p>
+<h2 id="5_1">5. 对偶空间一瞥<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(V\)</span> 上全体线性函数 <span class="arithmatex">\(f:V\to P\)</span> 构成<strong>代数对偶空间</strong> <span class="arithmatex">\(V^*\)</span>。当 <span class="arithmatex">\(V\)</span> <strong>有限维</strong>时，<span class="arithmatex">\(\dim V^*=\dim V\)</span>，且基 <span class="arithmatex">\(\{\varepsilon_j\}\)</span> 有对偶基 <span class="arithmatex">\(f_i(\varepsilon_j)=\delta_{ij}\)</span>。无限维时，代数对偶通常严格更大，不能照搬等维结论；泛函分析还会按拓扑筛出连续对偶。例如在 <span class="arithmatex">\(\mathbb R[x]_3\)</span> 的基 <span class="arithmatex">\(1,x,x^2\)</span> 下，对偶基是 <span class="arithmatex">\(f_0(p)=p(0)\)</span>、<span class="arithmatex">\(f_1(p)=p'(0)\)</span>、<span class="arithmatex">\(f_2(p)=p''(0)/2\)</span>，它们分别读出三个系数。方向导数先是线性泛函；把它表示成梯度向量，还要指定内积，不能把对偶向量与普通向量无条件等同。</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（维数公式）</strong> <span class="arithmatex">\(V_1, V_2 \subset \mathbb{R}^{10}\)</span>，<span class="arithmatex">\(\dim V_1 = 6, \dim V_2 = 7\)</span>，求 <span class="arithmatex">\(\dim(V_1 \cap V_2)\)</span> 的范围。
-<em>解</em>：<span class="arithmatex">\(\dim(V_1 + V_2) \leq 10\)</span> ⇒ 交 <span class="arithmatex">\(\geq 6 + 7 - 10 = 3\)</span>；交 <span class="arithmatex">\(\leq \min = 6\)</span>。范围 <span class="arithmatex">\([3, 6]\)</span>（各端可实现）。</p>
-<p><strong>例 2（求变换矩阵与换基）</strong> <span class="arithmatex">\(\mathbb{R}[x]_3\)</span> 上求导变换 <span class="arithmatex">\(D\)</span>，基 <span class="arithmatex">\(\{1, x, x^2\}\)</span>：<span class="arithmatex">\(D1 = 0, Dx = 1, Dx^2 = 2x\)</span>，故 <span class="arithmatex">\(A = \begin{pmatrix} 0&amp;1&amp;0\\0&amp;0&amp;2\\0&amp;0&amp;0 \end{pmatrix}\)</span>（幂零——求导三次归零的矩阵表述）。换基 <span class="arithmatex">\(\{1, x, \frac{x^2}{2}\}\)</span> 练一次 <span class="arithmatex">\(T^{-1}AT\)</span>。</p>
+<em>解</em>：<span class="arithmatex">\(\dim(V_1 + V_2) \leq 10\)</span> ⇒ 交 <span class="arithmatex">\(\geq 6 + 7 - 10 = 3\)</span>；交 <span class="arithmatex">\(\leq \min = 6\)</span>。可能值为整数 <span class="arithmatex">\(3,4,5,6\)</span>。每个都可实现：取 <span class="arithmatex">\(V_1=\operatorname{span}(e_1,\ldots,e_6)\)</span>，对 <span class="arithmatex">\(k\in\{3,4,5,6\}\)</span> 取 <span class="arithmatex">\(V_2=\operatorname{span}(e_1,\ldots,e_k,e_7,\ldots,e_{13-k})\)</span>，其维数七，交维数恰为 <span class="arithmatex">\(k\)</span>。</p>
+<p><strong>例 2（求变换矩阵与换基）</strong> <span class="arithmatex">\(\mathbb{R}[x]_3\)</span> 上求导变换 <span class="arithmatex">\(D\)</span>，基 <span class="arithmatex">\(\{1, x, x^2\}\)</span>：<span class="arithmatex">\(D1 = 0, Dx = 1, Dx^2 = 2x\)</span>，故 <span class="arithmatex">\(A = \begin{pmatrix} 0&amp;1&amp;0\\0&amp;0&amp;2\\0&amp;0&amp;0 \end{pmatrix}\)</span>（幂零——求导三次归零的矩阵表述）。换基 <span class="arithmatex">\(\{1,x,x^2/2\}\)</span> 后得到两个超对角元都为一的幂零矩阵，完整计算见迁移题三。</p>
 <p><strong>例 3（秩–零度应用）</strong> 线性变换 <span class="arithmatex">\(\mathcal{A}^2 = \mathcal{A}\)</span>（幂等/投影），证明 <span class="arithmatex">\(V = \ker\mathcal{A} \oplus \mathrm{Im}\mathcal{A}\)</span>。
 <em>解</em>：任意 <span class="arithmatex">\(v = (v - \mathcal{A}v) + \mathcal{A}v\)</span>，前者在核（验 <span class="arithmatex">\(\mathcal{A}(v - \mathcal{A}v) = 0\)</span>）后者在像；交为零：<span class="arithmatex">\(w \in\)</span> 两者 ⇒ <span class="arithmatex">\(w = \mathcal{A}u\)</span> 且 <span class="arithmatex">\(\mathcal{A}w = 0\)</span> ⇒ <span class="arithmatex">\(w = \mathcal{A}^2 u = \mathcal{A}w = 0\)</span>。<strong>投影把空间干净地劈成"压掉的"与"留下的"。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="7">7. 原始资料与继续阅读<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT 18.06：Linear Algebra</a>，从矩阵计算连接列空间、零空间、基与坐标变换的课程资料。</li>
+</ul>
 <hr />
 <p><em>下一页：为每个线性变换寻找"最能暴露其本性的基"——特征值、对角化与 Jordan 标准形。</em></p>
 <h2 id="_1">基础衔接与计算验收<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
