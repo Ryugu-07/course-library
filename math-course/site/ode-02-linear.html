@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 21:13</div>
   </div>
 </nav>
 <main id="content">
@@ -60,24 +60,37 @@ try {
 <li><a href="#4-wronskian">4. 两条不能混用的 Wronskian 结论</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 解的结构（高代观点）</a></li>
-<li><a href="#2_1">2. 常系数齐次：特征方程算法</a></li>
-<li><a href="#3_1">3. 非齐次特解：两把武器</a></li>
-<li><a href="#4">4. 振动：本章的物理灵魂</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#1-n">1. 为什么恰好需要 n 个初值？</a><ul>
+<li><a href="#wronskian">Wronskian 的证书为什么有效？</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 特征根的重数如何变成一组基？</a></li>
+<li><a href="#3_1">3. 特解：先看算子，再选方法</a><ul>
+<li><a href="#x">待定系数中的“乘 x”有明确的重数</a></li>
+<li><a href="#_1">常数变易为何需要两条方程？</a></li>
+<li><a href="#euler">Euler 方程须把零点隔开</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 振动：根分类、拍频和稳态峰是三件事</a><ul>
+<li><a href="#_2">无外力：比较时先固定初值和固有频率</a></li>
+<li><a href="#_3">无阻尼受迫：拍频包络与极限</a></li>
+<li><a href="#_4">有正阻尼受迫：峰的位置会移动，甚至消失</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 迁移：把条件写进答案</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">常微分 II · 高阶线性方程<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>高阶线性方程是 ODE 课的主体，也是线性代数照进分析的样板间：<strong>解集是线性空间，解方程 = 找一组基</strong>。常系数情形有完整算法（特征方程），物理上对应一切振动现象——阻尼、共振都在本页。</p>
+<p><strong>前置</strong>：<a href="ode-01-first-order.html">一阶ODE与存在唯一性</a>、<a href="algebra-04-linear-space.html">线性空间与基</a>。本页将初值、解空间与特征根连起来，再用线性振子区分自由衰减、拍频和受迫稳态峰。齐次解形成线性空间，非齐次解形成平移后的仿射集。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="linear-ode-resonance-learning-title" class="learning-layer">
 <h2 id="t">学习层：频率“撞根”时，振幅为什么长出一个 <span class="arithmatex">\(t\)</span>？<a class="headerlink" href="#t" title="Permanent link"></a></h2>
 <h3 id="1">1. 具体情境：同一只无阻尼振子接受不同频率的推力<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>对零初值问题</p>
+<p>取固有角频率 <span class="arithmatex">\(\omega_0&gt;0\)</span>、单位质量驱动力幅度 <span class="arithmatex">\(F\)</span>。对零初值问题</p>
 <div class="arithmatex">\[
 y''+\omega_0^2y=F\cos(\omega t),\qquad y(0)=y'(0)=0,
 \]</div>
@@ -94,7 +107,7 @@ y(t)=\frac{F}{2\omega_0}\,t\sin(\omega_0t).
 <h3 id="2">2. 先预测：根、基与受迫响应<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <ol>
 <li>特征根为 <span class="arithmatex">\(-1\pm2i\)</span> 时，实基本解组应包含指数包络、三角振荡，还是两者兼有？</li>
-<li>forcing 频率逐渐靠近 <span class="arithmatex">\(\omega_0\)</span> 时，有限观察窗里先看到无限振幅，还是越来越慢的拍频包络？</li>
+<li>驱动 频率逐渐靠近 <span class="arithmatex">\(\omega_0\)</span> 时，有限观察窗里先看到无限振幅，还是越来越慢的拍频包络？</li>
 <li>无阻尼共振的线性增长能否直接外推到有阻尼、非线性或会损坏的真实结构？</li>
 </ol>
 <h3 id="3">3. 最小实验：把代数重根与时间轨迹对齐<a class="headerlink" href="#3" title="Permanent link"></a></h3>
@@ -103,7 +116,7 @@ y(t)=\frac{F}{2\omega_0}\,t\sin(\omega_0t).
 <table>
 <thead>
 <tr>
-<th style="text-align: right;">forcing 比 <span class="arithmatex">\(\omega/\omega_0\)</span></th>
+<th style="text-align: right;">驱动比 <span class="arithmatex">\(\omega/\omega_0\)</span></th>
 <th>解析结构</th>
 <th>有界性</th>
 <th>证据边界</th>
@@ -130,65 +143,117 @@ y(t)=\frac{F}{2\omega_0}\,t\sin(\omega_0t).
 </tr>
 </tbody>
 </table>
-<p>实验揭示后可移动 forcing 比与观察终点，SVG 同时显示位移与包络，账本给出特征根类型、Wronskian 证书、最大振幅和“精确/近似共振”身份。有限采样只画当前解析解，不能替代一般线性 ODE 的存在唯一性与基本解理论。</p>
 </div>
+<p>实验揭示后可移动驱动比与观察终点。上图显示无阻尼受迫位移与真实解析包络；下图显示独立的阻尼自由响应。账本分别标明两方程的根/基、采样峰值和驱动分类。有限采样只画当前解析解，不能替代一般线性 ODE 的存在唯一性与基本解理论。</p>
 <h3 id="4-wronskian">4. 两条不能混用的 Wronskian 结论<a class="headerlink" href="#4-wronskian" title="Permanent link"></a></h3>
 <p>对同一个 <span class="arithmatex">\(n\)</span> 阶齐次线性方程、且系数在区间上连续的一组解，Wronskian 在某点非零等价于它们线性无关；Abel–Liouville 公式还说明它要么处处非零，要么处处为零。对任意可微函数，某一点 <span class="arithmatex">\(W=0\)</span> 并不能推出线性相关。实验只对解析基本解组出证书。</p>
 </section>
-<h2 id="1_1">1. 解的结构（高代观点）<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(n\)</span> 阶线性方程 <span class="arithmatex">\(y^{(n)} + a_1(x)y^{(n-1)} + \cdots + a_n(x)y = f(x)\)</span>。</p>
-<p><strong>定理（齐次解空间）</strong> 在最高阶系数不为零且标准化后各系数在区间上连续时，齐次方程（<span class="arithmatex">\(f = 0\)</span>）的解集是 <strong><span class="arithmatex">\(n\)</span> 维线性空间</strong>（叠加原理给"是线性空间"；存在唯一性定理给"维数恰为 <span class="arithmatex">\(n\)</span>"——初值 <span class="arithmatex">\((y, y', \dots, y^{(n-1)})(x_0)\)</span> 与解一一对应，<span class="arithmatex">\(\mathbb{R}^n\)</span> 的坐标）。通解 = <span class="arithmatex">\(C_1 y_1 + \cdots + C_n y_n\)</span>（<span class="arithmatex">\(y_i\)</span> 为<strong>基本解组</strong>）。</p>
-<p><strong>线性无关的判器（Wronskian）</strong>：<span class="arithmatex">\(W(x) = \det[y_j^{(i-1)}]\)</span>。对同一齐次线性方程的一组解，线性无关 <span class="arithmatex">\(\iff W\)</span> 在某点非零（随后由 Liouville 公式知处处非零）；对任意可微函数，单点 <span class="arithmatex">\(W=0\)</span> 不能反推相关。</p>
-<p><strong>非齐次结构</strong>：通解 = 齐次通解 + 任一特解（与高代 II 线性方程组 <span class="arithmatex">\(x = x_0 + \ker A\)</span> 逐字同构——线性问题的普适语法第三次出现）。</p>
-<h2 id="2_1">2. 常系数齐次：特征方程算法<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>代入试探解 <span class="arithmatex">\(y = e^{\lambda x}\)</span>（求导=乘 <span class="arithmatex">\(\lambda\)</span>，指数函数是微分算子的特征向量——"特征"二字与高代 V 同源非巧合），得<strong>特征方程</strong> <span class="arithmatex">\(\lambda^n + a_1\lambda^{n-1} + \cdots + a_n = 0\)</span>。按根的三种形态拼基：</p>
+<h2 id="1-n">1. 为什么恰好需要 n 个初值？<a class="headerlink" href="#1-n" title="Permanent link"></a></h2>
+<p>先在区间 <span class="arithmatex">\(I\)</span> 上讨论</p>
+<div class="arithmatex">\[
+y^{(n)}+a_1(x)y^{(n-1)}+\cdots+a_n(x)y=f(x),
+\]</div>
+<p>其中各系数和 <span class="arithmatex">\(f\)</span> 连续；原方程的最高阶系数若不是 <span class="arithmatex">\(1\)</span>，须先保证它在 <span class="arithmatex">\(I\)</span> 不为零，再除过去。把 <span class="arithmatex">\(Y=(y,y',\ldots,y^{(n-1)})^T\)</span> 组成状态，便得到一个连续系数的一阶线性系统。存在唯一性定理保证：固定 <span class="arithmatex">\(x_0\in I\)</span> 后，每个初值向量唯一对应整个 <span class="arithmatex">\(I\)</span> 上的一个解。</p>
+<p>对齐次方程，取初值映射 <span class="arithmatex">\(E:y\mapsto Y(x_0)\)</span>。叠加原理说明 <span class="arithmatex">\(E\)</span> 线性，唯一性给单射，存在性给满射。因此齐次解空间与 <span class="arithmatex">\(\mathbb R^n\)</span> 同构，维数恰为 <span class="arithmatex">\(n\)</span>。非齐次解集通常不经过零；若已有特解 <span class="arithmatex">\(y_p\)</span>，任何其他解与它的差都齐次，故它是仿射集 <span class="arithmatex">\(y_p+\ker L\)</span>。<a href="https://www.jirka.org/diffyqs/html/sec_hol.html">Lebl，§2.3</a></p>
+<h3 id="wronskian">Wronskian 的证书为什么有效？<a class="headerlink" href="#wronskian" title="Permanent link"></a></h3>
+<p>将 <span class="arithmatex">\(n\)</span> 个解的初值列组成矩阵 <span class="arithmatex">\(\Phi(x)=[y_j^{(i-1)}(x)]\)</span>。若 <span class="arithmatex">\(W(x_0)=\det\Phi(x_0)\ne0\)</span>，任意初值都能由这些列唯一线性组合，故它们是一组基。若行列式为零，有非零常数向量 <span class="arithmatex">\(c\)</span> 使 <span class="arithmatex">\(\Phi(x_0)c=0\)</span>；组合解有全零初值，由唯一性只能恒零，于是相关。</p>
+<p>二阶方程 <span class="arithmatex">\(y''+p(x)y'+q(x)y=0\)</span> 尤其直观：</p>
+<div class="arithmatex">\[
+W=y_1y_2'-y_1'y_2,\qquad
+W'=y_1y_2''-y_1''y_2=-pW,
+\]</div>
+<p>所以 <span class="arithmatex">\(W(x)=W(x_0)\exp[-\int_{x_0}^x p(s)ds]\)</span>。一般 <span class="arithmatex">\(n\)</span> 阶用行列式逐行求导：前 <span class="arithmatex">\(n-1\)</span> 项出现重复行而为零，末行代入方程后只剩 <span class="arithmatex">\(-a_1W\)</span>，得到同一 Abel–Liouville 公式。指数不会在有限 <span class="arithmatex">\(x\)</span> 变成零；数值下溢为零则不是相关证据。</p>
+<p><strong>必须是同一正规方程的解。</strong> 任意函数 <span class="arithmatex">\(1,x^2\)</span> 在含零区间上无关，却有 <span class="arithmatex">\(W(0)=0\)</span>。更强的例子 <span class="arithmatex">\(x^2,x|x|\)</span> 在 <span class="arithmatex">\(\mathbb R\)</span> 上都是 <span class="arithmatex">\(C^1\)</span>，Wronskian 处处零，仍全局无关：正半轴要求两系数相加为零，负半轴要求相减为零，只有全零组合。它们不满足上述同一连续系数正规方程的解假设。</p>
+<h2 id="2_1">2. 特征根的重数如何变成一组基？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>常系数算子记作 <span class="arithmatex">\(P(D)\)</span>，<span class="arithmatex">\(D=d/dx\)</span>。指数满足 <span class="arithmatex">\(P(D)e^{\lambda x}=P(\lambda)e^{\lambda x}\)</span>，所以先解特征多项式 <span class="arithmatex">\(P(\lambda)=0\)</span>。对实系数方程，复根成共轭对：</p>
 <table>
 <thead>
 <tr>
-<th>特征根</th>
-<th>贡献的基解</th>
+<th>根及重数</th>
+<th>对应实基函数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>单实根 <span class="arithmatex">\(\lambda\)</span></td>
-<td><span class="arithmatex">\(e^{\lambda x}\)</span></td>
+<td>实根 <span class="arithmatex">\(\lambda\)</span>，重数 <span class="arithmatex">\(k\)</span></td>
+<td><span class="arithmatex">\(x^je^{\lambda x}\)</span>，<span class="arithmatex">\(j=0,\ldots,k-1\)</span></td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(k\)</span> 重实根 <span class="arithmatex">\(\lambda\)</span></td>
-<td><span class="arithmatex">\(e^{\lambda x},\ xe^{\lambda x},\ \dots,\ x^{k-1}e^{\lambda x}\)</span></td>
-</tr>
-<tr>
-<td>复根对 <span class="arithmatex">\(\alpha \pm i\beta\)</span></td>
-<td><span class="arithmatex">\(e^{\alpha x}\cos\beta x,\ e^{\alpha x}\sin\beta x\)</span>（Euler 公式取实虚部）</td>
+<td>非实共轭根 <span class="arithmatex">\(\alpha\pm i\beta\)</span>，每个重数 <span class="arithmatex">\(k\)</span>，<span class="arithmatex">\(\beta&gt;0\)</span></td>
+<td><span class="arithmatex">\(x^je^{\alpha x}\cos\beta x\)</span> 与 <span class="arithmatex">\(x^je^{\alpha x}\sin\beta x\)</span>，<span class="arithmatex">\(j=0,\ldots,k-1\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>（重根多出的 <span class="arithmatex">\(x^k\)</span> 因子：极限视角是两个相邻单根解 <span class="arithmatex">\(\frac{e^{\lambda_2 x} - e^{\lambda_1 x}}{\lambda_2 - \lambda_1} \to x e^{\lambda x}\)</span>——导数的定义现身。）</p>
-<h2 id="3_1">3. 非齐次特解：两把武器<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>待定系数法</strong>（<span class="arithmatex">\(f\)</span> 是"多项式 × 指数 × 三角"型专用）：按 <span class="arithmatex">\(f\)</span> 的形态设同型特解；<strong>若试探的指数/频率撞上特征根，乘 <span class="arithmatex">\(x\)</span></strong>（撞几重乘几次）——"共振修正"，遗漏它是本章头号错因。</p>
-<p><strong>常数变易法</strong>（万能，<span class="arithmatex">\(f\)</span> 任意）：设特解 <span class="arithmatex">\(y^* = C_1(x)y_1 + C_2(x)y_2\)</span>，解线性方程组（系数矩阵恰是 Wronskian 矩阵）得 <span class="arithmatex">\(C_i'\)</span>，积分即可。二阶情形的结果值得记：<span class="arithmatex">\(C_1' = \frac{-y_2 f}{W},\ C_2' = \frac{y_1 f}{W}\)</span>。</p>
-<p><strong>Euler 方程</strong>一嘴：<span class="arithmatex">\(x^2 y'' + axy' + by = 0\)</span> 换元 <span class="arithmatex">\(x = e^t\)</span> 化常系数（或试 <span class="arithmatex">\(y = x^k\)</span>）。</p>
-<h2 id="4">4. 振动：本章的物理灵魂<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>不是凭形状猜：移位恒等式</p>
+<div class="arithmatex">\[
+P(D)\bigl(e^{\lambda x}v\bigr)=e^{\lambda x}P(D+\lambda)v
+\]</div>
+<p>把一个 <span class="arithmatex">\(k\)</span> 重根移到零，因子 <span class="arithmatex">\((D-\lambda)^k\)</span> 作用后变成 <span class="arithmatex">\(D^kv\)</span>；次数小于 <span class="arithmatex">\(k\)</span> 的多项式被消掉，产生这些解。将所有根计入重数，恰好得到 <span class="arithmatex">\(n\)</span> 个独立解。也可从相邻根合并看出 <span class="arithmatex">\([e^{(\lambda+\varepsilon)x}-e^{\lambda x}]/\varepsilon\to xe^{\lambda x}\)</span>。</p>
+<p>例如 <span class="arithmatex">\(y'''-y''+y'-y=0\)</span>，有 <span class="arithmatex">\(P(\lambda)=(\lambda-1)(\lambda^2+1)\)</span>，故通解为 <span class="arithmatex">\(C_1e^x+C_2\cos x+C_3\sin x\)</span>。若改成 <span class="arithmatex">\(P(\lambda)=(\lambda^2+1)^2\)</span>，就要补上 <span class="arithmatex">\(x\cos x,x\sin x\)</span>，不能只写两个三角函数。</p>
+<h2 id="3_1">3. 特解：先看算子，再选方法<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<h3 id="x">待定系数中的“乘 x”有明确的重数<a class="headerlink" href="#x" title="Permanent link"></a></h3>
+<p>对于常系数方程，外力为多项式乘指数、正弦或余弦时，可以在有限维函数族中求系数。复写右端 <span class="arithmatex">\(e^{\lambda x}R_m(x)\)</span>，若 <span class="arithmatex">\(\lambda\)</span> 是 <span class="arithmatex">\(P\)</span> 的 <span class="arithmatex">\(k\)</span> 重根（不是根则 <span class="arithmatex">\(k=0\)</span>），可取</p>
+<div class="arithmatex">\[
+y_p=e^{\lambda x}x^k Q_m(x).
+\]</div>
+<p>理由是移位后的算子含 <span class="arithmatex">\(D^k\)</span>，它正好把 <span class="arithmatex">\(x^kQ_m\)</span> 的次数降回 <span class="arithmatex">\(m\)</span>；剩余因子的常数项非零，逐级匹配能解出系数。三角项是复指数的实部/虚部，通常应同时试正弦和余弦，不能仅照抄右端一种。</p>
+<p>例如 <span class="arithmatex">\(y''+4y=\cos2x\)</span>，根 <span class="arithmatex">\(2i\)</span> 重数一，代入 <span class="arithmatex">\(x(A\cos2x+B\sin2x)\)</span> 得 <span class="arithmatex">\(-4A\sin2x+4B\cos2x\)</span>，因此 <span class="arithmatex">\(y_p=x\sin2x/4\)</span>。这是一个特解，指定初值还需添加齐次部分。</p>
+<h3 id="_1">常数变易为何需要两条方程？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>对已标准化的 <span class="arithmatex">\(y''+py'+qy=f\)</span>，已知基本解 <span class="arithmatex">\(y_1,y_2\)</span> 后设 <span class="arithmatex">\(y_p=C_1y_1+C_2y_2\)</span>。两个未知函数有表示冗余，可取辅助条件 <span class="arithmatex">\(C_1'y_1+C_2'y_2=0\)</span>。代回原方程只剩</p>
+<div class="arithmatex">\[
+\begin{pmatrix}y_1&amp;y_2\\y_1'&amp;y_2'\end{pmatrix}
+\binom{C_1'}{C_2'}=\binom0f,
+\qquad C_1'=-\frac{y_2f}{W},\quad C_2'=\frac{y_1f}{W}.
+\]</div>
+<p>在连续系数、<span class="arithmatex">\(W\ne0\)</span> 的区间上积分即可；不一定能写成初等函数。若最高阶系数为 <span class="arithmatex">\(a(x)\)</span>，此处应使用标准化后的 <span class="arithmatex">\(f/a\)</span>。<a href="https://www.jirka.org/diffyqs/html/sec_nonhom.html">Lebl，§2.5</a></p>
+<p>以 <span class="arithmatex">\(y''+y=\tan x\)</span> 为例，只在不跨越 <span class="arithmatex">\(\pi/2+k\pi\)</span> 的区间求解。<span class="arithmatex">\(W(\cos x,\sin x)=1\)</span>，<span class="arithmatex">\(C_1'=-\sin x\tan x=\cos x-\sec x\)</span>，<span class="arithmatex">\(C_2'=\sin x\)</span>，可取 <span class="arithmatex">\(C_1=\sin x-\ln|\sec x+\tan x|\)</span>、<span class="arithmatex">\(C_2=-\cos x\)</span>。交叉项相消，留下 <span class="arithmatex">\(y_p=-\cos x\ln|\sec x+\tan x|\)</span>；直接求两次导数也能验回 <span class="arithmatex">\(\tan x\)</span>。</p>
+<h3 id="euler">Euler 方程须把零点隔开<a class="headerlink" href="#euler" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(x^2y''+axy'+by=0\)</span>，在任一不含零的半轴用 <span class="arithmatex">\(t=\ln|x|\)</span>、<span class="arithmatex">\(Y(t)=y(x)\)</span>：<span class="arithmatex">\(xy'=Y_t\)</span>，<span class="arithmatex">\(x^2y''=Y_{tt}-Y_t\)</span>，变为 <span class="arithmatex">\(Y_{tt}+(a-1)Y_t+bY=0\)</span>。正负半轴分别给出解，不能把奇异点 <span class="arithmatex">\(x=0\)</span> 当成普通初值点。</p>
+<h2 id="4">4. 振动：根分类、拍频和稳态峰是三件事<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(m,k&gt;0\)</span>、<span class="arithmatex">\(c\ge0\)</span>，定义 <span class="arithmatex">\(\omega_0=\sqrt{k/m}\)</span>、<span class="arithmatex">\(\zeta=c/(2\sqrt{mk})\)</span>。方程是</p>
+<div class="arithmatex">\[
+y''+2\zeta\omega_0y'+\omega_0^2y=\frac{F_0}{m}\cos\omega t.
+\]</div>
+<h3 id="_2">无外力：比较时先固定初值和固有频率<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>特征根为 <span class="arithmatex">\(-\zeta\omega_0\pm\omega_0\sqrt{\zeta^2-1}\)</span>。<span class="arithmatex">\(0&lt;\zeta&lt;1\)</span> 有衰减振荡，振荡角频率 <span class="arithmatex">\(\omega_d=\omega_0\sqrt{1-\zeta^2}\)</span>；<span class="arithmatex">\(\zeta=1\)</span> 是负重根；<span class="arithmatex">\(\zeta&gt;1\)</span> 有两个负实根；<span class="arithmatex">\(\zeta=0\)</span> 则不衰减。</p>
 <figure class="plot">
-<p><img alt="欠阻尼临界阻尼过阻尼三态" src="assets/img/ode-02-damping.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>二阶线性阻尼系统按阻尼比 \(\zeta\) 分三态：欠阻尼振荡衰减、临界阻尼最快无振荡回零、过阻尼缓慢回归。</figcaption>
+<div aria-label="可横向滚动的统一初值阻尼比较" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/ode-02-damping.svg" alt="相同固有频率和相同初值下，三个阻尼比的自由响应与清楚刻度" style="width:100%;min-width:760px;max-width:none">
+</div>
+<figcaption><span class="fig-id">图 ode-02.1</span>左图统一 ω₀=1、q(0)=1、q′(0)=0，只改变 ζ=0.3、1、1.4；右图为同一组阻尼比的受迫稳态幅值。两种方程分别计算，不能把自由曲线的振荡频率当作右图峰的位置。</figcaption>
 </figure>
-<p>弹簧-质量-阻尼系统 <span class="arithmatex">\(my'' + cy' + ky = F(t)\)</span>（RLC 电路同型——同一方程统治力学与电学）。</p>
-<p><strong>自由振动（<span class="arithmatex">\(F = 0\)</span>）三态</strong>（特征根判别式定性）：</p>
-<ul>
-<li>欠阻尼（<span class="arithmatex">\(c\)</span> 小，复根）：<span class="arithmatex">\(e^{-\alpha t}\)</span> 包络下的衰减振荡；</li>
-<li>临界阻尼（重根）：在固定线性二阶模型与常见初值比较中给出最快的无振荡回归（车门缓冲器的理想化设计点）;</li>
-<li>过阻尼（两负实根）：缓慢爬回。</li>
-</ul>
-<p><strong>受迫振动与共振</strong>：<span class="arithmatex">\(F = F_0\cos\omega t\)</span>，稳态响应幅值在 <span class="arithmatex">\(\omega\)</span> 接近固有频率 <span class="arithmatex">\(\omega_0 = \sqrt{k/m}\)</span> 时急剧放大；<strong>无阻尼且 <span class="arithmatex">\(\omega = \omega_0\)</span> 时</strong>特解带 <span class="arithmatex">\(t\sin(\omega_0 t)\)</span> 因子（待定系数的"乘 <span class="arithmatex">\(x\)</span>"规则！）——振幅随时间线性增长，<strong>共振</strong>。数学（特征根重合）与物理（塌桥、秋千）在此互为注脚。</p>
-<p>🔗 <strong>衔接</strong>：线性系统的矩阵版在下一页（特征方程 = 特征多项式将正式合体）；离散版（差分方程）已在随机过程 II 赌徒破产中用过同款特征根法；深度学习中 RNN 梯度的指数增衰（ai 课 06 讲）本质是同一套"特征值决定长期行为"。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（三型混合）</strong> <span class="arithmatex">\(y''' - y'' + y' - y = 0\)</span>：特征 <span class="arithmatex">\(\lambda^3 - \lambda^2 + \lambda - 1 = (\lambda - 1)(\lambda^2 + 1) = 0\)</span>，根 <span class="arithmatex">\(1, \pm i\)</span> ⇒ <span class="arithmatex">\(y = C_1 e^x + C_2\cos x + C_3 \sin x\)</span>。</p>
-<p><strong>例 2（共振修正）</strong> <span class="arithmatex">\(y'' + 4y = \cos 2x\)</span>：试探频率 <span class="arithmatex">\(2\)</span> 撞上特征根 <span class="arithmatex">\(\pm 2i\)</span> ⇒ 设 <span class="arithmatex">\(y^* = x(A\cos 2x + B\sin 2x)\)</span>，代入得 <span class="arithmatex">\(A = 0, B = \frac14\)</span>：<span class="arithmatex">\(y^* = \frac{x}{4}\sin 2x\)</span>——振幅线性增长，共振的解析面目。</p>
-<p><strong>例 3（常数变易）</strong> <span class="arithmatex">\(y'' + y = \tan x\)</span>（待定系数管不了 <span class="arithmatex">\(\tan\)</span>）：<span class="arithmatex">\(y_1 = \cos x, y_2 = \sin x, W = 1\)</span>；<span class="arithmatex">\(C_1' = -\sin x\tan x,\ C_2' = \sin x\)</span>，积分得 <span class="arithmatex">\(y^* = -\cos x \ln|\sec x + \tan x|\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>对该初值，临界解为 <span class="arithmatex">\((1+\omega_0t)e^{-\omega_0t}\)</span>，始终正且单调趋零；过阻尼的慢根 <span class="arithmatex">\(-\omega_0/(\zeta+\sqrt{\zeta^2-1})\)</span> 更接近零，长期回归更慢。这解释“临界较快”的常用图景，但<strong>最快</strong>还取决于比较的初值、容许过冲与进入误差带的标准；例如特定初值可消掉过阻尼慢模态，不能只凭根类型断言所有解的排序。能量 <span class="arithmatex">\(E=(m y'^2+k y^2)/2\)</span> 满足 <span class="arithmatex">\(E'=-cy'^2\le0\)</span>，说明自由阻尼过程耗能，不是受迫共振。</p>
+<h3 id="_3">无阻尼受迫：拍频包络与极限<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>记单位质量驱动力 <span class="arithmatex">\(F=F_0/m\)</span>，零初值解可写成无相消形式</p>
+<div class="arithmatex">\[
+y(t)=\frac{Ft}{\omega+\omega_0}\sin\frac{(\omega+\omega_0)t}{2}\,
+\operatorname{sinc}\frac{(\omega-\omega_0)t}{2},\qquad
+\operatorname{sinc}s=\begin{cases}\sin s/s&amp;s\ne0,\\1&amp;s=0.\end{cases}
+\]</div>
+<p>因此图中真正的对称包络为 <span class="arithmatex">\(\pm A(t)\)</span>，其中 <span class="arithmatex">\(A(t)=|Ft\operatorname{sinc}((\omega-\omega_0)t/2)/(\omega+\omega_0)|\)</span>。当频率很近时包络慢变；并非任意离共振情形都呈现清楚的快慢分离。对任意固定观察窗，<span class="arithmatex">\(\omega\to\omega_0\)</span> 连续地趋于 <span class="arithmatex">\(Ft\sin(\omega_0t)/(2\omega_0)\)</span>；若先取长期极限，非共振响应有界而精确共振无界，这两种取极限顺序不能混用。</p>
+<p>实验的“近共振”仅约定为 <span class="arithmatex">\(0&lt;|\omega/\omega_0-1|\le0.08\)</span> 的教学窗口，不是物理相变；精确共振严格要求相等。上图始终取 <span class="arithmatex">\(\omega_0=F=1\)</span>，下图独立取无外力自由方程且 <span class="arithmatex">\(q(0)=1,q'(0)=0\)</span>。改变下图的 <span class="arithmatex">\(\zeta\)</span> 不会改变上图的无阻尼条件；账本的 <span class="arithmatex">\(W(\cos t,\sin t)=1\)</span> 也只属于上图齐次方程。采样峰值只是有限网格的观测值，不能宣称精确连续最大值。</p>
+<h3 id="_4">有正阻尼受迫：峰的位置会移动，甚至消失<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>用复振幅 <span class="arithmatex">\(\widehat y=(F_0/m)/(\omega_0^2-\omega^2+2i\zeta\omega_0\omega)\)</span>，稳态位移幅值为</p>
+<div class="arithmatex">\[
+B(\omega)=\frac{F_0/m}{\sqrt{(\omega_0^2-\omega^2)^2+4\zeta^2\omega_0^2\omega^2}}.
+\]</div>
+<p>这里 <span class="arithmatex">\(F_0&gt;0\)</span> 且 <span class="arithmatex">\(\zeta&gt;0\)</span>。正阻尼使齐次暂态衰减，从而该周期解描述长期响应；无阻尼时齐次部分不会自动消失，不能把任意特解叫成吸引稳态。</p>
+<p>对分母平方求导，除 <span class="arithmatex">\(\omega=0\)</span> 外的驻点满足 <span class="arithmatex">\(\omega^2=\omega_0^2(1-2\zeta^2)\)</span>。所以只有 <span class="arithmatex">\(0&lt;\zeta&lt;1/\sqrt2\)</span> 才有正频率位移峰；更大阻尼时最大值位于零频率。这个峰频不同于自由衰减频率 <span class="arithmatex">\(\omega_d\)</span>，也一般不等于 <span class="arithmatex">\(\omega_0\)</span>。在 <span class="arithmatex">\(\omega=\omega_0\)</span>，幅值仍有限，为 <span class="arithmatex">\(F_0/(c\omega_0)\)</span>。<a href="https://www.jirka.org/diffyqs/html/forcedo_section.html">Lebl，§2.6</a></p>
+<p>真实结构还可能发生非线性、参数变化、流固耦合失稳或破坏；无阻尼线性方程的无界解只标明模型内的能量累积，不能直接替代事故机制分析。</p>
+<h2 id="5">5. 迁移：把条件写进答案<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ol>
+<li>解 <span class="arithmatex">\((D-1)^2y=e^x\)</span>，并解释为何乘 <span class="arithmatex">\(x^2\)</span>。比较 <span class="arithmatex">\(W(e^x,xe^x)\)</span> 与任意函数 <span class="arithmatex">\(1,x^2\)</span> 的 Wronskian，指出同一方程假设的作用。</li>
+<li>在任一不含零的区间求 <span class="arithmatex">\(x^2y''-xy'+y=0\)</span>。零点处能否直接指定普通二阶初值？</li>
+<li>固定 <span class="arithmatex">\(\omega_0=1\)</span>，比较 <span class="arithmatex">\(\zeta=0.3\)</span> 的自由振荡频率与受迫位移峰频率，再判断 <span class="arithmatex">\(\zeta=0.8\)</span> 是否有正频率位移峰。最后解释 <span class="arithmatex">\(r=1+10^{-12}\)</span> 为什么仍不是精确共振。</li>
+</ol>
+<details class="answer">
+<summary>展开核对重根、奇异点与两种频率</summary>
+<p><strong>1.</strong> 令 <span class="arithmatex">\(y=e^xv\)</span>，有 <span class="arithmatex">\((D-1)^2y=e^xv''\)</span>，所以 <span class="arithmatex">\(v''=1\)</span>，通解 <span class="arithmatex">\(y=e^x(C_1+C_2x+x^2/2)\)</span>。根 <span class="arithmatex">\(1\)</span> 重数二，特解确需 <span class="arithmatex">\(x^2\)</span>。基本解组的 <span class="arithmatex">\(W=e^{2x}\)</span>，与标准化方程中 <span class="arithmatex">\(p=-2\)</span> 的 Abel 公式一致；<span class="arithmatex">\(W(1,x^2)=2x\)</span> 在零点消失，这两个函数不可能同为含零区间上某个连续系数正规二阶齐次方程的独立解。</p>
+<p><strong>2.</strong> 令 <span class="arithmatex">\(t=\ln|x|\)</span>，得到 <span class="arithmatex">\(Y''-2Y'+Y=0\)</span>，故 <span class="arithmatex">\(y=|x|(C_1+C_2\ln|x|)\)</span>。在固定半轴上也可把 <span class="arithmatex">\(|x|\)</span> 换成 <span class="arithmatex">\(x\)</span> 并重新命名常数。<span class="arithmatex">\(x=0\)</span> 处最高阶系数为零，标准定理不能跨越它；若要拼接还须另行检查正则性与原方程。</p>
+<p><strong>3.</strong> <span class="arithmatex">\(\omega_d=\sqrt{0.91}\approx0.95394\)</span>，位移峰频 <span class="arithmatex">\(\omega_r=\sqrt{0.82}\approx0.90554\)</span>。<span class="arithmatex">\(0.8&gt;1/\sqrt2\)</span>，故没有正频率位移峰，尽管自由响应仍属于欠阻尼。<span class="arithmatex">\(r=1+10^{-12}\)</span> 的差非零，长期仍是有界非共振响应；有限窗或浮点显示与共振近似一致不改变这个分类。</p>
+</details>
 <hr />
-<p><em>下一页：把 n 阶方程写成一阶方程组——矩阵指数、相图与稳定性，ODE 与线性代数的正式合体。</em></p>
+<p><em>下一页：<a href="ode-03-systems-stability.html">一阶线性系统、相图与稳定性</a>。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ode-01-first-order.html"><span class="pager-label">上一页</span>常微分 I · 一阶方程与解的理论</a>

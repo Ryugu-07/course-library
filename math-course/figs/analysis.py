@@ -103,14 +103,10 @@ def f_slope_field():
     save(fig,"ode-01-slope-field")
 
 def f_damping():
-    t=np.linspace(0,12,600); fig,ax=plt.subplots(figsize=(6.8,3.8))
-    ax.plot(t,np.exp(-0.25*t)*np.cos(2*t),color=ACC,lw=2,label="underdamped")
-    ax.plot(t,(1+1.5*t)*np.exp(-1.4*t),color=RED,lw=2,label="critical")
-    ax.plot(t,1.2*np.exp(-0.5*t)-0.2*np.exp(-2.2*t),color=GREEN,lw=2,label="overdamped")
-    ax.axhline(0,color=GRID,lw=.8); ax.set_xlabel(r"$t$"); ax.set_ylabel(r"$x(t)$")
-    ax.legend(loc="upper right",frameon=False,fontsize=10)
-    ax.set_title(r"$x''+2\zeta\omega x'+\omega^2 x=0$: three damping regimes",fontsize=12)
-    save(fig,"ode-02-damping")
+    # Audited SVG includes identical-initial-condition damping curves and frequency response.
+    # Preserve the source asset instead of recreating the former unequal-parameter sketch.
+    return
+
 
 def f_phase_portraits():
     fig,axes=plt.subplots(2,2,figsize=(7.4,7.0))
