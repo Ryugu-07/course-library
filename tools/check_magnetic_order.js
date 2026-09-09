@@ -16,6 +16,8 @@ for(const model of ['ferro','antiferro'])for(const K of [.4,1,1.8])for(const T o
 near(m.solveMeanField({coupling:1,temperature:.9999,field:0}).magnetization,.01731981524349,1e-10);
 assert.equal(m.susceptibility({coupling:1,temperature:1,field:0}),Infinity);checks++;
 near(m.susceptibility({model:'antiferro',coupling:1,temperature:1,field:0}),.5);
+for(const [K,m0] of [[.4,.1],[1,.2],[1.8,.1]]){const Tc=K*(1-m0*m0),hc=Tc*Math.atanh(m0)+K*m0,critical={model:'antiferro',coupling:K,temperature:Tc,field:hc};near(m.solveMeanField(critical).staggered,0,2e-12);near(m.susceptibility(critical),1/(2*K),2e-12);const below=m.solveMeanField({...critical,temperature:Tc*(1-1e-12)});assert(Math.abs(below.staggered)>2e-7);checks++;const above=m.solveMeanField({...critical,temperature:Tc*(1+1e-12)});near(above.staggered,0,2e-12);}
+near(Math.abs(m.solveMeanField({model:'antiferro',coupling:1,temperature:.95999999999904,field:.39462325189191894}).staggered),.000001628710228035701,2e-10);
 for(const c of [{coupling:.4},{coupling:1.8,model:'antiferro'}]){const curve=m.phaseCurve(c,67);near(curve[0].temperature,.2);near(curve.at(-1).temperature,2.8);for(let i=1;i<curve.length;i++){assert(curve[i].order<=curve[i-1].order+1e-10);checks++;}}
 for(const h of [-.6,0,.6]){const c={model:'antiferro',coupling:1,temperature:.6,field:h},curve=m.landscape(c,61);for(let i=0;i<curve.length;i++){near(curve[i].freeEnergy,curve[curve.length-1-i].freeEnergy);near(curve[i].freeEnergy,free(curve[i].mA,curve[i].mB,c));}}
 console.log(`Magnetic independent checks: ${checks} PASS`);

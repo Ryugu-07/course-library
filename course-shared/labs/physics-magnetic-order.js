@@ -77,6 +77,13 @@
 
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
+    function atanhStable(value) {
+      if (value === 1) return Infinity;
+      if (value === -1) return -Infinity;
+      if (value < -1 || value > 1) throw new RangeError("atanh argument must be in [-1,1]");
+      return (Math.log1p(value) - Math.log1p(-value)) / 2;
+    }
+
     function formatNumber(value, digits) {
       if(value===Infinity)return "发散";
       if (!Number.isFinite(value)) return "—";
@@ -127,11 +134,12 @@
     function solveMeanField(input) {
       var config=normalizeConfig(input),K=config.coupling,T=config.temperature,h=config.field,s=interactionSign(config.model),limit=(K+Math.abs(h))/T+1;
       var candidates=[];
+      var stabilityTolerance=128*Number.EPSILON*Math.max(T*T,K*K);
       function add(mA,mB){
         if(candidates.some(function(c){return Math.max(Math.abs(c.mA-mA),Math.abs(c.mB-mB))<1e-10;}))return;
         var residualA=mA-Math.tanh((s*K*mB+h)/T),residualB=mB-Math.tanh((s*K*mA+h)/T);
         var stability=T*T-K*K*(1-mA*mA)*(1-mB*mB);
-        if(Math.max(Math.abs(residualA),Math.abs(residualB))>1e-9||stability< -1e-12)return;
+        if(Math.max(Math.abs(residualA),Math.abs(residualB))>1e-9||stability< -stabilityTolerance)return;
         candidates.push({mA:mA,mB:mB,freeEnergy:meanFieldFreeEnergy(mA,mB,config),residualA:residualA,residualB:residualB,stability:stability});
       }
       if(h===0){
@@ -144,15 +152,67 @@
         var fun=function(u){return T*u-K*Math.tanh(u)-h;};
         for(var j=1;j<cuts.length;j++)if(fun(cuts[j-1])*fun(cuts[j])<=0){var u=bisect(fun,cuts[j-1],cuts[j]);add(Math.tanh(u),Math.tanh(u));}
       }else{
-        // Eliminate B exactly. Search the remaining scalar stationary equation,
-        // with extra logarithmic brackets about the uniform branch near bifurcation.
+        // Eliminate B for the general branch search. Close to a continuous AF
+        // bifurcation, use the staggered eigenmode below to avoid subtracting
+        // nearly coincident roots in this scalar equation.
         var uniform=bisect(function(u){return T*u+K*Math.tanh(u)-h;},-limit,limit);
+        var uniformM=Math.tanh(uniform),staggeredEigenvalue=T/(1-uniformM*uniformM)-K;
+        var eigenScale=Math.max(T,K),eigenTolerance=256*Number.EPSILON*eigenScale;
+        var resolvedStaggeredEigenvalue=Math.abs(staggeredEigenvalue)<=eigenTolerance?0:staggeredEigenvalue;
+        // The eliminated equation also creates spurious roots at relative 1e-9
+        // offsets. Use the divided-mode method throughout the sqrt(eps) window.
+        var criticalWindow=4*Math.sqrt(Number.EPSILON)*eigenScale;
+        function uniformMomentAt(q){
+          return bisect(function(M){return K*M-h+T*(atanhStable(M+q)+atanhStable(M-q))/2;},-1+q,1-q);
+        }
+        function staggeredSlope(q){
+          var smallQ=1e-3;
+          if(q===0)return resolvedStaggeredEigenvalue;
+          if(q<smallQ){
+            // Taylor expansion of the divided equation, remainder O(q^4).
+            var d0=1-uniformM*uniformM,hmm=K+T/d0;
+            var quadratic=T*((1+3*uniformM*uniformM)/(3*d0*d0*d0)-2*T*uniformM*uniformM/(d0*d0*d0*d0*hmm));
+            return resolvedStaggeredEigenvalue+quadratic*q*q;
+          }
+          var M=uniformMomentAt(q);
+          var denominator=1-M*M+q*q;
+          var ratio=2*q/denominator;
+          return T*atanhStable(clamp(ratio,-1,1))/(2*q)-K;
+        }
         var points=[uniform],fn=function(u){return T*u+K*Math.tanh((-K*Math.tanh(u)+h)/T)-h;};
         for(var k=0;k<=1024;k++)points.push(-limit+2*limit*k/1024);
         for(var scale=1e-12;scale<2*limit;scale*=2){points.push(clamp(uniform-scale,-limit,limit),clamp(uniform+scale,-limit,limit));}
         points.sort(function(a,b){return a-b;});
-        add(Math.tanh(uniform),Math.tanh(uniform));
+        add(uniformM,uniformM);
         for(var n=1;n<points.length;n++)if(fn(points[n-1])*fn(points[n])<0){var rootU=bisect(fn,points[n-1],points[n]);var A=Math.tanh(rootU);add(A,Math.tanh((-K*A+h)/T));}
+
+        if(Math.abs(staggeredEigenvalue)<=criticalWindow){
+          // The eliminated-u equation is ill-conditioned throughout the root
+          // coalescence window. Keep its exact uniform candidate and let the
+          // stable divided-q equation below reconstruct every nonzero branch.
+          candidates=candidates.filter(function(candidate){
+            return candidate.mA===candidate.mB;
+          });
+        }
+
+        if(Math.abs(staggeredEigenvalue)<=criticalWindow||(!candidates.length&&staggeredEigenvalue< -eigenTolerance)){
+          // At fixed q, F(M,q) is strictly convex in M. The divided staggered
+          // equation uses atanh(x)-atanh(y)=atanh((x-y)/(1-xy)), which remains
+          // well conditioned when the ordered roots merge with q=0.
+          var qPoints=[0],qLimit=.25;
+          for(var qIndex=1;qIndex<=256;qIndex++)qPoints.push(qLimit*qIndex/256);
+          for(var qScale=32*Math.sqrt(Number.EPSILON);qScale<qLimit;qScale*=2)qPoints.push(qScale);
+          qPoints.sort(function(a,b){return a-b;});
+          qPoints=qPoints.filter(function(value,index){return index===0||value-qPoints[index-1]>Number.EPSILON;});
+          var leftQ=qPoints[0],leftSlope=staggeredSlope(leftQ);
+          for(var qPointIndex=1;qPointIndex<qPoints.length;qPointIndex++){
+            var rightQ=qPoints[qPointIndex],rightSlope=staggeredSlope(rightQ),rootQ=null;
+            if(rightSlope===0)rootQ=rightQ;
+            else if((leftSlope<0&&rightSlope>0)||(leftSlope>0&&rightSlope<0))rootQ=bisect(staggeredSlope,leftQ,rightQ);
+            if(rootQ!==null){var moment=uniformMomentAt(rootQ);add(moment+rootQ,moment-rootQ);add(moment-rootQ,moment+rootQ);}
+            leftQ=rightQ;leftSlope=rightSlope;
+          }
+        }
       }
       if(!candidates.length)throw new Error("no converged stable mean-field solution found");
       candidates.sort(function(a,b){var diff=a.freeEnergy-b.freeEnergy;return Math.abs(diff)>1e-13?diff:(s===1?(h<0?a.mA-b.mA:b.mA-a.mA):(b.mA-b.mB)-(a.mA-a.mB));});
@@ -160,11 +220,10 @@
       return {config:config,mA:best.mA,mB:best.mB,magnetization:(best.mA+best.mB)/2,staggered:(best.mA-best.mB)/2,freeEnergy:best.freeEnergy,residualA:best.residualA,residualB:best.residualB,candidates:candidates};
     }
 
-    function susceptibility(input, delta) {
+    function susceptibility(input) {
       var config=normalizeConfig(input);
-      if(delta!==undefined&&finite(delta,"field step")<=0)throw new RangeError("field step must be positive");
       var r=solveMeanField(config),a=(1-r.mA*r.mA)/config.temperature,b=(1-r.mB*r.mB)/config.temperature,K=config.coupling,s=interactionSign(config.model);
-      if(r.mA===r.mB){var d=1-s*K*a;return d===0?Infinity:a/d;}
+      if(Math.abs(r.mA-r.mB)<=64*Number.EPSILON*Math.max(1,Math.abs(r.mA),Math.abs(r.mB))){var d=1-s*K*a;return d===0?Infinity:a/d;}
       var denominator=1-K*K*a*b;
       return denominator===0?Infinity:(a+b+2*s*K*a*b)/(2*denominator);
     }
@@ -513,7 +572,7 @@
       var orderedSusceptibility = susceptibility({ model: "ferro", coupling: 1, temperature: 0.65, field: 0 });
       check(Number.isFinite(orderedSusceptibility) && orderedSusceptibility > 0 && orderedSusceptibility < 10, "ordered susceptibility stays on one broken-symmetry branch");
       check(susceptibility({ model: "ferro", coupling: 1, temperature: 1.55, field: 0 }) > 0, "paramagnetic susceptibility is positive");
-      check(Number.isFinite(susceptibility({ model: "ferro", coupling: 1, temperature: 0.65, field: -0.6 })) && Number.isFinite(susceptibility({ model: "ferro", coupling: 1, temperature: 0.65, field: 0.6 })), "susceptibility handles both field endpoints with one-sided differences");
+      check(Number.isFinite(susceptibility({ model: "ferro", coupling: 1, temperature: 0.65, field: -0.6 })) && Number.isFinite(susceptibility({ model: "ferro", coupling: 1, temperature: 0.65, field: 0.6 })), "analytic susceptibility stays finite at both field endpoints");
       var finiteFieldAnti = analyze({ model: "antiferro", coupling: 1, temperature: 0.6, field: 0.3 });
       var finiteFieldOrder = finiteFieldAnti.solution.staggered;
       var finiteFieldPoint = finiteFieldAnti.landscape.reduce(function (best, point) { return Math.abs(point.order - finiteFieldOrder) < Math.abs(best.order - finiteFieldOrder) ? point : best; }, finiteFieldAnti.landscape[0]);
