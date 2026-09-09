@@ -27,7 +27,7 @@
 
   var LIMITS = {
     L: [0.5, 2],
-    U: [0, 1.5],
+    U: [-1.5, 1.5],
     eta: [0, 0.25],
     B0: [0.1, 2],
     mode: [1, 8],
@@ -100,13 +100,14 @@
   ];
 
   var STYLE_TEXT = [
-    ".rmhd-lab{--rmhd-blue:var(--cl-blue,#2f6da0);--rmhd-gold:var(--cl-gold,#9a6b12);--rmhd-green:var(--cl-green,#34734c);--rmhd-red:var(--cl-red,#b34337);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
+    "html[data-theme=dark] .rmhd-lab{--rmhd-blue:#90baff;--rmhd-red:#ffab95;--rmhd-gold:#e2b458;--rmhd-green:#8edda0}",
+    ".rmhd-lab{--rmhd-blue:#2f6da0;--rmhd-gold:var(--cl-gold,#9a6b12);--rmhd-green:var(--cl-green,#34734c);--rmhd-red:#b34337;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
     ".rmhd-lab *,.rmhd-lab *::before,.rmhd-lab *::after{box-sizing:border-box}.rmhd-lab [hidden]{display:none!important}.rmhd-lab h3,.rmhd-lab h4{margin:0;color:var(--fg);letter-spacing:0}.rmhd-lab h3{font-size:1.16rem}.rmhd-lab h4{font-size:1rem}.rmhd-lab p{margin:.65em 0}.rmhd-lab .rmhd-note,.rmhd-lab .rmhd-feedback{color:var(--fg-soft);font-size:13px;line-height:1.7}",
-    ".rmhd-lab button,.rmhd-lab select,.rmhd-lab input{font:inherit;letter-spacing:0}.rmhd-lab button,.rmhd-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.rmhd-lab button:hover{border-color:var(--accent)}.rmhd-lab button:focus-visible,.rmhd-lab select:focus-visible,.rmhd-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.rmhd-lab button[aria-pressed=true],.rmhd-lab button.rmhd-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.rmhd-lab button:disabled{opacity:.55;cursor:not-allowed}.rmhd-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
+    ".rmhd-lab button,.rmhd-lab select,.rmhd-lab input{font:inherit;letter-spacing:0}.rmhd-lab button,.rmhd-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.rmhd-lab button:hover{border-color:var(--accent)}.rmhd-lab [tabindex]:focus-visible,.rmhd-lab button:focus-visible,.rmhd-lab select:focus-visible,.rmhd-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.rmhd-lab button[aria-pressed=true],.rmhd-lab button.rmhd-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.rmhd-lab button:disabled{opacity:.55;cursor:not-allowed}.rmhd-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
     ".rmhd-lab fieldset{min-width:0;margin:11px 0;padding:10px;border:1px solid var(--border);border-radius:6px}.rmhd-lab legend{max-width:100%;padding:0 4px;color:var(--fg);font-size:13px;font-weight:750;line-height:1.5}.rmhd-lab .rmhd-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rmhd-lab .rmhd-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.rmhd-lab .rmhd-actions>*{flex:1 1 170px}.rmhd-lab .rmhd-feedback{min-height:2em;margin:8px 0;font-weight:700}.rmhd-lab .rmhd-pass{color:var(--rmhd-green)}.rmhd-lab .rmhd-warn{color:var(--rmhd-red)}",
-    ".rmhd-lab .rmhd-experiment{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rmhd-lab .rmhd-layout{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);gap:15px;align-items:start;min-width:0}.rmhd-lab .rmhd-controls,.rmhd-lab .rmhd-stage{min-width:0}.rmhd-lab .rmhd-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.rmhd-lab .rmhd-controls h4{margin:0}.rmhd-lab .rmhd-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.rmhd-lab .rmhd-presets button{font-size:12px}.rmhd-lab .rmhd-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}.rmhd-lab .rmhd-control{display:grid;gap:4px;min-width:0}.rmhd-lab .rmhd-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.rmhd-lab .rmhd-control output{color:var(--accent);font-variant-numeric:tabular-nums}.rmhd-lab .rmhd-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}",
+    ".rmhd-lab .rmhd-experiment{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rmhd-lab .rmhd-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:15px;align-items:start;min-width:0}.rmhd-lab .rmhd-controls,.rmhd-lab .rmhd-stage{min-width:0}.rmhd-lab .rmhd-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.rmhd-lab .rmhd-controls h4{margin:0}.rmhd-lab .rmhd-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.rmhd-lab .rmhd-presets button{font-size:12px}.rmhd-lab .rmhd-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}.rmhd-lab .rmhd-control{display:grid;gap:4px;min-width:0}.rmhd-lab .rmhd-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.rmhd-lab .rmhd-control output{color:var(--accent);font-variant-numeric:tabular-nums}.rmhd-lab .rmhd-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}",
     ".rmhd-lab .rmhd-formula{margin:0 0 11px;padding:9px 11px;border-left:3px solid var(--rmhd-blue);background:var(--bg);font-family:\"SF Mono\",Menlo,Consolas,monospace;font-size:12px;line-height:1.7;overflow-x:auto}.rmhd-lab .rmhd-status{margin:10px 0;padding:9px 11px;border-left:3px solid var(--rmhd-green);background:var(--bg);font-size:13px;line-height:1.65}.rmhd-lab .rmhd-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:11px 0}.rmhd-lab .rmhd-metric{min-width:0;padding:8px;border-top:2px solid var(--border);background:var(--bg)}.rmhd-lab .rmhd-metric:nth-child(3n+1){border-top-color:var(--rmhd-blue)}.rmhd-lab .rmhd-metric:nth-child(3n+2){border-top-color:var(--rmhd-gold)}.rmhd-lab .rmhd-metric:nth-child(3n){border-top-color:var(--rmhd-red)}.rmhd-lab .rmhd-metric span{display:block;color:var(--fg-soft);font-size:11px;line-height:1.4}.rmhd-lab .rmhd-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".rmhd-lab .rmhd-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}.rmhd-lab .rmhd-chart{min-width:0}.rmhd-lab .rmhd-chart h4{margin:11px 0 7px;font-size:14px}.rmhd-lab .rmhd-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden}.rmhd-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.rmhd-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.rmhd-lab .rmhd-grid-line{stroke:currentColor;stroke-opacity:.16;stroke-width:1}.rmhd-lab .rmhd-axis-line{stroke:currentColor;stroke-opacity:.68;stroke-width:1.1}.rmhd-lab .rmhd-current-line{stroke:var(--rmhd-red);stroke-width:1.4;stroke-dasharray:4 4}.rmhd-lab .rmhd-initial-line{fill:none;stroke:var(--rmhd-blue);stroke-width:2;stroke-dasharray:6 4}.rmhd-lab .rmhd-current-field{fill:none;stroke:var(--rmhd-red);stroke-width:2.6}.rmhd-lab .rmhd-energy-line{fill:none;stroke:var(--rmhd-green);stroke-width:2.6}.rmhd-lab .rmhd-dot{fill:var(--rmhd-red);stroke:var(--bg);stroke-width:2}.rmhd-lab .rmhd-chart-title{font-size:12px;font-weight:750}.rmhd-lab .rmhd-axis-label{font-size:10px;fill:var(--fg-soft)}.rmhd-lab .rmhd-legend{display:flex;flex-wrap:wrap;gap:7px 13px;margin:7px 2px 0;color:var(--fg-soft);font-size:12px}.rmhd-lab .rmhd-legend-item{display:inline-flex;align-items:center;gap:5px}.rmhd-lab .rmhd-swatch{display:inline-block;width:18px;height:3px}.rmhd-lab .rmhd-swatch-blue{background:var(--rmhd-blue)}.rmhd-lab .rmhd-swatch-red{background:var(--rmhd-red)}.rmhd-lab .rmhd-swatch-green{background:var(--rmhd-green)}",
+    ".rmhd-lab .rmhd-chart-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}.rmhd-lab .rmhd-chart{min-width:0}.rmhd-lab .rmhd-chart h4{margin:11px 0 7px;font-size:14px}.rmhd-lab .rmhd-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto}.rmhd-lab svg{display:block;width:100%;min-width:700px;height:auto;color:var(--fg)}.rmhd-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.rmhd-lab .rmhd-grid-line{stroke:currentColor;stroke-opacity:.16;stroke-width:1}.rmhd-lab .rmhd-axis-line{stroke:currentColor;stroke-opacity:.68;stroke-width:1.1}.rmhd-lab .rmhd-current-line{stroke:var(--rmhd-red);stroke-width:1.4;stroke-dasharray:4 4}.rmhd-lab .rmhd-initial-line{fill:none;stroke:var(--rmhd-blue);stroke-width:2;stroke-dasharray:6 4}.rmhd-lab .rmhd-current-field{fill:none;stroke:var(--rmhd-red);stroke-width:2.6}.rmhd-lab .rmhd-energy-line{fill:none;stroke:var(--rmhd-green);stroke-width:2.6}.rmhd-lab .rmhd-dot{fill:var(--rmhd-red);stroke:var(--bg);stroke-width:2}.rmhd-lab .rmhd-chart-title{font-size:12px;font-weight:750}.rmhd-lab .rmhd-axis-label{font-size:10px;fill:var(--fg-soft)}.rmhd-lab .rmhd-legend{display:flex;flex-wrap:wrap;gap:7px 13px;margin:7px 2px 0;color:var(--fg-soft);font-size:12px}.rmhd-lab .rmhd-legend-item{display:inline-flex;align-items:center;gap:5px}.rmhd-lab .rmhd-swatch{display:inline-block;width:18px;height:3px}.rmhd-lab .rmhd-swatch-blue{background:var(--rmhd-blue)}.rmhd-lab .rmhd-swatch-red{background:var(--rmhd-red)}.rmhd-lab .rmhd-swatch-green{background:var(--rmhd-green)}",
     ".rmhd-lab .rmhd-table-wrap{max-width:100%;margin-top:13px;overflow-x:auto;-webkit-overflow-scrolling:touch}.rmhd-lab table{width:100%;min-width:700px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.rmhd-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.rmhd-lab th,.rmhd-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}.rmhd-lab th{color:var(--fg-soft);font-size:11.5px}.rmhd-lab .rmhd-interpretation{margin:11px 0 0;padding:10px 12px;border-left:3px solid var(--rmhd-gold);background:var(--bg);color:var(--fg-soft);font-size:12.5px;line-height:1.7}.rmhd-lab .rmhd-limit{margin:10px 0 0;color:var(--fg-soft);font-size:12.5px;line-height:1.7}",
     "@media(max-width:980px){.rmhd-lab .rmhd-layout{grid-template-columns:minmax(0,1fr)}}",
     "@media(max-width:700px){.rmhd-lab .rmhd-choice-row,.rmhd-lab .rmhd-control-grid,.rmhd-lab .rmhd-chart-grid{grid-template-columns:minmax(0,1fr)}.rmhd-lab .rmhd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.rmhd-lab .rmhd-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}",
@@ -123,39 +124,21 @@
     return Math.abs(left - right) <= (tolerance || 1e-10) * scale;
   }
 
-  function numberOr(value, fallback) {
-    var parsed = Number(value);
-    return finite(parsed) ? parsed : fallback;
+  function bounded(value, lo, hi, name, integer) {
+    if (!finite(value) || value < lo || value > hi || (integer && !Number.isInteger(value))) throw new RangeError(name + " outside supported domain");
+    return value;
   }
-
-  function validateParams(params) {
-    if (!finite(params.L) || params.L <= 0) throw new RangeError("L must be positive and finite");
-    if (!finite(params.U)) throw new RangeError("U must be finite");
-    if (!finite(params.eta) || params.eta < 0) throw new RangeError("eta must be finite and non-negative");
-    if (!finite(params.B0)) throw new RangeError("B0 must be finite");
-    if (!finite(params.mode) || params.mode < 1 || params.mode > MAX_MODE || Math.floor(params.mode) !== params.mode) {
-      throw new RangeError("mode must be an integer in [1, " + MAX_MODE + "]");
-    }
-    if (!finite(params.phase)) throw new RangeError("phase must be finite");
-    if (!finite(params.time) || params.time < 0) throw new RangeError("time must be finite and non-negative");
-    if (!finite(params.mu0) || params.mu0 <= 0) throw new RangeError("mu0 must be positive and finite");
-  }
-
   function normalizeParams(input) {
-    var raw = input || {};
-    var params = {
-      id: raw.id || "custom",
-      L: numberOr(raw.L, 1),
-      U: numberOr(raw.U, 0.6),
-      eta: numberOr(raw.eta, 0.05),
-      B0: numberOr(raw.B0, 1),
-      mode: Math.round(numberOr(raw.mode !== undefined ? raw.mode : raw.n, 1)),
-      phase: numberOr(raw.phase, 0),
-      time: numberOr(raw.time !== undefined ? raw.time : raw.t, 1),
-      mu0: numberOr(raw.mu0, 1)
-    };
-    validateParams(params);
-    return params;
+    var raw = input === undefined ? {} : input;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new TypeError("parameters must be an object");
+    var allowed = ["id","label","note","L","U","eta","B0","mode","n","phase","time","t","mu0"];
+    Object.keys(raw).forEach(function(k){if(allowed.indexOf(k)<0)throw new TypeError("Unknown key " + k);});
+    function get(k,d,lo,hi,int){return bounded(raw[k]===undefined?d:raw[k],lo,hi,k,int);}
+    if(raw.mode!==undefined&&raw.n!==undefined&&raw.mode!==raw.n)throw new RangeError("mode/n conflict");
+    if(raw.time!==undefined&&raw.t!==undefined&&raw.time!==raw.t)throw new RangeError("time/t conflict");
+    return {id:raw.id||"custom",L:get("L",1,.5,2),U:get("U",.6,-1.5,1.5),eta:get("eta",.05,0,.25),B0:get("B0",1,.1,2),
+      mode:bounded(raw.mode===undefined?(raw.n===undefined?1:raw.n):raw.mode,1,MAX_MODE,"mode",true),phase:get("phase",0,-PI,PI),
+      time:bounded(raw.time===undefined?(raw.t===undefined?1:raw.t):raw.time,0,12,"time"),mu0:get("mu0",1,1e-12,10)};
   }
 
   function copyPreset(preset) {
@@ -163,10 +146,7 @@
   }
 
   function waveNumber(mode, length) {
-    mode = Number(mode);
-    length = Number(length);
-    if (!finite(mode) || mode < 1 || Math.floor(mode) !== mode) throw new RangeError("mode must be a positive integer");
-    if (!finite(length) || length <= 0) throw new RangeError("length must be positive");
+    bounded(mode, 1, MAX_MODE, "mode", true); bounded(length,.5,2,"length");
     return 2 * PI * mode / length;
   }
 
@@ -196,8 +176,8 @@
 
   function amplitudeRatio(input, time) {
     var params = resolveParams(input);
-    var t = time === undefined ? params.time : Number(time);
-    if (!finite(t) || t < 0) throw new RangeError("time must be finite and non-negative");
+    var t = time === undefined ? params.time : time;
+    bounded(t,0,12,"time");
     var q = waveNumber(params.mode, params.L);
     return Math.exp(-params.eta * q * q * t);
   }
@@ -218,10 +198,10 @@
 
   function fieldValue(input, x, time) {
     var params = resolveParams(input);
-    var position = Number(x);
-    var t = time === undefined ? params.time : Number(time);
+    var position = bounded(x,-20000,20000,"x");
+    var t = time === undefined ? params.time : time;
     if (!finite(position)) throw new RangeError("x must be finite");
-    if (!finite(t) || t < 0) throw new RangeError("time must be finite and non-negative");
+    bounded(t,0,12,"time");
     var q = waveNumber(params.mode, params.L);
     return params.B0 * Math.exp(-params.eta * q * q * t) *
       Math.cos(q * (position - params.U * t) + params.phase);
@@ -229,10 +209,9 @@
 
   function sampleField(input, count, time) {
     var params = resolveParams(input);
-    var size = Math.round(numberOr(count, 128));
-    if (size < 2 || size > 2048) throw new RangeError("sample count must be in [2, 2048]");
-    var t = time === undefined ? params.time : Number(time);
-    if (!finite(t) || t < 0) throw new RangeError("time must be finite and non-negative");
+    var size = bounded(count === undefined ? Math.max(128,16*params.mode+1) : count,4*params.mode+1,2048,"sample count",true);
+    var t = time === undefined ? params.time : time;
+    bounded(t,0,12,"time");
     var values = [];
     var index;
     for (index = 0; index < size; index += 1) {
@@ -246,28 +225,43 @@
     return values;
   }
 
+  // Independent spatial finite differences and periodic quadrature of Joule power.
+  function quadraturePowerInitial(input) {
+    var params=resolveParams(input);
+    var count = Math.max(64, 16*params.mode), h = params.L / params.mode * 1e-4, sum = 0;
+    for(var j=0;j<count;j++) {
+      var x=params.L*(j+.5)/count;
+      var d=(fieldValue(params,x-2*h,0)-8*fieldValue(params,x-h,0)+8*fieldValue(params,x+h,0)-fieldValue(params,x+2*h,0))/(12*h);
+      sum += d*d;
+    }
+    return params.eta / params.mu0 * sum/count;
+  }
+  function expIntegral(end) {
+    bounded(end,0,1e8,"scaled time");
+    // Integrate exp(-u); the omitted tail beyond 40 is at most exp(-40).
+    var b=Math.min(end,40);
+    if(b===0)return 0;
+    function f(x){return Math.exp(-x);}
+    function recurse(a,b,fa,fm,fb,S,tol,depth){
+      var m=(a+b)/2,fl=f((a+m)/2),fr=f((m+b)/2);
+      var l=(m-a)/6*(fa+4*fl+fm),r=(b-m)/6*(fm+4*fr+fb),d=l+r-S;
+      if(depth===0||Math.abs(d)<=15*tol)return l+r+d/15;
+      return recurse(a,m,fa,fl,fm,l,tol/2,depth-1)+recurse(m,b,fm,fr,fb,r,tol/2,depth-1);
+    }
+    return recurse(0,b,1,f(b/2),f(b),b/6*(1+4*f(b/2)+f(b)),1e-12,22);
+  }
   function energyLedger(input, times) {
-    var params = resolveParams(input);
-    var q = waveNumber(params.mode, params.L);
-    var initial = magneticEnergyInitial(params);
-    var rows = times && times.length ? times : [0, params.time / 4, params.time / 2, 3 * params.time / 4, params.time];
-    return rows.map(function (rawTime) {
-      var t = Number(rawTime);
-      if (!finite(t) || t < 0) throw new RangeError("ledger times must be finite and non-negative");
-      var ratio = Math.exp(-2 * params.eta * q * q * t);
-      var energy = initial * ratio;
-      var lost = initial - energy;
-      var integratedDissipation = initial * (1 - ratio);
-      return {
-        time: t,
-        energy: energy,
-        energyRatio: ratio,
-        exactRatio: ratio,
-        dissipated: lost,
-        cumulativeDissipation: integratedDissipation,
-        dissipationRate: 2 * params.eta * q * q * energy,
-        balanceResidual: lost - integratedDissipation
-      };
+    var params = resolveParams(input), q=waveNumber(params.mode,params.L), initial=magneticEnergyInitial(params);
+    var rows=times===undefined?[0,params.time/4,params.time/2,3*params.time/4,params.time]:times;
+    if(!Array.isArray(rows)||rows.length<1||rows.length>101)throw new RangeError("ledger requires 1 to 101 times");
+    var gamma=2*params.eta*q*q, power=quadraturePowerInitial(params);
+    return rows.map(function(t){
+      bounded(t,0,12,"ledger time");
+      var ratio=Math.exp(-gamma*t), lost=initial*(-Math.expm1(-gamma*t));
+      var integrated=gamma===0?0:power/gamma*expIntegral(gamma*t);
+      return {time:t,energy:initial*ratio,energyRatio:ratio,exactRatio:ratio,dissipated:lost,cumulativeDissipation:integrated,
+        dissipationRate:gamma*initial*ratio,balanceResidual:(lost-integrated)/initial,
+        quadratureTailBound:gamma*t>40?power/gamma*Math.exp(-40):0};
     });
   }
 
@@ -353,7 +347,7 @@
     check(ledger.length === 5, "fixed ledger rows");
     ledger.forEach(function (row, index) {
       check(near(row.energyRatio, row.exactRatio, 1e-14), "exact ledger ratio " + index);
-      check(near(row.balanceResidual, 0, 1e-13), "energy balance residual " + index);
+      check(near(row.balanceResidual, 0, 2e-9), "energy balance residual " + index);
       check(row.dissipationRate >= 0, "non-negative dissipation rate " + index);
     });
 
@@ -397,6 +391,7 @@
       var value = attrs[key];
       if (value === undefined || value === null || value === false) return;
       if (key === "className") node.setAttribute("class", String(value));
+      else if (key === "htmlFor") node.setAttribute("for",String(value));
       else if (key === "text") node.textContent = String(value);
       else if (value === true) node.setAttribute(key, "");
       else node.setAttribute(key, String(value));
@@ -461,7 +456,7 @@
     clear(svg);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "Field transport");
+    svg.setAttribute("aria-label", "磁场：平移与衰减");
 
     [-1, 0, 1].forEach(function (tick) {
       var y = yMap(tick);
@@ -478,7 +473,7 @@
 
     var initial = [];
     var current = [];
-    var count = 160;
+    var count = Math.max(256,32*params.mode);
     var index;
     for (index = 0; index <= count; index += 1) {
       var fraction = index / count;
@@ -488,7 +483,7 @@
     }
     svg.appendChild(makeSvg(doc, "path", { d: pathFrom(initial), className: "rmhd-initial-line" }));
     svg.appendChild(makeSvg(doc, "path", { d: pathFrom(current), className: "rmhd-current-field" }));
-    svgText(doc, svg, width / 2, 16, "Field transport", "rmhd-chart-title", { "text-anchor": "middle" });
+    svgText(doc, svg, width / 2, 16, "磁场：平移与衰减", "rmhd-chart-title", { "text-anchor": "middle" });
     svgText(doc, svg, width / 2, height - 7, "x / L", "rmhd-axis-label", { "text-anchor": "middle" });
     svgText(doc, svg, 14, top + plotHeight / 2, "B_y / B_0", "rmhd-axis-label", { transform: "rotate(-90 14 " + (top + plotHeight / 2) + ")", "text-anchor": "middle" });
   }
@@ -506,22 +501,26 @@
     if (finite(result.scales.tauAdv)) tMax = Math.max(tMax, Math.min(8, result.scales.tauAdv * 1.5));
     if (finite(result.scales.tauModeDiff)) tMax = Math.max(tMax, Math.min(8, result.scales.tauModeDiff * 1.5));
     tMax = Math.min(12, tMax);
-    var xMap = function (time) { return left + time / tMax * plotWidth; };
+    var gamma=result.energyDecayRate;
+    var stretch=Math.log1p(gamma*tMax);
+    var fractionAt=function(t){return gamma===0?t/tMax:Math.log1p(gamma*t)/stretch;};
+    var timeAt=function(f){return gamma===0?f*tMax:Math.expm1(f*stretch)/gamma;};
+    var xMap = function (time) { return left + fractionAt(time) * plotWidth; };
     var yMap = function (value) { return top + (1.05 - value) / 1.05 * plotHeight; };
     clear(svg);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "Magnetic energy decay");
+    svg.setAttribute("aria-label", "磁能量：解析比值");
 
     [0, 0.5, 1].forEach(function (tick) {
       var y = yMap(tick);
       svg.appendChild(makeSvg(doc, "line", { x1: left, y1: y, x2: width - right, y2: y, className: "rmhd-grid-line" }));
       svgText(doc, svg, left - 9, y + 4, tick.toFixed(1), "rmhd-axis-label", { "text-anchor": "end" });
     });
-    [0, tMax / 2, tMax].forEach(function (tick) {
+    [0, timeAt(.5), tMax].forEach(function (tick) {
       var x = xMap(tick);
       svg.appendChild(makeSvg(doc, "line", { x1: x, y1: top, x2: x, y2: height - bottom, className: "rmhd-grid-line" }));
-      svgText(doc, svg, x, height - bottom + 17, tick.toFixed(2), "rmhd-axis-label", { "text-anchor": "middle" });
+      svgText(doc, svg, x, height - bottom + 17, format(tick,3), "rmhd-axis-label", { "text-anchor": tick===tMax?"end":"middle" });
     });
     svg.appendChild(makeSvg(doc, "line", { x1: left, y1: yMap(0), x2: width - right, y2: yMap(0), className: "rmhd-axis-line" }));
     svg.appendChild(makeSvg(doc, "line", { x1: left, y1: top, x2: left, y2: height - bottom, className: "rmhd-axis-line" }));
@@ -530,17 +529,17 @@
     var count = 120;
     var index;
     for (index = 0; index <= count; index += 1) {
-      var time = tMax * index / count;
+      var time = timeAt(index / count);
       var ratio = Math.exp(-result.energyDecayRate * time);
       points.push([xMap(time), yMap(ratio)]);
     }
-    svg.appendChild(makeSvg(doc, "path", { d: pathFrom(points), className: "rmhd-energy-line" }));
+    svg.appendChild(makeSvg(doc, "path", { d: pathFrom(points), className: "rmhd-energy-line", "data-tmax":tMax, "data-gamma":gamma }));
     var currentX = xMap(Math.min(result.params.time, tMax));
     var currentY = yMap(result.energyRatio);
     svg.appendChild(makeSvg(doc, "line", { x1: currentX, y1: top, x2: currentX, y2: height - bottom, className: "rmhd-current-line" }));
     svg.appendChild(makeSvg(doc, "circle", { cx: currentX, cy: currentY, r: 4.5, className: "rmhd-dot" }));
-    svgText(doc, svg, width / 2, 16, "Magnetic energy decay", "rmhd-chart-title", { "text-anchor": "middle" });
-    svgText(doc, svg, width / 2, height - 7, "t", "rmhd-axis-label", { "text-anchor": "middle" });
+    svgText(doc, svg, width / 2, 16, "磁能量：解析比值", "rmhd-chart-title", { "text-anchor": "middle" });
+    svgText(doc, svg, width / 2, height - 7, gamma===0?"t（无量纲，线性坐标）":"t（无量纲；横坐标 log(1+g t)，g=2ηq²）", "rmhd-axis-label", { "text-anchor": "middle" });
     svgText(doc, svg, 14, top + plotHeight / 2, "E_B / E_B(0)", "rmhd-axis-label", { transform: "rotate(-90 14 " + (top + plotHeight / 2) + ")", "text-anchor": "middle" });
   }
 
@@ -570,10 +569,10 @@
 
   function renderLedger(doc, table, result) {
     clear(table);
-    table.appendChild(makeElement(doc, "caption", { text: "单 Fourier 模态的磁能量精确账本：损失量 = 累积 Joule 耗散量" }));
+    table.appendChild(makeElement(doc, "caption", { text: "单模态账本：稳定计算解析损失，与差分/数值积分的 Joule 耗散对照" }));
     var head = makeElement(doc, "thead");
     var headRow = makeElement(doc, "tr");
-    ["时刻 t", "E_B / E_B(0)", "解析式", "E_B(0)-E_B", "累积耗散", "账本残差"].forEach(function (label) {
+    ["时刻 t", "E_B / E_B(0)", "指数式（率约值）", "E_B(0)-E_B", "数值累积耗散", "差额 / E_B(0)"].forEach(function (label) {
       headRow.appendChild(makeElement(doc, "th", { scope: "col", text: label }));
     });
     head.appendChild(headRow);
@@ -649,7 +648,7 @@
     var shell = makeElement(doc, "div", { className: "rmhd-lab" });
     shell.appendChild(makeElement(doc, "p", {
       className: "rmhd-note",
-      text: "先完成四项预测，再打开周期一维磁场输运实验。模型使用解析 Fourier 模态推进，不做不稳定的显式 PDE 时间步。"
+      text: "先完成四项预测，再打开周期一维磁场输运实验。模型使用解析 Fourier 模态推进，并独立数值积分耗散。"
     }));
 
     var prediction = makeElement(doc, "div", { className: "rmhd-prediction" });
@@ -664,6 +663,8 @@
         var button = makeElement(doc, "button", { type: "button", text: option.label, "aria-pressed": "false" });
         button.addEventListener("click", function () {
           answers[question.key] = option.value;
+          experiment.setAttribute("hidden","hidden");
+          feedback.textContent="预测已更改，请重新核对。";
           renderPrediction();
         });
         choiceButtons[questionIndex].push({ value: option.value, node: button });
@@ -675,7 +676,7 @@
     var predictionActions = makeElement(doc, "div", { className: "rmhd-actions" });
     var reveal = makeElement(doc, "button", { type: "button", className: "rmhd-primary", text: "核对预测并揭晓" });
     var resetPrediction = makeElement(doc, "button", { type: "button", text: "重置预测" });
-    var feedback = makeElement(doc, "p", { className: "rmhd-feedback", text: "请先对四个问题作出选择。" });
+    var feedback = makeElement(doc, "p", { role: "status", "aria-live": "polite", className: "rmhd-feedback", text: "请先对四个问题作出选择。" });
     predictionActions.appendChild(reveal);
     predictionActions.appendChild(resetPrediction);
     prediction.appendChild(predictionActions);
@@ -690,7 +691,7 @@
     experiment.appendChild(makeElement(doc, "h3", { id: uid + "-experiment-title", text: "实验台：周期一维磁场输运" }));
     experiment.appendChild(makeElement(doc, "p", {
       className: "rmhd-note",
-      text: "L=1、B0=1、mu0=1 是归一化选择；U 与 eta 为常数，速度场不接受磁场反馈。预设覆盖理想冻结、有限电阻、纯扩散和不同波数。"
+      text: "所有实验读数均为无量纲：长度 ℓ*、时间 t*、磁场 B* 为参考，能量密度以 B*²/μ0(物理) 为单位；这里 L=B0=mu0=1。U 与 eta 为常数，速度场不接受磁场反馈。预设覆盖理想冻结、有限电阻、纯扩散和不同波数。"
     }));
 
     var layout = makeElement(doc, "div", { className: "rmhd-layout" });
@@ -712,10 +713,11 @@
     var inputRefs = {};
 
     function addRange(key, label, min, max, step, digits, suffix) {
-      var output = makeElement(doc, "output", { text: "—" });
-      var caption = makeElement(doc, "label", { text: label + "：" });
+      var output = makeElement(doc, "output", { htmlFor: uid+"-"+key, text: "—" });
+      var caption = makeElement(doc, "label", { htmlFor: uid+"-"+key, text: label + "：" });
       caption.appendChild(output);
       var input = makeElement(doc, "input", {
+        id: uid+"-"+key,
         type: "range",
         min: min,
         max: max,
@@ -763,7 +765,7 @@
       metric(doc, "模态扩散时间 tau_mode"),
       metric(doc, "振幅比 A/A0"),
       metric(doc, "磁能量比 E/E0"),
-      metric(doc, "账本残差")
+      metric(doc, "数值账本差额 / E0")
     ];
     metricRefs.forEach(function (item) { metrics.appendChild(item.node); });
     stage.appendChild(metrics);
@@ -774,42 +776,42 @@
     var fieldChart = makeElement(doc, "div", { className: "rmhd-chart" });
     fieldChart.appendChild(makeElement(doc, "h4", { text: "磁场形状" }));
     var fieldSvg = makeSvg(doc, "svg");
-    fieldChart.appendChild(makeElement(doc, "div", { className: "rmhd-frame" }, fieldSvg));
+    fieldChart.appendChild(makeElement(doc, "div", { className: "rmhd-frame", tabindex: "0", role: "region", "aria-label": "可横向滚动的模态图" }, fieldSvg));
     fieldChart.appendChild(makeElement(doc, "div", { className: "rmhd-legend" }, [
       makeElement(doc, "span", { className: "rmhd-legend-item" }, [
         makeElement(doc, "i", { className: "rmhd-swatch rmhd-swatch-blue" }),
-        textNode(doc, "Initial")
+        textNode(doc, "初始")
       ]),
       makeElement(doc, "span", { className: "rmhd-legend-item" }, [
         makeElement(doc, "i", { className: "rmhd-swatch rmhd-swatch-red" }),
-        textNode(doc, "Current")
+        textNode(doc, "当前")
       ])
     ]));
     var energyChart = makeElement(doc, "div", { className: "rmhd-chart" });
     energyChart.appendChild(makeElement(doc, "h4", { text: "磁能量" }));
     var energySvg = makeSvg(doc, "svg");
-    energyChart.appendChild(makeElement(doc, "div", { className: "rmhd-frame" }, energySvg));
+    energyChart.appendChild(makeElement(doc, "div", { className: "rmhd-frame", tabindex: "0", role: "region", "aria-label": "可横向滚动的模态图" }, energySvg));
     energyChart.appendChild(makeElement(doc, "div", { className: "rmhd-legend" }, [
       makeElement(doc, "span", { className: "rmhd-legend-item" }, [
         makeElement(doc, "i", { className: "rmhd-swatch rmhd-swatch-green" }),
-        textNode(doc, "Exact")
+        textNode(doc, "解析曲线")
       ]),
       makeElement(doc, "span", { className: "rmhd-legend-item" }, [
         makeElement(doc, "i", { className: "rmhd-swatch rmhd-swatch-red" }),
-        textNode(doc, "Current")
+        textNode(doc, "当前")
       ])
     ]));
     chartGrid.appendChild(fieldChart);
     chartGrid.appendChild(energyChart);
     stage.appendChild(chartGrid);
 
-    var tableWrap = makeElement(doc, "div", { className: "rmhd-table-wrap" });
+    var tableWrap = makeElement(doc, "div", { className: "rmhd-table-wrap", tabindex: "0", role: "region", "aria-label": "可横向滚动的耗散账本" });
     var ledgerTable = makeElement(doc, "table");
     tableWrap.appendChild(ledgerTable);
     stage.appendChild(tableWrap);
     stage.appendChild(makeElement(doc, "p", {
       className: "rmhd-interpretation",
-      text: "周期边界使平流项在积分账本中抵消；剩下的磁扩散项让磁能量单调下降。残差接近 0 是解析解与账本相互核对的证书，不是一次不稳定时间步的经验结果。"
+      text: "周期边界使平流项在积分账本中抵消；剩下的磁扩散项让磁能量单调下降。耗散先用四阶空间差分和周期求积计算，再对时间作自适应 Simpson 积分。差额是有限数值核对，不能当作严谨证书；解析式的守恒论证见正文。"
     }));
     stage.appendChild(makeElement(doc, "p", {
       className: "rmhd-limit",
@@ -836,6 +838,7 @@
         var ref = inputRefs[key];
         ref.input.value = String(state[key]);
         ref.output.textContent = (key === "mode" ? "n=" + format(state[key], ref.digits) : format(state[key], ref.digits)) + ref.suffix;
+        ref.input.setAttribute("aria-valuetext",ref.output.textContent);
       });
       presetButtons.forEach(function (button) {
         button.node.setAttribute("aria-pressed", state.id === button.id ? "true" : "false");
@@ -872,9 +875,10 @@
         return answers[question.key] === question.expected;
       }).length;
       feedback.className = "rmhd-feedback " + (correct === QUESTIONS.length ? "rmhd-pass" : "rmhd-warn");
-      feedback.textContent = "已记录 " + correct + "/" + QUESTIONS.length + " 项预测；现在可以用预设和解析账本核对。";
+      feedback.textContent = "答对 " + correct + "/" + QUESTIONS.length + " 项。正确读法：理想只平移；n加倍使率变4倍；U=0不平移；能量指数有因子2。请用实验对照你的预测。";
       experiment.removeAttribute("hidden");
       render();
+      presetButtons[0].node.focus();
     });
 
     resetPrediction.addEventListener("click", function () {
@@ -883,6 +887,8 @@
       experiment.setAttribute("hidden", "hidden");
       feedback.className = "rmhd-feedback";
       feedback.textContent = "预测已清空，请重新作答。";
+      state=copyPreset(PRESETS[1]);
+      choiceButtons[0][0].node.focus();
     });
 
     relock.addEventListener("click", function () {
@@ -891,6 +897,7 @@
       experiment.setAttribute("hidden", "hidden");
       feedback.className = "rmhd-feedback";
       feedback.textContent = "实验台已重新锁定，请先完成四项预测。";
+      choiceButtons[0][0].node.focus();
     });
 
     renderPrediction();
@@ -898,6 +905,8 @@
 
   return {
     LIMITS: LIMITS,
+    drawFieldChart: drawFieldChart, drawEnergyChart: drawEnergyChart,
+    quadraturePowerInitial: quadraturePowerInitial, expIntegral: expIntegral,
     PRESETS: PRESETS,
     normalizeParams: normalizeParams,
     waveNumber: waveNumber,

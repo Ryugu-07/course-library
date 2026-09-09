@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 19:47</div>
   </div>
 </nav>
 <main id="content">
@@ -67,28 +67,35 @@ try {
 <li><a href="#1-fourier">1. 先过预测门：只给一个周期 Fourier 模态</a></li>
 <li><a href="#2-fourier">2. 固定模型：用 Fourier 模态的解析推进</a></li>
 <li><a href="#3">3. 适用域与不能推出的结论</a></li>
+<li><a href="#4">4. 解析能量式为何成立，数值账本又检查什么？</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 什么算等离子体：三个判据</a></li>
-<li><a href="#2">2. 单粒子图像：回旋与漂移</a></li>
+<li><a href="#1">1. 先选尺度，再选等离子体近似</a><ul>
+<li><a href="#11">1.1 参数图中的两条边界</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 回旋、磁镜与漂移：三个不同近似</a></li>
 <li><a href="#3-mhd">3. 磁流体（MHD）方程</a><ul>
 <li><a href="#31">3.1 完整的最简闭合系统</a></li>
+<li><a href="#32">3.2 磁通冻结：守恒的是哪个曲面的通量？</a></li>
 </ul>
 </li>
-<li><a href="#4">4. 磁重联：冻结定理的破缺</a></li>
+<li><a href="#4_1">4. 磁重联：冻结定理的破缺</a></li>
 <li><a href="#5">5. 聚变约束</a></li>
-<li><a href="#6">6. 练习与要点</a></li>
+<li><a href="#6">6. 可复算量级与迁移题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="_1">等离子体 · 磁流体与聚变<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Chen《Introduction to Plasma Physics》/ Freidberg《Ideal MHD》/ Kulsrud ｜ <strong>前置</strong>：fl-01、em-02（Maxwell）、sm-02
-<strong>宇宙中绝大部分重子物质处于等离子体态</strong>——恒星、星际介质、吸积盘、日冕，以及地面上的聚变装置。本页把 N–S 与 Maxwell 缝在一起，给出磁流体（MHD）方程，并说明为什么"磁冻结"这一条几乎解释了等离子体的全部奇特行为。</p>
+<p><strong>对标</strong>：Chen《Introduction to Plasma Physics》/ Freidberg《Ideal MHD》/ Kulsrud ｜ <strong>前置</strong>：<a href="fl-01-continuum.html">连续介质与守恒</a>、<a href="em-02-maxwell.html">Maxwell 方程</a>、<a href="sm-02-ensembles.html">统计系综</a>
+从日冕到聚变装置，带电粒子的集体响应会把流体运动与电磁场联在一起。本页依次问三个问题：何时能用经典等离子体近似？何时能进一步压缩成单流体 MHD？磁场的输运与耗散分别留下什么可检验的结果？磁冻结是其中一项有条件的约束。</p>
 </blockquote>
 <figure class="plot">
-<p><img alt="等离子体参数空间：密度—温度平面上的各类等离子体与简并/耦合边界。" src="assets/img/fl-06-plasma-regimes.svg" /></p>
-<figcaption><span class="fig-id">图 fl-06.1</span>等离子体参数空间（\(n\)–\(T\)）：从星际介质、日冕、聚变装置到白矮星内部，跨越二十多个数量级；虚线为<strong>简并边界</strong>（\(T\sim T_F\)，接 ap-04）与<strong>强耦合边界</strong>（\(\Gamma\sim1\)）。</figcaption>
+<div aria-label="可横向滚动的电子参数图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/fl-06-plasma-regimes.svg" alt="电子密度温度平面的理想Fermi温度与经典耦合曲线" style="width:100%;min-width:700px;max-width:none">
+</div>
+<figcaption><span class="fig-id">图 fl-06.1</span>坐标明确取电子密度与电子温度；蓝线为含相对论动能的理想电子 Fermi 温度，红虚线为经典电子耦合 Γₑ=1。曲线下方需改变近似，不能凭点在图中某个位置就宣布 MHD 成立。绿色点为 NRL 2023 第40页的代表量级，灰点为自设高密度示例。</figcaption>
 </figure>
 <div data-learning-page></div>
 
@@ -115,7 +122,7 @@ B_y(x,t)=B_0e^{-\eta q_n^2t}
 \qquad
 \mathrm{Rm}=\frac{|U|L}{\eta},
 \]</div>
-<p>并把 <span class="arithmatex">\(\eta=0\)</span> 解释为理想极限（<span class="arithmatex">\(\mathrm{Rm}=\infty\)</span>，若 <span class="arithmatex">\(U\ne0\)</span>）。两个宏观时间尺度是</p>
+<p>这里 <span class="arithmatex">\(\eta\)</span> 是下文的磁扩散率 <span class="arithmatex">\(\eta_m\)</span>，单位为长度平方/时间，不是电阻率 <span class="arithmatex">\(\eta_\Omega\)</span>。实验用参考长度 <span class="arithmatex">\(\ell_*\)</span>、时间 <span class="arithmatex">\(t_*\)</span>、磁场 <span class="arithmatex">\(B_*\)</span> 无量纲化：<span class="arithmatex">\(U=U_{\rm phys}t_*/\ell_*\)</span>、<span class="arithmatex">\(\eta=\eta_{m,\rm phys}t_*/\ell_*^2\)</span>，能量密度单位为 <span class="arithmatex">\(B_*^2/\mu_{0,\rm phys}\)</span>。界面固定 <span class="arithmatex">\(L=B_0=\mu_0=1\)</span> 是这个归一化约定，不能把 <span class="arithmatex">\(\mu_0=1\)</span> 当作 SI 真空常数。并把 <span class="arithmatex">\(\eta=0\)</span> 解释为理想极限（<span class="arithmatex">\(\mathrm{Rm}=\infty\)</span>，若 <span class="arithmatex">\(U\ne0\)</span>）。两个宏观时间尺度是</p>
 <div class="arithmatex">\[
 \tau_{\rm adv}=\frac{L}{|U|},
 \qquad
@@ -123,7 +130,7 @@ B_y(x,t)=B_0e^{-\eta q_n^2t}
 \qquad
 \tau_{\rm diff,n}=\frac{1}{\eta q_n^2}.
 \]</div>
-<p>这里的数值推进不是手写显式 PDE 时间步，而是直接乘上每个 Fourier 模态的相位因子与衰减因子，所以不会把 CFL 误差或人工能量增长混进物理解读。</p>
+<p>这里的数值推进不是手写显式 PDE 时间步，而是直接乘上每个 Fourier 模态的相位因子与衰减因子，没有 PDE 时间离散的 CFL 稳定性限制，但指数、相位和求积仍有浮点误差；过小的非零振幅也可能下溢为 0。</p>
 <div class="learning-lab" data-learning-lab="resistive-mhd">
 <p><strong>无 JavaScript 时的静态读法：</strong>对一个模态，振幅因子是 <span class="arithmatex">\(A(t)/A(0)=e^{-\eta q_n^2t}\)</span>，磁能量密度在一个周期上的平均值取</p>
 <div class="arithmatex">\[
@@ -167,27 +174,56 @@ E_B(t)=\frac{1}{2\mu_0L}\int_0^L B_y^2\,dx
 </tr>
 </tbody>
 </table>
-<p>实验台解锁后，先选预设，再改变 <span class="arithmatex">\(U,\eta,n,t\)</span>，最后用固定的 <span class="arithmatex">\(0,t/4,t/2,3t/4,t\)</span> 账本核对解析式。图内标签使用英文，正文解释仍以中文为主。</p>
+<p>实验台解锁后，先选预设，再改变 <span class="arithmatex">\(U,\eta,n,t\)</span>，最后用固定的 <span class="arithmatex">\(0,t/4,t/2,3t/4,t\)</span> 账本核对解析式。速度也可为负，观察波峰向左移动。能量图用明示的 log(1+g t) 横坐标（g=2ηq²）同时展示快速初期衰减与较晚时刻；η=0 时退回线性时间轴。</p>
 <p><strong>预测门答案：</strong><span class="arithmatex">\(\eta=0\)</span> 只平移不衰减；<span class="arithmatex">\(n\)</span> 加倍使振幅衰减率变为 4 倍；<span class="arithmatex">\(U=0\)</span> 时只有扩散没有平移；磁能量比值是 <span class="arithmatex">\(e^{-2\eta q_n^2t}\)</span>。</p>
 </div>
 <h3 id="3">3. 适用域与不能推出的结论<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>这是<strong>一维、周期、常系数、给定速度场、单模态</strong>的感应方程 toy。它可以把平流时间尺度、磁扩散时间尺度和单模态磁能量账本放在同一张图上；它不能模拟磁重联、Hall/动理学尺度、激波、聚变约束或一般三维发电机，也不能把一维磁能衰减直接当成完整等离子体的总能量演化。完整 MHD 中速度会受磁场反馈，电阻耗散还要与内能和状态方程一起记账。</p>
+<p>这是<strong>一维、周期、常系数、给定速度场、单模态</strong>的感应方程模型。它可以把平流时间尺度、磁扩散时间尺度和单模态磁能量账本放在同一张图上；它不能模拟磁重联、Hall/动理学尺度、激波、聚变约束或一般三维发电机，也不能把一维磁能衰减直接当成完整等离子体的总能量演化。完整 MHD 中速度会受磁场反馈，电阻耗散还要与内能和状态方程一起记账。</p>
+<h3 id="4">4. 解析能量式为何成立，数值账本又检查什么？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>把感应方程乘以 <span class="arithmatex">\(B_y/(\mu_0L)\)</span> 后积分。平流项是 <span class="arithmatex">\(-U[B_y^2]_0^L/(2\mu_0L)=0\)</span>；扩散项分部积分，边界项因周期性也为零，留下负的梯度平方。对整数 <span class="arithmatex">\(n\ge1\)</span>，<span class="arithmatex">\(\int_0^L\cos^2(q_nx+\phi)dx=L/2\)</span>，于是</p>
+<div class="arithmatex">\[
+E_B(0)=\frac{B_0^2}{4\mu_0},\qquad
+Q(t)=E_B(0)\bigl(1-e^{-2\eta q_n^2t}\bigr).
+\]</div>
+<p>这才是解析守恒关系的理由。交互账本另用四阶中心差分估计 <span class="arithmatex">\(\partial_xB_y(x,0)\)</span>，周期中点求积得到初始 Joule 功率，再对它的指数时间因子作自适应 Simpson 积分。时间变量换成 <span class="arithmatex">\(u=2\eta q_n^2t\)</span>，积分上限大于 40 时省略尾部并保留 <span class="arithmatex">\(e^{-40}\)</span> 量级的界。表中“差额/E₀”比较稳定计算的解析损失与这次数值积分，<strong>不是把同一个解析式复制两遍，也不是严谨误差证书</strong>。</p>
+<p>当 <span class="arithmatex">\(2\eta q_n^2t\)</span> 极小时，直接算 <span class="arithmatex">\(1-e^{-z}\)</span> 会相消；使用 <span class="arithmatex">\(-\operatorname{expm1}(-z)\)</span> 能保留小的耗散量。空间点数随模态增加，避免把高波数误采样成低波数。</p>
 </section>
-<h2 id="1">1. 什么算等离子体：三个判据<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>① 集体性主导</strong>：Debye 屏蔽长度</p>
-<div class="arithmatex">\[\lambda_D = \sqrt{\frac{\varepsilon_0 k_BT}{ne^2}}\]</div>
-<p><strong>电荷在 <span class="arithmatex">\(\lambda_D\)</span> 之外被屏蔽</strong>（与 cm-01 的 Thomas–Fermi 屏蔽同源）。要求 <span class="arithmatex">\(\lambda_D\ll L\)</span>。</p>
-<p><strong>② 多粒子屏蔽</strong>：Debye 球内粒子数 <span class="arithmatex">\(N_D = n\lambda_D^3\gg1\)</span>（否则是"强耦合等离子体"，需另做处理）。</p>
-<p><strong>③ 电磁主导碰撞</strong>：等离子体频率 <span class="arithmatex">\(\omega_p=\sqrt{ne^2/\varepsilon_0 m}\)</span> 远大于碰撞频率。</p>
-<p><strong><span class="arithmatex">\(\omega_p\)</span> 的物理后果</strong>：频率低于 <span class="arithmatex">\(\omega_p\)</span> 的电磁波<strong>无法传播</strong>（被反射）。<strong>这就是电离层反射短波无线电的原理</strong>，也是激光等离子体相互作用的临界密度判据。</p>
-<h2 id="2">2. 单粒子图像：回旋与漂移<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>磁场中带电粒子作<strong>回旋运动</strong>，<span class="arithmatex">\(\omega_c = qB/m\)</span>，Larmor 半径 <span class="arithmatex">\(r_L = v_\perp/\omega_c\)</span>。</p>
-<p><strong>绝热不变量</strong> <span class="arithmatex">\(\mu = mv_\perp^2/2B\)</span> 在缓变场中守恒 → 粒子进入强场区时 <span class="arithmatex">\(v_\perp\)</span> 增大、<span class="arithmatex">\(v_\parallel\)</span> 减小，可能被<strong>磁镜</strong>反射。</p>
-<p><strong>这直接解释了范艾伦辐射带</strong>：地磁场两极强、赤道弱，形成天然磁镜，把高能粒子囚禁其中。</p>
-<p><strong>各种漂移</strong>：<span class="arithmatex">\(\mathbf E\times\mathbf B\)</span> 漂移（<strong>与电荷符号无关</strong>，故不产生电流）、梯度漂移、曲率漂移（<strong>与符号有关，产生环电流</strong>）。</p>
+<h2 id="1">1. 先选尺度，再选等离子体近似<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>等离子体包含可集体响应电磁场的自由电荷；下面是<strong>经典、弱耦合、近准中性体区</strong>的常用检查，不是排除所有强耦合、简并或碰撞性等离子体的定义。</p>
+<p><strong>屏蔽长度。</strong> 对温度 <span class="arithmatex">\(T_e\)</span> 的经典电子、静止均匀离子背景，Boltzmann 响应 <span class="arithmatex">\(n_e\simeq n_0(1+e\varphi/k_BT_e)\)</span> 代入 Poisson 方程，得到点电荷外的</p>
+<div class="arithmatex">\[
+(\nabla^2-\lambda_{De}^{-2})\varphi=0,\qquad
+\lambda_{De}=\sqrt{\frac{\varepsilon_0k_BT_e}{n_e e^2}},\qquad
+\varphi(r)\propto\frac{e^{-r/\lambda_{De}}}{r}.
+\]</div>
+<p>线性化要求 <span class="arithmatex">\(|e\varphi|\ll k_BT_e\)</span>，屏蔽是指数衰减，不是在某个半径突然归零。若多个经典物种都参与静态响应，则 <span class="arithmatex">\(\lambda_D^{-2}=\sum_s n_s q_s^2/(\varepsilon_0k_BT_s)\)</span>。在远离鞘层的 <span class="arithmatex">\(L\gg\lambda_D\)</span> 尺度上，准中性近似常有用；鞘层恰恰不能用同一近似抹去电荷分离。</p>
+<p><strong>屏蔽球内的粒子数。</strong> 电子口径取</p>
+<div class="arithmatex">\[
+N_{De}=\frac{4\pi}{3}n_e\lambda_{De}^3\gg1.
+\]</div>
+<p>有些教材把 <span class="arithmatex">\(n_e\lambda_{De}^3\)</span> 称为等离子体参数，差的是几何因子。用平均间距 <span class="arithmatex">\(a_e=[3/(4\pi n_e)]^{1/3}\)</span> 和经典耦合参数 <span class="arithmatex">\(\Gamma_e=e^2/(4\pi\varepsilon_0a_ek_BT_e)\)</span>，可核对 <span class="arithmatex">\(N_{De}=(3\Gamma_e)^{-3/2}\)</span>。电子简并或离子强耦合时，需分别换用量子响应与相应物种的耦合尺度。</p>
+<p><strong>响应时间。</strong> 电子位移造成恢复电场，得到 <span class="arithmatex">\(\omega_{pe}=\sqrt{n_ee^2/(\varepsilon_0m_e)}\)</span>。若研究清晰的集体振荡，要比较碰撞频率 <span class="arithmatex">\(\nu\)</span> 与 <span class="arithmatex">\(\omega_{pe}\)</span>；<span class="arithmatex">\(\nu\ll\omega_{pe}\)</span> 是弱阻尼条件，并不意味着碰撞较强的电离气体就一概“不算等离子体”。</p>
+<p><strong>低于等离子体频率都不能传播吗？</strong> 在均匀、冷、无背景磁场、无碰撞、忽略离子高频响应的模型中，横向电磁波满足</p>
+<div class="arithmatex">\[
+\omega^2=\omega_{pe}^2+c^2k^2.
+\]</div>
+<p>因此 <span class="arithmatex">\(\omega&lt;\omega_{pe}\)</span> 时该分支的 <span class="arithmatex">\(k\)</span> 为虚数，是倏逝场；等号处 <span class="arithmatex">\(k=0\)</span>，并无有限群速度传播。磁化等离子体还有低频分支，不能把这条截止结论推广到全部波。电离层无线电还涉及密度分层、地磁场、入射角与吸收。<a href="https://farside.ph.utexas.edu/teaching/plasma/lectures1/node72.html">Fitzpatrick 的冷无磁波推导</a> 给出了这一限定模型。</p>
+<h3 id="11">1.1 参数图中的两条边界<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>横轴固定为电子密度 <span class="arithmatex">\(n_e\,[\mathrm{m^{-3}}]\)</span>，纵轴为电子温度 <span class="arithmatex">\(T_e\,[\mathrm K]\)</span>。对于理想、自旋二重简并的电子气，<span class="arithmatex">\(p_F=\hbar(3\pi^2n_e)^{1/3}\)</span>，图中的退化温度采用含相对论动能的</p>
+<div class="arithmatex">\[
+k_BT_F=\sqrt{m_e^2c^4+p_F^2c^2}-m_ec^2.
+\]</div>
+<p>非相对论极限为 <span class="arithmatex">\(T_F\simeq4.2315\times10^{-15}[n_e/(\mathrm{m^{-3}})]^{2/3}\,\mathrm K\)</span>。经典 <span class="arithmatex">\(\Gamma_e=1\)</span> 线则是 <span class="arithmatex">\(T_\Gamma\simeq2.6937\times10^{-5}[n_e/(\mathrm{m^{-3}})]^{1/3}\,\mathrm K\)</span>。在 <span class="arithmatex">\(T_e\ll T_F\)</span> 区域，经典 <span class="arithmatex">\(\Gamma_e\)</span> 线只作形式参照，不能替代量子多体判据；离子耦合也必须另算。关于 Fermi 动量及相对论极限，可回看 <a href="https://www.damtp.cam.ac.uk/user/tong/statphys/statmechhtml/S3.html">Tong 的量子气体讲义</a>。</p>
+<h2 id="2">2. 回旋、磁镜与漂移：三个不同近似<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在非相对论均匀磁场中，有符号回旋频率 <span class="arithmatex">\(\Omega_s=q_sB/m_s\)</span> 指示旋转方向；半径必须非负：<span class="arithmatex">\(\rho_{Ls}=v_\perp/|\Omega_s|\)</span>。当场的空间变化尺度远大于回旋半径、变化频率远小于回旋频率，且碰撞与共振扰动可忽略时，磁矩</p>
+<div class="arithmatex">\[
+\mu_s=\frac{m_sv_\perp^2}{2B}
+\]</div>
+<p>近似守恒。在静磁场且无电势变化时，动能也守恒，故从 <span class="arithmatex">\(B_0\)</span>、投掷角 <span class="arithmatex">\(\alpha_0\)</span> 出发，有 <span class="arithmatex">\(v_\parallel^2=v^2[1-(B/B_0)\sin^2\alpha_0]\)</span>。若沿途达到 <span class="arithmatex">\(B/B_0=1/\sin^2\alpha_0\)</span>，就发生磁镜反射；若最大磁场仍不够大，粒子从损失锥逃逸。地球辐射带的俘获可用这种几何理解，但粒子来源、波粒散射、漂移和损失还需额外物理。</p>
+<p>在缓变、低频的导引中心近似下，<span class="arithmatex">\(\mathbf v_E=\mathbf E\times\mathbf B/B^2\)</span> 不依赖电荷符号。若物种共同作同一漂移，其对流电流是 <span class="arithmatex">\(\sum_s n_sq_s\mathbf v_E=\rho_q\mathbf v_E\)</span>，准中性时领先阶相消；这不排除极化、梯度/曲率漂移或边界电流。不能从“电荷无关”直接推出整个系统没有电流。</p>
 <h2 id="3-mhd">3. 磁流体（MHD）方程<a class="headerlink" href="#3-mhd" title="Permanent link"></a></h2>
 <h3 id="31">3.1 完整的最简闭合系统<a class="headerlink" href="#31" title="Permanent link"></a></h3>
-<p>把等离子体当作单一导电流体，联立 Navier–Stokes 与 Maxwell（略去位移电流）。在无外力、黏性和热传导的最简电阻 MHD 中，质量、动量、感应、磁场约束和总能量方程可写成</p>
+<p>把等离子体当作单一导电流体，需要另查尺度：非相对论、低频长波、近准中性，离子惯性长度与回旋尺度相对宏观尺度足够小，且所选标量压强与电阻率闭合合理。各向异性、Hall 项与电子压强张量显著时，下面的最简模型不足。联立流体守恒与 Maxwell，略去位移电流。在无外力、黏性和热传导的最简电阻 MHD 中，质量、动量、感应、磁场约束和总能量方程可写成</p>
 <div class="arithmatex">\[
 \partial_t\rho+\nabla\cdot(\rho\mathbf u)=0,
 \]</div>
@@ -227,7 +263,21 @@ p=(\gamma-1)\left(\mathcal E-\frac{1}{2}\rho u^2-\frac{B^2}{2\mu_0}\right),
 <p>最后一式取的是无外力、无黏性/热传导的总能量守恒形式；电阻造成的 Joule 加热在总能量中与磁能损失相抵。若恢复黏性、热传导或外力，必须把相应的应力、热流和功率项一起加入，不能只给动量方程添一项而仍称系统闭合。</p>
 <p>本页实验只抽取上面<strong>感应方程</strong>的一维分量：令 <span class="arithmatex">\(\mathbf u=U\hat{\mathbf x}\)</span>、<span class="arithmatex">\(\mathbf B=B_y(x,t)\hat{\mathbf y}\)</span>，并把 <span class="arithmatex">\(U\)</span> 当作不受磁场反馈的给定常数，就得到学习层中的 advection–diffusion toy。由于 <span class="arithmatex">\(B_y\)</span> 不依赖 <span class="arithmatex">\(y\)</span>，此 ansatz 自动满足 <span class="arithmatex">\(\nabla\cdot\mathbf B=0\)</span>；它没有求解质量、动量和总能量方程。</p>
 <p><strong>磁雷诺数</strong> <span class="arithmatex">\(\mathrm{Rm}=|U|L/\eta_m\)</span> 度量给定长度尺度上平流与磁扩散的相对强弱。若 <span class="arithmatex">\(U=\eta_m=0\)</span>，这个比值是 <span class="arithmatex">\(0/0\)</span>，不定义；若 <span class="arithmatex">\(U\ne0,\eta_m=0\)</span>，才写作理想极限 <span class="arithmatex">\(\mathrm{Rm}=\infty\)</span>。天体大尺度上的 <span class="arithmatex">\(\mathrm{Rm}\)</span> 往往很大，但薄电流片的局部长度尺度更小，局部扩散仍可能重要。</p>
-<p><strong>Alfvén 冻结定理【推导】</strong>：在理想 MHD、足够光滑的速度/磁场和随流体运动的闭合曲面条件下，穿过物质曲面的磁通守恒。把它简写成“磁力线随流体运动”很直观，但磁力线是瞬时几何表示，不是有编号的物质细线；大尺度 <span class="arithmatex">\(\mathrm{Rm}\gg1\)</span> 也不排除奇异层、Hall 或动理学尺度破坏理想近似。</p>
+<h3 id="32">3.2 磁通冻结：守恒的是哪个曲面的通量？<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>取随流体运动的<strong>闭合回路</strong> <span class="arithmatex">\(C(t)\)</span>，以及以它为边界的定向曲面 <span class="arithmatex">\(S(t)\)</span>。曲面通常是开曲面；任意闭合曲面的磁通本来就因 <span class="arithmatex">\(\nabla\cdot\mathbf B=0\)</span> 而为零，不能用它表达非平凡的冻结约束。移动回路的感应定律给出</p>
+<div class="arithmatex">\[
+\frac{d}{dt}\int_{S(t)}\mathbf B\cdot d\mathbf S
+=-\oint_{C(t)}(\mathbf E+\mathbf u\times\mathbf B)\cdot d\boldsymbol\ell.
+\]</div>
+<p>在足够光滑、速度流映射存在且理想欧姆定律成立时，右侧为零。有限电阻时则为 <span class="arithmatex">\(-\oint\eta_\Omega\mathbf J\cdot d\boldsymbol\ell\)</span>，不必为零。这把“搬运曲面”与“场本身的变化”一起计算了，不能只用固定曲面的 Faraday 定律遗漏运动项。<a href="https://farside.ph.utexas.edu/teaching/plasma/lectures1/node106.html">Fitzpatrick 的磁通冻结推导</a> 展示这两项如何合并。</p>
+<p>还可把理想感应与连续性方程合成局部形式：</p>
+<div class="arithmatex">\[
+\frac{D\mathbf B}{Dt}=(\mathbf B\cdot\nabla)\mathbf u-\mathbf B\nabla\cdot\mathbf u,
+\qquad
+\frac{D}{Dt}\left(\frac{\mathbf B}{\rho}\right)
+=\left(\frac{\mathbf B}{\rho}\cdot\nabla\right)\mathbf u.
+\]</div>
+<p>右侧和物质线元的伸长方程相同，这是“场线随流体”比喻背后的几何机制。场线不是有编号的实体细线；大尺度 <span class="arithmatex">\(\mathrm{Rm}\gg1\)</span> 也不排除薄电流片、奇异极限或动理学效应破坏所需近似。</p>
 <p>这条约束连接了许多宏观现象：</p>
 <ul>
 <li>流体运动<strong>拉伸、缠绕、放大</strong>磁场 → <strong>发电机机制</strong>（地磁场、太阳磁场的起源）；</li>
@@ -236,30 +286,53 @@ p=(\gamma-1)\left(\mathcal E-\frac{1}{2}\rho u^2-\frac{B^2}{2\mu_0}\right),
 </ul>
 <p><strong>磁压与磁张力</strong>：<span class="arithmatex">\(\mathbf J\times\mathbf B = -\nabla\left(\dfrac{B^2}{2\mu_0}\right)+\dfrac{(\mathbf B\cdot\nabla)\mathbf B}{\mu_0}\)</span>——<strong>磁场像有压强与沿线张力的弹性介质</strong>。由此得 <strong>Alfvén 波</strong>（磁力线的横波）：</p>
 <div class="arithmatex">\[v_A = \frac{B}{\sqrt{\mu_0\rho}}\]</div>
+<p>对均匀平衡 <span class="arithmatex">\(\mathbf B_0=B_0\hat z\)</span>、<span class="arithmatex">\(\rho_0\)</span>，取只随 <span class="arithmatex">\(z\)</span> 变化的横向小扰动，可直接线性化：</p>
+<div class="arithmatex">\[
+\rho_0\partial_t\mathbf u_\perp=\frac{B_0}{\mu_0}\partial_z\mathbf b_\perp,
+\qquad
+\partial_t\mathbf b_\perp=B_0\partial_z\mathbf u_\perp.
+\]</div>
+<p>再对时间求导即得 <span class="arithmatex">\(\partial_{tt}\mathbf u_\perp=v_A^2\partial_{zz}\mathbf u_\perp\)</span>，因此这里的 Alfvén 波是沿背景磁场传播的横向扰动。它不是本页“预先给定 U”的平流扩散实验：后者没有同时求解这两个反馈方程。</p>
 <p><strong>等离子体 <span class="arithmatex">\(\beta = p/(B^2/2\mu_0)\)</span></strong> 判断谁主导：<span class="arithmatex">\(\beta\ll1\)</span> 磁场主导（日冕），<span class="arithmatex">\(\beta\gg1\)</span> 流体主导（恒星内部）。</p>
-<h2 id="4">4. 磁重联：冻结定理的破缺<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>冻结定理禁止磁拓扑改变——<strong>但太阳耀斑在几分钟内释放巨量磁能，必须改变拓扑</strong>。</p>
+<h2 id="4_1">4. 磁重联：冻结定理的破缺<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>在上述光滑理想条件内，场线连通关系被保持。解释观测中的重联时，需要明确是哪一项非理想机制允许连通关系改变；不能仅凭某次能量释放就断言其全部拓扑演化。</p>
 <p><strong>磁重联</strong>：在薄电流片中，非理想电场、有限电阻、Hall 或动理学效应使理想冻结条件失效；场线连通关系改变，磁能可转为动能、热能和粒子非热能量。</p>
-<ul>
-<li><strong>Sweet–Parker 模型</strong>在经典均匀电阻、稳态二维层流假设下给出速率 <span class="arithmatex">\(\propto\mathrm{Rm}^{-1/2}\)</span>；对许多高 <span class="arithmatex">\(\mathrm{Rm}\)</span> 的爆发现象，它通常慢于所需时标；</li>
-<li><strong>快速重联</strong>（Petschek、湍流重联、无碰撞效应）是活跃研究方向【前沿/未完全解决】。</li>
-</ul>
+<p>在不可压、稳态、二维、均匀电阻的 Sweet–Parker 薄层模型中，设电流片长 <span class="arithmatex">\(L\)</span>、厚 <span class="arithmatex">\(\delta\)</span>，出流速度约为 <span class="arithmatex">\(v_A\)</span>。质量守恒给 <span class="arithmatex">\(v_{\rm in}L\sim v_A\delta\)</span>，电阻与平流电场匹配给 <span class="arithmatex">\(v_{\rm in}\sim\eta_m/\delta\)</span>。所以</p>
+<div class="arithmatex">\[
+\frac{v_{\rm in}}{v_A}\sim\frac{\delta}{L}\sim S^{-1/2},\qquad S=\frac{Lv_A}{\eta_m}.
+\]</div>
+<p>这里用 <strong>Lundquist 数 S</strong>，速度基准是 <span class="arithmatex">\(v_A\)</span>，不是任意给定 <span class="arithmatex">\(U\)</span> 下的 Rm。高 <span class="arithmatex">\(S\)</span> 电流片可能产生磁岛链失稳；无碰撞/Hall 效应与全局边界也会改变速率。因而 <span class="arithmatex">\(S^{-1/2}\)</span> 是这个层流模型的标度，而非所有重联的定律。进一步可读 <a href="https://farside.ph.utexas.edu/teaching/plasma/Plasma/node101.html">Fitzpatrick 的快速重联讨论</a>。</p>
 <p><strong>重联是空间与聚变等离子体中的核心过程之一</strong>：它参与太阳耀斑、日冕物质抛射、地磁亚暴和托卡马克锯齿崩塌，但每类事件还受全局驱动、边界条件、湍流与粒子动力学共同控制。</p>
 <h2 id="5">5. 聚变约束<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>Lawson 判据</strong>：点火要求三乘积</p>
-<div class="arithmatex">\[n T \tau_E \gtrsim 3\times10^{21}\ \mathrm{keV\cdot s\cdot m^{-3}}\quad(\text{D–T}) \]</div>
+<p><strong>Lawson 判据先是一份功率账本。</strong> 设均匀、完全电离、等比例 D–T 燃料，<span class="arithmatex">\(n_D=n_T=n_e/2=n/2\)</span>，离子和电子同温，记热能单位的温度 <span class="arithmatex">\(\Theta=k_BT\)</span>。忽略杂质、氦灰和辐射损失，并假设 α 粒子的 <span class="arithmatex">\(E_\alpha=3.5\,\mathrm{MeV}\)</span> 全部沉积，点火的简化条件是</p>
+<div class="arithmatex">\[
+P_\alpha=\frac{n^2}{4}\langle\sigma v\rangle E_\alpha
+\ge \frac{3n\Theta}{\tau_E},\qquad
+n\Theta\tau_E\ge\frac{12\Theta^2}{\langle\sigma v\rangle E_\alpha}.
+\]</div>
+<p>这里 <span class="arithmatex">\(\tau_E\)</span> 是热能与所定义能量损失功率之比。<span class="arithmatex">\(\Theta\)</span>、<span class="arithmatex">\(E_\alpha\)</span> 必须用相同能量单位；反应率强烈依赖温度，所以右侧不是恒定门槛。NRL 表在 <span class="arithmatex">\(\Theta=10\,\mathrm{keV}\)</span> 给 <span class="arithmatex">\(\langle\sigma v\rangle\simeq1.1\times10^{-16}\,\mathrm{cm^3/s}=1.1\times10^{-22}\,\mathrm{m^3/s}\)</span>，代入得约 <span class="arithmatex">\(3.12\times10^{21}\,\mathrm{keV\,s\,m^{-3}}\)</span>。常见的“<span class="arithmatex">\(3\times10^{21}\)</span>”应这样理解为给定 D–T 条件附近的量级，而非任意温度、燃料或工程装置的充分条件。</p>
+<p>若用 <span class="arithmatex">\(\tau_E\)</span> 只记录输运损失，还要另加辐射项；若它已包含全部损失，就不能重复计入。等离子体点火也不等于装置净发电，还需核对加热、驱动、转换和辅助系统的能量账本。<a href="https://www.nrl.navy.mil/Portals/38/PDF%20Files/NRL_Plasma_Formulary_2023.pdf">NRL 2023 手册第 44–45 页</a> 提供反应能量与 Maxwell 分布平均反应率。</p>
 <p><strong>两条路线</strong>：</p>
 <ul>
 <li><strong>磁约束（托卡马克）</strong>：<span class="arithmatex">\(\beta\)</span> 低、<span class="arithmatex">\(\tau_E\)</span> 长（秒级）、<span class="arithmatex">\(n\)</span> 低。核心难题是<strong>输运反常</strong>（远大于经典预言，由微观湍流驱动）与<strong>不稳定性</strong>（撕裂模、边界局域模）；</li>
 <li><strong>惯性约束</strong>：<span class="arithmatex">\(n\)</span> 极高、<span class="arithmatex">\(\tau_E\)</span> 极短（纳秒）。核心难题是<strong>压缩对称性与 Rayleigh–Taylor 不稳定性</strong>（fl-04）。</li>
 </ul>
 <p><strong>共同的物理障碍是不稳定性与湍流输运</strong>——<strong>这正是本线前几页内容在聚变工程中的汇合点</strong>。</p>
-<h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>例 1（日冕为何百万度）</strong> 日冕温度比光球（约 5800 K）高两个数量级。主流解释指向<strong>磁能耗散</strong>（波加热与纳耀斑重联）——<strong>"加热问题"至今未完全定论</strong>【争】，是空间物理的经典难题。</p>
-<p><strong>例 2（冻结的量级）</strong> 太阳对流区 <span class="arithmatex">\(\mathrm{Rm}\sim10^{9}\)</span>；实验室等离子体 <span class="arithmatex">\(\mathrm{Rm}\sim10^2\)</span>–<span class="arithmatex">\(10^4\)</span>。<strong>天体等离子体几乎完美冻结，实验室则不然</strong>——这使实验室复现天体过程极其困难。</p>
-<p><strong>例 3（Alfvén 速度）</strong> 日冕 <span class="arithmatex">\(B\sim10\)</span> G、<span class="arithmatex">\(n\sim10^{15}\ \mathrm{m^{-3}}\)</span>：<span class="arithmatex">\(v_A\sim10^3\)</span> km/s——<strong>耀斑扰动以此速度传播，与观测的爆发时标一致</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="6">6. 可复算量级与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>设一团纯氢等离子体 <span class="arithmatex">\(n_e=n_p=10^{15}\,\mathrm{m^{-3}}\)</span>、<span class="arithmatex">\(T_e=10^6\,\mathrm K\)</span>、<span class="arithmatex">\(B=10\,\mathrm G=10^{-3}\,\mathrm T\)</span>。电子屏蔽近似给 <span class="arithmatex">\(\lambda_{De}\approx2.18\,\mathrm{mm}\)</span>、<span class="arithmatex">\(N_{De}\approx4.35\times10^7\)</span>，<span class="arithmatex">\(\omega_{pe}\approx1.78\times10^9\,\mathrm{rad/s}\)</span>。取 <span class="arithmatex">\(\rho\simeq m_p n_p\)</span>，则 <span class="arithmatex">\(v_A\approx6.90\times10^5\,\mathrm{m/s}=690\,\mathrm{km/s}\)</span>。这说明磁扰动可以很快传播；实际事件时标还要给出路径长度、背景结构和模型有效性，不能仅凭一个速度证明耀斑机制。</p>
+<ol>
+<li>固定 <span class="arithmatex">\(L=1,U=0.6,\eta=0.025,t=1.2\)</span>。把 <span class="arithmatex">\(n=1\)</span> 改成 2，振幅比和能量比各怎样变？为什么全局 Rm 没变，短尺度扩散却强得多？</li>
+<li>用 <span class="arithmatex">\(\mathbf u=(ax,-ay,0)\)</span>、初始均匀 <span class="arithmatex">\(\mathbf B=(B_0,0,0)\)</span> 检查理想冻结：场强会不会保持不变？选一个法向沿 x 的物质小面，核对通量。</li>
+<li>在上面的 D–T 简化例中，若 <span class="arithmatex">\(n=10^{20}\,\mathrm{m^{-3}}\)</span>，需要多大的 <span class="arithmatex">\(\tau_E\)</span>？如果只有一半 α 能量沉积且其他条件不变，阈值怎样变？再说明为什么这个算例不能宣布某个装置已净发电。</li>
+</ol>
+<details class="answer">
+<summary>展开三题的计算与边界</summary>
+<p><strong>1.</strong> <span class="arithmatex">\(z=\eta(2\pi)^2t\approx1.18435\)</span>，故 <span class="arithmatex">\(A_1/A_0=e^{-z}\approx0.30594\)</span>，<span class="arithmatex">\(E_1/E_0=e^{-2z}\approx0.09360\)</span>。波数加倍使 <span class="arithmatex">\(z\to4z\)</span>，振幅比约 <span class="arithmatex">\(0.00876\)</span>、能量比约 <span class="arithmatex">\(7.68\times10^{-5}\)</span>。全局 <span class="arithmatex">\(\mathrm{Rm}=0.6/0.025=24\)</span> 不变；但在模态长度 <span class="arithmatex">\(1/q_n\)</span> 上，平流项与扩散项之比为 <span class="arithmatex">\(|U|/(\eta q_n)\)</span>，随 n 增大而减小。不能把“Rm大”直接翻译成所有尺度都冻结。</p>
+<p><strong>2.</strong> <span class="arithmatex">\(\nabla\cdot\mathbf u=0\)</span>，所以理想感应给 <span class="arithmatex">\(B_x(t)=B_0e^{at}\)</span>。物质面的 y 边长乘 <span class="arithmatex">\(e^{-at}\)</span>、z 边长不变，面积缩小同样倍数；<span class="arithmatex">\(B_xS_x\)</span> 保持不变。冻结守恒的是随动通量，场强可以因拉伸而增长。这里把速度当作给定场；若要讨论从哪取得磁能，还必须联立动量与能量方程。</p>
+<p><strong>3.</strong> <span class="arithmatex">\(n\Theta\tau_E\ge3.12\times10^{21}\)</span> 给 <span class="arithmatex">\(\tau_E\gtrsim3.12\,\mathrm s\)</span>。沉积能量减半使右侧加倍，即约 <span class="arithmatex">\(6.23\,\mathrm s\)</span>。这只是同温、均匀、纯燃料且省略额外损失的等离子体功率条件；它没有计算装置耗电、能量转换及连续运行。</p>
+</details>
 <hr />
-<p><em>流体线到此结束：从连续介质假设，到边界层、湍流、失稳、混沌，再到等离子体。下一线转向天体——把这些物理用到恒星与星系上。</em></p>
+<p><em>流体线从连续介质、边界层、湍流、失稳与混沌走到等离子体。下一页：<a href="ap-01-radiative.html">辐射转移</a>，把能量如何穿过介质的问题接到天体物理。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="fl-05-chaos.html"><span class="pager-label">上一页</span>非线性 · 混沌与奇怪吸引子</a>

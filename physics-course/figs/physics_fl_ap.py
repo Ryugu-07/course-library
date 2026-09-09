@@ -42,29 +42,8 @@ def fl05_lorenz():
 
 
 def fl06_regimes():
-    """等离子体参数空间"""
-    fig, ax = plt.subplots(figsize=(7.0, 4.6))
-    n = np.logspace(4, 34, 200)
-    # 简并边界 kT ~ E_F
-    T_deg = 3.6e-11*n**(2/3)
-    ax.loglog(n, T_deg, "--", color=ACC2, lw=1.8)
-    # 强耦合 Gamma=1
-    T_cpl = 1.6e-5*n**(1/3)
-    ax.loglog(n, T_cpl, "--", color=GREEN, lw=1.8)
-    items = [("interstellar\nmedium", 1e6, 1e4), ("solar\ncorona", 1e15, 1e6),
-             ("solar core", 1e32, 1.5e7), ("tokamak", 1e20, 1e8),
-             ("ICF", 1e31, 1e8), ("white dwarf\ninterior", 1e36, 1e7),
-             ("lightning", 1e24, 3e4), ("flame", 1e20, 3e3)]
-    for lab, nn, TT in items:
-        ax.plot(nn, TT, "o", color=ACC, ms=8, zorder=5)
-        ax.text(nn*1.6, TT*1.25, lab, fontsize=8.5, color=INK)
-    ax.text(2e5, 4e2, "degenerate\n" r"($k_BT<E_F$)", fontsize=9, color=ACC2)
-    ax.text(3e28, 2e2, "strongly\ncoupled", fontsize=9, color=GREEN)
-    ax.set_xlabel(r"density  $n$  (m$^{-3}$)")
-    ax.set_ylabel(r"temperature  $T$  (K)")
-    ax.set_title("Plasma parameter space", color=INK, fontsize=12.5)
-    ax.set_xlim(1e4, 1e38); ax.set_ylim(1e2, 1e10)
-    save(fig, "fl-06-plasma-regimes")
+    """Preserve reviewed SI electron density/temperature boundaries."""
+    _preserve_reviewed_svg("fl-06-plasma-regimes")
 
 # ══════════ 天体线 ══════════
 
