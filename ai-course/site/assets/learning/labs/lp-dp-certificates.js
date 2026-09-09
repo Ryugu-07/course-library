@@ -291,7 +291,10 @@
     });
     check(!primal.active.r1 && primal.active.r2 && primal.active.r3 && !primal.active.x0 && !primal.active.y0, "default full active set");
     check(solvePrimal({ a: 2, b: 20, c: 30 }).x <= 2 + EPS, "capacity changes primal result");
-    return { checks: checks, presets: 3 };
+    PRESETS.forEach(function(params){
+      check(certificate(solvePrimal(params),solveDual(params)).exact && solveDynamic(params).value===solveInteger(params).value,"all published presets: "+params.id);
+    });
+    return { checks: checks, presets: PRESETS.length };
   }
 
   return {
