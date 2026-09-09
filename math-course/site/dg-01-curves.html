@@ -46,239 +46,292 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 03:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#dg-curves-learning-title">学习层：先找定义域，再让四条曲线交出 Frenet 账本</a><ul>
-<li><a href="#1">1. 具体开场：同一条几何曲线，换一个钟表会变什么？</a></li>
-<li><a href="#2">2. 形式桥：从参数速度到内在量</a></li>
-<li><a href="#3">3. 误区与模型边界：不要让公式替定义域背锅</a></li>
-<li><a href="#4-frenet">4. Frenet 互动实验</a></li>
-<li><a href="#5">5. 迁移问题</a></li>
+<li><a href="#dg-curves-learning-title">学习层：换钟表时，先确认比较的是同一个点</a><ul>
+<li><a href="#1">1. 四个可以直接核算的模型</a></li>
+<li><a href="#2">2. 定义域先于除法</a></li>
+<li><a href="#3">3. 正向、反向与镜像</a></li>
+<li><a href="#4">4. 从图读什么，从证明读什么？</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 参数曲线与弧长</a></li>
-<li><a href="#2-frenet">2. Frenet 标架：曲线的随身坐标系</a></li>
-<li><a href="#3_1">3. 一般参数的实算公式（考试主力）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#1_1">1. 正则性、弧长与速度：为什么需要换参数？</a></li>
+<li><a href="#2-frenet">2. 从单位切向推导 Frenet 方程</a><ul>
+<li><a href="#_1">零曲率与平面性各需要什么前提？</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 一般参数与同一点的重参数化</a><ul>
+<li><a href="#_2">曲率怎样进入实际运动？</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 密切圆：相同切向和相同二阶弯曲</a></li>
+<li><a href="#5">5. 曲率与挠率在什么意义下确定曲线？</a><ul>
+<li><a href="#_3">两个空间曲线例子</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 三道迁移题</a><ul>
+<li><a href="#1_2">题 1：重参数化为什么被误报为改变曲率？</a></li>
+<li><a href="#2_1">题 2：倒着走与镜中曲线为什么不同？</a></li>
+<li><a href="#3_2">题 3：两倍速度意味着什么？停下时公式还安全吗？</a></li>
+</ul>
+</li>
+<li><a href="#_4">进一步学习</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">微分几何 I · 曲线论<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i">微分几何 I · 曲线、曲率与挠率<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>微分几何 = 用微积分研究弯曲的对象。第一站是空间曲线：<strong>一条曲线的全部几何由两个函数决定——曲率（弯多快）与挠率（扭多快）</strong>。这个"完全分类"由 Frenet 标架实现：给曲线随身携带一个正交坐标系，微积分与线性代数在此合演。</p>
+<p>同一条弯道，走得快一些会让向心加速度增大，却不会把弯道本身变得更弯。本页先分清参数速度与曲线形状，再用切向、法向和副法向描述空间曲线，最后说明曲率与挠率在什么条件下能确定整条曲线。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="dg-curves-learning-title" class="learning-layer">
-<h2 id="dg-curves-learning-title">学习层：先找定义域，再让四条曲线交出 Frenet 账本<a class="headerlink" href="#dg-curves-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体开场：同一条几何曲线，换一个钟表会变什么？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>先比较四个精确模型，并在打开实验前写下预测：</p>
+<h2 id="dg-curves-learning-title">学习层：换钟表时，先确认比较的是同一个点<a class="headerlink" href="#dg-curves-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 四个可以直接核算的模型<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <table>
 <thead>
 <tr>
 <th>模型</th>
-<th>参数式</th>
-<th>先猜的问题</th>
+<th>基曲线 <span class="arithmatex">\(\mathbf r(u)\)</span></th>
+<th>要观察的区别</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>直线</td>
-<td><span class="arithmatex">\(\mathbf r(u)=(u,0,0)\)</span></td>
-<td>曲线正则，但 <span class="arithmatex">\(\kappa=0\)</span> 时能否仍然写 <span class="arithmatex">\(N=T'/\kappa\)</span>？</td>
+<td><span class="arithmatex">\((u,0,0)\)</span></td>
+<td>正则、曲率为零；<span class="arithmatex">\(T\)</span> 存在，但 Frenet <span class="arithmatex">\(N,B,\tau\)</span> 未定义</td>
 </tr>
 <tr>
-<td>圆</td>
-<td><span class="arithmatex">\(\mathbf r(u)=(2\cos u,2\sin u,0)\)</span></td>
-<td>把 <span class="arithmatex">\(u\)</span> 换成 <span class="arithmatex">\(2t\)</span> 后，speed、弧长坐标、<span class="arithmatex">\(\kappa\)</span>、<span class="arithmatex">\(\tau\)</span> 各怎样变？</td>
+<td>半径 2 的圆</td>
+<td><span class="arithmatex">\((2\cos u,2\sin u,0)\)</span></td>
+<td><span class="arithmatex">\(\kappa=1/2,\tau=0\)</span>，加速不会改变半径</td>
 </tr>
 <tr>
 <td>螺旋线</td>
-<td><span class="arithmatex">\(\mathbf r(u)=(2\cos u,2\sin u,u)\)</span></td>
-<td><span class="arithmatex">\(\tau\)</span> 是 0 还是非零？<span class="arithmatex">\(T,N,B\)</span> 是否仍然正交？</td>
+<td><span class="arithmatex">\((2\cos u,2\sin u,u)\)</span></td>
+<td><span class="arithmatex">\(\kappa=2/5,\tau=1/5\)</span>；空间里 <span class="arithmatex">\(T,N,B\)</span> 正交，投影到屏幕后未必显成直角</td>
 </tr>
 <tr>
 <td>拐点曲线</td>
-<td><span class="arithmatex">\(\mathbf r(u)=(u,u^3,0)\)</span></td>
-<td><span class="arithmatex">\(u=0\)</span> 处速度不为 0，为什么主法向仍会失效？</td>
+<td><span class="arithmatex">\((u,u^3,0)\)</span></td>
+<td>(\kappa=6</td>
 </tr>
 </tbody>
 </table>
-<p>以螺旋线 <span class="arithmatex">\(u=0.8\)</span> 为默认探针。实验的 prediction gate 会先收下四项判断，再展示向量图和逐项账本；拖动参数速度后，预测会重新锁定，避免把上一组结论误读成新模型的证据。</p>
-<h3 id="2">2. 形式桥：从参数速度到内在量<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>曲线 <span class="arithmatex">\(\mathbf r:I\to\mathbb R^3\)</span> 的<strong>正则性</strong>是 <span class="arithmatex">\(\mathbf r'(t)\ne0\)</span>。速度、弧长和单位切向量分别为</p>
+<p>实验把基曲线换成 <span class="arithmatex">\(\widetilde{\mathbf r}(t)=\mathbf r(\lambda t)\)</span>。<strong>比较不变量时必须在 <span class="arithmatex">\(u=\lambda t\)</span> 的同一个几何点比较。</strong>把 <span class="arithmatex">\(\mathbf r(t)\)</span> 与 <span class="arithmatex">\(\mathbf r(\lambda t)\)</span> 都代入同一个数字 <span class="arithmatex">\(t\)</span>，通常是在比较两个位置；拐点曲线的曲率随位置改变，这不能否定重参数化不变性。</p>
+<h3 id="2">2. 定义域先于除法<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(C^2\)</span> 正则曲线满足 <span class="arithmatex">\(\mathbf r'\ne0\)</span>，速度 <span class="arithmatex">\(v=|\mathbf r'|\)</span>，单位切向 <span class="arithmatex">\(T=\mathbf r'/v\)</span>，曲率</p>
 <div class="arithmatex">\[
-v=|\mathbf r'(t)|,\qquad s(t)=\int_{t_0}^{t}v(u)\,du,\qquad T=\frac{\mathbf r'}{|\mathbf r'|}.
+\kappa=\left|\frac{dT}{ds}\right|
+=\frac{|\mathbf r'\times\mathbf r''|}{|\mathbf r'|^3}.
 \]</div>
-<p>若 <span class="arithmatex">\(\mathbf r\)</span> 足够光滑且 <span class="arithmatex">\(\mathbf r'\times\mathbf r''\ne0\)</span>，才可定义完整 Frenet 标架：</p>
+<p>曲率可以为零，零曲率本身仍是合法的几何量。只有 <span class="arithmatex">\(\kappa&gt;0\)</span> 时，才能再定义 <span class="arithmatex">\(N=(dT/ds)/\kappa\)</span>、<span class="arithmatex">\(B=T\times N\)</span>。挠率的三阶导数公式还要求 <span class="arithmatex">\(C^3\)</span>：</p>
 <div class="arithmatex">\[
-\begin{aligned}
-\kappa&amp;=\frac{|\mathbf r'\times\mathbf r''|}{|\mathbf r'|^3},
-&amp;N&amp;=\frac{dT/ds}{|dT/ds|},
-&amp;B&amp;=T\times N,\\
-\tau&amp;=\frac{(\mathbf r',\mathbf r'',\mathbf r''')}{|\mathbf r'\times\mathbf r''|^2}.
-\end{aligned}
+\tau=\frac{(\mathbf r'\times\mathbf r'')\cdot\mathbf r'''}
+{|\mathbf r'\times\mathbf r''|^2}.
 \]</div>
-<p>这里有两个不同的门槛：<span class="arithmatex">\(\mathbf r'\ne0\)</span> 保证 <span class="arithmatex">\(T\)</span> 存在；<span class="arithmatex">\(\kappa&gt;0\)</span> 才允许除以 <span class="arithmatex">\(\kappa\)</span> 得到 <span class="arithmatex">\(N\)</span>。正则不等于 Frenet 标架处处存在。</p>
-<p>对正的正则重参数化 <span class="arithmatex">\(u=\lambda t\)</span>，有</p>
+<p>例如直线和拐点处，<span class="arithmatex">\(\kappa=0\)</span> 仍保持不变，未定义的是 <span class="arithmatex">\(N,B,\tau\)</span>。很小的非零曲率也不能被一个数值阈值改名为“精确零”。</p>
+<h3 id="3">3. 正向、反向与镜像<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>在对应点，非零常数 <span class="arithmatex">\(\lambda\)</span> 给出</p>
 <div class="arithmatex">\[
-|d\mathbf r/dt|=\lambda|d\mathbf r/du|,\qquad s_t(t)=s_u(\lambda t),\qquad \kappa_t=\kappa_u,\quad \tau_t=\tau_u.
+\widetilde v=|\lambda|v,\qquad
+\widetilde\kappa=\kappa,\qquad
+\widetilde\tau=\tau
+\quad(\tau\text{ 有定义时}).
 \]</div>
-<p>因此 speed 和“走到哪里”的弧长坐标依赖钟表，<span class="arithmatex">\(\kappa,\tau\)</span> 在 Frenet 定义域内是几何量。若 <span class="arithmatex">\(\lambda&lt;0\)</span> 或参数不正则，方向与定义域要另行记账，不能把这句不加条件地延伸。</p>
-<p>四个模型的精确结果如下：</p>
-<ul>
-<li><strong>直线</strong>：<span class="arithmatex">\(v=1,\ s=u,\ \kappa=0\)</span>。<span class="arithmatex">\(T=(1,0,0)\)</span> 存在，但 <span class="arithmatex">\(N=T'/\kappa\)</span> 是 <span class="arithmatex">\(0/0\)</span>，所以 <span class="arithmatex">\(N,B,\tau\)</span> 在 Frenet 意义下未定义；实验明确显示“拒绝除以 0”。</li>
-<li><strong>圆</strong>：<span class="arithmatex">\(v=2,\ s=2u,\ \kappa=1/2,\ \tau=0\)</span>，
-  <span class="arithmatex">\(T=(-\sin u,\cos u,0)\)</span>、<span class="arithmatex">\(N=(-\cos u,-\sin u,0)\)</span>、<span class="arithmatex">\(B=(0,0,1)\)</span>。</li>
-<li><strong>螺旋线</strong>：<span class="arithmatex">\(v=\sqrt5,\ s=\sqrt5u,\ \kappa=2/5,\ \tau=1/5\)</span>，
-  [
-  T=\frac{(-2\sin u,2\cos u,1)}{\sqrt5},\quad
-  N=(-\cos u,-\sin u,0),\quad
-  B=\frac{(\sin u,-\cos u,2)}{\sqrt5}.
-  ]</li>
-<li><strong>拐点曲线</strong>：<span class="arithmatex">\(v=\sqrt{1+9u^4}\)</span>，
-  [
-  s(u)=\int_0^u\sqrt{1+9q^4}\,dq,\qquad
-  \kappa=\frac{6|u|}{(1+9u^4)^{3/2}},\qquad \tau=0\quad(u\ne0).
-  ]
-  在 <span class="arithmatex">\(u=0\)</span> 处速度为 1 但 <span class="arithmatex">\(\kappa=0\)</span>，正是“正则而没有主法向”的反例；有符号曲率从负变正，法向在两侧的极限方向也不应被强行拼成一个 Frenet 向量。</li>
-</ul>
-<h3 id="3">3. 误区与模型边界：不要让公式替定义域背锅<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<table>
-<thead>
-<tr>
-<th>容易说错的句子</th>
-<th>精确修正</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>“曲线正则，所以 Frenet 标架总存在。”</td>
-<td>正则只给 <span class="arithmatex">\(T\)</span>。还需 <span class="arithmatex">\(\mathbf r'\times\mathbf r''\ne0\)</span>，即 <span class="arithmatex">\(\kappa&gt;0\)</span>，才能给 <span class="arithmatex">\(N,B,\tau\)</span>。</td>
-</tr>
-<tr>
-<td>“拐点处只是数值不稳定，取一个附近的 <span class="arithmatex">\(N\)</span> 就行。”</td>
-<td>拐点处 <span class="arithmatex">\(N\)</span> 的定义真的失效；可讨论有符号曲率、左右极限或 Bishop 标架，但那是换模型，不是偷偷除零。</td>
-</tr>
-<tr>
-<td>“<span class="arithmatex">\(\tau=0\)</span> 就说明每一点的 Frenet <span class="arithmatex">\(B\)</span> 都存在。”</td>
-<td>平面曲线在 <span class="arithmatex">\(\kappa&gt;0\)</span> 的区间内有 <span class="arithmatex">\(\tau=0\)</span>；若曲率为零，<span class="arithmatex">\(\tau\)</span> 的混合积公式也可能无定义。</td>
-</tr>
-<tr>
-<td>“参数变快，曲线就弯得更厉害。”</td>
-<td>参数速度改变 <span class="arithmatex">\(v,s\)</span> 和向量随参数的导数，不改变正则重参数化下的 <span class="arithmatex">\(\kappa,\tau\)</span>。</td>
-</tr>
-<tr>
-<td>“<span class="arithmatex">\((\kappa,\tau)\)</span> 总能完整分类。”</td>
-<td>基本定理通常要求弧长参数、<span class="arithmatex">\(\kappa&gt;0\)</span> 及足够正则性；直线和拐点是边界，需要分段或换标架叙述。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="4-frenet">4. Frenet 互动实验<a class="headerlink" href="#4-frenet" title="Permanent link"></a></h3>
-<p>下面的实验只使用解析导数和确定性 SVG。红点是探针，蓝、绿、金向量分别是 <span class="arithmatex">\(T,N,B\)</span>；曲线绘图采样也使用同一个正参数速度 rate，避免图线与探针落在不同参数化上；当 <span class="arithmatex">\(\kappa=0\)</span> 时画出红色叉号和文字边界，而不是制造一个任意法向。四个预设、参数滑杆、正参数速度滑杆和重置都共享同一纯模型。</p>
+<p>若 <span class="arithmatex">\(\lambda&lt;0\)</span>，运动方向反转，<span class="arithmatex">\(\widetilde T=-T,\widetilde N=N,\widetilde B=-B\)</span>，挠率仍不变。把整个空间作镜像则不同：例如把螺旋线的 <span class="arithmatex">\(z\)</span> 改成 <span class="arithmatex">\(-z\)</span>，曲率不变，挠率变号。一个是沿原路倒着走，一个是改变空间中的手性。</p>
 <div class="learning-lab" data-learning-lab="frenet-frame">
-<p><strong>JavaScript 失效时的静态后备账本：</strong>取螺旋线 <span class="arithmatex">\(\mathbf r(t)=(2\cos t,2\sin t,t)\)</span>、<span class="arithmatex">\(t=0.8\)</span>、rate <span class="arithmatex">\(=1\)</span>。下表保留精确值；向量数值取三位小数。若把 rate 改为 <span class="arithmatex">\(2\)</span>，speed 与弧长坐标都加倍，但 <span class="arithmatex">\(\kappa=2/5,\tau=1/5\)</span> 不变。</p>
+<p><strong>JavaScript 失效时的静态读法：</strong>默认螺旋线、<span class="arithmatex">\(t=0.8,\lambda=1\)</span>。在 <span class="arithmatex">\(\lambda=2\)</span> 而仍固定 <span class="arithmatex">\(t=0.8\)</span> 时，已走到 <span class="arithmatex">\(u=1.6\)</span>；同点基准应取 <span class="arithmatex">\(\mathbf r(1.6)\)</span>。</p>
 <table>
 <thead>
 <tr>
 <th>量</th>
-<th style="text-align: right;">静态值</th>
+<th>默认值</th>
 <th>解释</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>speed (</td>
-<td style="text-align: right;">r'</td>
-<td>)</td>
+<td>速度</td>
+<td><span class="arithmatex">\(\sqrt5\)</span></td>
+<td>随参数钟表改变</td>
 </tr>
 <tr>
-<td>弧长 <span class="arithmatex">\(s\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.8\sqrt5\approx1.789\)</span></td>
-<td>从 <span class="arithmatex">\(t=0\)</span> 起的有向弧长</td>
+<td>有向弧长</td>
+<td><span class="arithmatex">\(0.8\sqrt5\)</span></td>
+<td>从参数零点起，负参数时可为负</td>
 </tr>
 <tr>
-<td>曲率 <span class="arithmatex">\(\kappa\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2/5=0.4\)</span></td>
-<td>Frenet 法向可定义</td>
-</tr>
-<tr>
-<td>挠率 <span class="arithmatex">\(\tau\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/5=0.2\)</span></td>
-<td>非零，曲线不在固定平面内</td>
+<td>曲率、挠率</td>
+<td><span class="arithmatex">\(2/5,\ 1/5\)</span></td>
+<td>在对应点不变</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(T\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\((-0.641,0.623,0.447)\)</span></td>
+<td><span class="arithmatex">\((-0.641,0.623,0.447)\)</span></td>
 <td>单位切向</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(N\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\((-0.697,-0.717,0)\)</span></td>
-<td>指向凹侧</td>
+<td><span class="arithmatex">\((-0.697,-0.717,0)\)</span></td>
+<td>曲率非零时唯一确定</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(B\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\((0.321,-0.312,0.894)\)</span></td>
+<td><span class="arithmatex">\((0.321,-0.312,0.894)\)</span></td>
 <td><span class="arithmatex">\(T\times N\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>边界复核：直线任一点的 <span class="arithmatex">\(\kappa=0\)</span>，所以 <span class="arithmatex">\(N,B,\tau\)</span> 显示“未定义”；拐点曲线 <span class="arithmatex">\(t=0\)</span> 也如此，尽管 <span class="arithmatex">\(|r'|=1\)</span>。这两行是定义域账，不是缺失数据。</p>
+<p>直线和 <span class="arithmatex">\((u,u^3,0)\)</span> 的 <span class="arithmatex">\(u=0\)</span> 处仍正则，但不能用 <span class="arithmatex">\(0/0\)</span> 算出法向。拐点曲线的弧长没有使用初等闭式，实验给出数值积分及误差估计；该估计不等于经过证明的误差上界。</p>
 </div>
-<h3 id="5">5. 迁移问题<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>若轨迹规划器只要求路径几何不变而改变播放速度，应保留 <span class="arithmatex">\(\kappa,\tau\)</span> 作为路径诊断，同时另外记录 speed 和弧长时间表。若轨迹经过 <span class="arithmatex">\(\kappa=0\)</span> 的拐点，Frenet 航向会出现结构性断点；此时应明确改用有符号曲率、分段 Frenet 或 Bishop 标架，而不是把任意平滑法向冒充原来的 <span class="arithmatex">\(N\)</span>。</p>
+<h3 id="4">4. 从图读什么，从证明读什么？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先作四项预测，再揭晓实验。左图按等比例正投影显示曲线和探针；右图把该点的单位标架移到原点放大，避免长曲线让单位箭头小到看不见。屏幕上的角度不能直接当成三维夹角，正交性要核算内积。</p>
+<p>改变参数、速率或方向后重新作答。表中既列同点不变量，也列误用同一时刻时另一点的曲率，帮助定位“比较对象变了”的错误。</p>
 </section>
-<h2 id="1_1">1. 参数曲线与弧长<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>正则曲线</strong> <span class="arithmatex">\(\mathbf{r}(t): I \to \mathbb{R}^3\)</span>，<span class="arithmatex">\(\mathbf{r}'(t) \neq \mathbf 0\)</span>（速度不歇——保证处处有切方向）。<strong>弧长</strong></p>
+<h2 id="1_1">1. 正则性、弧长与速度：为什么需要换参数？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(I\)</span> 是区间，<span class="arithmatex">\(\mathbf r:I\to\mathbb R^3\)</span> 至少 <span class="arithmatex">\(C^1\)</span>。它<strong>正则</strong>是指每点 <span class="arithmatex">\(\mathbf r'(t)\ne0\)</span>。这保证局部有确定切方向；它不保证曲线没有自交，也不保证参数一次走过的像不会重复。</p>
+<p>固定 <span class="arithmatex">\(t_0\)</span>，定义有向弧长坐标</p>
 <div class="arithmatex">\[
-s(t) = \int_{t_0}^{t}|\mathbf{r}'(u)|\,du
+s(t)=\int_{t_0}^{t}|\mathbf r'(q)|\,dq.
 \]</div>
-<p>（数分 III 弧长公式的空间版。）<strong>弧长参数化</strong>（<span class="arithmatex">\(|\mathbf{r}'(s)| \equiv 1\)</span>，匀速单位速）是理论的标准挡位：一切公式在它之下最干净；实算时用一般参数的换算公式（§3 表）。</p>
-<h2 id="2-frenet">2. Frenet 标架：曲线的随身坐标系<a class="headerlink" href="#2-frenet" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="密切圆半径等于曲率倒数" src="assets/img/dg-01-curvature.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>曲率 \(\kappa\) 的几何：密切圆是与曲线二阶相切的圆，半径 \(R=1/\kappa\)——曲线拐得越急、密切圆越小。</figcaption>
+<p>因为 <span class="arithmatex">\(s'(t)=v(t)&gt;0\)</span>，它严格增加，可局部反解 <span class="arithmatex">\(t=t(s)\)</span>。链式法则给</p>
+<div class="arithmatex">\[
+\frac{d\mathbf r}{ds}=\frac{\mathbf r'(t)}{v(t)},\qquad
+\left|\frac{d\mathbf r}{ds}\right|=1.
+\]</div>
+<p>弧长参数消除了“钟表快慢”。当 <span class="arithmatex">\(t&lt;t_0\)</span> 时，<span class="arithmatex">\(s(t)&lt;0\)</span>；从 <span class="arithmatex">\(t_0\)</span> 到该点沿参数段走过的长度是 <span class="arithmatex">\(|s(t)|\)</span>，长度本身并不为负。</p>
+<p>非正则参数未必意味着几何像有尖点：<span class="arithmatex">\((t^3,0,0)\)</span> 在 <span class="arithmatex">\(t=0\)</span> 速度为零，但像是直线。该参数无法在这里直接套正则公式，换成 <span class="arithmatex">\(u=t^3\)</span> 后像有正常的直线参数；这个换参的逆在零点不满足正则重参数化的要求。</p>
+<h2 id="2-frenet">2. 从单位切向推导 Frenet 方程<a class="headerlink" href="#2-frenet" title="Permanent link"></a></h2>
+<p>以下在 <span class="arithmatex">\(C^3\)</span> 正则曲线的一个区间上讨论，采用弧长 <span class="arithmatex">\(s\)</span>，并假设 <span class="arithmatex">\(\kappa&gt;0\)</span>。记对弧长的导数为撇号：</p>
+<div class="arithmatex">\[
+T=\mathbf r',\qquad \kappa=|T'|,\qquad N=T'/\kappa,\qquad B=T\times N.
+\]</div>
+<p>由于 <span class="arithmatex">\(T\cdot T=1\)</span>，有 <span class="arithmatex">\(T'\cdot T=0\)</span>，所以 <span class="arithmatex">\(N\perp T\)</span>。<span class="arithmatex">\(T,N,B\)</span> 是右手正交单位标架。</p>
+<p>对单位向量 <span class="arithmatex">\(B\)</span> 求导，有 <span class="arithmatex">\(B'\perp B\)</span>。又因 <span class="arithmatex">\(B\cdot T=0\)</span>，
+<span class="arithmatex">\(B'\cdot T=-B\cdot T'=-\kappa B\cdot N=0\)</span>，因此 <span class="arithmatex">\(B'\)</span> 只能沿 <span class="arithmatex">\(N\)</span>。<strong>本页约定</strong> <span class="arithmatex">\(B'=-\tau N\)</span> 定义挠率。再对 <span class="arithmatex">\(N\cdot T=0\)</span> 和 <span class="arithmatex">\(N\cdot B=0\)</span> 求导，可得</p>
+<div class="arithmatex">\[
+T'=\kappa N,\qquad
+N'=-\kappa T+\tau B,\qquad
+B'=-\tau N.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\begin{pmatrix}T\\N\\B\end{pmatrix}'=
+\begin{pmatrix}
+0&amp;\kappa&amp;0\\-\kappa&amp;0&amp;\tau\\0&amp;-\tau&amp;0
+\end{pmatrix}
+\begin{pmatrix}T\\N\\B\end{pmatrix}.
+\]</div>
+<p>反对称系数不是凑出来的：正交单位向量的内积保持不变，迫使导数系数两两相反。有些教材使用相反挠率符号；核对时应先检查 <span class="arithmatex">\(B=T\times N\)</span> 与 <span class="arithmatex">\(B'=-\tau N\)</span> 这两个约定。</p>
+<h3 id="_1">零曲率与平面性各需要什么前提？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>在一个正则 <span class="arithmatex">\(C^2\)</span> 区间上，<span class="arithmatex">\(\kappa\equiv0\)</span> 等价于 <span class="arithmatex">\(T\)</span> 常向，因而像包含在一条直线上。这并不替直线定义一个唯一的 Frenet 法向。</p>
+<p>在上面 <strong><span class="arithmatex">\(\kappa&gt;0\)</span> 的 <span class="arithmatex">\(C^3\)</span> 区间</strong>上，<span class="arithmatex">\(\tau\equiv0\)</span> 等价于曲线落在固定平面。若 <span class="arithmatex">\(\tau=0\)</span>，<span class="arithmatex">\(B\)</span> 常向，而
+<span class="arithmatex">\((\mathbf r\cdot B)'=T\cdot B=0\)</span>，所以 <span class="arithmatex">\(\mathbf r\cdot B\)</span> 常数；反过来，平面曲线的 <span class="arithmatex">\(T,N\)</span> 在该平面内，连续的单位 <span class="arithmatex">\(B\)</span> 固定，于是 <span class="arithmatex">\(\tau=0\)</span>。</p>
+<p>不能把“除零处没有计算的挠率”补成零，再凭几段的零挠率证明整条曲线在同一平面内；在零曲率连接处，完整 Frenet 判据已经失去前提。</p>
+<h2 id="3_1">3. 一般参数与同一点的重参数化<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>在任意正则参数下，</p>
+<div class="arithmatex">\[
+\kappa=\frac{|\mathbf r'\times\mathbf r''|}{|\mathbf r'|^3},
+\qquad
+\tau=\frac{(\mathbf r'\times\mathbf r'')\cdot\mathbf r'''}
+{|\mathbf r'\times\mathbf r''|^2}.
+\]</div>
+<p>第一式只要求 <span class="arithmatex">\(C^2\)</span> 和速度非零，允许分子为零；第二式要求 <span class="arithmatex">\(C^3\)</span> 且外积非零。</p>
+<p>例如 <span class="arithmatex">\(\mathbf r'=vT\)</span>，再次求导得
+<span class="arithmatex">\(\mathbf r''=\dot vT+v^2\kappa N\)</span>。外积消去切向项，
+<span class="arithmatex">\(|\mathbf r'\times\mathbf r''|=v^3\kappa\)</span>，即得曲率公式。对 <span class="arithmatex">\(B=(\mathbf r'\times\mathbf r'')/|\mathbf r'\times\mathbf r''|\)</span> 求导，并用 <span class="arithmatex">\(d/ds=v^{-1}d/dt\)</span>，得到挠率式。</p>
+<p>对 <span class="arithmatex">\(C^3\)</span> 的正则换参 <span class="arithmatex">\(u=\phi(t)\)</span>，<span class="arithmatex">\(\phi'\ne0\)</span>，有</p>
+<div class="arithmatex">\[
+\widetilde{\mathbf r}'=\phi'\mathbf r_u,\qquad
+\widetilde{\mathbf r}''=(\phi')^2\mathbf r_{uu}+\phi''\mathbf r_u.
+\]</div>
+<p>所以外积变为 <span class="arithmatex">\((\phi')^3(\mathbf r_u\times\mathbf r_{uu})\)</span>，混合积变为 <span class="arithmatex">\((\phi')^6(\mathbf r_u,\mathbf r_{uu},\mathbf r_{uuu})\)</span>：含重复向量的额外项都消失。分母分别带 <span class="arithmatex">\(|\phi'|^3\)</span> 与 <span class="arithmatex">\((\phi')^6\)</span>，因子相消，得到在<strong>对应点</strong>的 <span class="arithmatex">\(\widetilde\kappa=\kappa,\widetilde\tau=\tau\)</span>。</p>
+<p>这个论证对负的 <span class="arithmatex">\(\phi'\)</span> 也成立。它不会把零曲率变成非零曲率；<span class="arithmatex">\(\kappa=0\)</span> 处仍可比较曲率，只是不能比较一个未定义的挠率值。</p>
+<h3 id="_2">曲率怎样进入实际运动？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>若用物理时间，速度向量是 <span class="arithmatex">\(vT\)</span>，加速度分解为</p>
+<div class="arithmatex">\[
+\mathbf a=\dot v\,T+v^2\kappa N
+\quad(\kappa&gt;0).
+\]</div>
+<p>同一弯道以两倍速度通过，法向加速度是四倍，而曲率没有变。在 <span class="arithmatex">\(\kappa=0\)</span> 时可写成始终合法的形式
+<span class="arithmatex">\(\mathbf a=\dot vT+v^2(dT/ds)\)</span>，法向项为零，不需要任意选一个 <span class="arithmatex">\(N\)</span>。</p>
+<h2 id="4_1">4. 密切圆：相同切向和相同二阶弯曲<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(\kappa(s_0)&gt;0\)</span> 的点，密切圆位于 <span class="arithmatex">\(T,N\)</span> 张成的平面，圆心与半径为</p>
+<div class="arithmatex">\[
+C=\mathbf r(s_0)+\frac{N(s_0)}{\kappa(s_0)},\qquad R=\frac1{\kappa(s_0)}.
+\]</div>
+<p>令 <span class="arithmatex">\(h=s-s_0\)</span>。按同一弧长取向参数化该圆：</p>
+<div class="arithmatex">\[
+c(h)=C+R\left[-N\cos(h/R)+T\sin(h/R)\right].
+\]</div>
+<p>于是 <span class="arithmatex">\(c(0)=\mathbf r(s_0)\)</span>、<span class="arithmatex">\(c'(0)=T\)</span>、<span class="arithmatex">\(c''(0)=\kappa N\)</span>，与原曲线的二阶 Taylor 数据相同。这是“二阶相切”的具体含义；它不表示两条曲线在一段区间内相等，也不表示给整段曲线作全局最小二乘拟合。</p>
+<div role="region" aria-label="可横向滚动的抛物线与密切圆图" tabindex="0" style="max-width:100%;overflow-x:auto">
+<figure class="plot" style="min-width:1100px">
+<img src="assets/img/dg-01-curvature.svg" alt="抛物线y=x²与顶点密切圆，圆心(0,1/2)，半径1/2；两侧局部图核对二阶相同而四阶不同。">
+<figcaption><span class="fig-id">图 dg-01.1</span>坐标采用同一比例。圆心沿主法向移动一个曲率半径；局部差别由展开式定量说明。</figcaption>
 </figure>
-<p>弧长参数下（记 <span class="arithmatex">\(' = \frac{d}{ds}\)</span>）：</p>
-<ul>
-<li><strong>单位切向量</strong> <span class="arithmatex">\(\mathbf{T} = \mathbf{r}'\)</span>；</li>
-<li><strong>曲率</strong> <span class="arithmatex">\(\kappa(s) = |\mathbf{T}'|\)</span>——切方向的转速，"弯的程度"；<span class="arithmatex">\(\kappa \equiv 0 \iff\)</span> 直线；</li>
-<li><strong>主法向量</strong> <span class="arithmatex">\(\mathbf{N} = \mathbf{T}'/\kappa\)</span>（指向弯曲的凹侧）；</li>
-<li><strong>副法向量</strong> <span class="arithmatex">\(\mathbf{B} = \mathbf{T}\times\mathbf{N}\)</span>（右手系补全；<span class="arithmatex">\(\mathbf{T,N}\)</span> 张成的平面 = 密切平面——"最贴曲线的平面"）；</li>
-<li><strong>挠率</strong> <span class="arithmatex">\(\tau\)</span>：<span class="arithmatex">\(\mathbf{B}' = -\tau\mathbf{N}\)</span>——密切平面的翻转速度，"扭出平面的程度"；<span class="arithmatex">\(\tau \equiv 0 \iff\)</span> 平面曲线。</li>
-</ul>
-<p><strong>Frenet 公式</strong>（标架的运动方程，反对称矩阵形式——正交标架求导必反对称，高代 VI 正交阵的无穷小版本）：</p>
+</div>
+
+<p>对图形 <span class="arithmatex">\(y=f(x)\)</span>，<span class="arithmatex">\(\kappa=|f''|/(1+(f')^2)^{3/2}\)</span>。抛物线 <span class="arithmatex">\(y=x^2\)</span> 在顶点有 <span class="arithmatex">\(\kappa=2\)</span>，故 <span class="arithmatex">\(R=1/2,C=(0,1/2)\)</span>。圆的下半支</p>
 <div class="arithmatex">\[
-\begin{pmatrix}\mathbf{T}\\\mathbf{N}\\\mathbf{B}\end{pmatrix}' =
-\begin{pmatrix} 0 &amp; \kappa &amp; 0\\ -\kappa &amp; 0 &amp; \tau \\ 0 &amp; -\tau &amp; 0\end{pmatrix}
-\begin{pmatrix}\mathbf{T}\\\mathbf{N}\\\mathbf{B}\end{pmatrix}
+y=\frac12-\sqrt{\frac14-x^2}
+=x^2+x^4+O(x^6)
 \]</div>
-<p><strong>定理（曲线论基本定理）</strong> 给定连续函数 <span class="arithmatex">\(\kappa(s) &gt; 0\)</span> 与 <span class="arithmatex">\(\tau(s)\)</span>，存在唯一（差一个刚体运动）以之为曲率挠率的曲线。
-——<strong><span class="arithmatex">\((\kappa, \tau)\)</span> 是曲线的全部内在信息</strong>（"自然方程"）；证明即对 Frenet 方程组用 ODE 存在唯一性定理（ode-01 的定理在几何里收租）。分类哲学的又一实例：找全不变量 ⇒ 完全分类（与高代的标准形、拓扑的指纹同一战略）。</p>
-<h2 id="3_1">3. 一般参数的实算公式（考试主力）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>与抛物线的常数、一次和二次项相同，却从四次项起分开。这里恰因对称性三次项也相同，不能把“四次才分开”当成所有密切圆的普遍性质。</p>
+<h2 id="5">5. 曲率与挠率在什么意义下确定曲线？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>采用经典导数公式的一组充分条件是：区间 <span class="arithmatex">\(I\)</span> 上 <span class="arithmatex">\(\kappa\in C^1\)</span>、<span class="arithmatex">\(\kappa&gt;0\)</span>，<span class="arithmatex">\(\tau\)</span> 连续。给定 <span class="arithmatex">\(s_0\)</span> 处的位置和右手正交单位标架，Frenet 方程先确定唯一标架，再积分 <span class="arithmatex">\(\mathbf r'=T\)</span>，得到一条 <span class="arithmatex">\(C^3\)</span> 单位速曲线，曲率与挠率恰为所给函数。</p>
+<p>为什么解一直保持正交？把三个向量作为矩阵 <span class="arithmatex">\(F\)</span> 的列，方程是 <span class="arithmatex">\(F'=FA\)</span>，其中 <span class="arithmatex">\(A\)</span> 是上一节系数矩阵的转置，仍有 <span class="arithmatex">\(A^\mathsf T=-A\)</span>。矩阵 <span class="arithmatex">\(G=F^\mathsf TF\)</span> 满足 <span class="arithmatex">\(G'=A^\mathsf TG+GA\)</span>，而 <span class="arithmatex">\(G=I\)</span> 是相同初值的解；由线性 ODE 唯一性，<span class="arithmatex">\(G\equiv I\)</span>。行列式连续且初值为 <span class="arithmatex">\(1\)</span>，所以一直保持右手取向。由 <span class="arithmatex">\(T'=\kappa N\)</span> 等式直接核对曲率和挠率。</p>
+<p>不固定初始位置和标架时，唯一性是<strong>相差一个保向刚体运动</strong> <span class="arithmatex">\(\mathbf x\mapsto Q\mathbf x+\mathbf a,\ Q\in SO(3)\)</span>。一般正交变换满足</p>
 <div class="arithmatex">\[
-\kappa = \frac{|\mathbf{r}'\times\mathbf{r}''|}{|\mathbf{r}'|^3}, \qquad
-\tau = \frac{(\mathbf{r}',\ \mathbf{r}'',\ \mathbf{r}''')}{|\mathbf{r}'\times\mathbf{r}''|^2}
+\widetilde\kappa=\kappa,\qquad
+\widetilde\tau=(\det Q)\tau.
 \]</div>
-<p>（分子分别是外积模与混合积——解几 I 的三件套在此就业；平面曲线 <span class="arithmatex">\(y = f(x)\)</span> 特例：<span class="arithmatex">\(\kappa = \frac{|f''|}{(1 + f'^2)^{3/2}}\)</span>——数分 II 见过的公式认祖归宗。）</p>
-<p><strong>曲率的两个具象</strong>：密切圆半径 <span class="arithmatex">\(R = 1/\kappa\)</span>（最贴曲线的圆——"弯道半径"，公路与铁路设计的直接参数：缓和曲线就是让 <span class="arithmatex">\(\kappa\)</span> 连续变化避免方向盘突跳）；单摆线/悬链线等名曲线各有标志性 <span class="arithmatex">\(\kappa(s)\)</span>。</p>
-<p>🔗 <strong>衔接</strong>：曲率是"二阶几何量"（一阶给方向、二阶给弯曲——与 Taylor/Hessian 的层级一致，数分 II/V）；样条曲线（数值 III）的 <span class="arithmatex">\(C^2\)</span> 拼接条件正是"曲率连续"；机器人轨迹规划、自动驾驶的路径平滑都在优化 <span class="arithmatex">\(\kappa\)</span> 的连续性与上界。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（圆柱螺旋线全套，本章的果蝇）</strong> <span class="arithmatex">\(\mathbf{r} = (a\cos t,\ a\sin t,\ bt)\)</span>：<span class="arithmatex">\(|\mathbf{r}'| = \sqrt{a^2 + b^2}\)</span>（匀速——弧长参数只差常数缩放）；套公式得</p>
+<p>反射的 <span class="arithmatex">\(\det Q=-1\)</span>，会改变挠率符号。曲率与挠率是曲线在三维空间中摆放形状的<strong>外在不变量</strong>；若只看一维弧长度量，小段直线与小段圆弧都与一个区间等距，单凭这个内在度量看不出弯曲。</p>
+<p>此外，给任意周期的 <span class="arithmatex">\(\kappa,\tau\)</span> 并不自动得到闭曲线；位置和标架回到起点还需额外的闭合条件。零曲率处则需分段处理，或引入 Bishop 等其他标架，不能省掉 <span class="arithmatex">\(\kappa&gt;0\)</span> 后继续引用同一个基本定理。</p>
+<h3 id="_3">两个空间曲线例子<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(\mathbf r(t)=(a\cos t,a\sin t,bt)\)</span>，取 <span class="arithmatex">\(a&gt;0,b\in\mathbb R\)</span>，</p>
 <div class="arithmatex">\[
-\kappa = \frac{a}{a^2 + b^2}, \qquad \tau = \frac{b}{a^2 + b^2}
+v=\sqrt{a^2+b^2},\qquad
+\kappa=\frac{a}{a^2+b^2},\qquad
+\tau=\frac{b}{a^2+b^2}.
 \]</div>
-<p><strong>曲率挠率皆常数</strong>——基本定理反推：常 <span class="arithmatex">\((\kappa, \tau)\)</span> 的曲线只有螺旋线（含退化：<span class="arithmatex">\(b = 0\)</span> 圆、<span class="arithmatex">\(a = 0\)</span> 直线）。DNA 双螺旋、弹簧、螺纹的数学身份证。</p>
-<p><strong>例 2（判平面曲线）</strong> <span class="arithmatex">\(\mathbf{r} = (t, t^2, t^3)\)</span> 是平面曲线吗？<span class="arithmatex">\(\tau\)</span> 的分子 <span class="arithmatex">\((\mathbf{r}', \mathbf{r}'', \mathbf{r}''') = \det\begin{pmatrix}1 &amp; 2t &amp; 3t^2\\ 0 &amp; 2 &amp; 6t \\ 0 &amp; 0 &amp; 6\end{pmatrix} = 12 \neq 0\)</span>——<span class="arithmatex">\(\tau \neq 0\)</span>，真三维扭曲（"扭曲三次曲线"）。<strong>判平面性 = 验混合积</strong>，一步到位。</p>
-<p><strong>例 3（密切圆）</strong> 抛物线 <span class="arithmatex">\(y = x^2\)</span> 顶点处：<span class="arithmatex">\(\kappa = \frac{2}{(1+0)^{3/2}} = 2\)</span> ⇒ 密切圆半径 <span class="arithmatex">\(\frac12\)</span>，圆心 <span class="arithmatex">\((0, \frac12)\)</span>——顶点附近抛物线与该圆二阶吻合（Taylor 到二阶相同的几何说法）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：从一维到二维——曲面论：两个基本形式、高斯曲率，以及那条改变几何学命运的"绝妙定理"。</em></p>
+<p>当 <span class="arithmatex">\(b=0\)</span> 得圆；若固定 <span class="arithmatex">\(\kappa&gt;0,\tau\)</span> 都为常数，反解
+<span class="arithmatex">\(a=\kappa/(\kappa^2+\tau^2),b=\tau/(\kappa^2+\tau^2)\)</span>，结合基本定理得到对应螺旋线。<span class="arithmatex">\(a=0,b\ne0\)</span> 另成直线，此时曲率零、Frenet 挠率未定义；<span class="arithmatex">\(a=b=0\)</span> 更是非正则常值曲线。</p>
+<p>扭曲三次曲线 <span class="arithmatex">\((t,t^2,t^3)\)</span> 的导数外积为 <span class="arithmatex">\((6t^2,-6t,2)\)</span>，始终非零，混合积为 <span class="arithmatex">\(12\)</span>。所以</p>
+<div class="arithmatex">\[
+\tau(t)=\frac{3}{9t^4+9t^2+1}&gt;0,
+\]</div>
+<p>不在固定平面内。这里同时检查了混合积非零和公式定义域。</p>
+<p>对样条连接，<strong>正则 <span class="arithmatex">\(C^2\)</span></strong> 是曲率连续的充分条件。不能把几何曲率连续与某个参数表示的 <span class="arithmatex">\(C^2\)</span> 性说成同义条件：参数速度的光滑程度也会影响二阶参数导数。轨迹设计既要检查几何连接，也要检查所选时间规律。</p>
+<h2 id="6">6. 三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h3 id="1_2">题 1：重参数化为什么被误报为改变曲率？<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(\mathbf r(u)=(u,u^3,0)\)</span>，<span class="arithmatex">\(\widetilde{\mathbf r}(t)=\mathbf r(2t)\)</span>。在 <span class="arithmatex">\(t=1/2\)</span> 处分别计算新曲率、同点基准曲率，以及错误地使用 <span class="arithmatex">\(u=1/2\)</span> 得到的曲率。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>新曲线在 <span class="arithmatex">\(u=1\)</span> 的点。其一、二阶导数为 <span class="arithmatex">\((2,6,0),(0,24,0)\)</span>，外积模 <span class="arithmatex">\(48\)</span>，速度 <span class="arithmatex">\(2\sqrt{10}\)</span>。因此新曲率为 <span class="arithmatex">\(48/(2\sqrt{10})^3=3/(5\sqrt{10})\)</span>，等于基曲线 <span class="arithmatex">\(\kappa(1)\)</span>。若错取 <span class="arithmatex">\(\kappa(1/2)\)</span>，得到 <span class="arithmatex">\(3/(1+9/16)^{3/2}=192/125\)</span>。二者不同，是因为位置从 <span class="arithmatex">\((1,1,0)\)</span> 换成了 <span class="arithmatex">\((1/2,1/8,0)\)</span>，不是不变量定理失效。</p>
+</details>
+<h3 id="2_1">题 2：倒着走与镜中曲线为什么不同？<a class="headerlink" href="#2_1" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(\mathbf r(u)=(2\cos u,2\sin u,u)\)</span>，比较 <span class="arithmatex">\(\mathbf r(-t)\)</span> 与空间反射 <span class="arithmatex">\((2\cos t,2\sin t,-t)\)</span> 的曲率、挠率。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>两者曲率都为 <span class="arithmatex">\(2/5\)</span>。反向参数化的混合积分子和分母都带 <span class="arithmatex">\((-1)^6=1\)</span>，所以挠率仍为 <span class="arithmatex">\(1/5\)</span>；在对应点 <span class="arithmatex">\(T,B\)</span> 反向而 <span class="arithmatex">\(N\)</span> 不变。空间反射的矩阵为 <span class="arithmatex">\(\operatorname{diag}(1,1,-1)\)</span>，行列式 <span class="arithmatex">\(-1\)</span>，所以挠率变为 <span class="arithmatex">\(-1/5\)</span>。镜像改变手性，倒着沿同一螺旋线走不改变手性。</p>
+</details>
+<h3 id="3_2">题 3：两倍速度意味着什么？停下时公式还安全吗？<a class="headerlink" href="#3_2" title="Permanent link"></a></h3>
+<p>在圆上取 <span class="arithmatex">\(\mathbf q(t)=(2\cos(t^2),2\sin(t^2),0)\)</span>，<span class="arithmatex">\(t&gt;0\)</span>。计算速度、曲率和法向加速度大小；再说明 <span class="arithmatex">\(t=0\)</span> 处的问题。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>速度 <span class="arithmatex">\(v=4t\)</span>，圆的几何曲率仍为 <span class="arithmatex">\(1/2\)</span>。法向加速度为 <span class="arithmatex">\(v^2\kappa=8t^2\)</span>，切向加速度大小为 <span class="arithmatex">\(\dot v=4\)</span>。在 <span class="arithmatex">\(t=0\)</span> 参数速度为零，<span class="arithmatex">\(|\mathbf q'|^3\)</span> 分母为零，不能直接用该参数的曲率商式；圆本身仍光滑且曲率 <span class="arithmatex">\(1/2\)</span>，这是参数停下造成的公式失效。</p>
+</details>
+<h2 id="_4">进一步学习<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<p>下一页进入<a href="dg-02-surfaces.html">曲面论</a>。曲面有多个切方向，曲率需要先说明沿哪个方向测量。</p>
+<p>更完整的证明与习题见 <a href="https://www.dpmms.cam.ac.uk/~gpp24/dgnotes/dg.pdf">Gabriel P. Paternain：Differential Geometry，第 2.1 节</a>，以及 <a href="https://www.silviofanzon.com/2024-Differential-Geometry-Notes/sections/chap_2.html">Silvio Fanzon：Curvature and Torsion</a>。本页固定右手标架和挠率符号，比较不同讲义前先核对约定。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="top-02-compact-connected.html"><span class="pager-label">上一页</span>拓扑 II · 紧致、连通与分离性</a>
