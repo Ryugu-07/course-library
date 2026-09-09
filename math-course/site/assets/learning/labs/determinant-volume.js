@@ -29,11 +29,10 @@
     "use strict";
 
     var STYLE_ID = "cl-determinant-volume-styles";
-    var EPS = 1e-10;
     var DEFAULTS = { scale: 0.5, anisotropy: 0, shear: 0, basisScale: 1, swapped: false };
     var PRESETS = [
       { id: "uniform", label: "均匀缩小", scale: 0.5, anisotropy: 0, shear: 0, basisScale: 1, swapped: false },
-      { id: "thin", label: "同体积但拉扁", scale: 0.464, anisotropy: 0.8, shear: 0, basisScale: 1, swapped: false },
+      { id: "thin", label: "同体积但拉扁", scale: 0.5, anisotropy: 0.8, shear: 0, basisScale: 1, swapped: false },
       { id: "shear", label: "剪切与换基", scale: 0.8, anisotropy: 0, shear: 0.65, basisScale: 1.1, swapped: false },
       { id: "reverse", label: "交换两列", scale: 0.8, anisotropy: 0, shear: 0.3, basisScale: 1, swapped: true }
     ];
@@ -91,7 +90,7 @@
     ];
 
     var STYLE_TEXT = [
-      '[data-learning-lab="determinant-volume"]{--dv-accent:#0f766e;--dv-good:#15803d;--dv-warn:#b45309;display:block;max-width:100%;min-width:0;color:var(--fg,inherit);line-height:1.55;overflow-wrap:anywhere}',
+      '[data-learning-lab="determinant-volume"]{--dv-accent:#0f766e;--dv-blue:#1d4ed8;--dv-gold:#b45309;--dv-green:#15803d;--dv-good:#15803d;--dv-warn:#b45309;display:block;max-width:100%;min-width:0;color:var(--fg,inherit);line-height:1.55;overflow-wrap:anywhere}',
       '[data-learning-lab="determinant-volume"] [hidden]{display:none!important}',
       '[data-learning-lab="determinant-volume"] .dv-note,[data-learning-lab="determinant-volume"] .dv-feedback{color:var(--fg-soft,currentColor);font-size:13px;line-height:1.7}',
       '[data-learning-lab="determinant-volume"] .dv-presets,[data-learning-lab="determinant-volume"] .dv-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}',
@@ -111,21 +110,25 @@
       '[data-learning-lab="determinant-volume"] .dv-primary{background:var(--dv-accent);border-color:var(--dv-accent);color:#fff;font-weight:750}',
       '[data-learning-lab="determinant-volume"] .dv-feedback{min-height:2em;margin:8px 0;font-weight:700}',
       '[data-learning-lab="determinant-volume"] .dv-good{color:var(--dv-good)}[data-learning-lab="determinant-volume"] .dv-warn{color:var(--dv-warn)}',
-      '[data-learning-lab="determinant-volume"] .dv-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr);gap:16px;align-items:start;margin-top:16px}',
-      '[data-learning-lab="determinant-volume"] .dv-chart{min-width:0;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
-      '[data-learning-lab="determinant-volume"] svg{display:block;width:100%;height:auto}',
+      '[data-learning-lab="determinant-volume"] .dv-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}',
+      '[data-learning-lab="determinant-volume"] .dv-chart{min-width:0;max-width:100%;overflow-x:auto;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
+      '[data-learning-lab="determinant-volume"] svg{display:block;width:100%;min-width:800px;height:auto}',
       '[data-learning-lab="determinant-volume"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
       '[data-learning-lab="determinant-volume"] .dv-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.7}[data-learning-lab="determinant-volume"] .dv-edge{stroke:var(--dv-accent);stroke-width:2;stroke-opacity:.68;fill:none}[data-learning-lab="determinant-volume"] .dv-title{font-size:13px;font-weight:750}[data-learning-lab="determinant-volume"] .dv-label{font-size:11px}',
       '[data-learning-lab="determinant-volume"] .dv-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}',
       '[data-learning-lab="determinant-volume"] .dv-metric{min-width:0;padding:9px;border-top:3px solid var(--dv-accent);background:var(--bg,transparent)}',
       '[data-learning-lab="determinant-volume"] .dv-metric span{display:block;color:var(--fg-soft,currentColor);font-size:11px}[data-learning-lab="determinant-volume"] .dv-metric strong{display:block;margin-top:3px;overflow-wrap:anywhere}',
       '[data-learning-lab="determinant-volume"] .dv-table-wrap{max-width:100%;overflow-x:auto}',
-      '[data-learning-lab="determinant-volume"] table{width:100%;min-width:500px;border-collapse:collapse;font-size:12px}',
+      '[data-learning-lab="determinant-volume"] table{width:100%;min-width:720px;border-collapse:collapse;font-size:12px}',
       '[data-learning-lab="determinant-volume"] th,[data-learning-lab="determinant-volume"] td{padding:7px 8px;border-bottom:1px solid var(--border,#cbd5e1);text-align:left;vertical-align:top}',
       '[data-learning-lab="determinant-volume"] th{color:var(--fg-soft,currentColor);font-size:11px}',
       '[data-learning-lab="determinant-volume"] .dv-boundary{margin:12px 0;padding:10px 12px;border-left:3px solid var(--dv-warn);background:var(--bg,transparent);font-size:13px;line-height:1.7}',
       '@media(max-width:820px){[data-learning-lab="determinant-volume"] .dv-controls{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="determinant-volume"] .dv-grid{grid-template-columns:minmax(0,1fr)}}',
       '@media(max-width:620px){[data-learning-lab="determinant-volume"] .dv-options{grid-template-columns:minmax(0,1fr)}}',
+      '[data-theme="dark"] [data-learning-lab="determinant-volume"]{--dv-accent:#5eead4;--dv-blue:#60a5fa;--dv-gold:#fbbf24;--dv-green:#4ade80;--dv-good:#4ade80;--dv-warn:#fbbf24}',
+      '[data-learning-lab="determinant-volume"] .dv-c0{stroke:var(--dv-blue);fill:var(--dv-blue)}[data-learning-lab="determinant-volume"] .dv-c1{stroke:var(--dv-gold);fill:var(--dv-gold)}[data-learning-lab="determinant-volume"] .dv-c2{stroke:var(--dv-green);fill:var(--dv-green)}',
+      '[data-learning-lab="determinant-volume"] [tabindex]:focus-visible{outline:3px solid #5eead4;outline-offset:-3px}',
+      '[data-theme="dark"] [data-learning-lab="determinant-volume"] button.dv-primary,[data-theme="dark"] [data-learning-lab="determinant-volume"] button[aria-pressed="true"],[data-theme="dark"] [data-learning-lab="determinant-volume"] button:hover{color:#042f2e}',
       '@media(prefers-reduced-motion:reduce){[data-learning-lab="determinant-volume"] *{scroll-behavior:auto!important;transition:none!important}}'
     ].join("");
 
@@ -137,26 +140,33 @@
       return Math.abs(left - right) <= (tolerance || 1e-9);
     }
 
-    function clamp(value, low, high) {
-      return Math.max(low, Math.min(high, value));
-    }
-
     function finiteParameter(value, label) {
-      var number = Number(value);
-      if (!Number.isFinite(number)) throw new RangeError(label + " must be finite");
-      return number;
+      if (typeof value !== "number" || !Number.isFinite(value)) throw new RangeError(label + " must be a finite number");
+      return value;
     }
-
+    function bounded(value, low, high, label) {
+      finiteParameter(value, label);
+      if (value < low || value > high) throw new RangeError(label + " outside teaching domain");
+      return value;
+    }
     function normalize(input) {
       if (!input) throw new TypeError("determinant parameters are required");
       if (typeof input.swapped !== "boolean") throw new TypeError("swapped must be boolean");
       return {
-        scale: clamp(finiteParameter(input.scale, "scale"), 0, 1.4),
-        anisotropy: clamp(finiteParameter(input.anisotropy, "anisotropy"), -0.8, 0.8),
-        shear: clamp(finiteParameter(input.shear, "shear"), -0.8, 0.8),
-        basisScale: clamp(finiteParameter(input.basisScale, "basisScale"), 0.5, 1.5),
+        scale: bounded(input.scale, 0, 1.4, "scale"),
+        anisotropy: bounded(input.anisotropy, -0.8, 0.8, "anisotropy"),
+        shear: bounded(input.shear, -0.8, 0.8, "shear"),
+        basisScale: bounded(input.basisScale, 0.5, 1.5, "basisScale"),
         swapped: input.swapped
       };
+    }
+    function checkedMatrix(matrix) {
+      if (!Array.isArray(matrix) || matrix.length !== 3) throw new TypeError("expected a 3 by 3 matrix");
+      for (var i = 0; i < 3; i++) {
+        if (!Array.isArray(matrix[i]) || matrix[i].length !== 3) throw new TypeError("expected a 3 by 3 matrix");
+        for (var j = 0; j < 3; j++) finiteParameter(matrix[i][j], "matrix entry");
+      }
+      return matrix;
     }
 
     function matrixFrom(input) {
@@ -170,23 +180,28 @@
     }
 
     function basisMatrix(basisScale) {
-      var b = clamp(finiteParameter(basisScale, "basisScale"), 0.5, 1.5);
+      var b = bounded(basisScale, 0.5, 1.5, "basisScale");
       return [[b, 0.3, 0], [0, b, 0.1], [0, 0, b]];
     }
 
     function determinant3(matrix) {
-      return matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
+      checkedMatrix(matrix);
+      var result = matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
         matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
         matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
+      if (!Number.isFinite(result)) throw new RangeError("determinant overflow");
+      return result;
     }
 
     function multiply3(left, right) {
+      checkedMatrix(left); checkedMatrix(right);
       var output = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
       for (var i = 0; i < 3; i += 1) {
         for (var j = 0; j < 3; j += 1) {
           for (var k = 0; k < 3; k += 1) output[i][j] += left[i][k] * right[k][j];
         }
       }
+      checkedMatrix(output);
       return output;
     }
 
@@ -208,36 +223,19 @@
       return output;
     }
 
-    function rank3(matrix) {
-      var work = matrix.map(function (row) { return row.slice(); });
-      var rank = 0;
-      for (var column = 0; column < 3 && rank < 3; column += 1) {
-        var pivot = rank;
-        for (var row = rank + 1; row < 3; row += 1) {
-          if (Math.abs(work[row][column]) > Math.abs(work[pivot][column])) pivot = row;
-        }
-        if (Math.abs(work[pivot][column]) <= 1e-9) continue;
-        var swap = work[rank];
-        work[rank] = work[pivot];
-        work[pivot] = swap;
-        for (var lower = rank + 1; lower < 3; lower += 1) {
-          var factor = work[lower][column] / work[rank][column];
-          for (var j = column; j < 3; j += 1) work[lower][j] -= factor * work[rank][j];
-        }
-        rank += 1;
-      }
-      return rank;
-    }
-
     function symmetricEigenvalues3(matrix) {
-      var work = matrix.map(function (row) { return row.slice(); });
+      checkedMatrix(matrix);
+      for (var i = 0; i < 3; i++) for (var j = i + 1; j < 3; j++) if (matrix[i][j] !== matrix[j][i]) throw new RangeError("matrix must be symmetric");
+      var scale = Math.max.apply(null, matrix.flat().map(Math.abs));
+      if (scale === 0) return [0, 0, 0];
+      var work = matrix.map(function (row) { return row.map(function (v) { return v / scale; }); });
       for (var iteration = 0; iteration < 60; iteration += 1) {
         var p = 0;
         var q = 1;
         var largest = Math.abs(work[0][1]);
         if (Math.abs(work[0][2]) > largest) { p = 0; q = 2; largest = Math.abs(work[0][2]); }
         if (Math.abs(work[1][2]) > largest) { p = 1; q = 2; largest = Math.abs(work[1][2]); }
-        if (largest < 1e-12) break;
+        if (largest < 8 * Number.EPSILON) break;
         var theta = 0.5 * Math.atan2(2 * work[p][q], work[q][q] - work[p][p]);
         var cosine = Math.cos(theta);
         var sine = Math.sin(theta);
@@ -258,56 +256,82 @@
         work[p][q] = 0;
         work[q][p] = 0;
       }
-      return [work[0][0], work[1][1], work[2][2]].sort(function (a, b) { return b - a; });
+      return [work[0][0] * scale, work[1][1] * scale, work[2][2] * scale].sort(function (a, b) { return b - a; });
     }
 
+    // One-sided Jacobi orthogonalizes columns without forming A^T A.
+    // Pairwise scaling and normalized correlations avoid absolute stopping thresholds.
     function singularValues3(matrix) {
-      var gram = multiply3(transpose3(matrix), matrix);
-      return symmetricEigenvalues3(gram).map(function (value) { return Math.sqrt(Math.max(0, value)); });
+      checkedMatrix(matrix);
+      var work = matrix.map(function (row) { return row.slice(); });
+      for (var sweep = 0; sweep < 80; sweep++) {
+        var changed = false;
+        [[0,1],[0,2],[1,2]].forEach(function (pair) {
+          var p = pair[0], q = pair[1];
+          var a = Math.hypot(work[0][p], work[1][p], work[2][p]);
+          var b = Math.hypot(work[0][q], work[1][q], work[2][q]);
+          if (!Number.isFinite(a) || !Number.isFinite(b)) throw new RangeError("singular value overflow");
+          if (a === 0 || b === 0) return;
+          var rho = 0;
+          for (var i = 0; i < 3; i++) rho += (work[i][p] / a) * (work[i][q] / b);
+          if (Math.abs(rho) <= 8 * Number.EPSILON) return;
+          var scale = Math.max(a,b), ap = a / scale, bp = b / scale;
+          var gamma = rho * ap * bp, delta = bp * bp - ap * ap;
+          if (gamma === 0) return;
+          var tau = delta / (2 * gamma);
+          var tangent = !Number.isFinite(tau) ? gamma / delta : Math.abs(tau) > 1 ? (1 / tau) / (1 + Math.hypot(1,1/tau)) : (tau < 0 ? -1 : 1) / (Math.abs(tau) + Math.hypot(1,tau));
+          if (tangent === 0) return;
+          var cosine = 1 / Math.hypot(1,tangent), sine = tangent * cosine;
+          for (var row = 0; row < 3; row++) {
+            var x = work[row][p], y = work[row][q];
+            work[row][p] = cosine * x - sine * y;
+            work[row][q] = sine * x + cosine * y;
+          }
+          changed = true;
+        });
+        if (!changed) break;
+      }
+      return [0,1,2].map(function (j) { return Math.hypot(work[0][j],work[1][j],work[2][j]); }).sort(function (a,b) { return b-a; });
     }
-
     function condition2(matrix) {
       var values = singularValues3(matrix);
-      return values[2] <= EPS ? Infinity : values[0] / values[2];
+      return values[2] === 0 ? Infinity : values[0] / values[2];
     }
-
-    function diagonalUniform(scale) {
-      return [[scale, 0, 0], [0, scale, 0], [0, 0, scale]];
-    }
-
     function evaluate(input) {
-      var params = normalize(input);
-      var base = matrixFrom(params);
+      var params = normalize(input), base = matrixFrom(params);
       var A = params.swapped ? swapColumns(base) : base;
-      var B = basisMatrix(params.basisScale);
-      var AB = multiply3(A, B);
-      var detA = determinant3(A);
-      var detB = determinant3(B);
-      var detAB = determinant3(AB);
-      var uniformScale = Math.pow(Math.abs(detA), 1 / 3);
-      var uniform = diagonalUniform(uniformScale);
+      var B = basisMatrix(params.basisScale), AB = multiply3(A,B);
+      var sign = params.swapped ? -1 : 1, scale = params.scale;
+      var detA = sign * scale * scale * scale, detB = params.basisScale ** 3;
+      var values = singularValues3(A), rank = scale > 0 ? 3 : params.shear === 0 ? 0 : 2;
+      if (scale === 0) values[2] = 0;
+      else if (params.shear === 0) values = [scale * Math.exp(Math.abs(params.anisotropy)), scale, scale / Math.exp(Math.abs(params.anisotropy))];
+      else {
+        // Exact family identity |det A|=s^3 recovers the weakest direction
+        // from the two resolved large singular values; no squared Gram spectrum.
+        values[2] = scale * (scale / values[0]) * (scale / values[1]);
+      }
+      var condition = rank < 3 ? Infinity : params.shear === 0 ? Math.exp(2 * Math.abs(params.anisotropy)) : values[0] / values[2];
+      var resolved = rank < 3 || (Number.isFinite(condition) && (params.shear === 0 || values[2] > 0));
       return {
-        params: params,
-        A: A,
-        B: B,
-        AB: AB,
-        detA: detA,
-        detB: detB,
-        detAB: detAB,
-        rankA: rank3(A),
-        conditionA: condition2(A),
-        uniformCondition: condition2(uniform),
-        singularValues: singularValues3(A),
-        volumeLabel: detA > EPS ? "保持方向" : detA < -EPS ? "反转方向" : "体积塌缩"
+        params: params, A: A, B: B, AB: AB,
+        detA: detA, detB: detB, detAB: detA * detB,
+        determinantResolved: scale === 0 || (detA !== 0 && detA * detB !== 0),
+        rankA: rank, conditionA: resolved ? condition : null,
+        conditionResolved: resolved, uniformCondition: scale > 0 ? 1 : Infinity,
+        singularValues: values,
+        volumeLabel: scale === 0 ? "体积塌缩" : params.swapped ? "反转方向" : "保持方向"
       };
     }
-
     function format(value, digits) {
-      if (!isFinite(value)) return "无穷大";
+      if (value === null) return "超出可表示精度";
+      if (value === Infinity) return "∞（奇异）";
+      finiteParameter(value, "display value");
       var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) < Math.pow(10, -places) / 2) value = 0;
-      var text = Number(value).toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "") || "0";
+      if (value === 0) return "0";
+      if (Math.abs(value) < Math.pow(10,-places) || Math.abs(value) >= 1e6) return value.toExponential(3);
+      var text = value.toFixed(places);
+      return places ? text.replace(/0+$/, "").replace(/\.$/, "") : text;
     }
 
     function matrixText(matrix) {
@@ -331,57 +355,36 @@
     }
 
     function svgFor(data) {
-      var vertices = [];
-      for (var mask = 0; mask < 8; mask += 1) {
-        vertices.push(applyMatrix(data.A, { x: mask & 1 ? 1 : 0, y: mask & 2 ? 1 : 0, z: mask & 4 ? 1 : 0 }));
-      }
-      function project(point) { return { x: point.x - 0.65 * point.y, y: -point.z - 0.35 * point.y - 0.2 * point.x }; }
-      var projected = vertices.map(project);
-      var minX = 0;
-      var maxX = 0;
-      var minY = 0;
-      var maxY = 0;
-      projected.forEach(function (point) { minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x); minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y); });
-      var spanX = Math.max(1, maxX - minX);
-      var spanY = Math.max(1, maxY - minY);
-      function map(point) { return { x: 52 + 516 * (point.x - minX) / spanX, y: 258 - 210 * (point.y - minY) / spanY }; }
       var edges = [[0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],[4,5],[4,6],[5,7],[6,7]];
-      var edgeHtml = edges.map(function (edge) {
-        var first = map(projected[edge[0]]);
-        var second = map(projected[edge[1]]);
-        return '<line x1="' + format(first.x, 2) + '" y1="' + format(first.y, 2) + '" x2="' + format(second.x, 2) + '" y2="' + format(second.y, 2) + '" class="dv-edge"/>';
-      }).join("");
-      var origin = map({ x: 0, y: 0 });
-      var basisColors = ["#2563eb", "#d97706", "#15803d"];
-      var basisLines = [[1,0,0],[0,1,0],[0,0,1]].map(function (unit, index) {
-        var end = map(project(applyMatrix(data.A, { x: unit[0], y: unit[1], z: unit[2] })));
-        return '<line x1="' + format(origin.x, 2) + '" y1="' + format(origin.y, 2) + '" x2="' + format(end.x, 2) + '" y2="' + format(end.y, 2) + '" stroke="' + basisColors[index] + '" stroke-width="3" marker-end="url(#dv-arrow-' + index + ')"/>';
-      }).join("");
-      var markers = basisColors.map(function (color, index) { return '<marker id="dv-arrow-' + index + '" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="' + color + '"/></marker>'; }).join("");
-      return '<svg viewBox="0 0 620 320" role="img" aria-label="三维单位立方体经矩阵变换后的平行六面体投影"><defs>' + markers + '</defs>' +
-        '<line x1="46" y1="274" x2="574" y2="274" class="dv-axis"/><line x1="52" y1="36" x2="52" y2="280" class="dv-axis"/>' + edgeHtml + basisLines +
-        '<circle cx="' + format(origin.x, 2) + '" cy="' + format(origin.y, 2) + '" r="4" fill="currentColor"/><text x="52" y="24" class="dv-title">单位立方体的有向体积图</text>' +
-        '<text x="430" y="302" class="dv-label">蓝 e1，金 e2，绿 e3</text></svg>';
+      function project(point) { return { x: point.x - .65 * point.y, y: point.z + .35 * point.y + .2 * point.x }; }
+      function vertices(matrix) { return Array.from({ length: 8 }, function (_,mask) { return project(applyMatrix(matrix,{x:mask&1?1:0,y:mask&2?1:0,z:mask&4?1:0})); }); }
+      var unit = vertices([[1,0,0],[0,1,0],[0,0,1]]), left = vertices(data.A), right = vertices(data.AB);
+      var all = unit.concat(left,right), minX = Math.min.apply(null,all.map(function(p){return p.x;})), maxX = Math.max.apply(null,all.map(function(p){return p.x;}));
+      var minY = Math.min.apply(null,all.map(function(p){return p.y;})), maxY = Math.max.apply(null,all.map(function(p){return p.y;}));
+      var pixels = Math.min(290 / (maxX-minX),195 / (maxY-minY));
+      function panel(points,offset,label) {
+        function map(point) { return { x:offset+48+(point.x-minX)*pixels, y:270-(point.y-minY)*pixels }; }
+        function lines(points,reference) { return edges.map(function(edge){var a=map(points[edge[0]]),b=map(points[edge[1]]);return '<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" '+(reference?'stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4"':'class="dv-edge"')+'/>';}).join(''); }
+        var origin=map({x:0,y:0}), html=lines(unit,true)+lines(points,false);
+        [1,2,4].forEach(function(mask,index){var end=map(points[mask]);html+='<line x1="'+origin.x+'" y1="'+origin.y+'" x2="'+end.x+'" y2="'+end.y+'" class="dv-c'+index+'" stroke-width="3"/><circle cx="'+end.x+'" cy="'+end.y+'" r="4" class="dv-c'+index+'"/>';});
+        html+='<circle cx="'+origin.x+'" cy="'+origin.y+'" r="3" fill="currentColor"/>';
+        html+='<text x="'+(offset+24)+'" y="52" class="dv-title">'+label+' 的单位立方体像</text>';
+        html+='<line x1="'+(offset+48)+'" y1="295" x2="'+(offset+48+pixels)+'" y2="295" class="dv-axis"/><text x="'+(offset+48)+'" y="316" class="dv-label">投影横坐标长度 1</text>';
+        ['蓝：'+label+'e₁','金：'+label+'e₂','绿：'+label+'e₃'].forEach(function(text,index){html+='<text x="'+(offset+24+index*116)+'" y="342" class="dv-label">'+text+'</text>';});
+        return html;
+      }
+      return '<svg viewBox="0 0 800 365" role="img" aria-label="A 与 AB 的同标尺平行六面体投影，虚线为单位立方体"><text x="24" y="24" class="dv-title">相同投影与等比例缩放；虚线：原单位立方体；实线：变换后的像</text>'+panel(left,0,'A')+panel(right,400,'AB')+'</svg>';
     }
-
     function resultHtml(data, predictionCorrect) {
-      var answerText = predictionCorrect ? "预测命中：现在把体积、方向和条件数分开读。" : "预测已核对：注意 det=0 与小 det 的不同逻辑。";
-      var comparison = data.conditionA === Infinity ? "无穷大" : format(data.conditionA, 3);
-      return '<div class="dv-grid"><div class="dv-chart">' + svgFor(data) + '</div><div>' +
-        '<div class="dv-metrics"><div class="dv-metric"><span>det(A)</span><strong>' + format(data.detA, 5) + '</strong></div>' +
-        '<div class="dv-metric"><span>det(B)</span><strong>' + format(data.detB, 5) + '</strong></div>' +
-        '<div class="dv-metric"><span>det(AB)</span><strong>' + format(data.detAB, 5) + '</strong></div>' +
-        '<div class="dv-metric"><span>方向状态</span><strong>' + data.volumeLabel + '</strong></div>' +
-        '<div class="dv-metric"><span>rank(A)</span><strong>' + data.rankA + "/3" + '</strong></div>' +
-        '<div class="dv-metric"><span>当前 κ₂</span><strong>' + comparison + '</strong></div></div>' +
-        '<div class="dv-table-wrap"><table><caption>乘法与条件数账本</caption><thead><tr><th>对象</th><th>读数</th><th>含义</th></tr></thead><tbody>' +
-        '<tr><td>A</td><td>' + matrixText(data.A) + '</td><td>实际列向量</td></tr>' +
-        '<tr><td>B</td><td>' + matrixText(data.B) + '</td><td>换基列向量</td></tr>' +
-        '<tr><td>AB</td><td>' + format(data.detAB, 5) + '</td><td>det(A)det(B)</td></tr>' +
-        '<tr><td>同体积均匀缩放基准</td><td>κ₂=' + format(data.uniformCondition, 3) + '</td><td>相同有向体积绝对值，不同各向异性</td></tr>' +
-        '</tbody></table></div>' +
-        '<p class="dv-boundary">' + answerText + ' 这里的 κ₂ 使用奇异值比；det 只给出奇异值乘积，不能单独决定最大与最小奇异值的比例。</p>' +
-        '</div></div>';
+      var answerText = predictionCorrect ? "预测命中。" : "预测已核对。";
+      var detA = data.params.scale > 0 && data.detA === 0 ? (data.params.swapped?'负':'正')+'、非零（数值下溢）' : format(data.detA,5);
+      var detAB = data.params.scale > 0 && data.detAB === 0 ? '非零（数值下溢）' : format(data.detAB,5);
+      var singular = data.singularValues.map(function(v,i){return i===2&&data.rankA===3&&v===0?'正数（下溢）':format(v,5);}).join(', ');
+      return '<div class="dv-grid"><div class="dv-chart" tabindex="0" role="region" aria-label="同标尺投影，可横向滚动">' + svgFor(data) + '</div><div>' +
+        '<div class="dv-metrics"><div class="dv-metric"><span>det(A)=±s³</span><strong>'+detA+'</strong></div><div class="dv-metric"><span>det(B)=b³</span><strong>'+format(data.detB,5)+'</strong></div><div class="dv-metric"><span>det(AB)</span><strong>'+detAB+'</strong></div><div class="dv-metric"><span>精确方向状态</span><strong>'+data.volumeLabel+'</strong></div><div class="dv-metric"><span>精确 rank(A)，由本族结构判定</span><strong>'+data.rankA+'/3</strong></div><div class="dv-metric"><span>κ₂(A)，数值估计</span><strong>'+format(data.conditionA,4)+'</strong></div></div>'+
+        '<div class="dv-table-wrap" tabindex="0" role="region" aria-label="矩阵与奇异值账本，可横向滚动"><table><caption>乘法、奇异值与条件数账本</caption><thead><tr><th>对象</th><th>读数</th><th>含义</th></tr></thead><tbody>'+
+        '<tr><td>A</td><td>'+matrixText(data.A)+'</td><td>当前三列（含交换）</td></tr><tr><td>B</td><td>'+matrixText(data.B)+'</td><td>新输入基在旧坐标中的列</td></tr><tr><td>AB</td><td>'+matrixText(data.AB)+'</td><td>先 B 后 A，输出仍用旧坐标</td></tr><tr><td>σ₁ ≥ σ₂ ≥ σ₃</td><td>'+singular+'</td><td>|det A|=σ₁σ₂σ₃，κ₂=σ₁/σ₃</td></tr><tr><td>同体积 sI 基准</td><td>κ₂='+format(data.uniformCondition)+'</td><td>'+ (data.params.scale>0?'相同体积绝对值；均匀缩放的条件数恒为 1':'s=0 时是零矩阵，不是良态基准')+'</td></tr></tbody></table></div>'+
+        '<p class="dv-boundary">'+answerText+' 这是三维形体的二维投影，不能从屏幕面积读三维体积。投影坐标 U=x−0.65y、V=z+0.35y+0.2x；两图共用一个像素比例尺，随参数自动适配。精确秩来自三角结构，奇异值是浮点估计；正 s 即使体积下溢也不变成奇异矩阵。'+(data.params.scale===0?' 当前零尺度：'+(data.params.shear===0?'A=0，秩为 0。':'h≠0，秩为 2；核方向是 '+(data.params.swapped?'e₂。':'e₁。')):'')+'</p></div></div>';
     }
 
     function mount(rootElement, api) {
@@ -437,7 +440,8 @@
           button.setAttribute("aria-pressed", "false");
           button.addEventListener("click", function () {
             predictions[question.id] = option.id;
-            renderPrediction();
+            state.revealed = false;
+            render();
             refs.feedback.textContent = "预测已记录；结果仍隐藏。";
             refs.feedback.className = "dv-feedback";
           });
@@ -446,10 +450,13 @@
         });
         questionHost.appendChild(fieldset);
       });
+      var presetButtons = [];
       PRESETS.forEach(function (preset) {
         var button = doc.createElement("button");
         button.type = "button";
         button.textContent = preset.label;
+        button.setAttribute("data-preset", preset.id);
+        presetButtons.push({ node:button, preset:preset });
         button.addEventListener("click", function () {
           state.scale = preset.scale;
           state.anisotropy = preset.anisotropy;
@@ -458,6 +465,8 @@
           state.swapped = preset.swapped;
           predictions = {};
           state.revealed = false;
+          refs.feedback.textContent = "已切换预设，请完成预测后揭示。";
+          refs.feedback.className = "dv-feedback";
           render();
         });
         rootElement.querySelector('[data-role="presets"]').appendChild(button);
@@ -482,6 +491,7 @@
         });
         refs.swapped.checked = state.swapped;
         renderPrediction();
+        presetButtons.forEach(function(entry){entry.node.setAttribute("aria-pressed",["scale","anisotropy","shear","basisScale","swapped"].every(function(key){return state[key]===entry.preset[key];})?"true":"false");});
         refs.result.hidden = !state.revealed;
         if (state.revealed) {
           var data = evaluate(state);
@@ -498,9 +508,7 @@
         state.shear = Number(refs.shear.value);
         state.basisScale = Number(refs.basisScale.value);
         state.swapped = refs.swapped.checked;
-        predictions = {};
-        state.revealed = false;
-        refs.feedback.textContent = "参数已改变，请重新预测；结果再次隐藏。";
+        refs.feedback.textContent = state.revealed ? "参数已更新，请比较同标尺形体和账本。" : "参数已更新，请完成预测。";
         refs.feedback.className = "dv-feedback";
         render();
       }
@@ -534,6 +542,7 @@
         refs.feedback.textContent = "五题都选完后，结果才会出现。";
         refs.feedback.className = "dv-feedback";
         render();
+        choices.columnAdd[0].node.focus();
         announce("行列式体积实验已重置，结果再次隐藏。");
       });
       render();
@@ -585,6 +594,7 @@
       symmetricEigenvalues3: symmetricEigenvalues3,
       singularValues3: singularValues3,
       condition2: condition2,
+      format: format,
       evaluate: evaluate,
       mount: mount,
       selfTest: selfTest

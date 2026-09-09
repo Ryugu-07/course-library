@@ -70,4 +70,8 @@ curves.forEach((curve,k)=>{
  const points=[...curve[1].matchAll(/[ML]([\d.]+) ([\d.]+)/g)];check(points.length===401,"static sample count");
  points.forEach((point,i)=>{const x=(Number(point[1])-105)/500+.4,y=(90+k*218+170-Number(point[2]))/90-.3,g=k*.25;close(x,.4+1.2*i/400,"static x coordinate",2e-6);close(y,((x-1)**2-g*g)*(x+2),"static curve formula",1e-5);});
 });
+// Inline mathematics must not be broken by an interpreted escape such as \n.
+const lecture = require("fs").readFileSync(require("path").join(__dirname,"../math-course/lectures/algebra-01-polynomial.md"),"utf8");
+check(!/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(lecture),"no control-character damage in lecture");
+for (const inline of lecture.replace(/\$\$[\s\S]*?\$\$/g,"").matchAll(/(?<![\\$])\$(?!\$)([\s\S]*?)(?<!\\)\$(?!\$)/g)) check(!inline[1].includes("\n"),"inline math must stay intact on one line");
 console.log(`polynomial roots: PASS (${checks} independent checks; ${lab.selfTest().checks} self-tests)`);

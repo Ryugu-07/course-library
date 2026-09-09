@@ -113,6 +113,7 @@
       '@media(max-width:760px){[data-learning-lab="polynomial-roots"] .pr-controls,[data-learning-lab="polynomial-roots"] .pr-grid{grid-template-columns:minmax(0,1fr)}[data-learning-lab="polynomial-roots"] .pr-options{grid-template-columns:minmax(0,1fr)}}',
       '[data-theme="dark"] [data-learning-lab="polynomial-roots"]{--pr-accent:#60a5fa;--pr-good:#4ade80;--pr-warn:#fbbf24}',
       '[data-learning-lab="polynomial-roots"] [tabindex]:focus-visible{outline:3px solid #60a5fa;outline-offset:-3px}',
+      '[data-theme="dark"] [data-learning-lab="polynomial-roots"] button.pr-primary,[data-theme="dark"] [data-learning-lab="polynomial-roots"] button[aria-pressed="true"],[data-theme="dark"] [data-learning-lab="polynomial-roots"] button:hover{color:#082f49}',
       '@media(prefers-reduced-motion:reduce){[data-learning-lab="polynomial-roots"] *{scroll-behavior:auto!important;transition:none!important}}'
     ].join("");
 

@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:12</div>
+    <div class="build-time">构建于 2026-09-09 13:22</div>
   </div>
 </nav>
 <main id="content">
@@ -58,12 +58,14 @@ try {
 <li><a href="#2">2. 揭示前预测：先判断公理会留下什么</a></li>
 <li><a href="#3">3. 正式桥：交替多线性、换基与奇异值</a></li>
 <li><a href="#4">4. 定理与失败边界</a></li>
+<li><a href="#5-det">5. 迁移练习：给出证据，不只报一个 det</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 行列式</a></li>
 <li><a href="#2-gauss">2. Gauss 消元与矩阵的秩</a></li>
 <li><a href="#3_1">3. 线性方程组解的结构（本页顶点）</a></li>
 <li><a href="#4_1">4. 典型例题</a></li>
+<li><a href="#5">5. 原始资料与继续阅读</a></li>
 </ul>
 </div>
 </details>
@@ -75,6 +77,7 @@ try {
 
 <section aria-labelledby="algebra02-learning-title" class="learning-layer">
 <h2 id="algebra02-learning-title">学习层：行列式是有向体积账本，不是“坏程度”单指标<a class="headerlink" href="#algebra02-learning-title" title="Permanent link"></a></h2>
+<p><strong>先修与去向：</strong>先会解二元一次方程组，并读过<a href="algebra-01-polynomial.html">多项式与根</a>；本页后进入<a href="algebra-03-matrix.html">矩阵运算</a>与<a href="algebra-04-linear-space.html">线性空间</a>。误差与条件数的计算继续看<a href="num-02-linear-systems.html">数值线性方程组</a>。本页方程组默认实系数；域上的代数结论仍成立，但“有自由变量就无穷多解”需要系数域无限。</p>
 <h3 id="1">1. 具体情境：坐标框架把一个小立方体送到哪里？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>把矩阵 <span class="arithmatex">\(A\)</span> 看成一个三维坐标设备：标准基的三个箭头变成 <span class="arithmatex">\(A\)</span> 的三列，单位立方体变成一个平行六面体。实验使用</p>
 <div class="arithmatex">\[
@@ -91,7 +94,7 @@ b &amp; 0.3 &amp; 0\\
 \end{pmatrix}
 \end{aligned}
 \]</div>
-<p>其中 <span class="arithmatex">\(s\)</span> 控制整体尺度，<span class="arithmatex">\(k\)</span> 控制各向异性，<span class="arithmatex">\(h\)</span> 是列剪切，<span class="arithmatex">\(B\)</span> 的列可以读成另一套坐标基。你会看到：剪切可能改变形状却不改体积，换基会按乘法组合体积因子，交换两列会改变方向。</p>
+<p>实验限制 <span class="arithmatex">\(0\le s\le1.4\)</span>、<span class="arithmatex">\(-0.8\le k,h\le0.8\)</span>、<span class="arithmatex">\(0.5\le b\le1.5\)</span>。其中 <span class="arithmatex">\(s\)</span> 控制对角尺度（<span class="arithmatex">\(h\ne0\)</span> 时并非把整个矩阵乘以同一个数），<span class="arithmatex">\(k\)</span> 控制各向异性，<span class="arithmatex">\(h\)</span> 是列剪切，<span class="arithmatex">\(B\)</span> 的列可以读成另一套坐标基。你会看到：剪切可能改变形状却不改体积，复合会按乘法组合体积因子，交换两列会改变方向。</p>
 <h3 id="2">2. 揭示前预测：先判断公理会留下什么<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>打开实验前，先回答五个问题：</p>
 <ol>
@@ -101,7 +104,7 @@ b &amp; 0.3 &amp; 0\\
 <li>方阵 <span class="arithmatex">\(\det A=0\)</span> 提供的是“数值偏小”还是“不可逆与体积塌缩”的证书？</li>
 <li><span class="arithmatex">\(\det A\)</span> 的绝对值很小，是否单独就等价于坏条件数？</li>
 </ol>
-<p>先作答再拖动滑块。一个有向体积数字同时包含尺度和方向，但它没有记录每个奇异方向分别被拉伸多少。</p>
+<p>先作答再揭示，随后可以连续拖动滑块作比较。一个有向体积数字同时包含尺度和方向，但它没有记录每个奇异方向分别被拉伸多少。</p>
 <h3 id="3">3. 正式桥：交替多线性、换基与奇异值<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>行列式对每一列线性；两列相同则为零；交换两列变号。把一列替换为“该列加另一列的倍数”时，新增项含有重复列，因此消失，这就是消元中列剪切保持行列式的原因。三维体积满足</p>
 <div class="arithmatex">\[
@@ -111,7 +114,31 @@ b &amp; 0.3 &amp; 0\\
 \det(AB)=\det A\det B
 \end{gathered}
 \]</div>
-<p>如果 <span class="arithmatex">\(B\)</span> 表示从新坐标到旧坐标的列基矩阵，那么 <span class="arithmatex">\(AB\)</span> 是先用基 <span class="arithmatex">\(B\)</span> 表示，再施加 <span class="arithmatex">\(A\)</span>；这不是把同一个矩阵的每个元素随意替换，而是线性映射的复合。对可逆方阵，<span class="arithmatex">\(\det A\neq0\)</span> 等价于可逆；但条件数还要看最大与最小奇异值的比。</p>
+<p>上式的 <span class="arithmatex">\(A\)</span> 指尚未交换列的三角矩阵；实验勾选交换前两列后，<span class="arithmatex">\(\det A=-s^3\)</span>，其绝对值与奇异值不变。<span class="arithmatex">\(B\)</span> 总可逆，因为 <span class="arithmatex">\(b&gt;0\)</span>。</p>
+<p><strong>复合与换基要分清两端。</strong> 若 <span class="arithmatex">\(B\)</span> 的列是新输入基在旧坐标中的表示，<span class="arithmatex">\(x_{\rm old}=Bx_{\rm new}\)</span>，则</p>
+<div class="arithmatex">\[
+y_{\rm old}=ABx_{\rm new}.
+\]</div>
+<p>这里输出仍用旧基。若要把同一线性算子的<strong>输入和输出都改用新基</strong>，还需 <span class="arithmatex">\(y_{\rm new}=B^{-1}y_{\rm old}\)</span>，矩阵才是 <span class="arithmatex">\(B^{-1}AB\)</span>；它的行列式仍是 <span class="arithmatex">\(\det A\)</span>，不是额外乘 <span class="arithmatex">\(\det B\)</span>。实验右图展示 <span class="arithmatex">\(AB\)</span> 的复合效果，两张图共享同一投影和缩放，虚线给出原单位立方体。投影的屏幕面积不能当作三维体积。</p>
+<p><strong>为什么一个体积数字不够？</strong> 对可逆实方阵，奇异值分解 <span class="arithmatex">\(A=U\Sigma V^\top\)</span> 的两个正交矩阵只旋转或反射，<span class="arithmatex">\(\Sigma\)</span> 沿互相垂直的方向伸缩。因此</p>
+<div class="arithmatex">\[
+\lvert\det A\rvert=\prod_{j=1}^n\sigma_j,\qquad
+\kappa_2(A)=\frac{\sigma_{\max}}{\sigma_{\min}}.
+\]</div>
+<p>统一缩放 <span class="arithmatex">\(tA\)</span>、<span class="arithmatex">\(t\ne0\)</span>，所有奇异值乘 <span class="arithmatex">\(\lvert t\rvert\)</span>，所以条件数不变，体积却乘 <span class="arithmatex">\(\lvert t\rvert^n\)</span>。例如 <span class="arithmatex">\(10^{-12}I_3\)</span> 的行列式是 <span class="arithmatex">\(10^{-36}\)</span>，条件数仍为一。相反，<span class="arithmatex">\(\operatorname{diag}(\eta,1,\eta^{-1})\)</span>、<span class="arithmatex">\(0&lt;\eta&lt;1\)</span> 的行列式恒为一，条件数是 <span class="arithmatex">\(\eta^{-2}\)</span>，可以任意大。这说明乘积和比值是两本不同的账。</p>
+<figure class="plot">
+<div aria-label="同面积不同条件数插图，可横向滚动" role="region" style="max-width:100%;overflow-x:auto" tabindex="0">
+<img style="min-width:720px" src="assets/img/algebra-02-volume-condition.svg" alt="二维对角矩阵把单位正方形变成同面积的正方形与扁矩形，条件数分别为一和四">
+</div>
+<figcaption>二维类比：面积比例是两条伸缩因子的乘积，条件数是它们的比值。两者行列式都是 \(1/4\)，但 \(\kappa_2\) 分别为 \(1\) 与 \(4\)。三维实验把面积改成体积，逻辑相同。</figcaption>
+</figure>
+<p>本族 <span class="arithmatex">\(h=0,s&gt;0\)</span> 时，三奇异值为 <span class="arithmatex">\(se^{\lvert k\rvert},s,se^{-\lvert k\rvert}\)</span>，故 <span class="arithmatex">\(\kappa_2=e^{2\lvert k\rvert}\)</span>。预设“均匀缩小”和“同体积但拉扁”都取 <span class="arithmatex">\(s=0.5\)</span>，体积同为 <span class="arithmatex">\(1/8\)</span>，只改变 <span class="arithmatex">\(k\)</span>。</p>
+<p><strong>零体积不一定缩成一个点。</strong> <span class="arithmatex">\(s=0,h\ne0\)</span> 时，未交换列的矩阵为</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}0&amp;h&amp;-h/2\\0&amp;0&amp;h/2\\0&amp;0&amp;0\end{pmatrix},\qquad
+\operatorname{rank}A=2,\quad\ker A=\operatorname{span}(e_1).
+\]</div>
+<p>第二、三列独立，所以立方体压成二维平行四边形；只有再令 <span class="arithmatex">\(h=0\)</span> 才成为零矩阵、秩为零。交换前两列后，核方向相应变成 <span class="arithmatex">\(e_2\)</span>。精确秩来自这些结构判断，不能用“绝对数值小于某阈值”替代。</p>
 <div class="learning-lab" data-learning-lab="determinant-volume">
 <p><strong>JavaScript 失效时的静态 fallback：</strong>用两个对照读法检查“体积”和“条件”：</p>
 <table>
@@ -150,6 +177,7 @@ b &amp; 0.3 &amp; 0\\
 </tr>
 </tbody>
 </table>
+</div>
 <h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>定理桥</strong>：行列式是规范化的交替多线性函数；<span class="arithmatex">\(\det(AB)=\det A\det B\)</span> 记录复合后的有向体积因子。</li>
@@ -158,7 +186,21 @@ b &amp; 0.3 &amp; 0\\
 <li><strong>换基边界</strong>：有向体积的正负依赖列的定向。若只讨论无向几何体积，应读 <span class="arithmatex">\(\lvert\det A\rvert\)</span>，不能把符号当成长度。</li>
 <li><strong>实验边界</strong>：有限 SVG 只展示一个三维参数族和一组换基证据；它不能替代对所有阶数、所有矩阵的公理化证明。</li>
 </ul>
-</div>
+<h3 id="5-det">5. 迁移练习：给出证据，不只报一个 det<a class="headerlink" href="#5-det" title="Permanent link"></a></h3>
+<ol>
+<li>比较 <span class="arithmatex">\(A_1=0.5I_3\)</span> 与 <span class="arithmatex">\(A_2=\operatorname{diag}(1,0.5,0.25)\)</span> 的行列式、奇异值和条件数。各将前两列交换后，哪些量改变？</li>
+<li>在二维取 <span class="arithmatex">\(A=\operatorname{diag}(2,1)\)</span>、<span class="arithmatex">\(B=\begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}\)</span>。分别算 <span class="arithmatex">\(AB\)</span> 与 <span class="arithmatex">\(B^{-1}AB\)</span>，解释二者描述的坐标约定。</li>
+<li>取 <span class="arithmatex">\(s=0,h=0.6\)</span>、不交换列。给出 <span class="arithmatex">\(Ax=(0.3,0.3,0)^\top\)</span> 的通解，再说明把右端改成 <span class="arithmatex">\((0.3,0.3,0.01)^\top\)</span> 为什么无解。</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li>两者行列式均为 <span class="arithmatex">\(1/8\)</span>。<span class="arithmatex">\(A_1\)</span> 的奇异值是 <span class="arithmatex">\((0.5,0.5,0.5)\)</span>，条件数一；<span class="arithmatex">\(A_2\)</span> 的奇异值是 <span class="arithmatex">\((1,0.5,0.25)\)</span>，条件数四。交换列相当于右乘正交置换矩阵，奇异值不变，行列式变为 <span class="arithmatex">\(-1/8\)</span>。</li>
+<li><span class="arithmatex">\(AB=\begin{pmatrix}2&amp;2\\0&amp;1\end{pmatrix}\)</span>，<span class="arithmatex">\(B^{-1}AB=\begin{pmatrix}2&amp;1\\0&amp;1\end{pmatrix}\)</span>。前者把新输入坐标映到旧输出坐标；后者输入和输出都用新基。两者此例行列式都是二，因为恰巧 <span class="arithmatex">\(\det B=1\)</span>；不能靠这一个数辨认是否完成了两端换基。</li>
+<li>第二行给 <span class="arithmatex">\(0.3x_3=0.3\)</span>，所以 <span class="arithmatex">\(x_3=1\)</span>；第一行给 <span class="arithmatex">\(0.6x_2-0.3x_3=0.3\)</span>，所以 <span class="arithmatex">\(x_2=1\)</span>。<span class="arithmatex">\(x_1\)</span> 自由，通解为 <span class="arithmatex">\((0,1,1)^\top+t(1,0,0)^\top\)</span>。新右端要求第三行 <span class="arithmatex">\(0=0.01\)</span>，直接矛盾；这对应增广矩阵的秩大于系数矩阵的秩。</li>
+</ol>
+</details>
+<p>实验直接对列做 Jacobi 旋转估计奇异值，避免先形成 <span class="arithmatex">\(A^\top A\)</span> 把条件数平方。本族还利用 <span class="arithmatex">\(\sigma_1\sigma_2\sigma_3=s^3\)</span> 恢复最小奇异值；<span class="arithmatex">\(h=0\)</span> 时直接用上述解析公式。它是限定参数族的教学实现，并非通用高精度 SVD 库。若正尺度的体积或最小奇异值下溢，账本保留“精确非零/满秩”并标明数值不可表示；不会自动宣判奇异。矩阵显示值也有舍入误差。</p>
 </section>
 <h2 id="1_1">1. 行列式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义（逆序数式）</strong> <span class="arithmatex">\(n\)</span> 阶行列式</p>
@@ -171,7 +213,7 @@ b &amp; 0.3 &amp; 0\\
 <li>转置不变 <span class="arithmatex">\(\det A^\top = \det A\)</span>（对行成立的对列全成立）；</li>
 <li>换两行变号；某行乘 <span class="arithmatex">\(k\)</span> 则值乘 <span class="arithmatex">\(k\)</span>（推论 <span class="arithmatex">\(\det(kA) = k^n \det A\)</span>）；</li>
 <li>某行加上另一行的倍数<strong>值不变</strong>（消元法的合法性依据）；</li>
-<li><span class="arithmatex">\(\det(AB) = \det A \det B\)</span>（重要！但 <span class="arithmatex">\(\det(A + B) \neq \det A + \det B\)</span>）；</li>
+<li><span class="arithmatex">\(\det(AB) = \det A \det B\)</span>（重要！但 <span class="arithmatex">\(\det(A + B)=\det A+\det B\)</span> 一般不成立）；</li>
 <li>上/下三角行列式 = 对角元之积。</li>
 </ul>
 <p><strong>展开定理（Laplace）</strong>：<span class="arithmatex">\(\det A = \sum_{j} a_{ij} A_{ij}\)</span>（按第 <span class="arithmatex">\(i\)</span> 行展开），<span class="arithmatex">\(A_{ij} = (-1)^{i+j} M_{ij}\)</span> 为代数余子式。<strong>异行展开为零</strong>：<span class="arithmatex">\(\sum_j a_{ij}A_{kj} = 0\ (i \neq k)\)</span>——两条合写成 <span class="arithmatex">\(A \cdot \mathrm{adj}(A) = (\det A) I\)</span>（伴随矩阵，下一页逆矩阵的来源）。</p>
@@ -201,11 +243,16 @@ x = x^* + c_1\xi_1 + \cdots + c_{n-r}\xi_{n-r}
 <p>🔗 <strong>AI 衔接</strong>：最小二乘（<span class="arithmatex">\(A^\top A x = A^\top b\)</span>，法方程）是"无解方程组找最近解"，统计页回归的地基；秩亏损 = 特征共线性（正则化的动机之一，ai 课 01 讲岭回归）。</p>
 <h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（带参数方程组讨论）</strong> 讨论 <span class="arithmatex">\(\begin{cases} \lambda x + y + z = 1 \\ x + \lambda y + z = \lambda \\ x + y + \lambda z = \lambda^2 \end{cases}\)</span> 的解。
-<em>解</em>：系数行列式 <span class="arithmatex">\(\det A = (\lambda - 1)^2(\lambda + 2)\)</span>。1. <span class="arithmatex">\(\lambda \neq 1, -2\)</span>：Cramer 唯一解；2. <span class="arithmatex">\(\lambda = 1\)</span>：三方程同为 <span class="arithmatex">\(x+y+z=1\)</span>，<span class="arithmatex">\(r = r(\bar A) = 1 &lt; 3\)</span>，无穷解（两个自由变量）；3. <span class="arithmatex">\(\lambda = -2\)</span>：<span class="arithmatex">\(r(A) = 2\)</span>，<span class="arithmatex">\(r(\bar A) = 3\)</span>，无解。<strong>流程：先算 <span class="arithmatex">\(\det\)</span> 分参数，退化情形逐个消元。</strong></p>
+<em>解</em>：系数行列式 <span class="arithmatex">\(\det A = (\lambda - 1)^2(\lambda + 2)\)</span>。1. <span class="arithmatex">\(\lambda \neq 1, -2\)</span>：Cramer 唯一解；2. <span class="arithmatex">\(\lambda = 1\)</span>：三方程同为 <span class="arithmatex">\(x+y+z=1\)</span>，<span class="arithmatex">\(r = r(\bar A) = 1 &lt; 3\)</span>，无穷解（两个自由变量）；3. <span class="arithmatex">\(\lambda = -2\)</span>：把三条方程相加，左端为零而右端为 <span class="arithmatex">\(1-2+4=3\)</span>，矛盾，故无解；此时 <span class="arithmatex">\(r(A)=2\)</span>、<span class="arithmatex">\(r(\bar A)=3\)</span>。<strong>流程：先算 <span class="arithmatex">\(\det\)</span> 分参数，退化情形逐个消元。</strong></p>
 <p><strong>例 2（Vandermonde 应用）</strong> <span class="arithmatex">\(n\)</span> 个互异点上给定值的 <span class="arithmatex">\(\leq n-1\)</span> 次插值多项式存在唯一。
 <em>解</em>：系数方程组的系数阵为 Vandermonde，互异 ⇒ <span class="arithmatex">\(\det \neq 0\)</span> ⇒ Cramer 唯一解。</p>
 <p><strong>例 3（基础解系）</strong> 求 <span class="arithmatex">\(\begin{cases} x_1 + x_2 - x_3 - x_4 = 0 \\ 2x_1 + x_2 + x_3 - 3x_4 = 0\end{cases}\)</span> 的基础解系。
 <em>解</em>：消元得行最简形 <span class="arithmatex">\(\begin{pmatrix} 1 &amp; 0 &amp; 2 &amp; -2 \\ 0 &amp; 1 &amp; -3 &amp; 1 \end{pmatrix}\)</span>，自由变量 <span class="arithmatex">\(x_3, x_4\)</span>：取 <span class="arithmatex">\((x_3, x_4) = (1,0)\)</span> 得 <span class="arithmatex">\(\xi_1 = (-2, 3, 1, 0)^\top\)</span>；取 <span class="arithmatex">\((0,1)\)</span> 得 <span class="arithmatex">\(\xi_2 = (2, -1, 0, 1)^\top\)</span>。通解 <span class="arithmatex">\(c_1\xi_1 + c_2\xi_2\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="5">5. 原始资料与继续阅读<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://www.ocw.mit.edu/ans7870/18/18.013a/textbook/HTML/chapter32/section06.html">MIT：Invariants of Transformations</a>，从新基的列出发推导为什么同一算子两端换基需要相似变换。</li>
+<li><a href="https://netlib.org/lapack/lapack-3.2.html">LAPACK：Jacobi SVD 的实现说明</a>，说明直接列正交化、尺度处理与奇异值相对精度的问题；本页采用简化教学实现，未声称具有完整 LAPACK 的误差保证。</li>
+</ul>
 <hr />
 <p><em>下一页：把矩阵从"数表"升格为"可运算的对象"——矩阵代数与秩的不等式体系。</em></p>
 </article>
