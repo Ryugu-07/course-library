@@ -1,17 +1,14 @@
-(function () {
+(function(host,factory) {
   "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
+  var exported=factory(host);
+  if(typeof module==="object"&&module.exports)module.exports=exported;
+  if(host&&host.CourseLearning)host.CourseLearning.register("fenchel-support",exported.mount);
+  if(typeof module==="object"&&module.exports&&require.main===module)console.log("Fenchel support self-test PASS",exported.selfTest());
+}(typeof window!=="undefined"?window:null,function(host) {
+  "use strict";
   var SVG_NS = "http://www.w3.org/2000/svg";
   var INSTANCE = 0;
-  var EPS = 1e-9;
+  var EPS = Number.EPSILON;
   var STYLE_TEXT = [
     ".fenchel-support-lab { --fs-function: var(--cl-blue, #315f9d); --fs-line: var(--cl-gold, #9b6a12); --fs-conjugate: var(--cl-green, #39734d); --fs-contact: var(--cl-red, #b64335); --fs-muted: var(--fg-soft, #6f6a60); --fs-warning: var(--cl-red, #b64335); line-height: 1.5; }",
     "html[data-theme=\"dark\"] .fenchel-support-lab { --fs-function: #83c8ff; --fs-line: #e2b458; --fs-conjugate: #72bd8b; --fs-contact: #f08c7d; --fs-muted: #b8b2a7; --fs-warning: #f08c7d; }",
@@ -72,6 +69,9 @@
     ".fenchel-support-lab .fs-boundary-note { margin-top: 9px; padding: 8px 10px; border-left: 3px solid var(--fs-warning); background: var(--bg); color: var(--fs-muted); font-size: 12.5px; line-height: 1.6; }",
     "@media (max-width: 700px) { .fenchel-support-lab .fs-controls { grid-template-columns: minmax(0, 1fr); } .fenchel-support-lab .fs-controls > h4, .fenchel-support-lab .fs-controls > .fs-control:first-of-type, .fenchel-support-lab .fs-controls > .fs-note { grid-column: auto; } .fenchel-support-lab .fs-preset-buttons { grid-template-columns: minmax(0, 1fr); } .fenchel-support-lab .fs-stage-frame { padding: 5px; } .fenchel-support-lab .fs-svg { width: 660px; max-width: none; } }",
     "@media (prefers-reduced-motion: reduce) { .fenchel-support-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
+    ,".fenchel-support-lab{min-width:0;overflow:hidden}.fenchel-support-lab .fs-svg{width:980px;min-width:980px;max-width:none}.fenchel-support-lab .fs-controls>.fs-preset-buttons,.fenchel-support-lab .fs-controls>.fs-control:has(input[id$='-offset']){grid-column:1/-1}"
+    ,".fenchel-support-lab [role=region]:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}"
+    ,"@media(prefers-reduced-motion:reduce){html:has(.fenchel-support-lab){scroll-behavior:auto!important}}"
   ].join("\n");
 
   function appendChildren(node, children) {
@@ -150,12 +150,7 @@
     if (!Number.isFinite(value)) {
       return value === Infinity ? "+∞" : value === -Infinity ? "−∞" : "—";
     }
-    if (Math.abs(value) < 0.0005) {
-      value = 0;
-    }
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits === undefined ? 3 : digits);
-    }
+    if (value !== 0 && (Math.abs(value) < 0.001 || Math.abs(value) > 1e6)) return value.toExponential(5);
     var text = value.toFixed(digits === undefined ? 3 : digits);
     return text.indexOf(".") === -1
       ? text
@@ -171,20 +166,14 @@
   }
 
   function softplus(x) {
-    if (x > 30) {
-      return x + Math.log1p(Math.exp(-x));
-    }
-    if (x < -30) {
-      return Math.exp(x);
-    }
-    return Math.log1p(Math.exp(x));
+    return Math.max(x,0)+Math.log1p(Math.exp(-Math.abs(x)));
   }
 
   function softplusConjugate(s) {
-    if (s < -EPS || s > 1 + EPS) {
+    if (s < 0 || s > 1) {
       return Infinity;
     }
-    if (s <= EPS || 1 - s <= EPS) {
+    if (s === 0 || s === 1) {
       return 0;
     }
     return s * Math.log(s) + (1 - s) * Math.log1p(-s);
@@ -220,15 +209,15 @@
       domainMin: -1,
       domainMax: 1,
       f: function (x) { return Math.abs(x); },
-      fStar: function (s) { return Math.abs(s) <= 1 + EPS ? 0 : Infinity; },
+      fStar: function (s) { return Math.abs(s) <= 1 ? 0 : Infinity; },
       contact: function (s) {
-        if (Math.abs(s) < 1 - EPS) {
+        if (Math.abs(s) < 1) {
           return { type: "point", x: 0 };
         }
-        if (Math.abs(s - 1) <= EPS) {
+        if (s === 1) {
           return { type: "ray", side: "right" };
         }
-        if (Math.abs(s + 1) <= EPS) {
+        if (s === -1) {
           return { type: "ray", side: "left" };
         }
         return { type: "none" };
@@ -250,13 +239,13 @@
       f: softplus,
       fStar: softplusConjugate,
       contact: function (s) {
-        if (s > EPS && s < 1 - EPS) {
-          return { type: "point", x: Math.log(s / (1 - s)) };
+        if (s > 0 && s < 1) {
+          return { type: "point", x: Math.log(s) - Math.log1p(-s) };
         }
-        if (Math.abs(s) <= EPS) {
+        if (s === 0) {
           return { type: "asymptotic", direction: "x→−∞" };
         }
-        if (Math.abs(s - 1) <= EPS) {
+        if (s === 1) {
           return { type: "asymptotic", direction: "x→+∞" };
         }
         return { type: "none" };
@@ -266,23 +255,40 @@
     }
   ];
 
+  PRESETS.forEach(function(p){Object.freeze(p.left);Object.freeze(p.right);Object.freeze(p);});
+  Object.freeze(PRESETS);
+
   function getPreset(id) {
     for (var i = 0; i < PRESETS.length; i += 1) {
       if (PRESETS[i].id === id) {
         return PRESETS[i];
       }
     }
-    return PRESETS[0];
+    throw new RangeError("unknown preset: "+id);
   }
 
-  function evaluate(preset, s) {
-    var star = preset.fStar(s);
-    return {
-      s: s,
-      star: star,
-      finite: Number.isFinite(star),
-      contact: preset.contact(s)
-    };
+  function requireNumber(x,min,max,label) {
+    if(typeof x!=="number"||!Number.isFinite(x)||x<min||x>max)throw new RangeError(label+" outside finite interval ["+min+","+max+"]");
+    return x;
+  }
+  function evaluate(preset,s,offset) {
+    if(typeof preset==="string")preset=getPreset(preset);
+    if(PRESETS.indexOf(preset)<0)throw new RangeError("known frozen preset required");
+    requireNumber(s,preset.sliderMin,preset.sliderMax,"s");
+    offset=offset===undefined?0:requireNumber(offset,-2,2,"vertical shift");
+    var star=preset.fStar(s),isFinite=Number.isFinite(star);
+    // The line is ell_s(x)+offset. Its global gap infimum is exactly -offset.
+    return {id:preset.id,s:s,star:star,finite:isFinite,contact:preset.contact(s),offset:offset,
+      intercept:isFinite?-star+offset:null,
+      globalGapInfimum:isFinite?-offset:-Infinity,
+      lowerBound:isFinite&&offset<=0,
+      touches:isFinite&&offset===0&&["point","ray"].indexOf(preset.contact(s).type)>=0};
+  }
+  function shiftText(result) {
+    if(!result.finite)return "这个斜率没有任何有限的全局仿射下界。";
+    if(result.offset>0)return "上移后穿过函数：全局间隙的下确界 = −δ < 0；即使窗格内没看见交叉也不是下界。";
+    if(result.offset<0)return "下移后仍是下界，但不是最高：全局间隙下确界 = −δ > 0，不会接触。";
+    return result.contact.type==="asymptotic"?"最高下界；间隙下确界为零，却没有有限接触点。":"最高下界；间隙下确界为零，并在红色接触集取到。";
   }
 
   function contactText(api, result) {
@@ -526,250 +532,72 @@
     );
   }
 
-  function drawLeft(api, children, preset, result, panel) {
-    var box = plotBox(panel);
-    addPanelBase(api, children, panel, "左图：f(x) 与最高仿射下界");
-    var mapper = drawAxes(
-      api,
-      children,
-      box,
-      preset.left.xMin,
-      preset.left.xMax,
-      preset.left.yMin,
-      preset.left.yMax,
-      "x",
-      "函数值"
-    );
-
-    children.push(
-      makeSvg(api, "path", {
-        className: "fs-function",
-        d: pathForFunction(mapper, preset.left.xMin, preset.left.xMax, preset.f, 180)
-      }),
-      svgText(api, mapper.sx(preset.left.xMax - 0.15 * (preset.left.xMax - preset.left.xMin)),
-        mapper.sy(preset.f(preset.left.xMax - 0.15 * (preset.left.xMax - preset.left.xMin))) - 11,
-        "f(x)", {
-          className: "fs-function-label",
-          "text-anchor": "end"
-        })
-    );
-
-    if (!result.finite) {
-      var unbounded = preset.id === "absolute"
-        ? "sx−|x| 沿一侧 → +∞"
-        : "sx−log(1+eˣ) 沿一侧 → +∞";
-      addWarningBox(api, children, box, [
-        "域外：f*(s)=+∞",
-        "上确界无界，不存在有限最高线",
-        unbounded
-      ]);
-      return;
-    }
-
-    children.push(
-      makeSvg(api, "path", {
-        className: "fs-under",
-        d: pathForLine(mapper, preset.left.xMin, preset.left.xMax, result.s, result.star)
-      })
-    );
-    var lineLabelX = preset.left.xMin + 0.69 * (preset.left.xMax - preset.left.xMin);
-    var lineLabelY = result.s * lineLabelX - result.star;
-    var lineLabelScreenY = clamp(mapper.sy(lineLabelY) - 10, box.top + 18, box.bottom - 9);
-    children.push(
-      svgText(api, mapper.sx(lineLabelX), lineLabelScreenY, "ℓ_s(x)=sx−f*(s)", {
-        className: "fs-line-label"
-      })
-    );
-
-    var contact = result.contact;
-    if (contact.type === "point") {
-      if (contact.x >= preset.left.xMin - EPS && contact.x <= preset.left.xMax + EPS) {
-        var contactY = preset.f(contact.x);
-        children.push(
-          makeSvg(api, "line", {
-            className: "fs-contact-guide",
-            x1: mapper.sx(contact.x),
-            y1: box.top,
-            x2: mapper.sx(contact.x),
-            y2: box.bottom
-          }),
-          makeSvg(api, "circle", {
-            className: "fs-point",
-            cx: mapper.sx(contact.x),
-            cy: mapper.sy(contactY),
-            r: 5.5
-          }),
-          svgText(api, mapper.sx(contact.x), clamp(mapper.sy(contactY) - 12, box.top + 20, box.bottom - 16),
-            "接触 x=" + formatNumber(api, contact.x, 2), {
-              className: "fs-contact-label"
-            })
-        );
-      } else {
-        children.push(
-          svgText(api, box.left + box.right >> 1, box.bottom - 15,
-            "接触点 x=" + formatNumber(api, contact.x, 2) + " 超出左图窗格", {
-              className: "fs-contact-label"
-            })
-        );
+  function drawPanel(api,children,preset,result,panel,side,clipId) {
+    var box=plotBox(panel),range=side==="left"?preset.left:preset.right;
+    addPanelBase(api,children,panel,side==="left"?"左图：函数与当前直线":"右图：共轭与当前斜率");
+    var mapper=drawAxes(api,children,box,range.xMin,range.xMax,range.yMin,range.yMax,side==="left"?"x":"s",side==="left"?"函数值":"f*(s)");
+    children.push(makeSvg(api,"defs",{},[makeSvg(api,"clipPath",{id:clipId},[makeSvg(api,"rect",{x:box.left,y:box.top,width:box.right-box.left,height:box.bottom-box.top})])]));
+    var curves=makeSvg(api,"g",{"clip-path":"url(#"+clipId+")","data-panel":side,
+      "data-xmin":range.xMin,"data-xmax":range.xMax,"data-ymin":range.yMin,"data-ymax":range.yMax,
+      "data-left":box.left,"data-right":box.right,"data-top":box.top,"data-bottom":box.bottom});
+    if(side==="left"){
+      curves.appendChild(makeSvg(api,"path",{className:"fs-function",d:pathForFunction(mapper,range.xMin,range.xMax,preset.f,220)}));
+      if(result.finite){
+        curves.appendChild(makeSvg(api,"path",{className:"fs-under","data-slope":result.s,"data-star":result.star,"data-offset":result.offset,
+          d:pathForLine(mapper,range.xMin,range.xMax,result.s,result.star-result.offset)}));
+        var contact=result.contact;
+        if(result.offset===0&&contact.type==="point"&&contact.x>=range.xMin&&contact.x<=range.xMax){
+          curves.appendChild(makeSvg(api,"line",{className:"fs-contact-guide",x1:mapper.sx(contact.x),x2:mapper.sx(contact.x),y1:box.top,y2:box.bottom}));
+          curves.appendChild(makeSvg(api,"circle",{className:"fs-point","data-contact-x":contact.x,"data-contact-y":preset.f(contact.x),cx:mapper.sx(contact.x),cy:mapper.sy(preset.f(contact.x)),r:5.5}));
+        }
+        if(result.offset===0&&contact.type==="ray"){
+          var a=contact.side==="right"?0:range.xMin,b=contact.side==="right"?range.xMax:0;
+          curves.appendChild(makeSvg(api,"path",{className:"fs-contact-set","data-ray":contact.side,d:pathForFunction(mapper,a,b,preset.f,80)}));
+        }
       }
-    } else if (contact.type === "ray") {
-      var rayMin = contact.side === "right" ? 0 : preset.left.xMin;
-      var rayMax = contact.side === "right" ? preset.left.xMax : 0;
-      children.push(
-        makeSvg(api, "path", {
-          className: "fs-contact-set",
-          d: pathForFunction(mapper, rayMin, rayMax, preset.f, 60)
-        }),
-        svgText(api, mapper.sx(contact.side === "right" ? 0.56 * preset.left.xMax : 0.56 * preset.left.xMin),
-          box.top + 34,
-          contact.side === "right" ? "接触集 x≥0" : "接触集 x≤0", {
-            className: "fs-contact-label"
-          })
-      );
-    } else if (contact.type === "asymptotic") {
-      children.push(
-        svgText(api, box.left + box.right >> 1, box.top + 40,
-          "无有限接触点：仅在 " + contact.direction + " 接触", {
-            className: "fs-warning"
-          })
-      );
+      children.push(curves);
+      if(!result.finite)addWarningBox(api,children,box,["这个斜率没有有限全局下界","sx−f(x) 在某个方向无界","不绘制直线或接触点"]);
+      else if(result.offset===0&&result.contact.type==="asymptotic"){
+        children.push(svgText(api,(box.left+box.right)/2,box.top+22,"无有限接触点；"+result.contact.direction,{className:"fs-warning"}));
+      }else if(result.offset===0&&result.contact.type==="point"&&(result.contact.x<range.xMin||result.contact.x>range.xMax)){
+        children.push(svgText(api,(box.left+box.right)/2,box.top+22,"接触点在窗外；数值见下方",{className:"fs-contact-label"}));
+      }
+      children.push(svgText(api,(box.left+box.right)/2,panel.y+panel.height-12,
+        result.finite?"δ="+String(result.offset)+"；间隙下确界="+formatNumber(api,result.globalGapInfimum,3):"域外：不以有限窗格伪造全局下界",
+        {"font-size":11}));
+    }else{
+      var lo=Number.isFinite(preset.domainMin)?preset.domainMin:range.xMin;
+      var hi=Number.isFinite(preset.domainMax)?preset.domainMax:range.xMax;
+      curves.appendChild(makeSvg(api,"path",{className:"fs-conjugate",d:pathForFunction(mapper,lo,hi,preset.fStar,220)}));
+      if(Number.isFinite(preset.domainMin)){
+        [preset.domainMin,preset.domainMax].forEach(function(x){
+          curves.appendChild(makeSvg(api,"line",{className:"fs-domain-boundary",x1:mapper.sx(x),x2:mapper.sx(x),y1:box.top,y2:box.bottom}));
+          curves.appendChild(makeSvg(api,"circle",{"data-domain-end":x,cx:mapper.sx(x),cy:mapper.sy(preset.fStar(x)),r:3.5,fill:"var(--fs-conjugate)"}));
+        });
+      }
+      curves.appendChild(makeSvg(api,"line",{className:"fs-current-guide",x1:mapper.sx(result.s),x2:mapper.sx(result.s),y1:box.top,y2:box.bottom}));
+      if(result.finite)curves.appendChild(makeSvg(api,"circle",{className:"fs-current-point","data-current-s":result.s,"data-current-star":result.star,cx:mapper.sx(result.s),cy:mapper.sy(result.star),r:5.5}));
+      children.push(curves);
+      if(Number.isFinite(preset.domainMin)){
+        addInfinityCue(api,children,mapper,box,(range.xMin+preset.domainMin)/2,"+∞");
+        addInfinityCue(api,children,mapper,box,(range.xMax+preset.domainMax)/2,"+∞");
+      }
+      children.push(svgText(api,(box.left+box.right)/2,box.top+20,preset.domainText,{className:"fs-conjugate-label"}));
+      children.push(svgText(api,(box.left+box.right)/2,panel.y+panel.height-12,
+        result.finite?"当前点的数值 f*(s)="+formatNumber(api,result.star,5):"当前 s 在有限域外，没有有限当前点",
+        {"font-size":11}));
     }
   }
-
-  function drawRight(api, children, preset, result, panel) {
-    var box = plotBox(panel);
-    addPanelBase(api, children, panel, "右图：f*(s) 与当前点");
-    var mapper = drawAxes(
-      api,
-      children,
-      box,
-      preset.right.xMin,
-      preset.right.xMax,
-      preset.right.yMin,
-      preset.right.yMax,
-      "s",
-      "f*(s)"
-    );
-
-    var domainMin = Number.isFinite(preset.domainMin) ? preset.domainMin : preset.right.xMin;
-    var domainMax = Number.isFinite(preset.domainMax) ? preset.domainMax : preset.right.xMax;
-    var curveMin = Math.max(preset.right.xMin, domainMin);
-    var curveMax = Math.min(preset.right.xMax, domainMax);
-    children.push(
-      makeSvg(api, "path", {
-        className: "fs-conjugate",
-        d: pathForFunction(mapper, curveMin, curveMax, preset.fStar, 180)
-      }),
-      svgText(api, mapper.sx(curveMin + 0.72 * (curveMax - curveMin)),
-        clamp(mapper.sy(preset.fStar(curveMin + 0.72 * (curveMax - curveMin))) - 11, box.top + 22, box.bottom - 12),
-        "f*(s)", {
-          className: "fs-conjugate-label"
-        })
-    );
-
-    if (Number.isFinite(preset.domainMin)) {
-      children.push(
-        makeSvg(api, "line", {
-          className: "fs-domain-boundary",
-          x1: mapper.sx(preset.domainMin),
-          y1: box.top,
-          x2: mapper.sx(preset.domainMin),
-          y2: box.bottom
-        }),
-        makeSvg(api, "line", {
-          className: "fs-domain-boundary",
-          x1: mapper.sx(preset.domainMax),
-          y1: box.top,
-          x2: mapper.sx(preset.domainMax),
-          y2: box.bottom
-        }),
-        svgText(api, mapper.sx((preset.domainMin + preset.domainMax) / 2), box.top + 20,
-          preset.domainText, { className: "fs-conjugate-label" })
-      );
-      addInfinityCue(api, children, mapper, box,
-        preset.right.xMin + 0.42 * (preset.domainMin - preset.right.xMin), "+∞");
-      addInfinityCue(api, children, mapper, box,
-        preset.domainMax + 0.42 * (preset.right.xMax - preset.domainMax), "+∞");
-    } else {
-      children.push(
-        svgText(api, box.right - 7, box.top + 20, preset.domainText, {
-          className: "fs-conjugate-label",
-          "text-anchor": "end"
-        })
-      );
-    }
-
-    var currentX = mapper.sx(result.s);
-    children.push(
-      makeSvg(api, "line", {
-        className: result.finite ? "fs-current-guide" : "fs-warning-guide",
-        x1: currentX,
-        y1: box.top,
-        x2: currentX,
-        y2: box.bottom
-      })
-    );
-
-    if (result.finite) {
-      children.push(
-        makeSvg(api, "circle", {
-          className: "fs-current-point",
-          cx: currentX,
-          cy: mapper.sy(result.star),
-          r: 5.5
-        }),
-        svgText(api, currentX, clamp(mapper.sy(result.star) - 12, box.top + 35, box.bottom - 14),
-          "当前点", {
-            className: "fs-conjugate-label"
-          })
-      );
-      if (result.contact.type === "asymptotic") {
-        children.push(
-          svgText(api, box.left + box.right >> 1, box.top + 42,
-            "函数值有限，但无有限 x 接触", {
-              className: "fs-warning"
-            })
-        );
-      }
-    } else {
-      addInfinityCue(api, children, mapper, box, result.s, "+∞");
-      children.push(
-        svgText(api, currentX, box.bottom - 14,
-          "当前 s=" + formatNumber(api, result.s, 2) + "：无有限点", {
-            className: "fs-warning"
-          })
-      );
-    }
-  }
-
-  function drawScene(api, svg, preset, result, titleId, descId) {
+  function drawScene(api,svg,preset,result,titleId,descId) {
     clear(svg);
-    var children = [
-      makeSvg(api, "title", { id: titleId }, [
-        "Fenchel 支撑线实验：" + preset.label + "，当前斜率 s=" + formatNumber(api, result.s, 2)
-      ]),
-      makeSvg(api, "desc", { id: descId }, [
-        "左图显示原函数和固定斜率的最高仿射下界；右图显示 Fenchel 共轭及当前斜率对应的函数值。域外显示无界和加无穷，不绘制伪造的接触点。"
-      ])
+    var children=[
+      makeSvg(api,"title",{id:titleId},["Fenchel 支撑线："+preset.label+"；s="+String(result.s)+"；δ="+String(result.offset)]),
+      makeSvg(api,"desc",{id:descId},["函数、直线和接触集均裁剪到各自坐标窗格；有限窗格不能证明全局下界。域外没有有限线，渐近接触没有有限红点。"])
     ];
-    drawLeft(api, children, preset, result, {
-      x: 14,
-      y: 14,
-      width: 456,
-      height: 450
-    });
-    drawRight(api, children, preset, result, {
-      x: 510,
-      y: 14,
-      width: 456,
-      height: 450
-    });
-    appendChildren(svg, children);
-    svg.setAttribute(
-      "aria-label",
-      preset.label + "，当前斜率 s=" + formatNumber(api, result.s, 2) +
-        "；左图为原函数与最高仿射下界，右图为共轭函数"
-    );
+    drawPanel(api,children,preset,result,{x:14,y:14,width:456,height:450},"left",titleId+"-left-clip");
+    drawPanel(api,children,preset,result,{x:510,y:14,width:456,height:450},"right",titleId+"-right-clip");
+    appendChildren(svg,children);
+    svg.setAttribute("aria-label",preset.label+"；s="+String(result.s)+"；δ="+String(result.offset)+"；"+shiftText(result));
   }
 
   function buildLab(root, api) {
@@ -783,7 +611,7 @@
     var controlsTitleId = instanceId + "-controls-title";
     var statusId = instanceId + "-status";
     var slopeId = instanceId + "-slope";
-    var state = { presetId: "quadratic", s: 1 };
+    var state = { presetId: "quadratic", s: 1, offset: 0 };
     var refs = { presetButtons: [] };
 
     clear(root);
@@ -796,7 +624,7 @@
       "Fenchel 支撑线：斜率固定时，直线能抬多高？"
     ]);
     var intro = makeElement(api, "p", { className: "fs-note" }, [
-      "固定斜率 s，令 b 从大到小，把 ℓ_s(x)=sx−b 向上抬。只要仍在 f 下方，最终允许的最小 b 就是 f*(s)；当 f*(s)=+∞ 时，说明这个斜率根本没有有限的全局下界。"
+      "先固定斜率 s。只有 f*(s) 有限时，才有最高线 ℓ_s(x)=sx−f*(s)。再改变上移量 δ，检查整条直线是否仍在函数下方；有限窗格看不出所有交叉，需结合全局间隙下确界。"
     ]);
 
     var presetGroup = makeElement(api, "div", {
@@ -813,6 +641,7 @@
       button.addEventListener("click", function () {
         state.presetId = preset.id;
         state.s = preset.initialS;
+        state.offset = 0;
         updateSlider(preset);
         update();
         announce("已切换到" + preset.label + "，当前斜率 s=" + formatNumber(api, state.s, 2));
@@ -848,6 +677,7 @@
     resetButton.addEventListener("click", function () {
       var preset = getPreset(state.presetId);
       state.s = preset.initialS;
+      state.offset = 0;
       updateSlider(preset);
       update();
       announce("已恢复" + preset.label + "的示例斜率 s=" + formatNumber(api, state.s, 2));
@@ -887,13 +717,13 @@
       "aria-label": "图例"
     }, [
       makeLegendItem(api, "fs-legend-function", "原函数 f"),
-      makeLegendItem(api, "fs-legend-under", "最高仿射下界 ℓ_s"),
+      makeLegendItem(api, "fs-legend-under", "直线 ℓ_s+δ（δ=0 时最高）"),
       makeLegendItem(api, "fs-legend-conjugate", "共轭 f*"),
       makePointLegendItem(api, "接触/当前点")
     ]);
     var sMetric = metric(api, "当前斜率 s");
     var starMetric = metric(api, "f*(s)");
-    var interceptMetric = metric(api, "最高线截距 −f*(s)");
+    var interceptMetric = metric(api, "当前线截距 −f*(s)+δ");
     var contactMetric = metric(api, "接触/边界");
     var metrics = makeElement(api, "div", { className: "fs-metrics" }, [
       sMetric.card,
@@ -905,7 +735,7 @@
     refs.starMetric = starMetric.value;
     refs.interceptMetric = interceptMetric.value;
     refs.contactMetric = contactMetric.value;
-    var formula = makeElement(api, "div", { className: "fs-formula" }, []);
+    var formula = makeElement(api, "div", { className: "fs-formula",role:"region",tabindex:0,"aria-label":"共轭公式说明" }, []);
     var status = makeElement(api, "p", {
       className: "fs-status",
       id: statusId,
@@ -916,12 +746,31 @@
     refs.status = status;
     refs.boundary = boundary;
 
+    var offsetId=instanceId+"-offset";
+    var offsetOutput=makeElement(api,"output",{htmlFor:offsetId,className:"fs-output"},["0"]);
+    var offsetInput=makeElement(api,"input",{id:offsetId,type:"range",min:-2,max:2,step:.0001,value:0,"aria-label":"相对最高线的上移量 δ"});
+    offsetInput.addEventListener("input",function(){state.offset=Number(offsetInput.value);update();});
+    controls.appendChild(makeElement(api,"div",{className:"fs-control"},[
+      makeElement(api,"label",{htmlFor:offsetId},["上移量 δ = ",offsetOutput]),offsetInput
+    ]));
+    var edges=makeElement(api,"div",{className:"fs-preset-buttons",role:"group","aria-label":"检查边界附近"});
+    [{label:"略小于 1",s:1-Number.EPSILON/2},{label:"等于 1",s:1},{label:"略大于 1",s:1+Number.EPSILON}].forEach(function(v){
+      var button=makeElement(api,"button",{type:"button"},[v.label]);
+      button.addEventListener("click",function(){state.s=v.s;updateSlider(getPreset(state.presetId));update();announce("精确存储斜率 s="+String(v.s));});
+      edges.appendChild(button);
+    });
+    controls.appendChild(edges);
+    controls.appendChild(makeElement(api,"p",{className:"fs-note"},["δ=0 是最高线，δ>0 向上抬、δ<0 向下移。边界按钮检查 1 两侧非常接近的斜率；完整数值显示在斜率栏。"]));
+    var gapMetric=metric(api,"当前线的全局间隙下确界");
+    metrics.appendChild(gapMetric.card);
+
     var stage = makeElement(api, "section", {
       className: "fs-stage",
       "aria-label": "Fenchel 支撑线图"
     }, [
       stageTitle,
-      makeElement(api, "div", { className: "fs-stage-frame" }, [svg]),
+      makeElement(api,"p",{className:"fs-note"},["双图保留完整字号。图框可左右滚动，键盘聚焦图框后用方向键查看另一侧。"]),
+      makeElement(api, "div", { className: "fs-stage-frame", role:"region",tabindex:0,"aria-label":"可横向滚动的共轭双图" }, [svg]),
       legend,
       metrics,
       formula,
@@ -949,19 +798,21 @@
 
     function update() {
       var preset = getPreset(state.presetId);
-      var result = evaluate(preset, state.s);
-      refs.slopeOutput.textContent = formatNumber(api, result.s, 2);
-      refs.sMetric.textContent = formatNumber(api, result.s, 2);
+      var result = evaluate(preset, state.s, state.offset);
+      refs.slopeOutput.textContent = String(result.s);
+      refs.sMetric.textContent = String(result.s);
       refs.starMetric.textContent = formatNumber(api, result.star, 4);
       refs.interceptMetric.textContent = result.finite
-        ? "−(" + formatNumber(api, result.star, 4) + ")"
+        ? formatNumber(api, result.intercept, 4)
         : "无有限值";
-      refs.contactMetric.textContent = contactText(api, result);
-      refs.formula.textContent = preset.formulaText + "  当前：" + lineEquation(api, result);
+      refs.contactMetric.textContent = result.offset===0 ? contactText(api, result) : "此栏只在 δ=0 描述最高线接触";
+      offsetInput.disabled=!result.finite;offsetInput.value=String(state.offset);offsetOutput.textContent=String(state.offset);
+      gapMetric.value.textContent=result.finite?formatNumber(api,result.globalGapInfimum,4):"任意有限截距都为 −∞";
+      refs.formula.textContent = preset.formulaText + "  当前：" + lineEquation(api, result)+"；显示直线 ℓ(x)=sx−f*(s)+δ，δ="+String(state.offset)+"。";
       refs.status.textContent = result.finite
-        ? "当前斜率在有限域内；Fenchel–Young 的等号信息：" + contactText(api, result) + "。"
+        ? shiftText(result)
         : "当前斜率在有限域外；f*(s)=+∞，右图不显示有限当前点，左图不显示有限最高支撑线。";
-      refs.boundary.textContent = boundaryText(api, preset, result);
+      refs.boundary.textContent = shiftText(result)+" "+(result.offset===0?boundaryText(api,preset,result):"δ 不为零时不标记最高线的接触集；右图共轭值不随 δ 改变。");
       refs.presetButtons.forEach(function (item) {
         item.button.setAttribute("aria-pressed", item.id === preset.id ? "true" : "false");
       });
@@ -982,5 +833,22 @@
     update();
   }
 
-  window.CourseLearning.register("fenchel-support", buildLab);
-}());
+  function selfTest(){
+    var n=0;function ok(v){n++;if(!v)throw new Error("Fenchel self-test "+n);}
+    ok(evaluate("quadratic",1.5).star===1.125);
+    ok(evaluate("absolute",1).contact.type==="ray");
+    ok(evaluate("absolute",1-Number.EPSILON/2).contact.type==="point");
+    ok(!evaluate("absolute",1+Number.EPSILON).finite);
+    ok(evaluate("softplus",0).contact.type==="asymptotic");
+    ok(evaluate("softplus",Number.MIN_VALUE).contact.type==="point");
+    ok(!evaluate("softplus",-Number.MIN_VALUE).finite);
+    ok(evaluate("softplus",1-Number.EPSILON/2).contact.type==="point");
+    ok(!evaluate("softplus",1+Number.EPSILON).finite);
+    ok(evaluate("softplus",.5).star===-Math.log(2));
+    ok(evaluate("softplus",0,.1).globalGapInfimum===-.1);
+    ok(!evaluate("softplus",0,.1).lowerBound);
+    ok(evaluate("absolute",0,-.1).lowerBound&&!evaluate("absolute",0,-.1).touches);
+    return {checks:n};
+  }
+  return {PRESETS:PRESETS,getPreset:getPreset,evaluate:evaluate,softplus:softplus,drawScene:drawScene,mount:buildLab,selfTest:selfTest};
+}));

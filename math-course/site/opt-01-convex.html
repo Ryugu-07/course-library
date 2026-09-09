@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 06:07</div>
   </div>
 </nav>
 <main id="content">
@@ -61,12 +61,15 @@ try {
 <li><a href="#5">5. 条件边界：图像没有替定理放宽假设</a></li>
 </ul>
 </li>
+<li><a href="#0">0. 读定理前，先给四个词具体含义</a></li>
 <li><a href="#1_1">1. 凸集</a></li>
 <li><a href="#2_1">2. 凸函数</a></li>
 <li><a href="#3_1">3. 凸优化问题</a></li>
 <li><a href="#4_1">4. 次梯度：不可微时怎么办</a></li>
 <li><a href="#5-fenchel">5. Fenchel 共轭与支撑线</a></li>
 <li><a href="#6">6. 典型例题</a></li>
+<li><a href="#7">7. 迁移练习</a></li>
+<li><a href="#8">8. 阅读与后续连接</a></li>
 </ul>
 </div>
 </details>
@@ -83,7 +86,7 @@ try {
 <div class="arithmatex">\[
 \ell_{s,b}(x)=sx-b.
 \]</div>
-<p>当 <span class="arithmatex">\(b\)</span> 很大时，直线在 <span class="arithmatex">\(f\)</span> 的下方；逐渐减小 <span class="arithmatex">\(b\)</span>，直线整体向上抬升，直到再抬一点就会穿过图像。要让它始终是下界，必须有</p>
+<p>先检查这个斜率是否存在某条全局仿射下界。若存在，取足够大的 <span class="arithmatex">\(b\)</span>，再逐渐减小它，直线会整体向上抬升。某些斜率根本没有有限的可用 <span class="arithmatex">\(b\)</span>；不能靠“再往下移一些”解决。要让它始终是下界，必须有</p>
 <div class="arithmatex">\[
 sx-b\le f(x)\quad(\forall x)
 \quad\Longleftrightarrow\quad
@@ -114,9 +117,18 @@ f(x)+f^*(s)=sx
 \quad\Longleftrightarrow\quad
 x\in\partial f^*(s).
 \]</div>
-<p>可微时，这退化成 <span class="arithmatex">\(s=f'(x)\)</span> 与 <span class="arithmatex">\(x=(f^*)'(s)\)</span>；折点或定义域边界处必须保留次微分、极限接触和 <span class="arithmatex">\(+\infty\)</span> 这些信息。</p>
+<p>若 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(x\)</span> 可微，第一条条件是 <span class="arithmatex">\(s=f'(x)\)</span>；只有 <span class="arithmatex">\(f^*\)</span> 在 <span class="arithmatex">\(s\)</span> 也可微时，才能再写 <span class="arithmatex">\(x=(f^*)'(s)\)</span>。折点或定义域边界处必须保留次微分、极限接触和 <span class="arithmatex">\(+\infty\)</span> 这些信息。</p>
 <h3 id="4">4. 可操作实验：左边抬线，右边记账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>下面的确定性 SVG 只改变斜率 <span class="arithmatex">\(s\)</span>。左图同时画出 <span class="arithmatex">\(f\)</span> 和 <span class="arithmatex">\(sx-f^*(s)\)</span>；右图画出 <span class="arithmatex">\(f^*\)</span> 以及当前 <span class="arithmatex">\((s,f^*(s))\)</span>。先选择一个函数，再用键盘方向键或拖动斜率滑块，观察“最高下界”和“接触条件”如何一起变化。</p>
+<p>先改变斜率 <span class="arithmatex">\(s\)</span>，左图画函数，右图记共轭值。再用上移量 <span class="arithmatex">\(\delta\)</span> 改变直线：</p>
+<div class="arithmatex">\[
+\ell_{s,\delta}(x)=sx-f^*(s)+\delta.
+\]</div>
+<p>只要 <span class="arithmatex">\(f^*(s)\)</span> 有限，就有一条不依赖有限图窗的判断依据：</p>
+<div class="arithmatex">\[
+\inf_x\bigl(f(x)-\ell_{s,\delta}(x)\bigr)=-\delta.
+\]</div>
+<p>因此 <span class="arithmatex">\(\delta&lt;0\)</span> 时直线仍在下方，但不是最高；<span class="arithmatex">\(\delta=0\)</span> 达到最高；<span class="arithmatex">\(\delta&gt;0\)</span> 时一定存在某个 <span class="arithmatex">\(x\)</span> 使直线越过函数。<strong>下确界为零也不必取到零。</strong> softplus 的端点就是例子：最高线没有有限接触点。“支撑线”若严格要求接触，端点处应称最高仿射下界。</p>
+<p>先选 softplus、<span class="arithmatex">\(s=1\)</span>，保持 <span class="arithmatex">\(\delta=0\)</span>；再略微上抬。穿越可能远在窗格外，不能因为图内没看到交点就说它还是下界。边界按钮可进一步比较 <span class="arithmatex">\(1\)</span> 与其两侧极接近的斜率，数值分类不使用“足够接近就算等于”的阈值。</p>
 <div class="learning-lab" data-learning-lab="fenchel-support">
 <p><strong>无 JavaScript 时的静态读法：</strong>三个预设的精确答案如下。</p>
 <ul>
@@ -128,24 +140,40 @@ x\in\partial f^*(s).
 </div>
 <h3 id="5">5. 条件边界：图像没有替定理放宽假设<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
-<li>Fenchel–Young 不等式与上面的等号判据以 proper、下半连续、凸的 <span class="arithmatex">\(f\)</span> 为安全背景；若函数没有闭性，<span class="arithmatex">\(f^{**}\)</span> 可能只恢复其下半连续凸包，不能不加检查地把 <span class="arithmatex">\(f\)</span> 与 <span class="arithmatex">\(f^{**}\)</span> 混用。</li>
+<li>Fenchel–Young 不等式直接来自上确界定义；<span class="arithmatex">\(s\in\partial f(x)\)</span> 与等号的第一层等价不需要闭性。反向的 <span class="arithmatex">\(x\in\partial f^*(s)\)</span> 等价要谨慎：若函数没有闭性，<span class="arithmatex">\(f^{**}\)</span> 可能只恢复其下半连续凸包，不能不加检查地把 <span class="arithmatex">\(f\)</span> 与 <span class="arithmatex">\(f^{**}\)</span> 混用。</li>
 <li><span class="arithmatex">\(f^*(s)&lt;+\infty\)</span> 不自动意味着上确界在某个有限 <span class="arithmatex">\(x\)</span> 取到。softplus 的 <span class="arithmatex">\(s=0,1\)</span> 正是“有限但只在无穷远接触”的边界。</li>
-<li>次微分在相对内部等适当点通常非空，定义域边界却可能为空；因此“有一个斜率”与“存在一个有限接触点”不能在边界处画等号。</li>
+<li>有限维 proper 凸函数的次微分在定义域相对内部非空，定义域边界却可能为空；因此“有一个斜率”与“存在一个有限接触点”不能在边界处画等号。</li>
 </ul>
 </div>
 </section>
+<h2 id="0">0. 读定理前，先给四个词具体含义<a class="headerlink" href="#0" title="Permanent link"></a></h2>
+<p>本页在有限维空间 <span class="arithmatex">\(\mathbb R^n\)</span> 中讨论。允许 <span class="arithmatex">\(f(x)=+\infty\)</span> 表示“这个点不允许”，但不允许 <span class="arithmatex">\(-\infty\)</span>。</p>
+<ul>
+<li><strong>有效域</strong> <span class="arithmatex">\(\operatorname{dom}f=\{x:f(x)&lt;+\infty\}\)</span>；<strong>proper</strong>（真函数）意味着这个域非空，即至少有一个有限值。</li>
+<li><strong>上图集</strong> <span class="arithmatex">\(\operatorname{epi}f=\{(x,t):t\ge f(x)\}\)</span>，是在函数图像上方的全部点。<span class="arithmatex">\(f\)</span> 凸等价于它的上图集凸；这把“函数的弦”变成“集合里的线段”。</li>
+<li><strong>下半连续</strong>：<span class="arithmatex">\(f(x)\le\liminf_{y\to x}f(y)\)</span>。函数在极限点不能突然向上跳；上图集是闭集与此等价。凸分析里“闭函数”指这个性质，不是说有效域必须闭。例如 <span class="arithmatex">\(-\log x\)</span> 在 <span class="arithmatex">\(x&gt;0\)</span> 有限，域外为 <span class="arithmatex">\(+\infty\)</span>，有效域开放，但它仍是闭凸函数。</li>
+<li><strong>相对内部</strong> <span class="arithmatex">\(\operatorname{ri}C\)</span>：在集合的仿射包里取内部。一条线段在平面里没有普通内点，在自身所在直线中却有相对内点。次梯度存在性与 Slater 条件经常需要这个区别。</li>
+</ul>
+<p>把集合约束写成指标函数 <span class="arithmatex">\(\delta_C(x)=0\)</span>（<span class="arithmatex">\(x\in C\)</span>）与 <span class="arithmatex">\(+\infty\)</span>（域外），便可将 <span class="arithmatex">\(\min_{x\in C}f(x)\)</span> 写成无约束的 <span class="arithmatex">\(\min_x[f(x)+\delta_C(x)]\)</span>。<span class="arithmatex">\(\delta_C\)</span> 凸当且仅当 <span class="arithmatex">\(C\)</span> 凸；<span class="arithmatex">\(C\)</span> 闭时它下半连续。</p>
 <h2 id="1_1">1. 凸集<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(C\)</span> 凸 <span class="arithmatex">\(\iff \forall x, y \in C,\ \lambda \in [0,1]:\ \lambda x + (1-\lambda)y \in C\)</span>（任两点连线段不出集合）。</p>
 <p><strong>基本例子</strong>：超平面 <span class="arithmatex">\(\{a^\top x = b\}\)</span> 与半空间 <span class="arithmatex">\(\{a^\top x \leq b\}\)</span>；球；<strong>多面体</strong>（有限个半空间之交——线性规划的可行域，优化 IV）；半正定矩阵锥（高代 VI 的半正定判据给出的集合）。</p>
 <p><strong>保凸运算</strong>：任意多个凸集的<strong>交</strong>仍凸（并一般不凸）；仿射映射的像与原像。</p>
-<p><strong>两条支撑性定理</strong>（凸几何的灵魂，陈述级掌握）：<strong>分离超平面定理</strong>——两个不相交凸集可用超平面分开；<strong>支撑超平面定理</strong>——凸集边界点处存在"托住"整个集合的超平面。（🔗 SVM 最大间隔分类的几何合法性、对偶理论的几何来源都在这两条上。）</p>
+<p><strong>分离与支撑，要问有没有正间隔。</strong> 对两个非空、不相交的凸集 <span class="arithmatex">\(C,D\subset\mathbb R^n\)</span>，弱分离给出非零 <span class="arithmatex">\(a\)</span> 和实数 <span class="arithmatex">\(b\)</span>，使</p>
+<div class="arithmatex">\[
+\langle a,x\rangle\le b\le\langle a,y\rangle
+\quad(x\in C,\ y\in D).
+\]</div>
+<p>这不保证两侧留有正间隔。例如 <span class="arithmatex">\(C=(-\infty,0)\)</span>、<span class="arithmatex">\(D=(0,\infty)\)</span> 虽不相交，但距离为零。若进一步一集紧、另一集闭，仍不相交，则可得到正间隔的强分离。SVM 的正间隔不能仅由“不相交”三个字推出。</p>
+<p>对非空凸集 <span class="arithmatex">\(C\)</span> 的边界点 <span class="arithmatex">\(x_0\)</span>，有限维支撑定理给出某个 <span class="arithmatex">\(a\ne0\)</span>，使 <span class="arithmatex">\(\langle a,x-x_0\rangle\le0\)</span> 对所有 <span class="arithmatex">\(x\in C\)</span> 成立。即使 <span class="arithmatex">\(x_0\)</span> 不属于 <span class="arithmatex">\(C\)</span>，这条边界支撑关系仍有意义；而上图集的支撑面可能竖直，不能据此保证每个边界点都有有限次梯度。</p>
 <h2 id="2_1">2. 凸函数<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="凸函数在弦下方切线上方" src="assets/img/opt-01-convex.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>凸函数的两条等价刻画：图像在任意弦下方、在任意切线上方——凸优化"局部最优即全局最优"的根。</figcaption>
+<div role="region" tabindex="0" aria-label="可横向滚动的凸性静态图" style="overflow-x:auto"><img src="assets/img/opt-01-convex.svg" alt="左图为二次函数的真实弦与切线，右图比较严格凸的x四次方和失败的二次下界" style="min-width:1080px"></div>
+<figcaption><span class="fig-id">图 1.1</span>左图比较弦、函数与切线；右图说明严格凸仍可能没有任何正的强凸常数。</figcaption>
 </figure>
-<p><strong>定义</strong> <span class="arithmatex">\(f\)</span> 凸 <span class="arithmatex">\(\iff\)</span> 定义域凸且 <span class="arithmatex">\(f(\lambda x + (1-\lambda)y) \leq \lambda f(x) + (1-\lambda)f(y)\)</span>（弦在图像上方）。<strong>严格凸</strong>：不等号严格；<strong><span class="arithmatex">\(\mu\)</span>-强凸</strong>：<span class="arithmatex">\(f - \frac{\mu}{2}\|x\|^2\)</span> 仍凸（碗至少弯到二次程度——收敛速率的关键参数，优化 II）。</p>
-<p><strong>三级判据</strong>（可微性逐级增强）：</p>
+
+<p><strong>定义</strong> <span class="arithmatex">\(f\)</span> 凸 <span class="arithmatex">\(\iff\)</span> 定义域凸且 <span class="arithmatex">\(f(\lambda x + (1-\lambda)y) \leq \lambda f(x) + (1-\lambda)f(y)\)</span>（弦在图像上方）。<strong>严格凸</strong>：对不同的有限域点 <span class="arithmatex">\(x\ne y\)</span>、<span class="arithmatex">\(0&lt;\lambda&lt;1\)</span>，不等号严格；<strong><span class="arithmatex">\(\mu\)</span>-强凸</strong>（<span class="arithmatex">\(\mu&gt;0\)</span>）：<span class="arithmatex">\(f - \frac{\mu}{2}\|x\|^2\)</span> 仍凸（碗至少弯到二次程度——收敛速率的关键参数，优化 II）。</p>
+<p><strong>三级判据</strong>：以下一、二阶等价判据放在开凸域上讨论，可微性逐级增强；若有效域在低维仿射空间中，应改用相对坐标。</p>
 <table>
 <thead>
 <tr>
@@ -169,21 +197,34 @@ x\in\partial f^*(s).
 </tbody>
 </table>
 <p>一阶条件是三者中最常被引用的：它说凸函数的局部线性信息（梯度）携带<strong>全局</strong>下界——这就是为什么梯度方法在凸世界有全局保证。</p>
-<p><strong>常见凸函数清单</strong>：仿射（唯一既凸又凹）、<span class="arithmatex">\(e^{ax}\)</span>、<span class="arithmatex">\(-\ln x\)</span>、范数、<span class="arithmatex">\(\max(x_1,\dots,x_n)\)</span>、log-sum-exp <span class="arithmatex">\(\ln\sum e^{x_i}\)</span>（softmax 的势函数——🔗 交叉熵损失凸性的来源）、二次型 <span class="arithmatex">\(x^\top A x\)</span>（<span class="arithmatex">\(A \succeq 0\)</span> 时）。</p>
+<p><strong>常见凸函数清单</strong>：仿射（唯一既凸又凹）、<span class="arithmatex">\(e^{ax}\)</span>、<span class="arithmatex">\(-\ln x\)</span>、范数、<span class="arithmatex">\(\max(x_1,\dots,x_n)\)</span>、log-sum-exp <span class="arithmatex">\(\ln\sum e^{x_i}\)</span>（softmax 的势函数；对 logits 的凸性不能直接推到网络参数）、二次型 <span class="arithmatex">\(x^\top A x\)</span>（对称 <span class="arithmatex">\(A\succeq0\)</span> 时；一般 <span class="arithmatex">\(A\)</span> 只由对称部分决定）。</p>
 <p><strong>保凸运算</strong>：非负加权和；与仿射复合 <span class="arithmatex">\(f(Ax + b)\)</span>；<strong>逐点上确界</strong> <span class="arithmatex">\(\sup_\alpha f_\alpha(x)\)</span>（凸函数族的包络仍凸——对偶函数凹性的来源，优化 III）；复合规则（外凸内仿射，或外凸不减内凸）。</p>
-<p><strong>Jensen 不等式</strong>：<span class="arithmatex">\(f\)</span> 凸 ⇒ <span class="arithmatex">\(f(E X) \leq E[f(X)]\)</span>（概率 IV 的版本；定义的期望化）。</p>
+<p><strong>Jensen 不等式</strong>：例如 <span class="arithmatex">\(f\)</span> 为 proper、下半连续凸函数，<span class="arithmatex">\(X\)</span> 可积且 <span class="arithmatex">\(f(X)\)</span> 绝对可积时，<span class="arithmatex">\(f(EX)\le E[f(X)]\)</span>。有限加权平均的版本直接反复使用凸性定义；期望版还要确保各项有意义，不能在不存在的期望上套公式。</p>
+<p><strong>严格凸不等于强凸。</strong> <span class="arithmatex">\(x^4\)</span> 在 <span class="arithmatex">\(\mathbb R\)</span> 上严格凸，但 <span class="arithmatex">\(f''(0)=0\)</span>，不存在全局正的强凸常数；它也说明 Hessian 处处正定是严格凸的充分条件，非必要条件。强凸保证的是统一的二次下界，不只是“图像没有直线段”。</p>
+<p><strong>log-sum-exp 的凸性可直接验算。</strong> 设 <span class="arithmatex">\(p_i=e^{z_i}/\sum_j e^{z_j}\)</span>，其 Hessian 为 <span class="arithmatex">\(\operatorname{diag}(p)-pp^\top\)</span>。任意向量 <span class="arithmatex">\(v\)</span> 都满足</p>
+<div class="arithmatex">\[
+v^\top\nabla^2 f(z)v=\sum_i p_i v_i^2-\Bigl(\sum_i p_i v_i\Bigr)^2\ge0,
+\]</div>
+<p>右边是加权方差。沿全一向量曲率为零，因此它在整个 logits 空间也不是强凸函数。交叉熵 <span class="arithmatex">\(\log\sum_i e^{z_i}-z_k\)</span> 对 <span class="arithmatex">\(z\)</span> 凸；若 <span class="arithmatex">\(z\)</span> 是参数的非线性函数，复合规则未必保凸。</p>
 <h2 id="3_1">3. 凸优化问题<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(\min f(x)\)</span> s.t. <span class="arithmatex">\(g_i(x) \leq 0,\ Ax = b\)</span>，其中 <span class="arithmatex">\(f, g_i\)</span> 凸（等式约束必须仿射——否则可行域不凸）。</p>
+<p><strong>定义</strong> <span class="arithmatex">\(\min f(x)\)</span> s.t. <span class="arithmatex">\(g_i(x) \leq 0,\ Ax = b\)</span>，其中 <span class="arithmatex">\(f, g_i\)</span> 凸。这是标准凸规划的一种保证凸性的表示形式：等式约束写成仿射。不能反推“任何非仿射等式的可行域都不凸”；例如 <span class="arithmatex">\(x^2=0\)</span> 的可行集就是凸集 <span class="arithmatex">\(\{0\}\)</span>。</p>
 <p><strong>定理（局部即全局）</strong> 凸问题的任何局部极小点都是全局极小点。
 <em>证明（三行，值得记住）</em>：设 <span class="arithmatex">\(x^*\)</span> 局部极小而 <span class="arithmatex">\(y\)</span> 更优（<span class="arithmatex">\(f(y) &lt; f(x^*)\)</span>）。沿线段 <span class="arithmatex">\(z_\lambda = (1-\lambda)x^* + \lambda y\)</span>，凸性给 <span class="arithmatex">\(f(z_\lambda) \leq (1-\lambda)f(x^*) + \lambda f(y) &lt; f(x^*)\)</span> 对一切 <span class="arithmatex">\(\lambda \in (0,1]\)</span> 成立——<span class="arithmatex">\(x^*\)</span> 的任意小邻域内都有更优点，与局部极小矛盾。<span class="arithmatex">\(\blacksquare\)</span></p>
 <p>（在<strong>无约束、可微凸</strong>问题且 <span class="arithmatex">\(x^*\)</span> 位于适当定义域内点时，<span class="arithmatex">\(\nabla f(x^*) = 0 \iff\)</span> <span class="arithmatex">\(x^*\)</span> 是全局最优；有约束问题要改用 KKT/法锥条件，边界点也不能直接套这句。）</p>
+<p><strong>最优点是否存在，要另查。</strong> 严格凸只保证最优点<strong>至多一个</strong>，不能保证存在；<span class="arithmatex">\(e^x\)</span> 的下确界为零，却在 <span class="arithmatex">\(\mathbb R\)</span> 上从不取到。甚至 <span class="arithmatex">\(x^2\)</span> 限制在 <span class="arithmatex">\((0,\infty)\)</span> 上仍强凸，但也没有最小点。一个实用的充分条件是：proper、下半连续目标存在非空紧的次水平集 <span class="arithmatex">\(\{x:f(x)\le\alpha\}\)</span>；此时可用紧性取得最小值，再用严格凸性取得唯一性。闭的可行域、无穷远的增长控制与凸性，各管一件事。</p>
 <h2 id="4_1">4. 次梯度：不可微时怎么办<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p>凸函数可以有折点（<span class="arithmatex">\(|x|\)</span>、hinge 损失、标量 ReLU）。<strong>次梯度</strong> <span class="arithmatex">\(g\)</span> 定义为满足一阶条件的向量：</p>
 <div class="arithmatex">\[
 f(y) \geq f(x) + g^\top (y - x), \quad \forall y
 \]</div>
-<p>全体次梯度构成<strong>次微分</strong> <span class="arithmatex">\(\partial f(x)\)</span>（它总是凸集；对 proper 凸函数，在 <span class="arithmatex">\(\operatorname{ri}(\operatorname{dom}f)\)</span> 等适当点通常非空，但定义域边界可能为空；可微内点处退化为 <span class="arithmatex">\(\{\nabla f\}\)</span>）。例：<span class="arithmatex">\(f = |x|\)</span> 在 0 处 <span class="arithmatex">\(\partial f(0) = [-1, 1]\)</span>。最优性条件推广为 <span class="arithmatex">\(0 \in \partial f(x^*)\)</span>。</p>
-<p>🔗 <strong>AI 衔接</strong>：hinge 损失（ai 课 02 讲 SVM）、L1 正则（Lasso 的稀疏性恰来自 <span class="arithmatex">\(\partial|x|(0)\)</span> 是一个区间——零点是"一段"最优而非"一点"）。ReLU 网络整体通常是非凸的；在<strong>标量 ReLU 的折点 0</strong>，框架可以选取约定导数（例如 <code>relu'(0)=0</code>），也可以把这个值看作从广义梯度/次微分 <span class="arithmatex">\([0,1]\)</span> 中选取的一个代表，不能把整个非凸网络的 autodiff 值统称为凸次梯度。</p>
+<p>全体次梯度构成<strong>次微分</strong> <span class="arithmatex">\(\partial f(x)\)</span>（它总是凸集；对有限维 proper 凸函数，在 <span class="arithmatex">\(\operatorname{ri}(\operatorname{dom}f)\)</span> 非空，但定义域边界可能为空；可微内点处退化为 <span class="arithmatex">\(\{\nabla f\}\)</span>）。例：<span class="arithmatex">\(f = |x|\)</span> 在 0 处 <span class="arithmatex">\(\partial f(0) = [-1, 1]\)</span>。无约束全局最优性恰为 <span class="arithmatex">\(0\in\partial f(x^*)\)</span>。对闭凸约束 <span class="arithmatex">\(C\)</span>，若 <span class="arithmatex">\(f\)</span> 在其邻域可微凸，可以改写成</p>
+<div class="arithmatex">\[
+0\in\nabla f(x^*)+N_C(x^*),\qquad
+N_C(x)=\{v:\langle v,y-x\rangle\le0\ \forall y\in C\}.
+\]</div>
+<p>例如在 <span class="arithmatex">\([0,\infty)\)</span> 上最小化 <span class="arithmatex">\(f(x)=x\)</span>，最优点 <span class="arithmatex">\(x^*=0\)</span> 的梯度是 <span class="arithmatex">\(1\)</span>，但法锥 <span class="arithmatex">\(N_C(0)=(-\infty,0]\)</span> 含有 <span class="arithmatex">\(-1\)</span>，恰好抵消。若目标也不可微，直接使用 <span class="arithmatex">\(\partial(f+\delta_C)\)</span> 最稳妥；把它拆成 <span class="arithmatex">\(\partial f+N_C\)</span> 还需要相应求和资格条件。</p>
+<p>定义域边界无次梯度的例子是 <span class="arithmatex">\(f(x)=-\sqrt{x}\)</span>（<span class="arithmatex">\(x\ge0\)</span>），域外 <span class="arithmatex">\(+\infty\)</span>。在零点若有有限次梯度 <span class="arithmatex">\(g\)</span>，就应有 <span class="arithmatex">\(-\sqrt y\ge gy\)</span> 对每个 <span class="arithmatex">\(y&gt;0\)</span> 成立，即 <span class="arithmatex">\(g\le-1/\sqrt y\)</span>；令 <span class="arithmatex">\(y\downarrow0\)</span> 不可能。这是闭凸函数，缺少的是该点的相对内点条件。</p>
+<p>🔗 <strong>AI 衔接</strong>：hinge 损失（ai 课 02 讲 SVM）、L1 正则的稀疏性可用一维模型精确说明：最小化 <span class="arithmatex">\(\frac12(x-a)^2+\tau|x|\)</span>（<span class="arithmatex">\(\tau\ge0\)</span>），条件为 <span class="arithmatex">\(0\in x-a+\tau\partial|x|\)</span>，从而 <span class="arithmatex">\(x^*=\operatorname{sign}(a)\max(|a|-\tau,0)\)</span>。当 <span class="arithmatex">\(|a|\le\tau\)</span> 时，一个参数区间都映到同一个零解；目标仍严格凸，最优解是唯一的，并非“有一段最优解”。ReLU 网络整体通常是非凸的；在<strong>标量 ReLU 的折点 0</strong>，框架可以选取约定导数（例如 <code>relu'(0)=0</code>），也可以把这个值看作从广义梯度/次微分 <span class="arithmatex">\([0,1]\)</span> 中选取的一个代表，不能把整个非凸网络的 autodiff 值统称为凸次梯度。</p>
 <h2 id="5-fenchel">5. Fenchel 共轭与支撑线<a class="headerlink" href="#5-fenchel" title="Permanent link"></a></h2>
 <p>设 <span class="arithmatex">\(f:\mathbb R^n\to(-\infty,+\infty]\)</span> 是 proper、下半连续、凸函数。它的 <strong>Fenchel 共轭</strong>定义为</p>
 <div class="arithmatex">\[
@@ -194,7 +235,7 @@ f^*(s)=\sup_x\{\langle s,x\rangle-f(x)\}.
 b\ge \sup_x\{\langle s,x\rangle-f(x)\}=f^*(s).
 \]</div>
 <p>因此 <span class="arithmatex">\(\ell_s(x)=\langle s,x\rangle-f^*(s)\)</span> 是该斜率下最高的全局仿射下界；若 <span class="arithmatex">\(f^*(s)=+\infty\)</span>，说明这个斜率根本没有有限的全局下界截距。</p>
-<p>Fenchel–Young 不等式为</p>
+<p>直接由上确界定义就得到 Fenchel–Young 不等式（这一不等式本身不要求凸性或闭性）</p>
 <div class="arithmatex">\[
 f(x)+f^*(s)\ge\langle s,x\rangle.
 \]</div>
@@ -206,7 +247,7 @@ s\in\partial f(x)
 \quad\Longleftrightarrow\quad
 x\in\partial f^*(s).
 \]</div>
-<p>第一步来自“直线正好接触”：<span class="arithmatex">\(s\in\partial f(x)\)</span> 意味着 <span class="arithmatex">\(f(y)\ge f(x)+\langle s,y-x\rangle\)</span>，对 <span class="arithmatex">\(y\)</span> 取上确界即得等号；反向等号又把这条全局下界还原出来。最后一个等价关系需要 <span class="arithmatex">\(f=f^{**}\)</span>（由 proper、下半连续、凸性保证），这正是不能省略闭性假设的地方。</p>
+<p>对 <span class="arithmatex">\(x\in\operatorname{dom}f\)</span>，第一步来自“直线正好接触”，这一步无需闭性：<span class="arithmatex">\(s\in\partial f(x)\)</span> 意味着 <span class="arithmatex">\(f(y)\ge f(x)+\langle s,y-x\rangle\)</span>，对 <span class="arithmatex">\(y\)</span> 取上确界即得等号；反向等号又把这条全局下界还原出来。将 <span class="arithmatex">\(x\in\partial f^*(s)\)</span> 反推回原函数的等号，需要 <span class="arithmatex">\(f=f^{**}\)</span>（由 proper、下半连续、凸性保证），这正是不能省略闭性假设的地方。</p>
 <p>三个一维预设的共轭账本是：</p>
 <table>
 <thead>
@@ -234,6 +275,7 @@ x\in\partial f^*(s).
 </tr>
 </tbody>
 </table>
+<p><strong>不闭时会发生什么？</strong> 取 <span class="arithmatex">\(f=\delta_{(0,\infty)}\)</span>。它 proper 且凸，但在零点不下半连续。其共轭为 <span class="arithmatex">\(f^*=\delta_{(-\infty,0]}\)</span>，再取共轭得到 <span class="arithmatex">\(f^{**}=\delta_{[0,\infty)}\)</span>。闭包补入了零点：<span class="arithmatex">\(0\in\partial f^*(-1)\)</span>，却没有 <span class="arithmatex">\(-1\in\partial f(0)\)</span>，因为 <span class="arithmatex">\(f(0)=+\infty\)</span>，零点根本不在原有效域中。这是不能省略闭性的具体反例。</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（二阶判据）</strong> 判断 <span class="arithmatex">\(f(x, y) = x^2 + xy + y^2 - \ln(xy)\)</span> 在 <span class="arithmatex">\(x, y &gt; 0\)</span> 上的凸性。
 <em>解</em>：Hessian <span class="arithmatex">\(= \begin{pmatrix} 2 + \frac{1}{x^2} &amp; 1 \\ 1 &amp; 2 + \frac{1}{y^2} \end{pmatrix}\)</span>，顺序主子式 <span class="arithmatex">\(&gt; 0\)</span>（对角 <span class="arithmatex">\(&gt; 2\)</span>、行列式 <span class="arithmatex">\(&gt; 4 - 1 &gt; 0\)</span>）——正定，故（严格）凸。</p>
@@ -241,8 +283,33 @@ x\in\partial f^*(s).
 <em>解</em>：Rayleigh 商表示 <span class="arithmatex">\(\lambda_{\max}(A) = \sup_{\|v\|=1} v^\top A v\)</span>——对每个固定 <span class="arithmatex">\(v\)</span>，<span class="arithmatex">\(A \mapsto v^\top A v\)</span> 是线性（凸）函数，逐点 sup 保凸。<span class="arithmatex">\(\blacksquare\)</span>（一行用掉两个工具；这类"变分表示 + 保凸运算"是凸性证明的高级套路。）</p>
 <p><strong>例 3（一阶条件应用）</strong> <span class="arithmatex">\(f\)</span> 在开凸域上可微且凸，<span class="arithmatex">\(x^*\)</span> 是该域内点。证明 <span class="arithmatex">\(\nabla f(x^*) = 0 \Rightarrow x^*\)</span> 全局最优。
 <em>解</em>：一阶条件 <span class="arithmatex">\(f(y) \geq f(x^*) + \nabla f(x^*)^\top(y - x^*) = f(x^*)\)</span> 对一切域内 <span class="arithmatex">\(y\)</span>。完。——无约束凸世界里"梯度为零"就是终点线；若有约束或 <span class="arithmatex">\(x^*\)</span> 在边界，必须改用相应的可行方向/KKT 条件。</p>
-<hr />
-<p><em>下一页：在凸的地基上跑算法——梯度下降到底多快、为什么条件数决定一切、Newton 法凭什么二次收敛。</em></p>
+<h2 id="7">7. 迁移练习<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1：为什么 x⁴ 严格凸，却不能用任何正数 μ 作为全局强凸常数？</summary>
+<p>导数 <span class="arithmatex">\(4x^3\)</span> 严格递增，因此 <span class="arithmatex">\(x^4\)</span> 严格凸。若它 <span class="arithmatex">\(\mu\)</span>-强凸，在 <span class="arithmatex">\(x=0\)</span> 的二次下界应给 <span class="arithmatex">\(y^4\ge\mu y^2/2\)</span>。对非零 <span class="arithmatex">\(y\)</span> 除以 <span class="arithmatex">\(y^2\)</span>，再令 <span class="arithmatex">\(y\to0\)</span>，得到不可能的 <span class="arithmatex">\(0\ge\mu/2\)</span>。正定 Hessian 不是严格凸的必要条件；统一正曲率才对应这里的强凸性。</p>
+</details>
+<details class="answer">
+<summary>练习 2：softplus 在 s=1 时没有有限接触点，上抬 δ&gt;0 后为什么仍必然穿越？</summary>
+<p>此时最高下界为 <span class="arithmatex">\(\ell_1(x)=x\)</span>。上移后的间隙</p>
+<div class="arithmatex">\[
+\log(1+e^x)-(x+\delta)=\log(1+e^{-x})-\delta.
+\]</div>
+<p>随 <span class="arithmatex">\(x\to+\infty\)</span> 趋于 <span class="arithmatex">\(-\delta&lt;0\)</span>；所以足够大的有限 <span class="arithmatex">\(x\)</span> 已使间隙为负。交点满足 <span class="arithmatex">\(x=-\log(e^\delta-1)\)</span>，数值计算可用 <span class="arithmatex">\(-\log(\operatorname{expm1}\delta)\)</span>。当 <span class="arithmatex">\(\delta\)</span> 很小时，交点可以远在可视窗口外；下确界给出的全局判断仍有效。</p>
+</details>
+<details class="answer">
+<summary>练习 3：交叉熵对 logits 凸，为什么对网络参数未必凸？</summary>
+<p>取两个 logits 为 <span class="arithmatex">\((w^2,0)\)</span>，真实类别为第一类。损失为</p>
+<div class="arithmatex">\[
+L(w)=\log(e^{w^2}+1)-w^2=\log(1+e^{-w^2}).
+\]</div>
+<p>在 <span class="arithmatex">\(w=0\)</span> 有 <span class="arithmatex">\(L''(0)=-1&lt;0\)</span>，所以对参数 <span class="arithmatex">\(w\)</span> 不凸。非线性参数化改变了几何；不能把 logits 的 Hessian 半正定直接搬到参数空间。</p>
+</details>
+<h2 id="8">8. 阅读与后续连接<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://web.stanford.edu/~boyd/cvxbook/">Boyd 与 Vandenberghe《Convex Optimization》作者页</a>：凸集、凸函数、优化问题的标准形式与对偶理论。</li>
+<li><a href="https://ocw.mit.edu/courses/6-079-introduction-to-convex-optimization-fall-2009/26c4c530c9db63a12b898d720dd89a44_MIT6_079F09_lec02.pdf">MIT 课程：凸集、分离与支撑</a>：弱分离与更强分离条件。</li>
+</ul>
+<p>下一步分别进入<a href="opt-02-unconstrained.html">无约束优化算法</a>、<a href="opt-03-duality-kkt.html">对偶与 KKT</a>、<a href="opt-04-lp-dp.html">线性规划与动态规划</a>。先辨认域、闭性和曲率，再选择算法或最优性条件。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="num-04-quadrature-ode.html"><span class="pager-label">上一页</span>数值 IV · 数值积分与 ODE</a>
