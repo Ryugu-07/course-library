@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 12:19</div>
   </div>
 </nav>
 <main id="content">
@@ -57,21 +57,25 @@ try {
 <li><a href="#1">1. 先预测：上和、下和与取点会不会达成共识？</a></li>
 <li><a href="#2">2. 最小模型：三本账先分开</a></li>
 <li><a href="#3">3. 动手：把“有限证据”与“无限定理”分栏</a></li>
-<li><a href="#4">4. 定理假设与失败边界</a></li>
+<li><a href="#4-thomae">4. 不借助测度论，直接证明 Thomae 可积</a></li>
+<li><a href="#5">5. 换一个分割，检验自己的解释</a></li>
+<li><a href="#6">6. 定理假设与失败边界</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 不定积分</a></li>
 <li><a href="#2_1">2. 定积分：理论</a></li>
 <li><a href="#3_1">3. 微积分基本定理</a></li>
-<li><a href="#4_1">4. 反常积分</a></li>
-<li><a href="#5">5. 定积分应用公式表</a></li>
-<li><a href="#6">6. 典型例题</a></li>
+<li><a href="#4">4. 反常积分</a></li>
+<li><a href="#5_1">5. 定积分应用公式表</a></li>
+<li><a href="#6_1">6. 典型例题</a></li>
+<li><a href="#_1">继续阅读</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">数分 III · 一元积分学<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
 <p>两个出身完全不同的概念——求原函数（微分的逆）与求面积（分割求和取极限）——被微积分基本定理焊在一起，这是整门课最漂亮的会师。本页四块：不定积分技巧、定积分理论（可积性）、基本定理、反常积分。</p>
+<p><strong>先修与去向</strong>：<a href="analysis-01-real-limits.html">极限与一致连续</a>、<a href="analysis-02-differential.html">一元微分与中值定理</a>。积分与零测集的完整联系见<a href="real-01-measure.html">测度</a>和<a href="real-02-lebesgue-integral.html">Lebesgue 积分</a>，数值误差见<a href="num-04-quadrature-ode.html">求积与 ODE</a>。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -86,7 +90,7 @@ try {
 </ol>
 <p>预测的对象不是“图像像不像”：上、下和检验的是一个分割上的振幅，tagged sum 检验的是取点稳定性；只有把网格范数送到 <span class="arithmatex">\(0\)</span>，才有资格谈 Riemann 积分。</p>
 <h3 id="2">2. 最小模型：三本账先分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>对分割 <span class="arithmatex">\(P:0=x_0&lt;\cdots&lt;x_n=1\)</span>，记 <span class="arithmatex">\(\Delta x_i=x_i-x_{i-1}\)</span>、<span class="arithmatex">\(m_i=\inf_{I_i}f\)</span>、<span class="arithmatex">\(M_i=\sup_{I_i}f\)</span>。三本有限账是</p>
+<p>对分割 <span class="arithmatex">\(P:0=x_0&lt;\cdots&lt;x_n=1\)</span>，取闭子区间 <span class="arithmatex">\(I_i=[x_{i-1},x_i]\)</span>，记 <span class="arithmatex">\(\Delta x_i=x_i-x_{i-1}\)</span>、<span class="arithmatex">\(m_i=\inf_{I_i}f\)</span>、<span class="arithmatex">\(M_i=\sup_{I_i}f\)</span>。三本有限账是</p>
 <div class="arithmatex">\[
 L(f,P)=\sum_i m_i\Delta x_i,\qquad
 U(f,P)=\sum_i M_i\Delta x_i,\qquad
@@ -96,7 +100,7 @@ R(f,P,\xi)=\sum_i f(\xi_i)\Delta x_i.
 <div class="arithmatex">\[
 U(f,P)-L(f,P)\le (b-a)\,\omega_f(\|P\|)\longrightarrow0,
 \]</div>
-<p>所以连续函数的所有 tagged sums 都收敛到同一个值。这个估计把“矩形越来越窄”的图像直觉翻译成了定理。</p>
+<p>这里 <span class="arithmatex">\(\omega_f(h)=\sup\{|f(x)-f(y)|:x,y\in[a,b],\ |x-y|\le h\}\)</span> 是连续模；紧区间上一致连续使 <span class="arithmatex">\(\omega_f(h)\to0\)</span>。所以连续函数的所有 tagged sums 都收敛到同一个值。这个估计把“矩形越来越窄”的图像直觉翻译成了定理。</p>
 <p>四个样本分别暴露四种边界：</p>
 <table>
 <thead>
@@ -123,7 +127,7 @@ U(f,P)-L(f,P)\le (b-a)\,\omega_f(\|P\|)\longrightarrow0,
 <tr>
 <td>Thomae 型 <span class="arithmatex">\(t\)</span></td>
 <td><span class="arithmatex">\(L_n=0\)</span>；上和由每格最小分母控制，并在网格范数趋零时趋 <span class="arithmatex">\(0\)</span></td>
-<td>有理 tag 的值由分母变小，无理 tag 值为 <span class="arithmatex">\(0\)</span></td>
+<td>有理 tag 值是既约分母的倒数，无理 tag 值为 <span class="arithmatex">\(0\)</span>；收敛由统一上和控制</td>
 <td>有界，间断点为可数集；可积且积分 <span class="arithmatex">\(0\)</span></td>
 </tr>
 <tr>
@@ -135,7 +139,7 @@ U(f,P)-L(f,P)\le (b-a)\,\omega_f(\|P\|)\longrightarrow0,
 </tbody>
 </table>
 <h3 id="3">3. 动手：把“有限证据”与“无限定理”分栏<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>实验揭示后可切换四个样本、均匀分割数 <span class="arithmatex">\(n\)</span> 和 tag 规则。矩形图显示当前分割与 tagged sum，表格同时列出 <span class="arithmatex">\(L,U,R,U-L\)</span>。Thomae 型函数的上和总体趋向 <span class="arithmatex">\(0\)</span>，但相邻的均匀 <span class="arithmatex">\(n\)</span> 分割并不互为细分，读数可以小幅回升；脚本只计算有限分母/有限分割下的可复核诊断。Dirichlet 型函数则用两种 tag 直接展示不稳定。</p>
+<p>实验揭示后可切换四个样本、均匀分割数 <span class="arithmatex">\(n\)</span> 和 tag 规则。矩形图显示当前分割与 tagged sum，表格同时列出 <span class="arithmatex">\(L,U,R,U-L\)</span>。Thomae 型函数的上和总体趋向 <span class="arithmatex">\(0\)</span>，但相邻的均匀 <span class="arithmatex">\(n\)</span> 分割并不互为细分，读数可以小幅回升；本实验只用 <span class="arithmatex">\([0,1]\)</span> 的均匀 <span class="arithmatex">\(2\le n\le64\)</span> 分割，逐格搜索最小分母，得到该有限分割的精确 Darboux 上确界；小数显示才有舍入。Dirichlet 型函数则用两种 tag 直接展示不稳定。</p>
 <div class="learning-lab" data-learning-lab="riemann-integrability" markdown="1">
 <p><strong>无 JavaScript 时的静态读法：</strong>对 <span class="arithmatex">\(f(x)=x^2\)</span> 和均匀 <span class="arithmatex">\(n\)</span> 分割，</p>
 <div class="arithmatex">\[
@@ -143,7 +147,7 @@ L_n=\frac1n\sum_{i=0}^{n-1}\left(\frac{i}{n}\right)^2,
 \quad U_n=\frac1n\sum_{i=1}^{n}\left(\frac{i}{n}\right)^2,
 \quad U_n-L_n=\frac1n,
 \]</div>
-<p>因而 <span class="arithmatex">\(L_n,U_n\to1/3\)</span>；中点和也趋于 <span class="arithmatex">\(1/3\)</span>。对阶梯函数，除跳点所在格外各格振幅为 <span class="arithmatex">\(0\)</span>，而跳点格的宽度趋于 <span class="arithmatex">\(0\)</span>。Thomae 型函数在每个非退化格的下确界为 <span class="arithmatex">\(0\)</span>，上确界由该格中最小的既约分母给出；沿真正的嵌套细分，上和单调下降并趋于 <span class="arithmatex">\(0\)</span>。实验的均匀 <span class="arithmatex">\(n\)</span> 分割序列一般不嵌套，因此只应读作 <span class="arithmatex">\(U_n\to0\)</span>，不能把每一步都画成下降箭头。这支持其积分为 <span class="arithmatex">\(0\)</span>，但一张有限表本身不是证明。Dirichlet 型函数对任何分割都有 <span class="arithmatex">\(L=0,U=1\)</span>，全有理 tag 的和为 <span class="arithmatex">\(1\)</span>、全无理 tag 的和为 <span class="arithmatex">\(0\)</span>，所以没有唯一的 Riemann 极限。</p>
+<p>因而 <span class="arithmatex">\(L_n,U_n\to1/3\)</span>；中点和也趋于 <span class="arithmatex">\(1/3\)</span>。对阶梯函数，除跳点所在格外各格振幅为 <span class="arithmatex">\(0\)</span>，而跳点格的宽度趋于 <span class="arithmatex">\(0\)</span>。Thomae 型函数在每个非退化格的下确界为 <span class="arithmatex">\(0\)</span>，上确界由该格中最小的既约分母给出；沿网格范数趋零的嵌套细分，上和单调下降并趋于 <span class="arithmatex">\(0\)</span>。仅“嵌套”而不使所有格子变细，不保证趋零。实验的均匀 <span class="arithmatex">\(n\)</span> 分割序列一般不嵌套，因此只应读作 <span class="arithmatex">\(U_n\to0\)</span>，不能把每一步都画成下降箭头。这支持其积分为 <span class="arithmatex">\(0\)</span>，但一张有限表本身不是证明。Dirichlet 型函数对任何分割都有 <span class="arithmatex">\(L=0,U=1\)</span>，全有理 tag 的和为 <span class="arithmatex">\(1\)</span>、全无理 tag 的和为 <span class="arithmatex">\(0\)</span>，所以没有唯一的 Riemann 极限。</p>
 <table>
 <thead>
 <tr>
@@ -179,7 +183,29 @@ L_n=\frac1n\sum_{i=0}^{n-1}\left(\frac{i}{n}\right)^2,
 </tbody>
 </table>
 </div>
-<h3 id="4">4. 定理假设与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<h3 id="4-thomae">4. 不借助测度论，直接证明 Thomae 可积<a class="headerlink" href="#4-thomae" title="Permanent link"></a></h3>
+<p>先规定 <span class="arithmatex">\(0=0/1,1=1/1\)</span>。每个非退化区间都含无理点，所以下和恒为零。给定 <span class="arithmatex">\(\varepsilon&gt;0\)</span>，选正整数 <span class="arithmatex">\(M\)</span> 使 <span class="arithmatex">\(1/(M+1)&lt;\varepsilon/2\)</span>。分母不超过 <span class="arithmatex">\(M\)</span> 的既约有理点只有有限个，设个数为 <span class="arithmatex">\(K\)</span>。</p>
+<p>把包含这些“高点”的格子标成坏格。每个点最多属于两个闭子区间，所以坏格总长度不超过 <span class="arithmatex">\(2K\|P\|\)</span>；在其他格子里，所有非零函数值都不超过 <span class="arithmatex">\(1/(M+1)\)</span>。因此</p>
+<div class="arithmatex">\[
+0\le U(t,P)\le 2K\|P\|+\frac1{M+1}.
+\]</div>
+<p>再取 <span class="arithmatex">\(\|P\|&lt;\varepsilon/(4K)\)</span>，就得到 <span class="arithmatex">\(U&lt;\varepsilon\)</span>。这同时控制<strong>所有取点</strong>：即使总在某个格子选择分母很小的点，它所占的格子宽度也被压小。不能简单声称“每个有理 tag 的分母必定趋于无穷”：左端点规则永远在首格取 <span class="arithmatex">\(0\)</span>，其函数值始终是 <span class="arithmatex">\(1\)</span>，但贡献只有 <span class="arithmatex">\(1/n\)</span>。</p>
+<p><strong>脚本为什么能有限搜索？</strong>第 <span class="arithmatex">\(i\)</span> 格为 <span class="arithmatex">\([i/n,(i+1)/n]\)</span>，端点分母约分后不超过 <span class="arithmatex">\(n\)</span>。依次检查 <span class="arithmatex">\(q=1,\ldots,n\)</span>，只要</p>
+<div class="arithmatex">\[
+\left\lceil\frac{iq}{n}\right\rceil\le\left\lfloor\frac{(i+1)q}{n}\right\rfloor,
+\]</div>
+<p>就找到了格内分母为 <span class="arithmatex">\(q\)</span> 的有理数。第一个成功的 <span class="arithmatex">\(q\)</span> 一定已是最小既约分母，故上确界为 <span class="arithmatex">\(1/q\)</span>，而不是截断搜索后猜一个余项。计算使用这些小整数，不通过“某个小数看起来像有理数”来辨别点的类型。</p>
+<p>无理取点则明确指定为 <span class="arithmatex">\(i/n+\sqrt2/(2n)\)</span>；浮点数只是它的绘图位置。有理中点或端点保留整数分子、分母作为语义数据。Dirichlet/Thomae 的取值依据这个符号信息，不能把计算机里的近似小数当成真正无理数。</p>
+<h3 id="5">5. 换一个分割，检验自己的解释<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<details class="answer">
+<summary>先算三题，再展开答案：中点误差、未变细的格子、主值</summary>
+<ol>
+<li>对 <span class="arithmatex">\(x^2\)</span> 的均匀 <span class="arithmatex">\(n\)</span> 分割，证明中点和 <span class="arithmatex">\(R_n=1/3-1/(12n^2)\)</span>，并算 <span class="arithmatex">\(n=8\)</span> 的误差。把 <span class="arithmatex">\(\sum_{i=0}^{n-1}(i+1/2)^2/n^3\)</span> 展开并用平方和公式即可；结果 <span class="arithmatex">\(R_8=85/256=0.33203125\)</span>，低估 <span class="arithmatex">\(1/768\)</span>。上下和差仍为 <span class="arithmatex">\(1/8\)</span>，它是统一包住任意 tag 的粗界，不是中点规则的实际误差。</li>
+<li>若每次只细分 <span class="arithmatex">\([1/2,1]\)</span>，永远保留 <span class="arithmatex">\([0,1/2]\)</span>，Thomae 上和会趋零吗？不会。第一格含 <span class="arithmatex">\(0\)</span>，上确界为 <span class="arithmatex">\(1\)</span>，故上和至少为 <span class="arithmatex">\(1/2\)</span>；这些分割虽嵌套，网格范数却至少为 <span class="arithmatex">\(1/2\)</span>。</li>
+<li><span class="arithmatex">\(\int_{-1}^1 dx/x\)</span> 因为奇函数对称就等于零吗？普通反常积分不存在：<span class="arithmatex">\(\int_{-1}^{-\eta}dx/x=\ln\eta\to-\infty\)</span>，<span class="arithmatex">\(\int_\eta^1dx/x=-\ln\eta\to+\infty\)</span>，两侧须分别有限收敛。同步取同一 <span class="arithmatex">\(\eta\)</span> 得到的零是 Cauchy 主值，它是另一种定义。</li>
+</ol>
+</details>
+<h3 id="6">6. 定理假设与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <ul>
 <li>Darboux 判据讨论的是<strong>有界函数在紧区间上的有限分割</strong>：<span class="arithmatex">\(f\)</span> Riemann 可积当且仅当对任意 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 存在 <span class="arithmatex">\(P\)</span> 使 <span class="arithmatex">\(U(f,P)-L(f,P)&lt;\varepsilon\)</span>。无界函数不能直接套用这条有界区间判据；反常积分要另作极限。</li>
 <li>“有限个间断点可积”与“间断点为零测集”都带有有界性语境。Thomae 型函数虽然在每个有理点不连续，但其间断点集可数、测度为零；Dirichlet 型函数的有理与无理点都稠密，使每个格子的振幅保持 <span class="arithmatex">\(1\)</span>。</li>
@@ -188,8 +214,9 @@ L_n=\frac1n\sum_{i=0}^{n-1}\left(\frac{i}{n}\right)^2,
 </ul>
 </section>
 <h2 id="1_1">1. 不定积分<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(F' = f\)</span> 则称 <span class="arithmatex">\(F\)</span> 为 <span class="arithmatex">\(f\)</span> 的原函数，<span class="arithmatex">\(\int f\,dx = F(x) + C\)</span>。连续函数必有原函数（由基本定理保证）；含第一类间断点的函数无原函数（导函数只能有第二类间断——Darboux 定理：导函数具介值性）。</p>
-<p><strong>基本积分表</strong>（默写级）：幂、指、对、三角、<span class="arithmatex">\(\int \frac{dx}{1+x^2} = \arctan x\)</span>，<span class="arithmatex">\(\int \frac{dx}{\sqrt{1-x^2}} = \arcsin x\)</span>，<span class="arithmatex">\(\int \sec x\,dx = \ln|\sec x + \tan x|\)</span>，<span class="arithmatex">\(\int \frac{dx}{x^2 - a^2} = \frac{1}{2a}\ln\left|\frac{x-a}{x+a}\right|\)</span>。</p>
+<p><strong>定义</strong> <span class="arithmatex">\(F' = f\)</span> 则称 <span class="arithmatex">\(F\)</span> 为 <span class="arithmatex">\(f\)</span> 的原函数，<span class="arithmatex">\(\int f\,dx = F(x) + C\)</span>。连续函数必有原函数（由基本定理保证）；在区间内部含第一类间断点的函数无原函数（导函数在区间内部若有间断只能是第二类间断——Darboux 定理：导函数具介值性）。</p>
+<p><strong>基本积分表</strong>（默写级）：幂、指、对、三角、<span class="arithmatex">\(\int \frac{dx}{1+x^2} = \arctan x\)</span>，<span class="arithmatex">\(\int \frac{dx}{\sqrt{1-x^2}} = \arcsin x\)</span>，<span class="arithmatex">\(\int \sec x\,dx = \ln|\sec x + \tan x|\)</span>，<span class="arithmatex">\(\int \frac{dx}{x^2 - a^2} = \frac{1}{2a}\ln\left|\frac{x-a}{x+a}\right|\ (a\ne0)\)</span>。</p>
+<p>这些原函数公式在避开奇点的每个连通开区间上使用，积分常数可因区间而异；根式代换还要选定合法范围与反函数分支。</p>
 <p><strong>三大技巧</strong>：</p>
 <ol>
 <li><strong>第一换元（凑微分）</strong>：<span class="arithmatex">\(\int f(\varphi(x))\varphi'(x)dx = \int f(u)du\)</span>——识别"谁的导数在旁边"；</li>
@@ -200,17 +227,17 @@ L_n=\frac1n\sum_{i=0}^{n-1}\left(\frac{i}{n}\right)^2,
 <h2 id="2_1">2. 定积分：理论<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
 <p><img alt="黎曼和逼近曲线下面积" src="assets/img/analysis-03-riemann-sum.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>定积分是黎曼和的极限：矩形越细，其面积和越逼近曲线下的真实面积 \(\int_a^b f\,dx\)。</figcaption>
+<figcaption><span class="fig-id">图 3.1</span>取 \(f(x)=x^2\) 于 \([0,1]\)，比较 \(n=4,16\) 的上和、下和与中点和。\(U_n-L_n=1/n\) 夹住所有取点；中点误差另为 \(1/(12n^2)\)。有限矩形的面积不是已经完成的极限。</figcaption>
 </figure>
 <p><strong>定义（Riemann 积分）</strong> 分割 <span class="arithmatex">\(a = x_0 &lt; \cdots &lt; x_n = b\)</span>，任取 <span class="arithmatex">\(\xi_i \in [x_{i-1}, x_i]\)</span>，若 Riemann 和 <span class="arithmatex">\(\sum f(\xi_i)\Delta x_i\)</span> 在 <span class="arithmatex">\(\|\Delta\| = \max \Delta x_i \to 0\)</span> 时极限存在且与分割、取点无关，记为 <span class="arithmatex">\(\int_a^b f\,dx\)</span>。</p>
-<p><strong>可积性理论（Darboux 刻画）</strong>：上和 <span class="arithmatex">\(S = \sum M_i \Delta x_i\)</span>、下和 <span class="arithmatex">\(s = \sum m_i \Delta x_i\)</span>。</p>
+<p><strong>可积性理论（Darboux 刻画）</strong>：固定 <span class="arithmatex">\(a&lt;b\)</span>，设 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\([a,b]\)</span> 有界。上和 <span class="arithmatex">\(S = \sum M_i \Delta x_i\)</span>、下和 <span class="arithmatex">\(s = \sum m_i \Delta x_i\)</span>。</p>
 <div class="arithmatex">\[
-f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \to 0 \quad (\omega_i = M_i - m_i \text{ 为振幅})
+S-s=\sum_i\omega_i\Delta x_i,\quad \omega_i=M_i-m_i;\qquad f\text{ 可积}\iff\lim_{\|P\|\to0}[U(f,P)-L(f,P)]=0.
 \]</div>
 <p><strong>可积函数类</strong>：连续函数；只有有限个间断点的有界函数；单调函数。<strong>不可积代表</strong>：Dirichlet 函数（处处振幅为 1）。🔗 实变页的 Lebesgue 准则给出终极刻画：可积 <span class="arithmatex">\(\iff\)</span> 有界且间断点集为零测集。</p>
-<p><strong>性质</strong>：线性、区间可加、保序、绝对值不等式 <span class="arithmatex">\(\left|\int f\right| \leq \int |f|\)</span>、<strong>积分第一中值定理</strong>（<span class="arithmatex">\(f\)</span> 连续：<span class="arithmatex">\(\int_a^b f g\,dx = f(\xi)\int_a^b g\,dx\)</span>，<span class="arithmatex">\(g\)</span> 不变号）。</p>
+<p><strong>性质</strong>：线性、区间可加、保序、绝对值不等式 <span class="arithmatex">\(\left|\int f\right| \leq \int |f|\)</span>、<strong>积分第一中值定理</strong>（<span class="arithmatex">\(f\)</span> 连续：<span class="arithmatex">\(\int_a^b f g\,dx = f(\xi)\int_a^b g\,dx\)</span>， <span class="arithmatex">\(g\)</span> Riemann 可积且不变号，<span class="arithmatex">\(\xi\in[a,b]\)</span>）。</p>
 <h2 id="3_1">3. 微积分基本定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定理（变上限积分）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，则 <span class="arithmatex">\(\Phi(x) = \int_a^x f(t)\,dt\)</span> 可导且 <span class="arithmatex">\(\Phi'(x) = f(x)\)</span>。
+<p><strong>定理（变上限积分）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，则 <span class="arithmatex">\(\Phi(x) = \int_a^x f(t)\,dt\)</span> 在 <span class="arithmatex">\(x\in(a,b)\)</span> 可导且 <span class="arithmatex">\(\Phi'(x) = f(x)\)</span>；端点对应单侧导数。
 <em>证明关键步</em>：<span class="arithmatex">\(\dfrac{\Phi(x+h) - \Phi(x)}{h} = \dfrac1h\int_x^{x+h} f(t)\,dt = f(\xi_h)\)</span>（积分中值定理），<span class="arithmatex">\(h \to 0\)</span> 时 <span class="arithmatex">\(\xi_h \to x\)</span>，连续性收尾。——<strong>连续函数的原函数被明确造了出来</strong>。</p>
 <p><strong>定理（Newton–Leibniz）</strong> <span class="arithmatex">\(f \in C[a,b]\)</span>，<span class="arithmatex">\(F\)</span> 是其任一原函数：</p>
 <div class="arithmatex">\[
@@ -218,7 +245,8 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 \]</div>
 <p><em>思路</em>：<span class="arithmatex">\(F\)</span> 与 <span class="arithmatex">\(\Phi\)</span> 差常数，代端点。<strong>求导链式扩展</strong>（考试高频）：<span class="arithmatex">\(\dfrac{d}{dx}\int_{u(x)}^{v(x)} f(t)\,dt = f(v)v' - f(u)u'\)</span>。</p>
 <p><strong>定积分技巧补充</strong>：换元要同步换限；对称性（奇函数对称区间为零）；<span class="arithmatex">\(\int_0^{\pi/2} f(\sin x)dx = \int_0^{\pi/2} f(\cos x)dx\)</span> 类的区间再现代换 <span class="arithmatex">\(x \to a+b-x\)</span>；Wallis 公式 <span class="arithmatex">\(\int_0^{\pi/2}\sin^n x\,dx\)</span> 递推。</p>
-<h2 id="4_1">4. 反常积分<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<h2 id="4">4. 反常积分<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>若有内部奇点或两个无穷端点，须拆开并要求各段独立极限收敛；不能用正负无穷相消。</p>
 <p>两类：<strong>无穷区间</strong> <span class="arithmatex">\(\int_a^{+\infty}\)</span> 与<strong>瑕积分</strong>（被积函数在瑕点无界），都定义为常义积分的极限。</p>
 <p><strong>判敛工具箱</strong>（以 <span class="arithmatex">\(\int_a^{+\infty} f\,dx\)</span>，<span class="arithmatex">\(f \geq 0\)</span> 为例）：</p>
 <ul>
@@ -228,7 +256,8 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 <li><strong>Dirichlet 判别法</strong>：<span class="arithmatex">\(\int_a^A f\)</span> 一致有界 + <span class="arithmatex">\(g\)</span> 单调趋 0 ⇒ <span class="arithmatex">\(\int fg\)</span> 收敛（<span class="arithmatex">\(\frac{\sin x}{x}\)</span> 即由此）；<strong>Abel 判别法</strong>：<span class="arithmatex">\(\int f\)</span> 收敛 + <span class="arithmatex">\(g\)</span> 单调有界。</li>
 </ul>
 <p><strong>名积分</strong>：<span class="arithmatex">\(\int_{-\infty}^{+\infty} e^{-x^2}dx = \sqrt{\pi}\)</span>（🔗 高斯分布归一化，概率页与 ai 课处处要用；证明用二重积分极坐标，数分 VI）。</p>
-<h2 id="5">5. 定积分应用公式表<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h2 id="5_1">5. 定积分应用公式表<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>面积取几何非负量；弧长与曲面积分假设分段 <span class="arithmatex">\(C^1\)</span>、参数轨迹不重复计数。下表柱壳法采用 <span class="arithmatex">\(0\le a&lt;b\)</span>、<span class="arithmatex">\(f\ge0\)</span> 的单侧区域；跨过旋转轴时应分区并检查重叠。绕 <span class="arithmatex">\(x\)</span> 轴的曲面半径是 <span class="arithmatex">\(|f|\)</span>。</p>
 <table>
 <thead>
 <tr>
@@ -251,16 +280,18 @@ f \text{ 可积} \iff \lim_{\|\Delta\|\to 0}(S - s) = \sum \omega_i \Delta x_i \
 </tr>
 <tr>
 <td>旋转曲面侧面积</td>
-<td><span class="arithmatex">\(2\pi \int f\sqrt{1 + f'^2}\,dx\)</span></td>
+<td><span class="arithmatex">\(2\pi \int \lvert f\rvert\sqrt{1 + f'^2}\,dx\)</span></td>
 </tr>
 </tbody>
 </table>
-<h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h2 id="6_1">6. 典型例题<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
 <p><strong>例 1（分部循环）</strong> <span class="arithmatex">\(I = \int e^x \cos x\,dx\)</span>：两次分部得 <span class="arithmatex">\(I = e^x(\sin x + \cos x) - I\)</span>，故 <span class="arithmatex">\(I = \frac{e^x(\sin x + \cos x)}{2} + C\)</span>。</p>
 <p><strong>例 2（区间再现）</strong> 求 <span class="arithmatex">\(\int_0^\pi \dfrac{x\sin x}{1 + \cos^2 x}dx\)</span>。
 <em>解</em>：代换 <span class="arithmatex">\(x \to \pi - x\)</span> 得 <span class="arithmatex">\(I = \int_0^\pi \frac{(\pi - x)\sin x}{1+\cos^2 x}dx\)</span>，两式相加：<span class="arithmatex">\(2I = \pi\int_0^\pi \frac{\sin x}{1+\cos^2 x}dx = \pi\big[-\arctan(\cos x)\big]_0^\pi = \frac{\pi^2}{2}\)</span>，<span class="arithmatex">\(I = \frac{\pi^2}{4}\)</span>。</p>
 <p><strong>例 3（判敛）</strong> 讨论 <span class="arithmatex">\(\int_0^{+\infty} \dfrac{dx}{x^p(1+x)}\)</span> 的敛散。
 <em>解</em>：拆成 <span class="arithmatex">\(\int_0^1 + \int_1^\infty\)</span>。<span class="arithmatex">\(0\)</span> 端被积 <span class="arithmatex">\(\sim \frac{1}{x^p}\)</span>，要 <span class="arithmatex">\(p &lt; 1\)</span>；<span class="arithmatex">\(\infty\)</span> 端 <span class="arithmatex">\(\sim \frac{1}{x^{p+1}}\)</span>，要 <span class="arithmatex">\(p + 1 &gt; 1\)</span> 即 <span class="arithmatex">\(p &gt; 0\)</span>。故 <span class="arithmatex">\(0 &lt; p &lt; 1\)</span> 时收敛。<strong>"两端分开、各与标尺比阶"是反常积分判敛的标准流程。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<h2 id="_1">继续阅读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><a href="https://www.jirka.org/ra/realanal.pdf">Jiří Lebl：Basic Analysis I</a> 的 Riemann 积分与微积分基本定理章节给出有界性、Darboux 和和取点极限之间的完整联系。读时逐项核对假设，再把本页 Thomae 的有限高点估计与一般可积性判据连接。</p>
 <hr />
 <p><em>下一页：把"无限求和"严格化——级数。一致收敛是全页的分水岭概念。</em></p>
 </article>

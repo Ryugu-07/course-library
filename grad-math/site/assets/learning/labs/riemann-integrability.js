@@ -58,7 +58,7 @@
   ];
 
   var STYLE_TEXT = [
-    ".ri-lab{--ri-blue:var(--cl-blue,#315f9d);--ri-gold:var(--cl-gold,#9b6a12);--ri-green:var(--cl-green,#39734d);--ri-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
+    ".ri-lab{--ri-blue:#315f9d;--ri-gold:#9b6a12;--ri-green:#39734d;--ri-red:#b64335;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
     ".ri-lab *,.ri-lab *::before,.ri-lab *::after{box-sizing:border-box}",
     ".ri-lab [hidden]{display:none!important}",
     ".ri-lab button,.ri-lab select,.ri-lab input{font:inherit}",
@@ -85,8 +85,8 @@
     ".ri-lab .ri-metric{min-width:0;padding:8px;border-top:2px solid var(--border);background:var(--bg)}",
     ".ri-lab .ri-metric span{display:block;color:var(--fg-soft);font-size:11.5px}",
     ".ri-lab .ri-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ri-lab .ri-stage{min-width:0;overflow:hidden}",
-    ".ri-lab svg{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
+    ".ri-lab .ri-stage{min-width:0;overflow-x:auto;overflow-y:hidden}",
+    ".ri-lab svg{display:block;width:100%;height:auto;min-width:720px;max-width:none;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
     ".ri-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
     ".ri-lab .ri-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55}",
     ".ri-lab .ri-axis{stroke:currentColor;stroke-width:1.25;opacity:.75}",
@@ -102,6 +102,7 @@
     "@media(max-width:760px){.ri-lab .ri-controls{grid-template-columns:minmax(0,1fr)}.ri-lab .ri-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
     "@media(max-width:480px){.ri-lab .ri-metrics{grid-template-columns:minmax(0,1fr)}.ri-lab .ri-choices button,.ri-lab .ri-presets button{flex-basis:100%}}",
     "@media(prefers-reduced-motion:reduce){.ri-lab *{animation:none!important;transition:none!important}}"
+    ,'[data-theme="dark"] .ri-lab{--ri-blue:#8ab4f8;--ri-gold:#dfb971;--ri-green:#88c6a0;--ri-red:#ed9995;}'
   ].join("\n");
 
   function assert(condition, message) {
@@ -117,9 +118,19 @@
   }
 
   function integer(value, fallback, min, max) {
-    var parsed = Math.round(Number(value));
-    if (!Number.isFinite(parsed)) parsed = fallback;
-    return clamp(parsed, min, max);
+    var n = value === undefined ? fallback : value;
+    if (!Number.isInteger(n) || n < min || n > max) throw new RangeError("n must be an integer from " + min + " to " + max);
+    return n;
+  }
+
+  function checkedModel(modelId) {
+    if (!Object.prototype.hasOwnProperty.call(MODELS, modelId)) throw new RangeError("unknown model");
+  }
+  function checkedPartition(p) {
+    if (!Array.isArray(p)) throw new RangeError("partition must be an array");
+    var n = integer(p.length - 1, 8, 2, 64);
+    for (var i=0; i<=n; i+=1) if(p[i] !== i/n) throw new RangeError("this lab uses only exact uniform partitions of [0,1]");
+    return n;
   }
 
   function gcd(a, b) {
@@ -134,6 +145,7 @@
   }
 
   function reduceFraction(numerator, denominator) {
+    if (!Number.isSafeInteger(numerator) || !Number.isSafeInteger(denominator) || denominator === 0) throw new RangeError("invalid rational tag");
     var sign = denominator < 0 ? -1 : 1;
     var divisor = gcd(numerator, denominator);
     return { numerator: sign * numerator / divisor, denominator: sign * denominator / divisor };
@@ -141,14 +153,15 @@
 
   function uniformPartition(n, left, right) {
     n = integer(n, 8, LIMITS.n[0], LIMITS.n[1]);
-    left = Number.isFinite(left) ? left : 0;
-    right = Number.isFinite(right) ? right : 1;
+    left = left === undefined ? 0 : left; right = right === undefined ? 1 : right;
+    if(left !== 0 || right !== 1) throw new RangeError("this lab partitions [0,1]");
     var points = [];
     for (var i = 0; i <= n; i += 1) points.push(left + (right - left) * i / n);
     return points;
   }
 
   function mesh(partition) {
+    checkedPartition(partition);
     var maximum = 0;
     for (var i = 1; i < partition.length; i += 1) {
       maximum = Math.max(maximum, partition[i] - partition[i - 1]);
@@ -160,7 +173,7 @@
     var n = partition.length - 1;
     var left = partition[index];
     var right = partition[index + 1];
-    var midpoint = (left + right) / 2;
+    var midpoint = (2 * index + 1) / (2 * n);
     if (mode === "left") {
       return { x: left, kind: "rational", numerator: index, denominator: n };
     }
@@ -176,19 +189,19 @@
     return { x: midpoint, kind: "rational", numerator: 2 * index + 1, denominator: 2 * n };
   }
 
-  function thomaeSupremum(left, right) {
-    for (var denominator = 1; denominator <= 512; denominator += 1) {
-      var first = Math.ceil(left * denominator - EPS);
-      var last = Math.floor(right * denominator + EPS);
-      for (var numerator = first; numerator <= last; numerator += 1) {
-        var reduced = reduceFraction(numerator, denominator);
-        if (reduced.numerator / reduced.denominator >= left - EPS &&
-            reduced.numerator / reduced.denominator <= right + EPS) {
-          return 1 / reduced.denominator;
-        }
-      }
+  function cellThomaeSupremum(i, n) {
+    // Endpoints have reduced denominator at most n, so this finite search is exact.
+    for (var q=1; q<=n; q+=1) {
+      var first = Math.ceil(i*q/n), last = Math.floor((i+1)*q/n);
+      if(first <= last) return { value: 1/q, numerator: first, denominator: q };
     }
-    return 1 / 513;
+    throw new Error("uniform cell must contain a rational endpoint");
+  }
+  function thomaeSupremum(left, right) {
+    for(var n=2;n<=64;n+=1) for(var i=0;i<n;i+=1) {
+      if(left===i/n && right===(i+1)/n) return cellThomaeSupremum(i,n).value;
+    }
+    throw new RangeError("supremum API requires a uniform [0,1] cell with 2<=n<=64");
   }
 
   function stepValue(x) {
@@ -196,6 +209,13 @@
   }
 
   function valueAt(modelId, tag) {
+    checkedModel(modelId);
+    if(!tag || !Number.isFinite(tag.x) || tag.x<0 || tag.x>1) throw new RangeError("tag is outside [0,1]");
+    if(tag.kind !== "rational" && tag.kind !== "irrational") throw new RangeError("tag needs a symbolic rational/irrational kind");
+    if(tag.kind === "rational") {
+      var fraction = reduceFraction(tag.numerator,tag.denominator);
+      if(fraction.numerator/fraction.denominator !== tag.x) throw new RangeError("rational metadata and coordinate disagree");
+    }
     if (modelId === "continuous") return tag.x * tag.x;
     if (modelId === "step") return stepValue(tag.x);
     if (modelId === "dirichlet") return tag.kind === "irrational" ? 0 : 1;
@@ -216,36 +236,41 @@
   }
 
   function upperLowerSums(modelId, partition) {
+    checkedModel(modelId); var n=checkedPartition(partition);
     var lower = 0;
     var upper = 0;
     var cells = [];
     for (var i = 0; i + 1 < partition.length; i += 1) {
       var left = partition[i];
       var right = partition[i + 1];
-      var range = rangeOnCell(modelId, left, right);
+      var maxRational=modelId === "thomae" ? cellThomaeSupremum(i,n) : null;
+      var range = maxRational ? {lower:0,upper:maxRational.value} : rangeOnCell(modelId, left, right);
       var width = right - left;
       lower += range.lower * width;
       upper += range.upper * width;
-      cells.push({ left: left, right: right, lower: range.lower, upper: range.upper });
+      cells.push({ left: left, right: right, lower: range.lower, upper: range.upper, maxRational:maxRational });
     }
     return { lower: lower, upper: upper, gap: upper - lower, cells: cells };
   }
 
   function taggedRiemannSum(modelId, partition, tagMode) {
+    checkedModel(modelId); checkedPartition(partition);
+    if(!Object.prototype.hasOwnProperty.call(TAG_MODES,tagMode)) throw new RangeError("unknown tag mode");
     var sum = 0;
     var tags = [];
     for (var i = 0; i + 1 < partition.length; i += 1) {
       var tag = tagFor(partition, i, tagMode);
       sum += valueAt(modelId, tag) * (partition[i + 1] - partition[i]);
-      tags.push({ x: tag.x, value: valueAt(modelId, tag), kind: tag.kind });
+      tags.push({ x: tag.x, value: valueAt(modelId, tag), kind: tag.kind, numerator:tag.numerator, denominator:tag.denominator });
     }
     return { sum: sum, tags: tags };
   }
 
   function normalizeConfig(config) {
     config = config || {};
-    var modelId = MODELS[config.modelId] ? config.modelId : "continuous";
-    var tagMode = TAG_MODES[config.tagMode] ? config.tagMode : "midpoint";
+    var modelId = config.modelId === undefined ? "continuous" : config.modelId; checkedModel(modelId);
+    var tagMode = config.tagMode === undefined ? "midpoint" : config.tagMode;
+    if(!Object.prototype.hasOwnProperty.call(TAG_MODES,tagMode)) throw new RangeError("unknown tag mode");
     return {
       modelId: modelId,
       tagMode: tagMode,
@@ -279,7 +304,7 @@
     if (Math.abs(value) < 5e-10) return "0";
     var places = digits === undefined ? 5 : digits;
     if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function element(doc, tag, attrs, children) {
@@ -334,7 +359,7 @@
 
   function plotSvg(doc, result, prefix) {
     var svg = svgElement(doc, "svg", {
-      viewBox: "0 0 640 320",
+      viewBox: "0 0 640 370",
       role: "img",
       "aria-labelledby": prefix + "-plot-title " + prefix + "-plot-desc"
     });
@@ -344,8 +369,8 @@
     var right = 596;
     var top = 34;
     var bottom = 252;
-    var maximum = result.modelId === "continuous" ? 1.15 : 2.15;
-    [0, 0.5, 1].forEach(function (value) {
+    var maximum = result.modelId === "step" ? 2.15 : 1.15;
+    (result.modelId === "step" ? [0,0.5,1,1.5,2] : [0, 0.5, 1]).forEach(function (value) {
       var y = mapY(value, top, bottom, maximum);
       svg.appendChild(svgElement(doc, "line", { x1: left, x2: right, y1: y, y2: y, className: "ri-grid" }));
       svg.appendChild(svgElement(doc, "text", { x: left - 8, y: y + 4, "font-size": 11, "text-anchor": "end" }, formatNumber(value, 1)));
@@ -357,8 +382,10 @@
       var width = mapX(cell.right, left, right) - x;
       var tag = result.tags[index];
       var y = mapY(tag.value, top, bottom, maximum);
-      svg.appendChild(svgElement(doc, "rect", { x: x + 0.3, y: y, width: Math.max(0.7, width - 0.6), height: bottom - y, className: "ri-rectangle" }));
+      svg.appendChild(svgElement(doc, "rect", { x: x, y: y, width: width, height: bottom - y, className: "ri-rectangle" }));
       svg.appendChild(svgElement(doc, "circle", { cx: mapX(tag.x, left, right), cy: y, r: 2.5, className: "ri-tag" }));
+      svg.appendChild(svgElement(doc,"line",{x1:x,x2:x+width,y1:mapY(cell.upper,top,bottom,maximum),y2:mapY(cell.upper,top,bottom,maximum),stroke:"var(--ri-blue)","stroke-width":2,"stroke-dasharray":"4 2"}));
+      svg.appendChild(svgElement(doc,"line",{x1:x,x2:x+width,y1:mapY(cell.lower,top,bottom,maximum),y2:mapY(cell.lower,top,bottom,maximum),stroke:"var(--ri-green)","stroke-width":2,"stroke-dasharray":"2 2"}));
     });
     if (result.modelId === "continuous") {
       var path = "";
@@ -372,9 +399,10 @@
     } else if (result.modelId === "step") {
       var stepPath = "M " + left + " " + mapY(1, top, bottom, maximum) +
         " L " + mapX(0.5, left, right) + " " + mapY(1, top, bottom, maximum) +
-        " L " + mapX(0.5, left, right) + " " + mapY(2, top, bottom, maximum) +
+        " M " + mapX(0.5, left, right) + " " + mapY(2, top, bottom, maximum) +
         " L " + right + " " + mapY(2, top, bottom, maximum);
       svg.appendChild(svgElement(doc, "path", { d: stepPath, className: "ri-target" }));
+      [1,2].forEach(function(v){svg.appendChild(svgElement(doc,"circle",{cx:mapX(.5,left,right),cy:mapY(v,top,bottom,maximum),r:4,fill:v===1?"var(--bg)":"var(--ri-blue)",stroke:"var(--ri-blue)"}));});
     } else if (result.modelId === "dirichlet") {
       svg.appendChild(svgElement(doc, "rect", {
         x: left,
@@ -385,16 +413,19 @@
       }));
       svg.appendChild(svgElement(doc, "text", { x: right, y: 25, "font-size": 11, "text-anchor": "end" }, "每格包络 [0,1]"));
     } else {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 25, "font-size": 11, "text-anchor": "end" }, "蓝：有限分母探针包络"));
+      svg.appendChild(svgElement(doc, "text", { x: right, y: 25, "font-size": 11, "text-anchor": "end" }, "蓝虚线：每格精确上确界"));
     }
     svg.appendChild(svgElement(doc, "text", { x: left, y: 286, "font-size": 11 }, "x=0"));
+    svg.appendChild(svgElement(doc, "text", { x: (left+right)/2, y: 286, "font-size": 11, "text-anchor":"middle" }, "x=1/2"));
     svg.appendChild(svgElement(doc, "text", { x: right, y: 286, "font-size": 11, "text-anchor": "end" }, "x=1"));
     svg.appendChild(svgElement(doc, "text", { x: right, y: 306, "font-size": 11, "text-anchor": "end" }, "n=" + result.n + "，L=" + formatNumber(result.lower, 4) + "，U=" + formatNumber(result.upper, 4) + "，R=" + formatNumber(result.tagged, 4)));
+    svg.appendChild(svgElement(doc,"text",{x:48,y:330,"font-size":11},"蓝虚线 U：上确界；绿虚线 L：下确界；金色面积 R：取点和"));
+    svg.appendChild(svgElement(doc,"text",{x:48,y:350,"font-size":11},"无理取点是符号指定；显示坐标是近似小数，不用浮点数判有理性。"));
     return svg;
   }
 
   function renderTable(doc, parent, result) {
-    var wrap = element(doc, "div", { className: "ri-ledger" });
+    var wrap = element(doc, "div", { className: "ri-ledger", tabindex:"0", "aria-label":"积分数据表，可用方向键横向滚动" });
     var table = element(doc, "table", { "aria-label": "有限分割上下和账本" });
     table.appendChild(element(doc, "caption", { text: "有限分割诊断；所有数值都对应当前 n 与 tag 规则" }));
     var head = element(doc, "tr");
@@ -419,6 +450,11 @@
     });
     table.appendChild(body);
     wrap.appendChild(table);
+    var cells = element(doc,"table");
+    cells.appendChild(element(doc,"caption",{text:"当前模型逐格账本；无理点写为 i/n + √2/(2n)，而非根据小数猜测。"}));
+    cells.appendChild(element(doc,"thead",{},[element(doc,"tr",{},["i","区间","下确界","上确界","取点","f(tag)"].map(function(t){return element(doc,"th",{text:t});}))]));
+    cells.appendChild(element(doc,"tbody",{},result.cells.map(function(c,i){var tag=result.tags[i],values=[i+1,i+"/"+result.n+" … "+(i+1)+"/"+result.n,formatNumber(c.lower),formatNumber(c.upper)+(c.maxRational?" @ "+c.maxRational.numerator+"/"+c.maxRational.denominator:""),tag.kind==="irrational"?i+"/"+result.n+" + √2/"+(2*result.n):tag.numerator+"/"+tag.denominator,formatNumber(tag.value)];return element(doc,"tr",{},values.map(function(v){return element(doc,"td",{text:v});}));})));
+    wrap.appendChild(cells);
     parent.appendChild(wrap);
   }
 
@@ -451,7 +487,7 @@
       '<div class="ri-controls" hidden><div class="ri-control-group"><label>样本预设</label><div class="ri-presets" data-presets></div></div>',
       '<div class="ri-control-group"><label for="' + prefix + '-n">均匀分割 n：<output data-output="n">8</output></label><input id="' + prefix + '-n" type="range" min="2" max="64" step="1" value="8" data-input="n">',
       '<label for="' + prefix + '-tag">tag 规则</label><select id="' + prefix + '-tag" data-input="tag" aria-label="tag 取点规则"></select></div></div>',
-      '<div class="ri-results" hidden><div data-metrics></div><div class="ri-stage" data-stage></div><div data-table></div><p class="ri-note">有限分割只能作诊断：可积性来自 n→∞ 的夹逼/振幅论证；Dirichlet 型的 U−L=1 与两种 tag 的分歧则在每个有限 n 都已出现。</p></div>'
+      '<div class="ri-results" hidden><div data-metrics></div><div class="ri-stage" data-stage tabindex="0" aria-label="上下和图，可用方向键横向滚动"></div><div data-table></div><p class="ri-note">有限分割只能作诊断：可积性来自 n→∞ 的夹逼/振幅论证；Dirichlet 型的 U−L=1 与两种 tag 的分歧则在每个有限 n 都已出现。</p></div>'
     ].join("");
     rootNode.replaceChildren(shell);
     var lab = shell;
@@ -515,6 +551,7 @@
       var choice = event.target.closest("button[data-question]");
       if (choice) {
         answers[Number(choice.getAttribute("data-question"))] = choice.getAttribute("data-answer");
+        revealed=false; controls.hidden=true;results.hidden=true;
         renderPrediction();
         return;
       }
@@ -537,6 +574,7 @@
         feedback.className = "ri-feedback";
         feedback.textContent = "请先完成三项预测。";
         render();
+        lab.querySelector("button[data-question]").focus();
         return;
       }
       if (answers.some(function (answer) { return answer === null; })) {
@@ -554,7 +592,7 @@
       announce(api, rootNode, feedback.textContent);
     });
     nInput.addEventListener("input", function () {
-      state.n = integer(nInput.value, state.n, LIMITS.n[0], LIMITS.n[1]);
+      state.n = integer(Number(nInput.value), state.n, LIMITS.n[0], LIMITS.n[1]);
       activePreset = "custom";
       render();
     });
