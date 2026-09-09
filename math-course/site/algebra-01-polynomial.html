@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 12:49</div>
   </div>
 </nav>
 <main id="content">
@@ -58,14 +58,16 @@ try {
 <li><a href="#2">2. 揭示前预测：先把三种问题分开</a></li>
 <li><a href="#3">3. 正式桥：从因式到系数，再回到根</a></li>
 <li><a href="#4">4. 定理与失败边界</a></li>
+<li><a href="#5">5. 迁移：换一种扰动，结论还成立吗？</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 一元多项式与整除</a></li>
 <li><a href="#2_1">2. 最大公因式与互素</a></li>
 <li><a href="#3_1">3. 因式分解定理</a></li>
 <li><a href="#4_1">4. 根与三大数域上的分解</a></li>
-<li><a href="#5">5. 对称多项式一瞥</a></li>
+<li><a href="#5_1">5. 对称多项式一瞥</a></li>
 <li><a href="#6">6. 典型例题</a></li>
+<li><a href="#7">7. 原始资料与继续阅读</a></li>
 </ul>
 </div>
 </details>
@@ -77,12 +79,19 @@ try {
 
 <section aria-labelledby="algebra01-learning-title" class="learning-layer">
 <h2 id="algebra01-learning-title">学习层：根、重数与数值敏感性是三本账<a class="headerlink" href="#algebra01-learning-title" title="Permanent link"></a></h2>
+<p><strong>先修与去向：</strong>需要熟悉配方、因式分解与导数；导数判别可回看<a href="analysis-02-differential.html">一元微分</a>。多项式的整除结构会进入<a href="algebra-05-eigen.html">特征值与特征向量</a>，抽象版本见<a href="alg-abs-02-rings-fields.html">环与域</a>。</p>
 <h3 id="1">1. 具体情境：校准方程为什么会“碰到”而不是“穿过”零点？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>把一个简化的校准误差写成</p>
 <div class="arithmatex">\[
 p_{c,d,g}(x)=((x-c)^2-g^2)(x-d).
 \]</div>
-<p>这里 <span class="arithmatex">\(x\)</span> 是待调参数，<span class="arithmatex">\(p(x)=0\)</span> 是“误差刚好抵消”。当 <span class="arithmatex">\(g=0\)</span> 时，中心 <span class="arithmatex">\(c\)</span> 是重根；当 <span class="arithmatex">\(g&gt;0\)</span> 时，它裂成 <span class="arithmatex">\(c-g\)</span> 与 <span class="arithmatex">\(c+g\)</span> 两个相近的根。第三个根 <span class="arithmatex">\(d\)</span> 保留为一个远处的对照。实验把这三个角色画在同一张图上，但它不会用图形代替因式分解或重数判定。</p>
+<p>这里 <span class="arithmatex">\(x\)</span> 是待调参数，<span class="arithmatex">\(p(x)=0\)</span> 表示误差抵消。先限定实验范围：<span class="arithmatex">\(0.5\le c\le1.5\)</span>、<span class="arithmatex">\(-3\le d\le-1\)</span>、<span class="arithmatex">\(0\le g\le0.8\)</span>，所以 <span class="arithmatex">\(d\)</span> 与两个中心根至少相距 <span class="arithmatex">\(0.7\)</span>。在这个范围内，<span class="arithmatex">\(g=0\)</span> 时 <span class="arithmatex">\(c\)</span> <strong>恰好二重</strong>，<span class="arithmatex">\(g&gt;0\)</span> 时 <span class="arithmatex">\(c-g,c+g,d\)</span> 是三个单根。一般参数不能直接照搬：若 <span class="arithmatex">\(d=c,g=0\)</span>，就变成三重根；若 <span class="arithmatex">\(d=c\pm g\)</span>，也会发生根的合并。</p>
+<figure class="plot">
+<div aria-label="重根分裂插图，可横向滚动" role="region" style="max-width:100%;overflow-x:auto" tabindex="0">
+<img style="min-width:720px" src="assets/img/algebra-01-root-split.svg" alt="相同横纵坐标中比较二重根接触零轴和两个单根穿过零轴，标出根位置及系数变化">
+</div>
+<figcaption>固定 \(c=1,d=-2\)。两幅局部图使用相同的原始 \(x,p(x)\) 标尺；从 \(g=0\) 到 \(g=1/4\)，根移动 \(1/4\)，而 \(a_1\) 只改变 \(-1/16\)。左侧的第三个根 \(-2\) 在图外，不能据此说它不存在。</figcaption>
+</figure>
 <h3 id="2">2. 揭示前预测：先把三种问题分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>打开实验前，先回答四个问题：</p>
 <ol>
@@ -97,7 +106,21 @@ p_{c,d,g}(x)=((x-c)^2-g^2)(x-d).
 <div class="arithmatex">\[
 p_{c,d,g}(x)=x^3-(d+2c)x^2+(2cd+c^2-g^2)x-d(c^2-g^2).
 \]</div>
-<p>因此根的和为 <span class="arithmatex">\(d+2c\)</span>，根的积为 <span class="arithmatex">\(d(c^2-g^2)\)</span>，这是 Vieta 关系的一个可审计样本。<span class="arithmatex">\(g=0\)</span> 时，<span class="arithmatex">\((x-c)^2\)</span> 直接给出二重根；等价地，根 <span class="arithmatex">\(r\)</span> 同时满足 <span class="arithmatex">\(p(r)=0\)</span> 与 <span class="arithmatex">\(p'(r)=0\)</span>。当 <span class="arithmatex">\(g&gt;0\)</span> 时，两个中心根的位移尺度是 <span class="arithmatex">\(g\)</span>，而 <span class="arithmatex">\(a_1\)</span> 的变化量是 <span class="arithmatex">\(-g^2\)</span>。这说明重根附近的根位置可能比系数变化更敏感，但具体条件数仍要指定尺度、范数和算法。</p>
+<p>因此根的和为 <span class="arithmatex">\(d+2c\)</span>，根的积为 <span class="arithmatex">\(d(c^2-g^2)\)</span>。这是 Vieta 关系的一个可复算样本。<span class="arithmatex">\(g=0\)</span> 时，因式 <span class="arithmatex">\((x-c)^2\)</span> 加上 <span class="arithmatex">\(c-d\ne0\)</span> 才给出<strong>恰好二重根</strong>；导数判别是</p>
+<div class="arithmatex">\[
+p(c)=p'(c)=0,\qquad p''(c)=2(c-d)\ne0.
+\]</div>
+<p>只知道 <span class="arithmatex">\(p(r)=p'(r)=0\)</span>，只能判定<strong>至少二重</strong>。更一般地，若实多项式 <span class="arithmatex">\(p(x)=(x-r)^m q(x)\)</span>、<span class="arithmatex">\(q(r)\ne0\)</span>，连续性保证 <span class="arithmatex">\(q\)</span> 在足够小的邻域内不变号。穿越零轴与否就由 <span class="arithmatex">\((x-r)^m\)</span> 决定：奇重穿过，偶重接触而不穿过。这是图像规律背后的理由，而不是从几个像素猜重数。</p>
+<p>保持 <span class="arithmatex">\(c,d\)</span> 不变，<span class="arithmatex">\(g&gt;0\)</span> 时，两个中心根各移动 <span class="arithmatex">\(g\)</span>，系数向量则改变</p>
+<div class="arithmatex">\[
+(\Delta a_3,\Delta a_2,\Delta a_1,\Delta a_0)=(0,0,-g^2,dg^2).
+\]</div>
+<p>于是本族的系数扰动为二次尺度、根移动为一次尺度；这里改变的不只是 <span class="arithmatex">\(a_1\)</span>。这展示了重根附近的敏感性，尚不是指定基、范数后的通用条件数。</p>
+<p><strong>怎样读放大图？</strong> 全局图画原始 <span class="arithmatex">\(x,p(x)\)</span>。当 <span class="arithmatex">\(g&gt;0\)</span>，局部图改用 <span class="arithmatex">\(u=(x-c)/g\)</span>、<span class="arithmatex">\(v=p(x)/[g^2(c-d)]\)</span>，直接化简成</p>
+<div class="arithmatex">\[
+v=(u^2-1)\left(1+\frac{gu}{c-d}\right).
+\]</div>
+<p>所以中心两根固定出现在 <span class="arithmatex">\(u=\pm1\)</span>，无须先用浮点数算出可能已舍入成相同数字的 <span class="arithmatex">\(c\pm g\)</span>。当 <span class="arithmatex">\(g=0\)</span>，实验另取 <span class="arithmatex">\(h=1/4\)</span>，用 <span class="arithmatex">\(u=(x-c)/h\)</span>、<span class="arithmatex">\(v=u^2[1+hu/(c-d)]\)</span>。两种图都明确标出缩放；它们的高度不能当作同一个物理误差直接比较。</p>
 <div class="learning-lab" data-learning-lab="polynomial-roots">
 <p><strong>JavaScript 失效时的静态 fallback：</strong>取 <span class="arithmatex">\(c=1\)</span>、<span class="arithmatex">\(d=-2\)</span>。</p>
 <table>
@@ -112,7 +135,7 @@ p_{c,d,g}(x)=x^3-(d+2c)x^2+(2cd+c^2-g^2)x-d(c^2-g^2).
 <tr>
 <td><span class="arithmatex">\(g=0\)</span></td>
 <td><span class="arithmatex">\(x=1\)</span> 为二重根，<span class="arithmatex">\(x=-2\)</span> 为单根</td>
-<td>中心处通常相切；<span class="arithmatex">\(p(1)=p'(1)=0\)</span></td>
+<td>中心处接触、不穿过；<span class="arithmatex">\(p(1)=p'(1)=0\)</span></td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(g=0.2\)</span></td>
@@ -126,6 +149,7 @@ p_{c,d,g}(x)=x^3-(d+2c)x^2+(2cd+c^2-g^2)x-d(c^2-g^2).
 </tr>
 </tbody>
 </table>
+</div>
 <h3 id="4">4. 定理与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>定理桥</strong>：余数定理给出 <span class="arithmatex">\(p(a)=0\iff x-a\)</span> 整除 <span class="arithmatex">\(p\)</span>；因式中的指数才是重数。Vieta 只描述根的对称组合，不等于已经数值求出了每个根。</li>
@@ -133,7 +157,21 @@ p_{c,d,g}(x)=x^3-(d+2c)x^2+(2cd+c^2-g^2)x-d(c^2-g^2).
 <li><strong>数值边界</strong>：重根分裂的 <span class="arithmatex">\(g\)</span> 对应本模型的系数变化 <span class="arithmatex">\(g^2\)</span>，不等于所有多项式或所有求根算法的统一条件数结论。</li>
 <li><strong>存在性边界</strong>：有限数值图只能检查有限窗口和有限采样。代数基本定理是在复数域上计重数的存在性定理，不能由一次实验图替代。</li>
 </ul>
-</div>
+<h3 id="5">5. 迁移：换一种扰动，结论还成立吗？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<ol>
+<li>在实验范围外令 <span class="arithmatex">\(d=c,g=0\)</span>。求根的重数与 <span class="arithmatex">\(p''(c)\)</span>，解释为什么它穿过零轴。</li>
+<li>固定 <span class="arithmatex">\(c=1,d=-2\)</span>，改研究 <span class="arithmatex">\(q_\varepsilon(x)=((x-1)^2+\varepsilon)(x+2)\)</span>，其中 <span class="arithmatex">\(0&lt;\lvert\varepsilon\rvert&lt;1\)</span>。分别求 <span class="arithmatex">\(\varepsilon\)</span> 正负时中心两根，并比较根移动与系数变化。</li>
+<li>证明 <span class="arithmatex">\(x^4+x^3+x^2+x+1\)</span> 在 <span class="arithmatex">\(\mathbb Q\)</span> 上不可约；尝试平移后使用 Eisenstein，不能把“没有有理根”当成四次式不可约的充分条件。</li>
+</ol>
+<details class="answer">
+<summary>展开迁移题答案与复算</summary>
+<ol>
+<li><span class="arithmatex">\(p=(x-c)^3\)</span>，恰好三重，<span class="arithmatex">\(p''(c)=0\)</span>、<span class="arithmatex">\(p^{(3)}(c)=6\)</span>。立方在两侧异号，所以即使 <span class="arithmatex">\(p=p'=0\)</span> 也会穿过零轴。</li>
+<li><span class="arithmatex">\(\varepsilon&lt;0\)</span> 时根为 <span class="arithmatex">\(1\pm\sqrt{-\varepsilon}\)</span>；<span class="arithmatex">\(\varepsilon&gt;0\)</span> 时为 <span class="arithmatex">\(1\pm i\sqrt\varepsilon\)</span>。第三根仍是 <span class="arithmatex">\(-2\)</span>。展开 <span class="arithmatex">\(q_\varepsilon=x^3+(-3+\varepsilon)x+(2+2\varepsilon)\)</span>，故 <span class="arithmatex">\(\Delta a_1=\varepsilon,\Delta a_0=2\varepsilon\)</span>，而复平面中根移动距离为 <span class="arithmatex">\(\sqrt{\lvert\varepsilon\rvert}\)</span>。例如 <span class="arithmatex">\(\varepsilon=\pm10^{-4}\)</span>，根移动 <span class="arithmatex">\(10^{-2}\)</span>；正扰动时实图只剩一个实根，不代表两个复根消失。</li>
+<li>平移后 <span class="arithmatex">\(f(x+1)=x^4+5x^3+10x^2+10x+5\)</span>，取素数 <span class="arithmatex">\(5\)</span>：它不整除首项系数，整除其余系数，<span class="arithmatex">\(25\)</span> 不整除常数项。平移 <span class="arithmatex">\(x\mapsto x+1\)</span> 的逆为 <span class="arithmatex">\(x\mapsto x-1\)</span>，保留分解与次数，所以原式也不可约。</li>
+</ol>
+</details>
+<p>实验的数值接口也限定在上述参数盒内，越界会报错；不会把碰撞参数悄悄截断成另一个多项式。极小正 <span class="arithmatex">\(g\)</span> 的两根保留为两个代数身份，即使绝对坐标无法分辨；若 <span class="arithmatex">\(g^2\)</span> 下溢，系数变化标为非零但无法数值表示。已舍入的两个系数相减则可能是零。三者必须分开读。</p>
 </section>
 <h2 id="1_1">1. 一元多项式与整除<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <span class="arithmatex">\(f(x) = a_n x^n + \cdots + a_1 x + a_0\)</span>（<span class="arithmatex">\(a_n \neq 0\)</span> 时 <span class="arithmatex">\(\deg f = n\)</span>）。系数取自数域 <span class="arithmatex">\(P\)</span>（对四则封闭的数集，如 <span class="arithmatex">\(\mathbb{Q}, \mathbb{R}, \mathbb{C}\)</span>）——<strong>"在哪个数域上"贯穿全页</strong>，同一多项式在不同域上可约性完全不同。</p>
@@ -143,8 +181,8 @@ f = qg + r, \qquad \deg r &lt; \deg g \ \text{或}\ r = 0
 \]</div>
 <p><strong>整除</strong> <span class="arithmatex">\(g \mid f \iff r = 0\)</span>。性质：传递性；<span class="arithmatex">\(g \mid f_i \Rightarrow g \mid (u_1 f_1 + u_2 f_2)\)</span>（整除组合）。整除关系不随数域扩大而改变（带余除法的商余不依赖域）。</p>
 <h2 id="2_1">2. 最大公因式与互素<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(d = (f, g)\)</span>：公因式中被所有公因式整除者（首一约定唯一）。</p>
-<p><strong>辗转相除法（Euclid）</strong>：反复带余除法，最后一个非零余式即 <span class="arithmatex">\((f,g)\)</span>；回代得 <strong>Bézout 等式</strong>：</p>
+<p><strong>定义</strong> 对不全为零的 <span class="arithmatex">\(f,g\)</span>，<span class="arithmatex">\(d=(f,g)\)</span> 满足 <span class="arithmatex">\(d\mid f\)</span>、<span class="arithmatex">\(d\mid g\)</span>，且每个公因式都整除 <span class="arithmatex">\(d\)</span>。再要求 <span class="arithmatex">\(d\)</span> 首一，才唯一。</p>
+<p><strong>辗转相除法（Euclid）</strong>：反复带余除法，将最后一个非零余式除以它的首项系数，即得到首一的 <span class="arithmatex">\((f,g)\)</span>；回代得 <strong>Bézout 等式</strong>：</p>
 <div class="arithmatex">\[
 \exists\, u, v: \quad u f + v g = (f, g)
 \]</div>
@@ -155,16 +193,16 @@ f = qg + r, \qquad \deg r &lt; \deg g \ \text{或}\ r = 0
 <li><span class="arithmatex">\((f, g) = (f, h) = 1 \Rightarrow (f, gh) = 1\)</span>。</li>
 </ul>
 <h2 id="3_1">3. 因式分解定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>不可约多项式</strong>：在数域 <span class="arithmatex">\(P\)</span> 上不能分解为两个更低次多项式之积。类比素数；性质：<span class="arithmatex">\(p\)</span> 不可约，则 <span class="arithmatex">\(p \mid fg \Rightarrow p\mid f\)</span> 或 <span class="arithmatex">\(p \mid g\)</span>。</p>
+<p><strong>不可约多项式</strong>：次数至少为一，且在数域 <span class="arithmatex">\(P\)</span> 上不能分解为两个正次数多项式之积。非零常数是单位，不叫不可约多项式。类比素数；性质：<span class="arithmatex">\(p\)</span> 不可约，则 <span class="arithmatex">\(p \mid fg \Rightarrow p\mid f\)</span> 或 <span class="arithmatex">\(p \mid g\)</span>。</p>
 <p><strong>定理（唯一分解）</strong> 数域上任一次数 <span class="arithmatex">\(\geq 1\)</span> 的多项式可分解为不可约多项式之积，且分解在<strong>不计次序与常数因子</strong>意义下唯一。（标准分解式 <span class="arithmatex">\(f = c\,p_1^{r_1}\cdots p_s^{r_s}\)</span>。）</p>
 <p><strong>重因式</strong>：<span class="arithmatex">\(p^k \mid f\)</span> 但 <span class="arithmatex">\(p^{k+1} \nmid f\)</span> 称 <span class="arithmatex">\(k\)</span> 重。<strong>判别工具</strong>：</p>
 <div class="arithmatex">\[
 f\ \text{无重因式} \iff (f, f') = 1
 \]</div>
-<p>（<span class="arithmatex">\(p\)</span> 是 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(k\)</span> 重因式 ⇒ 是 <span class="arithmatex">\(f'\)</span> 的 <span class="arithmatex">\(k-1\)</span> 重因式。）<strong>去重技巧</strong>：<span class="arithmatex">\(\dfrac{f}{(f, f')}\)</span> 与 <span class="arithmatex">\(f\)</span> 有完全相同的不可约因子且全为单重——不用求根就能"洗掉"重数。</p>
+<p>（这里 <span class="arithmatex">\(f\)</span> 非零、<span class="arithmatex">\(p\)</span> 不可约，系数域是特征零的数域；<span class="arithmatex">\(p\)</span> 是 <span class="arithmatex">\(f\)</span> 的 <span class="arithmatex">\(k\)</span> 重因式，则是 <span class="arithmatex">\(f'\)</span> 的 <span class="arithmatex">\(k-1\)</span> 重因式。正特征域不能无条件照搬，例如特征 <span class="arithmatex">\(p\)</span> 时 <span class="arithmatex">\((x^p)'=0\)</span>。）<strong>去重技巧</strong>：<span class="arithmatex">\(\dfrac{f}{(f, f')}\)</span> 与 <span class="arithmatex">\(f\)</span> 有完全相同的不可约因子且全为单重——不用求根就能"洗掉"重数。</p>
 <h2 id="4_1">4. 根与三大数域上的分解<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>余数定理</strong>：<span class="arithmatex">\(f(x) = (x - a) q(x) + f(a)\)</span>；<span class="arithmatex">\(a\)</span> 为根 <span class="arithmatex">\(\iff (x-a) \mid f\)</span>。<span class="arithmatex">\(n\)</span> 次多项式在任何数域上至多 <span class="arithmatex">\(n\)</span> 个根。</p>
-<p><strong>Vieta 公式</strong>：根与系数的关系 <span class="arithmatex">\(\sum x_i = -\frac{a_{n-1}}{a_n}\)</span>，<span class="arithmatex">\(\prod x_i = (-1)^n\frac{a_0}{a_n}\)</span> 等。</p>
+<p><strong>余数定理</strong>：<span class="arithmatex">\(f(x) = (x - a) q(x) + f(a)\)</span>；<span class="arithmatex">\(a\)</span> 为根 <span class="arithmatex">\(\iff (x-a) \mid f\)</span>。<span class="arithmatex">\(n\)</span> 次非零多项式在任意扩域中至多有 <span class="arithmatex">\(n\)</span> 个不同根。</p>
+<p><strong>Vieta 公式</strong>：在分裂域中计重数列出全部 <span class="arithmatex">\(n\)</span> 个根，根与系数的关系 <span class="arithmatex">\(\sum x_i = -\frac{a_{n-1}}{a_n}\)</span>，<span class="arithmatex">\(\prod x_i = (-1)^n\frac{a_0}{a_n}\)</span> 等。</p>
 <table>
 <thead>
 <tr>
@@ -191,19 +229,30 @@ f\ \text{无重因式} \iff (f, f') = 1
 </tr>
 </tbody>
 </table>
-<p>（代数基本定理无纯代数证明，标准证法用复分析 Liouville 定理——复变页伏笔。）</p>
-<p><strong>有理根定理</strong>：整系数 <span class="arithmatex">\(f\)</span> 的有理根 <span class="arithmatex">\(\frac{p}{q}\)</span>（既约）必满足 <span class="arithmatex">\(p \mid a_0,\ q \mid a_n\)</span>——候选有限，逐一验证即可。</p>
-<p><strong>Eisenstein 判别法</strong>：整系数 <span class="arithmatex">\(f\)</span>，若存在素数 <span class="arithmatex">\(p\)</span>：<span class="arithmatex">\(p \nmid a_n\)</span>、<span class="arithmatex">\(p \mid a_i\ (i &lt; n)\)</span>、<span class="arithmatex">\(p^2 \nmid a_0\)</span>，则 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(\mathbb{Q}\)</span> 上不可约。（例：<span class="arithmatex">\(x^n - 2\)</span> 对任意 <span class="arithmatex">\(n\)</span> 不可约 ⇒ <span class="arithmatex">\(\mathbb{Q}\)</span> 上存在任意高次不可约多项式。）配合平移代换 <span class="arithmatex">\(x \to x + 1\)</span> 扩大适用面（分圆多项式 <span class="arithmatex">\(x^{p-1} + \cdots + 1\)</span> 的标准处理）。</p>
-<h2 id="5">5. 对称多项式一瞥<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>代数基本定理不是任意域的公理结论。常见证明用复分析的 Liouville 定理；也有结合实数性质与代数工具的证明。这里先使用它的结论，后续复分析再解释证明，不能由有限图像代替。</p>
+<p><strong>有理根定理</strong>：整系数 <span class="arithmatex">\(f\)</span> 的有理根 <span class="arithmatex">\(\frac{p}{q}\)</span>（既约）必满足 <span class="arithmatex">\(p \mid a_0,\ q \mid a_n\)</span>。若 <span class="arithmatex">\(a_0
+e0\)</span>，取 <span class="arithmatex">\(q&gt;0\)</span> 后候选有限，可逐一验证；若 <span class="arithmatex">\(a_0=0\)</span>，先提出所有 <span class="arithmatex">\(x\)</span> 因子，记录零根，再处理剩余多项式。</p>
+<p><strong>Eisenstein 判别法</strong>：整系数 <span class="arithmatex">\(f\)</span>，若存在素数 <span class="arithmatex">\(p\)</span>：<span class="arithmatex">\(p \nmid a_n\)</span>、<span class="arithmatex">\(p \mid a_i\ (i &lt; n)\)</span>、<span class="arithmatex">\(p^2 \nmid a_0\)</span>，则 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(\mathbb{Q}\)</span> 上不可约。（例：<span class="arithmatex">\(x^n - 2\)</span> 对任意整数 <span class="arithmatex">\(n\ge1\)</span> 不可约 ⇒ <span class="arithmatex">\(\mathbb{Q}\)</span> 上存在任意高次不可约多项式。）配合平移代换 <span class="arithmatex">\(x \to x + 1\)</span> 扩大适用面（分圆多项式 <span class="arithmatex">\(x^{p-1} + \cdots + 1\)</span> 的标准处理）。</p>
+<h2 id="5_1">5. 对称多项式一瞥<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>基本对称多项式</strong> <span class="arithmatex">\(\sigma_1 = \sum x_i,\ \sigma_2 = \sum_{i&lt;j} x_i x_j,\ \dots,\ \sigma_n = \prod x_i\)</span>。</p>
 <p><strong>定理</strong> 任一对称多项式可<strong>唯一</strong>表示为 <span class="arithmatex">\(\sigma_1, \dots, \sigma_n\)</span> 的多项式。（用途：不解根而计算根的对称函数——配合 Vieta，如求 <span class="arithmatex">\(\sum x_i^2 = \sigma_1^2 - 2\sigma_2\)</span>；Newton 恒等式给幂和的递推。）</p>
 <h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（Bézout 应用）</strong> 证明 <span class="arithmatex">\((f, g) = 1 \Rightarrow (f g, f + g) = 1\)</span>。
 <em>解</em>：设不可约 <span class="arithmatex">\(p \mid fg\)</span> 且 <span class="arithmatex">\(p \mid f+g\)</span>。由 <span class="arithmatex">\(p \mid fg\)</span> 知 <span class="arithmatex">\(p \mid f\)</span> 或 <span class="arithmatex">\(p \mid g\)</span>；不妨 <span class="arithmatex">\(p \mid f\)</span>，结合 <span class="arithmatex">\(p \mid f + g\)</span> 得 <span class="arithmatex">\(p \mid g\)</span>，与 <span class="arithmatex">\((f,g)=1\)</span> 矛盾。</p>
 <p><strong>例 2（重根判别）</strong> <span class="arithmatex">\(f = x^4 - 2x^3 + 2x - 1\)</span> 求重因式。
-<em>解</em>：<span class="arithmatex">\(f' = 4x^3 - 6x^2 + 2\)</span>，辗转相除得 <span class="arithmatex">\((f, f') = (x-1)^2\)</span>…（实算：<span class="arithmatex">\(f = (x-1)^3(x+1)\)</span>）——<span class="arithmatex">\(x - 1\)</span> 为三重因式。<strong>流程：辗转相除求 <span class="arithmatex">\((f, f')\)</span>，其因子重数 +1 即原重数。</strong></p>
-<p><strong>例 3（Eisenstein + 平移）</strong> 证明 <span class="arithmatex">\(f = x^4 + 4x^3 + 6x^2 + 8x + 10\)</span> 在 <span class="arithmatex">\(\mathbb{Q}\)</span> 上不可约。
-<em>解</em>：直接 Eisenstein 失败；但对 <span class="arithmatex">\(p = 2\)</span>：<span class="arithmatex">\(2 \nmid 1,\ 2 \mid 4, 6, 8, 10,\ 4 \nmid 10\)</span>——其实直接就成立。（若不成立则尝试 <span class="arithmatex">\(x \to x \pm 1\)</span> 后再验。）<span class="arithmatex">\(\blacksquare\)</span></p>
+<em>解</em>：<span class="arithmatex">\(f'=4x^3-6x^2+2\)</span>。两步带余除法为</p>
+<div class="arithmatex">\[
+f=\left(\frac x4-\frac18\right)f'-\frac34(x-1)^2,\qquad
+f'=\left(-\frac{16}3x-\frac83\right)\left[-\frac34(x-1)^2\right].
+\]</div>
+<p>将最后非零余式首一化，得到 <span class="arithmatex">\((f,f')=(x-1)^2\)</span>。所以 <span class="arithmatex">\(x-1\)</span> 在 <span class="arithmatex">\(f\)</span> 中的重数是三；继续除得 <span class="arithmatex">\(f=(x-1)^3(x+1)\)</span>。最大公因式只留下重复部分，<strong>没有出现的因式可能仍是单重因式</strong>，不能凭它单独列出全部根。</p>
+<p><strong>例 3（Eisenstein + 平移）</strong> 证明 <span class="arithmatex">\(f=x^4+x^3+x^2+x+1\)</span> 在 <span class="arithmatex">\(\mathbb Q\)</span> 上不可约。
+<em>解</em>：原式常数项为一，直接 Eisenstein 不适用。平移得 <span class="arithmatex">\(f(x+1)=x^4+5x^3+10x^2+10x+5\)</span>，用素数五成立；平移是可逆的代入，故保持不可约性。具体整除检查见上方迁移题答案。</p>
+<h2 id="7">7. 原始资料与继续阅读<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://www.jmilne.org/math/Books/FT0.pdf">J. S. Milne：Fields and Galois Theory</a>，多项式环、不可约性、重根与特征的系统论述。本页使用特征零数域，不能把导数判重规则不加条件地推广。</li>
+<li><a href="https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node11.html">Patrikalakis、Maekawa、Cho：Numerical condition of polynomials</a>，解释为什么根的数值敏感性要说明系数基与扰动约定。本页平方根分裂例是精确因式计算，尚未比较求根算法。</li>
+</ul>
 <hr />
 <p><em>下一页：从解线性方程组的需要出发，发明行列式与消元法——高代的"计算引擎"。</em></p>
 </article>

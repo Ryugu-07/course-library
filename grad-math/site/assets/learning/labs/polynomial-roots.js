@@ -29,7 +29,6 @@
     "use strict";
 
     var STYLE_ID = "cl-polynomial-roots-styles";
-    var EPS = 1e-10;
     var DEFAULTS = { center: 1, anchor: -2, gap: 0 };
     var PRESETS = [
       { id: "multiple", label: "重根起点", center: 1, anchor: -2, gap: 0 },
@@ -41,7 +40,7 @@
         id: "touch",
         prompt: "当 gap=0 时，中心根的图像行为是什么？",
         options: [
-          { id: "touch", label: "二重根，通常相切" },
+          { id: "touch", label: "恰好二重根，接触而不穿过" },
           { id: "cross", label: "单根，必穿过" },
           { id: "none", label: "没有中心根" }
         ],
@@ -98,11 +97,11 @@
       '[data-learning-lab="polynomial-roots"] .pr-primary{background:var(--pr-accent);border-color:var(--pr-accent);color:#fff;font-weight:750}',
       '[data-learning-lab="polynomial-roots"] .pr-feedback{min-height:2em;margin:8px 0;font-weight:700}',
       '[data-learning-lab="polynomial-roots"] .pr-good{color:var(--pr-good)}[data-learning-lab="polynomial-roots"] .pr-warn{color:var(--pr-warn)}',
-      '[data-learning-lab="polynomial-roots"] .pr-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(250px,.75fr);gap:16px;align-items:start;margin-top:16px}',
-      '[data-learning-lab="polynomial-roots"] .pr-chart{min-width:0;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
-      '[data-learning-lab="polynomial-roots"] svg{display:block;width:100%;height:auto}',
+      '[data-learning-lab="polynomial-roots"] .pr-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}',
+      '[data-learning-lab="polynomial-roots"] .pr-chart{min-width:0;max-width:100%;overflow-x:auto;padding:6px;border:1px solid var(--border,#cbd5e1);border-radius:6px;background:var(--bg,transparent)}',
+      '[data-learning-lab="polynomial-roots"] svg{display:block;width:100%;min-width:720px;height:auto}',
       '[data-learning-lab="polynomial-roots"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
-      '[data-learning-lab="polynomial-roots"] .pr-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.75}[data-learning-lab="polynomial-roots"] .pr-gridline{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-dasharray:4 4}[data-learning-lab="polynomial-roots"] .pr-curve{fill:none;stroke:var(--pr-accent);stroke-width:3}[data-learning-lab="polynomial-roots"] .pr-simple{fill:#2563eb;stroke:var(--bg,#fff);stroke-width:2}[data-learning-lab="polynomial-roots"] .pr-multiple{fill:#d97706;stroke:var(--bg,#fff);stroke-width:2}[data-learning-lab="polynomial-roots"] .pr-title{font-size:13px;font-weight:750}[data-learning-lab="polynomial-roots"] .pr-label{font-size:11px}',
+      '[data-learning-lab="polynomial-roots"] .pr-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.75}[data-learning-lab="polynomial-roots"] .pr-gridline{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-dasharray:4 4}[data-learning-lab="polynomial-roots"] .pr-curve{fill:none;stroke:var(--pr-accent);stroke-width:3}[data-learning-lab="polynomial-roots"] .pr-simple{fill:var(--pr-accent);stroke:var(--bg,#fff);stroke-width:2}[data-learning-lab="polynomial-roots"] .pr-multiple{fill:#d97706;stroke:var(--bg,#fff);stroke-width:2}[data-learning-lab="polynomial-roots"] .pr-title{font-size:13px;font-weight:750}[data-learning-lab="polynomial-roots"] .pr-label{font-size:11px}',
       '[data-learning-lab="polynomial-roots"] .pr-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}',
       '[data-learning-lab="polynomial-roots"] .pr-metric{min-width:0;padding:9px;border-top:3px solid var(--pr-accent);background:var(--bg,transparent)}',
       '[data-learning-lab="polynomial-roots"] .pr-metric span{display:block;color:var(--fg-soft,currentColor);font-size:11px}[data-learning-lab="polynomial-roots"] .pr-metric strong{display:block;margin-top:3px;overflow-wrap:anywhere}',
@@ -112,6 +111,8 @@
       '[data-learning-lab="polynomial-roots"] th{color:var(--fg-soft,currentColor);font-size:11px}',
       '[data-learning-lab="polynomial-roots"] .pr-boundary{margin:12px 0;padding:10px 12px;border-left:3px solid var(--pr-warn);background:var(--bg,transparent);font-size:13px;line-height:1.7}',
       '@media(max-width:760px){[data-learning-lab="polynomial-roots"] .pr-controls,[data-learning-lab="polynomial-roots"] .pr-grid{grid-template-columns:minmax(0,1fr)}[data-learning-lab="polynomial-roots"] .pr-options{grid-template-columns:minmax(0,1fr)}}',
+      '[data-theme="dark"] [data-learning-lab="polynomial-roots"]{--pr-accent:#60a5fa;--pr-good:#4ade80;--pr-warn:#fbbf24}',
+      '[data-learning-lab="polynomial-roots"] [tabindex]:focus-visible{outline:3px solid #60a5fa;outline-offset:-3px}',
       '@media(prefers-reduced-motion:reduce){[data-learning-lab="polynomial-roots"] *{scroll-behavior:auto!important;transition:none!important}}'
     ].join("");
 
@@ -123,80 +124,85 @@
       return Math.abs(left - right) <= (tolerance || 1e-9);
     }
 
-    function clamp(value, low, high) {
-      return Math.max(low, Math.min(high, value));
-    }
-
     function finiteParameter(value, label) {
-      var number = Number(value);
-      if (!Number.isFinite(number)) throw new RangeError(label + " must be finite");
-      return number;
+      if (typeof value !== "number" || !Number.isFinite(value)) throw new RangeError(label + " must be a finite number");
+      return value;
     }
 
+    function bounded(value, low, high, label) {
+      finiteParameter(value, label);
+      if (value < low || value > high) throw new RangeError(label + " outside teaching domain");
+      return value;
+    }
+
+    // This teaching family keeps the anchor at least 0.7 away from c ± g.
     function normalize(params) {
       if (!params) throw new TypeError("polynomial parameters are required");
       return {
-        center: clamp(finiteParameter(params.center, "center"), 0.5, 1.5),
-        anchor: clamp(finiteParameter(params.anchor, "anchor"), -3, -1),
-        gap: clamp(finiteParameter(params.gap, "gap"), 0, 0.8)
+        center: bounded(params.center, 0.5, 1.5, "center"),
+        anchor: bounded(params.anchor, -3, -1, "anchor"),
+        gap: bounded(params.gap, 0, 0.8, "gap")
       };
     }
 
     function coefficients(center, anchor, gap) {
-      var c = Number(center);
-      var d = Number(anchor);
-      var g = Number(gap);
-      return {
-        a3: 1,
-        a2: -(d + 2 * c),
-        a1: 2 * c * d + c * c - g * g,
-        a0: -d * (c * c - g * g)
-      };
+      var p = normalize({ center: center, anchor: anchor, gap: gap });
+      var c = p.center, d = p.anchor, g = p.gap;
+      return { a3: 1, a2: -(d + 2 * c), a1: 2 * c * d + c * c - g * g, a0: -d * (c * c - g * g) };
     }
 
+    // Horner evaluation of the stored, rounded coefficients; not a root certificate.
     function polynomialValue(x, coeffs) {
-      return ((coeffs.a3 * x + coeffs.a2) * x + coeffs.a1) * x + coeffs.a0;
+      finiteParameter(x, "x");
+      ["a3", "a2", "a1", "a0"].forEach(function (key) { finiteParameter(coeffs[key], key); });
+      var value = ((coeffs.a3 * x + coeffs.a2) * x + coeffs.a1) * x + coeffs.a0;
+      if (!Number.isFinite(value)) throw new RangeError("polynomial evaluation overflow");
+      return value;
     }
 
-    function multiplicityFor(rootValue, params) {
-      var c = params.center;
-      var d = params.anchor;
-      var g = params.gap;
-      if (g === 0 && near(rootValue, c, 1e-8)) return near(c, d, 1e-8) ? 3 : 2;
-      return 1;
+    function factoredValue(x, input) {
+      var p = normalize(input), h = finiteParameter(x, "x") - p.center;
+      var value = (h - p.gap) * (h + p.gap) * (x - p.anchor);
+      if (!Number.isFinite(value)) throw new RangeError("factored evaluation overflow");
+      return value;
+    }
+
+    // Algebraically simplified scaled coordinates avoid first rounding c + g*u.
+    function localValue(u, input) {
+      var p = normalize(input); finiteParameter(u, "u");
+      var h = p.gap > 0 ? p.gap : 0.25;
+      var value = (u * u - (p.gap > 0 ? 1 : 0)) * (1 + h * u / (p.center - p.anchor));
+      if (!Number.isFinite(value)) throw new RangeError("local evaluation overflow");
+      return value;
     }
 
     function evaluate(input) {
-      var params = normalize(input);
-      var coeffs = coefficients(params.center, params.anchor, params.gap);
-      var baseline = coefficients(params.center, params.anchor, 0);
-      var roots = [params.center - params.gap, params.center + params.gap, params.anchor].sort(function (a, b) { return a - b; });
-      var rootRows = [];
-      roots.forEach(function (rootValue) {
-        if (rootRows.length && rootRows[rootRows.length - 1].value === rootValue) return;
-        var multiplicity = multiplicityFor(rootValue, params);
-        rootRows.push({
-          value: rootValue,
-          multiplicity: multiplicity,
-          crosses: multiplicity % 2 === 1
-        });
-      });
+      var p = normalize(input), coeffs = coefficients(p.center, p.anchor, p.gap);
+      var baseline = coefficients(p.center, p.anchor, 0);
+      var roots = [{ label: "d", value: p.anchor, multiplicity: 1, crosses: true }];
+      if (p.gap === 0) roots.push({ label: "c", value: p.center, multiplicity: 2, crosses: false });
+      else {
+        // Keep both symbolic roots even when their absolute double coordinates coincide.
+        roots.push({ label: "c − g", value: p.center - p.gap, multiplicity: 1, crosses: true });
+        roots.push({ label: "c + g", value: p.center + p.gap, multiplicity: 1, crosses: true });
+      }
+      var squared = p.gap * p.gap;
       return {
-        params: params,
-        coefficients: coeffs,
-        roots: rootRows,
-        coefficientShift: coeffs.a1 - baseline.a1,
-        rootShift: params.gap,
-        separation: 2 * params.gap,
-        baseline: baseline
+        params: p, coefficients: coeffs, roots: roots,
+        rootsResolved: p.gap === 0 || (p.center - p.gap < p.center && p.center + p.gap > p.center),
+        coefficientShift: p.gap > 0 && squared === 0 ? null : -squared,
+        storedCoefficientShift: coeffs.a1 - baseline.a1,
+        rootShift: p.gap, separation: 2 * p.gap, baseline: baseline
       };
     }
 
     function format(value, digits) {
+      finiteParameter(value, "display value");
       var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) < Math.pow(10, -places) / 2) value = 0;
-      var text = Number(value).toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "") || "0";
+      if (value === 0) return "0";
+      if (Math.abs(value) < Math.pow(10, -places) || Math.abs(value) >= 1e6) return value.toExponential(3);
+      var text = value.toFixed(places);
+      return places ? text.replace(/0+$/, "").replace(/\.$/, "") : text;
     }
 
     function escapeHtml(value) {
@@ -215,55 +221,60 @@
       doc.head.appendChild(style);
     }
 
-    function svgFor(data) {
-      var roots = data.roots.map(function (row) { return row.value; });
-      var low = Math.min.apply(null, roots) - 1.1;
-      var high = Math.max.apply(null, roots) + 1.1;
-      var samples = [];
-      var maximum = 0;
-      for (var i = 0; i <= 240; i += 1) {
-        var x = low + (high - low) * i / 240;
-        var value = polynomialValue(x, data.coefficients);
-        samples.push({ x: x, value: value });
-        maximum = Math.max(maximum, Math.abs(value));
+    function svgFor(data, local) {
+      var p = data.params;
+      var low = local ? -1.5 : p.anchor - 1.1;
+      var high = local ? 1.5 : p.center + p.gap + 1.1;
+      var samples = [], maximum = 0;
+      for (var i = 0; i <= 360; i += 1) {
+        var x = low + (high - low) * i / 360;
+        var value = local ? localValue(x, p) : factoredValue(x, p);
+        samples.push({ x: x, value: value }); maximum = Math.max(maximum, Math.abs(value));
       }
       maximum = Math.max(maximum, 0.5);
-      function mapX(x) { return 46 + 528 * (x - low) / (high - low); }
-      function mapY(y) { return 158 - 112 * y / maximum; }
+      function mapX(x) { return 100 + 570 * (x - low) / (high - low); }
+      function mapY(y) { return 170 - 100 * y / maximum; }
       var path = samples.map(function (point, index) {
-        return (index ? "L" : "M") + format(mapX(point.x), 2) + " " + format(mapY(point.value), 2);
+        return (index ? "L" : "M") + mapX(point.x).toFixed(2) + " " + mapY(point.value).toFixed(2);
       }).join(" ");
-      var zeroY = mapY(0);
-      var vertical = low <= 0 && high >= 0
-        ? '<line x1="' + format(mapX(0), 2) + '" y1="36" x2="' + format(mapX(0), 2) + '" y2="280" class="pr-gridline"/>'
-        : "";
-      var circles = data.roots.map(function (row) {
-        return '<circle cx="' + format(mapX(row.value), 2) + '" cy="' + format(zeroY, 2) + '" r="5" class="' + (row.multiplicity > 1 ? "pr-multiple" : "pr-simple") + '"/>';
+      var circles = local ? (p.gap > 0 ? [{ value: -1, multiplicity: 1 }, { value: 1, multiplicity: 1 }] : [{ value: 0, multiplicity: 2 }]) : data.roots;
+      var marks = circles.map(function (row) {
+        return '<circle cx="' + mapX(row.value).toFixed(2) + '" cy="170" r="5" class="' + (row.multiplicity > 1 ? "pr-multiple" : "pr-simple") + '"/>';
       }).join("");
-      return '<svg viewBox="0 0 620 320" role="img" aria-label="多项式曲线与根的有限窗口图">' +
-        '<line x1="46" y1="158" x2="574" y2="158" class="pr-axis"/><line x1="46" y1="36" x2="46" y2="280" class="pr-axis"/>' +
-        '<line x1="46" y1="46" x2="574" y2="46" class="pr-gridline"/><line x1="46" y1="270" x2="574" y2="270" class="pr-gridline"/>' +
-        vertical + '<path d="' + path + '" class="pr-curve"/>' + circles +
-        '<text x="52" y="26" class="pr-title">p(x) 在有限窗口中的形状</text>' +
-        '<text x="50" y="302">x=' + format(low, 2) + '</text><text x="520" y="302">x=' + format(high, 2) + '</text>' +
-        '<text x="438" y="48" class="pr-label">蓝=单根，金=重根</text></svg>';
+      var ticks = [-1, 0, 1].map(function (sign) {
+        var y = mapY(sign * maximum);
+        return '<line x1="100" y1="' + y + '" x2="670" y2="' + y + '" class="pr-gridline"/><text x="90" y="' + (y + 4) + '" text-anchor="end" class="pr-label">' + format(sign * maximum, 2) + '</text>';
+      }).join("");
+      var xticks = (local ? [-1.5, -1, 0, 1, 1.5] : [low, 0, high]).map(function (x) {
+        return '<text x="' + mapX(x) + '" y="292" text-anchor="middle" class="pr-label">' + format(x, 2) + '</text>';
+      }).join("");
+      var h = p.gap > 0 ? p.gap : 0.25;
+      var title = local ? '局部坐标：u=(x−c)/h，v=p(x)/[h²(c−d)]' : '全局坐标：横轴 x，纵轴 p(x)；因式形式采样';
+      var subtitle = local ? 'h=' + format(h, 5) + (p.gap > 0 ? '，中心两根对应 u=−1 与 +1' : '，二重根对应 u=0') : '蓝点：单根；金点：二重根。纵轴随参数缩放。';
+      return '<svg viewBox="0 0 720 325" role="img" aria-label="' + title + '">' +
+        '<text x="24" y="24" class="pr-title">' + title + '</text><text x="24" y="47" class="pr-label">' + subtitle + '</text>' + ticks +
+        '<line x1="100" y1="170" x2="670" y2="170" class="pr-axis"/><line x1="100" y1="65" x2="100" y2="274" class="pr-axis"/>' +
+        '<path d="' + path + '" class="pr-curve"/>' + marks + xticks +
+        '<text x="690" y="292" class="pr-label">' + (local ? 'u' : 'x') + '</text></svg>';
     }
 
     function resultHtml(data, predictionCorrect) {
       var coeff = data.coefficients;
       var rootRows = data.roots.map(function (row) {
-        return '<tr><td>' + format(row.value, 4) + '</td><td>' + row.multiplicity + '</td><td>' +
-          (row.crosses ? "穿过" : "相切或接触") + '</td></tr>';
+        return '<tr><td>' + row.label + '</td><td>' + format(row.value, 6) + '</td><td>' + row.multiplicity + '</td><td>' +
+          (row.crosses ? "穿过（奇重）" : "接触、不穿过（偶重）") + '</td></tr>';
       }).join("");
-      var answerText = predictionCorrect ? "预测命中：把根、重数和系数变化分开读。" : "预测已核对：请把重数与数值敏感性分开读。";
-      return '<div class="pr-grid"><div class="pr-chart">' + svgFor(data) + '</div><div>' +
-        '<div class="pr-metrics"><div class="pr-metric"><span>a2</span><strong>' + format(coeff.a2) + '</strong></div>' +
-        '<div class="pr-metric"><span>a1</span><strong>' + format(coeff.a1) + '</strong></div>' +
-        '<div class="pr-metric"><span>a0</span><strong>' + format(coeff.a0) + '</strong></div>' +
-        '<div class="pr-metric"><span>根间距 2g</span><strong>' + format(data.separation) + '</strong></div></div>' +
-        '<div class="pr-table-wrap"><table><caption>根账本</caption><thead><tr><th>根 x</th><th>重数</th><th>局部图形</th></tr></thead><tbody>' + rootRows + '</tbody></table></div>' +
-        '<p class="pr-boundary">' + escapeHtml(answerText) + ' 当前 a1 相对重根基准的变化为 ' + format(data.coefficientShift, 5) + '，根的中心位移尺度为 ' + format(data.rootShift, 4) + '。</p>' +
-        '</div></div>';
+      var answerText = predictionCorrect ? "预测命中。" : "预测已核对。";
+      var shift = data.coefficientShift === null ? '−g²（非零，平方低于浮点可表示范围）' : format(data.coefficientShift, 5);
+      return '<div class="pr-grid"><div class="pr-chart" tabindex="0" role="region" aria-label="全局与局部曲线，可横向滚动">' + svgFor(data, false) + svgFor(data, true) + '</div><div>' +
+        '<div class="pr-metrics"><div class="pr-metric"><span>a2（浮点近似）</span><strong>' + format(coeff.a2) + '</strong></div>' +
+        '<div class="pr-metric"><span>a1（浮点近似）</span><strong>' + format(coeff.a1) + '</strong></div>' +
+        '<div class="pr-metric"><span>a0（浮点近似）</span><strong>' + format(coeff.a0) + '</strong></div>' +
+        '<div class="pr-metric"><span>中心两根间距 2g</span><strong>' + format(data.separation) + '</strong></div></div>' +
+        '<div class="pr-table-wrap" tabindex="0" role="region" aria-label="根账本，可横向滚动"><table><caption>根账本：身份来自因式，坐标为有限精度近似</caption><thead><tr><th>代数身份</th><th>近似坐标 x</th><th>重数</th><th>局部图形</th></tr></thead><tbody>' + rootRows + '</tbody></table></div>' +
+        '<p class="pr-boundary">' + answerText + ' 理论系数变化 Δa1=−g² 为 ' + shift + '；两个已舍入系数直接相减得到 ' + format(data.storedCoefficientShift, 5) + '。中心根各移动 g=' + format(data.rootShift, 5) + '。' +
+        (data.rootsResolved ? '表中小数仍可能因显示位数而相同，应结合 c−g 与 c+g 读。' : '当前浮点绝对坐标不能分辨全部位移；数学上仍是三个单根，局部坐标保留 u=±1。') +
+        ' 局部纵轴也做了缩放，不能把两张图的高度直接比较；曲线不是根的证明。</p></div></div>';
     }
 
     function mount(rootElement, api) {
@@ -309,8 +320,9 @@
           button.setAttribute("aria-pressed", "false");
           button.addEventListener("click", function () {
             predictions[question.id] = option.id;
-            renderPrediction();
-            refs.feedback.textContent = "预测已记录；结果仍隐藏。";
+            state.revealed = false;
+            render();
+            refs.feedback.textContent = "预测已记录；请重新核对后揭示。";
             refs.feedback.className = "pr-feedback";
           });
           choices[question.id].push({ id: option.id, node: button });
@@ -319,10 +331,13 @@
         questionHost.appendChild(fieldset);
       });
 
+      var presetButtons = [];
       PRESETS.forEach(function (preset) {
         var button = doc.createElement("button");
         button.type = "button";
         button.textContent = preset.label;
+        button.setAttribute("data-preset", preset.id);
+        presetButtons.push({ node: button, preset: preset });
         button.addEventListener("click", function () {
           state.center = preset.center;
           state.anchor = preset.anchor;
@@ -332,6 +347,8 @@
           refs.gap.value = String(state.gap);
           predictions = {};
           state.revealed = false;
+          refs.feedback.textContent = "已切换预设；请完成预测后揭示。";
+          refs.feedback.className = "pr-feedback";
           render();
         });
         rootElement.querySelector('[data-role="presets"]').appendChild(button);
@@ -357,6 +374,7 @@
         rootElement.querySelector('[data-role="anchor-output"]').textContent = format(state.anchor, 2);
         rootElement.querySelector('[data-role="gap-output"]').textContent = format(state.gap, 2);
         renderPrediction();
+        presetButtons.forEach(function (entry) { entry.node.setAttribute("aria-pressed", ["center", "anchor", "gap"].every(function (key) { return state[key] === entry.preset[key]; }) ? "true" : "false"); });
         refs.result.hidden = !state.revealed;
         if (state.revealed) {
           var data = evaluate(state);
@@ -371,9 +389,7 @@
         state.center = Number(refs.center.value);
         state.anchor = Number(refs.anchor.value);
         state.gap = Number(refs.gap.value);
-        predictions = {};
-        state.revealed = false;
-        refs.feedback.textContent = "参数已改变，请重新预测；结果再次隐藏。";
+        refs.feedback.textContent = state.revealed ? "参数已更新；保持同一组理论判断，比较根与系数的变化。" : "参数已更新；请先完成预测。";
         refs.feedback.className = "pr-feedback";
         render();
       }
@@ -406,6 +422,7 @@
         refs.feedback.textContent = "四题都选完后，结果才会出现。";
         refs.feedback.className = "pr-feedback";
         render();
+        choices.touch[0].node.focus();
         announce("多项式根实验已重置，结果再次隐藏。");
       });
       render();
@@ -444,6 +461,9 @@
       QUESTIONS: QUESTIONS,
       coefficients: coefficients,
       polynomialValue: polynomialValue,
+      factoredValue: factoredValue,
+      localValue: localValue,
+      format: format,
       evaluate: evaluate,
       mount: mount,
       selfTest: selfTest
