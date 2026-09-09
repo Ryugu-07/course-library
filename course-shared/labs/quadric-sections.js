@@ -34,7 +34,6 @@
     var SVG_NS = "http://www.w3.org/2000/svg";
     var STYLE_ID = "cl-quadric-sections-style";
     var INSTANCE = 0;
-    var EPS = 1e-9;
     var DEFAULTS = { modelId: "ellipsoid", axis: 2, slice: 0, angle: 25 };
 
     var MODELS = [
@@ -90,6 +89,9 @@
       }
     ];
 
+    MODELS=MODELS.concat([{"id": "saddle", "label": "双曲抛物面", "lambda": [1, -1, 0], "linear": [0, 0, -1], "rho": 0, "center": [0, 0, 0], "angle": 0, "global": "双曲抛物面"}, {"id": "elliptic-cylinder", "label": "椭圆柱面", "lambda": [1, 2, 0], "linear": [0, 0, 0], "rho": 1, "center": [0, 0, 0], "angle": 0, "global": "椭圆柱面"}, {"id": "hyperbolic-cylinder", "label": "双曲柱面", "lambda": [1, -1, 0], "linear": [0, 0, 0], "rho": 1, "center": [0, 0, 0], "angle": 0, "global": "双曲柱面"}, {"id": "parabolic-cylinder", "label": "抛物柱面", "lambda": [1, 0, 0], "linear": [0, -1, 0], "rho": 0, "center": [0, 0, 0], "angle": 0, "global": "抛物柱面"}, {"id": "point", "label": "单点", "lambda": [1, 2, 3], "linear": [0, 0, 0], "rho": 0, "center": [0, 0, 0], "angle": 0, "global": "单点"}, {"id": "intersecting-planes", "label": "相交平面对", "lambda": [1, -1, 0], "linear": [0, 0, 0], "rho": 0, "center": [0, 0, 0], "angle": 0, "global": "相交平面对"}, {"id": "parallel-planes", "label": "平行平面对", "lambda": [1, 0, 0], "linear": [0, 0, 0], "rho": 1, "center": [0, 0, 0], "angle": 0, "global": "平行平面对"}, {"id": "double-plane", "label": "重合平面", "lambda": [1, 0, 0], "linear": [0, 0, 0], "rho": 0, "center": [0, 0, 0], "angle": 0, "global": "重合平面"}, {"id": "empty", "label": "空集", "lambda": [1, 2, 3], "linear": [0, 0, 0], "rho": -1, "center": [0, 0, 0], "angle": 0, "global": "空集"}]);
+    MODELS.forEach(function(m){[m.lambda,m.linear,m.center].forEach(Object.freeze);Object.freeze(m);});Object.freeze(MODELS);
+
     var STYLE_TEXT = [
       ".qs-lab{--qs-blue:var(--cl-blue,#315f9d);--qs-gold:var(--cl-gold,#9b6a12);--qs-green:var(--cl-green,#39734d);--qs-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
       ".qs-lab *,.qs-lab *::before,.qs-lab *::after{box-sizing:border-box;}.qs-lab [hidden]{display:none!important;}",
@@ -101,13 +103,14 @@
       ".qs-lab .qs-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.qs-lab .qs-actions>*{flex:1 1 155px;}.qs-lab .qs-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.qs-lab .qs-pass,.qs-lab .qs-ok{color:var(--qs-green);}.qs-lab .qs-warn,.qs-lab .qs-fail{color:var(--qs-red);}",
       ".qs-lab .qs-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px 16px;margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.qs-lab .qs-control{display:grid;gap:5px;min-width:0;}.qs-lab .qs-control label{color:var(--fg-soft);font-size:13px;font-weight:700;}.qs-lab .qs-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
       ".qs-lab .qs-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:12px 0;}.qs-lab .qs-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.qs-lab .qs-metric.qs-blue{border-top-color:var(--qs-blue);}.qs-lab .qs-metric.qs-gold{border-top-color:var(--qs-gold);}.qs-lab .qs-metric.qs-green{border-top-color:var(--qs-green);}.qs-lab .qs-metric.qs-red{border-top-color:var(--qs-red);}.qs-lab .qs-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.qs-lab .qs-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".qs-lab .qs-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.qs-lab .qs-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,1.12fr);gap:14px;margin-top:12px;}.qs-lab .qs-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.qs-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.qs-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.qs-lab .qs-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.qs-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.qs-lab th,.qs-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.qs-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.qs-lab .qs-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--qs-green);background:var(--bg);font-size:13px;line-height:1.7;}",
-      "@media(max-width:820px){.qs-lab .qs-controls,.qs-lab .qs-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}",
+      ".qs-lab .qs-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.qs-lab .qs-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px;}.qs-lab .qs-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}.qs-lab svg{display:block;width:100%;min-width:760px;max-width:none;height:auto;color:var(--fg);}.qs-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.qs-lab .qs-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.qs-lab table{display:table;width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.qs-lab th,.qs-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.qs-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.qs-lab .qs-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--qs-green);background:var(--bg);font-size:13px;line-height:1.7;}",
+      "@media(max-width:820px){.qs-lab .qs-controls{grid-template-columns:repeat(2,minmax(0,1fr));}}",
       "@media(max-width:560px){.qs-lab .qs-controls,.qs-lab .qs-grid{grid-template-columns:minmax(0,1fr);}.qs-lab .qs-choice-row{grid-template-columns:minmax(0,1fr);}}",
       "@media(max-width:420px){.qs-lab .qs-predict{padding-left:11px;padding-right:11px;}.qs-lab th,.qs-lab td{padding-left:5px;padding-right:5px;}}",
       "@media(prefers-reduced-motion:reduce){.qs-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
     ].join("\n");
 
+    STYLE_TEXT+='\n[data-theme="dark"] .qs-lab{--qs-blue:#8ab6e8;--qs-gold:#e0bc67;--qs-green:#8bc4a0;--qs-red:#f09b8e}.qs-chart-frame:focus-visible,.qs-ledger:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}';
     function finite(value) {
       return typeof value === "number" && isFinite(value);
     }
@@ -118,9 +121,9 @@
 
     function formatNumber(value, digits) {
       if (!finite(value)) return "—";
-      if (Math.abs(value) < 5e-12) return "0";
+      if(value!==0&&(Math.abs(value)<.001||Math.abs(value)>=10000))return value.toExponential(4);
       var text = Number(value).toFixed(digits === undefined ? 3 : digits);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
+      return (text.includes(".")?text.replace(/0+$/, "").replace(/\.$/, ""):text).replace(/^-0$/,"0");
     }
 
     function modelById(id) {
@@ -139,7 +142,7 @@
     }
 
     function rotationMatrix(angle) {
-      var t = Number(angle) * Math.PI / 180;
+      boundedNumber(angle,-360,360,"angle");var t = angle * Math.PI / 180;
       var c = Math.cos(t), s = Math.sin(t);
       return [[c, -s, 0], [s, c, 0], [0, 0, 1]];
     }
@@ -165,45 +168,28 @@
       return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     }
 
-    function sectionKind(a, b, l1, l2, rhs) {
-      var shiftedRhs = rhs;
-      if (Math.abs(a) > EPS) shiftedRhs += l1 * l1 / (4 * a);
-      if (Math.abs(b) > EPS) shiftedRhs += l2 * l2 / (4 * b);
-      var xCenter = Math.abs(a) > EPS ? -l1 / (2 * a) : 0;
-      var yCenter = Math.abs(b) > EPS ? -l2 / (2 * b) : 0;
-      var kind = "empty";
-      if (Math.abs(a) > EPS && Math.abs(b) > EPS) {
-        if (a * b > 0) {
-          var positiveDefinite = a > 0;
-          var feasible = positiveDefinite ? shiftedRhs > EPS : shiftedRhs < -EPS;
-          var point = Math.abs(shiftedRhs) <= EPS;
-          kind = point ? "point" : feasible ? "ellipse" : "empty";
-        } else {
-          kind = Math.abs(shiftedRhs) <= EPS ? "pair-of-lines" : "hyperbola";
-        }
-      } else if (Math.abs(a) > EPS || Math.abs(b) > EPS) {
-        var zeroLinear = Math.abs(a) <= EPS ? Math.abs(l1) : Math.abs(l2);
-        if (zeroLinear > EPS) {
-          kind = "parabola";
-        } else {
-          var coefficient = Math.abs(a) > EPS ? a : b;
-          var value = shiftedRhs / coefficient;
-          kind = value > EPS ? "parallel-lines" : Math.abs(value) <= EPS ? "double-line" : "empty";
-        }
-      } else {
-        if (Math.abs(l1) > EPS || Math.abs(l2) > EPS) kind = "line";
-        else kind = Math.abs(rhs) <= EPS ? "whole-plane" : "empty";
-      }
-      return {
-        a: a,
-        b: b,
-        l1: l1,
-        l2: l2,
-        rhs: rhs,
-        shiftedRhs: shiftedRhs,
-        center: [xCenter, yCenter],
-        kind: kind
-      };
+    var bitsBuffer=new ArrayBuffer(8),bitsView=new DataView(bitsBuffer);
+    function dyad(x){if(!finite(x))throw new RangeError('finite coordinate required');if(x===0)return{n:0n,e:0};bitsView.setFloat64(0,x,false);var bits=bitsView.getBigUint64(0,false),exponent=Number((bits>>52n)&2047n),mantissa=bits&((1n<<52n)-1n);if(exponent)mantissa+=1n<<52n;return{n:(bits>>63n)?-mantissa:mantissa,e:exponent?exponent-1075:-1074};}
+    function plus(a,b){if(a.n===0n)return b;if(b.n===0n)return a;var e=Math.min(a.e,b.e);return{n:(a.n<<BigInt(a.e-e))+(b.n<<BigInt(b.e-e)),e:e};}
+    function neg(a){return{n:-a.n,e:a.e};}function minus(a,b){return plus(a,neg(b));}function times(a,b){return{n:a.n*b.n,e:a.e+b.e};}
+    function dDot(a,b){return a.reduce(function(s,x,i){return plus(s,times(x,b[i]));},{n:0n,e:0});}
+    function dCross(a,b){return[minus(times(a[1],b[2]),times(a[2],b[1])),minus(times(a[2],b[0]),times(a[0],b[2])),minus(times(a[0],b[1]),times(a[1],b[0]))];}
+    function parts(a){if(a.n===0n)return{m:0,e:0};var sign=a.n<0n?-1:1,n=a.n<0n?-a.n:a.n,bits=n.toString(2).length,shift=Math.max(0,bits-54);return{m:sign*Number(n>>BigInt(shift))/Math.pow(2,bits-shift-1),e:a.e+bits-1};}
+    function scaledFloat(m,e){if(m===0)return 0;if(Math.abs(m)<1){m*=2;e--;}if(Math.abs(m)>=2){m/=2;e++;}if(e>1023)return m>0?Infinity:-Infinity;if(e<-1075)return m>0?0:-0;return e<-1022?m*Math.pow(2,e+1074)*Number.MIN_VALUE:m*Math.pow(2,e);}
+    function dValue(a){var p=parts(a);return scaledFloat(p.m,p.e);}
+    function ratio(a,b){if(b.n===0n)throw new RangeError('zero exact denominator');if(a.n===0n)return 0;var x=parts(a),y=parts(b);return scaledFloat(x.m/y.m,x.e-y.e);}
+    function boundedNumber(value,lo,hi,label){if(!finite(value)||value<lo||value>hi)throw new RangeError(label+' outside supported range');return value;}
+    function sqrtExactRatio(a,b){if(a.n===0n)return 0;var x=parts(a),y=parts(b),m=Math.abs(x.m/y.m),e=x.e-y.e;if(e%2!==0){m*=2;e--;}return scaledFloat(Math.sqrt(m),e/2);}
+    function sectionKind(a,b,l1,l2,rhs,exactRhs){
+      [a,b,l1,l2,rhs].forEach(function(x){if(!finite(x))throw new RangeError('finite conic coefficients required');});
+      var coefficients=[a,b],linear=[l1,l2],num=exactRhs||dyad(rhs),den=dyad(1),center=[0,0];
+      coefficients.forEach(function(c,i){if(c!==0){var divisor=times(dyad(4),dyad(c));num=plus(times(num,divisor),times(times(dyad(linear[i]),dyad(linear[i])),den));den=times(den,divisor);center[i]=ratio(neg(dyad(linear[i])),times(dyad(2),dyad(c)));}});
+      var sign=num.n===0n?0:(num.n>0n?1:-1)*(den.n>0n?1:-1),kind;
+      if(a!==0&&b!==0){if((a>0)===(b>0))kind=sign===0?'point':sign===(a>0?1:-1)?'ellipse':'empty';else kind=sign===0?'pair-of-lines':'hyperbola';}
+      else if(a!==0||b!==0){var qi=a!==0?0:1;if(linear[1-qi]!==0)kind='parabola';else kind=sign===0?'double-line':sign===(coefficients[qi]>0?1:-1)?'parallel-lines':'empty';}
+      else kind=l1!==0||l2!==0?'line':sign===0?'whole-plane':'empty';
+      return {a:a,b:b,l1:l1,l2:l2,rhs:rhs,rhsNonzero:(exactRhs||dyad(rhs)).n!==0n,shiftedRhs:ratio(num,den),shiftedSign:sign,center:center,kind:kind,
+        radii:coefficients.map(function(c){return c===0?null:sqrtExactRatio(num,times(den,dyad(c)));})};
     }
 
     function kindLabel(kind) {
@@ -224,28 +210,32 @@
     function equationText(section) {
       return formatNumber(section.a, 2) + " X² + " + formatNumber(section.b, 2) + " Y² + " +
         formatNumber(section.l1, 2) + " X + " + formatNumber(section.l2, 2) + " Y = " +
-        formatNumber(section.rhs, 2);
+        (section.rhs===0&&section.rhsNonzero?"非零（数值下溢）":formatNumber(section.rhs, 4));
     }
 
     function analyze(options) {
-      var settings = options || {};
-      var model = modelById(settings.modelId || DEFAULTS.modelId);
-      var axis = Number(settings.axis === undefined ? DEFAULTS.axis : settings.axis);
-      var slice = Number(settings.slice === undefined ? DEFAULTS.slice : settings.slice);
-      var angle = Number(settings.angle === undefined ? model.angle : settings.angle);
+      var settings=options===undefined?{}:options;if(!settings||typeof settings!=="object"||Array.isArray(settings))throw new TypeError("options must be object");
+      var model = modelById(settings.modelId === undefined ? DEFAULTS.modelId : settings.modelId);
+      var axis = (settings.axis === undefined ? DEFAULTS.axis : settings.axis);
+      var slice = (settings.slice === undefined ? DEFAULTS.slice : settings.slice);
+      var angle = (settings.angle === undefined ? model.angle : settings.angle);
       if (!finite(axis) || Math.floor(axis) !== axis || axis < 0 || axis > 2) {
         throw new Error("Axis must be an integer from 0 to 2");
       }
-      if (!finite(slice)) throw new Error("Slice position must be finite");
-      if (!finite(angle)) throw new Error("Rotation angle must be finite");
+      boundedNumber(slice,-4,4,"slice");
+      boundedNumber(angle,-360,360,"angle");
       var rest = remainingAxes(axis);
-      var rhs = model.rho - model.lambda[axis] * slice * slice - model.linear[axis] * slice;
+      var symbolic=settings.slicePreset==="positive-tangent";
+      if(settings.slicePreset!==undefined&&settings.slicePreset!==null&&!symbolic)throw new RangeError("unknown slice preset");
+      if(symbolic){if(model.id!=="ellipsoid"||axis!==2)throw new RangeError("symbolic tangent requires ellipsoid w slice");slice=1/Math.sqrt(3);}
+      var S=dyad(slice),rhsExact=symbolic?dyad(0):minus(minus(dyad(model.rho),times(dyad(model.lambda[axis]),times(S,S))),times(dyad(model.linear[axis]),S));
+      var rhs=dValue(rhsExact);
       var section = sectionKind(
         model.lambda[rest[0]],
         model.lambda[rest[1]],
         model.linear[rest[0]],
         model.linear[rest[1]],
-        rhs
+        rhs,rhsExact
       );
       var rotation = rotationMatrix(angle);
       var principalU = [rotation[0][0], rotation[1][0], rotation[2][0]];
@@ -253,6 +243,7 @@
       var principalW = [rotation[0][2], rotation[1][2], rotation[2][2]];
       return {
         model: model,
+        symbolicSlice:symbolic,
         axis: axis,
         axisLabel: axisName(axis),
         slice: slice,
@@ -261,10 +252,14 @@
         rhs: rhs,
         section: section,
         sectionLabel: kindLabel(section.kind),
-        signature: model.lambda.map(function (value) { return value > EPS ? "+" : value < -EPS ? "−" : "0"; }).join(" "),
+        signature: model.lambda.map(function (value) { return value > 0 ? "+" : value < 0 ? "−" : "0"; }).join(" "),
         center: model.center,
         principalAxes: [principalU, principalV, principalW],
-        rotation: rotation
+        rotation: rotation,
+        hasCenter:model.linear.every(function(v,i){return model.lambda[i]!==0||v===0;}),
+        centerUnique:model.lambda.every(function(v){return v!==0;}),
+        worldPlaneNormal:[rotation[0][axis],rotation[1][axis],rotation[2][axis]],
+        worldPlaneConstant:slice+dot3([rotation[0][axis],rotation[1][axis],rotation[2][axis]],model.center)
       };
     }
 
@@ -287,153 +282,45 @@
       ];
     }
 
-    function appendLine(points, pointAt) {
-      for (var t = -4.8; t <= 4.8001; t += 0.08) points.push(pointAt(t));
-      points.push(null);
-    }
-
-    function sectionCurve(data) {
-      var section = data.section;
-      var points = [];
-      var a = section.a, b = section.b, l1 = section.l1, l2 = section.l2;
-      if (section.kind === "ellipse" || section.kind === "hyperbola") {
-        for (var i = 0; i <= 360; i += 1) {
-          var theta = 2 * Math.PI * i / 360;
-          var dx = Math.cos(theta), dy = Math.sin(theta);
-          var qDirection = a * dx * dx + b * dy * dy;
-          var ratio = qDirection === 0 ? -1 : section.shiftedRhs / qDirection;
-          if (ratio > EPS) {
-            var radius = Math.sqrt(ratio);
-            points.push([section.center[0] + radius * dx, section.center[1] + radius * dy]);
-          } else {
-            points.push(null);
-          }
-        }
-      } else if (section.kind === "parabola") {
-        var quadraticIndex = Math.abs(a) > EPS ? 0 : 1;
-        var quadratic = quadraticIndex === 0 ? a : b;
-        var linear = quadraticIndex === 0 ? l2 : l1;
-        for (var p = -3; p <= 3.0001; p += 0.05) {
-          var other = (section.rhs - quadratic * p * p) / linear;
-          points.push(quadraticIndex === 0 ? [p, other] : [other, p]);
-        }
-      } else if (section.kind === "pair-of-lines") {
-        var slope = Math.sqrt(-a / b);
-        appendLine(points, function (x) {
-          return [section.center[0] + x, section.center[1] + slope * x];
-        });
-        appendLine(points, function (x) {
-          return [section.center[0] + x, section.center[1] - slope * x];
-        });
-      } else if (section.kind === "parallel-lines" || section.kind === "double-line") {
-        var alongX = Math.abs(a) > EPS;
-        var coefficient = alongX ? a : b;
-        var offset = section.kind === "double-line" ? 0 : Math.sqrt(section.shiftedRhs / coefficient);
-        var offsets = section.kind === "double-line" ? [0] : [-offset, offset];
-        offsets.forEach(function (lineOffset) {
-          appendLine(points, function (free) {
-            return alongX
-              ? [section.center[0] + lineOffset, free]
-              : [free, section.center[1] + lineOffset];
-          });
-        });
-      } else if (section.kind === "line") {
-        if (Math.abs(l2) >= Math.abs(l1)) {
-          appendLine(points, function (x) { return [x, (section.rhs - l1 * x) / l2]; });
-        } else {
-          appendLine(points, function (y) { return [(section.rhs - l2 * y) / l1, y]; });
-        }
-      } else if (section.kind === "point") {
-        points.push(section.center);
-      }
+    function sectionCurve(data){
+      var s=data.section,a=s.a,b=s.b,l1=s.l1,l2=s.l2,points=[];
+      function sample(fn,lo,hi,n){for(var i=0;i<=n;i++)points.push(fn(lo+(hi-lo)*i/n));points.push(null);}
+      if(s.kind==='ellipse')sample(function(t){return[s.center[0]+s.radii[0]*Math.cos(t),s.center[1]+s.radii[1]*Math.sin(t)];},0,2*Math.PI,360);
+      else if(s.kind==='hyperbola'){
+        var active=s.shiftedSign===(a>0?1:-1)?0:1,other=1-active;
+        var coeff=[a,b],slope=Math.sqrt(Math.abs(coeff[other]/coeff[active]));
+        [-1,1].forEach(function(sign){sample(function(t){var p=s.center.slice();p[active]+=sign*Math.hypot(s.radii[active],slope*(t-s.center[other]));p[other]=t;return p;},-4,4,800);});
+      }else if(s.kind==='parabola'){
+        var qi=a!==0?0:1,coefficient=qi===0?a:b,linear=qi===0?l2:l1,ownLinear=qi===0?l1:l2;
+        sample(function(t){var p=[];p[qi]=t;p[1-qi]=(s.rhs-coefficient*t*t-ownLinear*t)/linear;return p;},-4,4,400);
+      }else if(s.kind==='pair-of-lines'){
+        var slope=Math.sqrt(Math.abs(a))/Math.sqrt(Math.abs(b));[-1,1].forEach(function(sign){sample(function(t){return[s.center[0]+t,s.center[1]+sign*slope*t];},-4,4,2);});
+      }else if(s.kind==='parallel-lines'||s.kind==='double-line'){
+        var q=a!==0?0:1;(s.kind==='double-line'?[0]:[-s.radii[q],s.radii[q]]).forEach(function(offset){sample(function(t){var p=[];p[q]=s.center[q]+offset;p[1-q]=t;return p;},-4,4,2);});
+      }else if(s.kind==='line'){
+        sample(function(t){return Math.abs(l2)>=Math.abs(l1)?[t,(s.rhs-l1*t)/l2]:[(s.rhs-l2*t)/l1,t];},-4,4,2);
+      }else if(s.kind==='point')points.push(s.center);
       return points;
     }
-
-    function contourSvg(doc, data, uid) {
-      var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 500 320",
-        role: "img",
-        "aria-labelledby": uid + "-svg-title " + uid + "-svg-desc"
-      });
-      svg.appendChild(svgNode(doc, "title", { id: uid + "-svg-title" }, "二次曲面指定截面"));
-      svg.appendChild(svgNode(doc, "desc", { id: uid + "-svg-desc" }, "图中只显示选定主轴截面的二维曲线，不能代替三维全局分类。"));
-      var points = sectionCurve(data);
-      var maxAbs = 2.6;
-      points.forEach(function (point) {
-        if (point) {
-          var projected = projectSectionPoint(data, point);
-          maxAbs = Math.max(maxAbs, Math.abs(projected[0]) + 0.4, Math.abs(projected[1]) + 0.4);
-        }
-      });
-      maxAbs = Math.min(6, maxAbs);
-      var left = 42, top = 22, width = 420, height = 254;
-      var mapX = function (value) { return left + (value + maxAbs) / (2 * maxAbs) * width; };
-      var mapY = function (value) { return top + (maxAbs - value) / (2 * maxAbs) * height; };
-      var ox = mapX(0), oy = mapY(0);
-      for (var tick = -Math.floor(maxAbs); tick <= Math.floor(maxAbs); tick += 1) {
-        if (tick !== 0) {
-          svg.appendChild(svgNode(doc, "line", { x1: mapX(tick), y1: top, x2: mapX(tick), y2: top + height, stroke: "currentColor", "stroke-opacity": "0.12" }));
-          svg.appendChild(svgNode(doc, "line", { x1: left, y1: mapY(tick), x2: left + width, y2: mapY(tick), stroke: "currentColor", "stroke-opacity": "0.12" }));
-        }
-      }
-      svg.appendChild(svgNode(doc, "line", { x1: left, y1: oy, x2: left + width, y2: oy, stroke: "currentColor", "stroke-opacity": "0.55" }));
-      svg.appendChild(svgNode(doc, "line", { x1: ox, y1: top, x2: ox, y2: top + height, stroke: "currentColor", "stroke-opacity": "0.55" }));
-      if (data.section.kind === "whole-plane") {
-        svg.appendChild(svgNode(doc, "rect", {
-          x: left,
-          y: top,
-          width: width,
-          height: height,
-          fill: "var(--qs-blue)",
-          "fill-opacity": "0.1",
-          stroke: "var(--qs-blue)",
-          "stroke-dasharray": "6 5"
-        }));
-      }
-      var path = "";
-      var open = false;
-      points.forEach(function (point) {
-        if (!point) {
-          open = false;
-          return;
-        }
-        var plotted = projectSectionPoint(data, point);
-        var x = plotted[0];
-        var y = plotted[1];
-        if (!finite(x) || !finite(y) || Math.abs(x) > maxAbs * 1.2 || Math.abs(y) > maxAbs * 1.2) {
-          open = false;
-          return;
-        }
-        path += (open ? "L" : "M") + mapX(x) + " " + mapY(y) + " ";
-        open = true;
-      });
-      if (path) {
-        svg.appendChild(svgNode(doc, "path", {
-          d: path,
-          fill: "none",
-          stroke: "var(--qs-blue)",
-          "stroke-width": "2.8",
-          "stroke-linecap": "round",
-          "stroke-linejoin": "round"
-        }));
-      }
-      if (data.section.kind === "point") {
-        var pointPlotted = projectSectionPoint(data, data.section.center);
-        svg.appendChild(svgNode(doc, "circle", { cx: mapX(pointPlotted[0]), cy: mapY(pointPlotted[1]), r: "5", fill: "var(--qs-red)" }));
-      }
-      if (data.section.kind === "empty" || data.section.kind === "whole-plane") {
-        svg.appendChild(svgNode(doc, "text", {
-          x: left + width / 2,
-          y: top + height / 2,
-          "font-size": "15",
-          "font-weight": "700",
-          "text-anchor": "middle"
-        }, data.section.kind === "empty" ? "无实点" : "每一点都满足方程"));
-      }
-      svg.appendChild(svgNode(doc, "text", { x: left, y: 15, "font-size": "13", "font-weight": "700" }, axisName(data.axis) + "=" + formatNumber(data.slice, 2) + " 截面：" + data.sectionLabel));
-      svg.appendChild(svgNode(doc, "text", { x: left + width - 4, y: oy - 8, "font-size": "11", "text-anchor": "end" }, "截面坐标 X"));
-      svg.appendChild(svgNode(doc, "text", { x: ox + 7, y: top + 12, "font-size": "11" }, "Y"));
-      return svg;
+    function contourSvg(doc,data,uid){
+      var svg=svgNode(doc,'svg',{viewBox:'0 0 760 665',role:'img','aria-labelledby':uid+'-svg-title '+uid+'-svg-desc'}),left=100,top=70,size=480;
+      function add(tag,attrs,text){var el=svgNode(doc,tag,attrs,text);svg.appendChild(el);return el;}function txt(x,y,text,attrs){add('text',Object.assign({x:x,y:y,'font-size':13},attrs||{}),text);}
+      function X(v){return left+60*(v+4);}function Y(v){return top+60*(4-v);}
+      add('title',{id:uid+'-svg-title'},'主轴坐标中的实际切片');add('desc',{id:uid+'-svg-desc'},'横纵坐标单位比例相同，窗口均为负4到4。曲线经绘图区域裁剪，坐标架随模型旋转；空图不自动表示空集。');
+      var defs=add('defs',{}),clip=svgNode(doc,'clipPath',{id:uid+'-clip'});clip.appendChild(svgNode(doc,'rect',{x:left,y:top,width:size,height:size}));defs.appendChild(clip);
+      txt(25,28,(data.symbolicSlice?'w=1/√3（符号预设）':data.axisLabel+'='+formatNumber(data.slice,4))+'：'+data.sectionLabel,{'font-size':16,'font-weight':700});
+      txt(25,50,'截面坐标 X='+axisName(data.rest[0])+'，Y='+axisName(data.rest[1])+'；同为主轴单位坐标');
+      for(var t=-4;t<=4;t++){add('line',{x1:X(t),x2:X(t),y1:top,y2:top+size,stroke:'currentColor','stroke-opacity':t===0?.5:.12});add('line',{x1:left,x2:left+size,y1:Y(t),y2:Y(t),stroke:'currentColor','stroke-opacity':t===0?.5:.12});txt(X(t),top+size+24,String(t),{'text-anchor':'middle'});txt(left-15,Y(t)+4,String(t),{'text-anchor':'end'});}
+      txt(left+size+20,top+size+4,'X');txt(left-3,top-12,'Y');
+      var group=add('g',{'clip-path':'url(#'+uid+'-clip)'}),points=sectionCurve(data),path='',open=false;
+      points.forEach(function(p){if(!p||!p.every(finite)){open=false;return;}path+=(open?'L':'M')+X(p[0])+' '+Y(p[1])+' ';open=true;});
+      if(path)group.appendChild(svgNode(doc,'path',{d:path,fill:'none',stroke:'var(--qs-blue)','stroke-width':2.6,'data-contour':'true'}));
+      if(data.section.kind==='point')group.appendChild(svgNode(doc,'circle',{cx:X(data.section.center[0]),cy:Y(data.section.center[1]),r:5,fill:'var(--qs-red)'}));
+      if(data.section.kind==='whole-plane')group.appendChild(svgNode(doc,'rect',{x:left,y:top,width:size,height:size,fill:'var(--qs-blue)','fill-opacity':.15}));
+      if(data.section.kind==='empty'||data.section.kind==='whole-plane')txt(left+size/2,top+size/2,data.section.kind==='empty'?'无实点':'整个切平面都满足方程',{'text-anchor':'middle','font-size':17});
+      txt(25,606,'固定视窗 [−4,4]²；曲线超出视窗的部分未画出。');
+      txt(25,630,'旋转时图轴随主轴一起转动，轮廓不变；世界切平面见下表。');
+      txt(25,652,data.symbolicSlice?'此按钮按精确代数切点计算；滑动后恢复普通数值输入。':'分类针对输入数值，不把接近零的右端直接改为零。');return svg;
     }
 
     function element(doc, tag, attrs, children) {
@@ -494,7 +381,7 @@
       choices.forEach(function (choice) {
         var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice.label });
         button.addEventListener("click", function () {
-          refs.state.predictions[key] = choice.value;
+          refs.state.predictions[key] = choice.value;refs.state.revealed=false;refs.controls.hidden=true;refs.results.hidden=true;
           renderPrediction(refs);
         });
         refs[key].push({ value: choice.value, node: button });
@@ -519,37 +406,38 @@
 
     function renderResults(refs) {
       var state = refs.state;
-      var data = analyze({ modelId: state.modelId, axis: state.axis, slice: state.slice, angle: state.angle });
+      var data = analyze({ modelId: state.modelId, axis: state.axis, slice: state.slice, angle: state.angle, slicePreset:state.slicePreset });
       refs.modelSelect.value = state.modelId;
       refs.axisSelect.value = String(state.axis);
       refs.sliceInput.value = String(state.slice);
-      refs.sliceOutput.textContent = formatNumber(state.slice, 2);
+      refs.sliceOutput.textContent = data.symbolicSlice?"1/√3 ≈ "+formatNumber(data.slice,6):formatNumber(state.slice,4);
       refs.angleInput.value = String(state.angle);
       refs.angleOutput.textContent = formatNumber(state.angle, 1);
       refs.summary.textContent =
-        data.model.global + "；当前 " + data.axisLabel + "=" + formatNumber(data.slice, 2) +
+        data.model.global + "；当前 " + (data.symbolicSlice?"w=1/√3（符号预设）":data.axisLabel + "=" + formatNumber(data.slice, 4)) +
         " 的截面是" + data.sectionLabel + "。图像只呈现这个截面的证据。";
       refs.summary.className = "qs-interpretation " + (data.section.kind === "empty" ? "qs-warn" : "qs-ok");
       replaceChildren(refs.metrics, [
         metric(refs.doc, "全局模型", data.model.global, "qs-blue"),
         metric(refs.doc, "特征值符号", data.signature, "qs-gold"),
-        metric(refs.doc, "中心", "(" + data.center.map(function (value) { return formatNumber(value, 2); }).join(", ") + ")", "qs-blue"),
+        metric(refs.doc, "配方中心",data.hasCenter?(data.centerUnique?"唯一":"不唯一：沿零方向"):"不存在（有顶点或顶线）", "qs-blue"),
         metric(refs.doc, "主轴旋转", formatNumber(data.angle, 1) + "°", "qs-green"),
         metric(refs.doc, "当前截面", data.sectionLabel, data.section.kind === "empty" ? "qs-red" : "qs-green")
       ]);
       replaceChildren(refs.chart, [
-        element(refs.doc, "h4", { text: "真实 SVG 截面图" }),
-        element(refs.doc, "div", { className: "qs-chart-frame" }, contourSvg(refs.doc, data, refs.uid))
+        element(refs.doc, "h4", { text: "随主轴转动的截面坐标图" }),
+        element(refs.doc, "div", { className: "qs-chart-frame",tabindex:"0",role:"region","aria-label":"可横向滚动的二次曲面截面图" }, contourSvg(refs.doc, data, refs.uid))
       ]);
       var axes = data.principalAxes;
       var rows = [
         ["二次项 λ", data.model.lambda.map(function (value) { return formatNumber(value, 2); }).join(", "), "特征值符号：" + data.signature],
-        ["平移中心 c", data.center.map(function (value) { return formatNumber(value, 2); }).join(", "), "配方后中心"],
+        ["平移基点 c", data.center.map(function (value) { return formatNumber(value, 2); }).join(", "), data.hasCenter?"此基点是一个代数中心":"基点不是中心；核上一次项仍在"],
         ["主轴 eᵤ", axes[0].map(function (value) { return formatNumber(value, 2); }).join(", "), "旋转后的特征方向"],
         ["主轴 eᵥ", axes[1].map(function (value) { return formatNumber(value, 2); }).join(", "), "旋转后的特征方向"],
         ["主轴 e𝓌", axes[2].map(function (value) { return formatNumber(value, 2); }).join(", "), "旋转后的特征方向"],
-        ["截面方程", equationText(data.section), "右端 / 配方值 = " + formatNumber(data.section.shiftedRhs, 3)],
-        ["截面边界", data.sectionLabel, "只对 " + data.axisLabel + "=" + formatNumber(data.slice, 2) + " 有效"]
+        ["截面方程", equationText(data.section), "配方值 ≈ " + (data.section.shiftedRhs===0&&data.section.shiftedSign!==0?"非零（数值下溢）":formatNumber(data.section.shiftedRhs, 4))],
+        ["截面边界",data.sectionLabel,data.symbolicSlice?"符号切点 w=1/√3":"数值切片 "+data.axisLabel+"="+formatNumber(data.slice,4)],
+        ["世界切平面",data.worldPlaneNormal.map(function(v,i){return formatNumber(v,4)+["x","y","z"][i];}).join(" + ")+" = "+formatNumber(data.worldPlaneConstant,4),"法向与常数为近似读数；符号切点单独标注"]
       ];
       replaceChildren(refs.ledgerBody, rows.map(function (row) {
         return element(refs.doc, "tr", {}, [
@@ -559,7 +447,7 @@
         ]);
       }));
       refs.boundary.textContent =
-        "三层分开读：λ 的符号是全局二次项证据，中心 c 来自平移配方，eᵤ,eᵥ,e𝓌 来自主轴旋转。" +
+        "三层分开读：λ 的符号是全局二次项证据，基点 c 定位坐标架，是否有中心须检查核上的一次项，eᵤ,eᵥ,e𝓌 来自主轴旋转。" +
         " 当前 SVG 和截面表只检查一个二维切片，不能单独证明整个三维曲面的连通性或分类。";
     }
 
@@ -590,7 +478,7 @@
         { value: "unbounded", label: "必沿零方向延伸" }
       ]));
       questionList.appendChild(choiceQuestion(doc, refs, "moves", "2. 平移配方与旋转主轴各负责什么？", [
-        { value: "separate", label: "平移消一次项，旋转消交叉项" },
+        { value: "separate", label: "平移处理一次项，旋转消交叉项" },
         { value: "same", label: "两者完全同一操作" },
         { value: "slice-only", label: "只影响截面，不影响方程" }
       ]));
@@ -610,7 +498,7 @@
       prediction.appendChild(refs.feedback);
       shell.appendChild(prediction);
 
-      var controls = element(doc, "section", { className: "qs-controls", hidden: true, "aria-label": "二次曲面参数" });
+      var controls = element(doc, "section", { className: "qs-controls", hidden: true, "aria-label": "二次曲面参数" });refs.controls=controls;
       refs.modelSelect = element(doc, "select", { "aria-label": "选择二次曲面模型" });
       MODELS.forEach(function (model) {
         refs.modelSelect.appendChild(element(doc, "option", { value: model.id, text: model.label }));
@@ -631,7 +519,7 @@
       controls.appendChild(element(doc, "div", { className: "qs-control" }, [element(doc, "label", { text: "精确退化截面" }), refs.tangentPreset]));
       shell.appendChild(controls);
 
-      var results = element(doc, "section", { className: "qs-results", hidden: true, "aria-labelledby": uid + "-results-title" });
+      var results = element(doc, "section", { className: "qs-results", hidden: true, tabindex:"-1", "aria-labelledby": uid + "-results-title" });
       refs.results = results;
       results.appendChild(element(doc, "h4", { id: uid + "-results-title", text: "揭示后的证据账本" }));
       refs.summary = element(doc, "p", { className: "qs-interpretation", "aria-live": "polite" });
@@ -641,9 +529,9 @@
       var grid = element(doc, "div", { className: "qs-grid" });
       refs.chart = element(doc, "div");
       grid.appendChild(refs.chart);
-      var ledger = element(doc, "div", { className: "qs-ledger" });
+      var ledger = element(doc, "div", { className: "qs-ledger",tabindex:"0",role:"region","aria-label":"可横向滚动的二次曲面读数" });
       var table = element(doc, "table", { "aria-label": "二次曲面全局与截面账本" });
-      table.appendChild(element(doc, "caption", { text: "特征值、平移中心、主轴与指定截面" }));
+      table.appendChild(element(doc, "caption", { text: "特征值、平移基点、主轴与指定截面" }));
       table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, [
         element(doc, "th", { scope: "col", text: "量" }),
         element(doc, "th", { scope: "col", text: "当前值" }),
@@ -681,7 +569,7 @@
         var hits = keys.filter(function (key) { return state.predictions[key] === answers[key]; }).length;
         refs.feedback.textContent = "已揭示：" + hits + "/3 个预测命中；二维截面仍只是局部证据。";
         refs.feedback.className = "qs-feedback " + (hits === 3 ? "qs-pass" : "qs-warn");
-        if (api && typeof api.announce === "function") api.announce(root, refs.feedback.textContent);
+        results.focus();if (api && typeof api.announce === "function") api.announce(root, refs.feedback.textContent);
       });
       reset.addEventListener("click", function () {
         state = {
@@ -693,18 +581,18 @@
           predictions: { signature: null, moves: null, slice: null }
         };
         refs.state = state;
-        render();
+        render();refs.signature[0].node.focus();
       });
       refs.modelSelect.addEventListener("change", function () {
-        state.modelId = refs.modelSelect.value;
+        state.modelId = refs.modelSelect.value;state.slicePreset=null;
         if (state.revealed) renderResults(refs);
       });
       refs.axisSelect.addEventListener("change", function () {
-        state.axis = Number(refs.axisSelect.value);
+        state.axis = Number(refs.axisSelect.value);state.slicePreset=null;
         if (state.revealed) renderResults(refs);
       });
       refs.sliceInput.addEventListener("input", function () {
-        state.slice = Number(refs.sliceInput.value);
+        state.slice = Number(refs.sliceInput.value);state.slicePreset=null;
         if (state.revealed) renderResults(refs);
       });
       refs.angleInput.addEventListener("input", function () {
@@ -714,7 +602,7 @@
       refs.tangentPreset.addEventListener("click", function () {
         state.modelId = "ellipsoid";
         state.axis = 2;
-        state.slice = 1 / Math.sqrt(3);
+        state.slice = 1 / Math.sqrt(3);state.slicePreset="positive-tangent";
         state.angle = 0;
         if (state.revealed) renderResults(refs);
       });
@@ -734,11 +622,11 @@
         }
       }
 
-      assert(MODELS.length === 5, "model count");
+      assert(MODELS.length === 14, "model count");
       var ellipse = analyze({ modelId: "ellipsoid", axis: 2, slice: 0, angle: 25 });
       assert(ellipse.signature === "+ + +", "ellipsoid signature");
       assert(ellipse.section.kind === "ellipse", "ellipsoid horizontal ellipse");
-      var point = analyze({ modelId: "ellipsoid", axis: 2, slice: 1 / Math.sqrt(3), angle: 0 });
+      var point = analyze({ modelId: "ellipsoid", axis: 2, slicePreset:"positive-tangent", angle: 0 });
       assert(point.section.kind === "point", "ellipsoid tangent point");
       var empty = analyze({ modelId: "ellipsoid", axis: 2, slice: 1, angle: 0 });
       assert(empty.section.kind === "empty", "ellipsoid empty slice");
@@ -756,7 +644,7 @@
 
       var coneLines = analyze({ modelId: "cone", axis: 0, slice: 0, angle: 10 });
       assert(coneLines.section.kind === "pair-of-lines", "cone apex gives a line pair");
-      assert(sectionCurve(coneLines).filter(Boolean).length > 100, "line pair has drawable points");
+      assert(sectionCurve(coneLines).filter(Boolean).length === 6, "two exact straight polylines need only endpoints and midpoint");
       var projected = projectSectionPoint(ellipse, [0.7, -0.4]);
       close(projected[0], 0.7, 1e-12, "section projection first coordinate");
       close(projected[1], -0.4, 1e-12, "section projection second coordinate");
@@ -774,6 +662,7 @@
     }
 
     return {
+      formatNumber:formatNumber,contourSvg:contourSvg,rotationMatrix:rotationMatrix,
       DEFAULTS: DEFAULTS,
       MODELS: MODELS,
       sectionKind: sectionKind,

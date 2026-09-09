@@ -30,20 +30,8 @@ def f_quadratic_forms():
     save(fig,"algebra-06-quadratic-forms")
 
 def f_quadrics():
-    fig=plt.figure(figsize=(9.6,3.6))
-    u=np.linspace(0,2*np.pi,40); v=np.linspace(0,np.pi,20)
-    ax=fig.add_subplot(131,projection="3d")
-    X=2*np.outer(np.cos(u),np.sin(v)); Y=np.outer(np.sin(u),np.sin(v)); Z=1.4*np.outer(np.ones_like(u),np.cos(v))
-    ax.plot_surface(X,Y,Z,cmap="Blues",alpha=.85,linewidth=0); ax.set_title("Ellipsoid",fontsize=11); ax.set_axis_off()
-    ax=fig.add_subplot(132,projection="3d")
-    vv=np.linspace(-1.3,1.3,20); U,V=np.meshgrid(u,vv)
-    ax.plot_surface(np.cosh(V)*np.cos(U),np.cosh(V)*np.sin(U),1.3*np.sinh(V),cmap="Blues",alpha=.85,linewidth=0)
-    ax.set_title("Hyperboloid (1 sheet)",fontsize=11); ax.set_axis_off()
-    ax=fig.add_subplot(133,projection="3d")
-    xx=np.linspace(-1.6,1.6,30); Xp,Yp=np.meshgrid(xx,xx)
-    ax.plot_surface(Xp,Yp,Xp**2-Yp**2,cmap="Blues",alpha=.85,linewidth=0)
-    ax.set_title("Saddle (hyperbolic paraboloid)",fontsize=11); ax.set_axis_off()
-    save(fig,"geo-02-quadrics")
+    # Maintained by tools/build_quadrics_figure.py with explicit slices and coordinates.
+    return
 
 def f_curvature():
     t=np.linspace(0,2*np.pi,400); a,b=2,1; x=a*np.cos(t); y=b*np.sin(t)
