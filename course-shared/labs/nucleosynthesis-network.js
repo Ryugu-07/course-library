@@ -212,6 +212,7 @@
     function validateStep(abundance, theta, dt) {
       if (!finite(theta) || theta < .12 || theta > 1.35 || !finite(dt) || dt <= 0 || dt > .5) throw new RangeError("超出步进定义域");
       if (!abundance || typeof abundance !== "object" || Array.isArray(abundance) || Object.keys(abundance).length !== 6 || !SPECIES.every(function(sp){return Object.hasOwn(abundance,sp.id) && finite(abundance[sp.id]) && abundance[sp.id]>=0 && abundance[sp.id]<=1;})) throw new RangeError("非法有效池权重");
+      if (Math.abs(abundanceTotal(abundance)-1)>1e-12) throw new RangeError("有效池权重总和必须为1（允许1e-12舍入误差）");
     }
     function referenceStep(abundance, theta, dt) {
       validateStep(abundance,theta,dt);
@@ -231,7 +232,7 @@
         if (ratio < 1) { tail = nextWeight/(1-ratio); if (tail <= 1e-15) break; }
       }
       if (n>200) throw new Error("矩阵指数参照超出工作预算");
-      return {abundance:sum, tailBound:tail, terms:n+1};
+      return {abundance:sum, tailBound:tail*abundanceTotal(abundance), terms:n+1};
     }
 
     function stepNetwork(abundance, theta, dt) {

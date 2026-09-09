@@ -25,4 +25,8 @@ near(+m.format(10,0),10,0);check(m.format(1e-18)!=='0','small nonzero visible');
 const svg=fs.readFileSync(path.join(__dirname,'../physics-course/images/ap-03-gamow.svg'),'utf8'),kt=1.3,eg=500,e0=Math.cbrt(eg*kt*kt/4),delta=4*Math.sqrt(e0*kt/3);
 for(const id of ['thermal-cost','tunnel-cost','total-cost','kernel','gaussian']){const ps=points(svg.match(new RegExp('<path id="'+id+'" d="([^"]+)"'))[1]);for(const [x,y] of ps){const e=(x-85)/40;let v,bottom,height,max;
  if(id.endsWith('cost')){v=id==='thermal-cost'?e/kt:id==='tunnel-cost'?Math.sqrt(eg/e):e/kt+Math.sqrt(eg/e);bottom=285;height=180;max=40;}else{v=id==='kernel'?(e===0?0:Math.exp(3*e0/kt-e/kt-Math.sqrt(eg/e))):Math.exp(-(((e-e0)/(delta/2))**2));bottom=590;height=190;max=1;}near(y,bottom-height*v/max,1e-8);}}
+
+
+for(const level of [0,.5,1]){const bad=Object.fromEntries(m.SPECIES.map(sp=>[sp.id,level]));assert.throws(()=>m.stepNetwork(bad,1,.5));assert.throws(()=>m.referenceStep(bad,1,.5));checks+=2;}
+
 console.log('nucleosynthesis independent: PASS',{checks,cases:fixture.rows.length,maxError,maxTerms});
