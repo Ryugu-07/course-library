@@ -48,28 +48,8 @@ def fl06_regimes():
 # ══════════ 天体线 ══════════
 
 def ap01_transfer():
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.8, 4.0))
-    tau = np.linspace(0, 6, 400)
-    for I0, c, lab in [(0.0, ACC, r"$I_0=0$"), (2.0, RED, r"$I_0=2S$")]:
-        I = I0*np.exp(-tau) + 1.0*(1-np.exp(-tau))
-        a1.plot(tau, I, color=c, lw=2.4, label=lab)
-    a1.axhline(1.0, color="#999", ls="--", lw=1.3)
-    a1.text(4.2, 1.06, "$S$ (source function)", fontsize=10, color="#666")
-    a1.set_xlabel(r"optical depth  $\tau$"); a1.set_ylabel(r"intensity  $I/S$")
-    a1.set_title(r"$I\to S$ as $\tau\to\infty$", color=INK, fontsize=11.5)
-    a1.legend(frameon=False, fontsize=10)
-    # 谱线形成
-    lam = np.linspace(-4, 4, 600)
-    opac = 1 + 40*np.exp(-lam**2/0.25)
-    Ttau = 1.0/(1+0.55*np.log1p(opac))
-    a2.plot(lam, Ttau/Ttau.max(), color=ACC, lw=2.6)
-    a2.set_xlabel(r"$\Delta\lambda$  (arb.)"); a2.set_ylabel("emergent flux")
-    a2.set_title("Absorption line formation", color=INK, fontsize=11.5)
-    a2.annotate("line core forms\nhigher & cooler", xy=(0, 0.42), xytext=(1.1, 0.60),
-                fontsize=9, color=RED, arrowprops=dict(arrowstyle="->", color=RED))
-    a2.set_ylim(0.3, 1.05)
-    fig.tight_layout()
-    save(fig, "ap-01-radiative-transfer")
+    # Preserve reviewed grey limb and explicit slab line model.
+    _preserve_reviewed_svg("ap-01-radiative-transfer")
 
 
 def ap02_hr():
