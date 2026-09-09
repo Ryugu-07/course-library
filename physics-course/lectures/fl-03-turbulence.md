@@ -1,177 +1,225 @@
 # 流体 III · 湍流与标度律
 
-> **对标**：Frisch《Turbulence》/ Pope《Turbulent Flows》/ Landau §31–34 ｜ **前置**：fl-01、fl-02、asm-03（标度与 RG 的思想）
-> 费曼称湍流为"经典物理最后一个未解的重要问题"。**方程完全已知，解却无从谈起**——这在物理学中极其罕见。本页讲清我们**确实知道**的部分：Kolmogorov 的标度律，以及它为什么既漂亮又不完备。
+> **对标**：Frisch《Turbulence》、Pope《Turbulent Flows》、Tong《Fluid Mechanics》第 6 章。**先修**：[质量、动量与能量守恒](fl-01-continuum.html)、[黏性与边界层](fl-02-viscous.html)、[标度与重整化群](asm-03-rg.html)。
+> 搅拌器持续做功，水的平均动能却可以不再增长：输入的能量去了哪里？本页用尺度间的能量收支回答这个问题，并区分量纲假设、精确平衡式、有限尺度近似和经验指数模型。Navier–Stokes 方程可以有特殊解析解和可分辨的数值解；困难在于复杂湍流统计量的预测与闭合，不能概括成“没有解”。
 
 <figure class="plot" markdown="1">
-![湍流能谱的 Kolmogorov -5/3 律与三个尺度区。](assets/img/fl-03-turbulence-spectrum.svg)
-<figcaption><span class="fig-id">图 fl-03.1</span>湍流能谱 \(E(k)\)：含能区（注入）、<strong>惯性区 \(E(k)\propto k^{-5/3}\)</strong>（能量级串，无耗散无注入）、耗散区（\(k>1/\eta\) 指数截断）。</figcaption>
+<div tabindex="0" role="region" aria-label="可横向滚动的湍流能谱与黏性平衡图" style="overflow-x:auto;max-width:100%">
+<img src="assets/img/fl-03-turbulence-spectrum.svg" alt="湍流能谱的斜率和有限黏性能量平衡" style="display:block;width:100%;min-width:700px">
+</div>
+<figcaption><span class="fig-id">图 fl-03.1</span>左：由公式生成的负五分之三能谱基线。右：在给定二阶结构函数的构造中，三阶矩项与黏性项相加为 0.8。曲线展示的是演算关系，不是实测湍流；惯性区需要黏性与强迫变化都相对较小。</figcaption>
 </figure>
 
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="fl03-learning-title">
 
-<h2 id="fl03-learning-title">学习层：把级串读成一张尺度账，而不是一台 DNS</h2>
+<h2 id="fl03-learning-title">学习层：沿尺度追踪同一笔能量</h2>
 
-### 1. 具体故事：搅拌器送进来的能量去了哪里？
+### 1. 先预测：小涡拿到的是更多能量吗？
 
-把水槽想成有三个账房：大尺度 \(L\) 接受外部输入，小涡在惯性区把能量向更小的 \(r\) 传递，Kolmogorov 微尺度 \(\eta\) 最后交给黏性耗散。你要追踪的不是每个涡的轨迹，而是同一笔单位质量能量通量 \(\varepsilon\) 在尺度之间怎样保持。
+把水槽中的流动按尺度分组：大尺度 $L$ 接受搅拌器的输入，较小尺度之间交换动能，黏性最终把动能变为内能。这个图景不要求每个大涡都像物体一样碎成小涡；实际能量传递来自速度场的非线性耦合。
 
-先预测，再打开实验台：
+设平均耗散率为 $\varepsilon$，单位是每千克每秒消耗的焦耳，即 $\mathrm{m^2/s^3}$。在统计定常状态，平均输入率等于 $\varepsilon$。回答三个问题后再打开实验：
 
-1. 在惯性区内，能量通量会随 \(r\) 增大、减小，还是近似恒定？
-2. 三维正向级串的纵向三阶结构函数 \(S_3(r)\) 的符号是什么？
-3. 在同一个 \(p=6\) 上，间歇性修正的 \(\zeta_6\) 会比 \(6/3\) 大还是小？
+1. 在远离注入和耗散的尺度内，平均能量通量 $\Pi(r)$ 随 $r$ 怎样变化？
+2. 固定纵向增量的方向后，三维正向级串的有符号三阶矩是正还是负？
+3. She–Lévêque 模型的 $p=6$ 指数比 K41 的 $6/3$ 大还是小？
 
-实验揭示前只保留预测门；揭示后才显示尺度带、能谱、通量、\(4/5\) 律和 K41/She–Lévêque 指数对照。
+### 2. 量纲桥：为什么出现三分之一次方？
 
-### 2. 正式桥：K41 尺度基线与带条件的精确关系
-
-若 \([\varepsilon]=L^2T^{-3}\)，且声明的局域各向同性、足够宽的惯性区和高 Reynolds 数条件成立，量纲分析给出尺度 \(r\) 上的速度差和涡周转时间：
+**K41 假设**：在足够分离的惯性尺度 $\eta\ll r\ll L$，小尺度统计近似各向同性，典型速度增量只由 $\varepsilon,r$ 决定。若 $\delta u\sim\varepsilon^a r^b$，时间量纲要求 $-3a=-1$，长度量纲要求 $2a+b=1$，因此
 
 $$
 \delta u(r)\sim(\varepsilon r)^{1/3},\qquad
 \tau_r\sim\frac r{\delta u(r)}=\varepsilon^{-1/3}r^{2/3}.
 $$
 
-能谱和 Kolmogorov 微尺度分别写成
+小尺度的增量较小、周转时间也较短；$\delta u^2/\tau_r\sim\varepsilon$ 说明“通量相近”不等于“每个涡拥有相同能量”。这些式子保留了未知的无量纲常数，实验为比较尺度把前两个常数设为 1。
+
+局部 Reynolds 数 $\delta u(r)r/\nu\sim1$ 给出耗散尺度
 
 $$
-E(k)=C_K\varepsilon^{2/3}k^{-5/3},\qquad
-\eta=\left(\frac{\nu^3}{\varepsilon}\right)^{1/4},\qquad k_\eta\sim\eta^{-1}.
+\eta=\left(\frac{\nu^3}{\varepsilon}\right)^{1/4}.
 $$
 
-其中 \(\delta u(r)\)、\(\tau_r\) 和 \(E(k)\) 只有在声明假设、教学窗口宽度和样本门槛同时满足时才作为 K41 读数发证；区外只标作 extrapolation 或 null。
-
-本页采用的 \(E(k)\) 是**按单位质量、三维各向同性壳层积分的能谱约定**：
+本页的能谱是**单位质量、三维各向同性壳层积分的谱**：
 
 $$
-\int_0^\infty E(k)\,\mathrm dk=\frac12\left\langle|\mathbf u|^2\right\rangle.
+\int_0^\infty E(k)\,\mathrm dk=\frac12\langle|\mathbf u|^2\rangle,
+\qquad [E]=\mathrm{m^3/s^2}.
 $$
 
-因此 \([E]=L^3T^{-2}\)（SI 为 \(\mathrm{m^3\,s^{-2}}\)）；若记录的是单位体积能量，需再乘 \(\rho\)。这里 \(k\approx1/r\) 只表示尺度对应关系，不是 Fourier 变量与实空间间隔的精确等号。\(C_K\approx1.5\) 只是这个约定下的教学基准，不是脱离定义的普适数字：它会随一维/三维（壳层、纵向或横向）谱定义和 Fourier 归一化约定改变。
+由这一定义对 $E\sim\varepsilon^a k^b$ 做同样的量纲配平，得到 $a=2/3,b=-5/3$，即
 
-在 \(10\eta\lesssim r\lesssim L/10\) 的候选惯性带内，且至少有 **1 个 decade、2 个惯性样本**并满足已声明假设时，级串通量的尺度读数才写成
+$$E(k)\sim C_K\varepsilon^{2/3}k^{-5/3}.$$
 
-$$
-\Pi(r)\approx\varepsilon,
-$$
+$C_K=1.5$ 是本实验在这一谱约定下选用的参考值。一维纵向谱与三维壳层谱的系数不能直接混用；$k\approx1/r$ 也只是尺度代理，不是精确 Fourier 变换。改变 Fourier 归一化时须同时修改谱定义与系数。
 
-不是说每个瞬时涡都携带相同能量，而是统计平均上的通量 ledger 近似平坦。
-
-三维不可压、齐次、各向同性、统计定常且高 Reynolds 数的教学窗口内，还有一个带条件的精确纵向 \(4/5\) 律。先固定符号：取 \(\hat{\mathbf r}=\mathbf r/|\mathbf r|\) 从 \(\mathbf x\) 指向 \(\mathbf x+\mathbf r\)，定义
-
-$$
-\delta u_\parallel(\mathbf x,\mathbf r)=\big[\mathbf u(\mathbf x+\mathbf r)-\mathbf u(\mathbf x)\big]\cdot\hat{\mathbf r}.
-$$
-
-于是
-
-$$
-S_3(r)=\left\langle(\delta u_\parallel)^3\right\rangle
-=-\frac45\varepsilon r.
-$$
-
-负号与三维正向能量级串的方向一致；它不是“所有湍流数据在所有尺度都自动满足”的图形标签。有限 Reynolds 数、强各向异性、非定常、边界和强迫修正都要重新检查条件。图外或门槛不足的 \(S_3\) 只作 extrapolation，或留为 null。
-
-### 3. 可操作实验：同一张尺子比较 K41 与间歇性
+### 3. 可操作实验：公式参考带与黏性修正
 
 <div class="learning-lab" data-learning-lab="turbulence-cascade" markdown="1">
 
-**JavaScript 失效时的静态读法：**默认账本可取 \(L=1\)、\(\nu=10^{-5}\)、\(\varepsilon=1\)、\(C_K=1.5\)。于是
-\(\eta=(10^{-15})^{1/4}\approx1.778\times10^{-4}\)，\(L/\eta\approx5623\)，而可读的惯性带必须避开两端，例如只把 \(10\eta\lesssim r\lesssim L/10\) 当作教学窗口；本实验把至少 **1 个 decade 且至少 2 个惯性样本**作为发证门槛。门槛之外的 K41 数值是 extrapolation 或 null，不是已验证结果。
+**JavaScript 失效时：**取 $L=1\,\mathrm m$、$\nu=10^{-5}\,\mathrm{m^2/s}$、$\varepsilon=1\,\mathrm{m^2/s^3}$。于是 $\eta\approx1.778\times10^{-4}\,\mathrm m$，$U=(\varepsilon L)^{1/3}=1\,\mathrm{m/s}$，$\mathrm{Re}=UL/\nu=10^5$。取 $r=0.01\,\mathrm m$，可复算下面的公式基线。
 
-| 读数 | K41 | 间歇性对照（She–Lévêque） |
+| 量 | 公式 | 本例数值 |
 |---|---|---|
-| 结构函数指数 | \(\zeta_p=p/3\) | \(\zeta_p=p/9+2[1-(2/3)^{p/3}]\) |
-| \(p=3\) | \(1\) | \(1\)，这里只比较 \(\langle|\delta u|^3\rangle\) 的绝对值标度；signed \(S_3\) 的 \(4/5\) 律单独记账 |
-| \(p=6\) | \(2\) | \(\approx1.778\)，高阶标度被压低 |
-| 三维纵向 signed 三阶矩 | \(S_3=-4\varepsilon r/5\) | 这是精确律条件下的独立账，不由绝对值拟合指数重新证明 |
+| 典型增量 | $(\varepsilon r)^{1/3}$ | $0.21544\,\mathrm{m/s}$ |
+| 周转时间 | $r/\delta u$ | $0.04642\,\mathrm s$ |
+| 波数代理 | $1/r$ | $100\,\mathrm{m^{-1}}$ |
+| 能谱基线 | $1.5\varepsilon^{2/3}k^{-5/3}$ | $6.9624\times10^{-4}\,\mathrm{m^3/s^2}$ |
+| 有符号三阶矩的惯性极限 | $-4\varepsilon r/5$ | $-0.008\,\mathrm{m^3/s^3}$ |
+| 绝对值六阶指数 | K41 / She–Lévêque | $2$ / $16/9\approx1.7778$ |
 
-实验的 scale ledger 逐行列出 \(r,k,\delta u,\tau_r,E(k),\Pi(r)\) 和 signed \(S_3(r)\)，并明确标出 under-assumed-conditions 或 extrapolation/null；通量图使用同一无量纲纵轴 \(\Pi/\varepsilon\) 与 \(-S_3/(\varepsilon r)\)。再用同一组 \(p\) 画出常用绝对值结构函数的两套 \(\zeta_p\)。能谱和通量曲线是由公式直接生成的确定性教学数据，不是 DNS 样本。
+实验选取 $10\eta\le r\le L/10$ 作为**人为的候选带**，只有宽度至少一个数量级并含至少两个采样点才展开实线和读数。它是显示规则，不是验证惯性区的判据。窄带时仍然能画出公式直线，不能据此宣称实际流动满足 K41。有限黏性图采用下文 §3 的给定 $S_2$ 构造。
 
 </div>
 
-### 4. 误区与适用边界
+### 4. 怎样读图才不会被直线说服？
 
-| 过强说法 | 更准确的读法 |
-|---|---|
-| “看到 \(k^{-5/3}\) 就证明流动是湍流。” | 这是一个标度诊断；有限带宽、各向异性和非定常系统都可能制造相似斜率。 |
-| “K41 说明每个结构函数都严格是 \(p/3\)。” | 间歇性使高阶 \(\zeta_p\) 偏离 \(p/3\)；K41 是基线尺度假设，不是所有阶数的精确定理。 |
-| “\(4/5\) 律只要三维就无条件成立。” | 还需要不可压、齐次、各向同性、统计定常和惯性区/高 Reynolds 数等条件，并注意强迫与黏性修正。 |
-| “这台实验已经解析了湍流。” | 它是尺度账本：不解 Navier–Stokes，不生成 DNS，不证明每个真实流动服从 K41。 |
+能谱和通量由公式直接生成，因此平直斜率不是独立证据。真实检验还需测量速度增量、输入/耗散收支、方向依赖、时间稳定性和统计误差。实际数据里的有限带宽斜率也不能单独证明某个普适理论。
 
-本页把“可由量纲推出的尺度”“统计通量的读法”“带条件的精确律”和“经验间歇性比较”分成四栏。换成二维逆级串、壁湍流、旋转/分层流或低 Reynolds 数后，符号、区间和适用条件都要重新核对。
+实验中 $L,\nu,\varepsilon$ 采用 SI 单位，$U=(\varepsilon L)^{1/3}$ 是为估算定义的大尺度速度。改变它们会改变 $\eta$ 与候选带；改变阶数 $p$ 只改变指数比较。有限黏性图给定统计函数后反算平衡项，尚未证明这个函数组能由某个真实流场实现。
 
 </section>
 
-## 1. 问题：闭合困难
+## 1. 为什么平均方程还没有闭合？
 
-把速度分解为均值与脉动 $\mathbf u = \bar{\mathbf u}+\mathbf u'$，代入 N–S 取平均得 **Reynolds 方程**（若另声明统计稳态，才可删去第一项）：
-
-$$\rho\left(\partial_t\bar u_i+\bar u_j\partial_j\bar u_i\right) = -\partial_i\bar p + \mu\nabla^2\bar u_i - \rho\,\partial_j\underbrace{\overline{u'_iu'_j}}_{\text{Reynolds 应力}}$$
-
-**新出现的 $\overline{u'_iu'_j}$ 未知**。为它写方程，又会出现三阶矩；如此无穷递归——**这就是闭合问题（closure problem）**，是非线性项 $(\mathbf u\cdot\nabla)\mathbf u$ 的直接后果。
-
-**工程对策【引用，非严格】**：涡粘模型（$k$–$\varepsilon$、$k$–$\omega$ SST）用经验关系强行闭合；LES 只解大涡、模化小涡；DNS 完全求解但**代价随 $\mathrm{Re}^{9/4}$ 增长**（见 §4），只能用于低 $\mathrm{Re}$ 研究。**至今没有第一性原理的闭合方案。**
-
-## 2. Richardson 级串与 Kolmogorov 1941
-
-**图景**：大涡从平均流获得能量 → 失稳破碎成小涡 → 逐级传递 → 在最小尺度被粘性耗散。Richardson 的名句概括了它："大涡有小涡以其速度为食……"
-
-**K41 的三条假设**：
-
-1. **局域各向同性**：小尺度忘记了大尺度的方向性；
-2. **惯性区**：存在 $\eta \ll r \ll L$ 的尺度范围，统计量**只依赖能量耗散率 $\varepsilon$ 与尺度 $r$**（既不依赖注入方式，也不依赖粘性）；本页把 \(10\eta\lesssim r\lesssim L/10\)、至少 1 个 decade 且至少 2 个样本作为教学窗口门槛；
-3. **能量级串守恒**：惯性区内传递率 = 耗散率 $\varepsilon$。
-
-**纯量纲分析【推导】**：$[\varepsilon]=\mathrm{m^2/s^3}$，要构造速度差 $\delta u(r)$；这给出惯性窗口内的 K41 基线，不会单独证明窗口存在：
-
-$$\delta u(r)\sim(\varepsilon r)^{1/3}\quad\Longrightarrow\quad S_2(r)=\overline{(\delta u)^2}\propto(\varepsilon r)^{2/3}$$
-
-傅里叶空间即得**著名的 $-5/3$ 律**：
-
-$$\boxed{\,E(k) = C_K\,\varepsilon^{2/3}k^{-5/3}\,}$$
-
-**$C_K\approx1.5$ 只是特定谱约定下的常用基准**；它依赖一维/三维谱的定义、是否做壳层或分量积分，以及 Fourier 归一化。不能把不同 convention 的数值直接比较成同一个普适常数。
-
-**Kolmogorov 微尺度**：粘性主导的截断尺度
-
-$$\eta = \left(\frac{\nu^3}{\varepsilon}\right)^{1/4},\qquad \frac{L}{\eta}\sim\mathrm{Re}^{3/4}$$
-
-## 3. 一个带条件的精确关系：4/5 律
-
-K41 大部分是量纲分析；在三维不可压、齐次、各向同性、统计定常的高 Reynolds 数惯性窗口中，N–S 还严格给出下面这个关系（Kolmogorov 1941）：
-
-$$S_3(r)=\overline{(\delta u_\parallel)^3} = -\tfrac{4}{5}\,\varepsilon r$$
-
-这是湍流理论中少数带条件的 exact laws 之一；**负号直接给出三维能量向小尺度正向级串的方向**。二维不能只写成“把符号反过来”：二维同时受能量和涡量平方（enstrophy）守恒约束，典型情形是**能量逆级串到大尺度、涡量平方正向级串到小尺度**。两种级串对应不同的 exact laws、通量定义和标度（系数也依赖符号约定），不能把三维 \(4/5\) 律原样套到二维或其他流动。
-
-## 4. K41 的裂缝：间歇性
-
-**Landau 的批评**：$\varepsilon$ 在空间上并非均匀，而是**高度间歇**——耗散集中在稀疏的强涡结构中。
-
-**后果**：高阶结构函数偏离 K41 预言
+在常密度、常黏度、不可压流动中，取能与时空导数交换的集合平均，写 $u_i=\bar u_i+u_i'$，其中 $\overline{u_i'}=0$。不可压性使 $u_j\partial_j u_i=\partial_j(u_i u_j)$；展开并平均后
 
 $$
-S_p^{\mathrm{abs}}(r)=\left\langle|\delta u_\parallel|^p\right\rangle\propto r^{\zeta_p},\qquad \zeta_p \ne p/3\ (p\ \text{较大时}).
+\overline{u_i u_j}=\bar u_i\bar u_j+\overline{u_i'u_j'},\qquad
+\rho(\partial_t\bar u_i+\bar u_j\partial_j\bar u_i)
+=-\partial_i\bar p+\mu\Delta\bar u_i-\rho\partial_j\overline{u_i'u_j'}.
 $$
 
-这里的 \(S_p^{\mathrm{abs}}\) 是常用的绝对值高阶结构函数；signed 的 \(S_3=\langle(\delta u_\parallel)^3\rangle\) 另由 \(4/5\) 律单独记账，不能用绝对值 \(\zeta_3\) 代替它。
+这里省略外部体力；若存在应保留其平均。$R_{ij}=\overline{u_i'u_j'}$ 是速度协方差，单位为 $\mathrm{m^2/s^2}$；作为动量方程中的附加应力通常写 $-\rho R_{ij}$，不要把协方差本身与应力单位混淆。只有另设平均流定常才能删除 $\partial_t\bar u_i$。
 
-**实测 $\zeta_p$ 是 $p$ 的凹函数**——这就是**反常标度**。相对于 K41，较高阶的 \(\zeta_p\) 降低意味着小尺度增量的尾部更重、绝对值结构函数随尺度缩小衰减得更慢；它不是把 signed \(S_3\) 的符号改掉。多重分形模型（She–Lévêque 等）能拟合，但**尚无第一性原理的推导**。
+均值方程需要未知的 $R_{ij}$；为它写演化方程又引入三阶矩等量。这种统计层级来自非线性，称为**闭合问题**。RANS 模型为这些量提供模型关系；LES 解析较大尺度并模化未解析应力；DNS 不引入湍流闭合模型，但仍有空间、时间离散误差以及有限采样误差。三者分别回答不同精度与成本的问题；没有一套适合所有几何、Reynolds 数和流动机制的通用闭合公式。
 
-**这与 asm-03 的重整化群形成有趣对照**：临界现象中反常指数已由 RG 解释；**湍流中同样的"反常标度"至今没有对应的理论**。**这是本站最坦率的一处"未解"标注。**
+## 2. K41 的前提不能由量纲分析证明
 
-## 5. 练习与要点
+量纲配平是在“只有 $\varepsilon,r$ 重要”的假设下进行的，不会证明方向性、壁面距离、旋转频率或浮力真的可以忽略。定义上述 $U$ 后，代数上有
 
-**例 1（DNS 为什么贵）** 需解析到 $\eta$，网格数 $\sim(L/\eta)^3\sim\mathrm{Re}^{9/4}$，加上时间步长约束，总计算量 $\sim\mathrm{Re}^{3}$。**$\mathrm{Re}=10^6$ 的飞机绕流，DNS 所需算力远超任何现有超算**——这就是工程必须依赖模型的原因。
+$$\frac L\eta=\mathrm{Re}^{3/4},\qquad \mathrm{Re}=\frac{UL}{\nu}.$$
 
-**例 2（大气的级串）** 取 $\varepsilon\sim10^{-3}$ W/kg、$\nu\approx1.5\times10^{-5}$ m²/s：$\eta\sim(\nu^3/\varepsilon)^{1/4}\approx1.36$ mm。若天气尺度取几公里，$L/\eta$ 约为 $10^6$，即**约六个 decades** 的级串，最终在毫米尺度上变成热。
+在实测流动中若 $U$ 独立测得，通常写 $\varepsilon=C_\varepsilon U^3/L$，于是 $L/\eta=C_\varepsilon^{1/4}\mathrm{Re}^{3/4}$；实验相当于固定 $C_\varepsilon=1$。大 Re 有利于尺度分离，却不能保证流动已经湍化或小尺度各向同性。
 
-**例 3（湍流为什么"混合得好"）** 湍流扩散系数 $\sim u'L \gg \nu$。**这就是搅拌咖啡的原理**：分子扩散需要数小时，湍流混合只要几秒——**代价是耗散了你搅拌的能量**。$\blacksquare$
+惯性区中 $\Pi\approx\varepsilon$ 是统计能量收支：注入和直接黏性损失相对较小。有限 Re 下它们并非严格为零。二维流动还受涡量平方守恒的约束，可能出现能量逆级串与涡量平方正向级串；不能只把三维公式翻转符号来得到二维定律。
 
----
+## 3. 从精确能量平衡到 4/5 律
 
-*下一页：湍流从哪里来？答案是层流的失稳。线性稳定性分析、对流胞与分岔——从有序到混沌的第一步。*
+### 3.1 固定增量方向与强迫约定
+
+取 $\hat{\mathbf r}$ 从 $\mathbf x$ 指向 $\mathbf x+\mathbf r$，定义
+
+$$
+\delta u_L=[\mathbf u(\mathbf x+\mathbf r)-\mathbf u(\mathbf x)]\cdot\hat{\mathbf r},
+\quad S_2(r)=\langle(\delta u_L)^2\rangle,
+\quad S_3(r)=\langle(\delta u_L)^3\rangle.
+$$
+
+$S_3$ 保留符号，$\langle|\delta u_L|^3\rangle$ 则不保留；两者不可互换。设 $\mathbf f$ 是方程中的单位质量体力（加速度），令
+
+$$
+F_{LL}(r)=\langle f_L(\mathbf x)u_L(\mathbf x+\mathbf r)
++u_L(\mathbf x)f_L(\mathbf x+\mathbf r)\rangle.
+$$
+
+在三维、不可压、齐次、各向同性、统计定常且相关函数足够正则的条件下，Kármán–Howarth 方程给出
+
+$$
+\frac1{r^4}\frac{\mathrm d}{\mathrm dr}
+\left[r^4\left(2\nu S_2'(r)-\frac{S_3(r)}3\right)\right]=2F_{LL}(r).
+$$
+
+这一步来自两点速度方程相乘、平均与各向同性张量化简，是相关函数的精确收支，不使用 $p/3$ 标度假设。由原点的正则性排除 $r^{-4}$ 积分常数，乘 $r^4$ 从 $0$ 积到 $r$：
+
+$$
+\boxed{S_3(r)=6\nu S_2'(r)-\frac6{r^4}\int_0^r s^4F_{LL}(s)\,\mathrm ds.}
+$$
+
+统计定常能量平衡使 $\langle\mathbf u\cdot\mathbf f\rangle=\varepsilon$，各向同性给 $F_{LL}(0)=2\varepsilon/3$。故也可写成
+
+$$
+S_3(r)=-\frac45\varepsilon r+6\nu S_2'(r)
+-\frac6{r^4}\int_0^r s^4\left[F_{LL}(s)-\frac{2\varepsilon}3\right]\,\mathrm ds.
+$$
+
+**$4/5$ 从哪里来？** 常数强迫相关项的积分是 $\int_0^r s^4\,\mathrm ds=r^5/5$，再乘 $6\times2/3$，正好给出 $4r/5$。当 $r\ll L$ 时强迫相关变化可小；当 $r\gg\eta$ 时黏性项可小。在这两个相对修正同时消失的惯性极限，得到精确系数 $S_3=-4\varepsilon r/5$。有限 Re 的一个图上区间通常只能近似满足它。非定常或非各向同性时，不能直接使用已删去那些项的方程。
+
+### 3.2 可复算反例：靠近原点不能一直画负斜线
+
+对黏性正则流场，$\delta u_L=r\partial_Lu_L+O(r^2)$，所以 $S_2=O(r^2)$、$S_3=O(r^3)$。各向同性耗散关系给
+
+$$S_2(r)\sim\frac{\varepsilon}{15\nu}r^2,
+\qquad 6\nu S_2'(r)\sim\frac45\varepsilon r.$$
+
+黏性项恰好抵消 $-4\varepsilon r/5$ 的一阶项。因此把惯性区直线直接画到 $r=0$ 会违反小尺度正则性。
+
+为把抵消画出来，**人为选取一个光滑二阶函数**，令 $b=30^{3/4}$、$q=(r/(b\eta))^2$：
+
+$$S_2^{\mathrm{toy}}(r)=\frac{\varepsilon r^2}{15\nu}(1+q)^{-2/3}.$$
+
+它在 $r\ll b\eta$ 保留上面的二次式，在 $r\gg b\eta$ 给出 $2(\varepsilon r)^{2/3}$。把强迫相关近似为常数，并用同一个 $S_2^{\mathrm{toy}}$ 计算导数，可得
+
+$$
+V(r)=\frac{6\nu(S_2^{\mathrm{toy}})'(r)}{\varepsilon r}
+=\frac45\frac{1+q/3}{(1+q)^{5/3}},\qquad
+B(r)=\frac{-S_3^{\mathrm{toy}}}{\varepsilon r}=\frac45-V(r).
+$$
+
+实验的绿色是 $V$，蓝色是 $B$，金色是总和 $B+V=0.8$。这个恒等式来自构造，不是由测量验证的定律；$r$ 接近 $L$ 时，连强迫常数近似也需要改进。模型不是完整流场解，也不保证所选各阶矩能由真实湍流共同实现。它的用途是理解被略去的黏性项如何改变读图。
+
+## 4. 间歇性：高阶矩为何更敏感？
+
+定义无量纲绝对值结构函数 $M_p(\ell)=\langle|\delta u_L/U|^p\rangle$，其中 $\ell=r/L$。若在某个标度极限 $M_p\sim C_p\ell^{\zeta_p}$，K41 的基线是 $\zeta_p=p/3$。高阶矩把较大的增量加上更高次幂，因此对稀少的大事件更敏感；有限样本的高阶指数尤其需要误差与收敛检查。
+
+**凹性不是一个任意拟合要求。** 当所需矩有限，Hölder 不等式给出
+
+$$M_{\theta p+(1-\theta)q}\le M_p^\theta M_q^{1-\theta},\qquad0<\theta<1.$$
+
+取对数，除以 $\log\ell<0$ 后不等号反向，再在标度极限略去有限常数项，得到
+
+$$\zeta_{\theta p+(1-\theta)q}\ge\theta\zeta_p+(1-\theta)\zeta_q.$$
+
+所以指数关于阶数是凹的；K41 的直线也满足凹性。**非线性偏离**才体现这里讨论的反常标度，不能把“凹”本身当成发现间歇性的证明。
+
+本实验用 She–Lévêque 的现象学模型作对照：
+
+$$\zeta_p^{\mathrm{SL}}=\frac p9+2\left[1-\left(\frac23\right)^{p/3}\right].$$
+
+$p=6$ 时为 $16/9$，比 $2$ 小；$p=1,2$ 时反而略高于 $p/3$。两套模型在 $p=3$ 都给 $1$，也不能推出绝对值三阶矩必然等于 signed $S_3$ 的精确关系。重整化群、多重分形等提供了研究工具，但本模型不是从一般三维 Navier–Stokes 方程无附加统计假设推导出的普适闭合。
+
+## 5. 把尺度估算用到计算和测量
+
+**DNS 成本。** 对近似均匀三维域，按 $\Delta x\sim\eta$ 估算，格点数 $N\sim(L/\eta)^3\sim\mathrm{Re}^{9/4}$。若使用由大尺度平流速度 $U$ 限制的显式 CFL 步长 $\Delta t\sim\eta/U$，模拟一个大涡时间 $L/U$ 需要 $L/\eta\sim\mathrm{Re}^{3/4}$ 步，故格点更新次数约为 $\mathrm{Re}^3$。这不是所有算法和壁湍流的统一成本定律，还没计谱算法对数因子、并行通信、壁面各向异性网格及多个统计独立周转时间。
+
+**大气估算。** $\varepsilon=10^{-3}\,\mathrm{m^2/s^3}$、$\nu=1.5\times10^{-5}\,\mathrm{m^2/s}$ 给 $\eta\approx1.36\,\mathrm{mm}$。即使将 $L$ 取为千米得到很大尺度比，也不能把整个区间都称作三维各向同性惯性区：旋转与稳定分层会引入新的长度和时间尺度。
+
+**标量混合。** 对糖浓度等被动标量，分子扩散时间估算为 $L^2/D$，应与标量分子扩散率 $D$ 比较，而非把 $D$ 自动换成运动黏度 $\nu$。湍动拉伸、折叠产生细梯度后仍由分子扩散完成局部均匀化；大尺度有效扩散 $D_t\sim u'\ell_c$ 也是依赖流动与相关长度 $\ell_c$ 的模型估算。
+
+## 6. 迁移题：不靠记忆斜率回答
+
+1. 固定 $L,\varepsilon$，把 $\nu$ 减为原来的 $1/16$。$\eta$、尺度比、上述 DNS 格点数和每个大涡时间的更新次数各变几倍？
+2. 给定小尺度 $S_2=\varepsilon r^2/(15\nu)+O(r^4)$，为什么 $S_3=-4\varepsilon r/5$ 不能在原点附近单独成立？这是否否定惯性极限的 $4/5$ 系数？
+3. 在单位相同的归一化六阶矩上，固定两模型在 $\ell=1$ 的振幅。取 $\ell=10^{-3}$，SL 与 K41 的预测之比是多少？这一个比值能证明某次实验存在间歇性吗？
+
+<details class="answer" markdown="1">
+<summary>展开推导与答案</summary>
+
+1. $\eta\propto\nu^{3/4}$，所以减为 $1/8$；$L/\eta$ 增为 $8$ 倍，格点数增为 $8^3=512$ 倍，CFL 步数增为 $8$ 倍，更新次数增为 $4096$ 倍。也可用 $\mathrm{Re}$ 增为 $16$ 倍复核 $16^{9/4}=512$、$16^3=4096$；这些估计沿用 §5 的域与时间步假设。
+
+2. $6\nu S_2'=4\varepsilon r/5+O(r^3)$，正好抵消惯性直线的一阶项，留下 $S_3=O(r^3)$。极小尺度的黏性主导与惯性区的黏性可忽略是不同极限，二者不矛盾。
+
+3. 指数差为 $16/9-2=-2/9$，故比值为 $(10^{-3})^{-2/9}=10^{2/3}\approx4.64$。这是固定振幅后的模型对比；真实推断还需实际速度样本、足够的统计量与尺度区间，并排查有限 Re 和强迫影响，不能用输入公式自证。
+
+</details>
+
+## 来源与后续
+
+- [David Tong：Fluid Mechanics，§6.3.3–6.3.4](https://www.damtp.cam.ac.uk/user/tong/fluids/fluids.pdf)：两点相关的 Kármán–Howarth 方程与黏性修正。本文显式保留强迫相关的积分，区分精确平衡和惯性近似。
+- [McComb、Yoffe、Linkmann、Berera：Spectral analysis of structure functions，§V.1](https://arxiv.org/html/1408.0539)：有限强迫、黏性以及 signed / absolute 结构函数的区别。
+- [She、Lévêque：Universal scaling laws in fully developed turbulence（1994）](https://doi.org/10.1103/PhysRevLett.72.336)：本页指数模型的原始论文；模型假设不等同于一般流动的证明。
+
+下一页：[流动失稳、对流与分岔](fl-04-instability.html)。线性失稳解释部分扰动的初始增长；有限振幅转捩和充分发展的湍流统计还需要后续分析。

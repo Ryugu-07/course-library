@@ -27,29 +27,8 @@ def fl02_drag():
 
 
 def fl03_spectrum():
-    """Kolmogorov 能谱"""
-    k = np.logspace(-1, 4, 800)
-    kL, keta = 1.0, 800.0
-    E = k**(-5/3)*(1-np.exp(-(k/kL)**3.5))*np.exp(-(k/keta)**1.2)
-    E = E/np.nanmax(E)
-    fig, ax = plt.subplots(figsize=(6.9, 4.3))
-    ax.loglog(k, E, color=ACC, lw=2.6)
-    ki = np.logspace(0.6, 2.4, 50)
-    ax.loglog(ki, 0.42*ki**(-5/3), "--", color=RED, lw=2.0,
-              label=r"$E(k)\propto k^{-5/3}$")
-    for x0, x1, c, lab in [(0.1, 1.0, GREEN, "energy-\ncontaining"),
-                           (1.0, 300, ACC2, "inertial range\n(cascade)"),
-                           (300, 1e4, "#8a6a3a", "dissipation")]:
-        ax.axvspan(x0, x1, color=c, alpha=.10)
-    ax.text(0.13, 3e-4, "injection", fontsize=9, color=GREEN)
-    ax.text(9, 4e-2, "inertial range", fontsize=10, color=INK)
-    ax.text(9e2, 3e-4, r"$k>1/\eta$", fontsize=9, color="#8a6a3a")
-    ax.set_xlabel(r"wavenumber  $k$")
-    ax.set_ylabel(r"energy spectrum  $E(k)$")
-    ax.set_title("Kolmogorov cascade", color=INK, fontsize=12.5)
-    ax.legend(frameon=False, fontsize=10.5)
-    ax.set_ylim(1e-7, 3)
-    save(fig, "fl-03-turbulence-spectrum")
+    """Legacy entry point: preserve reviewed spectrum and viscous balance."""
+    _preserve_reviewed_svg("fl-03-turbulence-spectrum")
 
 
 def fl04_bifurcation():
