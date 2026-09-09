@@ -14,3 +14,11 @@ for(const n of [2,16,60])for(const c of [.9,.95,.99])for(const rule of ['preplan
 const svg=fs.readFileSync(path.join(root,'math-course/images/stat-03-confidence.svg'),'utf8'),sample=ref.samples,xmin=Math.min(...sample.map(r=>r.center-Math.max(r.z,r.t)))-1,xmax=Math.max(...sample.map(r=>r.center+Math.max(r.z,r.t)))+1;
 for(const [panel,key]of ['z','t','selected'].entries())sample.forEach((r,i)=>{const tag=svg.match(new RegExp('<path data-interval="'+key+'-'+i+'"[^>]*/>'))[0],d=tag.match(/d="M([-\d.]+),([-\d.]+)H([-\d.]+)"/),left=65+350*panel;ok(Math.abs(+d[1]-(left+285*(r.center-r[key]-xmin)/(xmax-xmin)))<5.1e-8,'static interval left');ok(Math.abs(+d[3]-(left+285*(r.center+r[key]-xmin)/(xmax-xmin)))<5.1e-8,'static interval right');near(+d[2],120+16*i);const covered=r.center-r[key]<=500&&500<=r.center+r[key];ok(tag.includes(covered?'#39734d':'#b64335'),'static coverage truthful');});
 const curve=svg.match(/<path data-coverage="selected" d="([^"]+)"/)[1],ps=[...curve.matchAll(/[ML]([-\d.e]+),([-\d.e]+)/g)].map(r=>[+r[1],+r[2]]),rs=ref.selection.filter(r=>r.c===.95);ok(ps.length===59,'static theoretical coverage all n');ps.forEach(([x,y],i)=>{ok(Math.abs(x-(80+900*(rs[i].n-2)/58))<5.1e-8,'static coverage x');ok(Math.abs(y-(820-170*(rs[i].coverage-.9)/.06))<5.1e-8,'static coverage y');});console.log('confidence intervals independent: PASS',{checks,maxQuantile,maxCoverage});
+
+for(const scale of [1e-300,1e-200,1,1e200,1e308]){const expected=Math.SQRT2*scale,actual=m.sampleStd([scale,-scale]);ok(Number.isFinite(actual)&&Math.abs(actual/expected-1)<5e-15,'scaled standard deviation');}
+const huge=m.intervalFromSample(Array.from({length:60},(_,i)=>i%2?1e308:-1e308),{},'unknown');ok(Number.isFinite(huge.margin)&&huge.margin>0,'representable margin avoids intermediate overflow');
+console.log('scale regression: PASS');
+
+const maxSample=Array.from({length:60},(_,i)=>i%2?Number.MAX_VALUE:-Number.MAX_VALUE),maxInterval=m.intervalFromSample(maxSample,{},'unknown');ok(maxInterval.standardDeviation===Infinity&&Number.isFinite(maxInterval.margin),'finite interval even when standard deviation exceeds range');
+ok(m.sampleStd([Number.MIN_VALUE,-Number.MIN_VALUE])===Number.MIN_VALUE,'subnormal std rounds without premature zero');
+console.log('standard error range regression: PASS');

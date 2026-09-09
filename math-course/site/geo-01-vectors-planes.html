@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 01:22</div>
   </div>
 </nav>
 <main id="content">
@@ -60,9 +60,21 @@ try {
 <li><a href="#4">4. 定理级结论与失败边界</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 三种乘积：一表定乾坤</a></li>
-<li><a href="#2_1">2. 平面与直线：方程的四副面孔</a></li>
-<li><a href="#3_1">3. 典型例题</a></li>
+<li><a href="#1_1">1. 点、位移和坐标：相同的三元数组可以有不同身份</a></li>
+<li><a href="#2_1">2. 三种乘积：投影、面积与体积如何接起来？</a></li>
+<li><a href="#3_1">3. 平面和直线：方程中的非零条件不能省略</a><ul>
+<li><a href="#_1">直线与平面：一个一次方程的三种结果</a></li>
+<li><a href="#_2">两个平面：交线不仅有方向，还要有位置</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 所有距离公式都在寻找最短的垂直分量</a><ul>
+<li><a href="#_3">点到平面：证明垂足是全局最短点</a></li>
+<li><a href="#_4">点到直线：把差向量分成平行与垂直部分</a></li>
+<li><a href="#_5">两条直线：先分类，再选距离公式</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 夹角与近乎平行：分类正确不等于交点稳定</a></li>
+<li><a href="#6">6. 三个例子与三道迁移题</a></li>
 </ul>
 </div>
 </details>
@@ -102,7 +114,7 @@ L:\ \mathbf x=\mathbf q+\tau\mathbf d,\qquad
 (\mathbf n\cdot\mathbf d)\tau=-\mathbf n\cdot(\mathbf q-\mathbf p).
 \]</div>
 <p>若 <span class="arithmatex">\(\mathbf n\cdot\mathbf d\ne0\)</span>，有唯一交点；若 <span class="arithmatex">\(\mathbf n\cdot\mathbf d=0\)</span>，则还必须看 <span class="arithmatex">\(\mathbf n\cdot(\mathbf q-\mathbf p)\)</span>：为零表示直线包含于平面，否则表示平行不相交。</p>
-<p>两个平面 <span class="arithmatex">\(P_i:\mathbf n_i\cdot\mathbf x=c_i\)</span> 则先看 <span class="arithmatex">\(\mathbf n_1\times\mathbf n_2\)</span>：非零给出相交直线方向；平行时比较归一化后的常数 <span class="arithmatex">\(c_i\)</span>，相容为重合，不相容为平行。所有这些结论都默认法向量和方向向量是非零的。</p>
+<p>两个平面 <span class="arithmatex">\(P_i:\mathbf n_i\cdot\mathbf x=c_i\)</span> 则先看 <span class="arithmatex">\(\mathbf n_1\times\mathbf n_2\)</span>：非零给出相交直线方向；平行时写成 <span class="arithmatex">\(\mathbf n_2=\lambda\mathbf n_1\)</span>，再检查 <span class="arithmatex">\(c_2=\lambda c_1\)</span>；相容为重合，不相容为平行，负的比例也必须保留。所有这些结论都默认法向量和方向向量是非零的。</p>
 <div class="learning-lab" data-learning-lab="vectors-planes">
 <p><strong>JavaScript 失效时的静态 fallback：</strong>固定 <span class="arithmatex">\(P:z=0\)</span>，取 <span class="arithmatex">\(L:\mathbf x=(1,1,h)+\tau(1,0,k)\)</span>。</p>
 <table>
@@ -151,72 +163,121 @@ L:\ \mathbf x=\mathbf q+\tau\mathbf d,\qquad
 <h3 id="4">4. 定理级结论与失败边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>定理级</strong>：非零法向量定义一个平面，非零方向向量定义一条直线；代入后一次方程的系数与常数同时决定相交、平行、重合或包含。</li>
-<li><strong>对象边界</strong>：点是位置，向量是位移/方向；法向量垂直于平面，直线方向向量沿直线。把法向量当作平面上的点，或把点的坐标直接当作自由向量，会破坏方程的几何意义。</li>
-<li><strong>退化边界</strong>：零法向量使 <span class="arithmatex">\(0=0\)</span> 或 <span class="arithmatex">\(0=c\)</span> 失去唯一平面；零方向向量不定义一条有方向的直线。数值实现中的“零”还必须附带容差。</li>
+<li><strong>对象边界</strong>：点是位置，向量是位移/方向；法向量垂直于平面，直线方向向量沿直线。选定原点后可以把点对应到位置向量，但需说明每一步得到的是点还是位移，不能混用。</li>
+<li><strong>退化边界</strong>：零法向量使 <span class="arithmatex">\(0=0\)</span> 或 <span class="arithmatex">\(0=c\)</span> 失去唯一平面；零方向向量不定义一条有方向的直线。数学上的零与测量容差要分开；本实验对实际输入精确判零，近乎平行另作敏感性提示。</li>
 <li><strong>位置关系边界</strong>：点积为零只给出平行/垂直的一部分信息；平行法向量不自动推出重合，必须继续核对常数项和点是否满足方程。</li>
 </ul>
 </section>
-<h2 id="1_1">1. 三种乘积：一表定乾坤<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<table>
-<thead>
-<tr>
-<th>乘积</th>
-<th>定义</th>
-<th>结果</th>
-<th>几何含义</th>
-<th>检验什么</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>内积 <span class="arithmatex">\(\mathbf{a}\cdot\mathbf{b}\)</span></td>
-<td><span class="arithmatex">\(\lvert\mathbf a\rvert\lvert\mathbf b\rvert\cos\theta\)</span></td>
-<td>数</td>
-<td>投影、夹角</td>
-<td><strong>垂直</strong>（<span class="arithmatex">\(= 0\)</span>）</td>
-</tr>
-<tr>
-<td>外积 <span class="arithmatex">\(\mathbf{a}\times\mathbf{b}\)</span></td>
-<td>模 <span class="arithmatex">\(\lvert\mathbf a\rvert\lvert\mathbf b\rvert\sin\theta\)</span>，右手定向</td>
-<td>向量</td>
-<td><strong>平行四边形面积</strong> + 公垂方向</td>
-<td><strong>平行</strong>（<span class="arithmatex">\(= \mathbf 0\)</span>）</td>
-</tr>
-<tr>
-<td>混合积 <span class="arithmatex">\((\mathbf a, \mathbf b, \mathbf c) = (\mathbf a\times\mathbf b)\cdot\mathbf c\)</span></td>
-<td><span class="arithmatex">\(3\times3\)</span> 行列式</td>
-<td>数</td>
-<td><strong>平行六面体体积</strong>（带定向）</td>
-<td><strong>共面</strong>（<span class="arithmatex">\(= 0\)</span>）</td>
-</tr>
-</tbody>
-</table>
-<p>坐标算法：内积=对应分量乘加；外积=形式行列式 <span class="arithmatex">\(\begin{vmatrix}\mathbf i &amp; \mathbf j &amp; \mathbf k \\ a_1 &amp; a_2 &amp; a_3 \\ b_1 &amp; b_2 &amp; b_3\end{vmatrix}\)</span>；混合积=三行行列式（行列式的几何意义=体积——高代 II 那句话的出生地）。</p>
-<p>反交换 <span class="arithmatex">\(\mathbf a\times\mathbf b = -\mathbf b\times\mathbf a\)</span>、不满足结合律；双重外积公式 <span class="arithmatex">\(\mathbf a\times(\mathbf b\times\mathbf c) = \mathbf b(\mathbf a\cdot\mathbf c) - \mathbf c(\mathbf a\cdot\mathbf b)\)</span>（"BAC-CAB"）。</p>
-<h2 id="2_1">2. 平面与直线：方程的四副面孔<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>平面</strong>（本质数据：一点 + 法向量 <span class="arithmatex">\(\mathbf n = (A,B,C)\)</span>）：</p>
+<h2 id="1_1">1. 点、位移和坐标：相同的三元数组可以有不同身份<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>一个点 <span class="arithmatex">\(P\)</span> 表示位置，两个点的差 <span class="arithmatex">\(Q-P=\overrightarrow{PQ}\)</span> 是位移；一个点加位移得到另一个点。自由向量可以平移到任意起点，不随放置位置改变。选定原点 <span class="arithmatex">\(O\)</span> 后，点 <span class="arithmatex">\(P\)</span> 才对应位置向量 <span class="arithmatex">\(\overrightarrow{OP}\)</span>；改变原点会改变位置向量，却不会改变 <span class="arithmatex">\(Q-P\)</span>。</p>
+<p>因此不是“点的坐标绝对不能作向量运算”，而是要先说明原点、坐标系和运算结果的身份。仿射组合 <span class="arithmatex">\(\lambda P+(1-\lambda)Q\)</span> 与原点选择无关；未说明原点的 <span class="arithmatex">\(P+Q\)</span> 通常没有这样的内在意义。下面使用右手定向的正交单位坐标系，距离单位一致。</p>
+<h2 id="2_1">2. 三种乘积：投影、面积与体积如何接起来？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>内积 <span class="arithmatex">\(a\cdot b=\sum_i a_ib_i=\|a\|\|b\|\cos\theta\)</span> 把沿另一个方向的分量提取出来。对 <span class="arithmatex">\(b\ne0\)</span>，令</p>
 <div class="arithmatex">\[
-\text{点法式 } A(x - x_0) + B(y - y_0) + C(z - z_0) = 0 \quad\Longleftrightarrow\quad \text{一般式 } Ax + By + Cz + D = 0
+a_\parallel=\frac{a\cdot b}{\|b\|^2}b,\qquad a_\perp=a-a_\parallel.
 \]</div>
-<p><strong>读方程先读法向量</strong>——平面题的第一反射。三点定平面：两条边向量的外积给 <span class="arithmatex">\(\mathbf n\)</span>。</p>
-<p><strong>直线</strong>（本质数据：一点 + 方向向量 <span class="arithmatex">\(\mathbf s = (m, n, p)\)</span>）：</p>
+<p>直接计算 <span class="arithmatex">\(a_\perp\cdot b=0\)</span>，再用勾股定理得 <span class="arithmatex">\(\|a\|^2=\|a_\parallel\|^2+\|a_\perp\|^2\)</span>。零向量与所有向量内积为零，但没有唯一的方向或夹角；不能把非零向量的角度解释机械搬给零向量。</p>
+<p>在定向三维欧氏空间中，外积按坐标定义为</p>
 <div class="arithmatex">\[
-\text{对称式（仅 }mnp\ne0\text{） } \frac{x - x_0}{m} = \frac{y - y_0}{n} = \frac{z - z_0}{p}, \qquad \text{参数式 } \mathbf r = \mathbf r_0 + t\mathbf s
+a\times b=(a_2b_3-a_3b_2,\ a_3b_1-a_1b_3,\ a_1b_2-a_2b_1).
 \]</div>
-<p>一般式（两平面之交）化点向式：<span class="arithmatex">\(\mathbf s = \mathbf n_1 \times \mathbf n_2\)</span>。</p>
-<p><strong>距离公式全家</strong>（结构统一：投影长）：</p>
+<p>展开可验证它与 <span class="arithmatex">\(a,b\)</span> 都正交，且满足 Gram 恒等式</p>
+<div class="arithmatex">\[
+\|a\times b\|^2=\|a\|^2\|b\|^2-(a\cdot b)^2.
+\]</div>
+<p>右边也等于 <span class="arithmatex">\(\|b\|^2\|a_\perp\|^2\)</span>，所以外积的模是平行四边形的“底乘高”，方向由右手定向给出。非零向量外积为零等价于平行；更一般地，它等价于这两个向量线性相关。外积换序变号，且不满足结合律；可从分量验证</p>
+<div class="arithmatex">\[
+a\times(b\times c)=b(a\cdot c)-c(a\cdot b).
+\]</div>
+<p>混合积 <span class="arithmatex">\((a\times b)\cdot c=\det[a\ b\ c]\)</span> 再把第三条边投影到前两条边的法向，因而给出带定向体积；绝对值才是通常体积。混合积为零等价于三向量线性相关，允许本来就有零向量或平行边的退化情形。这里的“共面”指自由向量的张成空间至多二维，不是在任意位置画三条线就断言共面。</p>
+<h2 id="3_1">3. 平面和直线：方程中的非零条件不能省略<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>给定点 <span class="arithmatex">\(p\)</span> 和非零法向量 <span class="arithmatex">\(n\)</span>，平面是</p>
+<div class="arithmatex">\[
+P=\{x:n\cdot(x-p)=0\}=\{x:n\cdot x=c\},\quad c=n\cdot p.
+\]</div>
+<p>整体乘以非零数不改变点集：<span class="arithmatex">\(n\cdot x=c\)</span> 与 <span class="arithmatex">\((\lambda n)\cdot x=\lambda c\)</span> 是同一个平面。若 <span class="arithmatex">\(n=0\)</span>，<span class="arithmatex">\(c=0\)</span> 给出整个空间，<span class="arithmatex">\(c\ne0\)</span> 给出空集，两者都不是二维平面。三点 <span class="arithmatex">\(A,B,C\)</span> 定平面要求它们不共线，此时可用 <span class="arithmatex">\((B-A)\times(C-A)\)</span> 作法向量。</p>
+<p>给定点 <span class="arithmatex">\(q\)</span> 与非零方向 <span class="arithmatex">\(d\)</span>，直线是 <span class="arithmatex">\(L=\{q+td:t\in\mathbb R\}\)</span>。参数式允许方向分量为零；只有相应分量非零时才能写 <span class="arithmatex">\((x_i-q_i)/d_i=t\)</span>。例如 <span class="arithmatex">\(d=(1,0,0)\)</span> 应写 <span class="arithmatex">\(x=q_1+t,y=q_2,z=q_3\)</span>，不能除以零。若 <span class="arithmatex">\(d=0\)</span>，参数像只是单个点。</p>
+<p>平面也可写 <span class="arithmatex">\(p+su+tv\)</span>，其中 <span class="arithmatex">\(u,v\)</span> 线性无关且都垂直于 <span class="arithmatex">\(n\)</span>；两条独立切向量张成法向的二维正交补。这把隐式约束与参数化连在了一起。</p>
+<h3 id="_1">直线与平面：一个一次方程的三种结果<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把 <span class="arithmatex">\(x=q+td\)</span> 代入平面，记 <span class="arithmatex">\(a=n\cdot d\)</span>、<span class="arithmatex">\(b=n\cdot(q-p)\)</span>，得到 <span class="arithmatex">\(at=-b\)</span>。若 <span class="arithmatex">\(a\ne0\)</span>，唯一交点为 <span class="arithmatex">\(q-(b/a)d\)</span>；若 <span class="arithmatex">\(a=0,b\ne0\)</span>，平行不相交；若 <span class="arithmatex">\(a=b=0\)</span>，整条直线包含于平面。三个分支都先要求对象合法。</p>
+<h3 id="_2">两个平面：交线不仅有方向，还要有位置<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(n_1\times n_2=w\ne0\)</span>，两个独立线性约束在三维留下一个自由度，交集是一条直线，方向为 <span class="arithmatex">\(w\)</span>。一个具体的交线点可以取</p>
+<div class="arithmatex">\[
+x_0=\frac{(c_1n_2-c_2n_1)\times w}{\|w\|^2},
+\qquad x=x_0+tw.
+\]</div>
+<p>用混合积或双重外积验证 <span class="arithmatex">\(n_1\cdot x_0=c_1\)</span>、<span class="arithmatex">\(n_2\cdot x_0=c_2\)</span>，并且 <span class="arithmatex">\(x_0\cdot w=0\)</span>，所以它还是交线上距原点最近的点。若法向量平行，设 <span class="arithmatex">\(n_2=\lambda n_1\)</span>；还需 <span class="arithmatex">\(c_2=\lambda c_1\)</span> 才重合，否则平行不相交。若改用单位法向比较常数，必须同时处理法向的正负方向。</p>
+<h2 id="4_1">4. 所有距离公式都在寻找最短的垂直分量<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<h3 id="_3">点到平面：证明垂足是全局最短点<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>平面 <span class="arithmatex">\(n\cdot x=c\)</span>，点 <span class="arithmatex">\(M\)</span> 的垂足为</p>
+<div class="arithmatex">\[
+H=M-\frac{n\cdot M-c}{\|n\|^2}n.
+\]</div>
+<p>代入即得 <span class="arithmatex">\(n\cdot H=c\)</span>，且 <span class="arithmatex">\(M-H\)</span> 平行于法向。对平面上任意 <span class="arithmatex">\(Q\)</span>，<span class="arithmatex">\(H-Q\)</span> 与 <span class="arithmatex">\(M-H\)</span> 正交，故</p>
+<div class="arithmatex">\[
+\|M-Q\|^2=\|M-H\|^2+\|H-Q\|^2\ge\|M-H\|^2.
+\]</div>
+<p>因此垂足给出唯一最短距离 <span class="arithmatex">\(d(M,P)=|n\cdot M-c|/\|n\|\)</span>。分子会随方程缩放，分母也按同样倍率缩放，距离保持不变。</p>
+<h3 id="_4">点到直线：把差向量分成平行与垂直部分<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>直线 <span class="arithmatex">\(q+td\)</span>，点 <span class="arithmatex">\(M\)</span>，令 <span class="arithmatex">\(v=M-q\)</span>。平方距离 <span class="arithmatex">\(\|v-td\|^2\)</span> 对 <span class="arithmatex">\(t\)</span> 是严格凸二次式，令导数为零得 <span class="arithmatex">\(t_*=(v\cdot d)/\|d\|^2\)</span>。于是垂足为 <span class="arithmatex">\(q+t_*d\)</span>，距离为</p>
+<div class="arithmatex">\[
+\sqrt{\|v\|^2-\frac{(v\cdot d)^2}{\|d\|^2}}
+=\frac{\|v\times d\|}{\|d\|}.
+\]</div>
+<p>第二个等号用 Gram 恒等式，展示“面积除以底”与“减去平行投影”其实是同一个计算。</p>
+<h3 id="_5">两条直线：先分类，再选距离公式<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(L_1=p+sd_1,L_2=q+td_2\)</span>，<span class="arithmatex">\(v=q-p\)</span>。</p>
 <ul>
-<li>点到平面：<span class="arithmatex">\(d = \dfrac{|Ax_1 + By_1 + Cz_1 + D|}{\sqrt{A^2 + B^2 + C^2}}\)</span>（差向量在 <span class="arithmatex">\(\mathbf n\)</span> 上的投影）；</li>
-<li>点到直线：<span class="arithmatex">\(d = \dfrac{|\overrightarrow{PM}\times\mathbf s|}{|\mathbf s|}\)</span>（平行四边形面积÷底）；</li>
-<li><strong>异面直线距离</strong>：<span class="arithmatex">\(d = \dfrac{|(\overrightarrow{M_1M_2},\ \mathbf s_1,\ \mathbf s_2)|}{|\mathbf s_1\times\mathbf s_2|}\)</span>（体积÷底面积——混合积的招牌应用）。</li>
+<li>若 <span class="arithmatex">\(d_1\times d_2=0\)</span>，再看 <span class="arithmatex">\(v\times d_1\)</span>：为零则重合，否则平行。距离为 <span class="arithmatex">\(\|v\times d_1\|/\|d_1\|\)</span>。</li>
+<li>若 <span class="arithmatex">\(w=d_1\times d_2\ne0\)</span>，<span class="arithmatex">\(v\cdot w=0\)</span> 当且仅当两线相交，否则异面。理由是 <span class="arithmatex">\(v\)</span> 位于 <span class="arithmatex">\(\operatorname{span}(d_1,d_2)\)</span> 当且仅当它垂直于 <span class="arithmatex">\(w\)</span>，这恰好决定能否解出 <span class="arithmatex">\(p+sd_1=q+td_2\)</span>。</li>
 </ul>
-<p><strong>位置关系与夹角</strong>：线线/线面/面面的平行垂直全部翻译成 <span class="arithmatex">\(\mathbf s, \mathbf n\)</span> 的平行垂直（乘积表检验）；夹角用内积算余弦（线面角与法向量算的是余角——常错点）。</p>
-<h2 id="3_1">3. 典型例题<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>例 1（外积定平面）</strong> 过 <span class="arithmatex">\(A(1,0,0), B(0,2,0), C(0,0,3)\)</span> 的平面：<span class="arithmatex">\(\mathbf n = \overrightarrow{AB}\times\overrightarrow{AC} = (6, 3, 2)\)</span> ⇒ <span class="arithmatex">\(6x + 3y + 2z = 6\)</span>（也可直接写截距式 <span class="arithmatex">\(\frac x1 + \frac y2 + \frac z3 = 1\)</span> 对账）。</p>
-<p><strong>例 2（异面距离全流程）</strong> <span class="arithmatex">\(l_1:(x,y,z)=(t,0,0)\)</span>（等价于 <span class="arithmatex">\(y=0,z=0\)</span> 的 <span class="arithmatex">\(x\)</span> 轴），<span class="arithmatex">\(l_2\)</span> 过 <span class="arithmatex">\((0,1,0)\)</span>、方向 <span class="arithmatex">\((0,0,1)\)</span>：<span class="arithmatex">\(\mathbf s_1\times\mathbf s_2 = (0,-1,0)\)</span>，<span class="arithmatex">\(\overrightarrow{M_1M_2} = (0,1,0)\)</span>，混合积 <span class="arithmatex">\(= -1\)</span> ⇒ <span class="arithmatex">\(d = 1\)</span>。方向分量为零时应使用参数式或直接写恒定坐标，不能制造 <span class="arithmatex">\(y/0\)</span>、<span class="arithmatex">\(z/0\)</span>。</p>
-<p><strong>例 3（投影点）</strong> 求 <span class="arithmatex">\(P(2,1,3)\)</span> 在平面 <span class="arithmatex">\(x + y + z = 3\)</span> 上的投影：过 <span class="arithmatex">\(P\)</span> 沿 <span class="arithmatex">\(\mathbf n = (1,1,1)\)</span> 的参数线 <span class="arithmatex">\((2+t, 1+t, 3+t)\)</span> 代入平面解 <span class="arithmatex">\(t = -1\)</span> ⇒ 投影 <span class="arithmatex">\((1, 0, 2)\)</span>。（"沿法向走到平面"——最小二乘投影的三维具象，高代 VI/泛函 II 的远亲。）<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：二次曲面——六个标准脸谱与"截痕法"，并与高代 VI 的二次型分类正式对表。</em></p>
+<p>在第二种情形，移动两条线上的点只能改变连接向量在 <span class="arithmatex">\(\operatorname{span}(d_1,d_2)\)</span> 中的分量，垂直分量不变。因此最短距离为</p>
+<div class="arithmatex">\[
+d(L_1,L_2)=\frac{|v\cdot(d_1\times d_2)|}{\|d_1\times d_2\|}.
+\]</div>
+<p>它也覆盖相交时距离为零的情况；平行时分母为零，必须换回上一个分支。需要具体最近点时，令连接向量与两个方向都正交，解</p>
+<div class="arithmatex">\[
+\begin{pmatrix}d_1\cdot d_1&amp;-d_1\cdot d_2\\-d_1\cdot d_2&amp;d_2\cdot d_2\end{pmatrix}
+\binom{s}{t}=
+\binom{v\cdot d_1}{-v\cdot d_2}.
+\]</div>
+<p>该矩阵的行列式为 <span class="arithmatex">\(\|d_1\times d_2\|^2&gt;0\)</span>，所以非平行情形有唯一最近点对。这也是一个小型最小二乘问题。相关几何构造可参照 <a href="https://openstax.org/books/calculus-volume-3/pages/2-5-equations-of-lines-and-planes-in-space">OpenStax 的空间直线与平面</a>。</p>
+<h2 id="5">5. 夹角与近乎平行：分类正确不等于交点稳定<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>不定向直线之间的锐角或直角 <span class="arithmatex">\(\alpha\in[0,\pi/2]\)</span> 满足 <span class="arithmatex">\(\cos\alpha=|d_1\cdot d_2|/(\|d_1\|\|d_2\|)\)</span>；两平面的夹角用其法向量代入同式。直线与平面的夹角 <span class="arithmatex">\(\beta\)</span> 则满足</p>
+<div class="arithmatex">\[
+\sin\beta=\frac{|n\cdot d|}{\|n\|\|d\|},
+\]</div>
+<p>因为线面角与方向—法向夹角互余。单凭二维投影上的角度一般不能读出三维夹角。</p>
+<p>实验固定 <span class="arithmatex">\(P:z=0\)</span>、<span class="arithmatex">\(q=(1,1,h)\)</span>、<span class="arithmatex">\(d=(1,0,k)\)</span>，故 <span class="arithmatex">\(t=-h/k\)</span>，交点横坐标 <span class="arithmatex">\(x_*=1-h/k\)</span>。当 <span class="arithmatex">\(h\ne0\)</span>、<span class="arithmatex">\(k\)</span> 接近零但不等于零时，交点可能非常远：<span class="arithmatex">\(\partial x_*/\partial k=h/k^2\)</span>。改动很小的倾斜就可能造成很大的位置变化；等到 <span class="arithmatex">\(k=0\)</span>，位置关系才变成平行。</p>
+<figure class="plot">
+<div aria-label="可横向滚动的投影距离与近乎平行图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/geo-01-projection.svg" alt="左图在包含法向的平面截面内展示垂足和勾股分解；右图展示h=1时交点横坐标1-1/k随倾斜k变化，近零时迅速远离" style="min-width:1000px;max-width:none;width:100%">
+</div>
+<figcaption>
+<p>左：固定另一个切向坐标后的真实二维截面，垂直线段比任意斜线段短。右：曲线来自交点公式，未把视窗外交点截成边界点；横轴只画正的 <span class="arithmatex">\(k\ge0.1\)</span>，<span class="arithmatex">\(k=0\)</span> 不在公式定义域。</p>
+</figcaption>
+</figure>
+<p>不能用固定绝对阈值把所有小法向量当成零。例如 <span class="arithmatex">\(z=0\)</span> 与 <span class="arithmatex">\(10^{-12}z=0\)</span> 都是合法平面。实验对实际输入所表示的二进制数精确判定相关点积/叉积是否为零，再给出近似坐标；界面中的小量不会被当成数学上的零。若输入来自测量，则应另给长度、角度或噪声模型下的容差，精确算术不能消除测量不确定性。关于舍入误差如何改变几何分支，可阅读 <a href="https://www.cs.cmu.edu/~quake/robust.html">鲁棒几何判定介绍</a>。</p>
+<h2 id="6">6. 三个例子与三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>过 <span class="arithmatex">\(A(1,0,0),B(0,2,0),C(0,0,3)\)</span> 的平面，法向为 <span class="arithmatex">\((B-A)\times(C-A)=(6,3,2)\)</span>，得到 <span class="arithmatex">\(6x+3y+2z=6\)</span>；三个点逐一代入可验证。</p>
+<p>直线 <span class="arithmatex">\(L_1=(t,0,0)\)</span> 与 <span class="arithmatex">\(L_2=(0,1,s)\)</span> 的公垂方向为 <span class="arithmatex">\((0,-1,0)\)</span>，距离为1，最近点为 <span class="arithmatex">\((0,0,0)\)</span> 和 <span class="arithmatex">\((0,1,0)\)</span>。它们方向正交却不相交，说明“方向正交”不能代替相交判断。</p>
+<p>点 <span class="arithmatex">\(M=(2,1,3)\)</span> 到平面 <span class="arithmatex">\(x+y+z=3\)</span>，由垂足公式得 <span class="arithmatex">\(H=(1,0,2)\)</span>、距离 <span class="arithmatex">\(\sqrt3\)</span>。图中的投影截面正来自这个例子。</p>
+<p><strong>题1：</strong> <span class="arithmatex">\(P_1:x+y+z=1\)</span>、<span class="arithmatex">\(P_2:2x+2y+2z=3\)</span> 是否重合？距离多少？若把第二式右端改成2呢？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>法向量之比为2，但常数之比为3，所以两平面平行不重合。把第二式除以2变成 <span class="arithmatex">\(x+y+z=1.5\)</span>，距离为 <span class="arithmatex">\(|1.5-1|/\sqrt3=1/(2\sqrt3)\)</span>。右端改为2后，两个方程整体比例一致，故重合。只比较单位法向而不同时比较有符号常数会漏掉这个区别。</p>
+</details>
+<p><strong>题2：</strong> <span class="arithmatex">\(L_1=(s,0,0)\)</span>、<span class="arithmatex">\(L_2=(0,1,0)+t(1,0,\varepsilon)\)</span>，求 <span class="arithmatex">\(\varepsilon\ne0\)</span> 时最近点对与距离；<span class="arithmatex">\(\varepsilon=0\)</span> 呢？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>连接向量为 <span class="arithmatex">\((t-s,1,\varepsilon t)\)</span>，平方长度为 <span class="arithmatex">\((t-s)^2+1+\varepsilon^2t^2\)</span>。<span class="arithmatex">\(\varepsilon\ne0\)</span> 时唯一最小点是 <span class="arithmatex">\(s=t=0\)</span>，距离1；<span class="arithmatex">\(\varepsilon=0\)</span> 时任意 <span class="arithmatex">\(s=t\)</span> 都取到距离1，最近点对不再唯一。两种情况的距离连续，但决定最近参数的矩阵在平行极限失去可逆性；小分母不等于距离一定发散。</p>
+</details>
+<p><strong>题3：</strong> <span class="arithmatex">\(P:z=0\)</span>，<span class="arithmatex">\(L=(1,1,1)+t(1,0,k)\)</span>。比较 <span class="arithmatex">\(k=0\)</span>、<span class="arithmatex">\(10^{-12}\)</span>、<span class="arithmatex">\(-10^{-12}\)</span>，并说明把平面法向乘以 <span class="arithmatex">\(2^{-100}\)</span> 后应发生什么。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(k=0\)</span> 时平行不相交；<span class="arithmatex">\(k=10^{-12}\)</span> 时 <span class="arithmatex">\(t=-10^{12}\)</span>、交点 <span class="arithmatex">\((1-10^{12},1,0)\)</span>；<span class="arithmatex">\(k=-10^{-12}\)</span> 时 <span class="arithmatex">\(t=10^{12}\)</span>、交点 <span class="arithmatex">\((1+10^{12},1,0)\)</span>。很小的倾斜符号变化把交点移到很远的另一侧。将法向乘以非零的 <span class="arithmatex">\(2^{-100}\)</span> 不改变任何位置关系，代入方程的系数和常数同倍率变化，参数比值保持不变。数值读取的十进制小数一般只近似表示，这与理论精确小数应分开；实验的精确判定针对已表示的数。</p>
+</details>
+<p>下一页：<a href="geo-02-quadrics.html">二次曲面</a>，把线性约束扩展为二次方程，同时继续检查退化与坐标变换。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="algebra-06-quadratic.html"><span class="pager-label">上一页</span>高代 VI · 二次型与内积空间</a>

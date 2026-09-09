@@ -171,11 +171,18 @@
     return values.reduce(function(sum,value){return sum+value/scale;},0)/values.length*scale;
   }
 
-  function sampleStd(values) {
+  function scaledSampleMoments(values) {
     sampleCheck(values);
-    var center = mean(values);
-    var total = values.reduce(function (sum, value) { return sum + Math.pow(value - center, 2); }, 0);
-    return Math.sqrt(total / (values.length - 1));
+    var scale = Math.max.apply(Math, values.map(Math.abs));
+    if (scale === 0) return {scale:0, total:0};
+    var scaled = values.map(function(value) { return value / scale; });
+    var center = scaled.reduce(function(sum,value) { return sum + value; }, 0) / values.length;
+    var total = scaled.reduce(function(sum,value) { return sum + Math.pow(value-center,2); }, 0);
+    return {scale:scale, total:total};
+  }
+  function sampleStd(values) {
+    var moments=scaledSampleMoments(values);
+    return Math.sqrt(moments.total / (values.length - 1)) * moments.scale;
   }
 
   function copyConfig(config) {
@@ -213,7 +220,9 @@
     var standardDeviation = sampleStd(values);
     var known = variance === "known";
     var critical = known ? zCritical(config.confidence) : tCritical(config.confidence, n - 1);
-    var margin = critical * (known ? config.sigma : standardDeviation) / Math.sqrt(n);
+    var moments = known ? null : scaledSampleMoments(values);
+    var margin = known ? (critical / Math.sqrt(n)) * config.sigma :
+      (critical * Math.sqrt(moments.total / (n * (n-1)))) * moments.scale;
     return {
       lower: center - margin,
       upper: center + margin,
