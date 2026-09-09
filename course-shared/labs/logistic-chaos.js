@@ -5,7 +5,7 @@
   var STYLE_ID = "logistic-chaos-lab-styles";
   var SERIAL = 0;
   var SATURATION_THRESHOLD = 0.95;
-  var LOG_FLOOR = -16;
+
   var PRESETS = [
     {
       id: "fixed",
@@ -57,6 +57,8 @@
       steps: 80,
       expected: "exceptional"
     }
+    , { id: "period-four", label: "稳定周期4 r=3.5", r: 3.5, x0: 0.2, logDelta: -8, burnIn: 200, steps: 160, expected: "period-four" }
+    , { id: "unstable-fixed", label: "正指数但不动 x0=.75", r: 4, x0: 0.75, logDelta: -8, burnIn: 0, steps: 160, expected: "unstable-fixed" }
   ];
 
   function isFiniteNumber(value) {
@@ -71,11 +73,22 @@
     return Math.abs(left - right) <= (tolerance === undefined ? 1e-10 : tolerance);
   }
 
+  function bounded(value, lo, hi, name, integer) {
+    if (!isFiniteNumber(value) || value < lo || value > hi || (integer && !Number.isInteger(value)))
+      throw new RangeError(name + " outside supported domain");
+    return value;
+  }
+  function orbitInputs(r, x0, count, burnIn) {
+    bounded(r, 0, 4, "r"); bounded(x0, 0, 1, "x0");
+    return {steps: bounded(count === undefined ? 160 : count, 1, 10000, "count", true),
+      burn: bounded(burnIn === undefined ? 40 : burnIn, 0, 10000, "burnIn", true)};
+  }
   function logisticMap(r, x) {
+    bounded(r, 0, 4, "r"); bounded(x, 0, 1, "x");
     return r * x * (1 - x);
   }
-
   function derivativeFactor(r, x) {
+    bounded(r, 0, 4, "r"); bounded(x, 0, 1, "x");
     return Math.abs(r * (1 - 2 * x));
   }
 
@@ -85,7 +98,8 @@
   }
 
   function iterate(r, x0, count) {
-    var steps = Math.max(0, Math.round(count));
+    bounded(r, 0, 4, "r"); bounded(x0, 0, 1, "x0");
+    var steps = bounded(count, 0, 20000, "count", true);
     var values = [x0];
     var x = x0;
     for (var index = 0; index < steps; index += 1) {
@@ -96,8 +110,8 @@
   }
 
   function finiteLyapunov(r, x0, count, burnIn) {
-    var steps = Math.max(1, Math.round(isFiniteNumber(Number(count)) ? Number(count) : 160));
-    var burn = Math.max(0, Math.round(isFiniteNumber(Number(burnIn)) ? Number(burnIn) : 40));
+    var input = orbitInputs(r, x0, count, burnIn);
+    var steps = input.steps, burn = input.burn;
     var x = x0;
     var zeroDuringBurnIn = null;
     var index;
@@ -136,10 +150,14 @@
   }
 
   function simulatePair(r, x0, delta0, count, burnIn) {
-    var steps = Math.max(1, Math.round(isFiniteNumber(Number(count)) ? Number(count) : 160));
-    var burn = Math.max(0, Math.round(isFiniteNumber(Number(burnIn)) ? Number(burnIn) : 40));
-    var first = clamp(x0, 0, 1);
-    var second = clamp(first + Math.max(0, delta0), 0, 1);
+    var input = orbitInputs(r, x0, count, burnIn);
+    var steps = input.steps, burn = input.burn;
+    bounded(delta0, 0, 1, "delta0");
+    var first = x0;
+    var direction = x0 + delta0 <= 1 ? 1 : -1;
+    var second = first + direction * delta0;
+    bounded(second, 0, 1, "neighbor");
+    var initialDistance = Math.abs(first - second);
     var mergedDuringBurnIn = first === second ? 0 : null;
     var index;
 
@@ -169,6 +187,9 @@
       r: r,
       x0: x0,
       requestedDelta: delta0,
+      direction: direction,
+      neighbor0: x0 + direction * delta0,
+      initialDistance: initialDistance,
       effectiveDelta: Math.abs(series[0].first - series[0].second),
       burnIn: burn,
       steps: steps,
@@ -182,24 +203,24 @@
   }
 
   function detectPeriod(values, maximumPeriod, tolerance) {
-    var maxPeriod = Math.max(1, Math.round(maximumPeriod || 12));
-    var epsilon = tolerance === undefined ? 1e-8 : tolerance;
-    if (values.length < 2) return 0;
+    if (!Array.isArray(values) || values.length > 20001) throw new TypeError("values must be a bounded array");
+    values.forEach(function (v) { bounded(v, 0, 1, "orbit value"); });
+    var maxPeriod = bounded(maximumPeriod === undefined ? 12 : maximumPeriod, 1, 100, "maximumPeriod", true);
+    var epsilon = bounded(tolerance === undefined ? 1e-8 : tolerance, 0, 0.01, "tolerance");
     for (var period = 1; period <= maxPeriod; period += 1) {
-      if (values.length < 2 * period) continue;
-      var start = values.length - 2 * period;
+      // Require at least four complete blocks, and use the entire supplied tail.
+      if (values.length < 4 * period) continue;
       var error = 0;
-      for (var index = start + period; index < values.length; index += 1) {
+      for (var index = period; index < values.length; index += 1)
         error = Math.max(error, Math.abs(values[index] - values[index - period]));
-      }
       if (error <= epsilon) return period;
     }
     return 0;
   }
 
   function analyzeOrbit(r, x0, count, burnIn) {
-    var steps = Math.max(40, Math.round(isFiniteNumber(Number(count)) ? Number(count) : 160));
-    var burn = Math.max(0, Math.round(isFiniteNumber(Number(burnIn)) ? Number(burnIn) : 40));
+    var input = orbitInputs(r, x0, count, burnIn);
+    var steps = input.steps, burn = input.burn;
     var values = iterate(r, x0, burn + steps);
     var afterBurnIn = values.slice(burn);
     var tail = afterBurnIn.slice(Math.max(0, afterBurnIn.length - 80));
@@ -215,6 +236,8 @@
       label = "有限样本检测：周期2";
     } else if (period === 3) {
       label = "有限样本检测：周期3窗口";
+    } else if (period > 0) {
+      label = "有限样本检测：周期" + period;
     } else {
       label = "有限样本未检测到短周期";
     }
@@ -232,25 +255,18 @@
   }
 
   function normalizedState(input) {
-    var source = input || {};
-    var r = clamp(isFiniteNumber(Number(source.r)) ? Number(source.r) : 2.8, 0, 4);
-    var x0 = clamp(isFiniteNumber(Number(source.x0)) ? Number(source.x0) : 0.2, 0, 1);
-    var logDelta = clamp(
-      isFiniteNumber(Number(source.logDelta)) ? Number(source.logDelta) : -8,
-      -12,
-      -2
-    );
+    var source = input === undefined ? {} : input;
+    if (!source || typeof source !== "object" || Array.isArray(source)) throw new TypeError("state must be an object");
+    var allowed = ["r", "x0", "logDelta", "burnIn", "steps", "id", "presetId", "expected", "label", "delta0"];
+    Object.keys(source).forEach(function (key) { if (allowed.indexOf(key) < 0) throw new TypeError("Unknown key " + key); });
+    function get(key, fallback, lo, hi, integer) { return bounded(source[key] === undefined ? fallback : source[key], lo, hi, key, integer); }
+    var logDelta = get("logDelta", -8, -12, -2);
     var delta0 = Math.pow(10, logDelta);
-    if (x0 + delta0 > 1) x0 = Math.max(0, 1 - delta0);
+    if (source.delta0 !== undefined && source.delta0 !== delta0) throw new RangeError("delta0 must match logDelta");
     return {
-      id: source.id || source.presetId || "custom",
-      presetId: source.presetId || source.id || "custom",
-      r: r,
-      x0: x0,
-      logDelta: logDelta,
-      delta0: delta0,
-      burnIn: clamp(Math.round(isFiniteNumber(Number(source.burnIn)) ? Number(source.burnIn) : 40), 0, 300),
-      steps: clamp(Math.round(isFiniteNumber(Number(source.steps)) ? Number(source.steps) : 160), 20, 800)
+      id: source.id || source.presetId || "custom", presetId: source.presetId || source.id || "custom",
+      r: get("r", 2.8, 0, 4), x0: get("x0", 0.2, 0, 1), logDelta: logDelta, delta0: delta0,
+      burnIn: get("burnIn", 40, 0, 300, true), steps: get("steps", 160, 20, 800, true)
     };
   }
 
@@ -325,7 +341,7 @@
       return value.toExponential(Math.min(places + 2, 6));
     }
     var text = value.toFixed(places);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
+    return places ? text.replace(/0+$/, "").replace(/\.$/, "") : text;
   }
 
   function formatDistance(value) {
@@ -355,13 +371,13 @@
       ".lc-lab button,.lc-lab input{font:inherit;letter-spacing:0}",
       ".lc-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#292722);cursor:pointer;line-height:1.35;overflow-wrap:anywhere}",
       ".lc-lab button:hover{border-color:var(--lc-blue)}.lc-lab button[aria-pressed=true],.lc-lab button.lc-primary{border-color:var(--lc-blue);background:var(--lc-blue);color:var(--bg,#fff);font-weight:700}",
-      ".lc-lab button:disabled{cursor:not-allowed;opacity:.58}.lc-lab button:focus-visible,.lc-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
+      ".lc-lab button:disabled{cursor:not-allowed;opacity:.58}.lc-lab [tabindex]:focus-visible,.lc-lab button:focus-visible,.lc-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
       ".lc-lab .lc-heading{margin:0 0 4px;color:var(--lc-blue);font-size:1.2rem}.lc-lab .lc-intro,.lc-lab .lc-note,.lc-lab .lc-feedback,.lc-lab .lc-footnote{margin:0;color:var(--lc-muted);line-height:1.7;overflow-wrap:anywhere}",
       ".lc-lab .lc-prediction{margin:14px 0 0;padding:12px 14px;border-left:3px solid var(--lc-gold);background:var(--block-bg,var(--bg,#fff))}.lc-lab .lc-prediction h4{margin:0 0 8px;font-size:14px}.lc-lab .lc-prediction fieldset{margin:0;padding:0;border:0}.lc-lab .lc-prediction legend{max-width:100%;padding:0;color:var(--fg);font-size:13px;font-weight:700;overflow-wrap:anywhere}",
       ".lc-lab .lc-question{margin:12px 0 6px;color:var(--fg);font-size:13px;font-weight:700}.lc-lab .lc-question:first-child{margin-top:8px}.lc-lab .lc-choice-row,.lc-lab .lc-actions,.lc-lab .lc-legend{display:flex;flex-wrap:wrap;gap:8px}.lc-lab .lc-choice-row button{flex:1 1 190px}.lc-lab .lc-actions{margin-top:12px}.lc-lab .lc-feedback{min-height:1.7em;margin-top:8px;font-weight:700}.lc-lab .lc-pass{color:var(--lc-green)}.lc-lab .lc-warn{color:var(--lc-red)}",
       ".lc-lab .lc-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:14px 0}.lc-lab .lc-presets button{min-height:48px}.lc-lab .lc-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin:14px 0}.lc-lab .lc-control{display:grid;gap:5px;min-width:0}.lc-lab .lc-control>span{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;color:var(--lc-muted);font-size:13px;font-weight:700}.lc-lab .lc-control output{color:var(--lc-blue);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.lc-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--lc-blue)}",
       ".lc-lab .lc-results{display:grid;gap:12px;margin-top:15px}.lc-lab .lc-status{margin:0;padding:10px 12px;border-left:3px solid var(--lc-blue);background:var(--block-bg,var(--bg,#fff));line-height:1.7;overflow-wrap:anywhere}.lc-lab .lc-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.lc-lab .lc-metric{min-width:0;padding:9px 10px;border-top:2px solid var(--border);background:var(--bg)}.lc-lab .lc-metric span{display:block;color:var(--lc-muted);font-size:11.5px;line-height:1.4}.lc-lab .lc-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".lc-lab .lc-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}.lc-lab .lc-chart-card{min-width:0;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden}.lc-lab .lc-chart-card h4{margin:0 0 6px;font-size:13px}.lc-lab .lc-svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.lc-lab .lc-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.lc-lab .lc-grid-line{stroke:var(--border);stroke-width:1;stroke-opacity:.62}.lc-lab .lc-axis{stroke:var(--lc-muted);stroke-width:1.2}.lc-lab .lc-series-a{fill:none;stroke:var(--lc-blue);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-series-b{fill:none;stroke:var(--lc-red);stroke-width:2;stroke-dasharray:6 4;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-distance{fill:none;stroke:var(--lc-gold);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-bound{stroke:var(--lc-green);stroke-width:1.5;stroke-dasharray:5 4}.lc-lab .lc-chart-label{fill:var(--lc-muted)!important;font-size:11px}.lc-lab .lc-legend{color:var(--lc-muted);font-size:12px;line-height:1.4}.lc-lab .lc-legend span{display:inline-flex;align-items:center;gap:5px}.lc-lab .lc-swatch{display:inline-block;width:22px;border-top:3px solid var(--lc-blue)}.lc-lab .lc-swatch-b{border-top-color:var(--lc-red);border-top-style:dashed}.lc-lab .lc-swatch-d{border-top-color:var(--lc-gold)}.lc-lab .lc-swatch-bound{border-top-color:var(--lc-green);border-top-style:dashed}",
+      ".lc-lab .lc-chart-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0}.lc-lab .lc-chart-card{min-width:0;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto}.lc-lab .lc-chart-card h4{margin:0 0 6px;font-size:13px}.lc-lab .lc-svg{display:block;width:100%;min-width:700px;height:auto;color:var(--fg)}.lc-lab .lc-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.lc-lab .lc-grid-line{stroke:var(--border);stroke-width:1;stroke-opacity:.62}.lc-lab .lc-axis{stroke:var(--lc-muted);stroke-width:1.2}.lc-lab .lc-series-a{fill:none;stroke:var(--lc-blue);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-series-b{fill:none;stroke:var(--lc-red);stroke-width:2;stroke-dasharray:6 4;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-distance{fill:none;stroke:var(--lc-gold);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}.lc-lab .lc-bound{stroke:var(--lc-green);stroke-width:1.5;stroke-dasharray:5 4}.lc-lab .lc-chart-label{fill:var(--lc-muted)!important;font-size:11px}.lc-lab .lc-legend{color:var(--lc-muted);font-size:12px;line-height:1.4}.lc-lab .lc-legend span{display:inline-flex;align-items:center;gap:5px}.lc-lab .lc-swatch{display:inline-block;width:22px;border-top:3px solid var(--lc-blue)}.lc-lab .lc-swatch-b{border-top-color:var(--lc-red);border-top-style:dashed}.lc-lab .lc-swatch-d{border-top-color:var(--lc-gold)}.lc-lab .lc-swatch-bound{border-top-color:var(--lc-green);border-top-style:dashed}",
       ".lc-lab .lc-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.lc-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.lc-lab caption{padding:0 0 7px;text-align:left;color:var(--fg);font-size:13px;font-weight:700}.lc-lab th,.lc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}.lc-lab th:first-child,.lc-lab td:first-child{text-align:left}.lc-lab th{color:var(--lc-muted);font-size:11.5px}.lc-lab .lc-formula{margin:0;padding:9px 11px;border-left:3px solid var(--lc-blue);background:var(--block-bg,var(--bg,#fff));font-family:SFMono,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.7;overflow-wrap:anywhere}",
       "@media(max-width:760px){.lc-lab .lc-controls,.lc-lab .lc-chart-grid{grid-template-columns:minmax(0,1fr)}.lc-lab .lc-chart-card{padding:6px}.lc-lab .lc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
       "@media(max-width:430px){.lc-lab .lc-prediction{padding:10px}.lc-lab .lc-choice-row button{flex-basis:100%}.lc-lab .lc-metrics{grid-template-columns:minmax(0,1fr)}}",
@@ -406,7 +422,7 @@
   function makeSvgChart(api, doc, uid, label) {
     var svg = makeSvg(api, doc, "svg", {
       className: "lc-svg",
-      viewBox: "0 0 560 270",
+      viewBox: "0 0 560 320",
       role: "img",
       "aria-labelledby": uid + "-title " + uid + "-desc"
     });
@@ -424,19 +440,8 @@
     return bottom - clamp(ratio, 0, 1) * (bottom - top);
   }
 
-  function sampledIndices(length, maximum) {
-    if (length <= maximum) {
-      var all = [];
-      for (var index = 0; index < length; index += 1) all.push(index);
-      return all;
-    }
-    var result = [];
-    for (var sample = 0; sample < maximum; sample += 1) {
-      result.push(Math.round(sample * (length - 1) / (maximum - 1)));
-    }
-    return result.filter(function (value, position) {
-      return position === 0 || value !== result[position - 1];
-    });
+  function sampledIndices(length) {
+    return Array.from({length: length}, function (_, i) { return i; });
   }
 
   function pathForSeries(series, key, minimum, maximum, left, right, top, bottom, maximumPoints) {
@@ -465,60 +470,61 @@
       svg.appendChild(makeSvg(api, doc, "line", { className: "lc-grid-line", x1: left, y1: y, x2: right, y2: y }));
       svg.appendChild(svgText(api, doc, left - 8, y + 4, formatNumber(value, 1), { className: "lc-chart-label", "text-anchor": "end" }));
     });
-    [0, total].forEach(function (index) {
+    [0, Math.floor(total / 2), total].forEach(function (index) {
       var x = plotX(index, total, left, right);
+      svg.appendChild(svgText(api, doc, x, bottom + 18, String(index), { "text-anchor": index === total ? "end" : "middle" }));
       svg.appendChild(makeSvg(api, doc, "line", { className: "lc-grid-line", x1: x, y1: top, x2: x, y2: bottom }));
     });
     svg.appendChild(makeSvg(api, doc, "line", { className: "lc-axis", x1: left, y1: bottom, x2: right, y2: bottom }));
     svg.appendChild(makeSvg(api, doc, "line", { className: "lc-axis", x1: left, y1: top, x2: left, y2: bottom }));
     svg.appendChild(makeSvg(api, doc, "path", {
-      className: "lc-series-a",
-      d: pathForSeries(series, "first", 0, 1, left, right, top, bottom, 220)
-    }));
-    svg.appendChild(makeSvg(api, doc, "path", {
       className: "lc-series-b",
       d: pathForSeries(series, "second", 0, 1, left, right, top, bottom, 220)
     }));
+    svg.appendChild(makeSvg(api, doc, "path", {
+      className: "lc-series-a",
+      d: pathForSeries(series, "first", 0, 1, left, right, top, bottom, 220)
+    }));
     svg.appendChild(svgText(api, doc, left, 16, "x_n", { className: "lc-chart-label" }));
-    svg.appendChild(svgText(api, doc, right, 255, "n（烧入后）", { className: "lc-chart-label", "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, plotX(total, total, left, right), bottom + 16, String(series[series.length - 1].n), { className: "lc-chart-label", "text-anchor": "end" }));
-    svg.querySelector("desc").textContent = "蓝线是初始值 x0 的轨道，红色虚线是 x0+delta0 的轨道；两者由同一个确定性递推计算。纵轴固定为 0 到 1。";
+    svg.appendChild(svgText(api, doc, right, 280, "n（烧入后；每一步都绘出）", { className: "lc-chart-label", "text-anchor": "end" }));
+    svg.querySelector("desc").textContent = "蓝线是初始值 x0 的轨道，红色虚线是 y0 的轨道；两者由同一个确定性递推计算。纵轴固定为 0 到 1。";
     return svg;
   }
 
   function drawSeparation(api, doc, result, uid) {
-    var svg = makeSvgChart(api, doc, uid, "两条邻近轨道的对数分离度");
-    var left = 47;
-    var right = 548;
-    var top = 22;
-    var bottom = 232;
-    var series = result.separation.series;
-    var total = Math.max(1, series.length - 1);
-    [-16, -8, 0].forEach(function (value) {
-      var y = plotY(value, LOG_FLOOR, 0, top, bottom);
-      svg.appendChild(makeSvg(api, doc, "line", {
-        className: value === 0 ? "lc-bound" : "lc-grid-line",
-        x1: left,
-        y1: y,
-        x2: right,
-        y2: y
-      }));
-      svg.appendChild(svgText(api, doc, left - 8, y + 4, String(value), { className: "lc-chart-label", "text-anchor": "end" }));
+    var svg = makeSvgChart(api, doc, uid, "邻轨距离：有限正值与零距离分开显示");
+    var left = 47, right = 548, top = 30, bottom = 210, zeroY = 258;
+    var series = result.separation.series, total = series.length - 1;
+    var positiveLogs = series.filter(function (p) {return p.distance > 0;}).map(function(p) {return log10(p.distance);});
+    var floor = positiveLogs.length ? Math.min(-2, Math.floor(Math.min.apply(null, positiveLogs))) : -2;
+    [floor, floor / 2, 0].forEach(function (v) {
+      var y = plotY(v, floor, 0, top, bottom);
+      svg.appendChild(makeSvg(api, doc, "line", {className: v === 0 ? "lc-bound" : "lc-grid-line", x1:left,y1:y,x2:right,y2:y}));
+      svg.appendChild(svgText(api,doc,left-6,y+4,formatNumber(v,1),{"text-anchor":"end"}));
     });
-    svg.appendChild(makeSvg(api, doc, "line", { className: "lc-axis", x1: left, y1: bottom, x2: right, y2: bottom }));
-    svg.appendChild(makeSvg(api, doc, "line", { className: "lc-axis", x1: left, y1: top, x2: left, y2: bottom }));
-    var logSeries = series.map(function (point) {
-      return { logDistance: point.distance === 0 ? LOG_FLOOR : Math.max(LOG_FLOOR, log10(point.distance)) };
+    svg.appendChild(makeSvg(api, doc, "line", {className:"lc-axis",x1:left,y1:top,x2:left,y2:bottom}));
+    svg.appendChild(makeSvg(api, doc, "line", {className:"lc-axis",x1:left,y1:bottom,x2:right,y2:bottom}));
+    svg.appendChild(makeSvg(api, doc, "line", {className:"lc-grid-line",x1:left,y1:zeroY,x2:right,y2:zeroY}));
+    var commands = [], active = false;
+    series.forEach(function (p) {
+      var x = plotX(p.n, total, left, right);
+      if (p.distance === 0) {
+        active = false;
+        svg.appendChild(makeSvg(api, doc, "circle", {className:"lc-zero",cx:x,cy:zeroY,r:2,fill:"var(--lc-red)","data-n":p.n}));
+      } else {
+        commands.push((active ? "L " : "M ") + x.toFixed(2) + " " + plotY(log10(p.distance),floor,0,top,bottom).toFixed(2));
+        active = true;
+      }
     });
-    svg.appendChild(makeSvg(api, doc, "path", {
-      className: "lc-distance",
-      d: pathForSeries(logSeries, "logDistance", LOG_FLOOR, 0, left, right, top, bottom, 220)
-    }));
-    svg.appendChild(svgText(api, doc, left, 16, "log10 D_n", { className: "lc-chart-label" }));
-    svg.appendChild(svgText(api, doc, right, 16, "D_n <= 1", { className: "lc-chart-label", "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, right, 255, "n（烧入后）", { className: "lc-chart-label", "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, right, plotY(0, LOG_FLOOR, 0, top, bottom) - 5, "区间上限", { className: "lc-chart-label", "text-anchor": "end" }));
-    svg.querySelector("desc").textContent = "金色曲线是两条轨道距离 D_n 的 log10；绿色虚线是区间 [0,1] 的距离上限 D=1。距离到达 0 表示当前数值精度下合流。";
+    svg.appendChild(makeSvg(api,doc,"path",{className:"lc-distance",d:commands.join(" "),"data-log-min":floor}));
+    [0, Math.floor(total/2), total].forEach(function (n) {
+      svg.appendChild(svgText(api,doc,plotX(n,total,left,right),bottom+18,String(n),{"text-anchor":n===total?"end":"middle"}));
+    });
+    svg.appendChild(svgText(api,doc,left,16,"log10 D_n（仅正距离）"));
+    svg.appendChild(svgText(api,doc,right,16,"绿虚线：D=1 上限",{"text-anchor":"end"}));
+    svg.appendChild(svgText(api,doc,left,zeroY+20,"红点独立行：D=0，log D=−∞（不属于上方有限刻度）"));
+    svg.appendChild(svgText(api,doc,right,307,"n（烧入后；两区域共用横坐标）",{"text-anchor":"end"}));
+    svg.querySelector("desc").textContent="正距离按实际对数绘制，不裁小值。零距离标在独立红点行；没有把负无穷替换为有限数。";
     return svg;
   }
 
@@ -533,13 +539,13 @@
   }
 
   function buildLedger(api, doc, result) {
-    var wrapper = makeElement(api, doc, "div", { className: "lc-table-wrap" });
+    var wrapper = makeElement(api, doc, "div", { className: "lc-table-wrap", tabindex: "0", role: "region", "aria-label": "可横向滚动的数值账本" });
     var table = makeElement(api, doc, "table", {});
     table.appendChild(makeElement(api, doc, "caption", {}, "抽样数值账本：D_n <= 1；log|f'(x_n)| 的 -∞ 表示导数恰为 0。"));
     var headings = ["n", "x_n", "y_n", "D_n", "log10 D_n", "log|f'(x_n)|"];
     var head = makeElement(api, doc, "thead");
     var headRow = makeElement(api, doc, "tr");
-    headings.forEach(function (heading) { headRow.appendChild(makeElement(api, doc, "th", {}, heading)); });
+    headings.forEach(function (heading) { headRow.appendChild(makeElement(api, doc, "th", { scope: "col" }, heading)); });
     head.appendChild(headRow);
     table.appendChild(head);
     var body = makeElement(api, doc, "tbody");
@@ -550,7 +556,7 @@
         formatNumber(point.first, 7),
         formatNumber(point.second, 7),
         formatDistance(point.distance),
-        point.distance === 0 ? "-∞" : formatNumber(Math.max(LOG_FLOOR, log10(point.distance)), 3),
+        point.distance === 0 ? "-∞" : formatNumber(log10(point.distance), 3),
         ledgerTermText(result.lyapunov.terms, index)
       ];
       var row = makeElement(api, doc, "tr");
@@ -595,7 +601,7 @@
         prompt: "2. 邻轨的指数分离能否无限持续？",
         choices: [
           { value: "forever", label: "能，距离会无限增长" },
-          { value: "bounded", label: "不能，区间有界并会饱和" }
+          { value: "bounded", label: "不能，距离不超过区间直径" }
         ],
         expected: "bounded",
         explanation: "在 r∈[0,4]、x∈[0,1] 时轨道留在区间内，D_n≤1；指数关系只是局部/有限时间近似。"
@@ -679,12 +685,12 @@
     var chartGrid = makeElement(api, doc, "div", { className: "lc-chart-grid" });
     var legend = makeElement(api, doc, "div", { className: "lc-legend", "aria-label": "图例" }, [
       makeElement(api, doc, "span", {}, [makeElement(api, doc, "i", { className: "lc-swatch", "aria-hidden": "true" }), "蓝：x0 轨道"]),
-      makeElement(api, doc, "span", {}, [makeElement(api, doc, "i", { className: "lc-swatch lc-swatch-b", "aria-hidden": "true" }), "红虚线：x0+delta0 轨道"]),
+      makeElement(api, doc, "span", {}, [makeElement(api, doc, "i", { className: "lc-swatch lc-swatch-b", "aria-hidden": "true" }), "红虚线：y0 轨道（方向见读数）"]),
       makeElement(api, doc, "span", {}, [makeElement(api, doc, "i", { className: "lc-swatch lc-swatch-d", "aria-hidden": "true" }), "金：log10 D_n"]),
       makeElement(api, doc, "span", {}, [makeElement(api, doc, "i", { className: "lc-swatch lc-swatch-bound", "aria-hidden": "true" }), "绿虚线：D=1 上限"])
     ]);
     var formula = makeElement(api, doc, "p", { className: "lc-formula" }, "");
-    var footnote = makeElement(api, doc, "p", { className: "lc-footnote" }, "图形与读数是当前初值、烧入和有限 N 的数值诊断；正的 lambda_N 不单独证明混沌，未检测到短周期也不单独证明非周期。Logistic 实验是教学模型，不是 Lorenz 或真实天气的替身。");
+    var footnote = makeElement(api, doc, "p", { className: "lc-footnote" }, "图形保留全部 N+1 个时刻；N 大时曲线密集，可把 N 调到 20 查看逐步变化。重叠处蓝线在上，分离图另行显示微小差别。图形与读数是当前初值、烧入和有限 N 的数值诊断；正的 lambda_N 不单独证明混沌，未检测到短周期也不单独证明非周期。Logistic 实验是教学模型，不是 Lorenz 或真实天气的替身。");
     results.appendChild(status);
     results.appendChild(metrics);
     results.appendChild(chartGrid);
@@ -723,15 +729,17 @@
       if (lyapunov.derivativeZeroDuringBurnIn !== null && lyapunov.derivativeZeroAt === null) {
         eventLabels.push("仅烧入第 " + lyapunov.derivativeZeroDuringBurnIn + " 步命中 f'=0，未计入采样窗");
       }
-      if (separation.mergedDuringBurnIn !== null || separation.mergedAt !== null) eventLabels.push("机器精度合流");
-      if (separation.saturatedAt !== null) eventLabels.push("有界饱和");
+      if (separation.mergedDuringBurnIn !== null || separation.mergedAt !== null) eventLabels.push("浮点轨道相等；仅此不能判定精确合流或舍入原因");
+      if (separation.saturatedAt !== null) eventLabels.push("D 达到 0.95 显示阈值（不等于饱和证明）");
       if (!eventLabels.length) eventLabels.push("本窗无特殊事件");
       status.textContent =
         "当前 r=" + formatNumber(stateNow.r, 2) + "，x0=" + formatNumber(stateNow.x0, 5) +
-        "，delta0=" + formatDistance(stateNow.delta0) + "；烧入 " + stateNow.burnIn + " 步，采样 N=" + stateNow.steps + "。" +
-        " 轨道由 x_{n+1}=r x_n(1-x_n) 逐步精确递推，没有随机噪声。";
+        "，y0=x0" + (separation.direction > 0 ? "+" : "−") + "delta0（保持 x0，向区间内取邻点），delta0=" + formatDistance(stateNow.delta0) + "；烧入 " + stateNow.burnIn + " 步，采样 N=" + stateNow.steps + "。" +
+        " 轨道由 x_{n+1}=r x_n(1-x_n) 逐步双精度递推，没有随机噪声。";
       replaceChildren(metrics, [
         makeMetric(api, doc, "轨道读法", result.orbit.label),
+        makeMetric(api, doc, "原始初值实际距离", formatDistance(separation.initialDistance)),
+        makeMetric(api, doc, "采样窗起点 D_0", formatDistance(separation.effectiveDelta)),
         makeMetric(api, doc, "finite lambda_N", formatNumber(lyapunov.lambda, 4)),
         makeMetric(api, doc, "末端 D_N", formatDistance(separation.series[separation.series.length - 1].distance)),
         makeMetric(api, doc, "max D_n", formatDistance(separation.maximumDistance)),
@@ -739,11 +747,11 @@
         makeMetric(api, doc, "数值事件", eventLabels.join("；"))
       ]);
       replaceChildren(chartGrid, [
-        makeElement(api, doc, "div", { className: "lc-chart-card" }, [
+        makeElement(api, doc, "div", { className: "lc-chart-card", tabindex: "0", role: "region", "aria-label": "可横向滚动的逐步轨道图" }, [
           makeElement(api, doc, "h4", {}, "烧入后的时间序列"),
           drawTimeSeries(api, doc, result, uid + "-series")
         ]),
-        makeElement(api, doc, "div", { className: "lc-chart-card" }, [
+        makeElement(api, doc, "div", { className: "lc-chart-card", tabindex: "0", role: "region", "aria-label": "可横向滚动的逐步轨道图" }, [
           makeElement(api, doc, "h4", {}, "邻轨分离：log10 D_n"),
           drawSeparation(api, doc, result, uid + "-separation")
         ])
@@ -762,7 +770,7 @@
           : "本次采样窗没有命中导数为 0 的临界点。";
       formula.textContent =
         "lambda_N=(1/N) sum log|r(1-2x_n)|；当前 lambda_N=" + formatNumber(lyapunov.lambda, 4) +
-        "。" + lambdaNote + " D_n=|x_n-y_n| 在 [0,1] 中有上限，指数段不能越过饱和。";
+        "。" + lambdaNote + " D_n=|x_n-y_n|≤1。λ_N 的切向扰动从烧入后的点重新开始；邻轨则从原始两初值共同烧入，D_0 未必仍等于 delta0。短周期检查使用末至多80点、至少4个完整周期块、容差1e−8，结果不是精确周期证明。";
     }
 
     function render() {
@@ -796,6 +804,7 @@
       state.presetId = "custom";
       state.id = "custom";
       state[key] = Number(value);
+      if (key === "logDelta") delete state.delta0;
       render();
     }
 
@@ -824,6 +833,7 @@
       }).join(" ");
       feedback.textContent = "答案已揭示：" + correct + "/3。" + explanation;
       feedback.className = "lc-feedback " + (correct === 3 ? "lc-pass" : "lc-warn");
+      presetButtons[0].node.focus();
       if (api && typeof api.announce === "function") api.announce(root, "预测答案已揭示，实验参数与图形已打开。");
     });
 
@@ -836,6 +846,7 @@
       feedback.textContent = "请完成三项预测。";
       feedback.className = "lc-feedback";
       render();
+      choiceButtons[0].node.focus();
       if (api && typeof api.announce === "function") api.announce(root, "实验已重置，预测答案再次隐藏。");
     });
 
@@ -918,6 +929,9 @@
   if (isNode) {
     module.exports = {
       PRESETS: PRESETS,
+      normalizedState: normalizedState, formatNumber: formatNumber,
+      drawTimeSeries: drawTimeSeries, drawSeparation: drawSeparation,
+      pathForSeries: pathForSeries, buildLedger: buildLedger,
       logisticMap: logisticMap,
       iterate: iterate,
       finiteLyapunov: finiteLyapunov,
