@@ -46,162 +46,302 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 04:14</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#k0">学习层：一张纸、一只罐子和一个鞍面，K=0 真的都一样吗？</a><ul>
-<li><a href="#1">1. 具体情境：工程师要判断一块薄壳能不能摊平</a></li>
-<li><a href="#2">2. 揭示前先预测：把答案写在曲线出现以前</a></li>
-<li><a href="#3">3. 正式桥：两个二次型如何变成两个主曲率</a></li>
-<li><a href="#4-k-h">4. 动手揭示：内在 K 和外在 H 必须分成两列</a></li>
-<li><a href="#5">5. 定理边界：哪些话来自定理，哪些只是模型读数</a></li>
+<li><a href="#surface-learning-title">学习层：方向、法向和测量尺度都要说清楚</a><ul>
+<li><a href="#1">1. 四块可以逐项计算的曲面</a></li>
+<li><a href="#2">2. 两个二次型怎样对应真实测量？</a></li>
+<li><a href="#3">3. 符号约定不能在同一页内改变</a></li>
+<li><a href="#4">4. 从一条方向曲线读出主曲率</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 正则曲面与第一基本形式</a></li>
-<li><a href="#2_1">2. 第二基本形式与曲率家族</a></li>
-<li><a href="#3-gauss">3. Gauss 绝妙定理</a></li>
-<li><a href="#4-gaussbonnet">4. Gauss–Bonnet：局部曲率与整体拓扑</a></li>
-<li><a href="#5_1">5. 三个典型例题</a></li>
+<li><a href="#2_1">2. 形算子为何是自伴随的？</a></li>
+<li><a href="#3_1">3. 高斯曲率、平均曲率与点型</a><ul>
+<li><a href="#_1">把四个模型算到底</a></li>
+</ul>
+</li>
+<li><a href="#4-gauss-k">4. Gauss 绝妙定理：为什么外在算出的 K 是内在量？</a><ul>
+<li><a href="#_2">圆柱为什么可以局部展开，球面为什么不行？</a></li>
+</ul>
+</li>
+<li><a href="#5-gaussbonnet">5. Gauss–Bonnet：把局部曲率加起来，需要哪些条件？</a></li>
+<li><a href="#6">6. 三道迁移题</a><ul>
+<li><a href="#1_2">题 1：参数方向为什么不一定是主方向？</a></li>
+<li><a href="#2_2">题 2：局部可展为什么不等于一张全局坐标纸？</a></li>
+<li><a href="#3_2">题 3：球面八分之一的角盈余在哪里？</a></li>
+</ul>
+</li>
+<li><a href="#_3">进一步学习</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii-gauss">微分几何 II · 曲面论与 Gauss 绝妙定理<a class="headerlink" href="#ii-gauss" title="Permanent link"></a></h1>
+<h1 id="ii-gauss">微分几何 II · 曲面、法曲率与 Gauss 绝妙定理<a class="headerlink" href="#ii-gauss" title="Permanent link"></a></h1>
 <blockquote>
-<p>曲面的几何由两个二次型掌管：第一基本形式记录曲面内部的长度与角度，第二基本形式记录嵌入空间中的弯曲。本页把两本账放在同一张桌上，最后读出 Gauss 的绝妙定理：高斯曲率看似用了法向和二阶导数，实际只由内在度量决定。</p>
+<p>一张纸可以卷成圆柱，却不能在完全不拉伸的情况下贴满球面。区别不是“看起来弯不弯”：第一基本形式记录曲面上的长度与角度，第二基本形式记录向周围空间弯曲的方式。我们从一条实际选定的切方向出发，算出法曲率，再连接高斯曲率与整体拓扑。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="surface-learning-title" class="learning-layer">
-<h2 id="k0">学习层：一张纸、一只罐子和一个鞍面，K=0 真的都一样吗？<a class="headerlink" href="#k0" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体情境：工程师要判断一块薄壳能不能摊平<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>你拿到四个局部模型：桌面、半径为 <span class="arithmatex">\(2\)</span> 的球壳、圆柱罐壁，以及 <span class="arithmatex">\(z=u^2-v^2\)</span> 的鞍面。机器人只能在曲面上走，不能抬头看外部空间；它可以测曲线长度、夹角和小三角形的内角和，也可以在外部放一根法向探针。现在要回答两个工程问题：</p>
-<ul>
-<li>只用机器人自己的尺子，哪些模型在局部可被区分？</li>
-<li>若把法向探针翻过来，哪些读数只是符号变了，哪些几何事实没有变？</li>
-</ul>
-<p>“看起来都弯了”不是答案。平面和圆柱在内在 <span class="arithmatex">\(K\)</span> 上相同，但圆柱仍有非零外在平均曲率；球面两个主方向同号，鞍面两个主方向异号。实验把这四种情形并排记账。</p>
-<h3 id="2">2. 揭示前先预测：把答案写在曲线出现以前<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>先选一个模型、一个参数点和一个法向方向，再回答：</p>
-<ol>
-<li>当前点的 <span class="arithmatex">\(K\)</span> 是正、零还是负？</li>
-<li>若 <span class="arithmatex">\(K=0\)</span>，它是“两个主曲率都为零”的平面点，还是“恰有一个主曲率为零”的抛物点？</li>
-<li><span class="arithmatex">\(k_1,k_2\)</span> 应该同号、异号、恰一个为零，还是都为零？</li>
-<li>把 <span class="arithmatex">\(n\)</span> 换成 <span class="arithmatex">\(-n\)</span> 后，<span class="arithmatex">\(K\)</span> 与 <span class="arithmatex">\(H\)</span> 各怎样变化？</li>
-</ol>
-<p>点击揭示前，图和数值账本保持隐藏。有限参数点的答案可以核对公式，但不能把四个例子冒充成对任意曲面的证明。</p>
-<h3 id="3">3. 正式桥：两个二次型如何变成两个主曲率<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>取正则参数曲面 <span class="arithmatex">\(\mathbf r(u,v)\)</span>，并选一个单位法向 <span class="arithmatex">\(n\)</span>。切向基给出第一基本形式</p>
-<div class="arithmatex">\[
-I=E\,du^2+2F\,du\,dv+G\,dv^2,\qquad
-E=\langle r_u,r_u\rangle,\quad F=\langle r_u,r_v\rangle,\quad G=\langle r_v,r_v\rangle.
-\]</div>
-<p>因此 <span class="arithmatex">\(EG-F^2&gt;0\)</span>，它控制长度、角度和面积元 <span class="arithmatex">\(dA=\sqrt{EG-F^2}\,du\,dv\)</span>。第二基本形式按本页约定为</p>
-<div class="arithmatex">\[
-II=L\,du^2+2M\,du\,dv+N\,dv^2,\qquad
-L=\langle r_{uu},n\rangle,\quad M=\langle r_{uv},n\rangle,\quad N=\langle r_{vv},n\rangle.
-\]</div>
-<p>法曲率是 Rayleigh 商 <span class="arithmatex">\(\kappa_n=II(w,w)/I(w,w)\)</span>。等价地，形算子在切平面上由 <span class="arithmatex">\(I^{-1}II\)</span> 表示；它的两个特征值就是主曲率 <span class="arithmatex">\(k_1,k_2\)</span>。于是</p>
-<div class="arithmatex">\[
-K=k_1k_2=\frac{LN-M^2}{EG-F^2},\qquad
-H=\frac{k_1+k_2}{2}=\frac{EN-2FM+GL}{2(EG-F^2)}.
-\]</div>
-<p>这是实验的正式桥：先从 <span class="arithmatex">\(r_u,r_v,r_{ij}\)</span> 算 <span class="arithmatex">\(I,II\)</span>，再用特征值和迹/行列式同时核对 <span class="arithmatex">\(K,H\)</span>。若 <span class="arithmatex">\(n\mapsto-n\)</span>，<span class="arithmatex">\(II,k_1,k_2,H\)</span> 全部变号，但 <span class="arithmatex">\(I,K\)</span> 不变。</p>
-<h3 id="4-k-h">4. 动手揭示：内在 K 和外在 H 必须分成两列<a class="headerlink" href="#4-k-h" title="Permanent link"></a></h3>
-<p>下面的实验包含平面、球面、圆柱和鞍面，允许移动参数点并翻转法向。蓝色账是内在 <span class="arithmatex">\(K\)</span>，红色账是依赖法向的外在 <span class="arithmatex">\(H\)</span>；表格还会显示 <span class="arithmatex">\(E,F,G,L,M,N\)</span> 和主曲率。先完成四项预测，才会显示图。</p>
-<div class="learning-lab" data-learning-lab="surface-curvature">
-<p><strong>无 JavaScript 时的静态后备：</strong></p>
+<h2 id="surface-learning-title">学习层：方向、法向和测量尺度都要说清楚<a class="headerlink" href="#surface-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 四块可以逐项计算的曲面<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <table>
 <thead>
 <tr>
-<th>模型（正则点）</th>
-<th><span class="arithmatex">\(I\)</span> 与 <span class="arithmatex">\(II\)</span> 的代表值</th>
-<th style="text-align: right;"><span class="arithmatex">\(k_1,k_2\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(K\)</span>（内在）</th>
-<th style="text-align: right;"><span class="arithmatex">\(H\)</span>（取所列法向）</th>
-<th>点型</th>
+<th>曲面</th>
+<th>参数式</th>
+<th>默认法向</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>平面 <span class="arithmatex">\(r=(u,v,0)\)</span></td>
-<td><span class="arithmatex">\(E=G=1,F=L=M=N=0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0,0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td>平面点</td>
+<td>平面</td>
+<td><span class="arithmatex">\((u,v,0)\)</span></td>
+<td>向上</td>
 </tr>
 <tr>
-<td>球面 <span class="arithmatex">\(R=2\)</span>，外向 <span class="arithmatex">\(n\)</span></td>
-<td><span class="arithmatex">\(E=4,F=0,G=4\cos^2u;\ L=-2,M=0,N=-2\cos^2u\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-1/2,-1/2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-1/2\)</span></td>
-<td>椭圆点</td>
+<td>半径 2 的球面</td>
+<td><span class="arithmatex">\(2(\cos u\cos v,\cos u\sin v,\sin u)\)</span></td>
+<td>外向，坐标片要求 (</td>
 </tr>
 <tr>
-<td>圆柱 <span class="arithmatex">\(a=3/2\)</span>，外向 <span class="arithmatex">\(n\)</span></td>
-<td><span class="arithmatex">\(E=a^2,F=0,G=1;\ L=-a,M=N=0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-2/3,0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-1/3\)</span></td>
-<td>抛物点</td>
+<td>半径 <span class="arithmatex">\(a=3/2\)</span> 的圆柱</td>
+<td><span class="arithmatex">\((a\cos u,a\sin u,v)\)</span></td>
+<td>外向</td>
 </tr>
 <tr>
-<td>鞍面原点 <span class="arithmatex">\(z=u^2-v^2\)</span></td>
-<td><span class="arithmatex">\(E=G=1,F=0;\ L=2,M=0,N=-2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2,-2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td>双曲点</td>
+<td>鞍面</td>
+<td><span class="arithmatex">\((u,v,u^2-v^2)\)</span></td>
+<td><span class="arithmatex">\(z\)</span> 分量为正</td>
 </tr>
 </tbody>
 </table>
-<p>这里的“可展”不是每个 <span class="arithmatex">\(K=0\)</span> 点的同义词：圆柱的正则片确实可展，但平面点与抛物点必须先按主曲率区分；单个点满足 <span class="arithmatex">\(K=0\)</span> 也不能仅凭此推出整片曲面具有某种全局展开性质。</p>
+<p>先预测 <span class="arithmatex">\(K\)</span> 的符号、<span class="arithmatex">\(K=0\)</span> 时的点型、两个主曲率的符号模式，以及翻转法向的一般变换律。揭晓后，红点对应实际参数点，网格由同一参数式采样。再转动绿色切方向 <span class="arithmatex">\(w\)</span>，观察法曲率如何在两个主曲率之间变化。</p>
+<h3 id="2">2. 两个二次型怎样对应真实测量？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>参数曲面正则时，<span class="arithmatex">\(r_u,r_v\)</span> 线性无关。第一基本形式的矩阵是</p>
+<div class="arithmatex">\[
+g=\begin{pmatrix}E&amp;F\\F&amp;G\end{pmatrix},
+\quad E=\langle r_u,r_u\rangle,\ F=\langle r_u,r_v\rangle,\ G=\langle r_v,r_v\rangle.
+\]</div>
+<p>一个参数方向 <span class="arithmatex">\((a,b)\)</span> 对应实际切向量 <span class="arithmatex">\(w=ar_u+br_v\)</span>，长度平方为 <span class="arithmatex">\(Ea^2+2Fab+Gb^2\)</span>，不能通常用 <span class="arithmatex">\(a^2+b^2\)</span> 替代。</p>
+<p>选定单位法向 <span class="arithmatex">\(n\)</span>，本页使用</p>
+<div class="arithmatex">\[
+h=\begin{pmatrix}L&amp;M\\M&amp;N\end{pmatrix},
+\qquad L=\langle r_{uu},n\rangle,\ M=\langle r_{uv},n\rangle,\ N=\langle r_{vv},n\rangle.
+\]</div>
+<p>相应方向的<strong>法曲率</strong>为</p>
+<div class="arithmatex">\[
+\kappa_n(w)=\frac{La^2+2Mab+Nb^2}{Ea^2+2Fab+Gb^2}.
+\]</div>
+<p>分母负责把方向的长度归一化。实验中的角度 <span class="arithmatex">\(\theta\)</span> 相对于<strong>正交单位切向基</strong>测量，不是在一般斜坐标中把系数随便写成 <span class="arithmatex">\((\cos\theta,\sin\theta)\)</span>。</p>
+<h3 id="3">3. 符号约定不能在同一页内改变<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>本页 <span class="arithmatex">\(II(X,Y)=\langle D_XY,n\rangle\)</span>，相应形算子是 <span class="arithmatex">\(S=-dn\)</span>。外向球面满足 <span class="arithmatex">\(dn(X)=X/R\)</span>，所以主曲率为 <span class="arithmatex">\(-1/R\)</span>，平均曲率 <span class="arithmatex">\(H=-1/R\)</span>。若采用 <span class="arithmatex">\(S=+dn\)</span> 并相应改变第二基本形式的符号，才会得到相反的主曲率。</p>
+<p>翻转 <span class="arithmatex">\(n\)</span> 时，<span class="arithmatex">\(II,S,H\)</span> 和<strong>同一几何方向</strong>的法曲率变号，<span class="arithmatex">\(I,K\)</span> 不变。若把主曲率按 <span class="arithmatex">\(k_1\ge k_2\)</span> 排序，翻转后它们变成 <span class="arithmatex">\((-k_2,-k_1)\)</span>，标签也会互换。零值变号后仍为零。</p>
+<div class="learning-lab" data-learning-lab="surface-curvature">
+<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>模型与代表点</th>
+<th>主曲率（按大小排序）</th>
+<th><span class="arithmatex">\(K\)</span></th>
+<th><span class="arithmatex">\(H\)</span></th>
+<th>判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>平面</td>
+<td><span class="arithmatex">\(0,0\)</span></td>
+<td><span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(0\)</span></td>
+<td>平面点，所有方向法曲率为零</td>
+</tr>
+<tr>
+<td>外向球面 <span class="arithmatex">\(R=2\)</span></td>
+<td><span class="arithmatex">\(-1/2,-1/2\)</span></td>
+<td><span class="arithmatex">\(1/4\)</span></td>
+<td><span class="arithmatex">\(-1/2\)</span></td>
+<td>椭圆点，也是脐点；所有方向法曲率相同</td>
+</tr>
+<tr>
+<td>外向圆柱 <span class="arithmatex">\(a=3/2\)</span></td>
+<td><span class="arithmatex">\(0,-2/3\)</span></td>
+<td><span class="arithmatex">\(0\)</span></td>
+<td><span class="arithmatex">\(-1/3\)</span></td>
+<td>抛物点；沿轴线不弯，沿圆周弯</td>
+</tr>
+<tr>
+<td>鞍面原点、向上法向</td>
+<td><span class="arithmatex">\(2,-2\)</span></td>
+<td><span class="arithmatex">\(-4\)</span></td>
+<td><span class="arithmatex">\(0\)</span></td>
+<td>双曲点；存在法曲率为零的渐近方向</td>
+</tr>
+</tbody>
+</table>
+<p>四个模型说明不同现象，不构成任意曲面的证明。<span class="arithmatex">\(K\)</span> 的量纲是长度的负二次方，<span class="arithmatex">\(H\)</span> 和法曲率是长度的负一次方，数值大小不应放在同一把无单位尺子上比较。</p>
 </div>
-<h3 id="5">5. 定理边界：哪些话来自定理，哪些只是模型读数<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>Gauss 绝妙定理</strong>：<span class="arithmatex">\(K\)</span> 可由第一基本形式及其导数表达，所以等距变形保持 <span class="arithmatex">\(K\)</span>。圆柱能卷自纸而不改变 <span class="arithmatex">\(K=0\)</span>，正是“外在弯、内在平”的示范；但 <span class="arithmatex">\(H\)</span> 仍会随法向记录外在弯曲。</li>
-<li><strong><span class="arithmatex">\(K\)</span> 的点分类</strong>：<span class="arithmatex">\(K&gt;0\)</span> 是椭圆点，<span class="arithmatex">\(K&lt;0\)</span> 是双曲点。<span class="arithmatex">\(K=0\)</span> 还要看 <span class="arithmatex">\(k_1,k_2\)</span>：两者皆零是平面点，恰一个为零且另一个非零是抛物点。把所有 <span class="arithmatex">\(K=0\)</span> 点都叫“抛物/可展”会丢掉这个区别。</li>
-<li><strong>局部不等于整体</strong>：可展性、是否能无撕裂地展开、曲面是否处处 <span class="arithmatex">\(K=0\)</span> 是关于一片曲面的命题；实验只算有限个正则点。锥面的顶点还不是正则点，不能把顶点塞进同一套基本形式公式。</li>
-<li><strong>Gauss–Bonnet 需要整体假设</strong>：对闭的定向曲面，<span class="arithmatex">\(\iint_S K\,dA=2\pi\chi(S)\)</span>。带边界时必须加边界测地曲率项；局部 lab 不会证明一个闭曲面的拓扑积分恒等式。</li>
-</ul>
+<h3 id="4">4. 从一条方向曲线读出主曲率<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(\theta_1\)</span> 是最大主曲率方向与正交基第一轴的夹角，</p>
+<div class="arithmatex">\[
+\kappa_n(\theta)=k_1\cos^2(\theta-\theta_1)+k_2\sin^2(\theta-\theta_1).
+\]</div>
+<p>球面给水平直线；圆柱从零变到一个非零极值；鞍面跨过零。脐点 <span class="arithmatex">\(k_1=k_2\)</span> 的主方向不唯一，图中只能任选一组正交基。网格图采用等比例正投影，但屏幕投影可能把空间直角压扁，正交性仍以实际内积为准。</p>
 </section>
 <h2 id="1_1">1. 正则曲面与第一基本形式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>参数曲面 <span class="arithmatex">\(\mathbf r(u,v)\)</span> 在 <span class="arithmatex">\(\mathbf r_u\times\mathbf r_v\neq0\)</span> 时正则，切平面和单位法向才有局部定义。第一基本形式</p>
+<p>以下在足够光滑（推导曲率的坐标公式时取 <span class="arithmatex">\(C^3\)</span>）的参数曲面上讨论。正则性要求 <span class="arithmatex">\(r_u\times r_v\ne0\)</span>。因此</p>
 <div class="arithmatex">\[
-ds^2=E\,du^2+2F\,du\,dv+G\,dv^2
+E&gt;0,\qquad EG-F^2=|r_u\times r_v|^2&gt;0,
 \]</div>
-<p>是切平面内积在参数坐标下的矩阵表达。它给出曲线弧长、夹角和面积，却不需要先把曲面摊到纸上。等距变形保持 <span class="arithmatex">\(I\)</span>；因此平面和圆柱的 <span class="arithmatex">\(I\)</span> 可以在局部坐标下相同。</p>
-<h2 id="2_1">2. 第二基本形式与曲率家族<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="球面正曲率、圆柱内在平直、鞍面负曲率" src="assets/img/dg-02-gaussian-curvature.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>球面 \(K&gt;0\)、圆柱正则片 \(K=0\)、鞍面 \(K&lt;0\)：图形的外观不能替代第一、第二基本形式的对账。</figcaption>
+<p>矩阵 <span class="arithmatex">\(g\)</span> 正定。对曲面上的路径 <span class="arithmatex">\(r(u(t),v(t))\)</span>，</p>
+<div class="arithmatex">\[
+\operatorname{Length}=\int\sqrt{E\dot u^2+2F\dot u\dot v+G\dot v^2}\,dt,
+\qquad dA=\sqrt{EG-F^2}\,du\,dv.
+\]</div>
+<p>两个非零切方向 <span class="arithmatex">\(a,b\)</span> 的夹角由
+<span class="arithmatex">\(\cos\alpha=(a^\mathsf Tgb)/\sqrt{(a^\mathsf Tga)(b^\mathsf Tgb)}\)</span> 给出。参数坐标是测量的表示方式；换坐标会改变矩阵分量，却不改变被测的长度或夹角。</p>
+<p>球坐标在南北极有 <span class="arithmatex">\(r_v=0\)</span>，所以这张坐标图失效。球面本身在那里仍光滑，需要换坐标片；不能把极点的 <span class="arithmatex">\(0/0\)</span> 读成球面曲率不存在。</p>
+<h2 id="2_1">2. 形算子为何是自伴随的？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>沿曲面切向 <span class="arithmatex">\(X\)</span>，由 <span class="arithmatex">\(n\cdot n=1\)</span> 得 <span class="arithmatex">\(D_Xn\perp n\)</span>，仍是切向。定义 <span class="arithmatex">\(S(X)=-D_Xn\)</span>。对切向场 <span class="arithmatex">\(Y\)</span> 求导 <span class="arithmatex">\(Y\cdot n=0\)</span>，得到</p>
+<div class="arithmatex">\[
+II(X,Y)=\langle D_XY,n\rangle
+=-\langle Y,D_Xn\rangle
+=I(SX,Y).
+\]</div>
+<p>由于 <span class="arithmatex">\(r_{uv}=r_{vu}\)</span>，<span class="arithmatex">\(II\)</span> 对称，因而 <span class="arithmatex">\(S\)</span> 对 <span class="arithmatex">\(I\)</span> 的内积自伴随。在坐标基 <span class="arithmatex">\(r_u,r_v\)</span> 中，它的矩阵是 <span class="arithmatex">\(g^{-1}h\)</span>。<strong>这个矩阵通常不对普通欧氏内积对称</strong>；它满足的是</p>
+<div class="arithmatex">\[
+(g^{-1}h)^\mathsf T g=g(g^{-1}h)=h.
+\]</div>
+<p>选正交单位切向基后，矩阵才是普通实对称矩阵。谱定理给出两个实特征值和正交主方向；等价的坐标方程为</p>
+<div class="arithmatex">\[
+h\,a=k\,g\,a.
+\]</div>
+<p>这就是主曲率的广义特征值问题。不能不看 <span class="arithmatex">\(g\)</span> 就把 <span class="arithmatex">\(h\)</span> 的普通特征值当成主曲率。</p>
+<p>若用正交主方向 <span class="arithmatex">\(e_1,e_2\)</span> 写单位向量 <span class="arithmatex">\(w=e_1\cos\theta+e_2\sin\theta\)</span>，自伴随性使交叉项为零，立即得到 <strong>Euler 法曲率公式</strong>
+<span class="arithmatex">\(\kappa_n(w)=k_1\cos^2\theta+k_2\sin^2\theta\)</span>。所以主曲率恰为法曲率的最大、最小值。</p>
+<h2 id="3_1">3. 高斯曲率、平均曲率与点型<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>由形算子的行列式和迹，</p>
+<div class="arithmatex">\[
+K=k_1k_2=\frac{LN-M^2}{EG-F^2},\qquad
+H=\frac{k_1+k_2}{2}=\frac{EN-2FM+GL}{2(EG-F^2)}.
+\]</div>
+<ul>
+<li><span class="arithmatex">\(K&gt;0\)</span>：椭圆点，两主曲率同号。</li>
+<li><span class="arithmatex">\(K&lt;0\)</span>：双曲点，两主曲率异号，Euler 公式给两条无向渐近方向。</li>
+<li><span class="arithmatex">\(K=0\)</span> 且恰一主曲率非零：抛物点。</li>
+<li>两主曲率都零：平面点。这个名称指二阶数据为零，不保证附近真的有一块平面。</li>
+</ul>
+<p>脐点要求 <span class="arithmatex">\(k_1=k_2\)</span>，包括平面点。球面的每点都是非零脐点，所有方向同样弯；不能给它指定唯一的“最大主方向”。</p>
+<div role="region" aria-label="可横向滚动的三种曲面真实网格图" tabindex="0" style="max-width:100%;overflow-x:auto">
+<figure class="plot" style="min-width:1100px">
+<img src="assets/img/dg-02-gaussian-curvature.svg" alt="球面、圆柱与鞍面的真实参数网格、探针法向，以及各自两条主方向的曲率。">
+<figcaption><span class="fig-id">图 dg-02.1</span>各图由所列参数式生成，采用等比例正投影；蓝色网格全部显示，不作遮挡处理。公式与参数点共同决定曲率。</figcaption>
 </figure>
-<p>第二基本形式</p>
+</div>
+
+<h3 id="_1">把四个模型算到底<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>外向球面 <span class="arithmatex">\(r=R(\cos u\cos v,\cos u\sin v,\sin u)\)</span>，<span class="arithmatex">\(R&gt;0,|u|&lt;\pi/2\)</span>，有</p>
 <div class="arithmatex">\[
-II=L\,du^2+2M\,du\,dv+N\,dv^2
+E=R^2,\ F=0,\ G=R^2\cos^2u,\qquad
+L=-R,\ M=0,\ N=-R\cos^2u.
 \]</div>
-<p>记录曲面偏离切平面的二阶量。沿单位切向方向 <span class="arithmatex">\(w\)</span> 的法曲率是 <span class="arithmatex">\(\kappa_n=II(w,w)/I(w,w)\)</span>，其最大最小值为主曲率 <span class="arithmatex">\(k_1,k_2\)</span>。由此得到 <span class="arithmatex">\(K\)</span> 和 <span class="arithmatex">\(H\)</span> 的迹/行列式公式。</p>
-<p>本页采用 <span class="arithmatex">\(II(X,Y)=\langle D_XY,n\rangle\)</span> 的符号约定。以球面外向法向为例，<span class="arithmatex">\(II\)</span> 为负定，故 <span class="arithmatex">\(H=-1/R\)</span>；若教材把形算子定义为 <span class="arithmatex">\(-D_Xn\)</span>，球面的 <span class="arithmatex">\(H\)</span> 会写成 <span class="arithmatex">\(+1/R\)</span>。这是法向/形算子约定的符号差异，不是几何矛盾；<span class="arithmatex">\(K=1/R^2\)</span> 不受此影响。</p>
-<h2 id="3-gauss">3. Gauss 绝妙定理<a class="headerlink" href="#3-gauss" title="Permanent link"></a></h2>
-<p><strong>定理（Gauss 1827）</strong> <span class="arithmatex">\(K\)</span> 虽可用 <span class="arithmatex">\(II\)</span> 定义，却能由 <span class="arithmatex">\(I\)</span> 及其一、二阶导数表达，因此是内在量。曲面上的生物只测长度和角度，也能通过小三角形角盈余感知 <span class="arithmatex">\(K\)</span>。</p>
-<p>三个推论值得分层读：球面 <span class="arithmatex">\(K&gt;0\)</span> 与平面 <span class="arithmatex">\(K=0\)</span> 不可能通过一张全局保长地图互相转换；纸卷成圆柱只改变嵌入而不改变 <span class="arithmatex">\(K\)</span>；“内在”并不等于“所有外在读数都相同”，因为 <span class="arithmatex">\(H\)</span> 仍要看法向。</p>
-<h2 id="4-gaussbonnet">4. Gauss–Bonnet：局部曲率与整体拓扑<a class="headerlink" href="#4-gaussbonnet" title="Permanent link"></a></h2>
-<p>对闭的定向曲面</p>
+<p>故 <span class="arithmatex">\(S=-I_{\rm tan}/R\)</span>，两主曲率都是 <span class="arithmatex">\(-1/R\)</span>，<span class="arithmatex">\(K=1/R^2,H=-1/R\)</span>。这里 <span class="arithmatex">\(I_{\rm tan}\)</span> 表示切平面上的恒等算子。</p>
+<p>外向圆柱 <span class="arithmatex">\(r=(a\cos u,a\sin u,v)\)</span>，<span class="arithmatex">\(a&gt;0\)</span>，有 <span class="arithmatex">\(g=\operatorname{diag}(a^2,1)\)</span>、<span class="arithmatex">\(h=\operatorname{diag}(-a,0)\)</span>。圆周方向主曲率 <span class="arithmatex">\(-1/a\)</span>，轴向为零，故 <span class="arithmatex">\(K=0,H=-1/(2a)\)</span>。</p>
+<p>对向上的鞍面 <span class="arithmatex">\(r=(u,v,u^2-v^2)\)</span>，记 <span class="arithmatex">\(D=\sqrt{1+4u^2+4v^2}\)</span>，</p>
 <div class="arithmatex">\[
-\iint_S K\,dA=2\pi\chi(S).
+g=\begin{pmatrix}1+4u^2&amp;-4uv\\-4uv&amp;1+4v^2\end{pmatrix},
+\quad h=\frac2D\begin{pmatrix}1&amp;0\\0&amp;-1\end{pmatrix},
 \]</div>
-<p>球面半径 <span class="arithmatex">\(R\)</span> 时，<span class="arithmatex">\(K=1/R^2\)</span>、面积 <span class="arithmatex">\(4\pi R^2\)</span>，积分为 <span class="arithmatex">\(4\pi\)</span>，从而 <span class="arithmatex">\(\chi(S)=2\)</span>。环面则有 <span class="arithmatex">\(\chi=0\)</span>，但 <span class="arithmatex">\(K\)</span> 可以在不同区域正负相抵。带边界的版本需要边界测地曲率，不能把闭曲面公式直接套上去。</p>
-<h2 id="5_1">5. 三个典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（球面）</strong> <span class="arithmatex">\(\mathbf r=R(\cos u\cos v,\cos u\sin v,\sin u)\)</span>，取外向法向。在 <span class="arithmatex">\(|u|&lt;\pi/2\)</span> 的正则坐标片上，<span class="arithmatex">\(E=R^2,F=0,G=R^2\cos^2u\)</span>，并按本页约定 <span class="arithmatex">\(L=-R,M=0,N=-R\cos^2u\)</span>。故 <span class="arithmatex">\(k_1=k_2=-1/R\)</span>、<span class="arithmatex">\(K=1/R^2\)</span>、<span class="arithmatex">\(H=-1/R\)</span>。</p>
-<p><strong>例 2（圆柱）</strong> <span class="arithmatex">\(\mathbf r=(a\cos u,a\sin u,v)\)</span>，取外向法向。<span class="arithmatex">\(E=a^2,F=0,G=1\)</span>，<span class="arithmatex">\(L=-a,M=N=0\)</span>，所以 <span class="arithmatex">\(k_1=-1/a,k_2=0\)</span>，<span class="arithmatex">\(K=0,H=-1/(2a)\)</span>。这证明“内在平直”和“外在不弯”是两句话。</p>
-<p><strong>例 3（鞍面）</strong> <span class="arithmatex">\(z=u^2-v^2\)</span> 在原点的 <span class="arithmatex">\(I\)</span> 为单位矩阵，<span class="arithmatex">\(II=\operatorname{diag}(2,-2)\)</span>。于是主方向沿坐标轴，<span class="arithmatex">\(k_1=2,k_2=-2\)</span>，<span class="arithmatex">\(K=-4,H=0\)</span>。<span class="arithmatex">\(H=0\)</span> 是极小曲面方程的局部条件之一，但单个点的 <span class="arithmatex">\(H=0\)</span> 不足以推出整片曲面是极小曲面。</p>
-<hr />
-<p><em>衔接：把“第一基本形式的内在机器”推广为度量张量，就进入流形几何；截面曲率正是本页 <span class="arithmatex">\(K\)</span> 的高维语言。</em></p>
+<div class="arithmatex">\[
+K=-\frac4{D^4}&lt;0,\qquad H=\frac{4(v^2-u^2)}{D^3}.
+\]</div>
+<p>原点 <span class="arithmatex">\(k_1=2,k_2=-2,H=0\)</span>。但一般点的 <span class="arithmatex">\(H\)</span> 不为零，所以这整张双曲抛物面不是极小曲面。<span class="arithmatex">\(H=0\)</span> 必须在整片曲面上成立，才是极小曲面方程；它表达面积的一阶驻定，也不保证任意大区域都给出全局最小面积。</p>
+<h2 id="4-gauss-k">4. Gauss 绝妙定理：为什么外在算出的 K 是内在量？<a class="headerlink" href="#4-gauss-k" title="Permanent link"></a></h2>
+<p>把二阶导数分成切向与法向：</p>
+<div class="arithmatex">\[
+r_{ij}=\Gamma^k_{ij}r_k+h_{ij}n.
+\]</div>
+<p>由对度量 <span class="arithmatex">\(g_{ij}=\langle r_i,r_j\rangle\)</span> 求导，可以解出切向系数</p>
+<div class="arithmatex">\[
+\Gamma^k_{ij}=\frac12g^{k\ell}
+(\partial_i g_{j\ell}+\partial_j g_{i\ell}-\partial_\ell g_{ij}).
+\]</div>
+<p>这些系数只依赖 <span class="arithmatex">\(g\)</span> 和一阶导数，定义切平面中的 Levi–Civita 联络。比较混合三阶导数、消去法向项，得到 <strong>Gauss 方程</strong></p>
+<div class="arithmatex">\[
+\langle R(\partial_u,\partial_v)\partial_v,\partial_u\rangle
+=LN-M^2.
+\]</div>
+<p>这里固定 <span class="arithmatex">\(R(X,Y)Z=\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z\)</span>。例如左侧在坐标中是</p>
+<div class="arithmatex">\[
+g_{u\ell}\left(
+\partial_u\Gamma^\ell_{vv}-\partial_v\Gamma^\ell_{uv}
++\Gamma^m_{vv}\Gamma^\ell_{um}
+-\Gamma^m_{uv}\Gamma^\ell_{vm}\right).
+\]</div>
+<p>于是把它除以 <span class="arithmatex">\(EG-F^2\)</span>，就得到 <span class="arithmatex">\(K\)</span> 仅由 <span class="arithmatex">\(g\)</span> 及其前两阶导数表达。<strong>局部等距保持 <span class="arithmatex">\(K\)</span></strong>，这是 Gauss 绝妙定理的机制；只比较四个模型的数值并不能证明这个一般结论。</p>
+<h3 id="_2">圆柱为什么可以局部展开，球面为什么不行？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>映射</p>
+<div class="arithmatex">\[
+\Phi(s,z)=(a\cos(s/a),a\sin(s/a),z)
+\]</div>
+<p>满足 <span class="arithmatex">\(|\Phi_s|=|\Phi_z|=1,\ \Phi_s\cdot\Phi_z=0\)</span>，所以拉回的度量是 <span class="arithmatex">\(ds^2+dz^2\)</span>，与平面相同。在不绕满一周的小坐标片中，它是局部等距。圆柱的外在 <span class="arithmatex">\(H\ne0\)</span> 与内在平直并不冲突。</p>
+<p>球面任意开片都有 <span class="arithmatex">\(K=1/R^2&gt;0\)</span>，因此连<strong>局部</strong>也不能等距摊到平面。反过来，两个点的 <span class="arithmatex">\(K\)</span> 恰好相同，不足以说明它们附近等距；等距要求整个度量对应，不能只核对一个标量。</p>
+<h2 id="5-gaussbonnet">5. Gauss–Bonnet：把局部曲率加起来，需要哪些条件？<a class="headerlink" href="#5-gaussbonnet" title="Permanent link"></a></h2>
+<p>这里“闭曲面”指<strong>紧致、无边界</strong>的光滑曲面，并非仅仅作为 <span class="arithmatex">\(\mathbb R^3\)</span> 子集闭。对闭定向曲面，</p>
+<div class="arithmatex">\[
+\int_S K\,dA=2\pi\chi(S).
+\]</div>
+<p>对具有分段光滑边界的紧定向曲面区域，完整式为</p>
+<div class="arithmatex">\[
+\int_S K\,dA+\int_{\partial S}\kappa_g\,ds+
+\sum_j\beta_j=2\pi\chi(S).
+\]</div>
+<p>边界按“行进时区域在左侧”的正向取向，<span class="arithmatex">\(\kappa_g=\langle dT/ds,n\times T\rangle\)</span> 是测地曲率，<span class="arithmatex">\(\beta_j\)</span> 是边界拐角的有符号外转角。不能漏掉边界项或转角项。</p>
+<p>平面圆盘的 <span class="arithmatex">\(K=0\)</span>，但逆时针圆周有 <span class="arithmatex">\(\int\kappa_g\,ds=2\pi\)</span>，与 <span class="arithmatex">\(\chi=1\)</span> 相符。边界空间曲率 <span class="arithmatex">\(1/R\)</span> 和测地曲率不是同一概念：球面大圆在三维空间仍然弯曲，却是球面测地线，<span class="arithmatex">\(\kappa_g=0\)</span>。</p>
+<p>对三条测地边围成的简单圆盘三角形，若内角为 <span class="arithmatex">\(\alpha,\beta,\gamma\)</span>，则</p>
+<div class="arithmatex">\[
+\alpha+\beta+\gamma-\pi=\int_{\triangle}K\,dA.
+\]</div>
+<p>所以“小三角形角盈余测曲率”必须使用测地边，并把积分与点值近似区分。球面常曲率时，角盈余恰等于面积除以 <span class="arithmatex">\(R^2\)</span>。</p>
+<p>闭球面的积分为 <span class="arithmatex">\((1/R^2)(4\pi R^2)=4\pi\)</span>，故 <span class="arithmatex">\(\chi=2\)</span>。对标准环面</p>
+<div class="arithmatex">\[
+r(u,v)=((R+a\cos v)\cos u,(R+a\cos v)\sin u,a\sin v),\quad R&gt;a&gt;0,
+\]</div>
+<div class="arithmatex">\[
+K=\frac{\cos v}{a(R+a\cos v)},\qquad
+dA=a(R+a\cos v)\,du\,dv.
+\]</div>
+<p>乘积为 <span class="arithmatex">\(\cos v\,du\,dv\)</span>，在两个角度各一周上积分为零，与 <span class="arithmatex">\(\chi=0\)</span> 一致。环面内外两侧的曲率正负相抵，不代表环面处处平直。</p>
+<h2 id="6">6. 三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h3 id="1_2">题 1：参数方向为什么不一定是主方向？<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>对向上鞍面 <span class="arithmatex">\(z=u^2-v^2\)</span>，在 <span class="arithmatex">\(u=v=1/2\)</span> 处计算两主曲率及沿 <span class="arithmatex">\(r_u\)</span> 的法曲率。只看 <span class="arithmatex">\(II\)</span> 的对角形式，能否说 <span class="arithmatex">\(r_u,r_v\)</span> 是主方向？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>此时 <span class="arithmatex">\(g=\begin{pmatrix}2&amp;-1\\-1&amp;2\end{pmatrix}\)</span>，
+<span class="arithmatex">\(h=(2/\sqrt3)\operatorname{diag}(1,-1)\)</span>，所以 <span class="arithmatex">\(K=-4/9,H=0\)</span>，主曲率为 <span class="arithmatex">\(2/3,-2/3\)</span>。沿 <span class="arithmatex">\(r_u\)</span> 的法曲率为 <span class="arithmatex">\(L/E=1/\sqrt3\)</span>，既不是最大值也不是最小值。原因是参数基不正交；应解 <span class="arithmatex">\(ha=kga\)</span>。在实验采用的正交单位基中，最大主方向与第一轴夹角为 <span class="arithmatex">\(15^\circ\)</span>，而不是 <span class="arithmatex">\(0^\circ\)</span>。</p>
+</details>
+<h3 id="2_2">题 2：局部可展为什么不等于一张全局坐标纸？<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p>验证 <span class="arithmatex">\(\Phi(s,z)=(a\cos(s/a),a\sin(s/a),z)\)</span> 保持局部长度与角度，并说明它为何不是从整个平面到整个圆柱的一一等距坐标。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(\Phi_s=(-\sin(s/a),\cos(s/a),0)\)</span>、<span class="arithmatex">\(\Phi_z=(0,0,1)\)</span>，内积矩阵是单位矩阵，所以局部保长、保角。但 <span class="arithmatex">\(\Phi(s+2\pi a,z)=\Phi(s,z)\)</span>，不单射。展开一个圆柱坐标片时必须限制周向参数；全圆柱有绕轴的闭路和周期识别，不能把这张周期覆盖图直接当成全局一一坐标。</p>
+</details>
+<h3 id="3_2">题 3：球面八分之一的角盈余在哪里？<a class="headerlink" href="#3_2" title="Permanent link"></a></h3>
+<p>取球面半径 <span class="arithmatex">\(R\)</span>，由三个正坐标轴上的点连接成大圆弧三角形。用 Gauss–Bonnet 核对其三个直角与面积。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>三条边都是测地线，<span class="arithmatex">\(\kappa_g=0\)</span>，每个内角为 <span class="arithmatex">\(\pi/2\)</span>，外转角也为 <span class="arithmatex">\(\pi/2\)</span>。区域是圆盘，故
+<span class="arithmatex">\(\int K\,dA+3\pi/2=2\pi\)</span>，即 <span class="arithmatex">\(\int K\,dA=\pi/2\)</span>。因 <span class="arithmatex">\(K=1/R^2\)</span>，面积为 <span class="arithmatex">\(\pi R^2/2\)</span>，正好是总面积 <span class="arithmatex">\(4\pi R^2\)</span> 的八分之一；角盈余 <span class="arithmatex">\(3\pi/2-\pi=\pi/2\)</span> 与积分一致。</p>
+</details>
+<h2 id="_3">进一步学习<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
+<p>第一基本形式推广为流形上的度量张量，联络和曲率便能在没有外部三维空间的情况下定义。主曲率则依赖嵌入和所选法向，应与这种内在推广分开。</p>
+<p>证明与后续内容可参照 <a href="https://www.dpmms.cam.ac.uk/~gpp24/dgnotes/dg.pdf">Gabriel P. Paternain：Differential Geometry，第 2.3—2.6 节和第 4.2 节</a>。比较教材时先核对形算子、法向及曲率张量的符号约定。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="dg-01-curves.html"><span class="pager-label">上一页</span>微分几何 I · 曲线论</a>
