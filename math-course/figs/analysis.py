@@ -122,17 +122,9 @@ def f_phase_portraits():
     save(fig,"ode-03-phase-portrait")
 
 def f_riemann_lebesgue():
-    x=np.linspace(0,4,400); f=lambda t:1.2+np.sin(t)+0.15*t
-    fig,axes=plt.subplots(1,2,figsize=(8.6,3.8),sharey=True)
-    ax=axes[0]; ax.plot(x,f(x),color=INK,lw=2); ed=np.linspace(0,4,9)
-    ax.bar(ed[:-1],f(ed[:-1]),width=.5,align="edge",color=ACC2,edgecolor=ACC,alpha=.5)
-    ax.set_title("Riemann: slice the domain",fontsize=12); ax.set_xlabel(r"$x$"); ax.set_ylabel(r"$f$")
-    ax=axes[1]; ax.plot(x,f(x),color=INK,lw=2)
-    for lv in np.linspace(0.4,2.6,7): ax.axhline(lv,color=ACC,lw=.7,alpha=.7)
-    ax.fill_between(x,1.2,1.6,where=(f(x)>=1.2)&(f(x)<1.6),color=RED,alpha=.3)
-    ax.set_title("Lebesgue: slice the range",fontsize=12); ax.set_xlabel(r"$x$")
-    fig.suptitle("Riemann (vertical) vs Lebesgue (horizontal) slicing",fontsize=12,y=1.03)
-    save(fig,"real-02-riemann-vs-lebesgue")
+    # Preserve the audited native SVG from tools/build_lebesgue_figure.py.
+    return
+
 
 def f_projection():
     fig,ax=plt.subplots(figsize=(5.6,4.4))

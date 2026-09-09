@@ -4,7 +4,7 @@ import json,math
 import mpmath as m
 m.mp.dps=90
 out={'method':'90-digit tanh-sinh integration on tent halves with Gaussian exponent factored out; independent erf primitive where cancellation permits','heat':[],'erfChecks':0}
-for x in [-10,-7,-1,-.3,0,1,3,5,10]:
+for x in [-25,-15,-10,-7,-1,-.3,0,1,3,5,10,15,25]:
  for t in [.1,.5,3,8]:
   for k in [.1,1,3]:
    X,T,K=map(m.mpf,[x,t,k]);q=K*T;d=max(m.mpf(0),abs(X)-1)

@@ -56,10 +56,17 @@
     var D=4*kappa*t,distance=Math.max(0,Math.abs(x)-1),evaluations=0;
     function integrand(y){evaluations++;var v=x-y;return (1-Math.abs(y))*Math.exp(-((v-distance)*(v+distance))/D);}
     function gauss(a,b){var mid=(a+b)/2,half=(b-a)/2,sum=0;for(var i=0;i<4;i++)sum+=GAUSS_W[i]*(integrand(mid-half*GAUSS_X[i])+integrand(mid+half*GAUSS_X[i]));return half*sum;}
-    function refine(a,b,coarse,tol,depth){var mid=(a+b)/2,l=gauss(a,mid),r=gauss(mid,b),fine=l+r,error=Math.abs(fine-coarse);if(error<=tol||depth===0)return{value:fine,error:error,converged:error<=tol};var lq=refine(a,mid,l,tol/2,depth-1),rq=refine(mid,b,r,tol/2,depth-1);return{value:lq.value+rq.value,error:lq.error+rq.error,converged:lq.converged&&rq.converged};}
-    var a=gauss(-1,0),b=gauss(0,1),tol=Math.max(1e-300,(a+b)*1e-11),l=refine(-1,0,a,tol/2,18),r=refine(0,1,b,tol/2,18),integral=l.value+r.value;
+    function refine(a,b,coarse,tol,depth){if(evaluations+16>4096)return{value:coarse,error:Infinity,converged:false};var mid=(a+b)/2,l=gauss(a,mid),r=gauss(mid,b),fine=l+r,error=Math.abs(fine-coarse);if(error<=tol||depth===0)return{value:fine,error:error,converged:error<=tol};var lq=refine(a,mid,l,tol/2,depth-1),rq=refine(mid,b,r,tol/2,depth-1);return{value:lq.value+rq.value,error:lq.error+rq.error,converged:lq.converged&&rq.converged};}
+    // Resolve the nearest-endpoint boundary layer before choosing a relative tolerance.
+    var knots=[-1,0,1];
+    if(distance>0){var step=Math.min(1,D/(2*distance)),sign=x<0?-1:1;for(;step<1;step*=2)knots.push(sign*(1-step));}
+    knots.sort((a,b)=>a-b);
+    var panels=[],coarseSum=0;
+    for(var j=1;j<knots.length;j++){var coarse=gauss(knots[j-1],knots[j]);panels.push({a:knots[j-1],b:knots[j],coarse:coarse});coarseSum+=coarse;}
+    var tol=Math.max(1e-300,coarseSum*1e-11),integral=0,error=0,converged=true;
+    panels.forEach(function(p){var q=refine(p.a,p.b,p.coarse,tol/panels.length,18);integral+=q.value;error+=q.error;converged=converged&&q.converged;});
     var logValue=Math.log(integral)-.5*Math.log(4*Math.PI*kappa*t)-distance*distance/D;
-    return{value:Math.exp(logValue),logValue:logValue,relativeEstimate:(l.error+r.error)/integral,evaluations:evaluations,converged:l.converged&&r.converged};
+    return{value:Math.exp(logValue),logValue:logValue,relativeEstimate:error/integral,evaluations:evaluations,converged:converged};
   }
   function heatConvolution(x,t,kappa){return heatEvaluation(x,t,kappa).value;}
   function fourierDecay(k,t,kappa){bounded(k,-100,100,"frequency");bounded(t,0,8,"time");bounded(kappa,.1,3,"diffusivity");return Math.exp(-kappa*k*k*t);}
