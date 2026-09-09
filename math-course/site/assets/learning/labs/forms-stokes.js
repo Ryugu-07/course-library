@@ -63,7 +63,7 @@
       {
         id: "punctured-loop",
         label: "绕孔的角度形式",
-        description: "alpha=(x dy-y dx)/(x^2+y^2)，局部闭但不恰当。",
+        description: "alpha=(x dy-y dx)/(x^2+y^2)，定义域为去掉原点的平面。",
         exact: 2 * Math.PI,
         kind: "topology"
       }
@@ -139,9 +139,9 @@
       ".fst-lab .fst-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#bbc7d1);background:var(--bg-soft,#f5f7f9);}",
       ".fst-lab .fst-metric span{display:block;color:var(--fg-soft,#52606d);font-size:11px;}",
       ".fst-lab .fst-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".fst-lab .fst-result-grid{display:grid;grid-template-columns:minmax(220px,.9fr) minmax(0,1.1fr);gap:14px;align-items:start;}",
-      ".fst-lab .fst-figure{min-width:0;margin:0;}",
-      ".fst-lab svg{display:block;width:100%;height:auto;border:1px solid var(--border,#bbc7d1);border-radius:6px;background:var(--bg-soft,#f5f7f9);}",
+      ".fst-lab .fst-result-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start;}",
+      ".fst-lab .fst-figure{min-width:0;margin:0;overflow-x:auto;}",
+      ".fst-lab svg{display:block;width:100%;min-width:620px;max-width:none;height:auto;border:1px solid var(--border,#bbc7d1);border-radius:6px;background:var(--bg-soft,#f5f7f9);}",
       ".fst-lab svg text{fill:var(--fg,#1f2933);font-family:inherit;letter-spacing:0;}",
       ".fst-lab .fst-domain{fill:var(--cl-blue-soft,#dceef8);fill-opacity:.82;stroke:var(--accent,#1769aa);stroke-width:2;}",
       ".fst-lab .fst-boundary{fill:none;stroke:var(--cl-red,#b42318);stroke-width:3;}",
@@ -157,6 +157,7 @@
       "@media(max-width:760px){.fst-lab .fst-controls,.fst-lab .fst-result-grid{grid-template-columns:minmax(0,1fr);}.fst-lab .fst-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}",
       "@media(max-width:430px){.fst-lab .fst-metrics{grid-template-columns:minmax(0,1fr);}.fst-lab table{font-size:11px;}.fst-lab .fst-choice button{flex-basis:100%;}}",
       "@media(prefers-reduced-motion:reduce){.fst-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
+      ,'[data-theme="dark"] .fst-lab{--cl-blue-soft:#283c4d;--cl-red:#ed9f94;--cl-gold:#e6be68;--bg-soft:#23272d;--cl-green:#83c69c}.fst-lab .fst-figure:focus-visible,.fst-lab .fst-ledger:focus-visible{outline:3px solid var(--accent,#85b9ef);outline-offset:2px}'
     ].join("\n");
 
     function fail(message) {
@@ -204,19 +205,19 @@
       fail("map is not defined for " + id);
     }
 
-    function pullbackData(id, u, v, scale) {
+    function pullbackData(id, u, v, scale, power) {
       var map = mapPoint(id, u, v);
       return {
         x: map.x,
         y: map.y,
-        a: scale * map.x * map.yu,
-        b: scale * map.x * map.yv,
+        a: scale * Math.pow(map.x,power) * map.yu,
+        b: scale * Math.pow(map.x,power) * map.yv,
         jacobian: map.jacobian,
-        dCoefficient: scale * map.jacobian
+        dCoefficient: scale * power * Math.pow(map.x,power-1) * map.jacobian
       };
     }
 
-    function integrateSegment(id, from, to, steps, scale) {
+    function integrateSegment(id, from, to, steps, scale, power) {
       var du = (to[0] - from[0]) / steps;
       var dv = (to[1] - from[1]) / steps;
       var total = 0;
@@ -224,13 +225,13 @@
       for (index = 0; index < steps; index += 1) {
         var u = from[0] + (index + 0.5) * du;
         var v = from[1] + (index + 0.5) * dv;
-        var data = pullbackData(id, u, v, scale);
+        var data = pullbackData(id, u, v, scale, power);
         total += data.a * du + data.b * dv;
       }
       return total;
     }
 
-    function boundaryIntegral(id, steps, scale) {
+    function boundaryIntegral(id, steps, scale, power) {
       var edges = [
         [[0, 0], [1, 0]],
         [[1, 0], [1, 1]],
@@ -239,12 +240,12 @@
       ];
       var total = 0;
       edges.forEach(function (edge) {
-        total += integrateSegment(id, edge[0], edge[1], steps, scale);
+        total += integrateSegment(id, edge[0], edge[1], steps, scale, power);
       });
       return total;
     }
 
-    function areaIntegral(id, steps, scale) {
+    function areaIntegral(id, steps, scale, power) {
       var cell = 1 / steps;
       var total = 0;
       var row;
@@ -253,7 +254,7 @@
         for (column = 0; column < steps; column += 1) {
           var u = (column + 0.5) * cell;
           var v = (row + 0.5) * cell;
-          total += pullbackData(id, u, v, scale).dCoefficient * cell * cell;
+          total += pullbackData(id, u, v, scale, power).dCoefficient * cell * cell;
         }
       }
       return total;
@@ -278,59 +279,40 @@
       return total;
     }
 
-    function exactValues(id, scale) {
+    function exactValues(id, scale, power) {
       if (id === "square") return { line: scale, area: scale };
       if (id === "reverse") return { line: -scale, area: -scale };
-      if (id === "deformed") return { line: scale * 0.75, area: scale * 0.75 };
+      if (id === "deformed") return { line: scale * (power+2)/(2*(power+1)), area: scale * (power+2)/(2*(power+1)) };
       if (id === "punctured-loop") return { line: 2 * Math.PI * scale, area: null };
       fail("no exact value for " + id);
     }
 
-    function expression(id, scale) {
-      var c = format(scale, 3);
-      if (id === "square") {
-        return {
-          pullback: c + " u dv",
-          dPullback: c + " du wedge dv",
-          pullbackD: c + " du wedge dv"
-        };
-      }
-      if (id === "reverse") {
-        return {
-          pullback: "-" + c + " u dv",
-          dPullback: "-" + c + " du wedge dv",
-          pullbackD: "-" + c + " du wedge dv"
-        };
-      }
-      if (id === "deformed") {
-        return {
-          pullback: "-" + c + "/2 uv du + " + c + " u(1-u/2) dv",
-          dPullback: c + "(1-u/2) du wedge dv",
-          pullbackD: c + "(1-u/2) du wedge dv"
-        };
-      }
-      return {
-        pullback: "alpha on the circle of radius r",
-        dPullback: "local d alpha = 0",
-        pullbackD: "not an area-form comparison: the puncture is present"
-      };
+    function expression(id, scale, power) {
+      var c="("+format(scale,3)+")",u=power===1?"u":"u^"+power,du=power===1?c:c+" "+power+" u^"+(power-1);
+      if(id==="square")return {pullback:c+" "+u+" dv",dPullback:du+" du ∧ dv",pullbackD:du+" du ∧ dv"};
+      if(id==="reverse")return {pullback:"−"+c+" "+u+" dv",dPullback:"−"+du+" du ∧ dv",pullbackD:"−"+du+" du ∧ dv"};
+      if(id==="deformed")return {pullback:"−"+c+"/2 "+u+" v du + "+c+" "+u+"(1−u/2) dv",dPullback:du+"(1−u/2) du ∧ dv",pullbackD:du+"(1−u/2) du ∧ dv"};
+      return {pullback:c+" dθ（仅沿圆的局部角坐标）",dPullback:"圆上一维外微分为 0",pullbackD:"平面去原点后 dα=0 的拉回"};
     }
 
     function compute(id, options) {
       var preset = presetById(id);
       var settings = options || {};
       var steps = integer(settings.grid, 16, 2, 96);
-      var scale = finite(settings.scale, 1);
+      var scale = settings.scale===undefined?1:Number(settings.scale);
+      if(!Number.isFinite(scale)||Math.abs(scale)>2)fail("coefficient must be finite and in [-2,2]");
+      var power=settings.power===undefined?1:Number(settings.power);
+      if(power!==1&&power!==3)fail("power must be 1 or 3");
       var radius = clamp(finite(settings.radius, 1), 0.25, 2.5);
-      var exact = exactValues(id, scale);
+      var exact = exactValues(id, scale, power);
       var line;
       var area;
       if (id === "punctured-loop") {
         line = angleIntegral(steps, scale, radius);
         area = null;
       } else {
-        line = boundaryIntegral(id, steps, scale);
-        area = areaIntegral(id, steps, scale);
+        line = boundaryIntegral(id, steps, scale, power);
+        area = areaIntegral(id, steps, scale, power);
       }
       var difference = area === null ? null : line - area;
       return {
@@ -339,38 +321,40 @@
         kind: preset.kind,
         grid: steps,
         scale: scale,
+        power:power,
         radius: radius,
         line: line,
         area: area,
         exactLine: exact.line,
         exactArea: exact.area,
         difference: difference,
-        pullback: expression(id, scale),
-        closed: id === "punctured-loop",
-        exactForm: id !== "punctured-loop",
+        pullback: expression(id, scale, power),
+        closed: scale===0 || id === "punctured-loop",
+        exactForm: scale===0,
         stokesEligible: id !== "punctured-loop",
         boundaryInduced: id !== "punctured-loop"
       };
     }
 
-    function gridRows(id, scale, radius) {
+    function gridRows(id, scale, radius, power) {
       var values = id === "punctured-loop" ? [4, 8, 16, 32, 64] : [2, 4, 8, 16, 32];
       return values.map(function (grid) {
-        var result = compute(id, { grid: grid, scale: scale, radius: radius });
+        var result = compute(id, { grid: grid, scale: scale, radius: radius, power:power });
         return {
           grid: grid,
           line: result.line,
           area: result.area,
-          difference: result.difference
+          difference: result.difference, lineError:result.line-result.exactLine, areaError:result.area===null?null:result.area-result.exactArea
         };
       });
     }
 
     function format(value, digits) {
-      if (value === null || value === undefined) return "not applicable";
-      if (!isFinite(value)) return "infinity";
+      if (value === null || value === undefined) return "不适用";
+      if (!isFinite(value)) return "未定义";
       var places = digits === undefined ? 5 : digits;
-      if (Math.abs(value) < 0.0000000005) return "0";
+      if (value === 0) return "0";
+      if(Math.abs(value)<.001)return value.toExponential(2);
       if (Math.abs(value) > 100000) return value.toExponential(2);
       return Number(value.toFixed(places)).toString();
     }
@@ -431,23 +415,21 @@
         refX: 7,
         refY: 4,
         orient: "auto",
-        markerUnits: "strokeWidth"
+        markerUnits: "userSpaceOnUse"
       });
-      marker.appendChild(svgElement(doc, "path", { d: "M0,0 L8,4 L0,8 Z", fill: "#b42318" }));
+      marker.appendChild(svgElement(doc, "path", { d: "M0,0 L8,4 L0,8 Z", fill: "var(--cl-red,#b42318)" }));
       defs.appendChild(marker);
       svg.appendChild(defs);
       if (result.id === "punctured-loop") {
-        svg.appendChild(svgElement(doc, "circle", { cx: 300, cy: 150, r: 88, class: "fst-domain" }));
-        svg.appendChild(svgElement(doc, "circle", { cx: 300, cy: 150, r: 17, class: "fst-hole" }));
-        svg.appendChild(svgElement(doc, "line", { x1: 300, y1: 150, x2: 388, y2: 150, class: "fst-ray" }));
-        svg.appendChild(svgElement(doc, "path", {
-          d: "M300 62 A88 88 0 0 1 388 150",
-          class: "fst-boundary",
-          "marker-end": "url(#fst-arrow-" + INSTANCE + ")"
-        }));
-        svg.appendChild(svgElement(doc, "text", { x: 300, y: 145, "text-anchor": "middle", "font-size": 12 }, "hole"));
-        svg.appendChild(svgElement(doc, "text", { x: 401, y: 146, "font-size": 13 }, "r"));
-        svg.appendChild(svgElement(doc, "text", { x: 28, y: 28, "font-size": 14, "font-weight": 700 }, "closed loop, no filled domain in the punctured plane"));
+        var r=34*result.radius;
+        svg.appendChild(svgElement(doc,"circle",{cx:300,cy:150,r:r,fill:"none",stroke:"var(--accent,#1769aa)","stroke-width":2}));
+        svg.appendChild(svgElement(doc,"circle",{cx:300,cy:150,r:4,class:"fst-hole"}));
+        svg.appendChild(svgElement(doc,"line",{x1:300,y1:150,x2:300+r,y2:150,class:"fst-ray"}));
+        svg.appendChild(svgElement(doc,"path",{d:"M "+(300+r)+" 150 A "+r+" "+r+" 0 0 0 300 "+(150-r),class:"fst-boundary","marker-end":"url(#fst-arrow-"+INSTANCE+")"}));
+        svg.appendChild(svgElement(doc,"text",{x:300,y:174,"text-anchor":"middle","font-size":12},"0（排除）"));
+        svg.appendChild(svgElement(doc,"text",{x:310+r,y:148,"font-size":13},"r="+format(result.radius,2)));
+        svg.appendChild(svgElement(doc,"text",{x:28,y:28,"font-size":14,"font-weight":700},"逆时针闭合回路：内部没有填成可用的 Stokes 圆盘"));
+        svg.appendChild(svgElement(doc,"text",{x:28,y:278,"font-size":12},"中心小圆仅标出被排除的点；回路积分 = 2πc，与半径无关。"));
         return svg;
       }
 
@@ -456,6 +438,7 @@
         var m = mapPoint(result.id, point[0], point[1]);
         return { x: 125 + 350 * m.x, y: 245 - 190 * m.y };
       });
+      corners.forEach(function(point){var q=mapPoint(result.id,point[0],point[1]);svg.appendChild(svgElement(doc,"text",{x:125+350*q.x+(q.x?12:-12),y:245-190*q.y+(q.y===0?20:-8),"text-anchor":q.x?"start":"end","font-size":12},"("+q.x+","+q.y+")"));});
       var points = mapped.map(function (point) { return point.x + "," + point.y; }).join(" ");
       svg.appendChild(svgElement(doc, "polygon", { points: points, class: "fst-domain" }));
       var parameterEdges = [
@@ -476,25 +459,26 @@
           "marker-end": "url(#fst-arrow-" + INSTANCE + ")"
         }));
       });
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 28, "font-size": 14, "font-weight": 700 }, "red arrows = induced boundary orientation"));
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 278, "font-size": 12 }, "blue fill = image of the parameter square; sign(J) controls orientation"));
+      svg.appendChild(svgElement(doc, "text", { x: 28, y: 28, "font-size": 14, "font-weight": 700 }, "红箭头：由参数域诱导的边界方向"));
+      svg.appendChild(svgElement(doc, "text", { x: 28, y: 278, "font-size": 12 }, "浅蓝：参数方形的像；横轴 x 向右、纵轴 y 向上。"));
       return svg;
     }
 
     function buildLedger(doc, result) {
       var wrapper = element(doc, "div", "fst-ledger");
+      wrapper.tabIndex=0;wrapper.setAttribute("aria-label","积分误差表，可左右滚动");
       var table = element(doc, "table");
       var head = element(doc, "thead");
       var headRow = element(doc, "tr");
-      ["网格步数", "边界线积分", result.area === null ? "面积积分" : "内部面积积分", "两边差值"].forEach(function (label) {
+      ["网格步数", "边界线积分", result.area === null ? "面积积分" : "内部面积积分", "两边差值", "线积分误差", "面积分误差"].forEach(function (label) {
         headRow.appendChild(element(doc, "th", "", label));
       });
       head.appendChild(headRow);
       table.appendChild(head);
       var body = element(doc, "tbody");
-      gridRows(result.id, result.scale, result.radius).forEach(function (row) {
+      gridRows(result.id, result.scale, result.radius,result.power).forEach(function (row) {
         var tr = element(doc, "tr");
-        [String(row.grid), format(row.line), format(row.area), format(row.difference)].forEach(function (value) {
+        [String(row.grid), format(row.line), format(row.area), format(row.difference),format(row.lineError),format(row.areaError)].forEach(function (value) {
           tr.appendChild(element(doc, "td", "", value));
         });
         body.appendChild(tr);
@@ -518,8 +502,9 @@
       section.appendChild(metrics);
       var resultGrid = element(doc, "div", "fst-result-grid");
       var figure = element(doc, "figure", "fst-figure");
+      figure.tabIndex=0;figure.setAttribute("aria-label","定向图，可左右滚动");
       figure.appendChild(buildSvg(doc, result));
-      figure.appendChild(element(doc, "figcaption", "fst-note", "有限网格/多边形只提供当前离散证据；红色箭头显示参数域诱导的边界方向。"));
+      figure.appendChild(element(doc, "figcaption", "fst-note", "红色箭头显示积分方向。方形使用分片光滑边界版本；绕孔图只画回路，不填入原点。"));
       resultGrid.appendChild(figure);
       var ledgerColumn = element(doc, "div");
       var formula = result.pullback.pullback + "\n" +
@@ -528,12 +513,12 @@
       ledgerColumn.appendChild(element(doc, "div", "fst-formula", formula));
       var checkText = result.stokesEligible
         ? "形式恒等式检查：d(pullback omega) 与 pullback(d omega) 的系数相同；当前区域满足本实验的光滑参数化与诱导边界方向模型。"
-        : "局部闭性检查：d alpha=0，但这里没有可直接填入的光滑单值区域；非零绕孔积分是闭而不恰当的拓扑证据。";
+        : "局部闭性检查：d alpha=0，但这里没有可直接填入的光滑单值区域；c≠0 时，非零绕孔积分证明不恰当；c=0 时是恰当的零形式。";
       ledgerColumn.appendChild(element(doc, "p", "fst-check", checkText));
       ledgerColumn.appendChild(buildLedger(doc, result));
       ledgerColumn.appendChild(element(doc, "p", "fst-disclaimer", result.stokesEligible
-        ? "解释：网格越密，数值通常越接近精确值；这仍不是 d^2=0 或 Stokes 定理的证明。"
-        : "解释：角度形式的线积分与半径无关；有限多边形逼近不能把局部闭性升级为全局恰当性。"));
+        ? "解释：p=1 时这些中点公式已精确（除舍入）；p=3 可观察离散误差。两边差值为零也可能同时算错，必须与精确参考分别对照。"
+        : "解释：角度形式的线积分与半径无关；本实验在圆参数上作中点求积，拉回系数为常数；不是沿多边形弦积分。"));
       resultGrid.appendChild(ledgerColumn);
       section.appendChild(resultGrid);
       return section;
@@ -544,6 +529,7 @@
         presetId: "square",
         grid: 16,
         scale: 1,
+        power:1,
         radius: 1,
         answers: {},
         revealed: false
@@ -573,10 +559,11 @@
       }
 
       function render() {
+        var focusedId=doc.activeElement&&doc.activeElement.id;
         var result = compute(state.presetId, state);
         var shell = element(doc, "div", "fst-lab");
         shell.appendChild(element(doc, "h3", "fst-heading", "微分形式与 Stokes：先押方向，再对账"));
-        shell.appendChild(element(doc, "p", "fst-note", "当前计算只使用无依赖的有限网格/多边形近似。结果揭示前不显示积分值；请把它当作证书账本，而不是定理证明器。"));
+        shell.appendChild(element(doc, "p", "fst-note", "当前计算只使用参数网格上的中点求积。结果揭示前不显示积分值；请同时比较两边差值与各自对精确值的误差。"));
 
         var presets = element(doc, "div", "fst-preset-grid");
         PRESETS.forEach(function (preset) {
@@ -595,6 +582,7 @@
         objectControl.appendChild(element(doc, "label", "", "当前对象"));
         var objectSelect = element(doc, "select");
         PRESETS.forEach(function (preset) { addOption(doc, objectSelect, preset.id, preset.label); });
+        objectSelect.id="fst-objectSelect-"+serial;objectSelect.setAttribute("aria-label","当前对象");
         objectSelect.value = state.presetId;
         objectSelect.addEventListener("change", function (event) { choosePreset(event.target.value); });
         objectControl.appendChild(objectSelect);
@@ -607,11 +595,11 @@
         scaleControl.appendChild(scaleLabel);
         var scaleInput = element(doc, "input");
         scaleInput.type = "range";
-        scaleInput.min = "0.5";
+        scaleInput.min = "-2";
         scaleInput.max = "2";
         scaleInput.step = "0.25";
         scaleInput.value = String(state.scale);
-        scaleInput.setAttribute("aria-label", "形式系数 c");
+        scaleInput.id="fst-scaleInput-"+serial;scaleInput.setAttribute("aria-label", "形式系数 c");
         scaleInput.addEventListener("input", function (event) {
           state.scale = finite(event.target.value, 1);
           state.revealed = false;
@@ -631,7 +619,7 @@
         gridInput.max = "64";
         gridInput.step = "2";
         gridInput.value = String(state.grid);
-        gridInput.setAttribute("aria-label", "有限网格步数 n");
+        gridInput.id="fst-gridInput-"+serial;gridInput.setAttribute("aria-label", "有限网格步数 n");
         gridInput.addEventListener("input", function (event) {
           state.grid = integer(event.target.value, 16, 2, 64);
           state.revealed = false;
@@ -652,7 +640,7 @@
           radiusInput.max = "2.5";
           radiusInput.step = "0.25";
           radiusInput.value = String(state.radius);
-          radiusInput.setAttribute("aria-label", "绕孔半径 r");
+          radiusInput.id="fst-radiusInput-"+serial;radiusInput.setAttribute("aria-label", "绕孔半径 r");
           radiusInput.addEventListener("input", function (event) {
             state.radius = finite(event.target.value, 1);
             state.revealed = false;
@@ -660,6 +648,11 @@
           });
           radiusControl.appendChild(radiusInput);
           controls.appendChild(radiusControl);
+        }
+        if(state.presetId!=="punctured-loop"){
+          var powerControl=element(doc,"div","fst-control"),powerSelect=element(doc,"select");powerSelect.id="fst-powerSelect-"+serial;powerSelect.setAttribute("aria-label","形式幂次 p");
+          powerControl.appendChild(element(doc,"label","","ω = c x^p dy"));addOption(doc,powerSelect,"1","p=1：中点恰好精确");addOption(doc,powerSelect,"3","p=3：观察离散误差");powerSelect.value=String(state.power);
+          powerSelect.addEventListener("change",function(){state.power=Number(powerSelect.value);state.revealed=false;render();});powerControl.appendChild(powerSelect);controls.appendChild(powerControl);
         }
         shell.appendChild(controls);
 
@@ -721,6 +714,7 @@
         else shell.appendChild(element(doc, "p", "fst-disclaimer", "结果锁定：提交预测后才能看到 SVG、表格和形式对账。"));
         while (root.firstChild) root.removeChild(root.firstChild);
         root.appendChild(shell);
+        if(focusedId){var restored=doc.getElementById(focusedId);if(restored)restored.focus();}
       }
 
       render();

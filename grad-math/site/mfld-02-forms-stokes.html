@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-09 08:59</div>
   </div>
 </nav>
 <main id="content">
@@ -65,6 +65,7 @@ try {
 <li><a href="#3-pullback-stokes">3. 正式桥：pullback、外微分、定向和 Stokes 各自做什么</a></li>
 <li><a href="#4-pullback">4. 动手揭示：看 pullback 的两边是否逐项对账</a></li>
 <li><a href="#5">5. 定理边界：数值相等不替代结构结论</a></li>
+<li><a href="#6">6. 迁移题：两边算得一样，为什么还可能不准确？</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 外代数：反对称的多重线性</a></li>
@@ -77,13 +78,16 @@ try {
 </details>
 <h1 id="ii-stokes">流形几何 II · 微分形式与 Stokes 定理<a class="headerlink" href="#ii-stokes" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Lee <em>Smooth Manifolds</em> §14–16 ｜ <strong>前置</strong>：mfld-01、数分 VI、高代 VI（多重线性）
-在弯曲空间上积分的正确对象不是函数而是<strong>微分形式</strong>——自带"定向的体积元"的多重线性对象。本页搭起外代数 → 外微分 → 积分的三级机器，顶点是<strong>广义 Stokes 定理</strong>：数分 VI 三大公式（Green/Gauss/Stokes）原来是同一行字的三个方言。</p>
+<p><strong>对标</strong>：Lee <em>Smooth Manifolds</em> §14–16 ｜ <strong>前置</strong>：<a href="mfld-01-manifolds.html">流形与切空间</a>、<a href="../../math-course/site/analysis-06-multivar-int.html">多重积分</a>、<a href="../../math-course/site/algebra-02-determinant.html">行列式与定向体积</a>
+在定向弯曲空间上，<strong>微分形式</strong>把函数与带符号的积分元一起组织起来——自带"定向的体积元"的多重线性对象。本页搭起外代数 → 外微分 → 积分的三级机器，顶点是<strong>广义 Stokes 定理</strong>：数分 VI 三大公式（Green/Gauss/Stokes）原来是同一行字的三个方言。</p>
 </blockquote>
+<div aria-label="机制图，可左右滚动" class="mfld-figure-scroll" role="region" tabindex="0">
 <figure class="diagram">
 <p><img alt="广义 Stokes \int_M d\omega=\int_{\partial M}\omega：边界与微分的对偶。" src="assets/img/mfld-02-stokes.svg" /></p>
 <figcaption><span class="fig-id">图 mfld-02.1</span>广义 Stokes \(\int_M d\omega=\int_{\partial M}\omega\)：边界与微分的对偶。</figcaption>
 </figure>
+</div>
+<style>.mfld-figure-scroll{overflow-x:auto;max-width:100%}.mfld-figure-scroll figure{min-width:950px;position:relative}.mfld-figure-scroll:focus-visible{outline:3px solid var(--accent,#315f9d);outline-offset:2px}</style>
 <div data-learning-page></div>
 
 <section aria-labelledby="forms-stokes-learning-title" class="learning-layer">
@@ -103,7 +107,7 @@ try {
 <ol>
 <li>对正向方形和变形方形参数化，边界线积分与内部面积积分应当相等、相反，还是没有一般关系？</li>
 <li>把参数域的 orientation 反过来时，边界的诱导定向是否也反过来？你预计两个积分各自如何变号？</li>
-<li>对穿过原点的角度形式 <span class="arithmatex">\(\alpha=(x\,dy-y\,dx)/(x^2+y^2)\)</span>，有限网格算出 <span class="arithmatex">\(d\alpha\)</span> 很小，能否因此断言 <span class="arithmatex">\(\alpha\)</span> 恰当？</li>
+<li>对在原点未定义的角度形式 <span class="arithmatex">\(\alpha=(x\,dy-y\,dx)/(x^2+y^2)\)</span>，有限网格算出 <span class="arithmatex">\(d\alpha\)</span> 很小，能否因此断言 <span class="arithmatex">\(\alpha\)</span> 恰当？</li>
 </ol>
 <h3 id="3-pullback-stokes">3. 正式桥：pullback、外微分、定向和 Stokes 各自做什么<a class="headerlink" href="#3-pullback-stokes" title="Permanent link"></a></h3>
 <p>对光滑映射 <span class="arithmatex">\(\Phi:N\to M\)</span>，<strong>pullback（拉回）</strong>把形式反向搬回：</p>
@@ -116,16 +120,16 @@ try {
 <div class="arithmatex">\[
 \int_M d\omega=\int_{\partial M}\omega.
 \]</div>
-<p>实验的有限网格只是在固定参数化和固定步长下近似两边，不能替代这个定理的光滑性、紧支性、定向和边界条件。</p>
+<p>本页方形与四边形有角点，使用 Stokes 的分片光滑边界（或带角流形）版本；角点本身对线积分无贡献，相邻分片的内部边界方向相反而抵消。实验的有限网格只是在固定参数化和固定步长下近似两边，不能替代这个定理的光滑性、紧支性、定向和边界条件。</p>
 <h3 id="4-pullback">4. 动手揭示：看 pullback 的两边是否逐项对账<a class="headerlink" href="#4-pullback" title="Permanent link"></a></h3>
 <p>先在下方选择对象、网格和形式系数，再提交三个预测；点击“揭示结果”后，实验才显示真实 SVG、pullback 表达式、边界线积分、面积积分和网格误差。重置会恢复正向单位方形和隐藏账本。</p>
 <div class="learning-lab" data-learning-lab="forms-stokes">
-<p><strong>无 JavaScript 时的静态后备：</strong>默认形式为 <span class="arithmatex">\(\omega=cx\,dy\)</span>，取 <span class="arithmatex">\(c=1\)</span>。正向单位方形的参数化是 <span class="arithmatex">\(\Phi(u,v)=(u,v)\)</span>，因此 <span class="arithmatex">\(\Phi^*\omega=u\,dv\)</span>，<span class="arithmatex">\(d(\Phi^*\omega)=du\wedge dv\)</span>，且两边的精确值都是 <span class="arithmatex">\(1\)</span>。正则变形方形参数化 <span class="arithmatex">\(\Phi(u,v)=\left(u,\left(1-u/2\right)v\right)\)</span> 给出</p>
+<p><strong>无 JavaScript 时的静态后备：</strong>默认形式为 <span class="arithmatex">\(\omega=cx\,dy\)</span>，取 <span class="arithmatex">\(c=1\)</span>、幂次 <span class="arithmatex">\(p=1\)</span>。正向单位方形的参数化是 <span class="arithmatex">\(\Phi(u,v)=(u,v)\)</span>，因此 <span class="arithmatex">\(\Phi^*\omega=u\,dv\)</span>，<span class="arithmatex">\(d(\Phi^*\omega)=du\wedge dv\)</span>，且两边的精确值都是 <span class="arithmatex">\(1\)</span>。正则变形方形参数化 <span class="arithmatex">\(\Phi(u,v)=\left(u,\left(1-u/2\right)v\right)\)</span> 给出</p>
 <div class="arithmatex">\[
 \Phi^*\omega=-\frac{uv}{2}\,du+u\left(1-\frac{u}{2}\right)\,dv,
 \qquad d(\Phi^*\omega)=\left(1-\frac{u}{2}\right)\,du\wedge dv=\Phi^*(dx\wedge dy),
 \]</div>
-<p>两边的精确值都是 <span class="arithmatex">\(3/4\)</span>。反向方形 <span class="arithmatex">\(\Phi(u,v)=(u,1-v)\)</span> 的两边都为 <span class="arithmatex">\(-1\)</span>。角度形式在去掉原点的区域上满足 <span class="arithmatex">\(d\alpha=0\)</span>，但绕原点一周的线积分是 <span class="arithmatex">\(2\pi\)</span>，所以它是闭而不恰当的局部证据。</p>
+<p>两边的精确值都是 <span class="arithmatex">\(3/4\)</span>。反向方形 <span class="arithmatex">\(\Phi(u,v)=(u,1-v)\)</span> 的两边都为 <span class="arithmatex">\(-1\)</span>。角度形式在去掉原点的区域上满足 <span class="arithmatex">\(d\alpha=0\)</span>，但绕原点一周的线积分是 <span class="arithmatex">\(2\pi\)</span>，所以它是闭而不恰当的全局证据。</p>
 </div>
 <h3 id="5">5. 定理边界：数值相等不替代结构结论<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
@@ -135,14 +139,26 @@ try {
 <li>反向参数化改变的是定向和相应的边界定向；pullback 的交换律 <span class="arithmatex">\(d\Phi^*=\Phi^*d\)</span> 是另一条结构事实。把两者混成“Jacobian 只是面积缩放”会丢掉符号。</li>
 <li>若区域有角点、奇点、内部孔洞，或形式在奇点处没有定义，必须重新检查 Stokes 的流形、支集和边界假设；不能直接套用光滑紧致情形。</li>
 </ul>
+<h3 id="6">6. 迁移题：两边算得一样，为什么还可能不准确？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<p>把形式从 <span class="arithmatex">\(x\,dy\)</span> 改成 <span class="arithmatex">\(x^3\,dy\)</span>，在实验中选择 <span class="arithmatex">\(p=3\)</span>，比较网格 <span class="arithmatex">\(n=2,4,8\)</span>。先用公式求正向单位方形和变形方形的精确积分，再检查“线减面积”与“各自对精确值的误差”是否同一回事。最后，去掉原点的环域能否使用 Stokes？它的边界该怎么走？</p>
+<details class="answer">
+<summary>展开核对：精确参考、离散误差与内边界</summary>
+<p>一般 <span class="arithmatex">\(\omega=cx^pdy\)</span> 的外微分为 <span class="arithmatex">\(cp x^{p-1}dx\wedge dy\)</span>。正向单位方形的两边精确值都是 <span class="arithmatex">\(c\)</span>；变形方形的拉回为</p>
+<div class="arithmatex">\[
+-\frac c2u^pv\,du+cu^p(1-u/2)\,dv,
+\]</div>
+<p>外微分系数为 <span class="arithmatex">\(cp u^{p-1}(1-u/2)\)</span>，积分为 <span class="arithmatex">\(c(p+2)/(2p+2)\)</span>。因此 <span class="arithmatex">\(p=3,c=1\)</span> 时变形区域精确值为 <span class="arithmatex">\(5/8\)</span>。</p>
+<p>正向单位方形中，边界中点求积对 <span class="arithmatex">\(x^3dy\)</span> 恰好精确，但面积中点值为 <span class="arithmatex">\(1-1/(4n^2)\)</span>。变形方形更容易骗人：当 <span class="arithmatex">\(n=2\)</span> 时，两种中点求积都给 <span class="arithmatex">\(0.609375\)</span>，差值为零，却都比 <span class="arithmatex">\(0.625\)</span> 少 <span class="arithmatex">\(0.015625\)</span>。所以必须单列各自误差。<span class="arithmatex">\(p=1\)</span> 的例子是低次多项式，中点法本来就精确；密网格下只看见舍入波动不代表学到了误差收敛。</p>
+<p>对环域 <span class="arithmatex">\(a\le r\le b\)</span>，角度形式在区域上处处光滑，Stokes 完全适用：外圆逆时针贡献 <span class="arithmatex">\(2\pi\)</span>，内圆顺时针贡献 <span class="arithmatex">\(-2\pi\)</span>，总边界积分为零，与 <span class="arithmatex">\(d\alpha=0\)</span> 一致。不能遗漏内圆后把外圆的 <span class="arithmatex">\(2\pi\)</span> 当成 Stokes 的反例。</p>
+</details>
 </section>
 <h2 id="1_1">1. 外代数：反对称的多重线性<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong><span class="arithmatex">\(k\)</span>-形式</strong>（一点处）：<span class="arithmatex">\(T_pM\)</span> 上的反对称 <span class="arithmatex">\(k\)</span>-重线性函数；全体记 <span class="arithmatex">\(\Lambda^k(T_p^*M)\)</span>。<strong>楔积</strong> <span class="arithmatex">\(\wedge\)</span>：反对称化的张量积，<span class="arithmatex">\(\alpha\wedge\beta = (-1)^{kl}\beta\wedge\alpha\)</span>（超交换——<span class="arithmatex">\(dx\wedge dy = -dy\wedge dx\)</span>，<span class="arithmatex">\(dx\wedge dx = 0\)</span>）。</p>
 <p><strong>为什么反对称</strong>：<span class="arithmatex">\(k\)</span>-形式吃 <span class="arithmatex">\(k\)</span> 个切向量、吐"它们张成的平行体的（带符号）体积"——体积对换两条边变号、有重边归零，<strong>反对称性就是体积的代数性格</strong>（行列式的公理化——高代 II 在此认祖归宗：<span class="arithmatex">\(n\)</span>-形式作用于 <span class="arithmatex">\(n\)</span> 个向量恰是 <span class="arithmatex">\(\det\)</span>）。坐标表示：<span class="arithmatex">\(\omega = \sum f_{i_1\cdots i_k}\,dx^{i_1}\wedge\cdots\wedge dx^{i_k}\)</span>；<span class="arithmatex">\(\dim\Lambda^k = \binom nk\)</span>。</p>
 <h2 id="2-d">2. 外微分 <span class="arithmatex">\(d\)</span><a class="headerlink" href="#2-d" title="Permanent link"></a></h2>
 <p><strong>定理（外微分的存在唯一）</strong> 存在唯一算子 <span class="arithmatex">\(d: \Omega^k \to \Omega^{k+1}\)</span> 满足：① 0-形式上 <span class="arithmatex">\(df\)</span> = 普通微分；② Leibniz（带符号）；③ <strong><span class="arithmatex">\(d\circ d = 0\)</span></strong>；④ 线性。坐标公式 <span class="arithmatex">\(d(f\,dx^I) = df\wedge dx^I\)</span>。
-<strong>【骨架】</strong> 唯一性：四条性质在坐标上完全确定公式；存在性：验证坐标公式满足四条（<span class="arithmatex">\(d^2 = 0\)</span> 归结为混合偏导相等——Clairaut 定理，数分 V——<strong>"<span class="arithmatex">\(d^2 = 0\)</span> 是偏导可交换的代数化身"</strong>）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>统一性检阅（<span class="arithmatex">\(\mathbb{R}^3\)</span> 方言对照表）</strong>：</p>
+<strong>【骨架】</strong> 唯一性：四条性质在坐标上完全确定公式；存在性：先用链式法则与楔积反对称性验证不同坐标中的公式一致，再验证四条（<span class="arithmatex">\(d^2 = 0\)</span> 归结为混合偏导相等——Clairaut 定理，数分 V——<strong>"<span class="arithmatex">\(d^2 = 0\)</span> 是偏导可交换的代数化身"</strong>）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>统一性检阅（<span class="arithmatex">\(\mathbb{R}^3\)</span> 方言对照表）</strong>：先固定欧氏度量和标准定向，用度量将向量与 1-形式对应，再用 Hodge 星把 2-形式与向量对应。下表在这些对应下成立；一般流形上的外微分本身不需要度量。</p>
 <table>
 <thead>
 <tr>
@@ -171,7 +187,7 @@ try {
 </table>
 <p><span class="arithmatex">\(d^2 = 0\)</span> 一行收编两条恒等式：<span class="arithmatex">\(\mathrm{curl}\,\mathrm{grad} = 0\)</span>、<span class="arithmatex">\(\mathrm{div}\,\mathrm{curl} = 0\)</span>（数分 VI 的"偶然巧合"原来是结构定理）。<strong>拉回</strong> <span class="arithmatex">\(f^*\omega\)</span>：形式沿光滑映射反向搬运，且 <span class="arithmatex">\(f^*d = df^*\)</span>（换元公式的无坐标形态——积分换元的 Jacobi 行列式被楔积自动吞吐）。</p>
 <h2 id="3">3. 定向与积分<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定向</strong>：图册的转移映射 Jacobi 行列式恒正——"全流形一致的左右手约定"（Möbius 带无定向：拓扑 I 的名角在此当反例）。<span class="arithmatex">\(n\)</span>-形式在定向 <span class="arithmatex">\(n\)</span>-流形上的积分：单卡内 <span class="arithmatex">\(\int\varphi_*\omega\)</span> = 普通多重积分，<strong>单位分解</strong>（拓扑 II Urysohn 的光滑版【引用】）拼接全局——良定性由换元公式保证（定向保证符号不打架）。</p>
+<p><strong>定向</strong>：选择一个相容的定向图册，其卡之间的转移映射 Jacobi 行列式恒正——"全流形一致的左右手约定"（Möbius 带无定向：拓扑 I 的名角在此当反例）。<span class="arithmatex">\(n\)</span>-形式在定向 <span class="arithmatex">\(n\)</span>-流形上的积分：单卡内先拉回到欧氏域：<span class="arithmatex">\(\int_{V}(\varphi^{-1})^*\omega\)</span> 是普通多重积分，<strong>单位分解</strong>（拓扑 II Urysohn 的光滑版【引用】）拼接全局——良定性由换元公式保证（定向保证符号不打架）。</p>
 <p><strong>定理（Stokes）</strong> 带边定向流形 <span class="arithmatex">\(M\)</span>（边界 <span class="arithmatex">\(\partial M\)</span> 带诱导定向）、<span class="arithmatex">\(\omega\)</span> 为紧支 <span class="arithmatex">\((n-1)\)</span>-形式：</p>
 <div class="arithmatex">\[
 \int_M d\omega \;=\; \int_{\partial M} \omega
@@ -183,13 +199,18 @@ try {
 <div class="arithmatex">\[
 H^k_{dR}(M) = \frac{\ker d}{\mathrm{im}\,d}
 \]</div>
-<p>度量"闭而不恰当"的形式——<strong>探测流形的洞</strong>：<span class="arithmatex">\(\mathbb{R}^2\setminus\{0\}\)</span> 上的角度形式 <span class="arithmatex">\(d\theta = \frac{x\,dy - y\,dx}{x^2+y^2}\)</span> 闭但不恰当（绕原点积分 <span class="arithmatex">\(= 2\pi \neq 0\)</span>——若恰当则 Stokes 给零）⇒ <span class="arithmatex">\(H^1 \neq 0\)</span>：<strong>"积分与路径有关"的障碍恰是拓扑的洞</strong>（数分 VI"保守场判据要求单连通"的真相大白）。de Rham 定理【引用】：<span class="arithmatex">\(H_{dR} \cong\)</span> 奇异上同调——分析（微分形式）与拓扑（at-03 的同调）测出同一组洞：本课程最深的一次会师预告。</p>
+<p>度量"闭而不恰当"的形式——<strong>探测流形的洞</strong>：<span class="arithmatex">\(\mathbb{R}^2\setminus\{0\}\)</span> 上的角度形式 <span class="arithmatex">\(d\theta = \frac{x\,dy - y\,dx}{x^2+y^2}\)</span> 闭但不恰当（绕原点积分 <span class="arithmatex">\(= 2\pi \neq 0\)</span>——若恰当则 Stokes 给零）⇒ <span class="arithmatex">\(H^1 \neq 0\)</span>：<strong>"积分与路径有关"的障碍恰是拓扑的洞</strong>（数分 VI"保守场判据要求单连通"的真相大白）。de Rham 定理【引用】：<span class="arithmatex">\(H^k_{dR}(M)\cong H^k(M;\mathbb R)\)</span>，右边是实系数奇异上同调——分析（微分形式）与拓扑（at-03 的同调）对应同一实系数不变量；整数同调中的挠元信息不会由实微分形式恢复：本课程最深的一次会师预告。</p>
 <h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（楔积热身）</strong> <span class="arithmatex">\(\omega = x\,dy\wedge dz + y\,dz\wedge dx + z\,dx\wedge dy\)</span>（<span class="arithmatex">\(\mathbb{R}^3\)</span>）：<span class="arithmatex">\(d\omega = 3\,dx\wedge dy\wedge dz\)</span>；对单位球用 Stokes：<span class="arithmatex">\(\int_{S^2}\omega = 3\mathrm{Vol}(B^3) = 4\pi\)</span>——"面积分 = 三倍体积"一行到账（散度定理方言）。</p>
 <p><strong>例 2（<span class="arithmatex">\(d\theta\)</span> 亲手验证）</strong> 验证 <span class="arithmatex">\(d(d\theta) = 0\)</span>（闭）与 <span class="arithmatex">\(\oint_{S^1}d\theta = 2\pi\)</span>（不恰当）——四行计算摸到第一个非平凡上同调类；顺答：为何记号 <span class="arithmatex">\(d\theta\)</span> 有误导性？（<span class="arithmatex">\(\theta\)</span> 不是全局函数——"局部有势、全局无势"正是洞的含义。）</p>
-<p><strong>例 3（🔗 归一化流对账）</strong> 生成模型中密度变换 <span class="arithmatex">\(\log p_x = \log p_z - \log|\det J|\)</span>：本页语言 = 体积形式的拉回 <span class="arithmatex">\(f^*(\text{vol})= |\det J|\,\text{vol}\)</span>——"Jacobi 行列式"在流形语言里是拉回作用于 <span class="arithmatex">\(n\)</span>-形式的自动产物（概率 II 变量替换公式的最深写法）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（密度与带符号形式要分开）</strong> 对生成映射这个微分同胚 <span class="arithmatex">\(x=f(z)\)</span>，概率密度满足</p>
+<div class="arithmatex">\[
+ p_x(f(z))\,|\det Df_z|=p_z(z).
+\]</div>
+<p>这里的绝对值来自<strong>密度</strong>：它记录非负体积。相反，微分形式的拉回是 <span class="arithmatex">\(f^*(dx^1\wedge\cdots\wedge dx^n)=\det Df\,dz^1\wedge\cdots\wedge dz^n\)</span>，没有绝对值。用 <span class="arithmatex">\(f(u,v)=(u,1-v)\)</span> 核对：<span class="arithmatex">\(f^*(dx\wedge dy)=-du\wedge dv\)</span>，但单位面积和概率总质量仍是正的。定向形式与概率密度的变换律不能混写。</p>
 <hr />
 <p><em>下一页：给流形装上度量——黎曼度量、联络与测地线："直线"在弯曲世界的正确定义。</em></p>
+<p>原始课程参考：<a href="https://sites.math.washington.edu/~lee/Books/ISM/">Lee 教材作者主页与勘误</a>、<a href="https://math.mit.edu/classes/18.952/2019SP/18.952_book_2019.pdf">MIT 流形与微分形式讲义</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mfld-01-manifolds.html"><span class="pager-label">上一页</span>流形几何 I · 光滑流形与切空间</a>

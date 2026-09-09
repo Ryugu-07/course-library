@@ -1,14 +1,17 @@
 # 流形几何 II · 微分形式与 Stokes 定理
 
-> **对标**：Lee *Smooth Manifolds* §14–16 ｜ **前置**：mfld-01、数分 VI、高代 VI（多重线性）
-> 在弯曲空间上积分的正确对象不是函数而是**微分形式**——自带"定向的体积元"的多重线性对象。本页搭起外代数 → 外微分 → 积分的三级机器，顶点是**广义 Stokes 定理**：数分 VI 三大公式（Green/Gauss/Stokes）原来是同一行字的三个方言。
+> **对标**：Lee *Smooth Manifolds* §14–16 ｜ **前置**：[流形与切空间](mfld-01-manifolds.html)、[多重积分](../../math-course/site/analysis-06-multivar-int.html)、[行列式与定向体积](../../math-course/site/algebra-02-determinant.html)
+> 在定向弯曲空间上，**微分形式**把函数与带符号的积分元一起组织起来——自带"定向的体积元"的多重线性对象。本页搭起外代数 → 外微分 → 积分的三级机器，顶点是**广义 Stokes 定理**：数分 VI 三大公式（Green/Gauss/Stokes）原来是同一行字的三个方言。
 
 
+<div class="mfld-figure-scroll" tabindex="0" role="region" aria-label="机制图，可左右滚动" markdown="1">
 <figure class="diagram" markdown="1">
 ![广义 Stokes \int_M d\omega=\int_{\partial M}\omega：边界与微分的对偶。](assets/img/mfld-02-stokes.svg)
 <figcaption><span class="fig-id">图 mfld-02.1</span>广义 Stokes \(\int_M d\omega=\int_{\partial M}\omega\)：边界与微分的对偶。</figcaption>
 </figure>
+</div>
 
+<style>.mfld-figure-scroll{overflow-x:auto;max-width:100%}.mfld-figure-scroll figure{min-width:950px;position:relative}.mfld-figure-scroll:focus-visible{outline:3px solid var(--accent,#315f9d);outline-offset:2px}</style>
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="forms-stokes-learning-title">
@@ -37,7 +40,7 @@ $$
 
 1. 对正向方形和变形方形参数化，边界线积分与内部面积积分应当相等、相反，还是没有一般关系？
 2. 把参数域的 orientation 反过来时，边界的诱导定向是否也反过来？你预计两个积分各自如何变号？
-3. 对穿过原点的角度形式 \(\alpha=(x\,dy-y\,dx)/(x^2+y^2)\)，有限网格算出 \(d\alpha\) 很小，能否因此断言 \(\alpha\) 恰当？
+3. 对在原点未定义的角度形式 \(\alpha=(x\,dy-y\,dx)/(x^2+y^2)\)，有限网格算出 \(d\alpha\) 很小，能否因此断言 \(\alpha\) 恰当？
 
 ### 3. 正式桥：pullback、外微分、定向和 Stokes 各自做什么
 
@@ -56,7 +59,7 @@ $$
 \int_M d\omega=\int_{\partial M}\omega.
 $$
 
-实验的有限网格只是在固定参数化和固定步长下近似两边，不能替代这个定理的光滑性、紧支性、定向和边界条件。
+本页方形与四边形有角点，使用 Stokes 的分片光滑边界（或带角流形）版本；角点本身对线积分无贡献，相邻分片的内部边界方向相反而抵消。实验的有限网格只是在固定参数化和固定步长下近似两边，不能替代这个定理的光滑性、紧支性、定向和边界条件。
 
 ### 4. 动手揭示：看 pullback 的两边是否逐项对账
 
@@ -64,14 +67,14 @@ $$
 
 <div class="learning-lab" data-learning-lab="forms-stokes" markdown="1">
 
-**无 JavaScript 时的静态后备：**默认形式为 \(\omega=cx\,dy\)，取 \(c=1\)。正向单位方形的参数化是 \(\Phi(u,v)=(u,v)\)，因此 \(\Phi^*\omega=u\,dv\)，\(d(\Phi^*\omega)=du\wedge dv\)，且两边的精确值都是 \(1\)。正则变形方形参数化 \(\Phi(u,v)=\left(u,\left(1-u/2\right)v\right)\) 给出
+**无 JavaScript 时的静态后备：**默认形式为 \(\omega=cx\,dy\)，取 \(c=1\)、幂次 \(p=1\)。正向单位方形的参数化是 \(\Phi(u,v)=(u,v)\)，因此 \(\Phi^*\omega=u\,dv\)，\(d(\Phi^*\omega)=du\wedge dv\)，且两边的精确值都是 \(1\)。正则变形方形参数化 \(\Phi(u,v)=\left(u,\left(1-u/2\right)v\right)\) 给出
 
 $$
 \Phi^*\omega=-\frac{uv}{2}\,du+u\left(1-\frac{u}{2}\right)\,dv,
 \qquad d(\Phi^*\omega)=\left(1-\frac{u}{2}\right)\,du\wedge dv=\Phi^*(dx\wedge dy),
 $$
 
-两边的精确值都是 \(3/4\)。反向方形 \(\Phi(u,v)=(u,1-v)\) 的两边都为 \(-1\)。角度形式在去掉原点的区域上满足 \(d\alpha=0\)，但绕原点一周的线积分是 \(2\pi\)，所以它是闭而不恰当的局部证据。
+两边的精确值都是 \(3/4\)。反向方形 \(\Phi(u,v)=(u,1-v)\) 的两边都为 \(-1\)。角度形式在去掉原点的区域上满足 \(d\alpha=0\)，但绕原点一周的线积分是 \(2\pi\)，所以它是闭而不恰当的全局证据。
 
 </div>
 
@@ -82,6 +85,27 @@ $$
 - \(\alpha\) 在 \(\mathbb R^2\setminus\{0\}\) 上闭却不恰当，绕孔的非零积分是拓扑障碍；不能因为每个有限小网格的局部残差小，就把这个障碍抹掉。
 - 反向参数化改变的是定向和相应的边界定向；pullback 的交换律 \(d\Phi^*=\Phi^*d\) 是另一条结构事实。把两者混成“Jacobian 只是面积缩放”会丢掉符号。
 - 若区域有角点、奇点、内部孔洞，或形式在奇点处没有定义，必须重新检查 Stokes 的流形、支集和边界假设；不能直接套用光滑紧致情形。
+
+### 6. 迁移题：两边算得一样，为什么还可能不准确？
+
+把形式从 $x\,dy$ 改成 $x^3\,dy$，在实验中选择 $p=3$，比较网格 $n=2,4,8$。先用公式求正向单位方形和变形方形的精确积分，再检查“线减面积”与“各自对精确值的误差”是否同一回事。最后，去掉原点的环域能否使用 Stokes？它的边界该怎么走？
+
+<details class="answer" markdown="1">
+<summary>展开核对：精确参考、离散误差与内边界</summary>
+
+一般 $\omega=cx^pdy$ 的外微分为 $cp x^{p-1}dx\wedge dy$。正向单位方形的两边精确值都是 $c$；变形方形的拉回为
+
+$$
+-\frac c2u^pv\,du+cu^p(1-u/2)\,dv,
+$$
+
+外微分系数为 $cp u^{p-1}(1-u/2)$，积分为 $c(p+2)/(2p+2)$。因此 $p=3,c=1$ 时变形区域精确值为 $5/8$。
+
+正向单位方形中，边界中点求积对 $x^3dy$ 恰好精确，但面积中点值为 $1-1/(4n^2)$。变形方形更容易骗人：当 $n=2$ 时，两种中点求积都给 $0.609375$，差值为零，却都比 $0.625$ 少 $0.015625$。所以必须单列各自误差。$p=1$ 的例子是低次多项式，中点法本来就精确；密网格下只看见舍入波动不代表学到了误差收敛。
+
+对环域 $a\le r\le b$，角度形式在区域上处处光滑，Stokes 完全适用：外圆逆时针贡献 $2\pi$，内圆顺时针贡献 $-2\pi$，总边界积分为零，与 $d\alpha=0$ 一致。不能遗漏内圆后把外圆的 $2\pi$ 当成 Stokes 的反例。
+
+</details>
 
 </section>
 
@@ -94,9 +118,9 @@ $$
 ## 2. 外微分 $d$
 
 **定理（外微分的存在唯一）** 存在唯一算子 $d: \Omega^k \to \Omega^{k+1}$ 满足：① 0-形式上 $df$ = 普通微分；② Leibniz（带符号）；③ **$d\circ d = 0$**；④ 线性。坐标公式 $d(f\,dx^I) = df\wedge dx^I$。
-**【骨架】** 唯一性：四条性质在坐标上完全确定公式；存在性：验证坐标公式满足四条（$d^2 = 0$ 归结为混合偏导相等——Clairaut 定理，数分 V——**"$d^2 = 0$ 是偏导可交换的代数化身"**）。$\blacksquare$
+**【骨架】** 唯一性：四条性质在坐标上完全确定公式；存在性：先用链式法则与楔积反对称性验证不同坐标中的公式一致，再验证四条（$d^2 = 0$ 归结为混合偏导相等——Clairaut 定理，数分 V——**"$d^2 = 0$ 是偏导可交换的代数化身"**）。$\blacksquare$
 
-**统一性检阅（$\mathbb{R}^3$ 方言对照表）**：
+**统一性检阅（$\mathbb{R}^3$ 方言对照表）**：先固定欧氏度量和标准定向，用度量将向量与 1-形式对应，再用 Hodge 星把 2-形式与向量对应。下表在这些对应下成立；一般流形上的外微分本身不需要度量。
 
 | 形式层级 | $d$ 的化身 | 向量微积分名 |
 |---|---|---|
@@ -108,7 +132,7 @@ $d^2 = 0$ 一行收编两条恒等式：$\mathrm{curl}\,\mathrm{grad} = 0$、$\m
 
 ## 3. 定向与积分
 
-**定向**：图册的转移映射 Jacobi 行列式恒正——"全流形一致的左右手约定"（Möbius 带无定向：拓扑 I 的名角在此当反例）。$n$-形式在定向 $n$-流形上的积分：单卡内 $\int\varphi_*\omega$ = 普通多重积分，**单位分解**（拓扑 II Urysohn 的光滑版【引用】）拼接全局——良定性由换元公式保证（定向保证符号不打架）。
+**定向**：选择一个相容的定向图册，其卡之间的转移映射 Jacobi 行列式恒正——"全流形一致的左右手约定"（Möbius 带无定向：拓扑 I 的名角在此当反例）。$n$-形式在定向 $n$-流形上的积分：单卡内先拉回到欧氏域：$\int_{V}(\varphi^{-1})^*\omega$ 是普通多重积分，**单位分解**（拓扑 II Urysohn 的光滑版【引用】）拼接全局——良定性由换元公式保证（定向保证符号不打架）。
 
 **定理（Stokes）** 带边定向流形 $M$（边界 $\partial M$ 带诱导定向）、$\omega$ 为紧支 $(n-1)$-形式：
 
@@ -128,7 +152,7 @@ $$
 H^k_{dR}(M) = \frac{\ker d}{\mathrm{im}\,d}
 $$
 
-度量"闭而不恰当"的形式——**探测流形的洞**：$\mathbb{R}^2\setminus\{0\}$ 上的角度形式 $d\theta = \frac{x\,dy - y\,dx}{x^2+y^2}$ 闭但不恰当（绕原点积分 $= 2\pi \neq 0$——若恰当则 Stokes 给零）⇒ $H^1 \neq 0$：**"积分与路径有关"的障碍恰是拓扑的洞**（数分 VI"保守场判据要求单连通"的真相大白）。de Rham 定理【引用】：$H_{dR} \cong$ 奇异上同调——分析（微分形式）与拓扑（at-03 的同调）测出同一组洞：本课程最深的一次会师预告。
+度量"闭而不恰当"的形式——**探测流形的洞**：$\mathbb{R}^2\setminus\{0\}$ 上的角度形式 $d\theta = \frac{x\,dy - y\,dx}{x^2+y^2}$ 闭但不恰当（绕原点积分 $= 2\pi \neq 0$——若恰当则 Stokes 给零）⇒ $H^1 \neq 0$：**"积分与路径有关"的障碍恰是拓扑的洞**（数分 VI"保守场判据要求单连通"的真相大白）。de Rham 定理【引用】：$H^k_{dR}(M)\cong H^k(M;\mathbb R)$，右边是实系数奇异上同调——分析（微分形式）与拓扑（at-03 的同调）对应同一实系数不变量；整数同调中的挠元信息不会由实微分形式恢复：本课程最深的一次会师预告。
 
 ## 5. 练习与要点
 
@@ -136,8 +160,16 @@ $$
 
 **例 2（$d\theta$ 亲手验证）** 验证 $d(d\theta) = 0$（闭）与 $\oint_{S^1}d\theta = 2\pi$（不恰当）——四行计算摸到第一个非平凡上同调类；顺答：为何记号 $d\theta$ 有误导性？（$\theta$ 不是全局函数——"局部有势、全局无势"正是洞的含义。）
 
-**例 3（🔗 归一化流对账）** 生成模型中密度变换 $\log p_x = \log p_z - \log|\det J|$：本页语言 = 体积形式的拉回 $f^*(\text{vol})= |\det J|\,\text{vol}$——"Jacobi 行列式"在流形语言里是拉回作用于 $n$-形式的自动产物（概率 II 变量替换公式的最深写法）。$\blacksquare$
+**例 3（密度与带符号形式要分开）** 对生成映射这个微分同胚 $x=f(z)$，概率密度满足
+
+$$
+ p_x(f(z))\,|\det Df_z|=p_z(z).
+$$
+
+这里的绝对值来自**密度**：它记录非负体积。相反，微分形式的拉回是 $f^*(dx^1\wedge\cdots\wedge dx^n)=\det Df\,dz^1\wedge\cdots\wedge dz^n$，没有绝对值。用 $f(u,v)=(u,1-v)$ 核对：$f^*(dx\wedge dy)=-du\wedge dv$，但单位面积和概率总质量仍是正的。定向形式与概率密度的变换律不能混写。
 
 ---
 
 *下一页：给流形装上度量——黎曼度量、联络与测地线："直线"在弯曲世界的正确定义。*
+
+原始课程参考：[Lee 教材作者主页与勘误](https://sites.math.washington.edu/~lee/Books/ISM/)、[MIT 流形与微分形式讲义](https://math.mit.edu/classes/18.952/2019SP/18.952_book_2019.pdf)。

@@ -59,9 +59,10 @@
     ".ma-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ma-lab button:hover{border-color:var(--ma-blue)}.ma-lab button:focus-visible,.ma-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ma-lab button[aria-pressed=true],.ma-lab .ma-primary{border-color:var(--ma-blue);background:var(--ma-blue);color:var(--bg,#fff);font-weight:750}.ma-lab .ma-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 14px}.ma-lab .ma-presets button{font-size:12px}.ma-lab .ma-control{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ma-lab .ma-control label{font-size:12.5px;font-weight:700}.ma-lab .ma-control output{color:var(--ma-blue);font-variant-numeric:tabular-nums}.ma-lab input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ma-blue)}",
     ".ma-lab .ma-predict{margin-top:12px;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ma-lab .ma-predict legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.ma-lab .ma-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ma-lab .ma-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.ma-lab .ma-actions>*{flex:1 1 160px}.ma-lab .ma-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.ma-lab .ma-pass{color:var(--ma-green)}.ma-lab .ma-warn{color:var(--ma-red)}",
     ".ma-lab .ma-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.ma-lab .ma-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:11px 0}.ma-lab .ma-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ma-lab .ma-metric:nth-child(4n+1){border-color:var(--ma-blue)}.ma-lab .ma-metric:nth-child(4n+2){border-color:var(--ma-green)}.ma-lab .ma-metric:nth-child(4n+3){border-color:var(--ma-gold)}.ma-lab .ma-metric:nth-child(4n){border-color:var(--ma-red)}.ma-lab .ma-metric span{display:block;color:var(--fg-soft,var(--muted,#6b6557));font-size:11px;line-height:1.4}.ma-lab .ma-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ma-lab .ma-visual{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow:hidden}.ma-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#292722)}.ma-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ma-lab .ma-axis{stroke:currentColor;stroke-opacity:.55;stroke-width:1.1}.ma-lab .ma-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1}.ma-lab .ma-curve{fill:none;stroke:var(--ma-blue);stroke-width:2.4}.ma-lab .ma-point{fill:var(--ma-gold);stroke:var(--bg,#fff);stroke-width:1.5}.ma-lab .ma-tangent{stroke:var(--ma-green);stroke-width:2.4;stroke-linecap:round}.ma-lab .ma-singular{fill:var(--ma-red);stroke:var(--bg,#fff);stroke-width:1.5}.ma-lab .ma-chart-line{stroke:var(--ma-blue);stroke-width:2;stroke-dasharray:6 4}.ma-lab .ma-panel-title{font-size:13px;font-weight:750}.ma-lab .ma-small{font-size:11px;fill:var(--fg-soft,var(--muted,#6b6557))}",
+    ".ma-lab .ma-visual{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow-x:auto}.ma-lab svg{display:block;width:100%;min-width:720px;max-width:none;height:auto;color:var(--fg,#292722)}.ma-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ma-lab .ma-axis{stroke:currentColor;stroke-opacity:.55;stroke-width:1.1}.ma-lab .ma-grid{fill:none;stroke:currentColor;stroke-opacity:.14;stroke-width:1}.ma-lab .ma-curve{fill:none;stroke:var(--ma-blue);stroke-width:2.4}.ma-lab .ma-point{fill:var(--ma-gold);stroke:var(--bg,#fff);stroke-width:1.5}.ma-lab .ma-tangent{stroke:var(--ma-green);stroke-width:2.4;stroke-linecap:round}.ma-lab .ma-singular{fill:var(--ma-red);stroke:var(--bg,#fff);stroke-width:1.5}.ma-lab .ma-chart-line{stroke:var(--ma-blue);stroke-width:2;stroke-dasharray:6 4}.ma-lab .ma-panel-title{font-size:13px;font-weight:750}.ma-lab .ma-small{font-size:11px;fill:var(--fg-soft,var(--muted,#6b6557))}",
     ".ma-lab .ma-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}.ma-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.ma-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#6b6557));font-size:12px}.ma-lab th,.ma-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.ma-lab th{color:var(--fg-soft,var(--muted,#6b6557));font-size:11.5px}.ma-lab .ma-check{margin-top:11px;padding:8px 10px;border-left:3px solid var(--ma-green);background:var(--block-bg,var(--bg,#fff));font-size:12.5px}.ma-lab .ma-check.ma-fail{border-color:var(--ma-red)}",
     "@media(max-width:760px){.ma-lab .ma-presets{grid-template-columns:minmax(0,1fr)}.ma-lab .ma-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){.ma-lab .ma-summary,.ma-lab .ma-choice-row{grid-template-columns:minmax(0,1fr)}.ma-lab .ma-visual{padding:4px}.ma-lab th,.ma-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.ma-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,'[data-theme="dark"] .ma-lab{--ma-blue:#85b9ef;--ma-green:#83c69c;--ma-gold:#e6be68;--ma-red:#ed9f94}.ma-lab .ma-visual:focus-visible,.ma-lab .ma-table-wrap:focus-visible{outline:3px solid var(--ma-blue);outline-offset:2px}'
   ].join("\n");
 
   function fail(message) {
@@ -83,7 +84,7 @@
   }
 
   function circleNorthCoordinate(point) {
-    if (!point || point.length !== 2 || Math.abs(1 - point[1]) < EPSILON) fail("point is outside the north circle chart");
+    if (!Array.isArray(point) || point.length !== 2 || !point.every(finite) || Math.abs(Math.hypot(...point)-1)>1e-8 || 1-point[1] === 0) fail("point is outside the north circle chart");
     return point[0] / (1 - point[1]);
   }
 
@@ -94,17 +95,17 @@
   }
 
   function circleSouthCoordinate(point) {
-    if (!point || point.length !== 2 || Math.abs(1 + point[1]) < EPSILON) fail("point is outside the south circle chart");
+    if (!Array.isArray(point) || point.length !== 2 || !point.every(finite) || Math.abs(Math.hypot(...point)-1)>1e-8 || 1+point[1] === 0) fail("point is outside the south circle chart");
     return point[0] / (1 + point[1]);
   }
 
   function circleTransition(u) {
-    if (!finite(u) || Math.abs(u) < EPSILON) fail("circle transition needs a nonzero overlap coordinate");
+    if (!finite(u) || u === 0) fail("circle transition needs a nonzero overlap coordinate");
     return 1 / u;
   }
 
   function circleTransitionJacobian(u) {
-    if (!finite(u) || Math.abs(u) < EPSILON) fail("circle transition Jacobian needs a nonzero coordinate");
+    if (!finite(u) || u === 0) fail("circle transition Jacobian needs a nonzero coordinate");
     return [[-1 / (u * u)]];
   }
 
@@ -116,7 +117,7 @@
   }
 
   function sphereNorthCoordinate(point) {
-    if (!point || point.length !== 3 || Math.abs(1 - point[2]) < EPSILON) fail("point is outside the north sphere chart");
+    if (!Array.isArray(point) || point.length !== 3 || !point.every(finite) || Math.abs(Math.hypot(...point)-1)>1e-8 || 1-point[2] === 0) fail("point is outside the north sphere chart");
     return [point[0] / (1 - point[2]), point[1] / (1 - point[2])];
   }
 
@@ -128,20 +129,20 @@
   }
 
   function sphereSouthCoordinate(point) {
-    if (!point || point.length !== 3 || Math.abs(1 + point[2]) < EPSILON) fail("point is outside the south sphere chart");
+    if (!Array.isArray(point) || point.length !== 3 || !point.every(finite) || Math.abs(Math.hypot(...point)-1)>1e-8 || 1+point[2] === 0) fail("point is outside the south sphere chart");
     return [point[0] / (1 + point[2]), point[1] / (1 + point[2])];
   }
 
   function sphereTransition(coordinates) {
     var r2 = normSquared(coordinates || []);
-    if (!coordinates || coordinates.length !== 2 || !coordinates.every(finite) || r2 < EPSILON) fail("sphere transition needs a nonzero overlap coordinate");
+    if (!coordinates || coordinates.length !== 2 || !coordinates.every(finite) || r2 === 0) fail("sphere transition needs a nonzero overlap coordinate");
     return [coordinates[0] / r2, coordinates[1] / r2];
   }
 
   function sphereTransitionJacobian(coordinates) {
     var u = coordinates || [];
     var r2 = normSquared(u);
-    if (u.length !== 2 || !u.every(finite) || r2 < EPSILON) fail("sphere transition Jacobian needs a nonzero coordinate");
+    if (u.length !== 2 || !u.every(finite) || r2 === 0) fail("sphere transition Jacobian needs a nonzero coordinate");
     var r4 = r2 * r2;
     return [
       [1 / r2 - 2 * u[0] * u[0] / r4, -2 * u[0] * u[1] / r4],
@@ -150,11 +151,14 @@
   }
 
   function matrixRank(matrix, tolerance) {
+    if(!Array.isArray(matrix)||matrix.some(function(row){return !Array.isArray(row)||row.length!==matrix[0].length||row.some(function(x){return !finite(x);});}))fail("rank requires a finite rectangular matrix");
+    if(tolerance!==undefined&&(!finite(tolerance)||tolerance<0))fail("rank tolerance must be nonnegative");
+    var magnitude=Math.max(0,...matrix.flat().map(Math.abs));
     var rows = matrix.length;
     var columns = rows ? matrix[0].length : 0;
-    var copy = matrix.map(function (row) { return row.slice(); });
+    var copy = matrix.map(function (row) { return row.map(function(x){return magnitude?x/magnitude:x;}); });
     var rank = 0;
-    var threshold = tolerance === undefined ? 1e-8 : tolerance;
+    var threshold = tolerance === undefined ? 64*Number.EPSILON*Math.max(rows,columns) : tolerance;
     for (var column = 0; column < columns && rank < rows; column += 1) {
       var pivot = rank;
       for (var candidate = rank + 1; candidate < rows; candidate += 1) {
@@ -208,6 +212,7 @@
   }
 
   function regularValueLedger(kind) {
+    if(!["circle","sphere","cone"].includes(kind))fail("unknown level-set model");
     var name;
     var level;
     var rows;
@@ -250,7 +255,7 @@
     var preset = PRESETS.filter(function (item) { return item.id === id; })[0];
     if (!preset) fail("unknown preset " + id);
     var value = parameter === undefined ? preset.parameter : Number(parameter);
-    if (!finite(value)) value = preset.parameter;
+    if (!finite(value)||Math.abs(value)>2) fail("teaching coordinate must be finite and in [-2,2]");
     var result = { preset: preset, kind: preset.kind, expected: preset.expected, regular: regularValueLedger(preset.kind) };
     if (preset.kind === "circle") {
       if (Math.abs(value) < 0.2) value = value < 0 ? -0.2 : 0.2;
@@ -421,10 +426,11 @@
       var cx = 180 + cp[0] * 82;
       var cy = 145 - cp[1] * 82;
       svg.appendChild(svgElement(doc, "circle", { cx: cx, cy: cy, r: 7, className: "ma-point" }));
-      svg.appendChild(svgElement(doc, "line", { x1: cx - cp[1] * 42, y1: cy + cp[0] * 42, x2: cx + cp[1] * 42, y2: cy - cp[0] * 42, className: "ma-tangent", "marker-end": "url(#ma-arrow-" + serial + ")" }));
-      svg.appendChild(svgElement(doc, "text", { x: 180, y: 260, "text-anchor": "middle", className: "ma-small" }, "点 p 与切向方向来自嵌入后的画面"));
+      svg.appendChild(svgElement(doc, "line", { x1: cx + cp[1] * 42, y1: cy + cp[0] * 42, x2: cx - cp[1] * 42, y2: cy - cp[0] * 42, className: "ma-tangent", "marker-end": "url(#ma-arrow-" + serial + ")" }));
+      svg.appendChild(svgElement(doc, "text", { x: 180, y: 260, "text-anchor": "middle", className: "ma-small" }, "绿色箭头是核 dF 中的切向量"));
       svg.appendChild(svgElement(doc, "line", { x1: 420, y1: 145, x2: 665, y2: 145, className: "ma-axis" }));
-      svg.appendChild(svgElement(doc, "line", { x1: 542, y1: 65, x2: 542, y2: 225, className: "ma-grid" }));
+      svg.appendChild(svgElement(doc, "line", { x1: 540, y1: 65, x2: 540, y2: 225, className: "ma-grid" }));
+      svg.appendChild(svgElement(doc, "line", {x1:420,y1:190,x2:665,y2:190,className:"ma-axis"}));
       var circlePlot = circlePlotMapping(report.chart.sourceCoordinate, report.chart.targetCoordinate);
       svg.appendChild(svgElement(doc, "circle", { cx: circlePlot.sourceX, cy: 145, r: 7, className: "ma-point" }));
       svg.appendChild(svgElement(doc, "circle", { cx: circlePlot.targetX, cy: 190, r: 7, className: "ma-point" }));
@@ -435,26 +441,28 @@
     } else if (report.kind === "sphere") {
       svg.appendChild(svgElement(doc, "ellipse", { cx: 180, cy: 145, rx: 92, ry: 78, className: "ma-curve" }));
       svg.appendChild(svgElement(doc, "ellipse", { cx: 180, cy: 145, rx: 92, ry: 20, className: "ma-grid" }));
+      svg.appendChild(svgElement(doc,"line",{x1:420,y1:200,x2:660,y2:200,className:"ma-axis"}));
+      svg.appendChild(svgElement(doc,"line",{x1:540,y1:170,x2:540,y2:230,className:"ma-axis"}));
       var sp = report.embeddingPoint;
       var sx = 180 + sp[0] * 92;
       var sy = 145 - sp[2] * 78;
+      var tangent=report.tangent.basis[0];
       svg.appendChild(svgElement(doc, "circle", { cx: sx, cy: sy, r: 7, className: "ma-point" }));
-      svg.appendChild(svgElement(doc, "line", { x1: sx, y1: sy, x2: sx + 34, y2: sy - 14, className: "ma-tangent", "marker-end": "url(#ma-arrow-" + serial + ")" }));
-      svg.appendChild(svgElement(doc, "text", { x: 180, y: 260, "text-anchor": "middle", className: "ma-small" }, "椭圆只是 S² 的二维投影草图，不是坐标定义"));
-      svg.appendChild(svgElement(doc, "line", { x1: 420, y1: 145, x2: 660, y2: 145, className: "ma-axis" }));
-      svg.appendChild(svgElement(doc, "line", { x1: 540, y1: 55, x2: 540, y2: 235, className: "ma-axis" }));
-      svg.appendChild(svgElement(doc, "circle", { cx: 540 + report.chart.sourceCoordinate[0] * 32, cy: 145 - report.chart.sourceCoordinate[1] * 32, r: 7, className: "ma-point" }));
-      svg.appendChild(svgElement(doc, "circle", { cx: 540 + report.chart.targetCoordinate[0] * 32, cy: 205 - report.chart.targetCoordinate[1] * 32, r: 7, className: "ma-point" }));
-      svg.appendChild(svgElement(doc, "text", { x: 425, y: 95, className: "ma-small" }, "u=" + vectorText(report.chart.sourceCoordinate)));
-      svg.appendChild(svgElement(doc, "text", { x: 425, y: 215, className: "ma-small" }, "v=" + vectorText(report.chart.targetCoordinate)));
+      svg.appendChild(svgElement(doc, "line", { x1: sx, y1: sy, x2: sx + tangent[0]*41.4, y2: sy - tangent[2]*35.1, className: "ma-tangent", "marker-end": "url(#ma-arrow-" + serial + ")" }));
+      svg.appendChild(svgElement(doc, "text", { x: 180, y: 260, "text-anchor": "middle", className: "ma-small" }, "沿 y 轴投影：绿色为真实切向量的投影"));
+      svg.appendChild(svgElement(doc, "line", { x1: 420, y1: 100, x2: 660, y2: 100, className: "ma-axis" }));
+      svg.appendChild(svgElement(doc, "line", { x1: 540, y1: 70, x2: 540, y2: 130, className: "ma-axis" }));
+      svg.appendChild(svgElement(doc, "circle", { cx: 540 + report.chart.sourceCoordinate[0] * 32, cy: 100 - report.chart.sourceCoordinate[1] * 32, r: 7, className: "ma-point" }));
+      svg.appendChild(svgElement(doc, "circle", { cx: 540 + report.chart.targetCoordinate[0] * 32, cy: 200 - report.chart.targetCoordinate[1] * 32, r: 7, className: "ma-point" }));
+      svg.appendChild(svgElement(doc, "text", { x: 425, y: 52, className: "ma-small" }, "u=" + vectorText(report.chart.sourceCoordinate)));
+      svg.appendChild(svgElement(doc, "text", { x: 425, y: 155, className: "ma-small" }, "v=" + vectorText(report.chart.targetCoordinate)));
       svg.appendChild(svgElement(doc, "text", { x: 540, y: 260, "text-anchor": "middle", className: "ma-small" }, "转移：" + report.chart.formula + "，rank=" + report.chart.rank));
     } else {
-      svg.appendChild(svgElement(doc, "line", { x1: 85, y1: 225, x2: 180, y2: 65, className: "ma-curve" }));
-      svg.appendChild(svgElement(doc, "line", { x1: 275, y1: 225, x2: 180, y2: 65, className: "ma-curve" }));
-      svg.appendChild(svgElement(doc, "line", { x1: 85, y1: 225, x2: 275, y2: 225, className: "ma-curve" }));
-      svg.appendChild(svgElement(doc, "circle", { cx: 180, cy: 65, r: 8, className: "ma-singular" }));
+      [[85,55,180,145],[275,55,180,145],[85,235,180,145],[275,235,180,145]].forEach(function(e){svg.appendChild(svgElement(doc,"line",{x1:e[0],y1:e[1],x2:e[2],y2:e[3],className:"ma-curve"}));});
+      [55,235].forEach(function(y){svg.appendChild(svgElement(doc,"ellipse",{cx:180,cy:y,rx:95,ry:14,className:"ma-curve"}));});
+      svg.appendChild(svgElement(doc,"circle",{cx:180,cy:145,r:8,className:"ma-singular"}));
       svg.appendChild(svgElement(doc, "text", { x: 180, y: 260, "text-anchor": "middle", className: "ma-small" }, "锥尖：dF=0，level 0 不能由正则值定理认证"));
-      svg.appendChild(svgElement(doc, "text", { x: 540, y: 130, "text-anchor": "middle", className: "ma-small" }, "没有全局坐标卡可供转移"));
+      svg.appendChild(svgElement(doc, "text", { x: 540, y: 130, "text-anchor": "middle", className: "ma-small" }, "锥尖附近不存在二维流形坐标卡"));
       svg.appendChild(svgElement(doc, "text", { x: 540, y: 158, "text-anchor": "middle", className: "ma-small" }, "先查每个 level-set 点的 rank"));
     }
     return svg;
@@ -513,7 +521,7 @@
         presets.appendChild(button);
       });
       shell.appendChild(presets);
-      shell.appendChild(element(doc, "p", { className: "ma-note", text: preset.kind === "circle" ? "u 是北极点图 φ_N 的一维坐标；u=0.2 作为滑杆的最小绝对值，避免落到图册接缝。" : preset.kind === "sphere" ? "滑杆改变北极点图中的 u₁，u₂ 固定为 0.75；这是重叠区的一条可复算切片。" : "锥面普通点的切空间是二维；锥尖只报告 ker dF，不能把它称为切空间。" }));
+      shell.appendChild(element(doc, "p", { className: "ma-note", text: preset.kind === "circle" ? "u 是北极点图 φ_N 的一维坐标；滑杆排除 |u|<0.2；u=0 对应南极，不在两卡重叠区。" : preset.kind === "sphere" ? "滑杆改变北极点图中的 u₁，u₂ 固定为 0.75；这是重叠区的一条可复算切片。" : "比较锥尖 p=(0,0,0) 与普通点 p=(1,0,1)，先用 dF 判断秩。" }));
       if (preset.kind !== "cone") {
         var control = element(doc, "div", { className: "ma-control" });
         control.appendChild(element(doc, "label", { for: "ma-coordinate-" + serial, text: preset.kind === "circle" ? "图坐标 u" : "球面图坐标 u₁" }));
@@ -535,7 +543,7 @@
       var choices = element(doc, "div", { className: "ma-choice-row", role: "group", "aria-label": "预测选项" });
       preset.options.forEach(function (option) {
         var button = element(doc, "button", { type: "button", "aria-pressed": state.prediction === option[0] ? "true" : "false" }, option[1]);
-        button.addEventListener("click", function () { state.prediction = option[0]; render(); });
+        button.addEventListener("click", function () { state.prediction = option[0]; state.revealed=false; render(); });
         choices.appendChild(button);
       });
       predict.appendChild(choices);
@@ -561,7 +569,7 @@
       if (state.revealed) {
         var results = element(doc, "section", { className: "ma-results", "aria-live": "polite" });
         results.appendChild(element(doc, "h4", { text: "分栏可视化与 rank ledger" }));
-        results.appendChild(element(doc, "div", { className: "ma-visual" }, manifoldSvg(doc, report, serial)));
+        results.appendChild(element(doc, "div", { className: "ma-visual", tabindex:0, "aria-label":"流形图，可左右滚动" }, manifoldSvg(doc, report, serial)));
         var summary = element(doc, "div", { className: "ma-summary" });
         summary.appendChild(metric(doc, "模型", preset.kind === "circle" ? "S¹" : preset.kind === "sphere" ? "S²" : "cone"));
         summary.appendChild(metric(doc, "转移 Jacobian 秩", report.chart ? String(report.chart.rank) : "没有图册转移"));
@@ -570,9 +578,10 @@
         summary.appendChild(metric(doc, "level 0/1 正则？", report.regular.regularValue ? "抽样通过" : "失败（锥尖）"));
         results.appendChild(summary);
         if (report.chart) {
+          results.appendChild(element(doc,"p",{className:"ma-note",text:"当前转移 Jacobian J="+matrixText(report.chart.jacobian)+"；切向量分量按 w_S=J w_N 变换。"}));
           results.appendChild(element(doc, "p", { className: "ma-note", text: report.kind === "circle" ? "内在转移 v=1/u 的 Jacobian 是 [-1/u²]；它描述两张一维坐标的换算，不是圆在平面中的切线。" : "内在转移 v=u/||u||² 的 Jacobian 在非零 u 上可逆；它描述两张二维坐标的换算，不是椭圆投影的导数。" }));
         }
-        results.appendChild(element(doc, "div", { className: "ma-table-wrap" }, regularTable(doc, report)));
+        results.appendChild(element(doc, "div", { className: "ma-table-wrap", tabindex:0, "aria-label":"秩检查表，可左右滚动" }, regularTable(doc, report)));
         results.appendChild(element(doc, "p", { className: "ma-check " + (report.regular.regularValue ? "" : "ma-fail"), text: report.regular.regularValue ? "表中每个抽样点都满足 rank dF = dim(target)；对圆/球面还可由梯度在整个 level set 上非零直接证明。" : "锥尖一行给出 dF=0；普通点的 ker dF 是二维切空间，但锥尖的切空间未定义，只能报告三维 Jacobian kernel。" }));
         shell.appendChild(results);
       }
