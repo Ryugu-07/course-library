@@ -31,35 +31,36 @@
   ];
 
   var STYLE_TEXT = [
-    ".se-lab{--se-blue:var(--cl-blue,#315f9d);--se-gold:var(--cl-gold,#9b6a12);--se-green:var(--cl-green,#39734d);--se-red:var(--cl-red,#b64335);--se-muted:var(--fg-soft,#706b62);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
+    ".se-lab{--se-blue:#315f9d;--se-gold:var(--cl-gold,#9b6a12);--se-green:var(--cl-green,#39734d);--se-red:var(--cl-red,#b64335);--se-muted:var(--fg-soft,#706b62);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
     ".se-lab [hidden]{display:none!important;}",
     ".se-lab *,.se-lab *::before,.se-lab *::after{box-sizing:border-box;}.se-lab h3,.se-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.se-lab h3{font-size:1.18rem;}.se-lab h4{font-size:1rem;}",
     ".se-lab button,.se-lab input,.se-lab select{font:inherit;}.se-lab button,.se-lab select{min-height:44px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);}.se-lab button{min-width:0;padding:8px 11px;cursor:pointer;line-height:1.35;overflow-wrap:anywhere;}.se-lab button:hover{border-color:var(--accent);}.se-lab button:disabled{cursor:not-allowed;opacity:.55;}.se-lab button[aria-pressed=true],.se-lab .se-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}",
     ".se-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.se-lab button:focus-visible,.se-lab input:focus-visible,.se-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
     ".se-lab .se-intro,.se-lab .se-note,.se-lab .se-feedback,.se-lab .se-chart-note{color:var(--se-muted);font-size:13px;line-height:1.65;overflow-wrap:anywhere;}.se-lab .se-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--se-gold);background:var(--block-bg,var(--bg));}.se-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.se-lab legend{max-width:100%;padding:0;font-weight:750;line-height:1.45;overflow-wrap:anywhere;}.se-lab .se-question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.se-lab .se-question{min-width:0;padding:9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.se-lab .se-choice-list{display:grid;gap:6px;margin-top:8px;}.se-lab .se-choice-list button{width:100%;min-height:44px;text-align:left;font-size:12.5px;}.se-lab .se-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}.se-lab .se-actions>*{flex:1 1 160px;}.se-lab .se-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.se-lab .se-pass{color:var(--se-green);}.se-lab .se-warn{color:var(--se-red);}",
-    ".se-lab .se-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.se-lab .se-layout{display:grid;grid-template-columns:minmax(210px,.48fr) minmax(0,1.52fr);gap:15px;align-items:start;min-width:0;}.se-lab .se-controls,.se-lab .se-stage{min-width:0;}.se-lab .se-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.se-lab .se-control{display:grid;gap:5px;min-width:0;}.se-lab .se-control label,.se-lab .se-control-title{color:var(--se-muted);font-size:13px;font-weight:700;}.se-lab .se-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.se-lab .se-preset-grid,.se-lab .se-estimator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.se-lab .se-preset-grid button,.se-lab .se-estimator-grid button{font-size:12px;}.se-lab .se-scale{display:flex;justify-content:space-between;color:var(--se-muted);font-size:11px;}",
-    ".se-lab .se-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.se-lab .se-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--se-muted);font-size:13px;}.se-lab .se-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.se-lab .se-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.se-lab .se-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1;}.se-lab .se-axis{stroke:currentColor;stroke-opacity:.62;stroke-width:1.2;}.se-lab .se-bar{fill:var(--se-blue);fill-opacity:.62;}.se-lab .se-theory{fill:none;stroke:var(--se-gold);stroke-width:2.5;stroke-linecap:round;}.se-lab .se-target{stroke:var(--se-red);stroke-width:2;stroke-dasharray:6 4;}.se-lab .se-observed{stroke:var(--se-green);stroke-width:2;stroke-dasharray:2 4;}.se-lab .se-label{font-size:11px;fill:var(--se-muted)!important;}.se-lab .se-title{font-size:13px;font-weight:750;}",
-    ".se-lab .se-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px;}.se-lab .se-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.se-lab .se-metric:nth-child(4n+1){border-color:var(--se-blue);}.se-lab .se-metric:nth-child(4n+2){border-color:var(--se-gold);}.se-lab .se-metric:nth-child(4n+3){border-color:var(--se-green);}.se-lab .se-metric:nth-child(4n){border-color:var(--se-red);}.se-lab .se-metric span{display:block;color:var(--se-muted);font-size:11px;line-height:1.4;}.se-lab .se-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}.se-lab .se-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.se-lab table{width:100%;min-width:800px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.se-lab caption{padding:0 0 7px;text-align:left;color:var(--se-muted);font-size:12px;}.se-lab th,.se-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.se-lab th{color:var(--se-muted);font-size:11.5px;font-weight:750;}.se-lab .se-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--se-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}.se-lab .se-caution{margin:10px 0 0;color:var(--se-muted);font-size:12px;line-height:1.65;}",
-    "@media(max-width:900px){.se-lab .se-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:720px){.se-lab .se-question-grid{grid-template-columns:minmax(0,1fr);}.se-lab .se-preset-grid,.se-lab .se-estimator-grid{grid-template-columns:minmax(0,1fr);}.se-lab .se-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}@media(max-width:430px){.se-lab .se-stage-frame{padding:5px;}.se-lab table{font-size:11.5px;}.se-lab th,.se-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.se-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
+    ".se-lab .se-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.se-lab .se-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:15px;align-items:start;min-width:0;}.se-lab .se-controls,.se-lab .se-stage{min-width:0;}.se-lab .se-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.se-lab .se-control{display:grid;gap:5px;min-width:0;}.se-lab .se-control label,.se-lab .se-control-title{color:var(--se-muted);font-size:13px;font-weight:700;}.se-lab .se-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.se-lab .se-preset-grid,.se-lab .se-estimator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.se-lab .se-preset-grid button,.se-lab .se-estimator-grid button{font-size:12px;}.se-lab .se-scale{display:flex;justify-content:space-between;color:var(--se-muted);font-size:11px;}",
+    ".se-lab .se-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.se-lab .se-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--se-muted);font-size:13px;}.se-lab .se-svg{display:block;width:100%;min-width:760px;max-width:none;height:auto;color:var(--fg);}.se-lab .se-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.se-lab .se-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1;}.se-lab .se-axis{stroke:currentColor;stroke-opacity:.62;stroke-width:1.2;}.se-lab .se-bar{fill:var(--se-blue);fill-opacity:.62;}.se-lab .se-theory{fill:none;stroke:var(--se-gold);stroke-width:2.5;stroke-linecap:round;}.se-lab .se-target{stroke:var(--se-red);stroke-width:2;stroke-dasharray:6 4;}.se-lab .se-observed{stroke:var(--se-green);stroke-width:2;stroke-dasharray:2 4;}.se-lab .se-label{font-size:13px;fill:var(--se-muted)!important;}.se-lab .se-title{font-size:13px;font-weight:750;}",
+    ".se-lab .se-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px;}.se-lab .se-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.se-lab .se-metric:nth-child(4n+1){border-color:var(--se-blue);}.se-lab .se-metric:nth-child(4n+2){border-color:var(--se-gold);}.se-lab .se-metric:nth-child(4n+3){border-color:var(--se-green);}.se-lab .se-metric:nth-child(4n){border-color:var(--se-red);}.se-lab .se-metric span{display:block;color:var(--se-muted);font-size:11px;line-height:1.4;}.se-lab .se-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}.se-lab .se-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.se-lab table{display:table;width:100%;min-width:800px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.se-lab caption{padding:0 0 7px;text-align:left;color:var(--se-muted);font-size:12px;}.se-lab th,.se-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.se-lab th{color:var(--se-muted);font-size:11.5px;font-weight:750;}.se-lab .se-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--se-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}.se-lab .se-caution{margin:10px 0 0;color:var(--se-muted);font-size:12px;line-height:1.65;}",
+    ".se-lab .se-chart-scroll{overflow-x:auto;max-width:100%}.se-lab .se-chart-scroll:focus-visible,.se-lab .se-table-wrap:focus-visible{outline:3px solid var(--accent)}[data-theme=dark] .se-lab{--se-blue:#89b8f5;--se-green:#92c7a0;--se-red:#ef998c;--se-gold:#d9bb73;}@media(max-width:900px){.se-lab .se-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:720px){.se-lab .se-question-grid{grid-template-columns:minmax(0,1fr);}.se-lab .se-preset-grid,.se-lab .se-estimator-grid{grid-template-columns:minmax(0,1fr);}.se-lab .se-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}@media(max-width:430px){.se-lab .se-stage-frame{padding:5px;}.se-lab table{font-size:11.5px;}.se-lab th,.se-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.se-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
   ].join("\n");
 
   function finite(value) { return typeof value === "number" && isFinite(value); }
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
   function near(left, right, tolerance) { var scale = Math.max(1, Math.abs(left), Math.abs(right)); return Math.abs(left - right) <= (tolerance || EPS) * scale; }
   function format(value, digits) {
-    if (value === null || value === undefined) return "不存在";
+    if (value === null || value === undefined) return "不定义";
     if (value === Infinity) return "∞";
     if (!finite(value)) return "-";
     var places = digits === undefined ? 3 : digits;
-    if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
+    if (Math.abs(value) > 0 && (Math.abs(value) < 0.001 || Math.abs(value)>=10000)) return value.toExponential(Math.min(places, 4));
     var text = value.toFixed(places);
     return text.indexOf(".") === -1 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
   }
-  function presetById(id) { return PRESETS.filter(function (preset) { return preset.id === id; })[0] || PRESETS[0]; }
-  function normalizeN(value) { return Math.round(clamp(Number(value) || 20, 5, 100)); }
-  function normalizeR(value) { return Math.round(clamp(Number(value) || 120, 40, 240)); }
-  function normalizeB(value) { return Math.round(clamp(Number(value) || 120, 40, 240)); }
-  function normalizeEstimator(value) { return value === "variance" ? "variance" : "mean"; }
+  function presetById(id) {var p=PRESETS.find(function(p){return p.id===id;});if(!p)throw new RangeError('未知总体');return p;}
+  function integer(v,d,min,max){if(v===undefined)return d;if(!Number.isInteger(v)||v<min||v>max)throw new RangeError('整数参数超出范围');return v;}
+  function normalizeN(v){return integer(v,20,5,100);}
+  function normalizeR(v){return integer(v,120,40,240);}
+  function normalizeB(v){return integer(v,120,40,240);}
+  function normalizeEstimator(v){if(v===undefined)return 'mean';if(v!=='mean'&&v!=='variance')throw new RangeError('未知统计量');return v;}
 
   function hashSeed(text) {
     var hash = 2166136261;
@@ -76,14 +77,16 @@
       return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
     };
   }
+  function unit(rng){if(typeof rng!=='function')throw new TypeError('需要随机数函数');var u=rng();if(!finite(u)||u<0||u>=1)throw new RangeError('随机数必须位于[0,1)');return u;}
   function normal(rng) {
-    var u = Math.max(1e-12, rng());
-    var v = Math.max(1e-12, rng());
+    var u = 1-unit(rng);
+    var v = unit(rng);
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   }
-  function exponential(rng) { return -Math.log(Math.max(1e-12, 1 - rng())); }
-  function pareto(rng) { return Math.pow(Math.max(1e-12, rng()), -2 / 3); }
+  function exponential(rng) { return -Math.log1p(-unit(rng)); }
+  function pareto(rng) { return Math.pow(1-unit(rng), -2 / 3); }
   function sampleReplicate(modelId, n, rng) {
+    presetById(modelId);normalizeN(n);if(n===undefined)throw new RangeError("需要n");
     var values = [];
     var i;
     if (modelId === "clustered") {
@@ -98,9 +101,10 @@
     }
     return values;
   }
-  function sampleMean(values) { return values.reduce(function (sum, value) { return sum + value; }, 0) / values.length; }
+  function checkValues(v,min){if(!Array.isArray(v)||v.length<min||!v.every(finite))throw new RangeError("需要有限样本数组");}
+  function sampleMean(values) { checkValues(values,1); var scale=Math.max.apply(null,values.map(Math.abs));if(scale===0)return 0;return (values.reduce(function(sum,v){return sum+v/scale;},0)/values.length)*scale; }
   function sampleVariance(values) {
-    if (values.length < 2) return 0;
+    checkValues(values,2);
     var meanValue = sampleMean(values);
     return values.reduce(function (sum, value) { return sum + Math.pow(value - meanValue, 2); }, 0) / (values.length - 1);
   }
@@ -109,24 +113,36 @@
     var model = presetById(modelId);
     return normalizeEstimator(estimator) === "variance" ? model.variance : model.mean;
   }
-  function theoreticalSE(modelId, estimator, n) {
-    var model = presetById(modelId);
-    if (normalizeEstimator(estimator) !== "mean" || model.variance === null) return null;
-    if (modelId === "clustered") return Math.sqrt(1 + 1 / n);
-    return Math.sqrt(model.variance / n);
+  function theory(modelId,estimator,n){
+    var model=presetById(modelId);estimator=normalizeEstimator(estimator);normalizeN(n);if(n===undefined)throw new RangeError('需要n');
+    var mean,variance,law;
+    if(estimator==='mean'){
+      mean=model.mean;variance=modelId==='heavy'?Infinity:modelId==='clustered'?1+1/n:model.variance/n;
+      law=modelId==='normal'?'精确 N(10,4/n)':modelId==='clustered'?'精确 N(0,1+1/n)':modelId==='skewed'?'精确 Gamma(n, scale=1/n)':'均值存在；方差和MSE无穷';
+    }else{
+      mean=modelId==='heavy'?Infinity:modelId==='clustered'?1:model.variance;
+      variance=modelId==='heavy'?Infinity:modelId==='skewed'?8/n+2/(n*(n-1)):2*mean*mean/(n-1);
+      law=modelId==='normal'?'精确 4χ²(n−1)/(n−1)':modelId==='clustered'?'精确 χ²(n−1)/(n−1)，只测簇内噪声':modelId==='skewed'?'精确矩可算；不套正态总体χ²律':'S²有限样本值仍有限，理论期望无穷';
+    }
+    var target=populationParameter(modelId,estimator),bias=target===null?null:mean-target;
+    return {mean:mean,variance:variance,sd:Math.sqrt(variance),bias:bias,mse:target===null?null:variance+bias*bias,law:law};
   }
-  function cltAllowed(modelId, estimator) { return normalizeEstimator(estimator) === "mean" && (modelId === "normal" || modelId === "skewed"); }
-  function distributionDescription(modelId, estimator) {
-    if (normalizeEstimator(estimator) === "variance") return "S^2 的重复抽样分布；正态总体才有精确 χ² 结构。";
-    if (modelId === "normal") return "精确 N(10,4/n)；不是原始 X 的分布。";
-    if (modelId === "skewed") return "有限 n 右偏；i.i.d. 有限方差下仅渐近趋近正态。";
-    if (modelId === "clustered") return "共同冲击使均值方差含 1 项，不按 1/n 消失。";
-    return "方差不存在，经典有限方差 CLT 不适用。";
+  function theoreticalSE(modelId,estimator,n){var t=theory(modelId,estimator,n);return finite(t.sd)?t.sd:null;}
+  function cltAllowed(modelId,estimator){return normalizeEstimator(estimator)==='mean'&&(modelId==='normal'||modelId==='skewed');}
+  function distributionDescription(modelId,estimator,n){return theory(modelId,estimator,n).law;}
+  function bootstrapTheory(values,estimator){
+    checkValues(values,2);estimator=normalizeEstimator(estimator);var n=values.length,mean=sampleMean(values),squares=values.map(function(v){return (v-mean)*(v-mean);}),m2=sampleMean(squares);
+    var varSquare=sampleMean(squares.map(function(v){return (v-m2)*(v-m2);}));
+    return {mean:estimator==='mean'?mean:m2,variance:estimator==='mean'?m2/n:(varSquare+2*m2*m2/(n-1))/n};
   }
+  function consistency(modelId,estimator){if(estimator==='variance')return modelId==='heavy'?'不存在有限方差目标':modelId==='clustered'?'S²趋向1，不趋向边际方差2':'S²依概率趋向总体方差';return modelId==='clustered'?'样本均值保留共同冲击，不一致':modelId==='heavy'?'有限均值：强LLN仍适用；经典CLT不适用':'样本均值一致';}
+  function logGamma(z){var c=[676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];z-=1;var x=.99999999999980993;for(var i=0;i<c.length;i++)x+=c[i]/(z+i+1);var t=z+7.5;return .9189385332046727+(z+.5)*Math.log(t)-t+Math.log(x);}
+  function gammaDensity(x,k,scale){if(x<=0)return 0;return Math.exp((k-1)*Math.log(x)-x/scale-logGamma(k)-k*Math.log(scale));}
+  function densityAt(data,x){if(data.modelId==='heavy'||(data.modelId==='skewed'&&data.estimator==='variance'))return null;if(data.estimator==='mean'){if(data.modelId==='skewed')return gammaDensity(x,data.n,1/data.n);return normalDensity((x-data.theory.mean)/data.theory.sd)/data.theory.sd;}return gammaDensity(x,(data.n-1)/2,2*data.theory.mean/(data.n-1));}
   function bootstrapStatus(modelId) {
     if (modelId === "normal") return "可作近似诊断；精确正态理论仍是基准。";
     if (modelId === "skewed") return "可能捕捉有限样本偏斜，但需检查样本量和尾部。";
-    if (modelId === "clustered") return "普通 bootstrap 忽略共同冲击；应考虑 block/层级结构。";
+    if (modelId === "clustered") return "普通重抽样看不到跨簇共同冲击；单独一簇不能靠增加B补出独立簇。";
     return "无限方差下普通 bootstrap 不提供无条件一致性保证。";
   }
 
@@ -147,19 +163,15 @@
     return { min: min, max: max, width: width, counts: counts };
   }
   function compute(input) {
-    var rawModelId = input && input.modelId ? input.modelId : "normal";
-    var model = presetById(rawModelId);
-    var modelId = model.id;
-    var estimator = normalizeEstimator(input && input.estimator);
-    var n = normalizeN(input && input.n);
-    var repetitions = normalizeR(input && input.repetitions);
-    var bootstrap = normalizeB(input && input.bootstrap);
+    if(input===undefined)input={};if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('需要参数对象');
+    var modelId=input.modelId===undefined?'normal':input.modelId,model=presetById(modelId);
+    var estimator=normalizeEstimator(input.estimator),n=normalizeN(input.n),repetitions=normalizeR(input.repetitions),bootstrap=normalizeB(input.bootstrap);
     var sampleRng = rngFrom(hashSeed("sampling-observed:" + modelId + ":" + n));
     var observed = sampleReplicate(modelId, n, sampleRng);
-    var repeatRng = rngFrom(hashSeed("sampling-repeated:" + modelId + ":" + n + ":" + repetitions));
+    var repeatRng = rngFrom(hashSeed("sampling-repeated:" + modelId + ":" + n));
     var values = [];
     for (var r = 0; r < repetitions; r += 1) values.push(statistic(sampleReplicate(modelId, n, repeatRng), estimator));
-    var bootstrapRng = rngFrom(hashSeed("sampling-bootstrap:" + modelId + ":" + n + ":" + bootstrap));
+    var bootstrapRng = rngFrom(hashSeed("sampling-bootstrap:" + modelId + ":" + n));
     var bootstrapValues = [];
     for (var b = 0; b < bootstrap; b += 1) {
       var resample = [];
@@ -173,6 +185,9 @@
     var mse = target === null ? null : summary.variance + bias * bias;
     return {
       model: model,
+      theory:theory(modelId,estimator,n),
+      bootstrapTheory:bootstrapTheory(observed,estimator),
+      consistency:consistency(modelId,estimator),
       modelId: modelId,
       estimator: estimator,
       n: n,
@@ -189,10 +204,10 @@
       bias: bias,
       mse: mse,
       bootstrapMean: bootSummary.mean,
-      bootstrapSE: bootSummary.sd,
+      bootstrapSE:bootSummary.sd*Math.sqrt(bootstrap/(bootstrap-1)),
       theoreticalSE: theoreticalSE(modelId, estimator, n),
       cltAllowed: cltAllowed(modelId, estimator),
-      distributionDescription: distributionDescription(modelId, estimator),
+      distributionDescription: distributionDescription(modelId, estimator,n),
       bootstrapStatus: bootstrapStatus(modelId)
     };
   }
@@ -201,7 +216,8 @@
     Object.keys(attrs || {}).forEach(function (key) {
       var value = attrs[key];
       if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
+      if(key === "text")node.textContent=String(value);
+      else if (key === "className") node.setAttribute("class", String(value));
       else if (key === "htmlFor") node.setAttribute("for", String(value));
       else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
       else if (value === true) node.setAttribute(key, "");
@@ -225,53 +241,33 @@
   function path(points) { return points.map(function (point, index) { return (index ? "L" : "M") + format(point[0], 2) + "," + format(point[1], 2); }).join(" "); }
   function normalDensity(value) { return Math.exp(-0.5 * value * value) / Math.sqrt(2 * Math.PI); }
 
-  function drawSvg(doc, data, uid) {
-    var width = 620;
-    var height = 360;
-    var left = 46;
-    var top = 44;
-    var right = 18;
-    var bottom = 42;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var hist = data.histogram;
-    var range = hist.max - hist.min;
-    var yMax = Math.max(1, Math.max.apply(null, hist.counts) * 1.16);
-    var svg = svgElement(doc, "svg", { className: "se-svg", viewBox: "0 0 " + width + " " + height, role: "img", "aria-labelledby": uid + "-title" });
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, ["抽样分布与估计量审计"]));
-    svg.appendChild(svgElement(doc, "text", { class: "se-title", x: 10, y: 18, "text-anchor": "start" }, [data.model.label + " · " + (data.estimator === "mean" ? "均值" : "样本方差") + " · n=" + data.n + " · R=" + data.repetitions + " · B=" + data.bootstrap]));
-    [0.25, 0.5, 0.75].forEach(function (fraction) { var y = top + plotHeight * fraction; svg.appendChild(svgElement(doc, "line", { class: "se-grid", x1: left, x2: left + plotWidth, y1: y, y2: y })); });
-    svg.appendChild(svgElement(doc, "line", { class: "se-axis", x1: left, x2: left + plotWidth, y1: top + plotHeight, y2: top + plotHeight }));
-    svg.appendChild(svgElement(doc, "line", { class: "se-axis", x1: left, x2: left, y1: top, y2: top + plotHeight }));
-    hist.counts.forEach(function (count, index) {
-      var x0 = left + index * plotWidth / hist.counts.length;
-      var x1 = left + (index + 1) * plotWidth / hist.counts.length;
-      var y = py(count, 0, yMax, top, plotHeight);
-      svg.appendChild(svgElement(doc, "rect", { class: "se-bar", x: x0 + 1, y: y, width: Math.max(1, x1 - x0 - 2), height: top + plotHeight - y }));
-    });
-    if (data.cltAllowed && data.theoreticalSE !== null && data.theoreticalSE > 0) {
-      var theoryPoints = [];
-      for (var i = 0; i <= 100; i += 1) {
-        var value = hist.min + range * i / 100;
-        var z = (value - data.target) / data.theoreticalSE;
-        var expected = normalDensity(z) * data.repetitions * hist.width / data.theoreticalSE;
-        theoryPoints.push([px(value, hist.min, hist.max, left, plotWidth), py(expected, 0, yMax, top, plotHeight)]);
-      }
-      svg.appendChild(svgElement(doc, "path", { class: "se-theory", d: path(theoryPoints) }));
-    }
-    if (data.target !== null && finite(data.target) && data.target >= hist.min && data.target <= hist.max) {
-      var targetX = px(data.target, hist.min, hist.max, left, plotWidth);
-      svg.appendChild(svgElement(doc, "line", { class: "se-target", x1: targetX, x2: targetX, y1: top, y2: top + plotHeight }));
-      svg.appendChild(svgElement(doc, "text", { class: "se-label", x: targetX + 5, y: top + 14, "text-anchor": "start" }, ["target=" + format(data.target, 3)]));
-    }
-    var observedValue = statistic(data.observed, data.estimator);
-    if (observedValue >= hist.min && observedValue <= hist.max) {
-      var observedX = px(observedValue, hist.min, hist.max, left, plotWidth);
-      svg.appendChild(svgElement(doc, "line", { class: "se-observed", x1: observedX, x2: observedX, y1: top, y2: top + plotHeight }));
-      svg.appendChild(svgElement(doc, "text", { class: "se-label", x: observedX - 5, y: top + 29, "text-anchor": "end" }, ["one statistic"]));
-    }
-    svg.appendChild(svgElement(doc, "text", { class: "se-label", x: left + plotWidth / 2, y: height - 10, "text-anchor": "middle" }, ["统计量取值"]));
-    svg.appendChild(svgElement(doc, "text", { class: "se-label", x: left + 6, y: top + 15, "text-anchor": "start" }, [data.cltAllowed ? "金线：CLT/正态参考" : "金线：条件不满足，未画 CLT"]));
+  function drawSvg(doc,data,uid){
+    var allValues=data.values.concat(data.bootstrapValues),observed=statistic(data.observed,data.estimator);
+    allValues.push(observed);if(data.target!==null)allValues.push(data.target);
+    var min=Math.min.apply(null,allValues),max=Math.max.apply(null,allValues),pad=(max-min)*.04||1;
+    min-=pad;max+=pad;if(data.estimator==='variance')min=Math.max(0,min);
+    var bins=24,bw=(max-min)/bins,left=70,top=110,w=650,h=270;
+    function counts(vs){var c=Array(bins).fill(0);vs.forEach(function(v){c[Math.min(bins-1,Math.floor((v-min)/bw))]++;});return c;}
+    var rc=counts(data.values),bc=counts(data.bootstrapValues),densities=rc.map(function(v){return v/(data.repetitions*bw);}).concat(bc.map(function(v){return v/(data.bootstrap*bw);}));
+    var curve=[];for(var i=0;i<=400;i++){var x=min+(max-min)*i/400,dy=densityAt(data,x);if(dy!==null){curve.push([x,dy]);densities.push(dy);}}
+    var yMax=Math.max.apply(null,densities)*1.13;
+    function sx(x){return left+(x-min)/(max-min)*w;}function sy(y){return top+h-y/yMax*h;}
+    var svg=svgElement(doc,'svg',{className:'se-svg',viewBox:'0 0 760 455',role:'img','aria-labelledby':uid+'-title'});
+    function add(tag,a,t){var node=svgElement(doc,tag,a,t===undefined?[]:[t]);svg.appendChild(node);return node;}
+    add('title',{id:uid+'-title'},'重新抽样与给定观测的bootstrap经验密度；完整显示所有模拟样本');
+    add('text',{class:'se-title',x:20,y:22},data.model.label+' · '+(data.estimator==='mean'?'样本均值':'样本方差')+' · n='+data.n+' · R='+data.repetitions+' · B='+data.bootstrap);
+    add('text',{class:'se-label',x:70,y:46,style:'fill:var(--se-blue)!important'},'蓝柱：重复抽样');
+    add('text',{class:'se-label',x:285,y:46,style:'fill:#a581c4!important'},'紫阶梯：普通bootstrap');
+    add('text',{class:'se-label',x:520,y:46},curve.length?'金线：精确理论密度':'此组合不画理论密度');
+    add('text',{class:'se-label',x:70,y:73},'目标参数：'+format(data.target,4)+'；当前统计量：'+format(observed,4));
+    add('text',{class:'se-label',x:70,y:96},'密度（每组柱/阶梯全面积为1）');
+    for(var j=0;j<=4;j++){var x=min+(max-min)*j/4,y=yMax*j/4;add('line',{class:'se-grid',x1:sx(x),x2:sx(x),y1:top,y2:top+h});add('text',{class:'se-label',x:sx(x),y:top+h+24,'text-anchor':'middle'},format(x,3));add('line',{class:'se-grid',x1:left,x2:left+w,y1:sy(y),y2:sy(y)});add('text',{class:'se-label',x:left-8,y:sy(y)+4,'text-anchor':'end'},format(y,3));}
+    for(var k=0;k<bins;k++)add('rect',{class:'se-bar',x:sx(min+k*bw),y:sy(rc[k]/(data.repetitions*bw)),width:w/bins,height:rc[k]/(data.repetitions*bw)/yMax*h,'data-bin':k});
+    var pts=[];for(var k=0;k<bins;k++){var y=sy(bc[k]/(data.bootstrap*bw));pts.push([sx(min+k*bw),y],[sx(min+(k+1)*bw),y]);}add('path',{d:path(pts),fill:'none',stroke:'#a581c4','stroke-width':2,'data-bootstrap':true});
+    if(curve.length)add('path',{class:'se-theory',d:path(curve.map(function(p){return[sx(p[0]),sy(p[1])];}))});
+    if(data.target!==null)add('line',{class:'se-target',x1:sx(data.target),x2:sx(data.target),y1:top,y2:top+h});
+    add('line',{class:'se-observed',x1:sx(observed),x2:sx(observed),y1:top,y2:top+h});
+    add('text',{class:'se-label',x:380,y:440,'text-anchor':'middle'},'统计量取值；红虚线：目标参数，绿虚线：本次统计量');
     return svg;
   }
 
@@ -283,7 +279,7 @@
     var state = { modelId: "normal", estimator: "mean", n: 20, repetitions: 120, bootstrap: 120, predictions: { objects: null, sampling: null, clt: null, bootstrap: null }, score: 0 };
     var shell = element(doc, "div", { className: "se-lab" });
     var form = element(doc, "form", { className: "se-prediction" });
-    var revealed = element(doc, "section", { className: "se-revealed", hidden: true, "aria-label": "抽样与估计量实验结果" });
+    var revealed = element(doc, "section", { className: "se-revealed", hidden: true, tabindex:"-1", "aria-label": "抽样与估计量实验结果" });
     var feedback = element(doc, "p", { className: "se-feedback", role: "status", "aria-live": "polite", text: "请先完成四项预测。" });
     var questions = [
       { key: "objects", prompt: "1 · μ 与 X̄ 各是什么？", answer: "parameter", choices: [["parameter", "μ 是总体参数，X̄ 是样本统计量"], ["statistic", "二者都是一次统计量"], ["fixed", "二者都不随样本变化"]] },
@@ -305,7 +301,7 @@
       question.choices.forEach(function (choice) {
         var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice[1] });
         button.addEventListener("click", function () {
-          state.predictions[question.key] = choice[0];
+          state.predictions[question.key] = choice[0];revealed.hidden=true;
           choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", state.predictions[item.key] === item.value ? "true" : "false"); });
           feedback.className = "se-feedback";
           feedback.textContent = "已记录当前选择；四项完成后提交。";
@@ -371,22 +367,24 @@
     controls.appendChild(relock);
 
     function renderTable(data) {
-      var targetText = data.target === null ? "不存在" : format(data.target, 5);
+      var targetText = data.target === null ? "无有限值（∞）" : format(data.target, 5);
       var rows = [
         ["总体参数 θ", data.estimator === "mean" ? "μ=" + targetText : "σ²=" + targetText, "总体参数固定；未知但不随样本重抽改变。"],
         ["一次统计量", (data.estimator === "mean" ? "x̄=" : "s²=") + format(statistic(data.observed, data.estimator), 5), "只对应当前一份观测；换样本会变。"],
         ["抽样分布", "均值=" + format(data.samplingMean, 5) + "；SD=" + format(data.samplingSD, 5), data.distributionDescription],
         ["经验偏差估计 / 方差 / 经验 MSE", format(data.bias, 5) + " / " + format(data.samplingVariance, 5) + " / " + format(data.mse, 5), "有限 R 只能估计期望差与 MSE；方差是当前重复抽样的经验波动。"],
-        ["一致性信号", data.modelId === "clustered" ? "均值不因 n 消失" : data.modelId === "heavy" ? "经典条件不可用" : "均值的理论波动随 n 缩小", "一致性是 n→∞ 的概率陈述，不是一次误差。"],
-        ["bootstrap", "SE=" + format(data.bootstrapSE, 5) + "；B=" + data.bootstrap, data.bootstrapStatus]
+        ["一致性信号", data.consistency, "一致性是 n→∞ 的概率陈述，不是一次误差。"],
+        ["bootstrap 模拟", "SE=" + format(data.bootstrapSE, 5) + "；B=" + data.bootstrap, data.bootstrapStatus]
       ];
+      rows.push(['理论抽样矩','E='+format(data.theory.mean,5)+'；SD='+format(data.theory.sd,5)+'；偏差='+format(data.theory.bias,5)+'；MSE='+format(data.theory.mse,5),'理论矩与有限R的经验矩分开；经验方差用R作分母，经验MSE是平方误差平均。']);
+      rows.push(['bootstrap精确条件矩','E*='+format(data.bootstrapTheory.mean,5)+'；SE*='+format(Math.sqrt(data.bootstrapTheory.variance),5),'给定当前观测的经验分布，精确计算；B只影响模拟精度。模拟SE用B−1作方差分母。']);
       var table = element(doc, "table");
       table.appendChild(element(doc, "caption", { text: "四层对象与估计量性质审计账本" }));
-      table.appendChild(element(doc, "thead", {}, [element(doc, "tr", {}, [element(doc, "th", { text: "对象" }), element(doc, "th", { text: "当前读数" }), element(doc, "th", { text: "解释与边界" })])]));
+      table.appendChild(element(doc, "thead", {}, [element(doc, "tr", {}, [element(doc, "th", { scope:"col", text: "对象" }), element(doc, "th", { scope:"col", text: "当前读数" }), element(doc, "th", { scope:"col", text: "解释与边界" })])]));
       var body = element(doc, "tbody");
       rows.forEach(function (row) { body.appendChild(element(doc, "tr", {}, row.map(function (value) { return element(doc, "td", { text: value }); }))); });
       table.appendChild(body);
-      return element(doc, "div", { className: "se-table-wrap" }, [table]);
+      return element(doc, "div", { className: "se-table-wrap",tabindex:"0",role:"region","aria-label":"可横向滚动的抽样读数表" }, [table]);
     }
 
     function render() {
@@ -403,11 +401,11 @@
       presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", item.id === data.modelId ? "true" : "false"); });
       estimatorGrid.querySelectorAll("button").forEach(function (button) { button.setAttribute("aria-pressed", button.dataset.value === data.estimator ? "true" : "false"); });
       clear(stage);
-      var cards = [metric(doc, "目标参数", data.target === null ? "不存在" : format(data.target, 4)), metric(doc, "抽样 SD", format(data.samplingSD, 4)), metric(doc, "偏差", format(data.bias, 4)), metric(doc, "bootstrap SE", format(data.bootstrapSE, 4))];
+      var cards = [metric(doc, "目标参数", data.target === null ? "无有限值（∞）" : format(data.target, 4)), metric(doc, "经验抽样 SD", format(data.samplingSD, 4)), metric(doc, "经验偏差估计", format(data.bias, 4)), metric(doc, "bootstrap SE", format(data.bootstrapSE, 4))];
       stage.appendChild(element(doc, "div", { className: "se-metrics", "aria-label": "抽样与估计量读数" }, cards.map(function (card) { return card.node; })));
       var frame = element(doc, "div", { className: "se-stage-frame" }, [element(doc, "div", { className: "se-stage-title" }, [element(doc, "strong", { text: data.model.label }), element(doc, "span", { text: data.estimator === "mean" ? "估计量：X̄" : "估计量：S²" })])]);
-      frame.appendChild(drawSvg(doc, data, uid));
-      frame.appendChild(element(doc, "p", { className: "se-chart-note", text: "蓝柱是重复抽样所得统计量的经验分布；红虚线是目标参数，绿虚线是当前一份样本的统计量，金线只在 CLT 条件允许时显示。" }));
+      frame.appendChild(element(doc,"div",{className:"se-chart-scroll",tabindex:"0",role:"region","aria-label":"可横向滚动的抽样与bootstrap分布图"},[drawSvg(doc,data,uid)]));
+      frame.appendChild(element(doc, "p", { className: "se-chart-note", text: "蓝柱为R次重新抽样，紫色阶梯为给定当前观测的B次普通bootstrap；两者分别按完整箱宽归一化。金线若存在，是当前模型的精确抽样密度；红线标目标，绿线标本次统计量。" }));
       stage.appendChild(frame);
       stage.appendChild(renderTable(data));
       var interpretation = data.modelId === "clustered"
@@ -418,7 +416,7 @@
             ? "指数总体满足经典 CLT 的有限方差条件，但小样本的偏斜仍是真实抽样分布的一部分。"
             : "正态总体把四层对象对齐得最干净：均值抽样分布精确，S² 还可接上 χ² 理论；bootstrap 仍是近似。";
       stage.appendChild(element(doc, "p", { className: "se-interpretation", role: "status", "aria-live": "polite", text: interpretation }));
-      stage.appendChild(element(doc, "p", { className: "se-caution", text: "固定种子只让比较可复现，不把模拟直方图变成定理；R 和 B 越大只减少可视化噪声。" }));
+      stage.appendChild(element(doc, "p", { className: "se-caution", text: "固定n时，增加R/B保留各自较短重复序列的前缀；B不能增加原始信息。有限精度伪随机数使可生成尾部有上限，有限模拟矩不能证明理想总体矩存在。" }));
     }
 
     form.addEventListener("submit", function (event) {
@@ -431,10 +429,11 @@
       feedback.className = "se-feedback " + (state.score === questions.length ? "se-pass" : "se-warn");
       feedback.textContent = "已揭示：" + state.score + "/" + questions.length + " 项预测与解析账本一致。";
       render();
+      revealed.focus();
       announce(api, root, feedback.textContent);
     });
     function resetPredictions() { state.predictions = { objects: null, sampling: null, clt: null, bootstrap: null }; choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); }); }
-    clearPredictionButton.addEventListener("click", function () { resetPredictions(); feedback.className = "se-feedback"; feedback.textContent = "预测已清空。"; });
+    clearPredictionButton.addEventListener("click", function () { resetPredictions();revealed.hidden=true;choiceButtons[0].node.focus(); feedback.className = "se-feedback"; feedback.textContent = "预测已清空。"; });
     function reset() {
       state.modelId = "normal";
       state.estimator = "mean";
@@ -445,6 +444,7 @@
       revealed.setAttribute("hidden", "hidden");
       feedback.className = "se-feedback";
       feedback.textContent = "已重新上锁，请再完成四项预测。";
+      choiceButtons[0].node.focus();
       announce(api, root, "抽样与估计量实验已重置。");
     }
     relock.addEventListener("click", reset);
@@ -467,7 +467,7 @@
     check(first.values.length === 80 && first.bootstrapValues.length === 80, "replicate lengths");
     check(first.histogram.counts.reduce(function (sum, count) { return sum + count; }, 0) === 80, "histogram count");
     check(first.target === 10 && first.cltAllowed, "normal mean target and CLT");
-    check(compute({ modelId: "unknown-model", repetitions: 40, bootstrap: 40 }).modelId === "normal", "invalid model uses canonical fallback");
+    check(theory("clustered","variance",20).bias === -1, "clustered variance estimates within-cluster noise");
     var exponentialData = compute({ modelId: "skewed", estimator: "mean", n: 50, repetitions: 60, bootstrap: 60 });
     check(exponentialData.target === 1 && exponentialData.theoreticalSE === 1 / Math.sqrt(50), "exponential mean theory");
     var clusteredData = compute({ modelId: "clustered", estimator: "mean", n: 50, repetitions: 60, bootstrap: 60 });
@@ -475,7 +475,7 @@
     var heavyData = compute({ modelId: "heavy", estimator: "mean", n: 20, repetitions: 60, bootstrap: 60 });
     check(heavyData.target === 3 && heavyData.theoreticalSE === null && heavyData.bootstrapStatus.indexOf("无限方差") !== -1, "heavy tail warning");
     var varianceData = compute({ modelId: "normal", estimator: "variance", n: 20, repetitions: 60, bootstrap: 60 });
-    check(varianceData.target === 4 && varianceData.theoreticalSE === null, "variance estimator target");
+    check(varianceData.target === 4 && near(varianceData.theoreticalSE,Math.sqrt(32/19)), "variance estimator target");
     return { checks: checks, presets: PRESETS.length };
   }
 
@@ -483,6 +483,12 @@
     PRESETS: PRESETS,
     sampleReplicate: sampleReplicate,
     sampleVariance: sampleVariance,
+    sampleMean:sampleMean,
+    rngFrom:rngFrom,
+    theory:theory,
+    bootstrapTheory:bootstrapTheory,
+    densityAt:densityAt,
+    drawSvg:drawSvg,
     statistic: statistic,
     theoreticalSE: theoreticalSE,
     compute: compute,

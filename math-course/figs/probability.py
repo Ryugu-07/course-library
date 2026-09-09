@@ -30,18 +30,8 @@ def f_clt():
     pass
 
 def f_sampling_dists():
-    from math import gamma
-    x=np.linspace(0.01,10,400); fig,axes=plt.subplots(1,2,figsize=(8.6,3.6))
-    ax=axes[0]
-    for k,c in [(2,ACC2),(4,ACC),(6,INK)]:
-        ax.plot(x,x**(k/2-1)*np.exp(-x/2)/(2**(k/2)*gamma(k/2)),color=c,lw=2,label=fr"$k={k}$")
-    ax.set_title(r"$\chi^2_k$",fontsize=12); ax.set_xlabel(r"$x$"); ax.legend(frameon=False,fontsize=10); ax.set_ylim(0,.5)
-    ax=axes[1]; t=np.linspace(-5,5,400)
-    ax.plot(t,np.exp(-t**2/2)/np.sqrt(2*pi),color=RED,lw=2,ls="--",label=r"$\mathcal{N}(0,1)$")
-    for df,c in [(1,ACC2),(3,ACC),(10,INK)]:
-        ax.plot(t,gamma((df+1)/2)/(np.sqrt(df*pi)*gamma(df/2))*(1+t**2/df)**(-(df+1)/2),color=c,lw=1.8,label=fr"$t_{{{df}}}$")
-    ax.set_title(r"Student $t$: heavy tails $\to$ normal",fontsize=12); ax.set_xlabel(r"$t$"); ax.legend(frameon=False,fontsize=9)
-    save(fig,"stat-01-sampling-dists")
+    # Maintained by tools/build_sampling_figure.py.
+    pass
 
 def f_confidence():
     fig,ax=plt.subplots(figsize=(6.4,4.2)); mu=0

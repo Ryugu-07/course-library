@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 00:16</div>
   </div>
 </nav>
 <main id="content">
@@ -61,10 +61,21 @@ try {
 <li><a href="#5">5. 定理与失败边界：近似必须写出条件</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 基本语言</a></li>
-<li><a href="#2_1">2. 三大抽样分布</a></li>
-<li><a href="#3_1">3. 正态总体抽样定理（本页顶点）</a></li>
-<li><a href="#4_1">4. 典型例题</a></li>
+<li><a href="#1_1">1. 统计量与枢轴量：计算时能否代入未知数？</a><ul>
+<li><a href="#n1">为什么样本方差除以 n−1？先证明，再解释自由度</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 正态总体为什么会产生独立的均值与残差？</a></li>
+<li><a href="#3-2tf">3. χ²、t、F：从构造看条件与矩</a></li>
+<li><a href="#4_1">4. 同一个实验里的四种总体，理论答案各不同</a></li>
+<li><a href="#5-bootstrap">5. bootstrap：把当前经验分布当作另一个总体</a></li>
+<li><a href="#6">6. 精确有限样本结论与大样本替代</a></li>
+<li><a href="#7">7. 迁移练习与答案</a><ul>
+<li><a href="#1_2">题 1：把方差事件换成标准分布事件</a></li>
+<li><a href="#2_2">题 2：分子分母共享信息会怎样？</a></li>
+<li><a href="#3_1">题 3：重抽样的极限是否等于真正的不确定性？</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
@@ -103,7 +114,7 @@ try {
 <p>对 i.i.d. 且 <span class="arithmatex">\(EX=\mu\)</span>、<span class="arithmatex">\(DX=\sigma^2&lt;\infty\)</span> 的样本，<span class="arithmatex">\(E\bar X=\mu\)</span>、<span class="arithmatex">\(D\bar X=\sigma^2/n\)</span>；对正态总体还可得到 <span class="arithmatex">\(\bar X\)</span> 与 <span class="arithmatex">\(S^2\)</span> 的精确联合结构。经典 CLT 是渐近结论：在独立同分布、有限非零方差等条件下，标准化均值才依分布趋向 <span class="arithmatex">\(N(0,1)\)</span>。它不把有限 <span class="arithmatex">\(n\)</span> 的近似变成等式，也不覆盖下面的相关/重尾反例。</p>
 <p>bootstrap 从观测经验分布中有放回重抽样，条件于当前数据近似估计量的抽样分布。它需要与问题匹配的正则性、独立性或块结构、足够的尾部条件；bootstrap 的一张窄图不是理论条件的豁免，也不能无条件修复偏差、依赖、无限方差或不可识别参数。</p>
 <h3 id="4">4. 可操作实验：先过预测门，再打开抽样分布<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验默认正态总体、<span class="arithmatex">\(n=20\)</span>、重复 <span class="arithmatex">\(R=120\)</span>、估计量为样本均值、bootstrap 重抽样 <span class="arithmatex">\(B=120\)</span>。提交四项预测后，可切换总体、估计量、<span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(R\)</span> 和 <span class="arithmatex">\(B\)</span>；直方图、CLT 参考曲线、偏差/方差/MSE 以及 bootstrap 标准误会由同一组固定种子数据重算。</p>
+<p>实验默认正态总体、<span class="arithmatex">\(n=20\)</span>、重复 <span class="arithmatex">\(R=120\)</span>、估计量为样本均值、bootstrap 重抽样 <span class="arithmatex">\(B=120\)</span>。提交四项预测后，可切换总体、估计量、<span class="arithmatex">\(n\)</span>、<span class="arithmatex">\(R\)</span> 和 <span class="arithmatex">\(B\)</span>；总体与bootstrap直方图、适用模型的精确密度、经验偏差/方差/MSE、理论矩以及bootstrap条件标准误会由同一组固定种子数据重算。</p>
 <div class="learning-lab" data-learning-lab="sampling-estimators">
 <p><strong>JavaScript 失效时的静态 fallback：</strong> 默认总体为 <span class="arithmatex">\(N(10,4)\)</span>。当估计量为均值时，参数是 <span class="arithmatex">\(\mu=10\)</span>、单次统计量是某个样本的 <span class="arithmatex">\(\bar X\)</span>，抽样分布是重复抽样的 <span class="arithmatex">\(\bar X\)</span> 集合，并且精确地有 <span class="arithmatex">\(\bar X\sim N(10,4/20)\)</span>；bootstrap 只是从一份观测的经验分布近似这份抽样分布。对照模型如下：</p>
 <table>
@@ -137,7 +148,7 @@ try {
 </tr>
 </tbody>
 </table>
-<p>样本方差的统计量定义使用 <span class="arithmatex">\(S^2=(n-1)^{-1}\sum(X_i-\bar X)^2\)</span>；无偏是重复抽样的期望陈述，不是每个 <span class="arithmatex">\(S^2\)</span> 都等于总体方差。图中的柱高是固定重复实验的经验抽样分布，参考曲线只有在条件允许时才显示。</p>
+<p>样本方差的统计量定义使用 <span class="arithmatex">\(S^2=(n-1)^{-1}\sum(X_i-\bar X)^2\)</span>；无偏是重复抽样的期望陈述，不是每个 <span class="arithmatex">\(S^2\)</span> 都等于总体方差。图中的柱高是固定重复实验的经验抽样分布，金色参考线是所选模型可计算的精确抽样密度：正态/共同冲击均值、它们的样本方差，以及指数总体均值；其余组合不擅自画近似密度。</p>
 </div>
 <h3 id="5">5. 定理与失败边界：近似必须写出条件<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
@@ -149,45 +160,123 @@ try {
 </ul>
 <p>看见“样本量大所以正态”时，先说清是哪一个统计量、哪一种抽样机制、哪一组条件；看见 bootstrap 标准误时，也要把它放回目标参数和理论抽样分布的语境中。</p>
 </section>
-<h2 id="1_1">1. 基本语言<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>总体</strong>：待研究的随机变量 <span class="arithmatex">\(X\)</span>（分布含未知参数 <span class="arithmatex">\(\theta\)</span>）；<strong>样本</strong> <span class="arithmatex">\(X_1, \dots, X_n\)</span>：i.i.d. 于总体（观测前是随机变量，观测后是数据——这个双重身份是统计一切"绕"的根源）；<strong>统计量</strong>：样本的函数 <span class="arithmatex">\(T(X_1,\dots,X_n)\)</span>，<strong>不含未知参数</strong>（<span class="arithmatex">\(\bar X\)</span> 是统计量，<span class="arithmatex">\(\frac{\bar X - \mu}{\sigma}\)</span> 不是）。</p>
-<p><strong>两大标配统计量</strong>：</p>
+<h2 id="1_1">1. 统计量与枢轴量：计算时能否代入未知数？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>在本页的 i.i.d. 抽样模型中，<span class="arithmatex">\(X_1,\ldots,X_n\)</span> 是观测前的随机变量，<span class="arithmatex">\((x_1,\ldots,x_n)\)</span> 是观测后的数值。统计量是样本的函数，计算规则不能依赖未知参数。因此 <span class="arithmatex">\(\bar X\)</span>、<span class="arithmatex">\(S^2\)</span> 是统计量；若 <span class="arithmatex">\(\mu,\sigma\)</span> 未知，<span class="arithmatex">\((\bar X-\mu)/(\sigma/\sqrt n)\)</span> 含有未知参数，不能直接当作可计算统计量。</p>
+<p>这种含参数、但分布不依赖该未知参数的组合称为<strong>枢轴量</strong>。它并非无用：把关于它的概率事件整理成参数的上下界，就得到置信区间。在检验 <span class="arithmatex">\(\mu=\mu_0\)</span> 时，用已指定的 <span class="arithmatex">\(\mu_0\)</span> 代入，则可得到可计算的检验统计量。具体操作见后续 <a href="stat-03-interval.html">区间估计</a>。</p>
+<h3 id="n1">为什么样本方差除以 n−1？先证明，再解释自由度<a class="headerlink" href="#n1" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(n\ge2\)</span>，样本 i.i.d.、均值 <span class="arithmatex">\(\mu\)</span>、有限方差 <span class="arithmatex">\(\sigma^2\)</span>。展开平方，利用 <span class="arithmatex">\(\sum_i(X_i-\bar X)=0\)</span>，有精确恒等式</p>
 <div class="arithmatex">\[
-\bar X = \frac1n\sum X_i, \qquad S^2 = \frac{1}{n-1}\sum (X_i - \bar X)^2
+\sum_{i=1}^n(X_i-\mu)^2
+=\sum_{i=1}^n(X_i-\bar X)^2+n(\bar X-\mu)^2.
 \]</div>
-<p><strong>为什么除 <span class="arithmatex">\(n-1\)</span></strong>：<span class="arithmatex">\(E\big[\sum(X_i - \bar X)^2\big] = (n-1)\sigma^2\)</span>——用 <span class="arithmatex">\(\bar X\)</span> 代替真 <span class="arithmatex">\(\mu\)</span> 会"偷走"一个自由度（<span class="arithmatex">\(\sum(X_i - \bar X) = 0\)</span> 这条约束），除 <span class="arithmatex">\(n-1\)</span> 恰好修正成无偏（统计 II 的无偏性在此预演）。</p>
-<p>基本事实（<span class="arithmatex">\(X_1,\ldots,X_n\)</span> 为 i.i.d. 样本且总体二阶矩有限）：<span class="arithmatex">\(E\bar X = \mu\)</span>，<span class="arithmatex">\(D\bar X = \frac{\sigma^2}{n}\)</span>，<span class="arithmatex">\(ES^2 = \sigma^2\)</span>。若样本共享共同冲击或存在其他相关结构，后两式一般都要加入协方差项，<span class="arithmatex">\(S^2\)</span> 也未必无偏估计边际方差。</p>
-<h2 id="2_1">2. 三大抽样分布<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>两边取期望：左边为 <span class="arithmatex">\(n\sigma^2\)</span>，最后一项为 <span class="arithmatex">\(n\operatorname{Var}(\bar X)=\sigma^2\)</span>，故</p>
+<div class="arithmatex">\[
+E\!\left[\sum_{i=1}^n(X_i-\bar X)^2\right]=(n-1)\sigma^2,
+\quad S^2=\frac1{n-1}\sum_i(X_i-\bar X)^2,
+\quad ES^2=\sigma^2.
+\]</div>
+<p>“损失一个自由度”是这件事的几何解释：残差向量满足一条线性约束，只能在 <span class="arithmatex">\(n-1\)</span> 维子空间中移动；它不能替代上述期望计算。无偏性要求抽样条件，相关数据中 <span class="arithmatex">\(\operatorname{Var}(\bar X)\)</span> 不一定为 <span class="arithmatex">\(\sigma^2/n\)</span>，这个补偿因子也不一定正确。</p>
+<p>无偏还不等于每一次准确。若 <span class="arithmatex">\(E(\hat\theta-\theta)^2&lt;\infty\)</span>，写成 <span class="arithmatex">\((\hat\theta-E\hat\theta)+(E\hat\theta-\theta)\)</span> 并展开平方，交叉项期望为零，得到 <span class="arithmatex">\(\operatorname{MSE}=\operatorname{Var}+\operatorname{Bias}^2\)</span>。实验的有限 <span class="arithmatex">\(R\)</span> 经验数值也满足对应恒等式，但不能由此推出理想总体的 MSE 有限。</p>
+<h2 id="2_1">2. 正态总体为什么会产生独立的均值与残差？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(X_i\)</span> i.i.d. <span class="arithmatex">\(N(\mu,\sigma^2)\)</span>，<span class="arithmatex">\(\sigma^2&gt;0\)</span>，令 <span class="arithmatex">\(Z_i=(X_i-\mu)/\sigma\)</span>。向量 <span class="arithmatex">\(Z\)</span> 的密度为 <span class="arithmatex">\((2\pi)^{-n/2}e^{-\|z\|^2/2}\)</span>：它只依赖长度，正交旋转不会改变分布。</p>
+<p>取单位向量 <span class="arithmatex">\(u=(1,\ldots,1)/\sqrt n\)</span>，并补成一组正交基。以这些基向量为行的矩阵记作 <span class="arithmatex">\(Q\)</span>，则 <span class="arithmatex">\(QQ^\top=I\)</span>。令 <span class="arithmatex">\(W=QZ\)</span>。由于长度和体积都不变，<span class="arithmatex">\(W\)</span> 的密度仍因子化为 <span class="arithmatex">\(n\)</span> 个标准正态密度，所以各坐标独立。第一坐标是</p>
+<div class="arithmatex">\[
+W_1=u^\top Z=\frac{\sqrt n(\bar X-\mu)}\sigma.
+\]</div>
+<p>其余 <span class="arithmatex">\(n-1\)</span> 个坐标是去掉平均方向后的残差；由勾股定理</p>
+<div class="arithmatex">\[
+\sum_{j=2}^nW_j^2=\|Z\|^2-W_1^2
+=\frac{\sum_i(X_i-\bar X)^2}{\sigma^2}
+=\frac{(n-1)S^2}{\sigma^2}.
+\]</div>
+<p>于是同时得到四条精确结论：</p>
+<div class="arithmatex">\[
+\bar X\sim N(\mu,\sigma^2/n),\qquad
+\frac{(n-1)S^2}{\sigma^2}\sim\chi^2_{n-1},\qquad
+\bar X\perp S^2,\qquad
+\frac{\bar X-\mu}{S/\sqrt n}\sim t_{n-1}.
+\]</div>
+<p>独立性来自<strong>正态旋转后的坐标独立</strong>，不只来自“两个向量正交”。一般总体也能做相同的代数分解，却不能保证旋转后密度因子化。用样本标准差替代总体标准差后，分母本身随机；它偶尔偏小会放大比值，这解释了 t 分布的厚尾。</p>
+<h2 id="3-2tf">3. χ²、t、F：从构造看条件与矩<a class="headerlink" href="#3-2tf" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="卡方分布与 t 分布" src="assets/img/stat-01-sampling-dists.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>三大抽样分布：卡方（正态平方和）、\(t\)（重尾，自由度增大趋正态）——正态总体推断的工具箱。</figcaption>
+<div aria-label="可横向滚动的卡方t和F密度图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/stat-01-sampling-dists.svg" alt="卡方、t和F三类抽样分布的精确密度随自由度变化，t图与标准正态作比较" style="min-width:900px;width:100%">
+</div>
+<figcaption><span class="fig-id">图 1.1</span>三类分布分别来自正态平方和、正态除以独立的平方和之根、两个独立平方和之比。曲线按密度公式绘制，图窗有限，尾部继续延伸；对称不保证期望存在，t分布自由度1就是Cauchy分布。</figcaption>
 </figure>
-<p><strong>χ² 分布</strong> <span class="arithmatex">\(\chi^2(n) = \sum_{i=1}^n Z_i^2\)</span>（<span class="arithmatex">\(Z_i\)</span> i.i.d. <span class="arithmatex">\(N(0,1)\)</span>）。<span class="arithmatex">\(E = n,\ D = 2n\)</span>；<strong>可加性</strong> <span class="arithmatex">\(\chi^2(m) + \chi^2(n) = \chi^2(m+n)\)</span>（独立时；概率 III 可加族的成员）；<span class="arithmatex">\(n\)</span> 大时近似正态。——"平方误差的分布"。</p>
-<p><strong>t 分布</strong> <span class="arithmatex">\(t(n) = \dfrac{Z}{\sqrt{\chi^2(n)/n}}\)</span>（分子分母独立）。对称钟形、<strong>比正态厚尾</strong>（小样本的不确定性体现在尾巴上）；<span class="arithmatex">\(n \to \infty\)</span> 时 <span class="arithmatex">\(\to N(0,1)\)</span>（<span class="arithmatex">\(n \geq 45\)</span> 左右可用正态近似）。——"用估计的 σ 替换真 σ 之后，正态变成的样子"。</p>
-<p><strong>F 分布</strong> <span class="arithmatex">\(F(m, n) = \dfrac{\chi^2(m)/m}{\chi^2(n)/n}\)</span>（独立）。性质：<span class="arithmatex">\(\frac{1}{F} \sim F(n, m)\)</span>（查表下分位点的技巧 <span class="arithmatex">\(F_{1-\alpha}(m,n) = \frac{1}{F_\alpha(n,m)}\)</span>）；<span class="arithmatex">\(t^2(n) = F(1, n)\)</span>。——"两个方差的比"。</p>
-<p>三者的家谱：全部由正态出生，χ² 是平方和、t 是"正态 ÷ χ² 根"、F 是"χ² 比 χ²"——<strong>记家谱不记密度</strong>（密度从不直接用，用的是分位点表）。</p>
-<h2 id="3_1">3. 正态总体抽样定理（本页顶点）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定理</strong> 设 <span class="arithmatex">\(X_1, \dots, X_n\)</span> i.i.d. <span class="arithmatex">\(N(\mu, \sigma^2)\)</span>，则：</p>
+<p><strong>卡方：</strong> 独立 <span class="arithmatex">\(Z_i\sim N(0,1)\)</span> 时，<span class="arithmatex">\(U=\sum_{i=1}^{\nu}Z_i^2\sim\chi^2_\nu\)</span>。对整数 <span class="arithmatex">\(\nu\)</span>，自由度就是独立平方项的数目；密度的 Gamma 形式还能推广到任意实数 <span class="arithmatex">\(\nu&gt;0\)</span>。其均值为 <span class="arithmatex">\(\nu\)</span>、方差为 <span class="arithmatex">\(2\nu\)</span>。若两个卡方变量独立，相加后的自由度相加。</p>
+<p><strong>Student t：</strong> <span class="arithmatex">\(Z\sim N(0,1)\)</span>、<span class="arithmatex">\(U\sim\chi^2_\nu\)</span> 且两者独立，则</p>
 <div class="arithmatex">\[
-\text{1.}\ \bar X \sim N\Big(\mu, \frac{\sigma^2}{n}\Big); \qquad
-\text{2.}\ \frac{(n-1)S^2}{\sigma^2} \sim \chi^2(n-1); \qquad
-\text{3.}\ \bar X \perp S^2
+T=\frac{Z}{\sqrt{U/\nu}}\sim t_\nu.
 \]</div>
+<p>它关于零对称，<span class="arithmatex">\(\nu&gt;1\)</span> 时均值才存在且等于零；<span class="arithmatex">\(\nu&gt;2\)</span> 时方差为 <span class="arithmatex">\(\nu/(\nu-2)\)</span>，<span class="arithmatex">\(1&lt;\nu\le2\)</span> 时方差无穷，<span class="arithmatex">\(0&lt;\nu\le1\)</span> 时不能用对称性宣布均值为零。随着 <span class="arithmatex">\(\nu\to\infty\)</span>，<span class="arithmatex">\(U/\nu\xrightarrow P1\)</span>，从而 <span class="arithmatex">\(T\xrightarrow dN(0,1)\)</span>。需要多大自由度才可近似，取决于关心的分位数与容许误差，不能用一个固定阈值替代核对。<a href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda3664.htm">NIST 的 t 分布说明</a> 给出相应密度与矩。</p>
+<p><strong>F：</strong> 若 <span class="arithmatex">\(U\sim\chi^2_m,V\sim\chi^2_\nu\)</span> 独立，则</p>
 <div class="arithmatex">\[
-\text{4.（由 1--3 合成）}\quad \frac{\bar X - \mu}{S/\sqrt{n}} \sim t(n-1)
+F=\frac{U/m}{V/\nu}\sim F_{m,\nu},\qquad m,\nu&gt;0.
 \]</div>
-<p>逐条评注：第 1 条是正态线性封闭性（概率 III 性质 4）；第 2 条的自由度 <span class="arithmatex">\(n-1\)</span> 呼应"偷走一个自由度"；第 3 条说明<strong>均值与方差独立是正态总体的特权</strong>（一般分布不成立——它是 t 分布定义中"分子分母独立"的来源）；第 4 条是<strong>实用之王</strong>——<span class="arithmatex">\(\sigma\)</span> 未知时关于 <span class="arithmatex">\(\mu\)</span> 的一切推断（区间、检验）都从它出发。</p>
-<p>两总体版本（统计 III/IV 要用）：对两组相互独立、组内 i.i.d.、方差为正的正态样本，方差比 <span class="arithmatex">\(\dfrac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2} \sim F(n_1 - 1, n_2 - 1)\)</span>；若还假设两总体方差相等，均值差可使用合并方差的 t 分布。</p>
-<p><strong>大样本兜底的边界</strong>：在 i.i.d. 与有限方差等条件下，CLT（概率 V）只保证标准化后的 <span class="arithmatex">\(\bar X\)</span> 近似正态。它不会自动让 <span class="arithmatex">\(S^2\)</span> 服从正态总体下的精确 <span class="arithmatex">\(\chi^2\)</span> 律，也不会凭空恢复 <span class="arithmatex">\(\bar X\perp S^2\)</span>、精确 t/F 分布或相关样本的 <span class="arithmatex">\(1/n\)</span> 方差缩放；这些结论各自需要额外条件。</p>
-<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（抽样定理直接应用）</strong> <span class="arithmatex">\(X \sim N(21, 4)\)</span>，<span class="arithmatex">\(n = 25\)</span>，求 <span class="arithmatex">\(P(\bar X &gt; 21.8)\)</span>。
-<em>解</em>：<span class="arithmatex">\(\bar X \sim N(21, \frac{4}{25})\)</span>，<span class="arithmatex">\(P = 1 - \Phi\big(\frac{0.8}{0.4}\big) = 1 - \Phi(2) = 0.0228\)</span>。（注意标准差缩成 <span class="arithmatex">\(\sigma/\sqrt n\)</span>——"平均值比个体稳定"的定量表达。）</p>
-<p><strong>例 2（χ² 用法）</strong> 正态总体 <span class="arithmatex">\(\sigma^2 = 4\)</span>，<span class="arithmatex">\(n = 10\)</span>，求 <span class="arithmatex">\(P(S^2 &gt; 8.04)\)</span>。
-<em>解</em>：<span class="arithmatex">\(\frac{9 S^2}{4} \sim \chi^2(9)\)</span>，<span class="arithmatex">\(P\big(\chi^2(9) &gt; \frac{9 \times 8.04}{4} = 18.09\big) \approx 0.034\)</span>（查表 <span class="arithmatex">\(\chi^2_{0.05}(9) = 16.92\)</span>，略小于 0.05 一档）。</p>
-<p><strong>例 3（家谱辨认）</strong> <span class="arithmatex">\(X_1, ..., X_5\)</span> i.i.d. <span class="arithmatex">\(N(0,1)\)</span>，问 <span class="arithmatex">\(Y = \dfrac{X_1}{\sqrt{(X_2^2 + X_3^2 + X_4^2 + X_5^2)/4}}\)</span> 服从什么分布？
-<em>解</em>：分子 <span class="arithmatex">\(N(0,1)\)</span>，分母是独立的 <span class="arithmatex">\(\sqrt{\chi^2(4)/4}\)</span> ⇒ <span class="arithmatex">\(Y \sim t(4)\)</span>。——考试就考"报家门"，认结构即可。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>它只取正值；<span class="arithmatex">\(\nu&gt;2\)</span> 时均值为 <span class="arithmatex">\(\nu/(\nu-2)\)</span>，<span class="arithmatex">\(\nu&gt;4\)</span> 时方差才有限。由定义立即有 <span class="arithmatex">\(F^{-1}\sim F_{\nu,m}\)</span>，以及 <span class="arithmatex">\(T_\nu^2\sim F_{1,\nu}\)</span>。若定义左尾分位数 <span class="arithmatex">\(q_p(m,\nu)\)</span> 满足 <span class="arithmatex">\(P(F\le q_p)=p\)</span>，则</p>
+<div class="arithmatex">\[
+q_{1-\alpha}(m,\nu)=\frac1{q_\alpha(\nu,m)},\qquad0&lt;\alpha&lt;1.
+\]</div>
+<p>写清左尾或右尾约定，才能正确使用分位数表。密度和尾部性质见 <a href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda3665.htm">NIST 的 F 分布说明</a>。</p>
+<p>两组相互独立、各自 i.i.d. 正态且样本量至少为2时，<span class="arithmatex">\((S_1^2/\sigma_1^2)/(S_2^2/\sigma_2^2)\sim F_{n_1-1,n_2-1}\)</span>。若方差还相等，可合并估计共同方差，均值差的标准化比值才有相应的精确 t 律；方差不等时不能直接照搬。</p>
+<h2 id="4_1">4. 同一个实验里的四种总体，理论答案各不同<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>实验中 <span class="arithmatex">\(n\)</span> 是一份样本的观测数，<span class="arithmatex">\(R\)</span> 是从理想总体重新生成样本的次数，<span class="arithmatex">\(B\)</span> 是给定一份观测后有放回重抽样的次数。固定总体和 <span class="arithmatex">\(n\)</span> 时，改变 <span class="arithmatex">\(R\)</span> 不改变当前那份观测；改变 <span class="arithmatex">\(B\)</span> 不改变总体重复抽样序列；较短的重复序列是较长序列的前缀，方便比较经验波动。</p>
+<p><strong>正态 <span class="arithmatex">\(N(10,4)\)</span>：</strong> 均值的理论方差为 <span class="arithmatex">\(4/n\)</span>，<span class="arithmatex">\(S^2\)</span> 的理论均值为4、方差为 <span class="arithmatex">\(32/(n-1)\)</span>。实验的金线分别是精确正态密度与缩放卡方密度。</p>
+<p><strong>指数 <span class="arithmatex">\(\mathrm{Exp}(1)\)</span>：</strong> <span class="arithmatex">\(\bar X\)</span> 精确服从 shape 为 <span class="arithmatex">\(n\)</span>、scale 为 <span class="arithmatex">\(1/n\)</span> 的 Gamma 分布，所以金线保留有限样本偏斜。<span class="arithmatex">\(S^2\)</span> 仍无偏，但不是缩放卡方。若总体四阶中心矩 <span class="arithmatex">\(\mu_4\)</span> 有限，展开四次乘积可得</p>
+<div class="arithmatex">\[
+\operatorname{Var}(S^2)=\frac1n\left(\mu_4-\frac{n-3}{n-1}\sigma^4\right).
+\]</div>
+<p>指数总体 <span class="arithmatex">\(\sigma^2=1,\mu_4=9\)</span>，于是本页使用 <span class="arithmatex">\(8/n+2/[n(n-1)]\)</span> 作为精确方差参照，没有擅自画正态总体的卡方曲线。</p>
+<p><strong>共同冲击：</strong> 每次生成一簇 <span class="arithmatex">\(X_i=Z+\varepsilon_i\)</span>，其中 <span class="arithmatex">\(Z,\varepsilon_1,\ldots,\varepsilon_n\)</span> 相互独立且均为 <span class="arithmatex">\(N(0,1)\)</span>。边际方差为2，但样本内共享同一个 <span class="arithmatex">\(Z\)</span>：</p>
+<div class="arithmatex">\[
+\bar X=Z+\bar\varepsilon\sim N(0,1+1/n),\qquad
+X_i-\bar X=\varepsilon_i-\bar\varepsilon.
+\]</div>
+<p>因此 <span class="arithmatex">\(S^2\sim\chi^2_{n-1}/(n-1)\)</span>，均值为1；若目标仍是边际方差2，偏差就是 <span class="arithmatex">\(-1\)</span>，MSE 为 <span class="arithmatex">\(1+2/(n-1)\)</span>。这里虽然相关，均值依然<strong>精确正态</strong>；失败的是 i.i.d. 的方差缩放与一致性，不能把“有相关”误读成“必定不正态”。增加同一簇内的 <span class="arithmatex">\(n\)</span> 无法平均掉 <span class="arithmatex">\(Z\)</span>。</p>
+<p><strong>Pareto<span class="arithmatex">\((x_{\min}=1,\alpha=1.5)\)</span>：</strong> 均值为3，方差无穷。独立抽样均值仍由强大数定律趋向3，经典有限方差 CLT 则不能使用；均值估计量的理论 MSE 无穷。每次有限模拟却仍会返回有限数，图上的经验方差和MSE可以看起来不大。软件的有限精度伪随机数还限制了实际能生成的极端值，不能把有限模拟反过来当作“理想尾部矩有限”的证据。</p>
+<h2 id="5-bootstrap">5. bootstrap：把当前经验分布当作另一个总体<a class="headerlink" href="#5-bootstrap" title="Permanent link"></a></h2>
+<p>观察到 <span class="arithmatex">\(x_1,\ldots,x_n\)</span> 后，经验分布 <span class="arithmatex">\(\widehat F_n=n^{-1}\sum_i\delta_{x_i}\)</span> 在每个观测位置放概率 <span class="arithmatex">\(1/n\)</span>。普通 bootstrap 从这里独立、有放回地抽取 <span class="arithmatex">\(n\)</span> 个数，再算统计量。星号 <span class="arithmatex">\(E^*,\operatorname{Var}^*\)</span> 表示<strong>给定当前数据</strong>后的条件期望和方差。这个重抽样机制可参看 <a href="https://www.stat.cmu.edu/~ryantibs/advmethods/notes/bootstrap.pdf">CMU 的 bootstrap 讲义</a>。</p>
+<p>令 <span class="arithmatex">\(m_2=n^{-1}\sum_i(x_i-\bar x)^2=(n-1)s^2/n\)</span>。经验分布的均值为 <span class="arithmatex">\(\bar x\)</span>、方差为 <span class="arithmatex">\(m_2\)</span>，因此无需模拟即可精确得到</p>
+<div class="arithmatex">\[
+E^*\bar X^*=\bar x,\qquad
+\operatorname{Var}^*(\bar X^*)=\frac{m_2}{n}=\frac{n-1}{n^2}s^2.
+\]</div>
+<p>注意，这个“精确”只针对当前经验分布；它是否近似真实总体的抽样分布，是另一个需要条件的问题。对样本方差也可计算条件矩。令 <span class="arithmatex">\(m_4=n^{-1}\sum_i(x_i-\bar x)^4\)</span>，则</p>
+<div class="arithmatex">\[
+E^*S^{*2}=m_2,\qquad
+\operatorname{Var}^*(S^{*2})=\frac1n\left(m_4-\frac{n-3}{n-1}m_2^2\right).
+\]</div>
+<p>实验对照这组精确条件矩与 <span class="arithmatex">\(B\)</span> 次重抽样的估计；模拟标准误使用这 <span class="arithmatex">\(B\)</span> 个统计量的样本标准差，方差分母为 <span class="arithmatex">\(B-1\)</span>。蓝色总体重抽样图与紫色 bootstrap 图没有人为平移到同一中心：后者围绕当前观测，正是它条件于数据的表现。</p>
+<p>共同冲击例子中，经验分布只能看到同一簇内的离散程度。<span class="arithmatex">\(n\)</span> 增大时，普通 bootstrap 均值 SE 大约按 <span class="arithmatex">\(1/\sqrt n\)</span> 降低，而真正跨簇重复抽样的 SE 趋于1。仅有一簇时，增加 <span class="arithmatex">\(B\)</span>、或笼统地说“用 block bootstrap”，都无法凭空补出独立簇之间的信息；需要与数据生成结构匹配的额外数据或模型。</p>
+<h2 id="6">6. 精确有限样本结论与大样本替代<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>非正态的 i.i.d. 总体，只要 <span class="arithmatex">\(0&lt;\sigma^2&lt;\infty\)</span>，<span class="arithmatex">\(S^2\xrightarrow P\sigma^2\)</span>（对 <span class="arithmatex">\(X_i\)</span> 与 <span class="arithmatex">\(X_i^2\)</span> 用大数定律），再结合 CLT 与 Slutsky 定理，有</p>
+<div class="arithmatex">\[
+\frac{\sqrt n(\bar X-\mu)}S\xrightarrow dN(0,1).
+\]</div>
+<p>这是 Student 化后的<strong>渐近正态</strong>，不是有限样本精确 <span class="arithmatex">\(t_{n-1}\)</span>。它也不会自动给出精确卡方/F律，或恢复一般总体下均值与样本方差的独立性。样本方差的一致性只需有限二阶矩；上节样本方差的有限方差公式需要有限四阶矩，条件强度也不同。</p>
+<p>例如正态总体 <span class="arithmatex">\(N(21,4)\)</span>、<span class="arithmatex">\(n=25\)</span> 时，<span class="arithmatex">\(P(\bar X&gt;21.8)=1-\Phi(2)\approx0.0227501\)</span>。这是精确抽样定理加数值求尾；换成仅有相同均值方差的一般总体，就不能称有限样本精确结果。</p>
+<h2 id="7">7. 迁移练习与答案<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<h3 id="1_2">题 1：把方差事件换成标准分布事件<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>正态总体方差为4，独立样本量10。求 <span class="arithmatex">\(P(S^2&gt;8.04)\)</span>，并写清自由度、阈值与尾部方向。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>由 <span class="arithmatex">\((n-1)S^2/\sigma^2\sim\chi^2_{n-1}\)</span>，目标等于 <span class="arithmatex">\(P(\chi^2_9&gt;9\times8.04/4)=P(\chi^2_9&gt;18.09)\approx0.0341436\)</span>。自由度为9，阈值为18.09，取右尾；不能把 <span class="arithmatex">\(S\)</span> 与 <span class="arithmatex">\(S^2\)</span>、标准差与方差混用。</p>
+</details>
+<h3 id="2_2">题 2：分子分母共享信息会怎样？<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(Z_1,\ldots,Z_5\)</span> 独立标准正态。比较 <span class="arithmatex">\(A=Z_1/\sqrt{(Z_2^2+\cdots+Z_5^2)/4}\)</span> 与 <span class="arithmatex">\(B=Z_1/\sqrt{(Z_1^2+\cdots+Z_5^2)/5}\)</span>。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(A\)</span> 的分子与分母独立，故 <span class="arithmatex">\(A\sim t_4\)</span>。<span class="arithmatex">\(B\)</span> 的分母含 <span class="arithmatex">\(Z_1^2\)</span>，独立性失效；更直接地，<span class="arithmatex">\(|B|\le\sqrt5\)</span> 几乎必然，而任何 t 分布都具有无界支持，所以 <span class="arithmatex">\(B\)</span> 不服从 t 分布。相同的“正态除以平方和之根”外观不能替代独立性检查。</p>
+</details>
+<h3 id="3_1">题 3：重抽样的极限是否等于真正的不确定性？<a class="headerlink" href="#3_1" title="Permanent link"></a></h3>
+<p>共同冲击模型中 <span class="arithmatex">\(n=100\)</span>，某次样本恰有 <span class="arithmatex">\(s^2=1\)</span>。比较真实均值 SE、普通 bootstrap 均值的精确条件 SE，以及 <span class="arithmatex">\(S^2\)</span> 对边际方差的理论偏差。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>真实均值 SE 为 <span class="arithmatex">\(\sqrt{1+1/100}\approx1.00499\)</span>。bootstrap 条件 SE 为 <span class="arithmatex">\(\sqrt{99}/100\approx0.099499\)</span>，约小一个数量级。把 <span class="arithmatex">\(B\)</span> 提高只会把模拟结果稳定到这个条件值，不能变成跨簇 SE。<span class="arithmatex">\(ES^2=1\)</span> 而边际方差为2，故理论偏差为 <span class="arithmatex">\(-1\)</span>；这与一次 <span class="arithmatex">\(s^2\)</span> 的巧合无关。</p>
+</details>
 <hr />
-<p><em>下一页：用样本猜参数——点估计。MLE 与 Cramér–Rao 下界是主菜。</em></p>
+<p>下一页：<a href="stat-02-estimation.html">点估计</a>。现在能区分一个估计数值与估计方法在重复抽样中的性质，再讨论怎样选择更好的估计量。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="prob-05-limit-theorems.html"><span class="pager-label">上一页</span>概率 V · 极限定理</a>
