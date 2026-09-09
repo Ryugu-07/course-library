@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 10:37</div>
   </div>
 </nav>
 <main id="content">
@@ -71,7 +71,7 @@ try {
 <li><a href="#5-fourier">5. Fourier 账本：卷积为什么会吃掉高频？</a></li>
 <li><a href="#6">6. 逆问题：除法何时变成不稳定的放大器？</a></li>
 <li><a href="#7">7. 误区与失败边界：能画出两峰，不等于测到了两峰</a></li>
-<li><a href="#8">8. 迁移任务：同一算子换一个问题</a></li>
+<li><a href="#8">8. 迁移任务：用反例检查你的分辨率解释</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 从“看见”到“测量”：观测量不是对象本身</a></li>
@@ -84,7 +84,7 @@ try {
 </details>
 <h1 id="iii">实验 III · 光谱、成像与分辨率<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Born &amp; Wolf 光学基础、Goodman <em>Introduction to Fourier Optics</em>、实验数据处理 ｜ <strong>前置</strong>：opt-01（Fourier 光学）、exp-01（测量与不确定度）、exp-02（噪声与频谱）
+<p><strong>对标</strong>：Born &amp; Wolf 光学基础、Goodman <em>Introduction to Fourier Optics</em>、实验数据处理 ｜ <strong>前置</strong>：<a href="opt-01-waves.html">波动光学</a>、<a href="exp-01-measurement-uncertainty.html">测量与不确定度</a>、<a href="exp-02-noise-lockin.html">噪声与频谱</a>
 一台光谱仪和一台显微镜看起来在测不同东西：前者沿波长分开谱线，后者沿空间位置分开结构。但它们都先经过仪器的点扩散函数（PSF），再把结果交给探测器。分辨率不是“图上两个峰刚好看见”的口号，而是一个正演算子、一个频率传递函数，以及一个受噪声约束的逆问题。</p>
 </blockquote>
 <div data-learning-page></div>
@@ -108,7 +108,7 @@ try {
 </ol>
 <p>先选择答案，再点击实验台的“提交预测并揭示”。图、数值和反演曲线在揭示前隐藏，避免把读图当成预测。</p>
 <h3 id="3">3. 最小正演模型：一条公式同时描述光谱和图像<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>在连续坐标 <span class="arithmatex">\(r\)</span> 上，点扩散函数是仪器对理想点对象的响应。线性、平移不变、单色或窄带近似下，测量为</p>
+<p>在连续坐标 <span class="arithmatex">\(r\)</span> 上，点扩散函数是仪器对理想点对象的响应。对强度数据，需要空间非相干成像（或谱线强度可线性叠加）、平移不变和单色/窄带近似，才有下面的线性正演。相干成像先对复振幅卷积，再取模平方，不能直接套同一个强度卷积：</p>
 <div class="arithmatex">\[
 y(r)=(h*x)(r)+n(r)=\int h(r-r')x(r')\,dr'+n(r).
 \]</div>
@@ -136,24 +136,31 @@ h(r)\propto \exp\left(-\frac{r^2}{2\sigma^2}\right).
 \widehat y(q)=H(q)X(q)+N(q),
 \qquad H(q)=\widehat h(q).
 \]</div>
-<p>对高斯 PSF，若忽略归一化常数，传递函数幅值为</p>
+<p>采用角空间频率 <span class="arithmatex">\(q\)</span>，变换约定为 <span class="arithmatex">\(H(q)=\int h(r)e^{-iqr}dr\)</span>。对积分归一化为 1 的连续高斯 PSF，传递函数幅值为</p>
 <div class="arithmatex">\[
 |H(q)|=\exp\left[-\frac{(\sigma q)^2}{2}\right].
 \]</div>
 <p>它随空间频率 <span class="arithmatex">\(q\)</span> 增大而下降。低频代表缓慢变化的轮廓，高频代表尖锐边缘、窄谱线和近邻峰。默认 <span class="arithmatex">\(\sigma=0.18\)</span> 时，<span class="arithmatex">\(q=4\)</span> 给 <span class="arithmatex">\(|H|=e^{-0.2592}\approx0.771\)</span>，<span class="arithmatex">\(q=12\)</span> 给 <span class="arithmatex">\(|H|=e^{-2.3328}\approx0.097\)</span>。同一个对象的高频不是被“改名”，而是在探测器读数中只剩原来的约十分之一。</p>
-<p>这也解释了成像中的 MTF（调制传递函数）与光谱仪的线扩散函数为什么属于同一族概念：MTF 是 <span class="arithmatex">\(|H|\)</span> 的频率刻画，线扩散函数是 PSF 在一条线上的响应。一个在实空间描述“点怎样变成斑”，另一个在频域描述“不同细节频率还剩多少对比度”。</p>
+<p>这也解释了成像中的 MTF（调制传递函数）与光谱仪的线扩散函数为什么属于同一族概念：MTF 是 <span class="arithmatex">\(|H|\)</span> 的频率刻画，在二维非相干成像中，线扩散函数通常是 PSF 沿垂直方向的积分，如 <span class="arithmatex">\(h_{\rm LSF}(x)=\int h_{\rm PSF}(x,y)dy\)</span>，一般不等于取截面 <span class="arithmatex">\(h_{\rm PSF}(x,0)\)</span>。一个在实空间描述“点怎样变成斑”，另一个在频域描述“不同细节频率还剩多少对比度”。</p>
 <h3 id="6">6. 逆问题：除法何时变成不稳定的放大器？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <p>若没有噪声且 <span class="arithmatex">\(H(q)\ne0\)</span>，形式上的逆是 <span class="arithmatex">\(X=Y/H\)</span>。但真实测量含有 <span class="arithmatex">\(N\)</span>，所以</p>
 <div class="arithmatex">\[
 \frac{Y}{H}=X+\frac{N}{H}.
 \]</div>
-<p>当 <span class="arithmatex">\(|H|\)</span> 很小时，第二项会很大；这不是算法写得不够聪明，而是正演实验对该频率确实只留下了微弱证据。实验的稳定反演采用 Tikhonov/Wiener 形式</p>
+<p>当 <span class="arithmatex">\(|H|\)</span> 很小时，第二项会很大；这不是算法写得不够聪明，而是正演实验对该频率确实只留下了微弱证据。实验的稳定反演采用 零阶 Tikhonov 形式</p>
 <div class="arithmatex">\[
 \boxed{\hat X_\lambda(q)=\frac{H^*(q)}{|H(q)|^2+\lambda}\,Y(q)},
 \qquad \lambda\ge0.
 \]</div>
-<p>它在 <span class="arithmatex">\(H\)</span> 为实数正值时近似为 <span class="arithmatex">\(H/(H^2+\lambda)\)</span>。当 <span class="arithmatex">\(H^2\gg\lambda\)</span>，增益接近 <span class="arithmatex">\(1/H\)</span>；当 <span class="arithmatex">\(H^2\ll\lambda\)</span>，增益约为 <span class="arithmatex">\(H/\lambda\)</span>，不再让极小的传递函数制造巨大噪声。代价是高频真实细节也会被压制，故 <span class="arithmatex">\(\lambda\)</span> 不是“越大越好”的清晰度旋钮。</p>
+<p>它在 <span class="arithmatex">\(H\)</span> 为实数正值时恰为 <span class="arithmatex">\(H/(H^2+\lambda)\)</span>。当 <span class="arithmatex">\(H^2\gg\lambda\)</span>，增益接近 <span class="arithmatex">\(1/H\)</span>；当 <span class="arithmatex">\(H^2\ll\lambda\)</span>，增益约为 <span class="arithmatex">\(H/\lambda\)</span>，不再让极小的传递函数制造巨大噪声。代价是高频真实细节也会被压制，故 <span class="arithmatex">\(\lambda\)</span> 不是“越大越好”的清晰度旋钮。</p>
 <p>默认 <span class="arithmatex">\(\lambda=0.02\)</span>：在 <span class="arithmatex">\(q=4\)</span> 处反演增益约为 <span class="arithmatex">\(0.771/(0.771^2+0.02)=1.25\)</span>，在 <span class="arithmatex">\(q=12\)</span> 处约为 <span class="arithmatex">\(0.097/(0.097^2+0.02)=3.30\)</span>。直接逆在 <span class="arithmatex">\(q=12\)</span> 处会有约 <span class="arithmatex">\(10.3\)</span> 的增益；正则化仍然允许高频进入，却把噪声放大限制到较小的量级。</p>
+<p><strong>从连续公式到离散实验，还差一个采样约定。</strong>本实验 <span class="arithmatex">\(L=6,N=96\)</span>，位置间隔 <span class="arithmatex">\(\Delta r=L/N=0.0625\)</span>；真实两线各有固定高斯宽度 <span class="arithmatex">\(\sigma_s=0.045\)</span>，所以显示的是窄线的离散样本，不是数学上的 delta。周期卷积的特征频点为</p>
+<div class="arithmatex">\[
+q_k=\frac{2\pi k}{L},\qquad H_k=\sum_{j=0}^{N-1}h_j e^{-2\pi i k j/N}.
+\]</div>
+<p>图中的圆点才是这些 DFT 特征值；连接的核 Fourier 曲线允许任意 <span class="arithmatex">\(q\)</span>，用于与连续高斯比较。<span class="arithmatex">\(q=4,12\)</span> 是参考位置，一般不是 <span class="arithmatex">\(q_k\)</span>，不能声称这两个参考值就是程序求逆的两个 DFT 槽位。PSF 小图为峰值归一化的 <span class="arithmatex">\(h(r)/h(0)\)</span>；实际卷积核另按 <span class="arithmatex">\(\sum h_j=1\)</span> 归一化。</p>
+<p><strong>零正则化必须真的为零。</strong>当 <span class="arithmatex">\(\lambda=0\)</span> 时直接反演没有“偷偷加小数”的保护。本实验先检查全部离散谱；若最小 <span class="arithmatex">\(|H_k|\)</span> 不足以在当前双精度下可靠求逆，就停止显示直接重建，并明确提示选择正正则化或缩小 PSF。这个数值阈值不等于物理上证明 <span class="arithmatex">\(H_k=0\)</span>。对于可可靠求逆的配置，程序才实际计算 <span class="arithmatex">\(Y_k/H_k\)</span>。</p>
+<p>还可以用平均值发现正则化的偏差：因为 <span class="arithmatex">\(H_0=1\)</span>，零阶 Tikhonov 给出 <span class="arithmatex">\(\bar x_\lambda=\bar y/(1+\lambda)\)</span>。因此即使无噪声，<span class="arithmatex">\(\lambda&gt;0\)</span> 也会收缩 DC。实验同时报告观测和重建的平均值，避免把“稳定”误解成“无偏”。合成扰动是固定两正弦之和，滑块表示幅度系数，并非白噪声标准差；RMS 另按实际扰动计算。</p>
 <div class="learning-lab" data-learning-lab="physics-spectroscopy-imaging">
 <p><strong>无 JavaScript 时的静态读法：</strong>实验在长度 <span class="arithmatex">\(L=6\)</span> 的周期网格上放置两条窄高斯谱线，峰距 <span class="arithmatex">\(d=0.72\)</span>；PSF 取高斯宽度 <span class="arithmatex">\(\sigma=0.18\)</span>，噪声幅度为 <span class="arithmatex">\(0.025\)</span>，正则化为 <span class="arithmatex">\(\lambda=0.02\)</span>。连续高斯公式给出 <span class="arithmatex">\(\mathrm{FWHM}=2.355\sigma=0.42387\)</span>，分辨率代理 <span class="arithmatex">\(d/\mathrm{FWHM}=1.70\)</span>。正演是 <span class="arithmatex">\(y=h*x+n\)</span>，其中离散核满足 <span class="arithmatex">\(\sum h_i=1\)</span>。</p>
 <table>
@@ -208,8 +215,20 @@ h(r)\propto \exp\left(-\frac{r^2}{2\sigma^2}\right).
 <li><strong>把仪器变宽归咎于样品。</strong>谱线自然宽度、碰撞展宽、Doppler 展宽、像差和探测器积分可能共同进入有效 PSF；必须用已知窄线或点源做校准，而不是只看未知样品。</li>
 </ul>
 <p>本实验用平移不变、高斯、线性模型，是为了把算子结构看清楚。空间变化的像差、非线性饱和、泊松噪声、背景漂移和稀疏先验需要换模型；它们不是把当前公式多写一行就自动解决的修正。</p>
-<h3 id="8">8. 迁移任务：同一算子换一个问题<a class="headerlink" href="#8" title="Permanent link"></a></h3>
-<p>把“两条近邻谱线”换成“一个亮点旁边的一条细边缘”。先判断：边缘为什么含有更宽的高频谱，模糊后为什么看起来变软；再说明如果已知 PSF，增大 <span class="arithmatex">\(\lambda\)</span> 会如何影响边缘振铃、噪声和位置偏差。最后设计一个校准步骤：用已知位置和已知宽度的窄线测 <span class="arithmatex">\(h\)</span>，用一组已知对比度的条纹测 <span class="arithmatex">\(|H(q)|\)</span>，然后才把未知样品的重建误差写进不确定度预算。</p>
+<h3 id="8">8. 迁移任务：用反例检查你的分辨率解释<a class="headerlink" href="#8" title="Permanent link"></a></h3>
+<p><strong>题 1：</strong>两条等强、理想无噪声的高斯峰，各自的观测标准差为 <span class="arithmatex">\(s\)</span>。只以“中点由峰变成谷”为判据，间距至少应超过多少？这等于一个 FWHM 吗？</p>
+<p><strong>题 2：</strong>常数对象 <span class="arithmatex">\(x(r)=1\)</span> 经单位 DC 增益的仪器、无噪声观测后，用 <span class="arithmatex">\(\lambda=0.20\)</span> 的零阶 Tikhonov 重建。平均值还是 1 吗？</p>
+<p><strong>题 3：</strong>两条 Lorentz 线形的半高半宽分别为 0.06 nm 和 0.08 nm，卷积后的 FWHM 是多少？可否把它们当作两个高斯标准差平方相加？</p>
+<details class="answer">
+<summary>展开推导与反例</summary>
+<p><strong>1.</strong> 写 <span class="arithmatex">\(y(r)=e^{-(r-d/2)^2/(2s^2)}+e^{-(r+d/2)^2/(2s^2)}\)</span>，对称性使 <span class="arithmatex">\(y'(0)=0\)</span>，而</p>
+<div class="arithmatex">\[
+y''(0)=2e^{-d^2/(8s^2)}\left(\frac{d^2}{4s^4}-\frac1{s^2}\right).
+\]</div>
+<p>故 <span class="arithmatex">\(d&gt;2s\)</span> 时中点成为局部谷。临界 <span class="arithmatex">\(d=2s\)</span> 约为 FWHM 的 0.849 倍，说明“一个 FWHM”不是通用阈值。对连续高斯源线与高斯 PSF，<span class="arithmatex">\(s=\sqrt{\sigma_s^2+\sigma^2}\)</span>；实际噪声与离散采样还会影响峰谷是否可判。本实验默认两峰较易区分，但不能以此保证所有样本或真实仪器都可分辨。</p>
+<p><strong>2.</strong> DC 模态满足 <span class="arithmatex">\(H_0=1\)</span>，因此重建为常数 <span class="arithmatex">\(1/(1+0.20)=5/6\)</span>。数据没有变，偏差来自估计规则。若要保持总强度，应另加约束或采用不惩罚 DC 的正则项，并重新说明所解问题。</p>
+<p><strong>3.</strong> Lorentz 半宽相加为 0.14 nm，故 FWHM 为 0.28 nm。它没有有限方差；0.10 nm 的平方和结果只适用于把那两个数字解释为高斯标准差的另一模型。</p>
+</details>
 </section>
 <h2 id="1">1. 从“看见”到“测量”：观测量不是对象本身<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>实验物理的第一道纪律是写清楚链路。若真实对象是 <span class="arithmatex">\(x(r)\)</span>，仪器的响应是 <span class="arithmatex">\(h(r,r')\)</span>，探测器的增益和背景分别为 <span class="arithmatex">\(g,b\)</span>，更一般的模型是</p>
@@ -219,15 +238,15 @@ y_i=g_i\sum_j h_{ij}x_j+b_i+n_i.
 <p>平移不变时 <span class="arithmatex">\(h_{ij}=h(r_i-r_j)\)</span>，才可以把矩阵乘法简写成卷积。光谱仪中狭缝宽度、色散、像差和像素积分共同决定线扩散函数；显微镜中衍射孔径、像差、焦外和像素积分共同决定 PSF。所谓“分辨率”总是带有对象、判据和误差门槛。</p>
 <p>一个实用的正演流程是：先写理想对象，测或估计 PSF，加入背景和噪声，再预测仪器读数。反演流程则反过来，但不能忘记每个步骤的误差：PSF 校准本身有不确定度，背景估计会与宽结构耦合，像素采样会裁掉高频，探测器增益不一致会把平场误差误判为对象纹理。</p>
 <h2 id="2_1">2. 光谱分辨率：线宽、线距与物理展宽<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>光谱仪把波长映射到探测器坐标。若色散为 <span class="arithmatex">\(D=dx/d\lambda\)</span>，狭缝和像差在探测器上造成空间宽度 <span class="arithmatex">\(w_x\)</span>，则仪器贡献的波长宽度近似为 <span class="arithmatex">\(w_\lambda=w_x/D\)</span>。常用 resolving power 是</p>
+<p>光谱仪把波长映射到探测器坐标。若色散为 <span class="arithmatex">\(D=dx/d\lambda\)</span>，狭缝和像差在探测器上造成空间宽度 <span class="arithmatex">\(w_x\)</span>，则仪器贡献的波长宽度近似为 <span class="arithmatex">\(w_\lambda=w_x/|D|\)</span>。常用 resolving power 是</p>
 <div class="arithmatex">\[
 R=\frac{\lambda}{\Delta\lambda},
 \]</div>
 <p>但 <span class="arithmatex">\(\Delta\lambda\)</span> 必须说明是 FWHM、Rayleigh 间距还是拟合标准差。真实谱线还会与仪器线形卷积：若样品与仪器都近似高斯，方差相加，</p>
 <div class="arithmatex">\[
-\sigma_{\mathrm{measured}}^2\simeq\sigma_{\mathrm{natural}}^2+\sigma_{\mathrm{instrument}}^2.
+\sigma_{\mathrm{measured}}^2\simeq\sigma_{\mathrm{sample}}^2+\sigma_{\mathrm{instrument}}^2.
 \]</div>
-<p>若是 Lorentzian 碰撞展宽，卷积结构变成 Voigt 线形，不能把 FWHM 简单平方相加。温度给出的 Doppler 宽度在非相对论近似下满足 <span class="arithmatex">\(\Delta\lambda/\lambda\sim\sqrt{k_BT/(mc^2)}\)</span>；压强、寿命和仪器响应则有不同的参数依赖。谱线反演因此不是“量一个宽度就读出温度”，而是模型比较。</p>
+<p>这里的“样品高斯宽度”可以来自 Doppler 分布，不能泛称为自然寿命展宽。纯指数衰减模型中的自然寿命展宽是 Lorentz 型。两个 Lorentz 线形卷积后仍是 Lorentz，半高半宽相加；Gaussian 与 Lorentz 卷积才是 Voigt。Lorentz 分布没有有限方差，不能用高斯的方差相加规则处理。温度给出的 Doppler 宽度在非相对论近似下满足 <span class="arithmatex">\(\Delta\lambda/\lambda\sim\sqrt{k_BT/(mc^2)}\)</span>；压强、寿命和仪器响应则有不同的参数依赖。谱线反演因此不是“量一个宽度就读出温度”，而是模型比较。</p>
 <h2 id="3-otf">3. 成像分辨率：孔径、衍射与 OTF<a class="headerlink" href="#3-otf" title="Permanent link"></a></h2>
 <p>对相干标量成像，瞳孔函数 <span class="arithmatex">\(P(\boldsymbol\rho)\)</span> 的 Fourier 变换控制点响应；对非相干成像，强度 PSF 的 Fourier 变换是 OTF，MTF 是其模。圆孔 Airy 斑的第一暗环角尺度常写成 <span class="arithmatex">\(1.22\lambda/D\)</span>，这与 Rayleigh 判据一起使用时有明确语境。数值孔径增大通常带来更高的可收集空间频率，但像差、折射率不匹配、照明相干性和探测器采样都可能成为新的瓶颈。</p>
 <p>“高频代表细节”不是视觉修辞：一个尖锐边缘需要很多 Fourier 分量叠加。低通滤波会让边缘软化；高通会强调边缘同时放大噪声。4f 系统在频率面上乘以滤波器，遮挡的频率不是在后面的透镜里自动重生。若用学习模型或稀疏先验“补全”细节，必须把它标成先验驱动的估计，并用独立标定样本检验幻觉风险。</p>
@@ -236,7 +255,7 @@ R=\frac{\lambda}{\Delta\lambda},
 <div class="arithmatex">\[
 \hat x_\lambda=\arg\min_x\left\{\|Hx-y\|_{\Sigma^{-1}}^2+\lambda\|Lx\|^2\right\}.
 \]</div>
-<p>这里 <span class="arithmatex">\(H\)</span> 是离散正演矩阵，<span class="arithmatex">\(\Sigma\)</span> 是噪声协方差，<span class="arithmatex">\(L\)</span> 可以是单位矩阵、差分矩阵或其他惩罚高频的算子。若 <span class="arithmatex">\(L=I\)</span> 且噪声白，Fourier 域就得到学习层中的 Tikhonov 公式。增加 <span class="arithmatex">\(\lambda\)</span> 通常降低方差、增加偏差；减少 <span class="arithmatex">\(\lambda\)</span> 通常保留更多细节、提高噪声敏感性。这是偏差–方差折中，不是一个可以脱离任务定义的“最佳清晰度”。</p>
+<p>这里 <span class="arithmatex">\(H\)</span> 是离散正演矩阵，<span class="arithmatex">\(\Sigma\)</span> 是噪声协方差，<span class="arithmatex">\(L\)</span> 可以是单位矩阵、差分矩阵或其他惩罚高频的算子。还须 <span class="arithmatex">\(H\)</span> 是本实验的周期卷积算子，才可由 DFT 对角化。若惩罚算子 <span class="arithmatex">\(L=I\)</span>、<span class="arithmatex">\(\Sigma=\sigma_n^2I\)</span>，将目标乘以 <span class="arithmatex">\(\sigma_n^2\)</span> 后，频域分母实际为 <span class="arithmatex">\(|H_k|^2+\lambda\sigma_n^2\)</span>；学习层将这一有效权重整体记成 <span class="arithmatex">\(\lambda\)</span>。Wiener 滤波则还要指定信号与噪声功率谱，增益为 <span class="arithmatex">\(H^*/(|H|^2+S_n/S_x)\)</span>；只有该谱比为常数等条件下，才与这里的形式一致。增加 <span class="arithmatex">\(\lambda\)</span> 通常降低方差、增加偏差；减少 <span class="arithmatex">\(\lambda\)</span> 通常保留更多细节、提高噪声敏感性。这是偏差–方差折中，不是一个可以脱离任务定义的“最佳清晰度”。</p>
 <p>实际选择 <span class="arithmatex">\(\lambda\)</span> 可以用已知样品交叉验证、广义交叉验证、L 曲线或基于噪声统计的 discrepancy principle。最重要的验证不是看图更锐，而是看：已知峰的位置和面积是否保持，残差是否符合噪声模型，改变 PSF 估计后结论是否稳定。对稀疏谱线，峰检测的错误发现率；对图像，结构相似度和定位误差；对参数测量，后验或置信区间，都是比“肉眼舒服”更可靠的验收量。</p>
 <h2 id="5">5. 三个数量级例子<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1：光谱仪的判据。</strong>在 <span class="arithmatex">\(\lambda=600\)</span> nm 处，若仪器的 FWHM 是 <span class="arithmatex">\(0.20\)</span> nm，则按 FWHM 约定 <span class="arithmatex">\(R=3000\)</span>。两条相距 <span class="arithmatex">\(0.15\)</span> nm 的等强高斯线是否“可分辨”，不能只由 <span class="arithmatex">\(R\)</span> 的一个数字回答，还要给出峰强比、背景、采样间距和使用的峰谷判据。</p>
@@ -245,6 +264,7 @@ R=\frac{\lambda}{\Delta\lambda},
 <hr />
 <p><em>下一页：实验 IV 把“测量链”继续向前追——真空决定碰撞，低温决定热预算，数据采集决定你究竟记录了哪个频率。</em></p>
 <p>把CRDS机制与已校准的真实测量产品连接，可做<a href="project-02-co2-measurements.html">NOAA CO₂真实数据项目</a>。使用有版本和质量说明的固定快照，保留独立复算与模型边界。</p>
+<p>原始参考：<a href="https://ocw.mit.edu/courses/2-71-optics-spring-2009/resources/mit2_71s09_lec22/">MIT 光学：相干与非相干成像</a>、<a href="https://space.mit.edu/CXC/docs/techref_psf/node4.html">MIT 线扩散函数</a>、<a href="https://physics.nist.gov/Pubs/AtSpec/node20.html">NIST 光谱线形</a>、<a href="https://dlmf.nist.gov/7.19">NIST DLMF：Voigt 函数</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="exp-02-noise-lockin.html"><span class="pager-label">上一页</span>实验 II · 噪声、频谱与锁相检测</a>

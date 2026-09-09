@@ -69,13 +69,14 @@
       '[data-learning-lab="physics-spectroscopy-imaging"] button:hover{border-color:var(--psi-blue)}[data-learning-lab="physics-spectroscopy-imaging"] button:focus-visible,[data-learning-lab="physics-spectroscopy-imaging"] select:focus-visible,[data-learning-lab="physics-spectroscopy-imaging"] input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-actions{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-actions>*{flex:1 1 170px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-primary{border-color:var(--psi-blue);background:var(--psi-blue);color:#fff;font-weight:750}[data-learning-lab="physics-spectroscopy-imaging"] .psi-feedback{min-height:2em;margin:8px 0;font-weight:700}[data-learning-lab="physics-spectroscopy-imaging"] .psi-good{color:var(--psi-green)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-warn{color:var(--psi-red)}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-preset-row{display:flex;flex-wrap:wrap;gap:7px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-preset-row button{flex:1 1 100px;font-size:12.5px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-preset-row button[aria-pressed="true"]{border-color:var(--psi-blue);background:var(--psi-blue);color:#fff;font-weight:750}',
-      '[data-learning-lab="physics-spectroscopy-imaging"] .psi-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-controls,[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage{min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-spectroscopy-imaging"] output{color:var(--psi-blue);font-variant-numeric:tabular-nums}',
-      '[data-learning-lab="physics-spectroscopy-imaging"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--psi-blue)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-spectroscopy-imaging"] svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg,currentColor)}[data-learning-lab="physics-spectroscopy-imaging"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
+      '[data-learning-lab="physics-spectroscopy-imaging"] .psi-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-controls,[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage{min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-spectroscopy-imaging"] output{color:var(--psi-blue);font-variant-numeric:tabular-nums}',
+      '[data-learning-lab="physics-spectroscopy-imaging"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--psi-blue)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-spectroscopy-imaging"] svg{display:block;width:100%;height:auto;min-width:820px;color:var(--fg,currentColor)}[data-learning-lab="physics-spectroscopy-imaging"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-grid{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-opacity:.7}[data-learning-lab="physics-spectroscopy-imaging"] .psi-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.75}[data-learning-lab="physics-spectroscopy-imaging"] .psi-true{fill:none;stroke:var(--psi-blue);stroke-width:2.7}[data-learning-lab="physics-spectroscopy-imaging"] .psi-measured{fill:none;stroke:var(--psi-orange);stroke-width:2.1;stroke-dasharray:6 4}[data-learning-lab="physics-spectroscopy-imaging"] .psi-reconstruction{fill:none;stroke:var(--psi-green);stroke-width:2.4}[data-learning-lab="physics-spectroscopy-imaging"] .psi-psf{fill:none;stroke:var(--psi-gold);stroke-width:2.4}[data-learning-lab="physics-spectroscopy-imaging"] .psi-transfer{fill:none;stroke:var(--psi-red);stroke-width:2.4}[data-learning-lab="physics-spectroscopy-imaging"] .psi-sample{fill:var(--psi-orange);stroke:var(--bg,#fff);stroke-width:1.1}[data-learning-lab="physics-spectroscopy-imaging"] .psi-selected{stroke:var(--psi-red);stroke-width:1.4;stroke-dasharray:4 4}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin:8px 0 0;color:var(--fg-soft,currentColor);font-size:12px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-key{display:inline-flex;align-items:center;gap:5px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-swatch{display:inline-block;width:18px;height:3px;background:var(--psi-blue)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-swatch[data-kind="measured"]{background:var(--psi-orange)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-swatch[data-kind="reconstruction"]{background:var(--psi-green)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-swatch[data-kind="psf"]{background:var(--psi-gold)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-swatch[data-kind="transfer"]{background:var(--psi-red)}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#cbd5e1);background:var(--bg,transparent)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric:nth-child(4n+1){border-color:var(--psi-blue)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric:nth-child(4n+2){border-color:var(--psi-orange)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric:nth-child(4n+3){border-color:var(--psi-green)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric:nth-child(4n){border-color:var(--psi-red)}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric span{display:block;color:var(--fg-soft,currentColor);font-size:11.5px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}',
       '[data-learning-lab="physics-spectroscopy-imaging"] .psi-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}[data-learning-lab="physics-spectroscopy-imaging"] table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}[data-learning-lab="physics-spectroscopy-imaging"] th,[data-learning-lab="physics-spectroscopy-imaging"] td{padding:7px 8px;border-bottom:1px solid var(--border,#cbd5e1);text-align:left;vertical-align:top;overflow-wrap:anywhere}[data-learning-lab="physics-spectroscopy-imaging"] th{color:var(--fg-soft,currentColor);font-size:11px}[data-learning-lab="physics-spectroscopy-imaging"] .psi-note{margin-top:11px;padding:10px 12px;border-left:3px solid var(--psi-gold);color:var(--fg-soft,currentColor);font-size:13px;line-height:1.7}',
-      '@media(max-width:900px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame svg{min-width:640px}}@media(max-width:430px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-metrics{grid-template-columns:1fr}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-spectroscopy-imaging"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      '@media(max-width:900px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-spectroscopy-imaging"] .psi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame svg{min-width:820px}}@media(max-width:430px){[data-learning-lab="physics-spectroscopy-imaging"] .psi-metrics{grid-template-columns:1fr}[data-learning-lab="physics-spectroscopy-imaging"] .psi-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-spectroscopy-imaging"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      ,'[data-theme="dark"] [data-learning-lab="physics-spectroscopy-imaging"]{--psi-blue:#8ab4f8;--psi-orange:#e3b56b;--psi-green:#88c6a0;--psi-red:#ed9995;--psi-gold:#dfb971}'
     ].join("");
 
     function assert(condition, message) {
@@ -83,8 +84,8 @@
     }
 
     function finite(value, label) {
-      var number = Number(value);
-      if (!Number.isFinite(number)) throw new RangeError(label + " must be finite");
+      var number = value;
+      if (typeof number !== "number" || !Number.isFinite(number)) throw new RangeError(label + " must be finite");
       return number;
     }
 
@@ -100,8 +101,8 @@
     function formatNumber(value, digits) {
       if (!Number.isFinite(value)) return "—";
       var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+      if (Math.abs(value) > 0 && (Math.abs(value) < 0.001 || Math.abs(value) >= 1e4)) return value.toExponential(Math.min(places, 4));
+      return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function normalizeConfig(input) {
@@ -130,12 +131,14 @@
       return -DOMAIN / 2 + DOMAIN * index / SAMPLE_COUNT;
     }
 
-    function periodicXAt(index) {
-      var centered = index <= SAMPLE_COUNT / 2 ? index : index - SAMPLE_COUNT;
-      return DOMAIN * centered / SAMPLE_COUNT;
+    function periodicXAt(index, count) {
+      count = count || SAMPLE_COUNT;
+      var centered = index <= count / 2 ? index : index - count;
+      return DOMAIN * centered / count;
     }
 
     function sourceSignal(separation) {
+      finite(separation, "separation"); if(separation<.3 || separation>1.6)throw new RangeError("source separation outside teaching range");
       var values = [];
       var left = -separation / 2;
       var right = separation / 2;
@@ -164,7 +167,11 @@
       return (0.7 * Math.sin(2.5 * x + 0.4) + 0.35 * Math.sin(8.7 * x - 0.2)) / 1.05;
     }
 
+    function vector(values) {
+      if(!Array.isArray(values) || values.length<1 || values.length>256 || !values.every(function(v){return typeof v==="number" && Number.isFinite(v);}))throw new RangeError("finite real vector of length 1..256 required");
+    }
     function circularConvolution(signal, kernel) {
+      vector(signal); vector(kernel); if(signal.length!==kernel.length)throw new RangeError("convolution vector lengths differ");
       var output = [];
       for (var index = 0; index < signal.length; index += 1) {
         var sum = 0;
@@ -178,6 +185,7 @@
     }
 
     function dft(values, inverse) {
+      vector(values);
       var count = values.length;
       var output = [];
       var sign = inverse ? 1 : -1;
@@ -201,10 +209,11 @@
     }
 
     function dftMagnitudeAtQ(values, q) {
+      vector(values); finite(q,"q");
       var real = 0;
       var imaginary = 0;
       for (var index = 0; index < values.length; index += 1) {
-        var angle = -q * periodicXAt(index);
+        var angle = -q * periodicXAt(index, values.length);
         real += values[index] * Math.cos(angle);
         imaginary += values[index] * Math.sin(angle);
       }
@@ -212,17 +221,24 @@
     }
 
     function analyticTransfer(sigma, q) {
+      finite(sigma,"sigma");finite(q,"q");if(sigma<=0)throw new RangeError("positive Gaussian width required");
       return Math.exp(-0.5 * Math.pow(sigma * q, 2));
     }
 
     function regularizedInverse(observed, kernel, regularization) {
+      vector(observed);vector(kernel);finite(regularization,"regularization");
+      if(observed.length!==kernel.length || regularization<0)throw new RangeError("equal vector lengths and nonnegative regularization required");
       var observedSpectrum = dft(observed, false);
       var kernelSpectrum = dft(kernel, false);
+      var magnitudes=kernelSpectrum.map(function(h){return Math.hypot(h.re,h.im);});
+      var floor=64*Number.EPSILON*kernel.length*Math.max.apply(null,magnitudes);
+      if(regularization===0 && Math.min.apply(null,magnitudes)<=floor){var error=new RangeError("当前离散谱不足以在双精度下可靠直接求逆；λ=0 未被替换为小正数。");error.code="UNRESOLVED_INVERSE";throw error;}
       var reconstructedSpectrum = [];
       for (var index = 0; index < observedSpectrum.length; index += 1) {
         var y = observedSpectrum[index];
         var h = kernelSpectrum[index];
-        var denominator = h.re * h.re + h.im * h.im + Math.max(regularization, 1e-12);
+        var denominator = h.re * h.re + h.im * h.im + regularization;
+        if(!Number.isFinite(denominator) || denominator<=0)throw new RangeError("inverse denominator is not numerically representable");
         reconstructedSpectrum.push({
           re: (h.re * y.re + h.im * y.im) / denominator,
           im: (h.re * y.im - h.im * y.re) / denominator
@@ -253,7 +269,11 @@
       var kernel = psfKernel(config.psfSigma);
       var blurred = circularConvolution(truth, kernel);
       var observed = blurred.map(function (value, index) { return value + config.noise * noiseShape(index); });
-      var reconstruction = regularizedInverse(observed, kernel, config.regularization);
+      var reconstruction = null, inverseStatus="ok";
+      try { reconstruction=regularizedInverse(observed,kernel,config.regularization); }
+      catch(error){if(error.code!=="UNRESOLVED_INVERSE")throw error;inverseStatus=error.message;}
+      var discreteSpectrum=dft(kernel,false), discreteTransfer=discreteSpectrum.slice(0,SAMPLE_COUNT/2+1).map(function(h,k){return {q:TWO_PI*k/DOMAIN,magnitude:Math.hypot(h.re,h.im)};});
+      var mean=function(v){return v.reduce(function(a,b){return a+b;},0)/v.length;};
       var transfer = [];
       for (var index = 0; index < TRANSFER_COUNT; index += 1) {
         var q = TRANSFER_Q_MAX * index / (TRANSFER_COUNT - 1);
@@ -274,13 +294,14 @@
         kernel: kernel,
         blurred: blurred,
         observed: observed,
-        reconstruction: reconstruction,
+        reconstruction: reconstruction, inverseStatus: inverseStatus, discreteTransfer: discreteTransfer,
         transfer: transfer,
         metrics: {
           fwhm: fwhm,
           ratio: config.separation / fwhm,
           forwardRms: rootMeanSquare(observed, blurred),
-          reconstructionRms: rootMeanSquare(reconstruction, truth),
+          reconstructionRms: reconstruction ? rootMeanSquare(reconstruction, truth) : null,
+          observedMean: mean(observed), reconstructedMean: reconstruction ? mean(reconstruction) : null,
           transferAt4: h4,
           transferAt12: h12,
           analyticTransferAt4: analyticTransfer(config.psfSigma, 4),
@@ -350,10 +371,10 @@
     }
 
     function drawLineChart(doc, group, rows, xStart, yStart, width, height, valueMin, valueMax, title, xLabel, yLabel, xValues) {
-      var left = xStart + 42;
-      var right = xStart + width - 12;
-      var top = yStart + 22;
-      var bottom = yStart + height - 30;
+      var left = xStart + 68;
+      var right = xStart + width - 22;
+      var top = yStart + 38;
+      var bottom = yStart + height - 48;
       var coordinates = xValues || rows.map(function (_, index) { return index; });
       var coordinateMin = coordinates[0];
       var coordinateMax = coordinates[coordinates.length - 1];
@@ -367,8 +388,9 @@
       }
       group.appendChild(makeSvg(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, class: "psi-axis" }));
       group.appendChild(makeSvg(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, class: "psi-axis" }));
-      group.appendChild(textNode(doc, (left + right) / 2, bottom + 23, xLabel, "", "middle"));
-      group.appendChild(textNode(doc, left - 32, (top + bottom) / 2, yLabel, "", "middle"));
+      group.appendChild(textNode(doc, (left + right) / 2, bottom + 39, xLabel, "", "middle"));
+      group.appendChild(textNode(doc, left, yStart + 29, yLabel, "", "start"));
+      for(var t=0;t<=4;t++){var k=Math.round(t*(coordinates.length-1)/4);group.appendChild(textNode(doc,mapX(k),bottom+17,formatNumber(coordinates[k],2),"","middle"));}
       return { left: left, right: right, top: top, bottom: bottom, mapX: mapX, mapY: mapY };
     }
 
@@ -378,18 +400,19 @@
         role: "img",
         "aria-label": "真实信号、卷积测量、正则化重建、点扩散函数和频率传递函数"
       });
-      var allValues = result.truth.concat(result.observed, result.reconstruction);
+      var allValues = result.truth.concat(result.observed, result.reconstruction || []);
       var yMin = Math.min(-0.15, Math.min.apply(null, allValues) - 0.05);
       var yMax = Math.max(1.1, Math.max.apply(null, allValues) + 0.08);
+      if(yMax-yMin>10){var extent=1.05*Math.max(Math.abs(yMin),Math.abs(yMax));yMin=-extent;yMax=extent;}
       var signalGroup = makeSvg(doc, "g", {});
-      var signalChart = drawLineChart(doc, signalGroup, result.x, 0, 0, 820, 300, yMin, yMax, "信号域：同一条测量链", "位置 x（谱线波长偏移 / 成像坐标）", "相对强度");
+      var signalChart = drawLineChart(doc, signalGroup, result.x, 0, 0, 820, 300, yMin, yMax, "信号域：同一条测量链", "位置 x（谱线波长偏移 / 成像坐标）", "相对强度（样本值）", result.x);
       var pathTruth = result.truth.map(function (value, index) { return { x: signalChart.mapX(index), y: signalChart.mapY(value) }; });
       var pathMeasured = result.observed.map(function (value, index) { return { x: signalChart.mapX(index), y: signalChart.mapY(value) }; });
-      var pathReconstruction = result.reconstruction.map(function (value, index) { return { x: signalChart.mapX(index), y: signalChart.mapY(value) }; });
+      var pathReconstruction = (result.reconstruction || []).map(function (value, index) { return { x: signalChart.mapX(index), y: signalChart.mapY(value) }; });
       function pointPath(points) { return points.map(function (point, index) { return (index ? "L" : "M") + point.x.toFixed(2) + " " + point.y.toFixed(2); }).join(" "); }
       signalGroup.appendChild(makeSvg(doc, "path", { d: pointPath(pathTruth), class: "psi-true" }));
       signalGroup.appendChild(makeSvg(doc, "path", { d: pointPath(pathMeasured), class: "psi-measured" }));
-      signalGroup.appendChild(makeSvg(doc, "path", { d: pointPath(pathReconstruction), class: "psi-reconstruction" }));
+      if(result.reconstruction)signalGroup.appendChild(makeSvg(doc, "path", { d: pointPath(pathReconstruction), class: "psi-reconstruction" }));
       for (var sample = 0; sample < result.observed.length; sample += 4) {
         signalGroup.appendChild(makeSvg(doc, "circle", { cx: signalChart.mapX(sample), cy: signalChart.mapY(result.observed[sample]), r: 2.7, class: "psi-sample" }));
       }
@@ -401,16 +424,17 @@
         var x = -1.5 + 3 * index / 48;
         psfRows.push(gaussian(x, result.config.psfSigma));
       }
-      var psfChart = drawLineChart(doc, psfGroup, psfRows, 0, 305, 400, 205, 0, 1.08, "点扩散函数 h(x)", "相对位置", "h");
+      var psfChart = drawLineChart(doc, psfGroup, psfRows, 0, 305, 400, 205, 0, 1.08, "峰值归一化 PSF", "相对位置 r", "h(r)/h(0)", psfRows.map(function(_,i){return -1.5+3*i/48;}));
       psfGroup.appendChild(makeSvg(doc, "path", { d: pathFor(psfRows, psfChart.mapX, psfChart.mapY, 1), class: "psi-psf" }));
       svg.appendChild(psfGroup);
 
       var transferGroup = makeSvg(doc, "g", {});
       var transferRows = result.transfer.map(function (point) { return point.magnitude; });
-      var transferChart = drawLineChart(doc, transferGroup, transferRows, 410, 305, 410, 205, 0, 1.08, "频率域：|H(q)| 与可逆性", "物理空间频率 q / 长度", "|H|", result.transfer.map(function (point) { return point.q; }));
+      var transferChart = drawLineChart(doc, transferGroup, transferRows, 410, 305, 410, 205, 0, 1.08, "核 Fourier 曲线与 DFT 圆点", "角空间频率 q（rad/长度）", "|H|（DC=1）", result.transfer.map(function (point) { return point.q; }));
       transferGroup.appendChild(makeSvg(doc, "path", { d: pathFor(transferRows, transferChart.mapX, transferChart.mapY, 1), class: "psi-transfer" }));
       transferGroup.appendChild(makeSvg(doc, "line", { x1: transferChart.left, y1: transferChart.mapY(0.5), x2: transferChart.right, y2: transferChart.mapY(0.5), class: "psi-selected" }));
       transferGroup.appendChild(textNode(doc, transferChart.right, transferChart.mapY(0.5) - 5, "0.5 参考线", "", "end"));
+      result.discreteTransfer.filter(function(row){return row.q<=TRANSFER_Q_MAX;}).forEach(function(row){var x=transferChart.left+row.q/TRANSFER_Q_MAX*(transferChart.right-transferChart.left);transferGroup.appendChild(makeSvg(doc,"circle",{cx:x,cy:transferChart.mapY(row.magnitude),r:2.8,class:"psi-sample"}));});
       svg.appendChild(transferGroup);
       return svg;
     }
@@ -471,7 +495,7 @@
         var output = makeElement(doc, "output", { text: formatNumber(state.config[key], digits) });
         var input = makeElement(doc, "input", { type: "range", min: min, max: max, step: step, value: state.config[key], "aria-label": label });
         input.addEventListener("input", function () {
-          state.config[key] = finite(input.value, key);
+          state.config[key] = finite(Number(input.value), key);
           state.preset = "custom";
           state.feedback = "参数已更新；当前预测保持揭示。";
           render();
@@ -498,15 +522,15 @@
       });
       controls.appendChild(presetRow);
       var stage = makeElement(doc, "div", { className: "psi-stage" });
-      var stageFrame = makeElement(doc, "div", { className: "psi-stage-frame" });
+      var stageFrame = makeElement(doc, "div", { className: "psi-stage-frame", tabindex: "0", role: "region", "aria-label": "光谱与传递函数图，可横向滚动" });
       var chartHost = makeElement(doc, "div");
       stageFrame.appendChild(chartHost);
       stageFrame.appendChild(makeElement(doc, "div", { className: "psi-legend" }, [
         makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch" }), "真实对象 x"]),
         makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "measured" }), "测量 y"]),
         makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "reconstruction" }), "重建 xλ"]),
-        makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "psf" }), "PSF h"]),
-        makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "transfer" }), "|H(k)|"])
+        makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "psf" }), "PSF h/h(0)"]),
+        makeElement(doc, "span", { className: "psi-key" }, [makeElement(doc, "i", { className: "psi-swatch", "data-kind": "transfer" }), "|H(q)|"])
       ]));
       stage.appendChild(stageFrame);
       layout.appendChild(controls);
@@ -514,7 +538,7 @@
       bench.appendChild(layout);
       var metricsHost = makeElement(doc, "div", { className: "psi-metrics" });
       bench.appendChild(metricsHost);
-      var ledgerHost = makeElement(doc, "div", { className: "psi-ledger" });
+      var ledgerHost = makeElement(doc, "div", { className: "psi-ledger", tabindex: "0", role: "region", "aria-label": "计算账本，可横向滚动" });
       bench.appendChild(ledgerHost);
       var note = makeElement(doc, "p", { className: "psi-note" });
       bench.appendChild(note);
@@ -531,7 +555,7 @@
         var body = makeElement(docNode, "tbody", {}, [
           makeElement(docNode, "tr", {}, [makeElement(docNode, "td", { text: "分辨率代理" }), makeElement(docNode, "td", { text: "FWHM=" + formatNumber(result.metrics.fwhm, 3) + "，d/FWHM=" + formatNumber(result.metrics.ratio, 2) }), makeElement(docNode, "td", { text: "比值大于 1 只表示当前代理下峰距相对宽；它不是跨仪器的唯一判据。" })]),
           makeElement(docNode, "tr", {}, [makeElement(docNode, "td", { text: "正演" }), makeElement(docNode, "td", { text: "sum(h)=" + formatNumber(result.metrics.kernelSum, 6) + "，RMS 噪声=" + formatNumber(result.metrics.forwardRms, 3) }), makeElement(docNode, "td", { text: "h*x 保留线性叠加；噪声在观测端加入。" })]),
-          makeElement(docNode, "tr", {}, [makeElement(docNode, "td", { text: "逆问题" }), makeElement(docNode, "td", { text: "H(q=" + formatNumber(result.metrics.transferQ4, 0) + ")=" + formatNumber(result.metrics.transferAt4, 3) + "，H(q=" + formatNumber(result.metrics.transferQ12, 0) + ")=" + formatNumber(result.metrics.transferAt12, 3) }), makeElement(docNode, "td", { text: "同一物理 q 坐标用于 DFT 与解析高斯账本；高频传递很小，直接除法会放大误差。" })])
+          makeElement(docNode, "tr", {}, [makeElement(docNode, "td", { text: "逆问题" }), makeElement(docNode, "td", { text: "H(q=" + formatNumber(result.metrics.transferQ4, 0) + ")=" + formatNumber(result.metrics.transferAt4, 3) + "，H(q=" + formatNumber(result.metrics.transferQ12, 0) + ")=" + formatNumber(result.metrics.transferAt12, 3) }), makeElement(docNode, "td", { text: "q=4/12 是核 Fourier 曲线参考点；实际周期求逆仅用 qk=2πk/L，圆点表示这些 DFT 特征值。" })])
         ]);
         table.appendChild(head);
         table.appendChild(body);
@@ -557,7 +581,7 @@
           metric(doc, "lambda", formatNumber(state.config.regularization, 3))
         );
         ledgerHost.replaceChildren(renderLedger(doc, result));
-        note.textContent = "边界：当前使用周期网格和固定高斯 PSF；真实仪器还要校准像差、背景、采样、漂移和噪声协方差。正则化只能选择稳定的估计，不能从 |H|≈0 的频段凭空制造信息。";
+        note.textContent = (result.inverseStatus!=="ok" ? result.inverseStatus + " 重建曲线暂不显示。 " : "当前按所选 λ 计算，没有额外正则项。 ") + "观测均值=" + formatNumber(result.metrics.observedMean,5) + "，重建均值=" + formatNumber(result.metrics.reconstructedMean,5) + "；零阶正则会将 DC 乘以 1/(1+λ)。边界：当前使用周期网格和固定高斯 PSF；真实仪器还要校准像差、背景、采样、漂移和噪声协方差。固定扰动不是白噪声，重建 RMS 使用模拟已知真值，真实未知样品没有这个直接可得的指标。";
       }
 
       predictionForm.addEventListener("submit", function (event) {
@@ -577,10 +601,12 @@
         render();
         announce(state.feedback);
       });
+      predictionForm.addEventListener("change", function(){state.revealed=false;state.feedback="预测已更改，请重新提交。";render();});
       resetButton.addEventListener("click", function () {
         predictionForm.reset();
         state = { config: normalizeConfig(DEFAULTS), predictions: {}, revealed: false, preset: "default", feedback: "" };
         render();
+        predictionForm.querySelector("select").focus();
         announce("分辨率实验已重置；预测重新隐藏。");
       });
       render();
@@ -603,8 +629,8 @@
       var leftIndex = result.x.reduce(function (best, value, index) { return Math.abs(value + DEFAULTS.separation / 2) < Math.abs(result.x[best] + DEFAULTS.separation / 2) ? index : best; }, 0);
       var rightIndex = result.x.reduce(function (best, value, index) { return Math.abs(value - DEFAULTS.separation / 2) < Math.abs(result.x[best] - DEFAULTS.separation / 2) ? index : best; }, 0);
       check(near(result.truth[leftIndex], result.truth[rightIndex], 1e-12), "the two source peaks have equal strength");
-      check(result.transfer.some(function (point) { return near(point.q, 4, 1e-12); }) && result.transfer.some(function (point) { return near(point.q, 12, 1e-12); }), "DFT transfer plot uses physical q=4 and q=12 coordinates");
-      check(near(result.metrics.transferAt4, result.metrics.analyticTransferAt4, 0.01) && near(result.metrics.transferAt12, result.metrics.analyticTransferAt12, 0.03), "DFT and analytic transfer ledger share the physical q coordinate");
+      check(result.transfer.some(function (point) { return near(point.q, 4, 1e-12); }) && result.transfer.some(function (point) { return near(point.q, 12, 1e-12); }), "sampled-kernel Fourier curve includes reference q=4 and q=12");
+      check(near(result.metrics.transferAt4, result.metrics.analyticTransferAt4, 0.01) && near(result.metrics.transferAt12, result.metrics.analyticTransferAt12, 0.03), "kernel Fourier curve agrees with continuous Gaussian approximation");
       var invalid = false;
       try { normalizeConfig({ psfSigma: 0.01 }); } catch (error) { invalid = true; }
       check(invalid, "out-of-range PSF width is rejected");

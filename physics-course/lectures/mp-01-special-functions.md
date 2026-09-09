@@ -143,7 +143,7 @@ $$
 
 **本征函数展开【推导】**：先假设指定自伴算子具有离散完备正交归一基、没有零本征值，并假设源属于逆算子的定义域，按相应测度展开。$G = \sum_n\frac{\varphi_n(\mathbf r)\varphi_n^*(\mathbf r')}{\lambda_n}$（把 $\delta$ 按完备基展开、逐项除本征值——"逆算子 = 谱的倒数"：泛函 III 谱定理的直接应用）。连续谱需把求和改成谱积分；解与核的收敛意义也要说明。量子时间演化核的谱系数是 $e^{-iE_nt/\hbar}$，而预解式核是 $(E-E_n\pm i0)^{-1}$；Feynman、推迟、超前核的边界处方不同，不能统称为无条件的 $1/\lambda_n$。
 
-把“零模先投影”落到一个可计算例子：在 \([0,L]\) 上令算子为 \(-d^2/dx^2\)。Dirichlet 基底是 \(\sqrt{2/L}\sin(n\pi x/L)\)，\(n\ge1\)；Neumann 基底除了 \(\sqrt{2/L}\cos(n\pi x/L)\)、\(n\ge1\)，还有常数 \(1/\sqrt L\) 的零模。于是
+把“零模先投影”落到一个可计算例子：在 \([0,L]\) 上令算子为 \(-d^2/dx^2\)，下文取内部源点 \(0<\xi<L\)、观察点 \(x\in[0,L]\)。Dirichlet 基底是 \(\sqrt{2/L}\sin(n\pi x/L)\)，\(n\ge1\)；Neumann 基底除了 \(\sqrt{2/L}\cos(n\pi x/L)\)、\(n\ge1\)，还有常数 \(1/\sqrt L\) 的零模。于是
 
 $$
 G_D(x,\xi)=\sum_{n=1}^{\infty}\frac{(2/L)\sin(n\pi x/L)\sin(n\pi\xi/L)}{(n\pi/L)^2}
