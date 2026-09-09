@@ -1,18 +1,5 @@
-(function () {
-  "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "eigen-geometry-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-12;
+(function(host,factory){"use strict";var lab=factory();if(typeof module==='object'&&module.exports)module.exports=lab;if(host&&host.CourseLearning)host.CourseLearning.register('eigen-geometry',lab.mount);})(typeof window==='undefined'?null:window,function(){"use strict";
+var STYLE_ID='eigen-geometry-lab-styles',INSTANCE=0;
   var PRESETS = [
     {
       id: "diag",
@@ -67,79 +54,27 @@
     }
   ];
 
-  function makeElement(api, tag, attrs, children) {
-    return api.el(tag, attrs, children);
-  }
 
-  function makeSvg(api, tag, attrs, children) {
-    return api.svg(tag, attrs, children);
-  }
-
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function clamp(value, low, high) {
-    return Math.max(low, Math.min(high, value));
-  }
-
-  function formatNumber(api, value, digits) {
-    if (Math.abs(value) < 0.0005) value = 0;
-    return api && typeof api.format === "function"
-      ? api.format(value, digits === undefined ? 2 : digits)
-      : String(value);
-  }
-
-  function formatVector(api, vector) {
-    return "(" + formatNumber(api, vector.x) + ", " + formatNumber(api, vector.y) + ")ᵀ";
-  }
-
-  function applyMatrix(matrix, vector) {
-    return {
-      x: matrix.a * vector.x + matrix.b * vector.y,
-      y: matrix.c * vector.x + matrix.d * vector.y
-    };
-  }
-
-  function scaleVector(vector, factor) {
-    return { x: vector.x * factor, y: vector.y * factor };
-  }
-
-  function vectorLength(vector) {
-    return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
-  }
-
-  function toSvg(center, scale, point) {
-    return { x: center.x + scale * point.x, y: center.y - scale * point.y };
-  }
-
-  function pathFromWorld(center, scale, points) {
-    return points.map(function (point, index) {
-      var svgPoint = toSvg(center, scale, point);
-      return (index === 0 ? "M" : "L") + svgPoint.x.toFixed(2) + "," + svgPoint.y.toFixed(2);
-    }).join(" ");
-  }
-
-  function matrixLabel(preset) {
-    return "A=" + preset.matrixText;
-  }
-
-  function eigenSummary(preset) {
-    if (preset.id === "rotation") {
-      return "λ=i：v=(1,−i)ᵀ；λ=−i：v=(1,i)ᵀ；没有非零实特征向量。";
-    }
-    return preset.eigen.map(function (item) {
-      return "λ=" + item.lambda + "，方向 " + item.direction;
-    }).join("；") + "。";
-  }
-
-  function setDetail(api, node, label, value) {
-    node.replaceChildren(
-      makeElement(api, "strong", {}, label),
-      node.ownerDocument.createTextNode(value)
-    );
-  }
-
+function finite(v){if(typeof v!=='number'||!Number.isFinite(v))throw new RangeError('expected finite number');return v;}
+function preset(id){var found=PRESETS.find(function(p){return p.id===id;});if(!found)throw new RangeError('unknown preset');return found;}
+function vector(v){if(!v||typeof v!=='object')throw new TypeError('expected vector');finite(v.x);finite(v.y);return v;}
+function applyMatrix(a,v){if(!a||typeof a!=='object')throw new TypeError('expected matrix');['a','b','c','d'].forEach(function(k){finite(a[k]);});vector(v);return vector({x:a.a*v.x+a.b*v.y,y:a.c*v.x+a.d*v.y});}
+function powerMatrix(id,k){preset(id);finite(k);if(!Number.isInteger(k)||k<0||k>20)throw new RangeError('integer power 0 to 20');
+ if(id==='diag')return{a:Math.pow(2,k),b:0,c:0,d:Math.pow(.5,k)};
+ if(id==='symmetric'){var q=Math.pow(3,k);return{a:(q+1)/2,b:(q-1)/2,c:(q-1)/2,d:(q+1)/2};}
+ if(id==='jordan')return{a:1,b:k,c:0,d:1};
+ return[{a:1,b:0,c:0,d:1},{a:0,b:-1,c:1,d:0},{a:-1,b:0,c:0,d:-1},{a:0,b:1,c:-1,d:0}][k%4];
+}
+function evaluate(options){if(options!==undefined&&(!options||typeof options!=='object'||Array.isArray(options)))throw new TypeError('expected options');var o=options||{},id=o.presetId===undefined?'diag':o.presetId,p=preset(id),angle=o.angle===undefined?35:o.angle,k=o.k===undefined?5:o.k;finite(angle);if(angle<0||angle>360)throw new RangeError('angle 0 to 360');var power=powerMatrix(id,k),theta=angle*Math.PI/180;
+ // Cardinal directions are exact model inputs; other angles use trigonometric approximations.
+ var unit=angle%90===0?[{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}][(angle/90)%4]:{x:Math.cos(theta),y:Math.sin(theta)};
+ var x={x:1.45*unit.x,y:1.45*unit.y},ax=applyMatrix(p.matrix,x),e2=applyMatrix(power,{x:0,y:1});return{preset:p,angle:angle,k:k,x:x,ax:ax,power:power,powerE2:e2,normX:Math.hypot(x.x,x.y),normAx:Math.hypot(ax.x,ax.y),normPower:Math.hypot(e2.x,e2.y)};
+}
+function formatNumber(v,d){finite(v);d=d===undefined?3:d;if(v===0)return'0';if(Math.abs(v)<Math.pow(10,-d)||Math.abs(v)>=1e6)return v.toExponential(3);var s=v.toFixed(d);return d?s.replace(/0+$/,'').replace(/\.$/,''):s;}
+function fv(v){return'('+formatNumber(v.x)+', '+formatNumber(v.y)+')';}
+function makeElement(api,tag,attrs,children){return api.el(tag,attrs,children);}
+function makeSvg(api,tag,attrs,children){return api.svg(tag,attrs,children);}
+function eigenSummary(p){if(p.id==='rotation')return'λ=i：(1,−i)ᵀ；λ=−i：(1,i)ᵀ。没有非零实特征向量。';return p.eigen.map(function(e){return'λ='+e.lambda+'，'+e.direction;}).join('；');}
   function injectStyles(doc) {
     if (doc.getElementById(STYLE_ID)) return;
     var style = doc.createElement("style");
@@ -164,8 +99,8 @@
       ".eigen-geometry-lab input[type=range] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }",
       ".eigen-geometry-lab .eg-toggle { width: 100%; }",
       ".eigen-geometry-lab .eg-status { grid-column: 1 / -1; min-height: 1.5em; margin: 0; color: var(--eg-output); font-weight: 650; }",
-      ".eigen-geometry-lab .eg-stage-frame { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }",
-      ".eigen-geometry-lab .eg-svg { display: block; width: 100%; max-width: 100%; height: auto; color: inherit; }",
+      ".eigen-geometry-lab .eg-stage-frame { max-width:100%;overflow-x:auto;padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }",
+      ".eigen-geometry-lab .eg-svg { display: block; width: 100%; min-width:700px; height: auto; color: inherit; }",
       ".eigen-geometry-lab .eg-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
       ".eigen-geometry-lab .eg-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }",
       ".eigen-geometry-lab .eg-grid { fill: none; stroke: currentColor; stroke-opacity: .13; stroke-width: 1; }",
@@ -190,372 +125,37 @@
       ".eigen-geometry-lab .eg-detail { margin: 0; padding: 8px 10px; border-left: 3px solid var(--border); background: var(--bg); overflow-wrap: anywhere; }",
       ".eigen-geometry-lab .eg-detail strong { color: var(--eg-muted); }",
       "@media (max-width: 700px) { .eigen-geometry-lab { margin-left: -8px; margin-right: -8px; padding: 14px; } .eigen-geometry-lab .eg-controls { grid-template-columns: minmax(0, 1fr); } .eigen-geometry-lab .eg-status { grid-column: auto; } .eigen-geometry-lab .eg-stage-frame { padding: 5px; overflow-x: auto; } .eigen-geometry-lab .eg-svg { min-width: 700px; } .eigen-geometry-lab .eg-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }",
-      "@media (prefers-reduced-motion: reduce) { .eigen-geometry-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
+      "@media (prefers-reduced-motion: reduce) { .eigen-geometry-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }",
+      '.eigen-geometry-lab [hidden]{display:none!important}.eigen-geometry-lab fieldset{min-width:0;border:0;padding:0;margin:12px 0}.eigen-geometry-lab legend{font-weight:700;margin-bottom:7px}.eigen-geometry-lab fieldset button{margin:3px;max-width:100%}.eigen-geometry-lab .eg-ledger{max-width:100%;overflow-x:auto}.eigen-geometry-lab table{min-width:620px;width:100%;border-collapse:collapse;font-size:13px}.eigen-geometry-lab td,.eigen-geometry-lab th{padding:8px;text-align:left;border-bottom:1px solid var(--border)}.eigen-geometry-lab [tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;}'
     ].join("\n");
     (doc.head || doc.documentElement || doc.body).appendChild(style);
   }
 
-  function makeMarker(api, doc, id, className) {
-    var marker = makeSvg(api, "marker", {
-      id: id,
-      viewBox: "0 0 10 10",
-      markerWidth: "10",
-      markerHeight: "10",
-      refX: "8",
-      refY: "5",
-      orient: "auto",
-      markerUnits: "userSpaceOnUse"
-    });
-    marker.appendChild(makeSvg(api, "path", { d: "M0,0 L10,5 L0,10 Z", className: className }));
-    return marker;
-  }
 
-  function addWorldLine(api, parent, className, center, scale, point1, point2, clipId, extra) {
-    var first = toSvg(center, scale, point1);
-    var second = toSvg(center, scale, point2);
-    var attrs = {
-      className: className,
-      x1: first.x,
-      y1: first.y,
-      x2: second.x,
-      y2: second.y,
-      "clip-path": "url(#" + clipId + ")"
-    };
-    Object.keys(extra || {}).forEach(function (key) { attrs[key] = extra[key]; });
-    parent.appendChild(makeSvg(api, "line", attrs));
-  }
-
-  function addTransformedLine(api, parent, className, center, scale, matrix, point1, point2, clipId, extra) {
-    addWorldLine(api, parent, className, center, scale, applyMatrix(matrix, point1), applyMatrix(matrix, point2), clipId, extra);
-  }
-
-  function drawGrid(api, drawing, center, scale, matrix, clipId, transformed) {
-    var tick;
-    var first;
-    var second;
-    for (tick = -2; tick <= 2.001; tick += 0.5) {
-      first = { x: tick, y: -2.2 };
-      second = { x: tick, y: 2.2 };
-      if (transformed) addTransformedLine(api, drawing, "eg-grid", center, scale, matrix, first, second, clipId);
-      else addWorldLine(api, drawing, "eg-grid", center, scale, first, second, clipId);
-      first = { x: -2.2, y: tick };
-      second = { x: 2.2, y: tick };
-      if (transformed) addTransformedLine(api, drawing, "eg-grid", center, scale, matrix, first, second, clipId);
-      else addWorldLine(api, drawing, "eg-grid", center, scale, first, second, clipId);
-    }
-  }
-
-  function drawAxes(api, drawing, center, scale, matrix, clipId, transformed) {
-    var first = { x: -5.5, y: 0 };
-    var second = { x: 5.5, y: 0 };
-    if (transformed) addTransformedLine(api, drawing, "eg-axis", center, scale, matrix, first, second, clipId);
-    else addWorldLine(api, drawing, "eg-axis", center, scale, first, second, clipId);
-    first = { x: 0, y: -5.5 };
-    second = { x: 0, y: 5.5 };
-    if (transformed) addTransformedLine(api, drawing, "eg-axis", center, scale, matrix, first, second, clipId);
-    else addWorldLine(api, drawing, "eg-axis", center, scale, first, second, clipId);
-  }
-
-  function drawCircle(api, drawing, center, scale, matrix, clipId, transformed) {
-    var points = [];
-    var index;
-    var angle;
-    for (index = 0; index <= 96; index += 1) {
-      angle = (2 * Math.PI * index) / 96;
-      points.push({ x: Math.cos(angle), y: Math.sin(angle) });
-    }
-    if (transformed) {
-      points = points.map(function (point) { return applyMatrix(matrix, point); });
-    }
-    drawing.appendChild(makeSvg(api, "path", {
-      className: "eg-circle",
-      d: pathFromWorld(center, scale, points),
-      "clip-path": "url(#" + clipId + ")"
-    }));
-  }
-
-  function drawEigenDirections(api, drawing, preset, center, scale, clipId, transformed, markerId) {
-    if (!preset.realDirections.length) {
-      drawing.appendChild(makeSvg(api, "text", {
-        className: "eg-no-real",
-        x: center.x,
-        y: center.y + 20,
-        "text-anchor": "middle"
-      }, "无实特征方向"));
-      return;
-    }
-    preset.realDirections.forEach(function (item) {
-      var direction = item.vector;
-      var mapped = applyMatrix(preset.matrix, direction);
-      var arrowEnd;
-      var lineStart;
-      var lineEnd;
-      var labelPoint;
-      if (transformed) {
-        lineStart = scaleVector(mapped, -2.0);
-        lineEnd = scaleVector(mapped, 2.0);
-        arrowEnd = scaleVector(mapped, 1.65 / Math.max(vectorLength(mapped), EPS));
-      } else {
-        lineStart = scaleVector(direction, -2.0);
-        lineEnd = scaleVector(direction, 2.0);
-        arrowEnd = scaleVector(direction, 1.65 / Math.max(vectorLength(direction), EPS));
-      }
-      addWorldLine(api, drawing, "eg-eigen-line", center, scale, lineStart, lineEnd, clipId);
-      addWorldLine(api, drawing, "eg-eigen-arrow", center, scale, { x: 0, y: 0 }, arrowEnd, clipId, {
-        "marker-end": "url(#" + markerId + ")"
-      });
-      labelPoint = toSvg(center, scale, scaleVector(arrowEnd, 1.08));
-      drawing.appendChild(makeSvg(api, "text", {
-        className: "eg-eigen-label",
-        x: labelPoint.x,
-        y: labelPoint.y,
-        "text-anchor": "middle"
-      }, transformed ? item.label : "实方向 " + item.label));
-    });
-  }
-
-  function drawVector(api, drawing, center, scale, vector, className, label, labelClass, markerId, clipId) {
-    var endpoint = toSvg(center, scale, vector);
-    addWorldLine(api, drawing, className, center, scale, { x: 0, y: 0 }, vector, clipId, {
-      "marker-end": "url(#" + markerId + ")"
-    });
-    drawing.appendChild(makeSvg(api, "circle", { className: "eg-origin", cx: center.x, cy: center.y, r: 3 }));
-    drawing.appendChild(makeSvg(api, "text", {
-      className: "eg-vector-label " + labelClass,
-      x: endpoint.x + (endpoint.x < center.x ? -7 : 7),
-      y: endpoint.y - 8,
-      "text-anchor": endpoint.x < center.x ? "end" : "start"
-    }, label));
-  }
-
-  function drawScene(api, svg, drawing, preset, state, ids, title, desc) {
-    var left = { x: 205, y: 216 };
-    var right = { x: 615, y: 216 };
-    /* A shared scale makes lengths comparable across the two panels. */
-    var leftScale = 45;
-    var rightScale = 45;
-    var x;
-    var ax;
-    var inputPoint;
-    var outputPoint;
-    clear(drawing);
-    drawing.appendChild(makeSvg(api, "rect", { className: "eg-panel", x: 15, y: 36, width: 380, height: 340, rx: 5 }));
-    drawing.appendChild(makeSvg(api, "rect", { className: "eg-panel", x: 425, y: 36, width: 380, height: 340, rx: 5 }));
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-panel-label", x: 32, y: 59 }, "变换前：x"));
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-panel-label", x: 442, y: 59 }, "变换后：Ax"));
-    drawGrid(api, drawing, left, leftScale, preset.matrix, ids.leftClip, false);
-    drawGrid(api, drawing, right, rightScale, preset.matrix, ids.rightClip, true);
-    drawAxes(api, drawing, left, leftScale, preset.matrix, ids.leftClip, false);
-    drawAxes(api, drawing, right, rightScale, preset.matrix, ids.rightClip, true);
-    drawCircle(api, drawing, left, leftScale, preset.matrix, ids.leftClip, false);
-    drawCircle(api, drawing, right, rightScale, preset.matrix, ids.rightClip, true);
-    drawEigenDirections(api, drawing, preset, left, leftScale, ids.leftClip, false, ids.eigenMarker);
-    drawEigenDirections(api, drawing, preset, right, rightScale, ids.rightClip, true, ids.eigenMarker);
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-axis-label", x: left.x + 146, y: left.y + 18 }, "x₁"));
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-axis-label", x: left.x + 7, y: left.y - 130 }, "x₂"));
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-axis-label", x: right.x + 146, y: right.y + 18 }, "y₁"));
-    drawing.appendChild(makeSvg(api, "text", { className: "eg-axis-label", x: right.x + 7, y: right.y - 130 }, "y₂"));
-    if (state.showVector) {
-      x = scaleVector({ x: Math.cos(state.angle), y: Math.sin(state.angle) }, 1.45);
-      ax = applyMatrix(preset.matrix, x);
-      drawVector(api, drawing, left, leftScale, x, "eg-input-vector", "x", "eg-input-label", ids.inputMarker, ids.leftClip);
-      drawVector(api, drawing, right, rightScale, ax, "eg-output-vector", "Ax", "eg-output-label", ids.outputMarker, ids.rightClip);
-    }
-    inputPoint = scaleVector({ x: Math.cos(state.angle), y: Math.sin(state.angle) }, 1.45);
-    outputPoint = applyMatrix(preset.matrix, inputPoint);
-    title.textContent = "eigen-geometry：" + preset.label + " 的方向图像";
-    desc.textContent = matrixLabel(preset) + "；左图显示变换前网格与单位圆，右图显示变换后的网格与椭圆。" +
-      (state.showVector
-        ? "当前向量 x=" + formatVector(api, inputPoint) + "，Ax=" + formatVector(api, outputPoint) + "。"
-        : "向量图层当前隐藏。") +
-      (preset.realDirections.length
-        ? "金色虚线与箭头标出实特征方向。"
-        : "该矩阵没有非零实特征向量，因此右图不标出实特征方向。");
-    svg.setAttribute("aria-label", "eigen-geometry：" + preset.label + "；" + desc.textContent);
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || document;
-    var serial;
-    var ids;
-    var state;
-    var shell;
-    var controls;
-    var stage;
-    var presetButtons;
-    var angleInput;
-    var angleOutput;
-    var vectorToggle;
-    var status;
-    var matrixDetail;
-    var eigenDetail;
-    var vectorDetail;
-    var svg;
-    var title;
-    var desc;
-    var drawing;
-    var preset;
-
-    injectStyles(doc);
-    INSTANCE += 1;
-    serial = INSTANCE;
-    ids = {
-      svgTitle: "eg-svg-title-" + serial,
-      svgDesc: "eg-svg-desc-" + serial,
-      eigenMarker: "eg-eigen-marker-" + serial,
-      inputMarker: "eg-input-marker-" + serial,
-      outputMarker: "eg-output-marker-" + serial,
-      leftClip: "eg-left-clip-" + serial,
-      rightClip: "eg-right-clip-" + serial,
-      angle: "eg-angle-" + serial
-    };
-    state = { presetId: "diag", angle: (35 * Math.PI) / 180, showVector: true };
-    preset = PRESETS[0];
-
-    shell = makeElement(api, "div", { className: "eg-shell" });
-    shell.appendChild(makeElement(api, "h3", {}, "eigen-geometry：方向会怎样？"));
-    shell.appendChild(makeElement(api, "p", { className: "eg-note" }, "四个固定预设、可选角度滑杆和确定性 SVG；先预测，再比较 x 与 Ax。"));
-    var layout = makeElement(api, "div", { className: "eg-layout" });
-    controls = makeElement(api, "aside", { className: "eg-controls", "aria-label": "特征几何实验控制" });
-    stage = makeElement(api, "section", { className: "eg-stage", "aria-labelledby": ids.svgTitle });
-
-    var presetSection = makeElement(api, "div", { className: "eg-control-section" });
-    presetSection.appendChild(makeElement(api, "h4", {}, "选择矩阵预设"));
-    presetSection.appendChild(makeElement(api, "p", { className: "eg-small" }, "四个预设覆盖伸缩、对称、Jordan 与无实特征方向。"));
-    var presetGroup = makeElement(api, "div", { className: "eg-presets", role: "group", "aria-label": "矩阵预设" });
-    presetButtons = [];
-    PRESETS.forEach(function (item) {
-      var button = makeElement(api, "button", {
-        className: "eg-button",
-        type: "button",
-        "aria-pressed": "false"
-      }, item.label);
-      button.addEventListener("click", function () {
-        state.presetId = item.id;
-        preset = item;
-        render();
-        status.textContent = "当前：" + item.label + "。";
-        if (api && typeof api.announce === "function") api.announce(root, "已切换到 " + item.label + "；" + eigenSummary(item));
-      });
-      presetButtons.push({ item: item, button: button });
-      presetGroup.appendChild(button);
-    });
-    presetSection.appendChild(presetGroup);
-    controls.appendChild(presetSection);
-
-    var angleSection = makeElement(api, "div", { className: "eg-control-section" });
-    angleSection.appendChild(makeElement(api, "h4", {}, "可选：向量 x 的方向"));
-    var angleLabel = makeElement(api, "label", { className: "eg-field", htmlFor: ids.angle });
-    var angleCaption = makeElement(api, "span", { className: "eg-field-caption" });
-    angleCaption.appendChild(doc.createTextNode("从 x₁ 轴逆时针计角"));
-    angleOutput = makeElement(api, "output", { className: "eg-output", htmlFor: ids.angle });
-    angleCaption.appendChild(angleOutput);
-    angleLabel.appendChild(angleCaption);
-    angleInput = makeElement(api, "input", {
-      id: ids.angle,
-      type: "range",
-      min: "0",
-      max: "360",
-      step: "1",
-      value: "35",
-      "aria-label": "向量 x 的角度"
-    });
-    angleLabel.appendChild(angleInput);
-    angleSection.appendChild(angleLabel);
-    vectorToggle = makeElement(api, "button", {
-      className: "eg-button eg-toggle",
-      type: "button",
-      "aria-pressed": "true"
-    });
-    vectorToggle.addEventListener("click", function () {
-      state.showVector = !state.showVector;
-      render();
-      if (api && typeof api.announce === "function") api.announce(root, state.showVector ? "已显示向量 x 与 Ax。" : "已隐藏向量 x 与 Ax；网格、单位圆与特征方向仍保留。");
-    });
-    angleSection.appendChild(vectorToggle);
-    controls.appendChild(angleSection);
-
-    status = makeElement(api, "p", { className: "eg-status", "aria-live": "polite", "aria-atomic": "true" });
-    controls.appendChild(status);
-    layout.appendChild(controls);
-
-    svg = makeSvg(api, "svg", {
-      className: "eg-svg",
-      viewBox: "0 0 820 400",
-      role: "img",
-      "aria-label": "eigen-geometry 几何变换图",
-      "aria-labelledby": ids.svgTitle + " " + ids.svgDesc
-    });
-    title = makeSvg(api, "title", { id: ids.svgTitle }, "eigen-geometry 几何变换图");
-    desc = makeSvg(api, "desc", { id: ids.svgDesc }, "左侧是变换前网格与单位圆，右侧是变换后结果。");
-    svg.appendChild(title);
-    svg.appendChild(desc);
-    var defs = makeSvg(api, "defs", {});
-    var leftClip = makeSvg(api, "clipPath", { id: ids.leftClip });
-    leftClip.appendChild(makeSvg(api, "rect", { x: 30, y: 62, width: 350, height: 300 }));
-    var rightClip = makeSvg(api, "clipPath", { id: ids.rightClip });
-    rightClip.appendChild(makeSvg(api, "rect", { x: 440, y: 62, width: 350, height: 300 }));
-    defs.appendChild(leftClip);
-    defs.appendChild(rightClip);
-    defs.appendChild(makeMarker(api, doc, ids.eigenMarker, "eg-eigen-head"));
-    defs.appendChild(makeMarker(api, doc, ids.inputMarker, "eg-input-head"));
-    defs.appendChild(makeMarker(api, doc, ids.outputMarker, "eg-output-head"));
-    svg.appendChild(defs);
-    drawing = makeSvg(api, "g", { "aria-hidden": "true" });
-    svg.appendChild(drawing);
-    stage.appendChild(makeElement(api, "div", { className: "eg-stage-frame" }, [svg]));
-    stage.appendChild(makeElement(api, "p", { className: "eg-note" }, "蓝色箭头是 x，绿色箭头是 Ax；金色虚线是实特征方向。右图的单位圆像是 A 作用后的集合。"));
-
-    var details = makeElement(api, "div", { className: "eg-details", "aria-label": "当前矩阵的精确读数" });
-    matrixDetail = makeElement(api, "p", { className: "eg-detail" });
-    eigenDetail = makeElement(api, "p", { className: "eg-detail" });
-    vectorDetail = makeElement(api, "p", { className: "eg-detail" });
-    details.appendChild(matrixDetail);
-    details.appendChild(eigenDetail);
-    details.appendChild(vectorDetail);
-    stage.appendChild(details);
-    layout.appendChild(stage);
-    shell.appendChild(layout);
-    root.classList.add("eigen-geometry-lab");
-    root.replaceChildren(shell);
-
-    function render() {
-      var angleDegrees;
-      var x;
-      var ax;
-      presetButtons.forEach(function (entry) {
-        entry.button.setAttribute("aria-pressed", entry.item.id === state.presetId ? "true" : "false");
-      });
-      preset = PRESETS.filter(function (item) { return item.id === state.presetId; })[0] || PRESETS[0];
-      angleDegrees = Math.round((state.angle * 180) / Math.PI);
-      angleInput.value = String(angleDegrees);
-      angleOutput.textContent = angleDegrees + "°";
-      vectorToggle.setAttribute("aria-pressed", state.showVector ? "true" : "false");
-      vectorToggle.textContent = state.showVector ? "隐藏向量 x 与 Ax" : "显示向量 x 与 Ax";
-      x = scaleVector({ x: Math.cos(state.angle), y: Math.sin(state.angle) }, 1.45);
-      ax = applyMatrix(preset.matrix, x);
-      setDetail(api, matrixDetail, "当前矩阵：", matrixLabel(preset));
-      setDetail(api, eigenDetail, "精确特征信息：", eigenSummary(preset));
-      setDetail(
-        api,
-        vectorDetail,
-        "向量读数：",
-        state.showVector
-          ? "x=" + formatVector(api, x) + "，Ax=" + formatVector(api, ax) + "；|x|=" + formatNumber(api, vectorLength(x)) + "，|Ax|=" + formatNumber(api, vectorLength(ax))
-          : "向量图层已隐藏；可用角度滑杆继续准备下一次预测。"
-      );
-      status.textContent = "当前：" + preset.label + "；" + (preset.realDirections.length ? "金色方向线为实特征方向。" : "没有实特征方向。");
-      drawScene(api, svg, drawing, preset, state, ids, title, desc);
-    }
-
-    angleInput.addEventListener("input", function () {
-      state.angle = (Number(angleInput.value) * Math.PI) / 180;
-      render();
-    });
-    render();
-  }
-
-  window.CourseLearning.register("eigen-geometry", function (root, api) {
-    mount(root, api);
-  });
-}());
+function scene(api,data,show,uid){var svg=makeSvg(api,'svg',{className:'eg-svg',viewBox:'0 0 740 510',role:'img','aria-labelledby':uid+'-title '+uid+'-desc'});svg.appendChild(makeSvg(api,'title',{id:uid+'-title'},'一次作用 x 与 Ax，使用同一标准坐标标尺'));svg.appendChild(makeSvg(api,'desc',{id:uid+'-desc'},'两图标准轴固定；右图细网格和单位圆被矩阵变换。金色虚线仅标特征直线，不编码伸缩量。'));
+ var defs=makeSvg(api,'defs',{});svg.appendChild(defs);
+ [0,1].forEach(function(side){var ox=185+370*side,oy=235,scale=28,left=ox-154,top=81,clip=uid+'-clip-'+side,cp=makeSvg(api,'clipPath',{id:clip});cp.appendChild(makeSvg(api,'rect',{x:left,y:top,width:308,height:308}));defs.appendChild(cp);
+ var point=function(v){return{x:ox+scale*v.x,y:oy-scale*v.y};};var line=function(v,w,cls,attrs){var a=point(v),b=point(w);svg.appendChild(makeSvg(api,'line',Object.assign({x1:a.x,y1:a.y,x2:b.x,y2:b.y,className:cls},attrs||{})));};
+ svg.appendChild(makeSvg(api,'rect',{className:'eg-panel',x:15+370*side,y:42,width:340,height:366,rx:5}));svg.appendChild(makeSvg(api,'text',{x:31+370*side,y:64,className:'eg-panel-label'},side?'一次作用后的标准坐标':'作用前的标准坐标'));
+ for(var tick=-2;tick<=2;tick+=.5){[[{x:tick,y:-2.2},{x:tick,y:2.2}],[{x:-2.2,y:tick},{x:2.2,y:tick}]].forEach(function(pair){if(side)pair=pair.map(function(v){return applyMatrix(data.preset.matrix,v);});line(pair[0],pair[1],'eg-grid',{'clip-path':'url(#'+clip+')'});});}
+ line({x:-5,y:0},{x:5,y:0},'eg-axis');line({x:0,y:-5},{x:0,y:5},'eg-axis');[-4,-2,0,2,4].forEach(function(t){var px=point({x:t,y:0}),py=point({x:0,y:t});svg.appendChild(makeSvg(api,'text',{x:px.x,y:oy+17,'text-anchor':'middle','font-size':11},String(t)));if(t!==0)svg.appendChild(makeSvg(api,'text',{x:ox-7,y:py.y+4,'text-anchor':'end','font-size':11},String(t)));});
+ svg.appendChild(makeSvg(api,'text',{x:ox+143,y:oy-7,'font-size':12},side?'y₁':'x₁'));svg.appendChild(makeSvg(api,'text',{x:ox+7,y:oy-143,'font-size':12},side?'y₂':'x₂'));
+ var pts=[];for(var i=0;i<=128;i++){var theta=2*Math.PI*i/128,v={x:Math.cos(theta),y:Math.sin(theta)};if(side)v=applyMatrix(data.preset.matrix,v);var pp=point(v);pts.push((i?'L':'M')+pp.x.toFixed(3)+','+pp.y.toFixed(3));}svg.appendChild(makeSvg(api,'path',{className:'eg-circle',d:pts.join(' ')}));
+ data.preset.realDirections.forEach(function(e){var v=e.vector,len=Math.hypot(v.x,v.y),a={x:-5*v.x/len,y:-5*v.y/len},b={x:5*v.x/len,y:5*v.y/len};line(a,b,'eg-eigen-line');});
+ if(show){var v=side?data.ax:data.x,pt=point(v);line({x:0,y:0},v,side?'eg-output-vector':'eg-input-vector');svg.appendChild(makeSvg(api,'circle',{cx:pt.x,cy:pt.y,r:4.5,fill:side?'var(--eg-output)':'var(--eg-input)','data-vector':side?'output':'input'}));}
+ svg.appendChild(makeSvg(api,'text',{x:31+side*370,y:431,'font-size':13,className:side?'eg-output-label':'eg-input-label'},show?(side?'Ax = ':'x = ')+fv(side?data.ax:data.x):'向量图层隐藏'));
+ svg.appendChild(makeSvg(api,'text',{x:31+side*370,y:457,'font-size':12},data.preset.realDirections.length?'金色虚线：'+data.preset.realDirections.map(function(e){return e.label;}).join('；'):'无非零实特征方向；圆的保持不代表每条直线保持'));
+ });svg.appendChild(makeSvg(api,'text',{x:24,y:24,'font-size':15,'font-weight':700},'同一像素单位：先分清对象，再比较方向和长度'));
+ svg.appendChild(makeSvg(api,'text',{x:24,y:490,'font-size':13},'两边使用相同单位长度；右侧细网格随 A 变化，标准坐标轴保持固定。'));return svg;}
+function mount(root,api){var doc=root.ownerDocument;injectStyles(doc);var uid='eg-'+(++INSTANCE),state={presetId:'diag',angle:35,k:5,show:true,revealed:false,answers:[null,null,null]},shell=makeElement(api,'div',{className:'eg-shell'});shell.appendChild(makeElement(api,'h3',{},'特征方向与矩阵幂'));
+ var predict=makeElement(api,'section',{className:'eg-predict'}),buttons=[];[['1. Jordan 块只有一个特征方向，可以对角化吗？',['不能，需要两个独立方向','能，因为特征值是实数']],['2. 90° 旋转保持单位圆，有实特征方向吗？',['没有','有，每条半径都是']],['3. J 的谱半径为 1，Jᵏe₂ 的长度怎样？',['仍会增长，含线性因子 k','始终为 1']]].forEach(function(q,i){var f=makeElement(api,'fieldset',{});f.appendChild(makeElement(api,'legend',{},q[0]));buttons[i]=q[1].map(function(label,j){var b=makeElement(api,'button',{className:'eg-button',type:'button','aria-pressed':'false'},label);b.addEventListener('click',function(){state.answers[i]=j;state.revealed=false;render();});f.appendChild(b);return b;});predict.appendChild(f);});
+ var actions=makeElement(api,'div',{className:'eg-presets'}),reveal=makeElement(api,'button',{className:'eg-button eg-primary',type:'button'},'核对预测并揭示'),reset=makeElement(api,'button',{className:'eg-button',type:'button'},'重置');actions.appendChild(reveal);actions.appendChild(reset);predict.appendChild(actions);var feedback=makeElement(api,'p',{'aria-live':'polite',className:'eg-note'},'请先完成三个预测。');predict.appendChild(feedback);shell.appendChild(predict);
+ var controls=makeElement(api,'section',{className:'eg-controls','aria-label':'特征几何实验控制'}),presetGroup=makeElement(api,'div',{className:'eg-presets','aria-label':'矩阵预设'}),presetButtons=[];PRESETS.forEach(function(p){var b=makeElement(api,'button',{className:'eg-button',type:'button','aria-pressed':'false'},p.label);b.addEventListener('click',function(){state.presetId=p.id;render();});presetGroup.appendChild(b);presetButtons.push(b);});controls.appendChild(presetGroup);
+ function slider(name,key,min,max,step,value){var label=makeElement(api,'label',{className:'eg-field'},name),input=makeElement(api,'input',{type:'range',min:String(min),max:String(max),step:String(step),value:String(value),'aria-label':name}),output=makeElement(api,'output',{className:'eg-output'});label.appendChild(input);label.appendChild(output);input.addEventListener('input',function(){state[key]=Number(input.value);render();});controls.appendChild(label);return{input:input,output:output};}
+ var angle=slider('一次作用的 x 角度（度）','angle',0,360,1,35),power=slider('幂读数的 k（固定初值 e₂）','k',0,20,1,5),toggle=makeElement(api,'button',{className:'eg-button',type:'button','aria-pressed':'true'},'隐藏向量 x 与 Ax');toggle.addEventListener('click',function(){state.show=!state.show;render();});controls.appendChild(toggle);shell.appendChild(controls);
+ var results=makeElement(api,'section',{className:'eg-stage'}),frame=makeElement(api,'div',{className:'eg-stage-frame',tabindex:'0',role:'region','aria-label':'同标尺几何图，可横向滚动'}),details=makeElement(api,'div',{className:'eg-details'}),powerDetail=makeElement(api,'div',{className:'eg-details'});results.appendChild(frame);results.appendChild(details);results.appendChild(makeElement(api,'h4',{},'另一个实验：固定初值 e₂，反复作用 k 次'));results.appendChild(makeElement(api,'p',{className:'eg-note'},'下表固定 e₂，与上图长度 1.45、角度可调的 x 不同；上图始终只画一次 A。读数按显示精度舍入。'));results.appendChild(powerDetail);shell.appendChild(results);root.classList.add('eigen-geometry-lab');root.replaceChildren(shell);
+ function render(){buttons.forEach(function(row,i){row.forEach(function(b,j){b.setAttribute('aria-pressed',state.answers[i]===j?'true':'false');});});controls.hidden=results.hidden=!state.revealed;feedback.textContent=state.answers.every(function(v){return v!==null;})?'预测已记录，可以核对。':'请先完成三个预测。';if(!state.revealed)return;var d=evaluate(state);presetButtons.forEach(function(b,i){b.setAttribute('aria-pressed',PRESETS[i].id===state.presetId?'true':'false');});angle.input.value=String(state.angle);angle.output.textContent=state.angle+'°';power.input.value=String(state.k);power.output.textContent='k = '+state.k;toggle.textContent=state.show?'隐藏向量 x 与 Ax':'显示向量 x 与 Ax';toggle.setAttribute('aria-pressed',state.show?'true':'false');frame.replaceChildren(scene(api,d,state.show,uid));details.replaceChildren(makeElement(api,'p',{className:'eg-detail'},'A='+d.preset.matrixText+'；'+eigenSummary(d.preset)),makeElement(api,'p',{className:'eg-detail'},'一次作用：x='+fv(d.x)+'，Ax='+fv(d.ax)+'；长度 '+formatNumber(d.normX)+' → '+formatNumber(d.normAx)));
+ var wrap=makeElement(api,'div',{className:'eg-ledger',tabindex:'0',role:'region','aria-label':'矩阵幂读数，可横向滚动'}),table=makeElement(api,'table',{}),thead=makeElement(api,'thead',{}),row=makeElement(api,'tr',{});['k','Aᵏ 的行','Aᵏe₂','长度'].forEach(function(t){row.appendChild(makeElement(api,'th',{scope:'col'},t));});thead.appendChild(row);table.appendChild(thead);var body=makeElement(api,'tbody',{});[0,1,2,5,10,20,state.k].filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;}).forEach(function(k){var a=evaluate({presetId:state.presetId,k:k}),m=a.power,tr=makeElement(api,'tr',{'data-k':k});[String(k),fv({x:m.a,y:m.b})+' / '+fv({x:m.c,y:m.d}),fv(a.powerE2),formatNumber(a.normPower)].forEach(function(v){tr.appendChild(makeElement(api,'td',{},v));});body.appendChild(tr);});table.appendChild(body);wrap.appendChild(table);powerDetail.replaceChildren(makeElement(api,'p',{className:'eg-detail'},'当前 k='+state.k+'：Aᵏe₂='+fv(d.powerE2)+'，长度='+formatNumber(d.normPower)),wrap);}
+ reveal.addEventListener('click',function(){if(state.answers.some(function(v){return v===null;})){feedback.textContent='还有预测未作答。';return;}state.revealed=true;render();feedback.textContent='已揭示：'+state.answers.filter(function(v){return v===0;}).length+'/3 个预测命中。请用图与幂读数解释理由。';});reset.addEventListener('click',function(){state={presetId:'diag',angle:35,k:5,show:true,revealed:false,answers:[null,null,null]};render();buttons[0][0].focus();});render();}
+return{PRESETS:PRESETS,applyMatrix:applyMatrix,powerMatrix:powerMatrix,evaluate:evaluate,formatNumber:formatNumber,scene:scene,mount:mount};
+});
