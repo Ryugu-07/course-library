@@ -107,7 +107,7 @@
    if(!revealed){feedback.textContent=check.disabled?'完成三个预测后查看结果。':'预测已记录，可以揭示。';return}
    const data=evaluate(id,exponent,n,order),expected=expectedAnswers(data),score=Object.keys(expected).filter(k=>expected[k]===answers[k]).length;feedback.textContent='预测 '+score+'/3。请逐项对照下面的结果与适用范围。';results.replaceChildren();
    results.append(el(doc,'p','',data.formula),el(doc,'p','fpe-note',data.id==='sum'?'此序列精确和是整数 '+data.reference.decimal+'，各输入也是可精确表示的整数。':'实际输入 '+data.x.toPrecision(17)+'；参考针对这个二进制数的精确实数值，未混入十进制输入舍入误差。'));
-   const ref=el(doc,'p','fpe-note',data.exact?'精确参考：':'80位计算参考（显示65位，不宣称严格区间界）：');ref.append(el(doc,'code','',data.reference.decimal));results.append(ref);
+   const ref=el(doc,'p','fpe-note',data.exact?'精确参考：':'80位计算参考（按65位有效数字舍入显示，末尾0省略；不宣称严格区间界）：');ref.append(el(doc,'code','',data.reference.decimal));results.append(ref);
    const ledger=region('可滚动的算法误差表'),table=el(doc,'table'),thead=el(doc,'thead'),tr=el(doc,'tr');['算法','实际计算结果（17位）','相对误差','对照解释'].forEach(t=>{const th=el(doc,'th','',t);th.scope='col';tr.append(th)});thead.append(tr);table.append(thead);const tbody=el(doc,'tbody');
    data.methods.forEach((m,i)=>{const r=el(doc,'tr');[m.name,m.value.toPrecision(17),format(m.error),data.id==='derivative'?'均与导数 e 比较；改写仍保留截断误差':data.id==='sum'?'0 表示此整数样本精确；不是普遍保证':'使用独立高精度参考估算算法误差'].forEach(t=>r.append(el(doc,'td','',t)));tbody.append(r)});table.append(tbody);ledger.append(table);results.append(ledger);
    if(id==='derivative')results.append(el(doc,'p','fpe-note','理想实数差分的截断相对误差 ≈ '+format(data.truncation)+'。sinh 改写只改善该特殊函数的求值路径，不是通用黑箱差分算法。'));

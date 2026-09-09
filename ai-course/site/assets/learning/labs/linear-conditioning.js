@@ -92,6 +92,9 @@
     }
   ];
 
+  Object.freeze(DEFAULT);
+  PRESETS.forEach(Object.freeze); Object.freeze(PRESETS);
+
   var STYLE_TEXT = [
     ".lc-lab{--lc-blue:var(--cl-blue,#315f9d);--lc-gold:var(--cl-gold,#9b6a12);--lc-green:var(--cl-green,#39734d);--lc-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
     ".lc-lab *,.lc-lab *::before,.lc-lab *::after{box-sizing:border-box;}",
@@ -112,16 +115,16 @@
     ".lc-lab button:hover{border-color:var(--accent);}",
     ".lc-lab button[aria-pressed=\"true\"],.lc-lab button.lc-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}",
     ".lc-lab button:disabled{cursor:not-allowed;opacity:.55;}",
-    ".lc-lab button:focus-visible,.lc-lab select:focus-visible,.lc-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
+    ".lc-lab :focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
     ".lc-lab .lc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}",
     ".lc-lab .lc-actions>*{flex:1 1 170px;}",
     ".lc-lab .lc-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}",
     ".lc-lab .lc-pass{color:var(--lc-green);}",
     ".lc-lab .lc-warn{color:var(--lc-red);}",
     ".lc-lab .lc-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".lc-lab .lc-layout{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}",
+    ".lc-lab .lc-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0;}",
     ".lc-lab .lc-controls,.lc-lab .lc-stage{min-width:0;}",
-    ".lc-lab .lc-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
+    ".lc-lab .lc-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
     ".lc-lab .lc-control{display:grid;gap:5px;min-width:0;}",
     ".lc-lab .lc-control label,.lc-lab .lc-control-title{color:var(--fg-soft);font-size:13px;font-weight:700;}",
     ".lc-lab .lc-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
@@ -129,9 +132,9 @@
     ".lc-lab .lc-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px;}",
     ".lc-lab .lc-option-row,.lc-lab .lc-preset-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}",
     ".lc-lab .lc-option-row button,.lc-lab .lc-preset-row button{font-size:12px;}",
-    ".lc-lab .lc-stage-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}",
+    ".lc-lab .lc-stage-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}",
     ".lc-lab .lc-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--fg-soft);font-size:13px;}",
-    ".lc-lab .lc-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}",
+    ".lc-lab .lc-svg{display:block;width:100%;min-width:640px;height:auto;color:var(--fg);}",
     ".lc-lab .lc-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
     ".lc-lab .lc-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.68;}",
     ".lc-lab .lc-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.7;}",
@@ -139,7 +142,7 @@
     ".lc-lab .lc-line-two{stroke:var(--lc-gold);stroke-width:2.5;fill:none;}",
     ".lc-lab .lc-shift{stroke-dasharray:7 5;stroke-width:2;stroke-opacity:.82;}",
     ".lc-lab .lc-error-vector{stroke:var(--lc-red);stroke-width:2;stroke-dasharray:4 4;}",
-    ".lc-lab .lc-true-point{fill:var(--lc-green);stroke:var(--bg);stroke-width:2;}",
+    ".lc-lab .lc-true-point{fill:none;stroke:var(--lc-green);stroke-width:2;}",
     ".lc-lab .lc-computed-point{fill:var(--lc-red);stroke:var(--bg);stroke-width:2;}",
     ".lc-lab .lc-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 0;color:var(--fg-soft);font-size:12px;}",
     ".lc-lab .lc-legend span{display:inline-flex;align-items:center;gap:5px;}",
@@ -153,15 +156,17 @@
     ".lc-lab .lc-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}",
     ".lc-lab .lc-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".lc-lab .lc-table-wrap{max-width:100%;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}",
-    ".lc-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
+    ".lc-lab table{display:table;white-space:normal;width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
     ".lc-lab th,.lc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}",
     ".lc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}",
     ".lc-lab .lc-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lc-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
     ".lc-lab .lc-formula{overflow-x:auto;padding:9px 11px;border-left:3px solid var(--accent);background:var(--bg);font-family:\"SF Mono\",Menlo,Consolas,monospace;font-size:12px;line-height:1.65;}",
+    ".lc-lab .lc-controls>h4,.lc-lab .lc-controls>p,.lc-lab .lc-controls>.lc-actions{grid-column:1/-1;}",
+    "@media(max-width:700px){.lc-lab .lc-controls{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:900px){.lc-lab .lc-layout{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:760px){.lc-lab .lc-choice-row{grid-template-columns:minmax(0,1fr);}.lc-lab .lc-preset-row{grid-template-columns:minmax(0,1fr);}}",
-    "@media(max-width:420px){.lc-lab .lc-stage-frame{padding:6px;}.lc-lab .lc-table-wrap{margin-left:-2px;margin-right:-2px;}.lc-lab table{font-size:11.5px;}.lc-lab th,.lc-lab td{padding-left:5px;padding-right:5px;}}",
-    "@media(prefers-reduced-motion:reduce){.lc-lab *{animation:none!important;transition:none!important;}}"
+    "@media(max-width:420px){.lc-lab .lc-stage-frame{padding:6px;}.lc-lab .lc-table-wrap{margin-left:0;margin-right:0;}.lc-lab table{font-size:11.5px;}.lc-lab th,.lc-lab td{padding-left:5px;padding-right:5px;}}",
+    "@media(prefers-reduced-motion:reduce){html:has(.lc-lab){scroll-behavior:auto!important}.lc-lab *{animation:none!important;transition:none!important;}}"
   ].join("\n");
 
   function finite(value) {
@@ -206,7 +211,7 @@
   }
 
   function norm2(values) {
-    return Math.sqrt(Math.max(0, dot(values, values)));
+    return Math.hypot.apply(Math, values);
   }
 
   function degreesToRadians(degrees) {
@@ -224,7 +229,7 @@
     var theta = degreesToRadians(thetaDeg);
     return [
       [1, 0],
-      [Math.cos(theta), Math.sin(theta)]
+      [thetaDeg === 90 ? 0 : Math.cos(theta), thetaDeg === 90 ? 1 : Math.sin(theta)]
     ];
   }
 
@@ -235,31 +240,29 @@
   }
 
   function solve2x2(a, b) {
-    var determinant = a[0][0] * a[1][1] - a[0][1] * a[1][0];
-    if (!finite(determinant) || Math.abs(determinant) < 1e-15) {
-      throw new RangeError("singular 2x2 system");
-    }
-    return [
-      (b[0] * a[1][1] - a[0][1] * b[1]) / determinant,
-      (a[0][0] * b[1] - b[0] * a[1][0]) / determinant
-    ];
+    if (!Array.isArray(a) || a.length !== 2 || !Array.isArray(b) || b.length !== 2 ||
+        a.some(function(row){return !Array.isArray(row) || row.length !== 2 || Array.from(row).some(function(x){return !finite(x);});}) ||
+        Array.from(b).some(function(x){return !finite(x);})) throw new TypeError("finite 2x2 matrix and length-2 vector required");
+    var scale=Math.max.apply(Math,a[0].concat(a[1]).map(Math.abs));
+    if(scale===0)throw new RangeError("zero matrix");
+    var rows=a.map(function(row,i){return [row[0]/scale,row[1]/scale,b[i]/scale];});
+    if(rows.some(function(row){return row.some(function(x){return !finite(x);});}))throw new RangeError("scaled system outside finite working range");
+    if(Math.abs(rows[1][0])>Math.abs(rows[0][0])){var swap=rows[0];rows[0]=rows[1];rows[1]=swap;}
+    if(rows[0][0]===0)throw new RangeError("zero working-precision pivot");
+    var m=rows[1][0]/rows[0][0],pivot=rows[1][1]-m*rows[0][1],rhs=rows[1][2]-m*rows[0][2];
+    if(pivot===0)throw new RangeError("zero working-precision pivot");
+    var x2=rhs/pivot,x1=(rows[0][2]-rows[0][1]*x2)/rows[0][0];
+    if(!finite(x1)||!finite(x2))throw new RangeError("solution outside finite working range");
+    return [x1,x2];
   }
 
   function singularValues(thetaDeg) {
     validateTheta(thetaDeg);
-    var cosine = Math.abs(Math.cos(degreesToRadians(thetaDeg)));
-    var lambdaMax = 1 + cosine;
-    var lambdaMin = Math.max(0, 1 - cosine);
-    var sigmaMax = Math.sqrt(lambdaMax);
-    var sigmaMin = Math.sqrt(lambdaMin);
-    return {
-      thetaDeg: thetaDeg,
-      lambdaMax: lambdaMax,
-      lambdaMin: lambdaMin,
-      sigmaMax: sigmaMax,
-      sigmaMin: sigmaMin,
-      kappa: sigmaMin === 0 ? Infinity : sigmaMax / sigmaMin
-    };
+    var half=degreesToRadians(thetaDeg)/2;
+    var sigmaMax=thetaDeg===90?1:Math.SQRT2*Math.cos(half);
+    var sigmaMin=thetaDeg===90?1:Math.SQRT2*Math.sin(half);
+    return {thetaDeg:thetaDeg,lambdaMax:sigmaMax*sigmaMax,lambdaMin:sigmaMin*sigmaMin,
+      sigmaMax:sigmaMax,sigmaMin:sigmaMin,kappa:sigmaMin===0?Infinity:sigmaMax/sigmaMin};
   }
 
   function singularDirections(thetaDeg) {
@@ -274,6 +277,7 @@
   }
 
   function baseTrueSolution(xMode) {
+    if (xMode !== "small-b" && xMode !== "reference") throw new RangeError("unknown true-solution direction");
     return xMode === "small-b" ? [0, 1] : [1, 0];
   }
 
@@ -296,92 +300,54 @@
     for (var index = 0; index < PRESETS.length; index += 1) {
       if (PRESETS[index].id === id) return PRESETS[index];
     }
-    return PRESETS[0];
+    if (id === undefined) return PRESETS[0];
+    throw new RangeError("unknown preset");
   }
 
   function compute(spec) {
-    var thetaDeg = spec.thetaDeg === undefined ? DEFAULT.thetaDeg : Number(spec.thetaDeg);
-    var perturbation =
-      spec.perturbation === undefined
-        ? DEFAULT.perturbation
-        : Number(spec.perturbation);
-    var directionName = spec.direction || DEFAULT.direction;
-    var xMode = spec.xMode || DEFAULT.xMode;
-    var xScale = spec.xScale === undefined ? DEFAULT.xScale : Number(spec.xScale);
+    if(spec===undefined)spec={};
+    if(!spec||typeof spec!=="object"||Array.isArray(spec))throw new TypeError("parameter object required");
+    var thetaDeg=spec.thetaDeg===undefined?DEFAULT.thetaDeg:spec.thetaDeg;
+    var perturbation=spec.perturbation===undefined?DEFAULT.perturbation:spec.perturbation;
+    var directionName=spec.direction===undefined?DEFAULT.direction:spec.direction;
+    var xMode=spec.xMode===undefined?DEFAULT.xMode:spec.xMode;
+    var xScale=spec.xScale===undefined?DEFAULT.xScale:spec.xScale;
     validateTheta(thetaDeg);
-    if (thetaDeg <= 0) {
-      throw new RangeError("compute requires a positive angle");
-    }
-    if (!finite(perturbation) || perturbation < 0 || perturbation > 1) {
-      throw new RangeError("perturbation must be in [0, 1]");
-    }
-    if (directionName !== "min" && directionName !== "max") {
-      throw new RangeError("direction must be min or max");
-    }
-    if (!finite(xScale) || xScale <= 0) {
-      throw new RangeError("xScale must be positive");
-    }
-
-    var a = matrix(thetaDeg);
-    var spectrum = singularValues(thetaDeg);
-    var directions = singularDirections(thetaDeg);
-    var xTrue = scaleVector(baseTrueSolution(xMode), xScale);
-    var b = matrixVectorMultiply(a, xTrue);
-    var bNorm = norm2(b);
-    var direction = directionName === "min" ? directions.uMin : directions.uMax;
-    var deltaB = scaleVector(direction, perturbation * bNorm);
-    var bPerturbed = add(b, deltaB);
-    var xHat = perturbation === 0 ? copyVector(xTrue) : solve2x2(a, bPerturbed);
-    var residual = perturbation === 0 ? [0, 0] : subtract(b, matrixVectorMultiply(a, xHat));
-    var deltaX = subtract(xHat, xTrue);
-    var residualNorm = norm2(residual);
-    var deltaBNorm = norm2(deltaB);
-    var xNorm = norm2(xTrue);
-    var xHatNorm = norm2(xHat);
-    var rawRelativeResidual = residualNorm / bNorm;
-    var relativePerturbation = deltaBNorm / bNorm;
-    var backwardDenominator = spectrum.sigmaMax * xHatNorm + bNorm;
-    var backwardError = residualNorm / backwardDenominator;
-    var forwardError = norm2(deltaX) / xNorm;
-    var aInvDirectionGain = directionName === "min" ? 1 / spectrum.sigmaMin : 1 / spectrum.sigmaMax;
-    var directionGain = deltaBNorm === 0 ? aInvDirectionGain : norm2(deltaX) / deltaBNorm;
-    var exactForward = rawRelativeResidual * (bNorm / xNorm) * directionGain;
-    var bound = spectrum.kappa * rawRelativeResidual;
-
+    if(thetaDeg<1e-12)throw new RangeError("model angle must be at least 1e-12 degrees");
+    if(!finite(perturbation)||perturbation<0||perturbation>1)throw new RangeError("perturbation must be in [0,1]");
+    if(directionName!=="min"&&directionName!=="max")throw new RangeError("direction must be min or max");
+    if(!finite(xScale)||xScale<1e-100||xScale>1e100)throw new RangeError("xScale must be in [1e-100,1e100]");
+    var a=matrix(thetaDeg),spectrum=singularValues(thetaDeg),directions=singularDirections(thetaDeg);
+    var xTrue=scaleVector(baseTrueSolution(xMode),xScale),b=matrixVectorMultiply(a,xTrue),bNorm=norm2(b),xNorm=norm2(xTrue);
+    var direction=directionName==="min"?directions.uMin:directions.uMax;
+    var rightDirection=directionName==="min"?directions.vMin:directions.vMax;
+    var gain=1/(directionName==="min"?spectrum.sigmaMin:spectrum.sigmaMax);
+    var deltaB=scaleVector(direction,perturbation*bNorm),deltaBNorm=norm2(deltaB);
+    // The mathematical perturbation is computed independently of rounded xHat-xTrue.
+    var deltaX=scaleVector(rightDirection,deltaBNorm*gain),xHat=add(xTrue,deltaX);
+    var residual=scaleVector(deltaB,-1),residualNorm=deltaBNorm;
+    var xHatNorm=norm2(xHat),rho=deltaBNorm/bNorm,forward=norm2(deltaX)/xNorm;
+    var exactForward=rho*(bNorm/xNorm)*gain;
+    var bPerturbed=add(b,deltaB),actualX=solve2x2(a,bPerturbed),actualDeltaX=subtract(actualX,xTrue);
+    var actualResidual=subtract(b,matrixVectorMultiply(a,actualX)),actualResidualNorm=norm2(actualResidual);
+    var realizedDeltaB=subtract(bPerturbed,b);
     return {
-      thetaDeg: thetaDeg,
-      thetaRad: degreesToRadians(thetaDeg),
-      A: a,
-      xTrue: xTrue,
-      b: b,
-      deltaB: deltaB,
-      bPerturbed: bPerturbed,
-      xHat: xHat,
-      deltaX: deltaX,
-      residual: residual,
-      directionName: directionName,
-      direction: copyVector(direction),
-      xMode: xMode,
-      xScale: xScale,
-      perturbation: perturbation,
-      bNorm: bNorm,
-      xNorm: xNorm,
-      xHatNorm: xHatNorm,
-      residualNorm: residualNorm,
-      deltaBNorm: deltaBNorm,
-      spectrum: spectrum,
-      rawRelativeResidual: rawRelativeResidual,
-      relativePerturbation: relativePerturbation,
-      backwardError: backwardError,
-      forwardError: forwardError,
-      directionGain: directionGain,
-      aInvDirectionGain: aInvDirectionGain,
-      bOverX: bNorm / xNorm,
-      exactForward: exactForward,
-      conditionBound: bound,
-      identityError: Math.abs(forwardError - exactForward),
-      residualIdentityError: norm2(add(residual, deltaB)),
-      solutionIdentityError: norm2(subtract(matrixVectorMultiply(a, xHat), bPerturbed))
+      thetaDeg:thetaDeg,thetaRad:degreesToRadians(thetaDeg),A:a,xTrue:xTrue,b:b,deltaB:deltaB,
+      bPerturbed:bPerturbed,xHat:xHat,deltaX:deltaX,residual:residual,directionName:directionName,
+      direction:copyVector(direction),xMode:xMode,xScale:xScale,perturbation:perturbation,
+      bNorm:bNorm,xNorm:xNorm,xHatNorm:xHatNorm,residualNorm:residualNorm,deltaBNorm:deltaBNorm,
+      spectrum:spectrum,rawRelativeResidual:rho,relativePerturbation:rho,
+      backwardError:residualNorm/(spectrum.sigmaMax*xHatNorm+bNorm),forwardError:forward,
+      directionGain:gain,aInvDirectionGain:gain,bOverX:bNorm/xNorm,exactForward:exactForward,
+      conditionBound:spectrum.kappa*rho,identityError:Math.abs(forward-exactForward),
+      residualIdentityError:norm2(add(matrixVectorMultiply(a,deltaX),residual)),
+      solutionIdentityError:norm2(subtract(matrixVectorMultiply(a,xHat),bPerturbed)),
+      actualX:actualX,actualDeltaX:actualDeltaX,actualResidual:actualResidual,
+      actualRelativeResidual:actualResidualNorm/bNorm,
+      actualForwardError:norm2(actualDeltaX)/xNorm,
+      actualBackwardError:actualResidualNorm/(spectrum.sigmaMax*norm2(actualX)+bNorm),
+      realizedDeltaB:realizedDeltaB,inputRoundingLoss:deltaBNorm===0?0:norm2(subtract(realizedDeltaB,deltaB))/deltaBNorm,
+      actualSolveResidual:norm2(subtract(bPerturbed,matrixVectorMultiply(a,actualX)))
     };
   }
 
@@ -413,7 +379,7 @@
   }
 
   function xModeLabel(xMode) {
-    return xMode === "small-b" ? "x*=(0, 1)，b 较小" : "x*=(1, 0)，参考尺度";
+    return xMode === "small-b" ? "基方向 (0, 1)，整体尺度由 s 指定" : "基方向 (1, 0)，整体尺度由 s 指定";
   }
 
   function setAttributes(node, attrs) {
@@ -508,7 +474,7 @@
     svg.setAttribute("aria-labelledby", titleId + " " + descId);
     svg.appendChild(svgNode(doc, "title", { id: titleId }, ["两条直线与解的漂移"]));
     svg.appendChild(svgNode(doc, "desc", { id: descId }, [
-      "实线是 Ax=b 的两条直线，虚线是右端加上 delta b 后的两条直线；绿色点是真解，红色点是扰动后的解。"
+      "实线是 Ax=b 的两条直线，虚线是右端加上 delta b 后的两条直线；绿色圈是真解，红色点是扰动后的解。"
     ]));
 
     var plotLeft = 58;
@@ -537,8 +503,8 @@
     var mapX = function (value) { return plotLeft + (value - minX) * scale; };
     var mapY = function (value) { return plotBottom - (value - minY) * scale; };
     var theta = data.thetaRad;
-    var cosine = Math.cos(theta);
-    var sine = Math.sin(theta);
+    var cosine = data.A[1][0];
+    var sine = data.A[1][1];
     var lineY = function (rightHandSide, x) {
       return (rightHandSide - cosine * x) / sine;
     };
@@ -590,9 +556,15 @@
       x2: mapX(data.xHat[0]), y2: mapY(data.xHat[1]), class: "lc-error-vector"
     }, []));
     svg.appendChild(lineGroup);
+    for(var ti=0;ti<=4;ti+=1){
+      var wx=minX+(maxX-minX)*ti/4,wy=minY+(maxY-minY)*ti/4;
+      svg.appendChild(svgNode(doc,"text",{x:mapX(wx),y:plotBottom+16,"font-size":10,"text-anchor":"middle"},[format(wx,3)]));
+      svg.appendChild(svgNode(doc,"text",{x:plotLeft-6,y:mapY(wy)+4,"font-size":10,"text-anchor":"end"},[format(wy,3)]));
+    }
+    svg.setAttribute("data-world-scale",scale);svg.setAttribute("data-world-min-x",minX);svg.setAttribute("data-world-min-y",minY);
 
     svg.appendChild(svgNode(doc, "circle", {
-      cx: mapX(data.xTrue[0]), cy: mapY(data.xTrue[1]), r: 5, class: "lc-true-point"
+      cx: mapX(data.xTrue[0]), cy: mapY(data.xTrue[1]), r: 7, class: "lc-true-point"
     }, []));
     svg.appendChild(svgNode(doc, "circle", {
       cx: mapX(data.xHat[0]), cy: mapY(data.xHat[1]), r: 5, class: "lc-computed-point"
@@ -610,7 +582,7 @@
       x: plotRight, y: plotBottom + 28, "font-size": 11, "text-anchor": "end"
     }, ["x1"]));
     svg.appendChild(svgNode(doc, "text", {
-      x: plotLeft - 10, y: plotTop + 4, "font-size": 11, "text-anchor": "end"
+      x: plotLeft - 10, y: 18, "font-size": 11, "text-anchor": "end"
     }, ["x2"]));
   }
 
@@ -745,6 +717,7 @@
 
     function renderPrediction() {
       predictionButtons.forEach(function (item) {
+        item.node.disabled = revealed;
         item.node.setAttribute(
           "aria-pressed",
           prediction[item.key] === item.value ? "true" : "false"
@@ -771,6 +744,7 @@
       };
       revealed = false;
       buildGate();
+      predictionButtons[0].node.focus();
       announce(api, root, "已重置；请重新完成四个预测。");
     }
 
@@ -851,8 +825,9 @@
         var correct = Object.keys(answers).reduce(function (total, key) {
           return total + (prediction[key] === answers[key] ? 1 : 0);
         }, 0);
-        refs.gateFeedback.textContent = "预测已提交，" + correct + "/4 命中。下方显示精确奇异值、几何交点和误差账本。";
+        refs.gateFeedback.textContent = "预测已提交，" + correct + "/4 命中。下方显示解析奇异值的近似求值、几何交点和误差账本。";
         refs.gateFeedback.className = "lc-feedback " + (correct === 4 ? "lc-pass" : "lc-warn");
+        refs.revealedPanel.focus();
         announce(api, root, "预测已提交，参数、几何和误差账本已揭示。");
       });
 
@@ -906,7 +881,16 @@
       }, []);
       controls.appendChild(makeElement(doc, "h4", { id: uid + "-controls-title" }, ["揭示后的参数"]));
       refs.theta = addRangeControl(controls, "thetaDeg", "法向夹角 θ（度）", 2, 90, 0.5, function (value) { return format(value, 1); });
-      refs.perturbation = addRangeControl(controls, "perturbation", "相对右端扰动 ||δb||/||b||", 0.001, 0.03, 0.001, function (value) { return formatPercent(value); });
+      var perturbBox=makeElement(doc,"div",{className:"lc-control"},[]);
+      var perturbId=uid+"-perturbation";
+      var perturbOutput=makeElement(doc,"output",{},[]);
+      var perturbInput=makeElement(doc,"input",{id:perturbId,type:"range",min:"-18",max:"-1",step:"0.25","aria-label":"右端扰动十进制指数"},[]);
+      perturbInput.addEventListener("input",function(){state.perturbation=Math.pow(10,Number(perturbInput.value));state.presetId="custom";renderResults();});
+      perturbBox.appendChild(makeElement(doc,"label",{htmlFor:perturbId},["相对右端扰动 η=10^e；e 从 −18 到 −1：",perturbOutput]));
+      perturbBox.appendChild(perturbInput);
+      var zero=makeElement(doc,"button",{type:"button","aria-pressed":"false"},["切换零扰动"]);
+      zero.addEventListener("click",function(){state.perturbation=state.perturbation===0?DEFAULT.perturbation:0;state.presetId="custom";renderResults();});
+      perturbBox.appendChild(zero);controls.appendChild(perturbBox);refs.perturbation={input:perturbInput,output:perturbOutput,zero:zero};
       refs.xScale = addRangeControl(controls, "xScale", "真解整体尺度 s", 0.25, 2, 0.05, function (value) { return format(value, 2); });
 
       var directionSet = makeElement(doc, "fieldset", {}, [makeElement(doc, "legend", {}, ["扰动方向"]) ]);
@@ -985,15 +969,15 @@
         "aria-label": "两条直线交点与解漂移几何图"
       }, []);
       refs.svg = svg;
-      stage.appendChild(makeElement(doc, "div", { className: "lc-stage-frame" }, [
+      stage.appendChild(makeElement(doc, "div", { className: "lc-stage-frame", role:"region", tabindex:"0", "aria-label":"可滚动的交点几何图" }, [
         makeElement(doc, "div", { className: "lc-stage-title" }, [
           makeElement(doc, "span", { id: uid + "-stage-title" }, ["两条直线的交点几何"]),
           makeElement(doc, "span", {}, ["实线 b；虚线 b+δb"])
         ]),
         svg,
         makeElement(doc, "div", { className: "lc-legend" }, [
-          makeElement(doc, "span", {}, [makeElement(doc, "i", { className: "lc-swatch lc-swatch-blue" }, []), "第一行法向"]),
-          makeElement(doc, "span", {}, [makeElement(doc, "i", { className: "lc-swatch lc-swatch-gold" }, []), "第二行法向"]),
+          makeElement(doc, "span", {}, [makeElement(doc, "i", { className: "lc-swatch lc-swatch-blue" }, []), "第一条方程直线"]),
+          makeElement(doc, "span", {}, [makeElement(doc, "i", { className: "lc-swatch lc-swatch-gold" }, []), "第二条方程直线"]),
           makeElement(doc, "span", {}, [makeElement(doc, "i", { className: "lc-swatch lc-swatch-red" }, []), "解的漂移"])
         ])
       ]));
@@ -1008,12 +992,16 @@
       ];
       stage.appendChild(makeElement(doc, "div", { className: "lc-metrics" }, refs.metrics.map(function (item) { return item.node; })));
 
-      stage.appendChild(makeElement(doc, "h4", {}, ["精确向量账本"]));
+      stage.appendChild(makeElement(doc, "h4", {}, ["解析扰动账本"]));
       refs.vectorTable = makeTable(doc, "线性方程组向量账本", ["对象", "当前值", "恒等式 / 读法"]);
-      stage.appendChild(makeElement(doc, "div", { className: "lc-table-wrap" }, [refs.vectorTable]));
+      stage.appendChild(makeElement(doc, "div", { className: "lc-table-wrap", role:"region", tabindex:"0", "aria-label":"可滚动的解析向量表" }, [refs.vectorTable]));
       stage.appendChild(makeElement(doc, "h4", {}, ["残差、后向误差与前向误差"]));
-      refs.errorTable = makeTable(doc, "残差后向前向误差账本", ["账本项", "精确数值", "与 κ 的关系"]);
-      stage.appendChild(makeElement(doc, "div", { className: "lc-table-wrap" }, [refs.errorTable]));
+      refs.errorTable = makeTable(doc, "残差后向前向误差账本", ["账本项", "模型数值（双精度求值）", "与 κ 的关系"]);
+      stage.appendChild(makeElement(doc, "div", { className: "lc-table-wrap", role:"region", tabindex:"0", "aria-label":"可滚动的解析误差表" }, [refs.errorTable]));
+      stage.appendChild(makeElement(doc,"h4",{},["实际 binary64 求解：最后几位可能改变故事"]));
+      refs.actualTable=makeTable(doc,"实际浮点求解账本",["对象","实际数值","含义"]);
+      stage.appendChild(makeElement(doc,"div",{className:"lc-table-wrap",role:"region",tabindex:"0","aria-label":"可滚动的实际浮点表"},[refs.actualTable]));
+      stage.appendChild(makeElement(doc,"p",{className:"lc-note"},["上表是解析扰动模型的双精度求值；下表真正形成 b+δb 并做带部分选主元的2×2消元。很小的扰动可能在输入加法时就被舍掉。实际残差也用双精度计算，不能当作已认证的误差界。图中点太接近时会重合，请读数值。"]));
       refs.interpretation = makeElement(doc, "p", { className: "lc-interpretation", "aria-live": "polite" }, [""]);
       stage.appendChild(refs.interpretation);
       return stage;
@@ -1024,7 +1012,9 @@
       var data = compute(state);
       refs.theta.input.value = String(state.thetaDeg);
       refs.theta.output.textContent = format(state.thetaDeg, 1) + "°";
-      refs.perturbation.input.value = String(state.perturbation);
+      refs.perturbation.input.value = state.perturbation===0?"-18":String(Math.log10(state.perturbation));
+      refs.perturbation.input.disabled = state.perturbation===0;
+      refs.perturbation.zero.setAttribute("aria-pressed",String(state.perturbation===0));
       refs.perturbation.output.textContent = formatPercent(state.perturbation);
       refs.xScale.input.value = String(state.xScale);
       refs.xScale.output.textContent = format(state.xScale, 2);
@@ -1048,10 +1038,10 @@
       replaceTableRows(refs.vectorTable, [
         ["θ 与 A", format(data.thetaDeg, 2) + "°；[[1,0],[" + format(data.A[1][0], 6) + "," + format(data.A[1][1], 6) + "]]", "A 的两行法向夹角为 θ"],
         ["x*", formatVector(data.xTrue), xModeLabel(data.xMode) + "；保持不变"],
-        ["b=A x*", formatVector(data.b), "精确右端；||b||/||x*||=" + format(data.bOverX, 6)],
+        ["b=A x*", formatVector(data.b), "模型右端；||b||/||x*||=" + format(data.bOverX, 6)],
         ["δb", formatVector(data.deltaB), directionLabel(data.directionName) + "；||δb||/||b||=" + formatPercent(data.relativePerturbation)],
-        ["x_hat", formatVector(data.xHat), "解 A x_hat=b+δb"],
-        ["r=b-A x_hat", formatVector(data.residual), "逐分量 r=-δb；误差=" + format(data.residualIdentityError, 3)]
+        ["x_hat", formatVector(data.xHat), "x*+解析 δx；最后坐标加法仍会舍入"],
+        ["r=b-A x_hat", formatVector(data.residual), "模型 r=-δb；Aδx-δb 核算残差=" + format(data.residualIdentityError, 3)]
       ]);
 
       replaceTableRows(refs.errorTable, [
@@ -1065,22 +1055,31 @@
         ["κ 上界", formatPercent(data.conditionBound), "η_f ≤ κ₂(A)ρ；实际值可远低于上界"]
       ]);
 
+      replaceTableRows(refs.actualTable,[
+        ["实际形成的 δb",formatVector(data.realizedDeltaB),"fl(b+δb)-b；请求扰动相对损失="+formatPercent(data.inputRoundingLoss)],
+        ["浮点消元解",formatVector(data.actualX),"对存入的 A 与 fl(b+δb) 做部分选主元消元"],
+        ["实际相对前向误差",formatPercent(data.actualForwardError),"||x_float-x*||/||x*||；与模型值 "+formatPercent(data.forwardError)+" 分开"],
+        ["实际相对残差",formatPercent(data.actualRelativeResidual),"对原始 b：||fl(b-Ax_float)||/||b||"],
+        ["实际共同后向误差估计",formatPercent(data.actualBackwardError),"允许同时扰动A和b的2-范数模型；残差仍可能舍入"],
+        ["已存扰动系统求解残差",format(data.actualSolveResidual,6),"||fl(b_perturbed-Ax_float)||；0不证明不存在误差"]
+      ]);
       var directionText = data.directionName === "min"
-        ? "敏感方向接近 σmin，漂移明显。"
-        : "非敏感方向接近 σmax；同一个 κ 并没有强迫这次扰动达到最坏放大。";
+        ? "扰动沿最小左奇异方向；增益为1/σmin。"
+        : "扰动沿最大左奇异方向；同一个 κ 并没有强迫这次扰动达到最坏放大。";
       var scaleText = data.xMode === "small-b"
         ? "当前 ||b||/||x*|| 较小，所以只报 ||r||/||b|| 会改变直觉；要同时看 b/x 归一化。"
         : "当前真解取参考方向；整体尺度变化会同时改变绝对量，不能替代相对账本。";
       refs.interpretation.textContent =
         "θ=" + format(data.thetaDeg, 2) + "°，κ₂=" + format(data.spectrum.kappa, 5) + "；" +
-        directionText + " " + scaleText + " 精确核对：η_f=" + formatPercent(data.forwardError) +
-        "，κ₂ρ=" + formatPercent(data.conditionBound) + "。小残差只给出小后向误差，前向可信度还要结合问题条件、扰动方向与归一化。";
+        directionText + " " + scaleText + " 解析模型核对：η_f=" + formatPercent(data.forwardError) +
+        "，κ₂ρ=" + formatPercent(data.conditionBound) + "。小的归一化残差有助于判断后向误差；前向可信度还要结合条件数、扰动方向及实际浮点求解表。";
     }
 
     function buildRevealed() {
       buildGate();
-      var revealedPanel = makeElement(doc, "section", { className: "lc-revealed" }, []);
-      revealedPanel.appendChild(makeElement(doc, "h4", {}, ["结果与精确账本"]));
+      var revealedPanel = makeElement(doc, "section", { className: "lc-revealed", tabindex:"-1" }, []);
+      refs.revealedPanel = revealedPanel;
+      revealedPanel.appendChild(makeElement(doc, "h4", {}, ["理想模型与浮点求解"]));
       revealedPanel.appendChild(makeElement(doc, "p", { className: "lc-note" }, [
         "现在可连续调节 θ、扰动大小、扰动方向、真解尺度和真解方向；图表与账本保持揭示。"
       ]));
@@ -1095,6 +1094,7 @@
   }
 
   return {
+    drawGeometry: drawGeometry,
     DEFAULT: DEFAULT,
     PRESETS: PRESETS,
     matrix: matrix,

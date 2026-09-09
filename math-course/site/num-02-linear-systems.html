@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 05:18</div>
   </div>
 </nav>
 <main id="content">
@@ -54,15 +54,19 @@ try {
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#_1">学习层：小残差为什么不保证小前向误差？</a><ul>
-<li><a href="#1">1. 先预测，再看交点</a></li>
+<li><a href="#linear-conditioning-learning-title">1. 先预测，再看交点</a></li>
 <li><a href="#2">2. 条件数与稳定性要分账</a></li>
 <li><a href="#3">3. 动手核对：四个量必须同时出现</a></li>
+<li><a href="#4">4. 三道迁移题</a></li>
 </ul>
 </li>
 <li><a href="#1-gauss-lu">1. 直接法：Gauss 消元 = LU 分解</a></li>
 <li><a href="#2_1">2. 病态方程组：条件数的主战场</a></li>
 <li><a href="#3_1">3. 迭代法：大型稀疏的主场</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#4_1">4. 典型例题</a><ul>
+<li><a href="#_2">进一步阅读</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
@@ -74,8 +78,8 @@ try {
 
 <section aria-labelledby="linear-conditioning-learning-title" class="learning-layer">
 <h2 id="_1">学习层：小残差为什么不保证小前向误差？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测，再看交点<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>把二维方程组看成两条直线的交点。两条法向的夹角很大时，右端有一点移动，交点只会轻轻移动；法向几乎平行时，两条直线像两把很窄的剪刀，右端同样大小的移动可能把交点沿着一条长方向推得很远。</p>
+<h3 id="linear-conditioning-learning-title">1. 先预测，再看交点<a class="headerlink" href="#linear-conditioning-learning-title" title="Permanent link"></a></h3>
+<p>把二维方程组看成两条直线的交点。<strong>这里两行法向都已归一化为单位长度</strong>，才可以直接用夹角比较这个矩阵族的条件数；任意矩阵还要看行的尺度。两条法向的夹角很大时，右端有一点移动，交点只会轻轻移动；法向几乎平行时，两条直线像两把很窄的剪刀，右端同样大小的移动可能把交点沿着一条长方向推得很远。</p>
 <p>先回答实验台的四个问题：</p>
 <ol>
 <li>病态矩阵的敏感方向受到一个很小的右端扰动时，前向误差会不会远大于残差？</li>
@@ -83,7 +87,7 @@ try {
 <li>报告小残差后，还要把哪些条件数和归一化量带回来？</li>
 <li>部分选主元是在治愈问题，还是只是在约束算法的舍入路径？</li>
 </ol>
-<p>揭示前不显示数值参数、教学预设、图表或结果。提交后可以连续调节角度、扰动大小、扰动方向和真解尺度；“重新预测”会重新上锁。</p>
+<p>揭示前不显示数值参数、教学预设、图表或结果。提交后可以连续调节角度、扰动大小、扰动方向和真解尺度；“重新预测”会重新上锁。右端扰动可缩到 <span class="arithmatex">\(10^{-18}\)</span>，也可切成零；此时重点比较理想模型与实际形成右端、实际消元的两张账。</p>
 <div class="learning-lab" data-learning-lab="linear-conditioning">
 <p><strong>无 JavaScript 时的静态读法：</strong>令 <span class="arithmatex">\(0&lt;\theta\leq\pi/2\)</span>，</p>
 <div class="arithmatex">\[
@@ -99,9 +103,10 @@ A^\mathsf{T}A=\begin{pmatrix}1+\cos^2\theta&amp;\cos\theta\sin\theta\\
 <p>其特征值为 <span class="arithmatex">\(1+\cos\theta\)</span> 与 <span class="arithmatex">\(1-\cos\theta\)</span>，所以</p>
 <div class="arithmatex">\[
 \sigma_{\max}=\sqrt{1+\cos\theta},\qquad
-\sigma_{\min}=\sqrt{1-\cos\theta},\qquad
+\sigma_{\min}=\sqrt{1-\cos\theta}=\sqrt2\sin(\theta/2),\qquad
 \kappa_2(A)=\frac{\sigma_{\max}}{\sigma_{\min}}=\cot\frac\theta2.
 \]</div>
+<p>计算很小的 <span class="arithmatex">\(\theta\)</span> 时采用半角式，避免先算 <span class="arithmatex">\(1-\cos\theta\)</span> 发生相消。矩阵族在 <span class="arithmatex">\(\theta&gt;0\)</span> 时可逆；一个不稳定表达式算出 0，不等于数学上的奇异。</p>
 <p>取左奇异向量 <span class="arithmatex">\(u_{\min}=(-1,1)^\mathsf{T}/\sqrt2\)</span>，令 <span class="arithmatex">\(\delta b=\eta\|b\|_2u_{\min}\)</span>，例如 <span class="arithmatex">\(\eta=0.01\)</span>。若 <span class="arithmatex">\(\widehat x\)</span> 精确解的是 <span class="arithmatex">\(A\widehat x=b+\delta b\)</span>，那么</p>
 <div class="arithmatex">\[
 r=b-A\widehat x=-\delta b,
@@ -112,7 +117,7 @@ r=b-A\widehat x=-\delta b,
 <div class="arithmatex">\[
 \frac{\|\widehat x-x^*\|_2}{\|x^*\|_2}
 =\rho\,\frac{\|b\|_2}{\|x^*\|_2}
-\frac{\|A^{-1}u\|_2}{1}.
+\|A^{-1}u\|_2.
 \]</div>
 <p>敏感方向给出 <span class="arithmatex">\(\|A^{-1}u_{\min}\|_2=1/\sigma_{\min}\)</span>；非敏感方向则接近 <span class="arithmatex">\(1/\sigma_{\max}\)</span>。因此 <span class="arithmatex">\(\kappa_2\)</span> 是 2-范数下的最坏方向因子和上界尺度，不是每一次扰动都会正好放大 <span class="arithmatex">\(\kappa_2\)</span> 倍。<span class="arithmatex">\(\|b\|/\|x^*\|\)</span>、扰动方向和绝对/相对缩放都会进入残差到前向误差的换算。</p>
 <table>
@@ -161,11 +166,11 @@ r=b-A\widehat x=-\delta b,
 </tr>
 </tbody>
 </table>
-<p>两条原始直线是 <span class="arithmatex">\(x_1=b_1\)</span> 与 <span class="arithmatex">\(\cos\theta\,x_1+\sin\theta\,x_2=b_2\)</span>；虚线把右端换成 <span class="arithmatex">\(b+\delta b\)</span>。绿色点为 <span class="arithmatex">\(x^*\)</span>，红色点为 <span class="arithmatex">\(\widehat x\)</span>。脚本可用时，图旁的表格还会列出 <span class="arithmatex">\(\|r\|/\|b\|\)</span>、标准后向误差、相对前向误差、<span class="arithmatex">\(\kappa\rho\)</span> 上界和精确恒等式。</p>
+<p>两条原始直线是 <span class="arithmatex">\(x_1=b_1\)</span> 与 <span class="arithmatex">\(\cos\theta\,x_1+\sin\theta\,x_2=b_2\)</span>；虚线把右端换成 <span class="arithmatex">\(b+\delta b\)</span>。绿色圈为 <span class="arithmatex">\(x^*\)</span>，红色点为 <span class="arithmatex">\(\widehat x\)</span>。脚本可用时，表格还会列出 <span class="arithmatex">\(\|r\|/\|b\|\)</span>、标准后向误差、相对前向误差、<span class="arithmatex">\(\kappa\rho\)</span> 上界和精确恒等式。</p>
 </div>
 <h3 id="2">2. 条件数与稳定性要分账<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p><strong>问题条件性</strong>问：输入稍微改变，精确答案会改变多少？对满秩方阵，<span class="arithmatex">\(\kappa_2(A)=\|A\|_2\|A^{-1}\|_2\)</span>；它属于问题本身。<strong>算法稳定性</strong>问：舍入误差是否可以解释为某个邻近问题的误差？部分选主元通常改善 LU 的后向稳定性，却不改变 <span class="arithmatex">\(\kappa_2(A)\)</span>；它不能把几乎平行的两条直线变成直角。</p>
-<p>因此“小残差”首先说明后向误差小，不能单独推出小前向误差。对精确的 <span class="arithmatex">\(A\)</span> 和 <span class="arithmatex">\(b\)</span> 扰动，常用相对上界是</p>
+<p>因此，<strong>残差必须带归一化尺度</strong>：一个小的绝对数，未必是相对于这个问题的小扰动。小的归一化后向误差也不能单独推出小前向误差。对精确的 <span class="arithmatex">\(A\)</span> 和 <span class="arithmatex">\(b\)</span> 扰动，常用相对上界是</p>
 <div class="arithmatex">\[
 \frac{\|\widehat x-x\|_2}{\|x\|_2}
 \leq \kappa_2(A)\frac{\|\delta b\|_2}{\|b\|_2},
@@ -181,21 +186,39 @@ r=b-A\widehat x=-\delta b,
 \qquad
 \eta_f=\frac{\|\widehat x-x^*\|_2}{\|x^*\|_2}.
 \]</div>
-<p>对本 toy，<span class="arithmatex">\(r=-\delta b\)</span> 和 <span class="arithmatex">\(\delta x=A^{-1}\delta b\)</span> 是可直接验算的恒等式；所以不是“看曲线猜病态”，而是把原始残差、标准后向误差、方向增益、<span class="arithmatex">\(\|b\|/\|x^*\|\)</span> 与前向误差逐项对齐。若换成扰动 <span class="arithmatex">\(\delta A\)</span>，还要把 <span class="arithmatex">\(\|\delta A\|/\|A\|\)</span> 加入条件误差预算。</p>
+<p>这些是实数模型的恒等式；实验先用奇异方向独立计算 <span class="arithmatex">\(\delta x\)</span> 与方向增益，再近似求值，不用已经算出的前向误差反过来定义增益。第二张实际计算表则真正形成 <span class="arithmatex">\(\operatorname{fl}(b+\delta b)\)</span> 并做部分选主元消元。</p>
+<p>当请求扰动低于右端的浮点间距时，它可能在加法中消失。此时机器前向误差为 0，并不推翻解析模型中非零的 <span class="arithmatex">\(\delta x\)</span>：<strong>机器已经在求另一个输入问题</strong>。实际残差也会舍入，显示为 0 不自动成为精确性证书。</p>
+<h3 id="4">4. 三道迁移题<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p><strong>题 1：残差怎样掩盖前向误差？</strong>令 <span class="arithmatex">\(A=\operatorname{diag}(1,\epsilon)\)</span>，<span class="arithmatex">\(0&lt;\epsilon&lt;1\)</span>，<span class="arithmatex">\(x^*=(1,0)^\mathsf T\)</span>，<span class="arithmatex">\(\widehat x=(1,1)^\mathsf T\)</span>。计算条件数、相对残差和相对前向误差。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(b=(1,0)^\mathsf T\)</span>，<span class="arithmatex">\(r=b-A\widehat x=(0,-\epsilon)^\mathsf T\)</span>。于是 <span class="arithmatex">\(\kappa_2(A)=1/\epsilon\)</span>，<span class="arithmatex">\(\rho=\epsilon\)</span>，前向误差为 1，恰达到 <span class="arithmatex">\(\kappa_2\rho=1\)</span>。共同后向误差是 <span class="arithmatex">\(\epsilon/(\sqrt2+1)\)</span>。任意小的 <span class="arithmatex">\(\epsilon\)</span> 都能产生小相对残差而不产生小前向误差。</p>
+</details>
+<p><strong>题 2：SPD 是否足以让 Jacobi 收敛？</strong>考虑三阶矩阵，对角元都为 1，非对角元都为 <span class="arithmatex">\(3/4\)</span>。判断正定性与 Jacobi 收敛性。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(A=\frac14I+\frac34\mathbf1\mathbf1^\mathsf T\)</span>，特征值为 <span class="arithmatex">\(5/2,1/4,1/4\)</span>，故 SPD。Jacobi 的 <span class="arithmatex">\(D=I\)</span>，<span class="arithmatex">\(G_J=I-A\)</span> 的特征值为 <span class="arithmatex">\(-3/2,3/4,3/4\)</span>，谱半径 <span class="arithmatex">\(3/2&gt;1\)</span>，不能对所有初值收敛。SPD 保证 Gauss–Seidel 收敛，并不自动保证 Jacobi。</p>
+</details>
+<p><strong>题 3：预条件器为什么要放在两边？</strong>取 SPD 矩阵 <span class="arithmatex">\(A,M\)</span>，解释为什么 <span class="arithmatex">\(M^{-1}A\)</span> 一般不对称，却仍可以用标准 PCG；应使用哪一个条件数？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>令 <span class="arithmatex">\(x=M^{-1/2}z\)</span>，则系统化为 <span class="arithmatex">\(Bz=M^{-1/2}b\)</span>，其中 <span class="arithmatex">\(B=M^{-1/2}AM^{-1/2}\)</span> 为 SPD。<span class="arithmatex">\(M^{-1}A=M^{-1/2}BM^{1/2}\)</span> 与 <span class="arithmatex">\(B\)</span> 相似，谱为正，但它的一般欧氏奇异值条件数不应直接塞进标准 CG 能量范数界。PCG 对应这个对称变换，界使用 <span class="arithmatex">\(\kappa_2(B)=\lambda_{\max}(B)/\lambda_{\min}(B)\)</span>。</p>
+</details>
 </section>
 <h2 id="1-gauss-lu">1. 直接法：Gauss 消元 = LU 分解<a class="headerlink" href="#1-gauss-lu" title="Permanent link"></a></h2>
 <p>高代中的消元过程，矩阵语言重述为</p>
 <div class="arithmatex">\[
-A=LU\quad(L\text{ 单位下三角},\ U\text{ 上三角}),
+PA=LU\quad(P\text{ 为行置换},\ L\text{ 单位下三角},\ U\text{ 上三角}),
 \]</div>
-<p>然后解两次三角系统：<span class="arithmatex">\(Ly=b\)</span>（前代）、<span class="arithmatex">\(Ux=y\)</span>（回代）。以下统一按“一次乘法或加法计 1 flop”计成本：稠密 LU 分解约为 <span class="arithmatex">\(\frac23n^3\)</span> flops，每个右端的两次三角解约为 <span class="arithmatex">\(2n^2\)</span> flops；选主元的比较、交换是 <span class="arithmatex">\(O(n^2)\)</span> 的低阶开销。<strong>同一 <span class="arithmatex">\(A\)</span> 有多个右端时只做一次分解</strong>，不要先求 <span class="arithmatex">\(A^{-1}\)</span> 再乘 <span class="arithmatex">\(b\)</span>。</p>
+<p>可逆矩阵在精确算术中可用行选主元得到上述分解。不交换行的标准无零主元 LU，需要各阶顺序主子式非零，不能只由 <span class="arithmatex">\(A\)</span> 可逆就断言它存在。然后解两次三角系统：<span class="arithmatex">\(Ly=Pb\)</span>（前代）、<span class="arithmatex">\(Ux=y\)</span>（回代）。以下统一按“一次乘法或加法计 1 flop”计成本：稠密 LU 分解约为 <span class="arithmatex">\(\frac23n^3\)</span> flops，每个右端的两次三角解约为 <span class="arithmatex">\(2n^2\)</span> flops；选主元的比较、交换是 <span class="arithmatex">\(O(n^2)\)</span> 的低阶开销。<strong>同一 <span class="arithmatex">\(A\)</span> 有多个右端时只做一次分解</strong>，不要先求 <span class="arithmatex">\(A^{-1}\)</span> 再乘 <span class="arithmatex">\(b\)</span>。</p>
 <p>Cramer 法则没有一个脱离实现的唯一复杂度：若每个替换行列式都用 Laplace/余子式展开，<span class="arithmatex">\(n\)</span> 个行列式是 <span class="arithmatex">\(O(n\,n!)\)</span> 级别；若用消元来算每个行列式，也约为 <span class="arithmatex">\(O(n^4)\)</span>。两种口径都比一次 LU 加回代差，而且 Cramer 的行列式相减也可能带来严重舍入误差，所以它适合证明存在性和小规模手算，不适合作为数值求解器。</p>
 <p><strong>选主元为什么不可省。</strong>若主元很小，消元乘数会很大，舍入误差可能沿后续运算放大。部分选主元在每列把绝对值最大的候选行换到主元位置，通常显著改善 LU 的算法稳定性；它改变的是计算路径，不改变问题的 <span class="arithmatex">\(\kappa(A)\)</span>。即使 LU 后向稳定，病态问题仍可能有大的前向误差。</p>
+<p>部分选主元使消元乘数绝对值不超过 1，却不保证所有中间元素都小。增长因子定义为消元过程中最大元素绝对值与原矩阵最大元素绝对值之比；它进入舍入误差界。最坏情形可达 <span class="arithmatex">\(2^{n-1}\)</span>，所以“实际中通常可靠”不能升级成无条件、与问题规模无关的稳定保证。</p>
 <p><strong>对称正定的特权（Cholesky）。</strong>若 <span class="arithmatex">\(A=A^\mathsf{T}\)</span> 且 <span class="arithmatex">\(x^\mathsf{T}Ax&gt;0\)</span>（所有非零 <span class="arithmatex">\(x\)</span>），则</p>
 <div class="arithmatex">\[
 A=LL^\mathsf{T}.
 \]</div>
-<p>实稠密 Cholesky 分解约为 <span class="arithmatex">\(\frac13n^3\)</span> flops，约是 LU 主项的一半；每个右端仍需约 <span class="arithmatex">\(2n^2\)</span> flops 的三角解。SPD 前提成立时无需一般 LU 那样选主元，算法在通常舍入模型下后向稳定；“分解出现正对角元”是实务中的正定诊断，但不是把任意对称矩阵都变成 SPD 的魔法。</p>
+<p>实稠密 Cholesky 分解约为 <span class="arithmatex">\(\frac13n^3\)</span> flops，约是 LU 主项的一半；每个右端仍需约 <span class="arithmatex">\(2n^2\)</span> flops 的三角解。SPD 前提成立时无需一般 LU 那样选主元，在正常完成、无溢出等标准条件下有后向稳定性结论；非常接近奇异的输入仍可能因舍入出现非正主元而中断；“分解出现正对角元”是实务中的正定诊断，但不是把任意对称矩阵都变成 SPD 的魔法。</p>
 <p>正规方程要特别小心。满列秩 <span class="arithmatex">\(A\)</span> 时 <span class="arithmatex">\(A^\mathsf{T}A\)</span> 是 SPD，可以 Cholesky，但在 2-范数下</p>
 <div class="arithmatex">\[
 \kappa_2(A^\mathsf{T}A)=
@@ -205,21 +228,43 @@ A=LL^\mathsf{T}.
 <p>所以最小二乘通常优先 QR 或 SVD，而不是为了省一步直接形成 <span class="arithmatex">\(A^\mathsf{T}A\)</span>。</p>
 <h2 id="2_1">2. 病态方程组：条件数的主战场<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="良态与病态方程组的几何" src="assets/img/num-02-condition.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>条件数的几何：良态方程组两直线交点清晰；病态方程组的两条法向近乎平行，右端微扰会让交点沿敏感方向漂移。学习层实验给出同一几何的可调精确账本。</figcaption>
+<div role="region" tabindex="0" aria-label="可横向滚动的方程交点静态图" style="overflow-x:auto"><img src="assets/img/num-02-condition.svg" alt="单位行法向角度90度与5度的方程交点，在相同相对右端扰动下的真实漂移" style="min-width:1100px"></div>
+<figcaption><span class="fig-id">图 num-02.1</span>条件数的几何：良态方程组两直线交点清晰；病态方程组的两条法向近乎平行，右端微扰会让交点沿敏感方向漂移。学习层实验给出同一几何的可调精确账本。</figcaption>
 </figure>
+
 <p><strong>矩阵条件数</strong></p>
 <div class="arithmatex">\[
 \kappa(A)=\|A\|\,\|A^{-1}\|,
 \qquad
 \kappa_2(A)=\frac{\sigma_{\max}(A)}{\sigma_{\min}(A)}
 \]</div>
-<p>（可逆时）。它是输入到输出的最坏相对敏感度；对线性映射的 2-范数，最坏方向正好由最小奇异向量给出。一般带 <span class="arithmatex">\(\delta A,\delta b\)</span> 的前向误差公式是条件数乘输入相对扰动的一阶/上界量，具体实例还会受扰动方向、<span class="arithmatex">\(\|b\|/\|x\|\)</span> 和归一化方式影响。</p>
+<p>（可逆时）。它给出 2-范数下对所有右端的最坏相对放大上界。固定 <span class="arithmatex">\(A,b\)</span> 后，右端问题的实际局部相对条件数为 <span class="arithmatex">\(\|A^{-1}\|_2\|b\|_2/\|x\|_2\)</span>，可能严格小于 <span class="arithmatex">\(\kappa_2(A)\)</span>；绝对求解增益最大的扰动方向是最小<strong>左</strong>奇异方向。一般带 <span class="arithmatex">\(\delta A,\delta b\)</span> 的前向误差公式是条件数乘输入相对扰动的一阶/上界量，具体实例还会受扰动方向、<span class="arithmatex">\(\|b\|/\|x\|\)</span> 和归一化方式影响。</p>
 <p>对任意近似解 <span class="arithmatex">\(\widehat x\)</span>，先定义残差</p>
 <div class="arithmatex">\[
 r=b-A\widehat x.
 \]</div>
 <p>小 <span class="arithmatex">\(\|r\|\)</span> 说明 <span class="arithmatex">\(\widehat x\)</span> 是某个邻近右端问题的精确解，不能独立证明 <span class="arithmatex">\(\widehat x\)</span> 接近原问题的 <span class="arithmatex">\(x\)</span>。规范的诊断顺序是：先报告 <span class="arithmatex">\(\|r\|/\|b\|\)</span> 或标准后向误差，再结合 <span class="arithmatex">\(\kappa(A)\)</span>、输入尺度和目标前向误差；不能用“残差小”一句话代替条件性检查。</p>
+<p><strong>共同范数后向误差为什么是这个分母？</strong>固定非零 <span class="arithmatex">\(b\)</span> 和可逆 <span class="arithmatex">\(A\)</span>，允许同时改变矩阵和右端，定义</p>
+<div class="arithmatex">\[
+\eta=\min\left\{\epsilon\ge0:
+(A+E)\widehat x=b+f,\quad
+\|E\|_2\le\epsilon\|A\|_2,\
+\|f\|_2\le\epsilon\|b\|_2\right\}.
+\]</div>
+<p>由 <span class="arithmatex">\(r=E\widehat x-f\)</span> 与三角不等式得到下界
+[
+\eta\ge\frac{|r|_2}{|A|_2|\widehat x|_2+|b|_2}.
+]
+若 <span class="arithmatex">\(r,\widehat x\ne0\)</span>，令 <span class="arithmatex">\(u=r/\|r\|\)</span>、<span class="arithmatex">\(v=\widehat x/\|\widehat x\|\)</span>，以上式右端作为 <span class="arithmatex">\(\eta\)</span>，取
+<span class="arithmatex">\(E=\eta\|A\|_2uv^\mathsf T\)</span>、<span class="arithmatex">\(f=-\eta\|b\|_2u\)</span>，便达到等号。<span class="arithmatex">\(r=0\)</span> 时取零扰动；<span class="arithmatex">\(\widehat x=0\)</span> 时取 <span class="arithmatex">\(E=0,f=-b\)</span>，仍成立。若只允许改 <span class="arithmatex">\(b\)</span>，答案则是 <span class="arithmatex">\(\|r\|/\|b\|\)</span>，不能混用。</p>
+<p>若真输入同时有相对扰动 <span class="arithmatex">\(\epsilon_A=\|\delta A\|/\|A\|\)</span>、<span class="arithmatex">\(\epsilon_b=\|\delta b\|/\|b\|\)</span>，且 <span class="arithmatex">\(\kappa(A)\epsilon_A&lt;1\)</span>，从
+<span class="arithmatex">\((A+\delta A)\delta x=\delta b-\delta A x\)</span> 和逆矩阵扰动界可得
+[
+\frac{|\delta x|}{|x|}
+\le\frac{\kappa(A)}{1-\kappa(A)\epsilon_A}
+(\epsilon_A+\epsilon_b).
+]
+分母条件不能省；“条件数乘输入误差”是它的一阶近似形式。</p>
 <p>经典例子是 Hilbert 矩阵 <span class="arithmatex">\(h_{ij}=1/(i+j-1)\)</span>。它在较大阶数时极端病态，正规方程还会把条件数平方；这正是多项式拟合应优先使用正交基、QR 或 SVD 的数值理由。统计中的共线性、优化中的狭长谷底和这里的近乎平行直线，都是同一敏感度结构的不同外观。</p>
 <h2 id="3_1">3. 迭代法：大型稀疏的主场<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p><strong>分裂法框架：</strong><span class="arithmatex">\(A=M-N\)</span>，于是</p>
@@ -227,7 +272,8 @@ r=b-A\widehat x.
 x^{(k+1)}=M^{-1}N x^{(k)}+M^{-1}b,
 \qquad G=M^{-1}N.
 \]</div>
-<p>在 <span class="arithmatex">\(M\)</span> 可逆且使用固定线性迭代的前提下，收敛的充要条件是 <span class="arithmatex">\(\rho(G)&lt;1\)</span>；误差满足 <span class="arithmatex">\(e^{(k)}=G^k e^{(0)}\)</span>。<span class="arithmatex">\(\rho(G)\)</span> 越小，渐近收敛越快，但这不是说每一步都简单地乘上同一个标量。</p>
+<p>在 <span class="arithmatex">\(M\)</span> 可逆且使用固定线性迭代的前提下，<strong>对任意初值都收敛到唯一解</strong>的充要条件是 <span class="arithmatex">\(\rho(G)&lt;1\)</span>；误差满足 <span class="arithmatex">\(e^{(k)}=G^k e^{(0)}\)</span>。<span class="arithmatex">\(\rho(G)\)</span> 越小，渐近收敛越快，但这不是说每一步都简单地乘上同一个标量。</p>
+<p>以下约定 <span class="arithmatex">\(A=D-L-U\)</span>，所以 <span class="arithmatex">\(L,U\)</span> 分别是原矩阵严格下、上三角部分的负值。</p>
 <table>
 <thead>
 <tr>
@@ -249,8 +295,8 @@ x^{(k+1)}=M^{-1}N x^{(k)}+M^{-1}b,
 </tr>
 <tr>
 <td>SOR</td>
-<td>GS 加松弛因子 <span class="arithmatex">\(\omega\)</span></td>
-<td>需要合适的 <span class="arithmatex">\(\omega\)</span> 和相应收敛条件，不能把“调好后很快”当成无条件定理</td>
+<td><span class="arithmatex">\(D/\omega-L\)</span></td>
+<td>对 SPD 矩阵，<span class="arithmatex">\(0&lt;\omega&lt;2\)</span> 保证收敛；其他矩阵需另查条件</td>
 </tr>
 </tbody>
 </table>
@@ -258,15 +304,16 @@ x^{(k+1)}=M^{-1}N x^{(k)}+M^{-1}b,
 <div class="arithmatex">\[
 \min_x\ \frac12x^\mathsf{T}Ax-b^\mathsf{T}x
 \]</div>
-<p>上做 <span class="arithmatex">\(A\)</span>-共轭方向搜索，因此要求 <span class="arithmatex">\(A=A^\mathsf{T}\succ0\)</span>。精确算术中至多 <span class="arithmatex">\(n\)</span> 步得到精确解；浮点运算中通常是近似收敛。经典能量范数界为</p>
+<p>上做 <span class="arithmatex">\(A\)</span>-共轭方向搜索，因此要求 <span class="arithmatex">\(A=A^\mathsf{T}\succ0\)</span>。精确算术中至多 <span class="arithmatex">\(n\)</span> 步得到精确解（也可能更早终止）；浮点运算中通常是近似收敛。对尚未精确终止且 <span class="arithmatex">\(e_0\ne0\)</span> 的迭代，经典能量范数界（<span class="arithmatex">\(k\ge1\)</span>）为</p>
 <div class="arithmatex">\[
 \frac{\|e_k\|_A}{\|e_0\|_A}
 \leq
 2\left(\frac{\sqrt{\kappa_2(A)}-1}{\sqrt{\kappa_2(A)}+1}\right)^k.
 \]</div>
-<p>稀疏矩阵每步主要成本是一次矩阵乘向量 <span class="arithmatex">\(O(\mathrm{nnz})\)</span>；预条件器 <span class="arithmatex">\(M\approx A\)</span> 通过改变有效谱来压低预条件系统的条件数，但必须满足相应的 SPD/可解前提。对一般非对称矩阵，改看 GMRES 等方法，不能直接套 CG 的结论。</p>
+<p>稀疏矩阵每步主要成本是一次矩阵乘向量 <span class="arithmatex">\(O(\mathrm{nnz})\)</span>；若采用固定 SPD 预条件器 <span class="arithmatex">\(M\)</span>，PCG 对应 <span class="arithmatex">\(M^{-1/2}AM^{-1/2}\)</span> 上的 CG；应看该对称算子的谱与条件数，并计算每步求解 <span class="arithmatex">\(Mz=r\)</span> 的成本。预条件器不一定改善条件数，更不保证总时间更短；还要计入构造、应用与存储成本。对一般非对称矩阵，改看 GMRES 等方法，不能直接套 CG 的结论。</p>
+<p><strong>迭代改进的入口。</strong>先用已有分解求近似解，再以更高精度计算残差，解修正方程并更新解。这能在适当条件下提升精度，关键是残差精度、分解误差与收敛条件，不能仅把“多做几遍”当成保证。它直接连接下一步的混合精度数值计算。</p>
 <p><strong>选型速查：</strong>中小稠密一般矩阵 → 部分选主元 LU；SPD 稠密 → Cholesky；大型稀疏 SPD → CG 加预条件；大型稀疏一般矩阵 → GMRES 一族。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（选主元的必要性，手算级）。</strong></p>
 <div class="arithmatex">\[
 \begin{pmatrix}10^{-8}&amp;1\\1&amp;1\end{pmatrix}x=
@@ -285,6 +332,12 @@ G_J=\begin{pmatrix}0&amp;-1/4\\-2/3&amp;0\end{pmatrix},
 A=\begin{pmatrix}1&amp;1\\1&amp;1.0001\end{pmatrix}
 \]</div>
 <p>的两行法向几乎平行，<span class="arithmatex">\(\kappa\)</span> 约为 <span class="arithmatex">\(4\times10^4\)</span>。这意味着某些方向上的输入相对扰动可能被放大到 <span class="arithmatex">\(10^4\)</span> 量级；它不是说任何 <span class="arithmatex">\(b\)</span> 的第 4 位小数都会必然改写答案的第 1 位，也不是说一个稳定的 LU 算法能消除这种问题条件性。<span class="arithmatex">\(\blacksquare\)</span></p>
+<h3 id="_2">进一步阅读<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ul>
+<li><a href="https://www.netlib.org/lapack/lug/node81.html">LAPACK Users’ Guide：线性方程组误差界</a>：区别范数后向误差、分量后向误差与前向误差估计；其范数公式以无穷范数说明，本页单独推导了 2-范数版本。</li>
+<li><a href="https://nhigham.com/2020/07/14/what-is-the-growth-factor-for-gaussian-elimination/">Higham：消元的增长因子</a>：部分选主元为何通常有效，以及最坏情形的边界。</li>
+<li><a href="https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf">Shewchuk：共轭梯度导论</a>：共轭方向、能量范数与预条件的几何推导。</li>
+</ul>
 <hr />
 <p><em>下一页：非线性方程求根（Newton 法的主场）与“用简单函数逼近复杂函数”——插值与拟合。</em></p>
 </article>
