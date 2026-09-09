@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 07:42</div>
   </div>
 </nav>
 <main id="content">
@@ -60,11 +60,24 @@ try {
 <li><a href="#4">4. 定理边界与迁移</a></li>
 </ul>
 </li>
-<li><a href="#1-markov">1. Markov 性与转移矩阵</a></li>
-<li><a href="#2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov</a></li>
-<li><a href="#3_1">3. 状态分类：链的解剖学</a></li>
-<li><a href="#4_1">4. 首达概率与吸收问题</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#1">1. 状态要记住多少过去？</a></li>
+<li><a href="#2_1">2. 从路径求和到矩阵幂</a></li>
+<li><a href="#3_1">3. 可达、闭类、返回与周期</a><ul>
+<li><a href="#31">3.1 返回必须排除第零步</a></li>
+<li><a href="#32">3.2 周期是所有返回步数的最大公约数</a></li>
+<li><a href="#33">3.3 无限空间的边界：对称随机游走</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 一步分析：首达概率与首达时间</a><ul>
+<li><a href="#41">4.1 赌徒破产：把条件和量级写完整</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 例题：把图、方程与答案连起来</a><ul>
+<li><a href="#1_1">练习 1：周期链真的每次都振荡吗？</a></li>
+<li><a href="#2-tv">练习 2：为什么不能直接宣布 TV 等于谱模的幂？</a></li>
+<li><a href="#3_2">练习 3：由访问次数矩阵求吸收时间</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
@@ -124,66 +137,183 @@ try {
 </table>
 <p>第一行给出一个精确的谱对账：非平凡特征值的模为 <span class="arithmatex">\(0.5\)</span>，而从 <span class="arithmatex">\(\delta_0\)</span> 出发的 TV 恰为 <span class="arithmatex">\(0.4\cdot|0.5|^t\)</span>。第二行的 <span class="arithmatex">\(-1\)</span> 不衰减，所以“有平稳分布”不推出点态分布收敛。第三行甚至没有唯一的全局平稳分布；<span class="arithmatex">\(P^t\)</span> 仍然可以精确算出，但它不能凭空制造不可约性。</p>
 <h3 id="3">3. 账本的四层读法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>对任意行分布 <span class="arithmatex">\(\mu_0\)</span>，实验逐项列出</p>
+<p>数学上对任意初始行分布 <span class="arithmatex">\(\mu_0\)</span> 都有以下关系；实验可选各个点质量 <span class="arithmatex">\(\delta_i\)</span>，以及当前选定的平稳分布 <span class="arithmatex">\(\pi\)</span>，逐项列出</p>
 <div class="arithmatex">\[
 P^t,\qquad \mu_t=\mu_0P^t,\qquad
 \operatorname{TV}(\mu_t,\pi)=\frac12\sum_i|(\mu_t)_i-\pi_i|,\qquad
 \|\pi P-\pi\|_1.
 \]</div>
-<p>谱栏报告 <span class="arithmatex">\(P\)</span> 的特征值和非平凡谱模 <span class="arithmatex">\(\rho_\star=\max_{j\ge2}|\lambda_j|\)</span>，并把 <span class="arithmatex">\(\rho_\star^t\)</span> 与当前 TV 放在一起。对第一张二维模型，二者给出精确等式；一般链中谱信息需要结合可逆性、范数和初始分布等假设，不能把一个 <span class="arithmatex">\(\rho_\star^t\)</span> 数字自动宣称为所有 TV 的等号。平稳残差接近零只说明所选 <span class="arithmatex">\(\pi\)</span> 解了平稳方程；不可约、非周期和可约证书仍要另行报告。</p>
+<p>实验直接计算有限矩阵幂，展示的是整个概率分布，并非一条随机样本轨道；数值含浮点舍入。结构判断则把每个严格正的转移概率作为一条边，不能因概率很小就删去它。</p>
+<p>谱栏报告 <span class="arithmatex">\(P\)</span> 的特征值和非平凡谱模 <span class="arithmatex">\(\rho_\star=\max_{j\ge2}|\lambda_j|\)</span>，并把 <span class="arithmatex">\(\rho_\star^t\)</span> 与当前 TV 放在一起。对第一张二维模型，精确关系是 <span class="arithmatex">\(\mathrm{TV}(\mu_t,\pi)=\mathrm{TV}(\mu_0,\pi)\rho_\star^t\)</span>，从 <span class="arithmatex">\(\delta_0\)</span> 出发的系数是 <span class="arithmatex">\(0.4\)</span>，从 <span class="arithmatex">\(\delta_1\)</span> 出发是 <span class="arithmatex">\(0.6\)</span>，从 <span class="arithmatex">\(\pi\)</span> 出发则为 <span class="arithmatex">\(0\)</span>；一般链中谱信息需要结合可逆性、范数和初始分布等假设，不能把一个 <span class="arithmatex">\(\rho_\star^t\)</span> 数字自动宣称为所有 TV 的等号。平稳残差接近零只说明概率向量在数值精度内满足平稳方程，不能代替精确证明；不可约、非周期和可约证书仍要另行报告。</p>
 <h3 id="4">4. 定理边界与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
 <li><strong>有限 + 不可约</strong>给唯一平稳分布；再加<strong>非周期</strong>才得到从任意初态到 <span class="arithmatex">\(\pi\)</span> 的分布收敛。周期链的 Cesàro 平均可以收敛，但逐步分布可能振荡。</li>
+<li>上述不可约条件是一个方便的<strong>充分条件</strong>，并非所有初态趋同一极限的必要条件。例如 <span class="arithmatex">\(P=\begin{pmatrix}1&amp;0\\1&amp;0\end{pmatrix}\)</span> 可约，但一步后所有初态都到 <span class="arithmatex">\(\delta_0\)</span>。周期链从 <span class="arithmatex">\(\pi\)</span> 出发也会始终平稳；“可能振荡”不是“每个初态必振荡”。</li>
 <li><strong>可约</strong>时应先拆互通类和闭类。平稳分布可以有多个，瞬态类的质量会流向闭类；“看起来收敛”的一条初始轨迹不是唯一性证书。</li>
 <li>对无限状态空间，常返/正常返、平稳分布存在性和混合还要另加条件；本实验的有限矩阵不替代那些定理。</li>
 <li><span class="arithmatex">\(\pi P=\pi\)</span> 是不变性方程，不是“链已经跑了很久”的经验拟合；<span class="arithmatex">\(P^t\)</span> 的每一行和为 <span class="arithmatex">\(1\)</span> 也不等于每一行都趋向同一个 <span class="arithmatex">\(\pi\)</span>。</li>
 </ul>
 </div>
 </section>
-<h2 id="1-markov">1. Markov 性与转移矩阵<a class="headerlink" href="#1-markov" title="Permanent link"></a></h2>
-<p><strong>定义（Markov 性）</strong> 离散时间、可数状态的过程 <span class="arithmatex">\(\{X_n\}\)</span> 满足</p>
+<h2 id="1">1. 状态要记住多少过去？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>定义。</strong> 对可数状态空间 <span class="arithmatex">\(S\)</span>，离散时间过程满足</p>
 <div class="arithmatex">\[
-P(X_{n+1} = j \mid X_n = i,\ X_{n-1}, \dots, X_0) = P(X_{n+1} = j \mid X_n = i) \equiv p_{ij}
+\Pr(X_{n+1}=j\mid X_0,\ldots,X_n)=p_{X_nj}\quad\text{几乎处处},
 \]</div>
-<p>——<strong>给定现在，未来与过去条件独立</strong>（"无记忆"不是没有历史，而是历史的全部影响已浓缩在当前状态里——状态设计得够丰富，任何过程都能 Markov 化，这是建模的自由度所在）。本页限时齐链（<span class="arithmatex">\(p_{ij}\)</span> 不随 <span class="arithmatex">\(n\)</span> 变）。</p>
-<p><strong>转移矩阵</strong> <span class="arithmatex">\(P = [p_{ij}]\)</span>：<strong>行随机</strong>（每行非负、行和为 1）。链的全部动力学 = 初始分布 <span class="arithmatex">\(\pi^{(0)}\)</span>（行向量）+ <span class="arithmatex">\(P\)</span>。</p>
-<p><strong>三个标准例子</strong>：天气链（晴/雨两状态 <span class="arithmatex">\(2\times2\)</span>）；<strong>随机游走</strong>（整数格点 <span class="arithmatex">\(\pm 1\)</span>，概率 <span class="arithmatex">\(p/q\)</span>）；<strong>赌徒破产链</strong>（随机游走 + 吸收壁 <span class="arithmatex">\(0\)</span> 与 <span class="arithmatex">\(N\)</span>）。</p>
-<h2 id="2-n-chapmankolmogorov">2. n 步转移：Chapman–Kolmogorov<a class="headerlink" href="#2-n-chapmankolmogorov" title="Permanent link"></a></h2>
+<p>就称为本页讨论的<strong>时齐 Markov 链</strong>。右侧不依赖时间 <span class="arithmatex">\(n\)</span>；若转移律随 <span class="arithmatex">\(n\)</span> 变化，仍可能有 Markov 性，却不能统一写成同一个矩阵的幂。对具体历史写条件概率时，只在该历史具有正概率时使用比值定义。</p>
+<p>这里的“无记忆”是<strong>给定当前状态后，过去不再提供预测未来所需的额外信息</strong>，不是各时刻相互独立。天气链中，知道今天晴朗仍会改变明天晴朗的概率。</p>
+<p>状态是建模的一部分。等待“连续两次正面”时，只记录抛掷次数不够；记录“目前没有连续正面 / 刚出现一个正面 / 已完成”才足够做一步预测。原则上可把完整历史放进状态，从而 Markov 化，但状态空间会增长，不保证得到小而实用的有限模型。把一个 Markov 链的若干状态合并，反过来也不保证仍是 Markov 链。</p>
+<p><strong>行随机矩阵</strong> <span class="arithmatex">\(P=(p_{ij})\)</span> 满足 <span class="arithmatex">\(p_{ij}\ge0\)</span>、<span class="arithmatex">\(\sum_jp_{ij}=1\)</span>。本页统一状态编号从 <span class="arithmatex">\(0\)</span> 开始，初始分布用行向量 <span class="arithmatex">\(\mu_0\)</span> 表示，之后</p>
+<div class="arithmatex">\[
+\mu_{n+1}=\mu_nP.
+\]</div>
+<p>“矩阵 + 初始分布”决定路径的有限维分布。例如
+<span class="arithmatex">\(\Pr(X_0=i_0,\ldots,X_n=i_n)=\mu_0(i_0)\prod_{r=0}^{n-1}p_{i_ri_{r+1}}\)</span>。</p>
+<h2 id="2_1">2. 从路径求和到矩阵幂<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<div aria-label="三种Markov链的结构与长期行为，可横向滚动" class="markov-static-scroll" role="region" tabindex="0">
 <figure class="plot">
-<p><img alt="Markov 链收敛到平稳分布" src="assets/img/stoch-02-markov-converge.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>对图中这条有限、不可约且非周期的链，\(n\) 步转移让分布 \(P(X_n{=}\cdot)\) 收敛到唯一平稳分布 \(\pi\)（虚线），初始状态因而被遗忘；周期链或可约链不能直接套用这句话。</figcaption>
+<p><img alt="三种链的正概率转移图、闭类、周期与初态相关的分布" src="assets/img/stoch-02-markov-converge.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>每条箭头是一项严格正的转移概率。闭类只能流入、不能流出；周期由可返回的正整数步数决定。右侧公式与实验使用同一组矩阵。图为固定宽度，手机可横向滚动。</figcaption>
 </figure>
-<p><strong>定理（C–K 方程）</strong> <span class="arithmatex">\(n\)</span> 步转移概率 <span class="arithmatex">\(p_{ij}^{(n)} = P(X_{m+n} = j \mid X_m = i)\)</span> 满足</p>
+</div>
+<style>
+.markov-static-scroll{max-width:100%;overflow-x:auto}.markov-static-scroll figure{width:1100px;max-width:none;margin:0}.markov-static-scroll img{width:1100px;max-width:none}.markov-static-scroll:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<p>设 <span class="arithmatex">\(p_{ij}^{(n)}\)</span> 为从 <span class="arithmatex">\(i\)</span> 出发经过 <span class="arithmatex">\(n\)</span> 步到 <span class="arithmatex">\(j\)</span> 的概率，约定 <span class="arithmatex">\(P^{(0)}=I\)</span>。按第 <span class="arithmatex">\(m\)</span> 步的中转状态 <span class="arithmatex">\(k\)</span> 分组：</p>
 <div class="arithmatex">\[
-p_{ij}^{(m+n)} = \sum_k p_{ik}^{(m)}\, p_{kj}^{(n)} \qquad \Longleftrightarrow \qquad P^{(m+n)} = P^{(m)} P^{(n)} \;\Rightarrow\; P^{(n)} = P^n
+p_{ij}^{(m+n)}
+=\sum_{k\in S}p_{ik}^{(m)}p_{kj}^{(n)}.
 \]</div>
-<p>（<em>证明一行</em>：对中间时刻的状态 <span class="arithmatex">\(k\)</span> 用全概率公式 + Markov 性。）<strong>演化 = 矩阵幂</strong>——分布的传播是 <span class="arithmatex">\(\pi^{(n)} = \pi^{(0)} P^n\)</span>。计算 <span class="arithmatex">\(P^n\)</span> 的正规武器正是高代 V 的对角化：<span class="arithmatex">\(P = Q\Lambda Q^{-1} \Rightarrow P^n = Q\Lambda^n Q^{-1}\)</span>，特征值的幂决定一切长期行为（<span class="arithmatex">\(|\lambda| &lt; 1\)</span> 的成分衰减、<span class="arithmatex">\(\lambda = 1\)</span> 的成分存活——下一页平稳分布的伏笔）。</p>
-<h2 id="3_1">3. 状态分类：链的解剖学<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>可达与互通</strong>：<span class="arithmatex">\(i \to j\)</span>（某 <span class="arithmatex">\(n\)</span> 使 <span class="arithmatex">\(p_{ij}^{(n)} &gt; 0\)</span>）；互通 <span class="arithmatex">\(i \leftrightarrow j\)</span> 是等价关系 ⇒ 状态空间分解为若干<strong>互通类</strong>。<strong>不可约链</strong>：全空间一个类（哪都去得了）。</p>
-<p><strong>常返与瞬过</strong>：从 <span class="arithmatex">\(i\)</span> 出发<strong>必定</strong>（概率 1）返回 <span class="arithmatex">\(i\)</span> 则称<strong>常返</strong>，否则<strong>瞬过</strong>（有正概率一去不返）。判据：<span class="arithmatex">\(i\)</span> 常返 <span class="arithmatex">\(\iff \sum_n p_{ii}^{(n)} = \infty\)</span>（期望返回次数无穷）。常返再分：<strong>正常返</strong>（平均返回时间 <span class="arithmatex">\(\mu_i &lt; \infty\)</span>）与零常返（回得来但平均要等无穷久——无限状态空间才会出现）。</p>
-<p><strong>周期</strong>：<span class="arithmatex">\(d(i) = \gcd\{n: p_{ii}^{(n)} &gt; 0\}\)</span>；<span class="arithmatex">\(d = 1\)</span> 称非周期。（棋盘式来回跳的链 <span class="arithmatex">\(d = 2\)</span>——分布永远震荡不收敛，这是下一页收敛定理要排除周期的原因。）</p>
-<p><strong>类性质</strong>：互通的状态同常返/瞬过、同周期——"性格是整个互通类的"，验一个代表即可。</p>
-<p><strong>名例（一维随机游走的相变）</strong>：对称（<span class="arithmatex">\(p = \frac12\)</span>）时常返（回得了家），不对称时瞬过（漂走）。（Pólya 定理进阶版：简单随机游走在 <span class="arithmatex">\(\mathbb{Z}^1, \mathbb{Z}^2\)</span> 常返、<span class="arithmatex">\(\mathbb{Z}^3\)</span> 起瞬过——"喝醉的人总能回家，喝醉的鸟可能回不了巢"。）</p>
-<h2 id="4_1">4. 首达概率与吸收问题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>首达概率</strong> <span class="arithmatex">\(f_{ij}\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发迟早到达 <span class="arithmatex">\(j\)</span> 的概率。求法（<strong>一步分析法</strong>，本页的万能钥匙）：对第一步的去向做全概率分解，得线性方程组。</p>
-<p><strong>赌徒破产问题（必会全解）</strong> 本金 <span class="arithmatex">\(i\)</span>，每局 <span class="arithmatex">\(\pm 1\)</span>（概率 <span class="arithmatex">\(p/q\)</span>），到 <span class="arithmatex">\(N\)</span> 收手、到 <span class="arithmatex">\(0\)</span> 破产。记 <span class="arithmatex">\(h_i\)</span> = 从 <span class="arithmatex">\(i\)</span> 出发最终到 <span class="arithmatex">\(N\)</span> 的概率。一步分析：</p>
+<p>第一段到 <span class="arithmatex">\(k\)</span> 的概率乘以从 <span class="arithmatex">\(k\)</span> 出发继续 <span class="arithmatex">\(n\)</span> 步的概率，再把互斥的中转状态加起来。这就是 <strong>Chapman–Kolmogorov 方程</strong>。时齐性保证第二段用的仍是同一个转移律，所以 <span class="arithmatex">\(P^{(n)}=P^n\)</span>、<span class="arithmatex">\(\mu_n=\mu_0P^n\)</span>。可数无限状态时，非负求和可用 Tonelli 交换顺序。</p>
+<p>以实验第一张矩阵为例：</p>
 <div class="arithmatex">\[
-h_i = p\, h_{i+1} + q\, h_{i-1}, \qquad h_0 = 0,\ h_N = 1
+P=\begin{pmatrix}0.8&amp;0.2\\0.3&amp;0.7\end{pmatrix},
+\quad
+P^2=\begin{pmatrix}0.70&amp;0.30\\0.45&amp;0.55\end{pmatrix}.
 \]</div>
-<p>这是常系数线性差分方程（特征方程 <span class="arithmatex">\(p x^2 - x + q = 0\)</span>，根 <span class="arithmatex">\(1, q/p\)</span>——ODE 页特征根法的离散版）：</p>
+<p>从状态 <span class="arithmatex">\(0\)</span> 两步回到 <span class="arithmatex">\(0\)</span>，概率为 <span class="arithmatex">\(0.8^2+0.2\times0.3=0.70\)</span>。把 <span class="arithmatex">\(0.3\)</span> 误抄成另一条天气链的 <span class="arithmatex">\(0.4\)</span>，就会得到属于<strong>另一模型</strong>的 <span class="arithmatex">\(0.72\)</span>。</p>
+<p><strong>矩阵幂不要求可对角化。</strong> 只有确实存在可逆 <span class="arithmatex">\(V\)</span> 使 <span class="arithmatex">\(P=V\Lambda V^{-1}\)</span>，才能写 <span class="arithmatex">\(P^n=V\Lambda^nV^{-1}\)</span>。例如</p>
 <div class="arithmatex">\[
-h_i = \begin{cases} \dfrac{i}{N} &amp; p = q = \tfrac12 \\[2mm] \dfrac{1 - (q/p)^i}{1 - (q/p)^N} &amp; p \neq q \end{cases}
+J=\begin{pmatrix}1/2&amp;1/2&amp;0\\0&amp;1/2&amp;1/2\\0&amp;0&amp;1\end{pmatrix},
+\qquad
+\delta_0J^n=(2^{-n},\,n2^{-n},\,1-(n+1)2^{-n}).
 \]</div>
-<p><strong>读结论</strong>：公平赌局中"翻倍离场"的成功率 = <span class="arithmatex">\(i/N\)</span>（看似公平）；但只要 <span class="arithmatex">\(p &lt; q\)</span>（赌场必然如此），<span class="arithmatex">\(N\)</span> 稍大成功率就指数式趋零——<strong>久赌必输是定理不是劝诫</strong>。期望游戏时长同法可解（一步分析 + 非齐次差分方程）。</p>
-<p>🔗 <strong>衔接</strong>：一步分析法 = 优化 IV Bellman 方程的概率版（"第一步 + 之后的最优/期望"）——强化学习价值迭代的原型；吸收概率的计算与 PageRank/随机游走类算法同源（下一页）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（C–K 实算）</strong> 天气链 <span class="arithmatex">\(P = \begin{pmatrix} 0.8 &amp; 0.2 \\ 0.4 &amp; 0.6 \end{pmatrix}\)</span>（晴/雨），今天晴，后天晴的概率？
-<em>解</em>：<span class="arithmatex">\(P^2\)</span> 的 <span class="arithmatex">\((1,1)\)</span> 元 <span class="arithmatex">\(= 0.8^2 + 0.2 \times 0.4 = 0.72\)</span>。（两条路径：晴晴晴 + 晴雨晴——C–K 就是"枚举中转站"。）</p>
-<p><strong>例 2（状态分类）</strong> <span class="arithmatex">\(P = \begin{pmatrix} \frac12 &amp; \frac12 &amp; 0 \\ \frac12 &amp; \frac12 &amp; 0 \\ \frac13 &amp; \frac13 &amp; \frac13 \end{pmatrix}\)</span>：状态 3 可达 {1,2} 但回不来——瞬过；{1, 2} 互通闭类、常返、非周期。链可约。</p>
-<p><strong>例 3（一步分析）</strong> 抛公平硬币，求"连续两次正面"首次出现的期望次数。
-<em>解</em>：设状态（无进展 / 已有一个正 / 完成），<span class="arithmatex">\(m_0 = 1 + \frac12 m_1 + \frac12 m_0\)</span>，<span class="arithmatex">\(m_1 = 1 + \frac12 \cdot 0 + \frac12 m_0\)</span> ⇒ <span class="arithmatex">\(m_0 = 6\)</span>。（把"模式等待"翻译成 Markov 链——状态设计的艺术。）<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：链跑了很久之后停在哪——平稳分布、收敛定理与 MCMC/PageRank。</em></p>
+<p>重复特征值 <span class="arithmatex">\(1/2\)</span> 对应非平凡 Jordan 块，衰减中有 <span class="arithmatex">\(n2^{-n}\)</span>，不能只看特征值的幂而漏掉多项式因子。这里 <span class="arithmatex">\(n=0\)</span> 也成立。随机矩阵的特征值满足 <span class="arithmatex">\(|\lambda|\le1\)</span>；单位圆上除了 <span class="arithmatex">\(1\)</span> 还可能有 <span class="arithmatex">\(-1\)</span> 或复数，循环链正是反例。一般谱分析留到<a href="stoch-03-markov-2.html">下一页</a>，本页先把状态结构辨清。</p>
+<h2 id="3_1">3. 可达、闭类、返回与周期<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>可达</strong> <span class="arithmatex">\(i\to j\)</span> 指存在整数 <span class="arithmatex">\(n\ge0\)</span> 使 <span class="arithmatex">\((P^n)_{ij}&gt;0\)</span>。允许 <span class="arithmatex">\(n=0\)</span>，每个状态都可达自身。<strong>互通</strong> <span class="arithmatex">\(i\leftrightarrow j\)</span> 指双向可达；它是等价关系，把状态分成互通类。全空间只有一个类才叫<strong>不可约</strong>。一个类若没有正概率边通往类外，就叫<strong>闭类</strong>；吸收状态是仅含一个状态的闭类，满足 <span class="arithmatex">\(p_{ii}=1\)</span>。</p>
+<h3 id="31">3.1 返回必须排除第零步<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>从 <span class="arithmatex">\(i\)</span> 出发，首次返回时刻是</p>
+<div class="arithmatex">\[
+\tau_i^+=\inf\{n\ge1:X_n=i\},\qquad \inf\varnothing=\infty.
+\]</div>
+<ul>
+<li><span class="arithmatex">\(\Pr_i(\tau_i^+&lt;\infty)=1\)</span>：<strong>常返</strong>。</li>
+<li><span class="arithmatex">\(\Pr_i(\tau_i^+&lt;\infty)&lt;1\)</span>：<strong>瞬过</strong>（也称暂留、transient）。</li>
+<li>在常返状态中，<span class="arithmatex">\(m_i=\mathbb E_i\tau_i^+&lt;\infty\)</span> 称<strong>正常返</strong>（positive recurrent）；<span class="arithmatex">\(m_i=\infty\)</span> 称<strong>零常返</strong>。</li>
+</ul>
+<p>一次返回后可以重新从 <span class="arithmatex">\(i\)</span> 计算，这是离散链的强 Markov 性在返回时刻的应用。若返回概率为 <span class="arithmatex">\(f&lt;1\)</span>，包括起点的总访问次数 <span class="arithmatex">\(V_i\)</span> 满足 <span class="arithmatex">\(\Pr_i(V_i\ge k)=f^{k-1}\)</span>，故</p>
+<div class="arithmatex">\[
+\mathbb E_iV_i=\sum_{n\ge0}(P^n)_{ii}
+=\frac1{1-f}&lt;\infty.
+\]</div>
+<p>若 <span class="arithmatex">\(f=1\)</span>，每次回到 <span class="arithmatex">\(i\)</span> 后还会再返回，访问次数几乎必然无穷。因此
+<span class="arithmatex">\(i\)</span> 常返当且仅当 <span class="arithmatex">\(\sum_{n\ge0}(P^n)_{ii}=\infty\)</span>。这是概率结论，不能由一条有限模拟中“回来了几次”证明。</p>
+<p><strong>有限链的实用结论：闭互通类中的状态全部正常返，其他状态全部瞬过。</strong> 非闭类有一条正概率路径离开且不再返回；有限闭不可约类则能从每个状态在统一有限步数内、以统一正概率到达指定状态。按这样的步数分块，未返回概率有几何尾，因此平均返回时间有限。可数无限链中，“闭”不保证常返，常返也不保证正常返。</p>
+<h3 id="32">3.2 周期是所有返回步数的最大公约数<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>若存在正时间返回路径，定义</p>
+<div class="arithmatex">\[
+d(i)=\gcd\{n\ge1:(P^n)_{ii}&gt;0\}.
+\]</div>
+<p>实验对没有任何正时间返回的瞬过单点（第三预设的状态 <span class="arithmatex">\(2\)</span>）显示“无正时间返回”，不把它误标成周期 <span class="arithmatex">\(1\)</span>。周期 <span class="arithmatex">\(1\)</span> 称非周期；有自环 <span class="arithmatex">\(p_{ii}&gt;0\)</span> 就足以保证 <span class="arithmatex">\(d(i)=1\)</span>，但无自环也可能非周期，例如同时存在长度 <span class="arithmatex">\(2\)</span> 和 <span class="arithmatex">\(3\)</span> 的返回环。</p>
+<p>互通状态的常返性、正常返性和周期相同。周期相同可从路径看出：若 <span class="arithmatex">\(i\to j\)</span> 有长度 <span class="arithmatex">\(a\)</span> 的路径、<span class="arithmatex">\(j\to i\)</span> 有长度 <span class="arithmatex">\(b\)</span> 的路径，那么 <span class="arithmatex">\(a+b\)</span> 和 <span class="arithmatex">\(a+n+b\)</span> 都是 <span class="arithmatex">\(i\)</span> 的返回长度，其中 <span class="arithmatex">\(n\)</span> 是 <span class="arithmatex">\(j\)</span> 的任一返回长度；相减说明 <span class="arithmatex">\(d(i)\)</span> 整除所有这样的 <span class="arithmatex">\(n\)</span>，再交换两点得到相等。</p>
+<p>二状态互换链只在偶数步返回，所以 <span class="arithmatex">\(d=2\)</span>。从 <span class="arithmatex">\(\delta_0\)</span> 出发的分布交替；从 <span class="arithmatex">\(\pi=(1/2,1/2)\)</span> 出发却每步相同。<strong>结构决定哪些结论适用，初态决定具体轨迹。</strong></p>
+<h3 id="33">3.3 无限空间的边界：对称随机游走<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>整数线上每步向右概率 <span class="arithmatex">\(p\)</span>、向左概率 <span class="arithmatex">\(q=1-p\)</span>，其中 <span class="arithmatex">\(0&lt;p&lt;1\)</span>。原点的返回概率满足</p>
+<div class="arithmatex">\[
+p_{00}^{(2n)}=\binom{2n}{n}(pq)^n,\qquad
+p_{00}^{(2n+1)}=0.
+\]</div>
+<p>当 <span class="arithmatex">\(p=q=1/2\)</span>，由中心二项式系数渐近式，偶数步项约为 <span class="arithmatex">\(1/\sqrt{\pi n}\)</span>，总和发散，所以常返。它没有可归一化的平稳概率分布（平稳方程要求在整个 <span class="arithmatex">\(\mathbb Z\)</span> 上非负的仿射序列，只能是常数，而非零常数不可求和），故是<strong>零常返</strong>。当 <span class="arithmatex">\(p\ne q\)</span>，<span class="arithmatex">\(4pq&lt;1\)</span>，返回级数被几何级数控制，因此瞬过。两种情况下周期都为 <span class="arithmatex">\(2\)</span>：周期与常返性是不同分类轴。</p>
+<h2 id="4_1">4. 一步分析：首达概率与首达时间<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>对目标集合 <span class="arithmatex">\(A\)</span>，定义</p>
+<div class="arithmatex">\[
+\tau_A=\inf\{n\ge0:X_n\in A\},\quad
+h_i=\Pr_i(\tau_A&lt;\infty),\quad
+m_i=\mathbb E_i\tau_A.
+\]</div>
+<p>这次允许第零步，所以在 <span class="arithmatex">\(A\)</span> 内 <span class="arithmatex">\(h_i=1\)</span>、<span class="arithmatex">\(m_i=0\)</span>，与“首次返回”不同。对 <span class="arithmatex">\(i\notin A\)</span>，按第一步分解：</p>
+<div class="arithmatex">\[
+h_i=\sum_jp_{ij}h_j,\qquad
+m_i=1+\sum_jp_{ij}m_j.
+\]</div>
+<p>第二式允许期望为无穷。<strong>方程本身未必唯一确定答案</strong>；概率和期望分别是对应边界方程的<strong>最小非负解</strong>。理由是先求“在前 <span class="arithmatex">\(n\)</span> 步到达”的概率或截断期望，逐步迭代并取单调极限；任何非负解都逐步压住这些截断量。</p>
+<p>例如 <span class="arithmatex">\(P=I\)</span>、<span class="arithmatex">\(A=\{1\}\)</span>，从状态 <span class="arithmatex">\(0\)</span> 永远到不了 <span class="arithmatex">\(A\)</span>，所以 <span class="arithmatex">\(h_0=0\)</span>；但方程仅给 <span class="arithmatex">\(h_0=h_0\)</span>，任意非负数都满足。对于期望，<span class="arithmatex">\(m_0=1+m_0\)</span> 没有有限解，实际答案是无穷。</p>
+<p>若是<strong>有限链</strong>且从每个目标外状态都存在到达 <span class="arithmatex">\(A\)</span> 的正概率路径，则统一有限步内到达的概率有正下界，故 <span class="arithmatex">\(\tau_A\)</span> 有几何尾。按目标外/目标内排列矩阵，设 <span class="arithmatex">\(Q\)</span> 是目标外子矩阵，<span class="arithmatex">\(R\)</span> 是进入各吸收目标的子矩阵。在把目标变成吸收态后，</p>
+<div class="arithmatex">\[
+F=\sum_{n\ge0}Q^n=(I-Q)^{-1},\qquad
+m=F\mathbf1,\qquad H=FR.
+\]</div>
+<p><span class="arithmatex">\(F_{ij}\)</span> 是吸收前访问瞬过状态 <span class="arithmatex">\(j\)</span> 的期望次数（含第零步）；<span class="arithmatex">\(H\)</span> 各列是吸收到对应目标的概率。计算时解线性方程组即可，不必显式求逆。若目标外还有永不到达目标的闭类，这个 <span class="arithmatex">\(Q\)</span> 就不能直接当作瞬过矩阵。</p>
+<h3 id="41">4.1 赌徒破产：把条件和量级写完整<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>状态为 <span class="arithmatex">\(0,1,\ldots,N\)</span>，<span class="arithmatex">\(N\ge2\)</span>；内部每步以 <span class="arithmatex">\(p\)</span> 加 <span class="arithmatex">\(1\)</span>、以 <span class="arithmatex">\(q=1-p\)</span> 减 <span class="arithmatex">\(1\)</span>，到 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(N\)</span> 停止。对 <span class="arithmatex">\(0&lt;p&lt;1\)</span>，吸收时间 <span class="arithmatex">\(\tau_{\{0,N\}}\)</span> 的期望有限。成功概率满足</p>
+<div class="arithmatex">\[
+h_i=ph_{i+1}+qh_{i-1},\quad h_0=0,\ h_N=1,
+\qquad
+h_i=
+\begin{cases}
+i/N,&amp;p=q=1/2,\\
+\dfrac{1-(q/p)^i}{1-(q/p)^N},&amp;p\ne q.
+\end{cases}
+\]</div>
+<p>差分方程的特征根是 <span class="arithmatex">\(1,q/p\)</span>；公平时重根产生仿射解。若 <span class="arithmatex">\(p=0\)</span>，内部 <span class="arithmatex">\(h_i=0\)</span>；若 <span class="arithmatex">\(p=1\)</span>，内部 <span class="arithmatex">\(h_i=1\)</span>，不把端点代入含除法的公式。</p>
+<p>期望停止时间满足 <span class="arithmatex">\(m_i=1+pm_{i+1}+qm_{i-1}\)</span>、<span class="arithmatex">\(m_0=m_N=0\)</span>，解为</p>
+<div class="arithmatex">\[
+m_i=
+\begin{cases}
+i(N-i),&amp;p=q=1/2,\\
+\dfrac{Nh_i-i}{p-q},&amp;p\ne q.
+\end{cases}
+\]</div>
+<p>偏置式也可由停止后的平均位置 <span class="arithmatex">\(Nh_i=i+(p-q)m_i\)</span> 读出；这里有限期望和有界停止位置支持这个计算，不能把任意无界停止时刻直接代入鞅等式。</p>
+<p>例如 <span class="arithmatex">\(p=0.4,q=0.6,N=4,i=2\)</span>，<span class="arithmatex">\(h_2=4/13\)</span>、<span class="arithmatex">\(m_2=50/13\)</span>。公平时 <span class="arithmatex">\(h_2=1/2\)</span>、<span class="arithmatex">\(m_2=4\)</span>。对<strong>固定初始本金 <span class="arithmatex">\(i\)</span></strong> 和 <span class="arithmatex">\(p&lt;q\)</span>，让目标 <span class="arithmatex">\(N\to\infty\)</span>，成功率按指数衰减；若 <span class="arithmatex">\(i\)</span> 同时变化，须重新分析。它不证明所有规则、下注方式和停止策略下的无条件口号。</p>
+<h2 id="5">5. 例题：把图、方程与答案连起来<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>例 1：可约链的状态分类。</strong></p>
+<div class="arithmatex">\[
+P=\begin{pmatrix}1/2&amp;1/2&amp;0\\1/2&amp;1/2&amp;0\\1/3&amp;1/3&amp;1/3\end{pmatrix}.
+\]</div>
+<p>互通类为 <span class="arithmatex">\(\{0,1\}\)</span> 和 <span class="arithmatex">\(\{2\}\)</span>。前者闭、正常返、自环使周期为 <span class="arithmatex">\(1\)</span>；后者非闭、瞬过，也有自环所以周期为 <span class="arithmatex">\(1\)</span>。从 <span class="arithmatex">\(2\)</span> 出发首次返回 <span class="arithmatex">\(2\)</span> 的概率仅为 <span class="arithmatex">\(1/3\)</span>：若第一步离开，之后就再也回不来。包括起点的平均访问次数为 <span class="arithmatex">\(\sum_{n\ge0}(1/3)^n=3/2\)</span>。</p>
+<p><strong>例 2：连续两次正面。</strong> 公平且独立地抛硬币，以状态 <span class="arithmatex">\(0\)</span> 表示无连续正面、<span class="arithmatex">\(1\)</span> 表示刚有一个正面、<span class="arithmatex">\(2\)</span> 表示已经完成。矩阵为</p>
+<div class="arithmatex">\[
+P=\begin{pmatrix}1/2&amp;1/2&amp;0\\1/2&amp;0&amp;1/2\\0&amp;0&amp;1\end{pmatrix}.
+\]</div>
+<p>设 <span class="arithmatex">\(m_2=0\)</span>，则 <span class="arithmatex">\(m_0=1+\tfrac12m_0+\tfrac12m_1\)</span>、<span class="arithmatex">\(m_1=1+\tfrac12m_0\)</span>，得到 <span class="arithmatex">\(m_0=6,m_1=4\)</span>。两次正面这类“模式”会重叠，不能把每个长度为 <span class="arithmatex">\(2\)</span> 的滑动窗口当作独立试验后直接套几何分布。</p>
+<h3 id="1_1">练习 1：周期链真的每次都振荡吗？<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>对二状态互换链，从 <span class="arithmatex">\(\mu_0=(a,1-a)\)</span> 出发，求 <span class="arithmatex">\(\mu_n\)</span>、TV 和 Cesàro 平均。</p>
+<details class="answer" markdown="1">
+<summary>展开推导与核对</summary>
+
+<p>偶数步仍是 <span class="arithmatex">\((a,1-a)\)</span>，奇数步变为 <span class="arithmatex">\((1-a,a)\)</span>，所以
+<span class="arithmatex">\(\operatorname{TV}(\mu_n,(1/2,1/2))=|a-1/2|\)</span>。仅当 <span class="arithmatex">\(a=1/2\)</span> 时逐步分布始终平稳。对前 <span class="arithmatex">\(M\)</span> 项 <span class="arithmatex">\(\bar\mu_M=M^{-1}\sum_{n=0}^{M-1}\mu_n\)</span>，偶数 <span class="arithmatex">\(M\)</span> 时恰为 <span class="arithmatex">\(\pi\)</span>，奇数 <span class="arithmatex">\(M\)</span> 时 TV 为 <span class="arithmatex">\(|a-1/2|/M\)</span>。平均收敛与逐步收敛不同。</p>
+</details>
+<h3 id="2-tv">练习 2：为什么不能直接宣布 TV 等于谱模的幂？<a class="headerlink" href="#2-tv" title="Permanent link"></a></h3>
+<p>对第 2 节矩阵 <span class="arithmatex">\(J\)</span>，从 <span class="arithmatex">\(\delta_0\)</span> 出发，验证分布公式并求到 <span class="arithmatex">\(\delta_2\)</span> 的 TV。</p>
+<details class="answer">
+<summary>展开推导与核对</summary>
+<p>在状态 <span class="arithmatex">\(0\)</span> 停留 <span class="arithmatex">\(n\)</span> 步的概率为 <span class="arithmatex">\(2^{-n}\)</span>。要在第 <span class="arithmatex">\(n\)</span> 步位于 <span class="arithmatex">\(1\)</span>，须恰有一次 <span class="arithmatex">\(0\to1\)</span>，这次转移可放在 <span class="arithmatex">\(n\)</span> 个位置，每条路径概率为 <span class="arithmatex">\(2^{-n}\)</span>，得到 <span class="arithmatex">\(n2^{-n}\)</span>。其余概率在吸收态 <span class="arithmatex">\(2\)</span>，故 TV 为 <span class="arithmatex">\((n+1)2^{-n}\)</span>。例如 <span class="arithmatex">\(n=4\)</span>，分布为 <span class="arithmatex">\((1/16,4/16,11/16)\)</span>、TV 为 <span class="arithmatex">\(5/16\)</span>，而非 <span class="arithmatex">\(|1/2|^4=1/16\)</span>。这也直接说明 <span class="arithmatex">\(J\)</span> 的重复特征值不能按三个独立特征向量处理。</p>
+</details>
+<h3 id="3_2">练习 3：由访问次数矩阵求吸收时间<a class="headerlink" href="#3_2" title="Permanent link"></a></h3>
+<p>对“连续两次正面”模型，计算瞬过子矩阵 <span class="arithmatex">\(Q\)</span> 的 <span class="arithmatex">\(F=(I-Q)^{-1}\)</span>，核对从两个未完成状态出发的期望。</p>
+<details class="answer">
+<summary>展开推导与核对</summary>
+<div class="arithmatex">\[
+Q=\begin{pmatrix}1/2&amp;1/2\\1/2&amp;0\end{pmatrix},
+\qquad F=\begin{pmatrix}4&amp;2\\2&amp;2\end{pmatrix}.
+\]</div>
+<p>相乘可检验 <span class="arithmatex">\((I-Q)F=I\)</span>。行和为 <span class="arithmatex">\((6,4)\)</span>，与一步分析相同。从 <span class="arithmatex">\(0\)</span> 出发，吸收前平均访问状态 <span class="arithmatex">\(0\)</span> 四次、状态 <span class="arithmatex">\(1\)</span> 两次，其中前者包括初始访问。进入唯一吸收态的向量为 <span class="arithmatex">\(R=(0,1/2)^\mathsf T\)</span>，所以 <span class="arithmatex">\(FR=(1,1)^\mathsf T\)</span>：两个初态都几乎必然完成。期望 <span class="arithmatex">\(6\)</span> 不意味着第六次一定完成。</p>
+</details>
+<p>推导与进一步阅读：Levin、Peres、Wilmer 的 <a href="https://www.stat.berkeley.edu/~aldous/260-FMIE/Levin-Peres-Wilmer.pdf">Markov Chains and Mixing Times</a>，第 1、2、4、21 章分别讨论有限链结构、经典模型、混合以及可数无限状态的区别。</p>
+<p>下一页：<a href="stoch-03-markov-2.html">平稳分布、收敛定理与 MCMC / PageRank</a>。一步分析还可与<a href="opt-04-lp-dp.html">LP 和 DP</a>中的 Bellman 递推对照：状态保存了未来计算所需的信息，条件期望把第一步和余下过程连接起来。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stoch-01-poisson.html"><span class="pager-label">上一页</span>随机过程 I · Poisson 过程</a>
