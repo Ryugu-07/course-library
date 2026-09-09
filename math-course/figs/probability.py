@@ -22,13 +22,8 @@ def f_distributions():
     save(fig,"prob-02-distributions")
 
 def f_bivariate_normal():
-    x=np.linspace(-3,3,200); X,Y=np.meshgrid(x,x); rho=0.6
-    Z=np.exp(-(X**2-2*rho*X*Y+Y**2)/(2*(1-rho**2)))
-    fig,ax=plt.subplots(figsize=(5.2,4.6))
-    ax.contour(X,Y,Z,levels=7,cmap="Blues")
-    ax.set_aspect("equal"); ax.set_xlabel(r"$x$"); ax.set_ylabel(r"$y$")
-    ax.set_title(r"Bivariate normal, $\rho=0.6$: tilted ellipses",fontsize=12)
-    save(fig,"prob-03-bivariate-normal")
+    # Maintained by tools/build_multivariate_figure.py.
+    pass
 
 def f_clt():
     fig,ax=plt.subplots(figsize=(6.8,3.8))
