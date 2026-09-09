@@ -555,6 +555,9 @@
     check(!k5.planarity.planar && k5.planarity.method === "necessary-edge-bound", "K5 edge bound nonplanarity");
     var k33 = analyzeGraph(presetById("k33").matrix);
     check(!k33.planarity.planar && !k33.planarity.bipartiteEdgeBoundPassed, "K3,3 bipartite bound nonplanarity");
+    var k2 = analyzeGraph([[0, 1], [1, 0]]);
+    check(k2.planarity.planar && k2.planarity.componentResults[0].method === "trivial-embedding", "K2 bypasses V>=3 edge bounds");
+    check(k2.planarity.simpleEdgeBoundPassed && k2.planarity.bipartiteEdgeBoundPassed, "K2 small-order boundary passes");
     var petersen = analyzeGraph(presetById("petersen").matrix);
     check(petersen.planarity.simpleEdgeBoundPassed, "Petersen simple edge bound passes");
     check(!petersen.planarity.planar && petersen.planarity.method === "exhaustive-rotation-system", "Petersen exact rotation denial");

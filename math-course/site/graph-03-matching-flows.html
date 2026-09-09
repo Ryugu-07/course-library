@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-09 08:03</div>
   </div>
 </nav>
 <main id="content">
@@ -162,10 +162,12 @@ c(S,\bar S)=\sum_{u\in S,\,v\notin S}c(u,v).
 <h3 id="4-hall">4. 从流回到匹配与 Hall 证书<a class="headerlink" href="#4-hall" title="Permanent link"></a></h3>
 <p>把二部图左侧每点接到源、右侧每点接到汇，并给所有边容量 1。一条整数流路径 <span class="arithmatex">\(s\to x\to y\to t\)</span> 就是一对匹配边；容量与守恒保证每个顶点最多用一次。若最大流不能覆盖左侧全部顶点，最小割会暴露一个选择不足的集合，正是 Hall 条件失败的算法证书。于是“匹配、增广路、最小顶点覆盖和网络流”不是四个孤立技巧，而是同一套残量与对偶语言。</p>
 <h3 id="5">5. 迁移问题：瓶颈在哪里，改一单位容量值多少钱？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>对实验里的最终最小割任选一条割边，把容量增加 1，再预测最大流是否一定增加 1。随后把一条<strong>不在任何当前最小割上</strong>的边增加 1，比较结果。由此说明：瓶颈边给出局部的容量影子价格线索，但最小割可能不唯一，改动后瓶颈也会迁移；“某条边在一张最小割上”不能单独保证任意幅度扩容都等量提升系统吞吐。</p>
+<p>对实验里的最终最小割任选一条割边，把容量增加 1，再预测最大流是否一定增加 1。随后把一条<strong>不在任何当前最小割上</strong>的边增加 1，比较结果。答案是：第一种未必增加，因为另一张同值最小割可能完全没有变化；第二种一定不会仅靠这次扩容提高最大流，因为至少一张原最小割仍以原容量给出上界，而原最大流仍然可行。由此说明：瓶颈边给出局部的容量影子价格线索，但最小割可能不唯一，改动后瓶颈也会迁移；“某条边在一张最小割上”不能单独保证任意幅度扩容都等量提升系统吞吐。</p>
 </section>
-<figure class="diagram">
+<figure aria-label="课程图示，可横向滚动" class="diagram" style="overflow-x:auto;position:relative" tabindex="0">
+<div style="min-width:1100px">
 <p><img alt="二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。" src="assets/img/graph-03-bipartite-matching.svg" /></p>
+</div>
 <figcaption><span class="fig-id">图 graph-03.1</span>二部图最大匹配 + 归约成网络流（加源汇、边容量 1）。</figcaption>
 </figure>
 <h2 id="1-hall">1. 二部图匹配与 Hall 定理<a class="headerlink" href="#1-hall" title="Permanent link"></a></h2>
@@ -233,7 +235,7 @@ c(S,\bar S)=\sum_{u\in S,\,v\notin S}c(u,v).
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（Hall 判定）</strong> 4 名学生各会做题集 <span class="arithmatex">\(\{1,2\}, \{2,3\}, \{1,2\}, \{2\}\)</span>，能否每人分一道不同的题？取 <span class="arithmatex">\(S = \{1, 3, 4\}\)</span>（会 <span class="arithmatex">\(\{1,2\}, \{1,2\}, \{2\}\)</span>）：<span class="arithmatex">\(|N(S)| = 2 &lt; 3\)</span>——<strong>Hall 条件破产，无解</strong>；且指出了病灶（这三人挤在两道题里）。Hall 定理的价值：不可行时给出"证据"。</p>
 <p><strong>例 2（最大流手算）</strong> 菱形网络：<span class="arithmatex">\(s\to a\)</span>(3), <span class="arithmatex">\(s\to b\)</span>(2), <span class="arithmatex">\(a\to b\)</span>(1), <span class="arithmatex">\(a\to t\)</span>(2), <span class="arithmatex">\(b\to t\)</span>(3)。增广 <span class="arithmatex">\(s a t\)</span>(2)、<span class="arithmatex">\(s b t\)</span>(2)、<span class="arithmatex">\(s a b t\)</span>(1)：总流 5；割 <span class="arithmatex">\(\{sa, sb\}\)</span> 容量 <span class="arithmatex">\(= 5\)</span> 相等 ⇒ 双双最优 ✓。</p>
-<p><strong>例 3（PageRank 直觉）</strong> 三页环 <span class="arithmatex">\(A\to B\to C\to A\)</span> 加一条 <span class="arithmatex">\(B\to A\)</span>：无阻尼时求 <span class="arithmatex">\(\pi P = \pi\)</span> 得 <span class="arithmatex">\(\pi \propto (2, 2, 1)\)</span>（<span class="arithmatex">\(C\)</span> 只有一票来源）——<strong>链接结构即投票结构</strong>；加阻尼后数值微调但排序不变。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 3（PageRank 直觉）</strong> 三页环 <span class="arithmatex">\(A\to B\to C\to A\)</span> 加一条 <span class="arithmatex">\(B\to A\)</span>：无阻尼时求 <span class="arithmatex">\(\pi P = \pi\)</span> 得 <span class="arithmatex">\(\pi \propto (2, 2, 1)\)</span>（<span class="arithmatex">\(C\)</span> 只有一票来源）——<strong>链接结构即投票结构</strong>。取 <span class="arithmatex">\(\alpha=0.85\)</span> 与均匀跳转后，<span class="arithmatex">\(\pi\approx(0.3974,0.3878,0.2148)\)</span>：<span class="arithmatex">\(A,B\)</span> 仍都高于 <span class="arithmatex">\(C\)</span>，但原来的 <span class="arithmatex">\(A/B\)</span> 并列被打破，严格排序变为 <span class="arithmatex">\(A&gt;B&gt;C\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <h2 id="_1">扩展线收束<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <p>五门扩展课与主站的接线图：信息论把"熵/KL/交叉熵"的借条全部收回（概率→AI 的桥）；随机微积分让布朗运动（随机过程）同时流向期权定价（金融）与扩散模型（AI）；时间序列给 Medusa 式预测立了统计军规；图论与组合补齐离散半壁，并让 LP 对偶、Markov 链、幂法在离散世界再就业；博弈论把优化、概率与多智能体决策接起来。<strong>至此全站 22 门课，每一页都不是孤岛。</strong></p>

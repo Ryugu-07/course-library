@@ -50,60 +50,36 @@
     return Math.log(value) / Math.log(2);
   }
 
+  function bounded(value,low,high,label){var v=Number(value);if(!Number.isFinite(v)||v<low||v>high)throw new RangeError(label+" out of range");return v;}
   function binaryEntropy(probability) {
-    var p = clamp(probability, 0, 1);
-    if (p <= EPS || p >= 1 - EPS) return 0;
-    return -p * log2(p) - (1 - p) * log2(1 - p);
+    var p=bounded(probability,0,1,"probability");
+    if(p===0||p===1)return 0;
+    return (-p*Math.log(p)-(1-p)*Math.log1p(-p))/Math.LN2;
   }
-
   function entropy(probabilities) {
-    return probabilities.reduce(function (total, probability) {
-      return probability > EPS ? total - probability * log2(probability) : total;
-    }, 0);
+    return probabilities.reduce(function(total,p){return p>0?total-p*log2(p):total;},0);
   }
-
   function exponentialDistribution(lambda) {
-    var weights = SUPPORT.map(function (value) { return Math.exp(lambda * value); });
-    var normalizer = weights.reduce(function (sum, value) { return sum + value; }, 0);
-    return weights.map(function (value) { return value / normalizer; });
+    var shift=Math.max(0,3*lambda),weights=SUPPORT.map(function(x){return Math.exp(lambda*x-shift);});
+    var z=weights.reduce(function(a,b){return a+b;},0);return weights.map(function(w){return w/z;});
   }
-
-  function expectedValue(probabilities) {
-    return probabilities.reduce(function (sum, probability, index) {
-      return sum + probability * SUPPORT[index];
-    }, 0);
-  }
-
+  function expectedValue(probabilities){return probabilities.reduce(function(s,p,i){return s+p*SUPPORT[i];},0);}
   function maxEntropyForMean(targetMean) {
-    var mean = clamp(targetMean, SUPPORT[0], SUPPORT[SUPPORT.length - 1]);
-    if (mean <= EPS) {
-      return { mean: 0, lambda: -Infinity, probabilities: [1, 0, 0, 0], entropy: 0 };
-    }
-    if (mean >= 3 - EPS) {
-      return { mean: 3, lambda: Infinity, probabilities: [0, 0, 0, 1], entropy: 0 };
-    }
-
-    var low = -40;
-    var high = 40;
-    for (var iteration = 0; iteration < 100; iteration += 1) {
-      var midpoint = (low + high) / 2;
-      var midpointMean = expectedValue(exponentialDistribution(midpoint));
-      if (midpointMean < mean) low = midpoint;
-      else high = midpoint;
-    }
-    var lambda = (low + high) / 2;
-    var probabilities = exponentialDistribution(lambda);
-    return {
-      mean: expectedValue(probabilities),
-      lambda: lambda,
-      probabilities: probabilities,
-      entropy: entropy(probabilities)
-    };
+    var target=bounded(targetMean,0,3,"mean");
+    if(target===0)return {mean:0,lambda:-Infinity,probabilities:[1,0,0,0],entropy:0};
+    if(target===3)return {mean:3,lambda:Infinity,probabilities:[0,0,0,1],entropy:0};
+    if(target===1.5)return {mean:1.5,lambda:0,probabilities:[.25,.25,.25,.25],entropy:2};
+    var reflected=target>1.5,mean=reflected?3-target:target;
+    var low=-Math.max(40,-Math.log(mean)+5),high=0;
+    for(var i=0;i<110;i++){var mid=(low+high)/2;if(expectedValue(exponentialDistribution(mid))<mean)low=mid;else high=mid;}
+    var lambda=(low+high)/2,probabilities=exponentialDistribution(lambda);
+    if(reflected){lambda=-lambda;probabilities.reverse();}
+    return {mean:expectedValue(probabilities),lambda:lambda,probabilities:probabilities,entropy:entropy(probabilities)};
   }
 
   function bscStats(inputOneProbability, crossoverProbability) {
-    var q = clamp(inputOneProbability, 0, 1);
-    var epsilon = clamp(crossoverProbability, 0, 0.5);
+    var q = bounded(inputOneProbability, 0, 1,"input probability");
+    var epsilon = bounded(crossoverProbability, 0, 0.5,"crossover probability");
     var outputOne = epsilon + q * (1 - 2 * epsilon);
     var conditionalEntropy = binaryEntropy(epsilon);
     var mutualInformation = binaryEntropy(outputOne) - conditionalEntropy;
@@ -171,18 +147,19 @@
     ".mec-lab .mec-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mec-lab .mec-actions>*{flex:1 1 180px;}",
     ".mec-lab .mec-feedback{min-height:2em;margin:8px 0;color:var(--fg-soft);font-size:13px;font-weight:700}.mec-lab .mec-pass{color:var(--mec-green)}.mec-lab .mec-warn{color:var(--mec-red)}",
     ".mec-lab .mec-reveal{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}",
-    ".mec-lab .mec-layout{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0}",
+    ".mec-lab .mec-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}",
     ".mec-lab .mec-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
     ".mec-lab .mec-control{display:grid;gap:4px;min-width:0}.mec-lab label{color:var(--fg-soft);font-size:13px;font-weight:700}.mec-lab output{color:var(--accent);font-variant-numeric:tabular-nums}",
     ".mec-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-    ".mec-lab .mec-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}",
-    ".mec-lab svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.mec-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
+    ".mec-lab .mec-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto}",
+    ".mec-lab svg{display:block;width:620px;min-width:620px;height:auto;color:var(--fg)}.mec-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
     ".mec-lab .mec-grid{stroke:var(--border);stroke-width:1}.mec-lab .mec-curve{fill:none;stroke:var(--mec-blue);stroke-width:3}.mec-lab .mec-cap{fill:none;stroke:var(--mec-gold);stroke-width:2;stroke-dasharray:6 5}.mec-lab .mec-point{fill:var(--mec-red);stroke:var(--bg);stroke-width:2}",
-    ".mec-lab .mec-bars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end;height:150px;margin:8px 0 14px}.mec-lab .mec-bar-wrap{display:grid;grid-template-rows:1fr auto;gap:5px;height:100%;text-align:center;font-size:12px}.mec-lab .mec-bar{align-self:end;min-height:2px;background:var(--mec-blue);border-radius:4px 4px 0 0}",
+    ".mec-lab .mec-bars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end;height:150px;margin:8px 0 14px}.mec-lab .mec-bar-wrap{display:grid;grid-template-rows:1fr auto;gap:5px;height:100%;text-align:center;font-size:12px}.mec-lab .mec-bar{align-self:end;min-height:0;background:var(--mec-blue);border-radius:4px 4px 0 0}",
     ".mec-lab .mec-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:10px 0}.mec-lab .mec-metric{padding:8px;border-top:2px solid var(--border);background:var(--bg)}.mec-lab .mec-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.mec-lab .mec-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
     ".mec-lab .mec-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.mec-lab table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}.mec-lab th,.mec-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.mec-lab th{color:var(--fg-soft)}",
     ".mec-lab .mec-note{margin-top:10px;padding:10px 12px;border-left:3px solid var(--mec-green);background:var(--bg);font-size:13px;line-height:1.65}",
     "@media(max-width:900px){.mec-lab .mec-layout{grid-template-columns:minmax(0,1fr)}}",
+    "[data-theme=dark] .mec-lab{--mec-blue:#85b9ef;--mec-gold:#e6be68;--mec-green:#83c69c;--mec-red:#ed9f94}.mec-stage:focus-visible,.mec-table-wrap:focus-visible{outline:3px solid var(--mec-blue)}",
     "@media(max-width:700px){.mec-lab .mec-choices{grid-template-columns:minmax(0,1fr)}}"
   ].join("\n");
 
@@ -195,7 +172,9 @@
   }
 
   function format(value, digits) {
+    if(Number.isNaN(value))return "未定义";
     if (!isFinite(value)) return value < 0 ? "−∞" : "+∞";
+    if(value!==0&&Math.abs(value)<.001)return value.toExponential(3);
     return Number(value).toFixed(digits == null ? 3 : digits);
   }
 
@@ -222,7 +201,7 @@
       '<fieldset><legend>预测区</legend><div class="mec-questions">',
       '<div class="mec-question" data-question="0"><strong>1. 最大熵分布说明什么？</strong><div class="mec-choices"><button type="button" data-choice="0">数据必由该机制生成</button><button type="button" data-choice="1">给定约束下不额外偏置</button><button type="button" data-choice="2">任何约束都给均匀分布</button></div></div>',
       '<div class="mec-question" data-question="1"><strong>2. 速率低于容量意味着单次传输零错误吗？</strong><div class="mec-choices"><button type="button" data-choice="0">是，单次就无误码</button><button type="button" data-choice="1">否，是长块存在性结论</button><button type="button" data-choice="2">只与输入 1 的概率有关</button></div></div>',
-      '<div class="mec-question" data-question="2"><strong>3. BSC 的容量由哪种输入达到？</strong><div class="mec-choices"><button type="button" data-choice="0">恒取 0</button><button type="button" data-choice="1">任意输入都一样</button><button type="button" data-choice="2">均匀二元输入</button></div></div>',
+      '<div class="mec-question" data-question="2"><strong>3. 容量优化的是哪一项？</strong><div class="mec-choices"><button type="button" data-choice="0">改写信道噪声</button><button type="button" data-choice="1">缩短信道块长</button><button type="button" data-choice="2">选择输入分布</button></div></div>',
       '</div></fieldset>',
       '<div class="mec-actions"><button class="mec-primary" type="button" data-action="submit">提交预测并揭示</button><button type="button" data-action="reset">重置</button></div>',
       '<p class="mec-feedback" role="status" aria-live="polite"></p>',
@@ -233,10 +212,10 @@
       '<div class="mec-control"><label for="' + prefix + '-q">输入概率 q=P(X=1)：<output data-output="q">0.50</output></label><input id="' + prefix + '-q" data-input="q" type="range" min="0" max="1" step="0.01" value="0.5"></div>',
       '<div class="mec-actions"><button type="button" data-preset="uniform">均匀输入</button><button type="button" data-preset="biased">偏置输入</button></div>',
       '<div class="mec-bars" aria-label="最大熵分布柱状图"></div>',
-      '</div><div class="mec-stage">',
+      '</div><div class="mec-stage" tabindex="0" role="region" aria-label="BSC数值图，可横向滚动">',
       '<svg viewBox="0 0 620 300" role="img" aria-labelledby="' + prefix + '-title ' + prefix + '-desc"><title id="' + prefix + '-title">BSC 互信息随输入分布变化</title><desc id="' + prefix + '-desc">实线是互信息，虚线是容量，红点是当前输入概率。</desc><g data-svg></g></svg>',
       '<div class="mec-metrics" data-metrics></div>',
-      '<div class="mec-table-wrap"><table><thead><tr><th>账本项</th><th>当前值</th><th>能说明什么</th></tr></thead><tbody data-ledger></tbody></table></div>',
+      '<div class="mec-table-wrap" tabindex="0" role="region" aria-label="信息论账本，可横向滚动"><table><thead><tr><th>账本项</th><th>当前值</th><th>能说明什么</th></tr></thead><tbody data-ledger></tbody></table></div>',
       '<p class="mec-note" data-interpretation></p>',
       '</div></div></div></div>'
     ].join("");
@@ -258,7 +237,7 @@
       lab.querySelector('[data-output="q"]').textContent = format(stats.q, 2);
 
       lab.querySelector(".mec-bars").innerHTML = maxent.probabilities.map(function (probability, index) {
-        return '<div class="mec-bar-wrap"><div class="mec-bar" style="height:' + Math.max(2, probability * 120).toFixed(1) + 'px" title="p=' + format(probability, 3) + '"></div><span>x=' + SUPPORT[index] + '<br>' + format(probability, 3) + '</span></div>';
+        return '<div class="mec-bar-wrap"><div class="mec-bar" style="height:' + (probability * 120).toFixed(3) + 'px" title="p=' + format(probability, 3) + '"></div><span>x=' + SUPPORT[index] + '<br>' + format(probability, 3) + '</span></div>';
       }).join("");
 
       var width = 620;
@@ -267,18 +246,19 @@
       var padY = 34;
       var values = [];
       for (var index = 0; index <= 100; index += 1) values.push(bscStats(index / 100, stats.epsilon).mutualInformation);
+      var maximum=Math.max(stats.capacity,.02);
       var path = linePath(values, width, height, padX, padY, Math.max(stats.capacity, 0.02));
       var pointX = padX + (width - 2 * padX) * stats.q;
       var pointY = height - padY - (height - 2 * padY) * stats.mutualInformation / Math.max(stats.capacity, 0.02);
       var capY = height - padY - (height - 2 * padY) * stats.capacity / Math.max(stats.capacity, 0.02);
-      lab.querySelector("[data-svg]").innerHTML = [
+      lab.querySelector("[data-svg]").innerHTML = [0,.25,.5,.75,1].map(function(f){var y=266-232*f;return '<line class="mec-grid" x1="48" x2="572" y1="'+y+'" y2="'+y+'"/><text x="41" y="'+(y+4)+'" text-anchor="end" font-size="12">'+format(maximum*f,3)+'</text>';}).join("") + [
         '<line class="mec-grid" x1="48" y1="266" x2="572" y2="266"></line>',
         '<line class="mec-grid" x1="48" y1="34" x2="48" y2="266"></line>',
         '<path class="mec-curve" d="' + path + '"></path>',
         '<line class="mec-cap" x1="48" y1="' + capY.toFixed(2) + '" x2="572" y2="' + capY.toFixed(2) + '"></line>',
         '<circle class="mec-point" cx="' + pointX.toFixed(2) + '" cy="' + pointY.toFixed(2) + '" r="6"></circle>',
         '<text x="48" y="288" font-size="12">q=0</text><text x="548" y="288" font-size="12">q=1</text>',
-        '<text x="58" y="50" font-size="12">I(X;Y), C</text>',
+        '<text x="48" y="18" font-size="12">I, C（bit/use）</text>',
         '<text x="390" y="' + Math.max(18, capY - 7).toFixed(2) + '" font-size="12">C=' + format(stats.capacity, 3) + ' bit/use</text>'
       ].join("");
 
@@ -296,7 +276,7 @@
         ["容量", "C=1−h₂(ε)=" + format(stats.capacity, 3), "长块可靠通信的渐近速率上限"]
       ].map(function (row) { return "<tr><td>" + row[0] + "</td><td>" + row[1] + "</td><td>" + row[2] + "</td></tr>"; }).join("");
 
-      lab.querySelector("[data-interpretation]").textContent = stats.gap < 1e-8
+      lab.querySelector("[data-interpretation]").textContent = stats.epsilon===.5 ? "ε=.5 时输出与输入独立，容量为零，任何输入分布均达到零容量；均匀输入不是唯一最优。" : stats.q===.5
         ? "当前均匀输入达到了这条 BSC 的容量；这仍不是单次零误码保证，而是允许块长趋大时存在低误码码族。"
         : "当前输入有偏，输出熵没有最大化，因此互信息低于容量；容量优化的是输入分布，不是修改信道噪声。";
     }
@@ -307,6 +287,7 @@
         var question = choice.closest("[data-question]");
         var questionIndex = Number(question.getAttribute("data-question"));
         selected[questionIndex] = Number(choice.getAttribute("data-choice"));
+        reveal.hidden=true;feedback.textContent="预测已更改，请重新提交。";
         question.querySelectorAll("button[data-choice]").forEach(function (button) { button.setAttribute("aria-pressed", button === choice ? "true" : "false"); });
         return;
       }

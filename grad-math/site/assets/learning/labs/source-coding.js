@@ -52,7 +52,7 @@
     ".cl-source-lab h2{font-size:1.25rem;}.cl-source-lab h3{font-size:1.05rem;}",
     ".cl-source-lab p{overflow-wrap:anywhere;}",
     ".cl-source-lab .sc-note,.cl-source-lab .sc-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;}",
-    ".cl-source-lab .sc-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--sc-gold);background:var(--bg);}",
+    ".cl-source-lab .sc-prompt{display:grid;gap:12px;margin:14px 0;padding:12px 14px;border-left:3px solid var(--sc-gold);background:var(--bg);}",
     ".cl-source-lab fieldset{min-width:0;margin:0;padding:0;border:0;}",
     ".cl-source-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750;}",
     ".cl-source-lab .sc-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}",
@@ -65,9 +65,9 @@
     ".cl-source-lab .sc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.cl-source-lab .sc-actions>*{flex:1 1 150px;}",
     ".cl-source-lab .sc-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.cl-source-lab .sc-pass{color:var(--sc-green);}.cl-source-lab .sc-warn{color:var(--sc-red);}",
     ".cl-source-lab .sc-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".cl-source-lab .sc-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr);gap:16px;align-items:start;}",
-    ".cl-source-lab .sc-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}",
-    ".cl-source-lab .sc-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}",
+    ".cl-source-lab .sc-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;}",
+    ".cl-source-lab .sc-stage{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}",
+    ".cl-source-lab .sc-svg{display:block;width:760px;min-width:760px;height:auto;color:var(--fg);}",
     ".cl-source-lab .sc-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
     ".cl-source-lab .sc-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72;}.cl-source-lab .sc-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.7;}",
     ".cl-source-lab .sc-bar-h{fill:var(--sc-gold);}.cl-source-lab .sc-bar-fixed{fill:var(--sc-red);}.cl-source-lab .sc-bar-one{fill:var(--sc-blue);}.cl-source-lab .sc-bar-group{fill:var(--sc-green);}",
@@ -78,6 +78,7 @@
     ".cl-source-lab .sc-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.cl-source-lab .sc-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".cl-source-lab .sc-callout{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--sc-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
     ".cl-source-lab .sc-formula{max-width:100%;overflow-x:auto;padding:9px 11px;border-left:3px solid var(--accent);background:var(--bg);font-family:\"SF Mono\",Menlo,Consolas,monospace;font-size:12px;line-height:1.65;}",
+    "[data-theme=dark] .cl-source-lab{--sc-blue:#85b9ef;--sc-gold:#e6be68;--sc-green:#83c69c;--sc-red:#ed9f94}.sc-stage:focus-visible,.sc-ledger:focus-visible{outline:3px solid var(--sc-blue)}",
     "@media(max-width:780px){.cl-source-lab .sc-layout{grid-template-columns:minmax(0,1fr);}.cl-source-lab .sc-controls{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:600px){.cl-source-lab .sc-choice-row{grid-template-columns:minmax(0,1fr);}.cl-source-lab .sc-stage{padding:6px;}.cl-source-lab table{font-size:11.5px;}.cl-source-lab th,.cl-source-lab td{padding-left:5px;padding-right:5px;}}",
     "@media(prefers-reduced-motion:reduce){.cl-source-lab *{animation:none!important;transition:none!important;}}"
@@ -140,6 +141,8 @@
   function huffmanCodes(probabilities, symbols) {
     var values = validateDistribution(probabilities);
     var names = validateSymbols(symbols, values.length);
+    var result = Object.create(null);
+    names.forEach(function (name) { result[name] = null; });
     var nodes = values.map(function (probability, index) {
       return {
         weight: probability,
@@ -148,7 +151,7 @@
         left: null,
         right: null
       };
-    });
+    }).filter(function (node) { return node.weight > 0; });
 
     while (nodes.length > 1) {
       nodes.sort(function (left, right) {
@@ -170,10 +173,9 @@
       });
     }
 
-    var result = Object.create(null);
     function visit(node, prefix) {
       if (node.symbolIndex !== null) {
-        result[names[node.symbolIndex]] = prefix || "0";
+        result[names[node.symbolIndex]] = prefix;
         return;
       }
       visit(node.left, prefix + "0");
@@ -187,12 +189,13 @@
     if (!codes || typeof codes !== "object") {
       throw new TypeError("codes must be an object or array");
     }
-    var values = Array.isArray(codes) ? codes : Object.keys(codes).map(function (key) {
+    var values = (Array.isArray(codes) ? codes : Object.keys(codes).map(function (key) {
       return codes[key];
-    });
+    })).filter(function (code) { return code !== null; });
+    if (!values.length) throw new RangeError("codes must contain an active codeword");
     values.forEach(function (code) {
-      if (typeof code !== "string" || !/^[01]+$/.test(code)) {
-        throw new RangeError("codes must be non-empty binary strings");
+      if (typeof code !== "string" || (values.length > 1 ? !/^[01]+$/.test(code) : !/^[01]*$/.test(code))) {
+        throw new RangeError("active codes must be binary strings; only a singleton support may use the empty codeword");
       }
     });
     return values;
@@ -208,6 +211,7 @@
     var values = validateDistribution(probabilities);
     var names = validateSymbols(symbols, values.length);
     return values.reduce(function (total, probability, index) {
+      if (probability === 0) return total;
       var code = codes[names[index]];
       if (typeof code !== "string") throw new RangeError("missing codeword");
       return total + probability * code.length;
@@ -268,6 +272,8 @@
     return {
       symbols: names,
       probabilities: values,
+      support: names.filter(function (name, index) { return values[index] > 0; }),
+      outsideSupport: names.filter(function (name, index) { return values[index] === 0; }),
       entropy: entropy(values),
       huffman: {
         codes: oneCodes,
@@ -308,7 +314,8 @@
   function formatValue(value, digits) {
     if (!finite(value)) return "-";
     var places = digits === undefined ? 4 : digits;
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    if(value!==0&&Math.abs(value)<.001)return value.toExponential(3);
+    return places===0?value.toFixed(0):value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function installStyles(doc) {
@@ -343,7 +350,7 @@
   function chart(api, summary) {
     var svg = api.svg("svg", {
       className: "sc-svg",
-      viewBox: "0 0 760 330",
+      viewBox: "0 0 760 620",
       role: "img",
       "aria-labelledby": "sc-chart-title sc-chart-desc"
     });
@@ -365,7 +372,7 @@
     [0, 1, 2].forEach(function (tick) {
       var y = scaleY(tick);
       svg.appendChild(api.svg("line", { x1: left, y1: y, x2: left + plotWidth, y2: y, className: "sc-grid" }));
-      svg.appendChild(api.svg("text", { x: left - 9, y: y + 4, "text-anchor": "end", "font-size": "11" }, String(tick)));
+      svg.appendChild(api.svg("text", { x: left - 9, y: y + 4, "text-anchor": "end", "font-size": "12" }, String(tick)));
     });
     svg.appendChild(api.svg("line", { x1: left, y1: top, x2: left, y2: bottom, className: "sc-axis" }));
     svg.appendChild(api.svg("line", { x1: left, y1: bottom, x2: left + plotWidth, y2: bottom, className: "sc-axis" }));
@@ -379,6 +386,13 @@
       svg.appendChild(api.svg("text", { x: x + barWidth / 2, y: bottom + 24, "text-anchor": "middle", "font-size": "12" }, item.label));
     });
     svg.appendChild(api.svg("text", { x: left + plotWidth, y: 18, "text-anchor": "end", "font-size": "12" }, "bits / source symbol"));
+    svg.appendChild(api.svg("text",{x:38,y:340,"font-size":"15","font-weight":"700"},"单符号 Huffman 树：左边 0，右边 1；沿边读出码字"));
+    var positions={};
+    function pos(prefix){var x=380,width=760;for(var j=0;j<prefix.length;j++){width/=2;x+=(prefix[j]==="0"?-1:1)*width/2;}return {x:x,y:378+prefix.length*60};}
+    Object.keys(summary.huffman.codes).forEach(function(symbol){var code=summary.huffman.codes[symbol];if(code===null)return;for(var d=0;d<=code.length;d++)positions[code.slice(0,d)]=pos(code.slice(0,d));});
+    Object.keys(positions).forEach(function(prefix){if(!prefix)return;var a=positions[prefix.slice(0,-1)],b=positions[prefix];svg.appendChild(api.svg("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:"var(--sc-blue)","stroke-width":2}));svg.appendChild(api.svg("text",{x:(a.x+b.x)/2+(prefix.endsWith("0")?-7:7),y:(a.y+b.y)/2-4,"text-anchor":"middle","font-size":12},prefix.slice(-1)));});
+    Object.keys(positions).forEach(function(prefix){var p=positions[prefix];svg.appendChild(api.svg("circle",{cx:p.x,cy:p.y,r:7,fill:"var(--sc-blue)"}));});
+    Object.keys(summary.huffman.codes).forEach(function(symbol){var code=summary.huffman.codes[symbol];if(code===null)return;var p=positions[code];svg.appendChild(api.svg("text",{x:p.x,y:p.y+25,"text-anchor":"middle","font-size":13},symbol+": "+(code||"空")));});
     return svg;
   }
 
@@ -386,10 +400,10 @@
     if (!root || !root.ownerDocument || !api || typeof api.el !== "function" || typeof api.svg !== "function") return;
     var doc = root.ownerDocument;
     installStyles(doc);
-    var state = { blockSize: 2, prediction: null, revealed: false };
+    var state = { blockSize: 2, predictions: { best: null, kraft: null, perMessage: null }, revealed: false };
     var shell = api.el("section", { className: "cl-source-lab", "aria-labelledby": "sc-title" });
     shell.appendChild(api.el("h2", { id: "sc-title" }, "信源编码台：先猜平均码长，再看 Kraft 账"));
-    shell.appendChild(api.el("p", { className: "sc-note" }, "固定分布 P=(0.4,0.3,0.2,0.1)。先判断哪种编码的每符号平均长度最低，核对后再打开确定性 Huffman 树、分组账本和反例。"));
+    shell.appendChild(api.el("p", { className: "sc-note" }, "固定分布 P=(0.4,0.3,0.2,0.1)。先完成平均码长、Kraft 和逐条码长三项预测，核对后再打开确定性 Huffman 树、分组账本和反例。"));
 
     var controls = api.el("div", { className: "sc-controls" });
     var field = api.el("div", { className: "sc-field" });
@@ -403,28 +417,32 @@
     controls.appendChild(field);
 
     var prediction = api.el("div", { className: "sc-prompt" });
-    var predictionTitle = api.el("strong", {}, "先预测：当前分组长度下，哪一档每符号平均码长最低？");
-    var choices = api.el("div", { className: "sc-choice-row", role: "group", "aria-label": "平均码长预测" });
-    var choiceButtons = {};
-    [
-      ["fixed", "定长码"],
-      ["one", "一符号 Huffman"],
-      ["group", "分组 Huffman"]
-    ].forEach(function (item) {
-      var button = api.el("button", { type: "button", "data-choice": item[0] }, item[1]);
-      button.addEventListener("click", function () {
-        state.prediction = item[0];
-        renderPrediction();
+    var predictionSpecs = [
+      { key: "best", prompt: "1. 当前分组长度下，哪一档每符号平均码长最低？", choices: [["fixed", "定长码"], ["one", "一符号 Huffman"], ["group", "分组 Huffman"]] },
+      { key: "kraft", prompt: "2. 这棵 Huffman 树的 Kraft 和会超过 1 吗？", choices: [["over", "会超过 1"], ["not-over", "不会超过 1"]] },
+      { key: "perMessage", prompt: "3. 熵 H 是每条消息都能兑现的整数 bit 数吗？", choices: [["yes", "是"], ["no", "不是"]] }
+    ];
+    var choiceButtons = [];
+    predictionSpecs.forEach(function (spec) {
+      var fieldset = api.el("fieldset");
+      fieldset.appendChild(api.el("legend", {}, spec.prompt));
+      var choices = api.el("div", { className: "sc-choice-row", role: "group", "aria-label": spec.prompt });
+      spec.choices.forEach(function (item) {
+        var button = api.el("button", { type: "button", "data-choice": item[0] }, item[1]);
+        button.addEventListener("click", function () {
+          state.predictions[spec.key] = item[0];
+          state.revealed=false;render();
+        });
+        choices.appendChild(button);
+        choiceButtons.push({ key: spec.key, value: item[0], node: button });
       });
-      choices.appendChild(button);
-      choiceButtons[item[0]] = button;
+      fieldset.appendChild(choices);
+      prediction.appendChild(fieldset);
     });
-    prediction.appendChild(predictionTitle);
-    prediction.appendChild(choices);
     var actions = api.el("div", { className: "sc-actions" });
     var check = api.el("button", { type: "button", className: "sc-primary" }, "核对预测");
     var reset = api.el("button", { type: "button" }, "重置");
-    var feedback = api.el("p", { className: "sc-feedback" }, "先选一个预测。");
+    var feedback = api.el("p", { className: "sc-feedback" }, "请完成三项预测。");
     actions.appendChild(check);
     actions.appendChild(reset);
     prediction.appendChild(actions);
@@ -441,8 +459,8 @@
     }
 
     function renderPrediction() {
-      Object.keys(choiceButtons).forEach(function (key) {
-        choiceButtons[key].setAttribute("aria-pressed", state.prediction === key ? "true" : "false");
+      choiceButtons.forEach(function (item) {
+        item.node.setAttribute("aria-pressed", state.predictions[item.key] === item.value ? "true" : "false");
       });
     }
 
@@ -453,8 +471,10 @@
       });
       var codeRows = summary.symbols.map(function (symbol, index) {
         var code = summary.huffman.codes[symbol];
-        var ideal = -log2(summary.probabilities[index]);
-        return [symbol, formatValue(summary.probabilities[index], 2), code, String(code.length), formatValue(ideal, 3)];
+        var active = summary.probabilities[index] > 0;
+        var ideal = active ? formatValue(-log2(summary.probabilities[index]), 3) : "--";
+        var displayedCode = !active ? "支撑外" : (code === "" ? "空码字" : code);
+        return [symbol, formatValue(summary.probabilities[index], 2), displayedCode, active ? String(code.length) : "--", ideal];
       });
       var metrics = api.el("div", { className: "sc-metrics" });
       [
@@ -472,14 +492,14 @@
       revealed.appendChild(metrics);
       revealed.appendChild(api.el("p", { className: "sc-formula" }, "H=" + formatValue(summary.entropy, 6) + "; H≤L=" + formatValue(summary.huffman.averageLength, 6) + "<H+1=" + formatValue(summary.entropy + 1, 6) + "; Kraft=" + formatValue(summary.huffman.kraft, 6)));
       var layout = api.el("div", { className: "sc-layout" });
-      var codeLedger = api.el("div", { className: "sc-ledger" });
+      var codeLedger = api.el("div", { className: "sc-ledger",tabindex:"0",role:"region","aria-label":"码字账本，可横向滚动" });
       codeLedger.appendChild(api.el("h3", {}, "确定性 Huffman（一个源符号）"));
       codeLedger.appendChild(makeTable(api, ["符号", "P", "码字", "长度", "理想长度 −log₂P"], codeRows, "确定性 Huffman 码表"));
       codeLedger.appendChild(api.el("h3", {}, "每符号平均长度比较"));
       codeLedger.appendChild(makeTable(api, ["方案", "bits / source symbol", "读法"], comparisonRows, "编码方案平均长度比较"));
       codeLedger.appendChild(api.el("p", { className: "sc-note" }, "分组 Huffman 先对独立的 " + state.blockSize + "-符号块编码，再把块平均到一个源符号；它利用了块级整数码长来逼近熵。"));
       layout.appendChild(codeLedger);
-      var stage = api.el("div", { className: "sc-stage" });
+      var stage = api.el("div", { className: "sc-stage",tabindex:"0",role:"region","aria-label":"码长与Huffman树，可横向滚动" });
       stage.appendChild(chart(api, summary));
       layout.appendChild(stage);
       revealed.appendChild(layout);
@@ -489,34 +509,34 @@
     function render() {
       state.blockSize = Number(groupSelect.value);
       var summary = currentSummary();
-      var answer = bestMode(summary);
+      var answers = { best: bestMode(summary), kraft: "not-over", perMessage: "no" };
       groupSelect.value = String(state.blockSize);
-      choiceButtons.group.textContent = "分组 Huffman（g=" + state.blockSize + "）";
+      choiceButtons.filter(function (item) { return item.key === "best" && item.value === "group"; })[0].node.textContent = "分组 Huffman（g=" + state.blockSize + "）";
       renderPrediction();
       if (!state.revealed) {
         revealed.hidden = true;
         feedback.className = "sc-feedback";
-        feedback.textContent = state.prediction ? "预测已记录，点击“核对预测”查看账本。" : "先选一个预测。";
+        feedback.textContent = predictionSpecs.every(function (spec) { return state.predictions[spec.key] !== null; }) ? "三项预测已记录，点击“核对预测”查看账本。" : "请完成三项预测。";
         return;
       }
       revealed.hidden = false;
-      var correct = state.prediction === answer;
-      feedback.className = "sc-feedback " + (correct ? "sc-pass" : "sc-warn");
-      feedback.textContent = (correct ? "预测命中。" : "预测未命中。") + " 当前最低的是“" + comparison(summary).filter(function (item) { return item.id === answer; })[0].label + "”。";
+      var correct = predictionSpecs.filter(function (spec) { return state.predictions[spec.key] === answers[spec.key]; }).length;
+      feedback.className = "sc-feedback " + (correct === predictionSpecs.length ? "sc-pass" : "sc-warn");
+      feedback.textContent = "预测 " + correct + "/" + predictionSpecs.length + "。当前最低的是“" + comparison(summary).filter(function (item) { return item.id === answers.best; })[0].label + "”；Kraft 和不超过 1；熵不是逐条消息的整数码长。";
       renderResults(summary);
       if (api.announce) api.announce(root, feedback.textContent);
     }
 
     groupSelect.addEventListener("change", function () {
       state.blockSize = Number(groupSelect.value);
-      state.prediction = null;
+      state.predictions = { best: null, kraft: null, perMessage: null };
       state.revealed = false;
       render();
     });
     check.addEventListener("click", function () {
-      if (!state.prediction) {
+      if (!predictionSpecs.every(function (spec) { return state.predictions[spec.key] !== null; })) {
         feedback.className = "sc-feedback sc-warn";
-        feedback.textContent = "请先作出预测。";
+        feedback.textContent = "请先完成三项预测。";
         return;
       }
       state.revealed = true;
@@ -524,7 +544,7 @@
     });
     reset.addEventListener("click", function () {
       state.blockSize = 2;
-      state.prediction = null;
+      state.predictions = { best: null, kraft: null, perMessage: null };
       state.revealed = false;
       groupSelect.value = "2";
       render();
@@ -556,6 +576,15 @@
     assert(near(summary.fixed.bitsPerSymbol, 2, 1e-12), "fixed length");
     assert(summary.block.averageBitsPerSymbol < summary.huffman.averageLength, "block coding improves default");
     assert(near(entropy([1, 0]), 0, 1e-12), "entropy endpoint zero");
+    var degenerate = summarize([1, 0], 1);
+    assert(degenerate.support.join("") === "A" && degenerate.outsideSupport.join("") === "B", "support metadata preserves symbol identity");
+    assert(degenerate.huffman.codes.A === "", "singleton support uses empty codeword");
+    assert(degenerate.huffman.codes.B === null, "zero-probability symbol stays identifiable outside support");
+    assert(near(degenerate.huffman.averageLength, 0, 1e-12), "singleton support average length");
+    assert(near(degenerate.huffman.kraft, 1, 1e-12), "singleton support Kraft equality");
+    var sparse = huffmanCodes([0, 0.6, 0, 0.4], ["A", "B", "C", "D"]);
+    assert(sparse.A === null && sparse.C === null, "zero-probability identities are preserved");
+    assert(sparse.B === "0" && sparse.D === "1", "positive support keeps original symbol identities");
     assert(near(entropy([0.5, 0.5]), 1, 1e-12), "entropy endpoint maximum");
     assertThrows(function () { entropy([0.5, 0.6]); }, "reject non-normalized distribution");
     assertThrows(function () { entropy([0.5, -0.5, 1]); }, "reject negative probability");

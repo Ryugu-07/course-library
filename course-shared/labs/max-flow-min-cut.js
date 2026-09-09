@@ -143,7 +143,29 @@
     return result;
   }
 
+  function validateFlow(config, flow) {
+    var edges = edgesFor(config);
+    if (!flow || typeof flow !== "object") throw new TypeError("flow is required");
+    edges.forEach(function (edge) {
+      var value = flow[edge.id];
+      if (!finite(value)) throw new RangeError("flow " + edge.id + " must be finite");
+      if (value < -EPS || value > edge.capacity + EPS) {
+        throw new RangeError("flow " + edge.id + " must satisfy 0 <= flow <= capacity");
+      }
+    });
+    var balance = balances(config, flow);
+    if (Math.abs(balance.a) > EPS || Math.abs(balance.b) > EPS) {
+      throw new RangeError("flow must conserve at intermediate vertices");
+    }
+    var value = flowValue(config, flow);
+    if (value < -EPS || Math.abs(balance.s + value) > EPS || Math.abs(balance.t - value) > EPS) {
+      throw new RangeError("flow must have a non-negative source value balanced by the sink");
+    }
+    return true;
+  }
+
   function residualArcs(config, flow) {
+    validateFlow(config, flow);
     var current = cloneFlow(flow);
     var arcs = [];
     edgesFor(config).forEach(function (edge) {
@@ -231,7 +253,9 @@
   }
 
   function runToCertificate(config, initialFlow) {
-    var flow = cloneFlow(initialFlow || zeroFlow());
+    var startingFlow = initialFlow === undefined ? zeroFlow() : initialFlow;
+    validateFlow(config, startingFlow);
+    var flow = cloneFlow(startingFlow);
     var history = [];
     var guard = 0;
     while (findAugmentingPath(config, flow)) {
@@ -254,6 +278,12 @@
 
   function selfTest() {
     var checks = 0;
+    function assertThrows(fn, message) {
+      var threw = false;
+      try { fn(); } catch (error) { threw = true; }
+      checks += 1;
+      assert(threw, message);
+    }
     PRESETS.forEach(function (preset) {
       var config = makeConfig(preset);
       var result = runToCertificate(config);
@@ -288,6 +318,13 @@
     assert(reroute.history[1].path.some(function (arc) { return arc.id === "ab" && arc.direction === -1; }), "second path must use reverse a-b residual");
     assert(near(reroute.flow.ab, 0), "reroute should cancel a-b flow");
     assert(near(reroute.value, 2), "reroute max flow should be 2");
+
+    var rerouteConfig = makeConfig("reroute");
+    assertThrows(function () { runToCertificate(rerouteConfig, { sa: NaN, ab: 0, bt: 0, sb: 0, at: 0 }); }, "non-finite flow should be rejected");
+    assertThrows(function () { runToCertificate(rerouteConfig, { sa: 0, ab: 0, bt: 0, sb: 0 }); }, "missing edge flow should be rejected");
+    assertThrows(function () { runToCertificate(rerouteConfig, { sa: 2, ab: 0, bt: 0, sb: 0, at: 0 }); }, "over-capacity flow should be rejected");
+    assertThrows(function () { runToCertificate(rerouteConfig, { sa: -1, ab: 0, bt: 0, sb: 0, at: 0 }); }, "negative source flow should be rejected");
+    assertThrows(function () { runToCertificate(rerouteConfig, { sa: 1, ab: 0, bt: 0, sb: 0, at: 0 }); }, "non-conserving flow should be rejected");
 
     var rejected = false;
     try { validateConfig({ capacities: { sa: -1, ab: 1, bt: 1, sb: 1, at: 1 } }); } catch (error) { rejected = true; }
@@ -419,21 +456,22 @@
     var history = [];
     var lastPath = null;
     var revealed = false;
-    var answers = { reverse: null, proof: null, integer: null };
+    var answers = { reroute: null, reverse: null, proof: null, integer: null };
 
     var shell = makeElement(doc, "div", { className: "mf-lab" });
     shell.appendChild(makeElement(doc, "h3", {}, "残量网络：先预测，再增广"));
-    shell.appendChild(makeElement(doc, "p", { className: "mf-intro" }, "第一条增广路未必适合最终解。先回答三问，揭示后逐步观察反向余量如何撤回旧决定，并用同值割关闭最优性证明。"));
+    shell.appendChild(makeElement(doc, "p", { className: "mf-intro" }, "第一条增广路未必适合最终解。先回答四问，揭示后逐步观察反向余量如何撤回旧决定，并用同值割关闭最优性证明。"));
 
     var questions = [
-      { key: "reverse", prompt: "1. 残量反向边 b -> a 表示什么？", expected: "cancel", choices: [["pipe", "新建反向管道"], ["cancel", "可撤回原边流量"], ["ignore", "只是画图辅助"]] },
-      { key: "proof", prompt: "2. 找到值为 2 的可行流，已经证明最优吗？", expected: "cut", choices: [["yes", "已经证明"], ["cut", "还需同值割或无增广路"], ["large", "只要看起来够大"]] },
-      { key: "integer", prompt: "3. 整数容量的整数流性质能推广到任意 LP 吗？", expected: "special", choices: [["all", "可以，所有 LP 都行"], ["special", "不行，依赖网络结构"], ["none", "网络流也不行"]] }
+      { key: "reroute", prompt: "1. 第一条 s -> a -> b -> t 的流在最大流中能原样保留吗？", expected: "cancel", choices: [["keep", "能原样保留"], ["cancel", "必须撤回 a -> b 再改道"], ["invalid", "第一条流本身不可行"]] },
+      { key: "reverse", prompt: "2. 残量反向边 b -> a 表示什么？", expected: "cancel", choices: [["pipe", "新建反向管道"], ["cancel", "可撤回原边流量"], ["ignore", "只是画图辅助"]] },
+      { key: "proof", prompt: "3. 找到值为 2 的可行流，已经证明最优吗？", expected: "cut", choices: [["yes", "已经证明"], ["cut", "还需同值割或无增广路"], ["large", "只要看起来够大"]] },
+      { key: "integer", prompt: "4. 整数容量的整数流性质能推广到任意 LP 吗？", expected: "special", choices: [["all", "可以，所有 LP 都行"], ["special", "不行，依赖网络结构"], ["none", "网络流也不行"]] }
     ];
 
     var form = makeElement(doc, "form", { className: "mf-prediction" });
     var fieldset = makeElement(doc, "fieldset");
-    fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：三项都回答后才显示流量"));
+    fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：四项都回答后才显示流量"));
     var choiceButtons = [];
     questions.forEach(function (question) {
       fieldset.appendChild(makeElement(doc, "p", { className: "mf-question" }, question.prompt));
@@ -453,7 +491,7 @@
     var submit = makeElement(doc, "button", { type: "submit", className: "mf-primary" }, "提交预测并揭示");
     var gateReset = makeElement(doc, "button", { type: "button" }, "清空预测");
     form.appendChild(makeElement(doc, "div", { className: "mf-actions" }, [submit, gateReset]));
-    var feedback = makeElement(doc, "p", { className: "mf-feedback", role: "status", "aria-live": "polite" }, "请完成三项预测。感到不确定也要先下注。 ");
+    var feedback = makeElement(doc, "p", { className: "mf-feedback", role: "status", "aria-live": "polite" }, "请完成四项预测。感到不确定也要先下注。 ");
     form.appendChild(feedback);
     shell.appendChild(form);
 
@@ -564,14 +602,14 @@
       event.preventDefault();
       if (questions.some(function (question) { return !answers[question.key]; })) {
         feedback.className = "mf-feedback mf-warn";
-        feedback.textContent = "请先完成三项预测。";
+        feedback.textContent = "请先完成四项预测。";
         return;
       }
       reveal();
     });
 
     gateReset.addEventListener("click", function () {
-      answers = { reverse: null, proof: null, integer: null };
+      answers = { reroute: null, reverse: null, proof: null, integer: null };
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
       feedback.className = "mf-feedback";
       feedback.textContent = "预测已清空。";
@@ -606,10 +644,10 @@
     relockButton.addEventListener("click", function () {
       revealed = false;
       revealedPanel.setAttribute("hidden", "hidden");
-      answers = { reverse: null, proof: null, integer: null };
+      answers = { reroute: null, reverse: null, proof: null, integer: null };
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
       feedback.className = "mf-feedback";
-      feedback.textContent = "已重新上锁，请再做三项预测。";
+      feedback.textContent = "已重新上锁，请再做四项预测。";
       resetFlow();
     });
   }
@@ -626,6 +664,7 @@
     flowValue: flowValue,
     cutCertificate: cutCertificate,
     runToCertificate: runToCertificate,
+    validateFlow: validateFlow,
     selfTest: selfTest,
     mount: mount
   };

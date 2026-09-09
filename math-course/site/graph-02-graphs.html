@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-09 08:03</div>
   </div>
 </nav>
 <main id="content">
@@ -85,7 +85,7 @@ try {
 \deg(i)=\sum_j A_{ij},\qquad 2|E|=\sum_i\deg(i).
 \]</div>
 <p>连通性由有限次 BFS/DFS 给出；树的精确证书是“连通且 <span class="arithmatex">\(|E|=n-1\)</span>”（等价地再加无环）。Euler 回路的充要条件是所有<strong>非孤立</strong>顶点在同一连通分量且度全偶；若把闭合回路也算作 Euler 通路，则通路的奇度顶点数必须是 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>（<span class="arithmatex">\(0\)</span> 时就是回路）。Hamilton 回路改为顶点约束，实验用有限回溯逐一搜索，而不是把一个启发式当成否证。</p>
-<p>平面性先有必要筛子：简单图 <span class="arithmatex">\(|E|\le 3n-6\)</span>，二部简单图 <span class="arithmatex">\(|E|\le2n-4\)</span>。筛子通过只表示“还没有被这个证书排除”。对本实验的有限图，最后再穷举每个顶点的循环邻接顺序；面遍历若满足 <span class="arithmatex">\(V-E+F=2\)</span>，给出平面嵌入证书。边界很重要：Dirac 条件 <span class="arithmatex">\(\delta\ge n/2\)</span> 是 Hamilton 的<strong>充分</strong>条件，不满足时只是未决；边数上界通过时也不是平面性的证明。</p>
+<p>平面性先有必要筛子：当 <span class="arithmatex">\(n\ge3\)</span> 时，简单平面图满足 <span class="arithmatex">\(|E|\le 3n-6\)</span>，二部简单平面图满足 <span class="arithmatex">\(|E|\le2n-4\)</span>；少于 3 个顶点的分量单独作为平凡嵌入处理。筛子通过只表示“还没有被这个证书排除”。对本实验的有限图，最后再穷举每个顶点的循环邻接顺序；面遍历若满足 <span class="arithmatex">\(V-E+F=2\)</span>，给出平面嵌入证书。边界很重要：Dirac 条件 <span class="arithmatex">\(\delta\ge n/2\)</span> 是 Hamilton 的<strong>充分</strong>条件，不满足时只是未决；边数上界通过时也不是平面性的证明。</p>
 <h3 id="3">3. 预测门：先在脑中贴标签<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>默认图是 <span class="arithmatex">\(K_4\)</span>。揭示账本前预测：</p>
 <ol>
@@ -143,8 +143,10 @@ try {
 <li>本实验只处理显式给出的有限简单无向图；多重边、有向图、加权图和无限图需要重新声明对象与判据。</li>
 </ul>
 </section>
-<figure class="diagram">
+<figure aria-label="课程图示，可横向滚动" class="diagram" style="overflow-x:auto;position:relative" tabindex="0">
+<div style="min-width:1100px">
 <p><img alt="一张示例图 + 图的基本概念（顶点/边/度/路径/连通分量），配几种特殊图（完全图/二部图/树）。" src="assets/img/graph-02-graph-types.svg" /></p>
+</div>
 <figcaption><span class="fig-id">图 graph-02.1</span>一张示例图 + 图的基本概念（顶点/边/度/路径/连通分量），配几种特殊图（完全图/二部图/树）。</figcaption>
 </figure>
 <h2 id="1">1. 基本语言与握手定理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
@@ -163,7 +165,7 @@ try {
 V - E + F = 2
 \]</div>
 <p>（<span class="arithmatex">\(F\)</span> 含无界外面；<em>证明</em>：对生成树归纳——树时 <span class="arithmatex">\(F=1, E=V-1\)</span> ✓，每加一条边恰新增一个面。）<strong>这就是拓扑页 Euler 示性数 <span class="arithmatex">\(\chi\)</span> 的离散原型</strong>（球面 <span class="arithmatex">\(\chi = 2\)</span>——平面图即球面上的图，Gauss–Bonnet 页的 <span class="arithmatex">\(\chi\)</span> 在此有了可数的定义）。</p>
-<p><strong>推论（非平面性判据）</strong>：简单平面图 <span class="arithmatex">\(E \leq 3V - 6\)</span>（每面至少 3 边、每边贡献 2 面，双计数）⇒ <strong><span class="arithmatex">\(K_5\)</span> 非平面</strong>（<span class="arithmatex">\(10 &gt; 9\)</span>）；二部图加强为 <span class="arithmatex">\(E \leq 2V - 4\)</span> ⇒ <strong><span class="arithmatex">\(K_{3,3}\)</span> 非平面</strong>（三户人家接三种管线必交叉——水电气难题的死刑判决）。<strong>Kuratowski 定理</strong>（陈述）：非平面 <span class="arithmatex">\(\iff\)</span> 含 <span class="arithmatex">\(K_5\)</span> 或 <span class="arithmatex">\(K_{3,3}\)</span> 的剖分——两个最小反例就是全部障碍。</p>
+<p><strong>推论（非平面性判据，<span class="arithmatex">\(V\ge3\)</span>）</strong>：简单平面图 <span class="arithmatex">\(E \leq 3V - 6\)</span>（每面至少 3 边、每边贡献 2 面，双计数）⇒ <strong><span class="arithmatex">\(K_5\)</span> 非平面</strong>（<span class="arithmatex">\(10 &gt; 9\)</span>）；二部简单平面图加强为 <span class="arithmatex">\(E \leq 2V - 4\)</span> ⇒ <strong><span class="arithmatex">\(K_{3,3}\)</span> 非平面</strong>（三户人家接三种管线必交叉——水电气难题的死刑判决）。<span class="arithmatex">\(K_1,K_2\)</span> 等小图直接视为平面，不能代入这两个右端为负或零的筛子。<strong>Kuratowski 定理</strong>（陈述）：非平面 <span class="arithmatex">\(\iff\)</span> 含 <span class="arithmatex">\(K_5\)</span> 或 <span class="arithmatex">\(K_{3,3}\)</span> 的剖分——两个最小反例就是全部障碍。</p>
 <p><strong>四色定理</strong>一嘴：平面图顶点四色可染（1976 计算机辅助证明——数学证明观念的分水岭事件；五色定理有纸笔证明，Euler 公式 + 归纳）。</p>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（度序列判定）</strong> 序列 <span class="arithmatex">\((3, 3, 3, 1)\)</span> 可实现吗？度和 <span class="arithmatex">\(= 10\)</span> 为偶 ✓ 但三个 3 度点要在 4 顶点图中各连 3 边，1 度点只能吸收一条——检查（Erdős–Gallai 或直接构造）失败：<strong>度和为偶是必要不充分</strong>。</p>

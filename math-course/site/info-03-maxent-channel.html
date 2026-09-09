@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:18</div>
+    <div class="build-time">构建于 2026-09-09 08:04</div>
   </div>
 </nav>
 <main id="content">
@@ -57,21 +57,25 @@ try {
 <li><a href="#maxent-channel-learning-title">1. 先预测：约束、输入与信道各管哪一层？</a></li>
 <li><a href="#2">2. 静态后备：两本账分别验</a></li>
 <li><a href="#3">3. 从玩具账本回到定理</a></li>
+<li><a href="#4">4. 迁移：保持约束，改变输入</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 最大熵原理</a></li>
 <li><a href="#2_1">2. 信道容量：噪声中的可靠通信</a></li>
-<li><a href="#3_1">3. 压缩即预测即智能（全课收束）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
+<li><a href="#3_1">3. 从压缩到预测：联系与边界</a></li>
+<li><a href="#4_1">4. 典型例题</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii">信息论 III · 最大熵、信道容量与"压缩即智能"<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<h1 id="iii">信息论 III · 最大熵、信道容量与压缩预测<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p>收官页三个高峰：<strong>最大熵原理</strong>（只知道部分信息时该假设什么分布——高斯与指数分布的第三种出身）、<strong>信道编码定理</strong>（噪声中可靠通信的极限）、以及把全课收束到一个现代命题：<strong>压缩即预测即智能</strong>——LLM 与信息论的正面相认。</p>
+<p>先修入口：<a href="info-01-entropy.html">熵与信源编码</a>、<a href="info-02-kl-mi.html">KL 散度与互信息</a>。</p>
+<p>收官页三个高峰：<strong>最大熵原理</strong>（只知道部分信息时该假设什么分布——高斯与指数分布的第三种出身）、<strong>信道编码定理</strong>（噪声中可靠通信的极限）、以及<strong>压缩与预测的数学联系</strong>。最后讨论这些联系如何帮助理解语言模型，以及为什么预测或压缩性能还不能单独定义智能。</p>
 </blockquote>
-<figure class="diagram">
+<figure aria-label="课程图示，可横向滚动" class="diagram" style="overflow-x:auto;position:relative" tabindex="0">
+<div style="min-width:1100px">
 <p><img alt="有噪信道模型：输入 X →（转移概率矩阵/噪声）→ 输出 Y，信道容量 C=\max I(X;Y)。" src="assets/img/info-03-channel.svg" /></p>
+</div>
 <figcaption><span class="fig-id">图 info-03.1</span>有噪信道模型：输入 X →（转移概率矩阵/噪声）→ 输出 Y，信道容量 \(C=\max I(X;Y)\)。</figcaption>
 </figure>
 <div data-learning-page></div>
@@ -85,7 +89,7 @@ try {
 <li>对翻转率为 <span class="arithmatex">\(\varepsilon\)</span> 的二元对称信道，<span class="arithmatex">\(R&lt;C\)</span> 是单次传输零错误，还是存在一列长块码使误码率趋零？</li>
 <li>容量 <span class="arithmatex">\(C=\max_{p(x)}I(X;Y)\)</span> 优化的是输入分布还是噪声本身？</li>
 </ol>
-<p>提交前不显示最优分布、互信息曲线和容量差。揭示后，左栏解同一个有限最大熵问题，右栏扫描 BSC 的输入偏置 <span class="arithmatex">\(q=P(X=1)\)</span>；这样“约束选择”“输入设计”和“信道规律”不会偷换成同一个旋钮。</p>
+<p>提交前不显示最优分布、互信息曲线和容量差。揭示后，先解同一个有限最大熵问题，再扫描 BSC 的输入偏置 <span class="arithmatex">\(q=P(X=1)\)</span>；这样“约束选择”“输入设计”和“信道规律”不会偷换成同一个旋钮。</p>
 <h3 id="2">2. 静态后备：两本账分别验<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <div class="learning-lab" data-learning-lab="maxent-channel" markdown="1">
 <p><strong>JavaScript 失效时的静态读法：</strong>有限最大熵问题为</p>
@@ -131,6 +135,7 @@ try {
 I(X;Y)=h_2\!\left(\varepsilon+q(1-2\varepsilon)\right)-h_2(\varepsilon).
 \]</div>
 <p>曲线在 <span class="arithmatex">\(q=1/2\)</span> 达最大值，不是因为均匀输入“减少了翻转”，而是它让输出边缘熵最大。实验同时报告 <span class="arithmatex">\(C-I\)</span>，让“当前输入表现”与“信道可达到的上限”分账。</p>
+</div>
 <h3 id="3">3. 从玩具账本回到定理<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <ul>
 <li><strong>最大熵依赖你写下的约束与参考测度。</strong>遗漏一个已知约束会改变答案；选出的分布是推理规则的结果，不是经验真实性证书。</li>
@@ -138,14 +143,33 @@ I(X;Y)=h_2\!\left(\varepsilon+q(1-2\varepsilon)\right)-h_2(\varepsilon).
 <li><strong><span class="arithmatex">\(I(X;Y)\)</span> 是当前输入分布下的互信息。</strong>只有再对 <span class="arithmatex">\(p(x)\)</span> 最大化才得到容量；一般非对称信道的最优输入未必均匀。</li>
 <li>本实验只处理离散四点最大熵和 BSC。连续变量还要说明基准测度，微分熵也不具备离散熵那种坐标不变的绝对含义。</li>
 </ul>
-</div>
+<h3 id="4">4. 迁移：保持约束，改变输入<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>先算 <span class="arithmatex">\(m=1\)</span> 时的最大熵分布，再保持 BSC 的 <span class="arithmatex">\(\varepsilon=0.1\)</span>，把输入从 <span class="arithmatex">\(q=1/2\)</span> 改为 <span class="arithmatex">\(0.12\)</span>；哪些量变了，哪些量没变？最后把 <span class="arithmatex">\(\varepsilon\)</span> 设为 <span class="arithmatex">\(1/2\)</span>，均匀输入还是唯一最优吗？</p>
+<details class="answer" markdown="1">
+<summary>核对分布、容量差与纯噪声反例</summary>
+<ol>
+<li>最大熵解的 <span class="arithmatex">\(\lambda\simeq-0.419618\)</span>，<span class="arithmatex">\(p\simeq(0.421351,0.276953,0.182041,0.119655)\)</span>，其和为 1、均值为 1，熵约 1.852286 bit。因为 <span class="arithmatex">\(m&lt;1.5\)</span>，指数倾斜向低数值点；这仍只是给定支撑、均值与计数参考测度下的解。</li>
+<li><span class="arithmatex">\(q=0.12\)</span> 时 <span class="arithmatex">\(P(Y=1)=0.196\)</span>，<span class="arithmatex">\(I\simeq0.244860\)</span> bit/use；信道没变，所以 <span class="arithmatex">\(C\simeq0.531004\)</span> 不变，容量差约 0.286144。调输入不等于降低噪声翻转率。</li>
+<li><span class="arithmatex">\(\varepsilon=1/2\)</span> 时 <span class="arithmatex">\(P(Y=1)=1/2\)</span> 与 <span class="arithmatex">\(q\)</span> 无关，<span class="arithmatex">\(I=C=0\)</span>，<strong>所有输入分布都达到零容量</strong>。不能从“均匀输入达到容量”推出“只有均匀输入能达到容量”。</li>
+</ol>
+</details>
 </section>
 <h2 id="1">1. 最大熵原理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p><strong>原理（Jaynes）</strong>：在满足已知约束的所有分布中，选<strong>熵最大</strong>的那个——除了已知的，不额外假设任何东西（"最诚实的无知"，Occam 剃刀的分布版）。</p>
-<p><strong>求解 = 带约束的凸优化</strong>（优化 III 的 Lagrange 全套上岗）。对约束 <span class="arithmatex">\(E[f_k(X)] = c_k\)</span>，Lagrange 函数对 <span class="arithmatex">\(p(x)\)</span> 求偏导置零，得通解形式：</p>
+<p><strong>求解 = 带约束的凸优化</strong>（优化 III 的 Lagrange 全套上岗）。对约束 <span class="arithmatex">\(E[f_k(X)] = c_k\)</span>，Lagrange 函数对 <span class="arithmatex">\(p(x)\)</span> 求偏导置零，在存在可归一化内点极值的正则条件下得到指数族形式；边界解或不存在最大值的情形须另查：</p>
 <div class="arithmatex">\[
 p^*(x) \propto \exp\Big(\sum_k \lambda_k f_k(x)\Big) \qquad \text{（指数族！）}
 \]</div>
+<p>在实验的四点支撑上，可以把这一步写完整。为简化导数，先用自然对数最大化 <span class="arithmatex">\(H_e(p)=-\sum_i p_i\ln p_i\)</span>；乘上 <span class="arithmatex">\(1/\ln2\)</span> 不改变最优解。对约束 <span class="arithmatex">\(\sum p_i=1\)</span>、<span class="arithmatex">\(\sum ip_i=m\)</span>，令</p>
+<div class="arithmatex">\[
+\mathcal L=-\sum_i p_i\ln p_i+\alpha(\sum_i p_i-1)+\lambda(\sum_i ip_i-m).
+\]</div>
+<p>内点驻点给出 <span class="arithmatex">\(-\ln p_i-1+\alpha+\lambda i=0\)</span>，归一化后就是 <span class="arithmatex">\(p_i^*=e^{\lambda i}/Z(\lambda)\)</span>。而 <span class="arithmatex">\(d\ln Z/d\lambda=E[X]\)</span>、<span class="arithmatex">\(dE[X]/d\lambda=\operatorname{Var}(X)&gt;0\)</span>，所以内点均值唯一确定 <span class="arithmatex">\(\lambda\)</span>。这还不只是“找到驻点”：对任何满足同样均值的 <span class="arithmatex">\(p\)</span>，</p>
+<div class="arithmatex">\[
+D(p\Vert p^*)=-H_e(p)-\lambda m+\ln Z
+=H_e(p^*)-H_e(p)\ge0.
+\]</div>
+<p>因此 <span class="arithmatex">\(p^*\)</span> 确实全局最大熵；KL 取零仅当 <span class="arithmatex">\(p=p^*\)</span>，也给出唯一性。端点均值则回到前面的点质量，另行处理。</p>
 <p><strong>三个特例（一张表记住三大分布的"信息论出身"）</strong>：</p>
 <table>
 <thead>
@@ -156,15 +180,15 @@ p^*(x) \propto \exp\Big(\sum_k \lambda_k f_k(x)\Big) \qquad \text{（指数族�
 </thead>
 <tbody>
 <tr>
-<td>仅支撑集 <span class="arithmatex">\([a, b]\)</span></td>
+<td>Lebesgue 测度、有限区间 <span class="arithmatex">\(a&lt;b\)</span></td>
 <td><strong>均匀分布</strong>（无知的极致）</td>
 </tr>
 <tr>
-<td>支撑 <span class="arithmatex">\([0,\infty)\)</span> + 均值</td>
+<td>Lebesgue 测度、支撑 <span class="arithmatex">\([0,\infty)\)</span> + 正有限均值</td>
 <td><strong>指数分布</strong></td>
 </tr>
 <tr>
-<td>均值 + 方差（全实轴）</td>
+<td>Lebesgue 测度、有限均值 + 正有限方差（全实轴）</td>
 <td><strong>高斯分布</strong></td>
 </tr>
 </tbody>
@@ -175,20 +199,25 @@ p^*(x) \propto \exp\Big(\sum_k \lambda_k f_k(x)\Big) \qquad \text{（指数族�
 <div class="arithmatex">\[
 C = \max_{p(x)} I(X; Y)
 \]</div>
-<p><strong>定理（Shannon 信道编码定理，1948）</strong> 传输速率 <span class="arithmatex">\(R &lt; C\)</span> 时，存在编码方案使错误率任意小；<span class="arithmatex">\(R &gt; C\)</span> 则不可能。</p>
-<p><strong>革命性在哪</strong>：噪声信道上竟能<strong>任意可靠</strong>地通信（此前工程师以为噪声必然导致错误积累），代价只是速率不超过 <span class="arithmatex">\(C\)</span>——手段是<strong>冗余编码</strong>（把信息摊在长块上，让噪声"平均掉"——大数定律的通信版）。证明思想（随机编码 + 典型序列）是概率方法的名演；实用纠错码（汉明码、LDPC、Polar 码——5G 里的那个）是把存在性变成工程的七十年长跑。<strong>例</strong>：二元对称信道（翻转概率 <span class="arithmatex">\(\varepsilon\)</span>）：<span class="arithmatex">\(C = 1 - h(\varepsilon)\)</span>——上一页例 3 的互信息恰是它（均匀输入达到最大）。</p>
-<p><strong>微分熵</strong>一嘴（连续版）：<span class="arithmatex">\(h(X)=-\int f\ln f\)</span> 以自然对数计，单位是 nat；它可为负（不再是“绝对不确定性”，只有差值/相对量有不变意义），高斯在给定方差下最大化它（§1 的连续版）。若容量统一用 bit/次信道使用，则高斯信道写成 <span class="arithmatex">\(C=\frac12\log_2(1+\mathrm{SNR})\)</span>；若全程用 <span class="arithmatex">\(\ln\)</span>，同一数值改以 nat/次计。底数与单位必须一起换。</p>
-<h2 id="3_1">3. 压缩即预测即智能（全课收束）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p><strong>定理（有限字母表离散无记忆信道）</strong> 以每次信道使用的信息 bit 数计，任意固定 <span class="arithmatex">\(R&lt;C\)</span> 都存在块长趋于无穷的码族，使块误码率趋于零；固定 <span class="arithmatex">\(R&gt;C\)</span> 不能达到这一目标。定理并不替指定有限块长或译码器保证性能；恰好 <span class="arithmatex">\(R=C\)</span> 的边界不能由严格不等式直接推出。</p>
+<p><strong>革命性在哪</strong>：噪声信道上竟能<strong>任意可靠</strong>地通信（此前工程师以为噪声必然导致错误积累），条件是固定速率严格低于 <span class="arithmatex">\(C\)</span>，并允许足够长的码块——手段是<strong>冗余编码</strong>（把信息摊在长块上，让噪声"平均掉"——大数定律的通信版）。证明思想（随机编码 + 典型序列）是概率方法的名演；实用纠错码（汉明码、LDPC、Polar 码——5G 里的那个）是把存在性变成工程的七十年长跑。<strong>例</strong>：二元对称信道（翻转概率 <span class="arithmatex">\(\varepsilon\)</span>）：<span class="arithmatex">\(C = 1 - h(\varepsilon)\)</span>——上一页例 3 的互信息恰是它（均匀输入达到最大）。</p>
+<p><strong>微分熵</strong>一嘴（连续版）：<span class="arithmatex">\(h(X)=-\int f\ln f\)</span> 以自然对数计，单位是 nat；它可为负（依赖坐标与参考测度；一般两个微分熵之差也不坐标不变），高斯在给定方差下最大化它（§1 的连续版）。对<strong>实标量、无记忆 AWGN 信道</strong>施加平均功率约束，若容量统一用 bit/次实信道使用，则 <span class="arithmatex">\(C=\frac12\log_2(1+\mathrm{SNR})\)</span>；复基带模型按每次复信道使用计时，常见写法没有前面的 <span class="arithmatex">\(1/2\)</span>。若全程用 <span class="arithmatex">\(\ln\)</span>，数值改以 nat/次计。底数、信道使用的计数方式与单位必须一起说明。</p>
+<p>若 <span class="arithmatex">\(Y=g(X)\)</span> 是光滑可逆变换且积分存在，则</p>
+<div class="arithmatex">\[
+h(Y)=h(X)+E[\ln|g'(X)|].
+\]</div>
+<p>例如 <span class="arithmatex">\(Y=e^X\)</span> 会增加 <span class="arithmatex">\(E[X]\)</span>；若比较两个均值不同的分布，这个修正也不同，熵差不能普遍保持不变。对两分布同时作相同可逆变换时，<strong>KL 散度</strong>的 Jacobian 会在密度比中抵消，才有相应不变性。</p>
+<h2 id="3_1">3. 从压缩到预测：联系与边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>三块拼图合成一个命题：</p>
 <ol>
 <li><strong>预测 → 压缩</strong>（算术编码）：给定逐步归一化的预测模型 <span class="arithmatex">\(q(x_t\mid x_{&lt;t})\)</span>，序列概率是 <span class="arithmatex">\(q(x_{1:n})=\prod_tq(x_t\mid x_{&lt;t})\)</span>。在解码器已知长度 <span class="arithmatex">\(n\)</span>、被编码序列的 <span class="arithmatex">\(q&gt;0\)</span>、区间运算精确的理想模型中，选取包含于最终概率区间的二进制子区间，可使整段码长满足 <span class="arithmatex">\(-\log_2q\le\ell&lt; -\log_2q+2\)</span>。常数来自整段的二进制取整与收尾，不是说每个符号恰占 <span class="arithmatex">\(-\log q\)</span> 个整数比特。若还要编码长度，应另计长度头；实际有限精度的概率量化和区间取整也须另记冗余，它们可能随 <span class="arithmatex">\(n\)</span> 累积，不能无条件塞进相对原始 <span class="arithmatex">\(q\)</span> 的 <span class="arithmatex">\(O(1)\)</span>。在理想固定长度模型下除以 <span class="arithmatex">\(n\)</span>，收尾开销才渐近消失，期望码率趋向该序列分布的每符号交叉熵；</li>
-<li><strong>压缩 → 预测</strong>（反向同样成立）：好的压缩器隐含好的预测分布；</li>
+<li><strong>压缩 → 预测</strong>（带条件的反向）：对固定长度、可归一化的前缀码或唯一可译码，设码长为 <span class="arithmatex">\(\ell(x_{1:n})\)</span>、<span class="arithmatex">\(Z=\sum_x2^{-\ell(x)}\in(0,1]\)</span>，可令 <span class="arithmatex">\(q_n(x)=2^{-\ell(x)}/Z\)</span>，再对每个非零概率前缀求条件分布。因为 <span class="arithmatex">\(-\log_2q_n=\ell+\log_2Z\le\ell\)</span>，该块分布的理想负对数长度不大于原码长；但不同 <span class="arithmatex">\(n\)</span> 的分布未必相容，不能自动拼成一个无限在线模型。任意黑箱压缩格式不必直接暴露可用的下一 token 概率；变长对象、结束符和在线一致性都要另行约定；</li>
 <li><strong>语言模型的联系</strong>：下一 token 交叉熵衡量模型给测试序列分配的平均负对数概率；若用同一分布编码，它对应理想码率。以 bit 为单位时困惑度为 <span class="arithmatex">\(2^{H(p,q)}\)</span>，可理解为有效不确定性规模，通常不是实际候选数的算术平均。模型参数存储、分词、计算与有限精度开销另计；训练损失也不等于泛化能力或智能的完整度量，不能据此断言已经把整个互联网压缩到极限。</li>
 </ol>
 <p><strong>Kolmogorov 复杂度</strong>一瞥（理论天花板）：相对于固定通用机 <span class="arithmatex">\(U\)</span>，<span class="arithmatex">\(K_U(x)\)</span> 是让 <span class="arithmatex">\(U\)</span> 输出 <span class="arithmatex">\(x\)</span> 的最短程序长度；换通用机至多改变一个依赖机器、不依赖字符串的加法常数。它不可计算，但能严格表达“不可压缩”：对均匀随机的 <span class="arithmatex">\(n\)</span> 位串，计数表明 <span class="arithmatex">\(\Pr[K_U(X)&lt;n-c]\le2^{-c}\)</span>（常数细节随所用 plain/prefix 版本调整）。因此有限随机串只是以高概率不可压缩，并不是每一条“看起来乱”的串都能被证明没有短程序。MDL 把这条思想变成“模型码长 + 数据码长”的选择原则。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（最大熵推导指数分布）</strong> 支撑 <span class="arithmatex">\([0,\infty)\)</span>、<span class="arithmatex">\(E[X] = \frac1\lambda\)</span>：<span class="arithmatex">\(p^* \propto e^{-\lambda_1 x}\)</span>（§1 通解，<span class="arithmatex">\(f_1 = x\)</span>），归一化定出 <span class="arithmatex">\(p^* = \lambda e^{-\lambda x}\)</span> ✓——"等待时间无额外假设 ⇒ 指数分布"，概率 II 无记忆性的第三种解释。</p>
-<p><strong>例 2（信道容量计算）</strong> 翻转率 <span class="arithmatex">\(\varepsilon = 0.1\)</span> 的 BSC：<span class="arithmatex">\(C = 1 - h(0.1) \approx 0.531\)</span> 比特/次——每传 2 比特原始数据约需 3.8 次信道使用（配上好的纠错码）。</p>
+<p><strong>例 2（信道容量计算）</strong> 翻转率 <span class="arithmatex">\(\varepsilon = 0.1\)</span> 的 BSC：<span class="arithmatex">\(C = 1 - h(0.1) \approx 0.531\)</span> 比特/次——渐近每个信息 bit 至少需约 <span class="arithmatex">\(1/C=1.8832\)</span> 次使用。可靠长块传 <span class="arithmatex">\(k\)</span> bit 时须取 <span class="arithmatex">\(n/k&gt;1/C\)</span> 并控制有限块误差；不能把比例换算读成“单独 2 bit 只需 3.8 次、取整就可靠”。</p>
 <p><strong>例 3（MDL 直觉）</strong> 数据 = 1000 位交替的 0101…：逐位存 1000 比特；"程序：打印 01 五百次"约几十比特——<strong>规律 = 可压缩性</strong>。反过来不能检查某个有限字符串的外观后断言它“真随机”；上面的计数界只说均匀抽取时，能省下至少 <span class="arithmatex">\(c\)</span> bit 的字符串比例至多约为 <span class="arithmatex">\(2^{-c}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>信息论三页完工。下一门把布朗运动炼成微积分——随机微积分：Itô 引理、SDE，以及金融与扩散模型共用的那套数学。</em></p>
