@@ -34,16 +34,8 @@ def f_sampling_dists():
     pass
 
 def f_confidence():
-    fig,ax=plt.subplots(figsize=(6.4,4.2)); mu=0
-    for i in range(20):
-        s=rng.normal(mu,1,25); m=s.mean(); h=1.96/np.sqrt(25)
-        covered = (m-h<=mu<=m+h)
-        ax.errorbar(m,i,xerr=h,fmt="o",ms=3,color=(ACC if covered else RED),
-                    ecolor=(ACC if covered else RED),capsize=2,lw=1.2)
-    ax.axvline(mu,color=INK,lw=1.2,ls="--"); ax.text(0.05,20,r"true $\mu$",color=INK,fontsize=11)
-    ax.set_yticks([]); ax.set_xlabel(r"$\bar{x}\pm 1.96\,\sigma/\sqrt{n}$")
-    ax.set_title(r"95% CI: about 1 in 20 misses (red)",fontsize=12)
-    save(fig,"stat-03-confidence")
+    # Exact paired mechanism figure maintained by tools/build_confidence_figure.py.
+    pass
 
 def f_hypothesis():
     x=np.linspace(-4,7,500); n=lambda x,m:np.exp(-(x-m)**2/2)/np.sqrt(2*pi)

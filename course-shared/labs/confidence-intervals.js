@@ -21,7 +21,7 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var STYLE_ID = "cl-confidence-intervals-styles";
   var SERIAL = 0;
-  var Z_CRITICAL = { "0.9": 1.644854, "0.95": 1.959964, "0.99": 2.575829 };
+  var Z_CRITICAL = { "0.9": 1.6448536269514722, "0.95": 1.959963984540054, "0.99": 2.5758293035489004 };
   var T_CRITICAL_CACHE = Object.create(null);
   var DEFAULTS = {
     mu: 500,
@@ -45,11 +45,11 @@
     ".ci-lab .ci-question{min-width:0;margin:11px 0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}.ci-lab .ci-question legend{color:var(--ci-soft);font-size:13px;font-weight:650}",
     ".ci-lab .ci-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ci-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ci-lab button:hover{border-color:var(--accent)}.ci-lab button[aria-pressed=true],.ci-lab button.ci-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.ci-lab button:disabled{cursor:not-allowed;opacity:.55}",
     ".ci-lab button:focus-visible,.ci-lab input:focus-visible,.ci-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ci-lab .ci-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ci-lab .ci-actions>*{flex:1 1 180px}.ci-lab .ci-feedback{min-height:2em;margin:8px 0;font-weight:700}.ci-lab .ci-pass{color:var(--ci-green)}.ci-lab .ci-warn{color:var(--ci-red)}",
-    ".ci-lab .ci-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.ci-lab .ci-layout{display:grid;grid-template-columns:minmax(205px,.62fr) minmax(0,1.38fr);gap:16px;align-items:start;min-width:0}.ci-lab .ci-controls,.ci-lab .ci-stage{min-width:0}",
+    ".ci-lab .ci-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.ci-lab .ci-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}.ci-lab .ci-controls,.ci-lab .ci-stage{min-width:0}",
     ".ci-lab .ci-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.ci-lab .ci-controls h4{margin:0}.ci-lab .ci-control{display:grid;gap:5px;min-width:0}.ci-lab .ci-control label{color:var(--ci-soft);font-size:13px;font-weight:700}.ci-lab .ci-control output{color:var(--accent);font-variant-numeric:tabular-nums}.ci-lab input[type=range]{display:block;width:100%;min-height:44px;height:44px;margin:0;accent-color:var(--accent)}.ci-lab select{width:100%;min-height:44px;padding:7px 8px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--fg);font:inherit}",
-    ".ci-lab .ci-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.ci-lab .ci-chart{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.ci-lab .ci-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.ci-lab .ci-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.65}.ci-lab .ci-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.ci-lab .ci-truth{stroke:var(--ci-gold);stroke-width:2;stroke-dasharray:6 4}.ci-lab .ci-covered{stroke:var(--ci-green);fill:var(--ci-green)}.ci-lab .ci-missed{stroke:var(--ci-red);fill:var(--ci-red)}.ci-lab .ci-interval{stroke-width:2.1;stroke-linecap:round}.ci-lab .ci-mean{stroke:var(--bg);stroke-width:1.2}.ci-lab .ci-axis-label{font-size:12px}.ci-lab .ci-tick{font-size:11px;fill:var(--ci-soft)!important}.ci-lab .ci-chart-note{font-size:11px;fill:var(--ci-soft)!important}",
+    ".ci-lab .ci-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.ci-lab .ci-chart{display:block;width:100%;max-width:none;min-width:760px;height:auto;color:var(--fg)}.ci-lab .ci-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.ci-lab .ci-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.65}.ci-lab .ci-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.ci-lab .ci-truth{stroke:var(--ci-gold);stroke-width:2;stroke-dasharray:6 4}.ci-lab .ci-covered{stroke:var(--ci-green);fill:var(--ci-green)}.ci-lab .ci-missed{stroke:var(--ci-red);fill:var(--ci-red)}.ci-lab .ci-interval{stroke-width:2.1;stroke-linecap:round}.ci-lab .ci-mean{stroke:var(--bg);stroke-width:1.2}.ci-lab .ci-axis-label{font-size:12px}.ci-lab .ci-tick{font-size:13px;fill:var(--ci-soft)!important}.ci-lab .ci-chart-note{font-size:13px;fill:var(--ci-soft)!important}",
     ".ci-lab .ci-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 12px}.ci-lab .ci-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.ci-lab .ci-metric:nth-child(1){border-top-color:var(--ci-blue)}.ci-lab .ci-metric:nth-child(2){border-top-color:var(--ci-green)}.ci-lab .ci-metric:nth-child(3){border-top-color:var(--ci-gold)}.ci-lab .ci-metric:nth-child(4){border-top-color:var(--ci-red)}.ci-lab .ci-metric span{display:block;color:var(--ci-soft);font-size:11.5px;line-height:1.4}.ci-lab .ci-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ci-lab .ci-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}.ci-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.ci-lab caption{padding:0 0 7px;text-align:left;color:var(--ci-soft);font-size:12px;line-height:1.55}.ci-lab th,.ci-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.ci-lab th{color:var(--ci-soft);font-size:11.5px;font-weight:750}.ci-lab td:nth-child(n+2){white-space:nowrap}.ci-lab .ci-caution{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--ci-gold);background:var(--bg);color:var(--ci-soft);font-size:12.5px;line-height:1.7}",
+    ".ci-lab .ci-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}.ci-lab table{display:table;width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.ci-lab caption{padding:0 0 7px;text-align:left;color:var(--ci-soft);font-size:12px;line-height:1.55}.ci-lab th,.ci-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.ci-lab th{color:var(--ci-soft);font-size:11.5px;font-weight:750}.ci-lab td:nth-child(n+2){white-space:nowrap}.ci-lab .ci-caution{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--ci-gold);background:var(--bg);color:var(--ci-soft);font-size:12.5px;line-height:1.7}",
     "@media(max-width:900px){.ci-lab .ci-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:700px){.ci-lab .ci-choice-row{grid-template-columns:minmax(0,1fr)}.ci-lab .ci-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.ci-lab .ci-stage-frame{padding:6px}.ci-lab table{font-size:11.5px}.ci-lab th,.ci-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.ci-lab *{animation:none!important;transition:none!important}}"
   ].join("\n");
 
@@ -72,14 +72,14 @@
   }
 
   function gaussian(rng) {
-    var u = 0;
-    while (u === 0) u = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+    if(typeof rng!=="function")throw new TypeError('rng required');
+    var u=rng(),v=rng();if(!finite(u)||!finite(v)||u<0||u>=1||v<0||v>=1)throw new RangeError('rng must return [0,1)');
+    return Math.sqrt(-2*Math.log1p(-u))*Math.cos(2*Math.PI*v);
   }
 
   function zCritical(confidence) {
     var key = String(confidence);
-    if (!Z_CRITICAL[key]) throw new RangeError("confidence 必须是 0.90、0.95 或 0.99。 ");
+    if (typeof confidence!=="number" || !Z_CRITICAL[key]) throw new RangeError("confidence 必须是 0.90、0.95 或 0.99。 ");
     return Z_CRITICAL[key];
   }
 
@@ -142,6 +142,7 @@
   }
 
   function studentTCdf(value, degrees) {
+    numeric(degrees,1,1000,"degrees");if(value===Infinity)return 1;if(value===-Infinity)return 0;if(!finite(value))throw new RangeError("value must be real");
     if (value === 0) return 0.5;
     var x = degrees / (degrees + value * value);
     var tail = 0.5 * regularizedBeta(x, degrees / 2, 0.5);
@@ -149,7 +150,7 @@
   }
 
   function tCritical(confidence, degrees) {
-    if (!finite(degrees) || degrees < 2) throw new RangeError("t 区间至少需要 3 个观测。 ");
+    numeric(degrees,1,1000,"degrees");zCritical(confidence);
     var key = String(confidence) + ":" + String(degrees);
     if (T_CRITICAL_CACHE[key] !== undefined) return T_CRITICAL_CACHE[key];
     var target = (1 + Number(confidence)) / 2;
@@ -166,32 +167,47 @@
   }
 
   function mean(values) {
-    if (!values.length) return NaN;
-    return values.reduce(function (sum, value) { return sum + value; }, 0) / values.length;
+    sampleCheck(values);var scale=Math.max.apply(Math,values.map(Math.abs));if(scale===0)return 0;
+    return values.reduce(function(sum,value){return sum+value/scale;},0)/values.length*scale;
   }
 
   function sampleStd(values) {
-    if (values.length < 2) return NaN;
+    sampleCheck(values);
     var center = mean(values);
     var total = values.reduce(function (sum, value) { return sum + Math.pow(value - center, 2); }, 0);
     return Math.sqrt(total / (values.length - 1));
   }
 
   function copyConfig(config) {
-    var source = config || DEFAULTS;
-    return {
-      mu: clamp(Number(source.mu === undefined ? DEFAULTS.mu : source.mu), 0, 1000),
-      sigma: clamp(Number(source.sigma === undefined ? DEFAULTS.sigma : source.sigma), 0.5, 40),
-      n: Math.round(clamp(Number(source.n === undefined ? DEFAULTS.n : source.n), 4, 60)),
-      confidence: Number(source.confidence === undefined ? DEFAULTS.confidence : source.confidence),
-      repetitions: Math.round(clamp(Number(source.repetitions === undefined ? DEFAULTS.repetitions : source.repetitions), 40, 180)),
-      variance: source.variance === "known" ? "known" : "unknown",
-      rule: source.rule === "selected" ? "selected" : "preplanned",
-      seed: Number(source.seed === undefined ? DEFAULTS.seed : source.seed) >>> 0
-    };
+    var source=config===undefined?{}:config;if(!source||typeof source!=='object'||Array.isArray(source))throw new TypeError('config must be object');
+    var c={};Object.keys(DEFAULTS).forEach(function(k){c[k]=source[k]===undefined?DEFAULTS[k]:source[k];});
+    numeric(c.mu,0,1000,'mu');numeric(c.sigma,.5,40,'sigma');integer(c.n,2,60,'n');integer(c.repetitions,40,180,'repetitions');integer(c.seed,0,4294967295,'seed');zCritical(c.confidence);
+    if(c.variance!=='known'&&c.variance!=='unknown')throw new RangeError('unknown variance mode');
+    if(c.rule!=='preplanned'&&c.rule!=='selected')throw new RangeError('unknown selection rule');
+    if(c.rule==='selected'&&c.variance!=='known')throw new RangeError('selection requires known sigma');return c;
   }
 
+  function gammaLower(a,x) {
+    if(x===0)return 0;
+    // Selection uses 0 <= x < a; the positive series has no subtractive cancellation.
+    if(!(finite(a)&&a>0&&finite(x)&&x>=0&&x<a+1))throw new RangeError('gamma series domain');
+    var term=1/a,sum=term;
+    for(var k=1;k<10000;k++){term*=x/(a+k);sum+=term;if(term<=sum*2e-15)return Math.exp(a*Math.log(x)-x-logGamma(a))*sum;}
+    throw new Error('gamma series did not converge');
+  }
+  var COVERAGE_CACHE=Object.create(null);
+  function selectionTheory(confidence,n) {
+    integer(n,2,60,'n');var z=zCritical(confidence),t=tCritical(confidence,n-1),key=confidence+':'+n;if(COVERAGE_CACHE[key])return COVERAGE_CACHE[key];
+    var df=n-1,N=512,h=z/N,total=0;
+    for(var j=0;j<=N;j++){var u=j*h;var f=2*Math.exp(-u*u/2)/Math.sqrt(2*Math.PI)*gammaLower(df/2,df*u*u/(2*t*t));total+=(j===0||j===N?1:j%2?4:2)*f;}
+    var loss=total*h/3;return COVERAGE_CACHE[key]={coverage:confidence-loss,loss:loss,selectT:gammaLower(df/2,df*z*z/(2*t*t))};
+  }
+  function numeric(v,lo,hi,name){if(!finite(v)||v<lo||v>hi)throw new RangeError(name+' outside supported range');return v;}
+  function integer(v,lo,hi,name){numeric(v,lo,hi,name);if(!Number.isInteger(v))throw new RangeError(name+' must be integer');return v;}
+  function sampleCheck(values){if(!Array.isArray(values)||values.length<2||values.length>60||!values.every(finite))throw new RangeError('sample needs 2–60 finite numbers');return values;}
+
   function intervalFromSample(values, config, variance) {
+    sampleCheck(values);config=copyConfig(config);if(variance!=="known"&&variance!=="unknown")throw new RangeError("unknown variance mode");
     var n = values.length;
     var center = mean(values);
     var standardDeviation = sampleStd(values);
@@ -211,11 +227,12 @@
   }
 
   function chooseInterval(values, config) {
+    config=copyConfig(config);
     if (config.rule === "preplanned") return intervalFromSample(values, config, config.variance);
     if (config.variance !== "known") throw new RangeError("比较 z 与 t 的选择实验要求 sigma 已知；未知 sigma 时 z 候选不可观测。 ");
     var zInterval = intervalFromSample(values, config, "known");
     var tInterval = intervalFromSample(values, config, "unknown");
-    var chosen = zInterval.margin <= tInterval.margin ? zInterval : tInterval;
+    var chosen = Object.assign({},zInterval.margin <= tInterval.margin ? zInterval : tInterval);
     chosen.selected = true;
     chosen.candidates = { z: zInterval, t: tInterval };
     chosen.method = chosen.method + "；事后选窄者";
@@ -248,8 +265,9 @@
       coverageCount: covered,
       coverage: covered / settings.repetitions,
       target: settings.confidence,
-      selectedZ: selectedZ,
-      selectedT: settings.repetitions - selectedZ,
+      selectedZ: settings.rule==="selected"?selectedZ:null,
+      selectedT: settings.rule==="selected"?settings.repetitions-selectedZ:null,
+      theoreticalCoverage: settings.rule==="selected"?selectionTheory(settings.confidence,settings.n).coverage:settings.confidence,
       theoreticalZ: zCritical(settings.confidence),
       theoreticalT: tCritical(settings.confidence, settings.n - 1)
     };
@@ -305,7 +323,7 @@
   function format(value, digits) {
     if (value === null || value === undefined || !finite(value)) return "—";
     var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "").replace(/^-0$/, "0");
+    return (text.indexOf(".")>=0?text.replace(/0+$/, "").replace(/\.$/, ""):text).replace(/^-0$/, "0");
   }
 
   function announce(api, root, message) {
@@ -314,9 +332,9 @@
 
   function chart(api, doc, result, prefix) {
     var left = 58;
-    var top = 26;
+    var top = 62;
     var width = 650;
-    var height = 244;
+    var height = 440;
     var display = result.intervals.slice(0, Math.min(22, result.intervals.length));
     var values = [result.config.mu];
     display.forEach(function (item) { values.push(item.lower, item.upper); });
@@ -333,9 +351,9 @@
       svgElement(api, doc, "line", { className: "ci-axis", x1: left, y1: top + height, x2: left + width, y2: top + height }),
       svgElement(api, doc, "line", { className: "ci-axis", x1: left, y1: top, x2: left, y2: top + height }),
       svgElement(api, doc, "line", { className: "ci-truth", x1: xMap(result.config.mu), y1: top, x2: xMap(result.config.mu), y2: top + height }),
-      svgElement(api, doc, "text", { className: "ci-axis-label", x: xMap(result.config.mu) + 6, y: top + 14 }, "真均值 μ=" + format(result.config.mu, 1)),
-      svgElement(api, doc, "text", { className: "ci-axis-label", x: left + width, y: top + height + 28, "text-anchor": "end" }, "区间端点"),
-      svgElement(api, doc, "text", { className: "ci-chart-note", x: left, y: top - 8 }, "展示前 " + display.length + " 次；总重复数 " + result.config.repetitions)
+      svgElement(api, doc, "text", { className: "ci-axis-label", x: xMap(result.config.mu) + 6, y: top - 16 }, "真均值 μ=" + format(result.config.mu, 1)),
+      svgElement(api, doc, "text", { className: "ci-axis-label", x: left + width, y: top + height + 28, "text-anchor": "end" }, "区间端点（ml）"),
+      svgElement(api, doc, "text", { className: "ci-chart-note", x: left, y: top - 40 }, "展示前 " + display.length + " 次；总重复数 " + result.config.repetitions)
     ];
     [0, 0.5, 1].forEach(function (fraction) {
       var value = min + fraction * (max - min);
@@ -352,7 +370,7 @@
       children.push(svgElement(api, doc, "circle", { className: className + " ci-mean", cx: xMap(item.center), cy: y, r: 3.3 }));
       children.push(svgElement(api, doc, "text", { className: "ci-tick", x: left - 7, y: y + 4, "text-anchor": "end" }, String(item.index)));
     });
-    return svgElement(api, doc, "svg", { className: "ci-chart", viewBox: "0 0 760 315", role: "img", "aria-labelledby": prefix + "-chart-title " + prefix + "-chart-desc" }, children);
+    return svgElement(api, doc, "svg", { className: "ci-chart", viewBox: "0 0 760 550", role: "img", "aria-labelledby": prefix + "-chart-title " + prefix + "-chart-desc" }, children);
   }
 
   function row(api, doc, cells) {
@@ -419,7 +437,7 @@
       question.choices.forEach(function (choice) {
         var button = element(api, doc, "button", { type: "button", "aria-pressed": "false" }, choice.label);
         button.addEventListener("click", function () {
-          state.predictions[question.key] = choice.value;
+          state.predictions[question.key] = choice.value;state.revealed=false;stage.hidden=true;
           renderPrediction();
         });
         choice.button = button;
@@ -438,7 +456,7 @@
     gate.appendChild(actions);
     gate.appendChild(feedback);
 
-    var stage = element(api, doc, "section", { className: "ci-revealed", hidden: true, "aria-labelledby": prefix + "-result-title" });
+    var stage = element(api, doc, "section", { className: "ci-revealed", hidden: true, tabindex:"-1", "aria-labelledby": prefix + "-result-title" });
     stage.appendChild(element(api, doc, "h4", { id: prefix + "-result-title" }, "揭示实验：固定 seed 的重复抽样覆盖账本"));
     stage.appendChild(element(api, doc, "p", { className: "ci-note" }, "改变参数会重新计算同一规则下的模拟；绿色线段覆盖真均值，红色线段漏掉真均值。模拟用于看见长期频率，不替代区间定理。"));
     var layout = element(api, doc, "div", { className: "ci-layout" });
@@ -471,16 +489,16 @@
       });
       return element(api, doc, "div", { className: "ci-control" }, [element(api, doc, "label", {}, [label + " = ", output]), input]);
     }
-    controls.appendChild(rangeControl("样本量 n", "n", 4, 60, 1, 0));
+    controls.appendChild(rangeControl("样本量 n", "n", 2, 60, 1, 0));
     controls.appendChild(rangeControl("总体标准差 σ", "sigma", 2, 20, 0.5, 1));
-    controls.appendChild(rangeControl("重复次数", "repetitions", 40, 180, 8, 0));
+    controls.appendChild(rangeControl("重复次数", "repetitions", 40, 180, 1, 0));
     controls.appendChild(element(api, doc, "p", { className: "ci-note" }, "事后选窄者只在 sigma 已知时开放，此时 z 与 t 都可计算；选择本身依赖样本，因此不再是预先固定的构造。sigma 未知时不会伪造 oracle z 候选。"));
     layout.appendChild(controls);
 
     var stageFrame = element(api, doc, "div", { className: "ci-stage-frame" });
-    var chartHost = element(api, doc, "div", {});
+    var chartHost = element(api, doc, "div", {className:"ci-chart-scroll",tabindex:"0",role:"region","aria-label":"可横向滚动的置信区间覆盖图",style:"overflow-x:auto"});
     var metrics = element(api, doc, "div", { className: "ci-metrics", "aria-label": "区间指标" });
-    var ledger = element(api, doc, "div", { className: "ci-ledger" });
+    var ledger = element(api, doc, "div", { className: "ci-ledger",tabindex:"0",role:"region","aria-label":"可横向滚动的置信区间读数" });
     stageFrame.appendChild(chartHost);
     stageFrame.appendChild(metrics);
     stageFrame.appendChild(ledger);
@@ -520,7 +538,7 @@
       replaceChildren(chartHost, chart(api, doc, result, prefix));
       replaceChildren(metrics, [
         metric(api, doc, "经验覆盖", format(result.coverage * 100, 1) + "%"),
-        metric(api, doc, "目标覆盖", format(result.target * 100, 1) + "%"),
+        metric(api, doc, "理论覆盖", format(result.theoreticalCoverage * 100, 2) + "%"),
         metric(api, doc, "首个样本均值", format(result.observed.center, 2)),
         metric(api, doc, "首个区间半宽", format(result.observed.margin, 2))
       ]);
@@ -534,6 +552,8 @@
         ["覆盖计数", result.coverageCount + "/" + result.config.repetitions, "重复抽样中区间包含真 μ 的次数"],
         ["选择计数", result.config.rule === "selected" ? "z " + result.selectedZ + " 次；t " + result.selectedT + " 次" : "不适用", "事后选窄者时才记录"]
       ];
+      rows.push(["名义与实际理论覆盖",format(result.target*100,2)+"% / "+format(result.theoreticalCoverage*100,2)+"%",result.config.rule==="selected"?"选择规则的理论覆盖由正态与独立卡方变量积分计算；有限模拟并非校准证明。":"正态模型下预先固定的z/t区间精确覆盖名义水平（临界值用数值分位数）。"]);
+      rows.push(["覆盖频率的理论标准差",format(100*Math.sqrt(result.theoreticalCoverage*(1-result.theoreticalCoverage)/result.config.repetitions),2)+" 个百分点","理想独立重复下由二项分布计算；不是原始均值的标准误，也不是本次频率必在其一倍范围内。"]);
       body.appendChild(element(api, doc, "tbody", {}, rows.map(function (items) { return row(api, doc, items); })));
       replaceChildren(ledger, body);
     }
@@ -555,6 +575,7 @@
       var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
       feedback.textContent = "已揭示：" + correct + "/" + questions.length + " 个预测命中；现在可以切换方差状态与分析规则。";
       feedback.className = "ci-feedback " + (correct === questions.length ? "ci-pass" : "ci-warn");
+      stage.focus();
       announce(api, root, feedback.textContent);
     });
     reset.addEventListener("click", function () {
@@ -566,6 +587,7 @@
       feedback.className = "ci-feedback";
       renderPrediction();
       syncControls();
+      questions[0].choices[0].button.focus();
       announce(api, root, "区间估计预测与实验已重置。");
     });
     renderPrediction();
@@ -604,13 +626,17 @@
     try { zCritical(0.8); } catch (error) { threw = error instanceof RangeError; }
     assert(threw, "unsupported confidence rejected");
     threw = false;
-    try { tCritical(0.95, 1); } catch (error) { threw = error instanceof RangeError; }
+    try { tCritical(0.95, 0); } catch (error) { threw = error instanceof RangeError; }
     assert(threw, "too few observations rejected");
-    assert(copyConfig({ n: 100, repetitions: 10, variance: "known", rule: "selected" }).n === 60, "config clamp");
+    close(tCritical(.95,1),12.706204736,1e-9,"df1 exists");
+    assert(format(100,0)==="100"&&format(10,0)==="10","integer formatting");
+    assert(selectionTheory(.95,16).coverage<.95,"selection loses coverage");
+    assert(JSON.stringify(simulate({variance:"known",rule:"selected"})).length>0,"selection result serializable");
     return { checks: checks };
   }
 
   return {
+    format:format,copyConfig:copyConfig,chart:chart,studentTCdf:studentTCdf,selectionTheory:selectionTheory,gaussian:gaussian,
     DEFAULTS: DEFAULTS,
     zCritical: zCritical,
     tCritical: tCritical,
