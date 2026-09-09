@@ -88,7 +88,7 @@
       ".cm-lab button:hover{border-color:var(--accent);}",
       ".cm-lab button[aria-pressed=\"true\"],.cm-lab button.cm-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}",
       ".cm-lab button:disabled{cursor:not-allowed;opacity:.55;}",
-      ".cm-lab button:focus-visible,.cm-lab select:focus-visible,.cm-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
+      ".cm-lab [tabindex]:focus-visible,.cm-lab button:focus-visible,.cm-lab select:focus-visible,.cm-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
       ".cm-lab .cm-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0;}",
       ".cm-lab .cm-modes button{min-height:48px;font-weight:700;}",
       ".cm-lab .cm-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 18px;margin:14px 0;}",
@@ -115,12 +115,12 @@
       ".cm-lab .cm-metric.cm-blue{border-top-color:var(--cm-stage);}.cm-lab .cm-metric.cm-gold{border-top-color:var(--cm-limit);}.cm-lab .cm-metric.cm-green{border-top-color:var(--cm-point);}.cm-lab .cm-metric.cm-red{border-top-color:var(--cm-closure);}",
       ".cm-lab .cm-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}",
       ".cm-lab .cm-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".cm-lab .cm-chart-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}",
-      ".cm-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}",
+      ".cm-lab .cm-chart-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}",
+      ".cm-lab svg{display:block;width:100%;min-width:720px;max-width:none;height:auto;color:var(--fg);}",
       ".cm-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
       ".cm-lab .cm-axis{stroke:currentColor;stroke-width:1.15;stroke-opacity:.72;}",
       ".cm-lab .cm-grid-line{stroke:var(--border);stroke-width:1;stroke-opacity:.55;}",
-      ".cm-lab .cm-stage-pixel{fill:var(--cm-stage);stroke:var(--bg);stroke-width:.7;}",
+      ".cm-lab .cm-stage-pixel{fill:var(--cm-stage);stroke:none;}",
       ".cm-lab .cm-stage-pixel.cm-fat{fill:var(--cm-stage-alt);}",
       ".cm-lab .cm-limit-marker{stroke:var(--cm-limit);stroke-width:2;stroke-dasharray:2 6;stroke-linecap:round;}",
       ".cm-lab .cm-point-pixel{fill:var(--cm-point);stroke:var(--bg);stroke-width:1;}",
@@ -130,7 +130,7 @@
       ".cm-lab .cm-swatch{display:inline-block;width:18px;height:7px;border:1px solid currentColor;}",
       ".cm-lab .cm-swatch.cm-stage-swatch{background:var(--cm-stage);}.cm-lab .cm-swatch.cm-limit-swatch{height:2px;border:0;border-top:2px dashed var(--cm-limit);}.cm-lab .cm-swatch.cm-point-swatch{width:8px;height:8px;border-radius:50%;background:var(--cm-point);}.cm-lab .cm-swatch.cm-closure-swatch{height:2px;border:0;border-top:2px dotted var(--cm-closure);}",
       ".cm-lab .cm-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}",
-      ".cm-lab table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
+      ".cm-lab table{display:table;width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
       ".cm-lab .cm-ledger table{min-width:760px;}",
       ".cm-lab caption{padding:7px 0;color:var(--fg-soft);text-align:left;font-size:12px;font-weight:700;}",
       ".cm-lab th,.cm-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}",
@@ -177,10 +177,10 @@
     function valueText(value, digits) {
       if (!Number.isFinite(value)) return "—";
       var places = digits === undefined ? 6 : digits;
-      var text = value.toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
+      if(value!==0&&Math.abs(value)<1e-5)return value.toExponential(4);
+      return Number(value.toFixed(places)).toString();
     }
-
+    function requireInteger(value,min,max,fallback){if(value===undefined)value=fallback;if(typeof value!=="number"||!Number.isInteger(value)||value<min||value>max)throw new Error("integer parameter outside declared range");return value;}
     function exactAndApprox(value) {
       var exact = fractionText(value);
       var numeric = fractionApprox(value);
@@ -229,7 +229,7 @@
     }
 
     function standardModel(stage) {
-      var n = clampInteger(stage, 0, MAX_STAGE, 4);
+      var n = requireInteger(stage, 0, MAX_STAGE, 4);
       var twoPower = Math.pow(2, n);
       var threePower = Math.pow(3, n);
       var removedThisStage = n === 0 ? fraction(0, 1) : fraction(Math.pow(2, n - 1), threePower);
@@ -254,7 +254,7 @@
     }
 
     function fatModel(stage) {
-      var n = clampInteger(stage, 0, MAX_STAGE, 4);
+      var n = requireInteger(stage, 0, MAX_STAGE, 4);
       var twoPower = Math.pow(2, n);
       var denominator = Math.pow(2, n + 1);
       var remaining = fraction(twoPower + 1, denominator);
@@ -300,8 +300,8 @@
     }
 
     function denseModel(level, epsilonDenominator) {
-      var k = clampInteger(level, 0, MAX_DYADIC_LEVEL, 4);
-      var epsilonDen = clampInteger(epsilonDenominator, 2, 64, 16);
+      var k = requireInteger(level, 0, MAX_DYADIC_LEVEL, 4);
+      var epsilonDen = requireInteger(epsilonDenominator, 2, 64, 16);
       var points = densePoints(k);
       var count = points.length;
       var twoToCount = Math.pow(2, count);
@@ -337,10 +337,12 @@
     function evaluate(mode, stage, epsilonDenominator) {
       if (mode === "fat") return fatModel(stage);
       if (mode === "dense") return denseModel(stage, epsilonDenominator);
-      return standardModel(stage);
+      if (mode === "standard" || mode === undefined) return standardModel(stage);
+      throw new Error("unknown measure model");
     }
 
     function predictionQuestions(mode) {
+      if(!MODE_INFO[mode])throw new Error("unknown prediction model");
       var limitChoices;
       if (mode === "standard") {
         limitChoices = [
@@ -502,8 +504,6 @@
       svg.appendChild(svgText(doc, left, 27, "有限阶段像素", { "text-anchor": "start", "font-weight": "700" }));
       svg.appendChild(svgText(doc, right, 27, data.stageLabel, { "text-anchor": "end", "font-size": "11" }));
       svg.appendChild(svgText(doc, left, 125, data.id === "dense" ? "有限前缀圆点" : "阶段区间条", { "text-anchor": "start", "font-size": "11" }));
-      svg.appendChild(svgText(doc, left, 218, "0", { "text-anchor": "middle", "font-size": "11" }));
-      svg.appendChild(svgText(doc, right, 218, "1", { "text-anchor": "middle", "font-size": "11" }));
 
       if (data.id === "dense") {
         data.points.forEach(function (point) {
@@ -525,13 +525,13 @@
       } else {
         data.intervals.forEach(function (interval) {
           var x = left + width * interval[0];
-          var intervalWidth = Math.max(0.8, width * (interval[1] - interval[0]));
+          var intervalWidth = width * (interval[1] - interval[0]);
           svg.appendChild(svgElement(doc, "rect", {
             x: x,
             y: stageY - 12,
             width: intervalWidth,
             height: 24,
-            rx: "1",
+            rx: "0",
             class: data.id === "fat" ? "cm-stage-pixel cm-fat" : "cm-stage-pixel"
           }));
         });
@@ -546,7 +546,7 @@
       }
 
       svg.appendChild(svgElement(doc, "line", { x1: left, y1: 194, x2: right, y2: 194, class: "cm-axis" }));
-      svg.appendChild(svgText(doc, right, 238, "[0,1] ambient", { "text-anchor": "end", "font-size": "11" }));
+      svg.appendChild(svgText(doc, right, 238, "环境区间 [0,1]", { "text-anchor": "end", "font-size": "11" }));
       return svg;
     }
 
@@ -576,11 +576,11 @@
         return {
           caption: "fat Cantor 的精确阶段账本",
           rows: [
-            ["阶段", "n", data.stageLabel, "第 n 步每个母区间删 gap=4⁻ⁿ"],
+            ["阶段", "n", data.stageLabel, "n≥1 时删 gap=4⁻ⁿ；n=0 是初始区间"],
             ["区间数", "2ⁿ", String(data.intervalCount), "每个母区间分成左右两段"],
             ["单段长度", "(2ⁿ+1)/2²ⁿ⁺¹", exactAndApprox(data.segmentLength), "剩余总长除以 2ⁿ"],
             ["剩余总长度", "(2ⁿ+1)/2ⁿ⁺¹", exactAndApprox(data.remaining), "外覆盖预算趋于 1/2"],
-            ["本阶段删去", "1/2ⁿ⁺¹", exactAndApprox(data.deletedThisStage), "2ⁿ⁻¹ 个 gap 的总长"],
+            ["本阶段删去", "1/2ⁿ⁺¹", exactAndApprox(data.deletedThisStage), "n≥1 的总长；n=0 时记为0"],
             ["累计删去", "(2ⁿ−1)/2ⁿ⁺¹", exactAndApprox(data.deleted), "删除级数趋于 1/2"],
             ["外覆盖预算", "m*(F)≤(2ⁿ+1)/2ⁿ⁺¹", exactAndApprox(data.outerCoverBudget), "结合从上连续性得 m(F)=1/2"]
           ]
@@ -602,7 +602,7 @@
 
     function renderLedger(doc, hostNode, data) {
       var ledger = ledgerRows(data);
-      var wrapper = element(doc, "div", { className: "cm-ledger" });
+      var wrapper = element(doc, "div", { className: "cm-ledger",tabindex:0,role:"region","aria-label":"可横向滚动的精确长度账本" });
       var table = element(doc, "table", {});
       table.appendChild(element(doc, "caption", {}, [ledger.caption]));
       var head = element(doc, "thead");
@@ -680,6 +680,7 @@
           state.mode = mode;
           state.predictions = Object.create(null);
           state.revealed = false;
+          feedback.textContent="对象已改变，请完成三项预测。";feedback.className="cm-feedback";
           update();
           announce(api, root, "已切换到" + MODE_INFO[mode].shortLabel + "，预测门已重新上锁。");
         });
@@ -732,7 +733,7 @@
 
       var results = element(doc, "section", { className: "cm-results", hidden: true, "aria-label": "测度实验结果" });
       var resultTitle = element(doc, "h4", {}, ["结果与定理证书"]);
-      var chartFrame = element(doc, "div", { className: "cm-chart-frame" });
+      var chartFrame = element(doc, "div", { className: "cm-chart-frame",tabindex:0,role:"region","aria-label":"可横向滚动的有限阶段图" });
       var legend = element(doc, "div", { className: "cm-legend", "aria-label": "图例" }, [
         element(doc, "span", {}, [element(doc, "i", { className: "cm-swatch cm-stage-swatch", "aria-hidden": "true" }), "实心：有限阶段像素"]),
         element(doc, "span", {}, [element(doc, "i", { className: "cm-swatch cm-limit-swatch", "aria-hidden": "true" }), "虚线：极限对象标记"]),
@@ -748,7 +749,8 @@
       relock.addEventListener("click", function () {
         state.predictions = Object.create(null);
         state.revealed = false;
-        update();
+        feedback.textContent="请重新完成三项预测。";feedback.className="cm-feedback";
+        update();questionList.querySelector("button").focus();
         announce(api, root, "预测门已重新上锁。");
       });
       results.appendChild(resultTitle);
@@ -783,6 +785,7 @@
             var button = element(doc, "button", { type: "button", "aria-pressed": "false" }, [choice[1]]);
             button.addEventListener("click", function () {
               state.predictions[question.key] = choice[0];
+              state.revealed=false;results.hidden=true;
               updateChoiceButtons();
               feedback.textContent = "已记录 " + selectedCount() + "/" + predictionQuestions(state.mode).length + " 项预测。";
               feedback.className = "cm-feedback";
@@ -836,17 +839,13 @@
 
       stageInput.addEventListener("input", function () {
         state.stage = clampInteger(stageInput.value, 0, state.mode === "dense" ? MAX_DYADIC_LEVEL : MAX_STAGE, 4);
-        state.predictions = Object.create(null);
-        state.revealed = false;
-        feedback.textContent = "阶段已改变，请重新完成预测。";
+        feedback.textContent = state.revealed ? "阶段已改变；沿用同一极限判断。" : "阶段已改变，请完成预测。";
         feedback.className = "cm-feedback";
         update();
       });
       epsilonSelect.addEventListener("change", function () {
         state.epsilonDenominator = clampInteger(epsilonSelect.value, 2, 64, 16);
-        state.predictions = Object.create(null);
-        state.revealed = false;
-        feedback.textContent = "ε 已改变，请重新完成预测。";
+        feedback.textContent = state.revealed ? "ε 已改变；覆盖预算已更新。" : "ε 已改变，请完成预测。";
         feedback.className = "cm-feedback";
         update();
       });
@@ -865,6 +864,7 @@
         renderResults(evaluate(state.mode, state.stage, state.epsilonDenominator));
         feedback.textContent = "已揭示：" + score.correct + "/" + score.total + " 项预测与精确账本一致。";
         feedback.className = "cm-feedback " + (score.correct === score.total ? "cm-pass" : "cm-warn");
+        chartFrame.focus();
         announce(api, root, feedback.textContent);
       });
       reset.addEventListener("click", function () {
@@ -872,7 +872,7 @@
         state.revealed = false;
         feedback.textContent = "预测已清空。";
         feedback.className = "cm-feedback";
-        update();
+        update();questionList.querySelector("button").focus();
       });
       update();
     }
@@ -932,6 +932,7 @@
     }
 
     return {
+      drawChart:drawChart,ledgerRows:ledgerRows,valueText:valueText,
       MODE_INFO: MODE_INFO,
       standardModel: standardModel,
       fatModel: fatModel,

@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 22:16</div>
   </div>
 </nav>
 <main id="content">
@@ -62,15 +62,21 @@ try {
 </ul>
 </li>
 <li><a href="#1_1">1. 外测度：给一切集合先估个长度</a></li>
-<li><a href="#2_1">2. 可测集：外测度在哪里变成真测度</a></li>
+<li><a href="#2_1">2. 可测集：外测度在哪里变成真测度</a><ul>
+<li><a href="#21">2.1 判据为什么能补上可加性？</a></li>
+<li><a href="#22">2.2 从可数可加到极限长度</a></li>
+</ul>
+</li>
 <li><a href="#3">3. 可测函数与“几乎处处”</a></li>
 <li><a href="#4">4. 典型例题</a></li>
+<li><a href="#5">5. 迁移题：把“稠密、大小、极限”拆开判断</a></li>
+<li><a href="#_1">原始教材参照</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-lebesgue">实变 I · Lebesgue 测度<a class="headerlink" href="#i-lebesgue" title="Permanent link"></a></h1>
 <blockquote>
-<p>实变函数论的出发点是 Riemann 积分的三宗罪：太多函数不可积（Dirichlet 函数）、积分与极限交换要苛刻的一致收敛（数分 IV 的痛）、<code>∫</code> 与 <code>lim</code> 的理论地基不稳。Lebesgue 的方案先解决一个更基本的问题：<strong>“集合的长度”到底怎么定义？</strong>——这就是测度论，也是概率公理化（概率 I 的 σ-代数）的真正老家。</p>
+<p><strong>前置</strong>：<a href="analysis-03-integral.html">Riemann 积分</a>、<a href="analysis-04-series.html">数列与函数列</a>。有理数在每个区间都稠密，却可以用总长任意小的区间覆盖；标准 Cantor 集不可数，长度仍为零。要同时理解这些现象，需要把“点的多少”“是否稠密”和“长度”分开。测度论先定义集合的大小，再为积分与极限提供可检验的条件。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -84,7 +90,8 @@ D=\{0,1\}\cup\bigcup_{k\geq1}\left\{\frac{2j+1}{2^k}:0\leq j&lt;2^{k-1}\right\};
 \]</div>
 <p>这是所有二进制有理数在 <code>[0,1]</code> 中的去重枚举，有限前缀越来越细，但每个前缀仍然只是有限点集。</p>
 <div class="learning-lab" data-learning-lab="cantor-measure">
-<p><strong>无 JavaScript 时的静态读法：</strong>下列数字就是实验的完整确定性后备；脚本加载后，选择对象、调节阶段/层级和 <code>ε</code>，先完成预测门，才会显示对应的图、指标和账本。图中的实心矩形或圆点是有限阶段像素；虚线、细线和 <code>C∞/F∞</code> 标记是理论极限或闭包的符号标记，不是把有限像素冒充成极限集合。</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>标准 Cantor 的阶段总长为 <span class="arithmatex">\((2/3)^n\)</span>、极限为0；本页 fat Cantor 的阶段总长为 <span class="arithmatex">\(1/2+2^{-(n+1)}\)</span>、极限为 <span class="arithmatex">\(1/2\)</span>；稠密点集的前 <span class="arithmatex">\(N\)</span> 点覆盖预算为 <span class="arithmatex">\(\varepsilon(1-2^{-N})\)</span>，余项 <span class="arithmatex">\(\varepsilon2^{-N}\)</span>。完整推导保留在实验下方，脚本加载后仍可阅读。</p>
+</div>
 <h3 id="a-cantor-c">A. 标准三分 Cantor 集 <code>C</code><a class="headerlink" href="#a-cantor-c" title="Permanent link"></a></h3>
 <p>令 <code>C₀=[0,1]</code>，每一步从每个当前区间删去中间三分之一。第 <code>n</code> 阶段有 <code>2ⁿ</code> 个区间，每段长度 <code>3⁻ⁿ</code>，故</p>
 <table>
@@ -109,7 +116,7 @@ D=\{0,1\}\cup\bigcup_{k\geq1}\left\{\frac{2j+1}{2^k}:0\leq j&lt;2^{k-1}\right\};
 <tr>
 <td>剩余总长度</td>
 <td style="text-align: right;"><code>2ⁿ/3ⁿ=(2/3)ⁿ</code></td>
-<td>作为 <code>C</code> 的开区间覆盖预算趋于 <code>0</code></td>
+<td>开覆盖总长可任意接近此值，且此值趋于 <code>0</code></td>
 </tr>
 <tr>
 <td>第 <code>n</code> 步删去总长度（<code>n≥1</code>）</td>
@@ -128,7 +135,7 @@ D=\{0,1\}\cup\bigcup_{k\geq1}\left\{\frac{2j+1}{2^k}:0\leq j&lt;2^{k-1}\right\};
 </tr>
 </tbody>
 </table>
-<p>最后一行用的是外测度定义：<code>C⊂Cₙ</code>，而 <code>Cₙ</code> 是 <code>2ⁿ</code> 个区间的并，故 <code>m*(C)≤(2/3)ⁿ</code>；令 <code>n→∞</code> 即得零测度。也可以用 <code>Cₙ↓C</code>、<code>m(C₀)&lt;∞</code> 和测度从上连续性：<code>m(C)=lim m(Cₙ)=0</code>。不可数性来自另一个定理：<code>{0,2}^{N}</code> 的三进制编码与 <code>C</code> 对应；它不来自任何有限阶段图。</p>
+<p>闭区间并不是定义中的开覆盖：给这 <span class="arithmatex">\(2^n\)</span> 个闭区间各添总计不超过 <span class="arithmatex">\(\delta\)</span> 的小余量，得到开覆盖总长 <span class="arithmatex">\((2/3)^n+\delta\)</span>；再令 <span class="arithmatex">\(\delta\downarrow0\)</span>。fat Cantor 的闭区间预算同理。最后一行用的是外测度定义：<code>C⊂Cₙ</code>，而 <code>Cₙ</code> 是 <code>2ⁿ</code> 个区间的并，故 <code>m*(C)≤(2/3)ⁿ</code>；令 <code>n→∞</code> 即得零测度。也可以用 <code>Cₙ↓C</code>、<code>m(C₀)&lt;∞</code> 和测度从上连续性：<code>m(C)=lim m(Cₙ)=0</code>。不可数性来自另一个定理：<code>{0,2}^{N}</code> 的三进制编码与 <code>C</code> 对应；它不来自任何有限阶段图。</p>
 <h3 id="b-fat-cantor-f">B. 一个可精确求极限测度的 fat Cantor 集 <code>F</code><a class="headerlink" href="#b-fat-cantor-f" title="Permanent link"></a></h3>
 <p>从 <code>F₀=[0,1]</code> 开始。第 <code>n</code> 步（<code>n≥1</code>）每个当前区间删去一个中间开区间，删去长度固定为 <code>dₙ=4⁻ⁿ</code>。当前有 <code>2ⁿ⁻¹</code> 个母区间，因此</p>
 <div class="arithmatex">\[
@@ -181,6 +188,12 @@ D=\{0,1\}\cup\bigcup_{k\geq1}\left\{\frac{2j+1}{2^k}:0\leq j&lt;2^{k-1}\right\};
 m(F)=\lim_{n\to\infty}m(F_n)=\lim_{n\to\infty}\left(\frac12+\frac1{2^{n+1}}\right)=\frac12.
 \]</div>
 <p>因此这里的“fat”是有证明的正测度：删除长度的总和恰好为 <code>1/2</code>。有限阶段图本身仍不能证明正测度；正测度来自这个删除公式和极限定理。</p>
+<figure class="plot">
+<div aria-label="可横向滚动的Cantor阶段与长度图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/real-01-cantor-lengths.svg" alt="两种Cantor前四步区间与长度点列；同为二分支但极限长度分别为零与二分之一" style="min-width:760px;width:100%">
+</div>
+<figcaption>两种构造每次都把区间数翻倍，决定测度的是删段长度。下方只画有限阶段长度点；旁边的极限由公式和从上连续性给出。</figcaption>
+</figure>
 <h3 id="c-01">C. <code>[0,1]</code> 中可数稠密集的 <code>ε</code> 覆盖<a class="headerlink" href="#c-01" title="Permanent link"></a></h3>
 <p>取 <code>D</code> 的前 <code>K</code> 层：先有 <code>0,1</code>，再加入第 <code>k</code> 层的奇数二进制分数。点数是</p>
 <div class="arithmatex">\[
@@ -232,7 +245,6 @@ N_K=2^K+1.
 <li>可数稠密集的零测度要使用可数覆盖的 <code>ε/2ⁱ⁺¹</code> 账本；<code>\overline D=[0,1]</code> 不能反推 <code>m(D)=1</code>。</li>
 <li>Vitali 不可测集依赖等价类选代表和选择公理。有限点图既不能构造它，也不能证明不可测性；“点看起来散乱”不是 Carathéodory 判据。</li>
 </ul>
-</div>
 </section>
 <h2 id="1_1">1. 外测度：给一切集合先估个长度<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <p><strong>定义（Lebesgue 外测度）</strong> 用可数个开区间覆盖 <code>E</code>，取总长的下确界：</p>
@@ -248,11 +260,33 @@ E\text{ 可测}\iff m^*(T)=m^*(T\cap E)+m^*(T\cap E^c),\qquad\forall T.
 \]</div>
 <p><strong>定理</strong> 可测集全体构成 <strong>σ-代数</strong>（对补、可数并/交封闭），<code>m*</code> 限制其上是<strong>测度</strong>（可列可加）；区间、开集、闭集、Borel 集全可测。概率空间就是全测度为 <code>1</code> 的测度空间，概率公理化正是在这里取得地基。</p>
 <p><strong>不可测集存在（Vitali）</strong>：在 <code>[0,1]</code> 上按“差为有理数”分等价类，每类选一点组成 <code>V</code>。取 <span class="arithmatex">\(q\in\mathbb Q\cap[-1,1]\)</span> 的可数个平移 <span class="arithmatex">\(V+q\)</span>；它们两两不交，其并集包含 <code>[0,1]</code> 且落在 <code>[-1,2]</code> 中。若 <code>V</code> 可测且测度为 <code>c</code>，则 <span class="arithmatex">\(c=0\)</span> 会导致这份并集测度为 <code>0</code>，而 <span class="arithmatex">\(c&gt;0\)</span> 会导致其测度为 <span class="arithmatex">\(\infty\)</span>，都与包含和有界性矛盾。这个论证依赖选择公理，不能被有限阶段图替代。</p>
+<h3 id="21">2.1 判据为什么能补上可加性？<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>次可加性总给出“左边不大于右边”，所以 Carathéodory 判据要求的是反向不等式：不论拿什么测试集 <span class="arithmatex">\(T\)</span> 来切，沿 <span class="arithmatex">\(E\)</span> 切开都不丢长度。对两两不交的可测集 <span class="arithmatex">\(E_j\)</span>，依次用判据切开 <span class="arithmatex">\(T\)</span>，有</p>
+<div class="arithmatex">\[
+m^*(T)\ge\sum_{j=1}^N m^*(T\cap E_j)
++m^*\left(T\setminus\bigcup_{j\ge1}E_j\right).
+\]</div>
+<p>令 <span class="arithmatex">\(N\to\infty\)</span>，再用次可加性 <span class="arithmatex">\(m^*(T\cap\bigcup_jE_j)\le\sum_jm^*(T\cap E_j)\)</span>，便得到可数并的判据。一般可数并先写成互不相交的差集；补集的封闭性直接来自判据的对称性。这说明可测集为何组成 <span class="arithmatex">\(\sigma\)</span>-代数；取 <span class="arithmatex">\(T=\bigcup_jE_j\)</span> 又得到可数可加。有限并/差集的封闭性可先用两次切分证明，是这条论证的起点。</p>
+<p><strong>零测集及其任意子集都可测。</strong> 若 <span class="arithmatex">\(N\)</span> 满足 <span class="arithmatex">\(m^*(N)=0\)</span>，则 <span class="arithmatex">\(m^*(T\cap N)=0\)</span>；由次可加性与单调性，<span class="arithmatex">\(m^*(T)=m^*(T\setminus N)\)</span>，判据成立。这是 Lebesgue 测度的完备性。Borel 测度只定义在由开集生成的 <span class="arithmatex">\(\sigma\)</span>-代数上；补齐所有零测集的子集得到 Lebesgue 可测集。两者不要混称为同一个集合族。</p>
+<h3 id="22">2.2 从可数可加到极限长度<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>若可测集 <span class="arithmatex">\(A_n\uparrow A\)</span>，将它们拆成不交层：<span class="arithmatex">\(B_1=A_1\)</span>、<span class="arithmatex">\(B_n=A_n\setminus A_{n-1}\)</span>。可数可加直接给</p>
+<div class="arithmatex">\[
+m(A)=\sum_{n\ge1}m(B_n)=\lim_{N\to\infty}m(A_N).
+\]</div>
+<p>这叫<strong>从下连续性</strong>，不要求 <span class="arithmatex">\(m(A)\)</span> 有限。若 <span class="arithmatex">\(F_n\downarrow F\)</span> 且 <span class="arithmatex">\(m(F_0)&lt;\infty\)</span>，则 <span class="arithmatex">\(F_0\setminus F_n\uparrow F_0\setminus F\)</span>，可以在有限数 <span class="arithmatex">\(m(F_0)\)</span> 中相减，得到</p>
+<div class="arithmatex">\[
+m(F)=\lim_n m(F_n).
+\]</div>
+<p>fat Cantor 的 <span class="arithmatex">\(1/2\)</span> 正是这样得到的。有限测度条件不是装饰：<span class="arithmatex">\([n,\infty)\downarrow\varnothing\)</span>，但每个集合测度均为无穷，极限测度却为零。</p>
 <h2 id="3">3. 可测函数与“几乎处处”<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p><strong>定义</strong> <code>f</code> 可测 <code>⇔</code> 一切 <code>{x:f(x)&gt;a}</code> 可测（对所有实数 <code>a</code>）。</p>
 <p><strong>封闭性</strong>：在运算有定义的地方，有限四则、外层连续函数复合，以及可测函数列的逐点极限仍可测；可数族的 <code>sup</code>、<code>inf</code> 与函数列的 <code>limsup</code>、<code>liminf</code> 也保留可测性。这里的“可数”不能省：任意不可数族的逐点上确界未必可测。对比连续函数，逐点极限可以不连续；可测世界对序列极限更稳健。</p>
 <p><strong>几乎处处（a.e.）</strong>：性质在零测集之外成立。Dirichlet 函数 <code>1_Q</code> 在 Lebesgue 意义下几乎处处等于 <code>0</code>，但在每个区间里都有有理点和无理点；“稠密”与“正测度”再次分开。</p>
-<p><strong>逼近结构</strong>：可测函数是简单函数 <code>∑aᵢ1_Eᵢ</code> 的逐点极限；非负可测函数可由简单函数单调逼近。下一页的 Lebesgue 积分就建立在这级台阶上。</p>
+<p><strong>逼近结构不是一句存在口号。</strong> 对非负可测 <span class="arithmatex">\(f\)</span>，可取</p>
+<div class="arithmatex">\[
+s_n(x)=\min\left(n,2^{-n}\lfloor2^n f(x)\rfloor\right),\qquad n\ge1,
+\]</div>
+<p>并在 <span class="arithmatex">\(f(x)=+\infty\)</span> 处定义 <span class="arithmatex">\(s_n(x)=n\)</span>。每个 <span class="arithmatex">\(s_n\)</span> 只有有限多个值，其层集由 <span class="arithmatex">\(f\)</span> 的可测性保证可测，所以是简单函数。二进制网格逐次加密且截断高度上升，给 <span class="arithmatex">\(s_n\le s_{n+1}\le f\)</span>；固定 <span class="arithmatex">\(f(x)&lt;\infty\)</span> 后，充分大的 <span class="arithmatex">\(n\)</span> 不再触发截断，误差小于 <span class="arithmatex">\(2^{-n}\)</span>，故 <span class="arithmatex">\(s_n\uparrow f\)</span>。一般实值可测函数分别逼近正负部。下一页的积分就建立在这级台阶上。</p>
 <h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p><strong>例 1（零测集操作）</strong> 证明 <code>[0,1]</code> 中无理数集测度为 <code>1</code>：</p>
 <div class="arithmatex">\[
@@ -262,6 +296,23 @@ m([0,1])=m(\mathbb Q\cap[0,1])+m(([0,1]\setminus\mathbb Q))=0+m(([0,1]\setminus\
 <p><strong>例 3（可测函数判定）</strong> Dirichlet 函数 <code>1_Q</code> 的超水平集只有 <code>∅</code>、<code>Q</code>、<code>R</code>（按阈值分情况），全是 Lebesgue 可测集，因此它是可测函数；它的积分为 <code>0</code>。<span class="arithmatex">\(\square\)</span></p>
 <hr />
 <p><em>下一页：在测度地基上重建积分——Lebesgue 积分与三大收敛定理，积分与极限交换从此有法可依。</em></p>
+<h2 id="5">5. 迁移题：把“稠密、大小、极限”拆开判断<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ol>
+<li>对本页 fat Cantor，证明每一步都删得下、极限没有内点但没有孤立点。再说明哪一步证明它的测度为 <span class="arithmatex">\(1/2\)</span>。</li>
+<li>设 <span class="arithmatex">\(C\)</span> 为标准 Cantor 集，<span class="arithmatex">\(D\)</span> 为本页可数稠密集。求 <span class="arithmatex">\(m(C\cup D)\)</span> 及其闭包的测度，并证明 <span class="arithmatex">\(C\)</span> 不可数。</li>
+<li>说明为何“有限并可加”还不够推出可数集零测度；再构造一个递减可测集列，使从上连续性的有限测度条件不可省。</li>
+</ol>
+<details class="answer">
+<summary>迁移题参考答案</summary>
+<ol>
+<li>第 <span class="arithmatex">\(n-1\)</span> 步单段长为 <span class="arithmatex">\(\ell_{n-1}=(2^{n-1}+1)/2^{2n-1}\)</span>，而下一步删长 <span class="arithmatex">\(4^{-n}\)</span>；两者的比为 <span class="arithmatex">\(\ell_{n-1}/4^{-n}=2^n+2&gt;1\)</span>，所以两个子段都正长。<span class="arithmatex">\(\ell_n\to0\)</span>，任何正长区间若包含于 <span class="arithmatex">\(F\)</span>，就必须包含于每个阶段的某一子段，与长度趋零矛盾。各阶段端点以后都不会被删；对任意 <span class="arithmatex">\(x\in F\)</span>，含它的阶段子段中总有一个不同于 <span class="arithmatex">\(x\)</span> 的端点，距离不超过 <span class="arithmatex">\(\ell_n\)</span>，所以 <span class="arithmatex">\(x\)</span> 不是孤立点。<span class="arithmatex">\(F\)</span> 是闭集，因此完美且无处稠密。测度不是从这些拓扑性质推出来的，而由 <span class="arithmatex">\(F_n\downarrow F\)</span>、<span class="arithmatex">\(m(F_0)=1\)</span> 与长度公式推出 <span class="arithmatex">\(m(F)=1/2\)</span>。</li>
+<li><span class="arithmatex">\(m(C)=m(D)=0\)</span>，次可加性给 <span class="arithmatex">\(m(C\cup D)=0\)</span>；因包含稠密的 <span class="arithmatex">\(D\)</span>，其在 <span class="arithmatex">\(\mathbb R\)</span> 中的闭包是 <span class="arithmatex">\([0,1]\)</span>，测度为1。对每个二进制序列 <span class="arithmatex">\((b_j)\in\{0,1\}^{\mathbb N}\)</span>，令 <span class="arithmatex">\(x=\sum_{j\ge1}2b_j3^{-j}\in C\)</span>。若两序列首次在第 <span class="arithmatex">\(k\)</span> 项不同，首项差 <span class="arithmatex">\(2\cdot3^{-k}\)</span> 大于后续差的上界 <span class="arithmatex">\(3^{-k}\)</span>，故映射单射。二进制序列集由对角线法不可数，所以 <span class="arithmatex">\(C\)</span> 不可数。</li>
+<li>有限次相加只能说明有限个点的并测度为零，不能直接处理无穷并。可数次可加（或外测度的可数次次可加）才把所有点同时覆盖。取 <span class="arithmatex">\(A_n=[n,\infty)\)</span>：<span class="arithmatex">\(A_n\downarrow\varnothing\)</span>，但 <span class="arithmatex">\(m(A_n)=\infty\)</span>；因此“从上连续”必须带有某一阶段有限测度的条件。</li>
+</ol>
+</details>
+<p>继续学习：<a href="real-02-lebesgue-integral.html">Lebesgue 积分与收敛定理</a>把集合层面的从下连续性推广到非负函数；<a href="prob-01-space-bayes.html">概率空间与条件概率</a>使用总测度为1的同一结构。</p>
+<h2 id="_1">原始教材参照<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><a href="https://measure.axler.net/MIRA.pdf">Sheldon Axler：Measure, Integration &amp; Real Analysis</a> 第2章讨论外测度、可测性、测度连续性与Lebesgue测度。这里的两种Cantor构造采用本页明确给出的删段规则。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="complex-03-residues.html"><span class="pager-label">上一页</span>复变 III · 级数与留数定理</a>
