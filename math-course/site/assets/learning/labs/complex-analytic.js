@@ -39,15 +39,16 @@
     { id: "axis", label: "轴上点 z₀=1", x: 1, y: 0, note: "检查只在某一条坐标轴上变简单是否足够。" }
   ];
   var STYLE_TEXT = [
-    ".ca-lab{--ca-blue:var(--cl-blue,#315f9d);--ca-gold:var(--cl-gold,#95670d);--ca-green:var(--cl-green,#347247);--ca-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
+    ".ca-lab{--ca-blue:#315f9d;--ca-gold:var(--cl-gold,#95670d);--ca-green:var(--cl-green,#347247);--ca-red:#b13d32;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
     ".ca-lab *,.ca-lab *::before,.ca-lab *::after{box-sizing:border-box}.ca-lab [hidden]{display:none!important}.ca-lab h3,.ca-lab h4{margin:0;color:var(--fg);letter-spacing:0}.ca-lab h3{font-size:1.16rem}.ca-lab h4{margin-top:16px;font-size:1rem}.ca-lab p{margin:8px 0}.ca-lab .ca-note,.ca-lab .ca-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}",
-    ".ca-lab button,.ca-lab input{font:inherit}.ca-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ca-lab button:hover{border-color:var(--accent)}.ca-lab button:focus-visible,.ca-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ca-lab button[aria-pressed=true],.ca-lab button.ca-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.ca-lab button:disabled{opacity:.55;cursor:not-allowed}",
+    ".ca-lab button,.ca-lab input{font:inherit}.ca-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ca-lab button:hover{border-color:var(--accent)}.ca-lab [tabindex]:focus-visible,.ca-lab button:focus-visible,.ca-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ca-lab button[aria-pressed=true],.ca-lab button.ca-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.ca-lab button:disabled{opacity:.55;cursor:not-allowed}",
     ".ca-lab .ca-choice-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.ca-lab .ca-function-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.ca-lab .ca-point-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ca-lab .ca-controls{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(210px,.8fr);gap:14px;margin:12px 0;align-items:start}.ca-lab .ca-control{min-width:0;display:grid;gap:6px}.ca-lab .ca-control-label{color:var(--fg-soft);font-size:12.5px;font-weight:750}.ca-lab .ca-control output{color:var(--accent);font-variant-numeric:tabular-nums}.ca-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
     ".ca-lab .ca-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--ca-gold);background:var(--block-bg,var(--bg))}.ca-lab .ca-prediction-title{display:block;margin-bottom:8px;font-size:13px}.ca-lab .ca-question{margin:10px 0}.ca-lab .ca-question-label{display:block;margin-bottom:6px;font-size:13px;font-weight:700}.ca-lab .ca-feedback{min-height:2em;margin:8px 0;font-weight:700}.ca-lab .ca-pass{color:var(--ca-green)}.ca-lab .ca-warn{color:var(--ca-red)}.ca-lab .ca-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.ca-lab .ca-actions>*{flex:1 1 170px}",
     ".ca-lab .ca-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.ca-lab .ca-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}.ca-lab .ca-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.ca-lab .ca-metric:nth-child(5n+1){border-color:var(--ca-blue)}.ca-lab .ca-metric:nth-child(5n+2){border-color:var(--ca-gold)}.ca-lab .ca-metric:nth-child(5n+3){border-color:var(--ca-green)}.ca-lab .ca-metric:nth-child(5n+4){border-color:var(--ca-red)}.ca-lab .ca-metric:nth-child(5n){border-color:var(--accent)}.ca-lab .ca-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4}.ca-lab .ca-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ca-lab .ca-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.ca-lab .ca-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.ca-lab .ca-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ca-lab .ca-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72}.ca-lab .ca-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.ca-lab .ca-probe{fill:var(--ca-blue);stroke:var(--bg);stroke-width:2}.ca-lab .ca-reference{fill:none;stroke:var(--ca-gold);stroke-width:2;stroke-dasharray:6 4}.ca-lab .ca-label{font-size:11px}.ca-lab .ca-small{font-size:10.5px;fill:var(--fg-soft)!important}",
+    ".ca-lab .ca-stage{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto}.ca-lab .ca-svg{display:block;width:100%;min-width:700px;max-width:none;height:auto;color:var(--fg)}.ca-lab .ca-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ca-lab .ca-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72}.ca-lab .ca-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.ca-lab .ca-probe{fill:var(--ca-blue);stroke:var(--bg);stroke-width:2}.ca-lab .ca-reference{fill:none;stroke:var(--ca-gold);stroke-width:2;stroke-dasharray:6 4}.ca-lab .ca-label{font-size:11px}.ca-lab .ca-small{font-size:10.5px;fill:var(--fg-soft)!important}",
     ".ca-lab .ca-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.ca-lab table{width:100%;min-width:1100px;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}.ca-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.ca-lab th,.ca-lab td{padding:7px 7px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}.ca-lab th{color:var(--fg-soft);font-size:11px;font-weight:750}.ca-lab .ca-good{color:var(--ca-green);font-weight:750}.ca-lab .ca-bad{color:var(--ca-red);font-weight:750}.ca-lab .ca-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--ca-green);background:var(--bg);font-size:13px;line-height:1.7}",
     "@media(max-width:950px){.ca-lab .ca-controls{grid-template-columns:minmax(0,1fr)}.ca-lab .ca-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:760px){.ca-lab .ca-function-grid,.ca-lab .ca-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ca-lab .ca-point-grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:440px){.ca-lab .ca-function-grid,.ca-lab .ca-choice-grid,.ca-lab .ca-metrics{grid-template-columns:minmax(0,1fr)}.ca-lab .ca-stage{padding:4px}.ca-lab table{font-size:11px}}@media(prefers-reduced-motion:reduce){.ca-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,"html[data-theme=dark] .ca-lab{--ca-blue:#90baff;--ca-red:#ffab95;--ca-green:#8edda0;--ca-gold:#e2b458}"
   ].join("\n");
 
   function finite(value) {
@@ -75,40 +76,33 @@
     for (var index = 0; index < FUNCTIONS.length; index += 1) {
       if (FUNCTIONS[index].id === id) return FUNCTIONS[index];
     }
-    return FUNCTIONS[0];
+    fail("unknown function "+id);
   }
 
   function pointById(id) {
     for (var index = 0; index < POINT_PRESETS.length; index += 1) {
       if (POINT_PRESETS[index].id === id) return POINT_PRESETS[index];
     }
-    return POINT_PRESETS[1];
+    fail("unknown point "+id);
   }
 
   function normalizeConfig(input) {
-    var source = input || {};
-    var point = pointById(source.pointId || "generic");
-    var x = source.x === undefined ? point.x : Number(source.x);
-    var y = source.y === undefined ? point.y : Number(source.y);
-    var lambda = source.lambda === undefined ? 0.5 : Number(source.lambda);
-    return {
-      functionId: functionById(source.functionId || "z2").id,
-      pointId: point.id,
-      x: finite(x) ? clamp(x, -2, 2) : point.x,
-      y: finite(y) ? clamp(y, -2, 2) : point.y,
-      lambda: finite(lambda) ? clamp(lambda, -1, 1) : 0.5
-    };
+    var source=input===undefined?{}:input;
+    if(!source||typeof source!=="object"||Array.isArray(source))fail("config must be object");
+    var keys=["pointId","functionId","x","y","lambda"];
+    Object.keys(source).forEach(k=>{if(keys.indexOf(k)<0)fail("unknown option "+k);});
+    var point=pointById(source.pointId===undefined?"generic":source.pointId);
+    var x=source.x===undefined?point.x:source.x,y=source.y===undefined?point.y:source.y,lambda=source.lambda===undefined?.5:source.lambda;
+    if(!finite(x)||!finite(y)||Math.abs(x)>2||Math.abs(y)>2||!finite(lambda)||Math.abs(lambda)>1)fail("finite numbers with |x|,|y|≤2 and |lambda|≤1 required");
+    return {functionId:functionById(source.functionId===undefined?"z2":source.functionId).id,pointId:point.id,x:x,y:y,lambda:lambda};
   }
-
   function complexDivide(numerator, denominator) {
-    var scale = denominator[0] * denominator[0] + denominator[1] * denominator[1];
-    if (scale <= EPS) return null;
-    return [
-      (numerator[0] * denominator[0] + numerator[1] * denominator[1]) / scale,
-      (numerator[1] * denominator[0] - numerator[0] * denominator[1]) / scale
-    ];
+    if(!Array.isArray(numerator)||!Array.isArray(denominator)||numerator.length!==2||denominator.length!==2||!numerator.every(finite)||!denominator.every(finite))fail("two finite complex pairs required");
+    var scale=Math.max(Math.abs(denominator[0]),Math.abs(denominator[1]));
+    if(scale===0)fail("direction must be nonzero");
+    var c=denominator[0]/scale,d=denominator[1]/scale,den=c*c+d*d,a=numerator[0]/scale,b=numerator[1]/scale;
+    var result=[(a*c+b*d)/den,(b*c-a*d)/den];if(!result.every(finite))fail("quotient outside floating point range");return result;
   }
-
   function jacobianApply(data, vector) {
     return [
       data.ux * vector[0] + data.uy * vector[1],
@@ -117,6 +111,7 @@
   }
 
   function functionData(id, x, y, lambda) {
+    functionById(id);if(!finite(x)||!finite(y)||Math.abs(x)>2||Math.abs(y)>2||!finite(lambda)||Math.abs(lambda)>1)fail("functionData arguments outside supported range");
     var ux;
     var uy;
     var vx;
@@ -157,7 +152,9 @@
       vy = 2 * x;
       description = "pλ(z)";
     }
-    var residual = [ux - vy, uy + vx];
+    var beta=id==="z2"?[0,0]:id==="conjugate"?[1,0]:id==="modulus2"?[x,y]:[lambda*x,lambda*y];
+    var alpha=id==="z2"?[2*x,2*y]:id==="conjugate"?[0,0]:id==="modulus2"?[x,-y]:[2*x+lambda*x,2*y-lambda*y];
+    var residual=[2*beta[0],2*beta[1]];
     var atOrigin = x === 0 && y === 0;
     var complexDifferentiable = id === "z2" ||
       (id === "modulus2" && atOrigin) ||
@@ -177,6 +174,8 @@
       vx: vx,
       vy: vy,
       jacobian: [[ux, uy], [vx, vy]],
+      alpha:alpha, beta:beta,
+      betaUnderflow:id==="parameterized"&&lambda!==0&&((x!==0&&beta[0]===0)||(y!==0&&beta[1]===0)),
       residual: residual,
       residualNorm: Math.hypot(residual[0], residual[1]),
       realDifferentiable: true,
@@ -192,7 +191,9 @@
   }
 
   function directionalQuotient(data, vector) {
-    return complexDivide(jacobianApply(data, vector), vector);
+    if(!Array.isArray(vector)||vector.length!==2||!vector.every(finite))fail("finite direction required");
+    var scale=Math.max(Math.abs(vector[0]),Math.abs(vector[1]));if(scale===0)fail("nonzero direction required");
+    var unit=[vector[0]/scale,vector[1]/scale];return complexDivide(jacobianApply(data,unit),unit);
   }
 
   function probeLedger(data) {
@@ -245,8 +246,8 @@
 
   function formatComplex(value, digits) {
     if (!value) return "不存在";
-    var real = Math.abs(value[0]) < 0.0000001 ? 0 : value[0];
-    var imaginary = Math.abs(value[1]) < 0.0000001 ? 0 : value[1];
+    var real=value[0];
+    var imaginary=value[1];
     if (imaginary === 0) return formatNumber(real, digits);
     if (real === 0) return formatNumber(imaginary, digits) + "i";
     return formatNumber(real, digits) + (imaginary < 0 ? " − " : " + ") + formatNumber(Math.abs(imaginary), digits) + "i";
@@ -293,8 +294,8 @@
       "nonzero symbolic parameter is not rounded into a theorem predicate"); checks += 1;
     assert(analyticParameter.allRealDifferentiable, "real polynomial maps are real differentiable"); checks += 1;
     assert(evaluate({ pointId: "axis", lambda: 0.5 }).config.x === 1, "point preset normalization"); checks += 1;
-    assert(evaluate({ pointId: "generic", lambda: 9 }).config.lambda === 1, "lambda clamp upper bound"); checks += 1;
-    assert(evaluate({ pointId: "generic", lambda: -9 }).config.lambda === -1, "lambda clamp lower bound"); checks += 1;
+    var rejected=false;try{evaluate({lambda:9});}catch(e){rejected=true;}assert(rejected,"reject large lambda");checks+=1;
+    rejected=false;try{evaluate({lambda:-9});}catch(e){rejected=true;}assert(rejected,"reject negative large lambda");checks+=1;
 
     FUNCTIONS.forEach(function (item) {
       var row = generic.rows.filter(function (candidate) { return candidate.id === item.id; })[0];
@@ -359,59 +360,32 @@
     };
   }
 
-  function drawProbeSvg(doc, svg, row) {
-    clear(svg);
-    var width = 720;
-    var height = 320;
-    var plot = { left: 48, top: 28, width: 360, height: 246 };
-    var values = row.probes.map(function (probe) { return probe.quotient; });
-    if (row.derivative) values.push(row.derivative);
-    var extent = 1;
-    values.forEach(function (value) {
-      if (value) extent = Math.max(extent, Math.abs(value[0]), Math.abs(value[1]));
-    });
-    extent = Math.min(12, Math.max(1, extent * 1.2));
-    var mapX = function (value) { return plot.left + (value + extent) * plot.width / (2 * extent); };
-    var mapY = function (value) { return plot.top + plot.height - (value + extent) * plot.height / (2 * extent); };
-    svg.appendChild(svgElement(doc, "desc", {}, "所选函数的有限方向商位于复系数平面；金色虚线圆点是存在时的点复导数，有限探针不构成邻域解析性证明。"));
-    svg.appendChild(svgElement(doc, "rect", { x: plot.left, y: plot.top, width: plot.width, height: plot.height, fill: "var(--bg,#fff)", stroke: "var(--border,#c8cdd3)" }));
-    [-extent, 0, extent].forEach(function (tick) {
-      svg.appendChild(svgElement(doc, "line", { className: tick === 0 ? "ca-axis" : "ca-grid", x1: mapX(tick), y1: plot.top, x2: mapX(tick), y2: plot.top + plot.height }));
-      svg.appendChild(svgElement(doc, "line", { className: tick === 0 ? "ca-axis" : "ca-grid", x1: plot.left, y1: mapY(tick), x2: plot.left + plot.width, y2: mapY(tick) }));
-      svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: mapX(tick), y: plot.top + plot.height + 17, "text-anchor": "middle" }, formatNumber(tick, 1)));
-      if (tick !== -extent) svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: plot.left - 7, y: mapY(tick) + 4, "text-anchor": "end" }, formatNumber(tick, 1)));
-    });
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: plot.left + plot.width / 2, y: height - 12, "text-anchor": "middle" }, "Re(Q)"));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 12, y: plot.top + plot.height / 2, transform: "rotate(-90 12 " + (plot.top + plot.height / 2) + ")", "text-anchor": "middle" }, "Im(Q)"));
-    row.probes.forEach(function (probe) {
-      var quotient = probe.quotient;
-      var cx = mapX(quotient[0]);
-      var cy = mapY(quotient[1]);
-      svg.appendChild(svgElement(doc, "circle", { className: "ca-probe", cx: cx, cy: cy, r: 5 }));
-      svg.appendChild(svgElement(doc, "text", { className: "ca-label", x: cx + 8, y: cy - 7 }, probe.label));
-    });
-    if (row.derivative) {
-      var dx = mapX(row.derivative[0]);
-      var dy = mapY(row.derivative[1]);
-      svg.appendChild(svgElement(doc, "circle", { className: "ca-reference", cx: dx, cy: dy, r: 10 }));
-      svg.appendChild(svgElement(doc, "text", { className: "ca-label", x: dx + 12, y: dy + 14 }, "f′"));
+  function drawProbeSvg(doc,svg,row){
+    clear(svg);svg.setAttribute("viewBox","0 0 720 440");
+    svg.appendChild(svgElement(doc,"desc",{},"左图是方向商，右图直接计算反线性贡献，避免极小参数被大数相减淹没。两图各自横纵同标尺；近到像素不可分的标签合并，不表示精确相等。"));
+    function text(x,y,t,extra){svg.appendChild(svgElement(doc,"text",Object.assign({x:x,y:y,className:"ca-label"},extra||{}),t));}
+    var vals=row.probes.map(p=>p.quotient),rightVals=DIRECTIONS.map(function(d){var c=d.vector[0],e=d.vector[1],den=c*c+e*e,re=(c*c-e*e)/den,im=-2*c*e/den;return [row.beta[0]*re-row.beta[1]*im,row.beta[0]*im+row.beta[1]*re];});
+    var extentLeft=1.25*Math.max(1,...vals.flat().map(Math.abs)),betaSize=Math.hypot(...row.beta),extentRight=betaSize===0?1:1.25*betaSize;
+    function panel(left,extent,points,reference){
+      var top=75,size=250,X=v=>left+size/2+(v/extent)*size/2,Y=v=>top+size/2-(v/extent)*size/2;
+      [-1,0,1].forEach(function(f){var x=X(f*extent),y=Y(f*extent);svg.appendChild(svgElement(doc,"line",{x1:x,y1:top,x2:x,y2:top+size,className:f===0?"ca-axis":"ca-grid"}));svg.appendChild(svgElement(doc,"line",{x1:left,y1:y,x2:left+size,y2:y,className:f===0?"ca-axis":"ca-grid"}));text(x,top+size+18,formatNumber(f*extent,2),{"text-anchor":"middle"});text(left-7,y+4,formatNumber(f*extent,2),{"text-anchor":"end"});});
+      var groups={};points.forEach(function(v,i){var x=X(v[0]),y=Y(v[1]),key=x.toFixed(2)+","+y.toFixed(2);if(!groups[key])groups[key]={x:x,y:y,labels:[]};groups[key].labels.push(DIRECTIONS[i].label);});
+      Object.values(groups).forEach(function(g){svg.appendChild(svgElement(doc,"circle",{className:"ca-probe",cx:g.x,cy:g.y,r:5}));text(g.x+7,g.y-9,g.labels.join(" / "));});
+      if(reference){svg.appendChild(svgElement(doc,"circle",{className:"ca-reference",cx:X(reference[0]),cy:Y(reference[1]),r:10}));text(X(reference[0])+12,Y(reference[1])+18,"f′");}
+      text(left+size,top+size+39,"实部",{"text-anchor":"end"});text(left,top-13,"虚部");
     }
-    svg.appendChild(svgElement(doc, "text", { className: "ca-label", x: 448, y: 52 }, row.label + " at z₀=" + formatNumber(row.x, 2) + "+" + formatNumber(row.y, 2) + "i"));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 448, y: 78 }, "C–R residual=" + formatPair(row.residual, 3)));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 448, y: 104 }, "finite probes agree=" + (row.probesAgree ? "yes" : "no")));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 448, y: 130 }, "point derivative=" + (row.derivative ? formatComplex(row.derivative, 3) : "undefined")));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 448, y: 178 }, "legend"));
-    svg.appendChild(svgElement(doc, "circle", { className: "ca-probe", cx: 456, cy: 201, r: 5 }));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 470, y: 205 }, "direction quotient Qw"));
-    svg.appendChild(svgElement(doc, "circle", { className: "ca-reference", cx: 456, cy: 229, r: 9 }));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 470, y: 233 }, "C–R-compatible point derivative"));
-    svg.appendChild(svgElement(doc, "text", { className: "ca-small", x: 448, y: 268 }, "finite probes are diagnostics, never a neighborhood proof"));
+    panel(75,extentLeft,vals,row.derivative);panel(440,extentRight,rightVals,null);
+    text(75,24,"方向商 Qw（横纵同标尺）");text(440,24,"分离后的反线性贡献 Rw");
+    text(75,46,row.label+"，z₀="+formatComplex([row.x,row.y],2));text(440,46,"Rw = β w̄/w；不计算 Qw−α 的差");
+    text(75,389,"C–R 残差="+formatPair(row.residual,3));text(440,389,"β="+formatComplex(row.beta,3));
+    text(75,416,row.betaUnderflow?"部分非零反线性分量低于浮点范围；坐标不能显示它，精确分类不变。":"标签按屏幕位置合并；右图会独立放大。分类来自参数公式，不来自像素。");
   }
 
   function mount(root, api) {
     if (!host || !host.document) return;
     var doc = host.document;
     installStyles(doc);
+    root.classList.add("ca-lab");
     INSTANCE += 1;
     var state = {
       config: normalizeConfig({}),
@@ -490,6 +464,7 @@
         var button = element(doc, "button", { type: "button", "aria-pressed": "false" }, choice.label);
         button.addEventListener("click", function () {
           state.answers[key] = choice.value;
+          state.revealed=false;refs.resultShell.hidden=true;refs.feedback.textContent="预测已修改，请重新揭示。";
           renderPredictionButtons(evaluate(state.config));
         });
         buttons.push({ button: button, value: choice.value, label: choice.label });
@@ -516,9 +491,9 @@
       refs.metrics[1].value.textContent = formatPair(selected.residual, 3);
       refs.metrics[2].value.textContent = selected.complexDifferentiable ? formatComplex(selected.derivative, 3) : "不存在";
       refs.metrics[3].value.textContent = selected.analyticNeighborhood ? "解析" : selected.complexDifferentiable ? "点可导" : "否";
-      refs.metrics[4].value.textContent = selected.probesAgree ? "相同" : "分叉";
+      refs.metrics[4].value.textContent = selected.probesAgree ? "容差内一致" : "分叉";
       drawProbeSvg(doc, refs.svg, selected);
-      clear(refs.ledger);
+      var oldBody=refs.ledger.querySelector("tbody");if(oldBody)refs.ledger.removeChild(oldBody);
       var body = element(doc, "tbody");
       result.rows.forEach(function (row) {
         var derivativeText = row.derivative ? formatComplex(row.derivative, 3) : "不存在";
@@ -539,7 +514,7 @@
         ? "当前函数的精确公式在邻域内满足 C–R；方向商只是同一事实的有限诊断。"
         : selected.complexDifferentiable
           ? "C–R 只在当前点成立：点复可导不升级为解析邻域。"
-          : "方向商已经分叉；精确 C–R 残差给出当前点的失败原因。";
+          : selected.probesAgree ? "数值探针在容差内未分开，但精确参数公式判定 C–R 失败；近似相同不等于数学相等。" : "方向商已发现分叉；精确 C–R 公式给出当前点的失败原因。";
     }
 
     var shell = element(doc, "div", { className: "ca-shell" });
@@ -581,16 +556,19 @@
     var controls = element(doc, "div", { className: "ca-controls" });
     var lambdaControl = element(doc, "div", { className: "ca-control" });
     refs.lambdaOutput = element(doc, "output", { text: "0.5" });
-    refs.lambdaInput = element(doc, "input", { type: "range", min: "-1", max: "1", step: "0.1", value: "0.5", "aria-label": "参数 lambda" });
+    refs.lambdaInput = element(doc, "input", { id:"ca-lambda-"+INSTANCE,type: "range", min: "-1", max: "1", step: "0.1", value: "0.5", "aria-label": "参数 lambda" });
     refs.lambdaInput.addEventListener("input", function () {
       state.config.lambda = Number(refs.lambdaInput.value);
       lock("λ 已改变；参数多项式的 C–R 账本需要重新预测。");
       renderControls();
     });
-    lambdaControl.appendChild(element(doc, "label", { className: "ca-control-label" }, ["参数 λ=", refs.lambdaOutput]));
+    lambdaControl.appendChild(element(doc, "label", { className: "ca-control-label",for:"ca-lambda-"+INSTANCE }, ["参数 λ=", refs.lambdaOutput]));
     lambdaControl.appendChild(refs.lambdaInput);
+    var tiny=element(doc,"button",{type:"button"},"极小非零 λ=10⁻¹²");
+    tiny.addEventListener("click",function(){state.config=normalizeConfig({functionId:"parameterized",pointId:"generic",lambda:1e-12});lock("已设置极小非零参数；比较容差诊断与精确分类。");renderControls();});
+    lambdaControl.appendChild(tiny);
     controls.appendChild(lambdaControl);
-    var probeNote = element(doc, "p", { className: "ca-note" }, "方向固定为 1、i、1+i；方向商只检查这些有限方向。");
+    var probeNote = element(doc, "p", { className: "ca-note" }, "方向固定为 1、i、1+i；数值一致用相对/绝对容差 10⁻¹⁰ 判断。数学分类另按参数精确条件给出。");
     controls.appendChild(probeNote);
     shell.appendChild(controls);
 
@@ -602,7 +580,7 @@
     prediction.appendChild(addQuestion("status", "2. 当前所选函数的复导数/解析分类是？", [
       { value: "analytic", label: "邻域解析" }, { value: "point-only", label: "仅此点复可导" }, { value: "not-complex", label: "此点不复可导" }
     ]));
-    prediction.appendChild(addQuestion("probes", "3. 三个有限方向商刚好相同，应如何读？", [
+    prediction.appendChild(addQuestion("probes", "3. 当前三个方向商在数值容差内一致，还是已分叉？", [
       { value: "agree", label: "探针未发现冲突" }, { value: "split", label: "探针已发现分叉" }
     ]));
     prediction.appendChild(addQuestion("real", "4. 实可微是否自动等于复解析？", [
@@ -628,6 +606,7 @@
       refs.feedback.textContent = "预测得分 " + correct + "/" + keys.length + "；现在把实微分、点复导数和邻域解析性分账。";
       renderPredictionButtons(result);
       renderResult(result);
+      refs.stage.focus();
       announce(api, root, refs.feedback.textContent);
     });
     var reset = element(doc, "button", { type: "button" }, "重置实验");
@@ -640,6 +619,7 @@
       refs.feedback.className = "ca-feedback";
       refs.feedback.textContent = "已重置；请重新完成预测门。";
       renderControls();
+      refs.questionButtons.cr[0].button.focus();
       announce(api, root, "复变方向账本已重置。");
     });
     actions.appendChild(reveal);
@@ -651,13 +631,13 @@
     refs.resultShell.appendChild(element(doc, "h4", {}, "揭示后的精确 C–R 与方向账本"));
     refs.metrics = [
       metric(doc, "当前函数"),
-      metric(doc, "C–R residual"),
+      metric(doc, "C–R 残差"),
       metric(doc, "点复导数"),
       metric(doc, "邻域分类"),
       metric(doc, "有限探针")
     ];
     refs.resultShell.appendChild(element(doc, "div", { className: "ca-metrics" }, refs.metrics.map(function (item) { return item.node; })));
-    refs.stage = element(doc, "div", { className: "ca-stage" });
+    refs.stage = element(doc, "div", { className: "ca-stage",tabindex:"0",role:"region","aria-label":"可横向滚动的等比例方向图" });
     refs.svg = svgElement(doc, "svg", {
       className: "ca-svg",
       viewBox: "0 0 720 320",
@@ -679,7 +659,7 @@
       element(doc, "th", {}, "实可微"),
       element(doc, "th", {}, "邻域")
     ])));
-    refs.resultShell.appendChild(element(doc, "div", { className: "ca-table-wrap" }, refs.ledger));
+    refs.resultShell.appendChild(element(doc, "div", { className: "ca-table-wrap",tabindex:"0",role:"region","aria-label":"可横向滚动的方向账本" }, refs.ledger));
     refs.status = element(doc, "p", { className: "ca-interpretation", "aria-live": "polite" }, "");
     refs.resultShell.appendChild(refs.status);
     shell.appendChild(refs.resultShell);
@@ -692,6 +672,7 @@
       refs.pointButtons.forEach(function (entry) {
         entry.button.setAttribute("aria-pressed", entry.id === state.config.pointId ? "true" : "false");
       });
+      refs.lambdaInput.step=state.config.lambda===1e-12?"any":"0.1";
       refs.lambdaInput.value = String(state.config.lambda);
       refs.lambdaOutput.textContent = formatNumber(state.config.lambda, 1);
       renderPredictionButtons(evaluate(state.config));
@@ -709,6 +690,9 @@
     functionData: functionData,
     directionalQuotient: directionalQuotient,
     evaluate: evaluate,
+    complexDivide:complexDivide,
+    formatComplex:formatComplex,
+    drawProbeSvg:drawProbeSvg,
     selfTest: selfTest,
     mount: mount
   };

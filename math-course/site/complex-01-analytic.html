@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 20:57</div>
   </div>
 </nav>
 <main id="content">
@@ -61,16 +61,23 @@ try {
 <li><a href="#5">5. 边界：三种“可导”不能互换</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 复可导：一个苛刻得多的条件</a></li>
-<li><a href="#2">2. 调和函数：解析的实部与虚部</a></li>
-<li><a href="#3_1">3. 初等函数：熟脸的复身份</a></li>
-<li><a href="#4_1">4. 典型例题</a></li>
+<li><a href="#1-cr">1. C–R 为什么需要实可微这一前提？</a><ul>
+<li><a href="#_1">所有直线都通过，仍可能失败</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 保角：局部旋转伸缩，临界点除外</a><ul>
+<li><a href="#_2">看表达式，不如检查反线性系数</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 调和共轭为何会遇到“绕洞”的障碍？</a></li>
+<li><a href="#4_1">4. 指数、对数和幂：先声明域与分支</a></li>
+<li><a href="#5_1">5. 例题与迁移核对</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-cauchyriemann">复变 I · 解析函数与 Cauchy–Riemann 方程<a class="headerlink" href="#i-cauchyriemann" title="Permanent link"></a></h1>
 <blockquote>
-<p>复变函数论只研究一类函数——<strong>解析函数</strong>（在开集上处处复可导），但这一个条件的后果好得不像话：自动无穷可导、局部就是幂级数、由边界值定内部值……本页先讲清“开集上的复可导为什么这么强”：答案藏在 Cauchy–Riemann 方程里。</p>
+<p><strong>前置</strong>：<a href="analysis-05-multivar-diff.html">多元微分与Fréchet导数</a>、<a href="algebra-04-linear-space.html">线性空间</a>。复变函数论的一条主线是全纯函数：在开集上处处复可导。这个条件最终会带来幂级数展开与积分公式；本页先把一个点的线性化、开集条件及其几何意义分清。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -100,7 +107,7 @@ r_1=u_x-v_y,\qquad r_2=u_y+v_x.
 Q_w=\frac{Df(z_0)[w]}{w}
 \]</div>
 <p>只有在所有方向一致时才是复导数。有限个 <span class="arithmatex">\(Q_w\)</span> 是<strong>诊断探针</strong>，不是邻域解析性的证明。</p>
-<p>四个对象的精确账本是：</p>
+<p>参数 <span class="arithmatex">\(\lambda\in\mathbb R\)</span>。四个对象的精确账本是：</p>
 <table>
 <thead>
 <tr>
@@ -153,7 +160,7 @@ Q_w=\frac{Df(z_0)[w]}{w}
 </ol>
 <p>提交前不显示 Jacobian、C–R 残差、方向商、导数和 SVG。改变函数、点或参数会重新锁门。</p>
 <h3 id="4">4. 动手实验：一张可复算的方向诊断表<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>揭示后可在原点、一般点和坐标轴点之间切换，并调节 <span class="arithmatex">\(\lambda\)</span>。表中逐行列出四个函数的 <span class="arithmatex">\(u_x-v_y\)</span>、<span class="arithmatex">\(u_y+v_x\)</span>、三个有限方向商、点复导数和邻域分类；SVG 把方向商画在一个复系数平面中。它展示的是有限诊断，结论仍由精确 C–R 公式和量词决定。</p>
+<p>揭示后可在原点、一般点和坐标轴点之间切换，并调节 <span class="arithmatex">\(\lambda\)</span>。表中逐行列出四个函数的 <span class="arithmatex">\(u_x-v_y\)</span>、<span class="arithmatex">\(u_y+v_x\)</span>、三个方向商、点复导数和邻域分类；SVG 左图画方向商，右图直接画分离出的反线性贡献；两图各自横纵同标尺。它展示的是有限诊断，结论仍由精确 C–R 公式和量词决定。</p>
 <div class="learning-lab" data-learning-lab="complex-analytic">
 <p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(z_0=1+i\)</span>、<span class="arithmatex">\(\lambda=1/2\)</span>，方向探针为 <span class="arithmatex">\(1,i,1+i\)</span>。</p>
 <table>
@@ -215,36 +222,87 @@ Q_w=\frac{Df(z_0)[w]}{w}
 <li><strong>在一点复可导</strong>要求 C–R 在该点成立（在本实验的多项式模型中，实可微前提自动满足）。<span class="arithmatex">\(|z|^2\)</span> 在原点是标准反例：<span class="arithmatex">\(f(h)/h=\bar h\to0\)</span>，但离开原点 C–R 立即失败。</li>
 <li><strong>解析</strong>要求在开集内处处复可导。不能用有限采样点、有限方向或一条轨迹替代邻域量词。</li>
 </ul>
-<p>因此“探针通过”是调试信号，不是定理证明；要把结论升级为解析性，必须回到账本中的函数公式和邻域条件。</p>
+<p>在已知实可微的前提下，<strong>精确</strong>的 <span class="arithmatex">\(Q_1=Q_i\)</span> 已足够确定这个实线性映射来自复乘法，因而能证明该点复可导；实验中的浮点“容差内一致”更弱，且一点结论不能覆盖整个邻域。这里“有限组”指方向数量有限，<span class="arithmatex">\(Q_w\)</span> 本身由精确 Jacobian 计算，不是有限步长差商。</p>
+<p>将任意实线性微分唯一分解为</p>
+<div class="arithmatex">\[
+Df[w]=\alpha w+\beta\bar w,\qquad
+\alpha=\frac{u_x+v_y+i(v_x-u_y)}2,\qquad
+\beta=\frac{u_x-v_y+i(v_x+u_y)}2.
+\]</div>
+<p>因此 <span class="arithmatex">\(Q_w=\alpha+\beta\bar w/w\)</span>。右图直接计算 <span class="arithmatex">\(R_w=\beta\bar w/w\)</span>，把共用的 <span class="arithmatex">\(\alpha\)</span> 分离；它不对两个接近的大数作减法。<span class="arithmatex">\(\beta=0\)</span> 等价于 C–R，但数值探针比较使用 <span class="arithmatex">\(10^{-10}\)</span> 的混合相对/绝对容差，数学分类仍按函数参数的精确零条件。两个面板各自标出数值刻度，右图会放大极小的反线性部分。</p>
 </section>
 <figure class="plot">
-<p><img alt="共形映射：z\mapsto z^2 或 e^z 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。" src="assets/img/complex-01-conformal.svg" /></p>
-<figcaption><span class="fig-id">图 complex-01.1</span>共形映射：\(z\mapsto z^2\) 或 \(e^z\) 把方格网变形、但保持角度不变（可用 matplotlib 画网格变换）。</figcaption>
+<div aria-label="可横向滚动的平方映射网格" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/complex-01-conformal.svg" alt="避开原点的正交方格网在平方映射下成为两族正交曲线，两个面板横纵均同标尺" style="width:100%;min-width:760px;max-width:none">
+</div>
+<figcaption><span class="fig-id">图 complex-01.1</span>明确取 f(z)=z²，输入矩形 0.5≤x≤1.5、−0.5≤y≤0.5 避开临界点。直网格映成抛物线族，曲线交点的切线保持直角；保角指局部切线，不是弯曲后整条边仍为直线。</figcaption>
 </figure>
-<h2 id="1_1">1. 复可导：一个苛刻得多的条件<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(f: \mathbb{C} \to \mathbb{C}\)</span> 在 <span class="arithmatex">\(z_0\)</span> 可导：<span class="arithmatex">\(f'(z_0) = \lim_{\Delta z \to 0}\frac{f(z_0 + \Delta z) - f(z_0)}{\Delta z}\)</span>。形式与实函数一样，<strong>杀伤力在极限过程</strong>：<span class="arithmatex">\(\Delta z\)</span> 可以沿复平面<strong>任何方向</strong>趋零，所有方向必须给出同一个极限——二维的自由度全被锁死（对比数分 V：多元实函数各偏导存在远不足以可微；复可导比"可微"还强得多）。在区域内处处可导称<strong>解析（全纯）</strong>。</p>
-<p><strong>定理（Cauchy–Riemann 方程）</strong> <span class="arithmatex">\(f = u(x,y) + iv(x,y)\)</span> 在一点可导 <span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(u, v\)</span> 可微且</p>
+<h2 id="1-cr">1. C–R 为什么需要实可微这一前提？<a class="headerlink" href="#1-cr" title="Permanent link"></a></h2>
+<p>在开集 <span class="arithmatex">\(U\subset\mathbb C\)</span> 的一点 <span class="arithmatex">\(z_0\)</span>，复可导定义为</p>
 <div class="arithmatex">\[
-\frac{\partial u}{\partial x} = \frac{\partial v}{\partial y}, \qquad \frac{\partial u}{\partial y} = -\frac{\partial v}{\partial x}
+f'(z_0)=\lim_{h\to0}\frac{f(z_0+h)-f(z_0)}h.
 \]</div>
-<p><em>推导（两行，必会）</em>：沿实轴 <span class="arithmatex">\(\Delta z = \Delta x\)</span> 求极限得 <span class="arithmatex">\(f' = u_x + iv_x\)</span>；沿虚轴 <span class="arithmatex">\(\Delta z = i\Delta y\)</span> 得 <span class="arithmatex">\(f' = v_y - iu_y\)</span>；两者相等，实虚部各自对齐即 C–R。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>几何读法</strong>：C–R ⟺ Jacobi 矩阵形如 <span class="arithmatex">\(\begin{pmatrix} a &amp; -b \\ b &amp; a\end{pmatrix}\)</span> = 旋转 × 伸缩——解析映射在导数非零处<strong>保角</strong>（保持曲线夹角，共形映射的出身；这类"旋转伸缩"矩阵正是复数乘法的矩阵表示，高代呼应）。</p>
-<p><strong>名反例</strong>：<span class="arithmatex">\(f(z) = \bar z\)</span>（处处不可导——C–R 给 <span class="arithmatex">\(1 = -1\)</span>）；<span class="arithmatex">\(|z|^2\)</span> 只在原点可导。<strong>含 <span class="arithmatex">\(\bar z\)</span> 的表达式基本无缘解析</strong>——解析函数是"纯 <span class="arithmatex">\(z\)</span> 的函数"。</p>
-<h2 id="2">2. 调和函数：解析的实部与虚部<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>解析函数的 <span class="arithmatex">\(u, v\)</span> 都满足 <strong>Laplace 方程</strong> <span class="arithmatex">\(u_{xx} + u_{yy} = 0\)</span>（对 C–R 交叉求导即得）——称<strong>调和函数</strong>。反之，单连通域上任一调和 <span class="arithmatex">\(u\)</span> 都可配出<strong>共轭调和</strong> <span class="arithmatex">\(v\)</span> 使 <span class="arithmatex">\(u + iv\)</span> 解析（用 C–R 积分出 <span class="arithmatex">\(v\)</span>，例 2 演示）。</p>
-<p>🔗 这是复变与物理/PDE 的接口：平面静电场、稳态温度场、理想流体的势都调和——解析函数论 = 平面位势理论的语言（PDE 页 Laplace 方程再会）。</p>
-<h2 id="3_1">3. 初等函数：熟脸的复身份<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>指数</strong> <span class="arithmatex">\(e^z = e^x(\cos y + i\sin y)\)</span>（Euler 公式为定义之本）：处处解析，<span class="arithmatex">\((e^z)' = e^z\)</span>，但<strong>以 <span class="arithmatex">\(2\pi i\)</span> 为周期</strong>——实函数没有的新性格，也是对数多值的根源。</p>
-<p><strong>三角</strong> <span class="arithmatex">\(\cos z = \frac{e^{iz} + e^{-iz}}{2}\)</span>：复平面上 <span class="arithmatex">\(|\cos z|\)</span> <strong>无界</strong>（<span class="arithmatex">\(\cos(iy) = \cosh y \to \infty\)</span>）——"有界性"是实轴的错觉。</p>
-<p><strong>对数（多值性的大本营）</strong>：<span class="arithmatex">\(\mathrm{Ln}\, z = \ln|z| + i(\arg z + 2k\pi)\)</span>——无穷多值，相邻枝差 <span class="arithmatex">\(2\pi i\)</span>。取主辐角 <span class="arithmatex">\(\arg z \in (-\pi, \pi]\)</span> 得<strong>主值</strong> <span class="arithmatex">\(\ln z\)</span>，在割破负实轴的平面上解析。<strong>幂</strong> <span class="arithmatex">\(z^a = e^{a\,\mathrm{Ln}z}\)</span> 一般多值（<span class="arithmatex">\(i^i = e^{-\pi/2 - 2k\pi}\)</span>——全是实数，复变第一惊奇）。</p>
-<p>多值处理的纪律：算之前先选定单值分支（割线 + 主值），跨越割线必换枝——留数计算实积分时（复变 III）这是主要坑源。</p>
-<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（C–R 判可导）</strong> <span class="arithmatex">\(f(z) = x^2 + iy^2\)</span>：C–R 要求 <span class="arithmatex">\(2x = 2y\)</span> 且 <span class="arithmatex">\(0 = 0\)</span>——仅在直线 <span class="arithmatex">\(y = x\)</span> 上可导，<strong>无处解析</strong>（解析需要邻域）。"可导点集"与"解析区域"的区别一题看清。</p>
-<p><strong>例 2（共轭调和全流程）</strong> <span class="arithmatex">\(u = x^2 - y^2 + x\)</span>，求 <span class="arithmatex">\(v\)</span> 使 <span class="arithmatex">\(f = u + iv\)</span> 解析。
-<em>解</em>：<span class="arithmatex">\(v_y = u_x = 2x + 1 \Rightarrow v = 2xy + y + \varphi(x)\)</span>；再 <span class="arithmatex">\(v_x = 2y + \varphi' = -u_y = 2y \Rightarrow \varphi' = 0\)</span>。故 <span class="arithmatex">\(v = 2xy + y + C\)</span>，且 <span class="arithmatex">\(f = z^2 + z + iC\)</span>（拼回 <span class="arithmatex">\(z\)</span> 的表达式验明正身）。</p>
-<p><strong>例 3（多值实算）</strong> 解方程 <span class="arithmatex">\(e^z = -1\)</span>：<span class="arithmatex">\(z = \mathrm{Ln}(-1) = i(\pi + 2k\pi)\)</span>——实数世界"无解"的方程在复平面有一列解；<span class="arithmatex">\(e^{i\pi} = -1\)</span> 是 <span class="arithmatex">\(k = 0\)</span> 枝。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：复积分——Cauchy 两大定理把"解析"的全部魔力兑现：无穷可导、Liouville、代数基本定理，一页收割。</em></p>
+<p>这是二维极限：<span class="arithmatex">\(h\)</span> 可沿任何路径趋零，且误差控制对方向统一。若复导数为 <span class="arithmatex">\(c\)</span>，就有 <span class="arithmatex">\(f(z_0+h)-f(z_0)=ch+o(|h|)\)</span>，这本身已给出实 Fréchet 可微性。写 <span class="arithmatex">\(c=a+ib\)</span>，乘法矩阵为 <span class="arithmatex">\(\begin{pmatrix}a&amp;-b\\b&amp;a\end{pmatrix}\)</span>，自然满足 C–R。</p>
+<p>反过来，假定 <span class="arithmatex">\(u,v\)</span> 实 Fréchet 可微并满足 C–R。实线性展开为</p>
+<div class="arithmatex">\[
+f(z_0+h)-f(z_0)=Df(z_0)[h]+r(h),\qquad \frac{|r(h)|}{|h|}\to0.
+\]</div>
+<p>C–R 将 <span class="arithmatex">\(Df[h]\)</span> 变成 <span class="arithmatex">\((u_x+iv_x)h\)</span>。除以 <span class="arithmatex">\(h\ne0\)</span>，余项满足 <span class="arithmatex">\(|r(h)/h|\to0\)</span>，所以复导数存在且为 <span class="arithmatex">\(u_x+iv_x\)</span>。<strong>必要性比较坐标轴就能看见；充分性靠统一的小余项，不能只比较两条轴。</strong> 若一阶偏导在邻域连续，可由实分析定理得到所需的实可微性，但这只是方便的充分条件。<a href="https://www.jirka.org/ca/ca.pdf">Lebl，§2.1、附录B.3</a></p>
+<h3 id="_1">所有直线都通过，仍可能失败<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(z=x+iy\)</span>，在非零点定义</p>
+<div class="arithmatex">\[
+H(x,y)=\frac{x^2y}{x^4+y^2},\qquad F(z)=zH(x,y),\qquad F(0)=0.
+\]</div>
+<p>由 <span class="arithmatex">\(2x^2|y|\le x^4+y^2\)</span>，有 <span class="arithmatex">\(|F(z)|\le |z|/2\)</span>，因此 <span class="arithmatex">\(F\)</span> 在原点连续。沿固定直线 <span class="arithmatex">\(x=at,y=bt\)</span>，若 <span class="arithmatex">\(b\ne0\)</span>，</p>
+<div class="arithmatex">\[
+\frac{F(t(a+ib))}{t(a+ib)}
+=\frac{a^2bt}{a^4t^2+b^2}\longrightarrow0;
+\]</div>
+<p>若 <span class="arithmatex">\(b=0\)</span> 则恒为零，竖直线也为零。所有固定方向都报告候选导数 <span class="arithmatex">\(0\)</span>，原点偏导和 C–R 也成立。但沿抛物线 <span class="arithmatex">\(y=x^2\)</span>，<span class="arithmatex">\(F(z)/z=1/2\)</span>，二维极限失败。缺掉的正是实 Fréchet 可微前提；方向逐个成立不等于对方向统一成立。</p>
+<h2 id="2">2. 保角：局部旋转伸缩，临界点除外<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(f\)</span> 在邻域全纯且 <span class="arithmatex">\(f'(z_0)\ne0\)</span>，两条正则曲线的非零切向量 <span class="arithmatex">\(v_1,v_2\)</span> 被送成 <span class="arithmatex">\(f'(z_0)v_1,f'(z_0)v_2\)</span>。其比值仍为 <span class="arithmatex">\(v_2/v_1\)</span>，所以有向夹角不变，长度统一乘 <span class="arithmatex">\(|f'(z_0)|\)</span>。Jacobian 行列式为 <span class="arithmatex">\(|f'(z_0)|^2&gt;0\)</span>，由实逆函数定理得到局部可逆；全局单射则需要另证。</p>
+<p>图中 <span class="arithmatex">\(f=z^2\)</span> 的 <span class="arithmatex">\(f'=2z\)</span> 在输入矩形处处非零，网格切线因此仍正交。但在原点，<span class="arithmatex">\(z=re^{i\theta}\)</span> 变为 <span class="arithmatex">\(r^2e^{2i\theta}\)</span>，例如夹角 <span class="arithmatex">\(\pi/4\)</span> 变成 <span class="arithmatex">\(\pi/2\)</span>，不再满足上述保角结论。<span class="arithmatex">\(z^2\)</span> 在包含 <span class="arithmatex">\(z\)</span> 和 <span class="arithmatex">\(-z\)</span> 的域内也不可能全局单射。</p>
+<p><span class="arithmatex">\(\bar z\)</span> 是另一种边界：它保持无向夹角大小，却反转方向，实 Jacobian 行列式为 <span class="arithmatex">\(-1\)</span>。本页“共形”采用保持定向的惯例，不应把反射的几何保角误作复可导。</p>
+<h3 id="_2">看表达式，不如检查反线性系数<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>“公式里出现 <span class="arithmatex">\(\bar z\)</span> 就不能解析”不是可靠判据。例如 <span class="arithmatex">\(z+\bar z-\bar z=z\)</span>；在 <span class="arithmatex">\(z\ne0\)</span> 上，<span class="arithmatex">\(|z|^2/\bar z=z\)</span>。对实可微函数，正确的一点判据是 <span class="arithmatex">\(\beta=\partial f/\partial\bar z=0\)</span>，邻域全纯则要求它在开集内处处为零。</p>
+<p>实验参数族满足 <span class="arithmatex">\(\alpha=2z+\lambda\bar z\)</span>、<span class="arithmatex">\(\beta=\lambda z\)</span>，故非零 <span class="arithmatex">\(\lambda\)</span> 时仅原点复可导。即使 <span class="arithmatex">\(\lambda=10^{-12}\)</span> 小到三个商在容差内一致，<span class="arithmatex">\(z\ne0\)</span> 时仍不复可导。右图的分离量用于看清这件事，并未更改数学分类的条件。</p>
+<h2 id="3_1">3. 调和共轭为何会遇到“绕洞”的障碍？<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>全纯函数具有所需的高阶光滑性，这将在下一页由 Cauchy 积分公式证明。于是对 C–R 交叉求导，<span class="arithmatex">\(u_{xx}=v_{yx}\)</span>、<span class="arithmatex">\(u_{yy}=-v_{xy}\)</span>，得到 <span class="arithmatex">\(\Delta u=0\)</span>；<span class="arithmatex">\(v\)</span> 同样调和。</p>
+<p>反向构造从一个 <span class="arithmatex">\(C^2\)</span> 调和函数 <span class="arithmatex">\(u\)</span> 开始。为满足 <span class="arithmatex">\(v_x=-u_y,v_y=u_x\)</span>，定义一形式</p>
+<div class="arithmatex">\[
+\omega=-u_y\,dx+u_x\,dy,
+\qquad d\omega=(u_{xx}+u_{yy})\,dx\wedge dy=0.
+\]</div>
+<p>若域单连通，闭路积分为零，可以从固定点 <span class="arithmatex">\(z_*\)</span> 定义 <span class="arithmatex">\(v(z)=\int_{z_*}^z\omega\)</span>，积分与路径无关；连通域上 <span class="arithmatex">\(v\)</span> 只差一个实常数。更一般地，能否得到全局单值共轭取决于所有闭路周期 <span class="arithmatex">\(\oint\omega\)</span> 是否为零。</p>
+<p>看穿孔平面上的 <span class="arithmatex">\(u=\log|z|=\tfrac12\log(x^2+y^2)\)</span>。它调和，但</p>
+<div class="arithmatex">\[
+\omega=-\frac{y}{x^2+y^2}dx+\frac{x}{x^2+y^2}dy.
+\]</div>
+<p>沿单位圆 <span class="arithmatex">\(x=\cos t,y=\sin t\)</span>，<span class="arithmatex">\(\omega=dt\)</span>，积分为 <span class="arithmatex">\(2\pi\)</span>。因此整个穿孔平面没有单值的调和共轭；局部的辐角函数绕一圈会增加 <span class="arithmatex">\(2\pi\)</span>。这不是局部微分方程错误，而是全局周期不为零。<a href="https://www.jirka.org/ca/ca.pdf">Lebl，§7.1</a></p>
+<p>物理中二维静电势只在无体电荷、相应均匀介质区域调和；稳态温度还需无热源、常导热系数等条件。边界、介质或源项改变后，不能把任何场都直接称为调和函数。</p>
+<h2 id="4_1">4. 指数、对数和幂：先声明域与分支<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(e^{x+iy}=e^x(\cos y+i\sin y)\)</span> 给整函数，导数仍为自身，周期为 <span class="arithmatex">\(2\pi i\)</span>。因此 <span class="arithmatex">\(e^z=-1\)</span> 的全部解为 <span class="arithmatex">\(z=i(\pi+2k\pi)\)</span>，<span class="arithmatex">\(k\in\mathbb Z\)</span>；指数在整个复平面并不单射。<span class="arithmatex">\(\cos z=(e^{iz}+e^{-iz})/2\)</span> 同样全纯，却在虚轴有 <span class="arithmatex">\(\cos(iy)=\cosh y\)</span>，所以不具实轴上的全局有界性。</p>
+<p>对于 <span class="arithmatex">\(z\ne0\)</span>，所有对数值为 <span class="arithmatex">\(\ln|z|+i(\arg z+2k\pi)\)</span>。主辐角可以用 <span class="arithmatex">\((-\pi,\pi]\)</span> 作点值约定，但<strong>解析主分支</strong>必须放在开割域</p>
+<div class="arithmatex">\[
+D=\mathbb C\setminus(-\infty,0],\qquad
+\operatorname{Log}z=\ln|z|+i\operatorname{Arg}z,\quad -\pi&lt;\operatorname{Arg}z&lt;\pi.
+\]</div>
+<p>在 <span class="arithmatex">\(D\)</span> 上 <span class="arithmatex">\(e^{\operatorname{Log}z}=z\)</span>，链式法则给 <span class="arithmatex">\((\operatorname{Log}z)'=1/z\)</span>。负实轴上即使约定一个主值，也不属于这个解析分支的域。割线可以另选；沿路径延拓跨越人为割线时，要区分“重新取主值”和“连续跟随原分支”，两者未必返回同一个数。</p>
+<p>给定某个对数分支后定义 <span class="arithmatex">\(z^a=\exp(a\operatorname{Log}z)\)</span>。若讨论所有分支，<span class="arithmatex">\(i^i\)</span> 的值为 <span class="arithmatex">\(e^{-\pi/2-2k\pi}\)</span>；取主分支才指定 <span class="arithmatex">\(e^{-\pi/2}\)</span>。非零复数域上整数幂的分支差经指数后消失，非整数指数则一般不会。<a href="https://www.jirka.org/ca/ca.pdf">Lebl，§4.1–4.3</a></p>
+<h2 id="5_1">5. 例题与迁移核对<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p><strong>完整例题。</strong> 给 <span class="arithmatex">\(u=x^2-y^2+x\)</span>，由 <span class="arithmatex">\(v_y=2x+1\)</span> 得 <span class="arithmatex">\(v=2xy+y+\varphi(x)\)</span>；再由 <span class="arithmatex">\(v_x=-u_y=2y\)</span> 得 <span class="arithmatex">\(\varphi'=0\)</span>。于是 <span class="arithmatex">\(f=z^2+z+iC\)</span>。它在 <span class="arithmatex">\(z=-1/2\)</span> 的导数为零，因此“全纯”也没有保证每一点都局部保角。</p>
+<ol>
+<li>求 <span class="arithmatex">\(f(z)=x^2+iy^2\)</span> 的全部复可导点和相应导数。它在哪些开集解析？</li>
+<li>对连续反例 <span class="arithmatex">\(F=zH\)</span>，分别计算 <span class="arithmatex">\(F(t+it)/(t+it)\)</span> 与 <span class="arithmatex">\(F(t+it^2)/(t+it^2)\)</span>，解释为什么加入再多固定方向也救不了缺失的统一极限。</li>
+<li>求 <span class="arithmatex">\(u=x^2-y^2+x\)</span> 在整个平面上的调和共轭；若改成 <span class="arithmatex">\(u=\log|z|\)</span> 且域为穿孔平面，为什么不能重复“随便选路径积分”？同时比较主分支 <span class="arithmatex">\(\operatorname{Log}(i)\)</span> 与从 <span class="arithmatex">\(i\)</span> 逆时针绕原点一周的连续延拓值。</li>
+</ol>
+<details class="answer">
+<summary>展开核对可导点、曲线路径与周期</summary>
+<p><strong>1.</strong> 这些多项式处处实可微，C–R 给 <span class="arithmatex">\(2x=2y\)</span>，另一式自动成立，所以可导点恰为 <span class="arithmatex">\(y=x\)</span>，导数 <span class="arithmatex">\(f'=2x\)</span>。直线不含非空开集，故无处解析；原点的导数零也不能改变这一点。</p>
+<p><strong>2.</strong> 沿 <span class="arithmatex">\(x=y=t\)</span>，<span class="arithmatex">\(H=t/(1+t^2)\to0\)</span>；沿 <span class="arithmatex">\(x=t,y=t^2\)</span>，<span class="arithmatex">\(H=1/2\)</span>（<span class="arithmatex">\(t\ne0\)</span>）。方向极限只固定角度，而抛物线路径的方向会随步长变化，二维极限必须同时控制后者。</p>
+<p><strong>3.</strong> 前者为 <span class="arithmatex">\(v=2xy+y+C\)</span>。后者的闭路积分为 <span class="arithmatex">\(2\pi\ne0\)</span>，不同路径给出不同值，无法定义全域单值共轭。<span class="arithmatex">\(\operatorname{Log}(i)=i\pi/2\)</span>；逆时针一周连续延拓后是 <span class="arithmatex">\(i5\pi/2\)</span>，回到同一点重新取主值则又是 <span class="arithmatex">\(i\pi/2\)</span>。</p>
+</details>
+<p><strong>离页检查：</strong>能用 Fréchet 余项证明 C–R 的充分性；能给出直线检验失败的连续反例；能区分局部保角与全局单射；能从闭路积分解释分支。下一页进入<a href="complex-02-integration.html">复积分与 Cauchy 定理</a>，把局部微分约束转成积分与幂级数结论。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ode-03-systems-stability.html"><span class="pager-label">上一页</span>常微分 III · 线性系统与稳定性</a>
