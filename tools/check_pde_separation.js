@@ -14,4 +14,5 @@ for(const mode of ['heat','wave','laplace'])for(const N of [1,2,7,16])for(const 
 const svg=fs.readFileSync(path.join(__dirname,'../math-course/images/pde-01-heat-decay.svg'),'utf8');function pts(id){let q=svg.match(new RegExp('<path id="'+id+'" d="([^"]+)"'));check(q,id);return parse(q[1]);}const initial=pts('initial');for(let j=0;j<=320;j++){let x=Math.PI*j/320;near(initial[j][0],65+355*j/320,1e-9);near(initial[j][1],350-220*x*(Math.PI-x)/2.7,1e-9);}
 for(const [i,t]of [0,.05,.4,1].entries()){let a=pts('heat-'+i);for(let j=0;j<=320;j++){let u=0;for(let n=1;n<=31;n+=2)u+=8/(Math.PI*n**3)*Math.exp(-n*n*t)*Math.sin(n*Math.PI*j/320);near(a[j][1],350-220*u/2.7,1e-9);}}
 for(const n of [1,3,7]){const a=pts('factor-'+n);for(let j=0;j<=200;j++){near(a[j][0],550+350*j/200,1e-9);near(a[j][1],130-220*Math.log10(Math.exp(-n*n*j/200))/22,1e-9);}}
+check(svg.includes("约为5.24×10⁻²²")&&!svg.includes("约为4.98×10⁻²²"),"exp(-49) annotation matches three significant digits");
 console.log(`pde-separation independent: PASS (${checks} checks)`);

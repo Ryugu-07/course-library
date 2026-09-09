@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:12</div>
+    <div class="build-time">构建于 2026-09-09 22:04</div>
   </div>
 </nav>
 <main id="content">
@@ -71,6 +71,7 @@ try {
 </li>
 <li><a href="#3_1">3. 热方程：热核把局部初值变成全局尾巴</a><ul>
 <li><a href="#31">3.1 热核与卷积</a></li>
+<li><a href="#t0">热核如何在 t→0 时恢复初值？</a></li>
 <li><a href="#32">3.2 瞬时正性不是“每个初值都正”</a></li>
 <li><a href="#33">3.3 光滑化与最大值原理的适用域</a></li>
 </ul>
@@ -78,12 +79,13 @@ try {
 <li><a href="#4-fourier">4. Fourier 视角：三种传播的频率账本</a></li>
 <li><a href="#5">5. 与扩散模型的边界：相关，但不能偷换</a></li>
 <li><a href="#6">6. 典型例题与迁移题</a></li>
+<li><a href="#_2">延伸阅读</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">偏微分 II · 特征线、行波与热核<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>同一个“初始扰动”，可以原样搬运、沿锥形区域分成两路，也可以立刻在整条直线上留下高斯尾巴。本页用特征线、d'Alembert 公式、热核卷积和 Fourier 模态，把这三种传播性格放在同一把尺子上比较。</p>
+<p><strong>前置</strong>：<a href="pde-01-separation.html">分离变量与初边值条件</a>、<a href="analysis-05-multivar-diff.html">多元微分</a>。同一个初始扰动，可以原样搬运、分成两列行波，也可以立刻在整条直线上留下热尾。本页用明确的全直线模型比较这些差异，再说明边界与正则性如何改变结论。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -151,7 +153,7 @@ e^{-z^2/(4\kappa t)},\quad t&gt;0.
 </section>
 <h2 id="1_1">1. 输运方程：特征线是信息的轨道<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <h3 id="11">1.1 全直线、常系数的严格推导<a class="headerlink" href="#11" title="Permanent link"></a></h3>
-<p>先明确模型边界：这里讨论的是<strong>全直线 <span class="arithmatex">\(x\in\mathbb R\)</span>、常数速度 <span class="arithmatex">\(c\)</span>、无源项，并给定初值 <span class="arithmatex">\(u(x,0)=\varphi(x)\)</span></strong> 的经典问题。设终点为 <span class="arithmatex">\((x,t)\)</span>，沿着参数 <span class="arithmatex">\(s\)</span> 走曲线</p>
+<p>先明确模型边界：这里讨论的是<strong>全直线 <span class="arithmatex">\(x\in\mathbb R\)</span>、常数速度 <span class="arithmatex">\(c\)</span>、无源项，并给定初值 <span class="arithmatex">\(u(x,0)=\varphi(x)\)</span></strong> 的问题。若 <span class="arithmatex">\(\varphi\in C^1\)</span> 可用经典链式法则；本页tent只有Lipschitz正则性，平移公式在折角外经典成立、全域按弱解成立。设终点为 <span class="arithmatex">\((x,t)\)</span>，沿着参数 <span class="arithmatex">\(s\)</span> 走曲线</p>
 <div class="arithmatex">\[
 X(s)=x+c(s-t),
 \qquad X(t)=x,\quad X(0)=x-ct.
@@ -169,7 +171,7 @@ X(s)=x+c(s-t),
 <div class="arithmatex">\[
 \operatorname{supp}u(\cdot,t)\subset[-R+ct,R+ct]
 \]</div>
-<p>（端点次序应按 <span class="arithmatex">\(c\)</span> 的符号理解），这就是最直接的有限传播。</p>
+<p>两端一起加上 <span class="arithmatex">\(ct\)</span>，无论 <span class="arithmatex">\(c\)</span> 正负，左端始终小于右端；速度符号只改变移动方向。</p>
 <h3 id="12">1.2 边界条件不能凭空消失<a class="headerlink" href="#12" title="Permanent link"></a></h3>
 <p>在半直线或有限区间上，特征线可能从边界进入计算域：这时必须给入流边界数据。例如 <span class="arithmatex">\(c&gt;0\)</span> 的区间问题需要在左端提供 <span class="arithmatex">\(u(0,t)\)</span>；只给初值一般不能唯一决定后续解。变量系数 <span class="arithmatex">\(u_t+b(x,t)u_x=0\)</span> 仍可在足够光滑时沿 <span class="arithmatex">\(X'(s)=b(X(s),s)\)</span> 追踪，但特征线不再是平行直线，且系数、边界和源项会改变公式。</p>
 <p>所以“有限传播”在本页的最干净版本，依赖的是全直线上的局部常系数模型与合适的初值；它不是任意 PDE、任意边界或非局部算子的通用口号。</p>
@@ -210,6 +212,14 @@ u(x,t)=\frac{\varphi(x-at)+\varphi(x+at)}2
 I(x,t)=[x-at,x+at]
 \]</div>
 <p>上的值。如果 <span class="arithmatex">\(\varphi\)</span> 与 <span class="arithmatex">\(\psi\)</span> 都支撑在 <span class="arithmatex">\([-R,R]\)</span>，且 <span class="arithmatex">\(I(x,t)\cap[-R,R]=\varnothing\)</span>，那么 <span class="arithmatex">\(u(x,t)=0\)</span>。对于默认点，<span class="arithmatex">\(I(5,3)=[2,8]\)</span>，它与 <span class="arithmatex">\([-1,1]\)</span> 不交；又因为 <span class="arithmatex">\(\psi=0\)</span>，波解严格为零。</p>
+<p>依赖区间与初值支撑相交，只说明可能受到影响，并不保证解非零。特别是本例 <span class="arithmatex">\(\psi=0\)</span>，只读取两个端点：当 <span class="arithmatex">\(at&gt;1\)</span> 时，两列tent之间有一个零值间隙，即使那里处于总传播锥内部。</p>
+<figure class="plot">
+<div tabindex="0" role="region" aria-label="可横向滚动的特征脚点与热积分图" style="overflow-x:auto">
+<img src="assets/img/pde-02-propagation-footprints.svg" alt="输运脚点2、波动区间2到8避开初值支撑；热积分在负1到1内部为正" style="min-width:760px;width:100%">
+</div>
+<figcaption>默认例题的几何账本。上方横轴是初值位置，下方横轴是积分变量；热图纵轴画的是被积函数，阴影面积才是观测值。</figcaption>
+</figure>
+
 <p>这个结论同样有边界：有限区间上的波会从边界反射或吸收，反射后的波仍有有限速度，但不能继续把无边界的 d'Alembert 公式直接套上去；变系数、外力和低正则初值则需要相应的能量解或弱解理论。全直线、常系数、给齐初值正是这里公式和依赖锥成立的假设。</p>
 <h2 id="3_1">3. 热方程：热核把局部初值变成全局尾巴<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <h3 id="31">3.1 热核与卷积<a class="headerlink" href="#31" title="Permanent link"></a></h3>
@@ -222,11 +232,18 @@ u_t=\kappa u_{xx},\qquad \kappa&gt;0,\qquad u(x,0)=\varphi(x).
 G_\kappa(x,t)=\frac{1}{\sqrt{4\pi\kappa t}}
 \exp\!\left(-\frac{x^2}{4\kappa t}\right),\qquad t&gt;0.
 \]</div>
-<p>它的积分为 <span class="arithmatex">\(1\)</span>，方差为 <span class="arithmatex">\(2\kappa t\)</span>；一般初值通过叠加得到</p>
+<p>令 <span class="arithmatex">\(q=\kappa t\)</span>。直接求导得到 <span class="arithmatex">\(G_t/G=-1/(2t)+x^2/(4\kappa t^2)\)</span>、<span class="arithmatex">\(G_{xx}/G=x^2/(4q^2)-1/(2q)\)</span>，所以 <span class="arithmatex">\(G_t=\kappa G_{xx}\)</span>。换元 <span class="arithmatex">\(x=2\sqrt q\,z\)</span> 归一化为高斯积分，给 <span class="arithmatex">\(\int Gdx=1\)</span> 和二阶矩 <span class="arithmatex">\(2q\)</span>。一般初值通过叠加得到</p>
 <div class="arithmatex">\[
 u(x,t)=(G_\kappa(\cdot,t)*\varphi)(x)
 =\int_{\mathbb R}G_\kappa(x-y,t)\varphi(y)\,dy.
 \]</div>
+<h3 id="t0">热核如何在 t→0 时恢复初值？<a class="headerlink" href="#t0" title="Permanent link"></a></h3>
+<p>不能把 <span class="arithmatex">\(G(x,0)\)</span> 当成普通函数代入。对本页连续有界的tent，写</p>
+<div class="arithmatex">\[
+(G_t*\varphi)(x)-\varphi(x)=\int G_t(y)[\varphi(x-y)-\varphi(x)]dy.
+\]</div>
+<p>先将积分分为 <span class="arithmatex">\(|y|&lt;\delta\)</span> 与外侧：内侧由一致连续性控制，外侧由高斯质量集中到原点控制。因此解一致趋于初值；对 <span class="arithmatex">\(1\le p&lt;\infty\)</span> 的 <span class="arithmatex">\(L^p\)</span> 初值，可利用平移在 <span class="arithmatex">\(L^p\)</span> 中的连续性证明相应范数收敛。对任意 <span class="arithmatex">\(L^\infty\)</span> 初值，不能无条件声称同样的 <span class="arithmatex">\(L^\infty\)</span> 范数收敛。</p>
+<p>实验数值将tent在零点分成两个光滑积分区间，先分离高斯尾的公共指数，再做自适应Gauss积分。这样远尾不用两个接近数相减；图和观测点使用同一计算核。相邻细分的差给数值误差估计，<strong>不是严格误差证书</strong>，另有高精度参照核对。若正数低于浮点范围，账本显示其对数及“低于浮点范围”，不把数值零升级成数学零。</p>
 <h3 id="32">3.2 瞬时正性不是“每个初值都正”<a class="headerlink" href="#32" title="Permanent link"></a></h3>
 <p>对本页的假设：<span class="arithmatex">\(\varphi\)</span> 非负、紧支撑、非零，且 <span class="arithmatex">\(t&gt;0\)</span>。由于 <span class="arithmatex">\(G_\kappa(x-y,t)&gt;0\)</span> 对每个有限的 <span class="arithmatex">\(x,y\)</span> 都成立，而 <span class="arithmatex">\(\varphi\)</span> 在一段正长度区间上为正，所以</p>
 <div class="arithmatex">\[
@@ -255,6 +272,12 @@ u(x,t)&gt;0\qquad\text{对所有 }x\in\mathbb R.
 <div class="arithmatex">\[
 \exp(-\kappa k^2t).
 \]</div>
+<p>完整的波频率解为</p>
+<div class="arithmatex">\[
+\widehat u(k,t)=\cos(akt)\widehat\varphi(k)
++\frac{\sin(akt)}{ak}\widehat\psi(k),
+\]</div>
+<p>在 <span class="arithmatex">\(k=0\)</span> 处将第二项的因子连续定义为 <span class="arithmatex">\(t\)</span>。本页 <span class="arithmatex">\(\psi=0\)</span> 才能只留余弦项；它的模长可随时间起伏，守恒的是包含速度的波能量。本页tent的 Fourier 变换为 <span class="arithmatex">\([\sin(k/2)/(k/2)]^2\)</span>，零频取1；频率表显示的是传播乘子，实际 <span class="arithmatex">\(\widehat u\)</span> 还需乘这个初值频谱。</p>
 <p>对照三种因子：输运是 <span class="arithmatex">\(e^{-ickt}\)</span>，模长为 <span class="arithmatex">\(1\)</span>，只积累相位；波动的模态是 <span class="arithmatex">\(\cos(akt)\)</span> 与 <span class="arithmatex">\(\sin(akt)\)</span> 的振荡组合，不发生热式单调衰减；热方程是 <span class="arithmatex">\(e^{-\kappa k^2t}\)</span>，把细节按 <span class="arithmatex">\(k^2\)</span> 的速度抹掉。</p>
 <h2 id="5">5. 与扩散模型的边界：相关，但不能偷换<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>热核与布朗运动确实相连：无漂移、常数各向同性噪声的前向 SDE</p>
@@ -270,23 +293,28 @@ dX_t=b(X_t,t)\,dt+\sigma(X_t,t)\,dW_t,
 <h2 id="6">6. 典型例题与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>例 1（特征线）</strong> <span class="arithmatex">\(u_t-2u_x=0\)</span>、<span class="arithmatex">\(u(x,0)=1/(1+x^2)\)</span>。这里 <span class="arithmatex">\(c=-2\)</span>，所以 <span class="arithmatex">\(u(x,t)=1/[1+(x+2t)^2]\)</span>：峰值向左移动，宽度和高度不变。</p>
 <p><strong>例 2（依赖区间）</strong> 若波方程速度 <span class="arithmatex">\(a=1\)</span>，初值与初速度都支撑在 <span class="arithmatex">\([-1,1]\)</span>，则 <span class="arithmatex">\((5,3)\)</span> 的依赖区间为 <span class="arithmatex">\([2,8]\)</span>，解为 <span class="arithmatex">\(0\)</span>。同一 tent 初值放入热方程时，卷积核在 <span class="arithmatex">\([-1,1]\)</span> 上始终正，解为正。</p>
-<p><strong>例 3（边界）</strong> 半直线 <span class="arithmatex">\(x&gt;0\)</span> 的热方程若给 Dirichlet 条件 <span class="arithmatex">\(u(0,t)=0\)</span>，可对初值做奇延拓再用全直线热核；Neumann 条件则对应偶延拓。镜像法改变的是边界问题的核，不能拿全直线的“无限传播”一句话替代边界条件。</p>
+<p><strong>例 3（边界）</strong> 半直线 <span class="arithmatex">\(x&gt;0\)</span> 的热方程若给 Dirichlet 条件 <span class="arithmatex">\(u(0,t)=0\)</span>，可对初值做奇延拓再用全直线热核，等价的半直线核为 <span class="arithmatex">\(G_\kappa(x-y,t)-G_\kappa(x+y,t)\)</span>（<span class="arithmatex">\(x,y&gt;0\)</span>）；在 <span class="arithmatex">\(x=0\)</span> 两项相消。Neumann条件对应偶延拓和加号核，其法向导数在边界相消。镜像法改变的是边界问题的核，不能拿全直线的“无限传播”一句话替代边界条件。</p>
 <p><strong>迁移题</strong></p>
 <ol>
 <li>证明 <span class="arithmatex">\(u_t+cu_x=0\)</span> 的 <span class="arithmatex">\(L^p(\mathbb R)\)</span> 范数在 <span class="arithmatex">\(1\le p\le\infty\)</span> 下保持不变；再说明热方程为什么只保证 <span class="arithmatex">\(L^\infty\)</span> 范数不增而不是保持不变。</li>
 <li>将 tent 换成一个有正有负、积分为 <span class="arithmatex">\(0\)</span> 的紧支撑函数。哪一步正性证明失效？能否构造某个观测点让热卷积恰好为 <span class="arithmatex">\(0\)</span>？</li>
 <li>从 <span class="arithmatex">\(\widehat u(k,t)=e^{-\kappa k^2t}\widehat\varphi(k)\)</span> 解释逆热问题的条件数为什么随最高频率指数爆炸，并写出一个必须的正则化想法。</li>
 </ol>
-<details>
+<details class="answer">
 <summary>迁移题参考答案</summary>
 <ol>
-<li>输运解为 <span class="arithmatex">\(u(x,t)=\varphi(x-ct)\)</span>。平移不改变 Lebesgue 测度，所以 <span class="arithmatex">\(1\le p&lt;\infty\)</span> 时换元 <span class="arithmatex">\(y=x-ct\)</span> 得 <span class="arithmatex">\(\|u(\cdot,t)\|_p^p=\int|\varphi(y)|^pdy\)</span>；<span class="arithmatex">\(p=\infty\)</span> 时本质上确界也不变。热方程则是 <span class="arithmatex">\(u=G_t*\varphi\)</span>，其中 <span class="arithmatex">\(G_t\ge0\)</span> 且 <span class="arithmatex">\(\|G_t\|_1=1\)</span>，Young 不等式给 <span class="arithmatex">\(\|u\|_p\le\|\varphi\|_p\)</span>。通常是收缩而非守恒：例如非恒定初值的峰值会被平均压低；对任意 <span class="arithmatex">\(\varphi\in L^1\)</span>，有符号总量 <span class="arithmatex">\(\int u=\int\varphi\)</span> 都由 Fubini 定理和 <span class="arithmatex">\(\int G_t=1\)</span> 保持；若初值还非负，这才同时是 <span class="arithmatex">\(L^1\)</span> 范数守恒。变号初值的正负部分可能相消，<span class="arithmatex">\(\|u\|_1\)</span> 只保证不增。</li>
+<li>输运解为 <span class="arithmatex">\(u(x,t)=\varphi(x-ct)\)</span>。平移不改变 Lebesgue 测度，所以 <span class="arithmatex">\(1\le p&lt;\infty\)</span> 时换元 <span class="arithmatex">\(y=x-ct\)</span> 得 <span class="arithmatex">\(\|u(\cdot,t)\|_p^p=\int|\varphi(y)|^pdy\)</span>；<span class="arithmatex">\(p=\infty\)</span> 时本质上确界也不变。热方程则是 <span class="arithmatex">\(u=G_t*\varphi\)</span>，其中 <span class="arithmatex">\(G_t\ge0\)</span> 且 <span class="arithmatex">\(\|G_t\|_1=1\)</span>，Young 不等式给 <span class="arithmatex">\(\|u\|_p\le\|\varphi\|_p\)</span>。通常是收缩而非守恒：例如非恒定初值的峰值会被平均压低；对任意 <span class="arithmatex">\(\varphi\in L^1\)</span>，有符号总量 <span class="arithmatex">\(\int u=\int\varphi\)</span> 都由 Fubini 定理和 <span class="arithmatex">\(\int G_t=1\)</span> 保持；若初值还非负或非正，这也同时是 <span class="arithmatex">\(L^1\)</span> 范数守恒。变号初值的正负部分可能相消，<span class="arithmatex">\(\|u\|_1\)</span> 只保证不增。</li>
 <li>正性证明在“被积函数 <span class="arithmatex">\(G_t(x-y)\varphi(y)\)</span> 处处非负”这一步失效。可取非零奇函数 <span class="arithmatex">\(\varphi\)</span>，令其紧支撑且积分为 <span class="arithmatex">\(0\)</span>；因 <span class="arithmatex">\(G_t\)</span> 为偶函数，<span class="arithmatex">\((G_t*\varphi)(0)=0\)</span>。这说明无限传播不等于解在每点都严格为正，后者需要非负且非零等条件。</li>
 <li>截止到最高频率 <span class="arithmatex">\(K\)</span> 时，反演要把第 <span class="arithmatex">\(k\)</span> 模态乘以 <span class="arithmatex">\(e^{\kappa k^2t}\)</span>，最坏放大因子约为 <span class="arithmatex">\(e^{\kappa K^2t}\)</span>；数据中的微小高频噪声会压过信号。一个基本修复是谱截断，只反演 <span class="arithmatex">\(|k|\le K_c\)</span>；也可用 Tikhonov 正则化，以拟合终态和惩罚初态粗糙度之间的权衡替代裸逆算子。<span class="arithmatex">\(K_c\)</span> 或正则化强度必须随噪声水平选择。</li>
 </ol>
 </details>
 <hr />
 <p><em>本页的主线：双曲型方程先问“依赖锥到没到”，抛物型方程先问“卷积核的符号与频率衰减是什么”。下一步可把这些全直线公式带到有界域的谱展开与数值离散。</em></p>
+<h2 id="_2">延伸阅读<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://www.jirka.org/diffyqs/html/dalemb_section.html">Jiří Lebl：D’Alembert solution of the wave equation</a>：继续练习初位移与初速度如何分别进入公式。</li>
+<li><a href="https://web.stanford.edu/class/math220b/handouts/heateqn.pdf">Stanford Math 220B：Heat Equation</a>：第 2.4 节由 Fourier 变换构造全空间热核，并证明初值极限与平滑性。</li>
+</ul>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pde-01-separation.html"><span class="pager-label">上一页</span>偏微分 I · 三大方程与分离变量</a>

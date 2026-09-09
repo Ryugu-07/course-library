@@ -42,86 +42,29 @@
     }
   ];
 
-  function tent(x) {
-    if (!Number.isFinite(x) || Math.abs(x) > 1) {
-      return 0;
-    }
-    return Math.max(0, 1 - Math.abs(x));
+  function bounded(v,lo,hi,name){if(!Number.isFinite(v)||typeof v!=="number"||v<lo||v>hi)throw new Error("pde-propagation: invalid "+name);return v;}
+  function tent(x){if(!Number.isFinite(x))throw new Error("finite tent coordinate required");return Math.max(0,1-Math.abs(x));}
+  function propagationArgs(x,t,speed,kind){bounded(x,-25,25,"x");bounded(t,0,8,"time");bounded(speed,kind==="transport"?-2:.25,kind==="transport"?2:2.5,"speed");}
+  function transportSolution(x,t,c){propagationArgs(x,t,c,"transport");return tent(x-c*t);}
+  function waveSolution(x,t,a){propagationArgs(x,t,a,"wave");return .5*(tent(x-a*t)+tent(x+a*t));}
+  var GAUSS_X=[.1834346424956498,.525532409916329,.7966664774136267,.9602898564975363];
+  var GAUSS_W=[.362683783378362,.3137066458778873,.2223810344533745,.1012285362903763];
+  function heatEvaluation(x,t,kappa){
+    bounded(x,-25,25,"x");bounded(t,0,8,"time");bounded(kappa,.1,3,"diffusivity");
+    if(t===0){var initial=tent(x);return{value:initial,logValue:initial?Math.log(initial):-Infinity,relativeEstimate:0,evaluations:0,converged:true};}
+    if(t<.1)throw new Error("positive numerical time must be at least 0.1");
+    var D=4*kappa*t,distance=Math.max(0,Math.abs(x)-1),evaluations=0;
+    function integrand(y){evaluations++;var v=x-y;return (1-Math.abs(y))*Math.exp(-((v-distance)*(v+distance))/D);}
+    function gauss(a,b){var mid=(a+b)/2,half=(b-a)/2,sum=0;for(var i=0;i<4;i++)sum+=GAUSS_W[i]*(integrand(mid-half*GAUSS_X[i])+integrand(mid+half*GAUSS_X[i]));return half*sum;}
+    function refine(a,b,coarse,tol,depth){var mid=(a+b)/2,l=gauss(a,mid),r=gauss(mid,b),fine=l+r,error=Math.abs(fine-coarse);if(error<=tol||depth===0)return{value:fine,error:error,converged:error<=tol};var lq=refine(a,mid,l,tol/2,depth-1),rq=refine(mid,b,r,tol/2,depth-1);return{value:lq.value+rq.value,error:lq.error+rq.error,converged:lq.converged&&rq.converged};}
+    var a=gauss(-1,0),b=gauss(0,1),tol=Math.max(1e-300,(a+b)*1e-11),l=refine(-1,0,a,tol/2,18),r=refine(0,1,b,tol/2,18),integral=l.value+r.value;
+    var logValue=Math.log(integral)-.5*Math.log(4*Math.PI*kappa*t)-distance*distance/D;
+    return{value:Math.exp(logValue),logValue:logValue,relativeEstimate:(l.error+r.error)/integral,evaluations:evaluations,converged:l.converged&&r.converged};
   }
-
-  function transportSolution(x, t, c) {
-    return tent(x - c * t);
-  }
-
-  function waveSolution(x, t, a) {
-    return 0.5 * (tent(x - a * t) + tent(x + a * t));
-  }
-
-  function heatConvolution(x, t, kappa, steps) {
-    if (!Number.isFinite(x) || !Number.isFinite(t) || !Number.isFinite(kappa)) {
-      return NaN;
-    }
-    if (t === 0) {
-      return tent(x);
-    }
-    if (t < 0 || kappa <= 0) {
-      return NaN;
-    }
-
-    var n = Math.max(2, Math.floor(steps || 400));
-    if (n % 2 === 1) {
-      n += 1;
-    }
-    var h = 2 / n;
-    var scale = 1 / Math.sqrt(4 * Math.PI * kappa * t);
-    var denominator = 4 * kappa * t;
-    var sum = 0;
-    var i;
-    for (i = 0; i <= n; i += 1) {
-      var y = -1 + i * h;
-      var integrand = tent(y) * scale * Math.exp(-Math.pow(x - y, 2) / denominator);
-      var weight = i === 0 || i === n ? 1 : (i % 2 === 0 ? 2 : 4);
-      sum += weight * integrand;
-    }
-    return (h / 3) * sum;
-  }
-
-  function fourierDecay(k, t, kappa) {
-    return Math.exp(-kappa * k * k * t);
-  }
-
-  function normalizedParams(params) {
-    var input = params || {};
-    return {
-      xTarget: Number.isFinite(input.xTarget) ? input.xTarget : DEFAULTS.xTarget,
-      time: Number.isFinite(input.time) ? input.time : DEFAULTS.time,
-      transportSpeed: Number.isFinite(input.transportSpeed)
-        ? input.transportSpeed
-        : DEFAULTS.transportSpeed,
-      waveSpeed: Number.isFinite(input.waveSpeed) ? input.waveSpeed : DEFAULTS.waveSpeed,
-      diffusivity: Number.isFinite(input.diffusivity)
-        ? input.diffusivity
-        : DEFAULTS.diffusivity
-    };
-  }
-
-  function evaluate(params) {
-    var p = normalizedParams(params);
-    var modes = [];
-    var k;
-    for (k = 0; k <= 8; k += 1) {
-      modes.push({ k: k, factor: fourierDecay(k, p.time, p.diffusivity) });
-    }
-    return {
-      params: p,
-      point: {
-        transport: transportSolution(p.xTarget, p.time, p.transportSpeed),
-        wave: waveSolution(p.xTarget, p.time, p.waveSpeed),
-        heat: heatConvolution(p.xTarget, p.time, p.diffusivity)
-      },
-      modes: modes
-    };
-  }
+  function heatConvolution(x,t,kappa){return heatEvaluation(x,t,kappa).value;}
+  function fourierDecay(k,t,kappa){bounded(k,-100,100,"frequency");bounded(t,0,8,"time");bounded(kappa,.1,3,"diffusivity");return Math.exp(-kappa*k*k*t);}
+  function normalizedParams(params){var q=params===undefined?{}:params;if(!q||typeof q!=="object"||Array.isArray(q))throw new Error("configuration object required");for(var key of Object.keys(q))if(!(key in DEFAULTS))throw new Error("unknown parameter "+key);var p=Object.assign({},DEFAULTS,q);bounded(p.xTarget,AXIS.xMin,AXIS.xMax,"observation coordinate");bounded(p.time,.1,8,"time");bounded(p.transportSpeed,-2,2,"transport speed");bounded(p.waveSpeed,.25,2.5,"wave speed");bounded(p.diffusivity,.1,3,"diffusivity");return p;}
+  function evaluate(params){var p=normalizedParams(params),modes=[];for(var k=0;k<=8;k++)modes.push({k:k,factor:fourierDecay(k,p.time,p.diffusivity),log10Factor:-p.diffusivity*k*k*p.time/Math.LN10});var heat=heatEvaluation(p.xTarget,p.time,p.diffusivity);return{params:p,point:{transport:transportSolution(p.xTarget,p.time,p.transportSpeed),wave:waveSolution(p.xTarget,p.time,p.waveSpeed),heat:heat.value},heat:heat,modes:modes,transportSupport:[p.transportSpeed*p.time-1,p.transportSpeed*p.time+1],waveSupports:[[-p.waveSpeed*p.time-1,-p.waveSpeed*p.time+1],[p.waveSpeed*p.time-1,p.waveSpeed*p.time+1]]};}
 
   function setAttributes(node, attrs) {
     Object.keys(attrs || {}).forEach(function (key) {
@@ -189,9 +132,6 @@
   }
 
   function formatNumber(api, value, digits) {
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits);
-    }
     if (!Number.isFinite(value)) {
       return "—";
     }
@@ -199,7 +139,7 @@
     if (value !== 0 && Math.abs(value) < 0.001) {
       return value.toExponential(Math.min(places, 4));
     }
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    return Number(value.toFixed(places)).toString();
   }
 
   function announce(api, root, message) {
@@ -237,7 +177,7 @@
       ".pde-propagation-lab button:hover { border-color: var(--accent); }",
       ".pde-propagation-lab button.pde-primary { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 700; }",
       ".pde-propagation-lab button:disabled { cursor: not-allowed; opacity: .55; }",
-      ".pde-propagation-lab button:focus-visible, .pde-propagation-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
+      ".pde-propagation-lab [tabindex]:focus-visible,.pde-propagation-lab button:focus-visible, .pde-propagation-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
       ".pde-propagation-lab .pde-button-row { display: flex; flex-wrap: wrap; gap: 8px; }",
       ".pde-propagation-lab .pde-button-row > * { flex: 1 1 150px; }",
       ".pde-propagation-lab .pde-feedback { min-height: 1.7em; margin: 0; color: var(--pde-muted); font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }",
@@ -247,7 +187,7 @@
       ".pde-propagation-lab .pde-answer .pde-correct { color: var(--cl-green, #39734d); font-weight: 700; }",
       ".pde-propagation-lab .pde-answer .pde-wrong { color: var(--cl-red, #b64335); font-weight: 700; }",
       ".pde-propagation-lab .pde-hidden { display: none !important; }",
-      ".pde-propagation-lab .pde-layout { display: grid; grid-template-columns: minmax(205px, .72fr) minmax(0, 1.28fr); gap: 16px; align-items: start; min-width: 0; }",
+      ".pde-propagation-lab .pde-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; align-items: start; min-width: 0; }",
       ".pde-propagation-lab .pde-controls, .pde-propagation-lab .pde-stage { min-width: 0; }",
       ".pde-propagation-lab .pde-controls { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); }",
       ".pde-propagation-lab .pde-controls h4 { margin: 0; }",
@@ -264,10 +204,11 @@
       ".pde-propagation-lab .pde-metric.pde-heat { border-top-color: var(--pde-heat); }",
       ".pde-propagation-lab .pde-metric span { display: block; color: var(--pde-muted); font-size: 11.5px; line-height: 1.4; overflow-wrap: anywhere; }",
       ".pde-propagation-lab .pde-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-      ".pde-propagation-lab .pde-chart-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; min-width: 0; }",
+      ".pde-propagation-lab .pde-chart-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; min-width: 0; }",
       ".pde-propagation-lab .pde-chart-card { min-width: 0; padding: 7px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow: hidden; }",
       ".pde-propagation-lab .pde-chart-card h4 { margin: 0 0 4px; color: var(--fg); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }",
-      ".pde-propagation-lab .pde-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--fg); }",
+      ".pde-propagation-lab .pde-chart-scroll{max-width:100%;overflow-x:auto} html[data-theme=dark] .pde-propagation-lab .pde-answer .pde-correct{color:#8edda0} html[data-theme=dark] .pde-propagation-lab .pde-answer .pde-wrong{color:#ffab95}",
+      ".pde-propagation-lab .pde-svg { display: block; width: 100%; min-width:620px;max-width:none; height: auto; color: var(--fg); }",
       ".pde-propagation-lab .pde-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
       ".pde-propagation-lab .pde-grid-line { stroke: var(--border); stroke-width: 1; stroke-opacity: .7; }",
       ".pde-propagation-lab .pde-axis-line { stroke: currentColor; stroke-width: 1.1; stroke-opacity: .8; }",
@@ -289,16 +230,16 @@
       ".pde-propagation-lab .pde-swatch-mode { color: var(--pde-mode); }",
       ".pde-propagation-lab .pde-section-title { margin: 14px 0 7px; color: var(--fg); font-size: 14px; }",
       ".pde-propagation-lab .pde-formula { margin: 10px 0 0; padding: 9px 11px; border-left: 3px solid var(--pde-mode); background: var(--block-bg, var(--bg)); font-family: \"SF Mono\", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.65; overflow-wrap: anywhere; }",
-      ".pde-propagation-lab .pde-mode-table-wrap { max-width: 100%; overflow-x: hidden; }",
-      ".pde-propagation-lab .pde-mode-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }",
+      ".pde-propagation-lab .pde-mode-table-wrap { max-width: 100%; overflow-x: auto; }",
+      ".pde-propagation-lab .pde-mode-table { display:table;min-width:620px;width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }",
       ".pde-propagation-lab .pde-mode-table caption { margin: 0 0 5px; color: var(--pde-muted); text-align: left; font-size: 12px; }",
       ".pde-propagation-lab .pde-mode-table th, .pde-propagation-lab .pde-mode-table td { padding: 6px 4px; border-bottom: 1px solid var(--border); text-align: center; overflow-wrap: anywhere; }",
       ".pde-propagation-lab .pde-mode-table th { color: var(--pde-muted); font-weight: 650; }",
       ".pde-propagation-lab .pde-mode-bar { fill: var(--pde-mode); fill-opacity: .82; }",
       ".pde-propagation-lab .pde-footnote { margin: 10px 0 0; color: var(--pde-muted); font-size: 12.5px; line-height: 1.65; overflow-wrap: anywhere; }",
-      "@media (max-width: 1100px) { .pde-propagation-lab .pde-layout { grid-template-columns: 1fr; } }",
-      "@media (max-width: 760px) { .pde-propagation-lab .pde-chart-grid { grid-template-columns: 1fr; } .pde-propagation-lab .pde-chart-card { padding: 8px; } }",
-      "@media (max-width: 560px) { .pde-propagation-lab .pde-prediction-grid, .pde-propagation-lab .pde-metrics { grid-template-columns: 1fr; } .pde-propagation-lab .pde-stage-frame { padding: 7px; } }",
+      "@media (max-width: 1100px) { .pde-propagation-lab .pde-layout { grid-template-columns: minmax(0,1fr); } }",
+      "@media (max-width: 760px) { .pde-propagation-lab .pde-chart-grid { grid-template-columns: minmax(0,1fr); } .pde-propagation-lab .pde-chart-card { padding: 8px; } }",
+      "@media (max-width: 560px) { .pde-propagation-lab .pde-prediction-grid, .pde-propagation-lab .pde-metrics { grid-template-columns: minmax(0,1fr); } .pde-propagation-lab .pde-stage-frame { padding: 7px; } }",
       "@media (prefers-reduced-motion: reduce) { .pde-propagation-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
     ].join("\n");
     document.head.appendChild(style);
@@ -322,17 +263,15 @@
     );
   }
 
-  function pathForFunction(fn, left, right, top, bottom) {
+  function pathForFunction(fn, left, right, top, bottom, knots) {
     var d = "";
-    var i;
-    for (i = 0; i <= AXIS.samples; i += 1) {
-      var ratio = i / AXIS.samples;
-      var x = AXIS.xMin + ratio * (AXIS.xMax - AXIS.xMin);
+    var xs=Array.from({length:AXIS.samples+1},(_,i)=>AXIS.xMin+i/AXIS.samples*(AXIS.xMax-AXIS.xMin));
+    xs=Array.from(new Set(xs.concat(knots||[]).filter(x=>x>=AXIS.xMin&&x<=AXIS.xMax))).sort((a,b)=>a-b);
+    for(var i=0;i<xs.length;i++){
+      var x=xs[i],ratio=(x-AXIS.xMin)/(AXIS.xMax-AXIS.xMin);
       var value = fn(x);
-      if (!Number.isFinite(value)) {
-        continue;
-      }
-      var bounded = clamp(value, AXIS.yMin, AXIS.yMax);
+      if(!Number.isFinite(value)||value<AXIS.yMin-1e-12||value>AXIS.yMax+1e-12)throw new Error("solution outside declared plot range");
+      var bounded = value;
       var px = left + ratio * (right - left);
       var py = bottom - ((bounded - AXIS.yMin) / (AXIS.yMax - AXIS.yMin)) * (bottom - top);
       d += (d ? " L" : "M") + px.toFixed(2) + " " + py.toFixed(2);
@@ -341,7 +280,7 @@
   }
 
   function chartPointY(value, top, bottom) {
-    var bounded = clamp(value, AXIS.yMin, AXIS.yMax);
+    var bounded = value;
     return bottom - ((bounded - AXIS.yMin) / (AXIS.yMax - AXIS.yMin)) * (bottom - top);
   }
 
@@ -365,7 +304,7 @@
       makeSvg(api, "title", { id: titleId }, [model.shortLabel + "解，固定坐标轴"]),
       makeSvg(api, "desc", { id: descId }, [
         model.label + "；x 轴固定为 " + AXIS.xMin + " 到 " + AXIS.xMax +
-        "，u 轴固定为 0 到 1.05；观测点 x*=5 的值为 " + formatNumber(api, value, 5) + "。"
+        "，u 轴固定为 0 到 1.05；观测点 x*="+data.params.xTarget+" 的值为 " + formatNumber(api, value, 5) + "。"
       ]),
       makeSvg(api, "rect", {
         x: left,
@@ -403,7 +342,7 @@
           x2: x,
           y2: bottom
         }),
-        svgText(api, x, bottom + 17, tick === 5 ? "x*=5" : String(tick), {
+        svgText(api, x, bottom + 17, tick === data.params.xTarget ? "x*="+tick : String(tick), {
           className: "pde-axis-label"
         })
       );
@@ -433,7 +372,7 @@
       })
     );
 
-    var initialPath = pathForFunction(tent, left, right, top, bottom);
+    var initialPath = pathForFunction(tent, left, right, top, bottom,[-1,0,1]);
     var solutionFn;
     if (model.key === "transport") {
       solutionFn = function (x) {
@@ -445,14 +384,14 @@
       };
     } else {
       solutionFn = function (x) {
-        return heatConvolution(x, data.params.time, data.params.diffusivity, 240);
+        return heatConvolution(x, data.params.time, data.params.diffusivity);
       };
     }
     children.push(
       makeSvg(api, "path", { className: "pde-initial", d: initialPath }),
       makeSvg(api, "path", {
         className: "pde-solution " + model.colorClass,
-        d: pathForFunction(solutionFn, left, right, top, bottom)
+        d: pathForFunction(solutionFn,left,right,top,bottom,[data.params.xTarget,-1,0,1,...[-1,0,1].flatMap(d=>[data.params.transportSpeed*data.params.time+d,data.params.waveSpeed*data.params.time+d,-data.params.waveSpeed*data.params.time+d])])
       })
     );
     var targetX = left + ((data.params.xTarget - AXIS.xMin) / (AXIS.xMax - AXIS.xMin)) * (right - left);
@@ -476,98 +415,16 @@
     return svg;
   }
 
-  function drawModeChart(api, data, uid) {
-    var width = 620;
-    var height = 235;
-    var left = 47;
-    var right = width - 12;
-    var top = 20;
-    var bottom = height - 34;
-    var titleId = uid + "-title";
-    var descId = uid + "-desc";
-    var svg = makeSvg(api, "svg", {
-      className: "pde-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": titleId + " " + descId
-    });
-    var children = [
-      makeSvg(api, "title", { id: titleId }, ["Fourier 模态衰减"]),
-      makeSvg(api, "desc", { id: descId }, [
-        "柱高是 exp(-kappa*k^2*t)，k 从 0 到 8；当前时间 " +
-        formatNumber(api, data.params.time, 2) + "，扩散率 " +
-        formatNumber(api, data.params.diffusivity, 2) + "。"
-      ]),
-      makeSvg(api, "rect", {
-        x: left,
-        y: top,
-        width: right - left,
-        height: bottom - top,
-        fill: "var(--bg)",
-        stroke: "var(--border)",
-        "stroke-width": "1"
-      })
-    ];
-    [0, 0.5, 1].forEach(function (tick) {
-      var y = bottom - tick * (bottom - top);
-      children.push(
-        makeSvg(api, "line", {
-          className: "pde-grid-line",
-          x1: left,
-          y1: y,
-          x2: right,
-          y2: y
-        }),
-        svgText(api, left - 7, y + 4, String(tick), {
-          className: "pde-axis-label",
-          "text-anchor": "end"
-        })
-      );
-    });
-    data.modes.forEach(function (mode) {
-      var barWidth = 25;
-      var x = left + barWidth / 2 + (mode.k / 8) * (right - left - barWidth);
-      var y = bottom - mode.factor * (bottom - top);
-      children.push(
-        makeSvg(api, "rect", {
-          className: "pde-mode-bar",
-          x: x - barWidth / 2,
-          y: y,
-          width: barWidth,
-          height: bottom - y,
-          rx: "2"
-        }),
-        svgText(api, x, bottom + 16, String(mode.k), {
-          className: "pde-axis-label"
-        })
-      );
-    });
-    children.push(
-      makeSvg(api, "line", {
-        className: "pde-axis-line",
-        x1: left,
-        y1: bottom,
-        x2: right,
-        y2: bottom
-      }),
-      makeSvg(api, "line", {
-        className: "pde-axis-line",
-        x1: left,
-        y1: top,
-        x2: left,
-        y2: bottom
-      }),
-      svgText(api, right, height - 6, "频率 k", {
-        className: "pde-axis-label",
-        "text-anchor": "end"
-      }),
-      svgText(api, left - 10, top - 5, "衰减因子", {
-        className: "pde-axis-label",
-        "text-anchor": "end"
-      })
-    );
-    replaceChildren(svg, children);
-    return svg;
+  function drawModeChart(api,data,uid){
+    var svg=makeSvg(api,"svg",{className:"pde-svg",viewBox:"0 0 620 520",role:"img","aria-label":"同一热因子的线性柱图和对数曲线"}),children=[makeSvg(api,"title",{},["Fourier因子：线性值与对数值"]),makeSvg(api,"desc",{},["下图直接由指数计算log10因子，不对已经下溢的数再取对数。k=0因子始终为1、对数为0。"] )];
+    var left=58,right=596,top=30,bottom=204,logTop=305,logBottom=475,logExtent=Math.max(1,Math.ceil(-data.modes[8].log10Factor));
+    function X(k){return left+15+k/8*(right-left-30)}
+    [0,.5,1].forEach(function(v){var y=bottom-v*(bottom-top);children.push(makeSvg(api,"line",{className:"pde-grid-line",x1:left,x2:right,y1:y,y2:y}),svgText(api,left-7,y+4,String(v),{"text-anchor":"end"}));});
+    data.modes.forEach(function(m){var y=bottom-m.factor*(bottom-top);children.push(makeSvg(api,"rect",{className:"pde-mode-bar",x:X(m.k)-10,y:y,width:20,height:m.factor*(bottom-top)}),svgText(api,X(m.k),bottom+18,String(m.k)));});
+    children.push(svgText(api,left,16,"因子 exp(−κk²t)",{"text-anchor":"start"}),svgText(api,right,242,"频率 k",{"text-anchor":"end"}),svgText(api,left,279,"log₁₀因子：小到浮点下溢时，仍可由指数直接读出",{"text-anchor":"start"}));
+    [0,-logExtent/2,-logExtent].forEach(function(v){var y=logTop-v/logExtent*(logBottom-logTop);children.push(makeSvg(api,"line",{className:"pde-grid-line",x1:left,x2:right,y1:y,y2:y}),svgText(api,left-7,y+4,formatNumber(api,v,1),{"text-anchor":"end"}));});
+    var d=data.modes.map(function(m,i){var x=X(m.k),y=logTop-m.log10Factor/logExtent*(logBottom-logTop);children.push(makeSvg(api,"circle",{cx:x,cy:y,r:3,className:"pde-mode-bar"}),svgText(api,x,logBottom+18,String(m.k)));return(i?"L":"M")+x.toFixed(5)+" "+y.toFixed(5);}).join(" ");
+    children.push(makeSvg(api,"path",{d:d,fill:"none",stroke:"var(--pde-mode)","stroke-width":2}),svgText(api,right,514,"频率 k",{"text-anchor":"end"}));replaceChildren(svg,children);return svg;
   }
 
   function makeRangeControl(api, uid, key, label, min, max, step, value) {
@@ -593,18 +450,18 @@
   }
 
   function makeMetric(api, model, value, data) {
-    var label = model.shortLabel + "在 x*=5";
+    var label = model.shortLabel + "在 x*="+formatNumber(api,data.params.xTarget,2);
     var detail;
     if (model.key === "heat") {
-      detail = "非负非零初值下严格 > 0";
+      detail = "严格>0；log₁₀u="+formatNumber(api,data.heat.logValue/Math.LN10,3)+"；积分相对差估计 "+formatNumber(api,data.heat.relativeEstimate,2)+(data.heat.converged?"":"（未达容差）");
     } else if (model.key === "transport") {
-      detail = value === 0 ? "当前特征脚点在支撑外" : "当前特征脚点落入支撑";
+      detail = value === 0 ? "当前脚点在零值区（含端点）" : "当前特征脚点落入支撑";
     } else {
       detail = value === 0 ? "当前两个行波脚点均无贡献" : "当前至少一个行波脚点有贡献";
     }
     return makeElement(api, "div", { className: "pde-metric " + model.colorClass }, [
       makeElement(api, "span", {}, [label]),
-      makeElement(api, "strong", { "aria-label": label + "的数值" }, [formatNumber(api, value, 5)]),
+      makeElement(api, "strong", { "aria-label": label + "的数值" }, [model.key==="heat"&&value===0?"低于浮点范围":formatNumber(api,value,5)]),
       makeElement(api, "span", {}, [detail])
     ]);
   }
@@ -616,6 +473,7 @@
       makeElement(api, "tr", {}, [
         makeElement(api, "th", { scope: "col" }, ["k"]),
         makeElement(api, "th", { scope: "col" }, ["衰减因子"]),
+        makeElement(api, "th", { scope: "col" }, ["log₁₀因子"]),
         makeElement(api, "th", { scope: "col" }, ["读法"])
       ])
     ]);
@@ -626,7 +484,8 @@
       var reading = wanted === 0 ? "总质量模态" : (wanted >= 4 ? "高频先衰减" : "低频");
       body.appendChild(makeElement(api, "tr", {}, [
         makeElement(api, "th", { scope: "row" }, [String(wanted)]),
-        makeElement(api, "td", {}, [formatNumber(api, mode.factor, 5)]),
+        makeElement(api, "td", {}, [mode.factor===0?"低于浮点范围":formatNumber(api,mode.factor,5)]),
+        makeElement(api,"td",{},[formatNumber(api,mode.log10Factor,3)]),
         makeElement(api, "td", {}, [reading])
       ]));
     });
@@ -768,9 +627,9 @@
       makeElement(api, "span", { className: "pde-legend-item" }, [makeElement(api, "span", { className: "pde-swatch pde-swatch-heat", "aria-hidden": "true" }), "绿：热"]),
       makeElement(api, "span", { className: "pde-legend-item" }, [makeElement(api, "span", { className: "pde-swatch pde-swatch-mode", "aria-hidden": "true" }), "金：Fourier 衰减"])
     ]);
-    var modeTitle = makeElement(api, "h4", { className: "pde-section-title" }, ["Fourier 模态：高频先死"]);
-    var modeChartHost = makeElement(api, "div");
-    var modeTableHost = makeElement(api, "div", { className: "pde-mode-table-wrap" });
+    var modeTitle = makeElement(api, "h4", { className: "pde-section-title" }, ["Fourier 模态：高频衰减更快"]);
+    var modeChartHost = makeElement(api, "div",{className:"pde-chart-scroll",tabindex:0,role:"region","aria-label":"可横向滚动的频率图"});
+    var modeTableHost = makeElement(api, "div", { className: "pde-mode-table-wrap",tabindex:0,role:"region","aria-label":"可横向滚动的频率账本" });
     var formulaHost = makeElement(api, "p", { className: "pde-formula" });
     var stage = makeElement(api, "section", { className: "pde-stage" }, [
       makeElement(api, "div", { className: "pde-stage-frame" }, [
@@ -833,11 +692,12 @@
       replaceChildren(chartsHost, MODELS.map(function (model) {
         return makeElement(api, "div", { className: "pde-chart-card" }, [
           makeElement(api, "h4", {}, [model.label]),
-          drawPropagationChart(api, model, data, uid + "-" + model.key)
+          makeElement(api,"div",{className:"pde-chart-scroll",tabindex:0,role:"region","aria-label":model.shortLabel+"可横向滚动的同轴图"},[drawPropagationChart(api,model,data,uid+"-"+model.key)])
         ]);
       }));
       replaceChildren(modeChartHost, drawModeChart(api, data, uid + "-modes"));
       replaceChildren(modeTableHost, makeModeTable(api, data));
+      status.textContent+=" 输运支撑["+data.transportSupport.map(v=>formatNumber(api,v,2)).join(",")+"]；波支撑位于 "+data.waveSupports.map(a=>"["+a.map(v=>formatNumber(api,v,2)).join(",")+"]").join("∪")+"。超出视窗的波峰仍在传播。";
       replaceChildren(formulaHost, [
         "Fourier 模态：exp(-kappa*k^2*t)；当前为 exp(−" +
         formatNumber(api, state.diffusivity, 2) + "·k²·" + formatNumber(api, state.time, 2) + ")。"
@@ -857,6 +717,7 @@
       afterReveal.classList.add("pde-hidden");
       feedback.textContent = "答案尚未揭晓。";
       render();
+      predictionGrid.querySelector("input").focus();
       announce(api, root, announceMessage || "实验已重置；请重新提交三项预测。");
     }
 
@@ -876,6 +737,7 @@
       afterReveal.classList.remove("pde-hidden");
       feedback.textContent = "答案已揭晓；现在可以调节时间、速度和扩散率。";
       render();
+      chartsHost.querySelector(".pde-chart-scroll").focus();
       announce(api, root, "预测答案已揭晓，三种传播模型和 Fourier 模态已显示。");
     });
     resetButton.addEventListener("click", function () {
@@ -917,6 +779,7 @@
     transportSolution: transportSolution,
     waveSolution: waveSolution,
     heatConvolution: heatConvolution,
+    heatEvaluation:heatEvaluation,pathForFunction:pathForFunction,drawPropagationChart:drawPropagationChart,drawModeChart:drawModeChart,MODELS:MODELS,
     fourierDecay: fourierDecay,
     evaluate: evaluate,
     selfTest: selfTest
