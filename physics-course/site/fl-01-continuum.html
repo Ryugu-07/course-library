@@ -56,38 +56,39 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 18:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：跟着流体走，还是守住一个控制体积？</a><ul>
+<li><a href="#continuum-conservation-learning-title">学习层：跟着流体走，还是守住一个控制体积？</a><ul>
 <li><a href="#1">1. 具体情境：一段变截面喷管的两种记账法</a></li>
 <li><a href="#2">2. 先预测：打开喷管账本前回答三个问题</a></li>
 <li><a href="#3">3. 最小模型：连续性与动量分成两张账</a></li>
 <li><a href="#4">4. 静态后备：一维喷管的有限账本</a></li>
 <li><a href="#5">5. 定理/模型假设与失效边界：三种“不可压”不能混为一谈</a></li>
+<li><a href="#6">6. 三道迁移题</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 连续介质假设：什么时候可以忘掉分子</a></li>
-<li><a href="#2_1">2. 三条守恒律</a></li>
-<li><a href="#3_1">3. 无量纲化：雷诺数的诞生</a></li>
-<li><a href="#4_1">4. 理想流体极限与涡量</a></li>
-<li><a href="#5_1">5. 练习与要点</a></li>
+<li><a href="#1_1">1. 连续介质假设与随体导数</a></li>
+<li><a href="#2_1">2. 从积分账本到质量、动量与能量</a></li>
+<li><a href="#3-reynolds">3. 无量纲化与 Reynolds 数</a></li>
+<li><a href="#4-bernoulli-kelvin">4. 理想流体、Bernoulli 与 Kelvin</a></li>
+<li><a href="#5_1">5. 一个可直接代回的精确流动</a></li>
+<li><a href="#6_1">6. 从基础走向开放问题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-navierstokes">流体 I · 连续介质与 Navier–Stokes<a class="headerlink" href="#i-navierstokes" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Landau &amp; Lifshitz《流体力学》§1–2 / Batchelor ch.1–3 / Kundu ch.4 ｜ <strong>前置</strong>：mech-01（守恒律）、mp-01（矢量分析）
-从"一堆分子"跳到"一片连续的场"——这一步换来了偏微分方程的全部威力，也埋下了物理学最著名的未解问题（fl-03）。Navier–Stokes 是本站少数<strong>方程完全已知、解却至今不懂</strong>的对象：它的光滑性问题是千禧年七问之一。</p>
+<p><strong>先修</strong>：<a href="mech-01-newton.html">牛顿力学与守恒律</a>、<a href="../../math-course/site/analysis-06-multivar-int.html">多元积分与散度定理</a>、<a href="../../math-course/site/analysis-05-multivar-diff.html">多元微分</a>。本页从喷管的质量、动量账本进入连续场方程；会解具体流动，与证明任意三维光滑初值都保持光滑，是两个不同的问题。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="continuum-conservation-learning-title" class="learning-layer">
-<h2 id="_1">学习层：跟着流体走，还是守住一个控制体积？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="continuum-conservation-learning-title">学习层：跟着流体走，还是守住一个控制体积？<a class="headerlink" href="#continuum-conservation-learning-title" title="Permanent link"></a></h2>
 <h3 id="1">1. 具体情境：一段变截面喷管的两种记账法<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>取一段固定的一维喷管控制体积 <span class="arithmatex">\([x_0,x_1]\)</span>，截面积为 <span class="arithmatex">\(A(x)\)</span>。守住空间盒子时，质量账是“盒内积累 + 流出 − 流入”；跟着一小团流体走时，质量账是物质导数。两种写法必须给出同一条连续性方程：</p>
 <div class="arithmatex">\[
@@ -101,11 +102,11 @@ try {
 <h3 id="2">2. 先预测：打开喷管账本前回答三个问题<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <ol>
 <li>稳态、恒密度、质量流率不变时，喷管变窄处的速度应变大、变小，还是不由连续性决定？</li>
-<li><span class="arithmatex">\(D\rho/Dt=0\)</span> 是否在不加额外条件时就等价于 <span class="arithmatex">\(\nabla\cdot\mathbf u=0\)</span>？</li>
+<li>已知连续性方程成立且 <span class="arithmatex">\(\rho&gt;0\)</span>，<span class="arithmatex">\(D\rho/Dt=0\)</span> 是否等价于 <span class="arithmatex">\(\nabla\cdot\mathbf u=0\)</span>？这又是否要求空间各点密度相同？</li>
 <li>对固定控制体积写动量守恒时，是否只需比较入口和出口的压力，而可以忽略 <span class="arithmatex">\(\rho u^2A\)</span> 的动量通量差？</li>
 </ol>
 <h3 id="3">3. 最小模型：连续性与动量分成两张账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>实验使用平滑的喉部面积和固定质量流率 <span class="arithmatex">\(\dot m\)</span>，令</p>
+<p>以下数值已用固定参考量无量纲化：<span class="arithmatex">\(x=x_{\rm phys}/L_0\)</span>、<span class="arithmatex">\(A=A_{\rm phys}/A_0\)</span>、<span class="arithmatex">\(\rho=\rho_{\rm phys}/\rho_0\)</span>、<span class="arithmatex">\(u=u_{\rm phys}/U_0\)</span>、<span class="arithmatex">\(p=p_{\rm phys}/(\rho_0U_0^2)\)</span>。质量流率单位为 <span class="arithmatex">\(\rho_0U_0A_0\)</span>，动量通量和力的单位同为 <span class="arithmatex">\(\rho_0U_0^2A_0\)</span>；两者不能混为同一种纵轴量。实验使用平滑的喉部面积和固定质量流率 <span class="arithmatex">\(\dot m\)</span>，令</p>
 <div class="arithmatex">\[
 u(x)=\frac{\dot m}{\rho(x)A(x)}.
 \]</div>
@@ -120,7 +121,8 @@ u(x)=\frac{\dot m}{\rho(x)A(x)}.
  +\underbrace{(\rho u^2A)_{out}-(\rho u^2A)_{in}}_{\text{动量净流出}}
  =\underbrace{F_{p}+F_{wall}+F_{body}}_{\text{外力}}.
 \]</div>
-<p>实验把压力端力先列出，再把“动量通量差 − 已知压力/体力”作为所需壁面力，保证每一项的符号都能追溯；这不是 Navier–Stokes 解，而是一个可审计的控制体积账本。</p>
+<p>这里采用截面近似均匀的速度与密度，侧壁不漏流，截面固定且平滑。先积分三维连续性方程，再除去截面，得到 <span class="arithmatex">\(\partial_t(\rho A)+\partial_x(\rho Au)=0\)</span>；稳态使 <span class="arithmatex">\(\rho Au=\dot m\)</span>。这一步并没有解出三维横向速度，也没有把准一维散度当成单纯的 <span class="arithmatex">\(du/dx\)</span>。</p>
+<p>压力取指定函数 <span class="arithmatex">\(p(x)=1.4-0.3x\)</span>，端面压力合力为 <span class="arithmatex">\(p(x_0)A(x_0)-p(x_1)A(x_1)\)</span>，体力固定为零。实验把剩余的“动量净流出 − 压力端力”记作<strong>所需壁面合力</strong>。它包含侧壁压力与剪切等尚未求出的作用，正值向右、负值向左。动量残差因此按构造为零，是算术一致性检查；它不能验证这组给定 <span class="arithmatex">\(A,\rho,p\)</span> 真能由某种黏性流体实现。还缺状态方程、能量闭合、壁面应力和边界条件。</p>
 <h3 id="4">4. 静态后备：一维喷管的有限账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <div class="learning-lab" data-learning-lab="continuum-conservation">
 <p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(A(x)=1-0.45\exp[-((x-0.5)/0.22)^2]\)</span>、<span class="arithmatex">\(\dot m=1\)</span>。恒密度模式用 <span class="arithmatex">\(\rho=1\)</span>，因此 <span class="arithmatex">\(u=1/A\)</span>，喉部速度最大；变密度模式用 <span class="arithmatex">\(\rho(x)=1+0.2x\)</span>，仍有 <span class="arithmatex">\(\rho Au=1\)</span>，但 <span class="arithmatex">\(D\rho/Dt=u\,d\rho/dx&gt;0\)</span>，由连续性抵消准一维散度项。</p>
@@ -154,52 +156,83 @@ u(x)=\frac{\dot m}{\rho(x)A(x)}.
 </tr>
 </tbody>
 </table>
-<p>对任意固定 <span class="arithmatex">\([x_0,x_1]\)</span>，动量表还应显示 <span class="arithmatex">\((\rho u^2A)_{out}-(\rho u^2A)_{in}\)</span>、压力端力以及补足平衡所需的壁面力。脚本的曲线与表格只是在有限网格上检查这个构造；控制体积守恒律本身来自积分方程，而不是来自某一组采样点“看起来相等”。</p>
+<p>对任意固定 <span class="arithmatex">\([x_0,x_1]\)</span>，动量表还应显示 <span class="arithmatex">\((\rho u^2A)_{out}-(\rho u^2A)_{in}\)</span>、压力端力以及补足平衡所需的壁面力。图表数值使用浮点运算，对称例中约 <span class="arithmatex">\(10^{-16}\)</span> 的通量差属于舍入误差，不是新的物理效应。脚本的曲线与表格只是在有限网格上检查这个构造；控制体积守恒律本身来自积分方程，而不是来自某一组采样点“看起来相等”。</p>
+</div>
 <h3 id="5">5. 定理/模型假设与失效边界：三种“不可压”不能混为一谈<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
 <li><strong>连续介质假设</strong>：本页要求 <span class="arithmatex">\(\mathrm{Kn}\ll1\)</span>，场量足够光滑，控制体积边界和通量有意义；稀薄气体、激波内部和微纳尺度需要 Boltzmann/DSMC 或其他非连续模型。</li>
 <li><strong>物质导数不是控制体积通量</strong>：<span class="arithmatex">\(D/Dt\)</span> 描述随体局部变化；Reynolds 输运定理才把它与固定区域的积累和边界通量接起来。少写一项就会破坏守恒账。</li>
 <li><strong>不可压与恒密度</strong>：连续性只给 <span class="arithmatex">\(D\rho/Dt=-\rho\nabla\cdot u\)</span>。<span class="arithmatex">\(D\rho/Dt=0\)</span> 在正密度下推出散度为零；而“整个空间处处取同一常数密度”是更强的模型设定。变密度但沿流线恒定的特殊流动也不能被一句口号替代。</li>
 <li><strong>一维模型边界</strong>：喷管账本假定准一维、平滑截面、稳态且没有激波/泄漏；壁面剪切、压力分布和体力若未给出，只能把剩余项记为壁面力，不能宣称已经解出完整动量方程。</li>
-<li><strong>证据等级</strong>：SVG、有限差分残差和一组入口/出口数值是有限数值证据；积分守恒、连续性微分形式和 Navier–Stokes 的适用范围仍须由上述假设和方程承担。</li>
+<li><strong>证据等级</strong>：SVG、解析导数的浮点残差和一组入口/出口数值是有限数值证据；积分守恒、连续性微分形式和 Navier–Stokes 的适用范围仍须由上述假设和方程承担。</li>
 </ul>
-</div>
+<h3 id="6">6. 三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>取二维速度 <span class="arithmatex">\(u=(1,0)\)</span>、密度 <span class="arithmatex">\(\rho=1+y\)</span>（限 <span class="arithmatex">\(y&gt;-1\)</span>）。空间密度不均匀，是否仍满足连续性和不可压运动条件？</li>
+<li>恒密度模式中，为什么对称端点 <span class="arithmatex">\(x_0=0.2,x_1=0.8\)</span> 的动量净流出为零，但壁面合力不为零？其方向如何？</li>
+<li>若把实验压力整体增加常数 <span class="arithmatex">\(c\)</span>，速度与质量流率保持不变，端面压力力和所需壁面力各改变多少？说明为什么“壁面力”不能只理解为剪切阻力。</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li><span class="arithmatex">\(\nabla\cdot u=0\)</span>，<span class="arithmatex">\(D\rho/Dt=\partial_x\rho=0\)</span>，所以连续性成立。不可压运动是流体微团体积不变，不要求不同微团密度相同；本例尚未指定压力和体力，因此只验证质量方程。</li>
+<li>面积函数关于 <span class="arithmatex">\(x=0.5\)</span> 对称，故两端速度相等，<span class="arithmatex">\(\dot m(u_{out}-u_{in})=0\)</span>。但压力差为 <span class="arithmatex">\(0.18\)</span>，端力 <span class="arithmatex">\(0.18A(0.2)&gt;0\)</span>；壁面合力须为 <span class="arithmatex">\(-0.18A(0.2)\)</span>，指向左。零动量净流出不等于每项外力都为零。</li>
+<li>端力增加 <span class="arithmatex">\(c[A(x_0)-A(x_1)]\)</span>；所需壁面力相应减少同一数值。对变截面侧壁，均匀压力也有轴向分量，恰好与端面项共同抵消；封闭表面的均匀压力合力为零。这是端面与侧壁压力分账的一致性要求。</li>
+</ol>
+</details>
 </section>
 <figure class="plot">
-<p><img alt="不同雷诺数下圆柱绕流的形态演变。" src="assets/img/fl-01-continuum-re.svg" /></p>
-<figcaption><span class="fig-id">图 fl-01.1</span>雷诺数控制绕流形态：\(Re\ll1\) 爬流对称可逆；\(Re\sim10^2\) 卡门涡街；\(Re\gtrsim10^5\) 湍流尾迹。</figcaption>
+<div aria-label="喷管控制体积与有符号力图，可横向滚动" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/fl-01-continuum-re.svg" alt="对称喷管入口出口等速，正压力端力与负壁面合力抵消" style="min-width:720px;width:100%;display:block">
+</div>
+<figcaption><span class="fig-id">图 fl-01.1</span>固定恒密度模型与对称端点：入口、出口动量通量相等，向右的压力端力由向左的壁面合力抵消。上方喷管轮廓用二维等效单位宽度表示面积；不声称已求得完整流场。</figcaption>
 </figure>
-<h2 id="1_1">1. 连续介质假设：什么时候可以忘掉分子<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>判据是 Knudsen 数</strong> <span class="arithmatex">\(\mathrm{Kn} = \ell_{\text{mfp}}/L\)</span>（平均自由程 / 特征尺度）。<span class="arithmatex">\(\mathrm{Kn}\ll1\)</span> 时，任一"流体微元"内已有海量分子，涨落被平均掉（sm-02 的大数定律），可定义处处可微的 <span class="arithmatex">\(\rho(\mathbf x,t),\ \mathbf u(\mathbf x,t),\ p(\mathbf x,t)\)</span>。</p>
-<p><strong>失效边界【诚实标注】</strong>：稀薄气体（高空、真空系统）、微纳流动（MEMS）、激波内部（厚度仅几个自由程）——需回到 Boltzmann 方程或 DSMC。<strong>本页全部建立在 <span class="arithmatex">\(\mathrm{Kn}\ll1\)</span> 之上。</strong></p>
-<p><strong>物质导数</strong>：跟着流体微元走的时间变化率</p>
-<div class="arithmatex">\[\frac{D}{Dt} = \partial_t + (\mathbf u\cdot\nabla)\]</div>
-<p>动量方程最醒目的非线性是 <span class="arithmatex">\((\mathbf u\cdot\nabla)\mathbf u\)</span>；它是湍流尺度耦合和许多流动不稳定性的核心来源之一。可压缩激波还涉及状态方程与守恒律的非线性通量，不能把所有机制都归给这一项。</p>
-<h2 id="2_1">2. 三条守恒律<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>质量</strong>（连续性）：<span class="arithmatex">\(\partial_t\rho + \nabla\cdot(\rho\mathbf u)=0\)</span>；不可压时退化为 <span class="arithmatex">\(\nabla\cdot\mathbf u = 0\)</span>。</p>
-<p><strong>动量</strong>（Cauchy）：<span class="arithmatex">\(\rho\dfrac{D\mathbf u}{Dt} = \nabla\cdot\boldsymbol\sigma + \rho\mathbf g\)</span>。</p>
-<p><strong>本构关系【牛顿流体 + Stokes 假设】</strong>：对常剪切黏度、忽略独立体黏度的写法，应力线性正比于应变率</p>
-<div class="arithmatex">\[\sigma_{ij} = -p\delta_{ij} + \mu\left(\partial_i u_j + \partial_j u_i - \tfrac{2}{3}\delta_{ij}\nabla\cdot\mathbf u\right)\]</div>
-<p>代入即得 <strong>Navier–Stokes 方程</strong>（不可压）：</p>
-<div class="arithmatex">\[\boxed{\ \rho\left(\partial_t\mathbf u + (\mathbf u\cdot\nabla)\mathbf u\right) = -\nabla p + \mu\nabla^2\mathbf u + \rho\mathbf g\ }\]</div>
-<p><strong>非牛顿流体【引用】</strong>：血液、聚合物熔体、泥浆——剪切变稀/变稠、粘弹性（Weissenberg 爬杆效应）。工业上极重要，物理上是另一门课。</p>
-<h2 id="3_1">3. 无量纲化：雷诺数的诞生<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>对不可压、等温、无额外体力且几何/边界条件已无量纲固定的简单问题，取特征尺度 <span class="arithmatex">\(L,U\)</span> 后 N–S 的方程主体只剩一个参数：</p>
-<div class="arithmatex">\[\mathrm{Re} = \frac{\rho U L}{\mu} = \frac{\text{惯性项}}{\text{粘性项}}\]</div>
-<p><strong>这是流体力学最重要的数</strong>。<span class="arithmatex">\(\mathrm{Re}\ll1\)</span> 粘性主导（Stokes 流，fl-02）；<span class="arithmatex">\(\mathrm{Re}\gg1\)</span> 惯性主导（边界层 + 湍流）。</p>
-<p><strong>动力相似</strong>：只有控制方程、无量纲几何/边界条件以及所有相关无量纲数都匹配时，模型与原型才动力相似。若问题确实只由 <span class="arithmatex">\(\mathrm{Re}\)</span> 控制，匹配它便足够；风洞还常需同时考虑 Mach、表面粗糙度等。其他重要无量纲数：Froude（重力波）、Prandtl（热扩散比，fl-04）、Rayleigh（对流，fl-04）。</p>
-<h2 id="4_1">4. 理想流体极限与涡量<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(\mu\to0\)</span> 给 <strong>Euler 方程</strong>。沿流线积分得 <strong>Bernoulli</strong>：<span class="arithmatex">\(\tfrac12 u^2 + p/\rho + gz = \text{const}\)</span>。</p>
-<p><strong>涡量</strong> <span class="arithmatex">\(\boldsymbol\omega = \nabla\times\mathbf u\)</span> 满足（不可压、无粘）</p>
-<div class="arithmatex">\[\frac{D\boldsymbol\omega}{Dt} = (\boldsymbol\omega\cdot\nabla)\mathbf u\]</div>
-<p><strong>Kelvin 环量定理【推导】</strong>：理想正压流体中，随流体运动的闭合回路环量守恒 → <strong>涡不能无中生有</strong>。二维时右端消失，涡量随流体守恒。</p>
-<p><strong>d'Alembert 佯谬</strong>：理想流体中定常绕流的阻力为零——<strong>与经验尖锐矛盾</strong>。解决它需要粘性，且粘性的作用<strong>不会随 <span class="arithmatex">\(\mu\to0\)</span> 而消失</strong>（边界层，fl-02）。<strong>这是"奇异摄动"最著名的物理实例：<span class="arithmatex">\(\mu\)</span> 乘在最高阶导数上，<span class="arithmatex">\(\mu\to0\)</span> 不是正则极限。</strong></p>
-<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（Re 的手感）</strong> 水中 <span class="arithmatex">\(L=1\)</span> m、<span class="arithmatex">\(U=1\)</span> m/s：<span class="arithmatex">\(\mathrm{Re}\sim10^6\)</span>（湍流）；细菌 <span class="arithmatex">\(L=1\ \mu\)</span>m、<span class="arithmatex">\(U=10\ \mu\)</span>m/s：<span class="arithmatex">\(\mathrm{Re}\sim10^{-5}\)</span>——<strong>细菌生活在粘性完全主导的世界里，惯性对它毫无意义</strong>（fl-02 扇贝定理）。</p>
-<p><strong>例 2（涡量守恒的日常）</strong> 拔掉浴缸塞子形成漩涡：初始微小涡量被向心收缩放大（<span class="arithmatex">\((\boldsymbol\omega\cdot\nabla)\mathbf u\)</span> 的涡管拉伸项）——<strong>与花样滑冰收臂加速是同一个角动量守恒</strong>。</p>
-<p><strong>例 3（为什么 N–S 难）</strong> 非线性项使能量在尺度间传递，且三维涡管拉伸可能使涡量无界增长。<strong>三维光滑解是否永远存在，至今未知</strong>（千禧年问题）——<strong>这是本站唯一一个"方程写在这里、人类却不会解"的对象</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：粘性到底在哪里起作用？答案是"只在薄薄一层里"——但正是这一层决定了阻力、失速与几乎所有工程流动。</em></p>
+<h2 id="1_1">1. 连续介质假设与随体导数<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p><strong>Knudsen 数</strong> <span class="arithmatex">\(\mathrm{Kn}=\ell_{\mathrm{mfp}}/L\)</span> 比较平均自由程与场量变化尺度。<span class="arithmatex">\(\mathrm{Kn}\ll1\)</span> 支持用局部平均场描述流体；还需平均体积内分子足够多，并在所讨论区域采用相应局部平衡和本构近似。小 Kn 不是场量自动处处可微的证明。本页微分推导限于光滑区域；激波可在宏观尺度用守恒律弱解与跳跃条件描述，激波内部的分子尺度结构则可能需要动理学。稀薄气体和微纳流动还要检查滑移边界及非连续效应。</p>
+<p>沿流体轨迹 <span class="arithmatex">\(X'(t)=u(X(t),t)\)</span>，链式法则给出</p>
+<div class="arithmatex">\[\frac d{dt}f(X(t),t)=\partial_t f+u\cdot\nabla f\equiv\frac{Df}{Dt}.\]</div>
+<p>固定位置的时间变化与随流体运动的变化因此不同。一个稳态喷管可有 <span class="arithmatex">\(\partial_t u=0\)</span>，却仍有随体加速度 <span class="arithmatex">\(u\,du/dx\ne0\)</span>。</p>
+<h2 id="2_1">2. 从积分账本到质量、动量与能量<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>Reynolds 输运定理</strong>：对随流体运动的体域 <span class="arithmatex">\(V(t)\)</span> 与光滑标量场 <span class="arithmatex">\(f\)</span>，边界速度就是 <span class="arithmatex">\(u\)</span>，</p>
+<div class="arithmatex">\[\frac d{dt}\int_{V(t)}f\,dV=\int_{V(t)}[\partial_t f+\nabla\cdot(fu)]\,dV.\]</div>
+<p>取 <span class="arithmatex">\(f=\rho\)</span>，随体质量守恒，再利用任意小体域，得到 <span class="arithmatex">\(\partial_t\rho+\nabla\cdot(\rho u)=0\)</span>；乘积法则立即给 <span class="arithmatex">\(D\rho/Dt+\rho\nabla\cdot u=0\)</span>。在正密度下，连续性把 <span class="arithmatex">\(D\rho/Dt=0\)</span> 与 <span class="arithmatex">\(\nabla\cdot u=0\)</span> 等价起来。全域恒定密度只是其中一种更强设定。</p>
+<p><strong>动量</strong>：应力张量 <span class="arithmatex">\(\sigma\)</span> 使面法向 <span class="arithmatex">\(n\)</span> 上的牵引力为 <span class="arithmatex">\(\sigma n\)</span>。对随体动量用输运定理，对边界应力用散度定理，得到</p>
+<div class="arithmatex">\[\partial_t(\rho u)+\nabla\cdot(\rho u\otimes u)=\nabla\cdot\sigma+\rho g.\]</div>
+<p>左侧展开后，含 <span class="arithmatex">\(u[\partial_t\rho+\nabla\cdot(\rho u)]\)</span> 的部分因连续性消失，余下</p>
+<div class="arithmatex">\[\rho\frac{Du}{Dt}=\nabla\cdot\sigma+\rho g.\]</div>
+<p><strong>牛顿流体本构</strong>：令 <span class="arithmatex">\(D=(\nabla u+\nabla u^T)/2\)</span> 为应变率，<span class="arithmatex">\(I\)</span> 为三维单位矩阵。各向同性牛顿流体的一般形式为</p>
+<div class="arithmatex">\[\sigma=-pI+2\mu\left(D-\frac13(\nabla\cdot u)I\right)+\zeta(\nabla\cdot u)I,\]</div>
+<p>其中 <span class="arithmatex">\(\mu\)</span> 是剪切黏度，<span class="arithmatex">\(\zeta\)</span> 是体黏度。Stokes 假设取 <span class="arithmatex">\(\zeta=0\)</span>，不是所有流体的恒等事实。对不可压运动，体积项本来就为零；再取常 <span class="arithmatex">\(\mu\)</span>，可得 <span class="arithmatex">\(\nabla\cdot(2\mu D)=\mu\Delta u\)</span>，于是</p>
+<div class="arithmatex">\[\boxed{\rho(\partial_t u+u\cdot\nabla u)=-\nabla p+\mu\Delta u+\rho g,\qquad\nabla\cdot u=0.}\]</div>
+<p>若 <span class="arithmatex">\(\mu\)</span> 随温度或位置变化，就不能把它直接移到散度外。非牛顿流体的应力还会依赖剪切率、历史或额外结构变量，需更换本构。</p>
+<p><strong>能量与闭合</strong>：写 <span class="arithmatex">\(\sigma=-pI+\tau\)</span>，单位质量内能为 <span class="arithmatex">\(e\)</span>，热流为 <span class="arithmatex">\(q\)</span>，单位质量加热率为 <span class="arithmatex">\(r\)</span>，则局部内能方程为</p>
+<div class="arithmatex">\[\rho\frac{De}{Dt}=-p\nabla\cdot u+\tau:\nabla u-\nabla\cdot q+\rho r.\]</div>
+<p>压缩做功、黏性耗散和热传导由此分开。可压缩问题还需要 <span class="arithmatex">\(p=p(\rho,T)\)</span>、<span class="arithmatex">\(e=e(\rho,T)\)</span>、热流本构（如 <span class="arithmatex">\(q=-k\nabla T\)</span>）及初边值条件；仅质量与动量两式通常不足。不可压等温模型可把热问题另行处理，压力则承担维持散度约束的作用。</p>
+<h2 id="3-reynolds">3. 无量纲化与 Reynolds 数<a class="headerlink" href="#3-reynolds" title="Permanent link"></a></h2>
+<p>对常 <span class="arithmatex">\(\rho,\mu\)</span>、无额外体力的不可压模型，取 <span class="arithmatex">\(x=Lx^*\)</span>、<span class="arithmatex">\(t=(L/U)t^*\)</span>、<span class="arithmatex">\(u=Uu^*\)</span>、<span class="arithmatex">\(p=p_0+\rho U^2p^*\)</span>。惯性项的共同尺度为 <span class="arithmatex">\(\rho U^2/L\)</span>，黏性项尺度为 <span class="arithmatex">\(\mu U/L^2\)</span>；除去前者得到</p>
+<div class="arithmatex">\[\partial_{t^*}u^*+u^*\cdot\nabla^*u^*=-\nabla^*p^*+\frac1{\mathrm{Re}}\Delta^*u^*,\qquad\mathrm{Re}=\frac{\rho UL}{\mu}.\]</div>
+<p><span class="arithmatex">\(\mathrm{Re}\ll1\)</span> 表示在这套尺度下黏性相对强；<span class="arithmatex">\(\mathrm{Re}\gg1\)</span> 表示主体惯性相对强，<strong>不直接证明流动已经湍流</strong>。若驱动另有频率、可压性、自由表面、热输运或粗糙度，还会出现 Strouhal、Mach、Froude、Prandtl 等独立参数。动力相似须同时匹配相关无量纲数、几何与初边值条件。</p>
+<p>用水的 <span class="arithmatex">\(\rho\approx10^3\,\mathrm{kg/m^3}\)</span>、<span class="arithmatex">\(\mu\approx10^{-3}\,\mathrm{Pa\,s}\)</span> 作数量级估计：<span class="arithmatex">\(L=1\)</span> m、<span class="arithmatex">\(U=1\)</span> m/s 给 <span class="arithmatex">\(\mathrm{Re}\approx10^6\)</span>；<span class="arithmatex">\(L=1\,\mu\mathrm m\)</span>、<span class="arithmatex">\(U=10\,\mu\mathrm m/\mathrm s\)</span> 给 <span class="arithmatex">\(10^{-5}\)</span>。后者惯性通常是小修正，并非物理上不存在。</p>
+<h2 id="4-bernoulli-kelvin">4. 理想流体、Bernoulli 与 Kelvin<a class="headerlink" href="#4-bernoulli-kelvin" title="Permanent link"></a></h2>
+<p>形式上去掉黏性应力得到 Euler 方程，但带无滑移壁面的 <span class="arithmatex">\(\mu\to0\)</span> 极限可能是奇异的，不能直接把黏性解的边界条件原封不动交给 Euler。</p>
+<p>对<strong>稳态、恒密度、无黏、保守体力</strong> <span class="arithmatex">\(g=-\nabla\Phi\)</span>，利用 <span class="arithmatex">\(u\cdot\nabla u=\nabla(|u|^2/2)-u\times\omega\)</span>，其中 <span class="arithmatex">\(\omega=\nabla\times u\)</span>，Euler 化为</p>
+<div class="arithmatex">\[\nabla B=u\times\omega,\qquad B=\frac{|u|^2}{2}+\frac p\rho+\Phi.\]</div>
+<p>与 <span class="arithmatex">\(u\)</span> 点乘即 <span class="arithmatex">\(u\cdot\nabla B=0\)</span>，所以 <span class="arithmatex">\(B\)</span> 沿每条流线恒定；不同流线的常数可以不同。若连通区域还满足 <span class="arithmatex">\(\omega=0\)</span>，可进一步保证空间同一常数。例如剪切流 <span class="arithmatex">\(u=(ay,0,0)\)</span>、常压、无体力满足稳态 Euler，但 <span class="arithmatex">\(B=a^2y^2/2+p/\rho\)</span> 随流线的 <span class="arithmatex">\(y\)</span> 改变，不能把不同流线共用一个 Bernoulli 常数。正压可压缩情形应把 <span class="arithmatex">\(p/\rho\)</span> 改为 <span class="arithmatex">\(h(\rho)=\int^\rho p'(s)/s\,ds\)</span>。</p>
+<p><strong>Kelvin 环量的推导</strong>：令闭曲线 <span class="arithmatex">\(C(t)\)</span> 随光滑流体运动，<span class="arithmatex">\(\Gamma(t)=\oint_{C(t)}u\cdot d\ell\)</span>。对曲线参数求导，线元自身的变化贡献 <span class="arithmatex">\(\nabla(|u|^2/2)\)</span>，于是</p>
+<div class="arithmatex">\[\frac{d\Gamma}{dt}=\oint_{C(t)}\left[\frac{Du}{Dt}+\nabla\frac{|u|^2}{2}\right]\cdot d\ell.\]</div>
+<p>光滑、无黏、正压流体 <span class="arithmatex">\(p=p(\rho)\)</span> 在保守体力下有 <span class="arithmatex">\(Du/Dt=-\nabla(h+\Phi)\)</span>，右侧是单值梯度的闭路积分，故为零。不要求稳态；却要求随体回路一直位于光滑流体区域。黏性壁面、激波、非正压的斜压效应或非保守外力都可能破坏这些前提，所以不能把结论说成一般流动“永远不会生涡”。</p>
+<p>恒密度、不可压、无黏且体力保守时，取旋度得到</p>
+<div class="arithmatex">\[\frac{D\omega}{Dt}=(\omega\cdot\nabla)u.\]</div>
+<p>严格二维平面流 <span class="arithmatex">\(u=(u_x(x,y,t),u_y(x,y,t),0)\)</span> 中，<span class="arithmatex">\(\omega\)</span> 仅有 <span class="arithmatex">\(z\)</span> 分量且 <span class="arithmatex">\(\partial_z u=0\)</span>，拉伸项为零。三维则可能拉伸涡管。真实排水涡还涉及三维几何、初始旋转、黏性壁面与自由表面，不能只用“收臂”类比当完整推导。</p>
+<p><strong>d'Alembert 佯谬的边界</strong>：在经典无界、定常、不可压、无黏势流绕体问题中，适当远场与无穿透条件导致零阻力。它不涵盖任意有旋尾流、非定常运动或所有 Euler 解。黏性边界层及其分离解释真实阻力的重要来源；低 Re 时黏性也可以贯穿整个流场。</p>
+<h2 id="5_1">5. 一个可直接代回的精确流动<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>在周期区域取 <span class="arithmatex">\(u=(U_0e^{-\nu k^2t}\sin ky,0,0)\)</span>，<span class="arithmatex">\(\rho\)</span>、<span class="arithmatex">\(\nu=\mu/\rho\)</span> 为正常数，压力常量、无体力。这里 <span class="arithmatex">\(\nabla\cdot u=0\)</span>，对流项 <span class="arithmatex">\(u\cdot\nabla u=0\)</span>（速度沿 <span class="arithmatex">\(x\)</span>，却只随 <span class="arithmatex">\(y\)</span> 变化），而</p>
+<div class="arithmatex">\[\partial_t u=-\nu k^2u=\nu\Delta u.\]</div>
+<p>因此它是完整不可压 Navier–Stokes 的精确解。空间平均动能密度为 <span class="arithmatex">\(\rho U_0^2e^{-2\nu k^2t}/4\)</span>，耗散率 <span class="arithmatex">\(\mu\langle|\nabla u|^2\rangle=\mu k^2U_0^2e^{-2\nu k^2t}/2\)</span>，恰等于动能减少率。周期边界下压力功和边界通量消失；若把黏性耗散忽略，能量账就错了。</p>
+<p>对一般周期光滑不可压无外力解，与 <span class="arithmatex">\(u\)</span> 点乘并积分，同样得到 <span class="arithmatex">\(\frac d{dt}\int\rho|u|^2/2=-\mu\int|\nabla u|^2\)</span>。这是有用的能量控制，却在三维不足以控制所有可能的梯度集中，不能据此宣布解决正则性问题。</p>
+<h2 id="6_1">6. 从基础走向开放问题<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<p><a href="https://www.claymath.org/millennium/Navier-Stokes-Equation/">Clay 的 Navier–Stokes 问题页</a>仍把三维存在性与光滑性列为未解决问题。严格对象是指定全空间或周期条件下的三维不可压方程与合适的光滑无散初值，核心是全时间光滑性或有限时间破裂。局部光滑解、二维结果、特殊精确解、一般全局弱解和数值模拟都不能互相替代。</p>
+<p><a href="https://www.damtp.cam.ac.uk/user/tong/fluids/fluids.pdf">David Tong 流体讲义</a>第 2 章讨论 Euler、Bernoulli 与 Kelvin，第 3 章引入应力和黏性。继续学习<a href="fl-02-viscous.html">黏性与边界层</a>时，应能先判断：黏性是全域主导，还是只在某些高梯度区域不可忽略？</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="comp-05-inverse-uncertainty.html"><span class="pager-label">上一页</span>计算 V · 逆问题与不确定度量化</a>
