@@ -46,14 +46,13 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 02:01</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 群：定义与例子库</a></li>
 <li><a href="#_1">学习层：陪集真的能“压缩”成一个群吗？</a><ul>
 <li><a href="#alg-abs-groups-learning-title">1. 具体谜题：把对称操作按“同一类”打包</a></li>
 <li><a href="#2">2. 正式桥：四个有限证书各自回答什么</a></li>
@@ -61,10 +60,22 @@ try {
 <li><a href="#4">4. 假设、失败边界与常见偷换</a></li>
 </ul>
 </li>
-<li><a href="#2-lagrange">2. 子群、陪集与 Lagrange 定理</a></li>
-<li><a href="#3_1">3. 正规子群、商群与同态基本定理</a></li>
-<li><a href="#4_1">4. 群作用一瞥（对称性的用法）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#1">1. 从可以撤销的操作，走到群公理</a><ul>
+<li><a href="#_2">置换为什么是基本模型？</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 子群与陪集：为什么每一块一样大？</a></li>
+<li><a href="#3_1">3. 正规性：让块的乘法不依赖代表元</a><ul>
+<li><a href="#_3">一个看得见的失败</a></li>
+<li><a href="#_4">第一同构定理：纤维就是陪集</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 群作用：不同操作可能产生同一个结果</a><ul>
+<li><a href="#burnside">Burnside 引理来自同一集合的两次数数</a></li>
+</ul>
+</li>
+<li><a href="#5-cauchy-sylow">5. 有限群结构的下一座桥：共轭、Cauchy 与 Sylow</a></li>
+<li><a href="#6">6. 三个例子与三道迁移题</a></li>
 </ul>
 </div>
 </details>
@@ -72,10 +83,11 @@ try {
 <blockquote>
 <p>抽象代数把"数的运算"抽象成"集合 + 运算满足的公理"，研究结构本身。第一站是<strong>群</strong>——"对称性的数学"：任何对象的全体对称操作天然成群。本页走完群论主干：子群、Lagrange 定理、正规子群与商群、同态基本定理——最后这个定理的形态你在高代 IV（商空间）见过，还会在环论再见，它是代数学的通用语法。</p>
 </blockquote>
-<h2 id="1">1. 群：定义与例子库<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <figure class="diagram">
-<p><img alt="循环群 \mathbb{Z}_n 画成时钟/正 n 边形旋转 + 一张 Cayley 表。" src="assets/img/alg-abs-01-cyclic-group.svg" /></p>
-<figcaption><span class="fig-id">图 alg-abs.1</span>循环群 \(\mathbb{Z}_n\) 画成时钟/正 n 边形旋转 + 一张 Cayley 表。</figcaption>
+<div aria-label="可横向滚动的循环群与着色轨道图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/alg-abs-01-cyclic-group.svg" alt="模4加法表、偶奇两块的商群表，以及16个二色四位置着色分成6个旋转轨道" style="min-width:1050px;max-width:none;width:100%">
+</div>
+<figcaption><span class="fig-id">图 alg-abs.1</span>模4加法按偶奇两块得到商群；二色四位置着色按旋转分成六个轨道。块、元素和操作各有明确的表格位置。</figcaption>
 </figure>
 <div data-learning-page></div>
 
@@ -87,7 +99,8 @@ try {
 <ol>
 <li>在 <span class="arithmatex">\(C_4\)</span> 中，<span class="arithmatex">\(H=\{0,2\}\)</span> 的陪集有几个？每个陪集大小是否相同？</li>
 <li>在 <span class="arithmatex">\(S_3\)</span> 中取 <span class="arithmatex">\(H=\langle(12)\rangle\)</span>，你猜左陪集 <span class="arithmatex">\((123)H\)</span> 与右陪集 <span class="arithmatex">\(H(123)\)</span> 会相等吗？</li>
-<li>哪一个条件真正决定 <span class="arithmatex">\(G/H\)</span> 能否成为群：<span class="arithmatex">\(|H|\mid |G|\)</span>、陪集大小相等，还是 <span class="arithmatex">\(gHg^{-1}=H\)</span>？</li>
+<li>哪一个条件真正决定 <span class="arithmatex">\(G/H\)</span> 能否继承原群乘法：<span class="arithmatex">\(|H|\mid |G|\)</span>、陪集大小相等，还是 <span class="arithmatex">\(gHg^{-1}=H\)</span>？</li>
+<li>四个环形位置染色为0011，只允许旋转，会产生几个不同的结果？</li>
 </ol>
 <p>不要把“有限枚举通过”当成 Lagrange 定理的证明。实验台只给出几个小群的证书；定理的普遍性仍来自陪集分划的双射论证。</p>
 <h3 id="2">2. 正式桥：四个有限证书各自回答什么<a class="headerlink" href="#2" title="Permanent link"></a></h3>
@@ -100,7 +113,7 @@ try {
 <div class="arithmatex">\[
 (aH)(bH)=abH
 \]</div>
-<p>与陪集代表元的选择无关；这时才有商群 <span class="arithmatex">\(G/H\)</span>。若某个 <span class="arithmatex">\(g\)</span> 让 <span class="arithmatex">\(gH\neq Hg\)</span>，实验台会给出一对不同的左、右陪集作为<strong>失败证书</strong>，不能把陪集集合强行称作群。</p>
+<p>与陪集代表元的选择无关；这时才有商群 <span class="arithmatex">\(G/H\)</span>。若某个 <span class="arithmatex">\(g\)</span> 让 <span class="arithmatex">\(gH\neq Hg\)</span>，实验台会给出一对不同的左、右陪集作为<strong>失败证书</strong>；实验还直接显示换代表元后乘积落入不同块，说明原群乘法不能下降到陪集集合。</p>
 <p>核是最稳定的正规性来源：群同态 <span class="arithmatex">\(\varphi:G\to K\)</span> 的核 <span class="arithmatex">\(\ker\varphi\trianglelefteq G\)</span>，并且</p>
 <div class="arithmatex">\[
 G/\ker\varphi\cong\operatorname{im}\varphi.
@@ -115,7 +128,7 @@ G/\ker\varphi\cong\operatorname{im}\varphi.
 | <span class="arithmatex">\(C_4=\{0,1,2,3\}\)</span> | <span class="arithmatex">\(\{0,2\}\)</span> | <span class="arithmatex">\(\{0,2\},\{1,3\}\)</span> | <span class="arithmatex">\(4=2\cdot2\)</span> | 正规；<span class="arithmatex">\(C_4/H\cong C_2\)</span>，余类加法良定义 |
 | <span class="arithmatex">\(V_4=\{e,a,b,c\}\)</span> | <span class="arithmatex">\(\{e,a\}\)</span> | <span class="arithmatex">\(\{e,a\},\{b,c\}\)</span> | <span class="arithmatex">\(4=2\cdot2\)</span> | 交换群中所有子群正规；商群 <span class="arithmatex">\(C_2\)</span> |
 | <span class="arithmatex">\(S_3\)</span> | <span class="arithmatex">\(\langle s\rangle=\{e,s\}\)</span> | <span class="arithmatex">\(H, rH, r^2H\)</span> | <span class="arithmatex">\(6=2\cdot3\)</span> | 不正规；例如 <span class="arithmatex">\(rH\neq Hr\)</span>，不存在群商 |</p>
-<p>表中的每一行是<strong>有限数值证据</strong>，不是对所有群的证明；“商群存在”还需要逐项检查乘法良定义，或者给出一个以 <span class="arithmatex">\(H\)</span> 为核的满同态。</p>
+<p>表中的每一行是<strong>有限精确证据</strong>，不是对所有群的证明；“商群存在”还需要逐项检查乘法良定义，或者给出一个以 <span class="arithmatex">\(H\)</span> 为核的满同态。</p>
 </div>
 <h3 id="4">4. 假设、失败边界与常见偷换<a class="headerlink" href="#4" title="Permanent link"></a></h3>
 <ul>
@@ -125,32 +138,117 @@ G/\ker\varphi\cong\operatorname{im}\varphi.
 <li><strong>概念边界</strong>：<span class="arithmatex">\(G/H\)</span> 的元素是陪集，不是把每个代表元单独删掉；不同代表元代表同一个余类，良定义正是要证明这一点。</li>
 </ul>
 </section>
-<p><strong>定义</strong> <span class="arithmatex">\((G, \cdot)\)</span>：封闭、结合律、单位元 <span class="arithmatex">\(e\)</span>、每元有逆。交换者称 <strong>Abel 群</strong>。阶 <span class="arithmatex">\(|G|\)</span> = 元素个数。</p>
-<p><strong>例子库（比定义重要）</strong>：<span class="arithmatex">\((\mathbb{Z}, +)\)</span>；<span class="arithmatex">\((\mathbb{Z}_n, +)\)</span> 模 <span class="arithmatex">\(n\)</span> 加法；<span class="arithmatex">\((\mathbb{Z}_p^*, \times)\)</span>（<span class="arithmatex">\(p\)</span> 素）；<strong>对称群 <span class="arithmatex">\(S_n\)</span></strong>（<span class="arithmatex">\(n\)</span> 元全体置换，<span class="arithmatex">\(|S_n| = n!\)</span>，<span class="arithmatex">\(n \geq 3\)</span> 非交换——置换是群论的"原型物种"：Cayley 定理说任何群都同构于某置换群的子群）；二面体群 <span class="arithmatex">\(D_n\)</span>（正 <span class="arithmatex">\(n\)</span> 边形的旋转+翻折，<span class="arithmatex">\(2n\)</span> 个对称）；<span class="arithmatex">\(GL_n(\mathbb{R})\)</span>（可逆矩阵，高代的老朋友以群身份再就业）。</p>
-<p><strong>幂与阶</strong>：元素 <span class="arithmatex">\(a\)</span> 的阶 = 使 <span class="arithmatex">\(a^k = e\)</span> 的最小正整数 <span class="arithmatex">\(k\)</span>。</p>
-<h2 id="2-lagrange">2. 子群、陪集与 Lagrange 定理<a class="headerlink" href="#2-lagrange" title="Permanent link"></a></h2>
-<p><strong>子群判据</strong>：<span class="arithmatex">\(H \leq G \iff H\)</span> 非空且 <span class="arithmatex">\(a, b \in H \Rightarrow ab^{-1} \in H\)</span>（一步验证式）。<strong>循环群</strong> <span class="arithmatex">\(\langle a\rangle = \{a^k\}\)</span>：由一个元素生成——结构完全分类：无限循环 <span class="arithmatex">\(\cong \mathbb{Z}\)</span>、<span class="arithmatex">\(n\)</span> 阶循环 <span class="arithmatex">\(\cong \mathbb{Z}_n\)</span>（"最简单的群"，其子群、生成元全部透明）。</p>
-<p><strong>陪集</strong>：<span class="arithmatex">\(aH = \{ah : h \in H\}\)</span>。关键事实：陪集要么相等要么不交、大小全等于 <span class="arithmatex">\(|H|\)</span>——<strong><span class="arithmatex">\(G\)</span> 被 <span class="arithmatex">\(H\)</span> 的陪集均匀切块</strong>。</p>
-<p><strong>定理（Lagrange）</strong> 有限群的子群阶数整除群的阶：<span class="arithmatex">\(|H| \,\big|\, |G|\)</span>。
-<em>证明（两行）</em>：陪集分划 <span class="arithmatex">\(G\)</span>，每块 <span class="arithmatex">\(|H|\)</span> 个元素（<span class="arithmatex">\(h \mapsto ah\)</span> 是双射），故 <span class="arithmatex">\(|G| = |H| \times\)</span> 块数。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>立收三个推论</strong>：元素的阶整除 <span class="arithmatex">\(|G|\)</span>；素数阶群必循环（且无非平凡子群）；<strong>Fermat 小定理</strong> <span class="arithmatex">\(a^{p-1} \equiv 1 \pmod p\)</span>——在 <span class="arithmatex">\(\mathbb{Z}_p^*\)</span>（阶 <span class="arithmatex">\(p-1\)</span>）中用"元素阶整除群阶"，一行拿下（数论定理被群论一句话收编的名场面）。</p>
-<h2 id="3_1">3. 正规子群、商群与同态基本定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>群同态</strong>：<span class="arithmatex">\(\varphi(ab) = \varphi(a)\varphi(b)\)</span>；核 <span class="arithmatex">\(\ker\varphi = \varphi^{-1}(e)\)</span>。</p>
-<p><strong>正规子群</strong> <span class="arithmatex">\(N \trianglelefteq G\)</span>：<span class="arithmatex">\(gNg^{-1} = N\)</span>（左右陪集相同）。<strong>为什么需要它</strong>：想让陪集全体 <span class="arithmatex">\(\{gN\}\)</span> 继承乘法 <span class="arithmatex">\((aN)(bN) = abN\)</span>，良定义恰好等价于正规性——<strong>正规性不是装饰，是商结构的存在条件</strong>（Abel 群一切子群正规，故高代 IV 的商空间不用操这份心）。得<strong>商群</strong> <span class="arithmatex">\(G/N\)</span>。</p>
-<p><strong>定理（同态基本定理）</strong></p>
+<h2 id="1">1. 从可以撤销的操作，走到群公理<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把正方形绕中心逆时针转 <span class="arithmatex">\(90^\circ\)</span> 记作 <span class="arithmatex">\(r\)</span>。连续转动对应运算，转四次回到原位，即 <span class="arithmatex">\(r^4=e\)</span>；反向转动是逆操作。我们关心的是每个操作如何作用于整个对象，而不只是“看起来相同”的一幅截图。</p>
+<p>群是集合 <span class="arithmatex">\(G\)</span> 配上二元运算 <span class="arithmatex">\(G\times G\to G\)</span>，满足结合律、单位元和每个元素都有逆。运算已取值于 <span class="arithmatex">\(G\)</span> 就包含封闭性；不要求交换。由公理立刻得到几个可用于计算的规则：</p>
+<ul>
+<li><span class="arithmatex">\(ab=ac\)</span> 时左乘 <span class="arithmatex">\(a^{-1}\)</span>，得到 <span class="arithmatex">\(b=c\)</span>；右消去同理。</li>
+<li>两个单位元 <span class="arithmatex">\(e,f\)</span> 必须满足 <span class="arithmatex">\(e=ef=f\)</span>。若 <span class="arithmatex">\(b,c\)</span> 都是 <span class="arithmatex">\(a\)</span> 的逆，则 <span class="arithmatex">\(b=b(ac)=(ba)c=c\)</span>。</li>
+<li><span class="arithmatex">\((ab)^{-1}=b^{-1}a^{-1}\)</span>，因为相乘后中间的 <span class="arithmatex">\(bb^{-1}\)</span> 或 <span class="arithmatex">\(a^{-1}a\)</span> 先消去；一般不能保持原顺序。</li>
+</ul>
+<p>整数加法、模 <span class="arithmatex">\(n\)</span> 加法、非零实数乘法、可逆矩阵乘法都是群。整数乘法不是群，因为2没有整数乘法逆。有限群的阶 <span class="arithmatex">\(|G|\)</span> 是元素个数；元素 <span class="arithmatex">\(g\)</span> 的阶是最小正整数 <span class="arithmatex">\(m\)</span> 使 <span class="arithmatex">\(g^m=e\)</span>，若不存在则称无限阶，例如整数加法群中的1。</p>
+<h3 id="_2">置换为什么是基本模型？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>本页约定 <span class="arithmatex">\(ab\)</span> 表示<strong>先做右边的 <span class="arithmatex">\(b\)</span>，再做左边的 <span class="arithmatex">\(a\)</span></strong>。在 <span class="arithmatex">\(S_3\)</span> 中记 <span class="arithmatex">\(r=(123)\)</span>、<span class="arithmatex">\(s=(12)\)</span>，计算得</p>
 <div class="arithmatex">\[
-G/\ker\varphi \;\cong\; \mathrm{im}\,\varphi
+rs=(13),\qquad sr=(23),\qquad srs=r^{-1}.
 \]</div>
-<p>——"同态 = 商掉核 + 嵌入像"。与高代 IV 的 <span class="arithmatex">\(V/\ker \cong \mathrm{im}\)</span>（线性映射版）逐字同构；环论、模论还有同款。<strong>读法</strong>：核度量"压缩了多少"，商群就是"压缩后的世界"；找商群 <span class="arithmatex">\(G/N\)</span> 长什么样的标准方法——<strong>造一个以 <span class="arithmatex">\(N\)</span> 为核的满同态</strong>，像是什么商群就是什么（例 2 演示）。</p>
-<h2 id="4_1">4. 群作用一瞥（对称性的用法）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>群 <span class="arithmatex">\(G\)</span> 作用于集合 <span class="arithmatex">\(X\)</span>：<span class="arithmatex">\(g\cdot x\)</span> 满足结合与单位。<strong>轨道-稳定子定理</strong>：<span class="arithmatex">\(|G| = |\mathrm{orbit}(x)| \times |\mathrm{stab}(x)|\)</span>（Lagrange 的作用版）。<strong>Burnside 引理</strong>：轨道数 = <span class="arithmatex">\(\frac{1}{|G|}\sum_{g}|\mathrm{Fix}(g)|\)</span>（"平均不动点数"）——数"本质不同的着色/项链"的组合神器（例 3）。</p>
-<p>🔗 <strong>衔接</strong>：对称性 → 守恒律（Noether 定理的物理纲领）；CNN 的平移等变性（ai 课 05 讲）是"网络与平移群作用可交换"——等变网络（群卷积）把本页思想工程化；密码学的舞台设在 <span class="arithmatex">\(\mathbb{Z}_p^*\)</span> 与椭圆曲线群（下一页 RSA）。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（判子群+求阶）</strong> <span class="arithmatex">\(\mathbb{Z}_{12}\)</span> 中 <span class="arithmatex">\(\langle 8 \rangle = \{0, 8, 4\}\)</span>——3 阶循环子群；元素 8 的阶 <span class="arithmatex">\(= \frac{12}{\gcd(8,12)} = 3\)</span>（循环群元素阶公式）。</p>
-<p><strong>例 2（商群辨认）</strong> <span class="arithmatex">\(G = \mathbb{Z},\ N = 5\mathbb{Z}\)</span>：造满同态 <span class="arithmatex">\(\varphi: \mathbb{Z} \to \mathbb{Z}_5\)</span>（模 5），<span class="arithmatex">\(\ker = 5\mathbb{Z}\)</span> ⇒ <span class="arithmatex">\(\mathbb{Z}/5\mathbb{Z} \cong \mathbb{Z}_5\)</span>。——"模运算 = 商群"的正式身份。</p>
-<p><strong>例 3（Burnside 数项链）</strong> 3 颗珠子染 2 色的项链（旋转群 <span class="arithmatex">\(C_3\)</span> 作用）：<span class="arithmatex">\(\frac{1}{3}(|Fix(e)| + |Fix(r)| + |Fix(r^2)|) = \frac{1}{3}(8 + 2 + 2) = 4\)</span> 种本质不同的项链。枚举验证：全同 ×2、两同一异 ×2 ✓。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：两个运算的结构——环与域，多项式环认祖归宗，再看一眼 Galois 理论的山顶。</em></p>
+<p>这显示两个可逆操作可以不交换。循环记号 <span class="arithmatex">\((123)\)</span> 表示 <span class="arithmatex">\(1\mapsto2\mapsto3\mapsto1\)</span>，不是三元数组相加。<span class="arithmatex">\(S_n\)</span> 是 <span class="arithmatex">\(n\)</span> 个标签的全部双射，群阶为 <span class="arithmatex">\(n!\)</span>；本页记正 <span class="arithmatex">\(n\)</span> 边形的二面体群为 <span class="arithmatex">\(D_n\)</span>，其阶为 <span class="arithmatex">\(2n\)</span>，以免与另一种把阶写入下标的约定混淆。</p>
+<p>每个群都能作用于自身：令 <span class="arithmatex">\(L_g(x)=gx\)</span>。它是双射，满足 <span class="arithmatex">\(L_gL_h=L_{gh}\)</span>；若 <span class="arithmatex">\(L_g=L_h\)</span>，在单位元处求值即得 <span class="arithmatex">\(g=h\)</span>。因此 <span class="arithmatex">\(g\mapsto L_g\)</span> 是到置换群的单同态，这就是 Cayley 定理；无限群对应无限集合上的置换群。</p>
+<h2 id="2_1">2. 子群与陪集：为什么每一块一样大？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>非空子集 <span class="arithmatex">\(H\subseteq G\)</span> 是子群，当且仅当 <span class="arithmatex">\(a,b\in H\Rightarrow ab^{-1}\in H\)</span>。充分性的细节是：先取 <span class="arithmatex">\(a=b\)</span> 得 <span class="arithmatex">\(e\in H\)</span>，再用 <span class="arithmatex">\(e,b\)</span> 得 <span class="arithmatex">\(b^{-1}\in H\)</span>，最后把 <span class="arithmatex">\(b^{-1}\)</span> 当成第二个元素得到 <span class="arithmatex">\(ab\in H\)</span>。</p>
+<p>循环子群 <span class="arithmatex">\(\langle g\rangle=\{g^k:k\in\mathbb Z\}\)</span> 把所有整数幂收集起来。映射 <span class="arithmatex">\(\mathbb Z\to\langle g\rangle,k\mapsto g^k\)</span> 是满同态；无限阶时是同构，有限阶 <span class="arithmatex">\(m\)</span> 时两整数同像当且仅当相差 <span class="arithmatex">\(m\)</span> 的倍数，得到 <span class="arithmatex">\(\langle g\rangle\cong\mathbb Z/m\mathbb Z\)</span>。</p>
+<p>左陪集 <span class="arithmatex">\(aH=\{ah:h\in H\}\)</span> 的相等判据是</p>
+<div class="arithmatex">\[
+aH=bH\quad\Longleftrightarrow\quad b^{-1}a\in H.
+\]</div>
+<p>若两陪集有交点 <span class="arithmatex">\(ah_1=bh_2\)</span>，则 <span class="arithmatex">\(b^{-1}a=h_2h_1^{-1}\in H\)</span>，反过来即可推出两块相同。所以左陪集要么相等、要么不交，并覆盖 <span class="arithmatex">\(G\)</span>。映射 <span class="arithmatex">\(h\mapsto ah\)</span> 的逆是左乘 <span class="arithmatex">\(a^{-1}\)</span>，故每块与 <span class="arithmatex">\(H\)</span> 等势。</p>
+<p>当 <span class="arithmatex">\(G\)</span> 有限时，把块数记为指数 <span class="arithmatex">\([G:H]\)</span>，便有 Lagrange 定理</p>
+<div class="arithmatex">\[
+|G|=[G:H]|H|.
+\]</div>
+<p>因此元素阶整除群阶、素数阶群必循环；对素数 <span class="arithmatex">\(p\)</span> 和 <span class="arithmatex">\(p\nmid a\)</span>，在 <span class="arithmatex">\(\mathbb F_p^\times\)</span> 中得到 <span class="arithmatex">\(a^{p-1}\equiv1\pmod p\)</span>。无限群仍有陪集分划和等势结论，不能直接把无限基数当普通有限整数去做这些整除推论。可对照 <a href="https://ocw.mit.edu/courses/18-703-modern-algebra-spring-2013/resources/mit18_703s13_pra_l_3/">MIT 陪集讲义</a>。</p>
+<p>逆向存在性必须另证：“某整数整除 <span class="arithmatex">\(|G|\)</span>”并不保证存在该阶子群。素数阶的存在性由 Cauchy 定理保证，素数幂的最大部分则进入 Sylow 理论，见第5节。</p>
+<h2 id="3_1">3. 正规性：让块的乘法不依赖代表元<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>子群 <span class="arithmatex">\(H\)</span> 总能产生集合 <span class="arithmatex">\(G/H=\{aH:a\in G\}\)</span>，但想定义 <span class="arithmatex">\((aH)(bH)=abH\)</span>，就必须允许任意换代表元而结果不变。</p>
+<p>若 <span class="arithmatex">\(N\)</span> 正规，即 <span class="arithmatex">\(b^{-1}Nb=N\)</span>，取 <span class="arithmatex">\(a'=an_1,b'=bn_2\)</span>，则</p>
+<div class="arithmatex">\[
+a'b'=an_1bn_2=ab(b^{-1}n_1b)n_2\in abN.
+\]</div>
+<p>所以乘法良定义。反过来，若这套乘法良定义，<span class="arithmatex">\(nN=N=eN\)</span> 就迫使 <span class="arithmatex">\(nbN=bN\)</span>，从而 <span class="arithmatex">\(b^{-1}nb\in N\)</span>；对 <span class="arithmatex">\(b^{-1}\)</span> 再用一次得到集合相等。因此正规性恰好是<strong>由原群乘法诱导商群</strong>的充要条件。不是说非正规陪集集合绝不可能被人为装上一种别的群运算。</p>
+<h3 id="_3">一个看得见的失败<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(S_3\)</span> 中取 <span class="arithmatex">\(H=\{e,s\}\)</span>。由于 <span class="arithmatex">\(eH=sH\)</span>，若商乘法存在，拿 <span class="arithmatex">\(e\)</span> 或 <span class="arithmatex">\(s\)</span> 代表第一块，再乘同一个 <span class="arithmatex">\(rH\)</span>，应该给同一块。但是</p>
+<div class="arithmatex">\[
+(er)H=rH=\{r,(13)\},\qquad
+(sr)H=(23)H=\{(23),r^2\}.
+\]</div>
+<p>两块不同，说明失败发生在“选代表元”这一步。等价地 <span class="arithmatex">\(rHr^{-1}=\{e,(23)\}\ne H\)</span>。实验把这两种证书都列出来，并在正规时显示实际商乘法表，而不只写一个“通过”。</p>
+<p>交换群中每个子群都正规；指数为2的子群也必正规，因为对 <span class="arithmatex">\(g\notin H\)</span>，左右陪集都等于 <span class="arithmatex">\(G\setminus H\)</span>。子群正规不等于每个元素都与全群交换：<span class="arithmatex">\(A_3\trianglelefteq S_3\)</span>，但非平凡三轮换不与换位交换。</p>
+<h3 id="_4">第一同构定理：纤维就是陪集<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(\varphi:G\to K\)</span> 是群同态，<span class="arithmatex">\(N=\ker\varphi\)</span> 正规，因为 <span class="arithmatex">\(\varphi(gng^{-1})=e\)</span>。而且</p>
+<div class="arithmatex">\[
+\varphi(a)=\varphi(b)
+\Longleftrightarrow b^{-1}a\in N
+\Longleftrightarrow aN=bN.
+\]</div>
+<p>所以 <span class="arithmatex">\(\bar\varphi:G/N\to\operatorname{im}\varphi,aN\mapsto\varphi(a)\)</span> 良定义且单射；按像的定义又满射，并保持乘法。因此</p>
+<div class="arithmatex">\[
+G/\ker\varphi\cong\operatorname{im}\varphi.
+\]</div>
+<p>例如模2映射将 <span class="arithmatex">\(C_4\)</span> 中的偶数归为一块、奇数归为一块，<span class="arithmatex">\(C_4/\{0,2\}\cong C_2\)</span>。核是哪些操作被识别为单位元；有限群时每条非空纤维有 <span class="arithmatex">\(|N|\)</span> 个元素，不能把“核的大小”不加条件地称为一般的距离或信息量。</p>
+<h2 id="4_1">4. 群作用：不同操作可能产生同一个结果<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>左作用是映射 <span class="arithmatex">\(G\times X\to X\)</span>，满足 <span class="arithmatex">\(e\cdot x=x\)</span> 与 <span class="arithmatex">\((gh)\cdot x=g\cdot(h\cdot x)\)</span>。每个群元素都给 <span class="arithmatex">\(X\)</span> 上一个双射；但作用不必忠实，即不同群元素可能对所有 <span class="arithmatex">\(x\)</span> 都有相同效果。轨道和稳定子定义为</p>
+<div class="arithmatex">\[
+Gx=\{g\cdot x:g\in G\},\qquad G_x=\{g:g\cdot x=x\}.
+\]</div>
+<p><span class="arithmatex">\(G_x\)</span> 是子群。映射 <span class="arithmatex">\(gG_x\mapsto g\cdot x\)</span> 是良定义的双射，因为 <span class="arithmatex">\(g\cdot x=h\cdot x\)</span> 当且仅当 <span class="arithmatex">\(h^{-1}g\in G_x\)</span>。所以轨道对应的是稳定子的<strong>陪集集合</strong>，不要求稳定子正规。有限群时得到</p>
+<div class="arithmatex">\[
+|Gx|=\frac{|G|}{|G_x|}.
+\]</div>
+<p>四个环形位置各染0或1，着色 <span class="arithmatex">\(0011\)</span> 在旋转群 <span class="arithmatex">\(C_4\)</span> 下有4个不同结果，稳定子只有单位元；着色 <span class="arithmatex">\(0101\)</span> 的轨道只有两个结果，稳定子包含转0和转2步；全0的轨道只有一个结果，稳定子为整个 <span class="arithmatex">\(C_4\)</span>。<strong>除以群阶之前，必须检查每个对象的稳定子是否一样。</strong></p>
+<h3 id="burnside">Burnside 引理来自同一集合的两次数数<a class="headerlink" href="#burnside" title="Permanent link"></a></h3>
+<p>假设 <span class="arithmatex">\(G,X\)</span> 都有限。对集合 <span class="arithmatex">\(T=\{(g,x):g\cdot x=x\}\)</span>，先固定操作数不动点，再固定对象数稳定子：</p>
+<div class="arithmatex">\[
+\sum_{g\in G}|\operatorname{Fix}(g)|=|T|=\sum_{x\in X}|G_x|.
+\]</div>
+<p>同一轨道中的稳定子互相共轭，大小相同；该轨道对右边的贡献为 <span class="arithmatex">\(|Gx||G_x|=|G|\)</span>。因此</p>
+<div class="arithmatex">\[
+|X/G|=\frac1{|G|}\sum_g|\operatorname{Fix}(g)|.
+\]</div>
+<p>对于 <span class="arithmatex">\(n\)</span> 个位置的二色环，转 <span class="arithmatex">\(k\)</span> 步把位置分成 <span class="arithmatex">\(\gcd(n,k)\)</span> 个循环；要保持着色，每个循环内必须同色，所以不动点数为 <span class="arithmatex">\(2^{\gcd(n,k)}\)</span>。<span class="arithmatex">\(n=4\)</span> 时依次为16、2、4、2，平均得6个旋转轨道，而不是 <span class="arithmatex">\(16/4=4\)</span>。实验完整枚举全部着色、轨道、稳定子和不动点，可与这个独立循环分解公式核对。</p>
+<p>若允许翻折，要改用阶为 <span class="arithmatex">\(2n\)</span> 的 <span class="arithmatex">\(D_n\)</span>，不能只把旋转结果再机械除以2。翻折可能固定某些着色。这里的颜色0、1是有身份的，交换两种颜色不是默认允许的对称。</p>
+<h2 id="5-cauchy-sylow">5. 有限群结构的下一座桥：共轭、Cauchy 与 Sylow<a class="headerlink" href="#5-cauchy-sylow" title="Permanent link"></a></h2>
+<p>群对自身的共轭作用 <span class="arithmatex">\(g\cdot x=gxg^{-1}\)</span> 的稳定子是中心化子 <span class="arithmatex">\(C_G(x)=\{g:gx=xg\}\)</span>。把轨道分划按大小相加，得到类方程</p>
+<div class="arithmatex">\[
+|G|=|Z(G)|+\sum_{x_i\notin Z(G)}[G:C_G(x_i)],
+\]</div>
+<p>其中每个非中心共轭类选一个代表。<span class="arithmatex">\(S_3\)</span> 的三个共轭类是单位元、三个换位、两个三轮换，大小 <span class="arithmatex">\(1+3+2=6\)</span>。这给后续表示论、特征标和守恒对称性分类提供语言。</p>
+<p><strong>Cauchy 定理：</strong>若素数 <span class="arithmatex">\(p\)</span> 整除有限群阶，则存在阶为 <span class="arithmatex">\(p\)</span> 的元素。一个能体现群作用的证明是看</p>
+<div class="arithmatex">\[
+Y=\{(g_1,\ldots,g_p):g_1\cdots g_p=e\}.
+\]</div>
+<p>前 <span class="arithmatex">\(p-1\)</span> 项任取，末项唯一决定，故 <span class="arithmatex">\(|Y|=|G|^{p-1}\)</span> 被 <span class="arithmatex">\(p\)</span> 整除。循环移动元组仍保持乘积为单位元，因为移动后的乘积是原乘积的共轭。<span class="arithmatex">\(C_p\)</span> 的轨道大小只能是1或 <span class="arithmatex">\(p\)</span>；固定元组恰好是 <span class="arithmatex">\((g,\ldots,g)\)</span> 且 <span class="arithmatex">\(g^p=e\)</span>。于是这类元组数量也被 <span class="arithmatex">\(p\)</span> 整除；既然包含单位元组，就至少还有一个非单位 <span class="arithmatex">\(g\)</span>，其阶只能是 <span class="arithmatex">\(p\)</span>。</p>
+<p>更进一步，若 <span class="arithmatex">\(|G|=p^am\)</span>、<span class="arithmatex">\(p\nmid m\)</span>，Sylow 定理保证阶为 <span class="arithmatex">\(p^a\)</span> 的子群存在，所有这样的子群共轭，其个数 <span class="arithmatex">\(n_p\)</span> 满足 <span class="arithmatex">\(n_p\mid m\)</span> 且 <span class="arithmatex">\(n_p\equiv1\pmod p\)</span>；它唯一当且仅当正规。这组结论的完整证明需要进一步使用群作用，本页以 <a href="https://www.jmilne.org/math/CourseNotes/GT.pdf">Milne《群论》第5章</a>作为进阶阅读，不把小群枚举当成证明。</p>
+<p><span class="arithmatex">\(S_3\)</span> 中三阶子群只有 <span class="arithmatex">\(A_3\)</span>，二阶子群有三个，正好给出 <span class="arithmatex">\(n_3=1,n_2=3\)</span>。反过来，<span class="arithmatex">\(A_4\)</span> 阶为12却没有六阶子群：若有则指数2，从而产生非平凡满同态 <span class="arithmatex">\(A_4\to C_2\)</span>；所有三轮换必须映到单位元，而三轮换生成 <span class="arithmatex">\(A_4\)</span>：其余双换位也可写成两个三轮换的积，例如 <span class="arithmatex">\((12)(34)=(132)(134)\)</span>。因此这个同态只能平凡，矛盾。这说明 Lagrange 的逆命题为何失败。</p>
+<p>与物理的联系也要保留条件：Noether 定理联系的是适当可微的连续对称与作用量不变，不是任意一个有限对称操作都自动产生一条连续守恒律。在线性表示中，抽象群被送到可逆线性变换；等变模型满足 <span class="arithmatex">\(f(g\cdot x)=g\cdot f(x)\)</span>，前提是输入、输出的作用都已明确。这些都是本页“作用与同态”的继续应用。</p>
+<h2 id="6">6. 三个例子与三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(\mathbb Z_{12}\)</span> 中 <span class="arithmatex">\(\langle8\rangle=\{0,8,4\}\)</span>，阶为 <span class="arithmatex">\(12/\gcd(12,8)=3\)</span>；一般地，模 <span class="arithmatex">\(n\)</span> 元素 <span class="arithmatex">\(a\)</span> 的阶为 <span class="arithmatex">\(n/\gcd(n,a)\)</span>，因为这是使 <span class="arithmatex">\(n\mid ka\)</span> 的最小正整数 <span class="arithmatex">\(k\)</span>。</p>
+<p>模5映射 <span class="arithmatex">\(\mathbb Z\to\mathbb Z_5\)</span> 的核是 <span class="arithmatex">\(5\mathbb Z\)</span>，因此 <span class="arithmatex">\(\mathbb Z/5\mathbb Z\cong\mathbb Z_5\)</span>。3个位置染2色且只允许旋转时，Burnside 给 <span class="arithmatex">\((8+2+2)/3=4\)</span> 类，分别由 <span class="arithmatex">\(000,001,011,111\)</span> 代表。</p>
+<p><strong>题1：</strong> <span class="arithmatex">\(C_4\)</span> 与 <span class="arithmatex">\(V_4\)</span> 都有4个元素，且各有商群 <span class="arithmatex">\(C_2\)</span>，它们同构吗？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>不同构。<span class="arithmatex">\(C_4\)</span> 有阶为4的元素；<span class="arithmatex">\(V_4\)</span> 的三个非单位元均为2阶。同构保持元素阶，所以同阶、甚至拥有相同的某个商群，都不足以确定群结构。可以把 <span class="arithmatex">\(V_4\)</span> 写成 <span class="arithmatex">\(C_2\times C_2\)</span>，分量相加让每个元素加两次即为零。</p>
+</details>
+<p><strong>题2：</strong> 在 <span class="arithmatex">\(S_3\)</span>、<span class="arithmatex">\(H=\{e,(12)\}\)</span> 中，用 <span class="arithmatex">\(e\)</span> 与 <span class="arithmatex">\(s=(12)\)</span> 代表同一左陪集，分别右乘 <span class="arithmatex">\(r=(123)\)</span>。两个结果落在同一左陪集吗？为什么这不违反陪集分划定理？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(er=r\)</span>，<span class="arithmatex">\(sr=(23)\)</span>。两左陪集分别是 <span class="arithmatex">\(rH=\{r,(13)\}\)</span> 与 <span class="arithmatex">\((23)H=\{(23),r^2\}\)</span>，不同。陪集依然互不相交并覆盖 <span class="arithmatex">\(G\)</span>；失败的是从代表元乘法诱导块之间乘法的良定义性。集合分划成立与商群存在是两件事。</p>
+</details>
+<p><strong>题3：</strong> 6个环形位置染2色，分别只允许旋转、允许旋转与翻折，有多少类？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>旋转 <span class="arithmatex">\(k=0,1,\ldots,5\)</span> 的不动点数为 <span class="arithmatex">\(64,2,4,8,4,2\)</span>，和为84，所以旋转轨道数 <span class="arithmatex">\(84/6=14\)</span>。在六种翻折中，三种轴过相对顶点，有两个固定位置和两对交换位置，共4个位置循环，固定 <span class="arithmatex">\(2^4=16\)</span> 种着色；另三种轴过相对边的中点，有3个交换对，固定 <span class="arithmatex">\(2^3=8\)</span> 种。于是二面体轨道数为 <span class="arithmatex">\((84+3\cdot16+3\cdot8)/12=13\)</span>。减少的是一个互为镜像的旋转轨道对；有镜面对称的着色不能再随意除以2。</p>
+</details>
+<p>下一页：<a href="alg-abs-02-rings-fields.html">环、域与 Galois 理论</a>，把加法、乘法和保持它们的映射放在一起。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="geo-02-quadrics.html"><span class="pager-label">上一页</span>解几 II · 二次曲面</a>
