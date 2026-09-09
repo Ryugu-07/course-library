@@ -148,12 +148,9 @@ def f_projection():
     save(fig,"func-02-orthogonal-projection")
 
 def f_heat_decay():
-    x=np.linspace(0,np.pi,300); fig,ax=plt.subplots(figsize=(6.8,3.8))
-    for t,al in zip([0,0.05,0.15,0.4,1.0],np.linspace(1,.35,5)):
-        ax.plot(x,np.sin(x)*np.exp(-t)+0.5*np.sin(3*x)*np.exp(-9*t),color=ACC,alpha=al,lw=2,label=f"$t={t}$")
-    ax.set_xlabel(r"$x$"); ax.set_ylabel(r"$u(x,t)$"); ax.legend(frameon=False,fontsize=10,loc="upper right")
-    ax.set_title(r"Heat eqn $u_t=u_{xx}$: high modes decay as $e^{-n^2 t}$",fontsize=12)
-    save(fig,"pde-01-heat-decay")
+    # Preserve the audited exact-initial-data and logarithmic-modal-factor source SVG.
+    return
+
 
 def f_heat_kernel():
     x=np.linspace(-4,4,400); fig,ax=plt.subplots(figsize=(6.8,3.8))

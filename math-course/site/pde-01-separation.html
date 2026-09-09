@@ -46,37 +46,46 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 21:36</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：同一组空间模态，为什么会讲出三种时间故事？</a><ul>
-<li><a href="#pde-separation-learning-title">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板</a></li>
+<li><a href="#pde-separation-learning-title">学习层：同一组空间模态，为什么会有三种不同因子？</a><ul>
+<li><a href="#pde-separation-scenario">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板</a></li>
 <li><a href="#2">2. 先预测，再揭示</a></li>
 <li><a href="#3">3. 正式模型：分离、投影与三种因子</a></li>
 <li><a href="#4">4. 定理与边界</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 三大方程与分类</a></li>
-<li><a href="#2_1">2. 分离变量法（完整流程，一遍走通）</a></li>
-<li><a href="#3_1">3. 非齐次问题的两板斧</a></li>
-<li><a href="#4_1">4. 典型例题</a></li>
-<li><a href="#_2">跨课程实验</a></li>
+<li><a href="#1">1. 分类先看主部，适定性还要看数据空间</a></li>
+<li><a href="#2_1">2. 分离变量为什么会产生离散模态？</a><ul>
+<li><a href="#_1">误差和唯一性从同一个能量式读出</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 本例的系数、尾项和图形如何复算？</a></li>
+<li><a href="#4_1">4. 换方程、换边界，各会改变什么？</a><ul>
+<li><a href="#_2">波动：位移和速度一起守恒</a></li>
+<li><a href="#laplace">Laplace：空间渗透，不是时间演化</a></li>
+<li><a href="#neumann">Neumann 边界会多一个零模态</a></li>
+<li><a href="#_3">非齐次边界会带来新的源项</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 迁移与核对</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">偏微分 I · 三大方程与分离变量法<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>数学物理方程 = 三个方程的故事：<strong>波动</strong>（双曲）、<strong>热传导</strong>（抛物）、<strong>Laplace/位势</strong>（椭圆）——物理世界的三种基本行为（振动、扩散、平衡）各由一型代言。本页立好分类与定解问题的框架，然后完整走一遍本科 PDE 的主打算法：<strong>分离变量法</strong>——数分 IV 的 Fourier 级数在此成为解方程的引擎。</p>
+<p><strong>前置</strong>：<a href="analysis-04-series.html">Fourier级数</a>、<a href="ode-02-linear.html">高阶线性ODE</a>、<a href="func-02-hilbert.html">Hilbert空间正交投影</a>。先明确方程、边界与初值，再把同一组空间模态送进热、波和Laplace三种模型；每次对照都要分清有限投影与完整解。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="pde-separation-learning-title" class="learning-layer">
-<h2 id="_1">学习层：同一组空间模态，为什么会讲出三种时间故事？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="pde-separation-learning-title">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板<a class="headerlink" href="#pde-separation-learning-title" title="Permanent link"></a></h3>
+<h2 id="pde-separation-learning-title">学习层：同一组空间模态，为什么会有三种不同因子？<a class="headerlink" href="#pde-separation-learning-title" title="Permanent link"></a></h2>
+<h3 id="pde-separation-scenario">1. 具体情境：一根弦、一根细棒和一块边界被控制的薄板<a class="headerlink" href="#pde-separation-scenario" title="Permanent link"></a></h3>
 <p>把区间取为 <span class="arithmatex">\(0&lt;x&lt;\pi\)</span>。一根两端固定的弦被拨成</p>
 <div class="arithmatex">\[
 \varphi(x)=x(\pi-x),
@@ -111,7 +120,7 @@ b_n=\frac{2}{\pi}\int_0^\pi x(\pi-x)\sin(nx)\,dx
 <div class="arithmatex">\[
 u_N(x,t)=\sum_{n=1}^{N}b_nT_n(t)\sin(nx),
 \]</div>
-<p>而不是声称有限和已经是完整解。截断误差可以用 Parseval 型的 <span class="arithmatex">\(L^2\)</span> 尾项对账；对零初速波方程，实验另计算 <span class="arithmatex">\(E=\frac12\int_0^\pi(u_t^2+u_x^2)\,dx\)</span>，并显示 <span class="arithmatex">\(\sqrt{2E_{&gt;N}}\)</span> 的能量范数尾。图上的曲线只是这些有限量的可视证据。</p>
+<p>一般不能声称有限和已经是完整解；Laplace 预设的顶边仅为 <span class="arithmatex">\(\sin x\)</span>，是 N≥1 就已精确表示的特例。截断误差可以用 Parseval 型的 <span class="arithmatex">\(L^2\)</span> 尾项对账；对零初速波方程，实验另计算 <span class="arithmatex">\(E=\frac12\int_0^\pi(u_t^2+u_x^2)\,dx\)</span>，并显示 <span class="arithmatex">\(\sqrt{2E_{&gt;N}}\)</span> 的能量范数尾。图上的曲线只是这些有限量的可视证据。</p>
 <div class="learning-lab" data-learning-lab="pde-separation">
 <p><strong>JavaScript 失效时的静态读法：</strong>默认取 <span class="arithmatex">\(N=7,\ t=0.45,\ y=\pi/2\)</span>。下表的“有限证据”只描述当前投影；它不代替完整级数、边界正则性或极限交换的证明。</p>
 <table>
@@ -146,85 +155,135 @@ u_N(x,t)=\sum_{n=1}^{N}b_nT_n(t)\sin(nx),
 </table>
 <p>系数核对：<span class="arithmatex">\(b_1=8/\pi,\ b_2=0,\ b_3=8/(27\pi)\)</span>。因此原页例 2 的
 <span class="arithmatex">\(b_n=4(1-(-1)^n)/(\pi n^3)\)</span> 与后面的奇数项 <span class="arithmatex">\(8/(\pi n^3)\)</span> 是一致的；不能把前者误读成所有 <span class="arithmatex">\(n\)</span> 都有 <span class="arithmatex">\(8/(\pi n^3)\)</span>。</p>
-<h3 id="4">4. 定理与边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>在指定的自伴 Sturm--Liouville 边界条件下，特征函数在相应 <span class="arithmatex">\(L^2\)</span> 空间中完备，正交投影才有通往无穷级数解的理论依据。<strong>完备性来自这个理论和边界条件，不来自把 <span class="arithmatex">\(N\)</span> 调大几次。</strong>热方程的高频衰减、波方程的模态不衰减和 Laplace 的边界渗透也不是同一个“指数曲线”的三种画法：它们来自不同的演化/边界算子。实验能验证本例的系数、有限和与误差账；它不能证明 Sturm--Liouville 完备性，也不能把无阻尼波、光滑矩形边界的结论外推到阻尼、变系数、非矩形域或非齐次边界。</p>
 </div>
+<h3 id="4">4. 定理与边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>在本页有限区间上的正规自伴 Sturm–Liouville 边界条件下，特征函数在相应 <span class="arithmatex">\(L^2\)</span> 空间中完备，正交投影才有通往无穷级数解的理论依据。<strong>完备性来自这个理论和边界条件，不来自把 <span class="arithmatex">\(N\)</span> 调大几次。</strong>热方程的高频衰减、波方程的模态不衰减和 Laplace 的边界渗透也不是同一个“指数曲线”的三种画法：它们来自不同的演化/边界算子。实验能验证本例的系数、有限和与误差账；它不能证明 Sturm--Liouville 完备性，也不能把无阻尼波、给定矩形边界值问题的结论外推到阻尼、变系数、非矩形域或非齐次边界。</p>
 </section>
-<h2 id="1">1. 三大方程与分类<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1">1. 分类先看主部，适定性还要看数据空间<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
-<th>方程</th>
-<th>形式</th>
-<th>型</th>
-<th>物理</th>
-<th>性格</th>
+<th>典型方程</th>
+<th>模型行为</th>
+<th>定解数据</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>波动</td>
-<td><span class="arithmatex">\(u_{tt} = a^2 u_{xx}\)</span></td>
-<td>双曲</td>
-<td>弦振动、声波</td>
-<td>信号以有限速度传播、守恒不磨损</td>
+<td><span class="arithmatex">\(u_{tt}=c^2u_{xx}\)</span>，<span class="arithmatex">\(c&gt;0\)</span></td>
+<td>理想无阻尼波以有限速度传播</td>
+<td>初位移、初速度，加空间边界条件</td>
 </tr>
 <tr>
-<td>热传导</td>
-<td><span class="arithmatex">\(u_t = a^2 u_{xx}\)</span></td>
-<td>抛物</td>
-<td>扩散、温度</td>
-<td>瞬间抹平、不可逆、无穷传播速度</td>
+<td><span class="arithmatex">\(u_t=\kappa u_{xx}\)</span>，<span class="arithmatex">\(\kappa&gt;0\)</span></td>
+<td>扩散、正时间平滑化</td>
+<td>一个初值，加空间边界条件</td>
 </tr>
 <tr>
-<td>Laplace</td>
-<td><span class="arithmatex">\(u_{xx} + u_{yy} = 0\)</span></td>
-<td>椭圆</td>
-<td>稳态场、位势</td>
-<td>无时间、内部由边界决定（复变 I 调和函数）</td>
+<td><span class="arithmatex">\(u_{xx}+u_{yy}=0\)</span></td>
+<td>平衡，无时间变量</td>
+<td>整个边界上的适当条件</td>
 </tr>
 </tbody>
 </table>
-<p>（二阶方程 <span class="arithmatex">\(Au_{xx} + 2Bu_{xy} + Cu_{yy} + \cdots\)</span> 按判别式 <span class="arithmatex">\(B^2 - AC\)</span> 的正零负分双曲/抛物/椭圆——与圆锥曲线同名同源，高代 VI 二次型分类的 PDE 版。）</p>
-<p><strong>定解问题</strong> = 方程 + 定解条件：初始条件（波动要 <span class="arithmatex">\(u, u_t\)</span> 两个——二阶时间导；热传导要一个）+ 边界条件三型（Dirichlet 给值 / Neumann 给法向导数 / Robin 混合）。<strong>适定性</strong>（Hadamard）：存在、唯一、<strong>连续依赖数据</strong>——第三条在数值 I（条件数）与泛函 III（开映射定理）都打过照面，PDE 是它的原产地。</p>
-<h2 id="2_1">2. 分离变量法（完整流程，一遍走通）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>在两个独立变量中，实二阶主部 <span class="arithmatex">\(Au_{xx}+2Bu_{xy}+Cu_{yy}\)</span> 的矩阵为 <span class="arithmatex">\(\begin{pmatrix}A&amp;B\\B&amp;C\end{pmatrix}\)</span>。在该点主部非零的前提下，<span class="arithmatex">\(B^2-AC\)</span> 的正、负、零分别对应双曲、椭圆和退化的抛物型候选；变系数方程的型可以随位置变化。仅有判别式为零还不能保证它具有标准前向热方程的演化结构，低阶时间项及其符号也要核对。</p>
+<p>边界条件分别可给值（Dirichlet）、法向导数或通量（Neumann）、两者组合（Robin）。<strong>适定性</strong>要求存在、唯一和对数据连续依赖；“连续”必须指定范数与时间方向。前向热方程在 <span class="arithmatex">\(L^2\)</span> 中压缩误差，逆向恢复初态却可能把微小高频噪声放大，这是<a href="project-01-heat-inverse.html">热逆问题综合项目</a>的入口。</p>
+<p>无限传播速度是理想热方程在连通介质中的性质，不是声波或真实材料任意短尺度的普遍规律。Laplace 方程也不能任意同时指定全边界的值和法向导数；数据可能互不相容。</p>
+<h2 id="2_1">2. 分离变量为什么会产生离散模态？<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>考虑均匀细棒的温度偏差</p>
+<div class="arithmatex">\[
+u_t=\kappa u_{xx},\quad 0&lt;x&lt;L,\qquad
+u(0,t)=u(L,t)=0,\quad u(x,0)=\varphi(x).
+\]</div>
+<p>取非零乘积试探 <span class="arithmatex">\(u=X(x)T(t)\)</span>，在非零区域代入有 <span class="arithmatex">\(T'/(\kappa T)=X''/X=-\lambda\)</span>。更稳妥的全域说法是要求 <span class="arithmatex">\(-X''=\lambda X\)</span>、<span class="arithmatex">\(T'=-\kappa\lambda T\)</span>；最后的解跨过 <span class="arithmatex">\(X\)</span> 的零点仍成立，不需要在节点除以零。</p>
+<p>两端为零时，分部积分给</p>
+<div class="arithmatex">\[
+\lambda\int_0^L X^2dx=\int_0^L(X')^2dx\ge0.
+\]</div>
+<p><span class="arithmatex">\(\lambda=0\)</span> 迫使 <span class="arithmatex">\(X\)</span> 常数，再由边界得零解；故非平凡模态有 <span class="arithmatex">\(\lambda&gt;0\)</span>。解 <span class="arithmatex">\(X''+\lambda X=0\)</span> 并配两端边界，得到</p>
+<div class="arithmatex">\[
+\lambda_n=(n\pi/L)^2,\qquad X_n(x)=\sin(n\pi x/L),\quad n=1,2,\ldots.
+\]</div>
+<p>不同特征值的正交性也来自分部积分：将 <span class="arithmatex">\((-X_m'')X_n-X_m(-X_n'')\)</span> 积分，边界项为零，于是 <span class="arithmatex">\((\lambda_m-\lambda_n)\int X_mX_n=0\)</span>。<strong>找到正交函数还不等于证明完备。</strong> 在有限区间上，Dirichlet 算子 <span class="arithmatex">\(-d^2/dx^2\)</span> 是无界自伴算子，其逆作为 <span class="arithmatex">\(L^2\)</span> 上的算子紧且自伴，才可借紧自伴谱定理建立相应完备基；不能把微分算子本身直接称为紧算子。</p>
+<p>时间因子为 <span class="arithmatex">\(e^{-\kappa\lambda_n t}\)</span>。利用 <span class="arithmatex">\(\int_0^L X_n^2dx=L/2\)</span>，初值的正交投影给</p>
+<div class="arithmatex">\[
+b_n=\frac2L\int_0^L\varphi(x)\sin(n\pi x/L)dx,\qquad
+u(x,t)=\sum_{n=1}^{\infty}b_ne^{-\kappa(n\pi/L)^2t}\sin(n\pi x/L).
+\]</div>
+<p>若 <span class="arithmatex">\(\varphi\in L^2(0,L)\)</span>，先把级数理解为 <span class="arithmatex">\(L^2\)</span> 解，<span class="arithmatex">\(t\downarrow0\)</span> 时在 <span class="arithmatex">\(L^2\)</span> 意义恢复初值。对任意 <span class="arithmatex">\(t\ge\delta&gt;0\)</span>，指数压过求导引入的任意多项式频率因子，由 Cauchy–Schwarz 可控制各阶导数级数，因此正时间可以逐项求导。若要求连同角点 <span class="arithmatex">\((0,0),(L,0)\)</span> 的经典连续解，还需初值与边界兼容；更高正则性需要更多兼容条件。<a href="https://www.jirka.org/diffyqs/html/heateq_section.html">Lebl，热方程与分离变量</a></p>
+<h3 id="_1">误差和唯一性从同一个能量式读出<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>对光滑的齐次边界解，令 <span class="arithmatex">\(H=\frac12\int_0^Lu^2dx\)</span>，则</p>
+<div class="arithmatex">\[
+H'=\kappa\int u u_{xx}dx=-\kappa\int u_x^2dx\le0.
+\]</div>
+<p>两解之差若初值为零，这个式子迫使其一直为零，给出唯一性；对弱解可由逼近得到相应估计。Poincaré 不等式又给 <span class="arithmatex">\(H'\le-2\kappa\lambda_1H\)</span>，所以 <span class="arithmatex">\(\|u(t)\|_2\le e^{-\kappa\lambda_1t}\|\varphi\|_2\)</span>。长期主导项是<strong>初值实际激发的最小模态</strong>；若 <span class="arithmatex">\(b_1=0\)</span>，不能仍宣称第一模态必然统治。</p>
+<h2 id="3_1">3. 本例的系数、尾项和图形如何复算？<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="热方程解的高频模式先衰减" src="assets/img/pde-01-heat-decay.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>分离变量把解写成本征模式叠加，第 \(n\) 个模式按 \(e^{-n^2 t}\) 衰减——高频先被抹平，热方程天然"磨光"。</figcaption>
+<div aria-label="可横向滚动的热模态与衰减因子图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/pde-01-heat-decay.svg" alt="同一抛物线初值的有限正弦模态热扩散曲线及第一第三第七模态的衰减因子" style="width:100%;min-width:760px;max-width:none">
+</div>
+<figcaption><span class="fig-id">图 pde-01.1</span>L=π、κ=1、初值 φ=x(π−x)。左图用明确的有限奇模态叠加，金线为精确初值；右图直接比较 e⁻ᵗ、e⁻⁹ᵗ、e⁻⁴⁹ᵗ，纵轴标成对数，避免把很小的高频因子误读成零。</figcaption>
 </figure>
-<p><strong>样板问题</strong>：两端固定的弦上热传导</p>
+<p>设 <span class="arithmatex">\(I_n=\int_0^\pi x(\pi-x)\sin(nx)dx\)</span>。两次分部积分，第一步端点因 <span class="arithmatex">\(\varphi=0\)</span> 消失，第二步的正弦端点项也消失，留下</p>
 <div class="arithmatex">\[
-u_t = a^2 u_{xx},\quad u(0,t) = u(L,t) = 0,\quad u(x,0) = \varphi(x)
+I_n=-\frac1{n^2}\int_0^\pi\varphi''(x)\sin(nx)dx
+=\frac{2(1-(-1)^n)}{n^3}.
 \]</div>
-<p><strong>第一步（分离）</strong>：设 <span class="arithmatex">\(u = X(x)T(t)\)</span>，代入除以 <span class="arithmatex">\(XT\)</span>：</p>
+<p>所以 <span class="arithmatex">\(b_n=4(1-(-1)^n)/(\pi n^3)\)</span>：奇数系数 <span class="arithmatex">\(8/(\pi n^3)\)</span>，偶数零。Parseval 给出本例的两个解析总量：</p>
 <div class="arithmatex">\[
-\frac{T'}{a^2 T} = \frac{X''}{X} = -\lambda \quad(\text{左边只依赖 } t\text{、右边只依赖 } x \Rightarrow \text{同为常数})
+\|\varphi\|_2^2=\int_0^\pi x^2(\pi-x)^2dx=\frac{\pi^5}{30},\qquad
+E_{\rm wave}(0)=\frac12\int_0^\pi(\pi-2x)^2dx=\frac{\pi^3}{6}.
 \]</div>
-<p><strong>第二步（特征值问题）</strong>：<span class="arithmatex">\(X'' + \lambda X = 0,\ X(0) = X(L) = 0\)</span>。逐案讨论 <span class="arithmatex">\(\lambda \leq 0\)</span> 只有零解；<span class="arithmatex">\(\lambda &gt; 0\)</span> 时非零解要求</p>
+<p>对热或零初速波模型，当前位移截断的平方误差为</p>
 <div class="arithmatex">\[
-\lambda_n = \Big(\frac{n\pi}{L}\Big)^2, \qquad X_n = \sin\frac{n\pi x}{L}, \quad n = 1, 2, \dots
+\|u-u_N\|_2^2=\frac{32}{\pi}\sum_{\substack{n&gt;N\\n\text{ 奇}}}\frac{|T_n|^2}{n^6}.
 \]</div>
-<p>——边界条件把参数<strong>量子化</strong>成离散谱（"为什么吉他弦只发特定音高"的数学答案；这个"算子 + 边界条件 ⇒ 离散特征值与正交特征函数"的结构是 <strong>Sturm–Liouville 理论</strong>，其合法性由泛函 III 紧自伴算子谱定理背书）。</p>
-<p><strong>第三步（时间部分）</strong>：对每个 <span class="arithmatex">\(\lambda_n\)</span>：<span class="arithmatex">\(T_n' = -a^2\lambda_n T_n \Rightarrow T_n = e^{-a^2\lambda_n t}\)</span>（热方程各模态<strong>指数衰减</strong>，高频衰得快——<span class="arithmatex">\(\lambda_n \sim n^2\)</span>：细节先消失，大势最后平——扩散的本性）。</p>
-<p><strong>第四步（叠加 + 配初值）</strong>：</p>
+<p>实验从 <span class="arithmatex">\(N+1\)</span> 直接累加至 <span class="arithmatex">\(M=512\)</span>，不以两个几乎相等的总量相减。对剩余项使用保守界</p>
 <div class="arithmatex">\[
-u(x, t) = \sum_{n=1}^{\infty} b_n\, e^{-a^2(n\pi/L)^2 t}\, \sin\frac{n\pi x}{L}, \qquad b_n = \frac{2}{L}\int_0^L \varphi(x)\sin\frac{n\pi x}{L}dx
+\frac{32}{\pi}\sum_{n&gt;M}\frac{|T_n|^2}{n^6}
+\le\frac{32}{5\pi M^5}
+\begin{cases}e^{-2(M+1)^2t}&amp;\text{热},\\1&amp;\text{波}.\end{cases}
 \]</div>
-<p>系数由初值的 <strong>Fourier 正弦展开</strong>给出（正交性 + <span class="arithmatex">\(L^2\)</span> 投影——数分 IV/泛函 II 在此上岗执勤）。</p>
-<p><strong>方法总纲</strong>：分离 → 特征值问题（空间）→ 时间模态 → 正交展开配初值。换方程只换第三步（波动方程给 <span class="arithmatex">\(T_n = \cos/\sin(a\sqrt{\lambda_n}\,t)\)</span>——<strong>振荡不衰减</strong>，模态是驻波、音乐里的泛音列；Laplace 方程给指数/双曲函数）。换边界条件只换第二步的特征函数系（Neumann 给余弦系）。</p>
-<h2 id="3_1">3. 非齐次问题的两板斧<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<ul>
-<li><strong>非齐次方程</strong>（有源项）：特征函数展开法——把源与解都按 <span class="arithmatex">\(\{X_n\}\)</span> 展开，逐模态解 ODE（"无穷多个一维问题"）；</li>
-<li><strong>非齐次边界</strong>：先减去一个满足边界的简单函数（常取线性/稳态解），化归齐次——"平移标准化"套路。</li>
-</ul>
-<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（波动方程分离变量）</strong> 两端固定弦，初位移 <span class="arithmatex">\(\varphi(x) = \sin\frac{\pi x}{L}\)</span>、初速为零：只激发 <span class="arithmatex">\(n = 1\)</span> 模态，<span class="arithmatex">\(u = \sin\frac{\pi x}{L}\cos\frac{a\pi t}{L}\)</span>——纯基音驻波，节点不动、整体呼吸。</p>
-<p><strong>例 2（热方程完整流程）</strong> <span class="arithmatex">\(L = \pi, a = 1\)</span>，<span class="arithmatex">\(\varphi(x) = x(\pi - x)\)</span>：<span class="arithmatex">\(b_n = \frac{2}{\pi}\int_0^\pi x(\pi - x)\sin nx\,dx = \frac{4(1 - (-1)^n)}{\pi n^3}\)</span>（奇数 <span class="arithmatex">\(n\)</span> 存活），<span class="arithmatex">\(u = \sum_{n \text{ 奇}}\frac{8}{\pi n^3}e^{-n^2 t}\sin nx\)</span>。<span class="arithmatex">\(t\)</span> 稍大后 <span class="arithmatex">\(n = 1\)</span> 一家独大——<strong>扩散的长期行为由最小特征值统治</strong>（与 Markov 链的谱隙、幂法收敛同一句话，随机过程 III/数值 II 呼应）。</p>
-<p><strong>例 3（Laplace 方程矩形域）</strong> <span class="arithmatex">\(u_{xx} + u_{yy} = 0\)</span> 于 <span class="arithmatex">\([0,a]\times[0,b]\)</span>，三边为零、<span class="arithmatex">\(u(x, b) = f(x)\)</span>：分离变量给 <span class="arithmatex">\(u = \sum c_n \sin\frac{n\pi x}{a}\sinh\frac{n\pi y}{a}\)</span>，<span class="arithmatex">\(c_n\)</span> 由顶边的正弦展开定——椭圆方程"边界数据渗透内部"的解析样本。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>这里连偶数也加入了上界，因此无需猜测遗漏奇数项的大小。有限尾和开平方给下端，有限尾和加上此界再开平方给上端；端点仍用浮点计算，图中相同的舍入文字不表示数学区间宽度严格为零。极小热尾通过对数求和后再开方，避免平方先下溢。</p>
+<p>金线是精确初值 <span class="arithmatex">\(x(\pi-x)\)</span>（Laplace 模式则为顶边 <span class="arithmatex">\(\sin x\)</span>），不是高阶截断偷偷冒充的真解；它用于显示演化与初态差异，<strong>蓝金线差并不是当前截断误差</strong>。当前误差读上述尾项账本。</p>
+<h2 id="4_1">4. 换方程、换边界，各会改变什么？<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<h3 id="_2">波动：位移和速度一起守恒<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>固定端波方程 <span class="arithmatex">\(u_{tt}=c^2u_{xx}\)</span>，初位移 <span class="arithmatex">\(\varphi\)</span>、初速 <span class="arithmatex">\(\psi\)</span>，展开为</p>
+<div class="arithmatex">\[
+u(x,t)=\sum_{n\ge1}\left[b_n\cos(c\sqrt{\lambda_n}t)
++\frac{d_n}{c\sqrt{\lambda_n}}\sin(c\sqrt{\lambda_n}t)\right]X_n(x),
+\]</div>
+<p>其中 <span class="arithmatex">\(b_n,d_n\)</span> 分别是两个初值的正弦系数。若 <span class="arithmatex">\(\varphi\in H_0^1(0,L)\)</span>、<span class="arithmatex">\(\psi\in L^2(0,L)\)</span>，可按能量解理解该级数；波演化不像热演化那样自动平滑初值，要得到更高阶经典导数须另加正则性和兼容条件。实验只取 <span class="arithmatex">\(c=1,L=\pi,\psi=0\)</span>。单看位移 <span class="arithmatex">\(L^2\)</span> 范数可以起伏；能量应为 <span class="arithmatex">\(E=\frac12\int(u_t^2+c^2u_x^2)dx\)</span>，由方程分部积分得 <span class="arithmatex">\(E'=c^2[u_tu_x]_0^L=0\)</span>。固定边界令端点速度为零。有限模态同样精确守恒，实验能量范数尾用解析总能量 <span class="arithmatex">\(\pi^3/6\)</span> 减去保留模态的能量，而非把512项称为无限总量。</p>
+<h3 id="laplace">Laplace：空间渗透，不是时间演化<a class="headerlink" href="#laplace" title="Permanent link"></a></h3>
+<p>在矩形 <span class="arithmatex">\(0&lt;x&lt;L,0&lt;y&lt;H\)</span>，三边零、顶边 <span class="arithmatex">\(g(x)\)</span>。若 <span class="arithmatex">\(g_n\)</span> 是顶边正弦系数，则</p>
+<div class="arithmatex">\[
+u(x,y)=\sum_{n\ge1}g_n\frac{\sinh(n\pi y/L)}{\sinh(n\pi H/L)}\sin(n\pi x/L).
+\]</div>
+<p>分母确保顶边恢复 <span class="arithmatex">\(g\)</span>；它不能被略掉后仍把 <span class="arithmatex">\(g_n\)</span> 称为同一个 Fourier 系数。要求四个角连续还需顶边数据与两侧零值兼容。本实验 <span class="arithmatex">\(L=H=\pi,g=\sin x\)</span>，只有第一模态被激发，故 <strong>N≥1 已经是完整解</strong>；其余传递因子虽然可计算，却对应零系数。中线衰减为 <span class="arithmatex">\(\sinh(\pi/2)/\sinh\pi=1/[2\cosh(\pi/2)]\)</span>。</p>
+<h3 id="neumann">Neumann 边界会多一个零模态<a class="headerlink" href="#neumann" title="Permanent link"></a></h3>
+<p>绝热热边界 <span class="arithmatex">\(u_x(0,t)=u_x(L,t)=0\)</span> 给余弦系，包含常数 <span class="arithmatex">\(n=0\)</span>、特征值零。平均温度守恒，高频衰减后通常趋向初始平均值，不能照搬 Dirichlet 的“趋零”。在连通光滑有界域上，稳态纯 Neumann 问题 <span class="arithmatex">\(\Delta u=f,\partial_nu=g\)</span> 必须满足 <span class="arithmatex">\(\int_\Omega f=\int_{\partial\Omega}g\)</span>，且解只在加常数意义下唯一；这由散度定理和齐次能量法直接看出。</p>
+<h3 id="_3">非齐次边界会带来新的源项<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对热方程 <span class="arithmatex">\(u_t=\kappa u_{xx}+s\)</span>，边界值为 <span class="arithmatex">\(a(t),b(t)\)</span> 时，可取 <span class="arithmatex">\(\ell(x,t)=(1-x/L)a(t)+(x/L)b(t)\)</span>，令 <span class="arithmatex">\(v=u-\ell\)</span>。虽然 <span class="arithmatex">\(v\)</span> 的边界齐次，方程却变为 <span class="arithmatex">\(v_t=\kappa v_{xx}+s-\ell_t\)</span>，初值也要减去 <span class="arithmatex">\(\ell(x,0)\)</span>。源项展开为 <span class="arithmatex">\(f_n(t)\)</span> 后，模态满足</p>
+<div class="arithmatex">\[
+v_n'+\kappa\lambda_nv_n=f_n(t),\qquad
+v_n(t)=e^{-\kappa\lambda_nt}v_n(0)+\int_0^t e^{-\kappa\lambda_n(t-s)}f_n(s)ds.
+\]</div>
+<p>只有边界随时间不变时，上面这个线性提升的 <span class="arithmatex">\(\ell_t\)</span> 才消失。“减一个函数”不能把它产生的项忘掉。</p>
+<h2 id="5">5. 迁移与核对<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<ol>
+<li>固定端热方程 <span class="arithmatex">\(L=\pi,\kappa=1\)</span>，初值 <span class="arithmatex">\(\sin3x\)</span>。写解和 <span class="arithmatex">\(L^2\)</span> 衰减率，解释第一模态为什么没有主导。再把边界改为绝热，初值改为 <span class="arithmatex">\(2+\cos3x\)</span>，长期极限是什么？</li>
+<li>本例抛物线初值的 <span class="arithmatex">\(N=1\)</span> 初始 <span class="arithmatex">\(L^2\)</span> 尾与零初速波能量范数尾分别是多少？它们为何不是同一种误差？</li>
+<li>求 <span class="arithmatex">\(u_t=u_{xx}\)</span>、<span class="arithmatex">\(u(0,t)=t,u(\pi,t)=0\)</span> 经线性边界提升后的源项和正弦系数。同时求矩形顶边为 <span class="arithmatex">\(\sin3x\)</span>、其他三边零时中线的衰减因子。</li>
+</ol>
+<details class="answer" markdown="1">
+<summary>展开核对零模态、两种尾与边界源项</summary>
+
+<p><strong>1.</strong> <span class="arithmatex">\(u=e^{-9t}\sin3x\)</span>，<span class="arithmatex">\(\|u\|_2=\sqrt{\pi/2}\,e^{-9t}\)</span>。<span class="arithmatex">\(b_1=0\)</span>，最低被激发频率为3。绝热对照为 <span class="arithmatex">\(u=2+e^{-9t}\cos3x\)</span>，极限为2；常数零模态不衰减。</p>
+<p><strong>2.</strong> 第一模态位移平方范数为 <span class="arithmatex">\((\pi/2)(8/\pi)^2=32/\pi\)</span>，所以初始位移尾为 <span class="arithmatex">\(\sqrt{\pi^5/30-32/\pi}\)</span>。第一模态波能量为 <span class="arithmatex">\(16/\pi\)</span>，能量范数尾为 <span class="arithmatex">\(\sqrt{2(\pi^3/6-16/\pi)}\)</span>。后者控制速度与空间梯度，对高频多加了频率权重；它在无阻尼波演化中守恒，位移尾则随时间变化。</p>
+<p><strong>3.</strong> 取 <span class="arithmatex">\(\ell=t(1-x/\pi)\)</span>，<span class="arithmatex">\(v_t=v_{xx}-(1-x/\pi)\)</span>。源项系数为 <span class="arithmatex">\(f_n=-(2/\pi)\int_0^\pi(1-x/\pi)\sin(nx)dx=-2/(\pi n)\)</span>，不能设成零。Laplace 对照只有第三模态，中线因子是 <span class="arithmatex">\(\sinh(3\pi/2)/\sinh(3\pi)=1/[2\cosh(3\pi/2)]\)</span>，比第一模态渗透更弱。</p>
+</details>
 <hr />
-<p><em>下一页：换一批更"物理"的武器——特征线、d'Alembert 行波、热核与 Fourier 变换，并在热核处与扩散模型正面相认。</em></p>
-<h2 id="_2">跨课程实验<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>把热方程倒过来用，会发生什么？<a href="project-01-heat-inverse.html">综合项目：从温度读数反推初态</a> 用同一组数据连接模态衰减、SVD 与正则化，并提供可复现实验。</p>
+<p><em>继续：<a href="pde-02-characteristics-kernels.html">特征线、行波与热核</a>；<a href="project-01-heat-inverse.html">从温度读数反推初态</a>。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="func-03-operators.html"><span class="pager-label">上一页</span>泛函 III · 有界算子与三大定理</a>
