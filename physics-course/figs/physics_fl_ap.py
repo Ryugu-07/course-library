@@ -7,59 +7,23 @@ rng = np.random.default_rng(4)
 
 # ══════════ 流体线 ══════════
 
+def _preserve_reviewed_svg(name):
+    """The reviewed SVG is source artwork; rebuilding sites copies it directly."""
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
+    source = Path(__file__).resolve().parents[1] / "images" / (name + ".svg")
+    ET.parse(source)  # Fail explicitly if the authoritative source is missing/invalid.
+    print(f"Preserved reviewed source SVG: {source.name}")
+
+
 def fl01_re():
-    """不同 Re 下圆柱绕流形态（示意流线）"""
-    fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.3))
-    titles = [r"$Re\ll1$: creeping, reversible",
-              r"$Re\sim10^2$: Kármán vortex street",
-              r"$Re\gtrsim10^5$: turbulent wake"]
-    for ax, t, kind in zip(axes, titles, range(3)):
-        ax.add_patch(plt.Circle((0, 0), 0.5, fc=ACC2, ec=ACC, lw=1.6, zorder=5))
-        ys = np.linspace(-2.0, 2.0, 13)
-        x = np.linspace(-3, 5, 400)
-        for y0 in ys:
-            if kind == 0:                       # 对称爬流
-                y = y0*(1 + 0.35/np.maximum((x**2+y0**2), .3))
-                y = np.where(x < 0, y, y0*(1 + 0.35/np.maximum((x**2+y0**2), .3)))
-            elif kind == 1:                     # 涡街
-                y = y0 + np.where(x > 0.6,
-                                  0.42*np.exp(-(x-0.6)/6)*np.sin(2.2*x - 1.6*np.sign(y0))
-                                  * np.exp(-(y0/1.5)**2), 0)
-            else:                               # 湍流尾迹
-                y = y0 + np.where(x > 0.6,
-                                  0.30*np.exp(-(y0/1.6)**2)*(
-                                      np.sin(6*x)*0.4 + rng.normal(0, .10, x.size).cumsum()*.05), 0)
-            m = np.abs(y) < 2.6
-            ax.plot(x[m], y[m], color=ACC, lw=1.0, alpha=.75)
-        ax.set_xlim(-3, 5); ax.set_ylim(-2.6, 2.6)
-        ax.set_xticks([]); ax.set_yticks([])
-        ax.set_title(t, color=INK, fontsize=10.5)
-        for s in ax.spines.values():
-            s.set_visible(False)
-    fig.tight_layout()
-    save(fig, "fl-01-continuum-re")
+    """Legacy entry point: the lecture now uses a nozzle momentum diagram."""
+    _preserve_reviewed_svg("fl-01-continuum-re")
 
 
 def fl02_drag():
-    """圆球 Cd-Re 曲线，含阻力危机"""
-    Re = np.logspace(-1, 6.6, 900)
-    Cd = 24/Re + 6/(1+np.sqrt(Re)) + 0.4
-    crisis = 1 - 0.78/(1+np.exp(-(np.log10(Re)-5.5)*7))
-    Cd = Cd*crisis
-    fig, ax = plt.subplots(figsize=(6.8, 4.3))
-    ax.loglog(Re, Cd, color=ACC, lw=2.6)
-    ax.loglog(Re[Re < 2], 24/Re[Re < 2], "--", color=GREEN, lw=1.8,
-              label=r"Stokes:  $C_D=24/Re$")
-    ax.axvspan(2e5, 6e5, color=RED, alpha=.10)
-    ax.annotate("drag crisis\n(laminar→turbulent BL)", xy=(4e5, 0.12),
-                xytext=(6e2, 0.06), fontsize=9.5, color=RED,
-                arrowprops=dict(arrowstyle="->", color=RED))
-    ax.set_xlabel(r"Reynolds number  $Re$")
-    ax.set_ylabel(r"drag coefficient  $C_D$")
-    ax.set_title("Sphere drag across nine decades of Re", color=INK, fontsize=12.5)
-    ax.legend(frameon=False, fontsize=10)
-    ax.set_ylim(0.05, 200)
-    save(fig, "fl-02-viscous-drag")
+    """Legacy entry point: sphere traction + collocation Blasius profile."""
+    _preserve_reviewed_svg("fl-02-viscous-drag")
 
 
 def fl03_spectrum():
