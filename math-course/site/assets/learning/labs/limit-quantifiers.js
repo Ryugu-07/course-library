@@ -135,7 +135,7 @@
     ];
 
     var STYLE_TEXT = [
-      ".lq-lab{--lq-blue:var(--cl-blue,#315f9d);--lq-gold:var(--cl-gold,#9b6a12);--lq-green:var(--cl-green,#39734d);--lq-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
+      ".lq-lab{--lq-blue:#315f9d;--lq-gold:#9b6a12;--lq-green:#39734d;--lq-red:#b64335;max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
       ".lq-lab *,.lq-lab *::before,.lq-lab *::after{box-sizing:border-box;}.lq-lab [hidden]{display:none!important;}",
       ".lq-lab h3,.lq-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.lq-lab h3{font-size:1.18rem;}.lq-lab h4{margin-top:16px;font-size:1rem;}",
       ".lq-lab p{margin:.65em 0;}.lq-lab .lq-note,.lq-lab .lq-feedback,.lq-lab .lq-boundary{color:var(--fg-soft);font-size:13px;line-height:1.7;}",
@@ -146,11 +146,12 @@
       ".lq-lab .lq-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.lq-lab .lq-actions>*{flex:1 1 155px;}.lq-lab .lq-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.lq-lab .lq-pass,.lq-lab .lq-ok{color:var(--lq-green);}.lq-lab .lq-warn,.lq-lab .lq-fail{color:var(--lq-red);}",
       ".lq-lab .lq-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.lq-lab .lq-control{display:grid;gap:5px;min-width:0;}.lq-lab .lq-control label{color:var(--fg-soft);font-size:13px;font-weight:700;}.lq-lab .lq-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
       ".lq-lab .lq-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:12px 0;}.lq-lab .lq-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.lq-lab .lq-metric.lq-blue{border-top-color:var(--lq-blue);}.lq-lab .lq-metric.lq-gold{border-top-color:var(--lq-gold);}.lq-lab .lq-metric.lq-green{border-top-color:var(--lq-green);}.lq-lab .lq-metric.lq-red{border-top-color:var(--lq-red);}.lq-lab .lq-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.lq-lab .lq-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".lq-lab .lq-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lq-lab .lq-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px;}.lq-lab .lq-chart{min-width:0;}.lq-lab .lq-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.lq-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.lq-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lq-lab .lq-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lq-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lq-lab th,.lq-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lq-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lq-lab .lq-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lq-green);background:var(--bg);font-size:13px;line-height:1.7;}",
+      ".lq-lab .lq-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.lq-lab .lq-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:12px;}.lq-lab .lq-chart{min-width:0;}.lq-lab .lq-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;overflow-y:hidden;}.lq-lab svg{display:block;width:100%;min-width:650px;height:auto;color:var(--fg);}.lq-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.lq-lab .lq-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.lq-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.lq-lab th,.lq-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.lq-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.lq-lab .lq-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--lq-green);background:var(--bg);font-size:13px;line-height:1.7;}",
       ".lq-lab .lq-ledger-details{margin-top:14px;}.lq-lab .lq-ledger-details summary{padding:10px 0;min-height:44px;cursor:pointer;font-size:14px;line-height:1.6;font-weight:700;}",
       "@media(max-width:760px){.lq-lab .lq-controls,.lq-lab .lq-charts{grid-template-columns:minmax(0,1fr);}.lq-lab .lq-choice-row{grid-template-columns:minmax(0,1fr);}}",
       "@media(max-width:420px){.lq-lab .lq-predict{padding-left:11px;padding-right:11px;}.lq-lab th,.lq-lab td{padding-left:5px;padding-right:5px;}}",
       "@media(prefers-reduced-motion:reduce){.lq-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
+      ,'[data-theme="dark"] .lq-lab{--lq-blue:#8ab4f8;--lq-gold:#dfb971;--lq-green:#88c6a0;--lq-red:#ed9995;}'
     ].join("\n");
 
     function finite(value) {
@@ -176,7 +177,7 @@
     }
 
     function positiveEpsilon(value) {
-      var epsilon = Number(value);
+      var epsilon = value;
       if (!finite(epsilon) || epsilon <= 0) throw new Error("epsilon must be positive");
       return epsilon;
     }
@@ -190,11 +191,14 @@
 
     function evaluate(modelId, x) {
       var selected = modelById(modelId);
-      return selected.f(Number(x));
+      if (!finite(x)) throw new RangeError("x must be finite");
+      if (x === 0 && ["reciprocal", "oscillatory"].indexOf(modelId) !== -1) throw new RangeError("function undefined at zero");
+      return selected.f(x);
     }
 
     function certificate(modelId, ruleId) {
       var selected = modelById(modelId);
+      ruleById(ruleId);
       if (selected.id === "linear" && ["eps-over-3", "min-one", "local-square"].indexOf(ruleId) !== -1) {
         return {
           level: "theorem",
@@ -202,11 +206,11 @@
           text: "线性误差恒为 3|x−2|；该规则给出 δ ≤ ε/3。"
         };
       }
-      if (selected.id === "square" && ruleId === "local-square") {
+      if (selected.id === "square" && ["local-square", "min-one"].indexOf(ruleId) !== -1) {
         return {
           level: "theorem",
           label: "定理证书",
-          text: "先锁定 |x−1| < 1/2，再用 |x+1| < 5/2 控制乘积。"
+          text: ruleId === "local-square" ? "先锁定 |x−1| < 1/2，再用 |x+1| < 5/2 控制乘积。" : "先锁定 |x−1| < 1，再用 |x+1| < 3；δ ≤ ε/3 对所有 ε 都足够。"
         };
       }
       if (selected.kind !== "two-sided") {
@@ -217,15 +221,31 @@
         };
       }
       return {
-        level: "finite",
-        label: "仅有限探针",
-        text: "当前规则没有在本模型上登记为定理证书；探针通过不等于量词证明。"
+        level: "invalid-rule",
+        label: "不是全 ε 证书",
+        text: selected.id === "square" && ruleId === "eps-over-3" ? "取 ε=6、δ=2、x=2.9，误差7.41>6；当前较小 ε 通过也不能证明全 ε 规则。" : "该规则不能对所有 ε 成立；例如 ε=0.3 时，误差上确界超过 ε，可在右侧邻域内构造反例。"
       };
+    }
+
+    function probeTotal(count) {
+      var n = count === undefined ? DEFAULTS.probeCount : count;
+      if (!Number.isInteger(n) || n < 3 || n > 1000) throw new RangeError("probe count must be an integer from 3 to 1000");
+      return n;
+    }
+
+    function currentCertificate(modelId, delta, epsilon) {
+      var selected = modelById(modelId);
+      if (selected.limit === null) return { valid: null, supremum: null, witness: null };
+      var critical = modelId === "linear" ? epsilon / 3 : epsilon / (Math.sqrt(1 + epsilon) + 1);
+      var valid = delta <= critical;
+      var h = valid ? null : (critical + delta) / 2;
+      return { valid: valid, supremum: modelId === "linear" ? 3 * delta : delta * (2 + delta),
+        witness: h === null ? null : { x: selected.x0 + h, error: modelId === "linear" ? 3 * h : h * (2 + h) } };
     }
 
     function probeFractions(count) {
       var rows = [];
-      var total = Math.max(3, Math.floor(Number(count) || 6));
+      var total = probeTotal(count);
       for (var i = 1; i <= total; i += 1) {
         var fraction = i / (total + 1);
         rows.push(-fraction);
@@ -239,14 +259,19 @@
       var delta = candidateDelta(ruleId, epsilon);
       var rows = probeFractions(count).map(function (fraction) {
         var x = selected.x0 + fraction * delta;
+        if (x === selected.x0 || !finite(x) || !(Math.abs(x - selected.x0) < delta)) throw new RangeError("punctured probe is not representable at this scale");
         var value = selected.f(x);
-        var error = selected.limit === null || !finite(value) ? null : Math.abs(value - selected.limit);
+        if (!finite(value)) throw new RangeError("probe output is not representable");
+        var offset = fraction * delta;
+        var error = selected.limit === null ? null : selected.id === "linear" ? 3 * Math.abs(offset) : Math.abs(offset * (2 + offset));
+        var boundary = error !== null && Math.abs(error - epsilon) <= 32 * Number.EPSILON * Math.max(error, epsilon);
         return {
           fraction: fraction,
           x: x,
           value: value,
           error: error,
-          passes: error === null ? null : error < epsilon
+          boundary: boundary,
+          passes: error === null || boundary ? null : error < epsilon
         };
       });
       return {
@@ -268,13 +293,16 @@
 
     function sideEvidence(modelId, delta, count) {
       var selected = modelById(modelId);
-      var total = Math.max(4, Math.floor(Number(count) || 6));
+      if (!finite(delta) || delta <= 0) throw new RangeError("delta must be positive and finite");
+      var total = probeTotal(count);
       var left = [];
       var right = [];
       for (var i = 1; i <= total; i += 1) {
         var distance = delta * (i / (total + 1));
-        left.push(selected.f(selected.x0 - distance));
-        right.push(selected.f(selected.x0 + distance));
+        var xl = selected.x0 - distance, xr = selected.x0 + distance;
+        var yl = selected.f(xl), yr = selected.f(xr);
+        if (xl === selected.x0 || xr === selected.x0 || !finite(yl) || !finite(yr)) throw new RangeError("side probe is not representable");
+        left.push(yl); right.push(yr);
       }
       var leftRange = range(left);
       var rightRange = range(right);
@@ -299,9 +327,10 @@
       var modelId = settings.modelId || DEFAULTS.modelId;
       var ruleId = settings.ruleId || DEFAULTS.ruleId;
       var epsilon = positiveEpsilon(settings.epsilon === undefined ? DEFAULTS.epsilon : settings.epsilon);
+      if (epsilon < 1e-8 || epsilon > 10) throw new RangeError("numeric display epsilon range is 1e-8 to 10; analytic rules have no such restriction");
       var selected = modelById(modelId);
-      var sampled = probe(modelId, ruleId, epsilon, settings.probeCount || DEFAULTS.probeCount);
-      var sides = sideEvidence(modelId, sampled.delta, settings.probeCount || DEFAULTS.probeCount);
+      var sampled = probe(modelId, ruleId, epsilon, settings.probeCount === undefined ? DEFAULTS.probeCount : settings.probeCount);
+      var sides = sideEvidence(modelId, sampled.delta, settings.probeCount === undefined ? DEFAULTS.probeCount : settings.probeCount);
       return {
         model: selected,
         rule: ruleById(ruleId),
@@ -311,6 +340,7 @@
         passed: sampled.passed,
         failed: sampled.failed,
         side: sides,
+        current: currentCertificate(modelId, sampled.delta, epsilon),
         certificate: certificate(modelId, ruleId),
         isTheorem: certificate(modelId, ruleId).level === "theorem"
       };
@@ -323,7 +353,7 @@
       var places = digits === undefined ? 3 : digits;
       if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(places);
       var text = value.toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
+      return places === 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function element(doc, tag, attrs, children) {
@@ -394,7 +424,7 @@
 
     function plotSvg(doc, data, uid) {
       var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 520 360",
+        viewBox: "0 0 520 400",
         role: "img",
         "aria-labelledby": uid + "-title " + uid + "-desc"
       });
@@ -445,6 +475,7 @@
           chart.appendChild(svgNode(doc, "text", {
             x: margin.left - 28, y: labelY + 7, "text-anchor": "end", "font-size": "22"
           }, tick.label));
+          chart.appendChild(svgNode(doc, "text", { x: margin.left - 28, y: labelY + 25, "text-anchor": "end", "font-size": "12" }, formatNumber(tick.value, 4)));
         });
       } else {
         [bounds.yMin, 0, bounds.yMax].forEach(function (value) {
@@ -468,9 +499,24 @@
           "text-anchor": direction < 0 ? "end" : direction > 0 ? "start" : "middle", "font-size": "22"
         }, direction < 0 ? "x₀ − δ" : direction > 0 ? "x₀ + δ" : "x₀（排除）"));
       });
+      chart.appendChild(svgNode(doc, "text", { x: 260, y: 380, "text-anchor": "middle", "font-size": "12" }, "x₀ = " + formatNumber(selected.x0) + "；δ = " + formatNumber(data.delta, 4) + "；ε = " + formatNumber(data.epsilon, 4)));
       var marks = svgNode(doc, "g", { "clip-path": "url(#" + uid + "-plot-clip)" });
       var curve = [];
-      for (var i = 0; i <= 280; i += 1) {
+      var unresolved = 0;
+      if (selected.kind === "oscillatory") {
+        unresolved = Math.min((bounds.xMax - bounds.xMin) / 6, Math.max(data.delta / 10, .02));
+        // Uniform phase sampling outside the unresolved center avoids inventing slow beats.
+        [-1, 1].forEach(function (side) {
+          curve.push({ x: 0, y: NaN });
+          var umax = 1 / unresolved, umin = 1 / Math.max(Math.abs(bounds.xMin), Math.abs(bounds.xMax));
+          var segments = Math.ceil((umax - umin) * 24 / Math.PI);
+          for (var j = 0; j <= segments; j += 1) {
+            var u = umin + (umax - umin) * j / segments;
+            curve.push({ x: side / u, y: Math.sin(side * u) });
+          }
+        });
+        marks.appendChild(svgNode(doc, "rect", { x: mapX(-unresolved), y: mapY(1), width: mapX(unresolved)-mapX(-unresolved), height: mapY(-1)-mapY(1), fill: "var(--lq-gold)", "fill-opacity": ".22" }));
+      } else for (var i = 0; i <= 280; i += 1) {
         var x = bounds.xMin + (bounds.xMax - bounds.xMin) * i / 280;
         // Break explicitly at the midpoint; floating arithmetic can miss x === x₀.
         curve.push({ x: x, y: i === 140 ? NaN : selected.f(x) });
@@ -535,6 +581,8 @@
           text: choice.label,
           onclick: function () {
             refs.state.predictions[key] = choice.value;
+            refs.state.revealed = false;
+            refs.controls.hidden = true; refs.results.hidden = true;
             renderPrediction(refs);
           }
         });
@@ -574,19 +622,20 @@
       refs.epsilonInput.value = String(state.epsilon);
       refs.epsilonOutput.textContent = formatNumber(state.epsilon, 2);
       refs.probeInput.value = String(state.probeCount);
-      refs.summary.textContent = data.certificate.label + "： " + data.certificate.text;
+      refs.summary.textContent = "对所有 ε 的规则：" + data.certificate.label + "。" + data.certificate.text + (data.current.witness ? " 当前反例 x=" + formatNumber(data.current.witness.x, 6) + "，误差=" + formatNumber(data.current.witness.error, 6) + " > ε。" : "");
       refs.summary.className = "lq-interpretation " + (data.isTheorem ? "lq-ok" : "lq-warn");
       replaceChildren(refs.metrics, [
         metric(refs.doc, "当前模型", data.model.label, "lq-blue"),
         metric(refs.doc, "候选 δ", formatNumber(data.delta, 4), "lq-gold"),
+        metric(refs.doc, "当前 ε 的解析检验", data.current.valid === null ? "无共同 L" : data.current.valid ? "所有邻域点满足" : "存在反例", data.current.valid ? "lq-green" : "lq-red"),
         metric(refs.doc, "有限通过", data.model.limit === null ? "不适用（无共同 L）" : data.passed + "/" + data.probes.length, data.model.limit === null ? "lq-blue" : data.failed ? "lq-red" : "lq-green"),
         metric(refs.doc, "左侧范围", data.side.leftRange.min === null ? "—" : formatNumber(data.side.leftRange.min, 3) + " … " + formatNumber(data.side.leftRange.max, 3), "lq-blue"),
         metric(refs.doc, "右侧范围", data.side.rightRange.min === null ? "—" : formatNumber(data.side.rightRange.min, 3) + " … " + formatNumber(data.side.rightRange.max, 3), "lq-blue")
       ]);
       replaceChildren(refs.chart, [
         element(refs.doc, "h4", {}, "函数、误差带与有限探针"),
-        element(refs.doc, "div", { className: "lq-chart-frame" }, plotSvg(refs.doc, data, refs.uid)),
-        element(refs.doc, "p", { className: "lq-note" }, "蓝色竖带：0 < |x−x₀| < δ；金色横带：|f(x)−L| < ε。边界线不包含在内；空心点表示本次极限检验跳过 x₀。边缘三角表示超出纵轴，精确读数见表。" + (data.model.limit === null ? " 本模型没有共同目标 L，因此不画目标误差带，也不评通过率。" : ""))
+        element(refs.doc, "div", { className: "lq-chart-frame", tabindex: "0", "aria-label": "极限图，可用方向键横向滚动" }, plotSvg(refs.doc, data, refs.uid)),
+        element(refs.doc, "p", { className: "lq-note" }, "蓝色竖带：0 < |x−x₀| < δ；金色横带：|f(x)−L| < ε。边界线不包含在内；空心点表示本次极限检验跳过 x₀。边缘三角表示超出纵轴，数值读数见表。" + (data.model.limit === null ? " 本模型没有共同目标 L，因此不画目标误差带，也不评通过率。" : "") + (data.model.kind === "oscillatory" ? " 中央金色区域未解析：函数仍在 −1 与 1 间振荡，留白或色带都不是函数趋向零；两侧曲线只画分辨到的相位。" : ""))
       ]);
       var rows = data.probes.map(function (row, index) {
         return element(refs.doc, "tr", {}, [
@@ -594,7 +643,7 @@
           element(refs.doc, "td", {}, formatNumber(row.x, 5)),
           element(refs.doc, "td", {}, formatNumber(row.value, 5)),
           element(refs.doc, "td", {}, row.error === null ? "—" : formatNumber(row.error, 5)),
-          element(refs.doc, "td", { className: row.passes === null ? "" : row.passes ? "lq-ok" : "lq-fail" }, row.passes === null ? "不适用（无共同 L）" : row.passes ? "通过" : "未通过")
+          element(refs.doc, "td", { className: row.passes === null ? "" : row.passes ? "lq-ok" : "lq-fail" }, row.passes === null ? (row.boundary ? "数值接近严格边界" : "不适用（无共同 L）") : row.passes ? "通过" : "未通过")
         ]);
       });
       rows.push(element(refs.doc, "tr", {}, [
@@ -608,7 +657,7 @@
       refs.boundary.textContent =
         "证书与证据分开读：定理级状态来自模型的解析假设；上图和表格只用了 " +
         data.probes.length +
-        " 个穿孔探针。若切换到 " +
+        " 个穿孔探针；误差与 ε 在浮点舍入量级内接近时标为边界未决，不冒充严格通过或失败。解析检验使用误差上确界的推导。若切换到 " +
         data.model.label +
         "，" +
         data.model.boundary;
@@ -675,7 +724,7 @@
       RULES.forEach(function (item) {
         refs.ruleSelect.appendChild(element(doc, "option", { value: item.id }, item.label));
       });
-      refs.epsilonInput = element(doc, "input", { type: "range", min: "0.05", max: "1.2", step: "0.05", value: String(DEFAULTS.epsilon), "aria-label": "epsilon" });
+      refs.epsilonInput = element(doc, "input", { type: "range", min: "0.05", max: "10", step: "0.05", value: String(DEFAULTS.epsilon), "aria-label": "epsilon" });
       refs.epsilonOutput = element(doc, "output", {}, formatNumber(DEFAULTS.epsilon, 2));
       refs.probeInput = element(doc, "input", { type: "number", min: "3", max: "10", step: "1", value: String(DEFAULTS.probeCount), "aria-label": "有限探针对数" });
       var modelControl = element(doc, "div", { className: "lq-control" }, [element(doc, "label", {}, "模型"), refs.modelSelect]);
@@ -700,7 +749,7 @@
       refs.chart = element(doc, "div", { className: "lq-chart" });
       charts.appendChild(refs.chart);
       results.appendChild(charts);
-      var ledger = element(doc, "div", { className: "lq-ledger" });
+      var ledger = element(doc, "div", { className: "lq-ledger", tabindex: "0", "aria-label": "探针表，可用方向键横向滚动" });
       var table = element(doc, "table", { "aria-label": "epsilon-delta 穿孔邻域探针账本" });
       table.appendChild(element(doc, "caption", {}, "有限探针的 x、f(x)、误差与通过状态"));
       var head = element(doc, "thead");
@@ -762,6 +811,7 @@
         };
         refs.state = state;
         render();
+        refs.delta[0].node.focus();
       });
       refs.modelSelect.addEventListener("change", function () {
         state.modelId = refs.modelSelect.value;
@@ -843,7 +893,7 @@
       ["x₀ − δ", "x₀ + δ", "L + ε", "L − ε"].forEach(function (label) {
         assert(svgNodes.some(function (node) { return node.tag === "text" && node.textContent === label; }), "diagram labels " + label);
       });
-      assert(svgNodes.filter(function (node) { return node.tag === "text"; }).every(function (node) { return Number(node.attrs["font-size"]) * 292 / 520 >= 12; }), "diagram labels stay at least 12 px in a 292 px mobile frame");
+      assert(svgNodes.filter(function (node) { return node.tag === "text"; }).every(function (node) { return Number(node.attrs["font-size"]) * 650 / 520 >= 12; }), "diagram labels stay at least 12 px in the 650 px keyboard-scrollable diagram");
       svgNodes = [];
       plotSvg(svgDoc, analyze({ epsilon: 0.0001 }), "regression-tiny-epsilon");
       var bandLabels = svgNodes.filter(function (node) { return node.tag === "text" && ["L + ε", "L", "L − ε"].indexOf(node.textContent) !== -1; });

@@ -2,6 +2,8 @@
 
 > 整座分析大厦立在一块地基上：**实数没有"洞"**（完备性）。本页先立地基（六大等价定理），再建两层楼：数列极限与函数极限，收尾于连续函数的四大定理。
 
+> **先修与去向**：先会解实数不等式、理解集合与“任意/存在”。本页之后读[一元微分](analysis-02-differential.html)与[一元积分](analysis-03-integral.html)；一般度量空间中的完备性见[Banach 空间](func-01-banach.html)。
+
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="analysis01-learning-title">
@@ -28,7 +30,7 @@ $$
 \forall\varepsilon>0\ \exists\delta>0\ \forall x\quad(\cdots)
 $$
 
-是定义的骨架。把它换成“对每个 \(x\) 都能找到一个 \(\delta\)”会把挑战者和应答者的角色颠倒，命题也随之变弱。
+是定义的骨架。若允许 $\delta$ 依赖被检查的 $x\ne x_0$，就可取 $\delta=|x-x_0|/2$，使前件永远不成立；这样的“证明”对任意目标 $L$ 都会空真。因此应先给 $\varepsilon$，再固定一个 $\delta$，最后接受所有合法 $x$ 的检验。
 
 ### 2. 跟随练习：规则、洞口与单侧极限
 
@@ -52,16 +54,24 @@ $$
 
 若先限制 \(\delta\le1/2\)，则 \(|x+1|<5/2\)，取 \(\delta=\min(1/2,\varepsilon/3)\) 就是一个保守但完整的 \(\varepsilon\)-\(\delta\) 证明。这里的“先控制邻域，再控制函数因子”正是一般连续性证明的工作流。
 
+还可以用更大的邻域 $|x-1|<1$，此时 $|x+1|<3$，所以 $\delta=\min(1,\varepsilon/3)$ 也对所有 $\varepsilon>0$ 有效。只选 $\delta=\varepsilon/3$ 则需要区分**当前输入**与**整条规则**：在 $|x-1|<\delta$ 上，误差上确界是 $2\delta+\delta^2$；因此当前 $\delta$ 合格当且仅当
+
+$$
+\delta\le\sqrt{1+\varepsilon}-1=\frac{\varepsilon}{\sqrt{1+\varepsilon}+1}.
+$$
+
+等号也有效，因为上确界在这个开邻域内不取到。代入 $\delta=\varepsilon/3$ 得当前条件 $0<\varepsilon\le3$。如果只测到 $1.2$，所有这些参数都可通过，却仍不能推出“任意 $\varepsilon$”的规则。将滑块调到 $6$，并取 $\varepsilon=6,\delta=2,x=2.9$，误差 $7.41>6$。实验新增“当前 ε 的解析检验”，其依据是上述公式；有限探针另列，不能相互替代。
+
 反例则要拆成不同失败机制。\(\operatorname{sgn}(x)\) 的左极限为 \(-1\)、右极限为 \(1\)，所以两侧不能拼成同一个 \(L\)；\(1/x\) 的两侧还分别向 \(-\infty\)、\(+\infty\) 发散；\(\sin(1/x)\) 在 \(0\) 附近反复摆动，任意小的穿孔邻域都能找到输出相差很大的点。函数在 \(x_0\) 的取值本身不影响极限，但穿孔邻域内两侧的行为决定极限。
 
 <div class="learning-lab" data-learning-lab="limit-quantifiers" markdown="1">
 
-**JavaScript 失效时的静态 fallback：**默认取 \(f(x)=3x+1\)、\(x_0=2\)、\(L=7\)、\(\varepsilon=0.30\)，选择 \(\delta=\varepsilon/3=0.10\)。在 \(0<|x-2|<0.10\) 内有 \(|f(x)-7|=3|x-2|<0.30\)；有限探针只能复核这条不等式的若干点。反例账本如下：
+**无 JavaScript 时的静态读法：**默认取 \(f(x)=3x+1\)、\(x_0=2\)、\(L=7\)、\(\varepsilon=0.30\)，选择 \(\delta=\varepsilon/3=0.10\)。在 \(0<|x-2|<0.10\) 内有 \(|f(x)-7|=3|x-2|<0.30\)；有限探针只能复核这条不等式的若干点。反例账本如下：
 
 | 模型 | 左侧读数 | 右侧读数 | 两侧极限 | 结论边界 |
 |---|---:|---:|---|---|
 | \(3x+1\) at \(2\) | \(7\) | \(7\) | 相同 | \(\delta=\varepsilon/3\) 是定理证书 |
-| \(x^2\) at \(1\) | \(1\) | \(1\) | 相同 | 需先限制 \(|x-1|<1/2\) 再控因子 |
+| \(x^2\) at \(1\) | \(1\) | \(1\) | 相同 | 需先限制 \(\lvert x-1\rvert<1/2\) 再控因子 |
 | \(\operatorname{sgn}(x)\) at \(0\) | \(-1\) | \(1\) | 不同 | 单侧存在不推出双侧存在 |
 | \(1/x\) at \(0\) | \(-\infty\) | \(+\infty\) | 非有限 | 不存在有限极限 |
 
@@ -69,11 +79,13 @@ $$
 
 </div>
 
+交互计算有单独的浮点边界：图表接口只接受 $10^{-8}\le\varepsilon\le10$，滑块使用 $0.05$ 到 $10$；这些数值范围不是极限定义的限制。探针误差接近严格边界时显示“数值接近严格边界”，须回到解析式判断。振荡模型中央金色带标出未解析区域，不能把少量连线或中央留白读成函数趋零。
+
 ### 4. 换一个函数，自己建立证书
 
 让 $g(x)=5x-2$、$x_0=1$、目标 $L=3$。不沿用仪器的“三倍”参数，独立回答：当 $\varepsilon=0.20$ 时，$\delta=0.05$ 是否足够？请给出一个穿孔邻域内的反例，或证明所有点都安全。再写出对任意 $\varepsilon>0$ 有效的规则。
 
-<details markdown="1">
+<details class="answer" markdown="1">
 <summary>写完后核对推导</summary>
 
 $|g(x)-3|=5|x-1|$，所以 $\delta=\varepsilon/5$ 足够。对 $\varepsilon=0.20$，可取 $\delta=0.04$。候选 $0.05$ 不安全：取 $x=1.045$，有 $0<|x-1|=0.045<0.05$，但输出误差 $0.225>0.20$。注意等号 $\delta=\varepsilon/5$ 完全可以使用，因为定义中的输入距离是严格小于 $\delta$。
@@ -93,7 +105,7 @@ $|g(x)-3|=5|x-1|$，所以 $\delta=\varepsilon/5$ 足够。对 $\varepsilon=0.20
 
 **定义（上确界）** 非空集 $S \subset \mathbb{R}$ 的上确界 $\sup S$ 是最小的上界：1. $\forall x \in S,\ x \leq \sup S$；2. $\forall \varepsilon > 0,\ \exists x \in S,\ x > \sup S - \varepsilon$。下确界 $\inf S$ 对偶。
 
-以下六条**两两等价**，共同刻画"实数轴无洞"（$\mathbb{Q}$ 上全部失效——这是背它们的最好方式：想想 $\{x \in \mathbb{Q}: x^2 < 2\}$ 如何逐条破坏它们）：
+下面先工作在 Archimedes 有序数域的背景中（自然数无上界），闭区间都非空且端点属于该域；不能把 Cauchy 完备性单独搬到一般非 Archimedes 域后仍宣称同一等价链。在此背景下，以下六条**两两等价**，共同刻画"实数轴无洞"（在 $\mathbb Q$ 中，用有理数从两侧夹逼 $\sqrt2$ 可构造失败实例；极限、聚点与覆盖都须相对于 $\mathbb Q$ 来理解）：
 
 | 定理 | 陈述 | 典型用途 |
 |---|---|---|
@@ -101,7 +113,7 @@ $|g(x)-3|=5|x-1|$，所以 $\delta=\varepsilon/5$ 足够。对 $\varepsilon=0.20
 | **单调有界定理** | 单调递增有上界的数列必收敛（$\to \sup$） | 递推数列收敛性 |
 | **闭区间套定理** | $[a_{n+1},b_{n+1}] \subset [a_n,b_n]$ 且长度 $\to 0$，则交集为单点 | 二分法构造、存在性证明 |
 | **聚点定理（B–W）** | 有界无穷点集必有聚点；即**有界数列必有收敛子列** | 紧性论证的核心引擎 |
-| **Cauchy 收敛准则** | 数列收敛 $\iff$ $\forall\varepsilon\,\exists N:\ m,n>N \Rightarrow \lvert a_m - a_n\rvert < \varepsilon$ | **不知道极限值**也能判收敛 |
+| **Cauchy 收敛准则** | 数列收敛 $\iff$ $\forall\varepsilon>0\,\exists N:\ m,n>N \Rightarrow \lvert a_m - a_n\rvert < \varepsilon$ | **不知道极限值**也能判收敛 |
 | **有限覆盖定理（H–B）** | 闭区间的任意开覆盖必有有限子覆盖 | "局部性质 → 整体性质"的桥 |
 
 **证明环路思路**（复习时能画出这个环即算过关）：确界 ⇒ 单调有界（递增有上界数列收敛到其上确界，用确界的第 2 条验证 ε-N）⇒ 闭区间套（左端点递增有上界）⇒ 聚点（对有界数列所在区间反复二分，每次选含无穷多项的一半，区间套出聚点）⇒ Cauchy（Cauchy 列有界 → 有收敛子列 → Cauchy 性把全列拖向子列极限）⇒ 确界（对上界集合二分构造）。有限覆盖与闭区间套互推（反证：无有限子覆盖则二分出一列"坏区间"套向一点，该点的覆盖元即矛盾）。
@@ -112,7 +124,7 @@ $|g(x)-3|=5|x-1|$，所以 $\delta=\varepsilon/5$ 足够。对 $\varepsilon=0.20
 
 <figure class="plot" markdown="1">
 ![epsilon-N 极限定义的几何](assets/img/analysis-01-epsilon-limit.svg)
-<figcaption><span class="fig-id">图 1.1</span>\(\epsilon\)-\(N\) 定义的几何：无论把误差带 \(L\pm\epsilon\) 收得多窄，总能找到门槛 \(N\)，其后所有项都落进带内。</figcaption>
+<figcaption><span class="fig-id">图 1.1</span>具体取 \(a_n=2+(-1)^n/n\)，则 \(|a_n-2|=1/n\)。图示 \(\varepsilon=1/4,N=4\)，\(n=4\) 恰在边界但不属“\(n>N\)”；对所有 \(n>4\) 都有严格误差界。一般取 \(N=\lceil1/\varepsilon\rceil\) 即可，证明覆盖图外所有后续项。</figcaption>
 </figure>
 
 **定义（$\varepsilon$-$N$）** $\lim_{n\to\infty} a_n = A \iff \forall \varepsilon > 0,\ \exists N,\ \forall n > N:\ |a_n - A| < \varepsilon$。
@@ -130,30 +142,32 @@ $$
 
 **定理（Stolz，$\tfrac{*}{\infty}$ 型）** $\{b_n\}$ 严格递增趋于 $+\infty$，若 $\lim \dfrac{a_{n+1} - a_n}{b_{n+1} - b_n} = L$（可为 $\pm\infty$），则 $\lim \dfrac{a_n}{b_n} = L$。——数列版洛必达，处理平均值型极限的首选（例：$a_n \to a \Rightarrow \frac{a_1 + \cdots + a_n}{n} \to a$，取 $b_n = n$ 秒杀）。
 
-**上极限与下极限**：$\varlimsup a_n = \lim_{n\to\infty} \sup_{k \geq n} a_k$（最大的子列极限）。收敛 $\iff \varlimsup = \varliminf$ 有限。用途：不假设收敛时也能操作（级数根值判别法的严格形式用的就是它）。
+**上极限与下极限**：$\varlimsup a_n = \lim_{n\to\infty} \sup_{k \geq n} a_k$（在扩展实数中取最大的子列极限；若数列有界，该极限有限）。收敛 $\iff \varlimsup = \varliminf$ 有限。用途：不假设收敛时也能操作（级数根值判别法的严格形式用的就是它）。
 
 ## 3. 函数极限
 
+**定义域先行。**设 $f:D\to\mathbb R$，$x_0$ 是 $D$ 的聚点，即每个穿孔邻域都含 $D$ 中的点。以下所有 $x$ 均限于 $D$。缺少聚点条件时，极限不等式可能对任意 $A$ 空真，唯一性便无从谈起。
+
 **定义（$\varepsilon$-$\delta$）** $\lim_{x \to x_0} f(x) = A \iff \forall\varepsilon>0\ \exists\delta>0:\ 0 < |x - x_0| < \delta \Rightarrow |f(x) - A| < \varepsilon$。（注意挖掉 $x_0$ 本身；单侧极限、$x\to\infty$ 版本同构。）
 
-**定理（Heine 归结原则）** $\lim_{x\to x_0} f(x) = A \iff$ 对**任何**以 $x_0$ 为极限的数列 $x_n \neq x_0$ 都有 $f(x_n) \to A$。——函数极限与数列极限的换乘站；证函数极限不存在的利器（找两条数列路径极限不同，如 $\sin\frac1x$ 在 $0$ 处）。
+**定理（Heine 归结原则）** $\lim_{x\to x_0} f(x) = A \iff$ 对**任何**以 $x_0$ 为极限、满足 $x_n\in D\setminus\{x_0\}$ 的数列 都有 $f(x_n) \to A$。——函数极限与数列极限的换乘站；证函数极限不存在的利器（找两条数列路径极限不同，如 $\sin\frac1x$ 在 $0$ 处）。
 
 **两个重要极限**：
 
 $$
-\lim_{x\to 0}\frac{\sin x}{x} = 1 \ (\text{几何夹逼: } \sin x < x < \tan x), \qquad
+\lim_{x\to 0}\frac{\sin x}{x} = 1 \ (\text{弧度制，先对 }0<x<\pi/2:\ \sin x < x < \tan x), \qquad
 \lim_{x\to 0}(1 + x)^{1/x} = e
 $$
 
 **无穷小的阶**：$f = o(g)$ 指 $f/g \to 0$；$f = O(g)$ 指 $f/g$ 有界；$f \sim g$ 指 $f/g \to 1$。**等价无穷小替换**（乘除可换、加减慎换）速查（$x \to 0$）：
 
 $$
-\sin x \sim x,\quad \tan x \sim x,\quad 1 - \cos x \sim \tfrac{x^2}{2},\quad \ln(1+x) \sim x,\quad e^x - 1 \sim x,\quad (1+x)^\alpha - 1 \sim \alpha x
+\sin x \sim x,\quad \tan x \sim x,\quad 1 - \cos x \sim \tfrac{x^2}{2},\quad \ln(1+x) \sim x,\quad e^x - 1 \sim x,\quad (1+x)^\alpha - 1 \sim \alpha x\quad(\alpha\ne0\text{ 为固定实数})
 $$
 
 ## 4. 连续函数
 
-**定义** $f$ 在 $x_0$ 连续 $\iff \lim_{x\to x_0} f(x) = f(x_0)$。**间断点分类**：第一类（左右极限都存在：相等为可去、不等为跳跃）、第二类（至少一侧极限不存在，如振荡 $\sin\frac1x$、无穷 $\frac1x$）。
+**定义** 对 $x_0\in D$，连续指 $\forall\varepsilon>0\ \exists\delta>0\ \forall x\in D$，$|x-x_0|<\delta\Rightarrow|f(x)-f(x_0)|<\varepsilon$。当 $x_0$ 还是 $D$ 的聚点时，才可等价写成 $\lim_{x\to x_0}f(x)=f(x_0)$；孤立点按相对定义自动连续。以下间断点分类用于区间内部：**间断点分类**：第一类（左右有限极限都存在：相等但与点值不符或该点未定义为可去，不等为跳跃）、第二类（至少一侧极限不存在，如振荡 $\sin\frac1x$、无穷 $\frac1x$）。
 
 **闭区间上连续函数四大定理**（全部依赖完备性，开区间/不连续均有反例）：
 
@@ -161,9 +175,11 @@ $$
 
 **定理 2（最值）** $f \in C[a,b]$ 必取到最大最小值。*思路*：设 $M = \sup f$（定理 1 + 确界原理），取 $f(x_n) \to M$，B–W 子列收敛到 $\xi$，连续性得 $f(\xi) = M$。
 
-**定理 3（介值 / 零点存在）** $f(a)f(b) < 0 \Rightarrow \exists \xi \in (a,b),\ f(\xi) = 0$；一般地连续函数取遍两端点值之间的一切值。*思路*：二分法 + 闭区间套（每次选变号的一半），或对 $\{x: f(x) < 0\}$ 用确界。
+**定理 3（介值 / 零点存在）** 在 $f\in C[a,b]$、$a<b$ 下，$f(a)f(b) < 0 \Rightarrow \exists \xi \in (a,b),\ f(\xi) = 0$；一般地连续函数取遍两端点值之间的一切值。*思路*：二分法 + 闭区间套（每次选变号的一半），或对 $\{x: f(x) < 0\}$ 用确界。
 
-**定理 4（Cantor 一致连续）** $f \in C[a,b] \Rightarrow f$ 在 $[a,b]$ **一致连续**（$\delta$ 只依赖 $\varepsilon$ 不依赖位置：$\forall\varepsilon\,\exists\delta:\ |x'-x''|<\delta \Rightarrow |f(x')-f(x'')|<\varepsilon$）。*思路*：反证 + B–W，或有限覆盖（局部连续的 $\delta$-邻域覆盖 $[a,b]$，取有限子覆盖统一 $\delta$——"局部到整体"的教科书示范）。
+**定理 4（Cantor 一致连续）** $f \in C[a,b] \Rightarrow f$ 在 $[a,b]$ **一致连续**（$\delta$ 只依赖 $\varepsilon$ 不依赖位置：$\forall\varepsilon\,\exists\delta:\ |x'-x''|<\delta \Rightarrow |f(x')-f(x'')|<\varepsilon$）。*思路*：反证 + B–W，或用下述“半径先减半”的有限覆盖证明。
+
+具体地，给定 $\varepsilon>0$，对每个中心 $c$ 选 $r_c>0$，使 $|x-c|<r_c$ 时 $|f(x)-f(c)|<\varepsilon/2$。取半径 $r_c/2$ 的相对邻域覆盖 $[a,b]$，再选有限子覆盖，令 $\delta=\min_i r_{c_i}/2>0$。若 $x$ 落在第 $i$ 个半径减半的邻域内且 $|y-x|<\delta$，则 $|y-c_i|<r_{c_i}$；三角不等式给出 $|f(y)-f(x)|<\varepsilon$。不能只说“把几个局部半径取最小”，还要保证两个待比点落在同一个受控大邻域中。
 
 对比记忆：$f(x) = \frac1x$ 在 $(0,1)$ 连续但**不一致连续**（洞被挤压）；$\sqrt{x}$ 在 $[0,+\infty)$ 一致连续（导数无界≠不一致连续）。
 
@@ -176,6 +192,12 @@ $$
 *解*：Stolz，$\dfrac{a_{n+1}-a_n}{b_{n+1}-b_n} = \dfrac{1/(n+1)}{\ln(1 + 1/n)} \to \dfrac{1/(n+1)}{1/n} \to 1$。
 
 **例 3（Heine 判不存在）** 证明 $\lim_{x\to 0}\sin\frac1x$ 不存在：取 $x_n = \frac{1}{2n\pi} \to 0$ 与 $y_n = \frac{1}{2n\pi + \pi/2} \to 0$，则 $\sin\frac{1}{x_n} = 0$、$\sin\frac{1}{y_n} = 1$，两条路径极限不同。$\blacksquare$
+
+## 定义与证明来源
+
+- [Jiří Lebl：连续函数](https://www.jirka.org/ra/html/sec_cont.html)：定义域、聚点与相对连续性；可对照孤立点为何不应机械套用穿孔极限。
+- [UC Davis：实分析主题提要](https://www.math.ucdavis.edu/~hunter/m127a_19/summary_topics_127a.pdf)：有序域、确界与 Archimedes 性。
+- [Todorov 与 Vernaeve：Completeness of Ordered Fields](https://arxiv.org/abs/1101.5652)：不同完备性概念的等价背景和非 Archimedes 情形边界。
 
 ---
 
