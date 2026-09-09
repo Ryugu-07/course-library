@@ -25,37 +25,37 @@
   var PRESETS = [
     {
       id: "k4-hamiltonian-no-euler",
-      label: "K4：Hamilton 但不 Euler",
+      label: "K4：四点完全图",
       matrix: [[0, 1, 1, 1], [1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0]],
-      layout: [[90, 70], [230, 70], [230, 205], [90, 205]]
+      layout: [[220, 35], [50, 235], [390, 235], [220, 170]]
     },
     {
       id: "path-4",
-      label: "P4：树 + Euler 通路",
+      label: "P4：四点路径",
       matrix: [[0, 1, 0, 0], [1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0]],
       layout: [[55, 140], [165, 70], [285, 210], [405, 140]]
     },
     {
       id: "cycle-5",
-      label: "C5：Euler + Hamilton",
+      label: "C5：五点环",
       matrix: [[0, 1, 0, 0, 1], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [1, 0, 0, 1, 0]],
       layout: [[120, 45], [245, 90], [220, 225], [70, 225], [45, 90]]
     },
     {
       id: "k5",
-      label: "K5：边数证书直接否平面",
+      label: "K5：五点完全图",
       matrix: [[0, 1, 1, 1, 1], [1, 0, 1, 1, 1], [1, 1, 0, 1, 1], [1, 1, 1, 0, 1], [1, 1, 1, 1, 0]],
       layout: [[135, 35], [255, 85], [225, 220], [75, 220], [45, 85]]
     },
     {
       id: "k33",
-      label: "K3,3：二部边数证书否平面",
+      label: "K3,3：完全二部图",
       matrix: [[0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 1], [1, 1, 1, 0, 0, 0], [1, 1, 1, 0, 0, 0], [1, 1, 1, 0, 0, 0]],
       layout: [[80, 55], [80, 140], [80, 225], [310, 55], [310, 140], [310, 225]]
     },
     {
       id: "petersen",
-      label: "Petersen：边数通过但精确否平面",
+      label: "Petersen：十点三正则图",
       matrix: [
         [0, 1, 0, 0, 1, 1, 0, 0, 0, 0],
         [1, 0, 1, 0, 0, 0, 1, 0, 0, 0],
@@ -75,7 +75,8 @@
   var STYLE_TEXT = [
     ".gcl-lab{--gcl-blue:var(--cl-blue,#315f9d);--gcl-gold:var(--cl-gold,#9b6a12);--gcl-green:var(--cl-green,#39734d);--gcl-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
     ".gcl-lab *,.gcl-lab *::before,.gcl-lab *::after{box-sizing:border-box}.gcl-lab [hidden]{display:none!important}.gcl-lab h3,.gcl-lab h4{margin:0;color:var(--fg);letter-spacing:0}.gcl-lab h3{font-size:1.18rem}.gcl-lab h4{font-size:1rem}.gcl-lab p{margin:.65rem 0}.gcl-note,.gcl-feedback{color:var(--fg-soft);font-size:13px;line-height:1.7}.gcl-lab button,.gcl-lab select{font:inherit}.gcl-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.gcl-lab button:hover{border-color:var(--gcl-blue)}.gcl-lab button[aria-pressed=true],.gcl-lab button.gcl-primary{border-color:var(--gcl-blue);background:var(--gcl-blue);color:#fff;font-weight:750}.gcl-lab button:focus-visible,.gcl-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.gcl-lab select{width:100%;min-height:44px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}",
-    ".gcl-controls{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end;margin:12px 0}.gcl-control label{display:block;color:var(--fg-soft);font-size:13px;margin-bottom:4px}.gcl-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--gcl-gold);background:var(--bg)}.gcl-gate fieldset{min-width:0;margin:0 0 11px;padding:0;border:0}.gcl-gate fieldset:last-child{margin-bottom:0}.gcl-gate legend{margin-bottom:7px;font-weight:700;line-height:1.5}.gcl-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.gcl-choice-grid.gcl-wide{grid-template-columns:repeat(4,minmax(0,1fr))}.gcl-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.gcl-actions>*{flex:1 1 180px}.gcl-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.gcl-warn{color:var(--gcl-red)}.gcl-pass{color:var(--gcl-green)}.gcl-result{margin-top:14px}.gcl-layout{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.5fr);gap:14px;align-items:start}.gcl-frame{border:1px solid var(--border);background:var(--bg);padding:6px;min-width:0}.gcl-svg{display:block;width:100%;height:auto}.gcl-svg text{font-family:inherit;fill:var(--fg-soft,#6f6a60);font-size:12px}.gcl-svg .gcl-axis{stroke:var(--border);stroke-width:1}.gcl-svg .gcl-edge{stroke:var(--gcl-blue);stroke-width:2}.gcl-svg .gcl-node{fill:var(--bg);stroke:var(--gcl-gold);stroke-width:2}.gcl-svg .gcl-node-label{fill:var(--fg);font-weight:700;text-anchor:middle;dominant-baseline:middle}.gcl-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 10px}.gcl-metric{min-width:0;border-top:2px solid var(--gcl-blue);padding:7px 8px;background:var(--bg)}.gcl-metric span{display:block;color:var(--fg-soft);font-size:12px}.gcl-metric strong{display:block;font-size:1.05rem;overflow-wrap:anywhere}.gcl-table-wrap{overflow-x:auto;max-width:100%;margin-top:12px}.gcl-table{border-collapse:collapse;width:100%;min-width:680px;font-size:12px}.gcl-table caption{text-align:left;color:var(--fg-soft);padding:5px 0}.gcl-table th,.gcl-table td{border:1px solid var(--border);padding:6px 7px;text-align:left;vertical-align:top}.gcl-table th{background:var(--block-bg);color:var(--fg)}.gcl-certificate{border-left:3px solid var(--gcl-green);padding-left:10px;font-size:13px}.gcl-certificate.gcl-blocked{border-color:var(--gcl-red)}",
+    ".gcl-controls{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end;margin:12px 0}.gcl-control label{display:block;color:var(--fg-soft);font-size:13px;margin-bottom:4px}.gcl-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--gcl-gold);background:var(--bg)}.gcl-gate fieldset{min-width:0;margin:0 0 11px;padding:0;border:0}.gcl-gate fieldset:last-child{margin-bottom:0}.gcl-gate legend{margin-bottom:7px;font-weight:700;line-height:1.5}.gcl-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.gcl-choice-grid.gcl-wide{grid-template-columns:repeat(4,minmax(0,1fr))}.gcl-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.gcl-actions>*{flex:1 1 180px}.gcl-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.gcl-warn{color:var(--gcl-red)}.gcl-pass{color:var(--gcl-green)}.gcl-result{margin-top:14px}.gcl-layout{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.5fr);gap:14px;align-items:start}.gcl-frame{border:1px solid var(--border);background:var(--bg);padding:6px;min-width:0}.gcl-svg{display:block;width:440px;min-width:440px;height:auto}.gcl-frame{overflow-x:auto}.gcl-svg text{font-family:inherit;fill:var(--fg-soft,#6f6a60);font-size:12px}.gcl-svg .gcl-axis{stroke:var(--border);stroke-width:1}.gcl-svg .gcl-edge{stroke:var(--gcl-blue);stroke-width:2}.gcl-svg .gcl-node{fill:var(--bg);stroke:var(--gcl-gold);stroke-width:2}.gcl-svg .gcl-node-label{fill:var(--fg);font-weight:700;text-anchor:middle;dominant-baseline:middle}.gcl-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 10px}.gcl-metric{min-width:0;border-top:2px solid var(--gcl-blue);padding:7px 8px;background:var(--bg)}.gcl-metric span{display:block;color:var(--fg-soft);font-size:12px}.gcl-metric strong{display:block;font-size:1.05rem;overflow-wrap:anywhere}.gcl-table-wrap{overflow-x:auto;max-width:100%;margin-top:12px}.gcl-table{border-collapse:collapse;width:100%;min-width:680px;font-size:12px}.gcl-table caption{text-align:left;color:var(--fg-soft);padding:5px 0}.gcl-table th,.gcl-table td{border:1px solid var(--border);padding:6px 7px;text-align:left;vertical-align:top}.gcl-table th{background:var(--block-bg);color:var(--fg)}.gcl-certificate{border-left:3px solid var(--gcl-green);padding-left:10px;font-size:13px}.gcl-certificate.gcl-blocked{border-color:var(--gcl-red)}",
+    "[data-theme=dark] .gcl-lab{--gcl-blue:#85b9ef;--gcl-gold:#e6be68;--gcl-green:#83c69c;--gcl-red:#ed9f94}.gcl-frame:focus-visible,.gcl-table-wrap:focus-visible{outline:3px solid var(--gcl-blue)}",
     "@media(max-width:760px){.gcl-layout{grid-template-columns:minmax(0,1fr)}.gcl-choice-grid.gcl-wide{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){.gcl-controls{grid-template-columns:minmax(0,1fr)}.gcl-choice-grid,.gcl-choice-grid.gcl-wide,.gcl-actions{grid-template-columns:minmax(0,1fr);display:grid}.gcl-actions>*{width:100%}.gcl-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.gcl-frame{padding:3px}}@media(prefers-reduced-motion:reduce){.gcl-lab *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}"
   ].join("");
 
@@ -95,6 +96,7 @@
     var errors = [];
     if (!Array.isArray(matrix) || matrix.length === 0) return { valid: false, errors: ["matrix must be a nonempty array"] };
     var n = matrix.length;
+    for(var k=0;k<n;k++){if(!Object.prototype.hasOwnProperty.call(matrix,k)) errors.push("missing row "+k);else if(Array.isArray(matrix[k]))for(var j=0;j<n;j++)if(!Object.prototype.hasOwnProperty.call(matrix[k],j))errors.push("missing entry "+k+","+j);}
     matrix.forEach(function (row, i) {
       if (!Array.isArray(row) || row.length !== n) { errors.push("row " + i + " is not square"); return; }
       row.forEach(function (value, j) {
@@ -205,23 +207,8 @@
       }
       return false;
     }
-    return { exists: search(), path: searchFoundPath(path, matrix, used) };
-  }
-
-  function searchFoundPath(path, matrix, used) {
-    if (path.length === matrix.length && matrix[path[path.length - 1]][0] === 1) return path.slice();
-    var n = matrix.length, answer = null;
-    function visit() {
-      if (path.length === n) { if (matrix[path[path.length - 1]][0] === 1) answer = path.slice(); return; }
-      if (answer) return;
-      var previous = path[path.length - 1];
-      for (var next = 1; next < n && !answer; next += 1) {
-        if (used[next] || matrix[previous][next] !== 1) continue;
-        used[next] = true; path.push(next); visit(); path.pop(); used[next] = false;
-      }
-    }
-    visit();
-    return answer || [];
+    var exists=search();
+    return {exists:exists,path:exists?path.slice():[]};
   }
 
   function cyclicOrders(neighbors) {
@@ -335,7 +322,7 @@
 
   function analyzeGraph(matrix) {
     var validation = validateAdjacency(matrix);
-    if (!validation.valid) return { validation: validation, matrix: Array.isArray(matrix) ? cloneMatrix(matrix) : [] };
+    if (!validation.valid) return { validation: validation, matrix: Array.isArray(matrix) ? matrix.map(function(row){return Array.isArray(row)?row.slice():row;}) : [] };
     var degrees = degreeSequence(matrix), edges = edgeList(matrix), comps = components(matrix), euler = eulerCertificate(matrix), hamilton = hamiltonianCycle(matrix), bip = isBipartite(matrix), planarity = planarityCertificate(matrix), n = matrix.length;
     var connected = comps.length === 1;
     var tree = { isTree: connected && edges.length === n - 1 && !hasCycle(matrix), connected: connected, edgeCount: edges.length, expectedEdges: Math.max(0, n - 1), acyclic: !hasCycle(matrix) };
@@ -346,11 +333,11 @@
       { check: "度 / 握手", result: degrees.join(", ") + "；2E=" + (2 * edges.length), role: "度和为偶是必要条件", evidence: "\u03a3deg=2|E|；必要不充分。" },
       { check: "连通", result: connected ? "是" : "否", role: "精确 BFS/DFS", evidence: comps.length + " 个连通分量：" + comps.map(function (part) { return "{" + part.join(",") + "}"; }).join(" ") },
       { check: "树", result: tree.isTree ? "是" : "否", role: "连通 + E=n-1 为充要", evidence: "E=" + edges.length + "，n-1=" + Math.max(0, n - 1) + "；无圈=" + (tree.acyclic ? "是" : "否") },
-      { check: "Euler", result: euler.hasCircuit ? "回路" : (euler.hasTrail ? "仅通路" : "无通路/回路"), role: "奇度数判据为充要", evidence: "奇度顶点=" + (euler.oddVertices.length ? euler.oddVertices.join(",") : "0 个") + "；通路要求奇点数为0或2；边支撑连通=" + (euler.connectedOnEdges ? "是" : "否") },
+      { check: "Euler", result: euler.hasCircuit ? "回路" : (euler.hasTrail ? "仅通路" : "无通路/回路"), role: "边支撑连通 + 奇度判据为充要", evidence: "奇度顶点=" + (euler.oddVertices.length ? euler.oddVertices.join(",") : "0 个") + "；通路要求奇点数为0或2；边支撑连通=" + (euler.connectedOnEdges ? "是" : "否") },
       { check: "Hamilton", result: hamilton.exists ? "有回路" : "无回路", role: "有限回溯精确搜索", evidence: hamilton.exists ? "证书路径 " + hamilton.path.join("→") + "→0" : "完整有限搜索未找到闭合顶点序列" },
       { check: "平面性边数筛子", result: planarity.simpleEdgeBoundPassed && planarity.bipartiteEdgeBoundPassed ? "通过" : "失败" , role: "必要条件；通过不充分", evidence: "最终结论交给精确旋转系统/边界证书。" },
       { check: "平面性", result: planarity.planar ? "平面" : "非平面", role: "有限精确证书", evidence: planarity.certificate },
-      { check: "Dirac", result: dirac.sufficient ? "条件满足" : "条件不满足", role: dirac.role, evidence: "2δ=" + (2 * dirac.minimumDegree) + " 与 n=" + n + " 比较" }
+      { check: "Dirac", result: dirac.sufficient ? "条件满足" : "条件不满足", role: dirac.role, evidence: "要求 n≥3；2δ=" + (2 * dirac.minimumDegree) + " 与 n=" + n + " 比较" }
     ];
     return {
       validation: validation,
@@ -439,7 +426,7 @@
     });
   }
 
-  function drawGraph(doc, svg, preset, result, uid) {
+  function drawGraph(doc, svg, preset, result, uid, revealed) {
     clear(svg);
     var points = preset.layout, markerId = uid + "-arrow";
     svg.appendChild(svgElement(doc, "title", { id: uid + "-svg-title", text: preset.label + " 图结构与证书" }));
@@ -454,9 +441,9 @@
     points.forEach(function (point, index) {
       svg.appendChild(svgElement(doc, "circle", { cx: point[0], cy: point[1], r: "17", class: "gcl-node" }));
       svg.appendChild(svgElement(doc, "text", { x: point[0], y: point[1], class: "gcl-node-label" }, String(index)));
-      svg.appendChild(svgElement(doc, "text", { x: point[0], y: point[1] + 30, class: "gcl-small" }, "d=" + result.degrees[index]));
+
     });
-    svg.appendChild(svgElement(doc, "text", { x: "16", y: "282", class: "gcl-small" }, result.planarity.planar ? "平面性：精确证书通过" : "平面性：精确证书否定"));
+    svg.appendChild(svgElement(doc, "text", { x: "16", y: "282", class: "gcl-small" }, revealed ? (result.planarity.planar ? "平面性：精确证书通过" : "平面性：精确证书否定") : "观察边与点；度序列与结论提交后揭示"));
     svg.setAttribute("viewBox", "0 0 440 310");
   }
 
@@ -489,7 +476,7 @@
       var fieldset = element(doc, "fieldset", {}), legend = element(doc, "legend", { text: spec.prompt }), grid = element(doc, "div", { className: "gcl-choice-grid" + (spec.choices.length === 4 ? " gcl-wide" : "") }), questionRef = { key: spec.key, legend: legend, buttons: [] };
       spec.choices.forEach(function (choice) {
         var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice.label });
-        button.addEventListener("click", function () { state.predictions[spec.key] = choice.value; state.feedback = ""; render(); });
+        button.addEventListener("click", function () { state.predictions[spec.key] = choice.value; state.revealed=false; state.feedback = ""; render(); });
         questionRef.buttons.push({ value: choice.value, label: choice.label, node: button }); grid.appendChild(button);
       });
       fieldset.appendChild(legend); fieldset.appendChild(grid); gate.appendChild(fieldset); refs.questions.push(questionRef);
@@ -503,8 +490,11 @@
     var svg = svgElement(doc, "svg", { className: "gcl-svg", role: "img", "aria-labelledby": uid + "-svg-title " + uid + "-svg-desc", viewBox: "0 0 440 310" });
     svg.appendChild(svgElement(doc, "title", { id: uid + "-svg-title", text: "图结构可视化" }));
     svg.appendChild(svgElement(doc, "desc", { id: uid + "-svg-desc", text: "显示顶点、边和每个顶点的度。" }));
-    var metricsHost = element(doc, "div", { className: "gcl-metrics" }), tableHost = element(doc, "div", { className: "gcl-table-wrap" }), certificate = element(doc, "p", { className: "gcl-certificate" });
-    resultShell.appendChild(element(doc, "div", { className: "gcl-layout" }, [element(doc, "div", { className: "gcl-frame" }, [svg]), element(doc, "div", {}, [metricsHost, certificate])]));
+    var metricsHost = element(doc, "div", { className: "gcl-metrics" }), tableHost = element(doc, "div", { className: "gcl-table-wrap",tabindex:"0","aria-label":"图证书账本，可横向滚动" }), certificate = element(doc, "p", { className: "gcl-certificate" });
+    var graphFrame=element(doc,"div",{className:"gcl-frame",tabindex:"0","aria-label":"题目图，可横向滚动"},[svg]);
+    shell.insertBefore(graphFrame,gate);
+    resultShell.appendChild(metricsHost);resultShell.appendChild(certificate);
+    var rotations=element(doc,"p",{className:"gcl-certificate"});resultShell.appendChild(rotations);
     resultShell.appendChild(tableHost); shell.appendChild(resultShell); clear(root); root.appendChild(shell);
 
     function lock(presetId) { state.presetId = presetId; state.revealed = false; state.predictions = {}; state.feedback = ""; render(); }
@@ -519,8 +509,9 @@
     function render() {
       var preset = presetById(state.presetId), result = analyzeGraph(preset.matrix);
       presetSelect.value = preset.id; renderPredictions(state, refs, result); feedback.textContent = state.feedback || ""; feedback.className = "gcl-feedback" + (state.feedback.indexOf("请先") === 0 ? " gcl-warn" : ""); resultShell.hidden = !state.revealed;
+      drawGraph(doc, svg, preset, result, uid,state.revealed);
       if (!state.revealed) return;
-      drawGraph(doc, svg, preset, result, uid);
+      rotations.textContent=result.planarity.componentResults.map(function(c){return c.rotations?"循环邻接顺序（每行按环绕次序）："+c.vertices.map(function(v,i){return v+": ("+c.rotations[i].join(",")+")";}).join("；")+"。面数 F="+c.faces+"，V−E+F="+c.eulerCharacteristic:c.method==="trivial-embedding"?"单点或单边分量：平凡平面嵌入，F=1。":"本分量没有平面旋转证书；查看失败的必要界或完整有限穷举结论。";}).join(" ");
       var metrics = [metric(doc, "顶点 / 边"), metric(doc, "连通分量"), metric(doc, "Euler"), metric(doc, "Hamilton"), metric(doc, "树"), metric(doc, "平面性")];
       clear(metricsHost); metrics.forEach(function (item) { metricsHost.appendChild(item.node); });
       metrics[0].value.textContent = result.n + " / " + result.edges.length; metrics[1].value.textContent = String(result.components.length); metrics[2].value.textContent = result.euler.hasCircuit ? "回路" : (result.euler.hasTrail ? "通路" : "无"); metrics[3].value.textContent = result.hamiltonian.exists ? "有回路" : "无回路"; metrics[4].value.textContent = result.tree.isTree ? "是" : "否"; metrics[5].value.textContent = result.planarity.planar ? "平面" : "非平面";

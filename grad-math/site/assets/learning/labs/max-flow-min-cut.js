@@ -75,20 +75,21 @@
     ".mf-lab .mf-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.mf-lab .mf-actions>*{flex:1 1 150px;}",
     ".mf-lab .mf-feedback{min-height:2em;margin:8px 0;font-weight:700;}.mf-lab .mf-pass{color:var(--mf-green);}.mf-lab .mf-warn{color:var(--mf-red);}",
     ".mf-lab .mf-revealed{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".mf-lab .mf-layout{display:grid;grid-template-columns:minmax(215px,.66fr) minmax(0,1.34fr);gap:16px;align-items:start;min-width:0;}",
+    ".mf-lab .mf-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0;}",
     ".mf-lab .mf-controls,.mf-lab .mf-stage{min-width:0;}.mf-lab .mf-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
     ".mf-lab .mf-presets{grid-template-columns:repeat(2,minmax(0,1fr));}.mf-lab .mf-presets button{font-size:12px;}",
     ".mf-lab .mf-control{display:grid;gap:5px;}.mf-lab .mf-control label{font-size:13px;font-weight:700;color:var(--fg-soft);}.mf-lab .mf-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
     ".mf-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
-    ".mf-lab .mf-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}",
-    ".mf-lab .mf-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.mf-lab .mf-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
+    ".mf-lab .mf-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}",
+    ".mf-lab .mf-svg{display:block;width:620px;min-width:620px;height:auto;color:var(--fg);}.mf-lab .mf-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
     ".mf-lab .mf-edge{stroke:var(--mf-blue);stroke-width:2.3;fill:none;}.mf-lab .mf-edge.mf-cut{stroke:var(--mf-red);stroke-width:3.2;}.mf-lab .mf-edge.mf-path{stroke:var(--mf-gold);stroke-width:4;}",
     ".mf-lab .mf-reverse{stroke:var(--mf-gold);stroke-width:3.4;stroke-dasharray:6 4;fill:none;}.mf-lab .mf-node{fill:var(--bg);stroke:var(--mf-blue);stroke-width:2.3;}.mf-lab .mf-node.mf-reachable{stroke:var(--mf-green);stroke-width:4;}",
-    ".mf-lab .mf-node-label{font-size:15px;font-weight:800;text-anchor:middle;dominant-baseline:middle;}.mf-lab .mf-edge-label{font-size:12px;font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;}.mf-lab .mf-residual-label{font-size:10.5px;text-anchor:middle;fill:var(--fg-soft)!important;paint-order:stroke;stroke:var(--bg);stroke-width:4px;}",
+    ".mf-lab .mf-node-label{font-size:15px;font-weight:800;text-anchor:middle;dominant-baseline:middle;}.mf-lab .mf-edge-label{font-size:12px;font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;}.mf-lab .mf-residual-label{font-size:12px;text-anchor:middle;fill:var(--fg-soft)!important;paint-order:stroke;stroke:var(--bg);stroke-width:4px;}",
     ".mf-lab .mf-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:12px 0;}.mf-lab .mf-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.mf-lab .mf-metric:nth-child(1){border-color:var(--mf-blue);}.mf-lab .mf-metric:nth-child(2){border-color:var(--mf-gold);}.mf-lab .mf-metric:nth-child(3),.mf-lab .mf-metric:nth-child(4){border-color:var(--mf-green);}",
     ".mf-lab .mf-metric span{display:block;color:var(--fg-soft);font-size:11.5px;}.mf-lab .mf-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".mf-lab .mf-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}.mf-lab table{width:100%;min-width:690px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.mf-lab th,.mf-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.mf-lab th{color:var(--fg-soft);font-size:11.5px;}",
     ".mf-lab .mf-history{margin:8px 0 0;padding-left:20px;font-size:12.5px;color:var(--fg-soft);}.mf-lab .mf-history li{margin:4px 0;}.mf-lab .mf-certificate{margin-top:10px;padding:10px 12px;border-left:3px solid var(--mf-green);background:var(--bg);font-size:13px;overflow-wrap:anywhere;}",
+    "[data-theme=dark] .mf-lab{--mf-blue:#85b9ef;--mf-gold:#e6be68;--mf-green:#83c69c;--mf-red:#ed9f94}.mf-frame:focus-visible,.mf-table-wrap:focus-visible{outline:3px solid var(--mf-blue)}",
     "@media(max-width:1180px){.mf-lab .mf-layout{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:680px){.mf-lab .mf-choice-row{grid-template-columns:minmax(0,1fr);}.mf-lab .mf-presets{grid-template-columns:minmax(0,1fr);}}",
     "@media(max-width:420px){.mf-lab .mf-frame{padding:4px;}.mf-lab table{font-size:11.5px;}.mf-lab th,.mf-lab td{padding-left:5px;padding-right:5px;}}",
@@ -118,10 +119,13 @@
 
   function validateConfig(config) {
     if (!config || !config.capacities) throw new TypeError("config with capacities is required");
+    var total=0;
     EDGE_META.forEach(function (edge) {
       var capacity = config.capacities[edge.id];
+      total+=capacity;
       if (!finite(capacity) || capacity < 0) throw new RangeError("capacity " + edge.id + " must be finite and nonnegative");
     });
+    if(!finite(total))throw new RangeError("total capacity exceeds finite numeric range");
   }
 
   function edgesFor(config) {
@@ -149,16 +153,17 @@
     edges.forEach(function (edge) {
       var value = flow[edge.id];
       if (!finite(value)) throw new RangeError("flow " + edge.id + " must be finite");
-      if (value < -EPS || value > edge.capacity + EPS) {
+      if (value < 0 || value > edge.capacity) {
         throw new RangeError("flow " + edge.id + " must satisfy 0 <= flow <= capacity");
       }
     });
     var balance = balances(config, flow);
-    if (Math.abs(balance.a) > EPS || Math.abs(balance.b) > EPS) {
+    var tolerance=64*Number.EPSILON*edges.reduce(function(sum,e){return sum+Math.abs(flow[e.id]);},0);
+    if (Math.abs(balance.a) > tolerance || Math.abs(balance.b) > tolerance) {
       throw new RangeError("flow must conserve at intermediate vertices");
     }
     var value = flowValue(config, flow);
-    if (value < -EPS || Math.abs(balance.s + value) > EPS || Math.abs(balance.t - value) > EPS) {
+    if (value < 0 || Math.abs(balance.s + value) > tolerance || Math.abs(balance.t - value) > tolerance) {
       throw new RangeError("flow must have a non-negative source value balanced by the sink");
     }
     return true;
@@ -170,8 +175,8 @@
     var arcs = [];
     edgesFor(config).forEach(function (edge) {
       var forward = edge.capacity - current[edge.id];
-      if (forward > EPS) arcs.push({ id: edge.id, from: edge.from, to: edge.to, direction: 1, residual: forward });
-      if (current[edge.id] > EPS) arcs.push({ id: edge.id, from: edge.to, to: edge.from, direction: -1, residual: current[edge.id] });
+      if (forward > 0) arcs.push({ id: edge.id, from: edge.from, to: edge.to, direction: 1, residual: forward });
+      if (current[edge.id] > 0) arcs.push({ id: edge.id, from: edge.to, to: edge.from, direction: -1, residual: current[edge.id] });
     });
     return arcs;
   }
@@ -410,8 +415,8 @@
     edgesFor(config).forEach(function (edge) {
       var geometry = edgeGeometry(edge.id);
       var active = lastById[edge.id];
-      var className = "mf-edge" + (cutById[edge.id] ? " mf-cut" : "") + (active && active.direction === 1 ? " mf-path" : "");
-      var marker = active && active.direction === 1 ? "arrow-path" : (cutById[edge.id] ? "arrow-cut" : "arrow");
+      var className = "mf-edge" + (cutById[edge.id] ? " mf-cut" : "") + (active && active.direction === 1 && !cutById[edge.id] ? " mf-path" : "");
+      var marker = cutById[edge.id] ? "arrow-cut" : (active && active.direction === 1 ? "arrow-path" : "arrow");
       svg.appendChild(svgNode(doc, "line", {
         x1: geometry.x1, y1: geometry.y1, x2: geometry.x2, y2: geometry.y2,
         class: className, "marker-end": "url(#" + uid + "-" + marker + ")"
@@ -435,6 +440,7 @@
       svg.appendChild(svgNode(doc, "text", { x: pos[0], y: pos[1] + 1, class: "mf-node-label" }, node));
     });
     svg.appendChild(svgNode(doc, "text", { x: 310, y: 336, class: "mf-residual-label" }, complete ? "绿色圈：残量图中从 s 可达的 S；红边：最小割" : "边标签为 flow / capacity；金色表示最近一次增广"));
+    if((lastPath||[]).some(function(a){return a.direction===-1;}))svg.appendChild(svgNode(doc,"text",{x:310,y:353,class:"mf-residual-label"},"金色虚线：刚刚撤回的操作；当前反向余量看数字"));
   }
 
   function replaceTableRows(doc, body, rows) {
@@ -469,6 +475,7 @@
       { key: "integer", prompt: "4. 整数容量的整数流性质能推广到任意 LP 吗？", expected: "special", choices: [["all", "可以，所有 LP 都行"], ["special", "不行，依赖网络结构"], ["none", "网络流也不行"]] }
     ];
 
+    shell.appendChild(makeElement(doc,"p",{className:"mf-note"},"预测题固定采用五条边容量全为 1 的网络：s→a、s→b、a→b、a→t、b→t；先设想已沿 s→a→b→t 增广 1。下方其他预设只用于揭示后的迁移实验。"));
     var form = makeElement(doc, "form", { className: "mf-prediction" });
     var fieldset = makeElement(doc, "fieldset");
     fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：四项都回答后才显示流量"));
@@ -480,6 +487,7 @@
         var button = makeElement(doc, "button", { type: "button", "aria-pressed": "false" }, choice[1]);
         button.addEventListener("click", function () {
           answers[question.key] = choice[0];
+          revealed=false;revealedPanel.hidden=true;feedback.textContent="预测已修改，请重新提交。";
           choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", answers[item.key] === item.value ? "true" : "false"); });
         });
         choiceButtons.push({ key: question.key, value: choice[0], node: button });
@@ -531,7 +539,7 @@
 
     var stage = makeElement(doc, "div", { className: "mf-stage" });
     var svg = svgNode(doc, "svg", { class: "mf-svg", width: "620", height: "360", viewBox: "0 0 620 360", role: "img", "aria-label": "网络流、残量反向边与最小割图" });
-    stage.appendChild(makeElement(doc, "div", { className: "mf-frame" }, [svg]));
+    stage.appendChild(makeElement(doc, "div", { className: "mf-frame",tabindex:"0","aria-label":"网络流图，可横向滚动" }, [svg]));
     var metrics = [metric(doc, "当前流值"), metric(doc, "下一条 DFS 增广路"), metric(doc, "停机割容量"), metric(doc, "流值 = 割？")];
     stage.appendChild(makeElement(doc, "div", { className: "mf-metrics" }, metrics.map(function (item) { return item.node; })));
     stage.appendChild(makeElement(doc, "h4", {}, "边的容量与残量账本"));
@@ -541,7 +549,7 @@
     ["原边", "容量 c", "流 f", "正向余量 c-f", "反向余量 f", "是否割边"].forEach(function (label) { headRow.appendChild(makeElement(doc, "th", {}, label)); });
     head.appendChild(headRow); table.appendChild(head);
     var tableBody = makeElement(doc, "tbody"); table.appendChild(tableBody);
-    stage.appendChild(makeElement(doc, "div", { className: "mf-table-wrap" }, table));
+    stage.appendChild(makeElement(doc, "div", { className: "mf-table-wrap",tabindex:"0","aria-label":"流量账本，可横向滚动" }, table));
     stage.appendChild(makeElement(doc, "h4", {}, "增广历史"));
     var historyList = makeElement(doc, "ol", { className: "mf-history" });
     stage.appendChild(historyList);
@@ -590,6 +598,7 @@
     }
 
     function reveal() {
+      if(!revealed){config=makeConfig(PRESETS[0]);resetFlow();}
       revealed = true;
       revealedPanel.removeAttribute("hidden");
       var correct = questions.filter(function (question) { return answers[question.key] === question.expected; }).length;
@@ -613,6 +622,7 @@
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
       feedback.className = "mf-feedback";
       feedback.textContent = "预测已清空。";
+      revealed=false;revealedPanel.hidden=true;
     });
 
     stepButton.addEventListener("click", function () {
@@ -648,7 +658,7 @@
       choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
       feedback.className = "mf-feedback";
       feedback.textContent = "已重新上锁，请再做四项预测。";
-      resetFlow();
+      config=makeConfig(PRESETS[0]);resetFlow();
     });
   }
 

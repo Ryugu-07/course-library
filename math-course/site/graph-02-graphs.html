@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 08:03</div>
+    <div class="build-time">构建于 2026-09-09 08:21</div>
   </div>
 </nav>
 <main id="content">
@@ -58,7 +58,9 @@ try {
 <li><a href="#2">2. 形式桥：从邻接矩阵到可核验账本</a></li>
 <li><a href="#3">3. 预测门：先在脑中贴标签</a></li>
 <li><a href="#4">4. 动手：同一矩阵的五本证书</a></li>
-<li><a href="#5">5. 误区 / 模型边界</a></li>
+<li><a href="#5">5. 把平面证书变成可手算的对象</a></li>
+<li><a href="#6">6. 误区 / 模型边界</a></li>
+<li><a href="#7">7. 迁移：把两种“走完”真正分开</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 基本语言与握手定理</a></li>
@@ -73,6 +75,7 @@ try {
 <blockquote>
 <p>图 = 顶点 + 边，关系的最简数学模型。1736 年 Euler 用它一举解决七桥问题，顺手创立了这门学科。本页走主干：度与握手定理 → 连通与树 → Euler/Hamilton 两类回路（一个透明一个 NP 难的著名对照）→ 平面图与 Euler 公式（拓扑的示性数在离散世界的分身）。</p>
 </blockquote>
+<p>先修入口：<a href="graph-01-counting.html">计数与生成函数</a>、<a href="algebra-03-matrix.html">矩阵</a>。本页默认有限、非空、简单无向图；自环和多重边须另改定义。</p>
 <div data-learning-page></div>
 
 <section aria-labelledby="graph-certificates-learning-title" class="learning-layer">
@@ -80,12 +83,12 @@ try {
 <h3 id="graph-certificates-learning-title">1. 具身开场：给一张园区地图做交接班<a class="headerlink" href="#graph-certificates-learning-title" title="Permanent link"></a></h3>
 <p>你接手一张小型园区道路图：顶点是路口，边是道路。调度员问四个不同的问题：能否从一个路口走遍每条路？能否每个路口只进一次？这张图是不是一棵无环的管线骨架？能否把它铺在一张纸上而不让道路交叉？它们都“像是在走图”，但证书的对象、充分性和算法难度并不相同。实验台把同一张有限邻接矩阵交给五个检查器，要求每个结论带着证据出现。</p>
 <h3 id="2">2. 形式桥：从邻接矩阵到可核验账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>对简单无向图 <span class="arithmatex">\(A=A^{\mathsf T}\in\{0,1\}^{n\times n}\)</span>，边集是 <span class="arithmatex">\(A_{ij}=1\)</span> 的无序对，</p>
+<p>对简单无向图 <span class="arithmatex">\(A=A^{\mathsf T}\in\{0,1\}^{n\times n}\)</span>，并要求 <span class="arithmatex">\(A_{ii}=0\)</span>，边集是 <span class="arithmatex">\(A_{ij}=1\)</span> 的无序对，</p>
 <div class="arithmatex">\[
 \deg(i)=\sum_j A_{ij},\qquad 2|E|=\sum_i\deg(i).
 \]</div>
-<p>连通性由有限次 BFS/DFS 给出；树的精确证书是“连通且 <span class="arithmatex">\(|E|=n-1\)</span>”（等价地再加无环）。Euler 回路的充要条件是所有<strong>非孤立</strong>顶点在同一连通分量且度全偶；若把闭合回路也算作 Euler 通路，则通路的奇度顶点数必须是 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>（<span class="arithmatex">\(0\)</span> 时就是回路）。Hamilton 回路改为顶点约束，实验用有限回溯逐一搜索，而不是把一个启发式当成否证。</p>
-<p>平面性先有必要筛子：当 <span class="arithmatex">\(n\ge3\)</span> 时，简单平面图满足 <span class="arithmatex">\(|E|\le 3n-6\)</span>，二部简单平面图满足 <span class="arithmatex">\(|E|\le2n-4\)</span>；少于 3 个顶点的分量单独作为平凡嵌入处理。筛子通过只表示“还没有被这个证书排除”。对本实验的有限图，最后再穷举每个顶点的循环邻接顺序；面遍历若满足 <span class="arithmatex">\(V-E+F=2\)</span>，给出平面嵌入证书。边界很重要：Dirac 条件 <span class="arithmatex">\(\delta\ge n/2\)</span> 是 Hamilton 的<strong>充分</strong>条件，不满足时只是未决；边数上界通过时也不是平面性的证明。</p>
+<p>连通性由有限次 BFS/DFS 给出；树的精确证书是“连通且 <span class="arithmatex">\(|E|=n-1\)</span>”（等价地再加无环）。Euler 回路的充要条件是所有<strong>非孤立</strong>顶点在同一连通分量且度全偶；若把闭合回路也算作 Euler 通路，则还须保留非孤立部分连通，再要求奇度顶点数为 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>（<span class="arithmatex">\(0\)</span> 时就是回路）。Hamilton 回路改为顶点约束，实验用有限回溯逐一搜索，而不是把一个启发式当成否证。</p>
+<p>平面性先有必要筛子：当 <span class="arithmatex">\(n\ge3\)</span> 时，简单平面图满足 <span class="arithmatex">\(|E|\le 3n-6\)</span>，二部简单平面图满足 <span class="arithmatex">\(|E|\le2n-4\)</span>；少于 3 个顶点的分量单独作为平凡嵌入处理。筛子通过只表示“还没有被这个证书排除”。对本实验的有限图，最后再穷举每个顶点的循环邻接顺序；对每个连通分量分别遍历面，若都满足 <span class="arithmatex">\(V-E+F=2\)</span>，给出球面嵌入证书；把各分量分别画在平面的不相交区域即可合并。边界很重要：Dirac 条件 <span class="arithmatex">\(n\ge3\)</span> 且 <span class="arithmatex">\(\delta\ge n/2\)</span> 是 Hamilton 的<strong>充分</strong>条件，不满足时只是未决；边数上界通过时也不是平面性的证明。</p>
 <h3 id="3">3. 预测门：先在脑中贴标签<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <p>默认图是 <span class="arithmatex">\(K_4\)</span>。揭示账本前预测：</p>
 <ol>
@@ -94,7 +97,7 @@ try {
 <li><span class="arithmatex">\(|E|\le3V-6\)</span> 通过后，能否单独断言图平面？若一个启发式没有找到回路，是否已经证明不存在？</li>
 </ol>
 <h3 id="4">4. 动手：同一矩阵的五本证书<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>揭示后可切换路径、环、<span class="arithmatex">\(K_4\)</span>、<span class="arithmatex">\(K_5\)</span>、<span class="arithmatex">\(K_{3,3}\)</span> 和 Petersen 图。可视化显示顶点/边及平面性证书；表格逐行记录邻接有效性、度序列、连通分量、树、Euler、Hamilton、二部性、必要边界和最终平面性。每行都标出“定义/充要/必要/充分/精确有限搜索”的逻辑角色。</p>
+<p>预测前就能看到图，并可切换路径、环、<span class="arithmatex">\(K_4\)</span>、<span class="arithmatex">\(K_5\)</span>、<span class="arithmatex">\(K_{3,3}\)</span> 和 Petersen 图。可视化先显示顶点和边，提交后再给度序列与平面性证书；表格逐行记录邻接有效性、度序列、连通分量、树、Euler、Hamilton、必要边界和最终平面性。每行都标出“定义/充要/必要/充分/精确有限搜索”的逻辑角色。</p>
 <div class="learning-lab" data-learning-lab="graph-certificates">
 <p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(K_4\)</span>（四个顶点两两相连）。</p>
 <table>
@@ -135,13 +138,23 @@ try {
 </table>
 <p>“边数筛子通过”“Dirac 条件不满足”与“某次搜索没找到”都不能写成不存在证明；需要失败的充要判据或明确的有限反证证书。</p>
 </div>
-<h3 id="5">5. 误区 / 模型边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<h3 id="5">5. 把平面证书变成可手算的对象<a class="headerlink" href="#5" title="Permanent link"></a></h3>
+<p>图上的线在某一种画法里交叉，不代表图本身非平面：判定问的是<strong>是否存在</strong>不交叉的画法。实验把 <span class="arithmatex">\(K_4\)</span> 画成一个外三角形加一个内部顶点，六条边没有交叉。</p>
+<p>“循环邻接顺序”记录站在每个顶点周围按同一方向看见的邻居顺序。把无向边拆成两个有向半边；沿半边 <span class="arithmatex">\(u\to v\)</span> 到达后，在 <span class="arithmatex">\(v\)</span> 的环绕列表中取 <span class="arithmatex">\(u\)</span> 的前一个邻居，再继续走。反复走到起点，就读出一个面边界。每个半边恰属于一次面遍历，数出 <span class="arithmatex">\(F\)</span> 后计算 <span class="arithmatex">\(V-E+F\)</span>。对连通分量，这个旋转系统确定一个闭合可定向曲面；示性数为 2 表示球面。单点或单边分量直接取 <span class="arithmatex">\(F=1\)</span>。实验会列出找到的邻接顺序供逐项检查；穷举所有顺序只适合这里的小图，不能当作大规模平面判定算法。</p>
+<h3 id="6">6. 误区 / 模型边界<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <ul>
 <li>Euler 数边，Hamilton 数点；一张图可以像 <span class="arithmatex">\(K_4\)</span> 一样 Hamilton 但不 Euler，也可以 Euler 但不 Hamilton。</li>
 <li>度和为偶只是可实现度序列的必要条件；它不是充分条件。平面边数上界同样只是必要条件。</li>
 <li>“没有找到”只有在搜索空间已经被穷举并且算法返回精确证书时才是结论；贪心、随机采样和有限次启发式都只能留下未决状态。</li>
 <li>本实验只处理显式给出的有限简单无向图；多重边、有向图、加权图和无限图需要重新声明对象与判据。</li>
 </ul>
+<h3 id="7">7. 迁移：把两种“走完”真正分开<a class="headerlink" href="#7" title="Permanent link"></a></h3>
+<p>把两个三角形只在一个公共顶点 <span class="arithmatex">\(v\)</span> 处接起来。先画图并写下五个顶点的度：它能 Euler 吗？能 Hamilton 吗？另外，<span class="arithmatex">\(P_4\)</span> 不满足 Dirac 条件，为什么这还不能代表所有未通过 Dirac 的图都没有 Hamilton 回路？</p>
+<details class="answer">
+<summary>核对公共顶点、充分条件与必要边界</summary>
+<p>两三角形共点图的度为 <span class="arithmatex">\((4,2,2,2,2)\)</span>，边支撑连通且全偶，沿一个三角形回到 <span class="arithmatex">\(v\)</span> 再走另一个，就有 Euler 回路。它没有 Hamilton 回路：删去 <span class="arithmatex">\(v\)</span> 会断成两块；若要访问两侧所有点并闭合，必重复经过 <span class="arithmatex">\(v\)</span>。这里给出的是割点障碍，不是“我没找到”的猜测。</p>
+<p><span class="arithmatex">\(P_4\)</span> 确实没有 Hamilton 回路，但要否定“未通过 Dirac 就无回路”，只需看 <span class="arithmatex">\(C_5\)</span>：最小度为 2，小于 <span class="arithmatex">\(5/2\)</span>，却显然有沿环走一周的 Hamilton 回路。必要边数筛子也类似：Petersen 图通过 <span class="arithmatex">\(E\le3V-6\)</span>，仍被完整的旋转系统枚举否定为非平面。每项判据都要连着其逻辑方向使用。</p>
+</details>
 </section>
 <figure aria-label="课程图示，可横向滚动" class="diagram" style="overflow-x:auto;position:relative" tabindex="0">
 <div style="min-width:1100px">
@@ -154,18 +167,18 @@ try {
 <p><strong>握手定理</strong>：<span class="arithmatex">\(\sum_{v} \deg(v) = 2|E|\)</span>（每条边贡献两个度——双计数的最小样板）。<strong>推论</strong>：奇度顶点必有偶数个——"聚会上握过奇数次手的人有偶数个"；也是度序列可实现性的第一道闸门（例 1）。</p>
 <h2 id="2_1">2. 连通与树<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p><strong>树</strong> = 连通无圈图，图论的骨架结构。<strong>五重等价刻画</strong>（背诵级）：<span class="arithmatex">\(n\)</span> 顶点的图，以下等价——1. 连通无圈；2. 连通且恰 <span class="arithmatex">\(n-1\)</span> 条边；3. 无圈且恰 <span class="arithmatex">\(n-1\)</span> 条边；4. 任两点<strong>唯一</strong>路径；5. 极小连通（删任一边即断）。</p>
-<p><strong>生成树</strong>：含全部顶点的树子图（连通图必有）。<strong>最小生成树（MST）贪心算法</strong>：Kruskal（按边权从小到大，不成圈就收）/ Prim（从一点长大）——<em>贪心为何正确</em>：<strong>交换论证</strong>（若最优解不含当前最小安全边，换入它不会变差）——贪心算法正确性证明的标准范式（与 Huffman 同款，优化线的思想在离散世界续集）。<strong>Cayley 公式</strong>一嘴：<span class="arithmatex">\(n\)</span> 个标号顶点的树有 <span class="arithmatex">\(n^{n-2}\)</span> 棵（优雅得过分的计数结论，Prüfer 序列双射证明——上一页双计数的高级演出）。</p>
+<p><strong>生成树</strong>：含全部顶点的树子图（连通图必有）。<strong>最小生成树（MST）贪心算法</strong>：Kruskal（按边权从小到大，不成圈就收）/ Prim（从一点长大）——<em>贪心为何正确</em>：<strong>交换论证</strong>（若最优解不含当前最小安全边，换入它不会变差）——贪心算法正确性证明的标准范式（与 Huffman 同款，优化线的思想在离散世界续集）。<strong>Cayley 公式</strong>一嘴：<span class="arithmatex">\(n\ge2\)</span> 个标号顶点的树有 <span class="arithmatex">\(n^{n-2}\)</span> 棵，<span class="arithmatex">\(n=1\)</span> 时直接计为一棵；Prüfer 序列给出一个双射证明。</p>
 <h2 id="3-euler-hamilton">3. Euler 与 Hamilton：透明与深渊的对照<a class="headerlink" href="#3-euler-hamilton" title="Permanent link"></a></h2>
-<p><strong>Euler 回路</strong>（每条<strong>边</strong>恰走一次）：<strong>定理（Euler 1736）</strong> 非孤立部分连通的图有 Euler 回路 <span class="arithmatex">\(\iff\)</span> <strong>全部顶点偶度</strong>；Euler 通路的充要条件是奇度顶点数为 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>，其中 <span class="arithmatex">\(0\)</span> 正是闭合回路。
-<em>证明思路</em>：必要性显然（每次过境一进一出消耗偶度）；充分性构造式——从任一点走圈、剩余部分递归接圈。七桥问题四个奇度点 ⇒ 无解，两百年悬案一行判决。</p>
-<p><strong>Hamilton 回路</strong>（每个<strong>顶点</strong>恰访一次）：看似孪生，实为深渊——<strong>判定是 NP-完全问题</strong>（没有已知的高效判据；与 Euler 的 <span class="arithmatex">\(O(E)\)</span> 判定形成算法复杂性的教科书对照——"相似的问题可以有天壤之别的难度"）。只有充分条件可用：<strong>Dirac 定理</strong>——<span class="arithmatex">\(n \geq 3\)</span> 且每点度 <span class="arithmatex">\(\geq \frac n2\)</span> ⇒ 有 Hamilton 回路（"足够稠密必有环游"）。旅行商问题（TSP）= 加权版 Hamilton，组合优化的名题（优化 IV 分支定界的主战场之一）。</p>
+<p><strong>Euler 回路</strong>（每条<strong>边</strong>恰走一次）：<strong>定理（Euler 1736）</strong> 非孤立部分连通的图有 Euler 回路 <span class="arithmatex">\(\iff\)</span> <strong>全部顶点偶度</strong>；在同样的非孤立部分连通前提下，Euler 通路的充要条件是奇度顶点数为 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2\)</span>，其中 <span class="arithmatex">\(0\)</span> 正是闭合回路。
+<em>证明思路</em>：必要性显然（每次过境一进一出消耗偶度）；充分性构造式——从任一点走圈、剩余部分递归接圈。七桥图有四个奇度顶点，因此不存在一笔走完各桥的路线。</p>
+<p><strong>Hamilton 回路</strong>（每个<strong>顶点</strong>恰访一次）：看似孪生，实为深渊——<strong>判定是 NP-完全问题</strong>（没有已知的高效判据；与 Euler 的 <span class="arithmatex">\(O(V+E)\)</span> 判定形成算法复杂性的教科书对照——"相似的问题可以有天壤之别的难度"）。通用精确搜索可能指数增长；也有可快速检查的充分条件，例如<strong>Dirac 定理</strong>——<span class="arithmatex">\(n \geq 3\)</span> 且每点度 <span class="arithmatex">\(\geq \frac n2\)</span> ⇒ 有 Hamilton 回路（"足够稠密必有环游"）。旅行商问题（TSP）要求在带权图中寻找总权最小的 Hamilton 回路，组合优化的名题（优化 IV 分支定界的主战场之一）。</p>
 <h2 id="4-euler">4. 平面图与 Euler 公式<a class="headerlink" href="#4-euler" title="Permanent link"></a></h2>
 <p><strong>平面图</strong>：可画在平面上使边不交叉。<strong>Euler 公式</strong>：连通平面图</p>
 <div class="arithmatex">\[
 V - E + F = 2
 \]</div>
 <p>（<span class="arithmatex">\(F\)</span> 含无界外面；<em>证明</em>：对生成树归纳——树时 <span class="arithmatex">\(F=1, E=V-1\)</span> ✓，每加一条边恰新增一个面。）<strong>这就是拓扑页 Euler 示性数 <span class="arithmatex">\(\chi\)</span> 的离散原型</strong>（球面 <span class="arithmatex">\(\chi = 2\)</span>——平面图即球面上的图，Gauss–Bonnet 页的 <span class="arithmatex">\(\chi\)</span> 在此有了可数的定义）。</p>
-<p><strong>推论（非平面性判据，<span class="arithmatex">\(V\ge3\)</span>）</strong>：简单平面图 <span class="arithmatex">\(E \leq 3V - 6\)</span>（每面至少 3 边、每边贡献 2 面，双计数）⇒ <strong><span class="arithmatex">\(K_5\)</span> 非平面</strong>（<span class="arithmatex">\(10 &gt; 9\)</span>）；二部简单平面图加强为 <span class="arithmatex">\(E \leq 2V - 4\)</span> ⇒ <strong><span class="arithmatex">\(K_{3,3}\)</span> 非平面</strong>（三户人家接三种管线必交叉——水电气难题的死刑判决）。<span class="arithmatex">\(K_1,K_2\)</span> 等小图直接视为平面，不能代入这两个右端为负或零的筛子。<strong>Kuratowski 定理</strong>（陈述）：非平面 <span class="arithmatex">\(\iff\)</span> 含 <span class="arithmatex">\(K_5\)</span> 或 <span class="arithmatex">\(K_{3,3}\)</span> 的剖分——两个最小反例就是全部障碍。</p>
+<p><strong>推论（非平面性判据，<span class="arithmatex">\(V\ge3\)</span>）</strong>：简单平面图 <span class="arithmatex">\(E \leq 3V - 6\)</span>（先把分量连成平面连通图；按面边界的步数计数，桥的两侧也各计一次，得到 <span class="arithmatex">\(3F\le2E\)</span>，再用 Euler 公式）⇒ <strong><span class="arithmatex">\(K_5\)</span> 非平面</strong>（<span class="arithmatex">\(10 &gt; 9\)</span>）；二部简单平面图加强为 <span class="arithmatex">\(E \leq 2V - 4\)</span> ⇒ <strong><span class="arithmatex">\(K_{3,3}\)</span> 非平面</strong>（三户人家接三种管线必交叉——水电气难题的死刑判决）。<span class="arithmatex">\(K_1,K_2\)</span> 等小图直接视为平面，不能代入这两个右端为负或零的筛子。<strong>Kuratowski 定理</strong>（陈述）：非平面 <span class="arithmatex">\(\iff\)</span> 含 <span class="arithmatex">\(K_5\)</span> 或 <span class="arithmatex">\(K_{3,3}\)</span> 的剖分——两个最小反例就是全部障碍。</p>
 <p><strong>四色定理</strong>一嘴：平面图顶点四色可染（1976 计算机辅助证明——数学证明观念的分水岭事件；五色定理有纸笔证明，Euler 公式 + 归纳）。</p>
 <h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
 <p><strong>例 1（度序列判定）</strong> 序列 <span class="arithmatex">\((3, 3, 3, 1)\)</span> 可实现吗？度和 <span class="arithmatex">\(= 10\)</span> 为偶 ✓ 但三个 3 度点要在 4 顶点图中各连 3 边，1 度点只能吸收一条——检查（Erdős–Gallai 或直接构造）失败：<strong>度和为偶是必要不充分</strong>。</p>
@@ -173,6 +186,7 @@ V - E + F = 2
 <p><strong>例 3（平面性判断）</strong> Petersen 图（10 顶点 15 边）：<span class="arithmatex">\(E = 15 \leq 3V - 6 = 24\)</span>——<strong>边数判据通过但它仍非平面</strong>。对每个顶点的循环邻接顺序作有限穷举，没有任何旋转系统给出 <span class="arithmatex">\(V-E+F=2\)</span>，所以这是旋转系统的精确否证；不额外声称未经给出的 Kuratowski 剖分。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：图上的两大定理系统——匹配（Hall 婚配定理）与网络流（最大流最小割 = LP 对偶的组合化身），外加 PageRank 与 Markov 链的会师。</em></p>
+<p>延伸：<a href="https://math.mit.edu/~djk/18.310/18.310F04/planarity_coloring.html">MIT 平面图与染色讲义</a>；<a href="https://jeffe.cs.illinois.edu/teaching/comptop/2023/notes/19-surface-maps.html">Jeff Erickson：旋转系统与曲面嵌入</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="graph-01-counting.html"><span class="pager-label">上一页</span>图论组合 I · 计数与生成函数</a>
