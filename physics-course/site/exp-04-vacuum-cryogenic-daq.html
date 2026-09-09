@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-09 11:13</div>
   </div>
 </nav>
 <main id="content">
@@ -68,19 +68,22 @@ try {
 <li><a href="#2">2. 先预测：打开预算前先写下三个数</a></li>
 <li><a href="#3">3. 真空：抽速不是泵的铭牌数字</a></li>
 <li><a href="#4">4. 低温：先加热负载，再谈最低温</a></li>
+<li><a href="#5-daq">5. DAQ：采样以后，频率可能已经不可逆</a></li>
 <li><a href="#6">6. 误区与安全边界：公式通过不等于装置可以直接操作</a></li>
+<li><a href="#7">7. 迁移任务：从“能工作”升级为“有证明”</a></li>
 </ul>
 </li>
 <li><a href="#1">1. 真空的三种流动区域</a></li>
 <li><a href="#2_1">2. 低温台的热阻网络</a></li>
 <li><a href="#3_1">3. 数据采集的完整链路</a></li>
+<li><a href="#_2">模型来源与继续阅读</a></li>
 <li><a href="#4_1">4. 数量级例子</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">实验 IV · 真空、低温与数据采集<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：真空技术基础、低温实验方法、数据采集与信号处理 ｜ <strong>前置</strong>：fl-01（稀薄气体边界）、sm-01（热力学）、opt-01（频域）、exp-01/02（测量与噪声）
+<p><strong>对标</strong>：真空技术基础、低温实验方法、数据采集与信号处理 ｜ <strong>前置</strong>：<a href="fl-01-continuum.html">fl-01</a>（稀薄气体边界）、<a href="sm-01-thermodynamics.html">sm-01</a>（热力学）、<a href="opt-01-waves.html">opt-01</a>（频域）、<a href="exp-01-measurement-uncertainty.html">exp-01</a>/<a href="exp-02-noise-lockin.html">exp-02</a>（测量与噪声）
 低温物理、表面科学和量子器件常被说成“把设备做得更冷、更空、更快地采样”。真正决定实验能否工作的，是三本相互耦合的账：气体负载与有效抽速、热漏与制冷余量、采样率与可辨识频率。每一本账都有硬边界；把它们混成一个“仪器参数”会在最不该出错的地方出错。</p>
 </blockquote>
 <div data-learning-page></div>
@@ -88,7 +91,7 @@ try {
 <section aria-labelledby="vacuum-cryogenic-daq-learning-title" class="learning-layer">
 <h2 id="_1">学习层：一个读数异常，先查哪一本账？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <h3 id="vacuum-cryogenic-daq-learning-title">1. 具体谜题：为什么泵很大，压力仍然降不下去？<a class="headerlink" href="#vacuum-cryogenic-daq-learning-title" title="Permanent link"></a></h3>
-<p>设想一个低温真空腔：泵的铭牌抽速是 <span class="arithmatex">\(100\ \mathrm{L/s}\)</span>，连接腔体的细导管电导只有 <span class="arithmatex">\(25\ \mathrm{L/s}\)</span>。冷台上又有辐射、支撑、引线和测量信号带来的热漏；最后，传感器输出还要经过 ADC。实验失败时，三个现象可能同时出现：</p>
+<p>设想一个低温真空腔：泵的铭牌抽速是 <span class="arithmatex">\(100\ \mathrm{L/s}\)</span>，连接腔体的细导管流导只有 <span class="arithmatex">\(25\ \mathrm{L/s}\)</span>。冷台上又有辐射、支撑、引线和测量信号带来的热漏；最后，传感器输出还要经过 ADC。实验失败时，三个现象可能同时出现：</p>
 <ul>
 <li>压力比泵的广告数字高，残余气体碰撞使表面实验变差；</li>
 <li>冷台温度不再下降，甚至在加一个小电阻后缓慢升温；</li>
@@ -96,7 +99,7 @@ try {
 </ul>
 <p>它们不是三个互不相干的故障。流量守恒、能量守恒和采样定理分别给出三条预算；工程上要在各自的边界上留余量，再看接口是否把一个预算的代价转移给另一个预算。</p>
 <h3 id="2">2. 先预测：打开预算前先写下三个数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>交互实验的默认输入是：气负载 <span class="arithmatex">\(Q=0.012\ \mathrm{Pa\,L/s}\)</span>、泵速 <span class="arithmatex">\(S=100\ \mathrm{L/s}\)</span>、导管电导 <span class="arithmatex">\(C=25\ \mathrm{L/s}\)</span>；热漏为 <span class="arithmatex">\(18+22+7+3=50\ \mathrm{mW}\)</span>，制冷能力 <span class="arithmatex">\(80\ \mathrm{mW}\)</span>；采样率 <span class="arithmatex">\(f_s=12\ \mathrm{kHz}\)</span>，输入 <span class="arithmatex">\(f=2.4\ \mathrm{kHz}\)</span>，4 通道、16 bit、满量程 <span class="arithmatex">\(\pm1\ \mathrm V\)</span>。先预测：</p>
+<p>交互实验的默认输入是：气负载 <span class="arithmatex">\(Q=0.012\ \mathrm{Pa\,L/s}\)</span>、泵速 <span class="arithmatex">\(S=100\ \mathrm{L/s}\)</span>、导管流导 <span class="arithmatex">\(C=25\ \mathrm{L/s}\)</span>；热漏为 <span class="arithmatex">\(18+22+7+3=50\ \mathrm{mW}\)</span>，制冷能力 <span class="arithmatex">\(80\ \mathrm{mW}\)</span>；采样率 <span class="arithmatex">\(f_s=12\ \mathrm{kHz}\)</span>，输入 <span class="arithmatex">\(f=2.4\ \mathrm{kHz}\)</span>，4 通道、16 bit、满量程 <span class="arithmatex">\(\pm1\ \mathrm V\)</span>。先预测：</p>
 <ol>
 <li>泵与导管串联后，有效抽速是 <span class="arithmatex">\(100\)</span>、<span class="arithmatex">\(25\)</span> 还是 <span class="arithmatex">\(20\ \mathrm{L/s}\)</span>？</li>
 <li>低温预算用 <span class="arithmatex">\(80\%\)</span> 制冷能力作为运行线时，<span class="arithmatex">\(50\ \mathrm{mW}\)</span> 是有余量、刚好，还是已经超载？</li>
@@ -104,31 +107,42 @@ try {
 </ol>
 <p>先在实验台中选择答案；揭示后再一次只改变一个参数。预算表会告诉你，哪个边界被触碰，而不是只给一个“好/坏”标签。</p>
 <h3 id="3">3. 真空：抽速不是泵的铭牌数字<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>在稳态、气体负载由 <span class="arithmatex">\(Q\)</span> 表示且泵口有效抽速为 <span class="arithmatex">\(S\)</span> 时，基本关系为</p>
+<p>先取等温、集中参数、稳态模型：<span class="arithmatex">\(Q\)</span> 是以压力乘体积/时间表示的气体吞吐量，不是体积流率本身。若可忽略泵的底压，泵口压力为 <span class="arithmatex">\(P\)</span>、该工作点抽速为 <span class="arithmatex">\(S\)</span>，则</p>
 <div class="arithmatex">\[
 Q=PS,\qquad P=\frac{Q}{S}.
 \]</div>
-<p>若泵通过电导为 <span class="arithmatex">\(C\)</span> 的导管接到腔体，串联系统中的气体流量相同，压力降分别由泵和导管承担。于是</p>
+<p>若泵通过流导为 <span class="arithmatex">\(C\)</span> 的导管接到腔体，串联系统中的气体流量相同，压力降分别由泵和导管承担。于是</p>
 <div class="arithmatex">\[
 \frac1{S_{\mathrm{eff}}}=\frac1S+\frac1C,\qquad P=\frac Q{S_{\mathrm{eff}}}.
 \]</div>
+<p>这里的 <span class="arithmatex">\(P\)</span> 已改指腔体压力。把两个位置写开，就能看清串联公式的来源。若泵的等效底压为 <span class="arithmatex">\(P_b\)</span>、泵口压力为 <span class="arithmatex">\(P_p\)</span>，则</p>
+<div class="arithmatex">\[
+Q=S(P_p-P_b)=C(P-P_p),\qquad
+P=P_b+Q\left(\frac1S+\frac1C\right).
+\]</div>
+<p>实验把 <span class="arithmatex">\(P_b\)</span> 设为零，并把 <span class="arithmatex">\(S,C\)</span> 当作常数。流导 <span class="arithmatex">\(C=Q/(P-P_p)\)</span> 的这种压强无关近似通常用于固定气体、温度和几何的分子流；黏滞流中流导随压力改变，应逐工作点计算。导管沿途的分布放气也不能全部塞进“同一流量串联”而不说明近似。</p>
 <p>默认值给出</p>
 <div class="arithmatex">\[
 S_{\mathrm{eff}}=\left(\frac1{100}+\frac1{25}\right)^{-1}=20\ \mathrm{L/s},\qquad P=\frac{0.012}{20}=6.0\times10^{-4}\ \mathrm{Pa}.
 \]</div>
 <p>若错误地直接使用泵速，会写成 <span class="arithmatex">\(1.2\times10^{-4}\ \mathrm{Pa}\)</span>，低估了五倍。这个差异不是小数舍入，而是连接几何把系统瓶颈改写进了有效参数。真实真空还要把放气、漏率、蒸汽压、泵返流、吸附/解吸和时间常数写进 <span class="arithmatex">\(Q\)</span>。</p>
 <h3 id="4">4. 低温：先加热负载，再谈最低温<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>稳态冷台的能量账本是</p>
+<p>先区分两个问题：<strong>在指定温度下，制冷机的能力够不够？系统最终会停在哪个温度？</strong>本实验只回答第一个。固定目标温度 <span class="arithmatex">\(T_0\)</span> 下的能力预算是</p>
 <div class="arithmatex">\[
-Q_{\mathrm{in}}=Q_{\mathrm{rad}}+Q_{\mathrm{cond}}+Q_{\mathrm{wires}}+Q_{\mathrm{signal}}+\cdots,\qquad Q_{\mathrm{in}}&lt;Q_{\mathrm{cool}}(T).
+Q_{\mathrm{in}}=Q_{\mathrm{rad}}+Q_{\mathrm{cond}}+Q_{\mathrm{wires}}+Q_{\mathrm{signal}}+\cdots,\qquad Q_{\mathrm{in}}(T_0)\le Q_{\mathrm{cool}}(T_0).
 \]</div>
-<p>辐射热漏在简单灰体近似下满足</p>
+<p><span class="arithmatex">\(Q_{\mathrm{cool}}\)</span> 是该温度下可移走热量的能力，未必等于当前实际移走的 <span class="arithmatex">\(Q_{\mathrm{out}}\)</span>。若不靠控制器固定温度，温度动力学满足</p>
+<div class="arithmatex">\[
+C_{\mathrm{th}}(T)\frac{dT}{dt}=Q_{\mathrm{in}}(T)-Q_{\mathrm{out}}(T).
+\]</div>
+<p>稳态 <span class="arithmatex">\(T_*\)</span> 必须使两边热流<strong>相等</strong>。对 <span class="arithmatex">\(C_{\mathrm{th}}(T_*)&gt;0\)</span> 的单节点模型，若 <span class="arithmatex">\([Q_{\mathrm{in}}'-Q_{\mathrm{out}}'](T_*)&lt;0\)</span>，一个小的升温扰动会带来净冷却，平衡局部稳定；导数为零时一阶判断不够。预算有余量本身不能给出平衡温度，也不能证明多节点控制回路稳定。</p>
+<p>在冷物体看到均匀大热壁、视角因子近似为 1 的简化灰体模型下，以有效发射率 <span class="arithmatex">\(\varepsilon\)</span> 表示表面作用，辐射热漏满足</p>
 <div class="arithmatex">\[
 Q_{\mathrm{rad}}=\varepsilon\sigma A(T_h^4-T_c^4),
 \]</div>
-<p>支撑和线缆的传导热漏则是 <span class="arithmatex">\(Q_{\mathrm{cond}}=\int_{T_c}^{T_h}G(T)\,dT\)</span>；在 <span class="arithmatex">\(G\)</span> 近似常数时才可简写成 <span class="arithmatex">\(G\Delta T\)</span>。每条线既可能是电信号通道，也是一根热桥；滤波器、衰减器会改变信号噪声，同时耗散功率并增加 <span class="arithmatex">\(Q_{\mathrm{signal}}\)</span>。</p>
+<p>支撑和线缆的传导热漏则是 <span class="arithmatex">\(Q_{\mathrm{cond}}=\int_{T_c}^{T_h}G(T)\,dT\)</span>；这里一维、均匀截面、无内部发热的导热模型给出 <span class="arithmatex">\(G(T)=k(T)A/L\)</span>，单位为 W/K；在 <span class="arithmatex">\(G\)</span> 近似常数时才可简写成 <span class="arithmatex">\(G\Delta T\)</span>。每条线既可能是电信号通道，也是一根热桥；滤波器、衰减器会改变信号噪声，同时耗散功率并增加 <span class="arithmatex">\(Q_{\mathrm{signal}}\)</span>。</p>
 <p>实验用更保守的运行线 <span class="arithmatex">\(Q_{\mathrm{safe}}=0.8Q_{\mathrm{cool}}\)</span>。默认 <span class="arithmatex">\(Q_{\mathrm{in}}=50\ \mathrm{mW}\)</span>、<span class="arithmatex">\(Q_{\mathrm{cool}}=80\ \mathrm{mW}\)</span>，所以额定余量是 <span class="arithmatex">\(30\ \mathrm{mW}\)</span>，安全线为 <span class="arithmatex">\(64\ \mathrm{mW}\)</span>，距离安全线还有 <span class="arithmatex">\(14\ \mathrm{mW}\)</span>。这里“安全”只表示通过这个教学预算；它不替代制冷机额定曲线、瞬态热容、温度控制器和厂商规程。</p>
-<p><h3>5. DAQ：采样以后，频率可能已经不可逆</h3></p>
+<h3 id="5-daq">5. DAQ：采样以后，频率可能已经不可逆<a class="headerlink" href="#5-daq" title="Permanent link"></a></h3>
 <p>以采样周期 <span class="arithmatex">\(T_s=1/f_s\)</span> 取样，理想采样信号可以写成</p>
 <div class="arithmatex">\[
 x_s(t)=x(t)\sum_{n=-\infty}^{\infty}\delta(t-nT_s).
@@ -142,11 +156,25 @@ X_s(f)=\frac1{T_s}\sum_{k=-\infty}^{\infty}X(f-kf_s).
 f_{\mathrm{alias}}=\left|f-f_s\operatorname{round}\left(\frac f{f_s}\right)\right|,\qquad 0\le f_{\mathrm{alias}}\le\frac{f_s}{2}.
 \]</div>
 <p>默认 <span class="arithmatex">\(f_s/2=6\ \mathrm{kHz}\)</span>，所以 <span class="arithmatex">\(2.4\ \mathrm{kHz}\)</span> 不混叠；改成 <span class="arithmatex">\(9\ \mathrm{kHz}\)</span> 时，<span class="arithmatex">\(f_{\mathrm{alias}}=|9-12|=3\ \mathrm{kHz}\)</span>。这不是软件“识别错了”，而是 ADC 已经把两个模拟世界映射成同一个离散世界。</p>
+<p>幅度频率 <span class="arithmatex">\(3\ \mathrm{kHz}\)</span> 还不足以画出正确的相位。实验用半开区间 <span class="arithmatex">\([-f_s/2,f_s/2)\)</span> 中的有符号频率 <span class="arithmatex">\(\tilde f\)</span>，使 <span class="arithmatex">\(f-\tilde f=kf_s\)</span>。于是对整数 <span class="arithmatex">\(n\)</span>，</p>
+<div class="arithmatex">\[
+\sin(2\pi fn/f_s+\phi)=\sin(2\pi\tilde f n/f_s+\phi).
+\]</div>
+<p><span class="arithmatex">\(9\ \mathrm{kHz}\)</span> 对应 <span class="arithmatex">\(\tilde f=-3\ \mathrm{kHz}\)</span>；若坚持用正频率 <span class="arithmatex">\(3\ \mathrm{kHz}\)</span>，必须相应改变相位。恰好 <span class="arithmatex">\(f=f_s/2\)</span> 且 <span class="arithmatex">\(\phi=0\)</span> 时，所有样本都是 <span class="arithmatex">\(\sin(\pi n)=0\)</span>，任意振幅都给出同一零序列，所以一般信号重建不能把 Nyquist 等号当作有余量的工作点。</p>
 <p>16 bit、<span class="arithmatex">\(\pm1\ \mathrm V\)</span> 的理想量化步长为</p>
 <div class="arithmatex">\[
 \mathrm{LSB}=\frac{2\times1}{2^{16}}\ \mathrm V=30.52\ \mu\mathrm V.
 \]</div>
 <p>默认输入幅度 <span class="arithmatex">\(0.72\ \mathrm V\)</span>，还有 <span class="arithmatex">\(0.28\ \mathrm V\)</span> 的峰值余量；幅度超过满量程时发生削顶，后面的 Fourier 分析不能恢复被截去的波峰。</p>
+<p><strong>量化规则也要写出来。</strong>实验采用 <span class="arithmatex">\(N\)</span> 位、<span class="arithmatex">\(M=2^N\)</span> 个等宽区间的 mid-rise 教学量化器。先将电压截到 <span class="arithmatex">\(v_c\in[-V,V]\)</span>，再计算</p>
+<div class="arithmatex">\[
+\Delta=\frac{2V}{M},\qquad
+j=\min\!\left(M-1,\max\!\left(0,\left\lfloor\frac{v_c+V}{\Delta}\right\rfloor\right)\right),\qquad
+\hat v=-V+(j+\tfrac12)\Delta.
+\]</div>
+<p>每个码用区间中点代表，所以端点 <span class="arithmatex">\(\pm V\)</span> 对应 <span class="arithmatex">\(\pm(V-\Delta/2)\)</span>，零电压在本约定下对应 <span class="arithmatex">\(+\Delta/2\)</span>。这不是所有 ADC 的唯一编码约定；真实器件须按传输特性和码型解码。对未削顶的输入，<span class="arithmatex">\(|\hat v-v|\le\Delta/2\)</span>；超量程时这个界只约束<strong>相对截断值</strong>的量化误差，不能掩盖原波峰的损失。数据表把原电压、截断值、数字码和代表值分开列出。把位数降到 8 后再看误差列，比在整幅波形上寻找几十微伏更容易。</p>
+<p>若误差可近似看作均匀且与信号不相关，则积分 <span class="arithmatex">\(\Delta^{-1}\int_{-\Delta/2}^{\Delta/2}e^2\,de=\Delta^2/12\)</span> 给出量化噪声 RMS。确定性正弦与采样率成简单整数比时误差可周期重复，不能据此宣称噪声谱一定白。幅度为 <span class="arithmatex">\(A\)</span> 的未削顶正弦在这些条件下才有 <span class="arithmatex">\(\mathrm{SNR}_q=20\log_{10}(A\sqrt6/\Delta)\)</span>；这不是本实验对真实仪器 SNR 的测量。</p>
+<p>以下数据率使用<strong>每通道</strong>采样率，并假设各通道同步采样且按有效位数紧密打包；复用 ADC 的总转换率需要分配给通道，24 位样本按 32 位存储时也要另外计数。</p>
 <div class="learning-lab" data-learning-lab="physics-vacuum-cryogenic-daq">
 <p><strong>无 JavaScript 时的静态读法：</strong>实验把三个预算拆成页签，但使用同一组默认数值。真空侧取 <span class="arithmatex">\(Q=0.012\ \mathrm{Pa\,L/s}\)</span>、<span class="arithmatex">\(S=100\ \mathrm{L/s}\)</span>、<span class="arithmatex">\(C=25\ \mathrm{L/s}\)</span>；低温侧取 <span class="arithmatex">\(Q_{\mathrm{rad}}=18\)</span>、<span class="arithmatex">\(Q_{\mathrm{cond}}=22\)</span>、<span class="arithmatex">\(Q_{\mathrm{wires}}=7\)</span>、<span class="arithmatex">\(Q_{\mathrm{signal}}=3\ \mathrm{mW}\)</span> 和 <span class="arithmatex">\(Q_{\mathrm{cool}}=80\ \mathrm{mW}\)</span>；DAQ 侧取 <span class="arithmatex">\(f_s=12\)</span>、<span class="arithmatex">\(f=2.4\ \mathrm{kHz}\)</span>、4 通道、16 bit、<span class="arithmatex">\(\pm1\ \mathrm V\)</span>、幅度 <span class="arithmatex">\(0.72\ \mathrm V\)</span>。</p>
 <table>
@@ -180,16 +208,16 @@ f_{\mathrm{alias}}=\left|f-f_s\operatorname{round}\left(\frac f{f_s}\right)\righ
 </tr>
 </tbody>
 </table>
-<p>图中的导管和泵是串联抽气链，热负载条形图以 80% 制冷能力画安全线，DAQ 波形把连续正弦、采样点和 alias 曲线放在同一坐标上。预设“导管瓶颈”“热负载过大”“混叠演示”“输入削顶”分别触碰不同边界。</p>
+<p>图中的导管和泵是串联抽气链，热负载条形图以 80% 制冷能力画安全线，DAQ 图的绿线是未经削顶的模拟正弦，橙虚线是削顶后的模拟值，蓝点是量化码的代表电压，红虚线是保持采样相位的有符号 alias。连续绘图点按输入频率加密，它们不是 ADC 采样点；高频图过密时应看数据表，不能按屏幕像素数判定信号带宽。预设“导管瓶颈”“热负载过大”“混叠演示”“输入削顶”分别触碰不同边界。</p>
 </div>
 <h3 id="6">6. 误区与安全边界：公式通过不等于装置可以直接操作<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <ul>
 <li><strong>真空边界。</strong><span class="arithmatex">\(P=Q/S\)</span> 是稳态 lumped 模型；泵的额定速度会随气体种类、入口压力和管路改变。开阀或拆卸前必须确认压差、法兰和视窗额定值，使用受控 vent 与联锁；不能把“目标压力达到了”当作可以承受外压的证明。放气、漏气和氧缺失风险还需要独立的设备与场所评估。</li>
-<li><strong>低温边界。</strong><span class="arithmatex">\(Q_{\mathrm{in}}&lt;Q_{\mathrm{cool}}\)</span> 只保证一个简化的稳态不等式。冷冻剂可能造成冻伤和窒息，封闭体积受热会升压，冷台和样品会因热冲击破裂；泄压、氧浓度监测、屏蔽、接地和材料兼容性必须按实际制冷剂和设备执行。不能用软件阈值替代机械泄压保护。</li>
+<li><strong>低温边界。</strong><span class="arithmatex">\(Q_{\mathrm{in}}\le Q_{\mathrm{cool}}\)</span> 只检查目标温度下的能力预算；实际稳态还要求输入与移走热流相等。冷冻剂可能造成冻伤和窒息，封闭体积受热会升压，冷台和样品会因热冲击破裂；泄压、氧浓度监测、屏蔽、接地和材料兼容性必须按实际制冷剂和设备执行。不能用软件阈值替代机械泄压保护。</li>
 <li><strong>DAQ 边界。</strong>Nyquist 不是“采样率高一点就万事大吉”；抗混叠滤波必须位于 ADC 之前，滤波器本身有过渡带。满量程外的输入会削顶，地环路和共模电压可能先损坏前端。改变采样率后，必须重新检查模拟滤波、触发、时间戳和数据率。</li>
-<li><strong>预算边界。</strong>三本账并不独立：加一只低温放大器可能降低电噪声，却增加发热；减小导管可能改善隔离，却降低电导；提高采样率可能减少时间混叠，却增大存储和传输压力。每次只改一个变量，并记录对其他账的副作用。</li>
+<li><strong>预算边界。</strong>三本账并不独立：加一只低温放大器可能降低电噪声，却增加发热；减小导管可能改善隔离，却降低流导；提高采样率可能减少时间混叠，却增大存储和传输压力。每次只改一个变量，并记录对其他账的副作用。</li>
 </ul>
-<p><h3>7. 迁移任务：从“能工作”升级为“有证明”</h3></p>
+<h3 id="7">7. 迁移任务：从“能工作”升级为“有证明”<a class="headerlink" href="#7" title="Permanent link"></a></h3>
 <p>为一个假想的 4 K 表面谱实验写一页 commissioning 表：</p>
 <ol>
 <li>先用已知漏率或已知气负载标定 <span class="arithmatex">\(Q\)</span>，用导管几何和压力阶跃测 <span class="arithmatex">\(C\)</span>，而不是只抄泵的 <span class="arithmatex">\(S\)</span>；</li>
@@ -197,11 +225,19 @@ f_{\mathrm{alias}}=\left|f-f_s\operatorname{round}\left(\frac f{f_s}\right)\righ
 <li>从目标信号最高频率反推模拟抗混叠滤波器和 <span class="arithmatex">\(f_s\)</span>，再用一个高于 Nyquist 的已知正弦验证 alias 账本；</li>
 <li>在“超压、热超载、削顶、通信中断”各处定义硬件或人工停止条件。</li>
 </ol>
+<details class="answer">
+<summary>三项可手算的迁移题与答案</summary>
+<ol>
+<li><strong>泵能否无限解决压力？</strong>仍取 <span class="arithmatex">\(Q=0.012\)</span>、<span class="arithmatex">\(C=25\)</span>，但 <span class="arithmatex">\(P_b=2\times10^{-4}\ \mathrm{Pa}\)</span>。<span class="arithmatex">\(S=100\)</span> 时 <span class="arithmatex">\(P=8\times10^{-4}\ \mathrm{Pa}\)</span>；即使 <span class="arithmatex">\(S\to\infty\)</span>，仍有 <span class="arithmatex">\(P\to P_b+Q/C=6.8\times10^{-4}\ \mathrm{Pa}\)</span>。因此目标 <span class="arithmatex">\(5\times10^{-4}\ \mathrm{Pa}\)</span> 不能仅靠加大泵解决。</li>
+<li><strong>有余量是否说明温度固定？</strong>取 <span class="arithmatex">\(Q_{\mathrm{in}}=50\ \mathrm{mW}\)</span>、<span class="arithmatex">\(Q_{\mathrm{out}}(T)=20(T-2\ \mathrm K)\ \mathrm{mW/K}\)</span>（只在所讨论温区使用）、<span class="arithmatex">\(C_{\mathrm{th}}=100\ \mathrm{mJ/K}\)</span>。平衡温度为 <span class="arithmatex">\(4.5\ \mathrm K\)</span>；在 4 K 时净热流为 10 mW，升温率为 <span class="arithmatex">\(0.1\ \mathrm{K/s}\)</span>。平衡附近扰动以 <span class="arithmatex">\(e^{-t/(5\,\mathrm s)}\)</span> 衰减。只报某个制冷机的额定功率，推不出这些数。</li>
+<li><strong>混叠与量化是否同一错误？</strong>取 <span class="arithmatex">\(f_s=12\ \mathrm{kHz}\)</span>、<span class="arithmatex">\(f=9\ \mathrm{kHz}\)</span>、<span class="arithmatex">\(A=0.72\ \mathrm V\)</span>，第一个非零时刻 <span class="arithmatex">\(t=1/f_s\)</span> 的原值为 <span class="arithmatex">\(-0.72\ \mathrm V\)</span>，也等于 <span class="arithmatex">\(-3\ \mathrm{kHz}\)</span> 正弦该时刻的值。若改用 <span class="arithmatex">\(N=8,V=1\)</span>，则 <span class="arithmatex">\(\Delta=0.0078125\ \mathrm V\)</span>、<span class="arithmatex">\(j=35\)</span>、<span class="arithmatex">\(\hat v=-0.72265625\ \mathrm V\)</span>，量化误差为 <span class="arithmatex">\(-0.00265625\ \mathrm V\)</span>。提高位数缩小后一误差，却不能区分 9 kHz 与其 alias。</li>
+</ol>
+</details>
 <p>最后回答：如果压力、温度和波形都在软件显示的绿色区间，仍可能有哪些<strong>未被这三个教学预算覆盖</strong>的风险？答案应包含校准不确定度、瞬态、传感器失效和人身/机械防护，而不是再加一个绿色指示灯。</p>
 </section>
 <h2 id="1">1. 真空的三种流动区域<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>真空工程先按平均自由程 <span class="arithmatex">\(\ell\)</span> 与特征尺寸 <span class="arithmatex">\(D\)</span> 的比值判断流动区域。Knudsen 数 <span class="arithmatex">\(\mathrm{Kn}=\ell/D\)</span> 很小时是连续流，适合用流体近似；很大时是分子流，分子与壁碰撞比彼此碰撞更频繁；中间是过渡流。泵型、导管电导和压力计的物理含义会随区域改变，因此“抽速”没有脱离压力和气体种类的绝对含义。</p>
-<p>在分子流区域，长而窄的圆管电导对气体种类还带有近似比例；几何变窄通常会显著降低 <span class="arithmatex">\(C\)</span>。串联公式与电路电阻相似，但只是守恒方程的结果，不意味着真空系统真的有一个欧姆定律。并联支路则近似满足电导相加；阀门、弯头、冷阱和污染表面会让这一 lumped 近似失效。</p>
+<p>真空工程先按平均自由程 <span class="arithmatex">\(\ell\)</span> 与特征尺寸 <span class="arithmatex">\(D\)</span> 的比值判断流动区域。Knudsen 数 <span class="arithmatex">\(\mathrm{Kn}=\ell/D\)</span> 很小时是连续流，适合用流体近似；很大时是分子流，分子与壁碰撞比彼此碰撞更频繁；中间是过渡流。泵型、导管流导和压力计的物理含义会随区域改变，因此“抽速”没有脱离压力和气体种类的绝对含义。</p>
+<p>在等温分子流区域，长直圆管（长度远大于直径）的流导近似随 <span class="arithmatex">\(D^3\sqrt{T/M}/L\)</span> 缩放，其中 <span class="arithmatex">\(M\)</span> 为分子质量；几何变窄通常会显著降低 <span class="arithmatex">\(C\)</span>。串联公式与电路电阻相似，但只是守恒方程的结果，不意味着真空系统真的有一个欧姆定律。并联支路则近似满足流导相加；阀门、弯头、冷阱和污染表面会让这一 lumped 近似失效。</p>
 <p>气负载的来源包括外漏、材料放气、表面解吸、渗透和样品挥发。烘烤可以减小部分放气，冷阱可以吸附特定蒸汽，但它们也会改变热预算与可维护性。压力随时间的抽空曲线能区分泄漏主导、放气主导和泵速限制：斜率不是一个可以脱离体积、温度和气体组分的通用常数。</p>
 <h2 id="2_1">2. 低温台的热阻网络<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <p>把各级冷台视为节点，稳态热流由热阻、辐射和主动制冷共同决定。对一条近似常导热系数的支撑，<span class="arithmatex">\(Q=K(T_h-T_c)\)</span>；对金属线在宽温区，<span class="arithmatex">\(K(T)\)</span> 可能变化很大，须积分。多级屏蔽的作用不是“把温度标签写低”，而是让高温到低温的辐射视角因子和导热路径分级下降。</p>
@@ -210,6 +246,12 @@ f_{\mathrm{alias}}=\left|f-f_s\operatorname{round}\left(\frac f{f_s}\right)\righ
 <h2 id="3_1">3. 数据采集的完整链路<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
 <p>ADC 前至少要检查传感器输出阻抗、增益、共模范围、保护、抗混叠滤波、触发和参考时钟。ADC 后要检查量化、数字滤波、缓存、时间戳、丢包和单位。理想量化噪声常用 <span class="arithmatex">\(\mathrm{LSB}/\sqrt{12}\)</span> 估计，但这需要近似均匀误差、无相关失真和未削顶；实际 ENOB、时钟抖动、前端噪声和非线性会更差。</p>
 <p>若输入是带宽有限的随机过程，采样率应依据最高有意义频率和滤波器过渡带留出工程余量，而不是把最高频率恰好放在 <span class="arithmatex">\(f_s/2\)</span>。时钟抖动对高频正弦的相位误差约为 <span class="arithmatex">\(2\pi f\sigma_t\)</span>；信号频率越高，时间基准越容易成为噪声源。多通道系统还要说明同步采样、复用延迟和各通道增益。</p>
+<h2 id="_2">模型来源与继续阅读<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://arxiv.org/abs/2105.07675">CERN Accelerator School：Accelerator Vacuum</a>：流动区域、吞吐量、流导与抽速。用它核对装置所处的流动条件，而不是把一个常数流导跨压力区间套用。</li>
+<li><a href="https://wiki.analog.com/university/courses/electronics/text/chapter-20">Analog Devices：ADC 教学章</a>：采样与量化、有限数字码与器件规格。本页中点编码是显式选定的教学约定。</li>
+<li><a href="https://www.analog.com/en/resources/technical-articles/understanding-ac-behaviors-of-high-speed-adcs.html">Analog Devices：高速 ADC 的交流行为</a>：量化噪声假设与实际抗混叠滤波过渡带。</li>
+</ul>
 <h2 id="4_1">4. 数量级例子<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（管路瓶颈）</strong> 若 <span class="arithmatex">\(Q=0.02\ \mathrm{Pa\,L/s}\)</span>、<span class="arithmatex">\(S=200\ \mathrm{L/s}\)</span>、<span class="arithmatex">\(C=10\ \mathrm{L/s}\)</span>，则 <span class="arithmatex">\(S_{\mathrm{eff}}=1/(0.005+0.1)=9.52\ \mathrm{L/s}\)</span>，压力约 <span class="arithmatex">\(2.1\times10^{-3}\ \mathrm{Pa}\)</span>。提高泵速到 <span class="arithmatex">\(400\ \mathrm{L/s}\)</span> 只把有效速度变成 <span class="arithmatex">\(9.76\ \mathrm{L/s}\)</span>，导管才是主要改进点。</p>
 <p><strong>例 2（热余量）</strong> 若四项热漏为 <span class="arithmatex">\(30+20+12+8=70\ \mathrm{mW}\)</span>，制冷能力为 <span class="arithmatex">\(100\ \mathrm{mW}\)</span>，额定余量仍有 <span class="arithmatex">\(30\ \mathrm{mW}\)</span>，但 <span class="arithmatex">\(80\%\)</span> 运行线只有 <span class="arithmatex">\(80\ \mathrm{mW}\)</span>，安全余量仅 <span class="arithmatex">\(10\ \mathrm{mW}\)</span>。一个额外的 12 mW 线缆热漏就足以跨过教学用安全线。</p>

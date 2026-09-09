@@ -55,7 +55,7 @@
         { id: "clip", label: "输入削顶", sampleRate: 12000, signalHz: 2400, channels: 4, bits: 16, fullScale: 1, amplitude: 1.18 }
       ]
     };
-    var COLORS = { blue: "#315f9d", orange: "#a36a16", green: "#39734d", red: "#b64335", gold: "#8b6517", gray: "#7b8794" };
+    var COLORS = { blue: "var(--vcd-blue)", orange: "var(--vcd-orange)", green: "var(--vcd-green)", red: "var(--vcd-red)", gold: "var(--vcd-gold)", gray: "var(--fg-soft)" };
 
     var STYLE_TEXT = [
       '[data-learning-lab="physics-vacuum-cryogenic-daq"]{--vcd-blue:#315f9d;--vcd-orange:#a36a16;--vcd-green:#39734d;--vcd-red:#b64335;--vcd-gold:#8b6517;display:block;min-width:0;color:var(--fg,currentColor);line-height:1.55;overflow-wrap:anywhere}',
@@ -69,18 +69,19 @@
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] button:hover{border-color:var(--vcd-blue)}[data-learning-lab="physics-vacuum-cryogenic-daq"] button:focus-visible,[data-learning-lab="physics-vacuum-cryogenic-daq"] select:focus-visible,[data-learning-lab="physics-vacuum-cryogenic-daq"] input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}',
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-actions{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-actions>*{flex:1 1 170px}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-primary{border-color:var(--vcd-blue);background:var(--vcd-blue);color:#fff;font-weight:750}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-feedback{min-height:2em;margin:8px 0;font-weight:700}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-warn{color:var(--vcd-red)}',
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:13px 0 10px}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-tab{font-weight:700}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-tab[aria-selected="true"]{border-color:var(--vcd-blue);background:var(--vcd-blue);color:#fff}',
-      '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-controls,[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage{min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-vacuum-cryogenic-daq"] output{color:var(--vcd-blue);font-variant-numeric:tabular-nums}',
-      '[data-learning-lab="physics-vacuum-cryogenic-daq"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--vcd-blue)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-vacuum-cryogenic-daq"] svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg,currentColor)}[data-learning-lab="physics-vacuum-cryogenic-daq"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
+      '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-controls,[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage{min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-control{display:grid;gap:5px;min-width:0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-control label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:5px;color:var(--fg-soft,currentColor);font-size:13px;font-weight:700}[data-learning-lab="physics-vacuum-cryogenic-daq"] output{color:var(--vcd-blue);font-variant-numeric:tabular-nums}',
+      '[data-learning-lab="physics-vacuum-cryogenic-daq"] input[type="range"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--vcd-blue)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame{min-width:0;padding:8px;border:1px solid var(--border,#cbd5e1);border-radius:7px;background:var(--bg,transparent);overflow-x:auto;overflow-y:hidden}[data-learning-lab="physics-vacuum-cryogenic-daq"] svg{display:block;width:100%;height:auto;min-width:720px;max-width:none;color:var(--fg,currentColor)}[data-learning-lab="physics-vacuum-cryogenic-daq"] svg text{fill:currentColor;font-family:inherit;letter-spacing:0}',
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-grid{stroke:var(--border,#cbd5e1);stroke-width:1;stroke-opacity:.7}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.75}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-blue{stroke:var(--vcd-blue);fill:none;stroke-width:2.5}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-orange{stroke:var(--vcd-orange);fill:none;stroke-width:2.3;stroke-dasharray:6 4}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-green{stroke:var(--vcd-green);fill:none;stroke-width:2.4}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-red{stroke:var(--vcd-red);fill:none;stroke-width:2.3;stroke-dasharray:5 4}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-dot{fill:var(--vcd-blue);stroke:var(--bg,#fff);stroke-width:1.2}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-threshold{stroke:var(--vcd-gold);stroke-width:1.8;stroke-dasharray:5 4}',
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#cbd5e1);background:var(--bg,transparent)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric:nth-child(4n+1){border-color:var(--vcd-blue)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric:nth-child(4n+2){border-color:var(--vcd-orange)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric:nth-child(4n+3){border-color:var(--vcd-green)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric:nth-child(4n){border-color:var(--vcd-red)}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric span{display:block;color:var(--fg-soft,currentColor);font-size:11.5px}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}',
       '[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}[data-learning-lab="physics-vacuum-cryogenic-daq"] table{width:100%;min-width:600px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}[data-learning-lab="physics-vacuum-cryogenic-daq"] th,[data-learning-lab="physics-vacuum-cryogenic-daq"] td{padding:7px 8px;border-bottom:1px solid var(--border,#cbd5e1);text-align:left;vertical-align:top;overflow-wrap:anywhere}[data-learning-lab="physics-vacuum-cryogenic-daq"] th{color:var(--fg-soft,currentColor);font-size:11px}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-note{margin-top:11px;padding:10px 12px;border-left:3px solid var(--vcd-gold);color:var(--fg-soft,currentColor);font-size:13px;line-height:1.7}',
-      '@media(max-width:900px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame svg{min-width:640px}}@media(max-width:430px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-tabs{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metrics{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-vacuum-cryogenic-daq"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      '@media(max-width:900px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:680px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-prediction-grid{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame svg{min-width:720px}}@media(max-width:430px){[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-tabs{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-metrics{grid-template-columns:1fr}[data-learning-lab="physics-vacuum-cryogenic-daq"] .vcd-stage-frame{padding:4px}}@media(prefers-reduced-motion:reduce){[data-learning-lab="physics-vacuum-cryogenic-daq"] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+      ,'[data-theme="dark"] [data-learning-lab="physics-vacuum-cryogenic-daq"]{--vcd-blue:#8ab4f8;--vcd-orange:#e3b56b;--vcd-green:#88c6a0;--vcd-red:#ed9995;--vcd-gold:#dfb971}'
     ].join("");
 
     function assert(condition, message) { if (!condition) throw new Error(message); }
 
     function finite(value, label) {
-      var number = Number(value);
+      var number = value;
       if (!Number.isFinite(number)) throw new RangeError(label + " must be finite");
       return number;
     }
@@ -96,7 +97,7 @@
       if (!Number.isFinite(value)) return "—";
       var places = digits === undefined ? 3 : digits;
       if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+      return places === 0 ? value.toFixed(0) : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
     }
 
     function copyDefaults() {
@@ -127,14 +128,14 @@
       var daq = {
         sampleRate: finite(daqSource.sampleRate === undefined ? DEFAULTS.daq.sampleRate : daqSource.sampleRate, "sample rate"),
         signalHz: finite(daqSource.signalHz === undefined ? DEFAULTS.daq.signalHz : daqSource.signalHz, "signal frequency"),
-        channels: Math.round(finite(daqSource.channels === undefined ? DEFAULTS.daq.channels : daqSource.channels, "channels")),
-        bits: Math.round(finite(daqSource.bits === undefined ? DEFAULTS.daq.bits : daqSource.bits, "bits")),
+        channels: finite(daqSource.channels === undefined ? DEFAULTS.daq.channels : daqSource.channels, "channels"),
+        bits: finite(daqSource.bits === undefined ? DEFAULTS.daq.bits : daqSource.bits, "bits"),
         fullScale: finite(daqSource.fullScale === undefined ? DEFAULTS.daq.fullScale : daqSource.fullScale, "full scale"),
         amplitude: finite(daqSource.amplitude === undefined ? DEFAULTS.daq.amplitude : daqSource.amplitude, "amplitude")
       };
-      if (vacuum.gasLoad <= 0 || vacuum.gasLoad > 0.08 || vacuum.pumpSpeed < 20 || vacuum.pumpSpeed > 200 || vacuum.conductance < 5 || vacuum.conductance > 80) throw new RangeError("vacuum inputs are outside the teaching range");
-      if (cryo.radiation < 0 || cryo.conduction < 0 || cryo.wires < 0 || cryo.signal < 0 || cryo.cooling <= 0 || cryo.cooling > 180) throw new RangeError("cryogenic heat inputs are outside the teaching range");
-      if (daq.sampleRate < 2000 || daq.sampleRate > 30000 || daq.signalHz < 100 || daq.signalHz > 30000 || daq.channels < 1 || daq.channels > 8 || daq.bits < 8 || daq.bits > 24 || daq.fullScale <= 0 || daq.fullScale > 5 || daq.amplitude < 0 || daq.amplitude > 1.5 * daq.fullScale) throw new RangeError("DAQ inputs are outside the teaching range");
+      if (vacuum.gasLoad < 0.001 || vacuum.gasLoad > 0.08 || vacuum.pumpSpeed < 20 || vacuum.pumpSpeed > 200 || vacuum.conductance < 5 || vacuum.conductance > 80) throw new RangeError("vacuum inputs are outside the teaching range");
+      if (cryo.radiation > 80 || cryo.conduction > 80 || cryo.wires > 50 || cryo.signal > 40 || cryo.radiation < 0 || cryo.conduction < 0 || cryo.wires < 0 || cryo.signal < 0 || cryo.cooling < 20 || cryo.cooling > 180) throw new RangeError("cryogenic heat inputs are outside the teaching range");
+      if (!Number.isInteger(daq.channels) || !Number.isInteger(daq.bits) || daq.sampleRate < 2000 || daq.sampleRate > 30000 || daq.signalHz < 100 || daq.signalHz > 30000 || daq.channels < 1 || daq.channels > 8 || daq.bits < 8 || daq.bits > 24 || daq.fullScale < 0.001 || daq.fullScale > 5 || daq.amplitude < 0 || daq.amplitude > 1.5 * daq.fullScale) throw new RangeError("DAQ inputs are outside the teaching range");
       return { vacuum: vacuum, cryo: cryo, daq: daq };
     }
 
@@ -156,9 +157,13 @@
     }
 
     function wrapFrequency(frequency, sampleRate) {
-      var wrapped = (frequency + sampleRate / 2) % sampleRate;
-      if (wrapped < 0) wrapped += sampleRate;
-      return wrapped - sampleRate / 2;
+      finite(frequency, "frequency"); finite(sampleRate, "sample rate");
+      if (sampleRate <= 0) throw new RangeError("sample rate must be positive");
+      var wrapped = frequency % sampleRate;
+      if (wrapped >= sampleRate / 2) wrapped -= sampleRate;
+      if (wrapped < -sampleRate / 2) wrapped += sampleRate;
+      return wrapped;
+
     }
 
     function adcSample(rawValue, fullScale) {
@@ -169,11 +174,19 @@
       return { raw: raw, value: value, clipped: value !== raw };
     }
 
+    function sinCycles(cycles) {
+      var phase = ((cycles % 1) + 1) % 1;
+      if (phase === 0 || phase === 0.5) return 0;
+      if (phase === 0.25) return 1;
+      if (phase === 0.75) return -1;
+      return Math.sin(TWO_PI * phase);
+    }
+
     function sampledAdcValue(daq, time, frequency) {
       var source = daq || {};
       var sampleTime = finite(time, "sample time");
       var sampleFrequency = finite(frequency === undefined ? source.signalHz : frequency, "sample frequency");
-      var raw = finite(source.amplitude, "amplitude") * Math.sin(TWO_PI * sampleFrequency * sampleTime);
+      var raw = finite(source.amplitude, "amplitude") * sinCycles(sampleFrequency * sampleTime);
       return adcSample(raw, source.fullScale);
     }
 
@@ -184,9 +197,42 @@
       var signedAlias = wrapFrequency(daq.signalHz, daq.sampleRate);
       var alias = Math.abs(signedAlias);
       var lsb = 2 * daq.fullScale / Math.pow(2, daq.bits);
-      var quantizationSnr = daq.amplitude > 0 ? 20 * Math.log10(daq.amplitude * Math.sqrt(6) / lsb) : -Infinity;
+      var quantizationSnr = daq.amplitude > 0 && daq.amplitude <= daq.fullScale ? 20 * Math.log10(daq.amplitude * Math.sqrt(6) / lsb) : null;
       var dataRate = daq.sampleRate * daq.channels * daq.bits;
       return { config: daq, nyquist: nyquist, signedAlias: signedAlias, alias: alias, lsb: lsb, quantizationSnr: quantizationSnr, dataRate: dataRate, headroom: daq.fullScale - daq.amplitude, safeNyquist: daq.signalHz < nyquist, safeAmplitude: daq.amplitude <= daq.fullScale, safe: daq.signalHz < nyquist && daq.amplitude <= daq.fullScale };
+    }
+
+
+    // Mid-rise teaching ADC: 2^bits bins, decoded at each bin midpoint.
+    function quantizeAdc(raw, fullScale, bits) {
+      var clipped = adcSample(raw, fullScale);
+      if (!Number.isInteger(bits) || bits < 1 || bits > 24) throw new RangeError("bits must be an integer from 1 to 24");
+      var levels = Math.pow(2, bits), step = 2 * fullScale / levels;
+      if (!(step > 0) || !Number.isFinite(step)) throw new RangeError("ADC step is not representable");
+      var code = clamp(Math.floor((clipped.value / fullScale + 1) * levels / 2), 0, levels - 1);
+      var value = fullScale * ((2 * code + 1) / levels - 1);
+      return { raw: raw, clippedValue: clipped.value, clipped: clipped.clipped, code: code, value: value, error: value - clipped.value, step: step };
+    }
+
+    function daqWaveform(input) {
+      var config = normalizeConfig({ daq: input }).daq;
+      var result = daqBudget(config);
+      var duration = Math.max(4 / config.signalHz, 12 / config.sampleRate);
+      // At least 64 rendering segments per original period; these are not ADC samples.
+      var segments = Math.max(256, Math.ceil(64 * config.signalHz * duration));
+      var continuous = [], samples = [];
+      for (var i = 0; i <= segments; i += 1) {
+        var t = duration * i / segments;
+        var analog = sampledAdcValue(config, t);
+        continuous.push({ time: t, raw: analog.raw, clipped: analog.value,
+          alias: config.amplitude * Math.sin(TWO_PI * result.signedAlias * t) });
+      }
+      for (var n = 0; n <= Math.floor(duration * config.sampleRate + 1e-10); n += 1) {
+        var time = n / config.sampleRate;
+        var q = quantizeAdc(config.amplitude * sinCycles(config.signalHz * n / config.sampleRate), config.fullScale, config.bits);
+        q.time = time; q.index = n; samples.push(q);
+      }
+      return { duration: duration, segments: segments, continuous: continuous, samples: samples };
     }
 
     function runBudget(input) {
@@ -243,22 +289,22 @@
     }
 
     function drawVacuum(doc, result) {
-      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 260", role: "img", "aria-label": "真空系统气负载、导管电导和泵速的串联预算" });
+      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 260", role: "img", "aria-label": "真空系统气负载、导管流导和泵速的串联预算" });
       var left = 70;
       var right = 650;
       var y = 105;
-      svg.appendChild(svgText(doc, 24, 30, "真空预算：气负载 Q 经过电导 C 才到达泵 S", "start", 13));
-      svg.appendChild(makeSvg(doc, "rect", { x: 80, y: 75, width: 125, height: 60, rx: 5, fill: "#315f9d", opacity: .16, stroke: COLORS.blue }));
+      svg.appendChild(svgText(doc, 24, 30, "真空预算：气负载 Q 经过流导 C 才到达泵 S", "start", 13));
+      svg.appendChild(makeSvg(doc, "rect", { x: 80, y: 75, width: 125, height: 60, rx: 5, fill: COLORS.blue, opacity: .16, stroke: COLORS.blue }));
       svg.appendChild(svgText(doc, 142, 100, "腔体", "middle", 13));
       svg.appendChild(svgText(doc, 142, 119, "Q=" + formatNumber(result.config.gasLoad, 3) + " Pa·L/s", "middle", 11));
       svg.appendChild(makeSvg(doc, "line", { x1: 205, y1: y, x2: 300, y2: y, class: "vcd-blue" }));
       svg.appendChild(makeSvg(doc, "polygon", { points: "300,105 286,98 286,112", fill: COLORS.blue }));
-      svg.appendChild(makeSvg(doc, "rect", { x: 300, y: 75, width: 135, height: 60, rx: 5, fill: "#a36a16", opacity: .16, stroke: COLORS.orange }));
+      svg.appendChild(makeSvg(doc, "rect", { x: 300, y: 75, width: 135, height: 60, rx: 5, fill: COLORS.orange, opacity: .16, stroke: COLORS.orange }));
       svg.appendChild(svgText(doc, 367, 100, "导管", "middle", 13));
       svg.appendChild(svgText(doc, 367, 119, "C=" + formatNumber(result.config.conductance, 0) + " L/s", "middle", 11));
       svg.appendChild(makeSvg(doc, "line", { x1: 435, y1: y, x2: 530, y2: y, class: "vcd-orange" }));
       svg.appendChild(makeSvg(doc, "polygon", { points: "530,105 516,98 516,112", fill: COLORS.orange }));
-      svg.appendChild(makeSvg(doc, "rect", { x: 530, y: 75, width: 115, height: 60, rx: 5, fill: "#39734d", opacity: .16, stroke: COLORS.green }));
+      svg.appendChild(makeSvg(doc, "rect", { x: 530, y: 75, width: 115, height: 60, rx: 5, fill: COLORS.green, opacity: .16, stroke: COLORS.green }));
       svg.appendChild(svgText(doc, 587, 100, "泵", "middle", 13));
       svg.appendChild(svgText(doc, 587, 119, "S=" + formatNumber(result.config.pumpSpeed, 0) + " L/s", "middle", 11));
       svg.appendChild(svgText(doc, left, 177, "1/S_eff = 1/S + 1/C", "start", 13));
@@ -272,74 +318,64 @@
     }
 
     function drawCryo(doc, result) {
-      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 290", role: "img", "aria-label": "低温级热负载堆叠与制冷能力安全线" });
-      var left = 70;
-      var width = 580;
-      var scale = width / Math.max(result.cooling, result.total, 1);
-      var y = 92;
-      var labels = ["辐射", "传导", "引线", "信号"];
+      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 350", role: "img", "aria-label": "低温热负载、额定能力与教学预算线，单位mW" });
+      var left = 70, width = 580, maximum = Math.max(result.cooling, result.total, 1);
+      var scale = width / maximum, y = 100, cursor = left;
       var keys = ["radiation", "conduction", "wires", "signal"];
+      var labels = ["辐射", "传导", "引线", "信号"];
       var colors = [COLORS.blue, COLORS.orange, COLORS.green, COLORS.gold];
-      var cursor = left;
-      svg.appendChild(svgText(doc, 24, 30, "低温预算：所有热漏相加，再与制冷能力比较", "start", 13));
-      svg.appendChild(makeSvg(doc, "rect", { x: left, y: y, width: result.cooling * scale, height: 52, fill: "none", stroke: COLORS.green, "stroke-width": 2 }));
-      keys.forEach(function (key, index) {
+      svg.appendChild(svgText(doc, 24, 28, "热漏相加；制冷能力是指定温度下可移走热量的上限", "start", 13));
+      keys.forEach(function (key, i) {
+        svg.appendChild(makeSvg(doc, "rect", { x: 30 + i * 170, y: 48, width: 12, height: 12, fill: colors[i] }));
+        svg.appendChild(svgText(doc, 48 + i * 170, 59, labels[i] + " " + formatNumber(result.config[key], 0) + " mW", "start", 11));
         var segment = result.config[key] * scale;
-        svg.appendChild(makeSvg(doc, "rect", { x: cursor, y: y, width: Math.max(0, segment), height: 52, fill: colors[index], opacity: .72 }));
-        if (segment > 28) svg.appendChild(svgText(doc, cursor + segment / 2, y + 31, formatNumber(result.config[key], 0), "middle", 11));
+        svg.appendChild(makeSvg(doc, "rect", { x: cursor, y: y, width: segment, height: 48, fill: colors[i], opacity: .65 }));
         cursor += segment;
       });
-      var safetyX = left + result.safetyLimit * scale;
-      svg.appendChild(makeSvg(doc, "line", { x1: safetyX, y1: y - 17, x2: safetyX, y2: y + 70, class: "vcd-threshold" }));
-      svg.appendChild(svgText(doc, safetyX, y - 23, "80% 安全线", "middle", 11));
-      svg.appendChild(svgText(doc, left, y + 83, "0 mW", "start", 11));
-      svg.appendChild(svgText(doc, left + result.cooling * scale, y + 83, formatNumber(result.cooling, 0) + " mW 制冷能力", "end", 11));
-      svg.appendChild(svgText(doc, 70, 205, "Q_in=Q_rad+Q_cond+Q_wires+Q_signal", "start", 13));
-      svg.appendChild(svgText(doc, 70, 230, "Q_in=" + formatNumber(result.total, 1) + " mW；Q_cool=" + formatNumber(result.cooling, 1) + " mW", "start", 13));
-      svg.appendChild(svgText(doc, 650, 205, result.safe ? "保留安全余量" : result.overloaded ? "超过制冷能力" : "超过 80% 安全线", "end", 13));
-      svg.appendChild(svgText(doc, 650, 230, "剩余=" + formatNumber(result.headroom, 1) + " mW", "end", 13));
+      var capacityX = left + result.cooling * scale, safetyX = left + result.safetyLimit * scale;
+      svg.appendChild(makeSvg(doc, "line", { x1: capacityX, y1: 86, x2: capacityX, y2: 158, class: "vcd-green" }));
+      svg.appendChild(makeSvg(doc, "line", { x1: safetyX, y1: 86, x2: safetyX, y2: 158, class: "vcd-threshold" }));
+      for (var i = 0; i <= 4; i += 1) {
+        var x = left + width * i / 4;
+        svg.appendChild(makeSvg(doc, "line", { x1: x, y1: 158, x2: x, y2: 164, class: "vcd-axis" }));
+        svg.appendChild(svgText(doc, x, 180, formatNumber(maximum * i / 4, 1), "middle", 11));
+      }
+      svg.appendChild(svgText(doc, 650, 198, "热流 / mW", "end", 11));
+      svg.appendChild(svgText(doc, 30, 221, "绿线：额定能力 " + formatNumber(result.cooling, 1) + " mW；金虚线：80% 教学预算线 " + formatNumber(result.safetyLimit, 1) + " mW", "start", 12));
+      svg.appendChild(svgText(doc, 30, 247, "总负载 " + formatNumber(result.total, 1) + " mW；额定余量 " + formatNumber(result.headroom, 1) + " mW", "start", 13));
+      svg.appendChild(svgText(doc, 30, 275, "教学线余量 " + formatNumber(result.safetyHeadroom, 1) + " mW；" + (result.safe ? "未超过教学线（等号处余量为零）" : result.overloaded ? "超过额定能力" : "超过教学线"), "start", 12));
+      svg.appendChild(svgText(doc, 30, 315, "预算不求实际温度：稳态仍须满足 Q_in(T*) = Q_out(T*)。", "start", 12));
       return svg;
     }
 
     function drawDaq(doc, result) {
-      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 300", role: "img", "aria-label": "DAQ 连续信号、采样点和混叠信号比较" });
-      var left = 54;
-      var right = 690;
-      var top = 42;
-      var bottom = 212;
-      var duration = Math.max(4 / result.config.signalHz, 12 / result.config.sampleRate);
-      var mapX = function (time) { return left + time / duration * (right - left); };
-      var mapY = function (value) { return (top + bottom) / 2 - value / Math.max(result.config.fullScale, .1) * 72; };
-      svg.appendChild(svgText(doc, 24, 25, "DAQ：连续信号与采样点；红色虚线是保留相位的 signed alias", "start", 13));
-      for (var tick = 0; tick <= 4; tick += 1) {
-        var gx = left + tick / 4 * (right - left);
-        svg.appendChild(makeSvg(doc, "line", { x1: gx, y1: top, x2: gx, y2: bottom, class: "vcd-grid" }));
+      var svg = makeSvg(doc, "svg", { viewBox: "0 0 720 410", role: "img", "aria-label": "模拟电压、削顶、量化采样和有符号混叠频率，横轴毫秒纵轴伏特" });
+      var wave = daqWaveform(result.config), left = 60, right = 680, top = 70, bottom = 270;
+      var ymax = Math.max(result.config.fullScale, result.config.amplitude) * 1.12;
+      var mapX = function (t) { return left + t / wave.duration * (right - left); };
+      var mapY = function (v) { return (top + bottom) / 2 - v / ymax * (bottom - top) / 2; };
+      svg.appendChild(svgText(doc, 24, 24, "绿：原模拟正弦；橙虚线：削顶；蓝点：量化后数字码的代表电压", "start", 12));
+      svg.appendChild(svgText(doc, 24, 45, "红虚线：有符号 alias 正弦（量化前在采样时刻与原信号相同）", "start", 12));
+      [-1, 0, 1].forEach(function (k) {
+        var v = k * result.config.fullScale, y = mapY(v);
+        svg.appendChild(makeSvg(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: k ? "vcd-threshold" : "vcd-axis" }));
+        svg.appendChild(svgText(doc, left - 7, y + 4, formatNumber(v, 2), "end", 11));
+      });
+      svg.appendChild(svgText(doc, left, 64, "电压 / V（金线 ±满量程）", "start", 10));
+      for (var i = 0; i <= 4; i += 1) {
+        var x = left + (right - left) * i / 4;
+        svg.appendChild(makeSvg(doc, "line", { x1: x, y1: top, x2: x, y2: bottom, class: "vcd-grid" }));
+        svg.appendChild(svgText(doc, x, 290, formatNumber(wave.duration * 1000 * i / 4, 3), "middle", 11));
       }
-      svg.appendChild(makeSvg(doc, "line", { x1: left, y1: (top + bottom) / 2, x2: right, y2: (top + bottom) / 2, class: "vcd-axis" }));
-      svg.appendChild(makeSvg(doc, "line", { x1: left, y1: mapY(result.config.fullScale), x2: right, y2: mapY(result.config.fullScale), class: "vcd-threshold" }));
-      svg.appendChild(makeSvg(doc, "line", { x1: left, y1: mapY(-result.config.fullScale), x2: right, y2: mapY(-result.config.fullScale), class: "vcd-threshold" }));
-      svg.appendChild(svgText(doc, left, mapY(result.config.fullScale) - 5, "+满量程", "start", 10));
-      svg.appendChild(svgText(doc, left, mapY(-result.config.fullScale) + 14, "-满量程", "start", 10));
-      var truePoints = [];
-      var aliasPoints = [];
-      for (var index = 0; index <= 180; index += 1) {
-        var time = duration * index / 180;
-        truePoints.push({ x: mapX(time), y: mapY(sampledAdcValue(result.config, time).value) });
-        aliasPoints.push({ x: mapX(time), y: mapY(sampledAdcValue(result.config, time, result.signedAlias).value) });
-      }
-      function pointPath(points) { return points.map(function (point, pointIndex) { return (pointIndex ? "L" : "M") + point.x.toFixed(2) + " " + point.y.toFixed(2); }).join(" "); }
-      svg.appendChild(makeSvg(doc, "path", { d: pointPath(truePoints), class: "vcd-green" }));
-      if (!near(result.alias, result.config.signalHz, 1e-7)) svg.appendChild(makeSvg(doc, "path", { d: pointPath(aliasPoints), class: "vcd-red" }));
-      var sampleCount = Math.floor(duration * result.config.sampleRate);
-      for (var sample = 0; sample <= sampleCount; sample += 1) {
-        var sampleTime = sample / result.config.sampleRate;
-        if (sampleTime > duration + 1e-12) continue;
-        var sampleValue = sampledAdcValue(result.config, sampleTime).value;
-        svg.appendChild(makeSvg(doc, "circle", { cx: mapX(sampleTime), cy: mapY(sampleValue), r: 3.4, class: "vcd-dot" }));
-      }
-      svg.appendChild(svgText(doc, left, 250, "f_s=" + formatNumber(result.config.sampleRate, 0) + " Hz；Nyquist=" + formatNumber(result.nyquist, 0) + " Hz", "start", 12));
-      svg.appendChild(svgText(doc, right, 250, "输入=" + formatNumber(result.config.signalHz, 0) + " Hz；signed alias=" + formatNumber(result.signedAlias, 0) + " Hz", "end", 12));
-      svg.appendChild(svgText(doc, right, 276, result.safe ? "频率与幅度均在当前边界内" : result.config.signalHz === result.nyquist ? "恰在 Nyquist 边界，按不安全处理" : "请先处理混叠或削顶边界", "end", 12));
+      svg.appendChild(svgText(doc, right, 309, "时间 / ms", "end", 11));
+      function path(field) { return wave.continuous.map(function (p, i) { return (i ? "L" : "M") + mapX(p.time).toFixed(3) + " " + mapY(p[field]).toFixed(3); }).join(" "); }
+      svg.appendChild(makeSvg(doc, "path", { d: path("raw"), class: "vcd-green", "data-vcd-curve": "raw" }));
+      if (!result.safeAmplitude) svg.appendChild(makeSvg(doc, "path", { d: path("clipped"), class: "vcd-orange", "data-vcd-curve": "clipped" }));
+      if (!near(result.alias, result.config.signalHz, 1e-7)) svg.appendChild(makeSvg(doc, "path", { d: path("alias"), class: "vcd-red" }));
+      wave.samples.forEach(function (p) { svg.appendChild(makeSvg(doc, "circle", { cx: mapX(p.time), cy: mapY(p.value), r: wave.samples.length > 100 ? 1.5 : 3.2, class: "vcd-dot" })); });
+      svg.appendChild(svgText(doc, 30, 337, "f_s=" + formatNumber(result.config.sampleRate, 0) + " Hz；Nyquist=" + formatNumber(result.nyquist, 0) + " Hz；输入=" + formatNumber(result.config.signalHz, 0) + " Hz", "start", 12));
+      svg.appendChild(svgText(doc, 30, 362, "signed alias=" + formatNumber(result.signedAlias, 0) + " Hz；LSB=" + formatNumber(result.lsb * 1e6, 2) + " µV；码数=" + Math.pow(2, result.config.bits), "start", 12));
+      svg.appendChild(svgText(doc, 30, 389, result.safe ? "当前单频与幅度在边界内；图像不能代替抗混叠滤波检查。" : "混叠、Nyquist 等号或超量程：分别检查频率、相位和幅度条件。", "start", 12));
       return svg;
     }
 
@@ -366,7 +402,7 @@
       var state = { config: copyDefaults(), predictions: {}, revealed: false, active: "vacuum", feedback: "" };
       var shell = makeElement(doc, "div", { className: "vcd-shell" });
       shell.appendChild(makeElement(doc, "h3", { text: "System-budget lab：真空、低温与 DAQ" }));
-      shell.appendChild(makeElement(doc, "p", { className: "vcd-muted", text: "同一条实验链要同时过三道边界：气负载不能被串联电导忽略，热漏不能吃光制冷余量，采样不能越过 Nyquist 或 ADC 满量程。" }));
+      shell.appendChild(makeElement(doc, "p", { className: "vcd-muted", text: "同一条实验链要同时过三道边界：气负载不能被串联流导忽略，热漏不能吃光制冷余量，采样不能越过 Nyquist 或 ADC 满量程。" }));
 
       var predictionForm = makeElement(doc, "form", { className: "vcd-predictions" });
       predictionForm.appendChild(makeElement(doc, "fieldset", {}, [
@@ -422,7 +458,7 @@
         var controls = makeElement(doc, "div", { className: "vcd-controls" });
         controls.appendChild(makeElement(doc, "h4", { text: "参数" }));
         var stage = makeElement(doc, "div", { className: "vcd-stage" });
-        var frame = makeElement(doc, "div", { className: "vcd-stage-frame" });
+        var frame = makeElement(doc, "div", { className: "vcd-stage-frame", tabindex: "0", "aria-label": title + "图表，可用方向键横向滚动" });
         var chart = makeElement(doc, "div");
         frame.appendChild(chart);
         stage.appendChild(frame);
@@ -431,12 +467,12 @@
         layout.appendChild(controls);
         layout.appendChild(stage);
         panel.appendChild(layout);
-        var ledger = makeElement(doc, "div", { className: "vcd-ledger" });
+        var ledger = makeElement(doc, "div", { className: "vcd-ledger", tabindex: "0", "aria-label": title + "数据表，可用方向键横向滚动" });
         panel.appendChild(ledger);
         return { panel: panel, controls: controls, chart: chart, metrics: metrics, ledger: ledger, inputs: {} };
       }
 
-      panels.vacuum = makePanel("vacuum", "真空", "气负载 Q / 泵速 S 的压力还要经过串联电导 C。");
+      panels.vacuum = makePanel("vacuum", "真空", "气负载 Q / 泵速 S 的压力还要经过串联流导 C。");
       panels.cryo = makePanel("cryo", "低温", "辐射、传导、引线和信号热漏相加，当前默认用 80% 制冷能力作为运行安全线。");
       panels.daq = makePanel("daq", "DAQ", "采样频率、输入频率、位数和幅度共同决定可辨识性、数据率与削顶风险。");
       bench.appendChild(panels.vacuum.panel);
@@ -455,7 +491,7 @@
         var output = makeElement(doc, "output", { text: formatNumber(state.config[pathParts[0]][key], digits) });
         var input = makeElement(doc, "input", { type: "range", min: min, max: max, step: step, value: state.config[pathParts[0]][key], "aria-label": label });
         input.addEventListener("input", function () {
-          state.config[pathParts[0]][key] = finite(input.value, label);
+          state.config[pathParts[0]][key] = finite(Number(input.value), label);
           state.active = pathParts[0];
           state.feedback = "参数已更新；请重新读预算余量。";
           render();
@@ -466,7 +502,7 @@
 
       addRange(panels.vacuum, "vacuum.gasLoad", "气负载 Q / Pa·L/s", "0.001", "0.080", "0.001", 3);
       addRange(panels.vacuum, "vacuum.pumpSpeed", "泵速 S / L/s", "20", "200", "5", 0);
-      addRange(panels.vacuum, "vacuum.conductance", "电导 C / L/s", "5", "80", "1", 0);
+      addRange(panels.vacuum, "vacuum.conductance", "流导 C / L/s", "5", "80", "1", 0);
       addRange(panels.cryo, "cryo.radiation", "辐射热漏 / mW", "0", "80", "1", 0);
       addRange(panels.cryo, "cryo.conduction", "传导热漏 / mW", "0", "80", "1", 0);
       addRange(panels.cryo, "cryo.wires", "引线热漏 / mW", "0", "50", "1", 0);
@@ -501,18 +537,18 @@
       function renderLedger(key, result) {
         var rows;
         if (key === "vacuum") rows = [
-          ["串联等效速度", "1/S_eff=1/S+1/C；S_eff=" + formatNumber(result.effectiveSpeed, 2) + " L/s", "导管电导小会限制整条抽气链。"],
-          ["压力", "P=Q/S_eff=" + formatNumber(result.pressure, 6) + " Pa", result.safe ? "低于 0.001 Pa 教学目标。" : "超过 0.001 Pa 教学目标。"],
+          ["串联等效速度", "1/S_eff=1/S+1/C；S_eff=" + formatNumber(result.effectiveSpeed, 2) + " L/s", "导管流导小会限制整条抽气链。"],
+          ["压力", "P=Q/S_eff=" + formatNumber(result.pressure, 6) + " Pa", result.safe ? "不超过 0.001 Pa 教学目标。" : "超过 0.001 Pa 教学目标。"],
           ["边界", "目标余量=" + formatNumber(result.targetMargin, 2) + " 倍", "实际开阀前必须核对差压、联锁、材料放气和受控 vent。"]
         ];
         else if (key === "cryo") rows = [
           ["热负载", "Q_in=" + formatNumber(result.total, 1) + " mW", "四项热漏相加，不能用单一传感器读数替代。"],
-          ["制冷能力", "Q_cool=" + formatNumber(result.cooling, 1) + " mW；比值=" + formatNumber(result.ratio, 2), result.safe ? "低于 80% 运行安全线。" : result.overloaded ? "已经超过额定制冷能力。" : "超过教学用安全线，需减载或提高能力。"],
+          ["制冷能力", "Q_cool=" + formatNumber(result.cooling, 1) + " mW；比值=" + formatNumber(result.ratio, 2), result.safe ? "不超过 80% 教学预算线，等号处预算余量为零。" : result.overloaded ? "已经超过额定制冷能力。" : "超过教学用安全线，需减载或提高能力。"],
           ["余量", "额定=" + formatNumber(result.headroom, 1) + " mW；安全线=" + formatNumber(result.safetyHeadroom, 1) + " mW", "低温系统要给接线、辐射屏和瞬态留出余量。"]
         ];
         else rows = [
           ["频率", "Nyquist=" + formatNumber(result.nyquist, 0) + " Hz；signed alias=" + formatNumber(result.signedAlias, 0) + " Hz", result.safeNyquist ? "当前输入严格低于 Nyquist。" : result.config.signalHz === result.nyquist ? "恰在 Nyquist 边界，按不安全处理。" : "已发生混叠，后端无法唯一恢复原频率。"],
-          ["幅度", "满量程=" + formatNumber(result.config.fullScale, 2) + " V；余量=" + formatNumber(result.headroom, 2) + " V", result.safeAmplitude ? "未削顶。" : "输入超过满量程，波形信息被截断。"],
+          ["幅度", "满量程=±" + formatNumber(result.config.fullScale, 2) + " V；余量=" + formatNumber(result.headroom, 2) + " V", result.safeAmplitude ? "未削顶。" : "输入超过满量程，波形信息被截断。"],
           ["数据率", formatNumber(result.dataRate / 1000, 1) + " kbit/s；LSB=" + formatNumber(result.lsb * 1e6, 1) + " µV", "位数和通道数都会进入存储、传输与噪声预算。"]
         ];
         var table = makeElement(doc, "table", {});
@@ -535,9 +571,23 @@
         });
         panel.chart.replaceChildren(key === "vacuum" ? drawVacuum(doc, data) : key === "cryo" ? drawCryo(doc, data) : drawDaq(doc, data));
         if (key === "vacuum") panel.metrics.replaceChildren(metric(doc, "S_eff / L/s", formatNumber(data.effectiveSpeed, 2)), metric(doc, "P / Pa", formatNumber(data.pressure, 6)), metric(doc, "目标余量", formatNumber(data.targetMargin, 2) + "×"), metric(doc, "状态", data.safe ? "目标内" : "超目标"));
-        else if (key === "cryo") panel.metrics.replaceChildren(metric(doc, "Q_in / mW", formatNumber(data.total, 1)), metric(doc, "Q_cool / mW", formatNumber(data.cooling, 1)), metric(doc, "安全余量", formatNumber(data.safetyHeadroom, 1)), metric(doc, "状态", data.safe ? "有余量" : "需减载"));
+        else if (key === "cryo") panel.metrics.replaceChildren(metric(doc, "Q_in / mW", formatNumber(data.total, 1)), metric(doc, "Q_cool / mW", formatNumber(data.cooling, 1)), metric(doc, "安全余量", formatNumber(data.safetyHeadroom, 1)), metric(doc, "状态", data.safe ? (data.safetyHeadroom > 0 ? "有余量" : "教学线等号") : "需减载"));
         else panel.metrics.replaceChildren(metric(doc, "Nyquist / Hz", formatNumber(data.nyquist, 0)), metric(doc, "alias / Hz", formatNumber(data.alias, 0)), metric(doc, "数据率", formatNumber(data.dataRate / 1000, 1) + " kb/s"), metric(doc, "状态", data.safe ? "边界内" : "需处理"));
         panel.ledger.replaceChildren(renderLedger(key, data));
+        if (key === "daq") {
+          var samples = daqWaveform(data.config).samples.slice(0, 13);
+          var table = makeElement(doc, "table");
+          table.appendChild(makeElement(doc, "caption", { text: "前 13 个采样点：mid-rise 量化，误差相对削顶后的电压；原始超量程损失另列。" }));
+          table.appendChild(makeElement(doc, "thead", {}, [makeElement(doc, "tr", {}, ["n", "t / ms", "原始 / V", "削顶后 / V", "数字码", "代表值 / V", "量化误差 / µV"].map(function (t) { return makeElement(doc, "th", { text: t }); }))]));
+          table.appendChild(makeElement(doc, "tbody", {}, samples.map(function (q) {
+            return makeElement(doc, "tr", {}, [q.index, formatNumber(q.time * 1000, 3), formatNumber(q.raw, 7), formatNumber(q.clippedValue, 7), q.code, formatNumber(q.value, 7), formatNumber(q.error * 1e6, 3)].map(function (t) { return makeElement(doc, "td", { text: t }); }));
+          })));
+          panel.ledger.appendChild(table);
+        }
+        PRESETS[key].forEach(function (preset) {
+          var matches = Object.keys(preset).filter(function (f) { return f !== "id" && f !== "label"; }).every(function (f) { return state.config[key][f] === preset[f]; });
+          panel.controls.querySelector('[data-vcd-preset="' + key + ':' + preset.id + '"]').setAttribute("aria-pressed", matches ? "true" : "false");
+        });
         panel.panel.hidden = key !== state.active;
         panel.panel.setAttribute("aria-hidden", key !== state.active ? "true" : "false");
         tabButtons[key].setAttribute("aria-selected", key === state.active ? "true" : "false");
@@ -554,7 +604,7 @@
         renderPanel("vacuum", result);
         renderPanel("cryo", result);
         renderPanel("daq", result);
-        note.textContent = "边界提示：这里的目标压力、80% 热负载线和满量程只是教学用验收阈值；真实装置还要按设备额定值、材料兼容性、受控泄压/排气、氧缺失、冷冻剂防护、接地隔离和硬件滤波规程执行。";
+        note.textContent = "模型读法：真空忽略底压；低温比较目标温度下能力；DAQ 按每通道采样率计数据量，蓝点采用区间中点量化。图中加密点只用于绘图，前 13 个真实采样值另列于表。边界提示：这里的目标压力、80% 热负载线和满量程只是教学用验收阈值；真实装置还要按设备额定值、材料兼容性、受控泄压/排气、氧缺失、冷冻剂防护、接地隔离和硬件滤波规程执行。";
       }
 
       predictionForm.addEventListener("submit", function (event) {
@@ -573,10 +623,14 @@
         render();
         announce(state.feedback);
       });
+      predictionForm.addEventListener("change", function (event) {
+        if (event.target.matches("[data-vcd-prediction]")) { state.revealed = false; state.feedback = "预测已更改，请重新提交。"; render(); }
+      });
       resetButton.addEventListener("click", function () {
         predictionForm.reset();
         state = { config: copyDefaults(), predictions: {}, revealed: false, active: "vacuum", feedback: "" };
         render();
+        predictionForm.querySelector("select").focus();
         announce("真空、低温与 DAQ 预算已重置；预测重新隐藏。");
       });
       render();
@@ -627,6 +681,8 @@
       runBudget: runBudget,
       wrapFrequency: wrapFrequency,
       adcSample: adcSample,
+      quantizeAdc: quantizeAdc,
+      daqWaveform: daqWaveform,
       sampledAdcValue: sampledAdcValue,
       mount: mount,
       selfTest: selfTest
